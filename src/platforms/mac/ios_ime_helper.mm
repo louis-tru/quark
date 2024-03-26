@@ -48,12 +48,11 @@ using namespace qk;
 	}
 @end
 
-@interface IOSTextRange: UITextRange<NSCopying>
-	{
-		@private
-		NSUInteger _start;
-		NSUInteger _end;
-	}
+@interface IOSTextRange: UITextRange<NSCopying> {
+	@private
+	NSUInteger _start;
+	NSUInteger _end;
+}
 @end
 
 @implementation IOSTextRange
@@ -96,9 +95,7 @@ using namespace qk;
 
 @end
 
-
-@interface QkiOSIMEHelprt: UIView<UITextInput,QkIMEHelprt>
-{
+@interface QkiOSIMEHelprt: UIView<UITextInput,QkIMEHelprt> {
 	@private
 	NSString*    _marked_text;
 	UITextInputStringTokenizer* _tokenizer;
@@ -106,7 +103,6 @@ using namespace qk;
 	uint16_t     _keyboard_up_keycode;
 	BOOL         _can_backspace;
 	BOOL         _clearing;
-	bool         _has_open;
 }
 - (id)initIME:(Application*)host;
 - (void)open;
@@ -118,12 +114,7 @@ using namespace qk;
 - (void)set_keyboard_return_type:(KeyboardReturnType)type;
 @end
 
-id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
-	return [[QkiOSIMEHelprt alloc] initIME:host];
-}
-
 @implementation QkiOSIMEHelprt
-
 	#pragma mark UITextInputTraits protocol
 	@synthesize autocapitalizationType;
 	@synthesize autocorrectionType;
@@ -132,7 +123,6 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 	@synthesize returnKeyType;
 	@synthesize spellCheckingType;
 	@synthesize enablesReturnKeyAutomatically;
-
 	#pragma mark UITextInput protocol
 	@synthesize selectedTextRange;
 	@synthesize markedTextRange;
@@ -156,7 +146,6 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 			_host = host;
 			_keyboard_up_keycode = 0;
 			_clearing = NO;
-			_has_open = NO;
 			
 			NSNotificationCenter* notification = [NSNotificationCenter defaultCenter];
 			
@@ -189,33 +178,28 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 	}
 
 	- (void)UIKeyboardWillShowNotification:(NSNotification*)note {
-		
 	}
 
 	- (void)UIKeyboardDidShowNotification:(NSNotification*)note {
-		
 	}
 
 	- (void)UIKeyboardWillHideNotification:(NSNotification*)note {
-		
 	}
 
 	- (void)UIKeyboardDidHideNotification:(NSNotification*)note {
-		
 	}
 
 	- (void)UITextInputCurrentInputModeDidChangeNotification:(NSNotification*)note {
-		
 	}
 
+	#pragma mark - QkIMEHelprt
+
 	- (void)open {
-		_has_open = YES;
 		if ([self becomeFirstResponder]) {
 			Qk_DEBUG("becomeFirstResponder ok");
 		}
 	}
 	- (void)close {
-		_has_open = NO;
 		[self resignFirstResponder];
 	}
 
@@ -235,42 +219,48 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 	}
 
 	- (void)set_keyboard_type:(KeyboardType)type {
-			UIKeyboardType type2 = UIKeyboardTypeDefault;
+			UIKeyboardType ktype = UIKeyboardTypeDefault;
 			switch ( type ) {
 				default: break;
-				case KeyboardType::ASCII: type2 = UIKeyboardTypeASCIICapable; break;
-				case KeyboardType::NUMBER: type2 = UIKeyboardTypeNumbersAndPunctuation; break;
-				case KeyboardType::URL: type2 = UIKeyboardTypeURL; break;
-				case KeyboardType::NUMBER_PAD: type2 = UIKeyboardTypeNumberPad; break;
-				case KeyboardType::PHONE: type2 = UIKeyboardTypePhonePad; break;
-				case KeyboardType::NAME_PHONE: type2 = UIKeyboardTypeNamePhonePad; break;
-				case KeyboardType::EMAIL: type2 = UIKeyboardTypeEmailAddress; break;
-				case KeyboardType::DECIMAL: type2 = UIKeyboardTypeDecimalPad; break;
-				case KeyboardType::TWITTER: type2 = UIKeyboardTypeTwitter; break;
-				case KeyboardType::SEARCH: type2 = UIKeyboardTypeWebSearch; break;
-				case KeyboardType::ASCII_NUMBER: type2 = UIKeyboardTypeASCIICapableNumberPad; break;
+				case KeyboardType::ASCII: ktype = UIKeyboardTypeASCIICapable; break;
+				case KeyboardType::NUMBER: ktype = UIKeyboardTypeNumbersAndPunctuation; break;
+				case KeyboardType::URL: ktype = UIKeyboardTypeURL; break;
+				case KeyboardType::NUMBER_PAD: ktype = UIKeyboardTypeNumberPad; break;
+				case KeyboardType::PHONE: ktype = UIKeyboardTypePhonePad; break;
+				case KeyboardType::NAME_PHONE: ktype = UIKeyboardTypeNamePhonePad; break;
+				case KeyboardType::EMAIL: ktype = UIKeyboardTypeEmailAddress; break;
+				case KeyboardType::DECIMAL: ktype = UIKeyboardTypeDecimalPad; break;
+				case KeyboardType::TWITTER: ktype = UIKeyboardTypeTwitter; break;
+				case KeyboardType::SEARCH: ktype = UIKeyboardTypeWebSearch; break;
+				case KeyboardType::ASCII_NUMBER: ktype = UIKeyboardTypeASCIICapableNumberPad; break;
 			}
-			self.keyboardType = type2;
+			self.keyboardType = ktype;
 	}
 
 	- (void)set_keyboard_return_type:(KeyboardReturnType)type {
-		UIReturnKeyType type2 = UIReturnKeyDefault;
+		UIReturnKeyType ktype = UIReturnKeyDefault;
 		switch ( type ) {
 			default: break;
-			case KeyboardReturnType::GO: type2 = UIReturnKeyGo; break;
-			//case KeyboardReturnType::GOOGLE: type2 = UIReturnKeyGoogle; break;
-			case KeyboardReturnType::JOIN: type2 = UIReturnKeyJoin; break;
-			case KeyboardReturnType::NEXT: type2 = UIReturnKeyNext; break;
-			case KeyboardReturnType::ROUTE: type2 = UIReturnKeyRoute; break;
-			case KeyboardReturnType::SEARCH: type2 = UIReturnKeySearch; break;
-			case KeyboardReturnType::SEND: type2 = UIReturnKeySend; break;
-			//case KeyboardReturnType::YAHOO: type2 = UIReturnKeyYahoo; break;
-			case KeyboardReturnType::DONE: type2 = UIReturnKeyDone; break;
-			case KeyboardReturnType::EMERGENCY: type2 = UIReturnKeyEmergencyCall; break;
-			case KeyboardReturnType::CONTINUE: type2 = UIReturnKeyContinue; break;
+			case KeyboardReturnType::GO: ktype = UIReturnKeyGo; break;
+			//case KeyboardReturnType::GOOGLE: ktype = UIReturnKeyGoogle; break;
+			case KeyboardReturnType::JOIN: ktype = UIReturnKeyJoin; break;
+			case KeyboardReturnType::NEXT: ktype = UIReturnKeyNext; break;
+			case KeyboardReturnType::ROUTE: ktype = UIReturnKeyRoute; break;
+			case KeyboardReturnType::SEARCH: ktype = UIReturnKeySearch; break;
+			case KeyboardReturnType::SEND: ktype = UIReturnKeySend; break;
+			//case KeyboardReturnType::YAHOO: ktype = UIReturnKeyYahoo; break;
+			case KeyboardReturnType::DONE: ktype = UIReturnKeyDone; break;
+			case KeyboardReturnType::EMERGENCY: ktype = UIReturnKeyEmergencyCall; break;
+			case KeyboardReturnType::CONTINUE: ktype = UIReturnKeyContinue; break;
 		}
-		self.returnKeyType = type2;
+		self.returnKeyType = ktype;
 	}
+
+	- (UIView*)view {
+		return self;
+	}
+
+	#pragma mark - UITextInput
 
 	- (BOOL)canBecomeFirstResponder {
 		return YES;
@@ -303,6 +293,38 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 		_host->dispatch()->keyboard()->onDispatch(KEYCODE_BACK_SPACE, 1, 0, 0, -1, 0);
 	}
 
+	- (void)setMarkedText:(NSString*)markedText selectedRange:(NSRange)selectedRange {
+		if ( _clearing ) return;
+		_marked_text = markedText;
+		_host->dispatch()->onImeMarked([_marked_text UTF8String]);
+
+		if ( _keyboard_up_keycode ) {
+			_host->dispatch()->keyboard()->onDispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
+			_keyboard_up_keycode = 0;
+		}
+	}
+
+	- (void)unmarkText {
+		if ( _clearing ) return;
+		_host->dispatch()->onImeUnmark([_marked_text UTF8String]);
+		_marked_text = @"";
+	}
+
+	- (BOOL)shouldChangeTextInRange:(UITextRange*)range replacementText:(NSString*)text {
+		_keyboard_up_keycode = 0;
+		if ( text ) {
+			if ( text.length == 1 ) {
+				uint16_t keycode = [text characterAtIndex:0];
+				
+				if ( ![text isEqualToString:_marked_text] ) {
+					_keyboard_up_keycode = keycode;
+					_host->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
+				}
+			}
+		}
+		return YES;
+	}
+
 	- (NSString*)textInRange:(UITextRange*)range {
 		return _marked_text;
 	}
@@ -329,25 +351,6 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 	}
 
 	- (void)setMarkedTextSlant:(NSDictionary*)style {
-	}
-
-	- (void)setMarkedText:(NSString*)markedText selectedRange:(NSRange)selectedRange {
-		if ( !_clearing ) {
-			_marked_text = markedText;
-			_host->dispatch()->onImeMarked([_marked_text UTF8String]);
-			
-			if ( _keyboard_up_keycode ) {
-				_host->dispatch()->keyboard()->onDispatch(_keyboard_up_keycode, 1, 0, 0, -1, 0);
-				_keyboard_up_keycode = 0;
-			}
-		}
-	}
-
-	- (void)unmarkText {
-		if ( !_clearing ) {
-			_host->dispatch()->onImeUnmark([_marked_text UTF8String]);
-		}
-		_marked_text = @"";
 	}
 
 	- (UITextPosition*)beginningOfDocument {
@@ -409,7 +412,6 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 
 	- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection
 												forRange:(UITextRange*)range {
-		
 	}
 
 	- (::CGRect)firstRectForRange:(UITextRange*)range {
@@ -436,48 +438,8 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 		return [IOSTextRange new];
 	}
 
-	- (BOOL)shouldChangeTextInRange:(UITextRange*)range replacementText:(NSString*)text {
-		_keyboard_up_keycode = 0;
-		
-		if ( text ) {
-			if ( text.length == 1 ) {
-				uint16_t keycode = [text characterAtIndex:0];
-				
-				if ( ![text isEqualToString:_marked_text] ) {
-					_keyboard_up_keycode = keycode;
-					_host->dispatch()->keyboard()->onDispatch(keycode, 1, 1, 0, -1, 0);
-				}
-			}
-		}
-		return YES;
-	}
-
 	- (void)encodeWithCoder:(nonnull NSCoder *)coder {
 	}
-
-	//+ (nonnull instancetype)appearance {
-	//
-	//}
-	//
-	//+ (nonnull instancetype)appearanceForTraitCollection:(nonnull UITraitCollection *)trait {
-	//
-	//}
-	//
-	//+ (nonnull instancetype)appearanceForTraitCollection:(nonnull UITraitCollection *)trait whenContainedIn:(nullable Class<UIAppearanceContainer>)ContainerClass, ... {
-	//
-	//}
-	//
-	//+ (nonnull instancetype)appearanceForTraitCollection:(nonnull UITraitCollection *)trait whenContainedInInstancesOfClasses:(nonnull NSArray<Class<UIAppearanceContainer>> *)containerTypes {
-	//
-	//}
-	//
-	//+ (nonnull instancetype)appearanceWhenContainedIn:(nullable Class<UIAppearanceContainer>)ContainerClass, ... {
-	//
-	//}
-	//
-	//+ (nonnull instancetype)appearanceWhenContainedInInstancesOfClasses:(nonnull NSArray<Class<UIAppearanceContainer>> *)containerTypes {
-	//
-	//}
 
 	- (void)traitCollectionDidChange:(nullable UITraitCollection *)previousTraitCollection {
 		Qk_DEBUG("traitCollectionDidChange");
@@ -515,11 +477,8 @@ id<QkIMEHelprt> qk_ime_helper_new(qk::Application *host) {
 		Qk_DEBUG("updateFocusIfNeeded");
 	}
 
-	//- (nonnull NSArray<id<UIFocusItem>> *)focusItemsInRect:(CGRect)rect {
-	//}
-
-	- (UIView*) view {
-		return self;
-	}
-
 @end
+
+id<QkIMEHelprt> qk_make_ime_helper(Application *host) {
+	return [[QkiOSIMEHelprt alloc] initIME:host];
+}

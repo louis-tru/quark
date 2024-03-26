@@ -37,7 +37,7 @@ using namespace qk;
 
 typedef Screen::StatusBarStyle StatusBarStyle;
 
-extern QkApplicationDelegate *__app;
+extern QkApplicationDelegate *qkappdelegate;
 
 float Screen::default_atom_pixel() {
 	return 1.0 / UIScreen.mainScreen.backingScaleFactor;
@@ -60,10 +60,6 @@ void Screen::set_visible_status_bar(bool visible) {
 }
 
 void Screen::set_status_bar_style(StatusBarStyle style) {
-	// TODO
-}
-
-void Screen::set_fullscreen(bool fullscreen) {
 	// TODO
 }
 

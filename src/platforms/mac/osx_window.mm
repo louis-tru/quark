@@ -41,10 +41,6 @@ QkWindowDelegate* WindowImpl::delegate() {
 	return ((__bridge QkWindowDelegate*)(this));
 }
 
-UIWindow* WindowImpl::window() {
-	return ((__bridge QkWindowDelegate*)(this)).window;
-}
-
 @interface QkWindowDelegate()
 @property (assign, nonatomic) BOOL isClose;
 @property (assign, nonatomic) BOOL isBackground;
@@ -52,105 +48,107 @@ UIWindow* WindowImpl::window() {
 
 @implementation QkWindowDelegate
 
-	- (id) init:(Window::Options&)opts win0:(Window*)win0 render:(Render*)render {
-		if ( !(self = [super init]) ) return nil;
+- (id) init:(Window::Options&)opts win:(Window*)win render:(Render*)render {
+	if ( !(self = [super init]) ) return nil;
 
-		NSWindowStyleMask style = NSWindowStyleMaskBorderless |
-			NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-			NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-		UIScreen* screen = UIScreen.mainScreen;
+	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
+		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
+	UIScreen* screen = UIScreen.mainScreen;
 
-		float w = opts.frame.size.x() > 0 ?
-			opts.frame.size.x(): screen.frame.size.width / 2;
-		float h = opts.frame.size.y() > 0 ?
-			opts.frame.size.y(): screen.frame.size.height / 2;
-		float x = opts.frame.origin.x() > 0 ?
-			opts.frame.origin.x(): (screen.frame.size.width - w) / 2.0;
-		float y = opts.frame.origin.y() > 0 ?
-			opts.frame.origin.y(): (screen.frame.size.height - h) / 2.0;
+	float w = opts.frame.size.x() > 0 ?
+		opts.frame.size.x(): screen.frame.size.width / 2;
+	float h = opts.frame.size.y() > 0 ?
+		opts.frame.size.y(): screen.frame.size.height / 2;
+	float x = opts.frame.origin.x() > 0 ?
+		opts.frame.origin.x(): (screen.frame.size.width - w) / 2.0;
+	float y = opts.frame.origin.y() > 0 ?
+		opts.frame.origin.y(): (screen.frame.size.height - h) / 2.0;
 
-		UIWindow *window = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, w, h)
-																							styleMask:style
-																								backing:NSBackingStoreBuffered
-																									defer:NO
-																									screen:screen];
-		window.title = [NSString stringWithUTF8String:opts.title.c_str()];
-		window.delegate = self;
+	UIWindow *uiwin = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, w, h)
+																						styleMask:style
+																							backing:NSBackingStoreBuffered
+																								defer:NO
+																								screen:screen];
+	uiwin.title = [NSString stringWithUTF8String:opts.title.c_str()];
+	uiwin.delegate = self;
 
-		self.isBackground = NO;
-		self.isClose = NO;
-		self.win0 = win0;
-		self.window = window;
-		self.root_ctr = nil;
-		self.ime = qk_make_ime_helper(shared_app());
+	self.isBackground = NO;
+	self.isClose = NO;
+	self.win = win;
+	self.uiwin = uiwin;
+	self.root_ctr = [QkRootViewController new];
+	self.root_ctr.win = win;
+	self.uiwin.contentViewController = self.root_ctr;
+	self.ime = qk_make_ime_helper(win);
 
-		if (opts.frame.origin.x() < 0 && opts.frame.origin.y() < 0) {
-			[window center];
-		}
-
-		UIView *rootView = window.contentView;
-		UIView *view = render->surface()->surfaceView();
-
-		view.frame = rootView.bounds;
-		view.translatesAutoresizingMaskIntoConstraints = NO;
-
-		[rootView addSubview:view];
-		[rootView addConstraint:[NSLayoutConstraint
-														constraintWithItem:view
-														attribute:NSLayoutAttributeWidth
-														relatedBy:NSLayoutRelationEqual
-														toItem:rootView
-														attribute:NSLayoutAttributeWidth
-														multiplier:1
-														constant:0]];
-		[rootView addConstraint:[NSLayoutConstraint
-														constraintWithItem:view
-														attribute:NSLayoutAttributeHeight
-														relatedBy:NSLayoutRelationEqual
-														toItem:rootView
-														attribute:NSLayoutAttributeHeight
-														multiplier:1
-														constant:0]];
-		return self;
+	if (opts.frame.origin.x() < 0 && opts.frame.origin.y() < 0) {
+		[uiwin center];
 	}
 
-	- (BOOL)windowShouldClose:(NSWindow*)sender {
-		if (!self.isClose) {
-			self.isClose = YES;
-			self.win0->host()->loop()->post(Cb([self](auto&e){
-				self.win0->close(); // close destroy window
-			}));
-		}
-		return YES;
-	}
+	UIView *rootView = self.root_ctr.view;
+	UIView *view = render->surface()->surfaceView();
 
-	- (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)size {
-		return size;
-	}
+	view.frame = rootView.bounds;
+	view.translatesAutoresizingMaskIntoConstraints = NO;
 
-	- (void)windowDidMiniaturize:(NSNotification*)notification {
-		if (self.isBackground) return;
-		self.isBackground = YES;
-		Inl_Application(self.win0->host())->triggerBackground(self.win0);
-		Qk_DEBUG("windowDidMiniaturize, triggerBackground");
-	}
+	[rootView addSubview:view];
+	[rootView addConstraint:[NSLayoutConstraint
+													constraintWithItem:view
+													attribute:NSLayoutAttributeWidth
+													relatedBy:NSLayoutRelationEqual
+													toItem:rootView
+													attribute:NSLayoutAttributeWidth
+													multiplier:1
+													constant:0]];
+	[rootView addConstraint:[NSLayoutConstraint
+													constraintWithItem:view
+													attribute:NSLayoutAttributeHeight
+													relatedBy:NSLayoutRelationEqual
+													toItem:rootView
+													attribute:NSLayoutAttributeHeight
+													multiplier:1
+													constant:0]];
+	[rootView addSubview:self.ime.view];
+	return self;
+}
 
-	- (void)windowDidDeminiaturize:(NSNotification*)notification {
-		if (!self.isBackground) return;
-		self.isBackground = NO;
-		Inl_Application(self.win0->host())->triggerForeground(self.win0);
-		Qk_DEBUG("windowDidDeminiaturize,triggerForeground");
+- (BOOL)windowShouldClose:(NSWindow*)sender {
+	if (!self.isClose) {
+		self.isClose = YES;
+		self.win->host()->loop()->post(Cb([self](auto&e){
+			self.win->close(); // close destroy window
+		}));
 	}
+	return YES;
+}
+
+- (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)size {
+	return size;
+}
+
+- (void)windowDidMiniaturize:(NSNotification*)notification {
+	if (self.isBackground) return;
+	self.isBackground = YES;
+	Inl_Application(self.win->host())->triggerBackground(self.win);
+	Qk_DEBUG("windowDidMiniaturize, triggerBackground");
+}
+
+- (void)windowDidDeminiaturize:(NSNotification*)notification {
+	if (!self.isBackground) return;
+	self.isBackground = NO;
+	Inl_Application(self.win->host())->triggerForeground(self.win);
+	Qk_DEBUG("windowDidDeminiaturize,triggerForeground");
+}
 
 @end
 
 void Window::pending() {
-	// noop
 }
 
 void Window::openImpl(Options &opts) {
 	qk_post_messate_main(Cb([&opts,this](auto&e) {
-		auto del = [[QkWindowDelegate alloc] init:opts win0:this render:_render];
+		auto del = [[QkWindowDelegate alloc] init:opts win:this render:_render];
 		CFBridgingRetain(del);
 		_impl = (__bridge WindowImpl*)del;
 		set_backgroundColor(opts.backgroundColor);
@@ -163,7 +161,7 @@ void Window::closeImpl() {
 	if (!win.isClose) {
 		win.isClose = YES;
 		qk_post_messate_main(Cb([win](auto&e) {
-			[win.window close]; // close platform window
+			[win.uiwin close]; // close platform window
 		}), false);
 	}
 	//CFBridgingRelease(_impl);
@@ -173,7 +171,7 @@ void Window::closeImpl() {
 void Window::set_backgroundColor(Color val) {
 	qk_post_messate_main(Cb([this,val](auto&e) {
 		Color4f color = val.to_color4f();
-		_impl->window().backgroundColor = 
+		_impl->delegate().uiwin.backgroundColor =
 			[UIColor colorWithSRGBRed:color.r() green:color.g() blue:color.b() alpha:color.a()];
 	}), false);
 	_backgroundColor = val;
@@ -181,7 +179,11 @@ void Window::set_backgroundColor(Color val) {
 
 void Window::activate() {
 	qk_post_messate_main(Cb([this](auto&e) {
-		[_impl->window() makeKeyAndOrderFront:nil];
+		[_impl->delegate().uiwin makeKeyAndOrderFront:nil];
 	}), false);
 	Inl_Application(_host)->setActiveWindow(this);
+}
+
+void Window::set_fullscreen(bool fullscreen) {
+	// TODO
 }

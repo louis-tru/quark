@@ -124,7 +124,7 @@ namespace qk {
 		inline String basename() const { return _basename; }
 		inline String extname() const { return _extname; }
 		inline String search() const { return _search; }
-		static String encode(cString& url);
+		static String encode(cString& url, bool component);
 		static String decode(cString& url);
 	private:
 		URIType _uritype;

@@ -272,11 +272,11 @@ namespace qk {
 						break;
 					case ButtonPress:
 						Qk_DEBUG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-						_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
+						_dispatch->dispatch_mousepress(KeyboardKeyCode(event.xbutton.button), true);
 						break;
 					case ButtonRelease:
 						Qk_DEBUG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-						_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
+						_dispatch->dispatch_mousepress(KeyboardKeyCode(event.xbutton.button), false);
 						break;
 					case MotionNotify: {
 						Vec2 scale = _host->display_port()->scale();

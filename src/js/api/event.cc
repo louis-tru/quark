@@ -323,7 +323,7 @@ class WrapUIKeyEvent: public WrapObject {
 	}
 	
 	/**
-	 * @get keycode {KeyboardKeyName}
+	 * @get keycode {KeyboardKeyCode}
 	 */
 	static void keycode(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);

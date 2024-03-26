@@ -37,7 +37,7 @@ using namespace qk;
 // ------------------- OpenGL ------------------
 #if Qk_ENABLE_GL && Qk_iOS
 
-extern QkApplicationDelegate *__app;
+extern QkApplicationDelegate *qkappdelegate;
 
 @interface GLView: UIView
 {

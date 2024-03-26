@@ -33,14 +33,13 @@
 #include "../window.h"
 #include "./textarea.h"
 #include "../../util/codec.h"
-#include <math.h>
 
 namespace qk {
 
 	enum {
 		kFlag_Normal = 0,      // 正常状态未激活光标查询
-		kFlag_Wait_Find,       // 等待超时激活光标定位
-		kFlag_Disable_Find,    // 禁用激活光标定位
+		kFlag_Find_Wait,       // 等待超时激活光标定位
+		kFlag_Find_Disable,    // 禁用激活光标定位
 		kFlag_Find,            // 激活光标定位
 		kFlag_Auto_Find,       // 激活自动光标定位
 		kFlag_Range_Select,    // 范围选择
@@ -51,48 +50,49 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(InputLayout, Inl) {
 		#define _this static_cast<InputLayout::Inl*>(this)
+		#define _async_call window()->preRender().async_call
 	public:
 
-		inline PreRender& preRender() {
-			return window()->preRender();
-		}
-
+		#pragma mark Event handles
+		// ============================================================================
+		// Event handles
+		// ============================================================================
 		void handle_Touchstart(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
-			preRender().async_call([](auto ctx, auto args) { ctx->start_action(args); }, this, args);
+			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg); }, this, args);
 		}
 
 		void handle_Touchmove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<TouchEvent*>(&evt);
 			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
-			preRender().async_call([](auto ctx, auto args) { ctx->move_action(args); }, this, args);
+			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, args);
 		}
 
 		void handle_Touchend(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
-			preRender().async_call([](auto ctx, auto args) { ctx->end_action(args); }, this, args);
+			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, args);
 		}
 
 		void handle_Mousedown(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			Vec2 args(e->x(), e->y());
-			preRender().async_call([](auto ctx, auto args) { ctx->start_action(args); }, this, args);
+			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg); }, this, args);
 		}
 
 		void handle_Mousemove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<MouseEvent*>(&evt);
 			Vec2 args(e->x(), e->y());
-			preRender().async_call([](auto ctx, auto args) { ctx->move_action(args); }, this, args);
+			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, args);
 		}
 
 		void handle_Mouseup(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
 			Vec2 args(e->x(), e->y());
-			preRender().async_call([](auto ctx, auto args) { ctx->end_action(args); }, this, args);
+			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, args);
 		}
 
 		void handle_Click(UIEvent& evt) {
@@ -103,22 +103,22 @@ namespace qk {
 				view()->focus();
 			}
 
-			preRender().async_call([](auto ctx, auto args) {
-				if ( ctx->_editing ) {
-					ctx->window()->dispatch()->set_ime_keyboard_open({
-						false, ctx->_type, ctx->_return_type, ctx->input_spot_location()
+			_async_call([](auto self, auto arg) {
+				if ( self->_editing ) {
+					self->window()->dispatch()->set_ime_keyboard_open({
+						false, self->_type, self->_return_type, self->spot_rect()
 					});
 				} else {
-					if ( ctx->_flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
-						ctx->_flag = kFlag_Normal;
+					if ( self->_flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
+						self->_flag = kFlag_Normal;
 					} else {
-						auto view = ctx->safe_view();
+						auto view = self->safe_view();
 						auto v = *view;
 						if (v) {
 							if (!v->is_focus())
-								ctx->window()->host()->loop()->post(Cb([v](auto &e) { v->focus(); },v));
-							ctx->handle_Focus_for_render_t();
-							ctx->find_cursor(args);
+								self->window()->host()->loop()->post(Cb([v](auto &e) { v->focus(); },v));
+							self->handle_Focus_for_render_t();
+							self->find_cursor(arg.arg);
 						}
 					}
 				}
@@ -126,16 +126,16 @@ namespace qk {
 		}
 
 		void handle_Keydown(UIEvent& evt) {
-			preRender().async_call([](auto ctx, auto args) {
+			_async_call([](auto ctx, auto arg) {
 				if ( ctx->_editing && ctx->_flag == kFlag_Normal ) {
-					switch ( args ) {
+					switch ( arg.arg ) {
 						default: break;
 						case KEYCODE_LEFT:
 							ctx->_cursor = Qk_MAX(0, int(ctx->_cursor - 1));
 							break;
 						case KEYCODE_UP: {
-							Vec2 location = ctx->spot_location();
-							Vec2 coord(location.x(), location.y() - (ctx->_text_height * 1.5));
+							Vec2 pos = ctx->_mat * ctx->spot_location();
+							Vec2 coord(pos.x(), pos.y() - (ctx->_text_height * 1.5));
 							ctx->find_cursor(coord);
 							break;
 						}
@@ -143,8 +143,8 @@ namespace qk {
 							ctx->_cursor = Qk_MIN(ctx->text_length(), ctx->_cursor + 1);
 							break;
 						case KEYCODE_DOWN: {
-							Vec2 location = ctx->spot_location();
-							Vec2 coord(location.x(), location.y() + (ctx->_text_height * 0.5));
+							Vec2 pos = ctx->_mat * ctx->spot_location();
+							Vec2 coord(pos.x(), pos.y() + (ctx->_text_height * 0.5));
 							ctx->find_cursor(coord);
 							break;
 						}
@@ -175,15 +175,15 @@ namespace qk {
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
 			mark_render(kInput_Status);
-			preRender().addtask(this);
+			window()->preRender().addtask(this);
 		}
 
 		void handle_Focus(UIEvent& evt) {
-			preRender().async_call([](auto ctx, auto args) { ctx->handle_Focus_for_render_t(); }, this, 0);
+			_async_call([](auto ctx, auto args) { ctx->handle_Focus_for_render_t(); }, this, 0);
 		}
 
 		void handle_Blur(UIEvent& evt) {
-			preRender().async_call([](auto ctx, auto args) {
+			_async_call([](auto ctx, auto args) {
 				ctx->_editing = false;
 				ctx->_flag = kFlag_Normal;
 				if ( ctx->_marked_text.length() ) {
@@ -191,17 +191,14 @@ namespace qk {
 				} else {
 					ctx->mark_render(kInput_Status);
 				}
-				ctx->preRender().untask(ctx);
+				ctx->window()->preRender().untask(ctx);
 			}, this, 0);
 		}
 
-		// -------------------------------------------------------------------------------
+		// ============================================================================
 
 		Vec2 get_position() {
-			Vec2 point(
-				padding_left(),// - origin_value()[0],
-				padding_top()// - origin_value()[1]
-			);
+			Vec2 point(padding_left(), padding_top());
 			if (_border) {
 				point[0] += _border->width[3]; // left
 				point[1] += _border->width[0]; // top
@@ -213,22 +210,24 @@ namespace qk {
 			if ( _editing ) {
 				_point = point;
 				if ( _flag == kFlag_Normal ) { // 开始超时激活光标定位
-					_flag = kFlag_Wait_Find;
-					int64_t timeout = is_multiline() ? 1e6/*1s*/: 0;
-					if ( timeout ) {
+					_flag = kFlag_Find_Wait;
+					if ( is_multiline() ) {
 						auto view = safe_view();
 						if (view) {
-							window()->host()->loop()->post(Cb([this](auto &evt) { // delay call
-								preRender().async_call([](auto ctx, auto args) {
-									if ( ctx->_flag == kFlag_Wait_Find ) {
+							window()->host()->loop()->post(Cb([this](auto &e) { // delay call
+								_async_call([](auto ctx, auto arg) {
+									if ( ctx->_flag == kFlag_Find_Wait ) {
 										ctx->_flag = kFlag_Find; // 激活光标定位
 										ctx->find_cursor(ctx->_point);
 									}
 								}, this, 0);
-							}, *view), Qk_MIN(timeout, 1e6/*1s*/));
+							}, *view), 1e6/*1s*/);
 						}
 					} else { // 立即激活
 						_flag = kFlag_Find;
+						_async_call([](auto ctx, auto arg) {
+							ctx->find_cursor(arg.arg);
+						}, this, point);
 					}
 				}
 			} else {
@@ -254,8 +253,8 @@ namespace qk {
 				_point = point;
 
 				switch (_flag) {
-					case kFlag_Wait_Find:          // 等待激活光标定位
-						_flag = kFlag_Disable_Find;  // 禁用
+					case kFlag_Find_Wait:          // 等待激活光标定位
+						_flag = kFlag_Find_Disable;  // 禁用
 						break;
 					case kFlag_Find: { // 光标定位
 						auto has = is_auto_find_is_required(_point);
@@ -301,7 +300,7 @@ namespace qk {
 
 		void end_action(Vec2 point) {
 			if ( _editing ) {
-				if ( _flag == kFlag_Wait_Find || _flag == kFlag_Find ) {
+				if ( _flag == kFlag_Find_Wait || _flag == kFlag_Find ) {
 					find_cursor(point);
 				}
 				_flag = kFlag_Normal;
@@ -312,7 +311,6 @@ namespace qk {
 			auto offset = input_text_offset();
 			auto y = _lines->line(_cursor_linenum).baseline - _text_ascent + _text_height + offset.y();
 			auto x = _cursor_x + offset.x();
-			// auto origin = origin_value();
 
 			x += padding_left();
 			y += padding_top();
@@ -321,14 +319,21 @@ namespace qk {
 				x += _border->width[3]; // left
 				y += _border->width[0]; // top
 			}
+			Vec2 left_bottom(x, y);
+			// Qk_DEBUG("input_spot_location,x:%f,y:%f", left_bottom.x(), left_bottom.y());
 
-			//Vec2 cursor_offset(x - origin.x(), y - origin.y());
-			Vec2 cursor_offset(x, y);
-			Vec2 location = _mat * cursor_offset;
+			return left_bottom;
+		}
 
-			// Qk_DEBUG("input_spot_location,x:%f,y:%f", location.x(), location.y());
-			
-			return location;
+		Rect spot_rect() {
+			auto left_bottom = spot_location();
+			auto right_top = Vec2(left_bottom.x() + 1, left_bottom.y() - _text_height);
+			auto a = _mat * left_bottom;
+			auto b = _mat * right_top;
+			return {
+				{Qk_MIN(a.x(), b.x()),Qk_MIN(a.y(), b.y())},
+				{fabsf(a.x() - b.x()),fabsf(a.y() - b.y())}
+			};
 		}
 
 		iVec2 is_auto_find_is_required(Vec2 point) {
@@ -420,7 +425,7 @@ namespace qk {
 			Vec2 offset = input_text_offset();
 
 			const TextLines::Line* line = nullptr;
-			
+
 			if ( y < offset.y() ) {
 				line = &_lines->line(0);
 			} else if ( y > offset.y() + _lines->max_height() ) {
@@ -435,9 +440,9 @@ namespace qk {
 					}
 				}
 			}
-			
+
 			Qk_ASSERT(line);
-			
+
 			// find cell start_action and end_action
 			int cell_begin = -1, cell_end = -1;
 			
@@ -458,7 +463,7 @@ namespace qk {
 					//}
 				}
 			}
-			
+
 			if ( cell_begin == -1 || cell_end == -1 ) { // 所在行没有cell,选择最后行尾
 				_cursor = text_length();
 			} else {
@@ -494,7 +499,7 @@ namespace qk {
 				// if ( x <= offset_start )
 			}
 		end_action:
-			
+
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
 			mark_render(kInput_Status);
@@ -511,16 +516,17 @@ namespace qk {
 		}
 
 		void reset_cursor_twinkle_task_timeout() {
-			_cursor_twinkle_status = 1;
 			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
 				set_task_timeout(time_monotonic() + 10000); // 10ms
 			} else {
 				set_task_timeout(time_monotonic() + 700000); // 700ms
 			}
+			_cursor_twinkle_status = 1;
 		}
 
+		// ============================================================================
 		// input text insert action
-
+		// ============================================================================
 		String4 delete_line_feed_format(cString& text) {
 			String s = text;
 			if ( !is_multiline() ) {
@@ -541,11 +547,11 @@ namespace qk {
 				if (_max_length && _value_u4.length() + text.length() > _max_length)
 					return;
 
-				if ( _cursor < text_length() ) { // insertd
+				if ( _cursor < text_length() ) { // insertd text
 					String4 old = _value_u4;
 					_value_u4 = String4(*old, _cursor, *text, text.length());
 					_value_u4.append(*old + _cursor, old.length() - _cursor);
-				} else { // append
+				} else { // append text
 					_value_u4.append( text );
 				}
 				_cursor += text.length();
@@ -565,7 +571,7 @@ namespace qk {
 			_value_u4 = String4(*old, _marked_text_idx, *text, text.length());
 			_value_u4.append(*old + _marked_text_idx + _marked_text.length(),
 												old.length() - _marked_text_idx - _marked_text.length());
-			
+
 			_cursor += text.length() - _marked_text.length();
 			_cursor = Qk_MAX(_marked_text_idx, _cursor);
 			_marked_text = text;
@@ -742,16 +748,16 @@ namespace qk {
 		if (mark & kInput_Status) {
 			unmark(kInput_Status);
 			// text cursor status
-			refresh_cursor_screen_position(); // text layout
+			refresh_cursor_window_position(); // text layout
 
-			Layout::solve_marks(mat, mark);
+			BoxLayout::solve_marks(mat, mark);
 
 			if (_editing) {
-				window()->dispatch()->
-					set_ime_keyboard_spot_location(input_spot_location());
+				// update system ime input position
+				window()->dispatch()->set_ime_keyboard_spot_rect(input_spot_rect());
 			}
 		} else {
-			Layout::solve_marks(mat, mark);
+			BoxLayout::solve_marks(mat, mark);
 		}
 	}
 
@@ -764,7 +770,7 @@ namespace qk {
 		return true;
 	}
 
-	void InputLayout::refresh_cursor_screen_position() {
+	void InputLayout::refresh_cursor_window_position() {
 
 		if ( _editing ) {
 			auto size = content_size();
@@ -814,7 +820,7 @@ namespace qk {
 				_cursor_linenum = _lines->last()->line;
 				line = &_lines->line(_cursor_linenum);
 			}
-			
+
 			// 计算文本编辑状态下最适合的显示的文本偏移量
 			// y
 			if ( is_multiline() ) {
@@ -849,7 +855,7 @@ namespace qk {
 				} else if ( offset > final_width )  { // right cursor
 					text_offset.set_x(final_width - _cursor_x);
 				}
-				
+
 				// 检测文本x轴两端是在非法显示区域
 				switch ( text_align() ) {
 					default:
@@ -943,7 +949,7 @@ namespace qk {
 		}
 	}
 
-	void InputLayout::input_control(KeyboardKeyName name) {
+	void InputLayout::input_control(KeyboardKeyCode name) {
 		if ( _editing && _flag == kFlag_Normal ) {
 			// LOG("input_control,%d", name);
 		}
@@ -957,11 +963,11 @@ namespace qk {
 		return _editing && _cursor;
 	}
 
-	Vec2 InputLayout::input_spot_location() {
+	Rect InputLayout::input_spot_rect() {
 		if (_editing) {
-			return _this->spot_location();
+			return _this->spot_rect();
 		} else {
-			return Vec2();
+			return {};
 		}
 	}
 
@@ -974,7 +980,6 @@ namespace qk {
 	}
 
 	Object* InputLayout::toObject() {
-		// return this;
 		return nullptr;
 	}
 
@@ -987,7 +992,7 @@ namespace qk {
 			_type = value;
 			if ( _editing ) {
 				window()->dispatch()->
-					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
+					set_ime_keyboard_open({ false, _type, _return_type, input_spot_rect() });
 			}
 		}
 	}
@@ -997,7 +1002,7 @@ namespace qk {
 			_return_type = value;
 			if ( _editing ) {
 				window()->dispatch()->
-					set_ime_keyboard_open({ false, _type, _return_type, input_spot_location() });
+					set_ime_keyboard_open({ false, _type, _return_type, input_spot_rect() });
 			}
 		}
 	}
@@ -1079,16 +1084,18 @@ namespace qk {
 		_input_text_offset_y = val.y();
 	}
 
-	bool InputLayout::run_task(int64_t sys_time) {
-		if ( _flag > kFlag_Disable_Find ) {
-			_cursor_twinkle_status = 1;
+	bool InputLayout::run_task(int64_t time) {
+	
+		// if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
+		if ( _flag > kFlag_Find_Disable ) {
 			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
 				_this->auto_selectd();
 			}
-			set_task_timeout(sys_time + 100000); /* 100ms */
+			_cursor_twinkle_status = 1;
+			set_task_timeout(time + 100000); /* 100ms */
 		} else {
 			_cursor_twinkle_status = !_cursor_twinkle_status;
-			set_task_timeout(sys_time + 700000); /* 700ms */
+			set_task_timeout(time + 700000); /* 700ms */
 			return true;
 		}
 		return false;

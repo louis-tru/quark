@@ -91,11 +91,6 @@ namespace qk {
 		void set_keep_screen(bool keep);
 
 		/**
-		 * @method set_fullscreen(fullscreen)
-		*/
-		void set_fullscreen(bool fullscreen);
-
-		/**
 		 * @method default_atom_pixel
 		*/
 		static float default_atom_pixel();

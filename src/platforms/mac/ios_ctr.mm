@@ -36,7 +36,7 @@ typedef UIEvent MacUIEvent;
 
 using namespace qk;
 
-extern QkApplicationDelegate *__app;
+extern QkApplicationDelegate *qkappdelegate;
 
 @implementation QkRootViewController
 
@@ -45,7 +45,7 @@ extern QkApplicationDelegate *__app;
 	}
 
 	-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
-		switch ( __app.setting_orientation ) {
+		switch ( qkappdelegate.setting_orientation ) {
 			case Orientation::ORIENTATION_PORTRAIT:
 				return UIInterfaceOrientationMaskPortrait;
 			case Orientation::ORIENTATION_LANDSCAPE:
@@ -61,7 +61,7 @@ extern QkApplicationDelegate *__app;
 			case Orientation::ORIENTATION_USER_LANDSCAPE:
 				return UIInterfaceOrientationMaskLandscape;
 			case Orientation::ORIENTATION_USER_LOCKED: {
-				switch (__app.current_orientation) {
+				switch (qkappdelegate.current_orientation) {
 					default:
 					case Orientation::ORIENTATION_INVALID:
 						return UIInterfaceOrientationMaskAll;
@@ -83,13 +83,13 @@ extern QkApplicationDelegate *__app;
 				withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 	{
 		[coordinator animateAlongsideTransition:^(id context) {
-			__app.render->render()->reload();
+			qkappdelegate.render->render()->reload();
 
-			Orientation orient = __app.host->display()->orientation();
-			if (orient != __app.current_orientation) {
-				__app.current_orientation = orient;
-				__app.host->loop()->post(Cb([](Cb::Data& e) {
-					__app.host->display()->Qk_Trigger(Orientation);
+			Orientation orient = qkappdelegate.host->display()->orientation();
+			if (orient != qkappdelegate.current_orientation) {
+				qkappdelegate.current_orientation = orient;
+				qkappdelegate.host->loop()->post(Cb([](Cb::Data& e) {
+					qkappdelegate.host->display()->Qk_Trigger(Orientation);
 				}));
 			}
 		} completion:nil];
@@ -97,7 +97,7 @@ extern QkApplicationDelegate *__app;
 	}
 
 	-(UIStatusBarStyle)preferredStatusBarStyle {
-		return __app.status_bar_style;
+		return qkappdelegate.status_bar_style;
 	}
 
 	-(UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
@@ -106,16 +106,16 @@ extern QkApplicationDelegate *__app;
 	}
 
 	-(BOOL)prefersStatusBarHidden {
-		return !__app.visible_status_bar;
+		return !qkappdelegate.visible_status_bar;
 	}
 
 	-(List<TouchPoint>)touchsList:(NSSet<UITouch*>*)touches {
 		List<TouchPoint> rv;
 
-		Vec2 size = __app.host->display()->size();
+		Vec2 size = qkappdelegate.host->display()->size();
 
-		float scale_x = size.x() /  __app.surface_view.frame.size.width;
-		float scale_y = size.y() /  __app.surface_view.frame.size.height;
+		float scale_x = size.x() /  qkappdelegate.surface_view.frame.size.width;
+		float scale_y = size.y() /  qkappdelegate.surface_view.frame.size.height;
 
 		for (UITouch* touch in [touches objectEnumerator]) {
 			CGPoint point = [touch locationInView:touch.view];
@@ -133,20 +133,20 @@ extern QkApplicationDelegate *__app;
 	}
 
 	-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event {
-		__app.host->dispatch()->onTouchstart( [self touchsList:touches] );
+		qkappdelegate.host->dispatch()->onTouchstart( [self touchsList:touches] );
 	}
 
 	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event {
 		// Qk_DEBUG("touchesMoved, count: %d", touches.count);
-		__app.host->dispatch()->onTouchmove( [self touchsList:touches] );
+		qkappdelegate.host->dispatch()->onTouchmove( [self touchsList:touches] );
 	}
 
 	-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event{
-		__app.host->dispatch()->onTouchend( [self touchsList:touches] );
+		qkappdelegate.host->dispatch()->onTouchend( [self touchsList:touches] );
 	}
 
 	-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event {
-		__app.host->dispatch()->onTouchcancel( [self touchsList:touches] );
+		qkappdelegate.host->dispatch()->onTouchcancel( [self touchsList:touches] );
 	}
 
 @end

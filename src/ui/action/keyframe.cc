@@ -63,17 +63,17 @@ namespace qk {
 		_async_call([](auto self, auto frame) {
 			if (self->_frames_RT.length()) {
 				auto back = self->_frames_RT.back();
-				int32_t d = frame->_time - back->time();
+				int32_t d = frame.arg->_time - back->time();
 				if ( d <= 0 ) {
-					frame->_time = back->time();
+					frame.arg->_time = back->time();
 				} else {
 					self->Action::update_duration_RT(d);
 				}
 				for (auto &i: back->_props) { // copy prop
-					frame->_props.set(i.key, i.value->copy());
+					frame.arg->_props.set(i.key, i.value->copy());
 				}
 			}
-			self->_frames_RT.push(frame);
+			self->_frames_RT.push(frame.arg);
 		}, this, frame);
 
 		return frame;

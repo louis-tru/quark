@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "linux_ime_helper.h"
-#include "quark/util/cb.h"
-#include "quark/keyboard.h"
-#include "quark/display.h"
+#include "./linux_ime_helper.h"
+#include "../../util/cb.h"
+#include "../../ui/keyboard.h"
+#include "../../ui/window.h"
 #include <X11/keysym.h>
 #include <locale.h>
 
@@ -39,14 +39,10 @@ namespace qk {
 
 	extern void __dispatch_x11_async(cCb& cb); // sync to x11 main message loop
 
-	/**
-	* @class UnixIMEHelper::Inl
-	*/
-	class UnixIMEHelper::Inl {
-		public:
+	class LINUXIMEHelper::Inl {
+	public:
 
-		static Inl* create(AppInl* app, Display* dpy, Window win, int inputStyle) {
-
+		static Inl* Make(App* app, qk::Window* qkwin, Window win, int inputStyle) {
 			Char *locale = setlocale(LC_CTYPE, "");
 			if (locale == NULL) {
 				Qk_ERR("Can't set locale");
@@ -66,10 +62,10 @@ namespace qk {
 			}
 			Qk_DEBUG("modifiers: %s", modifiers);
 
-			return new Inl(app, dpy, win, inputStyle);
+			return new Inl(app, qkwin, win, inputStyle);
 		}
 
-		Inl(AppInl* app, Display* dpy, Window win, int inputStyle)
+		Inl(App* app, qk::Window* qkwin, Window win, int inputStyle)
 			: _app(app)
 			, _display(dpy)
 			, _window(win)
@@ -127,15 +123,12 @@ namespace qk {
 		}
 
 		void set_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-			// TODO
 		}
 
 		void set_keyboard_type(KeyboardType type) {
-			// TODO
 		}
 
 		void set_keyboard_return_type(KeyboardReturnType type) {
-			// TODO
 		}
 
 		void set_spot_location(Vec2 location) {
@@ -556,11 +549,11 @@ namespace qk {
 			// TODO ...
 		}
 
-		void onKeyControl(KeyboardKeyName name) {
+		void onKeyControl(KeyboardKeyCode name) {
 			_app->dispatch()->dispatch_ime_control(name);
 		}
 
-		AppInl* _app;
+		App* _app;
 		Display *_display;
 		Window _window;
 		XIM _im;
@@ -572,17 +565,16 @@ namespace qk {
 		XFontSet _fontset;
 	};
 
-	UnixIMEHelper::UnixIMEHelper(AppInl* app, Display* dpy, Window win, int inputStyle)
-	: _inl(Inl::create(app, dpy, win, inputStyle)) {
+	LINUXIMEHelper::LINUXIMEHelper(App* app, qk::Window* dpy, Window win, int inputStyle)
+		: _inl(LINUXIMEHelperImpl::Make(app, dpy, win, inputStyle)) {
 	}
 
-	UnixIMEHelper::~UnixIMEHelper() {
+	LINUXIMEHelper::~LINUXIMEHelper() {
 		delete _inl;
 		_inl = nullptr;
 	}
 
-	void UnixIMEHelper::open(KeyboardOptions options) {
-		if (!_inl) return;
+	void LINUXIMEHelper::open(KeyboardOptions options) {
 		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_type(options.type);
 			_inl->set_keyboard_return_type(options.return_type);
@@ -594,60 +586,51 @@ namespace qk {
 		}));
 	}
 
-	void UnixIMEHelper::close() {
-		if (!_inl) return;
+	void LINUXIMEHelper::close() {
 		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->close();
 		}));
 	}
 
-	void UnixIMEHelper::clear() {
-		if (!_inl) return;
+	void LINUXIMEHelper::clear() {
 		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->clear();
 		}));
 	}
 
-	void UnixIMEHelper::set_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-		if (!_inl) return;
+	void LINUXIMEHelper::set_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_can_backspace(can_backspace, can_delete);
 		}));
 	}
 
-	void UnixIMEHelper::set_keyboard_type(KeyboardType type) {
-		if (!_inl) return;
+	void LINUXIMEHelper::set_keyboard_type(KeyboardType type) {
 		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_type(type);
 		}));
 	}
 
-	void UnixIMEHelper::set_keyboard_return_type(KeyboardReturnType type) {
-		if (!_inl) return;
+	void LINUXIMEHelper::set_keyboard_return_type(KeyboardReturnType type) {
 		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_keyboard_return_type(type);
 		}));
 	}
 
-	void UnixIMEHelper::set_spot_location(Vec2 location) {
-		if (!_inl) return;
+	void LINUXIMEHelper::set_spot_location(Vec2 location) {
 		__dispatch_x11_async(Cb([=](Cb::Data& e){
 			_inl->set_spot_location(location);
 		}));
 	}
 
-	void UnixIMEHelper::key_press(XKeyPressedEvent *event) {
-		if (!_inl) return;
+	void LINUXIMEHelper::key_press(XKeyPressedEvent *event) {
 		_inl->key_press(event);
 	}
 
-	void UnixIMEHelper::focus_in() {
-		if (!_inl) return;
+	void LINUXIMEHelper::focus_in() {
 		_inl->focus_in();
 	}
 
-	void UnixIMEHelper::focus_out() {
-		if (!_inl) return;
+	void LINUXIMEHelper::focus_out() {
 		_inl->focus_out();
 	}
 

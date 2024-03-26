@@ -216,7 +216,7 @@ namespace qk {
 			auto win = window();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
-					self->set(key, arg);
+					self->set(key, arg.arg);
 				}, this, value);
 			} else {
 				set(key, value);
@@ -227,8 +227,8 @@ namespace qk {
 			auto win = window();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
-					Sp<T> h(arg);
-					self->set(key, *arg);
+					Sp<T> h(arg.arg);
+					self->set(key, *arg.arg);
 				}, this, new T(value));
 			} else {
 				set(key, value);
@@ -277,7 +277,7 @@ namespace qk {
 			auto win = window();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
-					self->set(key, arg);
+					self->set(key, arg.arg);
 				}, this, value);
 			} else {
 				set(key, value);

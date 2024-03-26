@@ -233,6 +233,11 @@ namespace qk {
 		return angle() - to.angle();
 		// return acosf(dot(to) / (length() * to.length()));
 	}
+	
+	Vec2 Vec2::round() const {
+		float r[2] = {roundf(val[0]), roundf(val[1])};
+		return *reinterpret_cast<Vec2*>(r);
+	}
 
 	// ------------------------------------------
 

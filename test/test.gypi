@@ -84,6 +84,8 @@
 				'ui/test-linux-input.cc',
 				'ui/test-css.cc',
 				'ui/test-action.cc',
+				'ui/test-openurl.cc',
+				'ui/test-input.cc',
 				'test.cc',
 			],
 			'conditions': [

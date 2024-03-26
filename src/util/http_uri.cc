@@ -242,8 +242,8 @@ namespace qk {
 		return Buffer::from(enc, uint32_t(size));
 	}
 
-	String URI::encode(cString &url) {
-		return inl__uri_encode(url, true, false);
+	String URI::encode(cString &url, bool component) {
+		return inl__uri_encode(url, component, false);
 	}
 
 	String URI::decode(cString& url) {

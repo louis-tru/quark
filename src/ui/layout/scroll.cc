@@ -567,11 +567,11 @@ namespace qk {
 		void handle_TouchStart(UIEvent& e) {
 			auto evt = static_cast<TouchEvent*>(&e);
 			auto args = new TouchEvent::TouchPoint(evt->changed_touches()[0]);
-			preRender().async_call([](auto ctx, auto args) {
-				Sp<TouchEvent::TouchPoint, NonObjectTraits> handle(args);
+			preRender().async_call([](auto ctx, auto arg) {
+				Sp<TouchEvent::TouchPoint, NonObjectTraits> handle(arg.arg);
 				if ( !ctx->_action_id ) {
-					ctx->_action_id = args->id;
-					ctx->move_start(Vec2( args->x, args->y ));
+					ctx->_action_id = arg.arg->id;
+					ctx->move_start(Vec2( arg.arg->x, arg.arg->y ));
 				}
 			}, this, args);
 		}
@@ -580,10 +580,10 @@ namespace qk {
 			if (_action_id && e.return_value) {
 				auto evt = static_cast<TouchEvent*>(&e);
 				auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
-				preRender().async_call([](auto ctx, auto args) {
-					Sp<Array<TouchEvent::TouchPoint>> handle(args);
+				preRender().async_call([](auto ctx, auto arg) {
+					Sp<Array<TouchEvent::TouchPoint>> handle(arg.arg);
 					if ( ctx->_action_id ) {
-						for ( auto &i : *args ) {
+						for ( auto &i : *arg.arg ) {
 							if (i.id == ctx->_action_id) {
 								ctx->move(Vec2( i.x, i.y )); break;
 							}
@@ -596,9 +596,9 @@ namespace qk {
 		void handle_TouchEnd(UIEvent& e) {
 			auto evt = static_cast<TouchEvent*>(&e);
 			auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
-			preRender().async_call([](auto ctx, auto args) {
+			preRender().async_call([](auto ctx, auto arg) {
 				if ( ctx->_action_id ) {
-					for ( auto &i: *args ) {
+					for ( auto &i: *arg.arg ) {
 						if (i.id == ctx->_action_id) {
 							ctx->move_end(Vec2( i.x, i.y ));
 							ctx->_action_id = 0;
@@ -611,10 +611,10 @@ namespace qk {
 
 		void handle_MouseDown(UIEvent& e) {
 			auto evt = static_cast<MouseEvent*>(&e);
-			preRender().async_call([](auto ctx, auto args) {
+			preRender().async_call([](auto ctx, auto arg) {
 				if ( !ctx->_action_id ) {
 					ctx->_action_id = 1;
-					ctx->move_start(args);
+					ctx->move_start(arg.arg);
 				}
 			}, this, Vec2( evt->x(), evt->y() ));
 		}
@@ -622,9 +622,9 @@ namespace qk {
 		void handle_MouseMove(UIEvent& e) {
 			if (_action_id && e.return_value) {
 				auto evt = static_cast<MouseEvent*>(&e);
-				preRender().async_call([](auto ctx, auto args) {
+				preRender().async_call([](auto ctx, auto arg) {
 					if ( ctx->_action_id ) {
-						ctx->move(args);
+						ctx->move(arg.arg);
 					}
 				}, this, Vec2( evt->x(), evt->y() ));
 			}
@@ -632,9 +632,9 @@ namespace qk {
 
 		void handle_MouseUp(UIEvent& e) {
 			auto evt = static_cast<MouseEvent*>(&e);
-			preRender().async_call([](auto ctx, auto args) {
+			preRender().async_call([](auto ctx, auto arg) {
 				if ( ctx->_action_id ) {
-					ctx->move_end(args);
+					ctx->move_end(arg.arg);
 					ctx->_action_id = 0;
 				}
 			}, this, Vec2( evt->x(), evt->y() ));
@@ -871,7 +871,7 @@ namespace qk {
 		type cls::name() const { return getScrollLayoutBase()->name(); }
 	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
 		void cls::set_##name(type val) { \
-			getPreRender().async_call([](auto ctx, auto val) { ctx->set_##name(val); }, getScrollLayoutBase(), val); \
+			getPreRender().async_call([](auto ctx, auto val) { ctx->set_##name(val.arg); }, getScrollLayoutBase(), val); \
 		}
 	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name) \
 		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)
@@ -908,19 +908,19 @@ namespace qk {
 	void ScrollLayoutBaseAsync::set_scroll(Vec2 val) {
 		auto base = getScrollLayoutBase();
 		base->_scroll_for_main_t = val;
-		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll(val); }, base, val);
+		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll(val.arg); }, base, val);
 	}
 
 	void ScrollLayoutBaseAsync::set_scroll_x(float val) {
 		auto base = getScrollLayoutBase();
 		base->_scroll_for_main_t.set_x(val);
-		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll_x(val); }, base, val);
+		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll_x(val.arg); }, base, val);
 	}
 
 	void ScrollLayoutBaseAsync::set_scroll_y(float val) {
 		auto base = getScrollLayoutBase();
 		base->_scroll_for_main_t.set_y(val);
-		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll_y(val); }, base, val);
+		getPreRender().async_call([](auto ctx, auto val) { ctx->set_scroll_y(val.arg); }, base, val);
 	}
 
 	void ScrollLayoutBaseAsync::scroll_to(Vec2 value, uint64_t duration) {
@@ -930,8 +930,8 @@ namespace qk {
 			Vec2 value; uint64_t duration;
 		};
 		getPreRender().async_call([](auto ctx, auto val) {
-			ctx->scroll_to(val->value, val->duration);
-			delete val;
+			ctx->scroll_to(val.arg->value, val.arg->duration);
+			delete val.arg;
 		}, base, new Args{value,duration});
 	}
 
@@ -942,7 +942,7 @@ namespace qk {
 			Vec2 value; uint64_t duration; Curve curve;
 		};
 		getPreRender().async_call([](auto ctx, auto val) {
-			ctx->scroll_to(val->value, val->duration, val->curve); delete val;
+			ctx->scroll_to(val.arg->value, val.arg->duration, val.arg->curve); delete val.arg;
 		}, base, new Args{value,duration,curve});
 	}
 

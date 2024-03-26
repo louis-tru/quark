@@ -103,7 +103,7 @@ namespace qk {
 	void Image::set_source(ImageSource *val) {
 		Retain(val);
 		preRender().async_call([](auto ctx, auto val) {
-			ctx->set_source(val); Release(val);
+			ctx->set_source(val.arg); Release(val.arg);
 		}, layout<ImageLayout>(), val);
 	}
 }

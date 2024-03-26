@@ -53,7 +53,7 @@ namespace qk {
 		struct TextBlob {
 			Sp<Typeface>    typeface;
 			Array<GlyphID>  glyphs;
-			Array<Vec2>     offset;
+			Array<Vec2>     offset; // length = glyphs count + 1
 			struct Out {// output image cache
 				Sp<ImageSource> img;  // image
 				float fontSize; // current image cache font size

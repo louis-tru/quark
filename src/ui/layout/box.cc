@@ -177,12 +177,6 @@ namespace qk {
 		}
 	}
 
-	/**
-		*
-		* 设置宽度
-		*
-		* @func set_width(width)
-		*/
 	void BoxLayout::set_width(BoxSize val) {
 		if (_width != val) {
 			_width = val;
@@ -190,12 +184,6 @@ namespace qk {
 		}
 	}
 
-	/**
-		*
-		* 设置高度
-		*
-		* @func set_height(height)
-		*/
 	void BoxLayout::set_height(BoxSize val) {
 		if (_height != val) {
 			_height = val;
@@ -203,12 +191,6 @@ namespace qk {
 		}
 	}
 
-	/**
-		*
-		* 设置最大宽度限制
-		*
-		* @func set_width_limit(width_limit)
-		*/
 	void BoxLayout::set_width_limit(BoxSize val) {
 		if (_width_limit != val) {
 			_width_limit = val;
@@ -216,12 +198,6 @@ namespace qk {
 		}
 	}
 
-	/**
-		*
-		* 设置最大高度限制
-		*
-		* @func set_height_limit(height_limit)
-		*/
 	void BoxLayout::set_height_limit(BoxSize val) {
 		if (_height_limit != val) {
 			_height_limit = val;
@@ -352,7 +328,7 @@ namespace qk {
 
 	float BoxLayout::border_width_top() const {
 		return _border ? _border->width[0]: 0;
-	} // border_widrh
+	}
 
 	float BoxLayout::border_width_right() const {
 		return _border ? _border->width[1]: 0;
@@ -405,7 +381,7 @@ namespace qk {
 			_border->width[0] = val;
 			mark_size(kLayout_Size_Height);
 		}
-	} // border_widrh
+	}
 
 	void BoxLayout::set_border_width_right(float val) {
 		alloc_border(_border);

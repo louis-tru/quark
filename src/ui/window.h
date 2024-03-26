@@ -99,7 +99,7 @@ namespace qk {
 		* 设置视口为一个固定的逻辑尺寸,这个值改变时会触发change事件
 		*
 		* 同时只能指定一个项目,同时指定宽度与高度不生效
-		* 如果设置为非零表示锁定尺寸,不管display_size怎样变化对于视图这个值永远保持不变
+		* 如果设置为非零表示锁定尺寸,不管size怎样变化对于视图这个值永远保持不变
 		*/
 		Qk_DEFINE_PROP(Vec2, size, Const); //!< current viewport size
 		//!< display scale, the larger the value, the smaller the size and the less content displayed
@@ -178,6 +178,11 @@ namespace qk {
 		inline PreRender& preRender() {
 			return _preRender;
 		}
+
+		/**
+		 * @method set_fullscreen(fullscreen)
+		*/
+		void set_fullscreen(bool fullscreen);
 
 	private:
 		void reload();

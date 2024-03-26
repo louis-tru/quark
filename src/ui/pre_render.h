@@ -82,19 +82,26 @@ namespace qk {
 		void untask(Task* task); // delete pre render task
 
 		/**
+		 * @struct AsyncCall data
+		*/
+		struct AsyncCall {
+			struct Arg {char arg[8];} arg;
+			void *ctx, *exec;
+		};
+
+		/**
 		 * Issue commands from the main thread and execute them in the rendering thread
 		 * 
 		 * Note that the Args parameter size cannot exceed 8 bytes
 		 * 
 		 * @method async_call()
 		*/
-		template<typename E, typename Args, typename Ctx = Layout>
-		inline void async_call(E exec, Ctx *ctx, Args args) {
-			static_assert(sizeof(Args) <= sizeof(uint64_t));
-			typedef void (*Exec)(Ctx *ctx, Args args);
-			auto exec_ = (void*)static_cast<Exec>(exec);
-			auto args_ = *(uint64_t*)&args;
-			_asyncCall.push({ ctx,exec_,args_ });
+		template<typename E, typename Arg, typename Ctx = Layout>
+		inline void async_call(E exec, Ctx *ctx, Arg arg) {
+			static_assert(sizeof(Arg) <= sizeof(AsyncCall::Arg), "");
+			union uArg { AsyncCall::Arg _; Arg arg; };
+			typedef void (*Exec)(Ctx*, uArg);
+			_asyncCall.push({*(AsyncCall::Arg*)&arg,ctx,(void*)static_cast<Exec>(exec)});
 		}
 
 	private:
@@ -108,11 +115,6 @@ namespace qk {
 		void asyncCommit(); // commit async cmd to ready, only main thread call
 		void solveAsyncCall();
 		void flushAsyncCall();
-
-		struct AsyncCall {
-			void *ctx, *exec;
-			uint64_t args;
-		};
 
 		struct LevelMarks: Array<Layout*> {
 			void clear();

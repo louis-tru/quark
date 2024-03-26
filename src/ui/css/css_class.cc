@@ -49,7 +49,7 @@ namespace qk {
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
 		_async_call([](auto ctx, auto val) {
-			Sp<Array<String>> valp(val);
+			Sp<Array<String>> valp(val.arg);
 			ctx->_nameHash.clear();
 			for ( auto &j: **valp )
 				ctx->_nameHash.add(CSSName(j).hashCode());
@@ -59,8 +59,8 @@ namespace qk {
 
 	void CStyleSheetsClass::add(cString &name) {
 		_async_call([](auto ctx, auto hash) {
-			if (!ctx->_nameHash.has(hash)) {
-				ctx->_nameHash.add(hash);
+			if (!ctx->_nameHash.has(hash.arg)) {
+				ctx->_nameHash.add(hash.arg);
 				ctx->updateClass_RT();
 			}
 		}, this, CSSName(name).hashCode());
@@ -68,7 +68,7 @@ namespace qk {
 
 	void CStyleSheetsClass::remove(cString &name) {
 		_async_call([](auto ctx, auto hash) {
-			auto it = ctx->_nameHash.find(hash);
+			auto it = ctx->_nameHash.find(hash.arg);
 			if (it != ctx->_nameHash.end()) {
 				ctx->_nameHash.erase(it);
 				ctx->updateClass_RT();
@@ -78,9 +78,9 @@ namespace qk {
 
 	void CStyleSheetsClass::toggle(cString &name) {
 		_async_call([](auto ctx, auto hash) {
-			auto it = ctx->_nameHash.find(hash);
+			auto it = ctx->_nameHash.find(hash.arg);
 			if (it == ctx->_nameHash.end()) {
-				ctx->_nameHash.add(hash);
+				ctx->_nameHash.add(hash.arg);
 			} else {
 				ctx->_nameHash.erase(it);
 			}

@@ -36,7 +36,7 @@
 namespace qk {
 
 	KeyboardAdapter::KeyboardAdapter()  {
-		_keyname = KEYCODE_UNKNOWN;
+		_keycode = KEYCODE_UNKNOWN;
 		_keypress = 0;
 		_shift = false;
 		_alt = false;
@@ -44,7 +44,7 @@ namespace qk {
 		_command = false;
 		_caps_lock = false;
 		_repeat = _device = _source = 0;
-		
+
 		_symbol_keypress[KEYCODE_0]               = { 48, 41 }; 	// 0 )
 		_symbol_keypress[KEYCODE_1]               = { 49, 33 }; 	// 1 !
 		_symbol_keypress[KEYCODE_2]               = { 50, 64 }; 	// 2 @
@@ -81,9 +81,9 @@ namespace qk {
 		_symbol_keypress[KEYCODE_NUMPAD_SUBTRACT] = { 45, 45 };  // numpad -
 		_symbol_keypress[KEYCODE_NUMPAD_DOT]      = { 46, 46 };  // numpad .
 		_symbol_keypress[KEYCODE_NUMPAD_DIVIDE]   = { 47, 47 };  // numpad /
-		
+
 		// ascii keycodes
-		
+
 		_ascii_keycodes[KEYCODE_BACK_SPACE] = { KEYCODE_BACK_SPACE, 0 };
 		_ascii_keycodes[KEYCODE_SHIFT] = { KEYCODE_SHIFT, 1 };
 		_ascii_keycodes[KEYCODE_ESC] = { KEYCODE_ESC, 0 };
@@ -204,7 +204,7 @@ namespace qk {
 		}
 	}
 
-	int KeyboardAdapter::keypress(KeyboardKeyName name) {
+	int KeyboardAdapter::keypress(KeyboardKeyCode name) {
 		// Letters
 		if ( name >= 65 && name <= 90 ) {
 			if ( _caps_lock || _shift ) { // A - Z
@@ -213,8 +213,7 @@ namespace qk {
 				return name + 32; // lowercase a - z
 			}
 		}
-		
-		// Symbol
+
 		auto it = _symbol_keypress.find(int(name));
 		if ( it != _symbol_keypress.end() ) {
 			if ( _shift ) {
@@ -226,27 +225,31 @@ namespace qk {
 		return 0;
 	}
 
-	bool KeyboardAdapter::convert(uint32_t keycode, bool unicode, bool down) {
+	KeyboardKeyCode KeyboardAdapter::getKeycode(uint32_t ascii) {
+		auto it = _ascii_keycodes.find(ascii);
+		return it == _ascii_keycodes.end() ? KEYCODE_UNKNOWN: it->value.name;
+	}
+
+	bool KeyboardAdapter::convert(uint32_t ascii, bool unicode, bool down) {
 		if ( unicode ) {
-			auto it = _ascii_keycodes.find(keycode);
+			auto it = _ascii_keycodes.find(ascii);
 			if ( it == _ascii_keycodes.end() ) {
-				_keyname = KEYCODE_UNKNOWN;
-				_keypress = keycode;
+				_keycode = KEYCODE_UNKNOWN;
+				_keypress = ascii;
 			} else {
 				_shift = it->value.is_shift;
-				_keyname = it->value.name;
-				_keypress = keypress( _keyname );
+				_keycode = it->value.name;
+				_keypress = keypress( _keycode );
 			}
 		} else {
-			auto it = _keycodes.find(keycode);
+			auto it = _keycodes.find(ascii);
 			if ( it == _keycodes.end() ) { // Unknown keycode
-				_keyname = KeyboardKeyName(keycode + 100000);
+				_keycode = KeyboardKeyCode(ascii + 100000);
 				_keypress = 0;
 			} else {
-				_keyname = it->value;
-				
+				_keycode = it->value;
 				if ( down ) {
-					switch ( _keyname ) {
+					switch ( _keycode ) {
 						case KEYCODE_SHIFT: _shift = 1; break;
 						case KEYCODE_CTRL: _ctrl = 1; break;
 						case KEYCODE_ALT: _alt = 1; break;
@@ -255,7 +258,7 @@ namespace qk {
 						default: break;
 					}
 				} else {
-					switch ( _keyname ) {
+					switch ( _keycode ) {
 						case KEYCODE_SHIFT: _shift = 0; break;
 						case KEYCODE_CTRL: _ctrl = 0; break;
 						case KEYCODE_ALT: _alt = 0; break;
@@ -263,7 +266,7 @@ namespace qk {
 						default: break;
 					}
 				}
-				_keypress = keypress( _keyname );
+				_keypress = keypress( _keycode );
 			}
 		}
 

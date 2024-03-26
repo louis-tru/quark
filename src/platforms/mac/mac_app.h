@@ -34,70 +34,67 @@
 #define __quark__mac__mac_app__
 #include "../../render/render_mac.h"
 #include "../../ui/types.h"
+
 #if Qk_MAC
 
-@class QkWindowDelegate;
+@protocol QkIMEHelprt<NSObject>
+- (void)activate:(bool)clear;
+- (void)deactivate;
+- (void)set_keyboard_can_backspace:(bool)can_backspace
+												can_delete:(bool)can_delete;
+- (void)set_keyboard_type:(qk::KeyboardType)type;
+- (void)set_keyboard_return_type:(qk::KeyboardReturnType)type;
+- (void)set_spot_rect:(qk::Rect)rect;
+- (UIView*)view; // ime view
+@end
 
+@class QkWindowDelegate;
 namespace qk {
 	class Application;
 	class Window;
 	class WindowImpl {
 	public:
 		QkWindowDelegate* delegate();
-		UIWindow*         window();
 	};
 }
 
-@protocol QkIMEHelprt<NSObject>
-	- (void)open;
-	- (void)close;
-	- (void)clear;
-	- (void)set_keyboard_can_backspace:(bool)can_backspace
-													can_delete:(bool)can_delete;
-	- (void)set_keyboard_type:(qk::KeyboardType)type;
-	- (void)set_keyboard_return_type:(qk::KeyboardReturnType)type;
-	- (UIView*)view; // only ios return view
-@end
-
-id<QkIMEHelprt> qk_make_ime_helper(qk::Application *host);
+id<QkIMEHelprt> qk_make_ime_helper(qk::Window *win);
 void            qk_post_messate_main(qk::Cb cb, bool sync);
 
 @interface QkRootViewController: UIViewController
+	@property (assign, nonatomic) qk::Window *win;
 @end
 
 @interface QkWindowDelegate: NSObject
 #if Qk_OSX
 <NSWindowDelegate>
 #endif
-	@property (assign, nonatomic) qk::Window *win0;
-	@property (strong, nonatomic) UIWindow *window; // strong
-	@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
-	@property (strong, nonatomic) QkRootViewController *root_ctr;
+@property (assign, nonatomic) qk::Window *win;
+@property (strong, nonatomic) UIWindow *uiwin; // strong
+@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
+@property (strong, nonatomic) QkRootViewController *root_ctr;
 @end
 
 @interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
-	@property (assign, nonatomic, readonly) UIApplication *app; // strong
-	@property (assign, nonatomic, readonly) qk::Application *host;
+@property (assign, nonatomic, readonly) qk::Application *host;
+@property (assign, nonatomic, readonly) UIApplication *app; // strong
 @end
 
 #endif // #if Qk_MAC
 
 #if Qk_iOS
-#include "../../display.h"
-#import <MessageUI/MFMailComposeViewController.h>
+#include "../../ui/screen.h"
 
 typedef qk::Screen::Orientation Orientation;
 
-@interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
-	{
-		BOOL _is_background;
-	}
-	@property (assign, nonatomic) Orientation setting_orientation;
-	@property (assign, nonatomic) Orientation current_orientation;
-	@property (assign, nonatomic) bool        visible_status_bar;
-	@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-	// methods
-	- (void)refresh_status;
+@interface QkApplicationDelegate() {
+	BOOL _is_background;
+}
+@property (assign, nonatomic) Orientation setting_orientation;
+@property (assign, nonatomic) Orientation current_orientation;
+@property (assign, nonatomic) bool        visible_status_bar;
+@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
+- (void)refresh_status;
 @end
 #endif // #if Qk_iOS
 

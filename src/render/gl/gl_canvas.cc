@@ -229,18 +229,27 @@ namespace qk {
 			// default use baseline align
 			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
 			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
+
+			// fix draw image tearing
+			dst_start *= _fullScale;
+			dst_start = dst_start.round() / _fullScale;
+
 			Rect rect{dst_start, dst_size};
+
+			//Qk_DEBUG("dst_start %f %f", dst_start.x(), dst_start.y());
 
 			Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &rect);
 
 			p.setImage(textImg, rect);
 
-			Vec2 v1(dst_start.x() + dst_size.x(), dst_start.y());
-			Vec2 v2(dst_start.x(), dst_start.y() + dst_size.y());
-			Vec2 v3(dst_start + dst_size);
+			Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
+			Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
+			Vec2 right_bottom(dst_start + dst_size); // right bottom
 			VertexData vertex{0,6,{
-				dst_start, v1, v2, // triangle 0
-				v2, v3, v1, // triangle 1
+				dst_start,
+				top_right, left_bottom, // triangle 0 |/
+				top_right,
+				right_bottom, left_bottom, // triangle 1 /|
 			}};
 			// auto &vertex = _cache->getRectPath({dst_start,dst_size});
 
@@ -601,13 +610,13 @@ namespace qk {
 		}
 	}
 
-	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint)
+	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, cArray<Vec2> *offset, const Paint &paint)
 	{
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
-		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _fullScale, offset, &img);
+		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _fullScale, offset, _fullScale, &img);
 		img->markAsTexture(_render);
 		auto scale_1 = _this->drawTextImage(*img, bound.y(), _fullScale, origin, paint);
 		return scale_1 * bound.x();
@@ -626,9 +635,11 @@ namespace qk {
 
 		if (blob->out.fontSize != finalFontSize || !blob->out.img) { // fill text bolb
 			auto tf = blob->typeface;
-			auto offset = blob->offset.length() == blob->glyphs.length() ? &blob->offset: NULL;
-			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, &blob->out.img);
+			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
+			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, &blob->out.img);
 			blob->out.img->markAsTexture(_render);
+			blob->out.fontSize = finalFontSize;
+			Qk_ASSERT(blob->out.img->pixels().length());
 		}
 
 		_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelScale, origin, paint);

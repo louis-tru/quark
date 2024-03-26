@@ -68,16 +68,16 @@ namespace qk {
 		virtual void onActivate() override;
 		virtual TextInput* asTextInput() override;
 		virtual TextOptions* asTextOptions() override;
-		virtual bool run_task(int64_t sys_time) override;
+		virtual bool run_task(int64_t time) override;
 		// impl text input
 		virtual void input_delete(int count) override;
 		virtual void input_insert(cString& text) override;
 		virtual void input_marked(cString& text) override;
 		virtual void input_unmark(cString& text) override;
-		virtual void input_control(KeyboardKeyName name) override;
+		virtual void input_control(KeyboardKeyCode name) override;
 		virtual bool input_can_delete() override;
 		virtual bool input_can_backspace() override;
-		virtual Vec2 input_spot_location() override;
+		virtual Rect input_spot_rect() override;
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* toObject() override;
@@ -85,7 +85,7 @@ namespace qk {
 		virtual ViewType viewType() const override;
 	protected:
 		Vec2 layout_typesetting_input_text();
-		void refresh_cursor_screen_position();
+		void refresh_cursor_window_position();
 		virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		virtual Vec2 input_text_offset();
 		virtual void set_input_text_offset(Vec2 val);
@@ -102,7 +102,7 @@ namespace qk {
 		bool  _editing, _cursor_twinkle_status;
 		char  _flag;
 		Vec2  _point;
-		Mat _mat; // cache matrix
+		Mat _mat; // position matrix
 
 		friend class TextareaLayout;
 		friend class UIRender;

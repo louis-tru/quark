@@ -43,10 +43,7 @@ namespace qk {
 	F(KEYCODE_MOUSE_LEFT,       1)  \
 	F(KEYCODE_MOUSE_CENTER,     2)  \
 	F(KEYCODE_MOUSE_RIGHT,      3)  \
-	F(KEYCODE_MOUSE_WHEEL_UP,   4)  \
-	F(KEYCODE_MOUSE_WHEEL_DOWN, 5)  \
-	F(KEYCODE_MOUSE_WHEEL_LEFT, 6)  \
-	F(KEYCODE_MOUSE_WHEEL_RIGHT,7)  \
+	F(KEYCODE_MOUSE_WHEEL,      4)  \
 	F(KEYCODE_BACK_SPACE,       8)  /* back space */ \
 	F(KEYCODE_TAB,              9)  /* tab */ \
 	F(KEYCODE_CLEAR,            12) /* clear */ \
@@ -197,7 +194,7 @@ namespace qk {
 	F(KEYCODE_ZOOM_IN,          333)     /* 放大键 */ \
 	F(KEYCODE_ZOOM_OUT,         334)     /* 缩小键 */ \
 
-	enum KeyboardKeyName {
+	enum KeyboardKeyCode {
 		#define _Fun(Name, Code) Name = Code,
 		Qk_Keyboard_Keys(_Fun)
 		#undef _Fun
@@ -209,7 +206,7 @@ namespace qk {
 	class Qk_EXPORT KeyboardAdapter: public Object {
 	public:
 		Qk_DEFINE_PROP_GET(EventDispatch*, host);
-		Qk_DEFINE_PROP_GET(KeyboardKeyName, keyname, Const);
+		Qk_DEFINE_PROP_GET(KeyboardKeyCode, keycode, Const);
 		Qk_DEFINE_PROP_GET(int, keypress, Const);
 		Qk_DEFINE_PROP_GET(bool, shift, Const);
 		Qk_DEFINE_PROP_GET(bool, alt, Const);
@@ -220,23 +217,24 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(bool, device, Const);
 		Qk_DEFINE_PROP_GET(bool, source, Const);
 
+		static KeyboardAdapter* create();
+
 		KeyboardAdapter();
 		void onDispatch(uint32_t keycode, bool ascii, bool down,
 									int repeat = 0, int device = 0, int source = 0);
-		static KeyboardAdapter* create();
-
+		KeyboardKeyCode getKeycode(uint32_t ascii);
 	protected:
-		virtual int  keypress(KeyboardKeyName name);
-		virtual bool convert(uint32_t keycode, bool unicode, bool down);
+		virtual int  keypress(KeyboardKeyCode name);
+		virtual bool convert(uint32_t ascii, bool unicode, bool down);
 
 		struct AsciiKeyboardKeycode {
-			KeyboardKeyName name;
+			KeyboardKeyCode name;
 			bool is_shift;
 		};
 		struct SymbolKeypressValue {
 			int normal, shift;
 		};
-		Dict<int, KeyboardKeyName>      _keycodes;
+		Dict<int, KeyboardKeyCode>      _keycodes;
 		Dict<int, AsciiKeyboardKeycode> _ascii_keycodes;
 		Dict<int, SymbolKeypressValue>  _symbol_keypress;
 

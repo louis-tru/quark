@@ -64,10 +64,10 @@ namespace qk {
 	void SpawnAction::append(Action *child) {
 		Qk_ASSERT(child);
 		_async_call([](auto self, auto child) {
-			if (!child->set_parent_RT(self)) {
-				child->_id = self->_actions_RT.pushBack(child);
+			if (!child.arg->set_parent_RT(self)) {
+				child.arg->_id = self->_actions_RT.pushBack(child.arg);
 			}
-			int32_t du = child->_duration;
+			int32_t du = child.arg->_duration;
 			if ( du > self->_duration ) {
 				self->Action::update_duration_RT( du - self->_duration );
 			}
@@ -77,11 +77,11 @@ namespace qk {
 	void SequenceAction::append(Action* child) {
 		Qk_ASSERT(child);
 		_async_call([](auto self, auto child) {
-			if (!child->set_parent_RT(self)) {
-				child->_id = self->_actions_RT.pushBack(child);
+			if (!child.arg->set_parent_RT(self)) {
+				child.arg->_id = self->_actions_RT.pushBack(child.arg);
 			}
-			if ( child->_duration ) {
-				self->Action::update_duration_RT( child->_duration );
+			if ( child.arg->_duration ) {
+				self->Action::update_duration_RT( child.arg->_duration );
 			}
 		}, this, child);
 	}

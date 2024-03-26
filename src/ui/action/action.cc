@@ -60,6 +60,11 @@ namespace qk {
 				// To ensure safety and efficiency, it should be destroyed in RT (render thread)
 				self->Object::release();
 			}, this, 0);
+			
+//			_window->preRender().async_call1([](auto self, auto arg) {
+				// To ensure safety and efficiency, it should be destroyed in RT (render thread)
+				// self->Object::release();
+//			}, this, 0);
 		}
 	}
 
@@ -69,30 +74,30 @@ namespace qk {
 
 	void Action::set_speed(float value) {
 		_async_call([](auto self, auto arg) {
-			self->_speed = Qk_MIN(10, Qk_MAX(arg, 0.1));
+			self->_speed = Qk_MIN(10, Qk_MAX(arg.arg, 0.1));
 		}, this, value);
 	}
 
 	void Action::set_loop(uint32_t value) {
-		_async_call([](auto self, auto arg) { self->_loop = arg; }, this, value);
+		_async_call([](auto self, auto arg) { self->_loop = arg.arg; }, this, value);
 	}
 
 	void Action::seek_play(uint32_t time) {
 		_async_call([](auto self, auto arg) {
-			self->seek_RT(arg);
+			self->seek_RT(arg.arg);
 			self->play_RT();
 		}, this, time);
 	}
 
 	void Action::seek_stop(uint32_t time) {
 		_async_call([](auto self, auto arg) {
-			self->seek_RT(arg);
+			self->seek_RT(arg.arg);
 			self->stop_RT();
 		}, this, time);
 	}
 
 	void Action::seek(uint32_t time) {
-		_async_call([](auto self, auto time) { self->seek_RT(time); }, this, time);
+		_async_call([](auto self, auto time) { self->seek_RT(time.arg); }, this, time);
 	}
 
 	void Action::clear() {
@@ -143,7 +148,7 @@ namespace qk {
 		_async_call([](auto self, auto arg) {
 			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 			if (self->_parent) {
-				static_cast<GroupAction*>(self->_parent)->insert_RT(self->_id, arg);
+				static_cast<GroupAction*>(self->_parent)->insert_RT(self->_id, arg.arg);
 			} else {
 				Qk_ERR("Action::before, illegal parent empty");
 			}
@@ -155,7 +160,7 @@ namespace qk {
 			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 			if (self->_parent) {
 				auto id = self->_id;
-				static_cast<GroupAction*>(self->_parent)->insert_RT(++id, arg);
+				static_cast<GroupAction*>(self->_parent)->insert_RT(++id, arg.arg);
 			} else {
 				Qk_ERR("Action::after, illegal parent empty");
 			}
@@ -185,14 +190,14 @@ namespace qk {
 			if (self->_target) {
 				Qk_ERR("Action::set_target, action cannot set multiple target"); return;
 			}
-			self->_target = arg;
+			self->_target = arg.arg;
 		}, this, target);
 	}
 
 	void Action::del_target(Layout* target) {
 		Qk_ASSERT(target);
 		_async_call([](auto self, auto arg) {
-			if (arg == self->_target) {
+			if (arg.arg == self->_target) {
 				self->stop_RT(); // stop action
 				self->_target = nullptr;
 			}

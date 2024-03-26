@@ -217,6 +217,11 @@ namespace qk {
 		 * @method angle() return vector angle
 		*/
 		float angle() const;
+		
+		/**
+		* @method round
+		*/
+		Vec2 round() const;
 
 		/**
 		 * @method angleTo(to) return vector angle

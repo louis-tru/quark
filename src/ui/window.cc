@@ -286,11 +286,11 @@ namespace qk {
 			return false;
 		}
 
-		if (time - _fspTime > 1e6) { // 1ns
+		if (time - _fspTime > 1e6) { // 1ns * 1e6
 			_fsp = _fspTick;
 			_fspTick = 0;
 			_fspTime = time;
-			Qk_DEBUG("fps: %d", _fsp);
+			//Qk_DEBUG("fps: %d", _fsp);
 		}
 		_fspTick++;
 

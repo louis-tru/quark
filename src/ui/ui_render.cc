@@ -478,7 +478,8 @@ namespace qk {
 				auto x = offset.x() + line.origin + blob.origin;
 				auto y = offset.y() + line.baseline - blob.ascent;
 				auto offset_x = blob.core.offset.front().x();
-				auto &rect = _cache->getRectPath({{x + offset_x, y},{blob.core.offset.back().x(), blob.height}});
+				auto width = blob.core.offset.back().x();
+				auto &rect = _cache->getRectPath({{x + offset_x, y},{width, blob.height}});
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			};
 
@@ -514,7 +515,8 @@ namespace qk {
 						auto &blob = v->_blob[i];
 						auto &line = lines->line(blob.line);
 						_canvas->drawTextBlob(&blob.core, {
-							line.origin + blob.origin + shadow.offset_x, line.baseline + shadow.offset_y
+							line.origin + blob.origin + shadow.offset_x + offset.x(),
+							line.baseline + shadow.offset_y + offset.y()
 						}, size, paint);
 					}
 				}
@@ -524,7 +526,9 @@ namespace qk {
 				for (auto i: v->_blob_visible) {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
-					_canvas->drawTextBlob(&blob.core, {line.origin + blob.origin, line.baseline}, size, paint);
+					_canvas->drawTextBlob(&blob.core, {
+						line.origin + blob.origin + offset.x(), line.baseline + offset.y()
+					}, size, paint);
 				}
 			} // if (color.a())
 		}

@@ -31,7 +31,9 @@
 #import <MacTypes.h>
 #import <AppKit/AppKit.h>
 #import "../../util/loop.h"
+#import "../../util/http.h"
 #import "../../ui/app.h"
+#import "../../ui/window.h"
 #import "../../ui/event.h"
 #import "../../ui/screen.h"
 #import "./mac_app.h"
@@ -40,7 +42,7 @@ using namespace qk;
 
 // ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
 
-QkApplicationDelegate* __app = nil;
+QkApplicationDelegate* qkappdelegate = nil;
 
 @interface QkApplicationDelegate()
 @property (assign, nonatomic) BOOL isPause;
@@ -48,91 +50,104 @@ QkApplicationDelegate* __app = nil;
 
 @implementation QkApplicationDelegate
 
-	- (void)applicationDidFinishLaunching:(NSNotification*) notification {
-		Qk_ASSERT(!__app);
-		Qk_ASSERT(Application::shared());
-		__app = self;
-		_host = Application::shared();
-		_app = UIApplication.sharedApplication;
-		self.isPause = YES;
+- (void)applicationDidFinishLaunching:(NSNotification*) notification {
+	Qk_ASSERT(!qkappdelegate);
+	Qk_ASSERT(Application::shared());
+	qkappdelegate = self;
+	_host = Application::shared();
+	_app = UIApplication.sharedApplication;
+	self.isPause = YES;
 
-		Inl_Application(_host)->triggerLoad();
-	}
+	Inl_Application(_host)->triggerLoad();
+}
 
-	- (void)applicationWillResignActive:(NSNotification*)notification {
-		if (self.isPause) return;
-		self.isPause = YES;
-		Inl_Application(_host)->triggerPause();
-		Qk_DEBUG("applicationWillResignActive, triggerPause");
-	}
+- (void)applicationWillResignActive:(NSNotification*)notification {
+	if (self.isPause) return;
+	self.isPause = YES;
+	Inl_Application(_host)->triggerPause();
+	Qk_DEBUG("applicationWillResignActive, triggerPause");
+}
 
-	- (void)applicationDidBecomeActive:(NSNotification*)notification {
-		if (!self.isPause) return;
-		self.isPause = NO;
-		Inl_Application(_host)->triggerResume();
-		Qk_DEBUG("applicationDidBecomeActive, triggerResume");
-	}
+- (void)applicationDidBecomeActive:(NSNotification*)notification {
+	if (!self.isPause) return;
+	self.isPause = NO;
+	Inl_Application(_host)->triggerResume();
+	Qk_DEBUG("applicationDidBecomeActive, triggerResume");
+}
 
-	- (void)applicationDidHide:(NSNotification*)notification {
-		Qk_DEBUG("applicationDidHide, onBackground");
-	}
+- (void)applicationDidHide:(NSNotification*)notification {
+	Qk_DEBUG("applicationDidHide, onBackground");
+}
 
-	- (void)applicationWillUnhide:(NSNotification*)notification {
-		Qk_DEBUG("applicationWillUnhide, onForeground");
-	}
+- (void)applicationWillUnhide:(NSNotification*)notification {
+	Qk_DEBUG("applicationWillUnhide, onForeground");
+}
 
-	- (void)applicationWillTerminate:(NSNotification*)notification {
-		Inl_Application(_host)->triggerUnload();
-		Qk_DEBUG("applicationWillTerminate, triggerUnload");
-	}
+- (void)applicationWillTerminate:(NSNotification*)notification {
+	Inl_Application(_host)->triggerUnload();
+	Qk_DEBUG("applicationWillTerminate, triggerUnload");
+}
 
-	- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
-		Qk_DEBUG("applicationShouldTerminateAfterLastWindowClosed, exit application");
-		return YES;
-	}
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
+	Qk_DEBUG("applicationShouldTerminateAfterLastWindowClosed, exit application");
+	return YES;
+}
 
-	- (BOOL)applicationShouldHandleReopen:(NSApplication*)sender hasVisibleWindows:(BOOL)flag {
-		Qk_DEBUG("applicationShouldHandleReopen");
-		return YES;
-	}
+- (BOOL)applicationShouldHandleReopen:(NSApplication*)sender hasVisibleWindows:(BOOL)flag {
+	Qk_DEBUG("applicationShouldHandleReopen");
+	return YES;
+}
 
 @end
 
 // ***************** A p p l i c a t i o n *****************
 
 void Application::openURL(cString& url) {
-	// 
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:*url]]];
 }
 
 void Application::sendEmail(cString& recipient,
 														 cString& subject,
 														 cString& cc, cString& bcc, cString& body)
 {
-	// TODO 
+	NSString *url = [NSString stringWithFormat:@"mailto:%s?subject=%s&body=%s&cc=%s&bcc=%s",
+		*recipient,*URI::encode(subject, true),*URI::encode(body, true),*cc,*bcc
+	];
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
 }
 
 // ***************** E v e n t . D i s p a t c h *****************
 
 void EventDispatch::set_volume_up() {
-	// TODO ..
 }
 
 void EventDispatch::set_volume_down() {
-	// TODO ..
-}
-
-void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
-	// TODO ..
 }
 
 void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-	// TODO ..
+}
+
+void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
+	auto delegate = window()->impl()->delegate();
+	qk_post_messate_main(Cb([options,delegate](auto&e) {
+		[delegate.ime set_keyboard_type:options.type];
+		[delegate.ime set_keyboard_return_type:options.return_type];
+		[delegate.ime activate: options.is_clear];
+		[delegate.ime set_spot_rect:options.spot_rect];
+	}), false);
 }
 
 void EventDispatch::set_ime_keyboard_close() {
-	// TODO ..
+	auto delegate = window()->impl()->delegate();
+	qk_post_messate_main(Cb([delegate](auto&e) {
+		[delegate.ime deactivate];
+	}), false);
 }
 
-void EventDispatch::set_ime_keyboard_spot_location(Vec2 location) {
-	// noop
+void EventDispatch::set_ime_keyboard_spot_rect(Rect rect) {
+	auto delegate = window()->impl()->delegate();
+	qk_post_messate_main(Cb([delegate,rect](auto&e) {
+		[delegate.ime set_spot_rect:rect];
+	}), false);
 }
+

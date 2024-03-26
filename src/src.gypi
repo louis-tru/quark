@@ -264,6 +264,7 @@
 			['os=="osx"', {
 				'sources': [
 					'platforms/mac/osx_app.mm',
+					'platforms/mac/osx_ctr.mm',
 					'platforms/mac/osx_screen.mm',
 					'platforms/mac/osx_ime_helper.mm',
 					'platforms/mac/osx_main.mm',

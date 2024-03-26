@@ -254,12 +254,12 @@ namespace qk {
 		type cls::name() __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return layout<cls##Layout>()->name(); }
 	#define Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name) \
 		void cls::set_##name(type val) { \
-			preRender().async_call([](auto ctx, auto val) {ctx->set_##name(val);}, layout<cls##Layout>(), val); \
+			preRender().async_call([](auto ctx, auto val) {ctx->set_##name(val.arg);}, layout<cls##Layout>(), val); \
 		}
 	#define Qk_IMPL_VIEW_PROP_ACC_SET_Large(cls, type, name) \
 		void cls::set_##name(type val) { \
 			preRender().async_call([](auto ctx, auto val) {\
-				ctx->set_##name(*val); type::Traits::Release(val);}, layout<cls##Layout>(), new type(val)); \
+				ctx->set_##name(*val.arg); type::Traits::Release(val.arg);}, layout<cls##Layout>(), new type(val)); \
 		}
 	#define Qk_IMPL_VIEW_PROP_ACC(cls, type, name, ...) \
 		Qk_IMPL_VIEW_PROP_ACC_GET(cls, type, name, ##__VA_ARGS__) Qk_IMPL_VIEW_PROP_ACC_SET(cls, type, name)

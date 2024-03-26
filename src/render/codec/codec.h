@@ -48,7 +48,7 @@ namespace qk {
 	};
 
 	/**
-	 * @func test
+	 * @method test
 	 * 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
 	 * 如果当前只需要知道图像的附加信息可调用该函数,
 	 * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
@@ -57,14 +57,14 @@ namespace qk {
 
 	/**
 	 * 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
-	 * @func decode
+	 * @method decode
 	 * @arg data {cBuffer&}
 	 * @ret {Array<Pixel>}
 	 */
 	Qk_EXPORT bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt = kUnknown_ImageFormat);
 
 	/**
-	 * @func image_format 通过路径获取图片类型
+	 * @method image_format 通过路径获取图片类型
 	 */
 	Qk_EXPORT ImageFormat img_format_from(cString& path);
 

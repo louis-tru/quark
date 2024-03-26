@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/app.h"
-#include "quark/event.h"
+#include "../../ui/app.h"
+#include "../../ui/event.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
@@ -38,9 +38,9 @@ namespace qk {
 	typedef EventDispatch::KeyboardOptions KeyboardOptions;
 
 	class LINUXIMEHelper {
-		public:
-		LINUXIMEHelper(AppInl* app, Display* dpy, 
-									Window win, int inputStyle = XIMPreeditPosition);
+	public:
+		LINUXIMEHelper(App* app, qk::Window* qkwin, Window win,
+			int inputStyle = XIMPreeditPosition);
 		~LINUXIMEHelper();
 		void open(KeyboardOptions options);
 		void close();
@@ -52,9 +52,8 @@ namespace qk {
 		void key_press(XKeyPressedEvent *event);
 		void focus_in();
 		void focus_out();
-		private:
-		class Inl;
-		Inl* _inl;
+	private:
+		class Inl; Inl* _inl;
 	};
 
 }

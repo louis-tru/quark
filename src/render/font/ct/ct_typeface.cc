@@ -320,7 +320,7 @@ static inline bool QkUTF16_IsLeadingSurrogate(uint16_t c) { return ((c) & 0xFC00
 
 size_t QkToUTF16(Unichar uni, uint16_t utf16[2]) {
 	if ((uint32_t)uni > 0x10FFFF) {
-		return 0;
+		return 0; // error
 	}
 	int extra = (uni > 0xFFFF);
 	if (utf16) {
@@ -416,7 +416,7 @@ size_t Typeface_Mac::onGetTableData(FontTableTag tag, size_t offset,size_t lengt
 void Typeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyphs[]) const {
 	// Undocumented behavior of CTFontGetGlyphsForCharacters with non-bmp code points:
 	// When a surrogate pair is detected, the glyph index used is the index of the high surrogate.
-	// It is documented that if a mapping is unavailable, the glyph will be set to 0.
+	// It is documentxed that if a mapping is unavailable, the glyph will be set to 0.
 
 	ArrayBuffer<uint16_t> charStorage = ArrayBuffer<uint16_t>::alloc(2 * count);
 	const UniChar* src = *charStorage; // UniChar is a UTF-16 16-bit code unit.
@@ -658,7 +658,7 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) const 
 }
 
 Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
-	float fontSize, const Array<Vec2> *offset, Sp<ImageSource> *imgOut)
+	float fontSize, cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut)
 {
 	if (!fRGBSpace) {
 		//It doesn't appear to matter what color space is specified.
@@ -685,20 +685,19 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 		fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgBounds, glyphs.length()
 	);
 
-	float top = cgBound.size.height + cgBound.origin.y;
 	float width_f = 0;// AHgj
+	float top = cgBound.size.height + cgBound.origin.y;
 
 	for (int i = 0; i < glyphs.length(); i++) {
 		drawPoints[i].x = width_f;
-		drawPoints[i].y = -cgBound.origin.y; //-cgBounds[i].origin.y;
+		drawPoints[i].y = -cgBound.origin.y;
 
 		if (offset) {
-			drawPoints[i].y -= offset->at(i).y();
-			width_f += offset->at(i).x();
+			drawPoints[i].y -= offset->at(i).y() * offsetScale;
+			width_f = offset->at(i+1).x() * offsetScale;
 		} else {
 			width_f += cgAdvance[i].width;
 		}
-
 		//Qk_DEBUG("#Typeface_Mac::onGetImage,bounds, left:%f, top:%f, width:%f, height:%f | advanceX:%f",
 		//	cgBounds[i].origin.x, cgBounds[i].origin.y,
 		//	cgBounds[i].size.width, cgBounds[i].size.height, cgAdvance[i].width);

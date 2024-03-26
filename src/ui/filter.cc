@@ -97,7 +97,7 @@ namespace qk {
 		auto layout = dynamic_cast<Layout*>(self->holder()); // safe get
 		if (layout) {
 			layout->window()->preRender().async_call([](auto ctx, auto arg) {
-				arg->mark_render();
+				arg.arg->mark_render();
 			}, self, layout);
 		}
 	}
@@ -164,8 +164,8 @@ namespace qk {
 					return Qk_ERR("BoxFilter#set_next, next->_holder != _holder");
 			}
 			layout->window()->preRender().async_call([](auto ctx, auto arg) {
-				if (!check_loop_ref(ctx, arg))
-					ctx->set_next_RT(arg);
+				if (!check_loop_ref(ctx, arg.arg))
+					ctx->set_next_RT(arg.arg);
 			}, this, next);
 		} else { // layout nullptr
 			if (next && !next->_holder) {
@@ -312,7 +312,7 @@ namespace qk {
 		auto h = dynamic_cast<Layout*>(holder()); // safe get
 		if (h) {
 			h->window()->preRender().async_call([](auto ctx, auto arg) {
-				ctx->ImageSourceHolder::set_source(arg);
+				ctx->ImageSourceHolder::set_source(arg.arg);
 			}, this, source);
 		} else {
 			ImageSourceHolder::set_source(source);

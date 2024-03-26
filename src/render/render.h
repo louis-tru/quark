@@ -74,7 +74,7 @@ namespace qk {
 		virtual void    deleteTexture(TexStat *tex) = 0;
 		virtual void    makeVertexData(VertexData::ID *id) = 0;
 		virtual void    deleteVertexData(VertexData::ID *id) = 0;
-		virtual Canvas* newCanvas(Options opts) = 0;
+		virtual Canvas* newCanvas(Options opts) = 0; // create new sub canvas object
 
 		/**
 		 * @method surface() Returns render surface object for platforms

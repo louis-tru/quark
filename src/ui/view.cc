@@ -66,7 +66,7 @@ namespace qk {
 	CStyleSheetsClass* View::cssclass() {
 		if (!_cssclass) {
 			_cssclass = new CStyleSheetsClass(_layout);
-			preRender().async_call([](auto ctx, auto val) { ctx->_cssclass = val; }, _layout, _cssclass);
+			preRender().async_call([](auto ctx, auto val) { ctx->_cssclass = val.arg; }, _layout, _cssclass);
 		}
 		return _cssclass;
 	}
@@ -76,7 +76,7 @@ namespace qk {
 	}
 
 	void View::set_opacity(float val) { // async call set_opacity()
-		preRender().async_call([](auto ctx, auto val) { ctx->set_opacity(val); }, _layout, val);
+		preRender().async_call([](auto ctx, auto val) { ctx->set_opacity(val.arg); }, _layout, val);
 	}
 
 	bool View::visible() const {
@@ -84,7 +84,7 @@ namespace qk {
 	}
 
 	void View::set_visible(bool val) { // async call set_visible()
-		preRender().async_call([](auto ctx, auto val) { ctx->set_visible(val); }, _layout, val);
+		preRender().async_call([](auto ctx, auto val) { ctx->set_visible(val.arg); }, _layout, val);
 	}
 
 	bool View::receive() const {
@@ -185,7 +185,7 @@ namespace qk {
 			view->_next = this;
 			_prev = view;
 		}
-		preRender().async_call([](auto ctx, auto val) { ctx->before(val); }, _layout, view->_layout);
+		preRender().async_call([](auto ctx, auto val) { ctx->before(val.arg); }, _layout, view->_layout);
 	}
 
 	void View::after(View *view) {
@@ -205,7 +205,7 @@ namespace qk {
 			view->_next = _next;
 			_next = view;
 		}
-		preRender().async_call([](auto ctx, auto val) { ctx->after(val); }, _layout, view->_layout);
+		preRender().async_call([](auto ctx, auto val) { ctx->after(val.arg); }, _layout, view->_layout);
 	}
 
 	void View::prepend(View *child) {
@@ -225,7 +225,7 @@ namespace qk {
 			_first = child;
 			_last = child;
 		}
-		preRender().async_call([](auto ctx, auto val) { ctx->prepend(val); }, _layout, child->_layout);
+		preRender().async_call([](auto ctx, auto val) { ctx->prepend(val.arg); }, _layout, child->_layout);
 	}
 
 	void View::append(View *child) {
@@ -246,7 +246,7 @@ namespace qk {
 			_last = child;
 		}
 		preRender().async_call([](auto ctx, auto val) {
-			ctx->append(val);
+			ctx->append(val.arg);
 		}, _layout, child->_layout);
 	}
 

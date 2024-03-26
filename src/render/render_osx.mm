@@ -102,9 +102,11 @@ public:
 
 	void lock() override {
 		if (isRenderThread()) {
-			if (_lockCount++ == 0) CGLLockContext(_ctx.CGLContextObj);
+			if (_lockCount++ == 0)
+				CGLLockContext(_ctx.CGLContextObj);
 		} else {
-			CGLLockContext(_ctx.CGLContextObj); [_ctx makeCurrentContext];
+			CGLLockContext(_ctx.CGLContextObj);
+			[_ctx makeCurrentContext];
 		}
 	}
 

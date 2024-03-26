@@ -45,10 +45,10 @@ namespace qk {
 		virtual void input_insert(cString& text) = 0;
 		virtual void input_marked(cString& text) = 0;
 		virtual void input_unmark(cString& text) = 0;
-		virtual void input_control(KeyboardKeyName name) = 0;
+		virtual void input_control(KeyboardKeyCode name) = 0;
 		virtual bool input_can_delete() = 0;
 		virtual bool input_can_backspace() = 0;
-		virtual Vec2 input_spot_location() = 0;
+		virtual Rect input_spot_rect() = 0;
 		virtual KeyboardType input_keyboard_type() = 0;
 		virtual KeyboardReturnType input_keyboard_return_type() = 0;
 	};

@@ -33,14 +33,15 @@
 #import "../../event.h"
 #import "../../display.h"
 #import "./mac_app.h"
+#import <MessageUI/MFMailComposeViewController.h>
 
 using namespace qk;
 
 // ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
 
-QkApplicationDelegate *__app = nil; //
+QkApplicationDelegate *qkappdelegate = nil; //
 
-@implementation QkApplicationDelegate
+@implementation QkApplicationDelegate<MFMailComposeViewControllerDelegate>
 
 	- (void)refresh_status {
 		if ( self.window.rootViewController == self.root_ctr ) {
@@ -50,9 +51,9 @@ QkApplicationDelegate *__app = nil; //
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		Qk_ASSERT(!__app);
+		Qk_ASSERT(!qkappdelegate);
 		Qk_ASSERT(Application::shared());
-		__app = self;
+		qkappdelegate = self;
 		_host = Application::shared();
 		_app = app;
 		_render = dynamic_cast<QkMacRender*>(_host->render());
@@ -111,7 +112,7 @@ QkApplicationDelegate *__app = nil; //
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
-		if ( __app && !_is_background ) {
+		if ( qkappdelegate && !_is_background ) {
 			self.host->render()->reload(); // set size
 		}
 	}
@@ -175,7 +176,7 @@ void Application::pending() {
 void Application::open_url(cString& url) {
 	NSURL* url_ = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__app.app openURL:url_ options:@{} completionHandler:nil];
+		[qkappdelegate.app openURL:url_ options:@{} completionHandler:nil];
 	});
 }
 
@@ -195,8 +196,8 @@ void Application::send_email(cString& recipient,
 		[mail setCcRecipients:cc_];
 		[mail setBccRecipients:bcc_];
 		[mail setMessageBody:body_ isHTML:NO];
-		mail.mailComposeDelegate = __app;
-		[__app.root_ctr presentViewController:mail animated:YES completion:nil];
+		mail.mailComposeDelegate = qkappdelegate;
+		[qkappdelegate.root_ctr presentViewController:mail animated:YES completion:nil];
 	});
 }
 
@@ -210,29 +211,28 @@ void EventDispatch::set_volume_down() {
 	// TODO ..
 }
 
-void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
+void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__app.ime set_keyboard_type:options.type];
-		[__app.ime set_keyboard_return_type:options.return_type];
-		if ( options.is_clear ) {
-			[__app.ime clear];
-		}
-		[__app.ime open];
+		[qkappdelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 	});
 }
 
-void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
+void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__app.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
+		[qkappdelegate.ime set_keyboard_type:options.type];
+		[qkappdelegate.ime set_keyboard_return_type:options.return_type];
+		if ( options.is_clear ) {
+			[qkappdelegate.ime clear];
+		}
+		[qkappdelegate.ime open];
 	});
 }
 
 void EventDispatch::set_ime_keyboard_close() {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[__app.ime close];
+		[qkappdelegate.ime close];
 	});
 }
 
 void EventDispatch::set_ime_keyboard_spot_location(Vec2 location) {
-	// noop
 }

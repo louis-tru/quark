@@ -62,9 +62,14 @@ namespace qk {
 		const FontGlyphMetrics& getGlyphMetrics(GlyphID glyph); // returns the font glyph metrics in 64 px
 		float getMetrics(FontMetrics *metrics, float fontSize);
 		float getMetrics(FontMetricsBase *metrics, float fontSize);
-		// get image source object from out param and return top to baseline value for image text
+		/**
+		* get image source object from out param and return top to baseline value for image text
+		* @method getImage
+		* @param offset {cArray<Vec2>*} offset.length = glyphs.length + 1
+		* @param offsetScale {float} offset scale
+		*/
 		Vec2  getImage(const Array<GlyphID> &glyphs,
-			float fontSize, const Array<Vec2> *offset, Sp<ImageSource> *imgOut);
+			float fontSize, cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut);
 	protected:
 		Typeface(FontStyle fs);
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
@@ -79,7 +84,7 @@ namespace qk {
 		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
 		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs,
-			float fontSize, const Array<Vec2> *offset, Sp<ImageSource> *imgOut) = 0;
+			float fontSize, cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut) = 0;
 	private:
 		FontMetrics  _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphs;

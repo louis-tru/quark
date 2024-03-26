@@ -61,7 +61,7 @@ namespace qk {
 				_input_text_offset_x = 0;
 			} else { // max_width > final_width
 				switch ( text_align() ) {
-					default:
+					default: // left align
 						_input_text_offset_x = 0; break;
 					case TextAlign::kCenter:
 						_input_text_offset_x = (max_width - final_width) / 2.0; break;

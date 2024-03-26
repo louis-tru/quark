@@ -39,7 +39,7 @@ namespace qk {
 		: _fontSize(fontSize), _typeface(ft)
 	{
 		if (count) {
-			_glyphs.write(glyphs, 0, count);
+			_glyphs.write(glyphs, count, 0);
 		}
 	}
 	
@@ -55,11 +55,12 @@ namespace qk {
 		const float scale = _fontSize * _1_64;
 		const bool isScale = scale != 1.0;
 
-		Array<Vec2> arr(_glyphs.length() + 1);
+		Array<Vec2> offset(_glyphs.length() + 1);
+
 		float x = origin.x(), y = origin.y();
-		Vec2 *dst = *arr;
+		Vec2 *dst = *offset;
 		const GlyphID *src = *_glyphs;
-		const GlyphID *end = src + arr.length();
+		const GlyphID *end = src + offset.length()-1;
 		auto tf = typeface();
 
 		while (src != end) {
@@ -69,8 +70,8 @@ namespace qk {
 			src++;
 		}
 		*dst = Vec2(x, y);
-		
-		Qk_ReturnLocal(arr);
+
+		Qk_ReturnLocal(offset);
 	}
 
 	// -------------------- F o n t . F a m i l y s --------------------

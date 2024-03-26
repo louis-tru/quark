@@ -70,7 +70,7 @@ namespace qk {
 				preRender().async_call([](auto ctx, auto val) {
 					do {
 						if (ctx->_cssclass)
-							ctx->_cssclass->setStatus_RT(val);
+							ctx->_cssclass->setStatus_RT(val.arg);
 						ctx = ctx->_parent;
 					} while(ctx);
 				}, _layout, CSSType(evt.status()));
@@ -335,7 +335,7 @@ namespace qk {
 							true,
 							input->input_keyboard_type(),
 							input->input_keyboard_return_type(),
-							input->input_spot_location(),
+							input->input_spot_rect(),
 						});
 					} else {
 						set_ime_keyboard_close();
@@ -345,7 +345,7 @@ namespace qk {
 						false,
 						input->input_keyboard_type(),
 						input->input_keyboard_return_type(),
-						input->input_spot_location(),
+						input->input_spot_rect(),
 					});
 				} // if ( _text_input != input ) {
 			} else {
@@ -717,7 +717,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardKeyName name, bool down) {
+	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardKeyCode name, bool down) {
 		float x = pos[0], y = pos[1];
 
 		if (_mouse_handle->view() != view) {
@@ -752,8 +752,8 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::mousewhell(KeyboardKeyName name, bool down, float x, float y) {
-		if (down) {
+	void EventDispatch::mousewhell(KeyboardKeyCode name, bool isDown, float x, float y) {
+		if (isDown) {
 			auto view = _mouse_handle->view();
 			if (view) {
 				_inl_view(view)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(view, x, y, name));
@@ -774,32 +774,25 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onMousepress(KeyboardKeyName name, bool down) {
+	void EventDispatch::onMousepress(KeyboardKeyCode name, bool isDown, Vec2 *value) {
 		switch(name) {
 			case KEYCODE_MOUSE_LEFT:
 			case KEYCODE_MOUSE_CENTER:
 			case KEYCODE_MOUSE_RIGHT: {
 				UILock lock(_window);
-				auto pos = _mouse_handle->position(); // get current mouse pos
+				auto pos = value ? *value: _mouse_handle->position(); // get current mouse pos
 				auto v = find_receive_view(pos).collapse();
-				_loop->post_message(Cb([this,v,pos,name,down](auto& e) {
-					mousepress(v, pos, name, down);
+				_loop->post_message(Cb([this,v,pos,name,isDown](auto& e) {
+					mousepress(v, pos, name, isDown);
 					Release(v);
 				}));
 				break;
 			}
-			case KEYCODE_MOUSE_WHEEL_UP:
-				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, 0, -53); }));
+			case KEYCODE_MOUSE_WHEEL: {
+				auto delta = value ? *value: Vec2();
+				_loop->post_message(Cb([=](auto& e) { mousewhell(name, isDown, delta.x(), delta.y()); }));
 				break;
-			case KEYCODE_MOUSE_WHEEL_DOWN:
-				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, 0, 53); }));
-				break;
-			case KEYCODE_MOUSE_WHEEL_LEFT:
-				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, -53, 0); }));
-				break;
-			case KEYCODE_MOUSE_WHEEL_RIGHT:
-				_loop->post_message(Cb([=](auto& e) { mousewhell(name, down, 53, 0); }));
-				break;
+			}
 			default: break;
 		}
 	}
@@ -813,7 +806,7 @@ namespace qk {
 			view = _window->root();
 		if ( !view ) return;
 
-		auto name = _keyboard->keyname();
+		auto name = _keyboard->keycode();
 		auto btn = view->as_button();
 		View *focus_move = nullptr;
 
@@ -885,7 +878,7 @@ namespace qk {
 			view = _window->root();
 		if ( !view ) return;
 
-		auto name = _keyboard->keyname();
+		auto name = _keyboard->keycode();
 		auto evt = new KeyEvent(view, name,
 			_keyboard->shift(),
 			_keyboard->ctrl(), _keyboard->alt(),
@@ -957,7 +950,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onImeControl(KeyboardKeyName name) {
+	void EventDispatch::onImeControl(KeyboardKeyCode name) {
 		UILock lock(_window);
 		TextInput* input = _text_input;
 		if ( input ) {

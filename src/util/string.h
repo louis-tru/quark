@@ -111,41 +111,39 @@ namespace qk {
 		 */
 		static ArrayString format(cChar* format, ...);
 
-		inline bool  isEmpty() const;
-		inline const T* c_str() const;
-		inline const T* operator*() const;
-
-		inline T operator[](uint32_t index) const;
-		inline uint32_t length() const;
-		inline uint32_t capacity() const;
-
+		// =========================================
+		// modify method assign, append assign ...
+		// =========================================
 		// assign operator, call assign()
 		ArrayString& operator=(const T* s);
 		ArrayString& operator=(const ArrayString& s);
 		// assign value operator
 		ArrayString& assign(const T* s, uint32_t len); // operator=
 		ArrayString& assign(const T s); // operator=
+		// operator+=
+		// concat string to current this, call append()
+		ArrayString& operator+=(const T* s);
+		ArrayString& operator+=(const ArrayString& s);
+		ArrayString& operator+=(const T s);
+		// append string to current this
+		ArrayString& append(const T* s, uint32_t len = 0); // operator+=
+		ArrayString& append(const ArrayString& s); // operator+=
+		ArrayString& append(const T s); // operator+=
+		// collapse to array buffer
+		ArrayBuffer<T, A> collapse();
+		// upper, lower
+		ArrayString& upperCase(); // change current this string
+		ArrayString& lowerCase(); // change current this string
+
+		// =========================================
+		// const method
+		// =========================================
 		// operator+
 		// concat string, create new string
 		// call ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
 		ArrayString operator+(const T* s) const;
 		ArrayString operator+(const ArrayString& s) const;
 		ArrayString operator+(const T s) const;
-		// operator+=
-		// concat string to current this, call append()
-		ArrayString& operator+=(const T* s);
-		ArrayString& operator+=(const ArrayString& s);
-		ArrayString& operator+=(const T s);
-
-		// append string to current this
-		ArrayString& append(const T* s, uint32_t len = 0); // operator+=
-		ArrayString& append(const ArrayString& s); // operator+=
-		ArrayString& append(const T s); // operator+=
-		// get string hash code
-		uint64_t hashCode() const;
-		// collapse to array buffer
-		ArrayBuffer<T, A> collapse();
-		ArrayString<T, A> copy() const;
 
 		// operator compare
 		bool operator==(const T* s) const;
@@ -161,6 +159,17 @@ namespace qk {
 		bool operator<=(const T* s) const;
 		inline bool operator<=(const ArrayString& s) const { return operator<=(s.c_str()); }
 
+		inline bool  isEmpty() const;
+		inline const T* c_str() const;
+		inline const T* operator*() const;
+
+		inline T operator[](uint32_t index) const;
+		inline uint32_t length() const;
+		inline uint32_t capacity() const;
+
+		// get string hash code
+		uint64_t hashCode() const;
+		ArrayString<T, A> copy() const;
 		// trim
 		ArrayString trim() const;
 		ArrayString trimLeft() const;
@@ -169,10 +178,8 @@ namespace qk {
 		ArrayString substr(uint32_t start, uint32_t length = 0x7FFFFFFF) const;
 		ArrayString substring(uint32_t start, uint32_t end = 0x7FFFFFFF) const;
 		// upper, lower
-		ArrayString& upperCase(); // change current this string
-		ArrayString& lowerCase(); // change current this string
-		ArrayString  toUpperCase() const; // create new string
-		ArrayString  toLowerCase() const; // create new string
+		ArrayString toUpperCase() const; // create new string
+		ArrayString toLowerCase() const; // create new string
 		// index_of
 		int indexOf(const ArrayString& s, uint32_t start = 0) const;
 		int lastIndexOf(const ArrayString& s, uint32_t start = 0x7FFFFFFF) const;

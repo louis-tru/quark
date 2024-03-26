@@ -257,7 +257,7 @@ namespace qk {
 			bool               is_clear;
 			KeyboardType       type;
 			KeyboardReturnType return_type;
-			Vec2               spot_location;
+			Rect               spot_rect;
 		};
 		Qk_DEFINE_PROP_GET(Application*, host);
 		Qk_DEFINE_PROP_GET(Window*, window);
@@ -265,20 +265,20 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(View*, focus_view);
 
 		EventDispatch(Window* win);
-		virtual ~EventDispatch();
+		~EventDispatch();
 		// handles
 		void onTouchstart(List<TouchPoint>&& touches);
 		void onTouchmove(List<TouchPoint>&& touches);
 		void onTouchend(List<TouchPoint>&& touches);
 		void onTouchcancel(List<TouchPoint>&& touches);
 		void onMousemove(float x, float y);
-		void onMousepress(KeyboardKeyName key, bool down);
+		void onMousepress(KeyboardKeyCode key, bool isDown, Vec2 *value);
 		// ime
 		void onImeDelete(int count);
 		void onImeInsert(cString& text);
 		void onImeMarked(cString& text);
 		void onImeUnmark(cString& text);
-		void onImeControl(KeyboardKeyName name);
+		void onImeControl(KeyboardKeyCode name);
 		// keyboard main loop call
 		void onKeyboardDown();
 		void onKeyboardUp();
@@ -288,7 +288,7 @@ namespace qk {
 		void set_ime_keyboard_open(KeyboardOptions options);
 		void set_ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
 		void set_ime_keyboard_close();
-		void set_ime_keyboard_spot_location(Vec2 location);
+		void set_ime_keyboard_spot_rect(Rect rect);
 		bool set_focus_view(View *view); // set focus from main thread
 	private:
 		void touchstartErase(View *view, List<TouchPoint>& in);
@@ -296,8 +296,8 @@ namespace qk {
 		void touchmove(List<TouchPoint>& in);
 		void touchend(List<TouchPoint>& in, const UIEventName& type);
 		void mousemove(View* view, Vec2 pos);
-		void mousepress(View* view, Vec2 pos, KeyboardKeyName name, bool down);
-		void mousewhell(KeyboardKeyName name, bool down, float x, float y);
+		void mousepress(View* view, Vec2 pos, KeyboardKeyCode name, bool down);
+		void mousewhell(KeyboardKeyCode name, bool down, float x, float y);
 		View* find_receive_view_exec(Layout *view, Vec2 pos);
 		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, uint32_t keycode = 0);
