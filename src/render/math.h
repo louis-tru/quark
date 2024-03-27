@@ -115,6 +115,10 @@ namespace qk {
 		inline T b() const { return val[2]; }
 		inline T a() const { return val[3]; }
 
+		inline T width() const { return val[0]; }
+		inline T height() const { return val[1]; }
+		inline T depth() const { return val[2]; }
+
 		inline void set_x(T v) { val[0] = v; }
 		inline void set_y(T v) { val[1] = v; }
 		inline void set_z(T v) { val[2] = v; }
@@ -124,6 +128,10 @@ namespace qk {
 		inline void set_g(T v) { val[1] = v; }
 		inline void set_b(T v) { val[2] = v; }
 		inline void set_a(T v) { val[3] = v; }
+
+		inline void set_width(T v) { val[0] = v; }
+		inline void set_height(T v) { val[1] = v; }
+		inline void set_depth(T v) { val[2] = v; }
 
 		inline bool is_zero() const {
 			for (int i = 0; i < LEN; i++) if (val[i] != 0) return false;

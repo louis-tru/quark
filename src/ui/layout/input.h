@@ -85,7 +85,7 @@ namespace qk {
 		virtual ViewType viewType() const override;
 	protected:
 		Vec2 layout_typesetting_input_text();
-		void refresh_cursor_window_position();
+		void solve_cursor_offset();
 		virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		virtual Vec2 input_text_offset();
 		virtual void set_input_text_offset(Vec2 val);
@@ -95,7 +95,9 @@ namespace qk {
 		Sp<TextLines> _lines;
 		String4 _marked_text;
 		Color   _marked_color;
-		uint32_t  _marked_text_idx, _cursor, _cursor_linenum;
+		uint32_t  _marked_text_idx; // marked text index for text
+		uint32_t _cursor; // cursor index for text
+		uint32_t _cursor_line;  // cursor line number
 		uint32_t  _marked_blob_begin, _marked_blob_end;
 		float _cursor_x, _input_text_offset_x, _input_text_offset_y;
 		float _text_ascent, _text_height;

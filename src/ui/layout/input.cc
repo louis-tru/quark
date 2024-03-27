@@ -37,21 +37,39 @@
 namespace qk {
 
 	enum {
-		kFlag_Normal = 0,      // 正常状态未激活光标查询
-		kFlag_Find_Wait,       // 等待超时激活光标定位
-		kFlag_Find_Disable,    // 禁用激活光标定位
-		kFlag_Find,            // 激活光标定位
-		kFlag_Auto_Find,       // 激活自动光标定位
-		kFlag_Range_Select,    // 范围选择
+		kFlag_Normal = 0,      // 正常状态未激活光标查找
+		kFlag_Find_Cursor_Wait,   // 等待超时激活光标查找
+		kFlag_Find_Cursor_Disable,// 禁用激活光标查找
+		kFlag_Find_Cursor,        // 激活光标查找
+		kFlag_Auto_Find_Cursor,   // 激活自动光标查找
+		kFlag_Range_Select,       // 范围选择
 		kFlag_Auto_Range_Select,  // 自动范围选择
-		kFlag_Check_Move_Focus,   // 检测文本移动聚焦
-		kFlag_Disable_Click_Find, // 禁用点击聚焦
+		kFlag_Click_Focus_Check,  // 点击聚焦检查,检查成功后设置成`kFlag_Disable_Click_Focus`状态
+		kFlag_Disable_Click_Focus, // 禁用点击聚焦
 	};
 
 	Qk_DEFINE_INLINE_MEMBERS(InputLayout, Inl) {
 		#define _this static_cast<InputLayout::Inl*>(this)
 		#define _async_call window()->preRender().async_call
 	public:
+
+		#pragma mark Utils
+		void prevent_default(UIEvent &evt) {
+			if (_editing) {
+				if (_flag == kFlag_Auto_Find_Cursor || _flag == kFlag_Find_Cursor) {
+					evt.return_value = 0;
+				}
+			}
+		}
+
+		Vec2 get_position() {
+			Vec2 point(padding_left(), padding_top());
+			if (_border) {
+				point[0] += _border->width[3]; // left
+				point[1] += _border->width[0]; // top
+			}
+			return _mat * point;
+		}
 
 		#pragma mark Event handles
 		// ============================================================================
@@ -60,46 +78,45 @@ namespace qk {
 		void handle_Touchstart(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
 			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
-			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg); }, this, args);
+			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, true); }, this, args);
 		}
 
 		void handle_Touchmove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<TouchEvent*>(&evt);
-			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
-			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, args);
+			Vec2 arg(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Touchend(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
-			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
-			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, args);
+			Vec2 arg(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Mousedown(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
-			Vec2 args(e->x(), e->y());
-			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg); }, this, args);
+			Vec2 arg(e->x(), e->y());
+			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, false); }, this, arg);
 		}
 
 		void handle_Mousemove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<MouseEvent*>(&evt);
-			Vec2 args(e->x(), e->y());
-			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, args);
+			Vec2 arg(e->x(), e->y());
+			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Mouseup(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
-			Vec2 args(e->x(), e->y());
-			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, args);
+			Vec2 arg(e->x(), e->y());
+			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Click(UIEvent& evt) {
 			auto e = static_cast<ClickEvent*>(&evt);
-			Vec2 args(e->x(), e->y());
 
-			if ( !_editing && _flag != kFlag_Disable_Click_Find ) {
+			if ( !_editing && _flag != kFlag_Disable_Click_Focus ) {
 				view()->focus();
 			}
 
@@ -109,7 +126,7 @@ namespace qk {
 						false, self->_type, self->_return_type, self->spot_rect()
 					});
 				} else {
-					if ( self->_flag == kFlag_Disable_Click_Find ) { // 禁用点击聚焦
+					if ( self->_flag == kFlag_Disable_Click_Focus ) { // 禁用点击聚焦
 						self->_flag = kFlag_Normal;
 					} else {
 						auto view = self->safe_view();
@@ -122,19 +139,18 @@ namespace qk {
 						}
 					}
 				}
-			}, this, args);
+			}, this, Vec2(e->x(), e->y()));
 		}
 
 		void handle_Keydown(UIEvent& evt) {
 			_async_call([](auto ctx, auto arg) {
 				if ( ctx->_editing && ctx->_flag == kFlag_Normal ) {
 					switch ( arg.arg ) {
-						default: break;
 						case KEYCODE_LEFT:
 							ctx->_cursor = Qk_MAX(0, int(ctx->_cursor - 1));
 							break;
 						case KEYCODE_UP: {
-							Vec2 pos = ctx->_mat * ctx->spot_location();
+							Vec2 pos = ctx->_mat * ctx->spot_offset();
 							Vec2 coord(pos.x(), pos.y() - (ctx->_text_height * 1.5));
 							ctx->find_cursor(coord);
 							break;
@@ -143,7 +159,7 @@ namespace qk {
 							ctx->_cursor = Qk_MIN(ctx->text_length(), ctx->_cursor + 1);
 							break;
 						case KEYCODE_DOWN: {
-							Vec2 pos = ctx->_mat * ctx->spot_location();
+							Vec2 pos = ctx->_mat * ctx->spot_offset();
 							Vec2 coord(pos.x(), pos.y() + (ctx->_text_height * 0.5));
 							ctx->find_cursor(coord);
 							break;
@@ -158,8 +174,8 @@ namespace qk {
 						case KEYCODE_MOVE_END:
 							ctx->_cursor = ctx->text_length();
 							break;
+						default: break;
 					}
-					
 					ctx->limit_cursor_in_marked_text();
 					ctx->reset_cursor_twinkle_task_timeout();
 					ctx->mark_render(kInput_Status);
@@ -168,10 +184,7 @@ namespace qk {
 		}
 
 		void handle_Focus_for_render_t() {
-			if (_readonly)
-				_editing = false;
-			else
-				_editing = true;
+			_editing = _readonly ? false: true;
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
 			mark_render(kInput_Status);
@@ -197,82 +210,68 @@ namespace qk {
 
 		// ============================================================================
 
-		Vec2 get_position() {
-			Vec2 point(padding_left(), padding_top());
-			if (_border) {
-				point[0] += _border->width[3]; // left
-				point[1] += _border->width[0]; // top
-			}
-			return _mat * point;
-		}
-
-		void start_action(Vec2 point) {
+		void start_action(Vec2 point, bool isTouch) {
 			if ( _editing ) {
 				_point = point;
 				if ( _flag == kFlag_Normal ) { // 开始超时激活光标定位
-					_flag = kFlag_Find_Wait;
-					if ( is_multiline() ) {
+					if ( is_multiline() && isTouch ) {
+						_flag = kFlag_Find_Cursor_Wait;
+						// 多行文本输入并且为在touch事件时为了判断是否为滚动与定位查找操作,
+						// 只有长按输入框超过1秒没有移动才表示激活光标查找
 						auto view = safe_view();
 						if (view) {
 							window()->host()->loop()->post(Cb([this](auto &e) { // delay call
 								_async_call([](auto ctx, auto arg) {
-									if ( ctx->_flag == kFlag_Find_Wait ) {
-										ctx->_flag = kFlag_Find; // 激活光标定位
+									if ( ctx->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
+										ctx->_flag = kFlag_Find_Cursor; // 激活光标定位
 										ctx->find_cursor(ctx->_point);
 									}
 								}, this, 0);
 							}, *view), 1e6/*1s*/);
 						}
 					} else { // 立即激活
-						_flag = kFlag_Find;
-						_async_call([](auto ctx, auto arg) {
-							ctx->find_cursor(arg.arg);
-						}, this, point);
+						_flag = kFlag_Find_Cursor;
+						find_cursor(_point);
 					}
 				}
 			} else {
 				if ( _flag == kFlag_Normal ) {
-					if ( is_multiline() ) { // 多行移动后禁用焦点
+					if ( is_multiline() && isTouch ) { // 多行移动后禁用焦点
 						_point = point;
-						_flag = kFlag_Check_Move_Focus;  // 开始检测点击聚焦
+						_flag = kFlag_Click_Focus_Check;  // 开始检测移动聚焦
 					}
 				}
 			}
 		}
 
-		void prevent_default(UIEvent &evt) {
-			if (_editing) {
-				if (_flag == kFlag_Auto_Find || _flag == kFlag_Find) {
-					evt.return_value = 0;
-				}
-			}
-		}
-
+		/**
+		 * 移动鼠标或者触摸时，执行自动光标查找或者范围选择
+		*/
 		void move_action(Vec2 point) {
 			if ( _editing ) {
 				_point = point;
 
 				switch (_flag) {
-					case kFlag_Find_Wait:          // 等待激活光标定位
-						_flag = kFlag_Find_Disable;  // 禁用
+					case kFlag_Find_Cursor_Wait:          // 等待激活光标定位
+						_flag = kFlag_Find_Cursor_Disable;  // 立即禁用
 						break;
-					case kFlag_Find: { // 光标定位
+					case kFlag_Find_Cursor: { // 光标定位
 						auto has = is_auto_find_is_required(_point);
 						if ( has.x() || has.y() ) {
-							_flag = kFlag_Auto_Find;
+							_flag = kFlag_Auto_Find_Cursor;
 						} else {
 							find_cursor(_point); // 立即查找位置
 						}
 						break;
 					}
-					case kFlag_Auto_Find: { // 自动光标定位
+					case kFlag_Auto_Find_Cursor: { // 自动光标定位
 						auto has = is_auto_find_is_required(_point);
 						if ( has.x() || has.y() ) {
 							if ( (has.x() & has.y()) == 0 ) {
 								find_cursor(_point);
 							}
 						} else { // 不需要使用自动选择
-							_flag = kFlag_Find;
+							_flag = kFlag_Find_Cursor;
 						}
 						break;
 					}
@@ -283,14 +282,14 @@ namespace qk {
 					default: break;
 				}
 			} else {
-				if ( _flag == kFlag_Check_Move_Focus ) { // 已经开始检测
+				if ( _flag == kFlag_Click_Focus_Check ) { // 已经开始检测
 					if ( is_multiline() ) { // 多行移动后禁用点击聚焦
 						auto textarea = static_cast<TextareaLayout*>(static_cast<InputLayout*>(this));
 						if ( textarea->scroll_x() != 0 || textarea->scroll_y() != 0 ) {
 							// 计算移动距离
 							float d = sqrtf(powf(point.x() - _point.x(), 2) + powf(point.y() - _point.y(), 2));
 							if ( d > 5 ) { // 移动超过5禁用点击聚焦
-								_flag = kFlag_Disable_Click_Find;
+								_flag = kFlag_Disable_Click_Focus;
 							}
 						}
 					} // if ( is_multiline() )
@@ -300,16 +299,16 @@ namespace qk {
 
 		void end_action(Vec2 point) {
 			if ( _editing ) {
-				if ( _flag == kFlag_Find_Wait || _flag == kFlag_Find ) {
+				if ( _flag == kFlag_Find_Cursor_Wait || _flag == kFlag_Find_Cursor ) {
 					find_cursor(point);
 				}
-				_flag = kFlag_Normal;
 			}
+			_flag = kFlag_Normal;
 		}
 
-		Vec2 spot_location() {
+		Vec2 spot_offset() {
 			auto offset = input_text_offset();
-			auto y = _lines->line(_cursor_linenum).baseline - _text_ascent + _text_height + offset.y();
+			auto y = _lines->line(_cursor_line).baseline - _text_ascent + _text_height + offset.y();
 			auto x = _cursor_x + offset.x();
 
 			x += padding_left();
@@ -320,13 +319,13 @@ namespace qk {
 				y += _border->width[0]; // top
 			}
 			Vec2 left_bottom(x, y);
-			// Qk_DEBUG("input_spot_location,x:%f,y:%f", left_bottom.x(), left_bottom.y());
+			// Qk_DEBUG("spot_offset,x:%f,y:%f", left_bottom.x(), left_bottom.y());
 
 			return left_bottom;
 		}
 
 		Rect spot_rect() {
-			auto left_bottom = spot_location();
+			auto left_bottom = spot_offset();
 			auto right_top = Vec2(left_bottom.x() + 1, left_bottom.y() - _text_height);
 			auto a = _mat * left_bottom;
 			auto b = _mat * right_top;
@@ -336,6 +335,9 @@ namespace qk {
 			};
 		}
 
+		/**
+		 * 当绝对座标超过输入框边界时才返回非零值
+		*/
 		iVec2 is_auto_find_is_required(Vec2 point) {
 			auto pos = get_position();
 			auto size = content_size();
@@ -361,7 +363,11 @@ namespace qk {
 			return iVec2(x, y);
 		}
 
-		void auto_selectd() {
+		/**
+		 * 在task任务中持续调用，自动边界查找光标导引，每次调用成功会光标会移动一个字符或移动一行，
+		 * 当 `is_auto_find_is_required(_point)` 返回非零时才能生效
+		*/
+		void auto_find_cursor() {
 			if ( !_editing || _blob.length() == 0 ) return;
 
 			auto pos = get_position();
@@ -369,10 +375,10 @@ namespace qk {
 			auto offset = input_text_offset();
 			auto dir = is_auto_find_is_required(point);
 
-			if (_flag == kFlag_Auto_Find) { // 自动光标定位
+			if (_flag == kFlag_Auto_Find_Cursor) { // 自动光标定位
 
 				if ( dir.y() ) {
-					int linenum = _cursor_linenum;
+					int linenum = _cursor_line;
 					linenum += dir.y();
 					linenum = Qk_MIN(_lines->last()->line, Qk_MAX(linenum, 0));
 					point.set_y(pos.y() + _lines->line(linenum).baseline + offset.y());
@@ -382,7 +388,7 @@ namespace qk {
 					int begin = _blob.length() - 1;
 
 					for ( ; begin >= 0; begin-- ) {
-						if ( _blob[begin].line == _cursor_linenum ) break;
+						if ( _blob[begin].line == _cursor_line ) break;
 					}
 
 					int cursor = _cursor + (dir.x() > 0 ? 1: -1);
@@ -390,38 +396,46 @@ namespace qk {
 					
 					for ( int j = begin; j >= 0; j-- ) {
 						auto cell = &_blob[j];
-						if ( cell->line == _cursor_linenum ) {
+						if ( cell->line == _cursor_line ) {
 							if ( int(cell->index) <= cursor ) {
-								float x = cell->origin + cell->core.offset[Qk_MIN(cursor - cell->index, cell->core.glyphs.length())].x();
+								float x = cell->origin + cell->blob.offset[
+									Qk_MIN(cursor - cell->index, cell->blob.glyphs.length())
+								].x();
 								x += _lines->line(cell->line).origin;
 								point.set_x(pos.x() + offset.x() + x);
 								break;
 							}
 						} else {
 							cell = &_blob[j+1];
-							float x = cell->origin + cell->core.offset.front().x();
+							float x = cell->origin + cell->blob.offset.front().x();
 							x += _lines->line(cell->line).origin;
 							point.set_x(pos.x() + offset.x() + x);
 							break;
 						}
 					}
 				}
-				
+
 				find_cursor(point);
-			} // if (_flag == kFlag_Auto_Find)
+			} // if (_flag == kFlag_Auto_Find_Cursor)
+			else if (_flag == kFlag_Auto_Range_Select) {
+				//
+			}
 		}
 
-		void find_cursor(Vec2 screen_coord) {
+		/**
+		 * 通过窗口绝对座标查找并设置光标索引
+		 * @param {Vec2} coord 窗口绝对座标
+		*/
+		void find_cursor(Vec2 coord) {
 			if ( !_editing || text_length() == 0 ) {
 				return;
 			}
 
 			auto pos = get_position();
-
 			// find line
 
-			float x = screen_coord.x() - pos.x();
-			float y = screen_coord.y() - pos.y();
+			float x = coord.x() - pos.x();
+			float y = coord.y() - pos.y();
 			Vec2 offset = input_text_offset();
 
 			const TextLines::Line* line = nullptr;
@@ -447,17 +461,17 @@ namespace qk {
 			int cell_begin = -1, cell_end = -1;
 			
 			for ( uint32_t i = 0; i < _blob.length(); i++ ) {
-				auto &it = _blob[i];
-				if ( it.line == line->line ) { // 排除小余目标行cell
+				auto &blob = _blob[i];
+				if ( blob.line == line->line ) { // 排除小余目标行cell
 					if (cell_begin == -1)
 						cell_begin = i;
 					cell_end = i;
 				} else {
 					if (cell_begin != -1)
 						break;
-					//else if (it.line > line->line) {
+					//else if (blob.line > line->line) {
 						// line_feed
-					//	auto idx = Int32::max(0, int32_t(it.index) - 1);
+					//	auto idx = Int32::max(0, int32_t(blob.index) - 1);
 					//	_cursor = idx;
 					//	goto end_action;
 					//}
@@ -472,16 +486,16 @@ namespace qk {
 				if ( x <= offset_start ) { // 行开始位置
 					_cursor = _blob[cell_begin].index;
 				} else if ( x >= offset_start + line->width ) { // 行结束位置
-					_cursor = _blob[cell_end].index + _blob[cell_end].core.glyphs.length(); // end_action
+					_cursor = _blob[cell_end].index + _blob[cell_end].blob.glyphs.length(); // end_action
 				} else {
 					// 通过在cells中查询光标位置
 					for ( int i = cell_begin; i <= cell_end; i++ ) {
 						auto& cell = _blob[i];
 						float offset_s = offset_start + cell.origin;
-						float offset0 = offset_s + cell.core.offset.front().x();
+						float offset0 = offset_s + cell.blob.offset.front().x();
 
-						for ( int j = 1, l = cell.core.offset.length(); j < l; j++ ) {
-							float offset = offset_s + cell.core.offset[j].x();
+						for ( int j = 1, l = cell.blob.offset.length(); j < l; j++ ) {
+							float offset = offset_s + cell.blob.offset[j].x();
 							
 							if ( (offset0 <= x && x <= offset) || (offset <= x && x <= offset0) ) {
 								if ( fabs(x - offset0) < fabs(x - offset) ) {
@@ -516,7 +530,7 @@ namespace qk {
 		}
 
 		void reset_cursor_twinkle_task_timeout() {
-			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
+			if ( _flag == kFlag_Auto_Find_Cursor || _flag == kFlag_Auto_Range_Select ) {
 				set_task_timeout(time_monotonic() + 10000); // 10ms
 			} else {
 				set_task_timeout(time_monotonic() + 700000); // 700ms
@@ -609,7 +623,7 @@ namespace qk {
 		, _cursor_color(0x43,0x95,0xff) //#4395ff
 		, _max_length(0)
 		, _marked_color(0, 160, 255, 100)
-		, _marked_text_idx(0), _cursor(0), _cursor_linenum(0)
+		, _marked_text_idx(0), _cursor(0), _cursor_line(0)
 		, _marked_blob_begin(0), _marked_blob_end(0)
 		, _cursor_x(0), _input_text_offset_x(0), _input_text_offset_y(0)
 		, _text_ascent(0), _text_height(0)
@@ -658,9 +672,8 @@ namespace qk {
 	}
 
 	Vec2 InputLayout::layout_typesetting_input_text() {
-
-		Vec2 size = content_size();
-		_lines = new TextLines(this, text_align(), size, layout_wrap_x());
+		Vec2 c_size = content_size();
+		_lines = new TextLines(this, text_align(), c_size, layout_wrap_x());
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
@@ -724,19 +737,16 @@ namespace qk {
 		_lines->finish();
 
 		Vec2 new_size(
-			layout_wrap_x() ? _lines->max_width(): size.x(),
-			layout_wrap_y() ? _lines->max_height(): size.y()
+			layout_wrap_x() ? _lines->max_width(): c_size.x(),
+			layout_wrap_y() ? _lines->max_height(): c_size.y()
 		);
 
-		if (new_size != size) {
+		if (new_size != c_size) {
 			set_content_size(new_size);
 			parent()->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 
 		unmark(kLayout_Typesetting);
-
-		// check transform_origin change
-		// solve_origin_value();
 
 		// mark input status change
 		mark_render(kInput_Status | kRecursive_Visible_Region);
@@ -747,8 +757,7 @@ namespace qk {
 	void InputLayout::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kInput_Status) {
 			unmark(kInput_Status);
-			// text cursor status
-			refresh_cursor_window_position(); // text layout
+			solve_cursor_offset(); // text cursor status
 
 			BoxLayout::solve_marks(mat, mark);
 
@@ -770,118 +779,133 @@ namespace qk {
 		return true;
 	}
 
-	void InputLayout::refresh_cursor_window_position() {
+	/**
+	 * 
+	 * 1.通过文本光标 `_cursor` 计算光标在当前布局中的相对偏移位置与光标所在的行 `_cursor_line`
+	 * 
+	 * 2.通过计算好的 `_cursor_x` 计算文本编辑状态下布局文本显示最适合的偏移量,
+	 * 如果输入的一行文本超过布局长度始终保持光标在文本布局的可视范围内的边界
+	 * 
+	 * @method solve_cursor_offset
+	*/
+	void InputLayout::solve_cursor_offset() {
+		if ( !_editing ) {
+			if ( !is_multiline() ) // Restore normal rolling offset value
+				set_input_text_offset({0, (content_size().y() - _lines->max_height()) / 2});
+			return;
+		}
 
-		if ( _editing ) {
-			auto size = content_size();
-			auto final_width = size.x();
-			auto final_height = size.y();
-			auto text_offset = input_text_offset();
-			TextBlob* blob = nullptr;
-			
-			for ( int i = 0; i < _blob.length(); i++ ) {
-				auto &it  = _blob[i];
-				auto index = it.index;
-				auto end = index + it.core.glyphs.length();
-				if (_cursor >= index && _cursor <= end) {
-					blob = &it; break;
-				} else if (i + 1 < _blob.length()) {
-					if (_cursor < _blob[i + 1].index) {
-						blob = &it; break;
-					}
-				} else if (it.line == _lines->last()->line) { // last blob
-					blob = &it;
-				}
-			}
-
-			// 计算光标的具体偏移位置
-			TextLines::Line* line = nullptr;
-
-			if ( blob && _value_u4.length() ) { // set cursor pos
-				auto idx = _cursor - blob->index;
-				float offset = 0;
-				if (idx < blob->core.offset.length()) {
-					offset = blob->core.offset[idx].x();
-				} else if (blob->core.offset.length()) {
-					offset = blob->core.offset.back().x();
-				}
-				_cursor_linenum = blob->line;
-				line = &_lines->line(_cursor_linenum);
-				_cursor_x = line->origin + blob->origin + offset;
-			} else { // 找不到cell定位到最后行
-				switch ( text_align() ) {
-					default:
-						_cursor_x = 0; break;
-					case TextAlign::kCenter:
-						_cursor_x = final_width / 2; break;
-					case TextAlign::kRight:
-						_cursor_x = final_width; break;
-				}
-				_cursor_linenum = _lines->last()->line;
-				line = &_lines->line(_cursor_linenum);
-			}
-
-			// 计算文本编辑状态下最适合的显示的文本偏移量
-			// y
-			if ( is_multiline() ) {
-				if ( _lines->max_height() < final_height) {
-					text_offset.set_y(0);
-				} else {
-					if ( line->start_y + text_offset.y() < 0 ) { // top cursor
-						text_offset.set_y(-line->start_y);
-					} else if (line->end_y + text_offset.y() > final_height) { // bottom cursor
-						text_offset.set_y(final_height - line->end_y);
-					}
-					if ( text_offset.y() > 0 ) { // top
-						text_offset.set_y(0);
-					} else if ( text_offset.y() + _lines->max_height() < final_height ) { // bottom
-						text_offset.set_y(final_height - _lines->max_height());
-					}
-				}
-			} else {
-				text_offset.set_y((final_height - _lines->max_height()) / 2);
-			}
-
-			// x
-			auto max_width = _lines->max_width();
-			if ( max_width <= final_width ) {
-				text_offset.set_x(0);
-			} else {
-				// 让光标x轴始终在可见范围
-				auto offset = _cursor_x + text_offset.x();
-				
-				if ( offset < 0 ) { // left cursor
-					text_offset.set_x(-_cursor_x);
-				} else if ( offset > final_width )  { // right cursor
-					text_offset.set_x(final_width - _cursor_x);
-				}
-
-				// 检测文本x轴两端是在非法显示区域
-				switch ( text_align() ) {
-					default:
-						offset = text_offset.x(); break;
-					case TextAlign::kCenter:
-						offset = text_offset.x() + (final_width - max_width) / 2.0; break;
-					case TextAlign::kRight:
-						offset = text_offset.x() + final_width - max_width; break;
-				}
-
-				if ( offset > 0 ) { // left
-					text_offset.set_x(text_offset.x() - offset);
-				} else {
-					offset += max_width;
-					if ( offset < final_width ) { // right
-						text_offset.set_x(text_offset.x() - offset + final_width);
-					}
-				}
-			}
-
-			set_input_text_offset(text_offset);
-		} else {
-			if ( !is_multiline() ) {
-				set_input_text_offset(Vec2(0, (content_size().y() - _lines->max_height()) / 2));
+		// ===========================
+		// 查找光标位置附近的blob
+		// ===========================
+		TextBlob *cursor_blob = nullptr;
+		for ( int i = 0, len = _blob.length(); i < len; i++ ) {
+			auto &blob  = _blob[i];
+			auto index = blob.index, end = index + blob.blob.glyphs.length();
+			if (index <= _cursor && _cursor <= end) { // 光标位于blob内
+				cursor_blob = &blob;
+				break;
+			} else if (i + 1 < len && _cursor < _blob[i + 1].index) {
+				// 当小于下一个blob开始位置时，光标应该在这个blob前面
+				cursor_blob = &blob;
+				break;
 			}
 		}
+
+		// ===========================
+		// 计算光标的具体偏移位置x
+		// ===========================
+		auto c_size = content_size();
+		TextLines::Line* line = nullptr;
+
+		if ( cursor_blob ) { // set cursor pos
+			Qk_ASSERT(_value_u4.length());
+			auto len = cursor_blob->blob.offset.length();
+			auto index = _cursor - cursor_blob->index;
+			Qk_ASSERT(index >= 0);
+			float offset = 0;
+			if (index < len) { // Index is within the offset range
+				offset = cursor_blob->blob.offset[index].x();
+			} else if (len) { // Select last offset
+				offset = cursor_blob->blob.offset.back().x();
+			}
+			_cursor_line = cursor_blob->line; // y
+			line = &_lines->line(_cursor_line);
+			_cursor_x = line->origin + cursor_blob->origin + offset; // x
+		} else {
+			// 多行文本输入时最后一行换行符无blob，找不到blob定位到最后行
+			// Qk_DEBUG("InputLayout::solve_cursor_offset(), 找不到blob定位到最后行");
+			switch ( text_align() ) {
+				default:
+					_cursor_x = 0; break;
+				case TextAlign::kCenter:
+					_cursor_x = c_size.width() * 0.5; break;
+				case TextAlign::kRight:
+					_cursor_x = c_size.width(); break;
+			}
+			_cursor_line = _lines->last()->line; // y
+			line = &_lines->line(_cursor_line);
+		}
+
+		// ===========================
+		// 计算文本编辑状态下最适合的显示的文本偏移量
+		// ===========================
+		auto text_offset = input_text_offset();
+		// y
+		if ( is_multiline() ) {
+			if ( _lines->max_height() < c_size.height()) {
+				text_offset.set_y(0);
+			} else {
+				if ( line->start_y + text_offset.y() < 0 ) { // top cursor
+					text_offset.set_y(-line->start_y);
+				} else if (line->end_y + text_offset.y() > c_size.height()) { // bottom cursor
+					text_offset.set_y(c_size.height() - line->end_y);
+				}
+				if ( text_offset.y() > 0 ) { // top
+					text_offset.set_y(0);
+				} else if ( text_offset.y() + _lines->max_height() < c_size.height() ) { // bottom
+					text_offset.set_y(c_size.height() - _lines->max_height());
+				}
+			}
+		} else {
+			text_offset.set_y((c_size.height() - _lines->max_height()) / 2);
+		}
+
+		// x
+		auto max_width = _lines->max_width();
+		if ( max_width <= c_size.width() ) {
+			text_offset.set_x(0);
+		} else {
+			// 让光标x轴始终在可见范围
+			auto offset = _cursor_x + text_offset.x();
+
+			if ( offset < 0 ) { // left cursor
+				text_offset.set_x(-_cursor_x);
+			} else if ( offset > c_size.width() ) { // right cursor
+				text_offset.set_x(c_size.width() - _cursor_x);
+			}
+
+			// 检测文本x轴两端是在非法显示区域
+			switch ( text_align() ) {
+				default:
+					offset = text_offset.x(); break;
+				case TextAlign::kCenter:
+					offset = text_offset.x() + (c_size.width() - max_width) * 0.5; break;
+				case TextAlign::kRight:
+					offset = text_offset.x() + c_size.width() - max_width; break;
+			}
+
+			if ( offset > 0 ) { // left
+				text_offset.set_x(text_offset.x() - offset);
+			} else {
+				offset += max_width;
+				if ( offset < c_size.width() ) { // right
+					text_offset.set_x(text_offset.x() - offset + c_size.width());
+				}
+			}
+		}
+
+		set_input_text_offset(text_offset);
 	}
 
 	void InputLayout::onActivate() {
@@ -913,15 +937,15 @@ namespace qk {
 					if ( count ) {
 						String4 old = _value_u4;
 						_value_u4 = String4(*old, cursor,
-																	*old + cursor + count,
-																	int(old.length()) - cursor - count);
+																*old + cursor + count,
+																old.length() - cursor - count);
 						mark_layout(kLayout_Typesetting); // 标记内容变化
 					}
 				}
 			}
 
-			Inl_InputLayout(this)->trigger_Change();
-			Inl_InputLayout(this)->reset_cursor_twinkle_task_timeout();
+			_this->trigger_Change();
+			_this->reset_cursor_twinkle_task_timeout();
 		}
 	}
 
@@ -1085,11 +1109,9 @@ namespace qk {
 	}
 
 	bool InputLayout::run_task(int64_t time) {
-	
-		// if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
-		if ( _flag > kFlag_Find_Disable ) {
-			if ( _flag == kFlag_Auto_Find || _flag == kFlag_Auto_Range_Select ) {
-				_this->auto_selectd();
+		if ( _flag > kFlag_Find_Cursor_Disable ) {
+			if ( _flag == kFlag_Auto_Find_Cursor || _flag == kFlag_Auto_Range_Select ) {
+				_this->auto_find_cursor();
 			}
 			_cursor_twinkle_status = 1;
 			set_task_timeout(time + 100000); /* 100ms */

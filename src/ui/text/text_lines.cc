@@ -274,7 +274,7 @@ namespace qk {
 
 		for (int i = 0, len = blob->length(); i < len; i++) {
 			auto &item = (*blob)[i];
-			if (item.core.glyphs.length() == 0) continue;
+			if (item.blob.glyphs.length() == 0) continue;
 			auto &line = this->line(item.line);
 			if (line.visible_region) {
 				is_break = true;
@@ -283,7 +283,7 @@ namespace qk {
 				if (is_break) break;
 			}
 			Qk_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
-				item.origin, item.line, item.core.glyphs.length(), line.visible_region);
+				item.origin, item.line, item.blob.glyphs.length(), line.visible_region);
 		}
 	}
 
@@ -324,12 +324,12 @@ namespace qk {
 		if (pre.blob->length()) {
 			auto& last = pre.blob->back();
 			// merge glyphs
-			if (last.line == line && last.core.offset.back().x() == offset.front().x()) {
-				last.core.glyphs.write(glyphs.val(), glyphs.length());
+			if (last.line == line && last.blob.offset.back().x() == offset.front().x()) {
+				last.blob.glyphs.write(glyphs.val(), glyphs.length());
 				// last.offset.write(offset.val()+1, offset.length() - 1);
 				for (int i = 1; i < offset.length(); i++)
-					last.core.offset.push(offset[i]);
-				_last->width = last.origin + last.core.offset.back().x();
+					last.blob.offset.push(offset[i]);
+				_last->width = last.origin + last.blob.offset.back().x();
 				return;
 			}
 		}

@@ -477,8 +477,8 @@ namespace qk {
 				auto &line = lines->line(blob.line);
 				auto x = offset.x() + line.origin + blob.origin;
 				auto y = offset.y() + line.baseline - blob.ascent;
-				auto offset_x = blob.core.offset.front().x();
-				auto width = blob.core.offset.back().x();
+				auto offset_x = blob.blob.offset.front().x();
+				auto width = blob.blob.offset.back().x();
 				auto &rect = _cache->getRectPath({{x + offset_x, y},{width, blob.height}});
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			};
@@ -514,7 +514,7 @@ namespace qk {
 					for (auto i: v->_blob_visible) {
 						auto &blob = v->_blob[i];
 						auto &line = lines->line(blob.line);
-						_canvas->drawTextBlob(&blob.core, {
+						_canvas->drawTextBlob(&blob.blob, {
 							line.origin + blob.origin + shadow.offset_x + offset.x(),
 							line.baseline + shadow.offset_y + offset.y()
 						}, size, paint);
@@ -526,7 +526,7 @@ namespace qk {
 				for (auto i: v->_blob_visible) {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
-					_canvas->drawTextBlob(&blob.core, {
+					_canvas->drawTextBlob(&blob.blob, {
 						line.origin + blob.origin + offset.x(), line.baseline + offset.y()
 					}, size, paint);
 				}
@@ -535,7 +535,7 @@ namespace qk {
 
 		// draw cursor
 		if (twinkle) {
-			auto &line = lines->line(v->_cursor_linenum);
+			auto &line = lines->line(v->_cursor_line);
 			auto x = offset.x() + v->_cursor_x - 1;
 			auto y = offset.y() + line.baseline - v->_text_ascent - 1;
 			auto &rect = _cache->getRectPath({{x, y},{2,v->_text_height+2}});
@@ -564,10 +564,10 @@ namespace qk {
 				for (auto i: v->_blob_visible) {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
-					auto offset_x = blob.core.offset.front().x();
+					auto offset_x = blob.blob.offset.front().x();
 					auto &rect = _cache->getRectPath({
 						{line.origin + blob.origin + offset_x, line.baseline - blob.ascent},
-						{blob.core.offset.back().x()-offset_x, blob.height},
+						{blob.blob.offset.back().x()-offset_x, blob.height},
 					});
 					_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 				}
@@ -586,7 +586,7 @@ namespace qk {
 					for (auto i: v->_blob_visible) {
 						auto &blob = v->_blob[i];
 						auto &line = lines->line(blob.line);
-						_canvas->drawTextBlob(&blob.core, {
+						_canvas->drawTextBlob(&blob.blob, {
 							line.origin + blob.origin + shadow.offset_x, line.baseline + shadow.offset_y
 						}, size, paint);
 					}
@@ -597,7 +597,7 @@ namespace qk {
 				for (auto i: v->_blob_visible) {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
-					_canvas->drawTextBlob(&blob.core, {line.origin + blob.origin, line.baseline}, size, paint);
+					_canvas->drawTextBlob(&blob.blob, {line.origin + blob.origin, line.baseline}, size, paint);
 				}
 			} // if (v->text_color().value.a())
 		}

@@ -205,12 +205,7 @@ namespace qk {
 			solveMarks();
 		}
 
-		if (_is_render) {
-			_is_render = false;
-			return true;
-		} else {
-			return false;
-		}
+		return _is_render ? (_is_render = false, true): false;
 	}
 
 	RenderTask::~RenderTask() {

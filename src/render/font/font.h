@@ -44,7 +44,8 @@ namespace qk {
 		Qk_DEFINE_PROP(float, fontSize, Const); // fontSize prop
 		Array<Vec2> getHorizontalOffset(Vec2 origin = 0) const;
 		inline Typeface* typeface() const { return const_cast<Typeface*>(*_typeface); }
-		inline const Array<GlyphID>& glyphs() const { return _glyphs; }
+		inline cArray<GlyphID>& glyphs() const { return _glyphs; }
+		inline uint32_t length() const { return _glyphs.length(); }
 	private:
 		Array<GlyphID> _glyphs;
 		Sp<Typeface> _typeface;

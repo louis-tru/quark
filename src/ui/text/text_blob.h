@@ -39,8 +39,7 @@
 #include "./text_opts.h"
 
 namespace qk {
-
-	// @dev text layout 
+	// @dev text layout
 
 	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
@@ -53,25 +52,26 @@ namespace qk {
 		float           height; // 当前blob高度
 		float           origin; // x-axis offset origin start
 		uint32_t        line;   // line number
-		uint32_t        index;  // blob index in unichar glyphs
-		Canvas::TextBlob core; // glyphs + cache
+		uint32_t        index;  // blob index in layout unichar glyphs
+		Canvas::TextBlob blob; // glyphs + cache
 	};
 
 	class Qk_EXPORT TextBlobBuilder {
 	public:
-		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob);
+		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blobOut);
 		Qk_DEFINE_PROP(bool, disable_overflow, Const);
 		Qk_DEFINE_PROP(bool, disable_auto_wrap, Const);
 		Qk_DEFINE_PROP(TextLines*, lines);
 		Qk_DEFINE_PROP(TextOptions*, opts);
 		Qk_DEFINE_PROP(Array<TextBlob>*, blob);
+		Qk_DEFINE_PROP(uint32_t, index_of_unichar);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);
 	private:
-		void as_normal(FontGlyphs &fg, Unichar *unichar, uint32_t index, bool is_BREAK_WORD, bool is_KEEP_ALL);
-		void as_break_all(FontGlyphs &fg, Unichar *unichar, uint32_t index);
-		void as_no_auto_wrap(FontGlyphs &fg, uint32_t index);
+		void as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL);
+		void as_break_all(FontGlyphs &fg, Unichar *unichar);
+		void as_no_auto_wrap(FontGlyphs &fg);
 	};
 
 }

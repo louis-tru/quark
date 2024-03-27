@@ -75,13 +75,13 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 	auto uiwin = self.win->impl()->delegate().uiwin;
 	_mouseMovedId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
 		if (event.window == uiwin) {
-			[self mouseMoved:event];
+			[self _mouseMoved:event];
 		}
 		return event;
 	}];
 	_keyDownId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent *(NSEvent *event) {
 		if (event.window == uiwin) {
-			//[self keyDown:event];
+			[self _keyDown:event];
 		}
 		return event;
 	}];
@@ -121,7 +121,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 	auto pos = [self location:e];
 	_win->dispatch()->onMousepress(KEYCODE_MOUSE_CENTER, false, &pos);
 }
-- (void)mouseMoved:(NSEvent *)e{
+- (void)_mouseMoved:(NSEvent *)e{
 	[self LogMouse:"mouseMoved" event:e];
 	auto pos = [self location:e];
 	_win->dispatch()->onMousemove(pos.x(), pos.y());
@@ -146,7 +146,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 	auto delta = Vec2(e.deltaX,e.deltaY);
 	_win->dispatch()->onMousepress(KEYCODE_MOUSE_WHEEL, true, &delta);
 }
-- (void)keyDown:(NSEvent *)e{
+- (void)_keyDown:(NSEvent *)e{
 	//NSLog(@"keyDown,%@", e);
 	_win->dispatch()->keyboard()->onDispatch(e.keyCode, true, true, e.ARepeat, -1, 0);
 }
