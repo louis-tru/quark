@@ -157,12 +157,13 @@ namespace qk {
 		UIEvent::release();
 	}
 
-	KeyEvent::KeyEvent(View* origin, uint32_t keycode,
+	KeyEvent::KeyEvent(View* origin, KeyboardKeyCode keycode, int keypress,
 										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 										uint32_t repeat, int device, int source)
-		: UIEvent(origin), _keycode(keycode)
+		: UIEvent(origin), _keycode(keycode), _keypress(keypress)
 		, _device(device), _source(source), _repeat(repeat), _shift(shift)
-		, _ctrl(ctrl), _alt(alt), _command(command), _caps_lock(caps_lock), _focus_move(nullptr)
+		, _ctrl(ctrl), _alt(alt), _command(command)
+		, _caps_lock(caps_lock), _focus_move(nullptr)
 	{}
 
 	void KeyEvent::set_focus_move(View *view) {
@@ -170,7 +171,7 @@ namespace qk {
 			_focus_move = view;
 	}
 
-	void KeyEvent::set_keycode(uint32_t keycode) {
+	void KeyEvent::set_keycode(KeyboardKeyCode keycode) {
 		_keycode = keycode;
 	}
 
@@ -183,10 +184,12 @@ namespace qk {
 		: UIEvent(origin), _x(x), _y(y), _count(count), _type(type)
 	{}
 
-	MouseEvent::MouseEvent(View* origin, float x, float y, uint32_t keycode,
+	MouseEvent::MouseEvent(View* origin, float x, float y, KeyboardKeyCode keycode, int keypress,
 										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 										uint32_t repeat, int device, int source)
-		: KeyEvent(origin, keycode, shift, ctrl, alt, command, caps_lock, repeat, device, source), _x(x), _y(y)
+		: KeyEvent(origin, keycode, keypress, shift, ctrl, alt, command, caps_lock
+			, repeat, device, source
+		), _x(x), _y(y)
 	{}
 
 	HighlightedEvent::HighlightedEvent(View* origin, HighlightedStatus status)
@@ -648,8 +651,8 @@ namespace qk {
 		}
 	}
 
-	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, uint32_t keycode) {
-		return NewEvent<MouseEvent>(view, x, y, keycode,
+	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, float x, float y, KeyboardKeyCode keycode) {
+		return NewEvent<MouseEvent>(view, x, y, keycode, 0,
 			_keyboard->shift(),
 			_keyboard->ctrl(), _keyboard->alt(),
 			_keyboard->command(), _keyboard->caps_lock(), 0, 0, 0
@@ -681,7 +684,7 @@ namespace qk {
 			_mouse_handle->set_view(view);
 
 			if (old) {
-				auto evt = NewMouseEvent(old, x, y);
+				auto evt = NewMouseEvent(old, x, y, KEYCODE_UNKNOWN);
 				_inl_view(old)->bubble_trigger(UIEvent_MouseOut, **evt);
 
 				if (evt->is_default()) {
@@ -696,7 +699,7 @@ namespace qk {
 				}
 			}
 			if (view) {
-				auto evt = NewMouseEvent(view, x, y);
+				auto evt = NewMouseEvent(view, x, y, KEYCODE_UNKNOWN);
 				_inl_view(view)->bubble_trigger(UIEvent_MouseOver, **evt);
 
 				if (evt->is_default()) {
@@ -713,7 +716,7 @@ namespace qk {
 			}
 		}
 		else if (view) {
-			_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **NewMouseEvent(view, x, y));
+			_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **NewMouseEvent(view, x, y, KEYCODE_UNKNOWN));
 		}
 	}
 
@@ -806,13 +809,13 @@ namespace qk {
 			view = _window->root();
 		if ( !view ) return;
 
-		auto name = _keyboard->keycode();
+		auto cdoe = _keyboard->keycode();
 		auto btn = view->as_button();
 		View *focus_move = nullptr;
 
 		if (btn) {
 			FindDirection dir;
-			switch ( name ) {
+			switch ( cdoe ) {
 				case KEYCODE_LEFT: dir = FindDirection::kLeft; break;  // left
 				case KEYCODE_UP: dir = FindDirection::kTop; break;     // top
 				case KEYCODE_RIGHT: dir = FindDirection::kRight; break; // right
@@ -827,14 +830,15 @@ namespace qk {
 			}
 		}
 
-		auto evt = new KeyEvent(view, name,
+		auto repeat = _keyboard->repeat();
+		auto keypress = _keyboard->keypress();
+
+		auto evt = new KeyEvent(view, cdoe, keypress,
 			_keyboard->shift(),
 			_keyboard->ctrl(), _keyboard->alt(),
 			_keyboard->command(), _keyboard->caps_lock(),
 			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 		);
-		auto keypress = _keyboard->keypress();
-		auto repeat = _keyboard->repeat();
 
 		_loop->post_message(Cb([=](auto& e) {
 			Sp<KeyEvent> h(evt);
@@ -845,19 +849,18 @@ namespace qk {
 
 			if ( evt->is_default() ) {
 
-				if ( name == KEYCODE_ENTER ) {
+				if ( cdoe == KEYCODE_ENTER ) {
 					_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, *evt);
-				} else if ( name == KEYCODE_VOLUME_UP ) {
+				} else if ( cdoe == KEYCODE_VOLUME_UP ) {
 					set_volume_up();
-				} else if ( name == KEYCODE_VOLUME_DOWN ) {
+				} else if ( cdoe == KEYCODE_VOLUME_DOWN ) {
 					set_volume_down();
 				}
 				if ( keypress ) { // keypress
-					evt->set_keycode( keypress );
 					_inl_view(view)->bubble_trigger(UIEvent_KeyPress, *evt);
 				}
 
-				if ( name == KEYCODE_CENTER && repeat == 0 ) {
+				if ( cdoe == KEYCODE_CENTER && repeat == 0 ) {
 					auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 				}
@@ -878,8 +881,9 @@ namespace qk {
 			view = _window->root();
 		if ( !view ) return;
 
-		auto name = _keyboard->keycode();
-		auto evt = new KeyEvent(view, name,
+		auto code = _keyboard->keycode();
+		auto evt = new KeyEvent(view, code,
+			_keyboard->keypress(),
 			_keyboard->shift(),
 			_keyboard->ctrl(), _keyboard->alt(),
 			_keyboard->command(), _keyboard->caps_lock(),
@@ -888,13 +892,13 @@ namespace qk {
 		auto mat = view->_layout->transform()->matrix();
 		auto point = mat.mul_vec2_no_translate(view->_layout->center()) + view->_layout->position();
 
-		_loop->post_message(Cb([this,evt,name,view,point](auto& e) {
+		_loop->post_message(Cb([this,evt,code,view,point](auto& e) {
 			Sp<KeyEvent> h(evt);
 
 			_inl_view(view)->bubble_trigger(UIEvent_KeyUp, *evt);
 
 			if ( evt->is_default() ) {
-				if ( name == KEYCODE_BACK ) {
+				if ( code == KEYCODE_BACK ) {
 					auto evt = NewEvent<ClickEvent>(view, point.x(), point.y(), ClickEvent::kKeyboard);
 					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
 
@@ -902,7 +906,7 @@ namespace qk {
 						_window->pending();
 					}
 				}
-				else if ( name == KEYCODE_CENTER ) {
+				else if ( code == KEYCODE_CENTER ) {
 					auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover);
 					_inl_view(view)->trigger_highlightted(**evt); // emit style status event
 

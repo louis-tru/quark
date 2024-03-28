@@ -174,19 +174,20 @@ namespace qk {
 	*/
 	class Qk_EXPORT KeyEvent: public UIEvent {
 	public:
-		KeyEvent(View* origin, uint32_t keycode,
+		KeyEvent(View* origin, KeyboardKeyCode keycode, int keypress,
 						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
 		Qk_DEFINE_PROP(View*, focus_move);
-		Qk_DEFINE_PROP(uint32_t, keycode, Const);
+		Qk_DEFINE_PROP(KeyboardKeyCode, keycode, Const);
+		Qk_DEFINE_PROP(int, keypress, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, repeat, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, device, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, source, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, shift, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, ctrl, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, alt, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, command, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, caps_lock, Const);
+		Qk_DEFINE_PROP_GET(bool, shift, Const);
+		Qk_DEFINE_PROP_GET(bool, ctrl, Const);
+		Qk_DEFINE_PROP_GET(bool, alt, Const);
+		Qk_DEFINE_PROP_GET(bool, command, Const);
+		Qk_DEFINE_PROP_GET(bool, caps_lock, Const);
 		virtual void release() override;
 	};
 
@@ -210,7 +211,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
-		MouseEvent(View* origin, float x, float y, uint32_t keycode,
+		MouseEvent(View* origin, float x, float y, KeyboardKeyCode keycode, int keypress,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
 		Qk_DEFINE_PROP_GET(float, x, Const);
@@ -300,7 +301,7 @@ namespace qk {
 		void mousewhell(KeyboardKeyCode name, bool down, float x, float y);
 		View* find_receive_view_exec(Layout *view, Vec2 pos);
 		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
-		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, uint32_t keycode = 0);
+		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, KeyboardKeyCode keycode);
 		Sp<View, ReferenceTraits> get_focus_view();
 
 		class OriginTouche;

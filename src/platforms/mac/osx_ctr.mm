@@ -38,8 +38,8 @@ using namespace qk;
 
 @interface QkRootViewController() {
 	@private
-	id _mouseMovedId;
-	id _keyDownId;
+	id       _mouseMovedId;
+	id       _keyDownId;
 }
 @end
 
@@ -72,18 +72,22 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 	);*/
 }
 - (void)viewDidAppear {
-	auto uiwin = self.win->impl()->delegate().uiwin;
+	auto _uiwin = self.win->impl()->delegate().uiwin;
 	_mouseMovedId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
-		if (event.window == uiwin) {
+		if (event.window == _uiwin) {
 			[self _mouseMoved:event];
 		}
 		return event;
 	}];
-	_keyDownId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent *(NSEvent *event) {
-		if (event.window == uiwin) {
-			[self _keyDown:event];
+	_keyDownId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown | NSEventMaskFlagsChanged handler:^NSEvent *(NSEvent *e) {
+		if (e.window == _uiwin) {
+			if (e.type == NSEventTypeFlagsChanged) {
+				[self _flagsChanged:e];
+			} else {
+				[self _keyDown:e];
+			}
 		}
-		return event;
+		return e;
 	}];
 }
 -(void)viewDidDisappear {
@@ -146,23 +150,54 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 	auto delta = Vec2(e.deltaX,e.deltaY);
 	_win->dispatch()->onMousepress(KEYCODE_MOUSE_WHEEL, true, &delta);
 }
-- (void)_keyDown:(NSEvent *)e{
+- (void)_keyDown:(NSEvent *)e {
 	//NSLog(@"keyDown,%@", e);
-	_win->dispatch()->keyboard()->onDispatch(e.keyCode, true, true, e.ARepeat, -1, 0);
+	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
+	_win->dispatch()->keyboard()->dispatch(e.keyCode, false, true, isCapsLock, e.ARepeat, -1, 0);
 }
 - (void)keyUp:(NSEvent *)e{
 	//NSLog(@"keyUp,%@", e);
-	_win->dispatch()->keyboard()->onDispatch(e.keyCode, true, false, e.ARepeat, -1, 0);
+	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
+	_win->dispatch()->keyboard()->dispatch(e.keyCode, false, false, isCapsLock, 0, -1, 0);
 }
+- (void)_flagsChanged:(NSEvent *)e{
+	//NSLog(@"flagsChanged,%@", e);
+
+	auto flags = e.modifierFlags & NSEventModifierFlagDeviceIndependentFlagsMask;
+	BOOL isCapsLock = flags & NSEventModifierFlagCapsLock;
+	BOOL isDown;
+
+	switch (e.keyCode) {
+		case 55: // Command
+		case 54: // Command right
+			isDown = flags & NSEventModifierFlagCommand; break;
+		case 57: // CapsLock
+			isDown = isCapsLock; break;
+		case 56: // shift
+		case 60: // right shift
+			isDown = flags & NSEventModifierFlagShift; break;
+		case 58: // Option
+		case 61: // right Option
+			isDown = flags & NSEventModifierFlagOption; break;
+		case 59: // Control
+		case 62: // right Control
+			isDown = flags & NSEventModifierFlagControl; break;
+		case 63: // Function
+			isDown = flags & NSEventModifierFlagFunction; break;
+		case 114: // help
+			isDown = flags & NSEventModifierFlagHelp; break;
+		default: return;
+	}
+
+	_win->dispatch()->keyboard()->dispatch(e.keyCode, false, isDown, isCapsLock, false, -1, 0);
+}
+
 //  - (void)mouseEntered:(NSEvent *)e{
 //  	[self LogMouse:"mouseEntered" event:e];
 //  }
 //  - (void)mouseExited:(NSEvent *)e{
 //  	[self LogMouse:"mouseExited" event:e];
 //  }
-// - (void)flagsChanged:(NSEvent *)e{
-// 	[self LogMouse:"flagsChanged" event:e];
-// }
 // - (void)tabletPoint:(NSEvent *)e{
 // 	[self LogMouse:"tabletPoint" event:e];
 // }

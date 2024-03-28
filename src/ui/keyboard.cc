@@ -35,242 +35,224 @@
 
 namespace qk {
 
-	KeyboardAdapter::KeyboardAdapter()  {
-		_keycode = KEYCODE_UNKNOWN;
-		_keypress = 0;
-		_shift = false;
-		_alt = false;
-		_ctrl = false;
-		_command = false;
-		_caps_lock = false;
-		_repeat = _device = _source = 0;
+	KeyboardAdapter::KeyboardAdapter()
+		: _keycode(KEYCODE_UNKNOWN)
+		, _keypress(0)
+		, _shift(false)
+		, _alt(false)
+		, _ctrl(false)
+		, _command(false)
+		, _caps_lock(false)
+		, _repeat(0)
+		, _device(0)
+		, _source(0)
+	{
+		_KeyCodeToKeypress[KEYCODE_0]               = { 48, 41 }; 	// 0 )
+		_KeyCodeToKeypress[KEYCODE_1]               = { 49, 33 }; 	// 1 !
+		_KeyCodeToKeypress[KEYCODE_2]               = { 50, 64 }; 	// 2 @
+		_KeyCodeToKeypress[KEYCODE_3]               = { 51, 35 }; 	// 3 #
+		_KeyCodeToKeypress[KEYCODE_4]               = { 52, 36 }; 	// 4 $
+		_KeyCodeToKeypress[KEYCODE_5]               = { 53, 37 }; 	// 5 %
+		_KeyCodeToKeypress[KEYCODE_6]               = { 54, 94 }; 	// 6 ^
+		_KeyCodeToKeypress[KEYCODE_7]               = { 55, 38 }; 	// 7 &
+		_KeyCodeToKeypress[KEYCODE_8]               = { 56, 42 }; 	// 8 *
+		_KeyCodeToKeypress[KEYCODE_9]               = { 57, 40 }; 	// 9 (
+		_KeyCodeToKeypress[KEYCODE_SEMICOLON]       = { 59, 58 };  // ; :
+		_KeyCodeToKeypress[KEYCODE_EQUALS]          = { 61, 43 };  // = +
+		_KeyCodeToKeypress[KEYCODE_MINUS]           = { 45, 95 };  // - _
+		_KeyCodeToKeypress[KEYCODE_COMMA]           = { 44, 60 };  // , <
+		_KeyCodeToKeypress[KEYCODE_PERIOD]          = { 46, 62 };  // . >
+		_KeyCodeToKeypress[KEYCODE_SLASH]           = { 47, 63 };  // / ?
+		_KeyCodeToKeypress[KEYCODE_GRAVE]           = { 96, 126 };	// ` ~
+		_KeyCodeToKeypress[KEYCODE_LEFT_BRACKET]    = { 91, 123 };	// [ {
+		_KeyCodeToKeypress[KEYCODE_BACK_SLASH]      = { 92, 124 };	// \ |
+		_KeyCodeToKeypress[KEYCODE_RIGHT_BRACKET]   = { 93, 125 };	// ] }
+		_KeyCodeToKeypress[KEYCODE_APOSTROPHE]      = { 39, 34 };  // ' "
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_0]        = { 48, 48 };  // numpad 0
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_1]        = { 49, 49 };  // numpad 1
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_2]        = { 50, 50 };  // numpad 2
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_3]        = { 51, 51 };  // numpad 3
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_4]        = { 52, 52 };  // numpad 4
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_5]        = { 53, 53 };  // numpad 5
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_6]        = { 54, 54 };  // numpad 6
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_7]        = { 55, 55 };  // numpad 7
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_8]        = { 56, 56 };  // numpad 8
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_9]        = { 57, 57 };  // numpad 9
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_MULTIPLY] = { 42, 42 };  // numpad *
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_ADD]      = { 43, 43 };  // numpad +
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_SUBTRACT] = { 45, 45 };  // numpad -
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_DOT]      = { 46, 46 };  // numpad .
+		_KeyCodeToKeypress[KEYCODE_NUMPAD_DIVIDE]   = { 47, 47 };  // numpad /
 
-		_symbol_keypress[KEYCODE_0]               = { 48, 41 }; 	// 0 )
-		_symbol_keypress[KEYCODE_1]               = { 49, 33 }; 	// 1 !
-		_symbol_keypress[KEYCODE_2]               = { 50, 64 }; 	// 2 @
-		_symbol_keypress[KEYCODE_3]               = { 51, 35 }; 	// 3 #
-		_symbol_keypress[KEYCODE_4]               = { 52, 36 }; 	// 4 $
-		_symbol_keypress[KEYCODE_5]               = { 53, 37 }; 	// 5 %
-		_symbol_keypress[KEYCODE_6]               = { 54, 94 }; 	// 6 ^
-		_symbol_keypress[KEYCODE_7]               = { 55, 38 }; 	// 7 &
-		_symbol_keypress[KEYCODE_8]               = { 56, 42 }; 	// 8 *
-		_symbol_keypress[KEYCODE_9]               = { 57, 40 }; 	// 9 (
-		_symbol_keypress[KEYCODE_SEMICOLON]       = { 59, 58 };  // ; :
-		_symbol_keypress[KEYCODE_EQUALS]          = { 61, 43 };  // = +
-		_symbol_keypress[KEYCODE_MINUS]           = { 45, 95 };  // - _
-		_symbol_keypress[KEYCODE_COMMA]           = { 44, 60 };  // , <
-		_symbol_keypress[KEYCODE_PERIOD]          = { 46, 62 };  // . >
-		_symbol_keypress[KEYCODE_SLASH]           = { 47, 63 };  // / ?
-		_symbol_keypress[KEYCODE_GRAVE]           = { 96, 126 };	// ` ~
-		_symbol_keypress[KEYCODE_LEFT_BRACKET]    = { 91, 123 };	// [ {
-		_symbol_keypress[KEYCODE_BACK_SLASH]      = { 92, 124 };	// \ |
-		_symbol_keypress[KEYCODE_RIGHT_BRACKET]   = { 93, 125 };	// ] }
-		_symbol_keypress[KEYCODE_APOSTROPHE]      = { 39, 34 };  // ' "
-		_symbol_keypress[KEYCODE_NUMPAD_0]        = { 48, 48 };  // numpad 0
-		_symbol_keypress[KEYCODE_NUMPAD_1]        = { 49, 49 };  // numpad 1
-		_symbol_keypress[KEYCODE_NUMPAD_2]        = { 50, 50 };  // numpad 2
-		_symbol_keypress[KEYCODE_NUMPAD_3]        = { 51, 51 };  // numpad 3
-		_symbol_keypress[KEYCODE_NUMPAD_4]        = { 52, 52 };  // numpad 4
-		_symbol_keypress[KEYCODE_NUMPAD_5]        = { 53, 53 };  // numpad 5
-		_symbol_keypress[KEYCODE_NUMPAD_6]        = { 54, 54 };  // numpad 6
-		_symbol_keypress[KEYCODE_NUMPAD_7]        = { 55, 55 };  // numpad 7
-		_symbol_keypress[KEYCODE_NUMPAD_8]        = { 56, 56 };  // numpad 8
-		_symbol_keypress[KEYCODE_NUMPAD_9]        = { 57, 57 };  // numpad 9
-		_symbol_keypress[KEYCODE_NUMPAD_MULTIPLY] = { 42, 42 };  // numpad *
-		_symbol_keypress[KEYCODE_NUMPAD_ADD]      = { 43, 43 };  // numpad +
-		_symbol_keypress[KEYCODE_NUMPAD_SUBTRACT] = { 45, 45 };  // numpad -
-		_symbol_keypress[KEYCODE_NUMPAD_DOT]      = { 46, 46 };  // numpad .
-		_symbol_keypress[KEYCODE_NUMPAD_DIVIDE]   = { 47, 47 };  // numpad /
-
-		// ascii keycodes
-
-		_ascii_keycodes[KEYCODE_BACK_SPACE] = { KEYCODE_BACK_SPACE, 0 };
-		_ascii_keycodes[KEYCODE_SHIFT] = { KEYCODE_SHIFT, 1 };
-		_ascii_keycodes[KEYCODE_ESC] = { KEYCODE_ESC, 0 };
-		_ascii_keycodes[KEYCODE_ENTER] = { KEYCODE_ENTER, 0 };
-		_ascii_keycodes['\n'] = { KEYCODE_ENTER, 1 }; // 换行使用换挡的回车表示，因为键盘上并没有换行健
-		_ascii_keycodes['0'] = { KEYCODE_0, 0 };
-		_ascii_keycodes['1'] = { KEYCODE_1, 0 };
-		_ascii_keycodes['2'] = { KEYCODE_2, 0 };
-		_ascii_keycodes['3'] = { KEYCODE_3, 0 };
-		_ascii_keycodes['4'] = { KEYCODE_4, 0 };
-		_ascii_keycodes['5'] = { KEYCODE_5, 0 };
-		_ascii_keycodes['6'] = { KEYCODE_6, 0 };
-		_ascii_keycodes['7'] = { KEYCODE_7, 0 };
-		_ascii_keycodes['8'] = { KEYCODE_8, 0 };
-		_ascii_keycodes['9'] = { KEYCODE_9, 0 };
-		_ascii_keycodes[')'] = { KEYCODE_0, 1 };
-		_ascii_keycodes['!'] = { KEYCODE_1, 1 };
-		_ascii_keycodes['@'] = { KEYCODE_2, 1 };
-		_ascii_keycodes['#'] = { KEYCODE_3, 1 };
-		_ascii_keycodes['$'] = { KEYCODE_4, 1 };
-		_ascii_keycodes['%'] = { KEYCODE_5, 1 };
-		_ascii_keycodes['^'] = { KEYCODE_6, 1 };
-		_ascii_keycodes['&'] = { KEYCODE_7, 1 };
-		_ascii_keycodes['*'] = { KEYCODE_8, 1 };
-		_ascii_keycodes['('] = { KEYCODE_9, 1 };
-		_ascii_keycodes['a'] = { KEYCODE_A, 0 };
-		_ascii_keycodes['b'] = { KEYCODE_B, 0 };
-		_ascii_keycodes['c'] = { KEYCODE_C, 0 };
-		_ascii_keycodes['d'] = { KEYCODE_D, 0 };
-		_ascii_keycodes['e'] = { KEYCODE_E, 0 };
-		_ascii_keycodes['f'] = { KEYCODE_F, 0 };
-		_ascii_keycodes['g'] = { KEYCODE_G, 0 };
-		_ascii_keycodes['h'] = { KEYCODE_H, 0 };
-		_ascii_keycodes['i'] = { KEYCODE_I, 0 };
-		_ascii_keycodes['j'] = { KEYCODE_J, 0 };
-		_ascii_keycodes['k'] = { KEYCODE_K, 0 };
-		_ascii_keycodes['m'] = { KEYCODE_L, 0 };
-		_ascii_keycodes['l'] = { KEYCODE_M, 0 };
-		_ascii_keycodes['n'] = { KEYCODE_N, 0 };
-		_ascii_keycodes['o'] = { KEYCODE_O, 0 };
-		_ascii_keycodes['p'] = { KEYCODE_P, 0 };
-		_ascii_keycodes['q'] = { KEYCODE_Q, 0 };
-		_ascii_keycodes['r'] = { KEYCODE_R, 0 };
-		_ascii_keycodes['s'] = { KEYCODE_S, 0 };
-		_ascii_keycodes['t'] = { KEYCODE_T, 0 };
-		_ascii_keycodes['u'] = { KEYCODE_U, 0 };
-		_ascii_keycodes['v'] = { KEYCODE_V, 0 };
-		_ascii_keycodes['w'] = { KEYCODE_W, 0 };
-		_ascii_keycodes['x'] = { KEYCODE_X, 0 };
-		_ascii_keycodes['y'] = { KEYCODE_Y, 0 };
-		_ascii_keycodes['z'] = { KEYCODE_Z, 0 };
-		_ascii_keycodes['A'] = { KEYCODE_A, 1 };
-		_ascii_keycodes['B'] = { KEYCODE_B, 1 };
-		_ascii_keycodes['C'] = { KEYCODE_C, 1 };
-		_ascii_keycodes['D'] = { KEYCODE_D, 1 };
-		_ascii_keycodes['E'] = { KEYCODE_E, 1 };
-		_ascii_keycodes['F'] = { KEYCODE_F, 1 };
-		_ascii_keycodes['G'] = { KEYCODE_G, 1 };
-		_ascii_keycodes['H'] = { KEYCODE_H, 1 };
-		_ascii_keycodes['I'] = { KEYCODE_I, 1 };
-		_ascii_keycodes['J'] = { KEYCODE_J, 1 };
-		_ascii_keycodes['K'] = { KEYCODE_K, 1 };
-		_ascii_keycodes['M'] = { KEYCODE_L, 1 };
-		_ascii_keycodes['L'] = { KEYCODE_M, 1 };
-		_ascii_keycodes['N'] = { KEYCODE_N, 1 };
-		_ascii_keycodes['O'] = { KEYCODE_O, 1 };
-		_ascii_keycodes['P'] = { KEYCODE_P, 1 };
-		_ascii_keycodes['Q'] = { KEYCODE_Q, 1 };
-		_ascii_keycodes['R'] = { KEYCODE_R, 1 };
-		_ascii_keycodes['S'] = { KEYCODE_S, 1 };
-		_ascii_keycodes['T'] = { KEYCODE_T, 1 };
-		_ascii_keycodes['U'] = { KEYCODE_U, 1 };
-		_ascii_keycodes['V'] = { KEYCODE_V, 1 };
-		_ascii_keycodes['W'] = { KEYCODE_W, 1 };
-		_ascii_keycodes['X'] = { KEYCODE_X, 1 };
-		_ascii_keycodes['Y'] = { KEYCODE_Y, 1 };
-		_ascii_keycodes['Z'] = { KEYCODE_Z, 1 };
-		_ascii_keycodes[';'] = { KEYCODE_SEMICOLON, 0 };
-		_ascii_keycodes['='] = { KEYCODE_EQUALS, 0 };
-		_ascii_keycodes['-'] = { KEYCODE_MINUS, 0 };
-		_ascii_keycodes[','] = { KEYCODE_COMMA, 0 };
-		_ascii_keycodes['.'] = { KEYCODE_PERIOD, 0 };
-		_ascii_keycodes['/'] = { KEYCODE_SLASH, 0 };
-		_ascii_keycodes['`'] = { KEYCODE_GRAVE, 0 };
-		_ascii_keycodes['['] = { KEYCODE_LEFT_BRACKET, 0 };
-		_ascii_keycodes['\\'] = { KEYCODE_BACK_SLASH, 0 };
-		_ascii_keycodes[']'] = { KEYCODE_RIGHT_BRACKET, 0 };
-		_ascii_keycodes['\''] = { KEYCODE_APOSTROPHE, 0 };
-		_ascii_keycodes[':'] = { KEYCODE_SEMICOLON, 1 };
-		_ascii_keycodes['+'] = { KEYCODE_EQUALS, 1 };
-		_ascii_keycodes['_'] = { KEYCODE_MINUS, 1 };
-		_ascii_keycodes['<'] = { KEYCODE_COMMA, 1 };
-		_ascii_keycodes['>'] = { KEYCODE_PERIOD, 1 };
-		_ascii_keycodes['?'] = { KEYCODE_SLASH, 1 };
-		_ascii_keycodes['~'] = { KEYCODE_GRAVE, 1 };
-		_ascii_keycodes['{'] = { KEYCODE_LEFT_BRACKET, 1 };
-		_ascii_keycodes['|'] = { KEYCODE_BACK_SLASH, 1 };
-		_ascii_keycodes['}'] = { KEYCODE_RIGHT_BRACKET, 1 };
-		_ascii_keycodes['"'] = { KEYCODE_APOSTROPHE, 1 };
-		_ascii_keycodes[127] = { KEYCODE_DELETE, 0 };
+		// Ascii => Keycode
+		_AsciiToKeyCode[KEYCODE_BACK_SPACE] = { KEYCODE_BACK_SPACE, 0 };
+		_AsciiToKeyCode[KEYCODE_SHIFT] = { KEYCODE_SHIFT, 1 };
+		_AsciiToKeyCode[KEYCODE_ESC] = { KEYCODE_ESC, 0 };
+		_AsciiToKeyCode[KEYCODE_ENTER] = { KEYCODE_ENTER, 0 };
+		_AsciiToKeyCode['\n'] = { KEYCODE_ENTER, 1 }; // 换行使用换挡的回车表示，因为键盘上并没有换行健
+		_AsciiToKeyCode['0'] = { KEYCODE_0, 0 };
+		_AsciiToKeyCode['1'] = { KEYCODE_1, 0 };
+		_AsciiToKeyCode['2'] = { KEYCODE_2, 0 };
+		_AsciiToKeyCode['3'] = { KEYCODE_3, 0 };
+		_AsciiToKeyCode['4'] = { KEYCODE_4, 0 };
+		_AsciiToKeyCode['5'] = { KEYCODE_5, 0 };
+		_AsciiToKeyCode['6'] = { KEYCODE_6, 0 };
+		_AsciiToKeyCode['7'] = { KEYCODE_7, 0 };
+		_AsciiToKeyCode['8'] = { KEYCODE_8, 0 };
+		_AsciiToKeyCode['9'] = { KEYCODE_9, 0 };
+		_AsciiToKeyCode[')'] = { KEYCODE_0, 1 };
+		_AsciiToKeyCode['!'] = { KEYCODE_1, 1 };
+		_AsciiToKeyCode['@'] = { KEYCODE_2, 1 };
+		_AsciiToKeyCode['#'] = { KEYCODE_3, 1 };
+		_AsciiToKeyCode['$'] = { KEYCODE_4, 1 };
+		_AsciiToKeyCode['%'] = { KEYCODE_5, 1 };
+		_AsciiToKeyCode['^'] = { KEYCODE_6, 1 };
+		_AsciiToKeyCode['&'] = { KEYCODE_7, 1 };
+		_AsciiToKeyCode['*'] = { KEYCODE_8, 1 };
+		_AsciiToKeyCode['('] = { KEYCODE_9, 1 };
+		_AsciiToKeyCode['a'] = { KEYCODE_A, 0 };
+		_AsciiToKeyCode['b'] = { KEYCODE_B, 0 };
+		_AsciiToKeyCode['c'] = { KEYCODE_C, 0 };
+		_AsciiToKeyCode['d'] = { KEYCODE_D, 0 };
+		_AsciiToKeyCode['e'] = { KEYCODE_E, 0 };
+		_AsciiToKeyCode['f'] = { KEYCODE_F, 0 };
+		_AsciiToKeyCode['g'] = { KEYCODE_G, 0 };
+		_AsciiToKeyCode['h'] = { KEYCODE_H, 0 };
+		_AsciiToKeyCode['i'] = { KEYCODE_I, 0 };
+		_AsciiToKeyCode['j'] = { KEYCODE_J, 0 };
+		_AsciiToKeyCode['k'] = { KEYCODE_K, 0 };
+		_AsciiToKeyCode['m'] = { KEYCODE_L, 0 };
+		_AsciiToKeyCode['l'] = { KEYCODE_M, 0 };
+		_AsciiToKeyCode['n'] = { KEYCODE_N, 0 };
+		_AsciiToKeyCode['o'] = { KEYCODE_O, 0 };
+		_AsciiToKeyCode['p'] = { KEYCODE_P, 0 };
+		_AsciiToKeyCode['q'] = { KEYCODE_Q, 0 };
+		_AsciiToKeyCode['r'] = { KEYCODE_R, 0 };
+		_AsciiToKeyCode['s'] = { KEYCODE_S, 0 };
+		_AsciiToKeyCode['t'] = { KEYCODE_T, 0 };
+		_AsciiToKeyCode['u'] = { KEYCODE_U, 0 };
+		_AsciiToKeyCode['v'] = { KEYCODE_V, 0 };
+		_AsciiToKeyCode['w'] = { KEYCODE_W, 0 };
+		_AsciiToKeyCode['x'] = { KEYCODE_X, 0 };
+		_AsciiToKeyCode['y'] = { KEYCODE_Y, 0 };
+		_AsciiToKeyCode['z'] = { KEYCODE_Z, 0 };
+		_AsciiToKeyCode['A'] = { KEYCODE_A, 1 };
+		_AsciiToKeyCode['B'] = { KEYCODE_B, 1 };
+		_AsciiToKeyCode['C'] = { KEYCODE_C, 1 };
+		_AsciiToKeyCode['D'] = { KEYCODE_D, 1 };
+		_AsciiToKeyCode['E'] = { KEYCODE_E, 1 };
+		_AsciiToKeyCode['F'] = { KEYCODE_F, 1 };
+		_AsciiToKeyCode['G'] = { KEYCODE_G, 1 };
+		_AsciiToKeyCode['H'] = { KEYCODE_H, 1 };
+		_AsciiToKeyCode['I'] = { KEYCODE_I, 1 };
+		_AsciiToKeyCode['J'] = { KEYCODE_J, 1 };
+		_AsciiToKeyCode['K'] = { KEYCODE_K, 1 };
+		_AsciiToKeyCode['M'] = { KEYCODE_L, 1 };
+		_AsciiToKeyCode['L'] = { KEYCODE_M, 1 };
+		_AsciiToKeyCode['N'] = { KEYCODE_N, 1 };
+		_AsciiToKeyCode['O'] = { KEYCODE_O, 1 };
+		_AsciiToKeyCode['P'] = { KEYCODE_P, 1 };
+		_AsciiToKeyCode['Q'] = { KEYCODE_Q, 1 };
+		_AsciiToKeyCode['R'] = { KEYCODE_R, 1 };
+		_AsciiToKeyCode['S'] = { KEYCODE_S, 1 };
+		_AsciiToKeyCode['T'] = { KEYCODE_T, 1 };
+		_AsciiToKeyCode['U'] = { KEYCODE_U, 1 };
+		_AsciiToKeyCode['V'] = { KEYCODE_V, 1 };
+		_AsciiToKeyCode['W'] = { KEYCODE_W, 1 };
+		_AsciiToKeyCode['X'] = { KEYCODE_X, 1 };
+		_AsciiToKeyCode['Y'] = { KEYCODE_Y, 1 };
+		_AsciiToKeyCode['Z'] = { KEYCODE_Z, 1 };
+		_AsciiToKeyCode[';'] = { KEYCODE_SEMICOLON, 0 };
+		_AsciiToKeyCode['='] = { KEYCODE_EQUALS, 0 };
+		_AsciiToKeyCode['-'] = { KEYCODE_MINUS, 0 };
+		_AsciiToKeyCode[','] = { KEYCODE_COMMA, 0 };
+		_AsciiToKeyCode['.'] = { KEYCODE_PERIOD, 0 };
+		_AsciiToKeyCode['/'] = { KEYCODE_SLASH, 0 };
+		_AsciiToKeyCode['`'] = { KEYCODE_GRAVE, 0 };
+		_AsciiToKeyCode['['] = { KEYCODE_LEFT_BRACKET, 0 };
+		_AsciiToKeyCode['\\'] = { KEYCODE_BACK_SLASH, 0 };
+		_AsciiToKeyCode[']'] = { KEYCODE_RIGHT_BRACKET, 0 };
+		_AsciiToKeyCode['\''] = { KEYCODE_APOSTROPHE, 0 };
+		_AsciiToKeyCode[':'] = { KEYCODE_SEMICOLON, 1 };
+		_AsciiToKeyCode['+'] = { KEYCODE_EQUALS, 1 };
+		_AsciiToKeyCode['_'] = { KEYCODE_MINUS, 1 };
+		_AsciiToKeyCode['<'] = { KEYCODE_COMMA, 1 };
+		_AsciiToKeyCode['>'] = { KEYCODE_PERIOD, 1 };
+		_AsciiToKeyCode['?'] = { KEYCODE_SLASH, 1 };
+		_AsciiToKeyCode['~'] = { KEYCODE_GRAVE, 1 };
+		_AsciiToKeyCode['{'] = { KEYCODE_LEFT_BRACKET, 1 };
+		_AsciiToKeyCode['|'] = { KEYCODE_BACK_SLASH, 1 };
+		_AsciiToKeyCode['}'] = { KEYCODE_RIGHT_BRACKET, 1 };
+		_AsciiToKeyCode['"'] = { KEYCODE_APOSTROPHE, 1 };
+		_AsciiToKeyCode[127] = { KEYCODE_DELETE, 0 };
 	}
 
-	void KeyboardAdapter::onDispatch(uint32_t keycode, bool unicode, bool down, int repeat, int device, int source)
-	{
+	void KeyboardAdapter::dispatch(
+		int code, bool isAscii, bool isDown, bool isCapsLock,
+		int repeat, int device, int source
+	) {
 		UILock lock(_host->window());
 		_repeat = repeat;
 		_device = device;
 		_source = source;
-
-		bool is_clear = convert(keycode, unicode, down);
-		if ( down ) {
-			_host->onKeyboardDown();
-		} else {
-			_host->onKeyboardUp();
-		}
-		if ( is_clear ) {
-			_ctrl = _command = _shift = _alt = false;
-		}
+		_caps_lock = isCapsLock;
+		onDispatch(code, isAscii, isDown);
 	}
 
-	int KeyboardAdapter::keypress(KeyboardKeyCode name) {
+	int KeyboardAdapter::toKeypress(KeyboardKeyCode code) {
 		// Letters
-		if ( name >= 65 && name <= 90 ) {
+		if ( code >= 65 && code <= 90 ) {
 			if ( _caps_lock || _shift ) { // A - Z
-				return name; // caps | shift
+				return code; // caps | shift
 			} else {
-				return name + 32; // lowercase a - z
+				return code + 32; // lowercase a - z
 			}
 		}
-
-		auto it = _symbol_keypress.find(int(name));
-		if ( it != _symbol_keypress.end() ) {
-			if ( _shift ) {
-				return it->value.shift;
-			} else {
-				return it->value.normal;
-			}
+		KeyCodeToKeypress keypress;
+		if (_KeyCodeToKeypress.get(code, keypress)) {
+			return _shift ? keypress.shift: keypress.normal;
 		}
 		return 0;
 	}
 
-	KeyboardKeyCode KeyboardAdapter::getKeycode(uint32_t ascii) {
-		auto it = _ascii_keycodes.find(ascii);
-		return it == _ascii_keycodes.end() ? KEYCODE_UNKNOWN: it->value.name;
-	}
-
-	bool KeyboardAdapter::convert(uint32_t ascii, bool unicode, bool down) {
-		if ( unicode ) {
-			auto it = _ascii_keycodes.find(ascii);
-			if ( it == _ascii_keycodes.end() ) {
-				_keycode = KEYCODE_UNKNOWN;
-				_keypress = ascii;
+	void KeyboardAdapter::onDispatch(int code, bool isAscii, bool isDown) {
+		if ( isAscii ) {
+			AsciiToKeyCode keycode;
+			if (_AsciiToKeyCode.get(code, keycode)) {
+				_shift = keycode.shift;
+				_keycode = keycode.code;
+				_keypress = toKeypress(_keycode);
 			} else {
-				_shift = it->value.is_shift;
-				_keycode = it->value.name;
-				_keypress = keypress( _keycode );
+				_keycode = KEYCODE_UNKNOWN;
+				_keypress = code;
 			}
 		} else {
-			auto it = _keycodes.find(ascii);
-			if ( it == _keycodes.end() ) { // Unknown keycode
-				_keycode = KeyboardKeyCode(ascii + 100000);
-				_keypress = 0;
-			} else {
-				_keycode = it->value;
-				if ( down ) {
-					switch ( _keycode ) {
-						case KEYCODE_SHIFT: _shift = 1; break;
-						case KEYCODE_CTRL: _ctrl = 1; break;
-						case KEYCODE_ALT: _alt = 1; break;
-						case KEYCODE_COMMAND: _command = 1; break;
-						case KEYCODE_CAPS_LOCK: _caps_lock = !_caps_lock; break;
-						default: break;
-					}
-				} else {
-					switch ( _keycode ) {
-						case KEYCODE_SHIFT: _shift = 0; break;
-						case KEYCODE_CTRL: _ctrl = 0; break;
-						case KEYCODE_ALT: _alt = 0; break;
-						case KEYCODE_COMMAND: _command = 0; break;
-						default: break;
-					}
+			if (_PlatformKeyCodeToKeyCode.get(code, _keycode)) {
+				switch ( _keycode ) {
+					case KEYCODE_SHIFT: _shift = isDown; break;
+					case KEYCODE_CTRL: _ctrl = isDown; break;
+					case KEYCODE_ALT: _alt = isDown; break;
+					case KEYCODE_COMMAND_RIGHT:
+					case KEYCODE_COMMAND: _command = isDown; break;
+					default: break;
 				}
-				_keypress = keypress( _keycode );
+				_keypress = toKeypress(_keycode);
+			} else { // Unknown keycode
+				_keycode = KEYCODE_UNKNOWN;
+				_keypress = 0;
 			}
 		}
 
-		return unicode;
+		Qk_DEBUG("keycode: %d, %d, isDown: %i", code, _keycode, isDown);
+
+		if ( isDown ) {
+			_host->onKeyboardDown();
+		} else {
+			_host->onKeyboardUp();
+		}
+		if ( isAscii ) {
+			_shift = false;
+		}
 	}
 
 }

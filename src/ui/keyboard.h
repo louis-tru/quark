@@ -54,7 +54,6 @@ namespace qk {
 	F(KEYCODE_CAPS_LOCK,        20) /* caps lock */ \
 	F(KEYCODE_ESC,              27) /* esc */ \
 	F(KEYCODE_SPACE,            32) /* space */ \
-	F(KEYCODE_COMMAND,          91) /* command/win */ \
 	F(KEYCODE_LEFT,             37) /* left */ \
 	F(KEYCODE_UP,               38) /* up */ \
 	F(KEYCODE_RIGHT,            39) /* right */ \
@@ -65,9 +64,8 @@ namespace qk {
 	F(KEYCODE_PAGE_DOWN,        34) /* page down */ \
 	F(KEYCODE_MOVE_END,         35) /* end */ \
 	F(KEYCODE_MOVE_HOME,        36) /* home */ \
-	F(KEYCODE_SCROLL_LOCK,      145) \
-	F(KEYCODE_BREAK,            19) \
-	F(KEYCODE_SYSRQ,            42) \
+	F(KEYCODE_BREAK,            19) /*Break*/\
+	F(KEYCODE_SYSRQ,            42) /*SYSRQ*/\
 	F(KEYCODE_HELP,             47) /* Help */ \
 	F(KEYCODE_0,                48) /* 0 ) */ \
 	F(KEYCODE_1,                49) /* 1 ! */ \
@@ -105,8 +103,11 @@ namespace qk {
 	F(KEYCODE_X,                88)\
 	F(KEYCODE_Y,                89)\
 	F(KEYCODE_Z,                90)\
-	F(KEYCODE_NUM_LOCK,         144) /* numpad */ \
-	F(KEYCODE_NUMPAD_0,         96)\
+	F(KEYCODE_COMMAND,          91) /* command */ \
+	F(KEYCODE_MENU,             92) /*menu*/\
+	F(KEYCODE_COMMAND_RIGHT,    93) /* command right ************** */ \
+	F(KEYCODE_NUMPAD_EQUALS,    94) /* numpad = */ \
+	F(KEYCODE_NUMPAD_0,         96) /* numpad 0-9 */\
 	F(KEYCODE_NUMPAD_1,         97)\
 	F(KEYCODE_NUMPAD_2,         98)\
 	F(KEYCODE_NUMPAD_3,         99)\
@@ -116,12 +117,12 @@ namespace qk {
 	F(KEYCODE_NUMPAD_7,         103)\
 	F(KEYCODE_NUMPAD_8,         104)\
 	F(KEYCODE_NUMPAD_9,         105)\
-	F(KEYCODE_NUMPAD_DIVIDE,    111) /* / */ \
-	F(KEYCODE_NUMPAD_MULTIPLY,  106)  /* * */ \
-	F(KEYCODE_NUMPAD_SUBTRACT,  109)  /* - */ \
+	F(KEYCODE_NUMPAD_MULTIPLY,  106) /* * */ \
 	F(KEYCODE_NUMPAD_ADD,       107) /* + */ \
+	F(KEYCODE_NUMPAD_ENTER,     108) /* Numpad Enter ************** */ \
+	F(KEYCODE_NUMPAD_SUBTRACT,  109)  /* - */ \
 	F(KEYCODE_NUMPAD_DOT,       110) /* . */ \
-	F(KEYCODE_NUMPAD_ENTER,     108) /* enter */ \
+	F(KEYCODE_NUMPAD_DIVIDE,    111) /* / */ \
 	F(KEYCODE_F1,               112) /* f1 - f24 */ \
 	F(KEYCODE_F2,               113) \
 	F(KEYCODE_F3,               114) \
@@ -146,6 +147,8 @@ namespace qk {
 	F(KEYCODE_F22,              133) \
 	F(KEYCODE_F23,              134) \
 	F(KEYCODE_F24,              135) \
+	F(KEYCODE_NUM_LOCK,         144) /* num lock */ \
+	F(KEYCODE_SCROLL_LOCK,      145) /* SCROLL_LOCK */\
 	F(KEYCODE_SEMICOLON,        186)  /* ; : */ \
 	F(KEYCODE_EQUALS,           187)  /* = + */ \
 	F(KEYCODE_MINUS,            189)  /* - _ */ \
@@ -158,6 +161,7 @@ namespace qk {
 	F(KEYCODE_RIGHT_BRACKET,    221)  /* ] } */ \
 	F(KEYCODE_APOSTROPHE,       222)  /* ' " */ \
 	/* --------------------------------------------------- */ \
+	F(KEYCODE_FUN,              209)     /* Function */ \
 	F(KEYCODE_HOME,             300)     /* 按键Home */ \
 	F(KEYCODE_BACK,             301)     /* 返回键 */ \
 	F(KEYCODE_CALL,             302)     /* 拨号键 */ \
@@ -170,7 +174,7 @@ namespace qk {
 	F(KEYCODE_POWER,            309)     /* 电源键 */ \
 	F(KEYCODE_CAMERA,           310)     /* 拍照键 */ \
 	F(KEYCODE_FOCUS,            311)     /* 拍照对焦键 */ \
-	F(KEYCODE_MENU,             312)     /* 菜单键 */ \
+	F(KEYCODE_MENU_1,           312)     /* 菜单键 */ \
 	F(KEYCODE_SEARCH,           313)     /* 搜索键 */ \
 	F(KEYCODE_MEDIA_PLAY_PAUSE, 314)     /* 多媒体键 播放/暂停 */ \
 	F(KEYCODE_MEDIA_STOP,       315)     /* 多媒体键 停止 */ \
@@ -205,9 +209,10 @@ namespace qk {
 	*/
 	class Qk_EXPORT KeyboardAdapter: public Object {
 	public:
+		typedef int Ascii;
 		Qk_DEFINE_PROP_GET(EventDispatch*, host);
 		Qk_DEFINE_PROP_GET(KeyboardKeyCode, keycode, Const);
-		Qk_DEFINE_PROP_GET(int, keypress, Const);
+		Qk_DEFINE_PROP_GET(Ascii, keypress, Const);
 		Qk_DEFINE_PROP_GET(bool, shift, Const);
 		Qk_DEFINE_PROP_GET(bool, alt, Const);
 		Qk_DEFINE_PROP_GET(bool, ctrl, Const);
@@ -216,27 +221,26 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(bool, repeat, Const);
 		Qk_DEFINE_PROP_GET(bool, device, Const);
 		Qk_DEFINE_PROP_GET(bool, source, Const);
-
-		static KeyboardAdapter* create();
-
 		KeyboardAdapter();
-		void onDispatch(uint32_t keycode, bool ascii, bool down,
-									int repeat = 0, int device = 0, int source = 0);
-		KeyboardKeyCode getKeycode(uint32_t ascii);
+		void dispatch(
+			int code, bool isAscii, bool isDown, bool isCapsLock,
+			int repeat, int device, int source
+		);
+		Ascii toKeypress(KeyboardKeyCode code);
+		static KeyboardAdapter* create();
 	protected:
-		virtual int  keypress(KeyboardKeyCode name);
-		virtual bool convert(uint32_t ascii, bool unicode, bool down);
+		virtual void onDispatch(int code, bool isAscii, bool isDown);
 
-		struct AsciiKeyboardKeycode {
-			KeyboardKeyCode name;
-			bool is_shift;
+		struct AsciiToKeyCode {
+			KeyboardKeyCode code;
+			bool shift;
 		};
-		struct SymbolKeypressValue {
-			int normal, shift;
+		struct KeyCodeToKeypress {
+			Ascii normal, shift; // Keypress ascii code
 		};
-		Dict<int, KeyboardKeyCode>      _keycodes;
-		Dict<int, AsciiKeyboardKeycode> _ascii_keycodes;
-		Dict<int, SymbolKeypressValue>  _symbol_keypress;
+		Dict<int, KeyboardKeyCode>   _PlatformKeyCodeToKeyCode;
+		Dict<int, AsciiToKeyCode>    _AsciiToKeyCode;
+		Dict<int, KeyCodeToKeypress> _KeyCodeToKeypress;
 
 		friend class EventDispatch;
 	};

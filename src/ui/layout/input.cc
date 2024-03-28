@@ -37,7 +37,7 @@
 namespace qk {
 
 	enum {
-		kFlag_Normal = 0,      // 正常状态未激活光标查找
+		kFlag_Normal = 0,         // 正常状态未激活光标查找
 		kFlag_Find_Cursor_Wait,   // 等待超时激活光标查找
 		kFlag_Find_Cursor_Disable,// 禁用激活光标查找
 		kFlag_Find_Cursor,        // 激活光标查找
@@ -45,7 +45,7 @@ namespace qk {
 		kFlag_Range_Select,       // 范围选择
 		kFlag_Auto_Range_Select,  // 自动范围选择
 		kFlag_Click_Focus_Check,  // 点击聚焦检查,检查成功后设置成`kFlag_Disable_Click_Focus`状态
-		kFlag_Disable_Click_Focus, // 禁用点击聚焦
+		kFlag_Disable_Click_Focus,// 禁用点击聚焦
 	};
 
 	Qk_DEFINE_INLINE_MEMBERS(InputLayout, Inl) {
@@ -424,7 +424,6 @@ namespace qk {
 
 		/**
 		 * 通过窗口绝对座标查找并设置光标索引
-		 * @param {Vec2} coord 窗口绝对座标
 		*/
 		void find_cursor(Vec2 coord) {
 			if ( !_editing || text_length() == 0 ) {
