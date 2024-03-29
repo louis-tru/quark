@@ -86,19 +86,15 @@ namespace qk {
 		void set_status_bar_style(StatusBarStyle style);
 
 		/**
-		* @method set_keep_screen(keep)
+		* @method prevent_screen_sleep(prevent)
 		*/
-		void set_keep_screen(bool keep);
+		void prevent_screen_sleep(bool prevent);
 
 		/**
-		 * @method default_atom_pixel
+		 * @method main_screen_scale
 		*/
-		static float default_atom_pixel();
+		static float main_screen_scale();
 
-		/**
-		 * @method default_status_bar_height
-		*/
-		static float default_status_bar_height();
 	};
 
 }

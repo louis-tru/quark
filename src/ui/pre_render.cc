@@ -150,7 +150,8 @@ namespace qk {
 
 	void PreRender::clearTasks() {
 		for (auto t: _tasks) {
-			t->_pre = nullptr; // clear task
+			if (t)
+				t->_pre = nullptr; // clear task
 		}
 		_tasks.clear();
 	}

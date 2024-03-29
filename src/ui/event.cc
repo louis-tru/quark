@@ -720,7 +720,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardKeyCode name, bool down) {
+	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardKeyCode code, bool down) {
 		float x = pos[0], y = pos[1];
 
 		if (_mouse_handle->view() != view) {
@@ -728,7 +728,7 @@ namespace qk {
 		}
 		if (!view) return;
 
-		auto evt = NewMouseEvent(view, x, y, name);
+		auto evt = NewMouseEvent(view, x, y, code);
 
 		Sp<View> raw_down_view = _mouse_handle->click_down_view();
 
@@ -740,7 +740,7 @@ namespace qk {
 			_inl_view(view)->bubble_trigger(UIEvent_MouseUp, **evt);
 		}
 
-		if (name != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
+		if (code != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
 
 		if (down) {
 			_inl_view(view)->trigger_highlightted(
@@ -755,11 +755,11 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::mousewhell(KeyboardKeyCode name, bool isDown, float x, float y) {
+	void EventDispatch::mousewhell(KeyboardKeyCode code, bool isDown, float x, float y) {
 		if (isDown) {
 			auto view = _mouse_handle->view();
 			if (view) {
-				_inl_view(view)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(view, x, y, name));
+				_inl_view(view)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(view, x, y, code));
 			}
 		}
 	}
@@ -777,23 +777,23 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onMousepress(KeyboardKeyCode name, bool isDown, Vec2 *value) {
-		switch(name) {
+	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, Vec2 *value) {
+		switch(code) {
 			case KEYCODE_MOUSE_LEFT:
 			case KEYCODE_MOUSE_CENTER:
 			case KEYCODE_MOUSE_RIGHT: {
 				UILock lock(_window);
 				auto pos = value ? *value: _mouse_handle->position(); // get current mouse pos
 				auto v = find_receive_view(pos).collapse();
-				_loop->post_message(Cb([this,v,pos,name,isDown](auto& e) {
-					mousepress(v, pos, name, isDown);
+				_loop->post_message(Cb([this,v,pos,code,isDown](auto& e) {
+					mousepress(v, pos, code, isDown);
 					Release(v);
 				}));
 				break;
 			}
 			case KEYCODE_MOUSE_WHEEL: {
 				auto delta = value ? *value: Vec2();
-				_loop->post_message(Cb([=](auto& e) { mousewhell(name, isDown, delta.x(), delta.y()); }));
+				_loop->post_message(Cb([=](auto& e) { mousewhell(code, isDown, delta.x(), delta.y()); }));
 				break;
 			}
 			default: break;
@@ -954,11 +954,11 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onImeControl(KeyboardKeyCode name) {
+	void EventDispatch::onImeControl(KeyboardKeyCode code) {
 		UILock lock(_window);
 		TextInput* input = _text_input;
 		if ( input ) {
-			input->input_control(name);
+			input->input_control(code);
 		}
 	}
 

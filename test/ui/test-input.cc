@@ -2,6 +2,7 @@
 #include <quark/ui/window.h>
 #include <quark/ui/layout/root.h>
 #include <quark/ui/layout/input.h>
+#include <quark/ui/layout/textarea.h>
 #include <quark/ui/css/css.h>
 #include <quark/ui/action/keyframe.h>
 
@@ -11,7 +12,7 @@ void test_input(int argc, char **argv) {
 	App app;
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Input"});
 	auto box = win->root()->append_new<Box>();
-	auto input = box->append_new<Input>();
+	auto input = box->append_new<Textarea>();
 
 	box->set_width({ 0, SizeKind::kMatch });
 	box->set_height({ 0, SizeKind::kMatch });
@@ -25,7 +26,7 @@ void test_input(int argc, char **argv) {
 	});
 
 	input->set_width({ 0.5, SizeKind::kRatio });
-	input->set_height({ 30 });
+	input->set_height({ 100 });
 	input->set_background_color({255,255,255});
 	input->set_align(Align::kCenterCenter);
 	input->set_padding_left(5);

@@ -188,7 +188,6 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 			isDown = flags & NSEventModifierFlagHelp; break;
 		default: return;
 	}
-
 	_win->dispatch()->keyboard()->dispatch(e.keyCode, false, isDown, isCapsLock, false, -1, 0);
 }
 

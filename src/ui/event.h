@@ -279,7 +279,7 @@ namespace qk {
 		void onImeInsert(cString& text);
 		void onImeMarked(cString& text);
 		void onImeUnmark(cString& text);
-		void onImeControl(KeyboardKeyCode name);
+		void onImeControl(KeyboardKeyCode code);
 		// keyboard main loop call
 		void onKeyboardDown();
 		void onKeyboardUp();
@@ -297,8 +297,8 @@ namespace qk {
 		void touchmove(List<TouchPoint>& in);
 		void touchend(List<TouchPoint>& in, const UIEventName& type);
 		void mousemove(View* view, Vec2 pos);
-		void mousepress(View* view, Vec2 pos, KeyboardKeyCode name, bool down);
-		void mousewhell(KeyboardKeyCode name, bool down, float x, float y);
+		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
+		void mousewhell(KeyboardKeyCode code, bool down, float x, float y);
 		View* find_receive_view_exec(Layout *view, Vec2 pos);
 		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, KeyboardKeyCode keycode);

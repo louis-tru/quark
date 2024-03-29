@@ -638,8 +638,11 @@ namespace qk {
 			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
 			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, &blob->out.img);
 			blob->out.img->markAsTexture(_render);
+			if (!blob->out.img->count()) {
+				Qk_ERR("GLCanvas::drawTextBlob blob->out.img->count() == 0");
+				return;
+			}
 			blob->out.fontSize = finalFontSize;
-			Qk_ASSERT(blob->out.img->pixels().length());
 		}
 
 		_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelScale, origin, paint);

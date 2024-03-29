@@ -242,8 +242,7 @@ namespace qk {
 				_keypress = 0;
 			}
 		}
-
-		Qk_DEBUG("keycode: %d, %d, isDown: %i", code, _keycode, isDown);
+		//Qk_DEBUG("keycode: %d, %d, isDown: %i", code, _keycode, isDown);
 
 		if ( isDown ) {
 			_host->onKeyboardDown();

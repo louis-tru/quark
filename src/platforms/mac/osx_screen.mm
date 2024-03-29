@@ -30,6 +30,7 @@
 
 #import "./mac_app.h"
 #import "../../ui/screen.h"
+#import "IOKit/pwr_mgt/IOPMLib.h"
 
 using namespace qk;
 
@@ -38,29 +39,37 @@ using namespace qk;
 typedef Screen::StatusBarStyle StatusBarStyle;
 
 extern QkApplicationDelegate *qkappdelegate;
+static IOPMAssertionID prevent_screen_sleep_assertionID = 0;
 
-float Screen::default_atom_pixel() {
-	return 1.0 / UIScreen.mainScreen.backingScaleFactor;
+float Screen::main_screen_scale() {
+	return UIScreen.mainScreen.backingScaleFactor;
 }
 
-void Screen::set_keep_screen(bool keep) {
-	// TODO
+void Screen::prevent_screen_sleep(bool prevent) {
+	if (prevent) {
+		if (!prevent_screen_sleep_assertionID) {
+			CFStringRef reasonForActivity = CFSTR("Preventing screen sleep due to my application");
+			IOPMAssertionCreateWithName(
+				kIOPMAssertionTypeNoIdleSleep,
+				kIOPMAssertionLevelOn, reasonForActivity, &prevent_screen_sleep_assertionID
+			);
+		}
+	} else {
+		if (prevent_screen_sleep_assertionID) {
+			IOPMAssertionRelease(prevent_screen_sleep_assertionID);
+			prevent_screen_sleep_assertionID = 0;
+		}
+	}
 }
 
 float Screen::status_bar_height() const {
 	return 0;
 }
 
-float Screen::default_status_bar_height() {
-	return 0;
-}
-
 void Screen::set_visible_status_bar(bool visible) {
-	// TODO
 }
 
 void Screen::set_status_bar_style(StatusBarStyle style) {
-	// TODO
 }
 
 Screen::Orientation Screen::orientation() const {
@@ -68,5 +77,4 @@ Screen::Orientation Screen::orientation() const {
 }
 
 void Screen::set_orientation(Orientation orientation) {
-	// noop
 }

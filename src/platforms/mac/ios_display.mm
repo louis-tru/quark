@@ -58,14 +58,6 @@ float Display::status_bar_height() {
 	return Qk_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
 }
 
-float Display::default_status_bar_height() { // static method
-	if (__app && __app.host) {
-		return __app.host->display()->status_bar_height();
-	} else {
-		return 20;
-	}
-}
-
 void Display::set_visible_status_bar(bool visible) {
 	if ( visible == __app.visible_status_bar )
 		return;

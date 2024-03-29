@@ -143,9 +143,6 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 @end
 
-void Window::pending() {
-}
-
 void Window::openImpl(Options &opts) {
 	qk_post_messate_main(Cb([&opts,this](auto&e) {
 		auto del = [[QkWindowDelegate alloc] init:opts win:this render:_render];
@@ -182,6 +179,9 @@ void Window::activate() {
 		[_impl->delegate().uiwin makeKeyAndOrderFront:nil];
 	}), false);
 	Inl_Application(_host)->setActiveWindow(this);
+}
+
+void Window::pending() {
 }
 
 void Window::set_fullscreen(bool fullscreen) {

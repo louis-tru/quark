@@ -51,22 +51,22 @@ namespace qk {
 	F(KEYCODE_SHIFT,            16) /* shift */ \
 	F(KEYCODE_CTRL,             17) /* ctrl */ \
 	F(KEYCODE_ALT,              18) /* alt */ \
+	F(KEYCODE_BREAK,            19) /* break */\
 	F(KEYCODE_CAPS_LOCK,        20) /* caps lock */ \
 	F(KEYCODE_ESC,              27) /* esc */ \
 	F(KEYCODE_SPACE,            32) /* space */ \
+	F(KEYCODE_PAGE_UP,          33) /* page up */ \
+	F(KEYCODE_PAGE_DOWN,        34) /* page down */ \
+	F(KEYCODE_MOVE_END,         35) /* end */ \
+	F(KEYCODE_MOVE_HOME,        36) /* home */ \
 	F(KEYCODE_LEFT,             37) /* left */ \
 	F(KEYCODE_UP,               38) /* up */ \
 	F(KEYCODE_RIGHT,            39) /* right */ \
 	F(KEYCODE_DOWN,             40) /* down */ \
 	F(KEYCODE_INSERT,           45) /* insert */ \
 	F(KEYCODE_DELETE,           46) /* delete */ \
-	F(KEYCODE_PAGE_UP,          33) /* page up */ \
-	F(KEYCODE_PAGE_DOWN,        34) /* page down */ \
-	F(KEYCODE_MOVE_END,         35) /* end */ \
-	F(KEYCODE_MOVE_HOME,        36) /* home */ \
-	F(KEYCODE_BREAK,            19) /*Break*/\
-	F(KEYCODE_SYSRQ,            42) /*SYSRQ*/\
-	F(KEYCODE_HELP,             47) /* Help */ \
+	F(KEYCODE_SYSRQ,            42) /* sysrq */\
+	F(KEYCODE_HELP,             47) /* help */ \
 	F(KEYCODE_0,                48) /* 0 ) */ \
 	F(KEYCODE_1,                49) /* 1 ! */ \
 	F(KEYCODE_2,                50) /* 2 @ */ \
@@ -104,7 +104,7 @@ namespace qk {
 	F(KEYCODE_Y,                89)\
 	F(KEYCODE_Z,                90)\
 	F(KEYCODE_COMMAND,          91) /* command */ \
-	F(KEYCODE_MENU,             92) /*menu*/\
+	F(KEYCODE_MENU,             92) /* menu */\
 	F(KEYCODE_COMMAND_RIGHT,    93) /* command right ************** */ \
 	F(KEYCODE_NUMPAD_EQUALS,    94) /* numpad = */ \
 	F(KEYCODE_NUMPAD_0,         96) /* numpad 0-9 */\

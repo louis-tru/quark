@@ -153,6 +153,11 @@ namespace qk {
 		*/
 		inline RenderBackend* render() const { return _render; }
 
+		/**
+		 * @method count() pixels count
+		*/
+		inline uint32_t count() const { return _pixels.length(); }
+
 	protected:
 		void _SetTex(const PixelInfo &info, const TexStat *tex, bool isMipmap);
 	private:

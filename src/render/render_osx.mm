@@ -254,6 +254,7 @@ static CVReturn displayLinkCallback(
 		_renderThreadId = thread_current_id();
 		[_ctx makeCurrentContext];
 	}
+	Qk_ASSERT(NSOpenGLContext.currentContext);
 	_render->renderDisplay();
 }
 
