@@ -56,11 +56,10 @@ namespace qk {
 			float           text_size;
 			float           line_height;
 			uint32_t        index_of_unichar;
-			Array<TextBlob> *blob;
+			Array<TextBlob> *blobOut;
 			Array<GlyphID>  glyphs;
 			Array<Vec2>     offset;
 		};
-
 		// defines props
 		Qk_DEFINE_PROP(float, pre_width, Const);
 		Qk_DEFINE_PROP(bool,  trim_start, Const);
@@ -83,7 +82,7 @@ namespace qk {
 		void set_metrics(FontMetricsBase *metrics, float line_height);
 		void set_metrics(TextOptions *opts);
 		void add_layout(Layout* layout);
-		void add_text_blob(PreTextBlob pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset, bool is_pre);
+		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool pre_blob);
 		void solve_visible_region(const Mat &mat);
 		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
 		uint32_t length() const { return _lines.length(); }
@@ -94,7 +93,7 @@ namespace qk {
 	private:
 		void finish_line(); // finish line
 		void clear();
-		void add_text_blob(PreTextBlob& pre, const Array<GlyphID>& glyphs, const Array<Vec2>& offset);
+		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);
 		void add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar);
 		Array<Line> _lines;
 		Array<Array<Layout*>> _preLayout;

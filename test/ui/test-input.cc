@@ -29,8 +29,8 @@ void test_input(int argc, char **argv) {
 	input->set_height({ 100 });
 	input->set_background_color({255,255,255});
 	input->set_align(Align::kCenterCenter);
-	input->set_padding_left(5);
-	input->set_padding_right(5);
+	// input->set_padding_left(5);
+	// input->set_padding_right(5);
 	//input->set_text_line_height({20});
 
 	app.run();

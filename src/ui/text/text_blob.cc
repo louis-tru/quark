@@ -35,12 +35,12 @@ namespace qk {
 
 	enum Symbol {
 		kInvalid_Symbol,
-		kLineFeed_Symbol,
-		kSpace_Symbol,
-		kPunctuation_Symbol,
-		kNumber_Symbol,
-		kLetter_Symbol,
-		kLetterCap_Symbol,
+		kLineFeed_Symbol,   // \n
+		kSpace_Symbol,      // \t\s
+		kPunctuation_Symbol,//,.:;?~
+		kNumber_Symbol,    // 0-9
+		kLetter_Symbol,    // a-z
+		kLetterCap_Symbol, // A-Z
 	};
 
 	Symbol unicode_to_symbol(Unichar unicode) {
@@ -198,7 +198,7 @@ namespace qk {
 	}
 
 	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
-		: _disable_overflow(false), _disable_auto_wrap(false), _lines(lines), _opts(opts), _blob(blob)
+		: _disable_overflow(false), _disable_auto_wrap(false), _lines(lines), _opts(opts), _blobOut(blob)
 		, _index_of_unichar(0)
 	{}
 
@@ -234,7 +234,7 @@ namespace qk {
 		// };
 
 		// enum class TextWordBreak: uint8_t {
-		// 	NORMAL,    /* 保持单词在同一行 */
+		// 	NORMAL,    /* 保持单词在同一行并清除行尾溢出的空白符 */
 		// 	BREAK_WORD,/* 保持单词在同一行,除非单词长度超过一行才截断 */
 		// 	BREAK_ALL, /* 以字为单位行空间不足换行 */
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
@@ -243,7 +243,7 @@ namespace qk {
 		if (_disable_auto_wrap || _lines->no_wrap() || // 不使用自动wrap
 				text_white_space == TextWhiteSpace::kNoWrap ||
 				text_white_space == TextWhiteSpace::kPre
-		) { // 不使用自动wrap
+		) { // 不使用自动wrap,溢出不换行
 			is_auto_wrap = false;
 		}
 
@@ -289,108 +289,95 @@ namespace qk {
 	}
 
 	// skip line start space symbol
-	static int skip_space(Unichar *unichar, TextLines *lines, int j, int len) {
+	static bool skip_space(Unichar *unichar, TextLines *lines, int &j, int len) {
+		auto i = j;
 		do {
 			if (unicode_to_symbol(unichar[j]) != kSpace_Symbol) {
 				lines->set_trim_start(false);
 				break;
 			}
-		} while(++j < len);
-		return j;
+		} while (++i < len);
+		return j != i ? ((j = i), true): false;
 	}
 
-	// NORMAL 保持单词在同一行
+	// NORMAL 保持单词在同一行并清除行尾溢出的空白符
 	// BREAK_WORD 保持单词在同一行,除非单词长度超过一行才截断
 	// KEEP_ALL 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
 	void TextBlobBuilder::as_normal(FontGlyphs &fg, Unichar *unichar, bool is_BREAK_WORD, bool is_KEEP_ALL) {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.getHorizontalOffset();
-		bool  line_head = _lines->last()->width == 0.0;
+		auto  line = _lines->last();
+		bool  line_empty = line->width == 0.0; // line zero width
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
-		auto  line = _lines->last();
 
 		float limitX = _lines->host_size().x();
 		float origin = _lines->pre_width();
 		int   len = fg.glyphs().length();
-		int   start = 0;
-		int   j = 0;
-		
-		// skip line start space symbol
-		auto skip = [&]() {
-			if (_lines->trim_start()) {
-				start = j = skip_space(unichar, _lines, j, len);
-				origin = -offset[j].x();
-			}
-		};
-		
-		skip(); // skip line start space
+		int   start = 0, j = 0;
 
-		for (; j < len; j++) {
+		// skip line start space symbol
+		if (_lines->trim_start() && skip_space(unichar, _lines, j, len)) {
+			start = j;
+			origin = -offset[j].x();
+		}
+
+		while (j < len) {
 			auto sym = unicode_to_symbol(unichar[j]);
 			auto x = origin + offset[j + 1].x();
 			auto overflow = x > limitX;
 
 			// check word end
 			// prev word end or next word start, record position and offset
-			auto i = j;
-			if (sym == kSpace_Symbol) {
-				if (!overflow) {
-					i++; // not overflow, plus space is overflow
-				} else {
-					Qk_DEBUG("%s", "overflow");
-				}
-				goto wordEnd;
-			}
-			if (is_KEEP_ALL ? sym == kPunctuation_Symbol : sym < kNumber_Symbol) {
-			wordEnd:
+			if (sym == kSpace_Symbol || (is_KEEP_ALL ? sym == kPunctuation_Symbol/*,.*/ : sym < kNumber_Symbol/*,\s\n你*/)) {
+				auto i = overflow ? j: j+1; // not overflow then add word char to line
 				_lines->add_text_blob(
-					{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blob},
+					{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
 					glyphs.slice(start, i).buffer(), offset.slice(start, i + 1).buffer(), false
 				);
-				line_head = line->width == 0.0;
 				start = i;
+				line_empty = line->width == 0.0;
 			}
 
 			// check wrap overflow new line
 			if (overflow) {
 				if (sym == kSpace_Symbol) { // skip end of line space
-					start = j = skip_space(unichar, _lines, j, len);
-					j--;
+					skip_space(unichar, _lines, j, len);
+					start = j;
 					continue;
 				}
 
-				auto blob_pre = true;
-				if (line_head) { // line start then not new line
+				auto pre_blob = true;
+				if (line_empty) { // is line head mark then not new line
 					if (is_BREAK_WORD) { // force new line
-						blob_pre = false;
+						pre_blob = false;
 						goto newLine;
 					}
 					_lines->set_pre_width(x);
 				} else {
 				newLine:
 					_lines->add_text_blob(
-						{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blob},
-						glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), blob_pre
+						{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
+						glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), pre_blob
 					);
-					_lines->push(_opts, true); // new row
+					_lines->push(_opts, true); // overflow new row
 					line = _lines->last();
-					line_head = true;
+					line_empty = true;
 					start = j;
 					origin = _lines->pre_width() - offset[j].x();
 				}
 			} else {
 				_lines->set_pre_width(x);
 			}
-			
-			skip(); // skip line start space
+			j++;
 		}
 
 		if (start < len) {
 			_lines->add_text_blob(
-				{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blob},
+				{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
 				glyphs.slice(start, len).buffer(), offset.slice(start, len + 1).buffer(), true
 			);
+			_lines->set_pre_width(_lines->pre_width() - offset[start].x() + offset[len].x());
 		}
 	}
 
@@ -410,38 +397,40 @@ namespace qk {
 
 		// skip line start space symbol
 		auto skip = [&]() {
-			if (_lines->trim_start()) {
-				j = skip_space(unichar, _lines, j, len);
+			if (_lines->trim_start() && skip_space(unichar, _lines, j, len)) {
 				start = j;
 				origin = -offset[j].x();
+				return true;
 			}
+			return false;
 		};
-		
+
 		skip(); // skip line start space
 
-		for (; j < len; j++) {
+		while (j < len) {
 			// check wrap overflow new line
 			auto x = origin + offset[j + 1].x();
-			if (x > limitX) {
+			if (x > limitX) { // overflow
 				_lines->add_text_blob(
-					{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blob},
+					{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
 					glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), false
 				);
 				_lines->push(_opts, true); // new row
 				line = _lines->last();
+				if (skip()) continue; // skip space
 				start = j;
-				origin = -offset[j].x();
+				origin = _lines->pre_width() - offset[j].x();
 			} else {
 				_lines->set_pre_width(x);
 			}
-			
-			skip(); // skip line start space
+			j++;
 		}
 
 		_lines->add_text_blob(
-			{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blob},
+			{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
 			glyphs.slice(start, len).buffer(), offset.slice(start, len + 1).buffer(), false
 		);
+		_lines->set_pre_width(line->width); // Use line width as pre width
 	}
 
 	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg) {
@@ -469,7 +458,7 @@ namespace qk {
 						if (x > limitX) {
 							// discard overflow part
 							_lines->add_text_blob(
-								{fg.typeface(), text_size, line_height, _index_of_unichar, _blob},
+								{fg.typeface(), text_size, line_height, _index_of_unichar, _blobOut},
 								fg.glyphs().slice(0, j).buffer(), offset.slice(0, j + 1).buffer(), false
 							);
 							_lines->set_pre_width(limitX);
@@ -491,7 +480,7 @@ namespace qk {
 							if (x > limit2) {
 								if (j) {
 									_lines->add_text_blob(
-										{fg.typeface(), text_size, line_height, _index_of_unichar, _blob},
+										{fg.typeface(), text_size, line_height, _index_of_unichar, _blobOut},
 										fg.glyphs().slice(0, j).buffer(), offset.slice(0, j + 1).buffer(), false
 									);
 								}
@@ -501,10 +490,10 @@ namespace qk {
 
 						// add ellipsis
 						_lines->add_text_blob(
-							{ellipsis.typeface(), text_size, line_height, j, _blob},
+							{ellipsis.typeface(), text_size, line_height, j, _blobOut},
 							ellipsis.glyphs(), ellipsis_offset, false
 						);
-						_blob->back().origin = limitX - ellipsis_width.x(); // align right
+						_blobOut->back().origin = limitX - ellipsis_width.x(); // align right
 						_lines->set_pre_width(limitX);
 
 					} else { // limit2 < 0.0, only add ellipsis
@@ -512,7 +501,7 @@ namespace qk {
 							float x = origin + offset[j + 1].x();
 							if (x > limitX) {
 								_lines->add_text_blob(
-									{ellipsis.typeface(), text_size, line_height, _index_of_unichar, _blob},
+									{ellipsis.typeface(), text_size, line_height, _index_of_unichar, _blobOut},
 									ellipsis.glyphs().slice(0, j).buffer(), ellipsis_offset.slice(0, j + 1).buffer(), false
 								);
 								_lines->set_pre_width(limitX);
@@ -527,7 +516,7 @@ namespace qk {
 			}
 		}
 
-		_lines->add_text_blob({fg.typeface(), text_size, line_height, _index_of_unichar, _blob}, fg.glyphs(), offset, false);
+		_lines->add_text_blob({fg.typeface(), text_size, line_height, _index_of_unichar, _blobOut}, fg.glyphs(), offset, false);
 		_lines->set_pre_width(origin + offset.back().x());
 	}
 

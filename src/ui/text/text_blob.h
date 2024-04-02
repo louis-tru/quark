@@ -61,10 +61,10 @@ namespace qk {
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blobOut);
 		Qk_DEFINE_PROP(bool, disable_overflow, Const);
 		Qk_DEFINE_PROP(bool, disable_auto_wrap, Const);
-		Qk_DEFINE_PROP(TextLines*, lines);
-		Qk_DEFINE_PROP(TextOptions*, opts);
-		Qk_DEFINE_PROP(Array<TextBlob>*, blob);
-		Qk_DEFINE_PROP(uint32_t, index_of_unichar);
+		Qk_DEFINE_PROP_GET(TextLines*, lines);
+		Qk_DEFINE_PROP_GET(TextOptions*, opts);
+		Qk_DEFINE_PROP_GET(Array<TextBlob>*, blobOut);
+		Qk_DEFINE_PROP_GET(uint32_t, index_of_unichar, Const);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);

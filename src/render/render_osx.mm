@@ -45,9 +45,9 @@ class OsxGLRender;
 {
 	CVDisplayLinkRef _displayLink;
 	OsxGLRender      *_render;
-	NSOpenGLContext  *_ctx;
 	bool             _isInit; // start render
 }
+@property (strong, nonatomic) NSOpenGLContext  *ctx;
 @property (assign, nonatomic) bool         isRun;
 @property (assign, nonatomic) qk::ThreadID renderThreadId;
 - (id)   init:(NSOpenGLContext*)ctx render:(OsxGLRender*)r;
@@ -201,7 +201,7 @@ private:
 
 - (id) init:(NSOpenGLContext*)ctx render:(OsxGLRender*)r {
 	if ((self = [super initWithFrame:CGRectZero pixelFormat:nil])) {
-		_ctx = ctx;
+		self.ctx = ctx;
 		_isInit = false;
 		_isRun = true;
 		_displayLink = nil;
@@ -254,13 +254,17 @@ static CVReturn displayLinkCallback(
 		_renderThreadId = thread_current_id();
 		[_ctx makeCurrentContext];
 	}
-	Qk_ASSERT(NSOpenGLContext.currentContext);
+	if (!NSOpenGLContext.currentContext) {
+		[_ctx makeCurrentContext];
+		Qk_ASSERT(NSOpenGLContext.currentContext);
+	}
 	_render->renderDisplay();
 }
 
 - (void) stopDisplay {
 	if (_render->options().fps == 0) {
 		CVDisplayLinkStop(_displayLink);
+		self.ctx = nil;
 	} else {}
 	_isRun = false;
 }

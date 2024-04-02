@@ -686,9 +686,9 @@ namespace qk {
 		_blob_visible.clear();
 		_blob.clear();
 
-		auto str = _value_u4.length() ? &_value_u4: &_placeholder_u4;
+		String4 &str = _value_u4.length() ? _value_u4: _placeholder_u4;
 
-		if (str->length()) { // text layout
+		if (str.length()) { // text layout
 			TextBlobBuilder tbb(*_lines, this, &_blob);
 
 			if (!is_multiline()) {
@@ -698,26 +698,29 @@ namespace qk {
 
 			if (_value_u4.length() && !_security && _marked_text.length()) { // marked text layout
 				auto src = *_value_u4;
-				auto mark = _marked_text_idx;
-				auto mark_end = mark + _marked_text.length();
+				auto marked = _marked_text_idx;
+				auto marked_end = marked + _marked_text.length();
 
 				Array<TextBlob> blobTmp;
 
 				auto make = [&](const Unichar *src, uint32_t len) {
 					tbb.make(string4_to_unichar(src, len, false, false, !is_multiline()));
-					if (blobTmp.length()) blobTmp.concat(std::move(_blob));
-					else blobTmp = std::move(_blob);
+					_lines->finish_text_blob_pre();
+					if (blobTmp.length())
+						blobTmp.concat(std::move(_blob));
+					else
+						blobTmp = std::move(_blob);
 				};
 
-				if ( mark ) {
-					make(src, mark);
+				if ( marked ) { // start
+					make(src, marked);
 				}
 				_marked_blob_begin = blobTmp.length();
-				make(src+mark, _marked_text.length());
+				make(src+marked, _marked_text.length());
 				_marked_blob_end = blobTmp.length();
 
-				if ( mark_end < _value_u4.length() ) {
-					make(src+mark_end, _value_u4.length()-mark_end);
+				if ( marked_end < _value_u4.length() ) {
+					make(src+marked_end, _value_u4.length()-marked_end);
 				}
 				_blob = std::move(blobTmp);
 			}
@@ -729,8 +732,12 @@ namespace qk {
 				tbb.make(lines);
 			}
 			else {
-				tbb.make(string4_to_unichar(*str, false, false, !is_multiline()));
+				tbb.make(string4_to_unichar(str, false, false, !is_multiline()));
 			}
+
+			if (str[str.length() - 1] == '\n')
+				// Add a empty blob placeholder
+				_lines->lineFeed(&tbb, tbb.index_of_unichar());
 		}
 
 		_lines->finish();
@@ -798,15 +805,9 @@ namespace qk {
 		// 查找光标位置附近的blob
 		// ===========================
 		TextBlob *cursor_blob = nullptr;
-		for ( int i = 0, len = _blob.length(); i < len; i++ ) {
-			auto &blob  = _blob[i];
-			auto index = blob.index, end = index + blob.blob.glyphs.length();
-			if (index <= _cursor && _cursor <= end) { // 光标位于blob内
-				cursor_blob = &blob;
-				break;
-			} else if (i + 1 < len && _cursor < _blob[i + 1].index) {
-				// 当小于下一个blob开始位置时，光标应该在这个blob前面
-				cursor_blob = &blob;
+		for ( int i = _blob.length() - 1; i >= 0; i-- ) {
+			if (_blob[i].index <= _cursor) { // blob index 小于等于_cursor 做为光标位置
+				cursor_blob = &_blob[i];
 				break;
 			}
 		}
@@ -832,11 +833,9 @@ namespace qk {
 			line = &_lines->line(_cursor_line);
 			_cursor_x = line->origin + cursor_blob->origin + offset; // x
 		} else {
-			// 多行文本输入时最后一行换行符无blob，找不到blob定位到最后行
-			// Qk_DEBUG("InputLayout::solve_cursor_offset(), 找不到blob定位到最后行");
+			// 找不到blob定位到最后行
 			switch ( text_align() ) {
-				default:
-					_cursor_x = 0; break;
+				default: _cursor_x = 0; break;
 				case TextAlign::kCenter:
 					_cursor_x = c_size.width() * 0.5; break;
 				case TextAlign::kRight:
