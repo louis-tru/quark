@@ -36,7 +36,6 @@
 
 namespace qk {
 
-	class FontMetrics;
 	class TextOptions;
 	class TextBlob;
 	class Layout;
@@ -62,7 +61,7 @@ namespace qk {
 		};
 		// defines props
 		Qk_DEFINE_PROP(float, pre_width, Const);
-		Qk_DEFINE_PROP(bool,  trim_start, Const);
+		Qk_DEFINE_PROP_GET(bool, is_stable_line_height, Const);
 		Qk_DEFINE_PROP_GET(bool, no_wrap, Const);
 		Qk_DEFINE_PROP_GET(bool, visible_region, Const);
 		Qk_DEFINE_PROP_GET(TextAlign, text_align, Const);
@@ -75,11 +74,9 @@ namespace qk {
 		// defines methods
 		TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
-		void push(TextOptions *opts = nullptr, bool trim_start = false); // first call finish() then add new row
+		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all
 		void finish_text_blob_pre();
-		void set_metrics(FontMetricsBase *metrics, float line_height);
-		void set_metrics(TextOptions *opts);
 		void add_layout(Layout* layout);
 		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre);
 		void solve_visible_region(const Mat &mat);
@@ -88,16 +85,20 @@ namespace qk {
 		float max_height() const { return _last->end_y; }
 		Line& operator[](uint32_t idx) { return _lines[idx]; }
 		Line& line(uint32_t idx) { return _lines[idx]; }
+		void set_stable_line_height(float stable_line_height_fontSize, float line_height);
 
 	private:
-		void set_metrics(float top, float bottom);
+		void set_line_height(float top, float bottom);
+		void set_line_height(FontMetricsBase *metrics, float line_height);
 		void finish_line(); // finish line
 		void clear();
 		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);
 		void add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar);
 		Array<Line> _lines;
 		Array<Array<Layout*>> _preLayout;
-		Array<PreTextBlob>    _preBlob;
+		Array<PreTextBlob> _preBlob;
+		float _stable_line_height;
+		FontMetricsBase _stable_line_height_Metrics;
 	};
 }
 #endif

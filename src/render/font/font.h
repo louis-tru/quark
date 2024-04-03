@@ -54,10 +54,10 @@ namespace qk {
 	class Qk_EXPORT FontFamilys: public Object {
 	public:
 		FontFamilys(FontPool* pool, Array<String>& familys);
-		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, familys, Const);
+		Qk_DEFINE_PROP_ACC_GET(cArray<String>&, familys, Const);
 		Qk_DEFINE_PROP_GET(FontPool*, pool);
 		Sp<Typeface> match(FontStyle style, uint32_t index = 0);
-		Array<FontGlyphs> makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize);
+		Array<FontGlyphs> makeFontGlyphs(cArray<Unichar>& unichars, FontStyle style, float fontSize);
 	private:
 		Array<Sp<Typeface>>& matchs(FontStyle style);
 		Array<String> _familys;

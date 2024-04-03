@@ -146,13 +146,14 @@ namespace qk {
 		void handle_Keydown(UIEvent& evt) {
 			_async_call([](auto ctx, auto arg) {
 				if ( ctx->_editing && ctx->_flag == kFlag_Normal ) {
+					auto line_height = ctx->_lines->line(0).end_y;
 					switch ( arg.arg ) {
 						case KEYCODE_LEFT:
 							ctx->_cursor = Qk_MAX(0, int(ctx->_cursor - 1));
 							break;
 						case KEYCODE_UP: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
-							Vec2 coord(pos.x(), pos.y() - (ctx->_text_height * 1.5));
+							Vec2 coord(pos.x(), pos.y() - (line_height * 1.5));
 							ctx->find_cursor(coord);
 							break;
 						}
@@ -161,7 +162,7 @@ namespace qk {
 							break;
 						case KEYCODE_DOWN: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
-							Vec2 coord(pos.x(), pos.y() + (ctx->_text_height * 0.5));
+							Vec2 coord(pos.x(), pos.y() + (line_height * 0.5));
 							ctx->find_cursor(coord);
 							break;
 						}
@@ -309,7 +310,7 @@ namespace qk {
 
 		Vec2 spot_offset() {
 			auto offset = input_text_offset();
-			auto y = _lines->line(_cursor_line).baseline - _text_ascent + _text_height + offset.y();
+			auto y = _lines->line(_cursor_line).baseline - _cursor_ascent + _cursor_height + offset.y();
 			auto x = _cursor_x + offset.x();
 
 			x += padding_left();
@@ -327,7 +328,7 @@ namespace qk {
 
 		Rect spot_rect() {
 			auto left_bottom = spot_offset();
-			auto right_top = Vec2(left_bottom.x() + 1, left_bottom.y() - _text_height);
+			auto right_top = Vec2(left_bottom.x() + 1, left_bottom.y() - _cursor_height);
 			auto a = _mat * left_bottom;
 			auto b = _mat * right_top;
 			return {
@@ -626,7 +627,7 @@ namespace qk {
 		, _marked_text_idx(0), _cursor(0), _cursor_line(0)
 		, _marked_blob_begin(0), _marked_blob_end(0)
 		, _cursor_x(0), _input_text_offset_x(0), _input_text_offset_y(0)
-		, _text_ascent(0), _text_height(0)
+		, _cursor_ascent(0), _cursor_height(0)
 		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
 	{
 		set_clip(true);
@@ -678,13 +679,10 @@ namespace qk {
 
 		FontMetricsBase metrics;
 
-		window()->host()->fontPool()->getMaxMetrics(&metrics, text_size().value);
-		_lines->set_metrics(&metrics, text_line_height().value);
+		_lines->set_stable_line_height(text_size().value, text_line_height().value);
+		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
 
-		_text_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
-		_lines->set_metrics(&metrics, text_line_height().value);
-
-		_text_ascent = -metrics.fAscent;
+		_cursor_ascent = -metrics.fAscent;
 		_marked_blob_begin = _marked_blob_end = 0;
 
 		_blob_visible.clear();

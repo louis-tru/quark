@@ -100,7 +100,7 @@ namespace qk {
 		uint32_t _cursor_line;  // cursor line number
 		uint32_t  _marked_blob_begin, _marked_blob_end;
 		float _cursor_x, _input_text_offset_x, _input_text_offset_y;
-		float _text_ascent, _text_height;
+		float _cursor_ascent, _cursor_height;
 		bool  _editing, _cursor_twinkle_status;
 		char  _flag;
 		Vec2  _point;

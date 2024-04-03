@@ -44,6 +44,7 @@ namespace qk {
 			auto size = content_size();
 			auto v = first();
 			_lines = new TextLines(this, text_align(), size, layout_wrap_x());
+			_lines->set_stable_line_height(text_size().value, text_line_height().value);
 
 			if (v) {
 				TextConfig cfg(this, shared_app()->defaultTextOptions());

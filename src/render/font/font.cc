@@ -80,7 +80,7 @@ namespace qk {
 		: _pool(pool), _familys(std::move(familys))
 	{}
 
-	const Array<String>& FontFamilys::familys() const {
+	cArray<String>& FontFamilys::familys() const {
 		return _familys;
 	}
 
@@ -163,7 +163,7 @@ namespace qk {
 		}
 	};
 
-	Array<FontGlyphs> FontFamilys::makeFontGlyphs(const Array<Unichar>& unichars, FontStyle style, float fontSize) {
+	Array<FontGlyphs> FontFamilys::makeFontGlyphs(cArray<Unichar>& unichars, FontStyle style, float fontSize) {
 		if (unichars.length()) {
 			FontGlyphsBuilder builder = { matchs(style), fontSize, _pool };
 			auto glyphs = builder.tfs[0]->unicharsToGlyphs(unichars);

@@ -31,7 +31,7 @@
 #include "../window.h"
 #include "../app.h"
 #include "../layout/layout.h"
-#include "../../render/font/font.h"
+#include "../../render/font/pool.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
 #include "./text_blob.h"
@@ -40,8 +40,8 @@
 namespace qk {
 
 	TextLines::TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
-		: _pre_width(0), _trim_start(false), _host(host)
-		, _host_size(host_size), _no_wrap(no_wrap)
+		: _pre_width(0), _is_stable_line_height(false)
+		, _host_size(host_size), _host(host), _no_wrap(no_wrap)
 		, _text_align(text_align), _visible_region(false)
 	{
 		clear();
@@ -58,51 +58,70 @@ namespace qk {
 		_visible_region = false;
 	}
 
+	void TextLines::set_stable_line_height(float fontSize, float line_height) {
+		if (fontSize) {
+			_is_stable_line_height = true;
+			_stable_line_height = line_height;
+			_host->window()->host()->fontPool()->getMaxMetrics(&_stable_line_height_Metrics, fontSize);
+			set_line_height(&_stable_line_height_Metrics, line_height);
+		} else {
+			_is_stable_line_height = false;
+		}
+	}
+
 	void TextLines::lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar) {
 		finish_text_blob_pre(); // force line feed
 		add_text_blob_empty(builder, index_of_unichar);
-		push(builder->opts(), false); // new row
+		push(builder->opts()); // new row
 	}
 
-	void TextLines::push(TextOptions *opts, bool trim_start) {
+	void TextLines::push(TextOptions *opts) {
 		finish_line();
 
 		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, _lines.length() });
 		_last = &_lines.back();
-		_trim_start = trim_start;
 		_pre_width = 0;
 		_preLayout.push(Array<Layout*>());
-
-		if (_trim_start) {
-			// skip line start space
-			for (auto &blob: _preBlob) {
-				auto id = blob.typeface->unicharToGlyph(0x20); // space
-				int i = 0, len = blob.glyphs.length();
-			Check:
-				if (blob.glyphs[i] != id) {
-					blob.glyphs = blob.glyphs.copy(i);
-					blob.offset = blob.offset.copy(i);
-					break;
-				}
-				if (++i < len) {
-					blob.index_of_unichar++;
-					goto Check; // skip space
-				}
-				blob.glyphs.clear();
-				blob.offset.clear();
-			}
-		}
 
 		for (auto &blob: _preBlob) {
 			_pre_width += blob.offset.back().x() - blob.offset.front().x();
 		}
-		if (_pre_width) {
-			_trim_start = false;
-		}
 
-		if (opts) {
-			set_metrics(opts);
+		if (_is_stable_line_height) {
+			set_line_height(&_stable_line_height_Metrics, _stable_line_height);
+		} else if (opts) {
+			auto tf = opts->text_family().value->match(opts->font_style());
+			FontMetricsBase metrics;
+			tf->getMetrics(&metrics, opts->text_size().value);
+			set_line_height(&metrics, opts->text_line_height().value);
 		}
+	}
+
+	void TextLines::set_line_height(float top, float bottom) {
+		if (top > _last->top) {
+			_last->top = top;
+			_last->baseline = top + _last->start_y;
+			_last->end_y = _last->baseline;
+		}
+		if (bottom > _last->bottom) {
+			_last->bottom = bottom;
+			_last->end_y = bottom + _last->baseline;
+		}
+	}
+
+	void TextLines::set_line_height(FontMetricsBase *metrics, float line_height) {
+		auto top = -metrics->fAscent;
+		auto bottom = metrics->fDescent + metrics->fLeading;
+		auto height = top + bottom;
+		if (line_height != 0) { // value, not auto
+			auto diff = (line_height - height) * 0.5f;
+			top += diff;
+			bottom += diff;
+			if (bottom < 0) {
+				top += bottom;
+			}
+		}
+		set_line_height(top, bottom);
 	}
 
 	void TextLines::finish_line() {
@@ -113,17 +132,17 @@ namespace qk {
 		auto bottom = _last->bottom;
 
 		for (auto layout: _preLayout.back()) {
-			auto height = layout->layout_size().layout_size.y();
+			auto height = layout->layout_size().layout_size.height();
 			switch (layout->layout_align()) {
 				case Align::kStart:
-					set_metrics(top, height - bottom); break;
+					set_line_height(top, height - bottom); break;
 				case Align::kCenter:
 					height = (height - top - bottom) / 2;
-					set_metrics(height + top, height + bottom); break;
+					set_line_height(height + top, height + bottom); break;
 				case Align::kEnd:
-					set_metrics(height - bottom, bottom); break;
+					set_line_height(height - bottom, bottom); break;
 				default:
-					set_metrics(height, 0); break;
+					set_line_height(height, 0); break;
 			}
 		}
 	}
@@ -169,49 +188,86 @@ namespace qk {
 		_preLayout.clear();
 	}
 
-	void TextLines::set_metrics(float top, float bottom) {
-		if (top > _last->top) {
-			_last->top = top;
-			_last->baseline = top + _last->start_y;
+	void TextLines::finish_text_blob_pre() {
+		if (_preBlob.length()) {
+			for (auto& i: _preBlob)
+				add_text_blob(i, i.glyphs, i.offset);
+			_preBlob.clear();
 		}
-		if (bottom > _last->bottom) {
-			_last->bottom = bottom;
-			_last->end_y = bottom + _last->baseline;
-		}
-		//Qk_DEBUG("TextLines::set_metrics, %f %f %f", top, bottom, _last->baseline);
-	}
-
-	void TextLines::set_metrics(FontMetricsBase *metrics, float line_height) {
-		auto top = -metrics->fAscent;
-		auto bottom = metrics->fDescent + metrics->fLeading;
-		auto height = top + bottom;
-		if (line_height != 0) { // value, not auto
-			auto y = (line_height - height) / 2;
-			top += y; bottom += y;
-			if (bottom < 0) {
-				top += bottom;
-				bottom = 0;
-			}
-		}
-		set_metrics(top, bottom);
-	}
-
-	void TextLines::set_metrics(TextOptions *opts) {
-		auto tf = opts->text_family().value->match(opts->font_style());
-		FontMetricsBase metrics;
-		tf->getMetrics(&metrics, opts->text_size().value);
-		set_metrics(&metrics, opts->text_line_height().value);
 	}
 
 	void TextLines::add_layout(Layout* layout) {
 		_preLayout.back().push(layout);
 	}
 
-	void TextLines::finish_text_blob_pre() {
-		if (_preBlob.length()) {
-			for (auto& i: _preBlob)
-				add_text_blob(i, i.glyphs, i.offset);
-			_preBlob.clear();
+	void TextLines::add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre) {
+		if (isPre) {
+			if (glyphs.length()) {
+				pre.glyphs = glyphs.copy();
+				pre.offset = offset.copy();
+				_preBlob.push(std::move(pre));
+			}
+		} else {
+			finish_text_blob_pre(); // finish pre
+			add_text_blob(pre, glyphs, offset);
+		}
+	}
+
+	void TextLines::add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset) {
+		if (glyphs.length() == 0)
+			return;
+
+		auto frontOffset = -offset.front().x();
+		auto line = _last->line;
+
+		if (pre.blobOut->length()) {
+			auto& blob = pre.blobOut->back();
+			// merge glyphs blob
+			if (blob.line == line && pre.typeface == blob.blob.typeface) {
+				blob.blob.glyphs.write(glyphs.val(), glyphs.length());
+				frontOffset += blob.blob.offset.back().x();
+				for (int i = 1; i < offset.length(); i++) {
+					blob.blob.offset.push({offset[i].x() + frontOffset, offset[i].y()});
+				}
+				_last->width = blob.origin + blob.blob.offset.back().x();
+				return;
+			}
+		}
+
+		FontMetricsBase metrics;
+		auto height = pre.typeface->getMetrics(&metrics, pre.text_size);
+		auto ascent = -metrics.fAscent;
+		auto origin = _last->width;
+
+		auto &blob = pre.blobOut->push({
+			ascent, height, origin, line, pre.index_of_unichar,
+			{pre.typeface, glyphs.copy(), offset},
+		}).back();
+
+		if (frontOffset < 0) {
+			for (auto &i: blob.blob.offset) {
+				i[0] += frontOffset;
+			}
+		}
+		_last->width = origin + blob.blob.offset.back().x();
+
+		if (!_is_stable_line_height)
+			set_line_height(&metrics, pre.line_height);
+	}
+
+	void TextLines::add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar) {
+		auto _opts = builder->opts();
+		auto _blob = builder->blobOut();
+		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
+			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
+			FontMetricsBase metrics;
+			auto height = tf->getMetrics(&metrics, _opts->text_size().value);
+			auto ascent = -metrics.fAscent;
+			auto origin = _last->width;
+
+			_blob->push({
+				ascent, height, _last->width, _last->line, index_of_unichar, {tf, .offset={Vec2()}},
+			});
 		}
 	}
 
@@ -291,85 +347,8 @@ namespace qk {
 		}
 	}
 
-	void TextLines::add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre) {
-		if (isPre) {
-			if (glyphs.length()) {
-				pre.glyphs = glyphs.copy();
-				pre.offset = offset.copy();
-				_preBlob.push(std::move(pre));
-			}
-		} else {
-			finish_text_blob_pre(); // finish pre
-			add_text_blob(pre, glyphs, offset);
-		}
-	}
-
-	void TextLines::add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset) {
-		if (glyphs.length() == 0)
-			return;
-
-		auto frontOffset = -offset.front().x();
-		auto line = _last->line;
-
-		if (pre.blobOut->length()) {
-			auto& blob = pre.blobOut->back();
-			// merge glyphs blob
-			if (blob.line == line && pre.typeface == blob.blob.typeface) {
-				blob.blob.glyphs.write(glyphs.val(), glyphs.length());
-				frontOffset += blob.blob.offset.back().x();
-				for (int i = 1; i < offset.length(); i++) {
-					blob.blob.offset.push({offset[i].x() + frontOffset, offset[i].y()});
-				}
-				_last->width = blob.origin + blob.blob.offset.back().x();
-				return;
-			}
-		}
-
-		FontMetricsBase metrics;
-		auto height = pre.typeface->getMetrics(&metrics, pre.text_size);
-		auto ascent = -metrics.fAscent;
-		auto origin = _last->width;
-
-		auto &blob = pre.blobOut->push({
-			ascent, height, origin, line, pre.index_of_unichar,
-			{pre.typeface, glyphs.copy(), offset},
-		}).back();
-
-		if (frontOffset < 0) {
-			for (auto &i: blob.blob.offset) {
-				i[0] += frontOffset;
-			}
-		}
-		_last->width = origin + blob.blob.offset.back().x();
-
-		set_metrics(&metrics, pre.line_height);
-	}
-
-	void TextLines::add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar) {
-		auto _opts = builder->opts();
-		auto _blob = builder->blobOut();
-		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
-			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
-			FontMetricsBase metrics;
-			auto height = tf->getMetrics(&metrics, _opts->text_size().value);
-			auto ascent = -metrics.fAscent;
-			auto origin = _last->width;
-
-			_blob->push({
-				ascent, height, _last->width, _last->line, index_of_unichar, {tf, .offset={Vec2()}},
-			});
-		}
-	}
-
 	void TextLines::set_pre_width(float value) {
 		_pre_width = value;
-		if (value) {
-			_trim_start = false;
-		}
-	}
-
-	void TextLines::set_trim_start(bool value) {
-		_trim_start = false;
 	}
 
 }
