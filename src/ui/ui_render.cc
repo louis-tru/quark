@@ -536,9 +536,10 @@ namespace qk {
 		// draw cursor
 		if (twinkle) {
 			auto &line = lines->line(v->_cursor_line);
-			auto x = offset.x() + v->_cursor_x - 1;
-			auto y = offset.y() + line.baseline - v->_text_ascent - 1;
-			auto &rect = _cache->getRectPath({{x, y},{2,v->_text_height+2}});
+			auto x = offset.x() + v->_cursor_x - 0.5f;
+			//auto y = offset.y() + line.baseline - v->_text_ascent;
+			auto y = offset.y() + (line.end_y + line.start_y - v->_text_height) * 0.5f;
+			auto &rect = _cache->getRectPath({{x, y},{1,v->_text_height}});
 			_canvas->drawPathvColor(rect, v->cursor_color().to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 		}
 

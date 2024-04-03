@@ -78,11 +78,10 @@ namespace qk {
 		void push(TextOptions *opts = nullptr, bool trim_start = false); // first call finish() then add new row
 		void finish(); // finish all
 		void finish_text_blob_pre();
-		void set_metrics(float top, float bottom);
 		void set_metrics(FontMetricsBase *metrics, float line_height);
 		void set_metrics(TextOptions *opts);
 		void add_layout(Layout* layout);
-		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool pre_blob);
+		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre);
 		void solve_visible_region(const Mat &mat);
 		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
 		uint32_t length() const { return _lines.length(); }
@@ -91,6 +90,7 @@ namespace qk {
 		Line& line(uint32_t idx) { return _lines[idx]; }
 
 	private:
+		void set_metrics(float top, float bottom);
 		void finish_line(); // finish line
 		void clear();
 		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);

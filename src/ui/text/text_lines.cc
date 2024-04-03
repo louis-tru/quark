@@ -41,7 +41,8 @@ namespace qk {
 
 	TextLines::TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
 		: _pre_width(0), _trim_start(false), _host(host)
-		, _host_size(host_size), _no_wrap(no_wrap), _text_align(text_align), _visible_region(false)
+		, _host_size(host_size), _no_wrap(no_wrap)
+		, _text_align(text_align), _visible_region(false)
 	{
 		clear();
 	}
@@ -69,9 +70,10 @@ namespace qk {
 		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, _lines.length() });
 		_last = &_lines.back();
 		_trim_start = trim_start;
+		_pre_width = 0;
 		_preLayout.push(Array<Layout*>());
-		
-		if (trim_start) {
+
+		if (_trim_start) {
 			// skip line start space
 			for (auto &blob: _preBlob) {
 				auto id = blob.typeface->unicharToGlyph(0x20); // space
@@ -91,8 +93,6 @@ namespace qk {
 			}
 		}
 
-		_pre_width = 0;
-
 		for (auto &blob: _preBlob) {
 			_pre_width += blob.offset.back().x() - blob.offset.front().x();
 		}
@@ -100,8 +100,9 @@ namespace qk {
 			_trim_start = false;
 		}
 
-		if (opts)
+		if (opts) {
 			set_metrics(opts);
+		}
 	}
 
 	void TextLines::finish_line() {
@@ -169,19 +170,22 @@ namespace qk {
 	}
 
 	void TextLines::set_metrics(float top, float bottom) {
-		if (top > _last->top || bottom > _last->bottom) {
+		if (top > _last->top) {
 			_last->top = top;
-			_last->bottom = bottom;
-			_last->baseline = _last->start_y + _last->top;
-			_last->end_y = _last->baseline + _last->bottom;
+			_last->baseline = top + _last->start_y;
 		}
+		if (bottom > _last->bottom) {
+			_last->bottom = bottom;
+			_last->end_y = bottom + _last->baseline;
+		}
+		//Qk_DEBUG("TextLines::set_metrics, %f %f %f", top, bottom, _last->baseline);
 	}
 
 	void TextLines::set_metrics(FontMetricsBase *metrics, float line_height) {
 		auto top = -metrics->fAscent;
 		auto bottom = metrics->fDescent + metrics->fLeading;
 		auto height = top + bottom;
-		if (line_height != 0) { // value
+		if (line_height != 0) { // value, not auto
 			auto y = (line_height - height) / 2;
 			top += y; bottom += y;
 			if (bottom < 0) {
@@ -287,8 +291,8 @@ namespace qk {
 		}
 	}
 
-	void TextLines::add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool pre_blob) {
-		if (pre_blob) {
+	void TextLines::add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre) {
+		if (isPre) {
 			if (glyphs.length()) {
 				pre.glyphs = glyphs.copy();
 				pre.offset = offset.copy();

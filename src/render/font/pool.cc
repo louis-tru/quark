@@ -50,7 +50,10 @@ namespace qk {
 		auto tf1 = matchCharacter(String(), style, 26970);
 		if (tf1) {
 			_second.push(tf1->getFamilyName());
+			tf1->getMetrics(&_MaxMetrics64, 64);
 			Qk_DEBUG(_second[1]);
+		} else {
+			tf1->getMetrics(&_MaxMetrics64, 64);
 		}
 
 		// find last �(65533)

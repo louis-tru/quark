@@ -33,6 +33,7 @@
 #include "../window.h"
 #include "./textarea.h"
 #include "../../util/codec.h"
+#include "../../render/font/pool.h"
 
 namespace qk {
 
@@ -676,11 +677,14 @@ namespace qk {
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
-		text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
 
+		window()->host()->fontPool()->getMaxMetrics(&metrics, text_size().value);
 		_lines->set_metrics(&metrics, text_line_height().value);
+
+		_text_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
+		_lines->set_metrics(&metrics, text_line_height().value);
+
 		_text_ascent = -metrics.fAscent;
-		_text_height =  _text_ascent + metrics.fDescent + metrics.fLeading;
 		_marked_blob_begin = _marked_blob_end = 0;
 
 		_blob_visible.clear();

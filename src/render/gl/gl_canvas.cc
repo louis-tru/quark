@@ -640,6 +640,7 @@ namespace qk {
 			blob->out.img->markAsTexture(_render);
 			Qk_ASSERT(blob->out.img->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
 			blob->out.fontSize = finalFontSize;
+			Qk_DEBUG("GLCanvas::drawTextBlob origin, %f", origin.y());
 		}
 
 		_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelScale, origin, paint);

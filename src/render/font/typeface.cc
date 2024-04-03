@@ -118,9 +118,12 @@ namespace qk {
 		if (_metrics.fAscent == 0) {
 			onGetMetrics(&_metrics);
 		}
-		if (!metrics) return 0;
+		if (!metrics) {
+			return 0;
+		}
 		memcpy(metrics, &_metrics, sizeof(FontMetrics));
 		float scale = fontSize / 64.0;
+
 		if (scale != 1.0) {
 			// scale font metrics
 			metrics->fTop *= scale;
@@ -141,22 +144,32 @@ namespace qk {
 		}
 		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
 	}
+	
+	static float getMetricsBase(FontMetrics *ref, FontMetricsBase* out, float fontSize) {
+		if (!out)
+			return 0;
+		float scale = fontSize / 64.0;
+		out->fAscent = ref->fAscent;
+		out->fDescent = ref->fDescent;
+		out->fLeading = ref->fLeading;
+
+		if (scale != 1.0) {
+			out->fAscent *= scale;
+			out->fDescent *= scale;
+			out->fLeading *= scale;
+		}
+		return out->fDescent - out->fAscent + out->fLeading;
+	}
 
 	float Typeface::getMetrics(FontMetricsBase* metrics, float fontSize) {
 		if (_metrics.fAscent == 0) {
 			onGetMetrics(&_metrics);
 		}
-		if (!metrics) return 0;
-		float scale = fontSize / 64.0;
-		metrics->fAscent = _metrics.fAscent;
-		metrics->fDescent = _metrics.fDescent;
-		metrics->fLeading = _metrics.fLeading;
-		if (scale != 1.0) {
-			metrics->fAscent *= scale;
-			metrics->fDescent *= scale;
-			metrics->fLeading *= scale;
-		}
-		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
+		return getMetricsBase(&_metrics, metrics, fontSize);
+	}
+	
+	float FontPool::getMaxMetrics(FontMetricsBase* out, float fontSize) {
+		return getMetricsBase(&_MaxMetrics64, out, fontSize);
 	}
 
 	Vec2 Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize,

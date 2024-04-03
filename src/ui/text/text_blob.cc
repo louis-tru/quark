@@ -292,7 +292,7 @@ namespace qk {
 	static bool skip_space(Unichar *unichar, TextLines *lines, int &j, int len) {
 		auto i = j;
 		do {
-			if (unicode_to_symbol(unichar[j]) != kSpace_Symbol) {
+			if (unicode_to_symbol(unichar[i]) != kSpace_Symbol) {
 				lines->set_trim_start(false);
 				break;
 			}
@@ -307,7 +307,7 @@ namespace qk {
 		auto& glyphs = fg.glyphs();
 		auto  offset = fg.getHorizontalOffset();
 		auto  line = _lines->last();
-		bool  line_empty = line->width == 0.0; // line zero width
+		bool  isEmpty = line->width == 0.0; // empty line
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
 
@@ -336,7 +336,7 @@ namespace qk {
 					glyphs.slice(start, i).buffer(), offset.slice(start, i + 1).buffer(), false
 				);
 				start = i;
-				line_empty = line->width == 0.0;
+				isEmpty = line->width == 0.0;
 			}
 
 			// check wrap overflow new line
@@ -346,29 +346,22 @@ namespace qk {
 					start = j;
 					continue;
 				}
-
-				auto pre_blob = true;
-				if (line_empty) { // is line head mark then not new line
-					if (is_BREAK_WORD) { // force new line
-						pre_blob = false;
-						goto newLine;
-					}
-					_lines->set_pre_width(x);
-				} else {
-				newLine:
+				// Add new line when not empty or Force truncation and add new line
+				if (!isEmpty || is_BREAK_WORD) {
+					// Add immediately when empty lines appear
 					_lines->add_text_blob(
 						{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
-						glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), pre_blob
+						glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), !isEmpty
 					);
 					_lines->push(_opts, true); // overflow new row
 					line = _lines->last();
-					line_empty = true;
+					isEmpty = true;
 					start = j;
 					origin = _lines->pre_width() - offset[j].x();
+					x = origin + offset[j+1].x(); // new x
 				}
-			} else {
-				_lines->set_pre_width(x);
 			}
+			_lines->set_pre_width(x);
 			j++;
 		}
 
@@ -377,7 +370,6 @@ namespace qk {
 				{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
 				glyphs.slice(start, len).buffer(), offset.slice(start, len + 1).buffer(), true
 			);
-			_lines->set_pre_width(_lines->pre_width() - offset[start].x() + offset[len].x());
 		}
 	}
 
@@ -392,45 +384,50 @@ namespace qk {
 		float limitX = _lines->host_size().x();
 		float origin = _lines->pre_width();
 		int   len = glyphs.length();
-		int   start = 0;
-		int   j = 0;
+		int   start = 0, j = 0;
 
 		// skip line start space symbol
-		auto skip = [&]() {
-			if (_lines->trim_start() && skip_space(unichar, _lines, j, len)) {
-				start = j;
-				origin = -offset[j].x();
-				return true;
-			}
-			return false;
-		};
+		//auto skip = [&]() {
+		//	if (_lines->trim_start() && skip_space(unichar, _lines, j, len)) {
+		//		start = j;
+		//		origin = -offset[j].x();
+		//		return true;
+		//	}
+		//	return false;
+		//};
 
-		skip(); // skip line start space
-
-		while (j < len) {
-			// check wrap overflow new line
-			auto x = origin + offset[j + 1].x();
-			if (x > limitX) { // overflow
+		auto add = [&]() {
+			_lines->finish_text_blob_pre(); // finish pre
+			if (start, j) {
 				_lines->add_text_blob(
 					{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
-					glyphs.slice(start, j).buffer(), offset.slice(start, j + 1).buffer(), false
+					glyphs.slice(start, j).buffer(), offset.slice(start, j+1).buffer(), false
 				);
+			}
+		};
+
+		//skip(); // skip line start space
+
+		while (j < len) {
+			auto x = origin + offset[j+1].x();
+			if (x > limitX) { // overflow
+				add();
+				if (skip_space(unichar, _lines, j, len)) { // skip space
+					start = j;
+					origin = _lines->pre_width() - offset[j].x();
+					continue;
+				}
 				_lines->push(_opts, true); // new row
 				line = _lines->last();
-				if (skip()) continue; // skip space
 				start = j;
 				origin = _lines->pre_width() - offset[j].x();
-			} else {
-				_lines->set_pre_width(x);
+				x = origin + offset[j+1].x();
 			}
+			_lines->set_pre_width(x);
 			j++;
 		}
 
-		_lines->add_text_blob(
-			{fg.typeface(), text_size, line_height, _index_of_unichar + start, _blobOut},
-			glyphs.slice(start, len).buffer(), offset.slice(start, len + 1).buffer(), false
-		);
-		_lines->set_pre_width(line->width); // Use line width as pre width
+		add();
 	}
 
 	void TextBlobBuilder::as_no_auto_wrap(FontGlyphs &fg) {

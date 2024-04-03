@@ -51,6 +51,7 @@ namespace qk {
 		String getFamilyName(int index) const;
 		Sp<Typeface> match(cString& familyName, FontStyle style) const;
 		Sp<Typeface> matchCharacter(cString& familyName, FontStyle, Unichar character) const;
+		float getMaxMetrics(FontMetricsBase* metrics, float fontSize);
 	protected:
 		FontPool();
 		void initialize();
@@ -65,6 +66,7 @@ namespace qk {
 		Array<String> _second; // default family names
 		Dict<String, Dict<FontStyle, Sp<Typeface>>> _extFamilies;
 		Dict<uint64_t, Sp<FontFamilys>> _FFIDs;
+		FontMetrics _MaxMetrics64;
 	};
 
 }

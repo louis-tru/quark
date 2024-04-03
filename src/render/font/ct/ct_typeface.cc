@@ -684,6 +684,9 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 	CGRect cgBound = CTFontGetBoundingRectsForGlyphs(
 		fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgBounds, glyphs.length()
 	);
+	
+	cgBound.origin.y = roundf(cgBound.origin.y);
+	cgBound.size.height = ceilf(cgBound.size.height);
 
 	float width_f = 0;// AHgj
 	float top = cgBound.size.height + cgBound.origin.y;
@@ -705,12 +708,9 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 
 	uint32_t width = ceilf(width_f + cgBounds.back().origin.x/* ITALIC compensate */);
 	uint32_t height = ceilf(cgBound.size.height);
-	
+
 	if (!height)
 		height = 1;
-
-	//width = powf(2, ceil(log2(width)));
-	//height = powf(2, ceil(log2(height)));
 
 	Qk_DEBUG("#Typeface_Mac::onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", cgBound.origin.y, top, height);
 

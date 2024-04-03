@@ -13,6 +13,7 @@ void test_input(int argc, char **argv) {
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Input"});
 	auto box = win->root()->append_new<Box>();
 	auto input = box->append_new<Textarea>();
+	//auto input = box->append_new<Input>();
 
 	box->set_width({ 0, SizeKind::kMatch });
 	box->set_height({ 0, SizeKind::kMatch });
@@ -31,7 +32,7 @@ void test_input(int argc, char **argv) {
 	input->set_align(Align::kCenterCenter);
 	// input->set_padding_left(5);
 	// input->set_padding_right(5);
-	//input->set_text_line_height({20});
+	// input->set_text_line_height({20});
 
 	app.run();
 }
