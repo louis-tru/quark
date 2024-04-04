@@ -50,8 +50,6 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 - (id) init:(Window::Options&)opts win:(Window*)win render:(Render*)render {
 	if ( !(self = [super init]) ) return nil;
-	
-	// [NSCursor.IBeamCursor set];
 
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
