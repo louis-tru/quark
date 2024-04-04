@@ -71,7 +71,7 @@ namespace qk {
 
 	void TextLines::lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar) {
 		finish_text_blob_pre(); // force line feed
-		add_text_blob_empty(builder, index_of_unichar);
+		add_text_empty_blob(builder, index_of_unichar);
 		push(builder->opts()); // new row
 	}
 
@@ -255,7 +255,7 @@ namespace qk {
 			set_line_height(&metrics, pre.line_height);
 	}
 
-	void TextLines::add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar) {
+	void TextLines::add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar) {
 		auto _opts = builder->opts();
 		auto _blob = builder->blobOut();
 		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
@@ -334,13 +334,15 @@ namespace qk {
 
 		for (int i = 0, len = blob->length(); i < len; i++) {
 			auto &item = (*blob)[i];
-			if (item.blob.glyphs.length() == 0) continue;
+			if (item.blob.glyphs.length() == 0)
+				continue;
 			auto &line = this->line(item.line);
 			if (line.visible_region) {
 				is_break = true;
 				blob_visible->push(i);
 			} else {
-				if (is_break) break;
+				if (is_break)
+					break;
 			}
 			Qk_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
 				item.origin, item.line, item.blob.glyphs.length(), line.visible_region);

@@ -38,15 +38,15 @@ using namespace qk;
 
 @interface QkRootViewController() {
 	@private
-	id       _mouseMovedId;
-	id       _keyDownId;
+	id _mouseMovedId;
+	id _keyDownId;
 }
 @end
 
 @implementation QkRootViewController
 
 - (void)doCommandBySelector:(SEL)selector {
-	[super doCommandBySelector:selector];
+	// [super doCommandBySelector:selector];
 }
 
 - (BOOL) acceptsFirstResponder {
@@ -155,7 +155,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
 	_win->dispatch()->keyboard()->dispatch(e.keyCode, false, true, isCapsLock, e.ARepeat, -1, 0);
 }
-- (void)keyUp:(NSEvent *)e{
+- (void)keyUp:(NSEvent *)e {
 	//NSLog(@"keyUp,%@", e);
 	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
 	_win->dispatch()->keyboard()->dispatch(e.keyCode, false, false, isCapsLock, 0, -1, 0);

@@ -86,6 +86,7 @@ namespace qk {
 		Line& operator[](uint32_t idx) { return _lines[idx]; }
 		Line& line(uint32_t idx) { return _lines[idx]; }
 		void set_stable_line_height(float stable_line_height_fontSize, float line_height);
+		void add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar);
 
 	private:
 		void set_line_height(float top, float bottom);
@@ -93,7 +94,6 @@ namespace qk {
 		void finish_line(); // finish line
 		void clear();
 		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);
-		void add_text_blob_empty(TextBlobBuilder* builder, uint32_t index_of_unichar);
 		Array<Line> _lines;
 		Array<Array<Layout*>> _preLayout;
 		Array<PreTextBlob> _preBlob;

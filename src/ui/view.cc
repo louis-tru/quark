@@ -79,6 +79,14 @@ namespace qk {
 		preRender().async_call([](auto ctx, auto val) { ctx->set_opacity(val.arg); }, _layout, val);
 	}
 
+	CursorStyle View::cursor() const {
+		return _layout->_cursor;
+	}
+
+	void View::set_cursor(CursorStyle val) {
+		_layout->_cursor = val;
+	}
+
 	bool View::visible() const {
 		return _layout->_visible;
 	}

@@ -50,6 +50,8 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 - (id) init:(Window::Options&)opts win:(Window*)win render:(Render*)render {
 	if ( !(self = [super init]) ) return nil;
+	
+	// [NSCursor.IBeamCursor set];
 
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
@@ -184,6 +186,59 @@ void Window::activate() {
 void Window::pending() {
 }
 
-void Window::set_fullscreen(bool fullscreen) {
-	// TODO
+void Window::setFullscreen(bool fullscreen) {
+	qk_post_messate_main(Cb([this,fullscreen](auto&e) {
+		auto uiwin = _impl->delegate().uiwin;
+		auto screenSize = uiwin.screen.frame.size;
+		auto size = uiwin.frame.size;
+		if (screenSize.width == size.width && screenSize.height == size.height) {
+			if (!fullscreen)
+				[uiwin toggleFullScreen:nil];
+		} else {
+			if (fullscreen)
+				[uiwin toggleFullScreen:nil];
+		}
+	}), false);
+}
+
+void Window::setCursorStyle(CursorStyle cursor, bool low) {
+	static CursorStyle current_cursor_low = CursorStyle::kArrow;
+	static CursorStyle current_cursor_high = CursorStyle::kNormal;
+
+	if (low) {
+		current_cursor_low = cursor;
+	} else {
+		current_cursor_high = cursor;
+	}
+	cursor = current_cursor_high == CursorStyle::kNormal ? current_cursor_low: current_cursor_high;
+
+	if (cursor == CursorStyle::kNone) {
+		[NSCursor hide];
+	} else if (cursor == CursorStyle::kNoneUntilMouseMoves) {
+		[NSCursor setHiddenUntilMouseMoves:YES];
+	} else {
+		switch (cursor) {
+			case CursorStyle::kNormal:
+			case CursorStyle::kArrow: [NSCursor.arrowCursor set]; break;
+			case CursorStyle::kIBeam: [NSCursor.IBeamCursor set]; break;
+			case CursorStyle::kPointingHand: [NSCursor.pointingHandCursor set]; break;
+			case CursorStyle::kClosedHand: [NSCursor.closedHandCursor set]; break;
+			case CursorStyle::kOpenHand: [NSCursor.openHandCursor set]; break;
+			case CursorStyle::kResizeLeft: [NSCursor.resizeLeftCursor set]; break;
+			case CursorStyle::kResizeRight: [NSCursor.resizeRightCursor set]; break;
+			case CursorStyle::kResizeLeftRight: [NSCursor.resizeLeftRightCursor set]; break;
+			case CursorStyle::kResizeUp: [NSCursor.resizeUpCursor set]; break;
+			case CursorStyle::kResizeDown: [NSCursor.resizeDownCursor set]; break;
+			case CursorStyle::kResizeUpDown: [NSCursor.resizeUpDownCursor set]; break;
+			case CursorStyle::kCrosshair: [NSCursor.crosshairCursor set]; break;
+			case CursorStyle::kDisappearingItem: [NSCursor.disappearingItemCursor set]; break;
+			case CursorStyle::kOperationNotAllowed: [NSCursor.operationNotAllowedCursor set]; break;
+			case CursorStyle::kDragLink: [NSCursor.dragLinkCursor set]; break;
+			case CursorStyle::kDragCopy: [NSCursor.dragCopyCursor set]; break;
+			case CursorStyle::kContextualMenu: [NSCursor.contextualMenuCursor set]; break;
+			case CursorStyle::kIBeamForVertical: [NSCursor.IBeamCursorForVerticalLayout set]; break;
+			default: break;
+		}
+		[NSCursor unhide];
+	}
 }

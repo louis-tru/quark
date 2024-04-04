@@ -33,7 +33,6 @@
 #include "../window.h"
 #include "./textarea.h"
 #include "../../util/codec.h"
-#include "../../render/font/pool.h"
 
 namespace qk {
 
@@ -632,6 +631,7 @@ namespace qk {
 	{
 		set_clip(true);
 		set_receive(true);
+		set_cursor(CursorStyle::kIBeam);
 		set_text_word_break(TextWordBreak::kBreakWord);
 	}
 
@@ -739,7 +739,7 @@ namespace qk {
 
 			if (str[str.length() - 1] == '\n')
 				// Add a empty blob placeholder
-				_lines->lineFeed(&tbb, tbb.index_of_unichar());
+				_lines->add_text_empty_blob(&tbb, tbb.index_of_unichar());
 		}
 
 		_lines->finish();
@@ -758,6 +758,8 @@ namespace qk {
 
 		// mark input status change
 		mark_render(kInput_Status | kRecursive_Visible_Region);
+		
+		// Qk_DEBUG("_lines->max_width(), _lines->max_height(), %f %f", _lines->max_width(), _lines->max_height());
 
 		return Vec2(_lines->max_width(), _lines->max_height());
 	}
@@ -782,8 +784,10 @@ namespace qk {
 		if (!BoxLayout::solve_visible_region(mat))
 			return false;
 		_mat = mat;
+		window()->clipRegion(screen_region_from_convex_quadrilateral(_vertex));
 		_lines->solve_visible_region(mat);
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
+		window()->clipRestore();
 		return true;
 	}
 
@@ -837,7 +841,8 @@ namespace qk {
 		} else {
 			// 找不到blob定位到最后行
 			switch ( text_align() ) {
-				default: _cursor_x = 0; break;
+				default:
+					_cursor_x = 0; break;
 				case TextAlign::kCenter:
 					_cursor_x = c_size.width() * 0.5; break;
 				case TextAlign::kRight:
@@ -904,6 +909,8 @@ namespace qk {
 				}
 			}
 		}
+		
+		// Qk_DEBUG("set_input_text_offset, %f %f %f %d", text_offset.x(), text_offset.y(), _lines->max_height(), _lines->length());
 
 		set_input_text_offset(text_offset);
 	}

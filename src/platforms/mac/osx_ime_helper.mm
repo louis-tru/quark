@@ -160,7 +160,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 // NSTextInputClient (Mac OS X 10.5)
 // ----------------------------------------------------------------
 - (void) doCommandBySelector: (SEL) aSelector { // copy,cut..
-  [super doCommandBySelector: aSelector];
+	[super doCommandBySelector: aSelector];
 }
 
 - (void) insertText: (NSString*) aString replacementRange: (NSRange) replacementRange {

@@ -37,6 +37,7 @@
 #include "../render/math.h"
 #include "../render/render.h"
 #include "./pre_render.h"
+#include "./types.h"
 
 namespace qk {
 	class Application;
@@ -182,7 +183,12 @@ namespace qk {
 		/**
 		 * @method set_fullscreen(fullscreen)
 		*/
-		void set_fullscreen(bool fullscreen);
+		void setFullscreen(bool fullscreen);
+
+		/**
+		* @method setCursorStyle
+		*/
+		void setCursorStyle(CursorStyle cursor, bool low = false);
 
 	private:
 		void reload();

@@ -48,6 +48,7 @@ namespace qk {
 		, _accessor(nullptr)
 		, _cssclass(nullptr)
 		, _opacity(1.0)
+		, _cursor(CursorStyle::kArrow)
 		, _visible(true)
 		, _visible_region(false)
 		, _receive(true)
@@ -60,6 +61,10 @@ namespace qk {
 
 	void Layout::set_receive(bool val) {
 		_receive = val;
+	}
+
+	void Layout::set_cursor(CursorStyle val) {
+		_cursor = val;
 	}
 
 	void Layout::set_visible(bool val) {

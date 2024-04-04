@@ -31,6 +31,7 @@
 #include "./textarea.h"
 #include "../screen.h"
 #include "../app.h"
+#include "../window.h"
 
 namespace qk {
 
@@ -69,9 +70,21 @@ namespace qk {
 						_input_text_offset_x = max_width - final_width; break;
 				}
 			}
+
+			unmark(kInput_Status);
+			solve_cursor_offset(); // text cursor status
+
+			ScrollLayoutBase::solve(mark_value());
+			BoxLayout::solve_marks(mat, mark_value());
+
+			if (_editing) {
+				// update system ime input position
+				window()->dispatch()->set_ime_keyboard_spot_rect(input_spot_rect());
+			}
+		} else {
+			ScrollLayoutBase::solve(mark);
+			BoxLayout::solve_marks(mat, mark_value());
 		}
-		ScrollLayoutBase::solve(mark);
-		InputLayout::solve_marks(mat, mark);
 	}
 
 	Vec2 TextareaLayout::input_text_offset() {

@@ -166,6 +166,11 @@ namespace qk {
 		Qk_DEFINE_PROP(float, opacity, Const);
 
 		/**
+		 * @prop Cursor style
+		*/
+		Qk_DEFINE_PROP(CursorStyle, cursor, Const);
+
+		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space
 		*/

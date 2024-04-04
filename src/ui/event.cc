@@ -701,6 +701,7 @@ namespace qk {
 			if (view) {
 				auto evt = NewMouseEvent(view, x, y, KEYCODE_UNKNOWN);
 				_inl_view(view)->bubble_trigger(UIEvent_MouseOver, **evt);
+				_window->setCursorStyle(view->layout()->cursor(), true);
 
 				if (evt->is_default()) {
 					evt->return_value = kAll_ReturnValueMask;
@@ -735,6 +736,7 @@ namespace qk {
 		if (down) {
 			_mouse_handle->set_click_down_view(view);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseDown, **evt);
+			_window->setCursorStyle(view->layout()->cursor(), true);
 		} else {
 			_mouse_handle->set_click_down_view(nullptr);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseUp, **evt);
@@ -805,8 +807,7 @@ namespace qk {
 	void EventDispatch::onKeyboardDown() {
 		auto view_ = get_focus_view();
 		auto view = *view_;
-		if ( !view )
-			view = _window->root();
+		if ( !view ) view = _window->root();
 		if ( !view ) return;
 
 		auto cdoe = _keyboard->keycode();
@@ -851,11 +852,14 @@ namespace qk {
 
 				if ( cdoe == KEYCODE_ENTER ) {
 					_inl_view(view)->bubble_trigger(UIEvent_KeyEnter, *evt);
+				} else if (cdoe == KEYCODE_ESC) {
+					window()->setFullscreen(false);
 				} else if ( cdoe == KEYCODE_VOLUME_UP ) {
 					set_volume_up();
 				} else if ( cdoe == KEYCODE_VOLUME_DOWN ) {
 					set_volume_down();
 				}
+
 				if ( keypress ) { // keypress
 					_inl_view(view)->bubble_trigger(UIEvent_KeyPress, *evt);
 				}

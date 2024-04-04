@@ -324,10 +324,12 @@ namespace qk {
 		if (box->_clip) {
 			if (box->_first) {
 				getInsideRectPath(box, data);
+				_window->clipRegion(screen_region_from_convex_quadrilateral(box->_vertex));
 				_canvas->save();
 				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
 				UIRender::visitLayout(box);
 				_canvas->restore(); // cancel clip
+				_window->clipRestore();
 			}
 		} else {
 			UIRender::visitLayout(box);

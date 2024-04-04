@@ -58,7 +58,7 @@ namespace qk {
 		typedef Layout Layout;
 
 		/*
-		* @field window
+		* @prop window
 		*/
 		Qk_DEFINE_PROP_ACC_GET(Window*, window);
 		/**
@@ -82,9 +82,13 @@ namespace qk {
 		 */
 		Qk_DEFINE_PROP_ACC(float, opacity, Const);
 		/**
-		 * @field level
+		 * @prop level
 		*/
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, level, Const);
+		/**
+		 * @prop Cursor style
+		*/
+		Qk_DEFINE_PROP_ACC(CursorStyle, cursor, Const);
 		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any layout space

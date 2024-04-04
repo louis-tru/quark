@@ -290,7 +290,36 @@ namespace qk {
 		kContinue,
 	};
 
-	// --------------------------------
+	// ---------------- C u r s o r . S t y l e ----------------
+
+	/**
+	 * @enum CursorStyle
+	*/
+	enum class CursorStyle: uint8_t {
+		kNormal,
+		kNone,
+		kNoneUntilMouseMoves,
+		kArrow,
+		kIBeam,
+		kPointingHand,
+		kClosedHand,
+		kOpenHand,
+		kResizeLeft,
+		kResizeRight,
+		kResizeLeftRight,
+		kResizeUp,
+		kResizeDown,
+		kResizeUpDown,
+		kCrosshair,
+		kDisappearingItem,
+		kOperationNotAllowed,
+		kDragLink,
+		kDragCopy,
+		kContextualMenu,
+		kIBeamForVertical,
+	};
+
+	// ----------------------------------------------------------------
 
 	enum class FindDirection: uint8_t {
 		kNone,

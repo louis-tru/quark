@@ -690,19 +690,28 @@ namespace qk {
 		if ( _scroll_duration ) {
 			scroll_to(value, _scroll_duration, *_scroll_curve);
 		} else {
-			_scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
-			_host->mark_render();
+			auto scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
+			if (scroll != _scroll) {
+				_scroll = scroll;
+				_host->mark_render(Layout::kScroll);
+			}
 		}
 	}
 
 	void ScrollLayoutBase::set_scroll_x(float value) {
-		_scroll = _this->get_catch_valid_scroll( Vec2(-value, _scroll.y()) );
-		_host->mark_render(Layout::kScroll);
+		auto scroll = _this->get_catch_valid_scroll( Vec2(-value, _scroll.y()) );
+		if (scroll != _scroll) {
+			_scroll = scroll;
+			_host->mark_render(Layout::kScroll);
+		}
 	}
 
 	void ScrollLayoutBase::set_scroll_y(float value) {
-		_scroll = _this->get_catch_valid_scroll( Vec2(_scroll.x(), -value) );
-		_host->mark_render(Layout::kScroll);
+		auto scroll = _this->get_catch_valid_scroll( Vec2(_scroll.x(), -value) );
+		if (scroll != _scroll) {
+			_scroll = scroll;
+			_host->mark_render(Layout::kScroll);
+		}
 	}
 
 	Vec2 ScrollLayoutBase::scroll() const {
@@ -837,7 +846,7 @@ namespace qk {
 
 	void ScrollLayout::solve_marks(const Mat &mat, uint32_t mark) {
 		ScrollLayoutBase::solve(mark);
-		Layout::solve_marks(mat, mark);
+		Layout::solve_marks(mat, mark_value());
 	}
 
 	ScrollLayoutBase* ScrollLayout::asScrollLayoutBase() {
