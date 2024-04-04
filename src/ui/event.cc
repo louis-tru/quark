@@ -881,8 +881,7 @@ namespace qk {
 	void EventDispatch::onKeyboardUp() {
 		auto view_ = get_focus_view();
 		View* view = *view_;
-		if ( !view )
-			view = _window->root();
+		if ( !view ) view = _window->root();
 		if ( !view ) return;
 
 		auto code = _keyboard->keycode();
