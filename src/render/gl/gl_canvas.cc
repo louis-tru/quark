@@ -234,13 +234,13 @@ namespace qk {
 			dst_start *= _fullScale;
 			dst_start = dst_start.round() / _fullScale;
 
-			Rect rect{dst_start, dst_size};
-
 			//Qk_DEBUG("dst_start %f %f", dst_start.x(), dst_start.y());
 
-			Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &rect);
+			Rect rect{dst_start, dst_size};
 
 			p.setImage(textImg, rect);
+
+			Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &rect);
 
 			Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
 			Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
@@ -294,7 +294,9 @@ namespace qk {
 					};
 					_bounds = Path::getBoundsFromPoints(pts, 4, &host->_state->matrix);
 				} else {
-					_bounds.origin += {mat[2],mat[5]}; // translate
+					Vec2 translate(mat[2],mat[5]); // translate
+					_bounds.origin += translate;
+					_bounds.end += translate;
 				}
 			}
 			begin();
@@ -310,6 +312,7 @@ namespace qk {
 		void begin() {
 			_size *= _host->_scale;
 			_bounds = {_bounds.origin - _size, _bounds.end + _size};
+			// clear more region, Easy for fuzzy sampling without contamination
 			_host->_cmdPack->blurFilterBegin({_bounds.origin - _size, _bounds.end + _size});
 			_inl(_host)->zDepthNext();
 		}
@@ -642,7 +645,6 @@ namespace qk {
 			blob->out.fontSize = finalFontSize;
 			Qk_DEBUG("GLCanvas::drawTextBlob origin, %f", origin.y());
 		}
-
 		_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelScale, origin, paint);
 	}
 

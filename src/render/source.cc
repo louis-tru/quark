@@ -234,14 +234,14 @@ namespace qk {
 
 	class ImageSourceInl: public ImageSource {
 	public:
-		friend void setTex_SourceImage(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap);
+		friend void setTex_SourceImage_RT(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap);
 	};
 
-	void setTex_SourceImage(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap) {
-		static_cast<ImageSourceInl*>(s)->_SetTex(i, tex, isMipmap);
+	void setTex_SourceImage_RT(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap) {
+		static_cast<ImageSourceInl*>(s)->_SetTex_RT(i, tex, isMipmap);
 	}
 
-	void ImageSource::_SetTex(const PixelInfo &info, const TexStat *tex, bool isMipmap) {
+	void ImageSource::_SetTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap) {
 		if (_pixels.length()) {
 			auto oldTex = _pixels[0]._texture;
 			if (oldTex && oldTex != tex)

@@ -159,7 +159,7 @@ namespace qk {
 		inline uint32_t count() const { return _pixels.length(); }
 
 	protected:
-		void _SetTex(const PixelInfo &info, const TexStat *tex, bool isMipmap);
+		void _SetTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap);
 	private:
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);

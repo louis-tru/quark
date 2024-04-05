@@ -73,12 +73,12 @@ namespace qk {
 	public:
 
 		struct Options {
-			ColorType   colorType; // init window color type
-			uint16_t    msaa; // init window gpu render msaa count
-			uint16_t    fps; // init window render fsp limit
-			Rect        frame; // init window params
-			String      title; // init window title
-			Color       backgroundColor; // init window background color
+			ColorType colorType; // init window color type
+			uint16_t  msaa; // init window gpu render msaa count
+			uint16_t  fps; // init window render fsp limit
+			Rect      frame; // init window params
+			String    title; // init window title
+			Color     backgroundColor; // init window background color
 		};
 
 		struct RegionSize/*: Region*/ {
