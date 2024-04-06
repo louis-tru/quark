@@ -501,8 +501,9 @@ namespace qk {
 	}
 
 	bool GLRender::gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint) {
-		auto pixel = src->pixels().val() + paint->srcIndex + slot;
-		auto tex = const_cast<TexStat *>(pixel->texture());
+		auto index = paint->srcIndex + slot;
+		auto pixel = &src->pixels()[index];
+		auto tex = const_cast<TexStat *>(src->texture_RT(index));
 		if (!tex) {
 			Qk_ASSERT(slot < 8);
 			GLRender::makeTexture(pixel, _texStat[slot], true);

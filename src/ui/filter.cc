@@ -305,7 +305,7 @@ namespace qk {
 
 	void FillImage::set_src(String src) {
 		auto pool = imgPool();
-		set_source(pool ? pool->get(src): new ImageSource(src));
+		set_source(pool ? pool->get(src): *ImageSource::Make(src));
 	}
 
 	void FillImage::set_source(ImageSource* source) {

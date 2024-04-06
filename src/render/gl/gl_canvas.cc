@@ -619,8 +619,7 @@ namespace qk {
 
 		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
-		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _fullScale, offset, _fullScale, &img);
-		img->markAsTexture(_render);
+		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _fullScale, offset, _fullScale, &img, _render);
 		auto scale_1 = _this->drawTextImage(*img, bound.y(), _fullScale, origin, paint);
 		return scale_1 * bound.x();
 	}
@@ -639,8 +638,7 @@ namespace qk {
 		if (blob->out.fontSize != finalFontSize || !blob->out.img) { // fill text bolb
 			auto tf = blob->typeface;
 			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
-			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, &blob->out.img);
-			blob->out.img->markAsTexture(_render);
+			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, &blob->out.img, _render);
 			Qk_ASSERT(blob->out.img->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
 			blob->out.fontSize = finalFontSize;
 			Qk_DEBUG("GLCanvas::drawTextBlob origin, %f", origin.y());
@@ -655,9 +653,9 @@ namespace qk {
 			Float32::min(o.y()+src.size.y(), _size.y()) - o.y()
 		};
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
-			auto img = new ImageSource({
+			auto img = ImageSource::Make({
 				int(Qk_MIN(dest.x(),_surfaceSize.x())),int(Qk_MIN(dest.y(),_surfaceSize.y())),type}, _render);
-			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, img, isMipmap);
+			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, *img, isMipmap);
 			_this->zDepthNext();
 			return img;
 		}
@@ -665,15 +663,18 @@ namespace qk {
 	}
 
 	Sp<ImageSource> GLCanvas::outputImage(ImageSource* dest, bool isMipmap) {
+		Sp<ImageSource> ret(dest);
 		if (!dest) {
-			dest = new ImageSource({
+			ret = ImageSource::Make({
 				int(_surfaceSize[0]),int(_surfaceSize[1]),kColor_Type_RGBA_8888
 			}, _render);
 		}
-		dest->markAsTexture(_render);
-		_state->output = new GLC_State::Output{dest,isMipmap};
-		_cmdPack->outputImageBegin(dest, isMipmap);
-		return dest;
+		if (ret->markAsTexture(_render)) {
+			_state->output = new GLC_State::Output{dest,isMipmap};
+			_cmdPack->outputImageBegin(dest, isMipmap);
+			Qk_ReturnLocal(ret);
+		}
+		return nullptr;
 	}
 
 	// --------------------------------------------------------

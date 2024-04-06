@@ -39,11 +39,13 @@
 
 namespace qk {
 	class RenderBackend;
+	struct TexStat;
 
 	/**
 	 * @class ImageSource
 	 */
 	class Qk_EXPORT ImageSource: public Reference {
+		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_HIDDEN_ALL_COPY(ImageSource);
 	public:
 		enum State: int {
@@ -63,7 +65,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(String, uri, Const);
 		Qk_DEFINE_PROP_GET(State, state, Const);
 
-		// @constructor
 		// <FlowLayout>
 		// 	<Image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
 		// 	<Image src={new ImageSource('http://quarks.cc/res/test2.jpeg')} />
@@ -74,9 +75,9 @@ namespace qk {
 		// 		fill="#f00,rgba(0,0,0,1)" class="img1" style={{width:100, height: 100}}
 		// 	/>
 		// </FlowLayout>
-		ImageSource(cString& uri = String(), RunLoop *loop = current_loop());
-		ImageSource(Array<Pixel>&& pixels, RunLoop *loop = current_loop());
-		ImageSource(cPixelInfo &info, RenderBackend *render = nullptr, RunLoop *loop = current_loop());
+		static Sp<ImageSource> Make(cString& uri, RunLoop *loop = current_loop());
+		static Sp<ImageSource> Make(cPixelInfo &info, RenderBackend *render, RunLoop *loop = current_loop());
+		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderBackend *render, RunLoop *loop = current_loop());
 
 		/**
 		 * @destructor
@@ -92,13 +93,6 @@ namespace qk {
 		 * @method unload() delete load and decode ready
 		 */
 		void unload();
-
-		/**
-		 * @method reload()
-		 * 
-		 * @param pixels bitmap pixels
-		*/
-		void reload(Array<Pixel>&& pixels);
 
 		/**
 		 *
@@ -134,14 +128,17 @@ namespace qk {
 		inline int height() const { return _info.height(); }
 
 		/**
-		 * @method pixel() Returns pixel data and info
+		 * @method pixels() Returns pixel data and info
 		*/
-		inline const Array<Pixel>& pixels() const { return _pixels; }
+		inline cArray<Pixel>& pixels() const { return _pixels; }
 
 		/**
-		 * @method texture() get the first image texture
+		 * @method texture_RT(index) get  image texture with index
+		 * @thread render
 		*/
-		inline const TexStat* texture() const { return _pixels.length() ? _pixels[0]._texture: 0; }
+		inline const TexStat* texture_RT(uint32_t index) const {
+			return index < _tex_RT.length() ? _tex_RT[index]: nullptr;
+		}
 
 		/**
 		 * @method isMipmap() Whether generate mipmap texture
@@ -158,18 +155,19 @@ namespace qk {
 		*/
 		inline uint32_t count() const { return _pixels.length(); }
 
-	protected:
-		void _SetTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap);
 	private:
+		ImageSource(RenderBackend *render, RunLoop *loop);
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);
+		void _ReloadTexture(Array<Pixel>& pixels);
+		Array<Pixel> _copyInfo(Array<Pixel>& src);
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
+		Array<const TexStat*> _tex_RT;
 		uint32_t     _loadId;
 		RenderBackend *_render; // weak ref, texture mark
 		RunLoop       *_loop;
 		bool          _isMipmap; // Whether generate mipmap texture
-		friend class ImageSourcePool;
 	};
 
 	/**

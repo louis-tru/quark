@@ -158,7 +158,6 @@ namespace qk {
 
 		src->markAsTexture(_render); // mark texure
 
-		//auto pix = src->pixels().val();
 		auto src_w = src->width(), src_h = src->height();
 		auto cli = box->_client_size;
 		auto dw = cli.x(), dh = cli.y();

@@ -173,10 +173,10 @@ namespace qk {
 	}
 
 	Vec2 Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize,
-			cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut)
+			cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render)
 	{
 		if (offset)
 			Qk_ASSERT(offset->length() > glyphs.length());
-		return onGetImage(glyphs, fontSize, offset, offsetScale, imgOut);
+		return onGetImage(glyphs, fontSize, offset, offsetScale, imgOut, render);
 	}
 }

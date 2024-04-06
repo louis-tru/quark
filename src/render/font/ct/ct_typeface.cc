@@ -658,7 +658,7 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) const 
 }
 
 Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
-	float fontSize, cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut)
+	float fontSize, cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render)
 {
 	if (!fRGBSpace) {
 		//It doesn't appear to matter what color space is specified.
@@ -759,7 +759,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 	Array<Pixel> pixs;
 	pixs.push(Pixel(PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), image));
 
-	*imgOut = new ImageSource(std::move(pixs));
+	*imgOut = ImageSource::Make(std::move(pixs), render);
 
 	//auto data = img_tga_encode(*imgOut);
 	//auto path = fs_documents("test.tga");

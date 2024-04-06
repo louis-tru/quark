@@ -36,8 +36,6 @@
 #include "../util/array.h"
 
 namespace qk {
-	struct        TexStat;
-	class         ImageSource;
 	class         PixelInfo;
 	class         Pixel;
 	typedef const Pixel cPixel;
@@ -131,8 +129,6 @@ namespace qk {
 	 */
 	class Qk_EXPORT Pixel: public PixelInfo {
 	public:
-		Qk_DEFINE_PROP_GET(const TexStat*, texture, Const); // gpu texture id
-
 		/**
 		 * @method pixel_bit_size()
 		*/
@@ -156,7 +152,6 @@ namespace qk {
 
 	private:
 		Buffer _body; // pixel data
-		friend class ImageSource;
 	};
 
 }

@@ -78,37 +78,33 @@ namespace qk {
 		}
 	}
 
-	Pixel::Pixel(): _texture(0), _body() {
-	}
+	Pixel::Pixel()
+	{}
 
 	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
-		, _texture(pixel._texture)
 		, _body(pixel._body.copy()) {
 	}
 
 	Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
-		, _texture(pixel._texture)
 		, _body(pixel._body) {
 	}
 
 	Pixel::Pixel(const PixelInfo& info, Buffer body): PixelInfo(info)
-		, _texture(0)
 		, _body(body) {
 	}
 
-	Pixel::Pixel(cPixelInfo& info): PixelInfo(info), _texture(0) {
+	Pixel::Pixel(cPixelInfo& info): PixelInfo(info)
+	{
 	}
 
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
-		_texture = pixel._texture;
 		_body = pixel._body.copy();
 		return *this;
 	}
 
 	Pixel& Pixel::operator=(Pixel&& pixel) {
 		PixelInfo::operator=(pixel);
-		_texture = pixel._texture;
 		_body = pixel._body;
 		return *this;
 	}

@@ -39,6 +39,7 @@
 #include "../source.h"
 
 namespace qk {
+	class RenderBackend;
 
 	class Qk_EXPORT Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);
@@ -69,7 +70,8 @@ namespace qk {
 		* @param offsetScale {float} offset scale
 		*/
 		Vec2  getImage(const Array<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut);
+			float fontSize, cArray<Vec2> *offset,
+			float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render = nullptr);
 	protected:
 		Typeface(FontStyle fs);
 		void setFontStyle(FontStyle style) { _fontStyle = style; }
@@ -84,7 +86,8 @@ namespace qk {
 		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
 		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut) = 0;
+			float fontSize, cArray<Vec2> *offset,
+			float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render) = 0;
 	private:
 		FontMetrics  _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphs;

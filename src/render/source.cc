@@ -37,54 +37,68 @@ namespace qk {
 
 	// -------------------- I m a g e . S o u r c e --------------------
 
-	ImageSource::ImageSource(cString& uri, RunLoop *loop): Qk_Init_Event(State)
+	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
+	public:
+		void setTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap);
+	};
+
+	void setTex_SourceImage_RT(ImageSource* img, cPixelInfo &i, const TexStat *tex, bool isMipmap) {
+		static_cast<ImageSource::Inl*>(img)->setTex_RT(i, tex, isMipmap);
+	}
+
+	ImageSource::ImageSource(RenderBackend *render, RunLoop *loop): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _render(nullptr), _loop(loop), _isMipmap(true)
+		, _loadId(0), _render(render), _loop(loop), _isMipmap(true)
 	{
+	}
+
+	Sp<ImageSource> ImageSource::Make(cString& uri, RunLoop *loop)
+	{
+		auto img = new ImageSource(nullptr, loop);
 		if (!uri.isEmpty())
-			_uri = fs_reader()->format(uri);
+			img->_uri = fs_reader()->format(uri);
+		return img;
 	}
 
-	ImageSource::ImageSource(Array<Pixel>&& pixels, RunLoop *loop): Qk_Init_Event(State)
-		, _state(kSTATE_NONE)
-		, _loadId(0), _render(nullptr), _loop(loop), _isMipmap(true)
+	Sp<ImageSource> ImageSource::Make(cPixelInfo &info, RenderBackend *render, RunLoop *loop) {
+		auto img = new ImageSource(render, loop);
+		img->_info = info;
+		return img;
+	}
+
+	Sp<ImageSource> ImageSource::Make(Array<Pixel>&& pixels, RenderBackend *render, RunLoop *loop)
 	{
+		Sp<ImageSource> img = new ImageSource(render, loop);
 		if (pixels.length()) {
-			_state = kSTATE_LOAD_COMPLETE;
-			_info = pixels[0];
-			_pixels = std::move(pixels);
+			img->_state = kSTATE_LOAD_COMPLETE;
+			img->_info = pixels[0];
+			if (render) {
+				img->_pixels = img->_copyInfo(pixels);
+				img->_ReloadTexture(pixels);
+			} else {
+				img->_pixels = std::move(pixels);
+			}
 		}
-	}
-
-	ImageSource::ImageSource(cPixelInfo &info, RenderBackend *render, RunLoop *loop): Qk_Init_Event(State)
-		, _state(kSTATE_NONE)
-		, _info(info)
-		, _loadId(0), _render(render), _loop(loop), _isMipmap(true) {
+		Qk_ReturnLocal(img);
 	}
 
 	ImageSource::~ImageSource() {
 		_Unload(true);
 	}
 
-	/**
-		* 
-		* mark as gpu texture
-		*
-	 * @method markAsTexture()
-	 */
 	bool ImageSource::markAsTexture(RenderBackend *render) {
+		if (!render) return false;
 		if (_render)
-			return true;
-		if (!render)
-			return false;
+			return _render == render;
 		_render = render;
-		reload(std::move(_pixels));
+		if (_pixels.length() && _pixels.front().body().length()) {
+			Array<Pixel> pixels(std::move(_pixels));
+			_pixels = _copyInfo(pixels);
+			_ReloadTexture(pixels);
+		}
 		return true;
 	}
 
-	/**
-	 * @method load() async load source and decode
-	 */
 	bool ImageSource::load() {
 		if (_state & kSTATE_LOAD_COMPLETE)
 			return true;
@@ -130,14 +144,13 @@ namespace qk {
 		}), Cb([this, ctx](auto& e) {
 			if (_state & kSTATE_LOADING) {
 				if (ctx->isComplete) { // decode image complete
-					auto state = State((_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
+					_state = State((_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
+					_info = ctx->pixels[0];
 					if (_render) {
-						_state = state;
-						reload(std::move(ctx->pixels));
+						_pixels = _copyInfo(ctx->pixels);
+						_ReloadTexture(ctx->pixels);
 					} else {
-						_info = ctx->pixels[0];
 						_pixels = std::move(ctx->pixels);
-						_state = state;
 					}
 				} else { // decode fail
 					_state = State((_state | kSTATE_DECODE_ERROR)  & ~kSTATE_LOADING);
@@ -148,9 +161,38 @@ namespace qk {
 		}, this));
 	}
 
-	/**
-	 * @method unload() delete load and ready
-	 */
+	void ImageSource::_ReloadTexture(Array<Pixel>& pixels) {
+		// set gpu texture, Must be processed in the rendering thread
+		auto ptr = new Array<Pixel>(std::move(pixels));
+		_render->post_message(Cb([this,ptr](auto& data) {
+			Sp<Array<Pixel>> hold(ptr);
+			int i = 0;
+			int len = ptr->length(), old_len = _tex_RT.length();
+			Array<const TexStat*> texStat(len);
+
+			while (i < len) {
+				auto tex = const_cast<TexStat *>(i < old_len ? _tex_RT[i]: nullptr);
+				_render->makeTexture(ptr->val() + i, tex, true);
+				texStat[i++] = tex;
+			}
+
+			while(i < old_len) {
+				if (_tex_RT[i])
+					_render->deleteTexture(const_cast<TexStat *>(_tex_RT[i]));
+				i++;
+			}
+			_tex_RT = std::move(texStat);
+		}, this));
+	}
+
+	Array<Pixel> ImageSource::_copyInfo(Array<Pixel>& src) {
+		Array<Pixel> dest;
+		for (auto &pixel: src) {
+			dest.push(PixelInfo(pixel));
+		}
+		Qk_ReturnLocal(dest);
+	}
+
 	void ImageSource::unload() {
 		_loop->post(Cb([this](auto &e) {
 			_Unload(false);
@@ -158,101 +200,39 @@ namespace qk {
 		}, this));
 	}
 
-	void ImageSource::_Unload(bool destroy) {
+	void ImageSource::_Unload(bool isDestroy) {
 		_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE) );
+		_pixels.clear();
 
 		if (_loadId) {
 			fs_reader()->abort(_loadId); // cancel load and ready
 			_loadId = 0;
 		}
+
 		if (_render) { // as texture, Must be processed in the rendering thread
 			auto render = _render;
-			if (destroy) {
-				auto pix = new Array<Pixel>(std::move(_pixels));
-				render->post_message(Cb([render,pix](auto& data) {
-					for (auto &i: *pix)
-						if (i._texture) render->deleteTexture(const_cast<TexStat *>(i._texture));
-					Release(pix);
-				}));
-			} else {
-				render->post_message(Cb([render,this](auto& data) { 
-					for (auto &i: _pixels)
-						if (i._texture) render->deleteTexture(const_cast<TexStat *>(i._texture));
-					_pixels.clear();
-				}, this));
-			}
-		} else {
-			_pixels.clear();
+			auto tex = isDestroy ? new Array<const TexStat*>(std::move(_tex_RT)): &_tex_RT;
+			render->post_message(Cb([isDestroy,render,tex](auto& data) {
+				for (auto i: *tex) {
+					if (i)
+						render->deleteTexture(const_cast<TexStat *>(i));
+				}
+				isDestroy ? Release(tex): tex->clear();
+			}, isDestroy ? nullptr: this));
 		}
 	}
 
-	void ImageSource::reload(Array<Pixel>&& pixels_) {
-		if (!pixels_.length() || _state & kSTATE_LOADING)
-			return;
-
-		_state = kSTATE_LOAD_COMPLETE;
-		_info = pixels_[0]; // TODO Is it thread safe ?
-
-		auto pixels = new Array<Pixel>(std::move(pixels_));
-
-		if (!_render) {
-			// Must be changed by the same thread
-			_loop->post(Cb([this,pixels](auto& e){
-				Sp<Array<Pixel>> hold(pixels);
-				_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
-				_info = pixels->at(0);
-				_pixels = std::move(*pixels);
-			}, this));
-			return;
-		}
-
-		// set gpu texture, Must be processed in the rendering thread
-		_render->post_message(Cb([this,pixels](auto& data) {
-			Sp<Array<Pixel>> hold(pixels);
-			int i = 0;
-			int old_len = _pixels.length();
-
-			for (int len = pixels->length(); i < len; i++) {
-				auto pix = pixels->val() + i;
-				auto tex = const_cast<TexStat *>(i < old_len ? _pixels[i]._texture: nullptr);
-				_render->makeTexture(pix, tex, true);
-				pix->_body.clear(); // clear memory pixel data
-				pix->_texture = tex; // set tex
-			}
-
-			while(i < old_len) {
-				if (_pixels[i]._texture)
-					_render->deleteTexture(const_cast<TexStat *>(_pixels[i]._texture));
-				i++;
-			}
-
-			_state = kSTATE_LOAD_COMPLETE; // Reset to ensure it is valid
-			_info = pixels->at(0);
-			_pixels = std::move(*pixels);
-		}, this));
-	}
-
-	class ImageSourceInl: public ImageSource {
-	public:
-		friend void setTex_SourceImage_RT(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap);
-	};
-
-	void setTex_SourceImage_RT(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap) {
-		static_cast<ImageSourceInl*>(s)->_SetTex_RT(i, tex, isMipmap);
-	}
-
-	void ImageSource::_SetTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap) {
-		if (_pixels.length()) {
-			auto oldTex = _pixels[0]._texture;
+	void ImageSource::Inl::setTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap) {
+		if (_tex_RT.length()) { // replace old texture
+			auto oldTex = _tex_RT[0];
 			if (oldTex && oldTex != tex)
-				_render->deleteTexture(const_cast<TexStat *>(_pixels.val()->_texture));
-			_pixels[0] = info;
+				_render->deleteTexture(const_cast<TexStat *>(oldTex));
+			_tex_RT[0] = tex;
 		} else {
-			_pixels.push(info);
+			_tex_RT.push(tex);
 		}
 		_state = kSTATE_LOAD_COMPLETE;
 		_info = info;
-		_pixels[0]._texture = tex;
 		_isMipmap = isMipmap;
 	}
 
@@ -296,13 +276,13 @@ namespace qk {
 		if ( it != _sources.end() ) {
 			return it->value.source.value();
 		}
-		ImageSource* source = new ImageSource(_uri, _loop);
+		auto source = ImageSource::Make(_uri, _loop);
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
 		auto info = source->info();
 		_sources.set(id, { source, info.bytes(), 0 });
 		_capacity += info.bytes();
 
-		return source;
+		return *source;
 	}
 
 	ImageSource* ImageSourcePool::load(cString& uri) {
@@ -360,7 +340,7 @@ namespace qk {
 
 	void ImageSourceHolder::set_src(String value) {
 		auto pool = imgPool();
-		set_source(pool ? pool->get(value): new ImageSource(value));
+		set_source(pool ? pool->get(value): *ImageSource::Make(value));
 	}
 
 	ImagePool* ImageSourceHolder::imgPool() {
@@ -375,7 +355,7 @@ namespace qk {
 			if (source) {
 				source->Qk_On(State, &ImageSourceHolder::handleSourceState, this);
 			}
-			_imageSource = Handle<ImageSource>(source);
+			_imageSource = source;
 		}
 	}
 
