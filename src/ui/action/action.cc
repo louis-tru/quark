@@ -60,11 +60,6 @@ namespace qk {
 				// To ensure safety and efficiency, it should be destroyed in RT (render thread)
 				self->Object::release();
 			}, this, 0);
-			
-//			_window->preRender().async_call1([](auto self, auto arg) {
-				// To ensure safety and efficiency, it should be destroyed in RT (render thread)
-				// self->Object::release();
-//			}, this, 0);
 		}
 	}
 
