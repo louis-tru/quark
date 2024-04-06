@@ -105,7 +105,7 @@ namespace qk {
 		if (_state & (kSTATE_LOADING | kSTATE_LOAD_ERROR | kSTATE_DECODE_ERROR))
 			return false;
 
-		if (_uri.isEmpty()) // empty uri
+		if (!_loop || _uri.isEmpty()) // empty uri or loop null
 			return false;
 
 		_loop->post(Cb([this](auto &e) {
@@ -194,10 +194,12 @@ namespace qk {
 	}
 
 	void ImageSource::unload() {
-		_loop->post(Cb([this](auto &e) {
-			_Unload(false);
-			Qk_Trigger(State, _state);
-		}, this));
+		if (_loop) {
+			_loop->post(Cb([this](auto &e) {
+				_Unload(false);
+				Qk_Trigger(State, _state);
+			}, this));
+		}
 	}
 
 	void ImageSource::_Unload(bool isDestroy) {
