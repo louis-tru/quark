@@ -139,12 +139,14 @@ namespace qk {
 		};
 
 		struct ImageCmd: DrawCmd { //!
+			float          fullScale;
 			float          alpha;
 			ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 			~ImageCmd();
 		};
 
 		struct ImageMaskCmd: DrawCmd { //!
+			float          fullScale;
 			Color4f        color;
 			ImagePaint     paint;
 			~ImageMaskCmd();

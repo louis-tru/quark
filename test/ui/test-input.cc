@@ -34,7 +34,7 @@ void test_input(int argc, char **argv) {
 	// input->set_padding_right(5);
 	input->set_text_line_height({30});
 	//input->set_text_background_color({{255,128,0}});
-	input->set_text_shadow({{1,1,1,{0,0,0}}});
+	//input->set_text_shadow({{1,1,1,{0,0,0}}});
 
 	app.run();
 }

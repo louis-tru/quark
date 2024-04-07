@@ -230,15 +230,14 @@ namespace qk {
 			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
 			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
 
-			// fix draw image tearing
-			dst_start *= _fullScale;
-			dst_start = dst_start.round() / _fullScale;
-
-			//Qk_DEBUG("dst_start %f %f", dst_start.x(), dst_start.y());
+			//auto a = _state->matrix * dst_start;
+			//auto b = _state->matrix * (dst_start + dst_size);
+			//Qk_DEBUG("drawTextImage, %f %f, %f %f", a.x(), a.y(), b.x(), b.y());
 
 			Rect rect{dst_start, dst_size};
 
 			p.setImage(textImg, rect);
+			p.filterMode = ImagePaint::kLinear_FilterMode;
 
 			Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &rect);
 

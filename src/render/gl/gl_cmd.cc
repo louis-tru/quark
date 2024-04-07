@@ -241,13 +241,13 @@ namespace qk {
 						}
 						case kImage_CmdType: {
 							auto c = (ImageCmd*)cmd;
-							drawImageCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+							drawImageCall(c->vertex, &c->paint, c->fullScale, c->alpha, c->aafuzz, c->aaclip, c->depth);
 							c->~ImageCmd();
 							break;
 						}
 						case kImageMask_CmdType: {
 							auto c = (ImageMaskCmd*)cmd;
-							drawImageMaskCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
+							drawImageMaskCall(c->vertex, &c->paint, c->fullScale, c->color, c->aafuzz, c->aaclip, c->depth);
 							c->~ImageMaskCmd();
 							break;
 						}
@@ -436,7 +436,7 @@ namespace qk {
 		}
 
 		void drawImageCall(const VertexData &vertex,
-			const ImagePaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
+			const ImagePaint *paint, float fullScale, float alpha, bool aafuzz, bool aaclip, float depth
 		) {
 			if (setTextureSlot0(paint)) { // rgb or y
 				GLSLImage *s;
@@ -464,6 +464,7 @@ namespace qk {
 					useShaderProgram(s, vertex);
 				}
 				glUniform1f(s->depth, depth);
+				glUniform1f(s->fullScale, fullScale);
 				glUniform1f(s->alpha, alpha);
 				glUniform4fv(s->coord, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -471,7 +472,7 @@ namespace qk {
 		}
 
 		void drawImageMaskCall(const VertexData &vertex,
-			const ImagePaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
+			const ImagePaint *paint, float fullScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
 			if (setTextureSlot0(paint)) {
 				auto s = aafuzz ? 
@@ -479,6 +480,7 @@ namespace qk {
 					aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
 				useShaderProgram(s, vertex);
 				glUniform1f(s->depth, depth);
+				glUniform1f(s->fullScale, fullScale);
 				glUniform4fv(s->color, 1, color.val);
 				glUniform4fv(s->coord, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -1089,6 +1091,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
+		cmd->fullScale = _canvas->_fullScale;
 		cmd->alpha = alpha;
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1103,6 +1106,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
+		cmd->fullScale = _canvas->_fullScale;
 		cmd->color = color;
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
