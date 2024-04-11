@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text_opts.h"
+#include "../window.h"
 #include "../view/view.h"
 #include "../../render/font/pool.h"
 
@@ -48,7 +49,6 @@ namespace qk {
 		, _text_shadow{ .kind=TextValueKind::kInherit }
 		, _text_line_height{ .kind=TextValueKind::kInherit }
 		, _text_family{ .value=nullptr, .kind=TextValueKind::kInherit }
-		, _text_family_Rt{ .kind=TextValueKind::kInherit }
 		, _text_flags(0xffffffffu)
 	{
 	}
@@ -62,23 +62,12 @@ namespace qk {
 	}
 
 	void TextOptions::onTextChange_async(uint32_t mark, uint32_t type) {
-		if (type == 12) {
-			struct Data { uint32_t mark; TextFamily textFamily; };
-			getViewForTextOptions()->preRender().async_call([](auto self, auto arg) {
-				self->_text_flags |= (1 << 12);
-				self->_text_family_Rt = arg.arg->textFamily;
-				auto view = self->getViewForTextOptions();
-				arg.arg->mark ? view->mark_layout(arg.arg->mark): view->mark();
-				delete arg.arg;
-			}, this, new Data{mark,_text_family});
-		} else {
-			struct Data { uint32_t mark, type; };
-			getViewForTextOptions()->preRender().async_call([](auto self, auto arg) {
-				self->_text_flags |= (1 << arg.arg.type);
-				auto view = self->getViewForTextOptions();
-				arg.arg.mark ? view->mark_layout(arg.arg.mark): view->mark();
-			}, this, Data{mark,type});
-		}
+		struct Data { uint32_t mark, type; };
+		getViewForTextOptions()->preRender().async_call([](auto self, auto arg) {
+			self->_text_flags |= (1 << arg.arg.type);
+			auto view = self->getViewForTextOptions();
+			arg.arg.mark ? view->mark_layout(arg.arg.mark): view->mark();
+		}, this, Data{mark,type});
 	}
 
 	void TextOptions::set_text_align(TextAlign value) {
@@ -169,6 +158,13 @@ namespace qk {
 
 	void TextOptions::set_text_family(TextFamily value) {
 		if (value != _text_family) {
+			if (!value.value) {
+				auto v = getViewForTextOptions();
+				if (v) {
+					value.value = v->window()->fontPool()->defaultFFID();
+				}
+			}
+			// After alignment, `_text_family.value` pointers can be read and written atomically
 			_text_family = value;
 			onTextChange(View::kLayout_Typesetting, 12);
 		}
@@ -198,7 +194,6 @@ namespace qk {
 		if (_opts->_text_flags || _base->_opts->_text_flags) {
 			_opts->_text_flags |= _base->_opts->_text_flags;
 			auto _base_opts = _base->_opts;
-			auto fontPool = _base_opts->_text_family_Rt.value->pool();
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 1);
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 2);
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 3);
@@ -210,7 +205,7 @@ namespace qk {
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 9, Color(0, 0, 0));
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 10, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 11, 0);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family_Rt, 12, (fontPool->defaultFFID()));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->defaultFFID()));
 		}
 	}
 
@@ -282,7 +277,6 @@ namespace qk {
 				break;
 			case 12:
 				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->defaultFFID()));
-				_text_family_Rt = _text_family;
 				break;
 		}
 		_text_flags = 0; // clear flags

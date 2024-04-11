@@ -39,7 +39,7 @@
 namespace qk {
 
 	View::View()
-		: _cssclass_Mt(nullptr), _cssclass_Rt(nullptr)
+		: _cssclass(nullptr)
 		, _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
@@ -64,16 +64,15 @@ namespace qk {
 		// The object maintained by the parent view should not be deconstructed,
 		// where the parent must be empty
 		Qk_ASSERT(_parent == nullptr);
-		_cssclass_Mt = nullptr;
+		// _cssclass_Mt = nullptr;
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
 
 		preRender().async_call([](auto self, auto arg) {
 			// To ensure safety and efficiency, it should be destroyed in RT (render thread)
-			delete self->_cssclass_Rt;
-			self->_cssclass_Rt = nullptr;
-			self->~View();
-			objectFree(self); // free heap memory
+			delete self->_cssclass;
+			self->_cssclass = nullptr;
+			self->Object::destroy();
 		}, this, 0);
 	}
 
@@ -117,11 +116,22 @@ namespace qk {
 	}
 
 	CStyleSheetsClass* View::cssclass() {
-		if (!_cssclass_Mt) {
-			_cssclass_Mt = new CStyleSheetsClass(this);
-			preRender().async_call([](auto self, auto arg) { self->_cssclass_Rt = arg.arg; }, this, _cssclass_Mt);
+		if (!_cssclass) {
+			// After alignment, pointers can be read and written atomically
+			_cssclass = new CStyleSheetsClass(this);
 		}
-		return _cssclass_Mt;
+		return _cssclass;
+	}
+
+	Transform* View::transform() {
+		auto *v = this;
+		do {
+			auto t = v->asTransform();
+			if (t)
+				return t;
+			v = v->_parent;
+		} while(v);
+		return nullptr;
 	}
 
 	void View::solve_marks(const Mat &mat, uint32_t mark) {
@@ -272,17 +282,6 @@ namespace qk {
 
 	bool View::is_clip() {
 		return false;
-	}
-
-	Transform* View::transform() {
-		auto *v = this;
-		do {
-			auto t = v->asTransform();
-			if (t)
-				return t;
-			v = v->_parent;
-		} while(v);
-		return nullptr;
 	}
 
 	ViewType View::viewType() const {
@@ -606,8 +605,8 @@ namespace qk {
 		}
 		if (visible) {
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // reset view size
-			if (_cssclass_Rt) {
-				_cssclass_Rt->updateClass_Rt();
+			if (_cssclass) {
+				_cssclass->updateClass_Rt();
 			}
 		}
 	}
@@ -675,8 +674,8 @@ namespace qk {
 			_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height); // mark view size, reset view size
 
-			if (_cssclass_Rt) {
-				_cssclass_Rt->updateClass_Rt();
+			if (_cssclass) {
+				_cssclass->updateClass_Rt();
 			}
 
 			onActivate();
@@ -684,12 +683,12 @@ namespace qk {
 	}
 
 	void View::applyClass_Rt(CStyleSheetsClass *ssc) {
-		if (_cssclass_Rt->apply_Rt(ssc)) { // Impact sub view
-			if (_cssclass_Rt->haveSubstyles())
-				ssc = _cssclass_Rt;
+		if (_cssclass->apply_Rt(ssc)) { // Impact sub view
+			if (_cssclass->haveSubstyles())
+				ssc = _cssclass;
 			auto l = _first_Rt;
 			while (l) {
-				if (l->_visible && l->_cssclass_Rt) {
+				if (l->_visible && l->_cssclass) {
 					l->applyClass_Rt(ssc);
 				}
 				l = l->_next_Rt;
@@ -701,7 +700,7 @@ namespace qk {
 	CStyleSheetsClass* View::parentSsclass_Rt() {
 		auto view = _parent_Rt;
 		while (view) {
-			auto ss = view->_cssclass_Rt;
+			auto ss = view->_cssclass;
 			if (ss && ss->haveSubstyles()) {
 				return ss;
 			}

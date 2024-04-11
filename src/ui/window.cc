@@ -99,6 +99,10 @@ namespace qk {
 		_root->focus();  // set focus
 	}
 
+	FontPool* Window::fontPool() {
+		return _host->fontPool();
+	}
+
 	Window* Window::Make(Options opts) {
 		return new Window(opts);
 	}

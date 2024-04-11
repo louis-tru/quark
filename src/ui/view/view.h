@@ -60,7 +60,7 @@ namespace qk {
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
 		Qk_HIDDEN_ALL_COPY(View);
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
-		CStyleSheetsClass *_cssclass_Mt, *_cssclass_Rt;
+		CStyleSheetsClass *_cssclass;
 	public:
 
 		// Layout mark key values
@@ -139,6 +139,11 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
 
 		/**
+		 * @prop transform
+		*/
+		Qk_DEFINE_PROP_ACC_GET(Transform*, transform);
+
+		/**
 		* @prop mark_value
 		* @safe Rt
 		* @note Can only be used in rendering threads
@@ -213,11 +218,6 @@ namespace qk {
 		 * keyboard focus view
 		*/
 		Qk_DEFINE_PROP_ACC(bool, is_focus, Const);
-
-		/**
-		 * @prop transform()
-		*/
-		Qk_DEFINE_PROP_ACC_GET(Transform*, transform);
 
 		/**
 		 * @method Make(...)
@@ -642,8 +642,8 @@ namespace qk {
 		PreRender& preRender();
 
 	protected:
-		View(); // @constructor
 		virtual View* init(Window* win);
+		View(); // @constructor
 	private:
 		void set_parent(View *parent); // setting parent view
 		void clear_link(); // Cleaning up associated view information

@@ -263,7 +263,7 @@ namespace qk {
 				_index_of_unichar++; // add index \n
 			}
 
-			auto fg_arr = _opts->text_family_Rt().value->
+			auto fg_arr = _opts->text_family().value->
 				makeFontGlyphs(lines[i], _opts->font_style(), _opts->text_size().value);
 			auto unichar = *lines[i];
 
@@ -442,7 +442,7 @@ namespace qk {
 				} else { // ELLIPSIS or ELLIPSIS_CENTER
 
 					Array<Unichar> uinchar({46,46,46});
-					auto& ellipsis = _opts->text_family_Rt().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
+					auto& ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
 					auto ellipsis_offset = ellipsis.getHorizontalOffset();
 					auto ellipsis_width = ellipsis_offset.back();
 					auto limit2 = limitX - ellipsis_width.x();

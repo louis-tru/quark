@@ -64,7 +64,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextWhiteSpace, text_white_space_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextWordBreak, text_word_break_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const); // @safe Rt
-		Qk_DEFINE_PROP_GET(TextFamily, text_family_Rt, Const); // @safe Rt
 
 	protected:
 		/**

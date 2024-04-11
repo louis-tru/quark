@@ -697,7 +697,7 @@ namespace qk {
 		FontMetricsBase metrics;
 
 		_lines->set_stable_line_height(text_size().value, text_line_height().value);
-		_cursor_height = text_family_Rt().value->match(font_style())->getMetrics(&metrics, text_size().value);
+		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
 
 		_cursor_ascent = -metrics.fAscent;
 		_marked_blob_begin = _marked_blob_end = 0;

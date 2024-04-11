@@ -113,7 +113,7 @@ namespace qk {
 
 		/**
 		 * Directly assigning values without increasing the number of references
-		 * @method unsafe() 
+		 * @method unsafe()
 		 */
 		void unsafe(T* data) {
 			release();

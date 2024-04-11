@@ -93,8 +93,13 @@ namespace qk {
 		return false;
 	}
 
+	static View* safe_view(View *view) {
+		//return dynamic_cast<View*>(view);
+		return view;
+	}
+
 	static void async_mark(BoxFilter *self) {
-		auto view = dynamic_cast<View*>(self->view()); // safe get
+		auto view = safe_view(self->view()); // safe get
 		if (view) {
 			view->preRender().async_call([](auto ctx, auto arg) {
 				arg.arg->mark();
@@ -106,6 +111,11 @@ namespace qk {
 		auto view = self->view();
 		if (view)
 			view->mark();
+	}
+
+	BoxFilter* BoxFilter::safe_filter(BoxFilter *filter) {
+		//return filter && filter->_safe_mark == 0xff00ffaa ? filter: nullptr;
+		return filter;
 	}
 
 	BoxFilter::BoxFilter()
@@ -153,10 +163,6 @@ namespace qk {
 		return left;
 	}
 
-	BoxFilter* BoxFilter::safe_filter(BoxFilter *filter) {
-		return filter && filter->_safe_mark == 0xff00ffaa ? filter: nullptr;
-	}
-
 	void BoxFilter::set_next_Rt(BoxFilter *next) {
 		_next = assign_Rt(_next, next, _view);
 	}
@@ -166,7 +172,7 @@ namespace qk {
 	}
 
 	void BoxFilter::set_next(BoxFilter *next) {
-		auto view = dynamic_cast<View*>(_view); // safe get
+		auto view = safe_view(_view); // safe get
 		if (view) {
 			if (next && next->_view) {
 				if (next->_view != view) // disable
@@ -318,7 +324,7 @@ namespace qk {
 	}
 
 	void FillImage::set_source(ImageSource* source) {
-		auto h = dynamic_cast<View*>(view()); // safe get
+		auto h = safe_view(view()); // safe get
 		if (h) {
 			h->window()->preRender().async_call([](auto ctx, auto arg) {
 				ctx->ImageSourceHolder::set_source(arg.arg);

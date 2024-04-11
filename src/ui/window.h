@@ -49,6 +49,7 @@ namespace qk {
 	class Window;
 	class RootStyleSheets;
 	class ActionCenter;
+	class FontPool;
 
 	/**
 	 * Note: If `main loop` and `render loop` run in different threads,
@@ -117,6 +118,7 @@ namespace qk {
 		Qk_DEFINE_PROP(Color, backgroundColor, Const); //! background color
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
+		Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
 
 		/**
 		 * @static

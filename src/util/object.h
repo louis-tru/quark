@@ -73,10 +73,6 @@ namespace qk {
 			void* (*alloc)(size_t size), void (*free)(void *ptr),
 			void (*strong)(Object* obj), void (*weak)(Object* obj)
 		);
-		static void* objectAlloc(size_t size);
-		static void objectFree(void *ptr);
-		static void objectStrong(Object* obj);
-		static void objectWeak(Object* obj);
 		typedef void* __has_object_type;
 #if Qk_MEMORY_TRACE_MARK
 		Object();

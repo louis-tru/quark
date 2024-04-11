@@ -110,22 +110,6 @@ namespace qk {
 		};
 	}
 
-	void* Object::objectAlloc(size_t size) {
-		return object_allocator.alloc(size);
-	}
-
-	void Object::objectFree(void *ptr) {
-		object_allocator.free(ptr);
-	}
-
-	void Object::objectStrong(Object* obj) {
-		object_allocator.strong(obj);
-	}
-
-	void Object::objectWeak(Object* obj) {
-		object_allocator.weak(obj);
-	}
-
 	// ---------------- O b j e c t ----------------
 
 #if Qk_MEMORY_TRACE_MARK

@@ -90,7 +90,7 @@ namespace qk {
 		if (_is_stable_line_height) {
 			set_line_height(&_stable_line_height_Metrics, _stable_line_height);
 		} else if (opts) {
-			auto tf = opts->text_family_Rt().value->match(opts->font_style());
+			auto tf = opts->text_family().value->match(opts->font_style());
 			FontMetricsBase metrics;
 			tf->getMetrics(&metrics, opts->text_size().value);
 			set_line_height(&metrics, opts->text_line_height().value);
@@ -259,7 +259,7 @@ namespace qk {
 		auto _opts = builder->opts();
 		auto _blob = builder->blobOut();
 		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
-			auto tf = _opts->text_family_Rt().value->match(_opts->font_style(), 0);
+			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
 			FontMetricsBase metrics;
 			auto height = tf->getMetrics(&metrics, _opts->text_size().value);
 			auto ascent = -metrics.fAscent;
