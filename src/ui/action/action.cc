@@ -58,6 +58,7 @@ namespace qk {
 		_async_call([](auto self, auto arg) {
 			// To ensure safety and efficiency, it should be destroyed in RT (render thread)
 			self->Object::destroy();
+			objectFree(self); // free heap memory
 		}, this, 0);
 	}
 

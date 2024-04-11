@@ -59,7 +59,6 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length, Const);
 
 		Input();
-
 		virtual bool is_multiline();
 		// @override
 		virtual bool can_become_focus() override;
@@ -89,8 +88,10 @@ namespace qk {
 		Vec2 layout_typesetting_input_text();
 		void solve_cursor_offset();
 		virtual void onTextChange(uint32_t mark, uint32_t type) override;
+		virtual View* getViewForTextOptions() override;
 		virtual Vec2 input_text_offset();
 		virtual void set_input_text_offset(Vec2 val);
+		virtual View* init(Window *win) override;
 	private:
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;

@@ -106,6 +106,12 @@ namespace qk {
 			_asyncCall.push({*(AsyncCall::Arg*)&arg,ctx,(void*)static_cast<Exec>(exec)});
 		}
 
+		/**
+		 * post message to application loop
+		 * @method post()
+		*/
+		void post(Cb cb);
+
 	private:
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated

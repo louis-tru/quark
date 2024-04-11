@@ -73,12 +73,15 @@ namespace qk {
 			delete self->_cssclass_Rt;
 			self->_cssclass_Rt = nullptr;
 			self->~View();
+			objectFree(self); // free heap memory
 		}, this, 0);
 	}
 
 	Sp<View> View::safe_view() {
 		if (++_refCount >= 2) {
-			return *reinterpret_cast<Sp<View>*>(this);
+			Sp<View> rt;
+			rt.unsafe(this);
+			Qk_ReturnLocal(rt);
 		} else {
 			_refCount--; // Revoke self increase
 			return nullptr;
@@ -450,7 +453,7 @@ namespace qk {
 	// @private
 	// --------------------------------------------------------------------------------------
 
-	View* View::set_window(Window* win) {
+	View* View::init(Window* win) {
 		Qk_ASSERT(win);
 		_window = win;
 		_accessor = prop_accessor_at_view(viewType(), kOPACITY_ViewProp);

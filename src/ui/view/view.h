@@ -96,6 +96,8 @@ namespace qk {
 
 		/**
 		 * @prop style sheets class object
+		 * @safe Mt
+		 * @note Can only be used in main threads
 		*/
 		Qk_DEFINE_PROP_ACC_GET(CStyleSheetsClass*, cssclass);
 
@@ -113,7 +115,7 @@ namespace qk {
 		/**
 		 * @prop parent_Rt view
 		 * @safe Rt
-			* @note Can only be used in rendering threads
+		 * @note Can only be used in rendering threads
 		*/
 		Qk_DEFINE_PROP_GET(View*, parent_Rt); // @safe Rt
 		Qk_DEFINE_PROP_GET(View*, prev_Rt); // @safe Rt
@@ -156,7 +158,7 @@ namespace qk {
 		* 
 		* @prop mark_index
 		* @safe Rt
-			* @note Can only be used in rendering threads
+		* @note Can only be used in rendering threads
 		*/
 		Qk_DEFINE_PROP_GET(int32_t, mark_index, Const);
 
@@ -222,7 +224,7 @@ namespace qk {
 		*/
 		template<class T = View, typename... Args>
 		inline T* Make(Args... args) {
-			return static_cast<T*>((new T(args...))->set_window(_window));
+			return static_cast<T*>(static_cast<View*>(new T(args...))->init(_window));
 		}
 
 		template<class T = View, typename... Args>
@@ -237,21 +239,16 @@ namespace qk {
 
 		template<class Return = View>
 		inline Return* prepend_to(View* parent) {
-			parent->prepend(this); return static_cast<Return*>(this);
+			return parent->prepend(this), static_cast<Return*>(this);
 		}
 
 		template<class Return = View>
 		inline Return* append_to(View* parent) {
-			parent->append(this); return static_cast<Return*>(this);
+			return parent->append(this), static_cast<Return*>(this);
 		}
 
 		/**
-		 * @constructor
-		*/
-		View();
-
-		/**
-		 * @method destroy()
+		 * @method destroy() heap memory destructor
 		 */
 		void destroy() override;
 
@@ -599,7 +596,8 @@ namespace qk {
 
 		/**
 		 * @method draw()
-		 * @safe RT
+		 * @safe Rt
+		 * @note Can only be used in rendering threads
 		 */
 		virtual void draw(UIRender *render);
 
@@ -643,8 +641,10 @@ namespace qk {
 		*/
 		PreRender& preRender();
 
+	protected:
+		View(); // @constructor
+		virtual View* init(Window* win);
 	private:
-		View* set_window(Window* win);
 		void set_parent(View *parent); // setting parent view
 		void clear_link(); // Cleaning up associated view information
 		void before_Rt(View *view);

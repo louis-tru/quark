@@ -89,19 +89,41 @@ namespace qk {
 		obj->destroy(); // The default weak will be directly destroyed
 	}
 
-	static void* (*object_allocator_alloc)(size_t size) = &default_object_alloc;
-	static void  (*object_allocator_free)(void *ptr) = &default_object_free;
-	static void  (*object_allocator_strong)(Object* obj) = &default_object_strong;
-	static void  (*object_allocator_weak)(Object* obj) = &default_object_weak;
+	struct ObjectAllocator {
+		void* (*alloc)(size_t size);
+		void  (*free)(void *ptr);
+		void  (*strong)(Object* obj);
+		void  (*weak)(Object* obj);
+	} object_allocator = {
+		&default_object_alloc, &default_object_free, &default_object_strong, &default_object_weak
+	};
 
 	void Object::setAllocator(
 		void* (*alloc)(size_t size), void (*free)(void *ptr),
 		void (*strong)(Object* obj), void (*weak)(Object* obj)
 	) {
-		object_allocator_alloc = alloc ? alloc: &default_object_alloc;
-		object_allocator_free = free ? free: &default_object_free;
-		object_allocator_strong = strong ? strong: &default_object_strong;
-		object_allocator_weak = weak ? weak: &default_object_weak;
+		object_allocator = {
+			alloc ? alloc: &default_object_alloc,
+			free ? free: &default_object_free,
+			strong ? strong: &default_object_strong,
+			weak ? weak: &default_object_weak,
+		};
+	}
+
+	void* Object::objectAlloc(size_t size) {
+		return object_allocator.alloc(size);
+	}
+
+	void Object::objectFree(void *ptr) {
+		object_allocator.free(ptr);
+	}
+
+	void Object::objectStrong(Object* obj) {
+		object_allocator.strong(obj);
+	}
+
+	void Object::objectWeak(Object* obj) {
+		object_allocator.weak(obj);
 	}
 
 	// ---------------- O b j e c t ----------------
@@ -132,7 +154,6 @@ namespace qk {
 			Qk_ASSERT(active_mark_objects_count_);
 			active_mark_objects_count_--;
 		}
-		object_allocator_free(this);
 	}
 
 	std::vector<Object*> Object::mark_objects() {
@@ -160,12 +181,9 @@ namespace qk {
 	}
 #endif
 
-	Object::~Object() {
-		object_allocator_free(this);
-	}
-
 	void Object::destroy() {
 		this->~Object();
+		object_allocator.free(this); // free heap memory
 	}
 
 	bool Object::retain() {
@@ -173,7 +191,7 @@ namespace qk {
 	}
 
 	void Object::release() {
-		object_allocator_weak(this);
+		object_allocator.weak(this);
 	}
 
 	bool Object::isReference() const {
@@ -182,11 +200,11 @@ namespace qk {
 
 	void* Object::operator new(size_t size) {
 #if Qk_MEMORY_TRACE_MARK
-		void* p = object_allocator_alloc(size);
+		void* p = object_allocator.alloc(size);
 		((Object*)p)->mark_index_ = 123456;
 		return p;
 #else
-		return object_allocator_alloc(size);
+		return object_allocator.alloc(size);
 #endif
 	}
 
@@ -207,7 +225,7 @@ namespace qk {
 	bool Reference::retain() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( _refCount++ == 0 ) {
-			object_allocator_strong(this);
+			object_allocator.strong(this);
 		}
 		return true;
 	}
@@ -215,7 +233,7 @@ namespace qk {
 	void Reference::release() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
-			object_allocator_weak(this);
+			object_allocator.weak(this);
 		}
 	}
 

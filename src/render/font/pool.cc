@@ -61,6 +61,12 @@ namespace qk {
 		Qk_ASSERT(_last);
 		Qk_DEBUG(_last->getFamilyName());
 		_last_65533 = _last->unicharToGlyph(65533);
+
+		_Default = getFFID(Array<String>());
+	}
+
+	FFID FontPool::defaultFFID() {
+		return *_Default;
 	}
 
 	FFID FontPool::getFFID(const Array<String>& familys) {
@@ -87,7 +93,7 @@ namespace qk {
 
 	FFID FontPool::getFFID(cString& familys) {
 		if ( familys.isEmpty() )
-			return getFFID(Array<String>());
+			return *_Default;
 		else
 			return getFFID(familys.split(","));
 	}

@@ -44,7 +44,8 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second, Const);
 		Qk_DEFINE_PROP_GET(Sp<Typeface>, last);
 		Qk_DEFINE_PROP_GET(GlyphID, last_65533, Const);
-		// methods
+		// define methods
+		FFID defaultFFID();
 		FFID getFFID(cString& familys = String());
 		FFID getFFID(const Array<String>& familys);
 		void addFromData(cBuffer& buff);
@@ -66,6 +67,7 @@ namespace qk {
 		Array<String> _second; // default family names
 		Dict<String, Dict<FontStyle, Sp<Typeface>>> _extFamilies;
 		Dict<uint64_t, Sp<FontFamilys>> _FFIDs;
+		Sp<FontFamilys> _Default;
 		FontMetrics _MaxMetrics64;
 	};
 

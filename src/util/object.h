@@ -61,10 +61,9 @@ namespace qk {
 	class Qk_EXPORT Object {
 	public:
 		typedef ObjectTraits Traits;
-		virtual ~Object();
-		virtual void destroy(); // Destructor function call
-		virtual bool retain();
-		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
+		virtual void destroy(); // Heap allocation destructor function call and memory free
+		virtual bool retain(); // Heap allocation retain
+		virtual void release(); // Heap allocation release
 		virtual bool isReference() const;
 		virtual String toString() const;
 		static void* operator new(size_t size);
@@ -74,19 +73,22 @@ namespace qk {
 			void* (*alloc)(size_t size), void (*free)(void *ptr),
 			void (*strong)(Object* obj), void (*weak)(Object* obj)
 		);
+		static void* objectAlloc(size_t size);
+		static void objectFree(void *ptr);
+		static void objectStrong(Object* obj);
+		static void objectWeak(Object* obj);
 		typedef void* __has_object_type;
 #if Qk_MEMORY_TRACE_MARK
 		Object();
+		virtual ~Object();
 		static std::vector<Object*> mark_objects();
 		static int mark_objects_count();
 	private:
 		int initialize_mark_();
 		int mark_index_;
+#else
+		virtual ~Object() = default;
 #endif
-		// Use the following method to override to restore the default call
-		// virtual void release() { static_assert(!Traits::isReference, ""); ::delete this; }
-		// static void* operator new(std::size_t size) { return ::operator new(size); }
-		// static void  operator delete(void* p) { ::operator delete(p); }
 	};
 
 	/**

@@ -70,8 +70,8 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(float,      border_width_bottom, Const);
 		Qk_DEFINE_PROP_ACC(float,      border_width_left, Const);
 		Qk_DEFINE_PROP    (Color,      background_color, Const); // fill background color
-		Qk_DEFINE_PROP    (BoxFilter*, background); // fill background, image|gradient
-		Qk_DEFINE_PROP    (BoxShadow*, box_shadow); // box shadow, shadow
+		Qk_DEFINE_PROP_ACC(BoxFilter*, background); // fill background, image|gradient
+		Qk_DEFINE_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow
 		Qk_DEFINE_PROP    (float,      weight, Const); // view weight
 		Qk_DEFINE_PROP_ACC(Align,      align, Const); // view align
 		Qk_DEFINE_PROP_GET(Vec2,       content_size, Const); // width,height, no include padding
@@ -161,6 +161,10 @@ namespace qk {
 		void mark_size(uint32_t mark);
 
 		// ----------------------- define private props -----------------------
+	private:
+		BoxFilter* _background;
+		BoxShadow* _box_shadow;
+	protected:
 		BoxBorder *_border; // BoxBorder, top/right/bottom/left
 		// box view attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）

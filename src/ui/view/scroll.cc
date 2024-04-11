@@ -826,8 +826,6 @@ namespace qk {
 
 	Scroll::Scroll(): Float(), ScrollBase(this)
 	{
-		set_clip(true);
-		set_receive(true);
 		// bind touch event
 		add_event_listener(UIEvent_TouchStart, &Inl::handle_TouchStart, _inl(this));
 		add_event_listener(UIEvent_TouchMove, &Inl::handle_TouchMove, _inl(this));
@@ -837,6 +835,13 @@ namespace qk {
 		add_event_listener(UIEvent_MouseDown, &Inl::handle_MouseDown, _inl(this));
 		add_event_listener(UIEvent_MouseMove, &Inl::handle_MouseMove, _inl(this));
 		add_event_listener(UIEvent_MouseUp, &Inl::handle_MouseUp, _inl(this));
+	}
+
+	View* Scroll::init(Window *win) {
+		View::init(win);
+		set_clip(true);
+		set_receive(true);
+		return this;
 	}
 
 	Vec2 Scroll::layout_offset_inside() {

@@ -50,19 +50,20 @@ namespace qk {
 			kGradientLinear, kGradientRadial,
 			kShadow, kBlur, kBackdropBlur,
 		};
-		Qk_DEFINE_PROP_GET(View*, holder);
+		Qk_DEFINE_PROP_GET(View*, view);
 		Qk_DEFINE_PROP_ACC(BoxFilter*, next);
 
 		BoxFilter();
 		virtual void release() override;
 		virtual Type type() const = 0;
-		virtual BoxFilter* copy(BoxFilter *dest) = 0; // @safe Rt
-		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t) = 0; // @safe Rt
-		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, View *holder); // @safe Rt
+		virtual BoxFilter* copy_Rt(BoxFilter *dest) = 0; // @safe Rt
+		virtual BoxFilter* transition_Rt(BoxFilter *dest, BoxFilter *to, float t) = 0; // @safe Rt
+		static  BoxFilter* assign_Rt(BoxFilter *left, BoxFilter *right, View *holder); // @safe Rt
+		static  BoxFilter* safe_filter(BoxFilter *filter);
 	protected:
-		void set_next_Rt(BoxFilter* value);
+		void set_next_Rt(BoxFilter* value); // @safe Rt
 	private:
-		void set_holder_Rt(View *holder);
+		void set_view_Rt(View *view); // @safe Rt
 		BoxFilter *_next;
 		uint32_t _safe_mark;
 		bool     _isHolder;
@@ -85,8 +86,8 @@ namespace qk {
 		void set_src(String src);
 		void set_source(ImageSource* source);
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
+		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
 		static bool compute_size(FillSize size, float host, float& out);
 		static float compute_position(FillPosition pos, float host, float size);
 	private:
@@ -112,8 +113,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(float, radian, Const);
 		Qk_DEFINE_PROP_GET(uint8_t, quadrant, Const);
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
+		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
 	private:
 		void setRadian();
 	};
@@ -122,8 +123,8 @@ namespace qk {
 	public:
 		FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors);
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
+		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
 	};
 
 	class Qk_EXPORT BoxShadow: public BoxFilter {
@@ -133,8 +134,8 @@ namespace qk {
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
 		virtual Type type() const override;
-		virtual BoxFilter* copy(BoxFilter* dest) override;
-		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
+		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
 	};
 }
 

@@ -38,7 +38,7 @@
 namespace qk {
 
 	Root::Root(Window *win) {
-		set_window(win);
+		init(win);
 		_level = 1;
 		set_receive(true);
 		set_width({0, BoxSizeKind::kMatch});

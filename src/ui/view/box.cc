@@ -157,9 +157,9 @@ namespace qk {
 		, _border_radius_left_top(0), _border_radius_right_top(0)
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
+		, _weight(0), _align(Align::kAuto)
 		, _background(nullptr)
 		, _box_shadow(nullptr)
-		, _weight(0), _align(Align::kAuto)
 		, _border(nullptr)
 	{
 	}
@@ -417,16 +417,28 @@ namespace qk {
 		}
 	}
 
+	BoxFilter* Box::background() {
+		return BoxFilter::safe_filter(_background);
+	}
+
+	BoxShadow* Box::box_shadow() {
+		return static_cast<BoxShadow*>(BoxFilter::safe_filter(_box_shadow));
+	}
+
 	void Box::set_background(BoxFilter* val) {
-		if (_background != val) {
-			_background = BoxFilter::assign(_background, val, this);
-		}
+		preRender().async_call([](auto self, auto arg) {
+			if (self->_background != arg.arg) {
+				self->_background = BoxFilter::assign_Rt(self->_background, arg.arg, self);
+			}
+		}, this, val);
 	}
 
 	void Box::set_box_shadow(BoxShadow* val) {
-		if (_box_shadow != val) {
-			_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign(_box_shadow, val, this));
-		}
+		preRender().async_call([](auto self, auto arg) {
+			if (self->_box_shadow != arg.arg) {
+				self->_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(self->_box_shadow, arg.arg, self));
+			}
+		}, this, val);
 	}
 
 	uint32_t Box::solve_layout_size_forward(uint32_t mark) {

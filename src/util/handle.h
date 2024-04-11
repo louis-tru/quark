@@ -50,7 +50,7 @@ namespace qk {
 	public:
 		typedef T Type;
 		typedef T2 Traits;
-		
+
 		inline Handle(): _data(nullptr) {}
 		inline Handle(T* data): _data(data) { Traits::Retain(data); }
 		inline Handle(Handle& handle) { _data = handle.move(); }
@@ -111,11 +111,20 @@ namespace qk {
 			return data;
 		}
 
+		/**
+		 * Directly assigning values without increasing the number of references
+		 * @method unsafe() 
+		 */
+		void unsafe(T* data) {
+			release();
+			_data = data;
+		}
+
 		inline void release() {
 			Traits::Release(_data);
 			_data = nullptr;
 		}
-		
+
 	private:
 
 		T* _data;

@@ -91,6 +91,7 @@ namespace qk {
 	class Qk_EXPORT Scroll: public Float, public ScrollBase {
 	public:
 		Scroll();
+		virtual View* init(Window *win) override;
 		virtual ViewType viewType() const override;
 		virtual ScrollBase* asScrollBase() override;
 		virtual Vec2 layout_offset_inside() override;

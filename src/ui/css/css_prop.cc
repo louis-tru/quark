@@ -49,7 +49,7 @@ namespace qk {
 
 	template<>
 	BoxFilter* copy_value_ptr(BoxFilter* value) {
-		return value->copy(nullptr);
+		return value->copy_Rt(nullptr);
 	}
 
 	template<>
@@ -57,7 +57,7 @@ namespace qk {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
-			auto v_new = v1->transition(v, v2, t);
+			auto v_new = v1->transition_Rt(v, v2, t);
 			(target->*(void (View::*)(BoxFilter*))acc->set)(v_new);
 		}
 	}
@@ -258,7 +258,7 @@ namespace qk {
 	struct SetProp<BoxFilter*>: StyleSheets {
 		void set(ViewProp key, BoxFilter* value) {
 			Property *prop;
-			value = BoxFilter::assign(nullptr, value, nullptr);
+			value = BoxFilter::assign_Rt(nullptr, value, nullptr);
 			if (_props.get(key, prop)) {
 				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
 				if (p->_value != value) {

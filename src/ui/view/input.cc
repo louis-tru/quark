@@ -628,11 +628,6 @@ namespace qk {
 		, _cursor_ascent(0), _cursor_height(0)
 		, _editing(false), _cursor_twinkle_status(true), _flag(kFlag_Normal)
 	{
-		set_clip(true);
-		set_receive(true);
-		set_cursor(CursorStyle::kIBeam);
-		set_text_word_break(TextWordBreak::kBreakWord);
-
 		auto _inl = static_cast<Input::Inl*>(this);
 		// bind events
 		add_event_listener(UIEvent_Click, &Inl::handle_Click, _inl);
@@ -646,6 +641,15 @@ namespace qk {
 		add_event_listener(UIEvent_Focus, &Inl::handle_Focus, _inl);
 		add_event_listener(UIEvent_Blur, &Inl::handle_Blur, _inl);
 		add_event_listener(UIEvent_KeyDown, &Inl::handle_Keydown, _inl);
+	}
+
+	View* Input::init(Window *win) {
+		View::init(win);
+		set_clip(true);
+		set_receive(true);
+		set_cursor(CursorStyle::kIBeam);
+		set_text_word_break(TextWordBreak::kBreakWord);
+		return this;
 	}
 
 	bool Input::is_multiline() {
@@ -693,7 +697,7 @@ namespace qk {
 		FontMetricsBase metrics;
 
 		_lines->set_stable_line_height(text_size().value, text_line_height().value);
-		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
+		_cursor_height = text_family_Rt().value->match(font_style())->getMetrics(&metrics, text_size().value);
 
 		_cursor_ascent = -metrics.fAscent;
 		_marked_blob_begin = _marked_blob_end = 0;
@@ -1027,8 +1031,12 @@ namespace qk {
 		return nullptr;
 	}
 
-	void Input::onTextChange(uint32_t value, uint32_t type) {
-		value ? mark_layout(value): mark();
+	void Input::onTextChange(uint32_t mark, uint32_t type) {
+		onTextChange_async(mark, type);
+	}
+
+	View* Input::getViewForTextOptions() {
+		return this;
 	}
 
 	void Input::set_type(KeyboardType value) {
@@ -1154,4 +1162,5 @@ namespace qk {
 	ViewType Input::viewType() const {
 		return kInput_ViewType;
 	}
+
 }

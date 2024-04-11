@@ -72,8 +72,12 @@ namespace qk {
 		return true; // complete
 	}
 
-	void Text::onTextChange(uint32_t value, uint32_t type) {
-		value ? mark_layout(value): mark();
+	void Text::onTextChange(uint32_t mark, uint32_t type) {
+		onTextChange_async(mark, type);
+	}
+
+	View* Text::getViewForTextOptions() {
+		return this;
 	}
 
 	bool Text::solve_visible_region(const Mat &mat) {

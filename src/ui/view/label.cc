@@ -41,8 +41,12 @@ namespace qk {
 		}
 	}
 
-	void Label::onTextChange(uint32_t value, uint32_t type) {
-		value ? mark_layout(value): mark();
+	void Label::onTextChange(uint32_t mark, uint32_t type) {
+		onTextChange_async(mark, type);
+	}
+
+	View* Label::getViewForTextOptions() {
+		return this;
 	}
 
 	bool Label::layout_forward(uint32_t mark) {

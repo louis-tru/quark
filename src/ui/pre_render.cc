@@ -77,6 +77,10 @@ namespace qk {
 		_is_render_Mt = true;
 	}
 
+	void PreRender::post(Cb cb) {
+		_window->host()->loop()->post(cb);
+	}
+
 	void PreRender::addtask(Task* task) {
 		if ( task->task_id() == Task::ID() ) {
 			Task::ID id = _tasks.pushBack(task);
