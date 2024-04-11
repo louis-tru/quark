@@ -105,7 +105,7 @@ namespace qk {
 
 	// ---------------- F l e x . F l o w ----------------
 
-	// layout direction
+	// view direction
 	enum class Direction: uint8_t {
 		kRow,
 		kRowReverse,
@@ -148,7 +148,7 @@ namespace qk {
 		kStretch, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
 	};
 
-	// layout align
+	// view align
 	enum class Align: uint8_t {
 		kAuto,
 		kStart,

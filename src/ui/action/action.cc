@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./action.h"
-#include "../layout/layout.h"
+#include "../view/view.h"
 #include "../../errno.h"
 #include "../window.h"
 #include "../app.h"
@@ -54,13 +54,11 @@ namespace qk {
 		_window = nullptr;
 	}
 
-	void Action::release() {
-		if ( --_refCount <= 0 ) {
-			_async_call([](auto self, auto arg) {
-				// To ensure safety and efficiency, it should be destroyed in RT (render thread)
-				self->Object::release();
-			}, this, 0);
-		}
+	void Action::destroy() {
+		_async_call([](auto self, auto arg) {
+			// To ensure safety and efficiency, it should be destroyed in RT (render thread)
+			self->Object::destroy();
+		}, this, 0);
 	}
 
 	bool Action::playing() const {
@@ -79,63 +77,63 @@ namespace qk {
 
 	void Action::seek_play(uint32_t time) {
 		_async_call([](auto self, auto arg) {
-			self->seek_RT(arg.arg);
-			self->play_RT();
+			self->seek_Rt(arg.arg);
+			self->play_Rt();
 		}, this, time);
 	}
 
 	void Action::seek_stop(uint32_t time) {
 		_async_call([](auto self, auto arg) {
-			self->seek_RT(arg.arg);
-			self->stop_RT();
+			self->seek_Rt(arg.arg);
+			self->stop_Rt();
 		}, this, time);
 	}
 
 	void Action::seek(uint32_t time) {
-		_async_call([](auto self, auto time) { self->seek_RT(time.arg); }, this, time);
+		_async_call([](auto self, auto time) { self->seek_Rt(time.arg); }, this, time);
 	}
 
 	void Action::clear() {
-		_async_call([](auto self, auto arg) { self->clear_RT(); }, this, 0);
+		_async_call([](auto self, auto arg) { self->clear_Rt(); }, this, 0);
 	}
 
 	void Action::play() {
-		_async_call([](auto self, auto arg) { self->play_RT(); }, this, 0);
+		_async_call([](auto self, auto arg) { self->play_Rt(); }, this, 0);
 	}
 
 	void Action::stop() {
-		_async_call([](auto self, auto arg) { self->stop_RT(); }, this, 0);
+		_async_call([](auto self, auto arg) { self->stop_Rt(); }, this, 0);
 	}
 
-	void Action::play_RT() {
+	void Action::play_Rt() {
 		if (_parent) {
-			_parent->play_RT();
+			_parent->play_Rt();
 		}
 		else if (_id == Id()) {
-			auto id = _window->actionCenter()->_actions_RT.pushBack({this,false});
+			auto id = _window->actionCenter()->_actions_Rt.pushBack({this,false});
 			_id = *reinterpret_cast<Id*>(&id);
 			retain(); // retain for center
 		}
 	}
 
-	void Action::stop_RT() {
+	void Action::stop_Rt() {
 		if (_parent) {
-			_parent->stop_RT();
+			_parent->stop_Rt();
 		}
 		else if (_id != Id()) {
 			typedef List<ActionCenter::Action_Wrap>::Iterator Id1;
-			_window->actionCenter()->_actions_RT.erase(*reinterpret_cast<Id1*>(&_id));
+			_window->actionCenter()->_actions_Rt.erase(*reinterpret_cast<Id1*>(&_id));
 			_id = Id();
 			release(); // release for center
 		}
 	}
 
-	void Action::seek_RT(uint32_t time) {
+	void Action::seek_Rt(uint32_t time) {
 		time = Qk_MIN(time, _duration);
 		if (_parent) {
-			_parent->seek_before_RT(time, this);
+			_parent->seek_before_Rt(time, this);
 		} else {
-			seek_time_RT(time, this);
+			seek_time_Rt(time, this);
 		}
 	}
 
@@ -143,7 +141,7 @@ namespace qk {
 		_async_call([](auto self, auto arg) {
 			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 			if (self->_parent) {
-				static_cast<GroupAction*>(self->_parent)->insert_RT(self->_id, arg.arg);
+				static_cast<GroupAction*>(self->_parent)->insert_Rt(self->_id, arg.arg);
 			} else {
 				Qk_ERR("Action::before, illegal parent empty");
 			}
@@ -155,7 +153,7 @@ namespace qk {
 			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 			if (self->_parent) {
 				auto id = self->_id;
-				static_cast<GroupAction*>(self->_parent)->insert_RT(++id, arg.arg);
+				static_cast<GroupAction*>(self->_parent)->insert_Rt(++id, arg.arg);
 			} else {
 				Qk_ERR("Action::after, illegal parent empty");
 			}
@@ -166,14 +164,14 @@ namespace qk {
 		_async_call([](auto self, auto arg) {
 			// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::remove, illegal parent empty");
 			if (self->_parent) {
-				static_cast<GroupAction*>(self->_parent)->remove_child_RT(self->_id);
+				static_cast<GroupAction*>(self->_parent)->remove_child_Rt(self->_id);
 			} else {
 				Qk_ERR("Action::remove, illegal parent empty");
 			}
 		}, this, 0);
 	}
 
-	void Action::set_target(Layout *target) {
+	void Action::set_target(View *target) {
 		Qk_ASSERT(target);
 		Qk_ASSERT(target->window() == _window);
 		_async_call([](auto self, auto arg) {
@@ -189,19 +187,19 @@ namespace qk {
 		}, this, target);
 	}
 
-	void Action::del_target(Layout* target) {
+	void Action::del_target(View* target) {
 		Qk_ASSERT(target);
 		_async_call([](auto self, auto arg) {
 			if (arg.arg == self->_target) {
-				self->stop_RT(); // stop action
+				self->stop_Rt(); // stop action
 				self->_target = nullptr;
 			}
 		}, this, target);
 	}
 
-	int Action::set_parent_RT(Action *parent) {
+	int Action::set_parent_Rt(Action *parent) {
 		if (parent->_window != _window) {
-			Qk_ERR("Action::set_parent_RT, set action window not match");
+			Qk_ERR("Action::set_parent_Rt, set action window not match");
 			return ERR_ACTION_SET_WINDOW_NO_MATCH;
 		}
 		// Qk_Check(!_parent, ERR_ACTION_ILLEGAL_CHILD, "illegal child action");
@@ -215,31 +213,31 @@ namespace qk {
 		return 0;
 	}
 
-	void Action::del_parent_RT() {
+	void Action::del_parent_Rt() {
 		Qk_ASSERT(_parent);
 		_parent = nullptr;
 		release();
 	}
 
-	void Action::update_duration_RT(int32_t diff) {
+	void Action::update_duration_Rt(int32_t diff) {
 		_duration += diff;
 		if (_parent) {
-			_parent->update_duration_RT(diff);
+			_parent->update_duration_Rt(diff);
 		}
 	}
 
-	void SpawnAction::update_duration_RT(int32_t diff) {
+	void SpawnAction::update_duration_Rt(int32_t diff) {
 		int32_t new_duration = 0;
-		for ( auto &i : _actions_RT ) {
+		for ( auto &i : _actions_Rt ) {
 			new_duration = Qk_MAX(i->_duration, new_duration);
 		}
 		diff = new_duration - _duration;
 		if ( diff ) {
-			Action::update_duration_RT(diff);
+			Action::update_duration_Rt(diff);
 		}
 	}
 
-	void Action::trigger_ActionLoop_RT(uint32_t delay, Action* root) {
+	void Action::trigger_ActionLoop_Rt(uint32_t delay, Action* root) {
 		auto sv = root->_target->safe_view();
 		auto v = *sv;
 		if (v) {
@@ -251,7 +249,7 @@ namespace qk {
 		}
 	}
 
-	void Action::trigger_ActionKeyframe_RT(uint32_t delay, uint32_t frame_index, Action* root) {
+	void Action::trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frame_index, Action* root) {
 		auto sv = root->_target->safe_view();
 		auto v = *sv;
 		if (v) {

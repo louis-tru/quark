@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text_opts.h"
-#include "../layout/layout.h"
+#include "../view/view.h"
 #include "../../render/font/pool.h"
 
 namespace qk {
@@ -59,7 +59,7 @@ namespace qk {
 	void TextOptions::set_text_align(TextAlign value) {
 		if(_text_align != value) {
 			_text_align = value;
-			onTextChange(Layout::kLayout_Typesetting, 0);
+			onTextChange(View::kLayout_Typesetting, 0);
 		}
 	}
 
@@ -67,7 +67,7 @@ namespace qk {
 		if (value != _text_weight) {
 			_text_weight = _text_weight_value = value;
 			_text_flags |= (1 << 1);
-			onTextChange(Layout::kLayout_Typesetting, 1);
+			onTextChange(View::kLayout_Typesetting, 1);
 		}
 	}
 
@@ -75,7 +75,7 @@ namespace qk {
 		if (value != _text_slant) {
 			_text_slant = _text_slant_value = value;
 			_text_flags |= (1 << 2);
-			onTextChange(Layout::kLayout_None, 2);
+			onTextChange(View::kLayout_None, 2);
 		}
 	}
 
@@ -83,7 +83,7 @@ namespace qk {
 		if (value != _text_decoration) {
 			_text_decoration = _text_decoration_value = value;
 			_text_flags |= (1 << 3);
-			onTextChange(Layout::kLayout_None, 3);
+			onTextChange(View::kLayout_None, 3);
 		}
 	}
 
@@ -91,7 +91,7 @@ namespace qk {
 		if (value != _text_overflow) {
 			_text_overflow = _text_overflow_value = value;
 			_text_flags |= (1 << 4);
-			onTextChange(Layout::kLayout_Typesetting, 4);
+			onTextChange(View::kLayout_Typesetting, 4);
 		}
 	}
 
@@ -99,7 +99,7 @@ namespace qk {
 		if (value != _text_white_space) {
 			_text_white_space = _text_white_space_value = value;
 			_text_flags |= (1 << 5);
-			onTextChange(Layout::kLayout_Typesetting, 5);
+			onTextChange(View::kLayout_Typesetting, 5);
 		}
 	}
 
@@ -107,7 +107,7 @@ namespace qk {
 		if (value != _text_word_break) {
 			_text_word_break = _text_word_break_value = value;
 			_text_flags |= (1 < 6);
-			onTextChange(Layout::kLayout_Typesetting, 6);
+			onTextChange(View::kLayout_Typesetting, 6);
 		}
 	}
 
@@ -116,7 +116,7 @@ namespace qk {
 			value.value = Qk_MAX(1, value.value);
 			_text_size = value;
 			_text_flags |= (1 << 7);
-			onTextChange(Layout::kLayout_Typesetting, 7);
+			onTextChange(View::kLayout_Typesetting, 7);
 		}
 	}
 
@@ -124,7 +124,7 @@ namespace qk {
 		if (value != _text_background_color) {
 			_text_background_color = value;
 			_text_flags |= (1 << 8);
-			onTextChange(Layout::kLayout_None, 8);
+			onTextChange(View::kLayout_None, 8);
 		}
 	}
 
@@ -132,7 +132,7 @@ namespace qk {
 		if (value != _text_color) {
 			_text_color = value;
 			_text_flags |= (1 << 9);
-			onTextChange(Layout::kLayout_None, 9);
+			onTextChange(View::kLayout_None, 9);
 		}
 	}
 
@@ -140,7 +140,7 @@ namespace qk {
 		if (value != _text_shadow) {
 			_text_shadow = value;
 			_text_flags |= (1 << 10);
-			onTextChange(Layout::kLayout_None, 10);
+			onTextChange(View::kLayout_None, 10);
 		}
 	}
 
@@ -149,7 +149,7 @@ namespace qk {
 			value.value = Qk_MAX(0, value.value);
 			_text_line_height = value;
 			_text_flags |= (1 << 11);
-			onTextChange(Layout::kLayout_Typesetting, 11);
+			onTextChange(View::kLayout_Typesetting, 11);
 		}
 	}
 
@@ -157,7 +157,7 @@ namespace qk {
 		if (value != _text_family) {
 			_text_family = value;
 			_text_flags |= (1 << 12);
-			onTextChange(Layout::kLayout_Typesetting, 1 << 12);
+			onTextChange(View::kLayout_Typesetting, 1 << 12);
 		}
 	}
 

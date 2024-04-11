@@ -37,7 +37,7 @@
 #include "../view_prop.h"
 
 namespace qk {
-	class Layout;
+	class View;
 	class View;
 	class KeyframeAction;
 	class Window;
@@ -64,8 +64,8 @@ namespace qk {
 		class Property {
 		public:
 			virtual ~Property() = default;
-			virtual void apply(Layout *layout) = 0;
-			virtual void transition(Layout *layout, Property *to, float t) = 0;
+			virtual void apply(View *view) = 0;
+			virtual void transition(View *view, Property *to, float t) = 0;
 			virtual Property* copy() = 0;
 		};
 		// define props
@@ -82,9 +82,9 @@ namespace qk {
 		bool hasProperty(ViewProp key) const;
 
 		/**
-		* @method apply style to layout
+		* @method apply style to view
 		*/
-		void apply(Layout *layout) const;
+		void apply(View *view) const;
 
 		/**
 		 * @method window
@@ -93,7 +93,7 @@ namespace qk {
 		virtual Window* window();
 
 	private:
-		void applyTransition(Layout* layout, StyleSheets *to, float y) const;
+		void applyTransition(View* view, StyleSheets *to, float y) const;
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 
@@ -165,33 +165,37 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
 		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
-		Qk_DEFINE_PROP_GET(Layout*, host); //!< apply style sheet target object
-		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< apply parent ssc
+		Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
+		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
 
-		CStyleSheetsClass(Layout *host);
+		CStyleSheetsClass(View *host);
 		void set(cArray<String> &name); //!< Calling in the main loop
 		void add(cString &name); //!< Calling in the main loop
 		void remove(cString &name); //!< Calling in the main loop
 		void toggle(cString &name); //!< Calling in the main loop
 
+		/**
+		 * @method haveSubstyles()
+		 * @safe Rt
+		*/
 		inline bool haveSubstyles() const {
-			return _styles.length();
+			return _nameHash_Rt.length();
 		}
 
 	private:
-		void updateClass_RT();
-		void setStatus_RT(CSSType status);
-		bool apply_RT(CStyleSheetsClass *parent); // Return whether it affects sub styles
-		void applyFrom(CStyleSheetsClass *ssc);
-		void applyFindSubstyle(CStyleSheets *ss);
-		void applyStyle(CStyleSheets *ss);
+		void updateClass_Rt();
+		void setStatus_Rt(CSSType status);
+		bool apply_Rt(CStyleSheetsClass *parent); // Return whether it affects sub styles
+		void applyFrom_Rt(CStyleSheetsClass *ssc);
+		void applyFindSubstyle_Rt(CStyleSheets *ss);
+		void applyStyle_Rt(CStyleSheets *ss);
 
-		Set<uint64_t> _nameHash; //!< class name hash
-		Array<CStyleSheets*> _styles; //!< apply to all current style sheets have substyle sheets
-		Hash5381 _stylesHash; //!< hash for apply current have substyle sheets
-		CSSType _status, _setStatus; //!< Current pseudo type application status
+		Set<uint64_t> _nameHash_Rt; //!< class name hash
+		Array<CStyleSheets*> _styles_Rt; //!< apply to all current style sheets have substyle sheets
+		Hash5381 _stylesHash_Rt; //!< hash for apply current have substyle sheets
+		CSSType _status, _setStatus; //!< @safe Rt Current pseudo type application status
 
-		friend class Layout;
+		friend class View;
 		friend class View;
 	};
 

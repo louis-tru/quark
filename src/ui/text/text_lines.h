@@ -38,7 +38,7 @@ namespace qk {
 
 	class TextOptions;
 	class TextBlob;
-	class Layout;
+	class View;
 	class TextBlobBuilder;
 
 	class Qk_EXPORT TextLines: public Reference {
@@ -67,17 +67,17 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextAlign, text_align, Const);
 		Qk_DEFINE_PROP_GET(Vec2, host_size, Const);
 		Qk_DEFINE_PROP_GET(Line*, last);
-		Qk_DEFINE_PROP_GET(Layout*, host);
+		Qk_DEFINE_PROP_GET(View*, host);
 		Qk_DEFINE_PROP_GET(float, max_width, Const);
 		Qk_DEFINE_PROP_GET(float, min_origin, Const);
 
 		// defines methods
-		TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
+		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all
 		void finish_text_blob_pre();
-		void add_layout(Layout* layout);
+		void add_view(View* view);
 		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre);
 		void solve_visible_region(const Mat &mat);
 		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
@@ -95,7 +95,7 @@ namespace qk {
 		void clear();
 		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);
 		Array<Line> _lines;
-		Array<Array<Layout*>> _preLayout;
+		Array<Array<View*>> _preView;
 		Array<PreTextBlob> _preBlob;
 		float _stable_line_height;
 		FontMetricsBase _stable_line_height_Metrics;

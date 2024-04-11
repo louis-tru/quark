@@ -30,16 +30,16 @@
 
 #include "../window.h"
 #include "../app.h"
-#include "../layout/layout.h"
+#include "../view/view.h"
 #include "../../render/font/pool.h"
 #include "./text_lines.h"
 #include "./text_opts.h"
 #include "./text_blob.h"
-#include "../layout/box.h"
+#include "../view/box.h"
 
 namespace qk {
 
-	TextLines::TextLines(Layout *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
+	TextLines::TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
 		: _pre_width(0), _is_stable_line_height(false)
 		, _host_size(host_size), _host(host), _no_wrap(no_wrap)
 		, _text_align(text_align), _visible_region(false)
@@ -51,8 +51,8 @@ namespace qk {
 		_lines.clear();
 		_lines.push({ 0, 0, 0, 0, 0, 0, 0, 0 });
 		_last = &_lines[0];
-		_preLayout.clear();
-		_preLayout.push(Array<Layout*>());
+		_preView.clear();
+		_preView.push(Array<View*>());
 		_max_width = 0;
 		_min_origin = Float32::limit_max;
 		_visible_region = false;
@@ -81,7 +81,7 @@ namespace qk {
 		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, _lines.length() });
 		_last = &_lines.back();
 		_pre_width = 0;
-		_preLayout.push(Array<Layout*>());
+		_preView.push(Array<View*>());
 
 		for (auto &blob: _preBlob) {
 			_pre_width += blob.offset.back().x() - blob.offset.front().x();
@@ -131,9 +131,9 @@ namespace qk {
 		auto top = _last->top;
 		auto bottom = _last->bottom;
 
-		for (auto layout: _preLayout.back()) {
-			auto height = layout->layout_size().layout_size.height();
-			switch (layout->layout_align()) {
+		for (auto view: _preView.back()) {
+			auto height = view->layout_size().layout_size.height();
+			switch (view->layout_align()) {
 				case Align::kStart:
 					set_line_height(top, height - bottom); break;
 				case Align::kCenter:
@@ -166,12 +166,12 @@ namespace qk {
 			auto top = line.top;
 			auto bottom = line.bottom;
 
-			for (auto layout: _preLayout[line.line]) {
-				auto size_y = layout->layout_size().layout_size.y();
-				auto x = _last->origin + layout->layout_offset().x();
+			for (auto view: _preView[line.line]) {
+				auto size_y = view->layout_size().layout_size.y();
+				auto x = _last->origin + view->layout_offset().x();
 				float y;
 
-				switch (layout->layout_align()) {
+				switch (view->layout_align()) {
 					case Align::kStart:
 						y = _last->baseline - top; break;
 					case Align::kCenter:
@@ -181,11 +181,11 @@ namespace qk {
 					default:
 						y = _last->baseline - size_y; break;
 				}
-				layout->set_layout_offset(Vec2(x, y));
+				view->set_layout_offset(Vec2(x, y));
 			}
 		}
 
-		_preLayout.clear();
+		_preView.clear();
 	}
 
 	void TextLines::finish_text_blob_pre() {
@@ -196,8 +196,8 @@ namespace qk {
 		}
 	}
 
-	void TextLines::add_layout(Layout* layout) {
-		_preLayout.back().push(layout);
+	void TextLines::add_view(View* view) {
+		_preView.back().push(view);
 	}
 
 	void TextLines::add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre) {

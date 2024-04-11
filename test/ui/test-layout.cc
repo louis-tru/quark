@@ -1,24 +1,23 @@
 
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/root.h>
 #include <quark/ui/filter.h>
 #include <quark/ui/screen.h>
-#include <quark/ui/layout/flow.h>
-#include <quark/ui/layout/image.h>
-#include <quark/ui/layout/label.h>
-#include <quark/ui/layout/text.h>
-#include <quark/ui/layout/input.h>
-#include <quark/ui/layout/textarea.h>
+#include <quark/ui/view/flow.h>
+#include <quark/ui/view/image.h>
+#include <quark/ui/view/label.h>
+#include <quark/ui/view/text.h>
+#include <quark/ui/view/input.h>
+#include <quark/ui/view/textarea.h>
 #include <quark/render/render.h>
 #include <quark/render/font/pool.h>
 #include <quark/util/fs.h>
 
 using namespace qk;
 
-class TestImage: public ImageLayout {
+class TestImage: public Image {
 public:
-	TestImage(Window *win): ImageLayout(win){}
 
 //	virtual void accept(ViewVisitor *visitor) override {
 //		auto render = static_cast<SkiaRender*>(visitor);
@@ -53,8 +52,8 @@ public:
 };
 
 void layout_text(Box* box) {
-	auto text = box->append_new<Text>()->layout<TextLayout>();
-	auto labe = text->view()->append_new<Label>()->layout<LabelLayout>();
+	auto text = box->append_new<Text>();
+	auto labe = text->append_new<Label>();
 
 	text->set_width({ 0, SizeKind::kMatch });
 	text->set_height({ 0, SizeKind::kMatch });
@@ -82,7 +81,7 @@ void layout_text(Box* box) {
 }
 
 void layout_scroll(Box *box) {
-	auto v = box->append_new<Scroll>()->layout<ScrollLayout>();
+	auto v = box->append_new<Scroll>();
 	//v->set_is_clip(false);
 
 	v->set_width({ 200 });
@@ -96,43 +95,43 @@ void layout_scroll(Box *box) {
 	v->set_border_radius_left_bottom(5);
 	v->set_border_radius_right_bottom(5);
 
-	auto a = v->view()->append_new<Box>()->layout<BoxLayout>();
+	auto a = v->append_new<Box>();
 	a->set_margin_top(10);
 	a->set_width({ 0, SizeKind::kMatch });
 	a->set_height({ 100 });
 	a->set_background_color(Color(255,0,0));
 
-	auto b = v->view()->append_new<Box>()->layout<BoxLayout>();
+	auto b = v->append_new<Box>();
 	b->set_margin_top(10);
 	b->set_width({ 0, SizeKind::kMatch });
 	b->set_height({ 100 });
 	b->set_background_color(Color(0,255,0));
 
-	auto c = v->view()->append_new<Box>()->layout<BoxLayout>();
+	auto c = v->append_new<Box>();
 	c->set_margin_top(10);
 	c->set_width({ 0.5, SizeKind::kRatio });
 	c->set_height({ 100 });
 	c->set_background_color(Color(0,0,255));
 
-	auto d = v->view()->append_new<Box>()->layout<BoxLayout>();
+	auto d = v->append_new<Box>();
 	d->set_margin_top(10);
 	d->set_width({ 0.5, SizeKind::kRatio });
 	d->set_height({ 100 });
 	d->set_background_color(Color(0,255,255));
 
-	auto e = v->view()->append_new<Box>()->layout<BoxLayout>();
+	auto e = v->append_new<Box>();
 	e->set_margin_top(10);
 	e->set_width({ 0, SizeKind::kMatch });
 	e->set_height({ 100 });
 	e->set_background_color(Color(0,255,0));
 
-	auto f = v->view()->append_new<Box>()->layout<BoxLayout>();
+	auto f = v->append_new<Box>();
 	f->set_margin_top(10);
 	f->set_width({ 0, SizeKind::kMatch });
 	f->set_height({ 100 });
 	f->set_background_color(Color(0,0,255));
 	
-	auto g = v->view()->append_new<Box>()->layout<BoxLayout>();
+	auto g = v->append_new<Box>();
 	g->set_margin_top(10);
 	g->set_width({ 0, SizeKind::kMatch });
 	g->set_height({ 100 });
@@ -141,7 +140,7 @@ void layout_scroll(Box *box) {
 }
 
 void layout_input(Box* box) {
-	auto input = box->append_new<Textarea>()->layout<TextareaLayout>();
+	auto input = box->append_new<Textarea>();
 	//auto input = (Input*)New<Input>()->append_to(box);
 
 	input->set_width({ 200 });
@@ -169,9 +168,9 @@ void layout(Event<>& evt, Application* app) {
 	app->defaultTextOptions()->set_text_family({ app->fontPool()->getFFID("Helvetica, PingFang SC") });
 
 	auto r = win->root();
-	auto flex = r->append_new<Flex>()->layout<FlexLayout>();
-	auto flow = r->append_new<Flow>()->layout<FlowLayout>();
-	auto img2 = New<Image>(new TestImage(win))->append_to(r)->layout<TestImage>();
+	auto flex = r->append_new<Flex>();
+	auto flow = r->append_new<Flow>();
+	auto img2 = r->append_new<TestImage>();
 
 	//layout_text(r);
 	//layout_text(flow);
@@ -270,13 +269,13 @@ void layout(Event<>& evt, Application* app) {
 	Qk_DEBUG("%s, %p\n", "ok test layout", app);
 	Qk_DEBUG("Object size %d", sizeof(Object));
 	Qk_DEBUG("Reference size %d", sizeof(Reference));
-	Qk_DEBUG("Layout size %d", sizeof(Layout));
-	Qk_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Layout>));
+	
+	Qk_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Reference>));
 	Qk_DEBUG("View size %d", sizeof(View));
-	Qk_DEBUG("Box size %d", sizeof(BoxLayout));
-	Qk_DEBUG("Flow size %d", sizeof(FlowLayout));
-	Qk_DEBUG("Flex size %d", sizeof(FlexLayout));
-	Qk_DEBUG("Root size %d", sizeof(RootLayout));
+	Qk_DEBUG("Box size %d", sizeof(Box));
+	Qk_DEBUG("Flow size %d", sizeof(Flow));
+	Qk_DEBUG("Flex size %d", sizeof(Flex));
+	Qk_DEBUG("Root size %d", sizeof(Root));
 }
 
 void test_layout(int argc, char **argv) {

@@ -2,15 +2,14 @@
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
 #include <quark/ui/screen.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/root.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
 
 using namespace qk;
 
-class TestOutImg: public BoxLayout {
+class TestOutImg: public Box {
 public:
-	TestOutImg(Window *win): BoxLayout(win) {}
 
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
@@ -33,7 +32,7 @@ public:
 		paint.type = Paint::kBitmap_Type;
 		canvas->drawRect({{0},{width}}, paint);
 
-		mark_render();
+		mark();
 	}
 };
 
@@ -41,7 +40,7 @@ void test_outimg(int argc, char **argv) {
 	App app;
 	auto win = Window::Make({.frame={{0,0}, {500,500}}});
 	auto r = win->root();
-	auto t = New<Box>(new TestOutImg(win))->append_to<Box>(r);
+	auto t = r->append_new<TestOutImg>();
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });

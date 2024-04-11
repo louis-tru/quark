@@ -29,39 +29,35 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./view_prop.h"
-#include "./layout/layout.h"
-#include "./layout/box.h"
-#include "./layout/flex.h"
-#include "./layout/flow.h"
-#include "./layout/text.h"
-#include "./layout/input.h"
-#include "./layout/image.h"
-#include "./layout/scroll.h"
-#include "./layout/transform.h"
+#include "./view/view.h"
+#include "./view/box.h"
+#include "./view/flex.h"
+#include "./view/flow.h"
+#include "./view/text.h"
+#include "./view/input.h"
+#include "./view/image.h"
+#include "./view/scroll.h"
+#include "./view/transform.h"
 
 namespace qk {
-	typedef Layout ViewLayout;
+	typedef View ViewView;
 	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
 		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] = {\
-			(Func)&View##Layout::Name,(Func)&View##Layout::set_##Name};
-	// prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp+kEnum_Counts_ViewProp] = {\
-	// 	(Func)&View::Name,(Func)&View::set_##Name}\
+			(Func)&View::Name,(Func)&View::set_##Name};
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
 		prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, prop_accessors[k##Dest##_ViewType])
 
 	struct PropAccessors {
 		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
-			// auto index2 = index + kEnum_Counts_ViewProp;
 			auto end = index + count;
 			do {
 				dest.value[index] = value[index];
-				// dest.value[index2] = value[index2];
 			} while (++index < end);
 		}
-		PropAccessor value[kEnum_Counts_ViewProp/*+kEnum_Counts_ViewProp*/] = {0};
+		PropAccessor value[kEnum_Counts_ViewProp] = {0};
 	};
 
 	static PropAccessors *prop_accessors = nullptr;
@@ -86,24 +82,24 @@ namespace qk {
 			_Func(TextShadow, text_shadow) \
 			_Func(TextFamily, text_family) \
 
-		#define _Func_ScrollLayoutBase_Props(_Func) \
+		#define _Func_ScrollBase_Props(_Func) \
 			_Func(Color, scrollbar_color) \
 			_Func(float, scrollbar_width) \
 			_Func(float, scrollbar_margin) \
 
-		struct TextLayout: public Layout {
+		struct TextView: public View {
 			#define _Func(Type, Name) Type Name() { asTextOptions()->Name(); } \
 				void set_##Name(Type v) { asTextOptions()->set_##Name(v); }
 			_Func_TextOptions_Props(_Func)
 			#undef _Func
 			#undef _Func_TextOptions_Props
 		};
-		struct ScrollLayout: public Layout {
-			#define _Func(Type, Name) Type Name() { asScrollLayoutBase()->Name(); } \
-				void set_##Name(Type v) { asScrollLayoutBase()->set_##Name(v); }
-			_Func_ScrollLayoutBase_Props(_Func)
+		struct Scroll: public View {
+			#define _Func(Type, Name) Type Name() { asScrollBase()->Name(); } \
+				void set_##Name(Type v) { asScrollBase()->set_##Name(v); }
+			_Func_ScrollBase_Props(_Func)
 			#undef _Func
-			#undef _Func_ScrollLayoutBase_Props
+			#undef _Func_ScrollBase_Props
 		};
 
 		// view
@@ -205,7 +201,7 @@ namespace qk {
 		Qk_Set_Accessor(Input, MAX_LENGTH, max_length);
 		Qk_Set_Accessor(Input, PLACEHOLDER, placeholder);
 		Qk_Copy_Accessor(Input, Textarea, SECURITY, 8);
-		// scroll/textarea of ScrollLayoutBase
+		// scroll/textarea of ScrollViewBase
 		Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin);
@@ -222,7 +218,7 @@ namespace qk {
 		Qk_Set_Accessor(Transform, ORIGIN_Y, origin_y);
 	}
 
-	PropAccessor* prop_accessor_at_layout(ViewType type, ViewProp prop) {
+	PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop) {
 		return prop_accessors[type].value + prop;
 	}
 

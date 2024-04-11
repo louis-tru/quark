@@ -1,8 +1,8 @@
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
-#include <quark/ui/layout/root.h>
-#include <quark/ui/layout/input.h>
-#include <quark/ui/layout/textarea.h>
+#include <quark/ui/view/root.h>
+#include <quark/ui/view/input.h>
+#include <quark/ui/view/textarea.h>
 #include <quark/ui/css/css.h>
 #include <quark/ui/action/keyframe.h>
 

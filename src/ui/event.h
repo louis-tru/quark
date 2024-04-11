@@ -81,7 +81,7 @@ F(Seek, Player, kUint64_UIEventFlags) \
 
 namespace qk {
 	class Application;
-	class Layout;
+	class View;
 	class View;
 	class Action;
 	class TextInput;
@@ -242,7 +242,7 @@ namespace qk {
 			float    start_x, start_y;
 			float    x, y, force;
 			bool     click_in;
-			View     *view;
+			View   *view;
 		};
 		TouchEvent(View* origin, Array<TouchPoint>& touches);
 		Array<TouchPoint>& changed_touches() { return _change_touches; }
@@ -293,25 +293,25 @@ namespace qk {
 		bool set_focus_view(View *view); // set focus from main thread
 	private:
 		void touchstartErase(View *view, List<TouchPoint>& in);
-		void touchstart(Layout* layout, List<TouchPoint>& in);
+		void touchstart(View* view, List<TouchPoint>& in);
 		void touchmove(List<TouchPoint>& in);
 		void touchend(List<TouchPoint>& in, const UIEventName& type);
 		void mousemove(View* view, Vec2 pos);
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
 		void mousewhell(KeyboardKeyCode code, bool down, float x, float y);
-		View* find_receive_view_exec(Layout *view, Vec2 pos);
+		View* find_receive_view_exec(View *view, Vec2 pos);
 		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, KeyboardKeyCode keycode);
-		Sp<View, ReferenceTraits> get_focus_view();
+		Sp<View, ReferenceTraits> safe_focus_view();
 
 		class OriginTouche;
 		class MouseHandle;
 		Dict<View*, OriginTouche*> _origin_touches;
 		MouseHandle *_mouse_handle;
 		std::atomic<TextInput*> _text_input;
-		RecursiveMutex _view_mutex; // view layout mutex for main and render thread
+		Mutex _focus_view_mutex; // get set focus view mutex for main and render thread
 		friend class View;
-		friend class Layout;
+		friend class View;
 	};
 
 }

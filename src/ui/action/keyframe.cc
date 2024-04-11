@@ -46,7 +46,7 @@ namespace qk {
 
 	KeyframeAction::~KeyframeAction() {
 		_frames.clear();
-		clear_RT();
+		clear_Rt();
 	}
 
 	void KeyframeAction::clear() {
@@ -61,19 +61,19 @@ namespace qk {
 		_frames.push(frame);
 
 		_async_call([](auto self, auto frame) {
-			if (self->_frames_RT.length()) {
-				auto back = self->_frames_RT.back();
+			if (self->_frames_Rt.length()) {
+				auto back = self->_frames_Rt.back();
 				int32_t d = frame.arg->_time - back->time();
 				if ( d <= 0 ) {
 					frame.arg->_time = back->time();
 				} else {
-					self->Action::update_duration_RT(d);
+					self->Action::update_duration_Rt(d);
 				}
 				for (auto &i: back->_props) { // copy prop
 					frame.arg->_props.set(i.key, i.value->copy());
 				}
 			}
-			self->_frames_RT.push(frame.arg);
+			self->_frames_Rt.push(frame.arg);
 		}, this, frame);
 
 		return frame;
@@ -85,7 +85,7 @@ namespace qk {
 
 	void Keyframe::onMake(ViewProp key, Property* prop) {
 		if (_host) {
-			for (auto i: _host->_frames_RT) {
+			for (auto i: _host->_frames_Rt) {
 				if (i != this) {
 					i->_props.set(key, prop->copy());
 				}
@@ -93,39 +93,39 @@ namespace qk {
 		}
 	}
 
-	void KeyframeAction::clear_RT() {
-		for (auto i : _frames_RT) {
+	void KeyframeAction::clear_Rt() {
+		for (auto i : _frames_Rt) {
 			i->_host = nullptr;
 			i->release();
 		}
-		_frames_RT.clear();
+		_frames_Rt.clear();
 
 		if ( _duration ) {
-			Action::update_duration_RT( -_duration );
+			Action::update_duration_Rt( -_duration );
 		}
 	}
 
 	bool KeyframeAction::hasProperty(ViewProp name) {
-		return _frames_RT.length() && _frames_RT.front()->hasProperty(name);
+		return _frames_Rt.length() && _frames_Rt.front()->hasProperty(name);
 	}
 
-	uint32_t KeyframeAction::advance_RT(uint32_t time_span, bool restart, Action* root) {
+	uint32_t KeyframeAction::advance_Rt(uint32_t time_span, bool restart, Action* root) {
 		time_span *= _speed;
 
 		if ( !_startPlay || restart ) { // no start play or restart
 			_time = _frame = 0;
 			_looped = 0;
 
-			if ( _frames_RT.length() ) {
+			if ( _frames_Rt.length() ) {
 				_startPlay = true;
 				_time = _frame = 0;
-				_frames_RT[0]->apply(root->_target);
-				trigger_ActionKeyframe_RT(time_span, 0, root);
+				_frames_Rt[0]->apply(root->_target);
+				trigger_ActionKeyframe_Rt(time_span, 0, root);
 
 				if ( time_span == 0 ) {
 					return 0;
 				}
-				if ( _frames_RT.length() == 1 ) {
+				if ( _frames_Rt.length() == 1 ) {
 					return time_span / _speed;
 				}
 			} else {
@@ -136,31 +136,31 @@ namespace qk {
 	start:
 		uint32_t f1 = _frame, f2 = f1 + 1;
 
-		if ( f2 < _frames_RT.length() ) {
+		if ( f2 < _frames_Rt.length() ) {
 		advance:
 			if ( root->_id == Id() ) { // is not playing
 				return 0;
 			}
 			int32_t time = _time + time_span;
-			int32_t time1 = _frames_RT[f1]->time();
-			int32_t time2 = _frames_RT[f2]->time();
+			int32_t time1 = _frames_Rt[f1]->time();
+			int32_t time2 = _frames_Rt[f2]->time();
 			int32_t t = time - time2;
 
 			if ( t < 0 ) {
 				time_span = 0;
 				_time = time;
 				float x = (time - time1) / float(time2 - time1);
-				float y = _frames_RT[f1]->_curve.fixed_solve_y(x, 0.001);
-				_frames_RT[f1]->applyTransition(root->_target, _frames_RT[f2], y);
+				float y = _frames_Rt[f1]->_curve.fixed_solve_y(x, 0.001);
+				_frames_Rt[f1]->applyTransition(root->_target, _frames_Rt[f2], y);
 			} else if ( t > 0 ) {
 				time_span = t;
 				_frame = f2;
 				_time = time2;
-				trigger_ActionKeyframe_RT(t, f2, root); // trigger event action_key_frame
+				trigger_ActionKeyframe_Rt(t, f2, root); // trigger event action_key_frame
 
 				f1 = f2; f2++;
 
-				if ( f2 < _frames_RT.length() ) {
+				if ( f2 < _frames_Rt.length() ) {
 					goto advance;
 				} else {
 					goto loop;
@@ -169,8 +169,8 @@ namespace qk {
 				time_span = 0;
 				_time = time;
 				_frame = f2;
-				_frames_RT[f2]->apply(root->_target);
-				trigger_ActionKeyframe_RT(0, f2, root); // trigger event action_key_frame
+				_frames_Rt[f2]->apply(root->_target);
+				trigger_ActionKeyframe_Rt(0, f2, root); // trigger event action_key_frame
 			}
 
 		} else { // last frame
@@ -179,11 +179,11 @@ namespace qk {
 				_looped++;
 				_frame = 0;
 				_time = 0;
-				trigger_ActionLoop_RT(time_span, root);
-				trigger_ActionKeyframe_RT(time_span, 0, root);
+				trigger_ActionLoop_Rt(time_span, root);
+				trigger_ActionKeyframe_Rt(time_span, 0, root);
 				goto start;
 			} else {
-				_frames_RT[f1]->apply(root->_target);
+				_frames_Rt[f1]->apply(root->_target);
 				_startPlay = false; // end reset
 			}
 		}
@@ -192,13 +192,13 @@ namespace qk {
 		return time_span / _speed;
 	}
 
-	void KeyframeAction::seek_time_RT(uint32_t time, Action* root) {
+	void KeyframeAction::seek_time_Rt(uint32_t time, Action* root) {
 		_looped = 0;
 
-		if ( _frames_RT.length() ) {
+		if ( _frames_Rt.length() ) {
 			Keyframe* frame = nullptr;
 
-			for ( auto& i: _frames_RT ) {
+			for ( auto& i: _frames_Rt ) {
 				if ( time < i->time() ) {
 					break;
 				}
@@ -210,23 +210,23 @@ namespace qk {
 			uint32_t f0 = _frame;
 			uint32_t f1 = f0 + 1;
 
-			if ( f1 < _frames_RT.length() ) {
+			if ( f1 < _frames_Rt.length() ) {
 				int32_t time0 = frame->time();
-				int32_t time1 = _frames_RT[f1]->time();
+				int32_t time1 = _frames_Rt[f1]->time();
 				float x = (_time - time0) / float(time1 - time0);
 				float y = frame->_curve.fixed_solve_y(x, 0.001);
-				_frames_RT[f0]->applyTransition(root->_target, _frames_RT[f1], y);
+				_frames_Rt[f0]->applyTransition(root->_target, _frames_Rt[f1], y);
 			} else { // last frame
-				_frames_RT[f0]->apply(root->_target);
+				_frames_Rt[f0]->apply(root->_target);
 			}
 
 			if ( _time == frame->time() ) {
-				trigger_ActionKeyframe_RT(0, _frame, root);
+				trigger_ActionKeyframe_Rt(0, _frame, root);
 			}
 		}
 	}
 
-	void KeyframeAction::seek_before_RT(uint32_t time, Action* child) {
+	void KeyframeAction::seek_before_Rt(uint32_t time, Action* child) {
 		Qk_UNIMPLEMENTED();
 	}
 

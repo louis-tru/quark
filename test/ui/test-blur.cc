@@ -2,7 +2,7 @@
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
 #include <quark/ui/screen.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/root.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
 
@@ -10,10 +10,9 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestBlur: public BoxLayout {
+class TestBlur: public Box {
 public:
 	float i = 0;
-	TestBlur(Window *win): BoxLayout(win) {}
 
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
@@ -50,7 +49,7 @@ public:
 		//paint.type = Paint::kBitmap_Type;
 		canvas->drawRect({{0},{width}}, paint);
 
-		mark_render();
+		mark();
 	}
 };
 
@@ -59,7 +58,7 @@ void test_blur(int argc, char **argv) {
 	// auto win2 = Window::Make({.frame={{0,0}, {200,200}}, .title="win2"});
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});
 	auto r = win->root();
-	auto t = New<Box>(new TestBlur(win))->append_to<Box>(r);
+	auto t = r->append_new<TestBlur>();
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });

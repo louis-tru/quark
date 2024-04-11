@@ -1,6 +1,6 @@
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/root.h>
 #include <quark/ui/css/css.h>
 
 using namespace qk;

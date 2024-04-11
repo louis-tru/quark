@@ -80,17 +80,31 @@ namespace qk {
 	static void* default_object_alloc(size_t size) {
 		return ::malloc(size);
 	}
-	static void default_object_release(Object* obj) {
-		obj->~Object();
-		::free(obj);
+	static void default_object_free(void *ptr) {
+		::free(ptr);
 	}
-	static void default_object_retain(Object* obj) {
-		/* NOOP */
+	static void default_object_strong(Object* obj) {
+	}
+	static void default_object_weak(Object* obj) {
+		obj->destroy(); // The default weak will be directly destroyed
 	}
 
 	static void* (*object_allocator_alloc)(size_t size) = &default_object_alloc;
-	static void  (*object_allocator_release)(Object* obj) = &default_object_release;
-	static void  (*object_allocator_retain)(Object* obj) = &default_object_retain;
+	static void  (*object_allocator_free)(void *ptr) = &default_object_free;
+	static void  (*object_allocator_strong)(Object* obj) = &default_object_strong;
+	static void  (*object_allocator_weak)(Object* obj) = &default_object_weak;
+
+	void Object::setAllocator(
+		void* (*alloc)(size_t size), void (*free)(void *ptr),
+		void (*strong)(Object* obj), void (*weak)(Object* obj)
+	) {
+		object_allocator_alloc = alloc ? alloc: &default_object_alloc;
+		object_allocator_free = free ? free: &default_object_free;
+		object_allocator_strong = strong ? strong: &default_object_strong;
+		object_allocator_weak = weak ? weak: &default_object_weak;
+	}
+
+	// ---------------- O b j e c t ----------------
 
 #if Qk_MEMORY_TRACE_MARK
 	static int active_mark_objects_count_ = 0;
@@ -118,6 +132,7 @@ namespace qk {
 			Qk_ASSERT(active_mark_objects_count_);
 			active_mark_objects_count_--;
 		}
+		object_allocator_free(this);
 	}
 
 	std::vector<Object*> Object::mark_objects() {
@@ -145,8 +160,12 @@ namespace qk {
 	}
 #endif
 
-	bool Object::isReference() const {
-		return false;
+	Object::~Object() {
+		object_allocator_free(this);
+	}
+
+	void Object::destroy() {
+		this->~Object();
 	}
 
 	bool Object::retain() {
@@ -154,7 +173,11 @@ namespace qk {
 	}
 
 	void Object::release() {
-		object_allocator_release(this);
+		object_allocator_weak(this);
+	}
+
+	bool Object::isReference() const {
+		return false;
 	}
 
 	void* Object::operator new(size_t size) {
@@ -175,24 +198,7 @@ namespace qk {
 		Qk_UNREACHABLE("Modify to `Release(obj)`");
 	}
 
-	void Object::setAllocator(
-		void* (*alloc)(size_t size), void (*release)(Object* obj), void (*retain)(Object* obj)
-	) {
-		object_allocator_alloc = alloc ? alloc: &default_object_alloc;
-		object_allocator_release = release ? release: &default_object_release;
-		object_allocator_retain = retain ? retain: &default_object_retain;
-	}
-
-	// bool IsNullptr(const Object* obj) {}
-
-	bool Retain(Object* obj) {
-		return obj ? obj->retain() : false;
-	}
-
-	void Release(Object* obj) {
-		if ( obj )
-			obj->release();
-	}
+	// ---------------- R e f e r e n c e ----------------
 
 	Reference::~Reference() {
 		Qk_ASSERT( _refCount <= 0 );
@@ -201,7 +207,7 @@ namespace qk {
 	bool Reference::retain() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( _refCount++ == 0 ) {
-			object_allocator_retain(this);
+			object_allocator_strong(this);
 		}
 		return true;
 	}
@@ -209,12 +215,22 @@ namespace qk {
 	void Reference::release() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
-			object_allocator_release(this);
+			object_allocator_weak(this);
 		}
 	}
 
 	bool Reference::isReference() const {
 		return true;
+	}
+
+	bool Retain(Object* obj) {
+		return obj ? obj->retain() : false;
+	}
+
+	void Release(Object* obj) {
+		if ( obj ) {
+			obj->release();
+		}
 	}
 
 }

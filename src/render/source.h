@@ -133,11 +133,11 @@ namespace qk {
 		inline cArray<Pixel>& pixels() const { return _pixels; }
 
 		/**
-		 * @method texture_RT(index) get  image texture with index
+		 * @method texture_Rt(index) get  image texture with index
 		 * @thread render
 		*/
-		inline const TexStat* texture_RT(uint32_t index) const {
-			return index < _tex_RT.length() ? _tex_RT[index]: nullptr;
+		inline const TexStat* texture_Rt(uint32_t index) const {
+			return index < _tex_Rt.length() ? _tex_Rt[index]: nullptr;
 		}
 
 		/**
@@ -163,7 +163,7 @@ namespace qk {
 		Array<Pixel> _copyInfo(Array<Pixel>& src);
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
-		Array<const TexStat*> _tex_RT;
+		Array<const TexStat*> _tex_Rt;
 		uint32_t     _loadId;
 		RenderBackend *_render; // weak ref, texture mark
 		RunLoop       *_loop;

@@ -45,22 +45,22 @@ namespace qk {
 			delete i.value;
 	}
 
-	void StyleSheets::apply(Layout *layout) const {
-		Qk_ASSERT(layout);
+	void StyleSheets::apply(View *view) const {
+		Qk_ASSERT(view);
 		if (_props.length()) {
 			for ( auto i: _props ) {
-				i.value->apply(layout);
+				i.value->apply(view);
 			}
 		}
 	}
 
-	void StyleSheets::applyTransition(Layout* layout, StyleSheets *to, float y) const {
+	void StyleSheets::applyTransition(View* view, StyleSheets *to, float y) const {
 		if (_props.length()) {
 			Qk_ASSERT(_props.length() == to->_props.length());
 			auto a = _props.begin(), e = _props.end();
 			auto b = to->_props.begin();
 			while (a != e) {
-				a->value->transition(layout, b->value, y);
+				a->value->transition(view, b->value, y);
 				a++; b++;
 			}
 		}

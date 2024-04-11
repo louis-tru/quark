@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./pre_render.h"
-#include "./layout/layout.h"
+#include "./view/view.h"
 #include "./text/text_opts.h"
 #include "./window.h"
 #include "./app.h"
@@ -44,33 +44,37 @@ namespace qk {
 	PreRender::PreRender(Window *win)
 		: _mark_total(0)
 		, _window(win)
-		, _is_render(false)
+		, _is_render(false), _is_render_Mt(false)
 	{}
 
-	void PreRender::mark_layout(Layout *layout, uint32_t level) {
+	void PreRender::mark_layout(View *view, uint32_t level) {
 		Qk_ASSERT(level);
 		_marks.extend(level + 1);
 		auto& arr = _marks[level];
-		layout->_mark_index = arr.length();
-		arr.push(layout);
+		view->_mark_index = arr.length();
+		arr.push(view);
 		_mark_total++;
 	}
 
-	void PreRender::unmark_layout(Layout *layout, uint32_t level) {
+	void PreRender::unmark_layout(View *view, uint32_t level) {
 		Qk_ASSERT(level);
 		auto& arr = _marks[level];
 		auto last = arr[arr.length() - 1];
-		if (last != layout) {
-			arr[layout->_mark_index] = last;
+		if (last != view) {
+			arr[view->_mark_index] = last;
 		}
 		arr.pop();
-		layout->_mark_index = -1;
+		view->_mark_index = -1;
 		_mark_total--;
 		_is_render = true;
 	}
 
 	void PreRender::mark_render() {
 		_is_render = true;
+	}
+
+	void PreRender::mark_render_Mt() {
+		_is_render_Mt = true;
 	}
 
 	void PreRender::addtask(Task* task) {
@@ -93,15 +97,15 @@ namespace qk {
 	void PreRender::solveMarks() {
 		// First forward iteration
 		for (auto &levelMarks: _marks) {
-			for (auto &layout: levelMarks) {
-				if (layout) {
-					if (layout->_mark_value & Layout::kStyle_Class) {
-						layout->applyClass(layout->parentSsclass());
+			for (auto &view: levelMarks) {
+				if (view) {
+					if (view->_mark_value & View::kStyle_Class) {
+						view->applyClass_Rt(view->parentSsclass_Rt());
 					}
-					if ( layout->layout_forward(layout->_mark_value) ) {
+					if ( view->layout_forward(view->_mark_value) ) {
 						// simple delete mark
-						layout->_mark_index = -1;
-						layout = nullptr;
+						view->_mark_index = -1;
+						view = nullptr;
 						_mark_total--;
 					}
 				}
@@ -114,12 +118,12 @@ namespace qk {
 			// reverse iteration
 			for (int i = _marks.length() - 1; i >= 0; i--) {
 				auto &levelMarks = _marks[i];
-				for (auto &layout: levelMarks) {
-					if (layout) {
-						if ( layout->layout_reverse(layout->_mark_value) ) {
+				for (auto &view: levelMarks) {
+					if (view) {
+						if ( view->layout_reverse(view->_mark_value) ) {
 							// simple delete mark recursive
-							layout->_mark_index = -1;
-							layout = nullptr;
+							view->_mark_index = -1;
+							view = nullptr;
 							_mark_total--;
 						}
 					}
@@ -129,12 +133,12 @@ namespace qk {
 
 			// forward iteration
 			for (auto &levelMarks: _marks) {
-				for (auto &layout: levelMarks) {
-					if (layout) {
-						if ( layout->layout_forward(layout->_mark_value) ) {
+				for (auto &view: levelMarks) {
+					if (view) {
+						if ( view->layout_forward(view->_mark_value) ) {
 							// simple delete mark
-							layout->_mark_index = -1;
-							layout = nullptr;
+							view->_mark_index = -1;
+							view = nullptr;
 							_mark_total--;
 						}
 					}
@@ -157,6 +161,10 @@ namespace qk {
 	}
 
 	void PreRender::asyncCommit() {
+		if (_is_render_Mt) {
+			_is_render_Mt = false;
+			async_call([](auto self, auto arg) { self->_is_render = true; }, this, 0);
+		}
 		if (_asyncCall.length()) {
 			_asyncCommitMutex.lock();
 			_asyncCommit.concat(std::move(_asyncCall));
@@ -183,7 +191,7 @@ namespace qk {
 	bool PreRender::solve(int64_t time) {
 		solveAsyncCall();
 
-		_window->actionCenter()->advance_RT(uint32_t(uint64_t(time) / 1000)); // advance action
+		_window->actionCenter()->advance_Rt(uint32_t(uint64_t(time) / 1000)); // advance action
 
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();

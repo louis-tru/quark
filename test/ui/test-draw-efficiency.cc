@@ -2,7 +2,7 @@
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
 #include <quark/ui/screen.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/root.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
 
@@ -10,9 +10,8 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestDrawEfficiency: public BoxLayout {
+class TestDrawEfficiency: public Box {
 public:
-	TestDrawEfficiency(Window *win): BoxLayout(win) {}
 
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
@@ -33,7 +32,7 @@ public:
 			canvas->drawPath(circle, paint);
 		}
 		canvas->restore();
-		mark_render();
+		mark();
 	}
 };
 
@@ -42,7 +41,7 @@ void test_draw_efficiency(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
 	// layout
-	auto t = New<Box>(new TestDrawEfficiency(win))->append_to(win->root())->layout<TestDrawEfficiency>();
+	auto t = win->root()->append_new<TestDrawEfficiency>();
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

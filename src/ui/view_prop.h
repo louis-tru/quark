@@ -98,9 +98,9 @@ namespace qk {
 	F(CURSOR_COLOR, Color, cursor_color, Input) \
 	F(MAX_LENGTH, uint32_t, max_length, Input) \
 	F(PLACEHOLDER, String, placeholder, Input) /*****Large size data*****/\
-	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollLayoutBase) /*scroll/textarea of ScrollLayoutBase*/ \
-	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollLayoutBase) \
-	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollLayoutBase) \
+	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollViewBase) /*scroll/textarea of ScrollViewBase*/ \
+	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollViewBase) \
+	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollViewBase) \
 	F(X, float, x, Transform) /*transform*/ \
 	F(Y, float, y, Transform) \
 	F(SCALE_X, float, scale_x, Transform) \
@@ -142,7 +142,7 @@ namespace qk {
 		void (Object::*set)();
 	};
 
-	Qk_EXPORT PropAccessor* prop_accessor_at_layout(ViewType type, ViewProp prop);
+	Qk_EXPORT PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop);
 }
 
 #endif

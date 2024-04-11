@@ -40,7 +40,7 @@
 namespace qk {
 	class Window;
 	class View;
-	class Layout;
+	class View;
 	class PreRender;
 
 	/**
@@ -73,13 +73,15 @@ namespace qk {
 
 		/**
 		 * NOTE only render thread call
-		 * @method mark_layout
+		 * @method mark
+		 * @safe Rt
 		 */
-		void mark_layout(Layout *layout, uint32_t depth);
-		void unmark_layout(Layout *layout, uint32_t depth);
-		void mark_render(); // mark render state
-		void addtask(Task* task); // add pre render task
-		void untask(Task* task); // delete pre render task
+		void mark_layout(View *view, uint32_t depth);
+		void unmark_layout(View *view, uint32_t depth); // @safe Rt
+		void mark_render();  // @safe Rt mark render state
+		void addtask(Task* task);  // @safe Rt add pre render task
+		void untask(Task* task);  // @safe Rt delete pre render task
+		void mark_render_Mt(); // @safe Mt
 
 		/**
 		 * @struct AsyncCall data
@@ -96,7 +98,7 @@ namespace qk {
 		 * 
 		 * @method async_call()
 		*/
-		template<typename E, typename Arg, typename Ctx = Layout>
+		template<typename E, typename Arg, typename Ctx = View>
 		inline void async_call(E exec, Ctx *ctx, Arg arg) {
 			static_assert(sizeof(Arg) <= sizeof(AsyncCall::Arg), "");
 			union uArg { AsyncCall::Arg _; Arg arg; };
@@ -108,26 +110,27 @@ namespace qk {
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
 		 * @method solve()
+		 * @safe Rt
 		 */
 		bool solve(int64_t time);
-		void solveMarks(); // solve layout marks
+		void solveMarks(); // solve view marks
 		void clearTasks();
 		void asyncCommit(); // commit async cmd to ready, only main thread call
 		void solveAsyncCall();
 		void flushAsyncCall();
 
-		struct LevelMarks: Array<Layout*> {
+		struct LevelMarks: Array<View*> {
 			void clear();
 		};
 
 		Window *_window;
 		int32_t _mark_total;
 		List<Task*> _tasks;
-		Array<LevelMarks> _marks; // marked view
+		Array<LevelMarks> _marks; // marked view layout
 		Array<AsyncCall> _asyncCall;
 		Array<AsyncCall> _asyncCommit;
 		Mutex _asyncCommitMutex;
-		bool _is_render; // next frame render
+		bool _is_render, _is_render_Mt; // next frame render
 		friend class Application;
 		friend class Window;
 	};

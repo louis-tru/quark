@@ -68,8 +68,8 @@ namespace qk {
 	class Qk_EXPORT KeyframeAction: public Action {
 	public:
 		// Props
-		Qk_DEFINE_PROP_GET(uint32_t, time, Const); //@RT get, play time
-		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@RT get
+		Qk_DEFINE_PROP_GET(uint32_t, time, Const); //@safe Rt get, play time
+		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@safe Rt get
 
 		KeyframeAction(Window *win);
 		~KeyframeAction();
@@ -90,7 +90,7 @@ namespace qk {
 
 		/**
 		* @method has_property
-		* @RT
+		* @safe Rt
 		*/
 		bool hasProperty(ViewProp name);
 
@@ -106,12 +106,12 @@ namespace qk {
 
 	private:
 		virtual void append(Action *child);
-		virtual uint32_t advance_RT(uint32_t time_span, bool restart, Action* root);
-		virtual void seek_time_RT(uint32_t time, Action* root);
-		virtual void seek_before_RT(uint32_t time, Action* child);
-		virtual void clear_RT();
+		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root);
+		virtual void seek_time_Rt(uint32_t time, Action* root);
+		virtual void seek_before_Rt(uint32_t time, Action* child);
+		virtual void clear_Rt();
 
-		Array<Keyframe*> _frames, _frames_RT;
+		Array<Keyframe*> _frames, _frames_Rt;
 		bool _startPlay;
 
 		friend class Keyframe;

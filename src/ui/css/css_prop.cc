@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./css.h"
-#include "../layout/layout.h"
+#include "../view/view.h"
 #include "../window.h"
 
 namespace qk {
@@ -43,7 +43,7 @@ namespace qk {
 	}
 
 	template<typename T>
-	inline void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, Layout *target) {
+	inline void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, View *target) {
 		Qk_UNIMPLEMENTED();
 	}
 
@@ -53,12 +53,12 @@ namespace qk {
 	}
 
 	template<>
-	void transition_value_ptr(BoxFilter *v1, BoxFilter *v2, float t, ViewProp prop, Layout *target) {
+	void transition_value_ptr(BoxFilter *v1, BoxFilter *v2, float t, ViewProp prop, View *target) {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
-			auto v = (target->*(BoxFilter* (Layout::*)())acc->get)();
+			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
 			auto v_new = v1->transition(v, v2, t);
-			(target->*(void (Layout::*)(BoxFilter*))acc->set)(v_new);
+			(target->*(void (View::*)(BoxFilter*))acc->set)(v_new);
 		}
 	}
 
@@ -150,14 +150,14 @@ namespace qk {
 	template<typename T>
 	struct PropImpl: Property {
 		inline PropImpl(ViewProp prop, T value): _prop(prop), _value(value) {}
-		void apply(Layout *target) override {
-			auto set = (void (Layout::*)(T))(target->accessor() + _prop)->set;
+		void apply(View *target) override {
+			auto set = (void (View::*)(T))(target->accessor() + _prop)->set;
 			if (set)
 				(target->*set)(_value);
 		}
-		void transition(Layout *target, Property *to, float y) override {
+		void transition(View *target, Property *to, float y) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
-			auto set = (void (Layout::*)(T))(target->accessor() + _prop)->set;
+			auto set = (void (View::*)(T))(target->accessor() + _prop)->set;
 			if (set)
 				(target->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y));
 		}
@@ -179,12 +179,12 @@ namespace qk {
 		~PropImpl() {
 			_value->release();
 		}
-		void apply(Layout *target) override {
-			auto set = (void (Layout::*)(T*))(target->accessor() + _prop)->set;
+		void apply(View *target) override {
+			auto set = (void (View::*)(T*))(target->accessor() + _prop)->set;
 			if (set)
 				(target->*set)(_value);
 		}
-		void transition(Layout *target, Property *to, float t) override {
+		void transition(View *target, Property *to, float t) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
 			transition_value_ptr(
 				static_cast<BoxFilter*>(_value),

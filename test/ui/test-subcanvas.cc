@@ -2,18 +2,18 @@
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
 #include <quark/ui/screen.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/root.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
 
 using namespace qk;
 
-class TestSubcanvas: public BoxLayout {
+class TestSubcanvas: public Box {
 public:
 	Sp<Canvas> _c;
 
-	TestSubcanvas(Window *win): BoxLayout(win) {
-		_c = window()->render()->newCanvas({.isMipmap=0});
+	TestSubcanvas(Window *win) {
+		_c = win->render()->newCanvas({.isMipmap=0});
 		_c->setSurface({600},2);
 	}
 
@@ -37,7 +37,7 @@ public:
 		ipaint.setCanvas(*_c, rect);
 		canvas->drawRect(rect, paint);
 
-		mark_render();
+		mark();
 	}
 };
 
@@ -46,8 +46,8 @@ void test_subcanvas(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
 	win->activate();
 	auto r = win->root();
-	auto t = New<Box>(new TestSubcanvas(win))->append_to<Box>(r)->layout<BoxLayout>();
-	r->layout<BoxLayout>()->set_background_color({255,255,255,0});
+	auto t = r->append_new<TestSubcanvas>(r->window());
+	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	app.run();

@@ -1,9 +1,9 @@
 
 #include <quark/ui/app.h>
-#include <quark/ui/view.h>
+#include <quark/ui/view/view.h>
 #include <quark/ui/window.h>
 #include <quark/ui/screen.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/root.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
 
@@ -11,9 +11,8 @@ using namespace qk;
 
 constexpr unsigned int u32 = 1;
 
-class TestRRect: public BoxLayout {
+class TestRRect: public Box {
 public:
-	TestRRect(Window *o): BoxLayout(o) {}
 
 	void draw(UIRender *r) override {
 		auto canvas = window()->render()->getCanvas();
@@ -76,7 +75,7 @@ public:
 		canvas->drawPath(circle, paint);
 		canvas->restore();
 
-		mark_render();
+		mark();
 	}
 };
 
@@ -84,7 +83,7 @@ void test_rrect(int argc, char **argv) {
 	App app;
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
-	auto t = New<Box>(new TestRRect(win))->append_to<Box>(win->root());
+	auto t = win->root()->append_new<TestRRect>();
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

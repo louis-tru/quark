@@ -197,7 +197,7 @@ namespace qk {
 		bool onRenderBackendDisplay() override;
 		void openImpl(Options &opts);
 		void closeImpl();
-		bool destroy(); // destroy window and protform window
+		bool Destroy(); // destroy window and protform window
 
 		/**
 		 * Create an application object before creating a window

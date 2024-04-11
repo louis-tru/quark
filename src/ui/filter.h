@@ -37,7 +37,7 @@
 #include "../util/array.h"
 
 namespace qk {
-	class Layout;
+	class View;
 
 	/**
 	* @class Box Filter, Single linked list struct
@@ -50,19 +50,19 @@ namespace qk {
 			kGradientLinear, kGradientRadial,
 			kShadow, kBlur, kBackdropBlur,
 		};
-		Qk_DEFINE_PROP_GET(Layout*, holder);
+		Qk_DEFINE_PROP_GET(View*, holder);
 		Qk_DEFINE_PROP_ACC(BoxFilter*, next);
 
 		BoxFilter();
 		virtual void release() override;
 		virtual Type type() const = 0;
-		virtual BoxFilter* copy(BoxFilter *dest) = 0; // @RT
-		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t) = 0; // @RT
-		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, Layout *holder); // @RT
+		virtual BoxFilter* copy(BoxFilter *dest) = 0; // @safe Rt
+		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t) = 0; // @safe Rt
+		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, View *holder); // @safe Rt
 	protected:
-		void set_next_RT(BoxFilter* value);
+		void set_next_Rt(BoxFilter* value);
 	private:
-		void set_holder_RT(Layout *holder);
+		void set_holder_Rt(View *holder);
 		BoxFilter *_next;
 		uint32_t _safe_mark;
 		bool     _isHolder;
@@ -102,7 +102,7 @@ namespace qk {
 	protected:
 		Array<float> _pos;
 		Array<Color4f> _colors;
-		void transition_g_RT(BoxFilter* dest, BoxFilter *to, float t);
+		void transition_g_Rt(BoxFilter* dest, BoxFilter *to, float t);
 	};
 
 	class Qk_EXPORT FillGradientLinear: public FillGradient {

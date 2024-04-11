@@ -39,11 +39,11 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
-		void setTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap);
+		void setTex_Rt(cPixelInfo &info, const TexStat *tex, bool isMipmap);
 	};
 
-	void setTex_SourceImage_RT(ImageSource* img, cPixelInfo &i, const TexStat *tex, bool isMipmap) {
-		static_cast<ImageSource::Inl*>(img)->setTex_RT(i, tex, isMipmap);
+	void setTex_SourceImage_Rt(ImageSource* img, cPixelInfo &i, const TexStat *tex, bool isMipmap) {
+		static_cast<ImageSource::Inl*>(img)->setTex_Rt(i, tex, isMipmap);
 	}
 
 	ImageSource::ImageSource(RenderBackend *render, RunLoop *loop): Qk_Init_Event(State)
@@ -167,21 +167,21 @@ namespace qk {
 		_render->post_message(Cb([this,ptr](auto& data) {
 			Sp<Array<Pixel>> hold(ptr);
 			int i = 0;
-			int len = ptr->length(), old_len = _tex_RT.length();
+			int len = ptr->length(), old_len = _tex_Rt.length();
 			Array<const TexStat*> texStat(len);
 
 			while (i < len) {
-				auto tex = const_cast<TexStat *>(i < old_len ? _tex_RT[i]: nullptr);
+				auto tex = const_cast<TexStat *>(i < old_len ? _tex_Rt[i]: nullptr);
 				_render->makeTexture(ptr->val() + i, tex, true);
 				texStat[i++] = tex;
 			}
 
 			while(i < old_len) {
-				if (_tex_RT[i])
-					_render->deleteTexture(const_cast<TexStat *>(_tex_RT[i]));
+				if (_tex_Rt[i])
+					_render->deleteTexture(const_cast<TexStat *>(_tex_Rt[i]));
 				i++;
 			}
-			_tex_RT = std::move(texStat);
+			_tex_Rt = std::move(texStat);
 		}, this));
 	}
 
@@ -213,7 +213,7 @@ namespace qk {
 
 		if (_render) { // as texture, Must be processed in the rendering thread
 			auto render = _render;
-			auto tex = isDestroy ? new Array<const TexStat*>(std::move(_tex_RT)): &_tex_RT;
+			auto tex = isDestroy ? new Array<const TexStat*>(std::move(_tex_Rt)): &_tex_Rt;
 			render->post_message(Cb([isDestroy,render,tex](auto& data) {
 				for (auto i: *tex) {
 					if (i)
@@ -224,14 +224,14 @@ namespace qk {
 		}
 	}
 
-	void ImageSource::Inl::setTex_RT(cPixelInfo &info, const TexStat *tex, bool isMipmap) {
-		if (_tex_RT.length()) { // replace old texture
-			auto oldTex = _tex_RT[0];
+	void ImageSource::Inl::setTex_Rt(cPixelInfo &info, const TexStat *tex, bool isMipmap) {
+		if (_tex_Rt.length()) { // replace old texture
+			auto oldTex = _tex_Rt[0];
 			if (oldTex && oldTex != tex)
 				_render->deleteTexture(const_cast<TexStat *>(oldTex));
-			_tex_RT[0] = tex;
+			_tex_Rt[0] = tex;
 		} else {
-			_tex_RT.push(tex);
+			_tex_Rt.push(tex);
 		}
 		_state = kSTATE_LOAD_COMPLETE;
 		_info = info;

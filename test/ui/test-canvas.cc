@@ -2,8 +2,8 @@
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>
 #include <quark/ui/screen.h>
-#include <quark/ui/layout/box.h>
-#include <quark/ui/layout/root.h>
+#include <quark/ui/view/box.h>
+#include <quark/ui/view/root.h>
 #include <quark/render/paint.h>
 #include <quark/util/codec.h>
 #include <quark/render/render.h>
@@ -11,9 +11,8 @@
 
 using namespace qk;
 
-class MyCanvas: public BoxLayout {
+class MyCanvas: public Box {
 public:
-	MyCanvas(Window *win): BoxLayout(win) {}
 
 	void draw(UIRender *render) override {
 		// mark_none(kLayout_None); return;
@@ -110,7 +109,7 @@ public:
 			// canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 		}
 
-		mark_render();
+		mark();
 	}
 
 };
@@ -120,7 +119,7 @@ void test_canvas(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0});
 	win->activate();
 	// layout
-	auto t = New<Box>(new MyCanvas(win))->append_to<Box>((win->root()));
+	auto t = win->root()->append_new<MyCanvas>();
 	t->set_width({ 0, SizeKind::kMatch });
 	t->set_height({ 0, SizeKind::kMatch });
 	// layout end

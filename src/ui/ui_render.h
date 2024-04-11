@@ -33,21 +33,21 @@
 #ifndef __quark__view_render__
 #define __quark__view_render__
 
-#include "./layout/layout.h"
+#include "./view/view.h"
 #include "../render/render.h"
 #include "../render/canvas.h"
 #include "./filter.h"
 
 namespace qk {
 	class Window;
-	class BoxLayout;
-	class ImageLayout;
-	class ScrollLayout;
-	class InputLayout;
-	class LabelLayout;
-	class RootLayout;
-	class TransformLayout;
-	class ScrollLayoutBase;
+	class Box;
+	class Image;
+	class Scroll;
+	class Input;
+	class Label;
+	class Root;
+	class Transform;
+	class ScrollBase;
 
 	class Qk_EXPORT UIRender: public Object {
 	public:
@@ -57,28 +57,28 @@ namespace qk {
 			const RectOutlinePath *outline = nullptr;
 		};
 		UIRender(Window *window);
-		void visitLayout(Layout* v);
-		void visitBox(BoxLayout* box);
-		void visitImage(ImageLayout* image);
-		void visitScroll(ScrollLayout* scroll);
-		void visitInput(InputLayout* input);
-		void visitLabel(LabelLayout* label);
-		void visitRoot(RootLayout* root);
-		void visitTransform(TransformLayout* transform);
+		void visitView(View* v);
+		void visitBox(Box* box);
+		void visitImage(Image* image);
+		void visitScroll(Scroll* scroll);
+		void visitInput(Input* input);
+		void visitLabel(Label* label);
+		void visitRoot(Root* root);
+		void visitTransform(Transform* transform);
 	private:
-		Rect getRect(BoxLayout* box);
-		void getInsideRectPath(BoxLayout *box, BoxData &out);
-		void getOutsideRectPath(BoxLayout *box, BoxData &out);
-		void getRRectOutlinePath(BoxLayout *box, BoxData &out);
-		void drawBoxColor(BoxLayout *box, BoxData &data);
-		void drawBoxFill(BoxLayout *box, BoxData &data);
-		void drawBoxFillImage(BoxLayout *box, FillImage *fill, BoxData &data);
-		void drawBoxFillLinear(BoxLayout *box, FillGradientLinear *fill, BoxData &data);
-		void drawBoxFillRadial(BoxLayout *box, FillGradientRadial *fill, BoxData &data);
-		void drawBoxShadow(BoxLayout *box, BoxData &data);
-		void drawBoxBorder(BoxLayout *box, BoxData &data);
-		void drawBoxEnd(BoxLayout *box, BoxData &data);
-		void drawScrollBar(BoxLayout *box, ScrollLayoutBase *v);
+		Rect getRect(Box* box);
+		void getInsideRectPath(Box *box, BoxData &out);
+		void getOutsideRectPath(Box *box, BoxData &out);
+		void getRRectOutlinePath(Box *box, BoxData &out);
+		void drawBoxColor(Box *box, BoxData &data);
+		void drawBoxFill(Box *box, BoxData &data);
+		void drawBoxFillImage(Box *box, FillImage *fill, BoxData &data);
+		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data);
+		void drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data);
+		void drawBoxShadow(Box *box, BoxData &data);
+		void drawBoxBorder(Box *box, BoxData &data);
+		void drawBoxEnd(Box *box, BoxData &data);
+		void drawScrollBar(Box *box, ScrollBase *v);
 
 		Window     *_window;
 		Render     *_render;

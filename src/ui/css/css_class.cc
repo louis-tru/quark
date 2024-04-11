@@ -31,12 +31,12 @@
 #include "../app.h"
 #include "./css.h"
 #include "../window.h"
-#include "../layout/layout.h"
+#include "../view/view.h"
 
 namespace qk {
 	#define _async_call _host->window()->preRender().async_call
 
-	CStyleSheetsClass::CStyleSheetsClass(Layout *host)
+	CStyleSheetsClass::CStyleSheetsClass(View *host)
 		: _havePseudoType(false)
 		, _firstApply(true)
 		, _host(host)
@@ -50,96 +50,96 @@ namespace qk {
 	void CStyleSheetsClass::set(cArray<String> &name) {
 		_async_call([](auto ctx, auto val) {
 			Sp<Array<String>> valp(val.arg);
-			ctx->_nameHash.clear();
+			ctx->_nameHash_Rt.clear();
 			for ( auto &j: **valp )
-				ctx->_nameHash.add(CSSName(j).hashCode());
-			ctx->updateClass_RT();
+				ctx->_nameHash_Rt.add(CSSName(j).hashCode());
+			ctx->updateClass_Rt();
 		}, this, new Array<String>(name));
 	}
 
 	void CStyleSheetsClass::add(cString &name) {
 		_async_call([](auto ctx, auto hash) {
-			if (!ctx->_nameHash.has(hash.arg)) {
-				ctx->_nameHash.add(hash.arg);
-				ctx->updateClass_RT();
+			if (!ctx->_nameHash_Rt.has(hash.arg)) {
+				ctx->_nameHash_Rt.add(hash.arg);
+				ctx->updateClass_Rt();
 			}
 		}, this, CSSName(name).hashCode());
 	}
 
 	void CStyleSheetsClass::remove(cString &name) {
 		_async_call([](auto ctx, auto hash) {
-			auto it = ctx->_nameHash.find(hash.arg);
-			if (it != ctx->_nameHash.end()) {
-				ctx->_nameHash.erase(it);
-				ctx->updateClass_RT();
+			auto it = ctx->_nameHash_Rt.find(hash.arg);
+			if (it != ctx->_nameHash_Rt.end()) {
+				ctx->_nameHash_Rt.erase(it);
+				ctx->updateClass_Rt();
 			}
 		}, this, CSSName(name).hashCode());
 	}
 
 	void CStyleSheetsClass::toggle(cString &name) {
 		_async_call([](auto ctx, auto hash) {
-			auto it = ctx->_nameHash.find(hash.arg);
-			if (it == ctx->_nameHash.end()) {
-				ctx->_nameHash.add(hash.arg);
+			auto it = ctx->_nameHash_Rt.find(hash.arg);
+			if (it == ctx->_nameHash_Rt.end()) {
+				ctx->_nameHash_Rt.add(hash.arg);
 			} else {
-				ctx->_nameHash.erase(it);
+				ctx->_nameHash_Rt.erase(it);
 			}
-			ctx->updateClass_RT();
+			ctx->updateClass_Rt();
 		}, this, CSSName(name).hashCode());
 	}
 
-	void CStyleSheetsClass::updateClass_RT() {
-		_host->mark_layout(Layout::kStyle_Class);
+	void CStyleSheetsClass::updateClass_Rt() {
+		_host->mark_layout(View::kStyle_Class);
 		_status = kNone_CSSType; // force apply update
 	}
 
-	void CStyleSheetsClass::setStatus_RT(CSSType status) {
+	void CStyleSheetsClass::setStatus_Rt(CSSType status) {
 		if ( _setStatus != status ) {
 			_setStatus = status;
 			if ( _havePseudoType ) {
-				_host->mark_layout(Layout::kStyle_Class);
+				_host->mark_layout(View::kStyle_Class);
 			}
 		}
 	}
 
-	bool CStyleSheetsClass::apply_RT(CStyleSheetsClass *parent) {
+	bool CStyleSheetsClass::apply_Rt(CStyleSheetsClass *parent) {
 		if (_setStatus == _status) {
 			return false;
 		}
-		auto hash = _stylesHash.hashCode();
+		auto hash = _stylesHash_Rt.hashCode();
 		// reset env
 		_status = _setStatus;
-		_styles.clear();
-		_stylesHash = Hash5381();
+		_styles_Rt.clear();
+		_stylesHash_Rt = Hash5381();
 		_havePseudoType = false;
 		_parent = parent;
 
-		if (_nameHash.length()) {
-			applyFrom(parent);
+		if (_nameHash_Rt.length()) {
+			applyFrom_Rt(parent);
 		}
 		_firstApply = false;
 
 		// affects children CStyleSheetsClass
-		return _stylesHash.hashCode() != hash;
+		return _stylesHash_Rt.hashCode() != hash;
 	}
 
-	void CStyleSheetsClass::applyFrom(CStyleSheetsClass *ssc) {
+	void CStyleSheetsClass::applyFrom_Rt(CStyleSheetsClass *ssc) {
 		if (ssc) {
-			Qk_ASSERT(ssc->_styles.length());
-			applyFrom(ssc->_parent);
-			for (auto ss: ssc->_styles) {
-				applyFindSubstyle(ss);
+			Qk_ASSERT(ssc->_styles_Rt.length());
+			applyFrom_Rt(ssc->_parent);
+			for (auto ss: ssc->_styles_Rt) {
+				applyFindSubstyle_Rt(ss);
 			}
 		} else {
-			applyFindSubstyle(shared_app()->styleSheets()); // apply global style
+			applyFindSubstyle_Rt(shared_app()->styleSheets()); // apply global style
 		}
 	}
 
-	void CStyleSheetsClass::applyFindSubstyle(CStyleSheets *ss) {
-		for (auto &n: _nameHash) {
+	void CStyleSheetsClass::applyFindSubstyle_Rt(CStyleSheets *ss) {
+		for (auto &n: _nameHash_Rt) {
 			qk::CStyleSheets *sss;
 			if (ss->_substyles.get(n.key, sss)) {
-				applyStyle(sss);
+				applyStyle_Rt(sss);
 			}
 		}
 	}
@@ -178,12 +178,12 @@ namespace qk {
 	</bod>
 	*/
 
-	void CStyleSheetsClass::applyStyle(CStyleSheets *ss) {
+	void CStyleSheetsClass::applyStyle_Rt(CStyleSheets *ss) {
 		ss->apply(_host);
 
 		if (ss->_substyles.length()) {
-			_stylesHash.updateu64(uint64_t(ss));
-			_styles.push(ss);
+			_stylesHash_Rt.updateu64(uint64_t(ss));
+			_styles_Rt.push(ss);
 		}
 
 		// apply pseudo class
@@ -196,13 +196,13 @@ namespace qk {
 				case kHover_CSSType: ss_pt = ss->_hover; break;
 				case kActive_CSSType: ss_pt = ss->_active; break;
 			}
-			if (ss_pt) applyStyle(ss_pt);
+			if (ss_pt) applyStyle_Rt(ss_pt);
 		}
 
 		if (ss->_extends.length()) { // apply extend
 			for (auto &i: ss->_extends) { // test right extend
-				if (_nameHash.has(i.key)) { // test ok
-					applyStyle(i.value);
+				if (_nameHash_Rt.has(i.key)) { // test ok
+					applyStyle_Rt(i.value);
 				}
 			}
 		}

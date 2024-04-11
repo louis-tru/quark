@@ -39,7 +39,7 @@
 #include "./text_opts.h"
 
 namespace qk {
-	// @dev text layout
+	// @dev text view
 
 	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
@@ -52,7 +52,7 @@ namespace qk {
 		float           height; // 当前blob高度
 		float           origin; // x-axis offset origin start
 		uint32_t        line;   // line number
-		uint32_t        index;  // blob index in layout unichar glyphs
+		uint32_t        index;  // blob index in view unichar glyphs
 		Canvas::TextBlob blob; // glyphs + cache
 	};
 
