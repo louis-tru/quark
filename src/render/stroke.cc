@@ -33,7 +33,11 @@
 #define Qk_USE_FT_STROKE 0
 
 #if Qk_USE_FT_STROKE
-#include "./ft/ft_path.h"
+extern "C" {
+#include "./ft/ft_math.c"
+#include "./ft/ft_stroke.c"
+}
+#include "./ft/ft_path.cc"
 
 namespace qk {
 

@@ -79,7 +79,7 @@ namespace qk {
 		return frame;
 	}
 
-	Window* Keyframe::window() {
+	Window* Keyframe::getWindowForAsyncSet() {
 		return _host ? _host->_window: nullptr;
 	}
 

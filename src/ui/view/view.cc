@@ -614,7 +614,7 @@ namespace qk {
 	void View::clear_level() { //  clear view depth
 		auto win = _window;
 		if (win->dispatch()->focus_view() == this) {
-			win->host()->loop()->post(Cb([this,win](auto &e) {
+			preRender().post(Cb([this,win](auto &e) {
 				if (win->dispatch()->focus_view() == this) {
 					blur();
 				}

@@ -110,7 +110,9 @@ namespace qk {
 		 * post message to application loop
 		 * @method post()
 		*/
-		void post(Cb cb);
+		inline void post(Cb cb, uint64_t delay_us = 0) {
+			_window->host()->loop()->post(cb, delay_us);
+		}
 
 	private:
 		/**

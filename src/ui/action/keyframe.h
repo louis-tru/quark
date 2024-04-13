@@ -47,7 +47,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
 		// @overwrite
-		virtual Window* window() override;
+		virtual Window* getWindowForAsyncSet() override;
 	private:
 		// @constructor
 		// @private

@@ -87,10 +87,10 @@ namespace qk {
 		void apply(View *view) const;
 
 		/**
-		 * @method window
+		 * @method getWindowForAsyncSet
 		 * Use asynchronous calls when returning window objects
 		*/
-		virtual Window* window();
+		virtual Window* getWindowForAsyncSet();
 
 	private:
 		void applyTransition(View* view, StyleSheets *to, float y) const;

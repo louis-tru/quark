@@ -66,7 +66,7 @@ namespace qk {
 		}
 	}
 
-	Window* StyleSheets::window() {
+	Window* StyleSheets::getWindowForAsyncSet() {
 		return nullptr;
 	}
 

@@ -133,7 +133,7 @@ namespace qk {
 						auto v = *view;
 						if (v) {
 							if (!v->is_focus())
-								self->window()->host()->loop()->post(Cb([v](auto &e) { v->focus(); },v));
+								self->preRender().post(Cb([v](auto &e) { v->focus(); },v));
 							self->handle_Focus_for_render_t();
 							self->find_cursor(arg.arg);
 						}
@@ -221,7 +221,7 @@ namespace qk {
 						// 只有长按输入框超过1秒没有移动才表示激活光标查找
 						auto view = safe_view();
 						if (view) {
-							window()->host()->loop()->post(Cb([this](auto &e) { // delay call
+							preRender().post(Cb([this](auto &e) { // delay call
 								_async_call([](auto ctx, auto arg) {
 									if ( ctx->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
 										ctx->_flag = kFlag_Find_Cursor; // 激活光标定位
@@ -605,7 +605,7 @@ namespace qk {
 			auto view = safe_view();
 			auto v = *view;
 			if (v) {
-				window()->host()->loop()->post(Cb([v](Cb::Data& e){
+				preRender().post(Cb([v](Cb::Data& e){
 					Sp<UIEvent> evt = qk::New<UIEvent>(v);
 					v->trigger(UIEvent_Change, **evt);
 				}, v));

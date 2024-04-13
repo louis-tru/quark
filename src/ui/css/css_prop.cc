@@ -213,7 +213,7 @@ namespace qk {
 		}
 		template<ViewProp key>
 		void asyncSet(T value) {
-			auto win = window();
+			auto win = getWindowForAsyncSet();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
 					self->set(key, arg.arg);
@@ -224,7 +224,7 @@ namespace qk {
 		}
 		template<ViewProp key>
 		void asyncSetLarge(T &value) {
-			auto win = window();
+			auto win = getWindowForAsyncSet();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
 					Sp<T> h(arg.arg);
@@ -274,7 +274,7 @@ namespace qk {
 		template<ViewProp key>
 		void asyncSet(BoxFilter* value) {
 			// value->retain();
-			auto win = window();
+			auto win = getWindowForAsyncSet();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
 					self->set(key, arg.arg);
