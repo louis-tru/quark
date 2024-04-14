@@ -53,7 +53,6 @@ namespace qk {
 		ERR_ACTION_SET_WINDOW_NO_MATCH = -20046,
 		ERR_ACTION_DISABLE_MULTIPLE_TARGET = -20047,
 	};
-
 }
 
 #endif

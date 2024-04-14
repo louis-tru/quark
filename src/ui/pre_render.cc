@@ -93,6 +93,10 @@ namespace qk {
 			(*id) = nullptr;
 		}
 	}
+	
+	void PreRender::post(Cb cb, uint64_t delay_us) {
+		_window->host()->loop()->post(cb, delay_us);
+	}
 
 	void PreRender::solveMarks() {
 		// First forward iteration

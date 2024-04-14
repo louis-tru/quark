@@ -32,77 +32,66 @@
 #define __quark__js__value__
 
 #include "./js.h"
-#include "../types.h"
-#include "../math/bezier.h"
-#include "../background.h"
+#include "../ui/types.h"
+#include "../render/bezier.h"
+#include "../ui/filter.h"
 
-/**
- * @ns qk::js
- */
+namespace qk { namespace js {
+	// using namespace qk::value;
 
-JS_BEGIN
+	#define js_parse_value(Type, value, desc) js_parse_value2(Type, Type, value, desc)
+	#define js_parse_value2(Type, Name, value, desc) \
+		Type out; \
+		if ( !worker->values()->parse##Name(value, out, desc)) \
+		{ return; /*JS_THROW_ERR("Bad argument.");*/ }
 
-using namespace qk::value;
+	#define js_throw_value_err(value, msg, ...)\
+		worker->values()->throwError(t, msg, ##__VA_ARGS__)
 
-#define js_parse_value(Type, value, desc) js_parse_value2(Type, Type, value, desc)
-#define js_parse_value2(Type, Name, value, desc) \
-	Type out; \
-	if ( !worker->values()->parse##Name(value, out, desc)) \
-	{ return; /*JS_THROW_ERR("Bad argument.");*/ }
+	#define js_value_table(F) \
+		F(String, String)                       F(bool, bool) \
+		F(float, float)                         F(int, int) \
+		F(uint, uint)                           F(TextAlign, TextAlign) \
+		F(Align, Align)                         F(ContentAlign, ContentAlign) \
+		F(Border, Border)                       F(Shadow, Shadow) \
+		F(Color, Color)                         F(Vec2, Vec2) \
+		F(Vec3, Vec3)                           F(Vec4, Vec4) \
+		F(Rect, Rect)                         F(Mat, Mat) \
+		F(Mat4, Mat4)                           F(Value, Value) \
+		F(TextColor, TextColor)                 F(TextSize, TextSize)  \
+		F(TextFamily, TextFamily)               F(TextSlant, TextSlant) \
+		F(TextShadow, TextShadow)               F(TextLineHeight, TextLineHeight) \
+		F(TextDecoration, TextDecoration)       F(Repeat, Repeat) \
+		F(Curve, Curve)                         F(Direction, Direction) \
+		F(TextOverflow, TextOverflow)           F(TextWhiteSpace, TextWhiteSpace) \
+		F(KeyboardType, KeyboardType)           F(KeyboardReturnType, KeyboardReturnType) \
+		F(Background, BackgroundPtr)            F(BackgroundPosition, BackgroundPosition) \
+		F(BackgroundSize, BackgroundSize) \
+		/* Append, no actual type */\
+		F(Values, Array<Value>)                 F(BackgroundSizeCollection, BackgroundSizeCollection) \
+		F(Aligns, Array<Align>)                 F(BackgroundPositionCollection, BackgroundPositionCollection) \
+		F(Floats, Array<float>) \
 
-#define js_throw_value_err(value, msg, ...)\
-	worker->values()->throwError(t, msg, ##__VA_ARGS__)
-
-// ------------- values -------------
-
-#define js_value_table(F) \
-F(String, String)                       F(bool, bool) \
-F(float, float)                         F(int, int) \
-F(uint, uint)                           F(TextAlign, TextAlign) \
-F(Align, Align)                         F(ContentAlign, ContentAlign) \
-F(Border, Border)                       F(Shadow, Shadow) \
-F(Color, Color)                         F(Vec2, Vec2) \
-F(Vec3, Vec3)                           F(Vec4, Vec4) \
-F(Rect, Rect)                         F(Mat, Mat) \
-F(Mat4, Mat4)                           F(Value, Value) \
-F(TextColor, TextColor)                 F(TextSize, TextSize)  \
-F(TextFamily, TextFamily)               F(TextSlant, TextSlant) \
-F(TextShadow, TextShadow)               F(TextLineHeight, TextLineHeight) \
-F(TextDecoration, TextDecoration)       F(Repeat, Repeat) \
-F(Curve, Curve)                         F(Direction, Direction) \
-F(TextOverflow, TextOverflow)           F(TextWhiteSpace, TextWhiteSpace) \
-F(KeyboardType, KeyboardType)           F(KeyboardReturnType, KeyboardReturnType) \
-F(Background, BackgroundPtr)            F(BackgroundPosition, BackgroundPosition) \
-F(BackgroundSize, BackgroundSize) \
-/* Append, no actual type */\
-F(Values, Array<Value>)                 F(BackgroundSizeCollection, BackgroundSizeCollection) \
-F(Aligns, Array<Align>)                 F(BackgroundPositionCollection, BackgroundPositionCollection) \
-F(Floats, Array<float>) \
-
-/**
- * @class ValueProgram
- */
-class Qk_EXPORT ValueProgram: public Object {
+	class Qk_EXPORT ValueProgram: public Object {
 	public:
-	#define def_attr_fn(Name, Type)           \
-		Local<JSValue> New(const Type& value);  \
-		bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = nullptr);
-	#define def_attr(Name, Type) \
-		Persistent<JSFunction> _parse##Name; \
-		Persistent<JSFunction> _##Name;
-	ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
-	virtual ~ValueProgram();
-	void throwError(Local<JSValue> value, cChar* msg = nullptr, cChar* help = nullptr);
-	js_value_table(def_attr_fn);
-	bool isBase(Local<JSValue> arg);
+		#define def_attr_fn(Name, Type)           \
+			Local<JSValue> New(const Type& value);  \
+			bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = nullptr);
+		#define def_attr(Name, Type) \
+			Persistent<JSFunction> _parse##Name; \
+			Persistent<JSFunction> _##Name;
+		ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
+		virtual ~ValueProgram();
+		void throwError(Local<JSValue> value, cChar* msg = nullptr, cChar* help = nullptr);
+		js_value_table(def_attr_fn);
+		bool isBase(Local<JSValue> arg);
 	private:
-	js_value_table(def_attr)
-	Persistent<JSFunction> _Base;
-	Worker* worker;
-	#undef def_attr_fn
-	#undef def_attr
-};
+		js_value_table(def_attr)
+		Persistent<JSFunction> _Base;
+		Worker* worker;
+		#undef def_attr_fn
+		#undef def_attr
+	};
 
-
-JS_END
+} }
 #endif

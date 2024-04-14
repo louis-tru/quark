@@ -34,45 +34,42 @@
 #include "./js.h"
 
 #define js_common_string(F)  \
-F(global)         F(exports)        F(constructor) \
-F(console)        F(__proto__)      F(__native_private_data) \
-F(prototype)      F(type)           F(value) \
-F(isAuto)         F(width)          F(height) \
-F(offset)         F(offsetX)        F(offsetY) \
-F(_value)         F(r)              F(g) \
-F(b)              F(a)              F(x) \
-F(y)              F(z)              F(start) \
-F(point)          F(end)            F(w) \
-F(size)           F(color)          F(toJSON) \
-F(stack)          F(get_path)       F(_exit) \
-F(code)           F(message)        F(status) \
-F(url)            F(id)             F(startX) \
-F(startY)         F(force)          F(clickIn) \
-F(view)           F(_noticer)      F(point1X) \
-F(point1Y)        F(point2X)        F(point2Y) \
-F(time)           F(_change_touches) F(name) \
-F(pathname)       F(styles)         F(sender) \
-F(Buffer)         F(data)           F(total) \
-F(complete)       F(httpVersion)    F(statusCode) \
-F(responseHeaders) \
+	F(global)         F(exports)        F(constructor) \
+	F(console)        F(__proto__)      F(__native_private_data) \
+	F(prototype)      F(type)           F(value) \
+	F(isAuto)         F(width)          F(height) \
+	F(offset)         F(offsetX)        F(offsetY) \
+	F(_value)         F(r)              F(g) \
+	F(b)              F(a)              F(x) \
+	F(y)              F(z)              F(start) \
+	F(point)          F(end)            F(w) \
+	F(size)           F(color)          F(toJSON) \
+	F(stack)          F(get_path)       F(_exit) \
+	F(code)           F(message)        F(status) \
+	F(url)            F(id)             F(startX) \
+	F(startY)         F(force)          F(clickIn) \
+	F(view)           F(_noticer)       F(point1X) \
+	F(point1Y)        F(point2X)        F(point2Y) \
+	F(time)           F(_change_touches)F(name) \
+	F(pathname)       F(styles)         F(sender) \
+	F(Buffer)         F(data)           F(total) \
+	F(complete)       F(httpVersion)    F(statusCode) \
+	F(responseHeaders) \
 
-JS_BEGIN
+namespace qk { namespace js {
 
-/**
- * @class CommonStrings
- */
-class Qk_EXPORT CommonStrings: public Object {
+	class Qk_EXPORT CommonStrings: public Object {
 	public:
-	CommonStrings(Worker* worker);
-	#define js_def_persistent_string(name) \
-		public: Local<JSValue> name() { \
-		auto r = reinterpret_cast<Local<JSValue>*>(&__##name##_$_); return *r; } \
-		private: Persistent<JSValue> __##name##_$_;
+		CommonStrings(Worker* worker);
+		#define js_def_persistent_string(name) \
+			public: Local<JSValue> name() { \
+			auto r = reinterpret_cast<Local<JSValue>*>(&__##name##_$_); return *r; } \
+			private: Persistent<JSValue> __##name##_$_;
 	private:
-	Worker* _worker;
-	js_def_persistent_string(Throw)
-	js_common_string(js_def_persistent_string);
-};
+		Worker* _worker;
+		js_def_persistent_string(Throw)
+		js_common_string(js_def_persistent_string);
+	};
 
-JS_END
+} }
 #endif
