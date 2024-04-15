@@ -175,7 +175,7 @@ namespace qk {
 		/**
 		 * @method realloc reset realloc length
 		*/
-		void realloc(uint32_t capacity);
+		void realloc(uint32_t length);
 
 		/**
 		 *
@@ -237,7 +237,7 @@ namespace qk {
 		ArrayBuffer(ArrayBuffer<T, A>& arr): Array<T, A>(std::move(arr)) {}
 		ArrayBuffer(ArrayBuffer<T, A>&& arr): Array<T, A>(std::move(arr)) {}
 
-		ArrayBuffer(T* data, uint32_t length, int32_t capacity = 0)
+		ArrayBuffer(T* data, uint32_t length, uint32_t capacity = 0)
 			: Array<T, A>(length, Qk_MAX(capacity, length), data) {}
 		ArrayBuffer(uint32_t length, uint32_t capacity = 0)
 			: Array<T, A>(length, capacity) {}
@@ -543,13 +543,15 @@ namespace qk {
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
+		template<> Qk_EXPORT void            Array<T, A>::realloc(uint32_t capacity); \
 		template<> Qk_EXPORT void            Array<T, A>::extend(uint32_t length); \
 		template<> Qk_EXPORT std::vector<T>  Array<T, A>::vector() const; \
 		template<> Qk_EXPORT void            Array<T, A>::concat_(T* src, uint32_t src_length); \
 		template<> Qk_EXPORT uint32_t        Array<T, A>::write(const T* src, uint32_t size, int to); \
+		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::push(T&& item); \
+		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::push(const T& item); \
 		template<> Qk_EXPORT Array<T, A>&    Array<T, A>::pop(uint32_t count); \
 		template<> Qk_EXPORT void            Array<T, A>::clear(); \
-		template<> Qk_EXPORT void            Array<T, A>::realloc(uint32_t capacity); \
 		template<> Qk_EXPORT void            Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const \
 
 	#define Qk_DEF_ARRAY_SPECIAL(T) \

@@ -114,12 +114,17 @@ namespace qk { namespace js {
 	class WrapObject;
 	class Allocator;
 	class CommonStrings;
-	template<class T> class Wrap;
-	template<class T> class Maybe;
-	template<class T> class Local;
-	template<class T> class NonCopyablePersistentTraits;
-	template<class T> class PersistentBase;
-	template <class T, class M = NonCopyablePersistentTraits<T> >
+	template<class T>
+	class Wrap;
+	template<class T>
+	class Maybe;
+	template<class T>
+	class Local;
+	template<class T>
+	class NonCopyablePersistentTraits;
+	template<class T>
+	class PersistentBase;
+	template<class T, class M = NonCopyablePersistentTraits<T> >
 	class Persistent;
 	class JSValue;
 	class JSString;
@@ -135,88 +140,74 @@ namespace qk { namespace js {
 	class JSArrayBuffer;
 	class JSClass;
 
-	class Qk_EXPORT NoCopy {
+	class NoCopy {
 	public:
-		Qk_INLINE NoCopy() {}
+		inline NoCopy() {}
 		Qk_HIDDEN_ALL_COPY(NoCopy);
 		Qk_HIDDEN_HEAP_ALLOC();
 	};
 
 	template<class T>
-	class Qk_EXPORT Maybe {
+	class Maybe {
 	public:
-		Maybe() : val_ok_(false) {}
-		explicit Maybe(const T& t) : val_ok_(true), val_(t) {}
-		explicit Maybe(T&& t) : val_ok_(true), val_(move(t)) {}
-		inline bool Ok() const { return val_ok_; }
+		Maybe(): _ok(false) {}
+		explicit Maybe(const T& t): _val(t), _ok(true) {}
+		explicit Maybe(T&& t): _val(move(t)), _ok(true) {}
+		inline bool Ok() const { return _ok; }
 		inline bool To(T& out) {
-			if ( val_ok_ ) {
-				out = move(val_);
-				return true;
-			}
-			return false;
+			return _ok ? (out = std::move(_val), true): false;
 		}
-		inline T FromMaybe(const T& default_value) {
-			return val_ok_ ? move(val_) : default_value;
+		inline T FromMaybe(const T& defaultValue) {
+			return _ok ? std::move(_val) : defaultValue;
 		}
 	private:
-		bool val_ok_;
-		T val_;
+		T    _val;
+		bool _ok;
 	};
 
 	template <class T>
 	class Qk_EXPORT MaybeLocal {
 	public:
-		inline MaybeLocal() : val_(nullptr) {}
+		inline MaybeLocal(): _val(nullptr) {}
 		template <class S>
-		inline MaybeLocal(Local<S> that)
-		: val_(reinterpret_cast<T*>(*that)) {
-			JS_TYPE_CHECK(T, S);
-		}
-		inline bool IsEmpty() const { return val_ == nullptr; }
+		inline MaybeLocal(Local<S> that): _val(that->_val) {}
+		inline bool IsEmpty() const { return _val == nullptr; }
 		template <class S>
 		inline bool ToLocal(Local<S>* out) const {
-			out->val_ = IsEmpty() ? nullptr : this->val_;
-			return !IsEmpty();
+			return _val ? (out->_val = _val, true): (out->_val = nullptr, false);
+		}
+		template <class S>
+		inline Local<S> FromMaybe(Local<S> defaultValue) const {
+			return _val ? Local<S>(_val): defaultValue;
 		}
 		inline Local<T> ToLocalChecked();
-		template <class S>
-		inline Local<S> FromMaybe(Local<S> default_value) const {
-			return IsEmpty() ? default_value : Local<S>(val_);
-		}
 	private:
-		T* val_;
+		T* _val;
 	};
 
 	template<class T>
 	class Qk_EXPORT Local {
 	public:
-		inline Local() : val_(0) {}
+		inline Local(): _val(0) {}
 		template <class S>
-		inline Local(Local<S> that)
-		: val_(reinterpret_cast<T*>(*that)) {
-			JS_TYPE_CHECK(T, S);
-		}
-		inline bool IsEmpty() const { return val_ == 0; }
-		inline void Clear() { val_ = 0; }
-		inline T* operator->() const { return val_; }
-		inline T* operator*() const { return val_; }
-		template <class S> 
-		inline static Local<T> Cast(Local<S> that) {
-			return Local<T>( static_cast<T*>(*that) );
-		}
+		inline Local(Local<S> that): _val(that->_val) {}
+		inline bool IsEmpty() const { return _val == 0; }
+		inline void Clear() { _val = 0; }
+		inline T* operator->() const { return _val; }
+		inline T* operator*() const { return _val; }
 		template <class S = JSObject>
-		inline Local<S> To() const {
-			return Local<S>::Cast(*this); // unsafe conversion
+		inline Local<S> To() const { // unsafe conversion
+			return *reinterpret_cast<Local<S>*>(static_cast<S**>(&_val));
 		}
 	private:
-		explicit inline Local(T* that) : val_(that) {}
-		T* val_;
+		T        *_val;
 		friend class JSValue;
 		friend class JSFunction;
 		friend class JSString;
 		friend class JSClass;
 		friend class Worker;
+		template<class S> friend class MaybeLocal;
+		template<class S> friend class Local;
 	};
 
 	template<class T>
@@ -276,20 +267,21 @@ namespace qk { namespace js {
 	template<class T, class M>
 	class Qk_EXPORT Persistent: public PersistentBase<T> {
 	public:
-		inline Persistent() { }
-		
-		~Persistent() { if(M::kResetInDestructor) this->Reset(); }
-		
+		~Persistent() {
+			if (M::kResetInDestructor)
+				this->Reset();
+		}
+
 		template <class S>
 		inline Persistent(Worker* worker, Local<S> that) {
 			this->Reset(worker, that);
 		}
-		
+
 		template <class S, class M2>
 		inline Persistent(Worker* worker, const Persistent<S, M2>& that) {
 			this->Reset(worker, that);
 		}
-		
+
 		inline Persistent(const Persistent& that) {
 			Copy(that);
 		}
@@ -298,18 +290,18 @@ namespace qk { namespace js {
 		inline Persistent(const Persistent<S, M2>& that) {
 			Copy(that);
 		}
-		
+
 		inline Persistent& operator=(const Persistent& that) {
 			Copy(that);
 			return *this;
 		}
-		
+
 		template <class S, class M2>
 		inline Persistent& operator=(const Persistent<S, M2>& that) {
 			Copy(that);
 			return *this;
 		}
-		
+
 	private:
 		template<class F1, class F2> friend class Persistent;
 		template<class S>
@@ -318,7 +310,8 @@ namespace qk { namespace js {
 			JS_TYPE_CHECK(T, S);
 			JS_TYPE_CHECK(JSValue, T);
 			this->Reset();
-			if ( that.IsEmpty() ) return;
+			if ( that.IsEmpty() )
+				return;
 			reinterpret_cast<PersistentBase<JSValue>*>(this)->
 				Copy(*reinterpret_cast<const PersistentBase<JSValue>*>(&that));
 		}
@@ -361,7 +354,7 @@ namespace qk { namespace js {
 	};
 
 	class Qk_EXPORT PropertySetCallbackInfo: public NoCopy {
-		public:
+	public:
 		Worker* worker() const;
 		Local<JSObject> This() const;
 	};
@@ -377,7 +370,8 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT HandleScope: public NoCopy {
 	public:
-		explicit HandleScope(Worker* worker);
+		explicit
+		HandleScope(Worker* worker);
 		~HandleScope();
 	private:
 		void* val_[3];
@@ -385,7 +379,8 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT CallbackScope: public NoCopy {
 	public:
-		explicit CallbackScope(Worker* worker);
+		explicit
+		CallbackScope(Worker* worker);
 		~CallbackScope();
 	private:
 		void* val_;
@@ -579,7 +574,7 @@ namespace qk { namespace js {
 		~TryCatch();
 		bool HasCaught() const;
 		Local<JSValue> Exception() const;
-		private:
+	private:
 		void* val_;
 	};
 
@@ -589,37 +584,20 @@ namespace qk { namespace js {
 		typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 		typedef void (*WrapAttachCallback)(WrapObject* wrap);
 
-		Worker* create();
+		~Worker();
 
-		/**
-		 * @destructor
-		 */
-		virtual ~Worker();
-
-		/**
-		 * @method worker() get current thread worker
-		 */
 		static Worker* worker();
-		
+
 		template<class T>
 		inline static Worker* worker(T& args) {
 			return args.worker();
 		}
-		
-		/**
-		 * @method registerModule
-		 */
+
 		static void registerModule(cString& name,
 															BindingCallback binding, cChar* file = nullptr);
 
-		/**
-		 * @method bindingModule
-		 */
+		Worker* create();
 		Local<JSValue> bindingModule(cString& name);
-		
-		/**
-		 * @method New()
-		 */
 		Local<JSNumber> New(float data);
 		Local<JSNumber> New(double data);
 		Local<JSBoolean>New(bool data);
@@ -669,7 +647,7 @@ namespace qk { namespace js {
 			auto r_ = reinterpret_cast<Local<T>*>(&r);
 			return *r_;
 		}
-		
+
 		Local<JSValue> New(const PersistentBase<JSValue>& value);
 
 		Local<JSObject> NewInstance(uint64_t id, uint32_t argc = 0, Local<JSValue>* argv = nullptr);
@@ -694,40 +672,26 @@ namespace qk { namespace js {
 		Local<JSValue>  NewNull();
 		Local<JSValue>  NewUndefined();
 		Local<JSSet>    NewSet();
-		
+
 		template<class T>
 		static inline Local<JSValue> New(const Object& obj, Worker* worker) {
 			return worker->New( *static_cast<const T*>(&obj) );
 		}
-		
-		/**
-		 * @method throwError
-		 */
+
 		void throwError(Local<JSValue> exception);
 		void throwError(cChar* errmsg, ...);
-		
-		/**
-		 * @method hasInstance
-		 */
 		bool hasInstance(Local<JSValue> val, uint64_t id);
-		
-		/**
-		 * @method hasView() has View type
-		 */
 		bool hasView(Local<JSValue> val);
 
-		/**
-		 * @method hasInstance
-		 */
 		template<class T> inline bool hasInstance(Local<JSValue> val) {
 			return hasInstance(val, JS_TYPEID(T));
 		}
-		
+
 		/**
 		 * @method jsClass(id) find class
 		 */
 		Local<JSClass> jsClass(uint32_t id);
-		
+
 		/**
 		 * @method result
 		 */
@@ -735,7 +699,7 @@ namespace qk { namespace js {
 		inline void result(const Args& args, Local<T> data) {
 			args.GetReturnValue().Set( data );
 		}
-		
+
 		/**
 		 * @method result
 		 */
@@ -743,7 +707,7 @@ namespace qk { namespace js {
 		inline void result(const Args& args, const T& data) {
 			args.GetReturnValue().Set( New(data) );
 		}
-		
+
 		/**
 		 * @method result
 		 */
@@ -751,7 +715,7 @@ namespace qk { namespace js {
 		inline void result(const Args& args, T&& data) {
 			args.GetReturnValue().Set( New(move(data)) );
 		}
-		
+
 		/**
 		 * @method NewClass js class
 		 */
@@ -794,62 +758,48 @@ namespace qk { namespace js {
 		 * @method values
 		 */
 		ValueProgram* values();
-		
+
 		/**
 		 * @method strs
 		 */
 		CommonStrings* strs();
-		
+
 		/**
 		 * @method threadId
 		 */
 		ThreadID threadId();
-		
+
 		/**
 		 * @method global()
 		 */
 		Local<JSObject> global();
-		
+
 		/**
 		 * @method reportException
 		 */
 		void reportException(TryCatch* try_catch);
-		
+
 		/**
 		 * @method garbageCollection()
 		 */
 		void garbageCollection();
-		
-	private:
 
-		friend class NativeValue;
-		friend class WorkerIMPL;
+	private:
+		Worker(IMPL* inl);
 		Qk_DEFINE_INLINE_CLASS(IMPL);
 		IMPL* _inl;
-
-		Worker(IMPL* inl);
+		friend class NativeValue;
+		friend class WorkerIMPL;
 	};
 
-	/**
-	 * @class WrapObject
-	 */
 	class Qk_EXPORT WrapObject {
 		Qk_HIDDEN_ALL_COPY(WrapObject);
 	protected:
-		
-		inline WrapObject() {}
-		
-		/**
-		 * @destructor
-		 */
 		~WrapObject();
-		
+
 		virtual void initialize();
 		virtual void destroy();
-		
-		/**
-		 * @method New()
-		 */
+
 		template<class W, class O>
 		static Wrap<O>* New(FunctionCall args, O* object) {
 			static_assert(sizeof(W) == sizeof(WrapObject),
@@ -859,7 +809,7 @@ namespace qk { namespace js {
 			wrap->init2(args);
 			return static_cast<js::Wrap<O>*>(static_cast<WrapObject*>(wrap));
 		}
-		
+
 		static WrapObject* attach(FunctionCall args);
 
 	public:
@@ -869,7 +819,6 @@ namespace qk { namespace js {
 		virtual bool removeEventListener(cString& name, int id) {
 			return false;
 		}
-		
 		inline Worker* worker() {
 			return handle_.worker_;
 		}
@@ -891,7 +840,7 @@ namespace qk { namespace js {
 		inline bool del(Local<JSValue> key) {
 			return handle_.local()->Delete(worker(), key);
 		}
-		
+
 		// call member func
 		Local<JSValue> call(Local<JSValue> name, int argc = 0, Local<JSValue> argv[] = nullptr);
 		Local<JSValue> call(cString& name, int argc = 0, Local<JSValue> argv[] = nullptr);
@@ -903,7 +852,7 @@ namespace qk { namespace js {
 
 		// static
 		static bool isPack(Local<JSObject> object);
-		
+
 		template<class T = Object>
 		static inline Wrap<T>* unpack(Local<JSObject> value) {
 			return static_cast<Wrap<T>*>(unpack2(value));
@@ -916,8 +865,8 @@ namespace qk { namespace js {
 		static inline Wrap<T>* pack(T* object, uint64_t type_id) {
 			return static_cast<js::Wrap<T>*>(pack2(object, type_id));
 		}
-		
-		private:
+
+	private:
 		static WrapObject* unpack2(Local<JSObject> object);
 		static WrapObject* pack2(Object* object, uint64_t type_id);
 		void init2(FunctionCall args);

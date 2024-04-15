@@ -215,7 +215,7 @@ namespace qk {
 	}
 	
 	void log_println(cString2& msg) {
-		Log::shared()->log(*codec_encode(kUTF8_Encoding, msg), "\n");
+		Log::shared()->log(*codec_encode(kUTF8_Encoding, msg.array().buffer()), "\n");
 	}
 
 	void log_println_warn(cChar* format, ...) {

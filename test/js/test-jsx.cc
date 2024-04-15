@@ -49,9 +49,9 @@ bool transform_js(cString& src, String2 in, Buffer& out, bool jsx, bool clean_co
 #else
 	try {
 		if ( jsx ) {
-			out = codec_encode(kUTF8_Encoding, javascript_transform_x(in, src, clean_comment));
+			out = codec_encode(kUTF8_Encoding, javascript_transform_x(in, src, clean_comment).array().buffer());
 		} else {
-			out = codec_encode(kUTF8_Encoding, javascript_transform(in, src, clean_comment));
+			out = codec_encode(kUTF8_Encoding, javascript_transform(in, src, clean_comment).array().buffer());
 		}
 	} catch(Error& err) {
 		error(err);

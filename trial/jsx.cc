@@ -2548,7 +2548,7 @@ namespace qk {
 					if (!basename.isEmpty()) {
 						append(S.CONST); // const
 						append(S.SPACE); //
-						append(codec_decode_to_uint16(kUTF8_Encoding, basename)); // identifier
+						append(codec_decode_to_uint16(kUTF8_Encoding, basename.array().buffer())); // identifier
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 					}
@@ -2920,7 +2920,7 @@ namespace qk {
 		}
 		
 		Buffer to_utf8_string(cString2 s) {
-			return codec_encode(kUTF8_Encoding, s);
+			return codec_encode(kUTF8_Encoding, s.array().buffer());
 		}
 		
 		inline void error() {

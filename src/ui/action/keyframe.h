@@ -41,7 +41,7 @@ namespace qk {
 	/**
 	* @class Keyframe
 	*/
-	class Keyframe: public StyleSheets {
+	class Qk_EXPORT Keyframe: public StyleSheets {
 	public:
 		Qk_DEFINE_PROP_GET(uint32_t, index, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);

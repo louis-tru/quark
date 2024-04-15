@@ -95,6 +95,7 @@ namespace qk {
 			uint32_t  _id;
 			bool      _once;
 		};
+
 		// make listener
 		static Listener* MakeListener(ListenerFunc l, void* ctx, bool once);
 		static Listener* MakeStaticListener(StaticListenerFunc l, Object* ctx, bool once);
@@ -119,7 +120,7 @@ namespace qk {
 		virtual void unlock();
 		void off2(bool destroy);
 		void            *_sender;
-		List<Listener*> * volatile _listener;
+		List<Listener*> *_listener;
 	};
 
 	class Qk_EXPORT NotificationBasic {

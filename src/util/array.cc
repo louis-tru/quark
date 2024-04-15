@@ -37,6 +37,14 @@ namespace qk {
 
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
 		\
+		template<> void Array<T, A>::realloc(uint32_t length) { \
+			if (length < _length) { /* clear Partial data */ \
+				_length = length;\
+			} \
+			_ptr.realloc(length+APPEND_ZERO); \
+			if (APPEND_ZERO) _ptr.val[_length] = 0; \
+		} \
+		\
 		template<> void Array<T, A>::extend(uint32_t length) \
 		{ \
 			if (length > _length) {  \
@@ -75,12 +83,23 @@ namespace qk {
 			return size; \
 		} \
 		\
+		template<> \
+		Array<T, A>& Array<T, A>::push(const T& item) { \
+			increase_(_length + APPEND_ZERO + 1); \
+			_ptr.val[_length++] = item;\
+			return *this; \
+		} \
+		template<> \
+		Array<T, A>& Array<T, A>::push(T&& item) { \
+			increase_(_length + APPEND_ZERO + 1); \
+			_ptr.val[_length++] = item;\
+			return *this; \
+		} \
 		template<> Array<T, A>& Array<T, A>::pop(uint32_t count) { \
 			uint32_t j = uint32_t(Qk_MAX(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
-				_ptr.reduce(_length + APPEND_ZERO);\
-				if (APPEND_ZERO) _ptr.val[_length] = 0; \
+				_ptr.reduce(_length + APPEND_ZERO); \
 			} \
 			return *this; \
 		} \
@@ -92,14 +111,6 @@ namespace qk {
 				_ptr.val = nullptr; \
 				_length = 0; \
 			} \
-		} \
-		\
-		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-			if (capacity < _length) { /* clear Partial data */ \
-				_length = capacity;\
-			} \
-			_ptr.realloc(capacity+APPEND_ZERO); \
-			if (APPEND_ZERO) _ptr.val[_length] = 0; \
 		} \
 		\
 		template<> void Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const { \

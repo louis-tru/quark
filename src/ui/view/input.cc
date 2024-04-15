@@ -665,11 +665,11 @@ namespace qk {
 	}
 
 	String Input::value() const {
-		return String(codec_encode(kUTF8_Encoding, _value_u4));
+		return String(codec_encode(kUTF8_Encoding, _value_u4.array().buffer()));
 	}
 
 	String Input::placeholder() const {
-		return String(codec_encode(kUTF8_Encoding, _placeholder_u4));
+		return String(codec_encode(kUTF8_Encoding, _placeholder_u4.array().buffer()));
 	}
 
 	void Input::set_value(String val) {

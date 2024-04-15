@@ -173,7 +173,8 @@ namespace qk {
 
 	void Basic::off(uint32_t id) {
 		if (_listener) {
-			lock(); auto l = _listener;
+			lock();
+			auto l = _listener;
 			for ( auto &i : *l ) {
 				if ( i && i->id() == id ) {
 					delete i; i = nullptr;
@@ -185,7 +186,8 @@ namespace qk {
 	
 	void Basic::off_listener( ListenerFunc listener, void* ctx) {
 		if (_listener) {
-			lock(); auto l = _listener;
+			lock();
+			auto l = _listener;
 			for ( auto &i : *l ) {
 				if( i && i->match(listener, ctx) ) {
 					delete i; i = nullptr;
@@ -202,7 +204,8 @@ namespace qk {
 	
 	void Basic::off_static( StaticListenerFunc listener, void* ctx) {
 		if (_listener) {
-			lock(); auto l = _listener;
+			lock();
+			auto l = _listener;
 			for ( auto &i : *l ) {
 				if( i && i->match(listener, ctx) ) {
 					delete i; i = nullptr;
@@ -251,7 +254,8 @@ namespace qk {
 
 	void Basic::off2(bool destroy) {
 		if (_listener) {
-			lock(); auto l = _listener;
+			lock();
+			auto l = _listener;
 			for ( auto &i : *l ) {
 				delete i; i = nullptr;
 			}

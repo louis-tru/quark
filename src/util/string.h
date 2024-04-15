@@ -131,6 +131,7 @@ namespace qk {
 		ArrayString& append(const T s); // operator+=
 		// collapse to array buffer
 		ArrayBuffer<T, A> collapse();
+		ArrayWeak<T> array() const;
 		// upper, lower
 		ArrayString& upperCase(); // change current this string
 		ArrayString& lowerCase(); // change current this string
@@ -496,6 +497,11 @@ namespace qk {
 		Buffer b = ArrayStringBase::collapse((Realloc)&A::realloc, &A::free);
 		uint32_t l = b.length(), c = b.capacity();
 		return ArrayBuffer<T, A>::from((T*)b.collapse(), l / sizeof(T), c / sizeof(T));
+	}
+
+	template <typename T, typename A>
+	ArrayWeak<T> ArrayString<T, A>::array() const {
+		return ArrayWeak<T>(c_str(), length());
 	}
 
 	template <typename T, typename A>

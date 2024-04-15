@@ -458,7 +458,7 @@ namespace qk {
 		int fp = fs_open_sync(path, O_RDONLY);
 		int r = 0;
 
-		while (1) {
+		do {
 			if ( size < 0 ) {
 				r = uv_fs_fstat(uv_default_loop(), &req, fp, nullptr);
 				if ( r < 0 )
@@ -471,7 +471,7 @@ namespace qk {
 				buf.base = buffer;
 				buf.len = size;
 				r = uv_fs_read(uv_default_loop(), &req, fp, &buf, 1, offset, nullptr);
-				
+
 				if ( r > 0 ) {
 					buffer[r] = '\0';
 					buff = Buffer::from(buffer, r);
@@ -480,8 +480,8 @@ namespace qk {
 				}
 			}
 			break;
-		}
-		
+		} while(0);
+
 		if ( fp > 0 ) {
 			fs_close_sync(fp);
 		}

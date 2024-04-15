@@ -44,27 +44,25 @@ namespace qk {
 		kBase64_Encoding,
 		kUTF8_Encoding,
 		kUTF16_Encoding,
-		kUCS2_Encoding,
-		kUCS4_Encoding,
+		kUCS4_Encoding, // Unicode
 	};
 
 	Qk_EXPORT Encoding codec_parse_encoding(cString& en);
 	Qk_EXPORT String   codec_encoding_string(Encoding en);
 	Qk_EXPORT uint32_t codec_decode_utf8_to_unichar(const uint8_t *str, uint32_t *out);
+	Qk_EXPORT uint32_t codec_decode_utf16_to_unichar(const uint16_t* str, uint32_t* out);
 	// encode
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayBuffer<char>& source);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayString<char>& source);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayBuffer<uint16_t>& source);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayString<uint16_t>& source);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayBuffer<uint32_t>& source);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, const ArrayString<uint32_t>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cString& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& source);
 	// decode
-	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_buffer(Encoding source_en, const ArrayBuffer<char>& source);
-	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_buffer(Encoding source_en, const ArrayString<char>& source);
-	Qk_EXPORT ArrayBuffer<uint16_t> codec_decode_to_uint16(Encoding source_en, const ArrayBuffer<char>& source);
-	Qk_EXPORT ArrayBuffer<uint16_t> codec_decode_to_uint16(Encoding source_en, const ArrayString<char>& source);
-	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, const ArrayBuffer<char>& source);
-	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, const ArrayString<char>& source);
-
+	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_buffer(Encoding source_en, cArray<char>& source);
+	Qk_EXPORT ArrayBuffer<uint16_t> codec_decode_to_uint16(Encoding source_en, cArray<char>& source);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, cArray<char>& source);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, cString& source);
+	// utf16
+	Qk_EXPORT ArrayBuffer<uint16_t> codec_encode_to_utf16(cArray<uint32_t>& source);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_form_utf16(cArray<uint16_t>& source);
 }
 #endif
