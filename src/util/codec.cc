@@ -229,10 +229,10 @@ namespace qk {
 		// Unicode renge            Unicode                   UTF-16                                bytes
 		// 0000 0000 ~ 0000 FFFF    xxxxxxxx xxxxxxxx         xxxxxxxx xxxxxxxx                     2
 		// 0001 0000 ~ 0010 FFFF    yyyy yyyy yyxx xxxx xxxx  110110yy yyyyyyyy 110111xx xxxxxxxx   4
-		if (unicode < 0xFFFF + 1) {  // 双字节编码 0xffff
+		if (unicode < 0xFFFF + 1) {  // 2 bytes encode 0xffff
 			*s = unicode;
 			return 1;
-		} else {                       // 四字节编码 0xffffffff
+		} else {                       // 4 bytes encode 0xffffffff
 			unicode -= 0x10000;
 			s[0] = 0b1101100000000000u | (unicode >> 10);
 			s[1] = 0b1101110000000000u | (unicode & 0b1111111111u);   // low

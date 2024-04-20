@@ -65,7 +65,7 @@ namespace qk {
 		typedef const SendData   cSendData;
 
 		Event(cSendData& data = SendData(), const ReturnValue& rc = ReturnValue())
-			: _sender(nullptr), _data(&data), return_value(rc)  {}
+			: _sender(nullptr), _data(&data), return_value(rc) {}
 		inline Sender* sender() const { return _sender; }
 		inline cSendData* data() const { return _data; }
 	protected:

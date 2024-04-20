@@ -46,6 +46,7 @@
 #include "./string.h"
 
 namespace qk {
+
 	Qk_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
 	Qk_EXPORT int fix_random(uint32_t a, ...);
 	Qk_EXPORT uint64_t getId();

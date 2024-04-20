@@ -28,188 +28,186 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./wrap.h"
-#include "./_js.h"
-#include <v8.h>
+#include "./js.h"
 
-JS_BEGIN
+namespace qk { namespace js {
 
 #if Qk_MEMORY_TRACE_MARK
-static int record_wrap_count = 0;
-static int record_strong_count = 0;
-
+	static int record_wrap_count = 0;
+	static int record_strong_count = 0;
 # define print_wrap(s) \
 	Qk_LOG("record_wrap_count: %d, strong: %d, %s", record_wrap_count, record_strong_count, s)
 #else
 # define print_wrap(s)
 #endif
 
-/**
- * @class WrapObject::Inl
- */
-class WrapObject::Inl: public WrapObject {
+	class WrapObject::Inl: public WrapObject {
 	public:
-	#define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
-	
-	void clear_weak() {
-		#if Qk_MEMORY_TRACE_MARK
+		#define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
+		
+		void clear_weak() {
+#if Qk_MEMORY_TRACE_MARK
 			if (IMPL::current(worker())->IsWeak(handle_)) {
 				record_strong_count++;
 				print_wrap("mark_strong");
 			}
-		#endif
-		IMPL::current(worker())->ClearWeak(handle_, this);
-	}
-	
-	void make_weak() {
-		#if Qk_MEMORY_TRACE_MARK
+#endif
+			IMPL::current(worker())->ClearWeak(handle_, this);
+		}
+
+		void make_weak() {
+#if Qk_MEMORY_TRACE_MARK
 			if (!IMPL::current(worker())->IsWeak(handle_)) {
 				record_strong_count--;
 				print_wrap("make_weak");
 			}
-		#endif
-		IMPL::current(worker())->SetWeak(handle_, this, [](const WeakCallbackInfo& info) {
-			auto self = _inl_wrap(info.GetParameter());
-			self->handle_.V8_DEATH_RESET();
-			self->destroy();
-		});
+#endif
+			IMPL::current(worker())->SetWeak(handle_, this, [](const WeakCallbackInfo& info) {
+				auto self = _inl_wrap(info.GetParameter());
+				self->handle_.V8_DEATH_RESET();
+				self->destroy();
+			});
+		}
+	};
+
+	void WrapObject::initialize() {
 	}
-};
 
-void WrapObject::initialize() {}
-void WrapObject::destroy() {
-	delete this;
-}
+	void WrapObject::destroy() {
+		delete this;
+	}
 
-void WrapObject::init2(FunctionCall args) {
-	Qk_ASSERT(args.IsConstructCall());
-	Worker* worker_ = args.worker();
-	auto classs = IMPL::current(worker_)->js_class();
-	Qk_ASSERT( !classs->current_attach_object_ );
-	handle_.Reset(worker_, args.This());
-	bool ok = IMPL::SetObjectPrivate(args.This(), this); Qk_ASSERT(ok);
-	#if Qk_MEMORY_TRACE_MARK
+	void WrapObject::init2(FunctionCall args) {
+		Qk_ASSERT(args.IsConstructCall());
+		Worker* worker_ = args.worker();
+		auto classs = IMPL::current(worker_)->js_class();
+		Qk_ASSERT( !classs->_currentAttachObject );
+		handle_.Reset(worker_, args.This());
+		bool ok = IMPL::SetObjectPrivate(args.This(), this);
+		Qk_ASSERT(ok);
+#if Qk_MEMORY_TRACE_MARK
 		record_wrap_count++; 
 		record_strong_count++;
-	#endif 
-	if (!self()->isReference() || /* non reference */
-			static_cast<Reference*>(self())->refCount() <= 0) {
-		_inl_wrap(this)->make_weak();
+#endif
+		if (!self()->isReference() || /* non reference */
+				static_cast<Reference*>(self())->refCount() <= 0) {
+			_inl_wrap(this)->make_weak();
+		}
+		initialize();
 	}
-	initialize();
-}
 
-WrapObject* WrapObject::attach(FunctionCall args) {
-	JS_WORKER(args);
-	auto classs = IMPL::current(worker)->js_class();
-	if ( classs->current_attach_object_ ) {
-		WrapObject* wrap = classs->current_attach_object_;
-		Qk_ASSERT(!wrap->worker());
-		Qk_ASSERT(args.IsConstructCall());
-		wrap->handle_.Reset(worker, args.This());
-		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); Qk_ASSERT(ok);
-		classs->current_attach_object_ = nullptr;
-		wrap->initialize();
-		#if Qk_MEMORY_TRACE_MARK
+	WrapObject* WrapObject::Attach(FunctionCall args) {
+		JS_WORKER(args);
+		auto classsinfo = worker->classsinfo();
+		if ( classsinfo->_currentAttachObject ) {
+			WrapObject* wrap = classsinfo->_currentAttachObject;
+			Qk_ASSERT(!wrap->worker());
+			Qk_ASSERT(args.IsConstructCall());
+			wrap->handle_.Reset(worker, args.This());
+			bool ok = IMPL::SetObjectPrivate(args.This(), wrap);
+			Qk_ASSERT(ok);
+			classsinfo->_currentAttachObject = nullptr;
+			wrap->initialize();
+#if Qk_MEMORY_TRACE_MARK
 			record_wrap_count++; 
 			record_strong_count++;
 			print_wrap("External");
-		#endif
-		return wrap;
+#endif
+			return wrap;
+		}
+		return nullptr;
 	}
-	return nullptr;
-}
 
-WrapObject::~WrapObject() {
-	Qk_ASSERT(handle_.IsEmpty());
+	WrapObject::~WrapObject() {
+		Qk_ASSERT(handle_.IsEmpty());
 
-	#if Qk_MEMORY_TRACE_MARK
+#if Qk_MEMORY_TRACE_MARK
 		record_wrap_count--;
 		print_wrap("~WrapObject");
-	#endif 
-	self()->~Object();
-}
-
-Object* WrapObject::privateData() {
-	Local<JSValue> data = get(worker()->strs()->__native_private_data());
-	if ( worker()->hasInstance(data, JS_TYPEID(Object)) ) {
-		return unpack<Object>(data.To<JSObject>())->self();
+#endif
+		// self()->~Object();
 	}
-	return nullptr;
-}
 
-bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
-	Qk_ASSERT(data);
-	auto p = pack(data, JS_TYPEID(Object));
-	if (p) {
-		set(worker()->strs()->__native_private_data(), p->that());
-		if (trusteeship) {
-			if (!data->isReference() || /* non reference */
-					static_cast<Reference*>(data)->refCount() <= 0) {
-				_inl_wrap(static_cast<WrapObject*>(p))->make_weak();
-			}
+	Object* WrapObject::privateData() {
+		Local<JSValue> data = get(worker()->strs()->__native_private_data());
+		if ( worker()->hasInstance(data, JS_TYPEID(Object)) ) {
+			return unpack<Object>(data.To<JSObject>())->self();
 		}
-		Qk_ASSERT(privateData());
+		return nullptr;
 	}
-	return p;
-}
 
-Local<JSValue> WrapObject::call(Local<JSValue> name, int argc, Local<JSValue> argv[]) {
-	Local<JSObject> o = that();
-	Local<JSValue> func = o->Get(worker(), name);
-	if ( func->IsFunction(worker()) ) {
-		return func.To<JSFunction>()->Call(worker(), argc, argv, o);
-	} else {
-		worker()->throwError("Function not found, \"%s\"", *name->ToStringValue(worker()));
-		return Local<JSValue>();
+	bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
+		Qk_ASSERT(data);
+		auto p = pack(data, JS_TYPEID(Object));
+		if (p) {
+			set(worker()->strs()->__native_private_data(), p->that());
+			if (trusteeship) {
+				if (!data->isReference() || /* non reference */
+						static_cast<Reference*>(data)->refCount() <= 0) {
+					_inl_wrap(static_cast<WrapObject*>(p))->make_weak();
+				}
+			}
+			Qk_ASSERT(privateData());
+		}
+		return p;
 	}
-}
 
-Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) {
-	return call(worker()->New(name), argc, argv);
-}
-
-bool WrapObject::isPack(Local<JSObject> object) {
-	Qk_ASSERT(!object.IsEmpty());
-	return IMPL::GetObjectPrivate(object);
-}
-
-WrapObject* WrapObject::unpack2(Local<JSObject> object) {
-	Qk_ASSERT(!object.IsEmpty());
-	return static_cast<WrapObject*>(IMPL::GetObjectPrivate(object));
-}
-
-WrapObject* WrapObject::pack2(Object* object, uint64_t type_id) {
-	WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
-	if ( !wrap->worker() ) { // uninitialized
-		JS_WORKER();
-		return IMPL::js_class(worker)->attach(type_id, object);
+	Local<JSValue> WrapObject::call(Local<JSValue> name, int argc, Local<JSValue> argv[]) {
+		Local<JSObject> o = that();
+		Local<JSValue> func = o->Get(worker(), name);
+		if ( func->IsFunction(worker()) ) {
+			return func.To<JSFunction>()->Call(worker(), argc, argv, o);
+		} else {
+			worker()->throwError("Function not found, \"%s\"", *name->ToStringValue(worker()));
+			return Local<JSValue>();
+		}
 	}
-	return wrap;
-}
 
-void* object_allocator_alloc(size_t size) {
-	WrapObject* o = (WrapObject*)::malloc(size + sizeof(WrapObject));
-	Qk_ASSERT(o);
-	memset((void*)o, 0, sizeof(WrapObject));
-	return o + 1;
-}
-
-void object_allocator_release(Object* obj) {
-	WrapObject* wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-	if ( wrap->worker() ) {
-		_inl_wrap(wrap)->make_weak();
-	}  else { // uninitialized
-		obj->~Object();
-		::free(wrap);
+	Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) {
+		return call(worker()->New(name), argc, argv);
 	}
-}
 
-void object_allocator_retain(Object* obj) {
-	WrapObject* wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-	if ( wrap->worker() ) {
-		_inl_wrap(wrap)->clear_weak();
-	} // else // uninitialized
-}
+	bool WrapObject::isPack(Local<JSObject> object) {
+		Qk_ASSERT(!object.IsEmpty());
+		return IMPL::GetObjectPrivate(object);
+	}
 
-JS_END
+	WrapObject* WrapObject::unpack2(Local<JSObject> object) {
+		Qk_ASSERT(!object.IsEmpty());
+		return static_cast<WrapObject*>(IMPL::GetObjectPrivate(object));
+	}
+
+	WrapObject* WrapObject::pack2(Object* object, uint64_t type_id) {
+		WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
+		if ( !wrap->worker() ) { // uninitialized
+			JS_WORKER();
+			return IMPL::js_class(worker)->attach(type_id, object);
+		}
+		return wrap;
+	}
+
+	void* object_allocator_alloc(size_t size) {
+		WrapObject* o = (WrapObject*)::malloc(size + sizeof(WrapObject));
+		Qk_ASSERT(o);
+		memset((void*)o, 0, sizeof(WrapObject));
+		return o + 1;
+	}
+
+	void object_allocator_release(Object* obj) {
+		WrapObject* wrap = reinterpret_cast<WrapObject*>(obj) - 1;
+		if ( wrap->worker() ) {
+			_inl_wrap(wrap)->make_weak();
+		}  else { // uninitialized
+			obj->~Object();
+			::free(wrap);
+		}
+	}
+
+	void object_allocator_retain(Object* obj) {
+		WrapObject* wrap = reinterpret_cast<WrapObject*>(obj) - 1;
+		if ( wrap->worker() ) {
+			_inl_wrap(wrap)->clear_weak();
+		} // else // uninitialized
+	}
+
+} }

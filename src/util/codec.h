@@ -32,7 +32,6 @@
 #define __quark_util_codec__
 
 #include "./util.h"
-#include "./array.h"
 
 namespace qk {
 

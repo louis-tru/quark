@@ -31,6 +31,8 @@
 #ifndef __quark_errno__
 #define __quark_errno__
 
+#include "./util/errno.h"
+
 namespace qk {
 
 	enum {

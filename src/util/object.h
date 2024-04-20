@@ -196,6 +196,24 @@ namespace qk {
 		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
 	};
 
+	template<class T>
+	class Maybe {
+	public:
+		Maybe(): _ok(false) {}
+		explicit Maybe(const T& t): _ok(true), _val(t) {}
+		explicit Maybe(T&& t): _ok(true), _val(std::move(t)) {}
+		inline bool ok() const { return _ok; }
+		inline bool to(T& out) {
+			return _ok ? (out = std::move(_val), true): false;
+		}
+		inline T from(const T& defaultValue) {
+			return _ok ? std::move(_val) : defaultValue;
+		}
+	private:
+		bool _ok;
+		T    _val;
+	};
+
 	template<class T, typename... Args>
 	inline T* New(Args... args) { return new T(args...); }
 

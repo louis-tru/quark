@@ -48,6 +48,29 @@ namespace qk { namespace js {
 	#define js_throw_value_err(value, msg, ...)\
 		worker->values()->throwError(t, msg, ##__VA_ARGS__)
 
+	#define js_common_string(F)  \
+		F(global)         F(exports)        F(constructor) \
+		F(console)        F(__proto__)      F(__native_private_data) \
+		F(prototype)      F(type)           F(value) \
+		F(isAuto)         F(width)          F(height) \
+		F(offset)         F(offsetX)        F(offsetY) \
+		F(_value)         F(r)              F(g) \
+		F(b)              F(a)              F(x) \
+		F(y)              F(z)              F(start) \
+		F(point)          F(end)            F(w) \
+		F(size)           F(color)          F(toJSON) \
+		F(stack)          F(get_path)       F(_exit) \
+		F(code)           F(message)        F(status) \
+		F(url)            F(id)             F(startX) \
+		F(startY)         F(force)          F(clickIn) \
+		F(view)           F(_noticer)       F(point1X) \
+		F(point1Y)        F(point2X)        F(point2Y) \
+		F(time)           F(_change_touches)F(name) \
+		F(pathname)       F(styles)         F(sender) \
+		F(Buffer)         F(data)           F(total) \
+		F(complete)       F(httpVersion)    F(statusCode) \
+		F(responseHeaders) \
+
 	#define js_value_table(F) \
 		F(String, String)                       F(bool, bool) \
 		F(float, float)                         F(int, int) \
@@ -56,7 +79,7 @@ namespace qk { namespace js {
 		F(Border, Border)                       F(Shadow, Shadow) \
 		F(Color, Color)                         F(Vec2, Vec2) \
 		F(Vec3, Vec3)                           F(Vec4, Vec4) \
-		F(Rect, Rect)                         F(Mat, Mat) \
+		F(Rect, Rect)                           F(Mat, Mat) \
 		F(Mat4, Mat4)                           F(Value, Value) \
 		F(TextColor, TextColor)                 F(TextSize, TextSize)  \
 		F(TextFamily, TextFamily)               F(TextSlant, TextSlant) \
@@ -72,7 +95,20 @@ namespace qk { namespace js {
 		F(Aligns, Array<Align>)                 F(BackgroundPositionCollection, BackgroundPositionCollection) \
 		F(Floats, Array<float>) \
 
-	class Qk_EXPORT ValueProgram: public Object {
+	class Qk_EXPORT CommonStrings: public Object {
+	public:
+		CommonStrings(Worker* worker);
+		#define js_def_persistent_string(name) \
+			public: Local<JSValue> name() { \
+			auto r = reinterpret_cast<Local<JSValue>*>(&__##name##_$_); return *r; } \
+			private: Persistent<JSValue> __##name##_$_;
+	private:
+		Worker* _worker;
+		js_def_persistent_string(Throw)
+		js_common_string(js_def_persistent_string);
+	};
+
+	class Qk_EXPORT TypesProgram: public Object {
 	public:
 		#define def_attr_fn(Name, Type)           \
 			Local<JSValue> New(const Type& value);  \
@@ -80,8 +116,8 @@ namespace qk { namespace js {
 		#define def_attr(Name, Type) \
 			Persistent<JSFunction> _parse##Name; \
 			Persistent<JSFunction> _##Name;
-		ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
-		virtual ~ValueProgram();
+		TypesProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
+		virtual ~TypesProgram();
 		void throwError(Local<JSValue> value, cChar* msg = nullptr, cChar* help = nullptr);
 		js_value_table(def_attr_fn);
 		bool isBase(Local<JSValue> arg);

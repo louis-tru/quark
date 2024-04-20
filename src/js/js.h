@@ -32,18 +32,15 @@
 #define __quark__js__js__
 
 #include "../util/util.h"
-#include "../util/string.h"
-#include "../util/array.h"
 #include "../util/error.h"
-#include "../util/fs.h"
 #include "../util/json.h"
 #include "../util/dict.h"
 #include "../util/codec.h"
+#include "../util/fs.h"
+#include "../util/http.h"
 
 // ------------- js common macro -------------
 
-#define JS_BEGIN         namespace qk { namespace js {
-#define JS_END           } }
 #define JS_WORKER(...)   auto worker = Worker::worker(__VA_ARGS__)
 #define JS_RETURN(rev)   return worker->result(args, (rev))
 #define JS_RETURN_NULL() return worker->result(args, worker->NewNull())
@@ -81,7 +78,7 @@
 	auto cls = worker->NewClass(id, #name, \
 	constructor, &Attach::Callback, base); \
 	cls->SetInstanceInternalFieldCount(1); \
-	block; ((void)0) 
+	block; ((void)0)
 
 #define JS_NEW_CLASS(name, constructor, block, base) \
 	JS_NEW_CLASS_FROM_ID(name, JS_TYPEID(name), constructor, block, base)
@@ -102,43 +99,10 @@
 #define JS_SET_ACCESSOR(name, get, ...)    exports->SetAccessor(worker, #name, get, ##__VA_ARGS__)
 #define JS_SET_PROPERTY(name, value)       exports->SetProperty(worker, #name, value)
 
-namespace qk {
-	class HttpError;
-}
-
 namespace qk { namespace js {
-	class ValueProgram;
 	class Worker;
-	class V8WorkerIMPL;
-	class JSCWorker;
 	class WrapObject;
-	class Allocator;
-	class CommonStrings;
-	template<class T>
-	class Wrap;
-	template<class T>
-	class Maybe;
-	template<class T>
-	class Local;
-	template<class T>
-	class NonCopyablePersistentTraits;
-	template<class T>
-	class PersistentBase;
-	template<class T, class M = NonCopyablePersistentTraits<T> >
-	class Persistent;
 	class JSValue;
-	class JSString;
-	class JSObject;
-	class JSArray;
-	class JSDate;
-	class JSNumber;
-	class JSInt32;
-	class JSInteger;
-	class JSUint32;
-	class JSBoolean;
-	class JSFunction;
-	class JSArrayBuffer;
-	class JSClass;
 
 	class NoCopy {
 	public:
@@ -148,106 +112,103 @@ namespace qk { namespace js {
 	};
 
 	template<class T>
-	class Maybe {
-	public:
-		Maybe(): _ok(false) {}
-		explicit Maybe(const T& t): _val(t), _ok(true) {}
-		explicit Maybe(T&& t): _val(move(t)), _ok(true) {}
-		inline bool Ok() const { return _ok; }
-		inline bool To(T& out) {
-			return _ok ? (out = std::move(_val), true): false;
-		}
-		inline T FromMaybe(const T& defaultValue) {
-			return _ok ? std::move(_val) : defaultValue;
-		}
-	private:
-		T    _val;
-		bool _ok;
-	};
-
-	template <class T>
 	class Qk_EXPORT MaybeLocal {
 	public:
 		inline MaybeLocal(): _val(nullptr) {}
 		template <class S>
 		inline MaybeLocal(Local<S> that): _val(that->_val) {}
-		inline bool IsEmpty() const { return _val == nullptr; }
+		inline bool isEmpty() const { return _val == nullptr; }
 		template <class S>
-		inline bool ToLocal(Local<S>* out) const {
+		inline bool toLocal(Local<S>* out) const {
 			return _val ? (out->_val = _val, true): (out->_val = nullptr, false);
 		}
 		template <class S>
-		inline Local<S> FromMaybe(Local<S> defaultValue) const {
+		inline Local<S> from(Local<S> defaultValue) const {
 			return _val ? Local<S>(_val): defaultValue;
 		}
-		inline Local<T> ToLocalChecked();
+		inline Local<T> toLocalChecked();
 	private:
 		T* _val;
 	};
 
 	template<class T>
-	class Qk_EXPORT Local {
+	class Local {
 	public:
 		inline Local(): _val(0) {}
 		template <class S>
 		inline Local(Local<S> that): _val(that->_val) {}
-		inline bool IsEmpty() const { return _val == 0; }
-		inline void Clear() { _val = 0; }
+		inline bool isEmpty() const { return _val == 0; }
 		inline T* operator->() const { return _val; }
 		inline T* operator*() const { return _val; }
 		template <class S = JSObject>
-		inline Local<S> To() const { // unsafe conversion
-			return *reinterpret_cast<Local<S>*>(static_cast<S**>(&_val));
-		}
+		inline Local<S> to() const { return Local<S>(_val); } /* unsafe conversion */
 	private:
+		inline Local(T *val): _val(val) {}
 		T        *_val;
+		friend class Worker;
 		friend class JSValue;
 		friend class JSFunction;
 		friend class JSString;
-		friend class JSClass;
-		friend class Worker;
 		template<class S> friend class MaybeLocal;
 		template<class S> friend class Local;
 	};
 
-	template<class T>
-	class Qk_EXPORT PersistentBase: public NoCopy {
+	class WeakCallbackInfo {
 	public:
-		typedef void (*WeakCallback)(void* ptr);
-		inline void Reset() {
-			JS_TYPE_CHECK(JSValue, T);
-			reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset();
+		Worker* worker() const;
+		void*   getParameter() const;
+	};
+	typedef void (*WeakCallback)(const WeakCallbackInfo& info);
+
+	template<class T>
+	class PersistentBase: public NoCopy {
+	public:
+		inline void reset() {
+			reinterpret_cast<PersistentBase<JSValue>*>(this)->reset();
 		}
 		template <class S>
-		inline void Reset(Worker* worker, const Local<S>& other) {
+		inline void reset(Worker* worker, const Local<S>& other) {
 			JS_TYPE_CHECK(T, S);
-			JS_TYPE_CHECK(JSValue, T);
 			reinterpret_cast<PersistentBase<JSValue>*>(this)->
-			Reset(worker, *reinterpret_cast<const Local<JSValue>*>(&other));
+				reset(worker, *reinterpret_cast<const Local<JSValue>*>(&other));
 		}
 		template <class S>
-		inline void Reset(Worker* worker, const PersistentBase<S>& other) {
+		inline void reset(Worker* worker, const PersistentBase<S>& other) {
 			JS_TYPE_CHECK(T, S);
-			reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset(worker, other.local());
+			reinterpret_cast<PersistentBase<JSValue>*>(this)->reset(worker, other.local());
 		}
-		inline bool IsEmpty() const { return val_ == 0; }
-		inline Local<T> local() const {
-			return *reinterpret_cast<Local<T>*>(const_cast<PersistentBase*>(this));
+		inline bool isEmpty() const { return _val == 0; }
+		inline Local<T> toLocal() const {
+			auto l = reinterpret_cast<PersistentBase<JSValue>*>(this)->toLocal();
+			return reinterpret_cast<Local<T>>(l);
 		}
-		inline Worker* worker() const { return worker_; }
+		inline T* operator->() const { return _val; }
+		inline T* operator*() const { return _val; }
+		inline Worker* worker() const { return _worker; }
+		inline bool isWeak() {
+			return reinterpret_cast<PersistentBase<JSValue>*>(this)->isWeak();
+		}
+		inline void clearWeak() {
+			reinterpret_cast<PersistentBase<JSValue>*>(this)->clearWeak();
+		}
+		inline void setWeak(void *ptr, WeakCallback cb) {
+			reinterpret_cast<PersistentBase<JSValue>*>(this)->setWeak(ptr, cb);
+		}
 	private:
-		inline PersistentBase(): val_(0), worker_(0) { }
-		inline void Empty() { val_ = 0; }
-		template<class S> void Copy(const PersistentBase<S>& that);
-		T      *val_;
-		Worker *worker_;
+		inline PersistentBase(): _val(0), _worker(0) {
+			JS_TYPE_CHECK(JSValue, T);
+		}
+		template<class S>
+		void copy(const PersistentBase<S>& that);
+		T      *_val;
+		Worker *_worker;
 		friend class WrapObject;
 		friend class Worker;
 		template<class F1, class F2> friend class Persistent;
 	};
 
 	template<class T>
-	class Qk_EXPORT NonCopyablePersistentTraits {
+	class NonCopyablePersistentTraits {
 	public:
 		static constexpr bool kResetInDestructor = true;
 		inline static void CopyCheck() { Uncompilable<Object>(); }
@@ -257,100 +218,92 @@ namespace qk { namespace js {
 	};
 
 	template<class T>
-	class Qk_EXPORT CopyablePersistentTraits {
+	class CopyablePersistentTraits {
 	public:
 		typedef Persistent<T, CopyablePersistentTraits<T>> Handle;
 		static constexpr bool kResetInDestructor = true;
-		static inline void CopyCheck() { }
+		static inline void CopyCheck() {}
 	};
 
-	template<class T, class M>
-	class Qk_EXPORT Persistent: public PersistentBase<T> {
+	template<class T, class M = NonCopyablePersistentTraits<T>>
+	class Persistent: public PersistentBase<T> {
 	public:
+		Persistent() {}
 		~Persistent() {
 			if (M::kResetInDestructor)
-				this->Reset();
+				this->reset();
 		}
-
 		template <class S>
 		inline Persistent(Worker* worker, Local<S> that) {
-			this->Reset(worker, that);
+			this->reset(worker, that);
 		}
-
 		template <class S, class M2>
 		inline Persistent(Worker* worker, const Persistent<S, M2>& that) {
-			this->Reset(worker, that);
+			this->reset(worker, that);
 		}
-
 		inline Persistent(const Persistent& that) {
-			Copy(that);
+			copy(that);
 		}
-		
 		template<class S, class M2>
 		inline Persistent(const Persistent<S, M2>& that) {
-			Copy(that);
+			copy(that);
 		}
-
 		inline Persistent& operator=(const Persistent& that) {
-			Copy(that);
+			copy(that);
 			return *this;
 		}
-
 		template <class S, class M2>
 		inline Persistent& operator=(const Persistent<S, M2>& that) {
-			Copy(that);
+			copy(that);
 			return *this;
 		}
-
 	private:
-		template<class F1, class F2> friend class Persistent;
 		template<class S>
-		inline void Copy(const PersistentBase<S>& that) {
-			M::CopyCheck();
+		inline void copy(const PersistentBase<S>& that) {
 			JS_TYPE_CHECK(T, S);
-			JS_TYPE_CHECK(JSValue, T);
-			this->Reset();
-			if ( that.IsEmpty() )
+			M::CopyCheck();
+			this->reset();
+			if ( that.isEmpty() )
 				return;
 			reinterpret_cast<PersistentBase<JSValue>*>(this)->
-				Copy(*reinterpret_cast<const PersistentBase<JSValue>*>(&that));
+				copy(*reinterpret_cast<const PersistentBase<JSValue>*>(&that));
 		}
+		template<class F1, class F2> friend class Persistent;
 	};
 
 	class Qk_EXPORT ReturnValue {
 	public:
 		template <class S>
-		inline void Set(Local<S> value) {
+		inline void set(Local<S> value) {
 			JS_TYPE_CHECK(JSValue, S);
-			auto _ = reinterpret_cast<Local<JSValue>*>(&value);
-			Set(*_);
+			set(*reinterpret_cast<Local<JSValue>*>(&value));
 		}
-		void Set(bool value);
-		void Set(double i);
-		void Set(int i);
-		void Set(uint32_t i);
-		void SetNull();
-		void SetUndefined();
-		void SetEmptyString();
+		void set(bool value);
+		void set(double i);
+		void set(int i);
+		void set(uint32_t i);
+		void setNull();
+		void setUndefined();
+		void setEmptyString();
 	private:
-		void* val_;
+		void *_val;
 	};
 
 	class Qk_EXPORT FunctionCallbackInfo: public NoCopy {
 	public:
 		Worker* worker() const;
-		int Length() const;
-		Local<JSValue> operator[](int i) const;
 		Local<JSObject> This() const;
-		bool IsConstructCall() const;
-		ReturnValue GetReturnValue() const;
+		ReturnValue returnValue() const;
+		Local<JSValue> operator[](int i) const;
+		int length() const;
+		bool isConstructCall() const;
 	};
 
 	class Qk_EXPORT PropertyCallbackInfo: public NoCopy {
 	public:
 		Worker* worker() const;
 		Local<JSObject> This() const;
-		ReturnValue GetReturnValue() const;
+		ReturnValue returnValue() const;
 	};
 
 	class Qk_EXPORT PropertySetCallbackInfo: public NoCopy {
@@ -359,14 +312,16 @@ namespace qk { namespace js {
 		Local<JSObject> This() const;
 	};
 
-	typedef const FunctionCallbackInfo& FunctionCall;
-	typedef const PropertyCallbackInfo& PropertyCall;
-	typedef const PropertySetCallbackInfo& PropertySetCall;
-	typedef void (*FunctionCallback)(FunctionCall args);
-	typedef void (*AccessorGetterCallback)(Local<JSString> name, PropertyCall args);
-	typedef void (*AccessorSetterCallback)(Local<JSString> name, Local<JSValue> value, PropertySetCall args);
-	typedef void (*IndexedPropertyGetterCallback)(uint32_t index, PropertyCall info);
-	typedef void (*IndexedPropertySetterCallback)(uint32_t index, Local<JSValue> value, PropertyCall info);
+	typedef const FunctionCallbackInfo& FunctionArgs;
+	typedef const PropertyCallbackInfo& PropertyArgs;
+	typedef const PropertySetCallbackInfo& PropertySetArgs;
+	typedef void (*FunctionCallback)(FunctionArgs args);
+	typedef void (*AccessorGetterCallback)(Local<JSString> name, PropertyArgs args);
+	typedef void (*AccessorSetterCallback)(Local<JSString> name, Local<JSValue> value, PropertySetArgs args);
+	typedef void (*IndexedAccessorGetterCallback)(uint32_t index, PropertyArgs args);
+	typedef void (*IndexedAccessorSetterCallback)(uint32_t index, Local<JSValue> value, PropertyArgs args);
+	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
+	typedef void (*AttachCallback)(WrapObject* wrap);
 
 	class Qk_EXPORT HandleScope: public NoCopy {
 	public:
@@ -388,152 +343,137 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT JSValue: public NoCopy {
 	public:
-		bool IsUndefined() const;
-		bool IsNull() const;
-		bool IsString() const;
-		bool IsBoolean() const;
-		bool IsObject() const;
-		bool IsArray() const;
-		bool IsDate() const;
-		bool IsNumber() const;
-		bool IsUint32() const;
-		bool IsInt32() const;
-		bool IsFunction() const;
-		bool IsArrayBuffer() const;
-		bool IsTypedArray() const;
-		bool IsUint8Array() const;
-		bool IsBuffer() const; // IsTypedArray or IsArrayBuffer
-		bool IsUndefined(Worker* worker) const;
-		bool IsNull(Worker* worker) const;
-		bool IsString(Worker* worker) const;
-		bool IsBoolean(Worker* worker) const;
-		bool IsObject(Worker* worker) const;
-		bool IsArray(Worker* worker) const;
-		bool IsDate(Worker* worker) const;
-		bool IsNumber(Worker* worker) const;
-		bool IsUint32(Worker* worker) const;
-		bool IsInt32(Worker* worker) const;
-		bool IsFunction(Worker* worker) const;
-		bool IsArrayBuffer(Worker* worker) const;
-		bool IsTypedArray(Worker* worker) const;
-		bool IsUint8Array(Worker* worker) const;
-		bool IsBuffer(Worker* worker) const;
-		bool Equals(Local<JSValue> val) const;
-		bool Equals(Worker* worker, Local<JSValue> val) const;
-		bool StrictEquals(Local<JSValue> val) const;
-		bool StrictEquals(Worker* worker, Local<JSValue> val) const;
-		Local<JSString> ToString(Worker* worker) const;
-		Local<JSNumber> ToNumber(Worker* worker) const;
-		Local<JSInt32> ToInt32(Worker* worker) const;
-		Local<JSUint32> ToUint32(Worker* worker) const;
-		Local<JSObject> ToObject(Worker* worker) const;
-		Local<JSBoolean> ToBoolean(Worker* worker) const;
-		String ToStringValue(Worker* worker, bool ascii = false) const;
-		String2 ToString2Value(Worker* worker) const;
-		bool ToBooleanValue(Worker* worker) const;
-		double ToNumberValue(Worker* worker) const;
-		int ToInt32Value(Worker* worker) const;
-		uint32_t ToUint32Value(Worker* worker) const;
-		Maybe<double> ToNumberMaybe(Worker* worker) const;
-		Maybe<int> ToInt32Maybe(Worker* worker) const;
-		Maybe<uint32_t> ToUint32Maybe(Worker* worker) const;
-		bool InstanceOf(Worker* worker, Local<JSObject> value);
-		Buffer ToBuffer(Worker* worker, Encoding en) const;
-		WeakBuffer AsBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
+		bool isUndefined(Worker* worker) const;
+		bool isNull(Worker* worker) const;
+		bool isString(Worker* worker) const;
+		bool isBoolean(Worker* worker) const;
+		bool isObject(Worker* worker) const;
+		bool isArray(Worker* worker) const;
+		bool isDate(Worker* worker) const;
+		bool isNumber(Worker* worker) const;
+		bool isUint32(Worker* worker) const;
+		bool isInt32(Worker* worker) const;
+		bool isFunction(Worker* worker) const;
+		bool isArrayBuffer(Worker* worker) const;
+		bool isTypedArray(Worker* worker) const;
+		bool isUint8Array(Worker* worker) const;
+		bool isBuffer(Worker* worker) const; // IsTypedArray or IsArrayBuffer
+		bool equals(Local<JSValue> val) const;
+		bool equals(Worker* worker, Local<JSValue> val) const;
+		bool strictEquals(Local<JSValue> val) const;
+		bool strictEquals(Worker* worker, Local<JSValue> val) const;
+		Local<JSString> toString(Worker* worker) const; // to string local
+		Local<JSNumber> toNumber(Worker* worker) const;
+		Local<JSInt32> toInt32(Worker* worker) const;
+		Local<JSUint32> toUint32(Worker* worker) const;
+		Local<JSObject> toObject(Worker* worker) const;
+		Local<JSBoolean> toBoolean(Worker* worker) const;
+		String toStringValue(Worker* worker, bool ascii = false) const; // to string value
+		String2 toStringValue2(Worker* worker) const; // to utf16 string
+		bool toBooleanValue(Worker* worker) const;
+		double toNumberValue(Worker* worker) const;
+		int toInt32Value(Worker* worker) const;
+		uint32_t toUint32Value(Worker* worker) const;
+		Maybe<double> toNumberMaybe(Worker* worker) const;
+		Maybe<int> toInt32Maybe(Worker* worker) const;
+		Maybe<uint32_t> toUint32Maybe(Worker* worker) const;
+		bool instanceOf(Worker* worker, Local<JSObject> value);
+		Buffer toBuffer(Worker* worker, Encoding en) const;
+		WeakBuffer asBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 	};
 
 	class Qk_EXPORT JSString: public JSValue {
 	public:
-		int Length(Worker* worker) const;
-		String Value(Worker* worker, bool ascii = false) const;
-		String2 Ucs2Value(Worker* worker) const;
+		int length(Worker* worker) const; // utf16 length
+		String value(Worker* worker, bool ascii = false) const; // utf8 string value
+		String2 value2(Worker* worker) const; // utf16 string value
 		static Local<JSString> Empty(Worker* worker);
 	};
 
 	class Qk_EXPORT JSObject: public JSValue {
 	public:
-		Local<JSValue> Get(Worker* worker, Local<JSValue> key);
-		Local<JSValue> Get(Worker* worker, uint32_t index);
-		bool Set(Worker* worker, Local<JSValue> key, Local<JSValue> val);
-		bool Set(Worker* worker, uint32_t index, Local<JSValue> val);
-		bool Has(Worker* worker, Local<JSValue> key);
-		bool Has(Worker* worker, uint32_t index);
-		bool Delete(Worker* worker, Local<JSValue> key);
-		bool Delete(Worker* worker, uint32_t index);
-		Local<JSArray> GetPropertyNames(Worker* worker);
-		Maybe<Dict<String, int>> ToIntegerMap(Worker* worker);
-		Maybe<Dict<String, String>> ToStringMap(Worker* worker);
-		Maybe<JSON> ToJSON(Worker* worker);
-		Local<JSValue> GetProperty(Worker* worker, cString& name);
-		Local<JSFunction> GetConstructor(Worker* worker);
+		Local<JSValue> get(Worker* worker, Local<JSValue> key);
+		Local<JSValue> get(Worker* worker, uint32_t index);
+		bool set(Worker* worker, Local<JSValue> key, Local<JSValue> val);
+		bool set(Worker* worker, uint32_t index, Local<JSValue> val);
+		bool has(Worker* worker, Local<JSValue> key);
+		bool has(Worker* worker, uint32_t index);
+		bool deleteOf(Worker* worker, Local<JSValue> key);
+		bool deleteOf(Worker* worker, uint32_t index);
+		Local<JSArray> getPropertyNames(Worker* worker);
+		Maybe<Dict<String, int>> toIntegerMap(Worker* worker);
+		Maybe<Dict<String, String>> toStringMap(Worker* worker);
+		Maybe<JSON> toJSON(Worker* worker);
+		Local<JSValue> getProperty(Worker* worker, cString& name);
+		Local<JSFunction> getConstructor(Worker* worker);
 		template<class T>
-		bool SetProperty(Worker* worker, cString& name, T value);
-		bool SetMethod(Worker* worker, cString& name, FunctionCallback func);
-		bool SetAccessor(Worker* worker, cString& name,
+		bool setProperty(Worker* worker, cString& name, T value);
+		bool setMethod(Worker* worker, cString& name, FunctionCallback func);
+		bool setAccessor(Worker* worker, cString& name,
 										AccessorGetterCallback get, AccessorSetterCallback set = nullptr);
 	};
 
 	class Qk_EXPORT JSArray: public JSObject {
 	public:
-		int Length(Worker* worker) const;
-		Maybe<Array<String>> ToStringArrayMaybe(Worker* worker);
-		Maybe<Array<double>> ToNumberArrayMaybe(Worker* worker);
-		Maybe<Buffer> ToBufferMaybe(Worker* worker);
+		int length(Worker* worker) const;
+		Maybe<Array<String>> toStringArrayMaybe(Worker* worker);
+		Maybe<Array<double>> toNumberArrayMaybe(Worker* worker);
+		Maybe<Buffer> toBufferMaybe(Worker* worker);
 	};
 
 	class Qk_EXPORT JSDate: public JSObject {
 	public:
-		double ValueOf(Worker* worker) const;
+		double valueOf(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSNumber: public JSValue {
 	public:
-		double Value(Worker* worker) const;
+		double value(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSInt32: public JSNumber {
 	public:
-		int Value(Worker* worker) const;
+		int value(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSInteger: public JSNumber {
 	public:
-		int64_t Value(Worker* worker) const;
+		int64_t value(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSUint32: public JSNumber {
 	public:
-		uint32_t Value(Worker* worker) const;
+		uint32_t value(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSBoolean: public JSValue {
 	public:
-		bool Value(Worker* worker) const;
+		bool value(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSFunction: public JSObject {
 	public:
-		Local<JSValue> Call(Worker* worker, int argc = 0,
+		Local<JSValue> call(Worker* worker, int argc = 0,
 												Local<JSValue> argv[] = nullptr,
 												Local<JSValue> recv = Local<JSValue>());
-		Local<JSValue> Call(Worker* worker, Local<JSValue> recv);
-		Local<JSObject> NewInstance(Worker* worker, int argc = 0,
+		Local<JSValue> call(Worker* worker, Local<JSValue> recv);
+		Local<JSObject> newInstance(Worker* worker, int argc = 0,
 																Local<JSValue> argv[] = nullptr);
 	};
 
 	class Qk_EXPORT JSArrayBuffer: public JSObject {
 	public:
-		int ByteLength(Worker* worker) const;
-		Char* Data(Worker* worker);
+		int byteLength(Worker* worker) const;
+		Char* data(Worker* worker);
 		WeakBuffer weakBuffer(Worker* worker);
 	};
 
 	class Qk_EXPORT JSTypedArray: public JSObject {
 	public:
-		Local<JSArrayBuffer> Buffer(Worker* worker);
+		Local<JSArrayBuffer> buffer(Worker* worker);
 		WeakBuffer weakBuffer(Worker* worker);
-		int ByteLength(Worker* worker);
-		int ByteOffset(Worker* worker);
+		int byteLength(Worker* worker);
+		int byteOffset(Worker* worker);
 	};
 
 	class Qk_EXPORT JSUint8Array: public JSTypedArray {
@@ -541,62 +481,68 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT JSSet: public JSObject {
 	public:
-		MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
-		Maybe<bool> Has(Worker* worker, Local<JSValue> key);
-		Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
+		MaybeLocal<JSSet> add(Worker* worker, Local<JSValue> key);
+		Maybe<bool> has(Worker* worker, Local<JSValue> key);
+		Maybe<bool> deleteOf(Worker* worker, Local<JSValue> key);
 	};
 
 	class Qk_EXPORT JSClass: public NoCopy {
 	public:
-		uint64_t ID() const;
-		bool HasInstance(Worker* worker, Local<JSValue> val);
-		Local<JSFunction> GetFunction(Worker* worker);
-		Local<JSObject> NewInstance(uint32_t argc = 0, Local<JSValue>* argv = nullptr);
-		bool SetMemberMethod(Worker* worker, cString& name, FunctionCallback func);
-		bool SetMemberAccessor(Worker* worker, cString& name,
+		uint64_t id() const;
+		bool hasInstance(Local<JSValue> val);
+		Local<JSFunction> getFunction(); // constructor function
+		Local<JSObject> newInstance(uint32_t argc = 0, Local<JSValue>* argv = nullptr);
+		bool setMemberMethod(cString& name, FunctionCallback func);
+		bool setMemberAccessor(cString& name,
 													AccessorGetterCallback get,
 													AccessorSetterCallback set = nullptr);
-		bool SetMemberIndexedAccessor(Worker* worker,
-																	IndexedPropertyGetterCallback get,
-																	IndexedPropertySetterCallback set = nullptr);
+		bool setMemberIndexedAccessor(IndexedAccessorGetterCallback get,
+																	IndexedAccessorSetterCallback set = nullptr);
 		template<class T>
-		bool SetMemberProperty(Worker* worker, cString& name, T value);
+		bool setMemberProperty(cString& name, T value);
 		template<class T>
-		bool SetStaticProperty(Worker* worker, cString& name, T value);
-		void Export(Worker* worker, cString& name, Local<JSObject> exports);
-		void SetInstanceInternalFieldCount(int count);
-		int InstanceInternalFieldCount();
+		bool setStaticProperty(cString& name, T value);
+		void setInstanceInternalFieldCount(int count);
+		int  instanceInternalFieldCount();
+		void Export(cString& name, Local<JSObject> exports);
 	};
 
 	class Qk_EXPORT TryCatch: public NoCopy {
 	public:
 		TryCatch();
 		~TryCatch();
-		bool HasCaught() const;
-		Local<JSValue> Exception() const;
+		bool hasCaught() const;
+		Local<JSValue> exception() const;
 	private:
 		void* val_;
 	};
 
+	class TypesProgram;
+	class CommonStrings;
+	class JSClassInfo;
+
 	class Qk_EXPORT Worker: public Object {
 		Qk_HIDDEN_ALL_COPY(Worker);
 	public:
-		typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
-		typedef void (*WrapAttachCallback)(WrapObject* wrap);
+
+		static Worker* worker();
+		template<class T>
+		static Worker* worker(T& args) {
+			return args.worker();
+		}
+		static void RegisterModule(
+			cString& name, BindingCallback binding, cChar* file = nullptr
+		);
+		static Worker* Make();
+
+		// @prop
+		Qk_DEFINE_PROP_GET(TypesProgram*, types, Protected);
+		Qk_DEFINE_PROP_GET(CommonStrings*, strs, Protected);
+		Qk_DEFINE_PROP_GET(JSClassInfo*, classsinfo, Protected);
+		Qk_DEFINE_PROP_GET(ThreadID, thread_id, Protected);
 
 		~Worker();
 
-		static Worker* worker();
-
-		template<class T>
-		inline static Worker* worker(T& args) {
-			return args.worker();
-		}
-
-		static void registerModule(cString& name,
-															BindingCallback binding, cChar* file = nullptr);
-
-		Worker* create();
 		Local<JSValue> bindingModule(cString& name);
 		Local<JSNumber> New(float data);
 		Local<JSNumber> New(double data);
@@ -614,10 +560,10 @@ namespace qk { namespace js {
 		Local<JSString> New(cString2& data);
 		Local<JSObject> New(cError& data);
 		Local<JSObject> New(const HttpError& err);
-		Local<JSArray>  New(const Array<String>& data);
+		Local<JSArray>  New(cArray<String>& data);
 		Local<JSArray>  New(Array<FileStat>& data);
 		Local<JSArray>  New(Array<FileStat>&& data);
-		Local<JSObject> New(const Dict<String, String>& data);
+		Local<JSObject> New(cDict<String, String>& data);
 		Local<JSUint8Array> New(Buffer& buff);
 		Local<JSUint8Array> New(Buffer&& buff);
 		Local<JSObject> New(FileStat& stat);
@@ -625,30 +571,40 @@ namespace qk { namespace js {
 		Local<JSObject> New(const Dirent& dir);
 		Local<JSArray>  New(Array<Dirent>& data);
 		Local<JSArray>  New(Array<Dirent>&& data);
-		
-		inline Local<JSBoolean> New(const Bool& v) { return New(v.value); }
-		inline Local<JSNumber>  New(const Float32& v) { return New(v.value); }
-		inline Local<JSNumber>  New(const Float64& v) { return New(v.value); }
-		inline Local<JSInt32>   New(const Int8& v) { return New(v.value); }
-		inline Local<JSUint32>  New(const Uint8& v) { return New(v.value); }
-		inline Local<JSInt32>   New(const Int16& v) { return New(v.value); }
-		inline Local<JSUint32>  New(const Uint16& v) { return New(v.value); }
-		inline Local<JSInt32>   New(const Int32& v) { return New(v.value); }
-		inline Local<JSUint32>  New(const Uint32& v) { return New(v.value); }
-		inline Local<JSNumber>  New(const Int64& v) { return New(v.value); }
-		inline Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
-		
+		//
+		inline
+		Local<JSBoolean> New(const Bool& v) { return New(v.value); }
+		inline
+		Local<JSNumber>  New(const Float32& v) { return New(v.value); }
+		inline
+		Local<JSNumber>  New(const Float64& v) { return New(v.value); }
+		inline
+		Local<JSInt32>   New(const Int8& v) { return New(v.value); }
+		inline
+		Local<JSUint32>  New(const Uint8& v) { return New(v.value); }
+		inline
+		Local<JSInt32>   New(const Int16& v) { return New(v.value); }
+		inline
+		Local<JSUint32>  New(const Uint16& v) { return New(v.value); }
+		inline
+		Local<JSInt32>   New(const Int32& v) { return New(v.value); }
+		inline
+		Local<JSUint32>  New(const Uint32& v) { return New(v.value); }
+		inline
+		Local<JSNumber>  New(const Int64& v) { return New(v.value); }
+		inline
+		Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
+
 		template <class T>
-		inline Local<T> New(Local<T> val) { return val; }
+		inline Local<T>  New(Local<T> val) { return val; }
 		
 		template <class T>
 		inline Local<T> New(const PersistentBase<T>& value) {
 			auto r = New(*reinterpret_cast<const PersistentBase<JSValue>*>(&value));
-			auto r_ = reinterpret_cast<Local<T>*>(&r);
-			return *r_;
+			return *reinterpret_cast<Local<T>*>(&r);
 		}
 
-		Local<JSValue> New(const PersistentBase<JSValue>& value);
+		Local<JSValue>  New(const PersistentBase<JSValue>& value);
 
 		Local<JSObject> NewInstance(uint64_t id, uint32_t argc = 0, Local<JSValue>* argv = nullptr);
 		Local<JSString> NewString(cBuffer& data);
@@ -674,7 +630,7 @@ namespace qk { namespace js {
 		Local<JSSet>    NewSet();
 
 		template<class T>
-		static inline Local<JSValue> New(const Object& obj, Worker* worker) {
+		inline static Local<JSValue> New(const Object& obj, Worker* worker) {
 			return worker->New( *static_cast<const T*>(&obj) );
 		}
 
@@ -683,14 +639,15 @@ namespace qk { namespace js {
 		bool hasInstance(Local<JSValue> val, uint64_t id);
 		bool hasView(Local<JSValue> val);
 
-		template<class T> inline bool hasInstance(Local<JSValue> val) {
+		template<class T>
+		inline bool hasInstance(Local<JSValue> val) {
 			return hasInstance(val, JS_TYPEID(T));
 		}
 
 		/**
-		 * @method jsClass(id) find class
+		 * @method jsclass(id) find class
 		 */
-		Local<JSClass> jsClass(uint32_t id);
+		Local<JSClass> jsclass(uint32_t id);
 
 		/**
 		 * @method result
@@ -713,7 +670,7 @@ namespace qk { namespace js {
 		 */
 		template <class Args, class T>
 		inline void result(const Args& args, T&& data) {
-			args.GetReturnValue().Set( New(move(data)) );
+			args.GetReturnValue().Set( New(std::move(data)) );
 		}
 
 		/**
@@ -721,53 +678,38 @@ namespace qk { namespace js {
 		 */
 		Local<JSClass> NewClass(uint64_t id, cString& name,
 														FunctionCallback constructor,
-														WrapAttachCallback attach_callback,
+														AttachCallback attach_callback,
 														Local<JSClass> base = Local<JSClass>());
 		/**
 		 * @method NewClass js class
 		 */
 		Local<JSClass> NewClass(uint64_t id, cString& name,
 														FunctionCallback constructor,
-														WrapAttachCallback attach_callback, uint64_t base);
+														AttachCallback attach_callback, uint64_t base);
 		/**
 		 * @method NewClass js class
 		 */
 		Local<JSClass> NewClass(uint64_t id, cString& name,
 														FunctionCallback constructor,
-														WrapAttachCallback attach_callback, Local<JSFunction> base);
+														AttachCallback attach_callback, Local<JSFunction> base);
 		/**
 		 * @method runScript
 		 */
 		Local<JSValue> runScript(cString& source,
-															cString& name,
-															Local<JSObject> sandbox = Local<JSObject>());
+														cString& name,
+														Local<JSObject> sandbox = Local<JSObject>());
 		/**
 		 * @method runScript
 		 */
 		Local<JSValue> runScript(Local<JSString> source,
-															Local<JSString> name,
-															Local<JSObject> sandbox = Local<JSObject>());
+														Local<JSString> name,
+														Local<JSObject> sandbox = Local<JSObject>());
 		/**
 		 * @method runNativeScript
 		 */
 		Local<JSValue> runNativeScript(
-			cBuffer& source, cString& name, 
-			Local<JSObject> exports = Local<JSObject>());
-
-		/**
-		 * @method values
-		 */
-		ValueProgram* values();
-
-		/**
-		 * @method strs
-		 */
-		CommonStrings* strs();
-
-		/**
-		 * @method threadId
-		 */
-		ThreadID threadId();
+			cBuffer& source, cString& name, Local<JSObject> exports = Local<JSObject>()
+		);
 
 		/**
 		 * @method global()
@@ -784,12 +726,10 @@ namespace qk { namespace js {
 		 */
 		void garbageCollection();
 
-	private:
-		Worker(IMPL* inl);
-		Qk_DEFINE_INLINE_CLASS(IMPL);
-		IMPL* _inl;
-		friend class NativeValue;
-		friend class WorkerIMPL;
+	protected:
+		Worker();
+		Persistent<JSObject> _global;
+		Persistent<JSObject> _nativeModules;
 	};
 
 	class Qk_EXPORT WrapObject {
@@ -810,7 +750,7 @@ namespace qk { namespace js {
 			return static_cast<js::Wrap<O>*>(static_cast<WrapObject*>(wrap));
 		}
 
-		static WrapObject* attach(FunctionCall args);
+		static WrapObject* Attach(FunctionCall args);
 
 	public:
 		virtual bool addEventListener(cString& name, cString& func, int id) {
@@ -832,13 +772,13 @@ namespace qk { namespace js {
 			return worker()->New(handle_);
 		}
 		inline Local<JSValue> get(Local<JSValue> key) {
-			return handle_.local()->Get(worker(), key);
+			return handle_.local()->get(worker(), key);
 		}
 		inline bool set(Local<JSValue> key, Local<JSValue> value) {
-			return handle_.local()->Set(worker(), key, value);
+			return handle_.local()->set(worker(), key, value);
 		}
 		inline bool del(Local<JSValue> key) {
-			return handle_.local()->Delete(worker(), key);
+			return handle_.local()->deleteOf(worker(), key);
 		}
 
 		// call member func
@@ -874,7 +814,6 @@ namespace qk { namespace js {
 	protected:
 		Persistent<JSObject> handle_;
 		Qk_DEFINE_INLINE_CLASS(Inl);
-		friend class Allocator;
 	};
 
 	template<class T = Object>
@@ -889,9 +828,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	Qk_EXPORT int Start(cString& cmd);
-	Qk_EXPORT int Start(const Array<String>& argv);
-	Qk_EXPORT int Start(int argc, Char** argv);
+	Qk_EXPORT int Start(cArray<String>& argv);
 
 	// **********************************************************************
 
@@ -900,45 +837,53 @@ namespace qk { namespace js {
 	typedef CopyablePersistentTraits<JSObject>::Handle CopyablePersistentObject;
 	typedef CopyablePersistentTraits<JSValue>::Handle CopyablePersistentValue;
 
-	template <>
-	Qk_EXPORT void PersistentBase<JSValue>::Reset();
-	template <>
-	Qk_EXPORT void PersistentBase<JSClass>::Reset();
-	template <> template <>
-	Qk_EXPORT void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other);
-	template <> template <>
-	Qk_EXPORT void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other);
+	template<>
+	Qk_EXPORT void PersistentBase<JSValue>::reset();
+	template<>
+	Qk_EXPORT void PersistentBase<JSClass>::reset();
 	template<> template<>
-	Qk_EXPORT void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that);
+	Qk_EXPORT void PersistentBase<JSValue>::reset(Worker* worker, const Local<JSValue>& other);
 	template<> template<>
-	Qk_EXPORT void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that);
+	Qk_EXPORT void PersistentBase<JSClass>::reset(Worker* worker, const Local<JSClass>& other);
+	template<>
+	Qk_EXPORT Local<JSValue> PersistentBase<JSValue>::toLocal() const;
+	template<>
+	Qk_EXPORT bool PersistentBase<JSValue>::isWeak();
+	template<>
+	Qk_EXPORT void PersistentBase<JSValue>::clearWeak();
+	template<>
+	Qk_EXPORT void PersistentBase<JSValue>::setWeak(void *ptr, WeakCallback cb);
+	template<> template<>
+	Qk_EXPORT void PersistentBase<JSValue>::copy(const PersistentBase<JSValue>& that);
+	template<> template<>
+	Qk_EXPORT void CopyablePersistentClass::copy(const PersistentBase<JSClass>& that);
 
-	template<> Qk_EXPORT void ReturnValue::Set<JSValue>(Local<JSValue> value);
+	template<> Qk_EXPORT void ReturnValue::set<JSValue>(Local<JSValue> value);
 
 	template<class T>
-	bool JSObject::SetProperty(Worker* worker, cString& name, T value) {
+	bool JSObject::setProperty(Worker* worker, cString& name, T value) {
 		return Set(worker, worker->New(name, 1), worker->New(value));
 	}
 	template<class T>
-	bool JSClass::SetMemberProperty(Worker* worker, cString& name, T value) {
+	bool JSClass::setMemberProperty(Worker* worker, cString& name, T value) {
 		return SetMemberProperty<Local<JSValue>>(worker, name, worker->New(value));
 	}
 	template<class T>
-	bool JSClass::SetStaticProperty(Worker* worker, cString& name, T value) {
+	bool JSClass::setStaticProperty(Worker* worker, cString& name, T value) {
 		return SetStaticProperty<Local<JSValue>>(worker, name, worker->New(value));
 	}
-	template<> Qk_EXPORT bool JSClass::SetMemberProperty<Local<JSValue>>(
+	template<> Qk_EXPORT bool JSClass::setMemberProperty<Local<JSValue>>(
 		Worker* worker, cString& name, Local<JSValue> value
 	);
-	template<> Qk_EXPORT bool JSClass::SetStaticProperty<Local<JSValue>>(
+	template<> Qk_EXPORT bool JSClass::setStaticProperty<Local<JSValue>>(
 		Worker* worker, cString& name, Local<JSValue> value
 	);
 	template<class T>
-	Local<T> MaybeLocal<T>::ToLocalChecked() {
-		reinterpret_cast<MaybeLocal<JSValue>*>(this)->ToLocalChecked();
-		return Local<T>(val_);
+	Local<T> MaybeLocal<T>::toLocalChecked() {
+		reinterpret_cast<MaybeLocal<JSValue>*>(this)->toLocalChecked();
+		return Local<T>(_val);
 	}
-	template <> Qk_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
+	template <> Qk_EXPORT Local<JSValue> MaybeLocal<JSValue>::toLocalChecked();
 
 } }
 #endif

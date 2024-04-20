@@ -48,18 +48,6 @@
 		],
 	},
 	{
-		'target_name': 'quark-node',
-		'type': 'static_library', #<(output_type)
-		'dependencies': [
-			'quark',
-			'quark-js',
-			'deps/node/node.gyp:node',
-		],
-		"sources": [
-			'../../tools/useless.c', # fix mac platform build error
-		],
-	},
-	{
 		'target_name': 'quark-js',
 		'type': 'static_library', #<(output_type)
 		'include_dirs': [
@@ -277,7 +265,6 @@
 					'quark',
 					'quark-js',
 					'quark-media',
-					'quark-node',
 				],
 				'sources': [
 					'main.cc',

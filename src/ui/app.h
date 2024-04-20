@@ -38,9 +38,9 @@
 #include "./types.h"
 
 #define Qk_Main() \
-	int __qk_main_func__(int, Char**); \
+	int __qk_main_func__(int, char**); \
 	Qk_INIT_BLOCK(__qk_main_func__) { qk::Application::setMain(&__qk_main_func__); } \
-	int __qk_main_func__(int argc, Char** argv)
+	int __qk_main_func__(int argc, char** argv)
 
 namespace qk {
 	class Screen;

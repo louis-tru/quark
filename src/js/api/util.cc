@@ -44,9 +44,8 @@ JS_BEGIN
 
 using namespace native_js;
 
-extern Array<Char*>* __fx_quark_argv;
-extern int __fx_quark_have_node;
-extern int __fx_quark_have_debug;
+extern Array<Char*>* __quark_js_argv;
+extern int           __quark_js_have_debug;
 
 typedef Object NativeObject;
 
@@ -294,14 +293,13 @@ class NativeUtil {
 		JS_SET_PROPERTY(platform, qk::platform());
 
 		Local<JSArray> argv = worker->NewArray();
-		if (__fx_quark_argv) {
-			for (uint32_t i = 0; i < __fx_quark_argv->length(); i++) {
-				argv->Set(worker, i, worker->New(__fx_quark_argv->item(i)));
+		if (__quark_js_argv) {
+			for (uint32_t i = 0; i < __quark_js_argv->length(); i++) {
+				argv->Set(worker, i, worker->New(__quark_js_argv->item(i)));
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);
-		JS_SET_PROPERTY(haveNode, !!__fx_quark_have_node);
-		JS_SET_PROPERTY(debug, !!__fx_quark_have_debug);
+		JS_SET_PROPERTY(debug, !!__quark_js_have_debug);
 
 		// extendModule
 		Local<JSObject> extendModule = worker->NewObject();
