@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 static cString change("Change");
 static cString beforerender("Beforerender");
@@ -44,34 +44,28 @@ static cString render("Render");
 static cString orientation_("Orientation");
 
 class WrapDisplay: public WrapObject {
-	public:
+public:
 	typedef Display Type;
-	
-	/**
-	 * @func bind_event
-	 */
+
 	bool addEventListener(cString& name, cString& func, int id) {
 		if ( name == change ) {
-			self<Type>()->js_bind_common_native_event(change);
+			self<Type>()->Js_Native_On(Change, func, id);
 		}
 		else if ( name == orientation_ ) {
-			self<Type>()->js_bind_common_native_event(orientation);
+			self<Type>()->Js_Native_On(Orientation, func, id);
 		}
 		else {
 			return false;
 		}
 		return true;
 	}
-	
-	/**
-	 * @func unbind_event
-	 */
+
 	bool removeEventListener(cString& name, int id) {
 		if ( name == change ) {
-			self<Type>()->js_unbind_native_event(change);
+			self<Type>()->Qk_Off(Change, id);
 		}
 		else if ( name == orientation_ ) {
-			self<Type>()->js_unbind_native_event(orientation);
+			self<Type>()->Qk_Off(Orientation, id);
 		}
 		else {
 			return false;
@@ -80,9 +74,9 @@ class WrapDisplay: public WrapObject {
 	}
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_WORKER(args);
-		JS_THROW_ERR("Forbidden access");
+		Js_ATTACH(args);
+		Js_Worker(args);
+		Js_Throw("Forbidden access");
 	}
 
 	/**
@@ -102,15 +96,15 @@ class WrapDisplay: public WrapObject {
 	 *
 	 */
 	static void lock_size(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsNumber(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func lockSize([width[,height]])"
 				"* @arg [width=0] {float}"
 				"* @arg [height=0] {float}"
 			);
 		}
-		JS_SELF(Display);
+		Js_Self(Display);
 		
 		if (args.Length() > 1 && args[1]->IsNumber(worker)) {
 			self->lock_size( args[0]->ToNumberValue(worker), args[1]->ToNumberValue(worker) );
@@ -124,21 +118,21 @@ class WrapDisplay: public WrapObject {
 	 * @arg cb {Function}
 	 */
 	static void next_frame(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if (args.Length() < 1 || !args[0]->IsFunction(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func nextFrame(cb)\n"
 				"* @arg cb {Function}\n"
 			);
 		}
-		JS_SELF(Display);
+		Js_Self(Display);
 		
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 
 		self->next_frame(Cb([func, worker](Cb::Data& evt) {
 			Qk_ASSERT(!func.IsEmpty());
-			JS_HANDLE_SCOPE();
-			JS_CALLBACK_SCOPE();
+			Js_Handle_Scope();
+			Js_Callback_Scope();
 			func.local()->Call(worker);
 			//const_cast<CopyablePersistentFunc*>(&func)->Reset();
 		}));
@@ -148,95 +142,95 @@ class WrapDisplay: public WrapObject {
 	 * @get width {float} 
 	 */
 	static void width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->size().width() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->size().width() );
 	}
 	
 	/**
 	 * @get height {float} 
 	 */
 	static void height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->size().height() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->size().height() );
 	}
 	
 	/**
 	 * @get phy_width {float} 
 	 */
 	static void phy_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->phy_size().width() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->phy_size().width() );
 	}
 	
 	/**
 	 * @get phy_height {float} 
 	 */
 	static void phy_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->phy_size().height() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->phy_size().height() );
 	}
 	
 	/**
 	 * @get best_scale {float} 
 	 */
 	static void best_scale(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->best_scale() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->best_scale() );
 	}
 	
 	/**
 	 * @get scale {float} 
 	 */
 	static void scale(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->scale() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->scale() );
 	}
 	
 	/**
 	 * @get scale_value {Vec2}
 	 */
 	static void scale_value(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( worker->values()->New(self->scale_value()) );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( worker->values()->New(self->scale_value()) );
 	}
 	
 	/**
 	 * @get root_matrix {Mat4} 
 	 */
 	static void root_matrix(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( worker->values()->New(self->root_matrix()) );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( worker->values()->New(self->root_matrix()) );
 	}
 	
 	/**
 	 * @get atom_pixel {float} 
 	 */
 	static void atom_pixel(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->atom_pixel() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->atom_pixel() );
 	}
 	
 	/**
 	 * @func keep_screen(keep)
 	 */
 	static void keep_screen(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func keepScreen(keep)\n"
 										"* @arg keep {bool}\n"
 										);
 		}
-		JS_SELF(Display);
+		Js_Self(Display);
 		self->keep_screen( args[0]->ToBooleanValue(worker) );
 	}
 	
@@ -244,23 +238,23 @@ class WrapDisplay: public WrapObject {
 	 * @func status_bar_height()
 	 */
 	static void status_bar_height(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->status_bar_height() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->status_bar_height() );
 	}
 	
 	/**
 	 * @func set_visible_status_bar(visible)
 	 */
 	static void set_visible_status_bar(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func setVisibleStatusBar(visible)\n"
 										"* @arg visible {bool}\n"
 										);
 		}
-		JS_SELF(Display);
+		Js_Self(Display);
 		self->set_visible_status_bar( args[0]->ToBooleanValue(worker) );
 	}
 	
@@ -268,14 +262,14 @@ class WrapDisplay: public WrapObject {
 	 * @func set_status_bar_style(style)
 	 */
 	static void set_status_bar_style(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32() ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func setStatusBarStyle(style)\n"
 										"* @arg style {StatusBarStyle}\n"
 										);
 		}
-		JS_SELF(Display);
+		Js_Self(Display);
 		self->set_status_bar_style( Display::StatusBarStyle(args[0]->ToUint32Value(worker)) );
 	}
 	
@@ -283,14 +277,14 @@ class WrapDisplay: public WrapObject {
 	 * @func request_fullscreen(fullscreen)
 	 */
 	static void request_fullscreen(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func requestFullscreen(fullscreen)\n"
 										"* @arg fullscreen {bool}\n"
 										);
 		}
-		JS_SELF(Display);
+		Js_Self(Display);
 		self->request_fullscreen( args[0]->ToBooleanValue(worker) );
 	}
 	
@@ -298,23 +292,23 @@ class WrapDisplay: public WrapObject {
 	 * @func orientation()
 	 */
 	static void orientation(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->orientation() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->orientation() );
 	}
 	
 	/**
 	 * @func set_orientation(orientation)
 	 */
 	static void set_orientation(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func setOrientation(orientation)\n"
 										"* @arg orientation {Orientation}\n"
 										);
 		}
-		JS_SELF(Display);
+		Js_Self(Display);
 		self->set_orientation( Display::Orientation(args[0]->ToUint32Value(worker)) );
 	}
 	
@@ -322,54 +316,54 @@ class WrapDisplay: public WrapObject {
 	 * @func fsp()
 	 */
 	static void fsp(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Display);
-		JS_RETURN( self->fsp() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Display);
+		Js_Return( self->fsp() );
 	}
 	
 	/**
 	 * @func default_atom_pixel() {float} 
 	 */
 	static void default_atom_pixel(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_RETURN( Display::default_atom_pixel() );
+		Js_Worker(args); UILock lock;
+		Js_Return( Display::default_atom_pixel() );
 	}
 	
 	/**
 	 * @func default_status_bar_height() {float}
 	 */
 	static void default_status_bar_height(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_RETURN( Display::default_status_bar_height() );
+		Js_Worker(args); UILock lock;
+		Js_Return( Display::default_status_bar_height() );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(defaultAtomPixel, default_atom_pixel);
-		JS_SET_METHOD(defaultStatusBarHeight, default_status_bar_height);
+		Js_Set_Method(defaultAtomPixel, default_atom_pixel);
+		Js_Set_Method(defaultStatusBarHeight, default_status_bar_height);
 
-		JS_DEFINE_CLASS(Display, constructor, {
-			JS_SET_CLASS_METHOD(lockSize, lock_size);
-			JS_SET_CLASS_METHOD(nextFrame, next_frame);
-			JS_SET_CLASS_METHOD(keepScreen, keep_screen);
-			JS_SET_CLASS_METHOD(statusBarHeight, status_bar_height);
-			JS_SET_CLASS_METHOD(setVisibleStatusBar, set_visible_status_bar);
-			JS_SET_CLASS_METHOD(setStatusBarStyle, set_status_bar_style);
-			JS_SET_CLASS_METHOD(requestFullscreen, request_fullscreen);
-			JS_SET_CLASS_METHOD(orientation, orientation);
-			JS_SET_CLASS_METHOD(setOrientation, set_orientation);
-			JS_SET_CLASS_METHOD(fsp, fsp);
-			JS_SET_CLASS_ACCESSOR(width, width);
-			JS_SET_CLASS_ACCESSOR(height, height);
-			JS_SET_CLASS_ACCESSOR(phyWidth, phy_width);
-			JS_SET_CLASS_ACCESSOR(phyHeight, phy_height);
-			JS_SET_CLASS_ACCESSOR(bestScale, best_scale);
-			JS_SET_CLASS_ACCESSOR(scale, scale);
-			JS_SET_CLASS_ACCESSOR(scaleValue, scale_value);
-			JS_SET_CLASS_ACCESSOR(rootMatrix, root_matrix);
-			JS_SET_CLASS_ACCESSOR(atomPixel, atom_pixel);
+		Js_Define_Class(Display, constructor, {
+			Js_Set_Class_Method(lockSize, lock_size);
+			Js_Set_Class_Method(nextFrame, next_frame);
+			Js_Set_Class_Method(keepScreen, keep_screen);
+			Js_Set_Class_Method(statusBarHeight, status_bar_height);
+			Js_Set_Class_Method(setVisibleStatusBar, set_visible_status_bar);
+			Js_Set_Class_Method(setStatusBarStyle, set_status_bar_style);
+			Js_Set_Class_Method(requestFullscreen, request_fullscreen);
+			Js_Set_Class_Method(orientation, orientation);
+			Js_Set_Class_Method(setOrientation, set_orientation);
+			Js_Set_Class_Method(fsp, fsp);
+			Js_Set_Class_Accessor(width, width);
+			Js_Set_Class_Accessor(height, height);
+			Js_Set_Class_Accessor(phyWidth, phy_width);
+			Js_Set_Class_Accessor(phyHeight, phy_height);
+			Js_Set_Class_Accessor(bestScale, best_scale);
+			Js_Set_Class_Accessor(scale, scale);
+			Js_Set_Class_Accessor(scaleValue, scale_value);
+			Js_Set_Class_Accessor(rootMatrix, root_matrix);
+			Js_Set_Class_Accessor(atomPixel, atom_pixel);
 		}, NULL);
 	}
 };
 
-JS_REG_MODULE(_display_port, WrapDisplay);
-JS_END
+Js_REG_MODULE(_display_port, WrapDisplay);
+Js_END

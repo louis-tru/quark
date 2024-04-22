@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class NativeStorage
@@ -50,15 +50,15 @@ class NativeStorage {
 	 * @ret {String}
 	 */
 	static void get(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func get(key)\n"
 				"* @arg key {String}\n"
 				"* @ret {String}\n"
 			);
 		}
-		JS_RETURN( localstorage_get( args[0]->ToStringValue(worker)) );
+		Js_Return( localstorage_get( args[0]->ToStringValue(worker)) );
 	}
 	
 	/**
@@ -67,9 +67,9 @@ class NativeStorage {
 	 * @arg value {String}
 	 */
 	static void set(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 2) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func set(key)\n"
 				"* @arg key {String}\n"
 				"* @arg value {String}\n"
@@ -83,9 +83,9 @@ class NativeStorage {
 	 * @arg key {String}
 	 */
 	static void del(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func del(key)\n"
 				"* @arg key {String}\n"
 			);
@@ -98,9 +98,9 @@ class NativeStorage {
 	}
 	
 	static void transaction(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || !args[0]->IsFunction()) {
-			JS_THROW_ERR(
+			Js_Throw(
 									 "* @func transaction(key)\n"
 									 "* @arg cb {Function}\n"
 									 );
@@ -109,13 +109,13 @@ class NativeStorage {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(get, get);
-		JS_SET_METHOD(set, set);
-		JS_SET_METHOD(del, del);
-		JS_SET_METHOD(clear, clear);
-		JS_SET_METHOD(transaction, transaction);
+		Js_Set_Method(get, get);
+		Js_Set_Method(set, set);
+		Js_Set_Method(del, del);
+		Js_Set_Method(clear, clear);
+		Js_Set_Method(transaction, transaction);
 	}
 };
 
-JS_REG_MODULE(_storage, NativeStorage);
-JS_END
+Js_REG_MODULE(_storage, NativeStorage);
+Js_END

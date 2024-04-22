@@ -690,6 +690,10 @@ namespace qk {
 		return encode_with_uint16(target_en, *source, source.length());
 	}
 
+	ArrayBuffer<char> codec_encode(Encoding target_en, cString2& source) {
+		return encode_with_uint16(target_en, *source, source.length());
+	}
+
 	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& source) {
 		return encode_with_uint32(target_en, *source, source.length());
 	}

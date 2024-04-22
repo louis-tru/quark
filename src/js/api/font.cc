@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 using namespace qk;
 
@@ -51,10 +51,10 @@ class WrapFontStatic {
 	 * @arg fonts {String|Array}
 	 */
 	static void set_default_fonts(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_CHECK_APP();
+		Js_Worker(args); UILock lock;
+		Js_CHECK_APP();
 		if ( args.Length() < 1 ) {
-			JS_THROW_ERR("Bad argument.");
+			Js_Throw("Bad argument.");
 		}
 		if ( args[0]->IsString(worker) ) {
 			font_pool()->set_default_fonts( args[0]->ToStringValue(worker).split(',') );
@@ -64,7 +64,7 @@ class WrapFontStatic {
 				font_pool()->set_default_fonts( fonts );
 			}
 		} else {
-			JS_THROW_ERR("Bad argument.");
+			Js_Throw("Bad argument.");
 		}
 	}
 	
@@ -73,10 +73,10 @@ class WrapFontStatic {
 	 * @ret {Array}
 	 */
 	static void default_font_names(FunctionCall args) {
-		JS_WORKER(args);
-		JS_CHECK_APP();
+		Js_Worker(args);
+		Js_CHECK_APP();
 		Array<String> arr = font_pool()->default_font_names();
-		JS_RETURN(arr);
+		Js_Return(arr);
 	}
 	
 	/**
@@ -84,10 +84,10 @@ class WrapFontStatic {
 	 * @ret {Array}
 	 */
 	static void family_names(FunctionCall args) {
-		JS_WORKER(args);
-		JS_CHECK_APP();
+		Js_Worker(args);
+		Js_CHECK_APP();
 		Array<String> arr = font_pool()->family_names();
-		JS_RETURN(arr);
+		Js_Return(arr);
 	}
 		
 	/**
@@ -96,17 +96,17 @@ class WrapFontStatic {
 	 * @ret {Array}
 	 */
 	static void font_names(FunctionCall args) {
-		JS_WORKER(args);
-		JS_CHECK_APP();
+		Js_Worker(args);
+		Js_CHECK_APP();
 		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func fontNames(family)\n"
 				"* @arg family {String}\n"
 				"* @ret {Array}\n"
 			);
 		}
 		Array<String> arr = font_pool()->font_names( args[0]->ToStringValue(worker) );
-		JS_RETURN(arr);
+		Js_Return(arr);
 	}
 	
 	/**
@@ -115,17 +115,17 @@ class WrapFontStatic {
 	 * @ret {bool}
 	 */
 	static void test(FunctionCall args) {
-		JS_WORKER(args);
-		JS_CHECK_APP();
+		Js_Worker(args);
+		Js_CHECK_APP();
 		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func test(name) test font or family\n"
 				"* @arg name {String} font name or family name\n"
 				"* @ret {bool}\n"
 			);
 		}
 		bool is = font_pool()->test( args[0]->ToStringValue(worker) );
-		JS_RETURN(is);
+		Js_Return(is);
 	}
 	
 	/**
@@ -135,10 +135,10 @@ class WrapFontStatic {
 	 * @ret {bool}
 	 */
 	static void register_font(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_CHECK_APP();
+		Js_Worker(args); UILock lock;
+		Js_CHECK_APP();
 		if ( args.Length() < 1 || !args[0]->IsBuffer() ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func registerFont(font_data)\n"
 				"* @arg font_data {Buffer}\n"
 				"* @arg [alias] {String}\n"
@@ -152,7 +152,7 @@ class WrapFontStatic {
 		if ( args.Length() > 1 ) {
 			alias = args[1]->ToStringValue(worker);
 		}
-		JS_RETURN( font_pool()->register_font(buf.copy(), alias) );
+		Js_Return( font_pool()->register_font(buf.copy(), alias) );
 	}
 	
 	/**
@@ -162,10 +162,10 @@ class WrapFontStatic {
 	 * @ret {bool}
 	 */
 	static void register_font_file(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_CHECK_APP();
+		Js_Worker(args); UILock lock;
+		Js_CHECK_APP();
 		if ( args.Length() < 1 || !args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func registerFontFile(path[,alias])\n"
 				"* @arg path {String}\n"
 				"* @arg alias {String}\n"
@@ -178,7 +178,7 @@ class WrapFontStatic {
 		if ( args.Length() > 1 ) {
 			alias = args[1]->ToStringValue(worker);
 		}
-		JS_RETURN( font_pool()->register_font_file(path, alias) );
+		Js_Return( font_pool()->register_font_file(path, alias) );
 	}
 	
 	/**
@@ -187,10 +187,10 @@ class WrapFontStatic {
 	 * @arg alias {String}
 	 */
 	static void set_family_alias(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_CHECK_APP();
+		Js_Worker(args); UILock lock;
+		Js_CHECK_APP();
 		if ( args.Length() < 2 ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setFamilyAlias(family, alias)\n"
 				"* @arg family {String}\n"
 				"* @arg alias {String}\n"
@@ -200,17 +200,17 @@ class WrapFontStatic {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(setDefaultFonts, set_default_fonts);
-		JS_SET_METHOD(defaultFontNames, default_font_names);
-		JS_SET_METHOD(familyNames, family_names);
-		JS_SET_METHOD(fontNames, font_names);
-		JS_SET_METHOD(test, test);
-		JS_SET_METHOD(registerFont, register_font);
-		JS_SET_METHOD(registerFontFile, register_font_file);
-		JS_SET_METHOD(setFamilyAlias, set_family_alias);
+		Js_Set_Method(setDefaultFonts, set_default_fonts);
+		Js_Set_Method(defaultFontNames, default_font_names);
+		Js_Set_Method(familyNames, family_names);
+		Js_Set_Method(fontNames, font_names);
+		Js_Set_Method(test, test);
+		Js_Set_Method(registerFont, register_font);
+		Js_Set_Method(registerFontFile, register_font_file);
+		Js_Set_Method(setFamilyAlias, set_family_alias);
 	}
 };
 
-JS_REG_MODULE(_font, WrapFontStatic);
+Js_REG_MODULE(_font, WrapFontStatic);
 
-JS_END
+Js_END

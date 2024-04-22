@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapAction
@@ -45,16 +45,16 @@ class WrapAction: public WrapObject {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_WORKER(args);
-		JS_THROW_ERR("Forbidden access abstract");
+		Js_Worker(args);
+		Js_Throw("Forbidden access abstract");
 	}
 	
 	/**
 	 * @func play()
 	 */
 	static void play(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
 		self->play();
 	}
 	
@@ -62,8 +62,8 @@ class WrapAction: public WrapObject {
 	 * @func stop()
 	 */
 	static void stop(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
 		self->stop();
 	}
 	
@@ -72,14 +72,14 @@ class WrapAction: public WrapObject {
 	 * @arg ms {int}
 	 */
 	static void seek(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func seek(ms)\n"
 				"* @arg ms {int}\n"
 			);
 		}
-		JS_SELF(Action);
+		Js_Self(Action);
 		self->seek( uint64(1000) * args[0]->ToInt32Value(worker) );
 	}
 	
@@ -88,14 +88,14 @@ class WrapAction: public WrapObject {
 	 * @arg ms {int}
 	 */
 	static void seek_play(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func seekPlay(ms)\n"
 				"* @arg ms {int}\n"
 			);
 		}
-		JS_SELF(Action);
+		Js_Self(Action);
 		self->seek_play( uint64(1000) * args[0]->ToInt32Value(worker) );
 	}
 	
@@ -104,14 +104,14 @@ class WrapAction: public WrapObject {
 	 * @arg ms {int}
 	 */
 	static void seek_stop(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func seekStop(ms)\n"
 				"* @arg ms {int}\n"
 			);
 		}
-		JS_SELF(Action);
+		Js_Self(Action);
 		self->seek_stop( uint64(1000) * args[0]->ToInt32Value(worker) );
 	}
 	
@@ -119,8 +119,8 @@ class WrapAction: public WrapObject {
 	 * @func clear()
 	 */
 	static void clear(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
 		self->clear();
 	}
 	
@@ -128,77 +128,77 @@ class WrapAction: public WrapObject {
 	 * @get loop {uint}
 	 */
 	static void loop(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
-		JS_RETURN( self->loop() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
+		Js_Return( self->loop() );
 	}
 	
 	/**
 	 * @get looped {uint}
 	 */
 	static void looped(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
-		JS_RETURN( self->looped() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
+		Js_Return( self->looped() );
 	}
 	
 	/** 
 	 * @get delay {uint} ms
 	 */
 	static void delay(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
-		JS_RETURN( self->delay() / 1000 );
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
+		Js_Return( self->delay() / 1000 );
 	}
 
 	/** 
 	 * @get delayed {int} ms
 	 */
 	static void delayed(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
-		JS_RETURN( self->delayed() / 1000 );
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
+		Js_Return( self->delayed() / 1000 );
 	}
 
 	/** 
 	 * @get speed {float} 0.1-10
 	 */
 	static void speed(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
-		JS_RETURN( self->speed() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
+		Js_Return( self->speed() );
 	}
 
 	/** 
 	 * @get playing {bool}
 	 */
 	static void playing(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
-		JS_RETURN( self->playing() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
+		Js_Return( self->playing() );
 	}
 
 	/** 
 	 * @get duration {uint} ms
 	 */
 	static void duration(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
-		JS_RETURN( self->duration() / 1000 );
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
+		Js_Return( self->duration() / 1000 );
 	}
 
 	/** 
 	 * @get parent {Action}
 	 */
 	static void parent(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
 		Action* action = self->parent();
 		if ( action ) {
 			Wrap<Action>* wrap = Wrap<Action>::pack(action);
-			JS_RETURN( wrap->that() );
+			Js_Return( wrap->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}
 
@@ -206,8 +206,8 @@ class WrapAction: public WrapObject {
 	 * @set playing {bool}
 	 */
 	static void set_playing(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Action);
+		Js_Worker(args); UILock lock;
+		Js_Self(Action);
 		self->playing( value->ToBooleanValue(worker) );
 	}
 
@@ -215,15 +215,15 @@ class WrapAction: public WrapObject {
 	 * @set loop {uint}
 	 */
 	static void set_loop(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( !value->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				
 				"* @set loop {uint}\n"
 				
 			);
 		}
-		JS_SELF(Action);
+		Js_Self(Action);
 		self->loop( value->ToUint32Value(worker) );
 	}
 
@@ -231,13 +231,13 @@ class WrapAction: public WrapObject {
 	 * @set delay {uint} ms
 	 */
 	static void set_delay(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( !value->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @set delay {uint} ms\n"
 			);
 		}
-		JS_SELF(Action);
+		Js_Self(Action);
 		self->delay( uint64(1000) * value->ToUint32Value(worker) );
 	}
 
@@ -245,37 +245,37 @@ class WrapAction: public WrapObject {
 	 * @set speed {float} 0.1-10
 	 */
 	static void set_speed(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @set speed {float} 0.1-10\n"
 			);
 		}
-		JS_SELF(Action);
+		Js_Self(Action);
 		self->speed( value->ToNumberValue(worker) );
 	}
 
 	static void null_set_accessor(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Action, constructor, {
-			JS_SET_CLASS_METHOD(play, play);
-			JS_SET_CLASS_METHOD(stop, stop);
-			JS_SET_CLASS_METHOD(seek, seek);
-			JS_SET_CLASS_METHOD(seekPlay, seek_play);
-			JS_SET_CLASS_METHOD(seekStop, seek_stop);
-			JS_SET_CLASS_METHOD(clear, clear);
-			JS_SET_CLASS_ACCESSOR(duration, duration);
-			JS_SET_CLASS_ACCESSOR(parent, parent);
-			JS_SET_CLASS_ACCESSOR(playing, playing, set_playing);
-			JS_SET_CLASS_ACCESSOR(loop, loop, set_loop);
-			JS_SET_CLASS_ACCESSOR(looped, looped);
-			JS_SET_CLASS_ACCESSOR(delay, delay, set_delay);
-			JS_SET_CLASS_ACCESSOR(delayed, delayed);
-			JS_SET_CLASS_ACCESSOR(speed, speed, set_speed);
-			JS_SET_CLASS_ACCESSOR(seq, nullptr, null_set_accessor);
-			JS_SET_CLASS_ACCESSOR(spawn, nullptr, null_set_accessor);
-			JS_SET_CLASS_ACCESSOR(keyframe, nullptr, null_set_accessor);
+		Js_Define_Class(Action, constructor, {
+			Js_Set_Class_Method(play, play);
+			Js_Set_Class_Method(stop, stop);
+			Js_Set_Class_Method(seek, seek);
+			Js_Set_Class_Method(seekPlay, seek_play);
+			Js_Set_Class_Method(seekStop, seek_stop);
+			Js_Set_Class_Method(clear, clear);
+			Js_Set_Class_Accessor(duration, duration);
+			Js_Set_Class_Accessor(parent, parent);
+			Js_Set_Class_Accessor(playing, playing, set_playing);
+			Js_Set_Class_Accessor(loop, loop, set_loop);
+			Js_Set_Class_Accessor(looped, looped);
+			Js_Set_Class_Accessor(delay, delay, set_delay);
+			Js_Set_Class_Accessor(delayed, delayed);
+			Js_Set_Class_Accessor(speed, speed, set_speed);
+			Js_Set_Class_Accessor(seq, nullptr, null_set_accessor);
+			Js_Set_Class_Accessor(spawn, nullptr, null_set_accessor);
+			Js_Set_Class_Accessor(keyframe, nullptr, null_set_accessor);
 		}, nullptr);
 	}
 };
@@ -287,17 +287,17 @@ class WrapGroupAction: public WrapObject {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_WORKER(args);
-		JS_THROW_ERR("Forbidden access abstract");
+		Js_Worker(args);
+		Js_Throw("Forbidden access abstract");
 	}
 	
 	/**
 	 * @get length {uint}
 	 */
 	static void length(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(GroupAction);
-		JS_RETURN( self->length() );
+		Js_Worker(args); UILock lock;
+		Js_Self(GroupAction);
+		Js_Return( self->length() );
 	}
 	
 	/**
@@ -305,14 +305,14 @@ class WrapGroupAction: public WrapObject {
 	 * @arg child {Action}
 	 */
 	static void append(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !worker->hasInstance<Action>(args[0]) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func append(child)\n"
 				"* @arg child {Action}\n"
 			);
 		}
-		JS_SELF(GroupAction);
+		Js_Self(GroupAction);
 		Action* child = Wrap<Action>::unpack(args[0].To<JSObject>())->self();
 		self->append( child );
 	}
@@ -323,16 +323,16 @@ class WrapGroupAction: public WrapObject {
 	 * @arg child {Action}
 	 */
 	static void insert(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if (args.Length() < 2 || !args[0]->IsUint32(worker) || 
 				!worker->hasInstance<Action>(args[1]) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func insert(index, child)\n"
 				"* @arg index {uint}\n"
 				"* @arg child {Action}\n"
 			);
 		}
-		JS_SELF(GroupAction);
+		Js_Self(GroupAction);
 		Action* child = Wrap<Action>::unpack(args[1].To<JSObject>())->self();
 		self->insert( args[0]->ToUint32Value(worker), child );
 	}
@@ -342,45 +342,45 @@ class WrapGroupAction: public WrapObject {
 	 * @arg index {uint}
 	 */
 	static void remove_child(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func removeChild(index)\n"
 				"* @arg index {uint}\n"
 			);
 		}
-		JS_SELF(GroupAction);
+		Js_Self(GroupAction);
 		self->remove_child( args[0]->ToUint32Value(worker) );
 	}
 	
 	static void children(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 1 || !args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func children(index)\n"
 				"* @arg index {uint}\n"
 				"* @ret {Action} return child action\n"
 			);
 		}
-		JS_SELF(GroupAction);
+		Js_Self(GroupAction);
 		
 		uint32_t index = args[0]->ToUint32Value(worker);
 		if ( index < self->length() ) {
 			Action* action = (*self)[ args[0]->ToUint32Value(worker) ];
 			Wrap<Action>* wrap = Wrap<Action>::pack(action);
-			JS_RETURN( wrap->that() );
+			Js_Return( wrap->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS_NO_EXPORTS(GroupAction, constructor, {
-			JS_SET_CLASS_ACCESSOR(length, length);
-			JS_SET_CLASS_METHOD(append, append);
-			JS_SET_CLASS_METHOD(insert, insert);
-			JS_SET_CLASS_METHOD(removeChild, remove_child);
-			JS_SET_CLASS_METHOD(children, children);
+		Js_Define_Class_NO_EXPORTS(GroupAction, constructor, {
+			Js_Set_Class_Accessor(length, length);
+			Js_Set_Class_Method(append, append);
+			Js_Set_Class_Method(insert, insert);
+			Js_Set_Class_Method(removeChild, remove_child);
+			Js_Set_Class_Method(children, children);
 		}, Action);
 	}
 };
@@ -392,13 +392,13 @@ class WrapSpawnAction: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapSpawnAction>(args, new SpawnAction());
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(SpawnAction, constructor, {
+		Js_Define_Class(SpawnAction, constructor, {
 		}, GroupAction);
 	}
 };
@@ -410,13 +410,13 @@ class WrapSequenceAction: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapSequenceAction>(args, new SequenceAction());
 	}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(SequenceAction, constructor, {
+		Js_Define_Class(SequenceAction, constructor, {
 		}, GroupAction);
 	}
 };
@@ -430,8 +430,8 @@ class WrapKeyframeAction: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapKeyframeAction>(args, new KeyframeAction());
 	}
 	
@@ -441,16 +441,16 @@ class WrapKeyframeAction: public WrapObject {
 	 * @ret {bool}
 	 */
 	static void hasProperty(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func hasProperty(name)\n"
 				"* @arg name {emun PropertyName}\n"
 				"* @ret {bool}\n"
 			);
 		}
-		JS_SELF(KeyframeAction);
-		JS_RETURN( self->has_property( static_cast<PropertyName>(args[0]->ToInt32Value(worker)) ));
+		Js_Self(KeyframeAction);
+		Js_Return( self->has_property( static_cast<PropertyName>(args[0]->ToInt32Value(worker)) ));
 	}
 	
 	/**
@@ -459,16 +459,16 @@ class WrapKeyframeAction: public WrapObject {
 	 * @ret {bool}
 	 */
 	static void matchProperty(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() < 1 || ! args[0]->IsInt32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func matchProperty(name)\n"
 				"* @arg name {emun PropertyName}\n"
 				"* @ret {bool}\n"
 			);
 		}
-		JS_SELF(KeyframeAction);
-		JS_RETURN( self->match_property( static_cast<PropertyName>(args[0]->ToInt32Value(worker)) ));
+		Js_Self(KeyframeAction);
+		Js_Return( self->match_property( static_cast<PropertyName>(args[0]->ToInt32Value(worker)) ));
 	}
 	
 	/**
@@ -477,17 +477,17 @@ class WrapKeyframeAction: public WrapObject {
 	 * @ret {Frame}
 	 */
 	static void frame(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() < 1 || ! args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+			Js_Throw("Bad argument.");
 		}
-		JS_SELF(KeyframeAction);
+		Js_Self(KeyframeAction);
 		uint32_t index = args[0]->ToUint32Value(worker);
 		if ( index < self->length() ) {
 			Frame* frame = self->frame(index);
-			JS_RETURN( Wrap<Frame>::pack(frame)->that() );
+			Js_Return( Wrap<Frame>::pack(frame)->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}
 	
@@ -499,12 +499,12 @@ class WrapKeyframeAction: public WrapObject {
 	 * @ret {Frame}
 	 */
 	static void add(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		uint64_t time = 0;
 		
 		if ( args.Length() > 0 ) {
 			if ( args[0]->IsObject(worker) && ! args[0]->IsNull(worker) ) {
-				JS_HANDLE_SCOPE();
+				Js_Handle_Scope();
 				
 				Local<JSObject> arg = args[0].To<JSObject>();
 				Local<JSArray> names = arg->GetPropertyNames(worker);
@@ -513,14 +513,14 @@ class WrapKeyframeAction: public WrapObject {
 					if ( t->IsNumber(worker) ) {
 						time = uint64(1000) * t->ToNumberValue(worker);
 					} else {
-						js_throw_value_err(t, "KeyframeAction.add([time = %s])");
+						Js_Throw_value_err(t, "KeyframeAction.add([time = %s])");
 					}
 				} else { // js error
 					return;
 				}
-				JS_SELF(KeyframeAction);
+				Js_Self(KeyframeAction);
 				Frame* frame = self->add(time);
-				Local<JSObject> handle = Wrap<Frame>::pack(frame, JS_TYPEID(Frame))->that();
+				Local<JSObject> handle = Wrap<Frame>::pack(frame, Js_Typeid(Frame))->that();
 				
 				for ( uint32_t i = 0, len = names->Length(worker); i < len; i++ ) {
 					Local<JSValue> key = names->Get(worker, i);
@@ -530,13 +530,13 @@ class WrapKeyframeAction: public WrapObject {
 					}
 				}
 				
-				JS_RETURN( handle );
+				Js_Return( handle );
 			} else if ( args[0]->IsNumber(worker) ) {
 				time = uint64(1000) * args[0]->ToNumberValue(worker);
 			}
 		}
 		
-		JS_SELF(KeyframeAction);
+		Js_Self(KeyframeAction);
 		
 		Frame* frame = nullptr;
 		if ( args.Length() > 1 && !args[1]->IsUndefined(worker) ) {
@@ -546,21 +546,21 @@ class WrapKeyframeAction: public WrapObject {
 			frame = self->add(time);
 		}
 		
-		Wrap<Frame>* wrap = Wrap<Frame>::pack(frame, JS_TYPEID(Frame));
-		JS_RETURN( wrap->that() );
+		Wrap<Frame>* wrap = Wrap<Frame>::pack(frame, Js_Typeid(Frame));
+		Js_Return( wrap->that() );
 	}
 	
 	/**
 	 * @get first {Frame}
 	 */
 	static void first(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(KeyframeAction);
+		Js_Worker(args);
+		Js_Self(KeyframeAction);
 		if ( self->length() ) {
 			Frame* frame = self->first();
-			JS_RETURN( Wrap<Frame>::pack(frame)->that() );
+			Js_Return( Wrap<Frame>::pack(frame)->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}
 	
@@ -568,13 +568,13 @@ class WrapKeyframeAction: public WrapObject {
 	 * @get last {Frame}
 	 */
 	static void last(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(KeyframeAction);
+		Js_Worker(args);
+		Js_Self(KeyframeAction);
 		if ( self->length() ) {
 			Frame* frame = self->last();
-			JS_RETURN( Wrap<Frame>::pack(frame)->that() );
+			Js_Return( Wrap<Frame>::pack(frame)->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}
 	
@@ -582,41 +582,41 @@ class WrapKeyframeAction: public WrapObject {
 	 * @get length {uint}
 	 */
 	static void length(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(KeyframeAction);
-		JS_RETURN( self->length() );
+		Js_Worker(args);
+		Js_Self(KeyframeAction);
+		Js_Return( self->length() );
 	}
 	
 	/**
 	 * @get position {uint} get play frame position
 	 */
 	static void position(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(KeyframeAction);
-		JS_RETURN( self->position() );
+		Js_Worker(args);
+		Js_Self(KeyframeAction);
+		Js_Return( self->position() );
 	}
 	
 	/**
 	 * @get time {uint} ms get play time position
 	 */
 	static void time(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(KeyframeAction);
-		JS_RETURN( self->time() / 1000 );
+		Js_Worker(args);
+		Js_Self(KeyframeAction);
+		Js_Return( self->time() / 1000 );
 	}
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(KeyframeAction, constructor, {
-			JS_SET_CLASS_METHOD(hasProperty, hasProperty);
-			JS_SET_CLASS_METHOD(matchProperty, matchProperty);
-			JS_SET_CLASS_METHOD(frame, frame);
-			JS_SET_CLASS_METHOD(add, add);
-			JS_SET_CLASS_ACCESSOR(first, first);
-			JS_SET_CLASS_ACCESSOR(last, last);
-			JS_SET_CLASS_ACCESSOR(length, length);
-			JS_SET_CLASS_ACCESSOR(position, position);
-			JS_SET_CLASS_ACCESSOR(time, time);
+		Js_Define_Class(KeyframeAction, constructor, {
+			Js_Set_Class_Method(hasProperty, hasProperty);
+			Js_Set_Class_Method(matchProperty, matchProperty);
+			Js_Set_Class_Method(frame, frame);
+			Js_Set_Class_Method(add, add);
+			Js_Set_Class_Accessor(first, first);
+			Js_Set_Class_Accessor(last, last);
+			Js_Set_Class_Accessor(length, length);
+			Js_Set_Class_Accessor(position, position);
+			Js_Set_Class_Accessor(time, time);
 		}, Action);
 	}
 };
@@ -641,5 +641,5 @@ class BindingAction {
 	}
 };
 
-JS_REG_MODULE(_action, BindingAction);
-JS_END
+Js_REG_MODULE(_action, BindingAction);
+Js_END

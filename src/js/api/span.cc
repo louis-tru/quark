@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapSpan
@@ -45,16 +45,16 @@ class WrapSpan: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapSpan>(args, new Span());
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Span, constructor, {
+		Js_Define_Class(Span, constructor, {
 			WrapViewBase::inheritTextLayout(cls, worker);
 		}, Layout);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Span), View::SPAN);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Span), View::SPAN);
 	}
 };
 
@@ -62,4 +62,4 @@ void binding_span(Local<JSObject> exports, Worker* worker) {
 	WrapSpan::binding(exports, worker);
 }
 
-JS_END
+Js_END

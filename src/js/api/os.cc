@@ -35,105 +35,105 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 class NativeOs {
 	public:
 
 	static void time(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( uint64(sys::time() / 1000) );
+		Js_Worker(args);
+		Js_Return( uint64(sys::time() / 1000) );
 	}
 	static void time_monotonic(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( uint64(sys::time_monotonic() / 1000) );
+		Js_Worker(args);
+		Js_Return( uint64(sys::time_monotonic() / 1000) );
 	}
 	static void name(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::name() );
+		Js_Worker(args);
+		Js_Return( sys::name() );
 	}
 	static void info(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::info() );
+		Js_Worker(args);
+		Js_Return( sys::info() );
 	}
 	static void version(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::version() );
+		Js_Worker(args);
+		Js_Return( sys::version() );
 	}
 	static void brand(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::brand() );
+		Js_Worker(args);
+		Js_Return( sys::brand() );
 	}
 	static void subsystem(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::subsystem() );
+		Js_Worker(args);
+		Js_Return( sys::subsystem() );
 	}
 	static void language(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::language() );
+		Js_Worker(args);
+		Js_Return( sys::language() );
 	}
 	static void is_wifi(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::is_wifi() );
+		Js_Worker(args);
+		Js_Return( sys::is_wifi() );
 	}
 	static void is_mobile(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::is_mobile() );
+		Js_Worker(args);
+		Js_Return( sys::is_mobile() );
 	}
 	static void network_interface(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::network_status() );
+		Js_Worker(args);
+		Js_Return( sys::network_status() );
 	}
 	static void is_ac_power(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::is_ac_power() );
+		Js_Worker(args);
+		Js_Return( sys::is_ac_power() );
 	}
 	static void is_battery(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::is_battery() );
+		Js_Worker(args);
+		Js_Return( sys::is_battery() );
 	}
 	static void battery_level(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::battery_level() );
+		Js_Worker(args);
+		Js_Return( sys::battery_level() );
 	}
 	static void memory(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::memory() );
+		Js_Worker(args);
+		Js_Return( sys::memory() );
 	}
 	static void used_memory(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::used_memory() );
+		Js_Worker(args);
+		Js_Return( sys::used_memory() );
 	}
 	static void available_memory(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::available_memory() );
+		Js_Worker(args);
+		Js_Return( sys::available_memory() );
 	}
 	static void cpu_usage(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( sys::cpu_usage() );
+		Js_Worker(args);
+		Js_Return( sys::cpu_usage() );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(time, time);
-		JS_SET_METHOD(timeMonotonic, time_monotonic);
-		JS_SET_METHOD(name, name);
-		JS_SET_METHOD(info, info);
-		JS_SET_METHOD(version, version);
-		JS_SET_METHOD(brand, brand);
-		JS_SET_METHOD(subsystem, subsystem);
-		JS_SET_METHOD(language, language);
-		JS_SET_METHOD(isWifi, is_wifi);
-		JS_SET_METHOD(isMobile, is_mobile);
-		JS_SET_METHOD(networkInterface, network_interface);
-		JS_SET_METHOD(isACPower, is_ac_power);
-		JS_SET_METHOD(isBattery, is_battery);
-		JS_SET_METHOD(batteryLevel, battery_level);
-		JS_SET_METHOD(memory, memory);
-		JS_SET_METHOD(usedMemory, used_memory);
-		JS_SET_METHOD(availableMemory, available_memory);
-		JS_SET_METHOD(cpuUsage, cpu_usage);
+		Js_Set_Method(time, time);
+		Js_Set_Method(timeMonotonic, time_monotonic);
+		Js_Set_Method(name, name);
+		Js_Set_Method(info, info);
+		Js_Set_Method(version, version);
+		Js_Set_Method(brand, brand);
+		Js_Set_Method(subsystem, subsystem);
+		Js_Set_Method(language, language);
+		Js_Set_Method(isWifi, is_wifi);
+		Js_Set_Method(isMobile, is_mobile);
+		Js_Set_Method(networkInterface, network_interface);
+		Js_Set_Method(isACPower, is_ac_power);
+		Js_Set_Method(isBattery, is_battery);
+		Js_Set_Method(batteryLevel, battery_level);
+		Js_Set_Method(memory, memory);
+		Js_Set_Method(usedMemory, used_memory);
+		Js_Set_Method(availableMemory, available_memory);
+		Js_Set_Method(cpuUsage, cpu_usage);
 	}
 };
 
-JS_REG_MODULE(_os, NativeOs)
-JS_END
+Js_REG_MODULE(_os, NativeOs)
+Js_END

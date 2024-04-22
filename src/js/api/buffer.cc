@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class NativeBuffer
@@ -48,7 +48,7 @@ class NativeBuffer {
 	 * @func parseEncoding()
 	 */
 	static bool parseEncoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		String s = arg->ToStringValue(worker);
 		en = Coder::parse_encoding( s );
 		if ( en == Encoding::unknown ) {
@@ -66,10 +66,10 @@ class NativeBuffer {
 	 * @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}
 	 */
 	static void fromString(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 
 		if ( args.Length() < 1 || !args[0]->IsString(worker) ) { // 参数错误
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func fromString(str[,encoding])\n"
 										"* @arg arg {String}\n"
 										"* @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
@@ -83,7 +83,7 @@ class NativeBuffer {
 			if ( ! parseEncoding(args, args[1], en) ) return;
 		}
 
-		JS_RETURN( worker->NewUint8Array(args[0].To<JSString>(), en) );
+		Js_Return( worker->NewUint8Array(args[0].To<JSString>(), en) );
 	}
 
 	/**
@@ -94,11 +94,11 @@ class NativeBuffer {
 	 * @arg [end] {uint}
 	 */
 	static void convertString(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 
 		int args_index = 0;
 		if (args.Length() < 1 || !args[0]->IsUint8Array()) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func convertString(uint8array,[encoding[,start[,end]]])\n"
 				"* @arg uint8array {Uint8Array}\n"
 				"* @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
@@ -129,18 +129,18 @@ class NativeBuffer {
 		}
 
 		if ( end <= start ) {
-			JS_RETURN( JSString::Empty(worker) );
+			Js_Return( JSString::Empty(worker) );
 		}
 
 		switch (encoding) {
 			case Encoding::hex: // 编码
 			case Encoding::base64: {
 				Buffer buff = Coder::encoding(encoding, data + start, end - start);
-				JS_RETURN( worker->New(buff.collapse_string(), true) );
+				Js_Return( worker->New(buff.collapse_string(), true) );
 				break;
 			} default: { // 解码to ucs2
 				String2 str( Coder::decoding_to_uint16(encoding, data + start, end - start) );
-				JS_RETURN( worker->New(str) );
+				Js_Return( worker->New(str) );
 				break;
 			}
 		}
@@ -150,10 +150,10 @@ class NativeBuffer {
 	 * @func binding
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(fromString, fromString);
-		JS_SET_METHOD(convertString, convertString);
+		Js_Set_Method(fromString, fromString);
+		Js_Set_Method(convertString, convertString);
 	}
 };
 
-JS_REG_MODULE(_buffer, NativeBuffer);
-JS_END
+Js_REG_MODULE(_buffer, NativeBuffer);
+Js_END

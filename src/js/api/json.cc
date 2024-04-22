@@ -37,7 +37,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 static cString Undefined("undefined");
 static cString Null("null");
@@ -269,4 +269,4 @@ bool JSON::stringify_console_styled(Worker* worker, Local<JSValue> arg, StringBu
 	return InlJSON(worker).stringify_console_styled(arg, out);
 }
 
-JS_END
+Js_END

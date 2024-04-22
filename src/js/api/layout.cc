@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapLayout
@@ -45,28 +45,28 @@ class WrapLayout: public WrapObject {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_WORKER(args);
-		JS_THROW_ERR("Forbidden access abstract");
+		Js_Worker(args);
+		Js_Throw("Forbidden access abstract");
 	}
 	
 	static void client_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Layout);
-		JS_RETURN( self->client_width() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Layout);
+		Js_Return( self->client_width() );
 	}
 	
 	static void client_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Layout);
-		JS_RETURN( self->client_height() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Layout);
+		Js_Return( self->client_height() );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS_NO_EXPORTS(Layout, constructor, {
-			JS_SET_CLASS_ACCESSOR(clientWidth, client_width);
-			JS_SET_CLASS_ACCESSOR(clientHeight, client_height);
+		Js_Define_Class_NO_EXPORTS(Layout, constructor, {
+			Js_Set_Class_Accessor(clientWidth, client_width);
+			Js_Set_Class_Accessor(clientHeight, client_height);
 		}, View);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Layout), View::LAYOUT);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Layout), View::LAYOUT);
 	}
 };
 
@@ -74,4 +74,4 @@ void binding_layout(Local<JSObject> exports, Worker* worker) {
 	WrapLayout::binding(exports, worker);
 }
 
-JS_END
+Js_END

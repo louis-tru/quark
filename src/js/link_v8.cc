@@ -62,7 +62,6 @@ namespace v8 {
 #endif
 
 namespace qk { namespace js {
-
 	using namespace native_js;
 	using namespace v8;
 
@@ -70,10 +69,9 @@ namespace qk { namespace js {
 	# define ISOLATE_INL_WORKER_DATA_INDEX (0)
 	#endif
 
-	#define ISOLATE(...) WorkerIMPL::current( __VA_ARGS__ )->isolate_
-	#define CONTEXT(...) WorkerIMPL::current( __VA_ARGS__ )->context_
-	#define WORKER(...) WorkerIMPL::current( __VA_ARGS__ )
-	#define CURRENT Worker::worker()
+	#define WORKER(...) WorkerImpl::woeker( __VA_ARGS__ )
+	#define ISOLATE(...) WorkerImpl::woeker( __VA_ARGS__ )->_isolate
+	#define CONTEXT(...) WorkerImpl::woeker( __VA_ARGS__ )->_context
 
 	static v8::Platform* platform = nullptr;
 	static String unknown("[Unknown]");
@@ -84,125 +82,116 @@ namespace qk { namespace js {
 	typedef const v8::PropertyCallbackInfo<void>&  V8PropertySetCall;
 
 	template<class T = JSValue, class S>
-	Qk_INLINE Local<T> Cast(v8::Local<S> o) {
-		auto _ = reinterpret_cast<Local<T>*>(&o);
-		return *_;
+	inline Local<T> Cast(v8::Local<S> o) {
+		return *reinterpret_cast<Local<T>*>(&o);
 	}
 
 	template<class T = v8::Value, class S>
-	Qk_INLINE v8::Local<T> Back(Local<S> o) {
-		auto _ = reinterpret_cast<v8::Local<T>*>(&o);
-		return *_;
+	inline v8::Local<T> Back(Local<S> o) {
+		return *reinterpret_cast<v8::Local<T>*>(&o);
 	}
+
+	// ----------------------------------------------------------------------------------
 
 	class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringResource {
 		String _str;
-		public:
-		V8ExternalOneByteStringResource(cString& value): _str(value) { }
+	public:
+		V8ExternalOneByteStringResource(cString& value): _str(value) {}
 		virtual cChar* data() const { return _str.c_str(); }
 		virtual size_t length() const { return _str.length(); }
 	};
 
 	class V8ExternalStringResource: public v8::String::ExternalStringResource {
 		String2 _str;
-		public:
-		V8ExternalStringResource(const String2& value): _str(value) { }
+	public:
+		V8ExternalStringResource(const String2& value): _str(value) {}
 		virtual const uint16_t* data() const { return _str.c_str(); }
 		virtual size_t length() const { return _str.length(); }
 	};
 
-	/**
-	 * @class WorkerIMPL
-	 */
-	class WorkerIMPL: public IMPL {
-		public:
+	// ----------------------------------------------------------------------------------
+
+	Worker* Worker::current() {
+		return reinterpret_cast<Worker*>(v8::Isolate::GetCurrent()->GetData(ISOLATE_INL_WORKER_DATA_INDEX));
+	}
+
+	Worker* Worker::Make() {
+		auto o = new WorkerImpl();
+		o->init();
+		return o;
+	}
+
+	// -------------------------- W o r k e r . I m p l --------------------------
+
+	class WorkerImpl: public Worker {
+	public:
 		struct HandleScopeWrap {
 			v8::HandleScope value;
 			inline HandleScopeWrap(Isolate* isolate): value(isolate) {}
 		};
-		Isolate*  isolate_;
-		Locker*   locker_;
-		HandleScopeWrap* handle_scope_;
-		v8::Local<v8::Context> context_;
+		Isolate*  _isolate;
+		Locker*   _locker;
+		HandleScopeWrap* _handle_scope;
+		v8::Local<v8::Context> _context;
 
-		WorkerIMPL(): locker_(nullptr), handle_scope_(nullptr)
+		WorkerImpl(): _locker(nullptr), _handle_scope(nullptr)
 		{
-			_is_node = 0;
 			Isolate::CreateParams params;
 			params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-			isolate_ = Isolate::New(params);
-			locker_ = new Locker(isolate_);
-			isolate_->Enter();
-			handle_scope_ = new HandleScopeWrap(isolate_);
-			context_ = v8::Context::New(isolate_);
-			context_->Enter();
-			isolate_->SetFatalErrorHandler(OnFatalError);
-			isolate_->AddMessageListener(MessageCallback);
-			isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
+			_isolate = Isolate::New(params);
+			_locker = new Locker(_isolate);
+			_isolate->Enter();
+			_handle_scope = new HandleScopeWrap(_isolate);
+			_context = v8::Context::New(_isolate);
+			_context->Enter();
+			_isolate->SetFatalErrorHandler(OnFatalError);
+			_isolate->AddMessageListener(MessageCallback);
+			_isolate->SetPromiseRejectCallback(PromiseRejectCallback);
 		}
 
-		// use node
-		WorkerIMPL(v8::Isolate* isolate, v8::Local<v8::Context> context)
-			: locker_(nullptr), handle_scope_(nullptr), isolate_(isolate), context_(context)
-		{
-			_is_node = 1;
+		virtual void init() {
+			_isolate->SetData(ISOLATE_INL_WORKER_DATA_INDEX, _host);
+			_global.reset(_host, Cast<JSObject>(_context->Global()) );
+			Worker::init();
 		}
 
-		virtual Worker* initialize() {
-			isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, _host);
-			_global.Reset(_host, Cast<JSObject>(context_->Global()) );
-			return IMPL::initialize();
+		void release() override {
+			Worker::release();
+			_context->Exit();
+			_context.Clear();
+			delete _handle_scope; _handle_scope = nullptr;
+			_isolate->Exit();
+			delete _locker; _locker = nullptr;
+			_isolate->Dispose(); _isolate = nullptr;
+			Object::release();
 		}
 
-		virtual void release() {
-			IMPL::release();
-			if (!_is_node) {
-				context_->Exit();
-				context_.Clear();
-				delete handle_scope_; handle_scope_ = nullptr;
-				isolate_->Exit();
-				delete locker_; locker_ = nullptr;
-				isolate_->Dispose(); isolate_ = nullptr;
-			}
+		inline static WorkerImpl* worker(Worker* worker = Worker::current()) {
+			return static_cast<WorkerImpl*>(worker);
 		}
 
-		inline static Worker* worker(Isolate* isolate) {
-			return static_cast<Worker*>( isolate->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
-		}
-		
-		inline static Worker* worker(V8FunctionCall args) {
-			return static_cast<Worker*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
-		}
-		
-		inline static Worker* worker(V8PropertyCall args) {
-			return static_cast<Worker*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
-		}
-		
-		inline static Worker* worker(V8PropertySetCall args) {
-			return static_cast<Worker*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
+		inline static WorkerImpl* worker(Isolate* isolate) {
+			return static_cast<WorkerImpl*>( isolate->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
 		}
 
-		inline static WorkerIMPL* current(Worker* worker = Worker::worker()) {
-			return static_cast<WorkerIMPL*>(worker->_inl);
+		template<class Args>
+		inline static WorkerImpl* worker(const Args &args) {
+			return static_cast<WorkerImpl*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
 		}
-		
-		inline static WorkerIMPL* current(WorkerIMPL* worker) {
-			return worker;
+
+		inline v8::Local<v8::String> newFromOneByte(cChar* str) {
+			return v8::String::NewFromOneByte(_isolate, (uint8_t*)str);
 		}
-		
-		Qk_INLINE v8::Local<v8::String> NewFromOneByte(cChar* str) {
-			return v8::String::NewFromOneByte(isolate_, (uint8_t*)str);
+
+		inline v8::Local<v8::String> newFromUtf8(cChar* str) {
+			return v8::String::NewFromUtf8(_isolate, str);
 		}
-		
-		Qk_INLINE v8::Local<v8::String> NewFromUtf8(cChar* str) {
-			return v8::String::NewFromUtf8(isolate_, str);
-		}
-		
+
 		template <class T, class M = NonCopyablePersistentTraits<T>>
-		Qk_INLINE v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
+		inline v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
 			return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
 		}
-		
+
 		v8::MaybeLocal<v8::Value> runScript(v8::Local<v8::String> source_string,
 																		v8::Local<v8::String> name, v8::Local<v8::Object> sandbox) 
 		{
@@ -211,34 +200,34 @@ namespace qk { namespace js {
 			
 			if ( sandbox.IsEmpty() ) { // use default sandbox
 				v8::Local<v8::Script> script;
-				if ( v8::ScriptCompiler::Compile(context_, &source).ToLocal(&script) ) {
-					result = script->Run(context_);
+				if ( v8::ScriptCompiler::Compile(_context, &source).ToLocal(&script) ) {
+					result = script->Run(_context);
 				}
 			} else {
 				v8::Local<v8::Function> func;
 				if (v8::ScriptCompiler::
-						CompileFunctionInContext(context_, &source, 0, NULL, 1, &sandbox)
+						CompileFunctionInContext(_context, &source, 0, NULL, 1, &sandbox)
 						.ToLocal(&func)
 						) {
-					result = func->Call(context_, v8::Undefined(isolate_), 0, NULL);
+					result = func->Call(_context, v8::Undefined(_isolate), 0, NULL);
 				}
 			}
 			return result;
 		}
-		
+
 		Local<JSValue> runNativeScript(cBuffer& source, cString& name, Local<JSObject> exports) {
 			v8::Local<v8::Value> _name = Back(_host->New(String::format("%s", *name)));
 			v8::Local<v8::Value> _souece = Back(_host->NewString(source));
-			
+
 			v8::MaybeLocal<v8::Value> rv;
-			
+
 			rv = runScript(_souece.As<v8::String>(),
 											_name.As<v8::String>(), v8::Local<v8::Object>());
 			if ( !rv.IsEmpty() ) {
 				Local<JSObject> module = _host->NewObject();
 				module->Set(_host, _host->strs()->exports(), exports);
 				v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
-				v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(_global.local()) };
+				v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(global()) };
 				rv = func->Call(CONTEXT(_host), v8::Undefined(ISOLATE(this)), 3, args);
 				if (!rv.IsEmpty()) {
 					Local<JSValue> rv = module->Get(_host, _host->strs()->exports());
@@ -248,14 +237,14 @@ namespace qk { namespace js {
 			}
 			return Local<JSValue>();
 		}
-		
+
 		// Extracts a C string from a V8 Utf8Value.
 		static cChar* to_cstring(const v8::String::Utf8Value& value) {
 			return *value ? *value : "<string conversion failed>";
 		}
-		
+
 		String parse_exception_message(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			v8::HandleScope handle_scope(isolate_);
+			v8::HandleScope handle_scope(_isolate);
 			v8::String::Utf8Value exception(error);
 			cChar* exception_string = to_cstring(exception);
 			if (message.IsEmpty()) {
@@ -265,7 +254,7 @@ namespace qk { namespace js {
 				StringBuilder out;
 				// Print (filename):(line number): (message).
 				v8::String::Utf8Value filename(message->GetScriptOrigin().ResourceName());
-				v8::Local<v8::Context> context(isolate_->GetCurrentContext());
+				v8::Local<v8::Context> context(_isolate->GetCurrentContext());
 				cChar* filename_string = to_cstring(filename);
 				int linenum = message->GetLineNumber(context).FromJust();
 				out.push(String::format("%s:%d: %s\n", filename_string, linenum, exception_string));
@@ -290,7 +279,7 @@ namespace qk { namespace js {
 				if (error->IsObject()) {
 					v8::Local<v8::Value> stack_trace_string;
 					
-					if (error.As<v8::Object>()->Get(context_, NewFromOneByte("stack"))
+					if (error.As<v8::Object>()->Get(_context, NewFromOneByte("stack"))
 							.ToLocal(&stack_trace_string) &&
 							stack_trace_string->IsString() &&
 							v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
@@ -302,7 +291,7 @@ namespace qk { namespace js {
 				return out.to_string();
 			}
 		}
-		
+
 		void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 			Qk_ERR(parse_exception_message(message, error) );
 		}
@@ -316,17 +305,17 @@ namespace qk { namespace js {
 		}
 
 		static void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			current()->uncaught_exception(message, error);
+			worker()->uncaught_exception(message, error);
 		}
 
 		static void PromiseRejectCallback(PromiseRejectMessage message) {
 			if (message.GetEvent() == v8::kPromiseRejectWithNoHandler) {
-				current()->unhandled_rejection(message);
+				worker()->unhandled_rejection(message);
 			}
 		}
 
 		void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			if ( !TriggerUncaughtException(Cast(error)) ) {
+			if ( !triggerUncaughtException(Cast(error)) ) {
 				print_exception(message, error);
 				qk::exit(ERR_UNCAUGHT_EXCEPTION);
 			}
@@ -336,10 +325,10 @@ namespace qk { namespace js {
 			v8::Local<v8::Promise> promise = message.GetPromise();
 			v8::Local<v8::Value> reason = message.GetValue();
 			if (reason.IsEmpty())
-				reason = v8::Undefined(isolate_);
-			if ( !TriggerUnhandledRejection(Cast(reason), Cast(promise)) ) {
-				v8::HandleScope scope(isolate_);
-				v8::Local<v8::Message> message = v8::Exception::CreateMessage(isolate_, reason);
+				reason = v8::Undefined(_isolate);
+			if ( !triggerUnhandledRejection(Cast(reason), Cast(promise)) ) {
+				v8::HandleScope scope(_isolate);
+				v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
 				print_exception(message, reason);
 				qk::exit(ERR_UNHANDLED_REJECTION);
 			}
@@ -347,40 +336,12 @@ namespace qk { namespace js {
 
 	};
 
-	Worker* Worker::worker() {
-		void* worker = v8::Isolate::GetCurrent()->GetData(ISOLATE_INL_WORKER_DATA_INDEX);
-		return reinterpret_cast<Worker*>(worker);
-	}
-
-	Worker* IMPL::create() {
-		return (new WorkerIMPL())->initialize();
-	}
-
-	Qk_EXPORT Worker* new_worker_with_node(v8::Isolate* isolate, v8::Local<v8::Context> context) {
-		return (new WorkerIMPL(isolate, context))->initialize();
-	}
-
-	WrapObject* IMPL::GetObjectPrivate(Local<JSObject> object) {
-		if (Back<v8::Object>(object)->InternalFieldCount() > 0) {
-			return (WrapObject*)Back<v8::Object>(object)->GetAlignedPointerFromInternalField(0);
-		}
-		return nullptr;
-	}
-
-	bool IMPL::SetObjectPrivate(Local<JSObject> object, WrapObject* value) {
-		if (Back<v8::Object>(object)->InternalFieldCount() > 0) {
-			Back<v8::Object>(object)->SetAlignedPointerInInternalField(0, value);
-			return true;
-		}
-		return false;
-	}
-
-	class V8JSClass: public JSClassIMPL {
+	class V8JSClass: public JSClass {
 	public:
-		V8JSClass(Worker* worker, uint64_t id, cString& name,
+		V8JSClass(Worker* worker, cString& name,
 							FunctionCallback constructor, V8JSClass* base,
 							v8::Local<v8::Function> baseFunc = v8::Local<v8::Function>())
-			: JSClassIMPL(worker, id, name), _base(base)
+			: JSClass(), _base(base)
 		{ //
 			v8::FunctionCallback cb = reinterpret_cast<v8::FunctionCallback>(constructor);
 			v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(ISOLATE(worker), cb);
@@ -393,8 +354,9 @@ namespace qk { namespace js {
 				_baseFunc.Reset(ISOLATE(worker), baseFunc);
 			}
 
-			ft->SetClassName(class_name);
-			_funcTemplate.Reset(ISOLATE(worker), temp);
+			ft->SetClassName(className);
+			ft->InstanceTemplate()->SetInternalFieldCount(1);
+			_funcTemplate.Reset(ISOLATE(worker), ft);
 		}
 
 		~V8JSClass() {
@@ -407,12 +369,12 @@ namespace qk { namespace js {
 			return *_;
 		}
 
-		v8::Local<v8::Function> ParentFromFunction() {
+		v8::Local<v8::Function> BaseFunction() {
 			auto _ = reinterpret_cast<v8::Local<v8::Function>*>(&_baseFunc);
 			return *_;
 		}
 
-		bool HasParentFromFunction() {
+		bool HasBaseFunction() {
 			return !_baseFunc.IsEmpty();
 		}
 
@@ -422,58 +384,27 @@ namespace qk { namespace js {
 		v8::Persistent<v8::FunctionTemplate> _funcTemplate; // v8 func template
 	};
 
-	Worker* WeakCallbackInfo::worker() const {
-		auto info = reinterpret_cast<const v8::WeakCallbackInfo<Object>*>(this);
-		return WorkerIMPL::worker(info->GetIsolate());
-	}
-
-	void* WeakCallbackInfo::getParameter() const {
-		return reinterpret_cast<const v8::WeakCallbackInfo<void>*>(this)->GetParameter();
-	}
-
-	bool IMPL::IsWeak(PersistentBase<JSObject>& handle) {
-		Qk_ASSERT( !handle.IsEmpty() );
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
-		return h->IsWeak();
-	}
-
-	void IMPL::SetWeak(PersistentBase<JSObject>& handle,
-													WrapObject* ptr, WeakCallbackInfo::Callback callback) {
-		Qk_ASSERT( !handle.IsEmpty() );
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
-		h->MarkIndependent();
-		h->SetWeak(ptr, reinterpret_cast<v8::WeakCallbackInfo<WrapObject>::Callback>(callback),
-							v8::WeakCallbackType::kParameter);
-	}
-
-	void IMPL::ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr) {
-		Qk_ASSERT( !handle.IsEmpty() );
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
-		h->ClearWeak();
-	}
-
-	Local<JSFunction> JSClassImpl::func() {
+	Local<JSFunction> JSClass::getFunction() {
 		if (_func.IsEmpty()) {
 			// Gen constructor
-			V8JSClass* v8cls = static_cast<V8JSClass*>(this);
+			auto v8cls = static_cast<V8JSClass*>(this);
 			auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).FromMaybe(v8::Local<v8::Function>());
-			if ( v8cls->HasParentFromFunction() ) {
+			if (v8cls->HasBaseFunction()) {
 				bool ok;
-				// function.__proto__ = base
-				// ok = f->SetPrototype(v8cls->ParentFromFunction());
-				// Qk_ASSERT(ok);
-				// function.prototype.__proto__ = base.prototype
-				auto b = v8cls->ParentFromFunction();
-				auto s = Back(_worker->strs()->prototype());
-				auto p = f->Get(CONTEXT(_worker), s).ToLocalChecked().As<v8::Object>();
-				auto p2 = b->Get(CONTEXT(_worker), s).ToLocalChecked().As<v8::Object>();
-				ok = p->SetPrototype(p2);
+				// function.__proto__ = base;
+				// f->SetPrototype(v8cls->BaseFunction());
+				// function.prototype.__proto__ = base.prototype;
+				auto str = Back(_worker->strs()->prototype());
+				auto base = v8cls->BaseFunction();
+				auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
+				auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
+				ok = proto->SetPrototype(baseProto);
 				Qk_ASSERT(ok);
 			}
 			Local<JSFunction> func = Cast<JSFunction>(f);
 			_func.Reset(_worker, func);
 		}
-		return _func.local();
+		return _func.toLocal();
 	}
 
 	Local<JSValue> IMPL::binding_node_module(cString& name) {
@@ -791,7 +722,29 @@ namespace qk { namespace js {
 		return reinterpret_cast<v8::Object*>(this)->SetAccessor(fn_name, get2, set2);
 	}
 
-	int JSString::Length(Worker* worker) const {
+	void* JSObject::objectPrivate() {
+		auto self = reinterpret_cast<v8::Object*>(this);
+		if (self->InternalFieldCount() > 0) {
+			return self->GetAlignedPointerFromInternalField(0);
+		}
+		return nullptr;
+	}
+
+	bool JSObject::setObjectPrivate(void *value) {
+		auto self = reinterpret_cast<v8::Object*>(this);
+		if (self->InternalFieldCount() > 0) {
+			self->SetAlignedPointerInInternalField(0, value);
+			return true;
+		}
+		return false;
+	}
+
+	bool JSObject::set__Proto__(Worker* worker, Local<JSObject> __proto__) {
+		return reinterpret_cast<v8::Object*>(this)->
+			SetPrototype(CONTEXT(worker), Back(__proto__)).FromMaybe(false);
+	}
+
+	int JSString::length(Worker* worker) const {
 		return reinterpret_cast<const v8::String*>(this)->Length();
 	}
 	String JSString::Value(Worker* worker, bool ascii) const {
@@ -845,6 +798,12 @@ namespace qk { namespace js {
 		v8::MaybeLocal<v8::Object> r = fn2->NewInstance(CONTEXT(worker), argc,
 																										reinterpret_cast<v8::Local<v8::Value>*>(argv));
 		return Cast<JSObject>(r.FromMaybe(v8::Local<v8::Object>()));
+	}
+
+	Local<JSObject> JSFunction::getPrototype(Worker* worker) {
+		auto str = Back(worker->strs()->prototype());
+		auto proto = f->Get(CONTEXT(worker), str);
+		return Cast<JSObject>(proto.FromMaybe(v8::Local<v8::Object>()));
 	}
 
 	int JSArrayBuffer::ByteLength(Worker* worker) const {
@@ -905,9 +864,9 @@ namespace qk { namespace js {
 	bool JSClass::SetMemberMethod(Worker* worker, cString& name, FunctionCallback func) {
 		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
 		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
-		v8::Local<Signature> s = Signature::New(ISOLATE(worker), temp);
+		v8::Local<Signature> sign = Signature::New(ISOLATE(worker), temp);
 		v8::Local<v8::FunctionTemplate> t =
-			FunctionTemplate::New(ISOLATE(worker), func2, v8::Local<v8::Value>(), s);
+			FunctionTemplate::New(ISOLATE(worker), func2, v8::Local<v8::Value>(), sign);
 		v8::Local<v8::String> fn_name = Back<v8::String>(worker->New(name, 1));
 		t->SetClassName(fn_name);
 		temp->PrototypeTemplate()->Set(fn_name, t);
@@ -936,67 +895,54 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	template<> bool JSClass::SetMemberProperty<Local<JSValue>>
-	(
-	Worker* worker, cString& name, Local<JSValue> value
-	) {
+	template<>
+	bool JSClass::setMemberProperty<Local<JSValue>>(cString& name, Local<JSValue> value) {
 		reinterpret_cast<V8JSClass*>(this)->Template()->
-						PrototypeTemplate()->Set(Back<v8::String>(worker->New(name, 1)), Back(value));
+						PrototypeTemplate()->Set(Back<v8::String>(worker->newInstance(name, 1)), Back(value));
 		return true;
 	}
 
-	template<> bool JSClass::SetStaticProperty<Local<JSValue>>
-	(
-	Worker* worker, cString& name, Local<JSValue> value
-	) {
+	template<>
+	bool JSClass::setStaticProperty<Local<JSValue>>(cString& name, Local<JSValue> value) {
 		reinterpret_cast<V8JSClass*>(this)->Template()->
-						Set(Back<v8::String>(worker->New(name, 1)), Back(value));
+						Set(Back<v8::String>(_worker->newInstance(name, 1)), Back(value));
 		return true;
 	}
 
-	template <> Qk_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked() {
+	template<>
+	Local<JSValue> MaybeLocal<JSValue>::toLocalChecked() {
 		return Cast(reinterpret_cast<v8::MaybeLocal<v8::Value>*>(this)->ToLocalChecked());
 	}
 
-	void JSClass::SetInstanceInternalFieldCount(int count) {
-		reinterpret_cast<V8JSClass*>(this)->Template()->
-			InstanceTemplate()->SetInternalFieldCount(count);
-	}
-
-	int JSClass::InstanceInternalFieldCount() {
-		return reinterpret_cast<V8JSClass*>(this)->Template()->
-			InstanceTemplate()->InternalFieldCount();
-	}
-
-	void ReturnValue::Set(bool value) {
+	void ReturnValue::set(bool value) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(value);
 	}
 
-	void ReturnValue::Set(double i) {
+	void ReturnValue::set(double i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
 
-	void ReturnValue::Set(int i) {
+	void ReturnValue::set(int i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
 
-	void ReturnValue::Set(uint32_t i) {
+	void ReturnValue::set(uint32_t i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
 
-	void ReturnValue::SetNull() {
+	void ReturnValue::setNull() {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetNull();
 	}
 
-	void ReturnValue::SetUndefined() {
+	void ReturnValue::setUndefined() {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetUndefined();
 	}
 
-	void ReturnValue::SetEmptyString() {
+	void ReturnValue::setEmptyString() {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetEmptyString();
 	}
 
-	template<> void ReturnValue::Set<JSValue>(const Local<JSValue> value) {
+	template<> void ReturnValue::set<JSValue>(const Local<JSValue> value) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
 	}
 
@@ -1040,17 +986,17 @@ namespace qk { namespace js {
 
 	Worker* FunctionCallbackInfo::worker() const {
 		auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
-		return WorkerIMPL::worker(info->GetIsolate());
+		return WorkerImpl::worker(info->GetIsolate());
 	}
 
 	Worker* PropertyCallbackInfo::worker() const {
 		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
-		return WorkerIMPL::worker(info->GetIsolate());
+		return WorkerImpl::worker(info->GetIsolate());
 	}
 
 	Worker* PropertySetCallbackInfo::worker() const {
 		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this);
-		return WorkerIMPL::worker(info->GetIsolate());
+		return WorkerImpl::worker(info->GetIsolate());
 	}
 
 	struct TryCatchWrap {
@@ -1069,29 +1015,68 @@ namespace qk { namespace js {
 		return reinterpret_cast<TryCatchWrap*>(val_)->try_.HasCaught();
 	}
 
-	template <> void PersistentBase<JSValue>::reset() {
-		reinterpret_cast<v8::PersistentBase<v8::Value>*>(this)->Reset();
+	Worker* WeakCallbackInfo::worker() const {
+		auto info = reinterpret_cast<const v8::WeakCallbackInfo<Object>*>(this);
+		return WorkerImpl::worker(info->GetIsolate());
+	}
+
+	void* WeakCallbackInfo::getParameter() const {
+		return reinterpret_cast<const v8::WeakCallbackInfo<void>*>(this)->GetParameter();
+	}
+
+	bool Persistent::isWeak(PersistentBase<JSObject>& handle) {
+		Qk_ASSERT( !handle.IsEmpty() );
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
+		return h->IsWeak();
+	}
+
+	template <>
+	void Persistent<JSValue>::setWeak(void* ptr, WeakCallback callback) {
+		Qk_ASSERT( !isEmpty() );
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
+		h->MarkIndependent();
+		h->SetWeak(ptr, reinterpret_cast<v8::WeakCallbackInfo<void>::Callback>(callback),
+							v8::WeakCallbackType::kParameter);
+	}
+
+	template <>
+	void Persistent<JSValue>::clearWeak() {
+		Qk_ASSERT( !isEmpty() );
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
+		h->ClearWeak();
+	}
+
+	template <> void Persistent<JSValue>::reset() {
+		reinterpret_cast<v8::Persistent<v8::Value>*>(this)->Reset();
 	}
 
 	template <> template <>
-	void PersistentBase<JSValue>::reset(Worker* worker, const Local<JSValue>& other) {
+	void Persistent<JSValue>::reset(Worker* worker, const Local<JSValue>& other) {
 		Qk_ASSERT(worker);
-		reinterpret_cast<v8::PersistentBase<v8::Value>*>(this)->
+		reinterpret_cast<v8::Persistent<v8::Value>*>(this)->
 			Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
 		_worker = worker;
 	}
 
 	template<> template<>
-	void PersistentBase<JSValue>::copy(const PersistentBase<JSValue>& that) {
-		Qk_ASSERT(that.worker_);
+	void Persistent<JSValue>::copy(const Persistent<JSValue>& that) {
+		reset();
+		if (that.isEmpty())
+			return;
+		Qk_ASSERT(that._worker);
 		typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
 		reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&that));
 		_worker = that._worker;
 	}
 
 	template<>
-	Local<JSValue> PersistentBase<JSValue>::toLocal() const {
-		return *reinterpret_cast<Local<JSValue>*>(const_cast<PersistentBase*>(this));
+	Local<JSValue> Persistent<JSValue>::toLocal() const {
+		// return *reinterpret_cast<Local<JSValue>*>(const_cast<Persistent*>(this));
+		if (isEmpty())
+			return Local<JSValue>();
+		v8::Local<v8::Value> r =
+			reinterpret_cast<const v8::PersistentBase<v8::Value>*>(this)->Get(ISOLATE(_worker));
+		return Cast(r);
 	}
 
 	Local<JSNumber> Worker::New(float data) {
@@ -1138,13 +1123,8 @@ namespace qk { namespace js {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
-	Local<JSString> Worker::New(cChar* data, int len) {
-		return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this),
-																									data, v8::String::kNormalString, len < 0? -1: len));
-	}
-
-	Local<JSString> Worker::New(cString& data, bool is_ascii) {
-		if ( is_ascii ) {
+	Local<JSString> Worker::New(cString& data, bool oneByte) {
+		if ( oneByte ) {
 			return Cast<JSString>(v8::String::NewExternal(ISOLATE(this),
 																										new V8ExternalOneByteStringResource(data)));
 		} else {
@@ -1158,7 +1138,7 @@ namespace qk { namespace js {
 	}
 
 	Local<JSArray> Worker::New(const Array<String>& data) {
-		auto worker = CURRENT;
+		auto worker = WORKER();
 		v8::Local<v8::Array> rev = v8::Array::New(ISOLATE(worker));
 		{ v8::HandleScope scope(ISOLATE(worker));
 			for (int i = 0, e = data.length(); i < e; i++) {
@@ -1211,12 +1191,6 @@ namespace qk { namespace js {
 			rev->Set(CONTEXT(this), i, value).IsJust();
 		}
 		return Cast<JSArray>(rev);
-	}
-
-	Local<JSValue> Worker::New(const PersistentBase<JSValue>& value) {
-		v8::Local<v8::Value> r =
-			reinterpret_cast<const v8::PersistentBase<v8::Value>*>(&value)->Get(ISOLATE(this));
-		return Cast(r);
 	}
 	Local<JSArrayBuffer> Worker::NewArrayBuffer(Char* use_buff, uint32_t len) {
 		return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), use_buff, len));
@@ -1323,25 +1297,24 @@ namespace qk { namespace js {
 		ISOLATE(this)->ThrowException(Back(exception));
 	}
 
-	Local<JSClass> Worker::NewClass(uint64_t id,
-																	cString& name,
+	Local<JSClass> Worker::newClass(cString& name, uint64_t id,
 																	FunctionCallback constructor,
 																	AttachCallback attach_callback, Local<JSClass> base) {
-		auto cls = new V8JSClass(this, id, name, constructor, static_cast<V8JSClass*>(*base));
+		auto cls = new V8JSClass(this, name, constructor, static_cast<V8JSClass*>(*base));
 		_classsinfo->add(id, cls, attach_callback);
 		return Local<JSClass>(cls);
 	}
 
-	Local<JSClass> Worker::NewClass(uint64_t id, cString& name,
+	Local<JSClass> Worker::newClass(cString& name, uint64_t id,
 																	FunctionCallback constructor,
 																	AttachCallback attach_callback, uint64_t base) {
-		return NewClass(id, name, constructor, attach_callback, _classsinfo->get(base));
+		return newClass(name, id, constructor, attach_callback, _classsinfo->get(base));
 	}
 
-	Local<JSClass> Worker::NewClass(uint64_t id, cString& name,
+	Local<JSClass> Worker::newClass(cString& name, uint64_t id,
 																	FunctionCallback constructor,
 																	AttachCallback attach_callback, Local<JSFunction> base) {
-		auto cls = new V8JSClass(this, id, name, constructor, nullptr, Back<v8::Function>(base));
+		auto cls = new V8JSClass(this, name, constructor, nullptr, Back<v8::Function>(base));
 		_classsinfo->add(id, cls, attach_callback);
 		return Local<JSClass>(cls);
 	}
@@ -1374,15 +1347,11 @@ namespace qk { namespace js {
 		return Cast(scope.Escape(Back(r)));
 	}
 
-	/**
-	 * @func garbage_collection()
-	 */
 	void Worker::garbageCollection() {
 		ISOLATE(this)->LowMemoryNotification();
 	}
 
-	int IMPL::start(int argc, Char** argv) {
-
+	int platformStart(int argc, Char** argv) {
 		v8::Platform* platform = v8::platform::CreateDefaultPlatform();
 		v8::V8::InitializePlatform(platform);
 		v8::V8::Initialize();
@@ -1396,23 +1365,23 @@ namespace qk { namespace js {
 
 		int rc = 0;
 		{
-			Handle<Worker> worker = IMPL::create();
-			v8::SealHandleScope handle_scope_seal_(ISOLATE(*worker));
+			Sp<Worker> worker = Worker::Make();
+			v8::SealHandleScope sealhandle(ISOLATE(*worker));
 
 			{
 				HandleScope scope(*worker);
 				auto _pkg = worker->bindingModule("_pkg");
 				Qk_ASSERT(!_pkg.IsEmpty(), "Can't start worker");
-				Local<JSValue> r = _pkg.To()->
-					GetProperty(*worker, "Module").To()->
-					GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
-				if (r.IsEmpty()) {
+				Local<JSValue> r = _pkg.cast()->
+					getProperty(*worker, "Module").cast()->
+					getProperty(*worker, "runMain").cast<JSFunction>()->call(*worker);
+				if (r.isEmpty()) {
 					Qk_ERR("ERROR: Can't call runMain()");
 					return ERR_RUN_MAIN_EXCEPTION;
 				}
 			}
 
-			auto loop = RunLoop::main_loop();
+			auto loop = RunLoop::first();
 			do {
 				loop->run();
 				/* IOS forces the process to terminate, but it does not quit immediately.
@@ -1423,14 +1392,14 @@ namespace qk { namespace js {
 				if (loop->is_alive())
 					continue;
 
-				rc = worker->_inl->TriggerBeforeExit(rc);
+				rc = triggerBeforeExit(*worker, rc);
 
 				// Emit `beforeExit` if the loop became alive either after emitting
 				// event, or after running some callbacks.
 			} while (loop->is_alive());
 
 			if (!is_exited())
-				rc = worker->_inl->TriggerExit(rc);
+				rc = triggerExit(*worker, rc);
 		}
 
 		v8::V8::ShutdownPlatform();

@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapHybrid
@@ -45,30 +45,30 @@ class WrapHybrid: public WrapViewBase {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapHybrid>(args, new Hybrid());
 	}
 	
 	static void text_align(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Hybrid);
-		JS_RETURN( worker->values()->New(self->text_align()) );
+		Js_Worker(args);
+		Js_Self(Hybrid);
+		Js_Return( worker->values()->New(self->text_align()) );
 	}
 	
 	static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(TextAlign, value, "Hybrid.textAlign = %s");
-		JS_SELF(Hybrid);
+		Js_Self(Hybrid);
 		self->set_text_align(out);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Hybrid, constructor, {
-			JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
+		Js_Define_Class(Hybrid, constructor, {
+			Js_Set_Class_Accessor(textAlign, text_align, set_text_align);
 			WrapViewBase::inheritTextLayout(cls, worker);
 		}, Box);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Hybrid), View::HYBRID);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Hybrid), View::HYBRID);
 	}
 };
 
@@ -76,4 +76,4 @@ void binding_hybrid(Local<JSObject> exports, Worker* worker) {
 	WrapHybrid::binding(exports, worker);
 }
 
-JS_END
+Js_END

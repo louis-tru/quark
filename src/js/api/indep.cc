@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapIndep
@@ -45,58 +45,58 @@ class WrapIndep: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapIndep>(args, new Indep());
 	}
 	
 	static void align_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Indep);
-		JS_RETURN( worker->values()->New(self->align_x()) );
+		Js_Worker(args);
+		Js_Self(Indep);
+		Js_Return( worker->values()->New(self->align_x()) );
 	}
 	static void align_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Indep);
-		JS_RETURN( worker->values()->New(self->align_y()) );
+		Js_Worker(args);
+		Js_Self(Indep);
+		Js_Return( worker->values()->New(self->align_y()) );
 	}
 	static void set_align_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Align, value, "Indep.alignX = %s");
-		JS_SELF(Indep);
+		Js_Self(Indep);
 		self->set_align_x(out);
 	}
 	static void set_align_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Align, value, "Indep.alignY = %s");
-		JS_SELF(Indep);
+		Js_Self(Indep);
 		self->set_align_y(out);
 	}
 	
 	static void align(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Indep);
+		Js_Worker(args); UILock lock;
+		Js_Self(Indep);
 		Local<JSArray> ret = worker->NewArray();
 		ret->Set(worker, 0, worker->values()->New(self->align_x()) );
 		ret->Set(worker, 1, worker->values()->New(self->align_y()) );
-		JS_RETURN( ret );
+		Js_Return( ret );
 	}
 	
 	static void set_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value2(Array<Align>, Aligns, value, "Indep.align = %s");
-		JS_SELF(Indep);
+		Js_Self(Indep);
 		self->set_align_x(out[0]);
 		self->set_align_y(out.length() > 1 ? out[1]: out[0]);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Indep, constructor, {
-			JS_SET_CLASS_ACCESSOR(alignX, align_x, set_align_x);
-			JS_SET_CLASS_ACCESSOR(alignY, align_y, set_align_y);
-			JS_SET_CLASS_ACCESSOR(align, align, set_align);
+		Js_Define_Class(Indep, constructor, {
+			Js_Set_Class_Accessor(alignX, align_x, set_align_x);
+			Js_Set_Class_Accessor(alignY, align_y, set_align_y);
+			Js_Set_Class_Accessor(align, align, set_align);
 		}, Div);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Indep), View::INDEP);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Indep), View::INDEP);
 	}
 };
 
@@ -104,4 +104,4 @@ void binding_indep_div(Local<JSObject> exports, Worker* worker) {
 	WrapIndep::binding(exports, worker);
 }
 
-JS_END
+Js_END

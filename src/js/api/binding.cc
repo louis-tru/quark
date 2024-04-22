@@ -34,7 +34,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 void binding_app(Local<JSObject> exports, Worker* worker);
 void binding_view(Local<JSObject> exports, Worker* worker);
@@ -64,14 +64,14 @@ class NativeQuark {
 	public:
 
 	static void lock(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || ! args[0]->IsFunction(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		UILock lock;
 		Local<JSValue> r = args[0].To<JSFunction>()->Call(worker);
 		if (!r.IsEmpty()) {
-			JS_RETURN(r);
+			Js_Return(r);
 		}
 	}
 	
@@ -97,9 +97,9 @@ class NativeQuark {
 		binding_text(exports, worker); 			Qk_DEBUG("binding text ok");
 		binding_button(exports, worker); 		Qk_DEBUG("binding button ok");
 		binding_input(exports, worker); 		Qk_DEBUG("binding input ok");
-		JS_SET_METHOD(lock, lock); 					Qk_DEBUG("binding lock ok");
+		Js_Set_Method(lock, lock); 					Qk_DEBUG("binding lock ok");
 	}
 };
 
-JS_REG_MODULE(_quark, NativeQuark);
-JS_END
+Js_REG_MODULE(_quark, NativeQuark);
+Js_END

@@ -82,7 +82,6 @@ F(Seek, Player, kUint64_UIEventFlags) \
 namespace qk {
 	class Application;
 	class View;
-	class View;
 	class Action;
 	class TextInput;
 	class Window;
@@ -93,7 +92,6 @@ namespace qk {
 		kClick_UIEventCategory,
 		kTouch_UIEventCategory,
 		kMouse_UIEventCategory,
-		kFocus_MOVE_UIEventCategory,
 		kAction_UIEventCategory,
 		kHighlighted_UIEventCategory,
 		kPlayer_UIEventCategory,
@@ -101,11 +99,11 @@ namespace qk {
 
 	// event flags / cast
 	enum {
-		kNone_UIEventFlags,
-		kError_UIEventFlags,  // cast data
-		kFloat_UIEventFlags,  // cast Float
-		kUint64_UIEventFlags, // cast Uint64
-		kCast_UIEventFlags = (255), // Event::data(), cast flag
+		kNone_UIEventFlags, // none flag
+		kError_UIEventFlags,   // type Error
+		kFloat32_UIEventFlags, // type Float
+		kUint64_UIEventFlags,  // type Uint64
+		kTypes_UIEventFlags = (255), // Event::data(), types flag
 		kBubble_UIEventFlags = (1 << 8), // bubble, other flag
 	};
 
@@ -118,12 +116,12 @@ namespace qk {
 
 	class Qk_EXPORT UIEventName {
 	public:
-		UIEventName(cString& name, uint32_t category, uint32_t flag);
-		Qk_DEFINE_PROP_GET(String, toString, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, category, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, flag, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, hashCode, Const);
-		inline bool equals(const UIEventName& v) const { return v.hashCode() == _hashCode; }
+		Qk_DEFINE_PROP_GET(String, toString, Const);
+		UIEventName(cString& name, uint32_t category, uint32_t flag);
+		inline bool equals(const UIEventName& v) const { return v._hashCode == _hashCode; }
 		inline bool operator==(const UIEventName& v) const { return v._hashCode == _hashCode; }
 		inline bool operator!=(const UIEventName& v) const { return v._hashCode != _hashCode; }
 		inline bool operator>(const UIEventName& v) const { return _hashCode > v._hashCode; }

@@ -34,7 +34,7 @@
 #include "../str.h"
 #include "./_cb.h"
 
-JS_BEGIN
+Js_BEGIN
 
 template<class Type, class Err = Error>
 Cb get_callback_for_type(Worker* worker, Local<JSValue> cb) {
@@ -44,7 +44,7 @@ Cb get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 		return Cb([worker, func](Cb::Data& d) {
 			Qk_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
-			JS_CALLBACK_SCOPE();
+			Js_Callback_Scope();
 			Local<JSFunction> f = func.local();
 			
 			if ( d.error ) {
@@ -89,8 +89,8 @@ Cb get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding encoding
 
 		return Cb([worker, func, encoding](Cb::Data& d) {
 			Qk_ASSERT(!func.IsEmpty());
-			JS_HANDLE_SCOPE();
-			JS_CALLBACK_SCOPE();
+			Js_Handle_Scope();
+			Js_Callback_Scope();
 			Local<JSFunction> f = func.local();
 
 			if ( d.error ) {
@@ -115,7 +115,7 @@ Cb get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 		return Cb([worker, func](Cb::Data& d) {
 			Qk_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
-			JS_CALLBACK_SCOPE();
+			Js_Callback_Scope();
 			
 			Local<JSFunction> f = func.local();
 			
@@ -146,7 +146,7 @@ Cb get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 		return Cb([worker, func](Cb::Data& d) {
 			Qk_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
-			JS_CALLBACK_SCOPE();
+			Js_Callback_Scope();
 			
 			Local<JSFunction> f = func.local();
 			
@@ -175,7 +175,7 @@ Cb get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 		return Cb([worker, func](Cb::Data& d) {
 			Qk_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
-			JS_CALLBACK_SCOPE();
+			Js_Callback_Scope();
 			Local<JSFunction> f = func.local();
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Error*>(d.error));
@@ -225,4 +225,4 @@ Cb get_callback_for_file_stat(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_type<FileStat>(worker, cb);
 }
 
-JS_END
+Js_END

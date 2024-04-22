@@ -40,7 +40,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 using namespace qk;
 
@@ -58,53 +58,47 @@ typedef Application NativeApplication;
  * @class WrapNativeApplication
  */
 class WrapNativeApplication: public WrapObject {
-	public: 
+public:
 	typedef Application Type;
 
-	/**
-	 * @func addEventListener
-	 */
 	virtual bool addEventListener(cString& name, cString& func, int id)
 	{
 		if ( name == load ) {
-			self<Type>()->js_bind_common_native_event(Load);
+			self<Type>()->Js_Native_On(Load, func, id);
 		} else if ( name == unload ) {
-			self<Type>()->js_bind_common_native_event(Unload);
+			self<Type>()->Js_Native_On(Unload, func, id);
 		} else if ( name == background ) {
-			self<Type>()->js_bind_common_native_event(Background);
+			self<Type>()->Js_Native_On(Background, func, id);
 		} else if ( name == foreground ) {
-			self<Type>()->js_bind_common_native_event(Foreground);
+			self<Type>()->Js_Native_On(Foreground, func, id);
 		} else if ( name == pause ) {
-			self<Type>()->js_bind_common_native_event(Pause);
+			self<Type>()->Js_Native_On(Pause, func, id);
 		} else if ( name == resume ) {
-			self<Type>()->js_bind_common_native_event(Resume);
+			self<Type>()->Js_Native_On(Resume, func, id);
 		} else if ( name == memorywarning ) {
-			self<Type>()->js_bind_common_native_event(Memorywarning);
+			self<Type>()->Js_Native_On(Memorywarning, func, id);
 		} else {
 			return false;
 		}
 		return true;
 	}
-	
-	/**
-	 * @func removeEventListener
-	 */
+
 	virtual bool removeEventListener(cString& name, int id)
 	{
 		if ( name == load ) {
-			self<Type>()->js_unbind_native_event(Load);
+			self<Type>()->Qk_Off(Load, id);
 		} else if ( name == unload ) {
-			self<Type>()->js_unbind_native_event(Unload);
+			self<Type>()->Qk_Off(Unload, id);
 		} else if ( name == background ) {
-			self<Type>()->js_unbind_native_event(Background);
+			self<Type>()->Qk_Off(Background, id);
 		} else if ( name == foreground ) {
-			self<Type>()->js_unbind_native_event(Foreground);
+			self<Type>()->Qk_Off(Foreground, id);
 		} else if ( name == pause ) {
-			self<Type>()->js_unbind_native_event(Pause);
+			self<Type>()->Qk_Off(Pause, id);
 		} else if ( name == resume ) {
-			self<Type>()->js_unbind_native_event(Resume);
+			self<Type>()->Qk_Off(Resume, id);
 		} else if ( name == memorywarning ) {
-			self<Type>()->js_unbind_native_event(Memorywarning);
+			self<Type>()->Qk_Off(Memorywarning, id);
 		} else {
 			return false;
 		}
@@ -113,10 +107,10 @@ class WrapNativeApplication: public WrapObject {
 	
 	void memorywarning_handle(Event<>& evt) {
 		worker()->garbageCollection(); // 清理内存
-		#if Qk_MEMORY_TRACE_MARK
+#if Qk_MEMORY_TRACE_MARK
 			uint32_t count = Object::mark_objects_count();
 			Qk_LOG("All unrelease heap objects count: %d", count);
-		#endif
+#endif
 	}
 
 	/**
@@ -124,7 +118,7 @@ class WrapNativeApplication: public WrapObject {
 	 * @arg [options] {Object} { anisotropic {bool}, mipmap {bool}, multisample {0-4} }
 	 */
 	static void constructor(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		
 		JSON options = JSON::object();
 		if ( args.Length() > 0 && args[0]->IsObject(worker) ) {
@@ -145,7 +139,7 @@ class WrapNativeApplication: public WrapObject {
 		} catch(cError& err) {
 			if ( wrap )
 				delete wrap;
-			JS_THROW_ERR(err);
+			Js_Throw(err);
 		}
 	}
 	
@@ -153,8 +147,8 @@ class WrapNativeApplication: public WrapObject {
 	 * @func clear() clear gui application resources
 	 */
 	static void clear(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		if ( args.Length() > 1 ) {
 			self->clear( args[0]->ToBooleanValue(worker) );
 		} else {
@@ -166,11 +160,11 @@ class WrapNativeApplication: public WrapObject {
 	 * @func open_url(url)
 	 */
 	static void open_url(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() == 0 ) {
-			JS_THROW_ERR("@func openUrl(url)");
+			Js_Throw("@func openUrl(url)");
 		}
-		JS_SELF(Application);
+		Js_Self(Application);
 		self->open_url( args[0]->ToStringValue(worker) );
 	}
 	
@@ -178,9 +172,9 @@ class WrapNativeApplication: public WrapObject {
 	 * @func send_email(recipient,title,body[,cc[,bcc]])
 	 */
 	static void send_email(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() < 2 ) {
-			JS_THROW_ERR("@func sendEmail(recipient,title,body[,cc[,bcc])");
+			Js_Throw("@func sendEmail(recipient,title,body[,cc[,bcc])");
 		}
 		String recipient = args[0]->ToStringValue(worker);
 		String title = args[1]->ToStringValue(worker);
@@ -189,37 +183,37 @@ class WrapNativeApplication: public WrapObject {
 		if ( args.Length() > 3 ) cc = args[3]->ToStringValue(worker);
 		if ( args.Length() > 4 ) bcc = args[4]->ToStringValue(worker);
 		
-		JS_SELF(Application);
+		Js_Self(Application);
 		self->send_email( recipient, title, cc, bcc, body );
 	}
 	
 	static void max_texture_memory_limit(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN(self->max_texture_memory_limit());
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return(self->max_texture_memory_limit());
 	}
 
 	static void set_max_texture_memory_limit(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( args.Length() == 0 && !args[0]->IsNumber() ) {
-			JS_THROW_ERR("@func setMaxTextureMemoryLimit(limit)");
+			Js_Throw("@func setMaxTextureMemoryLimit(limit)");
 		}
-		JS_SELF(Application);
+		Js_Self(Application);
 		self->set_max_texture_memory_limit( args[0]->ToNumberValue(worker) );
 	}
 	
 	static void used_texture_memory(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN(self->used_texture_memory());
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return(self->used_texture_memory());
 	}
 	
 	/**
 	 * @func pending()
 	 */
 	static void pending(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
+		Js_Worker(args);
+		Js_Self(Application);
 		self->pending();
 	}
 
@@ -227,137 +221,137 @@ class WrapNativeApplication: public WrapObject {
 	 * @get is_loaded {bool}
 	 */
 	static void is_loaded(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( self->is_loaded() );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( self->is_loaded() );
 	}
 	
 	/**
 	 * @get display_port {Display}
 	 */
 	static void display_port(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
+		Js_Worker(args);
+		Js_Self(Application);
 		auto wrap = pack(self->display_port());
-		JS_RETURN( wrap->that() );
+		Js_Return( wrap->that() );
 	}
 	
 	/**
 	 * @get root {Root}
 	 */
 	static void root(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
+		Js_Worker(args);
+		Js_Self(Application);
 		Root* root = self->root();
 		if (! root) { // null
-			JS_RETURN( worker->NewNull() );
+			Js_Return( worker->NewNull() );
 		}
 		Wrap<Root>* wrap = pack(root);
-		JS_RETURN( wrap->that() );
+		Js_Return( wrap->that() );
 	}
 	
 	/**
 	 * @get focus_view {View}
 	 */
 	static void focus_view(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
+		Js_Worker(args);
+		Js_Self(Application);
 		View* view = self->focus_view();
 		if (! view) { // null
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 		Wrap<View>* wrap = Wrap<View>::pack(view);
-		JS_RETURN( wrap->that() );
+		Js_Return( wrap->that() );
 	}
 	
 	/**
 	 * @get default_text_background_color {TextColor}
 	 */
 	static void default_text_background_color(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_background_color()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_background_color()) );
 	}
 	
 	/**
 	 * @get default_text_color {TextColor}
 	 */
 	static void default_text_color(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_color()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_color()) );
 	}
 	
 	/**
 	 * @get default_text_size {TextSize}
 	 */
 	static void default_text_size(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_size()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_size()) );
 	}
 	
 	/**
 	 * @get default_text_slant {TextSlant}
 	 */
 	static void default_text_slant(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_slant()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_slant()) );
 	}
 	
 	/**
 	 * @get default_text_family {TextFamily}
 	 */
 	static void default_text_family(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_family()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_family()) );
 	}
 	
 	/**
 	 * @get default_text_shadow {TextShadow}
 	 */
 	static void default_text_shadow(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_shadow()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_shadow()) );
 	}
 	
 	/**
 	 * @get default_text_line_height {TextLineHeight}
 	 */
 	static void default_text_line_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_line_height()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_line_height()) );
 	}
 	
 	/**
 	 * @get default_text_decoration {TextDecoration}
 	 */
 	static void default_text_decoration(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_decoration()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_decoration()) );
 	}
 	
 	/**
 	 * @get default_text_overflow {TextOverflow}
 	 */
 	static void default_text_overflow(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_overflow()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_overflow()) );
 	}
 	
 	/**
 	 * @get default_text_white_space {TextWhiteSpace}
 	 */
 	static void default_text_white_space(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Application);
-		JS_RETURN( worker->values()->New(self->default_text_white_space()) );
+		Js_Worker(args);
+		Js_Self(Application);
+		Js_Return( worker->values()->New(self->default_text_white_space()) );
 	}
 	
 	/**
@@ -365,8 +359,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_background_color(Local<JSString> name,
 																								Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextColor, value, "Application.defaultTextBackgroundColor = %s");
 		self->set_default_text_background_color(out);
 	}
@@ -376,8 +370,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_color(Local<JSString> name,
 																		 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextColor, value, "Application.defaultTextColor = %s");
 		self->set_default_text_color(out);
 	}
@@ -387,8 +381,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_size(Local<JSString> name,
 																		Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextSize, value, "Application.defaultTextSize = %s");
 		self->set_default_text_size(out);
 	}
@@ -398,8 +392,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_slant(Local<JSString> name,
 																		 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextSlant, value, "Application.defaultTextSlant = %s");
 		self->set_default_text_slant(out);
 	}
@@ -409,8 +403,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_family(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextFamily, value, "Application.defaultTextFamily = %s");
 		self->set_default_text_family(out);
 	}
@@ -420,8 +414,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_shadow(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextShadow, value, "Application.defaultTextShadow = %s");
 		self->set_default_text_shadow(out);
 	}
@@ -431,8 +425,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_line_height(Local<JSString> name,
 																					 Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextLineHeight, value, "Application.defaultTextLineHeight = %s");
 		self->set_default_text_line_height(out);
 	}
@@ -442,8 +436,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_decoration(Local<JSString> name,
 																					Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextDecoration, value, "Application.defaultTextDecoration = %s");
 		self->set_default_text_decoration(out);
 	}
@@ -453,8 +447,8 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_overflow(Local<JSString> name,
 																				Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextOverflow, value, "Application.defaultTextOverflow = %s");
 		self->set_default_text_overflow(out);
 	}
@@ -464,36 +458,36 @@ class WrapNativeApplication: public WrapObject {
 	 */
 	static void set_default_text_white_space(Local<JSString> name,
 																							Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Application);
+		Js_Worker(args); UILock lock;
+		Js_Self(Application);
 		js_parse_value(TextWhiteSpace, value, "Application.defaultTextWhiteSpace = %s");
 		self->set_default_text_white_space(out);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(NativeApplication, constructor, {
-			JS_SET_CLASS_METHOD(clear, clear);
-			JS_SET_CLASS_METHOD(openUrl, open_url);
-			JS_SET_CLASS_METHOD(sendEmail, send_email);
-			JS_SET_CLASS_METHOD(maxTextureMemoryLimit, max_texture_memory_limit);
-			JS_SET_CLASS_METHOD(setMaxTextureMemoryLimit, set_max_texture_memory_limit);
-			JS_SET_CLASS_METHOD(usedMemory, used_texture_memory);
-			JS_SET_CLASS_METHOD(pending, pending);
-			JS_SET_CLASS_ACCESSOR(isLoaded, is_loaded);
-			JS_SET_CLASS_ACCESSOR(displayPort, display_port);
-			JS_SET_CLASS_ACCESSOR(root, root);
-			JS_SET_CLASS_ACCESSOR(focusView, focus_view);
-			JS_SET_CLASS_ACCESSOR(defaultTextBackgroundColor,
+		Js_Define_Class(NativeApplication, constructor, {
+			Js_Set_Class_Method(clear, clear);
+			Js_Set_Class_Method(openUrl, open_url);
+			Js_Set_Class_Method(sendEmail, send_email);
+			Js_Set_Class_Method(maxTextureMemoryLimit, max_texture_memory_limit);
+			Js_Set_Class_Method(setMaxTextureMemoryLimit, set_max_texture_memory_limit);
+			Js_Set_Class_Method(usedMemory, used_texture_memory);
+			Js_Set_Class_Method(pending, pending);
+			Js_Set_Class_Accessor(isLoaded, is_loaded);
+			Js_Set_Class_Accessor(displayPort, display_port);
+			Js_Set_Class_Accessor(root, root);
+			Js_Set_Class_Accessor(focusView, focus_view);
+			Js_Set_Class_Accessor(defaultTextBackgroundColor,
 														default_text_background_color, set_default_text_background_color);
-			JS_SET_CLASS_ACCESSOR(defaultTextColor, default_text_color, set_default_text_color);
-			JS_SET_CLASS_ACCESSOR(defaultTextSize, default_text_size, set_default_text_size);
-			JS_SET_CLASS_ACCESSOR(defaultTextSlant, default_text_slant, set_default_text_slant);
-			JS_SET_CLASS_ACCESSOR(defaultTextFamily, default_text_family, set_default_text_family);
-			JS_SET_CLASS_ACCESSOR(defaultTextShadow, default_text_shadow, set_default_text_shadow);
-			JS_SET_CLASS_ACCESSOR(defaultTextLineHeight, default_text_line_height, set_default_text_line_height);
-			JS_SET_CLASS_ACCESSOR(defaultTextDecoration, default_text_decoration, set_default_text_decoration);
-			JS_SET_CLASS_ACCESSOR(defaultTextOverflow, default_text_overflow, set_default_text_overflow);
-			JS_SET_CLASS_ACCESSOR(defaultTextWhiteSpace, default_text_white_space, set_default_text_white_space);
+			Js_Set_Class_Accessor(defaultTextColor, default_text_color, set_default_text_color);
+			Js_Set_Class_Accessor(defaultTextSize, default_text_size, set_default_text_size);
+			Js_Set_Class_Accessor(defaultTextSlant, default_text_slant, set_default_text_slant);
+			Js_Set_Class_Accessor(defaultTextFamily, default_text_family, set_default_text_family);
+			Js_Set_Class_Accessor(defaultTextShadow, default_text_shadow, set_default_text_shadow);
+			Js_Set_Class_Accessor(defaultTextLineHeight, default_text_line_height, set_default_text_line_height);
+			Js_Set_Class_Accessor(defaultTextDecoration, default_text_decoration, set_default_text_decoration);
+			Js_Set_Class_Accessor(defaultTextOverflow, default_text_overflow, set_default_text_overflow);
+			Js_Set_Class_Accessor(defaultTextWhiteSpace, default_text_white_space, set_default_text_white_space);
 		}, NULL);
 	}
 };
@@ -502,4 +496,4 @@ void binding_app(Local<JSObject> exports, Worker* worker) {
 	WrapNativeApplication::binding(exports, worker);
 }
 
-JS_END
+Js_END

@@ -40,7 +40,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 using namespace native_js;
 
@@ -52,11 +52,11 @@ typedef Object NativeObject;
 class WrapNativeObject: public WrapObject {
 	public:
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
+		Js_ATTACH(args);
 		New<WrapNativeObject>(args, new NativeObject());
 	}
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS_NO_EXPORTS(NativeObject, constructor, {
+		Js_Define_Class_NO_EXPORTS(NativeObject, constructor, {
 			// none
 		}, nullptr);
 	}
@@ -73,19 +73,19 @@ class WrapSimpleHash: public WrapObject {
 	}
 	
 	static void hashCode(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(SimpleHash);
-		JS_RETURN( self->hashCode() );
+		Js_Worker(args);
+		Js_Self(SimpleHash);
+		Js_Return( self->hashCode() );
 	}
 	
 	static void update(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (  args.Length() < 1 ||
 				!(args[0]->IsString(worker) || args[0]->IsBuffer(worker))
 		) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
-		JS_SELF(SimpleHash);
+		Js_Self(SimpleHash);
 		
 		if ( args[0]->IsString(worker) ) { // 字符串
 			String2 str = args[0]->ToString2Value(worker);
@@ -98,13 +98,13 @@ class WrapSimpleHash: public WrapObject {
 	}
 	
 	static void digest(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(SimpleHash);
-		JS_RETURN( self->digest() );
+		Js_Worker(args);
+		Js_Self(SimpleHash);
+		Js_Return( self->digest() );
 	}
 	
 	static void clear(FunctionCall args) {
-		JS_SELF(SimpleHash);
+		Js_Self(SimpleHash);
 		self->clear();
 	}
 
@@ -112,11 +112,11 @@ class WrapSimpleHash: public WrapObject {
 	 * @func binding
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(SimpleHash, constructor, {
-			JS_SET_CLASS_METHOD(hashCode, hashCode);
-			JS_SET_CLASS_METHOD(update, update);
-			JS_SET_CLASS_METHOD(digest, digest);
-			JS_SET_CLASS_METHOD(clear, clear);
+		Js_Define_Class(SimpleHash, constructor, {
+			Js_Set_Class_Method(hashCode, hashCode);
+			Js_Set_Class_Method(update, update);
+			Js_Set_Class_Method(digest, digest);
+			Js_Set_Class_Method(clear, clear);
 		}, nullptr);
 	}
 };
@@ -128,7 +128,7 @@ class NativeUtil {
 	public:
 
 	static SimpleHash get_hashCode(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		SimpleHash hash;
 		String2 str = args[0]->ToString2Value(worker);
 		hash.update(*str, str.length());
@@ -136,34 +136,34 @@ class NativeUtil {
 	}
 	
 	static void hashCode(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
-		JS_RETURN( get_hashCode(args).hashCode() );
+		Js_Return( get_hashCode(args).hashCode() );
 	}
 	
 	static void hash(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
-		JS_RETURN( get_hashCode(args).digest() );
+		Js_Return( get_hashCode(args).digest() );
 	}
 	
 	static void version(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( qk::version() );
+		Js_Worker(args);
+		Js_Return( qk::version() );
 	}
 	
 	static void addNativeEventListener(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() < 3 || !args[0]->IsObject(worker) ||
 				!args[1]->IsString(worker) || !args[2]->IsFunction(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		if ( ! WrapObject::isPack(args[0].To<JSObject>()) ) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		int id = 0;
 		if ( args.Length() > 3 && args[3]->IsNumber(worker) ) {
@@ -177,17 +177,17 @@ class NativeUtil {
 			if (ok) {
 				wrap->set(worker->New(func,1), args[2]);
 			}
-			JS_RETURN(ok);
+			Js_Return(ok);
 		}
 	}
 	
 	static void removeNativeEventListener(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() < 2 || !args[0]->IsObject(worker) || !args[1]->IsString(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		if ( ! WrapObject::isPack(args[0].To<JSObject>()) ) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		int id = 0;
 		if ( args.Length() > 2 && args[2]->IsNumber(worker) ) {
@@ -201,12 +201,12 @@ class NativeUtil {
 				String func = String("_on").push(name).push("Native").push(String(id));
 				wrap->del( worker->New(func) );
 			}
-			JS_RETURN(ok);
+			Js_Return(ok);
 		}
 	}
 
 	static void garbageCollection(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		worker->garbageCollection();
 		#if Qk_MEMORY_TRACE_MARK
 			Array<Object*> objs = Object::mark_objects();
@@ -216,11 +216,11 @@ class NativeUtil {
 	}
 	
 	static void runScript(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
-		JS_HANDLE_SCOPE();
+		Js_Handle_Scope();
 		Local<JSString> name;
 		Local<JSObject> sandbox;
 		if (args.Length() > 1) {
@@ -233,26 +233,26 @@ class NativeUtil {
 		}
 		Local<JSValue> rv = worker->runScript(args[0].To<JSString>(), name, sandbox);
 		if ( !rv.IsEmpty() ) { // 没有值可能有异常
-			JS_RETURN( rv );
+			Js_Return( rv );
 		}
 	}
 
 	static void next_tick(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || ! args[0]->IsFunction(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 		RunLoop::next_tick(Cb([worker, func](Cb::Data& e) {
 			Qk_ASSERT(!func.IsEmpty());
-			JS_HANDLE_SCOPE();
-			JS_CALLBACK_SCOPE();
+			Js_Handle_Scope();
+			Js_Callback_Scope();
 			func.local()->Call(worker);
 		}));
 	}
 
 	static void exit(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		int code = 0;
 		if (args.Length() > 0 && args[0]->IsInt32(worker)) {
 			code = args[0]->ToInt32Value(worker);
@@ -261,19 +261,19 @@ class NativeUtil {
 	}
 
 	static void extendModuleContent(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		String path = args[0]->ToStringValue(worker);
 		for (int i = 0; i < EXT_native_js_count_; i++) {
 			const EXT_NativeJSCode* code = EXT_native_js_ + i;
 			String name(code->name);
 			if (path == name || path == name + code->ext) {
-				JS_RETURN( worker->New(code->code, code->count) );
+				Js_Return( worker->New(code->code, code->count) );
 			}
 		}
-		JS_RETURN_NULL();
+		Js_Return_Null();
 	}
 
 	/**
@@ -281,16 +281,16 @@ class NativeUtil {
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
 
-		JS_SET_METHOD(hashCode, hashCode);
-		JS_SET_METHOD(hash, hash);
-		JS_SET_METHOD(version, version);
-		JS_SET_METHOD(addNativeEventListener, addNativeEventListener);
-		JS_SET_METHOD(removeNativeEventListener, removeNativeEventListener);
-		JS_SET_METHOD(runScript, runScript);
-		JS_SET_METHOD(garbageCollection, garbageCollection);
-		JS_SET_METHOD(nextTick, next_tick);
-		JS_SET_METHOD(_exit, exit);
-		JS_SET_PROPERTY(platform, qk::platform());
+		Js_Set_Method(hashCode, hashCode);
+		Js_Set_Method(hash, hash);
+		Js_Set_Method(version, version);
+		Js_Set_Method(addNativeEventListener, addNativeEventListener);
+		Js_Set_Method(removeNativeEventListener, removeNativeEventListener);
+		Js_Set_Method(runScript, runScript);
+		Js_Set_Method(garbageCollection, garbageCollection);
+		Js_Set_Method(nextTick, next_tick);
+		Js_Set_Method(_exit, exit);
+		Js_Set_Property(platform, qk::platform());
 
 		Local<JSArray> argv = worker->NewArray();
 		if (__quark_js_argv) {
@@ -298,8 +298,8 @@ class NativeUtil {
 				argv->Set(worker, i, worker->New(__quark_js_argv->item(i)));
 			}
 		}
-		JS_SET_PROPERTY(argv, argv);
-		JS_SET_PROPERTY(debug, !!__quark_js_have_debug);
+		Js_Set_Property(argv, argv);
+		Js_Set_Property(debug, !!__quark_js_have_debug);
 
 		// extendModule
 		Local<JSObject> extendModule = worker->NewObject();
@@ -310,13 +310,13 @@ class NativeUtil {
 			module->SetProperty(worker, "extname", code->ext);
 			extendModule->SetProperty(worker, code->name, module);
 		}
-		JS_SET_PROPERTY(__extendModule, extendModule);
-		JS_SET_METHOD(__extendModuleContent, extendModuleContent);
+		Js_Set_Property(__extendModule, extendModule);
+		Js_Set_Method(__extendModuleContent, extendModuleContent);
 
 		WrapNativeObject::binding(exports, worker);
 		WrapSimpleHash::binding(exports, worker);
 	}
 };
 
-JS_REG_MODULE(_util, NativeUtil)
-JS_END
+Js_REG_MODULE(_util, NativeUtil)
+Js_END

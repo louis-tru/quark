@@ -92,16 +92,10 @@ namespace qk {
 		kRatio,     /* 百分比  % */
 	};
 
-	typedef WrapValue<FillSizeKind, FillSizeKind::kAuto, float> FillSize;
 	typedef WrapValue<FillPositionKind, FillPositionKind::kPixel, float> FillPosition;
-
-	struct FillSizeCollection {
-		FillSize x, y;
-	};
-
-	struct FillPositionCollection {
-		FillPosition x, y;
-	};
+	typedef WrapValue<FillSizeKind, FillSizeKind::kAuto, float> FillSize;
+	struct FillSizes { FillSize x, y;};
+	struct FillPositions { FillPosition x, y; };
 
 	// ---------------- F l e x . F l o w ----------------
 
@@ -176,10 +170,8 @@ namespace qk {
 		kRatio,   /* 百分比 value % */
 		kMinus,   /* 减法(parent-value) value ! */
 	};
-
 	typedef FillSizeKind  BoxOriginKind;
-	typedef BoxSizeKind   SizeKind;
-	typedef BoxOriginKind OriginKind;
+
 	typedef WrapValue<BoxSizeKind, BoxSizeKind::kPixel> BoxSize;
 	typedef WrapValue<BoxOriginKind, BoxOriginKind::kPixel> BoxOrigin;
 

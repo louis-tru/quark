@@ -30,41 +30,35 @@
 
 #include "./js.h"
 #include "./types.h"
-#include "./api/_view.h"
+#include "./api/view.h"
 #include "../font/font.h"
-#include "../draw.h"
-#include <native-inl-js.h>
+// #include <native-inl-js.h>
 
 namespace qk { namespace js {
 
 CommonStrings::CommonStrings(Worker* worker): _worker(worker) {
-	#define js_init_persistent_string(name) \
-		__##name##_$_.Reset(worker, worker->NewAscii(#name));
-	js_common_string(js_init_persistent_string);
-	#undef js_init_persistent_string
-	__Throw_$_.Reset(_worker, worker->NewAscii("throw"));
+	#define _Fun(name) \
+		__##name##__.reset(worker, worker->newInstance(#name, true));
+	Js_Common_Strings_Each(_Fun);
+	#undef _Fun
 }
 
 TypesProgram::TypesProgram(Worker* worker,
 												 Local<JSObject> exports,
 												 Local<JSObject> priv): worker(worker) {
-#define Ascii(s) worker->NewAscii(s)
+	#define OneByte(s) worker->newInstance(s, true)
+	#define _Fun(Name, Type) \
+	Qk_DEBUG("Init types %s", #Name);\
+	_parse##Name.reset(worker, priv->Get(worker,OneByte("parse"#Name)).To<JSFunction>()); \
+	_##Name.reset(worker, priv->Get(worker,OneByte("_"#Name)).To<JSFunction>());
 
-#define js_init_func(Name, Type) \
-	Qk_DEBUG("init value %s", #Name);\
-	_parse##Name       .Reset(worker, priv->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
-	_##Name.Reset(worker, priv->Get(worker,Ascii("_"#Name)).To<JSFunction>());
+	Js_Types_Each(_Fun)
 
-	// reset
-	js_value_table(js_init_func)
+	// _Base.Reset(worker, priv->Get(worker,OneByte("_Base")).To<JSFunction>());
 
-	_Base.Reset(worker, priv->Get(worker,Ascii("_Base")).To<JSFunction>());
-
-#undef Ascii
-#undef js_init_func
+	#undef OneByte
+	#undef _Fun
 }
-
-TypesProgram::~TypesProgram() {}
 
 Local<JSValue> TypesProgram::New(const TextAlign& value) {
 	Local<JSValue> arg = worker->New((uint)value);
@@ -511,7 +505,7 @@ bool TypesProgram::parseVec4(Local<JSValue> in, Vec4& out, cChar* desc) {
 
 bool TypesProgram::parseCurve(Local<JSValue> in, Curve& out, cChar* desc) {
 	if ( in->IsString(worker) ) {
-		JS_WORKER();
+		Js_Worker();
 		auto it = CURCE.find( in->ToStringValue(worker,1) );
 		if ( !it.is_null() ) {
 			out = *it.value();
@@ -717,9 +711,9 @@ bool TypesProgram::parseTextColor(Local<JSValue> in, TextColor& out, cChar* desc
 }
 
 bool TypesProgram::parseTextSize(Local<JSValue> in, TextSize& out, cChar* desc) {
-	if (in->IsNumber(worker)) {
+	if (in->isNumber(_worker)) {
 		out.type = TextValueType::VALUE;
-		out.value = in->ToNumberValue(worker);
+		out.value = in-toNumberValue(_worker);
 		return true;
 	}
 	js_parse(TextSize, {
@@ -863,5 +857,5 @@ class NativeValue {
 	}
 };
 
-JS_REG_MODULE(_value, NativeValue);
+Js_REG_MODULE(_value, NativeValue);
 } }

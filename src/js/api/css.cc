@@ -35,14 +35,14 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 #define def_get_property_from_type0(Name) \
 	/*static void Name(Local<JSString> name, PropertyCall args) {}*/
 #define def_set_property_from_type0(Name, Type, Parser, block)\
 static void set_##Name(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {\
-	JS_WORKER(args);\
-	JS_SELF(StyleSheets);\
+	Js_Worker(args);\
+	Js_Self(StyleSheets);\
 	js_parse_value2(Type, Parser, value, "StyleSheets."#Name" = %s");\
 	block;\
 }
@@ -68,19 +68,19 @@ class WrapStyleSheets: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_WORKER(args);
-		JS_THROW_ERR("Forbidden access abstract");
+		Js_ATTACH(args);
+		Js_Worker(args);
+		Js_Throw("Forbidden access abstract");
 	}
 	
 	static void create(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		
 		if ( args.Length() < 1 || !args[0]->IsObject(worker) || args[0]->IsNull(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+			Js_Throw("Bad argument.");
 		}
 		
-		JS_HANDLE_SCOPE();
+		Js_Handle_Scope();
 		
 		Local<JSObject> arg = args[0].To<JSObject>();
 		Local<JSArray> names = arg->GetPropertyNames(worker);
@@ -92,7 +92,7 @@ class WrapStyleSheets: public WrapObject {
 				return; // js error
 			}
 			if ( val.IsEmpty() || ! val->IsObject(worker) ) {
-				JS_THROW_ERR("Bad argument.");
+				Js_Throw("Bad argument.");
 			}
 			
 			Array<StyleSheets*> arr =
@@ -123,17 +123,17 @@ class WrapStyleSheets: public WrapObject {
 	}
 	
 	static void time(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(StyleSheets);
-		JS_RETURN( self->time() / 1000 );
+		Js_Worker(args);
+		Js_Self(StyleSheets);
+		Js_Return( self->time() / 1000 );
 	}
 	
 	static void set_time(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+			Js_Throw("Bad argument.");
 		}
-		JS_SELF(StyleSheets);
+		Js_Self(StyleSheets);
 		self->set_time(uint64(1000) * value->ToNumberValue(worker));
 	}
 	
@@ -304,91 +304,91 @@ class WrapStyleSheets: public WrapObject {
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_value");
 		
-		// JS_DEFINE_CLASS
-		JS_DEFINE_CLASS_NO_EXPORTS(StyleSheets, constructor, {
+		// Js_Define_Class
+		Js_Define_Class_NO_EXPORTS(StyleSheets, constructor, {
 			// action
-			JS_SET_CLASS_ACCESSOR(time, time, set_time);
+			Js_Set_Class_Accessor(time, time, set_time);
 			// Meta attribute
-			JS_SET_CLASS_ACCESSOR(x, nullptr, set_x);
-			JS_SET_CLASS_ACCESSOR(y, nullptr, set_y);
-			JS_SET_CLASS_ACCESSOR(scaleX, nullptr, set_scale_x);
-			JS_SET_CLASS_ACCESSOR(scaleY, nullptr, set_scale_y);
-			JS_SET_CLASS_ACCESSOR(skewX, nullptr, set_skew_x);
-			JS_SET_CLASS_ACCESSOR(skewY, nullptr, set_skew_y);
-			JS_SET_CLASS_ACCESSOR(originX, nullptr, set_origin_x);
-			JS_SET_CLASS_ACCESSOR(originY, nullptr, set_origin_y);
-			JS_SET_CLASS_ACCESSOR(rotateZ, nullptr, set_rotate_z);
-			JS_SET_CLASS_ACCESSOR(opacity, nullptr, set_opacity);
-			JS_SET_CLASS_ACCESSOR(visible, nullptr, set_visible);
-			JS_SET_CLASS_ACCESSOR(width, nullptr, set_width);
-			JS_SET_CLASS_ACCESSOR(height, nullptr, set_height);
-			JS_SET_CLASS_ACCESSOR(marginLeft, nullptr, set_margin_left);
-			JS_SET_CLASS_ACCESSOR(marginTop, nullptr, set_margin_top);
-			JS_SET_CLASS_ACCESSOR(marginRight, nullptr, set_margin_right);
-			JS_SET_CLASS_ACCESSOR(marginBottom, nullptr, set_margin_bottom);
-			JS_SET_CLASS_ACCESSOR(borderLeftWidth, nullptr, set_border_left_width);
-			JS_SET_CLASS_ACCESSOR(borderTopWidth, nullptr, set_border_top_width);
-			JS_SET_CLASS_ACCESSOR(borderRightWidth, nullptr, set_border_right_width);
-			JS_SET_CLASS_ACCESSOR(borderBottomWidth, nullptr, set_border_bottom_width);
-			JS_SET_CLASS_ACCESSOR(borderLeftColor, nullptr, set_border_left_color);
-			JS_SET_CLASS_ACCESSOR(borderTopColor, nullptr, set_border_top_color);
-			JS_SET_CLASS_ACCESSOR(borderRightColor, nullptr, set_border_right_color);
-			JS_SET_CLASS_ACCESSOR(borderBottomColor, nullptr, set_border_bottom_color);
-			JS_SET_CLASS_ACCESSOR(borderRadiusLeftTop, nullptr, set_border_radius_left_top);
-			JS_SET_CLASS_ACCESSOR(borderRadiusRightTop, nullptr, set_border_radius_right_top);
-			JS_SET_CLASS_ACCESSOR(borderRadiusRightBottom, nullptr, set_border_radius_right_bottom);
-			JS_SET_CLASS_ACCESSOR(borderRadiusLeftBottom, nullptr, set_border_radius_left_bottom);
-			JS_SET_CLASS_ACCESSOR(backgroundColor, nullptr, set_background_color);
-			JS_SET_CLASS_ACCESSOR(background, nullptr, set_background);
-			JS_SET_CLASS_ACCESSOR(newline, nullptr, set_newline);
-			JS_SET_CLASS_ACCESSOR(clip, nullptr, set_clip);
-			JS_SET_CLASS_ACCESSOR(contentAlign, nullptr, set_content_align);
-			JS_SET_CLASS_ACCESSOR(textAlign, nullptr, set_text_align);
-			JS_SET_CLASS_ACCESSOR(maxWidth, nullptr, set_max_width);
-			JS_SET_CLASS_ACCESSOR(maxHeight, nullptr, set_max_height);
-			JS_SET_CLASS_ACCESSOR(startX, nullptr, set_start_x);
-			JS_SET_CLASS_ACCESSOR(startY, nullptr, set_start_y);
-			JS_SET_CLASS_ACCESSOR(ratioX, nullptr, set_ratio_x);
-			JS_SET_CLASS_ACCESSOR(ratioY, nullptr, set_ratio_y);
-			JS_SET_CLASS_ACCESSOR(repeat, nullptr, set_repeat);
-			JS_SET_CLASS_ACCESSOR(textBackgroundColor, nullptr, set_text_background_color);
-			JS_SET_CLASS_ACCESSOR(textColor, nullptr, set_text_color);
-			JS_SET_CLASS_ACCESSOR(textSize, nullptr, set_text_size);
-			JS_SET_CLASS_ACCESSOR(TextSlant, nullptr, set_text_slant);
-			JS_SET_CLASS_ACCESSOR(textFamily, nullptr, set_text_family);
-			JS_SET_CLASS_ACCESSOR(textLineHeight, nullptr, set_text_line_height);
-			JS_SET_CLASS_ACCESSOR(textShadow, nullptr, set_text_shadow);
-			JS_SET_CLASS_ACCESSOR(textDecoration, nullptr, set_text_decoration);
-			JS_SET_CLASS_ACCESSOR(textOverflow, nullptr, set_text_overflow);
-			JS_SET_CLASS_ACCESSOR(textWhiteSpace, nullptr, set_text_white_space);
-			JS_SET_CLASS_ACCESSOR(alignX, nullptr, set_align_x);
-			JS_SET_CLASS_ACCESSOR(alignY, nullptr, set_align_y);
-			JS_SET_CLASS_ACCESSOR(shadow, nullptr, set_shadow);
-			JS_SET_CLASS_ACCESSOR(src, nullptr, set_src);
+			Js_Set_Class_Accessor(x, nullptr, set_x);
+			Js_Set_Class_Accessor(y, nullptr, set_y);
+			Js_Set_Class_Accessor(scaleX, nullptr, set_scale_x);
+			Js_Set_Class_Accessor(scaleY, nullptr, set_scale_y);
+			Js_Set_Class_Accessor(skewX, nullptr, set_skew_x);
+			Js_Set_Class_Accessor(skewY, nullptr, set_skew_y);
+			Js_Set_Class_Accessor(originX, nullptr, set_origin_x);
+			Js_Set_Class_Accessor(originY, nullptr, set_origin_y);
+			Js_Set_Class_Accessor(rotateZ, nullptr, set_rotate_z);
+			Js_Set_Class_Accessor(opacity, nullptr, set_opacity);
+			Js_Set_Class_Accessor(visible, nullptr, set_visible);
+			Js_Set_Class_Accessor(width, nullptr, set_width);
+			Js_Set_Class_Accessor(height, nullptr, set_height);
+			Js_Set_Class_Accessor(marginLeft, nullptr, set_margin_left);
+			Js_Set_Class_Accessor(marginTop, nullptr, set_margin_top);
+			Js_Set_Class_Accessor(marginRight, nullptr, set_margin_right);
+			Js_Set_Class_Accessor(marginBottom, nullptr, set_margin_bottom);
+			Js_Set_Class_Accessor(borderLeftWidth, nullptr, set_border_left_width);
+			Js_Set_Class_Accessor(borderTopWidth, nullptr, set_border_top_width);
+			Js_Set_Class_Accessor(borderRightWidth, nullptr, set_border_right_width);
+			Js_Set_Class_Accessor(borderBottomWidth, nullptr, set_border_bottom_width);
+			Js_Set_Class_Accessor(borderLeftColor, nullptr, set_border_left_color);
+			Js_Set_Class_Accessor(borderTopColor, nullptr, set_border_top_color);
+			Js_Set_Class_Accessor(borderRightColor, nullptr, set_border_right_color);
+			Js_Set_Class_Accessor(borderBottomColor, nullptr, set_border_bottom_color);
+			Js_Set_Class_Accessor(borderRadiusLeftTop, nullptr, set_border_radius_left_top);
+			Js_Set_Class_Accessor(borderRadiusRightTop, nullptr, set_border_radius_right_top);
+			Js_Set_Class_Accessor(borderRadiusRightBottom, nullptr, set_border_radius_right_bottom);
+			Js_Set_Class_Accessor(borderRadiusLeftBottom, nullptr, set_border_radius_left_bottom);
+			Js_Set_Class_Accessor(backgroundColor, nullptr, set_background_color);
+			Js_Set_Class_Accessor(background, nullptr, set_background);
+			Js_Set_Class_Accessor(newline, nullptr, set_newline);
+			Js_Set_Class_Accessor(clip, nullptr, set_clip);
+			Js_Set_Class_Accessor(contentAlign, nullptr, set_content_align);
+			Js_Set_Class_Accessor(textAlign, nullptr, set_text_align);
+			Js_Set_Class_Accessor(maxWidth, nullptr, set_max_width);
+			Js_Set_Class_Accessor(maxHeight, nullptr, set_max_height);
+			Js_Set_Class_Accessor(startX, nullptr, set_start_x);
+			Js_Set_Class_Accessor(startY, nullptr, set_start_y);
+			Js_Set_Class_Accessor(ratioX, nullptr, set_ratio_x);
+			Js_Set_Class_Accessor(ratioY, nullptr, set_ratio_y);
+			Js_Set_Class_Accessor(repeat, nullptr, set_repeat);
+			Js_Set_Class_Accessor(textBackgroundColor, nullptr, set_text_background_color);
+			Js_Set_Class_Accessor(textColor, nullptr, set_text_color);
+			Js_Set_Class_Accessor(textSize, nullptr, set_text_size);
+			Js_Set_Class_Accessor(TextSlant, nullptr, set_text_slant);
+			Js_Set_Class_Accessor(textFamily, nullptr, set_text_family);
+			Js_Set_Class_Accessor(textLineHeight, nullptr, set_text_line_height);
+			Js_Set_Class_Accessor(textShadow, nullptr, set_text_shadow);
+			Js_Set_Class_Accessor(textDecoration, nullptr, set_text_decoration);
+			Js_Set_Class_Accessor(textOverflow, nullptr, set_text_overflow);
+			Js_Set_Class_Accessor(textWhiteSpace, nullptr, set_text_white_space);
+			Js_Set_Class_Accessor(alignX, nullptr, set_align_x);
+			Js_Set_Class_Accessor(alignY, nullptr, set_align_y);
+			Js_Set_Class_Accessor(shadow, nullptr, set_shadow);
+			Js_Set_Class_Accessor(src, nullptr, set_src);
 			// Non meta attribute
-			JS_SET_CLASS_ACCESSOR(translate, nullptr, set_translate);
-			JS_SET_CLASS_ACCESSOR(scale, nullptr, set_scale);
-			JS_SET_CLASS_ACCESSOR(skew, nullptr, set_skew);
-			JS_SET_CLASS_ACCESSOR(origin, nullptr, set_origin);
-			JS_SET_CLASS_ACCESSOR(margin, nullptr, set_margin);
-			JS_SET_CLASS_ACCESSOR(border, nullptr, set_border);
-			JS_SET_CLASS_ACCESSOR(borderLeft, nullptr, set_border_left);
-			JS_SET_CLASS_ACCESSOR(borderTop, nullptr, set_border_top);
-			JS_SET_CLASS_ACCESSOR(borderRight, nullptr, set_border_right);
-			JS_SET_CLASS_ACCESSOR(borderBottom, nullptr, set_border_bottom);
-			JS_SET_CLASS_ACCESSOR(borderWidth, nullptr, set_border_width);
-			JS_SET_CLASS_ACCESSOR(borderColor, nullptr, set_border_color);
-			JS_SET_CLASS_ACCESSOR(borderRadius, nullptr, set_border_radius);
-			JS_SET_CLASS_ACCESSOR(minWidth, nullptr, set_min_width);
-			JS_SET_CLASS_ACCESSOR(minHeight, nullptr, set_min_height);
-			JS_SET_CLASS_ACCESSOR(start, nullptr, set_start);
-			JS_SET_CLASS_ACCESSOR(ratio, nullptr, set_ratio);
-			JS_SET_CLASS_ACCESSOR(align, nullptr, set_align);
+			Js_Set_Class_Accessor(translate, nullptr, set_translate);
+			Js_Set_Class_Accessor(scale, nullptr, set_scale);
+			Js_Set_Class_Accessor(skew, nullptr, set_skew);
+			Js_Set_Class_Accessor(origin, nullptr, set_origin);
+			Js_Set_Class_Accessor(margin, nullptr, set_margin);
+			Js_Set_Class_Accessor(border, nullptr, set_border);
+			Js_Set_Class_Accessor(borderLeft, nullptr, set_border_left);
+			Js_Set_Class_Accessor(borderTop, nullptr, set_border_top);
+			Js_Set_Class_Accessor(borderRight, nullptr, set_border_right);
+			Js_Set_Class_Accessor(borderBottom, nullptr, set_border_bottom);
+			Js_Set_Class_Accessor(borderWidth, nullptr, set_border_width);
+			Js_Set_Class_Accessor(borderColor, nullptr, set_border_color);
+			Js_Set_Class_Accessor(borderRadius, nullptr, set_border_radius);
+			Js_Set_Class_Accessor(minWidth, nullptr, set_min_width);
+			Js_Set_Class_Accessor(minHeight, nullptr, set_min_height);
+			Js_Set_Class_Accessor(start, nullptr, set_start);
+			Js_Set_Class_Accessor(ratio, nullptr, set_ratio);
+			Js_Set_Class_Accessor(align, nullptr, set_align);
 		}, nullptr);
 		
-		JS_SET_METHOD(create, create);
+		Js_Set_Method(create, create);
 	}
 };
 
-JS_REG_MODULE(_css, WrapStyleSheets);
-JS_END
+Js_REG_MODULE(_css, WrapStyleSheets);
+Js_END

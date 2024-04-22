@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapDiv
@@ -45,29 +45,29 @@ class WrapDiv: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapDiv>(args, new Div());
 	}
 	
 	static void content_align(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Div);
-		JS_RETURN( worker->values()->New(self->content_align()) );
+		Js_Worker(args);
+		Js_Self(Div);
+		Js_Return( worker->values()->New(self->content_align()) );
 	}
 	
 	static void set_content_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(ContentAlign, value, "Div.contentAlign = %s");
-		JS_SELF(Div);
+		Js_Self(Div);
 		self->set_content_align(out);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Div, constructor, {
-			JS_SET_CLASS_ACCESSOR(contentAlign, content_align, set_content_align);
+		Js_Define_Class(Div, constructor, {
+			Js_Set_Class_Accessor(contentAlign, content_align, set_content_align);
 		}, Box);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Div), View::DIV);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Div), View::DIV);
 	}
 };
 
@@ -75,4 +75,4 @@ void binding_div(Local<JSObject> exports, Worker* worker) {
 	WrapDiv::binding(exports, worker);
 }
 
-JS_END
+Js_END

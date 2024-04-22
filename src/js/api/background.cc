@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapBackground
@@ -45,20 +45,20 @@ class WrapBackground: public WrapObject {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_WORKER(args);
-		JS_THROW_ERR("Forbidden access abstract");
+		Js_Worker(args);
+		Js_Throw("Forbidden access abstract");
 	}
 	
 	/**
 	 * @get next {Background}
 	 */
 	static void next(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Background);
+		Js_Worker(args);
+		Js_Self(Background);
 		if (self->next()) {
-			JS_RETURN( pack(self->next())->that() );
+			Js_Return( pack(self->next())->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}
 	
@@ -66,15 +66,15 @@ class WrapBackground: public WrapObject {
 	 * @set next {Background}
 	 */
 	static void set_next(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value2(BackgroundPtr, Background, value, "Background.next = %s");
-		JS_SELF(Background);
+		Js_Self(Background);
 		self->set_next(out);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Background, constructor, {
-			JS_SET_CLASS_ACCESSOR(next, next, set_next);
+		Js_Define_Class(Background, constructor, {
+			Js_Set_Class_Accessor(next, next, set_next);
 		}, nullptr);
 	}
 };
@@ -83,105 +83,105 @@ class WrapBackgroundImage: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
+		Js_ATTACH(args);
 		New<WrapBackgroundImage>(args, new BackgroundImage());
 	}
 	
 	static void src(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(BackgroundImage);
-		JS_RETURN(self->src());
+		Js_Worker(args);
+		Js_Self(BackgroundImage);
+		Js_Return(self->src());
 	}
 	static void has_base64(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(BackgroundImage);
-		JS_RETURN(self->has_base64());
+		Js_Worker(args);
+		Js_Self(BackgroundImage);
+		Js_Return(self->has_base64());
 	}
 	static void repeat(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->values()->New(self->repeat()));
+		Js_Worker(args);
+		Js_Self(BackgroundImage);
+		Js_Return( worker->values()->New(self->repeat()));
 	}
 	static void position_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->values()->New(self->position_x()));
+		Js_Worker(args);
+		Js_Self(BackgroundImage);
+		Js_Return( worker->values()->New(self->position_x()));
 	}
 	static void position_y(Local<JSString> name, PropertyCall args){
-		JS_WORKER(args);
-		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->values()->New(self->position_y()));
+		Js_Worker(args);
+		Js_Self(BackgroundImage);
+		Js_Return( worker->values()->New(self->position_y()));
 	}
 	static void size_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->values()->New(self->size_x()));
+		Js_Worker(args);
+		Js_Self(BackgroundImage);
+		Js_Return( worker->values()->New(self->size_x()));
 	}
 	static void size_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->values()->New(self->size_y()));
+		Js_Worker(args);
+		Js_Self(BackgroundImage);
+		Js_Return( worker->values()->New(self->size_y()));
 	}
 	static void position(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_RETURN_NULL();
+		Js_Worker(args);
+		Js_Return_Null();
 	}
 	static void size(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_RETURN_NULL();
+		Js_Worker(args);
+		Js_Return_Null();
 	}
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		self->set_src( value->ToStringValue(worker) );
 	}
 	// static void set_src_base64(Local<JSString> name, PropertySetCall args) {
 	static void set_src_base64(FunctionCall args) {
-		// JS_WORKER(args); UILock lock;
-		// JS_SELF(BackgroundImage);
+		// Js_Worker(args); UILock lock;
+		// Js_Self(BackgroundImage);
 		// self->set_src( value->ToStringValue(worker) );
 	}
 	static void set_repeat(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		js_parse_value(Repeat, value, "BackgroundImage.repeat = %s");
 		self->set_repeat(out);
 	}
 	static void set_position_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		js_parse_value(BackgroundPosition, value, "BackgroundImage.positionX = %s");
 		self->set_position_x(out);
 	}
 	static void set_position_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		js_parse_value(BackgroundPosition, value, "BackgroundImage.positionY = %s");
 		self->set_position_y(out);
 	}
 	static void set_size_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		js_parse_value(BackgroundSize, value, "BackgroundImage.sizeX = %s");
 		self->set_size_x(out);
 	}
 	static void set_size_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		js_parse_value(BackgroundSize, value, "BackgroundImage.sizeY = %s");
 		self->set_size_y(out);
 	}
 	static void set_position(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		js_parse_value2(BackgroundPositionCollection, BackgroundPositionCollection,
 										value, "BackgroundImage.position = %s");
 		self->set_position_x(out.x);
 		self->set_position_y(out.y);
 	}
 	static void set_size(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(BackgroundImage);
+		Js_Worker(args); UILock lock;
+		Js_Self(BackgroundImage);
 		js_parse_value2(BackgroundSizeCollection, BackgroundSizeCollection,
 										value, "BackgroundImage.size = %s");
 		self->set_size_x(out.x);
@@ -189,17 +189,17 @@ class WrapBackgroundImage: public WrapObject {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(BackgroundImage, constructor, {
-			// JS_SET_CLASS_ACCESSOR(setBase64Source, set_src_base64);
-			JS_SET_CLASS_ACCESSOR(src, src, set_src);
-			// JS_SET_CLASS_ACCESSOR(hasBase64, has_base64);
-			JS_SET_CLASS_ACCESSOR(repeat, repeat, set_repeat);
-			JS_SET_CLASS_ACCESSOR(position, position, set_position);
-			JS_SET_CLASS_ACCESSOR(positionX, position_x, set_position_x);
-			JS_SET_CLASS_ACCESSOR(positionY, position_y, set_position_y);
-			JS_SET_CLASS_ACCESSOR(size, size, set_size);
-			JS_SET_CLASS_ACCESSOR(sizeX, size_x, set_size_x);
-			JS_SET_CLASS_ACCESSOR(sizeY, size_y, set_size_y);
+		Js_Define_Class(BackgroundImage, constructor, {
+			// Js_Set_Class_Accessor(setBase64Source, set_src_base64);
+			Js_Set_Class_Accessor(src, src, set_src);
+			// Js_Set_Class_Accessor(hasBase64, has_base64);
+			Js_Set_Class_Accessor(repeat, repeat, set_repeat);
+			Js_Set_Class_Accessor(position, position, set_position);
+			Js_Set_Class_Accessor(positionX, position_x, set_position_x);
+			Js_Set_Class_Accessor(positionY, position_y, set_position_y);
+			Js_Set_Class_Accessor(size, size, set_size);
+			Js_Set_Class_Accessor(sizeX, size_x, set_size_x);
+			Js_Set_Class_Accessor(sizeY, size_y, set_size_y);
 		}, Background);
 	}
 };
@@ -208,12 +208,12 @@ class WrapBackgroundGradient: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
+		Js_ATTACH(args);
 		New<WrapBackgroundGradient>(args, new BackgroundGradient());
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(BackgroundGradient, constructor, {
+		Js_Define_Class(BackgroundGradient, constructor, {
 			
 		}, Background);
 	}
@@ -225,4 +225,4 @@ void binding_background(Local<JSObject> exports, Worker* worker) {
 	// WrapBackgroundGradient::binding(exports, worker);
 }
 
-JS_END
+Js_END

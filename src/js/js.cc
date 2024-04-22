@@ -37,38 +37,27 @@
 #include "./types.h"
 
 namespace qk { namespace js {
-	// using namespace native_js;
+	//using namespace native_js;
 
 	Buffer JSValue::toBuffer(Worker* worker, Encoding en) const {
-		switch (en) {
-			case Encoding::hex: // 解码 hex and base64
-			case Encoding::base64:
-				return Coder::decoding_to_byte(en, ToStringValue(worker,1));
-			case Encoding::utf8:// ucs2编码成utf8
-				return ToStringValue(worker).collapse_buffer();
-			case Encoding::ucs2:
-			case Encoding::utf16: {
-				String2 str = ToString2Value(worker);
-				uint32_t len = str.length() * 2;
-				return Buffer((Char*)str.collapse(), len);
-			}
-			default: // 编码
-				return Coder::encoding(en, ToStringValue(worker));
+		if (en == Encoding::kUTF16_Encoding) {
+			String2 str = toStringValue2(worker);
+			uint32_t len = str.length() * 2;
+			return Buffer((Char*)str.collapse().collapse(), len);
+		} else {
+			return codec_encode(en, toStringValue2(worker));
 		}
 	}
 
-	bool JSValue::isBuffer() const {
-		return isTypedArray() || isArrayBuffer();
-	}
-
 	bool JSValue::isBuffer(Worker *worker) const {
-		return isBuffer();
+		return isTypedArray(worker) || isArrayBuffer(worker);
 	}
 
 	WeakBuffer JSValue::asBuffer(Worker *worker) {
-		if (IsTypedArray(worker)) {
+		if (isTypedArray(worker)) {
 			return static_cast<JSTypedArray*>(this)->weakBuffer(worker);
-		} else if (IsArrayBuffer()) {
+		}
+		else if (isArrayBuffer(worker)) {
 			return static_cast<JSArrayBuffer*>(this)->weakBuffer(worker);
 		}
 		return WeakBuffer();
@@ -76,21 +65,23 @@ namespace qk { namespace js {
 
 	Maybe<Dict<String, int>> JSObject::toIntegerMap(Worker* worker) {
 		Dict<String, int> r;
-		
-		if ( IsObject(worker) ) {
-		
-			Local<JSArray> names = GetPropertyNames(worker);
-			if ( names.IsEmpty() ) return Maybe<Dict<String, int>>();
+
+		if ( isObject(worker) ) {
+			Local<JSArray> names = getPropertyNames(worker);
+			if ( names.isEmpty() )
+				return Maybe<Dict<String, int>>();
 			
-			for ( uint32_t i = 0, len = names->Length(worker); i < len; i++ ) {
-				Local<JSValue> key = names->Get(worker, i);
-				if ( names.IsEmpty() ) return Maybe<Dict<String, int>>();
-				Local<JSValue> val = Get(worker, key);
-				if ( val.IsEmpty() ) return Maybe<Dict<String, int>>();
-				if ( val->IsNumber(worker) ) {
-					r.set( key->ToStringValue(worker), val->ToNumberValue(worker) );
+			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
+				Local<JSValue> key = names->get(worker, i);
+				if ( key.isEmpty() )
+					return Maybe<Dict<String, int>>();
+
+				Local<JSValue> val = get(worker, key);
+				if ( val.isEmpty() ) return Maybe<Dict<String, int>>();
+				if ( val->isNumber(worker) ) {
+					r.set( key->toStringValue(worker), val->toNumberValue(worker) );
 				} else {
-					r.set( key->ToStringValue(worker), val->ToBooleanValue(worker) );
+					r.set( key->toStringValue(worker), val->toBooleanValue(worker) );
 				}
 			}
 		}
@@ -100,16 +91,21 @@ namespace qk { namespace js {
 	Maybe<Dict<String, String>> JSObject::toStringMap(Worker* worker) {
 		Dict<String, String> r;
 		
-		if ( IsObject(worker) ) {
-			Local<JSArray> names = GetPropertyNames(worker);
-			if ( names.IsEmpty() ) return Maybe<Dict<String, String>>();
+		if ( isObject(worker) ) {
+			Local<JSArray> names = getPropertyNames(worker);
+			if ( names.isEmpty() )
+				return Maybe<Dict<String, String>>();
 			
-			for ( uint32_t i = 0, len = names->Length(worker); i < len; i++ ) {
-				Local<JSValue> key = names->Get(worker, i);
-				if ( names.IsEmpty() ) return Maybe<Dict<String, String>>();
-				Local<JSValue> val = Get(worker, key);
-				if ( val.IsEmpty() ) return Maybe<Dict<String, String>>();
-				r.set( key->ToStringValue(worker), val->ToStringValue(worker) );
+			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
+				Local<JSValue> key = names->get(worker, i);
+				if ( key.isEmpty() ) {
+					return Maybe<Dict<String, String>>();
+				}
+				Local<JSValue> val = get(worker, key);
+				if ( val.isEmpty() ) {
+					return Maybe<Dict<String, String>>();
+				}
+				r.set( key->toStringValue(worker), val->toStringValue(worker) );
 			}
 		}
 		return Maybe<Dict<String, String>>(std::move(r));
@@ -118,94 +114,176 @@ namespace qk { namespace js {
 	Maybe<JSON> JSObject::toJSON(Worker* worker) {
 		JSON r = JSON::object();
 		
-		if ( IsObject(worker) ) {
-			Local<JSArray> names = GetPropertyNames(worker);
-			if ( names.IsEmpty() ) return Maybe<JSON>();
+		if ( isObject(worker) ) {
+			Local<JSArray> names = getPropertyNames(worker);
+			if ( names.isEmpty() )
+				return Maybe<JSON>();
 			
-			for ( uint32_t i = 0, len = names->Length(worker); i < len; i++ ) {
-				Local<JSValue> key = names->Get(worker, i);
-				if ( names.IsEmpty() ) return Maybe<JSON>();
-				Local<JSValue> val = Get(worker, key);
-				if ( val.IsEmpty() ) return Maybe<JSON>();
-				String key_s = key->ToStringValue(worker);
-				if (val->IsUint32(worker)) {
-					r[key_s] = val->ToUint32Value(worker);
-				} else if (val->IsInt32(worker)) {
-					r[key_s] = val->ToInt32Value(worker);
-				} else if (val->IsNumber(worker)) {
-					r[key_s] = val->ToInt32Value(worker);
-				} else if (val->IsBoolean(worker)) {
-					r[key_s] = val->ToBooleanValue(worker);
-				} else if (val->IsNull(worker)) {
+			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
+				Local<JSValue> key = names->get(worker, i);
+				if ( key.isEmpty() ) return Maybe<JSON>();
+				Local<JSValue> val = get(worker, key);
+				if ( val.isEmpty() ) return Maybe<JSON>();
+				String key_s = key->toStringValue(worker);
+				if (val->isUint32(worker)) {
+					r[key_s] = val->toUint32Value(worker);
+				} else if (val->isInt32(worker)) {
+					r[key_s] = val->toInt32Value(worker);
+				} else if (val->isNumber(worker)) {
+					r[key_s] = val->toInt32Value(worker);
+				} else if (val->isBoolean(worker)) {
+					r[key_s] = val->toBooleanValue(worker);
+				} else if (val->isNull(worker)) {
 					r[key_s] = JSON::null();
 				} else {
-					r[key_s] = val->ToStringValue(worker);
+					r[key_s] = val->toStringValue(worker);
 				}
 			}
 		}
-		return Maybe<JSON>(move(r));
+		return Maybe<JSON>(std::move(r));
 	}
 
 	Local<JSValue> JSObject::getProperty(Worker* worker, cString& name) {
-		return Get(worker, worker->New(name, 1));
+		return get(worker, worker->newInstance(name, 1).cast<JSValue>());
 	}
 
 	Maybe<Array<String>> JSArray::toStringArrayMaybe(Worker* worker) {
 		Array<String> rv;
-		if ( IsArray(worker) ) {
-			for ( uint32_t i = 0, len = Length(worker); i < len; i++ ) {
-				Local<JSValue> val = Get(worker, i);
-				if ( val.IsEmpty() )
+		if ( isArray(worker) ) {
+			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
+				Local<JSValue> val = get(worker, i);
+				if ( val.isEmpty() )
 					return Maybe<Array<String>>();
-				rv.push( val->ToStringValue(worker) );
+				rv.push( val->toStringValue(worker) );
 			}
 		}
-		return Maybe<Array<String>>(move(rv));
+		return Maybe<Array<String>>(std::move(rv));
 	}
 
 	Maybe<Array<double>> JSArray::toNumberArrayMaybe(Worker* worker) {
 		Array<double> rv;
-		if ( IsArray(worker) ) {
+		if ( isArray(worker) ) {
 			double out;
-			for ( uint32_t i = 0, len = Length(worker); i < len; i++ ) {
-				Local<JSValue> val = Get(worker, i);
-				if ( val.IsEmpty() || !val->ToNumberMaybe(worker).To(out) )
+			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
+				Local<JSValue> val = get(worker, i);
+				if ( val.isEmpty() || !val->toNumberMaybe(worker).to(out) )
 					return Maybe<Array<double>>();
 				rv.push( out );
 			}
 		}
-		return Maybe<Array<double>>(move(rv));
+		return Maybe<Array<double>>(std::move(rv));
 	}
 
 	Maybe<Buffer> JSArray::toBufferMaybe(Worker* worker) {
 		Buffer rv;
-		if ( IsArray(worker) ) {
+		if ( isArray(worker) ) {
 			double out;
-			for ( uint32_t i = 0, len = Length(worker); i < len; i++ ) {
-				Local<JSValue> val = Get(worker, i);
-				if ( val.IsEmpty() || !val->ToNumberMaybe(worker).To(out) )
+			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
+				Local<JSValue> val = get(worker, i);
+				if ( val.isEmpty() || !val->toNumberMaybe(worker).to(out) )
 					return Maybe<Buffer>();
 				rv.push( out );
 			}
 		}
-		return Maybe<Buffer>(move(rv));
+		return Maybe<Buffer>(std::move(rv));
 	}
 
 	WeakBuffer JSArrayBuffer::weakBuffer(Worker* worker) {
-		int size = ByteLength(worker);
-		Char* data = Data(worker);
-		return WeakBuffer(data, size);
+		int size = byteLength(worker);
+		Char* ptr = data(worker);
+		return WeakBuffer(ptr, size);
 	}
 
 	WeakBuffer JSTypedArray::weakBuffer(Worker* worker) {
-		auto buffer = Buffer(worker);
-		Char* data = buffer->Data(worker);
-		int offset = ByteOffset(worker);
-		int len = ByteLength(worker);
-		return WeakBuffer(data + offset, len);
+		auto buff = buffer(worker);
+		Char* ptr = buff->data(worker);
+		int offset = byteOffset(worker);
+		int len = byteLength(worker);
+		return WeakBuffer(ptr + offset, len);
+	}
+
+	// --------------------------- J S . C l a s s ---------------------------
+
+	void JSClass::exports(cString& name, Local<JSObject> exports) {
+		_func.reset(); // reset func
+		exports->setProperty(_worker, name, getFunction());
+	}
+
+	Local<JSObject> JSClass::newInstance(uint32_t argc, Local<JSValue>* argv) {
+		auto f = getFunction();
+		Qk_ASSERT( !f.isEmpty() );
+		return f->newInstance(_worker, argc, argv);
+	}
+
+	JsClassInfo::JsClassInfo(Worker* worker)
+		: _worker(worker)
+	{
+		auto cls = _worker->newClass("JsAttachConstructorEmpty", 0xffffffff, [](FunctionArgs args) {}, 0);
+		_jsAttachConstructorEmpty.reset(_worker, cls->getFunction());
+	}
+
+	JsClassInfo::~JsClassInfo() {
+		for ( auto i : _jsclass )
+			delete i.value;
+		_jsAttachConstructorEmpty.reset();
+	}
+
+	Local<JSClass> JsClassInfo::get(uint64_t id) {
+		JSClass *out;
+		if ( _jsclass.get(id, out) ) {
+			return *reinterpret_cast<Local<JSClass>*>(&out);
+		}
+		return Local<JSClass>();
+	}
+
+	Local<JSFunction> JsClassInfo::getFunction(uint64_t id) {
+		JSClass *out;
+		if ( _jsclass.get(id, out) ) {
+			return out->getFunction();
+		}
+		return Local<JSFunction>();
+	}
+
+	void JsClassInfo::add(uint64_t id, JSClass *cls,
+												AttachCallback attach) throw(Error) {
+		Qk_Check( ! _jsclass.has(id), "Set native Constructors ID repeat");
+		cls->_worker = _worker;
+		cls->_id = id;
+		cls->_attachConstructor = attach;
+		_jsclass.set(id, cls);
+	}
+
+	WrapObject* JsClassInfo::attach(uint64_t id, Object* object) {
+		auto wrap = reinterpret_cast<WrapObject*>(object) - 1;
+		Qk_ASSERT( !wrap->worker() );
+		JSClass *out;
+		if ( _jsclass.get(id, out) ) {
+			out->_attachConstructor(wrap);
+			// auto jsobj = out->getFunction()->newInstance(_worker);
+			auto jsobj = _jsAttachConstructorEmpty->newInstance(_worker);
+			auto prototype = out->getFunction()->getPrototype(_worker);
+			auto ok = jsobj->set__Proto__(_worker, prototype);
+			Qk_ASSERT(ok);
+			return wrap->attach(_worker, jsobj);
+		}
+		return nullptr;
+	}
+
+	bool JsClassInfo::instanceOf(Local<JSValue> val, uint64_t id) {
+		JSClass *out;
+		if ( _jsclass.get(id, out) )
+			return out->hasInstance(val);
+		return false;
 	}
 
 	// ----------------------------------- W o r k e r -----------------------------------
+
+	struct LIB_NativeJSCode {
+		int count;
+		const char* code;
+		const char* name;
+		const char* ext;
+	};
 
 	struct NativeModuleLib {
 		String name;
@@ -216,50 +294,49 @@ namespace qk { namespace js {
 
 	static Dict<String, NativeModuleLib>* NativeModulesLib = nullptr;
 
-	Worker* Worker::create() {
-		// TODO ...
-	}
-
-	void Worker::RegisterModule(cString& name, BindingCallback binding, cChar* file) {
+	void Worker::setModule(cString& name, BindingCallback binding, cChar* file) {
 		if (!NativeModulesLib) {
-			NativeModulesLib = new Dict<String, NativeModule>();
+			NativeModulesLib = new Dict<String, NativeModuleLib>();
 		}
-		NativeModulesLib->set(name, { name, file ? file : __FILE__, binding, 0 });
+		NativeModulesLib->set(name, { name, file ? file: name, binding, 0 });
 	}
 
 	Local<JSValue> Worker::bindingModule(cString& name) {
-		auto str = New(name);
-		auto r = _nativeModules.local()->get(this, str);
-		if (!r->IsUndefined()) {
-			return r.To<JSObject>();
+		auto str = newInstance(name).cast();
+		auto r = _nativeModules.toLocal()->get(this, str);
+		if (!r->isUndefined(this)) {
+			return r.cast<JSObject>();
 		}
 
-		NativeModuleLib* lib;
-		auto exports = NewObject();
+		const NativeModuleLib* lib;
+		auto exports = newObject();
+		auto ok = NativeModulesLib->get(name, lib);
 
-		if (NativeModulesLib->get(name, lib)) {
+		if (ok) {
 			if (lib->binding) {
 				lib->binding(exports, this);
 			}
 			else if (lib->native_code) {
 				exports = runNativeScript(
-					WeakBuffer((Char*) lib->native_code->code, lib->native_code->count),
+					WeakBuffer(lib->native_code->code, lib->native_code->count).buffer(),
 					String(lib->native_code->name) + lib->native_code->ext, exports
-				).To();
-				if ( exports.IsEmpty() ) { // error
+				).cast<JSObject>();
+
+				if ( exports.isEmpty() ) { // error
 					return exports;
 				}
 			}
-			_nativeModules.local()->set(this, str, exports);
+			_nativeModules.toLocal()->set(this, str, exports);
 		}
 
 		return exports;
 	}
 
 	Worker::Worker()
-		: _types(nullptr), _strs(nullptr)
-		, _jsclassinfo(nullptr)
-		, _thread_id(Thread::current_id())
+		: _types(nullptr)
+		, _strs(nullptr)
+		, _classsinfo(nullptr)
+		, _thread_id(thread_current_id())
 	{
 		// register core native module
 		static int initializ_core_native_module = 0;
@@ -274,169 +351,170 @@ namespace qk { namespace js {
 		}
 	}
 
-	Worker::~Worker() {
-		Release(_values); _values = nullptr;
-		Release(_strs); _strs = nullptr;
+	void Worker::release() {
+		delete _types; _types = nullptr;
+		delete _strs; _strs = nullptr;
 		delete _classsinfo; _classsinfo = nullptr;
-		_native_modules.Reset();
-		_global.Reset();
+		_nativeModules.reset();
+		_global.reset();
+	}
+
+	static void require_native(FunctionArgs args);
+
+	void Worker::init() {
+		HandleScope scope(this);
+		_nativeModules.reset(this, newObject());
+		_strs = new CommonStrings(this);
+		_classsinfo = new JsClassInfo(this);
+		Qk_ASSERT(_global->isObject(this));
+		_global->setProperty(this, "global", _global.toLocal());
+		_global->setMethod(this, "__require__", require_native);
+
+		auto globalThis = newInstance("globalThis");
+		if ( !_global->has(this, globalThis.cast<JSValue>()) ) {
+			_global->set(this, globalThis.cast<JSValue>(), _global.toLocal());
+		}
 	}
 
 	Local<JSObject> Worker::global() {
-		return _global.local();
+		return _global.toLocal();
 	}
 
-	Local<JSObject> Worker::NewError(cChar* errmsg, ...) {
-		Qk_STRING_FORMAT(errmsg, str);
+	Local<JSObject> Worker::newError(cChar* errmsg, ...) {
+		va_list arg;
+		va_start(arg, errmsg);
+		String str = _Str::string_format(errmsg, arg);
+		va_end(arg);
 		Error err(ERR_UNKNOWN_ERROR, str);
-		return New(err);
+		return newInstance(err);
 	}
 
-	Local<JSObject> Worker::New(const HttpError& err) {
-		Local<JSObject> rv = New(*static_cast<cError*>(&err));
-		if ( !rv.IsEmpty() ) {
-			if (!rv->Set(this, strs()->status(), New(err.status()))) return Local<JSObject>();
-			if (!rv->Set(this, strs()->url(), New(err.url()))) return Local<JSObject>();
-			if (!rv->Set(this, strs()->code(), New(err.code()))) return Local<JSObject>();
+	Local<JSObject> Worker::newInstance(const HttpError& err) {
+		Local<JSObject> rv = newInstance(*static_cast<cError*>(&err));
+		if ( !rv.isEmpty() ) {
+			if (!rv->set(this, strs()->status(), newInstance(err.status()))) return Local<JSObject>();
+			if (!rv->set(this, strs()->url(), newInstance(err.url()))) return Local<JSObject>();
+			if (!rv->set(this, strs()->code(), newInstance(err.code()))) return Local<JSObject>();
 		}
 		return rv;
 	}
 
-	Local<JSArray> Worker::New(Array<Dirent>& ls) { return New(move(ls)); }
-	Local<JSArray> Worker::New(Array<FileStat>& ls) { return New(move(ls)); }
-	Local<JSUint8Array> Worker::New(Buffer& buff) { return New(move(buff)); }
-	Local<JSObject> Worker::New(FileStat& stat) { return New(move(stat)); }
-	Local<JSObject> Worker::NewError(cError& err) { return New(err); }
-	Local<JSObject> Worker::NewError(const HttpError& err) { return New(err); }
+	Local<JSArray> Worker::newInstance(Array<Dirent>& ls) { return newInstance(std::move(ls)); }
+	Local<JSArray> Worker::newInstance(Array<FileStat>& ls) { return newInstance(std::move(ls)); }
+	Local<JSUint8Array> Worker::newInstance(Buffer& buff) { return newInstance(std::move(buff)); }
+	Local<JSObject> Worker::newInstance(FileStat& stat) { return newInstance(std::move(stat)); }
+	Local<JSObject> Worker::newError(cError& err) { return newInstance(err); }
+	Local<JSObject> Worker::newError(const HttpError& err) { return newInstance(err); }
 
-	Local<JSObject> Worker::New(FileStat&& stat) {
-		Local<JSFunction> func = _inl->_classs->get_constructor(JS_TYPEID(FileStat));
+	Local<JSObject> Worker::newInstance(FileStat&& stat) {
+		Local<JSFunction> func = _classsinfo->getFunction(Js_Typeid(FileStat));
 		Qk_ASSERT( !func.IsEmpty() );
-		Local<JSObject> r = func->NewInstance(this);
-		*Wrap<FileStat>::unpack(r)->self() = move(stat);
+		auto r = func->newInstance(this);
+		*WrapObject::wrap<FileStat>(r)->self() = std::move(stat);
 		return r;
 	}
 
-	Local<JSObject> Worker::NewInstance(uint64_t id, uint32_t argc, Local<JSValue>* argv) {
-		Local<JSFunction> func = _inl->_classs->get_constructor(id);
+	Local<JSObject> Worker::newObject(uint64_t id, uint32_t argc, Local<JSValue>* argv) {
+		Local<JSFunction> func = _classsinfo->getFunction(id);
 		Qk_ASSERT( !func.IsEmpty() );
-		return func->NewInstance(this, argc, argv);
+		return func->newInstance(this, argc, argv);
 	}
 
-	Local<JSUint8Array> Worker::NewUint8Array(Local<JSString> str, Encoding en) {
-		Buffer buff = str->ToBuffer(this, en);
-		return New(buff);
+	Local<JSUint8Array> Worker::newUint8Array(Local<JSString> str, Encoding en) {
+		return newInstance(str->toBuffer(this, en));
 	}
 
-	Local<JSUint8Array> Worker::NewUint8Array(int size, Char fill) {
-		auto ab = NewArrayBuffer(size);
+	Local<JSUint8Array> Worker::newUint8Array(int size, Char fill) {
+		auto ab = newArrayBuffer(size);
 		if (fill)
-			memset(ab->Data(this), fill, size);
-		return NewUint8Array(ab);
+			memset(ab->data(this), fill, size);
+		return newUint8Array(ab);
 	}
 
-	Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab) {
-		return NewUint8Array(ab, 0, ab->ByteLength(this));
+	Local<JSUint8Array> Worker::newUint8Array(Local<JSArrayBuffer> ab) {
+		return newUint8Array(ab, 0, ab->byteLength(this));
 	}
 
 	void Worker::throwError(cChar* errmsg, ...) {
-		Qk_STRING_FORMAT(errmsg, str);
-		throwError(NewError(*str));
+		va_list arg;
+		va_start(arg, errmsg);
+		String str = _Str::string_format(errmsg, arg);
+		va_end(arg);
+		throwError(newError(*str));
 	}
 
-	bool Worker::hasView(Local<JSValue> val) {
-		return _inl->_classs->instanceof(val, qk::View::VIEW);
+	bool Worker::instanceOf(Local<JSValue> val, uint64_t id) {
+		return _classsinfo->instanceOf(val, id);
 	}
 
-	bool Worker::hasInstance(Local<JSValue> val, uint64_t id) {
-		return _inl->_classs->instanceof(val, id);
+	Local<JSClass> Worker::jsclass(uint64_t id) {
+		return _classsinfo->get(id);
 	}
 
-	// ----------------------------- W o r k e r . I m p l ----------------------------- 
-
+	// ---------------------------------------------------------------------------------------------
 	// @private __require__
-	static void require_native(FunctionCall args) {
-		JS_WORKER(args);
-		JS_HANDLE_SCOPE();
-		if (args.Length() < 1) {
-			JS_THROW_ERR("Bad argument.");
+	static void require_native(FunctionArgs args) {
+		Js_Worker(args);
+		Js_Handle_Scope();
+		if (args.length() < 1) {
+			Js_Throw("Bad argument.");
 		}
-		String name = args[0]->ToStringValue(worker);
-		Local<JSValue> r = worker->bindingModule(name);
-		if (!r.IsEmpty()) {
-			JS_RETURN(r);
-		}
-	}
-
-	WorkerImpl::WorkerImpl() {
-	}
-	WorkerImpl::~WorkerImpl() {
-	}
-
-	void WorkerImpl::initialize() {
-		HandleScope scope(this);
-		_nativeModules.Reset(this, NewObject());
-		_strs = new CommonStrings(this);
-		_classsinfo = new JSClassInfo(this);
-		Qk_ASSERT(_global->isObject(this));
-		_global->SetProperty(this, "global", _global.local());
-		_global->SetMethod(this, "__require__", require_native);
-
-		auto globalThis = New("globalThis");
-		if ( !_global->has(this, globalThis) ) {
-			_global->set(this, globalThis, _global.local());
+		auto name = args[0]->toStringValue(worker);
+		auto r = worker->bindingModule(name);
+		if (r) {
+			Js_Return(r);
 		}
 	}
 
 	static Local<JSValue> TriggerEventFromUtil(Worker* worker,
 		cString& name, int argc = 0, Local<JSValue> argv[] = 0)
 	{
-		Local<JSObject> _util = worker->bindingModule("_util").To();
+		Local<JSObject> _util = worker->bindingModule("_util").cast();
 		Qk_ASSERT(!_util.IsEmpty());
 
-		Local<JSValue> func = _util->GetProperty(worker, String("__on").push(name).push("_native"));
-		if (!func->IsFunction(worker)) {
+		Local<JSValue> func = _util->getProperty(worker, String("__on").append(name).append("_native"));
+		if (!func->isFunction(worker)) {
 			return Local<JSValue>();
 		}
-		return func.To<JSFunction>()->Call(worker, argc, argv);
+		return func.cast<JSFunction>()->call(worker, argc, argv);
 	}
 
-	static int TriggerExit_1(Worker* worker, cString& name, int code) {
-		JS_HANDLE_SCOPE();
-		Local<JSValue> argv = worker->New(code);
+	static int TriggerExit(Worker* worker, cString& name, int code) {
+		Js_Handle_Scope();
+		Local<JSValue> argv = worker->newInstance(code);
 		Local<JSValue> rc = TriggerEventFromUtil(worker, name, 1, &argv);
-		if (!rc.IsEmpty() && rc->IsInt32(worker)) {
-			return rc->ToInt32Value(worker);
+		if (!rc.isEmpty() && rc->isInt32(worker)) {
+			return rc->toInt32Value(worker);
 		} else {
 			return code;
 		}
 	}
 
 	static bool TriggerException(Worker* worker, cString& name, int argc, Local<JSValue> argv[]) {
-		JS_HANDLE_SCOPE();
+		Js_Handle_Scope();
 		Local<JSValue> rc = TriggerEventFromUtil(worker, name, argc, argv);
-		if (!rc.IsEmpty() && rc->ToBooleanValue(worker)) {
+		if (!rc.isEmpty() && rc->toBooleanValue(worker)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	int IMPL::TriggerExit(int code) {
-		return TriggerExit_1(_host, "Exit", code);
+	int triggerExit(Worker* worker, int code) {
+		return TriggerExit(worker, "Exit", code);
 	}
 
-	int IMPL::TriggerBeforeExit(int code) {
-		return TriggerExit_1(_host, "BeforeExit", code);
+	int triggerBeforeExit(Worker* worker, int code) {
+		return TriggerExit(worker, "BeforeExit", code);
 	}
 
-	bool IMPL::TriggerUncaughtException(Local<JSValue> err) {
-		return TriggerException(_host, "UncaughtException", 1, &err);
+	bool triggerUncaughtException(Worker* worker, Local<JSValue> err) {
+		return TriggerException(worker, "UncaughtException", 1, &err);
 	}
 
-	bool IMPL::TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise) {
+	bool triggerUnhandledRejection(Worker* worker, Local<JSValue> reason, Local<JSValue> promise) {
 		Local<JSValue> argv[] = { reason, promise };
-		return TriggerException(_host, "UnhandledRejection", 2, argv);
+		return TriggerException(worker, "UnhandledRejection", 2, argv);
 	}
 
 } }

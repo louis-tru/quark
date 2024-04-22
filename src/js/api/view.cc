@@ -28,954 +28,783 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../_js.h"
-#include "./_view.h"
-#include "../str.h"
-#include "../../app.h"
-#include "../../action/action.h"
-#include "../../css/css.h"
-#include "../../views2/button.h"
+#include "./view.h"
 #include "../types.h"
+#include "../../ui/action/action.h"
+#include "../../ui/css/css.h"
+#include "../../ui/view/button.h"
 
-/**
- * @ns qk::js
- */
+namespace qk { namespace js {
 
-JS_BEGIN
+	template<class Event, class Self>
+	static void addEventListener_Static(
+		Wrap<Self>* wrap, const UIEventName* type, cString& func, int id, JsConverter *cData
+	)
+	{
+		auto f = [wrap, func, cData](typename Self::EventType& evt) {
+			auto worker = wrap->worker();
+			Js_Handle_Scope();
+			Js_Callback_Scope();
 
-// ================= View ================
+			// arg event
+			auto ev = WrapObject::wrap(static_cast<Event*>(&evt), Js_Typeid(Event));
+			if (cData) 
+				ev->setExternalData(cData); // set data cast func
+			Local<JSValue> args[2] = { ev->that(), worker->newInstance(true) };
 
-/**
- * @class WrapView
- */
-class WrapView: public WrapViewBase {
- public:
-	
-	/**
-	 * @constructor() 
-	 */
-	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
-		New<WrapView>(args, new View());
-	}
-	
-	/**
-	 * @func prepend(child) 
-	 * @arg child {View}
-	 */
-	static void prepend(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
-			JS_THROW_ERR(
-				"* @func prepend(child)\n"
-				"* @arg child {View}\n"
-			);
-		}
-		JS_SELF(View);
-		View* child = Wrap<View>::unpack(args[0].To<JSObject>())->self();
-		try { self->prepend(child); }
-		catch (cError& err) { JS_THROW_ERR(err); }
+			Qk_DEBUG("addEventListener_Static, %s, EventType: %s", *func, *evt.name());
+
+			// call js trigger func
+			Local<JSValue> r = wrap->call( worker->newInstance(func, true), 2, args );
+		};
+
+		Self* self = wrap->self();
+		self->add_event_listener(*type, f, id);
 	}
 
-	/**
-	 * @func append(child)
-	 * @arg child {View}
-	 */
-	static void append(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
-			JS_THROW_ERR(
-				"* @func append(child)\n"
-				"* @arg child {View}\n"
-			);
+	bool WrapView_Event::addEventListener(cString& name_, cString& func, int id)
+	{
+		const UIEventName *name;
+		if ( UIEventNames.get(name_, name) ) {
+			return false;
 		}
-		JS_SELF(View);
-		View* child = unpack<View>(args[0].To<JSObject>())->self();
-		try { self->append(child); }
-		catch (cError& err) { JS_THROW_ERR(err); }
+		auto wrap = static_cast<Wrap<View>*>(static_cast<WrapObject*>(this));
+		JsConverter* converter = nullptr;
+
+		switch ( kTypes_UIEventFlags & name->flag() ) {
+			case kError_UIEventFlags: converter = JsConverter::Instance<Error>(); break;
+			case kFloat32_UIEventFlags: converter = JsConverter::Instance<Float32>(); break;
+			case kUint64_UIEventFlags: converter = JsConverter::Instance<Uint64>(); break;
+		}
+
+		switch ( name->category() ) {
+			case kClick_UIEventCategory:
+				addEventListener_Static<ClickEvent>(wrap, name, func, id, converter); break;
+			case kKeyboard_UIEventCategory:
+				addEventListener_Static<KeyEvent>(wrap, name, func, id, converter); break;
+			case kMouse_UIEventCategory:
+			addEventListener_Static<MouseEvent>(wrap, name, func, id, converter); break;
+			case kTouch_UIEventCategory:
+				addEventListener_Static<TouchEvent>(wrap, name, func, id, converter); break;
+			case kHighlighted_UIEventCategory:
+				addEventListener_Static<HighlightedEvent>(wrap, name, func, id, converter); break;
+			case kAction_UIEventCategory:
+				addEventListener_Static<ActionEvent>(wrap, name, func, id, converter); break;
+			default: // DEFAULT
+				addEventListener_Static<UIEvent>(wrap, name, func, id, converter); break;
+		}
+		return true;
 	}
 
-	/**
-	 * @func appendText(text)
-	 * @arg text {String}
-	 * @ret {View}
-	 */
-	static void append_text(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
-				"* @func appendText(text)\n"
-				"* @arg text {String}\n"
-				"* @ret {View}\n"
-			);
+	bool WrapView_Event::removeEventListener(cString& name_, int id) {
+		const UIEventName *name;
+		if ( UIEventNames.get(name_, name) ) {
+			return false;
 		}
-		JS_SELF(View);
-		View* view = nullptr;
+		Qk_DEBUG("removeEventListener, name:%s, id:%d", *name_, id);
 		
-		JS_TRY_CATCH({
-			view = self->append_text( args[0]->ToString2Value(worker) );
-		}, Error);
+		auto wrap = reinterpret_cast<Wrap<View>*>(this);
+		wrap->self()->remove_event_listener(*name, id); // off event listener
+		return true;
+	}
+
+	class WrapView: public WrapView_Event {
+	public:
+
+		static void constructor(FunctionArgs args) {
+			// New<WrapView>(args, new View(nullptr));
+			// TODO ...
+		}
+
+		static void prepend(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 1 || ! worker->instanceOf(args[0], kView_ViewType)) {
+				Js_Throw(
+					"* @func prepend(child)\n"
+					"* @arg child {View}\n"
+				);
+			}
+			Js_Self(View);
+			auto child = wrap<View>(args[0])->self();
+
+			Js_Try_Catch({
+				self->prepend(child);
+			}, Error);
+		}
+
+		static void append(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 1 || ! worker->instanceOf(args[0], kView_ViewType)) {
+				Js_Throw(
+					"* @func append(child)\n"
+					"* @arg child {View}\n"
+				);
+			}
+			Js_Self(View);
+			auto child = wrap<View>(args[0])->self();
+			try { self->append(child); }
+			catch (cError& err) { Js_Throw(err); }
+		}
+
+		static void append_text(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.length() < 1 ) {
+				Js_Throw(
+					"* @func appendText(text)\n"
+					"* @arg text {String}\n"
+					"* @ret {View}\n"
+				);
+			}
+			Js_Self(View);
+			View* view = nullptr;
+
+			Js_Try_Catch({
+				// TODO ...
+				// view = self->appendText( args[0]->toString2Value(worker) );
+			}, Error);
+
+			if (view) {
+				auto w = wrap<View>(view, view->viewType());
+				Js_Return( w->that() );
+			} else {
+				Js_Return_Null();
+			}
+		}
+
+		static void before(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 1 || ! worker->instanceOf(args[0], kView_ViewType)) {
+				Js_Throw(
+					"* @func before(prev)\n"
+					"* @arg prev {View}\n"
+				);
+			}
+			Js_Self(View);
+			auto v = wrap<View>(args[0])->self();
+			Js_Try_Catch({
+				self->before(v);
+			}, Error);
+		}
+
+		static void after(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 1 || !worker->instanceOf(args[0], kView_ViewType)) {
+				Js_Throw(
+					"* @func after(next)\n"
+					"* @arg next {View}\n"
+				);
+			}
+			Js_Self(View);
+			auto v = wrap<View>(args[0])->self();
+			Js_Try_Catch({
+				self->after(v);
+			}, Error);
+		}
+
+		static void remove(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			self->remove();
+		}
+
+		static void remove_all_child(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			self->remove_all_child();
+		}
+
+		static void focus(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->focus() );
+		}
+
+		static void blur(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->blur() );
+		}
+
+		static void layout_offset(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Vec2 rev = self->layout_offset();
+			//Js_Return( worker->values()->New(rev) );
+			// TODO ...
+		}
+
+		static void layout_offset_from(FunctionArgs args) {
+			Js_Worker(args);
+			View* target = nullptr;
+			if ( args.length() > 0 && worker->instanceOf(args[0], kView_ViewType) ) {
+				target = wrap<View>(args[0])->self();
+			}
+			Js_Self(View);
+			// TODO ...
+			//Vec2 rev = self->layout_offset_from(target);
+			// Js_Return( worker->values()->New(rev) );
+		}
+
+		static void get_action(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			auto action = self->action();
+			if ( action ) {
+				Js_Return( wrap(action)->that() );
+			} else {
+				Js_Return_Null();
+			}
+		}
+
+		static void set_action(FunctionArgs args) {
+			Js_Worker(args);
+			Action* action = nullptr;
+
+			if ( args.length() > 0 ) {
+				if (worker->instanceOf<Action>(args[0])) {
+					action = wrap<Action>(args[0])->self();
+				} else if ( !args[0]->isNull(worker) ) {
+					Js_Throw(
+										"* @func setAction([action])\n"
+										"* @arg [action=null] {Action}\n"
+										);
+				}
+			}
+			Js_Self(View);
+			Js_Try_Catch({
+				self->set_action(action);
+			}, Error)
+		}
+
+		static void screen_rect(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			// Js_Return( worker->values()->New(self->screen_rect()) );
+			// TODO ...
+		}
+
+		static void final_matrix(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			// Js_Return( worker->values()->New(self->final_matrix()) );
+			// TODO ...
+		}
+
+		static void final_opacity(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			// Js_Return( self->final_opacity() );
+			// TODO ...
+		}
+
+		static void position(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			//Js_Return( worker->values()->New(self->position()) );
+			// TODO ...
+		}
+
+		static void overlap_test(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.length() < 1 ) {
+				Js_Throw(
+					"* @func overlapTest(point)\n"
+					"* @arg point {Vec2}\n"
+					"* @ret {bool}\n"
+				);
+			}
+			// js_parse_value(Vec2, args[0], "View.overlapTest( %s )");
+			// Js_Self(View);
+			// Js_Return( self->overlap_test(out) );
+			// TODO ...
+		}
+
+		static void add_class(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.length() < 1 || !args[0]->isString(worker) ) {
+				Js_Throw(
+					"* @func addClass(name)\n"
+					"* @arg name {String}\n"
+				);
+			}
+			Js_Self(View);
+			self->cssclass()->add( args[0]->toStringValue(worker) );
+			// TODO ...
+		}
+
+		static void remove_class(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.length() < 1 || ! args[0]->isString(worker) ) {
+				Js_Throw(
+					"* @func removeClass(name)\n"
+					"* @arg name {String}\n"
+				);
+			}
+			Js_Self(View);
+			//self->remove_class( args[0]->ToStringValue(worker) );
+			// TODO ...
+		}
+
+		static void toggle_class(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.length() < 1 || ! args[0]->isString(worker) ) {
+				Js_Throw(
+					"* @func toggleClass(name)\n"
+					"* @arg name {String}\n"
+				);
+			}
+			Js_Self(View);
+			// self->toggle_class( args[0]->toStringValue(worker) );
+			// TODO ...
+		}
 		
-		if (view) {
-			Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-			JS_RETURN( wrap->that() );
-		} else {
-			JS_RETURN( worker->NewNull() );
+		// ----------------------------- get --------------------------------
+
+		static void inner_text(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			// Js_Return( self->inner_text() );
+			// TODO ...
 		}
-	}
 
-	/**
-	 * @func before(prev)
-	 * @arg prev {View}
-	 */
-	static void before(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
-			JS_THROW_ERR(
-				"* @func before(prev)\n"
-				"* @arg prev {View}\n"
-			);
+		static void parent(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			auto view = self->parent();
+			if ( ! view) Js_Return_Null();
+			auto w = wrap<View>(view, view->viewType());
+			Js_Return( w->that() );
 		}
-		JS_SELF(View);
-		View* brother = Wrap<View>::unpack(args[0].To())->self();
-		try { self->before(brother); }
-		catch (cError& err) { JS_THROW_ERR(err); }
-	}
 
-	/**
-	 * @func after(next)
-	 * @arg next {View}
-	 */
-	static void after(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if (args.Length() < 1 || !worker->hasView(args[0])) {
-			JS_THROW_ERR(
-				"* @func after(next)\n"
-				"* @arg next {View}\n"
-			);
+		static void prev(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			auto view = self->prev();
+			if ( ! view) Js_Return_Null();
+			auto w = wrap<View>(view, view->viewType());
+			Js_Return( w->that() );
 		}
-		JS_SELF(View);
-		View* brother = Wrap<View>::unpack(args[0].To())->self();
-		try { self->after(brother); }
-		catch (cError& err) { JS_THROW_ERR(err); }
-	}
 
-	/**
-	 * @func remove()
-	 */
-	static void remove(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		self->remove();
-	}
-
-	/**
-	 * @func removeAllChild()
-	 */
-	static void remove_all_child(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		self->remove_all_child();
-	}
-
-	/**
-	 * @func focus()
-	 * @ret {bool}
-	 */
-	static void focus(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		JS_RETURN( self->focus() );
-	}
-
-	/**
-	 * @func blur()
-	 * @ret {bool}
-	 */
-	static void blur(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		JS_RETURN( self->blur() );
-	}
-
-	/**
-	 * @func layoutOffset()
-	 * @ret {Vec2}
-	 */
-	static void layout_offset(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		Vec2 rev = self->layout_offset();
-		JS_RETURN( worker->values()->New(rev) );
-	}
-	
-	/**
-	 * @func layoutOffsetFrom([upper])
-	 * @arg [upper=parent] {View}
-	 * @ret {Vec2}
-	 */
-	static void layout_offset_from(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		View* target = nullptr;
-		if ( args.Length() > 0 && worker->hasView(args[0]) ) {
-			target = Wrap<View>::unpack(args[0].To())->self();
+		static void next(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			auto view = self->next();
+			if ( ! view) Js_Return_Null();
+			auto w = wrap<View>(view, view->viewType());
+			Js_Return( w->that() );
 		}
-		JS_SELF(View);
-		Vec2 rev = self->layout_offset_from(target);
-		JS_RETURN( worker->values()->New(rev) );
-	}
 
-	/**
-	 * @func getAction()
-	 * @ret {Action}
-	 */
-	static void get_action(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		Action* action = self->action();
-		if ( action ) {
-			JS_RETURN( Wrap<Action>::pack(action)->that() );
-		} else {
-			JS_RETURN_NULL();
+		static void first(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			auto view = self->first();
+			if ( ! view) Js_Return_Null();
+			auto w = wrap<View>(view, view->viewType());
+			Js_Return( w->that() );
 		}
-	}
 
-	/**
-	 * @func setAction([action])
-	 * @arg [action=null] {Action}
-	 */
-	static void set_action(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		Action* action = nullptr;
-		
-		if ( args.Length() > 0 ) {
-			if (worker->hasInstance<Action>(args[0])) {
-				action = unpack<Action>(args[0].To())->self();
-			} else if ( !args[0]->IsNull(worker) ) {
-				JS_THROW_ERR(
-											"* @func setAction([action])\n"
-											"* @arg [action=null] {Action}\n"
-											);
+		static void last(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			auto view = self->last();
+			if ( ! view) Js_Return_Null();
+			auto w = wrap<View>(view, view->viewType());
+			Js_Return( w->that() );
+		}
+
+		static void x(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->x() );
+		}
+
+		static void y(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->y() );
+		}
+
+		static void scale_x(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->scale_x() );
+		}
+
+		static void scale_y(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->scale_y() );
+		}
+
+		static void rotate_z(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->rotate_z() );
+		}
+
+		static void skew_x(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->skew_x() );
+		}
+
+		static void skew_y(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->skew_y() );
+		}
+
+		static void opacity(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->opacity() );
+		}
+
+		static void visible(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->visible() );
+		}
+
+		static void final_visible(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->final_visible() );
+		}
+
+		static void draw_visible(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->draw_visible() );
+		}
+
+		static void translate(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( worker->values()->New(self->translate()) );
+		}
+
+		static void scale(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( worker->values()->New(self->scale()) );
+		}
+
+		static void skew(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( worker->values()->New(self->skew()) );
+		}
+
+		static void origin_x(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->origin_x() );
+		}
+
+		static void origin_y(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->origin_y() );
+		}
+
+		static void origin(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( worker->values()->New(self->origin()) );
+		}
+
+		static void matrix(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( worker->values()->New(self->matrix()) );
+		}
+
+		static void level(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->level() );
+		}
+
+		static void need_draw(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->need_draw() );
+		}
+
+		static void receive(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->receive() );
+		}
+
+		static void is_focus(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->is_focus() );
+		}
+
+		static void view_type(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Js_Return( self->view_type() );
+		}
+
+		static void classs(Local<JSString> name, PropertyArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			CSSViewClasss* classs = self->classs();
+			if ( classs ) {
+				// Local<JSValue> rv = worker->NewObject();
+				// rv.To<JSObject>()->Set(worker, worker->strs()->name(), worker->New(classs->name()) );
+				Js_Return( classs->name() );
+			} else {
+				// Js_Return_Null();
+				Js_Return( JSString::Empty(worker) );
 			}
 		}
 		
-		JS_SELF(View);
-		
-		JS_TRY_CATCH({
-			self->action(action);
-		}, Error)
-	}
+		// ------------------------------------ set ----------------------------------
 
-	/**
-	 * @func screenRect()
-	 * @ret {Rect}
-	 */
-	static void screen_rect(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->screen_rect()) );
-	}
-
-	/**
-	 * @func finalMatrix()
-	 * @ret {Mat}
-	 */
-	static void final_matrix(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->final_matrix()) );
-	}
-
-	/**
-	 * @func finalOpacity()
-	 * @ret {float}
-	 */
-	static void final_opacity(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		JS_RETURN( self->final_opacity() );
-	}
-
-	/**
-	 * @func position()
-	 * @ret {Vec2}
-	 */
-	static void position(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->position()) );
-	}
-
-	/**
-	 * @func overlapTest(point)
-	 * @arg point {Vec2}
-	 * @ret {bool}
-	 */
-	static void overlap_test(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
-				"* @func overlapTest(point)\n"
-				"* @arg point {Vec2}\n"
-				"* @ret {bool}\n"
-			);
+		static void set_x(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_x( value->ToNumberValue(worker) );
 		}
-		js_parse_value(Vec2, args[0], "View.overlapTest( %s )");
-		JS_SELF(View);
-		JS_RETURN( self->overlap_test(out) );
-	}
 
-	/**
-	 * @func addClass(name)
-	 * @arg name {String}
-	 */
-	static void add_class(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( args.Length() < 1 || !args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
-				"* @func addClass(name)\n"
-				"* @arg name {String}\n"
-			);
+		static void set_y(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_y( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->add_class( args[0]->ToStringValue(worker) );
-	}
 
-	/**
-	 * @func removeClass(name)
-	 * @arg name {String}
-	 */
-	static void remove_class(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( args.Length() < 1 || ! args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
-				"* @func removeClass(name)\n"
-				"* @arg name {String}\n"
-			);
+		static void set_scale_x(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_scale_x( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->remove_class( args[0]->ToStringValue(worker) );
-	}
 
-	/**
-	 * @func toggleClass(name)
-	 * @arg name {String}
-	 */
-	static void toggle_class(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( args.Length() < 1 || ! args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
-				"* @func toggleClass(name)\n"
-				"* @arg name {String}\n"
-			);
+		static void set_scale_y(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_scale_y( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->toggle_class( args[0]->ToStringValue(worker) );
-	}
-	
-	// ----------------------------- get --------------------------------
 
-	/**
-	 * @get innerText {String}
-	 */
-	static void inner_text(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->inner_text() );
-	}
-
-	/**
-	 * @get parent {View}
-	 */
-	static void parent(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		View* view = self->parent();
-		if ( ! view) JS_RETURN( worker->NewNull() );
-		Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-		JS_RETURN( wrap->that() );
-	}
-
-	/**
-	 * @get prev {View}
-	 */
-	static void prev(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		View* view = self->prev();
-		if ( ! view) JS_RETURN( worker->NewNull() );
-		Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-		JS_RETURN( wrap->that() );
-	}
-
-	/**
-	 * @get next {View}
-	 */
-	static void next(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		View* view = self->next();
-		if ( ! view) JS_RETURN( worker->NewNull() );
-		Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-		JS_RETURN( wrap->that() );
-	}
-
-	/**
-	 * @get first {View}
-	 */
-	static void first(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		View* view = self->first();
-		if ( ! view) JS_RETURN( worker->NewNull() );
-		Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-		JS_RETURN( wrap->that() );
-	}
-
-	/**
-	 * @get last {View}
-	 */
-	static void last(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		View* view = self->last();
-		if ( ! view) JS_RETURN( worker->NewNull() );
-		Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-		JS_RETURN( wrap->that() );
-	}
-
-	/**
-	 * @get x {float}
-	 */
-	static void x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->x() );
-	}
-
-	/**
-	 * @get y {float}
-	 */
-	static void y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->y() );
-	}
-
-	/**
-	 * @get scaleX {float}
-	 */
-	static void scale_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->scale_x() );
-	}
-
-	/**
-	 * @get scaleY {float}
-	 */
-	static void scale_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->scale_y() );
-	}
-
-	/**
-	 * @get rotateZ {float}
-	 */
-	static void rotate_z(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->rotate_z() );
-	}
-
-	/**
-	 * @get skewX {float}
-	 */
-	static void skew_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->skew_x() );
-	}
-
-	/**
-	 * @get skewY {float}
-	 */
-	static void skew_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->skew_y() );
-	}
-
-	/**
-	 * @get opacity {float}
-	 */
-	static void opacity(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->opacity() );
-	}
-
-	/**
-	 * @get visible {bool}
-	 */
-	static void visible(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->visible() );
-	}
-
-	/**
-	 * @get finalVisible {bool}
-	 */
-	static void final_visible(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->final_visible() );
-	}
-
-	/**
-	 * @get drawVisible {bool}
-	 */
-	static void draw_visible(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->draw_visible() );
-	}
-
-	/**
-	 * @get translate {Vec2}
-	 */
-	static void translate(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->translate()) );
-	}
-
-	/**
-	 * @get scale {Vec2}
-	 */
-	static void scale(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->scale()) );
-	}
-
-	/**
-	 * @get skew {Vec2}
-	 */
-	static void skew(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->skew()) );
-	}
-
-	/**
-	 * @get originX {float}
-	 */
-	static void origin_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->origin_x() );
-	}
-
-	/**
-	 * @get originY {float}
-	 */
-	static void origin_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->origin_y() );
-	}
-
-	/**
-	 * @get origin {Vec2}
-	 */
-	static void origin(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->origin()) );
-	}
-
-	/**
-	 * @get matrix {Mat}
-	 */
-	static void matrix(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		JS_RETURN( worker->values()->New(self->matrix()) );
-	}
-
-	/**
-	 * @get level {uint}
-	 */
-	static void level(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->level() );
-	}
-
-	/**
-	 * @get needDraw {bool}
-	 */
-	static void need_draw(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->need_draw() );
-	}
-
-	/**
-	 * @get receive {bool}
-	 */
-	static void receive(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->receive() );
-	}
-
-	/**
-	 * @get isFocus {bool}
-	 */
-	static void is_focus(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->is_focus() );
-	}
-
-	/**
-	 * @get viewType {uint}
-	 */
-	static void view_type(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->view_type() );
-	}
-
-	/**
-	 * @get classs {Object}
-	 */
-	static void classs(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		CSSViewClasss* classs = self->classs();
-		if ( classs ) {
-			// Local<JSValue> rv = worker->NewObject();
-			// rv.To<JSObject>()->Set(worker, worker->strs()->name(), worker->New(classs->name()) );
-			JS_RETURN( classs->name() );
-		} else {
-			// JS_RETURN_NULL();
-			JS_RETURN( JSString::Empty(worker) );
+		static void set_rotate_z(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_rotate_z( value->ToNumberValue(worker) );
 		}
-	}
-	
-	// ------------------------------------ set ----------------------------------
 
-	/**
-	 * @set x {float}
-	 */
-	static void set_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_skew_x(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_skew_x( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->set_x( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set y {float}
-	 */
-	static void set_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_skew_y(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_skew_y( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->set_y( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set scaleX {float}
-	 */
-	static void set_scale_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_opacity(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_opacity( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->set_scale_x( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set scaleY {float}
-	 */
-	static void set_scale_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_translate(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			js_parse_value(Vec2, value, "View.translate = %s");
+			Js_Self(View);
+			self->set_translate( out );
 		}
-		JS_SELF(View);
-		self->set_scale_y( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set rotateZ {float}
-	 */
-	static void set_rotate_z(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_scale(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			js_parse_value(Vec2, value, "View.scale = %s");
+			Js_Self(View);
+			self->set_scale( out );
 		}
-		JS_SELF(View);
-		self->set_rotate_z( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set skewX {float}
-	 */
-	static void set_skew_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_skew(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			js_parse_value(Vec2, value, "View.skew = %s");
+			Js_Self(View);
+			self->set_skew( out );
 		}
-		JS_SELF(View);
-		self->set_skew_x( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set skewY {float}
-	 */
-	static void set_skew_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_origin_x(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_origin_x( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->set_skew_y( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set opacity {float}
-	 */
-	static void set_opacity(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_origin_y(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( ! value->IsNumber(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_origin_y( value->ToNumberValue(worker) );
 		}
-		JS_SELF(View);
-		self->set_opacity( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set translate {Vec2}
-	 */
-	static void set_translate(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		js_parse_value(Vec2, value, "View.translate = %s");
-		JS_SELF(View);
-		self->set_translate( out );
-	}
-
-	/**
-	 * @set scale {Vec2}
-	 */
-	static void set_scale(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		js_parse_value(Vec2, value, "View.scale = %s");
-		JS_SELF(View);
-		self->set_scale( out );
-	}
-
-	/**
-	 * @set skew {Vec2}
-	 */
-	static void set_skew(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		js_parse_value(Vec2, value, "View.skew = %s");
-		JS_SELF(View);
-		self->set_skew( out );
-	}
-
-	/**
-	 * @set originX {float}
-	 */
-	static void set_origin_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_origin(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			js_parse_value(Vec2, value, "View.origin = %s");
+			Js_Self(View);
+			self->set_origin( out );
 		}
-		JS_SELF(View);
-		self->set_origin_x( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set originY {float}
-	 */
-	static void set_origin_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_visible(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			self->set_visible( value->ToBooleanValue(worker) );
 		}
-		JS_SELF(View);
-		self->set_origin_y( value->ToNumberValue(worker) );
-	}
 
-	/**
-	 * @set origin {Vec2}
-	 */
-	static void set_origin(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		js_parse_value(Vec2, value, "View.origin = %s");
-		JS_SELF(View);
-		self->set_origin( out );
-	}
-
-	/**
-	 * @set visible {bool}
-	 */
-	static void set_visible(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		self->set_visible( value->ToBooleanValue(worker) );
-	}
-
-	/**
-	 * @set needDraw {bool}
-	 */
-	static void set_need_draw(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		self->set_need_draw( value->ToBooleanValue(worker) );
-	}
-
-	/**
-	 * @set receive {bool}
-	 */
-	static void set_receive(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		self->set_receive( value->ToBooleanValue(worker) );
-	}
-
-	/**
-	 * @get isFocus {bool}
-	 */
-	static void set_is_focus(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(View);
-		self->set_is_focus( value->ToBooleanValue(worker) );
-	}
-
-	/**
-	 * @set class {String}
-	 */
-	static void set_class(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		if ( !value->IsString(worker) ) {
-			JS_THROW_ERR("Bad argument.");
+		static void set_need_draw(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			self->set_need_draw( value->ToBooleanValue(worker) );
 		}
-		JS_SELF(View);
-		self->set_class( value->ToStringValue(worker) );
-	}
-	
-	/**
-	 * @func firstButton
-	 */
-	static void first_button(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		Button* btn = self->first_button();
-		if ( ! btn) JS_RETURN_NULL();
-		Wrap<Button>* wrap = Wrap<Button>::pack(btn, btn->view_type());
-		JS_RETURN( wrap->that() );
-	}
-	
-	/**
-	 * @func hasChild(view)
-	 */
-	static void has_child(FunctionCall args) {
-		JS_WORKER(args);
-		if ( args.Length() == 0 ) {
-			JS_THROW_ERR("Bad argument.");
+
+		static void set_receive(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			self->set_receive( value->ToBooleanValue(worker) );
 		}
-		if ( !worker->hasInstance(args[0], View::VIEW) ) {
-			JS_RETURN_NULL();
+
+		static void set_is_focus(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			self->set_is_focus( value->ToBooleanValue(worker) );
 		}
-		JS_SELF(View);
-		View* view = unpack<View>(args[0].To())->self();
-		JS_RETURN( self->has_child(view) );
+
+		static void set_class(Local<JSString> name, Local<JSValue> value, PropertySetArgs args) {
+			Js_Worker(args);
+			if ( !value->IsString(worker) ) {
+				Js_Throw("Bad argument.");
+			}
+			Js_Self(View);
+			self->set_class( value->ToStringValue(worker) );
+		}
+
+		static void first_button(FunctionArgs args) {
+			Js_Worker(args);
+			Js_Self(View);
+			Button* btn = self->first_button();
+			if ( ! btn) Js_Return_Null();
+			Wrap<Button>* wrap = Wrap<Button>::pack(btn, btn->view_type());
+			Js_Return( wrap->that() );
+		}
+
+		static void has_child(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.Length() == 0 ) {
+				Js_Throw("Bad argument.");
+			}
+			if ( !worker->hasInstance(args[0], View::VIEW) ) {
+				Js_Return_Null();
+			}
+			Js_Self(View);
+			View* view = unpack<View>(args[0].To())->self();
+			Js_Return( self->has_child(view) );
+		}
+
+		static void binding(Local<JSObject> exports, Worker* worker) {
+		//  #define SET_FIELD(enum, class, name) Js_Set_Property(enum, View::enum);
+		// 	Qk_EACH_VIEWS(SET_FIELD)
+		//  #undef SET_FIELD
+
+			Js_Define_Class_From(View, kView_ViewType, Local<JSClass>(), constructor, {
+				Js_Set_Class_Method(prepend, prepend); // method
+				Js_Set_Class_Method(append, append);
+				Js_Set_Class_Method(appendText, append_text);
+				Js_Set_Class_Method(before, before);
+				Js_Set_Class_Method(after, after);
+				Js_Set_Class_Method(remove, remove);
+				Js_Set_Class_Method(removeAllChild, remove_all_child);
+				Js_Set_Class_Method(focus, focus);
+				Js_Set_Class_Method(blur, blur);
+				Js_Set_Class_Method(layoutOffset, layout_offset);
+				Js_Set_Class_Method(layoutOffsetFrom, layout_offset_from);
+				Js_Set_Class_Method(getAction, get_action);
+				Js_Set_Class_Method(_setAction, set_action);
+				Js_Set_Class_Method(screenRect, screen_rect);
+				Js_Set_Class_Method(finalMatrix, final_matrix);
+				Js_Set_Class_Method(finalOpacity, final_opacity);
+				Js_Set_Class_Method(position, position);
+				Js_Set_Class_Method(overlapTest, overlap_test);
+				Js_Set_Class_Method(addClass, add_class);
+				Js_Set_Class_Method(removeClass, remove_class);
+				Js_Set_Class_Method(toggleClass, toggle_class);
+				Js_Set_Class_Method(firstButton, first_button);
+				Js_Set_Class_Method(hasChild, has_child);
+				Js_Set_Class_Accessor(innerText, inner_text); // property
+				Js_Set_Class_Accessor(parent, parent);
+				Js_Set_Class_Accessor(prev, prev);
+				Js_Set_Class_Accessor(next, next);
+				Js_Set_Class_Accessor(first, first);
+				Js_Set_Class_Accessor(last, last);
+				Js_Set_Class_Accessor(x, x, set_x);
+				Js_Set_Class_Accessor(y, y, set_y);
+				Js_Set_Class_Accessor(scaleX, scale_x, set_scale_x);
+				Js_Set_Class_Accessor(scaleY, scale_y, set_scale_y);
+				Js_Set_Class_Accessor(rotateZ, rotate_z, set_rotate_z);
+				Js_Set_Class_Accessor(skewX, skew_x, set_skew_x);
+				Js_Set_Class_Accessor(skewY, skew_y, set_skew_y);
+				Js_Set_Class_Accessor(opacity, opacity, set_opacity);
+				Js_Set_Class_Accessor(visible, visible, set_visible);
+				Js_Set_Class_Accessor(finalVisible, final_visible);
+				Js_Set_Class_Accessor(drawVisible, draw_visible);
+				Js_Set_Class_Accessor(translate, translate, set_translate);
+				Js_Set_Class_Accessor(scale, scale, set_scale);
+				Js_Set_Class_Accessor(skew, skew, set_skew);
+				Js_Set_Class_Accessor(originX, origin_x, set_origin_x);
+				Js_Set_Class_Accessor(originY, origin_y, set_origin_y);
+				Js_Set_Class_Accessor(origin, origin, set_origin);
+				Js_Set_Class_Accessor(matrix, matrix);
+				Js_Set_Class_Accessor(level, level);
+				Js_Set_Class_Accessor(needDraw, need_draw, set_need_draw);
+				Js_Set_Class_Accessor(receive, receive, set_receive);
+				Js_Set_Class_Accessor(isFocus, is_focus, set_is_focus);
+				Js_Set_Class_Accessor(viewType, view_type);
+				Js_Set_Class_Accessor(class, classs, set_class);
+			});
+			cls->exports("View", exports);
+		}
+	};
+
+	void binding_view(Local<JSObject> exports, Worker* worker) {
+		WrapView::binding(exports, worker);
 	}
-	
- public:
-	static void binding(Local<JSObject> exports, Worker* worker) {
-	//  #define SET_FIELD(enum, class, name) JS_SET_PROPERTY(enum, View::enum);
-	// 	Qk_EACH_VIEWS(SET_FIELD)
-	//  #undef SET_FIELD
 
-		JS_DEFINE_CLASS(View, constructor, {
-			// method
-			JS_SET_CLASS_METHOD(prepend, prepend);
-			JS_SET_CLASS_METHOD(append, append);
-			JS_SET_CLASS_METHOD(appendText, append_text);
-			JS_SET_CLASS_METHOD(before, before);
-			JS_SET_CLASS_METHOD(after, after);
-			JS_SET_CLASS_METHOD(remove, remove);
-			JS_SET_CLASS_METHOD(removeAllChild, remove_all_child);
-			JS_SET_CLASS_METHOD(focus, focus);
-			JS_SET_CLASS_METHOD(blur, blur);
-			JS_SET_CLASS_METHOD(layoutOffset, layout_offset);
-			JS_SET_CLASS_METHOD(layoutOffsetFrom, layout_offset_from);
-			JS_SET_CLASS_METHOD(getAction, get_action);
-			JS_SET_CLASS_METHOD(_setAction, set_action);
-			JS_SET_CLASS_METHOD(screenRect, screen_rect);
-			JS_SET_CLASS_METHOD(finalMatrix, final_matrix);
-			JS_SET_CLASS_METHOD(finalOpacity, final_opacity);
-			JS_SET_CLASS_METHOD(position, position);
-			JS_SET_CLASS_METHOD(overlapTest, overlap_test);
-			JS_SET_CLASS_METHOD(addClass, add_class);
-			JS_SET_CLASS_METHOD(removeClass, remove_class);
-			JS_SET_CLASS_METHOD(toggleClass, toggle_class);
-			JS_SET_CLASS_METHOD(firstButton, first_button);
-			JS_SET_CLASS_METHOD(hasChild, has_child);
-			// property
-			JS_SET_CLASS_ACCESSOR(innerText, inner_text);
-			JS_SET_CLASS_ACCESSOR(parent, parent);
-			JS_SET_CLASS_ACCESSOR(prev, prev);
-			JS_SET_CLASS_ACCESSOR(next, next);
-			JS_SET_CLASS_ACCESSOR(first, first);
-			JS_SET_CLASS_ACCESSOR(last, last);
-			JS_SET_CLASS_ACCESSOR(x, x, set_x);
-			JS_SET_CLASS_ACCESSOR(y, y, set_y);
-			JS_SET_CLASS_ACCESSOR(scaleX, scale_x, set_scale_x);
-			JS_SET_CLASS_ACCESSOR(scaleY, scale_y, set_scale_y);
-			JS_SET_CLASS_ACCESSOR(rotateZ, rotate_z, set_rotate_z);
-			JS_SET_CLASS_ACCESSOR(skewX, skew_x, set_skew_x);
-			JS_SET_CLASS_ACCESSOR(skewY, skew_y, set_skew_y);
-			JS_SET_CLASS_ACCESSOR(opacity, opacity, set_opacity);
-			JS_SET_CLASS_ACCESSOR(visible, visible, set_visible);
-			JS_SET_CLASS_ACCESSOR(finalVisible, final_visible);
-			JS_SET_CLASS_ACCESSOR(drawVisible, draw_visible);
-			JS_SET_CLASS_ACCESSOR(translate, translate, set_translate);
-			JS_SET_CLASS_ACCESSOR(scale, scale, set_scale);
-			JS_SET_CLASS_ACCESSOR(skew, skew, set_skew);
-			JS_SET_CLASS_ACCESSOR(originX, origin_x, set_origin_x);
-			JS_SET_CLASS_ACCESSOR(originY, origin_y, set_origin_y);
-			JS_SET_CLASS_ACCESSOR(origin, origin, set_origin);
-			JS_SET_CLASS_ACCESSOR(matrix, matrix);
-			JS_SET_CLASS_ACCESSOR(level, level);
-			JS_SET_CLASS_ACCESSOR(needDraw, need_draw, set_need_draw);
-			JS_SET_CLASS_ACCESSOR(receive, receive, set_receive);
-			JS_SET_CLASS_ACCESSOR(isFocus, is_focus, set_is_focus);
-			JS_SET_CLASS_ACCESSOR(viewType, view_type);
-			JS_SET_CLASS_ACCESSOR(class, classs, set_class);
-		}, nullptr);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(View), View::VIEW);
-	}
-};
-
-void binding_view(Local<JSObject> exports, Worker* worker) {
-	WrapView::binding(exports, worker);
-}
-
-JS_END
+} }

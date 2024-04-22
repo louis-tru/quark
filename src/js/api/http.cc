@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 static cString const_url("url");
 static cString const_method("method");
@@ -216,17 +216,17 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg method {HttpMethod}
 	 */
 	static void set_method(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || !args[0]->IsUint32(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setMethod(method)\n"
 				"* @arg method {HttpMethod}\n"
 			);
 		}
 		uint32 arg = args[0]->ToUint32Value(worker);
 		HttpMethod method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->set_method(method); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->set_method(method); }, Error);
 	}
 	
 	/**
@@ -234,16 +234,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg url {String}
 	 */
 	static void set_url(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setUrl(url)\n"
 				"* @arg url {String}\n"
 			);
 		}
 		String arg = args[0]->ToStringValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->set_url(arg); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->set_url(arg); }, Error);
 	}
 	
 	/**
@@ -251,16 +251,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg path {String}
 	 */
 	static void set_save_path(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setSavePath(path)\n"
 				"* @arg path {String}\n"
 			);
 		}
 		String arg = args[0]->ToStringValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->set_save_path(arg); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->set_save_path(arg); }, Error);
 	}
 	
 	/**
@@ -268,16 +268,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg username {String}
 	 */
 	static void set_username(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setUsername(username)\n"
 				"* @arg username {String}\n"
 			);
 		}
 		String arg = args[0]->ToStringValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->set_username(arg); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->set_username(arg); }, Error);
 	}
 	
 	/**
@@ -285,16 +285,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg password {String}
 	 */
 	static void set_password(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setPassword(password)\n"
 				"* @arg password {String}\n"
 			);
 		}
 		String arg = args[0]->ToStringValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->set_password(arg); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->set_password(arg); }, Error);
 	}
 	
 	/**
@@ -302,16 +302,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg disable {bool}
 	 */
 	static void disable_cache(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func disableCache(disable)\n"
 				"* @arg disable {bool}\n"
 			);
 		}
 		bool arg = args[0]->ToBooleanValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->disable_cache(arg); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->disable_cache(arg); }, Error);
 	}
 	
 	/**
@@ -319,16 +319,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg disable {bool}
 	 */
 	static void disable_cookie(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func disableCookie(disable)\n"
 				"* @arg disable {bool}\n"
 			);
 		}
 		bool arg = args[0]->ToBooleanValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->disable_cookie(arg); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->disable_cookie(arg); }, Error);
 	}
 	
 	/**
@@ -336,16 +336,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg disable {bool}
 	 */
 	static void disable_send_cookie(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func disableSendCookie(disable)\n"
 				"* @arg disable {bool}\n"
 			);
 		}
 		uint32 arg = args[0]->ToBooleanValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->disable_send_cookie(arg); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->disable_send_cookie(arg); }, Error);
 	}
 	
 	/**
@@ -353,15 +353,15 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg disable {bool}
 	 */
 	static void disable_ssl_verify(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 1) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func disableSslVerify(disable)\n"
 				"* @arg disable {bool}\n"
 			);
 		}
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({
 			self->disable_ssl_verify(args[0]->ToBooleanValue(worker));
 		}, Error);
 	}
@@ -372,16 +372,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg value {String}
 	 */
 	static void set_request_header(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setRequestHeader(header_name, value)\n"
 				"* @arg header_name {String} ascii string\n"
 				"* @arg value {String}\n"
 			);
 		}
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({
 			self->set_request_header( args[0]->ToStringValue(worker,1), args[1]->ToStringValue(worker));
 		}, Error);
 	}
@@ -392,9 +392,9 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg value {String}
 	 */
 	static void set_form(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setForm(form_name, value)\n"
 				"* @arg form_name {String}\n"
 				"* @arg value {String}\n"
@@ -402,8 +402,8 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		}
 		String form_name = args[0]->ToStringValue(worker);
 		String value = args[1]->ToStringValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({
 			self->set_form(form_name, value);
 		}, Error);
 	}
@@ -414,9 +414,9 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg local_path {String}
 	 */
 	static void set_upload_file(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setUploadFile(form_name, local_path)\n"
 				"* @arg form_name {String}\n"
 				"* @arg local_path {String}\n"
@@ -424,8 +424,8 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		}
 		String form_name = args[0]->ToStringValue(worker);
 		String local_path = args[1]->ToStringValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({
 			self->set_upload_file(form_name, local_path);
 		}, Error);
 	}
@@ -434,18 +434,18 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @func clear_request_header()
 	 */
 	static void clear_request_header(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->clear_request_header(); }, Error);
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->clear_request_header(); }, Error);
 	}
 	
 	/**
 	 * @func clear_form_data()
 	 */
 	static void clear_form_data(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->clear_form_data(); }, Error);
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->clear_form_data(); }, Error);
 	}
 	
 	/**
@@ -454,20 +454,20 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @ret {String}
 	 */
 	static void get_response_header(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func getResponseHeader(header_name)\n"
 				"* @arg header_name {String}\n"
 				"* @ret {String}\n"
 			);
 		}
-		JS_SELF(HttpClientRequest);
+		Js_Self(HttpClientRequest);
 		String rv;
-		JS_TRY_CATCH({
+		Js_Try_Catch({
 			rv = self->get_response_header(args[0]->ToStringValue(worker,1));
 		}, Error);
-		JS_RETURN( rv );
+		Js_Return( rv );
 	}
 	
 	/**
@@ -475,11 +475,11 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @ret {Object}
 	 */
 	static void get_all_response_headers(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
 		const Map<String, String>* rv;
-		JS_TRY_CATCH({ rv = &self->get_all_response_headers(); }, Error);
-		JS_RETURN( *rv );
+		Js_Try_Catch({ rv = &self->get_all_response_headers(); }, Error);
+		Js_Return( *rv );
 	}
 	
 	/**
@@ -487,16 +487,16 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg keep_alive {bool}
 	 */
 	static void set_keep_alive(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setKeepAlive(keep_alive)\n"
 				"* @arg keep_alive {bool}\n"
 			);
 		}
 		bool enable = args[0]->ToBooleanValue(worker);
-		JS_SELF(HttpClientRequest);
-		JS_TRY_CATCH({ self->set_keep_alive(enable); }, Error);
+		Js_Self(HttpClientRequest);
+		Js_Try_Catch({ self->set_keep_alive(enable); }, Error);
 	}
 
 	/**
@@ -504,87 +504,87 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg time {uint} ms
 	 */
 	static void set_timeout(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || !args[0]->IsNumber(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setTimeout(time)\n"
 				"* @arg time {uint} ms\n"
 			);
 		}
-		JS_SELF(HttpClientRequest);
+		Js_Self(HttpClientRequest);
 		
 		uint64_t time = args[0]->ToUint32Value(worker) * 1000;
 		
-		JS_TRY_CATCH({ self->set_timeout(time); }, Error);
+		Js_Try_Catch({ self->set_timeout(time); }, Error);
 	}
 
 	/**
 	 * @get upload_total {uint}
 	 */
 	static void upload_total(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->upload_total() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->upload_total() );
 	}
 
 	/**
 	 * @get upload_size {uint}
 	 */
 	static void upload_size(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->upload_size() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->upload_size() );
 	}
 
 	/**
 	 * @get download_total {uint}
 	 */
 	static void download_total(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->download_total() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->download_total() );
 	}
 
 	/**
 	 * @get download_size {uint}
 	 */
 	static void download_size(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->download_size() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->download_size() );
 	}
 
 	/**
 	 * @get download_size {HttpReadyState}
 	 */
 	static void ready_state(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->ready_state() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->ready_state() );
 	}
 
 	/**
 	 * @get status_code {int}
 	 */
 	static void status_code(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->status_code() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->status_code() );
 	}
 
 	static void http_response_version(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->http_response_version() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->http_response_version() );
 	}
 
 	/**
 	 * @get url {String}
 	 */
 	static void url(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
-		JS_RETURN( self->url() );
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
+		Js_Return( self->url() );
 	}
 
 	/**
@@ -592,22 +592,22 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @arg [data] {String|ArrayBuffer|Buffer}
 	 */
 	static void send(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(HttpClientRequest);
+		Js_Worker(args);
+		Js_Self(HttpClientRequest);
 		if (args.Length() == 0) {
-			JS_TRY_CATCH({ self->send(); }, Error);
+			Js_Try_Catch({ self->send(); }, Error);
 		} else {
 			if (args[0]->IsString(worker)) {
-				JS_TRY_CATCH({
+				Js_Try_Catch({
 					self->send( args[0]->ToStringValue(worker).collapse_buffer() );
 				}, Error);
 			}
 			else if ( args[0]->IsBuffer() ) {
 				WeakBuffer buff = args[0]->AsBuffer(worker);
-				JS_TRY_CATCH({ self->send(buff.copy()); }, Error);
+				Js_Try_Catch({ self->send(buff.copy()); }, Error);
 			}
 			else {
-				JS_TRY_CATCH({ self->send(); }, Error );
+				Js_Try_Catch({ self->send(); }, Error );
 			}
 		}
 	}
@@ -616,7 +616,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @func pause()
 	 */
 	static void pause(FunctionCall args) {
-		JS_SELF(HttpClientRequest);
+		Js_Self(HttpClientRequest);
 		self->pause();
 	}
 
@@ -624,7 +624,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @func resume()
 	 */
 	static void resume(FunctionCall args) {
-		JS_SELF(HttpClientRequest);
+		Js_Self(HttpClientRequest);
 		self->resume();
 	}
 
@@ -632,7 +632,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @func abort()
 	 */
 	static void abort(FunctionCall args) {
-		JS_SELF(HttpClientRequest);
+		Js_Self(HttpClientRequest);
 		self->abort();
 	}
 
@@ -640,37 +640,37 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	 * @func binding
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(NativeHttpClientRequest, constructor, {
-			JS_SET_CLASS_METHOD(setMethod, set_method);
-			JS_SET_CLASS_METHOD(setUrl, set_url);
-			JS_SET_CLASS_METHOD(setSavePath, set_save_path);
-			JS_SET_CLASS_METHOD(setUsername, set_username);
-			JS_SET_CLASS_METHOD(setPassword, set_password);
-			JS_SET_CLASS_METHOD(disableCache, disable_cache);
-			JS_SET_CLASS_METHOD(disableCookie, disable_cookie);
-			JS_SET_CLASS_METHOD(disableSendCookie, disable_send_cookie);
-			JS_SET_CLASS_METHOD(disableSslVerify, disable_ssl_verify);
-			JS_SET_CLASS_METHOD(setKeepAlive, set_keep_alive);
-			JS_SET_CLASS_METHOD(setTimeout, set_timeout);
-			JS_SET_CLASS_METHOD(setRequestHeader, set_request_header);
-			JS_SET_CLASS_METHOD(setForm, set_form);
-			JS_SET_CLASS_METHOD(setUploadFile, set_upload_file);
-			JS_SET_CLASS_METHOD(clearRequestHeader, clear_request_header);
-			JS_SET_CLASS_METHOD(clearFormData, clear_form_data);
-			JS_SET_CLASS_METHOD(getResponseHeader, get_response_header);
-			JS_SET_CLASS_METHOD(getAllResponseHeaders, get_all_response_headers);
-			JS_SET_CLASS_ACCESSOR(uploadTotal, upload_total);
-			JS_SET_CLASS_ACCESSOR(uploadSize, upload_size);
-			JS_SET_CLASS_ACCESSOR(downloadTotal, download_total);
-			JS_SET_CLASS_ACCESSOR(downloadSize, download_size);
-			JS_SET_CLASS_ACCESSOR(readyState, ready_state);
-			JS_SET_CLASS_ACCESSOR(statusCode, status_code);
-			JS_SET_CLASS_ACCESSOR(url, url);
-			JS_SET_CLASS_ACCESSOR(httpResponseVersion, http_response_version);
-			JS_SET_CLASS_METHOD(send, send);
-			JS_SET_CLASS_METHOD(pause, pause);
-			JS_SET_CLASS_METHOD(resume, resume);
-			JS_SET_CLASS_METHOD(abort, abort);
+		Js_Define_Class(NativeHttpClientRequest, constructor, {
+			Js_Set_Class_Method(setMethod, set_method);
+			Js_Set_Class_Method(setUrl, set_url);
+			Js_Set_Class_Method(setSavePath, set_save_path);
+			Js_Set_Class_Method(setUsername, set_username);
+			Js_Set_Class_Method(setPassword, set_password);
+			Js_Set_Class_Method(disableCache, disable_cache);
+			Js_Set_Class_Method(disableCookie, disable_cookie);
+			Js_Set_Class_Method(disableSendCookie, disable_send_cookie);
+			Js_Set_Class_Method(disableSslVerify, disable_ssl_verify);
+			Js_Set_Class_Method(setKeepAlive, set_keep_alive);
+			Js_Set_Class_Method(setTimeout, set_timeout);
+			Js_Set_Class_Method(setRequestHeader, set_request_header);
+			Js_Set_Class_Method(setForm, set_form);
+			Js_Set_Class_Method(setUploadFile, set_upload_file);
+			Js_Set_Class_Method(clearRequestHeader, clear_request_header);
+			Js_Set_Class_Method(clearFormData, clear_form_data);
+			Js_Set_Class_Method(getResponseHeader, get_response_header);
+			Js_Set_Class_Method(getAllResponseHeaders, get_all_response_headers);
+			Js_Set_Class_Accessor(uploadTotal, upload_total);
+			Js_Set_Class_Accessor(uploadSize, upload_size);
+			Js_Set_Class_Accessor(downloadTotal, download_total);
+			Js_Set_Class_Accessor(downloadSize, download_size);
+			Js_Set_Class_Accessor(readyState, ready_state);
+			Js_Set_Class_Accessor(statusCode, status_code);
+			Js_Set_Class_Accessor(url, url);
+			Js_Set_Class_Accessor(httpResponseVersion, http_response_version);
+			Js_Set_Class_Method(send, send);
+			Js_Set_Class_Method(pause, pause);
+			Js_Set_Class_Method(resume, resume);
+			Js_Set_Class_Method(abort, abort);
 		}, nullptr);
 	}
 };
@@ -683,7 +683,7 @@ class NativeHttp {
 	typedef http_RequestOptions RequestOptions;
 
 	static bool get_options(Worker* worker, Local<JSValue> arg, RequestOptions& opt) {
-		JS_HANDLE_SCOPE();
+		Js_Handle_Scope();
 		Local<JSObject> obj = arg.To<JSObject>();
 		
 		opt = {
@@ -757,11 +757,11 @@ class NativeHttp {
 	}
 
 	template<bool stream> static void request(FunctionCall args, cChar* argument) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || ! args[0]->IsObject(worker)) {
-			JS_THROW_ERR(argument);
+			Js_Throw(argument);
 		}
-		JS_HANDLE_SCOPE();
+		Js_Handle_Scope();
 		uint32_t rev = 0;
 		RequestOptions opt;
 		if (!get_options(worker, args[0], opt))
@@ -774,7 +774,7 @@ class NativeHttp {
 										get_callback_for_response_data_http_error(worker, args[1]);
 		}
 
-		JS_TRY_CATCH({
+		Js_Try_Catch({
 			if ( stream ) {
 				rev = http_request_stream(opt, cb);
 			} else {
@@ -782,7 +782,7 @@ class NativeHttp {
 			}
 		}, HttpError);
 		
-		JS_RETURN( rev );
+		Js_Return( rev );
 	}
 	
 	/**
@@ -821,9 +821,9 @@ class NativeHttp {
 	 * @ret {Buffer}
 	 */
 	static void request_sync(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || !args[0]->IsObject(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func requestSync(url)\n"
 				"* @arg url {String}\n"
 				"* @ret {Buffer}\n"
@@ -834,8 +834,8 @@ class NativeHttp {
 		if (!get_options(worker, args[0], opt))
 			return;
 		
-		JS_TRY_CATCH({
-			JS_RETURN( http_request_sync(opt) );
+		Js_Try_Catch({
+			Js_Return( http_request_sync(opt) );
 		}, HttpError);
 	}
 
@@ -844,9 +844,9 @@ class NativeHttp {
 	 * @arg id {uint} abort id
 	 */
 	static void abort(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() == 0 || !args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func abort(id)\n"
 				"* @arg id {uint} abort id\n"
 			);
@@ -859,8 +859,8 @@ class NativeHttp {
 	 * @ret {String}
 	 */
 	static void user_agent(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( http_user_agent() );
+		Js_Worker(args);
+		Js_Return( http_user_agent() );
 	}
 
 	/**
@@ -868,9 +868,9 @@ class NativeHttp {
 	 * @arg user_agent {String}
 	 */
 	static void set_user_agent(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || ! args[0]->IsString(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		http_set_user_agent( args[0]->ToStringValue(worker) );
 	}
@@ -880,8 +880,8 @@ class NativeHttp {
 	 * @ret {String}
 	 */
 	static void cache_path(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( http_cache_path() );
+		Js_Worker(args);
+		Js_Return( http_cache_path() );
 	}
 
 	/**
@@ -889,9 +889,9 @@ class NativeHttp {
 	 * @arg path {String}
 	 */
 	static void set_cache_path(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func setCachePath(path)\n"
 				"* @arg path {String}\n"
 			);
@@ -918,8 +918,8 @@ class NativeHttp {
 	//  * @ret {String} return cacert file path
 	//  */
 	// static void ssl_cacert_file(FunctionCall args) {
-	// 	JS_WORKER(args);
-	// 	JS_RETURN( http_ssl_cacert_file() );
+	// 	Js_Worker(args);
+	// 	Js_Return( http_ssl_cacert_file() );
 	// }
 	// 
 	//  /**
@@ -927,9 +927,9 @@ class NativeHttp {
 	//   * @arg path {String}
 	//   */
 	//  static void set_ssl_cacert_file(FunctionCall args) {
-	//    JS_WORKER(args);
+	//    Js_Worker(args);
 	//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
-	//      JS_THROW_ERR(
+	//      Js_Throw(
 	//        "* @func sslCacertFile(path)\n"
 	//        "* @arg path {String}\n"
 	//      );
@@ -942,9 +942,9 @@ class NativeHttp {
 	//   * @arg path {String}
 	//   */
 	//  static void set_ssl_client_key_file(FunctionCall args) {
-	//    JS_WORKER(args);
+	//    Js_Worker(args);
 	//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
-	//      JS_THROW_ERR(
+	//      Js_Throw(
 	//        "* @func setSslClientKeyfile(path)\n"
 	//        "* @arg path {String}\n"
 	//      );
@@ -957,9 +957,9 @@ class NativeHttp {
 	//   * @arg password {String}
 	//   */
 	//  static void set_ssl_client_keypasswd(FunctionCall args) {
-	//    JS_WORKER(args);
+	//    Js_Worker(args);
 	//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
-	//      JS_THROW_ERR(
+	//      Js_Throw(
 	//        "* @func setSslClientKeypasswd(password)\n"
 	//        "* @arg password {String}\n"
 	//      );
@@ -971,23 +971,23 @@ class NativeHttp {
 		worker->bindingModule("_buffer");
 		WrapNativeHttpClientRequest::binding(exports, worker);
 		// FUNC
-		JS_SET_METHOD(request, request);
-		JS_SET_METHOD(requestStream, request_stream);
-		JS_SET_METHOD(requestSync, request_sync);
-		JS_SET_METHOD(abort, abort);
-		JS_SET_METHOD(userAgent, user_agent);
-		JS_SET_METHOD(setUserAgent, set_user_agent);
-		JS_SET_METHOD(cachePath, cache_path);
-		JS_SET_METHOD(setCachePath, set_cache_path);
-		JS_SET_METHOD(clearCache, clear_cache);
-		JS_SET_METHOD(clearCookie, clear_cookie);
+		Js_Set_Method(request, request);
+		Js_Set_Method(requestStream, request_stream);
+		Js_Set_Method(requestSync, request_sync);
+		Js_Set_Method(abort, abort);
+		Js_Set_Method(userAgent, user_agent);
+		Js_Set_Method(setUserAgent, set_user_agent);
+		Js_Set_Method(cachePath, cache_path);
+		Js_Set_Method(setCachePath, set_cache_path);
+		Js_Set_Method(clearCache, clear_cache);
+		Js_Set_Method(clearCookie, clear_cookie);
 
-		//JS_SET_METHOD(sslCacertFile, ssl_cacert_file);
-		//JS_SET_METHOD(setSslCacertFile, set_ssl_cacert_file);
-		//JS_SET_METHOD(setSslClientKeyFile, set_ssl_client_key_file);
-		//JS_SET_METHOD(setSslClientKeypasswd, set_ssl_client_keypasswd);
+		//Js_Set_Method(sslCacertFile, ssl_cacert_file);
+		//Js_Set_Method(setSslCacertFile, set_ssl_cacert_file);
+		//Js_Set_Method(setSslClientKeyFile, set_ssl_client_key_file);
+		//Js_Set_Method(setSslClientKeypasswd, set_ssl_client_keypasswd);
 	}
 };
 
-JS_REG_MODULE(_http, NativeHttp);
-JS_END
+Js_REG_MODULE(_http, NativeHttp);
+Js_END

@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapSprite
@@ -45,51 +45,51 @@ class WrapSprite: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapSprite>(args, new Sprite());
 	}
 	// get
 	static void src(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( self->src() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( self->src() );
 	}
 	static void texture(Local<JSString> name, PropertyCall args) {
 		// TODO ?
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( worker->NewNull() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( worker->NewNull() );
 	}
 	static void start_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( self->start_x() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( self->start_x() );
 	}
 	static void start_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( self->start_y() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( self->start_y() );
 	}
 	static void width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( self->width() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( self->width() );
 	}
 	static void height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( self->height() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( self->height() );
 	}
 	static void start(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( worker->values()->New(self->start()) );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( worker->values()->New(self->start()) );
 	}
 	// set
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Sprite);
+		Js_Worker(args); UILock lock;
+		Js_Self(Sprite);
 		self->set_src(value->ToStringValue(worker));
 	}
 	static void set_texture(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -100,11 +100,11 @@ class WrapSprite: public WrapViewBase {
 	 * @set start_x {float}
 	 */
 	static void set_start_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
-			JS_THROW_ERR("* @set startX {float}");
+			Js_Throw("* @set startX {float}");
 		}
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_start_x( value->ToNumberValue(worker) );
 	}
 
@@ -112,18 +112,18 @@ class WrapSprite: public WrapViewBase {
 	 * @set start_y {float}
 	 */
 	static void set_start_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
-			JS_THROW_ERR("* @set startY {float}");
+			Js_Throw("* @set startY {float}");
 		}
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_start_y( value->ToNumberValue(worker) );
 	}
 
 	static void set_start(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Vec2, value, "Sprite.start = %s");
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->start( out );
 	}
 
@@ -131,11 +131,11 @@ class WrapSprite: public WrapViewBase {
 	 * @set width {float}
 	 */
 	static void set_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
-			JS_THROW_ERR("* @set width {float}");
+			Js_Throw("* @set width {float}");
 		}
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_width( value->ToNumberValue(worker) );
 	}
 
@@ -143,35 +143,35 @@ class WrapSprite: public WrapViewBase {
 	 * @set height {float}
 	 */
 	static void set_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( ! value->IsNumber(worker)) {
-			JS_THROW_ERR("* @set height {float}");
+			Js_Throw("* @set height {float}");
 		}
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_height( value->ToNumberValue(worker) );
 	}
 
 	static void ratio_x(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( self->ratio_x() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( self->ratio_x() );
 	}
 
 	static void ratio_y(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( self->ratio_y() );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( self->ratio_y() );
 	}
 
 	/**
 	 * @set ratio_x {float}
 	 */
 	static void set_ratio_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("* @set ratioX {float}");
+			Js_Throw("* @set ratioX {float}");
 		}
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_ratio_x( value->ToNumberValue(worker) );
 	}
 
@@ -179,51 +179,51 @@ class WrapSprite: public WrapViewBase {
 	 * @set ratio_y {float}
 	 */
 	static void set_ratio_y(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( ! value->IsNumber(worker) ) {
-			JS_THROW_ERR("* @set ratioY {float}");
+			Js_Throw("* @set ratioY {float}");
 		}
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_ratio_y( value->ToNumberValue(worker) );
 	}
 	static void ratio(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( worker->values()->New(self->ratio()) );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( worker->values()->New(self->ratio()) );
 	}
 	static void set_ratio(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Vec2, value, "Sprite.ratio = %s");
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_ratio( out );
 	}
 	static void repeat(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Sprite);
-		JS_RETURN( worker->values()->New(self->repeat()) );
+		Js_Worker(args);
+		Js_Self(Sprite);
+		Js_Return( worker->values()->New(self->repeat()) );
 	}
 	static void set_repeat(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Repeat, value, "Sprite.repeat = %s");
-		JS_SELF(Sprite);
+		Js_Self(Sprite);
 		self->set_repeat( out );
 	}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Sprite, constructor, {
-			JS_SET_CLASS_ACCESSOR(src, src, set_src);
-			JS_SET_CLASS_ACCESSOR(texture, texture, set_texture);
-			JS_SET_CLASS_ACCESSOR(startX, start_x, set_start_x);
-			JS_SET_CLASS_ACCESSOR(startY, start_y, set_start_y);
-			JS_SET_CLASS_ACCESSOR(width, width, set_width);
-			JS_SET_CLASS_ACCESSOR(height, height, set_height);
-			JS_SET_CLASS_ACCESSOR(start, start, set_start);
-			JS_SET_CLASS_ACCESSOR(ratioX, ratio_x, set_ratio_x);
-			JS_SET_CLASS_ACCESSOR(ratioY, ratio_y, set_ratio_y);
-			JS_SET_CLASS_ACCESSOR(ratio, ratio, set_ratio);
-			JS_SET_CLASS_ACCESSOR(repeat, repeat, set_repeat);
+		Js_Define_Class(Sprite, constructor, {
+			Js_Set_Class_Accessor(src, src, set_src);
+			Js_Set_Class_Accessor(texture, texture, set_texture);
+			Js_Set_Class_Accessor(startX, start_x, set_start_x);
+			Js_Set_Class_Accessor(startY, start_y, set_start_y);
+			Js_Set_Class_Accessor(width, width, set_width);
+			Js_Set_Class_Accessor(height, height, set_height);
+			Js_Set_Class_Accessor(start, start, set_start);
+			Js_Set_Class_Accessor(ratioX, ratio_x, set_ratio_x);
+			Js_Set_Class_Accessor(ratioY, ratio_y, set_ratio_y);
+			Js_Set_Class_Accessor(ratio, ratio, set_ratio);
+			Js_Set_Class_Accessor(repeat, repeat, set_repeat);
 		}, View);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Sprite), View::SPRITE);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Sprite), View::SPRITE);
 	}
 };
 
@@ -231,4 +231,4 @@ void binding_sprite(Local<JSObject> exports, Worker* worker) {
 	WrapSprite::binding(exports, worker);
 }
 
-JS_END
+Js_END

@@ -37,58 +37,58 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 template<class T> class WrapLimit: public WrapViewBase {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapLimit<T>>(args, new T());
 	}
 	static void min_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(T);
-		JS_RETURN( worker->values()->New(self->min_width()) );
+		Js_Worker(args);
+		Js_Self(T);
+		Js_Return( worker->values()->New(self->min_width()) );
 	}
 	static void min_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(T);
-		JS_RETURN( worker->values()->New(self->min_height()) );
+		Js_Worker(args);
+		Js_Self(T);
+		Js_Return( worker->values()->New(self->min_height()) );
 	}
 	static void max_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(T);
-		JS_RETURN( worker->values()->New(self->max_width()) );
+		Js_Worker(args);
+		Js_Self(T);
+		Js_Return( worker->values()->New(self->max_width()) );
 	}
 	static void max_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(T);
-		JS_RETURN( worker->values()->New(self->max_height()) );
+		Js_Worker(args);
+		Js_Self(T);
+		Js_Return( worker->values()->New(self->max_height()) );
 	}
 	static void set_min_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Value, value, "Limit.minWidth = %s");
-		JS_SELF(T);
+		Js_Self(T);
 		self->set_min_width(out);
 	}
 	static void set_min_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Value, value, "Limit.minHeight = %s");
-		JS_SELF(T);
+		Js_Self(T);
 		self->set_min_height(out);
 	}
 	static void set_max_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Value, value, "Limit.maxWidth = %s");
-		JS_SELF(T);
+		Js_Self(T);
 		self->set_max_width(out);
 	}
 	static void set_max_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(Value, value, "Limit.maxHeight = %s");
-		JS_SELF(T);
+		Js_Self(T);
 		self->set_max_height(out);
 	}
 };
@@ -99,13 +99,13 @@ template<class T> class WrapLimit: public WrapViewBase {
 class WrapLimitDiv: public WrapLimit<Limit> {
 	public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Limit, constructor, {
-			JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
-			JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
-			JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
-			JS_SET_CLASS_ACCESSOR(maxHeight, max_height, set_max_height);
+		Js_Define_Class(Limit, constructor, {
+			Js_Set_Class_Accessor(minWidth, min_width, set_min_width);
+			Js_Set_Class_Accessor(minHeight, min_height, set_min_height);
+			Js_Set_Class_Accessor(maxWidth, max_width, set_max_width);
+			Js_Set_Class_Accessor(maxHeight, max_height, set_max_height);
 		}, Div);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Limit), View::LIMIT);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Limit), View::LIMIT);
 	}
 };
 
@@ -115,13 +115,13 @@ class WrapLimitDiv: public WrapLimit<Limit> {
 class WrapLimitIndep: public WrapLimit<LimitIndep> {
 	public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(LimitIndep, constructor, {
-			JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
-			JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
-			JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
-			JS_SET_CLASS_ACCESSOR(maxHeight, max_height, set_max_height);
+		Js_Define_Class(LimitIndep, constructor, {
+			Js_Set_Class_Accessor(minWidth, min_width, set_min_width);
+			Js_Set_Class_Accessor(minHeight, min_height, set_min_height);
+			Js_Set_Class_Accessor(maxWidth, max_width, set_max_width);
+			Js_Set_Class_Accessor(maxHeight, max_height, set_max_height);
 		}, Indep);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(LimitIndep), View::LIMIT_INDEP);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(LimitIndep), View::LIMIT_INDEP);
 	}
 };
 
@@ -130,4 +130,4 @@ void binding_limit(Local<JSObject> exports, Worker* worker) {
 	WrapLimitIndep::binding(exports, worker);
 }
 
-JS_END
+Js_END

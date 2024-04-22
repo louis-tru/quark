@@ -37,7 +37,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 typedef MultimediaSource::TrackInfo TrackInfo;
 
@@ -91,11 +91,11 @@ static void addEventListener_1(Wrap<Self>* wrap, const UIEventName& type,
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
 		auto worker = wrap->worker();
-		JS_HANDLE_SCOPE();
-		JS_CALLBACK_SCOPE();
+		Js_Handle_Scope();
+		Js_Callback_Scope();
 
 		// arg event
-		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
+		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), Js_Typeid(T));
 		
 		if (cast)
 			ev->setPrivateData(cast); // set data cast func
@@ -160,7 +160,7 @@ class WrapAudioPlayer: public WrapObject {
 	 * @arg [src] {String}
 	 */
 	static void constructor(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 
 		AudioPlayer* player = nullptr;
 		if ( args.Length() > 0 && args[0]->IsString(worker) ) {
@@ -170,7 +170,7 @@ class WrapAudioPlayer: public WrapObject {
 			player = static_cast<AudioPlayer*>(module_audio_player->create(nullptr));
 		}
 		if (!player) {
-			JS_THROW_ERR("create AudioPlayer fail");
+			Js_Throw("create AudioPlayer fail");
 		}
 		New<WrapAudioPlayer>(args, player);
 	}
@@ -179,17 +179,17 @@ class WrapAudioPlayer: public WrapObject {
 	 * @get auto_play {bool}
 	 */
 	static void auto_play(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->auto_play() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->auto_play() );
 	}
 	
 	/**
 	 * @set auto_play {bool}
 	 */
 	static void set_auto_play(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(AudioPlayer);
+		Js_Worker(args); UILock lock;
+		Js_Self(AudioPlayer);
 		self->set_auto_play( value->ToBooleanValue(worker) );
 	}
 	
@@ -197,35 +197,35 @@ class WrapAudioPlayer: public WrapObject {
 	 * @get source_status {enum MultimediaSourceStatus}
 	 */
 	static void source_status(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->source_status() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->source_status() );
 	}
 	
 	/**
 	 * @get status {enum PlayerStatus}
 	 */
 	static void status(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->status() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->status() );
 	}
 	
 	/**
 	 * @get mute {bool}
 	 */
 	static void mute(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->mute() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->mute() );
 	}
 	
 	/**
 	 * @set mute {bool}
 	 */
 	static void set_mute(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(AudioPlayer);
+		Js_Worker(args); UILock lock;
+		Js_Self(AudioPlayer);
 		self->set_mute( value->ToBooleanValue(worker) );
 	}
 	
@@ -233,20 +233,20 @@ class WrapAudioPlayer: public WrapObject {
 	 * @get volume {uint} 0-100
 	 */
 	static void volume(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->mute() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->mute() );
 	}
 	
 	/**
 	 * @set volume {uint} 0-100
 	 */
 	static void set_volume(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
-			JS_THROW_ERR("* @set volume {uint} 0-100");
+			Js_Throw("* @set volume {uint} 0-100");
 		}
-		JS_SELF(AudioPlayer);
+		Js_Self(AudioPlayer);
 		self->set_volume( value->ToNumberValue(worker) );
 	}
 	
@@ -254,17 +254,17 @@ class WrapAudioPlayer: public WrapObject {
 	 * @get src {String}
 	 */
 	static void src(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->src() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->src() );
 	}
 	
 	/**
 	 * @set src {String}
 	 */
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(AudioPlayer);
+		Js_Worker(args); UILock lock;
+		Js_Self(AudioPlayer);
 		self->set_src( value->ToStringValue(worker) );
 	}
 	
@@ -272,36 +272,36 @@ class WrapAudioPlayer: public WrapObject {
 	 * @get time {uint64} ms
 	 */
 	static void time(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->time() / 1000.0 );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->time() / 1000.0 );
 	}
 	
 	/**
 	 * @get duration {uint64} ms
 	 */
 	static void duration(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->duration() / 1000.0 );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->duration() / 1000.0 );
 	}
 	
 	/**
 	 * @get track_index {uint}
 	 */
 	static void track_index(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->track_index() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->track_index() );
 	}
 	
 	/**
 	 * @get track_count {uint}
 	 */
 	static void track_count(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->track_count() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->track_count() );
 	}
 	
 	/**
@@ -309,14 +309,14 @@ class WrapAudioPlayer: public WrapObject {
 	 * @arg index {uint} audio track index
 	 */
 	static void select_track(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func selectTrack(index)\n"
 				"* @arg index {uint} audio track index\n"
 			);
 		}
-		JS_SELF(AudioPlayer);
+		Js_Self(AudioPlayer);
 		self->select_track( args[0]->ToUint32Value(worker) );
 	}
 	
@@ -326,12 +326,12 @@ class WrapAudioPlayer: public WrapObject {
 	 * @ret {object TrackInfo}
 	 */
 	static void track(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
 		if (args.Length() < 1 || !args[0]->IsUint32(worker) ) {
-			JS_RETURN( inl_track_to_jsvalue(self->track(), worker) );
+			Js_Return( inl_track_to_jsvalue(self->track(), worker) );
 		} else {
-			JS_RETURN( inl_track_to_jsvalue(self->track(args[0]->ToUint32Value(worker)), worker) );
+			Js_Return( inl_track_to_jsvalue(self->track(args[0]->ToUint32Value(worker)), worker) );
 		}
 	}
 	
@@ -339,8 +339,8 @@ class WrapAudioPlayer: public WrapObject {
 	 * @func start()
 	 */
 	static void start(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(AudioPlayer);
+		Js_Worker(args); UILock lock;
+		Js_Self(AudioPlayer);
 		self->start();
 	}
 	
@@ -350,24 +350,24 @@ class WrapAudioPlayer: public WrapObject {
 	 * @ret {bool} success
 	 */
 	static void seek(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsNumber(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func seek(time)\n"
 				"* @arg time {uint} ms\n"
 				"* @ret {bool} success\n"
 			);
 		}
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->seek( args[0]->ToNumberValue(worker) * 1000.0 ));
+		Js_Self(AudioPlayer);
+		Js_Return( self->seek( args[0]->ToNumberValue(worker) * 1000.0 ));
 	}
 	
 	/**
 	 * @func pause()
 	 */
 	static void pause(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(AudioPlayer);
+		Js_Worker(args); UILock lock;
+		Js_Self(AudioPlayer);
 		self->pause();
 	}
 	
@@ -375,8 +375,8 @@ class WrapAudioPlayer: public WrapObject {
 	 * @func resume()
 	 */
 	static void resume(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(AudioPlayer);
+		Js_Worker(args); UILock lock;
+		Js_Self(AudioPlayer);
 		self->resume();
 	}
 	
@@ -384,8 +384,8 @@ class WrapAudioPlayer: public WrapObject {
 	 * @func stop()
 	 */
 	static void stop(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
 		self->stop();
 	}
 	
@@ -393,9 +393,9 @@ class WrapAudioPlayer: public WrapObject {
 	 * @get disable_wait_buffer {bool}
 	 */
 	static void disable_wait_buffer(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(AudioPlayer);
-		JS_RETURN( self->disable_wait_buffer() );
+		Js_Worker(args);
+		Js_Self(AudioPlayer);
+		Js_Return( self->disable_wait_buffer() );
 	}
 	
 	/**
@@ -403,33 +403,33 @@ class WrapAudioPlayer: public WrapObject {
 	 */
 	static void set_disable_wait_buffer(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(AudioPlayer);
+		Js_Worker(args); UILock lock;
+		Js_Self(AudioPlayer);
 		self->disable_wait_buffer( value->ToBooleanValue(worker) );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		
-		JS_NEW_CLASS_FROM_ID(AudioPlayer, module_audio_player->tid, constructor, {
-			JS_SET_CLASS_ACCESSOR(autoPlay, auto_play, set_auto_play);
-			JS_SET_CLASS_ACCESSOR(sourceStatus, source_status);
-			JS_SET_CLASS_ACCESSOR(status, status);
-			JS_SET_CLASS_ACCESSOR(mute, mute, set_mute);
-			JS_SET_CLASS_ACCESSOR(volume, volume, set_volume);
-			JS_SET_CLASS_ACCESSOR(src, src, set_src);
-			JS_SET_CLASS_ACCESSOR(time, time);
-			JS_SET_CLASS_ACCESSOR(duration, duration);
-			JS_SET_CLASS_ACCESSOR(audioTrackIndex, track_index);
-			JS_SET_CLASS_ACCESSOR(audioTrackCount, track_count);
-			JS_SET_CLASS_ACCESSOR(disableWaitBuffer,
+		Js_NEW_CLASS_FROM_ID(AudioPlayer, module_audio_player->tid, constructor, {
+			Js_Set_Class_Accessor(autoPlay, auto_play, set_auto_play);
+			Js_Set_Class_Accessor(sourceStatus, source_status);
+			Js_Set_Class_Accessor(status, status);
+			Js_Set_Class_Accessor(mute, mute, set_mute);
+			Js_Set_Class_Accessor(volume, volume, set_volume);
+			Js_Set_Class_Accessor(src, src, set_src);
+			Js_Set_Class_Accessor(time, time);
+			Js_Set_Class_Accessor(duration, duration);
+			Js_Set_Class_Accessor(audioTrackIndex, track_index);
+			Js_Set_Class_Accessor(audioTrackCount, track_count);
+			Js_Set_Class_Accessor(disableWaitBuffer,
 														disable_wait_buffer, set_disable_wait_buffer);
-			JS_SET_CLASS_METHOD(selectAudioTrack, select_track);
-			JS_SET_CLASS_METHOD(audioTrack, track);
-			JS_SET_CLASS_METHOD(start, start);
-			JS_SET_CLASS_METHOD(seek, seek);
-			JS_SET_CLASS_METHOD(pause, pause);
-			JS_SET_CLASS_METHOD(resume, resume);
-			JS_SET_CLASS_METHOD(stop, stop);
+			Js_Set_Class_Method(selectAudioTrack, select_track);
+			Js_Set_Class_Method(audioTrack, track);
+			Js_Set_Class_Method(start, start);
+			Js_Set_Class_Method(seek, seek);
+			Js_Set_Class_Method(pause, pause);
+			Js_Set_Class_Method(resume, resume);
+			Js_Set_Class_Method(stop, stop);
 		}, 0);
 		cls->Export(worker, "AudioPlayer", exports);
 	}
@@ -439,4 +439,4 @@ void binding_audio(Local<JSObject> exports, Worker* worker) {
 	WrapAudioPlayer::binding(exports, worker);
 }
 
-JS_END
+Js_END

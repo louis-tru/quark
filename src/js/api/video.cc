@@ -38,7 +38,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 
 typedef MultimediaSource::TrackInfo TrackInfo;
@@ -52,206 +52,206 @@ class WrapVideo: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		auto player = static_cast<Video*>(module_video->create(nullptr));
 		if (!player) {
-			JS_WORKER(args);
-			JS_THROW_ERR("create Video fail");
+			Js_Worker(args);
+			Js_Throw("create Video fail");
 		}
 		New<WrapVideo>(args, player);
 	}
 	
 	static void auto_play(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->auto_play() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->auto_play() );
 	}
 	
 	static void set_auto_play(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Video);
+		Js_Worker(args); UILock lock;
+		Js_Self(Video);
 		self->set_auto_play( value->ToBooleanValue(worker) );
 	}
 	
 	static void source_status(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->source_status() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->source_status() );
 	}
 	
 	static void status(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->status() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->status() );
 	}
 	
 	static void mute(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->mute() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->mute() );
 	}
 	
 	static void set_mute(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Video);
+		Js_Worker(args); UILock lock;
+		Js_Self(Video);
 		self->set_mute( value->ToBooleanValue(worker) );
 	}
 	
 	static void volume(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->volume() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->volume() );
 	}
 	
 	static void set_volume(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
-			JS_THROW_ERR("* @set volume {uint} 0-100");
+			Js_Throw("* @set volume {uint} 0-100");
 		}
-		JS_SELF(Video);
+		Js_Self(Video);
 		self->set_volume( value->ToNumberValue(worker) );
 	}
 	
 	static void time(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->time() / 1000.0 );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->time() / 1000.0 );
 	}
 	
 	static void duration(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->duration() / 1000.0 );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->duration() / 1000.0 );
 	}
 	
 	static void audio_track_index(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->audio_track_index() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->audio_track_index() );
 	}
 	
 	static void audio_track_count(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->audio_track_count() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->audio_track_count() );
 	}
 	
 	static void select_audio_track(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func selectAudioTrack(index)\n"
 				"* @arg index {uint} audio track index\n"
 			);
 		}
-		JS_SELF(Video);
+		Js_Self(Video);
 		self->select_audio_track( args[0]->ToUint32Value(worker) );
 	}
 	
 	static void audio_track(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
+		Js_Worker(args);
+		Js_Self(Video);
 		if (args.Length() < 1 || ! args[0]->IsUint32(worker) ) {
-			JS_RETURN( inl_track_to_jsvalue(self->audio_track(), worker) );
+			Js_Return( inl_track_to_jsvalue(self->audio_track(), worker) );
 		} else {
-			JS_RETURN( inl_track_to_jsvalue(self->audio_track(args[0]->ToUint32Value(worker)), worker) );
+			Js_Return( inl_track_to_jsvalue(self->audio_track(args[0]->ToUint32Value(worker)), worker) );
 		}
 	}
 	
 	static void video_track(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( inl_track_to_jsvalue(self->video_track(), worker) );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( inl_track_to_jsvalue(self->video_track(), worker) );
 	}
 	
 	static void start(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Video);
+		Js_Worker(args); UILock lock;
+		Js_Self(Video);
 		self->start();
 	}
 	
 	static void seek(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if (args.Length() < 1 || ! args[0]->IsNumber(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @func seek(time)\n"
 				"* @arg time {uint} ms\n"
 				"* @ret {bool} success\n"
 			);
 		}
-		JS_SELF(Video);
-		JS_RETURN( self->seek( args[0]->ToNumberValue(worker) * 1000.0 ));
+		Js_Self(Video);
+		Js_Return( self->seek( args[0]->ToNumberValue(worker) * 1000.0 ));
 	}
 	
 	static void pause(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Video);
+		Js_Worker(args); UILock lock;
+		Js_Self(Video);
 		self->pause();
 	}
 	
 	static void resume(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Video);
+		Js_Worker(args); UILock lock;
+		Js_Self(Video);
 		self->resume();
 	}
 	
 	static void stop(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Video);
+		Js_Worker(args); UILock lock;
+		Js_Self(Video);
 		self->stop();
 	}
 	
 	static void disable_wait_buffer(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->disable_wait_buffer() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->disable_wait_buffer() );
 	}
 	
 	static void set_disable_wait_buffer(Local<JSString> name,
 																			Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Video);
+		Js_Worker(args); UILock lock;
+		Js_Self(Video);
 		self->disable_wait_buffer( value->ToBooleanValue(worker) );
 	}
 	
 	static void video_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->video_width() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->video_width() );
 	}
 	
 	static void video_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Video);
-		JS_RETURN( self->video_height() );
+		Js_Worker(args);
+		Js_Self(Video);
+		Js_Return( self->video_height() );
 	}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_value");
 
-		JS_NEW_CLASS_FROM_ID(Video, module_video->tid, constructor, {
-			JS_SET_CLASS_ACCESSOR(autoPlay, auto_play, set_auto_play);
-			JS_SET_CLASS_ACCESSOR(sourceStatus, source_status);
-			JS_SET_CLASS_ACCESSOR(status, status);
-			JS_SET_CLASS_ACCESSOR(mute, mute, set_mute);
-			JS_SET_CLASS_ACCESSOR(volume, volume, set_volume);
-			JS_SET_CLASS_ACCESSOR(time, time);
-			JS_SET_CLASS_ACCESSOR(duration, duration);
-			JS_SET_CLASS_ACCESSOR(audioTrackIndex, audio_track_index);
-			JS_SET_CLASS_ACCESSOR(audioTrackCount, audio_track_count);
-			JS_SET_CLASS_ACCESSOR(disableWaitBuffer, disable_wait_buffer, set_disable_wait_buffer);
-			JS_SET_CLASS_ACCESSOR(videoWidth, video_width);
-			JS_SET_CLASS_ACCESSOR(videoHeight, video_height);
-			JS_SET_CLASS_METHOD(selectAudioTrack, select_audio_track);
-			JS_SET_CLASS_METHOD(audioTrack, audio_track);
-			JS_SET_CLASS_METHOD(videoTrack, video_track);
-			JS_SET_CLASS_METHOD(start, start);
-			JS_SET_CLASS_METHOD(seek, seek);
-			JS_SET_CLASS_METHOD(pause, pause);
-			JS_SET_CLASS_METHOD(resume, resume);
-			JS_SET_CLASS_METHOD(stop, stop);
-		}, JS_TYPEID(Image));
+		Js_NEW_CLASS_FROM_ID(Video, module_video->tid, constructor, {
+			Js_Set_Class_Accessor(autoPlay, auto_play, set_auto_play);
+			Js_Set_Class_Accessor(sourceStatus, source_status);
+			Js_Set_Class_Accessor(status, status);
+			Js_Set_Class_Accessor(mute, mute, set_mute);
+			Js_Set_Class_Accessor(volume, volume, set_volume);
+			Js_Set_Class_Accessor(time, time);
+			Js_Set_Class_Accessor(duration, duration);
+			Js_Set_Class_Accessor(audioTrackIndex, audio_track_index);
+			Js_Set_Class_Accessor(audioTrackCount, audio_track_count);
+			Js_Set_Class_Accessor(disableWaitBuffer, disable_wait_buffer, set_disable_wait_buffer);
+			Js_Set_Class_Accessor(videoWidth, video_width);
+			Js_Set_Class_Accessor(videoHeight, video_height);
+			Js_Set_Class_Method(selectAudioTrack, select_audio_track);
+			Js_Set_Class_Method(audioTrack, audio_track);
+			Js_Set_Class_Method(videoTrack, video_track);
+			Js_Set_Class_Method(start, start);
+			Js_Set_Class_Method(seek, seek);
+			Js_Set_Class_Method(pause, pause);
+			Js_Set_Class_Method(resume, resume);
+			Js_Set_Class_Method(stop, stop);
+		}, Js_Typeid(Image));
 		cls->Export(worker, "Video", exports);
 		IMPL::js_class(worker)->set_class_alias(module_video->tid, View::VIDEO);
 	}
@@ -261,4 +261,4 @@ void binding_video(Local<JSObject> exports, Worker* worker) {
 	WrapVideo::binding(exports, worker);
 }
 
-JS_END
+Js_END

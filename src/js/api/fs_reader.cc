@@ -39,7 +39,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 class NativeFileReader {
 	public:
@@ -57,19 +57,19 @@ class NativeFileReader {
 	 * @ret {uint} return read id
 	 */
 	static void read(FunctionCall args, bool isStream) {
-		JS_WORKER(args);
+		Js_Worker(args);
 
 		uint32_t args_index = 0;
 		if ( args.Length() < 2 || !args[0]->IsFunction(worker) || !args[1]->IsString(worker) ) {
 			if (isStream) {
-				JS_THROW_ERR(
+				Js_Throw(
 					"* @func reader.readStream(cb,path)\n"
 					"* @arg cb {Function}\n"
 					"* @arg path {String}\n"
 					"* @ret {uint} return read id\n"
 				);
 			} else {
-				JS_THROW_ERR(
+				Js_Throw(
 							"* @func reader.readFile(cb,path[,encoding])\n"
 							"* @arg cb {Function}\n"
 							"* @arg path {String}\n"
@@ -91,10 +91,10 @@ class NativeFileReader {
 
 		if ( isStream ) {
 			Cb cb = get_callback_for_io_stream(worker, args[0]);
-			JS_RETURN( fs_reader()->read_stream( path, cb ) );
+			Js_Return( fs_reader()->read_stream( path, cb ) );
 		} else {
 			Cb cb = get_callback_for_buffer(worker, args[0], encoding);
-			JS_RETURN( fs_reader()->read_file( path, cb ) );
+			Js_Return( fs_reader()->read_file( path, cb ) );
 		}
 	}
 	
@@ -112,9 +112,9 @@ class NativeFileReader {
 	 * @ret {Buffer} return read Buffer
 	 */
 	static void readFileSync(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func reader.readFileSync(path[,encoding])\n"
 										"* @arg path {String}\n"
 										"* @arg [encoding] {Encoding}\n"
@@ -132,10 +132,10 @@ class NativeFileReader {
 		try {
 			rv = fs_reader()->read_file_sync( args[0]->ToStringValue(worker) );
 		} catch(cError& err) {
-			JS_THROW_ERR(err);
+			Js_Throw(err);
 		}
 		
-		JS_RETURN( convert_buffer(worker, rv, encoding) );
+		Js_Return( convert_buffer(worker, rv, encoding) );
 	}
 	
 	/**
@@ -144,15 +144,15 @@ class NativeFileReader {
 	 * @ret {bool}
 	 */
 	static void existsSync(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func reader.existsSync(path)\n"
 										"* @arg path {String}\n"
 										"* @ret {bool}\n"
 										);
 		}
-		JS_RETURN( fs_reader()->exists_sync( args[0]->ToStringValue(worker) ) );
+		Js_Return( fs_reader()->exists_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -161,15 +161,15 @@ class NativeFileReader {
 	 * @ret {bool}
 	 */
 	static void isFileSync(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func reader.isFileSync(path)\n"
 										"* @arg path {String}\n"
 										"* @ret {bool}\n"
 										);
 		}
-		JS_RETURN( fs_reader()->is_file_sync( args[0]->ToStringValue(worker) ) );
+		Js_Return( fs_reader()->is_file_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -178,15 +178,15 @@ class NativeFileReader {
 	 * @ret {bool}
 	 */
 	static void isDirectorySync(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func reader.isDirectorySyncpath)\n"
 										"* @arg path {String}\n"
 										"* @ret {bool}\n"
 										);
 		}
-		JS_RETURN( fs_reader()->is_directory_sync( args[0]->ToStringValue(worker) ) );
+		Js_Return( fs_reader()->is_directory_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -195,15 +195,15 @@ class NativeFileReader {
 	 * @ret {Array}
 	 */
 	static void readdirSync(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func reader.readdirSync(path)\n"
 										"* @arg path {String}\n"
 										"* @ret {Array}\n"
 										);
 		}
-		JS_RETURN( fs_reader()->readdir_sync( args[0]->ToStringValue(worker) ) );
+		Js_Return( fs_reader()->readdir_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -211,9 +211,9 @@ class NativeFileReader {
 	 * @arg id {uint} abort id
 	 */
 	static void abort(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() == 0 || ! args[0]->IsUint32(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 										"* @func reader.abort(id)\n"
 										"* @arg id {uint} abort id\n"
 										);
@@ -229,18 +229,18 @@ class NativeFileReader {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(readFile, readFile);
-		JS_SET_METHOD(readStream, readStream);
-		JS_SET_METHOD(readFileSync, readFileSync);
-		JS_SET_METHOD(existsSync, existsSync);
-		JS_SET_METHOD(isFileSync, isFileSync);
-		JS_SET_METHOD(isDirectorySync, isDirectorySync);
-		JS_SET_METHOD(readdirSync, readdirSync);
-		JS_SET_METHOD(abort, abort);
-		JS_SET_METHOD(clear, clear);
+		Js_Set_Method(readFile, readFile);
+		Js_Set_Method(readStream, readStream);
+		Js_Set_Method(readFileSync, readFileSync);
+		Js_Set_Method(existsSync, existsSync);
+		Js_Set_Method(isFileSync, isFileSync);
+		Js_Set_Method(isDirectorySync, isDirectorySync);
+		Js_Set_Method(readdirSync, readdirSync);
+		Js_Set_Method(abort, abort);
+		Js_Set_Method(clear, clear);
 	}
 };
 
-JS_REG_MODULE(_reader, NativeFileReader);
-JS_END
+Js_REG_MODULE(_reader, NativeFileReader);
+Js_END
  

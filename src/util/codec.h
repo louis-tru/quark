@@ -54,6 +54,7 @@ namespace qk {
 	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& source);
 	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cString& source);
 	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& source);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cString2& source);
 	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& source);
 	// decode
 	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_buffer(Encoding source_en, cArray<char>& source);

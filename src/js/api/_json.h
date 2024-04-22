@@ -38,7 +38,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class JSON
@@ -48,5 +48,5 @@ class JSON {
 	static bool stringify_console_styled(Worker* worker, Local<JSValue> arg, StringBuilder* out);
 };
 
-JS_END
+Js_END
 #endif

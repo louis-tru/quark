@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapLabel
@@ -45,65 +45,65 @@ class WrapLabel: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapLabel>(args, new Label());
 	}
 	
 	static void length(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Label);
-		JS_RETURN( self->length() );
+		Js_Worker(args);
+		Js_Self(Label);
+		Js_Return( self->length() );
 	}
 
 	static void value(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Label);
-		JS_RETURN( self->value() );
+		Js_Worker(args);
+		Js_Self(Label);
+		Js_Return( self->value() );
 	}
 	
 	static void text_hori_bearing(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Label);
-		JS_RETURN( self->text_hori_bearing() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Label);
+		Js_Return( self->text_hori_bearing() );
 	}
 	
 	static void text_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Label);
-		JS_RETURN( self->text_height() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Label);
+		Js_Return( self->text_height() );
 	}
 	
 	static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Label);
+		Js_Worker(args); UILock lock;
+		Js_Self(Label);
 		String2 str = value->ToString2Value(worker);
 		self->set_value(str);
 	}
 	
 	static void text_align(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Label);
-		JS_RETURN( worker->values()->New(self->text_align()) );
+		Js_Worker(args);
+		Js_Self(Label);
+		Js_Return( worker->values()->New(self->text_align()) );
 	}
 	
 	static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		js_parse_value(TextAlign, value, "Label.textAlign = %s");
-		JS_SELF(Label);
+		Js_Self(Label);
 		self->set_text_align(out);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Label, constructor, {
-			JS_SET_CLASS_ACCESSOR(length, length);
-			JS_SET_CLASS_ACCESSOR(value, value, set_value);
-			JS_SET_CLASS_ACCESSOR(textHoriBearing, text_hori_bearing);
-			JS_SET_CLASS_ACCESSOR(textHeight, text_height);
-			JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
+		Js_Define_Class(Label, constructor, {
+			Js_Set_Class_Accessor(length, length);
+			Js_Set_Class_Accessor(value, value, set_value);
+			Js_Set_Class_Accessor(textHoriBearing, text_hori_bearing);
+			Js_Set_Class_Accessor(textHeight, text_height);
+			Js_Set_Class_Accessor(textAlign, text_align, set_text_align);
 			WrapViewBase::inheritTextFont(cls, worker);
 		}, View);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Label), View::LABEL);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Label), View::LABEL);
 	}
 };
 
@@ -111,4 +111,4 @@ void binding_label(Local<JSObject> exports, Worker* worker) {
 	WrapLabel::binding(exports, worker);
 }
 
-JS_END
+Js_END

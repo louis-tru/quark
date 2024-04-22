@@ -29,90 +29,58 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark__js___js__
 #define __quark__js___js__
 
 #include "./js.h"
 #include "./types.h"
 
-#define js_bind_native_event( name, type, block) \
-	Qk_On(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)
+#define Js_On( name, block, id, ...) \
+	Qk_On(name, [this,##__VA_ARGS__]( auto & evt) { HandleScope scope(worker()); block }, id)
 
-#define js_unbind_native_event(name) Qk_Off(name, id);
-
-#define js_bind_common_native_event(name) \
-	js_bind_native_event(name, Event<>, { call(worker()->New(func,1)); })
+#define Js_Native_On(name, func, id) \
+	Js_On(name, { call(worker()->newInstance(func,true)); }, id, func)
 
 namespace qk { namespace js {
 
-	class WorkerImpl: public Worker {
+	int  platformStart(int argc, Char** argv);
+	int  triggerExit(Worker* worker, int code);
+	int  triggerBeforeExit(Worker* worker, int code);
+	bool triggerUncaughtException(Worker* worker, Local<JSValue> err);
+	bool triggerUnhandledRejection(Worker* worker, Local<JSValue> reason, Local<JSValue> promise);
+
+	class JsClassInfo {
 	public:
-		// @static
-		static inline WorkerImpl* Impl(Worker* worker) {
-			return static_cast<WorkerImpl*>(worker);
-		}
-
-		template<class T = WorkerImpl>
-		static inline T* Current(Worker* worker = Worker::worker()) {
-			return static_cast<T*>(worker);
-		}
-
-		static WrapObject* GetObjectPrivate(Local<JSObject> object);
-		static bool        SetObjectPrivate(Local<JSObject> object, WrapObject* value);
-
-		static int Start(int argc, Char** argv);
-
-		// @member
-		WorkerImpl();
-		virtual ~WorkerImpl();
-		virtual void initialize();
-
-		int  triggerExit(int code);
-		int  triggerBeforeExit(int code);
-		bool triggerUncaughtException(Local<JSValue> err);
-		bool triggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise);
-
-		friend class Worker;
-		friend class NativeValue;
-	};
-
-	class JSClassImpl: public JSClass {
-	public:
-		Qk_DEFINE_PROP_GET(Worker*, worker, Protected);
-		Qk_DEFINE_PROP_GET(AttachCallback, attachCallback, Protected);
-		Qk_DEFINE_PROP_GET(uint64_t, id, Protected);
-		Qk_DEFINE_PROP_GET(String, name, Protected);
-		Qk_DEFINE_PROP_GET(int, ref, Protected);
-		Qk_DEFINE_PROP_ACC_GET(Local<JSFunction>, func); // constructor function
-
-		JSClassImpl(Worker* worker, uint64_t id, cString& name);
-		virtual ~JSClassImpl();
-		void retain();
-		void release();
-		void resetFunc();
-
-	private:
-		Persistent<JSFunction> _func; // constructor function
-
-		friend class JSClass;
-		friend class JSClassInfo;
-	};
-
-	class JSClassInfo {
-	public:
-		JSClassInfo(Worker* worker);
-		~JSClassInfo();
-		void add(uint64_t id, JSClass *cls, AttachCallback callback, uint64_t alias = 0) throw(Error);
+		JsClassInfo(Worker* worker);
+		~JsClassInfo();
+		void add(uint64_t id, JSClass *cls, AttachCallback cb) throw(Error);
 		Local<JSClass> get(uint64_t id);
+		Local<JSFunction> getFunction(uint64_t id);
 		WrapObject* attach(uint64_t id, Object* object);
 		bool instanceOf(Local<JSValue> val, uint64_t id);
 	private:
-		Worker* _worker;
-		Array<JSClass*> _jsclass;
-		Dict<uint64_t, JSClass*> _alias;
-		WrapObject* _currentAttachObject;
+		Worker *_worker;
+		Dict<uint64_t, JSClass*> _jsclass;
+		Persistent<JSFunction> _jsAttachConstructorEmpty;
+	};
 
-		friend class WrapObject;
+	struct JsConverter { // convert data to js value
+		template<class T>
+		static inline Local<JSValue> Cast(Worker* worker, const Object& obj) {
+			return worker->newInstance( *static_cast<const T*>(&obj) ).cast();
+		}
+		inline Local<JSValue> cast(Worker* worker, const Object& object) {
+			return callback(worker, object);
+		}
+		template<class T>
+		static JsConverter* Instance() {
+			static JsConverter value{&Cast<T>};
+			return &value;
+		}
+	private:
+		Local<JSValue> (*callback)(Worker* worker, const Object& object);
 	};
 
 } }

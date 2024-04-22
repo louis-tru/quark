@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapRoot
@@ -45,23 +45,23 @@ class WrapRoot: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
-		JS_WORKER(args);
+		Js_ATTACH(args);
+		Js_CHECK_APP();
+		Js_Worker(args);
 		try {
 			Handle<Root> r = new Root();
 			r->initialize();
 			New<WrapRoot>(args, r.collapse());
 		} catch(cError& err) {
-			JS_THROW_ERR(err);
+			Js_Throw(err);
 		}
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Root, constructor, {
+		Js_Define_Class(Root, constructor, {
 			// none
 		}, Panel);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Root), View::ROOT);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Root), View::ROOT);
 	}
 };
 
@@ -69,4 +69,4 @@ void binding_root(Local<JSObject> exports, Worker* worker) {
 	WrapRoot::binding(exports, worker);
 }
 
-JS_END
+Js_END

@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 static cString Space(' ');
 
@@ -47,7 +47,7 @@ class NativeConsole {
 	public:
 
 	static void print_to(FunctionCall args, void(*func)(cString&)) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		StringBuilder rv;
 		bool is_space = false;
 		
@@ -126,37 +126,37 @@ class NativeConsole {
 	static void timeStamp(FunctionCall args) {}
 	
 	static void memory(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_RETURN( worker->NewNull() );
+		Js_Worker(args);
+		Js_Return( worker->NewNull() );
 	}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(log, log);
-		JS_SET_METHOD(warn, warn);
-		JS_SET_METHOD(error, error);
-		JS_SET_METHOD(clear, clear);
-		JS_SET_METHOD(debug, debug);
-		JS_SET_METHOD(info, info);
-		JS_SET_METHOD(dir, dir);
-		JS_SET_METHOD(dirxml, dirxml);
-		JS_SET_METHOD(table, table);
-		JS_SET_METHOD(trace, trace);
-		JS_SET_METHOD(group, group);
-		JS_SET_METHOD(groupCollapsed, groupCollapsed);
-		JS_SET_METHOD(groupEnd, groupEnd);
-		JS_SET_METHOD(count, count);
-		JS_SET_METHOD(assert, Assert);
-		JS_SET_METHOD(markTimeline, markTimeline);
-		JS_SET_METHOD(profile, profile);
-		JS_SET_METHOD(profileEnd, profileEnd);
-		JS_SET_METHOD(timeline, timeline);
-		JS_SET_METHOD(timelineEnd, timelineEnd);
-		JS_SET_METHOD(time, time);
-		JS_SET_METHOD(timeEnd, timeEnd);
-		JS_SET_METHOD(timeStamp, timeStamp);
-		JS_SET_ACCESSOR(memory, memory);
+		Js_Set_Method(log, log);
+		Js_Set_Method(warn, warn);
+		Js_Set_Method(error, error);
+		Js_Set_Method(clear, clear);
+		Js_Set_Method(debug, debug);
+		Js_Set_Method(info, info);
+		Js_Set_Method(dir, dir);
+		Js_Set_Method(dirxml, dirxml);
+		Js_Set_Method(table, table);
+		Js_Set_Method(trace, trace);
+		Js_Set_Method(group, group);
+		Js_Set_Method(groupCollapsed, groupCollapsed);
+		Js_Set_Method(groupEnd, groupEnd);
+		Js_Set_Method(count, count);
+		Js_Set_Method(assert, Assert);
+		Js_Set_Method(markTimeline, markTimeline);
+		Js_Set_Method(profile, profile);
+		Js_Set_Method(profileEnd, profileEnd);
+		Js_Set_Method(timeline, timeline);
+		Js_Set_Method(timelineEnd, timelineEnd);
+		Js_Set_Method(time, time);
+		Js_Set_Method(timeEnd, timeEnd);
+		Js_Set_Method(timeStamp, timeStamp);
+		Js_Set_Accessor(memory, memory);
 	}
 };
 
-JS_REG_MODULE(_console, NativeConsole)
-JS_END
+Js_REG_MODULE(_console, NativeConsole)
+Js_END

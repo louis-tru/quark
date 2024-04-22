@@ -35,7 +35,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 void binding_audio(Local<JSObject> exports, Worker* worker);
 void binding_video(Local<JSObject> exports, Worker* worker);
@@ -47,12 +47,12 @@ class NativeMedia {
 	public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		if (!initialize_media())
-			JS_THROW_ERR("binding or initialize media library fail");
+			Js_Throw("binding or initialize media library fail");
 
 		binding_audio(exports, worker);
 		binding_video(exports, worker);
 	}
 };
 
-JS_REG_MODULE(_media, NativeMedia);
-JS_END
+Js_REG_MODULE(_media, NativeMedia);
+Js_END

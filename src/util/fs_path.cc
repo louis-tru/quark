@@ -40,8 +40,6 @@
 
 namespace qk {
 
-	String string_format(cChar* f, va_list arg);
-
 	static String fs_split_path(cString& path, bool basename) {
 		String s = path;
 #if Qk_WIN
@@ -277,7 +275,7 @@ namespace qk {
 	String fs_format(cChar* path, ...) {
 		va_list arg;
 		va_start(arg, path);
-		String str = string_format(path, arg);
+		String str = _Str::string_format(path, arg);
 		va_end(arg);
 		return fs_format(str);
 	}

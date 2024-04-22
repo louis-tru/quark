@@ -28,8 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__js__value__
-#define __quark__js__value__
+// @private head
+
+#ifndef __quark__js__types__
+#define __quark__js__types__
 
 #include "./js.h"
 #include "../ui/types.h"
@@ -37,20 +39,19 @@
 #include "../ui/filter.h"
 
 namespace qk { namespace js {
-	// using namespace qk::value;
 
-	#define js_parse_value(Type, value, desc) js_parse_value2(Type, Type, value, desc)
-	#define js_parse_value2(Type, Name, value, desc) \
+	#define Js_Parse_Type(Type, value, desc) Js_Parse_Type2(Type, Type, value, desc)
+	#define Js_Parse_Type2(Type, Name, value, desc) \
 		Type out; \
 		if ( !worker->values()->parse##Name(value, out, desc)) \
-		{ return; /*JS_THROW_ERR("Bad argument.");*/ }
+		{ return; /*Js_Throw("Bad argument.");*/ }
 
-	#define js_throw_value_err(value, msg, ...)\
-		worker->values()->throwError(t, msg, ##__VA_ARGS__)
+	#define Js_Throw_Types(value, msg, ...)\
+		worker->types()->throwError(t, msg, ##__VA_ARGS__)
 
-	#define js_common_string(F)  \
+	#define Js_Common_Strings_Each(F)  \
 		F(global)         F(exports)        F(constructor) \
-		F(console)        F(__proto__)      F(__native_private_data) \
+		F(console)        F(__proto__)      F(__native_external_data) \
 		F(prototype)      F(type)           F(value) \
 		F(isAuto)         F(width)          F(height) \
 		F(offset)         F(offsetX)        F(offsetY) \
@@ -69,64 +70,84 @@ namespace qk { namespace js {
 		F(pathname)       F(styles)         F(sender) \
 		F(Buffer)         F(data)           F(total) \
 		F(complete)       F(httpVersion)    F(statusCode) \
-		F(responseHeaders) \
+		F(responseHeaders) F(Throw)\
 
-	#define js_value_table(F) \
-		F(String, String)                       F(bool, bool) \
-		F(float, float)                         F(int, int) \
-		F(uint, uint)                           F(TextAlign, TextAlign) \
-		F(Align, Align)                         F(ContentAlign, ContentAlign) \
-		F(Border, Border)                       F(Shadow, Shadow) \
-		F(Color, Color)                         F(Vec2, Vec2) \
-		F(Vec3, Vec3)                           F(Vec4, Vec4) \
-		F(Rect, Rect)                           F(Mat, Mat) \
-		F(Mat4, Mat4)                           F(Value, Value) \
-		F(TextColor, TextColor)                 F(TextSize, TextSize)  \
-		F(TextFamily, TextFamily)               F(TextSlant, TextSlant) \
-		F(TextShadow, TextShadow)               F(TextLineHeight, TextLineHeight) \
-		F(TextDecoration, TextDecoration)       F(Repeat, Repeat) \
-		F(Curve, Curve)                         F(Direction, Direction) \
-		F(TextOverflow, TextOverflow)           F(TextWhiteSpace, TextWhiteSpace) \
-		F(KeyboardType, KeyboardType)           F(KeyboardReturnType, KeyboardReturnType) \
-		F(Background, BackgroundPtr)            F(BackgroundPosition, BackgroundPosition) \
-		F(BackgroundSize, BackgroundSize) \
-		/* Append, no actual type */\
-		F(Values, Array<Value>)                 F(BackgroundSizeCollection, BackgroundSizeCollection) \
-		F(Aligns, Array<Align>)                 F(BackgroundPositionCollection, BackgroundPositionCollection) \
-		F(Floats, Array<float>) \
-
-	class Qk_EXPORT CommonStrings: public Object {
+	class Qk_EXPORT CommonStrings {
 	public:
+		Qk_DEFINE_PROP_GET(Worker*, worker);
 		CommonStrings(Worker* worker);
-		#define js_def_persistent_string(name) \
-			public: Local<JSValue> name() { \
-			auto r = reinterpret_cast<Local<JSValue>*>(&__##name##_$_); return *r; } \
-			private: Persistent<JSValue> __##name##_$_;
-	private:
-		Worker* _worker;
-		js_def_persistent_string(Throw)
-		js_common_string(js_def_persistent_string);
+		#define _Fun(name) \
+		public: inline Local<JSValue> name() { return __##name##__.toLocal(); } \
+		private: Persistent<JSValue> __##name##__;
+		Js_Common_Strings_Each(_Fun);
+		#undef _Fun
 	};
 
-	class Qk_EXPORT TypesProgram: public Object {
+	#define Js_Types_Each(F) \
+		F(bool, bool) \
+		F(float, float) \
+		F(int32_t, int32_t) \
+		F(uint32_t, uint32_t) \
+		F(Color, Color) \
+		F(Vec2, Vec2) \
+		F(Vec3, Vec3) \
+		F(Vec4, Vec4) \
+		F(Rect, Rect) \
+		F(Mat, Mat) \
+		F(Mat4, Mat4) \
+		F(String, String) \
+		F(Curve, Curve) \
+		F(Shadow, Shadow) \
+		F(Repeat, Repeat) \
+		F(BoxFilter, BoxFilter*) \
+		F(FillGradient, FillGradient*) \
+		F(BoxShadow, BoxShadow*) \
+		/********************************/\
+		F(Direction, Direction) \
+		F(ItemsAlign, ItemsAlign) \
+		F(CrossAlign, CrossAlign) \
+		F(Wrap, Wrap) \
+		F(WrapAlign, WrapAlign) \
+		F(Align, Align) \
+		F(BoxSizeKind, BoxSizeKind) \
+		F(BoxOriginKind, BoxOriginKind) \
+		F(BoxSize, BoxSize) \
+		F(BoxOrigin, BoxOrigin) \
+		F(TextAlign, TextAlign) \
+		F(TextDecoration, TextDecoration) \
+		F(TextOverflow, TextOverflow) \
+		F(TextWhiteSpace, TextWhiteSpace) \
+		F(TextWordBreak, TextWordBreak) \
+		F(TextValueKind, TextValueKind) \
+		F(TextColor, TextColor) \
+		F(TextSize, TextSize) \
+		F(TextLineHeight, TextLineHeight) \
+		F(TextShadow, TextShadow) \
+		F(TextFamily, TextFamily) \
+		F(TextWeight, TextWeight) \
+		F(TextWidth, TextWidth) \
+		F(TextSlant, TextSlant) \
+		F(KeyboardType, KeyboardType) \
+		F(KeyboardReturnType, KeyboardReturnType) \
+		F(CursorStyle, CursorStyle) \
+		F(FindDirection, FindDirection) \
+
+	class Qk_EXPORT TypesParser {
 	public:
-		#define def_attr_fn(Name, Type)           \
-			Local<JSValue> New(const Type& value);  \
-			bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = nullptr);
-		#define def_attr(Name, Type) \
-			Persistent<JSFunction> _parse##Name; \
-			Persistent<JSFunction> _##Name;
-		TypesProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
-		virtual ~TypesProgram();
+		Qk_DEFINE_PROP_GET(Worker*, worker);
+		TypesParser(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
 		void throwError(Local<JSValue> value, cChar* msg = nullptr, cChar* help = nullptr);
-		js_value_table(def_attr_fn);
-		bool isBase(Local<JSValue> arg);
+	#define _Fun(Name, Type) \
+		Local<JSValue> newInstance(const Type& value); \
+		bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = nullptr);
+		Js_Types_Each(_Fun);
 	private:
-		js_value_table(def_attr)
-		Persistent<JSFunction> _Base;
-		Worker* worker;
-		#undef def_attr_fn
-		#undef def_attr
+	#define _Def_attr(Name, Type) \
+		Persistent<JSFunction> _parse##Name; \
+		Persistent<JSFunction> _new##Name;
+		Js_Types_Each(_Def_attr)
+	#undef _Fun
+	#undef _Def_attr
 	};
 
 } }

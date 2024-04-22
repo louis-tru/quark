@@ -36,21 +36,21 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 typedef KeyframeAction::Frame Frame;
 
 #define def_get_property_from_type0(Name, block)\
 	static void Name(Local<JSString> name, PropertyCall args) {\
-	JS_WORKER(args);\
-	JS_SELF(Frame);\
+	Js_Worker(args);\
+	Js_Self(Frame);\
 	if (self->host()) { block; } \
-	else JS_THROW_ERR("No host property, unbind `KeyframeAction`");\
+	else Js_Throw("No host property, unbind `KeyframeAction`");\
 }
 #define def_set_property_from_type0(Name, Type, Parser, block)\
 static void set_##Name(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {\
-	JS_WORKER(args); UILock lock;\
-	JS_SELF(Frame);\
+	Js_Worker(args); UILock lock;\
+	Js_Self(Frame);\
 	if (self->host()) {\
 		js_parse_value2(Type, Parser, value, "Action."#Name" = %s");\
 		block;\
@@ -60,7 +60,7 @@ static void set_##Name(Local<JSString> name, Local<JSValue> value, PropertySetCa
 // ----------------------------------------------------------------
 
 #define def_property_from_type(Name, Type) \
-	def_get_property_from_type0(Name,JS_RETURN(worker->values()->New(self->Name()))) \
+	def_get_property_from_type0(Name,Js_Return(worker->values()->New(self->Name()))) \
 	def_set_property_from_type0(Name, Type, Type, self->set_##Name(out))
 
 #define def_property_from_type2(Name, Type, get, set)\
@@ -79,9 +79,9 @@ class WrapFrame: public WrapObject {
 	typedef Frame Type;
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_WORKER(args);
-		JS_THROW_ERR("Forbidden access abstract");
+		Js_ATTACH(args);
+		Js_Worker(args);
+		Js_Throw("Forbidden access abstract");
 	}
 	
 	/**
@@ -89,12 +89,12 @@ class WrapFrame: public WrapObject {
 	 * @arg [view] {View}
 	 */
 	static void fetch(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		View* view = nullptr;
 		if ( args.Length() > 0 && worker->hasInstance(args[0], View::VIEW) ) {
 			view = Wrap<View>::unpack(args[0].To<JSObject>())->self();
 		}
-		JS_SELF(Frame);
+		Js_Self(Frame);
 		self->fetch(view);
 	}
 
@@ -102,8 +102,8 @@ class WrapFrame: public WrapObject {
 	 * @func flush() flush frame restore default values
 	 */
 	static void flush(FunctionCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Frame);
+		Js_Worker(args); UILock lock;
+		Js_Self(Frame);
 		self->flush();
 	}
 
@@ -111,31 +111,31 @@ class WrapFrame: public WrapObject {
 	 * @get index {uint} frame index in action
 	 */
 	static void index(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Frame);
-		JS_RETURN( self->index() );
+		Js_Worker(args);
+		Js_Self(Frame);
+		Js_Return( self->index() );
 	}
 
 	/**
 	 * @get time {uint} ms
 	 */
 	static void time(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Frame);
-		JS_RETURN( self->time() / 1000 );
+		Js_Worker(args);
+		Js_Self(Frame);
+		Js_Return( self->time() / 1000 );
 	}
 
 	/**
 	 * @set time {uint} ms
 	 */
 	static void set_time(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
+		Js_Worker(args); UILock lock;
 		if ( !value->IsNumber(worker) ) {
-			JS_THROW_ERR(
+			Js_Throw(
 				"* @set time {uint} ms\n"
 			);
 		}
-		JS_SELF(Frame);
+		Js_Self(Frame);
 		self->set_time(uint64(1000) * value->ToNumberValue(worker));
 	}
 
@@ -143,13 +143,13 @@ class WrapFrame: public WrapObject {
 	 * @get host {KeyframeAction}
 	 */
 	static void host(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Frame);
+		Js_Worker(args);
+		Js_Self(Frame);
 		KeyframeAction* host = self->host();
 		if ( host ) {
-			JS_RETURN( Wrap<KeyframeAction>::pack(host)->that() );
+			Js_Return( Wrap<KeyframeAction>::pack(host)->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}
 	
@@ -216,9 +216,9 @@ class WrapFrame: public WrapObject {
 	def_property_from_type3(background, BackgroundPtr, Background, {
 		auto bg = self->background();
 		if (bg) {
-			JS_RETURN( pack(bg)->that() );
+			Js_Return( pack(bg)->that() );
 		} else {
-			JS_RETURN_NULL();
+			Js_Return_Null();
 		}
 	}, {
 		self->set_background(out);
@@ -227,25 +227,25 @@ class WrapFrame: public WrapObject {
 	// -------------------- get/set Non meta attribute --------------------
 	
 	def_property_from_type2(translate, Vec2, {
-		JS_RETURN( worker->values()->New(Vec2(self->x(), self->y())) );
+		Js_Return( worker->values()->New(Vec2(self->x(), self->y())) );
 	}, {
 		self->set_x(out.x());
 		self->set_y(out.y());
 	});
 	def_property_from_type2(scale, Vec2, {
-		JS_RETURN( worker->values()->New(Vec2(self->scale_x(), self->scale_y())) );
+		Js_Return( worker->values()->New(Vec2(self->scale_x(), self->scale_y())) );
 	},{
 		self->set_scale_x(out.x());
 		self->set_scale_y(out.y());
 	});
 	def_property_from_type2(skew, Vec2, {
-		JS_RETURN( worker->values()->New(Vec2(self->skew_x(), self->skew_y())) );
+		Js_Return( worker->values()->New(Vec2(self->skew_x(), self->skew_y())) );
 	},{
 		self->set_skew_x(out.x());
 		self->set_skew_y(out.y());
 	});
 	def_property_from_type2(origin, Vec2, {
-		JS_RETURN( worker->values()->New(Vec2(self->origin_x(), self->origin_y())) );
+		Js_Return( worker->values()->New(Vec2(self->origin_x(), self->origin_y())) );
 	},{
 		self->set_origin_x(out.x());
 		self->set_origin_y(out.y());
@@ -256,7 +256,7 @@ class WrapFrame: public WrapObject {
 		arr->Set(worker, 1, worker->values()->New(self->margin_right()) );
 		arr->Set(worker, 2, worker->values()->New(self->margin_bottom()) );
 		arr->Set(worker, 3, worker->values()->New(self->margin_left()) );
-		JS_RETURN( arr );
+		Js_Return( arr );
 	},{ // set
 		switch(out.length()) {
 			case 1:
@@ -291,7 +291,7 @@ class WrapFrame: public WrapObject {
 		arr->Set(worker, 1, worker->values()->New({ self->border_right_width(), self->border_right_color() }) );
 		arr->Set(worker, 2, worker->values()->New({ self->border_bottom_width(), self->border_bottom_color() }) );
 		arr->Set(worker, 3, worker->values()->New({ self->border_left_width(), self->border_left_color() }) );
-		JS_RETURN( arr );
+		Js_Return( arr );
 	}, { // set
 		self->set_border_top_color(out.color);
 		self->set_border_right_color(out.color);
@@ -304,28 +304,28 @@ class WrapFrame: public WrapObject {
 	});
 	def_property_from_type2(border_left, Border, {
 		Border border(self->border_left_width(), self->border_left_color());
-		JS_RETURN(worker->values()->New(border));
+		Js_Return(worker->values()->New(border));
 	}, {
 		self->set_border_left_color(out.color);
 		self->set_border_left_width(out.width);
 	});
 	def_property_from_type2(border_top, Border, {
 		Border border(self->border_top_width(), self->border_top_color());
-		JS_RETURN(worker->values()->New(border));
+		Js_Return(worker->values()->New(border));
 	}, {
 		self->set_border_top_color(out.color);
 		self->set_border_top_width(out.width);
 	});
 	def_property_from_type2(border_right, Border, {
 		Border border(self->border_right_width(), self->border_right_color());
-		JS_RETURN(worker->values()->New(border));
+		Js_Return(worker->values()->New(border));
 	}, {
 		self->set_border_right_color(out.color);
 		self->set_border_right_width(out.width);
 	});
 	def_property_from_type2(border_bottom, Border, {
 		Border border(self->border_bottom_width(), self->border_bottom_color());
-		JS_RETURN(worker->values()->New(border));
+		Js_Return(worker->values()->New(border));
 	}, {
 		self->set_border_bottom_color(out.color);
 		self->set_border_bottom_width(out.width);
@@ -336,7 +336,7 @@ class WrapFrame: public WrapObject {
 		arr->Set(worker, 1, worker->values()->New(self->border_right_width()) );
 		arr->Set(worker, 2, worker->values()->New(self->border_bottom_width()) );
 		arr->Set(worker, 3, worker->values()->New(self->border_left_width()) );
-		JS_RETURN( arr );
+		Js_Return( arr );
 	}, { // set
 		self->set_border_right_width(out);
 		self->set_border_bottom_width(out);
@@ -349,7 +349,7 @@ class WrapFrame: public WrapObject {
 		arr->Set(worker, 1, worker->values()->New(self->border_right_color()) );
 		arr->Set(worker, 2, worker->values()->New(self->border_bottom_color()) );
 		arr->Set(worker, 3, worker->values()->New(self->border_left_color()) );
-		JS_RETURN( arr );
+		Js_Return( arr );
 	}, { // set
 		self->set_border_top_color(out);
 		self->set_border_right_color(out);
@@ -362,7 +362,7 @@ class WrapFrame: public WrapObject {
 		arr->Set(worker, 1, worker->values()->New(self->border_radius_right_top()) );
 		arr->Set(worker, 2, worker->values()->New(self->border_radius_left_bottom()) );
 		arr->Set(worker, 3, worker->values()->New(self->border_radius_right_bottom()) );
-		JS_RETURN( arr );
+		Js_Return( arr );
 	}, {
 		self->set_border_radius_left_top(out);
 		self->set_border_radius_right_top(out);
@@ -370,23 +370,23 @@ class WrapFrame: public WrapObject {
 		self->set_border_radius_right_bottom(out);
 	});
 	def_property_from_type2(min_width, float, {
-		JS_RETURN(worker->values()->New(self->width()));
+		Js_Return(worker->values()->New(self->width()));
 	}, {
 		self->set_width(out);
 	});
 	def_property_from_type2(min_height, float, {
-		JS_RETURN(worker->values()->New(self->height()));
+		Js_Return(worker->values()->New(self->height()));
 	}, {
 		self->set_height(out);
 	});
 	def_property_from_type2(start, Vec2, {
-		JS_RETURN(worker->values()->New(Vec2(self->start_x(), self->start_y())));
+		Js_Return(worker->values()->New(Vec2(self->start_x(), self->start_y())));
 	}, {
 		self->set_start_x(out.x());
 		self->set_start_y(out.y());
 	});
 	def_property_from_type2(ratio, Vec2, {
-		JS_RETURN(worker->values()->New(Vec2(self->ratio_x(), self->ratio_y())));
+		Js_Return(worker->values()->New(Vec2(self->ratio_x(), self->ratio_y())));
 	}, {
 		self->set_ratio_x(out.x());
 		self->set_ratio_y(out.y());
@@ -395,96 +395,96 @@ class WrapFrame: public WrapObject {
 		auto arr = worker->NewArray();
 		arr->Set(worker, 0, worker->values()->New(self->align_x()) );
 		arr->Set(worker, 1, worker->values()->New(self->align_y()) );
-		JS_RETURN( arr );
+		Js_Return( arr );
 	}, {
 		self->set_align_x(out[0]);
 		self->set_align_y(out[1]);
 	});
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Frame, constructor, {
-			JS_SET_CLASS_METHOD(fetch, fetch);
-			JS_SET_CLASS_METHOD(flush, flush);
-			JS_SET_CLASS_ACCESSOR(index, index);
-			JS_SET_CLASS_ACCESSOR(host, host);
-			JS_SET_CLASS_ACCESSOR(time, time, set_time);
-			JS_SET_CLASS_ACCESSOR(curve, curve, set_curve);
+		Js_Define_Class(Frame, constructor, {
+			Js_Set_Class_Method(fetch, fetch);
+			Js_Set_Class_Method(flush, flush);
+			Js_Set_Class_Accessor(index, index);
+			Js_Set_Class_Accessor(host, host);
+			Js_Set_Class_Accessor(time, time, set_time);
+			Js_Set_Class_Accessor(curve, curve, set_curve);
 			// Meta attribute
-			JS_SET_CLASS_ACCESSOR(x, x, set_x);
-			JS_SET_CLASS_ACCESSOR(y, y, set_y);
-			JS_SET_CLASS_ACCESSOR(scaleX, scale_x, set_scale_x);
-			JS_SET_CLASS_ACCESSOR(scaleY, scale_y, set_scale_y);
-			JS_SET_CLASS_ACCESSOR(skewX, skew_x, set_skew_x);
-			JS_SET_CLASS_ACCESSOR(skewY, skew_y, set_skew_y);
-			JS_SET_CLASS_ACCESSOR(originX, origin_x, set_origin_x);
-			JS_SET_CLASS_ACCESSOR(originY, origin_y, set_origin_y);
-			JS_SET_CLASS_ACCESSOR(rotateZ, rotate_z, set_rotate_z);
-			JS_SET_CLASS_ACCESSOR(opacity, opacity, set_opacity);
-			JS_SET_CLASS_ACCESSOR(visible, visible, set_visible);
-			JS_SET_CLASS_ACCESSOR(width, width, set_width);
-			JS_SET_CLASS_ACCESSOR(height, height, set_height);
-			JS_SET_CLASS_ACCESSOR(marginLeft, margin_left, set_margin_left);
-			JS_SET_CLASS_ACCESSOR(marginTop, margin_top, set_margin_top);
-			JS_SET_CLASS_ACCESSOR(marginRight, margin_right, set_margin_right);
-			JS_SET_CLASS_ACCESSOR(marginBottom, margin_bottom, set_margin_bottom);
-			JS_SET_CLASS_ACCESSOR(borderLeftWidth, border_left_width, set_border_left_width);
-			JS_SET_CLASS_ACCESSOR(borderTopWidth, border_top_width, set_border_top_width);
-			JS_SET_CLASS_ACCESSOR(borderRightWidth, border_right_width, set_border_right_width);
-			JS_SET_CLASS_ACCESSOR(borderBottomWidth, border_bottom_width, set_border_bottom_width);
-			JS_SET_CLASS_ACCESSOR(borderLeftColor, border_left_color, set_border_left_color);
-			JS_SET_CLASS_ACCESSOR(borderTopColor, border_top_color, set_border_top_color);
-			JS_SET_CLASS_ACCESSOR(borderRightColor, border_right_color, set_border_right_color);
-			JS_SET_CLASS_ACCESSOR(borderBottomColor, border_bottom_color, set_border_bottom_color);
-			JS_SET_CLASS_ACCESSOR(borderRadiusLeftTop, border_radius_left_top, set_border_radius_left_top);
-			JS_SET_CLASS_ACCESSOR(borderRadiusRightTop, border_radius_right_top, set_border_radius_right_top);
-			JS_SET_CLASS_ACCESSOR(borderRadiusRightBottom, border_radius_right_bottom, set_border_radius_right_bottom);
-			JS_SET_CLASS_ACCESSOR(borderRadiusLeftBottom, border_radius_left_bottom, set_border_radius_left_bottom);
-			JS_SET_CLASS_ACCESSOR(backgroundColor, background_color, set_background_color);
-			JS_SET_CLASS_ACCESSOR(background, background, set_background);
-			JS_SET_CLASS_ACCESSOR(newline, newline, set_newline);
-			JS_SET_CLASS_ACCESSOR(clip, clip, set_clip);
-			JS_SET_CLASS_ACCESSOR(contentAlign, content_align, set_content_align);
-			JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
-			JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
-			JS_SET_CLASS_ACCESSOR(maxHeight, max_height, set_max_height);
-			JS_SET_CLASS_ACCESSOR(startX, start_x, set_start_x);
-			JS_SET_CLASS_ACCESSOR(startY, start_y, set_start_y);
-			JS_SET_CLASS_ACCESSOR(ratioX, ratio_x, set_ratio_x);
-			JS_SET_CLASS_ACCESSOR(ratioY, ratio_y, set_ratio_y);
-			JS_SET_CLASS_ACCESSOR(repeat, repeat, set_repeat);
-			JS_SET_CLASS_ACCESSOR(textBackgroundColor, text_background_color, set_text_background_color);
-			JS_SET_CLASS_ACCESSOR(textColor, text_color, set_text_color);
-			JS_SET_CLASS_ACCESSOR(textSize, text_size, set_text_size);
-			JS_SET_CLASS_ACCESSOR(TextSlant, text_slant, set_text_slant);
-			JS_SET_CLASS_ACCESSOR(textFamily, text_family, set_text_family);
-			JS_SET_CLASS_ACCESSOR(textLineHeight, text_line_height, set_text_line_height);
-			JS_SET_CLASS_ACCESSOR(textShadow, text_shadow, set_text_shadow);
-			JS_SET_CLASS_ACCESSOR(textDecoration, text_decoration, set_text_decoration);
-			JS_SET_CLASS_ACCESSOR(textOverflow, text_overflow, set_text_overflow);
-			JS_SET_CLASS_ACCESSOR(textWhiteSpace, text_white_space, set_text_white_space);
-			JS_SET_CLASS_ACCESSOR(alignX, align_x, set_align_x);
-			JS_SET_CLASS_ACCESSOR(alignY, align_y, set_align_y);
-			JS_SET_CLASS_ACCESSOR(shadow, shadow, set_shadow);
-			JS_SET_CLASS_ACCESSOR(src, src, set_src);
+			Js_Set_Class_Accessor(x, x, set_x);
+			Js_Set_Class_Accessor(y, y, set_y);
+			Js_Set_Class_Accessor(scaleX, scale_x, set_scale_x);
+			Js_Set_Class_Accessor(scaleY, scale_y, set_scale_y);
+			Js_Set_Class_Accessor(skewX, skew_x, set_skew_x);
+			Js_Set_Class_Accessor(skewY, skew_y, set_skew_y);
+			Js_Set_Class_Accessor(originX, origin_x, set_origin_x);
+			Js_Set_Class_Accessor(originY, origin_y, set_origin_y);
+			Js_Set_Class_Accessor(rotateZ, rotate_z, set_rotate_z);
+			Js_Set_Class_Accessor(opacity, opacity, set_opacity);
+			Js_Set_Class_Accessor(visible, visible, set_visible);
+			Js_Set_Class_Accessor(width, width, set_width);
+			Js_Set_Class_Accessor(height, height, set_height);
+			Js_Set_Class_Accessor(marginLeft, margin_left, set_margin_left);
+			Js_Set_Class_Accessor(marginTop, margin_top, set_margin_top);
+			Js_Set_Class_Accessor(marginRight, margin_right, set_margin_right);
+			Js_Set_Class_Accessor(marginBottom, margin_bottom, set_margin_bottom);
+			Js_Set_Class_Accessor(borderLeftWidth, border_left_width, set_border_left_width);
+			Js_Set_Class_Accessor(borderTopWidth, border_top_width, set_border_top_width);
+			Js_Set_Class_Accessor(borderRightWidth, border_right_width, set_border_right_width);
+			Js_Set_Class_Accessor(borderBottomWidth, border_bottom_width, set_border_bottom_width);
+			Js_Set_Class_Accessor(borderLeftColor, border_left_color, set_border_left_color);
+			Js_Set_Class_Accessor(borderTopColor, border_top_color, set_border_top_color);
+			Js_Set_Class_Accessor(borderRightColor, border_right_color, set_border_right_color);
+			Js_Set_Class_Accessor(borderBottomColor, border_bottom_color, set_border_bottom_color);
+			Js_Set_Class_Accessor(borderRadiusLeftTop, border_radius_left_top, set_border_radius_left_top);
+			Js_Set_Class_Accessor(borderRadiusRightTop, border_radius_right_top, set_border_radius_right_top);
+			Js_Set_Class_Accessor(borderRadiusRightBottom, border_radius_right_bottom, set_border_radius_right_bottom);
+			Js_Set_Class_Accessor(borderRadiusLeftBottom, border_radius_left_bottom, set_border_radius_left_bottom);
+			Js_Set_Class_Accessor(backgroundColor, background_color, set_background_color);
+			Js_Set_Class_Accessor(background, background, set_background);
+			Js_Set_Class_Accessor(newline, newline, set_newline);
+			Js_Set_Class_Accessor(clip, clip, set_clip);
+			Js_Set_Class_Accessor(contentAlign, content_align, set_content_align);
+			Js_Set_Class_Accessor(textAlign, text_align, set_text_align);
+			Js_Set_Class_Accessor(maxWidth, max_width, set_max_width);
+			Js_Set_Class_Accessor(maxHeight, max_height, set_max_height);
+			Js_Set_Class_Accessor(startX, start_x, set_start_x);
+			Js_Set_Class_Accessor(startY, start_y, set_start_y);
+			Js_Set_Class_Accessor(ratioX, ratio_x, set_ratio_x);
+			Js_Set_Class_Accessor(ratioY, ratio_y, set_ratio_y);
+			Js_Set_Class_Accessor(repeat, repeat, set_repeat);
+			Js_Set_Class_Accessor(textBackgroundColor, text_background_color, set_text_background_color);
+			Js_Set_Class_Accessor(textColor, text_color, set_text_color);
+			Js_Set_Class_Accessor(textSize, text_size, set_text_size);
+			Js_Set_Class_Accessor(TextSlant, text_slant, set_text_slant);
+			Js_Set_Class_Accessor(textFamily, text_family, set_text_family);
+			Js_Set_Class_Accessor(textLineHeight, text_line_height, set_text_line_height);
+			Js_Set_Class_Accessor(textShadow, text_shadow, set_text_shadow);
+			Js_Set_Class_Accessor(textDecoration, text_decoration, set_text_decoration);
+			Js_Set_Class_Accessor(textOverflow, text_overflow, set_text_overflow);
+			Js_Set_Class_Accessor(textWhiteSpace, text_white_space, set_text_white_space);
+			Js_Set_Class_Accessor(alignX, align_x, set_align_x);
+			Js_Set_Class_Accessor(alignY, align_y, set_align_y);
+			Js_Set_Class_Accessor(shadow, shadow, set_shadow);
+			Js_Set_Class_Accessor(src, src, set_src);
 			// Non meta attributecurve
-			JS_SET_CLASS_ACCESSOR(translate, translate, set_translate);
-			JS_SET_CLASS_ACCESSOR(scale, scale, set_scale);
-			JS_SET_CLASS_ACCESSOR(skew, skew, set_skew);
-			JS_SET_CLASS_ACCESSOR(origin, origin, set_origin);
-			JS_SET_CLASS_ACCESSOR(margin, margin, set_margin);
-			JS_SET_CLASS_ACCESSOR(border, border, set_border);
-			JS_SET_CLASS_ACCESSOR(borderLeft, border_left, set_border_left);
-			JS_SET_CLASS_ACCESSOR(borderTop, border_top, set_border_top);
-			JS_SET_CLASS_ACCESSOR(borderRight, border_right, set_border_right);
-			JS_SET_CLASS_ACCESSOR(borderBottom, border_bottom, set_border_bottom);
-			JS_SET_CLASS_ACCESSOR(borderWidth, border_width, set_border_width);
-			JS_SET_CLASS_ACCESSOR(borderColor, border_color, set_border_color);
-			JS_SET_CLASS_ACCESSOR(borderRadius, border_radius, set_border_radius);
-			JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
-			JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
-			JS_SET_CLASS_ACCESSOR(start, start, set_start);
-			JS_SET_CLASS_ACCESSOR(ratio, ratio, set_ratio);
-			JS_SET_CLASS_ACCESSOR(align, align, set_align);
+			Js_Set_Class_Accessor(translate, translate, set_translate);
+			Js_Set_Class_Accessor(scale, scale, set_scale);
+			Js_Set_Class_Accessor(skew, skew, set_skew);
+			Js_Set_Class_Accessor(origin, origin, set_origin);
+			Js_Set_Class_Accessor(margin, margin, set_margin);
+			Js_Set_Class_Accessor(border, border, set_border);
+			Js_Set_Class_Accessor(borderLeft, border_left, set_border_left);
+			Js_Set_Class_Accessor(borderTop, border_top, set_border_top);
+			Js_Set_Class_Accessor(borderRight, border_right, set_border_right);
+			Js_Set_Class_Accessor(borderBottom, border_bottom, set_border_bottom);
+			Js_Set_Class_Accessor(borderWidth, border_width, set_border_width);
+			Js_Set_Class_Accessor(borderColor, border_color, set_border_color);
+			Js_Set_Class_Accessor(borderRadius, border_radius, set_border_radius);
+			Js_Set_Class_Accessor(minWidth, min_width, set_min_width);
+			Js_Set_Class_Accessor(minHeight, min_height, set_min_height);
+			Js_Set_Class_Accessor(start, start, set_start);
+			Js_Set_Class_Accessor(ratio, ratio, set_ratio);
+			Js_Set_Class_Accessor(align, align, set_align);
 		}, nullptr);
 	}
 };
@@ -493,4 +493,4 @@ void binding_frame(Local<JSObject> exports, Worker* worker) {
 	WrapFrame::binding(exports, worker);
 }
 
-JS_END
+Js_END

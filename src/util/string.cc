@@ -366,7 +366,7 @@ namespace qk {
 		return _Str::format(size, size_of, alloc, "%g", i);
 	}
 
-	String string_format(cChar* f, va_list arg) {
+	String _Str::string_format(cChar* f, va_list arg) {
 		Size size;
 		char* buf = (char*)_Str::format(&size, 1, &MemoryAllocator::alloc, f, arg);
 		return buf ? Buffer::from(buf, size.len, size.capacity).collapseString(): String();

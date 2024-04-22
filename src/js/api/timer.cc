@@ -35,7 +35,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 class Timer: public Reference {
 	public:
@@ -125,13 +125,13 @@ class WrapTimer: public WrapObject {
 	public:
 	
 	static void constructor(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || !args[0]->IsFunction(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		RunLoop* loop = RunLoop::current();
 		if (!loop) { // 没有消息队列无法执行这个操作
-			JS_THROW_ERR("Unable to obtain thread run queue");
+			Js_Throw("Unable to obtain thread run queue");
 		}
 		
 		Wrap<Timer>* wrap = nullptr;
@@ -149,52 +149,52 @@ class WrapTimer: public WrapObject {
 		 * 否则v8声明的临时变量会存储在顶级句柄范围中,
 		 * 因为顶级范围句柄从来不会释放,这会造成局部变量也不会释放最终导致内存泄漏
 		 */
-		JS_HANDLE_SCOPE();
-		JS_CALLBACK_SCOPE();
+		Js_Handle_Scope();
+		Js_Callback_Scope();
 		wrap->call(wrap->worker()->New("__native_handle_cb__",1));
 	}
 	
 	static void Loop(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Timer);
-		JS_RETURN( self->loop() );
+		Js_Worker(args);
+		Js_Self(Timer);
+		Js_Return( self->loop() );
 	}
 	
 	static void SetLoop(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (!value->IsInt32(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
-		JS_SELF(Timer);
+		Js_Self(Timer);
 		self->loop(value->ToInt32Value(worker));
 	}
 	
 	static void Run(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || ! args[0]->IsNumber(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		uint64_t timeout = Qk_MAX(0, args[0]->ToNumberValue(worker));
 		int loop = 1;
 		if (args.Length() > 1 && args[1]->IsInt32(worker)) {
 			loop = args[1]->ToInt32Value(worker);
 		}
-		JS_SELF(Timer);
+		Js_Self(Timer);
 		self->run(timeout, loop);
 	}
 	
 	static void Stop(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(Timer);
+		Js_Worker(args);
+		Js_Self(Timer);
 		self->stop();
 	}
 
 	// global function
 
 	static void run_timer_(FunctionCall args, int loop) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if (args.Length() == 0 || !args[0]->IsFunction(worker)) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		uint64_t timeout = 0;
 		if (args.Length() > 1 && args[1]->IsNumber(worker)) {
@@ -202,12 +202,12 @@ class WrapTimer: public WrapObject {
 		}
 		
 		Local<JSValue> cb = args[0];
-		Local<JSObject> o = worker->NewInstance(JS_TYPEID(Timer), 1, &cb);
+		Local<JSObject> o = worker->NewInstance(Js_Typeid(Timer), 1, &cb);
 		
 		if ( !o.IsEmpty() ) {
 			Wrap<Timer>* wrap = Wrap<Timer>::unpack(o);
 			wrap->self()->run(timeout, loop);
-			JS_RETURN( wrap->that() );
+			Js_Return( wrap->that() );
 		}
 	}
 
@@ -220,9 +220,9 @@ class WrapTimer: public WrapObject {
 	}
 
 	static void clearTimeout(FunctionCall args) {
-		JS_WORKER(args);
+		Js_Worker(args);
 		if ( args.Length() == 0 || ! worker->hasInstance<Timer>(args[0]) ) {
-			JS_THROW_ERR("Bad argument");
+			Js_Throw("Bad argument");
 		}
 		Wrap<Timer>::unpack(args[0].To<JSObject>())->self()->stop();
 	}
@@ -232,18 +232,18 @@ class WrapTimer: public WrapObject {
 	}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Timer, constructor, {
-			JS_SET_CLASS_ACCESSOR(loop, Loop, SetLoop);
-			JS_SET_CLASS_METHOD(run, Run);
-			JS_SET_CLASS_METHOD(stop, Stop);
+		Js_Define_Class(Timer, constructor, {
+			Js_Set_Class_Accessor(loop, Loop, SetLoop);
+			Js_Set_Class_Method(run, Run);
+			Js_Set_Class_Method(stop, Stop);
 		}, nullptr);
-		JS_SET_METHOD(setTimeout, setTimeout);
-		JS_SET_METHOD(setInterval, setInterval);
-		JS_SET_METHOD(clearTimeout, clearTimeout);
-		JS_SET_METHOD(clearInterval, clearInterval);
+		Js_Set_Method(setTimeout, setTimeout);
+		Js_Set_Method(setInterval, setInterval);
+		Js_Set_Method(clearTimeout, clearTimeout);
+		Js_Set_Method(clearInterval, clearInterval);
 	}
 
 };
 
-JS_REG_MODULE(_timer, WrapTimer)
-JS_END
+Js_REG_MODULE(_timer, WrapTimer)
+Js_END

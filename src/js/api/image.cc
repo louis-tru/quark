@@ -36,7 +36,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 /**
  * @class WrapImage
@@ -45,43 +45,43 @@ class WrapImage: public WrapViewBase {
 	public:
 
 	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_CHECK_APP();
+		Js_ATTACH(args);
+		Js_CHECK_APP();
 		New<WrapImage>(args, new Image());
 	}
 	
 	static void src(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(Image);
-		JS_RETURN( self->src() );
+		Js_Worker(args);
+		Js_Self(Image);
+		Js_Return( self->src() );
 	}
 	
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Image);
+		Js_Worker(args); UILock lock;
+		Js_Self(Image);
 		String src = value->ToStringValue(worker);
 		self->set_src(src);
 	}
 	
 	static void source_width(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Image);
-		JS_RETURN( self->source_width() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Image);
+		Js_Return( self->source_width() );
 	}
 	
 	static void source_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args); UILock lock;
-		JS_SELF(Image);
-		JS_RETURN( self->source_height() );
+		Js_Worker(args); UILock lock;
+		Js_Self(Image);
+		Js_Return( self->source_height() );
 	}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(Image, constructor, {
-			JS_SET_CLASS_ACCESSOR(src, src, set_src);
-			JS_SET_CLASS_ACCESSOR(sourceWidth, source_width);
-			JS_SET_CLASS_ACCESSOR(sourceHeight, source_height);
+		Js_Define_Class(Image, constructor, {
+			Js_Set_Class_Accessor(src, src, set_src);
+			Js_Set_Class_Accessor(sourceWidth, source_width);
+			Js_Set_Class_Accessor(sourceHeight, source_height);
 		}, Div);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Image), View::IMAGE);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Image), View::IMAGE);
 	}
 };
 
@@ -89,4 +89,4 @@ void binding_image(Local<JSObject> exports, Worker* worker) {
 	WrapImage::binding(exports, worker);
 }
 
-JS_END
+Js_END

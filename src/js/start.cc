@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./js.h"
+#include "./_js.h"
 #include "../ui/app.h"
 
 namespace qk { namespace js {
@@ -81,15 +81,15 @@ namespace qk { namespace js {
 		}
 	}
 
-	static void on_process_safe_handle(Event<>& e) {
+	static void onProcessSafeHandle(Event<>& e) {
 		int rc = static_cast<const Int32*>(e.data())->value;
 		if (RunLoop::first()->runing()) {
 			typedef Callback<RunLoop::PostSyncData> Cb;
 			RunLoop::first()->post_sync(Cb([&](Cb::Data& e) {
 				auto worker = Worker::worker();
-				Qk_DEBUG("on_process_safe_handle");
+				Qk_DEBUG("onProcessSafeHandle");
 				if (worker) {
-					rc = IMPL::inl(worker)->TriggerExit(rc);
+					rc = triggerExit(worker, rc);
 				}
 				e.data->complete();
 			}));
@@ -106,7 +106,7 @@ namespace qk { namespace js {
 		Array<char*> argv, quark_argv;
 		parseArgv(argv_in, argv, quark_argv);
 
-		Qk_On(ProcessExit, on_process_safe_handle);
+		Qk_On(ProcessExit, onProcessSafeHandle);
 
 		__quark_js_argv = &quark_argv;
 
@@ -114,12 +114,12 @@ namespace qk { namespace js {
 		Qk_ASSERT(RunLoop::first() == RunLoop::current());
 
 		char** argv_c = const_cast<char**>(&argv[0]);
-		int rc = IMPL::start(argv.length(), argv_c);
+		int rc = platformStart(argv.length(), argv_c);
 		__quark_js_argv = nullptr;
 
-		Qk_Off(ProcessExit, on_process_safe_handle);
+		Qk_Off(ProcessExit, onProcessSafeHandle);
 	
-		Object::setAllocator(nullptr, nullptr, nullptr, nullptr);
+		// Object::setAllocator(nullptr, nullptr, nullptr, nullptr);
 
 		return rc;
 	}

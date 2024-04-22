@@ -31,56 +31,20 @@
 #ifndef __quark__js__api__view__
 #define __quark__js__api__view__
 
-#include "../js.h"
+#include "../_js.h"
 #include "../types.h"
-#include "../../app.h"
 
-/**
- * @ns qk::js
- */
+namespace qk { namespace js {
 
-JS_BEGIN
-
-#define JS_CHECK_APP() if ( ! app() ) { \
-	JS_WORKER(args); JS_THROW_ERR("Need to create a `new Application()`"); }
-
-/**
- * @class WrapViewBase
- */
-class Qk_EXPORT WrapViewBase: public WrapObject {
+	class Qk_EXPORT WrapView_Event: public WrapObject {
 	public:
+		virtual bool addEventListener(cString& name, cString& func, int id);
+		virtual bool removeEventListener(cString& name, int id);
+	};
 
-	/**
-	 * @func overwrite
-	 */
-	virtual void destroy();
-	
-	/**
-	 * @func overwrite
-	 */
-	virtual bool addEventListener(cString& name, cString& func, int id);
-	
-	/**
-	 * @func overwrite
-	 */
-	virtual bool removeEventListener(cString& name, int id);
-	
-	/**
-	 * @func inheritTextFont
-	 */
-	static void inheritTextFont(Local<JSClass> cls, Worker* worker);
-	
-	/**
-	 * @func inheritTextLayout
-	 */
-	static void inheritTextLayout(Local<JSClass> cls, Worker* worker);
-	
-	/**
-	 * @func inheritScroll
-	 */
-	static void inheritScroll(Local<JSClass> cls, Worker* worker);
-	
-};
+	void inheritTextFont(Local<JSClass> cls, Worker* worker);
+	void inheritTextLayout(Local<JSClass> cls, Worker* worker);
+	void inheritScroll(Local<JSClass> cls, Worker* worker);
 
-JS_END
+} }
 #endif

@@ -38,7 +38,7 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 Local<JSValue> convert_buffer(Worker* worker, 
 	Buffer& buffer, Encoding encoding = Encoding::unknown);
@@ -55,5 +55,5 @@ Cb get_callback_for_bool(Worker* worker, Local<JSValue> cb);
 Cb get_callback_for_int(Worker* worker, Local<JSValue> cb);
 Cb get_callback_for_file_stat(Worker* worker, Local<JSValue> cb);
 
-JS_END
+Js_END
 #endif

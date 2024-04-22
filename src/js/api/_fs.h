@@ -39,9 +39,9 @@
  * @ns qk::js
  */
 
-JS_BEGIN
+Js_BEGIN
 
 bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en);
 
-JS_END
+Js_END
 #endif

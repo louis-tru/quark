@@ -265,17 +265,17 @@ namespace qk {
 	};
 
 	#define _Fun(Name, C, Flag) \
-		const UIEventName UIEvent_##Name(#Name, k##C##_UIEventCategory, Flag);
+	const UIEventName UIEvent_##Name(#Name, k##C##_UIEventCategory, Flag);
 	Qk_UI_Events(_Fun)
 	#undef _Fun
 
-	const Dict<String, UIEventName> UIEventNames([]() -> Dict<String, UIEventName> {
+	const Dict<String, UIEventName> UIEventNames([]() {
 		Dict<String, UIEventName> r;
 		#define _Fun(Name, C, F) \
 			r.set(UIEvent_##Name.toString(), UIEvent_##Name);
 		Qk_UI_Events(_Fun)
 		#undef _Fun
-		return r;
+		Qk_ReturnLocal(r);
 	}());
 
 	// @EventDispatch

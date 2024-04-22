@@ -282,6 +282,7 @@ namespace qk {
 		);
 		static int tolower(int c);
 		static int toupper(int c);
+		static String string_format(cChar* f, va_list arg);
 	};
 
 	// --------------------------------------------------------------------------------
