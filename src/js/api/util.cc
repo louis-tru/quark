@@ -36,10 +36,6 @@
 //#include "quark/util/jsx.h"
 #include <native-ext-js.h>
 
-/**
- * @ns qk::js
- */
-
 Js_BEGIN
 
 using namespace native_js;

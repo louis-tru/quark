@@ -28,8 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// #include <native-inl-js.h>
-// #include <native-lib-js.h>
+#include <native-inl-js.h>
 #include "../util/string.h"
 #include "./_js.h"
 #include "../util/http.h"
@@ -37,7 +36,6 @@
 #include "./types.h"
 
 namespace qk { namespace js {
-	//using namespace native_js;
 
 	Buffer JSValue::toBuffer(Worker* worker, Encoding en) const {
 		if (en == Encoding::kUTF16_Encoding) {
@@ -144,7 +142,7 @@ namespace qk { namespace js {
 	}
 
 	Local<JSValue> JSObject::getProperty(Worker* worker, cString& name) {
-		return get(worker, worker->newInstance(name, 1).cast<JSValue>());
+		return get(worker, worker->newStringOneByte(name)/*One Byte ??*/);
 	}
 
 	Maybe<Array<String>> JSArray::toStringArrayMaybe(Worker* worker) {
@@ -278,7 +276,7 @@ namespace qk { namespace js {
 
 	// ----------------------------------- W o r k e r -----------------------------------
 
-	struct LIB_NativeJSCode {
+	struct NativeJSCode {
 		int count;
 		const char* code;
 		const char* name;
@@ -287,30 +285,27 @@ namespace qk { namespace js {
 
 	struct NativeModuleLib {
 		String name;
-		String file;
+		String pathname;
 		BindingCallback binding;
-		const LIB_NativeJSCode* native_code;
+		const NativeJSCode* native_code;
 	};
 
 	static Dict<String, NativeModuleLib>* NativeModulesLib = nullptr;
 
-	void Worker::setModule(cString& name, BindingCallback binding, cChar* file) {
+	void Worker::setModule(cString& name, BindingCallback binding, cChar* pathname) {
 		if (!NativeModulesLib) {
 			NativeModulesLib = new Dict<String, NativeModuleLib>();
 		}
-		NativeModulesLib->set(name, { name, file ? file: name, binding, 0 });
+		NativeModulesLib->set(name, { name, pathname ? pathname: name, binding, 0 });
 	}
 
-	Local<JSValue> Worker::bindingModule(cString& name) {
-		auto str = newInstance(name).cast();
-		auto r = _nativeModules.toLocal()->get(this, str);
-		if (!r->isUndefined(this)) {
-			return r.cast<JSObject>();
-		}
-
+ 	Local<JSValue> BindingModule::binding(Local<JSValue> name) {
+		auto r = _nativeModules.toLocal()->get(this, name);
+		if (!r->isUndefined(this))
+			return r;
 		const NativeModuleLib* lib;
 		auto exports = newObject();
-		auto ok = NativeModulesLib->get(name, lib);
+		auto ok = NativeModulesLib->get(name->toStringValue(this), lib);
 
 		if (ok) {
 			if (lib->binding) {
@@ -326,10 +321,25 @@ namespace qk { namespace js {
 					return exports;
 				}
 			}
-			_nativeModules.toLocal()->set(this, str, exports);
+			_nativeModules.toLocal()->set(this, name, exports);
 		}
-
 		return exports;
+	}
+
+	Local<JSValue> Worker::bindingModule(cString& name) {
+		return static_cast<BindingModule*>(this)->binding(newStringOneByte(name));
+	}
+
+	static void __bindingModule__(FunctionArgs args) {
+		Js_Worker(args);
+		if (args.length() < 1) {
+			Js_Throw("Bad argument.");
+		}
+		// Js_Handle_Scope();
+		auto r = static_cast<BindingModule*>(worker)->binding(args[0]);
+		if (r) {
+			Js_Return(r);
+		}
 	}
 
 	Worker::Worker()
@@ -341,13 +351,13 @@ namespace qk { namespace js {
 		// register core native module
 		static int initializ_core_native_module = 0;
 		if ( initializ_core_native_module++ == 0 ) {
-			if (!NativeModulesLib) {
-				NativeModulesLib = new Dict<String, NativeModuleLib>();
+			Qk_ASSERT(NativeModulesLib);
+			for (int i = 0; i < native_js::INL_native_js_count_; i++) {
+				const NativeJSCode* code = native_js::INL_native_js_ + i;
+				if (!NativeModulesLib->has(code->name)) { // skip _event / _types
+					NativeModulesLib->set(code->name, { code->name, code->name, 0, code });
+				}
 			}
-			// for (int i = 0; i < LIB_native_js_count_; i++) {
-			// 	const LIB_NativeJSCode* code = LIB_native_js_ + i;
-			// 	NativeModulesLib->set(code->name, { code->name, code->name, 0, code });
-			// }
 		}
 	}
 
@@ -359,8 +369,6 @@ namespace qk { namespace js {
 		_global.reset();
 	}
 
-	static void require_native(FunctionArgs args);
-
 	void Worker::init() {
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
@@ -368,7 +376,7 @@ namespace qk { namespace js {
 		_classsinfo = new JsClassInfo(this);
 		Qk_ASSERT(_global->isObject(this));
 		_global->setProperty(this, "global", _global.toLocal());
-		_global->setMethod(this, "__require__", require_native);
+		_global->setMethod(this, "__bindingModule__", __bindingModule__);
 
 		auto globalThis = newInstance("globalThis");
 		if ( !_global->has(this, globalThis.cast<JSValue>()) ) {
@@ -414,12 +422,6 @@ namespace qk { namespace js {
 		return r;
 	}
 
-	Local<JSObject> Worker::newObject(uint64_t id, uint32_t argc, Local<JSValue>* argv) {
-		Local<JSFunction> func = _classsinfo->getFunction(id);
-		Qk_ASSERT( !func.IsEmpty() );
-		return func->newInstance(this, argc, argv);
-	}
-
 	Local<JSUint8Array> Worker::newUint8Array(Local<JSString> str, Encoding en) {
 		return newInstance(str->toBuffer(this, en));
 	}
@@ -452,19 +454,6 @@ namespace qk { namespace js {
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	// @private __require__
-	static void require_native(FunctionArgs args) {
-		Js_Worker(args);
-		Js_Handle_Scope();
-		if (args.length() < 1) {
-			Js_Throw("Bad argument.");
-		}
-		auto name = args[0]->toStringValue(worker);
-		auto r = worker->bindingModule(name);
-		if (r) {
-			Js_Return(r);
-		}
-	}
 
 	static Local<JSValue> TriggerEventFromUtil(Worker* worker,
 		cString& name, int argc = 0, Local<JSValue> argv[] = 0)

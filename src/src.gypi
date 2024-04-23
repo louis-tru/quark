@@ -4,7 +4,6 @@
 		'target_name': 'quark',
 		'type': 'static_library', #<(output_type)
 		'include_dirs': [
-			'..',
 			'../out',
 			'../deps/freetype/include',
 			'../deps/libtess2/Include',
@@ -18,7 +17,7 @@
 			'deps/libgif/libgif.gyp:libgif',
 		],
 		'direct_dependent_settings': {
-			'include_dirs': [ '..', '../out' ],
+			'include_dirs': [],
 			'xcode_settings': {
 				# 'OTHER_LDFLAGS': '-all_load',
 			},
@@ -31,7 +30,7 @@
 				}],
 				['cplusplus_rtti==1', {
 					'xcode_settings': { 
-						'GCC_ENABLE_CPP_RtTI': 'YES',
+						'GCC_ENABLE_CPP_RTTI': 'YES',
 					},
 					'cflags_cc': [ '-frtti', ],
 				}],

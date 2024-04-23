@@ -35,7 +35,7 @@ var inputs = process.argv.slice(2);
 var output_cc = inputs.pop();
 var output_h = inputs.pop();
 var is_wrap = inputs.pop() == 'wrap';
-var suffix = inputs.pop();
+var prefix = inputs.pop();
 var pkgname = inputs.pop();
 var Buffer = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
@@ -44,7 +44,7 @@ var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 // console.log(inputs);
 /*
 console.log(process.argv);
-console.log(suffix);
+console.log(prefix);
 console.log(output_h);
 console.log(output_cc);
 console.log(pkgname);
@@ -72,8 +72,8 @@ count int CORE_native_js_code_util_count_ = 6;
 const unsigned char CORE_native_js_code_util_[] = { 0, 1, 2, 3, 4, 5 };
 const int CORE_native_js_count_ = 2;
 const NativeJSCode CORE_native_js_[] = {
-	{ 6, CORE_native_js_code_value_, "value" },
-	{ 6, CORE_native_js_code_util_, "util" },
+	{ 6, CORE_native_js_code_value_, "value", ".js" },
+	{ 6, CORE_native_js_code_util_, "util", ".js" },
 };
 */
 
@@ -129,16 +129,17 @@ function write_file_item(filename, fd_h, fd_cc, pkgname, read) {
 	var basename = path.basename(filename).replace(/\..*$/gm, '').replace(/-/gm, '_');
 	var pathname = pkgname ? `${pkgname}/${basename}`: basename;
 	var name_suffix = pathname.replace(/\//gm, '_');
-	var name = format_string('{0}_native_js_code_{1}_', suffix, name_suffix);
-	var count_name = format_string('{0}_native_js_code_{1}_count_', suffix, name_suffix);
+	var name = format_string('{0}_native_js_code_{1}_', prefix, name_suffix);
+	var count_name = format_string('{0}_native_js_code_{1}_count_', prefix, name_suffix);
 	var arr = read(filename);
 	var length = arr.length + wrap_len;
 
 	var r = {
-		name: name,
+		name,
 		count: length,
-		pathname: pathname,
-		extname: extname,
+		pathname,
+		extname,
+		basename,
 	};
 
 	// h
@@ -179,7 +180,7 @@ function main() {
 				'#ifndef __native__js__' + h_name + '__',
 				'#define __native__js__' + h_name + '__',
 				'namespace native_js {',
-				'struct ' + suffix + '_NativeJSCode {',
+				'struct ' + prefix + '_NativeJSCode {',
 				' int count;',
 				' const char* code;',
 				' const char* name;',
@@ -198,10 +199,10 @@ function main() {
 		js.push( write_file_item(inputs[i], fd_h, fd_cc, pkgname, readSource) );
 	}
 
-	write(fd_h, format_string('extern const int {0}_native_js_count_;', suffix));
-	write(fd_h, format_string('extern const {0}_NativeJSCode {0}_native_js_[];', suffix));
-	write(fd_cc, format_string('const int {0}_native_js_count_ = {1};', suffix, js.length));
-	write(fd_cc, format_string('const {0}_NativeJSCode {0}_native_js_[] = {', suffix));
+	write(fd_h, format_string('extern const int {0}_native_js_count_;', prefix));
+	write(fd_h, format_string('extern const {0}_NativeJSCode {0}_native_js_[];', prefix));
+	write(fd_cc, format_string('const int {0}_native_js_count_ = {1};', prefix, js.length));
+	write(fd_cc, format_string('const {0}_NativeJSCode {0}_native_js_[] = {', prefix));
 
 	for (var { count, name, pathname, extname } of js) {
 		write(fd_cc, `{ ${count}, (const char*)${name}, "${pathname}", "${extname}" },`);

@@ -13,11 +13,11 @@
 			'deps/http_parser/http_parser.gyp:http_parser',
 		],
 		'direct_dependent_settings': {
-			'include_dirs': [ '../..' ],
+			'include_dirs': [],
 			'mac_bundle_resources': [],
 		},
 		'include_dirs': [
-			'../..',
+			'../../out',
 			'../../deps/rapidjson/include',
 			'../../deps/libbptree/include',
 		],

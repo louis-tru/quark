@@ -2,6 +2,7 @@
 	'includes': [
 		'src/util/util.gypi',
 		'src/src.gypi',
+		'src/js/js.gypi',
 		'trial/trial.gypi',
 		'tools/default_target.gypi',
 	],
@@ -48,7 +49,7 @@
 		'dependencies': [
 			'quark',
 			'quark-media',
-			# 'quark-js',
+			'quark-js',
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"

@@ -170,7 +170,7 @@ namespace qk {
 		kRatio,   /* 百分比 value % */
 		kMinus,   /* 减法(parent-value) value ! */
 	};
-	typedef FillSizeKind  BoxOriginKind;
+	typedef FillSizeKind BoxOriginKind;
 
 	typedef WrapValue<BoxSizeKind, BoxSizeKind::kPixel> BoxSize;
 	typedef WrapValue<BoxOriginKind, BoxOriginKind::kPixel> BoxOrigin;

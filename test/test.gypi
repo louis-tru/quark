@@ -14,7 +14,7 @@
 				'quark-util',
 				'quark',
 				# 'quark-media',
-				# 'quark-js',
+				'quark-js',
 				'trial',
 				'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 				'deps/freetype/freetype.gyp:freetype',

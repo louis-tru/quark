@@ -61,8 +61,13 @@ namespace qk {
 	static Mutex *__threads_mutex = nullptr;
 	static Dict<ThreadID, Thread_INL*> *__threads = nullptr;
 	static pthread_key_t __specific_key = 0;
-	static std::atomic_int __is_process_exit(0);
+	static std::atomic_int __is_process_exit_safe(0);
+	static bool            __is_process_exit(false);
 	static EventNoticer<Event<>, Mutex> *__on_process_safe_exit = nullptr;
+
+	Qk_EXPORT bool is_process_exit() {
+		return __is_process_exit;
+	}
 
 	void CondMutex::lock_wait_for(uint64_t timeoutUs) {
 		Lock lock(mutex);
@@ -115,7 +120,7 @@ namespace qk {
 	}
 
 	ThreadID thread_new(void (*exec)(void* arg), void* arg, cString& tag) {
-		if ( __is_process_exit != 0 ) {
+		if ( __is_process_exit_safe != 0 ) {
 			return ThreadID();
 		}
 		Thread_INL *t = Thread_INL_init(new Thread_INL, tag, arg, exec);
@@ -225,8 +230,9 @@ namespace qk {
 	}
 
 	static void thread_try_abort_all(int rc) {
-		if (__is_process_exit++)
+		if (__is_process_exit_safe++)
 			return; // exit
+		__is_process_exit = true;
 
 		Array<ThreadID> threads_id;
 
@@ -255,7 +261,7 @@ namespace qk {
 	}
 
 	void thread_try_abort_and_exit(int rc) {
-		if (!__is_process_exit) {
+		if (!__is_process_exit_safe) {
 			thread_try_abort_all(rc);
 			::exit(rc); // exit process
 		}
@@ -678,8 +684,8 @@ namespace qk {
 	 * @func run() 运行消息循环
 	 */
 	void RunLoop::run(uint64_t timeout) {
-		if (__is_process_exit) {
-			Qk_WARN("cannot run RunLoop::run(), __is_process_exit != 0"); return;
+		if (__is_process_exit_safe) {
+			Qk_WARN("cannot run RunLoop::run(), __is_process_exit_safe != 0"); return;
 		}
 		if (_thread->abort) {
 			Qk_WARN("cannot run RunLoop::run(), _thread->abort != 0"); return;

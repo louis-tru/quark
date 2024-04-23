@@ -103,6 +103,7 @@ namespace qk { namespace js {
 		inline Local(Local<S> that): _val(that->_val) {}
 		inline bool isEmpty() const { return _val == 0; }
 		inline T* operator->() const { return _val; }
+		inline T* operator*() const { return _val; }
 		inline operator bool() const { return _val; }
 		template <class S = JSValue>
 		inline Local<S> cast() const {
@@ -196,6 +197,7 @@ namespace qk { namespace js {
 			return Local<T>(static_cast<T*>(reinterpret_cast<Persistent<JSValue>*>(this)->toLocal().val()));
 		}
 		inline T* operator->() const { return _val; }
+		inline T* operator*() const { return _val; }
 		inline operator bool() const { return _val; }
 		inline bool isWeak() {
 			return reinterpret_cast<Persistent<JSValue>*>(this)->isWeak();
@@ -230,7 +232,7 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT TryCatch: public NoCopy {
 	public:
-		TryCatch();
+		TryCatch(Worker *worker);
 		~TryCatch();
 		bool hasCaught() const;
 		Local<JSValue> exception() const;
@@ -292,40 +294,36 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT JSValue: public NoCopy {
 	public:
-		bool isUndefined(Worker* worker) const;
-		bool isNull(Worker* worker) const;
-		bool isString(Worker* worker) const;
-		bool isBoolean(Worker* worker) const;
-		bool isObject(Worker* worker) const;
-		bool isArray(Worker* worker) const;
-		bool isDate(Worker* worker) const;
-		bool isNumber(Worker* worker) const;
-		bool isUint32(Worker* worker) const;
-		bool isInt32(Worker* worker) const;
-		bool isFunction(Worker* worker) const;
-		bool isArrayBuffer(Worker* worker) const;
-		bool isTypedArray(Worker* worker) const;
-		bool isUint8Array(Worker* worker) const;
-		bool isBuffer(Worker* worker) const; // IsTypedArray or IsArrayBuffer
+		bool isUndefined() const;
+		bool isNull() const;
+		bool isString() const;
+		bool isBoolean() const;
+		bool isObject() const;
+		bool isArray() const;
+		bool isDate() const;
+		bool isNumber() const;
+		bool isUint32() const;
+		bool isInt32() const;
+		bool isFunction() const;
+		bool isArrayBuffer() const;
+		bool isTypedArray() const;
+		bool isUint8Array() const;
+		bool isBuffer() const; // IsTypedArray or IsArrayBuffer
 		bool equals(Local<JSValue> val) const;
-		bool equals(Worker* worker, Local<JSValue> val) const;
 		bool strictEquals(Local<JSValue> val) const;
-		bool strictEquals(Worker* worker, Local<JSValue> val) const;
+		// ----------------------------------------------------------------------
 		Local<JSString> toString(Worker* worker) const; // to string local
 		Local<JSNumber> toNumber(Worker* worker) const;
 		Local<JSInt32> toInt32(Worker* worker) const;
 		Local<JSUint32> toUint32(Worker* worker) const;
 		Local<JSObject> toObject(Worker* worker) const;
 		Local<JSBoolean> toBoolean(Worker* worker) const;
-		String toStringValue(Worker* worker, bool ascii = false) const; // to string value
+		String toStringValue(Worker* worker, bool oneByte = false) const; // to string value
 		String2 toStringValue2(Worker* worker) const; // to utf16 string
 		bool toBooleanValue(Worker* worker) const;
 		double toNumberValue(Worker* worker) const;
 		int toInt32Value(Worker* worker) const;
 		uint32_t toUint32Value(Worker* worker) const;
-		Maybe<double> toNumberMaybe(Worker* worker) const;
-		Maybe<int> toInt32Maybe(Worker* worker) const;
-		Maybe<uint32_t> toUint32Maybe(Worker* worker) const;
 		bool instanceOf(Worker* worker, Local<JSObject> value);
 		Buffer toBuffer(Worker* worker, Encoding en) const;
 		WeakBuffer asBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
@@ -334,7 +332,7 @@ namespace qk { namespace js {
 	class Qk_EXPORT JSString: public JSValue {
 	public:
 		int length(Worker* worker) const; // utf16 length
-		String value(Worker* worker, bool ascii = false) const; // utf8 string value
+		String value(Worker* worker, bool oneByte = false) const; // utf8 string value
 		String2 value2(Worker* worker) const; // utf16 string value
 		static Local<JSString> Empty(Worker* worker);
 	};
@@ -347,12 +345,9 @@ namespace qk { namespace js {
 		bool set(Worker* worker, uint32_t index, Local<JSValue> val);
 		bool has(Worker* worker, Local<JSValue> key);
 		bool has(Worker* worker, uint32_t index);
-		bool deleteOf(Worker* worker, Local<JSValue> key);
-		bool deleteOf(Worker* worker, uint32_t index);
+		bool Delete(Worker* worker, Local<JSValue> key);
+		bool Delete(Worker* worker, uint32_t index);
 		Local<JSArray> getPropertyNames(Worker* worker);
-		Maybe<Dict<String, int>> toIntegerMap(Worker* worker);
-		Maybe<Dict<String, String>> toStringMap(Worker* worker);
-		Maybe<JSON> toJSON(Worker* worker);
 		Local<JSValue> getProperty(Worker* worker, cString& name);
 		Local<JSFunction> getConstructor(Worker* worker);
 		template<class T>
@@ -363,14 +358,17 @@ namespace qk { namespace js {
 		void* objectPrivate();
 		bool setObjectPrivate(void* value);
 		bool set__Proto__(Worker* worker, Local<JSObject> __proto__); // set __proto__
+		Maybe<Dict<String, int>> toIntegerDict(Worker* worker);
+		Maybe<Dict<String, String>> toStringDict(Worker* worker);
+		Maybe<JSON> toJSON(Worker* worker);
 	};
 
 	class Qk_EXPORT JSArray: public JSObject {
 	public:
 		int length(Worker* worker) const;
-		Maybe<Array<String>> toStringArrayMaybe(Worker* worker);
-		Maybe<Array<double>> toNumberArrayMaybe(Worker* worker);
-		Maybe<Buffer> toBufferMaybe(Worker* worker);
+		Maybe<Buffer> toBuffer(Worker* worker);
+		Maybe<Array<String>> toStringArray(Worker* worker);
+		Maybe<Array<double>> toNumberArray(Worker* worker);
 	};
 
 	class Qk_EXPORT JSDate: public JSObject {
@@ -416,7 +414,7 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT JSArrayBuffer: public JSObject {
 	public:
-		int byteLength(Worker* worker) const;
+		uint32_t byteLength(Worker* worker) const;
 		Char* data(Worker* worker);
 		WeakBuffer weakBuffer(Worker* worker);
 	};
@@ -425,8 +423,8 @@ namespace qk { namespace js {
 	public:
 		Local<JSArrayBuffer> buffer(Worker* worker);
 		WeakBuffer weakBuffer(Worker* worker);
-		int byteLength(Worker* worker);
-		int byteOffset(Worker* worker);
+		uint32_t byteLength(Worker* worker);
+		uint32_t byteOffset(Worker* worker);
 	};
 
 	class Qk_EXPORT JSUint8Array: public JSTypedArray {
@@ -434,9 +432,9 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT JSSet: public JSObject {
 	public:
-		MaybeLocal<JSSet> add(Worker* worker, Local<JSValue> key);
-		Maybe<bool> has(Worker* worker, Local<JSValue> key);
-		Maybe<bool> deleteOf(Worker* worker, Local<JSValue> key);
+		bool add(Worker* worker, Local<JSValue> key);
+		bool has(Worker* worker, Local<JSValue> key);
+		bool Delete(Worker* worker, Local<JSValue> key);
 	};
 
 	class Qk_EXPORT JSClass {
@@ -480,7 +478,7 @@ namespace qk { namespace js {
 		static Worker* worker(T& args) {
 			return args.worker();
 		}
-		static void setModule(cString& name, BindingCallback binding, cChar* file = 0);
+		static void setModule(cString& name, BindingCallback binding, cChar* pathname);
 
 		// @prop
 		Qk_DEFINE_PROP_GET(TypesParser*, types, Protected);
@@ -506,7 +504,7 @@ namespace qk { namespace js {
 		Local<JSUint32> newInstance(uint32_t data);
 		Local<JSNumber> newInstance(int64_t data);
 		Local<JSNumber> newInstance(uint64_t data);
-		Local<JSString> newInstance(cString& data, bool oneByte = false);
+		Local<JSString> newInstance(cString& data);
 		Local<JSString> newInstance(cString2& data);
 		Local<JSObject> newInstance(cError& data);
 		Local<JSObject> newInstance(const HttpError& err);
@@ -553,10 +551,9 @@ namespace qk { namespace js {
 		}
 
 		Local<JSObject> newObject();
-		Local<JSObject> newObject(uint64_t classid, uint32_t argc = 0, Local<JSValue>* argv = 0);
 		Local<JSString> newString(cBuffer& data);
-		Local<JSString> newAscii(cChar* str);
-		Local<JSArrayBuffer> newArrayBuffer(Char* use_buff, uint32_t len);
+		Local<JSValue>  newStringOneByte(cString& data);
+		Local<JSArrayBuffer> newArrayBuffer(Char* useBuff, uint32_t len);
 		Local<JSArrayBuffer> newArrayBuffer(uint32_t len);
 		Local<JSUint8Array> newUint8Array(Local<JSString> str, Encoding enc = Encoding::kUTF8_Encoding);
 		Local<JSUint8Array> newUint8Array(int size, Char fill = 0);
@@ -633,8 +630,8 @@ namespace qk { namespace js {
 		inline bool set(Local<JSValue> key, Local<JSValue> value) {
 			return _handle->set(worker(), key, value);
 		}
-		inline bool del(Local<JSValue> key) {
-			return _handle->deleteOf(worker(), key);
+		inline bool Delete(Local<JSValue> key) {
+			return _handle->Delete(worker(), key);
 		}
 
 		virtual void init();
@@ -646,12 +643,12 @@ namespace qk { namespace js {
 		bool    setExternalData(Object* data);
 
 		// call member func
-		Local<JSValue> call(Local<JSValue> name, int argc = 0, Local<JSValue> argv[] = nullptr);
-		Local<JSValue> call(cString& name, int argc = 0, Local<JSValue> argv[] = nullptr);
+		Local<JSValue> call(Local<JSValue> method, int argc = 0, Local<JSValue> argv[] = nullptr);
+		Local<JSValue> call(cString& method, int argc = 0, Local<JSValue> argv[] = nullptr);
 
 		template<class T = Object, class S>
 		static inline Wrap<T>* wrap(Local<S> value) {
-			return static_cast<Wrap<T>*>(unpack_(value.castObject()));
+			return static_cast<Wrap<T>*>(unpack(value.castObject()));
 		}
 		template<class T>
 		static inline Wrap<T>* wrap(T* object) {
@@ -659,7 +656,7 @@ namespace qk { namespace js {
 		}
 		template<class T>
 		static inline Wrap<T>* wrap(T* object, uint64_t type_id) {
-			return static_cast<js::Wrap<T>*>(pack_(object, type_id));
+			return static_cast<js::Wrap<T>*>(pack(object, type_id));
 		}
 
 		template<class W, class O>
@@ -670,13 +667,11 @@ namespace qk { namespace js {
 			auto wrap = (new(reinterpret_cast<WrapObject*>(o) - 1) W())->newInit(args);
 			return static_cast<Wrap<O>*>(static_cast<WrapObject*>(wrap));
 		}
-
 	private:
-		static WrapObject* unpack_(Local<JSObject> object);
-		static WrapObject* pack_(Object* object, uint64_t type_id);
+		static WrapObject* unpack(Local<JSObject> object);
+		static WrapObject* pack(Object* object, uint64_t type_id);
 		WrapObject* newInit(FunctionArgs args);
 		WrapObject* attach(Worker *worker, Local<JSObject> This);
-
 		Persistent<JSObject> _handle;
 
 		friend class JsClassInfo;
@@ -690,7 +685,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	Qk_EXPORT int Start(cArray<String>& argv);
+	Qk_EXPORT int Start(cArray<String> &argv);
 
 	// **********************************************************************
 

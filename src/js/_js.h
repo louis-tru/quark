@@ -51,6 +51,10 @@ namespace qk { namespace js {
 	bool triggerUncaughtException(Worker* worker, Local<JSValue> err);
 	bool triggerUnhandledRejection(Worker* worker, Local<JSValue> reason, Local<JSValue> promise);
 
+	struct BindingModule: public Worker {
+		Local<JSValue> binding(Local<JSValue> name);
+	};
+
 	class JsClassInfo {
 	public:
 		JsClassInfo(Worker* worker);

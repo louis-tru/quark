@@ -4,7 +4,7 @@
 		'arch%': 'x86',
 		'arch_name%': '<(arch)',
 		'suffix%': '<(arch)',
-		'byteorder%': '<(node_byteorder)',
+		'byteorder%': 'little',
 		'clang%': 0,
 		'is_clang': '<(clang)',
 		'python%': 'python',
@@ -35,13 +35,15 @@
 		'output%': '<(PRODUCT_DIR)',
 		'version_min%': '',
 		'android_abi%': '',
-		'use_system_zlib%': 0,
-		'use_v8%': 1,
 		'without_visibility_hidden%': 0,
 		'without_embed_bitcode%': 0,
 		'cross_compiling%': 0,
 		'emulator%': 0,
 		'more_Log%': 1,
+		'use_system_zlib%': 0,
+		'use_v8%': 1,
+		'use_dtrace%': 0,
+		'use_openssl%': 1,
 
 		############################# dependents set ##################
 		
@@ -67,7 +69,7 @@
 		'v8_enable_inspector%': 0,
 		'icu_use_data_file_flag': 0,      # Don't use ICU data file (icudtl.dat) from V8, we use our own.
 		'icu_small%': 'true',
-		
+
 		# Default ARM variable settings.
 		'arm_version': 'default',
 		'arm_float_abi': 'default',
@@ -78,7 +80,7 @@
 		'arm_vfp%': 'vfpv3',
 		'arm_fpu%': 'neon',
 		'arm64%': 0,
-		
+
 		# Default MIPS variable settings.
 		'mips_arch_variant%': 'r2',
 		# Possible values fp32, fp64, fpxx.
@@ -88,23 +90,9 @@
 		# fpxx - compatibility mode, it chooses fp32 or fp64 depending on runtime
 		#        detection
 		'mips_fpu_mode%': 'fp32',
-
-		# node js
-		'node_use_loader': 0,
-		'node_shared%': 'false',
-		'node_use_v8_platform%': 'false',
-		'node_use_bundled_v8%': 'false',
-		'node_module_version%': '',
-		'node_target_type': '<(library)',
-		'node_tag%': '',
-		'node_byteorder%': 'little',
-		'node_enable_d8%': 'false',
-		'node_enable%': 0,
-		'node_release_urlbase%': '',
 		'openssl_no_asm%': 0,
 		'openssl_fips%': '',
-		'debug_http2%': 'false',
-		'debug_nghttp2%': 'false',
+		#
 		'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
 		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/deps/v8/src/libv8_base.a',
 
@@ -129,9 +117,6 @@
 				'OPENSSL_PRODUCT': 'libcrypto.a',
 			}, {
 				'OPENSSL_PRODUCT': 'libopenssl.a',
-			}],
-			['library_output=="shared_library"', {
-				'node_shared': 'true',
 			}],
 		],
 
@@ -186,14 +171,7 @@
 				# 'GCC_C_LANGUAGE_STANDARD': 'c99',
 		},
 		'include_dirs': [
-			'..',
 			'../out',
-			'../deps',
-			'../deps/libuv/include',
-			'../deps/node/deps/openssl/openssl/include',
-			'../deps/node/deps/zlib',
-			'../deps/node/deps/http_parser',
-			'../deps/v8-link/include',
 		],
 		'conditions': [
 			['os=="android"', {
@@ -281,7 +259,7 @@
 					'libraries': [ '$(SDKROOT)/System/Library/Frameworks/Foundation.framework' ],
 				},
 				'conditions': [
-					['arch in "arm arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
+					['arch in "arm armv7s arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
 					['without_embed_bitcode==1', { 
 						'cflags': [ 
 							#'-fembed-bitcode-marker' 
@@ -320,7 +298,7 @@
 				},
 			}],
 			['os=="osx"', {
-				'cflags': [ 
+				'cflags': [
 					'-mmacosx-version-min=<(version_min)',
 					'-arch <(arch_name)',
 					'-isysroot <(sysroot)', 
@@ -366,19 +344,10 @@
 					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
 				},
 			}],
-			['use_v8==0 and os=="ios"', {
-				'defines': [ 'USE_JSC=1' ],
-			},{
-				'defines': [ 'USE_JSC=0' ],
-			}],
 			['more_log==1',{ 'defines': [ 'Qk_MoreLOG=1' ]}],
 		],
 		'target_conditions': [
 			# shared all public symbol
-			['_target_name in "node"', {
-				'defines': [ 'NODE_SHARED_MODE=1' ],
-				# 'dependencies!': [ 'v8_inspector_compress_protocol_json#host' ],
-			}],
 			['_target_name in "openssl http_parser zlib"', {
 				'cflags!': ['-fvisibility=hidden'],
 			}],

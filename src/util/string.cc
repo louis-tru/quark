@@ -372,26 +372,40 @@ namespace qk {
 		return buf ? Buffer::from(buf, size.len, size.capacity).collapseString(): String();
 	}
 	
-	String _Str::join(bool (*it)(void* data, String* out), cString& sp, void* data) {
+	String _Str::join(cString& sp, void* data, uint32_t len, bool (*it)(void* data, String* out)) {
+		if (len == 0)
+			return String();
+
 		String tmp;
-		Array<String> strs;
-		int total = 0;
+		auto spLen = sp.isEmpty() ? 0: Int32::max(len - 1, 0);
+		Array<String> strs(len + spLen);
+		int total = spLen * sp.length(), i = 0;
 
-		while (it(data, &tmp)) {
-			if (strs.length() && sp.length()) {
-				total += sp.length();
-				strs.push(sp);
+		if (sp.isEmpty()) {
+			while (it(data, &tmp)) {
+				total += tmp.length();
+				strs[i++] = tmp;
 			}
-			total += tmp.length();
-			strs.push(tmp);
+		} else {
+			if (it(data, &tmp)) {
+				total += tmp.length();
+				strs[i++] = tmp;
+			}
+			while (it(data, &tmp)) {
+				total += tmp.length();
+				strs[i++] = sp;
+				strs[i++] = tmp;
+			}
 		}
 
-		auto buff = Buffer::alloc(total + 1);
-		for (int i = 0, offset = 0; i < strs.length(); i++) {
-			buff.write(strs[i].c_str(), offset, strs[i].length());
-			offset += strs[i].length();
+		Buffer buff(total);
+		auto offset = 0;
+
+		for (auto &i: strs) {
+			buff.write(i.c_str(), i.length(), offset);
+			offset += i.length();
 		}
-		buff[total] = 0;
+
 		return String(std::move(buff));
 	}
 
@@ -417,7 +431,7 @@ namespace qk {
 	String ArrayString<>::toString() const {
 		return *this;
 	}
-	
+
 	// --------------- ArrayStringBase ---------------
 	
 	typedef ArrayStringBase::LongStr LongStr;

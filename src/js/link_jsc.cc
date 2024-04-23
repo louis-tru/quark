@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./_js.h"
+
 namespace qk { namespace js {
 
 } }

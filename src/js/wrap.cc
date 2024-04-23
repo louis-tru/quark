@@ -110,7 +110,7 @@ namespace qk { namespace js {
 		Qk_ASSERT(_handle.isEmpty());
 #if Qk_MEMORY_TRACE_MARK
 		record_wrap_count--;
-		print_wrap("WrapObject::destroy()");
+		print_wrap("WrapObject::~WrapObject()");
 #endif
 		self()->destroy();
 	}
@@ -121,7 +121,7 @@ namespace qk { namespace js {
 		auto ok = args.This()->setObjectPrivate(this);
 		Qk_ASSERT(ok);
 #if Qk_MEMORY_TRACE_MARK
-		record_wrap_count++; 
+		record_wrap_count++;
 		record_strong_count++;
 #endif
 		if (!self()->isReference() || /* non reference */
@@ -137,9 +137,9 @@ namespace qk { namespace js {
 		bool ok = This->setObjectPrivate(this); Qk_ASSERT(ok);
 		init();
 #if Qk_MEMORY_TRACE_MARK
-		record_wrap_count++; 
+		record_wrap_count++;
 		record_strong_count++;
-		print_wrap("External");
+		print_wrap("WrapObject::attach()");
 #endif
 		return this;
 	}
@@ -166,13 +166,13 @@ namespace qk { namespace js {
 		return p;
 	}
 
-	Local<JSValue> WrapObject::call(Local<JSValue> name, int argc, Local<JSValue> argv[]) {
-		Local<JSObject> o = that();
-		Local<JSValue> func = o->get(worker(), name);
+	Local<JSValue> WrapObject::call(Local<JSValue> method, int argc, Local<JSValue> argv[]) {
+		Local<JSObject> recv = that();
+		Local<JSValue> func = recv->get(worker(), method);
 		if ( func->isFunction(worker()) ) {
-			return func.cast<JSFunction>()->call(worker(), argc, argv, o);
+			return func.cast<JSFunction>()->call(worker(), argc, argv, recv.cast());
 		} else {
-			worker()->throwError("Function not found, \"%s\"", *name->toStringValue(worker()));
+			worker()->throwError("Function not found, \"%s\"", *method->toStringValue(worker()));
 			return Local<JSValue>();
 		}
 	}
@@ -181,12 +181,12 @@ namespace qk { namespace js {
 		return call(worker()->newInstance(name), argc, argv);
 	}
 
-	WrapObject* WrapObject::unpack_(Local<JSObject> object) {
+	WrapObject* WrapObject::unpack(Local<JSObject> object) {
 		Qk_ASSERT(!object.isEmpty());
 		return static_cast<WrapObject*>(object->objectPrivate());
 	}
 
-	WrapObject* WrapObject::pack_(Object* object, uint64_t type_id) {
+	WrapObject* WrapObject::pack(Object* object, uint64_t type_id) {
 		WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
 		if ( !wrap->worker() ) {
 			Js_Worker();

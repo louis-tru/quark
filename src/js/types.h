@@ -33,7 +33,7 @@
 #ifndef __quark__js__types__
 #define __quark__js__types__
 
-#include "./js.h"
+#include "./_js.h"
 #include "../ui/types.h"
 #include "../render/bezier.h"
 #include "../ui/filter.h"
@@ -74,7 +74,6 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT CommonStrings {
 	public:
-		Qk_DEFINE_PROP_GET(Worker*, worker);
 		CommonStrings(Worker* worker);
 		#define _Fun(name) \
 		public: inline Local<JSValue> name() { return __##name##__.toLocal(); } \
@@ -86,7 +85,7 @@ namespace qk { namespace js {
 	#define Js_Types_Each(F) \
 		F(bool, bool) \
 		F(float, float) \
-		F(int32_t, int32_t) \
+		F(int, int) \
 		F(uint32_t, uint32_t) \
 		F(Color, Color) \
 		F(Vec2, Vec2) \
@@ -102,11 +101,10 @@ namespace qk { namespace js {
 		F(BoxFilter, BoxFilter*) \
 		F(FillGradient, FillGradient*) \
 		F(BoxShadow, BoxShadow*) \
-		/********************************/\
 		F(Direction, Direction) \
 		F(ItemsAlign, ItemsAlign) \
 		F(CrossAlign, CrossAlign) \
-		F(Wrap, Wrap) \
+		F(Wrap, qk::Wrap) \
 		F(WrapAlign, WrapAlign) \
 		F(Align, Align) \
 		F(BoxSizeKind, BoxSizeKind) \
@@ -134,19 +132,19 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT TypesParser {
 	public:
-		Qk_DEFINE_PROP_GET(Worker*, worker);
-		TypesParser(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
-		void throwError(Local<JSValue> value, cChar* msg = nullptr, cChar* help = nullptr);
-	#define _Fun(Name, Type) \
+		TypesParser(Worker* worker, Local<JSObject> exports);
+		void throwError(Local<JSValue> value, cChar* msg = 0, cChar* help = 0);
+	#define _Def_Fun(Name, Type) \
 		Local<JSValue> newInstance(const Type& value); \
-		bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = nullptr);
-		Js_Types_Each(_Fun);
+		bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = 0);
+		Js_Types_Each(_Def_Fun);
 	private:
+		Worker *worker;
 	#define _Def_attr(Name, Type) \
 		Persistent<JSFunction> _parse##Name; \
 		Persistent<JSFunction> _new##Name;
 		Js_Types_Each(_Def_attr)
-	#undef _Fun
+	#undef _Def_Fun
 	#undef _Def_attr
 	};
 

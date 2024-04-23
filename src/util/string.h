@@ -234,7 +234,7 @@ namespace qk {
 		static void* format(Size* size, int size_of, Alloc alloc, float i);
 		static void* format(Size* size, int size_of, Alloc alloc, double i);
 		class Iterator { public: virtual bool next(String* out) = 0; };
-		static String join(bool (*iterator)(void* data, String* out), cString& sp, void* data);
+		static String join(cString& sp, void* data, uint32_t len, bool (*iterator)(void* data, String* out));
 		static String toString(const void* ptr, uint32_t len, int size_of);
 		template<typename T>
 		static String toString(const T& t) {
@@ -528,19 +528,19 @@ namespace qk {
 	template <typename T, typename A>
 	String Array<T, A>::join(cString& sp) const {
 		IteratorConst it[] = { begin(), end() };
-		return _Str::join([](void* data, String* out) -> bool {
-			 auto it = static_cast<IteratorConst*>(data);
-			 return it[0] == it[1] ? false: ((*out = _Str::toString(*it[0]++)), true);
-		}, sp, it);
+		return _Str::join(sp, it, length(), [](void* data, String* out) -> bool {
+			auto it = static_cast<IteratorConst*>(data);
+			return it[0] == it[1] ? false: ((*out = _Str::toString(*(it[0]++))), true);
+		});
 	}
 
 	template<typename T, typename A>
 	String List<T, A>::join(cString& sp) const {
 		IteratorConst it[] = { begin(), end() };
-		return _Str::join([](void* data, String* out) -> bool {
-			 auto it = static_cast<IteratorConst*>(data);
-			 return it[0] == it[1] ? false: ((*out = _Str::toString(*(++(it[0])))), true);
-		}, sp, it);
+		return _Str::join(sp, it, length(), [](void* data, String* out) -> bool {
+			auto it = static_cast<IteratorConst*>(data);
+			return it[0] == it[1] ? false: ((*out = _Str::toString(*(it[0]++))), true);
+		});
 	}
 
 	template<typename T, typename A>

@@ -558,7 +558,7 @@ async function configure() {
 		fs.mkdirSync('out');
 	}
 
-	// 
+	//
 	opts.arch = arch_format(opts.arch);
 	var os = opts.os;
 	var modile = (os == 'ios' || os == 'android');
@@ -571,6 +571,7 @@ async function configure() {
 	var v8_use_snapshot = !opts.without_snapshot && !cross_compiling && !modile;
 	var shared = opts.library == 'shared' ? 'shared': '';
 	var emulator = 0;
+	var OS = get_OS(opts.os);
 
 	if ( os == 'ios' ) {
 		if ( opts.use_v8 == 'auto' ) { // ios默认使用 javascriptcore
@@ -579,14 +580,13 @@ async function configure() {
 			}
 		}
 	}
-	opts.use_v8 = bi(opts.use_v8);
+	var use_v8 = opts.use_v8 ? 1: OS == 'mac'? 0: 1;
 
 	var config_gypi = {
 		target_defaults: {
 			default_configuration: configuration,
 		},
 		variables: {
-			/* config */
 			configuration,
 			asan: 0,
 			host_node: process.execPath,
@@ -597,10 +597,9 @@ async function configure() {
 			arch_name: arch,
 			suffix: suffix,
 			debug: opts.debug,
-			OS: get_OS(opts.os),
+			OS: OS,
 			os: opts.os,
 			brand: '',
-			use_v8: opts.use_v8,
 			more_log: opts.more_log,
 			clang: opts.clang,
 			library: 'static_library',
@@ -613,9 +612,12 @@ async function configure() {
 			arm_fpu: opts.arm_fpu,
 			cross_compiling: bi(cross_compiling),
 			cross_prefix: '',
-			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
 			media: opts.media,
+			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
 			use_gl: opts.use_gl ? 1: 0,
+			use_v8: use_v8,
+			use_openssl: bs(!opts.without_ssl),
+			use_dtrace: bs(use_dtrace),
 			version_min: '',
 			source: path.resolve(__dirname, '..'),
 			output_name: '',
@@ -636,17 +638,12 @@ async function configure() {
 			xcode_version: 0,
 			llvm_version: 0,
 			gas_version: '0.0',
-			// ---------------------- depes config ----------------------
+			byteorder: 'little',
 			openssl_fips: '',
 			openssl_no_asm: bi(os.match(/^(ios|android)$/) || arch.match(/arm/)),
-			node_enable: 0, //
-			node_byteorder: 'little',
-			node_use_openssl: bs(!opts.without_ssl),
-			node_use_dtrace: bs(use_dtrace),
-			uv_use_dtrace: bs(use_dtrace),
 			force_dynamic_crt: 0,
 			v8_enable_gdbjit: 0,
-			v8_enable_inspector: bi(opts.use_v8 && !opts.without_inspector && !opts.without_ssl),
+			v8_enable_inspector: bi(use_v8 && !opts.without_inspector && !opts.without_ssl),
 			v8_no_strict_aliasing: 1,
 			v8_optimized_debug: 0,
 			v8_promise_internal_field_count: 1,
