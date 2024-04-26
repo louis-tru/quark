@@ -243,7 +243,7 @@ namespace qk {
 
 	typedef TextValueWrap<Color> TextColor; // inherit / default / value
 	typedef TextValueWrap<float> TextSize;
-	typedef TextValueWrap<float> TextLineHeight;
+	typedef TextSize             TextLineHeight;
 	typedef TextValueWrap<Shadow> TextShadow;
 	typedef TextValueWrap<FFID> TextFamily;
 

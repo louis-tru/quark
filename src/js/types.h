@@ -119,7 +119,7 @@ namespace qk { namespace js {
 		F(TextValueKind, TextValueKind) \
 		F(TextColor, TextColor) \
 		F(TextSize, TextSize) \
-		F(TextLineHeight, TextLineHeight) \
+		/*F(TextLineHeight, TextLineHeight)*//*TextSize*/ \
 		F(TextShadow, TextShadow) \
 		F(TextFamily, TextFamily) \
 		F(TextWeight, TextWeight) \

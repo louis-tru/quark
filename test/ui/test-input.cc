@@ -15,8 +15,8 @@ void test_input(int argc, char **argv) {
 	auto input = box->append_new<Textarea>();
 	//auto input = box->append_new<Input>();
 
-	box->set_width({ 0, SizeKind::kMatch });
-	box->set_height({ 0, SizeKind::kMatch });
+	box->set_width({ 0, BoxSizeKind::kMatch });
+	box->set_height({ 0, BoxSizeKind::kMatch });
 	box->set_margin_left(20);
 	box->set_margin_top(20);
 	box->set_margin_right(20);
@@ -26,7 +26,7 @@ void test_input(int argc, char **argv) {
 		Qk_DEBUG("------------------ Box Click ------------------");
 	});
 
-	input->set_width({ 0.5, SizeKind::kRatio });
+	input->set_width({ 0.5, BoxSizeKind::kRatio });
 	input->set_height({ 100 });
 	input->set_background_color({255,255,255});
 	input->set_align(Align::kCenterCenter);

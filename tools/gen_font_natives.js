@@ -79,8 +79,8 @@ function main() {
 	}
 	
 	write(h_fd, 
-		'#ifndef __quark__native__',
-		'#define __quark__native__',
+		'#ifndef __quark__native__font__',
+		'#define __quark__native__font__',
 	 'namespace qk{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',

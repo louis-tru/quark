@@ -71,7 +71,7 @@ F(Load, Default, kNone_UIEventFlags) /* Image */ \
 /* player */ \
 F(Error, Player, kError_UIEventFlags) \
 F(Ready, Player, kNone_UIEventFlags) /* AutoPlayer / Video */ \
-F(WaitBuffer, Player, kFloat_UIEventFlags) \
+F(WaitBuffer, Player, kFloat32_UIEventFlags) \
 F(StartPlay, Player, kNone_UIEventFlags) \
 F(SourceEnd, Player, kNone_UIEventFlags) \
 F(Pause, Player, kNone_UIEventFlags) \

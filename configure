@@ -8,7 +8,21 @@ if [ "$USER" != "root" ]; then
 	SUDO="sudo"
 fi
 
-if [ "`which node`" = "" ]; then
+if [ `which python2.7` ]; then
+	PYTHON=`which python2.7`
+elif [ `which python2` ]; then
+	PYTHON=`which python2`
+else
+	PYTHON=`which python`
+fi
+# PYTHON=/Library/Frameworks/Python.framework/Versions/2.7/Resources/Python.app/Contents/MacOS/Python
+
+if [ ! "$PYTHON" ]; then
+	echo "\nError: python 2.7 needs to be installed first\n";
+	exit -1;
+fi
+
+if [ ! "`which node`" ]; then
 	echo "\nError: nodejs needs to be installed first\n";
 	exit -1;
 fi
@@ -20,10 +34,9 @@ fi
 if   [ ! -d libs/somes ] \
 	|| [ ! -d libs/quark ] \
 	|| [ ! -d libs/qkmake ] \
-	|| [ ! -d deps/v8-link ] \
+	|| [ ! -d deps/v8 ] \
 	|| [ ! -d deps/ffmpeg ] \
-	|| [ ! -d deps/node ] \
-	|| [ ! -d deps/btree ] \
+	|| [ ! -d deps/libbptree ] \
 ; then
 	git submodule update --init --recursive
 fi
@@ -69,5 +82,7 @@ if   [ ! -d tools/node_modules/somes ] \
 	ln -s ../../libs/quark/out/quark
 	cd ../..
 fi
+
+export PYTHON=$PYTHON
 
 node tools/configure.js "$@"

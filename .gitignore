@@ -24,3 +24,4 @@ deps/glyphy*
 test/math/test
 src/render/gl/glsl_shaders.h
 src/render/gl/glsl_shaders.cc
+deps/v8_

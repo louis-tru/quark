@@ -81,7 +81,7 @@ namespace qk { namespace js {
 		}
 	}
 
-	static void onProcessSafeHandle(Event<>& e) {
+	static void onProcessSafeHandle(Event<>& e, void* ctx) {
 		int rc = static_cast<const Int32*>(e.data())->value;
 		if (RunLoop::first()->runing()) {
 			typedef Callback<RunLoop::PostSyncData> Cb;

@@ -53,5 +53,5 @@
 	path = deps/http_parser
 	url = https://github.com/louis-tru/http_parser.git
 [submodule "deps/v8"]
-	path = deps/http_parser
+	path = deps/v8
 	url = https://github.com/louis-tru/v8.git

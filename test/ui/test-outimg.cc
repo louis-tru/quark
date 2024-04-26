@@ -42,7 +42,7 @@ void test_outimg(int argc, char **argv) {
 	auto r = win->root();
 	auto t = r->append_new<TestOutImg>();
 	r->set_background_color({255,255,255,0});
-	t->set_width({ 0, SizeKind::kMatch });
-	t->set_height({ 0, SizeKind::kMatch });
+	t->set_width({ 0, BoxSizeKind::kMatch });
+	t->set_height({ 0, BoxSizeKind::kMatch });
 	app.run();
 }

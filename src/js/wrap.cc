@@ -169,7 +169,7 @@ namespace qk { namespace js {
 	Local<JSValue> WrapObject::call(Local<JSValue> method, int argc, Local<JSValue> argv[]) {
 		Local<JSObject> recv = that();
 		Local<JSValue> func = recv->get(worker(), method);
-		if ( func->isFunction(worker()) ) {
+		if ( func->isFunction() ) {
 			return func.cast<JSFunction>()->call(worker(), argc, argv, recv.cast());
 		} else {
 			worker()->throwError("Function not found, \"%s\"", *method->toStringValue(worker()));
@@ -178,7 +178,7 @@ namespace qk { namespace js {
 	}
 
 	Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) {
-		return call(worker()->newInstance(name), argc, argv);
+		return call(worker()->newStringOneByte(name), argc, argv);
 	}
 
 	WrapObject* WrapObject::unpack(Local<JSObject> object) {

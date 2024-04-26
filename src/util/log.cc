@@ -64,12 +64,10 @@
 #define Qk_STRING_FORMAT(format, str) \
 	va_list __arg; \
 	va_start(__arg, format); \
-	String str = string_format(format, __arg); \
+	String str = _Str::string_format(format, __arg); \
 	va_end(__arg)
 
 namespace qk {
-
-	String string_format(cChar* f, va_list arg);
 
 	static Log* _shared_log = nullptr;
 

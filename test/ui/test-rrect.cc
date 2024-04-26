@@ -84,8 +84,8 @@ void test_rrect(int argc, char **argv) {
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
 	auto t = win->root()->append_new<TestRRect>();
-	t->set_width({ 0, SizeKind::kMatch });
-	t->set_height({ 0, SizeKind::kMatch });
+	t->set_width({ 0, BoxSizeKind::kMatch });
+	t->set_height({ 0, BoxSizeKind::kMatch });
 	// layout end
 	app.run();
 }

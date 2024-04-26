@@ -33,8 +33,6 @@
 
 namespace qk {
 
-	String string_format(cChar* f, va_list arg);
-
 	Error::Error(const Error& e)
 		: _code(e.code())
 		, _msg(e._msg) {
@@ -43,14 +41,14 @@ namespace qk {
 	Error::Error(cChar* msg, ...): _code(ERR_UNKNOWN_ERROR) {
 		va_list arg;
 		va_start(arg, msg);
-		_msg = string_format(msg, arg);
+		_msg = _Str::string_format(msg, arg);
 		va_end(arg);
 	}
 
 	Error::Error(int code, cChar* msg, ...): _code(code) {
 		va_list arg;
 		va_start(arg, msg);
-		_msg = string_format(msg, arg);
+		_msg = _Str::string_format(msg, arg);
 		va_end(arg);
 	}
 

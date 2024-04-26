@@ -82,18 +82,6 @@ namespace qk {
 		virtual size_t length() const { return _str.length(); }
 	};
 
-	// ----------------------------------------------------------------------------------
-
-	Worker* Worker::current() {
-		return reinterpret_cast<Worker*>(v8::Isolate::GetCurrent()->GetData(ISOLATE_INL_WORKER_DATA_INDEX));
-	}
-
-	Worker* Worker::Make() {
-		auto o = new WorkerImpl();
-		o->init();
-		return o;
-	}
-
 	// -------------------------- W o r k e r . I m p l --------------------------
 
 	class WorkerImpl: public Worker {
@@ -122,7 +110,7 @@ namespace qk {
 			_isolate->SetPromiseRejectCallback(PromiseRejectCallback);
 		}
 
-		virtual void init() {
+		virtual void init() override {
 			_isolate->SetData(ISOLATE_INL_WORKER_DATA_INDEX, this);
 			_global.reset(this, Cast<JSObject>(_context->Global()) );
 			Worker::init();
@@ -139,21 +127,17 @@ namespace qk {
 			Object::release();
 		}
 
-		inline static WorkerImpl* worker(Worker* worker = Worker::current()) {
-			return static_cast<WorkerImpl*>(worker);
-		}
-
-		inline static WorkerImpl* worker(Isolate* isolate) {
-			return static_cast<WorkerImpl*>( isolate->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
+		inline static WorkerImpl* worker() {
+			return static_cast<WorkerImpl*>(Worker::current());
 		}
 
 		template<class Args>
-		inline static WorkerImpl* worker(const Args &args) {
+		inline static WorkerImpl* worker(Args args) {
 			return static_cast<WorkerImpl*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
 		}
 
 		inline v8::Local<v8::String> newFromOneByte(cChar* str) {
-			return v8::String::NewFromOneByte(_isolate, (uint8_t*)str);
+			return v8::String::NewFromOneByte(_isolate, (uint8_t*)str, NewStringType::kNormal).ToLocalChecked();
 		}
 
 		inline v8::Local<v8::String> newFromUtf8(cChar* str) {
@@ -218,7 +202,7 @@ namespace qk {
 
 		String parse_exception_message(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 			v8::HandleScope handle_scope(_isolate);
-			v8::String::Utf8Value exception(error);
+			v8::String::Utf8Value exception(_isolate, error);
 			cChar* exception_string = to_cstring(exception);
 			if (message.IsEmpty()) {
 				// V8 didn't provide any extra information about this error; just
@@ -226,13 +210,13 @@ namespace qk {
 			} else {
 				Array<String> out;
 				// Print (filename):(line number): (message).
-				v8::String::Utf8Value filename(message->GetScriptOrigin().ResourceName());
+				v8::String::Utf8Value filename(_isolate, message->GetScriptOrigin().ResourceName());
 				v8::Local<v8::Context> context(_isolate->GetCurrentContext());
 				cChar* filename_string = to_cstring(filename);
 				int linenum = message->GetLineNumber(context).FromJust();
 				out.push(String::format("%s:%d: %s\n", filename_string, linenum, exception_string));
 				// Print line of source code.
-				v8::String::Utf8Value sourceline(message->GetSourceLine(context).ToLocalChecked());
+				v8::String::Utf8Value sourceline(_isolate, message->GetSourceLine(context).ToLocalChecked());
 				cChar* sourceline_string = to_cstring(sourceline);
 				out.push(sourceline_string); out.push('\n');
 				int start = message->GetStartColumn(context).FromJust();
@@ -256,7 +240,7 @@ namespace qk {
 							.ToLocal(&stack_trace_string) &&
 							stack_trace_string->IsString() &&
 							v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
-						v8::String::Utf8Value stack_trace(stack_trace_string);
+						v8::String::Utf8Value stack_trace(_isolate, stack_trace_string);
 						cChar* stack_trace_string = to_cstring(stack_trace);
 						out.push( stack_trace_string ); out.push('\n');
 					}
@@ -308,6 +292,28 @@ namespace qk {
 		}
 
 	};
+	
+	template<>
+	inline WorkerImpl* WorkerImpl::worker<Worker*>(Worker* worker) {
+		return static_cast<WorkerImpl*>(worker);
+	}
+
+	template<>
+	inline WorkerImpl* WorkerImpl::worker<Isolate*>(Isolate* isolate) {
+		return static_cast<WorkerImpl*>( isolate->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
+	}
+
+	Worker* Worker::current() {
+		return reinterpret_cast<Worker*>(v8::Isolate::GetCurrent()->GetData(ISOLATE_INL_WORKER_DATA_INDEX));
+	}
+
+	Worker* Worker::Make() {
+		auto o = new WorkerImpl();
+		o->init();
+		return o;
+	}
+
+	// ----------------------------------------------------------------------------------
 
 	class V8JSClass: public JSClass {
 	public:
@@ -371,7 +377,7 @@ namespace qk {
 				auto base = v8cls->BaseFunction();
 				auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
 				auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-				ok = proto->SetPrototype(baseProto);
+				ok = proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked();
 				Qk_ASSERT(ok);
 			}
 			Local<JSFunction> func = Cast<JSFunction>(f);
@@ -413,15 +419,15 @@ namespace qk {
 	bool JSValue::isArrayBuffer() const { return reinterpret_cast<const v8::Value*>(this)->IsArrayBuffer(); }
 	bool JSValue::isTypedArray() const { return reinterpret_cast<const v8::Value*>(this)->IsTypedArray(); }
 	bool JSValue::isUint8Array() const { return reinterpret_cast<const v8::Value*>(this)->IsUint8Array(); }
-	bool JSValue::equals(Local<JSValue> val) const {
-		return reinterpret_cast<const v8::Value*>(this)->Equals(Back(val));
+	bool JSValue::equals(Worker *worker, Local<JSValue> val) const {
+		return reinterpret_cast<const v8::Value*>(this)->Equals(CONTEXT(worker), Back(val)).ToChecked();
 	}
 	bool JSValue::strictEquals(Local<JSValue> val) const {
 		return reinterpret_cast<const v8::Value*>(this)->StrictEquals(Back(val));
 	}
 
 	Local<JSString> JSValue::toString(Worker* worker) const {
-		return Cast<JSString>(reinterpret_cast<const v8::Value*>(this)->ToString());
+		return Cast<JSString>(reinterpret_cast<const v8::Value*>(this)->ToString(CONTEXT(worker)).ToLocalChecked());
 	}
 
 	Local<JSNumber> JSValue::toNumber(Worker* worker) const {
@@ -445,12 +451,12 @@ namespace qk {
 	}
 
 	String JSValue::toStringValue(Worker* worker, bool oneByte) const {
-		v8::Local<v8::String> str = ((v8::Value*)this)->ToString();
+		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
 		Qk_ASSERT(!str.IsEmpty());
 		if (!str->Length()) return String();
 		if ( oneByte ) {
 			Buffer buffer(str->Length());
-			str->WriteOneByte((uint8_t*)*buffer, 0, buffer.length() + 1);
+			str->WriteOneByte(ISOLATE(worker), (uint8_t*)*buffer, 0, buffer.length() + 1);
 			return buffer.collapseString();
 		} else {
 			Array<String> rev;
@@ -458,7 +464,7 @@ namespace qk {
 			int start = 0, count;
 			auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
 
-			while ( (count = str->Write(*source, start, 128, opts)) ) {
+			while ( (count = str->Write(ISOLATE(worker), *source, start, 128, opts)) ) {
 				auto unicode = codec_decode_form_utf16(source.slice(0, count).buffer());
 				rev.push(
 					codec_encode(kUTF8_Encoding, unicode).collapseString()
@@ -470,11 +476,11 @@ namespace qk {
 	}
 
 	String2 JSValue::toStringValue2(Worker* worker) const {
-		v8::Local<v8::String> str = ((v8::Value*)this)->ToString();
+		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
 		Qk_ASSERT(!str.IsEmpty());
 		if (!str->Length()) return String2();
 		ArrayBuffer<uint16_t> source(str->Length());
-		str->Write(*source, 0, str->Length());
+		str->Write(ISOLATE(worker), *source, 0, str->Length());
 		return source.collapseString();
 	}
 
@@ -551,7 +557,7 @@ namespace qk {
 	bool JSObject::setMethod(Worker* worker, cString& name, FunctionCallback func) {
 		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(ISOLATE(worker), func2);
-		v8::Local<v8::Function> fn = t->GetFunction();
+		v8::Local<v8::Function> fn = t->GetFunction(CONTEXT(worker)).ToLocalChecked();
 		v8::Local<v8::String> fn_name = Back<v8::String>(worker->newStringOneByte(name));
 		fn->SetName(fn_name);
 		return reinterpret_cast<v8::Object*>(this)->
@@ -560,10 +566,10 @@ namespace qk {
 
 	bool JSObject::setAccessor(Worker* worker, cString& name,
 														AccessorGetterCallback get, AccessorSetterCallback set) {
-		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
-		v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
+		auto get2 = reinterpret_cast<v8::AccessorNameGetterCallback>(get);
+		auto set2 = reinterpret_cast<v8::AccessorNameSetterCallback>(set);
 		v8::Local<v8::String> fn_name = Back<v8::String>(worker->newStringOneByte(name));
-		return reinterpret_cast<v8::Object*>(this)->SetAccessor(fn_name, get2, set2);
+		return reinterpret_cast<v8::Object*>(this)->SetAccessor(CONTEXT(worker), fn_name, get2, set2).ToChecked();
 	}
 
 	void* JSObject::objectPrivate() {
@@ -692,14 +698,14 @@ namespace qk {
 	}
 
 	bool JSClass::setMemberMethod(cString& name, FunctionCallback func) {
-		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
+		v8::Local<v8::FunctionTemplate> ftemp = reinterpret_cast<V8JSClass*>(this)->Template();
 		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
-		v8::Local<Signature> sign = Signature::New(ISOLATE(worker), temp);
+		v8::Local<Signature> sign = Signature::New(ISOLATE(_worker), ftemp);
 		v8::Local<v8::FunctionTemplate> t =
-			FunctionTemplate::New(ISOLATE(worker), func2, v8::Local<v8::Value>(), sign);
+			FunctionTemplate::New(ISOLATE(_worker), func2, v8::Local<v8::Value>(), sign);
 		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
 		t->SetClassName(fn_name);
-		temp->PrototypeTemplate()->Set(fn_name, t);
+		ftemp->PrototypeTemplate()->Set(fn_name, t);
 		return true;
 	}
 
@@ -708,7 +714,7 @@ namespace qk {
 		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
 		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
 		v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(worker), temp);
+		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), temp);
 		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
 		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
 																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
@@ -829,11 +835,13 @@ namespace qk {
 	}
 
 	struct TryCatchWrap {
+		TryCatchWrap(Worker *worker)
+			: _try(ISOLATE(worker)) {}
 		v8::TryCatch _try;
 	};
 
 	TryCatch::TryCatch(Worker *worker) {
-		_val = new TryCatchWrap{ISOLATE(worker)};
+		_val = new TryCatchWrap(worker);
 	}
 
 	TryCatch::~TryCatch() {
@@ -965,13 +973,15 @@ namespace qk {
 	}
 
 	Local<JSString> Worker::newInstance(cString2& data) {
-		return Cast<JSString>(v8::String::NewExternal(ISOLATE(this), new V8ExternalStringResource(data)));
+		return Cast<JSString>(v8::String::NewExternalTwoByte(
+			ISOLATE(this),
+			new V8ExternalStringResource(data)
+		).ToLocalChecked());
 	}
 
 	Local<JSArray> Worker::newInstance(const Array<String>& data) {
-		auto worker = WORKER();
-		v8::Local<v8::Array> rev = v8::Array::New(ISOLATE(worker));
-		{ v8::HandleScope scope(ISOLATE(worker));
+		v8::Local<v8::Array> rev = v8::Array::New(ISOLATE(this));
+		{ v8::HandleScope scope(ISOLATE(this));
 			for (int i = 0, e = data.length(); i < e; i++) {
 				v8::Local<v8::Value> value = Back(newInstance(data[i]));
 				rev->Set(i, value);
@@ -1068,7 +1078,7 @@ namespace qk {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::RangeError(Back(newInstance(str))->ToString()));
+		return Cast<JSObject>(v8::Exception::RangeError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
 	}
 
 	Local<JSObject> Worker::newReferenceError(cChar* errmsg, ...) {
@@ -1076,7 +1086,7 @@ namespace qk {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::ReferenceError(Back(newInstance(str))->ToString()));
+		return Cast<JSObject>(v8::Exception::ReferenceError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
 	}
 
 	Local<JSObject> Worker::newSyntaxError(cChar* errmsg, ...) {
@@ -1084,7 +1094,7 @@ namespace qk {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::SyntaxError( Back(newInstance(str))->ToString() ));
+		return Cast<JSObject>(v8::Exception::SyntaxError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
 	}
 
 	Local<JSObject> Worker::newTypeError(cChar* errmsg, ...) {
@@ -1092,7 +1102,7 @@ namespace qk {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::TypeError( Back(newInstance(str))->ToString() ));
+		return Cast<JSObject>(v8::Exception::TypeError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
 	}
 
 	Local<JSObject> Worker::newInstance(cError& err) {
@@ -1105,8 +1115,8 @@ namespace qk {
 	Local<JSObject> Worker::newError(Local<JSObject> value) {
 		v8::Local<v8::Object> v = Back<v8::Object>(value);
 		v8::Local<v8::Value> msg = v->Get( Back(strs()->message()) );
-		v8::Local<v8::Object> e = v8::Exception::Error(msg->ToString()).As<v8::Object>();
-		v8::Local<v8::Array> names = v->GetPropertyNames();
+		v8::Local<v8::Object> e = v8::Exception::Error(msg->ToString(CONTEXT(this)).ToLocalChecked()).As<v8::Object>();
+		v8::Local<v8::Array> names = v->GetPropertyNames(CONTEXT(this)).ToLocalChecked();
 		for (uint32_t i = 0, j = 0; i < names->Length(); i++) {
 			v8::Local<v8::Value> key = names->Get(i);
 			e->Set(key, v->Get(key));
@@ -1187,8 +1197,8 @@ namespace qk {
 	}
 
 	int platformStart(int argc, Char** argv) {
-		v8::Platform* platform = v8::platform::CreateDefaultPlatform();
-		v8::V8::InitializePlatform(platform);
+		auto platform = v8::platform::NewDefaultPlatform();
+		v8::V8::InitializePlatform(platform.get());
 		v8::V8::Initialize();
 
 		// Unconditionally force typed arrays to allocate outside the v8 heap. This
@@ -1239,7 +1249,6 @@ namespace qk {
 
 		v8::V8::ShutdownPlatform();
 		v8::V8::Dispose();
-		delete platform;
 
 		return rc;
 	}

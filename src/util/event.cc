@@ -146,7 +146,7 @@ namespace qk {
 	Listener* Basic::MakeListener(ListenerFunc listener, void* ctx, bool once) {
 		return new OnListener(listener,ctx,once);
 	}
-	Listener* Basic::MakeStaticListener(StaticListenerFunc listener, Object* ctx, bool once) {
+	Listener* Basic::MakeStaticListener(StaticListenerFunc listener, void* ctx, bool once) {
 		return new OnStaticListener(listener,ctx,once);
 	}
 	Listener* Basic::MakeLambdaListener(OnLambdaListenerFunc& listener, uint32_t id, bool once) {

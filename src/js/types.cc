@@ -30,7 +30,7 @@
 
 #include "./types.h"
 #include "./api/view.h"
-#include "../font/font.h"
+#include "../render/font/font.h"
 #include <native-inl-js.h>
 
 namespace qk { namespace js {
@@ -292,13 +292,14 @@ namespace qk { namespace js {
 		return _newTextSize.toLocal()->call(worker, 1, args);
 	}
 
+	/*
 	Local<JSValue> TypesParser::newInstance(const TextLineHeight& value) {
 		Local<JSValue> args[] = {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(value.value),
 		};
 		return _newTextLineHeight.toLocal()->call(worker, 2, args);
-	}
+	}*/
 
 	Local<JSValue> TypesParser::newInstance(const TextShadow& value) {
 		Local<JSValue> args[] = {
@@ -498,7 +499,7 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parseCurve(Local<JSValue> in, Curve& out, cChar* desc) {
-		if ( in->isString(worker) ) {
+		if ( in->isString() ) {
 			Js_Worker();
 			cCurve *out1;
 			if (CURCE.get(in->toStringValue(worker,true), out1)) {
@@ -603,7 +604,7 @@ namespace qk { namespace js {
 		// 	out.value.color.a(obj->get(worker, worker->strs()->a())->toUint32Value(worker));
 		// });
 	}
-	bool TypesParser::parseTextLineHeight(Local<JSValue> in,
+	/*bool TypesParser::parseTextLineHeight(Local<JSValue> in,
 																				TextLineHeight& out, cChar* desc) {
 		// if (in->isNumber(worker)) {
 		// 	out.type = TextValueType::VALUE;
@@ -614,7 +615,7 @@ namespace qk { namespace js {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
 		// 	out.value.height = obj->get(worker, worker->strs()->height())->toNumberValue(worker);
 		// });
-	}
+	}*/
 	bool TypesParser::parseTextDecoration(Local<JSValue> in,
 																				TextDecoration& out, cChar* desc) {
 		// js_parse(TextDecoration, {
@@ -631,11 +632,11 @@ namespace qk { namespace js {
 		return true;
 	}
 	bool TypesParser::parsefloat(Local<JSValue> in, float& out, cChar* desc) {
-		if (in->isNumber(worker)) {
+		if (in->isNumber()) {
 			out = in->toNumberValue(worker);
 			return true;
 		}
-		if (in->isString(worker)) {
+		if (in->isString()) {
 			if (in->toStringValue(worker).toNumber<float>(&out)) {
 				return true;
 			}
@@ -644,11 +645,11 @@ namespace qk { namespace js {
 		return false;
 	}
 	bool TypesParser::parseint(Local<JSValue> in, int& out, cChar* desc) {
-		if (in->isNumber(worker)) {
+		if (in->isNumber()) {
 			out = in->toInt32Value(worker);
 			return true;
 		}
-		if (in->isString(worker)) {
+		if (in->isString()) {
 			if (in->toStringValue(worker).toNumber<int>(&out)) {
 				return true;
 			}
@@ -657,11 +658,11 @@ namespace qk { namespace js {
 		return false;
 	}
 	bool TypesParser::parseuint32_t(Local<JSValue> in, uint32_t& out, cChar* desc) {
-		if (in->isNumber(worker)) {
+		if (in->isNumber()) {
 			out = in->toUint32Value(worker);
 			return true;
 		}
-		if (in->isString(worker)) {
+		if (in->isString()) {
 			if (in->toStringValue(worker).toNumber<uint32_t>(&out)) {
 				return true;
 			}
@@ -698,7 +699,7 @@ namespace qk { namespace js {
 			// binding Background / BackgroundImage / BackgroundGradient
 			// binding_background(exports, worker);
 			{
-				TryCatch try_catch;
+				TryCatch try_catch(worker);
 
 				if (worker->runNativeScript(WeakBuffer((Char*)
 								native_js::INL_native_js_code__types_,

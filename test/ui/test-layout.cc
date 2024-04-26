@@ -55,8 +55,8 @@ void layout_text(Box* box) {
 	auto text = box->append_new<Text>();
 	auto labe = text->append_new<Label>();
 
-	text->set_width({ 0, SizeKind::kMatch });
-	text->set_height({ 0, SizeKind::kMatch });
+	text->set_width({ 0, BoxSizeKind::kMatch });
+	text->set_height({ 0, BoxSizeKind::kMatch });
 	text->set_text_size({ 80 });
 	//text->set_origin_x({ 0, BoxOriginKind::kAuto });
 	//text->set_origin_y({ 0, BoxOriginKind::kAuto });
@@ -97,43 +97,43 @@ void layout_scroll(Box *box) {
 
 	auto a = v->append_new<Box>();
 	a->set_margin_top(10);
-	a->set_width({ 0, SizeKind::kMatch });
+	a->set_width({ 0, BoxSizeKind::kMatch });
 	a->set_height({ 100 });
 	a->set_background_color(Color(255,0,0));
 
 	auto b = v->append_new<Box>();
 	b->set_margin_top(10);
-	b->set_width({ 0, SizeKind::kMatch });
+	b->set_width({ 0, BoxSizeKind::kMatch });
 	b->set_height({ 100 });
 	b->set_background_color(Color(0,255,0));
 
 	auto c = v->append_new<Box>();
 	c->set_margin_top(10);
-	c->set_width({ 0.5, SizeKind::kRatio });
+	c->set_width({ 0.5, BoxSizeKind::kRatio });
 	c->set_height({ 100 });
 	c->set_background_color(Color(0,0,255));
 
 	auto d = v->append_new<Box>();
 	d->set_margin_top(10);
-	d->set_width({ 0.5, SizeKind::kRatio });
+	d->set_width({ 0.5, BoxSizeKind::kRatio });
 	d->set_height({ 100 });
 	d->set_background_color(Color(0,255,255));
 
 	auto e = v->append_new<Box>();
 	e->set_margin_top(10);
-	e->set_width({ 0, SizeKind::kMatch });
+	e->set_width({ 0, BoxSizeKind::kMatch });
 	e->set_height({ 100 });
 	e->set_background_color(Color(0,255,0));
 
 	auto f = v->append_new<Box>();
 	f->set_margin_top(10);
-	f->set_width({ 0, SizeKind::kMatch });
+	f->set_width({ 0, BoxSizeKind::kMatch });
 	f->set_height({ 100 });
 	f->set_background_color(Color(0,0,255));
 	
 	auto g = v->append_new<Box>();
 	g->set_margin_top(10);
-	g->set_width({ 0, SizeKind::kMatch });
+	g->set_width({ 0, BoxSizeKind::kMatch });
 	g->set_height({ 100 });
 	g->set_background_color(Color(255,0,255));
 	
@@ -193,8 +193,8 @@ void layout(Event<>& evt, Application* app) {
 	);
 	flex->set_background_color({0,0,0,255});
 	// flex->set_box_shadow(new BoxShadow(10, 10, 5, {0,0,0,255}));
-	flex->set_width({ 0, SizeKind::kMatch });
-	flex->set_height({ 180, SizeKind::kPixel });
+	flex->set_width({ 0, BoxSizeKind::kMatch });
+	flex->set_height({ 180, BoxSizeKind::kPixel });
 	flex->set_margin_left(11.5);
 	flex->set_margin_top(10);
 	flex->set_margin_right(11.5);
@@ -225,8 +225,8 @@ void layout(Event<>& evt, Application* app) {
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
 	//
-	flow->set_width({ 50, SizeKind::kPixel });
-	flow->set_height({ 50, SizeKind::kPixel });
+	flow->set_width({ 50, BoxSizeKind::kPixel });
+	flow->set_height({ 50, BoxSizeKind::kPixel });
 	flow->set_background_color({0,0,0,255});
 	flow->set_align(Align::kLeftBottom);
 	flow->set_margin_left(30);
@@ -235,7 +235,7 @@ void layout(Event<>& evt, Application* app) {
 	flow->set_margin_bottom(30);
 	flow->set_padding_left(50);
 	// //
-	// img->set_height({ 50, SizeKind::kPixel });
+	// img->set_height({ 50, BoxSizeKind::kPixel });
 	// img->set_layout_align(Align::kRightBottom);
 	// //img->set_src(fs_resources("bench/img2/21.jpeg"));
 	// img->set_background_color({255,0,0,255});
@@ -247,8 +247,8 @@ void layout(Event<>& evt, Application* app) {
 	// //img->set_rotate(45);
 	//
 	//img2->set_src(fs_resources("bench/img/21.jpeg"));
-	img2->set_width({0, SizeKind::kMatch });
-	//img2->set_height({0, SizeKind::kMatch });
+	img2->set_width({0, BoxSizeKind::kMatch });
+	//img2->set_height({0, BoxSizeKind::kMatch });
 	img2->set_align(Align::kCenter);
 	img2->set_margin_left(100);
 	img2->set_margin_top(30);

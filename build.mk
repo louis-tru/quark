@@ -40,7 +40,7 @@ endif
 
 gen_project=\
 	echo "{'variables':{'project':'$(1)'}}" > out/var.gypi; \
-	GYP_GENERATORS=$(1) $(GYP) -f $(1) $(2) --generator-output="out/$(1)" $(GYP_ARGS)
+	$(ENV) GYP_GENERATORS=$(1) $(GYP) -f $(1) $(2) --generator-output="out/$(1)" $(GYP_ARGS)
 
 make_compile=\
 	$(ENV) $(1) -C "out/$(BUILD_STYLE)" -f Makefile.$(OS).$(SUFFIX) \

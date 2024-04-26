@@ -13,7 +13,9 @@
 			'deps/http_parser/http_parser.gyp:http_parser',
 		],
 		'direct_dependent_settings': {
-			'include_dirs': [],
+			'include_dirs': [
+				'../../deps/libuv/include',
+			],
 			'mac_bundle_resources': [],
 		},
 		'include_dirs': [

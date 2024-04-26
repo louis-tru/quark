@@ -48,8 +48,8 @@
 		'type': 'none',
 		'dependencies': [
 			'quark',
-			'quark-media',
-			'quark-js',
+			# 'quark-media',
+			# 'quark-js',
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"

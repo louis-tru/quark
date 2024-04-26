@@ -5,6 +5,7 @@
 		'arch_name%': '<(arch)',
 		'suffix%': '<(arch)',
 		'byteorder%': 'little',
+		'node_byteorder%': '<(byteorder)>',
 		'clang%': 0,
 		'is_clang': '<(clang)',
 		'python%': 'python',
@@ -46,7 +47,7 @@
 		'use_openssl%': 1,
 
 		############################# dependents set ##################
-		
+
 		'target_arch%': 'ia32',           # set v8's target architecture
 		'host_arch%': 'ia32',             # set v8's host architecture
 		'host_os%': 'mac',
@@ -55,20 +56,20 @@
 		'uv_library': '<(library)',       #
 		'asan%': 0,
 		'werror': '',                     # Turn off -Werror in V8 build.
-		'msvs_multi_core_compile': '0',   # we do enable multicore compiles, but not using the V8 way
+		'msvs_multi_core_compile': 0,   # we do enable multicore compiles, but not using the V8 way
 		'want_separate_host_toolset%': 0, # V8 should not build target and host
 		'v8_enable_gdbjit%': 0,
 		'v8_enable_i18n_support%': 0,
 		'v8_no_strict_aliasing%': 1,
-		'v8_use_snapshot%': 'false',      # Enable the snapshot feature, for fast context creation.
+		'v8_use_snapshot%': 0,      # Enable the snapshot feature, for fast context creation.
 		'v8_optimized_debug%': 0,         # Default to -O0 for debug builds.
 		'v8_promise_internal_field_count%': 1,
 		'v8_enable_disassembler': 0,      # Enable disassembler
 		'v8_use_external_startup_data': 0,# Don't bake anything extra into the snapshot.
-		'v8_postmortem_support%': 'false',
+		'v8_postmortem_support%': 0,
 		'v8_enable_inspector%': 0,
 		'icu_use_data_file_flag': 0,      # Don't use ICU data file (icudtl.dat) from V8, we use our own.
-		'icu_small%': 'true',
+		'icu_small%': 1,
 
 		# Default ARM variable settings.
 		'arm_version': 'default',
@@ -107,7 +108,7 @@
 				'os_posix': 1,
 			}],
 			['os not in "win android ios"', {
-				'v8_postmortem_support%': 'true',
+				'v8_postmortem_support%': 1,
 			}],
 			['os in "ios osx"', {
 				'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
@@ -126,6 +127,9 @@
 		'default_configuration': 'Release',
 		'configurations': {
 			'Debug': {
+				'variables': {
+					'v8_enable_handle_zapping': 1,
+				},
 				'defines': [ 'DEBUG=1', '_DEBUG' ],
 				'cflags': [ '-g', '-O0' ],
 				'xcode_settings': {
@@ -134,6 +138,9 @@
 				},
 			},
 			'Release': {
+				'variables': {
+					'v8_enable_handle_zapping': 0,
+				},
 				'defines': [ 'NDEBUG' ],
 				'cflags': [
 					'-O3', 

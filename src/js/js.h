@@ -93,6 +93,13 @@ namespace qk { namespace js {
 	class TypesParser;
 	class CommonStrings;
 	class JsClassInfo;
+	class JSString;
+	class JSNumber;
+	class JSInt32;
+	class JSUint32;
+	class JSBoolean;
+	class JSArray;
+	class JSFunction;
 
 	template<class T>
 	class Local {
@@ -100,7 +107,7 @@ namespace qk { namespace js {
 		Qk_DEFINE_PROP_GET(T*, val, Const);
 		inline Local(): _val(0) {}
 		template <class S>
-		inline Local(Local<S> that): _val(that->_val) {}
+		inline Local(Local<S> that): _val(static_cast<T*>(*that)) {}
 		inline bool isEmpty() const { return _val == 0; }
 		inline T* operator->() const { return _val; }
 		inline T* operator*() const { return _val; }
@@ -115,26 +122,6 @@ namespace qk { namespace js {
 		template<class S> friend class MaybeLocal;
 		template<class S> friend class Local;
 		template<class S> friend class Persistent;
-	};
-
-	template<class T>
-	class MaybeLocal {
-	public:
-		inline MaybeLocal(): _val(0) {}
-		template <class S>
-		inline MaybeLocal(Local<S> that): _val(that->_val) {}
-		inline bool isEmpty() const { return _val == nullptr; }
-		template <class S>
-		inline bool toLocal(Local<S>* out) const {
-			return _val ? (out->_val = _val, true): (out->_val = nullptr, false);
-		}
-		template <class S>
-		inline Local<S> from(Local<S> defaultValue) const {
-			return _val ? Local<S>(_val): defaultValue;
-		}
-		inline Local<T> toLocalChecked();
-	private:
-		T* _val;
 	};
 
 	class NoCopy {
@@ -194,7 +181,7 @@ namespace qk { namespace js {
 		}
 		inline bool isEmpty() const { return _val == 0; }
 		inline Local<T> toLocal() const {
-			return Local<T>(static_cast<T*>(reinterpret_cast<Persistent<JSValue>*>(this)->toLocal().val()));
+			return Local<T>(static_cast<T*>(reinterpret_cast<const Persistent<JSValue>*>(this)->toLocal().val()));
 		}
 		inline T* operator->() const { return _val; }
 		inline T* operator*() const { return _val; }
@@ -245,7 +232,7 @@ namespace qk { namespace js {
 		template <class S>
 		inline void set(Local<S> value) {
 			Js_Type_Check(JSValue, S);
-			set(value.cast<JSValue>());
+			set(value.template cast<JSValue>());
 		}
 		void set(bool value);
 		void set(double i);
@@ -285,8 +272,8 @@ namespace qk { namespace js {
 	typedef const PropertyCallbackInfo& PropertyArgs;
 	typedef const PropertySetCallbackInfo& PropertySetArgs;
 	typedef void (*FunctionCallback)(FunctionArgs args);
-	typedef void (*AccessorGetterCallback)(Local<JSString> name, PropertyArgs args);
-	typedef void (*AccessorSetterCallback)(Local<JSString> name, Local<JSValue> value, PropertySetArgs args);
+	typedef void (*AccessorGetterCallback)(Local<JSValue> name, PropertyArgs args);
+	typedef void (*AccessorSetterCallback)(Local<JSValue> name, Local<JSValue> value, PropertySetArgs args);
 	typedef void (*IndexedAccessorGetterCallback)(uint32_t index, PropertyArgs args);
 	typedef void (*IndexedAccessorSetterCallback)(uint32_t index, Local<JSValue> value, PropertyArgs args);
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
@@ -309,7 +296,7 @@ namespace qk { namespace js {
 		bool isTypedArray() const;
 		bool isUint8Array() const;
 		bool isBuffer() const; // IsTypedArray or IsArrayBuffer
-		bool equals(Local<JSValue> val) const;
+		bool equals(Worker *worker, Local<JSValue> val) const;
 		bool strictEquals(Local<JSValue> val) const;
 		// ----------------------------------------------------------------------
 		Local<JSString> toString(Worker* worker) const; // to string local
@@ -607,6 +594,8 @@ namespace qk { namespace js {
 		Worker();
 		virtual void init();
 	};
+	
+	template<class T> class Wrap;
 
 	class Qk_EXPORT WrapObject {
 		Qk_HIDDEN_ALL_COPY(WrapObject);
@@ -652,7 +641,7 @@ namespace qk { namespace js {
 		}
 		template<class T>
 		static inline Wrap<T>* wrap(T* object) {
-			return wrap(object, Js_Typeid(T));
+			return wrap(object, Js_Typeid(object));
 		}
 		template<class T>
 		static inline Wrap<T>* wrap(T* object, uint64_t type_id) {
@@ -663,7 +652,7 @@ namespace qk { namespace js {
 		static Wrap<O>* New(FunctionArgs args, O *o) {
 			static_assert(sizeof(W) == sizeof(WrapObject),
 										"Derived wrap class pairs cannot declare data members");
-			static_assert(typename O::Traits::isObject, "Must be object");
+			static_assert(O::Traits::isObject, "Must be object");
 			auto wrap = (new(reinterpret_cast<WrapObject*>(o) - 1) W())->newInit(args);
 			return static_cast<Wrap<O>*>(static_cast<WrapObject*>(wrap));
 		}
@@ -708,29 +697,20 @@ namespace qk { namespace js {
 
 	template<class T>
 	bool JSObject::setProperty(Worker* worker, cString& name, T value) {
-		return Set(worker, worker->newInstance(name, 1), worker->newInstance(value));
+		return set(worker, worker->newStringOneByte(name), worker->newInstance(value));
 	}
 	template<class T>
 	bool JSClass::setMemberProperty(cString& name, T value) {
-		return setMemberProperty<Local<JSValue>>(name, worker->newInstance(value));
+		return setMemberProperty<Local<JSValue>>(name, _worker->newInstance(value));
 	}
 	template<class T>
 	bool JSClass::setStaticProperty(cString& name, T value) {
-		return setStaticProperty<Local<JSValue>>(name, worker->newInstance(value));
+		return setStaticProperty<Local<JSValue>>(name, _worker->newInstance(value));
 	}
 	template<>
 	Qk_EXPORT bool JSClass::setMemberProperty<Local<JSValue>>(cString& name, Local<JSValue> value);
 	template<>
 	Qk_EXPORT bool JSClass::setStaticProperty<Local<JSValue>>(cString& name, Local<JSValue> value);
-
-	template<class T>
-	inline Local<T> MaybeLocal<T>::toLocalChecked() {
-		Js_Type_Check(JSValue, T);
-		reinterpret_cast<MaybeLocal<JSValue>*>(this)->toLocalChecked();
-		return Local<T>(_val);
-	}
-	template<>
-	Qk_EXPORT Local<JSValue> MaybeLocal<JSValue>::toLocalChecked();
 
 } }
 #endif

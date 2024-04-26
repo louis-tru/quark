@@ -47,24 +47,24 @@ namespace qk { namespace js {
 		}
 	}
 
-	bool JSValue::isBuffer(Worker *worker) const {
-		return isTypedArray(worker) || isArrayBuffer(worker);
+	bool JSValue::isBuffer() const {
+		return isTypedArray() || isArrayBuffer();
 	}
 
 	WeakBuffer JSValue::asBuffer(Worker *worker) {
-		if (isTypedArray(worker)) {
+		if (isTypedArray()) {
 			return static_cast<JSTypedArray*>(this)->weakBuffer(worker);
 		}
-		else if (isArrayBuffer(worker)) {
+		else if (isArrayBuffer()) {
 			return static_cast<JSArrayBuffer*>(this)->weakBuffer(worker);
 		}
 		return WeakBuffer();
 	}
 
-	Maybe<Dict<String, int>> JSObject::toIntegerMap(Worker* worker) {
+	Maybe<Dict<String, int>> JSObject::toIntegerDict(Worker* worker) {
 		Dict<String, int> r;
 
-		if ( isObject(worker) ) {
+		if ( isObject() ) {
 			Local<JSArray> names = getPropertyNames(worker);
 			if ( names.isEmpty() )
 				return Maybe<Dict<String, int>>();
@@ -76,7 +76,7 @@ namespace qk { namespace js {
 
 				Local<JSValue> val = get(worker, key);
 				if ( val.isEmpty() ) return Maybe<Dict<String, int>>();
-				if ( val->isNumber(worker) ) {
+				if ( val->isNumber() ) {
 					r.set( key->toStringValue(worker), val->toNumberValue(worker) );
 				} else {
 					r.set( key->toStringValue(worker), val->toBooleanValue(worker) );
@@ -86,10 +86,10 @@ namespace qk { namespace js {
 		return Maybe<Dict<String, int>>(std::move(r));
 	}
 
-	Maybe<Dict<String, String>> JSObject::toStringMap(Worker* worker) {
+	Maybe<Dict<String, String>> JSObject::toStringDict(Worker* worker) {
 		Dict<String, String> r;
 		
-		if ( isObject(worker) ) {
+		if ( isObject() ) {
 			Local<JSArray> names = getPropertyNames(worker);
 			if ( names.isEmpty() )
 				return Maybe<Dict<String, String>>();
@@ -112,7 +112,7 @@ namespace qk { namespace js {
 	Maybe<JSON> JSObject::toJSON(Worker* worker) {
 		JSON r = JSON::object();
 		
-		if ( isObject(worker) ) {
+		if ( isObject() ) {
 			Local<JSArray> names = getPropertyNames(worker);
 			if ( names.isEmpty() )
 				return Maybe<JSON>();
@@ -123,15 +123,15 @@ namespace qk { namespace js {
 				Local<JSValue> val = get(worker, key);
 				if ( val.isEmpty() ) return Maybe<JSON>();
 				String key_s = key->toStringValue(worker);
-				if (val->isUint32(worker)) {
+				if (val->isUint32()) {
 					r[key_s] = val->toUint32Value(worker);
-				} else if (val->isInt32(worker)) {
+				} else if (val->isInt32()) {
 					r[key_s] = val->toInt32Value(worker);
-				} else if (val->isNumber(worker)) {
+				} else if (val->isNumber()) {
 					r[key_s] = val->toInt32Value(worker);
-				} else if (val->isBoolean(worker)) {
+				} else if (val->isBoolean()) {
 					r[key_s] = val->toBooleanValue(worker);
-				} else if (val->isNull(worker)) {
+				} else if (val->isNull()) {
 					r[key_s] = JSON::null();
 				} else {
 					r[key_s] = val->toStringValue(worker);
@@ -145,9 +145,9 @@ namespace qk { namespace js {
 		return get(worker, worker->newStringOneByte(name)/*One Byte ??*/);
 	}
 
-	Maybe<Array<String>> JSArray::toStringArrayMaybe(Worker* worker) {
+	Maybe<Array<String>> JSArray::toStringArray(Worker* worker) {
 		Array<String> rv;
-		if ( isArray(worker) ) {
+		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
 				Local<JSValue> val = get(worker, i);
 				if ( val.isEmpty() )
@@ -158,29 +158,21 @@ namespace qk { namespace js {
 		return Maybe<Array<String>>(std::move(rv));
 	}
 
-	Maybe<Array<double>> JSArray::toNumberArrayMaybe(Worker* worker) {
+	Maybe<Array<double>> JSArray::toNumberArray(Worker* worker) {
 		Array<double> rv;
-		if ( isArray(worker) ) {
-			double out;
+		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
-				Local<JSValue> val = get(worker, i);
-				if ( val.isEmpty() || !val->toNumberMaybe(worker).to(out) )
-					return Maybe<Array<double>>();
-				rv.push( out );
+				rv.push( get(worker, i)->toNumberValue(worker) );
 			}
 		}
 		return Maybe<Array<double>>(std::move(rv));
 	}
 
-	Maybe<Buffer> JSArray::toBufferMaybe(Worker* worker) {
+	Maybe<Buffer> JSArray::toBuffer(Worker* worker) {
 		Buffer rv;
-		if ( isArray(worker) ) {
-			double out;
+		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
-				Local<JSValue> val = get(worker, i);
-				if ( val.isEmpty() || !val->toNumberMaybe(worker).to(out) )
-					return Maybe<Buffer>();
-				rv.push( out );
+				rv.push( get(worker, i)->toInt32Value(worker) );
 			}
 		}
 		return Maybe<Buffer>(std::move(rv));
@@ -301,7 +293,7 @@ namespace qk { namespace js {
 
  	Local<JSValue> BindingModule::binding(Local<JSValue> name) {
 		auto r = _nativeModules.toLocal()->get(this, name);
-		if (!r->isUndefined(this))
+		if (!r->isUndefined())
 			return r;
 		const NativeModuleLib* lib;
 		auto exports = newObject();
@@ -353,7 +345,7 @@ namespace qk { namespace js {
 		if ( initializ_core_native_module++ == 0 ) {
 			Qk_ASSERT(NativeModulesLib);
 			for (int i = 0; i < native_js::INL_native_js_count_; i++) {
-				const NativeJSCode* code = native_js::INL_native_js_ + i;
+				const NativeJSCode* code = (const NativeJSCode*)native_js::INL_native_js_ + i;
 				if (!NativeModulesLib->has(code->name)) { // skip _event / _types
 					NativeModulesLib->set(code->name, { code->name, code->name, 0, code });
 				}
@@ -462,7 +454,7 @@ namespace qk { namespace js {
 		Qk_ASSERT(!_util.IsEmpty());
 
 		Local<JSValue> func = _util->getProperty(worker, String("__on").append(name).append("_native"));
-		if (!func->isFunction(worker)) {
+		if (!func->isFunction()) {
 			return Local<JSValue>();
 		}
 		return func.cast<JSFunction>()->call(worker, argc, argv);
@@ -472,7 +464,7 @@ namespace qk { namespace js {
 		Js_Handle_Scope();
 		Local<JSValue> argv = worker->newInstance(code);
 		Local<JSValue> rc = TriggerEventFromUtil(worker, name, 1, &argv);
-		if (!rc.isEmpty() && rc->isInt32(worker)) {
+		if (!rc.isEmpty() && rc->isInt32()) {
 			return rc->toInt32Value(worker);
 		} else {
 			return code;

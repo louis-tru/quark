@@ -98,7 +98,7 @@ namespace qk {
 
 		// make listener
 		static Listener* MakeListener(ListenerFunc l, void* ctx, bool once);
-		static Listener* MakeStaticListener(StaticListenerFunc l, Object* ctx, bool once);
+		static Listener* MakeStaticListener(StaticListenerFunc l, void* ctx, bool once);
 		static Listener* MakeLambdaListener(OnLambdaListenerFunc& l, uint32_t id, bool once);
 		static Listener* MakeShellListener(void *host_sender, EventNoticerBasic* shell, bool once);
 

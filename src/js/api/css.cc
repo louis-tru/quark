@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../quark.h"
+#include "../js.h"
 #include "../../css/css.h"
 
 /**
