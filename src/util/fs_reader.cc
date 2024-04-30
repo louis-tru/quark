@@ -158,9 +158,9 @@ namespace qk {
 				default:
 				case FILE:
 					if ( stream ) {
-						id = fs_read_stream(path, *(Callback<StreamResponse>*)(&cb));
+						id = fs_read_stream(path, *reinterpret_cast<Callback<StreamResponse>*>(&cb));
 					} else {
-						fs_read_file(path, cb);
+						fs_read_file(path, *reinterpret_cast<Callback<Buffer>*>(&cb));
 					}
 					break;
 				case ZIP: {
@@ -360,10 +360,10 @@ namespace qk {
 		_core = nullptr;
 	}
 
-	uint32_t FileReader::read_file(cString& path, Cb cb) {
-		return _core->read(path, cb, false);
+	uint32_t FileReader::read_file(cString& path, Callback<Buffer> cb) {
+		return _core->read(path, *reinterpret_cast<Cb*>(&cb), false);
 	}
-	
+
 	uint32_t FileReader::read_stream(cString& path, Callback<StreamResponse> cb) {
 		return _core->read(path, *(Cb*)&cb, true);
 	}

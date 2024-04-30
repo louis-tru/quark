@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
  #include "./working.h"
+ #include <uv.h>
 
 namespace qk {
 
@@ -40,27 +41,16 @@ namespace qk {
 
 	const Thread* thread_current();
 
-	/**
-	* @constructor
-	*/
-	ParallelWorking::ParallelWorking(): ParallelWorking(RunLoop::current()) {}
-
 	ParallelWorking::ParallelWorking(RunLoop* loop) : _proxy(nullptr) {
 		Qk_ASSERT(loop, "Can not find current thread run loop.");
-		_proxy = loop->keep_alive("ParallelWorking()");
+		_proxy = loop->keep_alive();
 	}
 
-	/**
-	* @destructor
-	*/
 	ParallelWorking::~ParallelWorking() {
 		abort_child();
 		delete _proxy; _proxy = nullptr;
 	}
 
-	/**
-	* @func run
-	*/
 	ThreadID ParallelWorking::spawn_child(Func func, cString& name) {
 		ScopeLock scope(_mutex2);
 		struct Tmp {
@@ -79,9 +69,6 @@ namespace qk {
 		return id;
 	}
 
-	/**
-	* @func abort_child
-	*/
 	void ParallelWorking::abort_child(ThreadID id) {
 		if ( id == ThreadID() ) {
 			Dict<ThreadID, int> childs;
@@ -108,9 +95,6 @@ namespace qk {
 		}
 	}
 
-	/**
-	* @func awaken
-	*/
 	void ParallelWorking::awaken_child(ThreadID id) {
 		ScopeLock scope(_mutex2);
 		if ( id == ThreadID() ) {
@@ -124,101 +108,60 @@ namespace qk {
 		}
 	}
 
-	/**
-	* @func post message to main thread
-	*/
-	uint32_t ParallelWorking::post(Cb exec) {
-		_proxy->post_message(exec);
-		return 0;
+	void ParallelWorking::post(Cb cb) {
+		return _proxy->loop()->post(cb);
 	}
 
-	/**
-	* @func post
-	*/
-	uint32_t ParallelWorking::post(Cb exec, uint64_t delayUs) {
-		_proxy->post_message(exec, delayUs);
-		return 0;
-	}
-
-	/**
-	* @func cancel
-	*/
-	void ParallelWorking::cancel(uint32_t id) {
-		/*if ( id ) {
-			_proxy->cancel(id);
-		} else {
-			_proxy->cancel_all();
-		}*/
-	}
-
-
-	/**
-	 * @class BackendLoop
-	 */
-	class BackendLoop {
-	public:
-		inline BackendLoop(): _loop(nullptr) {}
-		
-		inline bool has_current_thread() {
-			return thread_current_id() == _thread_id;
-		}
-
-		bool is_continue(const Thread* t) {
-			ScopeLock scope(_mutex);
-			if (!t->abort) {
-				/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
-				* 200毫秒后没有向队列发送新消息结束线程
-				* * *
-				* 这里休眠200毫秒给外部线程足够时间往队列发送消息
-				*/
-				thread_sleep(2e5);
-				if ( _loop->is_alive() && !t->abort ) {
-					return true; // 继续运行
-				}
-			}
-			_loop = nullptr;
-			_thread_id = ThreadID();
-			return false;
-		}
-		
-		RunLoop* loop() {
-			Lock lock(_mutex);
-			if (_loop)
-				return _loop;
-
-			thread_new([](void* arg) {
-				auto t = thread_current();
-				auto self = (BackendLoop*)arg;
-				self->_mutex.lock();
-				self->_thread_id = t->id;
-				self->_loop = RunLoop::current();
-				self->_cond.notify_all(); // call wait ok
-				self->_mutex.unlock();
-				do {
-					self->_loop->run(2e7); // 20秒后没有新消息结束线程
-				} while(self->is_continue(t));
-			}, this, "work_loop");
-			
-			_cond.wait(lock); // call wait
-
-			return _loop;
-		}
-		
-	private:
-		ThreadID _thread_id;
-		RunLoop* _loop;
-		Mutex _mutex;
-		Condition _cond;
-	};
-
-	static BackendLoop* _backend_loop = new BackendLoop();
+	struct BackendLoop {
+		RunLoop* loop;
+		ThreadID id;
+		Mutex mutex;
+		Condition cond;
+	} *_backend_loop = new BackendLoop{0};
 
 	RunLoop* backend_loop() {
-		return _backend_loop->loop();
+		auto self = _backend_loop;
+		Lock lock(self->mutex);
+		if (self->loop)
+			return self->loop;
+
+		thread_new([](void* arg) {
+			auto t = thread_current();
+			auto self = (BackendLoop*)arg;
+			auto loop = RunLoop::current();
+			{
+				ScopeLock lock(self->mutex);
+				self->loop = loop;
+				self->id = t->id;
+				self->cond.notify_all(); // call wait ok
+			}
+
+			auto time = uv_hrtime() / 1000;
+			do {
+				loop->timer(Cb([](auto&e){}), 2e6);
+				loop->run();
+				if (uv_hrtime() / 1000 - time > 2e6) {
+					continue;
+				}
+				{
+					ScopeLock lock(self->mutex);
+					if (!t->abort) {
+						thread_sleep(1e5); // 外部调用取到loop后,100毫秒内不激活loop将被释放
+						if (loop->is_alive() && !t->abort)
+							continue;
+					}
+					self->loop = nullptr;
+					self->id = ThreadID();
+				}
+			} while(0);
+		}, self, "work_loop");
+
+		self->cond.wait(lock); // call wait
+		return self->loop;
 	}
 
 	bool has_backend_thread() {
-		return _backend_loop->has_current_thread();
+		return thread_current_id() == _backend_loop->id;
 	}
 
 }

@@ -43,6 +43,8 @@ Qk_EXPORT int (*__qk_run_main__)(int, char**) = nullptr;
 
 namespace qk {
 	typedef Application::Inl AppInl;
+	// thread helper
+	static auto __run_main_wait = new CondMutex;
 
 	void view_prop_acc_init();
 
@@ -97,7 +99,7 @@ namespace qk {
 
 	void Application::run() {
 		if (!_keep) {
-			_keep = _loop->keep_alive("Application::run(), keep", [](void *ctx) {
+			_keep = _loop->keep_alive([](void *ctx) {
 				auto app = (Application*)(ctx);
 				if (app->_windows.length()) {
 					ScopeLock lock(app->_mutex);
@@ -107,6 +109,8 @@ namespace qk {
 				}
 			}, this); // keep loop
 		}
+		__run_main_wait->lock_notify_all(); // The external thread continues to run
+
 		if (!_loop->runing()) {
 			_loop->run(); // run message loop
 			Qk_DEBUG("_loop->run() end");
@@ -128,6 +132,11 @@ namespace qk {
 			thread_try_abort_and_exit(rc); // if sub thread end then exit
 			Qk_DEBUG("Application::runMain() thread_new() Exit ok");
 		}, new Args{argc, argv}, "runMain");
+
+		// Block this main thread until calling Application::run()
+		while (!_shared || !_shared->_keep) {
+			__run_main_wait->lock_wait_for();
+		}
 	}
 
 	void Application::clear(bool all) {

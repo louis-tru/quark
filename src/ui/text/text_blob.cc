@@ -91,7 +91,7 @@ namespace qk {
 		bool is_push_row = false;
 
 		auto push_row = [&]() {
-			row.realloc(row.length() + 1);
+			row.reset(row.length() + 1);
 			(*row)[row.length()] = 0;
 			lines.push(std::move(row));
 		};

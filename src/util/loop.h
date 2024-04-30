@@ -46,11 +46,9 @@
 typedef struct uv_loop_s uv_loop_t;
 typedef struct uv_async_s uv_async_t;
 typedef struct uv_timer_s uv_timer_t;
-typedef struct uv_idle_s uv_idle_t;
 typedef struct uv_check_s uv_check_t;
 
 namespace qk {
-	class RunLoop;
 	class KeepLoop;
 
 	typedef std::thread::id         ThreadID;
@@ -91,7 +89,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT PostMessage {
 	public:
-		virtual void post_message(Cb cb, uint64_t delayUs = 0) = 0;
+		virtual void post_message(Cb cb) = 0;
 	};
 
 	/**
@@ -100,6 +98,12 @@ namespace qk {
 	class Qk_EXPORT RunLoop: public Object, public PostMessage {
 		Qk_HIDDEN_ALL_COPY(RunLoop);
 	public:
+		/**
+		 * @class PostSyncData
+		*/
+		struct PostSyncData: Object {
+			virtual void complete() = 0;
+		};
 
 		/**
 		 * @method runing()
@@ -112,19 +116,6 @@ namespace qk {
 		bool is_alive() const;
 
 		/**
-		* @func post(cb[,delay_us]) post message and setting delay
-		*/
-		void post(Cb cb, uint64_t delay_us = 0);
-
-		/**
-		 * @class PostSyncData
-		*/
-		class PostSyncData: public Object {
-		public:
-			virtual void complete() = 0;
-		};
-
-		/**
 		 * Synchronously post a message callback to the run loop
 		 *
 		 * @note Circular calls by the same thread lead to deadlock
@@ -132,15 +123,44 @@ namespace qk {
 		void post_sync(Callback<PostSyncData> cb);
 
 		/**
+		* @func post(cb) post message
+		*/
+		void post(Cb cb);
+
+		/**
+		 * @method timer() start timer and return handle id
+		*/
+		uint32_t timer(Cb cb, uint64_t timeUs, uint64_t repeat = 0);
+
+		/**
+		 * @method timer_stop timer stop 
+		*/
+		void timer_stop(uint32_t id);
+
+		/**
+		 * @method work(cb[,done])
+		*/
+		uint32_t work(Cb cb, Cb done = 0);
+
+		/**
+		* @method work_cancel(id)
+		*/
+		void work_cancel(uint32_t id);
+
+		/**
+		 * @method next_tick() next tick check
+		*/
+		void next_tick(Cb cb);
+
+		/**
 		 * @overwrite
 		*/
-		virtual void post_message(Cb cb, uint64_t delayUs = 0);
+		virtual void post_message(Cb cb);
 
 		/**
 		 * Running the message loop
-		 * @arg [timeout=0] {uint64_t} Timeout (subtle us), when it is equal to 0, no new message will end immediately
 		*/
-		void run(uint64_t timeout = 0);
+		void run();
 
 		/**
 		 * Stop running message loop
@@ -152,22 +172,10 @@ namespace qk {
 		void stop();
 
 		/**
-		 * @method work(cb[,done[,name]])
-		*/
-		uint32_t work(Cb cb, Cb done = 0, cString& name = String());
-
-		/**
-		* @func cancel_work(id)
-		*/
-		void cancel_work(uint32_t id);
-
-		/**
 		 * Keep the running state and return a proxy object, as long as you don't delete `KeepLoop` or call `stop()`,
 		 * the message queue will always remain in the running state
-		 *
-		 * @arg name {cString&} alias
 		*/
-		KeepLoop* keep_alive(cString& name = String(), void (*tickCheck)(void *ctx) = 0, void* check_data = 0);
+		KeepLoop* keep_alive(void (*check)(void *ctx) = 0, void* ctx = 0);
 
 		/**
 		 * Returns the libuv C library uv loop object for current run loop
@@ -210,22 +218,21 @@ namespace qk {
 		virtual ~RunLoop();
 
 		struct Msg {
-			int64_t time;
-			Cb      cb;
+			Cb cb;
+			uv_timer_t* timer;
 		};
 		struct Work;
-		List<Msg>       _msg;
-		List<Work*>     _work;
 		List<KeepLoop*> _keep;
+		List<Msg>       _msg;
+		Dict<uint32_t, Work*> _work;
+		Dict<uint32_t, uv_timer_t*> _timer;
 		Mutex       _mutex;
 		Thread*     _thread;
 		ThreadID    _tid;
 		uv_loop_t*  _uv_loop;
 		uv_async_t* _uv_async;
 		uv_timer_t* _uv_timer;
-		int64_t _timeout, _record_timeout;
 
-		friend class KeepLoop;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
@@ -235,33 +242,9 @@ namespace qk {
 	 * @class KeepLoop
 	 */
 	class Qk_EXPORT KeepLoop: public PostMessage {
-		Qk_HIDDEN_ALL_COPY(KeepLoop);
 	public:
-		/**
-		 * @destructor
-		*/
-		virtual ~KeepLoop();
-
-		/**
-		 * @func post_message(cb[,delay_us])
-		*/
-		virtual void post_message(Cb cb, uint64_t delay_us = 0);
-
-		/**
-		 * @method host() Returns `nullptr` if the target thread has ended
-		*/
-		inline RunLoop* host() { return _loop; }
-
-	private:
-		KeepLoop(RunLoop *loop, cString &name, void (*check)(void *ctx), void* check_data);
-
-		RunLoop* _loop;
-		String _name;
-		List<KeepLoop*>::Iterator _id;
-		uv_check_t *_uv_check;
-		void (*_check)(void *ctx);
-		void *_check_data;
-		friend class RunLoop;
+		virtual ~KeepLoop() = default;
+		RunLoop* loop();
 	};
 
 	inline RunLoop* current_loop() {

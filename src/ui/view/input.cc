@@ -221,6 +221,7 @@ namespace qk {
 						// 只有长按输入框超过1秒没有移动才表示激活光标查找
 						auto view = safe_view();
 						if (view) {
+							
 							preRender().post(Cb([this](auto &e) { // delay call
 								_async_call([](auto ctx, auto arg) {
 									if ( ctx->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
@@ -228,7 +229,7 @@ namespace qk {
 										ctx->find_cursor(ctx->_point);
 									}
 								}, this, 0);
-							}, *view), 1e6/*1s*/);
+							}, *view)/*, 1e6*//*1s*/);
 						}
 					} else { // 立即激活
 						_flag = kFlag_Find_Cursor;

@@ -48,32 +48,34 @@ namespace qk {
 		virtual void warn(cChar* log, cChar* end = nullptr);
 		virtual void error(cChar* log, cChar* end = nullptr);
 		virtual void fflush();
-		static  void set_shared(Log *c);
-		static  Log* shared();
-		void         print(Type t, cChar*, ...);
-		void         println(Type t, cChar*, ...);
+						void print(Type t, cChar*, ...);
+						void println(Type t, cChar*, ...);
+		static	void set_shared(Log *c);
+		static	Log* shared();
 	};
 
+	Qk_EXPORT void log_fflush();
 	Qk_EXPORT void log_print(cChar*, ...);
-	Qk_EXPORT void log_println(cChar*, ...);
-	Qk_EXPORT void log_println(int8_t s);
-	Qk_EXPORT void log_println(uint8_t s);
-	Qk_EXPORT void log_println(int16_t s);
-	Qk_EXPORT void log_println(uint16_t s);
-	Qk_EXPORT void log_println(int32_t s);
-	Qk_EXPORT void log_println(uint32_t s);
-	Qk_EXPORT void log_println(float s);
+	Qk_EXPORT void log_println(int8_t);
+	Qk_EXPORT void log_println(uint8_t);
+	Qk_EXPORT void log_println(int16_t);
+	Qk_EXPORT void log_println(uint16_t);
+	Qk_EXPORT void log_println(int32_t);
+	Qk_EXPORT void log_println(uint32_t);
+	Qk_EXPORT void log_println(float);
 	Qk_EXPORT void log_println(double);
 	Qk_EXPORT void log_println(int64_t);
 	Qk_EXPORT void log_println(uint64_t);
 	Qk_EXPORT void log_println(size_t);
 	Qk_EXPORT void log_println(bool);
-	Qk_EXPORT void log_println(cString&);
 	Qk_EXPORT void log_println(cBuffer&);
 	Qk_EXPORT void log_println(cString2&);
+	Qk_EXPORT void log_println(cChar*, ...);
+	Qk_EXPORT void log_println(cString&);
 	Qk_EXPORT void log_println_warn(cChar*, ...);
+	Qk_EXPORT void log_println_warn(cString&);
 	Qk_EXPORT void log_println_error(cChar*, ...);
+	Qk_EXPORT void log_println_error(cString&);
 	Qk_EXPORT void log_println_error(const Error&);
-	Qk_EXPORT void log_fflush();
 }
 #endif

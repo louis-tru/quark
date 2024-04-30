@@ -28,25 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/os/device.h"
+#include "quark/os/os.h"
 #include "quark/util/string.h"
 
 using namespace qk;
 
 void test_os_info(int argc, char **argv) {
-	Qk_LOG(device_info());
-	Qk_LOG(device_system_version());
-	Qk_LOG(device_brand());
-	Qk_LOG(device_languages().join(','));
-	Qk_LOG(device_is_wifi());
-	Qk_LOG(device_is_mobile());
-	Qk_LOG(device_network_status());
-	Qk_LOG(device_is_ac_power());
-	Qk_LOG(device_is_battery());
-	Qk_LOG(device_battery_level());
-	Qk_LOG(device_memory());
-	Qk_LOG(device_used_memory());
-	Qk_LOG(device_available_memory());
+	Qk_LOG(os_info());
+	Qk_LOG(os_version());
+	Qk_LOG(os_brand());
+	Qk_LOG(os_languages().join(','));
+	Qk_LOG(os_is_wifi());
+	Qk_LOG(os_is_mobile());
+	Qk_LOG(os_network_status());
+	Qk_LOG(os_is_ac_power());
+	Qk_LOG(os_is_battery());
+	Qk_LOG(os_battery_level());
+	Qk_LOG(os_memory());
+	Qk_LOG(os_used_memory());
+	Qk_LOG(os_available_memory());
 }
 
 

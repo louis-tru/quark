@@ -102,20 +102,6 @@ namespace qk {
 		::fflush(f_stderr);
 	}
 
-	void Log::set_shared(Log *log) {
-		if (_shared_log != log) {
-			delete _shared_log;
-			_shared_log = log;
-		}
-	}
-
-	Log* Log::shared() {
-		if (!_shared_log) {
-			set_shared(New<Log>());
-		}
-		return _shared_log;
-	}
-
 	void Log::print(Type t, cChar *msg, ...) {
 		Qk_STRING_FORMAT(msg, str);
 		switch(t) {
@@ -133,6 +119,22 @@ namespace qk {
 			default: error(str.c_str(), "\n"); break;
 		}
 	}
+
+	void Log::set_shared(Log *log) {
+		if (_shared_log != log) {
+			delete _shared_log;
+			_shared_log = log;
+		}
+	}
+
+	Log* Log::shared() {
+		if (!_shared_log) {
+			set_shared(New<Log>());
+		}
+		return _shared_log;
+	}
+
+	// -------------------------------------------------------------------------------------
 
 	void log_print(cChar *format, ...) {
 		Qk_STRING_FORMAT(format, str);
@@ -206,6 +208,14 @@ namespace qk {
 
 	void log_println(cString& msg) {
 		Log::shared()->log(msg.c_str(), "\n");
+	}
+
+	void log_println_warn(cString& msg) {
+		Log::shared()->warn(msg.c_str(), "\n");
+	}
+
+	void log_println_error(cString& msg) {
+		Log::shared()->error(msg.c_str(), "\n");
 	}
 
 	void log_println(cBuffer& buf) {

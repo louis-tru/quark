@@ -174,7 +174,7 @@ namespace qk {
 		
 		class Task: public AsyncIOTask, File::Delegate {
 		public:
-			
+
 			Task(cString& source, cString& target, Cb cb, RunLoop* loop)
 			: AsyncIOTask(loop)
 			, _source_file(new File(source, loop))
@@ -212,8 +212,8 @@ namespace qk {
 			
 			void release_buffer(Buffer buffer) {
 				for ( int i = 0; i < 2; i++ ) {
-					if (_buffer[i].length() == 0) {
-						buffer.realloc(BUFFER_SIZE);
+					if (_buffer[i].length() < BUFFER_SIZE) {
+						buffer.reset(BUFFER_SIZE);
 						_buffer[i] = buffer;
 					}
 				}
@@ -581,7 +581,7 @@ namespace qk {
 			} else {
 				unlink2(each->dirent().pathname, cb2, each->loop());
 			}
-		}), cb, true);
+		}), cb/*end*/, true);
 		return each->start();
 	}
 
@@ -689,46 +689,46 @@ namespace qk {
 		ls2(path, cb, LOOP);
 	}
 
-	void fs_stat(cString& path, Cb cb) {
-		file_helper_stat2(path, cb, LOOP);
+	void fs_stat(cString& path, Callback<FileStat> cb) {
+		file_helper_stat2(path, *reinterpret_cast<Cb*>(&cb), LOOP);
 	}
 
-	void fs_exists(cString& path, Cb cb) {
-		exists2(path, cb, LOOP);
+	void fs_exists(cString& path, Callback<Bool> cb) {
+		exists2(path, *reinterpret_cast<Cb*>(&cb), LOOP);
 	}
 
-	void fs_is_file(cString& path, Cb cb) {
+	void fs_is_file(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_stat(loop->uv_loop(),
-							New<FileReq>(cb, loop)->req(),
+							New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
 							fs_fallback_c(path),
 							&is_file_cb);
 	}
 
-	void fs_is_directory(cString& path, Cb cb) {
-		is_dir2(path, cb, LOOP);
+	void fs_is_directory(cString& path, Callback<Bool> cb) {
+		is_dir2(path, *reinterpret_cast<Cb*>(&cb), LOOP);
 	}
 
-	void fs_readable(cString& path, Cb cb) {
+	void fs_readable(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
-								New<FileReq>(cb, loop)->req(),
+								New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
 								fs_fallback_c(path),
 								R_OK, &uv_fs_access_cb);
 	}
 
-	void fs_writable(cString& path, Cb cb) {
+	void fs_writable(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
-								New<FileReq>(cb, loop)->req(),
+								New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
 								fs_fallback_c(path),
 								W_OK, &uv_fs_access_cb);
 	}
 
-	void fs_executable(cString& path, Cb cb) {
+	void fs_executable(cString& path, Callback<Bool> cb) {
 		LOOP2;
 		uv_fs_access(loop->uv_loop(),
-								New<FileReq>(cb, loop)->req(),
+								New<FileReq>(*reinterpret_cast<Cb*>(&cb), loop)->req(),
 								fs_fallback_c(path),
 								X_OK, &uv_fs_access_cb);
 	}
@@ -806,13 +806,14 @@ namespace qk {
 							ctx->_offset += uv_req->result;
 						}
 						ctx->_size += uv_req->result;
-						ctx->_buffer.realloc((uint32_t)uv_req->result);
+						ctx->_buffer.reset((uint32_t)uv_req->result);
 						StreamResponse data(ctx->_buffer, 0, ctx->id(), ctx->_size, ctx->_total, ctx);
 						async_resolve(ctx->_cb, std::move(data));
 						ctx->read_advance(req);
 					} else { // end
 						ctx->abort();
-						StreamResponse data(Buffer(), 1, ctx->id(), ctx->_size, ctx->_total, ctx);
+						Buffer buff;
+						StreamResponse data(buff, 1, ctx->id(), ctx->_size, ctx->_total, ctx);
 						async_resolve(ctx->_cb, std::move(data));
 						uv_fs_close(ctx->uv_loop(), uv_req, ctx->_fd, &fs_close_cb); // close
 					}
@@ -825,9 +826,8 @@ namespace qk {
 				} else {
 					if ( !_pause && _read_count == 0 ) {
 						_read_count++;
-						
-						if ( !_buffer.length() ) {
-							_buffer = Buffer::alloc(BUFFER_SIZE);
+						if ( _buffer.length() < BUFFER_SIZE ) {
+							_buffer.reset(BUFFER_SIZE);
 						}
 						uv_buf_t buf;
 						buf.base = *_buffer;
@@ -884,7 +884,7 @@ namespace qk {
 
 	// read file
 
-	void fs_read_file(cString& path, Cb cb, int64_t size) {
+	void fs_read_file(cString& path, Callback<Buffer> cb, int64_t size) {
 		int64_t offset = -1;
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
@@ -966,12 +966,12 @@ namespace qk {
 			
 		};
 		
-		Data::start(new FileReq(cb, LOOP, { path, size, offset }));
+		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { path, size, offset }));
 	}
 
 	// write file
 
-	void fs_write_file(cString& path, Buffer buffer, Cb cb) {
+	void fs_write_file(cString& path, Buffer buffer, Callback<Buffer> cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		
@@ -1023,15 +1023,15 @@ namespace qk {
 		};
 		
 		uint32_t size = buffer.length();
-		Data::start(new FileReq(cb, LOOP, Data({ path, size, buffer })));
+		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, Data({ path, size, buffer })));
 	}
 
-	void fs_write_file(cString& path, cString& str, Cb cb) {
-		fs_write_file(path, str.copy(), cb);
+	void fs_write_file(cString& path, cString& str, Callback<Buffer> cb) {
+		fs_write_file(path, str.copy().collapse(), cb);
 	}
 
 	// open/close file fd
-	void fs_open(cString& path, int flag, Cb cb) {
+	void fs_open(cString& path, int flag, Callback<Int32> cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		
@@ -1062,10 +1062,10 @@ namespace qk {
 			}
 		};
 		
-		Data::start(new FileReq(cb, LOOP, { path, flag }));
+		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { path, flag }));
 	}
 
-	void fs_open(cString& path, Cb cb) {
+	void fs_open(cString& path, Callback<Int32> cb) {
 		fs_open(path, FOPEN_R, cb);
 	}
 
@@ -1096,14 +1096,14 @@ namespace qk {
 	}
 
 	// read with fd
-	void fs_read(int fd, Buffer buffer, Cb cb) {
+	void fs_read(int fd, Buffer buffer, Callback<Buffer> cb) {
 		fs_read(fd, buffer, -1, cb);
 	}
 
-	void fs_read(int fd, Buffer buffer, int64_t offset, Cb cb) {
+	void fs_read(int fd, Buffer buffer, int64_t offset, Callback<Buffer> cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
-		
+
 		struct Data {
 			int fd;
 			int64_t  offset;
@@ -1119,11 +1119,12 @@ namespace qk {
 					req->cb()->call(&err, &buff);
 				} else {
 					buff[uv_req->result] = '\0';
-					buff.realloc((uint32_t)uv_req->result);
-					req->cb()->resolve(&buff);
+					auto capacity = buff.capacity();
+					Buffer buff2(buff.collapse(), (uint32_t)uv_req->result, capacity);
+					req->cb()->resolve(&buff2);
 				}
 			}
-			
+
 			static void start(FileReq* req) {
 				Data& data = req->data();
 				uv_buf_t buf;
@@ -1134,14 +1135,14 @@ namespace qk {
 			}
 		};
 		
-		Data::start(new FileReq(cb, LOOP, { fd, offset, buffer }));
+		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { fd, offset, buffer }));
 	}
 
-	void fs_write(int fd, Buffer buffer, Cb cb) {
+	void fs_write(int fd, Buffer buffer, Callback<Buffer> cb) {
 		fs_write(fd, buffer, -1, cb);
 	}
 
-	void fs_write(int fd, Buffer buffer, int64_t offset, Cb cb) {
+	void fs_write(int fd, Buffer buffer, int64_t offset, Callback<Buffer> cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 		
@@ -1172,7 +1173,7 @@ namespace qk {
 			}
 		};
 		
-		Data::start(new FileReq(cb, LOOP, { fd, offset, buffer }));
+		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { fd, offset, buffer }));
 	}
 
 }

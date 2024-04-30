@@ -94,8 +94,8 @@ namespace qk {
 		}
 	}
 	
-	void PreRender::post(Cb cb, uint64_t delay_us) {
-		_window->host()->loop()->post(cb, delay_us);
+	void PreRender::post(Cb cb, uint64_t delayUs) {
+		_window->host()->loop()->timer(cb, delayUs);
 	}
 
 	void PreRender::solveMarks() {

@@ -123,11 +123,11 @@ namespace qk {
 	}
 
 	uint32_t getId32() {
-		return id++ % Uint32::limit_max;
+		return (id++) % Uint32::limit_max;
 	}
 
 	String version() {
-    static String ver(Qk_VERSION);
+		static String ver(Qk_VERSION);
 		return ver;
 	}
 
@@ -139,7 +139,7 @@ namespace qk {
 			// static String _name("darwin/tvOS");
 			// static String _name("darwin/iWatch");
 		#elif  Qk_ANDROID
-			static String _name("android/Android");
+			static String _name("linux/Android");
 		#elif  Qk_WIN
 			static String _name("win32/Windows");
 		#elif  Qk_LINUX
@@ -157,14 +157,14 @@ namespace qk {
 	int64_t time_micro() {
 		timespec now;
 		int rc = clock_gettime(CLOCK_REALTIME, &now);
-		int64_t r = now.tv_sec * 1000000 + now.tv_nsec * 0.001;
+		int64_t r = now.tv_sec * 1000000 + now.tv_nsec / 1000;
 		return r;
 	}
 
 	int64_t time_monotonic() {
 		timespec now;
 		int rc = clock_gettime(CLOCK_MONOTONIC, &now);
-		int64_t r = now.tv_sec * 1000000 + now.tv_nsec * 0.001;
+		int64_t r = now.tv_sec * 1000000 + now.tv_nsec / 1000;
 		return r;
 	}
 

@@ -28,222 +28,78 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../js.h"
-#include "../../util/loop.h"
+#include "./cb.h"
 
-/**
- * @ns qk::js
- */
+namespace qk { namespace js {
 
-Js_BEGIN
-
-class Timer: public Reference {
+	class WrapTimer {
 	public:
-	typedef void (*CallbackPtr)(Timer* timer);
-	uint32_t      _timer_id;  // id
-	uint64_t    _timeout;   // 超时时间
-	int       _loop;      // -1 为无限循环
-	RunLoop*  _run_loop;  // 消息队列
-	Cb _cb, _cb2;
-	CallbackPtr _cb_ptr;
-	
-	void _run_cb(Cb::Data& d) {
-		
-		if ( _cb_ptr ) {
-			_cb_ptr(this);
-		} else {
-			Cb::Data evt = { 0, this }; _cb->call(evt);
+		static void timer_(FunctionArgs args, int64_t repeat) {
+			Js_Worker(args);
+			if (args.length() < 2 || !args[0]->isFunction() || !args[1]->isUint32()) {
+				Js_Throw(
+					"* @method setTimer(cb,time[,repeat])\n"
+					"* @param cb {Function}\n"
+					"* @param time {Number}\n"
+					"* @param [repeat] {Number}\n"
+					"* @return {Number}\n"
+				);
+			}
+			uint64_t timeout = args[1]->toUint32Value(worker) * 1e3;
+			if (repeat == -1) {
+				repeat = 0;
+				if (args.length() > 2 && args[2]->isUint32()) {
+					repeat = args[2]->toUint32Value(worker);
+				}
+			}
+			auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), timeout, repeat);
+			Js_Return(id);
 		}
-		
-		_timer_id = 0;
-		
-		if (_loop > 0) {
-			_loop--;
-		}
-		if (_loop) {
-			_run();
-		} else {
-			_cb2 = Cb(); // destroy callback
-		}
-	}
-	
-	void _run() {
-		if ( !_timer_id ) {
-			_timer_id = _run_loop->post(_cb2, _timeout * 1000);
-		}
-	}
-	
-	Timer(RunLoop* loop, Cb cb)
-		: _timer_id(0)
-		, _timeout(0)
-		, _loop(1)
-		, _run_loop(loop)
-		, _cb(cb) {
-	}
-	
-	Timer(RunLoop* loop, CallbackPtr cb)
-		: _timer_id(0)
-		, _timeout(0)
-		, _loop(1)
-		, _run_loop(loop)
-		, _cb_ptr(cb){
-	}
-	
-	virtual ~Timer() {
-		stop();
-	}
-	
-	int loop() const {
-		return _loop;
-	}
-	
-	void loop(int loop) {
-		_loop = Qk_MAX(-1, loop);
-	}
-	
-	void run(uint64_t timeout, int loop = 1) {
-		_timeout = timeout;
-		_loop = loop;
-		if ( !_timer_id ) {
-			_cb2 = Cb(&Timer::_run_cb, this);
-			_run();
-		}
-	}
-	
-	void stop() {
-		if ( _loop && _timer_id ) {
-			_run_loop->cancel( _timer_id );
-			_loop = 0;
-			_timer_id = 0;
-			_cb2 = Cb(); // destroy callback
-		}
-	}
 
-};
-
-class WrapTimer: public WrapObject {
-	public:
-	
-	static void constructor(FunctionCall args) {
-		Js_Worker(args);
-		if (args.Length() == 0 || !args[0]->IsFunction(worker)) {
-			Js_Throw("Bad argument");
+		static void clear_timer(FunctionArgs args) {
+			Js_Worker(args);
+			if (!args.length() || !args[0]->isUint32()) {
+				Js_Throw(
+					"* @method clearTimer(id)\n"
+					"* @param id {Number}\n"
+				);
+			}
+			first_loop()->timer_stop(args[0]->toUint32Value(worker));
 		}
-		RunLoop* loop = RunLoop::current();
-		if (!loop) { // 没有消息队列无法执行这个操作
-			Js_Throw("Unable to obtain thread run queue");
+
+		static void next_tick(FunctionArgs args) {
+			Js_Worker(args);
+			if (!args.length() || !args[0]->isFunction()) {
+				Js_Throw(
+					"* @method nextTick(cb,time[,repeat])\n"
+					"* @param cb {Function}\n"
+				);
+			}
+			first_loop()->next_tick(get_callback_for_none(worker, args[0]));
 		}
-		
-		Wrap<Timer>* wrap = nullptr;
-		// 小心循环引用
-		wrap = WrapObject::New<WrapTimer>(args, new Timer(loop, &timer_callback_func));
-		wrap->set(worker->New("__native_handle_cb__",1), args[0]);
-	}
-	
-	static void timer_callback_func(Timer* timer) {
-		Wrap<Timer>* wrap = Wrap<Timer>::pack(timer);
-		Worker* worker = wrap->worker();
-		
-		/*
-		 * native从顶级堆栈调用javascript必需声明句柄范围, 
-		 * 否则v8声明的临时变量会存储在顶级句柄范围中,
-		 * 因为顶级范围句柄从来不会释放,这会造成局部变量也不会释放最终导致内存泄漏
-		 */
-		Js_Handle_Scope();
-		Js_Callback_Scope();
-		wrap->call(wrap->worker()->New("__native_handle_cb__",1));
-	}
-	
-	static void Loop(Local<JSString> name, PropertyCall args) {
-		Js_Worker(args);
-		Js_Self(Timer);
-		Js_Return( self->loop() );
-	}
-	
-	static void SetLoop(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		Js_Worker(args);
-		if (!value->IsInt32(worker)) {
-			Js_Throw("Bad argument");
+
+		static void set_timer(FunctionArgs args) {
+			timer_(args, -1);
 		}
-		Js_Self(Timer);
-		self->loop(value->ToInt32Value(worker));
-	}
-	
-	static void Run(FunctionCall args) {
-		Js_Worker(args);
-		if (args.Length() == 0 || ! args[0]->IsNumber(worker)) {
-			Js_Throw("Bad argument");
+
+		static void setTimeout(FunctionArgs args) {
+			timer_(args, 0);
 		}
-		uint64_t timeout = Qk_MAX(0, args[0]->ToNumberValue(worker));
-		int loop = 1;
-		if (args.Length() > 1 && args[1]->IsInt32(worker)) {
-			loop = args[1]->ToInt32Value(worker);
+
+		static void setInterval(FunctionArgs args) {
+			timer_(args, 0xffffffffffffffu);
 		}
-		Js_Self(Timer);
-		self->run(timeout, loop);
-	}
-	
-	static void Stop(FunctionCall args) {
-		Js_Worker(args);
-		Js_Self(Timer);
-		self->stop();
-	}
 
-	// global function
-
-	static void run_timer_(FunctionCall args, int loop) {
-		Js_Worker(args);
-		if (args.Length() == 0 || !args[0]->IsFunction(worker)) {
-			Js_Throw("Bad argument");
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Set_Method(setTimer, set_timer);
+			Js_Set_Method(nextTick, next_tick);
+			Js_Set_Method(clearTimer, clear_timer);
+			Js_Set_Method(setTimeout, setTimeout);
+			Js_Set_Method(setInterval, setInterval);
+			Js_Set_Method(clearTimeout, clear_timer);
+			Js_Set_Method(clearInterval, clear_timer);
 		}
-		uint64_t timeout = 0;
-		if (args.Length() > 1 && args[1]->IsNumber(worker)) {
-			timeout = Qk_MAX(0, args[1]->ToNumberValue(worker));
-		}
-		
-		Local<JSValue> cb = args[0];
-		Local<JSObject> o = worker->NewInstance(Js_Typeid(Timer), 1, &cb);
-		
-		if ( !o.IsEmpty() ) {
-			Wrap<Timer>* wrap = Wrap<Timer>::unpack(o);
-			wrap->self()->run(timeout, loop);
-			Js_Return( wrap->that() );
-		}
-	}
+	};
 
-	static void setTimeout(FunctionCall args) {
-		run_timer_(args, 1);
-	}
-
-	static void setInterval(FunctionCall args) {
-		run_timer_(args, -1);
-	}
-
-	static void clearTimeout(FunctionCall args) {
-		Js_Worker(args);
-		if ( args.Length() == 0 || ! worker->hasInstance<Timer>(args[0]) ) {
-			Js_Throw("Bad argument");
-		}
-		Wrap<Timer>::unpack(args[0].To<JSObject>())->self()->stop();
-	}
-
-	static void clearInterval(FunctionCall args) {
-		clearTimeout(args);
-	}
-
-	static void binding(Local<JSObject> exports, Worker* worker) {
-		Js_Define_Class(Timer, constructor, {
-			Js_Set_Class_Accessor(loop, Loop, SetLoop);
-			Js_Set_Class_Method(run, Run);
-			Js_Set_Class_Method(stop, Stop);
-		}, nullptr);
-		Js_Set_Method(setTimeout, setTimeout);
-		Js_Set_Method(setInterval, setInterval);
-		Js_Set_Method(clearTimeout, clearTimeout);
-		Js_Set_Method(clearInterval, clearInterval);
-	}
-
-};
-
-Js_REG_MODULE(_timer, WrapTimer)
-Js_END
+	Js_Set_Module(_timer, WrapTimer)
+} }

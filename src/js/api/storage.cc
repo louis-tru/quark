@@ -28,94 +28,73 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../js.h"
-#include "./_cb.h"
+#include "../js_.h"
+#include "./cb.h"
 #include "../../util/storage.h"
 
-/**
- * @ns qk::js
- */
+namespace qk { namespace js {
 
-Js_BEGIN
-
-/**
- * @class NativeStorage
- */
-class NativeStorage {
+	class WrapStorage {
 	public:
 
-	/**
-	 * @func get(key)
-	 * @arg key {String}
-	 * @ret {String}
-	 */
-	static void get(FunctionCall args) {
-		Js_Worker(args);
-		if (args.Length() < 1) {
-			Js_Throw(
-				"* @func get(key)\n"
-				"* @arg key {String}\n"
-				"* @ret {String}\n"
-			);
+		static void get(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 1) {
+				Js_Throw(
+					"* @method get(key)\n"
+					"* @param key {String}\n"
+					"* @return {String}\n"
+				);
+			}
+			Js_Return( storage_get( args[0]->toStringValue(worker)) );
 		}
-		Js_Return( localstorage_get( args[0]->ToStringValue(worker)) );
-	}
-	
-	/**
-	 * @func set(key, value)
-	 * @arg key {String}
-	 * @arg value {String}
-	 */
-	static void set(FunctionCall args) {
-		Js_Worker(args);
-		if (args.Length() < 2) {
-			Js_Throw(
-				"* @func set(key)\n"
-				"* @arg key {String}\n"
-				"* @arg value {String}\n"
-			);
-		}
-		localstorage_set( args[0]->ToStringValue(worker), args[1]->ToStringValue(worker) );
-	}
-	
-	/**
-	 * @func del(key)
-	 * @arg key {String}
-	 */
-	static void del(FunctionCall args) {
-		Js_Worker(args);
-		if (args.Length() < 1) {
-			Js_Throw(
-				"* @func del(key)\n"
-				"* @arg key {String}\n"
-			);
-		}
-		localstorage_delete( args[0]->ToStringValue(worker) );
-	}
-	
-	static void clear(FunctionCall args) {
-		localstorage_clear();
-	}
-	
-	static void transaction(FunctionCall args) {
-		Js_Worker(args);
-		if (args.Length() < 1 || !args[0]->IsFunction()) {
-			Js_Throw(
-									 "* @func transaction(key)\n"
-									 "* @arg cb {Function}\n"
-									 );
-		}
-		localstorage_transaction(get_callback_for_none(worker, args[0]));
-	}
-	
-	static void binding(Local<JSObject> exports, Worker* worker) {
-		Js_Set_Method(get, get);
-		Js_Set_Method(set, set);
-		Js_Set_Method(del, del);
-		Js_Set_Method(clear, clear);
-		Js_Set_Method(transaction, transaction);
-	}
-};
 
-Js_REG_MODULE(_storage, NativeStorage);
-Js_END
+		static void set(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 2) {
+				Js_Throw(
+					"* @method set(key)\n"
+					"* @param key {String}\n"
+					"* @param value {String}\n"
+				);
+			}
+			storage_set( args[0]->toStringValue(worker), args[1]->toStringValue(worker) );
+		}
+
+		static void remove(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 1) {
+				Js_Throw(
+					"* @method del(key)\n"
+					"* @param key {String}\n"
+				);
+			}
+			storage_remove( args[0]->toStringValue(worker) );
+		}
+
+		static void clear(FunctionArgs args) {
+			storage_clear();
+		}
+
+		static void transaction(FunctionArgs args) {
+			Js_Worker(args);
+			if (args.length() < 1 || !args[0]->isFunction()) {
+				Js_Throw(
+										"* @method transaction(key)\n"
+										"* @param cb {Function}\n"
+										);
+			}
+			storage_transaction(get_callback_for_none(worker, args[0]));
+		}
+
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Set_Method(get, get);
+			Js_Set_Method(set, set);
+			Js_Set_Method(remove, remove);
+			Js_Set_Method(clear, clear);
+			Js_Set_Method(transaction, transaction);
+		}
+	};
+
+	Js_Set_Module(_storage, WrapStorage);
+} }

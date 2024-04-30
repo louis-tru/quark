@@ -77,7 +77,7 @@ namespace qk {
 		Inl(Socket* host, RunLoop* loop) 
 			: _host(host)
 			, _delegate(this)
-			, _keep(loop->keep_alive("Socket::Inl"))
+			, _keep(loop->keep_alive())
 			, _uv_handle(nullptr)
 			, _is_open(false)
 			, _is_opening(false)
@@ -125,7 +125,7 @@ namespace qk {
 			_port = port;
 		}
 		
-		inline RunLoop* loop() { return _keep->host(); }
+		inline RunLoop* loop() { return _keep->loop(); }
 		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
 		
 		void report_err_from_loop(Cb::Data& evt) {
@@ -919,7 +919,7 @@ namespace qk {
 	}
 
 	Socket::~Socket() {
-		Qk_ASSERT(_inl->_keep->host() == RunLoop::current());
+		Qk_ASSERT(_inl->_keep->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();

@@ -63,7 +63,7 @@ namespace qk {
 		virtual ~Socket();
 
 		/**
-		* @func try open content
+		* @method try open content
 		*/
 		void      open();
 
@@ -73,24 +73,24 @@ namespace qk {
 		bool      ipv6() const;
 		
 		/**
-		* @func set_keep_alive 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
+		* @method set_keep_alive 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
 		* @arg [enable = true] {bool}
 		* @arg [keep_idle = 0] {uint32_t} 空闲的时间(微秒),0使用系统默认值一般为7200秒 7200 * 10e6 毫秒
 		*/
 		void set_keep_alive(bool enable = true, uint64_t keep_idle = 0);
 		
 		/**
-		* @func set_no_delay 禁止Nagele算法,设置为有数据立即发送
+		* @method set_no_delay 禁止Nagele算法,设置为有数据立即发送
 		*/
 		void set_no_delay(bool no_delay = true);
 		
 		/**
-		* @func set_timeout 超过指定(微妙)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
+		* @method set_timeout 超过指定(微妙)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
 		*/
 		void set_timeout(uint64_t timeout_us);
 		
 		/**
-		* @func set_delegate()
+		* @method set_delegate()
 		*/
 		void set_delegate(Delegate* delegate);
 		
@@ -116,7 +116,7 @@ namespace qk {
 		SSLSocket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());
 		
 		/**
-		* @func disable_ssl_verify
+		* @method disable_ssl_verify
 		*/
 		void disable_ssl_verify(bool disable);
 	};

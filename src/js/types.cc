@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./types.h"
-#include "./api/view.h"
 #include "../render/font/font.h"
 #include <native-inl-js.h>
 
@@ -42,13 +41,13 @@ namespace qk { namespace js {
 		#undef _Fun
 	}
 
-	TypesParser::TypesParser(Worker* worker, Local<JSObject> exports)
+	TypesParser::TypesParser(Worker* worker, JSObject* exports)
 		: worker(worker)
 	{
 		#define OneByte(s) worker->newStringOneByte(s)
 		#define _Fun(Name, Type) \
-		_parse##Name.reset(worker, exports->get(worker,OneByte("parse"#Name)).cast<JSFunction>()); \
-		_new##Name.reset(worker, exports->get(worker,OneByte("_new"#Name)).cast<JSFunction>());
+		_parse##Name.reset(worker, exports->get(worker,OneByte("parse"#Name))->cast<JSFunction>()); \
+		_new##Name.reset(worker, exports->get(worker,OneByte("_new"#Name))->cast<JSFunction>());
 
 		Js_Types_Each(_Fun)
 		Qk_DEBUG("Init types %s ok", "TypesParser");
@@ -57,71 +56,71 @@ namespace qk { namespace js {
 		#undef _Fun
 	}
 
-	Local<JSValue> TypesParser::newInstance(const bool& value) {
-		return worker->newInstance(value).cast();
+	JSValue* TypesParser::newInstance(const bool& value) {
+		return worker->newInstance(value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const float& value) {
-		return worker->newInstance(value).cast();
+	JSValue* TypesParser::newInstance(const float& value) {
+		return worker->newInstance(value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const int& value) {
-		return worker->newInstance(value).cast();
+	JSValue* TypesParser::newInstance(const int& value) {
+		return worker->newInstance(value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const uint32_t& value) {
-		return worker->newInstance(value).cast();
+	JSValue* TypesParser::newInstance(const uint32_t& value) {
+		return worker->newInstance(value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Color& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Color& value) {
+		JSValue* args[] = {
 			worker->newInstance(value.r()),
 			worker->newInstance(value.g()),
 			worker->newInstance(value.b()),
 			worker->newInstance(value.a()),
 		};
-		return _newColor.toLocal()->call(worker, 4, args);
+		return _newColor->call(worker, 4, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Vec2& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Vec2& value) {
+		JSValue* args[] = {
 			worker->newInstance(value.x()),
 			worker->newInstance(value.y()),
 		};
-		return _newVec2.toLocal()->call(worker, 2, args);
+		return _newVec2->call(worker, 2, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Vec3& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Vec3& value) {
+		JSValue* args[] = {
 			worker->newInstance(value.x()),
 			worker->newInstance(value.y()),
 			worker->newInstance(value.z()),
 		};
-		return _newVec3.toLocal()->call(worker, 3, args);
+		return _newVec3->call(worker, 3, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Vec4& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Vec4& value) {
+		JSValue* args[] = {
 			worker->newInstance(value.x()),
 			worker->newInstance(value.y()),
 			worker->newInstance(value.z()),
 			worker->newInstance(value.w()),
 		};
-		return _newVec4.toLocal()->call(worker, 4, args);
+		return _newVec4->call(worker, 4, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Rect& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Rect& value) {
+		JSValue* args[] = {
 			worker->newInstance(value.origin.x()),
 			worker->newInstance(value.origin.y()),
 			worker->newInstance(value.size.width()),
 			worker->newInstance(value.size.height()),
 		};
-		return _newRect.toLocal()->call(worker, 4, args);
+		return _newRect->call(worker, 4, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Mat& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Mat& value) {
+		JSValue* args[] = {
 			worker->newInstance(value[0]),
 			worker->newInstance(value[1]),
 			worker->newInstance(value[2]),
@@ -129,11 +128,11 @@ namespace qk { namespace js {
 			worker->newInstance(value[4]),
 			worker->newInstance(value[5]),
 		};
-		return _newMat.toLocal()->call(worker, 6, args);
+		return _newMat->call(worker, 6, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Mat4& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Mat4& value) {
+		JSValue* args[] = {
 			worker->newInstance(value[0]),
 			worker->newInstance(value[1]),
 			worker->newInstance(value[2]),
@@ -151,25 +150,25 @@ namespace qk { namespace js {
 			worker->newInstance(value[14]),
 			worker->newInstance(value[15]),
 		};
-		return _newMat4.toLocal()->call(worker, 16, args);
+		return _newMat4->call(worker, 16, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(cString& value) {
-		return worker->newInstance(value).cast();
+	JSValue* TypesParser::newInstance(cString& value) {
+		return worker->newInstance(value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(cCurve& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(cCurve& value) {
+		JSValue* args[] = {
 			worker->newInstance(value.p1().x()),
 			worker->newInstance(value.p1().y()),
 			worker->newInstance(value.p2().x()),
 			worker->newInstance(value.p2().y()),
 		};
-		return _newCurve.toLocal()->call(worker, 4, args);
+		return _newCurve->call(worker, 4, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Shadow& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const Shadow& value) {
+		JSValue* args[] = {
 			worker->newInstance(value.offset_x),
 			worker->newInstance(value.offset_y),
 			worker->newInstance(value.size),
@@ -178,131 +177,122 @@ namespace qk { namespace js {
 			worker->newInstance(value.color.b()),
 			worker->newInstance(value.color.a()),
 		};
-		return _newShadow.toLocal()->call(worker, 7, args);
+		return _newShadow->call(worker, 7, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Repeat& value) {
-		return worker->newInstance((uint32_t)value).cast();
-	}
-
-	Local<JSValue> TypesParser::newInstance(const BoxFilter*& value) {
-		//Local<JSValue> arg = worker->newInstance((uint32_t)value);
-		//return _newRepeat.toLocal()->call(worker, 1, &arg);
-	}
-
-
-	Local<JSValue> TypesParser::newInstance(const FillGradient*& value) {
-		// Local<JSValue> arg = worker->newInstance((uint32_t)value);
-		// return _newRepeat.toLocal()->call(worker, 1, &arg);
-	}
-
-	Local<JSValue> TypesParser::newInstance(const BoxShadow*& value) {
-		// Local<JSValue> arg = worker->newInstance((uint32_t)value);
-		// return _newRepeat.toLocal()->call(worker, 1, &arg);
-	}
-
-	Local<JSValue> TypesParser::newInstance(const Direction& value) {
+	JSValue* TypesParser::newInstance(const Repeat& value) {
 		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const ItemsAlign& value) {
+	JSValue* TypesParser::newInstance(const BoxFilter*& value) {
+		//JSValue* arg = worker->newInstance((uint32_t)value);
+		//return _newRepeat->call(worker, 1, &arg);
+	}
+
+
+	JSValue* TypesParser::newInstance(const FillGradient*& value) {
+		// JSValue* arg = worker->newInstance((uint32_t)value);
+		// return _newRepeat->call(worker, 1, &arg);
+	}
+
+	JSValue* TypesParser::newInstance(const BoxShadow*& value) {
+		// JSValue* arg = worker->newInstance((uint32_t)value);
+		// return _newRepeat->call(worker, 1, &arg);
+	}
+
+	JSValue* TypesParser::newInstance(const Direction& value) {
 		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const CrossAlign& value) {
+	JSValue* TypesParser::newInstance(const ItemsAlign& value) {
 		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const qk::Wrap& value) {
+	JSValue* TypesParser::newInstance(const CrossAlign& value) {
 		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const WrapAlign& value) {
+	JSValue* TypesParser::newInstance(const qk::Wrap& value) {
 		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const Align& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const WrapAlign& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const BoxSizeKind& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const Align& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const BoxOriginKind& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const BoxSizeKind& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const BoxSize& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const BoxOriginKind& value) {
+		return worker->newInstance((uint32_t)value);
+	}
+
+	JSValue* TypesParser::newInstance(const BoxSize& value) {
+		JSValue* args[] = {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(value.value),
 		};
-		return _newBoxSize.toLocal()->call(worker, 2, args);
+		return _newBoxSize->call(worker, 2, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const BoxOrigin& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const BoxOrigin& value) {
+		JSValue* args[] = {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(value.value),
 		};
-		return _newBoxOrigin.toLocal()->call(worker, 2, args);
+		return _newBoxOrigin->call(worker, 2, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextAlign& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextAlign& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextDecoration& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextDecoration& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextOverflow& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextOverflow& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextWhiteSpace& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextWhiteSpace& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextWordBreak& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextWordBreak& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextValueKind& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextValueKind& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextColor& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const TextColor& value) {
+		JSValue* args[] = {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(value.value.r()),
 			worker->newInstance(value.value.g()),
 			worker->newInstance(value.value.b()),
 			worker->newInstance(value.value.a()),
 		};
-		return _newTextColor.toLocal()->call(worker, 5, args);
+		return _newTextColor->call(worker, 5, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextSize& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const TextSize& value) {
+		JSValue* args[] = {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(value.value),
 		};
-		return _newTextSize.toLocal()->call(worker, 1, args);
+		return _newTextSize->call(worker, 1, args);
 	}
 
-	/*
-	Local<JSValue> TypesParser::newInstance(const TextLineHeight& value) {
-		Local<JSValue> args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value),
-		};
-		return _newTextLineHeight.toLocal()->call(worker, 2, args);
-	}*/
-
-	Local<JSValue> TypesParser::newInstance(const TextShadow& value) {
-		Local<JSValue> args[] = {
+	JSValue* TypesParser::newInstance(const TextShadow& value) {
+		JSValue* args[] = {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(value.value.offset_x),
 			worker->newInstance(value.value.offset_y),
@@ -312,55 +302,55 @@ namespace qk { namespace js {
 			worker->newInstance(value.value.color.b()),
 			worker->newInstance(value.value.color.a()),
 		};
-		return _newTextShadow.toLocal()->call(worker, 8, args);
+		return _newTextShadow->call(worker, 8, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextFamily& value) {
+	JSValue* TypesParser::newInstance(const TextFamily& value) {
 		auto ffid = uint64_t(value.value);
-		Local<JSValue> args[] = {
+		JSValue* args[] = {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(uint32_t(ffid >> 32)),
 			worker->newInstance(uint32_t(ffid & 0xffffffff)),
 		};
-		return _newTextFamily.toLocal()->call(worker, 3, args);
+		return _newTextFamily->call(worker, 3, args);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextWeight& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextWeight& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextWidth& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextWidth& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const TextSlant& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const TextSlant& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const KeyboardType& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const KeyboardType& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const KeyboardReturnType& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const KeyboardReturnType& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const CursorStyle& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const CursorStyle& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
-	Local<JSValue> TypesParser::newInstance(const FindDirection& value) {
-		return worker->newInstance((uint32_t)value).cast();
+	JSValue* TypesParser::newInstance(const FindDirection& value) {
+		return worker->newInstance((uint32_t)value);
 	}
 
 	// --------------------------------------------------------------------------------------------
 
-	static void throw_error(Worker* worker, Local<JSValue> value, cChar* msg, cChar* help = nullptr) {
+	static void throw_error(Worker* worker, JSValue* value, cChar* msg, cChar* help = nullptr) {
 		// Bad argument. Input.type = `Bad`
 		// reference value, "
 
 		String msg2 = String::format(msg ? msg : "`%s`", *value->toStringValue(worker) );
-		Local<JSValue> err;
+		JSValue* err;
 
 		if (help) {
 			err = worker->newTypeError("Bad argument. %s. Examples: %s", *msg2, help);
@@ -370,7 +360,12 @@ namespace qk { namespace js {
 		worker->throwError(err);
 	}
 
-	void TypesParser::throwError(Local<JSValue> value, cChar* msg, cChar* help) {
+	bool TypesParser::isBase(JSValue *arg) {
+		// TODO ...
+		return false;
+	}
+
+	void TypesParser::throwError(JSValue* value, cChar* msg, cChar* help) {
 		throw_error(worker, value, msg, help);
 	}
 
@@ -383,67 +378,67 @@ namespace qk { namespace js {
 	});
 
 	#define js_parse(Type, ok) { \
-		Local<JSObject> obj;\
-		Local<JSValue> val;\
+		JSObject* obj;\
+		JSValue* val;\
 		if (desc) {\
-			Local<JSValue> args[] = { in, worker->newInstance(desc) };\
-			val = _parse##Type.toLocal()->call(worker, 2, args);\
+			JSValue* args[] = { in, worker->newInstance(desc)->cast() };\
+			val = _parse##Type->call(worker, 2, args);\
 		} else {\
-			val = _parse##Type.toLocal()->call(worker, 1, &in);\
+			val = _parse##Type->call(worker, 1, &in);\
 		}\
-		if ( val.isEmpty() ) {\
-			return false;\
+		if ( val ) {\
+			obj = val->cast<JSObject>();\
 		} else {\
-			obj = val.cast<JSObject>();\
+			return false;\
 		} \
 		ok \
 		return true;\
 		}
 
 	// parse
-	bool TypesParser::parseTextAlign(Local<JSValue> in, TextAlign& out, cChar* desc) {
+	bool TypesParser::parseTextAlign(JSValue* in, TextAlign& out, cChar* desc) {
 		js_parse(TextAlign, {
 			out = (TextAlign)obj->toUint32Value(worker);
 		});
 	}
 
-	bool TypesParser::parseAlign(Local<JSValue> in, Align& out, cChar* desc) {
+	bool TypesParser::parseAlign(JSValue* in, Align& out, cChar* desc) {
 		js_parse(Align, {
 			out = (Align)obj->toUint32Value(worker);
 		});
 	}
 
-	// bool TypesParser::parseContentAlign(Local<JSValue> in, ContentAlign& out, cChar* desc) {
+	// bool TypesParser::parseContentAlign(JSValue* in, ContentAlign& out, cChar* desc) {
 	// 	js_parse(ContentAlign, {
 	// 		out = (ContentAlign)obj->toUint32Value(worker);
 	// 	});
 	// }
 
-	bool TypesParser::parseRepeat(Local<JSValue> in, Repeat& out, cChar* desc) {
+	bool TypesParser::parseRepeat(JSValue* in, Repeat& out, cChar* desc) {
 		js_parse(Repeat, {
 			out = (Repeat)obj->toUint32Value(worker);
 		});
 	}
 
-	bool TypesParser::parseDirection(Local<JSValue> in, Direction& out, cChar* desc) {
+	bool TypesParser::parseDirection(JSValue* in, Direction& out, cChar* desc) {
 		js_parse(Direction, {
 			out = (Direction)obj->toUint32Value(worker);
 		});
 	}
 
-	bool TypesParser::parseKeyboardType(Local<JSValue> in, KeyboardType& out, cChar* desc) {
+	bool TypesParser::parseKeyboardType(JSValue* in, KeyboardType& out, cChar* desc) {
 		js_parse(KeyboardType, {
 			out = (KeyboardType)obj->toUint32Value(worker);
 		});
 	}
 
-	bool TypesParser::parseKeyboardReturnType(Local<JSValue> in, KeyboardReturnType& out, cChar* desc) {
+	bool TypesParser::parseKeyboardReturnType(JSValue* in, KeyboardReturnType& out, cChar* desc) {
 		js_parse(KeyboardReturnType, {
 			out = (KeyboardReturnType)obj->toUint32Value(worker);
 		});
 	}
 
-	// bool TypesParser::parseBorder(Local<JSValue> in, Border& out, cChar* desc) {
+	// bool TypesParser::parseBorder(JSValue* in, Border& out, cChar* desc) {
 	// 	js_parse(Border, {
 	// 		out.width = obj->get(worker, worker->strs()->width())->toNumberValue(worker);
 	// 		out.color.r(obj->get(worker, worker->strs()->r())->toUint32Value(worker));
@@ -453,7 +448,7 @@ namespace qk { namespace js {
 	// 	});
 	// }
 
-	bool TypesParser::parseShadow(Local<JSValue> in, Shadow& out, cChar* desc) {
+	bool TypesParser::parseShadow(JSValue* in, Shadow& out, cChar* desc) {
 		js_parse(Shadow, {
 			out.offset_x = obj->get(worker, worker->strs()->offsetX())->toNumberValue(worker);
 			out.offset_y = obj->get(worker, worker->strs()->offsetY())->toNumberValue(worker);
@@ -465,7 +460,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseColor(Local<JSValue> in, Color& out, cChar* desc) {
+	bool TypesParser::parseColor(JSValue* in, Color& out, cChar* desc) {
 		js_parse(Color, {
 			out.set_r(obj->get(worker, worker->strs()->r())->toUint32Value(worker));
 			out.set_g(obj->get(worker, worker->strs()->g())->toUint32Value(worker));
@@ -474,14 +469,14 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseVec2(Local<JSValue> in, Vec2& out, cChar* desc) {
+	bool TypesParser::parseVec2(JSValue* in, Vec2& out, cChar* desc) {
 		js_parse(Vec2, {
 			out.set_x(obj->get(worker, worker->strs()->x())->toNumberValue(worker));
 			out.set_y(obj->get(worker, worker->strs()->y())->toNumberValue(worker));
 		});
 	}
 
-	bool TypesParser::parseVec3(Local<JSValue> in, Vec3& out, cChar* desc) {
+	bool TypesParser::parseVec3(JSValue* in, Vec3& out, cChar* desc) {
 		js_parse(Vec3, {
 			out.set_x(obj->get(worker, worker->strs()->x())->toNumberValue(worker));
 			out.set_y(obj->get(worker, worker->strs()->y())->toNumberValue(worker));
@@ -489,7 +484,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseVec4(Local<JSValue> in, Vec4& out, cChar* desc) {
+	bool TypesParser::parseVec4(JSValue* in, Vec4& out, cChar* desc) {
 		js_parse(Vec4, {
 			out.set_x(obj->get(worker, worker->strs()->x())->toNumberValue(worker));
 			out.set_y(obj->get(worker, worker->strs()->y())->toNumberValue(worker));
@@ -498,7 +493,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseCurve(Local<JSValue> in, Curve& out, cChar* desc) {
+	bool TypesParser::parseCurve(JSValue* in, Curve& out, cChar* desc) {
 		if ( in->isString() ) {
 			Js_Worker();
 			cCurve *out1;
@@ -515,7 +510,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseRect(Local<JSValue> in, Rect& out, cChar* desc) {
+	bool TypesParser::parseRect(JSValue* in, Rect& out, cChar* desc) {
 		js_parse(Rect, {
 			out.origin.set_x(obj->get(worker, worker->strs()->x())->toNumberValue(worker));
 			out.origin.set_y(obj->get(worker, worker->strs()->y())->toNumberValue(worker));
@@ -524,10 +519,10 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseMat(Local<JSValue> in, Mat& out, cChar* desc) {
+	bool TypesParser::parseMat(JSValue* in, Mat& out, cChar* desc) {
 		js_parse(Mat, {
-			Local<JSArray> mat = obj->get(worker, worker->strs()->_value()).cast<JSArray>();
-			out[0] = mat->get(worker, 0)->toNumberValue(worker);
+			auto mat = obj->get(worker, worker->strs()->_value())->cast<JSArray>();
+			out[0] = mat->get(worker, uint32_t(0))->toNumberValue(worker);
 			out[1] = mat->get(worker, 1)->toNumberValue(worker);
 			out[2] = mat->get(worker, 2)->toNumberValue(worker);
 			out[3] = mat->get(worker, 3)->toNumberValue(worker);
@@ -536,10 +531,10 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseMat4(Local<JSValue> in, Mat4& out, cChar* desc) {
+	bool TypesParser::parseMat4(JSValue* in, Mat4& out, cChar* desc) {
 		js_parse(Mat4, {
-			Local<JSArray> mat = obj->get(worker, worker->strs()->_value()).cast<JSArray>();
-			out[0] = mat->get(worker, 0)->toNumberValue(worker);
+			auto mat = obj->get(worker, worker->strs()->_value())->cast<JSArray>();
+			out[0] = mat->get(worker, uint32_t(0))->toNumberValue(worker);
 			out[1] = mat->get(worker, 1)->toNumberValue(worker);
 			out[2] = mat->get(worker, 2)->toNumberValue(worker);
 			out[3] = mat->get(worker, 3)->toNumberValue(worker);
@@ -558,9 +553,9 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseTextColor(Local<JSValue> in, TextColor& out, cChar* desc) {
+	bool TypesParser::parseTextColor(JSValue* in, TextColor& out, cChar* desc) {
 		js_parse(TextColor, {
-			// out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
+			out.kind = (TextValueKind)obj->get(worker, worker->strs()->kind())->toUint32Value(worker);
 			// out.value.r(obj->get(worker, worker->strs()->r())->toUint32Value(worker));
 			// out.value.g(obj->get(worker, worker->strs()->g())->toUint32Value(worker));
 			// out.value.b(obj->get(worker, worker->strs()->b())->toUint32Value(worker));
@@ -568,7 +563,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parseTextSize(Local<JSValue> in, TextSize& out, cChar* desc) {
+	bool TypesParser::parseTextSize(JSValue* in, TextSize& out, cChar* desc) {
 		// if (in->isNumber(worker)) {
 		// 	out.type = TextValueType::VALUE;
 		// 	out.value = in-toNumberValue(_worker);
@@ -579,20 +574,20 @@ namespace qk { namespace js {
 		// 	out.value = obj->get(worker, worker->strs()->value())->toUint32Value(worker);
 		// });
 	}
-	bool TypesParser::parseTextFamily(Local<JSValue> in, TextFamily& out, cChar* desc) {
+	bool TypesParser::parseTextFamily(JSValue* in, TextFamily& out, cChar* desc) {
 		// js_parse(TextFamily, {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
 		// 	String fonts = obj->get(worker, worker->strs()->value())->toStringValue(worker);
 		// 	out.value = FontPool::get_font_familys_id(fonts);
 		// });
 	}
-	bool TypesParser::parseTextSlant(Local<JSValue> in, TextSlant& out, cChar* desc) {
+	bool TypesParser::parseTextSlant(JSValue* in, TextSlant& out, cChar* desc) {
 		// js_parse(TextSlant, {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
 		// 	out.value = (TextSlantEnum)obj->get(worker, worker->strs()->value())->toUint32Value(worker);
 		// });
 	}
-	bool TypesParser::parseTextShadow(Local<JSValue> in, TextShadow& out, cChar* desc) {
+	bool TypesParser::parseTextShadow(JSValue* in, TextShadow& out, cChar* desc) {
 		// js_parse(TextShadow, {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
 		// 	out.value.offset_x = obj->get(worker, worker->strs()->offsetX())->toNumberValue(worker);
@@ -604,34 +599,22 @@ namespace qk { namespace js {
 		// 	out.value.color.a(obj->get(worker, worker->strs()->a())->toUint32Value(worker));
 		// });
 	}
-	/*bool TypesParser::parseTextLineHeight(Local<JSValue> in,
-																				TextLineHeight& out, cChar* desc) {
-		// if (in->isNumber(worker)) {
-		// 	out.type = TextValueType::VALUE;
-		// 	out.value.height = in->toNumberValue(worker);
-		// 	return true;
-		// }
-		// js_parse(TextLineHeight, {
-		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
-		// 	out.value.height = obj->get(worker, worker->strs()->height())->toNumberValue(worker);
-		// });
-	}*/
-	bool TypesParser::parseTextDecoration(Local<JSValue> in,
+	bool TypesParser::parseTextDecoration(JSValue* in,
 																				TextDecoration& out, cChar* desc) {
 		// js_parse(TextDecoration, {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
 		// 	out.value = (TextDecorationEnum)obj->get(worker, worker->strs()->value())->toUint32Value(worker);
 		// });
 	}
-	bool TypesParser::parseString(Local<JSValue> in, String& out, cChar* desc) {
+	bool TypesParser::parseString(JSValue* in, String& out, cChar* desc) {
 		out = in->toStringValue(worker);
 		return true;
 	}
-	bool TypesParser::parsebool(Local<JSValue> in, bool& out, cChar* desc) {
+	bool TypesParser::parsebool(JSValue* in, bool& out, cChar* desc) {
 		out = in->toBooleanValue(worker);
 		return true;
 	}
-	bool TypesParser::parsefloat(Local<JSValue> in, float& out, cChar* desc) {
+	bool TypesParser::parsefloat(JSValue* in, float& out, cChar* desc) {
 		if (in->isNumber()) {
 			out = in->toNumberValue(worker);
 			return true;
@@ -644,7 +627,7 @@ namespace qk { namespace js {
 		throw_error(worker, in, desc);
 		return false;
 	}
-	bool TypesParser::parseint(Local<JSValue> in, int& out, cChar* desc) {
+	bool TypesParser::parseint(JSValue* in, int& out, cChar* desc) {
 		if (in->isNumber()) {
 			out = in->toInt32Value(worker);
 			return true;
@@ -657,7 +640,7 @@ namespace qk { namespace js {
 		throw_error(worker, in, desc);
 		return false;
 	}
-	bool TypesParser::parseuint32_t(Local<JSValue> in, uint32_t& out, cChar* desc) {
+	bool TypesParser::parseuint32_t(JSValue* in, uint32_t& out, cChar* desc) {
 		if (in->isNumber()) {
 			out = in->toUint32Value(worker);
 			return true;
@@ -670,13 +653,13 @@ namespace qk { namespace js {
 		throw_error(worker, in, desc);
 		return false;
 	}
-	bool TypesParser::parseTextOverflow(Local<JSValue> in, TextOverflow& out, cChar* desc) {
+	bool TypesParser::parseTextOverflow(JSValue* in, TextOverflow& out, cChar* desc) {
 		// js_parse(TextOverflow, {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
 		// 	out.value = (TextOverflowEnum)obj->get(worker, worker->strs()->value())->toUint32Value(worker);
 		// });
 	}
-	bool TypesParser::parseTextWhiteSpace(Local<JSValue> in,
+	bool TypesParser::parseTextWhiteSpace(JSValue* in,
 																				TextWhiteSpace& out, cChar* desc) {
 		// js_parse(TextWhiteSpace, {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
@@ -684,8 +667,8 @@ namespace qk { namespace js {
 		// });
 	}
 
-	// bool TypesParser::isBase(Local<JSValue> arg) {
-	// 	return arg->InstanceOf(worker, _Base.toLocal());
+	// bool TypesParser::isBase(JSValue* arg) {
+	// 	return arg->InstanceOf(worker, _Base);
 	// }
 
 	// void binding_background(Local<JSObject> exports, Worker* worker);
@@ -695,15 +678,15 @@ namespace qk { namespace js {
 		void setTypesParser(TypesParser *types) {
 			_types = types;
 		}
-		static void binding(Local<JSObject> exports, Worker* worker) {
+		static void binding(JSObject* exports, Worker* worker) {
 			// binding Background / BackgroundImage / BackgroundGradient
 			// binding_background(exports, worker);
 			{
 				TryCatch try_catch(worker);
 
-				if (worker->runNativeScript(WeakBuffer((Char*)
+				if (!worker->runNativeScript(WeakBuffer((Char*)
 								native_js::INL_native_js_code__types_,
-								native_js::INL_native_js_code__types_count_).buffer(), "_types.js", exports).isEmpty()) {
+								native_js::INL_native_js_code__types_count_).buffer(), "_types.js", exports)) {
 					if ( try_catch.hasCaught() ) {
 						worker->reportException(&try_catch);
 					}

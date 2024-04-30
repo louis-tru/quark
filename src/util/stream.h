@@ -46,7 +46,7 @@ namespace qk {
 	 */
 	class StreamResponse: public Object {
 	public:
-		inline StreamResponse(Buffer buffer, bool complete = 0
+		inline StreamResponse(Buffer &buffer, bool complete = 0
 											, uint32_t id = 0, uint64_t size = 0
 											, uint64_t total = 0, Stream* stream = nullptr)
 		: _buffer(buffer), _complete(complete)
@@ -62,7 +62,7 @@ namespace qk {
 		inline void     pause() { if ( _stream ) _stream->pause(); }
 		inline void     resume() { if ( _stream ) _stream->resume(); }
 	private:
-		Buffer    _buffer;
+		Buffer    &_buffer;
 		bool      _complete;
 		int64_t   _size, _total;
 		uint32_t  _id;

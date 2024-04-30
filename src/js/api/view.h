@@ -31,7 +31,7 @@
 #ifndef __quark__js__api__view__
 #define __quark__js__api__view__
 
-#include "../_js.h"
+#include "../js_.h"
 #include "../types.h"
 
 namespace qk { namespace js {
@@ -42,9 +42,9 @@ namespace qk { namespace js {
 		virtual bool removeEventListener(cString& name, int id);
 	};
 
-	void inheritTextFont(Local<JSClass> cls, Worker* worker);
-	void inheritTextLayout(Local<JSClass> cls, Worker* worker);
-	void inheritScroll(Local<JSClass> cls, Worker* worker);
+	void inheritTextFont(JSClass* cls, Worker* worker);
+	void inheritTextLayout(JSClass* cls, Worker* worker);
+	void inheritScroll(JSClass* cls, Worker* worker);
 
 } }
 #endif

@@ -37,7 +37,7 @@ namespace qk {
 
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
 		\
-		template<> void Array<T, A>::realloc(uint32_t length) { \
+		template<> void Array<T, A>::reset(uint32_t length) { \
 			if (length < _length) { /* clear Partial data */ \
 				_length = length;\
 			} \

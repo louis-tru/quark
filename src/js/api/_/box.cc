@@ -1,0 +1,792 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
+ * Copyright (c) 2015, blue.chu
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of blue.chu nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL blue.chu BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "../js_.h"
+#include "./_view.h"
+#include "../../views2/box.h"
+
+/**
+ * @ns qk::js
+ */
+
+Js_BEGIN
+
+/**
+ * @class WrapBox
+ */
+class WrapBox: public WrapObject {
+	public:
+
+	static void constructor(FunctionArgs args) {
+		Js_Worker(args);
+		Js_Throw("Forbidden access abstract");
+	}
+	
+	/**
+	 * @get width {Value}
+	 */
+	static void width(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->width()) );
+	}
+
+	/**
+	 * @get width {Value}
+	 */
+	static void height(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->height()) );
+	}
+
+	/**
+	 * @get margin_left {Value}
+	 */
+	static void margin_left(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->margin_left()) );
+	}
+
+	/**
+	 * @get margin_top {Value}
+	 */
+	static void margin_top(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->margin_top()) );
+	}
+
+	/**
+	 * @get margin_right {Value}
+	 */
+	static void margin_right(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->margin_right()) );
+	}
+
+	/**
+	 * @get margin_bottom {Value}
+	 */
+	static void margin_bottom(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->margin_bottom()) );
+	}
+
+	/**
+	 * @get border_left {Border}
+	 */
+	static void border_left(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_left()) );
+	}
+
+	/**
+	 * @get border_top {Border}
+	 */
+	static void border_top(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_top()) );
+	}
+
+	/**
+	 * @get border_right {Border}
+	 */
+	static void border_right(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_right()) );
+	}
+
+	/**
+	 * @get border_bottom {Border}
+	 */
+	static void border_bottom(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_bottom()) );
+	}
+
+	/**
+	 * @get border_left_width {float}
+	 */
+	static void border_left_width(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_left().width );
+	}
+
+	/**
+	 * @get border_top_width {float}
+	 */
+	static void border_top_width(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_top().width );
+	}
+
+	/**
+	 * @get border_right_width {float}
+	 */
+	static void border_right_width(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_right().width );
+	}
+
+	/**
+	 * @get border_bottom_width {float}
+	 */
+	static void border_bottom_width(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_bottom().width );
+	}
+
+	/**
+	 * @get border_left_color {Color}
+	 */
+	static void border_left_color(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_left().color) );
+	}
+
+	/**
+	 * @get border_top_color {Color}
+	 */
+	static void border_top_color(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_top().color) );
+	}
+
+	/**
+	 * @get border_right_color {Color}
+	 */
+	static void border_right_color(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_right().color) );
+	}
+
+	/**
+	 * @get border_bottom_color {Color}
+	 */
+	static void border_bottom_color(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->border_bottom().color) );
+	}
+
+	/**
+	 * @get border_radius_left_top {float}
+	 */
+	static void border_radius_left_top(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_radius_left_top() );
+	}
+
+	/**
+	 * @get border_radius_right_top {float}
+	 */
+	static void border_radius_right_top(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_radius_left_top() );
+	}
+
+	/**
+	 * @get border_radius_right_bottom {float}
+	 */
+	static void border_radius_right_bottom(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_radius_right_bottom() );
+	}
+
+	/**
+	 * @get border_radius_left_bottom {float}
+	 */
+	static void border_radius_left_bottom(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->border_radius_left_bottom() );
+	}
+
+	/**
+	 * @get newline {bool}
+	 */
+	static void newline(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->newline() );
+	}
+
+	/**
+	 * @get clip {bool}
+	 */
+	static void clip(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( self->clip() );
+	}
+
+	static void margin(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->margin_top()) );
+		arr->Set(worker, 1, worker->values()->New(self->margin_right()) );
+		arr->Set(worker, 2, worker->values()->New(self->margin_bottom()) );
+		arr->Set(worker, 3, worker->values()->New(self->margin_left()) );
+		Js_Return( arr );
+	}
+
+	static void border(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->border_top()) );
+		arr->Set(worker, 1, worker->values()->New(self->border_right()) );
+		arr->Set(worker, 2, worker->values()->New(self->border_bottom()) );
+		arr->Set(worker, 3, worker->values()->New(self->border_left()) );
+		Js_Return( arr );
+	}
+
+	static void border_width(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->New(self->border_top_width()) );
+		arr->Set(worker, 1, worker->New(self->border_right_width()) );
+		arr->Set(worker, 2, worker->New(self->border_bottom_width()) );
+		arr->Set(worker, 3, worker->New(self->border_left_width()) );
+		Js_Return( arr );
+	}
+
+	static void border_color(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->border_top_color()) );
+		arr->Set(worker, 1, worker->values()->New(self->border_right_color()) );
+		arr->Set(worker, 2, worker->values()->New(self->border_bottom_color()) );
+		arr->Set(worker, 3, worker->values()->New(self->border_left_color()) );
+		Js_Return( arr );
+	}
+
+	static void border_radius(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->New(self->border_radius_left_top()) );
+		arr->Set(worker, 1, worker->New(self->border_radius_right_top()) );
+		arr->Set(worker, 2, worker->New(self->border_radius_right_bottom()) );
+		arr->Set(worker, 3, worker->New(self->border_radius_left_bottom()) );
+		Js_Return( arr );
+	}
+
+	/**
+	 * @get final_width {float}
+	 */
+	static void final_width(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		Js_Return( self->final_width() );
+	}
+
+	/**
+	 * @get final_height {float}
+	 */
+	static void final_height(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		Js_Return( self->final_height() );
+	}
+
+	/**
+	 * @get final_margin_left {float}
+	 */
+	static void final_margin_left(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		Js_Return( self->final_margin_left() );
+	}
+
+	/**
+	 * @get final_margin_top {float}
+	 */
+	static void final_margin_top(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		Js_Return( self->final_margin_top() );
+	}
+
+	/**
+	 * @get final_margin_right {float}
+	 */
+	static void final_margin_right(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		Js_Return( self->final_margin_right() );
+	}
+
+	/**
+	 * @get final_margin_bottom {float}
+	 */
+	static void final_margin_bottom(JSString* name, PropertyArgs args) {
+		Js_Worker(args); // UILock lock;
+		Js_Self(Box);
+		Js_Return( self->final_margin_bottom() );
+	}
+
+	/**
+	 * @set width {Value}
+	 */
+	static void set_width(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Value, value, "Box.width = %s");
+		Js_Self(Box);
+		self->set_width(out);
+	}
+
+	/**
+	 * @set height {Value}
+	 */
+	static void set_height(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Value, value, "Box.height = %s");
+		Js_Self(Box);
+		self->set_height(out);
+	}
+	
+	/**
+	 * @set margin {Value}
+	 */
+	static void set_margin(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value2(Array<Value>, Values, value, "Box.margin = %s");
+		Js_Self(Box);
+		switch(out.length()) {
+			case 1:
+				self->set_margin_left(out[0]);
+				self->set_margin_top(out[0]);
+				self->set_margin_right(out[0]);
+				self->set_margin_bottom(out[0]);
+				break;
+			case 2:
+				self->set_margin_top(out[0]);
+				self->set_margin_bottom(out[0]);
+				self->set_margin_left(out[1]);
+				self->set_margin_right(out[1]);
+				break;
+			case 3:
+				self->set_margin_top(out[0]);
+				self->set_margin_left(out[1]);
+				self->set_margin_right(out[1]);
+				self->set_margin_bottom(out[2]);
+				break;
+			default: // 4
+				self->set_margin_top(out[0]);
+				self->set_margin_right(out[1]);
+				self->set_margin_bottom(out[2]);
+				self->set_margin_left(out[3]);
+				break;
+		}
+	}
+
+	/**
+	 * @set margin_left {Value}
+	 */
+	static void set_margin_left(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Value, value, "Box.marginLeft = %s");
+		Js_Self(Box);
+		self->set_margin_left(out);
+	}
+
+	/**
+	 * @set margin_top {Value}
+	 */
+	static void set_margin_top(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Value, value, "Box.marginTop = %s");
+		Js_Self(Box);
+		self->set_margin_top(out);
+	}
+
+	/**
+	 * @set margin_right {Value}
+	 */
+	static void set_margin_right(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Value, value, "Box.marginRight = %s");
+		Js_Self(Box);
+		self->set_margin_right(out);
+	}
+
+	/**
+	 * @set margin_bottom {Value}
+	 */
+	static void set_margin_bottom(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Value, value, "Box.marginBottom = %s");
+		Js_Self(Box);
+		self->set_margin_bottom(out);
+	}
+
+	/**
+	 * @set border {Border}
+	 */
+	static void set_border(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Border, value, "Box.border = %s");
+		Js_Self(Box);
+		self->set_border(out);
+	}
+
+	/**
+	 * @set border_left {Border}
+	 */
+	static void set_border_left(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Border, value, "Box.borderLeft = %s");
+		Js_Self(Box);
+		self->set_border_left(out);
+	}
+
+	/**
+	 * @set border_top {Border}
+	 */
+	static void set_border_top(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Border, value, "Box.borderTop = %s");
+		Js_Self(Box);
+		self->set_border_top(out);
+	}
+
+	/**
+	 * @set border_right {Border}
+	 */
+	static void set_border_right(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Border, value, "Box.borderRight = %s");
+		Js_Self(Box);
+		self->set_border_right(out);
+	}
+
+	/**
+	 * @set border_bottom {Border}
+	 */
+	static void set_border_bottom(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Border, value, "Box.borderBottom = %s");
+		Js_Self(Box);
+		self->set_border_bottom(out);
+	}
+
+	/**
+	 * @set border_width {float}
+	 */
+	static void set_border_width(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) {
+			Js_Throw("* @set borderWidth {float}");
+		}
+		Js_Self(Box);
+		self->set_border_width( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_left_width {float}
+	 */
+	static void set_border_left_width(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) {
+			Js_Throw("* @set borderLeftWidth {float}");
+		}
+		Js_Self(Box);
+		self->set_border_left_width( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_top_width {float}
+	 */
+	static void set_border_top_width(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) {
+			Js_Throw("* @set borderTopWidth {float}");
+		}
+		Js_Self(Box);
+		self->set_border_top_width( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_right_width {float}
+	 */
+	static void set_border_right_width(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) {
+			Js_Throw("* @set borderRightWidth {float}");
+		}
+		Js_Self(Box);
+		self->set_border_right_width( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_bottom_width {float}
+	 */
+	static void set_border_bottom_width(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) {
+			Js_Throw("* @set borderBottomWidth {float}");
+		}
+		Js_Self(Box);
+		self->set_border_bottom_width( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_color {Color}
+	 */
+	static void set_border_color(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Color, value, "Box.borderColor = %s");
+		Js_Self(Box);
+		self->set_border_color(out);
+	}
+
+	/**
+	 * @set border_left_color {Color}
+	 */
+	static void set_border_left_color(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Color, value, "Box.borderLeftColor = %s");
+		Js_Self(Box);
+		self->set_border_left_color(out);
+	}
+
+	/**
+	 * @set border_top_color {Color}
+	 */
+	static void set_border_top_color(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Color, value, "Box.borderTopColor = %s");
+		Js_Self(Box);
+		self->set_border_top_color(out);
+	}
+
+	/**
+	 * @set border_right_color {Color}
+	 */
+	static void set_border_right_color(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Color, value, "Box.borderRightColor = %s");
+		Js_Self(Box);
+		self->set_border_right_color(out);
+	}
+
+	/**
+	 * @set border_bottom_color {Color}
+	 */
+	static void set_border_bottom_color(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Color, value, "Box.borderBottomColor = %s");
+		Js_Self(Box);
+		self->set_border_bottom_color(out);
+	}
+
+	/**
+	 * @set border_radius {float}
+	 */
+	static void set_border_radius(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) Js_Throw("* @set borderRadius {float}");
+		Js_Self(Box);
+		self->set_border_radius( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_radius_left_top {float}
+	 */
+	static void set_border_radius_left_top(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) Js_Throw("* @set borderRadiusLeftTop {float}");
+		Js_Self(Box);
+		self->set_border_radius_left_top( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_radius_right_top {float}
+	 */
+	static void set_border_radius_right_top(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) Js_Throw("* @set borderRadiusRightTop {float}");
+		Js_Self(Box);
+		self->set_border_radius_right_top( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_radius_right_bottom {float}
+	 */
+	static void set_border_radius_right_bottom(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) Js_Throw("* @set borderRadiusRightBottom {float}");
+		Js_Self(Box);
+		self->set_border_radius_right_bottom( value->ToNumberValue(worker) );
+	}
+
+	/**
+	 * @set border_radius_left_bottom {float}
+	 */
+	static void set_border_radius_left_bottom(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		if ( ! value->IsNumber(worker)) Js_Throw("* @set borderRadiusLeftBottom {float}");
+		Js_Self(Box);
+		self->set_border_radius_left_bottom( value->ToNumberValue(worker) );
+	}
+	
+	/**
+	 * @set newline {bool}
+	 */
+	static void set_newline(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		Js_Self(Box);
+		self->set_newline( value->ToBooleanValue(worker) );
+	}
+	
+	/**
+	 * @set newline {bool}
+	 */
+	static void set_clip(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		Js_Self(Box);
+		self->set_clip( value->ToBooleanValue(worker) );
+	}
+
+	/**
+	 * @get background_color {Color}
+	 */
+	static void background_color(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		Js_Return( worker->values()->New(self->background_color()) );
+	}
+	
+	/**
+	 * @set background_color {Color}
+	 */
+	static void set_background_color(JSString* name, JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value(Color, value, "Box.backgroundColor = %s");
+		Js_Self(Box);
+		self->set_background_color(out);
+	}
+
+	/**
+	 * @get background {BackgroundPtr}
+	 */
+	static void background(JSString* name, PropertyArgs args) {
+		Js_Worker(args);
+		Js_Self(Box);
+		auto bg = self->background();
+		if (bg) {
+			Js_Return( pack(bg)->that() );
+		} else {
+			Js_Return_Null();
+		}
+	}
+
+	/**
+	 * @set background {BackgroundPtr}
+	 */
+	static void set_background(JSString* name,
+														 JSValue* value, PropertySetArgs args) {
+		Js_Worker(args); UILock lock;
+		js_parse_value2(BackgroundPtr, Background, value, "Box.background = %s");
+		Js_Self(Box);
+		self->set_background(out);
+	}
+	
+	static void binding(JSObject* exports, Worker* worker) {
+		Js_Define_Class_NO_EXPORTS(Box, constructor, {
+			Js_Set_Class_Accessor(width, width, set_width);
+			Js_Set_Class_Accessor(height, height, set_height);
+			Js_Set_Class_Accessor(margin, margin, set_margin);
+			Js_Set_Class_Accessor(marginLeft, margin_left, set_margin_left);
+			Js_Set_Class_Accessor(marginTop, margin_top, set_margin_top);
+			Js_Set_Class_Accessor(marginRight, margin_right, set_margin_right);
+			Js_Set_Class_Accessor(marginBottom, margin_bottom, set_margin_bottom);
+			Js_Set_Class_Accessor(border, border, set_border);
+			Js_Set_Class_Accessor(borderLeft, border_left, set_border_left);
+			Js_Set_Class_Accessor(borderTop, border_top, set_border_top);
+			Js_Set_Class_Accessor(borderRight, border_right, set_border_right);
+			Js_Set_Class_Accessor(borderBottom, border_bottom, set_border_bottom);
+			Js_Set_Class_Accessor(borderWidth, border_width, set_border_width);
+			Js_Set_Class_Accessor(borderLeftWidth, border_left_width, set_border_left_width);
+			Js_Set_Class_Accessor(borderTopWidth, border_top_width, set_border_top_width);
+			Js_Set_Class_Accessor(borderRightWidth, border_right_width, set_border_right_width);
+			Js_Set_Class_Accessor(borderBottomWidth, border_bottom_width, set_border_bottom_width);
+			Js_Set_Class_Accessor(borderColor, border_color, set_border_color);
+			Js_Set_Class_Accessor(borderLeftColor, border_left_color, set_border_left_color);
+			Js_Set_Class_Accessor(borderTopColor, border_top_color, set_border_top_color);
+			Js_Set_Class_Accessor(borderRightColor, border_right_color, set_border_right_color);
+			Js_Set_Class_Accessor(borderBottomColor, border_bottom_color, set_border_bottom_color);
+			Js_Set_Class_Accessor(borderRadius, border_radius, set_border_radius);
+			Js_Set_Class_Accessor(borderRadiusLeftTop, border_radius_left_top, set_border_radius_left_top);
+			Js_Set_Class_Accessor(borderRadiusRightTop, border_radius_right_top, set_border_radius_right_top);
+			Js_Set_Class_Accessor(borderRadiusRightBottom, border_radius_right_bottom, set_border_radius_right_bottom);
+			Js_Set_Class_Accessor(borderRadiusLeftBottom, border_radius_left_bottom, set_border_radius_left_bottom);
+			Js_Set_Class_Accessor(backgroundColor, background_color, set_background_color); // background color
+			Js_Set_Class_Accessor(background, background, set_background); // background
+			Js_Set_Class_Accessor(newline, newline, set_newline);
+			Js_Set_Class_Accessor(clip, clip, set_clip);
+			Js_Set_Class_Accessor(finalWidth, final_width);
+			Js_Set_Class_Accessor(finalHeight, final_height);
+			Js_Set_Class_Accessor(finalMarginLeft, final_margin_left);
+			Js_Set_Class_Accessor(finalMarginTop, final_margin_top);
+			Js_Set_Class_Accessor(finalMarginRight, final_margin_right);
+			Js_Set_Class_Accessor(finalMarginBottom, final_margin_bottom);
+		}, Layout);
+		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Box), View::BOX);
+	}
+};
+
+void binding_box(JSObject* exports, Worker* worker) {
+	WrapBox::binding(exports, worker);
+}
+
+Js_END

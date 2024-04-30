@@ -110,7 +110,7 @@ namespace qk {
 		 * Post message to application loop
 		 * @method post()
 		*/
-		void post(Cb cb, uint64_t delay_us = 0);
+		void post(Cb cb, uint64_t delayUs = 0);
 
 	private:
 		/**

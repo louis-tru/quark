@@ -118,7 +118,7 @@ public:
 		}
 	}
 
-	void post_message(Cb cb, uint64_t delayUs) override {
+	void post_message(Cb cb) override {
 		if (isRenderThread()) {
 			lock();
 			cb->resolve();

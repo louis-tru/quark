@@ -115,7 +115,8 @@ namespace qk {
 				} else {
 					if ( stream ) {
 						// TODO 现在还不支持暂停与恢复功能
-						StreamResponse data(Buffer(), 1, id(),
+						Buffer buffer;
+						StreamResponse data(buffer, 1, id(),
 															client->download_size(),
 															client->download_total(), nullptr /*, this*/);
 						scb->resolve(&data);
@@ -329,31 +330,18 @@ namespace qk {
 		return http_request_sync(options);
 	}
 
-
-	/**
-	* @func abort
-	*/
 	void http_abort(uint32_t id) {
 		AsyncIOTask::safe_abort(id);
 	}
 
-	/**
-	* @func user_agent
-	*/
 	String http_user_agent() {
 		return http_user_agent_;
 	}
 
-	/**
-	* @func set_user_agent
-	*/
 	void http_set_user_agent(cString& user_agent) {
 		http_user_agent_ = user_agent;
 	}
 
-	/**
-	* @func cache_path
-	*/
 	String http_cache_path() {
 		if (http_cache_path_.isEmpty()) {
 			http_set_cache_path(fs_temp("http_cache"));
@@ -361,9 +349,6 @@ namespace qk {
 		return http_cache_path_;
 	}
 
-	/**
-	* @func set_cache_path 设置缓存文件路径
-	*/
 	void http_set_cache_path(cString& path) {
 		try {
 			fs_mkdir_p_sync(path);
@@ -373,9 +358,6 @@ namespace qk {
 		}
 	}
 
-	/**
-	* @func clean_cache 清理web缓存
-	*/
 	void http_clear_cache() {
 		// delete cache files
 		if ( ! http_cache_path_.isEmpty() ) {

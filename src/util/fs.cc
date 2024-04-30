@@ -240,7 +240,7 @@ namespace qk {
 		: _path(path)
 		, _fd(0)
 		, _opening(false)
-		, _keep(loop->keep_alive("File::Inl"))
+		, _keep(loop->keep_alive())
 		, _delegate(nullptr)
 		, _host(host)
 		{
@@ -250,7 +250,7 @@ namespace qk {
 		virtual ~Inl() {
 			if ( _fd ) {
 				uv_fs_t req;
-				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fd, nullptr); // sync
+				int res = uv_fs_close(_keep->loop()->uv_loop(), &req, _fd, nullptr); // sync
 				Qk_ASSERT( res == 0 );
 			}
 			delete _keep; _keep = nullptr;
@@ -306,7 +306,7 @@ namespace qk {
 			}
 		}
 
-		inline RunLoop* loop() { return _keep->host(); }
+		inline RunLoop* loop() { return _keep->loop(); }
 
 	private:
 		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
@@ -389,7 +389,7 @@ namespace qk {
 									uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
 				del(req)->trigger_file_error(host(req), err);
 			} else {
-				req->data().buffer.realloc((uint32_t)uv_req->result);
+				req->data().buffer.reset((uint32_t)uv_req->result);
 				del(req)->trigger_file_read(host(req),
 																					req->data().buffer,
 																					req->data().mark );

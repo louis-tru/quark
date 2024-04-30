@@ -173,9 +173,9 @@ namespace qk {
 		void clear();
 
 		/**
-		 * @method realloc reset realloc length
+		 * @method reset realloc length
 		*/
-		void realloc(uint32_t length);
+		void reset(uint32_t length);
 
 		/**
 		 *
@@ -507,15 +507,16 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	void Array<T, A>::realloc(uint32_t capacity) {
+	void Array<T, A>::reset(uint32_t capacity) {
 		if (capacity < _length) { // clear Partial data
 			T* i = _ptr.val + capacity;
 			T* end = i + _length;
 			while (i < end)
 				reinterpret_cast<Sham*>(i++)->~Sham(); // release
 			_length = capacity;
+		} else {
+			extend(capacity);
 		}
-		_ptr.realloc(capacity);
 	}
 
 	template<typename T, typename A>
@@ -543,7 +544,7 @@ namespace qk {
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
-		template<> Qk_EXPORT void            Array<T, A>::realloc(uint32_t capacity); \
+		template<> Qk_EXPORT void            Array<T, A>::reset(uint32_t capacity); \
 		template<> Qk_EXPORT void            Array<T, A>::extend(uint32_t length); \
 		template<> Qk_EXPORT std::vector<T>  Array<T, A>::vector() const; \
 		template<> Qk_EXPORT void            Array<T, A>::concat_(T* src, uint32_t src_length); \

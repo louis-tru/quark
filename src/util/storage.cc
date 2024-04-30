@@ -85,7 +85,7 @@ namespace qk {
 		}
 	}
 
-	void storage_delete(cString& name) {
+	void storage_remove(cString& name) {
 		storage_open();
 		if ( _db ) {
 			bp_key_t key = { name.length(), (Char*)name.c_str() };

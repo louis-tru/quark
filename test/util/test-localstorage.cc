@@ -40,7 +40,7 @@ void test_localstorage(int argc, char **argv) {
 	
 	Qk_LOG(storage_get("test"));
 	
-	storage_delete("test");
+	storage_remove("test");
 	
 	Qk_LOG(storage_get("test"));
 	

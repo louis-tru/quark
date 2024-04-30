@@ -39,20 +39,21 @@ static void message_cb(Cb::Data& ev, RunLoop* loop) {
 
 void test_loop(int argc, char **argv) {
 	RunLoop* loop = RunLoop::current();
-	KeepLoop* keep = loop->keep_alive("test_loop");
+	KeepLoop* keep = loop->keep_alive();
 	thread_new([&]() {
 		for ( int i = 0; i < 5; i++) {
 			thread_sleep(1e6);
 			loop->post(Cb(message_cb, loop));
 		}
+		Qk_LOG("test_loop 1 end");
 		delete keep;
 		return 0;
 	}, "test");
-	
-	loop->run(10e6);
-	
+
+	loop->run();
+
 	int id = loop->work(Cb([&](Cb::Data& e){
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 6; i++) {
 			thread_sleep(1e6);
 			Qk_LOG("Exec work");
 			loop->post(Cb(message_cb, loop));
@@ -60,8 +61,8 @@ void test_loop(int argc, char **argv) {
 	}), Cb([](Cb::Data& e){
 		Qk_LOG("Done");
 	}));
-	
+
 	loop->run();
-	
+
 	Qk_LOG("Loop ok");
 }

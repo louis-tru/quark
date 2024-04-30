@@ -95,7 +95,7 @@ namespace qk {
 
 		Inl(HttpClientRequest* host, RunLoop* loop)
 			: _host(host)
-			, _keep(loop->keep_alive("HttpClientRequest::Inl"))
+			, _keep(loop->keep_alive())
 			, _delegate(this)
 			, _upload_total(0)
 			, _upload_size(0)
@@ -127,7 +127,7 @@ namespace qk {
 			delete _keep; _keep = nullptr;
 		}
 		
-		inline RunLoop* loop() { return _keep->host(); }
+		inline RunLoop* loop() { return _keep->loop(); }
 		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
 		
 		void set_delegate(HttpDelegate* delegate) {
@@ -545,7 +545,7 @@ namespace qk {
 						_client->trigger_http_write();
 						
 						if ( _is_multipart_form_data ) {
-							buffer.realloc(BUFFER_SIZE);
+							buffer.reset(BUFFER_SIZE);
 							_multipart_form_buffer = buffer;
 							send_multipart_form_data();
 						}
@@ -592,7 +592,7 @@ namespace qk {
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
 					_multipart_form_data.popFront();
-					buffer.realloc(BUFFER_SIZE);
+					buffer.reset(BUFFER_SIZE);
 					_multipart_form_buffer = buffer;
 					send_multipart_form_data();
 				}
@@ -618,7 +618,7 @@ namespace qk {
 						_upload_file->open();
 					} else {
 						_multipart_form_buffer.write( form.data.c_str(), 0, form.data.length() );
-						_multipart_form_buffer.realloc(form.data.length());
+						_multipart_form_buffer.reset(form.data.length());
 						_socket->write(_multipart_form_buffer, 1);
 						_socket->write(string_header_end.copy().collapse());
 						_multipart_form_data.popFront();
@@ -933,7 +933,7 @@ namespace qk {
 									continue_send_and_release();
 								} else { // read next
 									_offset += i;
-									buffer.realloc(512);
+									buffer.reset(512);
 									read(buffer, _offset);
 								}
 								break;
@@ -1323,12 +1323,12 @@ namespace qk {
 			}, this));
 		}
 		
-		void cache_file_stat_cb(Cb::Data& evt) {
+		void cache_file_stat_cb(Callback<FileStat>::Data& evt) {
 			if ( _sending ) {
 				if ( evt.error ) { //
 					send_http();
 				} else {
-					new FileCacheReader(this, static_cast<FileStat*>(evt.data)->size(), loop());
+					new FileCacheReader(this, evt.data->size(), loop());
 				}
 			}
 		}
@@ -1404,7 +1404,7 @@ namespace qk {
 			if ( is_disable_cache() ) { // check cache
 				send_http();
 			} else {
-				fs_stat(_cache_path, Cb(&Inl::cache_file_stat_cb, this));
+				fs_stat(_cache_path, Callback<FileStat>(&Inl::cache_file_stat_cb, this));
 			}
 		}
 		
@@ -1481,7 +1481,7 @@ namespace qk {
 	}
 
 	HttpClientRequest::~HttpClientRequest() {
-		Qk_ASSERT(_inl->_keep->host() == RunLoop::current());
+		Qk_ASSERT(_inl->_keep->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		_inl->abort();
 		_inl->release();

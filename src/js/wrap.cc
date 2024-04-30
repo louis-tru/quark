@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_js.h"
+#include "./js_.h"
 
 namespace qk { namespace js {
 
@@ -116,6 +116,7 @@ namespace qk { namespace js {
 	}
 
 	WrapObject* WrapObject::newInit(FunctionArgs args) {
+		Qk_ASSERT(_handle.isEmpty());
 		Qk_ASSERT(args.isConstructCall());
 		_handle.reset(args.worker(), args.This());
 		auto ok = args.This()->setObjectPrivate(this);
@@ -132,7 +133,7 @@ namespace qk { namespace js {
 		return this;
 	}
 
-	WrapObject* WrapObject::attach(Worker *worker, Local<JSObject> This) {
+	WrapObject* WrapObject::attach(Worker *worker, JSObject* This) {
 		_handle.reset(worker, This);
 		bool ok = This->setObjectPrivate(this); Qk_ASSERT(ok);
 		init();
@@ -145,7 +146,7 @@ namespace qk { namespace js {
 	}
 
 	Object* WrapObject::externalData() {
-		Local<JSValue> data = get(worker()->strs()->__native_external_data());
+		auto data = get(worker()->strs()->_wrap_external_data());
 		if ( worker()->instanceOf(data, Js_Typeid(Object)) ) {
 			return wrap<Object>(data)->self();
 		}
@@ -156,7 +157,7 @@ namespace qk { namespace js {
 		Qk_ASSERT(data);
 		auto p = wrap(data, Js_Typeid(Object));
 		if (p) {
-			set(worker()->strs()->__native_external_data(), p->that());
+			set(worker()->strs()->_wrap_external_data(), p->that());
 			if (!data->isReference() || /* non reference */
 					static_cast<Reference*>(data)->refCount() <= 0) {
 				WrapObject_setWeak(p);
@@ -166,24 +167,24 @@ namespace qk { namespace js {
 		return p;
 	}
 
-	Local<JSValue> WrapObject::call(Local<JSValue> method, int argc, Local<JSValue> argv[]) {
-		Local<JSObject> recv = that();
-		Local<JSValue> func = recv->get(worker(), method);
+	JSValue* WrapObject::call(JSValue* method, int argc, JSValue* argv[]) {
+		auto recv = that();
+		auto func = recv->get(worker(), method);
 		if ( func->isFunction() ) {
-			return func.cast<JSFunction>()->call(worker(), argc, argv, recv.cast());
+			return func->cast<JSFunction>()->call(worker(), argc, argv, recv);
 		} else {
 			worker()->throwError("Function not found, \"%s\"", *method->toStringValue(worker()));
-			return Local<JSValue>();
+			return nullptr;
 		}
 	}
 
-	Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) {
+	JSValue* WrapObject::call(cString& name, int argc, JSValue* argv[]) {
 		return call(worker()->newStringOneByte(name), argc, argv);
 	}
 
-	WrapObject* WrapObject::unpack(Local<JSObject> object) {
+	WrapObject* WrapObject::unpack(JSValue* object) {
 		Qk_ASSERT(!object.isEmpty());
-		return static_cast<WrapObject*>(object->objectPrivate());
+		return static_cast<WrapObject*>(object->cast<JSObject>()->objectPrivate());
 	}
 
 	WrapObject* WrapObject::pack(Object* object, uint64_t type_id) {

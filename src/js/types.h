@@ -33,7 +33,7 @@
 #ifndef __quark__js__types__
 #define __quark__js__types__
 
-#include "./_js.h"
+#include "./js_.h"
 #include "../ui/types.h"
 #include "../render/bezier.h"
 #include "../ui/filter.h"
@@ -51,7 +51,7 @@ namespace qk { namespace js {
 
 	#define Js_Common_Strings_Each(F)  \
 		F(global)         F(exports)        F(constructor) \
-		F(console)        F(__proto__)      F(__native_external_data) \
+		F(console)        F(__proto__)      F(_wrap_external_data) \
 		F(prototype)      F(type)           F(value) \
 		F(isAuto)         F(width)          F(height) \
 		F(offset)         F(offsetX)        F(offsetY) \
@@ -60,7 +60,7 @@ namespace qk { namespace js {
 		F(y)              F(z)              F(start) \
 		F(point)          F(end)            F(w) \
 		F(size)           F(color)          F(toJSON) \
-		F(stack)          F(get_path)       F(_exit) \
+		F(stack)          F(get_path)       F(_cb) \
 		F(code)           F(message)        F(status) \
 		F(url)            F(id)             F(startX) \
 		F(startY)         F(force)          F(clickIn) \
@@ -70,13 +70,13 @@ namespace qk { namespace js {
 		F(pathname)       F(styles)         F(sender) \
 		F(Buffer)         F(data)           F(total) \
 		F(complete)       F(httpVersion)    F(statusCode) \
-		F(responseHeaders) F(Throw)\
+		F(responseHeaders) F(Throw)         F(kind) \
 
 	class Qk_EXPORT CommonStrings {
 	public:
 		CommonStrings(Worker* worker);
 		#define _Fun(name) \
-		public: inline Local<JSValue> name() { return __##name##__.toLocal(); } \
+		public: inline JSValue* name() { return *__##name##__; } \
 		private: Persistent<JSValue> __##name##__;
 		Js_Common_Strings_Each(_Fun);
 		#undef _Fun
@@ -118,8 +118,7 @@ namespace qk { namespace js {
 		F(TextWordBreak, TextWordBreak) \
 		F(TextValueKind, TextValueKind) \
 		F(TextColor, TextColor) \
-		F(TextSize, TextSize) \
-		/*F(TextLineHeight, TextLineHeight)*//*TextSize*/ \
+		F(TextSize, TextSize) /*TextLineHeight*/\
 		F(TextShadow, TextShadow) \
 		F(TextFamily, TextFamily) \
 		F(TextWeight, TextWeight) \
@@ -132,11 +131,12 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT TypesParser {
 	public:
-		TypesParser(Worker* worker, Local<JSObject> exports);
-		void throwError(Local<JSValue> value, cChar* msg = 0, cChar* help = 0);
+		TypesParser(Worker* worker, JSObject* exports);
+		bool isBase(JSValue *arg);
+		void throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
 	#define _Def_Fun(Name, Type) \
-		Local<JSValue> newInstance(const Type& value); \
-		bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = 0);
+		JSValue* newInstance(const Type& value); \
+		bool parse##Name(JSValue* in, Type& out, cChar* err_msg = 0);
 		Js_Types_Each(_Def_Fun);
 	private:
 		Worker *worker;

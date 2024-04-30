@@ -141,8 +141,8 @@
 			'render/source.cc',
 			'media/media.h', # media
 			'media/media.cc',
-			'os/device.h', # os
-			'os/device.cc',
+			'os/os.h', # os
+			'os/os.cc',
 			'errno.h',
 			'version.h',
 		],
@@ -207,7 +207,7 @@
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
-					'os/device_mac.mm',
+					'os/os_mac.mm',
 					'platforms/mac/mac_app.h',
 					'platforms/mac/mac_app.mm',
 					'platforms/mac/mac_image_codec.mm',

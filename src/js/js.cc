@@ -28,14 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <native-inl-js.h>
+#include "../../out/native-inl-js.h"
+#include "../../out/native-lib-js.h"
 #include "../util/string.h"
-#include "./_js.h"
+#include "./js_.h"
 #include "../util/http.h"
 #include "../util/codec.h"
 #include "./types.h"
+#include "../errno.h"
 
-namespace qk { namespace js {
+namespace qk {
+	bool is_process_exit();
+	namespace js {
 
 	Buffer JSValue::toBuffer(Worker* worker, Encoding en) const {
 		if (en == Encoding::kUTF16_Encoding) {
@@ -43,6 +47,8 @@ namespace qk { namespace js {
 			uint32_t len = str.length() * 2;
 			return Buffer((Char*)str.collapse().collapse(), len);
 		} else {
+			//auto source = codec_decode_form_utf16(toStringValue2(worker).array().buffer());
+			//return codec_encode(en, source);
 			return codec_encode(en, toStringValue2(worker));
 		}
 	}
@@ -65,17 +71,17 @@ namespace qk { namespace js {
 		Dict<String, int> r;
 
 		if ( isObject() ) {
-			Local<JSArray> names = getPropertyNames(worker);
-			if ( names.isEmpty() )
+			JSArray* names = getPropertyNames(worker);
+			if ( !names )
 				return Maybe<Dict<String, int>>();
 			
 			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
-				Local<JSValue> key = names->get(worker, i);
-				if ( key.isEmpty() )
+				JSValue* key = names->get(worker, i);
+				if ( !key )
 					return Maybe<Dict<String, int>>();
 
-				Local<JSValue> val = get(worker, key);
-				if ( val.isEmpty() ) return Maybe<Dict<String, int>>();
+				JSValue* val = get(worker, key);
+				if ( !val ) return Maybe<Dict<String, int>>();
 				if ( val->isNumber() ) {
 					r.set( key->toStringValue(worker), val->toNumberValue(worker) );
 				} else {
@@ -90,17 +96,17 @@ namespace qk { namespace js {
 		Dict<String, String> r;
 		
 		if ( isObject() ) {
-			Local<JSArray> names = getPropertyNames(worker);
-			if ( names.isEmpty() )
+			auto names = getPropertyNames(worker);
+			if ( !names )
 				return Maybe<Dict<String, String>>();
 			
 			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
-				Local<JSValue> key = names->get(worker, i);
-				if ( key.isEmpty() ) {
+				auto key = names->get(worker, i);
+				if ( !key ) {
 					return Maybe<Dict<String, String>>();
 				}
-				Local<JSValue> val = get(worker, key);
-				if ( val.isEmpty() ) {
+				auto val = get(worker, key);
+				if ( !val ) {
 					return Maybe<Dict<String, String>>();
 				}
 				r.set( key->toStringValue(worker), val->toStringValue(worker) );
@@ -113,15 +119,15 @@ namespace qk { namespace js {
 		JSON r = JSON::object();
 		
 		if ( isObject() ) {
-			Local<JSArray> names = getPropertyNames(worker);
-			if ( names.isEmpty() )
+			auto names = getPropertyNames(worker);
+			if ( !names )
 				return Maybe<JSON>();
 			
 			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
-				Local<JSValue> key = names->get(worker, i);
-				if ( key.isEmpty() ) return Maybe<JSON>();
-				Local<JSValue> val = get(worker, key);
-				if ( val.isEmpty() ) return Maybe<JSON>();
+				auto key = names->get(worker, i);
+				if ( !key ) return Maybe<JSON>();
+				auto val = get(worker, key);
+				if ( !val ) return Maybe<JSON>();
 				String key_s = key->toStringValue(worker);
 				if (val->isUint32()) {
 					r[key_s] = val->toUint32Value(worker);
@@ -141,7 +147,7 @@ namespace qk { namespace js {
 		return Maybe<JSON>(std::move(r));
 	}
 
-	Local<JSValue> JSObject::getProperty(Worker* worker, cString& name) {
+	JSValue* JSObject::getProperty(Worker* worker, cString& name) {
 		return get(worker, worker->newStringOneByte(name)/*One Byte ??*/);
 	}
 
@@ -149,8 +155,8 @@ namespace qk { namespace js {
 		Array<String> rv;
 		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
-				Local<JSValue> val = get(worker, i);
-				if ( val.isEmpty() )
+				auto val = get(worker, i);
+				if ( !val )
 					return Maybe<Array<String>>();
 				rv.push( val->toStringValue(worker) );
 			}
@@ -194,12 +200,12 @@ namespace qk { namespace js {
 
 	// --------------------------- J S . C l a s s ---------------------------
 
-	void JSClass::exports(cString& name, Local<JSObject> exports) {
+	void JSClass::exports(cString& name, JSObject* exports) {
 		_func.reset(); // reset func
 		exports->setProperty(_worker, name, getFunction());
 	}
 
-	Local<JSObject> JSClass::newInstance(uint32_t argc, Local<JSValue>* argv) {
+	JSObject* JSClass::newInstance(uint32_t argc, JSValue* argv[]) {
 		auto f = getFunction();
 		Qk_ASSERT( !f.isEmpty() );
 		return f->newInstance(_worker, argc, argv);
@@ -218,20 +224,18 @@ namespace qk { namespace js {
 		_jsAttachConstructorEmpty.reset();
 	}
 
-	Local<JSClass> JsClassInfo::get(uint64_t id) {
-		JSClass *out;
-		if ( _jsclass.get(id, out) ) {
-			return *reinterpret_cast<Local<JSClass>*>(&out);
-		}
-		return Local<JSClass>();
+	JSClass* JsClassInfo::get(uint64_t id) {
+		JSClass *out = nullptr;
+		_jsclass.get(id, out);
+		return out;
 	}
 
-	Local<JSFunction> JsClassInfo::getFunction(uint64_t id) {
+	JSFunction* JsClassInfo::getFunction(uint64_t id) {
 		JSClass *out;
 		if ( _jsclass.get(id, out) ) {
 			return out->getFunction();
 		}
-		return Local<JSFunction>();
+		return nullptr;
 	}
 
 	void JsClassInfo::add(uint64_t id, JSClass *cls,
@@ -259,7 +263,7 @@ namespace qk { namespace js {
 		return nullptr;
 	}
 
-	bool JsClassInfo::instanceOf(Local<JSValue> val, uint64_t id) {
+	bool JsClassInfo::instanceOf(JSValue* val, uint64_t id) {
 		JSClass *out;
 		if ( _jsclass.get(id, out) )
 			return out->hasInstance(val);
@@ -291,10 +295,11 @@ namespace qk { namespace js {
 		NativeModulesLib->set(name, { name, pathname ? pathname: name, binding, 0 });
 	}
 
- 	Local<JSValue> BindingModule::binding(Local<JSValue> name) {
-		auto r = _nativeModules.toLocal()->get(this, name);
+	JSValue* BindingModule::binding(JSValue* name) {
+		auto r = _nativeModules->get(this, name);
 		if (!r->isUndefined())
 			return r;
+		HandleScope scope(this);
 		const NativeModuleLib* lib;
 		auto exports = newObject();
 		auto ok = NativeModulesLib->get(name->toStringValue(this), lib);
@@ -307,18 +312,17 @@ namespace qk { namespace js {
 				exports = runNativeScript(
 					WeakBuffer(lib->native_code->code, lib->native_code->count).buffer(),
 					String(lib->native_code->name) + lib->native_code->ext, exports
-				).cast<JSObject>();
+				)->cast<JSObject>();
 
-				if ( exports.isEmpty() ) { // error
+				if ( !exports ) // error
 					return exports;
-				}
 			}
-			_nativeModules.toLocal()->set(this, name, exports);
+			_nativeModules->set(this, name, exports);
 		}
 		return exports;
 	}
 
-	Local<JSValue> Worker::bindingModule(cString& name) {
+	JSValue* Worker::bindingModule(cString& name) {
 		return static_cast<BindingModule*>(this)->binding(newStringOneByte(name));
 	}
 
@@ -327,7 +331,6 @@ namespace qk { namespace js {
 		if (args.length() < 1) {
 			Js_Throw("Bad argument.");
 		}
-		// Js_Handle_Scope();
 		auto r = static_cast<BindingModule*>(worker)->binding(args[0]);
 		if (r) {
 			Js_Return(r);
@@ -340,15 +343,19 @@ namespace qk { namespace js {
 		, _classsinfo(nullptr)
 		, _thread_id(thread_current_id())
 	{
+		Qk_ASSERT(NativeModulesLib);
+
 		// register core native module
-		static int initializ_core_native_module = 0;
-		if ( initializ_core_native_module++ == 0 ) {
-			Qk_ASSERT(NativeModulesLib);
+		if ( !NativeModulesLib->has("_pkg") ) {
 			for (int i = 0; i < native_js::INL_native_js_count_; i++) {
 				const NativeJSCode* code = (const NativeJSCode*)native_js::INL_native_js_ + i;
 				if (!NativeModulesLib->has(code->name)) { // skip _event / _types
 					NativeModulesLib->set(code->name, { code->name, code->name, 0, code });
 				}
+			}
+			for (int i = 0; i < native_js::LIB_native_js_count_; i++) {
+				const NativeJSCode* code = (const NativeJSCode*)native_js::LIB_native_js_ + i;
+				NativeModulesLib->set(code->name, { code->name, code->name, 0, code });
 			}
 		}
 	}
@@ -367,20 +374,20 @@ namespace qk { namespace js {
 		_strs = new CommonStrings(this);
 		_classsinfo = new JsClassInfo(this);
 		Qk_ASSERT(_global->isObject(this));
-		_global->setProperty(this, "global", _global.toLocal());
+		_global->setProperty(this, "global", *_global);
 		_global->setMethod(this, "__bindingModule__", __bindingModule__);
 
 		auto globalThis = newInstance("globalThis");
-		if ( !_global->has(this, globalThis.cast<JSValue>()) ) {
-			_global->set(this, globalThis.cast<JSValue>(), _global.toLocal());
+		if ( !_global->has(this, globalThis) ) {
+			_global->set(this, globalThis, *_global);
 		}
 	}
 
-	Local<JSObject> Worker::global() {
-		return _global.toLocal();
+	JSObject* Worker::global() {
+		return *_global;
 	}
 
-	Local<JSObject> Worker::newError(cChar* errmsg, ...) {
+	JSObject* Worker::newError(cChar* errmsg, ...) {
 		va_list arg;
 		va_start(arg, errmsg);
 		String str = _Str::string_format(errmsg, arg);
@@ -389,44 +396,44 @@ namespace qk { namespace js {
 		return newInstance(err);
 	}
 
-	Local<JSObject> Worker::newInstance(const HttpError& err) {
-		Local<JSObject> rv = newInstance(*static_cast<cError*>(&err));
-		if ( !rv.isEmpty() ) {
-			if (!rv->set(this, strs()->status(), newInstance(err.status()))) return Local<JSObject>();
-			if (!rv->set(this, strs()->url(), newInstance(err.url()))) return Local<JSObject>();
-			if (!rv->set(this, strs()->code(), newInstance(err.code()))) return Local<JSObject>();
+	JSObject* Worker::newInstance(const HttpError& err) {
+		JSObject* rv = newInstance(*static_cast<cError*>(&err));
+		if ( rv ) {
+			if (!rv->set(this, strs()->status(), newInstance(err.status()))) return nullptr;
+			if (!rv->set(this, strs()->url(), newInstance(err.url()))) return nullptr;
+			if (!rv->set(this, strs()->code(), newInstance(err.code()))) return nullptr;
 		}
 		return rv;
 	}
 
-	Local<JSArray> Worker::newInstance(Array<Dirent>& ls) { return newInstance(std::move(ls)); }
-	Local<JSArray> Worker::newInstance(Array<FileStat>& ls) { return newInstance(std::move(ls)); }
-	Local<JSUint8Array> Worker::newInstance(Buffer& buff) { return newInstance(std::move(buff)); }
-	Local<JSObject> Worker::newInstance(FileStat& stat) { return newInstance(std::move(stat)); }
-	Local<JSObject> Worker::newError(cError& err) { return newInstance(err); }
-	Local<JSObject> Worker::newError(const HttpError& err) { return newInstance(err); }
+	JSArray* Worker::newInstance(Array<Dirent>& ls) { return newInstance(std::move(ls)); }
+	JSArray* Worker::newInstance(Array<FileStat>& ls) { return newInstance(std::move(ls)); }
+	JSUint8Array* Worker::newInstance(Buffer& buff) { return newInstance(std::move(buff)); }
+	JSObject* Worker::newInstance(FileStat& stat) { return newInstance(std::move(stat)); }
+	JSObject* Worker::newError(cError& err) { return newInstance(err); }
+	JSObject* Worker::newError(const HttpError& err) { return newInstance(err); }
 
-	Local<JSObject> Worker::newInstance(FileStat&& stat) {
-		Local<JSFunction> func = _classsinfo->getFunction(Js_Typeid(FileStat));
+	JSObject* Worker::newInstance(FileStat&& stat) {
+		auto func = _classsinfo->getFunction(Js_Typeid(FileStat));
 		Qk_ASSERT( !func.IsEmpty() );
 		auto r = func->newInstance(this);
 		*WrapObject::wrap<FileStat>(r)->self() = std::move(stat);
 		return r;
 	}
 
-	Local<JSUint8Array> Worker::newUint8Array(Local<JSString> str, Encoding en) {
+	JSUint8Array* Worker::newUint8Array(JSString* str, Encoding en) {
 		return newInstance(str->toBuffer(this, en));
 	}
 
-	Local<JSUint8Array> Worker::newUint8Array(int size, Char fill) {
+	JSUint8Array* Worker::newUint8Array(int size, Char fill) {
 		auto ab = newArrayBuffer(size);
 		if (fill)
 			memset(ab->data(this), fill, size);
 		return newUint8Array(ab);
 	}
 
-	Local<JSUint8Array> Worker::newUint8Array(Local<JSArrayBuffer> ab) {
-		return newUint8Array(ab, 0, ab->byteLength(this));
+	JSUint8Array* Worker::newUint8Array(JSArrayBuffer* abuffer) {
+		return newUint8Array(abuffer, 0, abuffer->byteLength(this));
 	}
 
 	void Worker::throwError(cChar* errmsg, ...) {
@@ -437,48 +444,43 @@ namespace qk { namespace js {
 		throwError(newError(*str));
 	}
 
-	bool Worker::instanceOf(Local<JSValue> val, uint64_t id) {
+	bool Worker::instanceOf(JSValue* val, uint64_t id) {
 		return _classsinfo->instanceOf(val, id);
 	}
 
-	Local<JSClass> Worker::jsclass(uint64_t id) {
+	JSClass* Worker::jsclass(uint64_t id) {
 		return _classsinfo->get(id);
 	}
 
 	// ---------------------------------------------------------------------------------------------
 
-	static Local<JSValue> TriggerEventFromUtil(Worker* worker,
-		cString& name, int argc = 0, Local<JSValue> argv[] = 0)
+	static JSValue* TriggerEventFromUtil(Worker* worker, cString& name, int argc = 0, JSValue* argv[] = 0)
 	{
-		Local<JSObject> _util = worker->bindingModule("_util").cast();
-		Qk_ASSERT(!_util.IsEmpty());
+		auto _util = worker->bindingModule("_util")->cast<JSObject>();
+		Qk_ASSERT(_util);
 
-		Local<JSValue> func = _util->getProperty(worker, String("__on").append(name).append("_native"));
+		auto func = _util->getProperty(worker, String("__on").append(name).append("_native"));
 		if (!func->isFunction()) {
-			return Local<JSValue>();
+			return nullptr;
 		}
-		return func.cast<JSFunction>()->call(worker, argc, argv);
+		return func->cast<JSFunction>()->call(worker, argc, argv);
 	}
 
 	static int TriggerExit(Worker* worker, cString& name, int code) {
 		Js_Handle_Scope();
-		Local<JSValue> argv = worker->newInstance(code);
-		Local<JSValue> rc = TriggerEventFromUtil(worker, name, 1, &argv);
-		if (!rc.isEmpty() && rc->isInt32()) {
+		auto argv = worker->newInstance(code)->cast<JSValue>();
+		auto rc = TriggerEventFromUtil(worker, name, 1, &argv);
+		if (rc && rc->isInt32()) {
 			return rc->toInt32Value(worker);
 		} else {
 			return code;
 		}
 	}
 
-	static bool TriggerException(Worker* worker, cString& name, int argc, Local<JSValue> argv[]) {
+	static bool TriggerException(Worker* worker, cString& name, int argc, JSValue* argv[]) {
 		Js_Handle_Scope();
-		Local<JSValue> rc = TriggerEventFromUtil(worker, name, argc, argv);
-		if (!rc.isEmpty() && rc->toBooleanValue(worker)) {
-			return true;
-		} else {
-			return false;
-		}
+		auto rc = TriggerEventFromUtil(worker, name, argc, argv);
+		return rc && rc->toBooleanValue(worker);
 	}
 
 	int triggerExit(Worker* worker, int code) {
@@ -489,13 +491,141 @@ namespace qk { namespace js {
 		return TriggerExit(worker, "BeforeExit", code);
 	}
 
-	bool triggerUncaughtException(Worker* worker, Local<JSValue> err) {
+	bool triggerUncaughtException(Worker* worker, JSValue* err) {
 		return TriggerException(worker, "UncaughtException", 1, &err);
 	}
 
-	bool triggerUnhandledRejection(Worker* worker, Local<JSValue> reason, Local<JSValue> promise) {
-		Local<JSValue> argv[] = { reason, promise };
+	bool triggerUnhandledRejection(Worker* worker, JSValue* reason, JSValue* promise) {
+		JSValue* argv[] = { reason, promise };
 		return TriggerException(worker, "UnhandledRejection", 2, argv);
+	}
+
+	// ---------------------------------------------------------------------------------------------
+
+	void* object_allocator_alloc(size_t size);
+	void  object_allocator_free(void *ptr);
+	void  object_allocator_strong(Object* obj);
+	void  object_allocator_weak(Object* obj);
+
+	// startup argv
+	Array<Char*>* __quark_js_argv = nullptr;
+	int           __quark_js_have_debug = 0;
+
+	// parse argv
+	static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& quark_argv) {
+		static String argv_str;
+
+		Qk_ASSERT(argv_in.length(), "Bad start argument");
+		__quark_js_have_debug = 0;
+		argv_str = argv_in[0];
+		Array<int> indexs = {-1};
+
+		for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
+			if (argv_in[i].indexOf("--debug") == 0) {
+				__quark_js_have_debug = 1;
+			} else {
+				if (argv_in[i].indexOf("--inspect") == 0) {
+					__quark_js_have_debug = 1;
+				}
+				argv_str.append(' ');
+				argv_str.append(argv_in[i]);
+				indexs.push(index);
+				index += argv_in[i].length() + 1;
+			}
+		}
+
+		Char* str_c = const_cast<Char*>(*argv_str);
+		argv.push(str_c);
+		quark_argv.push(str_c);
+
+		for (int i = 1, quark_ok = 0; i < indexs.length(); i++) {
+			int index = indexs[i];
+			str_c[index] = '\0';
+			Char* arg = str_c + index + 1;
+			if (quark_ok || arg[0] != '-') {
+				quark_ok = 1; // quark argv start
+				quark_argv.push(arg);
+			}
+			argv.push(arg);
+		}
+	}
+
+	static void onProcessSafeHandle(Event<>& e, void* ctx) {
+		int rc = static_cast<const Int32*>(e.data())->value;
+		if (RunLoop::first()->runing()) {
+			typedef Callback<RunLoop::PostSyncData> Cb;
+			RunLoop::first()->post_sync(Cb([&](Cb::Data& e) {
+				auto worker = Worker::worker();
+				Qk_DEBUG("onProcessSafeHandle");
+				if (worker) {
+					rc = triggerExit(worker, rc);
+				}
+				e.data->complete();
+			}));
+		}
+		e.return_value = rc;
+	}
+
+	int Start(const Array<String>& argv_in) {
+		Qk_ASSERT(!__quark_js_argv);
+
+		Object::setAllocator(
+			&object_allocator_alloc,
+			&object_allocator_free, &object_allocator_strong, &object_allocator_weak
+		);
+		Array<char*> argv, quark_argv;
+		parseArgv(argv_in, argv, quark_argv);
+
+		// Mark the current main thread and check current thread
+		Qk_ASSERT(RunLoop::first() == RunLoop::current());
+
+		Qk_On(ProcessExit, onProcessSafeHandle);
+
+		__quark_js_argv = &quark_argv;
+
+		char** argv_c = const_cast<char**>(&argv[0]);
+		int rc = platformStart(argv.length(), argv_c, [](Worker* worker) -> int {
+			{
+				Js_Handle_Scope();
+				auto _pkg = worker->bindingModule("_pkg");
+				Qk_ASSERT(!_pkg.IsEmpty(), "Can't start worker");
+				auto r = _pkg->cast<JSObject>()->
+					getProperty(worker, "Module")->cast<JSObject>()->
+					getProperty(worker, "runMain")->cast<JSFunction>()->call(worker);
+				if (!r) {
+					Qk_ERR("ERROR: Can't call runMain()");
+					return ERR_RUN_MAIN_EXCEPTION;
+				}
+			}
+			int rc = 0;
+			auto loop = RunLoop::first();
+			do {
+				loop->run();
+				/* IOS forces the process to terminate, but it does not quit immediately.
+				This may cause a process to run in the background for a long time, so force break here */
+				if (is_process_exit())
+					break;
+
+				if (loop->is_alive())
+					continue;
+
+				rc = triggerBeforeExit(worker, rc);
+
+				// Emit `beforeExit` if the loop became alive either after emitting
+				// event, or after running some callbacks.
+			} while (loop->is_alive());
+
+			if (!is_process_exit())
+				rc = triggerExit(worker, rc);
+			return rc;
+		});
+
+		__quark_js_argv = nullptr;
+
+		Qk_Off(ProcessExit, onProcessSafeHandle);
+		// Object::setAllocator(nullptr, nullptr, nullptr, nullptr);
+
+		return rc;
 	}
 
 } }
