@@ -89,7 +89,7 @@ namespace qk {
 		pthread_setspecific(__specific_key, t);
 	}
 
-	ThreadID thread_current_id() {
+	ThreadID thread_self_id() {
 		return std::this_thread::get_id();
 	}
 
@@ -192,7 +192,7 @@ namespace qk {
 	}
 
 	void thread_join_for(ThreadID id, uint64_t timeoutUs) {
-		if (id == thread_current_id()) {
+		if (id == thread_self_id()) {
 			Qk_DEBUG("thread_join_for(), cannot wait self thread");
 			return;
 		}

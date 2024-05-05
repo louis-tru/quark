@@ -60,7 +60,7 @@ namespace qk {
 		};
 		auto id = thread_new([](void* arg) {
 			Handle<Tmp> tmp = (Tmp*)arg;
-			auto id = thread_current_id();
+			auto id = thread_self_id();
 			tmp->func();
 			ScopeLock scope(tmp->self->_mutex2);
 			tmp->self->_childs.erase(id);
@@ -161,7 +161,7 @@ namespace qk {
 	}
 
 	bool has_backend_thread() {
-		return thread_current_id() == _backend_loop->id;
+		return thread_self_id() == _backend_loop->id;
 	}
 
 }

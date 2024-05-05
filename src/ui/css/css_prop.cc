@@ -150,10 +150,10 @@ namespace qk {
 	template<typename T>
 	struct PropImpl: Property {
 		inline PropImpl(ViewProp prop, T value): _prop(prop), _value(value) {}
-		void apply(View *target) override {
+		void apply(View *target, bool isRt) override {
 			auto set = (void (View::*)(T,bool))(target->accessor() + _prop)->set;
 			if (set)
-				(target->*set)(_value,true);
+				(target->*set)(_value,isRt);
 		}
 		void transition(View *target, Property *to, float y) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
@@ -179,10 +179,10 @@ namespace qk {
 		~PropImpl() {
 			_value->release();
 		}
-		void apply(View *target) override {
+		void apply(View *target, bool isRt) override {
 			auto set = (void (View::*)(T*,bool))(target->accessor() + _prop)->set;
 			if (set)
-				(target->*set)(_value,true);
+				(target->*set)(_value,isRt);
 		}
 		void transition(View *target, Property *to, float t) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
@@ -293,7 +293,8 @@ namespace qk {
 		}
 	};
 
-	#define _Fun(Enum, Type, Name, _) void StyleSheets::set_##Name(Type value) {\
+	#define _Fun(Enum, Type, Name, _) \
+	void StyleSheets::set_##Name(Type value) {\
 		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_ViewProp>(value);\
 	}
 	Qk_View_Props(_Fun)

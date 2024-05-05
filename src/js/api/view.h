@@ -46,6 +46,22 @@
 #define Js_ScrollBase() \
 	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asScrollBase()
 
+#define Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
+	Js_Set_Class_Accessor(Name, {\
+		Self_Fun(Obj); \
+		Js_Return( worker->types()->newInstance(self->Prop()) ); \
+	}, { \
+		Js_Parse_Type(T, val, "@prop Obj."#Name" = %s"); \
+		Self_Fun(Obj); \
+		self->set_##Prop(out); \
+	})
+
+#define Js_Set_WrapObject_Accessor(Obj, T, Prop, Name) \
+	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
+#define _UI_Self(Obj) Js_##Obj()
+#define Js_Set_UIObject_Accessor(Obj, T, Prop, Name) \
+	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, _UI_Self)
+
 namespace qk { namespace js {
 
 	extern uint64_t kView_Typeid;

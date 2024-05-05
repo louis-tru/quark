@@ -22,11 +22,14 @@
 			'types.cc',
 			'wrap.cc',
 			'api/app.cc', # api
+			'api/action.cc',
+			'api/app.cc',
 			'api/box.cc',
 			'api/buffer.cc',
 			'api/cb.cc',
 			'api/cb.h',
 			'api/console.cc',
+			'api/css.cc',
 			'api/event.cc',
 			'api/fs_path.cc',
 			'api/fs_reader.cc',
@@ -43,6 +46,7 @@
 			'api/util.cc',
 			'api/view.cc',
 			'api/view.h',
+			'api/window.cc',
 		],
 		'conditions': [
 			['use_v8==0 and OS=="mac"', { # use javascriptcore

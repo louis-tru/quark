@@ -179,7 +179,7 @@ namespace qk {
 	*/
 
 	void CStyleSheetsClass::applyStyle_Rt(CStyleSheets *ss) {
-		ss->apply(_host);
+		ss->apply(_host, true);
 
 		if (ss->_substyles.length()) {
 			_stylesHash_Rt.updateu64(uint64_t(ss));

@@ -45,9 +45,6 @@ namespace qk { namespace js {
 	#define ISOLATE(...) WorkerImpl::worker( __VA_ARGS__ )->_isolate
 	#define CONTEXT(...) WorkerImpl::worker( __VA_ARGS__ )->_context
 
-	// static String unknown("[Unknown]");
-	// static String2 unknown_ucs2(codec_decode_to_uint16(kAscii_Encoding, unknown.array().buffer()));
-
 	typedef const v8::FunctionCallbackInfo<Value>& V8FunctionCall;
 	typedef const v8::PropertyCallbackInfo<Value>& V8PropertyCall;
 	typedef const v8::PropertyCallbackInfo<void>& V8PropertySetCall;

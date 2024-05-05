@@ -59,7 +59,7 @@ namespace qk {
 			if (isRt) {
 				_text_flags |= (1 << type);
 				mark ? view->mark_layout(mark, true): view->mark(0, true);
-			} else{
+			} else {
 				struct Data { uint32_t mark, type; };
 				view->preRender().async_call([](auto self, auto arg) {
 					auto view = self->getViewForTextOptions();

@@ -80,7 +80,7 @@ namespace qk {
 	//!< wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
 	Qk_EXPORT void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
 	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort all run loop, signal=-2
-	Qk_EXPORT ThreadID thread_current_id();
+	Qk_EXPORT ThreadID thread_self_id();
 
 	Qk_EXPORT EventNoticer<Event<>, Mutex>& onProcessExit();
 

@@ -45,11 +45,11 @@ namespace qk {
 			delete i.value;
 	}
 
-	void StyleSheets::apply(View *view) const {
+	void StyleSheets::apply(View *view, bool isRt) const {
 		Qk_ASSERT(view);
 		if (_props.length()) {
 			for ( auto i: _props ) {
-				i.value->apply(view);
+				i.value->apply(view, isRt);
 			}
 		}
 	}

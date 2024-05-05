@@ -119,7 +119,7 @@ namespace qk {
 			if ( _frames_Rt.length() ) {
 				_startPlay = true;
 				_time = _frame = 0;
-				_frames_Rt[0]->apply(root->_target);
+				_frames_Rt[0]->apply(root->_target, true);
 				trigger_ActionKeyframe_Rt(time_span, 0, root);
 
 				if ( time_span == 0 ) {
@@ -169,7 +169,7 @@ namespace qk {
 				time_span = 0;
 				_time = time;
 				_frame = f2;
-				_frames_Rt[f2]->apply(root->_target);
+				_frames_Rt[f2]->apply(root->_target, true);
 				trigger_ActionKeyframe_Rt(0, f2, root); // trigger event action_key_frame
 			}
 
@@ -183,7 +183,7 @@ namespace qk {
 				trigger_ActionKeyframe_Rt(time_span, 0, root);
 				goto start;
 			} else {
-				_frames_Rt[f1]->apply(root->_target);
+				_frames_Rt[f1]->apply(root->_target, true);
 				_startPlay = false; // end reset
 			}
 		}
@@ -217,7 +217,7 @@ namespace qk {
 				float y = frame->_curve.fixed_solve_y(x, 0.001);
 				_frames_Rt[f0]->applyTransition(root->_target, _frames_Rt[f1], y);
 			} else { // last frame
-				_frames_Rt[f0]->apply(root->_target);
+				_frames_Rt[f0]->apply(root->_target, true);
 			}
 
 			if ( _time == frame->time() ) {

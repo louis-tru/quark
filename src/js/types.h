@@ -42,10 +42,9 @@
 
 namespace qk { namespace js {
 
-	#define Js_Parse_Type(Type, value, desc) Js_Parse_Type2(Type, Type, value, desc)
-	#define Js_Parse_Type2(Name, Type, value, desc) \
+	#define Js_Parse_Type(Type, value, desc) \
 		Type out; \
-		if ( !worker->types()->parse##Name(value, out, desc)) return
+		if ( !worker->types()->parse##Type(value, out, desc)) return
 
 	#define Js_Throw_Types(value, msg, ...)\
 		worker->types()->throwError(t, msg, ##__VA_ARGS__)
@@ -83,6 +82,10 @@ namespace qk { namespace js {
 		#undef _Fun
 	};
 
+	typedef BoxFilter* BoxFilterPtr;
+	typedef FillGradient* FillGradientPtr;
+	typedef BoxShadow* BoxShadowPtr;
+
 	#define Js_Types_Each(F) \
 		F(bool, bool) \
 		F(float, float) \
@@ -99,9 +102,9 @@ namespace qk { namespace js {
 		F(Curve, Curve) \
 		F(Shadow, Shadow) \
 		F(Repeat, Repeat) \
-		F(BoxFilter, BoxFilter*) \
-		F(FillGradient, FillGradient*) \
-		F(BoxShadow, BoxShadow*) \
+		F(BoxFilterPtr, BoxFilterPtr) \
+		F(FillGradientPtr, FillGradientPtr) \
+		F(BoxShadowPtr, BoxShadowPtr) \
 		F(Direction, Direction) \
 		F(ItemsAlign, ItemsAlign) \
 		F(CrossAlign, CrossAlign) \

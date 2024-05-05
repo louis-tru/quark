@@ -64,7 +64,7 @@ namespace qk {
 		class Property {
 		public:
 			virtual ~Property() = default;
-			virtual void apply(View *view) = 0;// @safe Rt
+			virtual void apply(View *view, bool isRt) = 0;// @safe Rt
 			virtual void transition(View *view, Property *to, float t) = 0; // @safe Rt
 			virtual Property* copy() = 0; // @safe Rt
 		};
@@ -83,9 +83,8 @@ namespace qk {
 
 		/**
 		* @method apply style to view
-		* @safe Rt
 		*/
-		void apply(View *view) const;
+		void apply(View *view, bool isRt) const;
 
 		/**
 		 * @method getWindowForAsyncSet

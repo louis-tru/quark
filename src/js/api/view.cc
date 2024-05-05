@@ -55,12 +55,12 @@ namespace qk { namespace js {
 
 	template<class Event, class Self>
 	static void addEventListener_Static(
-		Wrap<Self>* wrap, const UIEventName* type, cString& func, int id, JsConverter *cData
+		Wobj<Self>* wrap, const UIEventName* type, cString& func, int id, JsConverter *cData
 	)
 	{
 		auto f = [wrap, func, cData](typename Self::EventType& e) {
 			auto worker = wrap->worker();
-			Js_Callback_Scope();
+			Js_Handle_Scope(); // Callback Scope
 			// arg event
 			auto ev = WrapObject::wrap(static_cast<Event*>(&e), Js_Typeid(Event));
 			if (cData) {
@@ -84,7 +84,7 @@ namespace qk { namespace js {
 		if ( UIEventNames.get(name_, name) ) {
 			return false;
 		}
-		auto wrap = static_cast<Wrap<View>*>(static_cast<WrapObject*>(this));
+		auto wrap = static_cast<Wobj<View>*>(static_cast<WrapObject*>(this));
 		JsConverter* converter = nullptr;
 
 		switch ( kTypes_UIEventFlags & name->flag() ) {
@@ -119,7 +119,7 @@ namespace qk { namespace js {
 		}
 		Qk_DEBUG("removeEventListener, name:%s, id:%d", *name_, id);
 		
-		auto wrap = reinterpret_cast<Wrap<View>*>(this);
+		auto wrap = reinterpret_cast<Wobj<View>*>(this);
 		wrap->self()->remove_event_listener(*name, id); // off event listener
 		return true;
 	}

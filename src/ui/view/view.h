@@ -642,9 +642,9 @@ namespace qk {
 		void remove_Rt();
 		void set_parent_Rt(View *parent);
 		void clear_link_Rt(); // Cleaning up associated view information rt
-		void clear_level(); //  clear view depth rt
-		void set_level_(uint32_t level); // settings depth
-		void set_visible_Rt_(bool visible, uint32_t level);
+		void clear_level_Rt(); //  clear view depth rt
+		void set_level_Rt(uint32_t level); // settings depth
+		void set_visible_Rt(bool visible, uint32_t level);
 		void applyClass_Rt(CStyleSheetsClass* parentSsc);
 		CStyleSheetsClass* parentSsclass_Rt();
 

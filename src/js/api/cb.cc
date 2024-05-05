@@ -48,7 +48,7 @@ namespace qk { namespace js {
 			return Cb([worker, func](Cb::Data& d) {
 				Sp<Func> h(func);
 				auto f = *func->val;
-				Js_Callback_Scope();
+				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
 					JSValue* arg = worker->types()->newInstance(*static_cast<const Err*>(d.error));
@@ -70,13 +70,13 @@ namespace qk { namespace js {
 			case kInvalid_Encoding:
 				result = worker->newInstance(buffer);
 				break;
-			case kHex_Encoding: // 编码
+			case kHex_Encoding: // encode
 			case kBase64_Encoding: { // string
 				String str = codec_encode(encoding, buffer).collapseString();
 				result = worker->newInstance(str);
 				break;
 			}
-			default: { // string
+			default: { // string decode
 				String2 str(codec_decode_to_uint16(encoding, buffer));
 				result = worker->newInstance(str);
 				break;
@@ -94,7 +94,7 @@ namespace qk { namespace js {
 			return Cb([worker, func, encoding](Cb::Data& d) {
 				Sp<Func> h(func);
 				auto f = *func->val;
-				Js_Callback_Scope();
+				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
 					JSValue* arg = worker->types()->newInstance(*static_cast<const Err*>(d.error));
@@ -119,7 +119,7 @@ namespace qk { namespace js {
 			return Cb([worker, func](Cb::Data& d) {
 				Sp<Func> h(func);
 				auto f = *func->val;
-				Js_Callback_Scope();
+				Js_Handle_Scope(); // Callback Scope
 				
 				if ( d.error ) {
 					JSValue* arg = worker->types()->newInstance(*static_cast<const Err*>(d.error));
@@ -149,7 +149,7 @@ namespace qk { namespace js {
 			return Cb([worker, func](Cb::Data& d) {
 				Sp<Func> h(func);
 				auto f = *func->val;
-				Js_Callback_Scope();
+				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
 					JSValue* arg = worker->types()->newInstance(*static_cast<const Err*>(d.error));
@@ -177,7 +177,7 @@ namespace qk { namespace js {
 			return Cb([worker, func](Cb::Data& d) {
 				Sp<Func> h(func);
 				auto f = *func->val;
-				Js_Callback_Scope();
+				Js_Handle_Scope(); // Callback Scope
 				if ( d.error ) {
 					JSValue* arg = worker->types()->newInstance(*static_cast<const Error*>(d.error));
 					f->call(worker, 1, &arg);

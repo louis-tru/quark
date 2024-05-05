@@ -44,8 +44,7 @@
 #define Js_Return_Null() return args.returnValue().setNull()
 #define Js_Wrap(type)    auto wrap = qk::js::WrapObject::wrap<type>(args.This())
 #define Js_Self(type)    auto self = qk::js::WrapObject::wrap<type>(args.This())->self()
-#define Js_Handle_Scope() HandleScope scope(worker)
-#define Js_Callback_Scope() Js_Handle_Scope()
+#define Js_Handle_Scope() qk::js::HandleScope scope(worker)
 
 #define Js_Throw_Error(Error, err, ...) \
 	return worker->throwError(worker->new##Error((err), ##__VA_ARGS__))
@@ -75,14 +74,17 @@
 
 #define Js_Set_Class_Accessor(name,get,set)  cls->setMemberAccessor(#name,_Js_Get(get),_Js_Set(set))
 #define Js_Set_Class_Accessor_Get(name,get)  cls->setMemberAccessor(#name,_Js_Get(get))
+#define Js_Set_Class_Accessor_Set(name,set)  cls->setMemberAccessor(#name,0,_Js_Set(set))
 #define Js_Set_Class_Method(name,func)       cls->setMemberMethod(#name,_Js_Fun(func))
 #define Js_Set_Class_Indexed(get)            cls->setMemberIndexedAccessor(_Js_Get(get))
 #define Js_Set_Class_Indexed_Get(get,set)    cls->setMemberIndexedAccessor(_Js_Get(get),_Js_Set(set))
+#define Js_Set_Class_Indexed_Set(set)    cls->setMemberIndexedAccessor(0,_Js_Set(set))
 #define Js_Set_Class_Property(name,value)    cls->setMemberProperty(#name,value)
 #define Js_Set_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
 #define Js_Set_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(func))
 #define Js_Set_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
 #define Js_Set_Accessor_Get(name,get)        exports->setAccessor(worker,#name,_Js_Get(get))
+#define Js_Set_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(set))
 #define Js_Set_Property(name, value)         exports->setProperty(worker,#name,value)
 
 namespace qk { namespace js {
@@ -549,7 +551,7 @@ namespace qk { namespace js {
 		JSValue* call(cString& method, int argc = 0, JSValue* argv[] = 0);
 
 		template<class T = Object>
-		static inline Wrap<T>* wrap(JSValue *value) {
+		static inline Wobj<T>* wrap(JSValue *value) {
 			static_assert(T::Traits::isObject, "Must be object");
 			return static_cast<Wrap<T>*>(unpack(value));
 		}
@@ -559,17 +561,17 @@ namespace qk { namespace js {
 			return static_cast<T*>(unpack(value));
 		}
 		template<class T>
-		static inline Wrap<T>* wrap(T *object) {
+		static inline Wobj<T>* wrap(T *object) {
 			return wrap(object, Js_Typeid(*object));
 		}
 		template<class T>
-		static inline Wrap<T>* wrap(T *object, uint64_t type_id) {
+		static inline Wobj<T>* wrap(T *object, uint64_t type_id) {
 			static_assert(T::Traits::isObject, "Must be object");
 			return static_cast<js::Wrap<T>*>(pack(object, type_id));
 		}
 
 		template<class W, class O>
-		static Wrap<O>* New(FunctionArgs args, O *o) {
+		static Wobj<O>* New(FunctionArgs args, O *o) {
 			static_assert(sizeof(W) == sizeof(WrapObject),
 										"Derived wrap class pairs cannot declare data members");
 			static_assert(O::Traits::isObject, "Must be object");
@@ -587,7 +589,7 @@ namespace qk { namespace js {
 	};
 
 	template<class T = Object>
-	class Wrap: public WrapObject {
+	class Wobj: public WrapObject {
 	public:
 		inline T* self() {
 			return reinterpret_cast<T*>(this + 1);

@@ -97,7 +97,7 @@ public:
 	}
 
 	bool isRenderThread() {
-		return _view && _view.renderThreadId == thread_current_id();
+		return _view && _view.renderThreadId == thread_self_id();
 	}
 
 	void lock() override {
@@ -249,7 +249,7 @@ static CVReturn displayLinkCallback(
 
 - (void) renderDisplay {
 	if (!NSOpenGLContext.currentContext) {
-		_renderThreadId = thread_current_id();
+		_renderThreadId = thread_self_id();
 		[_ctx makeCurrentContext];
 		Qk_ASSERT(NSOpenGLContext.currentContext);
 	}

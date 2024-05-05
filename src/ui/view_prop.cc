@@ -87,14 +87,14 @@ namespace qk {
 			_Func(float, scrollbar_width) \
 			_Func(float, scrollbar_margin) \
 
-		struct TextView: public View {
+		struct TextView: View {
 			#define _Func(Type, Name) Type Name() { asTextOptions()->Name(); } \
 				void set_##Name(Type v) { asTextOptions()->set_##Name(v); }
 			_Func_TextOptions_Props(_Func)
 			#undef _Func
 			#undef _Func_TextOptions_Props
 		};
-		struct Scroll: public View {
+		struct Scroll: View {
 			#define _Func(Type, Name) Type Name() { asScrollBase()->Name(); } \
 				void set_##Name(Type v) { asScrollBase()->set_##Name(v); }
 			_Func_ScrollBase_Props(_Func)
@@ -205,6 +205,7 @@ namespace qk {
 		Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin);
+		// TODO ...
 		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3);
 		// transform
 		Qk_Set_Accessor(Transform, X, x);

@@ -34,163 +34,34 @@
 namespace qk { namespace js {
 
 	void inheritScrollBase(JSClass* cls, Worker* worker) {
-		Js_Set_Class_Accessor(scrollbar, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scrollbar()) );
-		}, {
-			Js_Parse_Type(bool, val, "@prop ScrollBase.scrollbar = %s");
-			Js_ScrollBase();
-			self->set_scrollbar(out);
-		});
-
-		Js_Set_Class_Accessor(bounce, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->bounce()) );
-		}, {
-			Js_Parse_Type(bool, val, "@prop ScrollBase.bounce = %s");
-			Js_ScrollBase();
-			self->set_bounce(out);
-		});
-
-		Js_Set_Class_Accessor(bounceLock, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->bounce_lock()) );
-		}, {
-			Js_Parse_Type(bool, val, "@prop ScrollBase.bounceLock = %s");
-			Js_ScrollBase();
-			self->set_bounce_lock(out);
-		});
-
-		Js_Set_Class_Accessor(momentum, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->momentum()) );
-		}, {
-			Js_Parse_Type(bool, val, "@prop ScrollBase.momentum = %s");
-			Js_ScrollBase();
-			self->set_momentum(out);
-		});
-
-		Js_Set_Class_Accessor(lockDirection, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->lock_direction()) );
-		}, {
-			Js_Parse_Type(bool, val, "S@prop crollBase.lockDirection = %s");
-			Js_ScrollBase();
-			self->set_lock_direction(out);
-		});
+		Js_Set_UIObject_Accessor(ScrollBase, bool, scrollbar, scrollbar);
+		Js_Set_UIObject_Accessor(ScrollBase, bool, bounce, bounce);
+		Js_Set_UIObject_Accessor(ScrollBase, bool, bounce_lock, bounceLock);
+		Js_Set_UIObject_Accessor(ScrollBase, bool, momentum, momentum);
+		Js_Set_UIObject_Accessor(ScrollBase, bool, lock_direction, lockDirection);
+		Js_Set_UIObject_Accessor(ScrollBase, float, scroll_x, scrollX);
+		Js_Set_UIObject_Accessor(ScrollBase, float, scroll_y, scrollY);
+		Js_Set_UIObject_Accessor(ScrollBase, Vec2, scroll, scroll);
+		Js_Set_UIObject_Accessor(ScrollBase, float, resistance, resistance);
+		Js_Set_UIObject_Accessor(ScrollBase, float, catch_position_x, catchPositionX);
+		Js_Set_UIObject_Accessor(ScrollBase, float, catch_position_y, catchPositionY);
+		Js_Set_UIObject_Accessor(ScrollBase, Color, scrollbar_color, scrollbarColor);
+		Js_Set_UIObject_Accessor(ScrollBase, float, scrollbar_width, scrollbarWidth);
+		Js_Set_UIObject_Accessor(ScrollBase, float, scrollbar_margin, scrollbarMargin);
+		Js_Set_UIObject_Accessor(ScrollBase, uint32_t, scroll_duration, scrollDuration);
+		Js_Set_UIObject_Accessor(ScrollBase, Curve, default_curve, defaultCurve);
 
 		Js_Set_Class_Accessor_Get(scrollbarH, {
 			Js_ScrollBase();
 			Js_Return( worker->types()->newInstance(self->scrollbar_h()) );
 		});
-
 		Js_Set_Class_Accessor_Get(scrollbarV, {
 			Js_ScrollBase();
 			Js_Return( worker->types()->newInstance(self->scrollbar_v()) );
 		});
-
-		Js_Set_Class_Accessor(scrollX, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scroll_x()) );
-		}, {
-			Js_Parse_Type(float, val, "@prop ScrollBase.scrollX = %s");
-			Js_ScrollBase();
-			self->set_scroll_x(out);
-		});
-
-		Js_Set_Class_Accessor(scrollY, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scroll_y()) );
-		}, {
-			Js_Parse_Type(float, val, "@prop ScrollBase.scrollY = %s");
-			Js_ScrollBase();
-			self->set_scroll_y(out);
-		});
-
-		Js_Set_Class_Accessor(scroll, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scroll()) );
-		}, {
-			Js_Parse_Type(Vec2, val, "@prop ScrollBase.scroll = %s");
-			Js_ScrollBase();
-			self->set_scroll(out);
-		});
-
 		Js_Set_Class_Accessor_Get(scrollSize, {
 			Js_ScrollBase();
 			Js_Return( worker->types()->newInstance(self->scroll_size()) );
-		});
-
-		Js_Set_Class_Accessor(resistance, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->resistance()) );
-		}, {
-			Js_Parse_Type(float, val, "* @prop ScrollBase.resistance = %s");
-			Js_ScrollBase();
-			self->set_resistance(out);
-		});
-
-		Js_Set_Class_Accessor(catchPositionX, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->catch_position_x()) );
-		}, {
-			Js_Parse_Type(float, val, "* @prop ScrollBase.catchPositionX = %s");
-			Js_ScrollBase();
-			self->set_catch_position_x(out);
-		});
-
-		Js_Set_Class_Accessor(catchPositionY, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->catch_position_y()) );
-		}, {
-			Js_Parse_Type(float, val, "* @prop ScrollBase.catchPositionY = %s");
-			Js_ScrollBase();
-			self->set_catch_position_y(out);
-		});
-
-		Js_Set_Class_Accessor(scrollbarColor, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scrollbar_color()) );
-		}, {
-			Js_Parse_Type(Color, val, "@prop ScrollBase.scrollbarColor = %s");
-			Js_ScrollBase();
-			self->set_scrollbar_color(out);
-		});
-
-		Js_Set_Class_Accessor(scrollbarWidth, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scrollbar_width()) );
-		}, {
-			Js_Parse_Type(float, val, "@prop ScrollBase.scrollbarWidth = %s");
-			Js_ScrollBase();
-			self->set_scrollbar_width(out);
-		});
-
-		Js_Set_Class_Accessor(scrollbarMargin, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scrollbar_margin()) );
-		}, {
-			Js_Parse_Type(float, val, "@prop ScrollBase.scrollbarMargin = %s");
-			Js_ScrollBase();
-			self->set_scrollbar_margin(out);
-		});
-
-		Js_Set_Class_Accessor(scroll_duration, {
-			Js_ScrollBase();
-			Js_Return( worker->newInstance(self->scroll_duration()) );
-		}, {
-			Js_Parse_Type(uint32_t, val, "@prop ScrollBase.scrollDuration = %s");
-			Js_ScrollBase();
-			self->set_scroll_duration(out);
-		});
-
-		Js_Set_Class_Accessor(default_curve, {
-			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->default_curve()) );
-		}, {
-			Js_Parse_Type(Curve, val, "@prop ScrollBase.defaultCurve = %s");
-			Js_ScrollBase();
-			self->set_default_curve(out);
 		});
 
 		Js_Set_Class_Method(scrollTo, {

@@ -91,7 +91,7 @@ static void addEventListener_1(Wrap<Self>* wrap, const UIEventName& type,
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
 		auto worker = wrap->worker();
-		Js_Callback_Scope();
+		Js_Handle_Scope(); // Callback Scope
 
 		// arg event
 		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), Js_Typeid(T));

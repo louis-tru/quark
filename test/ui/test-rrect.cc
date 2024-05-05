@@ -80,16 +80,12 @@ public:
 };
 
 void test_rrect(int argc, char **argv) {
-	// auto self = pthread_self();
-	// auto id = thread_current_id();
-	// Qk_DEBUG("%p", self);
-	// Qk_DEBUG("%p", id);
 	App app;
-	 auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
-	 win->activate();
-	 auto t = win->root()->append_new<TestRRect>();
-	 t->set_width({ 0, BoxSizeKind::kMatch });
-	 t->set_height({ 0, BoxSizeKind::kMatch });
+	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
+	win->activate();
+	auto t = win->root()->append_new<TestRRect>();
+	t->set_width({ 0, BoxSizeKind::kMatch });
+	t->set_height({ 0, BoxSizeKind::kMatch });
 	// layout end
 	app.run();
 }

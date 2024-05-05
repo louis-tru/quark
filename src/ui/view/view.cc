@@ -36,6 +36,8 @@
 #include "../action/action.h"
 #include "../../errno.h"
 
+#define _isRt (RunLoop::first()->thread_id() != thread_self_id())
+
 namespace qk {
 
 	View::View()
@@ -103,11 +105,11 @@ namespace qk {
 			_visible = val;
 			if (isRt) {
 				_Level(this, val);
-				set_visible_Rt_(val, level);
+				set_visible_Rt(val, level);
 			} else {
 				preRender().async_call([](auto self, auto arg) {
 					_Level(self, arg.arg);
-					self->set_visible_Rt_(arg.arg, level);
+					self->set_visible_Rt(arg.arg, level);
 				}, this, val);
 			}
 		}
@@ -255,6 +257,7 @@ namespace qk {
 	}
 
 	void View::mark_layout(uint32_t mark, bool isRt) {
+		Qk_ASSERT(_isRt == isRt, "View::mark_layout(), isRt param no match");
 		if (isRt) {
 			_mark_value |= mark;
 			if (_mark_index < 0) {
@@ -275,6 +278,7 @@ namespace qk {
 	}
 
 	void View::mark(uint32_t mark, bool isRt) {
+		Qk_ASSERT(_isRt == isRt, "View::mark(), isRt param no match");
 		if (mark) {
 			if (isRt) {
 				_mark_value |= mark;
@@ -586,7 +590,7 @@ namespace qk {
 			clear_link_Rt();
 			_parent_Rt = nullptr;
 			if (_level) {
-				clear_level();
+				clear_level_Rt();
 			}
 		}
 	}
@@ -608,14 +612,14 @@ namespace qk {
 		}
 	}
 
-	void View::set_visible_Rt_(bool visible, uint32_t level) {
+	void View::set_visible_Rt(bool visible, uint32_t level) {
 		// _visible = visible;
 		if (visible && level) {
 			if (_level != level)
-				set_level_(level);
+				set_level_Rt(level);
 		} else { // set level = 0
 			if (_level)
-				clear_level();
+				clear_level_Rt();
 		}
 		if (_parent_Rt) {
 			_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view 
@@ -628,7 +632,7 @@ namespace qk {
 		}
 	}
 
-	void View::clear_level() { //  clear view depth
+	void View::clear_level_Rt() { //  clear view depth
 		auto win = _window;
 		if (win->dispatch()->focus_view() == this) {
 		
@@ -645,12 +649,12 @@ namespace qk {
 		onActivate();
 		auto v = _first_Rt;
 		while ( v ) {
-			v->clear_level();
+			v->clear_level_Rt();
 			v = v->_next_Rt;
 		}
 	}
 
-	void View::set_level_(uint32_t level) { // settings level
+	void View::set_level_Rt(uint32_t level) { // settings level
 		if (_visible) {
 			// if level > 0 then
 			if (_mark_index >= 0) {
@@ -662,32 +666,30 @@ namespace qk {
 
 			auto v = _first_Rt;
 			while ( v ) {
-				v->set_level_(level);
+				v->set_level_Rt(level);
 				v = v->_next_Rt;
 			}
 		} else {
 			if ( _level )
-				clear_level();
+				clear_level_Rt();
 		}
 	}
 
 	void View::set_parent_Rt(View *parent) {
 		if (parent != _parent_Rt) {
 			clear_link_Rt();
-
 			if ( _parent_Rt ) {
 				_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
 			}
 			_parent_Rt = parent;
 
 			auto level = parent->_level;
-
 			if (_visible && level) {
 				if (_level != ++level)
-					set_level_(level);
+					set_level_Rt(level);
 			} else {
 				if (_level)
-					clear_level();
+					clear_level_Rt();
 			}
 			_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // mark view size, reset view size
@@ -695,7 +697,6 @@ namespace qk {
 			if (_cssclass) {
 				_cssclass->updateClass_Rt();
 			}
-
 			onActivate();
 		}
 	}

@@ -41,124 +41,19 @@ namespace qk { namespace js {
 			Js_TextOptions();
 			Js_Return( worker->types()->newInstance(self->font_style()) );
 		});
-
-		Js_Set_Class_Accessor(textAlign, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_align()) );
-		}, {
-			Js_Parse_Type(TextAlign, val, "TextOptions.textAlign = %s");
-			Js_TextOptions();
-			self->set_text_align(out);
-		});
-
-		Js_Set_Class_Accessor(textWeight, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_weight()) );
-		}, {
-			Js_Parse_Type(TextWeight, val, "TextOptions.textWeight = %s");
-			Js_TextOptions();
-			self->set_text_weight(out);
-		});
-
-		Js_Set_Class_Accessor(textSlant, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_weight()) );
-		}, {
-			Js_Parse_Type(TextSlant, val, "TextOptions.textSlant = %s");
-			Js_TextOptions();
-			self->set_text_slant(out);
-		});
-
-		Js_Set_Class_Accessor(textDecoration, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_decoration()) );
-		}, {
-			Js_Parse_Type(TextDecoration, val, "TextOptions.textDecoration = %s");
-			Js_TextOptions();
-			self->set_text_decoration(out);
-		});
-
-		Js_Set_Class_Accessor(textOverflow, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_overflow()) );
-		}, {
-			Js_Parse_Type(TextOverflow, val, "TextOptions.textOverflow = %s");
-			Js_TextOptions();
-			self->set_text_overflow(out);
-		});
-
-		Js_Set_Class_Accessor(textWhiteSpace, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_white_space()) );
-		}, {
-			Js_Parse_Type(TextWhiteSpace, val, "TextOptions.textWhiteSpace = %s");
-			Js_TextOptions();
-			self->set_text_white_space(out);
-		});
-
-		Js_Set_Class_Accessor(textWordBreak, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_word_break()) );
-		}, {
-			Js_Parse_Type(TextWordBreak, val, "TextOptions.textWordBreak = %s");
-			Js_TextOptions();
-			self->set_text_word_break(out);
-		});
-
-		Js_Set_Class_Accessor(textSize, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_size()) );
-		}, {
-			Js_Parse_Type(TextSize, val, "TextOptions.textSize = %s");
-			Js_TextOptions();
-			self->set_text_size(out);
-		});
-
-		Js_Set_Class_Accessor(textBackgroundColor, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_background_color()) );
-		}, {
-			Js_Parse_Type(TextColor, val, "TextOptions.textBackgroundColor = %s");
-			Js_TextOptions();
-			self->set_text_background_color(out);
-		});
-
-		Js_Set_Class_Accessor(textColor, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_color()) );
-		}, {
-			Js_Parse_Type(TextColor, val, "TextOptions.textColor = %s");
-			Js_TextOptions();
-			self->set_text_color(out);
-		});
-
-		Js_Set_Class_Accessor(textLineHeight, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_line_height()) );
-		}, {
-			Js_Parse_Type(TextSize, val, "TextOptions.textLineHeight = %s");
-			Js_TextOptions();
-			self->set_text_line_height(out);
-		});
-
-		Js_Set_Class_Accessor(textShadow, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_shadow()) );
-		}, {
-			Js_Parse_Type(TextShadow, val, "TextOptions.textShadow = %s");
-			Js_TextOptions();
-			self->set_text_shadow(out);
-		});
-
-		Js_Set_Class_Accessor(textFamily, {
-			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->text_family()) );
-		}, {
-			Js_Parse_Type(TextFamily, val, "TextOptions.textFamily = %s");
-			Js_TextOptions();
-			self->set_text_family(out);
-		});
-
+		Js_Set_UIObject_Accessor(TextOptions, TextAlign, text_align, textAlign);
+		Js_Set_UIObject_Accessor(TextOptions, TextWeight, text_weight, textWeight);
+		Js_Set_UIObject_Accessor(TextOptions, TextSlant, text_slant, textSlant);
+		Js_Set_UIObject_Accessor(TextOptions, TextDecoration, text_decoration, textDecoration);
+		Js_Set_UIObject_Accessor(TextOptions, TextOverflow, text_overflow, textOverflow);
+		Js_Set_UIObject_Accessor(TextOptions, TextWhiteSpace, text_white_space, textWhiteSpace);
+		Js_Set_UIObject_Accessor(TextOptions, TextWordBreak, text_word_break, textWordBreak);
+		Js_Set_UIObject_Accessor(TextOptions, TextSize, text_size, textSize);
+		Js_Set_UIObject_Accessor(TextOptions, TextColor, text_background_color, textBackgroundColor);
+		Js_Set_UIObject_Accessor(TextOptions, TextColor, text_color, textColor);
+		Js_Set_UIObject_Accessor(TextOptions, TextSize, text_line_height, textLineHeight);
+		Js_Set_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);
+		Js_Set_UIObject_Accessor(TextOptions, TextFamily, text_family, textFamily);
 	}
 
 	class WrapText: public WrapViewObject {
@@ -185,16 +80,7 @@ namespace qk { namespace js {
 				Js_NewView(Label);
 			});
 			inheritTextOptions(cls, worker);
-
-			Js_Set_Class_Accessor(value, {
-				Js_Self(Label);
-				Js_Return( self->value() );
-			}, {
-				Js_Parse_Type(String, val, "Label.value = %s");
-				Js_Self(Label);
-				self->set_value(out);
-			});
-
+			Js_Set_WrapObject_Accessor(Label, String, value, value);
 			cls->exports("Label", exports);
 		}
 	};
@@ -210,41 +96,13 @@ namespace qk { namespace js {
 			});
 			inheritTextOptions(cls, worker);
 
-			Js_Set_Class_Accessor(security, {
-				Js_Self(Input);
-				Js_Return( self->security() );
-			}, {
-				Js_Parse_Type(bool, val, "Input.security = %s");
-				Js_Self(Input);
-				self->set_security(out);
-			});
-
-			Js_Set_Class_Accessor(readonly, {
-				Js_Self(Input);
-				Js_Return( self->readonly() );
-			}, {
-				Js_Parse_Type(bool, val, "Input.readonly = %s");
-				Js_Self(Input);
-				self->set_readonly(out);
-			});
-
-			Js_Set_Class_Accessor(type, {
-				Js_Self(Input);
-				Js_Return( worker->types()->newInstance(self->type()) );
-			}, {
-				Js_Parse_Type(KeyboardType, val, "Input.type = %s");
-				Js_Self(Input);
-				self->set_type(out);
-			});
-
-			Js_Set_Class_Accessor(returnType, {
-				Js_Self(Input);
-				Js_Return( worker->types()->newInstance(self->return_type()) );
-			}, {
-				Js_Parse_Type(KeyboardReturnType, val, "Input.returnType = %s");
-				Js_Self(Input);
-				self->set_return_type(out);
-			});
+			Js_Set_WrapObject_Accessor(Input, bool, security, security);
+			Js_Set_WrapObject_Accessor(Input, bool, readonly, readonly);
+			Js_Set_WrapObject_Accessor(Input, KeyboardType, type, type);
+			Js_Set_WrapObject_Accessor(Input, KeyboardReturnType, return_type, returnType);
+			Js_Set_WrapObject_Accessor(Input, Color, placeholder_color, placeholderColor);
+			Js_Set_WrapObject_Accessor(Input, Color, cursor_color, cursorColor);
+			Js_Set_WrapObject_Accessor(Input, uint32_t, max_length, maxLength);
 
 			Js_Set_Class_Accessor(value, {
 				Js_Self(Input);
@@ -260,33 +118,6 @@ namespace qk { namespace js {
 			}, {
 				Js_Self(Input);
 				self->set_placeholder_u4(val->toStringValue4(worker));
-			});
-
-			Js_Set_Class_Accessor(placeholderColor, {
-				Js_Self(Input);
-				Js_Return( worker->types()->newInstance(self->placeholder_color()) );
-			}, {
-				Js_Parse_Type(Color, val, "Input.placeholderColor = %s");
-				Js_Self(Input);
-				self->set_placeholder_color(out);
-			});
-
-			Js_Set_Class_Accessor(cursorColor, {
-				Js_Self(Input);
-				Js_Return( worker->types()->newInstance(self->cursor_color()) );
-			}, {
-				Js_Parse_Type(Color, val, "Input.cursorColor = %s");
-				Js_Self(Input);
-				self->set_cursor_color(out);
-			});
-
-			Js_Set_Class_Accessor(maxLength, {
-				Js_Self(Input);
-				Js_Return( worker->types()->newInstance(self->max_length()) );
-			}, {
-				Js_Parse_Type(float, val, "Input.maxLength = %s");
-				Js_Self(Input);
-				self->set_max_length(out);
 			});
 
 			Js_Set_Class_Accessor_Get(textLength, {

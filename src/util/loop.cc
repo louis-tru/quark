@@ -100,7 +100,7 @@ namespace qk {
 			if (_thread->abort) {
 				Qk_WARN("RunLoop::Inl::post, _thread->abort == true"); return;
 			}
-			auto isSelf = thread_current_id() == _tid;
+			auto isSelf = thread_self_id() == _tid;
 			if (delayUs) {
 				timer_t *timer = new timer_t;
 				*static_cast<uv_timer_t*>(timer) = uv_timer_t{
@@ -182,7 +182,7 @@ namespace qk {
 			Qk_WARN("cannot run RunLoop::run(), _thread->abort != 0"); return;
 		}
 		Qk_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
-		Qk_ASSERT(thread_current_id() == _tid, "Must run on the target thread");
+		Qk_ASSERT(thread_self_id() == _tid, "Must run on the target thread");
 
 		// init run
 		uv_async_t uv_async = {.data=this};
@@ -312,7 +312,7 @@ namespace qk {
 	}
 
 	bool RunLoop::is_current(RunLoop* loop) {
-		return loop && loop->_tid == thread_current_id();
+		return loop && loop->_tid == thread_self_id();
 	}
 
 	RunLoop* RunLoop::first() {
@@ -355,7 +355,7 @@ namespace qk {
 		if (_thread->abort) {
 			Qk_WARN("RunLoop::next_tick, _thread->abort == true"); return;
 		}
-		if (thread_current_id() == _tid) {
+		if (thread_self_id() == _tid) {
 			cb->retain();
 			auto check = new uv_check_t{.data=*cb};
 			uv_check_init(_uv_loop, check);
@@ -394,7 +394,7 @@ namespace qk {
 		data.ctx = this;
 		data.ok = false;
 
-		if (thread_current_id() == _thread->id) { // is current
+		if (thread_self_id() == _thread->id) { // is current
 			lock.unlock();
 			cb->resolve(data_p);
 			if (data.ok)

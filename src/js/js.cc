@@ -304,7 +304,7 @@ namespace qk {
 		: _types(nullptr)
 		, _strs(nullptr)
 		, _classsinfo(nullptr)
-		, _thread_id(thread_current_id())
+		, _thread_id(thread_self_id())
 	{
 		Qk_ASSERT(NativeModulesLib);
 

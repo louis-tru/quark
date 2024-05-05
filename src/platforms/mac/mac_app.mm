@@ -33,11 +33,11 @@
 
 using namespace qk;
 
-qk::ThreadID qk_main_thread_id(qk::thread_current_id());
+qk::ThreadID qk_main_thread_id(qk::thread_self_id());
 
 void qk_post_messate_main(Cb cb, bool sync) {
 	auto main = dispatch_get_main_queue();
-	if (qk_main_thread_id == thread_current_id()/*dispatch_get_current_queue()*/) {
+	if (qk_main_thread_id == thread_self_id()/*dispatch_get_current_queue()*/) {
 		cb->resolve();
 	} else if (sync) {
 		CondMutex mutex;

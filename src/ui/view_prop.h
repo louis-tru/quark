@@ -50,7 +50,7 @@ namespace qk {
 	F(MARGIN_RIGHT, float, margin_right, Box) \
 	F(MARGIN_BOTTOM, float, margin_bottom, Box) \
 	F(MARGIN_LEFT, float, margin_left, Box) \
-	F(PADDING_TOP, float, padding_to, Box) \
+	F(PADDING_TOP, float, padding_top, Box) \
 	F(PADDING_RIGHT, float, padding_right, Box) \
 	F(PADDING_BOTTOM, float, padding_bottom, Box) \
 	F(PADDING_LEFT, float, padding_left, Box) \
@@ -98,9 +98,9 @@ namespace qk {
 	F(CURSOR_COLOR, Color, cursor_color, Input) \
 	F(MAX_LENGTH, uint32_t, max_length, Input) \
 	F(PLACEHOLDER, String, placeholder, Input) /*****Large size data*****/\
-	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollViewBase) /*scroll/textarea of ScrollViewBase*/ \
-	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollViewBase) \
-	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollViewBase) \
+	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollBase) /*scroll/textarea of ScrollBase*/ \
+	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollBase) \
+	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollBase) \
 	F(X, float, x, Transform) /*transform*/ \
 	F(Y, float, y, Transform) \
 	F(SCALE_X, float, scale_x, Transform) \
@@ -110,6 +110,21 @@ namespace qk {
 	F(ROTATE_Z, float, rotate_z, Transform) \
 	F(ORIGIN_X, float, origin_x, Transform) \
 	F(ORIGIN_Y, float, origin_y, Transform) \
+
+	// Unsupported attributes for ScrollBase:
+	// (ScrollBase, bool, scrollbar, scrollbar)
+	// (ScrollBase, bool, bounce, bounce)
+	// (ScrollBase, bool, bounce_lock, bounceLock)
+	// (ScrollBase, bool, momentum, momentum)
+	// (ScrollBase, bool, lock_direction, lockDirection)
+	// (ScrollBase, float, scroll_x, scrollX)
+	// (ScrollBase, float, scroll_y, scrollY)
+	// (ScrollBase, Vec2, scroll, scroll)
+	// (ScrollBase, float, resistance, resistance)
+	// (ScrollBase, float, catch_position_x, catchPositionX)
+	// (ScrollBase, float, catch_position_y, catchPositionY)
+	// (ScrollBase, uint32_t, scroll_duration, scrollDuration)
+	// (ScrollBase, Curve, default_curve, defaultCurve)
 
 	enum ViewType {
 		kView_ViewType,

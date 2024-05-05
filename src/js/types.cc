@@ -207,18 +207,18 @@ namespace qk { namespace js {
 		return worker->newInstance((uint32_t)value);
 	}
 
-	JSValue* TypesParser::newInstance(const BoxFilter*& value) {
+	JSValue* TypesParser::newInstance(const BoxFilterPtr& value) {
 		//JSValue* arg = worker->newInstance((uint32_t)value);
 		//return _newRepeat->call(worker, 1, &arg);
 	}
 
 
-	JSValue* TypesParser::newInstance(const FillGradient*& value) {
+	JSValue* TypesParser::newInstance(const FillGradientPtr& value) {
 		// JSValue* arg = worker->newInstance((uint32_t)value);
 		// return _newRepeat->call(worker, 1, &arg);
 	}
 
-	JSValue* TypesParser::newInstance(const BoxShadow*& value) {
+	JSValue* TypesParser::newInstance(const BoxShadowPtr& value) {
 		// JSValue* arg = worker->newInstance((uint32_t)value);
 		// return _newRepeat->call(worker, 1, &arg);
 	}
