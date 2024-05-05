@@ -32,7 +32,7 @@
 
 namespace qk { namespace js {
 
-	class WrapConsole {
+	class NativeConsole {
 	public:
 		static void print_to(FunctionArgs args, void(*print)(cString&)) {
 			Js_Worker(args);
@@ -55,95 +55,54 @@ namespace qk { namespace js {
 			print(rv.join(String()));
 		}
 
-		static void log(FunctionArgs args) {
-			print_to(args, log_println);
-		}
-
-		static void warn(FunctionArgs args) {
-			print_to(args, log_println_warn);
-		}
-
-		static void error(FunctionArgs args) {
-			print_to(args, log_println_error);
-		}
-
-		static void clear(FunctionArgs args) {
-			log_fflush();
-		}
-
-		static void debug(FunctionArgs args) {
-			print_to(args, log_println);
-		}
-
-		static void info(FunctionArgs args) {
-			print_to(args, log_println);
-		}
-		
-		static void dir(FunctionArgs args) {}
-		
-		static void dirxml(FunctionArgs args) {}
-		
-		static void table(FunctionArgs args) {}
-		
-		static void trace(FunctionArgs args) {}
-		
-		static void group(FunctionArgs args) {}
-		
-		static void groupCollapsed(FunctionArgs args) {}
-		
-		static void groupEnd(FunctionArgs args) {}
-		
-		static void count(FunctionArgs args) {}
-		
-		static void Assert(FunctionArgs args) {}
-		
-		static void markTimeline(FunctionArgs args) {}
-		
-		static void profile(FunctionArgs args) {}
-		
-		static void profileEnd(FunctionArgs args) {}
-		
-		static void timeline(FunctionArgs args) {}
-		
-		static void timelineEnd(FunctionArgs args) {}
-		
-		static void time(FunctionArgs args) {}
-		
-		static void timeEnd(FunctionArgs args) {}
-		
-		static void timeStamp(FunctionArgs args) {}
-		
-		static void memory(JSValue* name, PropertyArgs args) {
-			Js_Return( args.worker()->newNull() );
-		}
-
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Set_Method(log, log);
-			Js_Set_Method(warn, warn);
-			Js_Set_Method(error, error);
-			Js_Set_Method(clear, clear);
-			Js_Set_Method(debug, debug);
-			Js_Set_Method(info, info);
-			Js_Set_Method(dir, dir);
-			Js_Set_Method(dirxml, dirxml);
-			Js_Set_Method(table, table);
-			Js_Set_Method(trace, trace);
-			Js_Set_Method(group, group);
-			Js_Set_Method(groupCollapsed, groupCollapsed);
-			Js_Set_Method(groupEnd, groupEnd);
-			Js_Set_Method(count, count);
-			Js_Set_Method(assert, Assert);
-			Js_Set_Method(markTimeline, markTimeline);
-			Js_Set_Method(profile, profile);
-			Js_Set_Method(profileEnd, profileEnd);
-			Js_Set_Method(timeline, timeline);
-			Js_Set_Method(timelineEnd, timelineEnd);
-			Js_Set_Method(time, time);
-			Js_Set_Method(timeEnd, timeEnd);
-			Js_Set_Method(timeStamp, timeStamp);
-			Js_Set_Accessor(memory, memory);
+			Js_Set_Method(log, {
+				print_to(args, log_println);
+			});
+
+			Js_Set_Method(warn, {
+				print_to(args, log_println_warn);
+			});
+
+			Js_Set_Method(error, {
+				print_to(args, log_println_error);
+			});
+
+			Js_Set_Method(clear, {
+				log_fflush();
+			});
+
+			Js_Set_Method(debug, {
+				print_to(args, log_println);
+			});
+
+			Js_Set_Method(info, {
+				print_to(args, log_println);
+			});
+
+			Js_Set_Method(dir, {});
+			Js_Set_Method(dirxml, {});
+			Js_Set_Method(table, {});
+			Js_Set_Method(trace, {});
+			Js_Set_Method(group, {});
+			Js_Set_Method(groupCollapsed, {});
+			Js_Set_Method(groupEnd, {});
+			Js_Set_Method(count, {});
+			Js_Set_Method(Assert, {});
+			Js_Set_Method(markTimeline, {});
+			Js_Set_Method(profile, {});
+			Js_Set_Method(profileEnd, {});
+			Js_Set_Method(timeline, {});
+			Js_Set_Method(timelineEnd, {});
+			Js_Set_Method(time, {});
+			Js_Set_Method(timeEnd, {});
+			Js_Set_Method(timeStamp, {});
+
+			Js_Set_Accessor_Get(memory, {
+				Js_Return( args.worker()->newNull() );
+			});
 		}
 	};
 
-	Js_Set_Module(_console, WrapConsole)
+	Js_Set_Module(_console, NativeConsole)
 } }

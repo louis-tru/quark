@@ -147,9 +147,8 @@ namespace qk { namespace js {
 
 	Object* WrapObject::externalData() {
 		auto data = get(worker()->strs()->_wrap_external_data());
-		if ( worker()->instanceOf(data, Js_Typeid(Object)) ) {
+		if ( worker()->instanceOf(data, Js_Typeid(Object)) )
 			return wrap<Object>(data)->self();
-		}
 		return nullptr;
 	}
 
@@ -183,7 +182,7 @@ namespace qk { namespace js {
 	}
 
 	WrapObject* WrapObject::unpack(JSValue* object) {
-		Qk_ASSERT(!object.isEmpty());
+		Qk_ASSERT(object);
 		return static_cast<WrapObject*>(object->cast<JSObject>()->objectPrivate());
 	}
 

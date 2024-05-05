@@ -72,12 +72,12 @@ namespace qk {
 			Qk_FATAL("The current thread does not have a RunLoop");
 		view_prop_acc_init();
 		_shared = this;
-		// init
 		_screen = new Screen(this); // strong ref
 		_fontPool = FontPool::Make();
 		_imgPool = new ImageSourcePool(_loop);
 		_defaultTextOptions = new DefaultTextOptions(_fontPool);
 		_styleSheets = new RootStyleSheets();
+		__run_main_wait->lock_notify_all(); // The external thread continues to run
 	}
 
 	Application::~Application() {
@@ -86,7 +86,7 @@ namespace qk {
 			(*(i++))->close(); // destroy
 		}
 		_activeWindow =  nullptr;
-		delete _defaultTextOptions; _defaultTextOptions = nullptr;
+		Release(_defaultTextOptions); _defaultTextOptions = nullptr;
 		Release(_styleSheets); _styleSheets = nullptr;
 		Release(_screen);    _screen = nullptr;
 		Release(_fontPool);  _fontPool = nullptr;
@@ -109,7 +109,6 @@ namespace qk {
 				}
 			}, this); // keep loop
 		}
-		__run_main_wait->lock_notify_all(); // The external thread continues to run
 
 		if (!_loop->runing()) {
 			_loop->run(); // run message loop
@@ -133,8 +132,8 @@ namespace qk {
 			Qk_DEBUG("Application::runMain() thread_new() Exit ok");
 		}, new Args{argc, argv}, "runMain");
 
-		// Block this main thread until calling Application::run()
-		while (!_shared || !_shared->_keep) {
+		// Block this main thread until calling new Application
+		while (!_shared) {
 			__run_main_wait->lock_wait_for();
 		}
 	}
@@ -166,9 +165,11 @@ namespace qk {
 	void Application::lockAllRenderThreads(Cb cb) {
 		ScopeLock lock(_mutex);
 		Array<UILock*> locks;
-		for (auto w: _windows) locks.push(new UILock(w));
+		for (auto w: _windows)
+			locks.push(new UILock(w));
 		cb->resolve();
-		for (auto lock: locks) delete lock;
+		for (auto lock: locks)
+			delete lock;
 	}
 
 	// ------------------- A p p l i c a t i o n :: I n l -------------------

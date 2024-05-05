@@ -40,6 +40,5 @@ namespace qk {
 	Qk_EXPORT void    storage_set(cString& name, cString& value);
 	Qk_EXPORT void    storage_remove(cString& name);
 	Qk_EXPORT void    storage_clear();
-	Qk_EXPORT void    storage_transaction(Cb cb);
 }
 #endif

@@ -84,7 +84,7 @@ namespace qk {
 				abort(); // abort and release
 			}
 
-			virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
+			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
 				if ( stream ) {
 					// TODO 现在还不支持暂停与恢复功能
 					StreamResponse data(buffer, 0, id(),

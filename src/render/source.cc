@@ -327,9 +327,9 @@ namespace qk {
 	// -------------------- I m a g e . S o u r c e . H o l d e r --------------------
 
 	ImageSourceHolder::~ImageSourceHolder() {
-		if (_imageSource) {
+		if (_imageSource)
 			_imageSource->Qk_Off(State, &ImageSourceHolder::handleSourceState, this);
-		}
+		// Qk_Fatal_Assert(!_imageSource);
 	}
 
 	String ImageSourceHolder::src() const {
@@ -337,7 +337,7 @@ namespace qk {
 	}
 
 	ImageSource* ImageSourceHolder::source() {
-		return _imageSource.value();
+		return *_imageSource;
 	}
 
 	void ImageSourceHolder::set_src(String value) {
@@ -345,14 +345,14 @@ namespace qk {
 		set_source(pool ? pool->get(value): *ImageSource::Make(value));
 	}
 
-	ImagePool* ImageSourceHolder::imgPool() {
-		return nullptr;
-	}
-
 	void ImageSourceHolder::set_source(ImageSource* source) {
-		if (_imageSource.value() != source) {
+		if (*_imageSource != source) {
 			if (_imageSource) {
 				_imageSource->Qk_Off(State, &ImageSourceHolder::handleSourceState, this);
+				auto pool = imgPool();
+				if (pool)
+					// retain source and delay to main loop remease
+					pool->loop()->post(Cb([](auto&e){}, *_imageSource));
 			}
 			if (source) {
 				source->Qk_On(State, &ImageSourceHolder::handleSourceState, this);
@@ -367,6 +367,10 @@ namespace qk {
 
 	void ImageSourceHolder::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {}
+	}
+
+	ImagePool* ImageSourceHolder::imgPool() {
+		return nullptr;
 	}
 
 }

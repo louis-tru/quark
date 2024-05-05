@@ -81,6 +81,7 @@ namespace qk {
 	struct ResponseData;
 	typedef Callback<ResponseData> HttpCb;
 	typedef Dict<String, String> DictSS;
+	typedef const DictSS         cDictSS;
 
 	struct RequestOptions {
 		String     url;
@@ -145,7 +146,7 @@ namespace qk {
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) = 0;
 			virtual void trigger_http_write(HttpClientRequest* req) = 0;
 			virtual void trigger_http_header(HttpClientRequest* req) = 0;
-			virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) = 0;
+			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) = 0;
 			virtual void trigger_http_end(HttpClientRequest* req) = 0;
 			virtual void trigger_http_readystate_change(HttpClientRequest* req) = 0;
 			virtual void trigger_http_timeout(HttpClientRequest* req) = 0;

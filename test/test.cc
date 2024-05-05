@@ -32,7 +32,7 @@
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_loop
+#define TEST_FUNC_NAME test_rrect
 #endif
 
 using namespace qk;

@@ -37,7 +37,7 @@ public:
 		ipaint.setCanvas(*_c, rect);
 		canvas->drawRect(rect, paint);
 
-		mark();
+		mark(kLayout_None,true);
 	}
 };
 

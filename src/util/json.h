@@ -123,7 +123,7 @@ namespace qk {
 		cJSON& operator[](int index) const;
 		cJSON& operator[](cChar* key) const;
 		cJSON& operator[](cString& key) const;
-		
+
 		bool is_member(cChar* key) const;
 		bool is_member(cString& key) const;
 		bool is_null()   const;

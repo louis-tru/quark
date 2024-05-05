@@ -54,7 +54,7 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 		}
 		Qk_LOG("");
 	}
-	virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
+	virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
 		Qk_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
 		Qk_LOG( String(buffer.val(), buffer.length()) );
 	}

@@ -105,8 +105,4 @@ namespace qk {
 		}
 	}
 
-	void storage_transaction(Cb cb) {
-		async_callback(cb);
-	}
-
 }

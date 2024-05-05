@@ -70,9 +70,9 @@ namespace qk { namespace js {
 		bool stringify_object(JSObject* arg) {
 			_rv->push(LBrace);
 			JSArray* names = arg->getPropertyNames(worker);
-			if ( names->length(worker) > 1 ) {
+			if ( names->length() > 1 ) {
 				_indent += 2;
-				for (int i = 0, j = 0; i < names->length(worker); i++) {
+				for (int i = 0, j = 0; i < names->length(); i++) {
 					JSValue* key = names->get(worker, i);
 					if (j > 0) _rv->push(Comma); // ,
 					_rv->push(Newline); push_indent();
@@ -95,9 +95,9 @@ namespace qk { namespace js {
 
 		bool stringify_array(JSArray* arg) {
 			_rv->push(LBrack);
-			if (arg->length(worker) > 0) {
+			if (arg->length() > 0) {
 				_indent += 2;
-				for (int i = 0; i < arg->length(worker); i++) {
+				for (int i = 0; i < arg->length(); i++) {
 					if (i > 0)
 						_rv->push(Comma);
 					_rv->push(Newline);
@@ -134,9 +134,9 @@ namespace qk { namespace js {
 		bool stringify_view(JSObject* arg) {
 			_rv->push(LBrace);
 			JSArray* names = arg->getPropertyNames(worker);
-			if ( names->length(worker) > 0 ) {
+			if ( names->length() > 0 ) {
 				_indent += 2;
-				for (int i = 0, j = 0; i < names->length(worker); i++) {
+				for (int i = 0, j = 0; i < names->length(); i++) {
 					JSValue* key = names->get(worker, i);
 					if (j > 0) _rv->push(Comma); // ,
 					_rv->push(Newline); push_indent();

@@ -133,12 +133,11 @@ namespace qk {
 	};
 
 	class Qk_EXPORT FileStat: public Object {
-		Qk_HIDDEN_ALL_COPY(FileStat);
 	public:
 		FileStat();
 		FileStat(cString& path);
-		FileStat(FileStat&& stat);
-		FileStat& operator=(FileStat&& stat);
+		FileStat(const FileStat& stat);
+		FileStat& operator=(const FileStat& stat);
 		virtual ~FileStat();
 		bool is_valid() const;
 		bool is_file() const;

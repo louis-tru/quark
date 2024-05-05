@@ -307,20 +307,18 @@
 #define __Qk_DEFINE_PROP_ModifierProtected protected
 #define __Qk_DEFINE_PROP_ModifierProtectedConst protected
 
-#define Qk_DEFINE_PROP_ACC_GET(type, name, ...) \
-	type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__; public:
+#define Qk_DEFINE_PROP_ACC_GET(type, name, ...) public: \
+	type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__
 
 #define Qk_DEFINE_PROP_ACC(type, name, ...) \
-	Qk_DEFINE_PROP_ACC_GET(type, name, ##__VA_ARGS__) \
-	void set_##name (type val); \
+	Qk_DEFINE_PROP_ACC_GET(type, name, ##__VA_ARGS__); void set_##name (type val)
 
 #define Qk_DEFINE_PROP_GET(type, name, ...) \
 	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: type _##name; public:\
-	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name; } \
+	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name; }
 
 #define Qk_DEFINE_PROP(type, name, ...) \
-	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) \
-	void set_##name (type val) \
+	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) void set_##name (type val)
 
 #define __Qk_DEFINE_CLASS(Name) class Name;
 #define __Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;

@@ -33,71 +33,56 @@
 
 namespace qk { namespace js {
 
-	class WrapOs {
+	class NativeOs {
 	public:
-		static void version(FunctionArgs args) {
-			Js_Return( os_version() );
-		}
-		static void brand(FunctionArgs args) {
-			Js_Return( os_brand() );
-		}
-		static void model(FunctionArgs args) {
-			Js_Return( os_model() );
-		}
-		static void info(FunctionArgs args) {
-			Js_Return( os_info() );
-		}
-		static void languages(FunctionArgs args) {
-			Js_Return( os_languages() );
-		}
-		static void is_wifi(FunctionArgs args) {
-			Js_Return( os_is_wifi() );
-		}
-		static void is_mobile(FunctionArgs args) {
-			Js_Return( os_is_mobile() );
-		}
-		static void network_interface(FunctionArgs args) {
-			Js_Return( os_network_status() );
-		}
-		static void is_ac_power(FunctionArgs args) {
-			Js_Return( os_is_ac_power() );
-		}
-		static void is_battery(FunctionArgs args) {
-			Js_Return( os_is_battery() );
-		}
-		static void battery_level(FunctionArgs args) {
-			Js_Return( os_battery_level() );
-		}
-		static void memory(FunctionArgs args) {
-			Js_Return( os_memory() );
-		}
-		static void used_memory(FunctionArgs args) {
-			Js_Return( os_used_memory() );
-		}
-		static void available_memory(FunctionArgs args) {
-			Js_Return( os_available_memory() );
-		}
-		static void cpu_usage(FunctionArgs args) {
-			Js_Return( os_cpu_usage() );
-		}
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Set_Method(version, version);
-			Js_Set_Method(brand, brand);
-			Js_Set_Method(model, model);
-			Js_Set_Method(info, info);
-			Js_Set_Method(languages, languages);
-			Js_Set_Method(isWifi, is_wifi);
-			Js_Set_Method(isMobile, is_mobile);
-			Js_Set_Method(networkInterface, network_interface);
-			Js_Set_Method(isACPower, is_ac_power);
-			Js_Set_Method(isBattery, is_battery);
-			Js_Set_Method(batteryLevel, battery_level);
-			Js_Set_Method(memory, memory);
-			Js_Set_Method(usedMemory, used_memory);
-			Js_Set_Method(availableMemory, available_memory);
-			Js_Set_Method(cpuUsage, cpu_usage);
+			Js_Set_Method(version, {
+				Js_Return( os_version() );
+			});
+			Js_Set_Method(brand, {
+				Js_Return( os_brand() );
+			});
+			Js_Set_Method(model, {
+				Js_Return( os_model() );
+			});
+			Js_Set_Method(info, {
+				Js_Return( os_info() );
+			});
+			Js_Set_Method(languages, {
+				Js_Return( os_languages() );
+			});
+			Js_Set_Method(isWifi, {
+				Js_Return( os_is_wifi() );
+			});
+			Js_Set_Method(isMobile, {
+				Js_Return( os_is_mobile() );
+			});
+			Js_Set_Method(networkStatus, { // networkInterface
+				Js_Return( os_network_status() );
+			});
+			Js_Set_Method(isAcPower, {
+				Js_Return( os_is_ac_power() );
+			});
+			Js_Set_Method(isBattery, {
+				Js_Return( os_is_battery() );
+			});
+			Js_Set_Method(batteryLevel, {
+				Js_Return( os_battery_level() );
+			});
+			Js_Set_Method(memory, {
+				Js_Return( os_memory() );
+			});
+			Js_Set_Method(usedMemory, {
+				Js_Return( os_used_memory() );
+			});
+			Js_Set_Method(availableMemory, {
+				Js_Return( os_available_memory() );
+			});
+			Js_Set_Method(cpuUsage, {
+				Js_Return( os_cpu_usage() );
+			});
 		}
 	};
 
-	Js_Set_Module(_os, WrapOs)
+	Js_Set_Module(_os, NativeOs)
 }}

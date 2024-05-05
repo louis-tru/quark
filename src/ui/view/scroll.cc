@@ -139,18 +139,18 @@ namespace qk {
 
 			virtual void run(float y) {
 				m_host->_scrollbar_opacity = (m_to - m_from) * y + m_from;
-				m_host->_host->mark();
+				m_host->_host->mark(0, true);
 			}
 
 			virtual void end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark();
+				m_host->_host->mark(0, true);
 				_inl(m_host)->termination_task(this);
 			}
 
 			virtual void immediate_end() {
 				m_host->_scrollbar_opacity = m_to;
-				m_host->_host->mark();
+				m_host->_host->mark(0, true);
 				_inl(m_host)->termination_task(this);
 			}
 
@@ -347,7 +347,7 @@ namespace qk {
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
 
-				_host->mark(View::kScroll); // mark
+				_host->mark(View::kScroll, true); // mark
 				auto view = _host->safe_view();
 				auto v = *view;
 				if (!v) return;
@@ -381,7 +381,7 @@ namespace qk {
 				} else {
 					if ( _scrollbar_opacity != 0 ) {
 						_scrollbar_opacity = 0;
-						_host->mark();
+						_host->mark(0, true);
 					}
 				}
 			} else {
@@ -671,55 +671,55 @@ namespace qk {
 		_this->termination_all_task_Rt();
 	}
 
-	void ScrollBase::set_scrollbar(bool value) {
+	void ScrollBase::set_scrollbar(bool value, bool isRt) {
 		_scrollbar = value;
-		_host->async_mark();
+		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_resistance(float value) {
+	void ScrollBase::set_resistance(float value, bool isRt) {
 		_resistance = Qk_MAX(0.5, value);
 	}
 
-	void ScrollBase::set_bounce(bool value) {
+	void ScrollBase::set_bounce(bool value, bool isRt) {
 		_bounce = value;
 	}
 
-	void ScrollBase::set_bounce_lock(bool value) {
+	void ScrollBase::set_bounce_lock(bool value, bool isRt) {
 		_bounce_lock = value;
 	}
 
-	void ScrollBase::set_momentum(bool value) {
+	void ScrollBase::set_momentum(bool value, bool isRt) {
 		_momentum = value;
 	}
 
-	void ScrollBase::set_lock_direction(bool value) {
+	void ScrollBase::set_lock_direction(bool value, bool isRt) {
 		_lock_direction = value;
 	}
 
-	void ScrollBase::set_catch_position_x(float value) {
+	void ScrollBase::set_catch_position_x(float value, bool isRt) {
 		_catch_position_x = value;
 	}
 
-	void ScrollBase::set_catch_position_y(float value) {
+	void ScrollBase::set_catch_position_y(float value, bool isRt) {
 		_catch_position_y = value;
 	}
 
-	void ScrollBase::set_scrollbar_color(Color value) {
+	void ScrollBase::set_scrollbar_color(Color value, bool isRt) {
 		_scrollbar_color = value;
-		_host->async_mark();
+		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_scrollbar_width(float value) {
+	void ScrollBase::set_scrollbar_width(float value, bool isRt) {
 		_scrollbar_width = Float32::max(1.0, value);
-		_host->async_mark();
+		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_scrollbar_margin(float value) {
+	void ScrollBase::set_scrollbar_margin(float value, bool isRt) {
 		_scrollbar_margin = Float32::max(1.0, value);
-		_host->async_mark();
+		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_scroll_duration(uint64_t value) {
+	void ScrollBase::set_scroll_duration(uint64_t value, bool isRt) {
 		_scroll_duration = value;
 	}
 
@@ -727,7 +727,7 @@ namespace qk {
 		return _default_curve_Mt;
 	}
 
-	void ScrollBase::set_default_curve(cCurve& value) {
+	void ScrollBase::set_default_curve(cCurve& value, bool isRt) {
 		_default_curve_Mt = value;
 	}
 
@@ -745,11 +745,11 @@ namespace qk {
 		return _scroll_for_Mt.y();
 	}
 
-	void ScrollBase::set_scroll_x(float value) {
+	void ScrollBase::set_scroll_x(float value, bool isRt) {
 		set_scroll({value, _scroll_for_Mt.y()});
 	}
 
-	void ScrollBase::set_scroll_y(float value) {
+	void ScrollBase::set_scroll_y(float value, bool isRt) {
 		set_scroll({_scroll_for_Mt.x(), value});
 	}
 
@@ -757,7 +757,7 @@ namespace qk {
 		return _scroll_for_Mt;
 	}
 
-	void ScrollBase::set_scroll(Vec2 value) {
+	void ScrollBase::set_scroll(Vec2 value, bool isRt) {
 		if (_scroll_duration) {
 			scrollTo(value, _scroll_duration, _default_curve_Mt);
 		} else {
@@ -766,7 +766,7 @@ namespace qk {
 				auto scroll = _inl(self)->get_catch_valid_scroll( Vec2(-arg.arg.x(), -arg.arg.y()) );
 				if (scroll != self->_scroll) {
 					self->_scroll = scroll;
-					self->_host->mark(View::kScroll);
+					self->_host->mark(View::kScroll, true);
 				}
 			}, this, value);
 		}
@@ -788,7 +788,7 @@ namespace qk {
 		Vec2 scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 			_this->scroll_to_valid_scroll(scroll, duration, curve);
-			_host->mark(View::kScroll);
+			_host->mark(View::kScroll, true);
 		}
 	}
 
@@ -798,7 +798,7 @@ namespace qk {
 				_scroll = _this->get_catch_valid_scroll(_scroll);
 			}
 			_host->unmark(View::kScroll);
-			_host->mark(View::kRecursive_Transform);
+			_host->mark(View::kRecursive_Transform, true);
 		}
 	}
 
@@ -819,7 +819,7 @@ namespace qk {
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
 		//
-		_host->mark(View::kScroll);
+		_host->mark(View::kScroll, true);
 	}
 
 	// ------------------------ S c r o l l . L a y o u t --------------------------

@@ -109,7 +109,7 @@ public:
 			// canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 		}
 
-		mark();
+		mark(kLayout_None,true);
 	}
 
 };

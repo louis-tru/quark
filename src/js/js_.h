@@ -63,17 +63,14 @@ namespace qk { namespace js {
 	struct JsConverter { // convert data to js value
 		template<class T>
 		static inline JSValue* Cast(Worker* worker, const Object& obj) {
-			return worker->newInstance( *static_cast<const T*>(&obj) ).cast();
-		}
-		inline JSValue* cast(Worker* worker, const Object& object) {
-			return callback(worker, object);
+			return worker->types()->newInstance( *static_cast<const T*>(&obj) );
 		}
 		template<class T>
 		static JsConverter* Instance() {
 			static JsConverter value{&Cast<T>};
 			return &value;
 		}
-		JSValue* (*callback)(Worker* worker, const Object& object);
+		JSValue* (*cast)(Worker* worker, const Object& object);
 	};
 
 	struct BindingModule: public Worker {

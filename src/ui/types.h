@@ -35,6 +35,13 @@
 #include "../render/math.h"
 #include "../render/font/style.h"
 
+#define Qk_DEFINE_VIEW_PROP_ACC_GET(...) Qk_DEFINE_PROP_ACC_GET(__VA_ARGS__)
+#define Qk_DEFINE_VIEW_PROP_ACC(type, name, ...) \
+	Qk_DEFINE_VIEW_PROP_ACC_GET(type, name, ##__VA_ARGS__); void set_##name (type val,bool isRt=0);
+#define Qk_DEFINE_VIEW_PROP_GET(...) Qk_DEFINE_PROP_GET(__VA_ARGS__)
+#define Qk_DEFINE_VIEW_PROP(type, name, ...) \
+	Qk_DEFINE_VIEW_PROP_GET(type, name, ##__VA_ARGS__) void set_##name (type val,bool isRt=0)
+
 namespace qk {
 
 	template<typename Kind, Kind KindInit, typename Value = float>

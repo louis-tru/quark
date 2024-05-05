@@ -238,24 +238,24 @@ namespace qk {
 	{
 	}
 
-	void Flex::set_direction(Direction val) {
+	void Flex::set_direction(Direction val, bool isRt) {
 		if (val != _direction) {
 			_direction = val;
-			async_mark_layout(kLayout_Typesetting); // 排版参数改变,后续需对子布局重新排版
+			mark_layout(kLayout_Typesetting, isRt); // 排版参数改变,后续需对子布局重新排版
 		}
 	}
 
-	void Flex::set_items_align(ItemsAlign align) {
+	void Flex::set_items_align(ItemsAlign align, bool isRt) {
 		if (align != _items_align) {
 			_items_align = align;
-			async_mark_layout(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRt);
 		}
 	}
 
-	void Flex::set_cross_align(CrossAlign align) {
+	void Flex::set_cross_align(CrossAlign align, bool isRt) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			async_mark_layout(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRt);
 		}
 	}
 
@@ -286,8 +286,8 @@ namespace qk {
 			}
 
 			if (layout_content_size_change_mark) {
-				mark_layout(kLayout_Typesetting); // rearrange
-				mark(kRecursive_Visible_Region);
+				mark_layout(kLayout_Typesetting, true); // rearrange
+				mark(kRecursive_Visible_Region, true);
 			}
 
 			// if no lock child layout then must be processed in reverse iteration, layout_reverse()
@@ -416,7 +416,7 @@ namespace qk {
 	void Flex::onChildLayoutChange(View* child, uint32_t value) {
 		if (value & (kChild_Layout_Size | kChild_Layout_Align | 
 								kChild_Layout_Visible | kChild_Layout_Weight | kChild_Layout_Text)) {
-			mark_layout(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, true);
 		}
 	}
 

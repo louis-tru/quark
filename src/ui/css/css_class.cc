@@ -89,7 +89,7 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::updateClass_Rt() {
-		_host->mark_layout(View::kStyle_Class);
+		_host->mark_layout(View::kStyle_Class, true);
 		_status = kNone_CSSType; // force apply update
 	}
 
@@ -97,7 +97,7 @@ namespace qk {
 		if ( _setStatus != status ) {
 			_setStatus = status;
 			if ( _havePseudoType ) {
-				_host->mark_layout(View::kStyle_Class);
+				_host->mark_layout(View::kStyle_Class, true);
 			}
 		}
 	}

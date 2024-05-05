@@ -130,17 +130,28 @@ namespace qk {
 		return result;
 	}
 
-	void Box::mark_size(uint32_t mark) {
-		preRender().async_call([](auto self, auto arg) {
-			auto _parent = self->parent_Rt();
+	void Box::mark_size(uint32_t mark, bool isRt) {
+		if (isRt) {
+			auto _parent = parent_Rt();
 			if (_parent) {
 				if (_parent->is_lock_child_layout_size()) {
-					_parent->onChildLayoutChange(self, kChild_Layout_Size);
+					_parent->onChildLayoutChange(this, kChild_Layout_Size);
 				} else {
-					self->mark_layout(arg.arg);
+					mark_layout(mark, true);
 				}
 			}
-		}, this, mark);
+		} else {
+			preRender().async_call([](auto self, auto arg) {
+				auto _parent = self->parent_Rt();
+				if (_parent) {
+					if (_parent->is_lock_child_layout_size()) {
+						_parent->onChildLayoutChange(self, kChild_Layout_Size);
+					} else {
+						self->mark_layout(arg.arg, true);
+					}
+				}
+			}, this, mark);
+		}
 	}
 
 	/**
@@ -171,142 +182,134 @@ namespace qk {
 	}
 
 	// is clip box display range
-	void Box::set_clip(bool val) {
+	void Box::set_clip(bool val, bool isRt) {
 		if (_clip != val) {
 			_clip = val;
-			async_mark();
+			mark(0, isRt);
 		}
 	}
 
-	void Box::set_width(BoxSize val) {
+	void Box::set_width(BoxSize val, bool isRt) {
 		if (_width != val) {
 			_width = val;
-			mark_size(kLayout_Size_Width);
+			mark_size(kLayout_Size_Width, isRt);
 		}
 	}
 
-	void Box::set_height(BoxSize val) {
+	void Box::set_height(BoxSize val, bool isRt) {
 		if (_height != val) {
 			_height = val;
-			mark_size(kLayout_Size_Height);
+			mark_size(kLayout_Size_Height, isRt);
 		}
 	}
 
-	void Box::set_width_limit(BoxSize val) {
+	void Box::set_width_limit(BoxSize val, bool isRt) {
 		if (_width_limit != val) {
 			_width_limit = val;
-			mark_size(kLayout_Size_Width);
+			mark_size(kLayout_Size_Width, isRt);
 		}
 	}
 
-	void Box::set_height_limit(BoxSize val) {
+	void Box::set_height_limit(BoxSize val, bool isRt) {
 		if (_height_limit != val) {
 			_height_limit = val;
-			mark_size(kLayout_Size_Height);
+			mark_size(kLayout_Size_Height, isRt);
 		}
 	}
 
-	void Box::set_margin_top(float val) { // margin
+	void Box::set_margin_top(float val, bool isRt) { // margin
 		if (_margin_top != val) {
 			_margin_top = val;
-			mark_size(kLayout_Size_Height);
-			async_mark(kRecursive_Transform);
+			mark_size(kLayout_Size_Height, isRt);
+			mark(kRecursive_Transform, isRt);
 		}
 	}
 
-	void Box::set_margin_left(float val) {
+	void Box::set_margin_left(float val, bool isRt) {
 		if (_margin_left != val) {
 			_margin_left = val;
-			mark_size(kLayout_Size_Width);
-			async_mark(kRecursive_Transform);
+			mark_size(kLayout_Size_Width, isRt);
+			mark(kRecursive_Transform, isRt);
 		}
 	}
 
-	void Box::set_padding_top(float val) { // padding
+	void Box::set_padding_top(float val, bool isRt) { // padding
 		if (_padding_top != val) {
 			_padding_top = val;
-			mark_size(kLayout_Size_Height);
+			mark_size(kLayout_Size_Height, isRt);
 			// 没有直接的影响到`transform`但可能导致`view_size`变化导致
 			// `transform_origin`百分比属性变化,间接影响`transform`变化, 但可以肯定这个会影响子布局偏移
 			// mark_render(kRecursive_Transform); 
 		}
 	}
 
-	void Box::set_padding_left(float val) {
+	void Box::set_padding_left(float val, bool isRt) {
 		if (_padding_left != val) {
 			_padding_left = val;
-			mark_size(kLayout_Size_Width);
+			mark_size(kLayout_Size_Width, isRt);
 			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
-	void Box::set_margin_right(float val) {
+	void Box::set_margin_right(float val, bool isRt) {
 		if (_margin_right != val) {
 			_margin_right = val;
-			mark_size(kLayout_Size_Width);
+			mark_size(kLayout_Size_Width, isRt);
 			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
-	void Box::set_margin_bottom(float val) {
+	void Box::set_margin_bottom(float val, bool isRt) {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
-			mark_size(kLayout_Size_Height);
+			mark_size(kLayout_Size_Height, isRt);
 			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
-	void Box::set_padding_right(float val) {
+	void Box::set_padding_right(float val, bool isRt) {
 		if (_padding_right != val) {
 			_padding_right = val;
-			mark_size(kLayout_Size_Width);
+			mark_size(kLayout_Size_Width, isRt);
 			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
-	void Box::set_padding_bottom(float val) {
+	void Box::set_padding_bottom(float val, bool isRt) {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
-			mark_size(kLayout_Size_Height);
+			mark_size(kLayout_Size_Height, isRt);
 			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
 
 	// -- border radius
 
-	void Box::set_border_radius_left_top(float val) {
+	void Box::set_border_radius_left_top(float val, bool isRt) {
 		if (val >= 0.0 && _border_radius_left_top != val) {
 			_border_radius_left_top = val;
-			async_mark();
+			mark(0, isRt);
 		}
 	}
 
-	void Box::set_border_radius_right_top(float val) {
+	void Box::set_border_radius_right_top(float val, bool isRt) {
 		if (val >= 0.0 && _border_radius_right_top != val) {
 			_border_radius_right_top = val;
-			async_mark();
+			mark(0, isRt);
 		}
 	}
 
-	void Box::set_border_radius_right_bottom(float val) {
+	void Box::set_border_radius_right_bottom(float val, bool isRt) {
 		if (val >= 0.0 && _border_radius_right_bottom != val) {
 			_border_radius_right_bottom = val;
-			async_mark();
+			mark(0, isRt);
 		}
 	}
 
-	void Box::set_border_radius_left_bottom(float val) {
+	void Box::set_border_radius_left_bottom(float val, bool isRt) {
 		if (val >= 0.0 && _border_radius_left_bottom != val) {
 			_border_radius_left_bottom = val;
-			async_mark();
-		}
-	}
-
-	// alloc border memory
-	static void alloc_border(BoxBorder*& _border) {
-		if (!_border) {
-			_border = (BoxBorder*)::malloc(sizeof(BoxBorder));
-			::memset(_border, 0, sizeof(BoxBorder));
+			mark(0, isRt);
 		}
 	}
 
@@ -342,78 +345,113 @@ namespace qk {
 		return _border ? _border->width[3]: 0;
 	}
 
-	void Box::set_border_color_top(Color val) {
-		alloc_border(_border);
-		if (_border->color[0] != val) {
-			_border->color[0] = val;
-			async_mark();
+	struct SetBorder: public Box {
+		#define _SetBorder static_cast<SetBorder*>(this)->set
+		void alloc() {
+			if (!_border) {// alloc border memory
+				_border = (BoxBorder*)::malloc(sizeof(BoxBorder));
+				::memset(_border, 0, sizeof(BoxBorder));
+			}
 		}
+		template<typename E, typename Arg>
+		void set(E exec, Arg arg, bool isRt) {
+			typedef void (*Exec)(Box*, Arg, bool isRt);
+			if (_border) {
+				((Exec)exec)(this, arg, isRt);
+			} else if (isRt) {
+				alloc();
+				((Exec)exec)(this, arg, true);
+			} else {
+				struct Arg_ { Arg val; Exec exec; };
+				preRender().async_call([](auto self, auto arg) {
+					self->alloc();
+					arg.arg->exec(self, arg.arg->val, true);
+					delete arg.arg;
+				}, this, new Arg_{arg,(Exec)exec});
+			}
+		}
+	};
+
+	void Box::set_border_color_top(Color val, bool isRt) {
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->color[0] != val) {
+				self->_border->color[0] = val;
+				self->mark(0, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_border_color_right(Color val) {
-		alloc_border(_border);
-		if (_border->color[1] != val) {
-			_border->color[1] = val;
-			async_mark();
-		}
+	void Box::set_border_color_right(Color val, bool isRt) {
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->color[1] != val) {
+				self->_border->color[1] = val;
+				self->mark(0, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_border_color_bottom(Color val) {
-		alloc_border(_border);
-		if (_border->color[2] != val) {
-			_border->color[2] = val;
-			async_mark();
-		}
+	void Box::set_border_color_bottom(Color val, bool isRt) {
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->color[2] != val) {
+				self->_border->color[2] = val;
+				self->mark(0, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_border_color_left(Color val) {
-		alloc_border(_border);
-		if (_border->color[3] != val) {
-			_border->color[3] = val;
-			async_mark();
-		}
+	void Box::set_border_color_left(Color val, bool isRt) {
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->color[3] != val) {
+				self->_border->color[3] = val;
+				self->mark(0, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_border_width_top(float val) {
-		alloc_border(_border);
+	void Box::set_border_width_top(float val, bool isRt) {
 		val = Qk_MAX(0, val);
-		if (_border->width[0] != val) {
-			_border->width[0] = val;
-			mark_size(kLayout_Size_Height);
-		}
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->width[0] != val) {
+				self->_border->width[0] = val;
+				self->mark_size(kLayout_Size_Height, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_border_width_right(float val) {
-		alloc_border(_border);
+	void Box::set_border_width_right(float val, bool isRt) {
 		val = Qk_MAX(0, val);
-		if (_border->width[1] != val) {
-			_border->width[1] = val;
-			mark_size(kLayout_Size_Width);
-		}
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->width[1] != val) {
+				self->_border->width[1] = val;
+				self->mark_size(kLayout_Size_Width, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_border_width_bottom(float val) {
-		alloc_border(_border);
+	void Box::set_border_width_bottom(float val, bool isRt) {
 		val = Qk_MAX(0, val);
-		if (_border->width[2] != val) {
-			_border->width[2] = val;
-			mark_size(kLayout_Size_Height);
-		}
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->width[2] != val) {
+				self->_border->width[2] = val;
+				self->mark_size(kLayout_Size_Height, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_border_width_left(float val) {
-		alloc_border(_border);
+	void Box::set_border_width_left(float val, bool isRt) {
 		val = Qk_MAX(0, val);
-		if (_border->width[3] != val) {
-			_border->width[3] = val;
-			mark_size(kLayout_Size_Width);
-		}
+		_SetBorder([](auto self, auto val, auto isRt) {
+			if (self->_border->width[3] != val) {
+				self->_border->width[3] = val;
+				self->mark_size(kLayout_Size_Width, isRt);
+			}
+		}, val, isRt);
 	}
 
-	void Box::set_background_color(Color color) {
+	void Box::set_background_color(Color color, bool isRt) {
 		if (_background_color != color) {
 			_background_color = color;
-			async_mark();
+			mark(0,isRt);
 		}
 	}
 
@@ -425,20 +463,32 @@ namespace qk {
 		return static_cast<BoxShadow*>(BoxFilter::safe_filter(_box_shadow));
 	}
 
-	void Box::set_background(BoxFilter* val) {
-		preRender().async_call([](auto self, auto arg) {
-			if (self->_background != arg.arg) {
-				self->_background = BoxFilter::assign_Rt(self->_background, arg.arg, self);
+	void Box::set_background(BoxFilter* val, bool isRt) {
+		if (isRt) {
+			if (_background != val) {
+				_background = BoxFilter::assign_Rt(_background, val, this);
 			}
-		}, this, val);
+		} else {
+			preRender().async_call([](auto self, auto arg) {
+				if (self->_background != arg.arg) {
+					self->_background = BoxFilter::assign_Rt(self->_background, arg.arg, self);
+				}
+			}, this, val);
+		}
 	}
 
-	void Box::set_box_shadow(BoxShadow* val) {
-		preRender().async_call([](auto self, auto arg) {
-			if (self->_box_shadow != arg.arg) {
-				self->_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(self->_box_shadow, arg.arg, self));
+	void Box::set_box_shadow(BoxShadow* val, bool isRt) {
+		if (isRt) {
+			if (_box_shadow != val) {
+				_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(_box_shadow, val, this));
 			}
-		}, this, val);
+		} else {
+			preRender().async_call([](auto self, auto arg) {
+				if (self->_box_shadow != arg.arg) {
+					self->_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(self->_box_shadow, arg.arg, self));
+				}
+			}, this, val);
+		}
 	}
 
 	uint32_t Box::solve_layout_size_forward(uint32_t mark) {
@@ -509,8 +559,8 @@ namespace qk {
 				v->onParentLayoutContentSizeChange(this, layout_content_size_change_mark);
 				v = v->next_Rt();
 			}
-			mark_layout(kLayout_Typesetting); // rearrange
-			mark(kRecursive_Visible_Region);
+			mark_layout(kLayout_Typesetting, true); // rearrange
+			mark(kRecursive_Visible_Region, true);
 			return false; // next continue iteration
 		}
 
@@ -615,8 +665,8 @@ namespace qk {
 					v = v->next_Rt();
 				}
 			}
-			mark_layout(kLayout_Typesetting); // rearrange
-			mark(kRecursive_Visible_Region);
+			mark_layout(kLayout_Typesetting, true); // rearrange
+			mark(kRecursive_Visible_Region, true);
 		}
 
 		unmark(kLayout_Size_Width | kLayout_Size_Height);
@@ -633,7 +683,7 @@ namespace qk {
 		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 												_margin_top + _margin_bottom + _client_size.y());
 
-		mark(kRecursive_Visible_Region);
+		mark(kRecursive_Visible_Region, true);
 	}
 
 	Vec2 Box::layout_offset() {
@@ -695,7 +745,7 @@ namespace qk {
 		return _align;
 	}
 
-	void Box::set_align(Align align) {
+	void Box::set_align(Align align, bool isRt) {
 		if (_align != align) {
 			_align = align;
 			preRender().async_call([](auto self, auto arg) {
@@ -706,7 +756,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_weight(float weight) {
+	void Box::set_weight(float weight, bool isRt) {
 		if (_weight != weight) {
 			_weight = weight;
 			preRender().async_call([](auto self, auto arg) {
@@ -719,7 +769,7 @@ namespace qk {
 
 	void Box::set_layout_offset(Vec2 val) {
 		_layout_offset = val;
-		mark(kRecursive_Transform); // mark recursive transform
+		mark(kRecursive_Transform, true); // mark recursive transform
 	}
 
 	void Box::set_layout_offset_lazy(Vec2 size) {
@@ -767,7 +817,7 @@ namespace qk {
 	}
 
 	void Box::onParentLayoutContentSizeChange(View* parent, uint32_t value) {
-		mark_layout(value);
+		mark_layout(value, true);
 	}
 
 	bool Box::is_ready_layout_typesetting() {

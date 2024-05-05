@@ -45,11 +45,11 @@ namespace qk {
 	}());
 #endif
 
-	void inl__set_file_stat(FileStat* stat, uv_stat_t* src) {
-		struct INL_FileStat: public Object {
+	void inl__copy_file_stat(uv_stat_t* src, FileStat* dest) {
+		struct INL_FileStat: Object {
 			uv_stat_t *_stat;
 		};
-		INL_FileStat* s = reinterpret_cast<INL_FileStat*>(stat);
+		auto s = reinterpret_cast<INL_FileStat*>(dest);
 		if ( !s->_stat ) {
 			s->_stat = (uv_stat_t*)malloc(sizeof(uv_stat_t));
 		}
@@ -58,14 +58,12 @@ namespace qk {
 
 	FileStat::FileStat(): _stat(nullptr) {}
 	FileStat::FileStat(cString& path): FileStat(fs_stat_sync(path)) {}
-	FileStat::FileStat(FileStat&& stat): _stat(stat._stat) {
-		stat._stat = nullptr;
+	FileStat::FileStat(const FileStat& src): _stat(nullptr) {
+		inl__copy_file_stat((uv_stat_t*)src._stat, this);
 	}
 
-	FileStat& FileStat::operator=(FileStat&& src) {
-		free(_stat);
-		_stat = src._stat;
-		src._stat = nullptr;
+	FileStat& FileStat::operator=(const FileStat& src) {
+		inl__copy_file_stat((uv_stat_t*)src._stat, this);
 		return *this;
 	}
 

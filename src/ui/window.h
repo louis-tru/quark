@@ -109,7 +109,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(float, defaultScale, Const); //!< default display scale
 		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
 		Qk_DEFINE_PROP_GET(uint32_t, fsp, Const); //!< current fsp
-		Qk_DEFINE_PROP_GET(uint32_t, atomPixel, Const); // atom pixel size
+		Qk_DEFINE_PROP_GET(float, atomPixel, Const); // atom pixel size
 		Qk_DEFINE_PROP_GET(Root*, root); //! root view
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(Render*, render); //! render object
@@ -119,6 +119,11 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 		Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
+		/**
+		 * @prop surfaceSize
+		 * returns surface only display region and size
+		 */
+		Qk_DEFINE_PROP_ACC_GET(Vec2, surfaceSize, Const);
 
 		/**
 		 * @static
@@ -130,13 +135,6 @@ namespace qk {
 		 * @destructor
 		*/
 		virtual ~Window();
-
-		/**
-		 * returns surface only display region and size
-		 */
-		Vec2 surfaceSize() const {
-			return _surfaceRegion.end - _surfaceRegion.origin;
-		}
 
 		/**
 		* @method getClipRegion

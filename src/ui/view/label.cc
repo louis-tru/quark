@@ -34,16 +34,16 @@
 
 namespace qk {
 
-	void Label::set_value(String val) {
+	void Label::set_value(String val, bool isRt) {
 		if (_value != val) {
 			_value = std::move(val);
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height);
+			mark_layout(kLayout_Size_Width | kLayout_Size_Height, isRt);
 		}
 	}
 
-	void Label::onTextChange(uint32_t mark, uint32_t type) {
-		onTextChange_async(mark, type);
-	}
+	// void Label::onTextChange(uint32_t mark, uint32_t type) {
+	// 	onTextChange_async(mark, type);
+	// }
 
 	View* Label::getViewForTextOptions() {
 		return this;
@@ -86,18 +86,18 @@ namespace qk {
 		Sp<TextLines> lines = new TextLines(this, text_align(), Vec2(), false); // use left align
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
-		mark(kRecursive_Transform);
+		mark(kRecursive_Transform, true);
 	}
 
 	void Label::set_layout_offset_lazy(Vec2 size) {
 		Sp<TextLines> lines = new TextLines(this, TextAlign::kLeft, size, false); // use left align
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
-		mark(kRecursive_Transform);
+		mark(kRecursive_Transform, true);
 	}
 
 	void Label::onParentLayoutContentSizeChange(View* parent, uint32_t value) {
-		mark_layout(value);
+		mark_layout(value, true);
 	}
 
 	bool Label::solve_visible_region(const Mat &mat) {

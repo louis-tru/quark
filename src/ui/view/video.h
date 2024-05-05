@@ -46,21 +46,21 @@ namespace qk {
 		typedef RenderTask::ID TaskID;
 
 		// define props
-		Qk_DEFINE_PROP_ACC(bool, auto_play);
-		Qk_DEFINE_PROP_ACC(bool, mute);
-		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer);
-		Qk_DEFINE_PROP_ACC(uint32_t, volume);
-		Qk_DEFINE_PROP_ACC(String, src);
-		Qk_DEFINE_PROP_ACC_GET(MultimediaSourceStatus, source_status);
-		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, time);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index);
-		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track);
-		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, video_track);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, video_width);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, video_height);
+		Qk_DEFINE_VIEW_PROP_ACC(bool, auto_play);
+		Qk_DEFINE_VIEW_PROP_ACC(bool, mute);
+		Qk_DEFINE_VIEW_PROP_ACC(bool, disable_wait_buffer);
+		Qk_DEFINE_VIEW_PROP_ACC(uint32_t, volume);
+		Qk_DEFINE_VIEW_PROP_ACC(String, src);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(MultimediaSourceStatus, source_status);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(PlayerStatus, status);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(uint64_t, time);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(uint64_t, duration);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, audio_track_count);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, audio_track_index);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(const TrackInfo*, audio_track);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(const TrackInfo*, video_track);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, video_width);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, video_height);
 
 		Video();
 		~Video();

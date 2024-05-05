@@ -32,74 +32,56 @@
 
 namespace qk { namespace js {
 
-	class WrapPath {
+	class NativePath {
 	public:
-		static void executable(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Return( fs_executable() );
-		}
-		static void documents(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString()) {
-				Js_Return( fs_documents() );
-			}
-			Js_Return( fs_documents( args[0]->toStringValue(worker)) );
-		}
-		static void temp(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString()) {
-				Js_Return( fs_temp() );
-			}
-			Js_Return( fs_temp( args[0]->toStringValue(worker)) );
-		}
-		static void resources(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString()) {
-				Js_Return( fs_resources() );
-			}
-			Js_Return( fs_resources( args[0]->toStringValue(worker)) );
-		}
-		static void cwd(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Return( fs_cwd() );
-		}
-		static void chdir(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString()) {
-				Js_Return( false );
-			}
-			Js_Return( fs_chdir(args[0]->toStringValue(worker)) );
-		}
-		static void extname(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString())
-				Js_Throw( "Bad argument." );
-			Js_Return( fs_extname( args[0]->toStringValue(worker)) );
-		}
-		static void dirname(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString())
-				Js_Throw( "Bad argument." );
-			Js_Return( fs_dirname( args[0]->toStringValue(worker)) );
-		}
-		static void basename(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString())
-				Js_Throw( "Bad argument." );
-			Js_Return( fs_basename( args[0]->toStringValue(worker)) );
-		}
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Set_Method(executable, executable);
-			Js_Set_Method(documents, documents);
-			Js_Set_Method(temp, temp);
-			Js_Set_Method(resources, resources);
-			Js_Set_Method(cwd, cwd);
-			Js_Set_Method(chdir, chdir);
-			Js_Set_Method(extname, extname);
-			Js_Set_Method(dirname, dirname);
-			Js_Set_Method(basename, basename);
+			Js_Set_Method(executable, {
+				Js_Return( fs_executable() );
+			});
+			Js_Set_Method(documents, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( fs_documents() );
+				}
+				Js_Return( fs_documents( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(temp, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( fs_temp() );
+				}
+				Js_Return( fs_temp( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(resources, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( fs_resources() );
+				}
+				Js_Return( fs_resources( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(cwd, {
+				Js_Return( fs_cwd() );
+			});
+			Js_Set_Method(chdir, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( false );
+				}
+				Js_Return( fs_chdir(args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(extname, {
+				if (args.length() == 0 || !args[0]->isString())
+					Js_Throw( "Bad argument." );
+				Js_Return( fs_extname( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(dirname, {
+				if (args.length() == 0 || !args[0]->isString())
+					Js_Throw( "Bad argument." );
+				Js_Return( fs_dirname( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(basename, {
+				if (args.length() == 0 || !args[0]->isString())
+					Js_Throw( "Bad argument." );
+				Js_Return( fs_basename( args[0]->toStringValue(worker)) );
+			});
 		}
 	};
 
-	Js_Set_Module(_path, WrapPath);
+	Js_Set_Module(_path, NativePath);
 } }

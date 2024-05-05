@@ -34,127 +34,103 @@ namespace qk { namespace js {
 
 	class WrapFileStat: public WrapObject {
 	public:
-		static void constructor(FunctionArgs args) {
-			if (args.length() == 0 || !args[0]->isString()) {
-				New<WrapFileStat>(args, new FileStat());
-			} else {
-				New<WrapFileStat>(args, new FileStat(args[0]->toStringValue(args.worker())));
-			}
-		}
-		static void is_valid(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->is_valid() );
-		}
-		static void is_file(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->is_file() );
-		}
-		static void is_dir(FunctionArgs args)  {
-			Js_Self(FileStat);
-			Js_Return( self->is_dir() );
-		}
-		static void is_link(FunctionArgs args)  {
-			Js_Self(FileStat);
-			Js_Return( self->is_link() );
-		}
-		static void is_sock(FunctionArgs args)  {
-			Js_Self(FileStat);
-			Js_Return( self->is_sock() );
-		}
-		static void mode(FunctionArgs args)  {
-			Js_Self(FileStat);
-			Js_Return( self->mode() );
-		}
-		static void type(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->type() );
-		}
-		static void group(FunctionArgs args)  {
-			Js_Self(FileStat);
-			Js_Return( self->group() );
-		}
-		static void owner(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->owner() );
-		}
-		static void size(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->size() );
-		}
-		static void nlink(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->nlink() );
-		}
-		static void ino(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->ino() );
-		}
-		static void blksize(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->blksize() );
-		}
-		static void blocks(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->blocks() );
-		}
-		static void flags(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->flags() );
-		}
-		static void gen(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->gen() );
-		}
-		static void dev(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->dev() );
-		}
-		static void rdev(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->rdev() );
-		}
-		static void atime(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->atime() / 1000 );
-		}
-		static void mtime(FunctionArgs args) {
-			Js_Self(FileStat);
-			Js_Return( self->mtime() / 1000 );
-		}
-		static void ctime(FunctionArgs args)  {
-			Js_Self(FileStat);
-			Js_Return( self->ctime() / 1000 );
-		}
-		static void birthtime(FunctionArgs args)  {
-			Js_Self(FileStat);
-			Js_Return( self->birthtime() / 1000 );
-		}
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(FileStat, (JSClass*)0, constructor, {
-				Js_Set_Class_Method(isValid, is_valid);
-				Js_Set_Class_Method(isFile, is_file);
-				Js_Set_Class_Method(isDir, is_dir);
-				Js_Set_Class_Method(isDirectory, is_dir);
-				Js_Set_Class_Method(isLink, is_link);
-				Js_Set_Class_Method(isSock, is_sock);
-				Js_Set_Class_Method(mode, mode);
-				Js_Set_Class_Method(type, type);
-				Js_Set_Class_Method(group, group);
-				Js_Set_Class_Method(owner, owner);
-				Js_Set_Class_Method(size, size);
-				Js_Set_Class_Method(nlink, nlink);
-				Js_Set_Class_Method(ino, ino);
-				Js_Set_Class_Method(blksize, blksize);
-				Js_Set_Class_Method(blocks, blocks);
-				Js_Set_Class_Method(flags, flags);
-				Js_Set_Class_Method(gen, gen);
-				Js_Set_Class_Method(dev, dev);
-				Js_Set_Class_Method(rdev, rdev);
-				Js_Set_Class_Method(atime, atime);
-				Js_Set_Class_Method(mtime, mtime);
-				Js_Set_Class_Method(ctime, ctime);
-				Js_Set_Class_Method(birthtime, birthtime);
+			Js_Define_Class(FileStat, 0, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					New<WrapFileStat>(args, new FileStat());
+				} else {
+					New<WrapFileStat>(args, new FileStat(args[0]->toStringValue(args.worker())));
+				}
 			});
+			Js_Set_Class_Method(isValid, {
+				Js_Self(FileStat);
+				Js_Return( self->is_valid() );
+			});
+			Js_Set_Class_Method(isFile, {
+				Js_Self(FileStat);
+				Js_Return( self->is_file() );
+			});
+			Js_Set_Class_Method(isDir, {
+				Js_Self(FileStat);
+				Js_Return( self->is_dir() );
+			});
+			Js_Set_Class_Method(isLink, {
+				Js_Self(FileStat);
+				Js_Return( self->is_link() );
+			});
+			Js_Set_Class_Method(isSock, {
+				Js_Self(FileStat);
+				Js_Return( self->is_sock() );
+			});
+			Js_Set_Class_Method(mode, {
+				Js_Self(FileStat);
+				Js_Return( self->mode() );
+			});
+			Js_Set_Class_Method(type, {
+				Js_Self(FileStat);
+				Js_Return( self->type() );
+			});
+			Js_Set_Class_Method(group, {
+				Js_Self(FileStat);
+				Js_Return( self->group() );
+			});
+			Js_Set_Class_Method(owner, {
+				Js_Self(FileStat);
+				Js_Return( self->owner() );
+			});
+			Js_Set_Class_Method(size, {
+				Js_Self(FileStat);
+				Js_Return( self->size() );
+			});
+			Js_Set_Class_Method(nlink, {
+				Js_Self(FileStat);
+				Js_Return( self->nlink() );
+			});
+			Js_Set_Class_Method(ino, {
+				Js_Self(FileStat);
+				Js_Return( self->ino() );
+			});
+			Js_Set_Class_Method(blksize, {
+				Js_Self(FileStat);
+				Js_Return( self->blksize() );
+			});
+			Js_Set_Class_Method(blocks, {
+				Js_Self(FileStat);
+				Js_Return( self->blocks() );
+			});
+			Js_Set_Class_Method(flags, {
+				Js_Self(FileStat);
+				Js_Return( self->flags() );
+			});
+			Js_Set_Class_Method(gen, {
+				Js_Self(FileStat);
+				Js_Return( self->gen() );
+			});
+			Js_Set_Class_Method(dev, {
+				Js_Self(FileStat);
+				Js_Return( self->dev() );
+			});
+			Js_Set_Class_Method(rdev, {
+				Js_Self(FileStat);
+				Js_Return( self->rdev() );
+			});
+			Js_Set_Class_Method(atime, {
+				Js_Self(FileStat);
+				Js_Return( self->atime() / 1000 );
+			});
+			Js_Set_Class_Method(mtime, {
+				Js_Self(FileStat);
+				Js_Return( self->mtime() / 1000 );
+			});
+			Js_Set_Class_Method(ctime, {
+				Js_Self(FileStat);
+				Js_Return( self->ctime() / 1000 );
+			});
+			Js_Set_Class_Method(birthtime, {
+				Js_Self(FileStat);
+				Js_Return( self->birthtime() / 1000 );
+			});
+			cls->exports("FileStat", exports);
 		}
 	};
 
@@ -228,11 +204,10 @@ namespace qk { namespace js {
 				}
 			});
 		}
-
 		return data;
 	}
 
-	class WrapFs {
+	class NativeFs {
 	public:
 		static void chmod(FunctionArgs args, bool sync) {
 			Js_Worker(args);
@@ -783,7 +758,7 @@ namespace qk { namespace js {
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
-				Js_Return( r );
+				Js_Return( worker->types()->newInstance(r) );
 			} else {
 				Callback<FileStat> cb;
 				if ( args.length() > 1 ) {
@@ -929,21 +904,6 @@ namespace qk { namespace js {
 				}
 				fs_executable(args[0]->toStringValue(worker), get_callback_for_bool(worker, args[1]));
 			}
-		}
-
-		static void read_stream(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 2 || !args[0]->isFunction() || !args[1]->isString()) {
-				Js_Throw(
-					"* @method readStream(cb,path)\n"
-					"* @param cb {Function}\n"
-					"* @param path {String}\n"
-					"* @return {uint32_t} return abort id\n"
-				);
-			}
-			auto cb = get_callback_for_io_stream(worker, args[0]);
-			String path = args[1]->toStringValue(worker);
-			Js_Return( fs_read_stream(path, cb) );
 		}
 
 		static void read_file(FunctionArgs args, bool sync) {
@@ -1280,140 +1240,92 @@ namespace qk { namespace js {
 			}
 		}
 
-		static void abort(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1 || ! args[0]->isUint32()) {
-				Js_Throw(
-					"* @method abort(id) abort async io\n"
-					"* @param id {uint}\n"
-				);
-			}
-			fs_abort( args[0]->toUint32Value(worker) );
-		}
-		
-		// sync
-		static void chmod_sync(FunctionArgs args) { chmod(args, 1); }
-		static void chown_sync(FunctionArgs args) { chown(args, 1); }
-		static void mkdir_sync(FunctionArgs args) { mkdir(args, 1); }
-		static void rename_sync(FunctionArgs args) { rename(args, 1); }
-		static void link_sync(FunctionArgs args) { link(args, 1); }
-		static void unlink_sync(FunctionArgs args) { unlink(args, 1); }
-		static void rmdir_sync(FunctionArgs args) { rmdir(args, 1); }
-		static void readdir_sync(FunctionArgs args) { readdir(args, 1); }
-		static void stat_sync(FunctionArgs args) { stat(args, 1); }
-		static void exists_sync(FunctionArgs args) { exists(args, 1); }
-		static void is_file_sync(FunctionArgs args) { is_file(args, 1); }
-		static void is_directory_sync(FunctionArgs args) { is_directory(args, 1); }
-		static void readable_sync(FunctionArgs args) { readable(args, 1); }
-		static void writable_sync(FunctionArgs args) { writable(args, 1); }
-		static void executable_sync(FunctionArgs args) { executable(args, 1); }
-		static void copy_sync(FunctionArgs args) { copy(args, 1); }
-		static void chmod_r_sync(FunctionArgs args) { chmod_r(args, 1); }
-		static void chown_r_sync(FunctionArgs args) { chown_r(args, 1); }
-		static void mkdir_p_sync(FunctionArgs args) { mkdir_p(args, 1); }
-		static void remove_r_sync(FunctionArgs args) { remove_r(args, 1); }
-		static void copy_r_sync(FunctionArgs args) { copy_r(args, 1); }
-		static void write_file_sync(FunctionArgs args) { write_file(args, 1); }
-		static void read_file_sync(FunctionArgs args) { read_file(args, 1); }
-		static void open_sync(FunctionArgs args) { open(args, 1); }
-		static void close_sync(FunctionArgs args) { close(args, 1); }
-		static void read_sync(FunctionArgs args) { read(args, 1); }
-		static void write_sync(FunctionArgs args) { write(args, 1); }
-		// async
-		static void chmod_async(FunctionArgs args) { chmod(args, 0); }
-		static void chown_async(FunctionArgs args) { chown(args, 0); }
-		static void mkdir_async(FunctionArgs args) { mkdir(args, 0); }
-		static void rename_async(FunctionArgs args) { rename(args, 0); }
-		static void link_async(FunctionArgs args) { link(args, 0); }
-		static void unlink_async(FunctionArgs args) { unlink(args, 0); }
-		static void rmdir_async(FunctionArgs args) { rmdir(args, 0); }
-		static void readdir_async(FunctionArgs args) { readdir(args, 0); }
-		static void stat_async(FunctionArgs args) { stat(args, 0); }
-		static void exists_async(FunctionArgs args) { exists(args, 0); }
-		static void is_file_async(FunctionArgs args) { is_file(args, 0); }
-		static void is_directory_async(FunctionArgs args) { is_directory(args, 0); }
-		static void readable_async(FunctionArgs args) { readable(args, 0); }
-		static void writable_async(FunctionArgs args) { writable(args, 0); }
-		static void executable_async(FunctionArgs args) { executable(args, 0); }
-		static void copy_async(FunctionArgs args) { copy(args, 0); }
-		static void chmod_r_async(FunctionArgs args) { chmod_r(args, 0); }
-		static void chown_r_async(FunctionArgs args) { chown_r(args, 0); }
-		static void mkdir_p_async(FunctionArgs args) { mkdir_p(args, 0); }
-		static void remove_r_async(FunctionArgs args) { remove_r(args, 0); }
-		static void copy_r_async(FunctionArgs args) { copy_r(args, 0); }
-		static void write_file_async(FunctionArgs args) { write_file(args, 0); }
-		static void read_file_async(FunctionArgs args) { read_file(args, 0); }
-		static void open_async(FunctionArgs args) { open(args, 0); }
-		static void close_async(FunctionArgs args) { close(args, 0); }
-		static void read_async(FunctionArgs args) { read(args, 0); }
-		static void write_async(FunctionArgs args) { write(args, 0); }
-
 		static void binding(JSObject* exports, Worker* worker) {
 			WrapFileStat::binding(exports, worker);
 
 			Js_Set_Property(DEFAULT_MODE, fs_default_mode);
-			// api sync
-			Js_Set_Method(chmodSync, chmod_sync);
-			Js_Set_Method(chownSync, chown_sync);
-			Js_Set_Method(mkdirSync, mkdir_sync);
-			Js_Set_Method(renameSync, rename_sync);
-			Js_Set_Method(linkSync, link_sync);
-			Js_Set_Method(unlinkSync, unlink_sync);
-			Js_Set_Method(rmdirSync, rmdir_sync);
-			Js_Set_Method(readdirSync, readdir_sync);
-			Js_Set_Method(statSync, stat_sync);
-			Js_Set_Method(existsSync, exists_sync);
-			Js_Set_Method(isFileSync, is_file_sync);
-			Js_Set_Method(isDirectorySync, is_directory_sync);
-			Js_Set_Method(readableSync, readable_sync);
-			Js_Set_Method(writableSync, writable_sync);
-			Js_Set_Method(executableSync, executable_sync);
-			Js_Set_Method(copySync, copy_sync);
-			Js_Set_Method(chmodrSync, chmod_r_sync);
-			Js_Set_Method(chownrSync, chown_r_sync);
-			Js_Set_Method(mkdirpSync, mkdir_p_sync);
-			Js_Set_Method(removerSync, remove_r_sync);
-			Js_Set_Method(copyrSync, copy_r_sync);
+			// sync
+			Js_Set_Method(chmodSync, { chmod(args, 1); });
+			Js_Set_Method(chownSync, { chown(args, 1); });
+			Js_Set_Method(mkdirSync, { mkdir(args, 1); });
+			Js_Set_Method(renameSync, { rename(args, 1); });
+			Js_Set_Method(linkSync, { link(args, 1); });
+			Js_Set_Method(unlinkSync, { unlink(args, 1); });
+			Js_Set_Method(rmdirSync, { rmdir(args, 1); });
+			Js_Set_Method(readdirSync, { readdir(args, 1); });
+			Js_Set_Method(statSync, { stat(args, 1); });
+			Js_Set_Method(existsSync, { exists(args, 1); });
+			Js_Set_Method(isFileSync, { is_file(args, 1); });
+			Js_Set_Method(isDirectorySync, { is_directory(args, 1); });
+			Js_Set_Method(readableSync, { readable(args, 1); });
+			Js_Set_Method(writableSync, { writable(args, 1); });
+			Js_Set_Method(executableSync, { executable(args, 1); });
+			Js_Set_Method(copySync, { copy(args, 1); });
+			Js_Set_Method(chmodrSync, { chmod_r(args, 1); });
+			Js_Set_Method(chownrSync, { chown_r(args, 1); });
+			Js_Set_Method(mkdirpSync, { mkdir_p(args, 1); });
+			Js_Set_Method(removerSync, { remove_r(args, 1); });
+			Js_Set_Method(copyrSync, { copy_r(args, 1); });
+			Js_Set_Method(writeFileSync, { write_file(args, 1); });
+			Js_Set_Method(readFileSync, { read_file(args, 1); });
+			Js_Set_Method(openSync, { open(args, 1); });
+			Js_Set_Method(closeSync, { close(args, 1); });
+			Js_Set_Method(readSync, { read(args, 1); });
+			Js_Set_Method(writeSync, { write(args, 1); });
 			// async
-			Js_Set_Method(chmod, chmod_async);
-			Js_Set_Method(chown, chown_async);
-			Js_Set_Method(mkdir, mkdir_async);
-			Js_Set_Method(rename, rename_async);
-			Js_Set_Method(link, link_async);
-			Js_Set_Method(unlink, unlink_async);
-			Js_Set_Method(rmdir, rmdir_async);
-			Js_Set_Method(readdir, readdir_async);
-			Js_Set_Method(stat, stat_async);
-			Js_Set_Method(exists, exists_async);
-			Js_Set_Method(isFile, is_file_async);
-			Js_Set_Method(isDirectory, is_directory_async);
-			Js_Set_Method(readable, readable_async);
-			Js_Set_Method(writable, writable_async);
-			Js_Set_Method(executable, executable_async);
-			Js_Set_Method(copy, copy_async);
-			Js_Set_Method(chmodr, chmod_r_async);
-			Js_Set_Method(chownr, chown_r_async);
-			Js_Set_Method(mkdirp, mkdir_p_async);
-			Js_Set_Method(remover, remove_r_async);
-			Js_Set_Method(copyr, copy_r_async);
-			Js_Set_Method(readStream, read_stream);
-			Js_Set_Method(abort, abort);
-			// read/write file sync
-			Js_Set_Method(writeFileSync, write_file_sync);
-			Js_Set_Method(readFileSync, read_file_sync);
-			Js_Set_Method(openSync, open_sync);
-			Js_Set_Method(closeSync, close_sync);
-			Js_Set_Method(readSync, read_sync);
-			Js_Set_Method(writeSync, write_sync);
-			// async
-			Js_Set_Method(writeFile, write_file_async);
-			Js_Set_Method(readFile, read_file_async);
-			Js_Set_Method(open, open_async);
-			Js_Set_Method(close, close_async);
-			Js_Set_Method(read, read_async);
-			Js_Set_Method(write, write_async);
+			Js_Set_Method(chmod, { chmod(args, 0); });
+			Js_Set_Method(chown, { chown(args, 0); });
+			Js_Set_Method(mkdir, { mkdir(args, 0); });
+			Js_Set_Method(rename, { rename(args, 0); });
+			Js_Set_Method(link, { link(args, 0); });
+			Js_Set_Method(unlink, { unlink(args, 0); });
+			Js_Set_Method(rmdir, { rmdir(args, 0); });
+			Js_Set_Method(readdir, { readdir(args, 0); });
+			Js_Set_Method(stat, { stat(args, 0); });
+			Js_Set_Method(exists, { exists(args, 0); });
+			Js_Set_Method(isFile, { is_file(args, 0); });
+			Js_Set_Method(isDirectory, { is_directory(args, 0); });
+			Js_Set_Method(readable, { readable(args, 0); });
+			Js_Set_Method(writable, { writable(args, 0); });
+			Js_Set_Method(executable, { executable(args, 0); });
+			Js_Set_Method(copy, { copy(args, 0); });
+			Js_Set_Method(chmodr, { chmod_r(args, 0); });
+			Js_Set_Method(chownr, { chown_r(args, 0); });
+			Js_Set_Method(mkdirp, { mkdir_p(args, 0); });
+			Js_Set_Method(remover, { remove_r(args, 0); });
+			Js_Set_Method(copyr, { copy_r(args, 0); });
+			Js_Set_Method(writeFile, { write_file(args, 0); });
+			Js_Set_Method(readFile, { read_file(args, 0); });
+			Js_Set_Method(open, { open(args, 0); });
+			Js_Set_Method(close, { close(args, 0); });
+			Js_Set_Method(read, { read(args, 0); });
+			Js_Set_Method(write, { write(args, 0); });
+
+			Js_Set_Method(readStream, {
+				if (args.length() < 2 || !args[0]->isFunction() || !args[1]->isString()) {
+					Js_Throw(
+						"* @method readStream(cb,path)\n"
+						"* @param cb {Function}\n"
+						"* @param path {String}\n"
+						"* @return {uint32_t} return abort id\n"
+					);
+				}
+				auto cb = get_callback_for_io_stream(worker, args[0]);
+				String path = args[1]->toStringValue(worker);
+				Js_Return( fs_read_stream(path, cb) );
+			});
+
+			Js_Set_Method(abort, {
+				if (args.length() < 1 || ! args[0]->isUint32()) {
+					Js_Throw(
+						"* @method abort(id) abort async io\n"
+						"* @param id {uint}\n"
+					);
+				}
+				fs_abort( args[0]->toUint32Value(worker) );
+			});
 		}
 	};
 
-	Js_Set_Module(_fs, WrapFs);
+	Js_Set_Module(_fs, NativeFs);
 } }

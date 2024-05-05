@@ -30,14 +30,15 @@
 
 #include "./types.h"
 #include "../render/font/font.h"
-#include <native-inl-js.h>
+#include "../../out/native-inl-js.h"
 
 namespace qk { namespace js {
 
-	CommonStrings::CommonStrings(Worker* worker) {
+	Strings::Strings(Worker* worker) {
 		#define _Fun(name) \
 			__##name##__.reset(worker, worker->newStringOneByte(#name));
-		Js_Common_Strings_Each(_Fun);
+		Js_Strings_Each(_Fun);
+		__Errno__.reset(worker, worker->newStringOneByte("errno"));
 		#undef _Fun
 	}
 
@@ -55,6 +56,32 @@ namespace qk { namespace js {
 		#undef OneByte
 		#undef _Fun
 	}
+
+	bool TypesParser::isBase(JSValue* arg) {
+		// TODO ...
+		return false;
+	}
+
+	static void throw_error(Worker* worker, JSValue* value, cChar* msg, cChar* help = nullptr) {
+		// Bad argument. Input.type = `Bad`
+		// reference value, "
+
+		String msg2 = String::format(msg ? msg : "`%s`", *value->toStringValue(worker) );
+		JSValue* err;
+
+		if (help) {
+			err = worker->newTypeError("Bad argument. %s. Examples: %s", *msg2, help);
+		} else {
+			err = worker->newTypeError("Bad argument. %s.", *msg2);
+		}
+		worker->throwError(err);
+	}
+
+	void TypesParser::throwError(JSValue* value, cChar* msg, cChar* help) {
+		throw_error(worker, value, msg, help);
+	}
+
+	// --------------------------------------------------------------------------------------------
 
 	JSValue* TypesParser::newInstance(const bool& value) {
 		return worker->newInstance(value);
@@ -151,10 +178,6 @@ namespace qk { namespace js {
 			worker->newInstance(value[15]),
 		};
 		return _newMat4->call(worker, 16, args);
-	}
-
-	JSValue* TypesParser::newInstance(cString& value) {
-		return worker->newInstance(value);
 	}
 
 	JSValue* TypesParser::newInstance(cCurve& value) {
@@ -327,6 +350,10 @@ namespace qk { namespace js {
 		return worker->newInstance((uint32_t)value);
 	}
 
+	JSValue* TypesParser::newInstance(const FontStyle& value) {
+		return worker->newInstance(value.value());
+	}
+
 	JSValue* TypesParser::newInstance(const KeyboardType& value) {
 		return worker->newInstance((uint32_t)value);
 	}
@@ -343,31 +370,49 @@ namespace qk { namespace js {
 		return worker->newInstance((uint32_t)value);
 	}
 
-	// --------------------------------------------------------------------------------------------
+	JSValue* TypesParser::newInstance(const String& value) {
+		return worker->newInstance(value);
+	}
 
-	static void throw_error(Worker* worker, JSValue* value, cChar* msg, cChar* help = nullptr) {
-		// Bad argument. Input.type = `Bad`
-		// reference value, "
+	JSValue* TypesParser::newInstance(const Dirent& dir) {
+		auto rev = worker->newObject();
+		rev->set(worker, worker->strs()->name(), newInstance(dir.name));
+		rev->set(worker, worker->strs()->pathname(), newInstance(dir.pathname));
+		rev->set(worker, worker->strs()->type(), newInstance(dir.type));
+		return rev;
+	}
 
-		String msg2 = String::format(msg ? msg : "`%s`", *value->toStringValue(worker) );
-		JSValue* err;
-
-		if (help) {
-			err = worker->newTypeError("Bad argument. %s. Examples: %s", *msg2, help);
-		} else {
-			err = worker->newTypeError("Bad argument. %s.", *msg2);
+	JSValue* TypesParser::newInstance(cArray<Dirent>& ls) {
+		auto rev = worker->newArray(ls.length());
+		if (ls.length()) {
+			HandleScope scope(worker);
+			for (int i = 0, e = ls.length(); i < e; i++) {
+				rev->set(worker, i, newInstance(ls[i]));
+			}
 		}
-		worker->throwError(err);
+		return rev;
 	}
 
-	bool TypesParser::isBase(JSValue *arg) {
-		// TODO ...
-		return false;
+	JSValue* TypesParser::newInstance(const FileStat& stat) {
+		auto func = worker->classsinfo()->getFunction(Js_Typeid(FileStat));
+		Qk_ASSERT( func );
+		auto r = func->newInstance(worker);
+		*WrapObject::wrap<FileStat>(r)->self() = stat;
+		return r;
 	}
 
-	void TypesParser::throwError(JSValue* value, cChar* msg, cChar* help) {
-		throw_error(worker, value, msg, help);
+	JSValue* TypesParser::newInstance(cArray<FileStat>& ls) {
+		auto rev = worker->newArray(ls.length());
+		if (ls.length()) {
+			HandleScope scope(worker);
+			for (int i = 0, e = ls.length(); i < e; i++) {
+				rev->set(worker, i, newInstance(ls[i]));
+			}
+		}
+		return rev;
 	}
+
+	// --------------------------------------------------------------------------------------------
 
 	static const Dict<String, cCurve*> CURCE({
 		{"linear", &LINEAR },
@@ -393,9 +438,46 @@ namespace qk { namespace js {
 		} \
 		ok \
 		return true;\
-		}
+	}
 
-	// parse
+	bool TypesParser::parseWindowOptions(JSValue* in, WindowOptions& _out, cChar* desc) {
+		if (in->isObject()) {
+			auto obj = in->cast<JSObject>();
+			auto colorType = obj->get(worker, worker->newStringOneByte("colorType"));
+			auto msaa = obj->get(worker, worker->newStringOneByte("msaa"));
+			auto fps = obj->get(worker, worker->newStringOneByte("fps"));
+			auto frame = obj->get(worker, worker->newStringOneByte("frame"));
+			auto title = obj->get(worker, worker->newStringOneByte("title"));
+			auto backgroundColor = obj->get(worker, worker->newStringOneByte("backgroundColor"));
+
+			if (!colorType->isUndefined()) {
+				Js_Parse_Type(uint32_t, colorType, "Window::Options{.colorType=%s}") false;
+				_out.colorType = ColorType(out);
+			}
+			if (!msaa->isUndefined()) {
+				Js_Parse_Type(uint32_t, msaa, "Window::Options{.msaa=%s}") false;
+				_out.msaa = out;
+			}
+			if (!fps->isUndefined()) {
+				Js_Parse_Type(uint32_t, fps, "Window::Options{.fps=%s}") false;
+				_out.fps = out;
+			}
+			if (!frame->isUndefined()) {
+				Js_Parse_Type(Rect, frame, "Window::Options{.frame=%s}") false;
+				_out.frame = out;
+			}
+			if (!title->isUndefined()) {
+				Js_Parse_Type(String, title, "Window::Options{.title=%s}") false;
+				_out.title = out;
+			}
+			if (!backgroundColor->isUndefined()) {
+				Js_Parse_Type(Color, backgroundColor, "Window::Options{.backgroundColor=%s}") false;
+				_out.backgroundColor = out;
+			}
+		}
+		return true;
+	}
+
 	bool TypesParser::parseTextAlign(JSValue* in, TextAlign& out, cChar* desc) {
 		js_parse(TextAlign, {
 			out = (TextAlign)obj->toUint32Value(worker);
@@ -407,12 +489,6 @@ namespace qk { namespace js {
 			out = (Align)obj->toUint32Value(worker);
 		});
 	}
-
-	// bool TypesParser::parseContentAlign(JSValue* in, ContentAlign& out, cChar* desc) {
-	// 	js_parse(ContentAlign, {
-	// 		out = (ContentAlign)obj->toUint32Value(worker);
-	// 	});
-	// }
 
 	bool TypesParser::parseRepeat(JSValue* in, Repeat& out, cChar* desc) {
 		js_parse(Repeat, {
@@ -437,16 +513,6 @@ namespace qk { namespace js {
 			out = (KeyboardReturnType)obj->toUint32Value(worker);
 		});
 	}
-
-	// bool TypesParser::parseBorder(JSValue* in, Border& out, cChar* desc) {
-	// 	js_parse(Border, {
-	// 		out.width = obj->get(worker, worker->strs()->width())->toNumberValue(worker);
-	// 		out.color.r(obj->get(worker, worker->strs()->r())->toUint32Value(worker));
-	// 		out.color.g(obj->get(worker, worker->strs()->g())->toUint32Value(worker));
-	// 		out.color.b(obj->get(worker, worker->strs()->b())->toUint32Value(worker));
-	// 		out.color.a(obj->get(worker, worker->strs()->a())->toUint32Value(worker));
-	// 	});
-	// }
 
 	bool TypesParser::parseShadow(JSValue* in, Shadow& out, cChar* desc) {
 		js_parse(Shadow, {
@@ -495,7 +561,6 @@ namespace qk { namespace js {
 
 	bool TypesParser::parseCurve(JSValue* in, Curve& out, cChar* desc) {
 		if ( in->isString() ) {
-			Js_Worker();
 			cCurve *out1;
 			if (CURCE.get(in->toStringValue(worker,true), out1)) {
 				out = *out1;
@@ -659,19 +724,12 @@ namespace qk { namespace js {
 		// 	out.value = (TextOverflowEnum)obj->get(worker, worker->strs()->value())->toUint32Value(worker);
 		// });
 	}
-	bool TypesParser::parseTextWhiteSpace(JSValue* in,
-																				TextWhiteSpace& out, cChar* desc) {
+	bool TypesParser::parseTextWhiteSpace(JSValue* in, TextWhiteSpace& out, cChar* desc) {
 		// js_parse(TextWhiteSpace, {
 		// 	out.type = (TextValueType)obj->get(worker, worker->strs()->type())->toUint32Value(worker);
 		// 	out.value = (TextWhiteSpaceEnum)obj->get(worker, worker->strs()->value())->toUint32Value(worker);
 		// });
 	}
-
-	// bool TypesParser::isBase(JSValue* arg) {
-	// 	return arg->InstanceOf(worker, _Base);
-	// }
-
-	// void binding_background(Local<JSObject> exports, Worker* worker);
 
 	class NativeTypes: public Worker {
 	public:

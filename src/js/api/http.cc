@@ -45,11 +45,11 @@ namespace qk { namespace js {
 
 	class WrapHttpClientRequest: public WrapObject {
 	public:
+		typedef HttpClientRequest Type;
 
 		class Delegate: public Object, public HttpClientRequest::Delegate {
 		public:
 			WrapHttpClientRequest* _host;
-
 			String _error;
 			String _write;
 			String _header;
@@ -59,74 +59,67 @@ namespace qk { namespace js {
 			String _timeout;
 			String _abort;
 
-			WrapHttpClientRequest* host() {
-				return _host;
-			}
-
-			Worker* worker() {
-				return _host->worker();
-			}
+			Worker* worker() { return _host->worker(); }
 
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				if ( !_error.isEmpty() ) {
 					HandleScope scope(worker());
 					// CallbackScope cscope(worker());
 					JSValue* arg = worker()->newInstance( error );
-					host()->call( worker()->newStringOneByte(_error), 1, &arg );
+					_host->call( worker()->newStringOneByte(_error), 1, &arg );
 				}
 			}
 			virtual void trigger_http_write(HttpClientRequest* req) {
 				if ( !_write.isEmpty() ) {
 					HandleScope scope(worker());
-					host()->call( worker()->newStringOneByte(_write) );
+					_host->call( worker()->newStringOneByte(_write) );
 				}
 			}
 			virtual void trigger_http_header(HttpClientRequest* req) {
 				if ( !_header.isEmpty() ) {
 					HandleScope scope(worker());
-					host()->call( worker()->newStringOneByte(_header) );
+					_host->call( worker()->newStringOneByte(_header) );
 				}
 			}
-			virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
+			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
 				if ( !_data.isEmpty() ) {
-					HandleScope scope(host()->worker());
+					HandleScope scope(_host->worker());
 					JSValue* arg = worker()->newInstance( std::move(buffer) );
-					host()->call( worker()->newStringOneByte(_data), 1, &arg );
+					_host->call( worker()->newStringOneByte(_data), 1, &arg );
 				}
 			}
 			virtual void trigger_http_end(HttpClientRequest* req) {
 				if ( !_end.isEmpty() ) {
 					HandleScope scope(worker());
-					host()->call( worker()->newStringOneByte(_end) );
+					_host->call( worker()->newStringOneByte(_end) );
 				}
 			}
 			virtual void trigger_http_readystate_change(HttpClientRequest* req) {
 				if ( !_readystate_change.isEmpty() ) {
 					HandleScope scope(worker());
-					host()->call( worker()->newStringOneByte(_readystate_change) );
+					_host->call( worker()->newStringOneByte(_readystate_change) );
 				}
 			}
 			virtual void trigger_http_timeout(HttpClientRequest* req) {
 				if ( !_timeout.isEmpty() ) {
 					HandleScope scope(worker());
-					host()->call( worker()->newStringOneByte(_timeout) );
+					_host->call( worker()->newStringOneByte(_timeout) );
 				}
 			}
 			virtual void trigger_http_abort(HttpClientRequest* req) {
 				if ( !_abort.isEmpty() ) {
 					HandleScope scope(worker());
-					host()->call( worker()->newStringOneByte(_abort) );
+					_host->call( worker()->newStringOneByte(_abort) );
 				}
 			}
-			
 		};
 
-		Delegate* del() {
+		Delegate* getDelegate() {
 			return static_cast<Delegate*>(externalData());
 		}
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
-			Delegate* _del = del();
+			Delegate* _del = getDelegate();
 			if (!_del) {
 				_del = new Delegate();
 				_del->_host = this;
@@ -158,7 +151,7 @@ namespace qk { namespace js {
 		}
 
 		virtual bool removeEventListener(cString& name, int id) {
-			auto _del = del();
+			auto _del = getDelegate();
 			if ( id != -1 || !_del ) return 0;
 
 			if ( name == "Error" ) {
@@ -182,351 +175,313 @@ namespace qk { namespace js {
 			}
 			return true;
 		}
-		
-		static void constructor(FunctionArgs args) {
-			New<WrapHttpClientRequest>(args, new HttpClientRequest());
-		}
-		static void set_method(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isUint32()) {
-				Js_Throw(
-					"* @method setMethod(method)\n"
-					"* @param method {HttpMethod}\n"
-				);
-			}
-			auto arg = args[0]->toUint32Value(worker);
-			HttpMethod method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->set_method(method); }, Error);
-		}
-		static void set_url(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isString()) {
-				Js_Throw(
-					"* @method setUrl(url)\n"
-					"* @param url {String}\n"
-				);
-			}
-			String arg = args[0]->toStringValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->set_url(arg); }, Error);
-		}
-		static void set_save_path(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isString()) {
-				Js_Throw(
-					"* @method setSavePath(path)\n"
-					"* @param path {String}\n"
-				);
-			}
-			String arg = args[0]->toStringValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->set_save_path(arg); }, Error);
-		}
-		static void set_username(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isString()) {
-				Js_Throw(
-					"* @method setUsername(username)\n"
-					"* @param username {String}\n"
-				);
-			}
-			String arg = args[0]->toStringValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->set_username(arg); }, Error);
-		}
-		static void set_password(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1 || ! args[0]->isString()) {
-				Js_Throw(
-					"* @method setPassword(password)\n"
-					"* @param password {String}\n"
-				);
-			}
-			String arg = args[0]->toStringValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->set_password(arg); }, Error);
-		}
-		static void disable_cache(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1) {
-				Js_Throw(
-					"* @method disableCache(disable)\n"
-					"* @param disable {bool}\n"
-				);
-			}
-			bool arg = args[0]->toBooleanValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->disable_cache(arg); }, Error);
-		}
-		static void disable_cookie(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1) {
-				Js_Throw(
-					"* @method disableCookie(disable)\n"
-					"* @param disable {bool}\n"
-				);
-			}
-			bool arg = args[0]->toBooleanValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->disable_cookie(arg); }, Error);
-		}
-		static void disable_send_cookie(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1) {
-				Js_Throw(
-					"* @method disableSendCookie(disable)\n"
-					"* @param disable {bool}\n"
-				);
-			}
-			auto arg = args[0]->toBooleanValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->disable_send_cookie(arg); }, Error);
-		}
-		static void disable_ssl_verify(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1) {
-				Js_Throw(
-					"* @method disableSslVerify(disable)\n"
-					"* @param disable {bool}\n"
-				);
-			}
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({
-				self->disable_ssl_verify(args[0]->toBooleanValue(worker));
-			}, Error);
-		}
-		static void set_request_header(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
-				Js_Throw(
-					"* @method setRequestHeader(header_name, value)\n"
-					"* @param header_name {String} ascii string\n"
-					"* @param value {String}\n"
-				);
-			}
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({
-				self->set_request_header( args[0]->toStringValue(worker,1), args[1]->toStringValue(worker));
-			}, Error);
-		}
-		static void set_form(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
-				Js_Throw(
-					"* @method setForm(form_name, value)\n"
-					"* @param form_name {String}\n"
-					"* @param value {String}\n"
-				);
-			}
-			String form_name = args[0]->toStringValue(worker);
-			String value = args[1]->toStringValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({
-				self->set_form(form_name, value);
-			}, Error);
-		}
-		static void set_upload_file(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
-				Js_Throw(
-					"* @method setUploadFile(form_name, local_path)\n"
-					"* @param form_name {String}\n"
-					"* @param local_path {String}\n"
-				);
-			}
-			String form_name = args[0]->toStringValue(worker);
-			String local_path = args[1]->toStringValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({
-				self->set_upload_file(form_name, local_path);
-			}, Error);
-		}
-		static void clear_request_header(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->clear_request_header(); }, Error);
-		}
-		static void clear_form_data(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->clear_form_data(); }, Error);
-		}
-		static void get_response_header(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString()) {
-				Js_Throw(
-					"* @method getResponseHeader(header_name)\n"
-					"* @param header_name {String}\n"
-					"* @return {String}\n"
-				);
-			}
-			Js_Self(HttpClientRequest);
-			String rv;
-			Js_Try_Catch({
-				rv = self->get_response_header(args[0]->toStringValue(worker,1));
-			}, Error);
-			Js_Return( rv );
-		}
-		static void get_all_response_headers(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			cDict<String, String>* rv;
-			Js_Try_Catch({ rv = &self->get_all_response_headers(); }, Error);
-			Js_Return( *rv );
-		}
-		static void set_keep_alive(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0) {
-				Js_Throw(
-					"* @method setKeepAlive(keep_alive)\n"
-					"* @param keep_alive {bool}\n"
-				);
-			}
-			bool enable = args[0]->toBooleanValue(worker);
-			Js_Self(HttpClientRequest);
-			Js_Try_Catch({ self->set_keep_alive(enable); }, Error);
-		}
-		static void set_timeout(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isNumber()) {
-				Js_Throw(
-					"* @method setTimeout(time)\n"
-					"* @param time {uint} ms\n"
-				);
-			}
-			Js_Self(HttpClientRequest);
-
-			uint64_t time = args[0]->toUint32Value(worker) * 1000;
-
-			Js_Try_Catch({ self->set_timeout(time); }, Error);
-		}
-
-		static void upload_total(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->upload_total() );
-		}
-
-		static void upload_size(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->upload_size() );
-		}
-
-		static void download_total(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->download_total() );
-		}
-
-		static void download_size(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->download_size() );
-		}
-
-		static void ready_state(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->ready_state() );
-		}
-
-		static void status_code(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->status_code() );
-		}
-
-		static void http_response_version(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->http_response_version() );
-		}
-
-		static void url(JSValue* name, PropertyArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			Js_Return( self->url() );
-		}
-
-		static void send(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Self(HttpClientRequest);
-			if (args.length() == 0) {
-				Js_Try_Catch({ self->send(); }, Error);
-			} else {
-				if (args[0]->isString()) {
-					Js_Try_Catch({
-						self->send( args[0]->toStringValue(worker).collapse() );
-					}, Error);
-				}
-				else if ( args[0]->isBuffer() ) {
-					auto buff = args[0]->asBuffer(worker);
-					Js_Try_Catch({ self->send(buff.buffer().copy()); }, Error);
-				}
-				else {
-					Js_Try_Catch({ self->send(); }, Error );
-				}
-			}
-		}
-
-		static void pause(FunctionArgs args) {
-			Js_Self(HttpClientRequest);
-			self->pause();
-		}
-
-		static void resume(FunctionArgs args) {
-			Js_Self(HttpClientRequest);
-			self->resume();
-		}
-
-		static void abort(FunctionArgs args) {
-			Js_Self(HttpClientRequest);
-			self->abort();
-		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			typedef HttpClientRequest NativeHttpClientRequest;
-			typedef WrapHttpClientRequest WrapNativeHttpClientRequest;
-			Js_Define_Class(NativeHttpClientRequest, (JSClass*)0, constructor, {
-				Js_Set_Class_Method(setMethod, set_method);
-				Js_Set_Class_Method(setUrl, set_url);
-				Js_Set_Class_Method(setSavePath, set_save_path);
-				Js_Set_Class_Method(setUsername, set_username);
-				Js_Set_Class_Method(setPassword, set_password);
-				Js_Set_Class_Method(disableCache, disable_cache);
-				Js_Set_Class_Method(disableCookie, disable_cookie);
-				Js_Set_Class_Method(disableSendCookie, disable_send_cookie);
-				Js_Set_Class_Method(disableSslVerify, disable_ssl_verify);
-				Js_Set_Class_Method(setKeepAlive, set_keep_alive);
-				Js_Set_Class_Method(setTimeout, set_timeout);
-				Js_Set_Class_Method(setRequestHeader, set_request_header);
-				Js_Set_Class_Method(setForm, set_form);
-				Js_Set_Class_Method(setUploadFile, set_upload_file);
-				Js_Set_Class_Method(clearRequestHeader, clear_request_header);
-				Js_Set_Class_Method(clearFormData, clear_form_data);
-				Js_Set_Class_Method(getResponseHeader, get_response_header);
-				Js_Set_Class_Method(getAllResponseHeaders, get_all_response_headers);
-				Js_Set_Class_Accessor(uploadTotal, upload_total);
-				Js_Set_Class_Accessor(uploadSize, upload_size);
-				Js_Set_Class_Accessor(downloadTotal, download_total);
-				Js_Set_Class_Accessor(downloadSize, download_size);
-				Js_Set_Class_Accessor(readyState, ready_state);
-				Js_Set_Class_Accessor(statusCode, status_code);
-				Js_Set_Class_Accessor(url, url);
-				Js_Set_Class_Accessor(httpResponseVersion, http_response_version);
-				Js_Set_Class_Method(send, send);
-				Js_Set_Class_Method(pause, pause);
-				Js_Set_Class_Method(resume, resume);
-				Js_Set_Class_Method(abort, abort);
+			Js_Define_Class(HttpClientRequest, 0, {
+				New<WrapHttpClientRequest>(args, new HttpClientRequest());
 			});
+
+			Js_Set_Class_Method(setMethod, {
+				if (args.length() < 1 || !args[0]->isUint32()) {
+					Js_Throw(
+						"* @method setMethod(method)\n"
+						"* @param method {HttpMethod}\n"
+					);
+				}
+				auto arg = args[0]->toUint32Value(worker);
+				HttpMethod method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->set_method(method); }, Error);
+			});
+			
+
+			Js_Set_Class_Method(setUrl, {
+				if (args.length() < 1 || !args[0]->isString()) {
+					Js_Throw(
+						"* @method setUrl(url)\n"
+						"* @param url {String}\n"
+					);
+				}
+				String arg = args[0]->toStringValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->set_url(arg); }, Error);
+			});
+
+			Js_Set_Class_Method(setSavePath, {
+				if (args.length() < 1 || !args[0]->isString()) {
+					Js_Throw(
+						"* @method setSavePath(path)\n"
+						"* @param path {String}\n"
+					);
+				}
+				String arg = args[0]->toStringValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->set_save_path(arg); }, Error);
+			});
+
+			Js_Set_Class_Method(setUsername, {
+				if (args.length() < 1 || !args[0]->isString()) {
+					Js_Throw(
+						"* @method setUsername(username)\n"
+						"* @param username {String}\n"
+					);
+				}
+				String arg = args[0]->toStringValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->set_username(arg); }, Error);
+			});
+
+			Js_Set_Class_Method(setPassword, {
+				if (args.length() < 1 || ! args[0]->isString()) {
+					Js_Throw(
+						"* @method setPassword(password)\n"
+						"* @param password {String}\n"
+					);
+				}
+				String arg = args[0]->toStringValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->set_password(arg); }, Error);
+			});
+
+			Js_Set_Class_Method(disableCache, {
+				if (args.length() < 1) {
+					Js_Throw(
+						"* @method disableCache(disable)\n"
+						"* @param disable {bool}\n"
+					);
+				}
+				bool arg = args[0]->toBooleanValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->disable_cache(arg); }, Error);
+			});
+
+			Js_Set_Class_Method(disableCookie, {
+				if (args.length() < 1) {
+					Js_Throw(
+						"* @method disableCookie(disable)\n"
+						"* @param disable {bool}\n"
+					);
+				}
+				bool arg = args[0]->toBooleanValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->disable_cookie(arg); }, Error);
+			});
+
+			Js_Set_Class_Method(disableSendCookie, {
+				if (args.length() < 1) {
+					Js_Throw(
+						"* @method disableSendCookie(disable)\n"
+						"* @param disable {bool}\n"
+					);
+				}
+				auto arg = args[0]->toBooleanValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->disable_send_cookie(arg); }, Error);
+			});
+
+			Js_Set_Class_Method(disableSslVerify, {
+				if (args.length() < 1) {
+					Js_Throw(
+						"* @method disableSslVerify(disable)\n"
+						"* @param disable {bool}\n"
+					);
+				}
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({
+					self->disable_ssl_verify(args[0]->toBooleanValue(worker));
+				}, Error);
+			});
+
+			Js_Set_Class_Method(setRequestHeader, {
+				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
+					Js_Throw(
+						"* @method setRequestHeader(header_name, value)\n"
+						"* @param header_name {String} ascii string\n"
+						"* @param value {String}\n"
+					);
+				}
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({
+					self->set_request_header( args[0]->toStringValue(worker,1), args[1]->toStringValue(worker));
+				}, Error);
+			});
+
+			Js_Set_Class_Method(setForm, {
+				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
+					Js_Throw(
+						"* @method setForm(form_name, value)\n"
+						"* @param form_name {String}\n"
+						"* @param value {String}\n"
+					);
+				}
+				String form_name = args[0]->toStringValue(worker);
+				String value = args[1]->toStringValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({
+					self->set_form(form_name, value);
+				}, Error);
+			});
+
+			Js_Set_Class_Method(setUploadFile, {
+				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
+					Js_Throw(
+						"* @method setUploadFile(form_name, local_path)\n"
+						"* @param form_name {String}\n"
+						"* @param local_path {String}\n"
+					);
+				}
+				String form_name = args[0]->toStringValue(worker);
+				String local_path = args[1]->toStringValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({
+					self->set_upload_file(form_name, local_path);
+				}, Error);
+			});
+
+			Js_Set_Class_Method(clearRequestHeader, {
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->clear_request_header(); }, Error);
+			});
+
+			Js_Set_Class_Method(clearFormData, {
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->clear_form_data(); }, Error);
+			});
+
+			Js_Set_Class_Method(getResponseHeader, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Throw(
+						"* @method getResponseHeader(header_name)\n"
+						"* @param header_name {String}\n"
+						"* @return {String}\n"
+					);
+				}
+				Js_Self(HttpClientRequest);
+				String rv;
+				Js_Try_Catch({
+					rv = self->get_response_header(args[0]->toStringValue(worker,1));
+				}, Error);
+				Js_Return( rv );
+			});
+
+			typedef cDict<String, String> cDictSS;
+
+			Js_Set_Class_Method(getAllResponseHeaders, {
+				Js_Self(HttpClientRequest);
+				cDictSS* rv;
+				Js_Try_Catch({
+					rv = &self->get_all_response_headers();
+				}, Error);
+				Js_Return( *rv );
+			});
+
+			Js_Set_Class_Method(setKeepAlive, {
+				if (args.length() == 0) {
+					Js_Throw(
+						"* @method setKeepAlive(keep_alive)\n"
+						"* @param keep_alive {bool}\n"
+					);
+				}
+				bool enable = args[0]->toBooleanValue(worker);
+				Js_Self(HttpClientRequest);
+				Js_Try_Catch({ self->set_keep_alive(enable); }, Error);
+			});
+
+			Js_Set_Class_Method(setTimeout, {
+				if (args.length() == 0 || !args[0]->isNumber()) {
+					Js_Throw(
+						"* @method setTimeout(time)\n"
+						"* @param time {uint} ms\n"
+					);
+				}
+				Js_Self(HttpClientRequest);
+
+				uint64_t time = args[0]->toUint32Value(worker) * 1000;
+
+				Js_Try_Catch({ self->set_timeout(time); }, Error);
+			});
+
+			Js_Set_Class_Method(send, {
+				Js_Self(HttpClientRequest);
+				if (args.length() == 0) {
+					Js_Try_Catch({ self->send(); }, Error);
+				} else {
+					if (args[0]->isString()) {
+						Js_Try_Catch({
+							self->send( args[0]->toStringValue(worker).collapse() );
+						}, Error);
+					}
+					else if ( args[0]->isBuffer() ) {
+						auto buff = args[0]->asBuffer(worker);
+						Js_Try_Catch({ self->send(buff.buffer().copy()); }, Error);
+					}
+					else {
+						Js_Try_Catch({ self->send(); }, Error );
+					}
+				}
+			});
+
+			Js_Set_Class_Method(pause, {
+				Js_Self(HttpClientRequest);
+				self->pause();
+			});
+
+			Js_Set_Class_Method(resume, {
+				Js_Self(HttpClientRequest);
+				self->resume();
+			});
+
+			Js_Set_Class_Method(abort, {
+				Js_Self(HttpClientRequest);
+				self->abort();
+			});
+
+			Js_Set_Class_Accessor_Get(uploadTotal, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->upload_total() );
+			});
+
+			Js_Set_Class_Accessor_Get(uploadSize, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->upload_size() );
+			});
+
+			Js_Set_Class_Accessor_Get(downloadTotal, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->download_total() );
+			});
+
+			Js_Set_Class_Accessor_Get(downloadSize, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->download_size() );
+			});
+
+			Js_Set_Class_Accessor_Get(readyState, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->ready_state() );
+			});
+
+			Js_Set_Class_Accessor_Get(statusCode, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->status_code() );
+			});
+
+			Js_Set_Class_Accessor_Get(httpResponseVersion, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->http_response_version() );
+			});
+
+			Js_Set_Class_Accessor_Get(url, {
+				Js_Self(HttpClientRequest);
+				Js_Return( self->url() );
+			});
+
+			cls->exports("NativeHttpClientRequest", exports);
 		}
 	};
 
-	class WrapHttp {
+	class NativeHttp {
 	public:
-
 		static bool get_options(Worker* worker, JSValue* arg, RequestOptions& opt) {
 			Js_Handle_Scope();
 			JSObject* obj = arg->cast<JSObject>();
@@ -633,109 +588,92 @@ namespace qk { namespace js {
 			Js_Return( rev );
 		}
 
-		static void request(FunctionArgs args) {
-			request(args,
-				"* @method request(options[,cb])\n"
-				"* @param options {RequestOptions}\n"
-				"* @param [cb] {Function}\n"
-				"* @return {uint} return req id\n"
-				, false
-			);
-		}
-
-		static void request_stream(FunctionArgs args) {
-			request(args, 
-				"* @method requestStream(options[,cb])\n"
-				"* @param options {RequestOptions}\n"
-				"* @param [cb] {Function}\n"
-				"* @return {uint} return req id\n"
-				, true
-			);
-		}
-
-		static void request_sync(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isObject()) {
-				Js_Throw(
-					"* @method requestSync(url)\n"
-					"* @param url {String}\n"
-					"* @return {Buffer}\n"
-				);
-			}
-
-			RequestOptions opt;
-			if (!get_options(worker, args[0], opt))
-				return;
-
-			Js_Try_Catch({
-				Js_Return( http_request_sync(opt) );
-			}, HttpError);
-		}
-
-		static void abort(FunctionArgs args) {
-			Js_Worker(args);
-			if ( args.length() == 0 || !args[0]->isUint32() ) {
-				Js_Throw(
-					"* @method abort(id)\n"
-					"* @param id {uint} abort id\n"
-				);
-			}
-			http_abort( args[0]->toUint32Value(worker) );
-		}
-
-		static void user_agent(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Return( http_user_agent() );
-		}
-
-		static void set_user_agent(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || ! args[0]->isString()) {
-				Js_Throw("Bad argument");
-			}
-			http_set_user_agent( args[0]->toStringValue(worker) );
-		}
-
-		static void cache_path(FunctionArgs args) {
-			Js_Worker(args);
-			Js_Return( http_cache_path() );
-		}
-
-		static void set_cache_path(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() == 0 || !args[0]->isString()) {
-				Js_Throw(
-					"* @method setCachePath(path)\n"
-					"* @param path {String}\n"
-				);
-			}
-			http_set_cache_path( args[0]->toStringValue(worker) );
-		}
-
-		static void clear_cache(FunctionArgs args) {
-			http_clear_cache();
-		}
-
-		static void clear_cookie(FunctionArgs args) {
-			http_clear_cookie();
-		}
-
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_buffer");
 			WrapHttpClientRequest::binding(exports, worker);
-			// FUNC
-			Js_Set_Method(request, request);
-			Js_Set_Method(requestStream, request_stream);
-			Js_Set_Method(requestSync, request_sync);
-			Js_Set_Method(abort, abort);
-			Js_Set_Method(userAgent, user_agent);
-			Js_Set_Method(setUserAgent, set_user_agent);
-			Js_Set_Method(cachePath, cache_path);
-			Js_Set_Method(setCachePath, set_cache_path);
-			Js_Set_Method(clearCache, clear_cache);
-			Js_Set_Method(clearCookie, clear_cookie);
+
+			Js_Set_Method(request, {
+				request(args,
+					"* @method request(options[,cb])\n"
+					"* @param options {RequestOptions}\n"
+					"* @param [cb] {Function}\n"
+					"* @return {uint} return req id\n"
+					, false
+				);
+			});
+
+			Js_Set_Method(requestStream, {
+				request(args, 
+					"* @method requestStream(options[,cb])\n"
+					"* @param options {RequestOptions}\n"
+					"* @param [cb] {Function}\n"
+					"* @return {uint} return req id\n"
+					, true
+				);
+			});
+
+			Js_Set_Method(requestSync, {
+				if (args.length() == 0 || !args[0]->isObject()) {
+					Js_Throw(
+						"* @method requestSync(url)\n"
+						"* @param url {String}\n"
+						"* @return {Buffer}\n"
+					);
+				}
+
+				RequestOptions opt;
+				if (!get_options(worker, args[0], opt))
+					return;
+
+				Js_Try_Catch({
+					Js_Return( http_request_sync(opt) );
+				}, HttpError);
+			});
+
+			Js_Set_Method(abort, {
+				if ( args.length() == 0 || !args[0]->isUint32() ) {
+					Js_Throw(
+						"* @method abort(id)\n"
+						"* @param id {uint} abort id\n"
+					);
+				}
+				http_abort( args[0]->toUint32Value(worker) );
+			});
+
+			Js_Set_Method(userAgent, {
+				Js_Return( http_user_agent() );
+			});
+
+			Js_Set_Method(setUserAgent, {
+				if (args.length() == 0 || ! args[0]->isString()) {
+					Js_Throw("Bad argument");
+				}
+				http_set_user_agent( args[0]->toStringValue(worker) );
+			});
+
+			Js_Set_Method(cachePath, {
+				Js_Return( http_cache_path() );
+			});
+
+			Js_Set_Method(setCachePath, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Throw(
+						"* @method setCachePath(path)\n"
+						"* @param path {String}\n"
+					);
+				}
+				http_set_cache_path( args[0]->toStringValue(worker) );
+			});
+
+			Js_Set_Method(clearCache, {
+				http_clear_cache();
+			});
+
+			Js_Set_Method(clearCookie, {
+				http_clear_cookie();
+			});
 		}
 	};
 
-	Js_Set_Module(_http, WrapHttp);
+	Js_Set_Module(_http, NativeHttp);
 } }

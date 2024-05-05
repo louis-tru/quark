@@ -53,110 +53,116 @@ namespace qk {
 	{
 	}
 
-	void TextOptions::onTextChange(uint32_t mark, uint32_t type) {
-		_text_flags |= (1 << type);
+	void TextOptions::onTextChange(uint32_t mark, uint32_t type, bool isRt) {
+		auto view = getViewForTextOptions();
+		if (view) {
+			if (isRt) {
+				_text_flags |= (1 << type);
+				mark ? view->mark_layout(mark, true): view->mark(0, true);
+			} else{
+				struct Data { uint32_t mark, type; };
+				view->preRender().async_call([](auto self, auto arg) {
+					auto view = self->getViewForTextOptions();
+					self->_text_flags |= (1 << arg.arg.type);
+					arg.arg.mark ? view->mark_layout(arg.arg.mark, true): view->mark(0, true);
+				}, this, Data{mark,type});
+			}
+		} else {
+			_text_flags |= (1 << type);
+		}
 	}
 
 	View* TextOptions::getViewForTextOptions() {
 		return nullptr;
 	}
 
-	void TextOptions::onTextChange_async(uint32_t mark, uint32_t type) {
-		struct Data { uint32_t mark, type; };
-		getViewForTextOptions()->preRender().async_call([](auto self, auto arg) {
-			self->_text_flags |= (1 << arg.arg.type);
-			auto view = self->getViewForTextOptions();
-			arg.arg.mark ? view->mark_layout(arg.arg.mark): view->mark();
-		}, this, Data{mark,type});
-	}
-
-	void TextOptions::set_text_align(TextAlign value) {
+	void TextOptions::set_text_align(TextAlign value, bool isRt) {
 		if(_text_align != value) {
 			_text_align = value;
-			onTextChange(View::kLayout_Typesetting, 0);
+			onTextChange(View::kLayout_Typesetting, 0, isRt);
 		}
 	}
 
-	void TextOptions::set_text_weight(TextWeight value) {
+	void TextOptions::set_text_weight(TextWeight value, bool isRt) {
 		if (value != _text_weight) {
 			_text_weight = _text_weight_value = value;
-			onTextChange(View::kLayout_Typesetting, 1);
+			onTextChange(View::kLayout_Typesetting, 1, isRt);
 		}
 	}
 
-	void TextOptions::set_text_slant(TextSlant value) {
+	void TextOptions::set_text_slant(TextSlant value, bool isRt) {
 		if (value != _text_slant) {
 			_text_slant = _text_slant_value = value;
-			onTextChange(View::kLayout_None, 2);
+			onTextChange(View::kLayout_None, 2, isRt);
 		}
 	}
 
-	void TextOptions::set_text_decoration(TextDecoration value) {
+	void TextOptions::set_text_decoration(TextDecoration value, bool isRt) {
 		if (value != _text_decoration) {
 			_text_decoration = _text_decoration_value = value;
-			onTextChange(View::kLayout_None, 3);
+			onTextChange(View::kLayout_None, 3, isRt);
 		}
 	}
 
-	void TextOptions::set_text_overflow(TextOverflow value) {
+	void TextOptions::set_text_overflow(TextOverflow value, bool isRt) {
 		if (value != _text_overflow) {
 			_text_overflow = _text_overflow_value = value;
-			onTextChange(View::kLayout_Typesetting, 4);
+			onTextChange(View::kLayout_Typesetting, 4, isRt);
 		}
 	}
 
-	void TextOptions::set_text_white_space(TextWhiteSpace value) {
+	void TextOptions::set_text_white_space(TextWhiteSpace value, bool isRt) {
 		if (value != _text_white_space) {
 			_text_white_space = _text_white_space_value = value;
-			onTextChange(View::kLayout_Typesetting, 5);
+			onTextChange(View::kLayout_Typesetting, 5, isRt);
 		}
 	}
 
-	void TextOptions::set_text_word_break(TextWordBreak value) {
+	void TextOptions::set_text_word_break(TextWordBreak value, bool isRt) {
 		if (value != _text_word_break) {
 			_text_word_break = _text_word_break_value = value;
-			onTextChange(View::kLayout_Typesetting, 6);
+			onTextChange(View::kLayout_Typesetting, 6, isRt);
 		}
 	}
 
-	void TextOptions::set_text_size(TextSize value) {
+	void TextOptions::set_text_size(TextSize value, bool isRt) {
 		if (value != _text_size) {
 			value.value = Qk_MAX(1, value.value);
 			_text_size = value;
-			onTextChange(View::kLayout_Typesetting, 7);
+			onTextChange(View::kLayout_Typesetting, 7, isRt);
 		}
 	}
 
-	void TextOptions::set_text_background_color(TextColor value) {
+	void TextOptions::set_text_background_color(TextColor value, bool isRt) {
 		if (value != _text_background_color) {
 			_text_background_color = value;
-			onTextChange(View::kLayout_None, 8);
+			onTextChange(View::kLayout_None, 8, isRt);
 		}
 	}
 
-	void TextOptions::set_text_color(TextColor value) {
+	void TextOptions::set_text_color(TextColor value, bool isRt) {
 		if (value != _text_color) {
 			_text_color = value;
-			onTextChange(View::kLayout_None, 9);
+			onTextChange(View::kLayout_None, 9, isRt);
 		}
 	}
 
-	void TextOptions::set_text_shadow(TextShadow value) {
+	void TextOptions::set_text_shadow(TextShadow value, bool isRt) {
 		if (value != _text_shadow) {
 			_text_shadow = value;
-			onTextChange(View::kLayout_None, 10);
+			onTextChange(View::kLayout_None, 10, isRt);
 		}
 	}
 
-	void TextOptions::set_text_line_height(TextLineHeight value) {
+	void TextOptions::set_text_line_height(TextLineHeight value, bool isRt) {
 		if (value != _text_line_height) {
 			value.value = Qk_MAX(0, value.value);
 			_text_line_height = value;
-			onTextChange(View::kLayout_Typesetting, 11);
+			onTextChange(View::kLayout_Typesetting, 11, isRt);
 		}
 	}
 
-	void TextOptions::set_text_family(TextFamily value) {
+	void TextOptions::set_text_family(TextFamily value, bool isRt) {
 		if (value != _text_family) {
 			if (!value.value) {
 				auto v = getViewForTextOptions();
@@ -166,7 +172,7 @@ namespace qk {
 			}
 			// After alignment, `_text_family.value` pointers can be read and written atomically
 			_text_family = value;
-			onTextChange(View::kLayout_Typesetting, 12);
+			onTextChange(View::kLayout_Typesetting, 12, isRt);
 		}
 	}
 
@@ -236,7 +242,7 @@ namespace qk {
 		setDefault(this, pool); // set self
 	}
 
-	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t type) {
+	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t type, bool isRt) {
 		auto _opts = this;
 		auto _base_opts = &_default;
 		switch(type) {

@@ -36,63 +36,43 @@ namespace qk { namespace js {
 
 	class WrapStorage {
 	public:
-
-		static void get(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1) {
-				Js_Throw(
-					"* @method get(key)\n"
-					"* @param key {String}\n"
-					"* @return {String}\n"
-				);
-			}
-			Js_Return( storage_get( args[0]->toStringValue(worker)) );
-		}
-
-		static void set(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 2) {
-				Js_Throw(
-					"* @method set(key)\n"
-					"* @param key {String}\n"
-					"* @param value {String}\n"
-				);
-			}
-			storage_set( args[0]->toStringValue(worker), args[1]->toStringValue(worker) );
-		}
-
-		static void remove(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1) {
-				Js_Throw(
-					"* @method del(key)\n"
-					"* @param key {String}\n"
-				);
-			}
-			storage_remove( args[0]->toStringValue(worker) );
-		}
-
-		static void clear(FunctionArgs args) {
-			storage_clear();
-		}
-
-		static void transaction(FunctionArgs args) {
-			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isFunction()) {
-				Js_Throw(
-										"* @method transaction(key)\n"
-										"* @param cb {Function}\n"
-										);
-			}
-			storage_transaction(get_callback_for_none(worker, args[0]));
-		}
-
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Set_Method(get, get);
-			Js_Set_Method(set, set);
-			Js_Set_Method(remove, remove);
-			Js_Set_Method(clear, clear);
-			Js_Set_Method(transaction, transaction);
+
+			Js_Set_Method(get, {
+				if (args.length() < 1) {
+					Js_Throw(
+						"* @method get(key)\n"
+						"* @param key {String}\n"
+						"* @return {String}\n"
+					);
+				}
+				Js_Return( storage_get( args[0]->toStringValue(worker)) );
+			});
+
+			Js_Set_Method(set, {
+				if (args.length() < 2) {
+					Js_Throw(
+						"* @method set(key)\n"
+						"* @param key {String}\n"
+						"* @param value {String}\n"
+					);
+				}
+				storage_set( args[0]->toStringValue(worker), args[1]->toStringValue(worker) );
+			});
+
+			Js_Set_Method(remove, {
+				if (args.length() < 1) {
+					Js_Throw(
+						"* @method del(key)\n"
+						"* @param key {String}\n"
+					);
+				}
+				storage_remove( args[0]->toStringValue(worker) );
+			});
+
+			Js_Set_Method(clear, {
+				storage_clear();
+			});
 		}
 	};
 

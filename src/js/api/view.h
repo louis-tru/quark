@@ -28,23 +28,45 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark__js__api__view__
 #define __quark__js__api__view__
-
 #include "../js_.h"
-#include "../types.h"
+#include "../../ui/view/view.h"
+
+#define Js_IsView(v) isView(worker,v)
+#define Js_IsWindow(v) isWindow(worker,v)
+#define Js_NewView(Type, ...) \
+	auto win = NewCheck(args); \
+	if (win) New<Wrap##Type>(args, View::Make<Type>(win))
+
+#define Js_TextOptions() \
+	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asTextOptions()
+#define Js_ScrollBase() \
+	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asScrollBase()
 
 namespace qk { namespace js {
 
-	class Qk_EXPORT WrapView_Event: public WrapObject {
+	extern uint64_t kView_Typeid;
+	extern uint64_t kWindow_Typeid;
+
+	class Qk_EXPORT WrapUIObject: public WrapObject {
+	public:
+		virtual TextOptions* asTextOptions();
+		virtual ScrollBase*  asScrollBase();
+	};
+
+	class Qk_EXPORT WrapViewObject: public WrapUIObject {
 	public:
 		virtual bool addEventListener(cString& name, cString& func, int id);
 		virtual bool removeEventListener(cString& name, int id);
+		static  Window* NewCheck(FunctionArgs args);
 	};
 
-	void inheritTextFont(JSClass* cls, Worker* worker);
-	void inheritTextLayout(JSClass* cls, Worker* worker);
-	void inheritScroll(JSClass* cls, Worker* worker);
+	bool isView(Worker *worker, JSValue* value);
+	bool isWindow(Worker *worker, JSValue* value);
+	void inheritScrollBase(JSClass* cls, Worker* worker);
 
 } }
 #endif

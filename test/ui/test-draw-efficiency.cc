@@ -32,7 +32,7 @@ public:
 			canvas->drawPath(circle, paint);
 		}
 		canvas->restore();
-		mark();
+		mark(kLayout_None,true);
 	}
 };
 

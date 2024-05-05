@@ -190,29 +190,29 @@ namespace qk {
 		/**
 		 *  can affect the transparency of subviews
 		 */
-		Qk_DEFINE_PROP(float, opacity, Const);
+		Qk_DEFINE_VIEW_PROP(float, opacity, Const);
 
 		/**
 		 * @prop Cursor style
 		*/
-		Qk_DEFINE_PROP(CursorStyle, cursor, Const);
+		Qk_DEFINE_VIEW_PROP(CursorStyle, cursor, Const);
 
 		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any view space
 		*/
-		Qk_DEFINE_PROP(bool, visible, Const);
+		Qk_DEFINE_VIEW_PROP(bool, visible, Const);
 
 		/**
 		 *  这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
-		Qk_DEFINE_PROP(bool, visible_region, ProtectedConst);
+		Qk_DEFINE_PROP_GET(bool, visible_region, ProtectedConst);
 
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
-		Qk_DEFINE_PROP(bool, receive, Const);
+		Qk_DEFINE_VIEW_PROP(bool, receive, Const);
 
 		/**
 		 * keyboard focus view
@@ -220,21 +220,21 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(bool, is_focus, Const);
 
 		/**
-		 * @method Make(...)
+		 * @method Make(Window*, ...)
 		*/
 		template<class T = View, typename... Args>
-		inline T* Make(Args... args) {
-			return static_cast<T*>(static_cast<View*>(new T(args...))->init(_window));
+		static inline T* Make(Window* window, Args... args) {
+			return static_cast<T*>(static_cast<View*>(new T(args...))->init(window));
 		}
 
 		template<class T = View, typename... Args>
 		inline T* prepend_new(Args... args) {
-			return Make<T>(args...)->template prepend_to<T>(this);
+			return Make<T>(_window, args...)->template prepend_to<T>(this);
 		}
 
 		template<class T = View, typename... Args>
 		inline T* append_new(Args... args) {
-			return Make<T>(args...)->template append_to<T>(this);
+			return Make<T>(_window, args...)->template append_to<T>(this);
 		}
 
 		template<class Return = View>
@@ -253,7 +253,9 @@ namespace qk {
 		void destroy() override;
 
 		/**
-		 * @method safe_view() Returns safe self
+		 * Safely use and hold view objects in rendering thread,
+		 * Because view objects may be destroyed at any time on the main thread
+		 * @method safe_view() Returns safe self hold
 		*/
 		Sp<View> safe_view();
 
@@ -602,23 +604,16 @@ namespace qk {
 		virtual void draw(UIRender *render);
 
 		/**
-			* @method async_mark(mark)
-			* @safe Mt
-			*/
-		void async_mark(uint32_t mark = kLayout_None);
-
-		/**
-			* @method async_mark_layout(mark)
-			* @safe Mt
-			*/
-		void async_mark_layout(uint32_t mark);
-
-		/**
 			* @method mark(mark)
-			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		void mark(uint32_t mark = kLayout_None);
+		void mark(uint32_t mark, bool isRt);
+
+		/**
+			* @method mark_layout(mark)
+			* @note Can only be used in rendering threads
+			*/
+		void mark_layout(uint32_t mark, bool isRt);
 
 		/**
 			* @method unmark(mark)
@@ -630,20 +625,13 @@ namespace qk {
 		}
 
 		/**
-			* @method mark_layout(mark)
-			* @safe Rt
-			* @note Can only be used in rendering threads
-			*/
-		void mark_layout(uint32_t mark);
-
-		/**
 		 * @method preRender()
 		*/
 		PreRender& preRender();
 
 	protected:
-		virtual View* init(Window* win);
 		View(); // @constructor
+		virtual View* init(Window* win);
 	private:
 		void set_parent(View *parent); // setting parent view
 		void clear_link(); // Cleaning up associated view information

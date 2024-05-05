@@ -149,6 +149,10 @@ namespace qk {
 		return true;
 	}
 
+	Vec2 Window::surfaceSize() const {
+		return _surfaceRegion.end - _surfaceRegion.origin;
+	}
+
 	void Window::clipRegion(Region clip) {
 		RegionSize re = {
 			Vec2{clip.origin.x(), clip.origin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}

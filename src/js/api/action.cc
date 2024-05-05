@@ -28,52 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./js_.h"
-#include "../_view.h"
-#include "../../hybrid.h"
+#include "./view.h"
+#include "../../ui/action/action.h"
 
-/**
- * @ns qk::js
- */
+namespace qk { namespace js {
 
-Js_BEGIN
-
-/**
- * @class WrapHybrid
- */
-class WrapHybrid: public WrapViewBase {
+	class WrapAction: public WrapObject {
 	public:
-	
-	static void constructor(FunctionArgs args) {
-		Js_ATTACH(args);
-		Js_CHECK_APP();
-		New<WrapHybrid>(args, new Hybrid());
-	}
-	
-	static void text_align(JSString* name, PropertyArgs args) {
-		Js_Worker(args);
-		Js_Self(Hybrid);
-		Js_Return( worker->values()->New(self->text_align()) );
-	}
-	
-	static void set_text_align(JSString* name, JSValue* value, PropertySetArgs args) {
-		Js_Worker(args); UILock lock;
-		js_parse_value(TextAlign, value, "Hybrid.textAlign = %s");
-		Js_Self(Hybrid);
-		self->set_text_align(out);
-	}
-	
-	static void binding(JSObject* exports, Worker* worker) {
-		Js_Define_Class(Hybrid, constructor, {
-			Js_Set_Class_Accessor(textAlign, text_align, set_text_align);
-			WrapViewBase::inheritTextLayout(cls, worker);
-		}, Box);
-		IMPL::js_class(worker)->set_class_alias(Js_Typeid(Hybrid), View::HYBRID);
-	}
-};
+		static void binding(JSObject* exports, Worker* worker) {
+			// TODO ...
+		}
+	};
 
-void binding_hybrid(JSObject* exports, Worker* worker) {
-	WrapHybrid::binding(exports, worker);
-}
+	class NativeAction {
+	public:
+		static void binding(JSObject* exports, Worker* worker) {
+			worker->bindingModule("_types");
+			WrapAction::binding(exports, worker);
+		}
+	};
 
-Js_END
+	Js_Set_Module(_action, NativeAction);
+} }

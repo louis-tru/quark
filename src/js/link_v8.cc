@@ -32,6 +32,7 @@
 #include <libplatform/libplatform.h>
 #include "./types.h"
 #include "../errno.h"
+#include "../util/codec.h"
 
 namespace qk { namespace js {
 	using namespace v8;
@@ -57,7 +58,6 @@ namespace qk { namespace js {
 	template<class T = v8::Value>
 	inline v8::Local<T> Back(JSValue* o) { return *reinterpret_cast<v8::Local<T>*>(&o); }
 
-	// ----------------------------------------------------------------------------------
 
 	class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringResource {
 		String _str;
@@ -471,6 +471,26 @@ namespace qk { namespace js {
 		return source.collapseString();
 	}
 
+	String4 JSValue::toStringValue4(Worker* worker) const {
+		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
+		Qk_ASSERT(!str.IsEmpty());
+		if (!str->Length()) return String4();
+
+		Array<uint32_t> rev(str->Length());
+		Array<uint16_t> source(128);
+		int start = 0, count, revOffset = 0;
+		auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
+
+		while ( (count = str->Write(ISOLATE(worker), *source, start, 128, opts)) ) {
+			auto unicode = codec_decode_form_utf16(source.slice(0, count).buffer());
+			rev.write(*unicode, unicode.length(), revOffset);
+			start += count;
+			revOffset += unicode.length();
+		}
+		rev.reset(revOffset);
+		return rev.collapseString();
+	}
+
 	double JSValue::toNumberValue(Worker* worker) const {
 		return reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker)).ToLocalChecked()->Value();
 	}
@@ -581,7 +601,7 @@ namespace qk { namespace js {
 			SetPrototype(CONTEXT(worker), Back(__proto__)).FromMaybe(false);
 	}
 
-	int JSString::length(Worker* worker) const {
+	int JSString::length() const {
 		return reinterpret_cast<const v8::String*>(this)->Length();
 	}
 	String JSString::value(Worker* worker, bool oneByte) const {
@@ -593,7 +613,7 @@ namespace qk { namespace js {
 	JSString* JSString::Empty(Worker* worker) {
 		return Cast<JSString>(v8::String::Empty(ISOLATE(worker)));
 	}
-	int JSArray::length(Worker* worker) const {
+	int JSArray::length() const {
 		return reinterpret_cast<const v8::Array*>(this)->Length();
 	}
 	double JSDate::valueOf(Worker* worker) const {
@@ -934,14 +954,14 @@ namespace qk { namespace js {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
-	JSString* Worker::newInstance(cString& data) {
+	JSString* Worker::newString(cBuffer& data) {
 		return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), *data,
 																									v8::String::kNormalString, data.length()));
 	}
 
-	JSString* Worker::newStringOneByte(cString& data) {
-		return Cast<JSString>(v8::String::NewExternal(ISOLATE(this),
-																									new V8ExternalOneByteStringResource(data)));
+	JSString* Worker::newInstance(cString& data) {
+		return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), *data,
+																									v8::String::kNormalString, data.length()));
 	}
 
 	JSString* Worker::newInstance(cString2& data) {
@@ -951,74 +971,20 @@ namespace qk { namespace js {
 		).ToLocalChecked());
 	}
 
-	JSArray* Worker::newInstance(const Array<String>& data) {
-		v8::Local<v8::Array> rev = v8::Array::New(ISOLATE(this));
-		{ v8::HandleScope scope(ISOLATE(this));
-			for (int i = 0, e = data.length(); i < e; i++) {
-				v8::Local<v8::Value> value = Back(newInstance(data[i]));
-				rev->Set(i, value);
-			}
+	JSUint8Array* Worker::newInstance(Buffer&& buff) {
+		size_t offset = 0;
+		size_t len = buff.length();
+		v8::Local<v8::ArrayBuffer> ab;
+		if (buff.length()) {
+			size_t len = buff.length();
+			Char* data = buff.collapse();
+			ab = v8::ArrayBuffer::New(ISOLATE(this), data, len, ArrayBufferCreationMode::kInternalized);
+		} else {
+			ab = v8::ArrayBuffer::New(ISOLATE(this), 0);
 		}
-		return Cast<JSArray>(rev);
+		return Cast<JSUint8Array>(v8::Uint8Array::New(ab, offset, len));
 	}
 
-	JSArray* Worker::newInstance(Array<FileStat>&& ls) {
-		v8::Local<v8::Array> rev = v8::Array::New(ISOLATE(this));
-		{ v8::HandleScope scope(ISOLATE(this));
-			for (int i = 0, e = ls.length(); i < e; i++) {
-				v8::Local<v8::Value> value = Back( newInstance(std::move(ls[i])) );
-				rev->Set(CONTEXT(this), i, value).IsJust();
-			}
-		}
-		return Cast<JSArray>(rev);
-	}
-
-	JSObject* Worker::newInstance(const Dict<String, String>& data) {
-		v8::Local<v8::Object> rev = v8::Object::New(ISOLATE(this));
-		{ v8::HandleScope scope(ISOLATE(this));
-			for (auto& i : data) {
-				v8::Local<v8::Value> key = Back(newStringOneByte(i.key));
-				v8::Local<v8::Value> value = Back(newInstance(i.value));
-				rev->Set(key, value);
-			}
-		}
-		return Cast<JSObject>(rev);
-	}
-
-	JSObject* NewDirent(Worker* w, const Dirent& dir) {
-		v8::Local<v8::Object> rev = v8::Object::New(ISOLATE(w));
-		rev->Set(CONTEXT(w), Back(w->strs()->name()), Back(w->newInstance(dir.name))).IsJust();
-		rev->Set(CONTEXT(w), Back(w->strs()->pathname()), Back(w->newInstance(dir.pathname))).IsJust();
-		rev->Set(CONTEXT(w), Back(w->strs()->type()), Back(w->newInstance(dir.type))).IsJust();
-		return Cast<JSObject>(rev);
-	}
-
-	JSObject* Worker::newInstance(const Dirent& dir) {
-		return NewDirent(this, dir);
-	}
-
-	JSArray* Worker::newInstance(Array<Dirent>&& ls) {
-		v8::Local<v8::Array> rev = v8::Array::New(ISOLATE(this));
-		for (int i = 0, e = ls.length(); i < e; i++) {
-			v8::Local<v8::Value> value = Back(NewDirent(this, ls[i]));
-			rev->Set(CONTEXT(this), i, value).IsJust();
-		}
-		return Cast<JSArray>(rev);
-	}
-	JSArrayBuffer* Worker::newArrayBuffer(Char* use_buff, uint32_t len) {
-		return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), use_buff, len));
-	}
-	JSArrayBuffer* Worker::newArrayBuffer(uint32_t len) {
-		return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), len));
-	}
-	JSUint8Array* Worker::newUint8Array(JSArrayBuffer* abuffer, uint32_t offset, uint32_t size) {
-		auto ab2 = Back<v8::ArrayBuffer>(abuffer);
-		offset = Qk_MIN((uint)ab2->ByteLength(), offset);
-		if (size + offset > ab2->ByteLength()) {
-			size = (uint)ab2->ByteLength() - offset;
-		}
-		return Cast<JSUint8Array>(v8::Uint8Array::New(ab2, offset, size));
-	}
 	JSObject* Worker::newObject() {
 		return Cast<JSObject>(v8::Object::New(ISOLATE(this)));
 	}
@@ -1039,10 +1005,26 @@ namespace qk { namespace js {
 		return Cast<JSSet>(v8::Set::New(ISOLATE(this)));
 	}
 
-	JSString* Worker::newString(cBuffer& data) {
-		return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this),
-																									*data, v8::String::kNormalString,
-																									data.length()));
+	JSString* Worker::newStringOneByte(cString& data) {
+		return Cast<JSString>(v8::String::NewExternal(ISOLATE(this),
+																									new V8ExternalOneByteStringResource(data)));
+	}
+
+	JSArrayBuffer* Worker::newArrayBuffer(Char* use_buff, uint32_t len) {
+		return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), use_buff, len));
+	}
+
+	JSArrayBuffer* Worker::newArrayBuffer(uint32_t len) {
+		return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), len));
+	}
+
+	JSUint8Array* Worker::newUint8Array(JSArrayBuffer* abuffer, uint32_t offset, uint32_t size) {
+		auto ab2 = Back<v8::ArrayBuffer>(abuffer);
+		offset = Qk_MIN((uint)ab2->ByteLength(), offset);
+		if (size + offset > ab2->ByteLength()) {
+			size = (uint)ab2->ByteLength() - offset;
+		}
+		return Cast<JSUint8Array>(v8::Uint8Array::New(ab2, offset, size));
 	}
 
 	JSObject* Worker::newRangeError(cChar* errmsg, ...) {
@@ -1079,35 +1061,9 @@ namespace qk { namespace js {
 
 	JSObject* Worker::newInstance(cError& err) {
 		v8::Local<v8::Object> e =
-		v8::Exception::Error( Back<v8::String>(newInstance(err.message())) ).As<v8::Object>();
-		e->Set( Back(strs()->code()), Back(newInstance(err.code())) );
+			v8::Exception::Error(Back<v8::String>(newInstance(err.message()))).As<v8::Object>();
+		e->Set(Back(strs()->Errno()), Back(newInstance(err.code())));
 		return Cast<JSObject>(e);
-	}
-
-	JSObject* Worker::newError(JSObject* value) {
-		v8::Local<v8::Object> v = Back<v8::Object>(value);
-		v8::Local<v8::Value> msg = v->Get( Back(strs()->message()) );
-		v8::Local<v8::Object> e = v8::Exception::Error(msg->ToString(CONTEXT(this)).ToLocalChecked()).As<v8::Object>();
-		v8::Local<v8::Array> names = v->GetPropertyNames(CONTEXT(this)).ToLocalChecked();
-		for (uint32_t i = 0, j = 0; i < names->Length(); i++) {
-			v8::Local<v8::Value> key = names->Get(i);
-			e->Set(key, v->Get(key));
-		}
-		return Cast<JSObject>(e);
-	}
-
-	JSUint8Array* Worker::newInstance(Buffer&& buff) {
-		size_t offset = 0;
-		size_t len = buff.length();
-		v8::Local<v8::ArrayBuffer> ab;
-		if (buff.length()) {
-			size_t len = buff.length();
-			Char* data = buff.collapse();
-			ab = v8::ArrayBuffer::New(ISOLATE(this), data, len, ArrayBufferCreationMode::kInternalized);
-		} else {
-			ab = v8::ArrayBuffer::New(ISOLATE(this), 0);
-		}
-		return Cast<JSUint8Array>(v8::Uint8Array::New(ab, offset, len));
 	}
 
 	void Worker::throwError(JSValue* exception) {

@@ -98,19 +98,10 @@ namespace qk {
 		return view;
 	}
 
-	static void async_mark(BoxFilter *self) {
-		auto view = safe_view(self->view()); // safe get
-		if (view) {
-			view->preRender().async_call([](auto ctx, auto arg) {
-				arg.arg->mark();
-			}, self, view);
-		}
-	}
-
-	static void mark(BoxFilter *self) {
+	static void mark(BoxFilter *self, bool isRt) {
 		auto view = self->view();
 		if (view)
-			view->mark();
+			view->mark(0,isRt);
 	}
 
 	BoxFilter* BoxFilter::safe_filter(BoxFilter *filter) {
@@ -158,7 +149,7 @@ namespace qk {
 			left = nullptr;
 		}
 		if (holder) {
-			holder->mark();
+			holder->mark(0,true);
 		}
 		return left;
 	}
@@ -253,7 +244,7 @@ namespace qk {
 			dest1->_size_x = transition_value(_size_x, to1->_size_x, t);
 			dest1->_size_y = transition_value(_size_y, to1->_size_y, t);
 			dest1->set_source(t < 1.0 ? source(): to1->source());
-			mark(dest1);
+			mark(dest1, true);
 			auto n = next();
 			if (n)
 				dest1->set_next_Rt(n->transition_Rt(dest->next(), to->next(), t));
@@ -261,38 +252,38 @@ namespace qk {
 		return dest;
 	}
 
-	void FillImage::set_repeat(Repeat value) {
+	void FillImage::set_repeat(Repeat value, bool isRt) {
 		if (_repeat != value) {
 			_repeat = value;
-			async_mark(this);
+			mark(this, isRt);
 		}
 	}
 
-	void FillImage::set_position_x(FillPosition value) {
+	void FillImage::set_position_x(FillPosition value, bool isRt) {
 		if (value != _position_x) {
 			_position_x = value;
-			async_mark(this);
+			mark(this, isRt);
 		}
 	}
 
-	void FillImage::set_position_y(FillPosition value) {
+	void FillImage::set_position_y(FillPosition value, bool isRt) {
 		if (value != _position_y) {
 			_position_y = value;
-			async_mark(this);
+			mark(this, isRt);
 		}
 	}
 
-	void FillImage::set_size_x(FillSize value) {
+	void FillImage::set_size_x(FillSize value, bool isRt) {
 		if (value != _size_x) {
 			_size_x = value;
-			async_mark(this);
+			mark(this, isRt);
 		}
 	}
 
-	void FillImage::set_size_y(FillSize value) {
+	void FillImage::set_size_y(FillSize value, bool isRt) {
 		if (value != _size_y) {
 			_size_y = value;
-			async_mark(this);
+			mark(this, isRt);
 		}
 	}
 
@@ -318,30 +309,39 @@ namespace qk {
 		return out;
 	}
 
-	void FillImage::set_src(String src) {
-		auto pool = imgPool();
-		set_source(pool ? pool->get(src): *ImageSource::Make(src));
+	String FillImage::src() const {
+		return ImageSourceHolder::src();
 	}
 
-	void FillImage::set_source(ImageSource* source) {
-		auto h = safe_view(view()); // safe get
-		if (h) {
-			h->window()->preRender().async_call([](auto ctx, auto arg) {
-				ctx->ImageSourceHolder::set_source(arg.arg);
-			}, this, source);
+	ImageSource* FillImage::source() {
+		return ImageSourceHolder::source();
+	}
+
+	void FillImage::set_src(String src, bool isRt) {
+		auto pool = imgPool();
+		set_source(pool ? pool->get(src): *ImageSource::Make(src), isRt);
+	}
+
+	void FillImage::set_source(ImageSource* val, bool isRt) {
+		auto v = safe_view(view()); // safe get
+		if (isRt || !v) {
+			ImageSourceHolder::set_source(val);
 		} else {
-			ImageSourceHolder::set_source(source);
+			Retain(val); // temp retain
+			v->preRender().async_call([](auto self, auto arg) {
+				self->ImageSourceHolder::set_source(arg.arg);
+				Release(arg.arg); // temp release
+			}, this, val);
 		}
 	}
 
 	ImagePool* FillImage::imgPool() {
-		auto app = shared_app();
-		return app ? app->imgPool(): nullptr;
+		return shared_app() ? shared_app()->imgPool(): nullptr;
 	}
 
 	void FillImage::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			async_mark(this);
+			mark(this, false);
 		}
 	}
 
@@ -371,7 +371,7 @@ namespace qk {
 		for (auto i = 0; i < colorLen; i++) {
 			dest1->_colors[i] = transition_value(_colors[i], to1->_colors[i], t);
 		}
-		mark(dest1);
+		mark(dest1, true);
 		auto n = next();
 		if (n)
 			dest1->set_next_Rt(n->transition_Rt(dest->next(), to->next(), t));
@@ -394,11 +394,11 @@ namespace qk {
 		_quadrant = int(angle * 0.0111111111111111111) % 4;
 	}
 
-	void FillGradientLinear::set_angle(float val) {
+	void FillGradientLinear::set_angle(float val, bool isRt) {
 		if (val != _angle) {
 			_angle = val;
 			setRadian();
-			async_mark(this);
+			mark(this, isRt);
 		}
 	}
 
@@ -460,7 +460,7 @@ namespace qk {
 			auto dest1 = static_cast<BoxShadow*>(dest);
 			auto to1 = static_cast<BoxShadow*>(to);
 			dest1->_value = transition_value(_value, to1->_value, t);
-			mark(dest1);
+			mark(dest1, true);
 			auto n = next();
 			if (n)
 				dest1->set_next_Rt(n->transition_Rt(dest->next(), to->next(), t));

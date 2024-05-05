@@ -108,7 +108,7 @@ void Application::openURL(cString& url) {
 
 void Application::sendEmail(cString& recipient,
 														 cString& subject,
-														 cString& cc, cString& bcc, cString& body)
+														 cString& body, cString& cc, cString& bcc)
 {
 	NSString *url = [NSString stringWithFormat:@"mailto:%s?subject=%s&body=%s&cc=%s&bcc=%s",
 		*recipient,*URI::encode(subject, true),*URI::encode(body, true),*cc,*bcc

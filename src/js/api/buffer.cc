@@ -45,90 +45,79 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	class WrapBuffer {
+	class NativeBuffer {
 	public:
-
-		static void fromString(FunctionArgs args) {
-			Js_Worker(args);
-
-			if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
-				Js_Throw(
-					"* @method fromString(str[,encoding])\n"
-					"* @param arg {String}\n"
-					"* @param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
-				);
-			}
-
-			Encoding en = kUTF8_Encoding;
-			JSValue* r;
-
-			if ( args.length() > 1 ) {
-				if ( ! parseEncoding(args, args[1], en) ) return;
-			}
-
-			Js_Return( worker->newUint8Array(args[0]->cast<JSString>(), en) );
-		}
-
-		static void toString(FunctionArgs args) {
-			Js_Worker(args);
-
-			int args_index = 0;
-			if (args.length() < 1 || !args[0]->isUint8Array()) {
-				Js_Throw(
-					"* @method convertString(uint8array,[encoding[,start[,end]]])\n"
-					"* @param uint8array {Uint8Array}\n"
-					"* @param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
-					"* @param [start=0] {uint}\n"
-					"* @param [end] {uint}\n"
-				);
-			}
-
-			JSUint8Array* self = args[args_index++]->cast<JSUint8Array>();
-
-			Encoding encoding = kUTF8_Encoding;
-			int len = self->byteLength(worker);
-			cChar* data = self->weakBuffer(worker).val();
-			uint32_t start = 0;
-			uint32_t end = len;
-
-			if (args.length() > args_index && args[args_index]->isString()) {
-				if ( ! parseEncoding(args, args[args_index], encoding) ) return;
-				args_index++;
-			}
-			if (args.length() > args_index) {
-				start = args[args_index]->toUint32Value(worker);
-				start = Qk_MIN(len, start);
-				args_index++;
-			}
-			if (args.length() > args_index) {
-				end = args[args_index]->toUint32Value(worker);
-				end = Qk_MIN(len, end);
-				args_index++;
-			}
-
-			if ( end <= start ) {
-				Js_Return( JSString::Empty(worker) );
-			}
-
-			switch (encoding) {
-				case kHex_Encoding: // 编码
-				case kBase64_Encoding: {
-					Buffer buff = codec_encode(encoding, WeakBuffer(data + start, end - start).buffer());
-					Js_Return( worker->newStringOneByte(buff.collapseString()) );
-					break;
-				} default: { // 解码to ucs2
-					String2 str( codec_decode_to_uint16(encoding, WeakBuffer(data+start, end - start).buffer()));
-					Js_Return( worker->newInstance(str) );
-					break;
-				}
-			}
-		}
-
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Set_Method(fromString, fromString);
-			Js_Set_Method(toString, toString);
+
+			Js_Set_Method(fromString, {
+				if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
+					Js_Throw(
+						"* @method fromString(str[,encoding])\n"
+						"* @param arg {String}\n"
+						"* @param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
+					);
+				}
+				Encoding en = kUTF8_Encoding;
+				JSValue* r;
+				if ( args.length() > 1 ) {
+					if ( ! parseEncoding(args, args[1], en) ) return;
+				}
+				Js_Return( worker->newUint8Array(args[0]->cast<JSString>(), en) );
+			});
+
+			Js_Set_Method(toString, {
+				int args_index = 0;
+				if (args.length() < 1 || !args[0]->isUint8Array()) {
+					Js_Throw(
+						"* @method convertString(uint8array,[encoding[,start[,end]]])\n"
+						"* @param uint8array {Uint8Array}\n"
+						"* @param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
+						"* @param [start=0] {uint}\n"
+						"* @param [end] {uint}\n"
+					);
+				}
+
+				auto self = args[args_index++]->cast<JSUint8Array>();
+				Encoding encoding = kUTF8_Encoding;
+				int len = self->byteLength(worker);
+				cChar* data = self->weakBuffer(worker).val();
+				uint32_t start = 0;
+				uint32_t end = len;
+
+				if (args.length() > args_index && args[args_index]->isString()) {
+					if ( ! parseEncoding(args, args[args_index], encoding) ) return;
+					args_index++;
+				}
+				if (args.length() > args_index) {
+					start = args[args_index]->toUint32Value(worker);
+					start = Qk_MIN(len, start);
+					args_index++;
+				}
+				if (args.length() > args_index) {
+					end = args[args_index]->toUint32Value(worker);
+					end = Qk_MIN(len, end);
+					args_index++;
+				}
+
+				if ( end <= start ) {
+					Js_Return( JSString::Empty(worker) );
+				}
+
+				switch (encoding) {
+					case kHex_Encoding: // encode
+					case kBase64_Encoding: {
+						Buffer buff = codec_encode(encoding, WeakBuffer(data + start, end - start).buffer());
+						Js_Return( worker->newStringOneByte(buff.collapseString()) );
+						break;
+					} default: { // encode
+						String2 str( codec_decode_to_uint16(encoding, WeakBuffer(data+start, end - start).buffer()));
+						Js_Return( worker->newInstance(str) );
+						break;
+					}
+				}
+			});
 		}
 	};
 
-	Js_Set_Module(_buffer, WrapBuffer);
+	Js_Set_Module(_buffer, NativeBuffer);
 } }

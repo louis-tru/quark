@@ -59,7 +59,7 @@ namespace qk {
 		/**
 		 * @event onState
 		 */
-		Qk_Event(State, Event<ImageSource, State>);
+		Qk_Event(State, Event<ImageSource, State>, Mutex);
 
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri, Const);
@@ -176,7 +176,7 @@ namespace qk {
 	class Qk_EXPORT ImageSourcePool: public Object {
 		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
 	public:
-
+		Qk_DEFINE_PROP_GET(RunLoop*, loop);
 		Qk_DEFINE_PROP_GET(uint32_t, capacity, Const); // Used memory size total
 
 		/**
@@ -219,11 +219,9 @@ namespace qk {
 		};
 		Dict<uint64_t, Member> _sources;
 		Mutex _Mutex;
-		RunLoop *_loop;
 	};
 
 	typedef ImageSourcePool ImagePool;
-
 
 	/**
 	* @class ImageSourceHolder

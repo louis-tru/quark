@@ -42,28 +42,30 @@ namespace qk {
 
 	class Qk_EXPORT TextOptions {
 	public:
-		TextOptions();
-		Qk_DEFINE_PROP(TextAlign, text_align, Const);
-		Qk_DEFINE_PROP(TextWeight, text_weight, Const);
-		Qk_DEFINE_PROP(TextSlant,  text_slant, Const);
-		Qk_DEFINE_PROP(TextDecoration, text_decoration, Const);
-		Qk_DEFINE_PROP(TextOverflow,   text_overflow, Const);
-		Qk_DEFINE_PROP(TextWhiteSpace, text_white_space, Const);
-		Qk_DEFINE_PROP(TextWordBreak,  text_word_break, Const);
-		Qk_DEFINE_PROP(TextSize,  text_size, Const); // TextValueWrap
-		Qk_DEFINE_PROP(TextColor, text_background_color, Const);
-		Qk_DEFINE_PROP(TextColor, text_color, Const);
-		Qk_DEFINE_PROP(TextLineHeight, text_line_height, Const);
-		Qk_DEFINE_PROP(TextShadow, text_shadow, Const);
-		Qk_DEFINE_PROP(TextFamily, text_family, Const);
 		// compute text final props
+		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextWeight, text_weight_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextSlant, text_slant_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextDecoration, text_decoration_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextOverflow, text_overflow_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextWhiteSpace, text_white_space_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextWordBreak, text_word_break_value, Const); // @safe Rt
-		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const); // @safe Rt
+		// props
+		Qk_DEFINE_VIEW_PROP(TextAlign, text_align, Const);
+		Qk_DEFINE_VIEW_PROP(TextWeight, text_weight, Const);
+		Qk_DEFINE_VIEW_PROP(TextSlant,  text_slant, Const);
+		Qk_DEFINE_VIEW_PROP(TextDecoration, text_decoration, Const);
+		Qk_DEFINE_VIEW_PROP(TextOverflow,   text_overflow, Const);
+		Qk_DEFINE_VIEW_PROP(TextWhiteSpace, text_white_space, Const);
+		Qk_DEFINE_VIEW_PROP(TextWordBreak,  text_word_break, Const);
+		Qk_DEFINE_VIEW_PROP(TextSize,  text_size, Const); // TextValueWrap
+		Qk_DEFINE_VIEW_PROP(TextColor, text_background_color, Const);
+		Qk_DEFINE_VIEW_PROP(TextColor, text_color, Const);
+		Qk_DEFINE_VIEW_PROP(TextLineHeight, text_line_height, Const);
+		Qk_DEFINE_VIEW_PROP(TextShadow, text_shadow, Const);
+		Qk_DEFINE_VIEW_PROP(TextFamily, text_family, Const);
+
+		TextOptions();
 
 	protected:
 		/**
@@ -71,19 +73,15 @@ namespace qk {
 		 * @safe Mt
 		 * @note Can only be used in main threads
 		*/
-		virtual void onTextChange(uint32_t mark, uint32_t type);
+		virtual void onTextChange(uint32_t mark, uint32_t type, bool isRt);
 		
 		/**
 		* @method getViewForTextOptions
 		*/
 		virtual View* getViewForTextOptions();
 
-		/**
-		 * @method onTextChange_async
-		*/
-		void onTextChange_async(uint32_t mark, uint32_t type);
+		uint32_t _text_flags;
 
-		uint32_t     _text_flags;
 		friend class TextConfig;
 		friend class DefaultTextOptions;
 	};
@@ -96,11 +94,11 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextConfig*,  base);
 	};
 
-	class Qk_EXPORT DefaultTextOptions: public TextOptions, public TextConfig {
+	class Qk_EXPORT DefaultTextOptions: public Object, public TextOptions, public TextConfig {
 	public:
 		DefaultTextOptions(FontPool *pool);
 	protected:
-		virtual void onTextChange(uint32_t mark, uint32_t type) override;
+		virtual void onTextChange(uint32_t mark, uint32_t type, bool isRt) override;
 		TextOptions _default;
 	};
 

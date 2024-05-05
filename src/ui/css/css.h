@@ -64,9 +64,9 @@ namespace qk {
 		class Property {
 		public:
 			virtual ~Property() = default;
-			virtual void apply(View *view) = 0;
-			virtual void transition(View *view, Property *to, float t) = 0;
-			virtual Property* copy() = 0;
+			virtual void apply(View *view) = 0;// @safe Rt
+			virtual void transition(View *view, Property *to, float t) = 0; // @safe Rt
+			virtual Property* copy() = 0; // @safe Rt
 		};
 		// define props
 		#define _Fun(Enum, Type, Name, From) void set_##Name(Type value);
@@ -83,6 +83,7 @@ namespace qk {
 
 		/**
 		* @method apply style to view
+		* @safe Rt
 		*/
 		void apply(View *view) const;
 
@@ -93,7 +94,7 @@ namespace qk {
 		virtual Window* getWindowForAsyncSet();
 
 	private:
-		void applyTransition(View* view, StyleSheets *to, float y) const;
+		void applyTransition(View* view, StyleSheets *to, float y) const; // @safe Rt
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 
@@ -148,6 +149,13 @@ namespace qk {
 
 	typedef const CStyleSheets cCStyleSheets;
 
+	/**
+	 * 
+	 * When creating new and updating style sheets in an application, 
+	 * it is necessary to lock all window rendering threads `Application::lockAllRenderThreads()`,
+	 * Because the style sheets in the application are shared by all windows.
+	 * @class RootStyleSheets
+	*/
 	class Qk_EXPORT RootStyleSheets: public CStyleSheets {
 	public:
 		RootStyleSheets();
@@ -169,6 +177,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
 
 		CStyleSheetsClass(View *host);
+
 		void set(cArray<String> &name); //!< Calling in the main loop
 		void add(cString &name); //!< Calling in the main loop
 		void remove(cString &name); //!< Calling in the main loop

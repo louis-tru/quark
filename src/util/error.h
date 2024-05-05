@@ -54,7 +54,7 @@ namespace qk {
 		cString& message() const throw();
 		int code() const throw();
 	private:
-		int _code;
+		int _errno;
 		String _msg;
 	};
 

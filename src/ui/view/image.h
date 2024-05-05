@@ -38,8 +38,8 @@ namespace qk {
 
 	class Qk_EXPORT Image: public Box, public ImageSourceHolder {
 	public:
-		Qk_DEFINE_PROP_ACC(String, src, Const);
-		Qk_DEFINE_PROP_ACC(ImageSource*, source);
+		Qk_DEFINE_VIEW_PROP_ACC(String, src, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(ImageSource*, source);
 		virtual ViewType viewType() const override;
 		virtual bool layout_forward(uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
@@ -48,8 +48,6 @@ namespace qk {
 		virtual float solve_layout_content_height(Size &parent_layout_size) override;
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 		virtual ImagePool* imgPool() override;
-	private:
-		Sp<ImageSource> _imageSource_Mt; // @safe Mt
 	};
 }
 #endif

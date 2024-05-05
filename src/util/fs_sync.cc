@@ -41,7 +41,7 @@
 
 namespace qk {
 
-	extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
+	extern void inl__copy_file_stat(uv_stat_t* uv_stat, FileStat* stat);
 	extern int inl__file_flag_mask(int flag);
 
 // ---------------------------------------FileHelper------------------------------------------
@@ -189,7 +189,7 @@ namespace qk {
 		uv_fs_t req;
 		int r = uv_fs_stat(uv_default_loop(), &req, fs_fallback_c(path), nullptr);
 		if (r == 0) {
-			inl__set_file_stat(&stat, &req.statbuf);
+			inl__copy_file_stat(&req.statbuf, &stat);
 		} else {
 			uv_error(r, *path);
 		}

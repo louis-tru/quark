@@ -87,7 +87,7 @@ namespace qk {
 		virtual void trigger_http_error(HttpClientRequest* req, cError& error) {}
 		virtual void trigger_http_write(HttpClientRequest* req) {}
 		virtual void trigger_http_header(HttpClientRequest* req) {}
-		virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {}
+		virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {}
 		virtual void trigger_http_end(HttpClientRequest* req) {}
 		virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
 		virtual void trigger_http_timeout(HttpClientRequest* req) {}

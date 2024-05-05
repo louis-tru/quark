@@ -63,17 +63,13 @@ namespace qk {
 			}
 
 			unmark(kLayout_Typesetting);
-			mark(kRecursive_Visible_Region); // force test region and lines region
+			mark(kRecursive_Visible_Region, true); // force test region and lines region
 
 			// check transform_origin change
 			// solve_origin_value();
 		}
 
 		return true; // complete
-	}
-
-	void Text::onTextChange(uint32_t mark, uint32_t type) {
-		onTextChange_async(mark, type);
 	}
 
 	View* Text::getViewForTextOptions() {

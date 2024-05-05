@@ -43,10 +43,10 @@ namespace qk {
 		*
 		* @method set_translate(val)
 		*/
-	void Transform::set_translate(Vec2 val) {
+	void Transform::set_translate(Vec2 val, bool isRt) {
 		if (_translate != val) {
 			_translate = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -55,10 +55,10 @@ namespace qk {
 		*
 		* @method set_scale(val)
 		*/
-	void Transform::set_scale(Vec2 val) {
+	void Transform::set_scale(Vec2 val, bool isRt) {
 		if (_scale != val) {
 			_scale = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -67,10 +67,10 @@ namespace qk {
 		*
 		* @method set_skew(val)
 		*/
-	void Transform::set_skew(Vec2 val) {
+	void Transform::set_skew(Vec2 val, bool isRt) {
 		if (_skew != val) {
 			_skew = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -79,11 +79,11 @@ namespace qk {
 		*
 		* @method set_rotate_z(val)
 		*/
-	void Transform::set_rotate_z(float val) {
+	void Transform::set_rotate_z(float val, bool isRt) {
 		val *= Qk_PI_RATIO_180;
 		if (_rotate_z != val) {
 			_rotate_z = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -141,10 +141,10 @@ namespace qk {
 		*
 		* @method set_x(val)
 		*/
-	void Transform::set_x(float val) {
+	void Transform::set_x(float val, bool isRt) {
 		if (_translate[0] != val) {
 			_translate[0] = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -154,10 +154,10 @@ namespace qk {
 		*
 		* @method set_y(val)
 		*/
-	void Transform::set_y(float val) {
+	void Transform::set_y(float val, bool isRt) {
 		if (_translate[1] != val) {
 			_translate[1] = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -167,10 +167,10 @@ namespace qk {
 		*
 		* @method set_scale_x(val)
 		*/
-	void Transform::set_scale_x(float val) {
+	void Transform::set_scale_x(float val, bool isRt) {
 		if (_scale[0] != val) {
 			_scale[0] = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -180,10 +180,10 @@ namespace qk {
 		*
 		* @method set_scale_y(val)
 		*/
-	void Transform::set_scale_y(float val) {
+	void Transform::set_scale_y(float val, bool isRt) {
 		if (_scale[1] != val) {
 			_scale[1] = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -193,10 +193,10 @@ namespace qk {
 		*
 		* @method set_skew_x(val)
 		*/
-	void Transform::set_skew_x(float val) {
+	void Transform::set_skew_x(float val, bool isRt) {
 		if (_skew[0] != val) {
 			_skew[0] = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
@@ -206,24 +206,24 @@ namespace qk {
 		*
 		* @method set_skew_y(val)
 		*/
-	void Transform::set_skew_y(float val) {
+	void Transform::set_skew_y(float val, bool isRt) {
 		if (_skew[1] != val) {
 			_skew[1] = val;
-			async_mark(kRecursive_Transform); // mark transform
+			mark(kRecursive_Transform, isRt); // mark transform
 		}
 	}
 
-	void Transform::set_origin_x(BoxOrigin val) {
+	void Transform::set_origin_x(BoxOrigin val, bool isRt) {
 		if (_origin_x != val) {
 			_origin_x = val;
-			async_mark_layout(kTransform_Origin);
+			mark_layout(kTransform_Origin, isRt);
 		}
 	}
 
-	void Transform::set_origin_y(BoxOrigin val) {
+	void Transform::set_origin_y(BoxOrigin val, bool isRt) {
 		if (_origin_y != val) {
 			_origin_y = val;
-			async_mark_layout(kTransform_Origin);
+			mark_layout(kTransform_Origin, isRt);
 		}
 	}
 
@@ -306,7 +306,7 @@ namespace qk {
 		unmark(kTransform_Origin);
 
 		if (old != _origin_value) {
-			mark(kRecursive_Transform);
+			mark(kRecursive_Transform, true);
 		}
 	}
 

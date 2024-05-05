@@ -30,16 +30,16 @@
 
 #include "../../out/native-inl-js.h"
 #include "../../out/native-lib-js.h"
-#include "../util/string.h"
 #include "./js_.h"
-#include "../util/http.h"
-#include "../util/codec.h"
-#include "./types.h"
 #include "../errno.h"
 
 namespace qk {
 	bool is_process_exit();
 	namespace js {
+
+	bool JSValue::isBuffer() const {
+		return isTypedArray() || isArrayBuffer();
+	}
 
 	Buffer JSValue::toBuffer(Worker* worker, Encoding en) const {
 		if (en == Encoding::kUTF16_Encoding) {
@@ -47,14 +47,8 @@ namespace qk {
 			uint32_t len = str.length() * 2;
 			return Buffer((Char*)str.collapse().collapse(), len);
 		} else {
-			//auto source = codec_decode_form_utf16(toStringValue2(worker).array().buffer());
-			//return codec_encode(en, source);
-			return codec_encode(en, toStringValue2(worker));
+			return codec_encode(en, toStringValue4(worker).array().buffer());
 		}
-	}
-
-	bool JSValue::isBuffer() const {
-		return isTypedArray() || isArrayBuffer();
 	}
 
 	WeakBuffer JSValue::asBuffer(Worker *worker) {
@@ -75,7 +69,7 @@ namespace qk {
 			if ( !names )
 				return Maybe<Dict<String, int>>();
 			
-			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
+			for ( uint32_t i = 0, len = names->length(); i < len; i++ ) {
 				JSValue* key = names->get(worker, i);
 				if ( !key )
 					return Maybe<Dict<String, int>>();
@@ -100,7 +94,7 @@ namespace qk {
 			if ( !names )
 				return Maybe<Dict<String, String>>();
 			
-			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
+			for ( uint32_t i = 0, len = names->length(); i < len; i++ ) {
 				auto key = names->get(worker, i);
 				if ( !key ) {
 					return Maybe<Dict<String, String>>();
@@ -115,38 +109,6 @@ namespace qk {
 		return Maybe<Dict<String, String>>(std::move(r));
 	}
 
-	Maybe<JSON> JSObject::toJSON(Worker* worker) {
-		JSON r = JSON::object();
-		
-		if ( isObject() ) {
-			auto names = getPropertyNames(worker);
-			if ( !names )
-				return Maybe<JSON>();
-			
-			for ( uint32_t i = 0, len = names->length(worker); i < len; i++ ) {
-				auto key = names->get(worker, i);
-				if ( !key ) return Maybe<JSON>();
-				auto val = get(worker, key);
-				if ( !val ) return Maybe<JSON>();
-				String key_s = key->toStringValue(worker);
-				if (val->isUint32()) {
-					r[key_s] = val->toUint32Value(worker);
-				} else if (val->isInt32()) {
-					r[key_s] = val->toInt32Value(worker);
-				} else if (val->isNumber()) {
-					r[key_s] = val->toInt32Value(worker);
-				} else if (val->isBoolean()) {
-					r[key_s] = val->toBooleanValue(worker);
-				} else if (val->isNull()) {
-					r[key_s] = JSON::null();
-				} else {
-					r[key_s] = val->toStringValue(worker);
-				}
-			}
-		}
-		return Maybe<JSON>(std::move(r));
-	}
-
 	JSValue* JSObject::getProperty(Worker* worker, cString& name) {
 		return get(worker, worker->newStringOneByte(name)/*One Byte ??*/);
 	}
@@ -154,7 +116,7 @@ namespace qk {
 	Maybe<Array<String>> JSArray::toStringArray(Worker* worker) {
 		Array<String> rv;
 		if ( isArray() ) {
-			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
+			for ( uint32_t i = 0, len = length(); i < len; i++ ) {
 				auto val = get(worker, i);
 				if ( !val )
 					return Maybe<Array<String>>();
@@ -167,7 +129,7 @@ namespace qk {
 	Maybe<Array<double>> JSArray::toNumberArray(Worker* worker) {
 		Array<double> rv;
 		if ( isArray() ) {
-			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
+			for ( uint32_t i = 0, len = length(); i < len; i++ ) {
 				rv.push( get(worker, i)->toNumberValue(worker) );
 			}
 		}
@@ -177,7 +139,7 @@ namespace qk {
 	Maybe<Buffer> JSArray::toBuffer(Worker* worker) {
 		Buffer rv;
 		if ( isArray() ) {
-			for ( uint32_t i = 0, len = length(worker); i < len; i++ ) {
+			for ( uint32_t i = 0, len = length(); i < len; i++ ) {
 				rv.push( get(worker, i)->toInt32Value(worker) );
 			}
 		}
@@ -289,6 +251,7 @@ namespace qk {
 	static Dict<String, NativeModuleLib>* NativeModulesLib = nullptr;
 
 	void Worker::setModule(cString& name, BindingCallback binding, cChar* pathname) {
+		Qk_DEBUG("%s %s", "Worker_Set_Module ", *name);
 		if (!NativeModulesLib) {
 			NativeModulesLib = new Dict<String, NativeModuleLib>();
 		}
@@ -371,7 +334,7 @@ namespace qk {
 	void Worker::init() {
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
-		_strs = new CommonStrings(this);
+		_strs = new Strings(this);
 		_classsinfo = new JsClassInfo(this);
 		Qk_ASSERT(_global->isObject(this));
 		_global->setProperty(this, "global", *_global);
@@ -396,29 +359,65 @@ namespace qk {
 		return newInstance(err);
 	}
 
+	JSObject* Worker::newError(cError& err) {
+		return newInstance(err);
+	}
+
+	JSObject* Worker::newError(JSObject* value) {
+		auto err = newInstance(Error(""));
+		auto names = value->getPropertyNames(this);
+		for (uint32_t i = 0, j = 0; i < names->length(); i++) {
+			auto key = names->get(this, i);
+			err->set(this, key, value->get(this, key));
+		}
+		return err;
+	}
+
+	JSValue* Worker::newInstance(Object* val) {
+		if (!val) {
+			auto wrap = WrapObject::wrap(val);
+			if (wrap)
+				return wrap->that();
+		}
+		return newNull();
+	}
+
 	JSObject* Worker::newInstance(const HttpError& err) {
-		JSObject* rv = newInstance(*static_cast<cError*>(&err));
+		auto rv = newInstance(*static_cast<cError*>(&err));
 		if ( rv ) {
-			if (!rv->set(this, strs()->status(), newInstance(err.status()))) return nullptr;
-			if (!rv->set(this, strs()->url(), newInstance(err.url()))) return nullptr;
-			if (!rv->set(this, strs()->code(), newInstance(err.code()))) return nullptr;
+			if (!rv->set(this, strs()->status(), newInstance(err.status())))
+				return nullptr;
+			if (!rv->set(this, strs()->url(), newInstance(err.url())))
+				return nullptr;
 		}
 		return rv;
 	}
 
-	JSArray* Worker::newInstance(Array<Dirent>& ls) { return newInstance(std::move(ls)); }
-	JSArray* Worker::newInstance(Array<FileStat>& ls) { return newInstance(std::move(ls)); }
-	JSUint8Array* Worker::newInstance(Buffer& buff) { return newInstance(std::move(buff)); }
-	JSObject* Worker::newInstance(FileStat& stat) { return newInstance(std::move(stat)); }
-	JSObject* Worker::newError(cError& err) { return newInstance(err); }
-	JSObject* Worker::newError(const HttpError& err) { return newInstance(err); }
+	JSObject* Worker::newInstance(cDictSS& data) {
+		auto rev = newObject();
+		{ HandleScope scope(this);
+			for (auto& i : data)
+				rev->set(this, newStringOneByte(i.key), newInstance(i.value));
+		}
+		return rev;
+	}
 
-	JSObject* Worker::newInstance(FileStat&& stat) {
-		auto func = _classsinfo->getFunction(Js_Typeid(FileStat));
-		Qk_ASSERT( !func.IsEmpty() );
-		auto r = func->newInstance(this);
-		*WrapObject::wrap<FileStat>(r)->self() = std::move(stat);
-		return r;
+	JSString* Worker::newInstance(cString4& data) {
+		return newInstance(codec_encode_to_utf16(data.array().buffer()).collapseString());
+	}
+
+	JSArray* Worker::newInstance(cArray<String>& data) {
+		auto rev = newArray();
+		{ HandleScope scope(this);
+			for (int i = 0, e = data.length(); i < e; i++) {
+				rev->set(this, i, newInstance(data[i]));
+			}
+		}
+		return rev;
+	}
+
+	JSUint8Array* Worker::newInstance(Buffer& buff) {
+		return newInstance(std::move(buff));
 	}
 
 	JSUint8Array* Worker::newUint8Array(JSString* str, Encoding en) {
@@ -454,8 +453,9 @@ namespace qk {
 
 	// ---------------------------------------------------------------------------------------------
 
-	static JSValue* TriggerEventFromUtil(Worker* worker, cString& name, int argc = 0, JSValue* argv[] = 0)
-	{
+	static JSValue* TriggerEventFromUtil(
+		Worker* worker, cString& name, int argc = 0, JSValue* argv[] = 0
+	) {
 		auto _util = worker->bindingModule("_util")->cast<JSObject>();
 		Qk_ASSERT(_util);
 

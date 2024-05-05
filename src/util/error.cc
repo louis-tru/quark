@@ -34,18 +34,18 @@
 namespace qk {
 
 	Error::Error(const Error& e)
-		: _code(e.code())
+		: _errno(e.code())
 		, _msg(e._msg) {
 	}
 	
-	Error::Error(cChar* msg, ...): _code(ERR_UNKNOWN_ERROR) {
+	Error::Error(cChar* msg, ...): _errno(ERR_UNKNOWN_ERROR) {
 		va_list arg;
 		va_start(arg, msg);
 		_msg = _Str::string_format(msg, arg);
 		va_end(arg);
 	}
 
-	Error::Error(int code, cChar* msg, ...): _code(code) {
+	Error::Error(int code, cChar* msg, ...): _errno(code) {
 		va_list arg;
 		va_start(arg, msg);
 		_msg = _Str::string_format(msg, arg);
@@ -53,12 +53,12 @@ namespace qk {
 	}
 
 	Error::Error(int code, cString& msg)
-		: _code(code)
+		: _errno(code)
 		, _msg(msg) {
 	}
 
 	Error& Error::operator=(const Error& e) {
-		_code = e._code;
+		_errno = e._errno;
 		_msg = e._msg;
 		return *this;
 	}
@@ -68,6 +68,6 @@ namespace qk {
 	}
 
 	int Error::code() const throw() {
-		return _code;
+		return _errno;
 	}
 }

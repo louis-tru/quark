@@ -32,7 +32,7 @@ public:
 		paint.type = Paint::kBitmap_Type;
 		canvas->drawRect({{0},{width}}, paint);
 
-		mark();
+		mark(kLayout_None,true);
 	}
 };
 

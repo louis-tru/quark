@@ -117,8 +117,7 @@ namespace qk {
 		*/
 		void sendEmail(cString& recipient,
 										cString& subject,
-										cString& cc = String(),
-										cString& bcc = String(), cString& body = String());
+										cString& body, cString& cc = String(), cString& bcc = String());
 
 		/**
 		 * Safe lock all window render threads, unlocked after the callback is completed

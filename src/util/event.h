@@ -111,8 +111,8 @@ namespace qk {
 		void off_static(StaticListenerFunc l);
 		void off_for_ctx(void *ctx);
 		void off_shell(EventNoticerBasic* shell);
-		void off(uint32_t id);
-		void off(); // off all
+		void off_for_id(uint32_t id);
+		void off_all(); // off all
 		void trigger_event(Object& event);
 		void add_listener(Listener *l);
 	protected:
@@ -222,7 +222,7 @@ namespace qk {
 		void off(Ctx* ctx) {
 			off_for_ctx(ctx);
 		}
-		
+
 		template<class Ctx>
 		void off( void (*listener)(Event&, Ctx*) ) {
 			off_static((StaticListenerFunc)listener);
@@ -235,6 +235,14 @@ namespace qk {
 		
 		void off(EventNoticer* shell) {
 			off_shell(shell);
+		}
+
+		void off(uint32_t id) {
+			off_for_id(id);
+		}
+
+		void off() {
+			off_all();
 		}
 
 		void trigger() {

@@ -48,7 +48,7 @@ extern JSValue* inl_track_to_jsvalue(const TrackInfo* track, Worker* worker);
 /**
  * @class WrapVideo
  */
-class WrapVideo: public WrapViewBase {
+class WrapVideo: public WrapViewObject {
 	public:
 
 	static void constructor(FunctionArgs args) {

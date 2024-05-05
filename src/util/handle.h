@@ -113,9 +113,9 @@ namespace qk {
 
 		/**
 		 * Directly assigning values without increasing the number of references
-		 * @method unsafe()
+		 * @method uncollapse()
 		 */
-		void unsafe(T* data) {
+		void uncollapse(T* data) {
 			release();
 			_data = data;
 		}

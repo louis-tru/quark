@@ -45,7 +45,6 @@ namespace qk {
 		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 	protected:
-		virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		virtual View* getViewForTextOptions() override;
 	private:
 		Sp<TextLines> _lines;

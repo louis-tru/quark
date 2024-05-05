@@ -158,17 +158,17 @@ namespace qk {
 	{
 	}
 
-	void Flow::set_wrap(Wrap wrap) {
+	void Flow::set_wrap(Wrap wrap, bool isRt) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
-			async_mark_layout(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRt);
 		}
 	}
 
-	void Flow::set_wrap_align(WrapAlign align) {
+	void Flow::set_wrap_align(WrapAlign align, bool isRt) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
-			async_mark_layout(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRt);
 		}
 	}
 

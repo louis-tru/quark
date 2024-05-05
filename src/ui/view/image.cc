@@ -48,7 +48,7 @@ namespace qk {
 
 	float Image::solve_layout_content_width(Size &parent_layout_size) {
 		auto result = Box::solve_layout_content_width(parent_layout_size);
-		auto src = source();
+		auto src = ImageSourceHolder::source(); // Rt
 
 		if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
 			auto v = Box::solve_layout_content_height(parent_layout_size);
@@ -65,7 +65,7 @@ namespace qk {
 
 	float Image::solve_layout_content_height(Size &parent_layout_size) {
 		auto result = Box::solve_layout_content_height(parent_layout_size);
-		auto src = source();
+		auto src = ImageSourceHolder::source(); // Rt
 
 		if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
 			auto v = Box::solve_layout_content_width(parent_layout_size);
@@ -82,9 +82,7 @@ namespace qk {
 
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			window()->preRender().async_call([](auto ctx, auto args){
-				ctx->mark_size(kLayout_Size_Width | kLayout_Size_Height);
-			}, this, 0);
+			mark_size(kLayout_Size_Width | kLayout_Size_Height, false);
 		}
 	}
 
@@ -93,27 +91,26 @@ namespace qk {
 	}
 
 	String Image::src() const {
-		return _imageSource_Mt ? _imageSource_Mt->uri(): String();
+		return ImageSourceHolder::src();
 	}
 
 	ImageSource* Image::source() {
-		return _imageSource_Mt.value();
+		return ImageSourceHolder::source();
 	}
 
-	void Image::set_src(String value) {
-		auto pool = imgPool();
-		set_source(pool ? pool->get(value): *ImageSource::Make(value));
+	void Image::set_src(String val, bool isRt) {
+		set_source(window()->host()->imgPool()->get(val), isRt);
 	}
 
-	void Image::set_source(ImageSource *source) {
-		if (_imageSource_Mt.value() != source) {
-			_imageSource_Mt = source;
-			Retain(source); // temp retain
+	void Image::set_source(ImageSource* val, bool isRt) {
+		if (isRt) {
+			ImageSourceHolder::set_source(val);
+		} else {
+			Retain(val); // temp retain
 			preRender().async_call([](auto self, auto arg) {
 				self->ImageSourceHolder::set_source(arg.arg);
-				Release(arg.arg);
-			}, this, source);
+				Release(arg.arg); // temp release
+			}, this, val);
 		}
 	}
-
 }

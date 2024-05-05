@@ -49,6 +49,16 @@ void test_loop(int argc, char **argv) {
 		delete keep;
 		return 0;
 	}, "test");
+	
+	Object* obj = loop;
+	
+	auto code0 = typeid((RunLoop*)0).hash_code();
+	auto code4 = typeid(*loop).hash_code();
+	auto code3 = typeid((RunLoop*)1).hash_code();
+	auto code1 = typeid(RunLoop).hash_code();
+	auto code5 = typeid(*obj).hash_code();
+	auto code6 = typeid(Object).hash_code();
+	auto code2 = typeid(0).hash_code();
 
 	loop->run();
 

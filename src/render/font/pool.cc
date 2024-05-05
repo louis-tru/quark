@@ -66,7 +66,7 @@ namespace qk {
 	}
 
 	FFID FontPool::defaultFFID() {
-		return *_Default;
+		return _Default;
 	}
 
 	FFID FontPool::getFFID(const Array<String>& familys) {
@@ -93,7 +93,7 @@ namespace qk {
 
 	FFID FontPool::getFFID(cString& familys) {
 		if ( familys.isEmpty() )
-			return *_Default;
+			return _Default;
 		else
 			return getFFID(familys.split(","));
 	}

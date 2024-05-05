@@ -56,8 +56,7 @@ namespace qk { namespace js {
 			Js_Return(id);
 		}
 
-		static void clear_timer(FunctionArgs args) {
-			Js_Worker(args);
+		static void clear_timer(Worker *worker, FunctionArgs args) {
 			if (!args.length() || !args[0]->isUint32()) {
 				Js_Throw(
 					"* @method clearTimer(id)\n"
@@ -67,37 +66,36 @@ namespace qk { namespace js {
 			first_loop()->timer_stop(args[0]->toUint32Value(worker));
 		}
 
-		static void next_tick(FunctionArgs args) {
-			Js_Worker(args);
-			if (!args.length() || !args[0]->isFunction()) {
-				Js_Throw(
-					"* @method nextTick(cb,time[,repeat])\n"
-					"* @param cb {Function}\n"
-				);
-			}
-			first_loop()->next_tick(get_callback_for_none(worker, args[0]));
-		}
-
-		static void set_timer(FunctionArgs args) {
-			timer_(args, -1);
-		}
-
-		static void setTimeout(FunctionArgs args) {
-			timer_(args, 0);
-		}
-
-		static void setInterval(FunctionArgs args) {
-			timer_(args, 0xffffffffffffffu);
-		}
-
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Set_Method(setTimer, set_timer);
-			Js_Set_Method(nextTick, next_tick);
-			Js_Set_Method(clearTimer, clear_timer);
-			Js_Set_Method(setTimeout, setTimeout);
-			Js_Set_Method(setInterval, setInterval);
-			Js_Set_Method(clearTimeout, clear_timer);
-			Js_Set_Method(clearInterval, clear_timer);
+
+			Js_Set_Method(nextTick, {
+				if (!args.length() || !args[0]->isFunction()) {
+					Js_Throw(
+						"* @method nextTick(cb,time[,repeat])\n"
+						"* @param cb {Function}\n"
+					);
+				}
+				first_loop()->next_tick(get_callback_for_none(worker, args[0]));
+			});
+
+			Js_Set_Method(setTimer, {
+				timer_(args, -1);
+			});
+			Js_Set_Method(setTimeout, {
+				timer_(args, 0);
+			});
+			Js_Set_Method(setInterval, {
+				timer_(args, 0xffffffffffffffu);
+			});
+			Js_Set_Method(clearTimer, {
+				clear_timer(worker, args);
+			});
+			Js_Set_Method(clearTimeout, {
+				clear_timer(worker, args);
+			});
+			Js_Set_Method(clearInterval, {
+				clear_timer(worker, args);
+			});
 		}
 	};
 

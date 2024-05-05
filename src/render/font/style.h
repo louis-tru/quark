@@ -78,10 +78,12 @@ namespace qk {
 
 	class Qk_EXPORT FontStyle {
 	public:
-		/*constexpr */FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
-			(Int32::clamp(int(weight), int(TextWeight::kInherit), int(TextWeight::kExtraBlack))) +
-			(Int32::clamp(int(width), int(TextWidth::kUltraCondensed), int(TextWidth::kUltraExpanded)) << 16) +
-			(Int32::clamp(int(slant) - 1, 0, 2) << 24)
+		Qk_DEFINE_PROP_GET(uint32_t, value, Const);
+
+		FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
+			(Uint32::clamp(uint32_t(weight), uint32_t(TextWeight::kInherit), uint32_t(TextWeight::kExtraBlack))) +
+			(Uint32::clamp(uint32_t(width), uint32_t(TextWidth::kUltraCondensed), uint32_t(TextWidth::kUltraExpanded)) << 16) +
+			(Uint32::clamp(uint32_t(slant) - 1u, 0u, 2u) << 24)
 		) {}
 
 		FontStyle(): FontStyle{TextWeight::kDefault, TextWidth::kDefault, TextSlant::kNormal} {}
@@ -93,7 +95,6 @@ namespace qk {
 		TextWeight weight() const { return TextWeight(_value & 0xFFFF); }
 		TextWidth width() const { return TextWidth((_value >> 16) & 0xFF); }
 		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
-		inline int32_t value() const { return _value; }
 
 		static FontStyle Normal() {
 			return FontStyle(TextWeight::kDefault, TextWidth::kDefault, TextSlant::kDefault);
@@ -107,9 +108,6 @@ namespace qk {
 		static FontStyle BoldItalic() {
 			return FontStyle(TextWeight::kBold, TextWidth::kDefault, TextSlant::kItalic );
 		}
-
-	private:
-		int32_t _value;
 	};
 
 	template<> Qk_EXPORT uint64_t Compare<FontStyle>::hashCode(const FontStyle& key);

@@ -45,18 +45,18 @@ namespace qk {
 	public:
 		typedef NonObjectTraits Traits;
 		// define props
-		Qk_DEFINE_PROP(bool, security, Const);
-		Qk_DEFINE_PROP(bool, readonly, Const);
-		Qk_DEFINE_PROP(KeyboardType, type, Const);
-		Qk_DEFINE_PROP(KeyboardReturnType, return_type, Const);
-		Qk_DEFINE_PROP(String4, value_u4, Const);
-		Qk_DEFINE_PROP(String4, placeholder_u4, Const);
-		Qk_DEFINE_PROP(Color, placeholder_color, Const);
-		Qk_DEFINE_PROP(Color, cursor_color, Const);
-		Qk_DEFINE_PROP(uint32_t, max_length, Const);
-		Qk_DEFINE_PROP_ACC(String, value, Const);
-		Qk_DEFINE_PROP_ACC(String, placeholder, Const);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, text_length, Const);
+		Qk_DEFINE_VIEW_PROP(bool, security, Const);
+		Qk_DEFINE_VIEW_PROP(bool, readonly, Const);
+		Qk_DEFINE_VIEW_PROP(KeyboardType, type, Const);
+		Qk_DEFINE_VIEW_PROP(KeyboardReturnType, return_type, Const);
+		Qk_DEFINE_VIEW_PROP(String4, value_u4, Const);
+		Qk_DEFINE_VIEW_PROP(String4, placeholder_u4, Const);
+		Qk_DEFINE_VIEW_PROP(Color, placeholder_color, Const);
+		Qk_DEFINE_VIEW_PROP(Color, cursor_color, Const);
+		Qk_DEFINE_VIEW_PROP(uint32_t, max_length, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(String, value, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(String, placeholder, Const);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, text_length, Const);
 
 		Input();
 		virtual bool is_multiline();
@@ -87,7 +87,6 @@ namespace qk {
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void solve_cursor_offset();
-		virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		virtual View* getViewForTextOptions() override;
 		virtual Vec2 input_text_offset();
 		virtual void set_input_text_offset(Vec2 val);

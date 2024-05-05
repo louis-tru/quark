@@ -33,16 +33,14 @@
 
 #include "../util/util.h"
 #include "../util/error.h"
-#include "../util/json.h"
 #include "../util/dict.h"
-#include "../util/codec.h"
-#include "../util/fs.h"
 #include "../util/http.h"
+#include "../util/codec.h"
 
 // ------------- Js common macro -------------
 
 #define Js_Worker(...)   auto worker = Worker::worker(__VA_ARGS__)
-#define Js_Return(v)     return args.returnValue().set(args.worker()->newInstance(v))
+#define Js_Return(v)     return args.returnValue().set(worker->newInstance((v)))
 #define Js_Return_Null() return args.returnValue().setNull()
 #define Js_Wrap(type)    auto wrap = qk::js::WrapObject::wrap<type>(args.This())
 #define Js_Self(type)    auto self = qk::js::WrapObject::wrap<type>(args.This())->self()
@@ -55,36 +53,37 @@
 #define Js_Try_Catch(block, Error) try block catch(const Error& e) { Js_Throw(e); }
 
 #define Js_Set_Module(name, cls) \
-	Qk_INIT_BLOCK(Js_Set_Module_##name) { \
-		Qk_DEBUG("%s", "Worker_Set_MODULE "#name""); \
+	Qk_INIT_BLOCK(Js_Set_Module_##name) {\
 		qk::js::Worker::setModule(#name, cls::binding, __FILE__); \
 	}
 #define Js_Typeid(t) (typeid(t).hash_code())
-#define Js_Type_Check(T, S)  \
-	while (false) { \
-		*(static_cast<T* volatile*>(0)) = static_cast<S*>(0); \
-	}
+#define Js_Type_Check(T, S) \
+	while (false) { *(static_cast<T* volatile*>(0)) = static_cast<S*>(0); }
+
 // define class macro
-#define Js_New_Class(name, id, base, constructor, block) \
-	struct Attach { static void Callback(WrapObject* o) { \
+#define Js_New_Class(name, id, base, constructor) \
 	static_assert(sizeof(WrapObject)==sizeof(Wrap##name), \
-		"Derived wrap class pairs cannot declare data members"); new(o) Wrap##name(); \
-	}}; \
-	auto cls = worker->newClass(#name, id, constructor, &Attach::Callback, base); \
-	block; ((void)0)
+		"Derived wrap class pairs cannot declare data members"); \
+	auto cls = worker->newClass(#name,id,constructor,([](auto o){new(o) Wrap##name();}),base)
 
-#define Js_Define_Class(name, base, constructor, block) \
-	Js_New_Class(name, Js_Typeid(name), base, constructor, block);\
-	cls->exports(#name, exports)
+#define Js_Define_Class(name, base, constructor) \
+	Js_New_Class(name,Js_Typeid(name),Js_Typeid(base),_Js_Fun(constructor))
 
-#define Js_Set_Class_Method(name, func)      cls->setMemberMethod(#name, func)
-#define Js_Set_Class_Accessor(name, get, ...)cls->setMemberAccessor(#name, get, ##__VA_ARGS__)
-#define Js_Set_Class_Indexed(get, ...)       cls->setMemberIndexedAccessor(get, ##__VA_ARGS__)
-#define Js_Set_Class_Property(name, value)   cls->setMemberProperty(#name, value)
-#define Js_Set_Class_Static_Property(name, value)cls->setStaticProperty(#name, value)
-#define Js_Set_Method(name, func)          exports->setMethod(worker, #name, func)
-#define Js_Set_Accessor(name, get, ...)    exports->setAccessor(worker, #name, get, ##__VA_ARGS__)
-#define Js_Set_Property(name, value)       exports->setProperty(worker, #name, value)
+#define _Js_Fun(f)([](auto args){auto worker=args.worker();f})
+#define _Js_Get(f)([](auto key,auto args){auto worker=args.worker();f})
+#define _Js_Set(f)([](auto key,auto val,auto args){auto worker=args.worker();f})
+
+#define Js_Set_Class_Accessor(name,get,set)  cls->setMemberAccessor(#name,_Js_Get(get),_Js_Set(set))
+#define Js_Set_Class_Accessor_Get(name,get)  cls->setMemberAccessor(#name,_Js_Get(get))
+#define Js_Set_Class_Method(name,func)       cls->setMemberMethod(#name,_Js_Fun(func))
+#define Js_Set_Class_Indexed(get)            cls->setMemberIndexedAccessor(_Js_Get(get))
+#define Js_Set_Class_Indexed_Get(get,set)    cls->setMemberIndexedAccessor(_Js_Get(get),_Js_Set(set))
+#define Js_Set_Class_Property(name,value)    cls->setMemberProperty(#name,value)
+#define Js_Set_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
+#define Js_Set_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(func))
+#define Js_Set_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
+#define Js_Set_Accessor_Get(name,get)        exports->setAccessor(worker,#name,_Js_Get(get))
+#define Js_Set_Property(name, value)         exports->setProperty(worker,#name,value)
 
 namespace qk { namespace js {
 	class Worker;
@@ -92,7 +91,7 @@ namespace qk { namespace js {
 	class JSValue;
 	class JSObject;
 	class TypesParser;
-	class CommonStrings;
+	class Strings;
 	class JsClassInfo;
 	class JSString;
 	class JSNumber;
@@ -261,20 +260,21 @@ namespace qk { namespace js {
 		JSBoolean* toBoolean(Worker* worker) const;
 		String toStringValue(Worker* worker, bool oneByte = false) const; // to string value
 		String2 toStringValue2(Worker* worker) const; // to utf16 string
+		String4 toStringValue4(Worker* worker) const; // to utf32 string
 		bool toBooleanValue(Worker* worker) const;
 		double toNumberValue(Worker* worker) const;
 		int toInt32Value(Worker* worker) const;
 		uint32_t toUint32Value(Worker* worker) const;
-		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
 		Buffer toBuffer(Worker* worker, Encoding en) const;
 		WeakBuffer asBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
+		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
 		template<class T = JSValue>
 		inline T* cast() { return static_cast<T*>(this); }
 	};
 
 	class Qk_EXPORT JSString: public JSValue {
 	public:
-		int length(Worker* worker) const; // utf16 length
+		int length() const; // utf16 length
 		String value(Worker* worker, bool oneByte = false) const; // utf8 string value
 		String2 value2(Worker* worker) const; // utf16 string value
 		static JSString* Empty(Worker* worker);
@@ -303,12 +303,11 @@ namespace qk { namespace js {
 		bool set__Proto__(Worker* worker, JSObject* __proto__); // set __proto__
 		Maybe<Dict<String, int>> toIntegerDict(Worker* worker);
 		Maybe<Dict<String, String>> toStringDict(Worker* worker);
-		Maybe<JSON> toJSON(Worker* worker);
 	};
 
 	class Qk_EXPORT JSArray: public JSObject {
 	public:
-		int length(Worker* worker) const;
+		int length() const;
 		Maybe<Buffer> toBuffer(Worker* worker);
 		Maybe<Array<String>> toStringArray(Worker* worker);
 		Maybe<Array<double>> toNumberArray(Worker* worker);
@@ -418,10 +417,11 @@ namespace qk { namespace js {
 			return args.worker();
 		}
 		static void setModule(cString& name, BindingCallback binding, cChar* pathname);
+		JSValue* bindingModule(cString& name);
 
 		// @prop
 		Qk_DEFINE_PROP_GET(TypesParser*, types, Protected);
-		Qk_DEFINE_PROP_GET(CommonStrings*, strs, Protected);
+		Qk_DEFINE_PROP_GET(Strings*, strs, Protected);
 		Qk_DEFINE_PROP_GET(JsClassInfo*, classsinfo, Protected);
 		Qk_DEFINE_PROP_GET(ThreadID, thread_id, Protected);
 		Qk_DEFINE_PROP_ACC_GET(JSObject*, global);
@@ -430,87 +430,57 @@ namespace qk { namespace js {
 		void reportException(TryCatch* try_catch);
 		void garbageCollection();
 
-		JSValue* bindingModule(cString& name);
-
 		// new instance
-		inline JSValue* newInstance(JSValue* val) { return val; }
+		JSValue*  newInstance(Object* val);
+		JSNumber* newInstance(float val);
+		JSNumber* newInstance(double val);
+		JSBoolean*newInstance(bool val);
+		JSInt32*  newInstance(Char val);
+		JSUint32* newInstance(uint8_t val);
+		JSInt32*  newInstance(int16_t val);
+		JSUint32* newInstance(uint16_t val);
+		JSInt32*  newInstance(int32_t val);
+		JSUint32* newInstance(uint32_t val);
+		JSNumber* newInstance(int64_t val);
+		JSNumber* newInstance(uint64_t val);
+		JSString* newInstance(cString& val);
+		JSString* newInstance(cString2& val);
+		JSString* newInstance(cString4& val);
+		JSObject* newInstance(cError& val);
+		JSObject* newInstance(const HttpError& val);
+		JSArray*  newInstance(cArray<String>& val);
+		JSObject* newInstance(cDictSS& val);
+		JSUint8Array* newInstance(Buffer& val);
+		JSUint8Array* newInstance(Buffer&& val);
 		template <class S>
-		inline S* newInstance(const Persistent<S>& value) {
-			return *value;
-		}
-		JSNumber* newInstance(float data);
-		JSNumber* newInstance(double data);
-		JSBoolean*newInstance(bool data);
-		JSInt32*  newInstance(Char data);
-		JSUint32* newInstance(uint8_t data);
-		JSInt32*  newInstance(int16_t data);
-		JSUint32* newInstance(uint16_t data);
-		JSInt32*  newInstance(int data);
-		JSUint32* newInstance(uint32_t data);
-		JSNumber* newInstance(int64_t data);
-		JSNumber* newInstance(uint64_t data);
-		JSString* newInstance(cString& data);
-		JSString* newInstance(cString2& data);
-		JSObject* newInstance(cError& data);
-		JSObject* newInstance(const HttpError& err);
-		JSArray*  newInstance(cArray<String>& data);
-		JSArray*  newInstance(Array<FileStat>& data);
-		JSArray*  newInstance(Array<FileStat>&& data);
-		JSObject* newInstance(cDict<String, String>& data);
-		JSUint8Array* newInstance(Buffer& buff);
-		JSUint8Array* newInstance(Buffer&& buff);
-		JSObject* newInstance(FileStat& stat);
-		JSObject* newInstance(FileStat&& stat);
-		JSObject* newInstance(const Dirent& dir);
-		JSArray*  newInstance(Array<Dirent>& data);
-		JSArray*  newInstance(Array<Dirent>&& data);
+		inline S* newInstance(const Persistent<S>& val) { return *val; }
 		inline
-		JSBoolean* newInstance(const Bool& v) { return newInstance(v.value); }
-		inline
-		JSNumber*  newInstance(const Float32& v) { return newInstance(v.value); }
-		inline
-		JSNumber*  newInstance(const Float64& v) { return newInstance(v.value); }
-		inline
-		JSInt32*   newInstance(const Int8& v) { return newInstance(v.value); }
-		inline
-		JSUint32*  newInstance(const Uint8& v) { return newInstance(v.value); }
-		inline
-		JSInt32*   newInstance(const Int16& v) { return newInstance(v.value); }
-		inline
-		JSUint32*  newInstance(const Uint16& v) { return newInstance(v.value); }
-		inline
-		JSInt32*   newInstance(const Int32& v) { return newInstance(v.value); }
-		inline
-		JSUint32*  newInstance(const Uint32& v) { return newInstance(v.value); }
-		inline
-		JSNumber*  newInstance(const Int64& v) { return newInstance(v.value); }
-		inline
-		JSNumber*  newInstance(const Uint64& v) { return newInstance(v.value); }
+		JSValue*  newInstance(JSValue* val) { return val; }
 
-		JSObject* newObject();
-		JSString* newString(cBuffer& data);
-		JSString*  newStringOneByte(cString& data);
+		JSValue*      newNull();
+		JSValue*      newUndefined();
+		JSObject*     newObject();
+		JSString*     newString(cBuffer& val);
+		JSArray*      newArray(uint32_t len = 0);
+		JSSet*        newSet();
+		JSString*     newStringOneByte(cString& val);
 		JSArrayBuffer* newArrayBuffer(Char* useBuffer, uint32_t len);
 		JSArrayBuffer* newArrayBuffer(uint32_t len);
 		JSUint8Array* newUint8Array(JSString* str, Encoding enc = Encoding::kUTF8_Encoding);
 		JSUint8Array* newUint8Array(int size, Char fill = 0);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff, uint32_t offset, uint32_t size);
-		JSObject* newRangeError(cChar* errmsg, ...);
-		JSObject* newReferenceError(cChar* errmsg, ...);
-		JSObject* newSyntaxError(cChar* errmsg, ...);
-		JSObject* newTypeError(cChar* errmsg, ...);
-		JSObject* newError(cChar* errmsg, ...);
-		JSObject* newError(cError& err);
-		JSObject* newError(const HttpError& err);
-		JSObject* newError(JSObject* value);
-		JSArray*  newArray(uint32_t len = 0);
-		JSValue*  newNull();
-		JSValue*  newUndefined();
-		JSSet*    newSet();
+		JSObject*     newRangeError(cChar* errmsg, ...);
+		JSObject*     newReferenceError(cChar* errmsg, ...);
+		JSObject*     newSyntaxError(cChar* errmsg, ...);
+		JSObject*     newTypeError(cChar* errmsg, ...);
+		JSObject*     newError(cChar* errmsg, ...);
+		JSObject*     newError(cError& err);
+		JSObject*     newError(JSObject* value);
 
 		void throwError(JSValue* exception);
 		void throwError(cChar* errmsg, ...);
+
 		template<class T>
 		inline bool instanceOf(JSValue* val) { // val instanceOf Js_Typeid(T)
 			return instanceOf(val, Js_Typeid(T));
@@ -583,9 +553,14 @@ namespace qk { namespace js {
 			static_assert(T::Traits::isObject, "Must be object");
 			return static_cast<Wrap<T>*>(unpack(value));
 		}
+		template<class T = WrapObject>
+		static inline T* wrapObject(JSValue *value) {
+			Js_Type_Check(WrapObject, T);
+			return static_cast<T*>(unpack(value));
+		}
 		template<class T>
 		static inline Wrap<T>* wrap(T *object) {
-			return wrap(object, Js_Typeid(T));
+			return wrap(object, Js_Typeid(*object));
 		}
 		template<class T>
 		static inline Wrap<T>* wrap(T *object, uint64_t type_id) {

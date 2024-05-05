@@ -67,7 +67,7 @@ namespace qk {
 		Array<String> _second; // default family names
 		Dict<String, Dict<FontStyle, Sp<Typeface>>> _extFamilies;
 		Dict<uint64_t, Sp<FontFamilys>> _FFIDs;
-		Sp<FontFamilys> _Default;
+		FFID _Default;
 		FontMetrics _MaxMetrics64;
 	};
 

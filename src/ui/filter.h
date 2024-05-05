@@ -76,15 +76,15 @@ namespace qk {
 			FillPosition position_x, position_y;
 			Repeat repeat;
 		};
-		Qk_DEFINE_PROP(FillSize, size_x, Const);
-		Qk_DEFINE_PROP(FillSize, size_y, Const);
-		Qk_DEFINE_PROP(FillPosition, position_x, Const);
-		Qk_DEFINE_PROP(FillPosition, position_y, Const);
-		Qk_DEFINE_PROP(Repeat, repeat, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(String, src, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(ImageSource*, source);
+		Qk_DEFINE_VIEW_PROP(FillSize, size_x, Const);
+		Qk_DEFINE_VIEW_PROP(FillSize, size_y, Const);
+		Qk_DEFINE_VIEW_PROP(FillPosition, position_x, Const);
+		Qk_DEFINE_VIEW_PROP(FillPosition, position_y, Const);
+		Qk_DEFINE_VIEW_PROP(Repeat, repeat, Const);
 
 		FillImage(cString& src, Init init = {});
-		void set_src(String src);
-		void set_source(ImageSource* source);
 		virtual Type type() const override;
 		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
 		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
@@ -109,9 +109,9 @@ namespace qk {
 	class Qk_EXPORT FillGradientLinear: public FillGradient {
 	public:
 		FillGradientLinear(float angle, cArray<float>& pos, cArray<Color4f>& colors);
-		Qk_DEFINE_PROP(float, angle, Const);
-		Qk_DEFINE_PROP_GET(float, radian, Const);
-		Qk_DEFINE_PROP_GET(uint8_t, quadrant, Const);
+		Qk_DEFINE_VIEW_PROP(float, angle, Const);
+		Qk_DEFINE_VIEW_PROP_GET(float, radian, Const);
+		Qk_DEFINE_VIEW_PROP_GET(uint8_t, quadrant, Const);
 		virtual Type type() const override;
 		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
 		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
@@ -129,7 +129,7 @@ namespace qk {
 
 	class Qk_EXPORT BoxShadow: public BoxFilter {
 	public:
-		Qk_DEFINE_PROP(Shadow, value, Const);
+		Qk_DEFINE_VIEW_PROP(Shadow, value, Const);
 		BoxShadow();
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);

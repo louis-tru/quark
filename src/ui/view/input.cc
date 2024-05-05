@@ -179,7 +179,7 @@ namespace qk {
 					}
 					ctx->limit_cursor_in_marked_text();
 					ctx->reset_cursor_twinkle_task_timeout();
-					ctx->mark(kInput_Status);
+					ctx->mark(kInput_Status, true);
 				}
 			}, this, static_cast<KeyEvent*>(&evt)->keycode());
 		}
@@ -188,7 +188,7 @@ namespace qk {
 			_editing = _readonly ? false: true;
 			_cursor_twinkle_status = 0;
 			_flag = kFlag_Normal;
-			mark(kInput_Status);
+			mark(kInput_Status, true);
 			window()->preRender().addtask(this);
 		}
 
@@ -203,7 +203,7 @@ namespace qk {
 				if ( ctx->_marked_text.length() ) {
 					ctx->input_unmark_text(ctx->_marked_text);
 				} else {
-					ctx->mark(kInput_Status);
+					ctx->mark(kInput_Status, true);
 				}
 				ctx->window()->preRender().untask(ctx);
 			}, this, 0);
@@ -517,7 +517,7 @@ namespace qk {
 
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
-			mark(kInput_Status);
+			mark(kInput_Status, true);
 		}
 
 		void limit_cursor_in_marked_text() {
@@ -570,7 +570,7 @@ namespace qk {
 					_value_u4.append( text );
 				}
 				_cursor += text.length();
-				mark_layout(kLayout_Typesetting); // 标记内容变化
+				mark_layout(kLayout_Typesetting, true); // 标记内容变化
 			}
 		}
 
@@ -590,7 +590,7 @@ namespace qk {
 			_cursor += text.length() - _marked_text.length();
 			_cursor = Qk_MAX(_marked_text_idx, _cursor);
 			_marked_text = text;
-			mark_layout(kLayout_Typesetting); // 标记内容变化
+			mark_layout(kLayout_Typesetting, true); // 标记内容变化
 
 			return true;
 		}
@@ -657,11 +657,11 @@ namespace qk {
 		return false;
 	}
 
-	void Input::set_value_u4(String4 val) {
+	void Input::set_value_u4(String4 val, bool isRt) {
 		if (_value_u4 != val) {
 			_value_u4 = val;
-			async_mark_layout(kLayout_Typesetting);
-			set_max_length(_max_length);
+			mark_layout(kLayout_Typesetting, isRt);
+			set_max_length(_max_length, isRt);
 		}
 	}
 
@@ -673,11 +673,11 @@ namespace qk {
 		return String(codec_encode(kUTF8_Encoding, _placeholder_u4.array().buffer()));
 	}
 
-	void Input::set_value(String val) {
+	void Input::set_value(String val, bool isRt) {
 		set_value_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
-	void Input::set_placeholder(String val) {
+	void Input::set_placeholder(String val, bool isRt) {
 		set_placeholder_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
@@ -775,7 +775,7 @@ namespace qk {
 		unmark(kLayout_Typesetting);
 
 		// mark input status change
-		mark(kInput_Status | kRecursive_Visible_Region);
+		mark(kInput_Status | kRecursive_Visible_Region, true);
 		
 		// Qk_DEBUG("_lines->max_width(), _lines->max_height(), %f %f", _lines->max_width(), _lines->max_height());
 
@@ -955,7 +955,7 @@ namespace qk {
 						String4 old = _value_u4;
 						_value_u4 = String4(*old, cursor - count, *old + cursor, int(old.length()) - cursor);
 						_cursor -= count;
-						mark_layout(kLayout_Typesetting); // 标记内容变化
+						mark_layout(kLayout_Typesetting, true); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
 					count = Qk_MIN(int(text_length()) - cursor, count);
@@ -964,7 +964,7 @@ namespace qk {
 						_value_u4 = String4(*old, cursor,
 																*old + cursor + count,
 																old.length() - cursor - count);
-						mark_layout(kLayout_Typesetting); // 标记内容变化
+						mark_layout(kLayout_Typesetting, true); // 标记内容变化
 					}
 				}
 			}
@@ -1032,15 +1032,11 @@ namespace qk {
 		return nullptr;
 	}
 
-	void Input::onTextChange(uint32_t mark, uint32_t type) {
-		onTextChange_async(mark, type);
-	}
-
 	View* Input::getViewForTextOptions() {
 		return this;
 	}
 
-	void Input::set_type(KeyboardType value) {
+	void Input::set_type(KeyboardType value, bool isRt) {
 		if (value != _type) {
 			_type = value;
 			if ( _editing ) {
@@ -1050,7 +1046,7 @@ namespace qk {
 		}
 	}
 
-	void Input::set_return_type(KeyboardReturnType value) {
+	void Input::set_return_type(KeyboardReturnType value, bool isRt) {
 		if (value != _return_type) {
 			_return_type = value;
 			if ( _editing ) {
@@ -1060,33 +1056,33 @@ namespace qk {
 		}
 	}
 
-	void Input::set_placeholder_u4(String4 value) {
+	void Input::set_placeholder_u4(String4 value, bool isRt) {
 		_placeholder_u4 = value;
-		async_mark_layout(kLayout_Typesetting);
+		mark_layout(kLayout_Typesetting, isRt);
 	}
 
-	void Input::set_placeholder_color(Color value) {
+	void Input::set_placeholder_color(Color value, bool isRt) {
 		if (value != _placeholder_color) {
 			_placeholder_color = value;
-			async_mark(kLayout_None);
+			mark(kLayout_None, isRt);
 		}
 	}
 
-	void Input::set_cursor_color(Color value) {
+	void Input::set_cursor_color(Color value, bool isRt) {
 		if (value != _cursor_color) {
 			_cursor_color = value;
-			async_mark(kLayout_None);
+			mark(kLayout_None, isRt);
 		}
 	}
 
-	void Input::set_security(bool value) {
+	void Input::set_security(bool value, bool isRt) {
 		if (_security != value) {
 			_security = value;
-			async_mark_layout(kLayout_Typesetting);
+			mark_layout(kLayout_Typesetting, isRt);
 		}
 	}
 
-	void Input::set_readonly(bool value) {
+	void Input::set_readonly(bool value, bool isRt) {
 		if (_readonly != value) {
 			_readonly = value;
 			preRender().async_call([](auto self, auto arg) {
@@ -1098,18 +1094,18 @@ namespace qk {
 						self->_editing = true;
 					}
 				}
-				self->mark_layout(kInput_Status);
+				self->mark_layout(kInput_Status, true);
 			}, this, value);
 		}
 	}
 
-	void Input::set_max_length(uint32_t value) {
+	void Input::set_max_length(uint32_t value, bool isRt) {
 		_max_length = value;
 		if (_max_length) { // check mx length
 			window()->preRender().async_call([](auto self, auto arg) {
 				if (self->_value_u4.length() > self->_max_length) {
 					self->_value_u4 = self->_value_u4.substr(0, self->_max_length);
-					self->mark_layout(kLayout_Typesetting);
+					self->mark_layout(kLayout_Typesetting, true);
 				}
 			}, this, 0);
 		}

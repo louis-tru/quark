@@ -46,7 +46,7 @@ namespace qk {
 	#define LOOP2 RunLoop* loop = LOOP
 	#define BUFFER_SIZE (1024 * 16) // 16kb
 
-	extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
+	extern void inl__copy_file_stat(uv_stat_t* uv_stat, FileStat* stat);
 	extern int inl__file_flag_mask(int flag);
 
 	// --------------------------------- async -----------------------------------
@@ -144,7 +144,7 @@ namespace qk {
 		Handle<FileReq> handle(FileReq::cast(req));
 		if ( req->result == 0 ) { // ok
 			FileStat stat;
-			inl__set_file_stat(&stat, &req->statbuf);
+			inl__copy_file_stat(&req->statbuf, &stat);
 			async_resolve(handle->cb(), std::move(stat));
 		} else { // err
 			async_err_callback(*handle);

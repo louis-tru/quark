@@ -35,21 +35,22 @@
 
 #include "./js_.h"
 #include "../ui/types.h"
-#include "../render/bezier.h"
 #include "../ui/filter.h"
+#include "../ui/window.h"
+#include "../render/bezier.h"
+#include "../util/fs.h"
 
 namespace qk { namespace js {
 
 	#define Js_Parse_Type(Type, value, desc) Js_Parse_Type2(Type, Type, value, desc)
-	#define Js_Parse_Type2(Type, Name, value, desc) \
+	#define Js_Parse_Type2(Name, Type, value, desc) \
 		Type out; \
-		if ( !worker->values()->parse##Name(value, out, desc)) \
-		{ return; /*Js_Throw("Bad argument.");*/ }
+		if ( !worker->types()->parse##Name(value, out, desc)) return
 
 	#define Js_Throw_Types(value, msg, ...)\
 		worker->types()->throwError(t, msg, ##__VA_ARGS__)
 
-	#define Js_Common_Strings_Each(F)  \
+	#define Js_Strings_Each(F)  \
 		F(global)         F(exports)        F(constructor) \
 		F(console)        F(__proto__)      F(_wrap_external_data) \
 		F(prototype)      F(type)           F(value) \
@@ -61,10 +62,10 @@ namespace qk { namespace js {
 		F(point)          F(end)            F(w) \
 		F(size)           F(color)          F(toJSON) \
 		F(stack)          F(get_path)       F(_cb) \
-		F(code)           F(message)        F(status) \
+		F(message)        F(status)         F(Errno) \
 		F(url)            F(id)             F(startX) \
 		F(startY)         F(force)          F(clickIn) \
-		F(view)           F(_noticer)       F(point1X) \
+		F(view)           F(_data)          F(point1X) \
 		F(point1Y)        F(point2X)        F(point2Y) \
 		F(time)           F(_change_touches)F(name) \
 		F(pathname)       F(styles)         F(sender) \
@@ -72,13 +73,13 @@ namespace qk { namespace js {
 		F(complete)       F(httpVersion)    F(statusCode) \
 		F(responseHeaders) F(Throw)         F(kind) \
 
-	class Qk_EXPORT CommonStrings {
+	class Qk_EXPORT Strings {
 	public:
-		CommonStrings(Worker* worker);
+		Strings(Worker* worker);
 		#define _Fun(name) \
 		public: inline JSValue* name() { return *__##name##__; } \
 		private: Persistent<JSValue> __##name##__;
-		Js_Common_Strings_Each(_Fun);
+		Js_Strings_Each(_Fun);
 		#undef _Fun
 	};
 
@@ -124,16 +125,82 @@ namespace qk { namespace js {
 		F(TextWeight, TextWeight) \
 		F(TextWidth, TextWidth) \
 		F(TextSlant, TextSlant) \
+		F(FontStyle, FontStyle) \
 		F(KeyboardType, KeyboardType) \
 		F(KeyboardReturnType, KeyboardReturnType) \
 		F(CursorStyle, CursorStyle) \
 		F(FindDirection, FindDirection) \
 
+	typedef Window::Options WindowOptions;
+
 	class Qk_EXPORT TypesParser {
 	public:
 		TypesParser(Worker* worker, JSObject* exports);
-		bool isBase(JSValue *arg);
-		void throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
+		inline
+		JSValue* newInstance(Object* val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(double val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(Char val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(uint8_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(int16_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(uint16_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(int64_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(uint64_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(cString2& val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(cString4& val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(const Error& val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(const HttpError& val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(cArray<String>& val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(cDictSS& val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(Buffer& val) { return worker->newInstance(val); }
+		inline
+		JSValue* newInstance(Buffer&& val) { return worker->newInstance(val);}
+		template <class S>
+		inline S* newInstance(const Persistent<S>& value) { return *value; }
+		inline
+		JSValue* newInstance(JSValue* val) { return val; }
+		inline
+		JSValue* newInstance(const Bool& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Float32& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Float64& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Int8& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Uint8& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Int16& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Uint16& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Int32& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Uint32& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Int64& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* newInstance(const Uint64& v) { return worker->newInstance(v.value); }
+		JSValue* newInstance(const Dirent& val);
+		JSValue* newInstance(const FileStat& val);
+		JSValue* newInstance(const Array<Dirent>& val);
+		JSValue* newInstance(const Array<FileStat>& val);
+		bool     isBase(JSValue *arg);
+		void     throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
+		bool     parseWindowOptions(JSValue* in, WindowOptions& out, cChar* desc);
 	#define _Def_Fun(Name, Type) \
 		JSValue* newInstance(const Type& value); \
 		bool parse##Name(JSValue* in, Type& out, cChar* err_msg = 0);
