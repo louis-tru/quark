@@ -653,7 +653,7 @@ namespace qk {
 			for (int i = 0; i < 5001; i++) {
 				num[i] = sqrtf(sqrtf(float(i)));
 			}
-			Qk_DEBUG("sqrt_sqrtf, %ld", qk::time_monotonic() - t);
+			Qk_DEBUG("sqrt_sqrtf, %ld Microsecond", qk::time_monotonic() - t);
 		}
 		if (i > 5000) {
 			return num[5000] * i * 0.0002; // 5000.0

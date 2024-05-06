@@ -290,8 +290,18 @@ namespace qk {
 	}
 
 	bool NotificationBasic::has_noticer(uint32_t name) const {
-		if ( _noticers != nullptr )
-			return _noticers->find(name) != _noticers->end();
+		if ( _noticers )
+			return _noticers->has(name);
+		return false;
+	}
+
+	bool NotificationBasic::has_listener(uint32_t name) const {
+		if ( _noticers) {
+			Basic* basic;
+			if (_noticers->get(name, basic)) {
+				return basic->count();
+			}
+		}
 		return false;
 	}
 

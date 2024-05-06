@@ -231,8 +231,8 @@ namespace qk {
 	}
 
 	void KeyframeAction::append(Action *child) {
-		// Qk_Throw(ERR_ACTION_KEYFRAME_CANNOT_APPEND, "KeyframeAction::append, cannot call append method for keyfrane");
-		Qk_ERR("KeyframeAction::append, cannot call append method for keyfrane");
+		Qk_Throw(ERR_ACTION_KEYFRAME_CANNOT_APPEND, "KeyframeAction::append, cannot call append method for keyframe");
+		// Qk_ERR("KeyframeAction::append, cannot call append method for keyframe");
 	}
 
 }

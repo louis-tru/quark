@@ -39,12 +39,12 @@ namespace qk {
 		Qk_Fatal_Assert(_actions_Rt.length() == 0, "ActionCenter::~ActionCenter stop actions first");
 	}
 
-	void ActionCenter::advance_Rt(uint32_t time) {
+	void ActionCenter::advance_Rt(uint32_t timeMs) {
 		if ( _actions_Rt.length() == 0) return; 
 
 		uint32_t time_span = 0;
 		if (_prevTime_Rt) {  // 0表示还没开始
-			time_span = time - _prevTime_Rt;
+			time_span = timeMs - _prevTime_Rt;
 			if ( time_span > 200 ) {   // 距离上一帧超过200ms重新记时(如应用程序从休眠中恢复)
 				time_span = 200;
 			}
@@ -63,7 +63,7 @@ namespace qk {
 				act._runAdvance = true;
 			}
 		}
-		_prevTime_Rt = time;
+		_prevTime_Rt = timeMs;
 	}
 
 }

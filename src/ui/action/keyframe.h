@@ -95,9 +95,9 @@ namespace qk {
 		bool hasProperty(ViewProp name);
 
 		/**
-		* @method add new frame
+		* @method add new frame to end
 		*/
-		Keyframe* add(uint32_t time, cCurve& curve = EASE);
+		Keyframe* add(uint32_t timeMs, cCurve& curve = EASE);
 
 		/**
 		 * @overwrite
@@ -105,7 +105,7 @@ namespace qk {
 		void clear() override;
 
 	private:
-		virtual void append(Action *child);
+		virtual void append(Action *child) throw(Error);
 		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root);
 		virtual void seek_time_Rt(uint32_t time, Action* root);
 		virtual void seek_before_Rt(uint32_t time, Action* child);

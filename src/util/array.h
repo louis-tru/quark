@@ -91,21 +91,21 @@ namespace qk {
 		Array& operator=(const Array& arr);
 
 		// get ptr
-		      T& operator[](uint32_t index) {
-			Qk_ASSERT(index < _length, "Array access violation.");
+				T& operator[](uint32_t index) {
+			Qk_ASSERT(index < _length, "Array Index Overflow.");
 			return _ptr.val[index];
 		}
 		const T& operator[](uint32_t index) const {
-			Qk_ASSERT(index < _length, "Array access violation.");
+			Qk_ASSERT(index < _length, "Array Index Overflow.");
 			return _ptr.val[index];
 		}
-		      T& at(uint32_t index) { return operator[](index); }
+					T& at(uint32_t index) { return operator[](index); }
 		const T& at(uint32_t index) const { return operator[](index); }
-		      T& lastAt(uint32_t index) { return operator[](_length - index - 1); }
+					T& lastAt(uint32_t index) { return operator[](_length - index - 1); }
 		const T& lastAt(uint32_t index) const { return operator[](_length - index - 1); }
-		      T* operator*()       { return _ptr.val; }
+					T* operator*()       { return _ptr.val; }
 		const T* operator*() const { return _ptr.val; }
-		      T* val      ()       { return _ptr.val; }
+					T* val      ()       { return _ptr.val; }
 		const T* val      () const { return _ptr.val; }
 
 		Array&   push(T&& item);

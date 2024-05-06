@@ -128,9 +128,9 @@ namespace qk { namespace js {
 		Js_Worker(args);
 		if (!args.length() || !Js_IsWindow(args[0])) {
 			Js_Throw("\
-				* Call view constructor() error, param window object no match. \
-				* @constructor(window) \
-				* @param window {Window} \
+				* Call view constructor() error, param window object no match. \n\
+				* @constructor(window) \n\
+				* @param window {Window} \n\
 			"), nullptr;
 		}
 		return WrapObject::wrap<Window>(args[0])->self();

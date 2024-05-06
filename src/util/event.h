@@ -130,6 +130,7 @@ namespace qk {
 		virtual ~NotificationBasic();
 		Basic* get_noticer(uint32_t name, bool no_null = 0);
 		bool has_noticer(uint32_t name) const;
+		bool has_listener(uint32_t name) const;
 		bool is_noticer_none() const;
 		/**
 		 * Listener changes will be notified to this function, such as adding and deleting event listeners
@@ -294,7 +295,11 @@ namespace qk {
 		bool has_noticer(const Name& name) const {
 			return NotificationBasic::has_noticer(name.hashCode());
 		}
-		
+
+		bool has_listener(const Name& name) const {
+			return NotificationBasic::has_listener(name.hashCode());
+		}
+
 		void add_event_listener(const Name& name, Basic::Listener *l) {
 			NotificationBasic::add_event_listener(name.hashCode(), l);
 		}

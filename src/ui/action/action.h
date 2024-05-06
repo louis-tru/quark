@@ -81,19 +81,19 @@ namespace qk {
 		 * @async
 		* @method seek async
 		*/
-		void seek(uint32_t time);
+		void seek(uint32_t timeMs);
 
 		/**
 		 * @async
 		* @method seek_play
 		*/
-		void seek_play(uint32_t time);
+		void seek_play(uint32_t timeMs);
 
 		/**
 		 * @async
 		* @method seek_stop
 		*/
-		void seek_stop(uint32_t time);
+		void seek_stop(uint32_t timeMs);
 
 		/**
 		 * @async
@@ -117,7 +117,7 @@ namespace qk {
 		* @async
 		* @method append child action
 		*/
-		virtual void append(Action *child) = 0;
+		virtual void append(Action *child) throw(Error) = 0;
 
 		/**
 		* @async
@@ -222,7 +222,7 @@ namespace qk {
 		* @method advance_Rt() Action scheduling forward frame
 		* @thread render
 		*/
-		void advance_Rt(uint32_t time);
+		void advance_Rt(uint32_t timeMs);
 
 		friend class Action;
 		friend class PreRender;

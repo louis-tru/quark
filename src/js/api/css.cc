@@ -140,7 +140,7 @@ namespace qk { namespace js {
 				auto val = arg->get(worker, key);
 				if ( !val ) return; // js error
 				if ( !val->isObject() ) {
-					Js_Throw("Bad argument.");
+					Js_Throw("NativeCSS.create() Invalid style sheets object");
 				}
 				auto arr = rss->search( key->toStringValue(worker, true) );
 
@@ -168,10 +168,11 @@ namespace qk { namespace js {
 			WrapStyleSheets::binding(exports, worker);
 
 			Js_Set_Method("create", {
-				Qk_Fatal_Assert(shared_app());
-
+				if ( !shared_app() ) {
+					Js_Throw("Unable to find shared application, need to create application first");
+				}
 				if ( args.length() < 1 || !args[0]->isObject() || args[0]->isNull() ) {
-					Js_Throw("Bad argument.");
+					Js_Throw("NativeCSS.create(Object K/V) Bad argument.");
 				}
 				Js_Handle_Scope();
 

@@ -47,7 +47,9 @@ namespace qk {
 		, _parent(nullptr)
 		, _target(nullptr)
 		, _looped(0)
-	{}
+	{
+		Qk_ASSERT(win);
+	}
 
 	Action::~Action() {
 		Qk_ASSERT( _id == Id() );
