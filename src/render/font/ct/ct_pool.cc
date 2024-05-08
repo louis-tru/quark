@@ -266,11 +266,10 @@ public:
 														: QkCTFontManagerCopyAvailableFontFamilyNames())
 		, fCount(fNames ? int(CFArrayGetCount(fNames.get())) : 0)
 	{
-		initialize();
+		init();
 	}
 
-protected:
-	int onCountFamilies() const override {
+	uint32_t onCountFamilies() const override {
 		return fCount;
 	}
 
@@ -282,15 +281,14 @@ protected:
 		}
 	}
 
-	Typeface* onMatchFamilyStyle(const char familyName[],
-																FontStyle style) const override {
+	Typeface* onMatch(const char familyName[], FontStyle style) const override {
 		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familyName, style);
 		return create_from_desc(desc.get());
 	}
 
-	Typeface* onMatchFamilyStyleCharacter(const char familyName[],
-																				FontStyle style,
-																				Unichar character) const override {
+	Typeface* onMatchCharacter(const char familyName[],
+														FontStyle style,
+														Unichar character) const override {
 		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familyName, style);
 		QkUniqueCFRef<CTFontRef> familyFont(CTFontCreateWithFontDescriptor(desc.get(), 0, nullptr));
 		
@@ -315,7 +313,7 @@ protected:
 		return new Typeface_Mac(std::move(fallbackFont), OpszVariation(), WeakBuffer());
 	}
 
-	Typeface* onMakeFromData(cBuffer& data, int ttcIndex) const override {
+	Typeface* onAddFontFamily(cBuffer& data, int ttcIndex) const override {
 		if (ttcIndex != 0) {
 			return nullptr;
 		}

@@ -178,7 +178,7 @@ namespace qk { namespace js {
 				if (arg->isUint8Array()) {
 					rv = stringify_buffer(o->asBuffer(worker));
 				}
-				else if (worker->types() && worker->types()->isBase(arg)) {
+				else if (worker->types() && worker->types()->isTypesBase(arg)) {
 					_rv->push(Quotes);
 					_rv->push( o->toStringValue(worker) );
 					_rv->push(Quotes);

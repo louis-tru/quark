@@ -57,7 +57,6 @@ CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth);
 class Typeface_Mac: public Typeface {
 public:
 	Typeface_Mac(QkUniqueCFRef<CTFontRef> fontRef, OpszVariation opszVariation, bool isData);
-protected:
 	int onCountGlyphs() const override;
 	int onGetUPEM() const override;
 	int onGetTableTags(FontTableTag tags[]) const override;

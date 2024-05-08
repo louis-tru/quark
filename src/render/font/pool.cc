@@ -36,112 +36,98 @@ namespace qk {
 
 	// ---------------------- F o n t . P o o l --------------------------
 
-	FontPool::FontPool(): _last_65533(0) {}
+	FontPool::FontPool(): _tf65533GlyphID(0) {}
 
-	void FontPool::initialize() {
+	void FontPool::init() {
 		FontStyle style; // default style
 
 		// Find english character set
 		auto tf = match(String(), style);
-		_second.push(tf->getFamilyName());
-		Qk_DEBUG(_second[0]);
+		_defaultFamilyNames.push(tf->getFamilyName());
+
+		Qk_DEBUG("FontPool::init _defaultFamilyNames, %s", *_defaultFamilyNames[0]);
 
 		// Find chinese character set, 楚(26970)
 		auto tf1 = matchCharacter(String(), style, 26970);
 		if (tf1) {
-			_second.push(tf1->getFamilyName());
+			_defaultFamilyNames.push(tf1->getFamilyName());
 			tf1->getMetrics(&_MaxMetrics64, 64);
-			Qk_DEBUG(_second[1]);
+			Qk_DEBUG("FontPool::init _defaultFamilyNames, %s", *_defaultFamilyNames[1]);
 		} else {
-			tf1->getMetrics(&_MaxMetrics64, 64);
+			tf->getMetrics(&_MaxMetrics64, 64);
 		}
+		// find �(65533) character tf
+		_tf65533 = matchCharacter(String(), style, 65533);
+		Qk_ASSERT(_tf65533);
+		Qk_DEBUG("FontPool::init _tf65533, %s", *_tf65533->getFamilyName());
 
-		// find last �(65533)
-		_last = matchCharacter(String(), style, 65533);
-		Qk_ASSERT(_last);
-		Qk_DEBUG(_last->getFamilyName());
-		_last_65533 = _last->unicharToGlyph(65533);
-
-		_Default = getFFID(Array<String>());
+		_tf65533GlyphID = _tf65533->unicharToGlyph(65533);
+		_defaultFontFamilys = getFontFamilys(Array<String>());
 	}
 
-	FFID FontPool::defaultFFID() {
-		return _Default;
+	FFID FontPool::getFontFamilys(cString& familys) {
+		return familys.isEmpty() ? _defaultFontFamilys: getFontFamilys(familys.split(","));
 	}
 
-	FFID FontPool::getFFID(const Array<String>& familys) {
-		Array<String> newFamilys;
+	FFID FontPool::getFontFamilys(cArray<String>& familys) {
 		Hash5381 hash;
-
 		for (auto& i: familys) {
-			String s = i.trim();
-			if ( !s.isEmpty() ) {
-				newFamilys.push(s);
-				hash.updatestr(s);
-			}
+			hash.updatestr(i.trim());
 		}
-
-		auto it = _FFIDs.find(hash.hashCode());
-		if (it != _FFIDs.end()) {
-			return it->value.value();
+		auto it = _fontFamilys.find(hash.hashCode());
+		if (it != _fontFamilys.end()) {
+			return *it->value;
 		}
-
-		FFID id = new FontFamilys(this, newFamilys);
-		_FFIDs[ hash.hashCode() ] = id;
-		return id;
+		return *_fontFamilys.set(hash.hashCode(), new FontFamilys(this, familys));
 	}
 
-	FFID FontPool::getFFID(cString& familys) {
-		if ( familys.isEmpty() )
-			return _Default;
-		else
-			return getFFID(familys.split(","));
-	}
-
-	void FontPool::addFromData(cBuffer& buff) {
+	void FontPool::addFontFamily(cBuffer& buff, cString& alias) {
+		ScopeLock scope(_Mutex);
 		for (int i = 0; ;i++) {
-			auto tf = onMakeFromData(buff, i);
+			auto tf = onAddFontFamily(buff, i);
 			if (!tf)
 				break;
-			String familyName = tf->getFamilyName();
-			auto& family = _extFamilies[familyName];
-			if ( !family.has(tf->fontStyle()) ) {
-				family.set(tf->fontStyle(), tf);
+			_ext.get(tf->getFamilyName()).set(tf->fontStyle(), tf);
+			if (!alias.isEmpty()) {
+				_ext.get(alias).set(tf->fontStyle(), tf);
 			}
 		}
 	}
 
-	const Array<String>& FontPool::second() const {
-		return _second;
+	cArray<String>& FontPool::defaultFamilyNames() const {
+		return _defaultFamilyNames;
 	}
 
-	int FontPool::countFamilies() const {
+	uint32_t FontPool::countFamilies() const {
 		return onCountFamilies();
 	}
 
 	String FontPool::getFamilyName(int index) const {
 		return onGetFamilyName(index);
 	}
-	
-	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) const {
+
+	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) {
 		if (familyName.isEmpty()) {
-			return onMatchFamilyStyle(nullptr, style);
+			return onMatch(nullptr, style);
 		}
-		// find register font family
-		auto it0 = _extFamilies.find(familyName);
-		if (it0 != _extFamilies.end()) {
-			auto it = it0->value.find(style);
-			if (it != it0->value.end())
-				return it->value.value();
-			return it0->value.begin()->value.value();
+		// find extend font family
+		if (_ext.length()) {
+			ScopeLock scope(_Mutex);
+			auto it0 = _ext.find(familyName);
+			if (it0 != _ext.end()) {
+				auto it = it0->value.find(style);
+				if (it != it0->value.end())
+					return it->value.value();
+				return it0->value.begin()->value.value();
+			}
 		}
-		return onMatchFamilyStyle(familyName.c_str(), style);
+		return onMatch(familyName.c_str(), style);
 	}
 
 	Sp<Typeface> FontPool::matchCharacter(cString& familyName, FontStyle style,
 																		 Unichar character) const {
 		cChar* c_familyName = familyName.isEmpty() ? nullptr: familyName.c_str();
-		return onMatchFamilyStyleCharacter(c_familyName, style, character);
+		return onMatchCharacter(c_familyName, style, character);
 	}
 
 }

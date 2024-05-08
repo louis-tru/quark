@@ -167,7 +167,7 @@ namespace qk {
 			if (!value.value) {
 				auto v = getViewForTextOptions();
 				if (v) {
-					value.value = v->window()->fontPool()->defaultFFID();
+					value.value = v->window()->fontPool()->defaultFontFamilys();
 				}
 			}
 			// After alignment, `_text_family.value` pointers can be read and written atomically
@@ -211,7 +211,7 @@ namespace qk {
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 9, Color(0, 0, 0));
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Shadow, text_shadow, 10, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 11, 0);
-			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->defaultFFID()));
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->defaultFontFamilys()));
 		}
 	}
 
@@ -236,7 +236,7 @@ namespace qk {
 			opts->set_text_size({16, TextValueKind::kValue});
 			opts->set_text_line_height({0, TextValueKind::kDefault});
 			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::kValue});
-			opts->set_text_family({pool->defaultFFID(), TextValueKind::kValue});
+			opts->set_text_family({pool->defaultFontFamilys(), TextValueKind::kValue});
 		};
 		setDefault(&_default, pool); // set base
 		setDefault(this, pool); // set self
@@ -282,7 +282,7 @@ namespace qk {
 				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 11, 0);
 				break;
 			case 12:
-				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->defaultFFID()));
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(FFID, text_family, 12, (_base_opts->_text_family.value->pool()->defaultFontFamilys()));
 				break;
 		}
 		_text_flags = 0; // clear flags

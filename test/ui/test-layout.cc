@@ -165,7 +165,9 @@ void layout(Event<>& evt, Application* app) {
 	auto win = Window::Make({.msaa=1});
 	win->activate();
 	app->screen()->set_status_bar_style(Screen::STATUS_BAR_STYLE_BLACK);
-	app->defaultTextOptions()->set_text_family({ app->fontPool()->getFFID("Helvetica, PingFang SC") });
+	app->defaultTextOptions()->set_text_family({
+		app->fontPool()->getFontFamilys("Helvetica, PingFang SC")
+	});
 
 	auto r = win->root();
 	auto flex = r->append_new<Flex>();

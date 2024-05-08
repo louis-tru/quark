@@ -31,6 +31,7 @@
 			'api/console.cc',
 			'api/css.cc',
 			'api/event.cc',
+			'api/font.cc',
 			'api/fs_path.cc',
 			'api/fs_reader.cc',
 			'api/fs.cc',

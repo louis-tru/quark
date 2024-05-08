@@ -731,8 +731,7 @@ namespace qk {
 	ArrayString<T, A>::split(const ArrayString& sp) const {
 		Array<ArrayString<T, A>> r;
 		int splen = sp.length();
-		int prev = 0;
-		int index = 0;
+		int prev = 0, index = 0;
 		while ((index = indexOf(sp, prev)) != -1) {
 			// printf("A,index=%d,prev=%d\n", index, prev);
 			r.push(substring(prev, index));

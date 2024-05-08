@@ -40,35 +40,33 @@ namespace qk {
 	public:
 		static FontPool* Make();
 		// define ptops
-		Qk_DEFINE_PROP_ACC_GET(int32_t, countFamilies, Const);
-		Qk_DEFINE_PROP_ACC_GET(const Array<String>&, second, Const);
-		Qk_DEFINE_PROP_GET(Sp<Typeface>, last);
-		Qk_DEFINE_PROP_GET(GlyphID, last_65533, Const);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, countFamilies, Const);
+		Qk_DEFINE_PROP_ACC_GET(cArray<String>&, defaultFamilyNames, Const);
+		Qk_DEFINE_PROP_GET(Sp<Typeface>, tf65533);
+		Qk_DEFINE_PROP_GET(GlyphID, tf65533GlyphID, Const);
+		Qk_DEFINE_PROP_GET(FFID, defaultFontFamilys);
 		// define methods
-		FFID defaultFFID();
-		FFID getFFID(cString& familys = String());
-		FFID getFFID(const Array<String>& familys);
-		void addFromData(cBuffer& buff);
+		FFID getFontFamilys(cString& familys = String());
+		FFID getFontFamilys(cArray<String>& familys);
+		void addFontFamily(cBuffer& buff, cString& alias = String());
 		String getFamilyName(int index) const;
-		Sp<Typeface> match(cString& familyName, FontStyle style) const;
+		Sp<Typeface> match(cString& familyName, FontStyle style);
 		Sp<Typeface> matchCharacter(cString& familyName, FontStyle, Unichar character) const;
 		float getMaxMetrics(FontMetricsBase* metrics, float fontSize);
 	protected:
 		FontPool();
-		void initialize();
-		virtual int onCountFamilies() const = 0;
+		void init();
+		virtual uint32_t onCountFamilies() const = 0;
 		virtual String onGetFamilyName(int index) const = 0;
+		virtual Typeface* onMatch(cChar familyName[], FontStyle) const = 0;
+		virtual Typeface* onMatchCharacter(cChar familyName[], FontStyle, Unichar character) const = 0;
+		virtual Typeface* onAddFontFamily(cBuffer& data, int ttcIndex) const = 0;
 
-		virtual Typeface* onMatchFamilyStyle(const char familyName[], FontStyle) const = 0;
-		virtual Typeface* onMatchFamilyStyleCharacter(const char familyName[],
-																									FontStyle, Unichar character) const = 0;
-		virtual Typeface* onMakeFromData(cBuffer& data, int ttcIndex) const = 0;
-
-		Array<String> _second; // default family names
-		Dict<String, Dict<FontStyle, Sp<Typeface>>> _extFamilies;
-		Dict<uint64_t, Sp<FontFamilys>> _FFIDs;
-		FFID _Default;
+		Array<String> _defaultFamilyNames; // default family names
+		Dict<String, Dict<FontStyle, Sp<Typeface>>> _ext; // familyname => (style=>tf)
+		Dict<uint64_t, Sp<FontFamilys>> _fontFamilys;
 		FontMetrics _MaxMetrics64;
+		Mutex _Mutex;
 	};
 
 }

@@ -41,27 +41,33 @@ namespace qk {
 	public:
 		FontGlyphs(float fontSize, Typeface *ft, const GlyphID glyphs[], uint32_t count);
 		FontGlyphs(float fontSize, Typeface *ft, Array<GlyphID> &&glyphs);
-		Qk_DEFINE_PROP(float, fontSize, Const); // fontSize prop
 		Array<Vec2> getHorizontalOffset(Vec2 origin = 0) const;
-		inline Typeface* typeface() const { return const_cast<Typeface*>(*_typeface); }
+		inline Typeface* typeface() const { return *_typeface; }
 		inline cArray<GlyphID>& glyphs() const { return _glyphs; }
 		inline uint32_t length() const { return _glyphs.length(); }
+		inline float fontSize() const { return _fontSize; }
 	private:
+		float _fontSize;
 		Array<GlyphID> _glyphs;
-		Sp<Typeface> _typeface;
+		mutable Sp<Typeface> _typeface;
 	};
 
+	/**
+	 * @class FontFamilys
+	 * @safe Rt
+	*/
 	class Qk_EXPORT FontFamilys: public Object {
 	public:
-		FontFamilys(FontPool* pool, Array<String>& familys);
-		Qk_DEFINE_PROP_ACC_GET(cArray<String>&, familys, Const);
-		Qk_DEFINE_PROP_GET(FontPool*, pool);
+		FontFamilys(FontPool* pool, cArray<String>& familys);
 		Sp<Typeface> match(FontStyle style, uint32_t index = 0);
 		Array<FontGlyphs> makeFontGlyphs(cArray<Unichar>& unichars, FontStyle style, float fontSize);
+		inline FontPool* pool() { return _pool; }
+		inline cSet<String>& familys() const { return _familys; }
 	private:
 		Array<Sp<Typeface>>& matchs(FontStyle style);
-		Array<String> _familys;
-		Dict<FontStyle, Array<Sp<Typeface>>> _TFs;
+		FontPool* _pool;
+		Set<String> _familys;
+		Dict<FontStyle, Array<Sp<Typeface>>> _typefaces;
 		friend class FontPool;
 	};
 

@@ -70,8 +70,8 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_ACC(float,      border_width_bottom, Const);
 		Qk_DEFINE_VIEW_PROP_ACC(float,      border_width_left, Const);
 		Qk_DEFINE_VIEW_PROP    (Color,      background_color, Const); // fill background color
-		Qk_DEFINE_VIEW_PROP_ACC(BoxFilter*, background); // fill background, image|gradient
-		Qk_DEFINE_VIEW_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow
+		Qk_DEFINE_VIEW_PROP_ACC(BoxFilter*, background); // fill background, image|gradient, async set
+		Qk_DEFINE_VIEW_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow, async set method
 		Qk_DEFINE_VIEW_PROP    (float,      weight, Const); // view weight
 		Qk_DEFINE_VIEW_PROP_ACC(Align,      align, Const); // view align
 		Qk_DEFINE_VIEW_PROP_GET(Vec2,       content_size, Const); // width,height, no include padding

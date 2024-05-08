@@ -162,7 +162,7 @@
 #if DEBUG
 # define Qk_ASSERT Qk_Fatal_Assert
 #else
-# define Qk_ASSERT(cond, ...)
+# define Qk_ASSERT(cond, ...) ((void)0)
 #endif
 
 #define Qk_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
@@ -185,7 +185,7 @@
 #if DEBUG || Qk_MoreLOG
 # define Qk_DEBUG Qk_LOG
 #else
-# define Qk_DEBUG(msg, ...)  ((void)0)
+# define Qk_DEBUG(msg, ...) ((void)0)
 #endif
 
 #define throw(...)

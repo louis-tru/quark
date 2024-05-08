@@ -51,8 +51,8 @@ namespace qk {
 		if (!_glyphs.length())
 			return Array<Vec2>({origin});
 
-		constexpr float _1_64 = 1.0 / 64.0;
-		const float scale = _fontSize * _1_64;
+		constexpr float _1_div_64 = 1.0 / 64.0;
+		const float scale = _fontSize * _1_div_64;
 		const bool isScale = scale != 1.0;
 
 		Array<Vec2> offset(_glyphs.length() + 1);
@@ -76,12 +76,15 @@ namespace qk {
 
 	// -------------------- F o n t . F a m i l y s --------------------
 
-	FontFamilys::FontFamilys(FontPool* pool, Array<String>& familys)
-		: _pool(pool), _familys(std::move(familys))
-	{}
-
-	cArray<String>& FontFamilys::familys() const {
-		return _familys;
+	FontFamilys::FontFamilys(FontPool* pool, cArray<String>& familys)
+		: _pool(pool)
+	{
+		for (auto &i: familys) {
+			_familys.add(i.trim());
+		}
+		for (auto &s: pool->defaultFamilyNames()) {
+			_familys.add(s);
+		}
 	}
 
 	Sp<Typeface> FontFamilys::match(FontStyle style, uint32_t index) {
@@ -89,29 +92,17 @@ namespace qk {
 	}
 
 	Array<Sp<Typeface>>& FontFamilys::matchs(FontStyle style) {
-		auto it = _TFs.find(style);
-		if (it != _TFs.end()) {
+		auto it = _typefaces.find(style);
+		if (it != _typefaces.end()) {
 			return it->value;
 		}
 		Array<Sp<Typeface>> arr;
-		Dict<String, bool> set;
-
-		auto match = [&](cString& name) {
-			if (!set.has(name)) {
-				auto tf = _pool->match(name, style);
-				if (tf)
-					arr.push(std::move(tf));
-				set.set(name, true);
-			}
-		};
-		for (auto& name: _familys)
-			match(name);
-		for (auto& name: _pool->second())
-			match(name);
-
-		_TFs.set(style, std::move(arr));
-
-		return _TFs[style];
+		for (auto& name: _familys) {
+			auto tf = _pool->match(name.value, style);
+			if (tf)
+				arr.push(std::move(tf));
+		}
+		return _typefaces.set(style, std::move(arr));
 	}
 
 	struct FontGlyphsBuilder {
@@ -123,7 +114,9 @@ namespace qk {
 		/**
 		 * @method make() build FontGlyphs
 		*/
-		void make(const Unichar *unichars, GlyphID glyphs[], const uint32_t count, const uint32_t ftIdx) {
+		void make(
+			const Unichar *unichars, GlyphID glyphs[], const uint32_t count, const uint32_t ftIdx
+		) {
 			int prev_idx = -1;
 			int prev_val = glyphs[0] ? 0: 1;
 			for (int i = 0; i < count + 1; i++) {
@@ -141,14 +134,14 @@ namespace qk {
 							tfs[ftIdx + 1]->unicharsToGlyphs(unichars + idx, count, glyphs + idx);
 							make(unichars + idx, glyphs + idx, count, ftIdx + 1);
 						} else {
-							result.push(FontGlyphs(fontSize, pool->last().value(), glyphs + idx, count));
+							result.push(FontGlyphs(fontSize, *pool->tf65533(), glyphs + idx, count));
 						}
 						prev_idx = i - 1;
 						prev_val = 0;
 					}
 				} else { // zero
 					if (ftIdx + 1 == tfs.length()) {
-						glyphs[i] = pool->last_65533(); // use 65533 glyph
+						glyphs[i] = pool->tf65533GlyphID(); // use 65533 glyph
 					}
 					if (!prev_val) {
 					b:
@@ -163,7 +156,9 @@ namespace qk {
 		}
 	};
 
-	Array<FontGlyphs> FontFamilys::makeFontGlyphs(cArray<Unichar>& unichars, FontStyle style, float fontSize) {
+	Array<FontGlyphs> FontFamilys::makeFontGlyphs(
+		cArray<Unichar>& unichars, FontStyle style, float fontSize
+	) {
 		if (unichars.length()) {
 			FontGlyphsBuilder builder = { matchs(style), fontSize, _pool };
 			auto glyphs = builder.tfs[0]->unicharsToGlyphs(unichars);

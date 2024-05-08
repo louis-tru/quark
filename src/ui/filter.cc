@@ -105,8 +105,22 @@ namespace qk {
 	}
 
 	BoxFilter* BoxFilter::safe_filter(BoxFilter *filter) {
-		//return filter && filter->_safe_mark == 0xff00ffaa ? filter: nullptr;
+		// return filter && filter->_safe_mark == 0xff00ffaa ? filter: nullptr;
+		// Atomic pairs are safe
 		return filter;
+	}
+
+	BoxFilter* BoxFilter::link(const std::initializer_list<BoxFilter*>& list) {
+		if (list.size()) {
+			auto it = list.begin();
+			auto prev = *it;
+			while (++it != list.end()) {
+				prev->set_next(*it);
+				prev = *it;
+			}
+			return *list.begin();
+		}
+		return nullptr;
 	}
 
 	BoxFilter::BoxFilter()
@@ -128,11 +142,12 @@ namespace qk {
 		}
 	}
 
-	BoxFilter* BoxFilter::assign_Rt(BoxFilter *left, BoxFilter *right, View *holder) {
+	BoxFilter* BoxFilter::assign_Rt(BoxFilter *left, BoxFilter *right, View *view) {
 		if (right) {
 			if (left != right) {
-				if (right->_view && right->_view != holder) {
-					return Qk_ERR("BoxFilter#assign, right->_view != holder arg"), left;
+				// Prohibit copying between different views
+				if (right->_view && right->_view != view) {
+					return Qk_ERR("BoxFilter#assign, right->_view != view arg, disable copy"), left;
 				}
 				auto new_left = right;
 				if (right->_isHolder) {
@@ -143,13 +158,13 @@ namespace qk {
 				}
 				left = new_left;
 			}
-			left->set_view_Rt(holder);
+			left->set_view_Rt(view);
 		} else { // right nullptr
 			Release(left);
 			left = nullptr;
 		}
-		if (holder) {
-			holder->mark(0,true);
+		if (view) {
+			view->mark(0,true);
 		}
 		return left;
 	}
@@ -166,8 +181,8 @@ namespace qk {
 		auto view = safe_view(_view); // safe get
 		if (view) {
 			if (next && next->_view) {
-				if (next->_view != view) // disable
-					return Qk_ERR("BoxFilter#set_next, next->_view != _view");
+				if (next->_view != view) // Prohibit copying between different views
+					return Qk_ERR("BoxFilter#set_next, next->_view != _view, disable copy");
 			}
 			view->preRender().async_call([](auto ctx, auto arg) {
 				if (!check_loop_ref(ctx, arg.arg))
@@ -347,15 +362,15 @@ namespace qk {
 
 	// ------------------------------ F i l l . G r a d i e n t ------------------------------
 
-	FillGradient::FillGradient(cArray<float>& pos, cArray<Color4f>& colors)
+	FillGradientRadial::FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors)
 		: _pos(pos), _colors(colors)
 	{}
 
-	void FillGradient::transition_g_Rt(BoxFilter* dest, BoxFilter *to, float t) {
-		auto dest1 = static_cast<FillGradient*>(dest);
-		auto to1 = static_cast<FillGradient*>(to);
-		dest1->_pos = positions();
-		dest1->_colors = colors();
+	void FillGradientRadial::transition_g_Rt(BoxFilter* dest, BoxFilter *to, float t) {
+		auto dest1 = static_cast<FillGradientRadial*>(dest);
+		auto to1 = static_cast<FillGradientRadial*>(to);
+		dest1->_pos = _pos;
+		dest1->_colors = _colors;
 
 		auto posLen = Uint32::min(
 			dest1->_pos.length(),
@@ -377,16 +392,28 @@ namespace qk {
 			dest1->set_next_Rt(n->transition_Rt(dest->next(), to->next(), t));
 	}
 
-	FillGradientLinear::FillGradientLinear(float angle, cArray<float>& pos, cArray<Color4f>& colors)
-		: FillGradient(pos, colors)
+	BoxFilter* FillGradientRadial::copy_Rt(BoxFilter* dest) {
+		auto dest1 = (dest && dest->type() == kGradientRadial) ?
+			static_cast<FillGradientRadial*>(dest): new FillGradientRadial(positions(), colors());
+		dest1->set_next_Rt(next());
+		return dest1;
+	}
+
+	BoxFilter* FillGradientRadial::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
+		if (to && to->type() == type()) {
+			if (!dest || dest->type() != type())
+				dest = new FillGradientRadial({},{});
+			transition_g_Rt(dest, to, t);
+		}
+		return dest;
+	}
+
+	FillGradientLinear::FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle)
+		: FillGradientRadial(pos, colors)
 		, _angle(angle)
 	{
 		setRadian();
 	}
-
-	FillGradientRadial::FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors)
-		: FillGradient(pos, colors)
-	{}
 
 	void FillGradientLinear::setRadian() {
 		float angle = _angle + 90;
@@ -404,7 +431,10 @@ namespace qk {
 
 	BoxFilter* FillGradientLinear::copy_Rt(BoxFilter* dest) {
 		auto dest1 = (dest && dest->type() == kGradientLinear) ?
-			static_cast<FillGradientLinear*>(dest): new FillGradientLinear(_angle, positions(), colors());
+			static_cast<FillGradientLinear*>(dest): new FillGradientLinear({},{},0);
+		dest1->_pos = _pos;
+		dest1->_colors = _colors;
+		dest1->_angle = _angle;
 		dest1->_radian = _radian;
 		dest1->_quadrant = _quadrant;
 		dest1->set_next_Rt(next());
@@ -413,9 +443,8 @@ namespace qk {
 
 	BoxFilter* FillGradientLinear::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
 		if (to && to->type() == type()) {
-			if (!dest || dest->type() != type())
-				dest = new FillGradientLinear(0, {},{});
-			FillGradient::transition_g_Rt(dest, to, t);
+			if (!dest || dest->type() != type()) dest = new FillGradientLinear({},{},0);
+			transition_g_Rt(dest, to, t);
 			auto to1 = static_cast<FillGradientLinear*>(to);
 			auto dest1 = static_cast<FillGradientLinear*>(dest);
 			dest1->_angle = transition_value(_angle, to1->_angle, t);
@@ -424,31 +453,14 @@ namespace qk {
 		return dest;
 	}
 
-	BoxFilter* FillGradientRadial::copy_Rt(BoxFilter* dest) {
-		auto dest1 = (dest && dest->type() == kGradientRadial) ?
-			static_cast<FillGradientRadial*>(dest): new FillGradientRadial(positions(), colors());
-		dest1->set_next_Rt(next());
-		return dest1;
-	}
-
-	BoxFilter* FillGradientRadial::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
-		if (to && to->type() == type()) {
-			if (!dest || dest->type() != type())
-				dest = new FillGradientRadial({},{});
-			FillGradient::transition_g_Rt(dest, to, t);
-		}
-		return dest;
-	}
-
 	// ------------------------------ B o x . S h a d o w ------------------------------
 
-	BoxShadow::BoxShadow() {}
 	BoxShadow::BoxShadow(Shadow value): _value(value) {}
 	BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
 	BoxFilter* BoxShadow::copy_Rt(BoxFilter* dest) {
 		auto dest1 = (dest && dest->type() == kShadow) ?
-			static_cast<BoxShadow*>(dest): new BoxShadow();
+			static_cast<BoxShadow*>(dest): new BoxShadow({});
 		dest1->_value = _value;
 		dest1->set_next_Rt(next());
 		return dest1;
@@ -456,7 +468,7 @@ namespace qk {
 
 	BoxFilter* BoxShadow::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
 		if (to && to->type() == kShadow) {
-			if (!dest || dest->type() != kShadow) dest = new BoxShadow();
+			if (!dest || dest->type() != kShadow) dest = new BoxShadow({});
 			auto dest1 = static_cast<BoxShadow*>(dest);
 			auto to1 = static_cast<BoxShadow*>(to);
 			dest1->_value = transition_value(_value, to1->_value, t);

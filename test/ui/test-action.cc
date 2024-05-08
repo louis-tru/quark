@@ -29,8 +29,8 @@ void test_action(int argc, char **argv) {
 	act1->add(0,   LINEAR)->set_background_color({0,128,0});
 	act1->add(2e3, LINEAR)->set_background_color({0,0,255});
 	act1->add(4e3, LINEAR)->set_background_color({0,128,0});
-	act2->add(0,   LINEAR)->set_background(new FillGradientLinear(0,   {1,0},{{1,0,0,0.5},{0,1,0,0.5}}));
-	act2->add(4e3, LINEAR)->set_background(new FillGradientLinear(360, {1,0},{{1,0,0,0.5},{0,1,0,0.5}}));
+	act2->add(0,   LINEAR)->set_background(new FillGradientLinear({1,0},{{1,0,0,0.5},{0,1,0,0.5}},0));
+	act2->add(4e3, LINEAR)->set_background(new FillGradientLinear({1,0},{{1,0,0,0.5},{0,1,0,0.5}},360));
 
 	box->set_action(act0);
 	act0->play();

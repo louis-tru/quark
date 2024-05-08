@@ -50,88 +50,86 @@ namespace qk { namespace js {
 
 	class WrapAction: public WrapObject {
 	public:
-		typedef Action Type;
-
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Action, 0, { Js_Throw("Access forbidden."); });
 
 			// Qk_DEFINE_PROP_GET(Window*, window, Protected);
 
-			Js_Set_WrapObject_Accessor(Type, uint32_t, loop, loop);
+			Js_Set_WrapObject_Accessor(Action, uint32_t, loop, loop);
 
 			Js_Set_Class_Accessor_Get(duration, {
-				Js_Self(Type);
+				Js_Self(Action);
 				Js_Return(self->duration());
 			});
 
 			Js_Set_WrapObject_Accessor(Action, float, speed, speed);
 
 			Js_Set_Class_Accessor_Get(duration, {
-				Js_Self(Type);
+				Js_Self(Action);
 				Js_Return(self->playing());
 			});
 
 			Js_Set_Class_Method(play, {
-				Js_Self(Type);
+				Js_Self(Action);
 				self->play();
 			});
 
 			Js_Set_Class_Method(stop, {
-				Js_Self(Type);
+				Js_Self(Action);
 				self->stop();
 			});
 
 			Js_Set_Class_Method(seek, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek(uint32_t timeMs)");
-				Js_Self(Type);
+				Js_Self(Action);
 				self->seek(args[0]->toUint32Value(worker));
 			});
 
 			Js_Set_Class_Method(seekPlay, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek_play(uint32_t timeMs)");
-				Js_Self(Type);
+				Js_Self(Action);
 				self->seek_play(args[0]->toUint32Value(worker));
 			});
 
 			Js_Set_Class_Method(seekStop, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek_stop(uint32_t timeMs)");
-				Js_Self(Type);
+				Js_Self(Action);
 				self->seek_stop(args[0]->toUint32Value(worker));
 			});
 
 			Js_Set_Class_Method(before, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.before(Action *act)");
-				Js_Self(Type);
+				Js_Self(Action);
 				self->before(wrap<Action>(args[0])->self());
 			});
 
 			Js_Set_Class_Method(before, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.after(Action *act)");
-				Js_Self(Type);
+				Js_Self(Action);
 				self->after(wrap<Action>(args[0])->self());
 			});
 
 			Js_Set_Class_Method(before, {
-				Js_Self(Type);
+				Js_Self(Action);
 				self->remove();
 			});
 
 			Js_Set_Class_Method(append, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.append(Action *child)");
-				Js_Self(Type);
+				Js_Self(Action);
 				Js_Try_Catch({
 					self->append(wrap<Action>(args[0])->self());
 				}, Error);
 			});
 
 			Js_Set_Class_Method(clear, {
-				Js_Self(Type);
+				Js_Self(Action);
 				self->clear();
 			});
 
@@ -200,7 +198,7 @@ namespace qk { namespace js {
 
 			// bool hasProperty(ViewProp name);
 
-			Js_Set_Class_Method("add", {
+			Js_Set_Class_Method(add, {
 				if (!args.length() || !args[0]->isUint32()) {
 					Js_Throw("\
 						Param timeMs cannot be empty \n\

@@ -28,59 +28,65 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
-#include "../../ui/view/transform.h"
-#include "../../ui/view/root.h"
+#include "../js_.h"
+#include "../../render/font/pool.h"
 
 namespace qk { namespace js {
 
-	class WrapTransform: public WrapViewObject {
+	class WrapFontPool: public WrapObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Transform, Box, {
-				Js_NewView(Transform);
+			Js_Define_Class(FontPool, 0, { Js_Throw("Access forbidden."); });
+
+			Js_Set_Class_Accessor_Get(countFamilies, {
+				Js_Self(FontPool);
+				Js_Return(self->countFamilies());
 			});
 
-			Js_Set_WrapObject_Accessor(Transform, Vec2, translate, translate);
-			Js_Set_WrapObject_Accessor(Transform, Vec2, scale, scale);
-			Js_Set_WrapObject_Accessor(Transform, Vec2, skew, skew);
-			Js_Set_WrapObject_Accessor(Transform, float, rotate_z, rotateZ);
-			Js_Set_WrapObject_Accessor(Transform, BoxOrigin, origin_x, originX);
-			Js_Set_WrapObject_Accessor(Transform, BoxOrigin, origin_y, originY);
-
-			Js_Set_Class_Accessor_Get(originValue, {
-				Js_Self(Transform);
-				Js_Return( worker->types()->newInstance(self->origin_value()) );
+			Js_Set_Class_Accessor_Get(defaultFamilyNames, {
+				Js_Self(FontPool);
+				Js_Return(self->defaultFamilyNames());
 			});
 
-			Js_Set_WrapObject_Accessor(Transform, float, x, x);
-			Js_Set_WrapObject_Accessor(Transform, float, y, y);
-			Js_Set_WrapObject_Accessor(Transform, float, scale_x, scaleX);
-			Js_Set_WrapObject_Accessor(Transform, float, scale_y, scaleY);
-			Js_Set_WrapObject_Accessor(Transform, float, skew_x, skewX);
-			Js_Set_WrapObject_Accessor(Transform, float, skew_y, skewY);
-
-			Js_Set_Class_Accessor_Get(matrix, {
-				Js_Self(Transform);
-				Js_Return( worker->types()->newInstance(self->matrix()) );
+			Js_Set_Class_Accessor_Get(defaultFontFamilys, {
+				Js_Self(FontPool);
+				Js_Return( worker->types()->newInstance(self->defaultFontFamilys()) );
 			});
 
-			cls->exports("Transform", exports);
+			Js_Set_Class_Method(getFontFamilys, {
+				Js_Self(FontPool);
+				if (args.length()) {
+					Js_Parse_Type(String, args[0], "@method FontPool.getFontFamilys(cString& familys = %s)");
+					Js_Return( worker->types()->newInstance(self->getFontFamilys(out)) );
+				} else {
+					Js_Return( worker->types()->newInstance(self->getFontFamilys()) );
+				}
+			});
+
+			Js_Set_Class_Method(addFontFamily, {
+				WeakBuffer buff;
+				if (!args.length() || !(buff = args[0]->asBuffer(worker)).length()) {
+					Js_Throw("@method FontPool.addFontFamily(cBuffer& buff, cString& alias = String())");
+				}
+				Js_Self(FontPool);
+				if (args.length() > 1) {
+					self->addFontFamily(buff.buffer(), args[1]->toStringValue(worker));
+				} else {
+					self->addFontFamily(buff.buffer());
+				}
+			});
+
+			Js_Set_Class_Method(getFamilyName, {
+				if (!args.length() || !args[0]->isUint32()) {
+					Js_Throw("@method FontPool.getFamilyName(int index)");
+				}
+				Js_Self(FontPool);
+				Js_Return( self->getFamilyName(args[0]->toInt32Value(worker)) );
+			});
 		}
 	};
 
-	class WrapRoot: public WrapViewObject {
-	public:
-		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Root, Transform, {
-				Js_NewView(Root);
-			});
-			cls->exports("Root", exports);
-		}
-	};
-
-	void binding_transform(JSObject* exports, Worker* worker) {
-		WrapTransform::binding(exports, worker);
-		WrapRoot::binding(exports, worker);
+	void binding_font(JSObject* exports, Worker* worker) {
+		WrapFontPool::binding(exports, worker);
 	}
 } }

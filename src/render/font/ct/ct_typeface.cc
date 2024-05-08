@@ -349,7 +349,7 @@ Typeface_Mac::Typeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVari
 	FontStyle style = QkCTFontDescriptorGetSkFontStyle(desc.get(), fIsData);
 	//CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.get());
 	//bool isFixedPitch = (traits & kCTFontMonoSpaceTrait);
-	setFontStyle(style);
+	_fontStyle = style;
 	//setIsFixedPitch(isFixedPitch);
 }
 

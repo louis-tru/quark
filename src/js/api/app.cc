@@ -83,7 +83,6 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-
 			Js_Define_Class(NativeApplication, 0, {
 				auto app = new Application();
 				auto wrap = New<WrapNativeApplication>(args, app);
@@ -114,7 +113,12 @@ namespace qk { namespace js {
 			});
 
 			// Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
-			// Qk_DEFINE_PROP_GET(FontPool*, fontPool); //! font and font familys manage
+
+			Js_Set_Class_Accessor_Get(screen, {
+				Js_Self(Type);
+				Js_Return( self->fontPool() );
+			});
+
 			// Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
 
 			Js_Set_Class_Accessor_Get(activeWindow, {
@@ -185,11 +189,13 @@ namespace qk { namespace js {
 
 	void binding_screen(JSObject* exports, Worker* worker);
 	void binding_window(JSObject* exports, Worker* worker);
+	void binding_font(JSObject* exports, Worker* worker);
 	void binding_view(JSObject* exports, Worker* worker);
 	void binding_box(JSObject* exports, Worker* worker);
 	void binding_text(JSObject* exports, Worker* worker);
 	void binding_scroll(JSObject* exports, Worker* worker);
 	void binding_transform(JSObject* exports, Worker* worker);
+	void binding_filter(JSObject* exports, Worker* worker);
 
 	class WrapUI {
 	public:
@@ -199,11 +205,13 @@ namespace qk { namespace js {
 			WrapNativeApplication::binding(exports, worker);
 			binding_screen(exports, worker);
 			binding_window(exports, worker);
+			binding_font(exports, worker);
 			binding_view(exports, worker);
 			binding_box(exports, worker);
 			binding_text(exports, worker);
 			binding_scroll(exports, worker);
 			binding_transform(exports, worker);
+			binding_filter(exports, worker);
 		}
 	};
 

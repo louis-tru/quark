@@ -41,10 +41,14 @@
 namespace qk {
 	class RenderBackend;
 
+	/**
+	 * @class Typeface
+	 * @safe Rt
+	*/
 	class Qk_EXPORT Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);
 	public:
-		Qk_DEFINE_PROP_GET(FontStyle, fontStyle, Const);
+		Qk_DEFINE_PROP_GET(FontStyle, fontStyle, ProtectedConst);
 		bool isBold() const { return _fontStyle.weight() >= TextWeight::kSemibold; }
 		bool isItalic() const { return _fontStyle.slant() >= TextSlant::kItalic; }
 		int countGlyphs() const;
@@ -69,12 +73,11 @@ namespace qk {
 		* @param offset {cArray<Vec2>*} offset.length = glyphs.length + 1
 		* @param offsetScale {float} offset scale
 		*/
-		Vec2  getImage(const Array<GlyphID> &glyphs,
+		Vec2 getImage(const Array<GlyphID> &glyphs,
 			float fontSize, cArray<Vec2> *offset,
 			float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render = nullptr);
 	protected:
 		Typeface(FontStyle fs);
-		void setFontStyle(FontStyle style) { _fontStyle = style; }
 		virtual int onCountGlyphs() const = 0;
 		virtual int onGetUPEM() const = 0;
 		virtual String onGetFamilyName() const = 0;

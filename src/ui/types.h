@@ -101,8 +101,6 @@ namespace qk {
 
 	typedef WrapValue<FillPositionKind, FillPositionKind::kPixel, float> FillPosition;
 	typedef WrapValue<FillSizeKind, FillSizeKind::kAuto, float> FillSize;
-	struct FillSizes { FillSize x, y;};
-	struct FillPositions { FillPosition x, y; };
 
 	// ---------------- F l e x . F l o w ----------------
 

@@ -42,9 +42,9 @@
 
 namespace qk { namespace js {
 
-	#define Js_Parse_Type(Type, value, desc) \
-		Type out; \
-		if ( !worker->types()->parse##Type(value, out, desc)) return
+	#define Js_Parse_Type(Name, value, desc) \
+		Name out; \
+		if ( !worker->types()->parse(value, out, desc)) return
 
 	#define Js_Throw_Types(value, msg, ...)\
 		worker->types()->throwError(t, msg, ##__VA_ARGS__)
@@ -82,59 +82,66 @@ namespace qk { namespace js {
 		#undef _Fun
 	};
 
+	typedef qk::Wrap Wrap;
+	typedef Window::Options WindowOptions;
+	typedef FillImage::Init FillImageInit;
 	typedef BoxFilter* BoxFilterPtr;
-	typedef FillGradient* FillGradientPtr;
 	typedef BoxShadow* BoxShadowPtr;
+	typedef Array<float> ArrayFloat;
+	typedef Array<Color> ArrayColor;
 
 	#define Js_Types_Each(F) \
-		F(bool, bool) \
-		F(float, float) \
-		F(int, int) \
-		F(uint32_t, uint32_t) \
-		F(Color, Color) \
-		F(Vec2, Vec2) \
-		F(Vec3, Vec3) \
-		F(Vec4, Vec4) \
-		F(Rect, Rect) \
-		F(Mat, Mat) \
-		F(Mat4, Mat4) \
-		F(String, String) \
-		F(Curve, Curve) \
-		F(Shadow, Shadow) \
-		F(Repeat, Repeat) \
-		F(BoxFilterPtr, BoxFilterPtr) \
-		F(FillGradientPtr, FillGradientPtr) \
-		F(BoxShadowPtr, BoxShadowPtr) \
-		F(Direction, Direction) \
-		F(ItemsAlign, ItemsAlign) \
-		F(CrossAlign, CrossAlign) \
-		F(Wrap, qk::Wrap) \
-		F(WrapAlign, WrapAlign) \
-		F(Align, Align) \
-		F(BoxSizeKind, BoxSizeKind) \
-		F(BoxOriginKind, BoxOriginKind) \
-		F(BoxSize, BoxSize) \
-		F(BoxOrigin, BoxOrigin) \
-		F(TextAlign, TextAlign) \
-		F(TextDecoration, TextDecoration) \
-		F(TextOverflow, TextOverflow) \
-		F(TextWhiteSpace, TextWhiteSpace) \
-		F(TextWordBreak, TextWordBreak) \
-		F(TextValueKind, TextValueKind) \
-		F(TextColor, TextColor) \
-		F(TextSize, TextSize) /*TextLineHeight*/\
-		F(TextShadow, TextShadow) \
-		F(TextFamily, TextFamily) \
-		F(TextWeight, TextWeight) \
-		F(TextWidth, TextWidth) \
-		F(TextSlant, TextSlant) \
-		F(FontStyle, FontStyle) \
-		F(KeyboardType, KeyboardType) \
-		F(KeyboardReturnType, KeyboardReturnType) \
-		F(CursorStyle, CursorStyle) \
-		F(FindDirection, FindDirection) \
-
-	typedef Window::Options WindowOptions;
+		F(bool) \
+		F(float) \
+		F(int32_t) \
+		F(uint32_t) \
+		F(Color) \
+		F(Vec2) \
+		F(Vec3) \
+		F(Vec4) \
+		F(Rect) \
+		F(Mat) \
+		F(Mat4) \
+		F(ArrayFloat) \
+		F(ArrayColor) \
+		F(String) \
+		F(Curve) \
+		F(Shadow) \
+		F(FillPositionKind) \
+		F(FillSizeKind) /*BoxOriginKind*/\
+		F(FillPosition) \
+		F(FillSize) \
+		F(Repeat) \
+		F(BoxFilterPtr) \
+		F(BoxShadowPtr) \
+		F(Direction) \
+		F(ItemsAlign) \
+		F(CrossAlign) \
+		F(Wrap) \
+		F(WrapAlign) \
+		F(Align) \
+		F(BoxSizeKind) \
+		F(BoxSize) \
+		F(BoxOrigin) \
+		F(TextAlign) \
+		F(TextDecoration) \
+		F(TextOverflow) \
+		F(TextWhiteSpace) \
+		F(TextWordBreak) \
+		F(TextValueKind) \
+		F(TextColor) \
+		F(TextSize) /*TextLineHeight*/\
+		F(TextShadow) \
+		F(TextFamily) \
+		F(TextWeight) \
+		F(TextWidth) \
+		F(TextSlant) \
+		F(FontStyle) \
+		F(KeyboardType) \
+		F(KeyboardReturnType) \
+		F(CursorStyle) \
+		F(FindDirection) \
+		F(FFID) \
 
 	class Qk_EXPORT TypesParser {
 	public:
@@ -201,16 +208,19 @@ namespace qk { namespace js {
 		JSValue* newInstance(const FileStat& val);
 		JSValue* newInstance(const Array<Dirent>& val);
 		JSValue* newInstance(const Array<FileStat>& val);
-		bool     isBase(JSValue *arg);
+
+		bool     isTypesBase(JSValue *arg);
 		void     throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
-		bool     parseWindowOptions(JSValue* in, WindowOptions& out, cChar* desc);
-	#define _Def_Fun(Name, Type) \
-		JSValue* newInstance(const Type& value); \
-		bool parse##Name(JSValue* in, Type& out, cChar* err_msg = 0);
+		bool     parse(JSValue* in, WindowOptions& out, cChar* desc);
+		bool     parse(JSValue* in, FillImageInit& out, cChar* desc);
+
+	#define _Def_Fun(Name) \
+		JSValue* newInstance(const Name& value); \
+		bool parse(JSValue* in, Name& out, cChar* err_msg = 0);
 		Js_Types_Each(_Def_Fun);
 	private:
 		Worker *worker;
-	#define _Def_attr(Name, Type) \
+	#define _Def_attr(Name) \
 		Persistent<JSFunction> _parse##Name; \
 		Persistent<JSFunction> _new##Name;
 		Js_Types_Each(_Def_attr)
