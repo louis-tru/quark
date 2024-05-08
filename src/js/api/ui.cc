@@ -28,13 +28,40 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/app.h"
 #include "../../ui/screen.h"
 #include "../../ui/text/text_opts.h"
 
 namespace qk { namespace js {
 	typedef Application NativeApplication;
+
+	uint64_t kView_Typeid(Js_Typeid(View));
+	uint64_t kWindow_Typeid(Js_Typeid(Window));
+
+	bool isView(Worker *worker, JSValue* value) {
+		return worker->instanceOf(value, kView_Typeid);
+	}
+
+	bool isWindow(Worker *worker, JSValue* value) {
+		return worker->instanceOf(value, kWindow_Typeid);
+	}
+
+	bool checkApp(Worker *worker) {
+		auto app = shared_app();
+		if ( !app ) {
+			Js_Throw("Unable to find shared application, need to create application first"), false;
+		}
+		return true;
+	}
+
+	TextOptions* WrapUIObject::asTextOptions() {
+		return nullptr;
+	}
+
+	ScrollBase* WrapUIObject::asScrollBase() {
+		return nullptr;
+	}
 
 	class WrapNativeApplication: public WrapObject {
 	public:
@@ -197,7 +224,7 @@ namespace qk { namespace js {
 	void binding_transform(JSObject* exports, Worker* worker);
 	void binding_filter(JSObject* exports, Worker* worker);
 
-	class WrapUI {
+	class NativeUI {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_types");
@@ -215,5 +242,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Set_Module(_ui, WrapUI);
+	Js_Set_Module(_ui, NativeUI);
 } }

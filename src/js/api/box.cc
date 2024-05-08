@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/view/box.h"
 #include "../../ui/view/flex.h"
 #include "../../ui/view/flow.h"
@@ -78,11 +78,11 @@ namespace qk { namespace js {
 			// @safe Rt
 			Js_Set_Class_Accessor_Get(contentSize, {
 				Js_Self(Box);
-				Js_Return( worker->types()->newInstance(self->content_size()) );
+				Js_Return( worker->types()->jsvalue(self->content_size()) );
 			});
 			Js_Set_Class_Accessor_Get(clientSize, {
 				Js_Self(Box);
-				Js_Return( worker->types()->newInstance(self->client_size()) );
+				Js_Return( worker->types()->jsvalue(self->client_size()) );
 			});
 			// -----------------------------------------------------------------------------
 

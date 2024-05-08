@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/view/text.h"
 #include "../../ui/view/label.h"
 #include "../../ui/view/input.h"
@@ -39,7 +39,7 @@ namespace qk { namespace js {
 	void inheritTextOptions(JSClass* cls, Worker* worker) {
 		Js_Set_Class_Accessor_Get(fontStyle, {
 			Js_TextOptions();
-			Js_Return( worker->types()->newInstance(self->font_style()) );
+			Js_Return( worker->types()->jsvalue(self->font_style()) );
 		});
 		Js_Set_UIObject_Accessor(TextOptions, TextAlign, text_align, textAlign);
 		Js_Set_UIObject_Accessor(TextOptions, TextWeight, text_weight, textWeight);
@@ -122,7 +122,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(textLength, {
 				Js_Self(Input);
-				Js_Return( worker->types()->newInstance(self->text_length()) );
+				Js_Return( worker->types()->jsvalue(self->text_length()) );
 			});
 
 			cls->exports("Input", exports);

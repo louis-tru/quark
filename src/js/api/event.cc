@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../js_.h"
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/view/view.h"
 #include "../../ui/event.h"
 #include "../../out/native-inl-js.h"
@@ -308,8 +308,8 @@ namespace qk { namespace js {
 	struct WrapEvent {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->runNativeScript(WeakBuffer((Char*)
-															native_js::INL_native_js_code__event_,
-															native_js::INL_native_js_code__event_count_).buffer(), "_event.js", exports);
+				native_js::INL_native_js_code__event_,
+				native_js::INL_native_js_code__event_count_).buffer(), "_event.js", exports);
 			WrapNativeEvent::binding(exports, worker);
 			WrapUIEvent::binding(exports, worker);
 			WrapActionEvent::binding(exports, worker);

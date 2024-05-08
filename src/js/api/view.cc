@@ -28,30 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/window.h"
 #include "../../ui/action/action.h"
 
 namespace qk { namespace js {
-
-	uint64_t kView_Typeid(Js_Typeid(View));
-	uint64_t kWindow_Typeid(Js_Typeid(Window));
-
-	bool isView(Worker *worker, JSValue* value) {
-		return worker->instanceOf(value, kView_Typeid);
-	}
-
-	bool isWindow(Worker *worker, JSValue* value) {
-		return worker->instanceOf(value, kWindow_Typeid);
-	}
-
-	TextOptions* WrapUIObject::asTextOptions() {
-		return nullptr;
-	}
-
-	ScrollBase* WrapUIObject::asScrollBase() {
-		return nullptr;
-	}
 
 	template<class Event, class Self>
 	static void addEventListener_Static(
@@ -124,7 +105,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	Window* WrapViewObject::NewCheck(FunctionArgs args) {
+	Window* WrapViewObject::checkNewView(FunctionArgs args) {
 		Js_Worker(args);
 		if (!args.length() || !Js_IsWindow(args[0])) {
 			Js_Throw("\
@@ -349,15 +330,15 @@ namespace qk { namespace js {
 			// @safe Rt
 			Js_Set_Class_Accessor_Get(position, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->newInstance(self->position()) );
+				Js_Return( args.worker()->types()->jsvalue(self->position()) );
 			});
 			Js_Set_Class_Accessor_Get(layoutOffset, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->newInstance(self->layout_offset()) );
+				Js_Return( args.worker()->types()->jsvalue(self->layout_offset()) );
 			});
 			Js_Set_Class_Accessor_Get(center, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->newInstance(self->center()) );
+				Js_Return( args.worker()->types()->jsvalue(self->center()) );
 			});
 			// -----------------------------------------------------------------------------
 			cls->exports("View", exports);

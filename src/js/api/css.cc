@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/css/css.h"
 #include "../../ui/app.h"
 
@@ -168,9 +168,7 @@ namespace qk { namespace js {
 			WrapStyleSheets::binding(exports, worker);
 
 			Js_Set_Method("create", {
-				if ( !shared_app() ) {
-					Js_Throw("Unable to find shared application, need to create application first");
-				}
+				if ( !checkApp(worker) ) return;
 				if ( args.length() < 1 || !args[0]->isObject() || args[0]->isNull() ) {
 					Js_Throw("NativeCSS.create(Object K/V) Bad argument.");
 				}
@@ -179,7 +177,7 @@ namespace qk { namespace js {
 				auto arg = args[0]->cast<JSObject>();
 				auto names = arg->getPropertyNames(worker);
 				if (names->length()) {
-					shared_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {
+					share_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {
 						create(worker, names, arg);
 					}));
 				}

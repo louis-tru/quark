@@ -758,7 +758,7 @@ namespace qk { namespace js {
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
-				Js_Return( worker->types()->newInstance(r) );
+				Js_Return( worker->types()->jsvalue(r) );
 			} else {
 				Callback<FileStat> cb;
 				if ( args.length() > 1 ) {

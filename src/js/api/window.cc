@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "./cb.h"
 #include "../../ui/window.h"
 
@@ -65,7 +65,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Window, 0, {
 				if (args.length()) {
-					Js_Parse_Type(WindowOptions, args[0], "new Window(opts)");
+					Js_Parse_Type(WindowOptions, args[0], "new Window(opts) %s");
 					New<WrapWindow>(args, Window::Make(out));
 				} else {
 					New<WrapWindow>(args, Window::Make({}));
@@ -74,7 +74,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor(size, {
 				Js_Self(Type);
-				Js_Return( worker->types()->newInstance(self->size()) );
+				Js_Return( worker->types()->jsvalue(self->size()) );
 			}, {
 				Js_Parse_Type(Vec2, val, "@prop Window.size = %s");
 				Js_Self(Type);
@@ -124,7 +124,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor(backgroundColor, {
 				Js_Self(Type);
-				Js_Return( worker->types()->newInstance(self->backgroundColor()) );
+				Js_Return( worker->types()->jsvalue(self->backgroundColor()) );
 			}, {
 				Js_Parse_Type(Color, val, "@prop Window.backgroundColor = %s");
 				Js_Self(Type);
@@ -137,7 +137,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(surfaceSize, {
 				Js_Self(Type);
-				Js_Return( worker->types()->newInstance(self->surfaceSize()) );
+				Js_Return( worker->types()->jsvalue(self->surfaceSize()) );
 			});
 
 			Js_Set_Class_Method(nextFrame, {

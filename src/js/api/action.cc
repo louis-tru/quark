@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/action/action.h"
 #include "../../ui/action/keyframe.h"
 
@@ -237,7 +237,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(time, {
 				Js_Self(Keyframe);
-				Js_Return( worker->types()->newInstance(self->curve()) );
+				Js_Return( worker->types()->jsvalue(self->curve()) );
 			});
 
 			cls->exports("Keyframe", exports);

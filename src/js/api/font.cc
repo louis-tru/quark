@@ -28,13 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../js_.h"
+#include "./ui.h"
 #include "../../render/font/pool.h"
+#include "../../ui/app.h"
 
 namespace qk { namespace js {
 
 	class WrapFontPool: public WrapObject {
 	public:
+
+		static void getFontFamilys(FunctionArgs args, FontPool* pool) {
+			Js_Worker(args);
+			if (args.length()) {
+				Js_Parse_Type(String, args[0], "@method FontPool.getFontFamilys(cString& familys = %s)");
+				Js_Return( worker->types()->jsvalue(pool->getFontFamilys(out)) );
+			} else {
+				Js_Return( worker->types()->jsvalue(pool->getFontFamilys()) );
+			}
+		}
+
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FontPool, 0, { Js_Throw("Access forbidden."); });
 
@@ -50,17 +62,12 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(defaultFontFamilys, {
 				Js_Self(FontPool);
-				Js_Return( worker->types()->newInstance(self->defaultFontFamilys()) );
+				Js_Return( worker->types()->jsvalue(self->defaultFontFamilys()) );
 			});
 
 			Js_Set_Class_Method(getFontFamilys, {
 				Js_Self(FontPool);
-				if (args.length()) {
-					Js_Parse_Type(String, args[0], "@method FontPool.getFontFamilys(cString& familys = %s)");
-					Js_Return( worker->types()->newInstance(self->getFontFamilys(out)) );
-				} else {
-					Js_Return( worker->types()->newInstance(self->getFontFamilys()) );
-				}
+				getFontFamilys(args, self);
 			});
 
 			Js_Set_Class_Method(addFontFamily, {
@@ -82,6 +89,11 @@ namespace qk { namespace js {
 				}
 				Js_Self(FontPool);
 				Js_Return( self->getFamilyName(args[0]->toInt32Value(worker)) );
+			});
+
+			Js_Set_Method(getFontFamilys, {
+				if ( !checkApp(worker) ) return;
+				getFontFamilys(args, share_app()->fontPool());
 			});
 		}
 	};

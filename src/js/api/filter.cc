@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/filter.h"
 
 namespace qk { namespace js {
@@ -120,12 +120,12 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(positions, {
 				Js_Self(FillGradientRadial);
-				Js_Return( worker->types()->newInstance(self->positions()) );
+				Js_Return( worker->types()->jsvalue(self->positions()) );
 			});
 
 			Js_Set_Class_Accessor_Get(positions, {
 				Js_Self(FillGradientRadial);
-				Js_Return( worker->types()->newInstance(self->colors()) );
+				Js_Return( worker->types()->jsvalue(self->colors()) );
 			});
 		
 			cls->exports("FillGradientRadial", exports);

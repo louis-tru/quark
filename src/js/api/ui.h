@@ -35,21 +35,10 @@
 #include "../js_.h"
 #include "../../ui/view/view.h"
 
-#define Js_IsView(v) isView(worker,v)
-#define Js_IsWindow(v) isWindow(worker,v)
-#define Js_NewView(Type, ...) \
-	auto win = NewCheck(args); \
-	if (win) New<Wrap##Type>(args, View::Make<Type>(win))
-
-#define Js_TextOptions() \
-	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asTextOptions()
-#define Js_ScrollBase() \
-	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asScrollBase()
-
 #define Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
 	Js_Set_Class_Accessor(Name, {\
 		Self_Fun(Obj); \
-		Js_Return( worker->types()->newInstance(self->Prop()) ); \
+		Js_Return( worker->types()->jsvalue(self->Prop()) ); \
 	}, { \
 		Js_Parse_Type(T, val, "@prop Obj."#Name" = %s"); \
 		Self_Fun(Obj); \
@@ -58,9 +47,21 @@
 
 #define Js_Set_WrapObject_Accessor(Obj, T, Prop, Name) \
 	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
+
 #define _UI_Self(Obj) Js_##Obj()
 #define Js_Set_UIObject_Accessor(Obj, T, Prop, Name) \
 	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, _UI_Self)
+
+#define Js_IsView(v) isView(worker,v)
+#define Js_IsWindow(v) isWindow(worker,v)
+#define Js_NewView(Type, ...) \
+	auto win = checkNewView(args); \
+	if (win) New<Wrap##Type>(args, View::Make<Type>(win))
+
+#define Js_TextOptions() \
+	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asTextOptions()
+#define Js_ScrollBase() \
+	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asScrollBase()
 
 namespace qk { namespace js {
 
@@ -77,9 +78,10 @@ namespace qk { namespace js {
 	public:
 		virtual bool addEventListener(cString& name, cString& func, int id);
 		virtual bool removeEventListener(cString& name, int id);
-		static  Window* NewCheck(FunctionArgs args);
+		static Window* checkNewView(FunctionArgs args);
 	};
 
+	bool checkApp(Worker *worker);
 	bool isView(Worker *worker, JSValue* value);
 	bool isWindow(Worker *worker, JSValue* value);
 	void inheritScrollBase(JSClass* cls, Worker* worker);

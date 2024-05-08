@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/view/transform.h"
 #include "../../ui/view/root.h"
 
@@ -50,7 +50,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(originValue, {
 				Js_Self(Transform);
-				Js_Return( worker->types()->newInstance(self->origin_value()) );
+				Js_Return( worker->types()->jsvalue(self->origin_value()) );
 			});
 
 			Js_Set_WrapObject_Accessor(Transform, float, x, x);
@@ -62,7 +62,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(matrix, {
 				Js_Self(Transform);
-				Js_Return( worker->types()->newInstance(self->matrix()) );
+				Js_Return( worker->types()->jsvalue(self->matrix()) );
 			});
 
 			cls->exports("Transform", exports);

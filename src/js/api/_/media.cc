@@ -28,31 +28,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../_view.h"
-#include "../../media/media-codec.h"
+#include "../ui.h"
+#include "../../media/media_codec.h"
 
-/**
- * @ns qk::js
- */
+namespace qk { namespace js {
 
-Js_BEGIN
+	void binding_audio(JSObject* exports, Worker* worker);
+	void binding_video(JSObject* exports, Worker* worker);
 
-void binding_audio(JSObject* exports, Worker* worker);
-void binding_video(JSObject* exports, Worker* worker);
+	class NativeMedia {
+		public:
+		static void binding(JSObject* exports, Worker* worker) {
+			if (!initialize_media())
+				Js_Throw("binding or initialize media library fail");
 
-/**
- * @class NativeMedia
- */
-class NativeMedia {
-	public:
-	static void binding(JSObject* exports, Worker* worker) {
-		if (!initialize_media())
-			Js_Throw("binding or initialize media library fail");
+			binding_audio(exports, worker);
+			binding_video(exports, worker);
+		}
+	};
 
-		binding_audio(exports, worker);
-		binding_video(exports, worker);
-	}
-};
-
-Js_REG_MODULE(_media, NativeMedia);
-Js_END
+	Js_Set_Module(_media, NativeMedia);
+} }

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view.h"
+#include "./ui.h"
 #include "../../ui/view/scroll.h"
 
 namespace qk { namespace js {
@@ -53,15 +53,15 @@ namespace qk { namespace js {
 
 		Js_Set_Class_Accessor_Get(scrollbarH, {
 			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scrollbar_h()) );
+			Js_Return( worker->types()->jsvalue(self->scrollbar_h()) );
 		});
 		Js_Set_Class_Accessor_Get(scrollbarV, {
 			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scrollbar_v()) );
+			Js_Return( worker->types()->jsvalue(self->scrollbar_v()) );
 		});
 		Js_Set_Class_Accessor_Get(scrollSize, {
 			Js_ScrollBase();
-			Js_Return( worker->types()->newInstance(self->scroll_size()) );
+			Js_Return( worker->types()->jsvalue(self->scroll_size()) );
 		});
 
 		Js_Set_Class_Method(scrollTo, {

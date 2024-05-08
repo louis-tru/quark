@@ -75,11 +75,11 @@ namespace qk { namespace js {
 	class Qk_EXPORT Strings {
 	public:
 		Strings(Worker* worker);
-		#define _Fun(name) \
-		public: inline JSValue* name() { return *__##name##__; } \
-		private: Persistent<JSValue> __##name##__;
+	#define _Fun(name) \
+	public: inline JSValue* name() { return *__##name##__; } \
+	private: Persistent<JSValue> __##name##__;
 		Js_Strings_Each(_Fun);
-		#undef _Fun
+	#undef _Fun
 	};
 
 	typedef qk::Wrap Wrap;
@@ -107,8 +107,6 @@ namespace qk { namespace js {
 		F(String) \
 		F(Curve) \
 		F(Shadow) \
-		F(FillPositionKind) \
-		F(FillSizeKind) /*BoxOriginKind*/\
 		F(FillPosition) \
 		F(FillSize) \
 		F(Repeat) \
@@ -120,7 +118,6 @@ namespace qk { namespace js {
 		F(Wrap) \
 		F(WrapAlign) \
 		F(Align) \
-		F(BoxSizeKind) \
 		F(BoxSize) \
 		F(BoxOrigin) \
 		F(TextAlign) \
@@ -128,7 +125,6 @@ namespace qk { namespace js {
 		F(TextOverflow) \
 		F(TextWhiteSpace) \
 		F(TextWordBreak) \
-		F(TextValueKind) \
 		F(TextColor) \
 		F(TextSize) /*TextLineHeight*/\
 		F(TextShadow) \
@@ -146,83 +142,85 @@ namespace qk { namespace js {
 	class Qk_EXPORT TypesParser {
 	public:
 		TypesParser(Worker* worker, JSObject* exports);
-		inline
-		JSValue* newInstance(Object* val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(double val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(Char val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(uint8_t val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(int16_t val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(uint16_t val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(int64_t val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(uint64_t val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(cString2& val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(cString4& val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(const Error& val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(const HttpError& val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(cArray<String>& val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(cDictSS& val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(Buffer& val) { return worker->newInstance(val); }
-		inline
-		JSValue* newInstance(Buffer&& val) { return worker->newInstance(val);}
-		template <class S>
-		inline S* newInstance(const Persistent<S>& value) { return *value; }
-		inline
-		JSValue* newInstance(JSValue* val) { return val; }
-		inline
-		JSValue* newInstance(const Bool& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Float32& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Float64& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Int8& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Uint8& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Int16& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Uint16& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Int32& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Uint32& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Int64& v) { return worker->newInstance(v.value); }
-		inline
-		JSValue* newInstance(const Uint64& v) { return worker->newInstance(v.value); }
-		JSValue* newInstance(const Dirent& val);
-		JSValue* newInstance(const FileStat& val);
-		JSValue* newInstance(const Array<Dirent>& val);
-		JSValue* newInstance(const Array<FileStat>& val);
 
-		bool     isTypesBase(JSValue *arg);
+		bool     isTypesBase(JSObject *arg);
 		void     throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
+		inline
+		JSValue* jsvalue(Object* val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(double val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(Char val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(uint8_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(int16_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(uint16_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(int64_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(uint64_t val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(cString2& val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(cString4& val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(const Error& val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(const HttpError& val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(cArray<String>& val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(cDictSS& val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(Buffer& val) { return worker->newInstance(val); }
+		inline
+		JSValue* jsvalue(Buffer&& val) { return worker->newInstance(val);}
+		template <class S>
+		inline S* jsvalue(const Persistent<S>& value) { return *value; }
+		inline
+		JSValue* jsvalue(JSValue* val) { return val; }
+		inline
+		JSValue* jsvalue(const Bool& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Float32& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Float64& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Int8& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Uint8& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Int16& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Uint16& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Int32& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Uint32& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Int64& v) { return worker->newInstance(v.value); }
+		inline
+		JSValue* jsvalue(const Uint64& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Dirent& val);
+		JSValue* jsvalue(const FileStat& val);
+		JSValue* jsvalue(const Array<Dirent>& val);
+		JSValue* jsvalue(const Array<FileStat>& val);
+
 		bool     parse(JSValue* in, WindowOptions& out, cChar* desc);
 		bool     parse(JSValue* in, FillImageInit& out, cChar* desc);
-
 	#define _Def_Fun(Name) \
-		JSValue* newInstance(const Name& value); \
+		JSValue* jsvalue(const Name& value); \
 		bool parse(JSValue* in, Name& out, cChar* err_msg = 0);
 		Js_Types_Each(_Def_Fun);
 	private:
+		template<typedef T> T kind(JSObject* obj);
 		Worker *worker;
 	#define _Def_attr(Name) \
 		Persistent<JSFunction> _parse##Name; \
 		Persistent<JSFunction> _new##Name;
+		Persistent<JSFunction> _TypesBase;
 		Js_Types_Each(_Def_attr)
 	#undef _Def_Fun
 	#undef _Def_attr

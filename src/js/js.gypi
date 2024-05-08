@@ -21,9 +21,7 @@
 			'types.h',
 			'types.cc',
 			'wrap.cc',
-			'api/app.cc', # api
-			'api/action.cc',
-			'api/app.cc',
+			'api/action.cc', # api
 			'api/box.cc',
 			'api/buffer.cc',
 			'api/cb.cc',
@@ -31,6 +29,7 @@
 			'api/console.cc',
 			'api/css.cc',
 			'api/event.cc',
+			'api/filter.cc',
 			'api/font.cc',
 			'api/fs_path.cc',
 			'api/fs_reader.cc',
@@ -44,9 +43,10 @@
 			'api/text.cc',
 			'api/timer.cc',
 			'api/transform.cc',
+			'api/ui.cc',
+			'api/ui.h',
 			'api/util.cc',
 			'api/view.cc',
-			'api/view.h',
 			'api/window.cc',
 		],
 		'conditions': [
