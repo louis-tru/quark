@@ -37,40 +37,40 @@
 namespace qk {
 
 	enum class TextWeight: uint16_t {
-		kInherit      = 0,
-		kThin         = 100,
-		kUltralight   = 200,
-		kLight        = 300,
-		kRegular      = 400,
-		kMedium       = 500,
-		kSemibold     = 600,
-		kBold         = 700,
-		kHeavy        = 800,
-		kBlack        = 900,
-		kExtraBlack   = 1000,
-		kDefault      = kRegular, // default
+		Inherit      = 0,
+		Thin         = 100,
+		Ultralight   = 200,
+		Light        = 300,
+		Regular      = 400,
+		Medium       = 500,
+		Semibold     = 600,
+		Bold         = 700,
+		Heavy        = 800,
+		Black        = 900,
+		ExtraBlack   = 1000,
+		Default      = Regular, // default
 	};
 
 	enum class TextWidth: uint8_t {
-		kInherit          = 0, // inherit
-		kUltraCondensed   = 1,
-		kExtraCondensed   = 2,
-		kCondensed        = 3,
-		kSemiCondensed    = 4,
-		kNormal           = 5,
-		kSemiExpanded     = 6,
-		kExpanded         = 7,
-		kExtraExpanded    = 8,
-		kUltraExpanded    = 9,
-		kDefault          = kNormal,
+		Inherit          = 0, // inherit
+		UltraCondensed   = 1,
+		ExtraCondensed   = 2,
+		Condensed        = 3,
+		SemiCondensed    = 4,
+		Normal           = 5,
+		SemiExpanded     = 6,
+		Expanded         = 7,
+		ExtraExpanded    = 8,
+		UltraExpanded    = 9,
+		Default          = Normal,
 	};
 
 	enum class TextSlant: uint8_t {
-		kInherit, // inherit
-		kNormal, // 正常
-		kItalic, // 斜体
-		kOblique,  // 倾斜
-		kDefault = kNormal,
+		Inherit, // inherit
+		Normal, // 正常
+		Italic, // 斜体
+		Oblique,  // 倾斜
+		Default = Normal,
 	};
 
 	class FontFamilys;
@@ -81,12 +81,12 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, value, Const);
 
 		FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
-			(Uint32::clamp(uint32_t(weight), uint32_t(TextWeight::kInherit), uint32_t(TextWeight::kExtraBlack))) +
-			(Uint32::clamp(uint32_t(width), uint32_t(TextWidth::kUltraCondensed), uint32_t(TextWidth::kUltraExpanded)) << 16) +
+			(Uint32::clamp(uint32_t(weight), uint32_t(TextWeight::Inherit), uint32_t(TextWeight::ExtraBlack))) +
+			(Uint32::clamp(uint32_t(width), uint32_t(TextWidth::UltraCondensed), uint32_t(TextWidth::UltraExpanded)) << 16) +
 			(Uint32::clamp(uint32_t(slant) - 1u, 0u, 2u) << 24)
 		) {}
 
-		FontStyle(): FontStyle{TextWeight::kDefault, TextWidth::kDefault, TextSlant::kNormal} {}
+		FontStyle(): FontStyle{TextWeight::Default, TextWidth::Default, TextSlant::Normal} {}
 
 		bool operator==(const FontStyle& rhs) const {
 			return _value == rhs._value;
@@ -97,16 +97,16 @@ namespace qk {
 		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
 
 		static FontStyle Normal() {
-			return FontStyle(TextWeight::kDefault, TextWidth::kDefault, TextSlant::kDefault);
+			return FontStyle(TextWeight::Default, TextWidth::Default, TextSlant::Default);
 		}
 		static FontStyle Bold() {
-			return FontStyle(TextWeight::kBold, TextWidth::kDefault, TextSlant::kDefault);
+			return FontStyle(TextWeight::Bold, TextWidth::Default, TextSlant::Default);
 		}
 		static FontStyle Italic() {
-			return FontStyle(TextWeight::kDefault, TextWidth::kDefault, TextSlant::kItalic );
+			return FontStyle(TextWeight::Default, TextWidth::Default, TextSlant::Italic );
 		}
 		static FontStyle BoldItalic() {
-			return FontStyle(TextWeight::kBold, TextWidth::kDefault, TextSlant::kItalic );
+			return FontStyle(TextWeight::Bold, TextWidth::Default, TextSlant::Italic );
 		}
 	};
 

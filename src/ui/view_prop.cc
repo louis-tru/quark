@@ -130,14 +130,17 @@ namespace qk {
 		Qk_Set_Accessor(Box, MARGIN_RIGHT, margin_right);
 		Qk_Set_Accessor(Box, MARGIN_BOTTOM, margin_bottom);
 		Qk_Set_Accessor(Box, MARGIN_LEFT, margin_left);
+		Qk_Set_Accessor(Box, MARGIN, margin);
 		Qk_Set_Accessor(Box, MARGIN_TOP, padding_top);
 		Qk_Set_Accessor(Box, MARGIN_RIGHT, padding_right);
 		Qk_Set_Accessor(Box, MARGIN_BOTTOM, padding_bottom);
 		Qk_Set_Accessor(Box, MARGIN_LEFT, padding_left);
+		Qk_Set_Accessor(Box, MARGIN, padding);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_TOP, border_radius_left_top);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_TOP, border_radius_right_top);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_BOTTOM, border_radius_right_bottom);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_BOTTOM, border_radius_left_bottom);
+		Qk_Set_Accessor(Box, BORDER_RADIUS, border_radius);
 		Qk_Set_Accessor(Box, BORDER_COLOR_TOP, border_color_top);
 		Qk_Set_Accessor(Box, BORDER_COLOR_RIGHT, border_color_right);
 		Qk_Set_Accessor(Box, BORDER_COLOR_BOTTOM, border_color_bottom);
@@ -151,18 +154,18 @@ namespace qk {
 		Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow);
 		Qk_Set_Accessor(Box, WEIGHT, weight);
 		Qk_Set_Accessor(Box, ALIGN, align);
-		Qk_Copy_Accessor(Box, Flex, CLIP, 30);
-		Qk_Copy_Accessor(Box, Flow, CLIP, 30);
-		Qk_Copy_Accessor(Box, Float, CLIP, 30);
-		Qk_Copy_Accessor(Box, Image, CLIP, 30);
-		Qk_Copy_Accessor(Box, Video, CLIP, 30);
-		Qk_Copy_Accessor(Box, Input, CLIP, 30);
-		Qk_Copy_Accessor(Box, Textarea, CLIP, 30);
-		Qk_Copy_Accessor(Box, Scroll, CLIP, 30);
-		Qk_Copy_Accessor(Box, Text, CLIP, 30);
-		Qk_Copy_Accessor(Box, Button, CLIP, 30);
-		Qk_Copy_Accessor(Box, Transform, CLIP, 30);
-		Qk_Copy_Accessor(Box, Root, CLIP, 30);
+		Qk_Copy_Accessor(Box, Flex, CLIP, 33);
+		Qk_Copy_Accessor(Box, Flow, CLIP, 33);
+		Qk_Copy_Accessor(Box, Float, CLIP, 33);
+		Qk_Copy_Accessor(Box, Image, CLIP, 33);
+		Qk_Copy_Accessor(Box, Video, CLIP, 33);
+		Qk_Copy_Accessor(Box, Input, CLIP, 33);
+		Qk_Copy_Accessor(Box, Textarea, CLIP, 33);
+		Qk_Copy_Accessor(Box, Scroll, CLIP, 33);
+		Qk_Copy_Accessor(Box, Text, CLIP, 33);
+		Qk_Copy_Accessor(Box, Button, CLIP, 33);
+		Qk_Copy_Accessor(Box, Transform, CLIP, 33);
+		Qk_Copy_Accessor(Box, Root, CLIP, 33);
 		// flex
 		Qk_Set_Accessor(Flex, DIRECTION, direction);
 		Qk_Set_Accessor(Flex, ITEMS_ALIGN, items_align);
@@ -208,6 +211,10 @@ namespace qk {
 		// TODO ...
 		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3);
 		// transform
+		Qk_Set_Accessor(Transform, TRANSLATE, translate);
+		Qk_Set_Accessor(Transform, SCALE, scale);
+		Qk_Set_Accessor(Transform, SKEW, skew);
+		Qk_Set_Accessor(Transform, ORIGIN, origin);
 		Qk_Set_Accessor(Transform, X, x);
 		Qk_Set_Accessor(Transform, Y, y);
 		Qk_Set_Accessor(Transform, SCALE_X, scale_x);

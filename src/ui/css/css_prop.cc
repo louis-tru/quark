@@ -78,6 +78,15 @@ namespace qk {
 	}
 
 	template<>
+	BoxOrigin transition_value(BoxOrigin v1, BoxOrigin v2, float t) {
+		if ( v1.kind == v2.kind ) {
+			return { v1.value - (v1.value - v2.value) * t, v1.kind };
+		} else {
+			return t < 1.0 ? v1 : v2;
+		}
+	}
+
+	template<>
 	Color transition_value(Color v1, Color v2, float t) {
 		return Color(v1.r() - (v1.r() - v2.r()) * t,
 								v1.g() - (v1.g() - v2.g()) * t,
@@ -86,8 +95,8 @@ namespace qk {
 
 	template<>
 	TextSize transition_value(TextSize v1, TextSize v2, float t) {
-		if ( v1.kind == TextValueKind::kValue && v2.kind == TextValueKind::kValue ) {
-			return { v1.value - (v1.value - v2.value) * t, TextValueKind::kValue };
+		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
+			return { v1.value - (v1.value - v2.value) * t, TextValueKind::Value };
 		} else {
 			return  t < 1.0 ? v1 : v2;
 		}
@@ -95,8 +104,8 @@ namespace qk {
 
 	template<>
 	TextColor transition_value(TextColor v1, TextColor v2, float t) {
-		if ( v1.kind == TextValueKind::kValue && v2.kind == TextValueKind::kValue ) {
-			return { transition_value(v1.value, v2.value, t), TextValueKind::kValue };
+		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
+			return { transition_value(v1.value, v2.value, t), TextValueKind::Value };
 		} else {
 			return  t < 1.0 ? v1 : v2;
 		}
@@ -105,8 +114,8 @@ namespace qk {
 	template<>
 	Shadow transition_value(Shadow v1, Shadow v2, float t) {
 		return {
-			v1.offset_x - (v1.offset_x - v2.offset_x) * t,
-			v1.offset_y - (v1.offset_y - v2.offset_y) * t,
+			v1.x - (v1.x - v2.x) * t,
+			v1.y - (v1.y - v2.y) * t,
 			v1.size - (v1.size - v2.size) * t,
 			transition_value(v1.color, v2.color, t),
 		};
@@ -114,8 +123,8 @@ namespace qk {
 
 	template<>
 	TextShadow transition_value(TextShadow v1, TextShadow v2, float t) {
-		if ( v1.kind == TextValueKind::kValue && v2.kind == TextValueKind::kValue ) {
-			return { transition_value(v1.value, v2.value, t), TextValueKind::kValue };
+		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
+			return { transition_value(v1.value, v2.value, t), TextValueKind::Value };
 		} else {
 			return t < 1.0 ? v1 : v2;
 		}
@@ -242,6 +251,119 @@ namespace qk {
 		asyncSetLarge<key>(value);
 	}
 
+
+	template<>
+	template<>
+	void SetProp<ArrayFloat>::asyncSet<kMARGIN_ViewProp>(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_margin_left(val[0]);
+				set_margin_top(val[0]);
+				set_margin_right(val[0]);
+				set_margin_bottom(val[0]);
+				break;
+			case 2:
+				set_margin_top(val[0]);
+				set_margin_bottom(val[0]);
+				set_margin_left(val[1]);
+				set_margin_right(val[1]);
+				break;
+			case 3:
+				set_margin_top(val[0]);
+				set_margin_left(val[1]);
+				set_margin_right(val[1]);
+				set_margin_bottom(val[2]);
+				break;
+			case 4: // 4
+				set_margin_top(val[0]);
+				set_margin_right(val[1]);
+				set_margin_bottom(val[2]);
+				set_margin_left(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	template<>
+	template<>
+	void SetProp<ArrayFloat>::asyncSet<kPADDING_ViewProp>(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_padding_left(val[0]);
+				set_padding_top(val[0]);
+				set_padding_right(val[0]);
+				set_padding_bottom(val[0]);
+				break;
+			case 2:
+				set_padding_top(val[0]);
+				set_padding_bottom(val[0]);
+				set_padding_left(val[1]);
+				set_padding_right(val[1]);
+				break;
+			case 3:
+				set_padding_top(val[0]);
+				set_padding_left(val[1]);
+				set_padding_right(val[1]);
+				set_padding_bottom(val[2]);
+				break;
+			case 4: // 4
+				set_padding_top(val[0]);
+				set_padding_right(val[1]);
+				set_padding_bottom(val[2]);
+				set_padding_left(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	template<>
+	template<>
+	void SetProp<ArrayFloat>::asyncSet<kBORDER_RADIUS_ViewProp>(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_border_radius_left_top(val[0]);
+				set_border_radius_right_top(val[0]);
+				set_border_radius_right_bottom(val[0]);
+				set_border_radius_left_bottom(val[0]);
+				break;
+			case 2:
+				set_border_radius_left_top(val[0]);
+				set_border_radius_right_top(val[0]);
+				set_border_radius_right_bottom(val[1]);
+				set_border_radius_left_bottom(val[1]);
+				break;
+			case 3:
+				set_border_radius_left_top(val[0]);
+				set_border_radius_right_top(val[1]);
+				set_border_radius_right_bottom(val[2]);
+				set_border_radius_left_bottom(val[2]);
+				break;
+			case 4: // 4
+				set_border_radius_left_top(val[0]);
+				set_border_radius_right_top(val[1]);
+				set_border_radius_right_bottom(val[2]);
+				set_border_radius_left_bottom(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	template<>
+	template<>
+	void SetProp<ArrayOrigin>::asyncSet<kORIGIN_ViewProp>(ArrayOrigin val) {
+		switch (val.length()) {
+			case 1:
+				set_origin_x(val[0]);
+				set_origin_y(val[0]);
+				break;
+			case 2:
+				set_origin_x(val[0]);
+				set_origin_y(val[1]);
+				break;
+			default: break;
+		}
+	}
+
 	template<>
 	template<ViewProp key>
 	void SetProp<TextShadow>::asyncSet(TextShadow value) {
@@ -288,17 +410,16 @@ namespace qk {
 	template<typename T>
 	struct SetProp<T*>: StyleSheets {
 		template<ViewProp key>
-		inline void asyncSet(T* value) {
-			static_cast<SetProp<BoxFilter*>*>(static_cast<StyleSheets*>(this))->asyncSet<key>(value);
+		inline void asyncSet(T* val) {
+			static_cast<SetProp<BoxFilter*>*>(static_cast<StyleSheets*>(this))->asyncSet<key>(val);
 		}
 	};
 
 	#define _Fun(Enum, Type, Name, _) \
-	void StyleSheets::set_##Name(Type value) {\
-		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_ViewProp>(value);\
+	void StyleSheets::set_##Name(Type val) {\
+		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_ViewProp>(val);\
 	}
 	Qk_View_Props(_Fun)
 
 	#undef _Fun
-
 }

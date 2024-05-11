@@ -39,8 +39,8 @@ namespace qk {
 
 	// ------------------------ S c r o l l . B a s e --------------------------
 
-	static const Curve ease_in_out(0.3, 0.3, 0.3, 1);
-	static const Curve ease_out(0, 0, 0.58, 1);
+	static const Curve ease_in_out({0.3, 0.3}, {0.3, 1});
+	static const Curve ease_out({0, 0}, {0.58, 1});
 
 	class ScrollBase::Task: public RenderTask {
 	public:
@@ -73,7 +73,7 @@ namespace qk {
 						float y = float(now - m_start_time) / float(m_duration);
 						run( sqrtf(1 - powf(y - 1, 2)) );
 					} else {
-						run( m_curve.fixed_solve_t(float(now - m_start_time) / float(m_duration), 0.001) );
+						run( m_curve.solve_t(float(now - m_start_time) / float(m_duration), 0.001) );
 					}
 				}
 			}

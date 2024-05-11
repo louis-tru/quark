@@ -45,15 +45,15 @@ namespace qk {
 
 		switch (_width.kind) {
 			default: // NONE /* none default wrap content */
-			case BoxSizeKind::kWrap: /* 包裹内容 wrap content */
+			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap width
 				break;
-			case BoxSizeKind::kPixel: /* 明确值 value px */
+			case BoxSizeKind::Rem: /* 明确值 value rem */
 				*is_wrap_in_out = false;
 				result = _width.value;
 				break;
-			case BoxSizeKind::kMatch: /* 匹配父视图 match parent */
+			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -64,7 +64,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::kRatio: /* 百分比 value % */
+			case BoxSizeKind::Ratio: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -72,7 +72,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::kMinus: /* 减法(parent-value) value ! */
+			case BoxSizeKind::Minus: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -91,15 +91,15 @@ namespace qk {
 
 		switch (_height.kind) {
 			default: // NONE /* none default wrap content */
-			case BoxSizeKind::kWrap: /* 包裹内容 wrap content */
+			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap height
 				break;
-			case BoxSizeKind::kPixel: /* 明确值 value px */
+			case BoxSizeKind::Rem: /* 明确值 value rem */
 				*is_wrap_in_out = false;
 				result = _height.value;
 				break;
-			case BoxSizeKind::kMatch: /* 匹配父视图 match parent */
+			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -110,7 +110,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::kRatio: /* 百分比 value % */
+			case BoxSizeKind::Ratio: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -118,7 +118,7 @@ namespace qk {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case BoxSizeKind::kMinus: /* 减法(parent-value) value ! */
+			case BoxSizeKind::Minus: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -159,8 +159,8 @@ namespace qk {
 		*/
 	Box::Box()
 		: _layout_wrap_x_Rt(true), _layout_wrap_y_Rt(true), _clip(false)
-		, _width{0, BoxSizeKind::kWrap}, _height{0, BoxSizeKind::kWrap}
-		, _width_limit{0, BoxSizeKind::kNone}, _height_limit{0, BoxSizeKind::kNone}
+		, _width{0, BoxSizeKind::Auto}, _height{0, BoxSizeKind::Auto}
+		, _width_limit{0, BoxSizeKind::Auto}, _height_limit{0, BoxSizeKind::Auto}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -168,7 +168,7 @@ namespace qk {
 		, _border_radius_left_top(0), _border_radius_right_top(0)
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
-		, _weight(0), _align(Align::kAuto)
+		, _weight(0), _align(Align::Auto)
 		, _background(nullptr)
 		, _box_shadow(nullptr)
 		, _border(nullptr)
@@ -233,6 +233,90 @@ namespace qk {
 		}
 	}
 
+	void Box::set_margin_right(float val, bool isRt) {
+		if (_margin_right != val) {
+			_margin_right = val;
+			mark_size(kLayout_Size_Width, isRt);
+			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
+		}
+	}
+
+	void Box::set_margin_bottom(float val, bool isRt) {
+		if (_margin_bottom != val) {
+			_margin_bottom = val;
+			mark_size(kLayout_Size_Height, isRt);
+			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
+		}
+	}
+
+	ArrayFloat Box::margin() const {
+		return ArrayFloat{_margin_top,_margin_right,_margin_bottom,_margin_left};
+	}
+
+	void Box::set_margin(ArrayFloat val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_margin_left(val[0], isRt);
+				set_margin_top(val[0], isRt);
+				set_margin_right(val[0], isRt);
+				set_margin_bottom(val[0], isRt);
+				break;
+			case 2:
+				set_margin_top(val[0], isRt);
+				set_margin_bottom(val[0], isRt);
+				set_margin_left(val[1], isRt);
+				set_margin_right(val[1], isRt);
+				break;
+			case 3:
+				set_margin_top(val[0], isRt);
+				set_margin_left(val[1], isRt);
+				set_margin_right(val[1], isRt);
+				set_margin_bottom(val[2], isRt);
+				break;
+			case 4: // 4
+				set_margin_top(val[0], isRt);
+				set_margin_right(val[1], isRt);
+				set_margin_bottom(val[2], isRt);
+				set_margin_left(val[3], isRt);
+				break;
+			default: break;
+		}
+	}
+
+	ArrayFloat Box::padding() const {
+		return ArrayFloat{_padding_top,_padding_right,_padding_bottom,_padding_left};
+	}
+
+	void Box::set_padding(ArrayFloat val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_padding_left(val[0], isRt);
+				set_padding_top(val[0], isRt);
+				set_padding_right(val[0], isRt);
+				set_padding_bottom(val[0], isRt);
+				break;
+			case 2:
+				set_padding_top(val[0], isRt);
+				set_padding_bottom(val[0], isRt);
+				set_padding_left(val[1], isRt);
+				set_padding_right(val[1], isRt);
+				break;
+			case 3:
+				set_padding_top(val[0], isRt);
+				set_padding_left(val[1], isRt);
+				set_padding_right(val[1], isRt);
+				set_padding_bottom(val[2], isRt);
+				break;
+			case 4: // 4
+				set_padding_top(val[0], isRt);
+				set_padding_right(val[1], isRt);
+				set_padding_bottom(val[2], isRt);
+				set_padding_left(val[3], isRt);
+				break;
+			default: break;
+		}
+	}
+
 	void Box::set_padding_top(float val, bool isRt) { // padding
 		if (_padding_top != val) {
 			_padding_top = val;
@@ -247,22 +331,6 @@ namespace qk {
 		if (_padding_left != val) {
 			_padding_left = val;
 			mark_size(kLayout_Size_Width, isRt);
-			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
-		}
-	}
-
-	void Box::set_margin_right(float val, bool isRt) {
-		if (_margin_right != val) {
-			_margin_right = val;
-			mark_size(kLayout_Size_Width, isRt);
-			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
-		}
-	}
-
-	void Box::set_margin_bottom(float val, bool isRt) {
-		if (_margin_bottom != val) {
-			_margin_bottom = val;
-			mark_size(kLayout_Size_Height, isRt);
 			//mark_render(kRecursive_Transform); // @`set_padding_top(val)`
 		}
 	}
@@ -313,6 +381,115 @@ namespace qk {
 		}
 	}
 
+	ArrayFloat Box::border_radius() const {
+		return ArrayFloat{
+			_border_radius_left_top,_border_radius_right_top,
+			_border_radius_right_bottom,_border_radius_left_bottom
+		};
+	}
+
+	void Box::set_border_radius(ArrayFloat val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_border_radius_left_top(val[0], isRt);
+				set_border_radius_right_top(val[0], isRt);
+				set_border_radius_right_bottom(val[0], isRt);
+				set_border_radius_left_bottom(val[0], isRt);
+				break;
+			case 2:
+				set_border_radius_left_top(val[0], isRt);
+				set_border_radius_right_top(val[0], isRt);
+				set_border_radius_right_bottom(val[1], isRt);
+				set_border_radius_left_bottom(val[1], isRt);
+				break;
+			case 3:
+				set_border_radius_left_top(val[0], isRt);
+				set_border_radius_right_top(val[1], isRt);
+				set_border_radius_right_bottom(val[2], isRt);
+				set_border_radius_left_bottom(val[2], isRt);
+				break;
+			case 4: // 4
+				set_border_radius_left_top(val[0], isRt);
+				set_border_radius_right_top(val[1], isRt);
+				set_border_radius_right_bottom(val[2], isRt);
+				set_border_radius_left_bottom(val[3], isRt);
+				break;
+			default: break;
+		}
+	}
+
+	ArrayColor Box::border_color() const {
+		return _border ? 
+			ArrayColor({_border->color[0],_border->color[1],_border->color[2],_border->color[3]})
+			ArrayColor({Color::from(0),Color::from(0),Color::from(0),Color::from(0)});
+	}
+
+	void Box::set_border_color(ArrayColor val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_border_color_top(val[0], isRt);
+				set_border_color_right(val[0], isRt);
+				set_border_color_bottom(val[0], isRt);
+				set_border_color_left(val[0], isRt);
+				break;
+			case 2:
+				set_border_color_top(val[0], isRt);
+				set_border_color_bottom(val[0], isRt);
+				set_border_color_left(val[1], isRt);
+				set_border_color_right(val[1], isRt);
+				break;
+			case 3:
+				set_border_color_top(val[0], isRt);
+				set_border_color_left(val[1], isRt);
+				set_border_color_right(val[1], isRt);
+				set_border_color_bottom(val[2], isRt);
+				break;
+			case 4: // 4
+				set_border_color_top(val[0], isRt);
+				set_border_color_right(val[1], isRt);
+				set_border_color_bottom(val[2], isRt);
+				set_border_color_left(val[3], isRt);
+				break;
+			default: break;
+		}
+	}
+
+	ArrayFloat Box::border_width() const {
+		return _border ? 
+			ArrayFloat({_border->width[0],_border->width[1],_border->width[2],_border->width[3]})
+			ArrayFloat(4);
+	}
+
+	void Box::border_width(ArrayFloat val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_border_width_top(val[0], isRt);
+				set_border_width_right(val[0], isRt);
+				set_border_width_bottom(val[0], isRt);
+				set_border_width_left(val[0], isRt);
+				break;
+			case 2:
+				set_border_width_top(val[0], isRt);
+				set_border_width_bottom(val[0], isRt);
+				set_border_width_left(val[1], isRt);
+				set_border_width_right(val[1], isRt);
+				break;
+			case 3:
+				set_border_width_top(val[0], isRt);
+				set_border_width_left(val[1], isRt);
+				set_border_width_right(val[1], isRt);
+				set_border_width_bottom(val[2], isRt);
+				break;
+			case 4: // 4
+				set_border_width_top(val[0], isRt);
+				set_border_width_right(val[1], isRt);
+				set_border_width_bottom(val[2], isRt);
+				set_border_width_left(val[3], isRt);
+				break;
+			default: break;
+		}
+	}
+
 	Color Box::border_color_top() const {
 		return _border ? _border->color[0]: Color::from(0);
 	}
@@ -349,8 +526,8 @@ namespace qk {
 		#define _SetBorder static_cast<SetBorder*>(this)->set
 		void alloc() {
 			if (!_border) {// alloc border memory
-				_border = (BoxBorder*)::malloc(sizeof(BoxBorder));
-				::memset(_border, 0, sizeof(BoxBorder));
+				_border = (BoxBorderInl*)::malloc(sizeof(BoxBorderInl));
+				::memset(_border, 0, sizeof(BoxBorderInl));
 			}
 		}
 		template<typename E, typename Arg>
@@ -598,8 +775,8 @@ namespace qk {
 		auto origin = lines->pre_width();
 
 		if (lines->no_wrap() || // 容器没有固定宽度
-				text_white_space == TextWhiteSpace::kNoWrap ||
-				text_white_space == TextWhiteSpace::kPre
+				text_white_space == TextWhiteSpace::NoWrap ||
+				text_white_space == TextWhiteSpace::Pre
 		) { // 不使用自动wrap
 			is_auto_wrap = false;
 		}
@@ -777,36 +954,36 @@ namespace qk {
 
 		switch(_align) {
 			default:
-			case Align::kLeftTop: // left top
+			case Align::LeftTop: // left top
 				break;
-			case Align::kCenterTop: // center top
+			case Align::CenterTop: // center top
 				offset = Vec2((size.x() - _layout_size.x()) * .5, 0);
 				break;
-			case Align::kRightTop: // right top
+			case Align::RightTop: // right top
 				offset = Vec2(size.x() - _layout_size.x(), 0);
 				break;
-			case Align::kLeftCenter: // left center
+			case Align::LeftCenter: // left center
 				offset = Vec2(0, (size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::kCenterCenter: // center center
+			case Align::CenterCenter: // center center
 				offset = Vec2(
 					(size.x() - _layout_size.x()) * .5,
 					(size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::kRightCenter: // right center
+			case Align::RightCenter: // right center
 				offset = Vec2(
 					(size.x() - _layout_size.x()),
 					(size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::kLeftBottom: // left bottom
+			case Align::LeftBottom: // left bottom
 				offset = Vec2(0, (size.y() - _layout_size.y()));
 				break;
-			case Align::kCenterBottom: // center bottom
+			case Align::CenterBottom: // center bottom
 				offset = Vec2(
 					(size.x() - _layout_size.x()) * .5,
 					(size.y() - _layout_size.y()));
 				break;
-			case Align::kRightBottom: // right bottom
+			case Align::RightBottom: // right bottom
 				offset = Vec2(
 					(size.x() - _layout_size.x()),
 					(size.y() - _layout_size.y()));

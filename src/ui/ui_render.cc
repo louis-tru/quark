@@ -167,17 +167,17 @@ namespace qk {
 			dw -= (box->_border->width[3] + box->_border->width[1]); // left + right
 			dh -= (box->_border->width[0] + box->_border->width[2]); // top + bottom
 		}
-		if (FillImage::compute_size(fill->size_x(), dw, w)) { // ok x
-			if (!FillImage::compute_size(fill->size_y(), dh, h)) // auto y
+		if (FillImage::compute_size(fill->width(), dw, w)) { // ok x
+			if (!FillImage::compute_size(fill->height(), dh, h)) // auto y
 				h = w / src_w * src_h;
-		} else if (FillImage::compute_size(fill->size_y(), dh, h)) { // auto x, ok y
+		} else if (FillImage::compute_size(fill->height(), dh, h)) { // auto x, ok y
 			w = h / src_h * src_w;
 		} else { // auto x,y
 			w = src_w / _window->atomPixel();
 			h = src_h / _window->atomPixel();
 		}
-		x = FillImage::compute_position(fill->position_x(), dw, w);
-		y = FillImage::compute_position(fill->position_y(), dh, h);
+		x = FillImage::compute_position(fill->x(), dw, w);
+		y = FillImage::compute_position(fill->y(), dh, h);
 
 		if (box->_border) {
 			x += box->_border->width[3]; // left
@@ -191,16 +191,16 @@ namespace qk {
 		paint0.color.set_a(_opacity);
 
 		switch(fill->repeat()) {
-			case Repeat::kRepeat:
+			case Repeat::Repeat:
 				paint.tileModeX = ImagePaint::kRepeat_TileMode;
 				paint.tileModeY = ImagePaint::kRepeat_TileMode; break;
-			case Repeat::kRepeatX:
+			case Repeat::RepeatX:
 				paint.tileModeX = ImagePaint::kRepeat_TileMode;
 				paint.tileModeY = ImagePaint::kDecal_TileMode; break;
-			case Repeat::kRepeatY:
+			case Repeat::RepeatY:
 				paint.tileModeX = ImagePaint::kDecal_TileMode;
 				paint.tileModeY = ImagePaint::kRepeat_TileMode; break;
-			case Repeat::kRepeatNo:
+			case Repeat::RepeatNo:
 				paint.tileModeX = ImagePaint::kDecal_TileMode;
 				paint.tileModeY = ImagePaint::kDecal_TileMode; break;
 		}
@@ -292,7 +292,7 @@ namespace qk {
 			auto s = shadow->value();
 			auto &o = data.outside->rect.origin;
 			_canvas->drawRRectBlurColor({
-				{o.x()+s.offset_x, o.y()+s.offset_y}, data.outside->rect.size,
+				{o.x()+s.x, o.y()+s.y}, data.outside->rect.size,
 			},&box->_border_radius_left_top, s.size, s.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
@@ -516,8 +516,8 @@ namespace qk {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
 					_canvas->drawTextBlob(&blob.blob, {
-						line.origin + blob.origin + shadow.offset_x + offset.x(),
-						line.baseline + shadow.offset_y + offset.y()
+						line.origin + shadow.x + offset.x() + blob.origin,
+						line.baseline + shadow.y + offset.y()
 					}, size, paint);
 				}
 			}
@@ -593,7 +593,7 @@ namespace qk {
 					auto &blob = v->_blob[i];
 					auto &line = lines->line(blob.line);
 					_canvas->drawTextBlob(&blob.blob, {
-						line.origin + blob.origin + shadow.offset_x, line.baseline + shadow.offset_y
+						line.origin + blob.origin + shadow.x, line.baseline + shadow.y
 					}, size, paint);
 				}
 			}

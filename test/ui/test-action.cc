@@ -9,8 +9,8 @@ using namespace qk;
 void test_action(int argc, char **argv) {
 	App app;
 	auto div_cls = app.styleSheets()->search(".div_cls").front();
-	div_cls->set_width({ 100, BoxSizeKind::kMatch });
-	div_cls->set_height({ 0, BoxSizeKind::kMatch });
+	div_cls->set_width({ 100, BoxSizeKind::Match });
+	div_cls->set_height({ 0, BoxSizeKind::Match });
 	div_cls->set_background_color({255,0,0,255});
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Action"});
 	auto box = win->root()->append_new<Box>();

@@ -44,6 +44,7 @@ namespace qk {
 	public:
 		// compute text final props
 		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const); // @safe Rt
+		Qk_DEFINE_PROP_GET(TextAlign, text_align_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextWeight, text_weight_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextSlant, text_slant_value, Const); // @safe Rt
 		Qk_DEFINE_PROP_GET(TextDecoration, text_decoration_value, Const); // @safe Rt

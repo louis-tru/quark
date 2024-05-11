@@ -222,10 +222,10 @@ namespace qk {
 	// ------------------------------ F i l l . I m a g e ------------------------------
 
 	FillImage::FillImage(cString& src, Init init)
-		: _size_x(init.size_x)
-		, _size_y(init.size_y)
-		, _position_x(init.position_x)
-		, _position_y(init.position_y)
+		: _width(init.width)
+		, _height(init.height)
+		, _x(init.x)
+		, _y(init.y)
 		, _repeat(init.repeat)
 	{
 		if (!src.isEmpty()) {
@@ -237,10 +237,10 @@ namespace qk {
 		auto dest1 = (dest && dest->type() == kImage) ?
 				static_cast<FillImage*>(dest) : new FillImage(String());
 		dest1->_repeat = _repeat;
-		dest1->_position_x = _position_x;
-		dest1->_position_y = _position_y;
-		dest1->_size_x = _size_x;
-		dest1->_size_y = _size_y;
+		dest1->_x = _x;
+		dest1->_y = _y;
+		dest1->_width = _width;
+		dest1->_height = _height;
 		dest1->set_source(source());
 		dest1->set_next_Rt(next());
 		return dest1;
@@ -254,10 +254,10 @@ namespace qk {
 			auto dest1 = static_cast<FillImage*>(dest);
 			auto to1 = static_cast<FillImage*>(to);
 			dest1->_repeat = transition_value(_repeat, to1->_repeat, t);
-			dest1->_position_x = transition_value(_position_x, to1->_position_x, t);
-			dest1->_position_y = transition_value(_position_y, to1->_position_y, t);
-			dest1->_size_x = transition_value(_size_x, to1->_size_x, t);
-			dest1->_size_y = transition_value(_size_y, to1->_size_y, t);
+			dest1->_x = transition_value(_x, to1->_x, t);
+			dest1->_y = transition_value(_y, to1->_y, t);
+			dest1->_width = transition_value(_width, to1->_width, t);
+			dest1->_height = transition_value(_height, to1->_height, t);
 			dest1->set_source(t < 1.0 ? source(): to1->source());
 			mark(dest1, true);
 			auto n = next();
@@ -274,30 +274,30 @@ namespace qk {
 		}
 	}
 
-	void FillImage::set_position_x(FillPosition value, bool isRt) {
-		if (value != _position_x) {
-			_position_x = value;
+	void FillImage::set_x(FillPosition value, bool isRt) {
+		if (value != _x) {
+			_x = value;
 			mark(this, isRt);
 		}
 	}
 
-	void FillImage::set_position_y(FillPosition value, bool isRt) {
-		if (value != _position_y) {
-			_position_y = value;
+	void FillImage::set_y(FillPosition value, bool isRt) {
+		if (value != _y) {
+			_y = value;
 			mark(this, isRt);
 		}
 	}
 
-	void FillImage::set_size_x(FillSize value, bool isRt) {
-		if (value != _size_x) {
-			_size_x = value;
+	void FillImage::set_width(FillSize value, bool isRt) {
+		if (value != _width) {
+			_width = value;
 			mark(this, isRt);
 		}
 	}
 
-	void FillImage::set_size_y(FillSize value, bool isRt) {
-		if (value != _size_y) {
-			_size_y = value;
+	void FillImage::set_height(FillSize value, bool isRt) {
+		if (value != _height) {
+			_height = value;
 			mark(this, isRt);
 		}
 	}
@@ -305,8 +305,8 @@ namespace qk {
 	bool FillImage::compute_size(FillSize size, float host, float& out) {
 		switch (size.kind) {
 			default: return false; // AUTO
-			case FillSizeKind::kPixel: out = size.value; break;
-			case FillSizeKind::kRatio: out = size.value * host; break;
+			case FillSizeKind::Rem: out = size.value; break;
+			case FillSizeKind::Ratio: out = size.value * host; break;
 		}
 		return true;
 	}
@@ -315,11 +315,11 @@ namespace qk {
 		float out;
 		switch (pos.kind) {
 			default:
-			case FillPositionKind::kStart: out = 0; break;
-			case FillPositionKind::kPixel: out = pos.value; break;
-			case FillPositionKind::kRatio: out = pos.value * host; break;
-			case FillPositionKind::kEnd: out = host - size; break;
-			case FillPositionKind::kCenter: out = (host - size) / 2; break;
+			case FillPositionKind::Start: out = 0; break;
+			case FillPositionKind::Rem: out = pos.value; break;
+			case FillPositionKind::Ratio: out = pos.value * host; break;
+			case FillPositionKind::End: out = host - size; break;
+			case FillPositionKind::Center: out = (host - size) / 2; break;
 		}
 		return out;
 	}

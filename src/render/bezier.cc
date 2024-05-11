@@ -76,11 +76,10 @@ namespace qk {
 	// ------ CubicBezier ------
 
 	CubicBezier::CubicBezier(): CubicBezier(Vec2(0, 0), Vec2(0, 0), Vec2(1, 1), Vec2(1, 1)) {
-		_isLINEAR = true;
 	}
 
 	CubicBezier::CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3)
-		: _p0(p0), _p1(p1), _p2(p2), _p3(p3), _isLINEAR(false)
+		: _p0(p0), _p1(p1), _p2(p2), _p3(p3)
 	{
 		cx = 3.0 * (p1.x() - p0.x());
 		bx = 3.0 * (p2.x() - p1.x()) - cx;
@@ -88,10 +87,6 @@ namespace qk {
 		cy = 3.0 * (p1.y() - p0.y());
 		by = 3.0 * (p2.y() - p1.y()) - cy;
 		ay = p3.y() - p0.y() - cy - by;
-	}
-
-	CubicBezier CubicBezier::fixed(Vec2 p1, Vec2 p2) {
-		return CubicBezier(Vec2(0), p1, p2, Vec2(1));
 	}
 
 	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out, int stride) const {
@@ -114,7 +109,16 @@ namespace qk {
 		return rev;
 	}
 
-	float CubicBezier::fixed_solve_t(float x, float epsilon) const {
+	// ------ FixedCubicBezier ------
+
+	FixedCubicBezier::FixedCubicBezier(): CubicBezier(), _isLINEAR(true) {
+	}
+
+	FixedCubicBezier::FixedCubicBezier(Vec2 p1, Vec2 p2): CubicBezier(Vec2(), p1, p2, Vec2(1)) {
+		_isLINEAR = (p1 == Vec2() && p2 == Vec2(1));
+	}
+
+	float FixedCubicBezier::solve_t(float x, float epsilon) const {
 		if (_isLINEAR) return x;
 
 		float t0,t1,t2,x2,d2;
@@ -151,13 +155,13 @@ namespace qk {
 		return t2;
 	}
 
-	float CubicBezier::fixed_solve_y(float x, float epsilon) const {
-		return _isLINEAR ? x: sample_curve_y(fixed_solve_t(x, epsilon));
+	float FixedCubicBezier::solve_y(float x, float epsilon) const {
+		return _isLINEAR ? x: sample_curve_y(solve_t(x, epsilon));
 	}
 
 	cCurve LINEAR;
-	cCurve EASE(Curve::fixed({0.25, 0.1}, {0.25, 1}));
-	cCurve EASE_IN(Curve::fixed({0.42, 0}, {1, 1}));
-	cCurve EASE_OUT(Curve::fixed({0, 0}, {0.58, 1}));
-	cCurve EASE_IN_OUT(Curve::fixed({0.42, 0}, {0.58, 1}));
+	cCurve EASE(FixedCubicBezier({0.25, 0.1}, {0.25, 1}));
+	cCurve EASE_IN(FixedCubicBezier({0.42, 0}, {1, 1}));
+	cCurve EASE_OUT(FixedCubicBezier({0, 0}, {0.58, 1}));
+	cCurve EASE_IN_OUT(FixedCubicBezier({0.42, 0}, {0.58, 1}));
 }

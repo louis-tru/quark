@@ -41,8 +41,8 @@ namespace qk {
 		init(win);
 		_level = 1;
 		set_receive(true);
-		set_width({0, BoxSizeKind::kMatch});
-		set_height({0, BoxSizeKind::kMatch});
+		set_width({0, BoxSizeKind::Match});
+		set_height({0, BoxSizeKind::Match});
 		mark_layout(View::kLayout_Size_Width | View::kLayout_Size_Height, false);
 		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
 		mark(kRecursive_Transform, false);

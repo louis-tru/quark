@@ -42,8 +42,8 @@ void test_draw_efficiency(int argc, char **argv) {
 	win->activate();
 	// layout
 	auto t = win->root()->append_new<TestDrawEfficiency>();
-	t->set_width({ 0, BoxSizeKind::kMatch });
-	t->set_height({ 0, BoxSizeKind::kMatch });
+	t->set_width({ 0, BoxSizeKind::Match });
+	t->set_height({ 0, BoxSizeKind::Match });
 	// layout end
 	app.run();
 }

@@ -54,7 +54,7 @@ namespace qk { namespace js {
 		F(console)        F(__proto__)      F(_wrap_external_data) \
 		F(prototype)      F(type)           F(value) \
 		F(isAuto)         F(width)          F(height) \
-		F(offset)         F(offsetX)        F(offsetY) \
+		F(offset) \
 		F(_value)         F(r)              F(g) \
 		F(b)              F(a)              F(x) \
 		F(y)              F(z)              F(start) \
@@ -64,8 +64,8 @@ namespace qk { namespace js {
 		F(message)        F(status)         F(Errno) \
 		F(url)            F(id)             F(startX) \
 		F(startY)         F(force)          F(clickIn) \
-		F(view)           F(_data)          F(point1X) \
-		F(point1Y)        F(point2X)        F(point2Y) \
+		F(view)           F(_data)          F(p1x) \
+		F(p1y)            F(p2x)            F(p2y) \
 		F(time)           F(_change_touches)F(name) \
 		F(pathname)       F(styles)         F(sender) \
 		F(Buffer)         F(data)           F(total) \
@@ -85,10 +85,6 @@ namespace qk { namespace js {
 	typedef qk::Wrap Wrap;
 	typedef Window::Options WindowOptions;
 	typedef FillImage::Init FillImageInit;
-	typedef BoxFilter* BoxFilterPtr;
-	typedef BoxShadow* BoxShadowPtr;
-	typedef Array<float> ArrayFloat;
-	typedef Array<Color> ArrayColor;
 
 	#define Js_Types_Each(F) \
 		F(bool) \
@@ -104,6 +100,7 @@ namespace qk { namespace js {
 		F(Mat4) \
 		F(ArrayFloat) \
 		F(ArrayColor) \
+		F(ArrayOrigin) \
 		F(String) \
 		F(Curve) \
 		F(Shadow) \

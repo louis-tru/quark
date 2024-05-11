@@ -61,12 +61,12 @@ namespace qk {
 			if (max_width <= final_width) {
 				_input_text_offset_x = 0;
 			} else { // max_width > final_width
-				switch ( text_align() ) {
+				switch ( text_align_value() ) {
 					default: // left align
 						_input_text_offset_x = 0; break;
-					case TextAlign::kCenter:
+					case TextAlign::Center:
 						_input_text_offset_x = (max_width - final_width) / 2.0; break;
-					case TextAlign::kRight:
+					case TextAlign::Right:
 						_input_text_offset_x = max_width - final_width; break;
 				}
 			}

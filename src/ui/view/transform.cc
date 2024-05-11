@@ -34,7 +34,7 @@ namespace qk {
 
 	Transform::Transform()
 		: _translate(0), _scale(1), _skew(0), _rotate_z(0)
-		, _origin_x{0, BoxOriginKind::kPixel}, _origin_y{0, BoxOriginKind::kPixel}
+		, _origin_x{0, BoxOriginKind::Rem}, _origin_y{0, BoxOriginKind::Rem}
 	{
 	}
 
@@ -292,15 +292,15 @@ namespace qk {
 
 		switch (_origin_x.kind) {
 			default:
-			case BoxOriginKind::kAuto:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
-			case BoxOriginKind::kPixel: _origin_value.set_x(_origin_x.value); break;
-			case BoxOriginKind::kRatio: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
+			case BoxOriginKind::Auto:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
+			case BoxOriginKind::Rem:   _origin_value.set_x(_origin_x.value); break;
+			case BoxOriginKind::Ratio: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
 		}
 		switch (_origin_y.kind) {
 			default:
-			case BoxOriginKind::kAuto:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
-			case BoxOriginKind::kPixel: _origin_value.set_y(_origin_y.value); break;
-			case BoxOriginKind::kRatio: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
+			case BoxOriginKind::Auto:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
+			case BoxOriginKind::Rem:   _origin_value.set_y(_origin_y.value); break;
+			case BoxOriginKind::Ratio: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
 		}
 
 		unmark(kTransform_Origin);
@@ -316,6 +316,24 @@ namespace qk {
 
 	ViewType Transform::viewType() const {
 		return kTransform_ViewType;
+	}
+
+	ArrayOrigin Transform::origin() const {
+		return ArrayOrigin{_origin_x, _origin_y};
+	}
+
+	void Transform::set_origin(ArrayOrigin val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_origin_x(val[0], isRt);
+				set_origin_y(val[0], isRt);
+				break;
+			case 2:
+				set_origin_x(val[0], isRt);
+				set_origin_y(val[1], isRt);
+				break;
+			default: break;
+		}
 	}
 
 }

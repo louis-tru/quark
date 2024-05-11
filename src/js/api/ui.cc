@@ -216,29 +216,26 @@ namespace qk { namespace js {
 
 	void binding_screen(JSObject* exports, Worker* worker);
 	void binding_window(JSObject* exports, Worker* worker);
-	void binding_font(JSObject* exports, Worker* worker);
 	void binding_view(JSObject* exports, Worker* worker);
 	void binding_box(JSObject* exports, Worker* worker);
 	void binding_text(JSObject* exports, Worker* worker);
 	void binding_scroll(JSObject* exports, Worker* worker);
 	void binding_transform(JSObject* exports, Worker* worker);
-	void binding_filter(JSObject* exports, Worker* worker);
 
 	class NativeUI {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
+			worker->bindingModule("_font");
 			worker->bindingModule("_types");
 			worker->bindingModule("_event");
 			WrapNativeApplication::binding(exports, worker);
 			binding_screen(exports, worker);
 			binding_window(exports, worker);
-			binding_font(exports, worker);
 			binding_view(exports, worker);
 			binding_box(exports, worker);
 			binding_text(exports, worker);
 			binding_scroll(exports, worker);
 			binding_transform(exports, worker);
-			binding_filter(exports, worker);
 		}
 	};
 

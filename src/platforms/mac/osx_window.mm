@@ -200,41 +200,41 @@ void Window::setFullscreen(bool fullscreen) {
 }
 
 void Window::setCursorStyle(CursorStyle cursor, bool low) {
-	static CursorStyle current_cursor_low = CursorStyle::kArrow;
-	static CursorStyle current_cursor_high = CursorStyle::kNormal;
+	static CursorStyle current_cursor_low = CursorStyle::Arrow;
+	static CursorStyle current_cursor_high = CursorStyle::Normal;
 
 	if (low) {
 		current_cursor_low = cursor;
 	} else {
 		current_cursor_high = cursor;
 	}
-	cursor = current_cursor_high == CursorStyle::kNormal ? current_cursor_low: current_cursor_high;
+	cursor = current_cursor_high == CursorStyle::Normal ? current_cursor_low: current_cursor_high;
 
-	if (cursor == CursorStyle::kNone) {
+	if (cursor == CursorStyle::None) {
 		[NSCursor hide];
-	} else if (cursor == CursorStyle::kNoneUntilMouseMoves) {
+	} else if (cursor == CursorStyle::NoneUntilMouseMoves) {
 		[NSCursor setHiddenUntilMouseMoves:YES];
 	} else {
 		switch (cursor) {
-			case CursorStyle::kNormal:
-			case CursorStyle::kArrow: [NSCursor.arrowCursor set]; break;
-			case CursorStyle::kIBeam: [NSCursor.IBeamCursor set]; break;
-			case CursorStyle::kPointingHand: [NSCursor.pointingHandCursor set]; break;
-			case CursorStyle::kClosedHand: [NSCursor.closedHandCursor set]; break;
-			case CursorStyle::kOpenHand: [NSCursor.openHandCursor set]; break;
-			case CursorStyle::kResizeLeft: [NSCursor.resizeLeftCursor set]; break;
-			case CursorStyle::kResizeRight: [NSCursor.resizeRightCursor set]; break;
-			case CursorStyle::kResizeLeftRight: [NSCursor.resizeLeftRightCursor set]; break;
-			case CursorStyle::kResizeUp: [NSCursor.resizeUpCursor set]; break;
-			case CursorStyle::kResizeDown: [NSCursor.resizeDownCursor set]; break;
-			case CursorStyle::kResizeUpDown: [NSCursor.resizeUpDownCursor set]; break;
-			case CursorStyle::kCrosshair: [NSCursor.crosshairCursor set]; break;
-			case CursorStyle::kDisappearingItem: [NSCursor.disappearingItemCursor set]; break;
-			case CursorStyle::kOperationNotAllowed: [NSCursor.operationNotAllowedCursor set]; break;
-			case CursorStyle::kDragLink: [NSCursor.dragLinkCursor set]; break;
-			case CursorStyle::kDragCopy: [NSCursor.dragCopyCursor set]; break;
-			case CursorStyle::kContextualMenu: [NSCursor.contextualMenuCursor set]; break;
-			case CursorStyle::kIBeamForVertical: [NSCursor.IBeamCursorForVerticalLayout set]; break;
+			case CursorStyle::Normal:
+			case CursorStyle::Arrow: [NSCursor.arrowCursor set]; break;
+			case CursorStyle::Ibeam: [NSCursor.IBeamCursor set]; break;
+			case CursorStyle::PointingHand: [NSCursor.pointingHandCursor set]; break;
+			case CursorStyle::ClosedHand: [NSCursor.closedHandCursor set]; break;
+			case CursorStyle::OpenHand: [NSCursor.openHandCursor set]; break;
+			case CursorStyle::ResizeLeft: [NSCursor.resizeLeftCursor set]; break;
+			case CursorStyle::ResizeRight: [NSCursor.resizeRightCursor set]; break;
+			case CursorStyle::ResizeLeftRight: [NSCursor.resizeLeftRightCursor set]; break;
+			case CursorStyle::ResizeUp: [NSCursor.resizeUpCursor set]; break;
+			case CursorStyle::ResizeDown: [NSCursor.resizeDownCursor set]; break;
+			case CursorStyle::ResizeUpDown: [NSCursor.resizeUpDownCursor set]; break;
+			case CursorStyle::Crosshair: [NSCursor.crosshairCursor set]; break;
+			case CursorStyle::DisappearingItem: [NSCursor.disappearingItemCursor set]; break;
+			case CursorStyle::OperationNotAllowed: [NSCursor.operationNotAllowedCursor set]; break;
+			case CursorStyle::DragLink: [NSCursor.dragLinkCursor set]; break;
+			case CursorStyle::DragCopy: [NSCursor.dragCopyCursor set]; break;
+			case CursorStyle::ContextualMenu: [NSCursor.contextualMenuCursor set]; break;
+			case CursorStyle::IbeamForVertical: [NSCursor.IBeamCursorForVerticalLayout set]; break;
 			default: break;
 		}
 		[NSCursor unhide];

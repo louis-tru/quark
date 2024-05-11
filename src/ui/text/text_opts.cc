@@ -36,19 +36,19 @@
 namespace qk {
 
 	TextOptions::TextOptions()
-		: _text_align(TextAlign::kDefault)
-		, _text_weight(TextWeight::kInherit)
-		, _text_slant(TextSlant::kInherit)
-		, _text_decoration(TextDecoration::kInherit)
-		, _text_overflow(TextOverflow::kInherit)
-		, _text_white_space(TextWhiteSpace::kInherit)
-		, _text_word_break(TextWordBreak::kInherit)
-		, _text_size{ .kind=TextValueKind::kInherit }
-		, _text_background_color{ .kind=TextValueKind::kInherit }
-		, _text_color{ .kind=TextValueKind::kInherit }
-		, _text_shadow{ .kind=TextValueKind::kInherit }
-		, _text_line_height{ .kind=TextValueKind::kInherit }
-		, _text_family{ .value=nullptr, .kind=TextValueKind::kInherit }
+		: _text_align(TextAlign::Inherit)
+		, _text_weight(TextWeight::Inherit)
+		, _text_slant(TextSlant::Inherit)
+		, _text_decoration(TextDecoration::Inherit)
+		, _text_overflow(TextOverflow::Inherit)
+		, _text_white_space(TextWhiteSpace::Inherit)
+		, _text_word_break(TextWordBreak::Inherit)
+		, _text_size{ .kind=TextValueKind::Inherit }
+		, _text_background_color{ .kind=TextValueKind::Inherit }
+		, _text_color{ .kind=TextValueKind::Inherit }
+		, _text_shadow{ .kind=TextValueKind::Inherit }
+		, _text_line_height{ .kind=TextValueKind::Inherit }
+		, _text_family{ .value=nullptr, .kind=TextValueKind::Inherit }
 		, _text_flags(0xffffffffu)
 	{
 	}
@@ -78,7 +78,7 @@ namespace qk {
 
 	void TextOptions::set_text_align(TextAlign value, bool isRt) {
 		if(_text_align != value) {
-			_text_align = value;
+			_text_align = _text_align_value = value;
 			onTextChange(View::kLayout_Typesetting, 0, isRt);
 		}
 	}
@@ -177,21 +177,21 @@ namespace qk {
 	}
 
 	FontStyle TextOptions::font_style() const {
-		return {_text_weight_value, TextWidth::kDefault, _text_slant_value};
+		return {_text_weight_value, TextWidth::Default, _text_slant_value};
 	}
 
 	// ---------------- T e x t . C o n f i g ----------------
 
 	#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
-		if (_opts->_##name == Type::kInherit) { \
+		if (_opts->_##name == Type::Inherit) { \
 			_opts->_##name##_value = _base_opts->_##name##_value; \
 		}
 
-	#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, Default) \
-		if (_opts->_##name.kind == TextValueKind::kInherit) {  \
+	#define Qk_DEFINE_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, _Default) \
+		if (_opts->_##name.kind == TextValueKind::Inherit) {  \
 			_opts->_##name.value = _base_opts->_##name.value; \
-		} else if (_opts->_##name.kind == TextValueKind::kDefault) { \
-			_opts->_##name.value = Default; \
+		} else if (_opts->_##name.kind == TextValueKind::Default) { \
+			_opts->_##name.value = _Default; \
 		}
 
 	TextConfig::TextConfig(TextOptions* opts, TextConfig* base)
@@ -200,6 +200,7 @@ namespace qk {
 		if (_opts->_text_flags || _base->_opts->_text_flags) {
 			_opts->_text_flags |= _base->_opts->_text_flags;
 			auto _base_opts = _base->_opts;
+			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextAlign, text_align, 0);
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 1);
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextSlant, text_slant, 2);
 			Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextDecoration, text_decoration, 3);
@@ -224,19 +225,19 @@ namespace qk {
 		, TextConfig(this, this)
 	{
 		auto setDefault = [](TextOptions *opts, FontPool *pool) {
-			opts->set_text_align(TextAlign::kDefault);
-			opts->set_text_weight(TextWeight::kDefault);
-			opts->set_text_slant(TextSlant::kDefault);
-			opts->set_text_decoration(TextDecoration::kDefault);
-			opts->set_text_overflow(TextOverflow::kDefault);
-			opts->set_text_white_space(TextWhiteSpace::kDefault);
-			opts->set_text_word_break(TextWordBreak::kDefault);
-			opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::kValue});
-			opts->set_text_color({Color(0, 0, 0), TextValueKind::kValue});
-			opts->set_text_size({16, TextValueKind::kValue});
-			opts->set_text_line_height({0, TextValueKind::kDefault});
-			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::kValue});
-			opts->set_text_family({pool->defaultFontFamilys(), TextValueKind::kValue});
+			opts->set_text_align(TextAlign::Default);
+			opts->set_text_weight(TextWeight::Default);
+			opts->set_text_slant(TextSlant::Default);
+			opts->set_text_decoration(TextDecoration::Default);
+			opts->set_text_overflow(TextOverflow::Default);
+			opts->set_text_white_space(TextWhiteSpace::Default);
+			opts->set_text_word_break(TextWordBreak::Default);
+			opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::Value});
+			opts->set_text_color({Color(0, 0, 0), TextValueKind::Value});
+			opts->set_text_size({16, TextValueKind::Value});
+			opts->set_text_line_height({0, TextValueKind::Value});
+			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::Value});
+			opts->set_text_family({pool->defaultFontFamilys(), TextValueKind::Value});
 		};
 		setDefault(&_default, pool); // set base
 		setDefault(this, pool); // set self
@@ -247,6 +248,7 @@ namespace qk {
 		auto _base_opts = &_default;
 		switch(type) {
 			case 0:
+				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextAlign, text_align, 0);
 				break;
 			case 1:
 				Qk_DEFINE_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, 1);

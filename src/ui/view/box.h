@@ -53,14 +53,23 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP    (float,      margin_right, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      margin_bottom, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      margin_left, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, margin, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      padding_top, Const); // padding
 		Qk_DEFINE_VIEW_PROP    (float,      padding_right, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      padding_bottom, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      padding_left, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, padding, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      border_radius_left_top, Const); // border_radius
 		Qk_DEFINE_VIEW_PROP    (float,      border_radius_right_top, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      border_radius_right_bottom, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      border_radius_left_bottom, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, border_radius, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayColor, border_color, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, border_width, Const);
+		// Qk_DEFINE_VIEW_PROP_ACC(BoxBorder, border_top, Const);
+		// Qk_DEFINE_VIEW_PROP_ACC(BoxBorder, border_right, Const);
+		// Qk_DEFINE_VIEW_PROP_ACC(BoxBorder, border_bottom, Const);
+		// Qk_DEFINE_VIEW_PROP_ACC(BoxBorder, border_left, Const);
 		Qk_DEFINE_VIEW_PROP_ACC(Color,      border_color_top, Const); // border_color
 		Qk_DEFINE_VIEW_PROP_ACC(Color,      border_color_right, Const);
 		Qk_DEFINE_VIEW_PROP_ACC(Color,      border_color_bottom, Const);
@@ -165,7 +174,12 @@ namespace qk {
 		BoxFilter *_background;
 		BoxShadow *_box_shadow;
 	protected:
-		BoxBorder *_border; // BoxBorder, top/right/bottom/left
+		// box border value
+		struct BoxBorderInl {
+			Color color[4]; // top/right/bottom/left
+			float width[4];
+		};
+		BoxBorderInl *_border; // BoxBorder, top/right/bottom/left
 		// box view attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）

@@ -617,8 +617,8 @@ namespace qk {
 
 	Input::Input()
 		: _security(false), _readonly(false)
-		, _type(KeyboardType::kNormal)
-		, _return_type(KeyboardReturnType::kNormal)
+		, _type(KeyboardType::Normal)
+		, _return_type(KeyboardReturnType::Normal)
 		, _placeholder_color(150, 150, 150)
 		, _cursor_color(0x43,0x95,0xff) //#4395ff
 		, _max_length(0)
@@ -648,8 +648,8 @@ namespace qk {
 		View::init(win);
 		set_clip(true);
 		set_receive(true);
-		set_cursor(CursorStyle::kIBeam);
-		set_text_word_break(TextWordBreak::kBreakWord);
+		set_cursor(CursorStyle::Ibeam);
+		set_text_word_break(TextWordBreak::BreakWord);
 		return this;
 	}
 
@@ -692,7 +692,7 @@ namespace qk {
 
 	Vec2 Input::layout_typesetting_input_text() {
 		Vec2 c_size = content_size();
-		_lines = new TextLines(this, text_align(), c_size, layout_wrap_x_Rt());
+		_lines = new TextLines(this, text_align_value(), c_size, layout_wrap_x_Rt());
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
@@ -858,12 +858,12 @@ namespace qk {
 			_cursor_x = line->origin + cursor_blob->origin + offset; // x
 		} else {
 			// 找不到blob定位到最后行
-			switch ( text_align() ) {
+			switch ( text_align_value() ) {
 				default:
 					_cursor_x = 0; break;
-				case TextAlign::kCenter:
+				case TextAlign::Center:
 					_cursor_x = c_size.width() * 0.5; break;
-				case TextAlign::kRight:
+				case TextAlign::Right:
 					_cursor_x = c_size.width(); break;
 			}
 			_cursor_line = _lines->last()->line; // y
@@ -909,12 +909,12 @@ namespace qk {
 			}
 
 			// 检测文本x轴两端是在非法显示区域
-			switch ( text_align() ) {
+			switch ( text_align_value() ) {
 				default:
 					offset = text_offset.x(); break;
-				case TextAlign::kCenter:
+				case TextAlign::Center:
 					offset = text_offset.x() + (c_size.width() - max_width) * 0.5; break;
-				case TextAlign::kRight:
+				case TextAlign::Right:
 					offset = text_offset.x() + c_size.width() - max_width; break;
 			}
 

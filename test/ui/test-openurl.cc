@@ -10,8 +10,8 @@ void test_openurl(int argc, char **argv) {
 	App app;
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test OpenURL"});
 	auto box = win->root()->append_new<Box>();
-	box->set_width({ 100, BoxSizeKind::kMatch });
-	box->set_height({ 0, BoxSizeKind::kMatch });
+	box->set_width({ 100, BoxSizeKind::Match });
+	box->set_height({ 0, BoxSizeKind::Match });
 	box->set_background_color({255,0,0,255});
 
 	app.Qk_On(Load, [](auto &e) {

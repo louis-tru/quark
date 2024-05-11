@@ -120,8 +120,8 @@ void test_canvas(int argc, char **argv) {
 	win->activate();
 	// layout
 	auto t = win->root()->append_new<MyCanvas>();
-	t->set_width({ 0, BoxSizeKind::kMatch });
-	t->set_height({ 0, BoxSizeKind::kMatch });
+	t->set_width({ 0, BoxSizeKind::Match });
+	t->set_height({ 0, BoxSizeKind::Match });
 	// layout end
 	app.run();
 }

@@ -95,10 +95,16 @@ namespace qk { namespace js {
 				if ( !checkApp(worker) ) return;
 				getFontFamilys(args, share_app()->fontPool());
 			});
+
+			Js_Set_Method(getFamilysName, {
+				if (!args.length()) {
+					Js_Throw("@method _font.getFamilysName(FFID)");
+				}
+				Js_Parse_Type(FFID, args[0], "@method _font.getFamilysName(FFID)");
+				Js_Return( out->familys().keys().join(',') );
+			});
 		}
 	};
 
-	void binding_font(JSObject* exports, Worker* worker) {
-		WrapFontPool::binding(exports, worker);
-	}
+	Js_Set_Module(_font, WrapFontPool);
 } }

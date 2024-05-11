@@ -60,14 +60,17 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(float, margin_right, marginRight);
 			Js_Set_StyleSheets_Accessor(float, margin_bottom, marginBottom);
 			Js_Set_StyleSheets_Accessor(float, margin_left, marginLeft);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, margin, margin);
 			Js_Set_StyleSheets_Accessor(float, padding_top, paddingTop);
 			Js_Set_StyleSheets_Accessor(float, padding_right, paddingRight);
 			Js_Set_StyleSheets_Accessor(float, padding_bottom, paddingBottom);
 			Js_Set_StyleSheets_Accessor(float, padding_left, paddingLeft);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, padding, padding);
 			Js_Set_StyleSheets_Accessor(float, border_radius_left_top, borderRadiusLeftTop);
 			Js_Set_StyleSheets_Accessor(float, border_radius_right_top, borderRadiusRightTop);
 			Js_Set_StyleSheets_Accessor(float, border_radius_right_bottom, borderRadiusRightBottom);
 			Js_Set_StyleSheets_Accessor(float, border_radius_left_bottom, borderRadiusLeftBottom);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, border_radius, borderRadius);
 			Js_Set_StyleSheets_Accessor(Color, border_color_top, borderColorTop);
 			Js_Set_StyleSheets_Accessor(Color, border_color_right, borderColorRight);
 			Js_Set_StyleSheets_Accessor(Color, border_color_bottom, borderColorBottom);
@@ -111,6 +114,10 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(Color, scrollbar_color, scrollbarColor);
 			Js_Set_StyleSheets_Accessor(float, scrollbar_width, scrollbarWidth);
 			Js_Set_StyleSheets_Accessor(float, scrollbar_margin, scrollbarMargin);
+			Js_Set_StyleSheets_Accessor(Vec2, translate, translate);
+			Js_Set_StyleSheets_Accessor(Vec2, scale, scale);
+			Js_Set_StyleSheets_Accessor(Vec2, skew, skew);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, origin, origin);
 			Js_Set_StyleSheets_Accessor(float, x, x);
 			Js_Set_StyleSheets_Accessor(float, y, y);
 			Js_Set_StyleSheets_Accessor(float, scale_x, scaleX);
@@ -120,6 +127,15 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(float, rotate_z, rotateZ);
 			Js_Set_StyleSheets_Accessor(float, origin_x, originX);
 			Js_Set_StyleSheets_Accessor(float, origin_y, originY);
+			// extends props
+			// border
+			// border_left
+			// border_top
+			// border_right
+			// border_bottom
+			// border_width
+			// border_color
+			// border_radius
 		}
 	};
 

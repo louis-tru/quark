@@ -176,10 +176,10 @@ namespace qk {
 		// 	PRE_WRAP,      /* 保留所有空白,使用自动wrap */
 		// 	PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
 
-		if (space == TextWhiteSpace::kPre || space == TextWhiteSpace::kPreWrap) { // 保留所有空白
+		if (space == TextWhiteSpace::Pre || space == TextWhiteSpace::PreWrap) { // 保留所有空白
 			is_merge_space = false;
 			is_merge_line_feed = false;
-		} else if (space == TextWhiteSpace::kPreLine) { // 保留换行符
+		} else if (space == TextWhiteSpace::PreLine) { // 保留换行符
 			is_merge_line_feed = false;
 		}
 
@@ -241,8 +241,8 @@ namespace qk {
 		// };
 
 		if (_disable_auto_wrap || _lines->no_wrap() || // 不使用自动wrap
-				text_white_space == TextWhiteSpace::kNoWrap ||
-				text_white_space == TextWhiteSpace::kPre
+				text_white_space == TextWhiteSpace::NoWrap ||
+				text_white_space == TextWhiteSpace::Pre
 		) { // 不使用自动wrap,溢出不换行
 			is_auto_wrap = false;
 		}
@@ -271,13 +271,13 @@ namespace qk {
 				if (is_auto_wrap) {
 					switch (text_word_break) {
 						default:
-						case TextWordBreak::kNormal:
+						case TextWordBreak::Normal:
 							as_normal(fg, unichar, false, false); break;
-						case TextWordBreak::kBreakWord:
+						case TextWordBreak::BreakWord:
 							as_normal(fg, unichar, true, false); break;
-						case TextWordBreak::kBreakAll:
+						case TextWordBreak::BreakAll:
 							as_break_all(fg, unichar); break;
-						case TextWordBreak::kKeepAll:
+						case TextWordBreak::KeepAll:
 							as_normal(fg, unichar, false, true); break;
 					}
 					unichar += fg.length();
@@ -415,7 +415,7 @@ namespace qk {
 		auto text_size = _opts->text_size().value;
 		auto line_height = _opts->text_line_height().value;
 		
-		if (!_disable_overflow && overflow != TextOverflow::kNormal && !_lines->no_wrap()) {
+		if (!_disable_overflow && overflow != TextOverflow::Normal && !_lines->no_wrap()) {
 			if (origin >= limitX) return; // skip
 
 			// CLIP,            /* 剪切 */
@@ -426,7 +426,7 @@ namespace qk {
 			if (overflow_val > 0) {
 				int len = fg.glyphs().length();
 
-				if (overflow == TextOverflow::kClip) {
+				if (overflow == TextOverflow::Clip) {
 					for (int j = 0; j < len; j++) {
 						float x = origin + offset[j + 1].x();
 						if (x > limitX) {

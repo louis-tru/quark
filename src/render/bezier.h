@@ -90,13 +90,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Vec2, p2, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p3, Const);
 
-		CubicBezier(); // Fixed LINEAR, p0=0,p1=0,p2=1,p3=1
+		CubicBezier(); // p0=0,p1=0,p2=1,p3=1
 		CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
-
-		/**
-		 * @method fixed linear, p0=0 ... p3=1
-		*/
-		static CubicBezier fixed(Vec2 p1, Vec2 p2);
 
 		/**
 		 * @method sample_curve_x
@@ -130,25 +125,36 @@ namespace qk {
 			return (3.0 * ax * t + 2.0 * bx) * t + cx;
 		}
 
+	private:
+		float ax, bx, cx;
+		float ay, by, cy;
+	};
+
+	/**
+	 * @class FixedCubicBezier fixed points p0=0 ... p3=1
+	*/
+	class Qk_EXPORT FixedCubicBezier: public CubicBezier {
+	public:
+		FixedCubicBezier(); // Fixed LINEAR, p1=0,p2=1
+		FixedCubicBezier(Vec2 p1, Vec2 p2);
+
 		/**
-		 * @method fixed_solve_t Given an x value, find a parametric value it came from.
+		 * @method solve_t Given an x value, find a parametric value it came from.
 		 * p0=0 and p1=1 valid
 		*/
-		float fixed_solve_t(float x, float epsilon) const;
+		float solve_t(float x, float epsilon) const;
 
 		/**
 		 * @method solve_y p0=0, p1=1 valid
 		*/
-		float fixed_solve_y(float x, float epsilon) const;
+		float solve_y(float x, float epsilon) const;
 
 	private:
-		float ax, bx, cx;
-		float ay, by, cy;
 		bool _isLINEAR;
 	};
 
-	typedef CubicBezier Curve;
-	typedef const Curve cCurve;
+	typedef       FixedCubicBezier Curve;
+	typedef const FixedCubicBezier cCurve;
 
 	// Fixed value p0=0 ... p3=1
 	Qk_EXPORT extern cCurve LINEAR;

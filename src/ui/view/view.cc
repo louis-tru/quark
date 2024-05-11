@@ -55,7 +55,7 @@ namespace qk {
 		, _mark_index(-1)
 		, _level(0)
 		, _opacity(1.0)
-		, _cursor(CursorStyle::kArrow)
+		, _cursor(CursorStyle::Arrow)
 		, _visible(true)
 		, _visible_region(false)
 		, _receive(true)
@@ -188,7 +188,7 @@ namespace qk {
 	}
 
 	Align View::layout_align() {
-		return Align::kAuto;
+		return Align::Auto;
 	}
 
 	Vec2 View::layout_offset() {

@@ -236,28 +236,32 @@ namespace qk { namespace js {
 		return arr;
 	}
 
+	JSValue* TypesParser::jsvalue(const ArrayOrigin& value) {
+		auto arr = worker->newArray(value.length());
+		for (int i = 0; i < value.length(); i ++) {
+			arr->set(worker, i, jsvalue(value[i]));
+		}
+		return arr;
+	}
+
 	JSValue* TypesParser::jsvalue(const String& value) {
 		return worker->newInstance(value);
 	}
 
 	JSValue* TypesParser::jsvalue(cCurve& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.p0().x()),
-			worker->newInstance(value.p0().y()),
 			worker->newInstance(value.p1().x()),
 			worker->newInstance(value.p1().y()),
 			worker->newInstance(value.p2().x()),
 			worker->newInstance(value.p2().y()),
-			worker->newInstance(value.p3().x()),
-			worker->newInstance(value.p3().y()),
 		};
-		return _newCurve->call(worker, 8, args);
+		return _newCurve->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Shadow& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.offset_x),
-			worker->newInstance(value.offset_y),
+			worker->newInstance(value.x),
+			worker->newInstance(value.y),
 			worker->newInstance(value.size),
 			worker->newInstance(value.color.b()),
 			worker->newInstance(value.color.g()),
@@ -269,16 +273,16 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const FillPosition& val) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value),
+			worker->newInstance((uint32_t)val.kind),
+			worker->newInstance(val.value),
 		};
 		return _newFillPosition->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const FillSize& val) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value),
+			worker->newInstance((uint32_t)val.kind),
+			worker->newInstance(val.value),
 		};
 		return _newFillSize->call(worker, 2, args);
 	}
@@ -377,8 +381,8 @@ namespace qk { namespace js {
 	JSValue* TypesParser::jsvalue(const TextShadow& value) {
 		JSValue* args[] = {
 			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value.offset_x),
-			worker->newInstance(value.value.offset_y),
+			worker->newInstance(value.value.x),
+			worker->newInstance(value.value.y),
 			worker->newInstance(value.value.size),
 			worker->newInstance(value.value.color.r()),
 			worker->newInstance(value.value.color.g()),
@@ -500,27 +504,27 @@ namespace qk { namespace js {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
-		auto size_x = obj->get(worker, worker->newStringOneByte("size_x"));
-		auto size_y = obj->get(worker, worker->newStringOneByte("size_y"));
-		auto position_x = obj->get(worker, worker->newStringOneByte("position_x"));
-		auto position_y = obj->get(worker, worker->newStringOneByte("position_y"));
+		auto width = obj->get(worker, worker->newStringOneByte("width"));
+		auto height = obj->get(worker, worker->newStringOneByte("height"));
+		auto x = obj->get(worker, worker->newStringOneByte("x"));
+		auto y = obj->get(worker, worker->newStringOneByte("y"));
 		auto repeat = obj->get(worker, worker->newStringOneByte("repeat"));
 
-		if (!size_x->isUndefined()) {
-			Js_Parse_Type(FillSize, size_x, desc) false;
-			out.size_x = out;
+		if (!width->isUndefined()) {
+			Js_Parse_Type(FillSize, width, desc) false;
+			out.width = out;
 		}
-		if (!size_y->isUndefined()) {
-			Js_Parse_Type(FillSize, size_y, desc) false;
-			out.size_y = out;
+		if (!height->isUndefined()) {
+			Js_Parse_Type(FillSize, height, desc) false;
+			out.height = out;
 		}
-		if (!position_x->isUndefined()) {
-			Js_Parse_Type(FillPosition, position_x, desc) false;
-			out.position_x = out;
+		if (!x->isUndefined()) {
+			Js_Parse_Type(FillPosition, x, desc) false;
+			out.x = out;
 		}
-		if (!position_y->isUndefined()) {
-			Js_Parse_Type(FillPosition, position_y, desc) false;
-			out.position_y = out;
+		if (!y->isUndefined()) {
+			Js_Parse_Type(FillPosition, y, desc) false;
+			out.y = out;
 		}
 		if (!repeat->isUndefined()) {
 			Js_Parse_Type(Repeat, repeat, desc) false;
@@ -655,10 +659,14 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, ArrayFloat& out, cChar* desc) {
-		auto arr = in->cast<JSArray>();
-		if (!arr->isArray()) {
+		if (in->isNumber()) {
+			out.push(in->toNumberValue(worker));
+			return true;
+		}
+		if (!in->isArray()) {
 			return throw_error(worker, in, desc), false;
 		}
+		auto arr = in->cast<JSArray>();
 		out.reset(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			auto it = arr->get(worker, i);
@@ -671,10 +679,26 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, ArrayColor& out, cChar* desc) {
-		auto arr = in->cast<JSArray>();
-		if (!arr->isArray()) {
-			return throw_error(worker, in, desc), false;
+		if (!in->isArray()) {
+			out.reset(1);
+			return parse(in, out[0], desc);
 		}
+		auto arr = in->cast<JSArray>();
+		out.reset(arr->length());
+		for (uint32_t i = 0; i < out.length(); i++) {
+			if (!parse(arr->get(worker, i), out[i], desc)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool TypesParser::parse(JSValue* in, ArrayOrigin& out, cChar* desc) {
+		if (!in->isArray()) {
+			out.reset(1);
+			return parse(in, out[0], desc);
+		}
+		auto arr = in->cast<JSArray>();
 		out.reset(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			if (!parse(arr->get(worker, i), out[i], desc)) {
@@ -693,9 +717,9 @@ namespace qk { namespace js {
 		static const Dict<String, cCurve*> CURCEs({
 			{"linear", &LINEAR },
 			{"ease", &EASE },
-			{"ease_in", &EASE_IN },
-			{"ease_out", &EASE_OUT },
-			{"ease_in_out", &EASE_IN_OUT },
+			{"easeIn", &EASE_IN },
+			{"easeOut", &EASE_OUT },
+			{"easeInOut", &EASE_IN_OUT },
 		});
 		if ( in->isString() && CURCEs.get(in->toStringValue(worker,true), out)) {
 			return true;
@@ -712,8 +736,8 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, Shadow& out, cChar* desc) {
 		js_parse(Shadow, {
-			out.offset_x = obj->get(worker, worker->strs()->offsetX())->toNumberValue(worker);
-			out.offset_y = obj->get(worker, worker->strs()->offsetY())->toNumberValue(worker);
+			out.x = obj->get(worker, worker->strs()->x())->toNumberValue(worker);
+			out.y = obj->get(worker, worker->strs()->y())->toNumberValue(worker);
 			out.size = obj->get(worker, worker->strs()->size())->toNumberValue(worker);
 			out.color.set_r(obj->get(worker, worker->strs()->r())->toUint32Value(worker));
 			out.color.set_g(obj->get(worker, worker->strs()->g())->toUint32Value(worker));
@@ -859,8 +883,8 @@ namespace qk { namespace js {
 	bool TypesParser::parse(JSValue* in, TextShadow& out, cChar* desc) {
 		js_parse(TextShadow, {
 			out.kind = kind<TextValueKind>(obj);
-			out.value.offset_x = obj->get(worker, worker->strs()->offsetX())->toNumberValue(worker);
-			out.value.offset_y = obj->get(worker, worker->strs()->offsetY())->toNumberValue(worker);
+			out.value.x = obj->get(worker, worker->strs()->x())->toNumberValue(worker);
+			out.value.y = obj->get(worker, worker->strs()->y())->toNumberValue(worker);
 			out.value.size = obj->get(worker, worker->strs()->size())->toNumberValue(worker);
 			out.value.color.set_r(obj->get(worker, worker->strs()->r())->toUint32Value(worker));
 			out.value.color.set_g(obj->get(worker, worker->strs()->g())->toUint32Value(worker));
@@ -935,8 +959,10 @@ namespace qk { namespace js {
 			return throw_error(worker, in, desc), false;
 		}
 		out = reinterpret_cast<const FFID>(ffid.val());
-		return true;
+		return out;
 	}
+
+	void binding_filter(JSObject* exports, Worker* worker);
 
 	class NativeTypes: public Worker {
 	public:
@@ -956,6 +982,8 @@ namespace qk { namespace js {
 				}
 			}
 			static_cast<NativeTypes*>(worker)->setTypesParser(new TypesParser(worker, exports));
+
+			binding_filter(exports, worker);
 		}
 	};
 

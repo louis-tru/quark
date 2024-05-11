@@ -74,10 +74,10 @@ namespace qk { namespace js {
 
 			Js_Set_WrapObject_Accessor(FillImage, String, src, src);
 			// Qk_DEFINE_VIEW_PROP_ACC(ImageSource*, source);
-			Js_Set_WrapObject_Accessor(FillImage, FillSize, size_x, sizeX);
-			Js_Set_WrapObject_Accessor(FillImage, FillSize, size_y, sizeY);
-			Js_Set_WrapObject_Accessor(FillImage, FillPosition, position_x, positionX);
-			Js_Set_WrapObject_Accessor(FillImage, FillPosition, position_y, positionY);
+			Js_Set_WrapObject_Accessor(FillImage, FillSize, width, width);
+			Js_Set_WrapObject_Accessor(FillImage, FillSize, height, height);
+			Js_Set_WrapObject_Accessor(FillImage, FillPosition, x, x);
+			Js_Set_WrapObject_Accessor(FillImage, FillPosition, y, y);
 			Js_Set_WrapObject_Accessor(FillImage, Repeat, repeat, repeat);
 
 			cls->exports("FillImage", exports);

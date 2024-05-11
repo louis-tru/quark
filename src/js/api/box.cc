@@ -53,14 +53,17 @@ namespace qk { namespace js {
 			Js_Set_WrapObject_Accessor(Box, float, margin_right, marginRight);
 			Js_Set_WrapObject_Accessor(Box, float, margin_bottom, marginBottom);
 			Js_Set_WrapObject_Accessor(Box, float, margin_left, marginLeft);
+			Js_Set_WrapObject_Accessor(Box, ArrayFloat, margin, margin);
 			Js_Set_WrapObject_Accessor(Box, float, padding_top, paddingTop);
 			Js_Set_WrapObject_Accessor(Box, float, padding_right, paddingRight);
 			Js_Set_WrapObject_Accessor(Box, float, padding_bottom, paddingBottom);
 			Js_Set_WrapObject_Accessor(Box, float, padding_left, paddingLeft);
+			Js_Set_WrapObject_Accessor(Box, ArrayFloat, padding, padding);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_left_top, borderRadiusLeftTop);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_right_top, borderRadiusRightTop);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_right_bottom, borderRadiusRightBottom);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_left_bottom, borderRadiusLeftBottom);
+			Js_Set_WrapObject_Accessor(Box, ArrayFloat, border_radius, borderRadius);
 			Js_Set_WrapObject_Accessor(Box, Color, border_color_top, borderColorTop);
 			Js_Set_WrapObject_Accessor(Box, Color, border_color_right, borderColorRight);
 			Js_Set_WrapObject_Accessor(Box, Color, border_color_bottom, borderColorBottom);

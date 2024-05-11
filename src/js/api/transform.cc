@@ -59,8 +59,14 @@ namespace qk { namespace js {
 			Js_Set_WrapObject_Accessor(Transform, float, scale_y, scaleY);
 			Js_Set_WrapObject_Accessor(Transform, float, skew_x, skewX);
 			Js_Set_WrapObject_Accessor(Transform, float, skew_y, skewY);
+			Js_Set_WrapObject_Accessor(Transform, ArrayOrigin, origin, origin);
 
-			Js_Set_Class_Accessor_Get(matrix, {
+			Js_Set_Class_Accessor_Set(matrix, {
+				Js_Self(Transform);
+				Js_Return( worker->types()->jsvalue(self->matrix()) );
+			});
+
+			Js_Set_Class_Accessor_Get(origin, {
 				Js_Self(Transform);
 				Js_Return( worker->types()->jsvalue(self->matrix()) );
 			});

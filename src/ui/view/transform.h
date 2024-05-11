@@ -48,8 +48,8 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP(Vec2, scale, Const); // Matrix scaling
 		Qk_DEFINE_VIEW_PROP(Vec2, skew, Const); // Matrix skew, (radian)
 		Qk_DEFINE_VIEW_PROP(float, rotate_z, Const); // z-axis rotation of the matrix
-		Qk_DEFINE_VIEW_PROP(BoxOrigin,  origin_x, Const); //  x-axis transform origin
-		Qk_DEFINE_VIEW_PROP(BoxOrigin,  origin_y, Const); //  y-axis transform origin
+		Qk_DEFINE_VIEW_PROP(BoxOrigin, origin_x, Const); //  x-axis transform origin
+		Qk_DEFINE_VIEW_PROP(BoxOrigin, origin_y, Const); //  y-axis transform origin
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
 		Qk_DEFINE_VIEW_PROP_GET(Vec2, origin_value, Const);
@@ -59,6 +59,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_ACC(float, scale_y, Const); // y-axis matrix scaling for the view
 		Qk_DEFINE_VIEW_PROP_ACC(float, skew_x, Const); // x-axis matrix skew for the view
 		Qk_DEFINE_VIEW_PROP_ACC(float, skew_y, Const); // y-axis matrix skew for the view
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayOrigin, origin, Const);
 		/**
 		 * @prop matrix()
 		*/

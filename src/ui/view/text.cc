@@ -40,7 +40,7 @@ namespace qk {
 
 			auto size = content_size();
 			auto v = first_Rt();
-			_lines = new TextLines(this, text_align(), size, layout_wrap_x_Rt());
+			_lines = new TextLines(this, text_align_value(), size, layout_wrap_x_Rt());
 			_lines->set_stable_line_height(text_size().value, text_line_height().value);
 
 			if (v) {

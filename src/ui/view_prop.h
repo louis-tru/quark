@@ -32,10 +32,16 @@
 #define __quark__ui__view_prop__
 
 #include "../util/util.h"
+#include "./types.h"
 
 namespace qk {
-	class BoxFilter;
-	class BoxShadow;
+	class  BoxFilter;
+	class  BoxShadow;
+	typedef BoxFilter* BoxFilterPtr;
+	typedef BoxShadow* BoxShadowPtr;
+	typedef Array<float> ArrayFloat;
+	typedef Array<Color> ArrayColor;
+	typedef Array<BoxOrigin> ArrayOrigin;
 
 #define Qk_View_Props(F) \
 	F(OPACITY, float, opacity, View) /*view*/\
@@ -50,14 +56,17 @@ namespace qk {
 	F(MARGIN_RIGHT, float, margin_right, Box) \
 	F(MARGIN_BOTTOM, float, margin_bottom, Box) \
 	F(MARGIN_LEFT, float, margin_left, Box) \
+	F(MARGIN, ArrayFloat, margin, Box) \
 	F(PADDING_TOP, float, padding_top, Box) \
 	F(PADDING_RIGHT, float, padding_right, Box) \
 	F(PADDING_BOTTOM, float, padding_bottom, Box) \
 	F(PADDING_LEFT, float, padding_left, Box) \
+	F(PADDING, ArrayFloat, padding, Box) \
 	F(BORDER_RADIUS_LEFT_TOP, float, border_radius_left_top, Box) \
 	F(BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top, Box) \
 	F(BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom, Box) \
 	F(BORDER_RADIUS_LEFT_BOTTOM, float, border_radius_left_bottom, Box) \
+	F(BORDER_RADIUS, ArrayFloat, border_radius, Box) \
 	F(BORDER_COLOR_TOP, Color, border_color_top, Box) \
 	F(BORDER_COLOR_RIGHT, Color, border_color_right, Box) \
 	F(BORDER_COLOR_BOTTOM, Color, border_color_bottom, Box) \
@@ -67,8 +76,8 @@ namespace qk {
 	F(BORDER_WIDTH_BOTTOM, float, border_width_bottom, Box) \
 	F(BORDER_WIDTH_LEFT, float, border_width_left, Box) \
 	F(BACKGROUND_COLOR, Color, background_color, Box) \
-	F(BACKGROUND, BoxFilter*, background, Box) \
-	F(BOX_SHADOW, BoxShadow*, box_shadow, Box) \
+	F(BACKGROUND, BoxFilterPtr, background, Box) \
+	F(BOX_SHADOW, BoxShadowPtr, box_shadow, Box) \
 	F(WEIGHT, float, weight, Box) \
 	F(ALIGN, Align, align, Box) \
 	F(DIRECTION, Direction, direction, Flex) /*flex*/\
@@ -101,15 +110,29 @@ namespace qk {
 	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollBase) /*scroll/textarea of ScrollBase*/ \
 	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollBase) \
 	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollBase) \
-	F(X, float, x, Transform) /*transform*/ \
+	F(TRANSLATE, Vec2, translate, Transform) /*transform*/ \
+	F(SCALE, Vec2, scale, Transform) \
+	F(SKEW, Vec2, skew, Transform) \
+	F(ORIGIN, ArrayOrigin, origin, Transform) \
+	F(X, float, x, Transform) \
 	F(Y, float, y, Transform) \
 	F(SCALE_X, float, scale_x, Transform) \
 	F(SCALE_Y, float, scale_y, Transform) \
 	F(SKEW_X, float, skew_x, Transform) \
 	F(SKEW_Y, float, skew_y, Transform) \
 	F(ROTATE_Z, float, rotate_z, Transform) \
-	F(ORIGIN_X, float, origin_x, Transform) \
-	F(ORIGIN_Y, float, origin_y, Transform) \
+	F(ORIGIN_X, BoxOrigin, origin_x, Transform) \
+	F(ORIGIN_Y, BoxOrigin, origin_y, Transform) \
+
+	// border
+
+	// border_left
+	// border_top
+	// border_right
+	// border_bottom
+
+	// border_width
+	// border_color
 
 	// Unsupported attributes for ScrollBase:
 	// (ScrollBase, bool, scrollbar, scrollbar)

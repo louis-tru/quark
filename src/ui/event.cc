@@ -805,13 +805,13 @@ namespace qk {
 		if (btn) {
 			FindDirection dir;
 			switch ( cdoe ) {
-				case KEYCODE_LEFT: dir = FindDirection::kLeft; break;  // left
-				case KEYCODE_UP: dir = FindDirection::kTop; break;     // top
-				case KEYCODE_RIGHT: dir = FindDirection::kRight; break; // right
-				case KEYCODE_DOWN: dir = FindDirection::kBottom; break; // bottom
-				default: dir = FindDirection::kNone; break;
+				case KEYCODE_LEFT: dir = FindDirection::Left; break;  // left
+				case KEYCODE_UP: dir = FindDirection::Top; break;     // top
+				case KEYCODE_RIGHT: dir = FindDirection::Right; break; // right
+				case KEYCODE_DOWN: dir = FindDirection::Bottom; break; // bottom
+				default: dir = FindDirection::None; break;
 			}
-			if ( dir != FindDirection::kNone ) {
+			if ( dir != FindDirection::None ) {
 				auto view = btn->next_button(dir);
 				auto safe_v = view->safe_view();
 				focus_move = safe_v.collapse(); // collapse safe view and retain view
