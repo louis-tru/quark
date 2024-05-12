@@ -133,7 +133,11 @@ namespace qk { namespace js {
 
 			// Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 			// Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
-			// Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
+
+			Js_Set_Class_Accessor_Get(root, {
+				Js_Self(Type);
+				Js_Return( self->fontPool() );
+			});
 
 			Js_Set_Class_Accessor_Get(surfaceSize, {
 				Js_Self(Type);
@@ -185,7 +189,8 @@ namespace qk { namespace js {
 						"@param cursor {CursorStyle}\n"
 					);
 				}
-				self->setCursorStyle(CursorStyle(args[0]->toUint32Value(worker)));
+				Js_Parse_Type(CursorStyle, args[0], "@method Window.setCursorStyle(cursor = %s)");
+				self->setCursorStyle(out);
 			});
 
 			cls->exports("Window", exports);

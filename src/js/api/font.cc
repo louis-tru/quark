@@ -88,7 +88,7 @@ namespace qk { namespace js {
 					Js_Throw("@method FontPool.getFamilyName(int index)");
 				}
 				Js_Self(FontPool);
-				Js_Return( self->getFamilyName(args[0]->toInt32Value(worker)) );
+				Js_Return( self->getFamilyName(args[0]->toInt32Value(worker).unsafe()) );
 			});
 
 			Js_Set_Method(getFontFamilys, {

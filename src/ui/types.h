@@ -258,8 +258,8 @@ namespace qk {
 
 	// box border value
 	struct BoxBorder {
-		Color color;
 		float width;
+		Color color;
 	};
 
 	struct Shadow {

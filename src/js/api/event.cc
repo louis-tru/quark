@@ -67,7 +67,7 @@ namespace qk { namespace js {
 				if ( !val->isBoolean() && !val->isInt32() )
 					Js_Throw("Bad argument.");
 				Js_Self(Type);
-				self->return_value = val->toInt32Value(worker);
+				self->return_value = val->toInt32Value(worker).unsafe();
 			});
 
 			cls->exports("NativeEvent", exports);
@@ -278,27 +278,11 @@ namespace qk { namespace js {
 
 				auto r = wrap->get(worker->strs()->_change_touches());
 				if (!r) return; // js error
-				if (r->isArray())
-					Js_Return(r); 
-
-				auto arr = worker->newArray();
-				int j = 0;
-				for ( auto& i : wrap->self()->changed_touches() ) {
-					auto item = worker->newObject();
-					auto view = WrapObject::wrap(i.view);
-					item->set(worker,worker->strs()->id(), worker->newInstance(i.id));
-					item->set(worker,worker->strs()->startX(), worker->newInstance(i.start_x));
-					item->set(worker,worker->strs()->startY(), worker->newInstance(i.start_y));
-					item->set(worker,worker->strs()->x(), worker->newInstance(i.x));
-					item->set(worker,worker->strs()->y(), worker->newInstance(i.y));
-					item->set(worker,worker->strs()->force(), worker->newInstance(i.force));
-					item->set(worker,worker->strs()->clickIn(), worker->newInstance(i.click_in));
-					item->set(worker,worker->strs()->view(), view->that());
-					arr->set(worker, j, item);
-					j++;
+				if (!r->isArray()) {
+					r = worker->types()->jsvalue(wrap->self()->changed_touches();
+					wrap->set(worker->strs()->_change_touches(), r));
 				}
-				wrap->set(worker->strs()->_change_touches(), arr);
-				Js_Return(arr);
+				Js_Return(r);
 			});
 
 			cls->exports("TouchEvent", exports);

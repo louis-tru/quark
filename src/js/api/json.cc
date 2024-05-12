@@ -214,10 +214,10 @@ namespace qk { namespace js {
 				}
 			}
 			else if(arg->isInt32()) {
-				_rv->push( String(arg->toInt32Value(worker)) );
+				_rv->push( String(arg->toInt32Value(worker).unsafe()) );
 			}
 			else if(arg->isNumber()) {
-				_rv->push( String(arg->toNumberValue(worker)) );
+				_rv->push( String(arg->toNumberValue(worker).unsafe()) );
 			}
 			else if(arg->isBoolean()) {
 				if (arg->toBooleanValue(worker)) {

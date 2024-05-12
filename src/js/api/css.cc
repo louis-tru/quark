@@ -52,38 +52,45 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(bool, visible, visible);
 			Js_Set_StyleSheets_Accessor(bool, receive, receive);
 			Js_Set_StyleSheets_Accessor(bool, clip, clip);
+			Js_Set_StyleSheets_Accessor(Align, align, align);
 			Js_Set_StyleSheets_Accessor(BoxSize, width, width);
 			Js_Set_StyleSheets_Accessor(BoxSize, height, height);
 			Js_Set_StyleSheets_Accessor(BoxSize, width_limit, widthLimit);
 			Js_Set_StyleSheets_Accessor(BoxSize, height_limit, heightLimit);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, margin, margin);
 			Js_Set_StyleSheets_Accessor(float, margin_top, marginTop);
 			Js_Set_StyleSheets_Accessor(float, margin_right, marginRight);
 			Js_Set_StyleSheets_Accessor(float, margin_bottom, marginBottom);
 			Js_Set_StyleSheets_Accessor(float, margin_left, marginLeft);
-			Js_Set_StyleSheets_Accessor(ArrayFloat, margin, margin);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, padding, padding);
 			Js_Set_StyleSheets_Accessor(float, padding_top, paddingTop);
 			Js_Set_StyleSheets_Accessor(float, padding_right, paddingRight);
 			Js_Set_StyleSheets_Accessor(float, padding_bottom, paddingBottom);
 			Js_Set_StyleSheets_Accessor(float, padding_left, paddingLeft);
-			Js_Set_StyleSheets_Accessor(ArrayFloat, padding, padding);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, border_radius, borderRadius);
 			Js_Set_StyleSheets_Accessor(float, border_radius_left_top, borderRadiusLeftTop);
 			Js_Set_StyleSheets_Accessor(float, border_radius_right_top, borderRadiusRightTop);
 			Js_Set_StyleSheets_Accessor(float, border_radius_right_bottom, borderRadiusRightBottom);
 			Js_Set_StyleSheets_Accessor(float, border_radius_left_bottom, borderRadiusLeftBottom);
-			Js_Set_StyleSheets_Accessor(ArrayFloat, border_radius, borderRadius);
-			Js_Set_StyleSheets_Accessor(Color, border_color_top, borderColorTop);
-			Js_Set_StyleSheets_Accessor(Color, border_color_right, borderColorRight);
-			Js_Set_StyleSheets_Accessor(Color, border_color_bottom, borderColorBottom);
-			Js_Set_StyleSheets_Accessor(Color, border_color_left, borderColorLeft);
-			Js_Set_StyleSheets_Accessor(float, border_width_top, borderWidthTop);
+			Js_Set_StyleSheets_Accessor(ArrayBorder, border, border); // border width
+			Js_Set_StyleSheets_Accessor(BoxBorder, border_top, borderTop);
+			Js_Set_StyleSheets_Accessor(BoxBorder, border_right, borderRight);
+			Js_Set_StyleSheets_Accessor(BoxBorder, border_bottom, borderBottom);
+			Js_Set_StyleSheets_Accessor(BoxBorder, border_left, borderLeft);
+			Js_Set_StyleSheets_Accessor(ArrayFloat, border_width, borderWidth);
+			Js_Set_StyleSheets_Accessor(ArrayColor, border_color, borderColor);
+			Js_Set_StyleSheets_Accessor(float, border_width_top, borderWidthTop); // border width
 			Js_Set_StyleSheets_Accessor(float, border_width_right, borderWidthRight);
 			Js_Set_StyleSheets_Accessor(float, border_width_bottom, borderWidthBottom);
 			Js_Set_StyleSheets_Accessor(float, border_width_left, borderWidthLeft);
+			Js_Set_StyleSheets_Accessor(Color, border_color_top, borderColorTop); // border color
+			Js_Set_StyleSheets_Accessor(Color, border_color_right, borderColorRight);
+			Js_Set_StyleSheets_Accessor(Color, border_color_bottom, borderColorBottom);
+			Js_Set_StyleSheets_Accessor(Color, border_color_left, borderColorLeft);
 			Js_Set_StyleSheets_Accessor(Color, background_color, backgroundColor);
 			Js_Set_StyleSheets_Accessor(BoxFilterPtr, background, background);
 			Js_Set_StyleSheets_Accessor(BoxShadowPtr, box_shadow, boxShadow);
 			Js_Set_StyleSheets_Accessor(float, weight, weight);
-			Js_Set_StyleSheets_Accessor(Align, align, align);
 			Js_Set_StyleSheets_Accessor(Direction, direction, direction);
 			Js_Set_StyleSheets_Accessor(ItemsAlign, items_align, itemsAlign);
 			Js_Set_StyleSheets_Accessor(CrossAlign, cross_align, crossAlign);
@@ -127,15 +134,6 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(float, rotate_z, rotateZ);
 			Js_Set_StyleSheets_Accessor(float, origin_x, originX);
 			Js_Set_StyleSheets_Accessor(float, origin_y, originY);
-			// extends props
-			// border
-			// border_left
-			// border_top
-			// border_right
-			// border_bottom
-			// border_width
-			// border_color
-			// border_radius
 		}
 	};
 

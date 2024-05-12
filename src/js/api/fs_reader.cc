@@ -42,16 +42,16 @@ namespace qk { namespace js {
 				if (isStream) {
 					Js_Throw(
 						"* @method reader.readStream(cb,path)\n"
-						"* @param cb {Function}\n"
-						"* @param path {String}\n"
+						"@param cb {Function}\n"
+						"@param path {String}\n"
 						"* @return {uint} return read id\n"
 					);
 				} else {
 					Js_Throw(
 								"* @method reader.readFile(cb,path[,encoding])\n"
-								"* @param cb {Function}\n"
-								"* @param path {String}\n"
-								"* @param [encoding] {Encoding}\n"
+								"@param cb {Function}\n"
+								"@param path {String}\n"
+								"@param [encoding] {Encoding}\n"
 								"* @return {uint} return read id\n"
 					);
 				}
@@ -85,8 +85,8 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Throw(
 						"* @method reader.readFileSync(path[,encoding])\n"
-						"* @param path {String}\n"
-						"* @param [encoding] {Encoding}\n"
+						"@param path {String}\n"
+						"@param [encoding] {Encoding}\n"
 						"* @return {Buffer} return read Buffer\n"
 					);
 				}
@@ -107,7 +107,7 @@ namespace qk { namespace js {
 				if ( args.length() == 0 || !args[0]->isString() ) {
 					Js_Throw(
 						"* @method reader.existsSync(path)\n"
-						"* @param path {String}\n"
+						"@param path {String}\n"
 						"* @return {bool}\n"
 					);
 				}
@@ -118,7 +118,7 @@ namespace qk { namespace js {
 				if ( args.length() == 0 || !args[0]->isString() ) {
 					Js_Throw(
 						"* @method reader.isFileSync(path)\n"
-						"* @param path {String}\n"
+						"@param path {String}\n"
 						"* @return {bool}\n"
 					);
 				}
@@ -129,7 +129,7 @@ namespace qk { namespace js {
 				if ( args.length() == 0 || !args[0]->isString() ) {
 					Js_Throw(
 						"* @method reader.isDirectorySyncpath)\n"
-						"* @param path {String}\n"
+						"@param path {String}\n"
 						"* @return {bool}\n"
 					);
 				}
@@ -140,7 +140,7 @@ namespace qk { namespace js {
 				if ( args.length() == 0 || !args[0]->isString() ) {
 					Js_Throw(
 						"* @method reader.readdirSync(path)\n"
-						"* @param path {String}\n"
+						"@param path {String}\n"
 						"* @return {Array}\n"
 					);
 				}
@@ -151,10 +151,10 @@ namespace qk { namespace js {
 				if ( args.length() == 0 || ! args[0]->isUint32() ) {
 					Js_Throw(
 						"* @method reader.abort(id)\n"
-						"* @param id {uint} abort id\n"
+						"@param id {uint} abort id\n"
 					);
 				}
-				fs_reader()->abort( args[0]->toUint32Value(worker) );
+				fs_reader()->abort( args[0]->toUint32Value(worker).unsafe() );
 			});
 
 			Js_Set_Method(clear, {

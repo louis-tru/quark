@@ -41,42 +41,48 @@ namespace qk { namespace js {
 	class WrapBox: public WrapViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Box, View, {
-				Js_NewView(Box);
-			});
+			Js_Define_Class(Box, View, { Js_NewView(Box); });
+
 			Js_Set_WrapObject_Accessor(Box, bool, clip, clip);
+			Js_Set_WrapObject_Accessor(Box, Align, align, align);
 			Js_Set_WrapObject_Accessor(Box, BoxSize, width, width);
 			Js_Set_WrapObject_Accessor(Box, BoxSize, height, height);
 			Js_Set_WrapObject_Accessor(Box, BoxSize, width_limit, widthLimit);
 			Js_Set_WrapObject_Accessor(Box, BoxSize, height_limit, heightLimit);
+			Js_Set_WrapObject_Accessor(Box, ArrayFloat, margin, margin);
 			Js_Set_WrapObject_Accessor(Box, float, margin_top, marginTop);
 			Js_Set_WrapObject_Accessor(Box, float, margin_right, marginRight);
 			Js_Set_WrapObject_Accessor(Box, float, margin_bottom, marginBottom);
 			Js_Set_WrapObject_Accessor(Box, float, margin_left, marginLeft);
-			Js_Set_WrapObject_Accessor(Box, ArrayFloat, margin, margin);
+			Js_Set_WrapObject_Accessor(Box, ArrayFloat, padding, padding);
 			Js_Set_WrapObject_Accessor(Box, float, padding_top, paddingTop);
 			Js_Set_WrapObject_Accessor(Box, float, padding_right, paddingRight);
 			Js_Set_WrapObject_Accessor(Box, float, padding_bottom, paddingBottom);
 			Js_Set_WrapObject_Accessor(Box, float, padding_left, paddingLeft);
-			Js_Set_WrapObject_Accessor(Box, ArrayFloat, padding, padding);
+			Js_Set_WrapObject_Accessor(Box, ArrayFloat, border_radius, borderRadius);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_left_top, borderRadiusLeftTop);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_right_top, borderRadiusRightTop);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_right_bottom, borderRadiusRightBottom);
 			Js_Set_WrapObject_Accessor(Box, float, border_radius_left_bottom, borderRadiusLeftBottom);
-			Js_Set_WrapObject_Accessor(Box, ArrayFloat, border_radius, borderRadius);
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_top, borderColorTop);
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_right, borderColorRight);
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_bottom, borderColorBottom);
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_left, borderColorLeft);
-			Js_Set_WrapObject_Accessor(Box, float, border_width_top, borderWidthTop);
+			Js_Set_WrapObject_Accessor(Box, ArrayBorder, border, border); // border width
+			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_top, borderTop);
+			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_right, borderRight);
+			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_bottom, borderBottom);
+			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_left, borderLeft);
+			Js_Set_WrapObject_Accessor(Box, ArrayFloat, border_width, borderWidth);
+			Js_Set_WrapObject_Accessor(Box, ArrayColor, border_color, borderColor);
+			Js_Set_WrapObject_Accessor(Box, float, border_width_top, borderWidthTop); // border width
 			Js_Set_WrapObject_Accessor(Box, float, border_width_right, borderWidthRight);
 			Js_Set_WrapObject_Accessor(Box, float, border_width_bottom, borderWidthBottom);
 			Js_Set_WrapObject_Accessor(Box, float, border_width_left, borderWidthLeft);
+			Js_Set_WrapObject_Accessor(Box, Color, border_color_top, borderColorTop); // border color
+			Js_Set_WrapObject_Accessor(Box, Color, border_color_right, borderColorRight);
+			Js_Set_WrapObject_Accessor(Box, Color, border_color_bottom, borderColorBottom);
+			Js_Set_WrapObject_Accessor(Box, Color, border_color_left, borderColorLeft);
 			Js_Set_WrapObject_Accessor(Box, Color, background_color, backgroundColor);
 			Js_Set_WrapObject_Accessor(Box, BoxFilterPtr, background, background);
 			Js_Set_WrapObject_Accessor(Box, BoxShadowPtr, box_shadow, boxShadow);
 			Js_Set_WrapObject_Accessor(Box, float, weight, weight);
-			Js_Set_WrapObject_Accessor(Box, Align, align, align);
 			// -----------------------------------------------------------------------------
 			// @safe Rt
 			Js_Set_Class_Accessor_Get(contentSize, {

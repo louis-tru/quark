@@ -137,8 +137,8 @@ namespace qk { namespace js {
 					Js_Throw("Bad argument");
 				}
 				int id = 0;
-				if ( args.length() > 3 && args[3]->isNumber() ) {
-					id = args[3]->toNumberValue(worker);
+				if ( args.length() > 3 && args[3]->isInt32() ) {
+					id = args[3]->toInt32Value(worker).unsafe();
 				}
 				{ HandleScope scope(worker);
 					WrapObject* wrap = WrapObject::wrap(args[0]);
@@ -160,8 +160,8 @@ namespace qk { namespace js {
 					Js_Throw("Bad argument");
 				}
 				int id = 0;
-				if ( args.length() > 2 && args[2]->isNumber() ) {
-					id = args[2]->toNumberValue(worker);
+				if ( args.length() > 2 && args[2]->isInt32() ) {
+					id = args[2]->toInt32Value(worker).unsafe();
 				}
 				{ HandleScope scope(worker);
 					String name = args[1]->toStringValue(worker,1);
@@ -208,7 +208,7 @@ namespace qk { namespace js {
 			Js_Set_Method(exit, {
 				int code = 0;
 				if (args.length() && args[0]->isInt32()) {
-					code = args[0]->toInt32Value(worker);
+					code = args[0]->toInt32Value(worker).unsafe();
 				}
 				thread_try_abort_and_exit(code);
 			});

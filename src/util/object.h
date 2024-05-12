@@ -200,8 +200,9 @@ namespace qk {
 	class Maybe {
 	public:
 		Maybe(): _ok(false) {}
-		explicit Maybe(const T& t): _ok(true), _val(t) {}
-		explicit Maybe(T&& t): _ok(true), _val(std::move(t)) {}
+		explicit Maybe(const T& t): _val(t),_ok(true) {}
+		explicit Maybe(T&& t): _val(std::move(t)), _ok(true) {}
+		inline T& unsafe() { return _val; }
 		inline bool ok() const { return _ok; }
 		inline bool to(T& out) {
 			return _ok ? (out = std::move(_val), true): false;
@@ -210,8 +211,8 @@ namespace qk {
 			return _ok ? std::move(_val) : defaultValue;
 		}
 	private:
-		bool _ok;
 		T    _val;
+		bool _ok;
 	};
 
 	template<class T, typename... Args>

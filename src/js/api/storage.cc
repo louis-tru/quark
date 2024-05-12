@@ -42,7 +42,7 @@ namespace qk { namespace js {
 				if (args.length() < 1) {
 					Js_Throw(
 						"* @method get(key)\n"
-						"* @param key {String}\n"
+						"@param key {String}\n"
 						"* @return {String}\n"
 					);
 				}
@@ -53,8 +53,8 @@ namespace qk { namespace js {
 				if (args.length() < 2) {
 					Js_Throw(
 						"* @method set(key)\n"
-						"* @param key {String}\n"
-						"* @param value {String}\n"
+						"@param key {String}\n"
+						"@param value {String}\n"
 					);
 				}
 				storage_set( args[0]->toStringValue(worker), args[1]->toStringValue(worker) );
@@ -64,7 +64,7 @@ namespace qk { namespace js {
 				if (args.length() < 1) {
 					Js_Throw(
 						"* @method del(key)\n"
-						"* @param key {String}\n"
+						"@param key {String}\n"
 					);
 				}
 				storage_remove( args[0]->toStringValue(worker) );

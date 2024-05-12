@@ -185,10 +185,10 @@ namespace qk { namespace js {
 				if (args.length() < 1 || !args[0]->isUint32()) {
 					Js_Throw(
 						"* @method setMethod(method)\n"
-						"* @param method {HttpMethod}\n"
+						"@param method {HttpMethod}\n"
 					);
 				}
-				auto arg = args[0]->toUint32Value(worker);
+				auto arg = args[0]->toUint32Value(worker).unsafe();
 				HttpMethod method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_method(method); }, Error);
@@ -199,7 +199,7 @@ namespace qk { namespace js {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
 						"* @method setUrl(url)\n"
-						"* @param url {String}\n"
+						"@param url {String}\n"
 					);
 				}
 				String arg = args[0]->toStringValue(worker);
@@ -211,7 +211,7 @@ namespace qk { namespace js {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
 						"* @method setSavePath(path)\n"
-						"* @param path {String}\n"
+						"@param path {String}\n"
 					);
 				}
 				String arg = args[0]->toStringValue(worker);
@@ -223,7 +223,7 @@ namespace qk { namespace js {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
 						"* @method setUsername(username)\n"
-						"* @param username {String}\n"
+						"@param username {String}\n"
 					);
 				}
 				String arg = args[0]->toStringValue(worker);
@@ -235,7 +235,7 @@ namespace qk { namespace js {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
 						"* @method setPassword(password)\n"
-						"* @param password {String}\n"
+						"@param password {String}\n"
 					);
 				}
 				String arg = args[0]->toStringValue(worker);
@@ -247,7 +247,7 @@ namespace qk { namespace js {
 				if (args.length() < 1) {
 					Js_Throw(
 						"* @method disableCache(disable)\n"
-						"* @param disable {bool}\n"
+						"@param disable {bool}\n"
 					);
 				}
 				bool arg = args[0]->toBooleanValue(worker);
@@ -259,7 +259,7 @@ namespace qk { namespace js {
 				if (args.length() < 1) {
 					Js_Throw(
 						"* @method disableCookie(disable)\n"
-						"* @param disable {bool}\n"
+						"@param disable {bool}\n"
 					);
 				}
 				bool arg = args[0]->toBooleanValue(worker);
@@ -271,7 +271,7 @@ namespace qk { namespace js {
 				if (args.length() < 1) {
 					Js_Throw(
 						"* @method disableSendCookie(disable)\n"
-						"* @param disable {bool}\n"
+						"@param disable {bool}\n"
 					);
 				}
 				auto arg = args[0]->toBooleanValue(worker);
@@ -283,7 +283,7 @@ namespace qk { namespace js {
 				if (args.length() < 1) {
 					Js_Throw(
 						"* @method disableSslVerify(disable)\n"
-						"* @param disable {bool}\n"
+						"@param disable {bool}\n"
 					);
 				}
 				Js_Self(HttpClientRequest);
@@ -296,8 +296,8 @@ namespace qk { namespace js {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 					Js_Throw(
 						"* @method setRequestHeader(header_name, value)\n"
-						"* @param header_name {String} ascii string\n"
-						"* @param value {String}\n"
+						"@param header_name {String} ascii string\n"
+						"@param value {String}\n"
 					);
 				}
 				Js_Self(HttpClientRequest);
@@ -310,8 +310,8 @@ namespace qk { namespace js {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
 					Js_Throw(
 						"* @method setForm(form_name, value)\n"
-						"* @param form_name {String}\n"
-						"* @param value {String}\n"
+						"@param form_name {String}\n"
+						"@param value {String}\n"
 					);
 				}
 				String form_name = args[0]->toStringValue(worker);
@@ -326,8 +326,8 @@ namespace qk { namespace js {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
 					Js_Throw(
 						"* @method setUploadFile(form_name, local_path)\n"
-						"* @param form_name {String}\n"
-						"* @param local_path {String}\n"
+						"@param form_name {String}\n"
+						"@param local_path {String}\n"
 					);
 				}
 				String form_name = args[0]->toStringValue(worker);
@@ -352,7 +352,7 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Throw(
 						"* @method getResponseHeader(header_name)\n"
-						"* @param header_name {String}\n"
+						"@param header_name {String}\n"
 						"* @return {String}\n"
 					);
 				}
@@ -379,7 +379,7 @@ namespace qk { namespace js {
 				if (args.length() == 0) {
 					Js_Throw(
 						"* @method setKeepAlive(keep_alive)\n"
-						"* @param keep_alive {bool}\n"
+						"@param keep_alive {bool}\n"
 					);
 				}
 				bool enable = args[0]->toBooleanValue(worker);
@@ -391,12 +391,12 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isNumber()) {
 					Js_Throw(
 						"* @method setTimeout(time)\n"
-						"* @param time {uint} ms\n"
+						"@param time {uint} ms\n"
 					);
 				}
 				Js_Self(HttpClientRequest);
 
-				uint64_t time = args[0]->toUint32Value(worker) * 1000;
+				uint64_t time = args[0]->toUint32Value(worker).unsafe() * 1000;
 
 				Js_Try_Catch({ self->set_timeout(time); }, Error);
 			});
@@ -506,7 +506,7 @@ namespace qk { namespace js {
 			value = obj->get(worker, worker->newStringOneByte(const_method));
 			if ( !value ) return false;
 			if ( value->isUint32() ) {
-				auto arg = value->toUint32Value(worker);
+				auto arg = value->toUint32Value(worker).unsafe();
 				opt.method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
 			}
 
@@ -538,7 +538,7 @@ namespace qk { namespace js {
 			value = obj->get(worker, worker->newStringOneByte(const_timeout));
 			if ( !value ) return false;
 			if ( value->isUint32() ) {
-				opt.timeout = value->toUint32Value(worker) * 1e3;
+				opt.timeout = value->toUint32Value(worker).unsafe() * 1e3;
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_disable_ssl_verify));
@@ -595,8 +595,8 @@ namespace qk { namespace js {
 			Js_Set_Method(request, {
 				request(args,
 					"* @method request(options[,cb])\n"
-					"* @param options {RequestOptions}\n"
-					"* @param [cb] {Function}\n"
+					"@param options {RequestOptions}\n"
+					"@param [cb] {Function}\n"
 					"* @return {uint} return req id\n"
 					, false
 				);
@@ -605,8 +605,8 @@ namespace qk { namespace js {
 			Js_Set_Method(requestStream, {
 				request(args, 
 					"* @method requestStream(options[,cb])\n"
-					"* @param options {RequestOptions}\n"
-					"* @param [cb] {Function}\n"
+					"@param options {RequestOptions}\n"
+					"@param [cb] {Function}\n"
 					"* @return {uint} return req id\n"
 					, true
 				);
@@ -616,7 +616,7 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isObject()) {
 					Js_Throw(
 						"* @method requestSync(url)\n"
-						"* @param url {String}\n"
+						"@param url {String}\n"
 						"* @return {Buffer}\n"
 					);
 				}
@@ -634,10 +634,10 @@ namespace qk { namespace js {
 				if ( args.length() == 0 || !args[0]->isUint32() ) {
 					Js_Throw(
 						"* @method abort(id)\n"
-						"* @param id {uint} abort id\n"
+						"@param id {uint} abort id\n"
 					);
 				}
-				http_abort( args[0]->toUint32Value(worker) );
+				http_abort( args[0]->toUint32Value(worker).unsafe() );
 			});
 
 			Js_Set_Method(userAgent, {
@@ -659,7 +659,7 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Throw(
 						"* @method setCachePath(path)\n"
-						"* @param path {String}\n"
+						"@param path {String}\n"
 					);
 				}
 				http_set_cache_path( args[0]->toStringValue(worker) );

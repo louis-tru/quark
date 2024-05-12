@@ -264,9 +264,10 @@ namespace qk { namespace js {
 		String2 toStringValue2(Worker* worker) const; // to utf16 string
 		String4 toStringValue4(Worker* worker) const; // to utf32 string
 		bool toBooleanValue(Worker* worker) const;
-		double toNumberValue(Worker* worker) const;
-		int toInt32Value(Worker* worker) const;
-		uint32_t toUint32Value(Worker* worker) const;
+		Maybe<float> toFloatValue(Worker* worker) const;
+		Maybe<double> toNumberValue(Worker* worker) const;
+		Maybe<int> toInt32Value(Worker* worker) const;
+		Maybe<uint32_t> toUint32Value(Worker* worker) const;
 		Buffer toBuffer(Worker* worker, Encoding en) const;
 		WeakBuffer asBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
@@ -317,32 +318,32 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT JSDate: public JSObject {
 	public:
-		double valueOf(Worker* worker) const;
+		double valueOf() const;
 	};
 
 	class Qk_EXPORT JSNumber: public JSValue {
 	public:
-		double value(Worker* worker) const;
+		double value() const;
 	};
 
 	class Qk_EXPORT JSInt32: public JSNumber {
 	public:
-		int value(Worker* worker) const;
+		int value() const;
 	};
 
 	class Qk_EXPORT JSInteger: public JSNumber {
 	public:
-		int64_t value(Worker* worker) const;
+		int64_t value() const;
 	};
 
 	class Qk_EXPORT JSUint32: public JSNumber {
 	public:
-		uint32_t value(Worker* worker) const;
+		uint32_t value() const;
 	};
 
 	class Qk_EXPORT JSBoolean: public JSValue {
 	public:
-		bool value(Worker* worker) const;
+		bool value() const;
 	};
 
 	class Qk_EXPORT JSFunction: public JSObject {

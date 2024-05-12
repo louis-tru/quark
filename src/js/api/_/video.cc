@@ -135,7 +135,7 @@ namespace qk { namespace js {
 			if (args.length() < 1 || ! args[0]->IsUint32(worker) ) {
 				Js_Throw(
 					"* @method selectAudioTrack(index)\n"
-					"* @param index {uint} audio track index\n"
+					"@param index {uint} audio track index\n"
 				);
 			}
 			Js_Self(Video);
@@ -169,7 +169,7 @@ namespace qk { namespace js {
 			if (args.length() < 1 || ! args[0]->IsNumber(worker) ) {
 				Js_Throw(
 					"* @method seek(time)\n"
-					"* @param time {uint} ms\n"
+					"@param time {uint} ms\n"
 					"* @return {bool} success\n"
 				);
 			}

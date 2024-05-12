@@ -52,6 +52,9 @@ namespace qk { namespace js {
 	template<class T = JSValue, class S>
 	inline T* Cast(v8::Local<S> o) { return reinterpret_cast<T*>(*o); }
 
+	template<class T = JSValue, class S>
+	inline T* Cast(v8::MaybeLocal<S> o) { return *reinterpret_cast<T**>(&o); }
+
 	template<class T = v8::Value>
 	inline v8::Local<T> Back(JSValue* o) { return *reinterpret_cast<v8::Local<T>*>(&o); }
 
@@ -357,7 +360,7 @@ namespace qk { namespace js {
 		if (_func.isEmpty()) {
 			// Gen constructor
 			auto v8cls = static_cast<V8JSClass*>(this);
-			auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).FromMaybe(v8::Local<v8::Function>());
+			auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
 			if (v8cls->HasBaseFunction()) {
 				bool ok;
 				// function.__proto__ = base;
@@ -411,32 +414,31 @@ namespace qk { namespace js {
 	}
 
 	JSString* JSValue::toString(Worker* worker) const {
-		return Cast<JSString>(reinterpret_cast<const v8::Value*>(this)->ToString(CONTEXT(worker)).ToLocalChecked());
+		return Cast<JSString>(reinterpret_cast<const v8::Value*>(this)->ToString(CONTEXT(worker)));
 	}
 
 	JSNumber* JSValue::toNumber(Worker* worker) const {
-		Cast<JSNumber>(reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker)).ToLocalChecked());
+		Cast<JSNumber>(reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker)));
 	}
 
 	JSInt32* JSValue::toInt32(Worker* worker) const {
-		return Cast<JSInt32>(reinterpret_cast<const v8::Value*>(this)->ToInt32(CONTEXT(worker)).ToLocalChecked());
+		return Cast<JSInt32>(reinterpret_cast<const v8::Value*>(this)->ToInt32(CONTEXT(worker)));
 	}
 
 	JSUint32* JSValue::toUint32(Worker* worker) const {
-		return Cast<JSUint32>(reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker)).ToLocalChecked());
+		return Cast<JSUint32>(reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker)));
 	}
 
 	JSObject* JSValue::toObject(Worker* worker) const {
-		return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject(CONTEXT(worker)).ToLocalChecked());
+		return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject(CONTEXT(worker)));
 	}
 
 	JSBoolean* JSValue::toBoolean(Worker* worker) const {
-		return Cast<JSBoolean>(reinterpret_cast<const v8::Value*>(this)->ToBoolean(CONTEXT(worker)).ToLocalChecked());
+		return Cast<JSBoolean>(reinterpret_cast<const v8::Value*>(this)->ToBoolean(CONTEXT(worker)));
 	}
 
 	String JSValue::toStringValue(Worker* worker, bool oneByte) const {
 		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		Qk_ASSERT(!str.IsEmpty());
 		if (!str->Length()) return String();
 		if ( oneByte ) {
 			Buffer buffer(str->Length());
@@ -461,7 +463,6 @@ namespace qk { namespace js {
 
 	String2 JSValue::toStringValue2(Worker* worker) const {
 		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		Qk_ASSERT(!str.IsEmpty());
 		if (!str->Length()) return String2();
 		ArrayBuffer<uint16_t> source(str->Length());
 		str->Write(ISOLATE(worker), *source, 0, str->Length());
@@ -470,7 +471,6 @@ namespace qk { namespace js {
 
 	String4 JSValue::toStringValue4(Worker* worker) const {
 		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		Qk_ASSERT(!str.IsEmpty());
 		if (!str->Length()) return String4();
 
 		Array<uint32_t> rev(str->Length());
@@ -488,16 +488,24 @@ namespace qk { namespace js {
 		return rev.collapseString();
 	}
 
-	double JSValue::toNumberValue(Worker* worker) const {
-		return reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker)).ToLocalChecked()->Value();
+	Maybe<float> JSValue::toFloatValue(Worker* worker) const {
+		auto v = reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker));
+		return v.IsEmpty() ? Maybe<float>(): Maybe<float>(Cast<JSNumber>(v)->value());
 	}
 
-	int JSValue::toInt32Value(Worker* worker) const {
-		return reinterpret_cast<const v8::Value*>(this)->ToInt32(CONTEXT(worker)).ToLocalChecked()->Value();
+	Maybe<double> JSValue::toNumberValue(Worker* worker) const {
+		auto v = reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker));
+		return v.IsEmpty() ? Maybe<double>(): Cast<JSNumber>(v)->value();
 	}
 
-	uint32_t JSValue::toUint32Value(Worker* worker) const {
-		return reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker)).ToLocalChecked()->Value();
+	Maybe<int> JSValue::toInt32Value(Worker* worker) const {
+		auto v = reinterpret_cast<const v8::Value*>(this)->ToInt32(CONTEXT(worker));
+		return v.IsEmpty() ? Maybe<int>(): Cast<JSInt32>(v)->value();
+	}
+
+	Maybe<uint32_t> JSValue::toUint32Value(Worker* worker) const {
+		auto v = reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker));
+		return v.IsEmpty() ? Maybe<uint32_t>(): Cast<JSUint32>(v)->value();
 	}
 
 	bool JSValue::toBooleanValue(Worker* worker) const {
@@ -510,13 +518,11 @@ namespace qk { namespace js {
 	}
 
 	JSValue* JSObject::get(Worker* worker, JSValue* key) {
-		return Cast(reinterpret_cast<v8::Object*>(this)->
-								Get(CONTEXT(worker), Back(key)).ToLocalChecked());
+		return Cast(reinterpret_cast<v8::Object*>(this)->Get(CONTEXT(worker), Back(key)));
 	}
 
 	JSValue* JSObject::get(Worker* worker, uint32_t index) {
-		return Cast(reinterpret_cast<v8::Object*>(this)->
-								Get(CONTEXT(worker), index).ToLocalChecked());
+		return Cast(reinterpret_cast<v8::Object*>(this)->Get(CONTEXT(worker), index));
 	}
 
 	bool JSObject::set(Worker* worker, JSValue* key, JSValue* val) {
@@ -613,22 +619,22 @@ namespace qk { namespace js {
 	int JSArray::length() const {
 		return reinterpret_cast<const v8::Array*>(this)->Length();
 	}
-	double JSDate::valueOf(Worker* worker) const {
+	double JSDate::valueOf() const {
 		return reinterpret_cast<const v8::Date*>(this)->ValueOf();
 	}
-	double JSNumber::value(Worker* worker) const {
+	double JSNumber::value() const {
 		return reinterpret_cast<const v8::Number*>(this)->Value();
 	}
-	int JSInt32::value(Worker* worker) const {
+	int JSInt32::value() const {
 		return reinterpret_cast<const v8::Int32*>(this)->Value();
 	}
-	int64_t JSInteger::value(Worker* worker) const {
+	int64_t JSInteger::value() const {
 		return reinterpret_cast<const v8::Integer*>(this)->Value();
 	}
-	uint32_t JSUint32::value(Worker* worker) const {
+	uint32_t JSUint32::value() const {
 		return reinterpret_cast<const v8::Uint32*>(this)->Value();
 	}
-	bool JSBoolean::value(Worker* worker) const {
+	bool JSBoolean::value() const {
 		return reinterpret_cast<const v8::Boolean*>(this)->Value();
 	}
 
@@ -639,7 +645,7 @@ namespace qk { namespace js {
 		auto fn = reinterpret_cast<v8::Function*>(this);
 		v8::MaybeLocal<v8::Value> r = fn->Call(CONTEXT(worker), Back(recv), argc,
 																						reinterpret_cast<v8::Local<v8::Value>*>(argv));
-		return Cast(r.ToLocalChecked());
+		return Cast(r.ToLocal(v8::Local<v8::Value>()));
 	}
 
 	JSValue* JSFunction::call(Worker* worker, JSValue* recv) {
@@ -650,14 +656,14 @@ namespace qk { namespace js {
 		auto fn = reinterpret_cast<v8::Function*>(this);
 		v8::MaybeLocal<v8::Object> r = fn->NewInstance(CONTEXT(worker), argc,
 																										reinterpret_cast<v8::Local<v8::Value>*>(argv));
-		return Cast<JSObject>(r.ToLocalChecked());
+		return Cast<JSObject>(r);
 	}
 
 	JSObject* JSFunction::getPrototype(Worker* worker) {
 		auto fn = reinterpret_cast<v8::Function*>(this);
 		auto str = Back(worker->strs()->prototype());
 		auto r = fn->Get(CONTEXT(worker), str);
-		return Cast<JSObject>(r.ToLocalChecked());
+		return Cast<JSObject>(r);
 	}
 
 	uint32_t JSArrayBuffer::byteLength(Worker* worker) const {
@@ -965,7 +971,7 @@ namespace qk { namespace js {
 		return Cast<JSString>(v8::String::NewExternalTwoByte(
 			ISOLATE(this),
 			new V8ExternalStringResource(data)
-		).ToLocalChecked());
+		));
 	}
 
 	JSUint8Array* Worker::newInstance(Buffer&& buff) {
@@ -1029,7 +1035,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::RangeError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
+		return Cast<JSObject>(v8::Exception::RangeError(Back(newInstance(str))->ToString(CONTEXT(this))));
 	}
 
 	JSObject* Worker::newReferenceError(cChar* errmsg, ...) {
@@ -1037,7 +1043,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::ReferenceError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
+		return Cast<JSObject>(v8::Exception::ReferenceError(Back(newInstance(str))->ToString(CONTEXT(this))));
 	}
 
 	JSObject* Worker::newSyntaxError(cChar* errmsg, ...) {
@@ -1045,7 +1051,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::SyntaxError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
+		return Cast<JSObject>(v8::Exception::SyntaxError(Back(newInstance(str))->ToString(CONTEXT(this))));
 	}
 
 	JSObject* Worker::newTypeError(cChar* errmsg, ...) {
@@ -1053,7 +1059,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::TypeError(Back(newInstance(str))->ToString(CONTEXT(this)).ToLocalChecked()));
+		return Cast<JSObject>(v8::Exception::TypeError(Back(newInstance(str))->ToString(CONTEXT(this))));
 	}
 
 	JSObject* Worker::newInstance(cError& err) {

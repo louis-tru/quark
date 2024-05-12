@@ -111,7 +111,7 @@ namespace qk { namespace js {
 			Js_Throw("\
 				* Call view constructor() error, param window object no match. \n\
 				* @constructor(window) \n\
-				* @param window {Window} \n\
+				@param window {Window} \n\
 			"), nullptr;
 		}
 		return WrapObject::wrap<Window>(args[0])->self();
@@ -164,7 +164,7 @@ namespace qk { namespace js {
 				Js_Return( self->action() );
 			}, {
 				if (!worker->instanceOf<Action>(val))
-					Js_Throw("* @prop set_action {Action}\n");
+					Js_Throw("@prop set_action {Action}\n");
 				Js_Self(View);
 				self->set_action(wrap<Action>(val)->self());
 			});
@@ -184,9 +184,9 @@ namespace qk { namespace js {
 				Js_Return( self->opacity() );
 			}, {
 				if (val->isNumber())
-					Js_Throw("* @prop View.set_opacity {float}\n");
+					Js_Throw("@prop View.set_opacity {float}\n");
 				Js_Self(View);
-				self->set_opacity(val->toNumberValue(worker));
+				self->set_opacity(val->toFloatValue(worker).unsafe());
 			});
 
 			Js_Set_Class_Accessor(cursor, {
@@ -194,9 +194,10 @@ namespace qk { namespace js {
 				Js_Return( uint32_t(self->cursor()) );
 			}, {
 				if (val->isUint32())
-					Js_Throw("* @prop View.set_cursor {float}\n");
+					Js_Throw("@prop View.set_cursor {float}\n");
+				Js_Parse_Type(CursorStyle, val, "@prop View.set_cursor {float}");
 				Js_Self(View);
-				self->set_cursor(CursorStyle(val->toUint32Value(worker)));
+				self->set_cursor(out);
 			});
 
 			Js_Set_Class_Accessor(visible, {
@@ -239,7 +240,7 @@ namespace qk { namespace js {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"* @method View.is_self_child(child)\n"
-						"* @param child {View}\n"
+						"@param child {View}\n"
 						"* @return {bool}\n"
 					);
 				}
@@ -252,7 +253,7 @@ namespace qk { namespace js {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"* @method View.before(prev)\n"
-						"* @param prev {View}\n"
+						"@param prev {View}\n"
 					);
 				}
 				Js_Self(View);
@@ -264,7 +265,7 @@ namespace qk { namespace js {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"* @method View.after(next)\n"
-						"* @param next {View}\n"
+						"@param next {View}\n"
 					);
 				}
 				Js_Self(View);
@@ -276,7 +277,7 @@ namespace qk { namespace js {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"* @method View.prepend(child)\n"
-						"* @param child {View}\n"
+						"@param child {View}\n"
 					);
 				}
 				Js_Self(View);
@@ -288,7 +289,7 @@ namespace qk { namespace js {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"* @method View.append(child)\n"
-						"* @param child {View}\n"
+						"@param child {View}\n"
 					);
 				}
 				Js_Self(View);

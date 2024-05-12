@@ -68,9 +68,9 @@ namespace qk { namespace js {
 			if (args.length() < 1) {
 				Js_Throw(
 					"* @method ScrollBase.scrollTo(vec2[,int[,curve]])\n"
-					"* @param val {Vec2}\n"
-					"* @param duration {int}\n"
-					"* @param [curve] {Curve}\n"
+					"@param val {Vec2}\n"
+					"@param duration {int}\n"
+					"@param [curve] {Curve}\n"
 				);
 			}
 			Vec2 value;

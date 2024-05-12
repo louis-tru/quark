@@ -122,50 +122,57 @@ namespace qk {
 		prop_accessors[kRoot_ViewType] = prop_accessors[kView_ViewType];
 		// box
 		Qk_Set_Accessor(Box, CLIP, clip);
+		Qk_Set_Accessor(Box, ALIGN, align);
 		Qk_Set_Accessor(Box, WIDTH, width);
 		Qk_Set_Accessor(Box, HEIGHT, height);
 		Qk_Set_Accessor(Box, WIDTH_LIMIT, width_limit);
 		Qk_Set_Accessor(Box, HEIGHT_LIMIT, height_limit);
+		Qk_Set_Accessor(Box, MARGIN, margin); // margin
 		Qk_Set_Accessor(Box, MARGIN_TOP, margin_top);
 		Qk_Set_Accessor(Box, MARGIN_RIGHT, margin_right);
 		Qk_Set_Accessor(Box, MARGIN_BOTTOM, margin_bottom);
 		Qk_Set_Accessor(Box, MARGIN_LEFT, margin_left);
-		Qk_Set_Accessor(Box, MARGIN, margin);
+		Qk_Set_Accessor(Box, MARGIN, padding); // padding
 		Qk_Set_Accessor(Box, MARGIN_TOP, padding_top);
 		Qk_Set_Accessor(Box, MARGIN_RIGHT, padding_right);
 		Qk_Set_Accessor(Box, MARGIN_BOTTOM, padding_bottom);
 		Qk_Set_Accessor(Box, MARGIN_LEFT, padding_left);
-		Qk_Set_Accessor(Box, MARGIN, padding);
+		Qk_Set_Accessor(Box, BORDER_RADIUS, border_radius); // border radius
 		Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_TOP, border_radius_left_top);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_TOP, border_radius_right_top);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_BOTTOM, border_radius_right_bottom);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_BOTTOM, border_radius_left_bottom);
-		Qk_Set_Accessor(Box, BORDER_RADIUS, border_radius);
-		Qk_Set_Accessor(Box, BORDER_COLOR_TOP, border_color_top);
-		Qk_Set_Accessor(Box, BORDER_COLOR_RIGHT, border_color_right);
-		Qk_Set_Accessor(Box, BORDER_COLOR_BOTTOM, border_color_bottom);
-		Qk_Set_Accessor(Box, BORDER_COLOR_LEFT, border_color_left);
-		Qk_Set_Accessor(Box, BORDER_WIDTH_TOP, border_width_top);
+		Qk_Set_Accessor(Box, BORDER, border); // border
+		Qk_Set_Accessor(Box, BORDER_WIDTH, border_width);
+		Qk_Set_Accessor(Box, BORDER_COLOR, border_color);
+		Qk_Set_Accessor(Box, BORDER_TOP, border_top);
+		Qk_Set_Accessor(Box, BORDER_RIGHT, border_right);
+		Qk_Set_Accessor(Box, BORDER_BOTTOM, border_bottom);
+		Qk_Set_Accessor(Box, BORDER_LEFT, border_left);
+		Qk_Set_Accessor(Box, BORDER_WIDTH_TOP, border_width_top); // border width
 		Qk_Set_Accessor(Box, BORDER_WIDTH_RIGHT, border_width_right);
 		Qk_Set_Accessor(Box, BORDER_WIDTH_BOTTOM, border_width_bottom);
 		Qk_Set_Accessor(Box, BORDER_WIDTH_LEFT, border_width_left);
+		Qk_Set_Accessor(Box, BORDER_COLOR_TOP, border_color_top); // border color
+		Qk_Set_Accessor(Box, BORDER_COLOR_RIGHT, border_color_right);
+		Qk_Set_Accessor(Box, BORDER_COLOR_BOTTOM, border_color_bottom);
+		Qk_Set_Accessor(Box, BORDER_COLOR_LEFT, border_color_left); // border end
 		Qk_Set_Accessor(Box, BACKGROUND_COLOR, background_color);
 		Qk_Set_Accessor(Box, BACKGROUND, background);
 		Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow);
 		Qk_Set_Accessor(Box, WEIGHT, weight);
-		Qk_Set_Accessor(Box, ALIGN, align);
-		Qk_Copy_Accessor(Box, Flex, CLIP, 33);
-		Qk_Copy_Accessor(Box, Flow, CLIP, 33);
-		Qk_Copy_Accessor(Box, Float, CLIP, 33);
-		Qk_Copy_Accessor(Box, Image, CLIP, 33);
-		Qk_Copy_Accessor(Box, Video, CLIP, 33);
-		Qk_Copy_Accessor(Box, Input, CLIP, 33);
-		Qk_Copy_Accessor(Box, Textarea, CLIP, 33);
-		Qk_Copy_Accessor(Box, Scroll, CLIP, 33);
-		Qk_Copy_Accessor(Box, Text, CLIP, 33);
-		Qk_Copy_Accessor(Box, Button, CLIP, 33);
-		Qk_Copy_Accessor(Box, Transform, CLIP, 33);
-		Qk_Copy_Accessor(Box, Root, CLIP, 33);
+		Qk_Copy_Accessor(Box, Flex, CLIP, 40);
+		Qk_Copy_Accessor(Box, Flow, CLIP, 40);
+		Qk_Copy_Accessor(Box, Float, CLIP, 40);
+		Qk_Copy_Accessor(Box, Image, CLIP, 40);
+		Qk_Copy_Accessor(Box, Video, CLIP, 40);
+		Qk_Copy_Accessor(Box, Input, CLIP, 40);
+		Qk_Copy_Accessor(Box, Textarea, CLIP, 40);
+		Qk_Copy_Accessor(Box, Scroll, CLIP, 40);
+		Qk_Copy_Accessor(Box, Text, CLIP, 40);
+		Qk_Copy_Accessor(Box, Button, CLIP, 40);
+		Qk_Copy_Accessor(Box, Transform, CLIP, 40);
+		Qk_Copy_Accessor(Box, Root, CLIP, 40);
 		// flex
 		Qk_Set_Accessor(Flex, DIRECTION, direction);
 		Qk_Set_Accessor(Flex, ITEMS_ALIGN, items_align);

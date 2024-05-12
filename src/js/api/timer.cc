@@ -39,17 +39,17 @@ namespace qk { namespace js {
 			if (args.length() < 2 || !args[0]->isFunction() || !args[1]->isUint32()) {
 				Js_Throw(
 					"* @method setTimer(cb,time[,repeat])\n"
-					"* @param cb {Function}\n"
-					"* @param time {Number}\n"
-					"* @param [repeat] {Number}\n"
+					"@param cb {Function}\n"
+					"@param time {Number}\n"
+					"@param [repeat] {Number}\n"
 					"* @return {Number}\n"
 				);
 			}
-			uint64_t timeout = args[1]->toUint32Value(worker) * 1e3;
+			uint64_t timeout = args[1]->toUint32Value(worker).unsafe() * 1e3;
 			if (repeat == -1) {
 				repeat = 0;
 				if (args.length() > 2 && args[2]->isUint32()) {
-					repeat = args[2]->toUint32Value(worker);
+					repeat = args[2]->toUint32Value(worker).unsafe();
 				}
 			}
 			auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), timeout, repeat);
@@ -60,10 +60,10 @@ namespace qk { namespace js {
 			if (!args.length() || !args[0]->isUint32()) {
 				Js_Throw(
 					"* @method clearTimer(id)\n"
-					"* @param id {Number}\n"
+					"@param id {Number}\n"
 				);
 			}
-			first_loop()->timer_stop(args[0]->toUint32Value(worker));
+			first_loop()->timer_stop(args[0]->toUint32Value(worker).unsafe());
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -72,7 +72,7 @@ namespace qk { namespace js {
 				if (!args.length() || !args[0]->isFunction()) {
 					Js_Throw(
 						"* @method nextTick(cb,time[,repeat])\n"
-						"* @param cb {Function}\n"
+						"@param cb {Function}\n"
 					);
 				}
 				first_loop()->next_tick(get_callback_for_none(worker, args[0]));

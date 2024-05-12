@@ -42,31 +42,40 @@ namespace qk {
 	typedef Array<float> ArrayFloat;
 	typedef Array<Color> ArrayColor;
 	typedef Array<BoxOrigin> ArrayOrigin;
+	typedef Array<BoxBorder> ArrayBorder;
 
 #define Qk_View_Props(F) \
 	F(OPACITY, float, opacity, View) /*view*/\
 	F(VISIBLE, bool, visible, View) \
 	F(RECEIVE, bool, receive, View) \
 	F(CLIP, bool, clip, Box) /* box */ \
+	F(ALIGN, Align, align, Box) \
 	F(WIDTH, BoxSize, width, Box) \
 	F(HEIGHT, BoxSize, height, Box) \
 	F(WIDTH_LIMIT, BoxSize, width_limit, Box) \
 	F(HEIGHT_LIMIT, BoxSize, height_limit, Box) \
+	F(MARGIN, ArrayFloat, margin, Box) /*margin*/\
 	F(MARGIN_TOP, float, margin_top, Box) \
 	F(MARGIN_RIGHT, float, margin_right, Box) \
 	F(MARGIN_BOTTOM, float, margin_bottom, Box) \
 	F(MARGIN_LEFT, float, margin_left, Box) \
-	F(MARGIN, ArrayFloat, margin, Box) \
+	F(PADDING, ArrayFloat, padding, Box) /*padding*/\
 	F(PADDING_TOP, float, padding_top, Box) \
 	F(PADDING_RIGHT, float, padding_right, Box) \
 	F(PADDING_BOTTOM, float, padding_bottom, Box) \
 	F(PADDING_LEFT, float, padding_left, Box) \
-	F(PADDING, ArrayFloat, padding, Box) \
+	F(BORDER_RADIUS, ArrayFloat, border_radius, Box) /*border radius*/\
 	F(BORDER_RADIUS_LEFT_TOP, float, border_radius_left_top, Box) \
 	F(BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top, Box) \
 	F(BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom, Box) \
 	F(BORDER_RADIUS_LEFT_BOTTOM, float, border_radius_left_bottom, Box) \
-	F(BORDER_RADIUS, ArrayFloat, border_radius, Box) \
+	F(BORDER, ArrayBorder, border, Box) /*border*/\
+	F(BORDER_WIDTH, ArrayFloat, border_width, Box) \
+	F(BORDER_COLOR, ArrayColor, border_color, Box) \
+	F(BORDER_TOP, BoxBorder, border_top, Box) \
+	F(BORDER_RIGHT, BoxBorder, border_right, Box) \
+	F(BORDER_BOTTOM, BoxBorder, border_bottom, Box) \
+	F(BORDER_LEFT, BoxBorder, border_left, Box) \
 	F(BORDER_COLOR_TOP, Color, border_color_top, Box) \
 	F(BORDER_COLOR_RIGHT, Color, border_color_right, Box) \
 	F(BORDER_COLOR_BOTTOM, Color, border_color_bottom, Box) \
@@ -74,12 +83,11 @@ namespace qk {
 	F(BORDER_WIDTH_TOP, float, border_width_top, Box) \
 	F(BORDER_WIDTH_RIGHT, float, border_width_right, Box) \
 	F(BORDER_WIDTH_BOTTOM, float, border_width_bottom, Box) \
-	F(BORDER_WIDTH_LEFT, float, border_width_left, Box) \
+	F(BORDER_WIDTH_LEFT, float, border_width_left, Box) /*border end*/\
 	F(BACKGROUND_COLOR, Color, background_color, Box) \
 	F(BACKGROUND, BoxFilterPtr, background, Box) \
 	F(BOX_SHADOW, BoxShadowPtr, box_shadow, Box) \
 	F(WEIGHT, float, weight, Box) \
-	F(ALIGN, Align, align, Box) \
 	F(DIRECTION, Direction, direction, Flex) /*flex*/\
 	F(ITEMS_ALIGN, ItemsAlign, items_align, Flex) \
 	F(CROSS_ALIGN, CrossAlign, cross_align, Flex) \
@@ -123,16 +131,6 @@ namespace qk {
 	F(ROTATE_Z, float, rotate_z, Transform) \
 	F(ORIGIN_X, BoxOrigin, origin_x, Transform) \
 	F(ORIGIN_Y, BoxOrigin, origin_y, Transform) \
-
-	// border
-
-	// border_left
-	// border_top
-	// border_right
-	// border_bottom
-
-	// border_width
-	// border_color
 
 	// Unsupported attributes for ScrollBase:
 	// (ScrollBase, bool, scrollbar, scrollbar)

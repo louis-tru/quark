@@ -37,6 +37,7 @@
 #include "../ui/types.h"
 #include "../ui/filter.h"
 #include "../ui/window.h"
+#include "../ui/event.h"
 #include "../render/bezier.h"
 #include "../util/fs.h"
 
@@ -50,27 +51,21 @@ namespace qk { namespace js {
 		worker->types()->throwError(t, msg, ##__VA_ARGS__)
 
 	#define Js_Strings_Each(F)  \
-		F(global)         F(exports)        F(constructor) \
-		F(console)        F(__proto__)      F(_wrap_external_data) \
-		F(prototype)      F(type)           F(value) \
-		F(isAuto)         F(width)          F(height) \
-		F(offset) \
-		F(_value)         F(r)              F(g) \
-		F(b)              F(a)              F(x) \
-		F(y)              F(z)              F(start) \
-		F(point)          F(end)            F(w) \
-		F(size)           F(color)          F(toJSON) \
-		F(stack)          F(get_path)       F(_cb) \
-		F(message)        F(status)         F(Errno) \
-		F(url)            F(id)             F(startX) \
-		F(startY)         F(force)          F(clickIn) \
-		F(view)           F(_data)          F(p1x) \
-		F(p1y)            F(p2x)            F(p2y) \
-		F(time)           F(_change_touches)F(name) \
-		F(pathname)       F(styles)         F(sender) \
-		F(Buffer)         F(data)           F(total) \
-		F(complete)       F(httpVersion)    F(statusCode) \
-		F(responseHeaders) F(Throw)         F(kind) \
+		F(exports)         F(constructor)    F(__proto__)\
+		F(prototype)       F(_wrap_external_data) \
+		F(type)            F(kind)           F(value) \
+		F(width)           F(height)         F(r) \
+		F(g)               F(b)              F(a) \
+		F(x)               F(y)              F(z) \
+		F(w)               F(end)            F(size) \
+		F(toJSON)          F(status)         F(Errno) \
+		F(url)             F(id)             F(startX) \
+		F(startY)          F(force)          F(clickIn) \
+		F(view)            F(_data)          F(p1x) \
+		F(p1y)             F(p2x)            F(p2y) \
+		F(_change_touches) F(name)           F(pathname) \
+		F(data)            F(total)          F(complete) \
+		F(httpVersion)     F(statusCode)     F(responseHeaders) \
 
 	class Qk_EXPORT Strings {
 	public:
@@ -85,6 +80,7 @@ namespace qk { namespace js {
 	typedef qk::Wrap Wrap;
 	typedef Window::Options WindowOptions;
 	typedef FillImage::Init FillImageInit;
+	typedef TouchEvent::TouchPoint TouchPoint;
 
 	#define Js_Types_Each(F) \
 		F(bool) \
@@ -101,9 +97,11 @@ namespace qk { namespace js {
 		F(ArrayFloat) \
 		F(ArrayColor) \
 		F(ArrayOrigin) \
+		F(ArrayBorder) \
 		F(String) \
 		F(Curve) \
 		F(Shadow) \
+		F(BoxBorder) \
 		F(FillPosition) \
 		F(FillSize) \
 		F(Repeat) \
@@ -204,6 +202,8 @@ namespace qk { namespace js {
 		JSValue* jsvalue(const FileStat& val);
 		JSValue* jsvalue(const Array<Dirent>& val);
 		JSValue* jsvalue(const Array<FileStat>& val);
+		JSValue* jsvalue(const TouchPoint& val);
+		JSValue* jsvalue(const Array<TouchPoint>& val);
 
 		bool     parse(JSValue* in, WindowOptions& out, cChar* desc);
 		bool     parse(JSValue* in, FillImageInit& out, cChar* desc);

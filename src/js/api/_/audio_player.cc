@@ -151,7 +151,7 @@ namespace qk { namespace js {
 		
 		/**
 		 * @constructor([src])
-		 * @param [src] {String}
+		 @param [src] {String}
 		 */
 		static void constructor(FunctionArgs args) {
 			Js_Worker(args);
@@ -300,14 +300,14 @@ namespace qk { namespace js {
 		
 		/**
 		 * @method select_track(index)
-		 * @param index {uint} audio track index
+		 @param index {uint} audio track index
 		 */
 		static void select_track(FunctionArgs args) {
 			Js_Worker(args); UILock lock;
 			if (args.length() < 1 || ! args[0]->IsUint32(worker) ) {
 				Js_Throw(
 					"* @method selectTrack(index)\n"
-					"* @param index {uint} audio track index\n"
+					"@param index {uint} audio track index\n"
 				);
 			}
 			Js_Self(AudioPlayer);
@@ -316,7 +316,7 @@ namespace qk { namespace js {
 		
 		/**
 		 * @method track([index])
-		 * @param [track=curent_track] {uint} default use current track index
+		 @param [track=curent_track] {uint} default use current track index
 		 * @return {object TrackInfo}
 		 */
 		static void track(FunctionArgs args) {
@@ -340,7 +340,7 @@ namespace qk { namespace js {
 		
 		/**
 		 * @method seek(time)
-		 * @param time {uint} ms
+		 @param time {uint} ms
 		 * @return {bool} success
 		 */
 		static void seek(FunctionArgs args) {
@@ -348,7 +348,7 @@ namespace qk { namespace js {
 			if (args.length() < 1 || ! args[0]->IsNumber(worker) ) {
 				Js_Throw(
 					"* @method seek(time)\n"
-					"* @param time {uint} ms\n"
+					"@param time {uint} ms\n"
 					"* @return {bool} success\n"
 				);
 			}

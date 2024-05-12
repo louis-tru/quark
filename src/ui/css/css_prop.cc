@@ -350,6 +350,130 @@ namespace qk {
 
 	template<>
 	template<>
+	void SetProp<ArrayBorder>::asyncSet<kBORDER_ViewProp>(ArrayBorder val) {
+		switch (val.length()) {
+			case 1:
+				set_border_top(val[0]);
+				set_border_right(val[0]);
+				set_border_bottom(val[0]);
+				set_border_left(val[0]);
+				break;
+			case 2:
+				set_border_top(val[0]);
+				set_border_bottom(val[0]);
+				set_border_left(val[1]);
+				set_border_right(val[1]);
+				break;
+			case 3:
+				set_border_top(val[0]);
+				set_border_left(val[1]);
+				set_border_right(val[1]);
+				set_border_bottom(val[2]);
+				break;
+			case 4: // 4
+				set_border_top(val[0]);
+				set_border_right(val[1]);
+				set_border_bottom(val[2]);
+				set_border_left(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	template<>
+	template<>
+	void SetProp<BoxBorder>::asyncSet<kBORDER_TOP_ViewProp>(BoxBorder val) {
+		set_border_width_top(val.width);
+		set_border_color_top(val.color);
+	}
+
+	template<>
+	template<>
+	void SetProp<BoxBorder>::asyncSet<kBORDER_RIGHT_ViewProp>(BoxBorder val) {
+		set_border_width_right(val.width);
+		set_border_color_right(val.color);
+	}
+
+	template<>
+	template<>
+	void SetProp<BoxBorder>::asyncSet<kBORDER_BOTTOM_ViewProp>(BoxBorder val) {
+		set_border_width_bottom(val.width);
+		set_border_color_bottom(val.color);
+	}
+
+	template<>
+	template<>
+	void SetProp<BoxBorder>::asyncSet<kBORDER_LEFT_ViewProp>(BoxBorder val) {
+		set_border_width_left(val.width);
+		set_border_color_left(val.color);
+	}
+
+	template<>
+	template<>
+	void SetProp<ArrayFloat>::asyncSet<kBORDER_WIDTH_ViewProp>(ArrayFloat val) {
+		switch (val.length()) {
+			case 1:
+				set_border_width_top(val[0]);
+				set_border_width_right(val[0]);
+				set_border_width_bottom(val[0]);
+				set_border_width_left(val[0]);
+				break;
+			case 2:
+				set_border_width_top(val[0]);
+				set_border_width_bottom(val[0]);
+				set_border_width_left(val[1]);
+				set_border_width_right(val[1]);
+				break;
+			case 3:
+				set_border_width_top(val[0]);
+				set_border_width_left(val[1]);
+				set_border_width_right(val[1]);
+				set_border_width_bottom(val[2]);
+				break;
+			case 4: // 4
+				set_border_width_top(val[0]);
+				set_border_width_right(val[1]);
+				set_border_width_bottom(val[2]);
+				set_border_width_left(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	template<>
+	template<>
+	void SetProp<ArrayColor>::asyncSet<kBORDER_COLOR_ViewProp>(ArrayColor val) {
+		switch (val.length()) {
+			case 1:
+				set_border_color_top(val[0]);
+				set_border_color_right(val[0]);
+				set_border_color_bottom(val[0]);
+				set_border_color_left(val[0]);
+				break;
+			case 2:
+				set_border_color_top(val[0]);
+				set_border_color_bottom(val[0]);
+				set_border_color_left(val[1]);
+				set_border_color_right(val[1]);
+				break;
+			case 3:
+				set_border_color_top(val[0]);
+				set_border_color_left(val[1]);
+				set_border_color_right(val[1]);
+				set_border_color_bottom(val[2]);
+				break;
+			case 4: // 4
+				set_border_color_top(val[0]);
+				set_border_color_right(val[1]);
+				set_border_color_bottom(val[2]);
+				set_border_color_left(val[3]);
+				break;
+			default: break;
+		}
+	}
+
+	template<>
+	template<>
 	void SetProp<ArrayOrigin>::asyncSet<kORIGIN_ViewProp>(ArrayOrigin val) {
 		switch (val.length()) {
 			case 1:

@@ -35,14 +35,14 @@
 
 namespace qk {
 
-	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, A, APPEND_ZERO) \
+	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,A,APPEND_ZERO,APPEND_CODE) \
 		\
 		template<> void Array<T, A>::reset(uint32_t length) { \
 			if (length < _length) { /* clear Partial data */ \
 				_length = length;\
 			} \
 			_ptr.realloc(length+APPEND_ZERO); \
-			if (APPEND_ZERO) _ptr.val[_length] = 0; \
+			APPEND_CODE(_ptr,_length); \
 		} \
 		\
 		template<> void Array<T, A>::extend(uint32_t length) \
@@ -50,7 +50,7 @@ namespace qk {
 			if (length > _length) {  \
 				_length = length; \
 				increase_(_length + APPEND_ZERO); \
-				if (APPEND_ZERO) _ptr.val[_length] = 0; \
+				APPEND_CODE(_ptr,_length); \
 			}\
 		}\
 		\
@@ -68,7 +68,7 @@ namespace qk {
 				T* src = _ptr.val; \
 				T* to = _ptr.val + _length - src_length; \
 				memcpy((void*)to, src, src_length * sizeof(T)); \
-				if (APPEND_ZERO) _ptr.val[_length] = 0; \
+				APPEND_CODE(_ptr,_length); \
 			} \
 		} \
 		\
@@ -78,7 +78,7 @@ namespace qk {
 				_length = Qk_MAX(to + size, _length); \
 				increase_(_length + APPEND_ZERO); \
 				memcpy((void*)(_ptr.val + to), src, size * sizeof(T) ); \
-				if (APPEND_ZERO) _ptr.val[_length] = 0; \
+				APPEND_CODE(_ptr,_length); \
 			} \
 			return size; \
 		} \
@@ -116,11 +116,14 @@ namespace qk {
 		template<> void Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const { \
 			ptr->realloc(len+APPEND_ZERO);\
 			memcpy(ptr->val, _ptr.val + start, len * sizeof(T)); \
-			if (APPEND_ZERO) ptr->val[len] = 0; \
+			APPEND_CODE((*ptr),len);\
 		} \
 
-	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, APPEND_ZERO) \
-		Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T, MemoryAllocator, APPEND_ZERO)
+#define Qk_DEF_ARRAY_APPEND_CODE_NONE(ptr,len) ((void)0)
+#define Qk_DEF_ARRAY_APPEND_CODE(ptr,len) ptr.val[len] = 0
+
+#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T,APPEND_ZERO,APPEND_CODE) \
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,MemoryAllocator,APPEND_ZERO,APPEND_CODE)
 
 #ifndef Qk_ARRAY_SKIP_DEFAULT_IMPL
 	template<> void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
@@ -140,17 +143,17 @@ namespace qk {
 			free(tmp);
 		}
 	}
-	
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint8_t,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float,1);
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double,1);
+
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint8_t,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int32_t,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float,1,Qk_DEF_ARRAY_APPEND_CODE);
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double,1,Qk_DEF_ARRAY_APPEND_CODE);
 #endif
 
 }

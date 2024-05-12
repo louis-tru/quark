@@ -53,8 +53,8 @@ namespace qk { namespace js {
 				if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
 					Js_Throw(
 						"* @method fromString(str[,encoding])\n"
-						"* @param arg {String}\n"
-						"* @param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
+						"@param arg {String}\n"
+						"@param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
 					);
 				}
 				Encoding en = kUTF8_Encoding;
@@ -70,10 +70,10 @@ namespace qk { namespace js {
 				if (args.length() < 1 || !args[0]->isUint8Array()) {
 					Js_Throw(
 						"* @method convertString(uint8array,[encoding[,start[,end]]])\n"
-						"* @param uint8array {Uint8Array}\n"
-						"* @param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
-						"* @param [start=0] {uint}\n"
-						"* @param [end] {uint}\n"
+						"@param uint8array {Uint8Array}\n"
+						"@param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
+						"@param [start=0] {uint}\n"
+						"@param [end] {uint}\n"
 					);
 				}
 
@@ -89,12 +89,12 @@ namespace qk { namespace js {
 					args_index++;
 				}
 				if (args.length() > args_index) {
-					start = args[args_index]->toUint32Value(worker);
+					start = args[args_index]->toUint32Value(worker).unsafe();
 					start = Qk_MIN(len, start);
 					args_index++;
 				}
 				if (args.length() > args_index) {
-					end = args[args_index]->toUint32Value(worker);
+					end = args[args_index]->toUint32Value(worker).unsafe();
 					end = Qk_MIN(len, end);
 					args_index++;
 				}

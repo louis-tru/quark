@@ -100,7 +100,7 @@ namespace qk { namespace js {
 			}
 			return true;
 		}
-		
+
 		void memorywarning_handle(Event<>& evt) {
 			worker()->garbageCollection(); // js gc
 			#if Qk_MEMORY_TRACE_MARK
@@ -160,12 +160,19 @@ namespace qk { namespace js {
 				Js_Return( self->maxResourceMemoryLimit() );
 			}, {
 				if (!val->isUint32())
-					Js_Throw("* @prop Application.maxResourceMemoryLimit = {uint32_t}");
+					Js_Throw("@prop Application.maxResourceMemoryLimit = {uint32_t}");
 				Js_Self(Type);
-				self->set_maxResourceMemoryLimit(val->toUint32Value(worker));
+				self->set_maxResourceMemoryLimit(val->toUint32Value(worker).unsafe());
 			});
 
-			// Qk_DEFINE_PROP_ACC_GET(const List<Window*>&, windows, Const); //! all window list
+			Js_Set_Class_Accessor_Get(windows, {
+				Js_Self(Type);
+				int i = 0;
+				auto arr = worker->newArray();
+				for (auto i: self->windows())
+					arr->set(worker, i++, wrap<Window>(i)->that());
+				Js_Return(arr);
+			});
 
 			Js_Set_Class_Method(clear, {
 				auto all = args.length() && args[0]->toBooleanValue(worker);
@@ -181,8 +188,8 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(openURL, {
 				if (!args.length() || !args[0]->isString()) {
 					Js_Throw(
-						"* @methos Application.openURL(url)\n"
-						"* @param url {String}\n"
+						"@methos Application.openURL(url)\n"
+						"@param url {String}\n"
 					);
 				}
 				Js_Self(Type);
@@ -192,12 +199,12 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(sendEmail, {
 				if (args.length() < 3 || !args[0]->isString() || !args[1]->isString() || !args[2]->isString()) {
 					Js_Throw(
-						"* @methos Application.sendEmail(recipient,subject,body[,cc[,bcc]])\n"
-						"* @param recipient {String}\n"
-						"* @param subject {String}\n"
-						"* @param body {String}\n"
-						"* @param [cc] {String}\n"
-						"* @param [bcc] {String}\n"
+						"@methos Application.sendEmail(recipient,subject,body[,cc[,bcc]])\n"
+						"@param recipient {String}\n"
+						"@param subject {String}\n"
+						"@param body {String}\n"
+						"@param [cc] {String}\n"
+						"@param [bcc] {String}\n"
 					);
 				}
 				Js_Self(Type);
