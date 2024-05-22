@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./css.h"
+#include "../window.h"
 
 namespace qk {
 
@@ -54,6 +55,26 @@ namespace qk {
 		}
 	}
 
+	void StyleSheets::fetch(View *view, bool isRt) {
+		Qk_ASSERT(view);
+		if (_props.length()) {
+			if (isRt) {
+				for ( auto i: _props ) {
+					i.value->fetch(view);
+				}
+			} else {
+				auto win = getWindowForAsyncSet();
+				if (win) {
+					win->preRender().async_call([](auto self, auto arg) {
+						for ( auto i: self->_props ) {
+							i.value->fetch(arg.arg);
+						}
+					}, this, view);
+				}
+			}
+		}
+	}
+
 	void StyleSheets::applyTransition(View* view, StyleSheets *to, float y) const {
 		if (_props.length()) {
 			Qk_ASSERT(_props.length() == to->_props.length());
@@ -74,6 +95,10 @@ namespace qk {
 		// NOOP
 	}
 
+	uint32_t StyleSheets::itemsCount() const {
+		return _props.length();
+	}
+
 	bool StyleSheets::hasProperty(ViewProp name) const {
 		return _props.count(name);
 	}
@@ -82,6 +107,7 @@ namespace qk {
 
 	CStyleSheets::CStyleSheets(cCSSName &name, CStyleSheets *parent, CSSType type)
 		: StyleSheets()
+		, _time(0)
 		, _name(name)
 		, _parent(parent)
 		, _normal(nullptr), _hover(nullptr), _active(nullptr)

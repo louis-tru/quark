@@ -29,18 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./types.h"
-#include "../render/font/font.h"
-#include "../../out/native-inl-js.h"
+#include "../../render/font/font.h"
+#include "../../../out/native-inl-js.h"
 
 namespace qk { namespace js {
-
-	Strings::Strings(Worker* worker) {
-		#define _Fun(name) \
-			__##name##__.reset(worker, worker->newStringOneByte(#name));
-		Js_Strings_Each(_Fun);
-		__Errno__.reset(worker, worker->newStringOneByte("errno"));
-		#undef _Fun
-	}
 
 	TypesParser::TypesParser(Worker* worker, JSObject* exports)
 		: worker(worker)
@@ -249,6 +241,10 @@ namespace qk { namespace js {
 			arr->set(worker, i, worker->newInstance(value[i]));
 		}
 		return arr;
+	}
+
+	JSValue* TypesParser::jsvalue(const ArrayString& value) {
+		return worker->newInstance(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayColor& value) {
@@ -688,6 +684,18 @@ namespace qk { namespace js {
 				if (!arr->get(worker, i)->toFloatValue(worker).to(&out[i])) {
 					return throw_error(worker, in, desc), false;
 				}
+			}
+		}
+		return true;
+	}
+
+	bool TypesParser::parse(JSValue* in, ArrayString& out, cChar* desc) {
+		if (!in->isArray()) {
+			out.reset(1);
+			out[0] = in->toStringValue(worker);
+		} else {
+			if (!in->cast<JSArray>()->toArrayString(worker).to(&out)) {
+				return throw_error(worker, in, desc), false;
 			}
 		}
 		return true;

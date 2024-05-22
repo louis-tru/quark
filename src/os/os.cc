@@ -109,11 +109,11 @@ namespace qk {
 	}
 
 	bool os_is_wifi() {
-		return os_network_status() == 2;
+		return os_network_interface() == 2;
 	}
 
 	bool os_is_mobile() {
-		return os_network_status() >= 3;
+		return os_network_interface() >= 3;
 	}
 
 #if Qk_LINUX

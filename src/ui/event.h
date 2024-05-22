@@ -43,7 +43,7 @@
 /* can bubble event */ \
 F(Click, Click, kBubble_UIEventFlags) \
 F(Back, Click, kBubble_UIEventFlags) \
-F(KeyDown, Keyboard, kBubble_UIEventFlags) /* View */\
+F(KeyDown, Keyboard, kBubble_UIEventFlags) \
 F(KeyPress, Keyboard, kBubble_UIEventFlags) \
 F(KeyUp, Keyboard, kBubble_UIEventFlags) \
 F(KeyEnter, Keyboard, kBubble_UIEventFlags) \
@@ -70,7 +70,7 @@ F(Change, Default, kNone_UIEventFlags) /*Input*/ \
 F(Load, Default, kNone_UIEventFlags) /* Image */ \
 /* player */ \
 F(Error, Player, kError_UIEventFlags) \
-F(Ready, Player, kNone_UIEventFlags) /* AutoPlayer / Video */ \
+F(Ready, Player, kNone_UIEventFlags) \
 F(WaitBuffer, Player, kFloat32_UIEventFlags) \
 F(StartPlay, Player, kNone_UIEventFlags) \
 F(SourceEnd, Player, kNone_UIEventFlags) \
@@ -103,7 +103,7 @@ namespace qk {
 		kError_UIEventFlags,   // type Error
 		kFloat32_UIEventFlags, // type Float
 		kUint64_UIEventFlags,  // type Uint64
-		kTypes_UIEventFlags = (255), // Event::data(), types flag
+		kTypesMask_UIEventFlags = (255), // Event::data(), types flag
 		kBubble_UIEventFlags = (1 << 8), // bubble, other flag
 	};
 
@@ -139,12 +139,12 @@ namespace qk {
 	// -----------------------------------
 
 	/**
-	* @func UIEvent gui event
+	* @class UIEvent gui event
 	*/
-	class Qk_EXPORT UIEvent: public Event<View, Object, int> {
+	class Qk_EXPORT UIEvent: public Event<View> {
 		Qk_HIDDEN_ALL_COPY(UIEvent);
 	public:
-		UIEvent(View *origin);
+		UIEvent(View *origin , cSendData& data = SendData());
 		Qk_DEFINE_PROP_GET(View*, origin);
 		Qk_DEFINE_PROP_GET(uint64_t, timestamp, Const);
 		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }

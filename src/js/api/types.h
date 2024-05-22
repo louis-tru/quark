@@ -33,13 +33,13 @@
 #ifndef __quark__js__types__
 #define __quark__js__types__
 
-#include "./js_.h"
-#include "../ui/types.h"
-#include "../ui/filter.h"
-#include "../ui/window.h"
-#include "../ui/event.h"
-#include "../render/bezier.h"
-#include "../util/fs.h"
+#include "../js_.h"
+#include "../../ui/types.h"
+#include "../../ui/filter.h"
+#include "../../ui/window.h"
+#include "../../ui/event.h"
+#include "../../render/bezier.h"
+#include "../../util/fs.h"
 
 namespace qk { namespace js {
 
@@ -50,37 +50,11 @@ namespace qk { namespace js {
 	#define Js_Throw_Types(value, msg, ...)\
 		worker->types()->throwError(t, msg, ##__VA_ARGS__)
 
-	#define Js_Strings_Each(F)  \
-		F(exports)         F(constructor)    F(__proto__)\
-		F(prototype)       F(_wrap_external_data) \
-		F(type)            F(kind)           F(value) \
-		F(width)           F(height)         F(r) \
-		F(g)               F(b)              F(a) \
-		F(x)               F(y)              F(z) \
-		F(w)               F(end)            F(size) \
-		F(toJSON)          F(status)         F(Errno) \
-		F(url)             F(id)             F(startX) \
-		F(startY)          F(force)          F(clickIn) \
-		F(view)            F(_data)          F(p1x) \
-		F(p1y)             F(p2x)            F(p2y) \
-		F(_change_touches) F(name)           F(pathname) \
-		F(data)            F(total)          F(complete) \
-		F(httpVersion)     F(statusCode)     F(responseHeaders) \
-
-	class Qk_EXPORT Strings {
-	public:
-		Strings(Worker* worker);
-	#define _Fun(name) \
-	public: inline JSValue* name() { return *__##name##__; } \
-	private: Persistent<JSValue> __##name##__;
-		Js_Strings_Each(_Fun);
-	#undef _Fun
-	};
-
 	typedef qk::Wrap Wrap;
 	typedef Window::Options WindowOptions;
 	typedef FillImage::Init FillImageInit;
 	typedef TouchEvent::TouchPoint TouchPoint;
+	typedef Array<String> ArrayString;
 
 	#define Js_Types_Each(F) \
 		F(bool) \
@@ -95,6 +69,7 @@ namespace qk { namespace js {
 		F(Mat) \
 		F(Mat4) \
 		F(ArrayFloat) \
+		F(ArrayString) \
 		F(ArrayColor) \
 		F(ArrayOrigin) \
 		F(ArrayBorder) \
@@ -207,6 +182,7 @@ namespace qk { namespace js {
 
 		bool     parse(JSValue* in, WindowOptions& out, cChar* desc);
 		bool     parse(JSValue* in, FillImageInit& out, cChar* desc);
+
 	#define _Def_Fun(Name) \
 		JSValue* jsvalue(const Name& value); \
 		bool parse(JSValue* in, Name& out, cChar* err_msg = 0);
@@ -221,6 +197,19 @@ namespace qk { namespace js {
 		Js_Types_Each(_Def_attr)
 	#undef _Def_Fun
 	#undef _Def_attr
+	};
+
+	struct JsConverter { // convert data to js value
+		template<class T>
+		static inline JSValue* Cast(Worker* worker, const Object& obj) {
+			return worker->types()->newInstance( *static_cast<const T*>(&obj) );
+		}
+		template<class T>
+		static JsConverter* Instance() {
+			static JsConverter value{&Cast<T>};
+			return &value;
+		}
+		JSValue* (*cast)(Worker* worker, const Object& object);
 	};
 
 } }

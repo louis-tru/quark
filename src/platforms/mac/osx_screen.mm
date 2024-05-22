@@ -73,7 +73,7 @@ void Screen::set_status_bar_style(StatusBarStyle style) {
 }
 
 Screen::Orientation Screen::orientation() const {
-	return ORIENTATION_INVALID;
+	return kInvalid;
 }
 
 void Screen::set_orientation(Orientation orientation) {

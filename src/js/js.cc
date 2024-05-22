@@ -160,6 +160,16 @@ namespace qk {
 		return WeakBuffer(ptr + offset, len);
 	}
 
+	// --------------------------- S t r i n g s ---------------------------
+
+	Strings::Strings(Worker* worker) {
+		#define _Fun(name) \
+			__##name##__.reset(worker, worker->newStringOneByte(#name));
+		Js_Strings_Each(_Fun);
+		__Errno__.reset(worker, worker->newStringOneByte("errno"));
+		#undef _Fun
+	}
+
 	// --------------------------- J S . C l a s s ---------------------------
 
 	void JSClass::exports(cString& name, JSObject* exports) {
@@ -289,7 +299,7 @@ namespace qk {
 		return static_cast<BindingModule*>(this)->binding(newStringOneByte(name));
 	}
 
-	static void __bindingModule__(FunctionArgs args) {
+	static void __binding__(FunctionArgs args) {
 		Js_Worker(args);
 		if (args.length() < 1) {
 			Js_Throw("Bad argument.");
@@ -338,12 +348,13 @@ namespace qk {
 		_classsinfo = new JsClassInfo(this);
 		Qk_ASSERT(_global->isObject(this));
 		_global->setProperty(this, "global", *_global);
-		_global->setMethod(this, "__bindingModule__", __bindingModule__);
+		_global->setMethod(this, "__binding__", __binding__);
 
 		auto globalThis = newInstance("globalThis");
 		if ( !_global->has(this, globalThis) ) {
 			_global->set(this, globalThis, *_global);
 		}
+		initGlobalAPIs(this);
 	}
 
 	JSObject* Worker::global() {

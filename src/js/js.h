@@ -260,7 +260,7 @@ namespace qk { namespace js {
 		JSUint32* toUint32(Worker* worker) const;
 		JSObject* toObject(Worker* worker) const;
 		JSBoolean* toBoolean(Worker* worker) const;
-		String toStringValue(Worker* worker, bool oneByte = false) const; // to string value
+		String toStringValue(Worker* worker, bool oneByte = false) const; // to utf8 or one byte string
 		String2 toStringValue2(Worker* worker) const; // to utf16 string
 		String4 toStringValue4(Worker* worker) const; // to utf32 string
 		bool toBooleanValue(Worker* worker) const;
@@ -285,6 +285,12 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT JSObject: public JSValue {
 	public:
+		enum PropertyFlags {
+			None = 0,
+			ReadOnly = 1 << 0,
+			DontEnum = 1 << 1,
+			DontDelete = 1 << 2
+		};
 		JSValue* get(Worker* worker, JSValue* key);
 		JSValue* get(Worker* worker, uint32_t index);
 		bool set(Worker* worker, JSValue* key, JSValue* val);
@@ -301,6 +307,7 @@ namespace qk { namespace js {
 		bool setMethod(Worker* worker, cString& name, FunctionCallback func);
 		bool setAccessor(Worker* worker, cString& name,
 										AccessorGetterCallback get, AccessorSetterCallback set = nullptr);
+		bool defineOwnProperty(Worker *worker, JSValue *key, Value *value, PropertyFlags flags = 0);
 		void* objectPrivate();
 		bool setObjectPrivate(void* value);
 		bool set__Proto__(Worker* worker, JSObject* __proto__); // set __proto__
@@ -469,7 +476,7 @@ namespace qk { namespace js {
 		JSString*     newStringOneByte(cString& val);
 		JSArrayBuffer* newArrayBuffer(Char* useBuffer, uint32_t len);
 		JSArrayBuffer* newArrayBuffer(uint32_t len);
-		JSUint8Array* newUint8Array(JSString* str, Encoding enc = Encoding::kUTF8_Encoding);
+		JSUint8Array* newUint8Array(JSString* str, Encoding enc = kUTF8_Encoding);
 		JSUint8Array* newUint8Array(int size, Char fill = 0);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff, uint32_t offset, uint32_t size);

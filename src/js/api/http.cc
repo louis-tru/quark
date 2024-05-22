@@ -184,7 +184,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setMethod, {
 				if (args.length() < 1 || !args[0]->isUint32()) {
 					Js_Throw(
-						"* @method setMethod(method)\n"
+						"@method setMethod(method)\n"
 						"@param method {HttpMethod}\n"
 					);
 				}
@@ -198,7 +198,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setUrl, {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
-						"* @method setUrl(url)\n"
+						"@method setUrl(url)\n"
 						"@param url {String}\n"
 					);
 				}
@@ -210,7 +210,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setSavePath, {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
-						"* @method setSavePath(path)\n"
+						"@method setSavePath(path)\n"
 						"@param path {String}\n"
 					);
 				}
@@ -222,7 +222,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setUsername, {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
-						"* @method setUsername(username)\n"
+						"@method setUsername(username)\n"
 						"@param username {String}\n"
 					);
 				}
@@ -234,7 +234,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setPassword, {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
-						"* @method setPassword(password)\n"
+						"@method setPassword(password)\n"
 						"@param password {String}\n"
 					);
 				}
@@ -246,7 +246,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(disableCache, {
 				if (args.length() < 1) {
 					Js_Throw(
-						"* @method disableCache(disable)\n"
+						"@method disableCache(disable)\n"
 						"@param disable {bool}\n"
 					);
 				}
@@ -258,7 +258,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(disableCookie, {
 				if (args.length() < 1) {
 					Js_Throw(
-						"* @method disableCookie(disable)\n"
+						"@method disableCookie(disable)\n"
 						"@param disable {bool}\n"
 					);
 				}
@@ -270,7 +270,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(disableSendCookie, {
 				if (args.length() < 1) {
 					Js_Throw(
-						"* @method disableSendCookie(disable)\n"
+						"@method disableSendCookie(disable)\n"
 						"@param disable {bool}\n"
 					);
 				}
@@ -282,7 +282,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(disableSslVerify, {
 				if (args.length() < 1) {
 					Js_Throw(
-						"* @method disableSslVerify(disable)\n"
+						"@method disableSslVerify(disable)\n"
 						"@param disable {bool}\n"
 					);
 				}
@@ -295,7 +295,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setRequestHeader, {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 					Js_Throw(
-						"* @method setRequestHeader(header_name, value)\n"
+						"@method setRequestHeader(header_name, value)\n"
 						"@param header_name {String} ascii string\n"
 						"@param value {String}\n"
 					);
@@ -309,7 +309,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setForm, {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
 					Js_Throw(
-						"* @method setForm(form_name, value)\n"
+						"@method setForm(form_name, value)\n"
 						"@param form_name {String}\n"
 						"@param value {String}\n"
 					);
@@ -325,7 +325,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setUploadFile, {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
 					Js_Throw(
-						"* @method setUploadFile(form_name, local_path)\n"
+						"@method setUploadFile(form_name, local_path)\n"
 						"@param form_name {String}\n"
 						"@param local_path {String}\n"
 					);
@@ -351,9 +351,9 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(getResponseHeader, {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Throw(
-						"* @method getResponseHeader(header_name)\n"
+						"@method getResponseHeader(header_name)\n"
 						"@param header_name {String}\n"
-						"* @return {String}\n"
+						"@return {String}\n"
 					);
 				}
 				Js_Self(HttpClientRequest);
@@ -378,7 +378,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setKeepAlive, {
 				if (args.length() == 0) {
 					Js_Throw(
-						"* @method setKeepAlive(keep_alive)\n"
+						"@method setKeepAlive(keep_alive)\n"
 						"@param keep_alive {bool}\n"
 					);
 				}
@@ -390,7 +390,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(setTimeout, {
 				if (args.length() == 0 || !args[0]->isNumber()) {
 					Js_Throw(
-						"* @method setTimeout(time)\n"
+						"@method setTimeout(time)\n"
 						"@param time {uint} ms\n"
 					);
 				}
@@ -476,7 +476,7 @@ namespace qk { namespace js {
 				Js_Return( self->url() );
 			});
 
-			cls->exports("NativeHttpClientRequest", exports);
+			cls->exports("HttpClientRequest", exports);
 		}
 	};
 
@@ -594,20 +594,20 @@ namespace qk { namespace js {
 
 			Js_Set_Method(request, {
 				request(args,
-					"* @method request(options[,cb])\n"
+					"@method request(options[,cb])\n"
 					"@param options {RequestOptions}\n"
 					"@param [cb] {Function}\n"
-					"* @return {uint} return req id\n"
+					"@return {uint} return req id\n"
 					, false
 				);
 			});
 
 			Js_Set_Method(requestStream, {
 				request(args, 
-					"* @method requestStream(options[,cb])\n"
+					"@method requestStream(options[,cb])\n"
 					"@param options {RequestOptions}\n"
 					"@param [cb] {Function}\n"
-					"* @return {uint} return req id\n"
+					"@return {uint} return req id\n"
 					, true
 				);
 			});
@@ -615,9 +615,9 @@ namespace qk { namespace js {
 			Js_Set_Method(requestSync, {
 				if (args.length() == 0 || !args[0]->isObject()) {
 					Js_Throw(
-						"* @method requestSync(url)\n"
+						"@method requestSync(url)\n"
 						"@param url {String}\n"
-						"* @return {Buffer}\n"
+						"@return {Buffer}\n"
 					);
 				}
 
@@ -633,7 +633,7 @@ namespace qk { namespace js {
 			Js_Set_Method(abort, {
 				if ( args.length() == 0 || !args[0]->isUint32() ) {
 					Js_Throw(
-						"* @method abort(id)\n"
+						"@method abort(id)\n"
 						"@param id {uint} abort id\n"
 					);
 				}
@@ -658,7 +658,7 @@ namespace qk { namespace js {
 			Js_Set_Method(setCachePath, {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Throw(
-						"* @method setCachePath(path)\n"
+						"@method setCachePath(path)\n"
 						"@param path {String}\n"
 					);
 				}

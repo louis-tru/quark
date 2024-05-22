@@ -35,7 +35,7 @@
 #define __quark__js__js___
 
 #include "./js.h"
-#include "./types.h"
+#include "../util/codec.h"
 
 #define Js_On( name, block, id, ...) \
 	Qk_On(name, [this,##__VA_ARGS__]( auto & evt) { qk::js::HandleScope scope(worker()); block }, id)
@@ -44,6 +44,34 @@
 	Js_On(name, { call(worker()->newStringOneByte(func)); }, id, func)
 
 namespace qk { namespace js {
+
+	#define Js_Strings_Each(F)  \
+		F(exports)         F(constructor)    F(__proto__)\
+		F(prototype)       F(toStringStyled) F(_wrap_external_data) \
+		F(type)            F(kind)           F(value) \
+		F(width)           F(height)         F(r) \
+		F(g)               F(b)              F(a) \
+		F(x)               F(y)              F(z) \
+		F(w)               F(end)            F(size) \
+		F(toJSON)          F(status)         F(Errno) \
+		F(url)             F(id)             F(startX) \
+		F(startY)          F(force)          F(clickIn) \
+		F(view)            F(_data)          F(p1x) \
+		F(p1y)             F(p2x)            F(p2y) \
+		F(_change_touches) F(name)           F(pathname) \
+		F(data)            F(total)          F(complete) \
+		F(httpVersion)     F(statusCode)     F(responseHeaders) \
+		F(window)
+
+	class Strings {
+	public:
+		Strings(Worker* worker);
+	#define _Fun(name) \
+	inline JSValue* name() { return *__##name##__; } \
+	private: Persistent<JSValue> __##name##__; public:
+		Js_Strings_Each(_Fun);
+	#undef _Fun
+	};
 
 	class JsClassInfo {
 	public:
@@ -60,30 +88,30 @@ namespace qk { namespace js {
 		Persistent<JSFunction> _jsAttachConstructorEmpty;
 	};
 
-	struct JsConverter { // convert data to js value
-		template<class T>
-		static inline JSValue* Cast(Worker* worker, const Object& obj) {
-			return worker->types()->newInstance( *static_cast<const T*>(&obj) );
-		}
-		template<class T>
-		static JsConverter* Instance() {
-			static JsConverter value{&Cast<T>};
-			return &value;
-		}
-		JSValue* (*cast)(Worker* worker, const Object& object);
-	};
-
 	struct BindingModule: public Worker {
 		JSValue* binding(JSValue* name);
 	};
 
+	void initGlobalAPIs(Worker* worker);
 	int  platformStart(int argc, Char** argv, int (*exec)(Worker *worker));
 	int  triggerExit(Worker* worker, int code);
 	int  triggerBeforeExit(Worker* worker, int code);
 	bool triggerUncaughtException(Worker* worker, JSValue* err);
 	bool triggerUnhandledRejection(Worker* worker, JSValue* reason, JSValue* promise);
 	bool parseEncoding(FunctionArgs args, const JSValue* arg, Encoding& en);
-	bool stringifyConsoleStyled(Worker* worker, JSValue* arg, Array<String>* out);
+
+	// callback
+	JSValue* convert_buffer(Worker* worker, Buffer& buffer, Encoding en = kInvalid_Encoding);
+	Callback<Buffer> get_callback_for_buffer(Worker* worker, JSValue* cb, Encoding en = kInvalid_Encoding);
+	Callback<Buffer> get_callback_for_buffer_http_error(Worker* worker, JSValue* cb, Encoding en = kInvalid_Encoding);
+	Callback<ResponseData> get_callback_for_response_data_http_error(Worker* worker, JSValue* cb);
+	Callback<StreamResponse> get_callback_for_io_stream(Worker* worker, JSValue* cb);
+	Callback<StreamResponse> get_callback_for_io_stream_http_error(Worker* worker, JSValue* cb);
+	Callback<Array<Dirent>> get_callback_for_array_dirent(Worker* worker, JSValue* cb);
+	Callback<Bool> get_callback_for_bool(Worker* worker, JSValue* cb);
+	Callback<Int32> get_callback_for_int(Worker* worker, JSValue* cb);
+	Callback<FileStat> get_callback_for_file_stat(Worker* worker, JSValue* cb);
+	Cb get_callback_for_none(Worker* worker, JSValue* cb);
 
 } }
 #endif

@@ -41,9 +41,9 @@ namespace qk { namespace js {
 			Js_Set_Method(get, {
 				if (args.length() < 1) {
 					Js_Throw(
-						"* @method get(key)\n"
+						"@method get(key)\n"
 						"@param key {String}\n"
-						"* @return {String}\n"
+						"@return {String}\n"
 					);
 				}
 				Js_Return( storage_get( args[0]->toStringValue(worker)) );
@@ -52,7 +52,7 @@ namespace qk { namespace js {
 			Js_Set_Method(set, {
 				if (args.length() < 2) {
 					Js_Throw(
-						"* @method set(key)\n"
+						"@method set(key)\n"
 						"@param key {String}\n"
 						"@param value {String}\n"
 					);
@@ -63,7 +63,7 @@ namespace qk { namespace js {
 			Js_Set_Method(remove, {
 				if (args.length() < 1) {
 					Js_Throw(
-						"* @method del(key)\n"
+						"@method del(key)\n"
 						"@param key {String}\n"
 					);
 				}

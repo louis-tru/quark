@@ -45,15 +45,9 @@ namespace qk { namespace js {
 			auto Event = exports->get(worker, worker->newStringOneByte("Event"))
 				->cast<JSFunction>();
 
-			Js_New_Class(NativeEvent, Js_Typeid(NativeEvent), Event, [](auto args) {
-				Js_Worker(args);
+			Js_New_Class(NativeEvent, Js_Typeid(NativeEvent), Event, _Js_Fun({
 				Js_Throw("Access forbidden.");
-			});
-
-			Js_Set_Class_Accessor_Get(data, {
-				Js_Wrap(Type);
-				Js_Return( wrap->get(worker->strs()->_data()) );
-			});
+			}));
 
 			Js_Set_Class_Accessor_Get(sender, {
 				Js_Self(Type);
@@ -64,7 +58,7 @@ namespace qk { namespace js {
 				Js_Self(Type);
 				Js_Return( self->return_value );
 			}, {
-				if ( !val->isBoolean() && !val->isInt32() )
+				if ( !val->isInt32() )
 					Js_Throw("Bad argument.");
 				Js_Self(Type);
 				self->return_value = val->toInt32Value(worker).unsafe();

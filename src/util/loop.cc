@@ -340,7 +340,7 @@ namespace qk {
 	}
 
 	uint32_t RunLoop::timer(Cb cb, uint64_t time, uint64_t repeat) {
-		return _this->post(cb, time, repeat);
+		return _this->post(cb, time ? time : 1, repeat);
 	}
 
 	void RunLoop::timer_stop(uint32_t id) {

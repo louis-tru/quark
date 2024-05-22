@@ -121,8 +121,8 @@ namespace qk {
 		: _toString(name), _hashCode((uint32_t)name.hashCode()), _category(category), _flag(flag)
 	{}
 
-	UIEvent::UIEvent(View *origin)
-		: Event(SendData()), _origin(origin), _timestamp(time_micro()) {
+	UIEvent::UIEvent(View *origin, cSendData& data)
+		: Event(data), _origin(origin), _timestamp(time_micro()) {
 		return_value = kAll_ReturnValueMask;
 	}
 

@@ -57,7 +57,6 @@ QkApplicationDelegate* qkappdelegate = nil;
 	_host = Application::shared();
 	_app = UIApplication.sharedApplication;
 	self.isPause = YES;
-
 	Inl_Application(_host)->triggerLoad();
 }
 

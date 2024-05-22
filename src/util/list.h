@@ -69,7 +69,7 @@ namespace qk {
 		Iterator pushFront(T&& item);
 
 		void     splice(IteratorConst it, List& ls);
-		void     splice(IteratorConst it, List& ls, IteratorConst first, IteratorConst end);
+		void     splice(IteratorConst it, List& ls, IteratorConst begin, IteratorConst end);
 
 		void     popBack();
 		void     popFront();
@@ -78,7 +78,7 @@ namespace qk {
 		Iterator insert(IteratorConst after, T&& item); // insert front
 
 		Iterator erase(IteratorConst it); // erase item and return next iterator
-		void     erase(IteratorConst first, IteratorConst end);
+		void     erase(IteratorConst begin, IteratorConst end);
 		void     clear();
 
 		const T& front() const;
@@ -200,10 +200,10 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	void List<T, A>::splice(IteratorConst it, List& ls, IteratorConst f, IteratorConst e) {
-		if (f != e) {
-			auto start = node_(f);
-			auto end = node_(e);
+	void List<T, A>::splice(IteratorConst it, List& ls, IteratorConst new_f, IteratorConst new_e) {
+		if (new_f != new_e) {
+			auto start = node_(new_f);
+			auto end = node_(new_e);
 			auto cur = node_(it);
 			auto start_prev = start->_prev;
 

@@ -55,6 +55,7 @@ namespace qk {
 		/**
 		 * @method onMake trigger new prop make
 		 * @overwrite
+		 * @safe Rt
 		*/
 		void onMake(ViewProp key, Property* prop) override;
 
@@ -69,7 +70,7 @@ namespace qk {
 	public:
 		// Props
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const); //@safe Rt get, play time
-		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@safe Rt get
+		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@safe Rt get, play frame
 
 		KeyframeAction(Window *win);
 		~KeyframeAction();

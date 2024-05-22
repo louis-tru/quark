@@ -134,13 +134,83 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(float, rotate_z, rotateZ);
 			Js_Set_StyleSheets_Accessor(float, origin_x, originX);
 			Js_Set_StyleSheets_Accessor(float, origin_y, originY);
+
+			Js_Set_Class_Accessor_Get(itemsCount, {
+				Js_Self(Keyframe);
+				Js_Return( self->itemsCount() );
+			});
+
+			// bool hasProperty(ViewProp key) const;
+
+			Js_Set_Class_Method(apply, {
+				if (!args.length() || !Js_IsView(args[0]))
+					Js_Throw("@method Keyframe.apply(view) Bad argument.");
+				Js_Self(Keyframe);
+				self->apply(wrap<View>(args[0])->self(), false);
+			});
+
+			Js_Set_Class_Method(fetch, {
+				if (!args.length() || !Js_IsView(args[0]))
+					Js_Throw("@method Keyframe.fetch(view) Bad argument.");
+				Js_Self(Keyframe);
+				self->fetch(wrap<View>(args[0])->self(), false);
+			});
 		}
 	};
 
 	class WrapCStyleSheets: public WrapObject {
 	public:
+		typedef CStyleSheets Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(CStyleSheets, StyleSheets, { Js_Throw("Access forbidden."); });
+			Js_Set_StyleSheets_Accessor(uint32_t, time, time);
+		}
+	};
+
+	class WrapCStyleSheetsClass: public WrapObject {
+	public:
+		typedef CStyleSheetsClass Type;
+
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(CStyleSheetsClass, 0, { Js_Throw("Access forbidden."); });
+
+		// Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
+		// Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
+		// Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
+		// Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
+
+			Js_Set_Class_Method(set, {
+				if (!args.length())
+					Js_Throw("@method CStyleSheetsClass.set(cArray<String> &name)");
+				Js_Parse_Type(ArrayString, args[0], "@method CStyleSheetsClass.set(name = %s)");
+				Js_Self(Type);
+				self->set(out);
+			});
+
+			Js_Set_Class_Method(add, {
+				if (!args.length())
+					Js_Throw("@method CStyleSheetsClass.add(cString& name)");
+				Js_Self(Type);
+				self->add(args[0]->toStringValue(worker));
+			});
+
+			Js_Set_Class_Method(remove, {
+				if (!args.length())
+					Js_Throw("@method CStyleSheetsClass.remove(cString& name)");
+				Js_Self(Type);
+				self->remove(args[0]->toStringValue(worker));
+			});
+
+			Js_Set_Class_Method(toggle, {
+				if (!args.length())
+					Js_Throw("@method CStyleSheetsClass.toggle(cString& name)");
+				Js_Self(Type);
+				self->toggle(args[0]->toStringValue(worker));
+			});
+
+		// inline bool haveSubstyles() const;
+
+			cls->exports("CStyleSheetsClass", exports);
 		}
 	};
 

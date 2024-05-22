@@ -59,10 +59,7 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 
-			Js_Set_Class_Accessor_Get(screen, {
-				Js_Self(Type);
-				Js_Return( self->host() );
-			});
+			// Qk_DEFINE_PROP_GET(Application*, host); // host app
 
 			Js_Set_Class_Accessor(orientation, {
 				Js_Self(Type);
@@ -73,7 +70,7 @@ namespace qk { namespace js {
 				self->set_orientation(Screen::Orientation(out));
 			});
 
-			Js_Set_Class_Accessor_Get(status_bar_height, {
+			Js_Set_Class_Accessor_Get(statusBarHeight, {
 				Js_Self(Type);
 				Js_Return( self->status_bar_height() );
 			});
@@ -94,15 +91,6 @@ namespace qk { namespace js {
 				Js_Parse_Type(uint32_t, args[0], "@method Screen.setStatusBarStyle(style = %s)");
 				Js_Self(Type);
 				self->set_status_bar_style(Screen::StatusBarStyle(out));
-			});
-
-			Js_Set_Class_Method(preventScreenSleep, {
-				if (!args.length()) {
-					Js_Throw("@method Screen.preventScreenSleep(prevent), Parameter cannot be empty");
-				}
-				Js_Parse_Type(bool, args[0], "@method Screen.preventScreenSleep(prevent = %s)");
-				Js_Self(Type);
-				self->prevent_screen_sleep(out);
 			});
 
 			Js_Set_Class_Method(preventScreenSleep, {

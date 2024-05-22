@@ -42,7 +42,7 @@ namespace qk {
 	Qk_EXPORT cArray<String>& os_languages();
 	Qk_EXPORT bool   os_is_wifi();
 	Qk_EXPORT bool   os_is_mobile();
-	Qk_EXPORT int    os_network_status();
+	Qk_EXPORT int    os_network_interface();
 	Qk_EXPORT bool   os_is_ac_power();
 	Qk_EXPORT bool   os_is_battery();
 	Qk_EXPORT float  os_battery_level();

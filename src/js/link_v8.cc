@@ -30,7 +30,7 @@
 
 #include <v8.h>
 #include <libplatform/libplatform.h>
-#include "./types.h"
+#include "./js_.h"
 #include "../errno.h"
 #include "../util/codec.h"
 
@@ -147,7 +147,7 @@ namespace qk { namespace js {
 		{
 			v8::ScriptCompiler::Source source(source_string, ScriptOrigin(name));
 			v8::MaybeLocal<v8::Value> result;
-			
+
 			if ( sandbox.IsEmpty() ) { // use default sandbox
 				v8::Local<v8::Script> script;
 				if ( v8::ScriptCompiler::Compile(_context, &source).ToLocal(&script) ) {
@@ -582,6 +582,14 @@ namespace qk { namespace js {
 		return reinterpret_cast<v8::Object*>(this)->SetAccessor(CONTEXT(worker), fn_name, get2, set2).ToChecked();
 	}
 
+	bool JSObject::defineOwnProperty(Worker *worker, JSValue *key, Value *value, PropertyFlags flags) {
+		auto name = v8::Name::Cast(reinterpret_cast<v8::Value*>(key));
+		auto name_ = *reinterpret_cast<v8::Local<v8::Name>*>(&name);
+		return reinterpret_cast<v8::Object*>(this)->
+			DefineOwnProperty(CONTEXT(worker), name_, Back(val), v8::PropertyAttribute(flags))
+			.FromMaybe(false);
+	}
+
 	void* JSObject::objectPrivate() {
 		auto self = reinterpret_cast<v8::Object*>(this);
 		if (self->InternalFieldCount() > 0) {
@@ -727,6 +735,17 @@ namespace qk { namespace js {
 		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), temp);
 		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
 		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
+																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
+		return true;
+	}
+
+	bool JSClass::setLazyDataProperty(cString& name, AccessorGetterCallback get) {
+		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
+		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
+		// v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
+		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), temp);
+		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
+		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, nullptr,
 																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
 		return true;
 	}

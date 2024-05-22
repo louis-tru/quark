@@ -306,7 +306,7 @@ namespace qk { namespace js {
 			Js_Worker(args); UILock lock;
 			if (args.length() < 1 || ! args[0]->IsUint32(worker) ) {
 				Js_Throw(
-					"* @method selectTrack(index)\n"
+					"@method selectTrack(index)\n"
 					"@param index {uint} audio track index\n"
 				);
 			}
@@ -347,9 +347,9 @@ namespace qk { namespace js {
 			Js_Worker(args); UILock lock;
 			if (args.length() < 1 || ! args[0]->IsNumber(worker) ) {
 				Js_Throw(
-					"* @method seek(time)\n"
+					"@method seek(time)\n"
 					"@param time {uint} ms\n"
-					"* @return {bool} success\n"
+					"@return {bool} success\n"
 				);
 			}
 			Js_Self(AudioPlayer);

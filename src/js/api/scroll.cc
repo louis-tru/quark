@@ -67,9 +67,9 @@ namespace qk { namespace js {
 		Js_Set_Class_Method(scrollTo, {
 			if (args.length() < 1) {
 				Js_Throw(
-					"* @method ScrollBase.scrollTo(vec2[,int[,curve]])\n"
+					"@method ScrollBase.scrollTo(vec2[,uint64_t[,curve]])\n"
 					"@param val {Vec2}\n"
-					"@param duration {int}\n"
+					"@param [duration] {uint64_t}\n"
 					"@param [curve] {Curve}\n"
 				);
 			}

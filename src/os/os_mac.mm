@@ -81,7 +81,7 @@ namespace qk {
 		}
 	}
 
-	int os_network_status() {
+	int os_network_interface() {
 		Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
 		int code = [reachability currentReachabilityStatus];
 		if ( code == 1 ) { // wwan

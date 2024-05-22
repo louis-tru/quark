@@ -103,6 +103,8 @@ namespace qk { namespace js {
 				Js_Parse_Type(FFID, args[0], "@method _font.getFamilysName(FFID)");
 				Js_Return( out->familys().keys().join(',') );
 			});
+
+			cls->exports("FontPool", exports);
 		}
 	};
 

@@ -57,8 +57,8 @@ namespace qk { namespace js {
 			Js_Set_Method(isMobile, {
 				Js_Return( os_is_mobile() );
 			});
-			Js_Set_Method(networkStatus, { // networkInterface
-				Js_Return( os_network_status() );
+			Js_Set_Method(networkInterface, {
+				Js_Return( os_network_interface() );
 			});
 			Js_Set_Method(isAcPower, {
 				Js_Return( os_is_ac_power() );

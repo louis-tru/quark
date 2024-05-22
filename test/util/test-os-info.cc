@@ -40,7 +40,7 @@ void test_os_info(int argc, char **argv) {
 	Qk_LOG(os_languages().join(','));
 	Qk_LOG(os_is_wifi());
 	Qk_LOG(os_is_mobile());
-	Qk_LOG(os_network_status());
+	Qk_LOG(os_network_interface());
 	Qk_LOG(os_is_ac_power());
 	Qk_LOG(os_is_battery());
 	Qk_LOG(os_battery_level());

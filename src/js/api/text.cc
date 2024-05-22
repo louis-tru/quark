@@ -70,6 +70,27 @@ namespace qk { namespace js {
 		}
 	};
 
+	class WrapButton: public WrapViewObject {
+	public:
+		virtual TextOptions* asTextOptions() {
+			return self<Button>();
+		}
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(Button, Text, {
+				Js_NewView(Button);
+			});
+			Js_Set_Class_Method(nextButton, {
+				if (!args.length()) {
+					Js_Throw("@method next_button(FindDirection dir)\n");
+				}
+				Js_Parse_Type(FindDirection, args[0], "@method next_button(dir = %s)");
+				Js_Self(Button);
+				Js_Return( self->next_button(out) );
+			});
+			cls->exports("Button", exports);
+		}
+	};
+
 	class WrapLabel: public WrapViewObject {
 	public:
 		virtual TextOptions* asTextOptions() {
@@ -162,6 +183,7 @@ namespace qk { namespace js {
 
 	void binding_text(JSObject* exports, Worker* worker) {
 		WrapText::binding(exports, worker);
+		WrapButton::binding(exports, worker);
 		WrapLabel::binding(exports, worker);
 		WrapInput::binding(exports, worker);
 		WrapTextarea::binding(exports, worker);

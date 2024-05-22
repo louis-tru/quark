@@ -55,7 +55,7 @@ namespace qk {
 		Qk_DEFINE_PROP(uint32_t, loop, Const); // @safe Rt get
 		Qk_DEFINE_PROP_GET(uint32_t, duration, Const); // @safe Rt get
 		Qk_DEFINE_PROP(float, speed, Const); // @safe Rt get
-		Qk_DEFINE_PROP_ACC_GET(bool, playing, Const); // @safe Rt get
+		Qk_DEFINE_PROP_ACC(bool, playing, Const); // @safe Rt get
 
 		Action(Window *win);
 		~Action();

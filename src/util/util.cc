@@ -50,7 +50,7 @@ static clock_serv_t get_clock_port(clock_id_t clock_id) {
 	return clock_r;
 }
 
-static clock_serv_t clock_realtime = get_clock_port(CALENDAR_CLOCK);
+static clock_serv_t clock_realtime = get_clock_port(REALTIME_CLOCK);
 static mach_port_t clock_monotonic = get_clock_port(SYSTEM_CLOCK);
 
 int clock_gettime2(clockid_t id, struct timespec *tspec) {
@@ -132,18 +132,14 @@ namespace qk {
 	}
 
 	String platform() {
-		#if  Qk_iOS
-			static String _name("darwin/iOS");
-		#elif  Qk_OSX
-			static String _name("darwin/MacOSX");
-			// static String _name("darwin/tvOS");
-			// static String _name("darwin/iWatch");
+		#if  Qk_iOS || Qk_OSX
+			static String _name("darwin");
 		#elif  Qk_ANDROID
-			static String _name("linux/Android");
-		#elif  Qk_WIN
-			static String _name("win32/Windows");
+			static String _name("android");
 		#elif  Qk_LINUX
-			static String _name("linux/Linux");
+			static String _name("linux");
+		#elif  Qk_WIN
+			static String _name("win32");
 		#else
 			# error no support
 		#endif
@@ -162,10 +158,12 @@ namespace qk {
 	}
 
 	int64_t time_monotonic() {
+		// (uint64_t (*)(void)) dlsym(RTLD_DEFAULT, "mach_continuous_time");
+		// uv_hrtime()
+		// clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
 		timespec now;
 		int rc = clock_gettime(CLOCK_MONOTONIC, &now);
 		int64_t r = now.tv_sec * 1000000 + now.tv_nsec / 1000;
 		return r;
 	}
-
 }

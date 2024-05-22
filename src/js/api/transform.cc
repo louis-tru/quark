@@ -61,12 +61,7 @@ namespace qk { namespace js {
 			Js_Set_WrapObject_Accessor(Transform, float, skew_y, skewY);
 			Js_Set_WrapObject_Accessor(Transform, ArrayOrigin, origin, origin);
 
-			Js_Set_Class_Accessor_Set(matrix, {
-				Js_Self(Transform);
-				Js_Return( worker->types()->jsvalue(self->matrix()) );
-			});
-
-			Js_Set_Class_Accessor_Get(origin, {
+			Js_Set_Class_Accessor_Get(matrix, {
 				Js_Self(Transform);
 				Js_Return( worker->types()->jsvalue(self->matrix()) );
 			});
@@ -79,7 +74,8 @@ namespace qk { namespace js {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Root, Transform, {
-				Js_NewView(Root);
+				// Js_NewView(Root);
+				Js_Throw("Forbidden access");
 			});
 			cls->exports("Root", exports);
 		}

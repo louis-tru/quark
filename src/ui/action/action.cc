@@ -67,6 +67,13 @@ namespace qk {
 		return _parent ? _parent->playing(): _id != Id();
 	}
 
+	void Action::set_playing(bool val) {
+		if (val)
+			play();
+		else
+			stop();
+	}
+
 	void Action::set_speed(float value) {
 		_async_call([](auto self, auto arg) {
 			self->_speed = Qk_MIN(10, Qk_MAX(arg.arg, 0.1));

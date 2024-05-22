@@ -39,7 +39,7 @@ namespace qk { namespace js {
 		typedef Window Type;
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
-			if ( name == "Orientation" ) {
+			if ( name == "Change" ) {
 				self<Type>()->Js_Native_On(Change, func, id);
 			} else if ( name == "Background" ) {
 				self<Type>()->Js_Native_On(Background, func, id);
@@ -51,7 +51,7 @@ namespace qk { namespace js {
 		}
 
 		virtual bool removeEventListener(cString& name, int id) {
-			if ( name == "Orientation" ) {
+			if ( name == "Change" ) {
 				self<Type>()->Qk_Off(Change, id);
 			} else if ( name == "Background" ) {
 				self<Type>()->Qk_Off(Background, id);
@@ -64,6 +64,7 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Window, 0, {
+				checkApp(worker);
 				if (args.length()) {
 					Js_Parse_Type(WindowOptions, args[0], "new Window(opts) %s");
 					New<WrapWindow>(args, Window::Make(out));
@@ -103,21 +104,12 @@ namespace qk { namespace js {
 				Js_Return( self->atomPixel() );
 			});
 
-			Js_Set_Class_Accessor_Get(atomPixel, {
-				Js_Self(Type);
-				Js_Return( self->atomPixel() );
-			});
-
 			Js_Set_Class_Accessor_Get(root, {
 				Js_Self(Type);
 				Js_Return( self->root() );
 			});
 
-			Js_Set_Class_Accessor_Get(host, {
-				Js_Self(Type);
-				Js_Return( self->host() );
-			});
-
+			// Qk_DEFINE_PROP_GET(Application*, host); //! application host
 			// Qk_DEFINE_PROP_GET(Render*, render); //! render object
 			// Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 			// Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
@@ -133,11 +125,7 @@ namespace qk { namespace js {
 
 			// Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 			// Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
-
-			Js_Set_Class_Accessor_Get(root, {
-				Js_Self(Type);
-				Js_Return( self->fontPool() );
-			});
+			// Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
 
 			Js_Set_Class_Accessor_Get(surfaceSize, {
 				Js_Self(Type);

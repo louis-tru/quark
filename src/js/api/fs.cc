@@ -207,6 +207,136 @@ namespace qk { namespace js {
 		return data;
 	}
 
+	class NativeFileReader {
+	public:
+		static void read(FunctionArgs args, bool isStream) {
+			Js_Worker(args);
+			uint32_t args_index = 1;
+			if ( args.length() < 2 || !args[0]->isFunction() || !args[1]->isString() ) {
+				if (isStream) {
+					Js_Throw(
+						"@method reader.readStream(cb,path)\n"
+						"@param cb {Function}\n"
+						"@param path {String}\n"
+						"@return {uint} return read id\n"
+					);
+				} else {
+					Js_Throw(
+								"@method reader.readFile(cb,path[,encoding])\n"
+								"@param cb {Function}\n"
+								"@param path {String}\n"
+								"@param [encoding] {Encoding}\n"
+								"@return {uint} return read id\n"
+					);
+				}
+			}
+			String path = args[args_index++]->toStringValue(worker);
+			Encoding encoding = kInvalid_Encoding;
+
+			if (args.length() > args_index && args[args_index]->isString()) {
+				if ( ! parseEncoding(args, args[args_index++], encoding) ) return;
+			}
+			if ( isStream ) {
+				auto cb = get_callback_for_io_stream(worker, args[0]);
+				Js_Return( fs_reader()->read_stream( path, cb ) );
+			} else {
+				auto cb = get_callback_for_buffer(worker, args[0], encoding);
+				Js_Return( fs_reader()->read_file( path, cb ) );
+			}
+		}
+
+		static void binding(JSObject* exports, Worker* worker) {
+
+			Js_Set_Method(readFile, {
+				read(args, false);
+			});
+
+			Js_Set_Method(readStream, {
+				read(args, true);
+			});
+
+			Js_Set_Method(readFileSync, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Throw(
+						"@method reader.readFileSync(path[,encoding])\n"
+						"@param path {String}\n"
+						"@param [encoding] {Encoding}\n"
+						"@return {Buffer} return read Buffer\n"
+					);
+				}
+				Encoding encoding = kInvalid_Encoding;
+				if (args.length() > 1 && args[1]->isString()) {
+					if ( ! parseEncoding(args, args[1], encoding) ) return;
+				}
+				Buffer rv;
+				try {
+					rv = fs_reader()->read_file_sync( args[0]->toStringValue(worker) );
+				} catch(cError& err) {
+					Js_Throw(err);
+				}
+				Js_Return( convert_buffer(worker, rv, encoding) );
+			});
+
+			Js_Set_Method(existsSync, {
+				if ( args.length() == 0 || !args[0]->isString() ) {
+					Js_Throw(
+						"@method reader.existsSync(path)\n"
+						"@param path {String}\n"
+						"@return {bool}\n"
+					);
+				}
+				Js_Return( fs_reader()->exists_sync( args[0]->toStringValue(worker) ) );
+			});
+
+			Js_Set_Method(isFileSync, {
+				if ( args.length() == 0 || !args[0]->isString() ) {
+					Js_Throw(
+						"@method reader.isFileSync(path)\n"
+						"@param path {String}\n"
+						"@return {bool}\n"
+					);
+				}
+				Js_Return( fs_reader()->is_file_sync( args[0]->toStringValue(worker) ) );
+			});
+
+			Js_Set_Method(isDirectorySync, {
+				if ( args.length() == 0 || !args[0]->isString() ) {
+					Js_Throw(
+						"@method reader.isDirectorySyncpath)\n"
+						"@param path {String}\n"
+						"@return {bool}\n"
+					);
+				}
+				Js_Return( self->is_directory_sync( args[0]->toStringValue(worker) ) );
+			});
+
+			Js_Set_Method(readdirSync, {
+				if ( args.length() == 0 || !args[0]->isString() ) {
+					Js_Throw(
+						"@method reader.readdirSync(path)\n"
+						"@param path {String}\n"
+						"@return {Array}\n"
+					);
+				}
+				Js_Return( fs_reader()->readdir_sync( args[0]->toStringValue(worker) ) );
+			});
+
+			Js_Set_Method(abort, {
+				if ( args.length() == 0 || ! args[0]->isUint32() ) {
+					Js_Throw(
+						"@method reader.abort(id)\n"
+						"@param id {uint} abort id\n"
+					);
+				}
+				fs_reader()->abort( args[0]->toUint32Value(worker).unsafe() );
+			});
+
+			Js_Set_Method(clear, {
+				fs_reader()->clear();
+			});
+		}
+	};
+
 	class NativeFs {
 	public:
 		static void chmod(FunctionArgs args, bool sync) {
@@ -214,14 +344,14 @@ namespace qk { namespace js {
 			if (args.length() < 1 || ! args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method chmodSync(path[,mode])\n"
+						"@method chmodSync(path[,mode])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method chmod(path[,mode[,cb]][,cb])\n"
+						"@method chmod(path[,mode[,cb]][,cb])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@param [cb] {Function}\n"
@@ -254,18 +384,18 @@ namespace qk { namespace js {
 			if (args.length() < 1 || ! args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method chmodrSync(path[,mode])\n"
+						"@method chmodrSync(path[,mode])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method chmodr(path[,mode[,cb]][,cb])\n"
+						"@method chmodr(path[,mode[,cb]][,cb])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@param [cb] {Function}\n"
-						"* @return {uint} return id\n"
+						"@return {uint} return id\n"
 					);
 				}
 			}
@@ -297,15 +427,15 @@ namespace qk { namespace js {
 					!args[1]->isUint32() || !args[2]->isUint32() ) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method chownSync(path, owner, group)\n"
+						"@method chownSync(path, owner, group)\n"
 						"@param path {String}\n"
 						"@param owner {uint}\n"
 						"@param group {uint}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method chown(path, owner, group[,cb])\n"
+						"@method chown(path, owner, group[,cb])\n"
 						"@param path {String}\n"
 						"@param owner {uint}\n"
 						"@param group {uint}\n"
@@ -339,20 +469,20 @@ namespace qk { namespace js {
 					!args[1]->isUint32() || !args[2]->isUint32() ) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method chownrSync(path, owner, group)\n"
+						"@method chownrSync(path, owner, group)\n"
 						"@param path {String}\n"
 						"@param owner {uint}\n"
 						"@param group {uint}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method chownr(path, owner, group[,cb])\n"
+						"@method chownr(path, owner, group[,cb])\n"
 						"@param path {String}\n"
 						"@param owner {uint}\n"
 						"@param group {uint}\n"
 						"@param [cb] {Function}\n"
-						"* @return {uint} return id\n"
+						"@return {uint} return id\n"
 					);
 				}
 			}
@@ -381,14 +511,14 @@ namespace qk { namespace js {
 			if (args.length() < 1 || !args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method mkdirSync(path[,mode])\n"
+						"@method mkdirSync(path[,mode])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method mkdir(path[,mode[,cb]][,cb])\n"
+						"@method mkdir(path[,mode[,cb]][,cb])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@param [cb] {Function}\n"
@@ -421,18 +551,18 @@ namespace qk { namespace js {
 			if (args.length() < 1 || ! args[0]->isString()) {
 				if ( sync ){
 					Js_Throw(
-						"* @method mkdirpSync(path[,mode])\n"
+						"@method mkdirpSync(path[,mode])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method mkdirp(path[,mode[,cb]][,cb])\n"
+						"@method mkdirp(path[,mode[,cb]][,cb])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@param [cb] {Function}\n"
-						"* @return {uint} return id\n"
+						"@return {uint} return id\n"
 					);
 				}
 			}
@@ -463,14 +593,14 @@ namespace qk { namespace js {
 			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method renameSync(name,new_name)\n"
+						"@method renameSync(name,new_name)\n"
 						"@param name {String}\n"
 						"@param new_name {String}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method rename(name,new_name[,cb])\n"
+						"@method rename(name,new_name[,cb])\n"
 						"@param name {String}\n"
 						"@param new_name {String}\n"
 						"@param [cb] {Function}\n"
@@ -499,13 +629,13 @@ namespace qk { namespace js {
 			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method linkSync(path,newPath)\n"
+						"@method linkSync(path,newPath)\n"
 						"@param path {String}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method link(path,newPath[,cb])\n"
+						"@method link(path,newPath[,cb])\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -534,13 +664,13 @@ namespace qk { namespace js {
 			if (args.length() < 1 || !args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method unlinkSync(path)\n"
+						"@method unlinkSync(path)\n"
 						"@param path {String}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method unlink(path[,cb])\n"
+						"@method unlink(path[,cb])\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -566,13 +696,13 @@ namespace qk { namespace js {
 			if (args.length() < 1 || !args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method rmdirSync(path)\n"
+						"@method rmdirSync(path)\n"
 						"@param path {String}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method rmdir(path)\n"
+						"@method rmdir(path)\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -598,16 +728,16 @@ namespace qk { namespace js {
 			if (args.length() < 1 || !args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method removerSync(path)\n"
+						"@method removerSync(path)\n"
 						"@param path {String}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method remover(path)\n"
+						"@method remover(path)\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
-						"* @return {uint} return id\n"
+						"@return {uint} return id\n"
 					);
 				}
 			}
@@ -631,18 +761,18 @@ namespace qk { namespace js {
 			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method copySync(path, target)\n"
+						"@method copySync(path, target)\n"
 						"@param path {String}\n"
 						"@param target {String}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method copy(path, target)\n"
+						"@method copy(path, target)\n"
 						"@param path {String}\n"
 						"@param target {String}\n"
 						"@param [cb] {Function}\n"
-						"* @return {uint} return id\n"
+						"@return {uint} return id\n"
 					);
 				}
 			}
@@ -668,18 +798,18 @@ namespace qk { namespace js {
 			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method copyrSync(path, target)\n"
+						"@method copyrSync(path, target)\n"
 						"@param path {String}\n"
 						"@param target {String}\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method copyr(path, target)\n"
+						"@method copyr(path, target)\n"
 						"@param path {String}\n"
 						"@param target {String}\n"
 						"@param [cb] {Function}\n"
-						"* @return {uint} return id\n"
+						"@return {uint} return id\n"
 					);
 				}
 			}
@@ -705,13 +835,13 @@ namespace qk { namespace js {
 			if (args.length() < 1 || !args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method readdirSync(path)\n"
+						"@method readdirSync(path)\n"
 						"@param path {String}\n"
-						"* @return {Array} return Array<Dirent>\n"
+						"@return {Array} return Array<Dirent>\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method readdir(path[,cb])\n"
+						"@method readdir(path[,cb])\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -739,13 +869,13 @@ namespace qk { namespace js {
 			if (args.length() < 1 || ! args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"* @method statSync(path)\n"
+						"@method statSync(path)\n"
 						"@param path {String}\n"
-						"* @return {FileStat}\n"
+						"@return {FileStat}\n"
 					);
 				} else {
 					Js_Throw(
-						"* @method stat(path[,cb])\n"
+						"@method stat(path[,cb])\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -773,16 +903,16 @@ namespace qk { namespace js {
 			if ( sync ) {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
-						"* @method existsSync(path)\n"
+						"@method existsSync(path)\n"
 						"@param path {String}\n"
-						"* @return {bool}\n"
+						"@return {bool}\n"
 					);
 				}
 				Js_Return( fs_exists_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
-						"* @method exists(path[,cb])\n"
+						"@method exists(path[,cb])\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -796,16 +926,16 @@ namespace qk { namespace js {
 			if ( sync ) {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
-						"* @method isFileSync(path)\n"
+						"@method isFileSync(path)\n"
 						"@param path {String}\n"
-						"* @return {bool}\n"
+						"@return {bool}\n"
 					);
 				}
 				Js_Return( fs_is_file_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
-						"* @method isFile(path[,cb])\n"
+						"@method isFile(path[,cb])\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -819,16 +949,16 @@ namespace qk { namespace js {
 			if ( sync ) {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
-						"* @method isDirectorySync(path)\n"
+						"@method isDirectorySync(path)\n"
 						"@param path {String}\n"
-						"* @return {bool}\n"
+						"@return {bool}\n"
 					);
 				}
 				Js_Return( fs_is_directory_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
-						"* @method isDirectory(path[,cb])\n"
+						"@method isDirectory(path[,cb])\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 					);
@@ -842,16 +972,16 @@ namespace qk { namespace js {
 			if ( sync ) {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
-						"* @method readableSync(path)\n"
+						"@method readableSync(path)\n"
 						"@param path {String}\n"
-						"* @return {bool}\n"
+						"@return {bool}\n"
 					);
 				}
 				Js_Return( fs_readable_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
-						"* @method readable(path[,cb])\n"
+						"@method readable(path[,cb])\n"
 						"@param path {String}\n"
 						"@param cb {Function}\n"
 					);
@@ -865,16 +995,16 @@ namespace qk { namespace js {
 			if ( sync ) {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
-						"* @method writableSync(path)\n"
+						"@method writableSync(path)\n"
 						"@param path {String}\n"
-						"* @return {bool}\n"
+						"@return {bool}\n"
 					);
 				}
 				Js_Return( fs_writable_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
-						"* @method writable(path[,cb])\n"
+						"@method writable(path[,cb])\n"
 						"@param path {String}\n"
 						"@param cb {Function}\n"
 					);
@@ -888,16 +1018,16 @@ namespace qk { namespace js {
 			if ( sync ) {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
-						"* @method executableSync(path)\n"
+						"@method executableSync(path)\n"
 						"@param path {String}\n"
-						"* @return {bool}\n"
+						"@return {bool}\n"
 					);
 				}
 				Js_Return( fs_executable_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
-						"* @method executable(path[,cb])\n"
+						"@method executable(path[,cb])\n"
 						"@param path {String}\n"
 						"@param cb {Function}\n"
 					);
@@ -913,17 +1043,17 @@ namespace qk { namespace js {
 			if (sync) {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
-						"* @method readFileSync(path[,encoding])\n"
+						"@method readFileSync(path[,encoding])\n"
 						"@param path {String}\n"
 						"@param [encoding] {String}\n"
-						"* @return {Buffer} return file buffer\n"
+						"@return {Buffer} return file buffer\n"
 					);
 				}
 			} else {
 				args_index++;
 				if (args.length() < 2 || !args[0]->isFunction() || !args[1]->isString()) {
 					Js_Throw(
-						"* @method readFile(cb,path[,encoding])\n"
+						"@method readFile(cb,path[,encoding])\n"
 						"@param cb {Function}\n"
 						"@param path {String}\n"
 						"@param [encoding] {String}\n"
@@ -961,14 +1091,14 @@ namespace qk { namespace js {
 						!(args[1]->isString() || args[1]->isBuffer())
 				) { // 参数错误
 					Js_Throw(
-						"* @method writeFileSync(path,buffer[,size])\n"
-						"* @method writeFileSync(path,string[,encoding])\n"
+						"@method writeFileSync(path,buffer[,size])\n"
+						"@method writeFileSync(path,string[,encoding])\n"
 						"@param path {String}\n"
 						"@param string {String}\n"
 						"@param buffer {Uint8Array|ArrayBuffer}\n"
 						"@param [size] {int} write data size\n"
 						"@param [encoding=utf8] {Encoding}\n"
-						"* @return {int}\n"
+						"@return {int}\n"
 					);
 				}
 			} else {
@@ -977,8 +1107,8 @@ namespace qk { namespace js {
 						!(args[2]->isString() || args[2]->isBuffer())
 					) {
 					Js_Throw(
-						"* @method writeFile(cb,path,buffer[,size])\n"
-						"* @method writeFile(cb,path,string[,encoding])\n"
+						"@method writeFile(cb,path,buffer[,size])\n"
+						"@method writeFile(cb,path,string[,encoding])\n"
 						"@param cb {Function}\n"
 						"@param path {String}\n"
 						"@param string {String}\n"
@@ -1018,17 +1148,17 @@ namespace qk { namespace js {
 			if (sync) {
 				if ( args.length() < 1 || !args[0]->isString() ) {
 					Js_Throw(
-						"* @method openSync(path[,flag])\n"
+						"@method openSync(path[,flag])\n"
 						"@param path {String}\n"
 						"@param [flag=FOPEN_R] {FileOpenFlag}\n"
-						"* @return {int} return file handle `success >= 0`\n"
+						"@return {int} return file handle `success >= 0`\n"
 					);
 				} 
 			} else {
 				args_index++;
 				if ( args.length() < 2 || !args[0]->isFunction() || !args[1]->isString() ) {
 					Js_Throw(
-						"* @method open(cb,path[,flag])\n"
+						"@method open(cb,path[,flag])\n"
 						"@param cb {Function}\n"
 						"@param path {String}\n"
 						"@param [flag=FOPEN_R] {FileOpenFlag}\n"
@@ -1064,16 +1194,16 @@ namespace qk { namespace js {
 			if (sync) {
 				if ( args.length() < 1 || !args[0]->isInt32() ) {
 					Js_Throw(
-						"* @method closeSync(fd)\n"
+						"@method closeSync(fd)\n"
 						"@param path {int} file handle\n"
-						"* @return {void}\n"
+						"@return {void}\n"
 						);
 				}
 			} else {
 				args_index++;
 				if ( args.length() < 2 || !args[0]->isFunction() || !args[1]->isInt32() ) {
 					Js_Throw(
-						"* @method close(cb,fd)\n"
+						"@method close(cb,fd)\n"
 						"@param cb {Function}\n"
 						"@param fd {int} file handle\n"
 						);
@@ -1099,19 +1229,19 @@ namespace qk { namespace js {
 			if (sync) {
 				if ( args.length() < 2 || !args[0]->isInt32() || !args[1]->isUint8Array() ) {
 					Js_Throw(
-						"* @method readSync(fd,buffer[,size[,offsetFd]])\n"
+						"@method readSync(fd,buffer[,size[,offsetFd]])\n"
 						"@param fd {int} file handle\n"
 						"@param buffer {Buffer} output buffer\n"
 						"@param [size=-1] {int}\n"
 						"@param [offsetFd=-1] {int}\n"
-						"* @return {int} return read data length\n"
+						"@return {int} return read data length\n"
 					);
 				}
 			} else {
 				args_index++;
 				if ( args.length() < 3 || !args[0]->isFunction() || !args[1]->isInt32() || !args[2]->isUint8Array() ) {
 					Js_Throw(
-						"* @method read(cb,fd,buffer[,size[,offsetFd]])\n"
+						"@method read(cb,fd,buffer[,size[,offsetFd]])\n"
 						"@param cb {Function}\n"
 						"@param fd {int} file handle\n"
 						"@param buffer {Buffer} output buffer\n"
@@ -1183,15 +1313,15 @@ namespace qk { namespace js {
 					!(args[1]->isString() || args[1]->isBuffer())
 				) {
 					Js_Throw(
-						"* @method writeSync(fd,buffer[,size[,offsetFd]])\n"
-						"* @method writeSync(fd,string[,encoding[,offsetFd]])\n"
+						"@method writeSync(fd,buffer[,size[,offsetFd]])\n"
+						"@method writeSync(fd,string[,encoding[,offsetFd]])\n"
 						"@param fd {int} file handle\n"
 						"@param buffer {Uint8Array|ArrayBuffer} write buffer\n"
 						"@param string {String} write string\n"
 						"@param [size=-1] {int} write size, `-1` use buffer.length\n"
 						"@param [offsetFd=-1] {int}\n"
 						"@param [encoding='utf8'] {String}\n"
-						"* @return {int} return write data length\n"
+						"@return {int} return write data length\n"
 					);
 				}
 			} else {
@@ -1200,8 +1330,8 @@ namespace qk { namespace js {
 					!(args[2]->isString() || args[2]->isBuffer() )
 				) {
 					Js_Throw(
-						"* @method write(cb,fd,buffer[,size[,offsetFd]])\n"
-						"* @method write(cb,fd,string[,encoding[,offsetFd]])\n"
+						"@method write(cb,fd,buffer[,size[,offsetFd]])\n"
+						"@method write(cb,fd,string[,encoding[,offsetFd]])\n"
 						"@param cb {Function}\n"
 						"@param fd {int} file handle\n"
 						"@param buffer {Uint8Array|ArrayBuffer} write buffer\n"
@@ -1243,7 +1373,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			WrapFileStat::binding(exports, worker);
 
-			Js_Set_Property(DEFAULT_MODE, fs_default_mode);
+			Js_Set_Property(defaultMode, fs_default_mode);
 			// sync
 			Js_Set_Method(chmodSync, { chmod(args, 1); });
 			Js_Set_Method(chownSync, { chown(args, 1); });
@@ -1304,10 +1434,10 @@ namespace qk { namespace js {
 			Js_Set_Method(readStream, {
 				if (args.length() < 2 || !args[0]->isFunction() || !args[1]->isString()) {
 					Js_Throw(
-						"* @method readStream(cb,path)\n"
+						"@method readStream(cb,path)\n"
 						"@param cb {Function}\n"
 						"@param path {String}\n"
-						"* @return {uint32_t} return abort id\n"
+						"@return {uint32_t} return abort id\n"
 					);
 				}
 				auto cb = get_callback_for_io_stream(worker, args[0]);
@@ -1318,11 +1448,65 @@ namespace qk { namespace js {
 			Js_Set_Method(abort, {
 				if (args.length() < 1 || ! args[0]->isUint32()) {
 					Js_Throw(
-						"* @method abort(id) abort async io\n"
+						"@method abort(id) abort async io\n"
 						"@param id {uint}\n"
 					);
 				}
 				fs_abort( args[0]->toUint32Value(worker) ).unsafe();
+			});
+
+			// ------------------------------------------------------------------------
+			// NativeFileReader
+			auto reader = worker->newObject();
+			Js_Set_Property(reader, reader);
+			NativeFileReader::binding(reader, worker);
+
+			// ------------------------------------------------------------------------
+			// fs path
+			Js_Set_Method(executable, {
+				Js_Return( fs_executable() );
+			});
+			Js_Set_Method(documents, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( fs_documents() );
+				}
+				Js_Return( fs_documents( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(temp, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( fs_temp() );
+				}
+				Js_Return( fs_temp( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(resources, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( fs_resources() );
+				}
+				Js_Return( fs_resources( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(cwd, {
+				Js_Return( fs_cwd() );
+			});
+			Js_Set_Method(chdir, {
+				if (args.length() == 0 || !args[0]->isString()) {
+					Js_Return( false );
+				}
+				Js_Return( fs_chdir(args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(extname, {
+				if (args.length() == 0 || !args[0]->isString())
+					Js_Throw( "Bad argument." );
+				Js_Return( fs_extname( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(dirname, {
+				if (args.length() == 0 || !args[0]->isString())
+					Js_Throw( "Bad argument." );
+				Js_Return( fs_dirname( args[0]->toStringValue(worker)) );
+			});
+			Js_Set_Method(basename, {
+				if (args.length() == 0 || !args[0]->isString())
+					Js_Throw( "Bad argument." );
+				Js_Return( fs_basename( args[0]->toStringValue(worker)) );
 			});
 		}
 	};

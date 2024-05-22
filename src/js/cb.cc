@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./cb.h"
+#include "./js_.h"
 
 namespace qk { namespace js {
 
@@ -67,16 +67,16 @@ namespace qk { namespace js {
 	JSValue* convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding) {
 		JSValue* result;
 		switch (encoding) { // buffer
-			case kInvalid_Encoding:
+			case kInvalid_Encoding: // no convert
 				result = worker->newInstance(buffer);
 				break;
-			case kHex_Encoding: // encode
-			case kBase64_Encoding: { // string
+			case kHex_Encoding: // encode to string
+			case kBase64_Encoding: {
 				String str = codec_encode(encoding, buffer).collapseString();
 				result = worker->newInstance(str);
 				break;
 			}
-			default: { // string decode
+			default: { // decode to uft16 string
 				String2 str(codec_decode_to_uint16(encoding, buffer));
 				result = worker->newInstance(str);
 				break;

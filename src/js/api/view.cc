@@ -99,22 +99,28 @@ namespace qk { namespace js {
 			return false;
 		}
 		Qk_DEBUG("removeEventListener, name:%s, id:%d", *name_, id);
-		
+
 		auto wrap = reinterpret_cast<Wobj<View>*>(this);
 		wrap->self()->remove_event_listener(*name, id); // off event listener
 		return true;
+	}
+	
+	void WrapViewObject::init() {
+		that()->defineOwnProperty(worker(), worker()->strs()->window(),
+			wrap<Window>(self<View>()->window())->that(), JsObject::ReadOnly | JsObject::DontDelete
+		);
 	}
 
 	Window* WrapViewObject::checkNewView(FunctionArgs args) {
 		Js_Worker(args);
 		if (!args.length() || !Js_IsWindow(args[0])) {
 			Js_Throw("\
-				* Call view constructor() error, param window object no match. \n\
-				* @constructor(window) \n\
+				Call view constructor() error, param window object no match. \n\
+				@constructor(window) \n\
 				@param window {Window} \n\
 			"), nullptr;
 		}
-		return WrapObject::wrap<Window>(args[0])->self();
+		return wrap<Window>(args[0])->self();
 	}
 
 	class WrapView: public WrapViewObject {
@@ -154,19 +160,19 @@ namespace qk { namespace js {
 				Js_Return( self->last() );
 			});
 
-			Js_Set_Class_Accessor_Get(window, {
-				Js_Self(View);
-				Js_Return( self->window() );
-			});
-
 			Js_Set_Class_Accessor(action, {
 				Js_Self(View);
 				Js_Return( self->action() );
 			}, {
-				if (!worker->instanceOf<Action>(val))
-					Js_Throw("@prop set_action {Action}\n");
-				Js_Self(View);
-				self->set_action(wrap<Action>(val)->self());
+				if (val->isNull()) {
+					Js_Self(View);
+					self->set_action(nullptr);
+				} else {
+					if (!worker->instanceOf<Action>(val))
+						Js_Throw("@prop set_action {Action}\n");
+					Js_Self(View);
+					self->set_action(wrap<Action>(val)->self());
+				}
 			});
 
 			Js_Set_Class_Accessor_Get(transform, {
@@ -183,7 +189,7 @@ namespace qk { namespace js {
 				Js_Self(View);
 				Js_Return( self->opacity() );
 			}, {
-				if (val->isNumber())
+				if (!val->isNumber())
 					Js_Throw("@prop View.set_opacity {float}\n");
 				Js_Self(View);
 				self->set_opacity(val->toFloatValue(worker).unsafe());
@@ -193,9 +199,7 @@ namespace qk { namespace js {
 				Js_Self(View);
 				Js_Return( uint32_t(self->cursor()) );
 			}, {
-				if (val->isUint32())
-					Js_Throw("@prop View.set_cursor {float}\n");
-				Js_Parse_Type(CursorStyle, val, "@prop View.set_cursor {float}");
+				Js_Parse_Type(CursorStyle, val, "@prop View.set_cursor = %s");
 				Js_Self(View);
 				self->set_cursor(out);
 			});
@@ -239,9 +243,9 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(isSelfChild, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
-						"* @method View.is_self_child(child)\n"
+						"@method View.is_self_child(child)\n"
 						"@param child {View}\n"
-						"* @return {bool}\n"
+						"@return {bool}\n"
 					);
 				}
 				Js_Self(View);
@@ -252,7 +256,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(before, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
-						"* @method View.before(prev)\n"
+						"@method View.before(prev)\n"
 						"@param prev {View}\n"
 					);
 				}
@@ -264,7 +268,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(after, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
-						"* @method View.after(next)\n"
+						"@method View.after(next)\n"
 						"@param next {View}\n"
 					);
 				}
@@ -276,7 +280,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(prepend, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
-						"* @method View.prepend(child)\n"
+						"@method View.prepend(child)\n"
 						"@param child {View}\n"
 					);
 				}
@@ -288,7 +292,7 @@ namespace qk { namespace js {
 			Js_Set_Class_Method(append, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
-						"* @method View.append(child)\n"
+						"@method View.append(child)\n"
 						"@param child {View}\n"
 					);
 				}
@@ -329,6 +333,18 @@ namespace qk { namespace js {
 
 			// -----------------------------------------------------------------------------
 			// @safe Rt
+			Js_Set_Class_Method(overlapTest, {
+				if (!args.length()) {
+					Js_Throw(
+						"@method View.overlapTest(point)\n"
+						"@param point {Vec2}\n"
+						"@return bool\n"
+					);
+				}
+				Js_Parse_Type(Vec2, args[0], "@method View.overlapTest(point = %s)");
+				Js_Self(View);
+				Js_Return(self->overlap_test(out));
+			});
 			Js_Set_Class_Accessor_Get(position, {
 				Js_Self(View);
 				Js_Return( args.worker()->types()->jsvalue(self->position()) );

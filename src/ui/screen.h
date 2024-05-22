@@ -45,20 +45,20 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(Screen);
 	public:
 		enum Orientation {
-			ORIENTATION_INVALID = -1,
-			ORIENTATION_PORTRAIT = 0,
-			ORIENTATION_LANDSCAPE,
-			ORIENTATION_REVERSE_PORTRAIT,
-			ORIENTATION_REVERSE_LANDSCAPE,
-			ORIENTATION_USER,
-			ORIENTATION_USER_PORTRAIT,
-			ORIENTATION_USER_LANDSCAPE,
-			ORIENTATION_USER_LOCKED,
+			kInvalid,
+			kPortrait,
+			kLandscape,
+			kReverse_Portrait,
+			kReverse_Landscape,
+			kUser,
+			kUser_Portrait,
+			kUser_Landscape,
+			kUser_Locked,
 		};
 
 		enum StatusBarStyle {
-			STATUS_BAR_STYLE_WHITE = 0,
-			STATUS_BAR_STYLE_BLACK,
+			kWhite = 0,
+			kBlack,
 		};
 
 		/**

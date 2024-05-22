@@ -64,7 +64,8 @@ namespace qk {
 		class Property {
 		public:
 			virtual ~Property() = default;
-			virtual void apply(View *view, bool isRt) = 0;// @safe Rt
+			virtual void apply(View *view, bool isRt) = 0;
+			virtual void fetch(View *view) = 0; // @safe Rt
 			virtual void transition(View *view, Property *to, float t) = 0; // @safe Rt
 			virtual Property* copy() = 0; // @safe Rt
 		};
@@ -77,6 +78,11 @@ namespace qk {
 		~StyleSheets();
 
 		/**
+		 * @method itemsCount() StyleSheets items count
+		*/
+		uint32_t itemsCount() const;
+
+		/**
 		 * @method has_property
 		*/
 		bool hasProperty(ViewProp key) const;
@@ -85,6 +91,11 @@ namespace qk {
 		* @method apply style to view
 		*/
 		void apply(View *view, bool isRt) const;
+
+		/**
+		 * @method fetch view props
+		*/
+		void fetch(View *view, bool isRt);
 
 		/**
 		 * @method getWindowForAsyncSet
@@ -111,6 +122,7 @@ namespace qk {
 	class Qk_EXPORT CStyleSheets: public StyleSheets {
 		Qk_HIDDEN_ALL_COPY(CStyleSheets);
 	public:
+		Qk_DEFINE_PROP   (uint32_t, time, Const); // css transition time
 		Qk_DEFINE_PROP_GET(CSSName, name, Const);
 		Qk_DEFINE_PROP_GET(CStyleSheets*, parent);
 		Qk_DEFINE_PROP_GET(CStyleSheets*, normal); // style sheets for pseudo type

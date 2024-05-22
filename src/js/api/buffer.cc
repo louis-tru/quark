@@ -28,15 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../js_.h"
-#include "../types.h"
+#include "./types.h"
 
 namespace qk { namespace js {
 
 	bool parseEncoding(FunctionArgs args, JSValue* arg, Encoding& en) {
 		Js_Worker(args);
 		String s = arg->toStringValue(worker);
-		en = codec_parse_encoding( s );
+		en = codec_parse_encoding(s);
 		if (en == kInvalid_Encoding) {
 			Js_Throw(
 				"Unknown encoding \"%s\", the optional value is "
@@ -52,9 +51,9 @@ namespace qk { namespace js {
 			Js_Set_Method(fromString, {
 				if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
 					Js_Throw(
-						"* @method fromString(str[,encoding])\n"
+						"@method fromString(str[,encoding])\n"
 						"@param arg {String}\n"
-						"@param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
+						"@param [encoding=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
 					);
 				}
 				Encoding en = kUTF8_Encoding;
@@ -69,9 +68,9 @@ namespace qk { namespace js {
 				int args_index = 0;
 				if (args.length() < 1 || !args[0]->isUint8Array()) {
 					Js_Throw(
-						"* @method convertString(uint8array,[encoding[,start[,end]]])\n"
+						"@method convertString(uint8array,[encoding[,start[,end]]])\n"
 						"@param uint8array {Uint8Array}\n"
-						"@param [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
+						"@param [encoding=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
 						"@param [start=0] {uint}\n"
 						"@param [end] {uint}\n"
 					);
@@ -104,12 +103,12 @@ namespace qk { namespace js {
 				}
 
 				switch (encoding) {
-					case kHex_Encoding: // encode
+					case kHex_Encoding: // encode to string
 					case kBase64_Encoding: {
 						Buffer buff = codec_encode(encoding, WeakBuffer(data + start, end - start).buffer());
 						Js_Return( worker->newStringOneByte(buff.collapseString()) );
 						break;
-					} default: { // encode
+					} default: { // decode to uft16 string
 						String2 str( codec_decode_to_uint16(encoding, WeakBuffer(data+start, end - start).buffer()));
 						Js_Return( worker->newInstance(str) );
 						break;

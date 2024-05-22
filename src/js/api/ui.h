@@ -32,7 +32,7 @@
 
 #ifndef __quark__js__api__view__
 #define __quark__js__api__view__
-#include "../js_.h"
+#include "./types.h"
 #include "../../ui/view/view.h"
 
 #define Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
@@ -76,6 +76,7 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT WrapViewObject: public WrapUIObject {
 	public:
+		virtual void init() override;
 		virtual bool addEventListener(cString& name, cString& func, int id);
 		virtual bool removeEventListener(cString& name, int id);
 		static Window* checkNewView(FunctionArgs args);

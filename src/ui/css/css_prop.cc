@@ -159,22 +159,27 @@ namespace qk {
 	template<typename T>
 	struct PropImpl: Property {
 		inline PropImpl(ViewProp prop, T value): _prop(prop), _value(value) {}
-		void apply(View *target, bool isRt) override {
-			auto set = (void (View::*)(T,bool))(target->accessor() + _prop)->set;
+		void apply(View *view, bool isRt) override {
+			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
 			if (set)
-				(target->*set)(_value,isRt);
+				(view->*set)(_value,isRt);
 		}
-		void transition(View *target, Property *to, float y) override {
+		void fetch(View *view) override {
+			auto get = (T (View::*)())(view->accessor() + _prop)->get;
+			if (get)
+				_value = (view->*get)();
+		}
+		void transition(View *view, Property *to, float y) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
-			auto set = (void (View::*)(T,bool))(target->accessor() + _prop)->set;
+			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
 			if (set)
-				(target->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y),true);
+				(view->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y),true);
 		}
 		Property* copy() override {
 			return new PropImpl<T>(_prop, _value);
 		}
 		ViewProp _prop;
-		T _value;
+		T        _value;
 	};
 
 	// @template Object or BoxFilter
@@ -188,10 +193,15 @@ namespace qk {
 		~PropImpl() {
 			_value->release();
 		}
-		void apply(View *target, bool isRt) override {
-			auto set = (void (View::*)(T*,bool))(target->accessor() + _prop)->set;
+		void apply(View *view, bool isRt) override {
+			auto set = (void (View::*)(T*,bool))(view->accessor() + _prop)->set;
 			if (set)
-				(target->*set)(_value,isRt);
+				(view->*set)(_value,isRt);
+		}
+		void fetch(View *view) override {
+			auto get = (T* (View::*)())(view->accessor() + _prop)->get;
+			if (get)
+				_value = BoxFilter::assign_Rt(_value, (view->*get)(), nullptr);
 		}
 		void transition(View *target, Property *to, float t) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
@@ -205,7 +215,7 @@ namespace qk {
 			return new PropImpl(_prop, copy_value_ptr(static_cast<BoxFilter*>(_value)));
 		}
 		ViewProp _prop;
-		T* _value;
+		T       *_value;
 	};
 
 	// ---- SetProp ----
@@ -250,7 +260,6 @@ namespace qk {
 	void SetProp<String>::asyncSet(String value) {
 		asyncSetLarge<key>(value);
 	}
-
 
 	template<>
 	template<>

@@ -124,11 +124,6 @@ namespace qk { namespace js {
 				Js_Return( self->isLoaded() );
 			});
 
-			Js_Set_Class_Accessor_Get(screen, {
-				Js_Self(Type);
-				Js_Return( self->screen() );
-			});
-
 			Js_Set_Class_Accessor_Get(defaultTextOptions, {
 				Js_Self(Type);
 				Js_Return( self->defaultTextOptions() );
@@ -141,7 +136,7 @@ namespace qk { namespace js {
 
 			// Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
 
-			Js_Set_Class_Accessor_Get(screen, {
+			Js_Set_Class_Accessor_Get(fontPool, {
 				Js_Self(Type);
 				Js_Return( self->fontPool() );
 			});

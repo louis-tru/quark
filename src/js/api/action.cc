@@ -63,11 +63,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Set_WrapObject_Accessor(Action, float, speed, speed);
-
-			Js_Set_Class_Accessor_Get(duration, {
-				Js_Self(Action);
-				Js_Return(self->playing());
-			});
+			Js_Set_WrapObject_Accessor(Action, bool, playing, playing);
 
 			Js_Set_Class_Method(play, {
 				Js_Self(Action);
@@ -107,14 +103,14 @@ namespace qk { namespace js {
 				self->before(wrap<Action>(args[0])->self());
 			});
 
-			Js_Set_Class_Method(before, {
+			Js_Set_Class_Method(after, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.after(Action *act)");
 				Js_Self(Action);
 				self->after(wrap<Action>(args[0])->self());
 			});
 
-			Js_Set_Class_Method(before, {
+			Js_Set_Class_Method(remove, {
 				Js_Self(Action);
 				self->remove();
 			});
@@ -221,7 +217,6 @@ namespace qk { namespace js {
 
 	class WrapKeyframe: public WrapObject {
 	public:
-
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Keyframe, StyleSheets, { Js_Throw("Access forbidden."); });
 
@@ -232,10 +227,10 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(time, {
 				Js_Self(Keyframe);
-				Js_Return(self->index());
+				Js_Return(self->time());
 			});
 
-			Js_Set_Class_Accessor_Get(time, {
+			Js_Set_Class_Accessor_Get(curve, {
 				Js_Self(Keyframe);
 				Js_Return( worker->types()->jsvalue(self->curve()) );
 			});
