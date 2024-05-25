@@ -43,7 +43,7 @@ namespace qk {
 	}
 
 	template<typename T>
-	inline void transition_value_ptr(T *v1, T *v2, float t, ViewProp prop, View *target) {
+	inline void transition_value_ptr(T *v1, T *v2, float y, ViewProp prop, View *target) {
 		Qk_UNIMPLEMENTED();
 	}
 
@@ -53,80 +53,85 @@ namespace qk {
 	}
 
 	template<>
-	void transition_value_ptr(BoxFilter *v1, BoxFilter *v2, float t, ViewProp prop, View *target) {
+	void transition_value_ptr(BoxFilter *v1, BoxFilter *v2, float y, ViewProp prop, View *target) {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
-			auto v_new = v1->transition_Rt(v, v2, t);
+			auto v_new = v1->transition_Rt(v, v2, y);
 			(target->*(void (View::*)(BoxFilter*,bool))acc->set)(v_new,true);
 		}
 	}
 
 	template<typename T>
-	inline T transition_value(T v1, T v2, float t) {
-		auto v = v1 - (v1 - v2) * t;
+	inline T transition_value(T v1, T v2, float y) {
+		auto v = v1 - (v1 - v2) * y;
 		return v1;
 	}
 
 	template<>
-	BoxSize transition_value(BoxSize v1, BoxSize v2, float t) {
+	Curve transition_value(Curve v1, Curve v2, float y) {
+		return y < 1.0 ? v1 : v2;
+	}
+
+	template<>
+	BoxSize transition_value(BoxSize v1, BoxSize v2, float y) {
 		if ( v1.kind == v2.kind ) {
-			return { v1.value - (v1.value - v2.value) * t, v1.kind };
+			return { v1.value - (v1.value - v2.value) * y, v1.kind };
 		} else {
-			return t < 1.0 ? v1 : v2;
+			return y < 1.0 ? v1 : v2;
 		}
 	}
 
 	template<>
-	BoxOrigin transition_value(BoxOrigin v1, BoxOrigin v2, float t) {
+	BoxOrigin transition_value(BoxOrigin v1, BoxOrigin v2, float y) {
 		if ( v1.kind == v2.kind ) {
-			return { v1.value - (v1.value - v2.value) * t, v1.kind };
+			return { v1.value - (v1.value - v2.value) * y, v1.kind };
 		} else {
-			return t < 1.0 ? v1 : v2;
+			return y < 1.0 ? v1 : v2;
 		}
 	}
 
 	template<>
-	Color transition_value(Color v1, Color v2, float t) {
-		return Color(v1.r() - (v1.r() - v2.r()) * t,
-								v1.g() - (v1.g() - v2.g()) * t,
-								v1.b() - (v1.b() - v2.b()) * t, v1.a() - (v1.a() - v2.a()) * t);
+	Color transition_value(Color v1, Color v2, float y) {
+		return Color(v1.r() - (v1.r() - v2.r()) * y,
+								v1.g() - (v1.g() - v2.g()) * y,
+								v1.b() - (v1.b() - v2.b()) * y, v1.a() - (v1.a() - v2.a()) * y);
 	}
 
 	template<>
-	TextSize transition_value(TextSize v1, TextSize v2, float t) {
+	TextSize transition_value(TextSize v1, TextSize v2, float y) {
 		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
-			return { v1.value - (v1.value - v2.value) * t, TextValueKind::Value };
+			return { v1.value - (v1.value - v2.value) * y, TextValueKind::Value };
 		} else {
-			return  t < 1.0 ? v1 : v2;
+			return  y < 1.0 ? v1 : v2;
 		}
 	}
 
 	template<>
-	TextColor transition_value(TextColor v1, TextColor v2, float t) {
+	TextColor transition_value(TextColor v1, TextColor v2, float y) {
 		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
-			return { transition_value(v1.value, v2.value, t), TextValueKind::Value };
+			return { transition_value(v1.value, v2.value, y), TextValueKind::Value };
 		} else {
-			return  t < 1.0 ? v1 : v2;
+			return  y < 1.0 ? v1 : v2;
 		}
 	}
 
 	template<>
-	Shadow transition_value(Shadow v1, Shadow v2, float t) {
+	Shadow transition_value(Shadow v1, Shadow v2, float y) {
 		return {
-			v1.x - (v1.x - v2.x) * t,
-			v1.y - (v1.y - v2.y) * t,
-			v1.size - (v1.size - v2.size) * t,
-			transition_value(v1.color, v2.color, t),
+			v1.x - (v1.x - v2.x) * y,
+			v1.y - (v1.y - v2.y) * y,
+			v1.size - (v1.size - v2.size) * y,
+			transition_value(v1.color, v2.color, y),
 		};
 	}
 
 	template<>
-	TextShadow transition_value(TextShadow v1, TextShadow v2, float t) {
+	TextShadow transition_value(TextShadow v1, TextShadow v2, float y) {
 		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
-			return { transition_value(v1.value, v2.value, t), TextValueKind::Value };
+			return { transition_value(v1.value, v2.value, y), TextValueKind::Value };
 		} else {
-			return t < 1.0 ? v1 : v2;
+			return y < 1.0 ? v1 : v2;
 		}
 	}
 
@@ -258,6 +263,12 @@ namespace qk {
 	template<>
 	template<ViewProp key>
 	void SetProp<String>::asyncSet(String value) {
+		asyncSetLarge<key>(value);
+	}
+
+	template<>
+	template<ViewProp key>
+	void SetProp<Curve>::asyncSet(Curve value) {
 		asyncSetLarge<key>(value);
 	}
 
@@ -553,6 +564,14 @@ namespace qk {
 		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_ViewProp>(val);\
 	}
 	Qk_View_Props(_Fun)
-
 	#undef _Fun
+
+	cCurve& StyleSheets::curve() const {
+		Property* prop = nullptr;
+		if (_props.get(kCURVE_ViewProp, prop)) {
+			return static_cast<PropImpl<Curve>*>(prop)->_value;
+		} else {
+			return EASE;
+		}
+	}
 }

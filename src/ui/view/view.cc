@@ -66,23 +66,22 @@ namespace qk {
 		// The object maintained by the parent view should not be deconstructed,
 		// where the parent must be empty
 		Qk_ASSERT(_parent == nullptr);
-		// _cssclass_Mt = nullptr;
+		auto cssclass = _cssclass;
+		_cssclass = nullptr;
+		Release(cssclass);
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
 
 		preRender().async_call([](auto self, auto arg) {
-			// To ensure safety and efficiency, it should be destroyed in RT (render thread)
-			delete self->_cssclass;
-			self->_cssclass = nullptr;
+			// To ensure safety and efficiency,
+			// it should be Completely destroyed in RT (render thread)
 			self->Object::destroy();
 		}, this, 0);
 	}
 
-	Sp<View> View::safe_view() {
+	View* View::safeRetain() {
 		if (++_refCount >= 2) {
-			Sp<View> rt;
-			rt.uncollapse(this);
-			Qk_ReturnLocal(rt);
+			return this;
 		} else {
 			_refCount--; // Revoke self increase
 			return nullptr;
@@ -328,14 +327,15 @@ namespace qk {
 		}
 		if (action != _action) {
 			if ( _action ) {
-				_action->del_target(this);
-				_action->release();
+				auto action = _action;
 				_action = nullptr;
+				action->del_target(this, false);
+				action->release();
 			}
 			if ( action ) {
-				action->set_target(this);
-				action->retain(); // retain from view view
 				_action = action;
+				action->set_target(this, false);
+				action->retain(); // retain from view view
 			}
 		}
 	}

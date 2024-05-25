@@ -348,15 +348,12 @@ namespace qk {
 				set_v_scrollbar_pos();
 
 				_host->mark(View::kScroll, true); // mark
-				auto view = _host->safe_view();
-				auto v = *view;
-				if (!v) return;
 
-				_host->window()->host()->loop()->post(Cb([this, v, scroll](auto& e) {
+				_host->preRender().post(Cb([this, scroll](auto& e) {
 					_scroll_for_Mt = Vec2(-scroll.x(), -scroll.y());
-					Sp<UIEvent> evt = New<UIEvent>(v);
-					v->trigger(UIEvent_Scroll, **evt);
-				}, v));
+					Sp<UIEvent> evt = New<UIEvent>(_host);
+					_host->trigger(UIEvent_Scroll, **evt);
+				}), _host);
 			}
 		}
 

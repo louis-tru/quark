@@ -268,12 +268,14 @@ namespace qk {
 				i.cb->resolve(this); // resolve last message
 			} else {
 				auto timer = (Inl::timer_t*)(i.timer);
+				Qk_WARN("RunLoop::~RunLoop(), discard timer %p", timer);
 				delete timer;
 			}
 		}
 		for (auto &i: _timer) {
 			auto timer = (Inl::timer_t*)(i.value);
 			uv_timer_stop(timer);
+			Qk_WARN("RunLoop::~RunLoop(), discard timer %p", timer);
 			delete timer;
 		}
 

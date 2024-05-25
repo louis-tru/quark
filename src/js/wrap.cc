@@ -80,8 +80,9 @@ namespace qk { namespace js {
 	void object_allocator_weak(Object* obj) {
 		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
 		if ( wrap->worker() ) {
+			Qk_ASSERT(thread_self_id() == wrap->worker()->thread_id());
 			WrapObject_setWeak(wrap);
-		}  else {
+		} else {
 			obj->destroy();
 		}
 	}

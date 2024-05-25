@@ -119,6 +119,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 		Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
+		Qk_DEFINE_PROP_ACC_GET(RunLoop*, loop); //! host main loop
 		/**
 		 * @prop surfaceSize
 		 * returns surface only display region and size

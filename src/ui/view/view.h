@@ -55,6 +55,8 @@ namespace qk {
 		* When setting properties on the main thread and calculating view results on the rendering thread, 
 		* data that can only be accessed by the rendering thread is usually suffixed with "RT" or mark as @safe Rt
 		*
+		* @note Release calls can only be made on the main thread
+		*
 	 * @class View
 		*/
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
@@ -251,13 +253,6 @@ namespace qk {
 		 * @method destroy() heap memory destructor
 		 */
 		void destroy() override;
-
-		/**
-		 * Safely use and hold view objects in rendering thread,
-		 * Because view objects may be destroyed at any time on the main thread
-		 * @method safe_view() Returns safe self hold
-		*/
-		Sp<View> safe_view();
 
 		/**
 		 *
@@ -647,6 +642,13 @@ namespace qk {
 		void set_visible_Rt(bool visible, uint32_t level);
 		void applyClass_Rt(CStyleSheetsClass* parentSsc);
 		CStyleSheetsClass* parentSsclass_Rt();
+
+		/**
+		 * Safely use and hold view objects in rendering thread,
+		 * Because view objects may be destroyed at any time on the main thread
+		 * @method safeRetain() Returns safe self hold
+		*/
+		View* safeRetain();
 
 		friend class UIRender;
 		friend class PreRender;

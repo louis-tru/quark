@@ -298,7 +298,7 @@ namespace qk {
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
 		void mousewhell(KeyboardKeyCode code, bool down, float x, float y);
 		View* find_receive_view_exec(View *view, Vec2 pos);
-		Sp<View, ReferenceTraits> find_receive_view(Vec2 pos);
+		View* find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, KeyboardKeyCode keycode);
 		Sp<View, ReferenceTraits> safe_focus_view();
 

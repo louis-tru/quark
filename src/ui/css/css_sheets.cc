@@ -33,7 +33,7 @@
 
 namespace qk {
 
-	CSSName::CSSName(cString& name)
+	CSSCName::CSSCName(cString& name)
 		: _hashCode(name.hashCode())
 		, _name(name)
 	{}
@@ -103,12 +103,11 @@ namespace qk {
 		return _props.count(name);
 	}
 
-	// --------------------------- S t y l e . S h e e t s ---------------------------
+	// --------------------------- C S t y l e . S h e e t s ---------------------------
 
-	CStyleSheets::CStyleSheets(cCSSName &name, CStyleSheets *parent, CSSType type)
+	CStyleSheets::CStyleSheets(cCSSCName &name, CStyleSheets *parent, CSSType type)
 		: StyleSheets()
 		, _time(0)
-		, _name(name)
 		, _parent(parent)
 		, _normal(nullptr), _hover(nullptr), _active(nullptr)
 		, _havePseudoType(false)
@@ -126,16 +125,22 @@ namespace qk {
 		Release(_active); _active = nullptr;
 	}
 
-	cCStyleSheets* CStyleSheets::find(cCSSName &name) const {
+	void CStyleSheets::set_time(uint32_t val) {
+		_time = val;
+	}
+
+	cCStyleSheets* CStyleSheets::find(cCSSCName &name) const {
 		auto i = _substyles.find(name.hashCode());
 		return i == _substyles.end() ? nullptr : i->value;
 	}
 
-	CStyleSheets* CStyleSheets::findAndMake(cCSSName &name, CSSType type, bool isExtend) {
+	CStyleSheets* CStyleSheets::findAndMake(cCSSCName &name, CSSType type, bool isExtend, bool make) {
 		CStyleSheets *ss;
 		CStyleSheetsDict &from = isExtend ? _extends: _substyles;
 
 		if (!from.get(name.hashCode(), ss)) {
+			if (!make)
+				return nullptr;
 			ss = new CStyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
 			from[name.hashCode()] = ss;
 			_haveSubstyles = _substyles.length();
@@ -151,6 +156,8 @@ namespace qk {
 			case kActive_CSSType: ss_pseudo = &ss->_active; break;
 		}
 		if ( !*ss_pseudo ) {
+			if (!make)
+				return nullptr;
 			ss->_havePseudoType = true;
 			*ss_pseudo = new CStyleSheets(name, ss->parent(), type);
 		}
@@ -164,47 +171,61 @@ namespace qk {
 	});
 
 	RootStyleSheets::RootStyleSheets()
-		: CStyleSheets(CSSName(String()), nullptr, kNone_CSSType)
-	{}
+		: CStyleSheets(CSSCName(String()), nullptr, kNone_CSSType)
+	{
+		auto _button_Normal = searchItem(".qk_button:normal", true);
+		auto _button_Hover = searchItem(".qk_button:hover", true);
+		auto _button_Active = searchItem(".qk_button:active", true);
+		_button_Normal->set_time(180);
+		_button_Normal->set_opacity(1);
+		_button_Hover->set_time(80);
+		_button_Hover->set_opacity(0.7);
+		_button_Active->set_time(50);
+		_button_Active->set_opacity(0.35);
+	}
 
-	Array<CStyleSheets*> RootStyleSheets::search(cString &exp) {
-		Array<CStyleSheets*> rv;
+	CStyleSheets* RootStyleSheets::searchItem(cString &exp, bool make) {
+		#define Qk_InvalidCss(e) { Qk_WARN("Invalid css name \"%s\"", *e); return nullptr; }
+		CStyleSheets *ss = this;
 
-		auto searchItem = [this, &rv](cString &exp) {
-			#define Qk_InvalidCss(e) { Qk_WARN("Invalid css name \"%s\"", *e); return; }
-			CStyleSheets *ss = this;
+		for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
+			bool isExt = false;
+			auto e = j.trim();
+			if ( e.isEmpty() ) continue;
+			if ( e[0] != '.' ) Qk_InvalidCss(exp);
 
-			for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc
-				bool isExt = false;
-				auto e = j.trim();
-				if ( e.isEmpty() ) continue;
-				if ( e[0] != '.' ) Qk_InvalidCss(exp);
-
-				for ( auto n: e.split('.') ) { // .div_cls.div_cls2
-					if ( n.isEmpty() ) continue;
-					auto type = kNone_CSSType;
-					auto k = n.split(':'); // .div_cls:hover
-					if (k.length() > 1) {
-						// normal | hover | active
-						if (!Pseudo_type_keys.get(k[1], type))
-							Qk_InvalidCss(exp);
-						n = k[0];
-						if (n.isEmpty()) continue;
-					}
-					ss = ss->findAndMake(CSSName(n), type, isExt);
-					if ( !ss ) Qk_InvalidCss(exp);
-					isExt = true;
+			for ( auto n: e.split('.') ) { // .div_cls.div_cls2
+				if ( n.isEmpty() ) continue;
+				auto type = kNone_CSSType;
+				auto k = n.split(':'); // .div_cls:hover
+				if (k.length() > 1) {
+					// normal | hover | active
+					if (!Pseudo_type_keys.get(k[1], type))
+						Qk_InvalidCss(exp);
+					n = k[0];
+					if (n.isEmpty()) continue;
 				}
+				ss = ss->findAndMake(CSSCName(n), type, isExt, make);
+				if ( !ss ) {
+					if (make)
+						Qk_InvalidCss(exp);
+					return nullptr;
+				}
+				isExt = true;
 			}
-			if (ss != this)
-				rv.push(ss);
-			#undef Qk_InvalidCss
-		};
+		}
+		return ss == this ? nullptr: ss;
+		#undef Qk_InvalidCss
+	}
 
+	Array<CStyleSheets*> RootStyleSheets::search(cString &exp, bool make) {
+		Array<CStyleSheets*> rv;
 		// .div_cls.div_cls2.kkk .aa.bb.cc, .div_cls.div_cls2.ddd:active .aa.bb.cc
-		for ( auto &i : exp.split(',') )
-			searchItem(i);
-
+		for ( auto &i : exp.split(',') ) {
+			auto item = searchItem(i, make);
+			if (item)
+				rv.push(item);
+		}
 		Qk_ReturnLocal(rv);
 	}
 

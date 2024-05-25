@@ -28,8 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../app.h"
 #include "./css.h"
+#include "../app.h"
+#include "../action/action.h"
 #include "../window.h"
 #include "../view/view.h"
 
@@ -37,14 +38,20 @@ namespace qk {
 	#define _async_call _host->window()->preRender().async_call
 
 	CStyleSheetsClass::CStyleSheetsClass(View *host)
-		: _havePseudoType(false)
+		: _status(kNormal_CSSType)
+		, _setStatus(kNormal_CSSType)
+		, _havePseudoType(false)
 		, _firstApply(true)
 		, _host(host)
 		, _parent(nullptr)
-		, _status(kNormal_CSSType)
-		, _setStatus(kNormal_CSSType)
 	{
 		Qk_ASSERT(host);
+	}
+
+	CStyleSheetsClass::~CStyleSheetsClass() {
+		_host->preRender().async_call([](auto self, auto arg) {
+			self->removeCSSTransition_Rt(arg.arg);
+		}, _host->window()->actionCenter(), _host);
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
@@ -52,7 +59,8 @@ namespace qk {
 			Sp<Array<String>> valp(val.arg);
 			ctx->_nameHash_Rt.clear();
 			for ( auto &j: **valp )
-				ctx->_nameHash_Rt.add(CSSName(j).hashCode());
+				if (!j.isEmpty())
+					ctx->_nameHash_Rt.add(CSSCName(j).hashCode());
 			ctx->updateClass_Rt();
 		}, this, new Array<String>(name));
 	}
@@ -63,7 +71,7 @@ namespace qk {
 				ctx->_nameHash_Rt.add(hash.arg);
 				ctx->updateClass_Rt();
 			}
-		}, this, CSSName(name).hashCode());
+		}, this, CSSCName(name).hashCode());
 	}
 
 	void CStyleSheetsClass::remove(cString &name) {
@@ -73,7 +81,7 @@ namespace qk {
 				ctx->_nameHash_Rt.erase(it);
 				ctx->updateClass_Rt();
 			}
-		}, this, CSSName(name).hashCode());
+		}, this, CSSCName(name).hashCode());
 	}
 
 	void CStyleSheetsClass::toggle(cString &name) {
@@ -85,7 +93,7 @@ namespace qk {
 				ctx->_nameHash_Rt.erase(it);
 			}
 			ctx->updateClass_Rt();
-		}, this, CSSName(name).hashCode());
+		}, this, CSSCName(name).hashCode());
 	}
 
 	void CStyleSheetsClass::updateClass_Rt() {
@@ -113,6 +121,7 @@ namespace qk {
 		_stylesHash_Rt = Hash5381();
 		_havePseudoType = false;
 		_parent = parent;
+		_host->window()->actionCenter()->removeCSSTransition_Rt(_host);
 
 		if (_nameHash_Rt.length()) {
 			applyFrom_Rt(parent);
@@ -178,29 +187,33 @@ namespace qk {
 	</bod>
 	*/
 
-	void CStyleSheetsClass::applyStyle_Rt(CStyleSheets *ss) {
-		ss->apply(_host, true);
+	void CStyleSheetsClass::applyStyle_Rt(CStyleSheets *css) {
+		if (css->_time && !_firstApply) {
+			_host->window()->actionCenter()->addCSSTransition_Rt(_host, css);
+		} else {
+			css->apply(_host, true);
+		}
 
-		if (ss->_substyles.length()) {
-			_stylesHash_Rt.updateu64(uint64_t(ss));
-			_styles_Rt.push(ss);
+		if (css->_substyles.length()) {
+			_stylesHash_Rt.updateu64(uint64_t(css));
+			_styles_Rt.push(css);
 		}
 
 		// apply pseudo class
-		if (ss->_havePseudoType) {
+		if (css->_havePseudoType) {
 			_havePseudoType = true;
 
-			CStyleSheets *ss_pt = nullptr;
+			CStyleSheets *css_pt = nullptr;
 			switch (_status) {
-				case kNormal_CSSType: ss_pt = ss->_normal; break;
-				case kHover_CSSType: ss_pt = ss->_hover; break;
-				case kActive_CSSType: ss_pt = ss->_active; break;
+				case kNormal_CSSType: css_pt = css->_normal; break;
+				case kHover_CSSType: css_pt = css->_hover; break;
+				case kActive_CSSType: css_pt = css->_active; break;
 			}
-			if (ss_pt) applyStyle_Rt(ss_pt);
+			if (css_pt) applyStyle_Rt(css_pt);
 		}
 
-		if (ss->_extends.length()) { // apply extend
-			for (auto &i: ss->_extends) { // test right extend
+		if (css->_extends.length()) { // apply extend
+			for (auto &i: css->_extends) { // test right extend
 				if (_nameHash_Rt.has(i.key)) { // test ok
 					applyStyle_Rt(i.value);
 				}

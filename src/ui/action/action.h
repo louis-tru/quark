@@ -42,9 +42,12 @@ namespace qk {
 	class KeyframeAction;
 	class Window;
 	class PreRender;
+	class CStyleSheets;
+	class CStyleSheetsClass;
 
 	/**
 	* @class Action
+	* @note Release calls can only be made on the main thread
 	*/
 	class Qk_EXPORT Action: public Reference {
 		Qk_HIDDEN_ALL_COPY(Action);
@@ -126,8 +129,8 @@ namespace qk {
 		virtual void clear();
 
 	private:
-		void set_target(View* t);
-		void del_target(View* t);
+		void set_target(View* t, bool isRt);
+		void del_target(View* t, bool isRt);
 		int  set_parent_Rt(Action* parent);
 		void del_parent_Rt();
 		void play_Rt();
@@ -135,13 +138,13 @@ namespace qk {
 		void seek_Rt(uint32_t time);
 		void trigger_ActionLoop_Rt(uint32_t delay, Action* root);
 		void trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frame_index, Action* root);
+		void unsafe_release_only_center_Rt(); // action center only call
 	protected:
 		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action *root) = 0;
 		virtual void seek_time_Rt(uint32_t time, Action *root) = 0;
 		virtual void seek_before_Rt(uint32_t time, Action *child) = 0;
 		virtual void update_duration_Rt(int32_t diff);
 		virtual void clear_Rt() = 0;
-
 		// Props
 		Action *_parent; // @safe Rt
 		View *_target; // @safe Rt
@@ -210,14 +213,20 @@ namespace qk {
 	class ActionCenter: public Object {
 		Qk_HIDDEN_ALL_COPY(ActionCenter)
 	public:
-		ActionCenter();
+		Qk_DEFINE_PROP_GET(Window*, window)
+		ActionCenter(Window *window);
 		~ActionCenter();
 	private:
+		void addCSSTransition_Rt(View *view, CStyleSheets *css);
+		void removeCSSTransition_Rt(View *view);
+
 		struct Action_Wrap {
 			Action* value; bool _runAdvance;
 		};
 		uint32_t _prevTime_Rt;
 		List<Action_Wrap> _actions_Rt;
+		Dict<uint64_t, Array<Action*>> _CSSTransitions_Rt;
+
 		/**
 		* @method advance_Rt() Action scheduling forward frame
 		* @thread render
@@ -226,6 +235,7 @@ namespace qk {
 
 		friend class Action;
 		friend class PreRender;
+		friend class CStyleSheetsClass;
 	};
 
 }

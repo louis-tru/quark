@@ -93,9 +93,23 @@ namespace qk {
 			(*id) = nullptr;
 		}
 	}
-	
+
 	void PreRender::post(Cb cb, uint64_t delayUs) {
-		_window->host()->loop()->timer(cb, delayUs);
+		if (delayUs)
+			_window->loop()->timer(cb, delayUs);
+		else
+			_window->loop()->post(cb);
+	}
+
+	void PreRender::post(Cb cb, View *v, uint64_t delayUs) {
+		if (v->safeRetain()) {
+			auto core = cb.Handle::collapse();
+			post(Cb([core,v](auto&e) {
+				core->call(e);
+				core->release();
+				v->release();
+			}), delayUs);
+		}
 	}
 
 	void PreRender::solveMarks() {
@@ -194,7 +208,6 @@ namespace qk {
 
 	bool PreRender::solve(int64_t time) {
 		solveAsyncCall();
-
 		_window->actionCenter()->advance_Rt(uint64_t(time) / 1000); // advance action
 
 		if ( _tasks.length() ) { // solve task

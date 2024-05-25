@@ -29,14 +29,37 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./action.h"
+#include "./keyframe.h"
+#include "../window.h"
 
 namespace qk {
 
-	ActionCenter::ActionCenter(): _prevTime_Rt(0) 
+	ActionCenter::ActionCenter(Window* window): _window(window), _prevTime_Rt(0) 
 	{}
 
 	ActionCenter::~ActionCenter() {
+		Qk_Fatal_Assert(_CSSTransitions_Rt.length() == 0, "ActionCenter::~ActionCenter stop CSSTransitions");
 		Qk_Fatal_Assert(_actions_Rt.length() == 0, "ActionCenter::~ActionCenter stop actions first");
+	}
+
+	void ActionCenter::addCSSTransition_Rt(View *view, CStyleSheets *css) {
+		auto action = KeyframeAction::
+			MakeSSTransition(view, css, css->time(), true);
+		action->retain(); // retain for center
+		action->set_target(view, true);
+		action->play_Rt();
+		_CSSTransitions_Rt.get(uint64_t(view)).push(action);
+	}
+
+	void ActionCenter::removeCSSTransition_Rt(View *view) {
+		auto it = _CSSTransitions_Rt.find(uint64_t(view));
+		if (it != _CSSTransitions_Rt.end()) {
+			for (auto act: it->value) {
+				act->stop_Rt();
+				act->unsafe_release_only_center_Rt();
+			}
+			_CSSTransitions_Rt.erase(it);
+		}
 	}
 
 	void ActionCenter::advance_Rt(uint32_t timeMs) {

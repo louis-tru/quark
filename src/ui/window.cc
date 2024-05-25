@@ -85,7 +85,7 @@ namespace qk {
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
 		_uiRender = new UIRender(this);
-		_actionCenter = new ActionCenter();
+		_actionCenter = new ActionCenter(this);
 		_styleSheets = _host->styleSheets();
 		_backgroundColor = opts.backgroundColor;
 		{
@@ -101,6 +101,10 @@ namespace qk {
 
 	FontPool* Window::fontPool() {
 		return _host->fontPool();
+	}
+
+	RunLoop* Window::loop() {
+		return _host->_loop;
 	}
 
 	Window* Window::Make(Options opts) {

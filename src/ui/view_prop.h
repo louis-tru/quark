@@ -32,6 +32,7 @@
 #define __quark__ui__view_prop__
 
 #include "../util/util.h"
+#include "../render/bezier.h"
 #include "./types.h"
 
 namespace qk {
@@ -131,6 +132,7 @@ namespace qk {
 	F(ROTATE_Z, float, rotate_z, Transform) \
 	F(ORIGIN_X, BoxOrigin, origin_x, Transform) \
 	F(ORIGIN_Y, BoxOrigin, origin_y, Transform) \
+	F(CURVE, Curve, curve, CSS) /*extends*//*****Large size data*****/\
 
 	// Unsupported attributes for ScrollBase:
 	// (ScrollBase, bool, scrollbar, scrollbar)

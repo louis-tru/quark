@@ -56,11 +56,22 @@ namespace qk {
 		_window = nullptr;
 	}
 
+	void Action::unsafe_release_only_center_Rt() {
+		Qk_ASSERT(refCount() == 1);
+		_window = nullptr;
+		release();
+	}
+
 	void Action::destroy() {
-		_async_call([](auto self, auto arg) {
-			// To ensure safety and efficiency, it should be destroyed in RT (render thread)
-			self->Object::destroy();
-		}, this, 0);
+		if (_window) {
+			_async_call([](auto self, auto arg) {
+				// To ensure safety and efficiency,
+				// it should be Completely destroyed in RT (render thread)
+				self->Object::destroy();
+			}, this, 0);
+		} else {
+			Object::destroy();
+		}
 	}
 
 	bool Action::playing() const {
@@ -180,30 +191,45 @@ namespace qk {
 		}, this, 0);
 	}
 
-	void Action::set_target(View *target) {
+	void Action::set_target(View *target, bool isRt) {
 		Qk_ASSERT(target);
 		Qk_ASSERT(target->window() == _window);
-		_async_call([](auto self, auto arg) {
-			// Qk_Check(!_parent, ERR_ACTION_ILLEGAL_ROOT, "cannot set non root action");
-			if (self->_parent) {
-				Qk_ERR("Action::set_target, cannot set non root action"); return;
-			}
-			// Qk_Check(!_target, ERR_ACTION_DISABLE_MULTIPLE_TARGET, "Action::set_target, action cannot set multiple target");
-			if (self->_target) {
-				Qk_ERR("Action::set_target, action cannot set multiple target"); return;
-			}
-			self->_target = arg.arg;
-		}, this, target);
+		if (isRt) {
+			if (_parent)
+				return Qk_ERR("Action::set_target, cannot set non root action");
+			if (_target)
+				return Qk_ERR("Action::set_target, action cannot set multiple target");
+			_target = target;
+		} else {
+			_async_call([](auto self, auto arg) {
+				// Qk_Check(!_parent, ERR_ACTION_ILLEGAL_ROOT, "cannot set non root action");
+				if (self->_parent) {
+					Qk_ERR("Action::set_target, cannot set non root action"); return;
+				}
+				// Qk_Check(!_target, ERR_ACTION_DISABLE_MULTIPLE_TARGET, "Action::set_target, action cannot set multiple target");
+				if (self->_target) {
+					Qk_ERR("Action::set_target, action cannot set multiple target"); return;
+				}
+				self->_target = arg.arg;
+			}, this, target);
+		}
 	}
 
-	void Action::del_target(View* target) {
+	void Action::del_target(View* target, bool isRt) {
 		Qk_ASSERT(target);
-		_async_call([](auto self, auto arg) {
-			if (arg.arg == self->_target) {
-				self->stop_Rt(); // stop action
-				self->_target = nullptr;
+		if (isRt) {
+			if (target == _target) {
+				stop_Rt(); // stop action
+				_target = nullptr;
 			}
-		}, this, target);
+		} else {
+			_async_call([](auto self, auto arg) {
+				if (arg.arg == self->_target) {
+					self->stop_Rt(); // stop action
+					self->_target = nullptr;
+				}
+			}, this, target);
+		}
 	}
 
 	int Action::set_parent_Rt(Action *parent) {
@@ -247,27 +273,21 @@ namespace qk {
 	}
 
 	void Action::trigger_ActionLoop_Rt(uint32_t delay, Action* root) {
-		auto sv = root->_target->safe_view();
-		auto v = *sv;
-		if (v) {
-			auto evt = new ActionEvent(this, v, delay, 0, _loop);
-			shared_app()->loop()->post(Cb([v,evt](auto& e) {
-				Sp<ActionEvent> h(evt);
-				v->trigger(UIEvent_ActionLoop, *evt);
-			}, v));
-		}
+		auto v = root->_target;
+		auto loop = _loop;
+		v->preRender().post(Cb([this,v,delay,loop](auto& e) {
+			Sp<ActionEvent> h(new ActionEvent(this, v, delay, 0, loop));
+			v->trigger(UIEvent_ActionLoop, **h);
+		}), v);
 	}
 
-	void Action::trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frame_index, Action* root) {
-		auto sv = root->_target->safe_view();
-		auto v = *sv;
-		if (v) {
-			auto evt = new ActionEvent(this, v, delay, frame_index, _loop);
-			shared_app()->loop()->post(Cb([v,evt](auto& e) {
-				Sp<ActionEvent> h(evt);
-				v->trigger(UIEvent_ActionKeyframe, *evt);
-			}, v));
-		}
+	void Action::trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frameIndex, Action* root) {
+		auto v = root->_target;
+		auto loop = _loop;
+		v->preRender().post(Cb([this,v,delay,frameIndex,loop](auto&e) {
+			Sp<ActionEvent> h(new ActionEvent(this, v, delay, frameIndex, loop));
+			v->trigger(UIEvent_ActionKeyframe, **h);
+		}), v);
 	}
 
 }

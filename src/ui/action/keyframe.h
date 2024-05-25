@@ -96,14 +96,26 @@ namespace qk {
 		bool hasProperty(ViewProp name);
 
 		/**
-		* @method add new frame to end
+		* @method addFrom() add new frame to end
 		*/
-		Keyframe* add(uint32_t timeMs, cCurve& curve = EASE);
+		Keyframe* addFrom(uint32_t timeMs, cCurve& curve = EASE);
+
+		/**
+		* @method addWithCss() add new frame to end with css name exp
+		*/
+		Keyframe* addWithCss(cString& cssExp, uint32_t *timeMs = nullptr, cCurve *curve = nullptr);
 
 		/**
 		 * @overwrite
 		*/
 		void clear() override;
+
+		/**
+		 * @method MakeSSTransition()
+		*/
+		static KeyframeAction* MakeSSTransition(
+			View *view, StyleSheets *to, uint32_t time, bool isRt = false
+		);
 
 	private:
 		virtual void append(Action *child) throw(Error);
@@ -111,6 +123,7 @@ namespace qk {
 		virtual void seek_time_Rt(uint32_t time, Action* root);
 		virtual void seek_before_Rt(uint32_t time, Action* child);
 		virtual void clear_Rt();
+		Keyframe* add_unsafe(uint32_t time, cCurve& curve, bool isRt);
 
 		Array<Keyframe*> _frames, _frames_Rt;
 		bool _startPlay;

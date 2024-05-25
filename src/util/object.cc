@@ -30,6 +30,7 @@
 
 #include "./object.h"
 #include "./array.h"
+#include "./loop.h"
 #include <math.h>
 
 namespace qk {

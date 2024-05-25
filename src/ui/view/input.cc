@@ -129,14 +129,10 @@ namespace qk {
 					if ( self->_flag == kFlag_Disable_Click_Focus ) { // 禁用点击聚焦
 						self->_flag = kFlag_Normal;
 					} else {
-						auto view = self->safe_view();
-						auto v = *view;
-						if (v) {
-							if (!v->is_focus())
-								self->preRender().post(Cb([v](auto &e) { v->focus(); },v));
-							self->handle_Focus_for_render_t();
-							self->find_cursor(arg.arg);
-						}
+						if (!self->is_focus())
+							self->preRender().post(Cb([self](auto &e) { self->focus(); }), self);
+						self->handle_Focus_for_render_t();
+						self->find_cursor(arg.arg);
 					}
 				}
 			}, this, Vec2(e->x(), e->y()));
@@ -219,18 +215,14 @@ namespace qk {
 						_flag = kFlag_Find_Cursor_Wait;
 						// 多行文本输入并且为在touch事件时为了判断是否为滚动与定位查找操作,
 						// 只有长按输入框超过1秒没有移动才表示激活光标查找
-						auto view = safe_view();
-						if (view) {
-							
-							preRender().post(Cb([this](auto &e) { // delay call
-								_async_call([](auto ctx, auto arg) {
-									if ( ctx->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
-										ctx->_flag = kFlag_Find_Cursor; // 激活光标定位
-										ctx->find_cursor(ctx->_point);
-									}
-								}, this, 0);
-							}, *view)/*, 1e6*//*1s*/);
-						}
+						preRender().post(Cb([this](auto &e) { // delay call
+							_async_call([](auto ctx, auto arg) {
+								if ( ctx->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
+									ctx->_flag = kFlag_Find_Cursor; // 激活光标定位
+									ctx->find_cursor(ctx->_point);
+								}
+							}, this, 0);
+						}), this, 1e6);
 					} else { // 立即激活
 						_flag = kFlag_Find_Cursor;
 						find_cursor(_point);
@@ -603,14 +595,10 @@ namespace qk {
 		}
 
 		void trigger_Change() {
-			auto view = safe_view();
-			auto v = *view;
-			if (v) {
-				preRender().post(Cb([v](Cb::Data& e){
-					Sp<UIEvent> evt = qk::New<UIEvent>(v);
-					v->trigger(UIEvent_Change, **evt);
-				}, v));
-			}
+			preRender().post(Cb([this](Cb::Data& e){
+				Sp<UIEvent> evt(qk::New<UIEvent>(this));
+				trigger(UIEvent_Change, **evt);
+			}),this);
 		}
 
 	};
@@ -1089,8 +1077,7 @@ namespace qk {
 				if (arg.arg) {
 					self->_editing = false;
 				} else{
-					auto v = self->safe_view();
-					if (v && v->is_focus()) {
+					if (self->is_focus()) {
 						self->_editing = true;
 					}
 				}

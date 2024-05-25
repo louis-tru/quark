@@ -164,6 +164,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(CStyleSheets, StyleSheets, { Js_Throw("Access forbidden."); });
 			Js_Set_StyleSheets_Accessor(uint32_t, time, time);
+			Js_Set_StyleSheets_Accessor(Curve, curve, curve);
 		}
 	};
 
@@ -226,7 +227,7 @@ namespace qk { namespace js {
 				if ( !val->isObject() ) {
 					Js_Throw("NativeCSS.create() Invalid style sheets object");
 				}
-				auto arr = rss->search( key->toStringValue(worker, true) );
+				auto arr = rss->search( key->toStringValue(worker, true), true );
 
 				if ( arr.length() ) {
 					auto props = val->cast<JSObject>();

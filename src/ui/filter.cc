@@ -139,6 +139,8 @@ namespace qk {
 				Object::release();
 			}));
 			_view = nullptr; // clear view
+		} else {
+			
 		}
 	}
 

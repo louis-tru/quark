@@ -46,6 +46,8 @@ namespace qk {
 	*/
 	class Qk_EXPORT QuadraticBezier {
 	public:
+		typedef NonObjectTraits Traits;
+
 		// define props
 		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
@@ -85,6 +87,8 @@ namespace qk {
 	*/
 	class Qk_EXPORT CubicBezier {
 	public:
+		typedef NonObjectTraits Traits;
+
 		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p2, Const);
@@ -100,14 +104,14 @@ namespace qk {
 			// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
 			return ((ax * t + bx) * t + cx) * t + _p0.x();
 		}
-		
+
 		/**
 		 * @method sample_curve_y
 		*/
 		inline float sample_curve_y(float t) const {
 			return ((ay * t + by) * t + cy) * t + _p0.y();
 		}
-		
+
 		/**
 		 * @method compute_bezier_points
 		*/
@@ -162,6 +166,5 @@ namespace qk {
 	Qk_EXPORT extern cCurve EASE_IN;
 	Qk_EXPORT extern cCurve EASE_OUT;
 	Qk_EXPORT extern cCurve EASE_IN_OUT;
-
 }
 #endif

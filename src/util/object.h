@@ -107,7 +107,6 @@ namespace qk {
 		std::atomic_int _refCount;
 	};
 
-	// Qk_EXPORT bool IsSafeNullptr(const Object* obj); 
 	Qk_EXPORT bool Retain(Object* obj);
 	Qk_EXPORT void Release(Object* obj);
 	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);

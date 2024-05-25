@@ -49,14 +49,15 @@ namespace qk {
 		kActive_CSSType,
 	};
 
-	class Qk_EXPORT CSSName {
+	// css class name
+	class Qk_EXPORT CSSCName {
 	public:
 		Qk_DEFINE_PROP_GET(uint64_t, hashCode, Const);
 		Qk_DEFINE_PROP_GET(String, name, Const);
-		CSSName(cString& name);
+		CSSCName(cString& name);
 	};
 
-	typedef const CSSName cCSSName;
+	typedef const CSSCName cCSSCName;
 
 	class StyleSheets: public Object {
 		Qk_HIDDEN_ALL_COPY(StyleSheets);
@@ -73,6 +74,8 @@ namespace qk {
 		#define _Fun(Enum, Type, Name, From) void set_##Name(Type value);
 			Qk_View_Props(_Fun)
 		#undef _Fun
+
+		Qk_DEFINE_PROP_ACC_GET(cCurve&, curve, Const);
 
 		StyleSheets();
 		~StyleSheets();
@@ -114,7 +117,6 @@ namespace qk {
 	};
 
 	/**
-	 * 
 	 * Cascading style sheets
 	 * 
 	 * @class CStyleSheets
@@ -123,7 +125,6 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(CStyleSheets);
 	public:
 		Qk_DEFINE_PROP   (uint32_t, time, Const); // css transition time
-		Qk_DEFINE_PROP_GET(CSSName, name, Const);
 		Qk_DEFINE_PROP_GET(CStyleSheets*, parent);
 		Qk_DEFINE_PROP_GET(CStyleSheets*, normal); // style sheets for pseudo type
 		Qk_DEFINE_PROP_GET(CStyleSheets*, hover);
@@ -135,7 +136,7 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		CStyleSheets(cCSSName &name, CStyleSheets *parent, CSSType type);
+		CStyleSheets(cCSSCName &name, CStyleSheets *parent, CSSType type);
 
 		/**
 		 * @destructor
@@ -145,10 +146,10 @@ namespace qk {
 		/**
 		* @method find children style sheets
 		*/
-		const CStyleSheets* find(cCSSName &name) const;
+		const CStyleSheets* find(cCSSCName &name) const;
 
 	private:
-		CStyleSheets* findAndMake(cCSSName &name, CSSType type, bool isExtend);
+		CStyleSheets* findAndMake(cCSSCName &name, CSSType type, bool isExtend, bool make);
 
 		typedef Dict<uint64_t, CStyleSheets*> CStyleSheetsDict;
 		CStyleSheetsDict _substyles; // css name => .self .sub { width: 100px }
@@ -172,15 +173,25 @@ namespace qk {
 		RootStyleSheets();
 
 		/**
+		 * 
+		 *   ".div_cls.div_cls2:active .aa.bb.cc"
+		 * 
+		 * @method searchItem()
+		*/
+		CStyleSheets* searchItem(cString &exp, bool make = false);
+
+		/**
 		*  ".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:active .aa.bb.cc"
+		* 
 		*
 		* @method search()
 		*/
-		Array<CStyleSheets*> search(cString &exp);
+		Array<CStyleSheets*> search(cString &exp, bool make = false);
 	};
 
-	class Qk_EXPORT CStyleSheetsClass {
+	class Qk_EXPORT CStyleSheetsClass: public Object {
 		Qk_HIDDEN_ALL_COPY(CStyleSheetsClass);
+		CSSType _status, _setStatus; //!< @safe Rt Current pseudo type application status
 	public:
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
 		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
@@ -188,6 +199,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
 
 		CStyleSheetsClass(View *host);
+		~CStyleSheetsClass();
 
 		void set(cArray<String> &name); //!< Calling in the main loop
 		void add(cString &name); //!< Calling in the main loop
@@ -213,9 +225,7 @@ namespace qk {
 		Set<uint64_t> _nameHash_Rt; //!< class name hash
 		Array<CStyleSheets*> _styles_Rt; //!< apply to all current style sheets have substyle sheets
 		Hash5381 _stylesHash_Rt; //!< hash for apply current have substyle sheets
-		CSSType _status, _setStatus; //!< @safe Rt Current pseudo type application status
 
-		friend class View;
 		friend class View;
 	};
 
