@@ -78,11 +78,11 @@ namespace qk {
 		return action;
 	}
 
-	Keyframe* KeyframeAction::addFrom(uint32_t time, cCurve& curve) {
+	Keyframe* KeyframeAction::addFrame(uint32_t time, cCurve& curve) {
 		return add_unsafe(time, curve, false);
 	}
 
-	Keyframe* KeyframeAction::addWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) {
+	Keyframe* KeyframeAction::addFrameWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) {
 		auto css = _window->styleSheets()->searchItem(cssExp, false);
 		if (css) {
 			auto f = add_unsafe(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);

@@ -96,14 +96,14 @@ namespace qk {
 		bool hasProperty(ViewProp name);
 
 		/**
-		* @method addFrom() add new frame to end
+		* @method addFrame() add new frame to end
 		*/
-		Keyframe* addFrom(uint32_t timeMs, cCurve& curve = EASE);
+		Keyframe* addFrame(uint32_t timeMs, cCurve& curve = EASE);
 
 		/**
-		* @method addWithCss() add new frame to end with css name exp
+		* @method addFrameWithCss() add new frame to end with css name exp
 		*/
-		Keyframe* addWithCss(cString& cssExp, uint32_t *timeMs = nullptr, cCurve *curve = nullptr);
+		Keyframe* addFrameWithCss(cString& cssExp, uint32_t *timeMs = nullptr, cCurve *curve = nullptr);
 
 		/**
 		 * @overwrite

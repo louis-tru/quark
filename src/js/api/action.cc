@@ -194,28 +194,28 @@ namespace qk { namespace js {
 
 			// bool hasProperty(ViewProp name);
 
-			Js_Set_Class_Method(addFrom, {
+			Js_Set_Class_Method(addFrame, {
 				if (!args.length() || !args[0]->isUint32()) {
 					Js_Throw("\
 						Param timeMs cannot be empty \n\
-						@method KeyframeAction.addFrom(uint32_t timeMs, cCurve& curve = EASE) \n\
+						@method KeyframeAction.addFrame(uint32_t timeMs, cCurve& curve = EASE) \n\
 					");
 				}
 				auto timeMs = args[0]->toUint32Value(worker).unsafe();
 				auto curve = EASE;
 				if (args.length() > 1) {
-					Js_Parse_Type(Curve, args[1], "@method KeyframeAction.addFrom() curve = %s");
+					Js_Parse_Type(Curve, args[1], "@method KeyframeAction.addFrame() curve = %s");
 					curve = out;
 				}
 				Js_Self(Type);
-				Js_Return( self->addFrom(timeMs, curve) );
+				Js_Return( self->addFrame(timeMs, curve) );
 			});
 
-			Js_Set_Class_Method(addWithCss, {
+			Js_Set_Class_Method(addFrameWithCss, {
 				if (!args.length() || !args[0]->isString()) {
 					Js_Throw("\
 						Bad argument cssExp \n\
-						@method KeyframeAction.addWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) \n\
+						@method KeyframeAction.addFrameWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) \n\
 					");
 				}
 				String cssExp = args[0]->toStringValue(worker);
@@ -223,15 +223,15 @@ namespace qk { namespace js {
 				Curve curve, *curve_p = nullptr;
 
 				if (args.length() > 1) {
-					Js_Parse_Type(uint32_t, args[1], "@method KeyframeAction.addWithCss() timeMs = %s");
+					Js_Parse_Type(uint32_t, args[1], "@method KeyframeAction.addFrameWithCss() timeMs = %s");
 					time = out; time_p = &time;
 				}
 				if (args.length() > 2) {
-					Js_Parse_Type(Curve, args[2], "@method KeyframeAction.addWithCss() curve = %s");
+					Js_Parse_Type(Curve, args[2], "@method KeyframeAction.addFrameWithCss() curve = %s");
 					curve = out; curve_p = &curve;
 				}
 				Js_Self(Type);
-				Js_Return( self->addWithCss(cssExp, time_p, curve_p) );
+				Js_Return( self->addFrameWithCss(cssExp, time_p, curve_p) );
 			});
 
 			cls->exports("KeyframeAction", exports);
