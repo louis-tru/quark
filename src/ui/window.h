@@ -93,6 +93,7 @@ namespace qk {
 		Qk_Event(Change);
 		Qk_Event(Background); // @event onBackground, window into background
 		Qk_Event(Foreground); // @event onForeground, window into foreground
+		Qk_Event(Close); // @event onClose
 
 		/**
 		*
@@ -120,6 +121,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 		Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_PROP_ACC_GET(RunLoop*, loop); //! host main loop
+		Qk_DEFINE_PROP_ACC_GET(View*, focusView); //! focus view
 		/**
 		 * @prop surfaceSize
 		 * returns surface only display region and size

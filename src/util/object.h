@@ -176,11 +176,11 @@ namespace qk {
 			uint32_t capacity = 0;
 			T*       val = nullptr;
 		};
-		static void*alloc(uint32_t size);
-		static void free(void *ptr);
-		static void realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-		static void increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-		static void reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+		static void* alloc(uint32_t size);
+		static void  free(void *ptr);
+		static void  realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+		static void  increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+		static void  reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
 	};
 
 	template<typename T>

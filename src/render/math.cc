@@ -471,9 +471,12 @@ namespace qk {
 			float32x4_t{v.val[0],v.val[1],v.val[0],v.val[1]}
 		); // *
 		float32x2_t p4 = vadd_f32(
-			float32x2_t{p3[0],p3[2]},
-			float32x2_t{p3[1],p3[3]}
-		); // +
+			vadd_f32(
+				float32x2_t{p3[0],p3[2]},
+				float32x2_t{p3[1],p3[3]}
+			), // +
+			float32x2_t{val[2],val[5]}
+		); // +=
 		val[2] = p4[0];
 		val[5] = p4[1];
 #else
@@ -515,7 +518,7 @@ namespace qk {
 		*/
 #if Qk_ARCH_ARM
 		float32x4_t p3 = vmulq_f32(
-			float32x4_t{val[0],val[3],val[1],val[4]},
+			float32x4_t{  val[0], val[3],  val[1],  val[4]},
 			float32x4_t{v.val[0],v.val[0],v.val[1],v.val[1]}
 		);
 		val[0] = p3[0];
@@ -662,7 +665,10 @@ namespace qk {
 			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
 		); // *
 		float32x2_t p8 = vadd_f32(
-			vadd_f32(float32x2_t{p3[0],p3[2]}, float32x2_t{p3[1],p3[3]}),
+			vadd_f32(
+				float32x2_t{p3[0],p3[2]},
+				float32x2_t{p3[1],p3[3]}
+			),
 			float32x2_t{_a[2],_a[5]}
 		); // +
 		return Vec2(p8[0],p8[1]);

@@ -45,6 +45,8 @@ namespace qk { namespace js {
 				self<Type>()->Js_Native_On(Background, func, id);
 			} else if ( name == "Foreground" ) {
 				self<Type>()->Js_Native_On(Foreground, func, id);
+			} else if ( name == "Close" ) {
+				self<Type>()->Js_Native_On(Close, func, id);
 			} else
 				return false;
 			return true;
@@ -57,6 +59,8 @@ namespace qk { namespace js {
 				self<Type>()->Qk_Off(Background, id);
 			} else if ( name == "Foreground" ) {
 				self<Type>()->Qk_Off(Foreground, id);
+			} else if ( name == "Close" ) {
+				self<Type>()->Qk_Off(Close, id);
 			} else
 				return false;
 			return true;
@@ -126,6 +130,12 @@ namespace qk { namespace js {
 			// Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 			// Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 			// Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
+			// Qk_DEFINE_PROP_ACC_GET(RunLoop*, loop); //! host main loop
+
+			Js_Set_Class_Accessor_Get(focusView, {
+				Js_Self(Type);
+				Js_Return( self->focusView() );
+			});
 
 			Js_Set_Class_Accessor_Get(surfaceSize, {
 				Js_Self(Type);

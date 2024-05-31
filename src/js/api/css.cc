@@ -136,7 +136,7 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(float, origin_y, originY);
 
 			Js_Set_Class_Accessor_Get(itemsCount, {
-				Js_Self(Keyframe);
+				Js_Self(StyleSheets);
 				Js_Return( self->itemsCount() );
 			});
 
@@ -144,15 +144,15 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Method(apply, {
 				if (!args.length() || !Js_IsView(args[0]))
-					Js_Throw("@method Keyframe.apply(view) Bad argument.");
-				Js_Self(Keyframe);
+					Js_Throw("@method StyleSheets.apply(view) Bad argument.");
+				Js_Self(StyleSheets);
 				self->apply(wrap<View>(args[0])->self(), false);
 			});
 
 			Js_Set_Class_Method(fetch, {
 				if (!args.length() || !Js_IsView(args[0]))
-					Js_Throw("@method Keyframe.fetch(view) Bad argument.");
-				Js_Self(Keyframe);
+					Js_Throw("@method StyleSheets.fetch(view) Bad argument.");
+				Js_Self(StyleSheets);
 				self->fetch(wrap<View>(args[0])->self(), false);
 			});
 		}

@@ -140,7 +140,7 @@ namespace qk {
 			}));
 			_view = nullptr; // clear view
 		} else {
-			
+			Object::release();
 		}
 	}
 

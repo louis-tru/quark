@@ -52,7 +52,6 @@ namespace qk { namespace js {
 				}
 			}
 		}
-
 		Array<String> argvArr;
 
 		if ( cmd.isEmpty() ) {

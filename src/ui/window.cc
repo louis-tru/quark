@@ -69,6 +69,7 @@ namespace qk {
 		: Qk_Init_Event(Change)
 		, Qk_Init_Event(Background)
 		, Qk_Init_Event(Foreground)
+		, Qk_Init_Event(Close)
 		, _host(shared_app())
 		, _uiRender(nullptr)
 		, _lockSize()
@@ -81,6 +82,7 @@ namespace qk {
 		, _preRender(this)
 	{
 		Qk_Fatal_Assert(_host);
+		thread_check_self_first();
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
@@ -107,6 +109,10 @@ namespace qk {
 		return _host->_loop;
 	}
 
+	View* Window::focusView() {
+		return _dispatch->focus_view();
+	}
+
 	Window* Window::Make(Options opts) {
 		return new Window(opts);
 	}
@@ -117,6 +123,7 @@ namespace qk {
 
 	void Window::close() {
 		if (Destroy()) {
+			Qk_Trigger(Close);
 			release(); // release ref count from host windows
 		}
 	}

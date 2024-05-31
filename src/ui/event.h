@@ -175,7 +175,7 @@ namespace qk {
 		KeyEvent(View* origin, KeyboardKeyCode keycode, int keypress,
 						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
-		Qk_DEFINE_PROP(View*, focus_move);
+		Qk_DEFINE_PROP(View*, next_focus);
 		Qk_DEFINE_PROP(KeyboardKeyCode, keycode, Const);
 		Qk_DEFINE_PROP(int, keypress, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, repeat, Const);

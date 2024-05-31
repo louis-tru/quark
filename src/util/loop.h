@@ -81,6 +81,7 @@ namespace qk {
 	Qk_EXPORT void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
 	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort all run loop, signal=-2
 	Qk_EXPORT ThreadID thread_self_id();
+	Qk_EXPORT void     thread_check_self_first(); //!< Check if self is the first thread
 
 	Qk_EXPORT EventNoticer<Event<>, Mutex>& onProcessExit();
 

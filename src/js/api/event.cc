@@ -182,9 +182,9 @@ namespace qk { namespace js {
 				Js_Self(Type);
 				Js_Return( self->source() );
 			});
-			Js_Set_Class_Accessor(focusMove, {
+			Js_Set_Class_Accessor(nextFocus, {
 				Js_Self(Type);
-				Js_Return( self->focus_move() );
+				Js_Return( self->next_focus() );
 			}, {
 				Js_Self(Type);
 				View* view = nullptr;
@@ -193,7 +193,7 @@ namespace qk { namespace js {
 				} else if ( !val->isNull() ) {
 					Js_Throw("Bad argument.");
 				}
-				self->set_focus_move(view);
+				self->set_next_focus(view);
 			});
 			cls->exports("KeyEvent", exports);
 		}

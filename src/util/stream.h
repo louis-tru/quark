@@ -41,9 +41,6 @@ namespace qk {
 		virtual void resume() = 0;
 	};
 
-	 /**
-	 * @class StreamResponse
-	 */
 	class StreamResponse: public Object {
 	public:
 		inline StreamResponse(Buffer &buffer, bool complete = 0

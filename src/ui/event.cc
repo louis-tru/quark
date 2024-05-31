@@ -153,9 +153,9 @@ namespace qk {
 		, _caps_lock(caps_lock), _focus_move(nullptr)
 	{}
 
-	void KeyEvent::set_focus_move(View *view) {
+	void KeyEvent::set_next_focus(View *view) {
 		if (origin())
-			_focus_move = view;
+			_next_focus = view;
 	}
 
 	void KeyEvent::set_keycode(KeyboardKeyCode keycode) {
@@ -804,7 +804,7 @@ namespace qk {
 
 		auto cdoe = _keyboard->keycode();
 		auto btn = view->asButton();
-		View *focus_move = nullptr;
+		View *next_focus = nullptr;
 
 		if (btn) {
 			FindDirection dir;
@@ -818,7 +818,7 @@ namespace qk {
 			if ( dir != FindDirection::None ) {
 				auto view = btn->next_button(dir);
 				if (view)
-					focus_move = view->safeRetain(); // safe retain view
+					next_focus = view->safeRetain(); // safe retain view
 			}
 		}
 
@@ -831,11 +831,10 @@ namespace qk {
 			_keyboard->command(), _keyboard->caps_lock(),
 			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 		);
+		evt->set_next_focus(next_focus);
 
 		_loop->post(Cb([=](auto& e) {
 			Sp<KeyEvent> h(evt);
-
-			evt->set_focus_move(focus_move);
 
 			_inl_view(view)->bubble_trigger(UIEvent_KeyDown, *evt);
 
@@ -860,12 +859,12 @@ namespace qk {
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 				}
 
-				if ( evt->focus_move() ) {
-					evt->focus_move()->focus();
+				if ( evt->next_focus() ) {
+					evt->next_focus()->focus();
 				}
 			} // if ( evt->is_default() ) {
 
-			Release(focus_move); // release safe view hold
+			Release(next_focus); // release safe view hold
 		}, view)); // async_resolve(
 	}
 

@@ -93,6 +93,11 @@ namespace qk {
 		return std::this_thread::get_id();
 	}
 
+	void thread_check_self_first() {
+		Qk_Fatal_Assert(__first_loop && __first_loop->thread_id() == thread_self_id(),
+			"Must be called on the first thread loop");
+	}
+
 	const Thread* thread_current() {
 		return reinterpret_cast<const Thread*>(pthread_getspecific(__specific_key));
 	}

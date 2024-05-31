@@ -31,7 +31,7 @@
 #include "./loop_.h"
 
 namespace qk {
-	static RunLoop *__first_loop = nullptr;
+	RunLoop *__first_loop = nullptr;
 
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
 	public:

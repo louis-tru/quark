@@ -65,7 +65,7 @@ public:
 		//paint.width = 1;
 		//paint.style = Paint::kStroke_Style;
 		//canvas->drawPath(dash, paint);
-		canvas->translate({70, 0});
+		canvas->translate({115, 0});
 		// canvas->drawPath(circle, paint);
 
 		// paint.antiAlias = false;

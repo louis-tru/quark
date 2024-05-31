@@ -102,7 +102,7 @@ namespace qk {
 			_keep = _loop->keep_alive([](void *ctx) {
 				auto app = (Application*)(ctx);
 				if (app->_windows.length()) {
-					ScopeLock lock(app->_mutex);
+					// ScopeLock lock(app->_mutex);
 					for(auto w: app->_windows) {
 						w->preRender().asyncCommit();
 					}
@@ -139,7 +139,8 @@ namespace qk {
 	}
 
 	void Application::clear(bool all) {
-		ScopeLock lock(_mutex);
+		// ScopeLock lock(_mutex);
+		Qk_Fatal_Assert(thread_self_id() == _loop->thread_id());
 		for (auto i: _windows) {
 			i->render()->getCanvas()->getPathvCache()->clear(all);
 		}
