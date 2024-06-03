@@ -922,7 +922,7 @@ namespace qk {
 	}
 
 	void Input::onActivate() {
-		_text_flags = 0xffffffff;
+		_textFlags = 0xffffffff;
 	}
 
 	TextInput* Input::asTextInput() {

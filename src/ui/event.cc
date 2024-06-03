@@ -150,7 +150,7 @@ namespace qk {
 		: UIEvent(origin), _keycode(keycode), _keypress(keypress)
 		, _device(device), _source(source), _repeat(repeat), _shift(shift)
 		, _ctrl(ctrl), _alt(alt), _command(command)
-		, _caps_lock(caps_lock), _focus_move(nullptr)
+		, _caps_lock(caps_lock), _next_focus(nullptr)
 	{}
 
 	void KeyEvent::set_next_focus(View *view) {
@@ -163,7 +163,7 @@ namespace qk {
 	}
 
 	void KeyEvent::release() {
-		_focus_move = nullptr;
+		_next_focus = nullptr;
 		UIEvent::release();
 	}
 

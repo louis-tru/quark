@@ -92,9 +92,9 @@ namespace qk {
 		virtual void set_input_text_offset(Vec2 val);
 		virtual View* init(Window *win) override;
 	private:
+		Sp<TextLines> _lines;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
-		Sp<TextLines> _lines;
 		String4 _marked_text;
 		Color   _marked_color;
 		uint32_t  _marked_text_idx; // marked text index for text

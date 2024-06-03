@@ -53,11 +53,11 @@ namespace qk {
 		virtual void onActivate() override;
 		virtual void draw(UIRender *render) override;
 	protected:
-		// virtual void onTextChange(uint32_t mark, uint32_t type) override;
 		virtual View* getViewForTextOptions() override;
+	private:
+		Sp<TextLines>   _lines;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
-		Sp<TextLines>   _lines;
 		friend class UIRender;
 	};
 

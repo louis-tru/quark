@@ -53,8 +53,10 @@ namespace qk {
 	F(ALIGN, Align, align, Box) \
 	F(WIDTH, BoxSize, width, Box) \
 	F(HEIGHT, BoxSize, height, Box) \
-	F(WIDTH_LIMIT, BoxSize, width_limit, Box) \
-	F(HEIGHT_LIMIT, BoxSize, height_limit, Box) \
+	F(MIN_WIDTH, BoxSize, min_width, Box) \
+	F(MIN_HEIGHT, BoxSize, min_height, Box) \
+	F(MAX_WIDTH, BoxSize, max_width, Box) \
+	F(MAX_HEIGHT, BoxSize, max_height, Box) \
 	F(MARGIN, ArrayFloat, margin, Box) /*margin*/\
 	F(MARGIN_TOP, float, margin_top, Box) \
 	F(MARGIN_RIGHT, float, margin_right, Box) \

@@ -54,6 +54,15 @@ namespace qk { namespace js {
 		Js_Set_UIObject_Accessor(TextOptions, TextSize, text_line_height, textLineHeight);
 		Js_Set_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);
 		Js_Set_UIObject_Accessor(TextOptions, TextFamily, text_family, textFamily);
+
+		Js_Set_Class_Method(computeLayoutSize, {
+			if (!args.length()) {
+				Js_Throw("@method TextOptions.compute_layout_size(cString& value)\n");
+			}
+			auto str = args[0]->toStringValue2(worker);
+			Js_Self(Text);
+			Js_Return( worker->types()->jsvalue(self->compute_layout_size(str)) );
+		});
 	}
 
 	class WrapText: public WrapViewObject {
@@ -66,6 +75,7 @@ namespace qk { namespace js {
 				Js_NewView(Text);
 			});
 			inheritTextOptions(cls, worker);
+			Js_Set_WrapObject_Accessor(Text, String, value, value);
 			cls->exports("Text", exports);
 		}
 	};

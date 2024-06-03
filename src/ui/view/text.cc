@@ -38,13 +38,20 @@ namespace qk {
 		if (mark_ & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
+			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			auto size = content_size();
 			auto v = first_Rt();
 			_lines = new TextLines(this, text_align_value(), size, layout_wrap_x_Rt());
 			_lines->set_stable_line_height(text_size().value, text_line_height().value);
 
+			_blob_visible.clear();
+			_blob.clear();
+
+			TextBlobBuilder tbb(*_lines, this, &_blob);
+
+			tbb.make(_value);
+
 			if (v) {
-				TextConfig cfg(this, shared_app()->defaultTextOptions());
 				do {
 					v->layout_text(*_lines, &cfg);
 					v = v->next_Rt();
@@ -85,7 +92,7 @@ namespace qk {
 	}
 
 	void Text::onActivate() {
-		_text_flags = 0xffffffffu;
+		_textFlags = 0xffffffffu;
 	}
 
 	TextOptions* Text::asTextOptions() {

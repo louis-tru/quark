@@ -46,10 +46,12 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_GET(bool,       layout_wrap_y_Rt, Const); // Returns the y-axis is wrap content
 		Qk_DEFINE_VIEW_PROP    (bool,       clip, Const); // is clip box display range
 		Qk_DEFINE_VIEW_PROP    (Align,      align, ProtectedConst); // view align
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    width, Const); // size width
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    height, Const); // size height
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    width_limit, Const); // limit max size
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    height_limit, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
+		Qk_DEFINE_VIEW_PROP_ACC(BoxSize,    height, Const); //!< min height alias
+		Qk_DEFINE_VIEW_PROP    (BoxSize,    min_width, Const); //!< limit min width if max width not equal none then limit min width
+		Qk_DEFINE_VIEW_PROP    (BoxSize,    min_height, Const); // limit min height
+		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_width, Const); // limit max width if min width not equal none then limit max width
+		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_height, Const); // limit max width
 		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, margin, Const); // margin
 		Qk_DEFINE_VIEW_PROP    (float,      margin_top, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      margin_right, Const);
@@ -164,6 +166,14 @@ namespace qk {
 		virtual float solve_layout_content_height(Size &parent_layout_size);
 
 		/**
+		 * @solve_layout_content_width_fixed()
+		 * @safe Rt
+		 * @note Can only be used in rendering threads
+		*/
+		float solve_layout_content_width_fixed(Size &parent_layout_size, BoxSize value);
+		float solve_layout_content_height_fixed(Size &parent_layout_size, BoxSize value);
+
+		/**
 		 * @method mark_size()
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
@@ -173,7 +183,7 @@ namespace qk {
 		// ----------------------- define private props -----------------------
 	private:
 		BoxFilter *_background;
-		BoxShadow *_box_shadow;
+		BoxShadow *_boxShadow;
 	protected:
 		struct BoxBorderInl { // box border value
 			float width[4];

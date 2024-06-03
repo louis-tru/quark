@@ -60,7 +60,6 @@ namespace qk {
 			}
 		}
 		parent_layout_size.wrap_x = false;
-
 		return result;
 	}
 

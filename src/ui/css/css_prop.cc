@@ -274,6 +274,18 @@ namespace qk {
 
 	template<>
 	template<>
+	void SetProp<BoxSize>::asyncSet<kWIDTH_ViewProp>(BoxSize val) {
+		set_min_width(val);
+	}
+
+	template<>
+	template<>
+	void SetProp<BoxSize>::asyncSet<kHEIGHT_ViewProp>(BoxSize val) {
+		set_min_height(val);
+	}
+
+	template<>
+	template<>
 	void SetProp<ArrayFloat>::asyncSet<kMARGIN_ViewProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:

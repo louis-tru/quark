@@ -38,12 +38,12 @@
 
 namespace qk {
 
-	float Box::solve_layout_content_width(Size &parent_layout_size) {
-		float ps = parent_layout_size.content_size.x();
+	float Box::solve_layout_content_width_fixed(Size &parent_layout_size, BoxSize value) {
+		float psize = parent_layout_size.content_size.x();
 		bool* is_wrap_in_out = &parent_layout_size.wrap_x;
 		float result;
 
-		switch (_width.kind) {
+		switch (value.kind) {
 			default: // NONE /* none default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
@@ -51,13 +51,13 @@ namespace qk {
 				break;
 			case BoxSizeKind::Rem: /* 明确值 value rem */
 				*is_wrap_in_out = false;
-				result = _width.value;
+				result = value.value;
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
-					result = ps - _margin_left - _margin_right - _padding_left - _padding_right;
+					result = psize - _margin_left - _margin_right - _padding_left - _padding_right;
 					if (_border)
 						result -= (_border->width[3] + _border->width[1]); // left + right
 					result = Number<float>::max(result, 0);
@@ -68,7 +68,7 @@ namespace qk {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
-					result = Number<float>::max(ps * _width.value, 0);
+					result = Number<float>::max(psize * value.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -76,7 +76,7 @@ namespace qk {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
-					result = Number<float>::max(ps - _width.value, 0);
+					result = Number<float>::max(psize - value.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -84,12 +84,12 @@ namespace qk {
 		return result;
 	}
 
-	float Box::solve_layout_content_height(Size &parent_layout_size) {
-		float ps = parent_layout_size.content_size.y();
+	float Box::solve_layout_content_height_fixed(Size &parent_layout_size, BoxSize value) {
+		float psize = parent_layout_size.content_size.y();
 		bool* is_wrap_in_out = &parent_layout_size.wrap_y;
 		float result;
 
-		switch (_height.kind) {
+		switch (value.valuekind) {
 			default: // NONE /* none default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
@@ -97,13 +97,13 @@ namespace qk {
 				break;
 			case BoxSizeKind::Rem: /* 明确值 value rem */
 				*is_wrap_in_out = false;
-				result = _height.value;
+				result = value.value;
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
-					result = ps - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
+					result = psize - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
 					if (_border)
 						result -= (_border->width[3] + _border->width[1]); // left + right
 					result = Number<float>::max(result, 0);
@@ -114,7 +114,7 @@ namespace qk {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
-					result = Number<float>::max(ps * _height.value, 0);
+					result = Number<float>::max(psize * value.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
@@ -122,12 +122,35 @@ namespace qk {
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
-					result = Number<float>::max(ps - _height.value, 0);
+					result = Number<float>::max(psize - value.value, 0);
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
 		}
 		return result;
+	}
+
+	float Box::solve_layout_content_width(Size &parent_layout_size) {
+		// TODO ...
+		switch (_max_width.kind) {
+			case BoxSizeKind::None:
+				return solve_layout_content_width_fixed(parent_layout_size, _min_width);
+			case BoxSizeKind::Auto:
+				break;
+			case BoxSizeKind::Rem:
+				break;
+			case BoxSizeKind::Match:
+				break;
+			case BoxSizeKind::Ratio:
+				break;
+			case BoxSizeKind::Minus:
+				break;
+		}
+	}
+
+	float Box::solve_layout_content_height(Size &parent_layout_size) {
+		// TODO ...
+		return solve_layout_content_height_fixed(parent_layout_size, _min_height);
 	}
 
 	void Box::mark_size(uint32_t mark, bool isRt) {
@@ -157,8 +180,8 @@ namespace qk {
 	Box::Box()
 		: _layout_wrap_x_Rt(true), _layout_wrap_y_Rt(true), _clip(false)
 		, _align(Align::Auto)
-		, _width{0, BoxSizeKind::Auto}, _height{0, BoxSizeKind::Auto}
-		, _width_limit{0, BoxSizeKind::Auto}, _height_limit{0, BoxSizeKind::Auto}
+		, _min_width{0, BoxSizeKind::Auto}, _min_height{0, BoxSizeKind::Auto}
+		, _max_width{0, BoxSizeKind::None}, _max_height{0, BoxSizeKind::None}
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -168,14 +191,14 @@ namespace qk {
 		, _background_color(Color::from(0))
 		, _weight(0)
 		, _background(nullptr)
-		, _box_shadow(nullptr)
+		, _boxShadow(nullptr)
 		, _border(nullptr)
 	{
 	}
 
 	Box::~Box() {
 		Release(_background); _background = nullptr;
-		Release(_box_shadow); _box_shadow = nullptr;
+		Release(_boxShadow); _boxShadow = nullptr;
 		::free(_border); _border = nullptr;
 	}
 
@@ -187,30 +210,46 @@ namespace qk {
 		}
 	}
 
+	BoxSize Box::width() const {
+		return _min_width;
+	}
+
+	BoxSize Box::height() const {
+		return _min_height;
+	}
+
 	void Box::set_width(BoxSize val, bool isRt) {
-		if (_width != val) {
-			_width = val;
+		if (_min_width != val) {
+			_min_width = val;
 			mark_size(kLayout_Size_Width, isRt);
 		}
 	}
 
 	void Box::set_height(BoxSize val, bool isRt) {
-		if (_height != val) {
-			_height = val;
+		if (_min_height != val) {
+			_min_height = val;
 			mark_size(kLayout_Size_Height, isRt);
 		}
 	}
 
-	void Box::set_width_limit(BoxSize val, bool isRt) {
-		if (_width_limit != val) {
-			_width_limit = val;
+	void Box::set_min_width(BoxSize val, bool isRt) {
+		set_width(val, isRt);
+	}
+
+	void Box::set_min_height(BoxSize val, bool isRt) {
+		set_height(val, isRt);
+	}
+
+	void Box::set_max_width(BoxSize val, bool isRt) {
+		if (_max_width != val) {
+			_max_width = val;
 			mark_size(kLayout_Size_Width, isRt);
 		}
 	}
 
-	void Box::set_height_limit(BoxSize val, bool isRt) {
-		if (_height_limit != val) {
-			_height_limit = val;
+	void Box::set_max_height(BoxSize val, bool isRt) {
+		if (_max_height != val) {
+			_max_height = val;
 			mark_size(kLayout_Size_Height, isRt);
 		}
 	}
@@ -712,7 +751,7 @@ namespace qk {
 	}
 
 	BoxShadow* Box::box_shadow() {
-		return static_cast<BoxShadow*>(BoxFilter::safe_filter(_box_shadow));
+		return static_cast<BoxShadow*>(BoxFilter::safe_filter(_boxShadow));
 	}
 
 	void Box::set_background(BoxFilter* val, bool isRt) {
@@ -731,13 +770,13 @@ namespace qk {
 
 	void Box::set_box_shadow(BoxShadow* val, bool isRt) {
 		if (isRt) {
-			if (_box_shadow != val) {
-				_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(_box_shadow, val, this));
+			if (_boxShadow != val) {
+				_boxShadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(_boxShadow, val, this));
 			}
 		} else {
 			preRender().async_call([](auto self, auto arg) {
-				if (self->_box_shadow != arg.arg) {
-					self->_box_shadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(self->_box_shadow, arg.arg, self));
+				if (self->_boxShadow != arg.arg) {
+					self->_boxShadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(self->_boxShadow, arg.arg, self));
 				}
 			}, this, val);
 		}

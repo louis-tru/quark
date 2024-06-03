@@ -373,6 +373,56 @@ namespace qk {
 		}
 	}
 
+	void UIRender::drawTextBlob(TextOptions *v, TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) {
+		auto size = v->text_size().value;
+		auto shadow = v->text_shadow().value;
+
+		// draw text  background
+		if (v->text_background_color().value.a()) {
+			auto color = v->text_background_color().value.to_color4f_alpha(_opacity);
+			for (auto i: blob_visible) {
+				auto &blob = _blob[i];
+				auto &line = lines->line(blob.line);
+				auto offset_x = blob.blob.offset.front().x();
+				auto &rect = _cache->getRectPath({
+					{line.origin + blob.origin + offset_x, line.baseline - blob.ascent},
+					{blob.blob.offset.back().x()-offset_x, blob.height},
+				});
+				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
+			}
+		}
+
+		// draw text shadow
+		if (shadow.color.a()) {
+			Paint paint;
+			PaintFilter filter;
+			paint.color = shadow.color.to_color4f_alpha(_opacity);
+			if (shadow.size) {
+				filter.type = PaintFilter::kBlur_Type;
+				filter.val0 = shadow.size;
+				paint.filter = &filter;
+			}
+			for (auto i: blob_visible) {
+				auto &blob = _blob[i];
+				auto &line = lines->line(blob.line);
+				_canvas->drawTextBlob(&blob.blob, {
+					line.origin + blob.origin + shadow.x, line.baseline + shadow.y
+				}, size, paint);
+			}
+		}
+
+		// draw text blob
+		if (v->text_color().value.a()) {
+			Paint paint;
+			paint.color = v->text_color().value.to_color4f_alpha(_opacity);
+			for (auto i: blob_visible) {
+				auto &blob = _blob[i];
+				auto &line = lines->line(blob.line);
+				_canvas->drawTextBlob(&blob.blob, {line.origin + blob.origin, line.baseline}, size, paint);
+			}
+		} // if (v->text_color().value.a())
+	}
+
 	void UIRender::visitView(View *view) {
 		// visit child
 		auto v = view->_first_Rt;
@@ -401,7 +451,7 @@ namespace qk {
 	void UIRender::visitBox(Box* box) {
 		BoxData data;
 		_canvas->setTranslate(box->position());
-		if (box->_box_shadow)
+		if (box->_boxShadow)
 			drawBoxShadow(box, data);
 		if (box->_background_color.a())
 			drawBoxColor(box, data);
@@ -415,7 +465,7 @@ namespace qk {
 	void UIRender::visitImage(Image* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		if (v->_box_shadow)
+		if (v->_boxShadow)
 			drawBoxShadow(v, data);
 		if (v->_background_color.a())
 			drawBoxColor(v, data);
@@ -449,10 +499,43 @@ namespace qk {
 		drawScrollBar(v,v);
 	}
 
+	void UIRender::visitText(Text* v) {
+		BoxData data;
+		_canvas->setTranslate(v->position());
+		if (v->_boxShadow)
+			drawBoxShadow(v, data);
+		if (v->_background_color.a())
+			drawBoxColor(v, data);
+		if (v->_background)
+			drawBoxFill(v, data);
+		if (v->_border)
+			drawBoxBorder(v, data);
+
+		if (v->_clip) {
+			if (v->_first_Rt || v->_blob_visible.length()) {
+				getInsideRectPath(v, data);
+				_window->clipRegion(screen_region_from_convex_quadrilateral(v->_vertex));
+				_canvas->save();
+				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
+				if (v->_blob_visible.length()) {
+					drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
+				}
+				UIRender::visitView(v);
+				_canvas->restore(); // cancel clip
+				_window->clipRestore();
+			}
+		} else {
+			if (v->_blob_visible.length()) {
+				drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
+			}
+			UIRender::visitView(v);
+		}
+	}
+
 	void UIRender::visitInput(Input* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		if (v->_box_shadow)
+		if (v->_boxShadow)
 			drawBoxShadow(v, data);
 		if (v->_background_color.a())
 			drawBoxColor(v, data);
@@ -464,7 +547,7 @@ namespace qk {
 		auto lines = *v->_lines;
 		auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
 		auto twinkle = v->_editing && v->_cursor_twinkle_status;
-		auto visible = v->_blob_visible.length() > 0;
+		auto visible = v->_blob_visible.length();
 		auto clip = v->_clip && (visible || twinkle);
 
 		if (clip) {
@@ -559,57 +642,9 @@ namespace qk {
 	void UIRender::visitLabel(Label* v) {
 		if (v->_blob_visible.length()) {
 			_canvas->setTranslate(v->position());
-
-			auto lines = *v->_lines;
-			auto size = v->text_size().value;
-			auto shadow = v->text_shadow().value;
-
-			// draw text  background
-			if (v->text_background_color().value.a()) {
-				auto color = v->text_background_color().value.to_color4f_alpha(_opacity);
-				for (auto i: v->_blob_visible) {
-					auto &blob = v->_blob[i];
-					auto &line = lines->line(blob.line);
-					auto offset_x = blob.blob.offset.front().x();
-					auto &rect = _cache->getRectPath({
-						{line.origin + blob.origin + offset_x, line.baseline - blob.ascent},
-						{blob.blob.offset.back().x()-offset_x, blob.height},
-					});
-					_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
-				}
-			}
-
-			// draw text shadow
-			if (shadow.color.a()) {
-				Paint paint;
-				PaintFilter filter;
-				paint.color = shadow.color.to_color4f_alpha(_opacity);
-				if (shadow.size) {
-					filter.type = PaintFilter::kBlur_Type;
-					filter.val0 = shadow.size;
-					paint.filter = &filter;
-				}
-				for (auto i: v->_blob_visible) {
-					auto &blob = v->_blob[i];
-					auto &line = lines->line(blob.line);
-					_canvas->drawTextBlob(&blob.blob, {
-						line.origin + blob.origin + shadow.x, line.baseline + shadow.y
-					}, size, paint);
-				}
-			}
-
-			// draw text blob
-			if (v->text_color().value.a()) {
-				Paint paint;
-				paint.color = v->text_color().value.to_color4f_alpha(_opacity);
-				for (auto i: v->_blob_visible) {
-					auto &blob = v->_blob[i];
-					auto &line = lines->line(blob.line);
-					_canvas->drawTextBlob(&blob.blob, {line.origin + blob.origin, line.baseline}, size, paint);
-				}
-			} // if (v->text_color().value.a())
+			drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
 		}
-		
+
 		UIRender::visitView(v);
 	}
 
@@ -640,7 +675,7 @@ namespace qk {
 				_matrix = &v->matrix();
 				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
 				_canvas->clearColor(v->_background_color.to_color4f());
-				if (v->_box_shadow)
+				if (v->_boxShadow)
 					drawBoxShadow(v, data);
 				if (v->_background)
 					drawBoxFill(v, data);
@@ -668,6 +703,10 @@ namespace qk {
 
 	void Scroll::draw(UIRender *render) {
 		render->visitScroll(this);
+	}
+
+	void Text::draw(UIRender *render) {
+		render->visitText(this);
 	}
 
 	void Input::draw(UIRender *render) {

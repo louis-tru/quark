@@ -37,12 +37,14 @@
 #include "../render/render.h"
 #include "../render/canvas.h"
 #include "./filter.h"
+#include "./text/text_blob.h"
 
 namespace qk {
 	class Window;
 	class Box;
 	class Image;
 	class Scroll;
+	class Text;
 	class Input;
 	class Label;
 	class Root;
@@ -59,6 +61,7 @@ namespace qk {
 		UIRender(Window *window);
 		void visitView(View* v);
 		void visitBox(Box* box);
+		void visitText(Text* text);
 		void visitImage(Image* image);
 		void visitScroll(Scroll* scroll);
 		void visitInput(Input* input);
@@ -79,6 +82,8 @@ namespace qk {
 		void drawBoxBorder(Box *box, BoxData &data);
 		void drawBoxEnd(Box *box, BoxData &data);
 		void drawScrollBar(Box *box, ScrollBase *v);
+		void drawTextBlob(TextOptions *opts,
+			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible);
 
 		Window     *_window;
 		Render     *_render;

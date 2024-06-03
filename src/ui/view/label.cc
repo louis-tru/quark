@@ -41,10 +41,6 @@ namespace qk {
 		}
 	}
 
-	// void Label::onTextChange(uint32_t mark, uint32_t type) {
-	// 	onTextChange_async(mark, type);
-	// }
-
 	View* Label::getViewForTextOptions() {
 		return this;
 	}
@@ -107,7 +103,7 @@ namespace qk {
 	}
 
 	void Label::onActivate() {
-		_text_flags = 0xffffffff;
+		_textFlags = 0xffffffff;
 	}
 
 	TextOptions* Label::asTextOptions() {

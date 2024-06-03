@@ -47,8 +47,10 @@ namespace qk { namespace js {
 			Js_Set_WrapObject_Accessor(Box, Align, align, align);
 			Js_Set_WrapObject_Accessor(Box, BoxSize, width, width);
 			Js_Set_WrapObject_Accessor(Box, BoxSize, height, height);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, width_limit, widthLimit);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, height_limit, heightLimit);
+			Js_Set_WrapObject_Accessor(Box, BoxSize, min_width, minWidth);
+			Js_Set_WrapObject_Accessor(Box, BoxSize, min_height, minHeight);
+			Js_Set_WrapObject_Accessor(Box, BoxSize, max_width, maxWidth);
+			Js_Set_WrapObject_Accessor(Box, BoxSize, max_height, maxHeight);
 			Js_Set_WrapObject_Accessor(Box, ArrayFloat, margin, margin);
 			Js_Set_WrapObject_Accessor(Box, float, margin_top, marginTop);
 			Js_Set_WrapObject_Accessor(Box, float, margin_right, marginRight);

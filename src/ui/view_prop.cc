@@ -125,8 +125,10 @@ namespace qk {
 		Qk_Set_Accessor(Box, ALIGN, align);
 		Qk_Set_Accessor(Box, WIDTH, width);
 		Qk_Set_Accessor(Box, HEIGHT, height);
-		Qk_Set_Accessor(Box, WIDTH_LIMIT, width_limit);
-		Qk_Set_Accessor(Box, HEIGHT_LIMIT, height_limit);
+		Qk_Set_Accessor(Box, MIN_WIDTH, min_width);
+		Qk_Set_Accessor(Box, MIN_HEIGHT, min_height);
+		Qk_Set_Accessor(Box, MAX_WIDTH, max_width);
+		Qk_Set_Accessor(Box, MAX_HEIGHT, max_height);
 		Qk_Set_Accessor(Box, MARGIN, margin); // margin
 		Qk_Set_Accessor(Box, MARGIN_TOP, margin_top);
 		Qk_Set_Accessor(Box, MARGIN_RIGHT, margin_right);
@@ -161,18 +163,18 @@ namespace qk {
 		Qk_Set_Accessor(Box, BACKGROUND, background);
 		Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow);
 		Qk_Set_Accessor(Box, WEIGHT, weight);
-		Qk_Copy_Accessor(Box, Flex, CLIP, 40);
-		Qk_Copy_Accessor(Box, Flow, CLIP, 40);
-		Qk_Copy_Accessor(Box, Float, CLIP, 40);
-		Qk_Copy_Accessor(Box, Image, CLIP, 40);
-		Qk_Copy_Accessor(Box, Video, CLIP, 40);
-		Qk_Copy_Accessor(Box, Input, CLIP, 40);
-		Qk_Copy_Accessor(Box, Textarea, CLIP, 40);
-		Qk_Copy_Accessor(Box, Scroll, CLIP, 40);
-		Qk_Copy_Accessor(Box, Text, CLIP, 40);
-		Qk_Copy_Accessor(Box, Button, CLIP, 40);
-		Qk_Copy_Accessor(Box, Transform, CLIP, 40);
-		Qk_Copy_Accessor(Box, Root, CLIP, 40);
+		Qk_Copy_Accessor(Box, Flex, CLIP, 42);
+		Qk_Copy_Accessor(Box, Flow, CLIP, 42);
+		Qk_Copy_Accessor(Box, Float, CLIP, 42);
+		Qk_Copy_Accessor(Box, Image, CLIP, 42);
+		Qk_Copy_Accessor(Box, Video, CLIP, 42);
+		Qk_Copy_Accessor(Box, Input, CLIP, 42);
+		Qk_Copy_Accessor(Box, Textarea, CLIP, 42);
+		Qk_Copy_Accessor(Box, Scroll, CLIP, 42);
+		Qk_Copy_Accessor(Box, Text, CLIP, 42);
+		Qk_Copy_Accessor(Box, Button, CLIP, 42);
+		Qk_Copy_Accessor(Box, Transform, CLIP, 42);
+		Qk_Copy_Accessor(Box, Root, CLIP, 42);
 		// flex
 		Qk_Set_Accessor(Flex, DIRECTION, direction);
 		Qk_Set_Accessor(Flex, ITEMS_ALIGN, items_align);
@@ -215,7 +217,6 @@ namespace qk {
 		Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin);
-		// TODO ...
 		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3);
 		// transform
 		Qk_Set_Accessor(Transform, TRANSLATE, translate);
@@ -236,5 +237,4 @@ namespace qk {
 	PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop) {
 		return prop_accessors[type].value + prop;
 	}
-
 }

@@ -55,8 +55,10 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(Align, align, align);
 			Js_Set_StyleSheets_Accessor(BoxSize, width, width);
 			Js_Set_StyleSheets_Accessor(BoxSize, height, height);
-			Js_Set_StyleSheets_Accessor(BoxSize, width_limit, widthLimit);
-			Js_Set_StyleSheets_Accessor(BoxSize, height_limit, heightLimit);
+			Js_Set_StyleSheets_Accessor(BoxSize, min_width, minWidth);
+			Js_Set_StyleSheets_Accessor(BoxSize, min_height, minHeight);
+			Js_Set_StyleSheets_Accessor(BoxSize, max_width, maxWidth);
+			Js_Set_StyleSheets_Accessor(BoxSize, max_height, maxHeight);
 			Js_Set_StyleSheets_Accessor(ArrayFloat, margin, margin);
 			Js_Set_StyleSheets_Accessor(float, margin_top, marginTop);
 			Js_Set_StyleSheets_Accessor(float, margin_right, marginRight);
