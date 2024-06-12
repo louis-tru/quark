@@ -31,7 +31,7 @@
 #ifndef __quark__view__transform__
 #define __quark__view__transform__
 
-#include "./box.h"
+#include "./float.h"
 
 namespace qk {
 
@@ -40,7 +40,7 @@ namespace qk {
 		*
 	 * @class Transform
 		*/
-	class Transform: public Box {
+	class Transform: public Float {
 	public:
 		Transform();
 		// define props
@@ -75,11 +75,11 @@ namespace qk {
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
 		virtual void draw(UIRender *render) override;
+
 	protected:
 		void solve_origin_value(); // compute origint value
 		Mat _matrix; // parent transform View * Mat(translate, scale, skew, rotate_z);
 		friend class UIRender;
 	};
-
 }
 #endif

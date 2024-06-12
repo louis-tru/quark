@@ -42,27 +42,27 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 	public:
 		// define props
-		Qk_DEFINE_VIEW_PROP_GET(bool,       layout_wrap_x_Rt, Const); // Returns the x-axis is wrap content
-		Qk_DEFINE_VIEW_PROP_GET(bool,       layout_wrap_y_Rt, Const); // Returns the y-axis is wrap content
-		Qk_DEFINE_VIEW_PROP    (bool,       clip, Const); // is clip box display range
-		Qk_DEFINE_VIEW_PROP    (Align,      align, ProtectedConst); // view align
+		Qk_DEFINE_VIEW_PROP_GET(bool,       layout_wrap_x_Rt, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_PROP_GET(bool,       layout_wrap_y_Rt, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_PROP    (bool,       clip, Const); //!< is clip box display range
+		Qk_DEFINE_VIEW_PROP    (Align,      align, ProtectedConst); //!< view align
 		Qk_DEFINE_VIEW_PROP_ACC(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
 		Qk_DEFINE_VIEW_PROP_ACC(BoxSize,    height, Const); //!< min height alias
 		Qk_DEFINE_VIEW_PROP    (BoxSize,    min_width, Const); //!< limit min width if max width not equal none then limit min width
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    min_height, Const); // limit min height
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_width, Const); // limit max width if min width not equal none then limit max width
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_height, Const); // limit max width
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, margin, Const); // margin
+		Qk_DEFINE_VIEW_PROP    (BoxSize,    min_height, Const); //!< limit min height
+		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_width, Const); //!< limit max width if min width not equal none then limit max width
+		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_height, Const); //!< limit max width
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, margin, Const); //!< margin
 		Qk_DEFINE_VIEW_PROP    (float,      margin_top, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      margin_right, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      margin_bottom, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      margin_left, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, padding, Const); // padding
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, padding, Const); //!< padding
 		Qk_DEFINE_VIEW_PROP    (float,      padding_top, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      padding_right, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      padding_bottom, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      padding_left, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, border_radius, Const); // border_radius
+		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, border_radius, Const); //!< border_radius
 		Qk_DEFINE_VIEW_PROP    (float,      border_radius_left_top, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      border_radius_right_top, Const);
 		Qk_DEFINE_VIEW_PROP    (float,      border_radius_right_bottom, Const);
@@ -98,9 +98,11 @@ namespace qk {
 		virtual Vec2 layout_offset() override;
 		virtual Size layout_size() override; // context size + padding + border + margin
 		virtual Size layout_raw_size(Size parent_content_size) override;
-		/*
-		* 这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
-		* 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
+		/**
+		 * @prop layout_weight
+		* The scaling ratio of the project is defined here, which defaults to 0,
+		* meaning that if there is remaining space, neither enlarge nor narrow will occur
+		* in flex：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 		*/
 		virtual float layout_weight() override;
 		virtual Align layout_align() override;
@@ -163,15 +165,35 @@ namespace qk {
 		 * @note Can only be used in rendering threads
 		 */
 		virtual float solve_layout_content_width(Size &parent_layout_size);
+
+		/**
+		 * @method solve_layout_content_height()
+		 * @safe Rt
+		 * @note Can only be used in rendering threads
+		 */
 		virtual float solve_layout_content_height(Size &parent_layout_size);
 
 		/**
-		 * @solve_layout_content_width_fixed()
+		 * @method solve_layout_wrap_content_width()
 		 * @safe Rt
-		 * @note Can only be used in rendering threads
 		*/
-		float solve_layout_content_width_fixed(Size &parent_layout_size, BoxSize value);
-		float solve_layout_content_height_fixed(Size &parent_layout_size, BoxSize value);
+		float solve_layout_content_wrap_limit_width(float inside_width);
+
+		/**
+		 * @method solve_layout_wrap_content_height()
+		 * @safe Rt
+		*/
+		float solve_layout_content_wrap_limit_height(float inside_height);
+
+		/**
+		 * @method get_max_width_limit_value()
+		*/
+		float get_max_width_limit_value(const Size &parent_layout_size);
+
+		/**
+		 * @method get_max_height_limit_value()
+		*/
+		float get_max_height_limit_value(const Size &parent_layout_size);
 
 		/**
 		 * @method mark_size()

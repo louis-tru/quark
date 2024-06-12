@@ -30,7 +30,7 @@
 
 var fs = require('somes/fs');
 var { execSync } = require('somes/syscall');
-var { copy_header } = require('./cp-header');
+var { copy_header } = require('./cp_header');
 var path = require('path');
 var read_version = require('./read_version');
 
@@ -55,8 +55,8 @@ execSync(`cd ${root}/libs/qkmake && npm run build`);
 fs.cp_sync(root + '/libs/qkmake/out/qkmake', target, {ignore_hide:0,symlink: 0});
 fs.cp_sync(root + '/libs/qkmake/gyp', target + '/gyp', {ignore_hide:1,replace:0});
 
-fs.chmodSync(target + '/gyp/gyp', 0755);
-fs.chmodSync(target + '/shell.js', 0755);
+fs.chmodSync(target + '/gyp/gyp', 0o755);
+fs.chmodSync(target + '/shell.js', 0o755);
 
 copy_header(root + '/quark', `${include}/quark`);
 copy_header(root + '/quark-js', `${include}/quark-js`);

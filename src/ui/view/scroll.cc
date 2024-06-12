@@ -857,8 +857,8 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
 				return false; // continue iteration
-			auto full_size = layout_typesetting_float(); // return full content size
-			set_scroll_size_Rt(full_size);
+			auto fullSize = layout_typesetting_float(); // return full content size
+			set_scroll_size_Rt(fullSize);
 		}
 		return true; // complete iteration
 	}

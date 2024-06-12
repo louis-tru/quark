@@ -54,40 +54,20 @@ namespace qk {
 
 	bool Root::layout_forward(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			auto win = window();
-			Size size{ Vec2(), win->size(), false, false };
-			Vec2 xy(solve_layout_content_width(size), solve_layout_content_height(size));
-
-			xy += Vec2(margin_left() + margin_right(), margin_top() + margin_bottom());
-			xy += Vec2(padding_left() + padding_right(), padding_top() + padding_bottom());
-			if (_border) {
-				xy += Vec2(
-					_border->width[3] + _border->width[1], // left + right
-					_border->width[0] + _border->width[2] // top + bottom
-				);
-			}
-			set_layout_size(xy, &size.wrap_x, false);
+			bool wrap[2] = { false, false };
+			set_layout_size(window()->size(), wrap, false);
 		}
-
 		if (mark & kLayout_Typesetting) {
 			return false;
 		} else if (mark & kTransform_Origin) {
 			solve_origin_value(); // check transform_origin change
 		}
-
 		return true; // complete
 	}
 
 	bool Root::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			Vec2 size = content_size();
-			auto v = first_Rt();
-			while (v) {
-				v->set_layout_offset_lazy(size); // lazy view
-				v = v->next_Rt();
-			}
-			unmark(kLayout_Typesetting);
-
+			layout_typesetting_float();
 			solve_origin_value(); // check transform_origin change
 		}
 		return true; // complete iteration

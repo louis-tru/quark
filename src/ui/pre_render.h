@@ -107,7 +107,7 @@ namespace qk {
 		}
 
 		/**
-		 * Post message to application loop
+		 * Post message to application main loop
 		 * @safe Rt
 		 * @method post()
 		 * @param delayUs
@@ -115,7 +115,7 @@ namespace qk {
 		void post(Cb cb, uint64_t delayUs = 0);
 
 		/**
-		 * Post message to application loop
+		 * Post message to application main loop
 		 * @safe Rt
 		 * @method post()
 		 * @param view {View} safe retain view object to main loop, if retain fail then cancel call

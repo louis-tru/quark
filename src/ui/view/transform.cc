@@ -263,11 +263,11 @@ namespace qk {
 	}
 
 	Vec2 Transform::layout_offset_inside() {
-		return Box::layout_offset_inside() - _origin_value;
+		return Float::layout_offset_inside() - _origin_value;
 	}
 
 	bool Transform::layout_forward(uint32_t mark) {
-		auto ok = Box::layout_forward(mark);
+		auto ok = Float::layout_forward(mark);
 		if (ok) {
 			if (mark & kTransform_Origin) {
 				solve_origin_value(); // check transform_origin change
@@ -277,7 +277,7 @@ namespace qk {
 	}
 
 	bool Transform::layout_reverse(uint32_t mark) {
-		auto ok = Box::layout_reverse(mark);
+		auto ok = Float::layout_reverse(mark);
 		if (ok) {
 			if (mark & kLayout_Typesetting) {
 				solve_origin_value(); // check transform_origin change

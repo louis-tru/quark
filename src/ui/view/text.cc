@@ -41,7 +41,7 @@ namespace qk {
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			auto size = content_size();
 			auto v = first_Rt();
-			_lines = new TextLines(this, text_align_value(), size, layout_wrap_x_Rt());
+			_lines = new TextLines(this, text_align_value(), size, _layout_wrap_x_Rt);
 			_lines->set_stable_line_height(text_size().value, text_line_height().value);
 
 			_blob_visible.clear();
@@ -60,8 +60,8 @@ namespace qk {
 			_lines->finish();
 
 			Vec2 new_size(
-				layout_wrap_x_Rt() ? _lines->max_width(): size.x(),
-				layout_wrap_y_Rt() ? _lines->max_height(): size.y()
+				_layout_wrap_x_Rt ? solve_layout_content_wrap_limit_width(_lines->max_width()): size.x(),
+				_layout_wrap_y_Rt ? solve_layout_content_wrap_limit_height(_lines->max_height()): size.y()
 			);
 
 			if (new_size != size) {

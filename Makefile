@@ -37,13 +37,13 @@ check_osx=\
 product:
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(NODE) ./tools/cp-qkmake.js
+	@$(NODE) ./tools/cp_qkmake.js
 
 install: product
 	@$(MAKE) install-qkmake
 
 install-qkmake:
-	@$(NODE) ./tools/cp-qkmake.js
+	@$(NODE) ./tools/cp_qkmake.js
 	@cd $(QKMAKE_OUT) && npm i -f
 	@cd $(QKMAKE_OUT) && $(SUDO) npm i -g
 

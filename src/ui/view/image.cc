@@ -47,36 +47,45 @@ namespace qk {
 		return Box::layout_forward(mark);
 	}
 
-	float Image::solve_layout_content_width(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_width(parent_layout_size);
+	float Image::solve_layout_content_width(Size &pSize) {
+		auto result = Box::solve_layout_content_width(pSize);
 		auto src = ImageSourceHolder::source(); // Rt
 
-		if (parent_layout_size.wrap_x && src && src->type()) { // wrap x
-			auto v = Box::solve_layout_content_height(parent_layout_size);
-			if (parent_layout_size.wrap_y) { // wrap y
-				result = src->width();
-			} else {
-				result = v / src->height() * src->width();
+		if (src && src->type()) {
+			if (pSize.wrap_x) { // wrap x
+				auto v = Box::solve_layout_content_height(pSize);
+				if (pSize.wrap_y) { // wrap y
+					result = src->width();
+				} else {
+					result = v / src->height() * src->width();
+				}
 			}
 		}
-		parent_layout_size.wrap_x = false;
+		if (pSize.wrap_x) {
+			result = solve_layout_content_wrap_limit_width(result);
+			pSize.wrap_x = false;
+		}
 		return result;
 	}
 
-	float Image::solve_layout_content_height(Size &parent_layout_size) {
-		auto result = Box::solve_layout_content_height(parent_layout_size);
+	float Image::solve_layout_content_height(Size &pSize) {
+		auto result = Box::solve_layout_content_height(pSize);
 		auto src = ImageSourceHolder::source(); // Rt
 
-		if (parent_layout_size.wrap_y && src && src->type()) { // wrap y
-			auto v = Box::solve_layout_content_width(parent_layout_size);
-			if (parent_layout_size.wrap_x) { // wrap x
-				result = src->height();
-			} else {
-				result = v / src->width() * src->height();
+		if (src && src->type()) {
+			if (pSize.wrap_y) { // wrap y
+				auto v = Box::solve_layout_content_width(pSize);
+				if (pSize.wrap_x) { // wrap x
+					result = src->height();
+				} else {
+					result = v / src->width() * src->height();
+				}
 			}
 		}
-		parent_layout_size.wrap_y = false;
-
+		if (pSize.wrap_y) {
+			result = solve_layout_content_wrap_limit_height(result);
+			pSize.wrap_y = false;
+		}
 		return result;
 	}
 

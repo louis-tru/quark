@@ -53,23 +53,23 @@ namespace qk {
 
 	static bool each_sync(Array<Dirent>& ls, Callback<Dirent> cb, bool internal) throw(Error) {
 		for ( auto& dirent : ls ) {
-			if ( !internal ) { // 外部优先
+			if ( !internal ) { // external priority
 				Callback<Dirent>::Data d = {0, &dirent,1};
 				cb->call(d);
-				if ( !d.rc ) { // 停止遍历
+				if ( !d.rc ) { // stop each
 					return false;
 				}
 			}
-			if ( dirent.type == FTYPE_DIR ) { // 目录
+			if ( dirent.type == FTYPE_DIR ) { // directory
 				auto ls = fs_readdir_sync(dirent.pathname);
-				if ( !each_sync(ls, cb, internal) ) { // 停止遍历
+				if ( !each_sync(ls, cb, internal) ) { // stop each
 					return false;
 				}
 			}
-			if ( internal ) { // 内部优先
+			if ( internal ) { // internal priority
 				Callback<Dirent>::Data d = {0,&dirent,1};
 				cb->call(d);
-				if ( !d.rc ) { // 停止遍历
+				if ( !d.rc ) { // stop each
 					return false;
 				}
 			}

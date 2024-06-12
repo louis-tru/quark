@@ -373,7 +373,7 @@ namespace qk {
 
 		/**
 			*
-			* 布局权重（比如在flex布局中代表布局的尺寸）
+			* Layout weight (such as representing the size of the layout in a flex layout)
 			*
 			* @method layout_weight()
 			*/
@@ -381,7 +381,7 @@ namespace qk {
 
 		/**
 			*
-			* 布局的对齐方式（九宫格）
+			* Layout alignment (nine grid)
 			*
 			* @method layout_align()
 			*/

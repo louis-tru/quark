@@ -48,7 +48,7 @@ namespace qk {
 			auto size = content_size();
 			auto size_x = size.x();
 
-			if ( layout_wrap_x_Rt() ) { // wrap width
+			if ( _layout_wrap_x_Rt ) { // wrap width
 				size_x = 0;
 				do {
 					if (v->visible()) {
@@ -67,46 +67,54 @@ namespace qk {
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout_size;
-					auto new_width = line_width + size.x();
+					auto align = v->layout_align();
 
-					line_height = Float32::max(line_height, size.y());
-
-					if (new_width > size_x && line_width != 0) { // new line
-						max_width = Float32::max(max_width, line_width);
-						offset_left = offset_right = 0;
+					if (align == Align::Auto) { // new line
 						offset_y += line_height;
-						line_width = size.x();
-						line_height = size.y();
+						v->set_layout_offset(Vec2(0, offset_y));
+						offset_left = offset_right = 0;
+						line_width = line_height = 0;
+						offset_y += size.y();
 					} else {
-						line_width = new_width;
-					}
+						auto new_width = line_width + size.x();
 
-					switch (v->layout_align()) {
-						case Align::Auto:
-						case Align::LeftTop:
-						case Align::LeftCenter:
-						case Align::LeftBottom:
-						case Align::CenterTop:
-						case Align::CenterCenter:
-						case Align::CenterBottom: // left
-							v->set_layout_offset(Vec2(offset_left, offset_y));
-							offset_left += size.x();
-							break;
-						default: // right
-							v->set_layout_offset(Vec2(size_x - offset_right - size.x(), offset_y));
-							offset_right += size.x();
-							break;
+						if (size.y() > line_height) {
+							line_height = size.y(); // select max
+						}
+						if (new_width > size_x && line_width != 0) { // new line
+							if (line_width > max_width) {
+								max_width = line_width; // select max
+							}
+							offset_left = offset_right = 0;
+							offset_y += line_height;
+							line_width = size.x();
+							line_height = size.y();
+						} else {
+							line_width = new_width;
+						}
+
+						switch (align) {
+							case Align::LeftTop:
+							case Align::LeftCenter:
+							case Align::LeftBottom: // left
+								v->set_layout_offset(Vec2(offset_left, offset_y));
+								offset_left += size.x();
+								break;
+							default: // right
+								v->set_layout_offset(Vec2(size_x - offset_right - size.x(), offset_y));
+								offset_right += size.x();
+								break;
+						}
 					}
 				}
 				v = v->next_Rt();
 			} while(v);
 
-			max_width = Float32::max(max_width, line_width);
-			full_size = Vec2(max_width, offset_y + line_height);
+			full_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
 
 			Vec2 new_size(
-				layout_wrap_x_Rt() ? full_size.x(): size.x(),
-				layout_wrap_y_Rt() ? full_size.y(): size.y()
+				_layout_wrap_x_Rt ? solve_layout_content_wrap_limit_width(full_size.x()): size.x(),
+				_layout_wrap_y_Rt ? solve_layout_content_wrap_limit_height(full_size.y()): size.y()
 			);
 
 			if (new_size != size) {

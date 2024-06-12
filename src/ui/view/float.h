@@ -42,6 +42,5 @@ namespace qk {
 	protected:
 		Vec2 layout_typesetting_float();
 	};
-
 }
 #endif

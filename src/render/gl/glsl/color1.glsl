@@ -1,3 +1,4 @@
+// Batch drawing color sets
 
 layout (std140) uniform optsBlock {
 	struct Option {

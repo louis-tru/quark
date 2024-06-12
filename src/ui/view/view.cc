@@ -198,7 +198,7 @@ namespace qk {
 		return { Vec2(), Vec2(), true, true };
 	}
 
-	View::Size View::layout_raw_size(Size parent_content_size) {
+	View::Size View::layout_raw_size(Size pSize) {
 		return { Vec2(), Vec2(), true, true };
 	}
 
