@@ -61,6 +61,7 @@ namespace qk {
 		};
 		// defines props
 		Qk_DEFINE_PROP(float, pre_width, Const);
+		Qk_DEFINE_PROP(bool, ignore_single_white_space, Const);
 		Qk_DEFINE_PROP_GET(bool, is_stable_line_height, Const);
 		Qk_DEFINE_PROP_GET(bool, no_wrap, Const);
 		Qk_DEFINE_PROP_GET(bool, visible_region, Const);

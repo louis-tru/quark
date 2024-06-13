@@ -34,7 +34,7 @@
 #include "./view/root.h"
 #include "./view/image.h"
 #include "./view/flex.h"
-#include "./view/float.h"
+#include "./view/free.h"
 #include "./view/flow.h"
 #include "./view/text.h"
 #include "./view/input.h"

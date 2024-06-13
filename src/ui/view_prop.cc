@@ -109,7 +109,7 @@ namespace qk {
 		prop_accessors[kBox_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kFlex_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kFlow_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kFloat_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kFree_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kImage_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kVideo_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kInput_ViewType] = prop_accessors[kView_ViewType];
@@ -165,7 +165,7 @@ namespace qk {
 		Qk_Set_Accessor(Box, WEIGHT, weight);
 		Qk_Copy_Accessor(Box, Flex, CLIP, 42);
 		Qk_Copy_Accessor(Box, Flow, CLIP, 42);
-		Qk_Copy_Accessor(Box, Float, CLIP, 42);
+		Qk_Copy_Accessor(Box, Free, CLIP, 42);
 		Qk_Copy_Accessor(Box, Image, CLIP, 42);
 		Qk_Copy_Accessor(Box, Video, CLIP, 42);
 		Qk_Copy_Accessor(Box, Input, CLIP, 42);

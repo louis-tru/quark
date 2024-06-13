@@ -28,38 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__view__label__
-#define __quark__view__label__
+#ifndef __quark__view__free__
+#define __quark__view__free__
 
-#include "./view.h"
-#include "../text/text_blob.h"
-#include "../text/text_lines.h"
-#include "../text/text_opts.h"
+#include "./box.h"
 
 namespace qk {
 
-	class Qk_EXPORT Label: public View, public TextOptions {
+	class Qk_EXPORT Free: public Box {
 	public:
-		Qk_DEFINE_VIEW_PROP(String, value);
-		virtual ViewType viewType() const override;
-		virtual TextOptions* asTextOptions() override;
-		virtual bool layout_forward(uint32_t mark) override;
 		virtual bool layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
-		virtual void set_layout_offset(Vec2 val) override;
-		virtual void set_layout_offset_free(Vec2 size) override;
-		virtual void onParentLayoutContentSizeChange(View* parent, uint32_t mark) override;
-		virtual bool solve_visible_region(const Mat &mat) override;
-		virtual void onActivate() override;
-		virtual void draw(UIRender *render) override;
-	protected:
-		virtual View* getViewForTextOptions() override;
-	private:
-		Sp<TextLines>   _lines;
-		Array<TextBlob> _blob;
-		Array<uint32_t> _blob_visible;
-		friend class UIRender;
+		virtual ViewType viewType() const override;
 	};
-
 }
 #endif

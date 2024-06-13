@@ -108,10 +108,10 @@ namespace qk {
 			items++;
 		}
 
-		Vec2 new_size = is_horizontal ? {
+		Vec2 new_size = is_horizontal ? Vec2{
 			solve_layout_content_wrap_limit_width(total_main),
 			wrap_y ? solve_layout_content_wrap_limit_height(max_cross): max_cross,
-		}: {
+		}: Vec2{
 			wrap_x ? solve_layout_content_wrap_limit_width(max_cross): max_cross,
 			solve_layout_content_wrap_limit_height(total_main),
 		};
@@ -191,7 +191,7 @@ namespace qk {
 				total_main = 0;
 				float min_total_weight = Qk_MIN(total_weight, 1);
 				float C = total_weight / (overflow * min_total_weight);
-				// 在flex中：size = size_raw + overflow * (weight / total_weight) * min(total_weight, 1)
+				// in flex：size = size_raw + overflow * (weight / total_weight) * min(total_weight, 1)
 				for (auto i: items) {
 					Vec2 size = i.size;
 					View *v = i.view;
@@ -240,7 +240,7 @@ namespace qk {
 			solve_layout_content_wrap_limit_height(cross_size): solve_layout_content_wrap_limit_width(cross_size);
 		}
 		if (cross_size != cross_size_old) {
-			set_content_size(is_horizontal ? {main_size, cross_size}: {cross_size, main_size});
+			set_content_size(is_horizontal ? Vec2{main_size, cross_size}: Vec2{cross_size, main_size});
 			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}

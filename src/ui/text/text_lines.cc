@@ -40,7 +40,7 @@
 namespace qk {
 
 	TextLines::TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
-		: _pre_width(0), _is_stable_line_height(false)
+		: _pre_width(0), _ignore_single_white_space(false), _is_stable_line_height(false)
 		, _host_size(host_size), _host(host), _no_wrap(no_wrap)
 		, _text_align(text_align), _visible_region(false)
 	{
@@ -351,6 +351,10 @@ namespace qk {
 
 	void TextLines::set_pre_width(float value) {
 		_pre_width = value;
+	}
+
+	void TextLines::set_ignore_single_white_space(bool val) {
+		_ignore_single_white_space = val;
 	}
 
 }

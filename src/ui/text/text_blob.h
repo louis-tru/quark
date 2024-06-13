@@ -41,11 +41,16 @@
 namespace qk {
 	// @dev text view
 
-	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(const Unichar *src, uint32_t length,
-		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
-	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(cString4& str,
-		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed);
-	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space);
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(
+		const Unichar *src, uint32_t length,
+		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed
+	);
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(
+		cString4& str, bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed
+	);
+	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(
+		cString& str, TextWhiteSpace space, bool ignore_single_white_space
+	);
 
 	struct TextBlob {
 		float           ascent; // 当前blob基线距离文本顶部

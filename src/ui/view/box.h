@@ -111,7 +111,7 @@ namespace qk {
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 layout_lock(Vec2 view_size) override;
 		virtual void set_layout_offset(Vec2 val) override;
-		virtual void set_layout_offset_lazy(Vec2 size) override;
+		virtual void set_layout_offset_free(Vec2 size) override;
 		virtual void onParentLayoutContentSizeChange(View* parent, uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual bool solve_visible_region(const Mat &mat) override; // compute visible region
@@ -187,11 +187,13 @@ namespace qk {
 
 		/**
 		 * @method get_max_width_limit_value()
+		 * @safe Rt
 		*/
 		float get_max_width_limit_value(const Size &parent_layout_size);
 
 		/**
 		 * @method get_max_height_limit_value()
+		 * @safe Rt
 		*/
 		float get_max_height_limit_value(const Size &parent_layout_size);
 
@@ -201,6 +203,12 @@ namespace qk {
 		 * @note Can only be used in rendering threads
 		*/
 		void mark_size(uint32_t mark, bool isRt);
+
+		/**
+		 * @method layout_typesetting_box
+		 * @safe Rt
+		*/
+		Vec2 layout_typesetting_box();
 
 		// ----------------------- define private props -----------------------
 	private:

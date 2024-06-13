@@ -821,7 +821,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l . L a y o u t --------------------------
 
-	Scroll::Scroll(): Float(), ScrollBase(this)
+	Scroll::Scroll(): Box(), ScrollBase(this)
 	{
 		// bind touch event
 		add_event_listener(UIEvent_TouchStart, &Inl::handle_TouchStart, _inl(this));
@@ -857,8 +857,8 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting())
 				return false; // continue iteration
-			auto fullSize = layout_typesetting_float(); // return full content size
-			set_scroll_size_Rt(fullSize);
+			auto inner_size = layout_typesetting_box(); // return full content size
+			set_scroll_size_Rt(inner_size);
 		}
 		return true; // complete iteration
 	}

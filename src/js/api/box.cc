@@ -32,7 +32,7 @@
 #include "../../ui/view/box.h"
 #include "../../ui/view/flex.h"
 #include "../../ui/view/flow.h"
-#include "../../ui/view/float.h"
+#include "../../ui/view/free.h"
 #include "../../ui/view/image.h"
 
 namespace qk { namespace js {
@@ -126,13 +126,13 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapFloat: public WrapViewObject {
+	class WrapFree: public WrapViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Float, Box, {
-				Js_NewView(Float);
+			Js_Define_Class(Free, Box, {
+				Js_NewView(Free);
 			});
-			cls->exports("Float", exports);
+			cls->exports("Free", exports);
 		}
 	};
 

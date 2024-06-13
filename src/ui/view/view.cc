@@ -209,7 +209,7 @@ namespace qk {
 	void View::set_layout_offset(Vec2 val) {
 	}
 
-	void View::set_layout_offset_lazy(Vec2 size) {
+	void View::set_layout_offset_free(Vec2 size) {
 	}
 
 	Vec2 View::layout_lock(Vec2 layout_size) {
@@ -228,7 +228,7 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 			auto v = _first_Rt;
 			while (v) {
-				v->set_layout_offset_lazy(Vec2()); // lazy view
+				v->set_layout_offset_free(Vec2()); // lazy view
 				v = v->_next_Rt;
 			}
 			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);

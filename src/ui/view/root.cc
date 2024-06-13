@@ -67,7 +67,7 @@ namespace qk {
 
 	bool Root::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			layout_typesetting_float();
+			layout_typesetting_box();
 			solve_origin_value(); // check transform_origin change
 		}
 		return true; // complete iteration

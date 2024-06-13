@@ -59,7 +59,7 @@ namespace qk { namespace js {
 			if (!args.length()) {
 				Js_Throw("@method TextOptions.compute_layout_size(cString& value)\n");
 			}
-			auto str = args[0]->toStringValue2(worker);
+			auto str = args[0]->toStringValue(worker);
 			Js_Self(Text);
 			Js_Return( worker->types()->jsvalue(self->compute_layout_size(str)) );
 		});

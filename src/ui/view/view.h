@@ -467,13 +467,13 @@ namespace qk {
 
 		/**
 			* 
-			* Setting view offset values lazily mode for the view object
+			* Setting view offset values free mode for the view object
 			*
-			* @method set_layout_offset_lazy(size)
+			* @method set_layout_offset_free(size)
 			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		virtual void set_layout_offset_lazy(Vec2 size);
+		virtual void set_layout_offset_free(Vec2 size);
 
 		/**
 			* 锁定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型

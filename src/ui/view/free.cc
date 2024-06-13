@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, blue.chu
+ * Copyright © 2015-2016, blue.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__view__float__
-#define __quark__view__float__
-
-#include "./box.h"
+#include "./free.h"
 
 namespace qk {
 
-	class Qk_EXPORT Float: public Box {
-	public:
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual ViewType viewType() const override;
-	protected:
-		Vec2 layout_typesetting_float();
-	};
+	bool Free::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			if (!is_ready_layout_typesetting()) return false; // continue iteration
+
+			auto v = first_Rt();
+			if (v) {
+				auto _content_size = content_size();
+				do { // lazy free layout
+					if (v->visible())
+						v->set_layout_offset_free(_content_size); // free layout
+					v = v->next_Rt();
+				} while(v);
+			}
+			unmark(kLayout_Typesetting);
+		}
+
+		return true; // complete, stop iteration
+	}
+
+	ViewType Free::viewType() const {
+		return kFree_ViewType;
+	}
 }
-#endif

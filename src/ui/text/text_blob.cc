@@ -81,7 +81,9 @@ namespace qk {
 		}
 	}
 
-	Array<Array<Unichar>> to_unichar_lines(bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed,
+	Array<Array<Unichar>> to_unichar_lines(
+		bool is_merge_space, bool is_merge_line_feed,
+		bool disable_line_feed, bool ignore_single_white_space,
 		bool (*each)(Unichar& out, void* ctx), void* ctx
 	) {
 		Array<Array<Unichar>> lines;
@@ -91,6 +93,10 @@ namespace qk {
 		bool is_push_row = false;
 
 		auto push_row = [&]() {
+			if (ignore_single_white_space) {
+				if (row.length() == 1 && row[0] == 0x20)
+					return;
+			}
 			row.reset(row.length() + 1);
 			(*row)[row.length()] = 0;
 			lines.push(std::move(row));
@@ -151,7 +157,7 @@ namespace qk {
 			return false;
 		};
 
-		return to_unichar_lines(is_merge_space, is_merge_line_feed, disable_line_feed, each, &ctx);
+		return to_unichar_lines(is_merge_space, is_merge_line_feed, disable_line_feed, false, each, &ctx);
 	}
 
 	Array<Array<Unichar>> string4_to_unichar(cString4& str,
@@ -160,7 +166,7 @@ namespace qk {
 		return string4_to_unichar(*str, str.length(), is_merge_space, is_merge_line_feed, disable_line_feed);
 	}
 
-	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space) {
+	Array<Array<Unichar>> string_to_unichar(cString& str, TextWhiteSpace space, bool ignore_single_white_space) {
 		Unichar data;
 		Array<Array<Unichar>> lines;
 		Array<Unichar> row;
@@ -194,7 +200,7 @@ namespace qk {
 			return false;
 		};
 
-		return to_unichar_lines(is_merge_space, is_merge_line_feed, false, each, &ctx);
+		return to_unichar_lines(is_merge_space, is_merge_line_feed, false, ignore_single_white_space, each, &ctx);
 	}
 
 	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
@@ -211,7 +217,9 @@ namespace qk {
 	}
 
 	void TextBlobBuilder::make(cString& text) {
-		auto lines = string_to_unichar(text, _opts->text_white_space_value());
+		auto lines = string_to_unichar(
+			text, _opts->text_white_space_value(), _lines->ignore_single_white_space()
+		);
 		make(lines);
 	}
 
@@ -220,7 +228,8 @@ namespace qk {
 	}
 
 	void TextBlobBuilder::make(Array<Array<Unichar>>& lines) {
-
+		if (lines.length() == 0)
+			return;
 		auto text_white_space = _opts->text_white_space_value();
 		auto text_word_break = _opts->text_word_break_value();
 		bool is_auto_wrap = true;

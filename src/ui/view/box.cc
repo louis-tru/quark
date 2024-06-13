@@ -116,7 +116,7 @@ namespace qk {
 		return result;
 	}
 
-	float Box::get_max_width_limit_value(Size &pSize) {
+	float Box::get_max_width_limit_value(const Size &pSize) {
 		auto size = pSize.content_size.x();
 		float limit_max = Float32::limit_max;
 
@@ -144,7 +144,7 @@ namespace qk {
 		return limit_max;
 	}
 
-	float Box::get_max_height_limit_value(Size &pSize) {
+	float Box::get_max_height_limit_value(const Size &pSize) {
 		auto size = pSize.content_size.y();
 		float limit_max = Float32::limit_max;
 
@@ -960,19 +960,100 @@ namespace qk {
 	bool Box::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			if (!is_ready_layout_typesetting()) return false; // continue iteration
+			layout_typesetting_box();
+		}
+		return true; // complete iterations
+	}
 
-			auto v = first_Rt();
-			if (v) {
-				do { // lazy layout
-					if (v->visible())
-						v->set_layout_offset_lazy(_content_size); // lazy layout
+	Vec2 Box::layout_typesetting_box() {
+		Vec2 inner_size;
+		auto cur = content_size();
+		auto cur_x = cur.x();
+
+		auto v = first_Rt();
+		if (v) {
+			if ( _layout_wrap_x_Rt ) { // wrap width
+				cur_x = 0;
+				do {
+					if (v->visible()) {
+						cur_x = Float32::max(cur_x, v->layout_size().layout_size.x());
+					}
 					v = v->next_Rt();
 				} while(v);
+				v = first_Rt();
+				cur_x = solve_layout_content_wrap_limit_width(cur_x);
 			}
-			unmark(kLayout_Typesetting);
+
+			float offset_left = 0, offset_right = 0;
+			float offset_y = 0;
+			float line_width = 0, max_width = 0;
+			float line_height = 0;
+
+			do {
+				if (v->visible()) {
+					auto size = v->layout_size().layout_size;
+					auto align = v->layout_align();
+
+					if (align == Align::Auto) { // new line
+						offset_y += line_height;
+						v->set_layout_offset({0, offset_y});
+						offset_left = offset_right = 0;
+						line_width = line_height = 0;
+						offset_y += size.y();
+					} else {
+						auto new_line_width = line_width + size.x();
+
+						if (new_line_width > cur_x && line_width != 0) { // new line
+							max_width = Float32::max(max_width, line_width); // select max
+							offset_left = offset_right = 0;
+							offset_y += line_height;
+							line_width = size.x();
+							line_height = size.y();
+						} else {
+							line_width = new_line_width;
+							line_height = Float32::max(line_height, size.y()); // select max
+						}
+
+						switch (align) {
+							case Align::LeftTop:
+							case Align::LeftCenter:
+							case Align::LeftBottom: // left
+								v->set_layout_offset(Vec2(offset_left, offset_y));
+								offset_left += size.x();
+								break;
+							default: // right
+								v->set_layout_offset(Vec2(cur_x - offset_right - size.x(), offset_y));
+								offset_right += size.x();
+								break;
+						}
+					}
+				}
+				v = v->next_Rt();
+			} while(v);
+
+			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
+		} else {
+			if ( _layout_wrap_x_Rt ) { // wrap width
+				cur_x = solve_layout_content_wrap_limit_width(cur_x);
+			}
 		}
 
-		return true; // complete, stop iteration
+		Vec2 new_size(
+			cur_x,
+			_layout_wrap_y_Rt ? solve_layout_content_wrap_limit_height(inner_size.y()): cur.y()
+		);
+
+		if (new_size != cur) {
+			set_content_size(new_size);
+			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
+		}
+
+		unmark(kLayout_Typesetting);
+
+		// check transform_origin change
+		// solve_origin_value();
+
+		return inner_size;
 	}
 
 	void Box::layout_text(TextLines *lines, TextConfig *cfg) {
@@ -1170,7 +1251,7 @@ namespace qk {
 		mark(kRecursive_Transform, true); // mark recursive transform
 	}
 
-	void Box::set_layout_offset_lazy(Vec2 size) {
+	void Box::set_layout_offset_free(Vec2 size) {
 		Vec2 offset;
 
 		switch(_align) {
@@ -1247,7 +1328,6 @@ namespace qk {
 
 	bool Box::solve_visible_region(const Mat &mat) {
 		solve_rect_vertex(mat, _vertex);
-
 		/*
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。

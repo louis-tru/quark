@@ -64,9 +64,7 @@ namespace qk {
 		_blob.clear();
 		_lines = lines;
 
-		TextBlobBuilder tbb(lines, this, &_blob);
-
-		tbb.make(_value);
+		TextBlobBuilder(lines, this, &_blob).make(_value);
 
 		auto v = first_Rt();
 		while(v) {
@@ -79,13 +77,15 @@ namespace qk {
 
 	void Label::set_layout_offset(Vec2 val) {
 		Sp<TextLines> lines = new TextLines(this, text_align_value(), Vec2(), false);
+		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
 		mark(kRecursive_Transform, true);
 	}
 
-	void Label::set_layout_offset_lazy(Vec2 size) {
+	void Label::set_layout_offset_free(Vec2 size) {
 		Sp<TextLines> lines = new TextLines(this, text_align_value(), size, false);
+		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
 		mark(kRecursive_Transform, true);
@@ -113,5 +113,4 @@ namespace qk {
 	ViewType Label::viewType() const {
 		return kLabel_ViewType;
 	}
-
 }

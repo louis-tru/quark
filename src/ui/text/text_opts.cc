@@ -28,7 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "../app.h"
 #include "./text_opts.h"
+#include "./text_lines.h"
+#include "./text_blob.h"
 #include "../window.h"
 #include "../view/view.h"
 #include "../../render/font/pool.h"
@@ -281,9 +284,13 @@ namespace qk {
 		}
 	}
 
-	Vec2 TextOptions::compute_layout_size(cString2& value) {
-		// TODO ...
-		return Vec2{};
+	Vec2 TextOptions::compute_layout_size(cString& value) {
+		TextLines lines(getViewForTextOptions(), text_align_value(), Vec2(), false);
+		TextConfig cfg(this, shared_app()->defaultTextOptions());
+		Array<TextBlob> blob;
+		TextBlobBuilder(&lines, this, &blob).make(value);
+		lines.finish();
+		return Vec2(lines.max_width(), lines.max_height());
 	}
 
 	// ---------------- T e x t . C o n f i g ----------------

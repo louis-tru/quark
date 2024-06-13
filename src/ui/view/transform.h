@@ -31,7 +31,7 @@
 #ifndef __quark__view__transform__
 #define __quark__view__transform__
 
-#include "./float.h"
+#include "./box.h"
 
 namespace qk {
 
@@ -40,7 +40,7 @@ namespace qk {
 		*
 	 * @class Transform
 		*/
-	class Transform: public Float {
+	class Transform: public Box {
 	public:
 		Transform();
 		// define props

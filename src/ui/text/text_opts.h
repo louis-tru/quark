@@ -77,7 +77,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(TextWordBreak,   text_word_break_value, Const);
 		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const);
 
-		Vec2 compute_layout_size(cString2& value);
+		Vec2 compute_layout_size(cString& value);
 
 		TextOptions();
 		~TextOptions();

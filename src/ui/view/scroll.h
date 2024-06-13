@@ -31,7 +31,7 @@
 #ifndef __quark__view__scroll__
 #define __quark__view__scroll__
 
-#include "./float.h"
+#include "./box.h"
 #include "../../render/bezier.h"
 
 namespace qk {
@@ -88,7 +88,7 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
-	class Qk_EXPORT Scroll: public Float, public ScrollBase {
+	class Qk_EXPORT Scroll: public Box, public ScrollBase {
 	public:
 		Scroll();
 		virtual View* init(Window *win) override;
