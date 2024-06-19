@@ -43,18 +43,13 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP(ItemsAlign, items_align, Const); // alignment mode of the main axis
 		Qk_DEFINE_VIEW_PROP(CrossAlign, cross_align, Const); // alignment mode of the cross axis
 		// @overwrite
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual Vec2 layout_lock(Vec2 view_size) override;
-		virtual bool is_lock_child_layout_size() override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual void onChildLayoutChange(View* child, uint32_t mark) override;
 		virtual ViewType viewType() const override;
 	private:
 		template<bool is_horizontal> void layout_typesetting_auto(bool is_reverse);
 		template<bool is_horizontal> void layout_typesetting_flex(bool is_reverse);
 		void layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse);
-		bool update_IsLockChild();
-		bool _is_lock_child;
 		friend class Flow;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};

@@ -34,7 +34,7 @@ namespace qk {
 
 	Transform::Transform()
 		: _translate(0), _scale(1), _skew(0), _rotate_z(0)
-		, _origin_x{0, BoxOriginKind::Rem}, _origin_y{0, BoxOriginKind::Rem}
+		, _origin_x{0, BoxOriginKind::Value}, _origin_y{0, BoxOriginKind::Value}
 	{
 	}
 
@@ -266,24 +266,11 @@ namespace qk {
 		return Box::layout_offset_inside() - _origin_value;
 	}
 
-	bool Transform::layout_forward(uint32_t mark) {
-		auto ok = Box::layout_forward(mark);
-		if (ok) {
-			if (mark & kTransform_Origin) {
-				solve_origin_value(); // check transform_origin change
-			}
+	void Transform::layout_reverse(uint32_t mark) {
+		Box::layout_reverse(mark);
+		if (mark & (kTransform_Origin | kLayout_Typesetting) ) {
+			solve_origin_value(); // check transform_origin change
 		}
-		return ok;
-	}
-
-	bool Transform::layout_reverse(uint32_t mark) {
-		auto ok = Box::layout_reverse(mark);
-		if (ok) {
-			if (mark & kLayout_Typesetting) {
-				solve_origin_value(); // check transform_origin change
-			}
-		}
-		return ok;
 	}
 
 	void Transform::solve_origin_value() {
@@ -293,13 +280,13 @@ namespace qk {
 		switch (_origin_x.kind) {
 			default:
 			case BoxOriginKind::Auto:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
-			case BoxOriginKind::Rem:   _origin_value.set_x(_origin_x.value); break;
+			case BoxOriginKind::Value: _origin_value.set_x(_origin_x.value); break;
 			case BoxOriginKind::Ratio: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
 		}
 		switch (_origin_y.kind) {
 			default:
 			case BoxOriginKind::Auto:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
-			case BoxOriginKind::Rem:   _origin_value.set_y(_origin_y.value); break;
+			case BoxOriginKind::Value: _origin_value.set_y(_origin_y.value); break;
 			case BoxOriginKind::Ratio: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
 		}
 

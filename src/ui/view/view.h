@@ -70,11 +70,12 @@ namespace qk {
 			kLayout_None              = (0),      /* 没有任何标记 */
 			kLayout_Size_Width        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
 			kLayout_Size_Height       = (1 << 1),
-			kLayout_Typesetting       = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
-			kTransform_Origin         = (1 << 3),
-			kInput_Status             = (1 << 4), /* 输入状态这不包含布局的改变 */
-			kScroll                   = (1 << 5), /* scroll status change */
-			kStyle_Class              = (1 << 6), /* 变化class引起的样式变化 */
+			kLayout_Child_Size        = (1 << 2), /* 子视图布局尺寸改变 */
+			kLayout_Typesetting       = (1 << 3), /* 布局内容偏移, 需要重新对子布局排版 */
+			kTransform_Origin         = (1 << 4),
+			kInput_Status             = (1 << 5), /* 输入状态这不包含布局的改变 */
+			kScroll                   = (1 << 6), /* scroll status change */
+			kStyle_Class              = (1 << 7), /* 变化class引起的样式变化 */
 			// RECURSIVE MARKS
 			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
 			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
@@ -92,7 +93,7 @@ namespace qk {
 
 		// layout size
 		struct Size {
-			Vec2 layout_size, content_size;
+			Vec2 layout, content;
 			bool wrap_x, wrap_y;
 		};
 
@@ -425,16 +426,6 @@ namespace qk {
 		virtual Size layout_size();
 
 		/**
-			*
-			* Returns the and compute view size of object view
-			*
-			* @method layout_raw_size(parent_content_size)
-			* @safe Rt
-			* @note Can only be used in rendering threads
-			*/
-		virtual Size layout_raw_size(Size parent_content_size);
-
-		/**
 			* Returns internal view offset compensation of the view, which affects the sub view offset position
 			* 
 			* For example: when a view needs to set the scrolling property scroll of a sub view, you can set this property
@@ -444,16 +435,6 @@ namespace qk {
 			* @note Can only be used in rendering threads
 			*/
 		virtual Vec2 layout_offset_inside();
-
-		/**
-			*
-			* whether the child view has been locked
-			*
-			* @method is_lock_child_layout_size()
-			* @safe Rt
-			* @note Can only be used in rendering threads
-			*/
-		virtual bool is_lock_child_layout_size();
 
 		/**
 			* 
@@ -476,11 +457,9 @@ namespace qk {
 		virtual void set_layout_offset_free(Vec2 size);
 
 		/**
-			* 锁定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
-			*
-			* 这个方法应该在`layout_forward()`正向迭代中由父布局调用,因为尺寸的调整一般在正向迭代中
+			* 强制锁定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
 			* 
-			* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
+			* 返回锁定后的最终尺寸.
 			* 
 			* @method layout_lock(layout_size)
 			* @safe Rt
@@ -494,21 +473,19 @@ namespace qk {
 			*
 			* 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
 			* 
-			* 这个方法被调用时父视图尺寸一定是有效的，在调用`content_size`时有两种情况，
-			* 返回`false`表示父视图尺寸是wrap的，返回`true`时表示父视图有明确的尺寸
+			* 这个方法被调用时父视图尺寸一定是有效的
 			* 
 			* @method layout_forward(mark)
 			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		virtual bool layout_forward(uint32_t/*LayoutMark*/ mark);
+		virtual void layout_forward(uint32_t/*LayoutMark*/ mark);
 
 		/**
 			* 
 			* (计算子布局的偏移位置，以及确定在`layout_forward()`函数没有能确定的尺寸)
 			* 
-			* 从内向外反向迭代布局，比如有些视图外部并没有明确的尺寸，
-			* 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸。
+			* 从内向外反向迭代布局，重新调整子视图领衔位置，并且如果视图为包裹尺寸时会被内部视图所挤压
 			*
 			* 这个方法被调用时子视图尺寸一定是明确的有效的，调用`layout_size()`返回子视图外框尺寸。
 			* 
@@ -516,7 +493,7 @@ namespace qk {
 			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		virtual bool layout_reverse(uint32_t/*LayoutMark*/ mark);
+		virtual void layout_reverse(uint32_t/*LayoutMark*/ mark);
 
 		/**
 		 * 
@@ -539,16 +516,6 @@ namespace qk {
 			* @note Can only be used in rendering threads
 			*/
 		virtual void onChildLayoutChange(View* child, uint32_t/*ChildLayoutChangeMark*/ mark);
-
-		/**
-			* 
-			* This method of the child layout is called when the layout size of the parent layout changes
-			* 
-			* @method onParentLayoutContentSizeChange(parent, mark)
-			* @safe Rt
-			* @note Can only be used in rendering threads
-			*/
-		virtual void onParentLayoutContentSizeChange(View* parent, uint32_t/*LayoutMark*/ mark);
 
 		/**
 		 * Overlap test, test whether the point on the screen overlaps with the view

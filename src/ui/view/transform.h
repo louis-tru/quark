@@ -68,8 +68,7 @@ namespace qk {
 		// --------------- o v e r w r i t e ---------------
 		virtual ViewType viewType() const override;
 		virtual Transform* asTransform() override;
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 center() override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;

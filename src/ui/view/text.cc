@@ -34,14 +34,13 @@
 
 namespace qk {
 
-	bool Text::layout_reverse(uint32_t mark_) {
+	void Text::layout_reverse(uint32_t mark_) {
 		if (mark_ & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			auto size = content_size();
 			auto v = first_Rt();
-			_lines = new TextLines(this, text_align_value(), size, _layout_wrap_x_Rt);
+			_lines = new TextLines(this, text_align_value(), size, _wrap_x);
 			_lines->set_stable_line_height(text_size().value, text_line_height().value);
 
 			_blob_visible.clear();
@@ -60,8 +59,8 @@ namespace qk {
 			_lines->finish();
 
 			Vec2 new_size(
-				_layout_wrap_x_Rt ? solve_layout_content_wrap_limit_width(_lines->max_width()): size.x(),
-				_layout_wrap_y_Rt ? solve_layout_content_wrap_limit_height(_lines->max_height()): size.y()
+				_wrap_x ? solve_layout_content_wrap_limit_width(_lines->max_width()): size.x(),
+				_wrap_y ? solve_layout_content_wrap_limit_height(_lines->max_height()): size.y()
 			);
 
 			if (new_size != size) {
@@ -71,12 +70,7 @@ namespace qk {
 
 			unmark(kLayout_Typesetting);
 			mark(kRecursive_Visible_Region, true); // force test region and lines region
-
-			// check transform_origin change
-			// solve_origin_value();
 		}
-
-		return true; // complete
 	}
 
 	View* Text::getViewForTextOptions() {

@@ -45,16 +45,11 @@ namespace qk {
 		return this;
 	}
 
-	bool Label::layout_forward(uint32_t mark) {
-		return false; // continue iteration
-	}
-
-	bool Label::layout_reverse(uint32_t mark) {
+	void Label::layout_reverse(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting)) {
 			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Text);
 			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
 		}
-		return true; // complete
 	}
 
 	void Label::layout_text(TextLines *lines, TextConfig *base) {
@@ -89,10 +84,6 @@ namespace qk {
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
 		mark(kRecursive_Transform, true);
-	}
-
-	void Label::onParentLayoutContentSizeChange(View* parent, uint32_t value) {
-		mark_layout(value, true);
 	}
 
 	bool Label::solve_visible_region(const Mat &mat) {

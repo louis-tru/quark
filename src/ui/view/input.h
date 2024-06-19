@@ -63,7 +63,7 @@ namespace qk {
 		// @override
 		virtual bool can_become_focus() override;
 		virtual ViewType viewType() const override;
-		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual bool solve_visible_region(const Mat &mat) override;

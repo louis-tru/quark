@@ -43,12 +43,10 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP(String, value);
 		virtual ViewType viewType() const override;
 		virtual TextOptions* asTextOptions() override;
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
-		virtual void onParentLayoutContentSizeChange(View* parent, uint32_t mark) override;
 		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(UIRender *render) override;

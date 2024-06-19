@@ -39,14 +39,13 @@ namespace qk {
 	public:
 		Flow();
 		// define props
-		Qk_DEFINE_VIEW_PROP(Wrap, wrap, Const); // 主轴溢出后换行，开启后当主轴溢出时分裂成多根交叉轴
-		Qk_DEFINE_VIEW_PROP(WrapAlign, wrap_align, Const); // 多根交叉轴的对齐方式,如果只有一根交叉轴该属性不起作用
+		//!< When enabled, when the spindle overflows, it will split into multiple intersecting axes
+		Qk_DEFINE_VIEW_PROP(Wrap, wrap, Const);
+		//!< The alignment method of multiple cross axes, if there is only one cross axis, this attribute will not work
+		Qk_DEFINE_VIEW_PROP(WrapAlign, wrap_align, Const);
 		// @overwrite
 		virtual ViewType viewType() const override;
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
-		virtual Vec2 layout_lock(Vec2 view_size) override;
-		virtual bool is_lock_child_layout_size() override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual void onChildLayoutChange(View* child, uint32_t mark) override;
 	private:
 		template<bool is_horizontal> void layout_typesetting_wrap(bool is_reverse);

@@ -669,18 +669,15 @@ namespace qk {
 		set_placeholder_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
 	}
 
-	bool Input::layout_reverse(uint32_t mark) {
+	void Input::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting())
-				return false; // continue iteration
 			layout_typesetting_input_text();
 		}
-		return true; // complete
 	}
 
 	Vec2 Input::layout_typesetting_input_text() {
 		Vec2 c_size = content_size();
-		_lines = new TextLines(this, text_align_value(), c_size, _layout_wrap_x_Rt);
+		_lines = new TextLines(this, text_align_value(), c_size, _wrap_x);
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
@@ -751,8 +748,8 @@ namespace qk {
 		_lines->finish();
 
 		Vec2 new_size(
-			_layout_wrap_x_Rt ? solve_layout_content_wrap_limit_width(_lines->max_width()): c_size.x(),
-			_layout_wrap_y_Rt ? solve_layout_content_wrap_limit_height(_lines->max_height()): c_size.y()
+			_wrap_x ? solve_layout_content_wrap_limit_width(_lines->max_width()): c_size.x(),
+			_wrap_y ? solve_layout_content_wrap_limit_height(_lines->max_height()): c_size.y()
 		);
 
 		if (new_size != c_size) {

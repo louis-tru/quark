@@ -42,14 +42,10 @@ namespace qk {
 		return true;
 	}
 
-	bool Textarea::layout_reverse(uint32_t mark) {
+	void Textarea::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting())
-				return false; // continue iteration
-			auto full_size = layout_typesetting_input_text(); // return full content size
-			set_scroll_size_Rt(full_size);
+			set_scroll_size_Rt(layout_typesetting_input_text());
 		}
-		return true; // complete
 	}
 
 	void Textarea::solve_marks(const Mat &mat, uint32_t mark) {

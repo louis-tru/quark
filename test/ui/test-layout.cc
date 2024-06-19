@@ -196,7 +196,7 @@ void layout(Event<>& evt, Application* app) {
 	flex->set_background_color({0,0,0,255});
 	// flex->set_box_shadow(new BoxShadow(10, 10, 5, {0,0,0,255}));
 	flex->set_width({ 0, BoxSizeKind::Match });
-	flex->set_height({ 180, BoxSizeKind::Rem });
+	flex->set_height({ 180, BoxSizeKind::Value });
 	flex->set_margin_left(11.5);
 	flex->set_margin_top(10);
 	flex->set_margin_right(11.5);
@@ -227,8 +227,8 @@ void layout(Event<>& evt, Application* app) {
 	//flex->set_skew(Vec2(0,1));
 	//flex->set_translate(Vec2(100, 0));
 	//
-	flow->set_width({ 50, BoxSizeKind::Rem });
-	flow->set_height({ 50, BoxSizeKind::Rem });
+	flow->set_width({ 50, BoxSizeKind::Value });
+	flow->set_height({ 50, BoxSizeKind::Value });
 	flow->set_background_color({0,0,0,255});
 	flow->set_align(Align::LeftBottom);
 	flow->set_margin_left(30);

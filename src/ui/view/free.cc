@@ -32,10 +32,8 @@
 
 namespace qk {
 
-	bool Free::layout_reverse(uint32_t mark) {
+	void Free::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return false; // continue iteration
-
 			auto v = first_Rt();
 			if (v) {
 				auto _content_size = content_size();
@@ -47,8 +45,6 @@ namespace qk {
 			}
 			unmark(kLayout_Typesetting);
 		}
-
-		return true; // complete, stop iteration
 	}
 
 	ViewType Free::viewType() const {

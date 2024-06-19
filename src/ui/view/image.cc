@@ -40,11 +40,11 @@ namespace qk {
 		return kImage_ViewType;
 	}
 
-	bool Image::layout_forward(uint32_t mark) {
+	void Image::layout_forward(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			mark |= (kLayout_Size_Width | kLayout_Size_Height);
 		}
-		return Box::layout_forward(mark);
+		Box::layout_forward(mark);
 	}
 
 	float Image::solve_layout_content_width(Size &pSize) {
@@ -91,7 +91,7 @@ namespace qk {
 
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			mark_size(kLayout_Size_Width | kLayout_Size_Height, false);
+			mark_layout(kLayout_Size_Width | kLayout_Size_Height, false);
 			Sp<UIEvent> evt = New<UIEvent>(this);
 			trigger(UIEvent_Load, **evt);
 		} else if (*evt.data() & (ImageSource::kSTATE_LOAD_ERROR | ImageSource::kSTATE_DECODE_ERROR)) {

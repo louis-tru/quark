@@ -85,8 +85,8 @@ namespace qk {
 	template<bool is_horizontal>
 	void Flex::layout_typesetting_auto(bool is_reverse) {
 		// get views raw size total
-		auto	wrap_x = _layout_wrap_x_Rt,
-					wrap_y = _layout_wrap_y_Rt;
+		auto	wrap_x = _wrap_x,
+					wrap_y = _wrap_y;
 		Vec2	cur = content_size();
 		float offset = 0, max_cross = 0, total_main = 0;
 		uint32_t items = 0;
@@ -98,7 +98,7 @@ namespace qk {
 		auto v = first_Rt();
 		while (v) {
 			if (v->visible()) {
-				auto size = v->layout_size().layout_size;
+				auto size = v->layout_size().layout;
 				auto cross = is_horizontal ? size.y(): size.x();
 				if (is_wrap_cross) // wrap cross axis
 					max_cross = Qk_MAX(max_cross, cross);
@@ -125,7 +125,7 @@ namespace qk {
 			v = is_reverse ? last_Rt(): first_Rt();
 			do {
 				if (v->visible()) {
-					auto size = v->layout_size().layout_size;
+					auto size = v->layout_size().layout;
 					auto align = v->layout_align();
 					float offset_cross = 0;
 					switch (align == Align::Auto ? _cross_align: CrossAlign(int(align) - 1)) {
@@ -158,7 +158,7 @@ namespace qk {
 	template<bool is_horizontal>
 	void Flex::layout_typesetting_flex(bool is_reverse) { // flex
 		Size cur_size = layout_size();
-		Vec2 cur = cur_size.content_size;
+		Vec2 cur = cur_size.content;
 		bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
 		float main_size = is_horizontal ? cur.x(): cur.y();
 		float cross_size_old = is_horizontal ? cur.y(): cur.x();
@@ -173,7 +173,7 @@ namespace qk {
 			auto v = is_reverse ? last_Rt(): first_Rt();
 			do {
 				if (v->visible()) {
-					auto size = v->layout_raw_size(cur_size).layout_size;
+					auto size = v->layout_size().layout;
 					max_cross = Qk_MAX(max_cross, size.y()); // solve content height
 					total_main += size.x();
 					total_weight += v->layout_weight();
@@ -187,21 +187,21 @@ namespace qk {
 			}
 			float overflow = main_size - total_main; // flex size - child total main size
 
-			if (total_weight > 0) {
+			if (overflow != 0 && total_weight > 0) {
 				total_main = 0;
-				float min_total_weight = Qk_MIN(total_weight, 1);
-				float C = total_weight / (overflow * min_total_weight);
+				const float min_total_weight = Qk_MIN(total_weight, 1);
+				const float C = total_weight / (overflow * min_total_weight);
 				// in flex：size = size_raw + overflow * (weight / total_weight) * min(total_weight, 1)
 				for (auto i: items) {
-					Vec2 size = i.size;
-					View *v = i.view;
-					if (is_horizontal) {
-						size.set_x( size.x() + v->layout_weight() * C);
-					} else {
-						size.set_y( size.y() + v->layout_weight() * C);
+					auto weight = i.view->layout_weight();
+					if (weight > 0) {
+						auto ch = weight * C;
+						i.size = i.view->layout_lock( // force lock subview layout size
+							is_horizontal ?
+								Vec2{i.size[0]+ch, i.size[1]}: Vec2{i.size[0], i.size[1]+ch}
+						);
 					}
-					size = v->layout_lock(size);
-					total_main += (is_horizontal ? size.x(): size.y());
+					total_main += (is_horizontal ? i.size.x(): i.size.y());
 				}
 				overflow = main_size - total_main;
 			}
@@ -214,16 +214,14 @@ namespace qk {
 				auto v = i.view;
 				auto align = v->layout_align();
 				float offset_cross = 0;
+				float cross = is_horizontal ? size.y(): size.x();
 				switch (align == Align::Auto ? _cross_align: CrossAlign(int(align) - 1)) {
 					default:
 					case CrossAlign::Start: break; // 与交叉轴内的起点对齐
 					case CrossAlign::Center: // 与交叉轴内的中点对齐
-						offset_cross = (cross_size - size.y()) * 0.5; break;
+						offset_cross = (cross_size - cross) * 0.5; break;
 					case CrossAlign::End: // 与交叉轴内的终点对齐
-						offset_cross = cross_size - size.y(); break;
-				}
-				if (total_weight == 0) {
-					size = v->layout_lock(size);
+						offset_cross = cross_size - cross; break;
 				}
 				if (is_horizontal) {
 					v->set_layout_offset(Vec2(offset, offset_cross));
@@ -237,7 +235,8 @@ namespace qk {
 
 		if (is_wrap_cross) {
 			cross_size = is_horizontal ?
-			solve_layout_content_wrap_limit_height(cross_size): solve_layout_content_wrap_limit_width(cross_size);
+				solve_layout_content_wrap_limit_height(cross_size):
+				solve_layout_content_wrap_limit_width(cross_size);
 		}
 		if (cross_size != cross_size_old) {
 			set_content_size(is_horizontal ? Vec2{main_size, cross_size}: Vec2{cross_size, main_size});
@@ -257,7 +256,6 @@ namespace qk {
 		: _direction(Direction::Row)
 		, _items_align(ItemsAlign::Start)
 		, _cross_align(CrossAlign::Start)
-		, _is_lock_child(false)
 	{
 	}
 
@@ -265,7 +263,7 @@ namespace qk {
 		if (val != _direction) {
 			_direction = val;
 			// The layout parameters have been changed, and the sub layout needs to be rearranged in the future
-			mark_layout(kLayout_Typesetting, isRt);
+			mark_layout(kLayout_Typesetting | kLayout_Child_Size, isRt);
 		}
 	}
 
@@ -283,165 +281,87 @@ namespace qk {
 		}
 	}
 
-	bool Flex::update_IsLockChild() {
-		bool is_lock_child = false;
-
-		if (parent_Rt()->is_lock_child_layout_size()) { // parent lock
-			is_lock_child = true;
-		}
-		else if (_direction == Direction::Row || _direction == Direction::RowReverse) {
-			if (!_layout_wrap_x_Rt) is_lock_child = true; // Explicit size x, no Line feed
-		}
-		else {
-			if (!_layout_wrap_y_Rt) is_lock_child = true; // Explicit size y, no Line feed
-		}
-
-		if (_is_lock_child != is_lock_child) {
-			_is_lock_child = is_lock_child;
-			return true;
-		}
-		return false;
-	}
-
-	bool Flex::layout_forward(uint32_t _mark) {
-		if (_mark & (kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height)) {
-			auto change_mark = solve_layout_size_forward(_mark);
-
-			if (update_IsLockChild()) {
-				change_mark = kLayout_Size_Width | kLayout_Size_Height;
-			}
-
-			if (change_mark) {
-				mark_layout(kLayout_Typesetting, true); // rearrange
-				mark(kRecursive_Visible_Region, true);
-			}
-
-			// if no lock child layout then must be processed in reverse iteration, layout_reverse()
-			if (!_is_lock_child) { // no lock
-				if (change_mark) { // if no lock child and mark value
-					auto v = first_Rt();
-					while (v) {
-						v->onParentLayoutContentSizeChange(this, change_mark);
-						v = v->next_Rt();
-					}
-				}
-				return false;
-			}
-
-			// is ready typesetting
-			if (!is_ready_layout_typesetting()) {
-				// not ready continue iteration, wait call layout_reverse
-				return false;
-			}
-
-			// flex lock child
-			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW horizontal flex layout
-				/*
-					|-------------------------------|
-					| width=Explicit                |
-					|   ___ ___ ___          ___    |
-					|  | L | L | L | -----> | L |   |
-					|   --- --- ---          ---    |
-					|                               |
-					|-------------------------------|
-				*/
-				layout_typesetting_flex<true>(_direction == Direction::RowReverse); // flex horizontal
-			} else { // COLUMN vertical flex layout
-				/*
-					|--------------------------------|
-					| height=Explicit                |
-					|              ___               |
-					|             | L |              |
-					|              ---               |
-					|             | L |              |
-					|              ---               |
-					|             | L |              |
-					|              ---               |
-					|               |                |
-					|               |                |
-					|               v                |
-					|              ___               |
-					|             | L |              |
-					|              ---               |
-					|--------------------------------|
-				*/
-				layout_typesetting_flex<false>(_direction == Direction::ColumnReverse); // flex vertical
-			}
-
-			unmark(kLayout_Typesetting);
-
-			//solve_origin_value(); // check transform_origin change
-		}
-		// else if (_mark & kTransform_Origin) {
-			//solve_origin_value();
-		// }
-
-		return true; // complete
-	}
-
-	bool Flex::layout_reverse(uint32_t mark) {
+	void Flex::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
-				if (!_layout_wrap_x_Rt) // no wrap, flex layout must be handled in forward iteration
-					return true; // layout_forward()
-				/*
-					|-------------....------------|
-					|          width=WRAP         |
-					|   ___ ___ ___         ___   |
-					|  | L | L | L | ----> | L |  |
-					|   --- --- ---         ---   |
-					|                             |
-					|-------------....------------|
-				*/
-				// auto horizontal layout
-				layout_typesetting_auto<true>(_direction == Direction::RowReverse);
+				if (_wrap_x) {
+					/*
+						|-------------....------------|
+						|          width=WRAP         |
+						|   ___ ___ ___         ___   |
+						|  | L | L | L | ----> | L |  |
+						|   --- --- ---         ---   |
+						|                             |
+						|-------------....------------|
+					*/
+					// auto horizontal layout
+					layout_typesetting_auto<true>(_direction == Direction::RowReverse);
+				} else {
+					/*
+						|-------------------------------|
+						| width=Explicit                |
+						|   ___ ___ ___          ___    |
+						|  | L | L | L | -----> | L |   |
+						|   --- --- ---          ---    |
+						|                               |
+						|-------------------------------|
+					*/
+					layout_typesetting_flex<true>(_direction == Direction::RowReverse); // flex horizontal
+				}
 			} else { // COLUMN
-				if (_layout_wrap_y_Rt) // no wrap, flex layout must be handled in forward iteration
-					return false; // layout_forward()
-				/*
-					|-----------|
-					|height=WRAP|
-					|    ___    |
-					|   | L |   |
-					|    ---    |
-					|   | L |   |
-					|    ---    |
-					.   | L |   .
-					.    ---    .
-					.     |     .
-					.     |     .
-					|     v     |
-					|    ___    |
-					|   | L |   |
-					|    ---    |
-					|-----------|
-				*/
-				// auto vertical layout
-				layout_typesetting_auto<false>(_direction == Direction::ColumnReverse);
+				if (_wrap_y) {
+					/*
+						|-----------|
+						|height=WRAP|
+						|    ___    |
+						|   | L |   |
+						|    ---    |
+						|   | L |   |
+						|    ---    |
+						.   | L |   .
+						.    ---    .
+						.     |     .
+						.     |     .
+						|     v     |
+						|    ___    |
+						|   | L |   |
+						|    ---    |
+						|-----------|
+					*/
+					// auto vertical layout
+					layout_typesetting_auto<false>(_direction == Direction::ColumnReverse);
+				} else {
+					/*
+						|--------------------------------|
+						| height=Explicit                |
+						|              ___               |
+						|             | L |              |
+						|              ---               |
+						|             | L |              |
+						|              ---               |
+						|             | L |              |
+						|              ---               |
+						|               |                |
+						|               |                |
+						|               v                |
+						|              ___               |
+						|             | L |              |
+						|              ---               |
+						|--------------------------------|
+					*/
+					layout_typesetting_flex<false>(_direction == Direction::ColumnReverse); // flex vertical
+				}
 			}
 
 			unmark(kLayout_Typesetting);
-
-			//solve_origin_value(); // check transform_origin change
 		}
-		return true; // complete
-	}
-
-	Vec2 Flex::layout_lock(Vec2 layout_size) {
-		bool is_wrap[2] = { false, false};
-		set_layout_size(layout_size, is_wrap, true);
-		return _layout_size;
-	}
-
-	bool Flex::is_lock_child_layout_size() {
-		return _is_lock_child;
 	}
 
 	void Flex::onChildLayoutChange(View* child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Align | 
-								kChild_Layout_Visible | kChild_Layout_Weight | kChild_Layout_Text)) {
+		if (value & (kChild_Layout_Size | kChild_Layout_Visible |
+								kChild_Layout_Align | kChild_Layout_Text | kChild_Layout_Weight)
+		) {
 			mark_layout(kLayout_Typesetting, true);
 		}
 	}

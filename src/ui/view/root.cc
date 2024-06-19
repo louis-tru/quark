@@ -52,25 +52,19 @@ namespace qk {
 		mark_layout(View::kLayout_Size_Width | View::kLayout_Size_Height, true);
 	}
 
-	bool Root::layout_forward(uint32_t mark) {
+	void Root::layout_forward(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			bool wrap[2] = { false, false };
-			set_layout_size(window()->size(), wrap, false);
+			layout_lock(window()->size());
 		}
-		if (mark & kLayout_Typesetting) {
-			return false;
-		} else if (mark & kTransform_Origin) {
-			solve_origin_value(); // check transform_origin change
-		}
-		return true; // complete
 	}
 
-	bool Root::layout_reverse(uint32_t mark) {
+	void Root::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			layout_typesetting_box();
+		}
+		if (mark & (kLayout_Typesetting | kTransform_Origin)) {
 			solve_origin_value(); // check transform_origin change
 		}
-		return true; // complete iteration
 	}
 
 	void Root::solve_marks(const Mat &mat, uint32_t mark) {

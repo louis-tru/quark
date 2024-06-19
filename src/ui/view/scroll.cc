@@ -810,8 +810,8 @@ namespace qk {
 		_scroll_h = _scroll_max.x() < 0;
 		_scroll_v = ((!_bounce_lock && !_scroll_h) || _scroll_max.y() < 0);
 
-		_scroll_h = _scroll_h && !_host->layout_wrap_x_Rt(); // 非wrap的size才能滚动
-		_scroll_v = _scroll_v && !_host->layout_wrap_y_Rt();
+		_scroll_h = _scroll_h && !_host->wrap_x(); // 非wrap的size才能滚动
+		_scroll_v = _scroll_v && !_host->wrap_y();
 
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
@@ -853,14 +853,10 @@ namespace qk {
 		return offset;
 	}
 
-	bool Scroll::layout_reverse(uint32_t mark) {
+	void Scroll::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting())
-				return false; // continue iteration
-			auto inner_size = layout_typesetting_box(); // return full content size
-			set_scroll_size_Rt(inner_size);
+			set_scroll_size_Rt(layout_typesetting_box());
 		}
-		return true; // complete iteration
 	}
 
 	void Scroll::solve_marks(const Mat &mat, uint32_t mark) {

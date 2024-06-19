@@ -307,7 +307,7 @@ namespace qk {
 	bool FillImage::compute_size(FillSize size, float host, float& out) {
 		switch (size.kind) {
 			default: return false; // AUTO
-			case FillSizeKind::Rem: out = size.value; break;
+			case FillSizeKind::Value: out = size.value; break;
 			case FillSizeKind::Ratio: out = size.value * host; break;
 		}
 		return true;
@@ -318,7 +318,7 @@ namespace qk {
 		switch (pos.kind) {
 			default:
 			case FillPositionKind::Start: out = 0; break;
-			case FillPositionKind::Rem: out = pos.value; break;
+			case FillPositionKind::Value: out = pos.value; break;
 			case FillPositionKind::Ratio: out = pos.value * host; break;
 			case FillPositionKind::End: out = host - size; break;
 			case FillPositionKind::Center: out = (host - size) / 2; break;

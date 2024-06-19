@@ -114,17 +114,11 @@ namespace qk {
 
 	void PreRender::solveMarks() {
 		// First forward iteration
-		for (auto &levelMarks: _marks) {
-			for (auto &view: levelMarks) {
-				if (view) {
+		if (_mark_total) {
+			for (auto &levelMarks: _marks) {
+				for (auto view: levelMarks) {
 					if (view->_mark_value & View::kStyle_Class) {
 						view->applyClass_Rt(view->parentSsclass_Rt());
-					}
-					if ( view->layout_forward(view->_mark_value) ) {
-						// simple delete mark
-						view->_mark_index = -1;
-						view = nullptr;
-						_mark_total--;
 					}
 				}
 			}
@@ -132,42 +126,24 @@ namespace qk {
 
 		while (_mark_total) {
 			Qk_ASSERT(_mark_total > 0);
-
+			// forward iteration
+			for (auto &levelMarks: _marks) {
+				for (auto view: levelMarks) {
+					view->layout_forward(view->_mark_value);
+				}
+			}
 			// reverse iteration
 			for (int i = _marks.length() - 1; i >= 0; i--) {
 				auto &levelMarks = _marks[i];
-				for (auto &view: levelMarks) {
-					if (view) {
-						if ( view->layout_reverse(view->_mark_value) ) {
-							// simple delete mark recursive
-							view->_mark_index = -1;
-							view = nullptr;
-							_mark_total--;
-						}
-					}
+				for (auto view: levelMarks) {
+					view->layout_reverse(view->_mark_value);
+					// simple delete mark recursive
+					view->_mark_index = -1;
+					_mark_total--;
 				}
-			}
-			if (!_mark_total) break;
-
-			// forward iteration
-			for (auto &levelMarks: _marks) {
-				for (auto &view: levelMarks) {
-					if (view) {
-						if ( view->layout_forward(view->_mark_value) ) {
-							// simple delete mark
-							view->_mark_index = -1;
-							view = nullptr;
-							_mark_total--;
-						}
-					}
-				}
+				levelMarks.clear();
 			}
 		}
-
-		for (auto &levelMarks: _marks) {
-			levelMarks.clear();
-		}
-		_is_render = true;
 	}
 
 	void PreRender::clearTasks() {
@@ -229,6 +205,7 @@ namespace qk {
 
 		if (_mark_total) { // solve marks
 			solveMarks();
+			_is_render = true;
 		}
 
 		return _is_render ? (_is_render = false, true): false;

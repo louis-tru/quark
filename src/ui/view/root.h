@@ -39,8 +39,8 @@ namespace qk {
 	public:
 		virtual ViewType viewType() const override;
 		virtual bool can_become_focus() override;
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_forward(uint32_t mark) override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
 	private:

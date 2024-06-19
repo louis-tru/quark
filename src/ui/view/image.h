@@ -41,7 +41,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_ACC(String, src, Const);
 		Qk_DEFINE_VIEW_PROP_ACC(ImageSource*, source);
 		virtual ViewType viewType() const override;
-		virtual bool layout_forward(uint32_t mark) override;
+		virtual void layout_forward(uint32_t mark) override;
 		virtual void draw(UIRender *render) override;
 	protected:
 		virtual float solve_layout_content_width(Size &parent_layout_size) override;

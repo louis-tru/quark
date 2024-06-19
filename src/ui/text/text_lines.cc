@@ -132,7 +132,7 @@ namespace qk {
 		auto bottom = _last->bottom;
 
 		for (auto view: _preView.back()) {
-			auto height = view->layout_size().layout_size.height();
+			auto height = view->layout_size().layout.height();
 			switch (view->layout_align()) {
 				case Align::Start:
 					set_line_height(top, height - bottom); break;
@@ -155,6 +155,7 @@ namespace qk {
 
 		for (auto &line: _lines) {
 			switch(_text_align) {
+				default:
 				case TextAlign::Left: break;
 				case TextAlign::Center: line.origin = (width - line.width) / 2; break;
 				case TextAlign::Right:  line.origin = width - line.width; break;
@@ -167,7 +168,7 @@ namespace qk {
 			auto bottom = line.bottom;
 
 			for (auto view: _preView[line.line]) {
-				auto size_y = view->layout_size().layout_size.y();
+				auto size_y = view->layout_size().layout.y();
 				auto x = _last->origin + view->layout_offset().x();
 				float y;
 

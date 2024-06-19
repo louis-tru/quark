@@ -198,10 +198,6 @@ namespace qk {
 		return { Vec2(), Vec2(), true, true };
 	}
 
-	View::Size View::layout_raw_size(Size pSize) {
-		return { Vec2(), Vec2(), true, true };
-	}
-
 	Vec2 View::layout_offset_inside() {
 		return Vec2();
 	}
@@ -216,15 +212,10 @@ namespace qk {
 		return Vec2();
 	}
 
-	bool View::is_lock_child_layout_size() {
-		return false;
+	void View::layout_forward(uint32_t mark) {
 	}
 
-	bool View::layout_forward(uint32_t mark) {
-		return !(mark & kLayout_Typesetting);
-	}
-
-	bool View::layout_reverse(uint32_t mark) {
+	void View::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			auto v = _first_Rt;
 			while (v) {
@@ -233,7 +224,6 @@ namespace qk {
 			}
 			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
 		}
-		return true; // complete
 	}
 
 	void View::layout_text(TextLines *lines, TextConfig *cfg) {
@@ -243,9 +233,6 @@ namespace qk {
 		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
 			mark_layout(kLayout_Typesetting, true);
 		}
-	}
-
-	void View::onParentLayoutContentSizeChange(View* parent, uint32_t mark) {
 	}
 
 	void View::onActivate() {

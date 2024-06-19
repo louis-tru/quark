@@ -37,8 +37,8 @@ namespace qk {
 	// content wrap typesetting of horizontal or vertical
 	template<bool is_horizontal>
 	void Flow::layout_typesetting_wrap(bool is_reverse) { // wrap Line feed
-		auto wrap_x = _layout_wrap_x_Rt,
-				 wrap_y = _layout_wrap_y_Rt;
+		auto wrap_x = _wrap_x,
+				 wrap_y = _wrap_y;
 		Vec2 cur = content_size(), new_size;
 
 		if (first_Rt()) {
@@ -67,7 +67,7 @@ namespace qk {
 			auto v = first_Rt();
 			do {
 				if (v->visible()) {
-					auto size = v->layout_size().layout_size;
+					auto size = v->layout_size().layout;
 					auto main = _total_main + (is_horizontal ? size.x(): size.y());
 					if (main > main_limit) { // Line feed
 						if (is_reverse)
@@ -192,16 +192,11 @@ namespace qk {
 		return kFlow_ViewType;
 	}
 
-	bool Flow::layout_forward(uint32_t mark) {
-		return Box::layout_forward(mark);
-	}
-
-	bool Flow::layout_reverse(uint32_t mark) {
+	void Flow::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			if (!is_ready_layout_typesetting()) return false; // continue iteration
 
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
-				if (_layout_wrap_x_Rt && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_wrap_x && _wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-------------....------------|
 						|          width=WRAP         |
@@ -234,7 +229,7 @@ namespace qk {
 					layout_typesetting_wrap<true>(_direction == Direction::RowReverse);
 				}
 			} else { // COLUMN
-				if (_layout_wrap_y_Rt && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_wrap_y && _wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-----------|
 						|height=WRAP|
@@ -278,23 +273,10 @@ namespace qk {
 			}
 
 			unmark(kLayout_Typesetting);
-
-			// check transform_origin change
-			// solve_origin_value();
 		}
-		return true; // complete
-	}
-
-	Vec2 Flow::layout_lock(Vec2 layout_size) {
-		return Box::layout_lock(layout_size);
-	}
-
-	bool Flow::is_lock_child_layout_size() {
-		return false;
 	}
 
 	void Flow::onChildLayoutChange(View* child, uint32_t value) {
 		Box::onChildLayoutChange(child, value);
 	}
-
 }

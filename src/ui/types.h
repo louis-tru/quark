@@ -54,7 +54,7 @@ namespace qk {
 	};
 
 	enum class FillPositionKind: uint8_t {
-		Rem,       /* 明确值  rem */
+		Value,     /* 明确值  rem */
 		Ratio,     /* 百分比  % */
 		Start,     /* 开始 start */
 		End,       /* 结束 end */
@@ -63,7 +63,7 @@ namespace qk {
 
 	enum class FillSizeKind: uint8_t {
 		Auto,      /* 自动值  auto */
-		Rem,       /* 明确值  rem */
+		Value,     /* 明确值  rem */
 		Ratio,     /* 百分比  % */
 	};
 
@@ -133,7 +133,7 @@ namespace qk {
 		None,    /* Do not use value */
 		Auto,    /* 包裹内容 wrap content or auto value */
 		Match,   /* 匹配父视图 match parent */
-		Rem,     /* 明确值 dp */
+		Value,   /* 明确值 dp */
 		Ratio,   /* 百分比 value % */
 		Minus,   /* 减法(parent-value) value ! */
 	};
@@ -287,11 +287,11 @@ namespace qk {
 		Kind kind = KindInit;
 	};
 
-	typedef WrapValue<FillPositionKind, FillPositionKind::Rem> FillPosition;
+	typedef WrapValue<FillPositionKind, FillPositionKind::Value> FillPosition;
 	typedef WrapValue<FillSizeKind, FillSizeKind::Auto> FillSize;
 
-	typedef WrapValue<BoxSizeKind, BoxSizeKind::Rem> BoxSize;
-	typedef WrapValue<BoxOriginKind, BoxOriginKind::Rem> BoxOrigin;
+	typedef WrapValue<BoxSizeKind, BoxSizeKind::Value> BoxSize;
+	typedef WrapValue<BoxOriginKind, BoxOriginKind::Value> BoxOrigin;
 
 	template <typename T>
 	using WrapTextValue = WrapValue<TextValueKind, TextValueKind::Inherit, T>;

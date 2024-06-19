@@ -35,6 +35,7 @@
 #include "../filter.h"
 
 namespace qk {
+	class Flex;
 
 	/**
 		* @class Box
@@ -42,8 +43,8 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 	public:
 		// define props
-		Qk_DEFINE_VIEW_PROP_GET(bool,       layout_wrap_x_Rt, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
-		Qk_DEFINE_VIEW_PROP_GET(bool,       layout_wrap_y_Rt, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_PROP_GET(bool,       wrap_x, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_PROP_GET(bool,       wrap_y, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
 		Qk_DEFINE_VIEW_PROP    (bool,       clip, Const); //!< is clip box display range
 		Qk_DEFINE_VIEW_PROP    (Align,      align, ProtectedConst); //!< view align
 		Qk_DEFINE_VIEW_PROP_ACC(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
@@ -92,12 +93,11 @@ namespace qk {
 		Box();
 		~Box();
 		// --------------- o v e r w r i t e ---------------
-		virtual bool layout_forward(uint32_t mark) override;
-		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_forward(uint32_t mark) override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
 		virtual Vec2 layout_offset() override;
-		virtual Size layout_size() override; // context size + padding + border + margin
-		virtual Size layout_raw_size(Size parent_content_size) override;
+		virtual Size layout_size() override; // context + padding + border + margin
 		/**
 		 * @prop layout_weight
 		* The scaling ratio of the project is defined here, which defaults to 0,
@@ -109,10 +109,9 @@ namespace qk {
 		virtual bool is_clip() override;
 		virtual ViewType viewType() const override;
 		virtual Vec2 layout_offset_inside() override;
-		virtual Vec2 layout_lock(Vec2 view_size) override;
+		virtual Vec2 layout_lock(Vec2 layout_size) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
-		virtual void onParentLayoutContentSizeChange(View* parent, uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual bool solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
@@ -128,29 +127,13 @@ namespace qk {
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]); // compute rect vertex
 
 	protected:
-		/**
-			* 
-			* is ready view layout typesetting in the `layout_reverse() or layout_forward()` func
-			*
-			* @method is_ready_layout_typesetting()
-			* @safe Rt
-			* @note Can only be used in rendering threads
-			*/
-		bool is_ready_layout_typesetting();
 
 		/**
-			* @method solve_layout_size_forward(mark)
+			* @method solve_layout_forward(mark)
 			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		uint32_t solve_layout_size_forward(uint32_t mark);
-
-		/**
-			* @method set_layout_size(view_size, is_wrap, is_lock_child)
-			* @safe Rt
-			* @note Can only be used in rendering threads
-			*/
-		void set_layout_size(Vec2 layout_size, bool is_wrap[2], bool is_lock_child = false);
+		uint32_t solve_layout_forward(uint32_t mark);
 
 		/**
 			* @method set_content_size(content_size)
@@ -174,13 +157,13 @@ namespace qk {
 		virtual float solve_layout_content_height(Size &parent_layout_size);
 
 		/**
-		 * @method solve_layout_wrap_content_width()
+		 * @method solve_wrap_content_width()
 		 * @safe Rt
 		*/
 		float solve_layout_content_wrap_limit_width(float inside_width);
 
 		/**
-		 * @method solve_layout_wrap_content_height()
+		 * @method solve_wrap_content_height()
 		 * @safe Rt
 		*/
 		float solve_layout_content_wrap_limit_height(float inside_height);
@@ -196,13 +179,6 @@ namespace qk {
 		 * @safe Rt
 		*/
 		float get_max_height_limit_value(const Size &parent_layout_size);
-
-		/**
-		 * @method mark_size()
-		 * @safe Rt
-		 * @note Can only be used in rendering threads
-		*/
-		void mark_size(uint32_t mark, bool isRt);
 
 		/**
 		 * @method layout_typesetting_box
@@ -226,6 +202,7 @@ namespace qk {
 		Vec2  _vertex[4]; // box vertex
 
 		friend class UIRender;
+		friend class Flex;
 	};
 
 	/**

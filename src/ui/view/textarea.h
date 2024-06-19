@@ -42,7 +42,7 @@ namespace qk {
 		virtual ViewType viewType() const override;
 		virtual ScrollBase* asScrollBase() override;
 		virtual bool is_multiline() override;
-		virtual bool layout_reverse(uint32_t mark) override;
+		virtual void layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 	protected:
 		virtual Vec2 input_text_offset() override;
