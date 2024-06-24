@@ -676,13 +676,13 @@ namespace qk {
 	}
 
 	Vec2 Input::layout_typesetting_input_text() {
-		Vec2 c_size = content_size();
-		_lines = new TextLines(this, text_align_value(), c_size, _wrap_x);
+		auto size = content_size();
+		_lines = new TextLines(this, text_align_value(), get_text_lines_limit_size(), _wrap_x);
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
 
-		_lines->set_stable_line_height(text_size().value, text_line_height().value);
+		_lines->set_init_line_height(text_size().value, text_line_height().value);
 		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
 
 		_cursor_ascent = -metrics.fAscent;
@@ -748,11 +748,11 @@ namespace qk {
 		_lines->finish();
 
 		Vec2 new_size(
-			_wrap_x ? solve_layout_content_wrap_limit_width(_lines->max_width()): c_size.x(),
-			_wrap_y ? solve_layout_content_wrap_limit_height(_lines->max_height()): c_size.y()
+			_wrap_x ? solve_layout_content_wrap_limit_width(_lines->max_width()): size.x(),
+			_wrap_y ? solve_layout_content_wrap_limit_height(_lines->max_height()): size.y()
 		);
 
-		if (new_size != c_size) {
+		if (new_size != size) {
 			set_content_size(new_size);
 			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
 		}

@@ -36,7 +36,7 @@
 			'api/scroll.cc',
 			'api/storage.cc',
 			'api/text.cc',
-			'api/transform.cc',
+			'api/matrix.cc',
 			'api/types.h',
 			'api/types.cc',
 			'api/ui.cc',

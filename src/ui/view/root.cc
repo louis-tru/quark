@@ -63,12 +63,12 @@ namespace qk {
 			layout_typesetting_box();
 		}
 		if (mark & (kLayout_Typesetting | kTransform_Origin)) {
-			solve_origin_value(); // check transform_origin change
+			solve_origin_value(); // check matrix_origin change
 		}
 	}
 
 	void Root::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kRecursive_Transform) { // update transform matrix
+		if (mark & kRecursive_Transform) { // update matrix matrix
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
 			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value();
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());

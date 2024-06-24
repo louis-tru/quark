@@ -34,8 +34,6 @@
 
 using namespace qk;
 
-// ***************** D i s p l a y *****************
-
 typedef Screen::StatusBarStyle StatusBarStyle;
 
 extern QkApplicationDelegate *qkappdelegate;

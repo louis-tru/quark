@@ -249,7 +249,9 @@ namespace qk {
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		// };
 
-		if (_disable_auto_wrap || _lines->no_wrap() || // 不使用自动wrap
+		auto no_limit = _lines->limit_size().x() == 0;
+
+		if (_disable_auto_wrap || no_limit || // 不使用自动wrap
 				text_white_space == TextWhiteSpace::NoWrap ||
 				text_white_space == TextWhiteSpace::Pre
 		) { // 不使用自动wrap,溢出不换行
@@ -318,7 +320,7 @@ namespace qk {
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
 
-		float limitX = _lines->host_size().width();
+		float limitX = _lines->limit_size().width();
 		float origin = _lines->pre_width();
 		int   len = fg.glyphs().length();
 		int   start = 0, j = 0;
@@ -381,7 +383,7 @@ namespace qk {
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
 
-		float limitX = _lines->host_size().width();
+		float limitX = _lines->limit_size().width();
 		float origin = _lines->pre_width();
 		int   len = glyphs.length();
 		int   start = 0, j = 0;
@@ -420,11 +422,11 @@ namespace qk {
 		auto origin = _lines->pre_width();
 		auto offset = fg.getHorizontalOffset();
 		auto overflow = _opts->text_overflow_value();
-		auto limitX = _lines->host_size().width();
+		auto limitX = _lines->limit_size().width();
 		auto text_size = _opts->text_size().value;
 		auto line_height = _opts->text_line_height().value;
-		
-		if (!_disable_overflow && overflow != TextOverflow::Normal && !_lines->no_wrap()) {
+
+		if (!_disable_overflow && overflow != TextOverflow::Normal && limitX > 0) {
 			if (origin >= limitX) return; // skip
 
 			// CLIP,            /* 剪切 */

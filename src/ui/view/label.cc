@@ -71,7 +71,7 @@ namespace qk {
 	}
 
 	void Label::set_layout_offset(Vec2 val) {
-		Sp<TextLines> lines = new TextLines(this, text_align_value(), Vec2(), false);
+		Sp<TextLines> lines = new TextLines(this, text_align_value(), {0,0}); // no limit
 		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
@@ -79,7 +79,7 @@ namespace qk {
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
-		Sp<TextLines> lines = new TextLines(this, text_align_value(), size, false);
+		Sp<TextLines> lines = new TextLines(this, text_align_value(), size);
 		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();

@@ -121,19 +121,19 @@ namespace qk {
 	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollBase) /*scroll/textarea of ScrollBase*/ \
 	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollBase) \
 	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollBase) \
-	F(TRANSLATE, Vec2, translate, Transform) /*transform*/ \
-	F(SCALE, Vec2, scale, Transform) \
-	F(SKEW, Vec2, skew, Transform) \
-	F(ORIGIN, ArrayOrigin, origin, Transform) \
-	F(X, float, x, Transform) \
-	F(Y, float, y, Transform) \
-	F(SCALE_X, float, scale_x, Transform) \
-	F(SCALE_Y, float, scale_y, Transform) \
-	F(SKEW_X, float, skew_x, Transform) \
-	F(SKEW_Y, float, skew_y, Transform) \
-	F(ROTATE_Z, float, rotate_z, Transform) \
-	F(ORIGIN_X, BoxOrigin, origin_x, Transform) \
-	F(ORIGIN_Y, BoxOrigin, origin_y, Transform) \
+	F(TRANSLATE, Vec2, translate, Matrix) /*matrix*/ \
+	F(SCALE, Vec2, scale, Matrix) \
+	F(SKEW, Vec2, skew, Matrix) \
+	F(ORIGIN, ArrayOrigin, origin, Matrix) \
+	F(X, float, x, Matrix) \
+	F(Y, float, y, Matrix) \
+	F(SCALE_X, float, scale_x, Matrix) \
+	F(SCALE_Y, float, scale_y, Matrix) \
+	F(SKEW_X, float, skew_x, Matrix) \
+	F(SKEW_Y, float, skew_y, Matrix) \
+	F(ROTATE_Z, float, rotate_z, Matrix) \
+	F(ORIGIN_X, BoxOrigin, origin_x, Matrix) \
+	F(ORIGIN_Y, BoxOrigin, origin_y, Matrix) \
 	F(CURVE, Curve, curve, CSS) /*extends*//*****Large size data*****/\
 
 	// Unsupported attributes for ScrollBase:
@@ -165,7 +165,7 @@ namespace qk {
 		kScroll_ViewType, // box
 		kText_ViewType, // box textOpts
 		kButton_ViewType, // box
-		kTransform_ViewType, // box
+		kMatrix_ViewType, // box
 		kRoot_ViewType, // box
 		kEnum_Counts_ViewType,
 	};

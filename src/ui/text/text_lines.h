@@ -52,28 +52,28 @@ namespace qk {
 
 		struct PreTextBlob {
 			Sp<Typeface>    typeface;
-			float           text_size;
-			float           line_height;
+			float           text_size, line_height;
 			uint32_t        index_of_unichar;
 			Array<TextBlob> *blobOut;
 			Array<GlyphID>  glyphs;
 			Array<Vec2>     offset;
 		};
+
 		// defines props
 		Qk_DEFINE_PROP(float, pre_width, Const);
 		Qk_DEFINE_PROP(bool, ignore_single_white_space, Const);
-		Qk_DEFINE_PROP_GET(bool, is_stable_line_height, Const);
-		Qk_DEFINE_PROP_GET(bool, no_wrap, Const);
+		Qk_DEFINE_PROP_GET(bool, have_init_line_height, Const);
 		Qk_DEFINE_PROP_GET(bool, visible_region, Const);
+		Qk_DEFINE_PROP_GET(bool, host_wrap_x, Const);
 		Qk_DEFINE_PROP_GET(TextAlign, text_align, Const);
-		Qk_DEFINE_PROP_GET(Vec2, host_size, Const);
+		Qk_DEFINE_PROP_GET(Vec2, limit_size, Const);
 		Qk_DEFINE_PROP_GET(Line*, last);
 		Qk_DEFINE_PROP_GET(View*, host);
 		Qk_DEFINE_PROP_GET(float, max_width, Const);
 		Qk_DEFINE_PROP_GET(float, min_origin, Const);
 
 		// defines methods
-		TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap);
+		TextLines(View *host, TextAlign text_align, Vec2 limit_size, bool host_wrap_x = true);
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all
@@ -86,7 +86,7 @@ namespace qk {
 		float max_height() const { return _last->end_y; }
 		Line& operator[](uint32_t idx) { return _lines[idx]; }
 		Line& line(uint32_t idx) { return _lines[idx]; }
-		void set_stable_line_height(float stable_line_height_fontSize, float line_height);
+		void set_init_line_height(float fontSize, float line_height);
 		void add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar);
 
 	private:
@@ -98,8 +98,9 @@ namespace qk {
 		Array<Line> _lines;
 		Array<Array<View*>> _preView;
 		Array<PreTextBlob> _preBlob;
-		float _stable_line_height;
-		FontMetricsBase _stable_line_height_Metrics;
+		float _init_line_height;
+		FontMetricsBase _init_Metrics;
+
 	};
 }
 #endif

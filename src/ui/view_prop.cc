@@ -37,7 +37,7 @@
 #include "./view/input.h"
 #include "./view/image.h"
 #include "./view/scroll.h"
-#include "./view/transform.h"
+#include "./view/matrix.h"
 
 namespace qk {
 	typedef View ViewView;
@@ -118,7 +118,7 @@ namespace qk {
 		prop_accessors[kScroll_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kText_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kButton_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kTransform_ViewType] = prop_accessors[kView_ViewType];
+		prop_accessors[kMatrix_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kRoot_ViewType] = prop_accessors[kView_ViewType];
 		// box
 		Qk_Set_Accessor(Box, CLIP, clip);
@@ -173,7 +173,7 @@ namespace qk {
 		Qk_Copy_Accessor(Box, Scroll, CLIP, 42);
 		Qk_Copy_Accessor(Box, Text, CLIP, 42);
 		Qk_Copy_Accessor(Box, Button, CLIP, 42);
-		Qk_Copy_Accessor(Box, Transform, CLIP, 42);
+		Qk_Copy_Accessor(Box, Matrix, CLIP, 42);
 		Qk_Copy_Accessor(Box, Root, CLIP, 42);
 		// flex
 		Qk_Set_Accessor(Flex, DIRECTION, direction);
@@ -218,20 +218,20 @@ namespace qk {
 		Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin);
 		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3);
-		// transform
-		Qk_Set_Accessor(Transform, TRANSLATE, translate);
-		Qk_Set_Accessor(Transform, SCALE, scale);
-		Qk_Set_Accessor(Transform, SKEW, skew);
-		Qk_Set_Accessor(Transform, ORIGIN, origin);
-		Qk_Set_Accessor(Transform, X, x);
-		Qk_Set_Accessor(Transform, Y, y);
-		Qk_Set_Accessor(Transform, SCALE_X, scale_x);
-		Qk_Set_Accessor(Transform, SCALE_Y, scale_y);
-		Qk_Set_Accessor(Transform, SKEW_X, skew_x);
-		Qk_Set_Accessor(Transform, SKEW_Y, skew_y);
-		Qk_Set_Accessor(Transform, ROTATE_Z, rotate_z);
-		Qk_Set_Accessor(Transform, ORIGIN_X, origin_x);
-		Qk_Set_Accessor(Transform, ORIGIN_Y, origin_y);
+		// matrix
+		Qk_Set_Accessor(Matrix, TRANSLATE, translate);
+		Qk_Set_Accessor(Matrix, SCALE, scale);
+		Qk_Set_Accessor(Matrix, SKEW, skew);
+		Qk_Set_Accessor(Matrix, ORIGIN, origin);
+		Qk_Set_Accessor(Matrix, X, x);
+		Qk_Set_Accessor(Matrix, Y, y);
+		Qk_Set_Accessor(Matrix, SCALE_X, scale_x);
+		Qk_Set_Accessor(Matrix, SCALE_Y, scale_y);
+		Qk_Set_Accessor(Matrix, SKEW_X, skew_x);
+		Qk_Set_Accessor(Matrix, SKEW_Y, skew_y);
+		Qk_Set_Accessor(Matrix, ROTATE_Z, rotate_z);
+		Qk_Set_Accessor(Matrix, ORIGIN_X, origin_x);
+		Qk_Set_Accessor(Matrix, ORIGIN_Y, origin_y);
 	}
 
 	PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop) {

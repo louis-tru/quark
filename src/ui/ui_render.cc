@@ -40,7 +40,7 @@
 #include "./view/input.h"
 #include "./view/textarea.h"
 #include "./view/label.h"
-#include "./view/transform.h"
+#include "./view/matrix.h"
 
 namespace qk {
 
@@ -648,11 +648,11 @@ namespace qk {
 		UIRender::visitView(v);
 	}
 
-	void UIRender::visitTransform(Transform* box) {
+	void UIRender::visitMatrix(Matrix* box) {
 		auto matrix = _matrix;
 		auto fixOrigin = _fixOrigin;
 		_fixOrigin -= box->_origin_value;
-		_matrix = &box->matrix();
+		_matrix = &box->mat();
 		_canvas->setMatrix(*_matrix);
 		UIRender::visitBox(box);
 		_fixOrigin = fixOrigin;
@@ -672,7 +672,7 @@ namespace qk {
 				_fixOrigin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
 				_fixSize = _fixOrigin[0] + _fixOrigin[0];
 				BoxData data;
-				_matrix = &v->matrix();
+				_matrix = &v->mat();
 				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
 				_canvas->clearColor(v->_background_color.to_color4f());
 				if (v->_boxShadow)
@@ -721,8 +721,7 @@ namespace qk {
 		render->visitRoot(this);
 	}
 
-	void Transform::draw(UIRender *render) {
-		render->visitTransform(this);
+	void Matrix::draw(UIRender *render) {
+		render->visitMatrix(this);
 	}
-	
 }

@@ -77,13 +77,17 @@ namespace qk {
 		while ( i != end ) {
 			auto j = i++;
 			auto &act = *j;
-			if (act._runAdvance) {
-				if ( act.value->advance_Rt(time_span, false, act.value) ) {
-					act.value->stop_Rt(); // stop action
+			if (act.value->_target) {
+				if (act._runAdvance) {
+					if ( act.value->advance_Rt(time_span, false, act.value) ) {
+						act.value->stop_Rt(); // stop action
+					}
+				} else {
+					act.value->advance_Rt(0, false, act.value);
+					act._runAdvance = true;
 				}
 			} else {
-				act.value->advance_Rt(0, false, act.value);
-				act._runAdvance = true;
+				act.value->stop_Rt(); // stop action
 			}
 		}
 		_prevTime_Rt = timeMs;

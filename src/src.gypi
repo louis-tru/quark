@@ -102,8 +102,8 @@
 			# 'ui/view/video.h',
 			'ui/view/view.h',
 			'ui/view/view.cc',
-			'ui/view/transform.h',
-			'ui/view/transform.cc',
+			'ui/view/matrix.h',
+			'ui/view/matrix.cc',
 			'render/codec/codec.h', # render
 			'render/codec/codec.cc',
 			'render/codec/tga.cc',

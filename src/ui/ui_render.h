@@ -48,7 +48,7 @@ namespace qk {
 	class Input;
 	class Label;
 	class Root;
-	class Transform;
+	class Matrix;
 	class ScrollBase;
 
 	class Qk_EXPORT UIRender: public Object {
@@ -67,7 +67,7 @@ namespace qk {
 		void visitInput(Input* input);
 		void visitLabel(Label* label);
 		void visitRoot(Root* root);
-		void visitTransform(Transform* transform);
+		void visitMatrix(Matrix* matrix);
 	private:
 		Rect getRect(Box* box);
 		void getInsideRectPath(Box *box, BoxData &out);

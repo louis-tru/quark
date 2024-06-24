@@ -130,10 +130,10 @@ namespace qk {
 		return _cssclass;
 	}
 
-	Transform* View::transform() {
+	Matrix* View::matrix() {
 		auto *v = this;
 		do {
-			auto t = v->asTransform();
+			auto t = v->asMatrix();
 			if (t)
 				return t;
 			v = v->_parent;
@@ -170,7 +170,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	Transform* View::asTransform() {
+	Matrix* View::asMatrix() {
 		return nullptr;
 	}
 

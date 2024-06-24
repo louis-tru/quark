@@ -54,11 +54,8 @@ namespace qk {
 		if (src && src->type()) {
 			if (pSize.wrap_x) { // wrap x
 				auto v = Box::solve_layout_content_height(pSize);
-				if (pSize.wrap_y) { // wrap y
-					result = src->width();
-				} else {
-					result = v / src->height() * src->width();
-				}
+				result = pSize.wrap_y ? src->width():
+					v / src->height() * src->width();
 			}
 		}
 		if (pSize.wrap_x) {
@@ -75,11 +72,8 @@ namespace qk {
 		if (src && src->type()) {
 			if (pSize.wrap_y) { // wrap y
 				auto v = Box::solve_layout_content_width(pSize);
-				if (pSize.wrap_x) { // wrap x
-					result = src->height();
-				} else {
-					result = v / src->width() * src->height();
-				}
+				result = pSize.wrap_x ? src->height():
+					v / src->width() * src->height();
 			}
 		}
 		if (pSize.wrap_y) {

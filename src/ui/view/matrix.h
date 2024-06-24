@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__view__transform__
-#define __quark__view__transform__
+#ifndef __quark__view__matrix__
+#define __quark__view__matrix__
 
 #include "./box.h"
 
@@ -38,11 +38,11 @@ namespace qk {
 	/**
 		* Box matrix transform
 		*
-	 * @class Transform
+	 * @class Matrix
 		*/
-	class Transform: public Box {
+	class Matrix: public Box {
 	public:
-		Transform();
+		Matrix();
 		// define props
 		Qk_DEFINE_VIEW_PROP(Vec2, translate, Const); // matrix displacement for the view
 		Qk_DEFINE_VIEW_PROP(Vec2, scale, Const); // Matrix scaling
@@ -61,13 +61,13 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_ACC(float, skew_y, Const); // y-axis matrix skew for the view
 		Qk_DEFINE_VIEW_PROP_ACC(ArrayOrigin, origin, Const);
 		/**
-		 * @prop matrix()
+		 * @prop mat()
 		*/
-		const Mat& matrix() const { return _matrix; }
+		const Mat& mat() const { return _matrix; }
 
 		// --------------- o v e r w r i t e ---------------
 		virtual ViewType viewType() const override;
-		virtual Transform* asTransform() override;
+		virtual Matrix* asMatrix() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 center() override;

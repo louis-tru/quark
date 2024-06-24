@@ -39,9 +39,9 @@
 
 namespace qk {
 
-	TextLines::TextLines(View *host, TextAlign text_align, Vec2 host_size, bool no_wrap)
-		: _pre_width(0), _ignore_single_white_space(false), _is_stable_line_height(false)
-		, _host_size(host_size), _host(host), _no_wrap(no_wrap)
+	TextLines::TextLines(View *host, TextAlign text_align, Vec2 limit_size, bool host_wrap_x)
+		: _pre_width(0), _ignore_single_white_space(false), _have_init_line_height(false)
+		, _limit_size(limit_size), _host(host), _host_wrap_x(host_wrap_x)
 		, _text_align(text_align), _visible_region(false)
 	{
 		clear();
@@ -58,14 +58,14 @@ namespace qk {
 		_visible_region = false;
 	}
 
-	void TextLines::set_stable_line_height(float fontSize, float line_height) {
+	void TextLines::set_init_line_height(float fontSize, float line_height) {
 		if (fontSize) {
-			_is_stable_line_height = true;
-			_stable_line_height = line_height;
-			_host->window()->host()->fontPool()->getMaxMetrics(&_stable_line_height_Metrics, fontSize);
-			set_line_height(&_stable_line_height_Metrics, line_height);
+			_have_init_line_height = true;
+			_init_line_height = line_height;
+			_host->window()->host()->fontPool()->getMaxMetrics(&_init_Metrics, fontSize);
+			set_line_height(&_init_Metrics, line_height);
 		} else {
-			_is_stable_line_height = false;
+			_have_init_line_height = false;
 		}
 	}
 
@@ -87,8 +87,8 @@ namespace qk {
 			_pre_width += blob.offset.back().x() - blob.offset.front().x();
 		}
 
-		if (_is_stable_line_height) {
-			set_line_height(&_stable_line_height_Metrics, _stable_line_height);
+		if (_have_init_line_height) {
+			set_line_height(&_init_Metrics, _init_line_height);
 		} else if (opts) {
 			auto tf = opts->text_family().value->match(opts->font_style());
 			FontMetricsBase metrics;
@@ -114,13 +114,19 @@ namespace qk {
 		auto bottom = metrics->fDescent + metrics->fLeading;
 		auto height = top + bottom;
 		if (line_height != 0) { // value, not auto
+			if (line_height <= 2) { // use percentage
+				if (_limit_size.y() == 0) { // height == wrap y, no limit
+					return set_line_height(top, bottom); // use auto
+				}
+				line_height *= _limit_size.y(); // use percentage
+			}
 			auto diff = (line_height - height) * 0.5f;
 			top += diff;
 			bottom += diff;
 			if (bottom < 0) {
 				top += bottom;
 			}
-		}
+		} // else use default metrics value
 		set_line_height(top, bottom);
 	}
 
@@ -134,14 +140,14 @@ namespace qk {
 		for (auto view: _preView.back()) {
 			auto height = view->layout_size().layout.height();
 			switch (view->layout_align()) {
-				case Align::Start:
+				case Align::Top:
 					set_line_height(top, height - bottom); break;
-				case Align::Center:
+				case Align::Middle:
 					height = (height - top - bottom) / 2;
 					set_line_height(height + top, height + bottom); break;
-				case Align::End:
+				case Align::Bottom:
 					set_line_height(height - bottom, bottom); break;
-				default:
+				default: // bottom and baseline align
 					set_line_height(height, 0); break;
 			}
 		}
@@ -151,7 +157,7 @@ namespace qk {
 		finish_text_blob_pre();
 		finish_line();
 
-		auto width = _no_wrap ? _max_width: _host_size.x();
+		auto width = _host_wrap_x ? _max_width: _limit_size.x();
 
 		for (auto &line: _lines) {
 			switch(_text_align) {
@@ -173,13 +179,13 @@ namespace qk {
 				float y;
 
 				switch (view->layout_align()) {
-					case Align::Start:
+					case Align::Top:
 						y = _last->baseline - top; break;
-					case Align::Center:
+					case Align::Middle:
 						y = _last->baseline - (size_y + top - bottom) / 2; break;
-					case Align::End:
+					case Align::Bottom:
 						y = _last->baseline - size_y + bottom; break;
-					default:
+					default: // bottom and baseline align
 						y = _last->baseline - size_y; break;
 				}
 				view->set_layout_offset(Vec2(x, y));
@@ -252,8 +258,8 @@ namespace qk {
 		}
 		_last->width = origin + blob.blob.offset.back().x();
 
-		if (!_is_stable_line_height)
-			set_line_height(&metrics, pre.line_height);
+		// if (!_have_init_line_height)
+		set_line_height(&metrics, pre.line_height);
 	}
 
 	void TextLines::add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar) {

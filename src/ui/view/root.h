@@ -31,11 +31,11 @@
 #ifndef __quark__view__root__
 #define __quark__view__root__
 
-#include "./transform.h"
+#include "./matrix.h"
 
 namespace qk {
 
-	class Root: public Transform {
+	class Root: public Matrix {
 	public:
 		virtual ViewType viewType() const override;
 		virtual bool can_become_focus() override;

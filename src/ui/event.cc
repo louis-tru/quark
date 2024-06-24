@@ -882,7 +882,7 @@ namespace qk {
 			_keyboard->command(), _keyboard->caps_lock(),
 			_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 		);
-		auto mat = view->transform()->matrix();
+		auto mat = view->matrix()->mat();
 		auto point = mat.mul_vec2_no_translate(view->center()) + view->position();
 
 		_loop->post(Cb([this,evt,code,view,point](auto& e) {

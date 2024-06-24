@@ -44,7 +44,7 @@ namespace qk {
 	class TextOptions;
 	class UIRender;
 	class Window;
-	class Transform;
+	class Matrix;
 	class ScrollBase;
 	class CStyleSheetsClass;
 	class Button;
@@ -142,9 +142,9 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
 
 		/**
-		 * @prop transform
+		 * @prop matrix
 		*/
-		Qk_DEFINE_PROP_ACC_GET(Transform*, transform);
+		Qk_DEFINE_PROP_ACC_GET(Matrix*, matrix);
 
 		/**
 		* @prop mark_value
@@ -173,7 +173,7 @@ namespace qk {
 		/**
 		* @prop level
 		* @safe Rt
-			* @note Can only be used in rendering threads
+		* @note Can only be used in rendering threads
 		*
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
 		* 这个值受`View::_visible`影响, View::_visible=false时_level=0
@@ -350,11 +350,11 @@ namespace qk {
 
 		/**
 		 * 
-		 * Returns as transform
+		 * Returns as matrix
 		 * 
-		 * @method asTransform()
+		 * @method asMatrix()
 		*/
-		virtual Transform* asTransform();
+		virtual Matrix* asMatrix();
 
 		/**
 		 * 

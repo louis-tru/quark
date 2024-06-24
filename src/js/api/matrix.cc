@@ -29,51 +29,51 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./ui.h"
-#include "../../ui/view/transform.h"
+#include "../../ui/view/matrix.h"
 #include "../../ui/view/root.h"
 
 namespace qk { namespace js {
 
-	class WrapTransform: public WrapViewObject {
+	class WrapMatrix: public WrapViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Transform, Box, {
-				Js_NewView(Transform);
+			Js_Define_Class(Matrix, Box, {
+				Js_NewView(Matrix);
 			});
 
-			Js_Set_WrapObject_Accessor(Transform, Vec2, translate, translate);
-			Js_Set_WrapObject_Accessor(Transform, Vec2, scale, scale);
-			Js_Set_WrapObject_Accessor(Transform, Vec2, skew, skew);
-			Js_Set_WrapObject_Accessor(Transform, float, rotate_z, rotateZ);
-			Js_Set_WrapObject_Accessor(Transform, BoxOrigin, origin_x, originX);
-			Js_Set_WrapObject_Accessor(Transform, BoxOrigin, origin_y, originY);
+			Js_Set_WrapObject_Accessor(Matrix, Vec2, translate, translate);
+			Js_Set_WrapObject_Accessor(Matrix, Vec2, scale, scale);
+			Js_Set_WrapObject_Accessor(Matrix, Vec2, skew, skew);
+			Js_Set_WrapObject_Accessor(Matrix, float, rotate_z, rotateZ);
+			Js_Set_WrapObject_Accessor(Matrix, BoxOrigin, origin_x, originX);
+			Js_Set_WrapObject_Accessor(Matrix, BoxOrigin, origin_y, originY);
 
 			Js_Set_Class_Accessor_Get(originValue, {
-				Js_Self(Transform);
+				Js_Self(Matrix);
 				Js_Return( worker->types()->jsvalue(self->origin_value()) );
 			});
 
-			Js_Set_WrapObject_Accessor(Transform, float, x, x);
-			Js_Set_WrapObject_Accessor(Transform, float, y, y);
-			Js_Set_WrapObject_Accessor(Transform, float, scale_x, scaleX);
-			Js_Set_WrapObject_Accessor(Transform, float, scale_y, scaleY);
-			Js_Set_WrapObject_Accessor(Transform, float, skew_x, skewX);
-			Js_Set_WrapObject_Accessor(Transform, float, skew_y, skewY);
-			Js_Set_WrapObject_Accessor(Transform, ArrayOrigin, origin, origin);
+			Js_Set_WrapObject_Accessor(Matrix, float, x, x);
+			Js_Set_WrapObject_Accessor(Matrix, float, y, y);
+			Js_Set_WrapObject_Accessor(Matrix, float, scale_x, scaleX);
+			Js_Set_WrapObject_Accessor(Matrix, float, scale_y, scaleY);
+			Js_Set_WrapObject_Accessor(Matrix, float, skew_x, skewX);
+			Js_Set_WrapObject_Accessor(Matrix, float, skew_y, skewY);
+			Js_Set_WrapObject_Accessor(Matrix, ArrayOrigin, origin, origin);
 
-			Js_Set_Class_Accessor_Get(matrix, {
-				Js_Self(Transform);
-				Js_Return( worker->types()->jsvalue(self->matrix()) );
+			Js_Set_Class_Accessor_Get(mat, {
+				Js_Self(Matrix);
+				Js_Return( worker->types()->jsvalue(self->mat()) );
 			});
 
-			cls->exports("Transform", exports);
+			cls->exports("Matrix", exports);
 		}
 	};
 
 	class WrapRoot: public WrapViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Root, Transform, {
+			Js_Define_Class(Root, Matrix, {
 				// Js_NewView(Root);
 				Js_Throw("Forbidden access");
 			});
@@ -82,7 +82,7 @@ namespace qk { namespace js {
 	};
 
 	void binding_transform(JSObject* exports, Worker* worker) {
-		WrapTransform::binding(exports, worker);
+		WrapMatrix::binding(exports, worker);
 		WrapRoot::binding(exports, worker);
 	}
 } }

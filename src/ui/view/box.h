@@ -35,7 +35,6 @@
 #include "../filter.h"
 
 namespace qk {
-	class Flex;
 
 	/**
 		* @class Box
@@ -186,6 +185,12 @@ namespace qk {
 		*/
 		Vec2 layout_typesetting_box();
 
+		/**
+		 * @method get_text_lines_limit_size()
+		 * @safe Rt
+		*/
+		Vec2 get_text_lines_limit_size();
+
 		// ----------------------- define private props -----------------------
 	private:
 		BoxFilter *_background;
@@ -202,7 +207,6 @@ namespace qk {
 		Vec2  _vertex[4]; // box vertex
 
 		friend class UIRender;
-		friend class Flex;
 	};
 
 	/**

@@ -118,7 +118,7 @@ namespace qk {
 
 	float Box::get_max_width_limit_value(const Size &pSize) {
 		auto size = pSize.content.x();
-		float limit_max = Float32::limit_max;
+		float limit_max = Float32::limit_max; // no limit
 
 		switch(_max_width.kind) {
 			default: break;
@@ -244,6 +244,21 @@ namespace qk {
 			return limit_min;
 		}
 		return Float32::clamp(inside, limit_min, limit_max);
+	}
+
+	Vec2 Box::get_text_lines_limit_size() {
+		float x = 0;
+		if (_wrap_x) {
+			if (_max_width.kind != BoxSizeKind::None) { // no limit
+				auto size = parent_Rt()->layout_size();
+				x = Float32::max(get_max_width_limit_value(size), 1);
+			}
+		} else {
+			x = Float32::max(_content_size[0], 1);
+		}
+		return Vec2{
+			x, _wrap_y ? 0: Float32::max(_content_size[1], 1)
+		};
 	}
 
 	Box::Box()
@@ -991,43 +1006,47 @@ namespace qk {
 			float line_width = 0, max_width = 0;
 			float line_height = 0;
 
+			auto nextStep = [&](Vec2 size) {
+				auto new_line_width = line_width + size.x();
+				if (new_line_width > cur_x && line_width != 0) { // new line
+					max_width = Float32::max(max_width, line_width); // select max
+					offset_left = offset_right = 0;
+					offset_y += line_height;
+					line_width = size.x();
+					line_height = size.y();
+				} else {
+					line_width = new_line_width;
+					line_height = Float32::max(line_height, size.y()); // select max
+				}
+			};
+
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout;
 					auto align = v->layout_align();
-
-					if (align == Align::Auto) { // new line
-						offset_y += line_height;
-						v->set_layout_offset({0, offset_y});
-						offset_left = offset_right = 0;
-						line_width = line_height = 0;
-						offset_y += size.y();
-					} else {
-						auto new_line_width = line_width + size.x();
-
-						if (new_line_width > cur_x && line_width != 0) { // new line
-							max_width = Float32::max(max_width, line_width); // select max
-							offset_left = offset_right = 0;
+					switch (align) {
+						case Align::Start: // left
+							nextStep(size);
+							v->set_layout_offset(Vec2(offset_left, offset_y));
+							offset_left += size.x();
+							break;
+						case Align::End: // right
+							nextStep(size);
+							v->set_layout_offset(Vec2(cur_x - offset_right - size.x(), offset_y));
+							offset_right += size.x();
+							break;
+						default: // new line
 							offset_y += line_height;
-							line_width = size.x();
-							line_height = size.y();
-						} else {
-							line_width = new_line_width;
-							line_height = Float32::max(line_height, size.y()); // select max
-						}
-
-						switch (align) {
-							case Align::LeftTop:
-							case Align::LeftCenter:
-							case Align::LeftBottom: // left
-								v->set_layout_offset(Vec2(offset_left, offset_y));
-								offset_left += size.x();
-								break;
-							default: // right
-								v->set_layout_offset(Vec2(cur_x - offset_right - size.x(), offset_y));
-								offset_right += size.x();
-								break;
-						}
+							v->set_layout_offset(Vec2{
+								align == Align::Auto ? 0: // left
+								align == Align::Center ? (cur_x - size.x()) * 0.5f: // center
+								cur_x - size.x(), // right
+								offset_y
+							});
+							offset_left = offset_right = 0;
+							line_width = line_height = 0;
+							offset_y += size.y();
+							break;
 					}
 				}
 				v = v->next_Rt();
@@ -1059,10 +1078,10 @@ namespace qk {
 		auto text_white_space = opts->text_white_space_value();
 		//auto text_word_break = opts->text_word_break_value();
 		bool is_auto_wrap = true;
-		auto limitX = lines->host_size().x();
+		auto limitX = lines->limit_size().x();
 		auto origin = lines->pre_width();
 
-		if (lines->no_wrap() || // 容器没有固定宽度
+		if (limitX == 0 || // no limit width
 				text_white_space == TextWhiteSpace::NoWrap ||
 				text_white_space == TextWhiteSpace::Pre
 		) { // 不使用自动wrap
@@ -1174,7 +1193,7 @@ namespace qk {
 		Vec2 offset;
 
 		switch(_align) {
-			default:
+			case Align::Auto:
 			case Align::LeftTop: // left top
 				break;
 			case Align::CenterTop: // center top
@@ -1183,15 +1202,15 @@ namespace qk {
 			case Align::RightTop: // right top
 				offset = Vec2(size.x() - _layout_size.x(), 0);
 				break;
-			case Align::LeftCenter: // left center
+			case Align::LeftMiddle: // left Middle
 				offset = Vec2(0, (size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::CenterCenter: // center center
+			case Align::CenterMiddle: // center Middle
 				offset = Vec2(
 					(size.x() - _layout_size.x()) * .5,
 					(size.y() - _layout_size.y()) * .5);
 				break;
-			case Align::RightCenter: // right center
+			case Align::RightMiddle: // right Middle
 				offset = Vec2(
 					(size.x() - _layout_size.x()),
 					(size.y() - _layout_size.y()) * .5);

@@ -29,7 +29,7 @@ void test_input(int argc, char **argv) {
 	input->set_width({ 0.5, BoxSizeKind::Ratio });
 	input->set_height({ 100 });
 	input->set_background_color({255,255,255});
-	input->set_align(Align::CenterCenter);
+	input->set_align(Align::CenterMiddle);
 	// input->set_padding_left(5);
 	// input->set_padding_right(5);
 	input->set_text_line_height({30});
