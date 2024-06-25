@@ -42,7 +42,7 @@ namespace qk { namespace js {
 			if ( cmd.isEmpty() )
 		#endif
 		{
-			auto arr = String(fs_shared()->read_file_sync( fs_resources("index") )).split('\n');
+			auto arr = String(fs_reader()->read_file_sync( fs_resources("index") )).split('\n');
 
 			for ( int i = 0; i < arr.length(); i++ ) {
 				auto s = arr[i].trim();

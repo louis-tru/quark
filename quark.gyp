@@ -7,14 +7,6 @@
 		'tools/default_target.gypi',
 	],
 
-	'conditions': [
-		['OS != "mac" or project=="xcode"', {
-			'includes': [
-				'test/test.gypi',
-			],
-		}],
-	],
-
 	'target_defaults': {
 		'direct_dependent_settings': {
 			'include_dirs': [ '.' ],
@@ -134,7 +126,10 @@
 	}],
 
 	# output executed binrary
-	'conditions+': [
+	'conditions': [
+		['OS != "mac" or project=="xcode"', {
+			'includes': [ 'test/test.gypi' ],
+		}],
 		['os!="ios"', {
 			'targets+': [
 			{

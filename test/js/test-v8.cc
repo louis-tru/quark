@@ -71,7 +71,6 @@ MaybeLocal<v8::Value> run_script(Isolate* isolate, n::cString& source, n::cStrin
 }
 
 void test_persistent(Isolate* isolate, Local<Context> ctx) {
-	
 	Local<Number> num = Number::New(isolate, 100);
 	
 	 // new
@@ -172,6 +171,7 @@ void test_v8(int argc, char **argv) {
 	Isolate::CreateParams params;
 	params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 	Isolate* isolate = v8::Isolate::New(params);
+
 	{
 		Locker locker(isolate);
 		isolate->Enter();
@@ -186,8 +186,8 @@ void test_v8(int argc, char **argv) {
 		}
 		isolate->Exit();
 	}
+
 	isolate->Dispose();
-	
 	v8::V8::ShutdownPlatform();
 	v8::V8::Dispose();
 }
