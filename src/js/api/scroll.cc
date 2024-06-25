@@ -104,7 +104,7 @@ namespace qk { namespace js {
 			return self<Scroll>();
 		}
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Scroll, Float, {
+			Js_Define_Class(Scroll, Box, {
 				Js_NewView(Scroll);
 			});
 			inheritScrollBase(cls, worker);

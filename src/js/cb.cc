@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./js_.h"
+#include "./api/types.h"
 
 namespace qk { namespace js {
 
@@ -45,7 +45,7 @@ namespace qk { namespace js {
 			auto func = new Func(worker, cb);
 			typedef Callback<Type> Cb;
 
-			return Cb([worker, func](Cb::Data& d) {
+			return Cb([worker, func](typename Cb::Data& d) {
 				Sp<Func> h(func);
 				auto f = *func->val;
 				Js_Handle_Scope(); // Callback Scope

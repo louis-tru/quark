@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./types.h"
+#include "../../ui/view/view.h"
 #include "../../render/font/font.h"
 #include "../../../out/native-inl-js.h"
 
@@ -115,14 +116,14 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const TouchPoint& val) {
 		auto rv = worker->newObject();
-		auto view = WrapObject::wrap(i.view);
-		rv->set(worker,worker->strs()->id(), worker->newInstance(i.id));
-		rv->set(worker,worker->strs()->startX(), worker->newInstance(i.start_x));
-		rv->set(worker,worker->strs()->startY(), worker->newInstance(i.start_y));
-		rv->set(worker,worker->strs()->x(), worker->newInstance(i.x));
-		rv->set(worker,worker->strs()->y(), worker->newInstance(i.y));
-		rv->set(worker,worker->strs()->force(), worker->newInstance(i.force));
-		rv->set(worker,worker->strs()->clickIn(), worker->newInstance(i.click_in));
+		auto view = WrapObject::wrap(val.view);
+		rv->set(worker,worker->strs()->id(), worker->newInstance(val.id));
+		rv->set(worker,worker->strs()->startX(), worker->newInstance(val.start_x));
+		rv->set(worker,worker->strs()->startY(), worker->newInstance(val.start_y));
+		rv->set(worker,worker->strs()->x(), worker->newInstance(val.x));
+		rv->set(worker,worker->strs()->y(), worker->newInstance(val.y));
+		rv->set(worker,worker->strs()->force(), worker->newInstance(val.force));
+		rv->set(worker,worker->strs()->clickIn(), worker->newInstance(val.click_in));
 		rv->set(worker,worker->strs()->view(), view->that());
 		return rv;
 	}
@@ -130,7 +131,7 @@ namespace qk { namespace js {
 	JSValue* TypesParser::jsvalue(const Array<TouchPoint>& val) {
 		auto arr = worker->newArray();
 		int j = 0;
-		for ( auto& i : wrap->self()->changed_touches() ) {
+		for ( auto& i : val ) {
 			arr->set(worker, j++, jsvalue(i));
 		}
 		return arr;
@@ -494,9 +495,9 @@ namespace qk { namespace js {
 		return true;\
 	}
 
-	template<typedef T>
+	template<typename T>
 	T TypesParser::kind(JSObject* obj) {
-		return (T)obj->get(worker, worker->strs()->kind())->toUint32Value(worker);
+		return (T)obj->get(worker, worker->strs()->kind())->toUint32Value(worker).unsafe();
 	}
 
 	bool TypesParser::parse(JSValue* in, WindowOptions& _out, cChar* desc) {
@@ -538,10 +539,11 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	bool TypesParser::parse(JSValue* in, FillImageInit& out, cChar* desc) {
+	bool TypesParser::parse(JSValue* in, FillImageInit& out_, cChar* desc) {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
+		auto obj = in->cast<JSObject>();
 		auto width = obj->get(worker, worker->newStringOneByte("width"));
 		auto height = obj->get(worker, worker->newStringOneByte("height"));
 		auto x = obj->get(worker, worker->newStringOneByte("x"));
@@ -550,23 +552,23 @@ namespace qk { namespace js {
 
 		if (!width->isUndefined()) {
 			Js_Parse_Type(FillSize, width, desc) false;
-			out.width = out;
+			out_.width = out;
 		}
 		if (!height->isUndefined()) {
 			Js_Parse_Type(FillSize, height, desc) false;
-			out.height = out;
+			out_.height = out;
 		}
 		if (!x->isUndefined()) {
 			Js_Parse_Type(FillPosition, x, desc) false;
-			out.x = out;
+			out_.x = out;
 		}
 		if (!y->isUndefined()) {
 			Js_Parse_Type(FillPosition, y, desc) false;
-			out.y = out;
+			out_.y = out;
 		}
 		if (!repeat->isUndefined()) {
 			Js_Parse_Type(Repeat, repeat, desc) false;
-			out.repeat = out;
+			out_.repeat = out;
 		}
 		return true;
 	}
@@ -579,29 +581,30 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, float& out, cChar* desc) {
-		if (!in->toFloatValue(worker).to(&out))
+		if (!in->toFloatValue(worker).to(out))
 			return throw_error(worker, in, desc), false;
 		return true;
 	}
 
 	bool TypesParser::parse(JSValue* in, int32_t& out, cChar* desc) {
-		if (!in->toInt32Value(worker).to(&out))
+		if (!in->toInt32Value(worker).to(out))
 			return throw_error(worker, in, desc), false;
 		return true;
 	}
 
 	bool TypesParser::parse(JSValue* in, uint32_t& out, cChar* desc) {
-		if (!in->toUint32Value(worker).to(&out)) {
+		if (!in->toUint32Value(worker).to(out)) {
 			return throw_error(worker, in, desc), false;
+		}
 		return true;
 	}
 
 	bool TypesParser::parse(JSValue* in, Color& out, cChar* desc) {
 		js_parse(Color, {
-			out.set_r(*obj->get(worker, worker->strs()->r())->toUint32Value(worker));
-			out.set_g(*obj->get(worker, worker->strs()->g())->toUint32Value(worker));
-			out.set_b(*obj->get(worker, worker->strs()->b())->toUint32Value(worker));
-			out.set_a(*obj->get(worker, worker->strs()->a())->toUint32Value(worker));
+			out.set_r(obj->get(worker, worker->strs()->r())->toUint32Value(worker).unsafe());
+			out.set_g(obj->get(worker, worker->strs()->g())->toUint32Value(worker).unsafe());
+			out.set_b(obj->get(worker, worker->strs()->b())->toUint32Value(worker).unsafe());
+			out.set_a(obj->get(worker, worker->strs()->a())->toUint32Value(worker).unsafe());
 		});
 	}
 
@@ -675,13 +678,13 @@ namespace qk { namespace js {
 	bool TypesParser::parse(JSValue* in, ArrayFloat& out, cChar* desc) {
 		if (!in->isArray()) {
 			out.reset(1);
-			if (!in->toFloatValue(worker).to(*out))
+			if (!in->toFloatValue(worker).to(out[0]))
 				return throw_error(worker, in, desc), false;
 		} else {
 			auto arr = in->cast<JSArray>();
 			out.reset(arr->length());
 			for (uint32_t i = 0; i < out.length(); i++) {
-				if (!arr->get(worker, i)->toFloatValue(worker).to(&out[i])) {
+				if (!arr->get(worker, i)->toFloatValue(worker).to(out[i])) {
 					return throw_error(worker, in, desc), false;
 				}
 			}
@@ -694,7 +697,7 @@ namespace qk { namespace js {
 			out.reset(1);
 			out[0] = in->toStringValue(worker);
 		} else {
-			if (!in->cast<JSArray>()->toArrayString(worker).to(&out)) {
+			if (!in->cast<JSArray>()->toStringArray(worker).to(out)) {
 				return throw_error(worker, in, desc), false;
 			}
 		}
@@ -756,15 +759,21 @@ namespace qk { namespace js {
 			{"easeOut", &EASE_OUT },
 			{"easeInOut", &EASE_IN_OUT },
 		});
-		if ( in->isString() && CURCEs.get(in->toStringValue(worker,true), out)) {
+		const Curve *out_;
+		if ( in->isString() && CURCEs.get(in->toStringValue(worker,true), out_)) {
+			out = *out_;
 			return true;
 		}
 		js_parse(Curve, {
 			out = Curve(
-				obj->get(worker, worker->strs()->p1x())->toFloatValue(worker).unsafe(),
-				obj->get(worker, worker->strs()->p1y())->toFloatValue(worker).unsafe(),
-				obj->get(worker, worker->strs()->p2x())->toFloatValue(worker).unsafe(),
-				obj->get(worker, worker->strs()->p2y())->toFloatValue(worker.unsafe())
+				Vec2{
+					obj->get(worker, worker->strs()->p1x())->toFloatValue(worker).unsafe(),
+					obj->get(worker, worker->strs()->p1y())->toFloatValue(worker).unsafe()
+				},
+				Vec2{
+					obj->get(worker, worker->strs()->p2x())->toFloatValue(worker).unsafe(),
+					obj->get(worker, worker->strs()->p2y())->toFloatValue(worker).unsafe()
+				}
 			);
 		});
 	}
@@ -915,13 +924,13 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, TextSize& out, cChar* desc) {
 		if (in->isNumber()) {
-			out.kind = TextValueKind::kValue;
+			out.kind = TextValueKind::Value;
 			out.value = in->toFloatValue(worker).unsafe();
 			return true;
 		}
 		js_parse(TextSize, {
 			out.kind = kind<TextValueKind>(obj);
-			out.value = obj->get(*worker, worker->strs()->value())->toUint32Value(worker).unsafe();
+			out.value = obj->get(worker, worker->strs()->value())->toFloatValue(worker).unsafe();
 		});
 	}
 
@@ -969,8 +978,8 @@ namespace qk { namespace js {
 		}
 		struct Out {
 			uint32_t value;
-		} out = { in->toUint32Value(worker).unsafe() };
-		out = *reinterpret_cast<Out*>(&out);
+		} out_ = { in->toUint32Value(worker).unsafe() };
+		out = *reinterpret_cast<FontStyle*>(&out_);
 		return true;
 	}
 
@@ -1003,7 +1012,7 @@ namespace qk { namespace js {
 		if (ffid.length() < sizeof(FFID)) {
 			return throw_error(worker, in, desc), false;
 		}
-		out = reinterpret_cast<const FFID>(ffid.val());
+		out = reinterpret_cast<const FFID>( const_cast<char*>(ffid.val()) );
 		return out;
 	}
 

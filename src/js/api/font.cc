@@ -93,7 +93,7 @@ namespace qk { namespace js {
 
 			Js_Set_Method(getFontFamilys, {
 				if ( !checkApp(worker) ) return;
-				getFontFamilys(args, share_app()->fontPool());
+				getFontFamilys(args, shared_app()->fontPool());
 			});
 
 			Js_Set_Method(getFamilysName, {

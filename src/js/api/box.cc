@@ -160,7 +160,7 @@ namespace qk { namespace js {
 		WrapBox::binding(exports, worker);
 		WrapFlex::binding(exports, worker);
 		WrapFlow::binding(exports, worker);
-		WrapFloat::binding(exports, worker);
+		WrapFree::binding(exports, worker);
 		WrapImage::binding(exports, worker);
 	}
 } }

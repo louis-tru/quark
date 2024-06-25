@@ -45,15 +45,14 @@ namespace qk { namespace js {
 			// arg event
 			auto ev = WrapObject::wrap(static_cast<Event*>(&e), Js_Typeid(Event));
 			if (cData) {
-				cData->cast(e.data());
-				ev->set(worker->strs()->_data(), cData->cast(e.data()));
+				// cData->cast(worker, e.data());
+				ev->set(worker->strs()->_data(), cData->cast(worker, e.data()));
 			}
 			JSValue* args[2] = { ev->that(), worker->newInstance(true) };
 
-			Qk_DEBUG("addEventListener_Static, %s, EventType: %s", *func, *e.name());
-
+			// Qk_DEBUG("addEventListener_Static, %s, EventType: %s", *func, *e.name());
 			// call js trigger func
-			JSValue* r = wrap->call( worker->newInstance(func, true), 2, args );
+			JSValue* r = wrap->call( func, 2, args );
 		};
 
 		Self* self = wrap->self();
@@ -68,7 +67,7 @@ namespace qk { namespace js {
 		auto wrap = static_cast<Wobj<View>*>(static_cast<WrapObject*>(this));
 		JsConverter* converter = nullptr;
 
-		switch ( kTypes_UIEventFlags & name->flag() ) {
+		switch ( kTypesMask_UIEventFlags & name->flag() ) {
 			case kError_UIEventFlags: converter = JsConverter::Instance<Error>(); break;
 			case kFloat32_UIEventFlags: converter = JsConverter::Instance<Float32>(); break;
 			case kUint64_UIEventFlags: converter = JsConverter::Instance<Uint64>(); break;
@@ -107,7 +106,7 @@ namespace qk { namespace js {
 	
 	void WrapViewObject::init() {
 		that()->defineOwnProperty(worker(), worker()->strs()->window(),
-			wrap<Window>(self<View>()->window())->that(), JsObject::ReadOnly | JsObject::DontDelete
+			wrap<Window>(self<View>()->window())->that(), JSObject::ReadOnly | JSObject::DontDelete
 		);
 	}
 
@@ -168,16 +167,16 @@ namespace qk { namespace js {
 					Js_Self(View);
 					self->set_action(nullptr);
 				} else {
-					if (!worker->instanceOf<Action>(val))
+					if (!worker->template instanceOf<Action>(val))
 						Js_Throw("@prop set_action {Action}\n");
 					Js_Self(View);
 					self->set_action(wrap<Action>(val)->self());
 				}
 			});
 
-			Js_Set_Class_Accessor_Get(transform, {
+			Js_Set_Class_Accessor_Get(matrix, {
 				Js_Self(View);
-				Js_Return( self->transform() );
+				Js_Return( self->matrix() );
 			});
 
 			Js_Set_Class_Accessor_Get(level, {

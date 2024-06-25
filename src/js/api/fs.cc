@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./cb.h"
+#include "./types.h"
 
 namespace qk { namespace js {
 
@@ -190,7 +190,7 @@ namespace qk { namespace js {
 
 			cb = Callback<Buffer>([pv, cbInt, afterCollapse](auto &e) {
 				Qk_ASSERT( e.data );
-				Sp<PersistentValue> (pv);
+				Sp<PersistentValue> h(pv);
 				auto len = e.data->length();
 				if (afterCollapse) {
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,不能在这里被释放
@@ -307,7 +307,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( self->is_directory_sync( args[0]->toStringValue(worker) ) );
+				Js_Return( fs_reader()->is_directory_sync( args[0]->toStringValue(worker) ) );
 			});
 
 			Js_Set_Method(readdirSync, {
@@ -1290,7 +1290,7 @@ namespace qk { namespace js {
 
 				fs_read(fd, Buffer(data, size), offset, Callback<Buffer>([pv, cbInt](auto& e) {
 					Qk_ASSERT(e.data);
-					Sp<PersistentValue> (pv);
+					Sp<PersistentValue> h(pv);
 					auto len = e.data->length();
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,不能在这里被释放
 					e.data->collapse();
@@ -1452,7 +1452,7 @@ namespace qk { namespace js {
 						"@param id {uint}\n"
 					);
 				}
-				fs_abort( args[0]->toUint32Value(worker) ).unsafe();
+				fs_abort( args[0]->toUint32Value(worker).unsafe() );
 			});
 
 			// ------------------------------------------------------------------------

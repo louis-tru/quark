@@ -36,6 +36,7 @@
 
 #include "./js.h"
 #include "../util/codec.h"
+#include "../util/fs.h"
 
 #define Js_On( name, block, id, ...) \
 	Qk_On(name, [this,##__VA_ARGS__]( auto & evt) { qk::js::HandleScope scope(worker()); block }, id)
@@ -98,7 +99,7 @@ namespace qk { namespace js {
 	int  triggerBeforeExit(Worker* worker, int code);
 	bool triggerUncaughtException(Worker* worker, JSValue* err);
 	bool triggerUnhandledRejection(Worker* worker, JSValue* reason, JSValue* promise);
-	bool parseEncoding(FunctionArgs args, const JSValue* arg, Encoding& en);
+	bool parseEncoding(FunctionArgs args, JSValue* arg, Encoding& en);
 
 	// callback
 	JSValue* convert_buffer(Worker* worker, Buffer& buffer, Encoding en = kInvalid_Encoding);

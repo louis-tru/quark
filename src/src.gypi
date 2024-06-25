@@ -1,6 +1,6 @@
 {
 	'targets':[
-	{
+	{ # quark
 		'target_name': 'quark',
 		'type': 'static_library', #<(output_type)
 		'include_dirs': [
@@ -10,7 +10,7 @@
 			'../deps/tinyxml2',
 		],
 		'dependencies': [
-			'quark-util',
+			'quark-util', # util
 			'deps/libtess2/libtess2.gyp:libtess2',
 			'deps/freetype/freetype.gyp:freetype',
 			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
@@ -341,7 +341,7 @@
 		],
 		# end
 	},
-	{
+	{ # media
 		'target_name': 'quark-media',
 		'type': 'static_library', #<(output_type)
 		'dependencies': [
@@ -387,6 +387,5 @@
 				},
 			}],
 		],
-	},
-	]
+	}],
 }

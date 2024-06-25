@@ -77,8 +77,8 @@ namespace qk { namespace js {
 	class Qk_EXPORT WrapViewObject: public WrapUIObject {
 	public:
 		virtual void init() override;
-		virtual bool addEventListener(cString& name, cString& func, int id);
-		virtual bool removeEventListener(cString& name, int id);
+		virtual bool addEventListener(cString& name, cString& func, int id) override;
+		virtual bool removeEventListener(cString& name, int id) override;
 		static Window* checkNewView(FunctionArgs args);
 	};
 

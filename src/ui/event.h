@@ -243,7 +243,7 @@ namespace qk {
 			View   *view;
 		};
 		TouchEvent(View* origin, Array<TouchPoint>& touches);
-		Array<TouchPoint>& changed_touches() { return _change_touches; }
+		cArray<TouchPoint>& changed_touches() const { return _change_touches; }
 	private:
 		Array<TouchPoint> _change_touches;
 	};

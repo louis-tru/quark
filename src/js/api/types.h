@@ -38,6 +38,7 @@
 #include "../../ui/filter.h"
 #include "../../ui/window.h"
 #include "../../ui/event.h"
+#include "../../ui/view_prop.h"
 #include "../../render/bezier.h"
 #include "../../util/fs.h"
 
@@ -139,8 +140,8 @@ namespace qk { namespace js {
 		JSValue* jsvalue(const Error& val) { return worker->newInstance(val); }
 		inline
 		JSValue* jsvalue(const HttpError& val) { return worker->newInstance(val); }
-		inline
-		JSValue* jsvalue(cArray<String>& val) { return worker->newInstance(val); }
+		//inline
+		//JSValue* jsvalue(cArray<String>& val) { return worker->newInstance(val); }
 		inline
 		JSValue* jsvalue(cDictSS& val) { return worker->newInstance(val); }
 		inline
@@ -188,7 +189,7 @@ namespace qk { namespace js {
 		bool parse(JSValue* in, Name& out, cChar* err_msg = 0);
 		Js_Types_Each(_Def_Fun);
 	private:
-		template<typedef T> T kind(JSObject* obj);
+		template<typename T> T kind(JSObject* obj);
 		Worker *worker;
 	#define _Def_attr(Name) \
 		Persistent<JSFunction> _parse##Name; \
@@ -201,15 +202,15 @@ namespace qk { namespace js {
 
 	struct JsConverter { // convert data to js value
 		template<class T>
-		static inline JSValue* Cast(Worker* worker, const Object& obj) {
-			return worker->types()->newInstance( *static_cast<const T*>(&obj) );
+		static inline JSValue* Cast(Worker* worker, const Object* obj) {
+			return worker->types()->jsvalue( *static_cast<const T*>(obj) );
 		}
 		template<class T>
 		static JsConverter* Instance() {
 			static JsConverter value{&Cast<T>};
 			return &value;
 		}
-		JSValue* (*cast)(Worker* worker, const Object& object);
+		JSValue* (*cast)(Worker* worker, const Object* object);
 	};
 
 } }

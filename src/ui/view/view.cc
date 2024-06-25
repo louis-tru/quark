@@ -80,7 +80,7 @@ namespace qk {
 	}
 
 	View* View::safeRetain() {
-		if (++_refCount >= 2) {
+		if (_refCount++ > 0) {
 			return this;
 		} else {
 			_refCount--; // Revoke self increase

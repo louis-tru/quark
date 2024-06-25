@@ -30,7 +30,7 @@
 
 #include "../../out/native-inl-js.h"
 #include "../../out/native-lib-js.h"
-#include "./js_.h"
+#include "./api/types.h"
 #include "../errno.h"
 
 namespace qk {
@@ -77,7 +77,7 @@ namespace qk {
 				JSValue* val = get(worker, key);
 				if ( !val ) return Maybe<Dict<String, int>>();
 				if ( val->isNumber() ) {
-					r.set( key->toStringValue(worker), val->toNumberValue(worker) );
+					r.set( key->toStringValue(worker), val->toInt32Value(worker).unsafe() );
 				} else {
 					r.set( key->toStringValue(worker), val->toBooleanValue(worker) );
 				}
@@ -130,7 +130,7 @@ namespace qk {
 		Array<double> rv;
 		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(); i < len; i++ ) {
-				rv.push( get(worker, i)->toNumberValue(worker) );
+				rv.push( get(worker, i)->toNumberValue(worker).unsafe() );
 			}
 		}
 		return Maybe<Array<double>>(std::move(rv));
@@ -140,7 +140,7 @@ namespace qk {
 		Buffer rv;
 		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(); i < len; i++ ) {
-				rv.push( get(worker, i)->toInt32Value(worker) );
+				rv.push( get(worker, i)->toInt32Value(worker).unsafe() );
 			}
 		}
 		return Maybe<Buffer>(std::move(rv));
@@ -179,7 +179,7 @@ namespace qk {
 
 	JSObject* JSClass::newInstance(uint32_t argc, JSValue* argv[]) {
 		auto f = getFunction();
-		Qk_ASSERT( !f.isEmpty() );
+		Qk_ASSERT( f );
 		return f->newInstance(_worker, argc, argv);
 	}
 
@@ -346,7 +346,7 @@ namespace qk {
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);
 		_classsinfo = new JsClassInfo(this);
-		Qk_ASSERT(_global->isObject(this));
+		Qk_ASSERT(_global->isObject());
 		_global->setProperty(this, "global", *_global);
 		_global->setMethod(this, "__binding__", __binding__);
 
@@ -482,7 +482,7 @@ namespace qk {
 		auto argv = worker->newInstance(code)->cast<JSValue>();
 		auto rc = TriggerEventFromUtil(worker, name, 1, &argv);
 		if (rc && rc->isInt32()) {
-			return rc->toInt32Value(worker);
+			return rc->toInt32Value(worker).unsafe();
 		} else {
 			return code;
 		}
@@ -599,7 +599,7 @@ namespace qk {
 			{
 				Js_Handle_Scope();
 				auto _pkg = worker->bindingModule("_pkg");
-				Qk_ASSERT(!_pkg.IsEmpty(), "Can't start worker");
+				Qk_ASSERT(_pkg, "Can't start worker");
 				auto r = _pkg->cast<JSObject>()->
 					getProperty(worker, "Module")->cast<JSObject>()->
 					getProperty(worker, "runMain")->cast<JSFunction>()->call(worker);

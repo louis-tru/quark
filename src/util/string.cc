@@ -433,53 +433,63 @@ namespace qk {
 	}
 
 	// --------------- ArrayStringBase ---------------
-	
+
 	typedef ArrayStringBase::LongStr LongStr;
 	typedef ArrayStringBase::ShortStr ShortStr;
-	
+
 	LongStr* ArrayStringBase::NewLong(uint32_t length, uint32_t capacity, char* val) {
 		auto l = (LongStr*)::malloc(sizeof(LongStr));
 		l->length = length; l->ptr.capacity = capacity;
 		l->ptr.val = val; l->ref = 1;
+		l->flag = 127645561;
 		return l;
 	}
 
 	void ArrayStringBase::Release(LongStr* l, Free free) {
 		Qk_ASSERT(l->ref > 0);
-		if ( --l->ref == 0 ) {
+		// x = 1;      // l->ref.store(1)
+		// int i = x;  // l->ref.load()
+		// l->ref.fetch_sub(1, std::memory_order_relaxed)
+		if ( --l->ref == 0) {
+			l->flag = 0; // destroy flag
 			free(l->ptr.val);
 			l->ptr.val = nullptr;
 			delete l; // 只有当引用记数变成0才会释放
 		}
 	}
-	
+
+	bool ArrayStringBase::Retain(LongStr* l) { // retain long string
+		if (l->flag == 127645561 && l->ref++ > 0)
+			return l->flag == 127645561; // safe check once
+		return false;
+	}
+
 	void ArrayStringBase::clear(Free free) {
 		if (_val.s.length < 0) {
 			Release(_val.l, free);
 		}
 		_val.s.length = 0;
 	}
-	
-	void ArrayStringBase::Retain(LongStr* l) { // retain long string
-		l->ref++;
-	}
 
 	ArrayStringBase::ArrayStringBase(): _val({.s={{0},0}}) {
-    //Qk_DEBUG("Empty str");
+		//Qk_DEBUG("Empty str");
 	} // empty
-	
+
 	ArrayStringBase::ArrayStringBase(const ArrayStringBase& str): _val(str._val)
 	{
-		if (_val.s.length < 0)
-			Retain(_val.l);
-	} // copy
-	
+		if (_val.s.length < 0) {
+			if (!Retain(_val.l)) { // Retain long fail
+				_val = {.s={{0},0}}; // clear
+			}
+		}
+	}
+
 	ArrayStringBase::ArrayStringBase(uint32_t len, Realloc aalloc, uint8_t sizeOf)
 		: _val({.s={{0},0}})
 	{
 		realloc(len, aalloc, nullptr, sizeOf); // alloc
 	}
-	
+
 	ArrayStringBase::ArrayStringBase(uint32_t l, uint32_t c, char* v, uint8_t sizeOf)
 		: _val({.s={{0},0}})
 	{ // use long string
@@ -491,22 +501,25 @@ namespace qk {
 	void ArrayStringBase::assign(uint32_t len, uint32_t capacity, char* val, uint8_t sizeOf, Free free) {
 		assign( ArrayStringBase(len, capacity, val, sizeOf), free);
 	}
-	
+
 	void ArrayStringBase::assign(const ArrayStringBase& s, Free free) {
-		if (s._val.s.length < 0) { // long
+		if (s._val.s.length < 0) { // src long
 			if (_val.s.length < 0) { // long
 				if (_val.l == s._val.l) {
 					return;
 				}
 				Release(_val.l, free);
 			}
-			Retain(s._val.l); // Retain long string
-			_val = s._val;
-		} else { // short
+			if (Retain(s._val.l)) { // Retain long string
+				_val = s._val;
+			} else { // fail
+				_val = {.s={{0},0}};
+			}
+		} else { // src short
 			if (_val.s.length < 0) { // long
 				Release(_val.l, free);
 			}
-			_val = s._val;
+			_val = {.s=s._val.s};
 		}
 	}
 

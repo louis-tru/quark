@@ -224,8 +224,10 @@ namespace qk { namespace js {
 					");
 				}
 				String cssExp = args[0]->toStringValue(worker);
-				uint32_t time, *time_p = nullptr;
-				Curve curve, *curve_p = nullptr;
+				uint32_t time;
+				uint32_t *time_p = nullptr;
+				Curve curve;
+				Curve *curve_p = nullptr;
 
 				if (args.length() > 1) {
 					Js_Parse_Type(uint32_t, args[1], "@method KeyframeAction.addFrameWithCss() timeMs = %s");

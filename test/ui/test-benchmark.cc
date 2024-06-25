@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/js/quark.h"
+#include "quark/js/js.h"
 
 using namespace qk;
 
 #define IP_REMOTE "127.0.0.1"
 
 void test_benchmark(int argc, char **argv) {
-	js::Start("--node --dev http://" IP_REMOTE ":1026/bench --ignore-local=*");
+	// js::Start("--node --dev http://" IP_REMOTE ":1026/bench --ignore-local=*");
 }

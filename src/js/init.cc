@@ -147,9 +147,9 @@ namespace qk { namespace js {
 			else if (arg->isObject()) {
 				JSObject* o = arg->cast<JSObject>();
 				if (o->has(worker, worker->strs()->toStringStyled())) {
+					auto indent = worker->newInstance(_indent)->cast();
 					auto toStringStyled = o->get(worker, worker->strs()->toStringStyled());
-					auto str = toStringStyled->cast<JSFunction>()->
-						call(worker, 1, worker->newInstance(_indent), o);
+					auto str = toStringStyled->cast<JSFunction>()->call(worker, 1, &indent, o);
 					if (!str) return false; // error
 					_rv->push(Quotes);
 					_rv->push( str->toStringValue(worker) );
@@ -302,8 +302,8 @@ namespace qk { namespace js {
 					"%s"
 					"@return {Number}\n",
 					name,
-					repeat = -1 ? "[,repeat]": "",
-					repeat = -1 ? "@param [repeat] {Number}\n": "",
+					repeat == -1 ? "[,repeat]": "",
+					repeat == -1 ? "@param [repeat] {Number}\n": ""
 				);
 			}
 			
@@ -382,17 +382,21 @@ namespace qk { namespace js {
 			});
 		}
 	};
+	
+	struct Hash5381Object: Object {
+		Hash5381 hash;
+	};
 
-	class WrapHash5381: public WrapObject {
+	class WrapHash5381Object: public WrapObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Hash5381, 0, {
-				New<WrapHash5381>(args, new Hash5381());
+			Js_Define_Class(Hash5381Object, 0, {
+				New<WrapHash5381Object>(args, new Hash5381Object());
 			});
 
 			Js_Set_Class_Method(hashCode, {
-				Js_Self(Hash5381);
-				Js_Return( self->hashCode() );
+				Js_Self(Hash5381Object);
+				Js_Return( self->hash.hashCode() );
 			});
 
 			Js_Set_Class_Method(update, {
@@ -401,25 +405,25 @@ namespace qk { namespace js {
 				) {
 					Js_Throw("@method Hash5381.update(string|Buffer), Bad argument");
 				}
-				Js_Self(Hash5381);
+				Js_Self(Hash5381Object);
 				if ( args[0]->isString() ) { // string
 					String2 str = args[0]->toStringValue2(worker);
-					self->update(*str, str.length());
+					self->hash.update(*str, str.length());
 				}
 				else { // Buffer
 					auto buff = args[0]->asBuffer(worker);
-					self->update(*buff, buff.length());
+					self->hash.update(*buff, buff.length());
 				}
 			});
 
 			Js_Set_Class_Method(digest, {
-				Js_Self(Hash5381);
-				Js_Return( self->digest() );
+				Js_Self(Hash5381Object);
+				Js_Return( self->hash.digest() );
 			});
 
 			Js_Set_Class_Method(clear, {
-				Js_Self(Hash5381);
-				*self = Hash5381();
+				Js_Self(Hash5381Object);
+				self->hash = Hash5381();
 			});
 
 			cls->exports("Hash5381", exports);
@@ -453,7 +457,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Set_Method(timeMonotonic, {
-				Js_Return( time_monotonic / 1e3 );
+				Js_Return( time_monotonic() / 1e3 );
 			});
 
 			Js_Set_Method(hashCode, {
@@ -544,9 +548,9 @@ namespace qk { namespace js {
 					name = worker->newStringOneByte("[eval]");
 				}
 				if (args.length() > 2 && args[2]->isObject()) {
-					sandbox = args[2]->cast<JSObject>();
+					sandbox = args[2]->template cast<JSObject>();
 				}
-				auto rv = worker->runScript(args[0]->cast<JSString>(), name, sandbox);
+				auto rv = worker->runScript(args[0]->template cast<JSString>(), name, sandbox);
 				if (rv) {
 					Js_Return( rv );
 				} // else js error
@@ -561,7 +565,7 @@ namespace qk { namespace js {
 			});
 
 			WrapNativeObject::binding(exports, worker);
-			WrapHash5381::binding(exports, worker);
+			WrapHash5381Object::binding(exports, worker);
 		}
 	};
 

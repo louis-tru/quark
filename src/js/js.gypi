@@ -16,12 +16,11 @@
 		],
 		'sources': [
 			'cb.cc',
-			'global.cc',
+			'init.cc',
 			'js_.h',
 			'js.h',
 			'js.cc',
 			'wrap.cc',
-			'util.cc',
 			'api/action.cc', # api
 			'api/box.cc',
 			'api/buffer.cc',
@@ -111,7 +110,7 @@
 			},
 		],
 	},
-	{
+	{ # build quark ts
 		'target_name': 'build_libs_quark_',
 		'type': 'none',
 		'actions': [{
@@ -120,26 +119,5 @@
 			'outputs': [ '../../libs/quark/out/files.gypi' ],
 			'action': [ 'sh', '-c', 'cd libs/quark; npm run build' ],
 		}],
-	}
-	],
-
-	'conditions': [
-		['os!="ios"', {
-			'targets+': [
-			{
-				'target_name': 'quark-exec',
-				'product_name': 'quark',
-				'type': 'executable',
-				'dependencies': [
-					'quark',
-					'quark-js',
-					# 'quark-media',
-				],
-				'sources': [
-					'main.cc',
-				],
-				'ldflags': [ '<@(other_ldflags)' ],
-			}],
-		}]
-	],
+	}],
 }

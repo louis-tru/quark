@@ -32,7 +32,7 @@
 #include "./ui.h"
 #include "../../ui/view/view.h"
 #include "../../ui/event.h"
-#include "../../out/native-inl-js.h"
+#include "../../../out/native-inl-js.h"
 
 namespace qk { namespace js {
 	typedef Event<> NativeEvent;
@@ -273,8 +273,8 @@ namespace qk { namespace js {
 				auto r = wrap->get(worker->strs()->_change_touches());
 				if (!r) return; // js error
 				if (!r->isArray()) {
-					r = worker->types()->jsvalue(wrap->self()->changed_touches();
-					wrap->set(worker->strs()->_change_touches(), r));
+					r = worker->types()->jsvalue(wrap->self()->changed_touches());
+					wrap->set(worker->strs()->_change_touches(), r);
 				}
 				Js_Return(r);
 			});

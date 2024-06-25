@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./js.h"
-#include "../util/fs.h"
-#include "../ui/app.h"
+#include "quark/ui/app.h"
+#include "quark/js/js.h"
+#include "quark/util/fs.h"
 
 namespace qk { namespace js {
 

@@ -8,12 +8,18 @@
 	],
 
 	'conditions': [
-		['os not in "ios osx" or project=="xcode"', {
+		['OS != "mac" or project=="xcode"', {
 			'includes': [
 				'test/test.gypi',
 			],
 		}],
 	],
+
+	'target_defaults': {
+		'direct_dependent_settings': {
+			'include_dirs': [ '.' ],
+		},
+	},
 
 	'variables': {
 		'quark_product_dir%': '<(output)/../qkmake/product',
@@ -26,30 +32,27 @@
 			['library_output=="static_library"', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/libquark-utils.a',
+					'<(output)/obj.target/libquark-util.a',
 					'<(output)/obj.target/libquark.a',
-					'<(output)/obj.target/libquark-media.a',
-					# '<(output)/obj.target/libquark-js.a',
+					'<(output)/obj.target/libquark-js.a',
+					# '<(output)/obj.target/libquark-media.a',
 					'-Wl,--no-whole-archive',
 				],
 			}],
 		],
 	},
 
-	'target_defaults': {
-		'direct_dependent_settings': {
-			'include_dirs': [ '.' ],
-		},
-	},
+	############################################
+	# targets output
+	############################################
 
-	'targets': [
-	{
+	'targets': [{
 		'target_name': 'libquark',
 		'type': 'none',
 		'dependencies': [
 			'quark',
+			'quark-js',
 			# 'quark-media',
-			# 'quark-js',
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
@@ -112,9 +115,9 @@
 					# 'process_outputs_as_sources': 1,
 				}]
 			}],
-			# output not mac shared library for "quark.so"
+			# output not mac shared library for "libquark.so"
 			['library_output=="shared_library" and OS!="mac"', {
-				'product_name': 'quark',
+				'product_name': 'quark', # libquark.so
 				'type': 'shared_library',
 				# 'product_prefix': 'quark',
 				# 'product_extension': 'so',
@@ -122,13 +125,32 @@
 					'destination': '<(quark_product_dir)/<(quark_product_so_subdir)',
 					'files': [
 						'<(output)/lib.target/libquark.so',
+						'<(output)/lib.target/libquark-js.so',
 						# '<(output)/lib.target/libquark-media.so',
-						# '<(output)/lib.target/libquark-js.so',
 					],
 				}], # copy libquark.so to product directory
 			}],
 		], # conditions
-	}
-	],
+	}],
 
+	# output executed binrary
+	'conditions+': [
+		['os!="ios"', {
+			'targets+': [
+			{
+				'target_name': 'quarkrun',
+				'product_name': 'quark', # output name quark
+				'type': 'executable',
+				'dependencies': [
+					'quark',
+					'quark-js',
+					# 'quark-media',
+				],
+				'ldflags': [ '<@(other_ldflags)' ],
+				'sources': [
+					'src/js/main.cc',
+				], # sources
+			}],
+		}]
+	],
 }

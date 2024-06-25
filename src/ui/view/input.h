@@ -43,7 +43,7 @@ namespace qk {
 		, public TextOptions, public RenderTask, public TextInput {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
-		typedef NonObjectTraits Traits;
+		typedef ReferenceTraits Traits;
 		// define props
 		Qk_DEFINE_VIEW_PROP(bool, security, Const);
 		Qk_DEFINE_VIEW_PROP(bool, readonly, Const);

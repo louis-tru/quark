@@ -30,6 +30,7 @@
 
 #include "./ui.h"
 #include "../../ui/view/text.h"
+#include "../../ui/view/button.h"
 #include "../../ui/view/label.h"
 #include "../../ui/view/input.h"
 #include "../../ui/view/textarea.h"

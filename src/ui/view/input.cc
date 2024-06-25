@@ -691,7 +691,9 @@ namespace qk {
 		_blob_visible.clear();
 		_blob.clear();
 
-		String4 &str = _value_u4.length() ? _value_u4: _placeholder_u4;
+		String4 value_u4(_value_u4); // safe hold
+		String4 placeholder_u4(_placeholder_u4);
+		String4 &str = value_u4.length() ? value_u4: placeholder_u4;
 
 		if (str.length()) { // text layout
 			TextBlobBuilder tbb(*_lines, this, &_blob);
@@ -701,8 +703,8 @@ namespace qk {
 			}
 			tbb.set_disable_overflow(true);
 
-			if (_value_u4.length() && !_security && _marked_text.length()) { // marked text layout
-				auto src = *_value_u4;
+			if (value_u4.length() && !_security && _marked_text.length()) { // marked text layout
+				auto src = *value_u4;
 				auto marked = _marked_text_idx;
 				auto marked_end = marked + _marked_text.length();
 
@@ -724,16 +726,16 @@ namespace qk {
 				make(src+marked, _marked_text.length());
 				_marked_blob_end = blobTmp.length();
 
-				if ( marked_end < _value_u4.length() ) {
-					make(src+marked_end, _value_u4.length()-marked_end);
+				if ( marked_end < value_u4.length() ) {
+					make(src+marked_end, value_u4.length()-marked_end);
 				}
 				_blob = std::move(blobTmp);
 			}
-			else if ( _value_u4.length() && _security ) { // password
+			else if ( value_u4.length() && _security ) { // password
 				Unichar pwd = 9679; /*●*/
 				Array<Array<Unichar>> lines(1);
-				lines.front().extend(_value_u4.length());
-				memset_pattern4(*lines.front(), &pwd, _value_u4.length());
+				lines.front().extend(value_u4.length());
+				memset_pattern4(*lines.front(), &pwd, value_u4.length());
 				tbb.make(lines);
 			}
 			else {

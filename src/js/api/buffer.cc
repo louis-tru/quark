@@ -61,7 +61,8 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					if ( ! parseEncoding(args, args[1], en) ) return;
 				}
-				Js_Return( worker->newUint8Array(args[0]->cast<JSString>(), en) );
+				auto buf = worker->newUint8Array(args[0]->template cast<JSString>(), en);
+				Js_Return( buf );
 			});
 
 			Js_Set_Method(toString, {
@@ -76,7 +77,7 @@ namespace qk { namespace js {
 					);
 				}
 
-				auto self = args[args_index++]->cast<JSUint8Array>();
+				auto self = args[args_index++]->template cast<JSUint8Array>();
 				Encoding encoding = kUTF8_Encoding;
 				int len = self->byteLength(worker);
 				cChar* data = self->weakBuffer(worker).val();

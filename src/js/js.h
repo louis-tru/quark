@@ -307,7 +307,7 @@ namespace qk { namespace js {
 		bool setMethod(Worker* worker, cString& name, FunctionCallback func);
 		bool setAccessor(Worker* worker, cString& name,
 										AccessorGetterCallback get, AccessorSetterCallback set = nullptr);
-		bool defineOwnProperty(Worker *worker, JSValue *key, Value *value, PropertyFlags flags = 0);
+		bool defineOwnProperty(Worker *worker, JSValue *key, JSValue *value, int flags = None);
 		void* objectPrivate();
 		bool setObjectPrivate(void* value);
 		bool set__Proto__(Worker* worker, JSObject* __proto__); // set __proto__
@@ -517,7 +517,7 @@ namespace qk { namespace js {
 		virtual void init();
 	};
 	
-	template<class T> class Wrap;
+	template<class T> class Wobj;
 
 	class Qk_EXPORT WrapObject {
 		Qk_HIDDEN_ALL_COPY(WrapObject);
@@ -561,7 +561,7 @@ namespace qk { namespace js {
 		template<class T = Object>
 		static inline Wobj<T>* wrap(JSValue *value) {
 			static_assert(T::Traits::isObject, "Must be object");
-			return static_cast<Wrap<T>*>(unpack(value));
+			return static_cast<Wobj<T>*>(unpack(value));
 		}
 		template<class T = WrapObject>
 		static inline T* wrapObject(JSValue *value) {
@@ -575,7 +575,7 @@ namespace qk { namespace js {
 		template<class T>
 		static inline Wobj<T>* wrap(T *object, uint64_t type_id) {
 			static_assert(T::Traits::isObject, "Must be object");
-			return static_cast<js::Wrap<T>*>(pack(object, type_id));
+			return static_cast<js::Wobj<T>*>(pack(object, type_id));
 		}
 
 		template<class W, class O>
@@ -584,7 +584,7 @@ namespace qk { namespace js {
 										"Derived wrap class pairs cannot declare data members");
 			static_assert(O::Traits::isObject, "Must be object");
 			auto wrap = (new(reinterpret_cast<WrapObject*>(o) - 1) W())->newInit(args);
-			return static_cast<Wrap<O>*>(static_cast<WrapObject*>(wrap));
+			return static_cast<Wobj<O>*>(static_cast<WrapObject*>(wrap));
 		}
 	private:
 		static WrapObject* unpack(JSValue* object);

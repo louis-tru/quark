@@ -495,17 +495,17 @@ namespace qk { namespace js {
 
 	Maybe<double> JSValue::toNumberValue(Worker* worker) const {
 		auto v = reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker));
-		return v.IsEmpty() ? Maybe<double>(): Cast<JSNumber>(v)->value();
+		return v.IsEmpty() ? Maybe<double>(): Maybe<double>(Cast<JSNumber>(v)->value());
 	}
 
 	Maybe<int> JSValue::toInt32Value(Worker* worker) const {
 		auto v = reinterpret_cast<const v8::Value*>(this)->ToInt32(CONTEXT(worker));
-		return v.IsEmpty() ? Maybe<int>(): Cast<JSInt32>(v)->value();
+		return v.IsEmpty() ? Maybe<int>(): Maybe<int>(Cast<JSInt32>(v)->value());
 	}
 
 	Maybe<uint32_t> JSValue::toUint32Value(Worker* worker) const {
 		auto v = reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker));
-		return v.IsEmpty() ? Maybe<uint32_t>(): Cast<JSUint32>(v)->value();
+		return v.IsEmpty() ? Maybe<uint32_t>(): Maybe<uint32_t>(Cast<JSUint32>(v)->value());
 	}
 
 	bool JSValue::toBooleanValue(Worker* worker) const {
@@ -582,11 +582,11 @@ namespace qk { namespace js {
 		return reinterpret_cast<v8::Object*>(this)->SetAccessor(CONTEXT(worker), fn_name, get2, set2).ToChecked();
 	}
 
-	bool JSObject::defineOwnProperty(Worker *worker, JSValue *key, Value *value, PropertyFlags flags) {
+	bool JSObject::defineOwnProperty(Worker *worker, JSValue *key, JSValue *value, int flags) {
 		auto name = v8::Name::Cast(reinterpret_cast<v8::Value*>(key));
 		auto name_ = *reinterpret_cast<v8::Local<v8::Name>*>(&name);
 		return reinterpret_cast<v8::Object*>(this)->
-			DefineOwnProperty(CONTEXT(worker), name_, Back(val), v8::PropertyAttribute(flags))
+			DefineOwnProperty(CONTEXT(worker), name_, Back(value), v8::PropertyAttribute(flags))
 			.FromMaybe(false);
 	}
 
@@ -653,7 +653,8 @@ namespace qk { namespace js {
 		auto fn = reinterpret_cast<v8::Function*>(this);
 		v8::MaybeLocal<v8::Value> r = fn->Call(CONTEXT(worker), Back(recv), argc,
 																						reinterpret_cast<v8::Local<v8::Value>*>(argv));
-		return Cast(r.ToLocal(v8::Local<v8::Value>()));
+		Local<v8::Value> out;
+		return r.ToLocal(&out) ? Cast(out): nullptr;
 	}
 
 	JSValue* JSFunction::call(Worker* worker, JSValue* recv) {
@@ -739,6 +740,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
+	/*
 	bool JSClass::setLazyDataProperty(cString& name, AccessorGetterCallback get) {
 		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
 		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
@@ -748,7 +750,7 @@ namespace qk { namespace js {
 		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, nullptr,
 																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
 		return true;
-	}
+	}*/
 
 	bool JSClass::setMemberIndexedAccessor(IndexedAccessorGetterCallback get,
 																				IndexedAccessorSetterCallback set) {
@@ -1054,7 +1056,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::RangeError(Back(newInstance(str))->ToString(CONTEXT(this))));
+		return Cast<JSObject>(v8::Exception::RangeError(Back<v8::String>(newInstance(str))));
 	}
 
 	JSObject* Worker::newReferenceError(cChar* errmsg, ...) {
@@ -1062,7 +1064,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::ReferenceError(Back(newInstance(str))->ToString(CONTEXT(this))));
+		return Cast<JSObject>(v8::Exception::ReferenceError(Back<v8::String>(newInstance(str))));
 	}
 
 	JSObject* Worker::newSyntaxError(cChar* errmsg, ...) {
@@ -1070,7 +1072,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::SyntaxError(Back(newInstance(str))->ToString(CONTEXT(this))));
+		return Cast<JSObject>(v8::Exception::SyntaxError(Back<v8::String>(newInstance(str))));
 	}
 
 	JSObject* Worker::newTypeError(cChar* errmsg, ...) {
@@ -1078,7 +1080,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::string_format(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::TypeError(Back(newInstance(str))->ToString(CONTEXT(this))));
+		return Cast<JSObject>(v8::Exception::TypeError(Back<v8::String>(newInstance(str))));
 	}
 
 	JSObject* Worker::newInstance(cError& err) {

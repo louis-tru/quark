@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/js/quark.h"
+#include "quark/js/js.h"
 
 using namespace qk;
 
@@ -37,7 +37,7 @@ using namespace qk;
 #define USE_INSPECT 1
 #define USE_NODE 1
 
-static bool has_argv(cchar* name, int argc, char **argv) {
+static bool has_argv(cChar* name, int argc, char **argv) {
 	for (int i = 0; i < argc; i++) {
 		if (strcmp(argv[i], name) == 0) {
 			return 1;
@@ -100,7 +100,7 @@ void test_demo(int argc, char **argv) {
 
 	Qk_LOG(cmd);
 
-	js::Start(cmd);
+	//js::Start(cmd);
 }
 
 extern "C" {

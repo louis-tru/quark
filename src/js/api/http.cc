@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./cb.h"
+#include "../js_.h"
 
 namespace qk { namespace js {
 

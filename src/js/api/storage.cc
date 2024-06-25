@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../js_.h"
-#include "./cb.h"
 #include "../../util/storage.h"
 
 namespace qk { namespace js {

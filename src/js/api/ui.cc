@@ -162,10 +162,11 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(windows, {
 				Js_Self(Type);
-				int i = 0;
+				uint32_t i = 0;
 				auto arr = worker->newArray();
-				for (auto i: self->windows())
-					arr->set(worker, i++, wrap<Window>(i)->that());
+				for (auto it: self->windows()) {
+					arr->set(worker, i++, wrap<Window>(it)->that());
+				}
 				Js_Return(arr);
 			});
 

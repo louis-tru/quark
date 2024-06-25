@@ -35,10 +35,8 @@
 namespace qk {
 
 	void Label::set_value(String val, bool isRt) {
-		if (_value != val) {
-			_value = std::move(val);
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height, isRt);
-		}
+		_value = val;
+		mark_layout(kLayout_Size_Width | kLayout_Size_Height, isRt);
 	}
 
 	View* Label::getViewForTextOptions() {
@@ -59,7 +57,9 @@ namespace qk {
 		_blob.clear();
 		_lines = lines;
 
-		TextBlobBuilder(lines, this, &_blob).make(_value);
+		String value(_value); // safe hold
+
+		TextBlobBuilder(lines, this, &_blob).make(value);
 
 		auto v = first_Rt();
 		while(v) {

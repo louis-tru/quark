@@ -55,8 +55,8 @@ namespace qk {
 			char val[36]; char length;
 		};
 		struct LongStr {
-			uint32_t length;
-			Ptr ptr;
+			uint32_t length, flag;
+			Ptr      ptr;
 			std::atomic_int ref;
 		};
 		union Value {
@@ -79,11 +79,12 @@ namespace qk {
 		void   clear(Free free);
 		static LongStr* NewLong(uint32_t length, uint32_t capacity, char* val);
 		static void Release(LongStr* l, Free free);
-		static void Retain (LongStr* l);
+		static bool Retain (LongStr* l);
 		Value  _val;
 		template<typename T, typename A> friend class ArrayString;
 	};
 
+	// TODO delete change string api
 	template<typename T, typename A>
 	class ArrayString: public ArrayStringBase {
 	public:

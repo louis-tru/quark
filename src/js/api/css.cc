@@ -126,7 +126,7 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(Vec2, translate, translate);
 			Js_Set_StyleSheets_Accessor(Vec2, scale, scale);
 			Js_Set_StyleSheets_Accessor(Vec2, skew, skew);
-			Js_Set_StyleSheets_Accessor(ArrayFloat, origin, origin);
+			Js_Set_StyleSheets_Accessor(ArrayOrigin, origin, origin);
 			Js_Set_StyleSheets_Accessor(float, x, x);
 			Js_Set_StyleSheets_Accessor(float, y, y);
 			Js_Set_StyleSheets_Accessor(float, scale_x, scaleX);
@@ -134,8 +134,8 @@ namespace qk { namespace js {
 			Js_Set_StyleSheets_Accessor(float, skew_x, skewX);
 			Js_Set_StyleSheets_Accessor(float, skew_y, skewY);
 			Js_Set_StyleSheets_Accessor(float, rotate_z, rotateZ);
-			Js_Set_StyleSheets_Accessor(float, origin_x, originX);
-			Js_Set_StyleSheets_Accessor(float, origin_y, originY);
+			Js_Set_StyleSheets_Accessor(BoxOrigin, origin_x, originX);
+			Js_Set_StyleSheets_Accessor(BoxOrigin, origin_y, originY);
 
 			Js_Set_Class_Accessor_Get(itemsCount, {
 				Js_Self(StyleSheets);
@@ -261,10 +261,10 @@ namespace qk { namespace js {
 				}
 				Js_Handle_Scope();
 
-				auto arg = args[0]->cast<JSObject>();
+				auto arg = args[0]->template cast<JSObject>();
 				auto names = arg->getPropertyNames(worker);
 				if (names->length()) {
-					share_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {
+					shared_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {
 						create(worker, names, arg);
 					}));
 				}

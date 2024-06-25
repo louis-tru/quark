@@ -34,6 +34,11 @@
 
 namespace qk {
 
+	void Text::set_value(String val, bool isRt) {
+		_value = val;
+		mark_layout(kLayout_Typesetting, isRt);
+	}
+
 	void Text::layout_reverse(uint32_t mark_) {
 		if (mark_ & kLayout_Typesetting) {
 
@@ -48,7 +53,9 @@ namespace qk {
 
 			TextBlobBuilder tbb(*_lines, this, &_blob);
 
-			tbb.make(_value);
+			String value(_value); // safe hold
+
+			tbb.make(value);
 
 			if (v) {
 				do {

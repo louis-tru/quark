@@ -460,6 +460,13 @@ namespace qk {
 	BoxShadow::BoxShadow(Shadow value): _value(value) {}
 	BoxShadow::BoxShadow(float x, float y, float s, Color color): _value{x,y,s,color} {}
 
+	void BoxShadow::set_value(Shadow value, bool isRt) {
+		if (value != _value) {
+			_value = value;
+			mark(this, isRt);
+		}
+	}
+
 	BoxFilter* BoxShadow::copy_Rt(BoxFilter* dest) {
 		auto dest1 = (dest && dest->type() == kShadow) ?
 			static_cast<BoxShadow*>(dest): new BoxShadow({});
