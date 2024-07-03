@@ -43,7 +43,7 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			auto Event = exports->get(worker, worker->newStringOneByte("Event"))
-				->cast<JSFunction>();
+				->as<JSFunction>();
 
 			Js_New_Class(NativeEvent, Js_Typeid(NativeEvent), Event, _Js_Fun({
 				Js_Throw("Access forbidden.");
@@ -268,7 +268,6 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(changedTouches, {
 				Js_Wrap(TouchEvent);
-				Js_Handle_Scope();
 
 				auto r = wrap->get(worker->strs()->_change_touches());
 				if (!r) return; // js error

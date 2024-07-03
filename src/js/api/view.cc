@@ -45,7 +45,7 @@ namespace qk { namespace js {
 			// arg event
 			auto ev = WrapObject::wrap(static_cast<Event*>(&e), Js_Typeid(Event));
 			if (cData) {
-				// cData->cast(worker, e.data());
+				// cData->as(worker, e.data());
 				ev->set(worker->strs()->_data(), cData->cast(worker, e.data()));
 			}
 			JSValue* args[2] = { ev->that(), worker->newInstance(true) };

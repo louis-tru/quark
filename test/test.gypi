@@ -27,7 +27,7 @@
 			'../bench',
 		],
 		'xcode_settings': {
-			'OTHER_LDFLAGS': ['-all_load'],
+			# 'OTHER_LDFLAGS': ['-all_load'],
 		},
 		'ldflags': [ '<@(other_ldflags)' ],
 		'sources': [

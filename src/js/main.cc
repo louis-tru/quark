@@ -42,13 +42,14 @@ namespace qk { namespace js {
 			if ( cmd.isEmpty() )
 		#endif
 		{
-			auto arr = String(fs_reader()->read_file_sync( fs_resources("index") )).split('\n');
-
-			for ( int i = 0; i < arr.length(); i++ ) {
-				auto s = arr[i].trim();
-				if ( s[0] != '#' ) {
-					cmd = s;
-					break;
+			auto index = fs_resources("index");
+			if (fs_reader()->exists_sync(index)) {
+				for (auto s: String(fs_reader()->read_file_sync(index)).split('\n')) {
+					s = s.trim();
+					if ( s[0] != '#' ) {
+						cmd = s;
+						break;
+					}
 				}
 			}
 		}

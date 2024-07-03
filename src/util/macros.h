@@ -260,14 +260,14 @@
 
 #if Qk_MSC
 	#pragma section(".CRT$XCU", read)
-	# define Qk_INIT_BLOCK(fn)	\
-	extern void __cdecl fn(void);	\
-	__declspec(dllexport, allocate(".CRT$XCU"))	\
-	void (__cdecl*fn##_)(void) = fn;	\
+	# define Qk_INIT_BLOCK(fn)\
+	extern void __cdecl fn(void);\
+	__declspec(dllexport, allocate(".CRT$XCU"))\
+	void (__cdecl*fn##_)(void) = fn;\
 	extern void __cdecl fn(void)
 #else // Qk_MSC
-	# define Qk_INIT_BLOCK(fn)	\
-	extern __attribute__((constructor)) void __##fn(void)
+	# define Qk_INIT_BLOCK(fn)\
+	extern __attribute__((constructor)) void fn##__(void)
 #endif
 
 #if !defined(Qk_CPU_BENDIAN) && !defined(Qk_CPU_LENDIAN)

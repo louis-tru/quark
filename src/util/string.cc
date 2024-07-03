@@ -447,14 +447,11 @@ namespace qk {
 
 	void ArrayStringBase::Release(LongStr* l, Free free) {
 		Qk_ASSERT(l->ref > 0);
-		// x = 1;      // l->ref.store(1)
-		// int i = x;  // l->ref.load()
-		// l->ref.fetch_sub(1, std::memory_order_relaxed)
-		if ( --l->ref == 0) {
+		if ( --l->ref == 0) { // After entering, do not reverse
 			l->flag = 0; // destroy flag
 			free(l->ptr.val);
-			l->ptr.val = nullptr;
-			delete l; // 只有当引用记数变成0才会释放
+			// l->ptr.val = nullptr;
+			delete l;
 		}
 	}
 

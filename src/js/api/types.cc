@@ -40,9 +40,9 @@ namespace qk { namespace js {
 	{
 		#define OneByte(s) worker->newStringOneByte(s)
 		#define _Fun(Name) \
-		_parse##Name.reset(worker, exports->get(worker,OneByte("parse"#Name))->cast<JSFunction>()); \
-		_new##Name.reset(worker, exports->get(worker,OneByte("new"#Name))->cast<JSFunction>());
-		_TypesBase.reset(worker, exports->get(worker,OneByte("Base"))->cast<JSFunction>());
+		_parse##Name.reset(worker, exports->get(worker,OneByte("parse"#Name))->as<JSFunction>()); \
+		_new##Name.reset(worker, exports->get(worker,OneByte("new"#Name))->as<JSFunction>());
+		_TypesBase.reset(worker, exports->get(worker,OneByte("Base"))->as<JSFunction>());
 
 		Js_Types_Each(_Fun)
 		Qk_DEBUG("Init types %s ok", "TypesParser");
@@ -484,13 +484,13 @@ namespace qk { namespace js {
 		JSObject* obj;\
 		JSValue* val;\
 		if (desc) {\
-			JSValue* args[] = { in, worker->newInstance(desc)->cast() };\
+			JSValue* args[] = { in, worker->newInstance(desc)->as() };\
 			val = _parse##Type->call(worker, 2, args);\
 		} else {\
 			val = _parse##Type->call(worker, 1, &in);\
 		}\
 		if ( !val ) throw_error(worker, in, desc), false;\
-		obj = val->cast<JSObject>();\
+		obj = val->as<JSObject>();\
 		block \
 		return true;\
 	}
@@ -504,7 +504,7 @@ namespace qk { namespace js {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
-		auto obj = in->cast<JSObject>();
+		auto obj = in->as<JSObject>();
 		auto colorType = obj->get(worker, worker->newStringOneByte("colorType"));
 		auto msaa = obj->get(worker, worker->newStringOneByte("msaa"));
 		auto fps = obj->get(worker, worker->newStringOneByte("fps"));
@@ -543,7 +543,7 @@ namespace qk { namespace js {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
-		auto obj = in->cast<JSObject>();
+		auto obj = in->as<JSObject>();
 		auto width = obj->get(worker, worker->newStringOneByte("width"));
 		auto height = obj->get(worker, worker->newStringOneByte("height"));
 		auto x = obj->get(worker, worker->newStringOneByte("x"));
@@ -643,7 +643,7 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, Mat& out, cChar* desc) {
 		js_parse(Mat, {
-			auto mat = obj->get(worker, worker->strs()->value())->cast<JSArray>();
+			auto mat = obj->get(worker, worker->strs()->value())->as<JSArray>();
 			out[0] = mat->get(worker, 0u)->toFloatValue(worker).unsafe();
 			out[1] = mat->get(worker, 1)->toFloatValue(worker).unsafe();
 			out[2] = mat->get(worker, 2)->toFloatValue(worker).unsafe();
@@ -655,7 +655,7 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, Mat4& out, cChar* desc) {
 		js_parse(Mat4, {
-			auto mat = obj->get(worker, worker->strs()->value())->cast<JSArray>();
+			auto mat = obj->get(worker, worker->strs()->value())->as<JSArray>();
 			out[0] = mat->get(worker, 0u)->toFloatValue(worker).unsafe();
 			out[1] = mat->get(worker, 1)->toFloatValue(worker).unsafe();
 			out[2] = mat->get(worker, 2)->toFloatValue(worker).unsafe();
@@ -681,7 +681,7 @@ namespace qk { namespace js {
 			if (!in->toFloatValue(worker).to(out[0]))
 				return throw_error(worker, in, desc), false;
 		} else {
-			auto arr = in->cast<JSArray>();
+			auto arr = in->as<JSArray>();
 			out.reset(arr->length());
 			for (uint32_t i = 0; i < out.length(); i++) {
 				if (!arr->get(worker, i)->toFloatValue(worker).to(out[i])) {
@@ -697,7 +697,7 @@ namespace qk { namespace js {
 			out.reset(1);
 			out[0] = in->toStringValue(worker);
 		} else {
-			if (!in->cast<JSArray>()->toStringArray(worker).to(out)) {
+			if (!in->as<JSArray>()->toStringArray(worker).to(out)) {
 				return throw_error(worker, in, desc), false;
 			}
 		}
@@ -709,7 +709,7 @@ namespace qk { namespace js {
 			out.reset(1);
 			return parse(in, out[0], desc);
 		}
-		auto arr = in->cast<JSArray>();
+		auto arr = in->as<JSArray>();
 		out.reset(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			if (!parse(arr->get(worker, i), out[i], desc))
@@ -723,7 +723,7 @@ namespace qk { namespace js {
 			out.reset(1);
 			return parse(in, out[0], desc);
 		}
-		auto arr = in->cast<JSArray>();
+		auto arr = in->as<JSArray>();
 		out.reset(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			if (!parse(arr->get(worker, i), out[i], desc))
@@ -737,7 +737,7 @@ namespace qk { namespace js {
 			out.reset(1);
 			return parse(in, out[0], desc);
 		}
-		auto arr = in->cast<JSArray>();
+		auto arr = in->as<JSArray>();
 		out.reset(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			if (!parse(arr->get(worker, i), out[i], desc))

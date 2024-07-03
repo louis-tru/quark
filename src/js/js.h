@@ -138,11 +138,11 @@ namespace qk { namespace js {
 		}
 		template <class S>
 		inline void reset(Worker* worker, S* other) {
-			reinterpret_cast<Persistent<JSValue>*>(this)->reset(worker, other);
+			reinterpret_cast<Persistent<JSValue>*>(this)->reset(worker, static_cast<JSValue*>(other));
 		}
 		template <class S>
 		inline void reset(Worker* worker, const Persistent<S>& other) {
-			reinterpret_cast<Persistent<JSValue>*>(this)->reset(worker, *other);
+			reinterpret_cast<Persistent<JSValue>*>(this)->reset(worker, static_cast<JSValue*>(*other));
 		}
 		template<class S>
 		void copy(const Persistent<S>& that) {
@@ -151,8 +151,10 @@ namespace qk { namespace js {
 				copy(*reinterpret_cast<const Persistent<JSValue>*>(&that));
 		}
 		inline bool isEmpty() const { return _val == 0; }
-		inline T* operator->() const { return _val; }
-		inline T* operator*() const { return _val; }
+		inline T* operator->() const { return operator*(); }
+		inline T* operator*() const {
+			return static_cast<T*>(reinterpret_cast<const Persistent<JSValue>*>(this)->operator*());
+		}
 		inline operator bool() const { return _val; }
 		inline Worker* worker() const { return _worker; }
 		inline bool isWeak() {
@@ -170,11 +172,19 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT HandleScope: public NoCopy {
 	public:
-		explicit
-		HandleScope(Worker* worker);
+		explicit HandleScope(Worker* worker);
 		~HandleScope();
-	private:
-		void *_val[3];
+	protected:
+		inline HandleScope() = default;
+		void *_val[4];
+	};
+
+	class Qk_EXPORT EscapableHandleScope: public HandleScope {
+	public:
+		explicit EscapableHandleScope(Worker* worker);
+		template<class T> inline T* escape(T* val) {
+			return static_cast<T*>(escape(static_cast<JSValue*>(val)));
+		}
 	};
 
 	class Qk_EXPORT TryCatch: public NoCopy {
@@ -272,7 +282,7 @@ namespace qk { namespace js {
 		WeakBuffer asBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
 		template<class T = JSValue>
-		inline T* cast() { return static_cast<T*>(this); }
+		inline T* as() { return static_cast<T*>(this); }
 	};
 
 	class Qk_EXPORT JSString: public JSValue {
@@ -391,6 +401,7 @@ namespace qk { namespace js {
 	public:
 		Qk_DEFINE_PROP_GET(Worker*, worker, Protected);
 		Qk_DEFINE_PROP_GET(uint64_t, id, Protected);
+		static JSClass* MakeEmpty(Worker* worker, cString& name);
 		virtual ~JSClass() = default;
 		void exports(cString& name, JSObject* exports);
 		bool hasInstance(JSValue* val);
@@ -620,6 +631,11 @@ namespace qk { namespace js {
 	Qk_EXPORT void Persistent<JSValue>::clearWeak();
 	template<>
 	Qk_EXPORT void Persistent<JSValue>::setWeak(void *ptr, WeakCallback cb);
+	template<>
+	Qk_EXPORT JSValue* Persistent<JSValue>::operator*() const;
+	template<>
+	Qk_EXPORT JSValue* EscapableHandleScope::escape(JSValue* val);
+
 	template<class T>
 	bool JSObject::setProperty(Worker* worker, cString& name, T value) {
 		return set(worker, worker->newStringOneByte(name), worker->newInstance(value));

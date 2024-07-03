@@ -171,7 +171,7 @@ namespace qk { namespace js {
 		auto recv = that();
 		auto func = recv->get(worker(), method);
 		if ( func->isFunction() ) {
-			return func->cast<JSFunction>()->call(worker(), argc, argv, recv);
+			return func->as<JSFunction>()->call(worker(), argc, argv, recv);
 		} else {
 			worker()->throwError("Function not found, \"%s\"", *method->toStringValue(worker()));
 			return nullptr;
@@ -184,7 +184,7 @@ namespace qk { namespace js {
 
 	WrapObject* WrapObject::unpack(JSValue* object) {
 		Qk_ASSERT(object);
-		return static_cast<WrapObject*>(object->cast<JSObject>()->objectPrivate());
+		return static_cast<WrapObject*>(object->as<JSObject>()->objectPrivate());
 	}
 
 	WrapObject* WrapObject::pack(Object* object, uint64_t type_id) {

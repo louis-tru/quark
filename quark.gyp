@@ -141,6 +141,9 @@
 					'quark-js',
 					# 'quark-media',
 				],
+				'xcode_settings': {
+					# 'OTHER_LDFLAGS': ['-all_load'],
+				},
 				'ldflags': [ '<@(other_ldflags)' ],
 				'sources': [
 					'src/js/main.cc',

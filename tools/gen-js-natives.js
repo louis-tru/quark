@@ -78,6 +78,7 @@ const NativeJSCode CORE_native_js_[] = {
 */
 
 var wrap_s = Buffer.from('(function(exports,module,global){').toJSON().data;
+var wrap_json_s = Buffer.from('(function(exports,module){module.exports=').toJSON().data;
 var wrap_e = Buffer.from('})').toJSON().data;
 var wrap_len = is_wrap ? wrap_s.length + wrap_e.length : 0;
 
@@ -150,7 +151,7 @@ function write_file_item(filename, fd_h, fd_cc, pkgname, read) {
 	write(fd_cc, format_string('const unsigned char {0}[] = {', name));
 
 	if (is_wrap) {
-		write_no_line_feed(fd_cc, wrap_s.join(','), ',');
+		write_no_line_feed(fd_cc, (extname == '.json' ? wrap_json_s: wrap_s).join(','), ',');
 	}
 	write_no_line_feed(fd_cc, arr.join(','));
 	if (is_wrap) {

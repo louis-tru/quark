@@ -232,7 +232,7 @@ namespace qk { namespace js {
 				auto arr = rss->search( key->toStringValue(worker, true), true );
 
 				if ( arr.length() ) {
-					auto props = val->cast<JSObject>();
+					auto props = val->as<JSObject>();
 					auto names = props->getPropertyNames(worker);
 
 					for ( uint32_t j = 0, len = names->length(); j < len; j++ ) {
@@ -261,7 +261,7 @@ namespace qk { namespace js {
 				}
 				Js_Handle_Scope();
 
-				auto arg = args[0]->template cast<JSObject>();
+				auto arg = args[0]->template as<JSObject>();
 				auto names = arg->getPropertyNames(worker);
 				if (names->length()) {
 					shared_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {

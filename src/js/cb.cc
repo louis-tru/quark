@@ -35,7 +35,7 @@ namespace qk { namespace js {
 	struct Func {
 		typedef NonObjectTraits Traits;
 		Func(Worker* worker, JSValue* cb)
-			: val(worker, cb->cast<JSFunction>()) {}
+			: val(worker, cb->as<JSFunction>()) {}
 		Persistent<JSFunction> val;
 	};
 

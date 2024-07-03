@@ -186,7 +186,9 @@ namespace qk {
 	JsClassInfo::JsClassInfo(Worker* worker)
 		: _worker(worker)
 	{
-		auto cls = _worker->newClass("JsAttachConstructorEmpty", 0xffffffff, [](FunctionArgs args) {}, 0);
+		auto cls = JSClass::MakeEmpty(worker, "JsAttachConstructorEmpty");
+		add(0xffffffff, cls, 0);
+		// auto cls = _worker->newClass("JsAttachConstructorEmpty", 0xffffffff, [](FunctionArgs args) {}, 0);
 		_jsAttachConstructorEmpty.reset(_worker, cls->getFunction());
 	}
 
@@ -213,7 +215,7 @@ namespace qk {
 	void JsClassInfo::add(uint64_t id, JSClass *cls,
 												AttachCallback attach) throw(Error) {
 		Qk_Check( ! _jsclass.has(id), "Set native Constructors ID repeat");
-		cls->_worker = _worker;
+		// cls->_worker = _worker;
 		cls->_id = id;
 		cls->_attachConstructor = attach;
 		_jsclass.set(id, cls);
@@ -272,12 +274,12 @@ namespace qk {
 		auto r = _nativeModules->get(this, name);
 		if (!r->isUndefined())
 			return r;
-		HandleScope scope(this);
-		const NativeModuleLib* lib;
 		auto exports = newObject();
-		auto ok = NativeModulesLib->get(name->toStringValue(this), lib);
+		auto name_str = name->toStringValue(this);
+		const NativeModuleLib* lib;
+		Qk_DEBUG("binding: %s", *name_str);
 
-		if (ok) {
+		if ( NativeModulesLib->get(name_str, lib) ) {
 			if (lib->binding) {
 				lib->binding(exports, this);
 			}
@@ -285,14 +287,17 @@ namespace qk {
 				exports = runNativeScript(
 					WeakBuffer(lib->native_code->code, lib->native_code->count).buffer(),
 					String(lib->native_code->name) + lib->native_code->ext, exports
-				)->cast<JSObject>();
+				)->as<JSObject>();
 
 				if ( !exports ) // error
 					return exports;
 			}
 			_nativeModules->set(this, name, exports);
+			return exports;
+		} else {
+			auto worker = this;
+			Js_Throw("Module does not exist, %s", *name_str), nullptr;
 		}
-		return exports;
 	}
 
 	JSValue* Worker::bindingModule(cString& name) {
@@ -305,10 +310,13 @@ namespace qk {
 			Js_Throw("Bad argument.");
 		}
 		auto r = static_cast<BindingModule*>(worker)->binding(args[0]);
-		if (r) {
+		if (r)
 			Js_Return(r);
-		}
 	}
+
+	#define _Fun(N) void Js_Set_Module_##N##__();
+	Js_All_Modules(_Fun)
+	#undef _Fun
 
 	Worker::Worker()
 		: _types(nullptr)
@@ -316,6 +324,11 @@ namespace qk {
 		, _classsinfo(nullptr)
 		, _thread_id(thread_self_id())
 	{
+		if (!NativeModulesLib) {
+			#define _Fun(N) Js_Set_Module_##N##__();
+			Js_All_Modules(_Fun)
+			#undef _Fun
+		}
 		Qk_ASSERT(NativeModulesLib);
 
 		// register core native module
@@ -467,19 +480,19 @@ namespace qk {
 	static JSValue* TriggerEventFromUtil(
 		Worker* worker, cString& name, int argc = 0, JSValue* argv[] = 0
 	) {
-		auto _util = worker->bindingModule("_util")->cast<JSObject>();
+		auto _util = worker->bindingModule("_util")->as<JSObject>();
 		Qk_ASSERT(_util);
 
 		auto func = _util->getProperty(worker, String("__on").append(name).append("_native"));
 		if (!func->isFunction()) {
 			return nullptr;
 		}
-		return func->cast<JSFunction>()->call(worker, argc, argv);
+		return func->as<JSFunction>()->call(worker, argc, argv);
 	}
 
 	static int TriggerExit(Worker* worker, cString& name, int code) {
 		Js_Handle_Scope();
-		auto argv = worker->newInstance(code)->cast<JSValue>();
+		auto argv = worker->newInstance(code)->as<JSValue>();
 		auto rc = TriggerEventFromUtil(worker, name, 1, &argv);
 		if (rc && rc->isInt32()) {
 			return rc->toInt32Value(worker).unsafe();
@@ -561,16 +574,15 @@ namespace qk {
 		}
 	}
 
-	static void onProcessSafeHandle(Event<>& e, void* ctx) {
+	static void onProcessExitHandle(Event<>& e, void* ctx) {
 		int rc = static_cast<const Int32*>(e.data())->value;
 		if (RunLoop::first()->runing()) {
 			typedef Callback<RunLoop::PostSyncData> Cb;
 			RunLoop::first()->post_sync(Cb([&](Cb::Data& e) {
 				auto worker = Worker::worker();
 				Qk_DEBUG("onProcessSafeHandle");
-				if (worker) {
+				if (worker)
 					rc = triggerExit(worker, rc);
-				}
 				e.data->complete();
 			}));
 		}
@@ -590,19 +602,18 @@ namespace qk {
 		// Mark the current main thread and check current thread
 		Qk_ASSERT(RunLoop::first() == RunLoop::current());
 
-		Qk_On(ProcessExit, onProcessSafeHandle);
+		Qk_On(ProcessExit, onProcessExitHandle);
 
 		__quark_js_argv = &quark_argv;
 
 		char** argv_c = const_cast<char**>(&argv[0]);
 		int rc = platformStart(argv.length(), argv_c, [](Worker* worker) -> int {
 			{
-				Js_Handle_Scope();
 				auto _pkg = worker->bindingModule("_pkg");
-				Qk_ASSERT(_pkg, "Can't start worker");
-				auto r = _pkg->cast<JSObject>()->
-					getProperty(worker, "Module")->cast<JSObject>()->
-					getProperty(worker, "runMain")->cast<JSFunction>()->call(worker);
+				Qk_ASSERT(_pkg && _pkg->isObject(), "Can't start worker");
+				auto r = _pkg->as<JSObject>()->
+					getProperty(worker, "Module")->as<JSObject>()->
+					getProperty(worker, "runMain")->as<JSFunction>()->call(worker);
 				if (!r) {
 					Qk_ERR("ERROR: Can't call runMain()");
 					return ERR_RUN_MAIN_EXCEPTION;
@@ -633,7 +644,7 @@ namespace qk {
 
 		__quark_js_argv = nullptr;
 
-		Qk_Off(ProcessExit, onProcessSafeHandle);
+		Qk_Off(ProcessExit, onProcessExitHandle);
 		// Object::setAllocator(nullptr, nullptr, nullptr, nullptr);
 
 		return rc;

@@ -46,6 +46,12 @@
 
 namespace qk { namespace js {
 
+	#define Js_All_Modules(F)\
+		F(_init)    F(_action)   F(_buffer)\
+		F(_css)     F(_event)    F(_font)\
+		F(_fs)      F(_http)     F(_os)\
+		F(_storage) F(_types)    F(_ui)\
+
 	#define Js_Strings_Each(F)  \
 		F(exports)         F(constructor)    F(__proto__)\
 		F(prototype)       F(toStringStyled) F(_wrap_external_data) \

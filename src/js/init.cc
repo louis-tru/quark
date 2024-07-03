@@ -145,11 +145,11 @@ namespace qk { namespace js {
 				_rv->push( FUNCTION );
 			}
 			else if (arg->isObject()) {
-				JSObject* o = arg->cast<JSObject>();
+				JSObject* o = arg->as<JSObject>();
 				if (o->has(worker, worker->strs()->toStringStyled())) {
-					auto indent = worker->newInstance(_indent)->cast();
+					auto indent = worker->newInstance(_indent)->as();
 					auto toStringStyled = o->get(worker, worker->strs()->toStringStyled());
-					auto str = toStringStyled->cast<JSFunction>()->call(worker, 1, &indent, o);
+					auto str = toStringStyled->as<JSFunction>()->call(worker, 1, &indent, o);
 					if (!str) return false; // error
 					_rv->push(Quotes);
 					_rv->push( str->toStringValue(worker) );
@@ -169,7 +169,7 @@ namespace qk { namespace js {
 					_set->add(worker, o);
 
 					if (arg->isArray()) {
-						rv = stringify_array(o->cast<JSArray>());
+						rv = stringify_array(o->as<JSArray>());
 					} else {
 						rv = stringify_object(o);
 					}
@@ -192,7 +192,7 @@ namespace qk { namespace js {
 			else if(arg->isDate()) {
 				_rv->push(Quotes);
 				auto f =
-					arg->cast<JSObject>()->get(worker, worker->strs()->toJSON())->cast<JSFunction>();
+					arg->as<JSObject>()->get(worker, worker->strs()->toJSON())->as<JSFunction>();
 				_rv->push( f->call(worker, 0, nullptr, arg)->toStringValue(worker) );
 				_rv->push(Quotes);
 			}
@@ -382,7 +382,7 @@ namespace qk { namespace js {
 			});
 		}
 	};
-	
+
 	struct Hash5381Object: Object {
 		Hash5381 hash;
 	};
@@ -539,7 +539,7 @@ namespace qk { namespace js {
 				if (!args.length() || ! args[0]->isString()) {
 					Js_Throw("Bad argument");
 				}
-				Js_Handle_Scope();
+				EscapableHandleScope scope(worker);
 				JSString* name;
 				JSObject* sandbox = nullptr;
 				if (args.length() > 1) {
@@ -548,11 +548,11 @@ namespace qk { namespace js {
 					name = worker->newStringOneByte("[eval]");
 				}
 				if (args.length() > 2 && args[2]->isObject()) {
-					sandbox = args[2]->template cast<JSObject>();
+					sandbox = args[2]->template as<JSObject>();
 				}
-				auto rv = worker->runScript(args[0]->template cast<JSString>(), name, sandbox);
+				auto rv = worker->runScript(args[0]->template as<JSString>(), name, sandbox);
 				if (rv) {
-					Js_Return( rv );
+					Js_Return(scope.escape(rv));
 				} // else js error
 			});
 

@@ -575,7 +575,7 @@ namespace qk {
 			if (++destLen == rev.capacity())
 				rev.extend(destLen + 1);
 		}
-		rev[destLen] = '\0';
+		(*rev)[destLen] = '\0';
 		auto capacity = rev.capacity();
 		return ArrayBuffer<Return>(rev.collapse(), destLen, capacity);
 	}
@@ -584,7 +584,7 @@ namespace qk {
 	static ArrayBuffer<Return> decode_from_utf16(cChar* source, uint32_t len) {
 		ArrayBuffer<Return> rev(0u, 1);
 		auto src = reinterpret_cast<const uint16_t*>(source);
-		auto end = src + len;
+		auto end = reinterpret_cast<const uint16_t*>(source + len);
 		auto destLen = 0;
 		uint32_t data;
 		while (src != end) {
@@ -593,7 +593,7 @@ namespace qk {
 			if (++destLen == rev.capacity())
 				rev.extend(destLen + 1);
 		}
-		rev[destLen] = '\0';
+		(*rev)[destLen] = '\0';
 		auto capacity = rev.capacity();
 		return ArrayBuffer<Return>(rev.collapse(), destLen, capacity);
 	}
@@ -603,7 +603,7 @@ namespace qk {
 		auto rev = ArrayBuffer<Return>::alloc(len, len + 1);
 		Return* data = *rev;
 		auto src = reinterpret_cast<const uint32_t*>(source);
-		auto end = src + (len >> 2);
+		auto end = reinterpret_cast<const uint32_t*>(source + len);
 		while (src != end) {
 			*data = *src;
 			data++; src++;

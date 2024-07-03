@@ -166,23 +166,25 @@ namespace qk { namespace js {
 		}
 
 		JSValue* runNativeScript(cBuffer& source, cString& name, JSObject* exports) {
+			if (!exports) exports = newObject();
+
+			v8::EscapableHandleScope scope(_isolate);
 			v8::Local<v8::Value> _name = Back(newInstance(name));
 			v8::Local<v8::Value> _souece = Back(newString(source));
-
 			v8::MaybeLocal<v8::Value> rv;
 
 			rv = runScript(_souece.As<v8::String>(),
 											_name.As<v8::String>(), v8::Local<v8::Object>());
 			if ( !rv.IsEmpty() ) {
-				auto module = newObject();
-				module->set(this, strs()->exports(), exports);
+				auto mod = newObject();
+				mod->set(this, strs()->exports(), exports);
 				v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
-				v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(global()) };
+				v8::Local<v8::Value> args[] = { Back(exports), Back(mod), Back(global()) };
 				rv = func->Call(_context, v8::Undefined(_isolate), 3, args);
 				if (!rv.IsEmpty()) {
-					auto rv = module->get(this, strs()->exports());
+					auto rv = mod->get(this, strs()->exports());
 					Qk_ASSERT(rv->isObject());
-					return rv;
+					return Cast(scope.Escape(Back(rv)));
 				}
 			}
 			return nullptr;
@@ -314,7 +316,8 @@ namespace qk { namespace js {
 							FunctionCallback constructor, V8JSClass* base,
 							v8::Local<v8::Function> baseFunc = v8::Local<v8::Function>())
 			: JSClass(), _base(base)
-		{ //
+		{
+			_worker = worker;
 			v8::FunctionCallback cb = reinterpret_cast<v8::FunctionCallback>(constructor);
 			v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(ISOLATE(worker), cb);
 			v8::Local<v8::String> className = Back<v8::String>(worker->newStringOneByte(name));
@@ -356,6 +359,10 @@ namespace qk { namespace js {
 		v8::Persistent<v8::FunctionTemplate> _funcTemplate; // v8 func template
 	};
 
+	JSClass* JSClass::MakeEmpty(Worker* worker, cString& name) {
+		return new V8JSClass(worker, name, [](FunctionArgs args) {}, 0);
+	}
+
 	JSFunction* JSClass::getFunction() {
 		if (_func.isEmpty()) {
 			// Gen constructor
@@ -379,17 +386,31 @@ namespace qk { namespace js {
 		return *_func;
 	}
 
-	struct V8HandleScopeWrap {
+	struct V8HandleScope {
 		v8::HandleScope value;
-		inline V8HandleScopeWrap(Isolate* isolate): value(isolate) { }
+		inline V8HandleScope(Isolate* isolate): value(isolate) {}
+	};
+
+	struct V8EscapableHandleScope {
+		v8::EscapableHandleScope value;
+		inline V8EscapableHandleScope(Isolate* isolate): value(isolate) {}
 	};
 
 	HandleScope::HandleScope(Worker* worker) {
-		new(this) V8HandleScopeWrap(ISOLATE(worker));
+		new(this) V8HandleScope(ISOLATE(worker));
 	}
 
 	HandleScope::~HandleScope() {
-		reinterpret_cast<V8HandleScopeWrap*>(this)->~V8HandleScopeWrap();
+		reinterpret_cast<V8HandleScope*>(this)->~V8HandleScope();
+	}
+
+	EscapableHandleScope::EscapableHandleScope(Worker* worker) {
+		new(this) V8EscapableHandleScope(ISOLATE(worker));
+	}
+
+	template<>
+	JSValue* EscapableHandleScope::escape(JSValue* val) {
+		return Cast(reinterpret_cast<V8EscapableHandleScope*>(this)->value.Escape(Back(val)));
 	}
 
 	bool JSValue::isUndefined() const { return reinterpret_cast<const v8::Value*>(this)->IsUndefined(); }
@@ -934,6 +955,12 @@ namespace qk { namespace js {
 		h->ClearWeak();
 	}
 
+	template<>
+	JSValue* Persistent<JSValue>::operator*() const {
+		// return Cast(Local<Value>::New(ISOLATE(_worker), Back(_val)));
+		return _val;
+	}
+
 	JSNumber* Worker::newInstance(float data) {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
@@ -1133,12 +1160,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* Worker::runNativeScript(cBuffer& source, cString& name, JSObject* exports) {
-		v8::EscapableHandleScope scope(ISOLATE(this));
-		if (!exports) {
-			exports = newObject();
-		}
-		auto r = WORKER(this)->runNativeScript(source, name, exports);
-		return Cast(scope.Escape(Back(r)));
+		return WORKER(this)->runNativeScript(source, name, exports);
 	}
 
 	void Worker::garbageCollection() {
@@ -1146,7 +1168,7 @@ namespace qk { namespace js {
 	}
 
 	int platformStart(int argc, Char** argv, int (*exec)(Worker *worker)) {
-		auto platform = v8::platform::NewDefaultPlatform();
+		auto platform = v8::platform::NewDefaultPlatform(1);
 		v8::V8::InitializePlatform(platform.get());
 		v8::V8::Initialize();
 
@@ -1161,6 +1183,7 @@ namespace qk { namespace js {
 		{
 			Sp<Worker> worker = Worker::Make();
 			v8::SealHandleScope sealhandle(ISOLATE(*worker));
+			v8::HandleScope handle(ISOLATE(*worker));
 			rc = exec(*worker);
 		}
 		v8::V8::ShutdownPlatform();
