@@ -615,7 +615,8 @@ namespace qk { namespace js {
 		}
 	};
 
-	Qk_EXPORT int Start(cArray<String> &argv);
+	Qk_EXPORT int Start(cString &startup, cArray<String> &argv);
+	Qk_EXPORT int Start(int argc, char** argv);
 
 	// **********************************************************************
 

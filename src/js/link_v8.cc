@@ -267,6 +267,7 @@ namespace qk { namespace js {
 		}
 
 		void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+			// print_exception(message, error);
 			if ( !triggerUncaughtException(this, Cast(error)) ) {
 				print_exception(message, error);
 				qk::thread_try_abort_and_exit(ERR_UNCAUGHT_EXCEPTION);
@@ -1175,8 +1176,8 @@ namespace qk { namespace js {
 		// Unconditionally force typed arrays to allocate outside the v8 heap. This
 		// is to prevent memory pointers from being moved around that are returned by
 		// Buffer::Data().
-		cChar no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
-		v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
+		//cChar no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
+		//v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
 		v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 		int rc = 0;

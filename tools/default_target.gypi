@@ -10,11 +10,11 @@
 			}],
 		],
 	},
-	
+
 	'target_defaults': {
 		'conditions': [
 			['library_output=="shared_library"', { 
-				'defines': [ 'FX_BUILDING_SHARED' ],
+				'defines': [ 'Qk_BUILDING_SHARED' ],
 			}],
 			# c++ exceptions
 			['cplusplus_exceptions==1', {

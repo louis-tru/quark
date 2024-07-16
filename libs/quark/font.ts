@@ -28,36 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
-import { Mynavpage } from './public';
+import * as types from './types';
+Object.assign(exports, __binding__('_font'));
 
-var resolve = require.resolve;
-
-export default ()=>{
-
-	var code = `Quark
-	===============
-	
-	Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
-	Goal: developing GUI applications on this basis can take into account both the simplicity and speed of developing WEB applications, as well as the performance and experience of Native applications.
-	
-	使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
-	目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
-	
-	Quark Source 
-	===============
-	https://github.com/louis-tru/quark.git
-	
-	Support
-	===============
-	http://quarks.cc
-	louistru@hotmail.com`;
-
-	return (
-		<Mynavpage title="About" source={resolve(__filename)}>
-			<scroll width="match" height="match">
-				<text width="match" margin={10} value={code} />
-			</scroll>
-		</Mynavpage>
-	);
-};
+export declare class FontPool {
+	readonly countFamilies: number;
+	readonly defaultFamilyNames: string[]
+	readonly defaultFontFamilys: types.FFID;
+	getFontFamilys(familys?: string): types.FFID;
+	addFontFamily(data: Uint8Array, alias?: string): void;
+	getFamilyName(index: number): string;
+}
+export declare function getFontFamilys(familys?: string): types.FFID;
+export declare function getFamilysName(ffid: types.FFID): string;

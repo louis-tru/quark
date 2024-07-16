@@ -355,11 +355,11 @@ namespace qk {
 	}
 
 	void Worker::init() {
+		Qk_ASSERT(_global->isObject());
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);
 		_classsinfo = new JsClassInfo(this);
-		Qk_ASSERT(_global->isObject());
 		_global->setProperty(this, "global", *_global);
 		_global->setMethod(this, "__binding__", __binding__);
 
@@ -531,49 +531,6 @@ namespace qk {
 	void  object_allocator_strong(Object* obj);
 	void  object_allocator_weak(Object* obj);
 
-	// startup argv
-	Array<Char*>* __quark_js_argv = nullptr;
-	int           __quark_js_have_debug = 0;
-
-	// parse argv
-	static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& quark_argv) {
-		static String argv_str;
-
-		Qk_ASSERT(argv_in.length(), "Bad start argument");
-		__quark_js_have_debug = 0;
-		argv_str = argv_in[0];
-		Array<int> indexs = {-1};
-
-		for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
-			if (argv_in[i].indexOf("--debug") == 0) {
-				__quark_js_have_debug = 1;
-			} else {
-				if (argv_in[i].indexOf("--inspect") == 0) {
-					__quark_js_have_debug = 1;
-				}
-				argv_str.append(' ');
-				argv_str.append(argv_in[i]);
-				indexs.push(index);
-				index += argv_in[i].length() + 1;
-			}
-		}
-
-		Char* str_c = const_cast<Char*>(*argv_str);
-		argv.push(str_c);
-		quark_argv.push(str_c);
-
-		for (int i = 1, quark_ok = 0; i < indexs.length(); i++) {
-			int index = indexs[i];
-			str_c[index] = '\0';
-			Char* arg = str_c + index + 1;
-			if (quark_ok || arg[0] != '-') {
-				quark_ok = 1; // quark argv start
-				quark_argv.push(arg);
-			}
-			argv.push(arg);
-		}
-	}
-
 	static void onProcessExitHandle(Event<>& e, void* ctx) {
 		int rc = static_cast<const Int32*>(e.data())->value;
 		if (RunLoop::first()->runing()) {
@@ -589,25 +546,49 @@ namespace qk {
 		e.return_value = rc;
 	}
 
-	int Start(const Array<String>& argv_in) {
+	// startup argv
+	int    __quark_js_argc = 0;
+	char** __quark_js_argv = nullptr;
+
+	int Start(cString &startup, cArray<String>& argv_in) {
+		static String argv_s;
+		Array<char*> argv;
+
+		argv_s = String("quark ").append(startup);
+		Array<uint32_t> argv_idx{5,argv_s.length()};
+
+		for (auto &arg: argv_in) {
+			argv_s.append(' ');
+			argv_s.append(arg);
+			argv_idx.push(argv_s.length());
+		}
+		Char* arg = const_cast<Char*>(*argv_s);
+
+		for (auto idx: argv_idx) {
+			argv.push(arg);
+			arg = const_cast<Char*>(*argv_s + idx + 1);
+			arg[-1] = '\0';
+		}
+
+		Start(argv.length(), *argv);
+	}
+
+	int Start(int argc, char** argv) {
 		Qk_ASSERT(!__quark_js_argv);
 
 		Object::setAllocator(
 			&object_allocator_alloc,
 			&object_allocator_free, &object_allocator_strong, &object_allocator_weak
 		);
-		Array<char*> argv, quark_argv;
-		parseArgv(argv_in, argv, quark_argv);
-
 		// Mark the current main thread and check current thread
 		Qk_ASSERT(RunLoop::first() == RunLoop::current());
 
 		Qk_On(ProcessExit, onProcessExitHandle);
 
-		__quark_js_argv = &quark_argv;
+		__quark_js_argc = argc;
+		__quark_js_argv = argv;
 
-		char** argv_c = const_cast<char**>(&argv[0]);
-		int rc = platformStart(argv.length(), argv_c, [](Worker* worker) -> int {
+		int rc = platformStart(argc, argv, [](Worker* worker) -> int {
 			{
 				auto _pkg = worker->bindingModule("_pkg");
 				Qk_ASSERT(_pkg && _pkg->isObject(), "Can't start worker");
@@ -641,8 +622,6 @@ namespace qk {
 				rc = triggerExit(worker, rc);
 			return rc;
 		});
-
-		__quark_js_argv = nullptr;
 
 		Qk_Off(ProcessExit, onProcessExitHandle);
 		// Object::setAllocator(nullptr, nullptr, nullptr, nullptr);

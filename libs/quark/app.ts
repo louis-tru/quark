@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, blue.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of blue.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,39 +25,52 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
-import { Mynavpage } from './public';
+///<reference path="_ext.ts"/>
 
-var resolve = require.resolve;
+import util from './util';
+import {TextOptions} from './view';
+import {Screen} from './screen';
+import {Window} from './window';
+import {FontPool} from './font';
+import event, {EventNoticer, Notification, NativeNotification, Event} from './event';
 
-export default ()=>{
+const _ui = __binding__('_ui');
+let _current: Application | null = null;
+type AEvent = Event<Application>;
 
-	var code = `Quark
-	===============
-	
-	Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
-	Goal: developing GUI applications on this basis can take into account both the simplicity and speed of developing WEB applications, as well as the performance and experience of Native applications.
-	
-	使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
-	目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
-	
-	Quark Source 
-	===============
-	https://github.com/louis-tru/quark.git
-	
-	Support
-	===============
-	http://quarks.cc
-	louistru@hotmail.com`;
+declare class NativeApplication extends Notification<AEvent> {
+	readonly isLoaded: boolean; //!< after onLoad event
+	readonly screen: Screen;
+	readonly fontPool: FontPool;
+	readonly activeWindow: Window | null;
+	readonly defaultTextOptions: TextOptions;
+	readonly windows: Window[];
+	maxResourceMemoryLimit: number; //!< get or set max resource memory limit
+	usedResourceMemory(): number; //!< current used resource memory
+	clear(all?: boolean): void; //!< clear resource memory
+	openURL(url: string): void;
+	sendEmail(recipient: string, subject: string, body?: string, cc?: string, bcc?: string): void;
+}
 
-	return (
-		<Mynavpage title="About" source={resolve(__filename)}>
-			<scroll width="match" height="match">
-				<text width="match" margin={10} value={code} />
-			</scroll>
-		</Mynavpage>
-	);
+export class Application extends (_ui.Application as typeof NativeApplication) {
+	@event readonly onLoad: EventNoticer<AEvent>;
+	@event readonly onUnload: EventNoticer<AEvent>;
+	@event readonly onBackground: EventNoticer<AEvent>;
+	@event readonly onForeground: EventNoticer<AEvent>;
+	@event readonly onPause: EventNoticer<AEvent>;
+	@event readonly onResume: EventNoticer<AEvent>;
+	@event readonly onMemoryWarning: EventNoticer<AEvent>;
+	constructor() {
+		super();
+		_current = this;
+	}
+}
+
+util.extendClass(Application, NativeNotification);
+
+export default {
+	get current() { return _current! },
 };

@@ -5,11 +5,10 @@
 		"target": "ES2018",
 		"moduleResolution": "node",
 		"sourceMap": false,
-		// "outDir": "out/examples",
-		"outDir": ".",
+		"outDir": "out/quark",
 		"rootDir": ".",
 		"baseUrl": ".",
-		"declaration": false,
+		"declaration": true,
 		"alwaysStrict": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -23,17 +22,6 @@
 		"removeComments": true,
 		"jsx": "react",
 		"jsxFactory": "_CVD",
-		"paths": {
-			"*": [
-				"./node_modules/*",
-				"../libs/quark/out/*",
-				"../node_modules/*",
-				"../../node_modules/*",
-				"../../../node_modules/*",
-				"../../../../node_modules/*",
-				"../../../../../node_modules/*",
-			],
-		},
 	},
 	"include": [
 		"**/*",
@@ -45,5 +33,6 @@
 		".svn",
 		"node_modules",
 		"_.js",
+		"_",
 	]
 }

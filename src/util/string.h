@@ -96,7 +96,7 @@ namespace qk {
 		ArrayString(const T* s); // copy constructors
 		ArrayString(const T* s, uint32_t len); // copy constructors
 		ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
-		ArrayString(char i);
+		ArrayString(char i); // char string
 
 		ArrayString(int32_t i); // number to string constructors
 		ArrayString(uint32_t i);
@@ -684,7 +684,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::toLowerCase() const {
-		return ArrayString(*this).upperCase();
+		return ArrayString(*this).lowerCase();
 	}
 
 	// --------------------------------------------------------------------------------

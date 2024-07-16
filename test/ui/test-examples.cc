@@ -28,36 +28,36 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
-import { Mynavpage } from './public';
+#include "quark/js/js.h"
+#include "quark/util/fs.h"
 
-var resolve = require.resolve;
+using namespace qk;
 
-export default ()=>{
+#define IP_REMOTE "127.0.0.1"
+#define USE_REMOTE 0
+#define USE_INSPECT 1
 
-	var code = `Quark
-	===============
-	
-	Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
-	Goal: developing GUI applications on this basis can take into account both the simplicity and speed of developing WEB applications, as well as the performance and experience of Native applications.
-	
-	使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
-	目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
-	
-	Quark Source 
-	===============
-	https://github.com/louis-tru/quark.git
-	
-	Support
-	===============
-	http://quarks.cc
-	louistru@hotmail.com`;
+void test_examples(int argc, char **_) {
+	Array<String> argv;
 
-	return (
-		<Mynavpage title="About" source={resolve(__filename)}>
-			<scroll width="match" height="match">
-				<text width="match" margin={10} value={code} />
-			</scroll>
-		</Mynavpage>
-	);
-};
+#if USE_INSPECT
+	argv.push("--inspect-brk=0.0.0.0:9229");
+#endif
+
+#if USE_REMOTE
+		js::Start("http://" IP_REMOTE ":1026/examples", argv);
+#else
+		js::Start(fs_resources("examples"), argv);
+#endif
+}
+
+extern "C" {
+
+#if FX_ANDROID
+#include <quark/util/android-jni.h>
+	JNIEXPORT extern void
+	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		Qk_LOG("Java_org_quark_examples_MainActivity_test");
+	}
+#endif
+}

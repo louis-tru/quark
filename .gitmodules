@@ -4,9 +4,6 @@
 [submodule "libs/qkmake"]
 	path = libs/qkmake
 	url = https://github.com/louis-tru/qkmake.git
-[submodule "libs/quark"]
-	path = libs/quark
-	url = https://github.com/louis-tru/quark-ts.git
 [submodule "deps/ffmpeg"]
 	path = deps/ffmpeg
 	url = https://github.com/louis-tru/ffmpeg.git

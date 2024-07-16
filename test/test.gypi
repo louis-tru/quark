@@ -26,9 +26,6 @@
 			'../examples',
 			'../bench',
 		],
-		'xcode_settings': {
-			# 'OTHER_LDFLAGS': ['-all_load'],
-		},
 		'ldflags': [ '<@(other_ldflags)' ],
 		'sources': [
 			'../examples',
@@ -70,7 +67,7 @@
 			# 'ui/test-freetype.cc',
 			# 'ui/test-gui.cc',
 			'ui/test-benchmark.cc',
-			'ui/test-demo.cc',
+			'ui/test-examples.cc',
 			'ui/test-alsa-ff.cc',
 			'ui/test-ffmpeg.cc',
 			'ui/test-layout.cc',

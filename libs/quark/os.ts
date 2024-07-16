@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, blue.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of blue.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,39 +25,35 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
-import { Mynavpage } from './public';
+const _os = __binding__('_os');
 
-var resolve = require.resolve;
+export enum NetworkInterface {
+	kNone,
+	kETH,
+	kWifi,
+	kMobile, // mobile
+	k2G, // 2G
+	k3G, // 3G
+	k4G, // 4G
+	k5G, // 5G
+}
+export declare function version(): string;
+export declare function brand(): string;
+export declare function model(): string;
+export declare function info(): string;
+export declare function languages(): string[];
+export declare function isWifi(): boolean;
+export declare function isMobile(): boolean;
+export declare function networkInterface(): NetworkInterface;
+export declare function isAcPower(): boolean;
+export declare function isBattery(): boolean;
+export declare function batteryLevel(): number;
+export declare function memory(): number;
+export declare function usedMemory(): number;
+export declare function availableMemory(): number;
+export declare function cpuUsage(): number;
 
-export default ()=>{
-
-	var code = `Quark
-	===============
-	
-	Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
-	Goal: developing GUI applications on this basis can take into account both the simplicity and speed of developing WEB applications, as well as the performance and experience of Native applications.
-	
-	使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
-	目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
-	
-	Quark Source 
-	===============
-	https://github.com/louis-tru/quark.git
-	
-	Support
-	===============
-	http://quarks.cc
-	louistru@hotmail.com`;
-
-	return (
-		<Mynavpage title="About" source={resolve(__filename)}>
-			<scroll width="match" height="match">
-				<text width="match" margin={10} value={code} />
-			</scroll>
-		</Mynavpage>
-	);
-};
+Object.assign(exports, _os);

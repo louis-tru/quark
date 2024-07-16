@@ -1,7 +1,7 @@
 {
 	'targets': [{
 		'target_name': 'trial',
-		'type': '<(output_type)',
+		'type': 'static_library', #<(output_type)
 		'dependencies': [ 'quark-util' ],
 		'sources': [
 			'jsx.h',

@@ -140,8 +140,6 @@ namespace qk { namespace js {
 		JSValue* jsvalue(const Error& val) { return worker->newInstance(val); }
 		inline
 		JSValue* jsvalue(const HttpError& val) { return worker->newInstance(val); }
-		//inline
-		//JSValue* jsvalue(cArray<String>& val) { return worker->newInstance(val); }
 		inline
 		JSValue* jsvalue(cDictSS& val) { return worker->newInstance(val); }
 		inline

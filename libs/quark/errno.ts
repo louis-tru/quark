@@ -28,88 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/js/js.h"
-
-using namespace qk;
-
-#define IP_REMOTE "127.0.0.1"
-#define USE_REMOTE 0
-#define USE_INSPECT 1
-#define USE_NODE 1
-
-static bool has_argv(cChar* name, int argc, char **argv) {
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], name) == 0) {
-			return 1;
-		}
-	}
-	return 0;
+export class ErrnoList {
+	ERR_UNKNOWN_ERROR: ErrnoCode = [-10000, 'UNKNOWN_ERROR']
+	ERR_MODULE_NOT_FOUND: ErrnoCode = [-12000, 'ERR_MODULE_NOT_FOUND']
+	ERR_READ_STREAM_ABORT: ErrnoCode = [-12001, 'ERR_READ_STREAM_ABORT']
+	ERR_EXECUTE_TIMEOUT: ErrnoCode = [-12002, 'ERR_EXECUTE_TIMEOUT']
 }
 
-void test_demo(int argc, char **argv) {
-	String cmd = "quark ";
-
-#if USE_NODE
-	cmd += " ";
-#else
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--no-node") == 0) {
-			cmd += "--no-node "; break;
-		}
-	}
-#endif
-
-#if USE_INSPECT
-	cmd += "--inspect-brk=0.0.0.0:9229 ";
-#else
-	if (has_argv("--inspect", argc, argv)) {
-		cmd += "--inspect=0.0.0.0:9229 ";
-	} else if (has_argv("--inspect-brk", argc, argv)) {
-		cmd += "--inspect-brk=0.0.0.0:9229 ";
-	}
-#endif
-
-	char* mod = nullptr;
-	for (int i = 0; i < argc; i++) {
-		if (argv[i][0] == 'h' && argv[i][1] == 't' && argv[i][2] == 't' && argv[i][3] == 'p') {
-			mod = argv[i];
-			break;
-		}
-	}
-	if (mod) {
-		cmd += mod;
-		cmd += ' ';
-	} else {
-#if USE_REMOTE
-		cmd += "http://" IP_REMOTE ":1026/examples ";
-#else
-		cmd += "examples ";
-#endif
-	}
-
-	for (int i = 1; i < argc; i++) {
-		// LOG("%s, %s", argv[i], strstr(argv[i], "--"));
-		if (strstr(argv[i], "--") == argv[i] && 
-			strcmp(argv[i], "--no-node") != 0 && 
-			strstr(argv[i], "--inspect") != argv[i]) 
-		{
-			cmd += argv[i];
-			cmd += ' ';
-		}
-	}
-
-	Qk_LOG(cmd);
-
-	//js::Start(cmd);
-}
-
-extern "C" {
-
-#if FX_ANDROID
-#include <quark/util/android-jni.h>
-	JNIEXPORT extern void
-	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		Qk_LOG("Java_org_quark_examples_MainActivity_test");
-	}
-#endif
-}
+export default new ErrnoList();

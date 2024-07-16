@@ -28,9 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import {
-	Hybrid, Text, Button, Image, Indep, Clip, _CVD, Div, Label
-} from 'quark';
+import { _CVD } from 'quark';
 import { HighlightedStatus, HighlightedEvent, ClickEvent } from 'quark/event';
 import { Navbar, Toolbar, NavPage } from 'quark/nav';
 import { Mynavpage } from './public';

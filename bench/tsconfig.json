@@ -26,8 +26,7 @@
 		"paths": {
 			"*": [
 				"./node_modules/*",
-				"../tools/node_modules/*",
-				"../out/*",
+				"../libs/quark/out/*",
 				"../node_modules/*",
 				"../../node_modules/*",
 				"../../../node_modules/*",

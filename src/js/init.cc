@@ -31,8 +31,8 @@
 #include "./js_.h"
 
 namespace qk { namespace js {
-	extern Array<Char*>* __quark_js_argv;
-	extern int           __quark_js_have_debug;
+	extern int    __quark_js_argc;
+	extern char** __quark_js_argv;
 
 	static cString Undefined("undefined");
 	static cString Null("null");
@@ -231,6 +231,8 @@ namespace qk { namespace js {
 			Array<String> rv;
 
 			for (int i = 0; i < args.length(); i++) {
+				if (i)
+					rv.push(' ');
 				if (args[i]->isObject()) {
 					if (!stringifyConsoleStyled(worker, args[i], &rv))
 						return; // error
@@ -238,7 +240,7 @@ namespace qk { namespace js {
 					rv.push( args[i]->toStringValue(worker) );
 				}
 			}
-			print(rv.join(' '));
+			print(rv.join(String()));
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -442,11 +444,11 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Qk_ASSERT(__quark_js_argv);
 			auto argv = worker->newArray();
-			for (uint32_t i = 0; i < __quark_js_argv->length(); i++)
-				argv->set(worker, i, worker->newInstance(__quark_js_argv->at(i)));
+			for (uint32_t i = 0; i < __quark_js_argc; i++) {
+				argv->set(worker, i, worker->newInstance(String(__quark_js_argv[i])));
+			}
 
 			Js_Set_Property(argv, argv);
-			Js_Set_Property(debug, !!__quark_js_have_debug);
 
 			Js_Set_Method(version, {
 				Js_Return( qk::version() );

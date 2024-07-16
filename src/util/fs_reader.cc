@@ -269,8 +269,12 @@ namespace qk {
 					}
 					return false;
 				}
+				case FTP:
+				case FTPS:
+				case HTTP:
+				case HTTPS: // Not currently supported
+					return false;
 			}
-			return false;
 		}
 
 		Array<Dirent> readdir_sync(cString& path) throw(Error) {
@@ -293,6 +297,11 @@ namespace qk {
 					}
 					break;
 				}
+				case FTP:
+				case FTPS:
+				case HTTP:
+				case HTTPS: // Not currently supported
+					break;
 			}
 			Qk_ReturnLocal(rv);
 		}

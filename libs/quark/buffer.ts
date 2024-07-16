@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, blue.chu
+ * Copyright © 2015-2016, blue.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
-import { Mynavpage } from './public';
+const _buffer = __binding__('_buffer');
 
-var resolve = require.resolve;
+Object.assign(exports, _buffer);
 
-export default ()=>{
-
-	var code = `Quark
-	===============
-	
-	Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
-	Goal: developing GUI applications on this basis can take into account both the simplicity and speed of developing WEB applications, as well as the performance and experience of Native applications.
-	
-	使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
-	目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
-	
-	Quark Source 
-	===============
-	https://github.com/louis-tru/quark.git
-	
-	Support
-	===============
-	http://quarks.cc
-	louistru@hotmail.com`;
-
-	return (
-		<Mynavpage title="About" source={resolve(__filename)}>
-			<scroll width="match" height="match">
-				<text width="match" margin={10} value={code} />
-			</scroll>
-		</Mynavpage>
-	);
-};
+export type Encoding = 'binary'|'ascii'|'base64'|'hex'|'utf-8'|'utf8'|'utf-16'|'utf16'|'ucs4';
+export declare function fromString(str: string, encoding?: Encoding): Uint8Array;
+export declare function convertString(uint8array: Uint8Array, encoding?: Encoding, start?: number, end?: number): string;
