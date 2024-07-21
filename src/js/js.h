@@ -401,7 +401,6 @@ namespace qk { namespace js {
 	public:
 		Qk_DEFINE_PROP_GET(Worker*, worker, Protected);
 		Qk_DEFINE_PROP_GET(uint64_t, id, Protected);
-		static JSClass* MakeEmpty(Worker* worker, cString& name);
 		virtual ~JSClass() = default;
 		void exports(cString& name, JSObject* exports);
 		bool hasInstance(JSValue* val);
@@ -418,8 +417,9 @@ namespace qk { namespace js {
 		template<class T>
 		bool setStaticProperty(cString& name, T value);
 	protected:
-		inline JSClass() {}
+		JSClass(FunctionCallback constructor, AttachCallback attach);
 		Persistent<JSFunction> _func; // constructor function
+		FunctionCallback _constructor;
 		AttachCallback _attachConstructor;
 		friend class JsClassInfo;
 	};
@@ -452,10 +452,10 @@ namespace qk { namespace js {
 		void garbageCollection();
 
 		// new instance
-		JSValue*  newInstance(Object* val);
+		JSValue* newInstance(Object *val);
 		JSNumber* newInstance(float val);
 		JSNumber* newInstance(double val);
-		JSBoolean*newInstance(bool val);
+		JSBoolean*newBool(bool val);
 		JSInt32*  newInstance(Char val);
 		JSUint32* newInstance(uint8_t val);
 		JSInt32*  newInstance(int16_t val);
@@ -476,7 +476,7 @@ namespace qk { namespace js {
 		template <class S>
 		inline S* newInstance(const Persistent<S>& val) { return *val; }
 		inline
-		JSValue*  newInstance(JSValue* val) { return val; }
+		JSValue* newInstance(JSValue* val) { return val; }
 
 		JSValue*      newNull();
 		JSValue*      newUndefined();

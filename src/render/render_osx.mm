@@ -199,6 +199,8 @@ private:
 
 @implementation GLView
 
+//- (BOOL) isOpaque { return NO; }
+
 - (id) init:(NSOpenGLContext*)ctx render:(OsxGLRender*)r {
 	if ((self = [super initWithFrame:CGRectZero pixelFormat:nil])) {
 		self.ctx = ctx;

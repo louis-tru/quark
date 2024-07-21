@@ -82,17 +82,17 @@ namespace qk { namespace js {
 
 	class JsClassInfo {
 	public:
+		Qk_DEFINE_PROP_GET(bool, isAttachFlag);
 		JsClassInfo(Worker* worker);
 		~JsClassInfo();
-		void add(uint64_t id, JSClass *cls, AttachCallback cb) throw(Error);
+		void add(uint64_t id, JSClass *cls) throw(Error);
 		JSClass* get(uint64_t id);
 		JSFunction* getFunction(uint64_t id);
-		WrapObject* attach(uint64_t id, Object* object);
+		WrapObject* attachObject(uint64_t id, Object* object);
 		bool instanceOf(JSValue* val, uint64_t id);
 	private:
 		Worker *_worker;
 		Dict<uint64_t, JSClass*> _jsclass;
-		Persistent<JSFunction> _jsAttachConstructorEmpty;
 	};
 
 	struct BindingModule: public Worker {

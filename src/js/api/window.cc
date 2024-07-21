@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./ui.h"
+#include "../../ui/view/root.h"
 
 namespace qk { namespace js {
 

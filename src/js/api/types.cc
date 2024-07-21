@@ -140,7 +140,7 @@ namespace qk { namespace js {
 	// --------------------------------------------------------------------------------------------
 
 	JSValue* TypesParser::jsvalue(const bool& value) {
-		return worker->newInstance(value);
+		return worker->newBool(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const float& value) {
@@ -484,12 +484,12 @@ namespace qk { namespace js {
 		JSObject* obj;\
 		JSValue* val;\
 		if (desc) {\
-			JSValue* args[] = { in, worker->newInstance(desc)->as() };\
+			JSValue* args[] = { in, worker->newInstance(String(desc))->as() };\
 			val = _parse##Type->call(worker, 2, args);\
 		} else {\
 			val = _parse##Type->call(worker, 1, &in);\
 		}\
-		if ( !val ) throw_error(worker, in, desc), false;\
+		if ( !val ) return throw_error(worker, in, desc), false;\
 		obj = val->as<JSObject>();\
 		block \
 		return true;\
@@ -504,6 +504,7 @@ namespace qk { namespace js {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
+		_out = {};
 		auto obj = in->as<JSObject>();
 		auto colorType = obj->get(worker, worker->newStringOneByte("colorType"));
 		auto msaa = obj->get(worker, worker->newStringOneByte("msaa"));

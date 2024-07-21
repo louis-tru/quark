@@ -78,6 +78,16 @@ namespace qk {
 		_defaultTextOptions = new DefaultTextOptions(_fontPool);
 		_styleSheets = new RootStyleSheets();
 		__run_main_wait->lock_notify_all(); // The external thread continues to run
+
+		// keep loop
+		_keep = _loop->keep_alive([](void *ctx) {
+			auto app = (Application*)(ctx);
+			if (app->_windows.length()) {
+				for(auto w: app->_windows) {
+					w->preRender().asyncCommit();
+				}
+			}
+		}, this); // keep loop
 	}
 
 	Application::~Application() {
@@ -98,21 +108,8 @@ namespace qk {
 	}
 
 	void Application::run() {
-		if (!_keep) {
-			_keep = _loop->keep_alive([](void *ctx) {
-				auto app = (Application*)(ctx);
-				if (app->_windows.length()) {
-					// ScopeLock lock(app->_mutex);
-					for(auto w: app->_windows) {
-						w->preRender().asyncCommit();
-					}
-				}
-			}, this); // keep loop
-		}
-
 		if (!_loop->runing()) {
 			_loop->run(); // run message loop
-			Qk_DEBUG("_loop->run() end");
 		}
 	}
 
@@ -139,7 +136,6 @@ namespace qk {
 	}
 
 	void Application::clear(bool all) {
-		// ScopeLock lock(_mutex);
 		Qk_Fatal_Assert(thread_self_id() == _loop->thread_id());
 		for (auto i: _windows) {
 			i->render()->getCanvas()->getPathvCache()->clear(all);
@@ -190,8 +186,6 @@ namespace qk {
 	}
 
 	void AppInl::triggerUnload() {
-		if (!_keep)
-			return; // Block access after object is deleted
 		_loop->post(Cb([&](auto&d) {
 			if (_keep) {
 				ScopeLock lock(_mutex); // TODO ... is safe, is release app ?
@@ -233,7 +227,6 @@ namespace qk {
 				return;
 			}
 		}
-		ScopeLock lock(_mutex);
 		_activeWindow = win;
 	}
 

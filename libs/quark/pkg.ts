@@ -321,7 +321,7 @@ function lookupFromSearch(request: string, parent?: Module): LookupResult | null
 	if (parent && parent.paths && parent.paths.length) {
 		paths = parent.paths.concat(paths);
 	}
-	debug('lookupFromSearch pkg for %j in %j', request, paths);
+	// debug('lookupFromSearch pkg for %j in %j', request, paths);
 
 	const {pkgName,relativePath} = slicePackageName(request);
 
@@ -330,9 +330,14 @@ function lookupFromSearch(request: string, parent?: Module): LookupResult | null
 		if (!pkg) {
 			let searchPath = searchPaths.get(path);
 			if (!searchPath && isLocal(path)) {
-				searchPath = new SearchPath(path).loadSync();
+				searchPath = new SearchPath(path)
+				try {
+					searchPath.loadSync();
+				} catch(err) {
+					searchPaths.set(path, searchPath); // avoid recreating next time
+				}
 			}
-			if (searchPath?.hasPackage(pkgName)) {
+			if (searchPath && searchPath.hasPackage(pkgName)) {
 				pkg = searchPath.makePackage(pkgName);
 			}
 		}
@@ -670,6 +675,7 @@ export class Module implements IModule {
 		const res = _fs.resources();
 
 		// add resources/node_modules path as global search path
+		
 		if (isDirectorySync(`${res}/${saerchModules}`)) {
 			globalPaths.push((new SearchPath(`${res}/${saerchModules}`).loadSync()).path);
 		}

@@ -215,6 +215,7 @@ namespace qk {
 			gl_tex_image2D_null(t_rbo->id, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, t_rbo->id, 0);
+			//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, t_rbo->id, 0);
 		} else {
 			GLenum ifo;
 			switch (type) {

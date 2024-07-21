@@ -625,7 +625,7 @@ declare global {
 // extend view impl
 // ----------------------------------------------------------------------------
 
-const View_action = Object.getOwnPropertyDescriptor(_ui.View.prototype, 'action')!;
+// const View_action = Object.getOwnPropertyDescriptor(_ui.View.prototype, 'action')!;
 
 class _View extends NativeNotification {
 	@event readonly onClick: EventNoticer<ClickEvent>;
@@ -663,14 +663,14 @@ class _View extends NativeNotification {
 	}
 
 	get action() { // get action object
-		return View_action.get!.call(this) as Action | null;
+		return (this as any).action_ as Action | null;
 	}
 
 	set action(value) { // set action
 		if (value)
-			View_action.set!.call(this, createAction((this as unknown as View).window, value));
+			(this as any).action_ = createAction((this as unknown as View).window, value);
 		else
-			View_action.set!.call(this, null);
+			(this as any).action_ = null;
 	}
 
 	show() {
@@ -717,10 +717,10 @@ class _View extends NativeNotification {
 		let _rv = [] as string[];
 		_rv.push('{');
 		let kv = Object.entries(this);
-		let push_indent = ()=>new Array(_indent + 1).join(' ');
 		let _indent = (indent || 0) + 2;
+		let push_indent = ()=>_rv.push(new Array(_indent + 1).join(' '));
 
-		for (let i = 0, j = 0; i < kv.length; i++) {
+		for (let i = 0; i < kv.length; i++) {
 			let [k,v] = kv[i];
 			_rv.push(i ? ',\n': '\n'); push_indent();
 			_rv.push(k);

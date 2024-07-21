@@ -30,6 +30,7 @@
 
 #include "../js_.h"
 #include "./ui.h"
+#include "../../ui/action/action.h"
 #include "../../ui/view/view.h"
 #include "../../ui/event.h"
 #include "../../../out/native-inl-js.h"

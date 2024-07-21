@@ -31,90 +31,90 @@
 #include <quark/util/util.h>
 #include <quark/util/fs.h>
 #include <quark/ui/app.h>
-#include <quark/ui/layout/box.h>
 #include <quark/ui/window.h>
+#include <quark/ui/view/image.h>
+#include <quark/ui/view/root.h>
 
 using namespace qk;
-// using qk::value::ValueType;
-// using qk::value::Value;
 
-void onload_handle (Event<>& evt, void* user) {
-	Root* r = New<Root>();
+void test_gui(int argc, char **argv) {
+	App app;
+	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
+	win->activate();
+	auto r = win->root();
+	//auto t = r->append_new<TestSubcanvas>(r->window());
+	//r->set_background_color({255,255,255,0});
+	//t->set_width({ 0, BoxSizeKind::Match });
+	//t->set_height({ 0, BoxSizeKind::Match });
 	
 	r->set_background_color(Color(255, 255, 255));
-	
-	Sprite* sp0 = Sprite::create(fs_resources("res/bb.pvr"), {512, 512});
-	sp0->set_translate(Vec2(100, 500));
-	sp0->set_rotate_z(10);
-	sp0->set_scale(Vec2(0.5, 0.5));
-	r->append(sp0);
-	
+
+	auto sp0 = r->append_new<Image>();
+	sp0->set_src(fs_resources("res/bb.pvr")); // res://res/bb
+	sp0->set_width({256});
+	sp0->set_height({256});
+	// sp0->set_translate(Vec2(100, 500));
+	// sp0->set_rotate_z(10);
+
 	// div sprite
-	
-	Div* div = New<Div>();
+	auto div = r->append_new<Box>();
 	div->set_background_color(Color(255, 0, 0, 180));
-	div->set_border_radius(30);
+	div->set_border_radius({30});
 	div->set_margin(5);
 	div->set_margin_top(30);
-	div->set_width(256);
-	div->set_height(280);
-	div->set_border_width(5);
-	div->set_border_left_color(Color(255, 0, 0));
-	div->set_border_top_color(Color(0, 255, 0));
-	div->set_border_right_color(Color(0, 0, 255));
-	div->set_border_bottom_color(Color(255, 0, 255));
-	r->append(div);
-	
-	Sprite* sp1 = Sprite::create(fs_resources("res/bb.pvr"), {512, 512});
-	sp1->set_scale(Vec2(0.5, 0.5));
-	div->append(sp1);
-	
+	div->set_width({256});
+	div->set_height({280});
+	div->set_border_width({5});
+	div->set_border_color_left(Color(255, 0, 0));
+	div->set_border_color_top(Color(0, 255, 0));
+	div->set_border_color_right(Color(0, 0, 255));
+	div->set_border_color_bottom(Color(255, 0, 255));
+
+	auto sp1 = div->append_new<Image>();
+	sp0->set_src(fs_resources("res/bb.pvr"));
+	sp1->set_width({256});
+	sp1->set_height({256});
+
 	// box sprite
-	
-	Div* div2 = New<Div>();
-	div2->set_margin(10);
+	auto div2 = r->append_new<Box>();
+	div2->set_margin({10});
 	div2->set_margin_top(30);
-	div2->set_width({ ValueType::MINUS, 296 });
-	div2->set_height(100);
-	r->append(div2);
-	
-	Sprite* sp = Sprite::create(fs_resources("res/cc.pvr"), {1024, 1024});
-	//  sp->translate(-450, -450);
-	sp->set_scale(0.3);
-	//  sp->origin(500, 500);
-	//  sp->rotate(-45);
-	sp->append(div2);
-	
+	div2->set_width({ 296, BoxSizeKind::Minus });
+	div2->set_height({100});
+
+	auto sp = div2->append_new<Image>();
+	sp0->set_src(fs_resources("res/cc.pvr"));
+	sp->set_width({307});
+	sp->set_height({307});
+	// sp->translate(-450, -450);
+	// sp->origin(500, 500);
+	// sp->rotate(-45);
+
 	// Image
-	
-	Image* img = Image::create(fs_resources("res/cc.pvr"));
-	img->set_width(320);
-	//  img->height(250);
+	auto img = r->append_new<Image>();
+	img->set_src(fs_resources("res/cc.pvr"));
+	img->set_width({320});
+	// img->height(250);
 	img->set_opacity(0.9);
 	img->set_border_radius(60);
 	img->set_border_radius_right_top(40);
 	img->set_border_radius_left_bottom(40);
-	img->set_origin(Vec2(160, 160));
-	img->set_rotate_z(-10);
-	//  img->xy(50, 50);
-	//  img->x(-50);
-	//  img->y(-50);
-	img->set_margin({ ValueType::AUTO, 0 });
+	//img->set_origin(Vec2(160, 160));
+	//img->set_rotate_z(-10);
+	// img->xy(50, 50);
+	// img->x(-50);
+	// img->y(-50);
+	// img->set_margin({ 0 });
 	img->set_margin_top(20);
 	img->set_margin_bottom(0);
 	img->set_border_width(5);
-	img->set_border_top_width(15);
-	img->set_border_right_width(15);
-	img->set_border_color(Color(255, 0, 255));
-	//  img->border_top_color(Color(0, 255, 255));
-	//  img->border_bottom_color(Color(0, 0, 255));
-	//  img->border_left_color(Color(255, 0, 0));
-	//  img->border_bottom_width(0);
-	r->append(img);
-}
+	img->set_border_width_top(15);
+	img->set_border_width_right(15);
+	img->set_border_color({Color(255, 0, 255)});
+	// img->border_top_color(Color(0, 255, 255));
+	// img->border_bottom_color(Color(0, 0, 255));
+	// img->border_left_color(Color(255, 0, 0));
+	// img->border_bottom_width(0);
 
-void test_gui(int argc, char **argv) {
-	Application app;
-	app.FX_ON(Load, onload_handle);
-	app.run_loop();
+	app.run();
 }

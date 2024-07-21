@@ -36,15 +36,19 @@ for ( var i of ['_event', 'types', 'pkg', '_util', '_ext'] ) {
 	fs.writeFileSync(`${out}/${i}.js`, `module.exports=__binding__('${j}')`);
 }
 
-function copy_files(source, target, ext) {
+function copy_files(source, target, ext, formatCode) {
 	var stat = fs.statSync(source);
 	if (stat.isFile()) {
 		mkdirp(path.dirname(target));
-		fs.writeFileSync(target, fs.readFileSync(source));
+		if (formatCode) {
+			fs.writeFileSync(target, formatCode(fs.readFileSync(source, 'utf8')));
+		} else {
+			fs.writeFileSync(target, fs.readFileSync(source));
+		}
 	} else if ( stat.isDirectory() ) {
 		for (var i of fs.readdirSync(source)) {
 			if ( i == 'LICENSE' || ext.indexOf(path.extname(i)) != -1 ) {
-				copy_files(source + '/' + i, target + '/' + i, ext);
+				copy_files(source + '/' + i, target + '/' + i, ext, formatCode);
 			}
 		}
 	}
@@ -63,6 +67,7 @@ function get_files(source, ext) {
 mkdirp(out_types);
 // copy publish @types/quark
 copy_files(out, out_types, ['.ts','.md','.json']);
+copy_files(out, out, ['.js'], e=>e.replaceAll('require("./', '__binding__("quark/'));
 
 // gen gypi
 fs.writeFileSync(`${source}/out/files.gypi`, JSON.stringify({

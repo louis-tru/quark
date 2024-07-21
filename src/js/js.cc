@@ -172,6 +172,9 @@ namespace qk {
 
 	// --------------------------- J S . C l a s s ---------------------------
 
+	JSClass::JSClass(FunctionCallback constructor, AttachCallback attach)
+		: _constructor(constructor), _attachConstructor(attach) {}
+
 	void JSClass::exports(cString& name, JSObject* exports) {
 		_func.reset(); // reset func
 		exports->setProperty(_worker, name, getFunction());
@@ -184,18 +187,13 @@ namespace qk {
 	}
 
 	JsClassInfo::JsClassInfo(Worker* worker)
-		: _worker(worker)
+		: _worker(worker), _isAttachFlag(false)
 	{
-		auto cls = JSClass::MakeEmpty(worker, "JsAttachConstructorEmpty");
-		add(0xffffffff, cls, 0);
-		// auto cls = _worker->newClass("JsAttachConstructorEmpty", 0xffffffff, [](FunctionArgs args) {}, 0);
-		_jsAttachConstructorEmpty.reset(_worker, cls->getFunction());
 	}
 
 	JsClassInfo::~JsClassInfo() {
 		for ( auto i : _jsclass )
 			delete i.value;
-		_jsAttachConstructorEmpty.reset();
 	}
 
 	JSClass* JsClassInfo::get(uint64_t id) {
@@ -212,26 +210,21 @@ namespace qk {
 		return nullptr;
 	}
 
-	void JsClassInfo::add(uint64_t id, JSClass *cls,
-												AttachCallback attach) throw(Error) {
+	void JsClassInfo::add(uint64_t id, JSClass *cls) throw(Error) {
 		Qk_Check( ! _jsclass.has(id), "Set native Constructors ID repeat");
-		// cls->_worker = _worker;
 		cls->_id = id;
-		cls->_attachConstructor = attach;
 		_jsclass.set(id, cls);
 	}
 
-	WrapObject* JsClassInfo::attach(uint64_t id, Object* object) {
+	WrapObject* JsClassInfo::attachObject(uint64_t id, Object* object) {
 		auto wrap = reinterpret_cast<WrapObject*>(object) - 1;
 		Qk_ASSERT( !wrap->worker() );
 		JSClass *out;
 		if ( _jsclass.get(id, out) ) {
+			_isAttachFlag = true;
+			auto jsobj = out->getFunction()->newInstance(_worker);
+			_isAttachFlag = false;
 			out->_attachConstructor(wrap);
-			// auto jsobj = out->getFunction()->newInstance(_worker);
-			auto jsobj = _jsAttachConstructorEmpty->newInstance(_worker);
-			auto prototype = out->getFunction()->getPrototype(_worker);
-			auto ok = jsobj->set__Proto__(_worker, prototype);
-			Qk_ASSERT(ok);
 			return wrap->attach(_worker, jsobj);
 		}
 		return nullptr;
@@ -284,13 +277,16 @@ namespace qk {
 				lib->binding(exports, this);
 			}
 			else if (lib->native_code) {
+				_nativeModules->set(this, name, exports);
 				exports = runNativeScript(
 					WeakBuffer(lib->native_code->code, lib->native_code->count).buffer(),
 					String(lib->native_code->name) + lib->native_code->ext, exports
 				)->as<JSObject>();
 
-				if ( !exports ) // error
+				if ( !exports ) { // error
+					_nativeModules->Delete(this, name);
 					return exports;
+				}
 			}
 			_nativeModules->set(this, name, exports);
 			return exports;
@@ -363,7 +359,7 @@ namespace qk {
 		_global->setProperty(this, "global", *_global);
 		_global->setMethod(this, "__binding__", __binding__);
 
-		auto globalThis = newInstance("globalThis");
+		auto globalThis = newStringOneByte("globalThis");
 		if ( !_global->has(this, globalThis) ) {
 			_global->set(this, globalThis, *_global);
 		}
@@ -398,7 +394,7 @@ namespace qk {
 	}
 
 	JSValue* Worker::newInstance(Object* val) {
-		if (!val) {
+		if (val) {
 			auto wrap = WrapObject::wrap(val);
 			if (wrap)
 				return wrap->that();
@@ -474,7 +470,7 @@ namespace qk {
 	JSClass* Worker::jsclass(uint64_t id) {
 		return _classsinfo->get(id);
 	}
-
+	
 	// ---------------------------------------------------------------------------------------------
 
 	static JSValue* TriggerEventFromUtil(
@@ -589,7 +585,10 @@ namespace qk {
 		__quark_js_argv = argv;
 
 		int rc = platformStart(argc, argv, [](Worker* worker) -> int {
-			{
+			int rc = 0;
+			auto loop = RunLoop::first();
+
+			{ // run main
 				auto _pkg = worker->bindingModule("_pkg");
 				Qk_ASSERT(_pkg && _pkg->isObject(), "Can't start worker");
 				auto r = _pkg->as<JSObject>()->
@@ -600,8 +599,7 @@ namespace qk {
 					return ERR_RUN_MAIN_EXCEPTION;
 				}
 			}
-			int rc = 0;
-			auto loop = RunLoop::first();
+
 			do {
 				loop->run();
 				/* IOS forces the process to terminate, but it does not quit immediately.
@@ -624,7 +622,6 @@ namespace qk {
 		});
 
 		Qk_Off(ProcessExit, onProcessExitHandle);
-		// Object::setAllocator(nullptr, nullptr, nullptr, nullptr);
 
 		return rc;
 	}

@@ -150,10 +150,9 @@ namespace qk { namespace js {
 					auto indent = worker->newInstance(_indent)->as();
 					auto toStringStyled = o->get(worker, worker->strs()->toStringStyled());
 					auto str = toStringStyled->as<JSFunction>()->call(worker, 1, &indent, o);
-					if (!str) return false; // error
-					_rv->push(Quotes);
+					if (!str)
+						return false; // error
 					_rv->push( str->toStringValue(worker) );
-					_rv->push(Quotes);
 				}
 				else if (arg->isUint8Array()) {
 					rv = stringify_buffer(o->asBuffer(worker));
@@ -244,6 +243,18 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
+			auto console = worker->global()->getProperty(worker, "console")->as<JSObject>();
+			if (console->isObject()) {
+				auto arr = console->getPropertyNames(worker);
+				for (int i = 0; i < arr->length(); i++) {
+					auto name = arr->get(worker, i);
+					Qk_DEBUG("----------- console.%s, %s",
+						*name->toStringValue(worker),
+						*console->get(worker, name)->toStringValue(worker)
+					);
+				}
+			}
+
 			Js_Set_Method(log, {
 				print_to(args, log_println);
 			});
@@ -371,8 +382,8 @@ namespace qk { namespace js {
 
 	void initGlobalAPIs(Worker* worker) {
 		auto console = worker->newObject();
-		worker->global()->set(worker, worker->newStringOneByte("console"), console);
 		NativeConsole::binding(console, worker);
+		worker->global()->set(worker, worker->newStringOneByte("console"), console);
 		NativeTimer::binding(worker->global(), worker);
 	}
 

@@ -30,9 +30,9 @@
 
 #include <v8.h>
 #include <libplatform/libplatform.h>
-#include "./js_.h"
-#include "../errno.h"
-#include "../util/codec.h"
+#include "../js_.h"
+#include "../../errno.h"
+#include "../../util/codec.h"
 
 namespace qk { namespace js {
 	using namespace v8;
@@ -57,7 +57,6 @@ namespace qk { namespace js {
 
 	template<class T = v8::Value>
 	inline v8::Local<T> Back(JSValue* o) { return *reinterpret_cast<v8::Local<T>*>(&o); }
-
 
 	class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringResource {
 		String _str;
@@ -180,6 +179,7 @@ namespace qk { namespace js {
 				mod->set(this, strs()->exports(), exports);
 				v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
 				v8::Local<v8::Value> args[] = { Back(exports), Back(mod), Back(global()) };
+				// '(function (exports, require, module, __filename, __dirname) {', '\n})'
 				rv = func->Call(_context, v8::Undefined(_isolate), 3, args);
 				if (!rv.IsEmpty()) {
 					auto rv = mod->get(this, strs()->exports());
@@ -286,7 +286,6 @@ namespace qk { namespace js {
 				qk::thread_try_abort_and_exit(ERR_UNHANDLED_REJECTION);
 			}
 		}
-
 	};
 	
 	template<>
@@ -309,18 +308,32 @@ namespace qk { namespace js {
 		return o;
 	}
 
+	v8::Isolate* getIsolate(Worker* worker) {
+		return static_cast<WorkerImpl*>(worker)->_isolate;
+	}
+
+	v8::Local<v8::Context> getContext(Worker* worker) {
+		return static_cast<WorkerImpl*>(worker)->_context;
+	}
+
 	// ----------------------------------------------------------------------------------
 
 	class V8JSClass: public JSClass {
 	public:
 		V8JSClass(Worker* worker, cString& name,
-							FunctionCallback constructor, V8JSClass* base,
+							FunctionCallback constructor, AttachCallback attach, V8JSClass* base,
 							v8::Local<v8::Function> baseFunc = v8::Local<v8::Function>())
-			: JSClass(), _base(base)
+			: JSClass(constructor, attach), _base(base)
 		{
 			_worker = worker;
-			v8::FunctionCallback cb = reinterpret_cast<v8::FunctionCallback>(constructor);
-			v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(ISOLATE(worker), cb);
+			auto data = External::New(ISOLATE(worker), this);
+			auto cb = (v8::FunctionCallback)[](const v8::FunctionCallbackInfo<v8::Value>& info) {
+				auto self = (V8JSClass*)info.Data().As<External>()->Value();
+				if (!self->_worker->classsinfo()->isAttachFlag()) {
+					self->_constructor(*reinterpret_cast<const FunctionCallbackInfo*>(&info));
+				}
+			};
+			v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(ISOLATE(worker), cb, data);
 			v8::Local<v8::String> className = Back<v8::String>(worker->newStringOneByte(name));
 
 			if ( base ) {
@@ -359,10 +372,6 @@ namespace qk { namespace js {
 		v8::Persistent<v8::Function> _baseFunc; // base constructor function
 		v8::Persistent<v8::FunctionTemplate> _funcTemplate; // v8 func template
 	};
-
-	JSClass* JSClass::MakeEmpty(Worker* worker, cString& name) {
-		return new V8JSClass(worker, name, [](FunctionArgs args) {}, 0);
-	}
 
 	JSFunction* JSClass::getFunction() {
 		if (_func.isEmpty()) {
@@ -755,10 +764,10 @@ namespace qk { namespace js {
 		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
 		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
 		v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), temp);
+		v8::Local<AccessorSignature> sign = AccessorSignature::New(ISOLATE(_worker), temp);
 		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
 		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
-																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
+																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, sign);
 		return true;
 	}
 
@@ -970,7 +979,7 @@ namespace qk { namespace js {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
-	JSBoolean* Worker::newInstance(bool data) {
+	JSBoolean* Worker::newBool(bool data) {
 		return Cast<JSBoolean>(v8::Boolean::New(ISOLATE(this), data));
 	}
 
@@ -1123,24 +1132,24 @@ namespace qk { namespace js {
 	}
 
 	JSClass* Worker::newClass(cString& name, uint64_t id,
-																	FunctionCallback constructor,
-																	AttachCallback attach_callback, JSClass* base) {
-		auto cls = new V8JSClass(this, name, constructor, static_cast<V8JSClass*>(base));
-		_classsinfo->add(id, cls, attach_callback);
+															FunctionCallback constructor,
+															AttachCallback attach, JSClass* base) {
+		auto cls = new V8JSClass(this, name, constructor, attach, static_cast<V8JSClass*>(base));
+		_classsinfo->add(id, cls);
 		return cls;
 	}
 
 	JSClass* Worker::newClass(cString& name, uint64_t id,
 																	FunctionCallback constructor,
-																	AttachCallback attach_callback, uint64_t base) {
-		return newClass(name, id, constructor, attach_callback, _classsinfo->get(base));
+																	AttachCallback attach, uint64_t base) {
+		return newClass(name, id, constructor, attach, _classsinfo->get(base));
 	}
 
 	JSClass* Worker::newClass(cString& name, uint64_t id,
-																	FunctionCallback constructor,
-																	AttachCallback attach_callback, JSFunction* base) {
-		auto cls = new V8JSClass(this, name, constructor, nullptr, Back<v8::Function>(base));
-		_classsinfo->add(id, cls, attach_callback);
+															FunctionCallback constructor,
+															AttachCallback attach, JSFunction* base) {
+		auto cls = new V8JSClass(this, name, constructor, attach, nullptr, Back<v8::Function>(base));
+		_classsinfo->add(id, cls);
 		return cls;
 	}
 
@@ -1172,12 +1181,6 @@ namespace qk { namespace js {
 		auto platform = v8::platform::NewDefaultPlatform(1);
 		v8::V8::InitializePlatform(platform.get());
 		v8::V8::Initialize();
-
-		// Unconditionally force typed arrays to allocate outside the v8 heap. This
-		// is to prevent memory pointers from being moved around that are returned by
-		// Buffer::Data().
-		//cChar no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
-		//v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
 		v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 		int rc = 0;

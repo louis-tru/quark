@@ -117,8 +117,6 @@ namespace qk { namespace js {
 		bool     isTypesBase(JSObject *arg);
 		void     throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
 		inline
-		JSValue* jsvalue(Object* val) { return worker->newInstance(val); }
-		inline
 		JSValue* jsvalue(double val) { return worker->newInstance(val); }
 		inline
 		JSValue* jsvalue(Char val) { return worker->newInstance(val); }

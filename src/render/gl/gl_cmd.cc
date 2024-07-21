@@ -590,7 +590,7 @@ namespace qk {
 			if (full) {
 				glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
 				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
-				// glClearColor(color.r(), color.g(), color.b(), color.a());
+				//glClearColor(color.r(), color.g(), color.b(), color.a());
 				// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			} else {
 				float x1 = region.origin.x(), y1 = region.origin.y();

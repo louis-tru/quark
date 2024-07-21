@@ -1,5 +1,5 @@
 {
 	"name": "test-quark",
-	"main": "test_gui.jsx",
+	"main": "test_gui1.jsx",
 	"quarkSyntax": true
 }

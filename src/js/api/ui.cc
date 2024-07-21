@@ -29,7 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./ui.h"
+#include "../../render/font/pool.h"
 #include "../../ui/app.h"
+#include "../../ui/view/root.h"
 #include "../../ui/screen.h"
 #include "../../ui/text/text_opts.h"
 
@@ -113,7 +115,6 @@ namespace qk { namespace js {
 			Js_Define_Class(NativeApplication, 0, {
 				auto app = new Application();
 				auto wrap = New<WrapNativeApplication>(args, app);
-				app->run(); // run app
 				app->Qk_On(Memorywarning,
 									&WrapNativeApplication::memorywarning_handle,
 									reinterpret_cast<WrapNativeApplication*>(wrap));

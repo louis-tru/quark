@@ -8,7 +8,9 @@
 		'type': 'static_library', #<(output_type)
 		'include_dirs': [
 			'../../out',
+			'../../deps/http_parser',
 			'../../deps/libuv/include',
+			'../../deps/openssl/openssl/include',
 		],
 		'dependencies': [
 			'quark',
@@ -58,7 +60,33 @@
 					'tools/v8_gypfiles/v8.gyp:v8_libplatform',
 					# 'tools/v8_gypfiles/d8.gyp:d8'
 				],
-				'sources': [ 'link_v8.cc' ],
+				'sources': [
+					'v8/inspector_agent.cc',
+					'v8/inspector_agent.h',
+					'v8/inspector_io.cc',
+					'v8/inspector_io.h',
+					'v8/inspector_socket_server.cc',
+					'v8/inspector_socket_server.h',
+					'v8/inspector_socket.cc',
+					'v8/inspector_socket.h',
+					'v8/v8.cc',
+				],
+				'actions': [{
+					'action_name': 'v8_inspector_compress_protocol_json',
+					'process_outputs_as_sources': 1,
+					'inputs': [
+						'../../deps/v8/include/js_protocol-1.3.json',
+					],
+					'outputs': [
+						'../../out/v8_inspector_protocol_json.h',
+					],
+					'action': [
+						'python',
+						'tools/compress_json.py',
+						'<@(_inputs)',
+						'<@(_outputs)',
+					],
+				}],
 			}],
 			['v8_enable_inspector==1', { 'defines': [ 'HAVE_INSPECTOR=1' ] }],
 		],
@@ -103,7 +131,7 @@
 					'<@(_inputs)',
 					'quark', # pkgname prefix
 					'LIB', # namespace prefix
-					'',
+					'wrap',
 					'<@(_outputs)',
 				],
 				'process_outputs_as_sources': 1,

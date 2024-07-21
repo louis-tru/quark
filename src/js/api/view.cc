@@ -31,6 +31,7 @@
 #include "./ui.h"
 #include "../../ui/window.h"
 #include "../../ui/action/action.h"
+#include "../../ui/css/css.h"
 
 namespace qk { namespace js {
 
@@ -159,7 +160,7 @@ namespace qk { namespace js {
 				Js_Return( self->last() );
 			});
 
-			Js_Set_Class_Accessor(action, {
+			Js_Set_Class_Accessor(action_, {
 				Js_Self(View);
 				Js_Return( self->action() );
 			}, {
@@ -176,7 +177,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(matrix, {
 				Js_Self(View);
-				Js_Return( self->matrix() );
+				Js_Return( args.worker()->types()->jsvalue(self->matrix()) );
 			});
 
 			Js_Set_Class_Accessor_Get(level, {

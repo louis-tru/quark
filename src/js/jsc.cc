@@ -1,4 +1,4 @@
-	/* ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, blue.chu
@@ -28,31 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/ui/app.h"
-#include "quark/util/loop.h"
+#include "./js_.h"
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_start
-#endif
+// link javascript core api
 
-using namespace qk;
+namespace qk { namespace js {
 
-void TEST_FUNC_NAME(int argc, char** argv);
-
-Qk_Main() {
-
-	uint64_t st = time_micro();
-
-	TEST_FUNC_NAME(argc, argv);
-	
-	Qk_LOG("Test eclapsed time:%dms\n", (time_micro() - st) / 1000);
-
-	return 0;
-}
-
-#if Qk_ANDROID
-int main(int argc, char *argv[]) {
-	Application::runMain(argc, argv);
-	return 0;
-}
-#endif
+} }

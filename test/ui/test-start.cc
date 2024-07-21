@@ -37,7 +37,7 @@ using namespace qk;
 #define USE_REMOTE 0
 #define USE_INSPECT 1
 
-void test_examples(int argc, char **_) {
+void test_start(int argc, char **_) {
 	Array<String> argv;
 
 #if USE_INSPECT
@@ -45,9 +45,9 @@ void test_examples(int argc, char **_) {
 #endif
 
 #if USE_REMOTE
-		js::Start("http://" IP_REMOTE ":1026/examples", argv);
+		js::Start("http://" IP_REMOTE ":1026/test-quark", argv);
 #else
-		js::Start(fs_resources("examples"), argv);
+		js::Start(fs_resources("test-quark"), argv);
 #endif
 }
 

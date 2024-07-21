@@ -55,7 +55,7 @@ declare class NativeApplication extends Notification<AEvent> {
 	sendEmail(recipient: string, subject: string, body?: string, cc?: string, bcc?: string): void;
 }
 
-export class Application extends (_ui.Application as typeof NativeApplication) {
+export class Application extends (_ui.NativeApplication as typeof NativeApplication) {
 	@event readonly onLoad: EventNoticer<AEvent>;
 	@event readonly onUnload: EventNoticer<AEvent>;
 	@event readonly onBackground: EventNoticer<AEvent>;

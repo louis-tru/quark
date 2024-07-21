@@ -158,12 +158,26 @@
 // Compiling environment end
 // ------------------------------------------------------------------
 
-#define Qk_Fatal_Assert(cond, ...) if(!(cond)) qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#if DEBUG
-# define Qk_ASSERT Qk_Fatal_Assert
+#ifdef __GNUC__
+# define Qk_LIKELY(expr) __builtin_expect(!!(expr), 1)
+# define Qk_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
 #else
-# define Qk_ASSERT(cond, ...) ((void)0)
+# define Qk_LIKELY(expr) expr
+# define Qk_UNLIKELY(expr) expr
 #endif
+
+#define Qk_Fatal_Assert(cond, ...)\
+	if(Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#if DEBUG
+# define Qk_Assert Qk_Fatal_Assert
+# define Qk_Assert_Op(left, op, exec, ...) Qk_Fatal_Assert((left op exec), ##__VA_ARGS__)
+#else
+# define Qk_Assert(cond, ...) ((void)0)(cond)
+# define Qk_Assert_Op(left, op, exec, ...) ((void)0)((left) op (exec))
+#endif
+#define Qk_ASSERT Qk_Assert
+#define Qk_Assert_Eq(left, exec) Qk_Assert_Op(left, ==, exec)
+#define Qk_Assert_Ne(left, exec) Qk_Assert_Op(left, !=, exec)
 
 #define Qk_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
 #define Qk_DEFINE_INLINE_MEMBERS(cls, Inl) \

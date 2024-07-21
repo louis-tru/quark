@@ -191,7 +191,7 @@ namespace qk { namespace js {
 		WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
 		if ( !wrap->worker() ) {
 			Js_Worker();
-			return worker->classsinfo()->attach(type_id, object);
+			return worker->classsinfo()->attachObject(type_id, object);
 		}
 		return wrap;
 	}

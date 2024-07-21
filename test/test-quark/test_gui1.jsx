@@ -28,8 +28,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./js_.h"
+const { Application, Window, Box } = require('quark');
+const types = require('quark/types');
 
-namespace qk { namespace js {
+const app = new Application();
 
-} }
+const win = new Window({
+	fps:0x0,
+	frame: types.newRect(0,0,500,500),
+	backgroundColor: types.newColor(0,0,255,255),
+});
+win.activate();
+
+const box = new Box(win);
+
+box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
+box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
+box.backgroundColor = types.newColor(255,0,0,255);
+
+win.root.backgroundColor = types.newColor(0,255,0,100);
+
+win.root.append(box);
