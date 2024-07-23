@@ -337,7 +337,8 @@ function initArgv() {
 	}
 	parseOptions(args, options); // parse options
 
-	debug = 'inspect' in options || 'inspect_brk' in options;
+	debug = 'inspect' in options ||
+					'inspect_brk' in options;
 
 	if ( 'url_arg' in options ) {
 		if (Array.isArray(options.url_arg))

@@ -381,12 +381,12 @@ namespace qk { namespace inspector {
 		for (const std::string& id : delegate_->GetTargetIds()) {
 			response.push_back(std::map<std::string, std::string>());
 			std::map<std::string, std::string>& target_map = response.back();
-			target_map["description"] = "node.js instance";
-			target_map["faviconUrl"] = "https://nodejs.org/static/favicon.ico";
+			target_map["description"] = "quark.js instance";
+			target_map["faviconUrl"] = "https://quarks.cc/static/favicon.ico";
 			target_map["id"] = id;
 			target_map["title"] = delegate_->GetTargetTitle(id);
 			Escape(&target_map["title"]);
-			target_map["type"] = "node";
+			target_map["type"] = "quark";
 			// This attribute value is a "best effort" URL that is passed as a JSON
 			// string. It is not guaranteed to resolve to a valid resource.
 			target_map["url"] = delegate_->GetTargetUrl(id);
@@ -409,8 +409,7 @@ namespace qk { namespace inspector {
 				frontend_url << "/inspector.html?experiments=true&v8only=true&ws=";
 				frontend_url << FormatWsAddress(host, port, id, false);
 				target_map["devtoolsFrontendUrl"] += frontend_url.str();
-				target_map["webSocketDebuggerUrl"] =
-						FormatWsAddress(host, port, id, true);
+				target_map["webSocketDebuggerUrl"] = FormatWsAddress(host, port, id, true);
 			}
 		}
 		SendHttpResponse(socket, MapsToString(response));

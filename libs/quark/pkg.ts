@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 __binding__('_ext');
+const _init = __binding__('_init');
 const _fs = __binding__('_fs');
 const _http = __binding__('_http');
 const _util = __binding__('_util');
@@ -588,7 +589,17 @@ export class Module implements IModule {
 		let wrapper = Module.wrap(stripShebang(content));
 		let compiledWrapper = _utild.runScript(wrapper, filename);
 		let dirname = _fs.dirname(filename);
-		let require = this._makeRequire(mainModule);
+		let require: qk.Require;
+
+		if (mainModule) {
+			require = this._makeRequire(mainModule);
+		} else {
+			(this as any).id = '.';
+			require = this._makeRequire(mainModule = this);
+			if (options.inspect_brk) {
+				_init.debuggerBreakNextStatement();
+			}
+		}
 		compiledWrapper.call(this.exports, this.exports, require, this, filename, dirname);
 	}
 
@@ -643,11 +654,6 @@ export class Module implements IModule {
 			return cachedModule.exports;
 		}
 		let module = new Module(filename, parent, pkg);
-
-		if (!mainModule) {
-			(module as {id:string}).id = '.';
-			mainModule = module;
-		}
 
 		Module._cache[filename] = module;
 

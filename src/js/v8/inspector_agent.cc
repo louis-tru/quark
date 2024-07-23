@@ -40,15 +40,6 @@
 #include <vector>
 #include <openssl/rand.h>
 
-#if defined(_MSC_VER)
-# define getpid GetCurrentProcessId
-#endif
-
-#if Qk_POSIX
-# include <limits.h>
-# include <unistd.h>  // setuid, getuid
-#endif  // __POSIX__
-
 namespace qk { namespace js {
 	v8::Isolate* getIsolate(Worker* worker);
 	v8::Local<v8::Context> getContext(Worker* worker);
@@ -70,37 +61,7 @@ namespace qk { namespace inspector {
 		using v8_inspector::V8Inspector;
 		using v8_inspector::V8InspectorClient;
 
-		static uv_sem_t start_io_thread_semaphore;
-		static uv_async_t start_io_thread_async;
-
-		class StartIoTask : public v8::Task {
-		public:
-			StartIoTask(Agent* agent) : agent_(agent) {}
-			void Run() override {
-				agent_->StartIoThread(false);
-			}
-		private:
-			Agent* agent_;
-		};
-		
-#if Qk_POSIX
-		void RegisterSignalHandler(int signal, void (*handler)(int signal), bool reset_handler) {
-			struct sigaction sa;
-			memset(&sa, 0, sizeof(sa));
-			sa.sa_handler = handler;
-		#ifndef __FreeBSD__
-			// FreeBSD has a nasty bug with SA_RESETHAND reseting the SA_SIGINFO, that is
-			// in turn set for a libthr wrapper. This leads to a crash.
-			// Work around the issue by manually setting SIG_DFL in the signal handler
-			sa.sa_flags = reset_handler ? SA_RESETHAND : 0;
-		#endif
-			sigfillset(&sa.sa_mask);
-			Qk_Assert_Eq(sigaction(signal, &sa, nullptr), 0);
-		}
-#endif
-
-		std::unique_ptr<StringBuffer> ToProtocolString(Isolate* isolate,
-																									Local<Value> value) {
+		std::unique_ptr<StringBuffer> ToProtocolString(Isolate* isolate, Local<Value> value) {
 			auto str = value->ToString(isolate);
 			if (!str->Length())
 				return StringBuffer::create(StringView());
@@ -108,126 +69,6 @@ namespace qk { namespace inspector {
 			str->Write(isolate, *buffer, 0, str->Length());
 			return StringBuffer::create(StringView(*buffer, buffer.length()));
 		}
-
-		// Called on the main thread.
-		void StartIoThreadAsyncCallback(uv_async_t* handle) {
-			static_cast<Agent*>(handle->data)->StartIoThread(false);
-		}
-
-		void StartIoInterrupt(Isolate* isolate, void* agent) {
-			static_cast<Agent*>(agent)->StartIoThread(false);
-		}
-
-#if Qk_POSIX
-		static void StartIoThreadWakeup(int signo) {
-			uv_sem_post(&start_io_thread_semaphore);
-		}
-
-		inline void* StartIoThreadMain(void* unused) {
-			for (;;) {
-				uv_sem_wait(&start_io_thread_semaphore);
-				Agent* agent = static_cast<Agent*>(start_io_thread_async.data);
-				if (agent != nullptr)
-					agent->RequestIoThreadStart();
-			}
-			return nullptr;
-		}
-
-		static int StartDebugSignalHandler() {
-			// Start a watchdog thread for calling v8::Debug::DebugBreak() because
-			// it's not safe to call directly from the signal handler, it can
-			// deadlock with the thread it interrupts.
-			Qk_Assert_Eq(0, uv_sem_init(&start_io_thread_semaphore, 0));
-			pthread_attr_t attr;
-			Qk_Assert_Eq(0, pthread_attr_init(&attr));
-			// Don't shrink the thread's stack on FreeBSD.  Said platform decided to
-			// follow the pthreads specification to the letter rather than in spirit:
-			// https://lists.freebsd.org/pipermail/freebsd-current/2014-March/048885.html
-		#ifndef __FreeBSD__
-			Qk_Assert_Eq(0, pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN));
-		#endif  // __FreeBSD__
-			Qk_Assert_Eq(0, pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED));
-			sigset_t sigmask;
-			// Mask all signals.
-			sigfillset(&sigmask);
-			Qk_Assert_Eq(0, pthread_sigmask(SIG_SETMASK, &sigmask, &sigmask));
-			pthread_t thread;
-			const int err = pthread_create(&thread, &attr,
-																		StartIoThreadMain, nullptr);
-			// Restore original mask
-			Qk_Assert_Eq(0, pthread_sigmask(SIG_SETMASK, &sigmask, nullptr));
-			Qk_Assert_Eq(0, pthread_attr_destroy(&attr));
-			if (err != 0) {
-				fprintf(stderr, "node[%d]: pthread_create: %s\n", getpid(), strerror(err));
-				fflush(stderr);
-				// Leave SIGUSR1 blocked.  We don't install a signal handler,
-				// receiving the signal would terminate the process.
-				return -err;
-			}
-			RegisterSignalHandler(SIGUSR1, StartIoThreadWakeup, false);
-			// Unblock SIGUSR1.  A pending SIGUSR1 signal will now be delivered.
-			sigemptyset(&sigmask);
-			sigaddset(&sigmask, SIGUSR1);
-			Qk_Assert_Eq(0, pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr));
-			return 0;
-		}
-#endif  // __POSIX__
-
-#ifdef _WIN32
-		DWORD WINAPI StartIoThreadProc(void* arg) {
-			Agent* agent = static_cast<Agent*>(start_io_thread_async.data);
-			if (agent != nullptr)
-				agent->RequestIoThreadStart();
-			return 0;
-		}
-
-		static int GetDebugSignalHandlerMappingName(DWORD pid, wchar_t* buf,
-																								size_t buf_len) {
-			return _snwprintf(buf, buf_len, L"node-debug-handler-%u", pid);
-		}
-
-		static int StartDebugSignalHandler() {
-			wchar_t mapping_name[32];
-			HANDLE mapping_handle;
-			DWORD pid;
-			LPTHREAD_START_ROUTINE* handler;
-
-			pid = GetCurrentProcessId();
-
-			if (GetDebugSignalHandlerMappingName(pid,
-																					mapping_name,
-																					arraysize(mapping_name)) < 0) {
-				return -1;
-			}
-
-			mapping_handle = CreateFileMappingW(INVALID_HANDLE_VALUE,
-																					nullptr,
-																					PAGE_READWRITE,
-																					0,
-																					sizeof *handler,
-																					mapping_name);
-			if (mapping_handle == nullptr) {
-				return -1;
-			}
-
-			handler = reinterpret_cast<LPTHREAD_START_ROUTINE*>(
-					MapViewOfFile(mapping_handle,
-												FILE_MAP_ALL_ACCESS,
-												0,
-												0,
-												sizeof *handler));
-			if (handler == nullptr) {
-				CloseHandle(mapping_handle);
-				return -1;
-			}
-
-			*handler = StartIoThreadProc;
-
-			UnmapViewOfFile(static_cast<void*>(handler));
-
-			return 0;
-		}
-#endif  // _WIN32
 
 		// Used in InspectorClient::currentTimeMS() below.
 		const int NANOS_PER_MSEC = 1000000;
@@ -247,8 +88,8 @@ namespace qk { namespace inspector {
 				session_->dispatchProtocolMessage(message);
 			}
 
-			bool waitForFrontendMessage() {
-				return delegate_->WaitForFrontendMessageWhilePaused();
+			void waitForFrontendMessage() {
+				delegate_->WaitForFrontendMessage();
 			}
 
 			void schedulePauseOnNextStatement(const std::string& reason) {
@@ -345,19 +186,19 @@ namespace qk { namespace inspector {
 	public:
 		InspectorClient(Agent *agent)
 				: agent_(agent), terminated_(false), running_nested_loop_(false) {
-			client_ = V8Inspector::create(agent->isolate(), this);
-			contextCreated(agent->context(), "Quark.js Main Context");
+			inspector_ = V8Inspector::create(agent->isolate(), this);
+			contextCreated(agent->firstContext(), "Quark.js Main Context");
 		}
 
 		void runMessageLoopOnPause(int context_group_id) override {
+			// Run on frontend main thread 
 			Qk_Assert_Ne(channel_, nullptr);
 			if (running_nested_loop_)
 				return;
 			terminated_ = false;
 			running_nested_loop_ = true;
-			while (!terminated_ && channel_->waitForFrontendMessage()) {
-				// TODO ...
-				// platform_->FlushForegroundTasksInternal();
+			while (!terminated_) {
+				channel_->waitForFrontendMessage();
 			}
 			terminated_ = false;
 			running_nested_loop_ = false;
@@ -379,11 +220,11 @@ namespace qk { namespace inspector {
 			std::unique_ptr<StringBuffer> name_buffer = Utf8ToStringView(name);
 			v8_inspector::V8ContextInfo info(context, CONTEXT_GROUP_ID,
 																			name_buffer->string());
-			client_->contextCreated(info);
+			inspector_->contextCreated(info);
 		}
 
 		void contextDestroyed(Local<Context> context) {
-			client_->contextDestroyed(context);
+			inspector_->contextDestroyed(context);
 		}
 
 		void quitMessageLoopOnPause() override {
@@ -392,8 +233,7 @@ namespace qk { namespace inspector {
 
 		void connectFrontend(InspectorSessionDelegate* delegate) {
 			Qk_Assert_Eq(channel_, nullptr);
-			channel_ = std::unique_ptr<ChannelImpl>(
-					new ChannelImpl(client_.get(), delegate));
+			channel_ = std::unique_ptr<ChannelImpl>(new ChannelImpl(inspector_.get(), delegate));
 		}
 
 		void disconnectFrontend() {
@@ -407,28 +247,24 @@ namespace qk { namespace inspector {
 		}
 
 		Local<Context> ensureDefaultContextInGroup(int contextGroupId) override {
-			return agent_->context();
+			return agent_->firstContext();
 		}
 
 		void installAdditionalCommandLineAPI(Local<Context> context, Local<Object> target) override {
-			// TODO ... require
-			// Local<Object> console_api = env_->inspector_console_api_object();
-			// Local<Array> properties =
-			// 		console_api->GetOwnPropertyNames(context).ToLocalChecked();
-			// for (uint32_t i = 0; i < properties->Length(); ++i) {
-			// 	Local<Value> key = properties->Get(context, i).ToLocalChecked();
-			// 	target->Set(context,
-			// 							key,
-			// 							console_api->Get(context, key).ToLocalChecked()).FromJust();
-			// }
+			auto worker = agent_->worker();
+			auto load = worker->bindingModule("_pkg")->
+				as<js::JSObject>()->getProperty(worker, "Module")->
+				as<js::JSObject>()->getProperty(worker, "load");
+			auto func = *reinterpret_cast<v8::Local<v8::Function>*>(&load);
+			auto str = v8::String::NewFromOneByte(agent_->isolate(),
+				(const uint8_t*)"require", v8::NewStringType::kNormal).ToLocalChecked();
+			target->Set(context, str, func).Check();
 		}
 
 		void FatalException(Local<Value> error, Local<v8::Message> message) {
-			Local<Context> context = agent_->context();
-
-			int script_id = message->GetScriptOrigin().ScriptID()->Value();
-
+			Local<Context> context = agent_->firstContext();
 			Local<v8::StackTrace> stack_trace = message->GetStackTrace();
+			int script_id = message->GetScriptOrigin().ScriptID()->Value();
 
 			if (!stack_trace.IsEmpty() &&
 					stack_trace->GetFrameCount() > 0 &&
@@ -440,7 +276,7 @@ namespace qk { namespace inspector {
 
 			Isolate* isolate = context->GetIsolate();
 
-			client_->exceptionThrown(
+			inspector_->exceptionThrown(
 					context,
 					StringView(DETAILS, sizeof(DETAILS) - 1),
 					error,
@@ -448,7 +284,7 @@ namespace qk { namespace inspector {
 					ToProtocolString(isolate, message->GetScriptResourceName())->string(),
 					message->GetLineNumber(context).FromMaybe(0),
 					message->GetStartColumn(context).FromMaybe(0),
-					client_->createStackTrace(stack_trace),
+					inspector_->createStackTrace(stack_trace),
 					script_id);
 		}
 
@@ -470,100 +306,60 @@ namespace qk { namespace inspector {
 		// Async stack traces instrumentation.
 		void AsyncTaskScheduled(const StringView& task_name, void* task,
 														bool recurring) {
-			client_->asyncTaskScheduled(task_name, task, recurring);
+			inspector_->asyncTaskScheduled(task_name, task, recurring);
 		}
 
 		void AsyncTaskCanceled(void* task) {
-			client_->asyncTaskCanceled(task);
+			inspector_->asyncTaskCanceled(task);
 		}
 
 		void AsyncTaskStarted(void* task) {
-			client_->asyncTaskStarted(task);
+			inspector_->asyncTaskStarted(task);
 		}
 
 		void AsyncTaskFinished(void* task) {
-			client_->asyncTaskFinished(task);
+			inspector_->asyncTaskFinished(task);
 		}
 
 		void AllAsyncTasksCanceled() {
-			client_->allAsyncTasksCanceled();
+			inspector_->allAsyncTasksCanceled();
 		}
 
 	private:
 		Agent *agent_;
 		bool terminated_;
 		bool running_nested_loop_;
-		std::unique_ptr<V8Inspector> client_;
+		std::unique_ptr<V8Inspector> inspector_;
 		std::unique_ptr<ChannelImpl> channel_;
 		std::unordered_map<void*, InspectorTimerHandle> timers_;
 	};
 
-	Agent::Agent(Worker *worker, v8::Platform* platform) : worker_(worker),
-																	client_(nullptr),
-																	platform_(platform),
-																	enabled_(false),
-																	next_context_number_(1),
-																	pending_enable_async_hook_(false),
-																	pending_disable_async_hook_(false),
-																	event_loop_(RunLoop::first()->uv_loop())
-																	{}
-
-	bool Agent::Start(const char* path, DebugOptions opts) {
-		path_ = path == nullptr ? "" : path;
-		debug_options_ = opts;
-		client_ = std::unique_ptr<InspectorClient>(new InspectorClient(this));
-		Qk_Assert_Eq(0, uv_async_init(uv_default_loop(),
-															&start_io_thread_async,
-															StartIoThreadAsyncCallback));
-		start_io_thread_async.data = this;
-		uv_unref(reinterpret_cast<uv_handle_t*>(&start_io_thread_async));
-
-		// Ignore failure, SIGUSR1 won't work, but that should not block node start.
-		StartDebugSignalHandler();
-			// This will return false if listen failed on the inspector port.
-		return StartIoThread(IsWaitingForConnect());
+	Agent::Agent(Worker *worker)
+		: worker_(worker),
+		cli_(nullptr),
+		next_context_number_(1),
+		pending_enable_async_hook_(false),
+		pending_disable_async_hook_(false),
+		event_loop_(RunLoop::current()->uv_loop())
+	{}
+	
+	Agent::~Agent() {
 	}
 
-	bool Agent::StartIoThread(bool wait_for_connect) {
+	bool Agent::Start(const DebugOptions &opts) {
 		if (io_ != nullptr)
 			return true;
 
-		Qk_Assert_Ne(client_, nullptr);
+		debug_options_ = opts;
+		cli_ = std::unique_ptr<InspectorClient>(new InspectorClient(this));
+		io_ = std::unique_ptr<InspectorIo>(new InspectorIo(this, debug_options_.waiting_for_connect));
 
-		enabled_ = true;
-		io_ = std::unique_ptr<InspectorIo>(new InspectorIo(this, wait_for_connect));
-
+		// This will return false if listen failed on the inspector port.
 		if (!io_->Start()) {
-			client_.reset();
+			io_.reset();
+			cli_.reset();
 			return false;
 		}
-
-		v8::Isolate* isolate = this->isolate();
-		HandleScope handle_scope(isolate);
-		auto context = this->context();
-
-		// TODO ...
-		// Send message to enable debug in workers
-		/*
-		Local<Object> process_object = parent_env_->process_object();
-		Local<Value> emit_fn =
-				process_object->Get(context, FIXED_ONE_BYTE_STRING(isolate, "emit"))
-						.ToLocalChecked();
-		// In case the thread started early during the startup
-		if (!emit_fn->IsFunction())
-			return true;
-
-		Local<Object> message = Object::New(isolate);
-		message->Set(context, FIXED_ONE_BYTE_STRING(isolate, "cmd"),
-								FIXED_ONE_BYTE_STRING(isolate, "NODE_DEBUG_ENABLED")).FromJust();
-		Local<Value> argv[] = {
-			FIXED_ONE_BYTE_STRING(isolate, "internalMessage"),
-			message
-		};
-		MakeCallback(parent_env_->isolate(), process_object, emit_fn.As<Function>(),
-								arraysize(argv), argv, {0, 0});
-		*/
-
 		return true;
 	}
 
@@ -571,13 +367,18 @@ namespace qk { namespace inspector {
 		if (io_ != nullptr) {
 			io_->Stop();
 			io_.reset();
-			enabled_ = false;
+			cli_.reset();
 		}
 	}
 
 	void Agent::Connect(InspectorSessionDelegate* delegate) {
-		enabled_ = true;
-		client_->connectFrontend(delegate);
+		Qk_Assert_Ne(cli_, nullptr);
+		cli_->connectFrontend(delegate);
+	}
+
+	void Agent::Disconnect() {
+		Qk_Assert_Ne(cli_, nullptr);
+		cli_->disconnectFrontend();
 	}
 
 	bool Agent::IsConnected() {
@@ -585,53 +386,38 @@ namespace qk { namespace inspector {
 	}
 
 	void Agent::WaitForDisconnect() {
-		Qk_Assert_Ne(client_, nullptr);
-		client_->contextDestroyed(this->context());
+		Qk_Assert_Ne(cli_, nullptr);
+		cli_->contextDestroyed(firstContext());
 		if (io_ != nullptr) {
 			io_->WaitForDisconnect();
 		}
 	}
 
-	v8::Isolate* Agent::isolate() {
-		return js::getIsolate(worker_);
-	}
-
-	v8::Local<v8::Context> Agent::context() {
-		return js::getContext(worker_);
-	}
-
 	void Agent::FatalException(Local<Value> error, Local<v8::Message> message) {
 		if (!IsStarted())
 			return;
-		client_->FatalException(error, message);
+		cli_->FatalException(error, message);
 		WaitForDisconnect();
 	}
 
 	void Agent::Dispatch(const StringView& message) {
-		Qk_Assert_Ne(client_, nullptr);
-		client_->dispatchMessageFromFrontend(message);
-	}
-
-	void Agent::Disconnect() {
-		Qk_Assert_Ne(client_, nullptr);
-		client_->disconnectFrontend();
+		Qk_Assert_Ne(cli_, nullptr);
+		cli_->dispatchMessageFromFrontend(message);
 	}
 
 	void Agent::RunMessageLoop() {
-		Qk_Assert_Ne(client_, nullptr);
-		client_->runMessageLoopOnPause(CONTEXT_GROUP_ID);
+		Qk_Assert_Ne(cli_, nullptr);
+		cli_->runMessageLoopOnPause(CONTEXT_GROUP_ID);
 	}
 
 	InspectorSessionDelegate* Agent::delegate() {
-		Qk_Assert_Ne(client_, nullptr);
-		ChannelImpl* channel = client_->channel();
-		if (channel == nullptr)
-			return nullptr;
-		return channel->delegate();
+		Qk_Assert_Ne(cli_, nullptr);
+		auto channel = cli_->channel();
+		return channel ? channel->delegate(): nullptr;
 	}
 
 	void Agent::PauseOnNextJavascriptStatement(const std::string& reason) {
-		ChannelImpl* channel = client_->channel();
+		ChannelImpl* channel = cli_->channel();
 		if (channel != nullptr)
 			channel->schedulePauseOnNextStatement(reason);
 	}
@@ -678,7 +464,7 @@ namespace qk { namespace inspector {
 
 	void Agent::ToggleAsyncHook(Isolate* isolate, Local<Function> fn) {
 		HandleScope handle_scope(isolate);
-		auto context = this->context();
+		auto context = firstContext();
 		auto result = fn->Call(context, Undefined(isolate), 0, nullptr);
 		if (result.IsEmpty()) {
 			Qk_FATAL("node::inspector::Agent::ToggleAsyncHook, Cannot toggle Inspector's AsyncHook, please report this.");
@@ -687,46 +473,39 @@ namespace qk { namespace inspector {
 
 	void Agent::AsyncTaskScheduled(const StringView& task_name, void* task,
 																bool recurring) {
-		client_->AsyncTaskScheduled(task_name, task, recurring);
+		cli_->AsyncTaskScheduled(task_name, task, recurring);
 	}
 
 	void Agent::AsyncTaskCanceled(void* task) {
-		client_->AsyncTaskCanceled(task);
+		cli_->AsyncTaskCanceled(task);
 	}
 
 	void Agent::AsyncTaskStarted(void* task) {
-		client_->AsyncTaskStarted(task);
+		cli_->AsyncTaskStarted(task);
 	}
 
 	void Agent::AsyncTaskFinished(void* task) {
-		client_->AsyncTaskFinished(task);
+		cli_->AsyncTaskFinished(task);
 	}
 
 	void Agent::AllAsyncTasksCanceled() {
-		client_->AllAsyncTasksCanceled();
-	}
-
-	void Agent::RequestIoThreadStart() {
-		// We need to attempt to interrupt V8 flow (in case Node is running
-		// continuous JS code) and to wake up libuv thread (in case Node is waiting
-		// for IO events)
-		uv_async_send(&start_io_thread_async);
-		v8::Isolate* isolate = this->isolate();
-		platform_->CallOnForegroundThread(isolate, new StartIoTask(this));
-		isolate->RequestInterrupt(StartIoInterrupt, this);
-		uv_async_send(&start_io_thread_async);
+		cli_->AllAsyncTasksCanceled();
 	}
 
 	void Agent::ContextCreated(Local<Context> context) {
-		if (client_ == nullptr)  // This happens for a main context
+		if (cli_ == nullptr)  // This happens for a main context
 			return;
 		std::ostringstream name;
 		name << "VM Context " << next_context_number_++;
-		client_->contextCreated(context, name.str());
+		cli_->contextCreated(context, name.str());
 	}
 
-	bool Agent::IsWaitingForConnect() {
-		return debug_options_.break_first_line;
+	v8::Isolate* Agent::isolate() {
+		return js::getIsolate(worker_);
+	}
+
+	v8::Local<v8::Context> Agent::firstContext() {
+		return js::getContext(worker_);
 	}
 
 	char ToLower(char c) {

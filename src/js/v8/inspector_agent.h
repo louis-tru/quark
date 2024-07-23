@@ -31,6 +31,7 @@
 #ifndef SRC_INSPECTOR_AGENT_H_
 #define SRC_INSPECTOR_AGENT_H_
 
+#include "../js_.h"
 #include <memory>
 #include <stddef.h>
 #include <v8.h>
@@ -47,6 +48,7 @@ namespace js {
 
 namespace inspector {
 	using js::Worker;
+	using js::DebugOptions;
 
 	class InspectorIo;
 	class InspectorClient;
@@ -54,14 +56,8 @@ namespace inspector {
 	class InspectorSessionDelegate {
 	public:
 		virtual ~InspectorSessionDelegate() = default;
-		virtual bool WaitForFrontendMessageWhilePaused() = 0;
+		virtual void WaitForFrontendMessage() = 0;
 		virtual void SendMessageToFrontend(const v8_inspector::StringView& message) = 0;
-	};
-
-	struct DebugOptions {
-		bool break_first_line;
-		std::string host_name;
-		int port;
 	};
 
 	template<typename Inner, typename Outer>
@@ -76,23 +72,20 @@ namespace inspector {
 
 	class Agent {
 	public:
-		Agent(Worker* worker, v8::Platform* platform);
-		~Agent() = default;
+		Agent(Worker* worker);
+		~Agent();
 
 		// Create client_, may create io_ if option enabled
-		bool Start(const char* path, DebugOptions opts);
+		bool Start(const DebugOptions &opts);
 		// Stop and destroy io_
 		void Stop();
 
-		bool IsStarted() { return !!client_; }
+		bool IsStarted() { return !!cli_; }
 
 		// IO thread started, and client connected
 		bool IsConnected();
-		bool IsWaitingForConnect();
 
-		void WaitForDisconnect();
-		void FatalException(v8::Local<v8::Value> error,
-												v8::Local<v8::Message> message);
+		void FatalException(v8::Local<v8::Value> error, v8::Local<v8::Message> message);
 
 		// Async stack traces instrumentation.
 		void AsyncTaskScheduled(const v8_inspector::StringView& taskName, void* task,
@@ -101,62 +94,47 @@ namespace inspector {
 		void AsyncTaskStarted(void* task);
 		void AsyncTaskFinished(void* task);
 		void AllAsyncTasksCanceled();
-
+		void EnableAsyncHook();
+		void DisableAsyncHook();
 		void RegisterAsyncHook(v8::Isolate* isolate,
-			v8::Local<v8::Function> enable_function,
-			v8::Local<v8::Function> disable_function);
+			v8::Local<v8::Function> enable_function, v8::Local<v8::Function> disable_function);
+
+		void ContextCreated(v8::Local<v8::Context> context);
+		void PauseOnNextJavascriptStatement(const std::string& reason);
+
+		InspectorSessionDelegate* delegate();
+		InspectorIo* io() { return io_.get(); }
+		DebugOptions& options() { return debug_options_; }
+		uv_loop_t* event_loop() { return event_loop_; }
+		Worker* worker() { return worker_; }
+		v8::Isolate* isolate();
+		v8::Local<v8::Context> firstContext();
+
+	private:
+		void ToggleAsyncHook(v8::Isolate* isolate, v8::Local<v8::Function> fn);
 
 		// These methods are called by the WS protocol and JS binding to create
 		// inspector sessions.  The inspector responds by using the delegate to send
 		// messages back.
 		void Connect(InspectorSessionDelegate* delegate);
 		void Disconnect();
-		void Dispatch(const v8_inspector::StringView& message);
-		InspectorSessionDelegate* delegate();
-
 		void RunMessageLoop();
-		bool enabled() { return enabled_; }
-		void PauseOnNextJavascriptStatement(const std::string& reason);
-		InspectorIo* io() { return io_.get(); }
-
-		// Can only be called from the the main thread.
-		bool StartIoThread(bool wait_for_connect);
-
-		// Calls StartIoThread() from off the main thread.
-		void RequestIoThreadStart();
-
-		DebugOptions& options() { return debug_options_; }
-		void ContextCreated(v8::Local<v8::Context> context);
-
-		Worker* worker() { return worker_; }
-		v8::Platform* platform() { return platform_; }
-		std::string& path() { return path_; }
-		uv_loop_t* event_loop() { return event_loop_; }
-
-		v8::Isolate* isolate();
-		v8::Local<v8::Context> context();
-
-		void EnableAsyncHook();
-		void DisableAsyncHook();
-
-	private:
-		void ToggleAsyncHook(v8::Isolate* isolate, v8::Local<v8::Function> fn);
+		void Dispatch(const v8_inspector::StringView& message);
+		void WaitForDisconnect();
 
 		js::Worker *worker_;
-		std::unique_ptr<InspectorClient> client_;
+		std::unique_ptr<InspectorClient> cli_;
 		std::unique_ptr<InspectorIo> io_;
-		v8::Platform* platform_;
-		bool enabled_;
-		std::string path_;
 		DebugOptions debug_options_;
 		int next_context_number_;
 
 		uv_loop_t* event_loop_;
 
-		bool pending_enable_async_hook_;
-		bool pending_disable_async_hook_;
+		bool pending_enable_async_hook_, pending_disable_async_hook_;
 		v8::Persistent<v8::Function> enable_async_hook_function_;
 		v8::Persistent<v8::Function> disable_async_hook_function_;
+
+		friend class InspectorIo;
 	};
 
 }  // namespace inspector

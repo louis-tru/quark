@@ -33,6 +33,7 @@
 #include "../js_.h"
 #include "../../errno.h"
 #include "../../util/codec.h"
+#include "./inspector_agent.h"
 
 namespace qk { namespace js {
 	using namespace v8;
@@ -86,8 +87,9 @@ namespace qk { namespace js {
 		Locker*   _locker;
 		HandleScopeWrap* _handle_scope;
 		v8::Local<v8::Context> _context;
+		inspector::Agent* _inspector;
 
-		WorkerImpl(): _locker(nullptr), _handle_scope(nullptr)
+		WorkerImpl(): _locker(nullptr), _handle_scope(nullptr), _inspector(nullptr)
 		{
 			Isolate::CreateParams params;
 			params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -109,6 +111,7 @@ namespace qk { namespace js {
 		}
 
 		void release() override {
+			delete _inspector; _inspector = nullptr;
 			Worker::release();
 			_context->Exit();
 			_context.Clear();
@@ -139,6 +142,23 @@ namespace qk { namespace js {
 		template <class T, class M = NonCopyablePersistentTraits<T>>
 		inline v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
 			return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
+		}
+
+		void runDebugger(const DebugOptions &opts) {
+			if (!_inspector)
+				_inspector = new inspector::Agent(this);
+			_inspector->Start(opts);
+		}
+
+		void stopDebugger() {
+			if (_inspector)
+				_inspector->Stop();
+		}
+
+		void debuggerBreakNextStatement() {
+			if (_inspector) {
+				_inspector->PauseOnNextJavascriptStatement("Break on start");
+			}
 		}
 
 		v8::MaybeLocal<v8::Value> runScript(v8::Local<v8::String> source_string,
@@ -1177,6 +1197,18 @@ namespace qk { namespace js {
 		ISOLATE(this)->LowMemoryNotification();
 	}
 
+	void runDebugger(Worker* worker, const DebugOptions &opts) {
+		WORKER(worker)->runDebugger(opts);
+	}
+
+	void stopDebugger(Worker* worker) {
+		WORKER(worker)->stopDebugger();
+	}
+
+	void debuggerBreakNextStatement(Worker* worker) {
+		WORKER(worker)->debuggerBreakNextStatement();
+	}
+
 	int platformStart(int argc, Char** argv, int (*exec)(Worker *worker)) {
 		auto platform = v8::platform::NewDefaultPlatform(1);
 		v8::V8::InitializePlatform(platform.get());
@@ -1184,10 +1216,30 @@ namespace qk { namespace js {
 		v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 		int rc = 0;
-		{
-			Sp<Worker> worker = Worker::Make();
+		{ Sp<Worker> worker = Worker::Make();
 			v8::SealHandleScope sealhandle(ISOLATE(*worker));
 			v8::HandleScope handle(ISOLATE(*worker));
+
+			// Startup debugger
+			const String inspectStr = "--inspect";
+			for (int i = 2; i < argc; i++) {
+				String arg(argv[i]);
+				if (arg.indexOf(inspectStr) == 0) {
+					auto script_path = fs_reader()->format(argv[1]);
+					auto kv = arg.split('=');
+					bool brk = arg.indexOf("-brk") != -1;
+					if (kv.length() == 1) {
+						runDebugger(*worker, {brk,9229,"127.0.0.1",script_path});
+					} else {
+						auto host = kv[1].split(':');
+						int port = 9229;
+						if (host.length() > 1) host[1].toNumber<int>(&port);
+						runDebugger(*worker, {brk,port,host[0],script_path});
+					}
+					break;
+				}
+			}
+			// exec main script
 			rc = exec(*worker);
 		}
 		v8::V8::ShutdownPlatform();

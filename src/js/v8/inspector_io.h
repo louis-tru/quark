@@ -31,7 +31,6 @@
 #ifndef SRC_INSPECTOR_IO_H_
 #define SRC_INSPECTOR_IO_H_
 
-#include "../../util/loop.h"
 #include "inspector_socket_server.h"
 #include <uv.h>
 #include <deque>
@@ -90,9 +89,6 @@ namespace qk { namespace inspector {
 		void ServerDone() {
 			uv_close(reinterpret_cast<uv_handle_t*>(&thread_req_), nullptr);
 		}
-
-		int port() const { return agent_->options().port; }
-		std::string host() const { return agent_->options().host_name; }
 		std::vector<std::string> GetTargetIds() const;
 
 	private:
@@ -137,7 +133,7 @@ namespace qk { namespace inspector {
 		void SwapBehindLock(MessageQueue<ActionType>* vector1,
 												MessageQueue<ActionType>* vector2);
 		// Wait on incoming_message_cond_
-		void WaitForFrontendMessageWhilePaused();
+		void WaitForFrontendMessage();
 		// Broadcast incoming_message_cond_
 		void NotifyMessageReceived();
 
@@ -163,14 +159,12 @@ namespace qk { namespace inspector {
 		Condition incoming_message_cond_;
 		Mutex state_lock_;  // Locked before mutating either queue.
 		MessageQueue<InspectorAction> incoming_message_queue_;
-		MessageQueue<TransportAction> outgoing_message_queue_;
-		MessageQueue<InspectorAction> dispatching_message_queue_;
+		MessageQueue<TransportAction> outgoing_message_queue_; // to inspector frontend
+		MessageQueue<InspectorAction> dispatching_message_queue_; // to v8 core engine
 
 		bool dispatching_messages_;
 		int session_id_;
 
-		std::string script_name_;
-		std::string script_path_;
 		const bool wait_for_connect_;
 		int port_;
 
@@ -179,8 +173,7 @@ namespace qk { namespace inspector {
 		friend void InterruptCallback(v8::Isolate*, void* agent);
 	};
 
-	std::unique_ptr<v8_inspector::StringBuffer> Utf8ToStringView(
-			const std::string& message);
+	std::unique_ptr<v8_inspector::StringBuffer> Utf8ToStringView(const std::string& message);
 
 }  // namespace inspector
 }  // namespace node

@@ -254,7 +254,7 @@ namespace qk { namespace js {
 			worker->bindingModule("_types");
 			WrapStyleSheets::binding(exports, worker);
 
-			Js_Set_Method("create", {
+			Js_Set_Method(create, {
 				if ( !checkApp(worker) ) return;
 				if ( args.length() < 1 || !args[0]->isObject() || args[0]->isNull() ) {
 					Js_Throw("NativeCSS.create(Object K/V) Bad argument.");

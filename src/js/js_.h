@@ -99,6 +99,15 @@ namespace qk { namespace js {
 		JSValue* binding(JSValue* name);
 	};
 
+	struct DebugOptions {
+		bool waiting_for_connect;
+		int  port;
+		String host_name, script_path;
+	};
+
+	void runDebugger(Worker* worker, const DebugOptions &opts);
+	void stopDebugger(Worker* worker);
+	void debuggerBreakNextStatement(Worker* worker);
 	void initGlobalAPIs(Worker* worker);
 	int  platformStart(int argc, Char** argv, int (*exec)(Worker *worker));
 	int  triggerExit(Worker* worker, int code);

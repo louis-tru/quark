@@ -219,10 +219,6 @@ namespace qk { namespace js {
 		}
 	};
 
-	bool stringifyConsoleStyled(Worker* worker, JSValue* arg, Array<String>* out) {
-		return JSONStringify(worker).stringify_console_styled(arg, out);
-	}
-
 	class NativeConsole {
 	public:
 		static void print_to(FunctionArgs args, void(*print)(cString&)) {
@@ -233,7 +229,7 @@ namespace qk { namespace js {
 				if (i)
 					rv.push(' ');
 				if (args[i]->isObject()) {
-					if (!stringifyConsoleStyled(worker, args[i], &rv))
+					if (!JSONStringify(worker).stringify_console_styled(args[i], &rv))
 						return; // error
 				} else {
 					rv.push( args[i]->toStringValue(worker) );
@@ -243,6 +239,7 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
+			/*
 			auto console = worker->global()->getProperty(worker, "console")->as<JSObject>();
 			if (console->isObject()) {
 				auto arr = console->getPropertyNames(worker);
@@ -253,7 +250,7 @@ namespace qk { namespace js {
 						*console->get(worker, name)->toStringValue(worker)
 					);
 				}
-			}
+			}*/
 
 			Js_Set_Method(log, {
 				print_to(args, log_println);
@@ -380,13 +377,6 @@ namespace qk { namespace js {
 		}
 	};
 
-	void initGlobalAPIs(Worker* worker) {
-		auto console = worker->newObject();
-		NativeConsole::binding(console, worker);
-		worker->global()->set(worker, worker->newStringOneByte("console"), console);
-		NativeTimer::binding(worker->global(), worker);
-	}
-
 	class WrapNativeObject: public WrapObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
@@ -442,6 +432,13 @@ namespace qk { namespace js {
 			cls->exports("Hash5381", exports);
 		}
 	};
+
+	void initGlobalAPIs(Worker* worker) {
+		auto console = worker->newObject();
+		NativeConsole::binding(console, worker);
+		worker->global()->set(worker, worker->newStringOneByte("console"), console);
+		NativeTimer::binding(worker->global(), worker);
+	}
 
 	class NativeInit {
 	public:
@@ -575,6 +572,27 @@ namespace qk { namespace js {
 					code = args[0]->toInt32Value(worker).unsafe();
 				}
 				thread_try_abort_and_exit(code);
+			});
+
+			Js_Set_Method(runDebugger, {
+				int port = 9229;
+				String host_name = "127.0.0.1";
+				String script_path = "";
+				if (args.length())
+					host_name = args[0]->toStringValue(worker);
+				if (args.length() > 1 && args[1]->isInt32())
+					port = args[1]->toInt32Value(worker).unsafe();
+				if (args.length() > 2)
+					script_path = args[2]->toStringValue(worker);
+				runDebugger(worker, {false,port,host_name,script_path});
+			});
+
+			Js_Set_Method(stopDebugger, {
+				stopDebugger(worker);
+			});
+
+			Js_Set_Method(debuggerBreakNextStatement, {
+				debuggerBreakNextStatement(worker);
 			});
 
 			WrapNativeObject::binding(exports, worker);

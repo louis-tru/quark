@@ -82,7 +82,7 @@ namespace qk { namespace inspector {
 	public:
 		InspectorSocket() : data(nullptr), http_parsing_state(nullptr),
 												ws_state(nullptr), buffer(0), ws_mode(false),
-												shutting_down(false), connection_eof(false) { }
+												shutting_down(false), connection_eof(false) {}
 		void reinit();
 		void* data;
 		struct http_parsing_state_s* http_parsing_state;
