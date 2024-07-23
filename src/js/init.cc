@@ -304,7 +304,7 @@ namespace qk { namespace js {
 	public:
 		static void timer_(FunctionArgs args, int64_t repeat, cChar* name) {
 			Js_Worker(args);
-			if (args.length() || !args[0]->isFunction()) {
+			if (!args.length() || !args[0]->isFunction()) {
 				Js_Throw(
 					"@method %s(cb,time%s)\n"
 					"@param cb {Function}\n"
