@@ -1221,10 +1221,9 @@ namespace qk { namespace js {
 			v8::HandleScope handle(ISOLATE(*worker));
 
 			// Startup debugger
-			const String inspectStr = "--inspect";
 			for (int i = 2; i < argc; i++) {
 				String arg(argv[i]);
-				if (arg.indexOf(inspectStr) == 0) {
+				if (arg.indexOf("--inspect") == 0) {
 					auto script_path = fs_reader()->format(argv[1]);
 					auto kv = arg.split('=');
 					bool brk = arg.indexOf("-brk") != -1;

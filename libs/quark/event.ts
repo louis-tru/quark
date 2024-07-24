@@ -113,7 +113,7 @@ export declare class TouchEvent extends UIEvent {
 	readonly changedTouches: TouchPoint[];
 }
 
-const _util = __binding__('_util');
+const _init = __binding__('_init');
 const PREFIX = '_on';
 
 /**
@@ -127,11 +127,11 @@ export class NativeNotification<E = Event> extends Notification<E> {
 			// bind native event
 			let func = (this as any)['trigger' + name]; // triggerClick
 			// bind native
-			_util.addNativeEventListener(this, name, (event?: any, isEvent?: boolean) => {
-				//console.log('_util.addNativeEventListener', name);
+			_init.addNativeEventListener(this, name, (event?: any, isEvent?: boolean) => {
+				//console.log('_init.addNativeEventListener', name);
 				let evt = event && isEvent ? event: new Event(event);
 				let ok = func ? func.call(this, evt): this.triggerWithEvent(name, evt);
-				//console.log('_util.addNativeEventListener', name, ok, String(trigger));
+				//console.log('_init.addNativeEventListener', name, ok, String(trigger));
 				return ok;
 			}, -1);
 			(this as any)[PREFIX + name] = noticer = new EventNoticer<E>(name, this as any);

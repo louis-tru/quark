@@ -315,7 +315,7 @@ function initArgv() {
 			let mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
 			if (mat) {
 				let name = mat[1].replace(/-/gm, '_');
-				let val = mat[2] || 'true';
+				let val = mat[2] || '1';
 				let raw_val = options[name];
 				if ( raw_val ) {
 					if ( Array.isArray(raw_val) ) {

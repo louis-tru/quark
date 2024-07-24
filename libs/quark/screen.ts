@@ -63,4 +63,6 @@ class _Screen extends NativeNotification {
 }
 util.extendClass(_ui.Screen, _Screen);
 exports.Screen = _ui.Screen;
+exports.mainScreenScale = _ui.mainScreenScale;
+
 export declare function mainScreenScale(): number;
