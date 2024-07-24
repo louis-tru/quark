@@ -26,7 +26,6 @@
 		],
 		'ldflags': [ '<@(other_ldflags)' ],
 		'sources': [
-			'../examples',
 			'../libs/qkmake',
 			'../libs/somes',
 			# util
