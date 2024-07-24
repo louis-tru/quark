@@ -22,9 +22,7 @@
 		'mac_bundle': 1,
 		'mac_bundle_resources': [
 			'res',
-			'test-quark',
-			'../examples',
-			'../bench',
+			'../examples/out/examples',
 		],
 		'ldflags': [ '<@(other_ldflags)' ],
 		'sources': [
@@ -66,7 +64,6 @@
 			# 'ui/test-font-sk.cc',
 			# 'ui/test-freetype.cc',
 			'ui/test-gui.cc',
-			'ui/test-benchmark.cc',
 			'ui/test-start.cc',
 			'ui/test-alsa-ff.cc',
 			'ui/test-ffmpeg.cc',

@@ -27,11 +27,10 @@
 		"**/*",
 	],
 	"exclude": [
+		"node_modules",
 		"out",
 		"var",
 		".git",
-		".svn",
-		"node_modules",
 		"_.js",
 		"_",
 	]

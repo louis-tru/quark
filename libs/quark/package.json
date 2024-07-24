@@ -10,7 +10,7 @@
 		"url": "http://quarks.cc/"
 	},
 	"scripts": {
-		"build": "tsc && cp LICENSE *.md out/quark && node _.js"
+		"build": "tsc && node _.js"
 	},
 	"keywords": [
 		"jsx",

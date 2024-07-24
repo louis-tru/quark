@@ -5,8 +5,7 @@
 		"target": "ES2018",
 		"moduleResolution": "node",
 		"sourceMap": false,
-		// "outDir": "out/examples",
-		"outDir": ".",
+		"outDir": "out/examples",
 		"rootDir": ".",
 		"baseUrl": ".",
 		"declaration": false,
@@ -25,13 +24,9 @@
 		"jsxFactory": "_CVD",
 		"paths": {
 			"*": [
-				"./node_modules/*",
 				"../libs/quark/out/*",
+				"./node_modules/*",
 				"../node_modules/*",
-				"../../node_modules/*",
-				"../../../node_modules/*",
-				"../../../../node_modules/*",
-				"../../../../../node_modules/*",
 			],
 		},
 	},
@@ -39,11 +34,10 @@
 		"**/*",
 	],
 	"exclude": [
+		"node_modules",
 		"out",
 		"var",
 		".git",
-		".svn",
-		"node_modules",
 		"_.js",
 	]
 }

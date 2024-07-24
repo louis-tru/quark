@@ -3,6 +3,9 @@
 	"app": "Quark-Examples",
 	"id": "org.quark.examples",
 	"main":	"index.js",
-	"types": "index.d.ts",
-	"version": "1.0.0"
+	"types": "index",
+	"version": "1.0.0",
+	"scripts": {
+		"build": "tsc && node _.js"
+	}
 }

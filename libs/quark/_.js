@@ -2,23 +2,16 @@
 
 const fs = require('fs');
 const path = require('path');
-
-var pkg = JSON.parse(
-	fs.readFileSync(__dirname + '/package.json', 'utf8')
-);
-
-pkg.types = pkg.main.replace(/\.js/, '.d.ts');
+const pkg = JSON.parse(fs.readFileSync(__dirname + '/package.json', 'utf8'));
 
 // gen native
 const source = __dirname;
+const out0 = path.resolve(source, 'out');
 const out = path.resolve(source, 'out', pkg.name);
-const out_ = path.resolve(source, 'out');
 const out_types = path.resolve(source, 'out/@types', pkg.name);
 
-fs.writeFileSync(
-	source + `/out/${pkg.name}/package.json`,
-	JSON.stringify(pkg, null, 2)
-);
+pkg.types = pkg.main.replace(/\.js/, '.d.ts');
+fs.writeFileSync(source + `/out/${pkg.name}/package.json`, JSON.stringify(pkg, null, 2));
 
 function mkdirp(dir) {
 	if (!fs.existsSync(dir)) {
@@ -28,35 +21,44 @@ function mkdirp(dir) {
 }
 
 mkdirp(out);
-mkdirp(out_);
 
 for ( var i of ['_event', 'types', 'pkg', '_util', '_ext'] ) {
 	var j = i.substring(0, 1) == '_' ? i : '_' + i;
-	fs.writeFileSync(`${out_}/${j}.js`, fs.readFileSync(`${out}/${i}.js`));
+	fs.writeFileSync(`${out0}/${j}.js`, fs.readFileSync(`${out}/${i}.js`));
 	fs.writeFileSync(`${out}/${i}.js`, `module.exports=__binding__('${j}')`);
 }
 
-function copy_files(source, target, ext, formatCode) {
-	var stat = fs.statSync(source);
+function copyFiles(source, target, opts) {
+	let stat = fs.statSync(source);
 	if (stat.isFile()) {
+		let buf = fs.readFileSync(source);
 		mkdirp(path.dirname(target));
-		if (formatCode) {
-			fs.writeFileSync(target, formatCode(fs.readFileSync(source, 'utf8')));
-		} else {
-			fs.writeFileSync(target, fs.readFileSync(source));
-		}
+		fs.writeFileSync(target, opts.filter ? opts.filter(buf): buf);
 	} else if ( stat.isDirectory() ) {
-		for (var i of fs.readdirSync(source)) {
-			if ( i == 'LICENSE' || ext.indexOf(path.extname(i)) != -1 ) {
-				copy_files(source + '/' + i, target + '/' + i, ext, formatCode);
+		let {include,exclude,includeExt,excludeExt} = opts;
+		for (let i of fs.readdirSync(source)) {
+			let ext = path.extname(i);
+			if (include) {
+				if (!include.has(i)) {
+					if (includeExt) {
+						if (!includeExt.has(ext)) continue;
+					} else {
+						continue;
+					}
+				}
+			} else if (includeExt) {
+				if (!includeExt.has(ext)) continue;
 			}
+			if (exclude && exclude.has(i)) continue;
+			if (excludeExt && excludeExt.has(ext)) continue;
+			copyFiles(source + '/' + i, target + '/' + i, opts);
 		}
 	}
 }
 
-function get_files(source, ext) {
-	var files = [];
-	for (var i of fs.readdirSync(source)) {
+function getFiles(source, ext) {
+	let files = [];
+	for (let i of fs.readdirSync(source)) {
 		if ( ext.indexOf(path.extname(i)) != -1 ) {
 			files.push(i);
 		}
@@ -64,19 +66,18 @@ function get_files(source, ext) {
 	return files;
 }
 
-mkdirp(out_types);
+copyFiles(source, out, {includeExt:new Set(['.md','.json']),include:new Set(['LICENSE']),exclude:new Set(['out','tsconfig.json'])});
 // copy publish @types/quark
-copy_files(out, out_types, ['.ts','.md','.json']);
-copy_files(out, out, ['.js'], e=>e.replaceAll('require("./', '__binding__("quark/'));
+copyFiles(out, out_types, {includeExt:new Set(['.ts','.md','.json']),include:new Set(['LICENSE'])});
+copyFiles(out, out, {includeExt:new Set(['.js']), filter:e=>(e+'').replaceAll('require("./', '__binding__("quark/')});
 
 // gen gypi
 fs.writeFileSync(`${source}/out/files.gypi`, JSON.stringify({
 	'variables': {
-		'libs_quark_ts_in': get_files(source, ['.ts','.tsx','.json']).map(e=>`libs/quark/${e}`),
-		'libs_quark_js_out': get_files(out, ['.js','.json']).map(e=>`libs/quark/out/quark/${e}`),
+		'libs_quark_ts_in': getFiles(source, ['.ts','.tsx','.json']).map(e=>`libs/quark/${e}`),
+		'libs_quark_js_out': getFiles(out, ['.js','.json']).map(e=>`libs/quark/out/quark/${e}`),
 	},
 }, null, 2));
 
 pkg.name = '@types/' + pkg.name;
-
 fs.writeFileSync(`${out_types}/package.json`, JSON.stringify(pkg, null, 2));
