@@ -41,7 +41,7 @@ namespace qk {
 		return isTypedArray() || isArrayBuffer();
 	}
 
-	Buffer JSValue::toBuffer(Worker* worker, Encoding en) const {
+	Buffer JSString::toBuffer(Worker* worker, Encoding en) const {
 		if (en == Encoding::kUTF16_Encoding) {
 			String2 str = toStringValue2(worker);
 			uint32_t len = str.length() * 2;

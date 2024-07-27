@@ -28,43 +28,68 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_util_codec__
-#define __quark_util_codec__
+import { fromString,toString } from 'quark/buffer';
+import * as http from 'quark/http';
+import * as types from 'quark/types';
+import * as os from 'quark/os';
 
-#include "./util.h"
+class Test {
+	aa: 'ABCDEFG';
 
-namespace qk {
+	bb() {
+		return 'bb'
+	}
+	cc() {
+		const aa = 100;
+		return 'cc' + aa;
+	}
+	
+	dd() {
 
-	enum Encoding {
-		kInvalid_Encoding,
-		kBinary_Encoding,
-		kAscii_Encoding,
-		kHex_Encoding,
-		kBase64_Encoding,
-		kUTF8_Encoding,
-		kUTF16_Encoding,
-		kUCS4_Encoding, // Unicode
-	};
+		var color = new types.Color(100, 200, 300, 400);
+		
+		console.log(color.toString());
+		console.log(color.toHex32String());
+		console.log(color.toRGBString());
+		console.log(color.toRGBAString());
+		console.log(this.aa);
+		console.log(this.bb());
+		console.log(this.cc());
+		
+		var buff0 = fromString('e6a59ae5ada6e6968741', 'hex');
+		var buff = fromString('5qWa5a2m5paHQQ==', 'base64');
+		var buff2 = fromString('你好sadasdfsadasdassdasd基本面a基本基本\
+		// 基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本');
 
-	Qk_EXPORT Encoding codec_parse_encoding(cString& en);
-	Qk_EXPORT String   codec_encoding_string(Encoding en);
-	Qk_EXPORT uint32_t codec_decode_utf8_to_unichar(const uint8_t *str, uint32_t *out);
-	Qk_EXPORT uint32_t codec_decode_utf16_to_unichar(const uint16_t* str, uint32_t* out);
-	// encode
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& unicode);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cString& unicode);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& unicode);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cString2& unicode);
-	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& unicode);
-	// decode
-	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cArray<char>& source);
-	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cString& source);
-	// It will lose encoding outside UCS1
-	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_ucs1(Encoding source_en, cArray<char>& source);
-	// It will lose encoding outside UCS2
-	Qk_EXPORT ArrayBuffer<uint16_t> codec_decode_to_ucs2(Encoding source_en, cArray<char>& source);
-	// utf16
-	Qk_EXPORT ArrayBuffer<uint16_t> codec_encode_to_utf16(cArray<uint32_t>& unicode);
-	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_form_utf16(cArray<uint16_t>& utf16);
+		console.log(toString(buff));
+		console.log(toString(buff, 'hex'));
+		console.log(toString(buff, 'base64'));
+		
+		console.log(os.info());
+		// console.log(http.getSync('http://www.baidu.com/').to_string());
+		
+		// http.get('http://www.baidu.com/', function(buff) {
+		http.get('http://fanyi.baidu.com/#en/zh/ELLIPSIS').then(e=>{
+			console.log(e.data.toString(), e.data.length);
+		});
+		
+		var o = { a: 1000, b: buff0, c: buff, d: buff2, e: this, u: {} as any };
+
+		o.u = o;
+
+		console.log(o);
+		
+		var i = 0;
+		
+		var id = setInterval(function () {
+			console.log(++i);
+			
+			if (i == 20) {
+				clearInterval(id);
+			}
+		}, 1000.3);
+		
+	}
 }
-#endif
+
+new Test().dd();

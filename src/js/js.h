@@ -272,13 +272,12 @@ namespace qk { namespace js {
 		JSBoolean* toBoolean(Worker* worker) const;
 		String toStringValue(Worker* worker, bool oneByte = false) const; // to utf8 or one byte string
 		String2 toStringValue2(Worker* worker) const; // to utf16 string
-		String4 toStringValue4(Worker* worker) const; // to utf32 string
+		String4 toStringValue4(Worker* worker) const; // to ucs4 string
 		bool toBooleanValue(Worker* worker) const;
 		Maybe<float> toFloatValue(Worker* worker) const;
 		Maybe<double> toNumberValue(Worker* worker) const;
 		Maybe<int> toInt32Value(Worker* worker) const;
 		Maybe<uint32_t> toUint32Value(Worker* worker) const;
-		Buffer toBuffer(Worker* worker, Encoding en) const;
 		WeakBuffer asBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
 		template<class T = JSValue>
@@ -289,7 +288,7 @@ namespace qk { namespace js {
 	public:
 		int length() const; // utf16 length
 		String value(Worker* worker, bool oneByte = false) const; // utf8 string value
-		String2 value2(Worker* worker) const; // utf16 string value
+		Buffer toBuffer(Worker* worker, Encoding en) const; // encode to en
 		static JSString* Empty(Worker* worker);
 	};
 
@@ -487,7 +486,7 @@ namespace qk { namespace js {
 		JSString*     newStringOneByte(cString& val);
 		JSArrayBuffer* newArrayBuffer(Char* useBuffer, uint32_t len);
 		JSArrayBuffer* newArrayBuffer(uint32_t len);
-		JSUint8Array* newUint8Array(JSString* str, Encoding enc = kUTF8_Encoding);
+		JSUint8Array* newUint8Array(JSString* str, Encoding en = kUTF8_Encoding); // encode to en
 		JSUint8Array* newUint8Array(int size, Char fill = 0);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff, uint32_t offset, uint32_t size);

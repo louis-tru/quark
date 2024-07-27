@@ -28,43 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { P, M, LOG, AM, VM, VP, CA } from './test';
-import { Application, Root, Div, Image } from 'quark';
-import dp from 'quark/display_port';
+import { Application, Window, Box } from 'quark';
+import * as types from 'quark/types';
 
-new Application().start(
-	<Root>
-		<Div width={200} height={200} background_color="#f00">
-			<Image src={resolve('res/cc.jpg')} width="full" height="full" opacity={0.5} />
-		</Div>
-	</Root>
-).onLoad = function() {
-	CA(test);
-};
+const app = new Application();
+const win = new Window({
+	fps:0x0,
+	frame: types.newRect(0,0,500,500),
+	backgroundColor: types.newColor(0,0,255,255),
+}).activate();
 
-async function test() {
+const box = new Box(win);
 
-	LOG('\nTest Display Port:\n')
+box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
+box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
+box.backgroundColor = types.newColor(255,0,0,255);
 
-	const cur = dp.current;
+win.root.backgroundColor = types.newColor(0,255,0,100);
 
-	P(dp, 'current')
-	P(dp, 'atomPixel')
-	await AM(dp, 'nextFrame', [()=>1])
-	M(cur, 'lockSize', [200,200])
-	P(dp, 'atomPixel')
-	await AM(cur, 'nextFrame', [()=>1])
-
-	P(cur, 'width')
-	P(cur, 'height')
-	P(cur, 'phyWidth')
-	P(cur, 'phyHeight')
-	P(cur, 'bestScale')
-	P(cur, 'scale')
-	P(cur, 'scaleWidth')
-	P(cur, 'scaleHeight')
-	P(cur, 'rootMatrix')
-	P(cur, 'atomPixel')
-
-}
-
+win.root.append(box);

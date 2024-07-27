@@ -1,44 +1,40 @@
 
-import { Application, ViewController, Root, Div, Scroll, default as quark, _CVD } from 'quark';
-import { Color } from 'quark/value';
+import { _CVD, Application, Window, createCss } from 'quark';
+import * as types from 'quark/types';
 import util from 'quark/util';
 import * as uu from './uu';
 
-const {random} = util
+const {random} = util;
 
-quark.css({
+const app = new Application();
+const win = new Window({
+	title: 'tests view',
+	frame: types.newRect(0,0,500,500),
+	fps: 0x0,
+}).activate();
+
+createCss({
 	'.item': {
 		height: 40,
 		width: '25%',
 	},
 })
 
-class RootViewController extends ViewController {
+uu.start();
 
-	triggerMounted() {
-		super.triggerMounted();
-
-		uu.start();
-
-		quark.render<Scroll>(
-			<Scroll width="full" height="full">
-				{
-					Array.from({ length: 10000 }, ()=>{
-						var color = new Color(random(0, 255), 
-							random(0, 255), random(0, 255), 255);
-						return <Div backgroundColor={color} class="item" />;
-					})
-				}
-			</Scroll>
-		).appendTo(this.domAs());
-	
-		uu.log();
-
+win.render(
+	<scroll width="match" height="match">
+	{
+		Array.from({ length: 10000 }, ()=>{
+			return <box backgroundColor={new types.Color(
+				random(0, 255),
+				random(0, 255),
+				random(0, 255), 255
+			)} class="item" />;
+		})
 	}
-}
-
-new Application({ multisample: 2 }).start(
-	<RootViewController><Root backgroundColor="#000" /></RootViewController>
+	</scroll>
 );
 
+uu.log();
 uu.show_fsp();

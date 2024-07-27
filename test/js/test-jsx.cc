@@ -89,7 +89,7 @@ int test_jsx(int argc, char* argv[]) {
 		}
 	}
 	
-	in = codec_decode_to_uint16(kUTF8_Encoding, fs_read_file_sync(src));
+	in = codec_decode_to_ucs2(kUTF8_Encoding, fs_read_file_sync(src));
 	
 	int r = 0;
 		

@@ -2548,7 +2548,7 @@ namespace qk {
 					if (!basename.isEmpty()) {
 						append(S.CONST); // const
 						append(S.SPACE); //
-						append(codec_decode_to_uint16(kUTF8_Encoding, basename.array().buffer())); // identifier
+						append(codec_decode_to_ucs2(kUTF8_Encoding, basename.array().buffer())); // identifier
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 					}

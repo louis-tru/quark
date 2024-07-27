@@ -530,8 +530,8 @@ declare global {
 			skewX?: number;
 			skewY?: number;
 			rotateZ?: number;
-			originX?: number;
-			originY?: number;
+			originX?: types.BoxOriginIn;
+			originY?: types.BoxOriginIn;
 		}
 
 		interface TextOptionsJSX {
@@ -624,8 +624,6 @@ declare global {
 
 // extend view impl
 // ----------------------------------------------------------------------------
-
-// const View_action = Object.getOwnPropertyDescriptor(_ui.View.prototype, 'action')!;
 
 class _View extends NativeNotification {
 	@event readonly onClick: EventNoticer<ClickEvent>;

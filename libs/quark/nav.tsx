@@ -582,7 +582,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 	backgroundColor?: types.ColorStrIn;
 }&P,{}&S> {
 	private _title = '';
-	private _navbar: VDom<Navbar> = <Navbar />;
+	private _navbar: VDom<Navbar> = <Navbar /> as VDom<Navbar>;
 	private _prevPage: NavPage | null = null;
 	private _nextPage: NavPage | null = null;
 	private _navbarDom: Navbar;
@@ -618,8 +618,10 @@ export class NavPage<P={},S={}> extends Navigation<{
 	private renderNavbar(navbar: VDom<Navbar>) {
 		this._navbarDom = navbar.render(this, {
 			parent: this.collection.refs.navbar as View,
-			vdom: this._navbar,
-			dom: this._navbarDom,
+			replace: {
+				vdom: this._navbar,
+				dom: this._navbarDom,
+			},
 		});
 		(this._navbarDom as any)._page = this;
 		this._navbarDom.setTitleText(this._title);

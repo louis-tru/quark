@@ -328,10 +328,13 @@ export class VirtualDOM<T extends DOM = DOM> {
 
 	render<P = {}, S = {}>(owner: ViewController<P,S>, opts?: {
 		parent?: View | null,
-		vdom?: VirtualDOM | null, // diff prev vdom
-		dom?: DOM | null // diff prev dom
+		replace?: { // prev replace
+			vdom?: VirtualDOM | null, // diff prev vdom
+			dom?: DOM | null // diff prev dom
+		},
 	}): T {
-		const {parent,vdom,dom} = opts||{};
+		const {parent,replace} = opts||{};
+		const {vdom,dom} = replace||{};
 		let domNew: T;
 		if (vdom && dom) {
 			if (vdom.domC !== this.domC) { // diff type
@@ -684,7 +687,7 @@ function _CVDD(value: any): VirtualDOM | null {
 
 declare global {
 	namespace JSX {
-		type Element = VirtualDOM<any>;
+		type Element = VirtualDOM;
 	}
 }
 

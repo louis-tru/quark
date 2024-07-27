@@ -28,70 +28,89 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Buffer } from 'buffer';
-import 'quark/http';
-import 'quark/value';
-import 'quark/sys';
+import { LOG, Mv } from './tool'
+import * as css from 'quark/css'
 
-console.log('args:', process.argv, process.mainModule.filename);
+const resolve = require.resolve
 
-class Test {
-	aa: 'ABCDEFG';
+LOG('\nTest CSS:\n')
 
-	bb() {
-		return 'bb'
-	}
-	cc() {
-		const aa = 100;
-		return 'cc' + aa;
-	}
-	
-	dd() {
-
-		var color = new value.Color(100, 200, 300, 400);
-		
-		console.log(color.toString());
-		console.log(color.toHex32String());
-		console.log(color.toRGBString());
-		console.log(color.toRGBAString());
-		console.log(this.aa);
-		console.log(this.bb());
-		console.log(this.cc());
-		
-		var buff0 = new Buffer('e6a59ae5ada6e6968741', 'hex');
-		var buff = new Buffer('5qWa5a2m5paHQQ==', 'base64');
-		var buff2 = new Buffer('你好sadasdfsadasdassdasd基本面a基本基本\
-		基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本');
-		
-		console.log(buff.toString());
-		console.log(buff.toString('hex'));
-		console.log(buff.toString('base64'));
-		
-		console.log(sys.info());
-		// console.log(http.getSync('http://www.baidu.com/').to_string());
-		
-		// http.get('http://www.baidu.com/', function(buff) {
-		http.get('http://fanyi.baidu.com/#en/zh/ELLIPSIS', function(buff) {
-			console.log(buff.toString(), buff.length);
-		});
-		
-		var o = { a: 1000, b: buff0, c: buff, d: buff2, e: this };
-		
-		o.u = o;
-		
-		console.log(o);
-		
-		var i = 0;
-		
-		var id = setInterval(function () {
-			console.log(++i);
-			
-			if (i == 20) {
-				clearInterval(id);
-			}
-		}, 1000.3);
-		
-	}
+Mv(css, 'createCss', [{
+'.test': {
+	time: 0,
+	border: '0 #000',
+	borderWidth: 0,
+	borderColor: '#000',
+	borderRadius: 0,
+	minWidth: 'auto',
+	minHeight: 'auto',
+	maxWidth: 'match',
+	maxHeight: 'match',
+	opacity: 1,
+	visible: true,
+	width: 'match',
+	height: '90%',
+	margin: 0,
+	marginLeft: 0,
+	marginTop: 0,
+	marginRight: 0,
+	marginBottom: 0,
+	padding: 0,
+	paddingLeft: 0,
+	paddingTop: 0,
+	paddingRight: 0,
+	paddingBottom: 0,
+	borderLeft: '0 #000',
+	borderTop: '0 #000',
+	borderRight: '0 #000',
+	borderBottom: '0 #000',
+	borderWidthLeft: 0,
+	borderWidthTop: 0,
+	borderWidthRight: 0,
+	borderWidthBottom: 0,
+	borderColorLeft: '#000',
+	borderColorTop: '#000',
+	borderColorRight: '#000',
+	borderColorBottom: '#000',
+	borderRadiusLeftTop: 0,
+	borderRadiusRightTop: 0,
+	borderRadiusRightBottom: 0,
+	borderRadiusLeftBottom: 0,
+	backgroundColor: '#000',
+	align: 'center',
+	textAlign: 'center',
+	textBackgroundColor: '#ff0',
+	textColor: '#f00',
+	textSize: 'inherit',
+	textWeight: 'thin',
+	textSlant: 'italic',
+	textFamily: 'inherit',
+	textLineHeight: 'inherit',
+	textShadow: '2 2 2 #000',
+	textDecoration: 'overline',
+	textOverflow: 'ellipsis',
+	textWordBreak: 'breakWord',
+	textWhiteSpace: 'noWrap',
+	boxShadow: '2 2 2 #f00',
+	src: resolve('res/cc.jpg'),
+	background: resolve('res/bb.jpg'),
+	type: 'ascii',
+	returnType: 'done',
+	readonly: true,
+	security: false,
+	//
+	translate: '0 0',
+	scale: '1 1',
+	skew: '0 0',
+	origin: [0,0],
+	x: 0,
+	y: 0,
+	scaleX: 0,
+	scaleY: 0,
+	skewX: 0,
+	skewY: 0,
+	originX: 0,
+	originY: 0,
+	rotateZ: 0,
 }
-
-new Test().dd();
+}])

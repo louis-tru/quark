@@ -310,7 +310,7 @@ export function readStream(path: string, cb: (stream: StreamData)=>void): AsyncT
 			if (err) {
 				reject(err);
 			} else {
-				var stream = r as StreamData;
+				let stream = r!;
 				cb(stream);
 				if (stream.complete) {
 					resolve();
@@ -362,7 +362,7 @@ export const reader: Reader = {
 				if (err) {
 					reject(err);
 				} else {
-					var stream = r as StreamData;
+					let stream = r!;
 					cb(stream);
 					if (stream.complete) {
 						resolve();

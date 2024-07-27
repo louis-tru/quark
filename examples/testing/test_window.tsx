@@ -28,24 +28,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const { Application, Window, Box } = require('quark');
-const types = require('quark/types');
+import { LOG, Mv, Pv, Mvcb } from './tool';
+import { _CVD, Application, Window } from 'quark';
+import * as screen from 'quark/screen';
+import * as types from 'quark/types';
 
+const resolve = require.resolve;
 const app = new Application();
-
+const s = app.screen;
 const win = new Window({
-	fps:0x0,
 	frame: types.newRect(0,0,500,500),
-	backgroundColor: types.newColor(0,0,255,255),
-});
-win.activate();
+}).activate();
 
-const box = new Box(win);
+win.render(
+	<box width={200} height={200} backgroundColor="#f00">
+		<text textColor="#f00">ABCDEFG你好</text>
+		<image src={resolve('res/cc.jpg')} width="match" height="match" opacity={0.5} />
+	</box>
+)
 
-box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
-box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
-box.backgroundColor = types.newColor(255,0,0,255);
-
-win.root.backgroundColor = types.newColor(0,255,0,100);
-
-win.root.append(box);
+LOG('\nTest Window:\n')
+Mv(screen, 'mainScreenScale', [], e=>[1,2,3].indexOf(e)!=-1)
+Pv(win, 'atomPixel', e=>[0.5,1].indexOf(e)!=-1)
+Mvcb(win, 'nextFrame', [()=>console.log('win.nextFrame')])
+Pv(win, 'size', e=>e.x==500&&e.y==500, e=>e.size=types.parseVec2([500,500]))
+Pv(win, 'atomPixel', 1)
+Pv(win, 'surfaceSize', e=>true)
+Pv(win, 'scale', 1)
+Mv(win, 'setCursorStyle', [types.CursorStyle.Arrow])
+Pv(win, 'backgroundColor', e=>e.toString()=='#000000')

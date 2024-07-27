@@ -769,10 +769,6 @@ export function newBoxSize(kind: BoxSizeKind, value: N) {
 	return newBase(BoxSize, { kind, value });
 }
 
-export function bewBoxOrigin(kind: BoxOriginKind, value: N) {
-	return newBase(BoxOrigin, { kind, value });
-}
-
 export function newTextColor(kind: TextValueKind, r: N, g: N, b: N, a: N) {
 	return newBase(TextColor, { kind, value: newColor(r, g, b, a) });
 }

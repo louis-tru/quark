@@ -91,7 +91,7 @@ namespace qk { namespace inspector {
 	}
 
 	std::unique_ptr<StringBuffer> Utf8ToStringView(const std::string& message) {
-		auto utf16 = codec_encode_to_utf16(codec_decode_to_uint32(
+		auto utf16 = codec_encode_to_utf16(codec_decode_to_unicode(
 			kUTF8_Encoding, WeakBuffer(message.c_str(), message.length()).buffer()
 		));
 		return StringBuffer::create(StringView(*utf16, utf16.length()));

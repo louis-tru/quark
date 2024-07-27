@@ -546,7 +546,7 @@ namespace qk {
 					return String4();
 				}
 			}
-			return codec_decode_to_uint32(kUTF8_Encoding, s);
+			return codec_decode_to_unicode(kUTF8_Encoding, s);
 		}
 
 		void input_insert_text(cString4& text) {
@@ -600,7 +600,6 @@ namespace qk {
 				trigger(UIEvent_Change, **evt);
 			}),this);
 		}
-
 	};
 
 	Input::Input()
@@ -662,11 +661,11 @@ namespace qk {
 	}
 
 	void Input::set_value(String val, bool isRt) {
-		set_value_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
+		set_value_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
 	}
 
 	void Input::set_placeholder(String val, bool isRt) {
-		set_placeholder_u4(String4(codec_decode_to_uint32(kUTF8_Encoding, val)));
+		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
 	}
 
 	void Input::layout_reverse(uint32_t mark) {

@@ -68,8 +68,8 @@ declare class NativeWindow extends Notification<WEvent> {
 	size: types.Vec2;
 	backgroundColor: types.Color;
 	surfaceSize: types.Vec2;
-	nextFrame(cb: ()=>void): void;
-	activate(): void;
+	nextFrame(cb: ()=>void): this;
+	activate(): this;
 	close(): void;
 	pending(): void;
 	setFullscreen(fullscreen: boolean): void;
@@ -84,8 +84,9 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	@event readonly onClose: EventNoticer<WEvent>;
 	readonly rootCtr: ViewController = new RootViewController(this);
 	render(vdom: VirtualDOM) {
-		vdom.newDom(this.rootCtr).appendTo(this.root);
-		return this;
+		let dom = vdom.newDom(this.rootCtr);
+		dom.appendTo(this.root);
+		return dom;
 	}
 }
 

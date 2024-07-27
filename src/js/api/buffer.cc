@@ -51,9 +51,9 @@ namespace qk { namespace js {
 			Js_Set_Method(fromString, {
 				if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
 					Js_Throw(
-						"@method fromString(str[,encoding])\n"
+						"@method fromString(str[,en])\n"
 						"@param arg {String}\n"
-						"@param [encoding=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
+						"@param [en=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
 					);
 				}
 				Encoding en = kUTF8_Encoding;
@@ -69,7 +69,7 @@ namespace qk { namespace js {
 				int args_index = 0;
 				if (args.length() < 1 || !args[0]->isUint8Array()) {
 					Js_Throw(
-						"@method convertString(uint8array,[encoding[,start[,end]]])\n"
+						"@method toString(uint8array,[encoding[,start[,end]]])\n"
 						"@param uint8array {Uint8Array}\n"
 						"@param [encoding=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
 						"@param [start=0] {uint}\n"
@@ -78,14 +78,14 @@ namespace qk { namespace js {
 				}
 
 				auto self = args[args_index++]->template as<JSUint8Array>();
-				Encoding encoding = kUTF8_Encoding;
+				Encoding en = kUTF8_Encoding;
 				int len = self->byteLength(worker);
 				cChar* data = self->weakBuffer(worker).val();
 				uint32_t start = 0;
 				uint32_t end = len;
 
 				if (args.length() > args_index && args[args_index]->isString()) {
-					if ( ! parseEncoding(args, args[args_index], encoding) ) return;
+					if ( ! parseEncoding(args, args[args_index], en) ) return;
 					args_index++;
 				}
 				if (args.length() > args_index) {
@@ -103,15 +103,19 @@ namespace qk { namespace js {
 					Js_Return( JSString::Empty(worker) );
 				}
 
-				switch (encoding) {
-					case kHex_Encoding: // encode to string
+				switch (en) {
+					case kHex_Encoding: // encode to hex or base64 string
 					case kBase64_Encoding: {
-						Buffer buff = codec_encode(encoding, WeakBuffer(data + start, end - start).buffer());
+						Buffer buff = codec_encode(
+							en, WeakBuffer(data + start, end - start).buffer()
+						);
 						Js_Return( worker->newStringOneByte(buff.collapseString()) );
 						break;
-					} default: { // decode to uft16 string
-						String2 str( codec_decode_to_uint16(encoding, WeakBuffer(data+start, end - start).buffer()));
-						Js_Return( worker->newInstance(str) );
+					} default: { // encode to js uft16 string
+						auto unicode = codec_decode_to_unicode( // decode to unicode
+							en, WeakBuffer(data+start, end-start).buffer()
+						);
+						Js_Return( worker->newInstance(unicode.collapseString()) );
 						break;
 					}
 				}

@@ -43,6 +43,24 @@ interface Circle {
 
 type KindlessCircle = RemoveKindField<Circle>;
 
+type Functions<Type> = {
+	[Key in keyof Type as Type[Key] extends Function ? Key: never]: Type[Key]
+};
+
+class Cls {
+	constructor(s: string, arg: number) {}
+	a(a: number) { return '' }
+	k() { }
+	b = 100;
+	c = '';
+}
+
+type FuncType = Functions<Cls>;
+
+function fun(a: number) {}
+
+type P = ConstructorParameters<typeof Cls>
+type P1 = Parameters<typeof fun>
 
 // --------------------
 
@@ -56,7 +74,6 @@ type DBFields = {
 };
  
 type ObjectsNeedingGDPRDeletion = ExtractPII<DBFields>;
-
 
 // --------------------
 

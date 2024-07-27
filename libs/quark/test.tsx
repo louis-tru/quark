@@ -11,7 +11,7 @@ const box2 = ()=><box><image src='AA' /></box>;
 
 const image = ()=><image src='http://www.aaa.com/img.png' width={100} />;
 
-new Window().render(
+new Window().activate().render(
 	<flex style={{
 		width: 'match',
 		height: 'match',
@@ -23,4 +23,4 @@ new Window().render(
 	]}>
 		<box style={{width: 'match', backgroundColor: '#0f0'}}>ABCDEFG</box>
 	</flex>
-).activate();
+);

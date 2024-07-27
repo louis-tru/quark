@@ -17,7 +17,7 @@ for (var i = 0; i < 200000; i++) {
 uu.log();
 
 for (var i = 0; i < 200000; i++) {
-	storage.del(String(i));
+	storage.remove(String(i));
 }
 
 storage.clear();

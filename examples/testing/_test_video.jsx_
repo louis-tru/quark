@@ -65,6 +65,6 @@ const src21 = 'http://182.254.20.104/vipts.tc.qq.com/14x0qPPqKRFQDSwsxbfHRwUe4Ma
 
 new Application().start(
 	<Root background_color="#000">
-	  <Video width="100%" margin="auto" src=src21 autoPlay=true />
+	  <Video width="100%" margin="auto" src={src21} autoPlay={true} />
 	</Root>
 );

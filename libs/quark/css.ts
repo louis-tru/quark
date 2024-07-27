@@ -124,8 +124,8 @@ export interface StyleSheet {
 	skewX?: number;
 	skewY?: number;
 	rotateZ?: number;
-	originX?: number;
-	originY?: number;
+	originX?: types.BoxOriginIn;
+	originY?: types.BoxOriginIn;
 }
 
 export declare class CStyleSheetsClass {

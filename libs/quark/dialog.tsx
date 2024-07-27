@@ -334,17 +334,17 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 	if (typeof msg == 'string')
 		message = {msg};
 	let { msg: _msg = '', title = '' } = message;
-	let dag: Dialog = (
+	let dag = (
 		<Dialog buttons={[Consts.Ok]} onAction={cb} title={title}>{_msg}</Dialog>
-	).newDom(window.rootCtr);
+	).newDom(window.rootCtr) as Dialog;
 	dag.show();
 	return dag;
 }
 
 export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = util.noop) {
-	let dag: Dialog = (
+	let dag = (
 		<Dialog buttons={[Consts.Cancel, Consts.Ok]} onAction={e=>cb(!!e)}>{msg}</Dialog>
-	).newDom(window.rootCtr);
+	).newDom(window.rootCtr) as Dialog;
 	dag.show();
 	return dag;
 }
@@ -358,7 +358,7 @@ export function prompt(window: Window, msg: string | {
 	if (typeof msg == 'string')
 		message = {msg};
 	let { msg: _msg = '', text = '', placeholder = Consts.Placeholder, security = false } = message;
-	let dag: Dialog = (
+	let dag = (
 		<Dialog
 			action_time={100}
 			buttons={[Consts.Cancel, Consts.Ok]} 
@@ -375,30 +375,30 @@ export function prompt(window: Window, msg: string | {
 				onKeyEnter={()=>(dag as any).triggerAction(1)}
 			/>
 		</Dialog>
-	).newDom(window.rootCtr);
+	).newDom(window.rootCtr) as Dialog;
 	dag.show();
 	(dag.refs.input as Input).focus();
 	return dag;
 }
 
 export function show(window: Window, title: string, msg: string, buttons: string[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
-	let dag: Dialog = (
+	let dag = (
 		<Dialog title={title} buttons={buttons} onAction={cb}>{msg}</Dialog>
-	).newDom(window.rootCtr);
+	).newDom(window.rootCtr) as Dialog;
 	dag.show();
 	return dag;
 }
 
 export function sheet(window: Window, content: string) {
-	let dag: Sheet = (<Sheet content={content} />).newDom(window.rootCtr);
+	let dag = (<Sheet content={content} />).newDom(window.rootCtr) as Sheet;
 	dag.show();
 	return dag;
 }
 
 export function sheetConfirm(window: Window, buttons: string[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
-	let dag: Sheet = (
+	let dag = (
 		<Sheet buttons={buttons} onAction={cb} />
-	).newDom(window.rootCtr);
+	).newDom(window.rootCtr) as Sheet;
 	dag.show();
 	return dag;
 }

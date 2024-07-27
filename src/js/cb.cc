@@ -70,15 +70,15 @@ namespace qk { namespace js {
 			case kInvalid_Encoding: // no convert
 				result = worker->newInstance(buffer);
 				break;
-			case kHex_Encoding: // encode to string
+			case kHex_Encoding: // encode to hex or base64 string
 			case kBase64_Encoding: {
-				String str = codec_encode(encoding, buffer).collapseString();
-				result = worker->newInstance(str);
+				Buffer buff = codec_encode(encoding, buffer);
+				result = worker->newStringOneByte(buff.collapseString());
 				break;
 			}
-			default: { // decode to uft16 string
-				String2 str(codec_decode_to_uint16(encoding, buffer));
-				result = worker->newInstance(str);
+			default: { // encode to js uft16 string
+				auto unicode = codec_decode_to_unicode( encoding, buffer); // decode to unicode
+				result = worker->newInstance(unicode.collapseString());
 				break;
 			}
 		}

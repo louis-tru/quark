@@ -251,18 +251,17 @@ namespace qk {
 			*data = *source;
 			data++; source++;
 		}
-		(*rev)[len] = '\0';
+		*data = '\0';
 		Qk_ReturnLocal(rev);
 	}
 
 	template <class Char>
 	static Buffer encode_to_ascii(const Char* source, uint32_t len) {
-		// Note: 会丢失所有ascii以外的编码
 		const Char* end = source + len;
 		auto rev = Buffer::alloc(len, len + 1);
 		char* data = *rev;
 		while (source != end) {
-			*data = *(uint8_t*)source % 128;
+			*data = *(uint8_t*)source % 128; // Note: 会丢失所有ascii以外的编码
 			data++; source++;
 		}
 		*data = '\0';
@@ -629,7 +628,7 @@ namespace qk {
 				return encode_to_utf8((const uint8_t*)source, len);
 			case kUTF16_Encoding:
 				return encode_to_utf16(source, len);
-			case kUCS4_Encoding: // 固定4字节编码
+			case kUCS4_Encoding:
 				return encode_to_ucs4(source, len);
 			default: Qk_ERR("%s", "Unknown encode."); break;
 		}
@@ -650,7 +649,7 @@ namespace qk {
 				return encode_to_utf8(source, len);
 			case kUTF16_Encoding:
 				return encode_to_utf16(source, len);
-			case kUCS4_Encoding:// 固定4字节编码
+			case kUCS4_Encoding:
 				return encode_to_ucs4(source, len);
 			default: Qk_ERR("%s", "Unknown encode."); break;
 		}
@@ -678,24 +677,24 @@ namespace qk {
 		return Buffer();
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& source) {
-		return encode_with_buffer(target_en, *source, source.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& uincode) {
+		return encode_with_buffer(target_en, *uincode, uincode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cString& source) {
-		return encode_with_buffer(target_en, *source, source.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cString& uincode) {
+		return encode_with_buffer(target_en, *uincode, uincode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& source) {
-		return encode_with_uint16(target_en, *source, source.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& uincode) {
+		return encode_with_uint16(target_en, *uincode, uincode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cString2& source) {
-		return encode_with_uint16(target_en, *source, source.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cString2& uincode) {
+		return encode_with_uint16(target_en, *uincode, uincode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& source) {
-		return encode_with_uint32(target_en, *source, source.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& uincode) {
+		return encode_with_uint32(target_en, *uincode, uincode.length());
 	}
 
 	// decode
@@ -711,11 +710,11 @@ namespace qk {
 				return decode_from_base64<char>(source, len);
 			case Encoding::kHex_Encoding:
 				return decode_from_hex<char>(source, len);
-			case Encoding::kUTF8_Encoding: // 会丢失ascii外的编码
+			case Encoding::kUTF8_Encoding: // 会丢失ucs1外的编码
 				return decode_from_utf8<char>(source, len);
-			case Encoding::kUTF16_Encoding: // 会丢失ascii外的编码
+			case Encoding::kUTF16_Encoding: // 会丢失ucs1外的编码
 				return decode_from_utf16<char>(source, len);
-			case Encoding::kUCS4_Encoding: // 会丢失ascii外的编码
+			case Encoding::kUCS4_Encoding: // 会丢失ucs1外的编码
 				return decode_from_ucs4<char>(source, len);
 			default: Qk_ERR("%s", "Unknown encode. decode_to_buffer"); break;
 		}
@@ -764,19 +763,19 @@ namespace qk {
 		return ArrayBuffer<uint32_t>();
 	}
 
-	ArrayBuffer<char> codec_decode_to_buffer(Encoding source_en, cArray<char>& source) {
+	ArrayBuffer<char> codec_decode_to_ucs1(Encoding source_en, cArray<char>& source) {
 		return decode_to_buffer(source_en, *source, source.length());
 	}
 
-	ArrayBuffer<uint16_t> codec_decode_to_uint16(Encoding source_en, cArray<char>& source) {
+	ArrayBuffer<uint16_t> codec_decode_to_ucs2(Encoding source_en, cArray<char>& source) {
 		return decode_to_uint16(source_en, *source, source.length());
 	}
 
-	ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, cArray<char>& source) {
+	ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cArray<char>& source) {
 		return decode_to_uint32(source_en, *source, source.length());
 	}
 
-	ArrayBuffer<uint32_t> codec_decode_to_uint32(Encoding source_en, cString& source) {
+	ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cString& source) {
 		return decode_to_uint32(source_en, *source, source.length());
 	}
 

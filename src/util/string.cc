@@ -304,13 +304,13 @@ namespace qk {
 			size->capacity = len_ + 1;
 		}
 		else if (size_of == 2) {
-			auto b = codec_decode_to_uint16(kUTF8_Encoding, Buffer::from(str, len_));
+			auto b = codec_decode_to_unicode(kUTF8_Encoding, Buffer::from(str, len_));
 			size->len = b.length();
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();
 		}
 		else if (size_of == 4) {
-			auto b = codec_decode_to_uint32(kUTF8_Encoding, Buffer::from(str, len_));
+			auto b = codec_decode_to_unicode(kUTF8_Encoding, Buffer::from(str, len_));
 			size->len = b.length();
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { P, M, LOG, VM, VP } from './test'
+import { P, M, LOG, VM, VP } from './tool'
 import { Application, Root, Div, Button, Indep, Image } from 'quark';
 import * as action from 'quark/action';
 import css from 'quark/css';

@@ -669,9 +669,6 @@ namespace qk { namespace js {
 	String JSString::value(Worker* worker, bool oneByte) const {
 		return toStringValue(worker, oneByte);
 	}
-	String2 JSString::value2(Worker* worker) const {
-		return toStringValue2(worker);
-	}
 	JSString* JSString::Empty(Worker* worker) {
 		return Cast<JSString>(v8::String::Empty(ISOLATE(worker)));
 	}

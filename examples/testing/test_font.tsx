@@ -28,29 +28,28 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { P, M, LOG, VM, VP } from './test';
-import { Application, Root } from 'quark';
-import 'quark/font' as f;
-import 'fs';
-import 'quark/url';
+import { LOG, Pv, Mv } from './tool';
+import { Application, Window } from 'quark';
+import * as font from 'quark/font';
+import path from 'quark/path';
+import * as fs from 'quark/fs';
+import * as types from 'quark/types';
 
-new Application().start(<Root/>).onLoad = function() {
+const app = new Application();
+const f = app.fontPool;
+const win = new Window({
+	frame: types.newRect(0,0,500,500),
+	backgroundColor: types.newColor(0,0,255,0),
+}).activate();
 
-	LOG('\nTest Font:\n')
-
-	M(f, 'setDefaultFonts', ['Helvetica, PingFang HK, Thonburi']);
-	M(f, 'setDefaultFonts', [['Helvetica', 'PingFang HK', 'Thonburi']]);
-	M(f, 'defaultFontNames', []);
-	M(f, 'familyNames', []);
-	M(f, 'fontNames', ['Helvetica']);
-	M(f, 'fontNames', ['PingFang HK']);
-	M(f, 'test', ['PingFang HK']);
-	M(f, 'test', ['.PingFangHK-Regular']);
-	M(f, 'test', ['.HelveticaLight-Oblique']);
-	M(f, 'registerFont', [fs.readFileSync(url.resources('res/font/lateef.ttf')), 'A']);
-	M(f, 'test', ['A']);
-	M(f, 'registerFontFile', [url.resources('res/font/SF-UI-Display-Black.otf'), 'B']);
-	M(f, 'test', ['B']);
-	M(f, 'setFamilyAlias', ['B', 'B-']);
-	M(f, 'test', ['B-']);
-};
+LOG('\nTest Font:\n')
+Pv(f, 'countFamilies', e=>true)
+Pv(f, 'defaultFamilyNames', e=>true)
+Pv(f, 'defaultFontFamilys', e=>true)
+Mv(f, 'getFontFamilys', ['PingFang HK'])
+Mv(f, 'addFontFamily', [fs.readFileSync(path.resources('res/font/lateef.ttf')), 'A'])
+Mv(f, 'getFamilyName', [0])
+//
+const ffid =
+Mv(font, 'getFontFamilys', ['PingFang HK'])
+Mv(font, 'getFamilysName', [ffid])

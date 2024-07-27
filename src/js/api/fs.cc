@@ -150,7 +150,7 @@ namespace qk { namespace js {
 			if ( args.length() > args_index && args[args_index]->isString() ) { // 第三个参数为编码格式
 				if ( ! parseEncoding(args, args[args_index++], en) ) return nullptr;
 			}
-			holder = args[index_str]->toBuffer(worker, en);
+			holder = args[index_str]->toString(worker)->toBuffer(worker, en);
 			data = holder.val();
 			size = holder.length();
 		}

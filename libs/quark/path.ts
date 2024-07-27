@@ -82,12 +82,12 @@ function parse_path(self: any) {
 	var mat = self._value.match(/^(([a-z]+:)\/\/)?(([^\/:]+)(?::(\d+))?)?(\/.*)?/);
 	if (mat) {
 		self._protocol = mat[2] || '';
-		self._origin = mat[1] || '';
+		self._origin = mat[1] || ''; // file://
 
 		if ( mat[3] ) { // http:// or ftp:// or lib://
-			self._origin += mat[3];
+			self._origin += mat[3]; // http://quarks.cc
 			self._hostname = mat[4];
-			self._port = mat[5] ? mat[5] : '';
+			self._port = mat[5] || '';
 		}
 
 		var path = self._filename = mat[6] || '/';
@@ -320,12 +320,12 @@ export class URL {
 	}
 	
 	// relative path
-	relative(targetPath: string): string {
-		var target = new URL(targetPath);
-		if ( this.origin != target.origin )
+	relative(fromPath: string): string {
+		var from = new URL(fromPath);
+		if ( this.origin != from.origin )
 			return (this as any)._origin + (this as any)._filename;
 		var ls: string[]  = (this as any)._filename == '/' ? [] : (this as any)._filename.split('/');
-		var ls2: string[] = (target as any)._filename == '/' ? [] : (target as any)._filename.split('/');
+		var ls2: string[] = (from as any)._filename == '/' ? [] : (from as any)._filename.split('/');
 		var len = Math.max(ls.length, ls2.length);
 		
 		for (var i = 1; i < len; i++) {
@@ -512,11 +512,8 @@ export default {
 	},
 
 	// relative path
-	relative(path: string, target: string) {
-		if (arguments.length > 1) 
-			return get_path(path).relative(target);
-		else 
-			return get_path(path).relative(path);
+	relative(from: string, target?: string) {
+		return get_path(target).relative(from);
 	},
 
 }
