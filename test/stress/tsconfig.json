@@ -5,7 +5,7 @@
 		"target": "ES2018",
 		"moduleResolution": "node",
 		"sourceMap": false,
-		"outDir": "out/examples",
+		"outDir": "out/stress",
 		"rootDir": ".",
 		"baseUrl": ".",
 		"declaration": false,
@@ -24,9 +24,10 @@
 		"jsxFactory": "_CVD",
 		"paths": {
 			"*": [
-				"../libs/quark/out/*",
+				"../../libs/quark/out/*",
 				"./node_modules/*",
 				"../node_modules/*",
+				"../../node_modules/*",
 			],
 		},
 	},

@@ -45,9 +45,9 @@ void test_start(int argc, char **_) {
 #endif
 
 #if USE_REMOTE
-		js::Start("http://" IP_REMOTE ":1026/examples", argv);
+		js::Start("http://" IP_REMOTE ":1026/testing", argv);
 #else
-		js::Start(fs_resources("examples/testing/test_gui1.js"), argv);
+		js::Start(fs_resources("testing/test_gui1.js"), argv);
 #endif
 }
 
