@@ -21,7 +21,6 @@
 		],
 		'mac_bundle': 1,
 		'mac_bundle_resources': [
-			'res',
 			'./testing/out/testing',
 			'./stress/out/stress',
 			'../examples/out/examples',

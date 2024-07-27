@@ -50,7 +50,7 @@ void test_gui(int argc, char **argv) {
 	r->set_background_color(Color(255, 255, 255));
 
 	auto sp0 = r->append_new<Image>();
-	sp0->set_src(fs_resources("res/bb.pvr")); // res://res/bb
+	sp0->set_src(fs_resources("testing/res/bb.pvr")); // res://res/bb
 	sp0->set_width({256});
 	sp0->set_height({256});
 	// sp0->set_translate(Vec2(100, 500));
@@ -71,7 +71,7 @@ void test_gui(int argc, char **argv) {
 	div->set_border_color_bottom(Color(255, 0, 255));
 
 	auto sp1 = div->append_new<Image>();
-	sp0->set_src(fs_resources("res/bb.pvr"));
+	sp0->set_src(fs_resources("testing/bb.pvr"));
 	sp1->set_width({256});
 	sp1->set_height({256});
 
@@ -83,7 +83,7 @@ void test_gui(int argc, char **argv) {
 	div2->set_height({100});
 
 	auto sp = div2->append_new<Image>();
-	sp0->set_src(fs_resources("res/cc.pvr"));
+	sp0->set_src(fs_resources("testing/res/cc.pvr"));
 	sp->set_width({307});
 	sp->set_height({307});
 	// sp->translate(-450, -450);
@@ -92,7 +92,7 @@ void test_gui(int argc, char **argv) {
 
 	// Image
 	auto img = r->append_new<Image>();
-	img->set_src(fs_resources("res/cc.pvr"));
+	img->set_src(fs_resources("testing/res/cc.pvr"));
 	img->set_width({320});
 	// img->height(250);
 	img->set_opacity(0.9);
