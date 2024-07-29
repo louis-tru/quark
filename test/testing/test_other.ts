@@ -45,7 +45,6 @@ class Test {
 	}
 	
 	dd() {
-
 		var color = new types.Color(100, 200, 300, 400);
 		
 		console.log(color.toString());

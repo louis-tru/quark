@@ -37,7 +37,7 @@ using namespace qk;
 #define USE_REMOTE 0
 #define USE_INSPECT 1
 
-void test_start(int argc, char **_) {
+void test_testing(int argc, char **_) {
 	Array<String> argv;
 
 #if USE_INSPECT
@@ -47,7 +47,7 @@ void test_start(int argc, char **_) {
 #if USE_REMOTE
 		js::Start("http://" IP_REMOTE ":1026/testing", argv);
 #else
-		js::Start(fs_resources("testing/test_gui1.js"), argv);
+		js::Start(fs_resources("testing"), argv);
 #endif
 }
 

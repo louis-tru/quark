@@ -90,7 +90,6 @@
 			}],
 			['v8_enable_inspector==1', { 'defines': [ 'HAVE_INSPECTOR=1' ] }],
 		],
-		# actions
 		'actions': [
 			{
 				'action_name': 'gen_inl_js_natives',

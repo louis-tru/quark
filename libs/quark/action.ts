@@ -45,8 +45,8 @@ export type ActionIn = Action | {
 	speed?: number;
 	spawn?: ActionIn[];
 	seq?: ActionIn[];
-	keyframe?: (KeyframeIn)[];
-} | (KeyframeIn)[];
+	keyframe?: KeyframeIn[];
+} | KeyframeIn[];
 
 export declare class Keyframe extends StyleSheet {
 	readonly index: number;

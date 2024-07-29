@@ -2,8 +2,8 @@
 	"name": "testing",
 	"app": "Quark-UnitTesting",
 	"id": "org.quark.testing",
-	"main":	"index.js",
-	"types": "index",
+	"main":	"test_index.js",
+	"types": "test_index",
 	"version": "1.0.0",
 	"scripts": {
 		"build": "tsc && node _.js"

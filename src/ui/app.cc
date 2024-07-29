@@ -207,17 +207,17 @@ namespace qk {
 		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) { app->Qk_Trigger(Resume); }, this));
 	}
 
+	void AppInl::triggerMemorywarning() {
+		clear();
+		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
+	}
+
 	void AppInl::triggerBackground(Window *win) {
 		_loop->post(Cb([win](Cb::Data& d) { win->Qk_Trigger(Background); }, win));
 	}
 
 	void AppInl::triggerForeground(Window *win) {
 		_loop->post(Cb([win](Cb::Data& d) { win->Qk_Trigger(Foreground); }, win));
-	}
-
-	void AppInl::triggerMemorywarning() {
-		clear();
-		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
 	}
 
 	void AppInl::setActiveWindow(Window *win) {

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, blue.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of blue.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,50 +25,25 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-///<reference path="_ext.ts"/>
+import { Application, Window, Box } from 'quark';
+import * as types from 'quark/types';
 
-import util from './util';
-import {TextOptions} from './view';
-import {Screen} from './screen';
-import {Window} from './window';
-import {FontPool} from './font';
-import event, {EventNoticer, Notification, NativeNotification, Event} from './event';
+const app = new Application();
+const win = new Window({
+	fps:0x0,
+	frame: types.newRect(0,0,500,500),
+	backgroundColor: types.newColor(0,0,255,255),
+}).activate();
 
-const _ui = __binding__('_ui');
-let _current: Application | null = null;
-type AEvent = Event<Application>;
+const box = new Box(win);
 
-declare class NativeApplication extends Notification<AEvent> {
-	readonly isLoaded: boolean; //!< after onLoad event
-	readonly screen: Screen;
-	readonly fontPool: FontPool;
-	readonly activeWindow: Window | null;
-	readonly defaultTextOptions: TextOptions;
-	readonly windows: Window[];
-	maxResourceMemoryLimit: number; //!< get or set max resource memory limit
-	usedResourceMemory(): number; //!< current used resource memory
-	clear(all?: boolean): void; //!< clear resource memory
-	openURL(url: string): void;
-	sendEmail(recipient: string, subject: string, body?: string, cc?: string, bcc?: string): void;
-}
+box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
+box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
+box.backgroundColor = types.newColor(255,0,0,255);
 
-export class Application extends (_ui.NativeApplication as typeof NativeApplication) {
-	@event readonly onLoad: EventNoticer<AEvent>;
-	@event readonly onUnload: EventNoticer<AEvent>;
-	@event readonly onPause: EventNoticer<AEvent>;
-	@event readonly onResume: EventNoticer<AEvent>;
-	@event readonly onMemoryWarning: EventNoticer<AEvent>;
-	constructor() {
-		super();
-		_current = this;
-	}
-}
+win.root.backgroundColor = types.newColor(0,255,0,100);
 
-util.extendClass(Application, NativeNotification);
-
-export default {
-	get current() { return _current! },
-};
+win.root.append(box);

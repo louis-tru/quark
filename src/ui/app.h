@@ -168,9 +168,9 @@ namespace qk {
 		void triggerUnload();
 		void triggerPause();
 		void triggerResume();
+		void triggerMemorywarning();
 		void triggerBackground(Window *win);
 		void triggerForeground(Window *win);
-		void triggerMemorywarning();
 		void setActiveWindow(Window *win);
 	};
 }

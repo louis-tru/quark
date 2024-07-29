@@ -40,6 +40,10 @@ const win = new Window({
 	frame: types.newRect(0,0,500,500),
 }).activate();
 
+Mv(win.onBackground, 'on', [function() { LOG('---- onbackground') }])
+Mv(win.onForeground, 'on', [function() { LOG('---- onforeground') }])
+Mv(win.onChange, 'on', [function() { LOG('---- onChange') }])
+
 win.render(
 	<box width={200} height={200} backgroundColor="#f00">
 		<text textColor="#f00">ABCDEFG你好</text>

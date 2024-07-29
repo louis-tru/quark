@@ -118,7 +118,8 @@ namespace qk {
 	}
 
 	Window::~Window() {
-		Destroy();
+		// Destroy();
+		Qk_Fatal_Assert(_render == nullptr);
 	}
 
 	void Window::close() {
@@ -129,9 +130,9 @@ namespace qk {
 	}
 
 	bool Window::Destroy() {
-		if (!_render) return false;
 		UILock lock(this); // lock ui
-		if (!_render) return false;
+		if (!_render)
+			return false;
 
 		_root->remove_all_child(); // remove child view
 		Release(_root); _root = nullptr; // release root view

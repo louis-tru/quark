@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { LOG, Pv, Mv } from './tool'
-import * as types from 'quark/types';
-import {BoxSizeKind,BoxOriginKind} from 'quark/types';
-import {KeyframeAction,Action} from 'quark/action';
-import {Application,Window,createCss,CStyleSheetsClass,ViewType} from 'quark';
+import * as types from 'quark/types'
+import {BoxSizeKind,BoxOriginKind} from 'quark/types'
+import {KeyframeAction,Action} from 'quark/action'
+import {Application,Window,createCss,CStyleSheetsClass,ViewType} from 'quark'
 import {
 	View,
 	Box,
@@ -47,19 +47,18 @@ import {
 	Text,
 	Input,
 	Textarea,
-} from 'quark';
-
-new Application();
-
-createCss({
-	'.test': { x: 0 },
-});
+} from 'quark'
 
 const resolve = require.resolve;
+const app = new Application();
 const win = new Window({
 	frame: types.newRect(0,0,500,500),
 }).activate();
 const root = win.root;
+
+createCss({
+	'.test': { x: 0 },
+});
 
 LOG('\nTest View:\n')
 const v = new View(win);

@@ -299,7 +299,7 @@ export enum KeyboardType {
 
 export enum KeyboardReturnType {
 	Normal,
-	Oo,
+	Go,
 	Join,
 	Next,
 	Route,
@@ -636,7 +636,7 @@ export class TextFamily extends TextBase<TextFamily,FFID> {
 		return isNullptr ? '': _font.getFamilysName(this.value);
 	}
 }
-const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]);
+export const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]);
 initDefaults(TextFamily, { value: EmptyFFID, kind: TextValueKind.Inherit });
 export type TextFamilyIn = TextValueKindInStr | string | TextFamily;
 
@@ -786,7 +786,7 @@ export function newTextShadow(
 	return newBase(TextShadow,{kind,value: newShadow(offset_x,offset_y,size,r,g,b,a)});
 }
 
-export function newTextFamily(kind: TextValueKind, ffid: Uint8Array) {
+export function newTextFamily(kind: TextValueKind, ffid: Uint8Array = EmptyFFID) {
 	return newBase(TextFamily,{kind,value:ffid});
 }
 

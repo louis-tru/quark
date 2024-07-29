@@ -43,8 +43,6 @@ Pv(win, 'root', win.root)
 Pv(win, 'rootCtr', win.rootCtr)
 
 Mv(app.onUnload, 'on', [function() { LOG('---- onunload') }])
-Mv(app.onBackground, 'on', [function() { LOG('---- onbackground') }])
-Mv(app.onForeground, 'on', [function() { LOG('---- onforeground') }])
 Mv(app.onPause, 'on', [function() { LOG('---- onpause') }])
 Mv(app.onResume, 'on', [function() { LOG('---- onresume') }])
 Mv(app.onMemoryWarning, 'on', [function() { LOG('---- onmemorywarning') }])
