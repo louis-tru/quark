@@ -31,7 +31,7 @@
 import util from './util';
 import {
 	_CVD,mainScreenScale,createCss,link,View,Matrix,Input,
-	ViewController
+	ViewController, RenderData
 } from './index';
 import {Navigation} from './nav';
 import {Window} from './window';
@@ -130,13 +130,13 @@ export const Consts = {
  * @class Dialog
  */
 export class Dialog<P={},S={}> extends Navigation<{
-	onAction?:(e:number)=>void;
+	onAction?:(e:number, sender: Dialog<P,S>)=>void;
 	title?: string;
 	content?: string;
 	autoClose?: boolean;
-	buttons?: string[];
+	buttons?: RenderData[];
 }&P,S> {
-	private _buttons = [] as string[];
+	private _buttons = [] as RenderData[];
 
 	private _autoClose() {
 		if (this.autoClose)
@@ -164,7 +164,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	}
 
 	protected triggerAction(index: number) {
-		this.props.onAction?.call(null, index);
+		this.props.onAction?.call(null, index, this);
 		this._autoClose();
 	}
 
@@ -182,8 +182,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 								class="button"
 								borderWidthTop={px}
 								onClick={e=>this.triggerAction(i)}
-								value={e}
-							/>
+							>{e}</button>
 						))
 					}
 					</free>
@@ -272,12 +271,12 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 						length?
 						this.buttons.slice().map((e,i)=>(
 							<button
+								key={i}
 								class="button"
 								width="100%"
 								onClick={e=>this.triggerAction(length-i)}
 								borderWidthTop={i?px:0}
-								value={e}
-							/>
+							>{e}</button>
 						)):
 						<button
 							class="button"
@@ -381,7 +380,7 @@ export function prompt(window: Window, msg: string | {
 	return dag;
 }
 
-export function show(window: Window, title: string, msg: string, buttons: string[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
+export function show(window: Window, title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 	let dag = (
 		<Dialog title={title} buttons={buttons} onAction={cb}>{msg}</Dialog>
 	).newDom(window.rootCtr) as Dialog;
@@ -395,7 +394,7 @@ export function sheet(window: Window, content: string) {
 	return dag;
 }
 
-export function sheetConfirm(window: Window, buttons: string[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
+export function sheetConfirm(window: Window, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 	let dag = (
 		<Sheet buttons={buttons} onAction={cb} />
 	).newDom(window.rootCtr) as Sheet;
@@ -415,7 +414,7 @@ export class DialogController<P={},S={}> extends ViewController<P,S> {
 	confirmDialog(msg: string, cb: (ok: boolean)=>void = util.noop) {
 		return confirm(this.window, msg, cb);
 	}
-	showDialog(title: string, msg: string, buttons: string[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
+	showDialog(title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 		return show(this.window, title, msg, buttons, cb);
 	}
 	sheetDialog(content: string) {

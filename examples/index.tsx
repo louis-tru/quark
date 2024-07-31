@@ -28,38 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import util from 'quark/util';
-import * as reader from 'quark/reader';
-import * as font from 'quark/font';
-import { Application } from 'quark/app';
-
-var app = new Application({
-	multisample: 4,
-	width: 420,
-	height: 800,
-	fullScreen: !!util.options.full_screen,
-	enableTouch: true,
-	background: 0xffffff,
-	title: 'Quark Examples',
-});
-
-import {
-	Root, Scroll, Div, Hybrid, Clip, Text, Button, TextNode as T, default as quark, _CVD
-} from 'quark';
-import { NavPageCollection, Toolbar } from 'quark/nav';
-import { Navbutton, Mynavpage, Page } from './public';
+import { _CVD, Application, Window, createCss, mainScreenScale, Text, ViewController } from 'quark';
+import {reader} from 'quark/fs';
+import * as types from 'quark/types';
+const app = new Application();
+import { NavPageCollection } from 'quark/nav';
+import { NavButton, Page } from './tool';
 import examples from './examples';
 import about_vx from './about';
-import review_vx from './review';
-import {ClickEvent} from 'quark/event';
 
+const px = 1 / mainScreenScale();
 const resolve = require.resolve;
-const px = quark.atomPixel;
 
-quark.css({
-
+createCss({
 	'.category_title': {
-		width: 'full',
+		width: 'match',
 		textLineHeight: 30,
 		textColor: '#6d6d72',
 		textSize: 14,
@@ -74,7 +57,7 @@ quark.css({
 	},
 
 	'.hello': {
-		width: 'full',
+		width: 'match',
 		textSize:46, 
 		textAlign:"center",
 		textColor:"#000",
@@ -84,7 +67,7 @@ quark.css({
 	},
 
 	'.category': {
-		width: 'full',
+		width: 'match',
 		borderTop: `${px} #c8c7cc`,
 		// borderBottom: `${px} #c8c7cc`,
 		backgroundColor: '#fff',
@@ -92,36 +75,37 @@ quark.css({
 	},
 
 	'.toolbar_btn': {
-		margin: 8,
+		padding: 8,
 		textFamily: 'icomoon-ultimate',
 		textSize: 24,
 	},
 
 	'.codepre': {
-		'width': 'full',
+		'width': 'match',
 		'margin': 10,
 		// 'textColor': '#000',
-		':normal': {
-			textColor: '#000'
-		},
-		':hover': {
-			textColor: '#ff0'
-		},
-		':down': {
-			textColor: '#f00',
-		},
-		'.tag_name': {
-			textColor: '#005cc5'
-		},
-		'.keywork': {
-			textColor: '#d73a49'
-		},
-		'.identifier': {
-			textColor: '#6f42c1'
-		},
-		'.str': {
-			textColor: '#007526'
-		},
+	},
+
+	'.codepre:normal': {
+		textColor: '#000'
+	},
+	'.codepre:hover': {
+		textColor: '#ff0'
+	},
+	'.codepre:down': {
+		textColor: '#f00',
+	},
+	'.codepre .tag_name': {
+		textColor: '#005cc5'
+	},
+	'.codepre .keywork': {
+		textColor: '#d73a49'
+	},
+	'.codepre .identifier': {
+		textColor: '#6f42c1'
+	},
+	'.codepre .str': {
+		textColor: '#007526'
 	},
 
 	'.codepre.a': {
@@ -138,139 +122,139 @@ quark.css({
 	'.keywork': { textColor: '#c73a45' },
 })
 
-function review_code(evt: ClickEvent) {
-	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
-}
+const win = new Window({
+	frame: types.newRect(0,0,420,800),
+	// msaa: 4,
+	// matchScreen: !!util.options.match_screen,
+	// enableTouch: true,
+	// background: 0xffffff,
+	// title: 'Quark Examples',
+}).activate();
 
 const quark_tools = 'https://www.npmjs.com/package/noproj';
 const quark_tools_issues_url = 'https://github.com/louis-tru/quark/issues';
 const examples_source = 'https://github.com/louis-tru/quark.git';
 const documents = 'http://quarks.cc/';
 
-// registerFont
+class Button extends ViewController<{url?: string, class?: string, onClick?: ()=>void}> {
 
-function handle_go_to(evt: ClickEvent) {
-	var url = (evt.sender as any).url;
-	if ( url ) {
-		quark.app.openUrl(url);
+	handle_go_to = ()=>{
+		const url = this.props.url;
+		if ( url ) {
+			app.openURL(url);
+		}
+	}
+	render() {
+		return <button
+			class={this.props.class}
+			onClick={this.props.onClick || this.handle_go_to}
+		>{this.children}</button>
 	}
 }
 
 function handle_bug_feedback() {
-	quark.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
-class DefaultToolbar extends Toolbar {
-	render() {
-		return super.render(
-			<Hybrid textAlign="center" width="full" height="full">
-				<Button onClick={review_code}>
-					<Text class="toolbar_btn" value={"\ue9ab"} />
-				</Button>
-			</Hybrid>
-		);
-	}
-}
-
-const quark_tools_vx = ()=>(
-	<Mynavpage title="Quark Tools" source={resolve(__filename)}>
-		<Div width="full">
-			<Hybrid class="category_title">
-1. You can use nodejs <T textBackgroundColor="#ddd" value={"npm install -g noproj\n"} />.
+const quark_tools_vx = (self: Page)=>{
+	self.title = 'Quark Tools';
+	self.source = resolve(__filename);
+	return (
+		<box width="match">
+			<text class="category_title">
+1. You can use nodejs <label textBackgroundColor="#ddd" value={"npm install -g noproj\n"} />.
 2. Or get the node modules from Github.
-			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={quark_tools}>Go Github</Button>
-		</Div>
-	</Mynavpage>
-)
+			</text>
+			<Button class="long_btn rm_margin_top" url={quark_tools}>Go Github</Button>
+		</box>
+	)
+}
 
-const examples_source_vx = ()=>(
-	<Mynavpage title="Examples Source" source={resolve(__filename)}>
-		<Div width="full">
-			<Text class="category_title" value="You can get the full examples source code from Github" />
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={examples_source}>Go Github</Button>
-		</Div>
-	</Mynavpage>
-)
+const examples_source_vx = (self: Page)=>{
+	self.title = 'Examples Source';
+	self.source = resolve(__filename);
+	return (
+		<box width="match">
+			<text class="category_title" value="You can get the match examples source code from Github" />
+			<Button class="long_btn rm_margin_top" url={examples_source}>Go Github</Button>
+		</box>
+	)
+}
 
-const examples_source_vx_test = ()=>(
-	<Mynavpage title="Examples Source" source={resolve(__filename)}>
-		{/* :normal w400 tcf01 :hover w500 :down w550 */}
-		<Div style="wfull h100 b1#fffsold tcf00 bfff s'http://baidu.com/logo.png'">
-			<Text class="category_title" value="You can get the full examples source code from Github" />
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={examples_source}>Go Github</Button>
-		</Div>
-	</Mynavpage>
-)
+const examples_source_vx_test = (self: Page)=>{
+	self.title = 'Examples Source';
+	self.source = resolve(__filename);
+	return (
+		<box width="match">
+			<text class="category_title" value="You can get the match examples source code from Github" />
+			<Button class="long_btn rm_margin_top" url={examples_source}>Go Github</Button>
+		</box>
+	)
+}
 
-const documents_vx = ()=>(
-	<Mynavpage title="Documents" source={resolve(__filename)}>
-		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="quarks.cc" /> to view the document?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={documents}>Go Documents</Button>
-		</Div>
-	</Mynavpage>
-)
+const documents_vx = (self: Page)=>{
+	self.title = 'Documents';
+	self.source = resolve(__filename);
+	return (
+		<box width="match">
+			<text class="category_title">Now go to <label textColor="#0079ff" value="quarks.cc" /> to view the document?</text>
+			<Button class="long_btn rm_margin_top" url={documents}>Go Documents</Button>
+		</box>
+	)
+}
 
-const bug_feedback_vx = ()=>(
-	<Mynavpage title="Bug Feedback" source={resolve(__filename)}>
-		<Div width="full">
-			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={quark_tools_issues_url}>Go Github Issues</Button>
-			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
+const bug_feedback_vx = (self: Page)=>{
+	self.title = 'Bug Feedback';
+	self.source = resolve(__filename);
+	return (
+		<box width="match">
+			<text class="category_title">Now go to Github issues list?</text>
+			<Button class="long_btn rm_margin_top" url={quark_tools_issues_url}>Go Github Issues</Button>
+			<text class="category_title">Or you can send me email, too.</text>
 			<Button class="long_btn rm_margin_top" onClick={handle_bug_feedback}>Send email</Button>
-		</Div>
-	</Mynavpage>
-)
+		</box>
+	)
+}
 
 // register font icomoon-ultimate
-font.registerFont( reader.readFileSync(resolve('./icomoon.ttf')) );
+app.fontPool.addFontFamily( reader.readFileSync(resolve('./icomoon.ttf')) );
 
-// console.log(app.displayPort.phyWidth)
+win.render(
+	<NavPageCollection ref="npc">
+		<Page title="Home" source={resolve(__filename)}>
+			<scroll width="match" height="match" bounceLock={false}>
+				<text class="hello" value="Hello." />
+				<box class="category" borderBottom={`${px} #c8c7cc`}>
+					<text class="codepre">
+						<label class="keywork" value="import"/> {"{"} <label class="identifier" value="Application" />, <label class="identifier" value="Root" /> {"}"} <label class="keywork" value="from" /> <label class="str" value="'quark'" />
+							<label class="keywork" value={'\nnew'}/> <label class="identifier" value="Application"/>()<label class="keywork" value="."/><label class="identifier" value="start"/>
+							(
+								{"<"}<label class="tag_name" value="Root" />{">"}hello world!{"</"}<label class="tag_name" value="Root" />{">"}
+							)
+					</text>
+				</box>
 
-app.start(
-	<Root>
+				<text class="category_title" />
+				<box class="category">
+					<NavButton next={examples}>Examples</NavButton>
+					<NavButton next={examples_source_vx}>Examples Source</NavButton>
+					<NavButton next={quark_tools_vx}>Quark Tools</NavButton>
+				</box>
 
-		<NavPageCollection id="npc" defaultToolbar={<DefaultToolbar />}>
-			<Mynavpage title="Home" source={resolve(__filename)}>
+				<text class="category_title" />
+				<box class="category">
+					<NavButton next={about_vx}>About</NavButton>
+					<NavButton next={documents_vx}>Documents</NavButton>
+					<NavButton next={bug_feedback_vx}>Bug Feedback</NavButton>
+				</box>
 
-				<Scroll width="full" height="full" bounceLock={0}>
-
-					<Text class="hello" value="Hello." />
-					<Div class="category" borderBottom={`${px} #c8c7cc`}>
-						<Hybrid class="codepre">
-							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="Application" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'quark'" />
-								<T class="keywork" value={'\nnew'}/> <T class="identifier" value="Application"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>
-								(
-									{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{">"}
-								)
-						</Hybrid>
-					</Div>
-
-					<Text class="category_title" />
-					<Clip class="category">
-						<Navbutton next={examples}>Examples</Navbutton>
-						<Navbutton next={examples_source_vx}>Examples Source</Navbutton>
-						<Navbutton next={quark_tools_vx}>Quark Tools</Navbutton>
-					</Clip>
-
-					<Text class="category_title" />
-					<Clip class="category">
-						<Navbutton next={about_vx}>About</Navbutton>
-						<Navbutton next={documents_vx}>Documents</Navbutton>
-						<Navbutton next={bug_feedback_vx}>Bug Feedback</Navbutton>
-					</Clip>
-
-					<Div height={32} width="full" />
-
-				</Scroll>
-
-			</Mynavpage>
-		</NavPageCollection>
-	</Root>
+				<box height={32} width="match" />
+			</scroll>
+		</Page>
+	</NavPageCollection>
 )
 
-var lock = Number(util.options.lock);
-if (lock) {
-	app.displayPort.lockSize(lock);
-}
+// var lock = Number(util.options.lock);
+// if (lock) {
+// 	win.size = lock;
+// }

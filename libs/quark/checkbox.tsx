@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {createCss,ViewController,_CVD} from './index';
+import {_CVD,createCss,ViewController, StyleSheet,link} from './index';
 
 createCss({
 	'.x_checkbox': {
@@ -123,23 +123,26 @@ createCss({
 	},
 });
 
-class Basic<P={},S={}> extends ViewController<{
+export class Basic<P={},S={}> extends ViewController<{
 	class?: string,
+	style?: StyleSheet,
 	disable?: boolean,
 	initSelected?: boolean,
-	onChange?:(value:boolean)=>void,
+	onChange?:(value:boolean, sender: Basic)=>void,
 }&P,S> {
 	private _selected = !!this.props.initSelected;
 
-	triggerMounted() {
+	@link disable = false;
+
+	protected triggerMounted() {
 		this.domAs().onClick.on(()=>{
-			if ( !this.props.disable )
+			if ( !this.disable )
 				this.selected = !this.selected;
 		}, '1');
 	}
 
 	protected triggerChange(value: boolean) {
-		this.props.onChange?.call(null, value);
+		this.props.onChange?.call(null, value, this);
 	}
 
 	get selected() {
@@ -156,9 +159,9 @@ class Basic<P={},S={}> extends ViewController<{
 }
 
 export class Checkbox<P={},S={}> extends Basic<P,S> {
-	render() {
+	protected render() {
 		return (
-			<button class={['x_checkbox',this.props.class||'',this.selected?'on':'']}>
+			<button class={['x_checkbox',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
 				<label class="mark" value={"\ued71"} />
 			</button>
 		)
@@ -166,9 +169,9 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 }
 
 export class Switch<P={},S={}> extends Basic<P,S> {
-	render() {
+	protected render() {
 		return (
-			<button class={['x_switch',this.props.class||'',this.selected?'on':'']}>
+			<button class={['x_switch',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
 				<free class="background" />
 				<matrix class="button" />
 			</button>

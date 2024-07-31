@@ -28,45 +28,45 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Div, Clip, Text, _CVD } from 'quark';
-import { Navbutton, Mynavpage } from './public';
+import { _CVD } from 'quark';
+import { NavButton, Page } from './tool';
 import components from './components';
 import input from './input';
 import icons from './icons';
-import media from './media';
 import action from './action';
 import fs from './fs';
 import http from './http';
-import zlib from './zlib';
+// import media from './media';
+// import zlib from './zlib';
 import storage from './storage';
 
 const resolve = require.resolve;
 
-export default ()=>(
-	<Mynavpage title="Examples" source={resolve(__filename)}>
+export default (self: Page)=>{
+	self.title = 'Examples';
+	self.source = resolve(__filename);
 
-		<Scroll width="full" height="full" bounceLock={0}>
+	return (
+		<scroll width="match" height="match" bounceLock={false}>
 
-			<Text class="category_title" value="." />
-			<Clip class="category">
-				<Navbutton next={components} id="btn0">Components</Navbutton>
-				<Navbutton next={media}>Multi-Media</Navbutton>
-				<Navbutton next={input}>Input</Navbutton>
-				<Navbutton next={icons}>Icons</Navbutton>
-				<Navbutton next={action}>Action</Navbutton>
-			</Clip>
-			
-			<Text class="category_title" value="Basic util." />
-			<Clip class="category">
-				<Navbutton next={fs}>File System</Navbutton>
-				<Navbutton next={http}>Http</Navbutton>
+			<text class="category_title" value="." />
+			<box class="category">
+				<NavButton next={components}>Components</NavButton>
+				{/* <NavButton next={media}>Multi-Media</NavButton> */}
+				<NavButton next={input}>Input</NavButton>
+				<NavButton next={icons}>Icons</NavButton>
+				<NavButton next={action}>Action</NavButton>
+			</box>
+
+			<text class="category_title" value="Basic util." />
+			<box class="category">
+				<NavButton next={fs}>File System</NavButton>
+				<NavButton next={http}>Http</NavButton>
 				{/* <Navbutton next={zlib}>Zlib</Navbutton> */}
-				<Navbutton next={storage}>Local Storage</Navbutton>
-			</Clip>
+				<NavButton next={storage}>Local Storage</NavButton>
+			</box>
 
-			<Div height={15} width="full" />
-		</Scroll>
-
-	</Mynavpage>
-)
-
+			<box height={15} width="match" />
+		</scroll>
+	);
+}

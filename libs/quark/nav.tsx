@@ -32,7 +32,7 @@ import util from './util';
 import { List,ListIterator,ClickType } from './event';
 import { KeyboardKeyCode } from './keyboard';
 import index, {
-	_CVD,link,ViewController,View,Label,Text,
+	_CVD,link,ViewController,View,Label,Text, RenderResult,
 	mainScreenScale,Window,VDom,assertDom,Box,VirtualDOM } from './index';
 import * as types from './types';
 
@@ -67,8 +67,8 @@ class NavigationStatus<P={},S={}> extends ViewController<P,S> {
  * @class Navigation
  */
 export class Navigation<P={},S={}> extends NavigationStatus<{
-	onBackground?:()=>void,
-	onForeground?:()=>void,
+	onBackground?:(selnder: Navigation)=>void,
+	onForeground?:(selnder: Navigation)=>void,
 }&P,S> {
 	private _iterator: ListIterator<Navigation> | null = null;
 	private _focusResume: View | null = null;
@@ -152,11 +152,11 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	protected triggerBackground() {
-		this.props.onBackground?.call(null);
+		this.props.onBackground?.call(null, this);
 	}
 
 	protected triggerForeground() {
-		this.props.onForeground?.call(null);
+		this.props.onForeground?.call(null, this);
 	}
 
 	protected triggerDestroy() {
@@ -261,8 +261,8 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	navbarHeight?: number;
 	navbarHidden?: boolean;
 	clip?: boolean; // clip box render
-	onPush?: (page: NavPage)=>void,
-	onPop?: (page: NavPage)=>void,
+	onPush?: (page: NavPage, sender: NavPageCollection)=>void,
+	onPop?: (page: NavPage, sender: NavPageCollection)=>void,
 }&P,S> {
 	private _substack = new List<NavPage>();
 	private _busy = false;
@@ -290,11 +290,11 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	}
 
 	protected triggerPush(page: NavPage) {
-		this.props.onPush?.call(null, page);
+		this.props.onPush?.call(null, page, this);
 	}
 
 	protected triggerPop(page: NavPage) {
-		this.props.onPop?.call(null, page);
+		this.props.onPop?.call(null, page, this);
 	}
 
 	protected render() {
@@ -596,12 +596,14 @@ export class NavPage<P={},S={}> extends Navigation<{
 	@link
 	get title() { return this._title }
 	set title(value: string) {
-		this._title = String(value);
-		if (this._navbarDom) {
-			this._navbarDom.setTitleText(this._title);
-		}
-		if (this._nextPage && this._nextPage._navbarDom) {
-			this._nextPage._navbarDom.setBackText(value);
+		if (value !== this._title) {
+			this._title = String(value);
+			if (this._navbarDom) {
+				this._navbarDom.setTitleText(this._title);
+			}
+			if (this._nextPage && this._nextPage._navbarDom) {
+				this._nextPage._navbarDom.setBackText(value);
+			}
 		}
 	}
 
@@ -613,6 +615,20 @@ export class NavPage<P={},S={}> extends Navigation<{
 			this.renderNavbar(value);
 		}
 		this._navbar = value;
+	}
+	get navbarHidden() { return this.isMounted ? this._navbarDom.hidden: false }
+	set navbarHidden(val) { this.setNavbarHidden(val) }
+
+	setNavbarHidden(hidden: boolean) {
+		if (this.isMounted) {
+			this._navbarDom.hidden = hidden;
+			this._navbarDom.update();
+			this.domAs().style = { padding: this.paddingNavbar(hidden) };
+		}
+	}
+
+	private paddingNavbar(isHidden: boolean) {
+		return isHidden ? 0: this.collection.padding + this.collection.navbarHeight;
 	}
 
 	private renderNavbar(navbar: VDom<Navbar>) {
@@ -630,19 +646,22 @@ export class NavPage<P={},S={}> extends Navigation<{
 	}
 
 	protected render() {
-		let padding = this.collection.navbarHidden || this._navbar.props.hidden ? 0:
-			this.collection.padding + this.collection.navbarHeight;
+		const hidden = this.collection.navbarHidden || this._navbar.props.hidden;
 		return (
 			<matrix
 				width="100%"
 				height="match"
 				visible={false}
 				backgroundColor={this.backgroundColor}
-				padding={padding}
+				padding={this.paddingNavbar(hidden)}
 			>
-				{this.children}
+				{this.renderBody()}
 			</matrix>
 		);
+	}
+
+	protected renderBody(): RenderResult {
+		return this.children;
 	}
 
 	protected triggerMounted() {

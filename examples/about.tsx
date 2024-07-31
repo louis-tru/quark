@@ -29,11 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { _CVD } from 'quark';
-import { Mynavpage } from './public';
+import { Page } from './tool';
 
-var resolve = require.resolve;
+const resolve = require.resolve;
 
-export default ()=>{
+export default (self: Page)=>{
+	self.title = 'About';
+	self.source = resolve(__filename);
 
 	var code = `Quark
 	===============
@@ -54,10 +56,8 @@ export default ()=>{
 	louistru@hotmail.com`;
 
 	return (
-		<Mynavpage title="About" source={resolve(__filename)}>
-			<scroll width="match" height="match">
-				<text width="match" margin={10} value={code} />
-			</scroll>
-		</Mynavpage>
+		<scroll width="match" height="match">
+			<text width="match" margin={10} value={code} />
+		</scroll>
 	);
 };

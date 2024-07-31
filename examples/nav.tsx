@@ -28,63 +28,43 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { 
-	Div, Indep, Button, Text, Hybrid, _CVD,
-} from 'quark';
-import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'quark/nav';
-import review_vx from './review';
+import { _CVD, mainScreenScale } from 'quark';
+import { Page } from './tool';
+import { Navbar } from 'quark/nav';
+import {toolbar} from './review';
 import { ClickEvent } from 'quark/event';
 
+const px = 1 / mainScreenScale();
 const resolve = require.resolve;
 
-function hide_show_navbar(evt: ClickEvent) {
-	var navbar = evt.sender.ownerAs<Page>().navbar;
-	var hidden = !navbar.hidden
-	navbar.setHidden(hidden, true);
-	(evt.sender.prev as Div).transition({ height: hidden ? 20 : 0, time: 400 });
+export default (self: Page)=>{
+	if (!self.isMounted) {
+		self.title = 'Nav';
+		self.source = resolve(__filename);
+		self.backgroundColor = '#333';
+		self.navbar = (
+			<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
+				<matrix align="rightMiddle" x={-10}>
+					<button textFamily="icomoon-ultimate" textColor="#fff" textSize={20} value="\ued63" />
+				</matrix>
+			</Navbar>
+		)
+	}
+
+	function hide_show_navbar(e: ClickEvent) {
+		self.navbarHidden = !self.navbarHidden;
+	}
+
+	function nav_pop(e: ClickEvent) {
+		self.collection.pop(true);
+	}
+
+	return (
+		<free width="match">
+			<button class="long_btn2" onClick={hide_show_navbar} value="Hide/Show Navbar" />
+			<button class="long_btn2" onClick={nav_pop} value="Nav pop" />
+
+			{toolbar(self)}
+		</free>
+	)
 }
-
-function hide_show_toolbar(evt: ClickEvent) {
-	var toolbar = evt.sender.ownerAs<Page>().toolbar;
-	toolbar.setHidden(!toolbar.hidden, true);
-}
-
-function nav_pop(evt: ClickEvent) {
-	evt.sender.ownerAs<Page>().collection.pop(true);
-}
-
-function view_code(evt: ClickEvent) {
-	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
-}
-
-const navbar_vx = ()=>(
-	<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
-		<Indep alignX="right" alignY="center" x={-10}>
-			<Button textFamily="icomoon-ultimate" textColor="#fff" textSize={20}>{"\ued63"}</Button>
-		</Indep>
-	</Navbar>
-)
-
-const toolbar_vx = ()=>(
-	<Toolbar backgroundColor="#333">
-		<Hybrid textAlign="center" width="full" height="full">
-			<Button onClick={view_code}>
-				<Text class="toolbar_btn" textColor="#fff" value={"\ue9ab"} />
-			</Button>
-		</Hybrid>
-	</Toolbar>
-)
-
-export default ()=>(
-	<Mynavpage 
-		title="Nav" source={resolve(__filename)} 
-		backgroundColor="#333" navbar={navbar_vx()} toolbar={toolbar_vx()}>
-		<Div width="full">
-			<Div width="full" height={0} />
-			<Button class="long_btn2" onClick={hide_show_navbar}>Hide/Show Navbar</Button>
-			<Button class="long_btn2" onClick={hide_show_toolbar}>Hide/Show Toolbar</Button>
-			<Button class="long_btn2" onClick={nav_pop}>Nav pop</Button>
-		</Div>
-	</Mynavpage>
-)

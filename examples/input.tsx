@@ -28,35 +28,38 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Input, Textarea, default as quark, _CVD, View } from 'quark';
-import { Mynavpage } from './public';
+import { _CVD } from 'quark';
+import { Page } from './tool';
 import { ClickEvent } from 'quark/event';
 
 const resolve = require.resolve;
 
-function start_input(evt: ClickEvent) {
-	evt.sender.ownerAs().find('input1').focus();
-}
+export default (self: Page)=>{
+	self.title = 'Input';
+	self.source = resolve(__filename);
 
-function end_input(evt: ClickEvent) {
-	(quark.app.focusView as View).blur();
-}
+	function start_input(e: ClickEvent) {
+		self.refAs('input1').focus();
+	}
 
-export default ()=>(
-	<Mynavpage title="Input" source={resolve(__filename)}>
-		<Div width="full">
-			<Text margin={10} origin="10 10" textBackgroundColor="#000" textColor="#fff" value="Examples Input" />
-			
-			<Input id="input0" margin={10}
-				width="full"
+	function end_input(e: ClickEvent) {
+		e.origin.window.focusView.blur();
+	}
+	
+	return (
+		<box width="match">
+			<text margin={10} textBackgroundColor="#000" textColor="#fff" value="Examples Input" />
+
+			<input ref="input0" margin={10}
+				width="match"
 				height={30}
 				backgroundColor="#eee"
 				type="phone"
 				returnType="next"
 				borderRadius={8} placeholder="Please enter.." />
 
-			<Input id="input1" margin={10}
-				width="full"
+			<input ref="input1" margin={10}
+				width="match"
 				textColor="#fff"
 				backgroundColor="#000"
 				height={30}
@@ -66,8 +69,8 @@ export default ()=>(
 				textAlign="center"
 				placeholder="Please enter.." value="Hello" />
 			
-			<Textarea margin={10} origin="50 50"
-				width="full"
+			<textarea margin={10}
+				width="match"
 				height={120}
 				textColor="#000"
 				border="0 #aaa"
@@ -77,10 +80,9 @@ export default ()=>(
 				placeholder="Please enter.."
 				textSize={14}
 				textAlign="center" />
-				
-			<Button class="long_btn" onClick={end_input}>Done</Button>
-			<Button class="long_btn" onClick={start_input}>Input</Button>
-				
-		</Div>
-	</Mynavpage>
-)
+
+			<button class="long_btn" onClick={end_input} value="Done" />
+			<button class="long_btn" onClick={start_input} value="Input" />
+		</box>
+	)
+}

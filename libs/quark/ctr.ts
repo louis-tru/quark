@@ -132,8 +132,9 @@ function setref(dom: View | ViewController, owner: ViewController, value: string
 }
 
 function markrerender<T>(ctr: ViewController<T>) {
-	let size = RenderQueueSet.size;
+	const size = RenderQueueSet.size;
 	RenderQueueSet.add(ctr as ViewController);
+
 	if (size == RenderQueueSet.size)
 		return;
 
@@ -141,9 +142,8 @@ function markrerender<T>(ctr: ViewController<T>) {
 		RenderQueueWorking = true;
 		util.nextTick(function() {
 			try {
-				for( let item of RenderQueueSet ) {
+				for( let item of RenderQueueSet )
 					rerender(item);
-				}
 			} finally {
 				RenderQueueWorking = false;
 			}
@@ -172,6 +172,8 @@ function rerender(Self: ViewController) {
 	let dom = self.dom;
 	let vdomOld = self._vdom;
 	let vdomNew = _CVDD(self.render()) || EmptyVDom;
+
+	RenderQueueSet.delete(Self); // re delete mark
 
 	if (vdomOld) {
 		if (vdomOld.hash !== vdomNew.hash) {
@@ -356,11 +358,9 @@ export class VirtualDOM<T extends DOM = DOM> {
 
 	newDom<P = {}, S = {}>(owner: ViewController<P,S>): T {
 		const window = owner.window;
-		const {hashProps,props} = this;
+		const {hashProps,props,children} = this;
 		if (this.domC.isViewController) {
-			let dom = new this.domC(props, {
-				owner, window, children: this.children
-			});
+			let dom = new this.domC(props, { owner, window, children });
 			let newCtr = dom as DOM as ViewController;
 			let r = (newCtr as any).triggerLoad(); // trigger event Load
 			if (r instanceof Promise) {
@@ -381,7 +381,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 			return dom;
 		}
 		else { // view
-			let children = this.children, len = children.length;
+			let len = children.length;
 			let view = new this.domC(window) as DOM as View;
 			let prev: View | null = null;
 			if (len) {
@@ -572,7 +572,10 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	*/
 	get metaView() { return this.dom.metaView }
 
-	constructor(props: Readonly<P>, {window,children,owner}: Args) {
+	constructor(
+		props: Readonly<P & { ref?: string, key?: string|number }>,
+		{window,children,owner}: Args
+	) {
 		this.props = props;
 		this.window = window;
 		this.children = children;
@@ -609,7 +612,9 @@ export class ViewController<P = {}, S = {}> implements DOM {
 				this._rerenderCbs = [cb];
 			}
 		}
-		markrerender(this);
+		if (this.isMounted) {
+			markrerender(this);
+		}
 	}
 
 	domAs<T extends ViewController | View = View>() {
@@ -687,7 +692,7 @@ function _CVDD(value: any): VirtualDOM | null {
 
 declare global {
 	namespace JSX {
-		type Element = VirtualDOM;
+		type Element = VirtualDOM<any>;
 	}
 }
 
@@ -715,5 +720,6 @@ export type VDom<T extends DOM = DOM> = VirtualDOM<T>;
 export const VDom = VirtualDOM;
 
 export const _CVD = createElement;
-export type RenderNode = VirtualDOM | string | null | undefined | void;
+export type RenderData = VirtualDOM | string;
+export type RenderNode = RenderData | null | undefined | void;
 export type RenderResult = RenderNode[] | RenderNode;

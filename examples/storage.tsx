@@ -28,14 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'quark';
+import { _CVD, Input } from 'quark';
 import * as storage from 'quark/storage';
 import { alert } from 'quark/dialog';
-import { Mynavpage } from './public';
+import { Page } from './tool';
 import {KeyEvent,ClickEvent} from 'quark/event';
 
-var resolve = require.resolve;
-
+const resolve = require.resolve;
 const key = 'test';
 
 function keyenter(evt: KeyEvent) {
@@ -45,38 +44,40 @@ function keyenter(evt: KeyEvent) {
 function Get(evt: ClickEvent) {
 	var val = storage.get(key);
 	if ( val ) {
-		alert(storage.get(key));
+		alert(evt.origin.window, storage.get(key));
 	} else {
-		alert('No local storage data！');
+		alert(evt.origin.window, 'No local storage data！');
 	}
 }
 
 function Set(evt: ClickEvent) {
-	storage.set(key, evt.sender.ownerAs().find<Input>('input').value);
-	alert('Save local data OK.');
+	storage.set(key, (evt.origin.prev!.prev! as Input).value);
+	alert(evt.origin.window, 'Save local data OK.');
 }
 
 function Del(evt: ClickEvent) {
-	storage.del(key);
-	alert('Delete local data OK.');
+	storage.remove(key);
+	alert(evt.origin.window, 'Delete local data OK.');
 }
 
 function Clear(evt: ClickEvent) {
 	storage.clear();
-	alert('Delete All local data OK.');
+	alert(evt.origin.window, 'Delete All local data OK.');
 }
 
-export default ()=>(
-	<Mynavpage title="Local Storage" source={resolve(__filename)}>
-		<Div width="full">
-			<Input class="input" id="input" 
-				placeholder="Please enter value .." 
+export default (self: Page)=>{
+	self.title = 'Local Storage';
+	self.source = resolve(__filename);
+	return (
+		<box width="match">
+			<input class="input" ref="input"
+				placeholder="Please enter value .."
 				value="Hello."
 				returnType="done" onKeyEnter={keyenter} />
-			<Button class="long_btn" onClick={Get}>Get</Button>
-			<Button class="long_btn" onClick={Set}>Set</Button>
-			<Button class="long_btn" onClick={Del}>Del</Button>
-			<Button class="long_btn" onClick={Clear}>Clear</Button>
-		</Div>
-	</Mynavpage>
-)
+			<button class="long_btn" onClick={Get} value="Get" />
+			<button class="long_btn" onClick={Set} value="Set" />
+			<button class="long_btn" onClick={Del} value="Del" />
+			<button class="long_btn" onClick={Clear} value="Clear" />
+		</box>
+	);
+}

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {_CVD,link,View,Box,Matrix} from './index';
+import {_CVD,link,View,Box,Matrix,VDom,Window} from './index';
 import { Navigation } from './nav';
 import * as types from './types';
 
@@ -338,30 +338,30 @@ export class Overlay<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method showOverlayFromView(target_view[,offset_x[,offset_y]])  通过目标视图显示 Overlay
-	 * @param target_view {View} # 参数可提供要显示的位置信息
+	 * @method showOverlayFrom(from[,offset_x[,offset_y]])  通过目标视图显示 Overlay
+	 * @param from {Box} # 参数可提供要显示的位置信息
 	 * @param [offset] {Object} # 显示目标位置的偏移
 	 */
-	showOverlayFromView(target: Box, offset_x?: number, offset_y?: number) {
-		offset_x = offset_x || 0;
-		offset_y = offset_y || 0;
-		let origin = target.position;
-		let size = target.contentSize;
-		this.showOverlay(
-			origin.x + offset_x, origin.y + offset_y,
-			size.x - offset_x * 2, size.y - offset_y * 2);
+	showOverlayFrom(from: Box, offset?: types.Vec2) {
+		offset = offset || types.newVec2(0,0);
+		let {position,contentSize} = from;
+		let rect = types.newRect(
+			position.x    + offset.x,     position.y    + offset.y,
+			contentSize.x - offset.x * 2, contentSize.y - offset.y * 2,
+		);
+		this.showOverlay(rect);
 	}
 
 	/**
-	 * showOverlay(pos_x,pos_y[,offset_x[,offset_y]]) 通过位置显示
+	 * showOverlay(rect) 通过rect显示
 	 */
-	showOverlay(x: number, y: number, offset_x?: number, offset_y?: number) {
+	showOverlay(rect: types.Rect) {
 		let self = this;
 		let size = this.window.size;
-		let _x = Math.max(0, Math.min(size.x, x));
-		let _y = Math.max(0, Math.min(size.y, y));
-		let _offset_x = offset_x || 0;
-		let _offset_y = offset_y || 0;
+		let _x = Math.max(0, Math.min(size.x, rect.x));
+		let _y = Math.max(0, Math.min(size.y, rect.y));
+		let _offset_x = rect.width;
+		let _offset_y = rect.height;
 
 		self.domAs().visible = true;
 
@@ -401,5 +401,12 @@ export class Overlay<P={},S={}> extends Navigation<{
 	 * @overwrite
 	 */
 	navigationEnter(focus: View) {
+	}
+
+	/**
+	 * @method render()
+	*/
+	static render(vdom: VDom<Overlay>, win: Window) {
+		return vdom.newDom(win.rootCtr);
 	}
 }

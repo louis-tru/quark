@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Scroll, TextNode, Hybrid, _CVD } from 'quark';
-import { Mynavpage } from './public';
+import { _CVD } from 'quark';
+import { Page } from './tool';
 
 const resolve = require.resolve;
-const icon_str = `
+const icon = `
 \ue900
 \ue901
 \ue902
@@ -1645,31 +1645,26 @@ const icon_str = `
 \uef49
 `;
 
-class Controller extends Mynavpage {
-	source = resolve(__filename);
-	render() {
-		return super.render(
-			<Scroll width="full" height="full" bounceLock={0}>
-				<Div margin={10} width="full">
-					{
-						Array.from({length: icon_str.length}).map((e,i)=>{
-							var unicode = icon_str.charCodeAt(i);
-							if (unicode > 255) {
-								return (
-									<Hybrid marginBottom={10} textAlign="center" width="25%">
-										<TextNode textSize={28} textFamily="icomoon-ultimate" value={icon_str[i]} />
-										<TextNode textColor="#555" value={` ${unicode.toString(16)}`} />
-									</Hybrid>
-								);
-							}
-						}).filter(e=>e)
+export default (self: Page)=>{
+	self.title = 'Icons';
+	self.source = resolve(__filename);
+	return (
+		<scroll width="match" height="match" bounceLock={false}>
+			<box margin={10} width="match">
+			{
+				Array.from({length: icon.length}).map((e,i)=>{
+					var unicode = icon.charCodeAt(i);
+					if (unicode > 255) {
+						return (
+							<text key={i} marginBottom={10} textAlign="center" width="25%" align="start">
+								<label textSize={28} textFamily="icomoon-ultimate" value={icon[i]} />
+								<label textColor="#555" value={` ${unicode.toString(16)}`} />
+							</text>
+						);
 					}
-				</Div>
-			</Scroll>
-		);
-	}
+				}).filter(e=>e)
+			}
+			</box>
+		</scroll>
+	);
 }
-
-export default ()=>(
-	<Controller title="Icons" />
-);

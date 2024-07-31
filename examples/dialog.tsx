@@ -28,49 +28,60 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, TextNode, _CVD } from 'quark';
-import { Mynavpage } from './public';
+import { _CVD } from 'quark';
+import { Page } from './tool';
 import * as dialog from 'quark/dialog';
+import { ClickEvent } from 'quark/event';
 
 const resolve = require.resolve;
 
-function alert() {
-	dialog.alert('Hello alert.');
+function alert(e: ClickEvent) {
+	dialog.alert(e.origin.window, 'Hello alert.');
 }
 
-function confirm() {
-	dialog.confirm('Hello Confirm.', (ok)=>{
-		if ( ok ) dialog.alert('OK');
+function confirm(e: ClickEvent) {
+	const win = e.origin.window;
+	dialog.confirm(win, 'Hello Confirm.', (ok)=>{
+		if ( ok )
+			dialog.alert(win, 'OK');
 	});
 }
 
-function prompt() {
-	dialog.prompt('Hello Prompt.', (ok, text)=>{
+function prompt(e: ClickEvent) {
+	const win = e.origin.window;
+	dialog.prompt(win, 'Hello Prompt.', (ok, text)=>{
 		if ( ok ) {
-			dialog.alert(text);
+			dialog.alert(win, text);
 		}
 	});
 }
 
-function custom() {
-	dialog.show('蓝牙已关闭', 
-	'CarPlay将只能通过USB使用。您希望同时启用无线CarPlay吗？', 
-	[<TextNode textStyle='bold' value="仅USB"/>, '无线蓝牙'], (num)=>{
-		if ( num == 0 ) {
-			dialog.alert('仅USB');
-		} else {
-			dialog.alert('无线蓝牙');
+function custom(e: ClickEvent) {
+	const win = e.origin.window;
+	dialog.show(
+		e.origin.window,
+		'蓝牙已关闭',
+		'CarPlay将只能通过USB使用。您希望同时启用无线CarPlay吗？',
+		[<text textWeight="bold" value="仅USB"/>, '无线蓝牙'],
+		(num)=>{
+			if ( num == 0 ) {
+				dialog.alert(win, '仅USB');
+			} else {
+				dialog.alert(win, '无线蓝牙');
+			}
 		}
-	});
+	);
 }
 
-export default ()=>(
-	<Mynavpage title="Dialog" source={resolve(__filename)}>
-		<Div width="full">
-			<Button class="long_btn" onClick={alert}>Alert</Button>
-			<Button class="long_btn" onClick={confirm}>Confirm</Button>
-			<Button class="long_btn" onClick={prompt}>Prompt</Button>
-			<Button class="long_btn" onClick={custom}>Custom</Button>
-		</Div>
-	</Mynavpage>
-)
+export default (self: Page)=>{
+	self.title = 'Dialog';
+	self.source = resolve(__filename);
+	return (
+		<box width="match">
+			<button class="long_btn" onClick={alert} value="Alert" />
+			<button class="long_btn" onClick={confirm} value="Confirm" />
+			<button class="long_btn" onClick={prompt} value="Prompt" />
+			<button class="long_btn" onClick={custom} value="Custom" />
+		</box>
+	)
+}

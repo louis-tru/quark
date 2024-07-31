@@ -28,22 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+import { mainScreenScale, createCss, StyleSheet } from 'quark';
+import { _CVD, ViewController, VirtualDOM, assertDom, link, VDom, RenderResult } from 'quark/ctr';
 import { NavPage } from 'quark/nav';
-import { 
-	ViewController, Button, Hybrid,
-	Text, Indep, default as qk, _CVD
-} from 'quark';
 import {ClickEvent} from 'quark/event';
+import * as types from 'quark/types';
 
-const px = qk.atomPixel;
+
+const px = 1 / mainScreenScale();
 const resolve = require.resolve;
 
-qk.css({
+createCss({
 
 	'.long_btn': {
 		margin: 10,
 		marginBottom: 0,
-		width: "full",
+		width: "match",
 		height: 36,
 		textLineHeight: 36,
 		textColor: "#0079ff",
@@ -60,7 +60,7 @@ qk.css({
 	'.long_btn2': {
 		margin: 10,
 		marginBottom: 0,
-		width: "full",
+		width: "match",
 		height: 36,
 		textLineHeight: 36,
 		textColor: "#fff",
@@ -69,7 +69,7 @@ qk.css({
 	},
 
 	'.next_btn': {
-		width: 'full',
+		width: 'match',
 		textLineHeight: 45,
 		textAlign: "left",
 		borderRadius: 0,
@@ -88,7 +88,7 @@ qk.css({
 	'.input': {
 		margin:10,
 		marginBottom:0,
-		width:"full",
+		width:"match",
 		height:30,
 		backgroundColor:"#eee",
 		borderRadius:8,
@@ -96,52 +96,50 @@ qk.css({
 
 })
 
-export class NavButton extends ViewController {
+export class NavButton extends ViewController<{style?: StyleSheet, next?: (self: Page)=>RenderResult}> {
+	@link next?: (self: Page)=>RenderResult;
 
-	next?: any;
-
-	render(...vdoms: any[]) {
-		//util.log('---------------------', px);
+	render() {
 		return (
-			<Button
+			<button
 				onClick={this._handleClick}
 				class="next_btn"
 				textColor="#0079ff"
-				defaultHighlighted={0}
 				borderBottom={`${px} #c8c7cc`}
-				style={this.style}
+				style={this.props.style}
 			>
-				<Hybrid marginLeft={16} marginRight={50}>{vdoms}</Hybrid>
-				<Indep x={-10} alignX="right" alignY="center">
-					<Text value={'\uedbe'} textFamily="icomoon-ultimate" textColor="#aaa" />
-				</Indep>
-			</Button>
+				<text marginLeft={16} marginRight={50}>{this.children}</text>
+				<matrix x={-10} align="rightMiddle">
+					<text value={'\uedbe'} textFamily="icomoon-ultimate" textColor="#aaa" />
+				</matrix>
+			</button>
 		);
 	}
 
-	private _handleClick = (evt: ClickEvent)=>{
-		if (!this.next) return;
-		var next = this.next();
-		if ( ViewController.typeOf(next, Mynavpage) ) {
-			var ctr = this.owner;
-			while (ctr) {
-				if ( ctr instanceof Mynavpage ) {
-					ctr.collection.push(next, true); break;
-				}
-				ctr = ctr.owner;
+	private _handleClick = (e: ClickEvent)=>{
+		if (!this.next)
+			return;
+
+		const render = this.next;
+		class MyPage extends Page {
+			renderBody(): RenderResult {
+				return render(this);
 			}
 		}
-		// console.log('nav button click');
-	}
-};
 
-export class Page extends NavPage {
-	source = resolve(__filename);
-	constructor() {
-		super();
-		this.backgroundColor = '#f8f8f8';
+		let ctr = this.owner;
+		while (ctr) {
+			if ( ctr instanceof Page ) {
+				ctr.collection.push(<MyPage />, true);
+					break;
+			}
+			ctr = ctr.owner;
+		}
 	}
 }
 
-export var Navbutton = NavButton;
-export var Mynavpage = Page;
+export class Page extends NavPage<{source?: string}> {
+	@link
+	source = resolve(__filename);
+	backgroundColor: types.ColorStrIn = '#f8f8f8';
+}

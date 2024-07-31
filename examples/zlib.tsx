@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, _CVD } from 'quark';
-import { Mynavpage } from './public';
+import { _CVD } from 'quark'
+import { Page } from './tool'
 
-const resolve = require.resolve;
-
-export default ()=>(
-	<Mynavpage title="Zlib" source={resolve(__filename)}>
-		<Div width="full">
-			<Button class="long_btn">OK</Button>
-		</Div>
-	</Mynavpage>
-)
+export default (self: Page)=>{
+	self.title = 'Zlib';
+	self.source = require.resolve(__filename);
+	return (
+		<box width="match">
+			<button class="long_btn" value='OK' />
+		</box>
+	);
+}

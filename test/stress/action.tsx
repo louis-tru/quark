@@ -5,7 +5,6 @@ import util from 'quark/util';
 import * as uu from './uu';
 
 const random = util.random;
-
 const app = new Application();
 const win = new Window({
 	title: 'tests action',
@@ -13,14 +12,13 @@ const win = new Window({
 	fps: 0x0,
 }).activate();
 
-const w = win.size.x;
-const h = win.size.y;
+const w = win.size.x, h = win.size.y;
 console.log(w,h);
 
 win.render(
 	<box width="match" height="match">
 	{
-		Array.from({ length: 10000 }).map((e,i)=>{
+		Array.from({length:10000}).map((e,i)=>{
 			let color = new types.Color(random(0, 255), random(0, 255), random(0, 255), 255);
 			let s = random(20, 30);
 			let s2 = s / 2;
@@ -29,13 +27,13 @@ win.render(
 			return (
 				<matrix
 					key={i}
-					originX={s2} 
+					originX={s2}
 					originY={s2}
-					backgroundColor={color} 
-					width={s} 
-					height={s} 
-					x={x} 
-					y={y} 
+					backgroundColor={color}
+					width={s}
+					height={s}
+					x={x}
+					y={y}
 					action={{
 						keyframe: [
 							{ curve: 'linear', rotateZ: 0 },
@@ -49,6 +47,6 @@ win.render(
 		})
 	}
 	</box>
-);
+)
 
-uu.show_fsp();
+uu.show_fsp()

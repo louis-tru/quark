@@ -28,73 +28,74 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'quark';
+import { _CVD, Input } from 'quark';
 import util from 'quark/util';
 import * as http from 'quark/http';
 import { alert } from 'quark/dialog';
-import { Mynavpage } from './public';
+import { Page } from './tool';
 import { ClickEvent, KeyEvent } from 'quark/event';
 import * as buffer from 'quark/buffer';
 
 const resolve = require.resolve;
 
-function url(evt: ClickEvent) {
-	return evt.sender.ownerAs().find<Input>('input').value;
-}
+export default (self: Page)=>{
+	self.title = 'Http';
+	self.source = resolve(__filename);
 
-function Get(evt: ClickEvent) {
-	http.get(url(evt)).then(function({ data }) {
-		var content = buffer.convertString(data, 'utf8');
-		alert(content.substr(0, 200).trim() + '...');
-	}).catch(function(err) {
-		alert(err.message);
-	});
-}
-
-function Post(evt: ClickEvent) {
-	http.post(url(evt), 'post data').then(function({ data }) {
-		alert(buffer.convertString(data, 'utf8').substr(0, 200).trim() + '...');
-	}).catch(function(err) {
-		alert(err.message);
-	});
-}
-
-function GetSync(evt: ClickEvent) {
-	try {
-		alert(buffer.convertString(http.getSync(url(evt)), 'utf8').substr(0, 200).trim() + '...');
-	} catch (err) {
-		alert(err.message);
+	function url(evt: ClickEvent) {
+		return self.refAs<Input>('input').value;
 	}
-}
 
-function PostSync(evt: ClickEvent) {
-	try {
-		alert(buffer.convertString(http.postSync(url(evt), 'post data'), 'utf8').substr(0, 200).trim() + '...');
-	} catch (err) {
-		alert(err.message);
+	function Get(e: ClickEvent) {
+		http.get(url(e)).then(function({ data }) {
+			var content = buffer.toString(data, 'utf8');
+			alert(e.origin.window, content.substring(0, 200).trim() + '...');
+		}).catch(function(err) {
+			alert(e.origin.window, err.message);
+		});
 	}
-}
 
-function keyenter(evt: KeyEvent) {
-	evt.sender.blur();
-}
+	function Post(e: ClickEvent) {
+		http.post(url(e), 'post data').then(function({ data }) {
+			alert(e.origin.window, buffer.toString(data, 'utf8').substring(0, 200).trim() + '...');
+		}).catch(function(err) {
+			alert(e.origin.window, err.message);
+		});
+	}
 
-//console.log('-------------', String(util.garbage_collection), typeof util.garbage_collection);
+	function GetSync(e: ClickEvent) {
+		try {
+			alert(e.origin.window, buffer.toString(http.getSync(url(e)), 'utf8').substring(0, 200).trim() + '...');
+		} catch (err: any) {
+			alert(e.origin.window, err.message);
+		}
+	}
 
-export default ()=>(
-	<Mynavpage title="Http" source={resolve(__filename)}>
-		<Div width="full">
-			<Input class="input" id="input" 
+	function PostSync(e: ClickEvent) {
+		try {
+			alert(e.origin.window, buffer.toString(http.postSync(url(e), 'post data'), 'utf8').substring(0, 200).trim() + '...');
+		} catch (err: any) {
+			alert(e.origin.window, err.message);
+		}
+	}
+
+	function keyenter(evt: KeyEvent) {
+		evt.sender.blur();
+	}
+
+	return (
+		<box width="match">
+			<input class="input" ref="input" 
 				placeholder="Please enter http url .." 
 				value="https://github.com/"
 				//value="http://192.168.1.11:1026/Tools/test_timeout?1"
 				returnType="done" onKeyEnter={keyenter} />
-			<Button class="long_btn" onClick={Get}>Get</Button>
-			<Button class="long_btn" onClick={Post}>Post</Button>
-			<Button class="long_btn" onClick={GetSync}>GetSync</Button>
-			<Button class="long_btn" onClick={PostSync}>PostSync</Button>
-			<Button class="long_btn" onClick={util.gc}>GC</Button>
-			<Button class="long_btn" onClick={util.exit}>Exit</Button>
-		</Div>
-	</Mynavpage>
-)
+			<button class="long_btn" onClick={Get} value="Get" />
+			<button class="long_btn" onClick={Post} value="Post" />
+			<button class="long_btn" onClick={GetSync} value="GetSync" />
+			<button class="long_btn" onClick={PostSync} value="PostSync" />
+			<button class="long_btn" onClick={util.gc} value="GC" />
+			<button class="long_btn" onClick={e=>util.exit(0)} value="Exit" />
+		</box>
+	);
+}

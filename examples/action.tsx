@@ -28,53 +28,40 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import {
-	Hybrid, Text, Button, Image, Indep, Clip, _CVD
-} from 'quark';
-import { HighlightedStatus, HighlightedEvent, ClickEvent } from 'quark/event';
-import { Navbar, Toolbar, NavPage } from 'quark/nav';
-import { Mynavpage } from './public';
-import review_vx from './review';
+import { _CVD } from 'quark';
+import { HighlightedStatus, HighlightedEvent } from 'quark/event';
+import { Navbar } from 'quark/nav';
+import { Page } from './tool';
+import {toolbar} from './review';
 
-var resolve = require.resolve;
+const resolve = require.resolve;
 
-function view_code(evt: ClickEvent) {
-	(evt.sender.owner as NavPage).collection.push(review_vx(), true);
-}
-
-function highlighted(evt: HighlightedEvent) {
-	var owner = evt.sender.ownerAs();
-	var img1 = owner.find('img1');
-	var img2 = owner.find('img2');
-	var speed = 1;
-	if ( evt.status == HighlightedStatus.HIGHLIGHTED_DOWN ) {
-		speed = img1 === evt.sender ? 2 : 0.5;
+export default (self: Page)=>{
+	if (!self.isMounted) {
+		self.navbar = (
+			<Navbar fillColor="#333" backTextColor="#fff" titleTextColor="#fff" />
+		);
+		self.title = 'Action';
+		self.source = resolve(__filename);
+		self.backgroundColor = '#333';
 	}
-	img1.actionAs().speed = speed;
-	img2.actionAs().speed = speed;
-}
 
-const toolbar_vx = ()=>(
-	<Toolbar fillColor="#333">
-		<Hybrid textAlign="center" width="full" height="full">
-			<Button onClick={view_code}>
-				<Text class="toolbar_btn" textColor="#fff" value={"\ue9ab"} />
-			</Button>
-		</Hybrid>
-	</Toolbar>
-)
+	function highlighted(evt: HighlightedEvent) {
+		var img1 = self.refAs('img1');
+		var img2 = self.refAs('img2');
+		var speed = 1;
+		if ( evt.status == HighlightedStatus.Active ) {
+			speed = img1 === evt.sender ? 2 : 0.5;
+		}
+		img1.action!.speed = speed;
+		img2.action!.speed = speed;
+	}
 
-export default ()=>(
-	<Mynavpage 
-		navbar={<Navbar fillColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
-		toolbar={toolbar_vx()}
-		backgroundColor="#333"
-		title="Action" source={resolve(__filename)}>
-		<Clip width="full" height="full">
-			<Indep width={600} alignX="center" alignY="center" y={-15} opacity={0.5}>
-				<Image onHighlighted={highlighted} id="img1" src={resolve('./gear0.png')}
-					marginLeft="auto" marginRight="auto" 
-					y={56} width={600} origin="300 300"
+	return (
+		<free width="match" height="match">
+			<matrix width={600} align="centerMiddle" y={-15} opacity={0.5}>
+				<matrix
+					onHighlighted={highlighted} 
 					action={{
 						keyframe:[
 							{ rotateZ: 0, time:0, curve:'linear' }, 
@@ -83,12 +70,15 @@ export default ()=>(
 						loop: 1e8,
 						playing: true,
 					}}
-				/>
-				<Image onHighlighted={highlighted} id="img2" src={resolve('./gear1.png')}
-					marginLeft="auto" 
-					marginRight="auto"
-					width={361} 
-					origin="180.5 180.5"
+					y={56}
+					origin={[300,300]}
+					align="center"
+					ref="img1"
+				>
+					<image src={resolve('./gear0.png')} width={600} />
+				</matrix>
+				<matrix
+					onHighlighted={highlighted}
 					action={{
 						keyframe: [
 							{ rotateZ: 22.5, time:0, curve:'linear' }, 
@@ -97,8 +87,15 @@ export default ()=>(
 						loop: 1e8,
 						playing: true,
 					}}
-				/>
-			</Indep>
-		</Clip>
-	</Mynavpage>
-)
+					origin={[180.5,180.5]}
+					align="center"
+					ref="img2"
+				>
+					<image src={resolve('./gear1.png')} width={361} />
+				</matrix>
+			</matrix>
+
+			{toolbar(self)}
+		</free>
+	)
+}

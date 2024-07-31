@@ -46,7 +46,7 @@ cl.onEnd.on(function(ev){
 	Pv(cl, 'statusCode', 200)
 	Pv(cl, 'url', 'https://www.baidu.com/')
 })
-cl.onReadystateChange.on(function(ev){ 
+cl.onReadystateChange.on(function(ev){
 	LOG('http onReadystateChange:', cl.readyState, cl.statusCode) 
 })
 cl.onTimeout.on(function(ev) {

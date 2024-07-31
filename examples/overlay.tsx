@@ -28,71 +28,71 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Indep, default as quark, _CVD } from 'quark';
-import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'quark/overlay';
+import { _CVD, Box } from 'quark';
+import { NavButton, Page } from './tool';
+import { Overlay, Priority } from 'quark/overlay';
 import { ClickEvent } from 'quark/event';
 
 const resolve = require.resolve;
 
 function show_overlay(evt: ClickEvent) {
-	quark.render<Overlay>(
+	Overlay.render(
 		<Overlay>
-			<Div>
-				<Navbutton>Menu A</Navbutton>
-				<Navbutton>Menu B------C</Navbutton>
-				<Navbutton>Menu C</Navbutton>
-				<Navbutton style={{borderWidth:0}}>Menu D</Navbutton>
-			</Div>
-		</Overlay>
-	).showOverlayFromView(evt.sender);
+			<box>
+				<NavButton>Menu A</NavButton>
+				<NavButton>Menu B------C</NavButton>
+				<NavButton>Menu C</NavButton>
+				<NavButton style={{borderWidth:0}}>Menu D</NavButton>
+			</box>
+		</Overlay>,
+		evt.origin.window
+	).showOverlayFrom(evt.sender as Box);
 }
 
 function show_overlay2(evt: ClickEvent) {
-	var com = quark.render<Overlay>(
-		<Overlay>
-			<Div>
-				<Navbutton>Hello.</Navbutton>
-				<Navbutton>Who are you going to?</Navbutton>
-				<Navbutton style={{borderWidth:0}}>Do I know you?</Navbutton>
-			</Div>
-		</Overlay>
-	);
-	com.priority = 'left';
-	com.showOverlayFromView(evt.sender);
+	Overlay.render(
+		<Overlay priority={Priority.Left}>
+			<box>
+				<NavButton>Hello.</NavButton>
+				<NavButton>Who are you going to?</NavButton>
+				<NavButton style={{borderWidth:0}}>Do I know you?</NavButton>
+			</box>
+		</Overlay>,
+		evt.origin.window
+	).showOverlayFrom(evt.sender as Box);
 }
 
 function show_overlay3(evt: ClickEvent) {
-	var com = quark.render<Overlay>(
-		<Overlay>
-			<Div>
-				<Navbutton style={{textColor:"#fff"}}>Hello.</Navbutton>
-				<Navbutton style={{textColor:"#fff"}}>Who are you going to?</Navbutton>
-				<Navbutton style={{textColor:"#fff"}}>Do I know you?</Navbutton>
-				<Navbutton style={{textColor:"#fff", borderWidth:0}}>What country are you from?</Navbutton>
-			</Div>
-		</Overlay>
-	);
-	com.priority = 'left';
-	com.backgroundColor = '#000';
-	com.showOverlayFromView(evt.sender);
+	Overlay.render(
+		<Overlay priority={Priority.Left} backgroundColor="#000">
+			<box>
+				<NavButton style={{textColor:"#fff"}}>Hello.</NavButton>
+				<NavButton style={{textColor:"#fff"}}>Who are you going to?</NavButton>
+				<NavButton style={{textColor:"#fff"}}>Do I know you?</NavButton>
+				<NavButton style={{textColor:"#fff", borderWidth:0}}>What country are you from?</NavButton>
+			</box>
+		</Overlay>,
+		evt.origin.window
+	).showOverlayFrom(evt.sender as Box);
 }
 
-export default ()=>(
-	<Mynavpage title="Overlay" source={resolve(__filename)}>
-		<Div width="full" height="full">
-			<Indep alignY="top" width="full">
-				<Button class="long_btn" onClick={show_overlay}> Show Overlay </Button>
-			</Indep>
-			<Indep alignY="bottom" y={-10} width="full">
-				<Button class="long_btn" onClick={show_overlay}> Show Overlay </Button>
-			</Indep>
-			<Indep alignY="center">
-				<Button class="long_btn" onClick={show_overlay2}> Show Overlay </Button>
-			</Indep>
-			<Indep alignY="center" alignX="right">
-				<Button class="long_btn" onClick={show_overlay3}> Show Overlay </Button>
-			</Indep>
-		</Div>
-	</Mynavpage>
-)
+export default (self: Page)=>{
+	self.title = 'Overlay'
+	self.source = resolve(__filename);
+	return (
+		<free width="match" height="match">
+			<box align="centerTop" width="match">
+				<button class="long_btn" onClick={show_overlay}> Show Overlay </button>
+			</box>
+			<box align="rightMiddle" width="match">
+				<button class="long_btn" onClick={show_overlay}> Show Overlay </button>
+			</box>
+			<box align="centerBottom">
+				<button class="long_btn" onClick={show_overlay2}> Show Overlay </button>
+			</box>
+			<box align="leftMiddle">
+				<button class="long_btn" onClick={show_overlay3}> Show Overlay </button>
+			</box>
+		</free>
+	)
+}

@@ -28,47 +28,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, _CVD, default as quark } from 'quark';
+import { _CVD, createCss,mainScreenScale, Text } from 'quark';
 import { Stepper } from 'quark/stepper';
-import { Mynavpage } from './public';
-import { Event } from 'quark/event';
+import { Page } from './tool';
 
+const px = 1 / mainScreenScale();
 const resolve = require.resolve;
 
-quark.css({
+createCss({
 	'.strpper_page': {
-		width: 'full',
+		width: 'match',
 	},
 	'.strpper_page .item': {
-		width: 'full',
-		borderBottom: `${quark.atomPixel} #ccc`,
+		width: 'match',
+		borderBottom: `${px} #ccc`,
 	},
 	'.strpper_page .text': {
 		width: '140!',
 		margin: 13,
 	},
+	'.stepper_page .stepper': {
+		margin:10
+	},
 })
 
-function change_handle(evt: Event<void, Stepper>) {
-	var stepper = evt.sender as Stepper;
-	(stepper.domAs().prev as Text).value = String(stepper.value);
+function handleChange(self: Page, value: number, ref: string) {
+	(self.refAs(ref) as Text).value = String(value);
 }
 
-export default ()=>(
-	<Mynavpage title="Stepper" source={resolve(__filename)}>
-		<Div width="full" class="strpper_page">
-			<Div class="item">
-				<Text class="text" value="10" />
-				<Stepper onChange={change_handle} style={{margin:10}} value={10} />
-			</Div>
-			<Div class="item">
-				<Text class="text" value="6" />
-				<Stepper onChange={change_handle} style={{margin:10}} max={10} min={5} value={6} />
-			</Div>
-			<Div class="item">
-				<Text class="text" value="0" />
-				<Stepper onChange={change_handle} style={{margin:10}} step={0.1} />
-			</Div>
-		</Div>
-	</Mynavpage>
-)
+export default (self: Page)=>{
+	self.title = 'Stepper';
+	self.source = resolve(__filename);
+	return (
+		<box width="match" class="strpper_page">
+			<box class="item">
+				<text class="text" value="10" ref="t1" />
+				<Stepper onChange={e=>handleChange(self, e, 't1')} class='stepper' initValue={10} />
+			</box>
+			<box class="item">
+				<text class="text" value="6" ref="t2" />
+				<Stepper onChange={e=>handleChange(self, e, 't2')} class='stepper' max={10} min={5} initValue={6} />
+			</box>
+			<box class="item">
+				<text class="text" value="0" ref="t3" />
+				<Stepper onChange={e=>handleChange(self, e, 't3')} class='stepper' step={0.1} />
+			</box>
+		</box>
+	);
+}

@@ -28,26 +28,43 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Text, _CVD } from 'quark';
-import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'quark/nav';
-import * as reader from 'quark/reader';
-import {Event} from 'quark/event';
+import { _CVD, Text, mainScreenScale } from 'quark';
+import { Page } from './tool';
+import { Navigation, Navbar } from 'quark/nav';
+import {reader} from 'quark/fs';
 
-function foreground(evt: Event<void, Page>) {
-	var navpage = evt.sender;
-	navpage.title = 'Source';
-	var text = reader.readFileSync((navpage.prevPage as Page).source, 'utf8');
-	navpage.find<Text>('text').value = text;
-}
+const px = 1 / mainScreenScale();
 
-export default ()=>(
-	<Mynavpage 
-		navbar={<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
-		toolbar={<Toolbar hidden={true} />}
-		backgroundColor="#333" onForeground={foreground}>
-		<Scroll width="full" height="full" bounceLock={0}>
-			<Text width="full" id="text" textColor="#fff" textSize={12} margin={5} />
-		</Scroll>
-	</Mynavpage>
+export const review = ()=>(
+	<Page
+		title="Source"
+		backgroundColor="#333"
+		onForeground={function(self: Navigation) {
+			const page = self as Page;
+			const source = (page.prevPage as Page).source;
+			const text = reader.readFileSync(source, 'utf8');
+			page.refAs<Text>('text').value = text;
+		}}
+		navbar={
+			<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />
+		}
+	>
+		<scroll width="match" height="match" bounceLock={false}>
+			<text width="match" ref="text" textColor="#fff" textSize={12} margin={5} />
+		</scroll>
+	</Page>
+);
+
+export const toolbar = (self: Page)=>(
+	<free width="match" height={30} backgroundColor="#333" align="centerBottom" borderTop={`${px} #000`}>
+		<button
+			align="centerMiddle"
+			onClick={function() {
+				self.collection.push(review(), true);
+			}}
+			class="toolbar_btn" textColor="#fff" value={"\ue9ab"}
+		/>
+	</free>
 )
+
+export default review;

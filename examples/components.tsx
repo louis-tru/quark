@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Clip, Text, _CVD } from 'quark';
-import { Navbutton, Mynavpage } from './public';
+import { _CVD } from 'quark';
+import { NavButton, Page } from './tool';
 import checkbox from './checkbox';
 import overlay from './overlay';
 import stepper from './stepper';
@@ -38,17 +38,19 @@ import dialog from './dialog';
 
 const resolve = require.resolve;
 
-export default ()=>(
-	<Mynavpage title="Components" source={resolve(__filename)}>
-		<Scroll width="full" height="full" bounceLock={0}>
-			<Text class="category_title" value="Components." />
-			<Clip class="category">
-				<Navbutton next={nav}>Nav</Navbutton>
-				<Navbutton next={checkbox}>Checkbox</Navbutton>
-				<Navbutton next={stepper}>Stepper</Navbutton>
-				<Navbutton next={overlay}>Overlay</Navbutton>
-				<Navbutton next={dialog}>Dialog</Navbutton>
-			</Clip>
-		</Scroll>
-	</Mynavpage>
-);
+export default (self: Page)=>{
+	self.title = 'Components';
+	self.source = resolve(__filename);
+	return (
+		<scroll width="match" height="match" bounceLock={false}>
+			<text class="category_title" value="Components." />
+			<box class="category">
+				<NavButton next={nav}>Nav</NavButton>
+				<NavButton next={checkbox}>Checkbox</NavButton>
+				<NavButton next={stepper}>Stepper</NavButton>
+				<NavButton next={overlay}>Overlay</NavButton>
+				<NavButton next={dialog}>Dialog</NavButton>
+			</box>
+		</scroll>
+	)
+}
