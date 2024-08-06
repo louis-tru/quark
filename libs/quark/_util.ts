@@ -37,6 +37,52 @@ let   config: Dict | null = null;
 let   debug = false;
 const options: Optopns = {};  // start options
 
+export const mainPath = function() {
+	let parseOptions = (args: string[], options: Optopns)=>{
+		for (let item of args) {
+			let mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
+			if (mat) {
+				let name = mat[1].replace(/-/gm, '_');
+				let val = mat[2] || '1';
+				let raw_val = options[name];
+				if ( raw_val ) {
+					if ( Array.isArray(raw_val) ) {
+						raw_val.push(val);
+					} else {
+						options[name] = [raw_val, val];
+					}
+				} else {
+					options[name] = val;
+				}
+			}
+		}
+	};
+	let main: string = '';
+	let args: string[] = [];
+	if (_init.argv.length > 1) {
+		main = String(_init.argv[1] || '');
+		args = _init.argv.slice(2);
+	}
+	parseOptions(args, options); // parse options
+
+	debug = 'inspect' in options ||
+					'inspect_brk' in options;
+
+	if ( 'url_arg' in options ) {
+		if (Array.isArray(options.url_arg))
+			options.url_arg = options.url_arg.join('&');
+	} else {
+		options.url_arg = '';
+	}
+	if ('no_cache' in options || debug) {
+		if (options.url_arg) {
+			options.url_arg += '&__no_cache';
+		} else {
+			options.url_arg = '__no_cache';
+		}
+	}
+	return main;
+}();
 export const executable = _fs.executable as ()=>string;
 export const documents = _fs.documents as (path?: string)=>string;
 export const temp = _fs.temp as (path?: string)=>string;
@@ -308,55 +354,6 @@ export declare class Hash5381 {
 }
 
 exports.Hash5381 = _init.Hash5381;
-
-function initArgv() {
-	let parseOptions = (args: string[], options: Optopns)=>{
-		for (let item of args) {
-			let mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
-			if (mat) {
-				let name = mat[1].replace(/-/gm, '_');
-				let val = mat[2] || '1';
-				let raw_val = options[name];
-				if ( raw_val ) {
-					if ( Array.isArray(raw_val) ) {
-						raw_val.push(val);
-					} else {
-						options[name] = [raw_val, val];
-					}
-				} else {
-					options[name] = val;
-				}
-			}
-		}
-	};
-	let main: string = '';
-	let args: string[] = [];
-	if (_init.argv.length > 1) {
-		main = String(_init.argv[1] || '');
-		args = _init.argv.slice(2);
-	}
-	parseOptions(args, options); // parse options
-
-	debug = 'inspect' in options ||
-					'inspect_brk' in options;
-
-	if ( 'url_arg' in options ) {
-		if (Array.isArray(options.url_arg))
-			options.url_arg = options.url_arg.join('&');
-	} else {
-		options.url_arg = '';
-	}
-	if ('no_cache' in options || debug) {
-		if (options.url_arg) {
-			options.url_arg += '&__no_cache';
-		} else {
-			options.url_arg = '__no_cache';
-		}
-	}
-	return main;
-}
-
-export const mainPath = initArgv();
 
 // ------------------------------------------------------------------------------------------------
 

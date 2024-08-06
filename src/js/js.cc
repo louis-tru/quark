@@ -263,7 +263,7 @@ namespace qk {
 		NativeModulesLib->set(name, { name, pathname ? pathname: name, binding, 0 });
 	}
 
-	JSValue* BindingModule::binding(JSValue* name) {
+	JSValue* WorkerInl::binding(JSValue* name) {
 		auto r = _nativeModules->get(this, name);
 		if (!r->isUndefined())
 			return r;
@@ -297,7 +297,7 @@ namespace qk {
 	}
 
 	JSValue* Worker::bindingModule(cString& name) {
-		return static_cast<BindingModule*>(this)->binding(newStringOneByte(name));
+		return Qk_WorkerInl(this)->binding(newStringOneByte(name));
 	}
 
 	static void __binding__(FunctionArgs args) {
@@ -305,7 +305,7 @@ namespace qk {
 		if (args.length() < 1) {
 			Js_Throw("Bad argument.");
 		}
-		auto r = static_cast<BindingModule*>(worker)->binding(args[0]);
+		auto r = Qk_WorkerInl(worker)->binding(args[0]);
 		if (r)
 			Js_Return(r);
 	}
@@ -348,6 +348,7 @@ namespace qk {
 		delete _classsinfo; _classsinfo = nullptr;
 		_nativeModules.reset();
 		_global.reset();
+		_console.reset();
 	}
 
 	void Worker::init() {
@@ -363,7 +364,7 @@ namespace qk {
 		if ( !_global->has(this, globalThis) ) {
 			_global->set(this, globalThis, *_global);
 		}
-		initGlobalAPIs(this);
+		Qk_WorkerInl(this)->initGlobalAPIs();
 	}
 
 	JSObject* Worker::global() {

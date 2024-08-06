@@ -60,8 +60,8 @@ namespace qk { namespace js {
 #endif
 		wrap->handle().setWeak(wrap, [](const WeakCallbackInfo& info) {
 			auto self = static_cast<WrapObject*>(info.getParameter());
-			self->handle().reset(); // TODO DEATH RESET ..
-			self->~WrapObject(); // destroy
+			self->~WrapObject(); // destroy wrap
+			self->self()->destroy(); // destroy object
 		});
 	}
 
@@ -108,12 +108,10 @@ namespace qk { namespace js {
 	}
 
 	WrapObject::~WrapObject() {
-		Qk_ASSERT(_handle.isEmpty());
 #if Qk_MEMORY_TRACE_MARK
 		record_wrap_count--;
 		print_wrap("WrapObject::~WrapObject()");
 #endif
-		self()->destroy();
 	}
 
 	WrapObject* WrapObject::newInit(FunctionArgs args) {

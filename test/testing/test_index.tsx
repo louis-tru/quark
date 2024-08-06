@@ -38,12 +38,15 @@ const win = new Window({
 	backgroundColor: types.newColor(0,0,255,255),
 }).activate();
 
-const box = new Box(win);
+function test0(win: Window) {
+	const box = new Box(win);
+	box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
+	box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
+	box.backgroundColor = types.newColor(255,0,0,255);
+	win.root.backgroundColor = types.newColor(0,255,0,100);
+	win.root.append(box);
+}
 
-box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
-box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
-box.backgroundColor = types.newColor(255,0,0,255);
+import test from './test_action'
 
-win.root.backgroundColor = types.newColor(0,255,0,100);
-
-win.root.append(box);
+test(win);

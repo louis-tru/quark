@@ -726,7 +726,7 @@ class _View extends NativeNotification {
 
 			if (typeof v == 'object') {
 				if ('toStringStyled' in v) {
-					_rv.push(v['toStringStyled'].call(v, _indent));
+					_rv.push(v['toStringStyled'](_indent));
 				} else if (Array.isArray(v)) {
 					_rv.push('[Array]');
 				} else {

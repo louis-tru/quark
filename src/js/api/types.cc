@@ -678,12 +678,12 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, ArrayFloat& out, cChar* desc) {
 		if (!in->isArray()) {
-			out.reset(1);
+			out.extend(1);
 			if (!in->toFloatValue(worker).to(out[0]))
 				return throw_error(worker, in, desc), false;
 		} else {
 			auto arr = in->as<JSArray>();
-			out.reset(arr->length());
+			out.extend(arr->length());
 			for (uint32_t i = 0; i < out.length(); i++) {
 				if (!arr->get(worker, i)->toFloatValue(worker).to(out[i])) {
 					return throw_error(worker, in, desc), false;
@@ -695,7 +695,7 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, ArrayString& out, cChar* desc) {
 		if (!in->isArray()) {
-			out.reset(1);
+			out.extend(1);
 			out[0] = in->toStringValue(worker);
 		} else {
 			if (!in->as<JSArray>()->toStringArray(worker).to(out)) {
@@ -707,11 +707,11 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, ArrayColor& out, cChar* desc) {
 		if (!in->isArray()) {
-			out.reset(1);
+			out.extend(1);
 			return parse(in, out[0], desc);
 		}
 		auto arr = in->as<JSArray>();
-		out.reset(arr->length());
+		out.extend(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			if (!parse(arr->get(worker, i), out[i], desc))
 				return false;
@@ -721,11 +721,11 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, ArrayOrigin& out, cChar* desc) {
 		if (!in->isArray()) {
-			out.reset(1);
+			out.extend(1);
 			return parse(in, out[0], desc);
 		}
 		auto arr = in->as<JSArray>();
-		out.reset(arr->length());
+		out.extend(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			if (!parse(arr->get(worker, i), out[i], desc))
 				return false;
@@ -735,11 +735,11 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, ArrayBorder& out, cChar* desc) {
 		if (!in->isArray()) {
-			out.reset(1);
+			out.extend(1);
 			return parse(in, out[0], desc);
 		}
 		auto arr = in->as<JSArray>();
-		out.reset(arr->length());
+		out.extend(arr->length());
 		for (uint32_t i = 0; i < out.length(); i++) {
 			if (!parse(arr->get(worker, i), out[i], desc))
 				return false;
@@ -828,7 +828,7 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, BoxShadowPtr& out, cChar* desc) {
-		js_parse(BoxFilterPtr, {
+		js_parse(BoxShadowPtr, {
 			out = WrapObject::wrap<BoxShadow>(obj)->self();
 		});
 	}

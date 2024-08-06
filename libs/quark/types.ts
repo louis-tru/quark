@@ -794,99 +794,99 @@ export function newTextFamily(kind: TextValueKind, ffid: Uint8Array = EmptyFFID)
 // -------------------------------------------------------------------------------------
 
 export function parseRepeat(val: RepeatIn, desc?: string): Repeat {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		Repeat[toCapitalize(val)] || 0: val in Repeat ? val: 0;
 	// throw error(str, desc, undefined, Repeat);
 }
 
 export function parseDirection(val: DirectionIn, desc?: string): Direction {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		Direction[toCapitalize(val)] || 0: val in Direction ? val: 0;
 }
 
 export function parseItemsAlign(val: ItemsAlignIn, desc?: string): ItemsAlign {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		ItemsAlign[toCapitalize(val)] || 0:
 		val in ItemsAlign ? val: 0;
 }
 
 export function parseCrossAlign(val: CrossAlignIn, desc?: string): CrossAlign {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		CrossAlign[toCapitalize(val)] || 0 : val in CrossAlign ? val: 0;
 }
 
 export function parseWrap(val: WrapIn, desc?: string): Wrap {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		Wrap[toCapitalize(val)] || 0 : val in Wrap ? val: 0;
 }
 
 export function parseWrapAlign(val: WrapAlignIn, desc?: string): WrapAlign {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		WrapAlign[toCapitalize(val)] || 0 : val in WrapAlign ? val: 0;
 }
 
 export function parseAlign(val: AlignIn, desc?: string): Align {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		Align[toCapitalize(val)] || 0 : val in Align ? val: 0;
 }
 
 export function parseTextAlign(val: TextAlignIn, desc?: string): TextAlign {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextAlign[toCapitalize(val)] || 0 : val in TextAlign ? val: 0;
 }
 
 export function parseTextDecoration(val: TextDecorationIn, desc?: string): TextDecoration {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextDecoration[toCapitalize(val)] || 0 : val in TextDecoration ? val: 0;
 }
 
 export function parseTextOverflow(val: TextOverflowIn, desc?: string): TextOverflow {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextOverflow[toCapitalize(val)] || 0 : val in TextOverflow ? val: 0;
 }
 
 export function parseTextWhiteSpace(val: TextWhiteSpaceIn, desc?: string): TextWhiteSpace {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextWhiteSpace[toCapitalize(val)] || 0 : val in TextWhiteSpace ? val: 0;
 }
 
 export function parseTextWordBreak(val: TextWordBreakIn, desc?: string): TextWordBreak {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextWordBreak[toCapitalize(val)] || 0 : val in TextWordBreak ? val: 0;
 }
 
 export function parseTextWeight(val: TextWeightIn, desc?: string): TextWeight {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextWeight[toCapitalize(val)] || 0 : val in TextWeight ? val: 0;
 }
 
 export function parseTextWidth(val: TextWidthIn, desc?: string): TextWidth {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextWidth[toCapitalize(val)] || 0 : val in TextWidth ? val: 0;
 }
 
 export function parseTextSlant(val: TextSlantIn, desc?: string): TextSlant {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		TextSlant[toCapitalize(val)] || 0 : val in TextSlant ? val: 0;
 }
 
 export function parseKeyboardType(val: KeyboardTypeIn, desc?: string): KeyboardType {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		KeyboardType[toCapitalize(val)] || 0 : val in KeyboardType ? val: 0;
 }
 
 export function parseKeyboardReturnType(val: KeyboardReturnTypeIn, desc?: string): KeyboardReturnType {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		KeyboardReturnType[toCapitalize(val)] || 0 : val in KeyboardReturnType ? val: 0;
 }
 
 export function parseCursorStyle(val: CursorStyleIn, desc?: string): CursorStyle {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		CursorStyle[toCapitalize(val)] || 0 : val in CursorStyle ? val: 0;
 }
 
 export function parseFindDirection(val: FindDirectionIn, desc?: string): FindDirection {
-	return typeof val == 'string' ?
+	return typeof val === 'string' ?
 		FindDirection[toCapitalize(val)] || 0 : val in FindDirection ? val: 0;
 }
 
@@ -895,12 +895,12 @@ const vec2Reg = [
 	/^\s*vec2\(\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*\)\s*$/,
 ];
 export function parseVec2(val: Vec2In, desc?: string): Vec2 {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let m = val.match(vec2Reg[0]) || val.match(vec2Reg[1]);
 		if (m) {
 			return newVec2(parseFloat(m[1]), parseFloat(m[2]));
 		}
-	} else if (typeof val == 'number') {
+	} else if (typeof val === 'number') {
 		return newVec2(val, val);
 	} else if (Array.isArray(val)) {
 		return newVec2(val[0], val[1]);
@@ -915,11 +915,11 @@ const vec3Reg = [
 	/^\s*vec3\(\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*\)\s*$/,
 ];
 export function parseVec3(val: Vec3In, desc?: string): Vec3 {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let m = val.match(vec3Reg[0]) || val.match(vec3Reg[1]);
 		if (m)
 			return newVec3(parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]));
-	} else if (typeof val == 'number') {
+	} else if (typeof val === 'number') {
 		return newVec3(val, val, val);
 	} else if (Array.isArray(val)) {
 		return newVec3(val[0], val[1], val[2]);
@@ -934,11 +934,11 @@ const vec4Reg = [
 	/^ *vec4\(\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*\)\s*$/,
 ];
 export function parseVec4(val: Vec4In, desc?: string): Vec4 {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let m = val.match(vec4Reg[0]) || val.match(vec4Reg[1]);
 		if (m)
 			return newVec4(parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]), parseFloat(m[4]));
-	} else if (typeof val == 'number') {
+	} else if (typeof val === 'number') {
 		return newVec4(val, val, val, val);
 	} else if (val instanceof Vec4) {
 		return val;
@@ -960,7 +960,7 @@ const CurveReg = [
 	/^\s*curve\(\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*\)\s*$/
 ];
 export function parseCurve(val: CurveIn, desc?: string): Curve {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let s = CurveConsts[val as 'linear'];
 		if (s) {
 			return newCurve(s[0], s[1], s[2], s[3]);
@@ -982,7 +982,7 @@ const RectReg = [
 	/^\s*rect\(\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*\)\s*$/
 ];
 export function parseRect(val: RectIn, desc?: string): Rect {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let m = val.match(RectReg[0]) || val.match(RectReg[1]);
 		if (m) {
 			return newRect(parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]), parseFloat(m[4]));
@@ -999,7 +999,7 @@ const matReg = new RegExp(`^\s*mat\\(\s*${new Array(6).join(
 	'(-?(?:\\d+)?\\.?\\d+)\s*,\s*')}(-?(?:\\d+)?\\.?\\d+)\s*\\)\s*$`
 );
 export function parseMat(val: MatIn, desc?: string): Mat {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let m = val.match(matReg);
 		if (m) {
 			return newMat(...[
@@ -1007,7 +1007,7 @@ export function parseMat(val: MatIn, desc?: string): Mat {
 				parseFloat(m[4]), parseFloat(m[5]), parseFloat(m[6]),
 			]);
 		}
-	} else if (typeof val == 'number') {
+	} else if (typeof val === 'number') {
 		return newMat(val,0,0,0,val,0);
 	} else if (val instanceof Mat) {
 		return val;
@@ -1019,7 +1019,7 @@ const mat4Reg = new RegExp(`^\s*mat4\\(\s*${new Array(16).join(
 	'(-?(?:\\d+)?\\.?\\d+)\s*,\s*')}(-?(?:\\d+)?\\.?\\d+)\s*\\)\s*$`
 );
 export function parseMat4(val: Mat4In, desc?: string): Mat4 {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let m = mat4Reg.exec(val);
 		if (m) {
 			return newMat4(...[
@@ -1029,7 +1029,7 @@ export function parseMat4(val: Mat4In, desc?: string): Mat4 {
 				parseFloat(m[13]), parseFloat(m[14]), parseFloat(m[15]), parseFloat(m[16]),
 			]);
 		}
-	} else if (typeof val == 'number') {
+	} else if (typeof val === 'number') {
 		return newMat4(val,0,0,0,0,val,0,0,0,0,val,0,0,0,0,val);
 	} else if (val instanceof Mat4) {
 		return val;
@@ -1050,7 +1050,7 @@ function parseColorNumber(val: number) {
 	val >> 0 & 255); // a	
 }
 export function parseColor(val: ColorIn, desc?: string, ref?: Reference): Color {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let m = val.match(ColorReg[0]);
 		if (m) {
 			if (m[4]) { // 8
@@ -1089,9 +1089,11 @@ export function parseColor(val: ColorIn, desc?: string, ref?: Reference): Color 
 				}
 			}
 		}
-	} else if (typeof val == 'number') {
+	}
+	else if (typeof val === 'number') {
 		return parseColorNumber(val);
-	} else if (val instanceof Color) {
+	}
+	else if (val instanceof Color) {
 		return val;
 	}
 	throw error(val, desc, [
@@ -1101,7 +1103,7 @@ export function parseColor(val: ColorIn, desc?: string, ref?: Reference): Color 
 
 const ShadowReg = /^\s*(-?(?:\d+)?\.?\d+)\s+(-?(?:\d+)?\.?\d+)\s+((?:\d+)?\.?\d+)/;
 export function parseShadow(val: ShadowIn, desc?: string, ref?: Reference): Shadow {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		// 10 10 2 #ff00aa
 		let m = val.match(ShadowReg);
 		if (m) {
@@ -1122,7 +1124,7 @@ export function parseShadow(val: ShadowIn, desc?: string, ref?: Reference): Shad
 
 const BoxBorderReg = /^\s*(-?(?:\d+)?\.?\d+)/;
 export function parseBoxBorder(val: BoxBorderIn, desc?: string): BoxBorder {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		// 10 #ff00aa
 		let m = val.match(BoxBorderReg);
 		if (m) {
@@ -1139,7 +1141,7 @@ export function parseBoxBorder(val: BoxBorderIn, desc?: string): BoxBorder {
 }
 
 export function parseFillPosition(val: FillPositionIn, desc?: string): FillPosition {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = FillPositionKind[toCapitalize(val as FillPositionKindStr)];
 		if (kind !== undefined) {
 			return newFillPosition(kind, 0);
@@ -1149,14 +1151,18 @@ export function parseFillPosition(val: FillPositionIn, desc?: string): FillPosit
 			let kind = m[3] ? FillPositionKind.Ratio: FillPositionKind.Value;
 			return newFillPosition(kind, parseFloat(m[1]));
 		}
-	} else if (val instanceof FillPosition) {
+	}
+	else if (typeof val === 'number') {
+		return newFillPosition(FillPositionKind.Value, val);
+	}
+	else if (val instanceof FillPosition) {
 		return val;
 	}
 	throw error(val, desc, ["start", "end", "center", 10, '20%']);
 }
 
 export function parseFillSize(val: FillSizeIn, desc?: string): FillSize {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = FillSizeKind[toCapitalize(val as FillSizeKindStr)];
 		if (kind !== undefined) {
 			return newFillSize(kind, 0);
@@ -1166,31 +1172,39 @@ export function parseFillSize(val: FillSizeIn, desc?: string): FillSize {
 			let kind = m[3] ? FillSizeKind.Ratio: FillSizeKind.Value;
 			return newFillSize(kind, parseFloat(m[1]));
 		}
-	} else if (val instanceof FillSize) {
+	}
+	else if (typeof val === 'number') {
+		return newFillSize(FillSizeKind.Value, val);
+	}
+	else if (val instanceof FillSize) {
 		return val;
 	}
 	throw error(val, desc, ["auto", 10, '20%']);
 }
 
 export function parseBoxOrigin(val: BoxOriginIn, desc?: string): BoxOrigin {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = BoxOriginKind[toCapitalize(val as BoxOriginKindStr)];
 		if (kind !== undefined) {
 			return newBoxOrigin(kind, 0);
 		}
 		let m = val.match(/^\s*(-?(?:\d+)?\.?\d+)(%)?\s*$/);
 		if (m) {
-			let kind = m[3] ? FillSizeKind.Ratio: FillSizeKind.Value;
+			let kind = m[3] ? BoxOriginKind.Ratio: BoxOriginKind.Value;
 			return newBoxOrigin(kind, parseFloat(m[1]));
 		}
-	} else if (val instanceof BoxOrigin) {
+	}
+	else if (typeof val === 'number') {
+		return newBoxOrigin(BoxOriginKind.Value, val);
+	}
+	else if (val instanceof BoxOrigin) {
 		return val;
 	}
 	throw error(val, desc, ["auto", 10, '20%']);
 }
 
 export function parseBoxSize(val: BoxSizeIn, desc?: string): BoxSize {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = BoxSizeKind[toCapitalize(val as BoxSizeKindStr)];
 		if (kind !== undefined) {
 			return newBoxSize(kind, 0);
@@ -1200,14 +1214,18 @@ export function parseBoxSize(val: BoxSizeIn, desc?: string): BoxSize {
 			let kind = m[3] ? m[3] == '%' ? BoxSizeKind.Ratio: BoxSizeKind.Minus: BoxSizeKind.Value;
 			return newBoxSize(kind, parseFloat(m[1]));
 		}
-	} else if (val instanceof BoxSize) {
+	}
+	else if (typeof val === 'number') {
+		return newBoxSize(BoxSizeKind.Value, val);
+	}
+	else if (val instanceof BoxSize) {
 		return val;
 	}
 	throw error(val, desc, ["auto", "match", 10, '20%', '60!']);
 }
 
 export function parseTextColor(val: TextColorIn, desc?: string): TextColor {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
 		if (kind !== undefined) {
 			return newTextColor(kind, 0,0,0,255);
@@ -1216,7 +1234,7 @@ export function parseTextColor(val: TextColorIn, desc?: string): TextColor {
 			kind: TextValueKind.Value,
 			value: parseColor(val as ColorStrIn, desc, (ref)=>['inherit', 'default', ...ref])
 		});
-	} else if (typeof val == 'number') {
+	} else if (typeof val === 'number') {
 		return new TextColor({
 			kind: TextValueKind.Value,
 			value: parseColorNumber(val),
@@ -1236,7 +1254,7 @@ export function parseTextColor(val: TextColorIn, desc?: string): TextColor {
 
 const TextSizeReg = /^(?:\d+)?\.?\d+$/;
 export function parseTextSize(val: TextSizeIn, desc?: string) {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
 		if (kind !== undefined) {
 			return newTextSize(kind, 0);
@@ -1244,7 +1262,7 @@ export function parseTextSize(val: TextSizeIn, desc?: string) {
 		if (TextSizeReg.test(val)) {
 			return newTextSize(TextValueKind.Value, parseFloat(val));
 		}
-	} else if (typeof val == 'number') {
+	} else if (typeof val === 'number') {
 		return newTextSize(TextValueKind.Value, val);
 	} else if (val instanceof TextSize) {
 		return val;
@@ -1257,7 +1275,7 @@ export function parseTextLineHeight(val: TextLineHeightIn, desc?: string) {
 }
 
 export function parseTextShadow(val: TextShadowIn, desc?: string): TextShadow {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
 		if (kind !== undefined) {
 			return newTextShadow(kind,0,0,0,0,0,0,255);
@@ -1278,7 +1296,7 @@ export function parseTextShadow(val: TextShadowIn, desc?: string): TextShadow {
 }
 
 export function parseTextFamily(val: TextFamilyIn, desc?: string) {
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
 		if (kind !== undefined) {
 			return newTextFamily(kind,EmptyFFID);
@@ -1357,7 +1375,7 @@ function parseBoxFilterItem(val: string, desc?: string): BoxFilter {
 	const FillImage_ = exports.FillImage as typeof FillImage;
 	const FillGradientLinear_ = exports.FillGradientLinear as typeof FillGradientLinear;
 	const FillGradientRadial_ = exports.FillGradientRadial as typeof FillGradientRadial;
-	if (typeof val == 'string') {
+	if (typeof val === 'string') {
 		let cmd = parseCmd(val);
 		if (cmd) {
 			let {val,args,kv} = cmd;
@@ -1372,12 +1390,11 @@ function parseBoxFilterItem(val: string, desc?: string): BoxFilter {
 						if (args[2])
 							repeat = parseRepeat(args[2][0] as RepeatIn, desc);
 					}
-					new FillImage_(String(args[0][0]), {
+					return new FillImage_(String(args[0][0]), {
 						width, height, repeat,
 						x: kv.x && parseFillPosition(kv.x[0], desc),
 						y: kv.y && parseFillPosition(kv.y[0], desc),
 					});
-					break;
 				}
 				case 'linear': {
 					let angle = Number(args.shift()) || 0;
@@ -1427,6 +1444,10 @@ export function parseBoxShadow(val: BoxShadowIn, desc?: string): BoxShadow {
 			desc, ()=>parseBoxShadowRef
 		);
 	} else {
-		return new BoxShadow_(parseShadow(val, desc, ()=>parseBoxShadowRef));
+		let s = parseShadow(val, desc, ()=>parseBoxShadowRef);
+		return new BoxShadow_(s);
 	}
 }
+
+export const parseBoxFilterPtr = parseBoxFilter;
+export const parseBoxShadowPtr = parseBoxShadow;

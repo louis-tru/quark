@@ -208,7 +208,7 @@ namespace qk { namespace js {
 				}
 				auto timeMs = args[0]->toUint32Value(worker).unsafe();
 				auto curve = EASE;
-				if (args.length() > 1) {
+				if (args.length() > 1 && !args[1]->isUndefined()) {
 					Js_Parse_Type(Curve, args[1], "@method KeyframeAction.addFrame() curve = %s");
 					curve = out;
 				}

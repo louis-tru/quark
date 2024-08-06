@@ -106,7 +106,7 @@ function(styleOrCssExp: KeyframeIn, ...args: any[]): Keyframe {
 	*/
 export function createAction(win: Window, arg: ActionIn, parent?: Action) {
 	let action: Action;
-	if ( arg instanceof Action ) {
+	if ( arg instanceof (exports.Action as typeof Action) ) {
 		action = arg;
 	} else {
 		// create

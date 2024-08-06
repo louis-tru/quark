@@ -68,7 +68,7 @@ namespace qk { namespace js {
 		F(_change_touches) F(name)           F(pathname) \
 		F(data)            F(total)          F(complete) \
 		F(httpVersion)     F(statusCode)     F(responseHeaders) \
-		F(window)
+		F(window) F(_log) F(_warn) F(_error) F(_clear)
 
 	class Strings {
 	public:
@@ -95,8 +95,11 @@ namespace qk { namespace js {
 		Dict<uint64_t, JSClass*> _jsclass;
 	};
 
-	struct BindingModule: public Worker {
+	struct WorkerInl: public Worker {
+		#define Qk_WorkerInl(worker) static_cast<WorkerInl*>(worker)
 		JSValue* binding(JSValue* name);
+		JSObject* console() { return *_console; }
+		void initGlobalAPIs();
 	};
 
 	struct DebugOptions {
@@ -108,7 +111,6 @@ namespace qk { namespace js {
 	void runDebugger(Worker* worker, const DebugOptions &opts);
 	void stopDebugger(Worker* worker);
 	void debuggerBreakNextStatement(Worker* worker);
-	void initGlobalAPIs(Worker* worker);
 	int  platformStart(int argc, Char** argv, int (*exec)(Worker *worker));
 	int  triggerExit(Worker* worker, int code);
 	int  triggerBeforeExit(Worker* worker, int code);

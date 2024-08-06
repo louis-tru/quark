@@ -158,15 +158,17 @@ namespace qk { namespace js {
 
 	class WrapBoxShadow: public WrapObject {
 	public:
+		static void NewBoxShadow(Worker *worker, FunctionArgs args) {
+			if (!args.length()) {
+				Js_Throw("@constructor BoxShadow(Shadow value)");
+			}
+			Js_Parse_Type(Shadow, args[0], "@constructor BoxShadow(Shadow value = %s)");
+			New<WrapBoxShadow>(args, new BoxShadow(out));
+		}
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(BoxShadow, BoxFilter, {
-				if (!args.length()) {
-					Js_Throw("@constructor BoxShadow(Shadow value)");
-				}
-				Js_Parse_Type(Shadow, args[0], "@constructor BoxShadow(Shadow value = %s)");
-				New<WrapBoxShadow>(args, new BoxShadow(out));
+				NewBoxShadow(worker, args);
 			});
-
 			Js_Set_WrapObject_Accessor(BoxShadow, Shadow, value, value);
 
 			cls->exports("BoxShadow", exports);

@@ -37,7 +37,7 @@
 #include "../util/http.h"
 #include "../util/codec.h"
 
-// ------------- Js common macro -------------
+// -------------------------- Js common macro --------------------------
 
 #define Js_Worker(...)   auto worker = Worker::worker(__VA_ARGS__)
 #define Js_Return(v)     return args.returnValue().set(worker->newInstance((v)))
@@ -522,7 +522,8 @@ namespace qk { namespace js {
 		JSValue* runNativeScript(cBuffer& source, cString& name, JSObject* exports = 0);
 
 	protected:
-		Persistent<JSObject> _global, _nativeModules;
+		Persistent<JSObject> _global, _console;
+		Persistent<JSObject> _nativeModules;
 		Worker();
 		virtual void init();
 	};
@@ -652,6 +653,5 @@ namespace qk { namespace js {
 	Qk_EXPORT bool JSClass::setMemberProperty<JSValue*>(cString& name, JSValue* value);
 	template<>
 	Qk_EXPORT bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value);
-
 } }
 #endif

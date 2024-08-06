@@ -34,27 +34,6 @@ namespace qk { namespace js {
 	extern int    __quark_js_argc;
 	extern char** __quark_js_argv;
 
-	static cString Undefined("undefined");
-	static cString Null("null");
-	static cString True("true");
-	static cString False("false");
-	static cString Circular("[Circular]");
-	static cString Newline('\n');
-	static cString Comma(',');
-	static cString Space(' ');
-	static cString LBrack('[');
-	static cString RBrack(']');
-	static cString LBrace('{');
-	static cString RBrace('}');
-	static cString COLON(':');
-	static cString ELLIPSIS(" ... ");
-	static cString Quotes('"');
-	static cString BufferPrefix("<Buffer");
-	static cString GT(">");
-	static cString FUNCTION("[Function]");
-	static cString ARRAY("[Array]");
-	static cString OBJECT("[Object]");
-
 	class JSONStringify {
 	public:
 		uint32_t _indent;
@@ -62,73 +41,77 @@ namespace qk { namespace js {
 		Worker* worker;
 		Persistent<JSSet> _set;
 
+		JSONStringify(Worker* worker) : _indent(0), _rv(nullptr), worker(worker) {
+			_set.reset(worker, worker->newSet());
+		}
+
+		~JSONStringify() { _set.reset(); }
+
 		void push_indent() {
-			for (uint32_t i = 0; i < _indent; i++) {
-				_rv->push(Space);
-			}
+			for (uint32_t i = 0; i < _indent; i++) _rv->push(' ');
 		}
 
 		bool stringify_object(JSObject* arg) {
-			_rv->push(LBrace);
+			_rv->push('{');
 			JSArray* names = arg->getPropertyNames(worker);
 			if ( names->length() > 1 ) {
 				_indent += 2;
 				for (int i = 0, j = 0; i < names->length(); i++) {
 					JSValue* key = names->get(worker, i);
-					if (j > 0) _rv->push(Comma); // ,
-					_rv->push(Newline); push_indent();
-					//  _rv->push(Quotes);
+					if (j > 0) _rv->push(','); // ,
+					_rv->push('\n'); push_indent();
+					//  _rv->push('"');
 					_rv->push(key->toStringValue(worker));
-					//  _rv->push(Quotes);
-					_rv->push(COLON); _rv->push(Space);
+					//  _rv->push('"');
+					_rv->push(':'); _rv->push(' ');
 					bool rv = stringify( arg->get(worker, key) ); // value
 					if ( ! rv ) return false;
 					j++;
 				}
 				_indent -= 2;
-				_rv->push(Newline); push_indent();
+				_rv->push('\n'); push_indent();
 			} else {
-				_rv->push(Space);
+				_rv->push(' ');
 			}
-			_rv->push(RBrace);
+			_rv->push('}');
 			return true;
 		}
 
 		bool stringify_array(JSArray* arg) {
-			_rv->push(LBrack);
+			_rv->push('[');
 			if (arg->length() > 0) {
 				_indent += 2;
 				for (int i = 0; i < arg->length(); i++) {
 					if (i > 0)
-						_rv->push(Comma);
-					_rv->push(Newline);
+						_rv->push(',');
+					_rv->push('\n');
 					push_indent();
 					stringify( arg->get(worker, i) ); // value
 				}
 				_indent -= 2;
-				_rv->push(Newline);
+				_rv->push('\n');
 				push_indent();
 			} else {
-				_rv->push(Space);
+				_rv->push(' ');
 			}
-			_rv->push(RBrack);
+			_rv->push(']');
 			return true;
 		}
 
 		bool stringify_buffer(WeakBuffer buf) {
-			_rv->push(BufferPrefix);
+			_rv->push("<Buffer");
 			cChar* hex = "0123456789abcdef";
 			uint8_t* s = (uint8_t*)*buf;
 			for (uint32_t i = 0; i < buf.length(); i++) {
 				uint8_t ch = s[i];
-				_rv->push(Space);
+				_rv->push(' ');
 				_rv->push( hex[ch >> 4] );
 				_rv->push( hex[ch & 15] );
 				if (i > 50) {
-					_rv->push(ELLIPSIS); break;
+					_rv->push(" ... "); break;
 				}
 			}
-			_rv->push(GT);
+			_rv->push('>');
 			return true;
 		}
 
@@ -137,12 +120,12 @@ namespace qk { namespace js {
 			bool rv = true;
 
 			if(arg->isString()) {
-				_rv->push(Quotes);
+				_rv->push('"');
 				_rv->push( arg->toStringValue(worker) );
-				_rv->push(Quotes);
+				_rv->push('"');
 			}
 			else if (arg->isFunction()) {
-				_rv->push( FUNCTION );
+				_rv->push( "[Function]" );
 			}
 			else if (arg->isObject()) {
 				JSObject* o = arg->as<JSObject>();
@@ -162,7 +145,7 @@ namespace qk { namespace js {
 				}
 				else {
 					if ( _set->has(worker, o) ) {
-						_rv->push( Circular );
+						_rv->push( "[Circular]" );
 						return true;
 					}
 					_set->add(worker, o);
@@ -183,33 +166,25 @@ namespace qk { namespace js {
 			}
 			else if(arg->isBoolean()) {
 				if (arg->toBooleanValue(worker)) {
-					_rv->push(True);
+					_rv->push("true");
 				} else {
-					_rv->push(False);
+					_rv->push("false");
 				}
 			}
 			else if(arg->isDate()) {
-				_rv->push(Quotes);
+				_rv->push('"');
 				auto f =
 					arg->as<JSObject>()->get(worker, worker->strs()->toJSON())->as<JSFunction>();
 				_rv->push( f->call(worker, 0, nullptr, arg)->toStringValue(worker) );
-				_rv->push(Quotes);
+				_rv->push('"');
 			}
 			else if(arg->isNull()) {
-				_rv->push(Null);
+				_rv->push("null");
 			}
 			else if(arg->isUndefined()) {
-				_rv->push(Undefined);
+				_rv->push("undefined");
 			}
 			return true;
-		}
-
-		JSONStringify(Worker* worker) : _indent(0), _rv(nullptr), worker(worker) {
-			_set.reset(worker, worker->newSet());
-		}
-
-		~JSONStringify() {
-			_set.reset();
 		}
 
 		bool stringify_console_styled(JSValue* arg, Array<String>* out) {
@@ -238,65 +213,64 @@ namespace qk { namespace js {
 			print(rv.join(String()));
 		}
 
-		static void binding(JSObject* exports, Worker* worker) {
-			/*
-			auto console = worker->global()->getProperty(worker, "console")->as<JSObject>();
-			if (console->isObject()) {
-				auto arr = console->getPropertyNames(worker);
-				for (int i = 0; i < arr->length(); i++) {
-					auto name = arr->get(worker, i);
-					Qk_DEBUG("----------- console.%s, %s",
-						*name->toStringValue(worker),
-						*console->get(worker, name)->toStringValue(worker)
-					);
-				}
-			}*/
+		static void call_origin(FunctionArgs args, JSValue* name) {
+			Js_Worker(args);
+			Array<JSValue*> argv(args.length());
+			for (int i = 0; i < args.length(); i++) {
+				argv[i] = args[i];
+			}
+			auto console = Qk_WorkerInl(worker)->console();
+			auto f = console->get(worker, name)->as<JSFunction>();
+			f->call(worker, argv.length(), *argv, console);
+		}
 
-			Js_Set_Method(log, {
-				print_to(args, log_println);
-			});
-
-			Js_Set_Method(warn, {
-				print_to(args, log_println_warn);
-			});
-
-			Js_Set_Method(error, {
-				print_to(args, log_println_error);
-			});
-
-			Js_Set_Method(clear, {
-				log_fflush();
-			});
-
-			Js_Set_Method(debug, {
-				print_to(args, log_println);
-			});
-
-			Js_Set_Method(info, {
-				print_to(args, log_println);
-			});
-
-			Js_Set_Method(dir, {});
-			Js_Set_Method(dirxml, {});
-			Js_Set_Method(table, {});
-			Js_Set_Method(trace, {});
-			Js_Set_Method(group, {});
-			Js_Set_Method(groupCollapsed, {});
-			Js_Set_Method(groupEnd, {});
-			Js_Set_Method(count, {});
-			Js_Set_Method(Assert, {});
-			Js_Set_Method(markTimeline, {});
-			Js_Set_Method(profile, {});
-			Js_Set_Method(profileEnd, {});
-			Js_Set_Method(timeline, {});
-			Js_Set_Method(timelineEnd, {});
-			Js_Set_Method(time, {});
-			Js_Set_Method(timeEnd, {});
-			Js_Set_Method(timeStamp, {});
-
-			Js_Set_Accessor_Get(memory, {
-				Js_Return( args.worker()->newNull() );
-			});
+		static void binding(JSObject* exports, Worker* worker, bool isOrigin) {
+			if (isOrigin) {
+				Js_Set_Property(_log, exports->getProperty(worker, "log"));
+				Js_Set_Property(_warn, exports->getProperty(worker, "warn"));
+				Js_Set_Property(_error, exports->getProperty(worker, "error"));
+				Js_Set_Property(_clear, exports->getProperty(worker, "clear"));
+				Js_Set_Method(log, {
+					print_to(args, log_println);
+					NativeConsole::call_origin(args, worker->strs()->_log());
+				});
+				Js_Set_Method(warn, {
+					print_to(args, log_println_warn);
+					NativeConsole::call_origin(args, worker->strs()->_warn());
+				});
+				Js_Set_Method(error, {
+					print_to(args, log_println_error);
+					NativeConsole::call_origin(args, worker->strs()->_error());
+				});
+				Js_Set_Method(clear, {
+					log_fflush();
+					NativeConsole::call_origin(args, worker->strs()->_clear());
+				});
+			} else {
+				Js_Set_Method(log, { print_to(args, log_println); });
+				Js_Set_Method(warn, { print_to(args, log_println_warn); });
+				Js_Set_Method(error, { print_to(args, log_println_error); });
+				Js_Set_Method(clear, { log_fflush(); });
+				Js_Set_Method(debug, {});
+				Js_Set_Method(info, {});
+				Js_Set_Method(dir, {});
+				Js_Set_Method(dirxml, {});
+				Js_Set_Method(table, {});
+				Js_Set_Method(trace, {});
+				Js_Set_Method(group, {});
+				Js_Set_Method(groupCollapsed, {});
+				Js_Set_Method(groupEnd, {});
+				Js_Set_Method(count, {});
+				Js_Set_Method(assert, {});
+				Js_Set_Method(markTimeline, {});
+				Js_Set_Method(profile, {});
+				Js_Set_Method(profileEnd, {});
+				Js_Set_Method(timeline, {});
+				Js_Set_Method(timelineEnd, {});
+				Js_Set_Method(time, {});
+				Js_Set_Method(timeEnd, {});
+				Js_Set_Method(timeStamp, {});
+			}
 		}
 	};
 
@@ -433,11 +407,16 @@ namespace qk { namespace js {
 		}
 	};
 
-	void initGlobalAPIs(Worker* worker) {
-		auto console = worker->newObject();
-		NativeConsole::binding(console, worker);
-		worker->global()->set(worker, worker->newStringOneByte("console"), console);
-		NativeTimer::binding(worker->global(), worker);
+	void WorkerInl::initGlobalAPIs() {
+		auto str = newStringOneByte("console");
+		auto console = global()->get(this, str)->as<JSObject>();
+		auto isObject = console->isObject();
+		if (!isObject) {
+			global()->set(this, str, (console = newObject()));
+		}
+		_console.reset(this, console);
+		NativeConsole::binding(console, this, isObject);
+		NativeTimer::binding(global(), this);
 	}
 
 	class NativeInit {
