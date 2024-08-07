@@ -125,12 +125,14 @@ export default function (win: Window) {
 	const act6 = new action.KeyframeAction(win)
 	Mv(act6, 'add', [{
 		time: 0,
-		// origin: 50,
+		origin: 'auto',
 		width: 50,
 		height: 50,
 		opacity: 1,
 		visible: true,
 		src: resolve('./res/cc.jpg'),
+		rotateZ: 0,
+		// curve: 'linear',
 	}]);
 
 	Mv(act6, 'add', [{
@@ -138,7 +140,6 @@ export default function (win: Window) {
 		translate: '0 0',
 		scale: '1 1',
 		skew: '0 0',
-		origin: 0,
 		margin: 0,
 		border: '0 #000',
 		borderWidth: 0,
@@ -150,8 +151,8 @@ export default function (win: Window) {
 		scaleY: 1,
 		skewX: 0,
 		skewY: 0,
-		originX: 50,
-		originY: 50,
+		originX: 'auto',
+		originY: 'auto',
 		rotateZ: 0,
 		opacity: 1,
 		visible: true,
@@ -177,7 +178,7 @@ export default function (win: Window) {
 		borderRadiusRightTop: 0,
 		borderRadiusRightBottom: 0,
 		borderRadiusLeftBottom: 0,
-		backgroundColor: '#000',
+		backgroundColor: '#f008',
 		align: 'end',
 		textAlign: 'center',
 		// minWidth: 'auto',
