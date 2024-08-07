@@ -1025,12 +1025,12 @@ namespace qk {
 					auto size = v->layout_size().layout;
 					auto align = v->layout_align();
 					switch (align) {
-						case Align::Start: // left
+						case Align::Start: // float start
 							nextStep(size);
 							v->set_layout_offset(Vec2(offset_left, offset_y));
 							offset_left += size.x();
 							break;
-						case Align::End: // right
+						case Align::End: // float start
 							nextStep(size);
 							v->set_layout_offset(Vec2(cur_x - offset_right - size.x(), offset_y));
 							offset_right += size.x();

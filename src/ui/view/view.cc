@@ -316,12 +316,12 @@ namespace qk {
 			if ( _action ) {
 				auto action = _action;
 				_action = nullptr;
-				action->del_target(this, false);
+				action->del_target(this);
 				action->release();
 			}
 			if ( action ) {
 				_action = action;
-				action->set_target(this, false);
+				action->set_target(this);
 				action->retain(); // retain from view view
 			}
 		}
@@ -646,8 +646,8 @@ namespace qk {
 			// if level > 0 then
 			if (_mark_index >= 0) {
 				preRender().unmark_layout(this, _level);
-				preRender().mark_layout(this, level);
 			}
+			preRender().mark_layout(this, level);
 			_level = level++;
 			onActivate();
 

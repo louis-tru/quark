@@ -137,6 +137,7 @@ namespace qk {
 	// -------------------------------------------------------------------------------
 
 	TextFamily TextOptions::text_family() const {
+		Qk_Assert(_secondaryProps->text_family.value);
 		return _secondaryProps->text_family;
 	}
 
@@ -329,7 +330,9 @@ namespace qk {
 			Qk_COMPUTE_TEXT_OPTIONS_2(float, text_size, 1, 16);
 			Qk_COMPUTE_TEXT_OPTIONS_2(Color, text_color, 2, Color(0, 0, 0));
 			Qk_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, 3, 0);
-			if (!_opts->_isInheritSecondaryProps) {
+			if (_opts->_isInheritSecondaryProps) {
+				_opts->_secondaryProps = _inherit_opts->_secondaryProps;
+			} else {
 				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(FFID,
 					text_family, 4, (_inherit_opts->text_family().value->pool()->defaultFontFamilys()));
 				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Shadow,

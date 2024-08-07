@@ -1148,8 +1148,9 @@ export function parseFillPosition(val: FillPositionIn, desc?: string): FillPosit
 		}
 		let m = val.match(/^\s*(-?(?:\d+)?\.?\d+)(%)?\s*$/);
 		if (m) {
-			let kind = m[3] ? FillPositionKind.Ratio: FillPositionKind.Value;
-			return newFillPosition(kind, parseFloat(m[1]));
+			let kind = m[2] ? FillPositionKind.Ratio: FillPositionKind.Value;
+			let val = parseFloat(m[1]);
+			return newFillPosition(kind, m[2] ? val * 0.01: val);
 		}
 	}
 	else if (typeof val === 'number') {
@@ -1169,8 +1170,9 @@ export function parseFillSize(val: FillSizeIn, desc?: string): FillSize {
 		}
 		let m = val.match(/^\s*(-?(?:\d+)?\.?\d+)(%)?\s*$/);
 		if (m) {
-			let kind = m[3] ? FillSizeKind.Ratio: FillSizeKind.Value;
-			return newFillSize(kind, parseFloat(m[1]));
+			let kind = m[2] ? FillSizeKind.Ratio: FillSizeKind.Value;
+			let val = parseFloat(m[1]);
+			return newFillSize(kind, m[2] ? val * 0.01: val);
 		}
 	}
 	else if (typeof val === 'number') {
@@ -1190,8 +1192,9 @@ export function parseBoxOrigin(val: BoxOriginIn, desc?: string): BoxOrigin {
 		}
 		let m = val.match(/^\s*(-?(?:\d+)?\.?\d+)(%)?\s*$/);
 		if (m) {
-			let kind = m[3] ? BoxOriginKind.Ratio: BoxOriginKind.Value;
-			return newBoxOrigin(kind, parseFloat(m[1]));
+			let kind = m[2] ? BoxOriginKind.Ratio: BoxOriginKind.Value;
+			let val = parseFloat(m[1]);
+			return newBoxOrigin(kind, m[2] ? val * 0.01: val);
 		}
 	}
 	else if (typeof val === 'number') {
@@ -1211,8 +1214,9 @@ export function parseBoxSize(val: BoxSizeIn, desc?: string): BoxSize {
 		}
 		let m = val.match(/^\s*(-?(?:\d+)?\.?\d+)(%|!)?\s*$/);
 		if (m) {
-			let kind = m[3] ? m[3] == '%' ? BoxSizeKind.Ratio: BoxSizeKind.Minus: BoxSizeKind.Value;
-			return newBoxSize(kind, parseFloat(m[1]));
+			let kind = m[2] ? m[2] == '%' ? BoxSizeKind.Ratio: BoxSizeKind.Minus: BoxSizeKind.Value;
+			let val = parseFloat(m[1]);
+			return newBoxSize(kind, m[2] == '%' ? val * 0.01: val);
 		}
 	}
 	else if (typeof val === 'number') {

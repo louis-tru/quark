@@ -60,9 +60,8 @@ namespace qk {
 		Qk_ASSERT(level);
 		auto& arr = _marks[level];
 		auto last = arr[arr.length() - 1];
-		if (last != view) {
+		if (last != view)
 			arr[view->_mark_index] = last;
-		}
 		arr.pop();
 		view->_mark_index = -1;
 		_mark_total--;

@@ -48,6 +48,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
 		// @overwrite
 		virtual Window* getWindowForAsyncSet() override;
+		/**
+		 * @method destroy()
+		 */
+		virtual void destroy() override;
 	private:
 		// @constructor
 		// @private
@@ -73,7 +77,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@safe Rt get, play frame
 
 		KeyframeAction(Window *win);
-		~KeyframeAction();
 
 		/**
 		* @method length
@@ -122,12 +125,10 @@ namespace qk {
 		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root);
 		virtual void seek_time_Rt(uint32_t time, Action* root);
 		virtual void seek_before_Rt(uint32_t time, Action* child);
-		virtual void clear_Rt();
 		Keyframe* add_unsafe(uint32_t time, cCurve& curve, bool isRt);
 
-		Array<Keyframe*> _frames, _frames_Rt;
-		bool _startPlay;
-
+		Array<Keyframe*> _frames;
+		Array<Keyframe*> _frames_Rt;
 		friend class Keyframe;
 	};
 

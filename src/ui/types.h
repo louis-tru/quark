@@ -119,12 +119,12 @@ namespace qk {
 		Center,
 		End,
 		Baseline = Auto, // vertical align in text
-		Top, // vertical align in text
-		Middle, // vertical align in text
-		Bottom, // vertical align in text
+		Top, // Start, vertical align in text
+		Middle, // Center, vertical align in text
+		Bottom, // End, vertical align in text
 		LeftTop = Start,
-		CenterTop,
-		RightTop,
+		CenterTop, // Center
+		RightTop, // End
 		LeftMiddle,
 		CenterMiddle,
 		RightMiddle,

@@ -38,15 +38,22 @@ namespace qk {
 	{}
 
 	ActionCenter::~ActionCenter() {
+		auto it0 = _CSSTransitions_Rt.begin();
+		while (it0 != _CSSTransitions_Rt.end()) {
+			removeCSSTransition_Rt(reinterpret_cast<View*>((it0++)->key));
+		}
+		auto it = _actions_Rt.begin();
+		while (it != _actions_Rt.end()) {
+			(it++)->value->stop_Rt();
+		}
 		Qk_Fatal_Assert(_CSSTransitions_Rt.length() == 0, "ActionCenter::~ActionCenter stop CSSTransitions");
 		Qk_Fatal_Assert(_actions_Rt.length() == 0, "ActionCenter::~ActionCenter stop actions first");
 	}
 
 	void ActionCenter::addCSSTransition_Rt(View *view, CStyleSheets *css) {
-		auto action = KeyframeAction::
-			MakeSSTransition(view, css, css->time(), true);
+		auto action = KeyframeAction::MakeSSTransition(view, css, css->time(), true);
 		action->retain(); // retain for center
-		action->set_target(view, true);
+		action->set_target(view);
 		action->play_Rt();
 		_CSSTransitions_Rt.get(uint64_t(view)).push(action);
 	}
@@ -56,7 +63,7 @@ namespace qk {
 		if (it != _CSSTransitions_Rt.end()) {
 			for (auto act: it->value) {
 				act->stop_Rt();
-				act->unsafe_release_only_center_Rt();
+				act->release_for_only_center_Rt();
 			}
 			_CSSTransitions_Rt.erase(it);
 		}

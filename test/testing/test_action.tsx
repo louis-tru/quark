@@ -36,10 +36,12 @@ const resolve = require.resolve;
 
 export default function (win: Window) {
 	win.render(
-		<box>
-			<matrix ref="div" width={100} height={100} backgroundColor="#f00" x={150} origin={[50,50]} />
-			<image ref="img" width={100} height={100} />
-			<matrix align="centerBottom" y={-30}>
+		<box width="match">
+			<matrix ref="div" align="start" width={100} height={100} backgroundColor="#f00" origin="auto">
+				<box width={50} height={50} align="center" backgroundColor="#ff0" />
+			</matrix>
+			<image ref="img" align="end" src={resolve('./res/10520101.jpg')} />
+			<matrix width="50!" align="center" y={10} backgroundColor="#00f6">
 				<button ref="play" textLineHeight={30} backgroundColor="#aaa" margin={2}>Play</button>
 				<button ref="stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>Stop</button>
 				<button ref="seek_play" textLineHeight={30} backgroundColor="#aaa" margin={2}>Seek Play</button>
@@ -54,12 +56,6 @@ export default function (win: Window) {
 	LOG('\nTest Action:\n')
 
 	const act1 = new action.KeyframeAction(win)
-	const act2 = new action.KeyframeAction(win)
-	const act3 = new action.KeyframeAction(win)
-	const act4 = new action.SpawnAction(win)
-	const act5 = new action.SequenceAction(win)
-	const act6 = new action.KeyframeAction(win)
-
 	Mv(act1, 'play', [])
 	Mv(act1, 'stop', [])
 	Mv(act1, 'seek', [1000])
@@ -69,59 +65,69 @@ export default function (win: Window) {
 	Pv(act1, 'duration', 0)
 	Pv(act1, 'loop', 0)
 	Mv(act1, 'play', [])
-	Pv(act1, 'speed', 1)
+	Pv(act1, 'speed', 3, e=>e.speed=3)
 	Pv(act1, 'playing', false)
 	//
 	Mv(act1, 'add', [{ time:0,			x: 150, y: 0 }])
 	Mv(act1, 'add', [{ time:4000, 	x: 300, y: 200 }])
 	Mv(act1, 'add', [{ time:8000, 	x: 150, y: 400 }])
 	//
+	const act2 = new action.KeyframeAction(win)
 	Mv(act2, 'add', [{ time:0,			x: 150, y: 400 }])
 	Mv(act2, 'add', [{ time:4000, 	x: 0, 	y: 200 }])
 	Mv(act2, 'add', [{ time:8000, 	x: 150, y: 0 }])
+	// Mv(act2, 'clear', [])
 	//
-	Mv(act3, 'add', [{ time:0,			backgroundColor: '#f00', rotateZ: 0, curve: 'linear' }])
-	Mv(act3, 'add', [{ time:4000, 	backgroundColor: '#00f', rotateZ: 180, curve: 'linear' }])
-	Mv(act3, 'add', [{ time:8000, 	backgroundColor: '#f00', rotateZ: 360, curve: 'linear' }])
-	Pv(act3, 'loop', 4)
+	// SpawnAction
+	const act3 = new action.SequenceAction(win)
+	Mv(act3, 'append', [act1]);
+	Mv(act3, 'append', [act2]);
+	Pv(act3, 'loop', 1, e=>e.loop=1)
 	//
-	Mv(act5, 'append', [act1]);
-	Mv(act5, 'append', [act2]);
-	Pv(act5, 'loop', 1, e=>e.loop=1)
+	const act4 = new action.KeyframeAction(win)
+	Mv(act4, 'add', [{ time:0,			backgroundColor: '#f00', rotateZ: 0, curve: 'linear' }])
+	Mv(act4, 'add', [{ time:4000, 	backgroundColor: '#00f', rotateZ: 180, curve: 'linear' }])
+	Mv(act4, 'add', [{ time:8000, 	backgroundColor: '#f00', rotateZ: 360, curve: 'linear' }])
+	Pv(act4, 'loop', 1, e=>e.loop=1)
+	//
+	// SpawnAction
+	const act5 = new action.SpawnAction(win)
+	Mv(act5, 'append', [act3])
+	Mv(act5, 'append', [act4])
+	Pv(act5, 'loop', 1e3, e=>e.loop=1e3)
+	Pv(act5, 'speed', 2, e=>e.speed=2)
 
-	Mv(act4, 'append', [act5])
-	Mv(act4, 'append', [act3])
-	Pv(act4, 'loop', 4, e=>e.loop=4)
-	Pv(act4, 'speed', 2, e=>e.speed=2)
+	Pv(ctr.refAs('div'), 'action', act5, e=>e.action=act5)
+	Mv(act5, 'play', []);
 
-	Pv(ctr.refAs('div'), 'action', act4, e=>e.action=act4)
-	Mv(act4, 'play', []);
-
-	Mv(ctr.refAs('div').onClick, 'on', [function() {
-		Mv(act4, 'play', [])
+	Mv(ctr.refAs('play').onClick, 'on', [function() {
+		Mv(act5, 'play', [])
 	}])
 
 	Mv(ctr.refAs('stop').onClick, 'on', [function() {
-		Mv(act4, 'stop', [])
+		Mv(act5, 'stop', [])
 	}])
 
 	Mv(ctr.refAs('seek_play').onClick, 'on', [function() {
-		Mv(act4, 'seekPlay', [2000])
+		Mv(act5, 'seekPlay', [2000])
 	}])
 
 	Mv(ctr.refAs('seek_stop').onClick, 'on', [function() {
-		Mv(act4, 'seekStop', [6000])
+		Mv(act5, 'seekStop', [6000])
 	}])
 
 	Mv(ctr.refAs('clear').onClick, 'on', [function() {
-		Mv(act4, 'clear', [])
+		Mv(act5, 'clear', [])
 	}])
 
+	// ---------------------------------------------
+
+	const act6 = new action.KeyframeAction(win)
 	Mv(act6, 'add', [{
 		time: 0,
-		origin: 50,
-		width: 100,
-		height: 100,
+		// origin: 50,
+		width: 50,
+		height: 50,
 		opacity: 1,
 		visible: true,
 		src: resolve('./res/cc.jpg'),
@@ -172,12 +178,12 @@ export default function (win: Window) {
 		borderRadiusRightBottom: 0,
 		borderRadiusLeftBottom: 0,
 		backgroundColor: '#000',
-		align: 'start',
+		align: 'end',
 		textAlign: 'center',
-		minWidth: 'auto',
-		minHeight: 'auto',
-		maxWidth: 'match',
-		maxHeight: 'auto',
+		// minWidth: 'auto',
+		// minHeight: 'auto',
+		// maxWidth: 'match',
+		// maxHeight: 'auto',
 		textBackgroundColor: '#ff0',
 		textColor: '#f00',
 		textSize: 'inherit',
@@ -199,7 +205,10 @@ export default function (win: Window) {
 	Pv(act6, 'frame', 0);
 	Pv(act6, 'length', 2);
 	Pv(ctr.refAs('img'), 'action', act6, e=>e.action=act6)
+	Pv(act6, 'loop', 1e6, e=>e.loop=1e6)
 	Pv(act6, 'playing', false)
+	Mv(act6, 'play', [])
+	Pv(act6, 'playing', true)
 
 	const f = act6[1]
 	Pv(f, 'index', 1)

@@ -328,7 +328,7 @@ namespace qk {
 	}
 
 	void TextLines::solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
-		Qk_DEBUG("TextLines::solve_visible_region_blob");
+		//Qk_DEBUG("TextLines::solve_visible_region_blob");
 
 		blob_visible->clear();
 
@@ -351,8 +351,8 @@ namespace qk {
 				if (is_break)
 					break;
 			}
-			Qk_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
-				item.origin, item.line, item.blob.glyphs.length(), line.visible_region);
+			//Qk_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
+			//	item.origin, item.line, item.blob.glyphs.length(), line.visible_region);
 		}
 	}
 

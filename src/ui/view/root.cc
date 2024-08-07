@@ -70,9 +70,13 @@ namespace qk {
 	void Root::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kRecursive_Transform) { // update matrix matrix
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value();
+
+			_position = layout_offset() + Vec2(margin_left(), margin_top()) +
+				origin_value() + translate();
+
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());
 			_visible_region = solve_visible_region(_matrix);
+
 			_matrix.set_translate(Vec2(0)); // clear translate, use position value
 		}
 		else if (mark & kRecursive_Visible_Region) {

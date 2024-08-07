@@ -58,7 +58,7 @@ namespace qk {
 
 	Rect UIRender::getRect(Box* box) {
 		return {
-			_fixOrigin, {box->_client_size[0]-_fixSize,box->_client_size[1]-_fixSize},
+			_origin, {box->_client_size[0]-_fixSize,box->_client_size[1]-_fixSize},
 		};
 	}
 
@@ -650,13 +650,26 @@ namespace qk {
 
 	void UIRender::visitMatrix(Matrix* box) {
 		auto matrix = _matrix;
-		auto fixOrigin = _fixOrigin;
-		_fixOrigin -= box->_origin_value;
+		auto origin = _origin;
+		_origin -= box->_origin_value;
 		_matrix = &box->mat();
 		_canvas->setMatrix(*_matrix);
-		UIRender::visitBox(box);
-		_fixOrigin = fixOrigin;
+		// draw box
+		BoxData data;
+		_canvas->setTranslate(box->position());
+		if (box->_boxShadow)
+			drawBoxShadow(box, data);
+		if (box->_background_color.a())
+			drawBoxColor(box, data);
+		if (box->_background)
+			drawBoxFill(box, data);
+		if (box->_border)
+			drawBoxBorder(box, data);
+		_origin = origin;
+		drawBoxEnd(box, data);
+		// draw box end
 		_matrix = matrix;
+		_canvas->setMatrix(*_matrix);
 	}
 
 	void UIRender::visitRoot(Root* v) {
@@ -668,9 +681,9 @@ namespace qk {
 			}
 			if (v->_visible_region && v->_opacity != 0) {
 				// Fix rect aa stroke width
-				// _fix = _render->getUnitPixel() * 0.225f; // fix aa stroke width
-				_fixOrigin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
-				_fixSize = _fixOrigin[0] + _fixOrigin[0];
+				auto origin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
+				_fixSize = origin + origin;
+				_origin = Vec2(origin) - v->_origin_value;
 				BoxData data;
 				_matrix = &v->mat();
 				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
@@ -681,6 +694,7 @@ namespace qk {
 					drawBoxFill(v, data);
 				if (v->_border)
 					drawBoxBorder(v, data);
+				_origin = origin;
 				drawBoxEnd(v, data);
 			} else {
 				_canvas->clearColor(Color4f(0,0,0,0));

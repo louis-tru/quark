@@ -62,7 +62,7 @@ namespace qk { namespace js {
 
 	bool WrapViewObject::addEventListener(cString& name_, cString& func, int id) {
 		const UIEventName *name;
-		if ( UIEventNames.get(name_, name) ) {
+		if ( !UIEventNames.get(name_, name) ) {
 			return false;
 		}
 		auto wrap = static_cast<Wobj<View>*>(static_cast<WrapObject*>(this));
@@ -95,7 +95,7 @@ namespace qk { namespace js {
 
 	bool WrapViewObject::removeEventListener(cString& name_, int id) {
 		const UIEventName *name;
-		if ( UIEventNames.get(name_, name) ) {
+		if ( !UIEventNames.get(name_, name) ) {
 			return false;
 		}
 		Qk_DEBUG("removeEventListener, name:%s, id:%d", *name_, id);

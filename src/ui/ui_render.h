@@ -91,7 +91,7 @@ namespace qk {
 		PathvCache *_cache;
 		float      _opacity;
 		uint32_t   _mark_recursive;
-		Vec2       _fixOrigin;
+		Vec2       _origin; // box origin and fix aa stroke width
 		float      _fixSize; // fix rect stroke width
 		const Mat *_matrix;
 	};
