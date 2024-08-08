@@ -33,12 +33,12 @@ import * as types from 'quark/types';
 
 const app = new Application();
 const win = new Window({
-	fps:0x0,
+	fps: 0x0,
 	frame: types.newRect(0,0,500,500),
 	backgroundColor: types.newColor(0,0,255,255),
 }).activate();
 
-function test0(win: Window) {
+async function test0(win: Window) {
 	const box = new Box(win);
 	box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
 	box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
@@ -47,6 +47,9 @@ function test0(win: Window) {
 	win.root.append(box);
 }
 
-import test from './test_action'
+// import test from './test_action'
+import test from './test_buf'
 
-test(win);
+test(win).then(()=>{
+	console.log('\n');
+})

@@ -27,9 +27,9 @@ export function Pv<Self,Name extends keyof Self>(
 		preSet(self, name);
 	let r = self[name];
 	if (typeof verify == 'function') {
-		console.log( 'Prop', name, ':', (verify as any)(r) ? 'ok': 'no', r);
+		console.log( 'Prop', name, ':', (verify as any)(r) ? 'ok': 'no'/*, r*/);
 	} else {
-		console.log( 'Prop', name, ':', r === verify ? 'ok': 'no', r);
+		console.log( 'Prop', name, ':', r === verify ? 'ok': 'no'/*, r*/);
 	}
 }
 
@@ -39,7 +39,7 @@ export function Mv<
 	self: Self,
 	name: FunctionName<Self, Name>,
 	args: Parameters<Self, Name>,
-	verify?: VerifyType<Self, Name> | ((arg: VerifyType<Self, Name>)=>boolean)
+	verify?: VerifyType<Self, Name> | ((arg: VerifyType<Self, Name>)=>boolean),
 ): ReturnType<Self, Name> {
 	let r = (self[name] as any)( ...args );
 	let argc = arguments.length;
@@ -53,7 +53,7 @@ export function Mv<
 				vv = verify === r ? 'ok': 'no';
 			}
 		}
-		console.log( 'Method', String(name) + '()', ':', vv, r);
+		console.log( 'Method', String(name) + '()', ':', vv/*, r*/);
 	}
 
 	if (r instanceof Promise) {
@@ -94,7 +94,7 @@ export function Mvcb<
 					vv = verify === v_args[0] ? 'ok': 'no';
 				}
 			}
-			console.log( 'Method', String(name) + '()', ':', vv, r, ...args);
+			console.log( 'Method', String(name) + '()', ':', vv/*, r*/, ...args);
 			resolve(args[0]);
 		}
 

@@ -130,8 +130,9 @@ namespace qk {
 
 		/**
 		 * @method timer() start timer and return handle id
+		 * @param repeat always repeating
 		*/
-		uint32_t timer(Cb cb, uint64_t timeUs, uint64_t repeat = 0);
+		uint32_t timer(Cb cb, uint64_t timeUs, int64_t repeat = 0);
 
 		/**
 		 * @method timer_stop timer stop 

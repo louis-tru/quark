@@ -37,7 +37,7 @@ namespace qk { namespace js {
 	class WrapFontPool: public WrapObject {
 	public:
 
-		static void getFontFamilys(FunctionArgs args, FontPool* pool) {
+		static void getFontFamilysFromPool(FunctionArgs args, FontPool* pool) {
 			Js_Worker(args);
 			if (args.length()) {
 				Js_Parse_Type(String, args[0], "@method FontPool.getFontFamilys(cString& familys = %s)");
@@ -45,6 +45,15 @@ namespace qk { namespace js {
 			} else {
 				Js_Return( worker->types()->jsvalue(pool->getFontFamilys()) );
 			}
+		}
+
+		static void getFamilysNameFromFFID(FunctionArgs args) {
+			Js_Worker(args);
+			if (!args.length()) {
+				Js_Throw("@method _font.getFamilysName(FFID)");
+			}
+			Js_Parse_Type(FFID, args[0], "@method _font.getFamilysName(FFID)");
+			Js_Return( out->familys().keys().join(',') );
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -67,7 +76,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Method(getFontFamilys, {
 				Js_Self(FontPool);
-				getFontFamilys(args, self);
+				getFontFamilysFromPool(args, self);
 			});
 
 			Js_Set_Class_Method(addFontFamily, {
@@ -93,15 +102,11 @@ namespace qk { namespace js {
 
 			Js_Set_Method(getFontFamilys, {
 				if ( !checkApp(worker) ) return;
-				getFontFamilys(args, shared_app()->fontPool());
+				getFontFamilysFromPool(args, shared_app()->fontPool());
 			});
 
 			Js_Set_Method(getFamilysName, {
-				if (!args.length()) {
-					Js_Throw("@method _font.getFamilysName(FFID)");
-				}
-				Js_Parse_Type(FFID, args[0], "@method _font.getFamilysName(FFID)");
-				Js_Return( out->familys().keys().join(',') );
+				getFamilysNameFromFFID(args);
 			});
 
 			cls->exports("FontPool", exports);

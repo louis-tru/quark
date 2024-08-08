@@ -77,18 +77,28 @@ class Test {
 		o.u = o;
 
 		console.log(o);
-		
-		var i = 0;
-		
-		var id = setInterval(function () {
-			console.log(++i);
-			
-			if (i == 20) {
-				clearInterval(id);
-			}
-		}, 1000.3);
+
+		setTimeout(function() {
+
+			var i = 0;
+			var now = Date.now()
+			console.log('setTimeout-----------------------');
+
+			var id = setInterval(function () {
+				let now1 = Date.now();
+				console.log('setInterval-----------------------', ++i, now1 - now);
+
+				if (i == 20) {
+					clearInterval(id);
+				}
+				now = now1;
+			}, 1000);
+
+		}, 5000)
 		
 	}
 }
 
-new Test().dd();
+export default async function (_: any) {
+	new Test().dd();
+}

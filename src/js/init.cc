@@ -276,7 +276,7 @@ namespace qk { namespace js {
 
 	class NativeTimer {
 	public:
-		static void timer_(FunctionArgs args, int64_t repeat, cChar* name) {
+		static void timer_(FunctionArgs args, int64_t repeat, cChar* name, bool repeatArg) {
 			Js_Worker(args);
 			if (!args.length() || !args[0]->isFunction()) {
 				Js_Throw(
@@ -286,19 +286,18 @@ namespace qk { namespace js {
 					"%s"
 					"@return {Number}\n",
 					name,
-					repeat == -1 ? "[,repeat]": "",
-					repeat == -1 ? "@param [repeat] {Number}\n": ""
+					repeatArg ? "[,repeat]": "",
+					repeatArg ? "@param [repeat] {Number}\n": ""
 				);
 			}
-			
+
 			uint64_t timeout = 0;
-			if (args.length() > 1 && args[1]->isUint32()) {
-				timeout = args[1]->toUint32Value(worker).unsafe() * 1e3;
+			if (args.length() > 1 && args[1]->isNumber()) {
+				timeout = Float64::max(args[1]->toNumberValue(worker).unsafe(), 0) * 1e3;
 			}
-			if (repeat == -1) {
-				repeat = 0;
-				if (args.length() > 2 && args[2]->isUint32()) {
-					repeat = args[2]->toUint32Value(worker).unsafe();
+			if (repeatArg) {
+				if (args.length() > 2 && args[2]->isNumber()) {
+					repeat = args[2]->toNumberValue(worker).unsafe();
 				}
 			}
 			auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), timeout, repeat);
@@ -317,13 +316,13 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Set_Method(setTimer, {
-				timer_(args, -1, "setTimer");
+				timer_(args, 0, "setTimer", true);
 			});
 			Js_Set_Method(setTimeout, {
-				timer_(args, 0, "setTimeout");
+				timer_(args, 0, "setTimeout", false);
 			});
 			Js_Set_Method(setInterval, {
-				timer_(args, 0xffffffffffffffu, "setInterval");
+				timer_(args, -1, "setInterval", false);
 			});
 			Js_Set_Method(setImmediate, {
 				if (!args.length() || !args[0]->isFunction()) {

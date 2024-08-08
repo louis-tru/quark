@@ -126,7 +126,7 @@ namespace qk { namespace js {
 			Js_Type_Check(JSValue, T);
 		}
 		template <class S>
-		inline Persistent(Worker* worker, S* that) {
+		inline Persistent(Worker* worker, S* that): _val(0), _worker(0) {
 			Js_Type_Check(JSValue, T);
 			reset(worker, that);
 		}
@@ -452,9 +452,10 @@ namespace qk { namespace js {
 
 		// new instance
 		JSValue* newInstance(Object *val);
+		// May receive unknown pointers
+		JSBoolean* newInstance(bool val) { return newBool(val); }
 		JSNumber* newInstance(float val);
 		JSNumber* newInstance(double val);
-		JSBoolean*newBool(bool val);
 		JSInt32*  newInstance(Char val);
 		JSUint32* newInstance(uint8_t val);
 		JSInt32*  newInstance(int16_t val);
@@ -477,6 +478,7 @@ namespace qk { namespace js {
 		inline
 		JSValue* newInstance(JSValue* val) { return val; }
 
+		JSBoolean*    newBool(bool val);
 		JSValue*      newNull();
 		JSValue*      newUndefined();
 		JSObject*     newObject();

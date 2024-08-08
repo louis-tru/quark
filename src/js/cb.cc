@@ -36,27 +36,28 @@ namespace qk { namespace js {
 		typedef NonObjectTraits Traits;
 		Func(Worker* worker, JSValue* cb)
 			: val(worker, cb->as<JSFunction>()) {}
+		Func(const Func& func) {
+			val.copy(func.val);
+		}
 		Persistent<JSFunction> val;
 	};
 
 	template<class Type, class Err = Error>
 	Callback<Type> get_callback_for_type(Worker* worker, JSValue* cb) {
 		if ( cb && cb->isFunction() ) {
-			auto func = new Func(worker, cb);
+			Func func(worker, cb);
 			typedef Callback<Type> Cb;
 
 			return Cb([worker, func](typename Cb::Data& d) {
-				Sp<Func> h(func);
-				auto f = *func->val;
 				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
 					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
-					f->call(worker, 1, &arg);
+					func.val->call(worker, 1, &arg);
 				} else {
 					Type* data = d.data;
 					JSValue* args[2] = { worker->newNull(), worker->types()->jsvalue(*data) };
-					f->call(worker, 2, args);
+					func.val->call(worker, 2, args);
 				}
 			});
 		} else {
@@ -88,21 +89,19 @@ namespace qk { namespace js {
 	template<class Err = Error>
 	Callback<Buffer> get_callback_for_buffer2(Worker* worker, JSValue* cb, Encoding encoding) {
 		if ( cb && cb->isFunction() ) {
-			auto func = new Func(worker, cb);
+			Func func(worker, cb);
 			typedef Callback<Buffer> Cb;
 
 			return Cb([worker, func, encoding](Cb::Data& d) {
-				Sp<Func> h(func);
-				auto f = *func->val;
 				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
 					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
-					f->call(worker, 1, &arg);
+					func.val->call(worker, 1, &arg);
 				} else {
 					Buffer* bf = d.data;
 					JSValue* args[2] = { worker->newNull(), convert_buffer(worker, *bf, encoding) };
-					f->call(worker, 2, args);
+					func.val->call(worker, 2, args);
 				}
 			});
 		} else {
@@ -113,17 +112,14 @@ namespace qk { namespace js {
 	template<class Err = Error>
 	Callback<StreamResponse> get_callback_for_io_stream2(Worker* worker, JSValue* cb) {
 		if ( cb && cb->isFunction() ) {
-			auto func = new Func(worker, cb);
+			Func func(worker, cb);
 			typedef Callback<StreamResponse> Cb;
 
 			return Cb([worker, func](Cb::Data& d) {
-				Sp<Func> h(func);
-				auto f = *func->val;
 				Js_Handle_Scope(); // Callback Scope
-				
 				if ( d.error ) {
 					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
-					f->call(worker, 1, &arg);
+					func.val->call(worker, 1, &arg);
 				} else {
 					StreamResponse* data = static_cast<StreamResponse*>(d.data);
 					JSObject* arg = worker->newObject();
@@ -132,7 +128,7 @@ namespace qk { namespace js {
 					arg->set(worker, worker->strs()->size(), worker->newInstance(data->size()) );
 					arg->set(worker, worker->strs()->total(), worker->newInstance(data->total()) );
 					JSValue* args[2] = { worker->newNull(), arg };
-					f->call(worker, 2, args);
+					func.val->call(worker, 2, args);
 				}
 			});
 		} else {
@@ -143,17 +139,15 @@ namespace qk { namespace js {
 	template<class Err = Error>
 	Callback<ResponseData> get_callback_for_response_data2(Worker* worker, JSValue* cb) {
 		if ( cb && cb->isFunction() ) {
-			auto func = new Func(worker, cb);
+			Func func(worker, cb);
 			typedef Callback<ResponseData> Cb;
 			
 			return Cb([worker, func](Cb::Data& d) {
-				Sp<Func> h(func);
-				auto f = *func->val;
 				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
 					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
-					f->call(worker, 1, &arg);
+					func.val->call(worker, 1, &arg);
 				} else {
 					ResponseData* data = d.data;
 					JSObject* arg = worker->newObject();
@@ -162,7 +156,7 @@ namespace qk { namespace js {
 					arg->set(worker, worker->strs()->statusCode(), worker->newInstance(data->status_code) );
 					arg->set(worker, worker->strs()->responseHeaders(), worker->newInstance(data->response_headers) );
 					JSValue* args[2] = { worker->newNull(), arg };
-					f->call(worker, 2, args);
+					func.val->call(worker, 2, args);
 				}
 			});
 		} else {
@@ -172,17 +166,15 @@ namespace qk { namespace js {
 
 	Cb get_callback_for_none(Worker* worker, JSValue* cb) {
 		if ( cb && cb->isFunction() ) {
-			auto func = new Func(worker, cb);
+			Func func(worker, cb);
 
 			return Cb([worker, func](Cb::Data& d) {
-				Sp<Func> h(func);
-				auto f = *func->val;
 				Js_Handle_Scope(); // Callback Scope
 				if ( d.error ) {
 					JSValue* arg = worker->types()->jsvalue(*static_cast<const Error*>(d.error));
-					f->call(worker, 1, &arg);
+					func.val->call(worker, 1, &arg);
 				} else {
-					f->call(worker);
+					func.val->call(worker);
 				}
 			});
 		} else {

@@ -29,59 +29,58 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { LOG, Pv, Mv } from './tool'
-import qk, { Application, Window } from 'quark'
+import qk, { Window } from 'quark'
 import * as types from 'quark/types';
 
-const app = new Application();
-const win = new Window({
-	frame: types.newRect(0,0,500,500),
-}).activate();
+export default async function (win: Window) {
+	const app = qk.app;
 
-LOG('\nTest Application:\n')
-Pv(qk, 'app', app)
-Pv(win, 'root', win.root)
-Pv(win, 'rootCtr', win.rootCtr)
+	LOG('\nTest Application:\n')
+	Pv(qk, 'app', app)
+	Pv(win, 'root', win.root)
+	Pv(win, 'rootCtr', win.rootCtr)
 
-Mv(app.onUnload, 'on', [function() { LOG('---- onunload') }])
-Mv(app.onPause, 'on', [function() { LOG('---- onpause') }])
-Mv(app.onResume, 'on', [function() { LOG('---- onresume') }])
-Mv(app.onMemoryWarning, 'on', [function() { LOG('---- onmemorywarning') }])
+	Mv(app.onUnload, 'on', [function() { LOG('---- onunload') }])
+	Mv(app.onPause, 'on', [function() { LOG('---- onpause') }])
+	Mv(app.onResume, 'on', [function() { LOG('---- onresume') }])
+	Mv(app.onMemoryWarning, 'on', [function() { LOG('---- onmemorywarning') }])
 
-Mv(app, 'clear', []);
-Pv(app, 'isLoaded', false);
-Pv(app, 'screen', app.screen)
-Pv(win, 'root', e=>e.isFocus)
-Pv(win, 'focusView', win.root)
+	Pv(app, 'isLoaded', false);
+	Mv(app, 'clear', []);
+	Pv(app, 'screen', app.screen)
+	Pv(win, 'root', e=>e.isFocus)
+	Pv(win, 'focusView', win.root)
 
-// defaultTextOptions
-Pv(app.defaultTextOptions, 'textBackgroundColor', e=>e.toString()=='#ffffff',
-	e=>e.textBackgroundColor=types.parseTextColor('#fff'))
+	// defaultTextOptions
+	Pv(app.defaultTextOptions, 'textBackgroundColor', e=>e.toString()=='#ffffff',
+		e=>e.textBackgroundColor=types.parseTextColor('#fff'))
 
-Pv(app.defaultTextOptions, 'textColor', e=>e.toString()=='#ff0000',
-	e=>e.textColor=types.parseTextColor('#f00'))
+	Pv(app.defaultTextOptions, 'textColor', e=>e.toString()=='#ff0000',
+		e=>e.textColor=types.parseTextColor('#f00'))
 
-Pv(app.defaultTextOptions, 'textSize', e=>e.value==16,
-	e=>e.textSize=types.parseTextSize(16))
+	Pv(app.defaultTextOptions, 'textSize', e=>e.value==16,
+		e=>e.textSize=types.parseTextSize(16))
 
-Pv(app.defaultTextOptions, 'textWeight', e=>e==types.TextWeight.Thin,
-	e=>e.textWeight=types.parseTextWeight('thin'))
+	Pv(app.defaultTextOptions, 'textWeight', e=>e==types.TextWeight.Thin,
+		e=>e.textWeight=types.parseTextWeight('thin'))
 
-Pv(app.defaultTextOptions, 'textSlant', e=>e==types.TextSlant.Italic,
-	e=>e.textSlant=types.parseTextSlant('italic'))
+	Pv(app.defaultTextOptions, 'textSlant', e=>e==types.TextSlant.Italic,
+		e=>e.textSlant=types.parseTextSlant('italic'))
 
-Pv(app.defaultTextOptions, 'textFamily', e=>!!e.familys())
+	Pv(app.defaultTextOptions, 'textFamily', e=>!!e.familys())
 
-Pv(app.defaultTextOptions, 'textShadow', e=>e.value.color.toString()=='#0000ff'&&e.value.x==10,
-	e=>e.textShadow=types.parseTextShadow('10 10 10 #00f'))
+	Pv(app.defaultTextOptions, 'textShadow', e=>e.value.color.toString()=='#0000ff'&&e.value.x==10,
+		e=>e.textShadow=types.parseTextShadow('10 10 10 #00f'))
 
-Pv(app.defaultTextOptions, 'textLineHeight', e=>e.value==0,
-	e=>e.textLineHeight=types.parseTextLineHeight(0))
+	Pv(app.defaultTextOptions, 'textLineHeight', e=>e.value==0,
+		e=>e.textLineHeight=types.parseTextLineHeight(0))
 
-Pv(app.defaultTextOptions, 'textDecoration', e=>e==types.TextDecoration.LineThrough,
-	e=>e.textDecoration=types.parseTextDecoration('lineThrough'))
+	Pv(app.defaultTextOptions, 'textDecoration', e=>e==types.TextDecoration.LineThrough,
+		e=>e.textDecoration=types.parseTextDecoration('lineThrough'))
 
-Pv(app.defaultTextOptions, 'textOverflow', e=>e==types.TextOverflow.Clip,
-	e=>e.textOverflow=types.parseTextOverflow('clip'))
+	Pv(app.defaultTextOptions, 'textOverflow', e=>e==types.TextOverflow.Clip,
+		e=>e.textOverflow=types.parseTextOverflow('clip'))
 
-Pv(app.defaultTextOptions, 'textWhiteSpace', e=>e==types.TextWhiteSpace.NoWrap,
-	e=>e.textWhiteSpace=types.parseTextWhiteSpace('noWrap'))
+	Pv(app.defaultTextOptions, 'textWhiteSpace', e=>e==types.TextWhiteSpace.NoWrap,
+		e=>e.textWhiteSpace=types.parseTextWhiteSpace('noWrap'))
+}

@@ -40,6 +40,8 @@ namespace qk {
 
 		struct timer_t: public uv_timer_t {
 			uint32_t id;
+			int64_t repeatCount;
+			bool calling;
 			Cb cb;
 		};
 
@@ -70,45 +72,49 @@ namespace qk {
 
 		static void timer_handle(uv_timer_t* handle) {
 			auto timer = (timer_t*)handle;
-			auto self = _inl(timer->data);
-			if (timer->cb->resolve() || timer->repeat == 0) {
-				uv_timer_stop(timer);
-				self->_timer.erase(timer->id);
-				delete timer;
+			timer->calling = true;
+			auto rc = timer->cb->resolve();
+			timer->calling = false;
+			if (rc != 0 || timer->repeatCount == 0) {
+				_inl(timer->data)->timer_stop(timer);
+			} else if (timer->repeatCount > 0) {
+				timer->repeatCount--;
 			}
 		}
 
-		void timer_start(uv_timer_t *handle) {
-			auto timer = (timer_t*)handle;
+		void timer_start(timer_t *timer) {
+			auto timeout = timer->timeout;
+			auto repeatCount = timer->repeatCount;
+			auto repeat = repeatCount ? (timeout ? timeout: 1): 0;
 			_timer.set(timer->id, timer);
-			uv_timer_init(_uv_loop, timer);
-			uv_timer_start(timer, timer_handle, timer->timeout, timer->repeat);
+			Qk_Assert_Eq(0, uv_timer_init(_uv_loop, timer));
+			Qk_Assert_Eq(0, uv_timer_start(timer, timer_handle, timeout, repeat));
 		}
 
-		void timer_stop(uint32_t id) {
-			auto it = _timer.find(id);
-			if (it != _timer.end()) {
-				auto timer = (timer_t*)it->value;
-				Qk_ASSERT(id == timer->id);
-				uv_timer_stop(timer);
-				_timer.erase(id);
+		void timer_stop(timer_t *timer) {
+			if (timer->calling) {
+				timer->repeatCount = 0;
+			} else {
+				Qk_Assert_Eq(0, uv_timer_stop(timer));
+				_timer.erase(timer->id);
 				delete timer;
 			}
 		}
 
-		uint32_t post(Cb cb, uint64_t delayUs, uint64_t repeat) {
+		uint32_t post(Cb cb, uint64_t delayUs, int64_t repeat) {
 			if (_thread->abort) {
 				Qk_WARN("RunLoop::Inl::post, _thread->abort == true"); return;
 			}
-			auto isSelf = thread_self_id() == _tid;
+			auto isSelfThread = thread_self_id() == _tid;
 			if (delayUs) {
 				timer_t *timer = new timer_t;
-				*static_cast<uv_timer_t*>(timer) = uv_timer_t{
-					.timer_cb=0, .timeout=delayUs/1000, .repeat=repeat, .data=this
-				};
+				*static_cast<uv_timer_t*>(timer) =
+					uv_timer_t{ .timer_cb=0, .timeout=delayUs/1000, .data=this };
 				timer->id = getId32();
+				timer->repeatCount = repeat;
+				timer->calling = false;
 				timer->cb = cb;
-				if (isSelf) {
+				if (isSelfThread) {
 					timer_start(timer);
 				} else {
 					ScopeLock lock(_mutex);
@@ -117,7 +123,7 @@ namespace qk {
 				}
 				return timer->id;
 			} else {
-				if (isSelf) {
+				if (isSelfThread) {
 					cb->resolve();
 				} else {
 					ScopeLock lock(_mutex);
@@ -341,14 +347,18 @@ namespace qk {
 		_this->post(cb, 0, 0);
 	}
 
-	uint32_t RunLoop::timer(Cb cb, uint64_t time, uint64_t repeat) {
+	uint32_t RunLoop::timer(Cb cb, uint64_t time, int64_t repeat) {
 		return _this->post(cb, time ? time : 1, repeat);
 	}
 
 	void RunLoop::timer_stop(uint32_t id) {
 		if (id) {
 			_this->post(Cb([this,id](auto&e) {
-				_this->timer_stop(id);
+				uv_timer_t* out;
+				if (_timer.get(id, out)) {
+					Qk_Assert_Eq(id, ((Inl::timer_t*)out)->id);
+					_this->timer_stop((Inl::timer_t*)out);
+				}
 			}), 0, 0);
 		}
 	}

@@ -34,7 +34,7 @@ import * as action from 'quark/action'
 
 const resolve = require.resolve;
 
-export default function (win: Window) {
+export default async function (win: Window) {
 	win.render(
 		<box width="match">
 			<matrix ref="div" align="start" width={100} height={100} backgroundColor="#f00" origin="auto">

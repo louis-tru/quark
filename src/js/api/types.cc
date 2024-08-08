@@ -414,7 +414,7 @@ namespace qk { namespace js {
 			worker->newInstance((uint32_t)value.kind),
 			worker->newInstance(value.value),
 		};
-		return _newTextSize->call(worker, 1, args);
+		return _newTextSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextShadow& value) {
@@ -1009,12 +1009,12 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, FFID& out, cChar* desc) {
-		auto ffid = in->asBuffer(worker);
-		if (ffid.length() < sizeof(FFID)) {
+		auto buff = in->asBuffer(worker);
+		if (buff.length() < sizeof(FFID)) {
 			return throw_error(worker, in, desc), false;
 		}
-		out = reinterpret_cast<const FFID>( const_cast<char*>(ffid.val()) );
-		return out;
+		out = *reinterpret_cast<const FFID*>( buff.val() );
+		return true;
 	}
 
 	void binding_filter(JSObject* exports, Worker* worker);

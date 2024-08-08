@@ -610,11 +610,20 @@ export type TextColorIn = TextValueKindInStr | ColorIn | TextColor;
 export class TextSize extends TextBase<TextSize,N> {}
 initDefaults(TextSize, { value: 0, kind: TextValueKind.Inherit });
 export type TextSizeIn = TextValueKindInStr | N | TextSize;
+export type TextLineHeightIn = TextSizeIn;
 export type TextLineHeight = TextSize;
 export const TextLineHeight = TextSize;
-export type TextLineHeightIn = TextSizeIn;
 
-export class TextShadow extends TextBase<TextShadow,Shadow> {}
+export class TextShadow extends TextBase<TextShadow,Shadow> {
+	get x() { return this.value.x }
+	get y() { return this.value.y }
+	get size() { return this.value.size }
+	get color() { return this.value.color }
+	get r() { return this.color.r; }
+	get g() { return this.color.g; }
+	get b() { return this.color.b; }
+	get a() { return this.color.a; }
+}
 initDefaults(TextShadow, { value: new Shadow, kind: TextValueKind.Inherit });
 export type TextShadowIn = TextValueKindInStr | ShadowIn | TextShadow;
 
@@ -780,8 +789,7 @@ export function newTextSize(kind: TextValueKind, value: N) {
 export const newTextLineHeight = newTextSize;
 
 export function newTextShadow(
-	kind: TextValueKind, offset_x: N, offset_y: N,
-	size: N, r: N, g: N, b: N, a: N
+	kind: TextValueKind, offset_x: N, offset_y: N, size: N, r: N, g: N, b: N, a: N
 ) {
 	return newBase(TextShadow,{kind,value: newShadow(offset_x,offset_y,size,r,g,b,a)});
 }
