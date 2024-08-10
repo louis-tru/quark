@@ -145,10 +145,10 @@ namespace qk { namespace js {
 			reinterpret_cast<Persistent<JSValue>*>(this)->reset(worker, static_cast<JSValue*>(*other));
 		}
 		template<class S>
-		void copy(const Persistent<S>& that) {
+		void copy(const Persistent<S>& from) {
 			Js_Type_Check(T, S);
 			reinterpret_cast<Persistent<JSValue>*>(this)->
-				copy(*reinterpret_cast<const Persistent<JSValue>*>(&that));
+				copy(*reinterpret_cast<const Persistent<JSValue>*>(&from));
 		}
 		inline bool isEmpty() const { return _val == 0; }
 		inline T* operator->() const { return operator*(); }

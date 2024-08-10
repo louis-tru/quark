@@ -257,33 +257,7 @@ namespace qk {
 		ScopeLock lock(*__threads_mutex);
 		Qk_Fatal_Assert(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 
-		{
-			ScopeLock lock(_mutex);
-			for (auto& i: _keep) {
-				Qk_WARN("RunLoop keep not release \"%p\"", i);
-				static_cast<Keep*>(i)->_loop = nullptr;
-			}
-			for (auto& i: _work) {
-				Qk_WARN("RunLoop work not complete: \"%p\"", i.value);
-				delete i.value;
-			}
-		}
-
-		for (auto &i: _msg) {
-			if (!i.timer) {
-				i.cb->resolve(this); // resolve last message
-			} else {
-				auto timer = (Inl::timer_t*)(i.timer);
-				Qk_WARN("RunLoop::~RunLoop(), discard timer %p", timer);
-				delete timer;
-			}
-		}
-		for (auto &i: _timer) {
-			auto timer = (Inl::timer_t*)(i.value);
-			uv_timer_stop(timer);
-			Qk_WARN("RunLoop::~RunLoop(), discard timer %p", timer);
-			delete timer;
-		}
+		clear(); // clear all
 
 		if (__first_loop == this) {
 			__first_loop = nullptr;
@@ -299,6 +273,42 @@ namespace qk {
 		Qk_ASSERT(t->loop == this);
 		t->loop = nullptr;
 		_thread = nullptr;
+	}
+
+	void RunLoop::clear() {
+		_mutex.lock();
+		List<KeepLoop*> keeps(std::move(_keep));
+		List<Msg>       msgs(std::move(_msg));
+		Dict<uint32_t, Work*> works(std::move(_work));
+		Dict<uint32_t, uv_timer_t*> timers(std::move(_timer));
+		_mutex.unlock();
+
+		for (auto& i: keeps) {
+			Qk_WARN("RunLoop keep not release \"%p\"", i);
+			static_cast<Keep*>(i)->_loop = nullptr;
+		}
+
+		for (auto& i: works) {
+			Qk_WARN("RunLoop work not complete: \"%p\"", i.value);
+			delete i.value;
+		}
+
+		for (auto &i: msgs) {
+			if (!i.timer) {
+				i.cb->resolve(this); // resolve last message
+			} else {
+				auto timer = (Inl::timer_t*)(i.timer);
+				Qk_WARN("RunLoop::~RunLoop(), discard timer %p", timer);
+				delete timer;
+			}
+		}
+
+		for (auto &i: timers) {
+			auto timer = (Inl::timer_t*)(i.value);
+			uv_timer_stop(timer);
+			Qk_WARN("RunLoop::~RunLoop(), discard timer %p", timer);
+			delete timer;
+		}
 	}
 
 	RunLoop* RunLoop::current() {
@@ -369,6 +379,7 @@ namespace qk {
 		}
 		if (thread_self_id() == _tid) {
 			cb->retain();
+			// TODO memory leak ?
 			auto check = new uv_check_t{.data=*cb};
 			uv_check_init(_uv_loop, check);
 			uv_check_start(check, [](auto handle) {

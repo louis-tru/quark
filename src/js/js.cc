@@ -619,6 +619,9 @@ namespace qk {
 
 			if (!is_process_exit())
 				rc = triggerExit(worker, rc);
+				
+			loop->clear(); // clear all async handles
+				
 			return rc;
 		});
 

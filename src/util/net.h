@@ -59,8 +59,7 @@ namespace qk {
 		};
 		
 		Socket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());
-
-		virtual ~Socket();
+		~Socket();
 
 		/**
 		* @method try open content
@@ -112,9 +111,9 @@ namespace qk {
 	*/
 	class Qk_EXPORT SSLSocket: public Socket {
 	public:
-		
+
 		SSLSocket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());
-		
+
 		/**
 		* @method disable_ssl_verify
 		*/

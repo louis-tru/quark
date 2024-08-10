@@ -68,8 +68,8 @@ class Test {
 		// console.log(http.getSync('http://www.baidu.com/').to_string());
 		
 		// http.get('http://www.baidu.com/', function(buff) {
-		http.get('http://fanyi.baidu.com/#en/zh/ELLIPSIS').then(e=>{
-			console.log(e.data.toString(), e.data.length);
+		http.get('https://fanyi.baidu.com/mtpe-individual/multimodal#/').then(e=>{
+			console.log('https://fanyi.baidu.com/mtpe-individual/multimodal#/', toString(e.data), e.data.length);
 		});
 		
 		var o = { a: 1000, b: buff0, c: buff, d: buff2, e: this, u: {} as any };

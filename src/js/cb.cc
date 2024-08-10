@@ -33,7 +33,6 @@
 namespace qk { namespace js {
 
 	struct Func {
-		typedef NonObjectTraits Traits;
 		Func(Worker* worker, JSValue* cb)
 			: val(worker, cb->as<JSFunction>()) {}
 		Func(const Func& func) {

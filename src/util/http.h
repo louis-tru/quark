@@ -154,7 +154,7 @@ namespace qk {
 		};
 
 		HttpClientRequest(RunLoop* loop = RunLoop::current());
-		virtual ~HttpClientRequest();
+		~HttpClientRequest();
 		void set_delegate(Delegate* delegate) throw(Error);
 		void set_method(HttpMethod method) throw(Error);
 		void set_url(cString& path) throw(Error);
@@ -182,24 +182,24 @@ namespace qk {
 		HttpReadyState ready_state() const;
 		int status_code() const;
 		String url() const;
-		
+
 		/**
 		* @func send() 发送请求,如果设置data参数会覆盖之前设置的表单数据
 		*/
 		void send(Buffer data = Buffer()) throw(Error);
 		void send(cString& data) throw(Error);
-		
+
 		/**
 		* @overwrite
 		*/
-		virtual void pause();
-		virtual void resume();
-		
+		void pause() override;
+		void resume() override;
+
 		/**
 		* @func abort current sending request
 		*/
 		void abort();
-	
+
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
@@ -244,6 +244,5 @@ namespace qk {
 	Qk_EXPORT void   http_delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
 	Qk_EXPORT void   http_delete_all_cookie(cString& domain, bool ssl = 0);
 	Qk_EXPORT void   http_clear_cookie();
-
 }
 #endif

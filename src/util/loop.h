@@ -206,6 +206,11 @@ namespace qk {
 		*/
 		static RunLoop* first();
 
+		/**
+		* @method clear(), immediately stop all timer and msg
+		*/
+		void clear();
+
 	private:
 		/**
 		 * @note Privately construct each thread,

@@ -486,15 +486,15 @@ namespace qk {
 		bool        _is_pause;
 		bool        _enable_keep_alive;
 		bool        _no_delay;
-		uint32_t        _keep_idle;
+		uint32_t    _keep_idle;
 		String      _hostname;
-		uint16_t       _port;
+		uint16_t    _port;
 		uv_tcp_t*   _uv_tcp;
 		uv_timer_t* _uv_timer;
 		sockaddr    _address;
 		String      _remote_ip;
 		Buffer      _read_buffer;
-		uint64_t      _timeout;
+		uint64_t    _timeout;
 	};
 
 	/**
@@ -502,7 +502,7 @@ namespace qk {
 	*/
 	class SSL_INL: public Socket::Inl {
 	public:
-		
+
 		static void set_ssl_cacert(cString& ca_content) {
 			
 			if (ca_content.isEmpty()) {
@@ -528,7 +528,7 @@ namespace qk {
 				SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
 			}
 		}
-		
+
 		static void set_ssl_cacert_file(cString& path) {
 			try {
 				set_ssl_cacert(fs_read_file_sync(path));
@@ -536,18 +536,18 @@ namespace qk {
 				Qk_ERR("SSL", "set_ssl_cacert() fail, %s", err.message().c_str());
 			}
 		}
-		
+
 		static void initializ_ssl() {
 			if ( ! ssl_initializ++ ) {
 				// Initialize ssl libraries and error messages
 				SSL_load_error_strings();
 				SSL_library_init();
 				//OpenSSL_add_all_algorithms();
-				
+
 				ssl_v23_client_ctx = SSL_CTX_new( SSLv23_client_method() );
 				SSL_CTX_set_verify(ssl_v23_client_ctx, SSL_VERIFY_PEER, NULL);
 				if (!ssl_x509_store) {
-					if (new_root_cert_store) { // node method
+					if (new_root_cert_store) { // TODO node method ...
 						ssl_x509_store = new_root_cert_store();
 						SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
 					} else {
@@ -556,20 +556,20 @@ namespace qk {
 				}
 			}
 		}
-		
+
 		static void ssl_info_callback(const SSL* ssl, int where, int ret) {
 			if ( where & SSL_CB_HANDSHAKE_START ) { /*LOG("----------------start");*/ }
 			if ( where & SSL_CB_HANDSHAKE_DONE ) { /* Qk_LOG("----------------done"); */ }
 		}
-		
+
 		static int bio_puts(BIO *bp, cChar *str) {
 			return bio_write(bp, str, int(strlen(str)));
 		}
-		
+
 		static long bio_ctrl(BIO *b, int cmd, long num, void *ptr) {
 			long ret = 1;
 			int *ip;
-			
+
 			switch (cmd) {
 				case BIO_C_SET_FD:
 					// sock_close(b);
@@ -594,11 +594,10 @@ namespace qk {
 			}
 			return (ret);
 		}
-		
+
 		static BIO_METHOD bio_method;
-		
+
 		// ---------------------------------------------------------
-		
 		/**
 		* @constructor
 		*/
@@ -609,7 +608,7 @@ namespace qk {
 			, _ssl_handshake(0), _ssl_write_req(nullptr) 
 		{
 			initializ_ssl();
-			
+	
 			_ssl = SSL_new(ssl_v23_client_ctx);
 			
 			SSL_set_app_data(_ssl, this);
@@ -621,11 +620,11 @@ namespace qk {
 			BIO_set_fd(bio, 0, BIO_NOCLOSE);
 			SSL_set_bio(_ssl, bio, bio);
 		}
-		
+
 		virtual ~SSL_INL() {
 			SSL_free(_ssl);
 		}
-		
+
 		void disable_ssl_verify(bool disable) {
 			if ( disable ) {
 				SSL_set_verify(_ssl, SSL_VERIFY_NONE, nullptr);
@@ -633,24 +632,24 @@ namespace qk {
 				SSL_set_verify(_ssl, SSL_VERIFY_PEER, nullptr);
 			}
 		}
-		
+
 		virtual void shutdown() {
 			SSL_shutdown(_ssl);
 			Inl::shutdown();
 		}
-		
+
 		static void trigger_socket_write_from_loop(Cb::Data& evt, SSLSocketWriteReq* req) {
 			Handle<SSLSocketWriteReq> req_(req);
 			req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host, req->data().raw_buffer,
 																									req->data().mark);
 		}
-		
+
 		static void ssl_write_cb(uv_write_t* req, int status) {
 			SSLSocketWriteReq* req_ = SSLSocketWriteReq::cast(req);
 			Qk_ASSERT(req_->data().buffers_count);
-			
+
 			req_->data().buffers_count--;
-			
+
 			if ( status < 0 ) {
 				req_->data().error++;
 				if ( req_->data().buffers_count == 0 ) {
@@ -668,7 +667,7 @@ namespace qk {
 				}
 			}
 		}
-		
+
 		static void ssl_handshake_write_cb(uv_write_t* req, int status) {
 			Handle<SocketWriteReq> req_(SocketWriteReq::cast(req));
 			if ( status < 0 ) {
@@ -676,18 +675,17 @@ namespace qk {
 				req_->ctx()->close();
 			}
 		}
-		
+
 		static void ssl_other_write_cb(uv_write_t* uv_req, int status) {
 			Handle<SocketWriteReq> req(SocketWriteReq::cast(uv_req));
 			// Do nothing
 		}
-		
+
 		static int bio_write(BIO* b, cChar* in, int inl) {
 			SSL_INL* self = ((SSL_INL*)b->ptr);
 			Qk_ASSERT( self->_ssl_handshake );
-			
+
 			int r;
-			
 			Buffer buffer = WeakBuffer(in, inl)->copy();
 			
 			if ( self->_ssl_handshake == 1 ) { // handshake or SSL_shutdown
