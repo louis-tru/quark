@@ -32,17 +32,17 @@ import * as _util from './_util';
 
 const isWeb = _util.default.isWeb;
 
-function split_path(self: any) {
-	if (self._is_split) return;
-	self._is_split = true;
-	
-	var value = self._value;
-	var val = '';
-	var i = value.indexOf('?');
-	
+function init(self: any) {
+	if (self._is_init) return;
+	self._is_init = true;
+
+	let value = self._value;
+	let val = '';
+	let i = value.indexOf('?');
+
 	if (i != -1) {
 		val = value.substr(0, i);
-		var search = self._search = value.substr(i);
+		let search = self._search = value.substr(i);
 		i = search.indexOf('#');
 		if (i != -1) {
 			self._search = search.substr(0, i);
@@ -60,26 +60,12 @@ function split_path(self: any) {
 	self._value = _util.formatPath(val);
 }
 
-function parse_base_ext_name(self: any) {
-	if (self._basename == -1) {
-		split_path(self);
-		var mat = self._value.match(/([^\/\\]+)?(\.[^\/\\\.]+)$|[^\/\\]+$/);
-		if (mat) {
-			self._basename = mat[0];
-			self._extname = mat[2] || '';
-		} else {
-			self._extname = self._basename = '';
-		}
-	}
-}
-
 function parse_path(self: any) {
 	if (self._is_parse) return;
 	self._is_parse = true;
-	
-	split_path(self);
-	
-	var mat = self._value.match(/^(([a-z]+:)\/\/)?(([^\/:]+)(?::(\d+))?)?(\/.*)?/);
+	init(self);
+
+	let mat = self._value.match(/^(([a-z]+:)\/\/)?(([^\/:]+)(?::(\d+))?)?(\/.*)?/);
 	if (mat) {
 		self._protocol = mat[2] || '';
 		self._origin = mat[1] || ''; // file://
@@ -90,8 +76,8 @@ function parse_path(self: any) {
 			self._port = mat[5] || '';
 		}
 
-		var path = self._filename = mat[6] || '/';
-		var i = path.lastIndexOf('/');
+		let path = self._filename = mat[6] || '/';
+		let i = path.lastIndexOf('/');
 		if (i > 0) {
 			self._dirname = path.substr(0, i);
 		} else {
@@ -102,44 +88,21 @@ function parse_path(self: any) {
 	}
 }
 
-function parse_params(self: any) {
-	if (self._params) 
-		return;
-	split_path(self);
-	
-	var params: Dict = self._params = {};
-	
-	if (self._search[0] != '?') 
-		return;
-		
-	var ls = self._search.substr(1).split('&');
-	
-	for (var i = 0; i < ls.length; i++) {
-		var o = ls[i].split('=');
-		params[ o[0] ] = decodeURIComponent(o[1] || '');
-	}
-}
-
-function parse_hash_params(self: any) {
-	if (self._hash_params) 
-		return;
-	split_path(self);
-	
-	var params: Dict = self._hash_params = {};
-	if (self._hash[0] != '#') 
-		return;
-		
-	var ls = self._hash.substr(1).split('&');
-	
-	for (var i = 0; i < ls.length; i++) {
-		var o = ls[i].split('=');
-		params[ o[0] ] = decodeURIComponent(o[1] || '');
+function parse_basename(self: any) {
+	if (self._basename != -1) return;
+	init(self);
+	let mat = self._value.match(/([^\/\\]+)?(\.[^\/\\\.]+)$|[^\/\\]+$/);
+	if (mat) {
+		self._basename = mat[0];
+		self._extname = mat[2] || '';
+	} else {
+		self._extname = self._basename = '';
 	}
 }
 
 function querystringStringify(prefix: string, params: Dict) {
-	var rev = [];
-	for (var i in params) {
+	let rev = [];
+	for (let i in params) {
 		rev.push(i + '=' + encodeURIComponent(params[i]));
 	}
 	return rev.length ? prefix + rev.join('&') : '';
@@ -149,7 +112,20 @@ function querystringStringify(prefix: string, params: Dict) {
  * @class URL
  */
 export class URL {
-	
+	private _value: string;
+	private _origin: string;
+	private _filename: string;
+	private _dirname: string;
+	private _basename: string;
+	private _extname: string;
+	private _search: string;
+	private _hash: string;
+	private _hostname: string;
+	private _port: string;
+	private _protocol: string;
+	private _params: Dict<string>;
+	private _hashParams: Dict<string>;
+
 	/**
 		* @param [path] {String}
 		* @constructor
@@ -158,186 +134,218 @@ export class URL {
 		if (!path && isWeb) {
 			path = location.href;
 		}
-		(<any>this)._value = path;
+		this._value = path;
 	}
-	
+
 	// href: "http://xxxx.xxx:81/v1.1.0/quark/path.js?sasasas&asasasa#sdsdsd"
 	get href(): string {
 		parse_path(this);
-		return (<any>this)._origin + (<any>this)._filename + (<any>this)._search + (<any>this)._hash;
+		return this._origin + this._filename + this._search + this._hash;
 	}
-	
+
 	/**
 		* full path
 		* filename: "/D:/Documents/test.js"
 		*/
 	get filename(): string {
 		parse_path(this);
-		return  (<any>this)._filename;
+		return this._filename;
 	}
-	
+
 	/**
 	 * @get path /a/b/s/test.html?aaaaa=100
 	 */
 	get path(): string {
 		parse_path(this);
-		return (<any>this)._filename + (<any>this)._search;
+		return this._filename + this._search;
 	}
-	
+
 	/**
 		* full path dir
 		* dirname: "/D:/Documents"
 		*/
 	get dirname(): string {
 		parse_path(this);
-		return (<any>this)._dirname;
+		return this._dirname;
 	}
-	
+
 	// search: "?sasasas&asasasa"
 	get search(): string {
-		split_path(this);
-		return (<any>this)._search;
+		init(this);
+		return this._search;
 	}
-	
+
 	// hash: "#sdsdsd"
 	get hash(): string {
-		split_path(this);
-		return (<any>this)._hash;
+		init(this);
+		return this._hash;
 	}
-	
+
 	// host: "quarks.cc:81"
 	get host(): string {
 		parse_path(this);
-		return (<any>this)._hostname + ((<any>this)._port ? ':' + (<any>this)._port : '');
+		return this._hostname + (this._port ? ':' + this._port : '');
 	}
-	
+
 	// hostname: "quarks.cc"
 	get hostname(): string {
 		parse_path(this);
-		return (<any>this)._hostname;
+		return this._hostname;
 	}
-	
+
 	// origin: "http://quarks.cc:81"
 	get origin(): string {
 		parse_path(this);
-		return (<any>this)._origin;
+		return this._origin;
 	}
 
 	// get path base name 
 	get basename(): string {
-		parse_base_ext_name(this);
-		return (<any>this)._basename;
+		parse_basename(this);
+		return this._basename;
 	}
 	
 	// path extname
 	get extname(): string {
-		parse_base_ext_name(this);
-		return (<any>this)._extname;
+		parse_basename(this);
+		return this._extname;
 	}
 	
 	// port: "81"
 	get port(): string {
 		parse_path(this);
-		return (<any>this)._port;
+		return this._port;
 	}
 	
 	// protocol: "http:"
 	get protocol(): string {
 		parse_path(this);
-		return (<any>this)._protocol;
+		return this._protocol;
 	}
 
 	get params(): Dict<string> {
-		parse_params(this);
-		return (<any>this)._params;
+		if (this._params)
+			return this._params;
+		init(this);
+		this._params = {};
+		if (this._search[0] != '?') {
+			return this._params;
+		}
+
+		let ls = this._search.substring(1).split('&');
+
+		for (let i = 0; i < ls.length; i++) {
+			let o = ls[i].split('=');
+			this._params[ o[0] ] = decodeURIComponent(o[1] || '');
+		}
+		return this._params;
+	}
+
+	get hashParams(): Dict<string> {
+		if (this._hashParams)
+			return this._hashParams;
+		init(this);
+		this._hashParams = {};
+		if (this._hash[0] != '#') {
+			return this._hashParams;
+		}
+
+		let ls = this._hash.substring(1).split('&');
+
+		for (let i = 0; i < ls.length; i++) {
+			let o = ls[i].split('=');
+			this._hashParams[ o[0] ] = decodeURIComponent(o[1] || '');
+		}
+		return this._hashParams;
 	}
 
 	set params(value: Dict<string>) {
-		(<any>this)._params = {...value};
-		(<any>this)._search = querystringStringify('?', (<any>this)._params);
-	}
-	
-	get hashParams(): Dict<string> {
-		parse_hash_params(this);
-		return (<any>this)._hash_params;
+		init(this);
+		this._params = {...value};
+		this._search = querystringStringify('?', this._params);
 	}
 
-	set hashParams(value: Dict<string>){
-		(<any>this)._hash_params = {...value};
-		(<any>this)._hash = querystringStringify('#', (<any>this)._hash_params);
+	set hashParams(value: Dict<string>) {
+		init(this);
+		this._hashParams = {...value};
+		this._hash = querystringStringify('#', this._hashParams);
 	}
 
 	// get path param
 	getParam(name: string): string {
-		return (<any>this).params[name];
+		return this.params[name];
 	}
 
 	// set path param
 	setParam(name: string, value: string): URL {
 		this.params[name] = value || '';
-		(<any>this)._search = querystringStringify('?', (<any>this)._params);
+		this._search = querystringStringify('?', this._params);
 		return this;
 	}
-	
+
 	// del path param
 	deleteParam(name: string): URL {
 		delete this.params[name];
-		(<any>this)._search = querystringStringify('?', (<any>this)._params);
+		this._search = querystringStringify('?', this._params);
 		return this;
 	}
-	
+
 	// del all prams
 	clearParam(): URL {
-		(<any>this)._params = {};
-		(<any>this)._search = '';
+		init(this);
+		this._params = {};
+		this._search = '';
 		return this;
 	}
-	
+
 	// get hash param
 	getHash(name: string): string {
 		return this.hashParams[name];
 	}
-	
+
 	// set hash param
 	setHash(name: string, value: string): URL {
 		this.hashParams[name] = value || '';
-		(<any>this)._hash = querystringStringify('#', (<any>this)._hash_params);
+		this._hash = querystringStringify('#', this._hashParams);
 		return this;
 	}
-	
+
 	// del hash param
 	deleteHash(name: string): URL {
 		delete this.hashParams[name];
-		(<any>this)._hash = querystringStringify('#', (<any>this)._hash_params);
+		this._hash = querystringStringify('#', this._hashParams);
 		return this;
 	}
-	
+
 	// del hash all params
 	clearHash(): URL {
-		(this as any)._hash_params = {};
-		(this as any)._hash = '';
+		init(this);
+		this._hashParams = {};
+		this._hash = '';
 		return this;
 	}
-	
+
 	// relative path
 	relative(fromPath: string): string {
-		var from = new URL(fromPath);
-		if ( this.origin != from.origin )
-			return (this as any)._origin + (this as any)._filename;
-		var ls: string[]  = (this as any)._filename == '/' ? [] : (this as any)._filename.split('/');
-		var ls2: string[] = (from as any)._filename == '/' ? [] : (from as any)._filename.split('/');
-		var len = Math.max(ls.length, ls2.length);
-		
-		for (var i = 1; i < len; i++) {
-			if (ls[i] != ls2[i]) {
-				len = ls.length - i;
+		let from = new URL(fromPath);
+		if ( this.origin != from.origin ) {
+			return this._origin + this._filename;
+		}
+
+		let fr: string[] = from._filename == '/' ? [] : from._filename.split('/').slice(0,-1);
+		let to: string[] = this._filename == '/' ? [] : this._filename.split('/'); // to
+		let len = Math.max(fr.length, to.length);
+
+		for (let i = 1; i < len; i++) {
+			if (fr[i] != to[i]) {
+				len = fr.length - i;
 				if (len > 0) {
-					ls = [];
-					for (var j = 0; j < len; j++)
-						ls.push('..');
-					return ls.join('/') + '/' + ls2.splice(i).join('/');
+					fr = [];
+					for (let j = 0; j < len; j++)
+						fr.push('..');
+					return fr.join('/') + (i < to.length ? '/'+to.slice(i).join('/'): '');
 				}
-				return ls2.splice(i).join('/');
+				return to.slice(i).join('/');
 			}
 		}
 		return '.';
@@ -362,7 +370,7 @@ export class URL {
 (URL as any).prototype._basename = -1;
 (URL as any).prototype._extname = -1;
 (URL as any).prototype._params = null;
-(URL as any).prototype._hash_params = null;
+(URL as any).prototype._hashParams = null;
 
 function get_path(path?: string): URL {
 	return new URL(path);

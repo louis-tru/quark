@@ -32,6 +32,8 @@ import * as types from './types';
 
 const _css = __binding__('_css');
 
+exports.CStyleSheetsClass = _css.CStyleSheetsClass;
+
 export type CSSNameExp = `.${string}`;
 
 export interface StyleSheet {

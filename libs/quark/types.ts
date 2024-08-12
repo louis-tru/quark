@@ -55,7 +55,7 @@ function get_help(reference?: any[], ref?: Reference, enum_value?: any) {
 
 function error(value: any, desc?: string, reference?: any[], ref?: Reference, enum_value?: any) {
 	let err: string;
-	let msg = String(desc || '%s').replace(/\%s/g, '`' + value + '`');
+	let msg = String(desc || '%s').replace(/\%s/g, value);
 	let help = get_help(reference, ref, enum_value);
 	if (help) {
 		err = `Bad argument. \`${msg}\`. Examples: ${help}`;
@@ -659,7 +659,7 @@ export declare class BoxFilter {
 /**
 Examples:
 ```
-src(res/image.png, auto 100%, x=start, y=20%, repeat)
+image(res/image.png, auto 100%, x=start, y=20%, repeat)
 
 radial(#ff00ff 0%, #ff0 50%, #00f 100%)
 
@@ -1321,13 +1321,13 @@ export function parseTextFamily(val: TextFamilyIn, desc?: string) {
 }
 
 const parseBoxFilterReference = [
-	'src(res/image.png, auto 100%, x=start, y=20%, repeat)',
+	'image(res/image.png, auto 100%, x=start, y=20%, repeat)',
 	'radial(#ff00ff 0%, #ff0 50%, #00f 100%)',
 	'linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)',
 	// shadow(1, 1, 2, #ff00ff)
 ];
 const parseCmdReg = [
-	/^\s*([a-z]+)\s*\(\s*/i, // src(
+	/^\s*([a-z]+)\s*\(\s*/i, // image(
 	/^([^,\)]+)(,\s*|\))/,
 	/^"(([^"\\]|\\")+)"\s*(,\s*|\))/,
 	/^'(([^'\\]|\\')+)'\s*(,\s*|\))/,
@@ -1392,7 +1392,7 @@ function parseBoxFilterItem(val: string, desc?: string): BoxFilter {
 		if (cmd) {
 			let {val,args,kv} = cmd;
 			switch(val) {
-				case 'src': {
+				case 'image': {
 					let width, height, repeat;
 					if (args[1]) {
 						var [w,h] = args[1];

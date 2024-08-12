@@ -415,11 +415,11 @@ namespace qk {
 		}
 		
 	private:
-		
+
 		inline void into(cString& path) {
 			ls2(path, Callback<Array<Dirent>>(&AsyncEach::into_cb, this), nullptr);
 		}
-		
+
 		void into_cb(CallbackData<Array<Dirent>>& evt) {
 			if ( !is_abort() ) {
 				if ( evt.error ) { // err

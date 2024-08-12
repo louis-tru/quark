@@ -111,26 +111,26 @@ export function createAction(win: Window, arg: ActionIn, parent?: Action) {
 	} else {
 		// create
 		if ( Array.isArray(arg) ) { // KeyframeAction
-			action = new KeyframeAction(win);
+			action = new exports.KeyframeAction(win);
 			for (let sheet of arg)
 				(action as KeyframeAction).add(sheet);
 		} else if (arg) {
 			if (arg.seq) { // SequenceAction
 				let seq = arg.seq;
 				util.assert(Array.isArray(seq));
-				action = Object.assign(new SequenceAction(win), arg);
+				action = Object.assign(new exports.SequenceAction(win), arg);
 				for (let i of seq) {
 					createAction(win, i, action as SequenceAction);
 				}
 			} else if (arg.spawn) { // SpawnAction
 				let spawn = arg.spawn;
 				util.assert(Array.isArray(spawn));
-				action = Object.assign(new SpawnAction(win), arg);
+				action = Object.assign(new exports.SpawnAction(win), arg);
 				for (let i of spawn) {
 					createAction(win, i, action as SequenceAction);
 				}
 			} else { // KeyframeAction
-				action = Object.assign(new KeyframeAction(win), arg);
+				action = Object.assign(new exports.KeyframeAction(win), arg);
 				let key = arg.keyframe;
 				if ( Array.isArray(key) ) {
 					for (let sheet of key)
@@ -163,7 +163,7 @@ export function transition(
 	fromOrCb?: KeyframeIn | ActionCb,
 	cb?: ActionCb
 ): KeyframeAction {
-	let action = new KeyframeAction(view.window);
+	let action = new exports.KeyframeAction(view.window) as KeyframeAction;
 
 	if (fromOrCb) {
 		if (typeof fromOrCb == 'function') {

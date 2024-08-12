@@ -626,7 +626,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	hashCode() {
-		return Function.prototype.hashCode.call(this);
+		return 18766890;//Function.prototype.hashCode.call(this);
 	}
 
 	protected triggerLoad(): any {}

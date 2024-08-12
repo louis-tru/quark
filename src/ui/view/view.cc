@@ -243,7 +243,7 @@ namespace qk {
 	}
 
 	void View::mark_layout(uint32_t mark, bool isRt) {
-		Qk_ASSERT(_isRt == isRt, "View::mark_layout(), isRt param no match");
+		Qk_Assert_Eq(_isRt, isRt, "View::mark_layout(), isRt param no match");
 		if (isRt) {
 			_mark_value |= mark;
 			if (_mark_index < 0) {

@@ -98,7 +98,7 @@ namespace qk {
 		}
 		Array<Sp<Typeface>> arr;
 		for (auto& name: _familys) {
-			auto tf = _pool->match(name.value, style);
+			auto tf = _pool->match(name.key, style);
 			if (tf)
 				arr.push(std::move(tf));
 		}
@@ -111,46 +111,50 @@ namespace qk {
 		FontPool*             pool;
 		Array<FontGlyphs>     result;
 
-		/**
-		 * @method make() build FontGlyphs
-		*/
+		void makeNext(const Unichar *unichars, GlyphID glyphs[], uint32_t count, uint32_t ftIdx) {
+			if (ftIdx < tfs.length()) {
+				tfs[ftIdx]->unicharsToGlyphs(unichars, count, glyphs);
+				make(unichars, glyphs, count, ftIdx);
+			} else {
+				for (int i = 0; i < count; i++)
+					glyphs[i] = pool->tf65533GlyphID(); // use 65533 glyph
+				result.push(FontGlyphs(fontSize, *pool->tf65533(), glyphs, count));
+			}
+		}
+
 		void make(
-			const Unichar *unichars, GlyphID glyphs[], const uint32_t count, const uint32_t ftIdx
+			const Unichar *unichars, GlyphID glyphs[], uint32_t count, uint32_t ftIdx
 		) {
-			int prev_idx = -1;
-			int prev_val = glyphs[0] ? 0: 1;
-			for (int i = 0; i < count + 1; i++) {
-				if (count == i) {
-					if (prev_val) goto a;
-					else goto b;
-				}
-				if (glyphs[i]) { // valid
-					if (prev_val) {
-					a:
-						// exec recursion
-						int idx = prev_idx + 1;
-						int count = i - idx;
-						if (ftIdx + 1 < tfs.length()) {
-							tfs[ftIdx + 1]->unicharsToGlyphs(unichars + idx, count, glyphs + idx);
-							make(unichars + idx, glyphs + idx, count, ftIdx + 1);
-						} else {
-							result.push(FontGlyphs(fontSize, *pool->tf65533(), glyphs + idx, count));
+			int i = 0, j = 0;
+			bool isValidPrev = glyphs[0] ? false: true; // init prev group
+
+			while (j < count) {
+				if (isValidPrev) { // prev valid, find invalid glyphs, find valid end
+					do {
+						if (glyphs[j]) { // valid
+							makeNext(unichars + i, glyphs + i, j-i, ftIdx+1);
+							isValidPrev = false;
+							i = j++;
+							break;
 						}
-						prev_idx = i - 1;
-						prev_val = 0;
-					}
-				} else { // zero
-					if (ftIdx + 1 == tfs.length()) {
-						glyphs[i] = pool->tf65533GlyphID(); // use 65533 glyph
-					}
-					if (!prev_val) {
-					b:
-						int idx = prev_idx + 1;
-						int count = i - idx;
-						result.push(FontGlyphs(fontSize, tfs[ftIdx].value(), glyphs + idx, count));
-						prev_idx = i - 1;
-						prev_val = 1;
-					}
+					} while (++j < count);
+				} else { // prev invalid
+					do {
+						if (!glyphs[j]) { // invalid
+							result.push(FontGlyphs(fontSize, tfs[ftIdx].value(), glyphs+i, j-i));
+							isValidPrev = true;
+							i = j++;
+							break;
+						}
+					} while (++j < count);
+				}
+			}
+
+			if (i < j) {
+				if (isValidPrev) {
+					makeNext(unichars+i, glyphs+i, j-i, ftIdx+1);
+				} else {
+					result.push(FontGlyphs(fontSize, tfs[ftIdx].value(), glyphs+i, j-i));
 				}
 			}
 		}

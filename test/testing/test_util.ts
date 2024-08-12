@@ -3,7 +3,7 @@ import { LOG, Pv, Mv, Mvcb, Ca } from './tool'
 import util from 'quark/util';
 import * as http from 'quark/http';
 
-async function test() {
+export default async function(_: any) {
 	LOG('\nTest Util:\n')
 	Pv(util, 'debug', util.debug)
 	Mv(util, 'version', [])
@@ -44,5 +44,3 @@ async function test() {
 	Mv(util, 'update', [{ a:'a',b:'b',c:'c', d:'d' }, { a:100,d:'KKKK' }])
 	Pv(util, 'config', e=>true)
 }
-
-Ca(test);

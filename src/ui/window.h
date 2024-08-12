@@ -194,7 +194,7 @@ namespace qk {
 		void setCursorStyle(CursorStyle cursor, bool low = false);
 
 	private:
-		void reload();
+		void reload(bool isRt);
 		void solveNextFrame();
 		void onRenderBackendReload(Region region, Vec2 size, float defaultScale) override;
 		bool onRenderBackendDisplay() override;

@@ -418,7 +418,7 @@ void Typeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyph
 	// When a surrogate pair is detected, the glyph index used is the index of the high surrogate.
 	// It is documentxed that if a mapping is unavailable, the glyph will be set to 0.
 
-	ArrayBuffer<uint16_t> charStorage = ArrayBuffer<uint16_t>::alloc(2 * count);
+	ArrayBuffer<uint16_t> charStorage(2 * count);
 	const UniChar* src = *charStorage; // UniChar is a UTF-16 16-bit code unit.
 	const Unichar* utf32 = uni;
 	UniChar* utf16 = *charStorage;
@@ -654,7 +654,7 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) const 
 	glyph->width = cgBounds.size.width;
 	glyph->height = cgBounds.size.height;
 
-	Qk_DEBUG("#Typeface_Mac::onGetGlyphMetrics,%f", cgBounds.origin.x);
+	//Qk_DEBUG("#Typeface_Mac::onGetGlyphMetrics,%f", cgBounds.origin.x);
 }
 
 Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,

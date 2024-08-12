@@ -139,7 +139,8 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(fontPool, {
 				Js_Self(Type);
-				Js_Return( self->fontPool() );
+				auto val = WrapObject::wrap(self->fontPool(), Js_Typeid(FontPool))->that();
+				Js_Return( val );
 			});
 
 			// Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache

@@ -28,8 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Application, Window, Box } from 'quark';
-import * as types from 'quark/types';
+import { Application, Window, Box } from 'quark'
+import * as types from 'quark/types'
+import util from 'quark/util'
 
 const app = new Application();
 const win = new Window({
@@ -38,7 +39,7 @@ const win = new Window({
 	backgroundColor: types.newColor(0,0,255,255),
 }).activate();
 
-async function test0(win: Window) {
+async function test_index(win: Window) {
 	const box = new Box(win);
 	box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
 	box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
@@ -48,8 +49,26 @@ async function test0(win: Window) {
 }
 
 // import test from './test_action'
-import test from './test_buf'
+// import test from './test_app'
+// import test from './test_buf'
+// import test from './test_css'
+// import test from './test_event'
+// import test from './test_font'
+// import test from './test_fs' #
+// import test from './test_gui'
+// import test from './test_http' #
+// import test from './test_os'
+// import test from './test_path'
+// import test from './test_reader' #
+// import test from './test_storage'
+// import test from './test_types'
+// import test from './test_util'
+// import test from './test_view' #
+import test from './test_window'
 
-test(win).then(()=>{
-	console.log('\n');
-})
+(async function() {
+	await test(win);
+
+	console.log('\n------------------- Test End -------------------\n');
+	// util.exit()
+})()

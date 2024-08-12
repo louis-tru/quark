@@ -29,27 +29,23 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { LOG, Pv, Mv } from './tool';
-import { Application, Window } from 'quark';
 import * as font from 'quark/font';
-import path from 'quark/path';
 import * as fs from 'quark/fs';
-import * as types from 'quark/types';
+import qk from 'quark';
 
-const app = new Application();
-const f = app.fontPool;
-const win = new Window({
-	frame: types.newRect(0,0,500,500),
-	backgroundColor: types.newColor(0,0,255,0),
-}).activate();
+const resolve = require.resolve;
 
-LOG('\nTest Font:\n')
-Pv(f, 'countFamilies', e=>true)
-Pv(f, 'defaultFamilyNames', e=>true)
-Pv(f, 'defaultFontFamilys', e=>true)
-Mv(f, 'getFontFamilys', ['PingFang HK'])
-Mv(f, 'addFontFamily', [fs.readFileSync(path.resources('res/font/lateef.ttf')), 'A'])
-Mv(f, 'getFamilyName', [0])
-//
-const ffid =
-Mv(font, 'getFontFamilys', ['PingFang HK'])
-Mv(font, 'getFamilysName', [ffid])
+export default async function (_: any) {
+	const f = qk.app.fontPool;
+	LOG('\nTest Font:\n')
+	Pv(f, 'countFamilies', e=>e>0)
+	Pv(f, 'defaultFamilyNames', e=>e.length>0)
+	Pv(f, 'defaultFontFamilys', e=>true)
+	Mv(f, 'getFontFamilys', ['PingFang HK'])
+	Mv(f, 'addFontFamily', [fs.readFileSync(resolve('./res/font/lateef.ttf')), 'A'])
+	Mv(f, 'getFamilyName', [0])
+	//
+	const ffid =
+	Mv(font, 'getFontFamilys', ['PingFang HK'])
+	Mv(font, 'getFamilysName', [ffid])
+}

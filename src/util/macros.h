@@ -176,8 +176,8 @@
 # define Qk_Assert_Op(left, op, exec, ...) ((void)0)((left) op (exec))
 #endif
 #define Qk_ASSERT Qk_Assert
-#define Qk_Assert_Eq(left, exec) Qk_Assert_Op(left, ==, exec)
-#define Qk_Assert_Ne(left, exec) Qk_Assert_Op(left, !=, exec)
+#define Qk_Assert_Eq(left, exec, ...) Qk_Assert_Op(left, ==, exec, ##__VA_ARGS__)
+#define Qk_Assert_Ne(left, exec, ...) Qk_Assert_Op(left, !=, exec, ##__VA_ARGS__)
 
 #define Qk_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
 #define Qk_DEFINE_INLINE_MEMBERS(cls, Inl) \

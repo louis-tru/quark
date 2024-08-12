@@ -29,35 +29,34 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { LOG, Mv, Pv, Mvcb } from './tool';
-import { _CVD, Application, Window } from 'quark';
+import qk, { _CVD, Window } from 'quark';
 import * as screen from 'quark/screen';
 import * as types from 'quark/types';
 
-const resolve = require.resolve;
-const app = new Application();
-const s = app.screen;
-const win = new Window({
-	frame: types.newRect(0,0,500,500),
-}).activate();
+export default async function(win: Window) {
+	const resolve = require.resolve;
+	const app = qk.app;
+	const s = app.screen;
 
-Mv(win.onBackground, 'on', [function() { LOG('---- onbackground') }])
-Mv(win.onForeground, 'on', [function() { LOG('---- onforeground') }])
-Mv(win.onChange, 'on', [function() { LOG('---- onChange') }])
+	Mv(win.onBackground, 'on', [function() { LOG('---- onbackground') }])
+	Mv(win.onForeground, 'on', [function() { LOG('---- onforeground') }])
+	Mv(win.onChange, 'on', [function() { LOG('---- onChange') }])
 
-win.render(
-	<box width={200} height={200} backgroundColor="#f00">
-		<text textColor="#f00">ABCDEFG你好</text>
-		<image src={resolve('res/cc.jpg')} width="match" height="match" opacity={0.5} />
-	</box>
-)
+	win.render(
+		<box width={200} height={200} backgroundColor="#f00">
+			<text textColor="#ff0">ABCDEFG你好</text>
+			<image src={resolve('./res/cc.jpg')} width="match" height="match" opacity={0.5} />
+		</box>
+	)
 
-LOG('\nTest Window:\n')
-Mv(screen, 'mainScreenScale', [], e=>[1,2,3].indexOf(e)!=-1)
-Pv(win, 'atomPixel', e=>[0.5,1].indexOf(e)!=-1)
-Mvcb(win, 'nextFrame', [()=>console.log('win.nextFrame')])
-Pv(win, 'size', e=>e.x==500&&e.y==500, e=>e.size=types.parseVec2([500,500]))
-Pv(win, 'atomPixel', 1)
-Pv(win, 'surfaceSize', e=>true)
-Pv(win, 'scale', 1)
-Mv(win, 'setCursorStyle', [types.CursorStyle.Arrow])
-Pv(win, 'backgroundColor', e=>e.toString()=='#000000')
+	LOG('\nTest Window:\n')
+	Mv(screen, 'mainScreenScale', [], e=>[1,2,3].indexOf(e)!=-1)
+	Pv(win, 'atomPixel', e=>[0.5,1].indexOf(e)!=-1)
+	Mvcb(win, 'nextFrame', [()=>console.log('win.nextFrame')])
+	Pv(win, 'size', e=>e.x==500&&e.y==500, e=>e.size=types.parseVec2([500,500]))
+	Pv(win, 'atomPixel', e=>[0.5,1].indexOf(e)!=-1)
+	Pv(win, 'surfaceSize', e=>true)
+	Pv(win, 'scale', e=>[2,1].indexOf(e)!=-1)
+	Mv(win, 'setCursorStyle', [types.CursorStyle.Arrow])
+	Pv(win, 'backgroundColor', e=>e.toString()=='#0000ff')
+}

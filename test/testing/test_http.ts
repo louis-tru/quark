@@ -1,90 +1,92 @@
 
 import { LOG, Pv, Mv, Ca } from './tool'
+import {HttpClientRequest,HttpMethod, HttpReadyState} from 'quark/http'
 import * as http from 'quark/http'
 import path from 'quark/path'
 import * as fs from 'quark/fs'
 import * as buffer from 'quark/buffer'
 
-const {HttpClientRequest,HttpMethod, HttpReadyState} = http
+export default async function(_: any) {
+	LOG('\nHttpClientRequest:\n')
 
-LOG('\nHttpClientRequest:\n')
+	var save = path.documents('baidu.html');
+	var cl = new HttpClientRequest();
 
-var save = path.documents('baidu.html');
-var cl = new HttpClientRequest();
+	cl.onError.on(function(ev) {
+		LOG('http onerror:', ev.data.message) 
+		Pv(cl, 'readyState', e=>e!=HttpReadyState.Completed)
+		Pv(cl, 'statusCode', e=>e!=200)
+	})
+	cl.onWrite.on(function(ev) {
+		LOG('http onwrite:') 
+		Pv(cl, 'uploadTotal', e=>e!=0)
+		Pv(cl, 'uploadSize', e=>e!=0)
+	})
+	cl.onHeader.on(function(ev) {
+		LOG('http onheader:') 
+		Mv(cl, 'getResponseHeader', ['expires']);
+		Mv(cl, 'getAllResponseHeaders', []);
+	})
+	cl.onData.on(function(ev){ 
+		//LOG('http ondata:', ev.data.toString());
+		LOG('http ondata:', ev.data.length);
+		Pv(cl, 'downloadSize', e=>e!=0)
+		Pv(cl, 'downloadTotal', e=>e!=0)
+	})
+	cl.onEnd.on(function(ev){ 
+		LOG('http onend:') 
+		Mv(cl, 'pause', [])
+		Mv(cl, 'resume', [])
+		Mv(cl, 'abort', [])
+		Pv(cl, 'uploadTotal', e=>e!=0)
+		Pv(cl, 'uploadSize', e=>e!=0)
+		Pv(cl, 'downloadTotal', e=>e!=0)
+		Pv(cl, 'downloadSize', e=>e!=0)
+		Pv(cl, 'readyState', HttpReadyState.Completed)
+		Pv(cl, 'statusCode', 200)
+		Pv(cl, 'url', 'https://www.baidu.com/')
+	})
+	cl.onReadystateChange.on(function(ev){
+		LOG('http onReadystateChange:', cl.readyState, cl.statusCode) 
+	})
+	cl.onTimeout.on(function(ev) {
+		LOG('http ontimeout:')
+	})
+	cl.onAbort.on(function(ev) {
+		LOG('http onabort:') 
+	})
 
-cl.onError.on(function(ev) {
-	LOG('http onerror:', ev.data.message) 
-	Pv(cl, 'readyState', e=>e!=HttpReadyState.Completed)
-	Pv(cl, 'statusCode', e=>e!=200)
-})
-cl.onWrite.on(function(ev) {
-	LOG('http onwrite:') 
-	Pv(cl, 'uploadTotal', e=>e!=0)
-	Pv(cl, 'uploadSize', e=>e!=0)
-})
-cl.onHeader.on(function(ev) {
-	LOG('http onheader:') 
-	Mv(cl, 'getResponseHeader', ['expires']);
-	Mv(cl, 'getAllResponseHeaders', []);
-})
-cl.onData.on(function(ev){ 
-	//LOG('http ondata:', ev.data.toString());
-	LOG('http ondata:', ev.data.length);
-	Pv(cl, 'downloadSize', e=>e!=0)
-	Pv(cl, 'downloadTotal', e=>e!=0)
-})
-cl.onEnd.on(function(ev){ 
-	LOG('http onend:') 
+	Mv(cl, 'setMethod', [HttpMethod.GET]);
+	Mv(cl, 'setUrl', ['https://www.baidu.com/']);
+	Mv(cl, 'setSavePath', [save]);
+	Mv(cl, 'setUsername', ['louis']);
+	Mv(cl, 'setPassword', ['Alsk106612']);
+	Mv(cl, 'clearRequestHeader', [])
+	Mv(cl, 'clearFormData', [])
+	Mv(cl, 'setRequestHeader', ['test_set_request_header', 'test'])
+	Mv(cl, 'getResponseHeader', ['expires'])
+	Mv(cl, 'getAllResponseHeaders', [])
+	Mv(cl, 'setKeepAlive', [false])
+	Mv(cl, 'setTimeout', [10000])
 	Mv(cl, 'pause', [])
 	Mv(cl, 'resume', [])
 	Mv(cl, 'abort', [])
-	Pv(cl, 'uploadTotal', e=>e!=0)
-	Pv(cl, 'uploadSize', e=>e!=0)
-	Pv(cl, 'downloadTotal', e=>e!=0)
-	Pv(cl, 'downloadSize', e=>e!=0)
-	Pv(cl, 'readyState', HttpReadyState.Completed)
-	Pv(cl, 'statusCode', 200)
+	Pv(cl, 'uploadTotal', 0)
+	Pv(cl, 'uploadSize', 0)
+	Pv(cl, 'downloadTotal', 0)
+	Pv(cl, 'downloadSize', 0)
+	Pv(cl, 'readyState', HttpReadyState.Initial)
+	Pv(cl, 'statusCode', 0)
 	Pv(cl, 'url', 'https://www.baidu.com/')
-})
-cl.onReadystateChange.on(function(ev){
-	LOG('http onReadystateChange:', cl.readyState, cl.statusCode) 
-})
-cl.onTimeout.on(function(ev) {
-	LOG('http ontimeout:')
-})
-cl.onAbort.on(function(ev) {
-	LOG('http onabort:') 
-})
+	Mv(cl.onEnd, 'on', [function(ev){ 
+		Mv(fs, 'readFileSync', [save]);
+		test_2(cl);
+	}, '1']);
+	Mv(cl, 'send', [])
 
-Mv(cl, 'setMethod', [HttpMethod.GET]);
-Mv(cl, 'setUrl', ['https://www.baidu.com/']);
-Mv(cl, 'setSavePath', [save]);
-Mv(cl, 'setUsername', ['louis']);
-Mv(cl, 'setPassword', ['Alsk106612']);
-Mv(cl, 'clearRequestHeader', [])
-Mv(cl, 'clearFormData', [])
-Mv(cl, 'setRequestHeader', ['test_set_request_header', 'test'])
-Mv(cl, 'getResponseHeader', ['expires'])
-Mv(cl, 'getAllResponseHeaders', [])
-Mv(cl, 'setKeepAlive', [false])
-Mv(cl, 'setTimeout', [10000])
-Mv(cl, 'pause', [])
-Mv(cl, 'resume', [])
-Mv(cl, 'abort', [])
-Pv(cl, 'uploadTotal', 0)
-Pv(cl, 'uploadSize', 0)
-Pv(cl, 'downloadTotal', 0)
-Pv(cl, 'downloadSize', 0)
-Pv(cl, 'readyState', HttpReadyState.Initial)
-Pv(cl, 'statusCode', 0)
-Pv(cl, 'url', 'https://www.baidu.com/')
-Mv(cl.onEnd, 'on', [function(ev){ 
-	Mv(fs, 'readFileSync', [save]);
-	test_2();
-}, '1']);
-Mv(cl, 'send', [])
+}
 
-function test_2() {
+function test_2(cl: HttpClientRequest) {
 	var file = path.documents('test_upload.txt');
 	var file2 = path.documents('test_upload2.txt');
 
@@ -105,22 +107,22 @@ function test_2() {
 	Mv(cl, 'setForm', ['data', 'The test file upload'])
 	Mv(cl, 'setUploadFile', ['upload_file', file])
 	Mv(cl, 'setUploadFile', ['upload_file2', file2])
-	Mv(cl.onEnd, 'on', [test_3, '1']);
+	Mv(cl.onEnd, 'on', [()=>test_3(cl), '1']);
 	Mv(cl, 'send', [])
 }
 
-function test_3() {
+function test_3(cl: HttpClientRequest) {
 	LOG('\nTest disable_cache:\n')
 	Mv(cl, 'disableCookie', [false])
 	Mv(cl, 'disableSendCookie', [false])
 	Mv(cl, 'setMethod', [HttpMethod.GET])
 	Mv(cl, 'setUrl', ['https://github.com/louis-tru/quark/blob/master/doc/index.md'])
 	Mv(cl, 'disableCache', [true]);
-	Mv(cl.onEnd, 'on', [test_4, '1']);
+	Mv(cl.onEnd, 'on', [()=>test_4(cl), '1']);
 	Mv(cl, 'send', [])
 }
 
-function test_4() {
+function test_4(cl: HttpClientRequest) {
 	LOG('\nTest disable_ssl_verify:\n')
 	Mv(cl, 'setUrl', ['https://kyfw.12306.cn/otn/regist/init']) // 12306的证书一直都是失效的
 	Mv(cl, 'disableSslVerify', [true]);

@@ -1,20 +1,18 @@
 
-import { LOG, Mv, Ca } from './tool'
+import { LOG, Mv } from './tool'
 import * as fs from 'quark/fs'
 import path from 'quark/path';
-
-// init
-
-const DIR = path.documents('test');
-const DIR2 = path.documents('test2');
-const FILE = DIR + '/test_file.txt';
 
 function stat(path: string) {
 	return fs.statSync(path);
 }
 
-async function async_test() {
+export default async function(_: any) {
 	LOG('\nFileHelper:\n');
+
+	const DIR = path.documents('test');
+	const DIR2 = path.documents('test2');
+	const FILE = DIR + '/test_file.txt';	
 
 	fs.removerSync(DIR);
 	fs.removerSync(DIR2);
@@ -75,5 +73,3 @@ async function async_test() {
 	await Mv(fs, 'isDirectory', [DIR], true);
 	Mv(fs, 'isDirectorySync', [DIR], true);
 }
-
-Ca(async_test)

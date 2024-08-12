@@ -79,12 +79,11 @@ class Test {
 		console.log(o);
 
 		setTimeout(function() {
-
-			var i = 0;
-			var now = Date.now()
+			let i = 0;
+			let now = Date.now()
 			console.log('setTimeout-----------------------');
 
-			var id = setInterval(function () {
+			let id = setInterval(function () {
 				let now1 = Date.now();
 				console.log('setInterval-----------------------', ++i, now1 - now);
 
@@ -93,7 +92,6 @@ class Test {
 				}
 				now = now1;
 			}, 1000);
-
 		}, 5000)
 		
 	}

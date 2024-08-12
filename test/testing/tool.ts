@@ -26,11 +26,16 @@ export function Pv<Self,Name extends keyof Self>(
 	if (preSet)
 		preSet(self, name);
 	let r = self[name];
+	let ok: boolean;
+
 	if (typeof verify == 'function') {
-		console.log( 'Prop', name, ':', (verify as any)(r) ? 'ok': 'no'/*, r*/);
+		ok = (verify as any)(r);
 	} else {
-		console.log( 'Prop', name, ':', r === verify ? 'ok': 'no'/*, r*/);
+		ok = r === verify;
 	}
+	console.log( 'Prop', name, ':', ok ? 'ok': 'no');
+	if (!ok)
+		throw new Error('test fail');
 }
 
 export function Mv<
@@ -45,15 +50,17 @@ export function Mv<
 	let argc = arguments.length;
 
 	function print(r: any) {
-		let vv = 'ok';
+		let ok: boolean = true;
 		if ( argc > 3 ) {
 			if (typeof verify == 'function') {
-				vv = (verify as any)(r) ? 'ok': 'no';
+				ok = (verify as any)(r);
 			} else {
-				vv = verify === r ? 'ok': 'no';
+				ok = verify === r;
 			}
 		}
-		console.log( 'Method', String(name) + '()', ':', vv/*, r*/);
+		console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no');
+		if (!ok)
+			throw new Error('test fail');
 	}
 
 	if (r instanceof Promise) {
@@ -83,18 +90,20 @@ export function Mvcb<
 		let r: any;
 
 		function ok(...args: any[]) {
-			var vv = '';
+			let ok: boolean = true;
 			if ( argc > 3 ) {
 				var v_args = args;
 				if (sync)
 					v_args = [r];
 				if (typeof verify === 'function') {
-					vv = (verify as any)(...v_args) ? 'ok': 'no';
+					ok = (verify as any)(...v_args);
 				} else {
-					vv = verify === v_args[0] ? 'ok': 'no';
+					ok = verify === v_args[0];
 				}
 			}
-			console.log( 'Method', String(name) + '()', ':', vv/*, r*/, ...args);
+			console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no'/*, ...args*/);
+			if (!ok)
+				throw new Error('test fail');
 			resolve(args[0]);
 		}
 
@@ -138,16 +147,16 @@ export function Gc() {
 	gc();
 }
 
-export function Ca(func: Function) { // callback
-	func(function(err: any) {
-		if (err) {
-			LOG('Error:');
-			LOG(err.message);
-			if (err.stack) {
-				LOG(err.stack);
-			}
+export function Ca<T, Args>(func: (...args: Args[])=>Promise<T>) {
+	const r = func();
+	r.catch(function(err: any) {
+		LOG('Error:');
+		LOG(err.message);
+		if (err.stack) {
+			LOG(err.stack);
 		}
 	});
+	return r;
 }
 
 exports.CALL_ASYNC = Ca;

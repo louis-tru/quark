@@ -253,6 +253,8 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_types");
 			WrapStyleSheets::binding(exports, worker);
+			WrapCStyleSheets::binding(exports, worker);
+			WrapCStyleSheetsClass::binding(exports, worker);
 
 			Js_Set_Method(create, {
 				if ( !checkApp(worker) ) return;

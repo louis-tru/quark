@@ -3,12 +3,12 @@ import { LOG, Mv, Ca } from './tool'
 import * as fs from 'quark/fs';
 import path from 'quark/path';
 
-const reader = fs.reader;
-const DIR = path.documents('test');
-const FILE = DIR + '/test_file.txt';
-const URL = 'https://github.com/';
-
-async function async_test() {
+export default async function(_: any) {
+	const reader = fs.reader;
+	const DIR = path.documents('test');
+	const FILE = DIR + '/test_file.txt';
+	const URL = 'https://github.com/';
+	
 	Mv(fs, 'mkdirpSync', [DIR]);
 	Mv(fs, 'writeFileSync', [FILE, 'ABCDEFG']);
 	LOG('\nreader:\n');
@@ -24,5 +24,3 @@ async function async_test() {
 	Mv(reader.readFile(FILE,'utf8'), 'abort', []);
 	Mv(reader, 'clear', []);
 }
-
-Ca(async_test)

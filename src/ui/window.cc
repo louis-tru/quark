@@ -228,14 +228,14 @@ namespace qk {
 			UILock lock(this);
 			if (_lockSize.x() != w || _lockSize.y() != h) {
 				_lockSize = { w, h };
-				reload();
+				reload(false);
 			}
 		} else {
 			Qk_DEBUG("Lock size value can not be less than zero\n");
 		}
 	}
 
-	void Window::reload() { // Lock before calling
+	void Window::reload(bool isRt) { // Lock before calling
 		Vec2 size = surfaceSize();
 		float width = size.x();
 		float height = size.y();
@@ -272,7 +272,13 @@ namespace qk {
 		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
-		_root->reload_Rt();
+		if (isRt) {
+			_root->reload_Rt();
+		} else {
+			_preRender.async_call([](auto self, auto arg) {
+				self->_root->reload_Rt();
+			}, this, 0);
+		}
 
 		Qk_DEBUG("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
 
@@ -290,7 +296,7 @@ namespace qk {
 			) {
 				_surfaceRegion = { region.origin, region.end, size };
 				_defaultScale = defaultScale;
-				reload();
+				reload(true);
 			} else {
 				_root->reload_Rt();
 			}
