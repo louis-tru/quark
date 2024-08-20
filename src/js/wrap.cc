@@ -32,32 +32,11 @@
 
 namespace qk { namespace js {
 
-#if Qk_MEMORY_TRACE_MARK
-	static int record_wrap_count = 0;
-	static int record_strong_count = 0;
-# define print_wrap(s) \
-	Qk_LOG("record_wrap_count: %d, strong: %d, %s", record_wrap_count, record_strong_count, s)
-#else
-# define print_wrap(s)
-#endif
-
-	static void WrapObject_clearWeak(WrapObject *wrap) {
-#if Qk_MEMORY_TRACE_MARK
-		if (wrap->handle().isWeak()) {
-			record_strong_count++;
-			print_wrap("WrapObject_clearWeak");
-		}
-#endif
+	static void clearWeak(WrapObject *wrap) {
 		wrap->handle().clearWeak();
 	}
 
-	static void WrapObject_setWeak(WrapObject *wrap) {
-#if Qk_MEMORY_TRACE_MARK
-		if (!wrap->handle().isWeak()) {
-			record_strong_count--;
-			print_wrap("WrapObject_setWeak");
-		}
-#endif
+	static void setWeak(WrapObject *wrap) {
 		wrap->handle().setWeak(wrap, [](const WeakCallbackInfo& info) {
 			auto self = static_cast<WrapObject*>(info.getParameter());
 			self->~WrapObject(); // destroy wrap
@@ -67,7 +46,7 @@ namespace qk { namespace js {
 
 	void* object_allocator_alloc(size_t size) {
 		auto o = (WrapObject*)::malloc(size + sizeof(WrapObject));
-		Qk_ASSERT(o);
+		Qk_Assert(o);
 		::memset((void*)o, 0, sizeof(WrapObject));
 		return o + 1;
 	}
@@ -79,9 +58,10 @@ namespace qk { namespace js {
 
 	void object_allocator_weak(Object* obj) {
 		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-		if ( wrap->worker() ) {
-			Qk_ASSERT(thread_self_id() == wrap->worker()->thread_id());
-			WrapObject_setWeak(wrap);
+		auto worker = wrap->worker();
+		if ( worker ) {
+			Qk_Assert(thread_self_id() == worker->thread_id());
+			setWeak(wrap);
 		} else {
 			obj->destroy();
 		}
@@ -90,7 +70,7 @@ namespace qk { namespace js {
 	void object_allocator_strong(Object* obj) {
 		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
 		if ( wrap->worker() ) {
-			WrapObject_clearWeak(wrap);
+			clearWeak(wrap);
 		}
 	}
 
@@ -108,25 +88,20 @@ namespace qk { namespace js {
 	}
 
 	WrapObject::~WrapObject() {
-#if Qk_MEMORY_TRACE_MARK
-		record_wrap_count--;
-		print_wrap("WrapObject::~WrapObject()");
-#endif
+	}
+
+	static bool isSetWeak(Object *obj) {
+		return !obj->isReference() || /* non reference */
+			static_cast<Reference*>(obj)->refCount() <= 0;
 	}
 
 	WrapObject* WrapObject::newInit(FunctionArgs args) {
-		Qk_ASSERT(_handle.isEmpty());
-		Qk_ASSERT(args.isConstructCall());
+		Qk_Assert(_handle.isEmpty());
+		Qk_Assert(args.isConstructCall());
 		_handle.reset(args.worker(), args.This());
-		auto ok = args.This()->setObjectPrivate(this);
-		Qk_ASSERT(ok);
-#if Qk_MEMORY_TRACE_MARK
-		record_wrap_count++;
-		record_strong_count++;
-#endif
-		if (!self()->isReference() || /* non reference */
-				static_cast<Reference*>(self())->refCount() <= 0) {
-			WrapObject_setWeak(this);
+		Qk_Assert(args.This()->setObjectPrivate(this));
+		if (isSetWeak(self())) {
+			setWeak(this);
 		}
 		init();
 		return this;
@@ -134,13 +109,8 @@ namespace qk { namespace js {
 
 	WrapObject* WrapObject::attach(Worker *worker, JSObject* This) {
 		_handle.reset(worker, This);
-		bool ok = This->setObjectPrivate(this); Qk_ASSERT(ok);
+		Qk_Assert(This->setObjectPrivate(this));
 		init();
-#if Qk_MEMORY_TRACE_MARK
-		record_wrap_count++;
-		record_strong_count++;
-		print_wrap("WrapObject::attach()");
-#endif
 		return this;
 	}
 
@@ -152,15 +122,16 @@ namespace qk { namespace js {
 	}
 
 	bool WrapObject::setExternalData(Object* data) {
-		Qk_ASSERT(data);
+		Qk_Assert(data);
 		auto p = wrap(data, Js_Typeid(Object));
 		if (p) {
-			set(worker()->strs()->_wrap_external_data(), p->that());
-			if (!data->isReference() || /* non reference */
-					static_cast<Reference*>(data)->refCount() <= 0) {
-				WrapObject_setWeak(p);
+			if (isSetWeak(data)) {
+				setWeak(p);
 			}
-			Qk_ASSERT(externalData());
+			//Qk_DEBUG("%i", p->handle().isWeak());
+			Qk_Assert(set(worker()->strs()->_wrap_external_data(), p->that()));
+			//Qk_DEBUG("%i", p->handle().isWeak());
+			Qk_Assert(externalData());
 		}
 		return p;
 	}
@@ -181,7 +152,7 @@ namespace qk { namespace js {
 	}
 
 	WrapObject* WrapObject::unpack(JSValue* object) {
-		Qk_ASSERT(object);
+		Qk_Assert(object);
 		return static_cast<WrapObject*>(object->as<JSObject>()->objectPrivate());
 	}
 

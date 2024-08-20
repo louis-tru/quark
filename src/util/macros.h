@@ -31,11 +31,6 @@
 #ifndef __quark__util__macros__
 #define __quark__util__macros__
 
-// Compiling environment
-#ifndef NULL
-# define NULL 0
-#endif
-
 #if defined(__GNUC__)
 # define Qk_GNUC       1
 #endif
@@ -155,7 +150,14 @@
 # define Qk_QNX 1
 #endif
 
-// Compiling environment end
+#ifndef Qk_ARCH_64BIT
+# define Qk_ARCH_64BIT 0
+#endif
+
+#ifndef NULL
+# define NULL 0
+#endif
+
 // ------------------------------------------------------------------
 
 #ifdef __GNUC__
@@ -170,14 +172,18 @@
 	if(Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #if DEBUG
 # define Qk_Assert Qk_Fatal_Assert
-# define Qk_Assert_Op(left, op, exec, ...) Qk_Fatal_Assert((left op exec), ##__VA_ARGS__)
+# define Qk_Assert_Op(a, op, b, ...) Qk_Fatal_Assert(((a) op (b)), ##__VA_ARGS__)
 #else
 # define Qk_Assert(cond, ...) ((void)0)(cond)
-# define Qk_Assert_Op(left, op, exec, ...) ((void)0)((left) op (exec))
+# define Qk_Assert_Op(a, op, b, ...) ((void)0)((a) op (b))
 #endif
 #define Qk_ASSERT Qk_Assert
-#define Qk_Assert_Eq(left, exec, ...) Qk_Assert_Op(left, ==, exec, ##__VA_ARGS__)
-#define Qk_Assert_Ne(left, exec, ...) Qk_Assert_Op(left, !=, exec, ##__VA_ARGS__)
+#define Qk_Assert_Eq(a, b, ...) Qk_Assert_Op((a), ==, (b), ##__VA_ARGS__)
+#define Qk_Assert_Ne(a, b, ...) Qk_Assert_Op((a), !=, (b), ##__VA_ARGS__)
+#define Qk_Assert_Ge(a, b, ...) Qk_Assert_Op((a), >=, (b), ##__VA_ARGS__)
+#define Qk_Assert_Le(a, b, ...) Qk_Assert_Op((a), <=, (b), ##__VA_ARGS__)
+#define Qk_Assert_Gt(a, b, ...) Qk_Assert_Op((a), >,  (b), ##__VA_ARGS__)
+#define Qk_Assert_Lt(a, b, ...) Qk_Assert_Op((a), <,  (b), ##__VA_ARGS__)
 
 #define Qk_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
 #define Qk_DEFINE_INLINE_MEMBERS(cls, Inl) \

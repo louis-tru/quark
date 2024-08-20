@@ -40,17 +40,18 @@ namespace qk {
 		template<> void Array<T, A>::reset(uint32_t length) { \
 			if (length < _length) { /* clear Partial data */ \
 				_length = length;\
+				APPEND_CODE(_ptr,length); \
+			} else { \
+				extend(length); \
 			} \
-			_ptr.realloc(length+APPEND_ZERO); \
-			APPEND_CODE(_ptr,_length); \
 		} \
 		\
 		template<> void Array<T, A>::extend(uint32_t length) \
 		{ \
 			if (length > _length) {  \
 				_length = length; \
-				increase_(_length + APPEND_ZERO); \
-				APPEND_CODE(_ptr,_length); \
+				increase_(length + APPEND_ZERO); \
+				APPEND_CODE(_ptr,length); \
 			}\
 		}\
 		\
@@ -120,7 +121,7 @@ namespace qk {
 		} \
 
 #define Qk_DEF_ARRAY_APPEND_CODE_NONE(ptr,len) ((void)0)
-#define Qk_DEF_ARRAY_APPEND_CODE(ptr,len) ptr.val[len] = 0
+#define Qk_DEF_ARRAY_APPEND_CODE(ptr,len) ptr.val[len] = '\0'
 
 #define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T,APPEND_ZERO,APPEND_CODE) \
 	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,MemoryAllocator,APPEND_ZERO,APPEND_CODE)

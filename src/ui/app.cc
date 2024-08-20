@@ -58,13 +58,14 @@ namespace qk {
 		, Qk_Init_Event(Resume)
 		, Qk_Init_Event(Memorywarning)
 		, _isLoaded(false)
-		, _loop(loop), _keep(nullptr)
+		, _loop(loop)
 		, _screen(nullptr)
 		, _defaultTextOptions(nullptr)
 		, _fontPool(nullptr), _imgPool(nullptr)
 		, _maxResourceMemoryLimit(512 * 1024 * 1024) // init 512MB
 		, _activeWindow(nullptr)
 		, _styleSheets(nullptr)
+		, _tick(0)
 	{
 		if (_shared)
 			Qk_FATAL("At the same time can only run a Application entity");
@@ -79,15 +80,13 @@ namespace qk {
 		_styleSheets = new RootStyleSheets();
 		__run_main_wait->lock_notify_all(); // The external thread continues to run
 
-		// keep loop
-		_keep = _loop->keep_alive([](void *ctx) {
-			auto app = (Application*)(ctx);
-			if (app->_windows.length()) {
-				for(auto w: app->_windows) {
+		struct Tick {
+			static void cb(Cb::Data& e, Application *self) {
+				for (auto w: self->_windows)
 					w->preRender().asyncCommit();
-				}
 			}
-		}, this); // keep loop
+		};
+		_tick = _loop->tick(Cb(&Tick::cb, this), -1);
 	}
 
 	Application::~Application() {
@@ -101,7 +100,7 @@ namespace qk {
 		Release(_screen);    _screen = nullptr;
 		Release(_fontPool);  _fontPool = nullptr;
 		Release(_imgPool);   _imgPool = nullptr;
-		delete _keep;        _keep = nullptr;  _loop = nullptr;
+	 	_loop->tick_stop(_tick); _tick = 0;
 
 		_shared = nullptr;
 		_mutex.unlock();
@@ -125,7 +124,7 @@ namespace qk {
 			Qk_ASSERT( __qk_run_main__, "No gui main");
 			int rc = __qk_run_main__(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DEBUG("Application::runMain() thread_new() Exit");
-			thread_try_abort_and_exit(rc); // if sub thread end then exit
+			thread_exit(rc); // if sub thread end then exit
 			Qk_DEBUG("Application::runMain() thread_new() Exit ok");
 		}, new Args{argc, argv}, "runMain");
 
@@ -175,9 +174,7 @@ namespace qk {
 
 	void AppInl::triggerLoad() {
 		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) {
-			if (app->_isLoaded || !app->_keep)
-				return;
-			ScopeLock lock(app->_mutex); // TODO ... is safe, is release app ?
+			ScopeLock lock(app->_mutex);
 			if (!app->_isLoaded) {
 				app->_isLoaded = true;
 				app->Qk_Trigger(Load);
@@ -186,17 +183,15 @@ namespace qk {
 	}
 
 	void AppInl::triggerUnload() {
-		_loop->post(Cb([&](auto&d) {
-			if (_keep) {
-				ScopeLock lock(_mutex); // TODO ... is safe, is release app ?
-				if (_isLoaded) {
-					_isLoaded = false;
-					Qk_Trigger(Unload);
-					Qk_DEBUG("AppInl::onUnload()");
-				}
-				delete _keep; _keep = nullptr; // stop loop run
+		_loop->post(Cb((CbFunc)[](auto& d, AppInl* app) {
+			ScopeLock lock(app->_mutex);
+			if (app->_isLoaded) {
+				app->_isLoaded = false;
+				app->Qk_Trigger(Unload);
+				app->_loop->tick_stop(app->_tick);
+				Qk_DEBUG("AppInl::onUnload()");
 			}
-		}));
+		}, this));
 	}
 
 	void AppInl::triggerPause() {

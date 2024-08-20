@@ -364,8 +364,9 @@ namespace qk {
 			destLen += charLen;
 			source++;
 		}
-		*dest = '\0';
-		return Buffer(data.collapse(), destLen, dataLen);
+		// *dest = '\0';
+		data.reset(destLen);
+		Qk_ReturnLocal(data);
 	}
 
 	template <class Char>
@@ -386,7 +387,8 @@ namespace qk {
 			source++;
 		}
 		*dest = '\0';
-		return Buffer(reinterpret_cast<char*>(data.collapse()), destLen << 1, dataLen << 1);
+		auto capacity = data.capacity();
+		return Buffer(reinterpret_cast<char*>(data.collapse()), destLen << 1, capacity << 1);
 	}
 
 	template <class Char>
@@ -568,7 +570,7 @@ namespace qk {
 		auto end = src + len;
 		auto destLen = 0;
 		uint32_t data;
-		while (src != end) {
+		while (src < end) {
 			src += codec_decode_utf8_to_unichar(src, &data);
 			(*rev)[destLen] = data;
 			if (++destLen == rev.capacity())
@@ -586,7 +588,7 @@ namespace qk {
 		auto end = reinterpret_cast<const uint16_t*>(source + len);
 		auto destLen = 0;
 		uint32_t data;
-		while (src != end) {
+		while (src < end) {
 			src += codec_decode_utf16_to_unichar(src, &data);
 			(*rev)[destLen] = data;
 			if (++destLen == rev.capacity())

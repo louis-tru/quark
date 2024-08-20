@@ -37,129 +37,124 @@
 #include <string.h>
 
 namespace qk {
+	typedef char                 Char;
+	typedef StringImpl<uint16_t> String2;
+	typedef StringImpl<uint32_t> String4;
+	typedef const char           cChar;
+	typedef const String2        cString2;
+	typedef const String4        cString4;
 
-	typedef char Char;
-	typedef ArrayString<uint16_t> String2;
-	typedef ArrayString<uint32_t> String4;
-	typedef const char cChar;
-	typedef const String2 cString2;
-	typedef const String4 cString4;
-	
-	class Qk_EXPORT ArrayStringBase: public Object {
+	class Qk_EXPORT StringBase {
 	public:
+		typedef NonObjectTraits Traits;
 		typedef MemoryAllocator::Prt<char> Ptr;
 		typedef void (*Realloc)(Ptr *ptr, uint32_t, uint32_t);
 		typedef void (*Free)(void* ptr);
 		static constexpr char MAX_SHORT_LEN = 32;
-		struct ShortStr {
-			char val[36]; char length;
-		};
-		struct LongStr {
-			uint32_t length, flag;
-			Ptr      ptr;
+		uint32_t size() const;
+		struct Long { // shared string
+			struct Base { Ptr ptr; uint32_t length; };
+			inline Ptr* ptr() { return reinterpret_cast<Ptr*>(this); }
+			char     *val;
+			uint32_t capacity, length, flag;
 			std::atomic_int ref;
 		};
-		union Value {
-			struct ShortStr s;
-			struct LongStr* l; // share long string core
-		};
-		uint32_t size() const;
+		struct Short { char val[36]; char length; };
 	protected:
-		ArrayStringBase();
-		ArrayStringBase(const ArrayStringBase& str);
-		ArrayStringBase(uint32_t len, Realloc alloc, uint8_t size_of);
-		ArrayStringBase(uint32_t len, uint32_t capacity, char* val, uint8_t size_of);
-		void assign(    uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free);
-		void assign(const ArrayStringBase& s, Free free);
-		char*       ptr();
-		const char* ptr() const;
+		StringBase();
+		StringBase(const StringBase& str);
+		StringBase(uint32_t len, Realloc alloc, uint8_t sizeOf);
+		StringBase(Long::Base base, uint8_t sizeOf);
+		void     assign(Long::Base base, uint8_t sizeOf, Free free);
+		void     assign(const StringBase& s, Free free);
+		char*    ptr();
+		cChar*   ptr() const;
 		uint32_t capacity() const;
-		char* realloc(uint32_t len, Realloc alloc, Free free, uint8_t size_of);
-		Buffer collapse(Realloc alloc, Free free);
-		void   clear(Free free);
-		static LongStr* NewLong(uint32_t length, uint32_t capacity, char* val);
-		static void Release(LongStr* l, Free free);
-		static bool Retain (LongStr* l);
-		Value  _val;
-		template<typename T, typename A> friend class ArrayString;
+		char*    realloc(uint32_t len, Realloc alloc, Free free, uint8_t sizeOf);
+		Buffer   collapse(Realloc alloc, Free free);
+		void     clear(Free free);
+		// union storage val
+		union { struct Long* l; struct Short s; } _val;
+		template<typename T, typename A> friend class StringImpl;
 	};
 
 	// TODO delete change string api
 	template<typename T, typename A>
-	class ArrayString: public ArrayStringBase {
+	class StringImpl: public StringBase {
 	public:
-		// constructors
-		ArrayString(); // empty string constructors
-		ArrayString(const ArrayString& s); // copy constructors
-		ArrayString(Array<T, A>&& data); // right value copy constructors
-		ArrayString(ArrayBuffer<T, A>&& data); // right value copy constructors
-		ArrayString(const T* s); // copy constructors
-		ArrayString(const T* s, uint32_t len); // copy constructors
-		ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
-		ArrayString(char i); // char string
+		static constexpr int Type = sizeof(T) >> 1; // range 0,1,2
+		static_assert(Type <= 2, "string type range only 0,1,2");
+		// @constructors
+		StringImpl(); // empty string constructors
+		StringImpl(const StringImpl& s); // copy constructors
+		StringImpl(Array<T, A>&& data); // right value copy constructors
+		StringImpl(ArrayBuffer<T, A>&& data); // right value copy constructors
+		StringImpl(const T* s); // copy constructors
+		StringImpl(const T* s, uint32_t len); // copy constructors
+		StringImpl(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
+		StringImpl(char i); // char string
 
-		ArrayString(int32_t i); // number to string constructors
-		ArrayString(uint32_t i);
-		ArrayString(int64_t i);
-		ArrayString(uint64_t i);
-		ArrayString(float i);
-		ArrayString(double i);
+		StringImpl(int32_t i); // number to string constructors
+		StringImpl(uint32_t i);
+		StringImpl(int64_t i);
+		StringImpl(uint64_t i);
+		StringImpl(float i);
+		StringImpl(double i);
 
-		virtual ~ArrayString();
-		virtual String toString() const;
+		~StringImpl();
 		/**
-		 * @func format string
+		 * @method format string
 		 */
-		static ArrayString format(cChar* format, ...);
+		static StringImpl format(cChar* format, ...);
 
 		// =========================================
 		// modify method assign, append assign ...
 		// =========================================
 		// assign operator, call assign()
-		ArrayString& operator=(const T* s);
-		ArrayString& operator=(const ArrayString& s);
+		StringImpl& operator=(const T* s);
+		StringImpl& operator=(const StringImpl& s);
 		// assign value operator
-		ArrayString& assign(const T* s, uint32_t len); // operator=
-		ArrayString& assign(const T s); // operator=
+		StringImpl& assign(const T* s, uint32_t len); // operator=
+		StringImpl& assign(const T s); // operator=
 		// operator+=
 		// concat string to current this, call append()
-		ArrayString& operator+=(const T* s);
-		ArrayString& operator+=(const ArrayString& s);
-		ArrayString& operator+=(const T s);
+		StringImpl& operator+=(const T* s);
+		StringImpl& operator+=(const StringImpl& s);
+		StringImpl& operator+=(const T s);
 		// append string to current this
-		ArrayString& append(const T* s, uint32_t len = 0); // operator+=
-		ArrayString& append(const ArrayString& s); // operator+=
-		ArrayString& append(const T s); // operator+=
+		StringImpl& append(const T* s, uint32_t len = 0); // operator+=
+		StringImpl& append(const StringImpl& s); // operator+=
+		StringImpl& append(const T s); // operator+=
 		// collapse to array buffer
 		ArrayBuffer<T, A> collapse();
 		ArrayWeak<T> array() const;
 		// upper, lower
-		ArrayString& upperCase(); // change current this string
-		ArrayString& lowerCase(); // change current this string
+		StringImpl& upperCase(); // change current this string
+		StringImpl& lowerCase(); // change current this string
 
 		// =========================================
 		// const method
 		// =========================================
 		// operator+
 		// concat string, create new string
-		// call ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
-		ArrayString operator+(const T* s) const;
-		ArrayString operator+(const ArrayString& s) const;
-		ArrayString operator+(const T s) const;
+		// call StringImpl(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
+		StringImpl operator+(const T* s) const;
+		StringImpl operator+(const StringImpl& s) const;
+		StringImpl operator+(const T s) const;
 
 		// operator compare
 		bool operator==(const T* s) const;
-		inline bool operator==(const ArrayString& s) const { return operator==(s.c_str()); }
+		inline bool operator==(const StringImpl& s) const { return operator==(s.c_str()); }
 		bool operator!=(const T* s) const;
-		inline bool operator!=(const ArrayString& s) const { return operator!=(s.c_str()); }
+		inline bool operator!=(const StringImpl& s) const { return operator!=(s.c_str()); }
 		bool operator> (const T* s) const;
-		inline bool operator> (const ArrayString& s) const { return operator>(s.c_str()); }
+		inline bool operator> (const StringImpl& s) const { return operator>(s.c_str()); }
 		bool operator< (const T* s) const;
-		inline bool operator< (const ArrayString& s) const { return operator<(s.c_str()); }
+		inline bool operator< (const StringImpl& s) const { return operator<(s.c_str()); }
 		bool operator>=(const T* s) const;
-		inline bool operator>=(const ArrayString& s) const { return operator>=(s.c_str()); }
+		inline bool operator>=(const StringImpl& s) const { return operator>=(s.c_str()); }
 		bool operator<=(const T* s) const;
-		inline bool operator<=(const ArrayString& s) const { return operator<=(s.c_str()); }
+		inline bool operator<=(const StringImpl& s) const { return operator<=(s.c_str()); }
 
 		inline bool  isEmpty() const;
 		inline const T* c_str() const;
@@ -169,27 +164,28 @@ namespace qk {
 		inline uint32_t length() const;
 		inline uint32_t capacity() const;
 
+		String toString() const; // to string
 		// get string hash code
 		uint64_t hashCode() const;
-		ArrayString<T, A> copy() const;
+		StringImpl<T, A> copy() const;
 		// trim
-		ArrayString trim() const;
-		ArrayString trimLeft() const;
-		ArrayString trimRight() const;
+		StringImpl trim() const;
+		StringImpl trimLeft() const;
+		StringImpl trimRight() const;
 		// substr
-		ArrayString substr(uint32_t start, uint32_t length = 0x7FFFFFFF) const;
-		ArrayString substring(uint32_t start, uint32_t end = 0x7FFFFFFF) const;
+		StringImpl substr(uint32_t start, uint32_t length = 0x7FFFFFFF) const;
+		StringImpl substring(uint32_t start, uint32_t end = 0x7FFFFFFF) const;
 		// upper, lower
-		ArrayString toUpperCase() const; // create new string
-		ArrayString toLowerCase() const; // create new string
+		StringImpl toUpperCase() const; // create new string
+		StringImpl toLowerCase() const; // create new string
 		// index_of
-		int indexOf(const ArrayString& s, uint32_t start = 0) const;
-		int lastIndexOf(const ArrayString& s, uint32_t start = 0x7FFFFFFF) const;
+		int indexOf(const StringImpl& s, uint32_t start = 0) const;
+		int lastIndexOf(const StringImpl& s, uint32_t start = 0x7FFFFFFF) const;
 		// replace
-		ArrayString replace(const ArrayString& s, const ArrayString& rep) const;
-		ArrayString replaceAll(const ArrayString& s, const ArrayString& rep) const;
+		StringImpl replace(const StringImpl& s, const StringImpl& rep) const;
+		StringImpl replaceAll(const StringImpl& s, const StringImpl& rep) const;
 		// split
-		Array<ArrayString> split(const ArrayString& sp) const;
+		Array<StringImpl> split(const StringImpl& sp) const;
 		// to number
 		template<typename T2> T2   toNumber()        const;
 		template<typename T2> bool toNumber(T2* out) const;
@@ -197,52 +193,54 @@ namespace qk {
 		template<typename T2> void number_(T2 i);
 		T* val();
 	};
-
 }
 
-// -------------------------------------- IMPL --------------------------------------
+// ----------------------------------------------------------------------------------
 
 namespace qk {
 
 	class Qk_EXPORT _Str {
 	public:
-		typedef MemoryAllocator::Prt<char> Ptr;
-		typedef char T;
 		typedef void* (*Alloc)(uint32_t);
-		typedef void  (*Realloc)(Ptr*, uint32_t, uint32_t);
+		typedef StringBase::Realloc Realloc;
+		typedef StringBase::Long::Base Base;
 
-		struct Size { uint32_t len; uint32_t capacity; };
 		static cChar ws[8];
-		static bool to_number(const void* i, int sizeof_i, int len_i, int32_t* o);
-		static bool to_number(const void* i, int sizeof_i, int len_i, uint32_t* o);
-		static bool to_number(const void* i, int sizeof_i, int len_i, int64_t* o);
-		static bool to_number(const void* i, int sizeof_i, int len_i, uint64_t* o);
-		static bool to_number(const void* i, int sizeof_i, int len_i, float* o);
-		static bool to_number(const void* i, int sizeof_i, int len_i, double* o);
-		static int32_t format_n(char* o, uint32_t len_o, cChar* f, ...);
-		static int32_t format_n(char* o, uint32_t len_o, int32_t i);
-		static int32_t format_n(char* o, uint32_t len_o, uint32_t i);
-		static int32_t format_n(char* o, uint32_t len_o, int64_t i);
-		static int32_t format_n(char* o, uint32_t len_o, uint64_t i);
-		static int32_t format_n(char* o, uint32_t len_o, float i);
-		static int32_t format_n(char* o, uint32_t len_o, double i);
-		static void* format(Size* size, int size_of, Alloc alloc, cChar* f, ...);
-		static void* format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg);
-		static void* format(Size* size, int size_of, Alloc alloc, int32_t i);
-		static void* format(Size* size, int size_of, Alloc alloc, uint32_t i);
-		static void* format(Size* size, int size_of, Alloc alloc, int64_t i);
-		static void* format(Size* size, int size_of, Alloc alloc, uint64_t i);
-		static void* format(Size* size, int size_of, Alloc alloc, float i);
-		static void* format(Size* size, int size_of, Alloc alloc, double i);
+		static bool toNumber(const void* i, int iLen, int sizeOf, int32_t* o);
+		static bool toNumber(const void* i, int iLen, int sizeOf, uint32_t* o);
+		static bool toNumber(const void* i, int iLen, int sizeOf, int64_t* o);
+		static bool toNumber(const void* i, int iLen, int sizeOf, uint64_t* o);
+		static bool toNumber(const void* i, int iLen, int sizeOf, float* o);
+		static bool toNumber(const void* i, int iLen, int sizeOf, double* o);
+		static int  oPrinti(char* o, uint32_t oLen, int32_t i);
+		static int  oPrinti(char* o, uint32_t oLen, uint32_t i);
+		static int  oPrinti(char* o, uint32_t oLen, int64_t i);
+		static int  oPrinti(char* o, uint32_t oLen, uint64_t i);
+		static int  oPrinti(char* o, uint32_t oLen, float i);
+		static int  oPrinti(char* o, uint32_t oLen, double i);
+		static int  oPrintf(char* o, uint32_t oLen, cChar* f, ...);
+		static Base sPrinti(int sizeOf, Alloc alloc, int32_t i); // num
+		static Base sPrinti(int sizeOf, Alloc alloc, uint32_t i);
+		static Base sPrinti(int sizeOf, Alloc alloc, int64_t i);
+		static Base sPrinti(int sizeOf, Alloc alloc, uint64_t i);
+		static Base sPrinti(int sizeOf, Alloc alloc, float i);
+		static Base sPrinti(int sizeOf, Alloc alloc, double i);
+		static Base sPrintf(int sizeOf, Alloc alloc, cChar* f, ...); // str
+		static Base sPrintfv(int sizeOf, Alloc alloc, cChar* f, va_list arg);
+		static String printfv(cChar* f, va_list arg);
+
 		class Iterator { public: virtual bool next(String* out) = 0; };
 		static String join(cString& sp, void* data, uint32_t len, bool (*iterator)(void* data, String* out));
-		static String toString(const void* ptr, uint32_t len, int size_of);
+		static String toString(const void* ptr, uint32_t len, int sizeOf);
 		template<typename T>
 		static String toString(const T& t) {
 			return _To<T, has_object_type<T>::isObj>::call(t);
 		}
 		template<typename T, bool isObj> struct _To {
 			static String call(const T& t) { return String("[unknown]"); }
+		};
+		template<typename T, typename A> struct _To<StringImpl<T, A>, false> {
+			static String call(const StringImpl<T, A>& t) { return t.toString(); }
 		};
 		template<typename T> struct _To<T, true> {
 			static String call(const T& t) { return t.toString(); }
@@ -251,17 +249,17 @@ namespace qk {
 			typedef T* Type;
 			static String call(const Type& t) { return String::format("[%p]", t); }
 		};
-		static void  strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
+		static void strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
 		template <typename Output, typename Input>
 		static void strcpy(Output* o, const Input* i, uint32_t len) {
 			strcpy(o, sizeof(Output), i, sizeof(Input), len);
 		}
-		static uint32_t strlen(const void* s, int size_of);
+		static uint32_t strlen(const void* s, int sizeOf);
 		template <typename T>
 		static uint32_t strlen(const T* s) {
 			return strlen(s, sizeof(T));
 		}
-		static int memcmp(const void* s1, const void* s2, uint32_t len, int size_of);
+		static int memcmp(const void* s1, const void* s2, uint32_t len, int sizeOf);
 		// 1 > , -1 <, 0 ==
 		template <typename T>
 		static int strcmp(const T* s1, const T* s2, uint32_t len) {
@@ -269,206 +267,204 @@ namespace qk {
 		}
 		static int32_t index_of(
 			const void* s1, uint32_t s1_len,
-			const void* s2, uint32_t s2_len, uint32_t start, int size_of
+			const void* s2, uint32_t s2_len, uint32_t start, int sizeOf
 		);
 		static int32_t last_index_of(
 			const void* s1, uint32_t s1_len,
-			const void* s2, uint32_t s2_len, uint32_t start, int size_of
+			const void* s2, uint32_t s2_len, uint32_t start, int sizeOf
 		);
 		static void* replace(
 			const void* s1, uint32_t s1_len,
 			const void* s2, uint32_t s2_len,
 			const void* rep, uint32_t rep_len,
-			int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all, Realloc realloc
+			int sizeOf, uint32_t* out_len, uint32_t* capacity_out, bool all, Realloc realloc
 		);
 		static int tolower(int c);
 		static int toupper(int c);
-		static String string_format(cChar* f, va_list arg);
 	};
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString() {
+	StringImpl<T, A>::StringImpl() {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(const ArrayString& s): ArrayStringBase(s) {
+	StringImpl<T, A>::StringImpl(const StringImpl& s): StringBase(s) {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(Array<T, A>&& data)
-		: ArrayStringBase(data.length(), data.capacity(), (char*)data.collapse(), sizeof(T)) {
+	StringImpl<T, A>::StringImpl(Array<T, A>&& data)
+		: StringBase({(char*)*data, data.capacity(), data.length()}, sizeof(T)) {
+		data.collapse();
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(ArrayBuffer<T, A>&& data)
-		: ArrayStringBase(data.length(), data.capacity(), (char*)data.collapse(), sizeof(T)) {
+	StringImpl<T, A>::StringImpl(ArrayBuffer<T, A>&& data)
+		: StringBase({(char*)*data, data.capacity(), data.length()}, sizeof(T)) {
+		data.collapse();
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(const T* s)
-		: ArrayString<T, A>(s, _Str::strlen(s)) {
+	StringImpl<T, A>::StringImpl(const T* s)
+		: StringImpl<T, A>(s, _Str::strlen(s)) {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(const T* s, uint32_t len)
-		: ArrayStringBase(len, (Realloc)&A::realloc, sizeof(T))
+	StringImpl<T, A>::StringImpl(const T* s, uint32_t len)
+		: StringBase(len, (Realloc)&A::realloc, sizeof(T))
 	{
 		_Str::strcpy(val(), s, len);
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
-		: ArrayStringBase(a_len + b_len, (Realloc)&A::realloc, sizeof(T))
+	StringImpl<T, A>::StringImpl(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
+		: StringBase(a_len + b_len, (Realloc)&A::realloc, sizeof(T))
 	{
 		_Str::strcpy(val(),         a, a_len);
 		_Str::strcpy(val() + a_len, b, b_len);
 	}
 	
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(char i): ArrayString(&i, 1) {
+	StringImpl<T, A>::StringImpl(char i): StringImpl(&i, 1) {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(int32_t i) {
+	StringImpl<T, A>::StringImpl(int32_t i) {
 		number_(i);
 	}
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(uint32_t i) {
+	StringImpl<T, A>::StringImpl(uint32_t i) {
 		number_(i);
 	}
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(int64_t i) {
+	StringImpl<T, A>::StringImpl(int64_t i) {
 		number_(i);
 	}
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(uint64_t i) {
+	StringImpl<T, A>::StringImpl(uint64_t i) {
 		number_(i);
 	}
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(float i) {
+	StringImpl<T, A>::StringImpl(float i) {
 		number_(i);
 	}
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(double i) {
+	StringImpl<T, A>::StringImpl(double i) {
 		number_(i);
 	}
 
 	template <typename T, typename A>
 	template <typename T2>
-	void ArrayString<T, A>::number_(T2 i)
+	void StringImpl<T, A>::number_(T2 i)
 	{
 		(void)(1 + i); // test number math operation
 		if (sizeof(T) == 1) {
-			_val.s.length = _Str::format_n(ptr(), MAX_SHORT_LEN, i);
+			_val.s.length = _Str::oPrinti(ptr(), MAX_SHORT_LEN, i);
 		} else {
-			_Str::Size size;
-			T* v = (T*)_Str::format(&size, (int)sizeof(T), &A::alloc, i);
-			if (v) {
-				ArrayStringBase::assign( size.len, size.capacity, v, sizeof(T), &A::free );
+			auto base = _Str::sPrinti((int)sizeof(T), &A::alloc, i);
+			if (base.ptr.val) {
+				StringBase::assign(base, sizeof(T), &A::free );
 			}
 		}
 	}
-	
+
 	template <typename T, typename A>
-	ArrayString<T, A>::~ArrayString() {
+	StringImpl<T, A>::~StringImpl() {
 		clear(&A::free);
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::format(cChar* f, ...) {
+	StringImpl<T, A> StringImpl<T, A>::format(cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-		_Str::Size size;
-		T* v = (T*)_Str::format(&size, sizeof(T), &A::alloc, f, arg);
+		auto base = _Str::sPrintfv(sizeof(T), &A::alloc, f, arg);
 		va_end(arg);
-
-		ArrayString s;
-		if (v)
-			s.ArrayStringBase::assign(size.len, size.capacity, (char*)v, sizeof(T), &A::free);
-		return s;
+		StringImpl s;
+		if (base.ptr.val)
+			s.StringBase::assign(base, sizeof(T), &A::free);
+		Qk_ReturnLocal(s);
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::isEmpty() const { return size() == 0; }
+	bool StringImpl<T, A>::isEmpty() const { return size() == 0; }
 	
 	template <typename T, typename A>
-	T ArrayString<T, A>::operator[](uint32_t index) const { return c_str()[index]; }
+	T StringImpl<T, A>::operator[](uint32_t index) const { return c_str()[index]; }
 
 	template <typename T, typename A>
-	const T* ArrayString<T, A>::c_str() const { return (const T*)ptr(); }
+	const T* StringImpl<T, A>::c_str() const { return (const T*)ptr(); }
 
 	template <typename T, typename A>
-	const T* ArrayString<T, A>::operator*() const { return (const T*)ptr(); }
+	const T* StringImpl<T, A>::operator*() const { return (const T*)ptr(); }
 
 	template <typename T, typename A>
-	uint32_t ArrayString<T, A>::length() const { return size() / sizeof(T); }
+	uint32_t StringImpl<T, A>::length() const { return size() >> Type; }
 
 	template <typename T, typename A>
-	uint32_t ArrayString<T, A>::capacity() const { return ArrayStringBase::capacity() / sizeof(T); }
-	
+	uint32_t StringImpl<T, A>::capacity() const { return StringBase::capacity() >> Type; }
+
 	template <typename T, typename A>
-	T* ArrayString<T, A>::val() { return (T*)ptr(); }
+	T* StringImpl<T, A>::val() { return (T*)ptr(); }
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::operator=(const T* s) {
+	StringImpl<T, A>& StringImpl<T, A>::operator=(const T* s) {
 		return assign(s, _Str::strlen(s));
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::operator=(const ArrayString& s) {
-		ArrayStringBase::assign(s, &A::free);
+	StringImpl<T, A>& StringImpl<T, A>::operator=(const StringImpl& s) {
+		StringBase::assign(s, &A::free);
 		return *this;
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::assign(const T* s, uint32_t len) {
+	StringImpl<T, A>& StringImpl<T, A>::assign(const T* s, uint32_t len) {
 		_Str::strcpy((T*)realloc(len, (Realloc)&A::realloc, &A::free, sizeof(T)), s, len); // copy str
 		return *this;
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::assign(const T s) {
+	StringImpl<T, A>& StringImpl<T, A>::assign(const T s) {
 		return assign(&s, 1);
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::operator+(const T* s) const {
-		return ArrayString(c_str(), length(), s, _Str::strlen(s));
+	StringImpl<T, A> StringImpl<T, A>::operator+(const T* s) const {
+		return StringImpl(c_str(), length(), s, _Str::strlen(s));
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::operator+(const ArrayString& s) const {
-		return ArrayString(c_str(), length(), s.c_str(), s.length());
+	StringImpl<T, A> StringImpl<T, A>::operator+(const StringImpl& s) const {
+		return StringImpl(c_str(), length(), s.c_str(), s.length());
 	}
 	
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::operator+(const T s) const {
-		return ArrayString(c_str(), length(), &s, 1);
+	StringImpl<T, A> StringImpl<T, A>::operator+(const T s) const {
+		return StringImpl(c_str(), length(), &s, 1);
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::operator+=(const T* s) {
+	StringImpl<T, A>& StringImpl<T, A>::operator+=(const T* s) {
 		return append(s, _Str::strlen(s));
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::operator+=(const ArrayString& s) {
+	StringImpl<T, A>& StringImpl<T, A>::operator+=(const StringImpl& s) {
 		return length() ? append(s.c_str(), s.length()): operator=(s);
 	}
 	
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::operator+=(const T s) {
+	StringImpl<T, A>& StringImpl<T, A>::operator+=(const T s) {
 		return append(&s, 1);
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::append(const T* s, uint32_t len) {
+	StringImpl<T, A>& StringImpl<T, A>::append(const T* s, uint32_t len) {
 		if (len > 0) {
 			uint32_t len_raw = length();
 			auto str = (T*)realloc(len_raw + len, (Realloc)&A::realloc, &A::free, sizeof(T));
@@ -478,54 +474,54 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::append(const ArrayString& s) {
+	StringImpl<T, A>& StringImpl<T, A>::append(const StringImpl& s) {
 		return operator+=(s);
 	}
 	
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::append(const T s) {
+	StringImpl<T, A>& StringImpl<T, A>::append(const T s) {
 		return append(&s, 1);
 	}
 
 	uint64_t hashCode(const void* data, uint32_t len);
 
 	template <typename T, typename A>
-	uint64_t ArrayString<T, A>::hashCode() const {
+	uint64_t StringImpl<T, A>::hashCode() const {
 		return qk::hashCode(c_str(), length() * sizeof(T));
 	}
 
 	template <typename T, typename A>
-	ArrayBuffer<T, A> ArrayString<T, A>::collapse() {
-		Buffer b = ArrayStringBase::collapse((Realloc)&A::realloc, &A::free);
+	ArrayBuffer<T, A> StringImpl<T, A>::collapse() {
+		Buffer b = StringBase::collapse((Realloc)&A::realloc, &A::free);
 		uint32_t l = b.length(), c = b.capacity();
 		return ArrayBuffer<T, A>::from((T*)b.collapse(), l / sizeof(T), c / sizeof(T));
 	}
 
 	template <typename T, typename A>
-	ArrayWeak<T> ArrayString<T, A>::array() const {
+	ArrayWeak<T> StringImpl<T, A>::array() const {
 		return ArrayWeak<T>(c_str(), length());
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::copy() const {
-		return length() ? ArrayString(c_str(), length()): ArrayString();
+	StringImpl<T, A> StringImpl<T, A>::copy() const {
+		return length() ? StringImpl(c_str(), length()): StringImpl();
 	}
 
 	template <typename T, typename A>
-	String ArrayString<T, A>::toString() const {
+	String StringImpl<T, A>::toString() const {
 		return _Str::toString(c_str(), length(), sizeof(T));
 	}
-	
+
 	template <> Qk_EXPORT
-	String ArrayString<>::toString() const;
+	String StringImpl<>::toString() const;
 
 	template <typename T, typename A>
-	ArrayString<T, A> Array<T, A>::collapseString() {
-		return ArrayString<T, A>(std::move(*this));
+	StringImpl<T, A> Array<T, A>::collapseString() {
+		return StringImpl<T, A>(std::move(*this));
 	}
 
 	// --------------------------------------------------------------------------------
-	
+
 	template <typename T, typename A>
 	String Array<T, A>::join(cString& sp) const {
 		IteratorConst it[] = { begin(), end() };
@@ -557,39 +553,39 @@ namespace qk {
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::operator==(const T* s) const {
+	bool StringImpl<T, A>::operator==(const T* s) const {
 		return _Str::strcmp(c_str(), s, length()) == 0;
 	}
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::operator!=(const T* s) const {
+	bool StringImpl<T, A>::operator!=(const T* s) const {
 		return _Str::strcmp(c_str(), s, length()) != 0;
 	}
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::operator>(const T* s) const {
+	bool StringImpl<T, A>::operator>(const T* s) const {
 		return _Str::strcmp(c_str(), s, length()) > 0;
 	}
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::operator<(const T* s) const {
+	bool StringImpl<T, A>::operator<(const T* s) const {
 		return _Str::strcmp(c_str(), s, length()) < 0;
 	}
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::operator>=(const T* s) const {
+	bool StringImpl<T, A>::operator>=(const T* s) const {
 		return _Str::strcmp(c_str(), s, length()) >= 0;
 	}
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::operator<=(const T* s) const {
+	bool StringImpl<T, A>::operator<=(const T* s) const {
 		return _Str::memcmp(c_str(), s, length()) <= 0;
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::trim() const {
+	StringImpl<T, A> StringImpl<T, A>::trim() const {
 		uint32_t start = 0;
 		uint32_t len = length();
 		uint32_t end = len;
@@ -600,7 +596,7 @@ namespace qk {
 			}
 		}
 		if (start == len) {
-			return ArrayString(); // empty string
+			return StringImpl(); // empty string
 		} else {
 			for (; end > 0; end--) {
 				if (strchr(_Str::ws, _val[end - 1]) == nullptr) {
@@ -609,59 +605,59 @@ namespace qk {
 			}
 		}
 		if (start == 0 && end == len) {
-			return ArrayString(*this);
+			return StringImpl(*this);
 		}
 		return substring(start, end);
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::trimLeft() const {
+	StringImpl<T, A> StringImpl<T, A>::trimLeft() const {
 		const T* _val = c_str();
 		auto len = length();
 		for (uint32_t start = 0; start < len; start++) {
 			if (strchr(_Str::ws, _val[start]) == nullptr) {
 				if (start == 0) {
-					return ArrayString(*this);
+					return StringImpl(*this);
 				} else {
 					return substring(start);
 				}
 			}
 		}
-		return ArrayString();
+		return StringImpl();
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::trimRight() const {
+	StringImpl<T, A> StringImpl<T, A>::trimRight() const {
 		const T* _val = c_str();
 		auto len = length();
 		for (uint32_t end = len; end > 0; end--) {
 			if (strchr(_Str::ws, _val[end - 1]) == nullptr) {
 				if (end == len) {
-					return ArrayString(*this);
+					return StringImpl(*this);
 				} else {
 					return substring(0, end);
 				}
 			}
 		}
-		return ArrayString();
+		return StringImpl();
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::substr(uint32_t start, uint32_t len) const {
+	StringImpl<T, A> StringImpl<T, A>::substr(uint32_t start, uint32_t len) const {
 		auto s = ArrayWeak<T>(c_str(), length())->slice(start, start + len);
-		return ArrayString(*s, s.length());
+		return StringImpl(*s, s.length());
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::substring(uint32_t start, uint32_t end) const {
+	StringImpl<T, A> StringImpl<T, A>::substring(uint32_t start, uint32_t end) const {
 		auto s = ArrayWeak<T>(c_str(), length())->slice(start, end);
-		return ArrayString(*s, s.length());
+		return StringImpl(*s, s.length());
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	ArrayString<T, A>&  ArrayString<T, A>::upperCase() {
+	StringImpl<T, A>&  StringImpl<T, A>::upperCase() {
 		T* s = (T*)realloc(length(), (Realloc)&A::realloc, &A::free, sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++) {
 			*s = _Str::toupper(*s);
@@ -670,7 +666,7 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>&  ArrayString<T, A>::lowerCase() {
+	StringImpl<T, A>&  StringImpl<T, A>::lowerCase() {
 		T* s = (T*)realloc(length(), (Realloc)&A::realloc, &A::free, sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++)
 			*s = _Str::tolower(*s);
@@ -678,59 +674,59 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::toUpperCase() const {
-		return ArrayString(*this).upperCase();
+	StringImpl<T, A> StringImpl<T, A>::toUpperCase() const {
+		return StringImpl(*this).upperCase();
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::toLowerCase() const {
-		return ArrayString(*this).lowerCase();
+	StringImpl<T, A> StringImpl<T, A>::toLowerCase() const {
+		return StringImpl(*this).lowerCase();
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	int ArrayString<T, A>::indexOf(const ArrayString& s, uint32_t start) const {
+	int StringImpl<T, A>::indexOf(const StringImpl& s, uint32_t start) const {
 		return _Str::index_of(c_str(), length(), s.c_str(), s.length(), start, sizeof(T));
 	}
 
 	template <typename T, typename A>
-	int ArrayString<T, A>::lastIndexOf(const ArrayString& s, uint32_t start) const {
+	int StringImpl<T, A>::lastIndexOf(const StringImpl& s, uint32_t start) const {
 		return _Str::last_index_of(c_str(), length(), s.c_str(), s.length(), start, sizeof(T));
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::replace(const ArrayString& s, const ArrayString& rep) const {
-		ArrayString r;
+	StringImpl<T, A> StringImpl<T, A>::replace(const StringImpl& s, const StringImpl& rep) const {
+		StringImpl r;
 		uint32_t len, capacity;
 		T* val = (T*)_Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
 			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, false, (Realloc)&MemoryAllocator::realloc
 		);
-		r.ArrayStringBase::assign( len, capacity, val, sizeof(T), &A::free );
+		r.StringBase::assign({val,capacity,len}, sizeof(T), &A::free );
 		return r;
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A> ArrayString<T, A>::replaceAll(const ArrayString& s, const ArrayString& rep) const {
-		ArrayString r;
+	StringImpl<T, A> StringImpl<T, A>::replaceAll(const StringImpl& s, const StringImpl& rep) const {
+		StringImpl r;
 		uint32_t len, capacity;
 		T* val = (T*)_Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
 			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, true, (Realloc)&MemoryAllocator::realloc
 		);
-		r.ArrayStringBase::assign( len, capacity, val, sizeof(T), &A::free );
+		r.StringBase::assign({val,capacity,len}, sizeof(T), &A::free );
 		return r;
 	}
 
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	Array<ArrayString<T, A>>
-	ArrayString<T, A>::split(const ArrayString& sp) const {
-		Array<ArrayString<T, A>> r;
+	Array<StringImpl<T, A>>
+	StringImpl<T, A>::split(const StringImpl& sp) const {
+		Array<StringImpl<T, A>> r;
 		int splen = sp.length();
 		int prev = 0, index = 0;
 		while ((index = indexOf(sp, prev)) != -1) {
@@ -746,24 +742,23 @@ namespace qk {
 
 	template<typename T, typename A>
 	template<typename T2>
-	T2 ArrayString<T, A>::toNumber() const {
+	T2 StringImpl<T, A>::toNumber() const {
 		T2 o;
-		_Str::to_number(c_str(), sizeof(T), length(), &o);
+		_Str::toNumber(c_str(), length(), sizeof(T), &o);
 		return o;
 	}
 
 	template<typename T, typename A>
 	template<typename T2>
-	bool ArrayString<T, A>::toNumber(T2* o) const {
-		return _Str::to_number(c_str(), sizeof(T), length(), o);
+	bool StringImpl<T, A>::toNumber(T2* o) const {
+		return _Str::toNumber(c_str(), length(), sizeof(T), o);
 	}
-
 }
 
 namespace std {
 	template<typename T, typename A>
-	struct hash<qk::ArrayString<T, A>> {
-		size_t operator()(const qk::ArrayString<T, A>& val) const {
+	struct hash<qk::StringImpl<T, A>> {
+		size_t operator()(const qk::StringImpl<T, A>& val) const {
 			return val.hashCode();
 		}
 	};

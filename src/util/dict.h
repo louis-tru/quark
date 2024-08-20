@@ -96,7 +96,7 @@ namespace qk {
 		Dict(const Dict& dict);
 		Dict(std::initializer_list<Pair>&& list);
 
-		virtual       ~Dict();
+		~Dict();
 
 		Dict&         operator=(const Dict& value);
 		Dict&         operator=(Dict&& value);

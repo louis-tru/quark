@@ -12,13 +12,13 @@ var i = 0;
 uu.start();
 
 for (var j = 0; j < 1000; j++) {
-	fs.copyrSync(path, path + '.' + j);
+	fs.copyRecursionSync(path, path + '.' + j);
 }
 
 uu.log();
 
 for (var j = 0; j < 1000; j++) {
-	fs.copyr(path, path + '.' + j).then(function(){
+	fs.copyRecursion(path, path + '.' + j).then(function(){
 		//
 	}).catch(function(err) {
 		console.log('copy err', ++i);
@@ -28,13 +28,13 @@ for (var j = 0; j < 1000; j++) {
 var stat = fs.statSync(path);
 
 for (var j = 0; j < 1000; j++) {
-	fs.chmodr(path + '.' + j, stat.mode()).then(function() {
+	fs.chmodRecursion(path + '.' + j, stat.mode()).then(function() {
 		//
 	}).catch(e=>console.log('chmodr err', ++i));
 }
 
 for (var j = 0; j < 1000; j++) {
-	fs.chownr(path + '.' + j, stat.owner(), stat.group()).then(function() {
+	fs.chownRecursion(path + '.' + j, stat.owner(), stat.group()).then(function() {
 		//
 	}).catch(e=>console.log('chownr err', ++i));
 }

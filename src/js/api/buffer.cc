@@ -46,80 +46,86 @@ namespace qk { namespace js {
 
 	class NativeBuffer {
 	public:
+
+		static void fromString(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
+				Js_Throw(
+					"@method fromString(str[,en])\n"
+					"@param arg {String}\n"
+					"@param [en=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
+				);
+			}
+			Encoding en = kUTF8_Encoding;
+			JSValue* r;
+			if ( args.length() > 1 ) {
+				if ( ! parseEncoding(args, args[1], en) ) return;
+			}
+			auto buf = worker->newUint8Array(args[0]->template as<JSString>(), en);
+			Js_Return( buf );
+		}
+	
+		static void toString(FunctionArgs args) {
+			Js_Worker(args);
+			int args_index = 0;
+			if (args.length() < 1 || !args[0]->isUint8Array()) {
+				Js_Throw(
+					"@method toString(uint8array,[encoding[,start[,end]]])\n"
+					"@param uint8array {Uint8Array}\n"
+					"@param [encoding=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
+					"@param [start=0] {uint}\n"
+					"@param [end] {uint}\n"
+				);
+			}
+
+			auto self = args[args_index++]->template as<JSUint8Array>();
+			Encoding en = kUTF8_Encoding;
+			int len = self->byteLength(worker);
+			cChar* data = self->weakBuffer(worker).val();
+			uint32_t start = 0;
+			uint32_t end = len;
+
+			if (args.length() > args_index && args[args_index]->isString()) {
+				if ( ! parseEncoding(args, args[args_index], en) ) return;
+				args_index++;
+			}
+			if (args.length() > args_index) {
+				start = args[args_index]->toUint32Value(worker).unsafe();
+				start = Qk_MIN(len, start);
+				args_index++;
+			}
+			if (args.length() > args_index) {
+				end = args[args_index]->toUint32Value(worker).unsafe();
+				end = Qk_MIN(len, end);
+				args_index++;
+			}
+
+			if ( end <= start ) {
+				Js_Return( JSString::Empty(worker) );
+			}
+
+			switch (en) {
+				case kHex_Encoding: // encode to hex or base64 string
+				case kBase64_Encoding: {
+					Buffer buff = codec_encode(
+						en, WeakBuffer(data + start, end - start).buffer()
+					);
+					Js_Return( worker->newStringOneByte(buff.collapseString()) );
+					break;
+				} default: { // encode to js uft16 string
+					auto unicode = codec_decode_to_unicode( // decode to unicode
+						en, WeakBuffer(data+start, end-start).buffer()
+					);
+					Js_Return( worker->newInstance(unicode.collapseString()) );
+					break;
+				}
+			}
+		}
+	
 		static void binding(JSObject* exports, Worker* worker) {
 
-			Js_Set_Method(fromString, {
-				if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
-					Js_Throw(
-						"@method fromString(str[,en])\n"
-						"@param arg {String}\n"
-						"@param [en=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
-					);
-				}
-				Encoding en = kUTF8_Encoding;
-				JSValue* r;
-				if ( args.length() > 1 ) {
-					if ( ! parseEncoding(args, args[1], en) ) return;
-				}
-				auto buf = worker->newUint8Array(args[0]->template as<JSString>(), en);
-				Js_Return( buf );
-			});
-
-			Js_Set_Method(toString, {
-				int args_index = 0;
-				if (args.length() < 1 || !args[0]->isUint8Array()) {
-					Js_Throw(
-						"@method toString(uint8array,[encoding[,start[,end]]])\n"
-						"@param uint8array {Uint8Array}\n"
-						"@param [encoding=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
-						"@param [start=0] {uint}\n"
-						"@param [end] {uint}\n"
-					);
-				}
-
-				auto self = args[args_index++]->template as<JSUint8Array>();
-				Encoding en = kUTF8_Encoding;
-				int len = self->byteLength(worker);
-				cChar* data = self->weakBuffer(worker).val();
-				uint32_t start = 0;
-				uint32_t end = len;
-
-				if (args.length() > args_index && args[args_index]->isString()) {
-					if ( ! parseEncoding(args, args[args_index], en) ) return;
-					args_index++;
-				}
-				if (args.length() > args_index) {
-					start = args[args_index]->toUint32Value(worker).unsafe();
-					start = Qk_MIN(len, start);
-					args_index++;
-				}
-				if (args.length() > args_index) {
-					end = args[args_index]->toUint32Value(worker).unsafe();
-					end = Qk_MIN(len, end);
-					args_index++;
-				}
-
-				if ( end <= start ) {
-					Js_Return( JSString::Empty(worker) );
-				}
-
-				switch (en) {
-					case kHex_Encoding: // encode to hex or base64 string
-					case kBase64_Encoding: {
-						Buffer buff = codec_encode(
-							en, WeakBuffer(data + start, end - start).buffer()
-						);
-						Js_Return( worker->newStringOneByte(buff.collapseString()) );
-						break;
-					} default: { // encode to js uft16 string
-						auto unicode = codec_decode_to_unicode( // decode to unicode
-							en, WeakBuffer(data+start, end-start).buffer()
-						);
-						Js_Return( worker->newInstance(unicode.collapseString()) );
-						break;
-					}
-				}
-			});
+			Js_Set_Method(fromString, { fromString(args); });
+			Js_Set_Method(toString, { toString(args); });
 		}
 	};
 

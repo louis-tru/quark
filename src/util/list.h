@@ -58,7 +58,7 @@ namespace qk {
 		List(const List&);
 		List(std::initializer_list<T>&& list);
 
-		virtual ~List();
+		~List();
 
 		List&    operator=(const List&);
 		List&    operator=(List&&);
@@ -90,9 +90,7 @@ namespace qk {
 		IteratorConst offsetAt(IteratorConst it, int offset = 0) const;
 
 		String        join(cString& sp) const;
-
-		// overwrite
-		virtual String toString() const;
+		String        toString() const;
 
 		IteratorConst begin() const;
 		IteratorConst end() const;

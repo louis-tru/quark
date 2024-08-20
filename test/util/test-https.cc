@@ -35,11 +35,86 @@
 
 using namespace qk;
 
+void test_download(HttpClientRequest *cl);
+
+class TestHttpClient: public HttpClientRequest, HttpClientRequest::Delegate {
+public:
+	TestHttpClient() {
+		set_delegate(this);
+	}
+	void trigger_http_error(HttpClientRequest* req, cError& error) {
+		Qk_LOG("trigger_http_error, %s", *error.message());
+	}
+	void trigger_http_write(HttpClientRequest* req) {
+		Qk_LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+	}
+	void trigger_http_header(HttpClientRequest* req) {
+		Qk_LOG("Header: %d", status_code());
+		for ( auto& i : get_all_response_headers() ) {
+			Qk_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
+		}
+		Qk_LOG("");
+	}
+	void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
+		Qk_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		Qk_LOG("http ondata: %s", buffer.val());
+	}
+	void trigger_http_end(HttpClientRequest* req) {
+		pause();
+		resume();
+		abort();
+
+		Qk_LOG("http_end, status: %d, %s", status_code(), url().c_str());
+		Qk_LOG( fs_read_file_sync(fs_documents("baidu.html")) );
+
+		test_download(this);
+	}
+	void trigger_http_readystate_change(HttpClientRequest* req) {
+		Qk_LOG("http_readystate_change, %d", ready_state() );
+	}
+	void trigger_http_timeout(HttpClientRequest* req) {
+		Qk_LOG("trigger_http_timeout" );
+	}
+	void trigger_http_abort(HttpClientRequest* req) {
+		Qk_LOG("trigger_http_abort" );
+	}
+};
+
 void test_https(int argc, char **argv) {
-	
-	Buffer buffer = http_get_sync("https://fanyi.baidu.com/");
-	
-	Qk_LOG(std::move(buffer));
-	
-	Qk_LOG("END");
+	Qk_LOG("\nHttpClientRequest:\n");
+
+	Sp<TestHttpClient> cl = new TestHttpClient();
+
+	cl->set_method(HTTP_METHOD_GET);
+	cl->set_url("https://www.baidu.com");
+	cl->set_save_path(fs_documents("baidu.html"));
+	cl->set_username("louis");
+	cl->set_password("Alsk106612");
+	cl->clear_request_header();
+	cl->clear_form_data();
+	cl->set_request_header("test_set_request_header", "test");
+	cl->get_response_header("expires");
+	cl->get_all_response_headers();
+	//cl->set_keep_alive(false);
+	cl->set_timeout(10000000); // 10s
+	//cl->disable_cache(true);
+	//cl->disable_cookie(true);
+	cl->pause();
+	cl->resume();
+	cl->abort();
+	cl->send();
+
+	RunLoop::current()->run();
+}
+
+void test_download(HttpClientRequest *cl) {
+	Qk_LOG("\nTest test_download:\n");
+
+	cl->set_url("https://github.com/louis-tru/quark/blob/master/doc/index.md");
+	cl->set_save_path(""); // no save path
+	cl->disable_cookie(false);
+	cl->disable_send_cookie(false);
+	cl->set_method(HTTP_METHOD_GET);
+	cl->disable_cache(true);
+	cl->send();
 }

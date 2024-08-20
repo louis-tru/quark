@@ -117,9 +117,8 @@ namespace qk { namespace js {
 	};
 	typedef void (*WeakCallback)(const WeakCallbackInfo& info);
 
-	template<class T>
-	class Persistent: public NoCopy {
-		T* _val;
+	template<class T> class Persistent: public NoCopy {
+		T      *_val;
 		Worker *_worker;
 	public:
 		inline Persistent(): _val(0), _worker(0) {
@@ -168,6 +167,17 @@ namespace qk { namespace js {
 		}
 		friend class WrapObject;
 		friend class Worker;
+	};
+
+	template<class T> class Maybe {
+		T  _val;
+		Qk_DEFINE_PROP_GET(bool, ok);
+		Maybe(): _ok(false) {}
+		Maybe(const T& t): _val(t),_ok(true) {}
+		Maybe(T&& t): _val(std::move(t)), _ok(true) {}
+		T& unsafe() { return _val; }
+		bool to(T& out) { return _ok ? (out = std::move(_val), true): false; }
+		T from(const T& defaultValue) { return _ok ? std::move(_val) : defaultValue; }
 	};
 
 	class Qk_EXPORT HandleScope: public NoCopy {
@@ -524,12 +534,13 @@ namespace qk { namespace js {
 		JSValue* runNativeScript(cBuffer& source, cString& name, JSObject* exports = 0);
 
 	protected:
-		Persistent<JSObject> _global, _console;
-		Persistent<JSObject> _nativeModules;
 		Worker();
 		virtual void init();
+		// props
+		Persistent<JSObject> _global, _console;
+		Persistent<JSObject> _nativeModules;
 	};
-	
+
 	template<class T> class Wobj;
 
 	class Qk_EXPORT WrapObject {

@@ -379,19 +379,19 @@ namespace qk { namespace js {
 			}
 		}
 
-		static void chmod_r(FunctionArgs args, bool sync) {
+		static void chmod_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
 			if (args.length() < 1 || ! args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"@method chmodrSync(path[,mode])\n"
+						"@method chmodRecursionSync(path[,mode])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"@method chmodr(path[,mode[,cb]][,cb])\n"
+						"@method chmodRecursion(path[,mode[,cb]][,cb])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@param [cb] {Function}\n"
@@ -407,7 +407,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_chmod_r_sync(args[0]->toStringValue(worker), mode);
+					fs_chmod_recursion_sync(args[0]->toStringValue(worker), mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -416,7 +416,7 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				Js_Return( fs_chmod_r(args[0]->toStringValue(worker), mode, cb) );
+				Js_Return( fs_chmod_recursion(args[0]->toStringValue(worker), mode, cb) );
 			}
 		}
 
@@ -462,14 +462,14 @@ namespace qk { namespace js {
 			}
 		}
 
-		static void chown_r(FunctionArgs args, bool sync) {
+		static void chown_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
 			if ( args.length() < 3 ||
 					!args[0]->isString() ||
 					!args[1]->isUint32() || !args[2]->isUint32() ) {
 				if ( sync ) {
 					Js_Throw(
-						"@method chownrSync(path, owner, group)\n"
+						"@method chownRecursionSync(path, owner, group)\n"
 						"@param path {String}\n"
 						"@param owner {uint}\n"
 						"@param group {uint}\n"
@@ -477,7 +477,7 @@ namespace qk { namespace js {
 					);
 				} else {
 					Js_Throw(
-						"@method chownr(path, owner, group[,cb])\n"
+						"@method chownRecursion(path, owner, group[,cb])\n"
 						"@param path {String}\n"
 						"@param owner {uint}\n"
 						"@param group {uint}\n"
@@ -489,7 +489,7 @@ namespace qk { namespace js {
 			
 			if ( sync ) {
 				try {
-					fs_chown_r_sync(args[0]->toStringValue(worker),
+					fs_chown_recursion_sync(args[0]->toStringValue(worker),
 													args[1]->toUint32Value(worker).unsafe(),
 													args[2]->toUint32Value(worker).unsafe());
 				} catch(cError& err) {
@@ -500,7 +500,7 @@ namespace qk { namespace js {
 				if ( args.length() > 3 ) {
 					cb = get_callback_for_none(worker, args[3]);
 				}
-				Js_Return( fs_chown_r(args[0]->toStringValue(worker),
+				Js_Return( fs_chown_recursion(args[0]->toStringValue(worker),
 															args[1]->toUint32Value(worker).unsafe(),
 															args[2]->toUint32Value(worker).unsafe(), cb) );
 			}
@@ -546,19 +546,19 @@ namespace qk { namespace js {
 			}
 		}
 
-		static void mkdir_p(FunctionArgs args, bool sync) {
+		static void mkdirs(FunctionArgs args, bool sync) {
 			Js_Worker(args);
 			if (args.length() < 1 || ! args[0]->isString()) {
 				if ( sync ){
 					Js_Throw(
-						"@method mkdirpSync(path[,mode])\n"
+						"@method mkdirsSync(path[,mode])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"@method mkdirp(path[,mode[,cb]][,cb])\n"
+						"@method mkdirs(path[,mode[,cb]][,cb])\n"
 						"@param path {String}\n"
 						"@param [mode=default_mode] {uint}\n"
 						"@param [cb] {Function}\n"
@@ -574,7 +574,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_mkdir_p_sync(args[0]->toStringValue(worker), mode);
+					fs_mkdirs_sync(args[0]->toStringValue(worker), mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -583,7 +583,7 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				fs_mkdir_p(args[0]->toStringValue(worker), mode, cb);
+				fs_mkdirs(args[0]->toStringValue(worker), mode, cb);
 			}
 		}
 
@@ -723,18 +723,18 @@ namespace qk { namespace js {
 			}
 		}
 
-		static void remove_r(FunctionArgs args, bool sync) {
+		static void remove_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
 			if (args.length() < 1 || !args[0]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"@method removerSync(path)\n"
+						"@method removeRecursionSync(path)\n"
 						"@param path {String}\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"@method remover(path)\n"
+						"@method removeRecursion(path)\n"
 						"@param path {String}\n"
 						"@param [cb] {Function}\n"
 						"@return {uint} return id\n"
@@ -743,7 +743,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_remove_r_sync(args[0]->toStringValue(worker));
+					fs_remove_recursion_sync(args[0]->toStringValue(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -752,7 +752,7 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_none(worker, args[1]);
 				}
-				Js_Return( fs_remove_r(args[0]->toStringValue(worker), cb) );
+				Js_Return( fs_remove_recursion(args[0]->toStringValue(worker), cb) );
 			}
 		}
 
@@ -793,19 +793,19 @@ namespace qk { namespace js {
 			}
 		}
 
-		static void copy_r(FunctionArgs args, bool sync) {
+		static void copy_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
 			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 				if ( sync ) {
 					Js_Throw(
-						"@method copyrSync(path, target)\n"
+						"@method copyRecursionSync(path, target)\n"
 						"@param path {String}\n"
 						"@param target {String}\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
-						"@method copyr(path, target)\n"
+						"@method copyRecursion(path, target)\n"
 						"@param path {String}\n"
 						"@param target {String}\n"
 						"@param [cb] {Function}\n"
@@ -815,7 +815,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_copy_r_sync(args[0]->toStringValue(worker),
+					fs_copy_recursion_sync(args[0]->toStringValue(worker),
 																	args[1]->toStringValue(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
@@ -825,7 +825,7 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				Js_Return( fs_copy_r(args[0]->toStringValue(worker),
+				Js_Return( fs_copy_recursion(args[0]->toStringValue(worker),
 																			args[1]->toStringValue(worker), cb) );
 			}
 		}
@@ -1391,11 +1391,11 @@ namespace qk { namespace js {
 			Js_Set_Method(writableSync, { writable(args, 1); });
 			Js_Set_Method(executableSync, { executable(args, 1); });
 			Js_Set_Method(copySync, { copy(args, 1); });
-			Js_Set_Method(chmodrSync, { chmod_r(args, 1); });
-			Js_Set_Method(chownrSync, { chown_r(args, 1); });
-			Js_Set_Method(mkdirpSync, { mkdir_p(args, 1); });
-			Js_Set_Method(removerSync, { remove_r(args, 1); });
-			Js_Set_Method(copyrSync, { copy_r(args, 1); });
+			Js_Set_Method(chmodRecursionSync, { chmod_recursion(args, 1); });
+			Js_Set_Method(chownRecursionSync, { chown_recursion(args, 1); });
+			Js_Set_Method(mkdirsSync, { mkdirs(args, 1); });
+			Js_Set_Method(removeRecursionSync, { remove_recursion(args, 1); });
+			Js_Set_Method(copyRecursionSync, { copy_recursion(args, 1); });
 			Js_Set_Method(writeFileSync, { write_file(args, 1); });
 			Js_Set_Method(readFileSync, { read_file(args, 1); });
 			Js_Set_Method(openSync, { open(args, 1); });
@@ -1406,6 +1406,7 @@ namespace qk { namespace js {
 			Js_Set_Method(chmod, { chmod(args, 0); });
 			Js_Set_Method(chown, { chown(args, 0); });
 			Js_Set_Method(mkdir, { mkdir(args, 0); });
+			Js_Set_Method(mkdirs, { mkdirs(args, 0); });
 			Js_Set_Method(rename, { rename(args, 0); });
 			Js_Set_Method(link, { link(args, 0); });
 			Js_Set_Method(unlink, { unlink(args, 0); });
@@ -1419,11 +1420,10 @@ namespace qk { namespace js {
 			Js_Set_Method(writable, { writable(args, 0); });
 			Js_Set_Method(executable, { executable(args, 0); });
 			Js_Set_Method(copy, { copy(args, 0); });
-			Js_Set_Method(chmodr, { chmod_r(args, 0); });
-			Js_Set_Method(chownr, { chown_r(args, 0); });
-			Js_Set_Method(mkdirp, { mkdir_p(args, 0); });
-			Js_Set_Method(remover, { remove_r(args, 0); });
-			Js_Set_Method(copyr, { copy_r(args, 0); });
+			Js_Set_Method(chmodRecursion, { chmod_recursion(args, 0); });
+			Js_Set_Method(chownRecursion, { chown_recursion(args, 0); });
+			Js_Set_Method(removeRecursion, { remove_recursion(args, 0); });
+			Js_Set_Method(copyRecursion, { copy_recursion(args, 0); });
 			Js_Set_Method(writeFile, { write_file(args, 0); });
 			Js_Set_Method(readFile, { read_file(args, 0); });
 			Js_Set_Method(open, { open(args, 0); });

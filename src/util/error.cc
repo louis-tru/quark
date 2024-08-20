@@ -41,14 +41,14 @@ namespace qk {
 	Error::Error(cChar* msg, ...): _errno(ERR_UNKNOWN_ERROR) {
 		va_list arg;
 		va_start(arg, msg);
-		_msg = _Str::string_format(msg, arg);
+		_msg = _Str::printfv(msg, arg);
 		va_end(arg);
 	}
 
 	Error::Error(int code, cChar* msg, ...): _errno(code) {
 		va_list arg;
 		va_start(arg, msg);
-		_msg = _Str::string_format(msg, arg);
+		_msg = _Str::printfv(msg, arg);
 		va_end(arg);
 	}
 

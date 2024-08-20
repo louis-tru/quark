@@ -88,12 +88,12 @@ namespace qk { namespace js {
 		HandleScopeWrap* _handle_scope;
 		v8::Local<v8::Context> _context;
 		inspector::Agent* _inspector;
+		Isolate::CreateParams _params;
 
 		WorkerImpl(): _locker(nullptr), _handle_scope(nullptr), _inspector(nullptr)
 		{
-			Isolate::CreateParams params;
-			params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-			_isolate = Isolate::New(params);
+			_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+			_isolate = Isolate::New(_params);
 			_locker = new Locker(_isolate);
 			_isolate->Enter();
 			_handle_scope = new HandleScopeWrap(_isolate);
@@ -120,6 +120,7 @@ namespace qk { namespace js {
 			delete _locker; _locker = nullptr;
 			_isolate->Dispose(); _isolate = nullptr;
 			Object::release();
+			delete _params.array_buffer_allocator;
 		}
 
 		inline static WorkerImpl* worker() {
@@ -290,7 +291,7 @@ namespace qk { namespace js {
 			// print_exception(message, error);
 			if ( !triggerUncaughtException(this, Cast(error)) ) {
 				print_exception(message, error);
-				qk::thread_try_abort_and_exit(ERR_UNCAUGHT_EXCEPTION);
+				qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
 			}
 		}
 
@@ -303,7 +304,7 @@ namespace qk { namespace js {
 				v8::HandleScope scope(_isolate);
 				v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
 				print_exception(message, reason);
-				qk::thread_try_abort_and_exit(ERR_UNHANDLED_REJECTION);
+				qk::thread_exit(ERR_UNHANDLED_REJECTION);
 			}
 		}
 	};
@@ -1108,7 +1109,7 @@ namespace qk { namespace js {
 	JSObject* Worker::newRangeError(cChar* errmsg, ...) {
 		va_list arg;
 		va_start(arg, errmsg);
-		auto str = _Str::string_format(errmsg, arg);
+		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
 		return Cast<JSObject>(v8::Exception::RangeError(Back<v8::String>(newInstance(str))));
 	}
@@ -1116,7 +1117,7 @@ namespace qk { namespace js {
 	JSObject* Worker::newReferenceError(cChar* errmsg, ...) {
 		va_list arg;
 		va_start(arg, errmsg);
-		auto str = _Str::string_format(errmsg, arg);
+		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
 		return Cast<JSObject>(v8::Exception::ReferenceError(Back<v8::String>(newInstance(str))));
 	}
@@ -1124,7 +1125,7 @@ namespace qk { namespace js {
 	JSObject* Worker::newSyntaxError(cChar* errmsg, ...) {
 		va_list arg;
 		va_start(arg, errmsg);
-		auto str = _Str::string_format(errmsg, arg);
+		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
 		return Cast<JSObject>(v8::Exception::SyntaxError(Back<v8::String>(newInstance(str))));
 	}
@@ -1132,7 +1133,7 @@ namespace qk { namespace js {
 	JSObject* Worker::newTypeError(cChar* errmsg, ...) {
 		va_list arg;
 		va_start(arg, errmsg);
-		auto str = _Str::string_format(errmsg, arg);
+		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
 		return Cast<JSObject>(v8::Exception::TypeError(Back<v8::String>(newInstance(str))));
 	}
@@ -1213,10 +1214,10 @@ namespace qk { namespace js {
 		v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 		int rc = 0;
-		{ Sp<Worker> worker = Worker::Make();
+		{ //
+			Sp<Worker> worker = Worker::Make();
 			v8::SealHandleScope sealhandle(ISOLATE(*worker));
 			v8::HandleScope handle(ISOLATE(*worker));
-
 			// Startup debugger
 			for (int i = 2; i < argc; i++) {
 				String arg(argv[i]);
@@ -1235,13 +1236,12 @@ namespace qk { namespace js {
 					break;
 				}
 			}
-			// exec main script
-			rc = exec(*worker);
+			rc = exec(*worker); // exec main script
+			
 		}
 		v8::V8::ShutdownPlatform();
 		v8::V8::Dispose();
 
 		return rc;
 	}
-
 } }

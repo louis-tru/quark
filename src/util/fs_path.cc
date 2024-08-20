@@ -275,7 +275,7 @@ namespace qk {
 	String fs_format(cChar* path, ...) {
 		va_list arg;
 		va_start(arg, path);
-		String str = _Str::string_format(path, arg);
+		String str = _Str::printfv(path, arg);
 		va_end(arg);
 		return fs_format(str);
 	}

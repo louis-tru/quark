@@ -9,7 +9,7 @@ export default async function(_: any) {
 	const FILE = DIR + '/test_file.txt';
 	const URL = 'https://github.com/';
 	
-	Mv(fs, 'mkdirpSync', [DIR]);
+	Mv(fs, 'mkdirsSync', [DIR]);
 	Mv(fs, 'writeFileSync', [FILE, 'ABCDEFG']);
 	LOG('\nreader:\n');
 	await Mv(reader, 'readFile', [URL, 'utf8']);

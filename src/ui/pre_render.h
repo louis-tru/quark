@@ -81,7 +81,6 @@ namespace qk {
 		void mark_render();  // @safe Rt mark render state
 		void addtask(Task* task);  // @safe Rt add pre render task
 		void untask(Task* task);  // @safe Rt delete pre render task
-		void mark_render_Mt(); // @safe Mt
 
 		/**
 		 * @struct AsyncCall data
@@ -147,7 +146,7 @@ namespace qk {
 		Array<AsyncCall> _asyncCall;
 		Array<AsyncCall> _asyncCommit;
 		Mutex _asyncCommitMutex;
-		bool _is_render, _is_render_Mt; // next frame render
+		bool _is_render; // next frame render
 		friend class Application;
 		friend class Window;
 	};

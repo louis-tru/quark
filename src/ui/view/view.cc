@@ -279,10 +279,8 @@ namespace qk {
 					}
 				}, this, mark);
 			}
-		} else if (isRt) {
-			preRender().mark_render();
 		} else {
-			preRender().mark_render_Mt();
+			preRender().mark_render();
 		}
 	}
 

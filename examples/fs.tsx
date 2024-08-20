@@ -39,7 +39,7 @@ import * as buffer from 'quark/buffer';
 const resolve = require.resolve;
 const filename = path.documents('test.txt');
 
-fs.mkdirpSync(path.dirname(filename));
+fs.mkdirsSync(path.dirname(filename));
 
 function ReadFile(e: ClickEvent) {
 	console.log('------------', filename);
@@ -62,7 +62,7 @@ function ReadFileSync(e: ClickEvent) {
 
 function Remove(e: ClickEvent) {
 	try {
-		var a = fs.removerSync(filename);
+		var a = fs.removeRecursionSync(filename);
 		alert(e.origin.window, 'Remove file OK. ' + a);
 	} catch (err: any) {
 		alert(e.origin.window, err.message + ', ' + err.code);

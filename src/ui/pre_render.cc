@@ -44,7 +44,7 @@ namespace qk {
 	PreRender::PreRender(Window *win)
 		: _mark_total(0)
 		, _window(win)
-		, _is_render(false), _is_render_Mt(false)
+		, _is_render(false)
 	{}
 
 	void PreRender::mark_layout(View *view, uint32_t level) {
@@ -70,10 +70,6 @@ namespace qk {
 
 	void PreRender::mark_render() {
 		_is_render = true;
-	}
-
-	void PreRender::mark_render_Mt() {
-		_is_render_Mt = true;
 	}
 
 	void PreRender::addtask(Task* task) {
@@ -154,10 +150,6 @@ namespace qk {
 	}
 
 	void PreRender::asyncCommit() {
-		if (_is_render_Mt) {
-			_is_render_Mt = false;
-			async_call([](auto self, auto arg) { self->_is_render = true; }, this, 0);
-		}
 		if (_asyncCall.length()) {
 			_asyncCommitMutex.lock();
 			_asyncCommit.concat(std::move(_asyncCall));

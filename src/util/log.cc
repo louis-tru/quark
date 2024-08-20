@@ -61,10 +61,10 @@
 # define f_stderr stdout
 #endif
 
-#define Qk_STRING_FORMAT(format, str) \
+#define Qk_STRING_FORMAT(f, str) \
 	va_list __arg; \
-	va_start(__arg, format); \
-	String str = _Str::string_format(format, __arg); \
+	va_start(__arg, f); \
+	String str = _Str::printfv(f, __arg); \
 	va_end(__arg)
 
 namespace qk {
@@ -179,27 +179,15 @@ namespace qk {
 	}
 
 	void log_println(int64_t msg) {
-#if Qk_ARCH_64BIT
-		Log::shared()->println(Log::kLog, "%ld", msg );
-#else
-		Log::shared()->println(Log::kLog, "%lld", msg );
-#endif
+		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%ld": "%lld", msg );
 	}
 
 	void log_println(uint64_t msg) {
-#if Qk_ARCH_64BIT
-		Log::shared()->println(Log::kLog, "%lu", msg );
-#else
-		Log::shared()->println(Log::kLog, "%llu", msg );
-#endif
+		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
 	}
 
 	void log_println(size_t msg) {
-#if Qk_ARCH_64BIT
-		Log::shared()->println(Log::kLog, "%lu", msg );
-#else
-		Log::shared()->println(Log::kLog, "%llu", msg );
-#endif
+		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
 	}
 
 	void log_println(bool msg) {

@@ -43,14 +43,14 @@ namespace qk {
 	public:
 		typedef std::function<void()> Func;
 		ParallelWorking(RunLoop* loop = RunLoop::current());
-		virtual ~ParallelWorking();
+		~ParallelWorking();
 		ThreadID spawn_child(Func func, cString& name);
 		void awaken_child(ThreadID id = ThreadID());  // default awaken all child
 		void abort_child(ThreadID id = ThreadID());   // default abort all child
 		void post(Cb cb); // post message to main thread
 	private:
 		typedef Dict<ThreadID, int> Childs;
-		KeepLoop* _proxy;
+		RunLoop* _loop;
 		Mutex _mutex2;
 		Childs _childs;
 	};

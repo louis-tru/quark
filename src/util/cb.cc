@@ -55,23 +55,19 @@ namespace qk {
 	}
 
 	template<> void* Callback<Object>::DefaultCore() {
-		if ( !default_callback ) {
-			ScopeLock scope(mutex);
-			default_callback_ = NewRetain<DefaultCallbackCore>();
-		}
-		return default_callback_;
+		return default_callback();
 	}
 
 	class WrapCallback: public CallbackCore<Object, Error> {
 	public:
-		inline WrapCallback(Cb cb, Error* err, Object* data)
-		: _cb(cb), _err(err), _data(data) {
-		}
-		virtual ~WrapCallback() {
+		WrapCallback(Cb &cb, Error* err, Object* data)
+			: _cb(cb), _err(err), _data(data)
+		{}
+		~WrapCallback() {
 			Release(_err);
 			Release(_data);
 		}
-		virtual void call(Cb::Data& evt) const {
+		void call(Cb::Data& evt) const override {
 			evt.error = _err;
 			evt.data = _data;
 			_cb->call(evt);
@@ -82,7 +78,7 @@ namespace qk {
 		Object*   _data;
 	};
 
-	void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop) {
+	void _async_callback_and_dealloc(Cb &cb, Error* e, Object* d, PostMessage* loop) {
 		loop->post_message( Cb(new WrapCallback(cb, e, d)) );
 	}
 

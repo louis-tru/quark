@@ -146,9 +146,9 @@ namespace qk {
 
 	private:
 		static Application *_shared;   //! current shared application
-		KeepLoop*      _keep;
 		List<Window*>  _windows; // window list
 		Mutex          _mutex;
+		uint32_t       _tick; // tick check id
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class UILock;

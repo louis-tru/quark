@@ -29,26 +29,17 @@
  * ***** END LICENSE BLOCK ***** */
 
  #include "./working.h"
+ #include "./loop_.h"
  #include <uv.h>
 
 namespace qk {
 
-	struct Thread {
-		int         abort; // abort signal of run loop
-		ThreadID    id;
-		String      tag;
-	};
-
-	const Thread* thread_current();
-
-	ParallelWorking::ParallelWorking(RunLoop* loop) : _proxy(nullptr) {
-		Qk_ASSERT(loop, "Can not find current thread run loop.");
-		_proxy = loop->keep_alive();
+	ParallelWorking::ParallelWorking(RunLoop* loop) : _loop(loop) {
+		Qk_Assert(loop, "Can not find current thread run loop.");
 	}
 
 	ParallelWorking::~ParallelWorking() {
 		abort_child();
-		delete _proxy; _proxy = nullptr;
 	}
 
 	ThreadID ParallelWorking::spawn_child(Func func, cString& name) {
@@ -77,7 +68,7 @@ namespace qk {
 				childs = _childs;
 			}
 			for (auto& i : childs) {
-				thread_abort(i.key);
+				thread_try_abort(i.key);
 			}
 			for (auto& i : childs) {
 				thread_join_for(i.key);
@@ -89,7 +80,7 @@ namespace qk {
 				Qk_ASSERT(_childs.find(id) != _childs.end(),
 					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 			}
-			thread_abort(id);
+			thread_try_abort(id);
 			thread_join_for(id);
 			Qk_DEBUG("ParallelWorking::abort_child(id) ok");
 		}
@@ -109,7 +100,7 @@ namespace qk {
 	}
 
 	void ParallelWorking::post(Cb cb) {
-		return _proxy->loop()->post(cb);
+		return _loop->post(cb);
 	}
 
 	struct BackendLoop {
@@ -117,51 +108,43 @@ namespace qk {
 		ThreadID id;
 		Mutex mutex;
 		Condition cond;
-	} *_backend_loop = new BackendLoop{0};
+
+		static void run(void* arg) {
+			auto self = (BackendLoop*)arg;
+			auto t = thread_current_();
+			auto loop = current_from(&self->loop);
+			self->mutex.lock();
+			self->id = t->id;
+			self->cond.notify_all(); // call wait ok
+			self->mutex.unlock();
+		run:
+			loop->run();
+			int wait = 100; // wait 10s
+			while (wait-- && t->abort == 0) {
+				thread_sleep(1e5); // Not using within 100 milliseconds will release threads
+				if (loop->is_alive())
+					goto run;
+			}
+			ScopeLock lock(self->mutex);
+			self->id = ThreadID();
+			Qk_DEBUG("backend_loop() thread end");
+		}
+
+		RunLoop* get_loop() {
+			Lock lock(mutex);
+			if (id == ThreadID()) {
+				thread_new(run, this, "work_loop");
+				cond.wait(lock); // wait
+			}
+			return loop;
+		}
+	} static *_backend_loop = new BackendLoop{0};
 
 	RunLoop* backend_loop() {
-		auto self = _backend_loop;
-		Lock lock(self->mutex);
-		if (self->loop)
-			return self->loop;
-
-		thread_new([](void* arg) {
-			auto t = thread_current();
-			auto self = (BackendLoop*)arg;
-			auto loop = RunLoop::current();
-			{
-				ScopeLock lock(self->mutex);
-				self->loop = loop;
-				self->id = t->id;
-				self->cond.notify_all(); // call wait ok
-			}
-
-			auto time = uv_hrtime() / 1000;
-			do {
-				loop->timer(Cb([](auto&e){}), 2e6);
-				loop->run();
-				if (uv_hrtime() / 1000 - time > 2e6) {
-					continue;
-				}
-				{
-					ScopeLock lock(self->mutex);
-					if (!t->abort) {
-						thread_sleep(1e5); // 外部调用取到loop后,100毫秒内不激活loop将被释放
-						if (loop->is_alive() && !t->abort)
-							continue;
-					}
-					self->loop = nullptr;
-					self->id = ThreadID();
-				}
-			} while(0);
-		}, self, "work_loop");
-
-		self->cond.wait(lock); // call wait
-		return self->loop;
+		return _backend_loop->get_loop();
 	}
 
 	bool has_backend_thread() {
 		return thread_self_id() == _backend_loop->id;
 	}
-
 }

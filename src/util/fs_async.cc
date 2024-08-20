@@ -40,16 +40,13 @@
 #endif
 #include "./uv.h"
 
+#define LOOP RunLoop::current()
+#define LOOP2 auto loop = LOOP
+#define BUFFER_SIZE (1024 * 16) // 16kb
+
 namespace qk {
-
-	#define LOOP RunLoop::current()
-	#define LOOP2 RunLoop* loop = LOOP
-	#define BUFFER_SIZE (1024 * 16) // 16kb
-
-	extern void inl__copy_file_stat(uv_stat_t* uv_stat, FileStat* stat);
-	extern int inl__file_flag_mask(int flag);
-
-	// --------------------------------- async -----------------------------------
+	void file_stat_copy(uv_stat_t* uv_stat, FileStat* stat);
+	int  file_flag_mask(int flag);
 
 	template<class uv_req, class Data = Object, class CbData = Object>
 	class AsyncReqNonCtx: public UVRequestWrap<uv_req, Object, Data, CbData> {
@@ -84,8 +81,8 @@ namespace qk {
 		async_reject(req->cb(), uv_error(req->req(), msg));
 	}
 
-	template<class CB>
-	static void async_err_callback(CB cb, uv_fs_t* req, cChar* msg = nullptr) {
+	template<class Cb>
+	static void async_err_callback(Cb cb, uv_fs_t* req, cChar* msg = nullptr) {
 		async_reject(cb, uv_error(req, msg));
 	}
 
@@ -144,37 +141,35 @@ namespace qk {
 		Handle<FileReq> handle(FileReq::cast(req));
 		if ( req->result == 0 ) { // ok
 			FileStat stat;
-			inl__copy_file_stat(&req->statbuf, &stat);
+			file_stat_copy(&req->statbuf, &stat);
 			async_resolve(handle->cb(), std::move(stat));
 		} else { // err
 			async_err_callback(*handle);
 		}
 	}
 
-	static void exists2(cString& path, Cb cb, RunLoop* loop) {
+	static void exists(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_access(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
 								fs_fallback_c(path), F_OK, &uv_fs_access_cb);
 	}
 
-	static void ls2(cString& path, Callback<Array<Dirent>> cb, RunLoop* loop) {
+	static void ls(cString& path, Callback<Array<Dirent>> cb, RunLoop* loop) {
 		uv_fs_scandir(loop->uv_loop(),
 									New<FileLsReq>(cb, loop, path)->req(), fs_fallback_c(path), 1, &ls_cb);
 	}
 
-	void file_helper_stat2(cString& path, Cb cb, RunLoop* loop) {
+	static void file_stat(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), fs_fallback_c(path), &stat_cb);
 	}
 
-	static void is_dir2(cString& path, Cb cb, RunLoop* loop) {
+	static void is_dir(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), fs_fallback_c(path), &is_dir_cb);
 	}
 
-	static AsyncIOTask* cp2(cString& source, cString& target, Cb cb, RunLoop* loop) {
-		
+	static AsyncIOTask* cp(cString& source, cString& target, Cb cb, RunLoop* loop) {
 		class Task: public AsyncIOTask, File::Delegate {
 		public:
-
 			Task(cString& source, cString& target, Cb cb, RunLoop* loop)
 			: AsyncIOTask(loop)
 			, _source_file(new File(source, loop))
@@ -189,18 +184,18 @@ namespace qk {
 				_source_file->open(FOPEN_R);
 				_target_file->open(FOPEN_W);
 			}
-			
+	
 			virtual ~Task() {
 				release_file_handle();
 			}
-			
+	
 			void release_file_handle() {
 				if ( _source_file ) {
 					Release(_source_file); _source_file = nullptr;
 					Release(_target_file); _target_file = nullptr;
 				}
 			}
-			
+	
 			Buffer alloc_buffer() {
 				for ( int i = 0; i < 2; i++ ) {
 					if (_buffer[i].length()) {
@@ -209,43 +204,44 @@ namespace qk {
 				}
 				return Buffer();
 			}
-			
-			void release_buffer(Buffer buffer) {
+	
+			void release_buffer(Buffer& buffer) {
 				for ( int i = 0; i < 2; i++ ) {
-					if (_buffer[i].length() < BUFFER_SIZE) {
-						buffer.reset(BUFFER_SIZE);
+					if (_buffer[i].length() == 0) {
+						 buffer.reset(BUFFER_SIZE);
 						_buffer[i] = buffer;
+						break;
 					}
 				}
 				Qk_ASSERT(buffer.length() == 0);
 			}
-			
+	
 			void read_next() {
 				Qk_ASSERT(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
-					_source_file->read(buff, BUFFER_SIZE);
+					_source_file->read(buff);
 				}
 			}
-			
+	
 			virtual void abort() {
 				release_file_handle();
 				AsyncIOTask::abort();
 			}
-			
+	
 			virtual void trigger_file_error(File* file, cError& error) {
 				Handle<Task> handle(this); //
 				abort();
 				async_reject(_end, Error(error));
 			}
-			
+	
 			virtual void trigger_file_open(File* file) {
 				if ( _source_file->is_open() && _target_file->is_open() ) {
 					read_next();
 				}
 			}
-			
+	
 			void copy_complete() {
 				Qk_ASSERT(_reading_count == 0);
 				Qk_ASSERT(_writeing_count == 0);
@@ -257,14 +253,14 @@ namespace qk {
 					async_callback(_end);
 				}
 			}
-			
+	
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
 				Qk_ASSERT( file == _source_file );
 				Qk_ASSERT( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
-					_target_file->write(buffer, buffer.length());
+					_target_file->write(buffer);
 					read_next();
 				} else {
 					Qk_ASSERT(_reading_count == 0);
@@ -275,7 +271,7 @@ namespace qk {
 					}
 				}
 			}
-			
+	
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
 				Qk_ASSERT( file == _target_file );
 				Qk_ASSERT( _writeing_count > 0 );
@@ -291,7 +287,7 @@ namespace qk {
 					}
 				}
 			}
-			
+	
 			virtual void trigger_file_close(File* file) { }
 			
 			File* _source_file;
@@ -302,41 +298,41 @@ namespace qk {
 			int        _writeing_count;
 			bool       _read_end;
 		};
-		
+
 		return NewRetain<Task>(source, target, cb, loop);
 	}
 
-	static void mkdir2(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
+	static void mkdir(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
 		uv_fs_mkdir(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
 								fs_fallback_c(path), mode, &uv_fs_async_cb);
 	}
 
-	static void chmod2(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
+	static void chmod(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
 		uv_fs_chmod(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
 								fs_fallback_c(path), mode, &uv_fs_async_cb);
 	}
 
-	static void chown2(cString& path, uint32_t owner, uint32_t group, Cb cb, RunLoop* loop) {
+	static void chown(cString& path, uint32_t owner, uint32_t group, Cb cb, RunLoop* loop) {
 		uv_fs_chown(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
 								fs_fallback_c(path), owner, group, &uv_fs_async_cb);
 	}
 
-	static void link2(cString& path, cString& newPath, Cb cb, RunLoop* loop) {
+	static void link(cString& path, cString& newPath, Cb cb, RunLoop* loop) {
 		uv_fs_link(loop->uv_loop(),
 							New<FileReq>(cb, loop)->req(),
 							fs_fallback_c(path), fs_fallback_c(newPath), &uv_fs_async_cb);
 	}
 
-	static void unlink2(cString& path, Cb cb, RunLoop* loop) {
+	static void unlink(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_unlink(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
 								fs_fallback_c(path), &uv_fs_async_cb);
 	}
 
-	static void rmdir2(cString& path, Cb cb, RunLoop* loop) {
+	static void rmdir(cString& path, Cb cb, RunLoop* loop) {
 		uv_fs_rmdir(loop->uv_loop(),
 								New<FileReq>(cb, loop)->req(),
 								fs_fallback_c(path), &uv_fs_async_cb);
@@ -347,7 +343,7 @@ namespace qk {
 	*/
 	class AsyncEach: public AsyncIOTask {
 	public:
-		
+
 		AsyncEach(cString& path, Cb cb, Cb end, bool internal = false)
 		: _path(fs_format(path))
 		, _cb(cb)
@@ -355,9 +351,8 @@ namespace qk {
 		, _dirent(nullptr)
 		, _last(nullptr), _internal(internal)
 		, _start(false)
-		{
-		}
-		
+		{}
+
 		void advance() {
 			if ( is_abort() ) return;
 			
@@ -403,21 +398,21 @@ namespace qk {
 				}
 			}
 		}
-		
+
 		inline const Dirent& dirent() { return *_dirent; }
-		
+
 		uint32_t start() {
 			if ( !_start ) {
 				_start = true;
-				file_helper_stat2(_path, Cb(&AsyncEach::start_cb, this), loop());
+				file_stat(_path, Cb(&AsyncEach::start_cb, this), loop());
 			}
 			return id();
 		}
-		
+
 	private:
 
 		inline void into(cString& path) {
-			ls2(path, Callback<Array<Dirent>>(&AsyncEach::into_cb, this), nullptr);
+			ls(path, Callback<Array<Dirent>>(&AsyncEach::into_cb, this), loop());
 		}
 
 		void into_cb(CallbackData<Array<Dirent>>& evt) {
@@ -471,22 +466,22 @@ namespace qk {
 	}
 
 	void fs_chmod(cString& path, uint32_t mode, Cb cb) {
-		chmod2(path, mode, cb, LOOP);
+		chmod(path, mode, cb, LOOP);
 	}
 
-	uint32_t fs_chmod_r(cString& path, uint32_t mode, Cb cb) {
+	uint32_t fs_chmod_recursion(cString& path, uint32_t mode, Cb cb) {
 		auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](Cb::Data& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain(); // chmod2 回调前都保持each不被释放
 			const Dirent& dirent = each->dirent();
 			String pathname = dirent.pathname;
-			chmod2(dirent.pathname, mode, Cb([each, cb, pathname](Cb::Data& evt) {
+			chmod(dirent.pathname, mode, Cb([each, cb, pathname](Cb::Data& evt) {
 				Handle<AsyncEach> handle(each);
 				each->release();
 				if ( !each->is_abort() ) {
 					if ( evt.error ) {
 						each->abort();
-						async_callback(cb, evt.error);
+						cb->reject(evt.error);
 					} else {
 						each->advance();
 					}
@@ -497,19 +492,19 @@ namespace qk {
 	}
 
 	void fs_chown(cString& path, uint32_t owner, uint32_t group, Cb cb) {
-		chown2(path, owner, group, cb, LOOP);
+		chown(path, owner, group, cb, LOOP);
 	}
 
-	uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb) {
+	uint32_t fs_chown_recursion(cString& path, uint32_t owner, uint32_t group, Cb cb) {
 		auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](Cb::Data& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain();
-			chown2(each->dirent().pathname, owner, group, Cb([each, cb](Cb::Data& evt) {
+			chown(each->dirent().pathname, owner, group, Cb([each, cb](Cb::Data& evt) {
 				Handle<AsyncEach> handle(each); each->release();
 				if ( !each->is_abort() ) {
 					if ( evt.error ) {
 						each->abort();
-						async_callback(cb, evt.error);
+						cb->reject(evt.error);
 					} else {
 						each->advance();
 					}
@@ -520,18 +515,18 @@ namespace qk {
 	}
 
 	void fs_mkdir(cString& path, uint32_t mode, Cb cb) {
-		mkdir2(path, mode, cb, LOOP);
+		mkdir(path, mode, cb, LOOP);
 	}
 
-	void fs_mkdir_p(cString& path, uint32_t mode, Cb cb) {
-		exists2(path, Cb([=](Cb::Data& evt) {
+	void fs_mkdirs(cString& path, uint32_t mode, Cb cb) {
+		exists(path, Cb([=](Cb::Data& evt) {
 			if ( static_cast<Bool*>(evt.data)->value ) { // ok
 				async_callback(cb);
 			} else {
 				try {
-					fs_mkdir_p_sync(path, mode);
+					fs_mkdirs_sync(path, mode);
 				} catch(Error& err) {
-					async_callback(cb, &err);
+					cb->reject(&err);
 					return;
 				}
 				async_callback(cb);
@@ -548,18 +543,18 @@ namespace qk {
 	}
 
 	void fs_link(cString& path, cString& newPath, Cb cb) {
-		link2(path, newPath, cb, LOOP);
+		link(path, newPath, cb, LOOP);
 	}
 
 	void fs_unlink(cString& path, Cb cb) {
-		unlink2(path, cb, LOOP);
+		unlink(path, cb, LOOP);
 	}
 
 	void fs_rmdir(cString& path, Cb cb) {
-		rmdir2(path, cb, LOOP);
+		rmdir(path, cb, LOOP);
 	}
 
-	uint32_t fs_remove_r(cString& path, Cb cb) {
+	uint32_t fs_remove_recursion(cString& path, Cb cb) {
 		auto each = NewRetain<AsyncEach>(path, Cb([cb](Cb::Data& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain();
@@ -569,7 +564,7 @@ namespace qk {
 				if ( !each->is_abort() ) {
 					if ( evt.error ) {
 						each->abort();
-						async_callback(cb, evt.error);
+						cb->reject(evt.error);
 					} else {
 						each->advance();
 					}
@@ -577,20 +572,16 @@ namespace qk {
 			});
 			if ( each->dirent().type == FTYPE_DIR ) {
 				each->loop();
-				rmdir2(each->dirent().pathname, cb2, each->loop());
+				rmdir(each->dirent().pathname, cb2, each->loop());
 			} else {
-				unlink2(each->dirent().pathname, cb2, each->loop());
+				unlink(each->dirent().pathname, cb2, each->loop());
 			}
 		}), cb/*end*/, true);
 		return each->start();
 	}
 
-	uint32_t fs_copy(cString& source, cString& target, Cb cb) {
-		return cp2(source, target, cb, LOOP)->id();
-	}
+	uint32_t fs_copy_recursion(cString& source, cString& target, Cb cb) {
 
-	uint32_t fs_copy_r(cString& source, cString& target, Cb cb) {
-		
 		class Task: public AsyncEach {
 		 public:
 			Task(cString& source, cString& target, Cb cb)
@@ -600,14 +591,13 @@ namespace qk {
 			, _path(fs_format("%s", *target))
 			, _copy_task(nullptr)
 			{ //
-				is_dir2(fs_dirname(target), Cb([this](Cb::Data& ev) {
+				is_dir(fs_dirname(target), Cb([this](Cb::Data& ev) {
 					if ( is_abort() ) return;
 					if ( static_cast<Bool*>(ev.data)->value ) {
 						start();
 					} else {
 						abort();
-						Error err(ERR_COPY_TARGET_DIRECTORY_NOT_EXISTS, "Copy target directory not exists.");
-						async_callback(_end, &err);
+						async_reject(_end, Error(ERR_COPY_TARGET_DIRECTORY_NOT_EXISTS, "Copy target directory not exists."));
 					}
 				}, this), loop());
 			}
@@ -622,9 +612,9 @@ namespace qk {
 				
 				switch (ent.type) {
 					case FTYPE_DIR:
-						exists2(t->target(), Cb(&Task::is_directory_cb, t), t->loop()); break;
+						exists(t->target(), Cb(&Task::is_directory_cb, t), t->loop()); break;
 					case FTYPE_FILE:
-						t->_copy_task = cp2(ent.pathname, t->target(), Cb([t](Cb::Data& ev) {
+						t->_copy_task = cp(ent.pathname, t->target(), Cb([t](Cb::Data& ev) {
 							t->_copy_task = nullptr;
 							if ( !t->is_abort() ) {
 								if ( ev.error ) {
@@ -642,7 +632,7 @@ namespace qk {
 			
 			void error(Cb::Data& ev) {
 				abort();
-				async_callback(_end, ev.error);
+				_end->reject(ev.error);
 			}
 			
 			void is_directory_cb(Cb::Data& evt) {
@@ -654,7 +644,7 @@ namespace qk {
 						advance(); return;
 					}
 					/* create dir */
-					mkdir2(target(), fs_default_mode, Cb([this](Cb::Data& ev) {
+					mkdir(target(), fs_default_mode, Cb([this](Cb::Data& ev) {
 						if ( !is_abort() ) {
 							if ( ev.error ) {
 								error(ev);
@@ -685,16 +675,20 @@ namespace qk {
 		return NewRetain<Task>(source, target, cb)->id();
 	}
 
+	uint32_t fs_copy(cString& source, cString& target, Cb cb) {
+		return cp(source, target, cb, LOOP)->id();
+	}
+
 	void fs_readdir(cString& path, Callback<Array<Dirent>> cb) {
-		ls2(path, cb, LOOP);
+		ls(path, cb, LOOP);
 	}
 
 	void fs_stat(cString& path, Callback<FileStat> cb) {
-		file_helper_stat2(path, *reinterpret_cast<Cb*>(&cb), LOOP);
+		file_stat(path, *reinterpret_cast<Cb*>(&cb), LOOP);
 	}
 
 	void fs_exists(cString& path, Callback<Bool> cb) {
-		exists2(path, *reinterpret_cast<Cb*>(&cb), LOOP);
+		exists(path, *reinterpret_cast<Cb*>(&cb), LOOP);
 	}
 
 	void fs_is_file(cString& path, Callback<Bool> cb) {
@@ -706,7 +700,7 @@ namespace qk {
 	}
 
 	void fs_is_directory(cString& path, Callback<Bool> cb) {
-		is_dir2(path, *reinterpret_cast<Cb*>(&cb), LOOP);
+		is_dir(path, *reinterpret_cast<Cb*>(&cb), LOOP);
 	}
 
 	void fs_readable(cString& path, Callback<Bool> cb) {
@@ -742,7 +736,7 @@ namespace qk {
 		typedef UVRequestWrap<uv_fs_t, Task, Object, StreamResponse> FileReq;
 		
 		class Task: public AsyncIOTask, public Stream {
-		 public:
+		public:
 			String     _path;
 			int64_t      _offset;
 			int        _fd;
@@ -762,40 +756,40 @@ namespace qk {
 				_total = 0;
 				_size = 0;
 			}
-			
-			~Task() { }
-			
+
+			~Task() {}
+
 			uv_loop_t* uv_loop() {
 				return loop()->uv_loop();
 			}
-			
+
 			void abort() {
 				AsyncIOTask::abort();
 			}
-			
+
 			virtual void pause() {
 				_pause = true;
 			}
-			
+
 			virtual void resume() {
 				if ( _pause ) {
 					_pause = false;
 					read_advance(_req);
 				}
 			}
-			
+
 			static void fs_close_cb(uv_fs_t* req) { // close
 				Release(FileReq::cast(req)); // release req
 			}
-			
+
 			static void fs_read_cb(uv_fs_t* uv_req) { // read data result
 				uv_fs_req_cleanup(uv_req);
 				auto req = FileReq::cast(uv_req);
 				Task* ctx = req->ctx();
-				
+
 				ctx->_read_count--;
 				Qk_ASSERT(ctx->_read_count == 0);
-				
+
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();
 					async_reject(req->cb(), uv_error(req->req(), ctx->_path.c_str()));
@@ -819,7 +813,7 @@ namespace qk {
 					}
 				}
 			}
-			
+
 			void read_advance(FileReq* req) {
 				if ( is_abort() ) {
 					uv_fs_close(uv_loop(), req->req(), _fd, &fs_close_cb); // close
@@ -836,7 +830,7 @@ namespace qk {
 					}
 				}
 			}
-			
+
 			static void fs_fstat_cb(uv_fs_t* uv_req) { // read size
 				uv_fs_req_cleanup(uv_req);
 				FileReq* req = FileReq::cast(uv_req);
@@ -853,7 +847,7 @@ namespace qk {
 					uv_fs_close(req->ctx()->uv_loop(), uv_req, req->ctx()->_fd, &fs_close_cb); // close
 				}
 			}
-			
+
 			static void fs_open_cb(uv_fs_t* uv_req) { // open file
 				uv_fs_req_cleanup(uv_req);
 				auto req = FileReq::cast(uv_req);
@@ -866,12 +860,11 @@ namespace qk {
 					async_err_callback(req->ctx()->_cb, uv_req, *req->ctx()->_path);
 				}
 			}
-			
+
 			static void start(FileReq* req) {
 				uv_fs_open(req->ctx()->uv_loop(), req->req(),
 									fs_fallback_c(req->ctx()->_path), O_RDONLY, 0, &fs_open_cb);
 			}
-			
 		};
 		
 		auto task = NewRetain<Task>(-1, cb);
@@ -888,18 +881,18 @@ namespace qk {
 		int64_t offset = -1;
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
-		
+
 		struct Data {
 			String path;
 			int64_t  size;
 			int64_t  offset;
 			Buffer buff;
 			int fd;
-			
+
 			static void fs_close_cb(uv_fs_t* uv_req) { // close
 				Release(FileReq::cast(uv_req));
 			}
-			
+
 			static void fs_fstat_cb(uv_fs_t* uv_req) { // read size
 				uv_fs_req_cleanup(uv_req);
 				FileReq* req = FileReq::cast(uv_req);
@@ -911,7 +904,7 @@ namespace qk {
 					uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close
 				}
 			}
-			
+
 			static void fs_read_cb(uv_fs_t* uv_req) { // read data result
 				uv_fs_req_cleanup(uv_req);
 				FileReq* req = FileReq::cast(uv_req);
@@ -926,7 +919,7 @@ namespace qk {
 				}
 				uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close
 			}
-			
+
 			static void start_read(FileReq* req) {
 				int64_t size = req->data().size;
 				Char* buffer = (Char*)::malloc(size + 1); // 为兼容C字符串多加1位0
@@ -942,7 +935,7 @@ namespace qk {
 					uv_fs_close(req->uv_loop(), req->req(), req->data().fd, &fs_close_cb); // close
 				}
 			}
-			
+
 			static void fs_open_cb(uv_fs_t* uv_req) { // open file
 				uv_fs_req_cleanup(uv_req);
 				FileReq* req = FileReq::cast(uv_req);
@@ -958,14 +951,13 @@ namespace qk {
 					async_err_callback(req->cb(), uv_req, *req->data().path);
 				}
 			}
-			
+
 			static void start(FileReq* req) {
 				uv_fs_open(req->uv_loop(), req->req(),
 					fs_fallback(req->data().path).c_str(), O_RDONLY, 0, &fs_open_cb);
 			}
-			
 		};
-		
+
 		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { path, size, offset }));
 	}
 
@@ -980,24 +972,24 @@ namespace qk {
 			uint64_t  size;
 			Buffer  buff;
 			int fd;
-			
+
 			static void fs_close_cb(uv_fs_t* req) { // close
 				Release(FileReq::cast(req));
 			}
-			
+
 			static void fs_write_cb(uv_fs_t* uv_req) { // write cb
 				uv_fs_req_cleanup(uv_req);
 				FileReq* req = FileReq::cast(uv_req);
 				Buffer& buff = req->data().buff;
 				if ( uv_req->result < 0 ) {
 					auto err = uv_error(uv_req, req->data().path.c_str());
-					async_callback<Object>(req->cb(), &err, &buff);
+					req->cb()->call(&err, &buff);
 				} else {
 					async_resolve(req->cb(), std::move(buff));
 				}
 				uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close
 			}
-			
+
 			static void fs_open_cb(uv_fs_t* uv_req) { // open file
 				uv_fs_req_cleanup(uv_req);
 				FileReq* req = FileReq::cast(uv_req);
@@ -1010,18 +1002,17 @@ namespace qk {
 				} else { // open file fail
 					Handle<FileReq> handle(req);
 					auto err = uv_error(uv_req, req->data().path.c_str());
-					async_callback<Object>(req->cb(), &err, &req->data().buff);
+					req->cb()->call(&err, &req->data().buff);
 				}
 			}
-			
+
 			static void start(FileReq* req) {
 				uv_fs_open(req->uv_loop(), req->req(),
 									fs_fallback(req->data().path).c_str(),
 									O_WRONLY | O_CREAT | O_TRUNC, fs_default_mode, &fs_open_cb);
 			}
-			
 		};
-		
+
 		uint32_t size = buffer.length();
 		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, Data({ path, size, buffer })));
 	}
@@ -1034,11 +1025,11 @@ namespace qk {
 	void fs_open(cString& path, int flag, Callback<Int32> cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
-		
+
 		struct Data {
 			String path;
 			int flag;
-			
+
 			static void fs_open_cb(uv_fs_t* uv_req) { // open file
 				uv_fs_req_cleanup(uv_req);
 				auto req = FileReq::cast(uv_req);
@@ -1050,18 +1041,18 @@ namespace qk {
 					async_err_callback(req->cb(), uv_req, *req->data().path);
 				}
 			}
-			
+
 			static void start(FileReq* req) {
 				Data& data = req->data();
 				uv_fs_open(req->uv_loop(),
 									req->req(),
 									fs_fallback(data.path).c_str(),
-									inl__file_flag_mask(data.flag),
+									file_flag_mask(data.flag),
 									fs_default_mode,
 									&fs_open_cb);
 			}
 		};
-		
+
 		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { path, flag }));
 	}
 
@@ -1072,10 +1063,10 @@ namespace qk {
 	void fs_close(int fd, Cb cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
-		
+
 		struct Data {
 			int fd;
-			
+
 			static void fs_close_cb(uv_fs_t* uv_req) { // close file
 				uv_fs_req_cleanup(uv_req);
 				auto req = FileReq::cast(uv_req);
@@ -1086,12 +1077,12 @@ namespace qk {
 					async_err_callback(req->cb(), uv_req);
 				}
 			}
-			
+
 			static void start(FileReq* req) {
 				uv_fs_close(req->uv_loop(), req->req(), req->data().fd, &fs_close_cb); // close
 			}
 		};
-		
+
 		Data::start(new FileReq(cb, LOOP, { fd }));
 	}
 
@@ -1108,7 +1099,7 @@ namespace qk {
 			int fd;
 			int64_t  offset;
 			Buffer buffer;
-			
+
 			static void fs_read_cb(uv_fs_t* uv_req) {
 				uv_fs_req_cleanup(uv_req);
 				auto req = FileReq::cast(uv_req);
@@ -1145,12 +1136,12 @@ namespace qk {
 	void fs_write(int fd, Buffer buffer, int64_t offset, Callback<Buffer> cb) {
 		struct Data;
 		typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
-		
+
 		struct Data {
 			int fd;
 			int64_t  offset;
 			Buffer buffer;
-			
+
 			static void fs_write_cb(uv_fs_t* uv_req) {
 				uv_fs_req_cleanup(uv_req);
 				auto req = FileReq::cast(uv_req);
@@ -1163,7 +1154,7 @@ namespace qk {
 					async_resolve(req->cb(), std::move(buff));
 				}
 			}
-			
+
 			static void start(FileReq* req) {
 				Data& data = req->data();
 				uv_buf_t buf;
@@ -1172,8 +1163,7 @@ namespace qk {
 				uv_fs_write(req->uv_loop(), req->req(), data.fd, &buf, 1, data.offset, &fs_write_cb);
 			}
 		};
-		
+
 		Data::start(new FileReq(*reinterpret_cast<Cb*>(&cb), LOOP, { fd, offset, buffer }));
 	}
-
 }

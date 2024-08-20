@@ -47,6 +47,10 @@ namespace qk { namespace js {
 	public:
 		typedef HttpClientRequest Type;
 
+		// ~WrapHttpClientRequest() {
+			// Qk_DEBUG("WrapHttpClientRequest::~WrapHttpClientRequest()");
+		// }
+
 		class Delegate: public Object, public HttpClientRequest::Delegate {
 		public:
 			WrapHttpClientRequest* _host;
@@ -64,7 +68,6 @@ namespace qk { namespace js {
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				if ( !_error.isEmpty() ) {
 					HandleScope scope(worker());
-					// CallbackScope cscope(worker());
 					JSValue* arg = worker()->newInstance( error );
 					_host->call( worker()->newStringOneByte(_error), 1, &arg );
 				}
@@ -88,13 +91,10 @@ namespace qk { namespace js {
 					_host->call( worker()->newStringOneByte(_data), 1, &arg );
 				}
 			}
-			virtual void trigger_http_end(HttpClientRequest* req) {
-				if ( !_end.isEmpty() ) {
-					HandleScope scope(worker());
-					_host->call( worker()->newStringOneByte(_end) );
-				}
-			}
 			virtual void trigger_http_readystate_change(HttpClientRequest* req) {
+				if (req->ready_state() == HTTP_READY_STATE_READY) {
+					_host->handle().clearWeak(); // v8 handle keep active
+				}
 				if ( !_readystate_change.isEmpty() ) {
 					HandleScope scope(worker());
 					_host->call( worker()->newStringOneByte(_readystate_change) );
@@ -106,10 +106,22 @@ namespace qk { namespace js {
 					_host->call( worker()->newStringOneByte(_timeout) );
 				}
 			}
+			virtual void trigger_http_end(HttpClientRequest* req) {
+				if ( !_end.isEmpty() ) {
+					HandleScope scope(worker());
+					_host->call( worker()->newStringOneByte(_end) );
+				}
+				if (req->ready_state() > HTTP_READY_STATE_SENDING) {
+					req->release(); // v8 handle set weak object
+				}
+			}
 			virtual void trigger_http_abort(HttpClientRequest* req) {
 				if ( !_abort.isEmpty() ) {
 					HandleScope scope(worker());
 					_host->call( worker()->newStringOneByte(_abort) );
+				}
+				if (req->ready_state() > HTTP_READY_STATE_SENDING) {
+					req->release(); // v8 handle set weak object
 				}
 			}
 		};

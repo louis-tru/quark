@@ -57,10 +57,10 @@ export enum HttpReadyState {
 type HttpEvent<T = void> = Event<HttpClientRequest, T>
 
 declare class NativeHttpClientRequest extends Notification<HttpEvent> implements ReadStream {
-	readonly uploadTotal: number;
-	readonly uploadSize: number;
-	readonly downloadTotal: number;
-	readonly downloadSize: number;
+	readonly uploadTotal: number; // !< Total amount of data to be uploaded to the server
+	readonly uploadSize: number; // !< The data size has been written and uploaded to the server
+	readonly downloadTotal: number; // !< Total amount of data to be downloaded
+	readonly downloadSize: number; // !< Downloaded data volume
 	readonly readyState: HttpReadyState;
 	readonly statusCode: number;
 	readonly url: string;

@@ -59,7 +59,6 @@
 			'list.h',
 			'dict.h',
 			'dict.cc',
-			# cc
 			'uv.cc',
 			'working.cc',
 			'array.cc',
@@ -91,6 +90,9 @@
 			'log.cc',
 			'jni.h',
 			'jni.cc',
+			'ssl.h',
+			'ssl.cc',
+			'ssl_certs.h',
 		],
 		'conditions': [
 			['os=="android"', {

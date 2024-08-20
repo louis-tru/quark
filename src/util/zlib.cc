@@ -131,14 +131,14 @@ namespace qk {
 		return _gzfp != NULL;
 	}
 
-	extern cChar* inl__file_flag_str(int flag);
+	cChar* file_flag_str(int flag);
 
 	// Override
 	int GZip::open(int flag) {
 		Qk_ASSERT(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
-		_gzfp = gzopen(fs_fallback_c(_path), inl__file_flag_str(flag));
+		_gzfp = gzopen(fs_fallback_c(_path), file_flag_str(flag));
 		if (_gzfp) {
 			return 0;
 		}

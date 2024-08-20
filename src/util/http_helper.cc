@@ -351,7 +351,7 @@ namespace qk {
 
 	void http_set_cache_path(cString& path) {
 		try {
-			fs_mkdir_p_sync(path);
+			fs_mkdirs_sync(path);
 			http_cache_path_ = path;
 		} catch(cError& err) {
 			Qk_ERR(err);
@@ -361,7 +361,7 @@ namespace qk {
 	void http_clear_cache() {
 		// delete cache files
 		if ( ! http_cache_path_.isEmpty() ) {
-			fs_remove_r_sync(http_cache_path_);
+			fs_remove_recursion_sync(http_cache_path_);
 			http_set_cache_path(http_cache_path_);
 		}
 	}

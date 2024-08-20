@@ -54,17 +54,17 @@ async function test_index(win: Window) {
 // import test from './test_css'
 // import test from './test_event'
 // import test from './test_font'
-// import test from './test_fs' #
+// import test from './test_fs'
 // import test from './test_gui'
-// import test from './test_http' #
+import test from './test_http'
 // import test from './test_os'
 // import test from './test_path'
-// import test from './test_reader' #
+// import test from './test_reader'
 // import test from './test_storage'
 // import test from './test_types'
 // import test from './test_util'
 // import test from './test_view' #
-import test from './test_window'
+// import test from './test_window'
 
 (async function() {
 	await test(win);

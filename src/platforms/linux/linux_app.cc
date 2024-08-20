@@ -574,7 +574,7 @@ namespace qk {
 
 		void destroy() {
 			_render_looper->stop();
-			thread_try_abort_and_exit(0);
+			thread_exit(0);
 			XDestroyWindow(_dpy, _win); _win = 0;
 			XCloseDisplay(_dpy); _dpy = nullptr; // disconnect x display
 			Qk_DEBUG("UnixApplication Exit");

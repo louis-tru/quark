@@ -464,7 +464,7 @@ namespace qk { namespace js {
 			Js_Set_Method(nextTick, {
 				if (!args.length() || !args[0]->isFunction())
 					Js_Throw("@method nextTick(cb,...args), cb must be a function");
-				first_loop()->next_tick(get_callback_for_none(worker, args[0]));
+				first_loop()->tick(get_callback_for_none(worker, args[0]));
 			});
 
 			Js_Set_Method(addNativeEventListener, {
@@ -516,11 +516,6 @@ namespace qk { namespace js {
 
 			Js_Set_Method(garbageCollection, {
 				args.worker()->garbageCollection();
-				#if Qk_MEMORY_TRACE_MARK
-					Array<Object*> objs = Object::mark_objects();
-					Object** objs2 = &objs[0];
-					Qk_LOG("All unrelease heap objects count: %d", objs.size());
-				#endif
 			});
 
 			Js_Set_Method(runScript, {
@@ -549,7 +544,7 @@ namespace qk { namespace js {
 				if (args.length() && args[0]->isInt32()) {
 					code = args[0]->toInt32Value(worker).unsafe();
 				}
-				thread_try_abort_and_exit(code);
+				thread_exit(code);
 			});
 
 			Js_Set_Method(runDebugger, {

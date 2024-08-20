@@ -39,19 +39,20 @@ static void message_cb(Cb::Data& ev, RunLoop* loop) {
 
 void test_loop(int argc, char **argv) {
 	RunLoop* loop = RunLoop::current();
-	KeepLoop* keep = loop->keep_alive();
+	auto tick = loop->tick(Cb([](auto&e){ }), -1); // keep loop
+
 	thread_new([&]() {
 		for ( int i = 0; i < 5; i++) {
 			thread_sleep(1e6);
 			loop->post(Cb(message_cb, loop));
 		}
 		Qk_LOG("test_loop 1 end");
-		delete keep;
+		loop->tick_stop(tick);
 		return 0;
 	}, "test");
 	
 	Object* obj = loop;
-	
+
 	auto code0 = typeid((RunLoop*)0).hash_code();
 	auto code4 = typeid(*loop).hash_code();
 	auto code3 = typeid((RunLoop*)1).hash_code();

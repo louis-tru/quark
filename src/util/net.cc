@@ -37,13 +37,13 @@
 #include <openssl/err.h>
 
 namespace qk {
-
 	typedef Socket::Delegate Delegate;
 
 	static int ssl_initializ = 0;
-	static X509_STORE* (*new_root_cert_store)() = nullptr;
 	static X509_STORE* ssl_x509_store = nullptr;
 	static SSL_CTX* ssl_v23_client_ctx = nullptr;
+
+	X509_STORE* NewRootCertStore();
 
 	struct SocketWriteReqData {
 		Buffer  raw_buffer;
@@ -61,24 +61,23 @@ namespace qk {
 	typedef UVRequestWrap<uv_write_t, Socket::Inl, SocketWriteReqData> SocketWriteReq;
 	typedef UVRequestWrap<uv_write_t, Socket::Inl, SSLSocketWriteReqData> SSLSocketWriteReq;
 
-	/**
-	* @class Socket::Inl
-	*/
+	// ----------------------------------------------------------------------
+
 	class Socket::Inl: public Reference, public Socket::Delegate {
 	public:
 		typedef ReferenceTraits Traits;
-		virtual void trigger_socket_open(Socket* stream) {}
-		virtual void trigger_socket_close(Socket* stream) {}
-		virtual void trigger_socket_error(Socket* stream, cError& error) {}
-		virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {}
-		virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {}
-		virtual void trigger_socket_timeout(Socket* socket) {}
+		virtual void trigger_socket_open(Socket* stream) override {}
+		virtual void trigger_socket_close(Socket* stream) override {}
+		virtual void trigger_socket_error(Socket* stream, cError& error) override {}
+		virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) override {}
+		virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) override {}
+		virtual void trigger_socket_timeout(Socket* socket) override {}
 
 		Inl(Socket* host, RunLoop* loop) 
 			: _host(host)
 			, _delegate(this)
-			, _keep(loop->keep_alive())
-			, _uv_handle(nullptr)
+			, _loop(loop)
+			, _retain(nullptr)
 			, _is_open(false)
 			, _is_opening(false)
 			, _is_pause(false)
@@ -89,109 +88,93 @@ namespace qk {
 			, _uv_tcp(nullptr)
 			, _uv_timer(nullptr)
 			, _timeout(0)
-		{ //
-			Qk_ASSERT(_keep);
+		{
+			Qk_Assert(loop);
 		}
-		
-		virtual ~Inl() {
-			Qk_ASSERT(!_is_open);
-			Qk_ASSERT(!_uv_handle);
-			delete _keep; _keep = nullptr;
+
+		~Inl() {
+			close_delete();
+			Qk_Assert(!_is_open);
+			Qk_Assert(!_retain);
 		}
-		
-		class UVHandle {
-		public:
+
+		struct RetainRef {
 			typedef NonObjectTraits Traits;
-			inline UVHandle(Inl* host, uv_loop_t* loop): host(host) {
-				host->retain();
-				int r;
-				r = uv_tcp_init(loop, &uv_tcp); Qk_ASSERT( r == 0 );
-				r = uv_timer_init(loop, &uv_timer); Qk_ASSERT( r == 0 );
-				uv_tcp.data = this;
-				uv_timer.data = this;
+			RetainRef(Inl* hold, uv_loop_t* loop): hold(hold) {
+				Qk_Assert_Eq(0, uv_tcp_init(loop, &tcp));
+				Qk_Assert_Eq(0, uv_timer_init(loop, &timer));
+				tcp.data = this;
+				timer.data = this;
 			}
-			inline ~UVHandle() {
-				host->release();
-			}
-			Inl* host;
-			uv_tcp_t  uv_tcp;
-			uv_timer_t  uv_timer;
+			Sp<Inl> hold;
+			uv_tcp_t tcp;
+			uv_timer_t timer;
 		};
-		
+
 		// utils
-		
-		void initialize(cString& hostname, uint16_t  port) {
+
+		void initialize(cString& hostname, uint16_t port) {
 			_hostname = hostname;
 			_port = port;
 		}
-		
-		inline RunLoop* loop() { return _keep->loop(); }
-		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
-		
-		void report_err_from_loop(Cb::Data& evt) {
-			_delegate->trigger_socket_error(_host, *evt.error);
+
+		inline RunLoop* loop() { return _loop; }
+		inline uv_loop_t* uv_loop() { return _loop->uv_loop(); }
+
+		static void report_err_async(Cb::Data& evt, Inl *self) {
+			self->_delegate->trigger_socket_error(self->_host, *evt.error);
 		}
-		
+
 		void report_err(Error err, bool async = false) {
 			if (async)
-				async_reject(Cb(&Inl::report_err_from_loop, this), std::move(err), _keep);
+				async_reject(Cb(report_err_async, this), std::move(err), _loop);
 			else
 				_delegate->trigger_socket_error(_host, err);
 		}
-		
+
 		void report_err_and_close(Error err, bool async = false) {
 			report_err(err, async);
 			close();
 		}
-		
+
 		int report_uv_err(int code, bool async = false) {
 			if ( code != 0 ) {
 				report_err( Error(code, "%s, %s", uv_err_name(code), uv_strerror(code)), async);
 			}
 			return code;
 		}
-		
+
 		void report_not_open_connect_err(bool async = false) {
 			// report_uv_err(ENOTCONN);
 			report_err(Error(ERR_NOT_OPTN_TCP_CONNECT, "not tcp connect or open connecting"), async);
 		}
-		
-		void timeout_cb2(Cb::Data& evt) {
-			_delegate->trigger_socket_timeout(_host);
-		}
-		
-		static void timeout_cb(uv_timer_t* handle) {
-			Inl* self = static_cast<Inl*>(handle->data);
-			async_callback(Cb(&Inl::timeout_cb2, self));
-		}
-		
+
 		void reset_timeout() {
 			if ( _is_open ) {
 				uv_timer_stop(_uv_timer);
 				if ( _timeout && !_is_pause ) {
-					uv_timer_start(_uv_timer, &timeout_cb, _timeout / 1000, 0);
+					uv_timer_start(_uv_timer, [](uv_timer_t* handle) {
+						Inl* self = *static_cast<RetainRef*>(handle->data)->hold;
+						self->_delegate->trigger_socket_timeout(self->_host);
+					}, _timeout / 1000, 0);
 				}
 			}
 		}
-		
-		// ---------------------------------------- public api ----------------------------------------
-		
+
+		// -------------------------------- public api --------------------------------
+
 		void set_delegate(Delegate* delegate) {
-			if ( delegate ) {
-				_delegate = delegate;
-			} else {
-				_delegate = this;
-			}
+			_delegate = delegate ? delegate: this;
 		}
-		
+
 		void open() {
 			if ( _is_opening ) {
 				report_err(Error(ERR_CONNECT_ALREADY_OPEN, "Connect opening or already open"), 1);
 			} else {
-				open2();
+				try_open();
 			}
 		}
-		
+
 		void close() {
 			if (_is_open) {
 				shutdown();
@@ -199,19 +182,19 @@ namespace qk {
 				report_not_open_connect_err(1);
 			}
 		}
-		
+
 		bool ipv6() {
 			return _address.sa_family == AF_INET6;
 		}
-		
+
 		bool is_open() {
 			return _is_open;
 		}
-		
+
 		bool is_pause() {
 			return _is_open && _is_pause;
 		}
-		
+
 		void set_keep_alive(bool enable, uint64_t keep_idle) {
 			/*
 			keepalive默认是关闭的, 因为虽然流量极小, 毕竟是开销. 因此需要用户手动开启. 有两种方式开启.
@@ -220,11 +203,11 @@ namespace qk {
 			*/
 			/*
 			int keepAlive = 1;   // 开启keepalive属性. 缺省值: 0(关闭)
-			int keepIdle = 10;   // 如果在60秒内没有任何数据交互,则进行探测. 缺省值:7200(s)
+			int keepIdle = 60;   // 如果在60秒内没有任何数据交互,则进行探测. 缺省值:7200(s)
 			int keepInterval = 5;// 探测时发探测包的时间间隔为5秒. 缺省值:75(s)
 			int keepCount = 2;   // 探测重试的次数. 全部超时则认定连接失效..缺省值:9(次)
 			
-			int fd = _uv_handle.io_watcher.fd;
+			int fd = _retain.io_watcher.fd;
 			setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (void*)&keepAlive, sizeof(keepAlive));
 			setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, (void*)&keepIdle, sizeof(keepIdle));
 			setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, (void*)&keepInterval, sizeof(keepInterval));
@@ -236,26 +219,26 @@ namespace qk {
 				uv_tcp_keepalive(_uv_tcp, _enable_keep_alive, _keep_idle);
 			}
 		}
-		
+
 		void set_no_delay(bool no_delay) {
 			_no_delay = no_delay;
 			if ( _uv_tcp && uv_is_active((uv_handle_t*)_uv_tcp) ) {
 				uv_tcp_nodelay(_uv_tcp, _no_delay);
 			}
 		}
-		
+
 		void set_timeout(uint64_t timeout) {
 			_timeout = timeout;
 			reset_timeout();
 		}
-		
+
 		void pause() {
 			_is_pause = true;
 			if ( _is_open ) {
 				uv_read_stop((uv_stream_t*)_uv_tcp);
 			}
 		}
-		
+
 		void resume() {
 			if ( _is_open ) {
 				if ( _is_pause ) {
@@ -266,7 +249,7 @@ namespace qk {
 				_is_pause = false;
 			}
 		}
-		
+
 		void write(Buffer buffer, int64_t size, int mark) {
 			if ( size < 0 ) {
 				size = buffer.length();
@@ -282,30 +265,27 @@ namespace qk {
 				report_not_open_connect_err(1);
 			}
 		}
-		
+
 		// ------------------------------------------------------------------------------------------
-		
-		void open2() {
-			Qk_ASSERT(_is_opening == false);
-			Qk_ASSERT(_uv_handle == nullptr);
+		void try_open() {
+			Qk_Assert(_is_opening == false);
+			Qk_Assert(_retain == nullptr);
 			
 			if ( _remote_ip.isEmpty() ) {
 				sockaddr_in sockaddr;
 				sockaddr_in6 sockaddr6;
 				Char dst[64];
-				
+	
 				if ( uv_ip4_addr(_hostname.c_str(), _port, &sockaddr) == 0 ) {
 					_address = *((struct sockaddr*)&sockaddr);
 					// uv_ip4_name(&sockaddr, dst, 64); _remote_ip = dst;
 					_remote_ip = _hostname;
 				}
-				
 				else if ( uv_ip6_addr(_hostname.c_str(), _port, &sockaddr6) == 0 ) {
 					_address = *((struct sockaddr*)&sockaddr6);
 					// uv_ip6_name(&sockaddr6, dst, 64); _remote_ip = dst;
 					_remote_ip = _hostname;
 				}
-				
 				else {
 					hostent* host = gethostbyname(_hostname.c_str());
 					if ( host ) {
@@ -335,33 +315,50 @@ namespace qk {
 					}
 				}
 			}
-			
-			if ( !_remote_ip.isEmpty() ) {
-				_uv_handle = new UVHandle(this, uv_loop());
-				Qk_ASSERT(_uv_tcp == nullptr);
-				Qk_ASSERT(_uv_timer == nullptr);
-				_uv_tcp = &_uv_handle->uv_tcp;
-				_uv_timer = &_uv_handle->uv_timer;
-				auto req = new SocketConReq(this);
-				int r = uv_tcp_connect(req->req(), _uv_tcp, &_address, &open_cb);
-				if (report_uv_err(r)) {
-					Release(req);
-					close2();
+			Qk_Assert(!_remote_ip.isEmpty());
+
+			_retain = new RetainRef(this, uv_loop());
+			Qk_Assert(_uv_tcp == nullptr);
+			Qk_Assert(_uv_timer == nullptr);
+			_uv_tcp = &_retain->tcp;
+			_uv_timer = &_retain->timer;
+			auto req = new SocketConReq(this);
+
+			int r = uv_tcp_connect(req->req(), _uv_tcp, &_address, [](uv_connect_t* uv_req, int status) {
+				Handle<SocketConReq> req = SocketConReq::cast(uv_req);
+				Inl* self = req->ctx();
+				Qk_Assert(self->_is_opening);
+				Qk_Assert(!self->_is_open);
+
+				uv_tcp_keepalive(self->_uv_tcp, self->_enable_keep_alive, self->_keep_idle);
+				uv_tcp_nodelay(self->_uv_tcp, self->_no_delay);
+
+				if ( status ) {
+					self->_is_opening = false;
+					self->report_uv_err(status);
+					self->close_delete();
 				} else {
-					_is_opening = true;
+					self->trigger_socket_connect_open();
 				}
+			});
+
+			if (report_uv_err(r)) {
+				Release(req);
+				close_delete();
+			} else {
+				_is_opening = true;
 			}
 		}
-		
-		void close2() {
-			Qk_ASSERT(_uv_handle);
-			uv_close((uv_handle_t*)_uv_tcp, [](uv_handle_t* handle){
-				Handle<UVHandle> h((UVHandle*)handle->data);
+
+		void close_delete() {
+			if (!_retain)
+				return;
+			uv_close((uv_handle_t*)_uv_tcp, [](uv_handle_t* handle) {
+				Sp<RetainRef> h((RetainRef*)handle->data);
 			});
 			uv_timer_stop(_uv_timer);
-			uv_close((uv_handle_t*)_uv_timer, nullptr);
-			
-			_uv_handle = nullptr;
+
+			_retain = nullptr;
 			_uv_tcp = nullptr;
 			_uv_timer = nullptr;
 			_is_pause = false;
@@ -375,7 +372,7 @@ namespace qk {
 				report_err(err);
 			}
 		}
-		
+
 		virtual void trigger_socket_connect_open() {
 			_is_open = true;
 			if ( !_is_pause ) {
@@ -384,92 +381,75 @@ namespace qk {
 			reset_timeout();
 			_delegate->trigger_socket_open(_host);
 		}
-		
-		static void open_cb(uv_connect_t* uv_req, int status) {
-			Handle<SocketConReq> req = SocketConReq::cast(uv_req);
-			Inl* self = req->ctx();
-			Qk_ASSERT(self->_is_opening);
-			Qk_ASSERT(!self->_is_open);
-			
-			uv_tcp_keepalive(self->_uv_tcp, self->_enable_keep_alive, self->_keep_idle);
-			uv_tcp_nodelay(self->_uv_tcp, self->_no_delay);
-			
-			if ( status ) {
-				self->_is_opening = false;
-				self->report_uv_err(status);
-				self->close2();
-			} else {
-				self->trigger_socket_connect_open();
-			}
-		}
-		
-		static void shutdown_cb(uv_shutdown_t* uv_req, int status) {
-			Handle<SocketShutdownReq> req(SocketShutdownReq::cast(uv_req));
-			Inl* self = req->ctx();
-			if ( status != 0 && status != UV_ECANCELED ) {
-				// close status is send error
-				self->report_uv_err(status);
-			}
-			self->close2();
-		}
-		
+
 		virtual void shutdown() {
 			auto req = new SocketShutdownReq(this);
-			int r = uv_shutdown(req->req(), (uv_stream_t*)_uv_tcp, &shutdown_cb);
+
+			int r = uv_shutdown(req->req(), (uv_stream_t*)_uv_tcp, [](uv_shutdown_t* uv_req, int status) {
+				Handle<SocketShutdownReq> req(SocketShutdownReq::cast(uv_req));
+				Inl* self = req->ctx();
+				if ( status != 0 && status != UV_ECANCELED ) {
+					// close status is send error
+					self->report_uv_err(status);
+				}
+				self->close_delete();
+			});
+
 			if ( report_uv_err(r) ) {
 				Release(req);
 			}
 		}
-		
-		static void read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
-			(static_cast<UVHandle*>(stream->data)->host)->trigger_socket_data(int(nread), buf->base);
-		}
-		
+
 		void start_read() {
-			uv_read_start((uv_stream_t*)_uv_tcp, &read_alloc_cb, &read_cb);
+			uv_read_start(
+				(uv_stream_t*)_uv_tcp,
+				[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+					Inl* self = *static_cast<RetainRef*>(handle->data)->hold;
+					if ( self->_read_buffer.isNull() ) {
+						self->_read_buffer = Buffer::alloc( Qk_MIN(65536, uint32_t(suggested_size)) );
+					}
+					buf->base = *self->_read_buffer;
+					buf->len = self->_read_buffer.length();
+				},
+				[](uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
+					static_cast<RetainRef*>(stream->data)->hold->trigger_socket_data_char(int(nread), buf->base);
+				}
+			);
 		}
-		
-		static void read_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-			Inl* self = static_cast<UVHandle*>(handle->data)->host;
-			if ( self->_read_buffer.isNull() ) {
-				self->_read_buffer = Buffer::alloc( Qk_MIN(65536, uint32_t(suggested_size)) );
-			}
-			buf->base = *self->_read_buffer;
-			buf->len = self->_read_buffer.length();
-		}
-		
-		virtual void trigger_socket_data(int nread, Char* buffer) {
-			Qk_ASSERT( _is_open );
+
+		virtual void trigger_socket_data_char(int nread, Char* buffer) {
+			Qk_Assert( _is_open );
 			if ( nread < 0 ) {
 				if ( nread != UV_EOF ) { // 异常断开
 					report_uv_err(int(nread));
 				}
-				close2();
+				close_delete();
 			} else {
 				reset_timeout();
 				WeakBuffer buff(buffer, nread);
 				_delegate->trigger_socket_data(_host, buff.buffer());
 			}
 		}
-		
-		static void write_cb(uv_write_t* uv_req, int status) {
-			SocketWriteReq* req = SocketWriteReq::cast(uv_req);
-			Handle<SocketWriteReq> handle(req);
-			if ( status < 0 ) {
-				req->ctx()->report_uv_err(status);
-			} else {
-				req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host,
-																										req->data().raw_buffer,
-																										req->data().mark);
-			}
-		}
-		
+
 		virtual void write(Buffer& buffer, int mark) {
 			auto req = new SocketWriteReq(this, 0, { buffer, mark });
 			uv_buf_t buf;
 			buf.base = *req->data().raw_buffer;
 			buf.len = req->data().raw_buffer.length();
-			int r = uv_write(req->req(), (uv_stream_t*)_uv_tcp, &buf, 1, &write_cb);
+
+			int r = uv_write(req->req(), (uv_stream_t*)_uv_tcp, &buf, 1,
+			[](uv_write_t* uv_req, int status) {
+				SocketWriteReq* req = SocketWriteReq::cast(uv_req);
+				Handle<SocketWriteReq> handle(req);
+				if ( status < 0 ) {
+					req->ctx()->report_uv_err(status);
+				} else {
+					req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host,
+																											req->data().raw_buffer,
+																											req->data().mark);
+				}
+			});
+
 			if ( report_uv_err(r) ) {
 				Release(req);
 			}
@@ -479,8 +459,8 @@ namespace qk {
 		// ----------------------------------------------------------------------
 		Socket*     _host;
 		Delegate*   _delegate;
-		KeepLoop*   _keep;
-		UVHandle*   _uv_handle;
+		RunLoop*    _loop;
+		RetainRef*  _retain;
 		bool        _is_open;
 		bool        _is_opening;
 		bool        _is_pause;
@@ -497,49 +477,13 @@ namespace qk {
 		uint64_t    _timeout;
 	};
 
-	/**
-	* @class SSL_INL
-	*/
+	// ----------------------------------------------------------------------
+
 	class SSL_INL: public Socket::Inl {
 	public:
 
-		static void set_ssl_cacert(cString& ca_content) {
-			
-			if (ca_content.isEmpty()) {
-				Qk_ERR("%s", "set_ssl_cacert() fail, ca_content is empty string"); return;
-			}
-
-			if ( !ssl_x509_store ) {
-				ssl_x509_store = X509_STORE_new();
-			}
-			
-			String ssl_cacert_file_path = fs_temp(".cacert.pem");
-			fs_write_file_sync(ssl_cacert_file_path, ca_content);
-			
-			cChar* ca = fs_fallback_c(ssl_cacert_file_path);
-
-			int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
-			if (!r) {
-				Qk_ERR("%s", "set_ssl_cacert() fail"); return;
-				// Qk_DEBUG("ssl load x509 store, %s"r);
-			}
-
-			if ( ssl_v23_client_ctx ) {
-				SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
-			}
-		}
-
-		static void set_ssl_cacert_file(cString& path) {
-			try {
-				set_ssl_cacert(fs_read_file_sync(path));
-			} catch(cError& err) {
-				Qk_ERR("SSL", "set_ssl_cacert() fail, %s", err.message().c_str());
-			}
-		}
-
 		static void initializ_ssl() {
 			if ( ! ssl_initializ++ ) {
-				// Initialize ssl libraries and error messages
 				SSL_load_error_strings();
 				SSL_library_init();
 				//OpenSSL_add_all_algorithms();
@@ -547,12 +491,9 @@ namespace qk {
 				ssl_v23_client_ctx = SSL_CTX_new( SSLv23_client_method() );
 				SSL_CTX_set_verify(ssl_v23_client_ctx, SSL_VERIFY_PEER, NULL);
 				if (!ssl_x509_store) {
-					if (new_root_cert_store) { // TODO node method ...
-						ssl_x509_store = new_root_cert_store();
-						SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
-					} else {
-						set_ssl_cacert_file(fs_resources("cacert.pem"));
-					}
+					ssl_x509_store = NewRootCertStore();
+					// ssl_x509_store = NewRootCertStoreFromFile(fs_resources("cacert.pem"));
+					SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
 				}
 			}
 		}
@@ -598,9 +539,7 @@ namespace qk {
 		static BIO_METHOD bio_method;
 
 		// ---------------------------------------------------------
-		/**
-		* @constructor
-		*/
+
 		SSL_INL(Socket* host, RunLoop* loop)
 			: Inl(host, loop)
 			, _bio_read_source_buffer(nullptr)
@@ -621,7 +560,7 @@ namespace qk {
 			SSL_set_bio(_ssl, bio, bio);
 		}
 
-		virtual ~SSL_INL() {
+		~SSL_INL() {
 			SSL_free(_ssl);
 		}
 
@@ -638,40 +577,35 @@ namespace qk {
 			Inl::shutdown();
 		}
 
-		static void trigger_socket_write_from_loop(Cb::Data& evt, SSLSocketWriteReq* req) {
-			Handle<SSLSocketWriteReq> req_(req);
-			req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host, req->data().raw_buffer,
-																									req->data().mark);
-		}
-
 		static void ssl_write_cb(uv_write_t* req, int status) {
 			SSLSocketWriteReq* req_ = SSLSocketWriteReq::cast(req);
-			Qk_ASSERT(req_->data().buffers_count);
+			Qk_Assert(req_->data().buffers_count);
 
 			req_->data().buffers_count--;
+
+			auto self = req_->ctx();
 
 			if ( status < 0 ) {
 				req_->data().error++;
 				if ( req_->data().buffers_count == 0 ) {
 					Release(req_);
 				}
-				req_->ctx()->report_uv_err(status);
-				
+				self->report_uv_err(status);
 			} else {
 				if ( req_->data().buffers_count == 0 ) {
+					Sp<SSLSocketWriteReq> sp(req_);
 					if ( req_->data().error == 0 ) {
-						async_callback(Cb(&SSL_INL::trigger_socket_write_from_loop, req_));
-					} else {
-						Release(req_);
-					}
+						self->_delegate->trigger_socket_write(
+							self->_host, req_->data().raw_buffer, req_->data().mark
+						);
+					} 
 				}
 			}
 		}
 
 		static void ssl_handshake_write_cb(uv_write_t* req, int status) {
 			Handle<SocketWriteReq> req_(SocketWriteReq::cast(req));
-			if ( status < 0 ) {
-				// send handshake msg fail
+			if ( status < 0 ) { // send handshake msg fail
 				req_->ctx()->close();
 			}
 		}
@@ -683,7 +617,7 @@ namespace qk {
 
 		static int bio_write(BIO* b, cChar* in, int inl) {
 			SSL_INL* self = ((SSL_INL*)b->ptr);
-			Qk_ASSERT( self->_ssl_handshake );
+			Qk_Assert( self->_ssl_handshake );
 
 			int r;
 			Buffer buffer = WeakBuffer(in, inl)->copy();
@@ -714,7 +648,7 @@ namespace qk {
 				if ( self->_ssl_write_req ) { // send msg
 					
 					auto req = self->_ssl_write_req;
-					Qk_ASSERT( req->data().buffers_count < 2 );
+					Qk_Assert( req->data().buffers_count < 2 );
 					
 					uv_buf_t buf;
 					buf.base = *buffer;
@@ -749,7 +683,7 @@ namespace qk {
 		}
 		
 		static int bio_read(BIO *b, Char* out, int outl) {
-			Qk_ASSERT(out);
+			Qk_Assert(out);
 			SSL_INL* self = ((SSL_INL*)b->ptr);
 			
 			int ret = Qk_MIN(outl, self->_bio_read_source_buffer_length);
@@ -781,18 +715,18 @@ namespace qk {
 		}
 		
 		static void ssl_handshake_timeout_cb(uv_timer_t* handle) {
-			SSL_INL* self = static_cast<SSL_INL*>(static_cast<UVHandle*>(handle->data)->host);
+			SSL_INL* self = static_cast<SSL_INL*>(*static_cast<RetainRef*>(handle->data)->hold);
 			self->ssl_handshake_fail();
 		}
 		
 		void set_ssl_handshake_timeout() {
-			Qk_ASSERT(_uv_handle);
+			Qk_Assert(_retain);
 			uv_timer_stop(_uv_timer);
 			uv_timer_start(_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
 		}
 		
 		virtual void trigger_socket_connect_open() {
-			Qk_ASSERT( !_ssl_handshake );
+			Qk_Assert( !_ssl_handshake );
 			set_ssl_handshake_timeout();
 			_bio_read_source_buffer_length = 0;
 			_ssl_handshake = 1;
@@ -802,11 +736,10 @@ namespace qk {
 				ssl_handshake_fail();
 			}
 		}
-		
-		virtual void trigger_socket_data(int nread, Char* buffer) {
-			
+
+		virtual void trigger_socket_data_char(int nread, Char* buffer) {
 			if ( nread < 0 ) {
-				
+
 				if ( _ssl_handshake == 0 ) { //
 					report_err(Error(ERR_SSL_HANDSHAKE_FAIL, "ssl handshake fail"));
 				} else {
@@ -814,24 +747,23 @@ namespace qk {
 						report_uv_err(int(nread));
 					}
 				}
-				close2();
+				close_delete();
 			} else {
-				
-				Qk_ASSERT( _bio_read_source_buffer_length == 0 );
-				
+				Qk_Assert( _bio_read_source_buffer_length == 0 );
+
 				_bio_read_source_buffer = buffer;
 				_bio_read_source_buffer_length = nread;
-				
+
 				if ( !_ssl_read_buffer.length() ) {
 					_ssl_read_buffer = Buffer::alloc(65536);
 				}
-				
+
 				if ( _is_open ) {
 					reset_timeout();
-					
+
 					while (1) {
 						int i = SSL_read(_ssl, _ssl_read_buffer.val(), 65536);
-						
+
 						if ( i > 0 ) {
 							WeakBuffer buff(_ssl_read_buffer.val(), i);
 							_delegate->trigger_socket_data(_host, buff.buffer());
@@ -843,10 +775,10 @@ namespace qk {
 						}
 					}
 				} else { // ssl handshake
-					Qk_ASSERT(_ssl_handshake == 1);
-					
+					Qk_Assert(_ssl_handshake == 1);
+
 					int r = SSL_connect(_ssl);
-					
+
 					if ( r < 0 ) {
 						ssl_handshake_fail();
 					}
@@ -860,23 +792,23 @@ namespace qk {
 						reset_timeout();
 						_delegate->trigger_socket_open(_host);
 						
-						Qk_ASSERT( _bio_read_source_buffer_length == 0 );
+						Qk_Assert( _bio_read_source_buffer_length == 0 );
 					}
 				}
 				
 			} // if ( nread < 0 ) end
 		}
-		
+
 		virtual void write(Buffer& buffer, int mark) {
-			Qk_ASSERT(!_ssl_write_req);
-			
+			Qk_Assert(!_ssl_write_req);
+
 			auto req = new SSLSocketWriteReq(this, 0, { buffer, mark, 0, 0 });
 			_ssl_write_req = req;
-			
+
 			int r = SSL_write(_ssl, req->data().raw_buffer.val(), req->data().raw_buffer.length());
-			
+
 			_ssl_write_req = nullptr;
-			
+
 			if ( r < 0 ) {
 				report_ssl_err(ERR_SSL_UNKNOWN_ERROR);
 			}
@@ -884,9 +816,8 @@ namespace qk {
 				Release(req);
 			}
 		}
-		
+
 	private:
-		
 		SSL*    _ssl;
 		cChar*  _bio_read_source_buffer;
 		int     _bio_read_source_buffer_length;
@@ -902,26 +833,27 @@ namespace qk {
 		bio_write,
 		bio_read,
 		bio_puts,
-		nullptr,    /* sock_gets, */
+		nullptr,  /* sock_gets, */
 		bio_ctrl,
 		nullptr,
 		nullptr,
 		nullptr
 	};
 
+	// ----------------------------------------------------------------------
+
 	Socket::Socket(): _inl(nullptr) {}
 
-	Socket::Socket(cString& hostname, uint16_t  port, RunLoop* loop)
+	Socket::Socket(cString& hostname, uint16_t port, RunLoop* loop)
 	: _inl( NewRetain<Inl>(this, loop) ) {
 		_inl->initialize(hostname, port);
 	}
 
 	Socket::~Socket() {
-		Qk_ASSERT(_inl->_keep->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();
-		Release(_inl);
+		_inl->release();
 		_inl = nullptr;
 	}
 	void Socket::open() {
@@ -971,25 +903,24 @@ namespace qk {
 		_inl->write(buffer, size, mark);
 	}
 
-	Qk_EXPORT void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
-		Qk_ASSERT(func);
-		new_root_cert_store = func;
-	}
-
 	/*
-	static void set_ssl_cacert_file(cString& path) {
-		// TODO
+	void set_ssl_cacert_file(cString& path) {
+		try {
+			NewRootCertStoreFromFile(fs_read_file_sync(path));
+		} catch(cError& err) {
+			Qk_ERR("SSL", "NewRootCertStoreFromFile() fail, %s", err.message().c_str());
+		}
 	}
 
-	static void set_ssl_client_key_file(cString& path) {
+	void set_ssl_client_key_file(cString& path) {
 	// TODO
 	}
 
-	static void set_ssl_client_keypasswd(cString& passwd) {
+	void set_ssl_client_keypasswd(cString& passwd) {
 	// TODO
 	}*/
 
-	SSLSocket::SSLSocket(cString& hostname, uint16_t  port, RunLoop* loop) {
+	SSLSocket::SSLSocket(cString& hostname, uint16_t port, RunLoop* loop) {
 		_inl = NewRetain<SSL_INL>(this, loop);
 		_inl->initialize(hostname, port);
 	}

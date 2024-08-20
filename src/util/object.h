@@ -35,9 +35,6 @@
 #include <utility>
 #include <atomic>
 
-#if Qk_MEMORY_TRACE_MARK
-# include <vector>
-#endif
 namespace qk {
 
 #ifndef Qk_MIN_CAPACITY
@@ -51,8 +48,8 @@ namespace qk {
 
 	template<
 		typename T = char, typename A = MemoryAllocator
-	> class ArrayString;
-	typedef ArrayString<> String;
+	> class StringImpl;
+	typedef StringImpl<> String;
 	typedef const String cString;
 
 	/**
@@ -61,6 +58,7 @@ namespace qk {
 	class Qk_EXPORT Object {
 	public:
 		typedef ObjectTraits Traits;
+		virtual ~Object() = default;
 		virtual void destroy(); // Heap allocation destructor function call and memory free
 		virtual bool retain(); // Heap allocation retain
 		virtual void release(); // Heap allocation release
@@ -74,17 +72,6 @@ namespace qk {
 			void (*strong)(Object* obj), void (*weak)(Object* obj)
 		);
 		typedef void* __has_object_type;
-#if Qk_MEMORY_TRACE_MARK
-		Object();
-		virtual ~Object();
-		static std::vector<Object*> mark_objects();
-		static int mark_objects_count();
-	private:
-		int initialize_mark_();
-		int mark_index_;
-#else
-		virtual ~Object() = default;
-#endif
 	};
 
 	/**
@@ -124,8 +111,12 @@ namespace qk {
 	* @class ObjectTraits
 	*/
 	struct ObjectTraits {
-		inline static bool Retain(Object* obj) { return obj ? obj->retain(): 0; }
-		inline static void Release(Object* obj) { if (obj) obj->release(); }
+		inline static bool Retain(Object* obj) {
+			return obj ? obj->retain(): 0;
+		}
+		inline static void Release(Object* obj) {
+			if (obj) obj->release();
+		}
 		static constexpr bool isReference = false;
 		static constexpr bool isObject = true;
 	};
@@ -155,9 +146,11 @@ namespace qk {
 	 */
 	struct NonObjectTraits {
 		template<class T> inline static bool Retain(T* obj) {
-			/* Non referential pairs need not be Retain */ return 0;
+			return 0; /* Non referential pairs need not be Retain */
 		}
-		template<class T> inline static void Release(T* obj) { delete obj; }
+		template<class T> inline static void Release(T* obj) {
+			delete obj;
+		}
 		static constexpr bool isReference = false;
 	};
 
@@ -173,8 +166,8 @@ namespace qk {
 			void reduce(uint32_t size) {
 				A::reduce((Prt<void>*)this, size, sizeof(T));
 			}
-			uint32_t capacity = 0;
 			T*       val = nullptr;
+			uint32_t capacity = 0;
 		};
 		static void* alloc(uint32_t size);
 		static void  free(void *ptr);
@@ -193,25 +186,6 @@ namespace qk {
 		static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
 		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
 		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
-	};
-
-	template<class T>
-	class Maybe {
-	public:
-		Maybe(): _ok(false) {}
-		explicit Maybe(const T& t): _val(t),_ok(true) {}
-		explicit Maybe(T&& t): _val(std::move(t)), _ok(true) {}
-		inline T& unsafe() { return _val; }
-		inline bool ok() const { return _ok; }
-		inline bool to(T& out) {
-			return _ok ? (out = std::move(_val), true): false;
-		}
-		inline T from(const T& defaultValue) {
-			return _ok ? std::move(_val) : defaultValue;
-		}
-	private:
-		T    _val;
-		bool _ok;
 	};
 
 	template<class T, typename... Args>

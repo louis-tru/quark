@@ -45,12 +45,12 @@ namespace qk {
 	}());
 #endif
 
-	void inl__copy_file_stat(uv_stat_t* src, FileStat* dest) {
+	void file_stat_copy(uv_stat_t* src, FileStat* dest) {
 		struct INL_FileStat: Object {
 			uv_stat_t *_stat;
 		};
 		auto s = reinterpret_cast<INL_FileStat*>(dest);
-		if ( !s->_stat ) {
+		if ( !s->_stat ) { // alloc memory space
 			s->_stat = (uv_stat_t*)malloc(sizeof(uv_stat_t));
 		}
 		memcpy(s->_stat, src, sizeof(uv_stat_t));
@@ -59,11 +59,11 @@ namespace qk {
 	FileStat::FileStat(): _stat(nullptr) {}
 	FileStat::FileStat(cString& path): FileStat(fs_stat_sync(path)) {}
 	FileStat::FileStat(const FileStat& src): _stat(nullptr) {
-		inl__copy_file_stat((uv_stat_t*)src._stat, this);
+		file_stat_copy((uv_stat_t*)src._stat, this);
 	}
 
 	FileStat& FileStat::operator=(const FileStat& src) {
-		inl__copy_file_stat((uv_stat_t*)src._stat, this);
+		file_stat_copy((uv_stat_t*)src._stat, this);
 		return *this;
 	}
 
@@ -124,7 +124,7 @@ namespace qk {
 	/**
 	 * @func get C file flga
 	 */
-	int inl__file_flag_mask(int flag) {
+	int file_flag_mask(int flag) {
 #if Qk_POSIX || Qk_UNIX
 		return flag;
 #else
@@ -143,7 +143,7 @@ namespace qk {
 #endif
 	}
 
-	cChar* inl__file_flag_str(int flag) {
+	cChar* file_flag_str(int flag) {
 		switch (flag) {
 			default:
 			case FOPEN_R: return "r";
@@ -173,7 +173,7 @@ namespace qk {
 		uv_fs_t req;
 		_fd = uv_fs_open(uv_default_loop(), &req,
 											fs_fallback_c(_path),
-											inl__file_flag_mask(flag), mode, nullptr);
+											file_flag_mask(flag), mode, nullptr);
 		if ( _fd > 0 ) {
 			return 0;
 		}
@@ -233,49 +233,47 @@ namespace qk {
 				_delegate = this;
 			}
 		}
-		
+
 		Inl(File* host, cString& path, RunLoop* loop)
-		: _path(path)
-		, _fd(0)
-		, _opening(false)
-		, _keep(loop->keep_alive())
-		, _delegate(nullptr)
-		, _host(host)
+			: _path(path)
+			, _fd(0)
+			, _opening(false)
+			, _loop(loop)
+			, _delegate(nullptr)
+			, _host(host)
 		{
-			Qk_ASSERT(_keep);
+			Qk_Assert(loop);
 		}
-		
-		virtual ~Inl() {
+
+		~Inl() override {
 			if ( _fd ) {
 				uv_fs_t req;
-				int res = uv_fs_close(_keep->loop()->uv_loop(), &req, _fd, nullptr); // sync
-				Qk_ASSERT( res == 0 );
+				int res = uv_fs_close(_loop->uv_loop(), &req, _fd, nullptr); // sync
+				Qk_Assert( res == 0 );
 			}
-			delete _keep; _keep = nullptr;
 			clear_writeing();
 		}
-		
+
 		inline String& path() { return _path; }
 		inline bool is_open() { return _fd; }
-		
+
 		void open(int flag, uint32_t mode) {
 			if (_fd) {
-				Error e(ERR_FILE_ALREADY_OPEN, "File already open");
-				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
+				async_reject(Cb(&Inl::fs_error_cb, this),
+					Error(ERR_FILE_ALREADY_OPEN, "File already open"), _loop);
 				return;
 			}
 			if (_opening) {
-				Error e(ERR_FILE_OPENING, "File opening...");
-				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
+				async_reject(Cb(&Inl::fs_error_cb, this), Error(ERR_FILE_OPENING, "File opening..."), _loop);
 				return;
 			}
 			_opening = true;
 			auto req = new FileReq(this);
 			uv_fs_open(uv_loop(), req->req(),
 								 fs_fallback_c(_path),
-								 inl__file_flag_mask(flag), mode, &Inl::fs_open_cb);
+								 file_flag_mask(flag), mode, &Inl::fs_open_cb);
 		}
-		
+
 		void close() {
 			if (_fd) {
 				int fp = _fd;
@@ -285,7 +283,7 @@ namespace qk {
 			}
 			else {
 				Error e(ERR_FILE_NOT_OPEN, "File not open");
-				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
+				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), _loop);
 			}
 		}
 
@@ -304,11 +302,11 @@ namespace qk {
 			}
 		}
 
-		inline RunLoop* loop() { return _keep->loop(); }
+		inline RunLoop* loop() { return _loop; }
 
 	private:
-		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
-		inline static RunLoop* loop(uv_fs_t* req) { return FileReq::cast(req)->ctx()->loop(); }
+		inline uv_loop_t* uv_loop() { return _loop->uv_loop(); }
+		inline static RunLoop* loop(uv_fs_t* req) { return FileReq::cast(req)->ctx()->_loop; }
 			
 		void clear_writeing() {
 			for(auto& i : _writeing) {
@@ -327,15 +325,15 @@ namespace qk {
 				uv_fs_write(uv_loop(), req->req(), _fd, &buf, 1, req->data().offset, &Inl::fs_write_cb);
 			}
 		}
-			
+
 		void fs_error_cb(Cb::Data& evt) {
 			_delegate->trigger_file_error(_host, *evt.error);
 		}
-		
+
 		static inline Delegate* del(Object* ctx) {
 			return static_cast<FileReq*>(ctx)->ctx()->_delegate;
 		}
-		
+
 		static inline File* host(Object* ctx) {
 			return static_cast<FileReq*>(ctx)->ctx()->_host;
 		}
@@ -344,7 +342,7 @@ namespace qk {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			Handle<FileReq> handle(req);
-			Qk_ASSERT( req->ctx()->_opening );
+			Qk_Assert( req->ctx()->_opening );
 			req->ctx()->_opening = false;
 			if ( uv_req->result > 0 ) {
 				if ( req->ctx()->_fd ) {
@@ -362,7 +360,7 @@ namespace qk {
 				del(req)->trigger_file_error(host(req), err);
 			}
 		}
-		
+
 		static void fs_close_cb(uv_fs_t* uv_req) {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
@@ -377,7 +375,7 @@ namespace qk {
 			}
 			req->ctx()->clear_writeing();
 		}
-		
+
 		static void fs_read_cb(uv_fs_t* uv_req) {
 			FileStreamReq* req = FileStreamReq::cast(uv_req);
 			Handle<FileStreamReq> handle(req);
@@ -393,14 +391,14 @@ namespace qk {
 																					req->data().mark );
 			}
 		}
-		
+
 		static void fs_write_cb(uv_fs_t* uv_req) {
 			FileStreamReq* req = FileStreamReq::cast(uv_req);
 			Handle<FileStreamReq> handle(req);
 			auto self = req->ctx();
 			uv_fs_req_cleanup(uv_req);
 			
-			Qk_ASSERT(self->_writeing.front() == req);
+			Qk_Assert(self->_writeing.front() == req);
 			self->_writeing.popFront();
 			self->continue_write();
 
@@ -417,7 +415,7 @@ namespace qk {
 		String      _path;
 		int         _fd;
 		bool        _opening;
-		KeepLoop*   _keep;
+		RunLoop*    _loop;
 		Delegate*   _delegate;
 		File*  _host;
 		List<FileStreamReq*> _writeing;
@@ -428,7 +426,7 @@ namespace qk {
 	{}
 
 	File::~File() {
-		Qk_ASSERT(_inl->loop() == RunLoop::current());
+		Qk_Assert(_inl->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();

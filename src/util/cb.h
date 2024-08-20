@@ -52,12 +52,12 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(CallbackCore);
 	public:
 		inline CallbackCore() {}
-		inline int call(E* e, D* d) const { 
+		inline int call(E* e, D* d) const {
 			CallbackData<D, E> evt = { e,d,0 };
 			call(evt);
 			return evt.rc;
 		}
-		inline int resolve(D* d = nullptr) const { 
+		inline int resolve(D* d = nullptr) const {
 			CallbackData<D, E> evt = { 0,d,0 };
 			call(evt);
 			return evt.rc;
@@ -160,33 +160,41 @@ namespace qk {
 	typedef Callback<> Cb;
 	typedef const Cb cCb;
 
-	Qk_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);
+	Qk_EXPORT void _async_callback_and_dealloc(Cb &cb, Error* e, Object* d, PostMessage* loop);
 
-	template<class D, class E>
-	void async_callback(Callback<D, E> cb, E* e = nullptr, D* d = nullptr, PostMessage* loop = nullptr) {
+	/**
+	 *  @method _async_callback() async callback and move dealloc data
+	 */
+	template<class D, class E, class D2, class E2>
+	void _async_callback(Callback<D, E> &cb, E2* e, D2* d, PostMessage* loop) {
 		if ( loop ) {
 			_async_callback_and_dealloc(*reinterpret_cast<Cb*>(&cb),
-				(Error*)(e ? new E(std::move(*e)): nullptr),
-				(Object*)(d ? new D(std::move(*d)): nullptr), loop
+				static_cast<Error*>(e ? new E2(std::move(*e)): nullptr),
+				static_cast<Object*>(d ? new D2(std::move(*d)): nullptr), loop
 			);
 		} else {
 			cb->call(e, d);
 		}
 	}
 
-	template<class D, class E, class D2>
-	inline void async_resolve(Callback<D, E> cb, D2&& data, PostMessage* loop = nullptr) {
-		async_callback(cb, (E*)nullptr, static_cast<D*>(&data), loop);
+	template<class E, class D, class E2, class D2>
+	inline void async_callback(Callback<D, E> cb, E2&& err, D2&& data, PostMessage* loop = nullptr) {
+		_async_callback(cb, &err, &data, loop);
 	}
 
 	template<class D, class E>
-	inline void async_resolve(Callback<D, E> cb, PostMessage* loop = nullptr) {
-		async_callback(cb, (E*)nullptr, (D*)nullptr, loop);
+	inline void async_callback(Callback<D, E> cb, PostMessage* loop = nullptr) {
+		_async_callback(cb, (E*)nullptr, (D*)nullptr, loop);
+	}
+
+	template<class D, class E, class D2>
+	inline void async_resolve(Callback<D, E> cb, D2&& data, PostMessage* loop = nullptr) {
+		_async_callback(cb, (E*)nullptr, &data, loop);
 	}
 
 	template<class D, class E, class E2>
 	inline void async_reject(Callback<D, E> cb, E2&& err, PostMessage* loop = nullptr) {
-		async_callback(cb, static_cast<E*>(&err), (D*)nullptr, loop);
+		_async_callback(cb, &err, (D*)nullptr, loop);
 	}
 
 }

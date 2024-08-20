@@ -32,6 +32,7 @@
 #include "../../out/native-lib-js.h"
 #include "./api/types.h"
 #include "../errno.h"
+#include "../ui/app.h"
 
 namespace qk {
 	bool is_process_exit();
@@ -374,7 +375,7 @@ namespace qk {
 	JSObject* Worker::newError(cChar* errmsg, ...) {
 		va_list arg;
 		va_start(arg, errmsg);
-		String str = _Str::string_format(errmsg, arg);
+		String str = _Str::printfv(errmsg, arg);
 		va_end(arg);
 		Error err(ERR_UNKNOWN_ERROR, str);
 		return newInstance(err);
@@ -459,7 +460,7 @@ namespace qk {
 	void Worker::throwError(cChar* errmsg, ...) {
 		va_list arg;
 		va_start(arg, errmsg);
-		String str = _Str::string_format(errmsg, arg);
+		String str = _Str::printfv(errmsg, arg);
 		va_end(arg);
 		throwError(newError(*str));
 	}
@@ -587,7 +588,7 @@ namespace qk {
 
 		int rc = platformStart(argc, argv, [](Worker* worker) -> int {
 			int rc = 0;
-			auto loop = RunLoop::first();
+			auto loop = RunLoop::current();
 
 			{ // run main
 				auto _pkg = worker->bindingModule("_pkg");
@@ -603,25 +604,20 @@ namespace qk {
 
 			do {
 				loop->run();
-				/* IOS forces the process to terminate, but it does not quit immediately.
-				This may cause a process to run in the background for a long time, so force break here */
 				if (is_process_exit())
 					break;
-
-				if (loop->is_alive())
-					continue;
-
-				rc = triggerBeforeExit(worker, rc);
-
 				// Emit `beforeExit` if the loop became alive either after emitting
 				// event, or after running some callbacks.
+				rc = triggerBeforeExit(worker, rc);
 			} while (loop->is_alive());
 
 			if (!is_process_exit())
 				rc = triggerExit(worker, rc);
-				
+
+			Release(shared_app()); // delete global object
+
 			loop->clear(); // clear all async handles
-				
+
 			return rc;
 		});
 

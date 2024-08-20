@@ -39,7 +39,7 @@
 namespace qk {
 	extern RunLoop        *__first_loop;
 	extern Mutex          *__threads_mutex;
-	extern std::atomic_int __is_process_exit_safe;
+	extern std::atomic_int __is_process_exit_atomic;
 
 	struct Thread {
 		int               abort; // abort signal of run loop
@@ -54,17 +54,6 @@ namespace qk {
 		void              *arg;
 	};
 
-	struct Keep: KeepLoop {
-		Keep(RunLoop *loop, void (*check)(void *ctx), void* ctx);
-		~Keep() override;
-		void post_message(Cb cb) override;
-		RunLoop* _loop;
-		List<KeepLoop*>::Iterator _id;
-		uv_check_t *_uv_check;
-		void (*_check)(void *ctx);
-		void *_check_ctx;
-	};
-
 	struct RunLoop::Work {
 		typedef NonObjectTraits Traits;
 		RunLoop* host;
@@ -77,6 +66,21 @@ namespace qk {
 		void done_work(int status);
 	};
 
-	Thread_INL* thread_current_inl();
+	struct timer_t: uv_timer_t {
+		uint32_t id;
+		int64_t repeatCount;
+		bool calling;
+		Cb cb;
+	};
+
+	struct check_t: uv_check_t {
+		uint32_t id;
+		int64_t repeatCount;
+		Cb cb;
+	};
+
+	Thread_INL* thread_current_();
+	void        Runloop_death(RunLoop *loop);
+	RunLoop*    current_from(RunLoop **inOut);
 }
 #endif

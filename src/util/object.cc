@@ -113,59 +113,6 @@ namespace qk {
 
 	// ---------------- O b j e c t ----------------
 
-#if Qk_MEMORY_TRACE_MARK
-	static int active_mark_objects_count_ = 0;
-	static Mutex mark_objects_mutex;
-	static Array<Object*> mark_objects_;
-
-	int Object::initialize_mark_() {
-		if ( mark_index_ == 123456 ) {
-			ScopeLock scope(mark_objects_mutex);
-			uint32_t index = mark_objects_.length();
-			mark_objects_.push(this);
-			active_mark_objects_count_++;
-			return index;
-		}
-		return -1;
-	}
-
-	Object::Object(): mark_index_(initialize_mark_()) {
-	}
-
-	Object::~Object() {
-		if ( mark_index_ > -1 ) {
-			ScopeLock scope(mark_objects_mutex);
-			mark_objects_[mark_index_] = nullptr;
-			Qk_ASSERT(active_mark_objects_count_);
-			active_mark_objects_count_--;
-		}
-	}
-
-	std::vector<Object*> Object::mark_objects() {
-		ScopeLock scope(mark_objects_mutex);
-		Array<Object*> new_mark_objects;
-		std::vector<Object*> rv;
-		
-		for ( auto& i : mark_objects_ ) {
-			Object* obj = i.value();
-			if ( i.value() ) {
-				obj->mark_index_ = new_mark_objects.length();
-				new_mark_objects.push(obj);
-				rv.pushBack(obj);
-			}
-		}
-		
-		Qk_ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
-		
-		mark_objects_ = std::move(new_mark_objects);
-		return rv;
-	}
-
-	int Object::mark_objects_count() {
-		return active_mark_objects_count_;
-	}
-#endif
-
 	void Object::destroy() {
 		this->~Object();
 		object_allocator.free(this); // free heap memory
@@ -184,13 +131,7 @@ namespace qk {
 	}
 
 	void* Object::operator new(size_t size) {
-#if Qk_MEMORY_TRACE_MARK
-		void* p = object_allocator.alloc(size);
-		((Object*)p)->mark_index_ = 123456;
-		return p;
-#else
 		return object_allocator.alloc(size);
-#endif
 	}
 
 	void* Object::operator new(size_t size, void* p) {

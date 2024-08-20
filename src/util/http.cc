@@ -40,7 +40,7 @@
 #include <zlib.h>
 
 namespace qk {
-	#define MAX_CONNECT_COUNT (5)
+	#define MAX_CONNECT_POOL_SIZE (5)
 	#define BUFFER_SIZE (65536)
 
 	typedef HttpClientRequest::Delegate HttpDelegate;
@@ -113,7 +113,7 @@ namespace qk {
 
 		Inl(HttpClientRequest* host, RunLoop* loop)
 			: _host(host)
-			, _keep_loop(loop->keep_alive())
+			, _loop(loop)
 			, _delegate(this)
 			, _upload_total(0)
 			, _upload_size(0)
@@ -130,43 +130,35 @@ namespace qk {
 			, _disable_send_cookie(false)
 			, _disable_ssl_verify(false)
 			, _keep_alive(true)
-			, _sending(nullptr)
+			, _retain(nullptr)
 			, _timeout(0), _pause(false)
 			, _url_no_cache_arg(false), _wait_connect_id(0)
 			, _write_cache_flag(0)
-		{}
+		{
+			Qk_Assert(loop);
+		}
 
 		~Inl() {
-			Qk_ASSERT(!_sending);
-			Qk_ASSERT(!_connect);
-			Qk_ASSERT(!_cache_reader);
-			Qk_ASSERT(!_file_writer);
-			delete _keep_loop; _keep_loop = nullptr;
+			abort();
+			Qk_Assert(!_retain);
+			Qk_Assert(!_connect);
+			Qk_Assert(!_cache_reader);
+			Qk_Assert(!_file_writer);
 		}
 
-		inline void set_delegate(HttpDelegate* delegate) {
+		void set_delegate(HttpDelegate* delegate) {
 			_delegate = delegate ? delegate : this;
 		}
-		inline RunLoop* loop() { return _keep_loop->loop(); }
-		inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
-		inline DictSS& response_header() { return _response_header; }
+		RunLoop* loop() { return _loop; }
+		DictSS& response_header() { return _response_header; }
 
-		class Sending {
-		public:
-			typedef NonObjectTraits Traits;
-			Sending(Inl* host): _host(host), _ending(false) {
-				Retain(host);
+		struct RetainRef {
+			RetainRef(Inl* hold): hold(hold) {}
+			~RetainRef() {
+				hold->_retain = nullptr;
 			}
-			~Sending() {
-				Release(_host);
-			}
-			void release() {
-				Qk_ASSERT(_host);
-				_host->_sending = nullptr;
-				delete this;
-			}
-			Inl*  _host;
-			bool  _ending;
+			Sp<Inl> hold;
+			bool    ending = false;
 		};
 
 		class Reader {
@@ -176,61 +168,71 @@ namespace qk {
 			virtual bool is_cache() = 0;
 		};
 
+		struct HttpParser: Reference {
+			HttpParser(Connect *conn) {
+				parser.data = conn;
+				http_parser_settings_init(&settings);
+			}
+			http_parser parser;
+			http_parser_settings settings;
+		};
+
 		class Connect: public Object
 			, public Socket::Delegate
 			, public Reader, public File::Delegate
 		{
 		public:
-
 			Connect(cString& hostname, uint16_t  port, bool ssl, RunLoop* loop)
 				: _ssl(ssl)
-				, _use(false)
+				, _busy(false)
 				, _is_multipart_form_data(false)
 				, _send_data(false)
 				, _socket(nullptr)
 				, _client(nullptr)
 				, _upload_file(nullptr)
 				, _z_gzip(0), _loop(loop)
-			{//
+				, _recovery_time(0)
+			{
 				if ( _ssl ) {
 					_socket = new SSLSocket(hostname, port, loop);
 				} else {
 					_socket = new Socket(hostname, port, loop);
 				}
-				
-				Qk_ASSERT(_socket);
+				Qk_Assert(_socket);
 				_socket->set_delegate(this);
-				
-				_parser.data = this;
-				http_parser_settings_init(&_settings);
-				_settings.on_message_begin = &on_message_begin;
-				_settings.on_status = &on_status;
-				_settings.on_header_field = &on_header_field;
-				_settings.on_header_value = &on_header_value;
-				_settings.on_headers_complete = &on_headers_complete;
-				_settings.on_body = &on_body;
-				_settings.on_message_complete = &on_message_complete;
+				_parser = new HttpParser(this);
+
+				auto &settings = _parser->settings;
+				http_parser_settings_init(&settings); // init
+				settings.on_message_begin = &on_message_begin;
+				settings.on_status = &on_status;
+				settings.on_header_field = &on_header_field;
+				settings.on_header_value = &on_header_value;
+				settings.on_headers_complete = &on_headers_complete;
+				settings.on_body = &on_body;
+				settings.on_message_complete = &on_message_complete;
 			}
 
 			~Connect() {
-				Qk_ASSERT( _id == ConnectID() );
+				Qk_Assert( _id == ConnectID() );
 				Release(_socket);     _socket = nullptr;
 				Release(_upload_file);_upload_file = nullptr;
+				http_parser_settings_init(&_parser->settings); // resetting
 			}
 
 			inline RunLoop* loop() { return _loop; }
 
 			void bind_client_and_send(Client* client) {
-				Qk_ASSERT(client);
-				Qk_ASSERT(!_client);
+				Qk_Assert(client);
+				Qk_Assert(!_client);
 				
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
-				
+	
 				if ( _ssl ) {
 					static_cast<SSLSocket*>(_socket)->disable_ssl_verify(_client->_disable_ssl_verify);
 				}
-				
+	
 				if ( _socket->is_open() ) {
 					send_http_request(); // send request
 				} else {
@@ -252,7 +254,7 @@ namespace qk {
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
-				Qk_ASSERT(status_code == parser->status_code);
+				Qk_Assert(status_code == parser->status_code);
 				// Qk_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
@@ -262,7 +264,8 @@ namespace qk {
 
 			static int on_header_field(http_parser* parser, cChar *at, size_t length) {
 				//g_debug("http response parser on_header_field, %s", String(at, uint32_t(length)).c());
-				static_cast<Connect*>(parser->data)->_header_field = String(at, uint32_t(length)).lowerCase();
+				static_cast<Connect*>(parser->data)->_header_field =
+					String(at, uint32_t(length)).lowerCase();
 				return 0;
 			}
 
@@ -270,13 +273,11 @@ namespace qk {
 				//g_debug("http response parser on_header_value, %s", String(at, uint32_t(length)).c());
 				Connect* self = static_cast<Connect*>(parser->data);
 				String value(at, uint32_t(length));
-				
+
 				if ( !self->_client->_disable_cookie ) {
-					if ( self->_header_field == "set-cookie" ) {
+					if ( self->_header_field == "set-cookie" )
 						http_set_cookie_with_expression(self->_client->_uri.domain(), value);
-					}
 				}
-				
 				self->_header[std::move(self->_header_field)] = value;
 				
 				return 0;
@@ -295,13 +296,13 @@ namespace qk {
 			}
 
 			void init_gzip_parser() {
-				if ( !_header.has("content-encoding") ) {
+				if ( _header.has("content-encoding") ) {
 					_z_strm.zalloc = Z_NULL;
 					_z_strm.zfree = Z_NULL;
 					_z_strm.opaque = Z_NULL;
 					_z_strm.next_in = Z_NULL;
 					_z_strm.avail_in = 0;
-					
+
 					String encoding = _header["content-encoding"];
 					if ( encoding.indexOf("gzip") != -1 ) {
 						_z_gzip = 2;
@@ -357,18 +358,16 @@ namespace qk {
 			}
 
 			void send_http_request() {
-				
-				http_parser_init(&_parser, HTTP_RESPONSE);
+				http_parser_init(&_parser->parser, HTTP_RESPONSE);
 				Release(_upload_file); _upload_file = nullptr;
 				_is_multipart_form_data = false;
 				_send_data = false;
 				_multipart_form_data.clear();
 				_z_gzip = 0;
 				_header.clear();
-				//
-				
+
 				DictSS header = _client->_request_header;
-				
+
 				header["Host"] = _client->_uri.host();
 				header["Connection"] = _client->_keep_alive ? "keep-alive" : "close";
 				header["Accept-Encoding"] = "gzip, deflate";
@@ -385,7 +384,7 @@ namespace qk {
 					String s = _client->_username + ':' + _client->_password;
 					header["Authorization"] = codec_encode(kBase64_Encoding, s);
 				}
-				
+	
 				if ( !_client->_disable_cookie && !_client->_disable_send_cookie ) { // send cookies
 					
 					String cookies = http_get_all_cookie_string(_client->_uri.domain(),
@@ -541,7 +540,9 @@ namespace qk {
 
 			virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
 				if ( _client ) {
-					http_parser_execute(&_parser, &_settings, buffer.val(), buffer.length());
+					// Avoid releasing connections during data parsing
+					Sp<HttpParser> sp(_parser);
+					http_parser_execute(&sp->parser, &sp->settings, buffer.val(), buffer.length());
 				}
 			}
 
@@ -574,28 +575,28 @@ namespace qk {
 			}
 
 			virtual void trigger_file_open(File* file) {
-				Qk_ASSERT( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 
 			virtual void trigger_file_close(File* file) {
-				Qk_ASSERT( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 
 			virtual void trigger_file_error(File* file, cError& error) {
-				Qk_ASSERT( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 
 			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
-				Qk_ASSERT( _is_multipart_form_data );
+				Qk_Assert( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
 				} else {
-					Qk_ASSERT(_multipart_form_data.length());
-					Qk_ASSERT(_upload_file);
+					Qk_Assert(_multipart_form_data.length());
+					Qk_Assert(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
@@ -609,10 +610,10 @@ namespace qk {
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
 
 			void send_multipart_form_data() {
-				Qk_ASSERT( _multipart_form_buffer.length() == BUFFER_SIZE );
+				Qk_Assert( _multipart_form_buffer.length() == BUFFER_SIZE );
 				
 				if ( _upload_file ) { // upload file
-					Qk_ASSERT( _upload_file->is_open() );
+					Qk_Assert( _upload_file->is_open() );
 					_upload_file->read(_multipart_form_buffer);
 				}
 				else if ( _multipart_form_data.length() ) {
@@ -655,15 +656,14 @@ namespace qk {
 		private:
 			friend class ConnectPool;
 			bool  _ssl;
-			bool  _use;
+			bool  _busy;
 			bool  _is_multipart_form_data;
 			bool  _send_data;
 			Socket*     _socket;
 			Client*     _client;
 			ConnectID   _id;
-			File*  _upload_file;
-			http_parser _parser;
-			http_parser_settings _settings;
+			File*       _upload_file;
+			Sp<HttpParser> _parser;
 			List<MultipartFormValue> _multipart_form_data;
 			Buffer  _multipart_form_buffer;
 			String  _header_field;
@@ -671,6 +671,7 @@ namespace qk {
 			z_stream _z_strm;
 			int      _z_gzip;
 			RunLoop*  _loop;
+			int64_t _recovery_time;
 		};
 
 		class ConnectPool {
@@ -686,143 +687,154 @@ namespace qk {
 
 			~ConnectPool() {
 				ScopeLock scope(_mutex);
-				for (auto i : _pool) {
+				for (auto i : _conns) {
 					i->_id = ConnectID();
-					Release(i);
+					Release(i); // no send to loop, immediately release
 				}
 			}
 
-			void request(Client* client, Cb cb) {
-				Qk_ASSERT(client);
-				Qk_ASSERT(!client->_uri.is_null());
-				Qk_ASSERT(!client->_uri.hostname().isEmpty());
-				Qk_ASSERT(client->_uri.type() == URI_HTTP || client->_uri.type() == URI_HTTPS);
-				
-				uint16_t  port = client->_uri.port();
+			void request(Client* cli, Cb cb) {
+				Qk_Assert(cli);
+				Qk_Assert(!cli->_uri.is_null());
+				Qk_Assert(!cli->_uri.hostname().isEmpty());
+				Qk_Assert(cli->_uri.type() == URI_HTTP || cli->_uri.type() == URI_HTTPS);
+	
+				uint16_t port = cli->_uri.port();
 				if (!port) {
-					port = client->_uri.type() == URI_HTTP ? 80 : 443;
+					port = cli->_uri.type() == URI_HTTP ? 80 : 443;
 				}
-				
-				client->_wait_connect_id = getId32();
-				
+
+				cli->_wait_connect_id = getId32();
+	
 				connect_req req = {
-					client,
+					cli,
 					cb,
-					client->_wait_connect_id,
-					client->_uri.hostname(),
+					cli->_wait_connect_id,
+					cli->_uri.hostname(),
 					port,
-					client->_uri.type(),
+					cli->_uri.type(),
 				};
-				
+	
 				Connect* conn = nullptr;
 				{ //
 					ScopeLock scope(_mutex);
 					conn = get_connect(req);
 					if ( conn ) {
-						conn->_use = true;
+						conn->_busy = true;
 					} else {
-						_connect_req.pushBack(req); // wait
+						_reqs.pushBack(req); // wait
 					}
 				}
 				if (conn) {
-					Cb::Data evt = { 0, conn };
-					cb->call(evt);
+					cb->resolve(conn);
 				}
 			}
 
-			void recovery(Connect* connect, bool immediatelyRelease) {
-				if (!connect) return;
+			void recovery(Connect* c, bool immediatelyRelease) {
+				if (!c) return;
 				Lock lock(_mutex);
-				if (connect->_id == ConnectID()) {
+
+				if (c->_id == ConnectID())
 					return;
-				}
 
-				if ( !connect->socket()->is_open() || immediatelyRelease ) { // immediately release
-					_pool.erase(connect->_id);
-					connect->_id = ConnectID();
-					connect->release();
+				if ( !c->socket()->is_open() || immediatelyRelease ) { // immediately release
+					_conns.erase(c->_id);
+					c->_id = ConnectID();
+					c->release();
 				} else {
-					if ( connect->_use ) {
-						Qk_ASSERT( connect->_id != ConnectID() );
-						connect->_use = false;
-						connect->_client = nullptr;
-						connect->socket()->set_timeout(0);
-						connect->socket()->resume();
+					if ( c->_busy ) {
+						Qk_Assert( c->_id != ConnectID() );
+						c->_busy = false;
+						c->_client = nullptr;
+						c->_recovery_time = time_micro();
+						c->socket()->set_timeout(0);
+						c->socket()->resume();
+						// delay call task
+						c->_loop->timer(Cb([this](auto&e){
+							Lock lock(_mutex);
+							call_req_tasks(&lock);
+						}), 6e5); // 600ms
 					}
 				}
-
-				for ( auto i = _connect_req.begin(); i != _connect_req.end(); ) {
-					auto j = i++;
-					connect_req& req = *i;
-					if (req.client->_wait_connect_id == req.wait_id) {
-						Connect* conn = get_connect(req);
-						if ( conn ) {
-							conn->_use = true;
-							Cb cb = req.cb;
-							_connect_req.erase(j);
-							lock.unlock(); // unlock
-							Cb::Data evt = { 0, conn };
-							cb->call( evt );
-							break;
-						}
-					} else {
-						_connect_req.erase(j); // discard req
-					}
-				}
+				call_req_tasks(&lock);
 			}
 
 		private:
+
+			void call_req_tasks(Lock *lock) {
+				for ( auto i = _reqs.begin(); i != _reqs.end(); ) {
+					auto j = i++;
+					connect_req& req = *i;
+					if (req.client->_wait_connect_id == req.wait_id) {
+						auto conn = get_connect(req);
+						if ( conn ) {
+							conn->_busy = true;
+							auto cli = req.client;
+							Cb cb = req.cb;
+							_reqs.erase(j);
+							lock->unlock(); // unlock
+							cli->loop()->post(cb); // async call
+							break;
+						}
+					} else {
+						_reqs.erase(j); // discard req
+					}
+				}
+			}
+
 			Connect* get_connect(connect_req& req) {
 				Connect* conn = nullptr;
-				Connect* conn2 = nullptr;
-				uint32_t connect_count = 0;
+				Connect* tryDel = nullptr; // try delete one connect
+				uint32_t poolSize = 0;
+				auto now = time_micro();
 				
-				for ( auto& i : _pool ) {
-					if ( connect_count < MAX_CONNECT_COUNT ) {
-						Connect* connect = i;
-						if (connect->socket()->hostname() == req.hostname &&
-								connect->socket()->port() == req.port &&
-								connect->ssl() == (req.uri_type == URI_HTTPS)
+				for ( auto i : _conns ) {
+					if ( poolSize < MAX_CONNECT_POOL_SIZE ) {
+						if (i->socket()->hostname() == req.hostname &&
+								i->socket()->port() == req.port &&
+								i->ssl() == (req.uri_type == URI_HTTPS)
 						) {
-							connect_count++;
-							if ( !connect->_use ) {
-								if (connect->loop() == req.client->loop()) {
-									conn = connect; break;
+							if ( !i->_busy && now - i->_recovery_time > 5e5/*wait 500ms*/) { // available
+								if (i->loop() == req.client->loop()) {
+									conn = i; break;
 								} else {
-									conn2 = connect;
+									tryDel = i;
 								}
 							}
+							poolSize++;
 						}
 					}
 				}
 
-				Qk_ASSERT(connect_count <= MAX_CONNECT_COUNT);
-				
+				Qk_Assert(poolSize <= MAX_CONNECT_POOL_SIZE);
+
 				if (!conn) {
-					if (connect_count == MAX_CONNECT_COUNT) {
-						if (conn2) {
-							// 连接已达到最大限制然而这个连接虽然可用但不在同一个loop,所以删除
-							connect_count--;
-							_pool.erase(conn2->_id);
-							conn2->_id = ConnectID();
-							conn2->loop()->post(Cb([conn2](Cb::Data& e) {
-								conn2->release();
+					if (poolSize == MAX_CONNECT_POOL_SIZE) {
+						if (tryDel) {
+							// The connection has reached its maximum limit,
+							// but although it is available, it is not in the same loop, so it will be deleted
+							_conns.erase(tryDel->_id);
+							tryDel->_id = ConnectID();
+							tryDel->loop()->post(Cb([tryDel](auto&e) {
+								tryDel->release();
 							}));
+							poolSize--;
 						}
 					}
-					if (connect_count < MAX_CONNECT_COUNT) {
+					if (poolSize < MAX_CONNECT_POOL_SIZE) {
 						conn = new Connect(req.hostname,
-															 req.port,
-															 req.uri_type == URI_HTTPS, req.client->loop());
-						conn->_id = _pool.pushBack(conn);
+															req.port,
+															req.uri_type == URI_HTTPS, req.client->loop());
+						conn->_id = _conns.pushBack(conn);
 					}
 				}
+
 				return conn;
 			}
 
 			Mutex _mutex;
-			List<Connect*> _pool;
-			List<connect_req> _connect_req;
+			List<Connect*> _conns;
+			List<connect_req> _reqs;
 		};
 
 		class FileCacheReader: public File, public File::Delegate, public Reader {
@@ -833,7 +845,7 @@ namespace qk {
 				, _client(client)
 				, _parse_header(true), _offset(0), _size(size)
 			{
-				Qk_ASSERT(!_client->_cache_reader);
+				Qk_Assert(!_client->_cache_reader);
 				_client->_cache_reader = this;
 				set_delegate(this);
 				open();
@@ -936,7 +948,7 @@ namespace qk {
 				} else {
 					// read cache
 					_read_count--;
-					Qk_ASSERT(_read_count == 0);
+					Qk_Assert(_read_count == 0);
 					
 					if ( buffer.length() ) {
 						_offset += buffer.length();
@@ -992,14 +1004,14 @@ namespace qk {
 				// flag = 1 only write header
 				// flag = 2 write header and body
 
-				Qk_ASSERT(!_client->_file_writer);
+				Qk_Assert(!_client->_file_writer);
 				_client->_file_writer = this;
 
 				// Qk_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
 				
 				if ( _write_flag ) { // verification cache is valid
 					auto r_header = _client->response_header();
-					Qk_ASSERT(r_header.length());
+					Qk_Assert(r_header.length());
 
 					if ( r_header.has("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
@@ -1091,7 +1103,7 @@ namespace qk {
 				} else {
 					_client->trigger_http_data2(buffer);
 					_write_count--;
-					Qk_ASSERT(_write_count >= 0);
+					Qk_Assert(_write_count >= 0);
 				 advance:
 					if ( _write_count == 0 ) {
 						if ( _completed_end ) { // http已经结束
@@ -1146,7 +1158,7 @@ namespace qk {
 
 		void read_advance() {
 			Reader* r = reader();
-			Qk_ASSERT(r);
+			Qk_Assert(r);
 			if ( _pause ) {
 				r->read_pause();
 			} else {
@@ -1156,7 +1168,7 @@ namespace qk {
 
 		void read_pause() {
 			Reader* r = reader();
-			Qk_ASSERT(r);
+			Qk_Assert(r);
 			r->read_pause();
 		}
 
@@ -1165,10 +1177,8 @@ namespace qk {
 		}
 
 		void trigger_http_readystate_change(HttpReadyState ready_state) {
-			if ( ready_state != _ready_state ) {
-				_ready_state = ready_state;
-				_delegate->trigger_http_readystate_change(_host);
-			}
+			_ready_state = ready_state;
+			_delegate->trigger_http_readystate_change(_host);
 		}
 
 		void trigger_http_write() {
@@ -1186,7 +1196,6 @@ namespace qk {
 		}
 
 		void trigger_http_data(Buffer& buffer) {
-
 			// _write_cache_flag:
 			// _write_cache_flag = 0 not write cache
 			// _write_cache_flag = 1 write response header
@@ -1219,8 +1228,8 @@ namespace qk {
 
 		void http_response_complete(bool fromCache) {
 			if (!fromCache) {
-				Qk_ASSERT(_pool);
-				Qk_ASSERT(_connect);
+				Qk_Assert(_pool);
+				Qk_Assert(_connect);
 				_pool->recovery(_connect, false);
 				_connect = nullptr;
 
@@ -1233,7 +1242,7 @@ namespace qk {
 						_response_header = std::move(_cache_reader->header());
 
 						if (!expires.isEmpty() && expires != _response_header["expires"]) {
-							// 重新设置 expires
+							// set expires value
 							_write_cache_flag = 1; // rewrite response header
 							_response_header["expires"] = expires;
 						}
@@ -1244,7 +1253,7 @@ namespace qk {
 					}
 				}
 			}
-			
+
 			if ( _file_writer ) {
 				if ( _file_writer->is_write_complete() ) { // 缓存是否写入完成
 					trigger_http_end();
@@ -1258,33 +1267,36 @@ namespace qk {
 
 		void report_error_and_abort(cError& error) {
 			_delegate->trigger_http_error(_host, error);
-			abort_();
+			abort();
 		}
 
 		void trigger_http_timeout() {
 			_delegate->trigger_http_timeout(_host);
-			abort_();
+			abort();
 		}
 
 		void send_http() {
-			Qk_ASSERT(_sending);
-			Qk_ASSERT(!_connect);
-			Qk_ASSERT(_pool);
+			Qk_Assert(_retain);
+			Qk_Assert(!_connect);
+			Qk_Assert(_pool);
 			_pool->request(this, Cb([this](Cb::Data& evt) {
+				auto c = static_cast<Connect*>(evt.data);
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
 					} else {
-						Qk_ASSERT( !_connect );
-						_connect = static_cast<Connect*>(evt.data);
+						Qk_Assert( !_connect );
+						_connect = c;
 						_connect->bind_client_and_send(this);
 					}
+				} else {
+					_pool->recovery(c, false);
 				}
 			}, this));
 		}
 
 		void cache_file_stat_cb(Callback<FileStat>::Data& evt) {
-			if ( _sending ) {
+			if ( _retain ) {
 				if ( evt.error ) { //
 					send_http();
 				} else {
@@ -1293,53 +1305,41 @@ namespace qk {
 			}
 		}
 
-		inline void trigger_http_end() {
+		void trigger_http_end() {
 			end_(false);
 		}
 
-		inline void abort_() {
-			end_(true);
-		}
-
 		void end_(bool abort) {
-			if ( _sending && !_sending->_ending ) {
-				_sending->_ending = true;
-				
-				Qk_ASSERT(_pool);
-				
+			if ( _retain && !_retain->ending ) {
+				_retain->ending = true;
+
+				Qk_Assert(_pool);
 				Release(_cache_reader); _cache_reader = nullptr;
 				Release(_file_writer);  _file_writer = nullptr;
-				_pool->recovery(_connect, abort);  _connect = nullptr;
+				_pool->recovery(_connect, abort); _connect = nullptr;
 				_pause = false;
 				_wait_connect_id = 0;
-				
+
 				if ( abort ) {
-					_sending->release();
-					HttpReadyState state = _ready_state;
+					delete _retain;
 					_delegate->trigger_http_abort(_host);
-					if (state == _ready_state)
-						_ready_state = HTTP_READY_STATE_INITIAL;
 				} else {
-					Qk_ASSERT(_sending);
-					_ready_state = HTTP_READY_STATE_COMPLETED;
-					_delegate->trigger_http_readystate_change(_host);
-					_sending->release();
+					trigger_http_readystate_change(HTTP_READY_STATE_COMPLETED);
+					delete _retain;
 					_delegate->trigger_http_end(_host);
-					if (_ready_state == HTTP_READY_STATE_COMPLETED)
-						_ready_state = HTTP_READY_STATE_INITIAL;
 				}
 			}
 		}
 
 	public:
 		void send(Buffer data) throw(Error) {
-			Qk_Check(!_sending, ERR_REPEAT_CALL, "Sending repeat call");
+			Qk_Check(!_retain, ERR_REPEAT_CALL, "RetainRef repeat call");
 			Qk_Check(!_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
 			Qk_Check(_uri.type() == URI_HTTP ||
 							_uri.type() == URI_HTTPS, ERR_INVALID_FILE_PATH, "Invalid path `%s`", *_uri.href());
 
 			_post_data = data;
-			_sending = new Sending(this);
+			_retain = new RetainRef(this);
 			_pause = false;
 			_url_no_cache_arg = false;
 			_cache_path = http_cache_path() + '/' +
@@ -1352,7 +1352,7 @@ namespace qk {
 
 			trigger_http_readystate_change(HTTP_READY_STATE_READY); // ready
 
-			if ( !_sending )
+			if ( !_retain )
 				return; // abort
 
 			_upload_total = 0; _upload_size = 0;
@@ -1369,23 +1369,22 @@ namespace qk {
 		}
 
 		void abort() {
-			if ( _sending ) {
-				abort_();
-			}
+			end_(true);
 		}
 
 		void check_is_can_modify() throw(Error) {
-			Qk_Check(!_sending, ERR_SENDIF_CANNOT_MODIFY, "Http request sending cannot modify property");
+			Qk_Check(!_retain, ERR_SENDIF_CANNOT_MODIFY, "Http request sending cannot modify property");
 		}
 
 		void pause() {
-			if ( _sending ) _pause = true;
+			if ( _retain )
+				_pause = true;
 		}
 
 		void resume() {
-			if ( _sending && _pause ) {
+			if ( _retain && _pause ) {
 				_pause = false;
-				Reader* r = reader();
+				auto r = reader();
 				if ( r ) {
 					r->read_advance();
 				}
@@ -1394,7 +1393,7 @@ namespace qk {
 
 	private:
 		HttpClientRequest* _host;
-		KeepLoop*    _keep_loop;
+		RunLoop*      _loop;
 		HttpDelegate* _delegate;
 		int64_t      _upload_total;    /* 需上传到服务器数据总量 */
 		int64_t      _upload_size;     /* 已写上传到服务器数据尺寸 */
@@ -1421,7 +1420,7 @@ namespace qk {
 		bool        _disable_send_cookie;
 		bool        _disable_ssl_verify;
 		bool        _keep_alive;
-		Sending*    _sending;
+		RetainRef*  _retain;
 		uint64_t    _timeout;
 		bool        _pause;
 		bool        _url_no_cache_arg;
@@ -1438,7 +1437,6 @@ namespace qk {
 	{}
 
 	HttpClientRequest::~HttpClientRequest() {
-		Qk_ASSERT(_inl->_keep_loop->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		_inl->abort();
 		_inl->release();
@@ -1577,23 +1575,23 @@ namespace qk {
 		return _inl->_uri.href();
 	}
 
-	void HttpClientRequest::send(Buffer data) throw(Error) { // thread safe
+	void HttpClientRequest::send(Buffer data) throw(Error) {
 		_inl->send(data);
 	}
 
-	void HttpClientRequest::send(cString& data) throw(Error) { // thread safe
+	void HttpClientRequest::send(cString& data) throw(Error) {
 		_inl->send(data.copy().collapse());
 	}
 
-	void HttpClientRequest::pause() { // thread safe
+	void HttpClientRequest::pause() {
 		_inl->pause();
 	}
 
-	void HttpClientRequest::resume() { // thread safe
+	void HttpClientRequest::resume() {
 		_inl->resume();
 	}
 
-	void HttpClientRequest::abort() { // thread safe
+	void HttpClientRequest::abort() {
 		_inl->abort();
 	}
 

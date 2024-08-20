@@ -10,66 +10,72 @@ function stat(path: string) {
 export default async function(_: any) {
 	LOG('\nFileHelper:\n');
 
-	const DIR = path.documents('test');
-	const DIR2 = path.documents('test2');
-	const FILE = DIR + '/test_file.txt';	
+	const A = path.documents('test/a');
+	const B = path.documents('test/b');
+	const FILE = path.documents('test/a/file.txt');
 
-	fs.removerSync(DIR);
-	fs.removerSync(DIR2);
-	fs.mkdirpSync(DIR);
+	fs.removeRecursionSync(A);
+	fs.removeRecursionSync(B);
+	fs.mkdirsSync(A);
 	fs.writeFileSync(FILE, 'ABCDEFG');
 
 	let s = stat(FILE);
 
-	await Mv(fs, 'chmodr', [DIR, s.mode()+1]);
-	Mv(stat(FILE), 'mode', [], i=>i==s.mode()+1);
+	{
+		await Mv(fs, 'chmodRecursion', [A, s.mode()+1]);
+		Mv(stat(FILE), 'mode', [], i=>i==s.mode()+1);
 
-	Mv(fs, 'chmodrSync', [DIR, s.mode() + 2 ]);
-	Mv(stat(FILE), 'mode', [], i=>i==s.mode()+2);
+		Mv(fs, 'chmodRecursionSync', [A, s.mode() + 2 ]);
+		Mv(stat(FILE), 'mode', [], i=>i==s.mode()+2);
 
-	await Mv(fs, 'chownr', [DIR, s.owner(), s.group()]);
-	Mv(stat(DIR), 'owner', [], i=>i==s.owner());
-	Mv(stat(DIR), 'group', [], i=>i==s.group());
+		await Mv(fs, 'chownRecursion', [A, s.owner(), s.group()]);
+		Mv(stat(A), 'owner', [], i=>i==s.owner());
+		Mv(stat(A), 'group', [], i=>i==s.group());
 
-	Mv(fs, 'chownrSync', [DIR, s.owner(), s.group()]);
-	Mv(stat(DIR), 'owner', [], i=>i==s.group());
-	Mv(stat(DIR), 'group', [], i=>i==s.group());
+		Mv(fs, 'chownRecursionSync', [A, s.owner(), s.group()]);
+		Mv(stat(A), 'owner', [], i=>i==s.owner());
+		Mv(stat(A), 'group', [], i=>i==s.group());
+	}
 
-	await Mv(fs, 'mkdirp', [DIR + '/b/c']);
-	Mv(fs, 'existsSync', [DIR + '/b/c'], true);
+	{
+		await Mv(fs, 'mkdirs', [A + '/0/1']);
+		Mv(fs, 'existsSync', [A + '/0/1'], true);
 
-	Mv(fs, 'mkdirpSync', [DIR + '/b_sync/c']);
-	Mv(fs, 'existsSync', [DIR + '/b_sync/c'], true);
+		fs.writeFileSync(A + '/0/b.txt', 'ABCDEFG');
+		await Mv(fs, 'removeRecursion', [A + '/0']);
+		Mv(fs, 'existsSync', [A + '/0'], false);
+		Mv(fs, 'existsSync', [A + '/0/b.txt'], false);
+	}
 
-	fs.writeFileSync(FILE + '/b/b.txt', 'ABCDEFG');
-	await Mv(fs, 'remover', [DIR + '/b']);
-	Mv(fs, 'existsSync', [DIR + '/b'], false);
-	Mv(fs, 'existsSync', [DIR + '/b/b.txt'], false);
+	{
+		Mv(fs, 'mkdirsSync', [A + '/sync/f']);
+		Mv(fs, 'existsSync', [A + '/sync/f'], true);
 
-	fs.writeFileSync(FILE + '/c_sync/c.txt', 'ABCDEFG');
-	Mv(fs, 'removerSync', [DIR + '/c_sync']);
-	Mv(fs, 'existsSync', [DIR + '/c_sync'], false);
-	Mv(fs, 'existsSync', [DIR + '/c_sync/c.txt'], false);
-	
-	await Mv(fs, 'copy', [FILE, DIR + '/cp.txt']);
-	Mv(fs, 'existsSync', [DIR + '/cp.txt'], true);
+		fs.writeFileSync(A + '/sync/c.txt', 'ABCDEFG');
+		Mv(fs, 'removeRecursionSync', [A + '/sync']);
+		Mv(fs, 'existsSync', [A + '/sync'], false);
+		Mv(fs, 'existsSync', [A + '/sync/c.txt'], false);
+	}
 
-	Mv(fs, 'copySync', [FILE, DIR + '/cp_sync.txt']);
-	Mv(fs, 'existsSync', [DIR + '/cp_sync.txt'], true);
+	await Mv(fs, 'copy', [FILE, A + '/cp.txt']);
+	Mv(fs, 'existsSync', [A + '/cp.txt'], true);
 
-	await Mv(fs, 'copyr', [DIR, DIR2]);
-	Mv(fs, 'existsSync', [DIR2], true);
-	Mv(fs, 'existsSync', [DIR2 + '/cp.txt'], true);
+	Mv(fs, 'copySync', [FILE, A + '/cp_sync.txt']);
+	Mv(fs, 'existsSync', [A + '/cp_sync.txt'], true);
 
-	Mv(fs, 'copyrSync', [DIR, DIR2 + '_sync']);
-	Mv(fs, 'existsSync', [DIR2 + '_sync'], true);
-	Mv(fs, 'existsSync', [DIR2 + '_sync' + '/cp.txt'], true);
+	await Mv(fs, 'copyRecursion', [A, B]);
+	Mv(fs, 'existsSync', [B], true);
+	Mv(fs, 'existsSync', [B + '/cp.txt'], true);
 
-	await Mv(fs, 'readdir', [DIR]);
-	Mv(fs, 'readdirSync', [DIR]);
+	Mv(fs, 'copyRecursionSync', [A, B + '_sync']);
+	Mv(fs, 'existsSync', [B + '_sync'], true);
+	Mv(fs, 'existsSync', [B + '_sync' + '/cp.txt'], true);
+
+	await Mv(fs, 'readdir', [A]);
+	Mv(fs, 'readdirSync', [A]);
 
 	await Mv(fs, 'isFile', [FILE], true);
 	Mv(fs, 'isFileSync', [FILE], true);
-	await Mv(fs, 'isDirectory', [DIR], true);
-	Mv(fs, 'isDirectorySync', [DIR], true);
+	await Mv(fs, 'isDirectory', [A], true);
+	Mv(fs, 'isDirectorySync', [A], true);
 }

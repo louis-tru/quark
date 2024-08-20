@@ -49,8 +49,6 @@ typedef struct uv_timer_s uv_timer_t;
 typedef struct uv_check_s uv_check_t;
 
 namespace qk {
-	class KeepLoop;
-
 	typedef std::thread::id         ThreadID;
 	typedef std::mutex              Mutex;
 	typedef std::recursive_mutex    RecursiveMutex;
@@ -58,7 +56,8 @@ namespace qk {
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
-	template<> Qk_EXPORT uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
+	template<>
+	Qk_EXPORT uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
 
 	struct Thread;
 	struct CondMutex {
@@ -75,13 +74,13 @@ namespace qk {
 	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0);
 	//!< Pause the current operation can be awakened by 'resume()'
 	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
-	Qk_EXPORT void     thread_resume(ThreadID id, int abort = 0); //!< resume thread running and send abort signal
-	Qk_EXPORT void     thread_abort(ThreadID id); //!< send abort to run loop, signal=-1
+	Qk_EXPORT void     thread_resume(ThreadID id, int abort = 0); //!< resume thread running and try abort
+	Qk_EXPORT void     thread_try_abort(ThreadID id); // !< try abort thread, abort=-1
 	//!< wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
 	Qk_EXPORT void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
-	Qk_EXPORT void     thread_try_abort_and_exit(int exit_rc); //!< try abort all run loop, signal=-2
 	Qk_EXPORT ThreadID thread_self_id();
-	Qk_EXPORT void     thread_check_self_first(); //!< Check if self is the first thread
+	Qk_EXPORT void     thread_check_self_first(); // !< Check if self is the first thread
+	Qk_EXPORT void     thread_exit(int exit_rc); // !< try abort all thread and exit process, abort=-2
 
 	Qk_EXPORT EventNoticer<Event<>, Mutex>& onProcessExit();
 
@@ -117,6 +116,11 @@ namespace qk {
 		bool is_alive() const;
 
 		/**
+		 * @overwrite
+		*/
+		void post_message(Cb cb) override;
+
+		/**
 		 * Synchronously post a message callback to the run loop
 		 *
 		 * @note Circular calls by the same thread lead to deadlock
@@ -130,7 +134,7 @@ namespace qk {
 
 		/**
 		 * @method timer() start timer and return handle id
-		 * @param repeat always repeating
+		 * @param repeat repeat < 0 the always repeating
 		*/
 		uint32_t timer(Cb cb, uint64_t timeUs, int64_t repeat = 0);
 
@@ -150,14 +154,14 @@ namespace qk {
 		void work_cancel(uint32_t id);
 
 		/**
-		 * @method next_tick() next tick check
+		 * @method tick() tick check, repeat < 0 the always repeating
 		*/
-		void next_tick(Cb cb);
+		uint32_t tick(Cb cb, int64_t repeat = 0);
 
 		/**
-		 * @overwrite
+		 * @method tick_stop tick stop
 		*/
-		virtual void post_message(Cb cb);
+		void tick_stop(uint32_t id);
 
 		/**
 		 * Running the message loop
@@ -172,12 +176,6 @@ namespace qk {
 		 * and `keep_count` will be checked when `RunLoop` is destroyed
 		*/
 		void stop();
-
-		/**
-		 * Keep the running state and return a proxy object, as long as you don't delete `KeepLoop` or call `stop()`,
-		 * the message queue will always remain in the running state
-		*/
-		KeepLoop* keep_alive(void (*check)(void *ctx) = 0, void* ctx = 0);
 
 		/**
 		 * Returns the libuv C library uv loop object for current run loop
@@ -207,7 +205,8 @@ namespace qk {
 		static RunLoop* first();
 
 		/**
-		* @method clear(), immediately stop all timer and msg
+		* @method clear(), immediately stop all timer and msg,
+		* only allowed to be called on the self thread
 		*/
 		void clear();
 
@@ -217,22 +216,15 @@ namespace qk {
 		 * only one can be created and the current entity can be obtained through `RunLoop::current()`
 		 * @constructor
 		*/
-		RunLoop(Thread* t, uv_loop_t* uv);
+		RunLoop(uv_loop_t* uv);
+		~RunLoop();
 
-		/**
-		 * @destructor
-		*/
-		virtual ~RunLoop();
-
-		struct Msg {
-			Cb cb;
-			uv_timer_t* timer;
-		};
+		struct Msg { uv_timer_t *timer; Cb cb; };
 		struct Work;
-		List<KeepLoop*> _keep;
 		List<Msg>       _msg;
 		Dict<uint32_t, Work*> _work;
 		Dict<uint32_t, uv_timer_t*> _timer;
+		Dict<uint32_t, uv_check_t*> _check;
 		Mutex       _mutex;
 		Thread*     _thread;
 		ThreadID    _tid;
@@ -241,17 +233,6 @@ namespace qk {
 		uv_timer_t* _uv_timer;
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
-	};
-
-	/**
-	 * This object keeps the RunLoop loop from automatically terminating unless `RunLoop::stop()` is called
-	 *
-	 * @class KeepLoop
-	 */
-	class Qk_EXPORT KeepLoop: public PostMessage {
-	public:
-		virtual ~KeepLoop() = default;
-		RunLoop* loop();
 	};
 
 	inline RunLoop* current_loop() {

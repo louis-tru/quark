@@ -70,7 +70,7 @@ namespace qk {
 		IteratorConst begin() const { return IteratorConst(_ptr.val); }
 		IteratorConst end() const { return IteratorConst(_ptr.val + _length); }
 
-		virtual ~Array() { clear(); }
+		~Array() { clear(); }
 
 		/**
 		 * @method size() Get the memory size occupied by the data
@@ -150,7 +150,7 @@ namespace qk {
 		/**
 		 * @method collapse string, discard data ownership
 		*/
-		ArrayString<T, A> collapseString();
+		StringImpl<T, A> collapseString();
 
 		/**
 		 * @method to vector
@@ -165,7 +165,7 @@ namespace qk {
 		/**
 		 * @func toString() to_string
 		 */
-		virtual String toString() const;
+		String toString() const;
 
 		/**
 		 * @method clear() clear data
@@ -271,12 +271,12 @@ namespace qk {
 	template<typename T>
 	class ArrayWeak: public Object {
 	public:
-		ArrayWeak(): _length(0), _ptr{0,nullptr} {}
+		ArrayWeak(): _length(0), _ptr{nullptr,0} {}
 		ArrayWeak(const T* data, uint32_t length)
-			: _length(length), _ptr{length,const_cast<T*>(data)} {}
+			: _length(length), _ptr{const_cast<T*>(data),length} {}
 		template<class A2>
 		ArrayWeak(cArray<T, A2>& arr)
-			: _length(arr.length()), _ptr{arr.length(),const_cast<T*>(*arr)} {}
+			: _length(arr.length()), _ptr{const_cast<T*>(*arr),arr.length()} {}
 
 		operator bool() const { return _ptr.val != nullptr; }
 		const T* operator*() const { return _ptr.val; }
@@ -299,18 +299,18 @@ namespace qk {
 	// ---------------------------------- IMPL ----------------------------------
 
 	template<typename T, typename A>
-	Array<T, A>::Array(): _length(0), _ptr{0, nullptr}
+	Array<T, A>::Array(): _length(0), _ptr{nullptr,0}
 	{}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(Array&& arr): _length(0), _ptr{0, nullptr}
+	Array<T, A>::Array(Array&& arr): _length(0), _ptr{nullptr,0}
 	{
 		if (arr._length)
 			operator=(std::move(arr));
 	}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(const Array& arr): _length(arr._length), _ptr{0, nullptr}
+	Array<T, A>::Array(const Array& arr): _length(arr._length), _ptr{nullptr,0}
 	{
 		if (_length)
 			arr.copy_(&_ptr, 0, _length);
@@ -318,7 +318,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::initializer_list<T>& list)
-		: _length(0), _ptr{0, nullptr}
+		: _length(0), _ptr{nullptr,0}
 	{
 		write(list.begin(), (uint32_t)list.size());
 	}
@@ -332,7 +332,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, uint32_t capacity, T* data)
-		: _length(length), _ptr{capacity,data}
+		: _length(length), _ptr{data,capacity}
 	{}
 
 	template<typename T, typename A>
@@ -341,7 +341,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, uint32_t capacity)
-		: _length(0), _ptr{0,nullptr}
+		: _length(0), _ptr{nullptr,0}
 	{
 		extend(length);
 		increase_(Qk_MAX(length, capacity));
@@ -507,15 +507,15 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	void Array<T, A>::reset(uint32_t capacity) {
-		if (capacity < _length) { // clear Partial data
-			T* i = _ptr.val + capacity;
+	void Array<T, A>::reset(uint32_t length) {
+		if (length < _length) { // clear Partial data
+			T* i = _ptr.val + length;
 			T* end = i + _length;
 			while (i < end)
 				reinterpret_cast<Sham*>(i++)->~Sham(); // release
-			_length = capacity;
+			_length = length;
 		} else {
-			extend(capacity);
+			extend(length);
 		}
 	}
 

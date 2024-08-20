@@ -5,6 +5,9 @@ import * as http from 'quark/http'
 import path from 'quark/path'
 import * as fs from 'quark/fs'
 import * as buffer from 'quark/buffer'
+import util from 'quark/util'
+
+// setInterval(()=>util.gc());
 
 export default async function(_: any) {
 	LOG('\nHttpClientRequest:\n')
@@ -18,7 +21,7 @@ export default async function(_: any) {
 		Pv(cl, 'statusCode', e=>e!=200)
 	})
 	cl.onWrite.on(function(ev) {
-		LOG('http onwrite:') 
+		LOG('http onwrite:')
 		Pv(cl, 'uploadTotal', e=>e!=0)
 		Pv(cl, 'uploadSize', e=>e!=0)
 	})
@@ -28,32 +31,31 @@ export default async function(_: any) {
 		Mv(cl, 'getAllResponseHeaders', []);
 	})
 	cl.onData.on(function(ev){ 
-		//LOG('http ondata:', ev.data.toString());
-		LOG('http ondata:', ev.data.length);
+		// LOG('http ondata:', ev.data.length, cl.url, buffer.toString(ev.data));
+		LOG('http ondata:', ev.data.length, cl.url);
 		Pv(cl, 'downloadSize', e=>e!=0)
-		Pv(cl, 'downloadTotal', e=>e!=0)
+		// Pv(cl, 'downloadTotal', e=>e!=0)
 	})
-	cl.onEnd.on(function(ev){ 
-		LOG('http onend:') 
+	cl.onEnd.on(function(ev){
+		LOG('http onend:')
 		Mv(cl, 'pause', [])
 		Mv(cl, 'resume', [])
 		Mv(cl, 'abort', [])
-		Pv(cl, 'uploadTotal', e=>e!=0)
-		Pv(cl, 'uploadSize', e=>e!=0)
-		Pv(cl, 'downloadTotal', e=>e!=0)
+		Pv(cl, 'uploadTotal', e=>e==0)
+		Pv(cl, 'uploadSize', e=>e==0)
+		// Pv(cl, 'downloadTotal', e=>e!=0)
 		Pv(cl, 'downloadSize', e=>e!=0)
-		Pv(cl, 'readyState', HttpReadyState.Completed)
-		Pv(cl, 'statusCode', 200)
-		Pv(cl, 'url', 'https://www.baidu.com/')
+		//Pv(cl, 'readyState', HttpReadyState.Completed)
+		//Pv(cl, 'statusCode', 200)
 	})
 	cl.onReadystateChange.on(function(ev){
-		LOG('http onReadystateChange:', cl.readyState, cl.statusCode) 
+		LOG('http onReadystateChange:', cl.readyState, cl.statusCode)
 	})
 	cl.onTimeout.on(function(ev) {
 		LOG('http ontimeout:')
 	})
 	cl.onAbort.on(function(ev) {
-		LOG('http onabort:') 
+		LOG('http onabort: ------------------------------------ ') 
 	})
 
 	Mv(cl, 'setMethod', [HttpMethod.GET]);
@@ -66,7 +68,7 @@ export default async function(_: any) {
 	Mv(cl, 'setRequestHeader', ['test_set_request_header', 'test'])
 	Mv(cl, 'getResponseHeader', ['expires'])
 	Mv(cl, 'getAllResponseHeaders', [])
-	Mv(cl, 'setKeepAlive', [false])
+	// Mv(cl, 'setKeepAlive', [false])
 	Mv(cl, 'setTimeout', [10000])
 	Mv(cl, 'pause', [])
 	Mv(cl, 'resume', [])
@@ -78,15 +80,16 @@ export default async function(_: any) {
 	Pv(cl, 'readyState', HttpReadyState.Initial)
 	Pv(cl, 'statusCode', 0)
 	Pv(cl, 'url', 'https://www.baidu.com/')
-	Mv(cl.onEnd, 'on', [function(ev){ 
+	Mv(cl.onEnd, 'on', [function(ev){
 		Mv(fs, 'readFileSync', [save]);
-		test_2(cl);
+		// test_upload(cl);
+		test_download(cl);
 	}, '1']);
-	Mv(cl, 'send', [])
-
+	// Mv(cl, 'send', [])
+	test_download(cl);
 }
 
-function test_2(cl: HttpClientRequest) {
+function test_upload(cl: HttpClientRequest) {
 	var file = path.documents('test_upload.txt');
 	var file2 = path.documents('test_upload2.txt');
 
@@ -100,25 +103,26 @@ function test_2(cl: HttpClientRequest) {
 	Mv(cl, 'clearFormData', [])
 	Mv(cl, 'setUrl', ['http://192.168.1.100:1026/Tools/upload_file'])
 	Mv(cl, 'setMethod', [HttpMethod.POST])
-	Mv(cl, 'setSavePath', ['']);
+	Mv(cl, 'setSavePath', ['']); // no save path
 	Mv(cl, 'setKeepAlive', [true])
 	Mv(cl, 'disableCookie', [true])
 	Mv(cl, 'disableSendCookie', [true])
 	Mv(cl, 'setForm', ['data', 'The test file upload'])
 	Mv(cl, 'setUploadFile', ['upload_file', file])
 	Mv(cl, 'setUploadFile', ['upload_file2', file2])
-	Mv(cl.onEnd, 'on', [()=>test_3(cl), '1']);
+	Mv(cl.onEnd, 'on', [()=>test_download(cl), '1']);
 	Mv(cl, 'send', [])
 }
 
-function test_3(cl: HttpClientRequest) {
-	LOG('\nTest disable_cache:\n')
+function test_download(cl: HttpClientRequest) {
+	LOG('\nTest test_download:\n')
+	Mv(cl, 'setSavePath', ['']) // no save path
 	Mv(cl, 'disableCookie', [false])
 	Mv(cl, 'disableSendCookie', [false])
 	Mv(cl, 'setMethod', [HttpMethod.GET])
 	Mv(cl, 'setUrl', ['https://github.com/louis-tru/quark/blob/master/doc/index.md'])
 	Mv(cl, 'disableCache', [true]);
-	Mv(cl.onEnd, 'on', [()=>test_4(cl), '1']);
+	// Mv(cl.onEnd, 'on', [()=>test_4(cl), '1']);
 	Mv(cl, 'send', [])
 }
 

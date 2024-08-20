@@ -33,14 +33,13 @@
 #include "./handle.h"
 
 namespace qk {
-
 	cChar _Str::ws[8] = {
 		0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20, /*0xA0,*/ 0x0
 	};
 
 	cChar test_big_Char[] = { 1, 0, 0, 0 };
 	const int* test_big_int = (const int*)test_big_Char;
-	const bool is_big_data = *test_big_int != 1;
+	const bool is_bigData = *test_big_int != 1;
 
 	void _Str::strcpy(void* o_, int sizeof_o, const void* i_, int sizeof_i, uint32_t len) {
 		char* o = (char*)o_;
@@ -48,11 +47,11 @@ namespace qk {
 		if (len && i) {
 			if (sizeof_o == sizeof_i) {
 				::memcpy(o, i, len * sizeof_o);
-				::memset(((char*)o) + len * sizeof_o, 0, sizeof_o);
+				::memset(o + len * sizeof_o, 0, sizeof_o);
 			} else {
 				int min = Qk_MIN(sizeof_o, sizeof_i);
 				int max = Qk_MIN(sizeof_o, sizeof_i);
-				if (is_big_data) { // big data layout
+				if (is_bigData) { // big data layout
 					for (int j = 0; j < len; j++) {
 						::memcpy(o, i + max - min, min); // Copy low order only
 						o+=sizeof_o; i+=sizeof_i;
@@ -68,7 +67,7 @@ namespace qk {
 		}
 	}
 	
-	bool _to_number(const void* i, int sizeof_i, int len_i, const char* f, void* o) {
+	static bool _toNumber(const void* i, int len_i, int sizeof_i, const char* f, void* o) {
 		if (sizeof_i == 1) {
 			return sscanf( (const char*)i, f, o);
 		} else {
@@ -78,48 +77,39 @@ namespace qk {
 		}
 	}
 
-	bool _Str::to_number(const void* i, int sizeof_i, int len, int32_t* o) {
-		return _to_number(i, sizeof_i, len, "%d", o);
-	}
-	
-	bool _Str::to_number(const void* i, int size_of, int len, uint32_t* o) {
-		return _to_number(i, size_of, len, "%u", o);
+	bool _Str::toNumber(const void* i, int len, int sizeOf, int32_t* o) {
+		return _toNumber(i, len, sizeOf, "%d", o);
 	}
 
-	bool _Str::to_number(const void* i, int sizeof_i, int len, int64_t* o) {
-		#if Qk_ARCH_64BIT
-			return _to_number(i, sizeof_i, len, "%ld", o);
-		#else
-			return _to_number(i, sizeof_i, len, "%lld", o);
-		#endif
+	bool _Str::toNumber(const void* i, int len, int sizeOf, uint32_t* o) {
+		return _toNumber(i, len, sizeOf, "%u", o);
 	}
 
-	bool _Str::to_number(const void* i, int size_of, int len, uint64_t* o) {
-		#if Qk_ARCH_64BIT
-			return _to_number(i, size_of, len, "%lu", o);
-		#else
-			return _to_number(i, size_of, len, "%llu", o);
-		#endif
+	bool _Str::toNumber(const void* i, int len, int sizeOf, int64_t* o) {
+		return _toNumber(i, len, sizeOf, Qk_ARCH_64BIT ? "%ld": "%lld", o);
 	}
 
-	bool _Str::to_number(const void* i, int size_of, int len, float* o) {
-		return _to_number(i, size_of, len, "%fd", o);
+	bool _Str::toNumber(const void* i, int len, int sizeOf, uint64_t* o) {
+		return _toNumber(i, len, sizeOf, Qk_ARCH_64BIT ? "%lu": "%llu", o);
 	}
 
-	bool _Str::to_number(const void* i, int size_of, int len, double* o) {
-		return _to_number(i, size_of, len, "%lf", o);
-		// return _to_number(i, size_of, len, "%g", o);
+	bool _Str::toNumber(const void* i, int len, int sizeOf, float* o) {
+		return _toNumber(i, len, sizeOf, "%f", o);
 	}
 
-	uint32_t _Str::strlen(const void* s_, int size_of) {
+	bool _Str::toNumber(const void* i, int len, int sizeOf, double* o) {
+		return _toNumber(i, len, sizeOf, "%lf", o);
+	}
+
+	uint32_t _Str::strlen(const void* s_, int sizeOf) {
 		const char* s = (const char*)s_;
 		if (s) {
-			if (size_of == 1) {
+			if (sizeOf == 1) {
 				return (uint32_t)::strlen(s);
 			} else {
 				uint32_t rev = 0;
 				while (*s != 0) {
-					rev++; s+=size_of;
+					rev++; s+=sizeOf;
 				}
 				return rev;
 			}
@@ -128,13 +118,13 @@ namespace qk {
 		}
 	}
 
-	int _Str::memcmp(const void* s1, const void* s2, uint32_t len, int size_of) {
-		return ::memcmp(s1, s2, len * size_of);
+	int _Str::memcmp(const void* s1, const void* s2, uint32_t len, int sizeOf) {
+		return ::memcmp(s1, s2, len * sizeOf);
 	}
 
 	int _Str::index_of(
 		const void* s1_, uint32_t s1_len, const void* s2_,
-		uint32_t s2_len, uint32_t start, int size_of
+		uint32_t s2_len, uint32_t start, int sizeOf
 	) {
 		if (s1_len < s2_len) return -1;
 		if (start + s2_len > s1_len) return -1;
@@ -145,7 +135,7 @@ namespace qk {
 		int32_t end = s1_len - s2_len + 1;
 
 		while ( start < end ) {
-			if (_Str::memcmp(s1 + (start * size_of), s2, s2_len, size_of) == 0) {
+			if (_Str::memcmp(s1 + (start * sizeOf), s2, s2_len, sizeOf) == 0) {
 				return start;
 			}
 			start++;
@@ -155,7 +145,7 @@ namespace qk {
 
 	int _Str::last_index_of(
 		const void* s1_, uint32_t s1_len, const void* s2_,
-		uint32_t s2_len, uint32_t _start, int size_of
+		uint32_t s2_len, uint32_t _start, int sizeOf
 	) {
 		const char* s1 = (const char*)s1_;
 		const char* s2 = (const char*)s2_;
@@ -163,7 +153,7 @@ namespace qk {
 		if ( start + s2_len > s1_len )
 			start = s1_len - s2_len;
 		while ( start > -1 ) {
-			if (_Str::memcmp(s1 + (start * size_of), s2, s2_len, size_of) == 0) {
+			if (_Str::memcmp(s1 + (start * sizeOf), s2, s2_len, sizeOf) == 0) {
 				return start;
 			}
 			start--;
@@ -171,17 +161,21 @@ namespace qk {
 		return -1;
 	}
 	
-	typedef ArrayStringBase::Realloc Realloc;
 	typedef _Str::Alloc Alloc;
-	typedef _Str::Size Size;
+	typedef StringBase::Realloc Realloc;
+	typedef StringBase::Free Free;
+	typedef StringBase::Long::Base Base;
 	typedef MemoryAllocator::Prt<char> Ptr;
-	
+	typedef StringBase::Long Long;
+	typedef StringBase::Short Short;
+
 	struct _StrTmp {
 		void realloc(uint32_t capacity) {
-			_realloc(&_ptr, capacity, sizeof(Char));
+			realloc_func(&ptr, capacity, sizeof(Char));
 		}
-		Ptr _ptr;
-		Realloc  _realloc;
+		inline char *val() { return ptr.val; }
+		Ptr     ptr;
+		Realloc realloc_func;
 	};
 
 	void* _Str::replace(
@@ -190,31 +184,31 @@ namespace qk {
 		const void* rep_, uint32_t rep_len,
 		int sizeOf, uint32_t* outLen, uint32_t* capacity_out, bool all, Realloc realloc
 	) {
-		_StrTmp s_tmp = {0, nullptr, realloc};
-		uint32_t s_tmp_to = 0;
+		_StrTmp tmp = {nullptr,0,realloc};
+		uint32_t tmp_to = 0;
 		uint32_t from = 0;
 		int32_t  find, before_len;
-		
+
 		const char* s1 = (const char*)s1_;
 		const char* s2 = (const char*)s2_;
 		const char* rep = (const char*)rep_;
 
 		while ((find = index_of(s1, s1_len, s2, s2_len, from, sizeOf)) != -1) {
 			before_len = find - from;
-			s_tmp.realloc((s_tmp_to + before_len + rep_len + 1) * sizeOf); // realloc
+			tmp.realloc((tmp_to + before_len + rep_len + 1) * sizeOf); // realloc
 
 			if (before_len) {
 				::memcpy(
-					s_tmp._ptr.val + s_tmp_to * sizeOf,  // to
-					s1         + from     * sizeOf,  // from
-					before_len            * sizeOf   // size
+					tmp.val() + tmp_to * sizeOf,  // to
+					s1        + from   * sizeOf,  // from
+					before_len         * sizeOf   // size
 				);
-				s_tmp_to += before_len;
-				from += before_len;
+				tmp_to += before_len;
+				from   += before_len;
 			}
-			::memcpy(s_tmp._ptr.val + s_tmp_to * sizeOf, rep, rep_len * sizeOf);
-			s_tmp_to += rep_len;
-			from += s2_len;
+			::memcpy(tmp.val() + tmp_to * sizeOf, rep, rep_len * sizeOf);
+			tmp_to += rep_len;
+			from   += s2_len;
 
 			if (!all) {
 				break;
@@ -222,22 +216,22 @@ namespace qk {
 		}
 
 		before_len = s1_len - from;
-		s_tmp.realloc((s_tmp_to + before_len + 1) * sizeOf);
+		tmp.realloc((tmp_to + before_len + 1) * sizeOf);
 
 		::memcpy(
-			s_tmp._ptr.val + s_tmp_to * sizeOf,  // to
-			s1         + from     * sizeOf,  // from
-			before_len            * sizeOf   // size
+			tmp.val() + tmp_to * sizeOf,  // to
+			s1        + from   * sizeOf,  // from
+			before_len         * sizeOf   // size
 		);
-		s_tmp_to += before_len;
+		tmp_to += before_len;
 
-		::memset(s_tmp._ptr.val + s_tmp_to * sizeOf, 0, sizeOf);
+		::memset(tmp.val() + tmp_to * sizeOf, 0, sizeOf);
 
-		*capacity_out = s_tmp._ptr.capacity;
-		*outLen = s_tmp_to;
-		return s_tmp._ptr.val;
+		*capacity_out = tmp.ptr.capacity;
+		*outLen = tmp_to;
+		return tmp.ptr.val;
 	}
-	
+
 	int _Str::tolower(int c) {
 		if ((c >= 'A') && (c <= 'Z'))
 			return c + ('a' - 'A');
@@ -252,126 +246,105 @@ namespace qk {
 
 	// ---------------------------------------------------------------------
 
-	int32_t vasprintf(char** o, cChar* f, va_list arg) {
-		return ::vasprintf(o, f, arg);
+	int _Str::oPrinti(char* o, uint32_t oLen, int32_t i) {
+		return _Str::oPrintf(o, oLen, "%d", i);
 	}
-	
-	int32_t vsnprintf(char* o, uint32_t len, cChar* f, va_list arg) {
-		return ::vsnprintf(o, len, f, arg);
+	int _Str::oPrinti(char* o, uint32_t oLen, uint32_t i) {
+		return _Str::oPrintf(o, oLen, "%u", i);
 	}
-
-	int32_t _Str::format_n(char* o, uint32_t len, cChar* f, ...) {
+	int _Str::oPrinti(char* o, uint32_t oLen, int64_t i) {
+		return _Str::oPrintf(o, oLen, Qk_ARCH_64BIT ? "%ld": "%lld", i);
+	}
+	int _Str::oPrinti(char* o, uint32_t oLen, uint64_t i) {
+		return _Str::oPrintf(o, oLen, Qk_ARCH_64BIT ? "%lu": "%llu", i);
+	}
+	int _Str::oPrinti(char* o, uint32_t oLen, float i) {
+		return _Str::oPrintf(o, oLen, "%f", i);
+	}
+	int _Str::oPrinti(char* o, uint32_t oLen, double i) {
+		return _Str::oPrintf(o, oLen, "%g", i);
+	}
+	int _Str::oPrintf(char* o, uint32_t len, cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-		int r = vsnprintf((char*)o, len + 1, f, arg);
+		int r = vsnprintf(o, len, f, arg);
 		va_end(arg);
 		return Qk_MIN(r, len);
 	}
-	
-	int32_t _Str::format_n(char* o, uint32_t len_o, int32_t i) {
-		return _Str::format_n(o, len_o, "%d", i);
+
+	Base _Str::sPrinti(int sizeOf, Alloc alloc, int32_t i) {
+		return _Str::sPrintf(sizeOf, alloc, "%d", i);
 	}
-	int32_t _Str::format_n(char* o, uint32_t len_o, uint32_t i) {
-		return _Str::format_n(o, len_o, "%u", i);
+	Base _Str::sPrinti(int sizeOf, Alloc alloc, uint32_t i) {
+		return _Str::sPrintf(sizeOf, alloc, "%u", i);
 	}
-	int32_t _Str::format_n(char* o, uint32_t len_o, int64_t i) {
-#if Qk_ARCH_64BIT
-			return _Str::format_n(o, len_o, "%ld", i);
-#else
-			return _Str::format_n(o, len_o, "%lld", i);
-#endif
+	Base _Str::sPrinti(int sizeOf, Alloc alloc, int64_t i) {
+		return _Str::sPrintf(sizeOf, alloc, Qk_ARCH_64BIT ? "%ld": "%lld", i);
 	}
-	int32_t _Str::format_n(char* o, uint32_t len_o, uint64_t i) {
-		#if Qk_ARCH_64BIT
-			return _Str::format_n(o, len_o, "%lu", i);
-		#else
-			return _Str::format_n(o, len_o, "%llu", i);
-		#endif
+	Base _Str::sPrinti(int sizeOf, Alloc alloc, uint64_t i) {
+		return _Str::sPrintf(sizeOf, alloc, Qk_ARCH_64BIT ? "%lu": "%llu", i);
 	}
-	int32_t _Str::format_n(char* o, uint32_t len_o, float i) {
-		return _Str::format_n(o, len_o, "%fd", i);
+	Base _Str::sPrinti(int sizeOf, Alloc alloc, float i) {
+		return _Str::sPrintf(sizeOf, alloc, "%f", i);
 	}
-	int32_t _Str::format_n(char* o, uint32_t len_o, double i) {
-		return _Str::format_n(o, len_o, "%g", i);
+	Base _Str::sPrinti(int sizeOf, Alloc alloc, double i) {
+		return _Str::sPrintf(sizeOf, alloc, "%g", i);
 	}
 
-	void* _Str::format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg) {
-		char* str;
-		int len_ = qk::vasprintf(&str, f, arg);
+	Base _Str::sPrintf(int sizeOf, Alloc alloc, cChar* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+		auto base = _Str::sPrintfv(sizeOf, alloc, f, arg);
+		va_end(arg);
+		return base;
+	}
 
-		if (size_of == 1) {
-			size->len = len_;
-			size->capacity = len_ + 1;
-		}
-		else if (size_of == 2) {
-			auto b = codec_decode_to_unicode(kUTF8_Encoding, Buffer::from(str, len_));
-			size->len = b.length();
-			size->capacity = b.length() + 1;
-			str = (char*)b.collapse();
-		}
-		else if (size_of == 4) {
-			auto b = codec_decode_to_unicode(kUTF8_Encoding, Buffer::from(str, len_));
-			size->len = b.length();
-			size->capacity = b.length() + 1;
-			str = (char*)b.collapse();
-		}	else {
-			Qk_FATAL("I won't support it, format");
+	Base _Str::sPrintfv(int sizeOf, Alloc alloc, cChar* f, va_list arg) {
+		char *val;
+		int len_ = vasprintf(&val, f, arg);
+		Qk_Assert(len_ >= 0);
+
+		uint32_t len = len_;
+		Base base{ val, len + 1, len };
+
+		switch (sizeOf) {
+			case 1: break;
+			case 2: {
+				auto b = codec_decode_to_ucs2(kUTF8_Encoding, Buffer::from(val, len));
+				base.length = b.length();
+				base.ptr.capacity = b.capacity();
+				base.ptr.val = (char*)b.collapse();
+				break;
+			}
+			case 4: {
+				auto b = codec_decode_to_unicode(kUTF8_Encoding, Buffer::from(val, len));
+				base.length = b.length();
+				base.ptr.capacity = b.capacity();
+				base.ptr.val = (char*)b.collapse();
+				break;
+			}
+			default: Qk_FATAL("I won't support it, format");
 		}
 
 		if (&MemoryAllocator::alloc != alloc && alloc != (void*)&::malloc) {
-			char* str_2 = (char*)alloc(size->capacity * size_of);
-			memcpy(str_2, str, size->len * size_of);
-			memset(str_2 + size->len * size_of, 0, size_of);
-			free(str);
-			str = str_2;
+			char* val = (char*)alloc(base.ptr.capacity * sizeOf);
+			::memcpy(val, base.ptr.val, base.length * sizeOf);
+			::memset(val + base.length * sizeOf, 0, sizeOf);
+			::free(base.ptr.val);
+			base.ptr.val = val;
 		}
 
-		return str;
+		return base;
 	}
 
-	void* _Str::format(Size* size, int size_of, Alloc alloc, cChar* f, ...) {
-		va_list arg;
-		va_start(arg, f);
-		void* str = _Str::format(size, size_of, alloc, f, arg);
-		va_end(arg);
-		return str;
-	}
-	
-	// number to string 
-
-	void* _Str::format(Size* size, int size_of, Alloc alloc, int32_t i) {
-		return _Str::format(size, size_of, alloc, "%d", i);
-	}
-	void* _Str::format(Size* size, int size_of, Alloc alloc, uint32_t i) {
-		return _Str::format(size, size_of, alloc, "%u", i);
-	}
-	void* _Str::format(Size* size, int size_of, Alloc alloc, int64_t i) {
-		#if Qk_ARCH_64BIT
-			return _Str::format(size, size_of, alloc, "%ld", i);
-		#else
-			return _Str::format(size, size_of, alloc, "%lld", i);
-		#endif
-	}
-	void* _Str::format(Size* size, int size_of, Alloc alloc, uint64_t i) {
-		#if Qk_ARCH_64BIT
-			return _Str::format(size, size_of, alloc, "%lu", i);
-		#else
-			return _Str::format(size, size_of, alloc, "%llu", i);
-		#endif
-	}
-	void* _Str::format(Size* size, int size_of, Alloc alloc, float i) {
-		return _Str::format(size, size_of, alloc, "%fd", i);
-	}
-	void* _Str::format(Size* size, int size_of, Alloc alloc, double i) {
-		return _Str::format(size, size_of, alloc, "%g", i);
+	String _Str::printfv(cChar* f, va_list arg) {
+		auto base = _Str::sPrintfv(1, &MemoryAllocator::alloc, f, arg);
+		if (base.ptr.val) {
+			return Buffer::from((char*)base.ptr.val, base.length, base.ptr.capacity).collapseString();
+		}
+		return String();
 	}
 
-	String _Str::string_format(cChar* f, va_list arg) {
-		Size size;
-		char* buf = (char*)_Str::format(&size, 1, &MemoryAllocator::alloc, f, arg);
-		return buf ? Buffer::from(buf, size.len, size.capacity).collapseString(): String();
-	}
-	
 	String _Str::join(cString& sp, void* data, uint32_t len, bool (*it)(void* data, String* out)) {
 		if (len == 0)
 			return String();
@@ -414,12 +387,12 @@ namespace qk {
 		return str;
 	}
 
-	String _Str::toString(const void* ptr, uint32_t len, int size_of) {
-		if (size_of == 1) { // char
+	String _Str::toString(const void* ptr, uint32_t len, int sizeOf) {
+		if (sizeOf == 1) { // char
 			return String((const char*)ptr, len);
-		} else if (size_of == 2) { // uint16_t
+		} else if (sizeOf == 2) { // uint16_t
 			return codec_encode(kUTF8_Encoding, ArrayWeak<uint16_t>((const uint16_t*)ptr, len).buffer());
-		} else if (size_of == 4) { // uint32_t
+		} else if (sizeOf == 4) { // uint32_t
 			return codec_encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len).buffer());
 		} else {
 			Qk_FATAL("I won't support it, to_string");
@@ -428,137 +401,132 @@ namespace qk {
 	}
 
 	template <>
-	String ArrayString<>::toString() const {
+	String StringImpl<>::toString() const {
 		return *this;
 	}
 
-	// --------------- ArrayStringBase ---------------
+	// --------------- StringBase ---------------
 
-	typedef ArrayStringBase::LongStr LongStr;
-	typedef ArrayStringBase::ShortStr ShortStr;
-
-	LongStr* ArrayStringBase::NewLong(uint32_t length, uint32_t capacity, char* val) {
-		auto l = (LongStr*)::malloc(sizeof(LongStr));
-		l->length = length; l->ptr.capacity = capacity;
-		l->ptr.val = val; l->ref = 1;
+	static Long* NewLong(uint32_t length, uint32_t capacity, char* val) {
+		auto l = (Long*)::malloc(sizeof(Long));
+		l->length = length;
+		l->capacity = capacity;
+		l->val = val;
+		l->ref = 1;
 		l->flag = 127645561;
 		return l;
 	}
 
-	void ArrayStringBase::Release(LongStr* l, Free free) {
+	static void ReleaseLong(Long* l, Free free) {
 		Qk_ASSERT(l->ref > 0);
 		if ( --l->ref == 0) { // After entering, do not reverse
 			l->flag = 0; // destroy flag
-			free(l->ptr.val);
-			// l->ptr.val = nullptr;
-			delete l;
+			free(l->val);
+			::free(l);
 		}
 	}
 
-	bool ArrayStringBase::Retain(LongStr* l) { // retain long string
+	static bool RetainLong(Long* l) { // retain long string
 		if (l->flag == 127645561 && l->ref++ > 0)
 			return l->flag == 127645561; // safe check once
 		return false;
 	}
 
-	void ArrayStringBase::clear(Free free) {
+	void StringBase::clear(Free free) {
 		if (_val.s.length < 0) {
-			Release(_val.l, free);
+			ReleaseLong(_val.l, free);
 		}
 		_val.s.length = 0;
 	}
 
-	ArrayStringBase::ArrayStringBase(): _val({.s={{0},0}}) {
-		//Qk_DEBUG("Empty str");
+	StringBase::StringBase(): _val{.s={{0},0}} {
 	} // empty
 
-	ArrayStringBase::ArrayStringBase(const ArrayStringBase& str): _val(str._val)
+	StringBase::StringBase(const StringBase& str): _val(str._val)
 	{
 		if (_val.s.length < 0) {
-			if (!Retain(_val.l)) { // Retain long fail
+			if (!RetainLong(_val.l)) { // Retain long fail
 				_val = {.s={{0},0}}; // clear
 			}
 		}
 	}
 
-	ArrayStringBase::ArrayStringBase(uint32_t len, Realloc aalloc, uint8_t sizeOf)
-		: _val({.s={{0},0}})
+	StringBase::StringBase(uint32_t len, Realloc aalloc, uint8_t sizeOf)
+		: _val{.s={{0},0}}
 	{
 		realloc(len, aalloc, nullptr, sizeOf); // alloc
 	}
 
-	ArrayStringBase::ArrayStringBase(uint32_t l, uint32_t c, char* v, uint8_t sizeOf)
-		: _val({.s={{0},0}})
+	StringBase::StringBase(Long::Base base, uint8_t sizeOf)
+		: _val{.s={{0},0}}
 	{ // use long string
-		if (v) {
+		if (base.ptr.val) {
 			_val.s.length = -1; // mark long string
-			_val.l = NewLong(l * sizeOf, c * sizeOf, v);
+			_val.l = NewLong(base.length * sizeOf, base.ptr.capacity * sizeOf, base.ptr.val);
 		}
 	}
-	void ArrayStringBase::assign(uint32_t len, uint32_t capacity, char* val, uint8_t sizeOf, Free free) {
-		assign( ArrayStringBase(len, capacity, val, sizeOf), free);
+
+	void StringBase::assign(Long::Base base, uint8_t sizeOf, Free free) {
+		assign( StringBase(base, sizeOf), free);
 	}
 
-	void ArrayStringBase::assign(const ArrayStringBase& s, Free free) {
+	void StringBase::assign(const StringBase& s, Free free) {
 		if (s._val.s.length < 0) { // src long
 			if (_val.s.length < 0) { // long
 				if (_val.l == s._val.l) {
 					return;
 				}
-				Release(_val.l, free);
+				ReleaseLong(_val.l, free);
 			}
-			if (Retain(s._val.l)) { // Retain long string
+			if (RetainLong(s._val.l)) { // Retain long string
 				_val = s._val;
 			} else { // fail
 				_val = {.s={{0},0}};
 			}
 		} else { // src short
 			if (_val.s.length < 0) { // long
-				Release(_val.l, free);
+				ReleaseLong(_val.l, free);
 			}
 			_val = {.s=s._val.s};
 		}
 	}
 
-	uint32_t ArrayStringBase::size() const {
+	uint32_t StringBase::size() const {
 		return _val.s.length < 0 ? _val.l->length: _val.s.length;
 	}
 
-	uint32_t ArrayStringBase::capacity() const {
-		return _val.s.length < 0 ? _val.l->ptr.capacity: MAX_SHORT_LEN;
+	uint32_t StringBase::capacity() const {
+		return _val.s.length < 0 ? _val.l->capacity: MAX_SHORT_LEN;
 	}
 
-	char* ArrayStringBase::ptr() {
-		return _val.s.length < 0 ? _val.l->ptr.val: (char*)_val.s.val;
+	char* StringBase::ptr() {
+		return _val.s.length < 0 ? (char*)_val.l->val: (char*)_val.s.val;
 	}
 
-	const char* ArrayStringBase::ptr() const {
-		return _val.s.length < 0 ? _val.l->ptr.val: (const char*)_val.s.val;
+	const char* StringBase::ptr() const {
+		return _val.s.length < 0 ? (cChar*)_val.l->val: (cChar*)_val.s.val;
 	}
-	
-	char* ArrayStringBase::realloc(uint32_t len, Realloc aalloc, Free free, uint8_t sizeOf) {
+
+	char* StringBase::realloc(uint32_t len, Realloc aalloc, Free free, uint8_t sizeOf) {
 		len *= sizeOf;
-		
+
 		if (_val.s.length < 0) { // long
 			if (_val.l->ref > 1) {
-				// TODO 需要从共享核心中分离出来, 多个线程同时使用一个LongStr可能的安全问题
-				auto leave = _val.l;
+				// TODO 需要从共享核心中分离出来, 多个线程同时使用一个Long可能的安全问题
+				auto old = _val.l;
 				_val.l = NewLong(len, 0, nullptr);
-				// _val.l->val = (char*)
-				aalloc(&_val.l->ptr, len + sizeOf, 1);
-				::memcpy(_val.l->ptr.val, leave->ptr.val, Qk_MIN(len, leave->length));
-				Release(leave, free); // release old
+				aalloc(_val.l->ptr(), len + sizeOf, 1);
+				::memcpy(_val.l->val, old->val, Qk_MIN(len, old->length));
+				ReleaseLong(old, free); // release old
 			} else {
 				_val.l->length = len;
-				// _val.l->val = (char*)
-				aalloc(&_val.l->ptr, len + sizeOf, 1);
+				aalloc(_val.l->ptr(), len + sizeOf, 1);
 			}
 		}
 		else if (len > MAX_SHORT_LEN) {
 			auto l = NewLong(len, 0, nullptr);
-			l->ptr.val = nullptr;
-			aalloc(&l->ptr, len + sizeOf, 1);
-			::memcpy(l->ptr.val, _val.s.val, _val.s.length); // copy string
+			aalloc(l->ptr(), len + sizeOf, 1);
+			::memcpy(l->val, _val.s.val, _val.s.length); // copy string
 			_val.l = l;
 			_val.s.length = -1; // mark long string
 		}
@@ -571,16 +539,16 @@ namespace qk {
 			}
 			return _val.s.val;
 		}
-		
+
 		if (sizeOf == 1) {
-			_val.l->ptr.val[len] = '\0';
+			_val.l->val[len] = '\0';
 		} else {
-			::memset(_val.l->ptr.val + len, 0, sizeOf);
+			::memset(_val.l->val + len, 0, sizeOf);
 		}
-		return _val.l->ptr.val;
+		return _val.l->val;
 	}
 
-	Buffer ArrayStringBase::collapse(Realloc aalloc, Free free) {
+	Buffer StringBase::collapse(Realloc aalloc, Free free) {
 		auto s_len = _val.s.length;
 		if (s_len < 0) {
 			// long string
@@ -589,14 +557,14 @@ namespace qk {
 			}
 			// collapse
 			auto len = _val.l->length;
-			Ptr ptr{0,nullptr};
+			Ptr ptr{nullptr,0};
 			if (_val.l->ref > 1) { //
-				aalloc(&ptr, _val.l->ptr.capacity, 1);
-				::memcpy(ptr.val, _val.l->ptr.val, ptr.capacity);
-				Release(_val.l, free); // release ref
+				aalloc(&ptr, _val.l->capacity, 1);
+				::memcpy(ptr.val, _val.l->val, ptr.capacity);
+				ReleaseLong(_val.l, free); // release ref
 			} else {
-				ptr = _val.l->ptr;
-				delete _val.l; // full delete memory
+				ptr = *_val.l->ptr();
+				::free(_val.l); // full delete memory
 			}
 			_val.s = {{0},0}; // use empty string
 			return Buffer(ptr.val, len, ptr.capacity);
@@ -605,7 +573,7 @@ namespace qk {
 			if (s_len == 0) {
 				return Buffer();
 			}
-			Ptr ptr{0,nullptr};
+			Ptr ptr{nullptr,0};
 			aalloc(&ptr, MAX_SHORT_LEN + 4, 1);
 			::memcpy(ptr.val, _val.s.val, MAX_SHORT_LEN + 4);
 			_val.s = {{0},0}; // use empty string

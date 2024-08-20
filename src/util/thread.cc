@@ -42,10 +42,10 @@ namespace qk {
 		return *reinterpret_cast<const uint32_t*>(&key);
 	}
 
-	std::atomic_int                      __is_process_exit_safe(0);
+	std::atomic_int                      __is_process_exit_atomic(0);
 	bool                                 __is_process_exit(false);
 	Mutex                               *__threads_mutex = nullptr;
-	static Dict<ThreadID, Thread_INL*> * __threads = nullptr;
+	static Dict<ThreadID, Thread_INL*>  *__threads = nullptr;
 	static pthread_key_t                 __specific_key = 0;
 	static EventNoticer<Event<>, Mutex> *__on_process_safe_exit = nullptr;
 
@@ -72,10 +72,8 @@ namespace qk {
 		cond.notify_all();
 	}
 
-	static Thread_INL* Thread_INL_init(
-		Thread_INL *t, cString& tag, void *arg,
-		void (*exec)(void* arg)
-	) {
+	static Thread_INL* Thread_INL_New(cString& tag, void *arg, void (*exec)(void* arg)) {
+		auto t = new Thread_INL;
 		t->tag = tag;
 		t->abort = 0;
 		t->loop = nullptr;
@@ -102,51 +100,52 @@ namespace qk {
 		return reinterpret_cast<const Thread*>(pthread_getspecific(__specific_key));
 	}
 
-	Thread_INL* thread_current_inl() {
+	Thread_INL* thread_current_() {
 		return reinterpret_cast<Thread_INL*>(pthread_getspecific(__specific_key));
 	}
 
 	ThreadID thread_new(void (*exec)(void* arg), void* arg, cString& tag) {
-		if ( __is_process_exit_safe != 0 ) {
+		if ( __is_process_exit_atomic != 0 ) {
 			return ThreadID();
 		}
-		Thread_INL *t = Thread_INL_init(new Thread_INL, tag, arg, exec);
+		Thread_INL *t = Thread_INL_New(tag, arg, exec);
 		ScopeLock scope(*__threads_mutex);
 		ThreadID id;
 
-		uv_thread_create((uv_thread_t*)&id, [](void* t) {
+		uv_thread_create((uv_thread_t*)&id, [](void* arg) {
 			{ // wait thread_new main call return
 				ScopeLock scope(*__threads_mutex);
 			}
-			auto thread = (Thread_INL*)t;
+			auto t = (Thread_INL*)arg;
 #if Qk_ANDROID
 			JNI::ScopeENV scope;
 #endif
-			thread_set_specific_data(thread);
-			if ( !thread->abort ) {
-				thread->exec(thread->arg);
+			thread_set_specific_data(t);
+			if ( !t->abort ) {
+				t->exec(t->arg);
 			}
 			{ // delete global handle
 				ScopeLock scope(*__threads_mutex);
-				__threads->erase(thread->id);
+				__threads->erase(t->id);
 			}
 			{ // notify wait and release loop
-				ScopeLock scope(thread->mutex);
-				if (!thread->abort) {
-					thread->abort = -3; // exit abort
+				ScopeLock scope(t->mutex);
+				if (!t->abort) {
+					t->abort = -3; // exit abort
 				}
-				Release(thread->loop); // release loop object
-				Qk_DEBUG("Thread end ..., %s", thread->tag.c_str());
-				for (auto& i : thread->waitSelfEnd) {
+				Runloop_death(t->loop); // release loop object
+				t->loop = nullptr;
+				Qk_DEBUG("Thread end ..., %s", t->tag.c_str());
+				for (auto& i : t->waitSelfEnd) {
 					i->lock_notify_one();
 				}
-				Qk_DEBUG("Thread end  ok, %s", thread->tag.c_str());
+				Qk_DEBUG("Thread end  ok, %s", t->tag.c_str());
 			}
-			delete thread;
+			delete t;
 		}, t);
 
 		if (id != ThreadID()) {
-			__threads->set(t->id = id, t);
+			__threads->set((t->id = id), t);
 		} else { // fail
 			Qk_FATAL("id != ThreadID()");
 			// delete thread;
@@ -169,12 +168,12 @@ namespace qk {
 	}
 
 	void thread_pause(uint64_t timeoutUs) {
-		auto t = thread_current_inl();
+		auto t = thread_current_();
 		Qk_ASSERT(t, "Cannot find current qk::Thread handle, use Thread::sleep()");
 		t->lock_wait_for(timeoutUs);
 	}
 
-	static void thread_resume_inl(Thread_INL *t, int abort) {
+	static void thread_resume_(Thread_INL *t, int abort) {
 		ScopeLock scope(t->mutex);
 		if (abort) {
 			if (t->loop)
@@ -186,13 +185,13 @@ namespace qk {
 
 	void thread_resume(ThreadID id, int abort) {
 		ScopeLock lock(*__threads_mutex);
-		auto i = __threads->find(id);
-		if ( i != __threads->end() ) {
-			thread_resume_inl(i->value, abort); // resume sleep status
+		Thread_INL *t;
+		if ( __threads->get(id, t) ) {
+			thread_resume_(t, abort); // resume sleep status
 		}
 	}
 
-	void thread_abort(ThreadID id) {
+	void thread_try_abort(ThreadID id) {
 		thread_resume(id, -1);
 	}
 
@@ -202,9 +201,8 @@ namespace qk {
 			return;
 		}
 		Lock lock(*__threads_mutex);
-		auto i = __threads->find(id);
-		if ( i != __threads->end() ) {
-			auto t = i->value;
+		Thread_INL *t;
+		if ( __threads->get(id, t) ) {
 			t->mutex.lock();
 			lock.unlock();
 			CondMutex wait;
@@ -216,40 +214,40 @@ namespace qk {
 		}
 	}
 
-	static void thread_try_abort_all(int rc) {
-		if (__is_process_exit_safe++)
+	static void thread_process_exit(int rc) {
+		if (__is_process_exit_atomic++)
 			return; // exit
 		__is_process_exit = true;
 
 		Array<ThreadID> threads_id;
 
-		Qk_DEBUG("thread_try_abort_and_exit_inl(), 0");
+		Qk_DEBUG("thread_process_exit(), 0");
 		Event<> ev(Int32(rc), rc);
 		Qk_Trigger(ProcessExit, ev); // trigger event
 		rc = ev.return_value;
-		Qk_DEBUG("thread_try_abort_and_exit_inl(), 1");
+		Qk_DEBUG("thread_process_exit(), 1");
 
 		{
 			ScopeLock scope(*__threads_mutex);
 			Qk_DEBUG("threads count, %d", __threads->length());
 			for ( auto& i : *__threads ) {
-				Qk_DEBUG("thread_try_abort_and_exit_inl,tag, %p, %s", i.value->id, *i.value->tag);
-				thread_resume_inl(i.value, -2); // resume sleep status and abort
+				Qk_DEBUG("thread_process_exit(), tag, %p, %s", i.value->id, *i.value->tag);
+				thread_resume_(i.value, -2); // resume sleep status and abort
 				threads_id.push(i.value->id);
 			}
 		}
 		for ( auto& i: threads_id ) {
 			// CondMutex for the end of this thread here, this time defaults to 1 second
-			Qk_DEBUG("thread_try_abort_and_exit_inl,join, %p", i);
+			Qk_DEBUG("thread_process_exit(), join, %p", i);
 			thread_join_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
 		}
 
-		Qk_DEBUG("thread_try_abort_and_exit_inl() 2");
+		Qk_DEBUG("thread_process_exit() 2");
 	}
 
-	void thread_try_abort_and_exit(int rc) {
-		if (!__is_process_exit_safe) {
-			thread_try_abort_all(rc);
+	void thread_exit(int rc) {
+		if (!__is_process_exit_atomic) {
+			thread_process_exit(rc);
 			::exit(rc); // exit process
 		}
 	}
@@ -265,7 +263,7 @@ namespace qk {
 		__on_process_safe_exit = new EventNoticer<Event<>, Mutex>(nullptr);
 		Qk_DEBUG("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
 		Qk_DEBUG("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
-		atexit([](){ thread_try_abort_all(0); });
+		atexit([](){ thread_process_exit(0); });
 		int err = pthread_key_create(&__specific_key, nullptr);
 		Qk_ASSERT(err == 0);
 	}

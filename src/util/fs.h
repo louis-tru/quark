@@ -138,7 +138,7 @@ namespace qk {
 		FileStat(cString& path);
 		FileStat(const FileStat& stat);
 		FileStat& operator=(const FileStat& stat);
-		virtual ~FileStat();
+		~FileStat();
 		bool is_valid() const;
 		bool is_file() const;
 		bool is_dir() const;
@@ -190,27 +190,23 @@ namespace qk {
 	};
 
 	/**
-	 * @func fs_reader() get shared reader
+	 * @method fs_reader() get shared reader
 	*/
 	Qk_EXPORT FileReader* fs_reader();
 
 	/**
-	* @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
+	* @method each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
 	*/
 	Qk_EXPORT bool fs_each_sync(cString& path, Callback<Dirent> cb, bool internal = false) throw(Error);
 	
 	// sync
 	/**
-	* @func chmod_sync
+	* @method fs_chmod_sync
 	*/
 	Qk_EXPORT void fs_chmod_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
-	
-	/**
-	* @func chmod_r_sync  # 递归设置
-	* # 多线程中,设置stop_signal值为true来终止操作
-	*/
 	Qk_EXPORT void fs_chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error);
 	Qk_EXPORT void fs_mkdir_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
+	Qk_EXPORT void fs_mkdirs_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
 	Qk_EXPORT void fs_rename_sync(cString& name, cString& new_name) throw(Error);
 	Qk_EXPORT void fs_link_sync(cString& path, cString& newPath) throw(Error);
 	Qk_EXPORT void fs_unlink_sync(cString& path) throw(Error);
@@ -224,16 +220,20 @@ namespace qk {
 	Qk_EXPORT bool fs_writable_sync(cString& path);
 	Qk_EXPORT bool fs_executable_sync(cString& path);
 	// recursion
-	Qk_EXPORT bool fs_chmod_r_sync(cString& path, uint32_t mode = fs_default_mode, bool* stop_signal = nullptr) throw(Error);
-	Qk_EXPORT bool fs_chown_r_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal = nullptr) throw(Error);
-	Qk_EXPORT void fs_mkdir_p_sync(cString& path, uint32_t mode = fs_default_mode) throw(Error);
-	Qk_EXPORT bool fs_remove_r_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
+	/**
+	* @method fs_chmod_recursion_sync  递归设置
+	* # 多线程中,设置stop_signal值为true来终止操作
+	*/
+	Qk_EXPORT bool fs_chmod_recursion_sync(cString& path, uint32_t mode = fs_default_mode, bool* stop_signal = nullptr) throw(Error);
+	Qk_EXPORT bool fs_chown_recursion_sync(cString& path, uint32_t owner, uint32_t group, bool* stop_signal = nullptr) throw(Error);
+	Qk_EXPORT bool fs_remove_recursion_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
+	Qk_EXPORT bool fs_copy_recursion_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
 	Qk_EXPORT bool fs_copy_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
-	Qk_EXPORT bool fs_copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
 	// async
 	Qk_EXPORT void fs_chmod(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
 	Qk_EXPORT void fs_chown(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
 	Qk_EXPORT void fs_mkdir(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	Qk_EXPORT void fs_mkdirs(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
 	Qk_EXPORT void fs_rename(cString& name, cString& new_name, Cb cb = 0);
 	Qk_EXPORT void fs_link(cString& path, cString& newPath, Cb cb = 0);
 	Qk_EXPORT void fs_unlink(cString& path, Cb cb = 0);
@@ -247,12 +247,11 @@ namespace qk {
 	Qk_EXPORT void fs_writable(cString& path, Callback<Bool> cb = 0);
 	Qk_EXPORT void fs_executable(cString& path, Callback<Bool> cb = 0);
 	// recursion
-	Qk_EXPORT void     fs_mkdir_p(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
-	Qk_EXPORT uint32_t fs_chmod_r(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
-	Qk_EXPORT uint32_t fs_chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
-	Qk_EXPORT uint32_t fs_remove_r(cString& path, Cb cb = 0);
+	Qk_EXPORT uint32_t fs_chmod_recursion(cString& path, uint32_t mode = fs_default_mode, Cb cb = 0);
+	Qk_EXPORT uint32_t fs_chown_recursion(cString& path, uint32_t owner, uint32_t group, Cb cb = 0);
+	Qk_EXPORT uint32_t fs_remove_recursion(cString& path, Cb cb = 0);
+	Qk_EXPORT uint32_t fs_copy_recursion(cString& source, cString& target, Cb cb = 0);
 	Qk_EXPORT uint32_t fs_copy(cString& source, cString& target, Cb cb = 0);
-	Qk_EXPORT uint32_t fs_copy_r(cString& source, cString& target, Cb cb = 0);
 	Qk_EXPORT void     fs_abort(uint32_t id);
 		// read stream
 	Qk_EXPORT uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb = 0);

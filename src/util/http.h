@@ -174,10 +174,10 @@ namespace qk {
 		void clear_form_data() throw(Error);
 		String get_response_header(cString& name);
 		const DictSS& get_all_response_headers() const;
-		int64_t upload_total() const;
-		int64_t upload_size() const;
-		int64_t download_total() const;
-		int64_t download_size() const;
+		int64_t upload_total() const; // !< Total amount of data to be uploaded to the server
+		int64_t upload_size() const; // !< The data size has been written and uploaded to the server
+		int64_t download_total() const; // !< Total amount of data to be downloaded
+		int64_t download_size() const; // !< Downloaded data volume
 		String http_response_version() const;
 		HttpReadyState ready_state() const;
 		int status_code() const;

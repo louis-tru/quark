@@ -165,6 +165,7 @@ export class AsyncTask<T> extends Promise<T> {
 export declare function chmodSync(path: string, mode?: number): void;
 export declare function chownSync(path: string, owner: number, group: number): void;
 export declare function mkdirSync(path: string, mode?: number): void;
+export declare function mkdirsSync(path: string, mode?: number): void;
 export declare function renameSync(name: string, newName: string): void;
 export declare function linkSync(src: string, target: string): void;
 export declare function unlinkSync(path: string): void;
@@ -177,12 +178,11 @@ export declare function isDirectorySync(path: string): boolean;
 export declare function readableSync(path: string): boolean;
 export declare function writableSync(path: string): boolean;
 export declare function executableSync(path: string): boolean;
-export declare function chmodrSync(path: string, mode?: number): void;
-export declare function chownrSync(path: string, owner: number, group: number): void;
-export declare function mkdirpSync(path: string, mode?: number): void;
-export declare function removerSync(path: string): void;
+export declare function chmodRecursionSync(path: string, mode?: number): void;
+export declare function chownRecursionSync(path: string, owner: number, group: number): void;
+export declare function removeRecursionSync(path: string): void;
+export declare function copyRecursionSync(path: string, target: string): void;
 export declare function copySync(path: string, target: string): void;
-export declare function copyrSync(path: string, target: string): void;
 // read/write file sync
 export declare function writeFileSync(path: string, data: Uint8Array, size?: number): number;
 export declare function writeFileSync(path: string, data: string, encoding?: Encoding): number;
@@ -211,6 +211,11 @@ export function chown(path: string, owner: number, group: number) {
 export function mkdir(path: string, mode: number = _fs.defaultMode) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.mkdir(path, mode, (err?: Error)=>err?reject(err):resolve());
+	});
+}
+export function mkdirs(path: string, mode: number = _fs.defaultMode) {
+	return new Promise<void>(function(resolve, reject) {
+		_fs.mkdirs(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 export function rename(name: string, newName: string) {
@@ -273,34 +278,29 @@ export function executable(path: string) {
 		_fs.executable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
-export function chmodr(path: string, mode: number = _fs.defaultMode) {
+export function chmodRecursion(path: string, mode: number = _fs.defaultMode) {
 	return new AsyncTask<void>(function(resolve, reject) {
-		return _fs.chmodr(path, mode, (err?: Error)=>err?reject(err):resolve());
+		return _fs.chmodRecursion(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
 }
-export function chownr(path: string, owner: number, group: number) {
+export function chownRecursion(path: string, owner: number, group: number) {
 	return new AsyncTask<void>(function(resolve, reject) {
-		return _fs.chownr(path, owner, group, (err?: Error)=>err?reject(err):resolve());
+		return _fs.chownRecursion(path, owner, group, (err?: Error)=>err?reject(err):resolve());
 	});
 }
-export function mkdirp(path: string, mode: number = _fs.defaultMode) {
-	return new Promise<void>(function(resolve, reject) {
-		_fs.mkdirp(path, mode, (err?: Error)=>err?reject(err):resolve());
+export function removeRecursion(path: string) {
+	return new AsyncTask<void>(function(resolve, reject) {
+		return _fs.removeRecursion(path, (err?: Error)=>err?reject(err):resolve());
 	});
 }
-export function remover(path: string) {
+export function copyRecursion(path: string, target: string) {
 	return new AsyncTask<void>(function(resolve, reject) {
-		return _fs.remover(path, (err?: Error)=>err?reject(err):resolve());
+		return _fs.copyRecursion(path, target, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 export function copy(path: string, target: string) {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.copy(path, target, (err?: Error)=>err?reject(err):resolve());
-	});
-}
-export function copyr(path: string, target: string) {
-	return new AsyncTask<void>(function(resolve, reject) {
-		return _fs.copyr(path, target, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 

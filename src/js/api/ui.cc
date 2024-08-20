@@ -105,20 +105,20 @@ namespace qk { namespace js {
 
 		void memorywarning_handle(Event<>& evt) {
 			worker()->garbageCollection(); // js gc
-			#if Qk_MEMORY_TRACE_MARK
-				uint32_t count = Object::mark_objects_count();
-				Qk_LOG("All unrelease heap objects count: %d", count);
-			#endif
+		}
+		
+		static void NewApp(FunctionArgs args) {
+			Js_Worker(args);
+			auto app = new Application();
+			auto wrap = New<WrapNativeApplication>(args, app);
+			app->Qk_On(Memorywarning,
+								&WrapNativeApplication::memorywarning_handle,
+								reinterpret_cast<WrapNativeApplication*>(wrap));
+			wrap->handle().clearWeak(); // clear weak, persistent object
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(NativeApplication, 0, {
-				auto app = new Application();
-				auto wrap = New<WrapNativeApplication>(args, app);
-				app->Qk_On(Memorywarning,
-									&WrapNativeApplication::memorywarning_handle,
-									reinterpret_cast<WrapNativeApplication*>(wrap));
-			});
+			Js_Define_Class(NativeApplication, 0, { NewApp(args); });
 
 			Js_Set_Class_Accessor_Get(isLoaded, {
 				Js_Self(Type);
