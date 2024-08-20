@@ -190,7 +190,7 @@ namespace qk {
 				, _socket(nullptr)
 				, _client(nullptr)
 				, _upload_file(nullptr)
-				, _z_gzip(0), _loop(loop)
+				, _loop(loop)
 				, _recovery_time(0)
 			{
 				if ( _ssl ) {
@@ -201,6 +201,7 @@ namespace qk {
 				Qk_Assert(_socket);
 				_socket->set_delegate(this);
 				_parser = new HttpParser(this);
+				_z_strm.state = nullptr;
 
 				auto &settings = _parser->settings;
 				http_parser_settings_init(&settings); // init
@@ -218,6 +219,7 @@ namespace qk {
 				Release(_socket);     _socket = nullptr;
 				Release(_upload_file);_upload_file = nullptr;
 				http_parser_settings_init(&_parser->settings); // resetting
+				gzip_inflate_end();
 			}
 
 			inline RunLoop* loop() { return _loop; }
@@ -225,14 +227,14 @@ namespace qk {
 			void bind_client_and_send(Client* client) {
 				Qk_Assert(client);
 				Qk_Assert(!_client);
-				
+
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
 	
 				if ( _ssl ) {
 					static_cast<SSLSocket*>(_socket)->disable_ssl_verify(_client->_disable_ssl_verify);
 				}
-	
+
 				if ( _socket->is_open() ) {
 					send_http_request(); // send request
 				} else {
@@ -290,27 +292,25 @@ namespace qk {
 				if ( self->_header.has("content-length") ) {
 					cli->_download_total = self->_header["content-length"].toNumber<int64_t>();
 				}
-				self->init_gzip_parser();
+				self->gzip_inflate_init();
 				cli->trigger_http_header(cli->_status_code, std::move(self->_header), 0);
 				return 0;
 			}
 
-			void init_gzip_parser() {
+			void gzip_inflate_init() {
 				if ( _header.has("content-encoding") ) {
-					_z_strm.zalloc = Z_NULL;
-					_z_strm.zfree = Z_NULL;
-					_z_strm.opaque = Z_NULL;
-					_z_strm.next_in = Z_NULL;
-					_z_strm.avail_in = 0;
-
 					String encoding = _header["content-encoding"];
 					if ( encoding.indexOf("gzip") != -1 ) {
-						_z_gzip = 2;
 						inflateInit2(&_z_strm, 47);
 					} else if ( encoding.indexOf("deflate") != -1 ) {
-						_z_gzip = 1;
 						inflateInit(&_z_strm);
 					}
+				}
+			}
+
+			void gzip_inflate_end() {
+				if (_z_strm.state) {
+					inflateEnd(&_z_strm);
 				}
 			}
 
@@ -327,7 +327,7 @@ namespace qk {
 				} while(_z_strm.avail_out == 0);
 				
 				if ( r == Z_STREAM_END ) {
-					inflateEnd(&_z_strm);
+					gzip_inflate_end();
 				}
 				return r;
 			}
@@ -337,7 +337,7 @@ namespace qk {
 				Connect* self = static_cast<Connect*>(parser->data);
 				self->_client->_download_size += length;
 				Buffer buff;
-				if ( self->_z_gzip ) {
+				if ( self->_z_strm.state ) {
 					int r = self->gzip_inflate(at, uint32_t(length), buff);
 					if (r < 0) {
 						Qk_ERR("un gzip err, %d", r);
@@ -363,8 +363,8 @@ namespace qk {
 				_is_multipart_form_data = false;
 				_send_data = false;
 				_multipart_form_data.clear();
-				_z_gzip = 0;
 				_header.clear();
+				gzip_inflate_end();
 
 				DictSS header = _client->_request_header;
 
@@ -372,7 +372,7 @@ namespace qk {
 				header["Connection"] = _client->_keep_alive ? "keep-alive" : "close";
 				header["Accept-Encoding"] = "gzip, deflate";
 				header["Date"] = gmt_time_string(time_second());
-				
+
 				if ( !header.has("Cache-Control") )   header["Cache-Control"] = "max-age=0";
 				if ( !header.has("User-Agent") )      header["User-Agent"] = http_user_agent();
 				if ( !header.has("Accept-Charset") )  header["Accept-Charset"] = "utf-8";
@@ -416,7 +416,7 @@ namespace qk {
 						header["Content-Length"] = _client->_upload_total;
 					}
 					else if ( _client->_post_form_data.length() ) { // post form data
-						
+
 						for ( auto& i : _client->_post_form_data ) {
 							if ( i.value.type == FORM_TYPE_FILE ) {
 								_is_multipart_form_data = true; break;
@@ -496,16 +496,16 @@ namespace qk {
 						, search.c_str()
 					)
 				);
-				
+
 				for ( auto& i : header ) {
 					header_str.push(i.key);       // name
 					header_str.push(string_colon);  // :
 					header_str.push(i.value);     // value
 					header_str.push(string_header_end);    // \r\n
 				}
-				
+
 				header_str.push(string_header_end); // \r\n
-				
+
 				_client->trigger_http_readystate_change(HTTP_READY_STATE_SENDING);
 				_socket->resume();
 				_socket->write(header_str.join(String()).collapse()); // write header
@@ -669,7 +669,6 @@ namespace qk {
 			String  _header_field;
 			DictSS _header;
 			z_stream _z_strm;
-			int      _z_gzip;
 			RunLoop*  _loop;
 			int64_t _recovery_time;
 		};

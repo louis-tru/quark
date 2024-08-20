@@ -277,7 +277,7 @@ namespace qk {
 			bool secure = options.find(SECURE) != options.end();
 			String key = get_storage_key(domain_, name, path, secure);
 			
-			http_cookie_set2(key, value, expires);
+			http_cookie_set2(key, value, expires); // BD_NOT_HTTPS=1; path=/; Max-Age=300
 		}
 	}
 

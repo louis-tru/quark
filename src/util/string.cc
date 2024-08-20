@@ -435,6 +435,7 @@ namespace qk {
 	void StringBase::clear(Free free) {
 		if (_val.s.length < 0) {
 			ReleaseLong(_val.l, free);
+			_val.l = nullptr;
 		}
 		_val.s.length = 0;
 	}
@@ -466,8 +467,14 @@ namespace qk {
 		}
 	}
 
+	StringBase::~StringBase() {
+		Qk_Assert(_val.s.length >= 0);
+	}
+
 	void StringBase::assign(Long::Base base, uint8_t sizeOf, Free free) {
-		assign( StringBase(base, sizeOf), free);
+		StringBase str(base, sizeOf);
+		assign( str, free);
+		str.clear(free); // release
 	}
 
 	void StringBase::assign(const StringBase& s, Free free) {

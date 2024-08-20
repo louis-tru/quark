@@ -65,6 +65,7 @@ namespace qk {
 		StringBase(const StringBase& str);
 		StringBase(uint32_t len, Realloc alloc, uint8_t sizeOf);
 		StringBase(Long::Base base, uint8_t sizeOf);
+		~StringBase();
 		void     assign(Long::Base base, uint8_t sizeOf, Free free);
 		void     assign(const StringBase& s, Free free);
 		char*    ptr();
