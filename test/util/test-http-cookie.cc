@@ -34,13 +34,13 @@
 using namespace qk;
 
 void test_http_cookie(int argc, char **argv) {
-	
+
 	Qk_LOG(http_get_cookie("quarks.cc", "test"));
-	
+
 	http_set_cookie("quarks.cc", "test", "quarks.cc");
-	
+
 	Qk_LOG("A, %s", *http_get_cookie("quarks.cc", "test"));
-	
+
 	Qk_LOG("B, %s", *http_get_cookie("www.quarks.cc", "test"));
 
 	http_set_cookie("www.quarks.cc", "test", "$");
@@ -48,59 +48,59 @@ void test_http_cookie(int argc, char **argv) {
 	Qk_LOG("B2, %s", *http_get_cookie("www.quarks.cc", "test"));
 
 	http_set_cookie("quarks.cc", "test2", "*");
-	
+
 	Qk_LOG("D, %s", *http_get_cookie("quarks.cc", "test2"));
-	
+
 	Qk_LOG("E, %s", *http_get_cookie("www.quarks.cc", "test2"));
-	
+
 	http_set_cookie("quarks.cc", "test2", "-----------------------------", -1, "/AA");
-	
+
 	Qk_LOG("F, %s", *http_get_cookie("quarks.cc", "test2"));
-	
+
 	Qk_LOG("H, %s", *http_get_cookie("quarks.cc", "test2", "/AA"));
-	
+
 	Qk_LOG(http_get_all_cookie_string("www.quarks.cc", "/AA"));
-	
+
 	http_set_cookie_with_expression("quarks.cc", "test3=HHHH--l; path=/AA; max-age=60");
-	
+
 	Qk_LOG(http_get_cookie("quarks.cc", "test3"));
-	
+
 	Qk_LOG(http_get_cookie("quarks.cc", "test3", "/AA"));
-	
+
 	Qk_LOG("http_cookie_get_all_string 1, %s", *http_get_all_cookie_string("www.quarks.cc", "/AA"));
 	Qk_LOG("http_cookie_get_all_string 2, %s", *http_get_all_cookie_string("quarks.cc", "/AA"));
-	
+
 	// test delete
-	
+
 	http_delete_cookie("quarks.cc", "test");
-	
+
 	Qk_LOG(http_get_cookie("quarks.cc", "test"));
-	
+
 	http_set_cookie("quarks.cc", "test", "quarks.cc2");
 	http_set_cookie("quarks.cc", "test9", "quarks.cc3");
 	http_set_cookie("quarks.cc", "test8", "quarks.cc4");
 	http_set_cookie("www.quarks.cc", "test7", "quarks.cc5");
-	
+
 	Qk_LOG("E, %s", *http_get_cookie("quarks.cc", "test"));
 
 	http_set_cookie("quark.orh", "test--------A", "quarks.cc%", -1, "KKK/MMM");
 
 	Qk_LOG("http_cookie_get_all_string 3, %s", *http_get_all_cookie_string("quarks.cc"));
-	
+
 	http_delete_all_cookie("quarks.cc");
-	
+
 	Qk_LOG(http_get_cookie("quarks.cc", "test"));
-	
+
 	http_set_cookie("quarks.cc", "test", "quarks.cc");
-	
+
 	Qk_LOG("F, %s", *http_get_cookie("quarks.cc", "test--------A", "KKK/MMM", 1));
-	
+
 	http_clear_cookie();
-	
+
 	Qk_LOG(http_get_cookie("quarks.cc", "test"));
-	
+
 	http_set_cookie("quarks.cc", "test", "END test cookie", time_micro() + 6e7); // 60s expires
-	
+
 	Qk_LOG(http_get_cookie("quarks.cc", "test"));
-	
+
 }

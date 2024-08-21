@@ -28,394 +28,303 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include <bplus.h>
 #include "./http.h"
 #include "./fs.h"
-#include "./json.h"
-#include "./loop.h"
-#include <bptree.h>
-#include <vector>
 
 namespace qk {
 
 	#define _db _http_cookie_db
-	#define assert_r(c) Qk_ASSERT(c == BP_OK)
+	#define assert_r(c) Qk_Assert_Eq(c, BP_OK)
+	#define OPEN(...) ScopeLock lock(_mutex); http_cookie_open(); if (!_db) return __VA_ARGS__
 
-	static Mutex mutex;
-	static bp_db_t* _http_cookie_db = nullptr;
-	static int _has_initialize = 0;
-	static int64_t _http_cookie_date = 0;
+	static Mutex   _mutex;
+	static bp_db_t*_http_cookie_db = nullptr;
+	static int     _initialize = 0;
+	static int64_t _tempFlag = 0;
 	static cString EXPIRES("expires");
 	static cString MAX_AGE("max-age");
 	static cString PATH("path");
 	static cString DOMAIN_STR("domain");
 	static cString SECURE("secure");
 
-	typedef Dict<String, String> Map;
-
 	static String get_db_filename() {
-		return fs_temp(".cookie.dp");
+		return fs_temp(".cookie.bp");
 	}
 
-	static void http_cookie_close() {
-		bp_db_t* __db = _http_cookie_db;
-		_db = nullptr;
-		if ( __db ) bp_close(__db);
-	}
-
-	static int bp__fuzz_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b)
-	{
-		uint32_t len = a->length < b->length ? a->length : b->length;
-
+	static int bp__fuzz_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b) {
+		auto len = (uint32_t)Qk_MIN(a->length, b->length);
 		for (uint32_t i = 0; i < len; i++) {
 			if (a->value[i] != b->value[i])
-				return (uint8_t) a->value[i] > (uint8_t) b->value[i] ? 1 : -1;
+				return a->value[i] - b->value[i];// ? 1 : -1;
 		}
 		return 0;
 	}
 
-	static int bp__default_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b)
-	{
+	static int bp__default_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b) {
 		int r = bp__fuzz_compare_cb(arg, a, b);
 		if (r == 0) {
-			return a->length - b->length;
+			return int(a->length - b->length);
 		}
 		return r;
 	}
 
-	static int bp__default_filter_cb(void *arg, const bp_key_t *key)
-	{
-		/* default filter accepts all keys */
-		return 1;
+	static void http_cookie_close() {
+		bp_db_t* db = _http_cookie_db;
+		_db = nullptr;
+		if ( db ) {
+			bp_fsync(db);
+			bp_close(db);
+		}
 	}
 
 	static void http_cookie_open() {
 		if ( _db == nullptr ) {
-			int r = bp_open(&_db, fs_fallback_c(get_db_filename()));
-			if ( r == BP_OK ) {
+			if ( bp_open(&_db, fs_fallback_c(get_db_filename())) == BP_OK ) {
 				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
-				if (_has_initialize++ == 0) {
-					_http_cookie_date = time_monotonic();
+				if (_initialize++ == 0) {
+					_tempFlag = time_monotonic();
 					Qk_On(ProcessExit, [](Event<>& e) { http_cookie_close(); });
 				}
-			} else {
-				_db = nullptr;
 			}
 		}
 	}
 
-	static String get_storage_key_prefix(bool secure, cString& domain) {
-		String r(secure ? '1': '0');
-		r.append('.');
-		auto domains = domain.split('.');
-		for (int i = domains.length() - 1; i > -1; i--) {
-			if (!domains[i].isEmpty()) {
-				r.append(domains[i]);
-				r.append('.');
+	static String get_indexed_key_prefix(bool secure, cString& domain, cString& path) {
+		String r(secure ? "1/": "0/");
+		auto arr = domain.split('.');
+		for (int i = arr.length() - 1; i > -1; i--) {
+			if (!arr[i].isEmpty()) {
+				r.append(arr[i]);
+				r.append('/');
+			}
+		}
+		if (!path.isEmpty()) {
+			if (path[0] == '/') {
+				r.append(path.c_str() + 1, path.length()-1);
+			} else {
+				r.append(path);
+			}
+			if (r[r.length()-1] != '/') {
+				r.append('/');
 			}
 		}
 		return  r;
 	}
 
-	static String get_storage_key(cString& domain, cString& name, cString& path, bool secure) {
-		String r = get_storage_key_prefix(secure, domain);
-
-		if (!path.isEmpty()) {
-			if (path[0] != '/')
-				r.append('/');
-			r.append(path);
-			if (r[r.length() - 1] != '/')
-				r.append('/');
-		}
-		else {
-			r.append('/');
-		}
-
-		r.append('@');
-		r.append(name);
-		return r;
+	static String get_indexed_key(bool secure, cString& domain, cString& path, cString& name) {
+		return get_indexed_key_prefix(secure, domain, path).append('@').append(name);
 	}
 
-	static int http_cookie_fuzz_query_compare_cb(void* arg, const bp_key_t *a, const bp_key_t *b) {
-		auto cur = (Buffer*)arg;
-		int r = bp__fuzz_compare_cb(arg, a, b);
-		if (r != 0) return r;
-		if (b->length > a->length) return -1;
-		// Qk_LOG("a: %s, b: %s", a->value, b->value);
-		cur->write(a->value, 0, a->length);
-		return 0;
-	};
+	static bool http_cookie_check_expires(cString &str, String *value) {
+		auto idx = str.indexOf("; ");
+		if (idx != -1) {
+			auto expires = str.substring(0, idx).toNumber<int64_t>();
+			auto idx2 = str.indexOf("; ", idx + 2);
+			if (idx2 != -1) {
+				auto tempFlag = str.substring(idx + 2, idx2).toNumber<int64_t>();
+				if ((expires == -1 && tempFlag == _tempFlag) || expires > time_micro()) {
+					*value = str.substring(idx2 + 2);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
-	static int http_cookie_fuzz_query(cString& domain, bool secure, Buffer *buf)
-	{
-		String _key = get_storage_key_prefix(secure, domain);
-		bp_key_t key = { _key.length(), (Char*)*_key };
+	static void http_cookie_set_value_and_expires(cString& key, cString& value, int64_t expires) {
+		String val = String::format("%ld; %ld; %s", expires, _tempFlag, value.c_str());
+		bp_key_t bp_key = { key.length(), (Char*)*key };
+		bp_value_t bp_val = { val.length(), (Char*)*val };
+		assert_r(bp_set(_db, &bp_key, &bp_val));
+	}
+
+	static bool http_cookie_fuzz_query(cString& fuzz, bool reverse, String* keyOut) {
 		bp_value_t value;
-		int r;
+		bp_set_compare_cb(_db, [](void* arg, const bp_key_t *a, const bp_key_t *b) {
+			int r = bp__fuzz_compare_cb(arg, a, b);
+			if (r == 0) {
+				if (b->length > a->length)
+					return -1;
+				if (arg)
+					*static_cast<String*>(arg) = String(a->value, uint32_t(a->length));
+				// match, a:ABCDE <=== b:ABCD
+			}
+			return r;
+		}, keyOut);
 
-		// fuzz query begin end node
-		bp_set_compare_cb(_db, http_cookie_fuzz_query_compare_cb, buf);
-		r = bp_get(_db, &key, &value);
+		// fuzz query begin or end node
+		bp_key_t bp_key = { fuzz.length(), (Char*)*fuzz };
+		int r = reverse ?
+			bp_get_reverse(_db, &bp_key, &value): bp_get(_db, &bp_key, &value);
 
-		if (r != BP_OK) goto end;
-
-		bp_set_compare_cb(_db, http_cookie_fuzz_query_compare_cb, buf+1);
-		r = bp_get_reverse(_db, &key, &value);
-
-		if (r != BP_OK) goto end;
-
-		end:
-			bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
-
-		return r;
+		return r == BP_OK ? (free(value.value), true): false;
 	}
 
-	static void http_cookie_set2(String& _key, cString& value, int64_t expires)
-	{
-		int r;
-
-		JSON json = JSON::array();
-		json[0] = expires;
-		json[1] = _http_cookie_date;
-		json[2] = value;
-
-		String _val = JSON::stringify(json);
-		// Qk_LOG("---- %s, %d", *_val, _val.length());
-
-		bp_key_t key = { _key.length(), (Char*)*_key };
-		bp_value_t val = { _val.length(), (Char*)*_val };
-
-		r = bp_set(_db, &key, &val);
-		assert_r(r);
-	}
+	// ------------------------------------------------------------------------------------
 
 	String http_get_cookie(cString& domain, cString& name, cString& path, bool secure) {
-		http_cookie_open();
+		String result;
+		OPEN(result);
+		auto dir = get_indexed_key_prefix(secure, domain, String());
+		auto paths = path.split('/');
+		int i = 0, len = paths.length();
 
-		if ( _db ) {
-			String _key = get_storage_key(domain, name, path, secure);
-			bp_key_t key = { _key.length(), (Char*)*_key };
+		while (http_cookie_fuzz_query(dir, false, nullptr)) { // Is there a directory "key"
+			String key = dir + '@' + name;
+			bp_key_t bp_key = { key.length(), (Char*)*key };
 			bp_key_t val;
+			bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 
-			if (bp_get_reverse(_db, &key, &val) == BP_OK) {
-				try {
-					JSON json = JSON::parse(Buffer::from(val.value, val.length));
-					int64_t expires = json[0].to_int64();
-					int64_t date = json[1].to_int64();
-
-					if ((expires == -1 && date == _http_cookie_date) || expires > time_micro()) {
-						return json[2].to_string();
-					}
-				} catch(cError& err) {
-					Qk_ERR(err);
-				}
+			if (bp_get(_db, &bp_key, &val) == BP_OK) {
+				http_cookie_check_expires(Buffer(val.value, uint32_t(val.length)).collapseString(), &result);
 			}
+			if (i == len)
+				break;
+			dir.append(paths[i++]).append('/');
 		}
-		return String();
+		bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
+		return result;
 	}
 
-	void http_set_cookie_with_expression(cString& domain, cString& expression)
-	{
+	void http_set_cookie_with_expression(cString& _domain, cString& expression) {
 		//Set-Cookie: BAIDU_WISE_UID=bd_1491295526_455; expires=Thu, 04-Apr-2019 08:45:26 GMT; path=/; domain=baidu.com
 		//Set-Cookie: BAIDUID=C9DD3739AD81A91137099489A6DA4C2F:FG=1; expires=Wed, 04-Apr-18 08:45:27 GMT; max-age=31536000; path=/; domain=.baidu.com; version=1
-		http_cookie_open();
+		//Set-Cookie: _octo=GH1.1.827978307.1724214581; domain=github.com; path=/; expires=Thu, 21 Aug 2025 04:29:41 GMT; secure; SameSite=Lax
+		OPEN();
+		String name, value;
+		DictSS opts;
 
-		if ( _db ) {
-			String name, value;
-			String domain_ = domain;
-			String path('/');
-
-			Dict<String, String> options;
-			
-			for ( auto& i : expression.split("; ") ) {
-				int j = i.indexOf('=');
-				if ( j != -1 ) {
-					if ( name.isEmpty() ) {
-						name = i.substr(0, j);
-						value = i.substr(j + 1);
-					} else {
-						options[i.substr(0, j).copy().lowerCase()] = i.substr(j + 1);
-					}
-				}
-			}
-			
-			if ( name.isEmpty() ) {
-				return;
-			}
-			
-			int64_t expires = -1;
-			
-			auto end = options.end();
-			auto it = options.find(DOMAIN_STR);
-			
-			if ( it != end ) {
-				String new_domain = it->value;
-				if ( domain_.indexOf(new_domain) == -1 ) {
-					return; // Illegal operation
+		for ( auto& i : expression.split("; ") ) {
+			int j = i.indexOf('=');
+			if ( j != -1 ) {
+				if ( name.isEmpty() ) {
+					name = i.substr(0, j);
+					value = i.substr(j + 1);
 				} else {
-					domain_ = new_domain;
+					opts.set(i.substr(0, j).lowerCase(), i.substr(j + 1));
 				}
-			}
-			
-			it = options.find(PATH);
-			if ( it != end ) {
-				path = it->value;
-			}
-			
-			it = options.find(MAX_AGE);
-			if ( it != end ) {
-				expires = it->value.toNumber<int64_t>() * 1e6 + time_micro();
 			} else {
-				it = options.find(EXPIRES);
-				if ( it != end ) {
-					int64_t time = parse_time(it->value);
-					if ( time > 0 ) {
-						expires = time;
-					}
-				}
+				opts.set(i.lowerCase(), String());
 			}
-			
-			bool secure = options.find(SECURE) != options.end();
-			String key = get_storage_key(domain_, name, path, secure);
-			
-			http_cookie_set2(key, value, expires); // BD_NOT_HTTPS=1; path=/; Max-Age=300
 		}
+		if (name.isEmpty()) return;
+
+		auto domain = _domain;
+		if (opts.get(DOMAIN_STR, domain)) {
+			if ( domain.indexOf(_domain) == -1 ) return; // Illegal operation
+		}
+
+		int64_t expires = -1;
+		bool    secure = opts.has(SECURE);
+		String  outStr;
+		String  path('/');
+		opts.get(PATH, path);
+
+		if ( opts.get(MAX_AGE, outStr) ) {
+			expires = outStr.toNumber<int64_t>() * 1e6 + time_micro();
+		}
+		else if (opts.get(EXPIRES, outStr)) {
+			expires = Int64::max(parse_time(outStr), expires);
+		}
+
+		// BD_NOT_HTTPS=1; path=/; Max-Age=300
+		http_cookie_set_value_and_expires(get_indexed_key(secure, domain, path, name), value, expires);
 	}
 
 	void http_set_cookie(cString& domain, cString& name,
-											cString& value, int64_t expires, cString& path, bool secure)
-	{
-		http_cookie_open();
-		if ( _db ) {
-			String key = get_storage_key(domain, name, path, secure);
-			http_cookie_set2(key, value, expires);
-		}
-	}
-
-	void http_delete_cookie(cString& domain, cString& name, cString& path, bool secure) {
-		http_cookie_open();
-		if ( _db ) {
-			int r;
-			String _key = get_storage_key(domain, name, path, secure);
-			bp_key_t key = { _key.length(), (Char*)*_key };
-
-			r =  bp_remove(_db, &key); assert_r(r);
-		}
+											cString& value, int64_t expires, cString& path, bool secure) {
+		OPEN();
+		http_cookie_set_value_and_expires(get_indexed_key(secure, domain, path, name), value, expires);
 	}
 
 	String http_get_all_cookie_string(cString& domain, cString& path, bool secure) {
+		String result;
 		DictSS all = http_get_all_cookie(domain, path, secure);
 		if (all.length()) {
-			Array<String> result;
-			for (auto& i : all) {
-				 result.push( std::move( String(i.value).append('=').append(i.value) ) );
-			}
-			return result.join( "; " );
-		}
-		return String();
-	}
-
-	DictSS http_get_all_cookie(cString& domain, cString& path, bool secure) {
-		ScopeLock scope(mutex);
-		http_cookie_open();
-		DictSS result;
-
-		if ( _db ) {
-			Buffer buf[2];
-			int r = http_cookie_fuzz_query(domain, secure, buf);
-
-			if (r == BP_OK) {
-				bp_key_t start = { buf[0].length(), *buf[0] };
-				bp_key_t end = { buf[1].length(), *buf[1] };
-
-				struct tmp_data_t {
-					DictSS *result;
-					String path;
-				} _tmp = { &result, path.isEmpty() ? String('/'): String(path) };
-
-				r = bp_get_filtered_range(_db, &start, &end, [](void* arg, const bp_key_t *key) {
-					auto path = &reinterpret_cast<tmp_data_t*>(arg)->path;
-					Char* s = strchr(key->value, '/');
-					if (s) {
-						int i = 0, t_len = path->length();
-						auto t = path->c_str();
-
-						// Qk_LOG("bp_get_filtered_range, %s, %s", s, t);
-
-						while(s[i] != '@') {
-							if (s[i] != t[i] || i >= t_len) {
-								return 0;
-							}
-							i++;
-						}
-						return 1;
-					}
-					return 0;
-				},
-				[](void *arg, const bp_key_t *key, const bp_value_t *val) {
-					auto m = reinterpret_cast<tmp_data_t*>(arg)->result;
-					try {
-						JSON json = JSON::parse(WeakBuffer(val->value, val->length).buffer());
-						int64_t expires = json[0].to_int64();
-						int64_t date = json[1].to_int64();
-
-						if ((expires == -1 && date == _http_cookie_date) || expires > time_micro()) {
-							Char* s = strchr(key->value, '@') + 1;
-							(*m)[String(s, key->length - (s - key->value))] = json[2].to_string();
-						}
-					} catch(cError& err) {
-						Qk_ERR(err);
-					}
-				}, &_tmp);
-			}
+			Array<String> arr;
+			for (auto& i : all)
+				arr.push( String(i.key).append('=').append(i.value) );
+			result = arr.join("; ");
 		}
 		return result;
 	}
 
-	void http_delete_all_cookie(cString& domain, bool secure) {
-		ScopeLock scope(mutex);
-		http_cookie_open();
-		if ( _db ) {
+	DictSS http_get_all_cookie(cString& domain, cString& path, bool secure) {
+		DictSS result;
+		OPEN(result);
+		auto dir = get_indexed_key_prefix(secure, domain, String());
+		auto paths = path.split('/');
+		int i = 0, len = paths.length();
 
-			Buffer buf[2];
-			int r = http_cookie_fuzz_query(domain, secure, buf);
+		String range[2];
+		while (http_cookie_fuzz_query(dir, false, nullptr)) { // Is there a directory "key"
+			if (http_cookie_fuzz_query(dir + '@', false, range)) {
+				http_cookie_fuzz_query(dir + '@', true, range+1);
+				bp_key_t start = { range[0].length(), (char*)range[0].c_str() };
+				bp_key_t end = { range[1].length(), (char*)range[1].c_str() };
 
-			if (r == BP_OK) {
-				bp_key_t start = { buf[0].length(), *buf[0] };
-				bp_key_t end = { buf[1].length(), *buf[1] };
-				Array<String> rms;
+				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
+				bp_get_range(_db, &start, &end, [](void *arg, const bp_key_t *key, const bp_value_t *val) {
+					String value;
+					if (http_cookie_check_expires(String(val->value, uint32_t(val->length)), &value)) {
+						auto ss = reinterpret_cast<DictSS*>(arg);
+						char* s = strchr(key->value, '@') + 1;
+						ss->set(String(s, uint32_t(key->length - (s - key->value))), value);
+					}
+				}, &result);
+			}
+			if (i == len)
+				break;
+			dir.append(paths[i++]).append('/');
+		}
+		bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
+		Qk_ReturnLocal(result);
+	}
 
-				//LOG("http_cookie_delete_all, %s, %s", start.value, end.value);
+	void http_delete_cookie(cString& domain, cString& name, cString& path, bool secure) {
+		OPEN();
+		String key = get_indexed_key(secure, domain, path, name);
+		bp_key_t bp_key = { key.length(), (Char*)*key };
+		assert_r(bp_remove(_db, &bp_key));
+	}
 
-				r = bp_get_range(_db, &start, &end, [](void *arg,
-															const bp_key_t *key,
-															const bp_value_t *value) {
-					//LOG("http_cookie_delete_all 1, %s", value->value);
-					reinterpret_cast<Array<String>*>(arg)->push(
-						String(key->value, (uint32_t)key->length));
-				}, &rms);
+	void http_delete_all_cookie(cString& domain, cString& path, bool secure) {
+		OPEN();
+		String range[2];
+		auto key = get_indexed_key_prefix(secure, domain, path);
+		auto ok = http_cookie_fuzz_query(key, false, range);
+		if (ok)
+			Qk_Assert(http_cookie_fuzz_query(key, true, range+1));
+		bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 
-				assert_r(r);
+		if (ok) {
+			Array<String> out;
+			bp_key_t start = { range[0].length(), (char*)*range[0] };
+			bp_key_t end = { range[1].length(), (char*)*range[1] };
 
-				for (auto& i : rms) {
-					bp_key_t key = {
-						i.length(), (char*)i.c_str(),
-					};
-					r = bp_remove(_db, &key); assert_r(r);
-					//LOG("http_cookie_delete_all 2, %s", key.value);
-				}
+			bp_get_range(_db, &start, &end, [](void *arg, const bp_key_t *key, const bp_value_t *val) {
+				((Array<String>*)arg)->push(String(key->value, (uint32_t)key->length));
+			}, &out);
+
+			for (auto& i : out) {
+				bp_key_t key = {
+					i.length(), (char*)i.c_str()
+				};
+				assert_r(bp_remove(_db, &key));
 			}
 		}
 	}
 
 	void http_clear_cookie() {
-		if ( !_db ) {
+		ScopeLock lock(_mutex);
+		if ( _db ) {
+			http_cookie_close();
+			fs_unlink_sync(get_db_filename());
+		} else {
 			if (fs_is_file_sync(get_db_filename())) {
 				fs_unlink_sync(get_db_filename());
 			}
-		} else {
-			http_cookie_close();
-			fs_unlink_sync(get_db_filename());
 		}
 	}
-
 }

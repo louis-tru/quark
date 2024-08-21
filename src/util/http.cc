@@ -277,8 +277,9 @@ namespace qk {
 				String value(at, uint32_t(length));
 
 				if ( !self->_client->_disable_cookie ) {
-					if ( self->_header_field == "set-cookie" )
+					if ( self->_header_field == "set-cookie" ) {
 						http_set_cookie_with_expression(self->_client->_uri.domain(), value);
+					}
 				}
 				self->_header[std::move(self->_header_field)] = value;
 				

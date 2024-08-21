@@ -405,6 +405,18 @@ namespace qk {
 		return *this;
 	}
 
+	template <>
+	String StringImpl<>::format(cChar* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+		auto base = _Str::sPrintfv(1, &MemoryAllocator::alloc, f, arg);
+		va_end(arg);
+		StringImpl s;
+		if (base.ptr.val)
+			s.StringBase::assign(base, 1, &MemoryAllocator::free);
+		Qk_ReturnLocal(s);
+	}
+
 	// --------------- StringBase ---------------
 
 	static Long* NewLong(uint32_t length, uint32_t capacity, char* val) {

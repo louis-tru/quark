@@ -28,72 +28,71 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include <bplus.h>
 #include "./storage.h"
 #include "./fs.h"
 #include "./event.h"
-#include <bptree.h>
 
 namespace qk {
 
 	#define _db _storage_db
-	#define assert_r(c) Qk_ASSERT(c == BP_OK)
+	#define assert_r(c) Qk_Assert_Eq(c, BP_OK)
+	#define OPEN(...) ScopeLock lock(_mutex); storage_open(); if (!_db) return __VA_ARGS__
 
-	static bp_db_t* _storage_db = nullptr;
-	static int64_t _has_initialize = 0;
+	static Mutex    _mutex;
+	static bp_db_t *_storage_db = nullptr;
+	static int      _initialize = 0;
 
 	static String get_db_filename() {
 		return fs_temp(".storage.bp");
 	}
 
 	static void storage_close() {
-		bp_db_t* __db = _storage_db;
+		bp_db_t* db = _storage_db;
 		_db = nullptr;
-		if ( __db ) bp_close(__db);
+		if (db) {
+			bp_fsync(db);
+			bp_close(db);
+		}
 	}
 
 	static void storage_open() {
-		if ( _storage_db == nullptr ) {
-			int r = bp_open(&_db, fs_fallback_c(get_db_filename()));
-			if ( r == BP_OK ) {
-				if (_has_initialize++ == 0)
+		if ( _db == nullptr ) {
+			if ( bp_open(&_db, fs_fallback_c(get_db_filename())) == BP_OK ) {
+				if (_initialize++ == 0)
 					Qk_On(ProcessExit, [](Event<>& e) { storage_close(); });
-			} else {
-				_db = nullptr;
 			}
 		}
 	}
 
+	// --------------------------------------------------------------------------------------
+
 	String storage_get(cString& name) {
-		storage_open();
 		String result;
-		if ( _db ) {
-			bp_key_t key = { name.length(), (Char*)name.c_str() };
-			bp_key_t val;
-			if (bp_get(_db, &key, &val) == BP_OK) {
-				result = Buffer::from(val.value, val.length);
-			}
+		OPEN(result);
+		bp_key_t key = { name.length(), (Char*)name.c_str() };
+		bp_key_t val;
+		if (bp_get(_db, &key, &val) == BP_OK) {
+			result = Buffer(val.value, (uint32_t)val.length).collapseString();
 		}
 		return result;
 	}
 
 	void storage_set(cString& name, cString& value) {
-		storage_open();
-		if ( _db ) {
-			bp_key_t   key = { name.length(), (Char*)name.c_str() };
-			bp_value_t val = { value.length(), (Char*)value.c_str() };
-			int r = bp_set(_db, &key, &val); assert_r(r);
-		}
+		OPEN();
+		bp_key_t   key = { name.length(), (Char*)name.c_str() };
+		bp_value_t val = { value.length(), (Char*)value.c_str() };
+		assert_r(bp_set(_db, &key, &val));
 	}
 
 	void storage_remove(cString& name) {
-		storage_open();
-		if ( _db ) {
-			bp_key_t key = { name.length(), (Char*)name.c_str() };
-			int r = bp_remove(_db, &key); assert_r(r);
-		}
+		OPEN();
+		bp_key_t key = { name.length(), (Char*)name.c_str() };
+		assert_r(bp_remove(_db, &key));
 	}
 
 	void storage_clear() {
+		ScopeLock lock(_mutex);
 		if ( !_db ) {
 			auto f = get_db_filename();
 			if (fs_is_file_sync(f)) {

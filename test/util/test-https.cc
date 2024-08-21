@@ -51,13 +51,13 @@ public:
 	void trigger_http_header(HttpClientRequest* req) {
 		Qk_LOG("Header: %d", status_code());
 		for ( auto& i : get_all_response_headers() ) {
-			Qk_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
+			//Qk_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
 		}
 		Qk_LOG("");
 	}
 	void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
-		Qk_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-		Qk_LOG("http ondata: %s", buffer.val());
+		//Qk_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		//Qk_LOG("http ondata: %s", buffer.val());
 	}
 	void trigger_http_end(HttpClientRequest* req) {
 		pause();
@@ -65,7 +65,7 @@ public:
 		abort();
 
 		Qk_LOG("http_end, status: %d, %s", status_code(), url().c_str());
-		Qk_LOG( fs_read_file_sync(fs_documents("baidu.html")) );
+		//Qk_LOG( fs_read_file_sync(fs_documents("baidu.html")) );
 
 		test_download(this);
 	}
@@ -98,7 +98,7 @@ void test_https(int argc, char **argv) {
 	//cl->set_keep_alive(false);
 	cl->set_timeout(10000000); // 10s
 	//cl->disable_cache(true);
-	//cl->disable_cookie(true);
+	cl->disable_cookie(true);
 	cl->pause();
 	cl->resume();
 	cl->abort();

@@ -387,6 +387,9 @@ namespace qk {
 		Qk_ReturnLocal(s);
 	}
 
+	template <> Qk_EXPORT
+	String StringImpl<>::format(cChar* f, ...);
+
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>

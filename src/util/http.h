@@ -242,7 +242,7 @@ namespace qk {
 	Qk_EXPORT void   http_set_cookie(cString& domain, cString& name, cString& value, 
 																	int64_t expires = -1, cString& path = String(), bool ssl = 0);
 	Qk_EXPORT void   http_delete_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
-	Qk_EXPORT void   http_delete_all_cookie(cString& domain, bool ssl = 0);
+	Qk_EXPORT void   http_delete_all_cookie(cString& domain, cString& path = String(), bool ssl = 0);
 	Qk_EXPORT void   http_clear_cookie();
 }
 #endif
