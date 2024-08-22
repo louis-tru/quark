@@ -350,6 +350,9 @@ namespace qk {
 			return String();
 
 		String tmp;
+		if (len == 1)
+			return it(data, &tmp), tmp;
+
 		auto spLen = sp.isEmpty() ? 0: Int32::max(len - 1, 0);
 		Array<String> strs(len + spLen);
 		int total = spLen * sp.length(), i = 0;

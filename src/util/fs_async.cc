@@ -90,7 +90,8 @@ namespace qk {
 		uv_fs_req_cleanup(req);
 		Handle<FileReq> handle(FileReq::cast(req));
 		if ( req->result == 0 ) { // ok
-			async_callback(handle->cb());
+			RunLoop *loop;
+			async_callback(handle->cb(), loop);
 		} else { // err
 			async_err_callback(*handle);
 		}

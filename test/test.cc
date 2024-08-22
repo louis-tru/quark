@@ -32,9 +32,9 @@
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME
-// #define TEST_FUNC_NAME test_testing
-#define TEST_FUNC_NAME test_https
-//#define TEST_FUNC_NAME test_http_cookie
+#define TEST_FUNC_NAME test_testing
+// #define TEST_FUNC_NAME test_https
+// #define TEST_FUNC_NAME test_http_cookie
 #endif
 
 using namespace qk;

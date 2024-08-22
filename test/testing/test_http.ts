@@ -12,8 +12,8 @@ import util from 'quark/util'
 export default async function(_: any) {
 	LOG('\nHttpClientRequest:\n')
 
-	var save = path.documents('baidu.html');
-	var cl = new HttpClientRequest();
+	let save = path.documents('baidu.html');
+	let cl = new HttpClientRequest();
 
 	cl.onError.on(function(ev) {
 		LOG('http onerror:', ev.data.message) 
@@ -28,21 +28,21 @@ export default async function(_: any) {
 	cl.onHeader.on(function(ev) {
 		LOG('http onheader:') 
 		Mv(cl, 'getResponseHeader', ['expires']);
-		Mv(cl, 'getAllResponseHeaders', []);
+		for (let [k,v] of Object.entries(Mv(cl, 'getAllResponseHeaders', []))) {
+			LOG('http onheader:', k, ':', v);
+		}
 	})
-	cl.onData.on(function(ev){ 
-		// LOG('http ondata:', ev.data.length, cl.url, buffer.toString(ev.data));
-		LOG('http ondata:', ev.data.length, cl.url);
-		Pv(cl, 'downloadSize', e=>e!=0)
-		// Pv(cl, 'downloadTotal', e=>e!=0)
+	cl.onData.on(function(ev){
+		LOG('http ondata:', ev.data.length, cl.url, buffer.toString(ev.data));
+		// LOG('http ondata:', ev.data.length, cl.url);
 	})
 	cl.onEnd.on(function(ev){
 		LOG('http onend:')
 		Mv(cl, 'pause', [])
 		Mv(cl, 'resume', [])
 		Mv(cl, 'abort', [])
-		Pv(cl, 'uploadTotal', e=>e==0)
-		Pv(cl, 'uploadSize', e=>e==0)
+		// Pv(cl, 'uploadTotal', e=>e==0)
+		// Pv(cl, 'uploadSize', e=>e==0)
 		// Pv(cl, 'downloadTotal', e=>e!=0)
 		Pv(cl, 'downloadSize', e=>e!=0)
 		//Pv(cl, 'readyState', HttpReadyState.Completed)
@@ -55,8 +55,12 @@ export default async function(_: any) {
 		LOG('http ontimeout:')
 	})
 	cl.onAbort.on(function(ev) {
-		LOG('http onabort: ------------------------------------ ') 
+		LOG('http onabort:') 
 	})
+	Mv(cl.onEnd, 'on', [function(ev){
+		LOG('fs.readFileSync', fs.readFileSync(save, 'utf8'));
+		test_download(cl);
+	}, '1']);
 
 	Mv(cl, 'setMethod', [HttpMethod.GET]);
 	Mv(cl, 'setUrl', ['https://www.baidu.com/']);
@@ -80,13 +84,21 @@ export default async function(_: any) {
 	Pv(cl, 'readyState', HttpReadyState.Initial)
 	Pv(cl, 'statusCode', 0)
 	Pv(cl, 'url', 'https://www.baidu.com/')
-	Mv(cl.onEnd, 'on', [function(ev){
-		Mv(fs, 'readFileSync', [save]);
-		// test_upload(cl);
-		test_download(cl);
-	}, '1']);
-	// Mv(cl, 'send', [])
-	test_download(cl);
+	Mv(cl, 'disableCookie', [true])
+	Mv(cl, 'disableSendCookie', [true])
+	Mv(cl, 'send', [])
+}
+
+function test_download(cl: HttpClientRequest) {
+	LOG('\nTest test_download:\n')
+	Mv(cl, 'setSavePath', ['']) // no save path
+	Mv(cl, 'disableCookie', [false])
+	Mv(cl, 'disableSendCookie', [false])
+	Mv(cl, 'setMethod', [HttpMethod.GET])
+	Mv(cl, 'setUrl', ['https://github.com/louis-tru/quark/blob/master/doc/index.md'])
+	Mv(cl, 'disableCache', [true]);
+	// Mv(cl.onEnd, 'on', [()=>test_4(cl), '1']);
+	Mv(cl, 'send', [])
 }
 
 function test_upload(cl: HttpClientRequest) {
@@ -111,18 +123,6 @@ function test_upload(cl: HttpClientRequest) {
 	Mv(cl, 'setUploadFile', ['upload_file', file])
 	Mv(cl, 'setUploadFile', ['upload_file2', file2])
 	Mv(cl.onEnd, 'on', [()=>test_download(cl), '1']);
-	Mv(cl, 'send', [])
-}
-
-function test_download(cl: HttpClientRequest) {
-	LOG('\nTest test_download:\n')
-	Mv(cl, 'setSavePath', ['']) // no save path
-	Mv(cl, 'disableCookie', [false])
-	Mv(cl, 'disableSendCookie', [false])
-	Mv(cl, 'setMethod', [HttpMethod.GET])
-	Mv(cl, 'setUrl', ['https://github.com/louis-tru/quark/blob/master/doc/index.md'])
-	Mv(cl, 'disableCache', [true]);
-	// Mv(cl.onEnd, 'on', [()=>test_4(cl), '1']);
 	Mv(cl, 'send', [])
 }
 

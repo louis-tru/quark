@@ -58,14 +58,10 @@ namespace qk {
 			return evt.rc;
 		}
 		inline int resolve(D* d = nullptr) const {
-			CallbackData<D, E> evt = { 0,d,0 };
-			call(evt);
-			return evt.rc;
+			return call(0, d);
 		}
 		inline int reject(E* e) const {
-			CallbackData<D, E> evt = { e,0,0 };
-			call(evt);
-			return evt.rc;
+			return call(e, 0);
 		}
 		virtual void call(CallbackData<D, E>& evt) const = 0;
 	};

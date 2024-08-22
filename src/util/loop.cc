@@ -44,7 +44,7 @@ namespace qk {
 			auto timeout = timer->timeout;
 			auto repeatTimeout = timer->repeatCount ? (timeout ? timeout: 1): 0;
 			Qk_Assert_Eq(0, uv_timer_init(_uv_loop, timer));
-			Qk_Assert_Eq(0, uv_timer_start(timer, [](uv_timer_t *h) {
+			auto r = uv_timer_start(timer, [](uv_timer_t *h) {
 				auto timer = (timer_t*)h;
 				timer->calling = true;
 				auto rc = timer->cb->resolve();
@@ -54,7 +54,8 @@ namespace qk {
 				} else if (timer->repeatCount > 0) {
 					timer->repeatCount--;
 				}
-			}, timeout, repeatTimeout));
+			}, timeout, repeatTimeout);
+			Qk_Assert_Eq(0, r);
 		}
 
 		void check_start(check_t *check) {
@@ -64,22 +65,28 @@ namespace qk {
 				auto check = (check_t*)(h);
 				check->cb->resolve();
 				if (check->repeatCount == 0) {
-					Qk_Assert_Eq(0, uv_check_stop(check));
-					_inl(check->data)->_check.erase(check->id);
-					delete check;
+					_inl(check->data)->check_stop(check);
 				} else if (check->repeatCount > 0) {
 					check->repeatCount--;
 				}
 			}));
 		}
 
+		void check_stop(check_t *check) {
+			uv_close((uv_handle_t*)check, [](uv_handle_t* h) {
+				delete (check_t*)(h);
+			});
+			_check.erase(check->id);
+		}
+
 		void timer_stop(timer_t *timer) {
 			if (timer->calling) {
 				timer->repeatCount = 0;
 			} else {
-				Qk_Assert_Eq(0, uv_timer_stop(timer));
+				uv_close((uv_handle_t*)timer, [](uv_handle_t* h){
+					delete (timer_t*)(h);
+				});
 				_timer.erase(timer->id);
-				delete timer;
 			}
 		}
 
@@ -123,6 +130,7 @@ namespace qk {
 			ScopeLock lock(*__threads_mutex);
 			Qk_Fatal_Assert(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 			// clear(); // clear all
+			// Qk_Assert_Eq(nullptr, _uv_loop->closing_handles);
 
 			if (__first_loop == this) {
 				__first_loop = nullptr;
@@ -207,10 +215,10 @@ namespace qk {
 		uv_run(_uv_loop, UV_RUN_DEFAULT); // run uv loop
 
 		uv_close((uv_handle_t*)_uv_async, nullptr); // close handle
-		uv_timer_stop(_uv_timer);
+		uv_close((uv_handle_t*)_uv_timer, nullptr);
 
 		if (_uv_loop->closing_handles) {
-			uv_run(_uv_loop, UV_RUN_NOWAIT); // exec close handles
+			uv_run(_uv_loop, UV_RUN_NOWAIT); // exec uv close handles
 		}
 		Qk_Assert_Eq(nullptr, _uv_loop->closing_handles);
 
@@ -222,21 +230,17 @@ namespace qk {
 	}
 
 	void RunLoop::Work::uv_work_cb(uv_work_t* req) {
-		Work* self = (Work*)req->data;
+		auto self = (Work*)req->data;
 		self->work->resolve(self->host);
 	}
 
 	void RunLoop::Work::uv_after_work_cb(uv_work_t* req, int status) {
 		Sp<Work> self((Work*)req->data);
-		self->done_work(status);
-	}
-
-	void RunLoop::Work::done_work(int status) {
-		_inl(host)->_work.erase(id);
-		if (UV_ECANCELED != status) { // cancel
-			done->resolve(host);
-		}
-		_inl(host)->async_send();
+		auto host = _inl(self->host);
+		host->_work.erase(self->id);
+		if (UV_ECANCELED != status) // no cancel
+			self->done->resolve(host);
+		host->async_send();
 	}
 
 	// ----------------------------- R u n . L o o p -----------------------------
@@ -286,9 +290,8 @@ namespace qk {
 
 		for (auto &i: checks) {
 			auto check = (check_t*)(i.value);
-			Qk_Assert_Eq(0, uv_check_stop(check));
+			_this->check_stop(check);
 			Qk_WARN("RunLoop::clear(), discard check %p", check);
-			delete check;
 		}
 	}
 

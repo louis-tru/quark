@@ -494,22 +494,23 @@ namespace qk { namespace js {
 		if (!str->Length()) return String();
 		if ( oneByte ) {
 			Buffer buffer(str->Length());
-			str->WriteOneByte(ISOLATE(worker), (uint8_t*)*buffer, 0, buffer.length() + 1);
+			str->WriteOneByte(ISOLATE(worker), (uint8_t*)*buffer, 0, buffer.capacity());
 			return buffer.collapseString();
 		} else {
-			Array<String> rev;
-			Array<uint16_t> source(128);
+			uint16_t source[128];
 			int start = 0, count;
 			auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
+			Array<String> rev;
 
-			while ( (count = str->Write(ISOLATE(worker), *source, start, 128, opts)) ) {
-				auto unicode = codec_decode_form_utf16(source.slice(0, count).buffer());
-				rev.push(
-					codec_encode(kUTF8_Encoding, unicode).collapseString()
-				);
+			while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
+				auto unicode = codec_decode_form_utf16(ArrayWeak<uint16_t>(source, count).buffer());
+				rev.push(codec_encode(kUTF8_Encoding, unicode).collapseString());
 				start += count;
 			}
-			return rev.join(String());
+
+			return rev.length() == 0 ? String():
+						 rev.length() == 1 ? rev[0]:
+						 rev.join(String());
 		}
 	}
 
@@ -525,16 +526,16 @@ namespace qk { namespace js {
 		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
 		if (!str->Length()) return String4();
 
-		Array<uint32_t> rev(str->Length());
-		Array<uint16_t> source(128);
+		uint16_t source[128];
 		int start = 0, count, revOffset = 0;
 		auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
+		Array<uint32_t> rev(str->Length());
 
-		while ( (count = str->Write(ISOLATE(worker), *source, start, 128, opts)) ) {
-			auto unicode = codec_decode_form_utf16(source.slice(0, count).buffer());
+		while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
+			auto unicode = codec_decode_form_utf16(ArrayWeak<uint16_t>(source, count).buffer());
 			rev.write(*unicode, unicode.length(), revOffset);
-			start += count;
 			revOffset += unicode.length();
+			start += count;
 		}
 		rev.reset(revOffset);
 		return rev.collapseString();

@@ -353,11 +353,10 @@ namespace qk {
 		void close_delete() {
 			if (!_retain)
 				return;
-			uv_close((uv_handle_t*)_uv_tcp, [](uv_handle_t* handle) {
-				Sp<RetainRef> h((RetainRef*)handle->data);
+			uv_close((uv_handle_t*)_uv_tcp, [](uv_handle_t* h) {
+				Sp<RetainRef> sp((RetainRef*)h->data);
 			});
-			uv_timer_stop(_uv_timer);
-
+			uv_close((uv_handle_t*)_uv_timer, nullptr); // last call first execute
 			_retain = nullptr;
 			_uv_tcp = nullptr;
 			_uv_timer = nullptr;
@@ -406,7 +405,7 @@ namespace qk {
 				[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 					Inl* self = *static_cast<RetainRef*>(handle->data)->hold;
 					if ( self->_read_buffer.isNull() ) {
-						self->_read_buffer = Buffer::alloc( Qk_MIN(65536, uint32_t(suggested_size)) );
+						self->_read_buffer = Buffer( Qk_MIN(65535, uint32_t(suggested_size)) );
 					}
 					buf->base = *self->_read_buffer;
 					buf->len = self->_read_buffer.length();
@@ -754,22 +753,23 @@ namespace qk {
 				_bio_read_source_buffer = buffer;
 				_bio_read_source_buffer_length = nread;
 
-				if ( !_ssl_read_buffer.length() ) {
-					_ssl_read_buffer = Buffer::alloc(65536);
+				if ( _ssl_read_buffer.length() == 0 ) {
+					_ssl_read_buffer = Buffer(65535);
 				}
 
 				if ( _is_open ) {
 					reset_timeout();
 
 					while (1) {
-						int i = SSL_read(_ssl, _ssl_read_buffer.val(), 65536);
+						int i = SSL_read(_ssl, _ssl_read_buffer.val(), 65535);
 
 						if ( i > 0 ) {
 							WeakBuffer buff(_ssl_read_buffer.val(), i);
 							_delegate->trigger_socket_data(_host, buff.buffer());
 						} else {
 							if ( i < 0 ) { // err
-								report_ssl_err(ERR_SSL_UNKNOWN_ERROR); close(); // close connect
+								report_ssl_err(ERR_SSL_UNKNOWN_ERROR);
+								close(); // close connect
 							}
 							break;
 						}

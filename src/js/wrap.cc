@@ -45,10 +45,10 @@ namespace qk { namespace js {
 	}
 
 	void* object_allocator_alloc(size_t size) {
-		auto o = (WrapObject*)::malloc(size + sizeof(WrapObject));
+		auto o = ::malloc(size + sizeof(WrapObject));
 		Qk_Assert(o);
-		::memset((void*)o, 0, sizeof(WrapObject));
-		return o + 1;
+		::memset(o, 0, sizeof(WrapObject));
+		return static_cast<WrapObject*>(o) + 1;
 	}
 
 	void  object_allocator_free(void *ptr) {
@@ -60,7 +60,7 @@ namespace qk { namespace js {
 		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
 		auto worker = wrap->worker();
 		if ( worker ) {
-			Qk_Assert(thread_self_id() == worker->thread_id());
+			Qk_Assert_Eq(thread_self_id(), worker->thread_id());
 			setWeak(wrap);
 		} else {
 			obj->destroy();

@@ -369,10 +369,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(HttpClientRequest);
-				String rv;
-				Js_Try_Catch({
-					rv = self->get_response_header(args[0]->toStringValue(worker,1));
-				}, Error);
+				auto rv = self->get_response_header(args[0]->toStringValue(worker,1));
 				Js_Return( rv );
 			});
 
@@ -380,11 +377,8 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Method(getAllResponseHeaders, {
 				Js_Self(HttpClientRequest);
-				cDictSS* rv;
-				Js_Try_Catch({
-					rv = &self->get_all_response_headers();
-				}, Error);
-				Js_Return( *rv );
+				cDictSS &rv = self->get_all_response_headers();
+				Js_Return( rv );
 			});
 
 			Js_Set_Class_Method(setKeepAlive, {

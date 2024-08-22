@@ -32,6 +32,9 @@
 #include <quark/util/http.h>
 #include <quark/util/string.h>
 #include <quark/util/fs.h>
+#include <quark/ui/app.h>
+#include <quark/ui/window.h>
+#include <quark/ui/view/root.h>
 
 using namespace qk;
 
@@ -65,9 +68,10 @@ public:
 		abort();
 
 		Qk_LOG("http_end, status: %d, %s", status_code(), url().c_str());
-		//Qk_LOG( fs_read_file_sync(fs_documents("baidu.html")) );
+		//Qk_LOG(fs_read_file_sync(fs_documents("baidu.html")));
 
 		test_download(this);
+		//send();
 	}
 	void trigger_http_readystate_change(HttpClientRequest* req) {
 		Qk_LOG("http_readystate_change, %d", ready_state() );
@@ -97,12 +101,18 @@ void test_https(int argc, char **argv) {
 	cl->get_all_response_headers();
 	//cl->set_keep_alive(false);
 	cl->set_timeout(10000000); // 10s
-	//cl->disable_cache(true);
+	// cl->disable_cache(true);
 	cl->disable_cookie(true);
+	cl->disable_send_cookie(true);
 	cl->pause();
 	cl->resume();
 	cl->abort();
 	cl->send();
+
+	App app;
+	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
+	win->activate();
+	win->root()->set_background_color(Color(255, 0, 0));
 
 	RunLoop::current()->run();
 }
@@ -112,8 +122,8 @@ void test_download(HttpClientRequest *cl) {
 
 	cl->set_url("https://github.com/louis-tru/quark/blob/master/doc/index.md");
 	cl->set_save_path(""); // no save path
-	cl->disable_cookie(false);
-	cl->disable_send_cookie(false);
+	//cl->disable_cookie(false);
+	//cl->disable_send_cookie(false);
 	cl->set_method(HTTP_METHOD_GET);
 	cl->disable_cache(true);
 	cl->send();

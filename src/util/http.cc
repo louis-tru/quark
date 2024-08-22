@@ -41,7 +41,7 @@
 
 namespace qk {
 	#define MAX_CONNECT_POOL_SIZE (5)
-	#define BUFFER_SIZE (65536)
+	#define BUFFER_SIZE (65535)
 
 	typedef HttpClientRequest::Delegate HttpDelegate;
 
@@ -168,16 +168,7 @@ namespace qk {
 			virtual bool is_cache() = 0;
 		};
 
-		struct HttpParser: Reference {
-			HttpParser(Connect *conn) {
-				parser.data = conn;
-				http_parser_settings_init(&settings);
-			}
-			http_parser parser;
-			http_parser_settings settings;
-		};
-
-		class Connect: public Object
+		class Connect: public Reference
 			, public Socket::Delegate
 			, public Reader, public File::Delegate
 		{
@@ -200,25 +191,23 @@ namespace qk {
 				}
 				Qk_Assert(_socket);
 				_socket->set_delegate(this);
-				_parser = new HttpParser(this);
 				_z_strm.state = nullptr;
 
-				auto &settings = _parser->settings;
-				http_parser_settings_init(&settings); // init
-				settings.on_message_begin = &on_message_begin;
-				settings.on_status = &on_status;
-				settings.on_header_field = &on_header_field;
-				settings.on_header_value = &on_header_value;
-				settings.on_headers_complete = &on_headers_complete;
-				settings.on_body = &on_body;
-				settings.on_message_complete = &on_message_complete;
+				_parser.data = this;
+				http_parser_settings_init(&_settings); // init
+				_settings.on_message_begin = &on_message_begin;
+				_settings.on_status = &on_status;
+				_settings.on_header_field = &on_header_field;
+				_settings.on_header_value = &on_header_value;
+				_settings.on_headers_complete = &on_headers_complete;
+				_settings.on_body = &on_body;
+				_settings.on_message_complete = &on_message_complete;
 			}
 
 			~Connect() {
 				Qk_Assert( _id == ConnectID() );
 				Release(_socket);     _socket = nullptr;
 				Release(_upload_file);_upload_file = nullptr;
-				http_parser_settings_init(&_parser->settings); // resetting
 				gzip_inflate_end();
 			}
 
@@ -230,7 +219,7 @@ namespace qk {
 
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
-	
+
 				if ( _ssl ) {
 					static_cast<SSLSocket*>(_socket)->disable_ssl_verify(_client->_disable_ssl_verify);
 				}
@@ -243,15 +232,15 @@ namespace qk {
 			}
 
 			static int on_message_begin(http_parser* parser) {
-				//g_debug("--http response parser on_message_begin");
-				Connect* self = static_cast<Connect*>(parser->data);
+				//Qk_DEBUG("--http response parser on_message_begin");
+				auto self = static_cast<Connect*>(parser->data);
 				self->_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
 				return 0;
 			}
 			
 			static int on_status(http_parser* parser, cChar *at, size_t length) {
-				//g_debug("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
-				Connect* self = static_cast<Connect*>(parser->data);
+				//Qk_DEBUG("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
+				auto self = static_cast<Connect*>(parser->data);
 				int status_code = String(at - 4, 3).toNumber<uint32_t>();
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
@@ -265,37 +254,43 @@ namespace qk {
 			}
 
 			static int on_header_field(http_parser* parser, cChar *at, size_t length) {
-				//g_debug("http response parser on_header_field, %s", String(at, uint32_t(length)).c());
-				static_cast<Connect*>(parser->data)->_header_field =
-					String(at, uint32_t(length)).lowerCase();
+				auto self = static_cast<Connect*>(parser->data);
+				self->header_field_complete();
+				self->_header_field.append(at, uint32_t(length));
+				// Qk_DEBUG("on_header_field, %s", self->_header_field.c_str());
 				return 0;
 			}
 
 			static int on_header_value(http_parser* parser, cChar *at, size_t length) {
-				//g_debug("http response parser on_header_value, %s", String(at, uint32_t(length)).c());
-				Connect* self = static_cast<Connect*>(parser->data);
-				String value(at, uint32_t(length));
-
-				if ( !self->_client->_disable_cookie ) {
-					if ( self->_header_field == "set-cookie" ) {
-						http_set_cookie_with_expression(self->_client->_uri.domain(), value);
-					}
-				}
-				self->_header[std::move(self->_header_field)] = value;
-				
+				auto self = static_cast<Connect*>(parser->data);
+				self->_header_value.append(at, uint32_t(length));
 				return 0;
 			}
 
 			static int on_headers_complete(http_parser* parser) {
-				//g_debug("--http response parser on_headers_complete");
-				Connect* self = static_cast<Connect*>(parser->data);
-				Client* cli = self->_client;
+				//Qk_DEBUG("--http response parser on_headers_complete");
+				auto self = static_cast<Connect*>(parser->data);
+				auto cli = self->_client;
+				self->header_field_complete();
 				if ( self->_header.has("content-length") ) {
 					cli->_download_total = self->_header["content-length"].toNumber<int64_t>();
 				}
 				self->gzip_inflate_init();
 				cli->trigger_http_header(cli->_status_code, std::move(self->_header), 0);
 				return 0;
+			}
+
+			void header_field_complete() {
+				if (_header_value.length()) {
+					_header_field.lowerCase();
+					if ( !_client->_disable_cookie ) {
+						if ( _header_field == "set-cookie" ) {
+							http_set_cookie_with_expression(_client->_uri.domain(), _header_value);
+						}
+					}
+					_header.set(_header_field, _header_value);
+					_header_field = _header_value = String(); // clear field and value
+				}
 			}
 
 			void gzip_inflate_init() {
@@ -316,7 +311,7 @@ namespace qk {
 			}
 
 			int gzip_inflate(cChar* data, uint32_t len, Buffer& out) {
-				auto _z_strm_buff = Buffer::alloc(16384); // 16k
+				Buffer _z_strm_buff(16383); // 16k
 				int r = 0;
 				_z_strm.next_in = (uint8_t*)data;
 				_z_strm.avail_in = len;
@@ -326,7 +321,7 @@ namespace qk {
 					r = inflate(&_z_strm, Z_NO_FLUSH);
 					out.write(_z_strm_buff.val(), _z_strm_buff.length() - _z_strm.avail_out);
 				} while(_z_strm.avail_out == 0);
-				
+
 				if ( r == Z_STREAM_END ) {
 					gzip_inflate_end();
 				}
@@ -340,9 +335,8 @@ namespace qk {
 				Buffer buff;
 				if ( self->_z_strm.state ) {
 					int r = self->gzip_inflate(at, uint32_t(length), buff);
-					if (r < 0) {
+					if (r < 0)
 						Qk_ERR("un gzip err, %d", r);
-					}
 				} else {
 					buff = WeakBuffer(at, uint32_t(length))->copy();
 				}
@@ -359,7 +353,7 @@ namespace qk {
 			}
 
 			void send_http_request() {
-				http_parser_init(&_parser->parser, HTTP_RESPONSE);
+				http_parser_init(&_parser, HTTP_RESPONSE);
 				Release(_upload_file); _upload_file = nullptr;
 				_is_multipart_form_data = false;
 				_send_data = false;
@@ -380,14 +374,14 @@ namespace qk {
 				if ( !header.has("Accept") )          header["Accept"] = "*/*";
 				if ( !header.has("DNT") )             header["DNT"] = "1";
 				// if ( !header.has("Accept-Language") ) header["Accept-Language"] = languages();
-				
+
 				if ( !_client->_username.isEmpty() && !_client->_password.isEmpty() ) {
 					String s = _client->_username + ':' + _client->_password;
 					header["Authorization"] = codec_encode(kBase64_Encoding, s);
 				}
-	
+
 				if ( !_client->_disable_cookie && !_client->_disable_send_cookie ) { // send cookies
-					
+
 					String cookies = http_get_all_cookie_string(_client->_uri.domain(),
 																														_client->_uri.pathname(),
 																														_client->_uri.type() == URI_HTTPS);
@@ -395,7 +389,7 @@ namespace qk {
 						header["Cookie"] = cookies;
 					}
 				}
-				
+
 				if ( _client->_cache_reader ) {
 					String last_modified = _client->_cache_reader->header()["last-modified"];
 					String etag = _client->_cache_reader->header()["etag"];
@@ -406,7 +400,7 @@ namespace qk {
 						header["If-None-Match"] = std::move(etag);
 					}
 				}
-				
+
 				if ( _client->_method == HTTP_METHOD_POST ) {
 					
 					if ( _client->_post_data.length() ) { // ignore form data
@@ -423,15 +417,15 @@ namespace qk {
 								_is_multipart_form_data = true; break;
 							}
 						}
-						
+
 						if (_is_multipart_form_data ) {
-							
+
 							uint32_t content_length = multipart_boundary_end.length();
-							
+
 							for ( auto& i : _client->_post_form_data ) {
 								FormValue& form = i.value;
 								MultipartFormValue _form = { form.type, form.data };
-								
+
 								if ( i.value.type == FORM_TYPE_FILE ) {
 									FileStat stat = fs_stat_sync(i.value.data);
 									if ( stat.is_valid() && stat.is_file() ) {
@@ -453,17 +447,17 @@ namespace qk {
 									content_length += form.data.length();
 									_client->_upload_total += form.data.length();
 								}
-							
+
 								content_length += multipart_boundary_start.length();
 								content_length += _form.headers.length();
 								content_length += 2; // end
 								_multipart_form_data.pushBack(_form);
 							}
-							
+
 							header["Content-Length"] = content_length;
 							header["Content-Type"] = content_type_multipart_form;
 						} else {
-							
+
 							for ( auto& i : _client->_post_form_data ) {
 								String value = inl__uri_encode(i.value.data);
 								_client->_post_data.write(i.key.c_str(), i.key.length());
@@ -477,7 +471,7 @@ namespace qk {
 						}
 					}
 				}
-				
+
 				Array<String> header_str;
 				String search = _client->_uri.search();
 
@@ -487,7 +481,7 @@ namespace qk {
 						search = String();
 					}
 				}
-				
+
 				header_str.push(
 					String::format
 					(
@@ -541,9 +535,9 @@ namespace qk {
 
 			virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
 				if ( _client ) {
-					// Avoid releasing connections during data parsing
-					Sp<HttpParser> sp(_parser);
-					http_parser_execute(&sp->parser, &sp->settings, buffer.val(), buffer.length());
+					// avoid releasing connections during data parsing
+					Sp<Connect> sp(this); // retain Connect
+					http_parser_execute(&_parser, &_settings, buffer.val(), buffer.length());
 				}
 			}
 
@@ -664,10 +658,11 @@ namespace qk {
 			Client*     _client;
 			ConnectID   _id;
 			File*       _upload_file;
-			Sp<HttpParser> _parser;
+			http_parser _parser;
+			http_parser_settings _settings;
 			List<MultipartFormValue> _multipart_form_data;
 			Buffer  _multipart_form_buffer;
-			String  _header_field;
+			String  _header_field, _header_value;
 			DictSS _header;
 			z_stream _z_strm;
 			RunLoop*  _loop;
@@ -763,7 +758,6 @@ namespace qk {
 
 			void call_req_tasks(Lock *lock) {
 				for ( auto i = _reqs.begin(); i != _reqs.end(); ) {
-					auto j = i++;
 					connect_req& req = *i;
 					if (req.client->_wait_connect_id == req.wait_id) {
 						auto conn = get_connect(req);
@@ -771,13 +765,15 @@ namespace qk {
 							conn->_busy = true;
 							auto cli = req.client;
 							Cb cb = req.cb;
-							_reqs.erase(j);
+							_reqs.erase(i++);
 							lock->unlock(); // unlock
-							cli->loop()->post(cb); // async call
+							cli->loop()->post(Cb([conn,cb](auto&e){
+								cb->resolve(conn);
+							},conn)); // async call
 							break;
 						}
 					} else {
-						_reqs.erase(j); // discard req
+						_reqs.erase(i++); // discard req
 					}
 				}
 			}
@@ -822,9 +818,8 @@ namespace qk {
 						}
 					}
 					if (poolSize < MAX_CONNECT_POOL_SIZE) {
-						conn = new Connect(req.hostname,
-															req.port,
-															req.uri_type == URI_HTTPS, req.client->loop());
+						auto ssl = req.uri_type == URI_HTTPS;
+						conn = NewRetain<Connect>(req.hostname, req.port, ssl, req.client->loop());
 						conn->_id = _conns.pushBack(conn);
 					}
 				}

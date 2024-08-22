@@ -63,7 +63,6 @@ namespace qk {
 		String name;
 		static void uv_work_cb(uv_work_t* req);
 		static void uv_after_work_cb(uv_work_t* req, int status);
-		void done_work(int status);
 	};
 
 	struct timer_t: uv_timer_t {

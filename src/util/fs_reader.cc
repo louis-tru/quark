@@ -142,12 +142,12 @@ namespace qk {
 				Error e(err);
 				async_reject(cb, Error(err), loop); return;
 			}
-			
+
 			if ( stream ) {
 				uint32_t len = buffer.length();
-				async_resolve<Object>(cb, StreamResponse(buffer, 1, 0, len, len, nullptr), static_cast<PostMessage*>(loop));
+				async_resolve(cb, StreamResponse(buffer, 1, 0, len, len, nullptr), loop);
 			} else {
-				async_resolve<Object>(cb, std::move(buffer), static_cast<PostMessage*>(loop));
+				async_resolve(cb, std::move(buffer), loop);
 			}
 		}
 

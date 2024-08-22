@@ -578,8 +578,9 @@ namespace qk {
 			&object_allocator_alloc,
 			&object_allocator_free, &object_allocator_strong, &object_allocator_weak
 		);
+
 		// Mark the current main thread and check current thread
-		Qk_ASSERT(RunLoop::first() == RunLoop::current());
+		Qk_Assert_Eq(RunLoop::first(), RunLoop::current());
 
 		Qk_On(ProcessExit, onProcessExitHandle);
 

@@ -99,7 +99,7 @@ namespace qk { namespace js {
 		#define Qk_WorkerInl(worker) static_cast<WorkerInl*>(worker)
 		JSValue* binding(JSValue* name);
 		JSObject* console() { return *_console; }
-		void initGlobalAPIs();
+		void     initGlobalAPIs();
 	};
 
 	struct DebugOptions {

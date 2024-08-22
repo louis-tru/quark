@@ -116,7 +116,8 @@ namespace qk { namespace js {
 		}
 
 		bool stringify(JSValue* arg) {
-			if (!arg) return false; // error
+			if (!arg)
+				return false; // error
 			bool rv = true;
 
 			if(arg->isString()) {

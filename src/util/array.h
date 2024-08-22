@@ -201,7 +201,7 @@ namespace qk {
 		Array(uint32_t length, uint32_t capacity); // new array buffer from length
 
 		/**
-		 * @method concat_() concat multiple array buffer
+		 * @method concat_() concat multiple array buffer and release src
 		 */
 		void concat_(T* src, uint32_t src_length);
 
@@ -218,8 +218,8 @@ namespace qk {
 		*/
 		void copy_(Ptr* ptr, uint32_t start, uint32_t len) const;
 
-		uint32_t _length;
 		Ptr _ptr;
+		uint32_t _length;
 
 		template<typename T2, typename A2> friend class Array;
 
@@ -269,14 +269,14 @@ namespace qk {
 	 * @class ArrayWeak
 	 */
 	template<typename T>
-	class ArrayWeak: public Object {
+	class ArrayWeak {
 	public:
-		ArrayWeak(): _length(0), _ptr{nullptr,0} {}
+		ArrayWeak(): _ptr{nullptr,0},_length(0) {}
 		ArrayWeak(const T* data, uint32_t length)
-			: _length(length), _ptr{const_cast<T*>(data),length} {}
+			: _ptr{const_cast<T*>(data),length}, _length(length) {}
 		template<class A2>
 		ArrayWeak(cArray<T, A2>& arr)
-			: _length(arr.length()), _ptr{const_cast<T*>(*arr),arr.length()} {}
+			: _ptr{const_cast<T*>(*arr),arr.length()}, _length(arr.length()) {}
 
 		operator bool() const { return _ptr.val != nullptr; }
 		const T* operator*() const { return _ptr.val; }
@@ -288,8 +288,9 @@ namespace qk {
 		const T* val() const { return _ptr.val; }
 
 	private:
-		uint32_t _length;
+		char __[sizeof(Object)];
 		MemoryAllocator::Prt<T, MemoryAllocator> _ptr;
+		uint32_t _length;
 	};
 
 }
@@ -299,18 +300,18 @@ namespace qk {
 	// ---------------------------------- IMPL ----------------------------------
 
 	template<typename T, typename A>
-	Array<T, A>::Array(): _length(0), _ptr{nullptr,0}
+	Array<T, A>::Array(): _ptr{nullptr,0}, _length(0)
 	{}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(Array&& arr): _length(0), _ptr{nullptr,0}
+	Array<T, A>::Array(Array&& arr): _ptr{nullptr,0}, _length(0)
 	{
 		if (arr._length)
 			operator=(std::move(arr));
 	}
 
 	template<typename T, typename A>
-	Array<T, A>::Array(const Array& arr): _length(arr._length), _ptr{nullptr,0}
+	Array<T, A>::Array(const Array& arr): _ptr{nullptr,0}, _length(arr._length)
 	{
 		if (_length)
 			arr.copy_(&_ptr, 0, _length);
@@ -318,21 +319,21 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::initializer_list<T>& list)
-		: _length(0), _ptr{nullptr,0}
+		: _ptr{nullptr,0}, _length(0)
 	{
 		write(list.begin(), (uint32_t)list.size());
 	}
 
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::vector<T>& list)
-		: _length(0), _ptr{0, nullptr}
+		: _ptr{0, nullptr}, _length(0)
 	{
 		write(list.data(), (uint32_t)list.size());
 	}
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, uint32_t capacity, T* data)
-		: _length(length), _ptr{data,capacity}
+		: _ptr{data,capacity}, _length(length)
 	{}
 
 	template<typename T, typename A>
@@ -341,7 +342,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, uint32_t capacity)
-		: _length(0), _ptr{nullptr,0}
+		: _ptr{nullptr,0}, _length(0)
 	{
 		extend(length);
 		increase_(Qk_MAX(length, capacity));
@@ -429,6 +430,7 @@ namespace qk {
 			T* end = _ptr.val + _length, *to = end - src_length;
 			do {
 				new(to) T(std::move(*src)); // call move constructor
+				reinterpret_cast<Sham*>(src)->~Sham();
 				src++; to++;
 			} while (to < end);
 		}
@@ -438,7 +440,6 @@ namespace qk {
 	template<typename A2>
 	Array<T, A>& Array<T, A>::concat(Array<T, A2>&& arr) {
 		concat_(*arr, arr.length());
-		//arr.clear();
 		arr._length = 0;
 		return *this;
 	}
