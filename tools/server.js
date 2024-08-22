@@ -28,40 +28,31 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('somes').default;
+var util = require('somes/util').default;
 var fs = require('somes/fs');
-var service = require('somes/service').default;
+// var service = require('somes/service').default;
 var HttpService = require('somes/http_service').HttpService;
-var server = require('qkmake/server');
-
-var opt = {
-	// remote: 'http://192.168.1.124:1026/',
-};
-
-server.start_server(opt);
+var FileStream = require('somes/incoming_form').FileStream;
+var start_server = require('qkmake/server').default;
 
 // Tools service
 // http://127.0.0.1:1026/Tools/upload_file
 
-var Tools = util.class('Tools', HttpService, {
-	
-	action: function(info) {
-		HttpService.prototype.action.call(this, info);
-		if ( this.form )
-			this.form.is_upload = true;
-	},
-	
-	upload_file: function() {
+class Tools extends HttpService {
 
+	onAcceptFilestream(path, name, type) {
+		return new FileStream(path, name, type);
+	}
+
+	upload_file() {
 		console.log('params', this.params);
 		console.log('data', this.data);
-		
+
 		if (this.form) {
-			for (var name in this.form.files) {
-				var file = this.form.files[name];
-				for (var i = 0; i < file.length; i++) {
-					if ( file[i].path ) {
-						fs.renameSync(file[i].path, this.server.temp + '/' + file[i].filename);
+			for (let files of Object.values(this.form.files)) {
+				for (let file of files) {
+					if ( file.pathname ) {
+						fs.renameSync(file.pathname, this.server.temp + '/' + file.filename);
 					}
 				}
 			}
@@ -69,11 +60,11 @@ var Tools = util.class('Tools', HttpService, {
 
 		console.log('\nrequest headers:\n', this.request.headers);
 		console.log('\n---------------------------', this.form ? 'form ok' : '', '\n');
-		
+
 		this.cookie.set('Hello', 'Hello', new Date(2088, 1, 1), '/');
 		this.cookie.set('mark', Date.now(), new Date(2120, 1, 1), '/');
-		
-		this.ret_html(
+
+		this.returnHtml(
 			'<!doctype html>\
 			<html>\
 			<body>\
@@ -85,22 +76,27 @@ var Tools = util.class('Tools', HttpService, {
 			</body>\
 			</html>'
 		);
-	},
+	}
 
-	test_timeout: function() {
-		var self = this;
-		setTimeout(function() {
-			self.ret_html('OK');
-		}, 5000);
-	},
+	async test_timeout() {
+		await util.sleep(5e3);
+		this.returnHtml('OK');
+	}
 
-	test: function() {
-		console.log(this.data);
-		console.log(this.request.headers);
+	test() {
+		console.log(this.data, this.request.headers);
 		this.response.setHeader('Access-Control-Allow-Origin', '*');
-		this.ret('test_cross_domain ok');
+		return 'test_cross_domain ok';
+	}
+}
+
+start_server({
+	// remoteLog: 'http://192.168.1.124:1026/',
+	server: {
+		router:[{
+			match: '/Tools/{action}',
+			service	: 'Tools',
+		}],
+		// root: '/Users/louis'
 	},
-
-});
-
-service.set('Tools', Tools);
+}).setService('Tools', Tools);

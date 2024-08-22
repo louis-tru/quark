@@ -36,7 +36,7 @@ if   [ ! -d libs/somes ] \
 	|| [ ! -d libs/qkmake ] \
 	|| [ ! -d deps/v8 ] \
 	|| [ ! -d deps/ffmpeg ] \
-	|| [ ! -d deps/libbptree ] \
+	|| [ ! -d deps/bptree ] \
 ; then
 	git submodule update --init --recursive
 fi

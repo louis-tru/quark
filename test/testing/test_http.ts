@@ -8,6 +8,7 @@ import * as buffer from 'quark/buffer'
 import util from 'quark/util'
 
 // setInterval(()=>util.gc());
+const tools_test_url = 'http://192.168.2.169:1026';
 
 export default async function(_: any) {
 	LOG('\nHttpClientRequest:\n')
@@ -97,7 +98,7 @@ function test_download(cl: HttpClientRequest) {
 	Mv(cl, 'setMethod', [HttpMethod.GET])
 	Mv(cl, 'setUrl', ['https://github.com/louis-tru/quark/blob/master/doc/index.md'])
 	Mv(cl, 'disableCache', [true]);
-	// Mv(cl.onEnd, 'on', [()=>test_4(cl), '1']);
+	Mv(cl.onEnd, 'on', [()=>test_upload(cl), '1']);
 	Mv(cl, 'send', [])
 }
 
@@ -113,7 +114,7 @@ function test_upload(cl: HttpClientRequest) {
 
 	Mv(cl, 'clearRequestHeader', [])
 	Mv(cl, 'clearFormData', [])
-	Mv(cl, 'setUrl', ['http://192.168.1.100:1026/Tools/upload_file'])
+	Mv(cl, 'setUrl', [`${tools_test_url}/Tools/upload_file`])
 	Mv(cl, 'setMethod', [HttpMethod.POST])
 	Mv(cl, 'setSavePath', ['']); // no save path
 	Mv(cl, 'setKeepAlive', [true])
@@ -122,7 +123,7 @@ function test_upload(cl: HttpClientRequest) {
 	Mv(cl, 'setForm', ['data', 'The test file upload'])
 	Mv(cl, 'setUploadFile', ['upload_file', file])
 	Mv(cl, 'setUploadFile', ['upload_file2', file2])
-	Mv(cl.onEnd, 'on', [()=>test_download(cl), '1']);
+	Mv(cl.onEnd, 'on', [()=>{ /*test_5()*/ }, '1']);
 	Mv(cl, 'send', [])
 }
 
@@ -145,7 +146,7 @@ async function async_test_helper() {
 	Mv(http, 'abort', [http.get('https://www.baidu.com/').id]);
 
 	await Mv(http, 'request', [{
-		url: 'http://192.168.1.100:1026/Tools/upload_file',
+		url: `${tools_test_url}/Tools/upload_file`,
 		method: HttpMethod.POST,
 		headers: { 'test': 'test' },
 		postData: 'a=AA',
@@ -154,11 +155,13 @@ async function async_test_helper() {
 	}])
 	Mv(fs, 'existsSync', [path.documents('test_request_save.html')], true);
 	Mv(http, 'getSync', ['http://192.168.1.100:1026/out/temp/util.js'], d=>!!d.length);
+
 	await Mv(http, 'request', [{ 
-		url: 'http://192.168.1.100:1026/Tools/upload_file',
+		url: `${tools_test_url}/Tools/upload_file`,
 		method: HttpMethod.POST,
 		postData: 'a=AA',
 	}])
+
 	await Mv(http, 'request', [{ 
 		url: 'https://www.baidu.com/',
 		method: HttpMethod.GET,
@@ -173,25 +176,28 @@ async function async_test_helper() {
 	Mv(fs, 'existsSync', [path.documents('down.html')], true);
 	//M(http, 'downloadSync', ['https://www.baidu.com/', url.documents('down2.html')]);
 	//VM(fs, 'existsSync', [url.documents('down2.html')], true);
+
 	await Mv(http, 'upload', [
-		'http://192.168.1.100:1026/Tools/upload_file', path.resources('quark/http.js')]);
+		`${tools_test_url}/Tools/upload_file`, path.resources('testing/test_http.js')]);
+	Mv(http, 'requestSync',
+		[{url:`${tools_test_url}/out/temp/test_http.js`,disableCache:true}], d=>d instanceof Uint8Array);
+
+	Mv(http, 'uploadSync', [
+		`${tools_test_url}/Tools/upload_file`, path.resources('testing/test_path.js')]);
 	Mv(http, 'requestSync', 
-		[{url:'http://192.168.1.100:1026/out/temp/http.js',disableCache:true}], d=>d instanceof Uint8Array);
-	//M(http, 'uploadSync', [
-	//	'http://192.168.1.100:1026/Tools/upload_file', url.resources('quark/url.js')]);
-	//VM(http, 'requestSync', 
-	//	[{url:'http://192.168.1.100:1026/out/temp/path.js',disable_cache:1}], d=>d instanceof Buffer);
+		[{url:'http://192.168.1.100:1026/out/temp/test_path.js',disableCache:true}], d=>d instanceof Uint8Array);
+
 	await Mv(http, 'get', ['http://192.168.1.100:1026/out/temp/http.js']);
-	//await AM(http, 'get_stream', ['https://www.baidu.com/', d=>d.complete]);
-	await Mv(http, 'post', ['http://192.168.1.100:1026/Tools/upload_file', 'b=B']);
-	await Mv(http, 'post', ['http://192.168.1.100:1026/Tools/upload_file', buffer.fromString('c=C')]);
+	//await Mv(http, 'get_stream', ['https://www.baidu.com/', d=>d.complete]);
+	await Mv(http, 'post', [`${tools_test_url}/Tools/upload_file`, 'b=B']);
+	await Mv(http, 'post', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('c=C')]);
 	Mv(http, 'getSync', ['http://192.168.1.100:1026/']);
-	Mv(http, 'postSync', ['http://192.168.1.100:1026/Tools/upload_file', 'e=E']);
-	Mv(http, 'postSync', ['http://192.168.1.100:1026/Tools/upload_file', buffer.fromString('f=F')]);
+	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, 'e=E']);
+	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('f=F')]);
 	Mv(http, 'userAgent', []);
 	Mv(http, 'setUserAgent', [http.userAgent() + ',AAAA']);
 	Mv(http, 'userAgent', []);
-	Mv(http, 'postSync', ['http://192.168.1.100:1026/Tools/upload_file', 'h=H']);
+	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, 'h=H']);
 	Mv(http, 'cachePath', [])
 	Mv(http, 'clearCache', [])
 	Mv(http, 'clearCookie', [])
