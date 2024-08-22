@@ -53,8 +53,7 @@ namespace qk {
 	static cString string_header_end("\r\n");
 	static cString string_max_age("max-age=");
 	static cString content_type_form("application/x-www-form-urlencoded; Charset=utf-8");
-	static cString content_type_multipart_form("multipart/form-data; "
-																									"boundary=----QuarkFormBoundaryrGKCBY7qhFd3TrwA");
+	static cString content_type_multipart_form("multipart/form-data; boundary=----QuarkFormBoundaryrGKCBY7qhFd3TrwA");
 	static cString multipart_boundary_start("------QuarkFormBoundaryrGKCBY7qhFd3TrwA\r\n");
 	static cString multipart_boundary_end  ("------QuarkFormBoundaryrGKCBY7qhFd3TrwA--");
 
@@ -404,25 +403,25 @@ namespace qk {
 				if ( _client->_method == HTTP_METHOD_POST ) {
 					
 					if ( _client->_post_data.length() ) { // ignore form data
-						if ( _client->_post_form_data.length() ) {
+						if ( _client->_form_data.length() ) {
 							Qk_WARN("Ignore form data");
 						}
 						_client->_upload_total = _client->_post_data.length();
 						header["Content-Length"] = _client->_upload_total;
 					}
-					else if ( _client->_post_form_data.length() ) { // post form data
+					else if ( _client->_form_data.length() ) { // post form data
 
-						for ( auto& i : _client->_post_form_data ) {
+						for ( auto& i : _client->_form_data ) {
 							if ( i.value.type == FORM_TYPE_FILE ) {
-								_is_multipart_form_data = true; break;
+								_is_multipart_form_data = true;
+								break;
 							}
 						}
 
 						if (_is_multipart_form_data ) {
-
 							uint32_t content_length = multipart_boundary_end.length();
 
-							for ( auto& i : _client->_post_form_data ) {
+							for ( auto& i : _client->_form_data ) {
 								FormValue& form = i.value;
 								MultipartFormValue _form = { form.type, form.data };
 
@@ -450,7 +449,7 @@ namespace qk {
 
 								content_length += multipart_boundary_start.length();
 								content_length += _form.headers.length();
-								content_length += 2; // end
+								content_length += 2; // end \r\n
 								_multipart_form_data.pushBack(_form);
 							}
 
@@ -458,7 +457,7 @@ namespace qk {
 							header["Content-Type"] = content_type_multipart_form;
 						} else {
 
-							for ( auto& i : _client->_post_form_data ) {
+							for ( auto& i : _client->_form_data ) {
 								String value = inl__uri_encode(i.value.data);
 								_client->_post_data.write(i.key.c_str(), i.key.length());
 								_client->_post_data.write("=", 1);
@@ -547,10 +546,10 @@ namespace qk {
 					if ( mark == 1 ) {
 						_client->_upload_size += buffer.length();
 						_client->trigger_http_write();
-						
+
 						if ( _is_multipart_form_data ) {
 							buffer.reset(BUFFER_SIZE);
-							_multipart_form_buffer = buffer;
+							_multipart_form_tmp_buffer = buffer;
 							send_multipart_form_data();
 						}
 					}
@@ -561,8 +560,8 @@ namespace qk {
 						_socket->write(_client->_post_data, 1);
 					}
 					else if ( _is_multipart_form_data ) { // send multipart/form-data
-						if ( !_multipart_form_buffer.length() ) {
-							_multipart_form_buffer = Buffer::alloc(BUFFER_SIZE);
+						if ( !_multipart_form_tmp_buffer.length() ) {
+							_multipart_form_tmp_buffer = Buffer(BUFFER_SIZE);
 						}
 						send_multipart_form_data();
 					}
@@ -589,7 +588,7 @@ namespace qk {
 				Qk_Assert( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
-				} else {
+				} else { // read end
 					Qk_Assert(_multipart_form_data.length());
 					Qk_Assert(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
@@ -597,7 +596,7 @@ namespace qk {
 					_upload_file = nullptr;
 					_multipart_form_data.popFront();
 					buffer.reset(BUFFER_SIZE);
-					_multipart_form_buffer = buffer;
+					_multipart_form_tmp_buffer = buffer;
 					send_multipart_form_data();
 				}
 			}
@@ -605,30 +604,30 @@ namespace qk {
 			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
 
 			void send_multipart_form_data() {
-				Qk_Assert( _multipart_form_buffer.length() == BUFFER_SIZE );
-				
+				Qk_Assert( _multipart_form_tmp_buffer.length() == BUFFER_SIZE );
+
 				if ( _upload_file ) { // upload file
 					Qk_Assert( _upload_file->is_open() );
-					_upload_file->read(_multipart_form_buffer);
+					_upload_file->read(_multipart_form_tmp_buffer);
 				}
 				else if ( _multipart_form_data.length() ) {
-					MultipartFormValue& form = _multipart_form_data.begin().operator*();
+					MultipartFormValue& form = *_multipart_form_data.begin();
 					_socket->write(multipart_boundary_start.copy().collapse());
 					_socket->write(form.headers.collapse());
-					
-					if ( form.type == FORM_TYPE_FILE ) {
+
+					if ( form.type == FORM_TYPE_FILE ) { // file
 						_upload_file = new File(form.data, _loop);
 						_upload_file->set_delegate(this);
 						_upload_file->open();
-					} else {
-						_multipart_form_buffer.write( form.data.c_str(), 0, form.data.length() );
-						_multipart_form_buffer.reset(form.data.length());
-						_socket->write(_multipart_form_buffer, 1);
+					} else { // text
+						_multipart_form_tmp_buffer.write(form.data.c_str(), form.data.length(), 0);
+						_multipart_form_tmp_buffer.reset(form.data.length());
+						_socket->write(_multipart_form_tmp_buffer, 1);
 						_socket->write(string_header_end.copy().collapse());
 						_multipart_form_data.popFront();
 					}
 				} else {
-					_socket->write(string_header_end.copy().collapse()); // end send data, wait http response
+					_socket->write(multipart_boundary_end.copy().collapse()); // end send data, wait http response
 				}
 			}
 
@@ -661,7 +660,7 @@ namespace qk {
 			http_parser _parser;
 			http_parser_settings _settings;
 			List<MultipartFormValue> _multipart_form_data;
-			Buffer  _multipart_form_buffer;
+			Buffer  _multipart_form_tmp_buffer;
 			String  _header_field, _header_value;
 			DictSS _header;
 			z_stream _z_strm;
@@ -1404,7 +1403,7 @@ namespace qk {
 		FileWriter* _file_writer;
 		DictSS      _request_header;
 		DictSS      _response_header;
-		Dict<String, FormValue> _post_form_data;
+		Dict<String, FormValue> _form_data;
 		Buffer      _post_data;
 		String      _username;
 		String      _password;
@@ -1510,14 +1509,14 @@ namespace qk {
 		_inl->check_is_can_modify();
 		Qk_Check( value.length() <= BUFFER_SIZE,
 							ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
-		_inl->_post_form_data[form_name] = {
+		_inl->_form_data[form_name] = {
 			FORM_TYPE_TEXT, value, inl__uri_encode(form_name)
 		};
 	}
 
 	void HttpClientRequest::set_upload_file(cString& form_name, cString& path) throw(Error) {
 		_inl->check_is_can_modify();
-		_inl->_post_form_data[form_name] = {
+		_inl->_form_data[form_name] = {
 			FORM_TYPE_FILE, path, inl__uri_encode(form_name)
 		};
 	}
@@ -1529,7 +1528,7 @@ namespace qk {
 
 	void HttpClientRequest::clear_form_data() throw(Error) {
 		_inl->check_is_can_modify();
-		_inl->_post_form_data.clear();
+		_inl->_form_data.clear();
 	}
 
 	String HttpClientRequest::get_response_header(cString& name) {

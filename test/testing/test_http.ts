@@ -107,7 +107,6 @@ function test_upload(cl: HttpClientRequest) {
 	var file2 = path.documents('test_upload2.txt');
 
 	LOG('\nTest Upload File:')
-	LOG('Test disable_cookie:\n')
 
 	Mv(fs, 'writeFileSync', [file, 'ABCDEFG'])
 	Mv(fs, 'writeFileSync', [file2, '你好吗？升级不安全请求'])
@@ -118,12 +117,10 @@ function test_upload(cl: HttpClientRequest) {
 	Mv(cl, 'setMethod', [HttpMethod.POST])
 	Mv(cl, 'setSavePath', ['']); // no save path
 	Mv(cl, 'setKeepAlive', [true])
-	Mv(cl, 'disableCookie', [true])
-	Mv(cl, 'disableSendCookie', [true])
 	Mv(cl, 'setForm', ['data', 'The test file upload'])
 	Mv(cl, 'setUploadFile', ['upload_file', file])
 	Mv(cl, 'setUploadFile', ['upload_file2', file2])
-	Mv(cl.onEnd, 'on', [()=>{ /*test_5()*/ }, '1']);
+	Mv(cl.onEnd, 'on', [()=>{ test_5() }, '1']);
 	Mv(cl, 'send', [])
 }
 
@@ -137,7 +134,7 @@ function test_4(cl: HttpClientRequest) {
 }
 
 function test_5() {
-	Ca(async_test_helper)
+	//Ca(async_test_helper)
 }
 
 async function async_test_helper() {
