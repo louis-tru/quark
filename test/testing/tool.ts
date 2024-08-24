@@ -38,27 +38,28 @@ export function Pv<Self,Name extends keyof Self>(
 		throw new Error('test fail');
 }
 
-export function Mv<
+function MethodV<
 	Self, Name extends keyof Self,
 >(
+	print: boolean,
 	self: Self,
 	name: FunctionName<Self, Name>,
 	args: Parameters<Self, Name>,
-	verify?: VerifyType<Self, Name> | ((arg: VerifyType<Self, Name>)=>boolean),
+	verify?: VerifyType<Self, Name> | ((arg: VerifyType<Self, Name>)=>boolean)
 ): ReturnType<Self, Name> {
 	let r = (self[name] as any)( ...args );
 	let argc = arguments.length;
 
-	function print(r: any) {
+	function ok(r: any) {
 		let ok: boolean = true;
-		if ( argc > 3 ) {
+		if ( argc > 4 ) {
 			if (typeof verify == 'function') {
 				ok = (verify as any)(r);
 			} else {
 				ok = verify === r;
 			}
 		}
-		console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no');
+		console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no', print ? r: '');
 		if (!ok)
 			throw new Error('test fail');
 	}
@@ -66,24 +67,25 @@ export function Mv<
 	if (r instanceof Promise) {
 		return new Promise<void>((resolve,reject)=>{
 			r.then(function(e) {
-				print(e);
+				ok(e);
 				resolve(e);
 			}).catch(reject);
 		}) as any;
 	} else {
-		return print(r), r;
+		return ok(r), r;
 	}
 }
 
-export function Mvcb<
+function MethodVcb<
 	Self, Name extends keyof Self,
 >(
+	print: boolean,
 	self: Self,
 	name: FunctionName<Self, Name>,
 	args: Parameters<Self, Name>,
-	verify?: any
+	verify?: any | null
 ) {
-	var argc = arguments.length;
+	let argc = arguments.length;
 
 	return new Promise<any>(function(resolve, reject) {
 		let sync = false;
@@ -92,7 +94,7 @@ export function Mvcb<
 		function ok(...args: any[]) {
 			let ok: boolean = true;
 			if ( argc > 3 ) {
-				var v_args = args;
+				let v_args = args;
 				if (sync)
 					v_args = [r];
 				if (typeof verify === 'function') {
@@ -101,7 +103,7 @@ export function Mvcb<
 					ok = verify === v_args[0];
 				}
 			}
-			console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no'/*, ...args*/);
+			console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no', ...(print ? args: []));
 			if (!ok)
 				throw new Error('test fail');
 			resolve(args[0]);
@@ -134,29 +136,67 @@ export function Mvcb<
 	});
 }
 
-export function Gc() {
-	let i = 0;
-
-	function gc() {
-		util.gc();
-		i++;
-		if ( i < 3 ) {
-			setTimeout(gc, 1000);
-		}
-	}
-	gc();
+export function Mv<
+	Self, Name extends keyof Self,
+>(
+	self: Self,
+	name: FunctionName<Self, Name>,
+	args: Parameters<Self, Name>,
+	verify?: VerifyType<Self, Name> | ((arg: VerifyType<Self, Name>)=>boolean)
+): ReturnType<Self, Name> {
+	return arguments.length > 3 ?
+	MethodV(false, self, name, args, verify): MethodV(false, self, name, args);
 }
 
-export function Ca<T, Args>(func: (...args: Args[])=>Promise<T>) {
-	const r = func();
-	r.catch(function(err: any) {
-		LOG('Error:');
-		LOG(err.message);
-		if (err.stack) {
-			LOG(err.stack);
+export function Mvp<
+	Self, Name extends keyof Self,
+>(
+	self: Self,
+	name: FunctionName<Self, Name>,
+	args: Parameters<Self, Name>,
+	verify?: VerifyType<Self, Name> | ((arg: VerifyType<Self, Name>)=>boolean)
+): ReturnType<Self, Name> {
+	return arguments.length > 3 ?
+	MethodV(true, self, name, args, verify): MethodV(true, self, name, args);
+}
+
+export function Mvcb<
+	Self, Name extends keyof Self,
+>(
+	self: Self,
+	name: FunctionName<Self, Name>,
+	args: Parameters<Self, Name>,
+	verify?: any | null
+) {
+	return arguments.length > 3 ?
+	MethodVcb(false, self, name, args, verify): MethodVcb(false, self, name, args);
+}
+
+export function Mvcbp<
+	Self, Name extends keyof Self,
+>(
+	self: Self,
+	name: FunctionName<Self, Name>,
+	args: Parameters<Self, Name>,
+	verify?: any | null
+) {
+	return arguments.length > 3 ?
+		MethodVcb(true, self, name, args, verify): MethodVcb(true, self, name, args);
+}
+
+export function Ca<T, Args>(func: (arg: Args, cb: (err?: Error, t?: T)=>void)=>void, arg: Args): Promise<T> {
+	return new Promise<T>(function(resolve, reject) {
+		try {
+			func(arg, function(err, t) {
+				if (err) 
+					reject(err)
+				else
+					resolve(t!);
+			});
+		} catch(err) {
+			reject(err);
 		}
 	});
-	return r;
 }
 
-exports.CALL_ASYNC = Ca;
+export const Gc = util.gc;

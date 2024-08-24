@@ -63,7 +63,7 @@ class TestAsyncFile: public File, public File::Delegate {
 		Release(this);
 	}
 
-	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
+	virtual void trigger_file_write(File* file, Buffer& buffer, int mark) {
 		i--;
 		Qk_LOG("Write ok, %d", i);
 
@@ -74,7 +74,7 @@ class TestAsyncFile: public File, public File::Delegate {
 		}
 	}
 
-	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {}
+	virtual void trigger_file_read(File* file, Buffer& buffer, int mark) {}
 
 	int i = 0;
 

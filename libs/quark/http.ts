@@ -155,8 +155,8 @@ export function download(url: string, save: string) {
 	return request({ url, save });
 }
 
-export function upload(url: string, localPath: string) {
-	return request({ url, upload: localPath, method: HttpMethod.POST, disableCache: true });
+export function upload(url: string, localFilePath: string) {
+	return request({ url, upload: localFilePath, method: HttpMethod.POST, disableCache: true });
 }
 
 export function get(url: string) {
@@ -192,5 +192,7 @@ export declare function userAgent(): string;
 export declare function setUserAgent(ua: string): void;
 export declare function cachePath(): string;
 export declare function setCachePath(path: string): void;
+export declare function maxConnectPoolSize(): number;
+export declare function setMaxConnectPoolSize(sie: number): void;
 export declare function clearCache(): void;
 export declare function clearCookie(): void;

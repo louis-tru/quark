@@ -1,5 +1,5 @@
 
-import { LOG, Pv, Mv, Mvcb, Ca } from './tool'
+import { LOG, Pv, Mv, Mvcb } from './tool'
 import util from 'quark/util';
 import * as http from 'quark/http';
 

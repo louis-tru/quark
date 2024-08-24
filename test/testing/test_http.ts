@@ -1,20 +1,25 @@
 
-import { LOG, Pv, Mv, Ca } from './tool'
+import { LOG, Pv, Mv, Mvp, Ca } from './tool'
 import {HttpClientRequest,HttpMethod, HttpReadyState} from 'quark/http'
 import * as http from 'quark/http'
 import path from 'quark/path'
 import * as fs from 'quark/fs'
 import * as buffer from 'quark/buffer'
-import util from 'quark/util'
 
-// setInterval(()=>util.gc());
-const tools_test_url = 'http://192.168.2.169:1026';
+const tools_test_url = 'http://192.168.2.169:1026'
 
 export default async function(_: any) {
+	const cl = new HttpClientRequest()
+	await Ca(test_cl, cl)
+	await Ca(test_download, cl)
+	await Ca(test_upload, cl)
+	await test_5()
+}
+
+function test_cl(cl: HttpClientRequest, cb: any) {
 	LOG('\nHttpClientRequest:\n')
 
 	let save = path.documents('baidu.html');
-	let cl = new HttpClientRequest();
 
 	cl.onError.on(function(ev) {
 		LOG('http onerror:', ev.data.message) 
@@ -34,8 +39,8 @@ export default async function(_: any) {
 		}
 	})
 	cl.onData.on(function(ev){
-		LOG('http ondata:', ev.data.length, cl.url, buffer.toString(ev.data));
-		// LOG('http ondata:', ev.data.length, cl.url);
+		// LOG('http ondata:', ev.data.length, cl.url, buffer.toString(ev.data));
+		LOG('http ondata:', ev.data.length, cl.url);
 	})
 	cl.onEnd.on(function(ev){
 		LOG('http onend:')
@@ -59,8 +64,8 @@ export default async function(_: any) {
 		LOG('http onabort:') 
 	})
 	Mv(cl.onEnd, 'on', [function(ev){
-		LOG('fs.readFileSync', fs.readFileSync(save, 'utf8'));
-		test_download(cl);
+		LOG('fs.readFileSync', fs.readFileSync(save).length);
+		cb();
 	}, '1']);
 
 	Mv(cl, 'setMethod', [HttpMethod.GET]);
@@ -90,7 +95,7 @@ export default async function(_: any) {
 	Mv(cl, 'send', [])
 }
 
-function test_download(cl: HttpClientRequest) {
+function test_download(cl: HttpClientRequest, cb: any) {
 	LOG('\nTest test_download:\n')
 	Mv(cl, 'setSavePath', ['']) // no save path
 	Mv(cl, 'disableCookie', [false])
@@ -98,15 +103,15 @@ function test_download(cl: HttpClientRequest) {
 	Mv(cl, 'setMethod', [HttpMethod.GET])
 	Mv(cl, 'setUrl', ['https://github.com/louis-tru/quark/blob/master/doc/index.md'])
 	Mv(cl, 'disableCache', [true]);
-	Mv(cl.onEnd, 'on', [()=>test_upload(cl), '1']);
+	Mv(cl.onEnd, 'on', [()=>cb(), '1']);
 	Mv(cl, 'send', [])
 }
 
-function test_upload(cl: HttpClientRequest) {
+function test_upload(cl: HttpClientRequest, cb: any) {
 	var file = path.documents('test_upload.txt');
 	var file2 = path.documents('test_upload2.txt');
 
-	LOG('\nTest Upload File:')
+	LOG('\nTest Upload File:\n')
 
 	Mv(fs, 'writeFileSync', [file, 'ABCDEFG'])
 	Mv(fs, 'writeFileSync', [file2, '你好吗？升级不安全请求'])
@@ -120,86 +125,62 @@ function test_upload(cl: HttpClientRequest) {
 	Mv(cl, 'setForm', ['data', 'The test file upload'])
 	Mv(cl, 'setUploadFile', ['upload_file', file])
 	Mv(cl, 'setUploadFile', ['upload_file2', file2])
-	Mv(cl.onEnd, 'on', [()=>{ test_5() }, '1']);
+	Mv(cl.onEnd, 'on', [()=>{cb()}, '1']);
 	Mv(cl, 'send', [])
 }
 
-function test_4(cl: HttpClientRequest) {
-	LOG('\nTest disable_ssl_verify:\n')
-	Mv(cl, 'setUrl', ['https://kyfw.12306.cn/otn/regist/init']) // 12306的证书一直都是失效的
-	Mv(cl, 'disableSslVerify', [true]);
-	Mv(cl, 'disableCache', [false]);
-	Mv(cl.onEnd, 'on', [test_5, '1']);
-	Mv(cl, 'send', [])
-}
-
-function test_5() {
-	//Ca(async_test_helper)
-}
-
-async function async_test_helper() {
+async function test_5() {
 	LOG('\nTest HttpHelper:\n')
-
-	Mv(http, 'abort', [http.get('https://www.baidu.com/').id]);
 
 	await Mv(http, 'request', [{
 		url: `${tools_test_url}/Tools/upload_file`,
 		method: HttpMethod.POST,
 		headers: { 'test': 'test' },
-		postData: 'a=AA',
 		save: path.documents('test_request_save.html'),
-		upload: path.resources('quark/base.js'),
-	}])
-	Mv(fs, 'existsSync', [path.documents('test_request_save.html')], true);
-	Mv(http, 'getSync', ['http://192.168.1.100:1026/out/temp/util.js'], d=>!!d.length);
+		upload: path.resources('testing/test.txt'),
+	}], e=>e.statusCode==200&&fs.existsSync(path.documents('test_request_save.html')))
 
-	await Mv(http, 'request', [{ 
-		url: `${tools_test_url}/Tools/upload_file`,
-		method: HttpMethod.POST,
-		postData: 'a=AA',
-	}])
+	await Mv(http, 'get', [`${tools_test_url}/out/temp/test.txt`], e=>buffer.toString(e.data)=='Test');
+	Mv(http, 'getSync', [`${tools_test_url}/out/temp/test.txt`], e=>buffer.toString(e)=='Test');
 
-	await Mv(http, 'request', [{ 
-		url: 'https://www.baidu.com/',
-		method: HttpMethod.GET,
-		disableSslVerify: true,
-		disableCache: true,
-		disableCookie: true,
-	}])
-	await Mv(http, 'requestStream', [{ url: 'https://www.baidu.com/' }, d=>d.complete]);
+	await Mv(http, 'request', [{
+		url: `${tools_test_url}/Tools/upload_file`, method: HttpMethod.POST, postData: 'a=AA',}], e=>e.data.length==279)
+	await Mv(http, 'post', [`${tools_test_url}/Tools/upload_file`, 'b=B'], d=>d.data.length==279);
+	await Mv(http, 'post', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('c=C')], d=>d.data.length==279);
 
-	Mv(http, 'requestSync', [{ url: 'https://www.baidu.com/' }]);
-	await Mv(http, 'download', ['https://www.baidu.com/', path.documents('down.html')]);
-	Mv(fs, 'existsSync', [path.documents('down.html')], true);
-	//M(http, 'downloadSync', ['https://www.baidu.com/', url.documents('down2.html')]);
-	//VM(fs, 'existsSync', [url.documents('down2.html')], true);
+	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, 'd=D'], d=>d.length==279);
+	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('e=E')], d=>d.length==279);
 
 	await Mv(http, 'upload', [
-		`${tools_test_url}/Tools/upload_file`, path.resources('testing/test_http.js')]);
+		`${tools_test_url}/Tools/upload_file`, path.resources('testing/all_we_know.mp3')], e=>e.data.length==279)
+	
 	Mv(http, 'requestSync',
-		[{url:`${tools_test_url}/out/temp/test_http.js`,disableCache:true}], d=>d instanceof Uint8Array);
+		[{url:`${tools_test_url}/out/temp/all_we_know.mp3`,disableCache:true}], d=>d.length==7766770)
 
 	Mv(http, 'uploadSync', [
-		`${tools_test_url}/Tools/upload_file`, path.resources('testing/test_path.js')]);
-	Mv(http, 'requestSync', 
-		[{url:'http://192.168.1.100:1026/out/temp/test_path.js',disableCache:true}], d=>d instanceof Uint8Array);
+		`${tools_test_url}/Tools/upload_file`, path.resources('testing/iconfont.ttf')])
 
-	await Mv(http, 'get', ['http://192.168.1.100:1026/out/temp/http.js']);
-	//await Mv(http, 'get_stream', ['https://www.baidu.com/', d=>d.complete]);
-	await Mv(http, 'post', [`${tools_test_url}/Tools/upload_file`, 'b=B']);
-	await Mv(http, 'post', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('c=C')]);
-	Mv(http, 'getSync', ['http://192.168.1.100:1026/']);
-	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, 'e=E']);
-	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('f=F')]);
-	Mv(http, 'userAgent', []);
-	Mv(http, 'setUserAgent', [http.userAgent() + ',AAAA']);
-	Mv(http, 'userAgent', []);
-	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, 'h=H']);
-	Mv(http, 'cachePath', [])
+	Mv(http, 'requestSync',
+		[{url:`${tools_test_url}/out/temp/iconfont.ttf`,disableCache:true}], d=>d.length==10616)
+
+	// --------------------------------------------------------
+
+	await Mv(http, 'request', [{url:'https://kyfw.12306.cn/otn/regist/init',disableSslVerify: true,disableCache: true}])
+
+	Mv(http, 'abort', [http.get('https://www.baidu.com/').id]);
+	await Mv(http, 'request', [{
+		url: 'https://www.baidu.com/',
+		method: HttpMethod.GET, disableSslVerify: true, disableCache: true, disableCookie: true,}], e=>e.statusCode==200)
+	await Mv(http, 'requestStream', [{ url: 'https://www.baidu.com/' }, d=>LOG('requestStream:', d.data, 'complete:', d.complete)])
+	await Mv(http, 'getStream', ['https://www.baidu.com/', d=>LOG('requestStream:', d.data, 'complete:', d.complete)]);
+	Mv(http, 'requestSync', [{ url: 'https://www.baidu.com/' }])
+	await Mv(http, 'download', ['https://www.baidu.com/', path.documents('down.html')], e=>fs.existsSync(path.documents('down.html')))
+	Mv(http, 'downloadSync', ['https://www.baidu.com/', path.documents('down2.html')], e=>fs.existsSync(path.documents('down2.html')))
+
+	Mvp(http, 'userAgent', [])
+	Mv(http, 'setUserAgent', [http.userAgent() + ',Test'])
+	Mvp(http, 'userAgent', [])
+	Mvp(http, 'cachePath', [])
 	Mv(http, 'clearCache', [])
 	Mv(http, 'clearCookie', [])
-	//M(http, 'sslCacertFile')
-	//M(http, 'setSslCacertFile', [http.sslCacertFile()]);
-	//M(http, 'setSslClientKeyfile', ['xxxxx.pem'])
-	//M(http, 'setSslClientKeypasswd', ['abcdefg'])
 }

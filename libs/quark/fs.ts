@@ -136,10 +136,10 @@ export class AsyncTask<T> extends Promise<T> {
 		}
 	}
 	constructor(exec: (resolve: any, reject: any)=>number) {
-		var _resolve: any;
-		var _reject: any;
-		var self: this;
-		var id: number = 0;
+		let _resolve: any;
+		let _reject: any;
+		let self: this;
+		let id: number = 0;
 		super(function(resolve, reject) {
 			_resolve = resolve;
 			_reject = reject;

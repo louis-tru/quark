@@ -211,7 +211,7 @@ namespace qk {
 	struct FileStreamData {
 		Buffer buffer;
 		int64_t offset;
-		int mark;
+		int flag;
 	};
 
 	typedef UVRequestWrap<uv_fs_t, File::Inl> FileReq;
@@ -220,11 +220,11 @@ namespace qk {
 	class File::Inl: public Reference, public File::Delegate {
 	public:
 		typedef File::Delegate Delegate;
-		virtual void trigger_file_open(File* file) { }
-		virtual void trigger_file_close(File* file) { }
-		virtual void trigger_file_error(File* file, const Error& error) { }
-		virtual void trigger_file_read(File* file, Buffer buffer, int mark) { }
-		virtual void trigger_file_write(File* file, Buffer buffer, int mark) { }
+		virtual void trigger_file_open (File* file) override { }
+		virtual void trigger_file_close(File* file) override { }
+		virtual void trigger_file_error(File* file, cError& error) override { }
+		virtual void trigger_file_read (File* file, Buffer &buffer, int flag) override { }
+		virtual void trigger_file_write(File* file, Buffer &buffer, int flag) override { }
 
 		void set_delegate(Delegate* delegate) {
 			if ( delegate ) {
@@ -287,16 +287,16 @@ namespace qk {
 			}
 		}
 
-		void read(Buffer& buffer, int64_t offset, int mark) {
-			auto req = new FileStreamReq(this, 0, { buffer, mark });
+		void read(Buffer& buffer, int64_t offset, int flag) {
+			auto req = new FileStreamReq(this, 0, { buffer, flag });
 			uv_buf_t buf;
 			buf.base = *req->data().buffer;
 			buf.len = req->data().buffer.length();
 			uv_fs_read(uv_loop(), req->req(), _fd, &buf, 1, offset, &Inl::fs_read_cb);
 		}
 
-		void write(Buffer& buffer, int64_t offset, int mark) {
-			_writeing.pushBack(new FileStreamReq(this, 0, { buffer, offset, mark }));
+		void write(Buffer& buffer, int64_t offset, int flag) {
+			_writeing.pushBack(new FileStreamReq(this, 0, { buffer, offset, flag }));
 			if (_writeing.length() == 1) {
 				continue_write();
 			}
@@ -388,7 +388,7 @@ namespace qk {
 				req->data().buffer.reset((uint32_t)uv_req->result);
 				del(req)->trigger_file_read(host(req),
 																					req->data().buffer,
-																					req->data().mark );
+																					req->data().flag );
 			}
 		}
 
@@ -407,7 +407,7 @@ namespace qk {
 									uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
 				del(req)->trigger_file_error(host(req), err);
 			} else {
-				del(req)->trigger_file_write(host(req), req->data().buffer, req->data().mark);
+				del(req)->trigger_file_write(host(req), req->data().buffer, req->data().flag);
 			}
 		}
 
@@ -452,12 +452,12 @@ namespace qk {
 		_inl->close();
 	}
 
-	void File::read(Buffer buffer, int64_t offset, int mark) {
-		_inl->read(buffer, offset, mark);
+	void File::read(Buffer buffer, int64_t offset, int flag) {
+		_inl->read(buffer, offset, flag);
 	}
 
-	void File::write(Buffer buffer, int64_t offset, int mark) {
-		_inl->write(buffer, offset, mark);
+	void File::write(Buffer buffer, int64_t offset, int flag) {
+		_inl->write(buffer, offset, flag);
 	}
 
 }

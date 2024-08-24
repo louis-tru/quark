@@ -47,10 +47,6 @@ namespace qk { namespace js {
 	public:
 		typedef HttpClientRequest Type;
 
-		// ~WrapHttpClientRequest() {
-			// Qk_DEBUG("WrapHttpClientRequest::~WrapHttpClientRequest()");
-		// }
-
 		class Delegate: public Object, public HttpClientRequest::Delegate {
 		public:
 			WrapHttpClientRequest* _host;
@@ -603,8 +599,7 @@ namespace qk { namespace js {
 					"@method request(options[,cb])\n"
 					"@param options {RequestOptions}\n"
 					"@param [cb] {Function}\n"
-					"@return {uint} return req id\n"
-					, false
+					"@return {uint} return req id\n", false
 				);
 			});
 
@@ -613,8 +608,7 @@ namespace qk { namespace js {
 					"@method requestStream(options[,cb])\n"
 					"@param options {RequestOptions}\n"
 					"@param [cb] {Function}\n"
-					"@return {uint} return req id\n"
-					, true
+					"@return {uint} return req id\n", true
 				);
 			});
 
@@ -626,7 +620,6 @@ namespace qk { namespace js {
 						"@return {Buffer}\n"
 					);
 				}
-
 				RequestOptions opt;
 				if (!get_options(worker, args[0], opt))
 					return;
@@ -669,6 +662,20 @@ namespace qk { namespace js {
 					);
 				}
 				http_set_cache_path( args[0]->toStringValue(worker) );
+			});
+
+			Js_Set_Method(maxConnectPoolSize, {
+				Js_Return( http_max_connect_pool_size() );
+			});
+
+			Js_Set_Method(setMaxConnectPoolSize, {
+				if (args.length() == 0 || !args[0]->isUint32()) {
+					Js_Throw(
+						"@method setMaxConnectPoolSize(size)\n"
+						"@param size {number}\n"
+					);
+				}
+				http_set_max_connect_pool_size( args[0]->toUint32Value(worker).unsafe() );
 			});
 
 			Js_Set_Method(clearCache, {

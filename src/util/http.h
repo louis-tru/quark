@@ -234,6 +234,8 @@ namespace qk {
 	Qk_EXPORT String   http_cache_path();
 	Qk_EXPORT void     http_set_cache_path(cString& path);
 	Qk_EXPORT void     http_clear_cache();
+	Qk_EXPORT uint32_t http_max_connect_pool_size();
+	Qk_EXPORT void     http_set_max_connect_pool_size(uint32_t size);
 	// http cookie
 	Qk_EXPORT String http_get_cookie(cString& domain, cString& name, cString& path = String(), bool ssl = 0);
 	Qk_EXPORT String http_get_all_cookie_string(cString& domain, cString& path = String(), bool ssl = 0);

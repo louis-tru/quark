@@ -118,6 +118,7 @@ namespace qk {
 			self->cond.notify_all(); // call wait ok
 			self->mutex.unlock();
 		run:
+			loop->timer(Cb([](auto&e){}), 5e6); // 5s
 			loop->run();
 			int wait = 100; // wait 10s
 			while (wait-- && t->abort == 0) {

@@ -54,7 +54,7 @@ namespace qk {
 		FOPEN_CREAT = 0100,
 		FOPEN_EXCL = 0200,
 		FOPEN_NOCTTY = 0400,
-		FOPEN_TRUNC = 01000,
+		FOPEN_TRUNC = 01000, // 如果文件存在截断为0
 		FOPEN_APPEND = 02000,
 		FOPEN_NONBLOCK = 04000,
 		// r 打开只读文件，该文件必须存在。
@@ -112,11 +112,11 @@ namespace qk {
 	public:
 		class Qk_EXPORT Delegate {
 		public:
-			virtual void trigger_file_open(File* file) = 0;
+			virtual void trigger_file_open (File* file) = 0;
 			virtual void trigger_file_close(File* file) = 0;
-			virtual void trigger_file_error(File* file, const Error& error) = 0;
-			virtual void trigger_file_read(File* file, Buffer buffer, int mark) = 0;
-			virtual void trigger_file_write(File* file, Buffer buffer, int mark) = 0;
+			virtual void trigger_file_error(File* file, cError& error) = 0;
+			virtual void trigger_file_read (File* file, Buffer& buffer, int flag) = 0;
+			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) = 0;
 		};
 		File(cString& path, RunLoop* loop = RunLoop::current());
 		virtual ~File();
@@ -125,8 +125,8 @@ namespace qk {
 		bool is_open();
 		void open(int flag = FOPEN_R, uint32_t mode = fs_default_mode);
 		void close();
-		void read(Buffer buffer, int64_t fdOffset = -1, int mark = 0);
-		void write(Buffer buffer, int64_t fdOffset = -1, int mark = 0);
+		void read (Buffer buffer, int64_t fdOffset = -1, int flag = 0);
+		void write(Buffer buffer, int64_t fdOffset = -1, int flag = 0);
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;

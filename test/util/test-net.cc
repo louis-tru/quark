@@ -137,7 +137,7 @@ class MySocket: public Socket, public Socket::Delegate {
 		// LOG( String(buffer.value(), buffer.length()) );
 		Qk_LOG("DATA.., %d", buffer.length());
 	}
-	virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {
+	virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int mark) {
 		Qk_LOG("Write, OK");
 	}
 	virtual void trigger_socket_timeout(Socket* socket) {

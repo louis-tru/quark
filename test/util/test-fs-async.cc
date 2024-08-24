@@ -64,18 +64,16 @@ class AsyncFileRead: public File, public File::Delegate {
 		Qk_LOG("Close");
 		Release(this);
 	}
-	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
+	virtual void trigger_file_read(File* file, Buffer& buffer, int mark) {
 		if ( buffer.length() ) {
-			Qk_LOG( buffer.collapseString() );
 			read(buffer, 1024); // read
-		} else {
-			// read end
-			Qk_LOG("Read END");
+		} else { // read end
+			Qk_DEBUG("Read END");
 			close();
 		}
 	}
 	
-	virtual void trigger_file_write(File* file, Buffer buffer, int mark) { }
+	virtual void trigger_file_write(File* file, Buffer& buffer, int mark) { }
 	
 };
 
@@ -103,13 +101,13 @@ class AsyncFileWrite: public File, public File::Delegate {
 		Qk_LOG("Close");
 		Release(this);
 	}
-	virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
+	virtual void trigger_file_write(File* file, Buffer& buffer, int mark) {
 		Qk_LOG("Write ok");
 		(new AsyncFileRead(path()))->open();
 		close();
 	}
 	
-	virtual void trigger_file_read(File* file, Buffer buffer, int mark) {}
+	virtual void trigger_file_read(File* file, Buffer& buffer, int mark) {}
 };
 
 void test_file_async(int argc, char **argv) {

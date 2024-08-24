@@ -320,7 +320,7 @@ namespace qk {
 	bool RunLoop::is_alive() const {
 		return _uv_loop->active_reqs.count != 0 ||
 					_uv_loop->active_handles > 1 ||
-					_uv_loop->closing_handles != NULL;
+					_uv_loop->closing_handles != NULL || _msg.length() != 0;
 	}
 
 	void RunLoop::post_message(Cb cb) {
@@ -428,12 +428,13 @@ namespace qk {
 
 	void RunLoop::post_sync(Callback<PostSyncData> cb) {
 		struct Data: public RunLoop::PostSyncData {
-			virtual void complete() {
+			void complete() override {
 				ok = true;
 				cond.lock_notify_all();
 			}
 			void wait() {
-				while (!ok) cond.lock_wait_for(); // wait
+				while (!ok)
+					cond.lock_wait_for(); // wait
 			}
 			bool ok = false;
 			CondMutex cond;

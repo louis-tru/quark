@@ -47,11 +47,11 @@ namespace qk {
 
 	struct SocketWriteReqData {
 		Buffer  raw_buffer;
-		int32_t mark;
+		int32_t flag;
 	};
 	struct SSLSocketWriteReqData {
 		Buffer     raw_buffer;
-		int32_t    mark;
+		int32_t    flag;
 		uint32_t   buffers_count;
 		int32_t    error;
 		Buffer     buffers[2];
@@ -70,7 +70,7 @@ namespace qk {
 		virtual void trigger_socket_close(Socket* stream) override {}
 		virtual void trigger_socket_error(Socket* stream, cError& error) override {}
 		virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) override {}
-		virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) override {}
+		virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int flag) override {}
 		virtual void trigger_socket_timeout(Socket* socket) override {}
 
 		Inl(Socket* host, RunLoop* loop) 
@@ -250,14 +250,14 @@ namespace qk {
 			}
 		}
 
-		void write(Buffer buffer, int64_t size, int mark) {
+		void write(Buffer &buffer, int64_t size, int flag) {
 			if ( size < 0 ) {
 				size = buffer.length();
 			}
 			if ( _is_open ) {
 				if ( uv_is_writable((uv_stream_t*)_uv_tcp) ) {
 					reset_timeout();
-					write(buffer, mark);
+					write(buffer, flag);
 				} else {
 					report_err(Error(ERR_SOCKET_NOT_WRITABLE, "Socket not writable"), 1);
 				}
@@ -430,8 +430,8 @@ namespace qk {
 			}
 		}
 
-		virtual void write(Buffer& buffer, int mark) {
-			auto req = new SocketWriteReq(this, 0, { buffer, mark });
+		virtual void write(Buffer& buffer, int flag) {
+			auto req = new SocketWriteReq(this, 0, { buffer, flag });
 			uv_buf_t buf;
 			buf.base = *req->data().raw_buffer;
 			buf.len = req->data().raw_buffer.length();
@@ -445,7 +445,7 @@ namespace qk {
 				} else {
 					req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host,
 																											req->data().raw_buffer,
-																											req->data().mark);
+																											req->data().flag);
 				}
 			});
 
@@ -595,7 +595,7 @@ namespace qk {
 					Sp<SSLSocketWriteReq> sp(req_);
 					if ( req_->data().error == 0 ) {
 						self->_delegate->trigger_socket_write(
-							self->_host, req_->data().raw_buffer, req_->data().mark
+							self->_host, req_->data().raw_buffer, req_->data().flag
 						);
 					} 
 				}
@@ -799,10 +799,10 @@ namespace qk {
 			} // if ( nread < 0 ) end
 		}
 
-		virtual void write(Buffer& buffer, int mark) {
+		virtual void write(Buffer& buffer, int flag) {
 			Qk_Assert(!_ssl_write_req);
 
-			auto req = new SSLSocketWriteReq(this, 0, { buffer, mark, 0, 0 });
+			auto req = new SSLSocketWriteReq(this, 0, { buffer, flag, 0, 0 });
 			_ssl_write_req = req;
 
 			int r = SSL_write(_ssl, req->data().raw_buffer.val(), req->data().raw_buffer.length());
@@ -898,9 +898,9 @@ namespace qk {
 	void Socket::resume() {
 		_inl->resume();
 	}
-	void Socket::write(Buffer buffer, int mark) {
+	void Socket::write(Buffer buffer, int flag) {
 		uint32_t size = buffer.length();
-		_inl->write(buffer, size, mark);
+		_inl->write(buffer, size, flag);
 	}
 
 	/*

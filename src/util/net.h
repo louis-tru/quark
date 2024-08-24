@@ -51,7 +51,7 @@ namespace qk {
 			virtual void trigger_socket_close(Socket* socket) = 0;
 			virtual void trigger_socket_error(Socket* socket, cError& error) = 0;
 			virtual void trigger_socket_data(Socket* socket, cBuffer& buffer) = 0;
-			virtual void trigger_socket_write(Socket* socket, Buffer buffer, int mark) = 0; // write ok
+			virtual void trigger_socket_write(Socket* socket, Buffer& buffer, int flag) = 0; // write ok
 			virtual void trigger_socket_timeout(Socket* socket) = 0;
 		};
 
@@ -95,7 +95,7 @@ namespace qk {
 		bool is_pause();
 		void pause();
 		void resume();
-		void write(Buffer buffer, int mark = 0);
+		void write(Buffer buffer, int flag = 0);
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	protected:

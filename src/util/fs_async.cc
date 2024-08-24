@@ -255,7 +255,7 @@ namespace qk {
 				}
 			}
 	
-			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
+			virtual void trigger_file_read(File* file, Buffer &buffer, int mark) {
 				Qk_ASSERT( file == _source_file );
 				Qk_ASSERT( _reading_count > 0 );
 				_reading_count--;
@@ -272,8 +272,8 @@ namespace qk {
 					}
 				}
 			}
-	
-			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
+
+			virtual void trigger_file_write(File* file, Buffer &buffer, int mark) {
 				Qk_ASSERT( file == _target_file );
 				Qk_ASSERT( _writeing_count > 0 );
 				_writeing_count--;

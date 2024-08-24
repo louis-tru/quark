@@ -1,5 +1,5 @@
 
-import { LOG, Mv, Ca } from './tool'
+import { LOG, Mv } from './tool'
 import * as fs from 'quark/fs';
 import path from 'quark/path';
 

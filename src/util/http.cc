@@ -40,7 +40,6 @@
 #include <zlib.h>
 
 namespace qk {
-	#define MAX_CONNECT_POOL_SIZE (5)
 	#define BUFFER_SIZE (65535)
 
 	typedef HttpClientRequest::Delegate HttpDelegate;
@@ -59,7 +58,7 @@ namespace qk {
 
 	// cache-control: max-age=100000
 	// return: expires str, Sat Aug 10 2024 13:26:02 GMT+0800
-	static String convert_to_expires(cString& cache_control) {
+	static String to_expires_from_cache_content(cString& cache_control) {
 		if ( !cache_control.isEmpty() ) {
 			int i = cache_control.indexOf(string_max_age);
 			if ( i != -1 && i + string_max_age.length() < cache_control.length() ) {
@@ -70,7 +69,7 @@ namespace qk {
 				
 				int64_t num = max_age.trim().toNumber<int64_t>();
 				if ( num > 0 ) {
-					return gmt_time_string( time_second() + num );
+					return gmt_time_string( time_second() + num ); // Thu, 30 Mar 2017 06:16:55 GMT
 				}
 			}
 		}
@@ -248,7 +247,7 @@ namespace qk {
 				// Qk_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
-					String(parser->http_major) + '.' + parser->http_minor;
+					String::format("%d.%d", parser->http_major, parser->http_minor);
 				return 0;
 			}
 
@@ -472,7 +471,7 @@ namespace qk {
 				}
 
 				Array<String> header_str;
-				String search = _client->_uri.search();
+				auto search = _client->_uri.search();
 
 				if (_client->_url_no_cache_arg) {
 					search = search.replace("__no_cache", "");
@@ -540,10 +539,10 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {
+			virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int flag) {
 				if ( !_client ) return;
 				if ( _send_data ) {
-					if ( mark == 1 ) {
+					if ( flag == 1 ) {
 						_client->_upload_size += buffer.length();
 						_client->trigger_http_write();
 
@@ -584,7 +583,7 @@ namespace qk {
 				_client->report_error_and_abort(error);
 			}
 
-			virtual void trigger_file_read(File* file, Buffer buffer, int mark) {
+			virtual void trigger_file_read(File* file, Buffer& buffer, int flag) {
 				Qk_Assert( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
@@ -601,7 +600,7 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {}
+			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) {}
 
 			void send_multipart_form_data() {
 				Qk_Assert( _multipart_form_tmp_buffer.length() == BUFFER_SIZE );
@@ -674,9 +673,7 @@ namespace qk {
 				Client* client;
 				Cb cb;
 				uint32_t wait_id;
-				String  hostname;
-				uint16_t   port;
-				URIType uri_type;
+				uint16_t port;
 			};
 
 			~ConnectPool() {
@@ -697,30 +694,20 @@ namespace qk {
 				if (!port) {
 					port = cli->_uri.type() == URI_HTTP ? 80 : 443;
 				}
+				cli->_wait_connect_id = 1;
 
-				cli->_wait_connect_id = getId32();
-	
-				connect_req req = {
-					cli,
-					cb,
-					cli->_wait_connect_id,
-					cli->_uri.hostname(),
-					port,
-					cli->_uri.type(),
-				};
-	
-				Connect* conn = nullptr;
-				{ //
-					ScopeLock scope(_mutex);
-					conn = get_connect(req);
-					if ( conn ) {
-						conn->_busy = true;
-					} else {
-						_reqs.pushBack(req); // wait
-					}
-				}
-				if (conn) {
+				Lock lock(_mutex);
+				auto conn = get_connect(cli, port);
+				if ( conn ) {
+					conn->_busy = true;
+					lock.unlock();
 					cb->resolve(conn);
+				} else {
+					cli->_wait_connect_id = cli->_loop->timer(Cb([this](auto&e){ // delay call task
+						Lock lock(_mutex);
+						call_req_tasks(&lock);
+					}),1e5, -1); // 100ms
+					_reqs.pushBack({ cli, cb, cli->_wait_connect_id, port }); // wait
 				}
 			}
 
@@ -737,17 +724,12 @@ namespace qk {
 					c->release();
 				} else {
 					if ( c->_busy ) {
-						Qk_Assert( c->_id != ConnectID() );
+						Qk_Assert_Ne(c->_id, ConnectID());
 						c->_busy = false;
 						c->_client = nullptr;
 						c->_recovery_time = time_micro();
 						c->socket()->set_timeout(0);
 						c->socket()->resume();
-						// delay call task
-						c->_loop->timer(Cb([this](auto&e){
-							Lock lock(_mutex);
-							call_req_tasks(&lock);
-						}), 6e5); // 600ms
 					}
 				}
 				call_req_tasks(&lock);
@@ -757,13 +739,14 @@ namespace qk {
 
 			void call_req_tasks(Lock *lock) {
 				for ( auto i = _reqs.begin(); i != _reqs.end(); ) {
-					connect_req& req = *i;
+					auto& req = *i;
 					if (req.client->_wait_connect_id == req.wait_id) {
-						auto conn = get_connect(req);
+						auto conn = get_connect(req.client, req.port);
 						if ( conn ) {
 							conn->_busy = true;
 							auto cli = req.client;
 							Cb cb = req.cb;
+							cli->loop()->timer_stop(req.wait_id);
 							_reqs.erase(i++);
 							lock->unlock(); // unlock
 							cli->loop()->post(Cb([conn,cb](auto&e){
@@ -772,25 +755,26 @@ namespace qk {
 							break;
 						}
 					} else {
+						req.client->loop()->timer_stop(req.wait_id);
 						_reqs.erase(i++); // discard req
 					}
 				}
 			}
 
-			Connect* get_connect(connect_req& req) {
-				Connect* conn = nullptr;
-				Connect* tryDel = nullptr; // try delete one connect
+			Connect* get_connect(Client* cli, uint16_t port) {
+				Connect *conn = nullptr, *tryDel= nullptr; // try delete one connect
 				uint32_t poolSize = 0;
 				auto now = time_micro();
-				
-				for ( auto i : _conns ) {
-					if ( poolSize < MAX_CONNECT_POOL_SIZE ) {
-						if (i->socket()->hostname() == req.hostname &&
-								i->socket()->port() == req.port &&
-								i->ssl() == (req.uri_type == URI_HTTPS)
+				auto max_pool_size = http_max_connect_pool_size();
+
+				for ( auto i: _conns ) {
+					if ( poolSize < max_pool_size ) {
+						if (i->socket()->hostname() == cli->_uri.hostname() &&
+								i->socket()->port() == port &&
+								i->ssl() == (cli->_uri.type() == URI_HTTPS)
 						) {
-							if ( !i->_busy && now - i->_recovery_time > 5e5/*wait 500ms*/) { // available
-								if (i->loop() == req.client->loop()) {
+							if ( !i->_busy && now - i->_recovery_time > 8e4/*wait 80ms*/) { // available
+								if (i->loop() == cli->loop()) {
 									conn = i; break;
 								} else {
 									tryDel = i;
@@ -800,11 +784,10 @@ namespace qk {
 						}
 					}
 				}
-
-				Qk_Assert(poolSize <= MAX_CONNECT_POOL_SIZE);
+				Qk_Assert(poolSize <= max_pool_size);
 
 				if (!conn) {
-					if (poolSize == MAX_CONNECT_POOL_SIZE) {
+					if (poolSize == max_pool_size) {
 						if (tryDel) {
 							// The connection has reached its maximum limit,
 							// but although it is available, it is not in the same loop, so it will be deleted
@@ -816,9 +799,9 @@ namespace qk {
 							poolSize--;
 						}
 					}
-					if (poolSize < MAX_CONNECT_POOL_SIZE) {
-						auto ssl = req.uri_type == URI_HTTPS;
-						conn = NewRetain<Connect>(req.hostname, req.port, ssl, req.client->loop());
+					if (poolSize < max_pool_size) {
+						auto ssl = cli->_uri.type() == URI_HTTPS;
+						conn = NewRetain<Connect>(cli->_uri.hostname(), port, ssl, cli->loop());
 						conn->_id = _conns.pushBack(conn);
 					}
 				}
@@ -839,12 +822,12 @@ namespace qk {
 				, _client(client)
 				, _parse_header(true), _offset(0), _size(size)
 			{
-				Qk_Assert(!_client->_cache_reader);
+				Qk_Assert_Eq(_client->_cache_reader, nullptr);
 				_client->_cache_reader = this;
 				set_delegate(this);
 				open();
 			}
-			
+
 			~FileCacheReader() {
 				_client->_cache_reader = nullptr;
 			}
@@ -857,7 +840,7 @@ namespace qk {
 			}
 			
 			virtual void trigger_file_open(File* file) override {
-				read(Buffer::alloc(512));
+				read(Buffer(511));
 			}
 
 			virtual void trigger_file_close(File* file) override {
@@ -878,7 +861,7 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_file_read(File* file, Buffer buffer, int mark) override {
+			virtual void trigger_file_read(File* file, Buffer& buffer, int flag) override {
 				if ( _parse_header ) { // parse cache header
 					if ( buffer.length() ) {
 						
@@ -889,28 +872,29 @@ namespace qk {
 						 
 						 ... Body ...
 						 */
-						
+
 						for ( int i = 0; ; ) {
 							int j = str.indexOf(s, i);
 							if ( j != -1 && j != 0 ) {
 								if ( j == i ) { // parse header end
 									_parse_header = false;
-									_offset += (j + 2);
+									_offset += (j + 2); // save read offset
+									_header["expires"] = _header["expires"].trim();
 
 									int64_t expires = parse_time(_header["expires"]);
 									if ( expires > time_micro() ) {
 										_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
-										_client->_download_total = Qk_MAX(_size - _offset, 0);
+										_client->_download_total = Int64::max(_size - _offset, 0);
 										_client->trigger_http_header(200, std::move(_header), true);
 										read_advance();
 									} else {
-										// Qk_LOG("Read -- %ld, %ld, %s", expires, sys::time(), *_header.get("expires"));
+										// Qk_LOG("Read -- %ld, %ld, %s", expires, time(), *_header.get("expires"));
 										if (parse_time(_header["last-modified"]) > 0 ||
 												!_header["etag"].isEmpty()
 										) {
 											_client->send_http();
 										} else {
-											continue_send_and_release(); // full invalid
+											continue_send_and_release(); // invalid cache
 										}
 									}
 									// parse header end
@@ -918,7 +902,7 @@ namespace qk {
 								} else {
 									int k = str.indexOf(s2, i);
 									if ( k != -1 && k - i > 1 && j - k > 2 ) {
-										// Qk_LOG("  %s:-> %s", str.substring(i, k).lower_case().c(), str.substring(k + 2, j).c());
+										// Qk_DEBUG("%s: %s", *str.substring(i, k), *str.substring(k + 2, j));
 										_header[str.substring(i, k).lowerCase()] = str.substring(k + 2, j);
 									}
 								}
@@ -927,7 +911,7 @@ namespace qk {
 									continue_send_and_release();
 								} else { // read next
 									_offset += i;
-									buffer.reset(512);
+									buffer.reset(511);
 									read(buffer, _offset);
 								}
 								break;
@@ -935,14 +919,13 @@ namespace qk {
 							i = j + 2;
 						}
 						
-					} else {
-						// no cache
+					} else { // no cache
 						continue_send_and_release();
 					}
 				} else {
 					// read cache
 					_read_count--;
-					Qk_Assert(_read_count == 0);
+					Qk_Assert_Eq(_read_count, 0);
 					
 					if ( buffer.length() ) {
 						_offset += buffer.length();
@@ -954,7 +937,7 @@ namespace qk {
 				}
 			}
 			
-			virtual void trigger_file_write(File* file, Buffer buffer, int mark) override {}
+			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) override {}
 
 			DictSS& header() {
 				return _header;
@@ -964,7 +947,7 @@ namespace qk {
 				if ( !_parse_header ) {
 					if ( _read_count == 0 ) {
 						_read_count++;
-						read(Buffer::alloc(BUFFER_SIZE), _offset);
+						read(Buffer(BUFFER_SIZE), _offset);
 					}
 				}
 			}
@@ -986,145 +969,134 @@ namespace qk {
 
 		class FileWriter: public Object, public File::Delegate {
 		public:
-			FileWriter(Client* client, cString& path, int flag, RunLoop* loop)
+			FileWriter(Client* client, cString& path, int type, RunLoop* loop)
 				: _client(client)
 				, _file(nullptr)
-				, _write_flag(flag)
-				, _write_count(0)
-				, _ready(0), _completed_end(0)
+				, _write_type(type)
+				, _write_count(0), _offset(0)
+				, _completed_end(false)
 			{
-				// flag:
-				// flag = 0 only write body
-				// flag = 1 only write header
-				// flag = 2 write header and body
+				// type:
+				// type = 0 only write body
+				// type = 1 only write header
+				// type = 2 write header and body
 
-				Qk_Assert(!_client->_file_writer);
+				Qk_Assert_Eq(_client->_file_writer, nullptr);
 				_client->_file_writer = this;
 
 				// Qk_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
-				
-				if ( _write_flag ) { // verification cache is valid
-					auto r_header = _client->response_header();
-					Qk_Assert(r_header.length());
 
-					if ( r_header.has("cache-control") ) {
-						String expires = convert_to_expires(r_header["cache-control"]);
+				if ( _write_type ) { // verification cache is valid
+					auto headers = _client->response_header();
+					Qk_Assert(headers.length());
+
+					if ( headers.has("cache-control") ) {
+						auto expires = to_expires_from_cache_content(headers["cache-control"]);
 						// Qk_LOG("FileWriter -- %s", *expires);
 						if ( !expires.isEmpty() ) {
-							r_header["expires"] = expires;
+							headers["expires"] = expires;
 						}
 					}
 
-					if ( r_header.has("expires") ) {
-						int64_t expires = parse_time(r_header["expires"]);
+					if ( headers.has("expires") ) {
+						int64_t expires = parse_time(headers["expires"]);
 						int64_t now = time_micro();
 						if ( expires > now ) {
 							_file = new File(path, loop);
 						}
-					} else if ( r_header.has("last-modified") || r_header.has("etag") ) {
+					} else if ( headers.has("last-modified") || headers.has("etag") ) {
 						_file = new File(path, loop);
 					}
 				} else { // download save
 					_file = new File(path, loop);
 				}
-				
+
 				if ( _file ) {
 					_file->set_delegate(this);
-					if (_write_flag == 1) { // only write header
-						_file->open(FOPEN_WRONLY | FOPEN_CREAT);
+					if (_write_type == 1) { // only write header
+						_file->open(FOPEN_WRONLY | FOPEN_CREAT); // keep old content
 					} else {
-						_file->open(FOPEN_W);
+						_file->open(FOPEN_W); // clear old content
 					}
 				}
 			}
-			
+
 			~FileWriter() {
-				Release(_file);
+				Release(_file); _file = nullptr;
 				_client->_file_writer = nullptr;
 			}
-			
-			virtual void trigger_file_open(File* file) {
-				if ( _write_flag ) { // write header
-					String header;
-					auto& r_header = _client->response_header();
 
-					for ( auto& i : r_header ) {
+			virtual void trigger_file_open(File* file) {
+				if ( _write_type ) { // write header
+					String header_str;
+					auto& header = _client->response_header();
+
+					for ( auto& i : header ) {
 						if (!i.value.isEmpty() && i.key != "cache-control") {
-							header += i.key;
-							header += string_colon;
+							header_str += i.key;
+							header_str += string_colon;
 							if (i.key == "expires") {
 								// 写入一个固定长度的时间字符串,方便以后重写这个值
 								auto val = i.value;
-								while (val.length() < 36) {
+								while (val.length() < 36)
 									val.append(' ');
-								}
-								header += val;
+								header_str += val;
 							} else {
-								header += i.value;
+								header_str += i.value;
 							}
-							header += string_header_end;
+							header_str += string_header_end;
 						}
 					}
-					header += string_header_end;
-					_file->write( header.collapse(), 2, _write_flag == 1 ? 0: -1); // header write
-				} else {
-					_ready = true;
+					header_str += string_header_end;
 					_write_count++;
-					_file->write(_buffer);
+					_offset = header_str.length();
+					_file->write(header_str.collapse(), 0, 1); // header write
 				}
+				for (auto &i: _buffer) {
+					auto off = _offset;
+					_write_count++;
+					_offset += i.length();
+					_file->write(i, off);
+				}
+				_buffer.clear();
 			}
-			
+
 			virtual void trigger_file_close(File* file) {
 				// throw error to http client host
 				_client->report_error_and_abort(Error(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown"));
 			}
-			
+
 			virtual void trigger_file_error(File* file, cError& error) {
 				_client->report_error_and_abort(error);
 			}
-			
-			virtual void trigger_file_write(File* file, Buffer buffer, int mark) {
-				if ( mark ) {
-					if ( mark == 2 ) {
-						_ready = true;
-						if (_buffer.length()) {
-							_write_count++;
-							_file->write(_buffer);
-						} else {
-							goto advance;
-						}
-					}
-				} else {
+
+			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) {
+				_write_count--; Qk_Assert(_write_count >= 0);
+				if ( flag == 0 ) {
 					_client->trigger_http_data2(buffer);
-					_write_count--;
-					Qk_Assert(_write_count >= 0);
-				 advance:
-					if ( _write_count == 0 ) {
-						if ( _completed_end ) { // http已经结束
-							_client->trigger_http_end();
-						} else {
-							_client->read_advance();
-						}
+				}
+				if ( _write_count == 0 ) {
+					if ( _completed_end ) { // http end
+						_client->trigger_http_end();
+					} else {
+						_client->read_advance();
 					}
 				}
 			}
-			
-			virtual void trigger_file_read(File* file, Buffer buffer, int mark) { }
-			
-			bool is_write_complete() const {
-				return _write_count == 0 && _buffer.length() == 0;
-			}
-			
+
+			virtual void trigger_file_read(File* file, Buffer& buffer, int flag) {}
+
 			void write(Buffer& buffer) {
-				if ( _file && _write_flag != 1 ) {
-					if ( _ready ) {
-						_write_count++;
-						if ( _write_count > 32 ) {
+				Qk_Assert_Eq(_completed_end, false);
+				if ( _file && _write_type != 1 ) {
+					if ( _file->is_open() ) {
+						if ( ++_write_count > 32 )
 							_client->read_pause();
-						}
-						_file->write(buffer);
+						auto off = _offset;
+						_offset += buffer.length();
+						_file->write(buffer, off);
 					} else {
-						_buffer.write(buffer.val(), buffer.length());
+						_buffer.pushBack(std::move(buffer));
 						_client->read_pause();
 					}
 				} else { // no file write task
@@ -1135,14 +1107,17 @@ namespace qk {
 
 			void end() {
 				_completed_end = true;
+				if ( _write_count == 0 && _buffer.length() == 0 ) { // file is write complete
+					_client->trigger_http_end();
+				}
 			}
-			
+
 		private:
 			Client* _client;
-			Buffer  _buffer;
 			File*  _file;
-			int	_write_flag, _write_count;
-			bool	_ready, _completed_end;
+			List<Buffer> _buffer;
+			int	 _write_type, _write_count, _offset;
+			bool _completed_end;
 		};
 
 	private:
@@ -1151,7 +1126,7 @@ namespace qk {
 		}
 
 		void read_advance() {
-			Reader* r = reader();
+			auto r = reader();
 			Qk_Assert(r);
 			if ( _pause ) {
 				r->read_pause();
@@ -1161,13 +1136,13 @@ namespace qk {
 		}
 
 		void read_pause() {
-			Reader* r = reader();
+			auto r = reader();
 			Qk_Assert(r);
 			r->read_pause();
 		}
 
 		bool is_disable_cache() {
-			return _disable_cache || _url_no_cache_arg;
+			return _disable_cache || _url_no_cache_arg || _method != HTTP_METHOD_GET;
 		}
 
 		void trigger_http_readystate_change(HttpReadyState ready_state) {
@@ -1209,7 +1184,7 @@ namespace qk {
 					new FileWriter(this, _save_path, 0, loop());
 				}
 				_file_writer->write(buffer);
-			} else if ( !is_disable_cache() && _write_cache_flag ) {
+			} else if ( _write_cache_flag && !is_disable_cache() ) {
 				if ( !_file_writer ) {
 					new FileWriter(this, _cache_path, _write_cache_flag, loop());
 				}
@@ -1229,15 +1204,15 @@ namespace qk {
 
 				if ( _status_code == 304) {
 					if (_cache_reader) {
-						String expires = convert_to_expires(_response_header["cache-control"]);
+						auto expires = to_expires_from_cache_content(_response_header["cache-control"]);
 						if (expires.isEmpty()) {
 							expires = _response_header["expires"];
 						}
-						_response_header = std::move(_cache_reader->header());
+						_response_header = std::move(_cache_reader->header()); // use local cache headers
 
 						if (!expires.isEmpty() && expires != _response_header["expires"]) {
 							// set expires value
-							_write_cache_flag = 1; // rewrite response header
+							_write_cache_flag = 1; // only write response header
 							_response_header["expires"] = expires;
 						}
 						_cache_reader->read_advance();
@@ -1249,11 +1224,7 @@ namespace qk {
 			}
 
 			if ( _file_writer ) {
-				if ( _file_writer->is_write_complete() ) { // 缓存是否写入完成
-					trigger_http_end();
-				} else {
-					_file_writer->end(); // 通知已经结束
-				}
+				_file_writer->end(); // 通知已经结束
 			} else {
 				trigger_http_end();
 			}
@@ -1271,15 +1242,15 @@ namespace qk {
 
 		void send_http() {
 			Qk_Assert(_retain);
-			Qk_Assert(!_connect);
 			Qk_Assert(_pool);
+			Qk_Assert_Eq(_connect, nullptr);
 			_pool->request(this, Cb([this](Cb::Data& evt) {
 				auto c = static_cast<Connect*>(evt.data);
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
 					} else {
-						Qk_Assert( !_connect );
+						Qk_Assert_Eq(_connect, nullptr);
 						_connect = c;
 						_connect->bind_client_and_send(this);
 					}
@@ -1336,8 +1307,8 @@ namespace qk {
 			_retain = new RetainRef(this);
 			_pause = false;
 			_url_no_cache_arg = false;
-			_cache_path = http_cache_path() + '/' +
-				hashCode(_uri.href().c_str(), _uri.href().length());
+			_cache_path = http_cache_path() + '/' + hash(_uri.href());
+			_write_cache_flag = 0;
 
 			int i = _uri.search().indexOf("__no_cache");
 			if ( i != -1 && _uri.search()[i+9] != '=' ) {

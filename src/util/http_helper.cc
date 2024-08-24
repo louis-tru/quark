@@ -38,8 +38,9 @@ namespace qk {
 
 	typedef Dict<String, String> Map;
 
-	static String http_cache_path_ = String();
-	static String http_user_agent_ = "Mozilla/5.0 quark " Qk_VERSION " (KHTML, like Gecko)";
+	static uint32_t http_max_connect_pool_size_(5);
+	static String   http_cache_path_ = String();
+	static String   http_user_agent_ = "Mozilla/5.0 quark " Qk_VERSION " (KHTML, like Gecko)";
 	// "Mozilla/5.0 (%s/%s) quark " NOUG_VERSION " (KHTML, like Gecko)";
 
 	HttpError::HttpError(int rc, cString& msg, uint32_t status, cString& url)
@@ -56,20 +57,20 @@ namespace qk {
 		public:
 			HttpCb cb;
 			SCb scb;
-			bool stream, full_data;
+			bool stream, response_data;
 			Array<String> data;
 			HttpClientRequest* client;
 			
 			Task() {
 				client = new HttpClientRequest(loop());
 				client->set_delegate(this);
-				full_data = 1;
+				response_data = 1;
 			}
-			
+
 			~Task() {
 				Release(client);
 			}
-			
+
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				HttpError e(error.code(),
 										error.message() + ", " + req->url(), req->status_code(), req->url());
@@ -92,12 +93,12 @@ namespace qk {
 														client->download_total(), nullptr /*, this*/);
 					scb->resolve(&data);
 				} else {
-					if ( full_data ) {
+					if ( response_data ) {
 						data.push(buffer.collapseString());
 					}
 				}
 			}
-			
+
 			virtual void trigger_http_end(HttpClientRequest* req) {
 				/*
 				100-199 用于指定客户端应相应的某些动作。
@@ -122,7 +123,7 @@ namespace qk {
 						scb->resolve(&data);
 					} else {
 						ResponseData rdata;
-						rdata.data = data.join("").collapse();
+						rdata.data = data.join(String()).collapse();
 						rdata.http_version = client->http_response_version();
 						rdata.status_code = client->status_code();
 						rdata.response_headers = std::move( client->get_all_response_headers() );
@@ -131,34 +132,37 @@ namespace qk {
 				}
 				abort(); // abort and release
 			}
-			
+
 			virtual void trigger_http_abort(HttpClientRequest* req) {
 				Qk_DEBUG("request async abort");
 			}
-			
+
 			virtual void trigger_http_write(HttpClientRequest* req) {}
 			virtual void trigger_http_header(HttpClientRequest* req) {}
 			virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
-			
+
 			virtual void abort() {
-				Release(client); client = nullptr;
+				auto cli = client;
+				client = nullptr;
+				Release(cli);
 				AsyncIOTask::abort();
 			}
-			
+
 			virtual void pause() {
-				if ( client ) client->pause();
+				if ( client )
+					client->pause();
 			}
-			
+
 			virtual void resume() {
-				if ( client ) client->resume();
+				if ( client )
+					client->resume();
 			}
-			
 		};
-		
+
 		Handle<Task> task(new Task());
-		
+
 		HttpClientRequest* req = task->client;
-		
+
 		try {
 			req->set_url(options.url);
 			req->set_method(options.method);
@@ -166,24 +170,24 @@ namespace qk {
 			req->disable_cache(options.disable_cache);
 			req->disable_ssl_verify(options.disable_ssl_verify);
 			req->disable_cookie(options.disable_cookie);
-			
+
 			task->cb = cb;
 			task->scb = scb;
 			task->stream = stream;
-			
+
 			if ( !options.upload.isEmpty() ) { // 需要上传文件
 				req->set_upload_file("file", options.upload);
 			}
 
 			if ( !options.save.isEmpty() ) {
-				task->full_data = 0;
+				task->response_data = 0;
 				req->set_save_path(options.save);
 			}
-			
+
 			for ( auto& i : options.headers ) {
 				req->set_request_header(i.key, i.value);
 			}
-			
+
 			req->send(options.post_data);
 		} catch (cError& e) {
 			throw HttpError(e);
@@ -272,7 +276,7 @@ namespace qk {
 											String::format("cannot send sync http request, %s"
 																		, options.url.c_str()), 0, options.url);
 		}
-		Qk_DEBUG("request_sync %s", options.url.c_str());
+		// Qk_DEBUG("request_sync %s", options.url.c_str());
 		typedef Callback<RunLoop::PostSyncData> Cb2;
 		bool ok = false;
 		HttpError err = Error(0);
@@ -283,7 +287,7 @@ namespace qk {
 			try {
 				http_request(options, HttpCb([&,dd](HttpCb::Data& ev) {
 					if (ev.error) {
-						*const_cast<HttpError*>(&err) = std::move(*static_cast<const HttpError*>(ev.error));
+						*const_cast<HttpError*>(&err) = std::move(*static_cast<HttpError*>(ev.error));
 					} else {
 						*const_cast<ResponseData*>(&data) = std::move(*ev.data);
 						*const_cast<bool*>(&ok) = true;
@@ -364,6 +368,14 @@ namespace qk {
 			fs_remove_recursion_sync(http_cache_path_);
 			http_set_cache_path(http_cache_path_);
 		}
+	}
+	
+	uint32_t http_max_connect_pool_size() {
+		return http_max_connect_pool_size_;
+	}
+
+	void http_set_max_connect_pool_size(uint32_t size) {
+		http_max_connect_pool_size_ = Uint32::clamp(size, 2, 100);
 	}
 
 }
