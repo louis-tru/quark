@@ -433,7 +433,7 @@ namespace qk { namespace js {
 		friend class JsClassInfo;
 	};
 
-	class Qk_EXPORT Worker: public Object {
+	class Qk_EXPORT Worker: public Object, public SafeFlag {
 		Qk_HIDDEN_ALL_COPY(Worker);
 	public:
 		static Worker* Make();
@@ -454,6 +454,7 @@ namespace qk { namespace js {
 		Qk_DEFINE_PROP_GET(Strings*, strs, Protected);
 		Qk_DEFINE_PROP_GET(JsClassInfo*, classsinfo, Protected);
 		Qk_DEFINE_PROP_GET(ThreadID, thread_id, Protected);
+		Qk_DEFINE_PROP_GET(RunLoop*, loop);
 		Qk_DEFINE_PROP_ACC_GET(JSObject*, global);
 
 		void release() override;

@@ -49,14 +49,14 @@ namespace qk {
 		virtual void set_layout_offset_free(Vec2 size) override;
 		virtual bool solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
-		virtual void draw(UIRender *render) override;
+		virtual void draw(UIDraw *render) override;
 	protected:
 		virtual View* getViewForTextOptions() override;
 	private:
 		Sp<TextLines>   _lines;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
-		friend class UIRender;
+		friend class UIDraw;
 	};
 
 }

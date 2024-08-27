@@ -299,10 +299,6 @@ namespace qk {
 		return Inl::current_from(nullptr);
 	}
 
-	bool RunLoop::is_current(RunLoop* loop) {
-		return loop && loop->_tid == thread_self_id();
-	}
-
 	RunLoop* RunLoop::first() {
 		// NOTE: Be careful of thread safety,
 		// it's best to first ensure that 'current ()' has been called`

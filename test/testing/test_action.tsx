@@ -199,7 +199,7 @@ export default async function (win: Window) {
 		textWhiteSpace: 'noWrap',
 		boxShadow: '2 2 2 #f00',
 		src: resolve('./res/bb.jpg'),
-		background: `src(${resolve('./res/bb.jpg')})`,
+		background: `image(${resolve('./res/bb.jpg')})`,
 	}])
 
 	Pv(act6, 'time', 0);

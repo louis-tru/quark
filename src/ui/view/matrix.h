@@ -73,12 +73,12 @@ namespace qk {
 		virtual Vec2 center() override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
-		virtual void draw(UIRender *render) override;
+		virtual void draw(UIDraw *render) override;
 
 	protected:
 		void solve_origin_value(); // compute origint value
 		Mat _matrix; // parent transform View * Mat(translate, scale, skew, rotate_z);
-		friend class UIRender;
+		friend class UIDraw;
 	};
 }
 #endif

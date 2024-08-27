@@ -1238,7 +1238,6 @@ namespace qk { namespace js {
 				}
 			}
 			rc = exec(*worker); // exec main script
-			
 		}
 		v8::V8::ShutdownPlatform();
 		v8::V8::Dispose();

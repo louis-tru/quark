@@ -32,7 +32,7 @@
 #include "./app.h"
 #include "./view/root.h"
 #include "../render/render.h"
-#include "./ui_render.h"
+#include "./draw.h"
 #include "./event.h"
 #include "./text/text_opts.h"
 #include "./action/action.h"
@@ -86,7 +86,7 @@ namespace qk {
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
-		_uiRender = new UIRender(this);
+		_uiRender = new UIDraw(this);
 		_actionCenter = new ActionCenter(this);
 		_styleSheets = _host->styleSheets();
 		_backgroundColor = opts.backgroundColor;

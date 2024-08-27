@@ -47,7 +47,7 @@ namespace qk {
 	class Qk_EXPORT StringBase {
 	public:
 		typedef NonObjectTraits Traits;
-		typedef MemoryAllocator::Prt<char> Ptr;
+		typedef Allocator::Prt<char> Ptr;
 		typedef void (*Realloc)(Ptr *ptr, uint32_t, uint32_t);
 		typedef void (*Free)(void* ptr);
 		static constexpr char MAX_SHORT_LEN = 32;
@@ -707,7 +707,7 @@ namespace qk {
 		uint32_t len, capacity;
 		T* val = (T*)_Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
-			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, false, (Realloc)&MemoryAllocator::realloc
+			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, false, (Realloc)&Allocator::realloc
 		);
 		r.StringBase::assign({val,capacity,len}, sizeof(T), &A::free );
 		return r;
@@ -719,7 +719,7 @@ namespace qk {
 		uint32_t len, capacity;
 		T* val = (T*)_Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
-			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, true, (Realloc)&MemoryAllocator::realloc
+			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, true, (Realloc)&Allocator::realloc
 		);
 		r.StringBase::assign({val,capacity,len}, sizeof(T), &A::free );
 		return r;

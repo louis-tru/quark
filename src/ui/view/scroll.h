@@ -73,7 +73,7 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 		void scroll_to_Rt(Vec2 value, uint64_t duration, cCurve& curve);
-		friend class UIRender;
+		friend class UIDraw;
 		Box *_host;
 		List<Task*> _tasks;
 		Vec2 _scroll, _scroll_max, _scroll_for_Mt;
@@ -97,7 +97,7 @@ namespace qk {
 		virtual Vec2 layout_offset_inside() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
-		virtual void draw(UIRender *render) override;
+		virtual void draw(UIDraw *render) override;
 	};
 
 }

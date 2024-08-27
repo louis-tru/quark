@@ -115,7 +115,7 @@ namespace qk {
 		virtual bool solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 center() override;
-		virtual void draw(UIRender *render) override;
+		virtual void draw(UIDraw *render) override;
 
 		/**
 			* client rect = border + padding + content
@@ -193,8 +193,8 @@ namespace qk {
 
 		// ----------------------- define private props -----------------------
 	private:
-		BoxFilter *_background;
-		BoxShadow *_boxShadow;
+		std::atomic<BoxFilter*> _background;
+		std::atomic<BoxShadow*> _boxShadow;
 	protected:
 		struct BoxBorderInl { // box border value
 			float width[4];
@@ -206,7 +206,7 @@ namespace qk {
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		Vec2  _vertex[4]; // box vertex
 
-		friend class UIRender;
+		friend class UIDraw;
 	};
 
 	/**

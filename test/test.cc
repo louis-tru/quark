@@ -32,9 +32,10 @@
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_testing
+ #define TEST_FUNC_NAME test_testing
 // #define TEST_FUNC_NAME test_https
 // #define TEST_FUNC_NAME test_http_cookie
+// #define TEST_FUNC_NAME test_atomic
 #endif
 
 using namespace qk;
@@ -47,7 +48,7 @@ Qk_Main() {
 
 	TEST_FUNC_NAME(argc, argv);
 	
-	Qk_LOG("Test eclapsed time:%dms\n", (time_micro() - st) / 1000);
+	Qk_LOG("Test eclapsed time:%dMs\n", (time_micro() - st) / 1000);
 
 	return 0;
 }

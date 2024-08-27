@@ -13,7 +13,7 @@ constexpr unsigned int u32 = 1;
 class TestDrawEfficiency: public Box {
 public:
 
-	void draw(UIRender *r) override {
+	void draw(UIDraw *r) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 

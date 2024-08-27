@@ -69,7 +69,7 @@ namespace qk {
 	 */
 	template<
 		typename Key, typename Value, 
-		typename Compare = Compare<Key>, typename A = MemoryAllocator
+		typename Compare = Compare<Key>, typename A = Allocator
 	>
 	class Dict: public Object {
 	public:
@@ -151,13 +151,13 @@ namespace qk {
 		uint32_t  _length, _capacity;
 	};
 
-	template<typename K, typename V, typename C = Compare<K>, typename A = MemoryAllocator>
+	template<typename K, typename V, typename C = Compare<K>, typename A = Allocator>
 	using cDict = const Dict<K, V, C, A>;
 
-	template<typename K, typename C = Compare<K>, typename A = MemoryAllocator>
+	template<typename K, typename C = Compare<K>, typename A = Allocator>
 	using Set = Dict<K, bool, C, A>;
 
-	template<typename K, typename C = Compare<K>, typename A = MemoryAllocator>
+	template<typename K, typename C = Compare<K>, typename A = Allocator>
 	using cSet = const Set<K, C, A>;
 
 	// -----------------------------------------------------------------
@@ -441,9 +441,9 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::make_(const K& key, Pair** data) {
 		if (!_capacity) {
-			_capacity = Qk_MIN_CAPACITY;
-			_indexed = (Node**)A::alloc(sizeof(Node) * Qk_MIN_CAPACITY);
-			::memset(_indexed, 0, sizeof(Node*) * Qk_MIN_CAPACITY);
+			_capacity = 4; // init 4 length capacity
+			_indexed = (Node**)A::alloc(sizeof(Node) * 4);
+			::memset(_indexed, 0, sizeof(Node*) * 4);
 		}
 		auto hash = C::hashCode(key);
 		auto index = hash % _capacity;

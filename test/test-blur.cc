@@ -14,7 +14,7 @@ class TestBlur: public Box {
 public:
 	float i = 0;
 
-	void draw(UIRender *r) override {
+	void draw(UIDraw *r) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 

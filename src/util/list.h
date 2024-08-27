@@ -39,7 +39,7 @@ namespace qk {
 	/**
 	* @class List Double linked list
 	*/
-	template<typename T, typename A = MemoryAllocator> 
+	template<typename T, typename A = Allocator> 
 	class List: public Object {
 	public:
 		struct Node {
@@ -111,7 +111,7 @@ namespace qk {
 		uint32_t _length;
 	};
 
-	template<typename T, typename A = MemoryAllocator> using cList = const List<T, A>;
+	template<typename T, typename A = Allocator> using cList = const List<T, A>;
 
 	// -----------------------------------------------------------------
 

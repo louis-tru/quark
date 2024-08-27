@@ -38,11 +38,12 @@
 
 namespace qk {
 	class View;
+	class Window;
 
 	/**
 	* @class Box Filter, Single linked list struct
 	*/
-	class Qk_EXPORT BoxFilter: public Object {
+	class Qk_EXPORT BoxFilter: public Reference {
 		Qk_HIDDEN_ALL_COPY(BoxFilter);
 	public:
 		enum Type {
@@ -50,28 +51,28 @@ namespace qk {
 			kGradientLinear, kGradientRadial,
 			kShadow, kBlur, kBackdropBlur,
 		};
-		Qk_DEFINE_PROP_GET(View*, view);
-		Qk_DEFINE_PROP_ACC(BoxFilter*, next); // async set next
+		Qk_DEFINE_PROP_GET(Window*, window);
+		Qk_DEFINE_PROP_GET_Atomic(View*, view);
+		Qk_DEFINE_VIEW_PROP_Atomic(BoxFilter*, next); // async set next
+
+		BoxFilter();
+		// virtual void release() override;
+		virtual void destroy() override;
+		virtual Type type() const = 0;
+		virtual BoxFilter* copy(BoxFilter *dest, bool isRt) = 0; // @safe Rt
+		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t, bool isRt) = 0; // @safe Rt
+		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, View *view, bool isRt);
 
 		template<class T>
 		inline static T* Link(const std::initializer_list<T*>& list) {
 			static_cast<T*>(link(*reinterpret_cast<std::initializer_list<BoxFilter*>*>(&list)));
 		}
-		BoxFilter();
-		virtual void release() override;
-		virtual Type type() const = 0;
-		virtual BoxFilter* copy_Rt(BoxFilter *dest) = 0; // @safe Rt
-		virtual BoxFilter* transition_Rt(BoxFilter *dest, BoxFilter *to, float t) = 0; // @safe Rt
-		static  BoxFilter* assign_Rt(BoxFilter *left, BoxFilter *right, View *view); // @safe Rt
-		static  BoxFilter* safe_filter(BoxFilter *filter);
 	protected:
-		void set_next_Rt(BoxFilter* value); // @safe Rt
+		void set_next_no_check(BoxFilter *next, bool isRt);
 	private:
+		void set_view(View* value);
 		static BoxFilter* link(const std::initializer_list<BoxFilter*>& list);
-		void set_view_Rt(View *view); // @safe Rt
-		BoxFilter *_next;
-		uint32_t _safe_mark;
-		bool     _isHolder;
+		bool  _isIndependent;
 	};
 
 	class Qk_EXPORT FillImage: public BoxFilter, public ImageSourceHolder {
@@ -91,8 +92,8 @@ namespace qk {
 
 		FillImage(cString& src, Init init = {});
 		virtual Type type() const override;
-		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
-		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
 		static bool compute_size(FillSize size, float host, float& out);
 		static float compute_position(FillPosition pos, float host, float size);
 	private:
@@ -106,10 +107,10 @@ namespace qk {
 		inline cArray<float>& positions() const { return _pos; }
 		inline cArray<Color4f>& colors() const { return _colors; }
 		virtual Type type() const override;
-		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
-		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
 	protected:
-		void transition_g_Rt(BoxFilter* dest, BoxFilter *to, float t);
+		void transition_g(BoxFilter* dest, BoxFilter *to, float t, bool isRt);
 		Array<float> _pos;
 		Array<Color4f> _colors;
 	};
@@ -122,8 +123,8 @@ namespace qk {
 
 		FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle/*0-360*/);
 		virtual Type type() const override;
-		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
-		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
 	private:
 		void setRadian();
 	};
@@ -134,8 +135,8 @@ namespace qk {
 		BoxShadow(Shadow value);
 		BoxShadow(float x, float y, float s, Color color);
 		virtual Type type() const override;
-		virtual BoxFilter* copy_Rt(BoxFilter* dest) override;
-		virtual BoxFilter* transition_Rt(BoxFilter *to, BoxFilter* dest, float t) override;
+		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
+		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
 	};
 }
 

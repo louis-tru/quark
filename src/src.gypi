@@ -56,8 +56,8 @@
 			'ui/filter.cc',
 			'ui/layer.h',
 			'ui/layer.cc',
-			'ui/ui_render.h',
-			'ui/ui_render.cc',
+			'ui/draw.h',
+			'ui/draw.cc',
 			'ui/css/css.h', # css
 			'ui/css/css_sheets.cc',
 			'ui/css/css_class.cc',

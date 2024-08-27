@@ -48,7 +48,7 @@ async function test_index(win: Window) {
 	win.root.append(box);
 }
 
-// import test from './test_action'
+import test from './test_action'
 // import test from './test_app'
 // import test from './test_buf'
 // import test from './test_css'
@@ -56,7 +56,7 @@ async function test_index(win: Window) {
 // import test from './test_font'
 // import test from './test_fs'
 // import test from './test_gui'
-import test from './test_http'
+// import test from './test_http'
 // import test from './test_os'
 // import test from './test_path'
 // import test from './test_reader'

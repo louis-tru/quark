@@ -30,8 +30,8 @@
 
 // @private head
 
-#ifndef __quark__view_render__
-#define __quark__view_render__
+#ifndef __quark__view_draw__
+#define __quark__view_draw__
 
 #include "./view/view.h"
 #include "../render/render.h"
@@ -51,14 +51,14 @@ namespace qk {
 	class Matrix;
 	class ScrollBase;
 
-	class Qk_EXPORT UIRender: public Object {
+	class Qk_EXPORT UIDraw: public Object {
 	public:
 		struct BoxData {
 			const RectPath *inside = nullptr;
 			const RectPath *outside = nullptr;
 			const RectOutlinePath *outline = nullptr;
 		};
-		UIRender(Window *window);
+		UIDraw(Window *window);
 		void visitView(View* v);
 		void visitBox(Box* box);
 		void visitText(Text* text);

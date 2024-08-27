@@ -219,7 +219,7 @@ namespace qk {
 					if (i)
 						render->deleteTexture(const_cast<TexStat *>(i));
 				}
-				isDestroy ? Release(tex): tex->clear();
+				if (isDestroy) Release(tex); else tex->clear();
 			}, isDestroy ? nullptr: this));
 		}
 	}

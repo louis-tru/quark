@@ -77,9 +77,10 @@ namespace qk {
 			// it should be Completely destroyed in RT (render thread)
 			self->Object::destroy();
 		}, this, 0);
+		_window = nullptr;
 	}
 
-	View* View::safeRetain() {
+	View* View::tryRetain() {
 		if (_refCount++ > 0) {
 			return this;
 		} else {
@@ -264,8 +265,8 @@ namespace qk {
 	}
 
 	void View::mark(uint32_t mark, bool isRt) {
-		Qk_ASSERT(_isRt == isRt, "View::mark(), isRt param no match");
 		if (mark) {
+			Qk_Assert_Eq(_isRt, isRt, "View::mark(), isRt param no match");
 			if (isRt) {
 				_mark_value |= mark;
 				if (_level) {

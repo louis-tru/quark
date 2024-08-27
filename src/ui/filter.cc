@@ -36,12 +36,13 @@
 #include "../render/render.h"
 #include <math.h>
 
+#define _async_call _window->preRender().async_call
+
 namespace qk {
 
 	template<typename T>
 	inline T transition_value(T v1, T v2, float t) {
-		auto v = v1 - (v1 - v2) * t;
-		return v;
+		return v1 - (v1 - v2) * t;
 	}
 
 	template<>
@@ -83,31 +84,22 @@ namespace qk {
 	// ---------------------------------------------------------------------------------------------
 
 	static bool check_loop_ref(BoxFilter *self, BoxFilter *value) {
-		auto next = value->next();
-		while (next) {
-			if (self == next) {
-				return Qk_ERR("check_loop_ref(), Box filter loop reference error"), true;
+		if (value) {
+			auto next = value->next();
+			while (next) {
+				if (self == next) {
+					return Qk_ERR("check_loop_ref(), Box filter loop reference error"), true;
+				}
+				next = next->next();
 			}
-			next = next->next();
 		}
 		return false;
-	}
-
-	static View* safe_view(View *view) {
-		//return dynamic_cast<View*>(view);
-		return view;
 	}
 
 	static void mark(BoxFilter *self, bool isRt) {
 		auto view = self->view();
 		if (view)
 			view->mark(0,isRt);
-	}
-
-	BoxFilter* BoxFilter::safe_filter(BoxFilter *filter) {
-		// return filter && filter->_safe_mark == 0xff00ffaa ? filter: nullptr;
-		// Atomic pairs are safe
-		return filter;
 	}
 
 	BoxFilter* BoxFilter::link(const std::initializer_list<BoxFilter*>& list) {
@@ -124,88 +116,79 @@ namespace qk {
 	}
 
 	BoxFilter::BoxFilter()
-		: _view(nullptr), _next(nullptr), _safe_mark(0xff00ffaa), _isHolder(false)
-	{}
+		: _window(nullptr), _view(nullptr), _next(nullptr), _isIndependent(false)
+	{
+	}
 
-	void BoxFilter::release() {
-		if (_next) {
-			_next->release();
-			_next = nullptr;
+	void BoxFilter::destroy() {
+		auto next = _next.load();
+		if (next) {
+			next->release();
 		}
-		if (_view) {
-			// Ensure that the handle is held safely by the main thread,
-			// Only release on the main thread when there is a view
-			_view->preRender().post(Cb([this](auto&e) {
-				Object::release();
-			}));
-			_view = nullptr; // clear view
+		if (_window && _window->loop()->thread_id() == thread_self_id()) { // is main thread
+			_async_call([](auto self, auto arg) {
+				// To ensure safety and efficiency,
+				// it should be Completely destroyed in RT (render thread)
+				self->Object::destroy();
+			}, this, 0);
+			_window = nullptr;
 		} else {
-			Object::release();
+			Object::destroy();
 		}
 	}
 
-	BoxFilter* BoxFilter::assign_Rt(BoxFilter *left, BoxFilter *right, View *view) {
+	BoxFilter* BoxFilter::assign(BoxFilter *left, BoxFilter *right, View *view, bool isRt) {
 		if (right) {
 			if (left != right) {
-				// Prohibit copying between different views
-				if (right->_view && right->_view != view) {
-					return Qk_ERR("BoxFilter#assign, right->_view != view arg, disable copy"), left;
-				}
 				auto new_left = right;
-				if (right->_isHolder) {
-					new_left = right->copy_Rt(left); // copy
+				if (right->_isIndependent) {
+					new_left = right->copy(left, isRt); // copy
 				}
 				if (new_left != left) {
-					Release(left);
+					if (left) {
+						left->set_view(nullptr); // clear view
+						left->release();
+					}
+					left = new_left;
+					left->retain();
+					left->set_view(view);
 				}
-				left = new_left;
 			}
-			left->set_view_Rt(view);
-		} else { // right nullptr
-			Release(left);
+		} else if (left) { // right nullptr
+			left->set_view(nullptr); // clear view
+			left->release();
 			left = nullptr;
 		}
 		if (view) {
-			view->mark(0,true);
+			view->mark(0, isRt);
 		}
 		return left;
 	}
 
-	void BoxFilter::set_next_Rt(BoxFilter *next) {
-		_next = assign_Rt(_next, next, _view);
-	}
-
-	BoxFilter* BoxFilter::next() {
-		return safe_filter(_next);
-	}
-
-	void BoxFilter::set_next(BoxFilter *next) {
-		auto view = safe_view(_view); // safe get
-		if (view) {
-			if (next && next->_view) {
-				if (next->_view != view) // Prohibit copying between different views
-					return Qk_ERR("BoxFilter#set_next, next->_view != _view, disable copy");
-			}
-			view->preRender().async_call([](auto ctx, auto arg) {
-				if (!check_loop_ref(ctx, arg.arg))
-					ctx->set_next_Rt(arg.arg);
-			}, this, next);
-		} else { // view nullptr
-			if (next && !next->_view) {
-				if (check_loop_ref(this, next))
-					return;
-			}
-			_next = assign_Rt(_next, next, nullptr);
+	void BoxFilter::set_next(BoxFilter *next, bool isRt) {
+		if (check_loop_ref(this, next)) {
+			set_next_no_check(next, isRt);
 		}
 	}
 
-	void BoxFilter::set_view_Rt(View* value) {
-		if (value != _view) {
-			_view = value;
-			if (_next)
-				_next->set_view_Rt(value);
+	void BoxFilter::set_next_no_check(BoxFilter *next, bool isRt) {
+		auto left = _next.load();
+		_next.store(
+			assign(left, next, left ? left->view(): nullptr, isRt)
+		);
+	}
+
+	void BoxFilter::set_view(View *value) {
+		if (value != _view.load()) {
+			Qk_Assert_Eq(_isIndependent, false);
+			_view.store(value);
+			if (!_window) // bind window
+				_window = value->window();
+			auto next = _next.load();
+			if (next)
+				next->set_view(value);
 		}
-		_isHolder = true;
+		_isIndependent = true;
 	}
 
 	BoxFilter::Type FillImage::type() const {
@@ -235,7 +218,7 @@ namespace qk {
 		}
 	}
 
-	BoxFilter* FillImage::copy_Rt(BoxFilter* dest) {
+	BoxFilter* FillImage::copy(BoxFilter* dest, bool isRt) {
 		auto dest1 = (dest && dest->type() == kImage) ?
 				static_cast<FillImage*>(dest) : new FillImage(String());
 		dest1->_repeat = _repeat;
@@ -244,11 +227,11 @@ namespace qk {
 		dest1->_width = _width;
 		dest1->_height = _height;
 		dest1->set_source(source());
-		dest1->set_next_Rt(next());
+		dest1->set_next_no_check(next(), isRt);
 		return dest1;
 	}
 
-	BoxFilter* FillImage::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
+	BoxFilter* FillImage::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		if (to && to->type() == kImage) {
 			if (!dest || dest->type() != kImage) {
 				dest = new FillImage(String());
@@ -261,10 +244,10 @@ namespace qk {
 			dest1->_width = transition_value(_width, to1->_width, t);
 			dest1->_height = transition_value(_height, to1->_height, t);
 			dest1->set_source(t < 1.0 ? source(): to1->source());
-			mark(dest1, true);
+			mark(dest1, isRt);
 			auto n = next();
 			if (n)
-				dest1->set_next_Rt(n->transition_Rt(dest->next(), to->next(), t));
+				dest1->set_next_no_check(n->transition(dest->next(), to->next(), t, isRt), isRt);
 		}
 		return dest;
 	}
@@ -340,7 +323,7 @@ namespace qk {
 	}
 
 	void FillImage::set_source(ImageSource* val, bool isRt) {
-		auto v = safe_view(view()); // safe get
+		auto v = view(); // safe get
 		if (isRt || !v) {
 			ImageSourceHolder::set_source(val);
 		} else {
@@ -368,7 +351,7 @@ namespace qk {
 		: _pos(pos), _colors(colors)
 	{}
 
-	void FillGradientRadial::transition_g_Rt(BoxFilter* dest, BoxFilter *to, float t) {
+	void FillGradientRadial::transition_g(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		auto dest1 = static_cast<FillGradientRadial*>(dest);
 		auto to1 = static_cast<FillGradientRadial*>(to);
 		dest1->_pos = _pos;
@@ -388,24 +371,24 @@ namespace qk {
 		for (auto i = 0; i < colorLen; i++) {
 			dest1->_colors[i] = transition_value(_colors[i], to1->_colors[i], t);
 		}
-		mark(dest1, true);
+		mark(dest1, isRt);
 		auto n = next();
 		if (n)
-			dest1->set_next_Rt(n->transition_Rt(dest->next(), to->next(), t));
+			dest1->set_next_no_check(n->transition(dest->next(), to->next(), t, isRt), isRt);
 	}
 
-	BoxFilter* FillGradientRadial::copy_Rt(BoxFilter* dest) {
+	BoxFilter* FillGradientRadial::copy(BoxFilter* dest, bool isRt) {
 		auto dest1 = (dest && dest->type() == kGradientRadial) ?
 			static_cast<FillGradientRadial*>(dest): new FillGradientRadial(positions(), colors());
-		dest1->set_next_Rt(next());
+		dest1->set_next_no_check(next(), isRt);
 		return dest1;
 	}
 
-	BoxFilter* FillGradientRadial::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
+	BoxFilter* FillGradientRadial::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		if (to && to->type() == type()) {
 			if (!dest || dest->type() != type())
 				dest = new FillGradientRadial({},{});
-			transition_g_Rt(dest, to, t);
+			transition_g(dest, to, t, isRt);
 		}
 		return dest;
 	}
@@ -431,7 +414,7 @@ namespace qk {
 		}
 	}
 
-	BoxFilter* FillGradientLinear::copy_Rt(BoxFilter* dest) {
+	BoxFilter* FillGradientLinear::copy(BoxFilter* dest, bool isRt) {
 		auto dest1 = (dest && dest->type() == kGradientLinear) ?
 			static_cast<FillGradientLinear*>(dest): new FillGradientLinear({},{},0);
 		dest1->_pos = _pos;
@@ -439,14 +422,14 @@ namespace qk {
 		dest1->_angle = _angle;
 		dest1->_radian = _radian;
 		dest1->_quadrant = _quadrant;
-		dest1->set_next_Rt(next());
+		dest1->set_next_no_check(next(), isRt);
 		return dest1;
 	}
 
-	BoxFilter* FillGradientLinear::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
+	BoxFilter* FillGradientLinear::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		if (to && to->type() == type()) {
 			if (!dest || dest->type() != type()) dest = new FillGradientLinear({},{},0);
-			transition_g_Rt(dest, to, t);
+			transition_g(dest, to, t, isRt);
 			auto to1 = static_cast<FillGradientLinear*>(to);
 			auto dest1 = static_cast<FillGradientLinear*>(dest);
 			dest1->_angle = transition_value(_angle, to1->_angle, t);
@@ -467,24 +450,24 @@ namespace qk {
 		}
 	}
 
-	BoxFilter* BoxShadow::copy_Rt(BoxFilter* dest) {
+	BoxFilter* BoxShadow::copy(BoxFilter* dest, bool isRt) {
 		auto dest1 = (dest && dest->type() == kShadow) ?
 			static_cast<BoxShadow*>(dest): new BoxShadow({});
 		dest1->_value = _value;
-		dest1->set_next_Rt(next());
+		dest1->set_next_no_check(next(), isRt);
 		return dest1;
 	}
 
-	BoxFilter* BoxShadow::transition_Rt(BoxFilter* dest, BoxFilter *to, float t) {
+	BoxFilter* BoxShadow::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		if (to && to->type() == kShadow) {
 			if (!dest || dest->type() != kShadow) dest = new BoxShadow({});
 			auto dest1 = static_cast<BoxShadow*>(dest);
 			auto to1 = static_cast<BoxShadow*>(to);
 			dest1->_value = transition_value(_value, to1->_value, t);
-			mark(dest1, true);
+			mark(dest1, isRt);
 			auto n = next();
 			if (n)
-				dest1->set_next_Rt(n->transition_Rt(dest->next(), to->next(), t));
+				dest1->set_next_no_check(n->transition(dest->next(), to->next(), t, isRt), isRt);
 		}
 		return dest;
 	}

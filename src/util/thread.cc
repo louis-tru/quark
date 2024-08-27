@@ -258,7 +258,8 @@ namespace qk {
 
 	Qk_INIT_BLOCK(thread_init_once) {
 		Qk_DEBUG("thread_init_once");
-		__threads = new Dict<ThreadID, Thread_INL*>();
+		// Object heap allocator may not have been initialized yet
+		__threads = new(::malloc(sizeof(Dict<ThreadID, Thread_INL*>))) Dict<ThreadID, Thread_INL*>();
 		__threads_mutex = new Mutex();
 		__on_process_safe_exit = new EventNoticer<Event<>, Mutex>(nullptr);
 		Qk_DEBUG("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));

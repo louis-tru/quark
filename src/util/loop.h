@@ -193,11 +193,6 @@ namespace qk {
 		static RunLoop* current();
 
 		/**
-		 * is it the current run loop
-		*/
-		static bool is_current(RunLoop* loop);
-
-		/**
 		 * Returns the process first main run loop
 		 *
 		 * @note Be careful with thread safety. It's best to ensure that `current()` has been invoked first.

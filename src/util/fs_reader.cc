@@ -388,7 +388,7 @@ namespace qk {
 	bool FileReader::exists_sync(cString& path) {
 		return _core->exists_sync(path, 1, 1);
 	}
-	
+
 	bool FileReader::is_file_sync(cString& path) {
 		return _core->exists_sync(path, 1, 0);
 	}
@@ -396,12 +396,12 @@ namespace qk {
 	bool FileReader::is_directory_sync(cString& path) {
 		return _core->exists_sync(path, 0, 1);
 	}
-	
+
 	Array<Dirent> FileReader::readdir_sync(cString& path) {
 		try {
 			return _core->readdir_sync(path);
 		} catch(Error& err) {
-			Qk_ERR(err);
+			// Qk_ERR(err);
 		}
 		return Array<Dirent>();
 	}

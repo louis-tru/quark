@@ -344,6 +344,7 @@ namespace qk {
 	}
 
 	void Worker::release() {
+		SafeFlag::~SafeFlag();
 		delete _types; _types = nullptr;
 		delete _strs; _strs = nullptr;
 		delete _classsinfo; _classsinfo = nullptr;
@@ -354,6 +355,7 @@ namespace qk {
 
 	void Worker::init() {
 		Qk_ASSERT(_global->isObject());
+		
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);
@@ -524,11 +526,6 @@ namespace qk {
 
 	// ---------------------------------------------------------------------------------------------
 
-	void* object_allocator_alloc(size_t size);
-	void  object_allocator_free(void *ptr);
-	void  object_allocator_strong(Object* obj);
-	void  object_allocator_weak(Object* obj);
-
 	static void onProcessExitHandle(Event<>& e, void* ctx) {
 		int rc = static_cast<const Int32*>(e.data())->value;
 		if (RunLoop::first()->runing()) {
@@ -574,10 +571,7 @@ namespace qk {
 	int Start(int argc, char** argv) {
 		Qk_ASSERT(!__quark_js_argv);
 
-		Object::setAllocator(
-			&object_allocator_alloc,
-			&object_allocator_free, &object_allocator_strong, &object_allocator_weak
-		);
+		Object::setHeapAllocator(new JsHeapAllocator());
 
 		// Mark the current main thread and check current thread
 		Qk_Assert_Eq(RunLoop::first(), RunLoop::current());

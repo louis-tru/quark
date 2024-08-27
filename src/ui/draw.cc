@@ -30,7 +30,7 @@
 
 #include "./window.h"
 #include "./filter.h"
-#include "./ui_render.h"
+#include "./draw.h"
 #include "./view/root.h"
 #include "./view/image.h"
 #include "./view/flex.h"
@@ -44,9 +44,9 @@
 
 namespace qk {
 
-	typedef UIRender::BoxData BoxData;
+	typedef UIDraw::BoxData BoxData;
 
-	UIRender::UIRender(Window *window)
+	UIDraw::UIDraw(Window *window)
 		: _render(window->render()), _canvas(nullptr)
 		, _cache(nullptr)
 		, _window(window)
@@ -56,13 +56,13 @@ namespace qk {
 		_cache = _canvas->getPathvCache();
 	}
 
-	Rect UIRender::getRect(Box* box) {
+	Rect UIDraw::getRect(Box* box) {
 		return {
 			_origin, {box->_client_size[0]-_fixSize,box->_client_size[1]-_fixSize},
 		};
 	}
 
-	void UIRender::getInsideRectPath(Box *box, BoxData &out) {
+	void UIDraw::getInsideRectPath(Box *box, BoxData &out) {
 		if (out.inside)
 			return;
 		if (box->_border) {
@@ -108,12 +108,12 @@ namespace qk {
 		}
 	}
 
-	void UIRender::getOutsideRectPath(Box *box, BoxData &out) {
+	void UIDraw::getOutsideRectPath(Box *box, BoxData &out) {
 		if (!out.outside)
 			out.outside = &_cache->getRRectPath(getRect(box), &box->_border_radius_left_top);
 	}
 
-	void UIRender::getRRectOutlinePath(Box *box, BoxData &out) {
+	void UIDraw::getRRectOutlinePath(Box *box, BoxData &out) {
 		if (!out.outline) {
 			auto border = box->_border->width;
 			float borderFix[4] = {
@@ -124,7 +124,8 @@ namespace qk {
 		}
 	}
 
-	void UIRender::drawBoxColor(Box *box, BoxData &data) {
+	void UIDraw::drawBoxColor(Box *box, BoxData &data) {
+		if (!box->_background_color.a()) return;
 		getInsideRectPath(box, data);
 		_canvas->drawPathvColor(*data.inside,
 			box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
@@ -135,24 +136,25 @@ namespace qk {
 		// _canvas->drawPathv(rect->path, paint);
 	}
 
-	void UIRender::drawBoxFill(Box *box, BoxData &data) {
+	void UIDraw::drawBoxFill(Box *box, BoxData &data) {
+		auto filter = box->background();
+		if (!filter) return;
 		getInsideRectPath(box, data);
-		auto fill = box->_background;
 		do {
-			switch(fill->type()) {
+			switch(filter->type()) {
 				case BoxFilter::kImage:// fill
-					drawBoxFillImage(box, static_cast<FillImage*>(fill), data); break;
+					drawBoxFillImage(box, static_cast<FillImage*>(filter), data); break;
 				case BoxFilter::kGradientLinear: // fill
-					drawBoxFillLinear(box, static_cast<FillGradientLinear*>(fill), data); break;
+					drawBoxFillLinear(box, static_cast<FillGradientLinear*>(filter), data); break;
 				case BoxFilter::kGradientRadial: // fill
-					drawBoxFillRadial(box, static_cast<FillGradientRadial*>(fill), data); break;
+					drawBoxFillRadial(box, static_cast<FillGradientRadial*>(filter), data); break;
 				default: break;
 			}
-			fill = fill->next();
-		} while(fill);
+			filter = filter->next();
+		} while(filter);
 	}
 
-	void UIRender::drawBoxFillImage(Box *box, FillImage *fill, BoxData &data) {
+	void UIDraw::drawBoxFillImage(Box *box, FillImage *fill, BoxData &data) {
 		auto src = fill->source();
 		if (!src || !src->load()) return;
 
@@ -210,7 +212,7 @@ namespace qk {
 		_canvas->drawPathv(*data.inside, paint0);
 	}
 
-	void UIRender::drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data) {
+	void UIDraw::drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data) {
 		auto &colors = fill->colors();
 		auto &pos = fill->positions();
 		auto R = fill->radian();
@@ -264,7 +266,7 @@ namespace qk {
 		_canvas->drawPathv(*data.inside, paint);
 	}
 
-	void UIRender::drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data) {
+	void UIDraw::drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data) {
 		auto &colors = fill->colors();
 		auto &pos = fill->positions();
 		auto _rect_inside = data.inside->rect;
@@ -281,11 +283,12 @@ namespace qk {
 		_canvas->drawPathv(*data.inside, paint);
 	}
 
-	void UIRender::drawBoxShadow(Box *box, BoxData &data) {
+	void UIDraw::drawBoxShadow(Box *box, BoxData &data) {
+		auto shadow = box->box_shadow();
+		if (!shadow) return;
 		getOutsideRectPath(box, data);
 		_canvas->save();
 		_canvas->clipPathv(*data.outside, Canvas::kDifference_ClipOp, false);
-		auto shadow = box->box_shadow();
 		do {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
@@ -299,9 +302,11 @@ namespace qk {
 		_canvas->restore();
 	}
 
-	void UIRender::drawBoxBorder(Box *box, BoxData &data) {
-		getRRectOutlinePath(box, data);
+	void UIDraw::drawBoxBorder(Box *box, BoxData &data) {
 		auto border = box->_border;
+		if (!border) return;
+
+		getRRectOutlinePath(box, data);
 		Paint stroke;
 		stroke.style = Paint::kStroke_Style;
 
@@ -319,23 +324,23 @@ namespace qk {
 		}
 	}
 
-	void UIRender::drawBoxEnd(Box *box, BoxData &data) {
+	void UIDraw::drawBoxEnd(Box *box, BoxData &data) {
 		if (box->_clip) {
 			if (box->_first_Rt) {
 				getInsideRectPath(box, data);
 				_window->clipRegion(screen_region_from_convex_quadrilateral(box->_vertex));
 				_canvas->save();
 				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
-				UIRender::visitView(box);
+				UIDraw::visitView(box);
 				_canvas->restore(); // cancel clip
 				_window->clipRestore();
 			}
 		} else {
-			UIRender::visitView(box);
+			UIDraw::visitView(box);
 		}
 	}
 
-	void UIRender::drawScrollBar(Box *b, ScrollBase *v) {
+	void UIDraw::drawScrollBar(Box *b, ScrollBase *v) {
 		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 			auto width = v->_scrollbar_width;
 			auto margin = v->_scrollbar_margin;
@@ -373,7 +378,7 @@ namespace qk {
 		}
 	}
 
-	void UIRender::drawTextBlob(TextOptions *v, TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) {
+	void UIDraw::drawTextBlob(TextOptions *v, TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) {
 		auto size = v->text_size().value;
 		auto shadow = v->text_shadow().value;
 
@@ -423,7 +428,7 @@ namespace qk {
 		} // if (v->text_color().value.a())
 	}
 
-	void UIRender::visitView(View *view) {
+	void UIDraw::visitView(View *view) {
 		// visit child
 		auto v = view->_first_Rt;
 		if (v) {
@@ -448,29 +453,22 @@ namespace qk {
 		}
 	}
 
-	void UIRender::visitBox(Box* box) {
+	void UIDraw::visitBox(Box* box) {
 		BoxData data;
 		_canvas->setTranslate(box->position());
-		if (box->_boxShadow)
-			drawBoxShadow(box, data);
-		if (box->_background_color.a())
-			drawBoxColor(box, data);
-		if (box->_background)
-			drawBoxFill(box, data);
-		if (box->_border)
-			drawBoxBorder(box, data);
+		drawBoxShadow(box, data);
+		drawBoxColor(box, data);
+		drawBoxFill(box, data);
+		drawBoxBorder(box, data);
 		drawBoxEnd(box, data);
 	}
 
-	void UIRender::visitImage(Image* v) {
+	void UIDraw::visitImage(Image* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		if (v->_boxShadow)
-			drawBoxShadow(v, data);
-		if (v->_background_color.a())
-			drawBoxColor(v, data);
-		if (v->_background)
-			drawBoxFill(v, data);
+		drawBoxShadow(v, data);
+		drawBoxColor(v, data);
+		drawBoxFill(v, data);
 
 		auto src = v->ImageSourceHolder::source();
 		if (src && src->load()) {
@@ -489,27 +487,22 @@ namespace qk {
 			paint.setImage(src, data.inside->rect);
 			_canvas->drawPathv(*data.inside, p0);
 		}
-		if (v->_border)
-			drawBoxBorder(v, data);
+		drawBoxBorder(v, data);
 		drawBoxEnd(v, data);
 	}
 
-	void UIRender::visitScroll(Scroll* v) {
-		UIRender::visitBox(v);
+	void UIDraw::visitScroll(Scroll* v) {
+		UIDraw::visitBox(v);
 		drawScrollBar(v,v);
 	}
 
-	void UIRender::visitText(Text* v) {
+	void UIDraw::visitText(Text* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		if (v->_boxShadow)
-			drawBoxShadow(v, data);
-		if (v->_background_color.a())
-			drawBoxColor(v, data);
-		if (v->_background)
-			drawBoxFill(v, data);
-		if (v->_border)
-			drawBoxBorder(v, data);
+		drawBoxShadow(v, data);
+		drawBoxColor(v, data);
+		drawBoxFill(v, data);
+		drawBoxBorder(v, data);
 
 		if (v->_clip) {
 			if (v->_first_Rt || v->_blob_visible.length()) {
@@ -520,7 +513,7 @@ namespace qk {
 				if (v->_blob_visible.length()) {
 					drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
 				}
-				UIRender::visitView(v);
+				UIDraw::visitView(v);
 				_canvas->restore(); // cancel clip
 				_window->clipRestore();
 			}
@@ -528,21 +521,17 @@ namespace qk {
 			if (v->_blob_visible.length()) {
 				drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
 			}
-			UIRender::visitView(v);
+			UIDraw::visitView(v);
 		}
 	}
 
-	void UIRender::visitInput(Input* v) {
+	void UIDraw::visitInput(Input* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		if (v->_boxShadow)
-			drawBoxShadow(v, data);
-		if (v->_background_color.a())
-			drawBoxColor(v, data);
-		if (v->_background)
-			drawBoxFill(v, data);
-		if (v->_border)
-			drawBoxBorder(v, data);
+		drawBoxShadow(v, data);
+		drawBoxColor(v, data);
+		drawBoxFill(v, data);
+		drawBoxBorder(v, data);
 
 		auto lines = *v->_lines;
 		auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
@@ -639,16 +628,16 @@ namespace qk {
 		}
 	}
 
-	void UIRender::visitLabel(Label* v) {
+	void UIDraw::visitLabel(Label* v) {
 		if (v->_blob_visible.length()) {
 			_canvas->setTranslate(v->position());
 			drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
 		}
 
-		UIRender::visitView(v);
+		UIDraw::visitView(v);
 	}
 
-	void UIRender::visitMatrix(Matrix* box) {
+	void UIDraw::visitMatrix(Matrix* box) {
 		auto matrix = _matrix;
 		auto origin = _origin;
 		_origin -= box->_origin_value;
@@ -657,14 +646,11 @@ namespace qk {
 		// draw box
 		BoxData data;
 		_canvas->setTranslate(box->position());
-		if (box->_boxShadow)
-			drawBoxShadow(box, data);
-		if (box->_background_color.a())
-			drawBoxColor(box, data);
-		if (box->_background)
-			drawBoxFill(box, data);
-		if (box->_border)
-			drawBoxBorder(box, data);
+
+		drawBoxShadow(box, data);
+		drawBoxColor(box, data);
+		drawBoxFill(box, data);
+		drawBoxBorder(box, data);
 		_origin = origin;
 		drawBoxEnd(box, data);
 		// draw box end
@@ -672,7 +658,7 @@ namespace qk {
 		_canvas->setMatrix(*_matrix);
 	}
 
-	void UIRender::visitRoot(Root* v) {
+	void UIDraw::visitRoot(Root* v) {
 		if (_canvas && v->_visible) {
 			uint32_t mark = v->mark_value();
 			if (mark) {
@@ -688,12 +674,10 @@ namespace qk {
 				_matrix = &v->mat();
 				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
 				_canvas->clearColor(v->_background_color.to_color4f());
-				if (v->_boxShadow)
-					drawBoxShadow(v, data);
-				if (v->_background)
-					drawBoxFill(v, data);
-				if (v->_border)
-					drawBoxBorder(v, data);
+
+				drawBoxShadow(v, data);
+				drawBoxFill(v, data);
+				drawBoxBorder(v, data);
 				_origin = origin;
 				drawBoxEnd(v, data);
 			} else {
@@ -703,39 +687,39 @@ namespace qk {
 		}
 	}
 
-	void View::draw(UIRender *render) {
+	void View::draw(UIDraw *render) {
 		render->visitView(this);
 	}
 
-	void Box::draw(UIRender *render) {
+	void Box::draw(UIDraw *render) {
 		render->visitBox(this);
 	}
 
-	void Image::draw(UIRender *render) {
+	void Image::draw(UIDraw *render) {
 		render->visitImage(this);
 	}
 
-	void Scroll::draw(UIRender *render) {
+	void Scroll::draw(UIDraw *render) {
 		render->visitScroll(this);
 	}
 
-	void Text::draw(UIRender *render) {
+	void Text::draw(UIDraw *render) {
 		render->visitText(this);
 	}
 
-	void Input::draw(UIRender *render) {
+	void Input::draw(UIDraw *render) {
 		render->visitInput(this);
 	}
 
-	void Label::draw(UIRender *render) {
+	void Label::draw(UIDraw *render) {
 		render->visitLabel(this);
 	}
 
-	void Root::draw(UIRender *render) {
+	void Root::draw(UIDraw *render) {
 		render->visitRoot(this);
 	}
 
-	void Matrix::draw(UIRender *render) {
+	void Matrix::draw(UIDraw *render) {
 		render->visitMatrix(this);
 	}
 }

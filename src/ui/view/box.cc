@@ -281,8 +281,8 @@ namespace qk {
 	}
 
 	Box::~Box() {
-		Release(_background); _background = nullptr;
-		Release(_boxShadow); _boxShadow = nullptr;
+		Release(_background.load());
+		Release(_boxShadow.load());
 		::free(_border); _border = nullptr;
 	}
 
@@ -821,38 +821,26 @@ namespace qk {
 	}
 
 	BoxFilter* Box::background() {
-		return BoxFilter::safe_filter(_background);
+		return _background.load();
 	}
 
 	BoxShadow* Box::box_shadow() {
-		return static_cast<BoxShadow*>(BoxFilter::safe_filter(_boxShadow));
+		return _boxShadow.load();
 	}
 
 	void Box::set_background(BoxFilter* val, bool isRt) {
-		if (isRt) {
-			if (_background != val) {
-				_background = BoxFilter::assign_Rt(_background, val, this);
-			}
-		} else {
-			preRender().async_call([](auto self, auto arg) {
-				if (self->_background != arg.arg) {
-					self->_background = BoxFilter::assign_Rt(self->_background, arg.arg, self);
-				}
-			}, this, val);
+		auto filter = _background.load();
+		auto newFilter = BoxFilter::assign(filter, val, this, isRt);
+		if (filter != newFilter) {
+			_background.store(newFilter);
 		}
 	}
 
 	void Box::set_box_shadow(BoxShadow* val, bool isRt) {
-		if (isRt) {
-			if (_boxShadow != val) {
-				_boxShadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(_boxShadow, val, this));
-			}
-		} else {
-			preRender().async_call([](auto self, auto arg) {
-				if (self->_boxShadow != arg.arg) {
-					self->_boxShadow = static_cast<BoxShadow*>(BoxFilter::assign_Rt(self->_boxShadow, arg.arg, self));
-				}
-			}, this, val);
+		auto filter = _boxShadow.load();
+		auto newFilter = static_cast<BoxShadow*>(BoxFilter::assign(filter, val, this, isRt));
+		if (filter != newFilter) {
+			_boxShadow.store(newFilter);
 		}
 	}
 

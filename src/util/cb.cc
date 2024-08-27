@@ -36,7 +36,7 @@ namespace qk {
 
 	class DefaultCallbackCore: public CallbackCore<Object, Error> {
 	public:
-		virtual bool retain() { return 1; }
+		virtual void retain() {}
 		virtual void release() {}
 		virtual void call(Cb::Data& event) const {}
 	};
@@ -48,7 +48,7 @@ namespace qk {
 		if ( !default_callback ) {
 			ScopeLock scope(mutex);
 			if (!default_callback) {
-				default_callback_ = NewRetain<DefaultCallbackCore>();
+				default_callback_ = new DefaultCallbackCore();
 			}
 		}
 		return default_callback_;

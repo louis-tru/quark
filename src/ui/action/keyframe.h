@@ -121,10 +121,10 @@ namespace qk {
 		);
 
 	private:
-		virtual void append(Action *child) throw(Error);
-		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root);
-		virtual void seek_time_Rt(uint32_t time, Action* root);
-		virtual void seek_before_Rt(uint32_t time, Action* child);
+		virtual void append(Action *child) throw(Error) override;
+		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root) override;
+		virtual void seek_time_Rt(uint32_t time, Action* root) override;
+		virtual void seek_before_Rt(uint32_t time, Action* child) override;
 		Keyframe* add_unsafe(uint32_t time, cCurve& curve, bool isRt);
 
 		Array<Keyframe*> _frames;

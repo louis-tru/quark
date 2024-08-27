@@ -44,7 +44,7 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(Handle);
 
 		inline T* move() {
-			return Traits::Retain(_data) ? _data : collapse();
+			return Traits::isReference ? (Traits::Retain(_data), _data) : collapse();
 		}
 
 	public:

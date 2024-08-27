@@ -121,7 +121,7 @@ namespace qk {
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](void* arg) {
 			auto args = (Args*)arg;
-			Qk_ASSERT( __qk_run_main__, "No gui main");
+			Qk_ASSERT(__qk_run_main__, "No gui main");
 			int rc = __qk_run_main__(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DEBUG("Application::runMain() thread_new() Exit");
 			thread_exit(rc); // if sub thread end then exit

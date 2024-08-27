@@ -80,6 +80,14 @@ namespace qk { namespace js {
 	#undef _Fun
 	};
 
+	class JsHeapAllocator: public Object::HeapAllocator {
+	public:
+		void* alloc(size_t size) override;
+		void free(void *ptr) override;
+		void strong(Object* obj) override;
+		void weak(Object* obj) override;
+	};
+
 	class JsClassInfo {
 	public:
 		Qk_DEFINE_PROP_GET(bool, isAttachFlag);

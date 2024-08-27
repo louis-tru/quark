@@ -49,7 +49,7 @@ namespace qk {
 
 	template<>
 	BoxFilter* copy_value_ptr(BoxFilter* value) {
-		return value->copy_Rt(nullptr);
+		return value->copy(nullptr, true);
 	}
 
 	template<>
@@ -57,15 +57,14 @@ namespace qk {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
-			auto v_new = v1->transition_Rt(v, v2, y);
+			auto v_new = v1->transition(v, v2, y, true);
 			(target->*(void (View::*)(BoxFilter*,bool))acc->set)(v_new,true);
 		}
 	}
 
 	template<typename T>
 	inline T transition_value(T v1, T v2, float y) {
-		auto v = v1 - (v1 - v2) * y;
-		return v1;
+		return v1 - (v1 - v2) * y;
 	}
 
 	template<>
@@ -136,9 +135,7 @@ namespace qk {
 	}
 
 	#define _Define_Enum_transition(Type) template<>\
-		Type transition_value(Type f1, Type f2, float t) {\
-			return t < 1.0 ? f1: f2;\
-		}
+		Type transition_value(Type f1, Type f2, float t) { return t < 1.0 ? f1: f2; }
 	_Define_Enum_transition(bool)
 	_Define_Enum_transition(int)
 	_Define_Enum_transition(Align)
@@ -194,7 +191,7 @@ namespace qk {
 		PropImpl(ViewProp prop, T* value): _prop(prop), _value(value) {
 			Qk_ASSERT(_value);
 			static_assert(T::Traits::isObject, "Property value must be a object type");
-			// value->retain(); // @line SetProp<Object*>::asyncExec, value->retain();
+			// value->retain(); // @line SetProp<Object*>::set, value->retain();
 		}
 		~PropImpl() {
 			_value->release();
@@ -202,12 +199,12 @@ namespace qk {
 		void apply(View *view, bool isRt) override {
 			auto set = (void (View::*)(T*,bool))(view->accessor() + _prop)->set;
 			if (set)
-				(view->*set)(_value,isRt);
+				(view->*set)(_value, isRt);
 		}
 		void fetch(View *view) override {
 			auto get = (T* (View::*)())(view->accessor() + _prop)->get;
 			if (get)
-				_value = BoxFilter::assign_Rt(_value, (view->*get)(), nullptr);
+				_value = BoxFilter::assign(_value, (view->*get)(), nullptr, true);
 		}
 		void transition(View *target, Property *to, float t) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
@@ -535,31 +532,28 @@ namespace qk {
 
 	template<>
 	struct SetProp<BoxFilter*>: StyleSheets {
-		void set(ViewProp key, BoxFilter* value) {
+		void set(ViewProp key, BoxFilter* value, bool isRt) {
 			Property *prop;
-			value = BoxFilter::assign_Rt(nullptr, value, nullptr);
 			if (_props.get(key, prop)) {
 				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
-				if (p->_value != value) {
-					p->_value->release();
-					p->_value = value;
-				} else {
-					value->release();
-				}
+				p->_value = BoxFilter::assign(p->_value, value, nullptr, isRt);
 			} else {
-				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key, value)));
+				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key,
+					BoxFilter::assign(nullptr, value, nullptr, isRt)
+				)));
 			}
+			value->release(); // release the object after calling
 		}
 		template<ViewProp key>
 		void asyncSet(BoxFilter* value) {
-			// value->retain();
+			value->retain(); // retain the object before calling
 			auto win = getWindowForAsyncSet();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
-					self->set(key, arg.arg);
+					self->set(key, arg.arg, true);
 				}, this, value);
 			} else {
-				set(key, value);
+				set(key, value, false);
 			}
 		}
 	};

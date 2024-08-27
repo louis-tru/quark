@@ -36,42 +36,75 @@
 #include <atomic>
 
 namespace qk {
-
-#ifndef Qk_MIN_CAPACITY
-# define Qk_MIN_CAPACITY (4)
-#endif
-
+	struct Allocator;
 	struct ObjectTraits;
 	struct ReferenceTraits;
 	struct ProtocolTraits;
-	struct MemoryAllocator;
 
-	template<
-		typename T = char, typename A = MemoryAllocator
-	> class StringImpl;
+	template<typename T = char, typename A = Allocator>
+	class StringImpl;
 	typedef StringImpl<> String;
 	typedef const String cString;
+
+	struct Allocator {
+		template<typename T, typename A = Allocator>
+		struct Prt {
+			void realloc(uint32_t size) { A::realloc((Prt<void>*)this, size, sizeof(T)); }
+			void increase(uint32_t size) { A::increase((Prt<void>*)this, size, sizeof(T)); }
+			void reduce(uint32_t size) { A::reduce((Prt<void>*)this, size, sizeof(T)); }
+			T       *val = nullptr;
+			uint32_t capacity = 0;
+		};
+		static void* alloc(uint32_t size);
+		static void  free(void *ptr);
+		static void  realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+		static void  increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+		static void  reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
+	};
 
 	/**
 	* @class Object
 	*/
 	class Qk_EXPORT Object {
 	public:
+		class HeapAllocator {
+		public:
+			virtual ~HeapAllocator();
+			/**
+			* @method alloc() alloc memory from heap
+			*/
+			virtual void* alloc(size_t size);
+			/**
+			* @method free() free memory from heap
+			*/
+			virtual void free(void *ptr);
+			/**
+			* Remove the weak mark to indicate that the destruction operation needs to be revoked.
+			* Before calling ensure that the object has not been destroyed yet
+			* @method  strong()
+			*/
+			virtual void strong(Object* obj);
+			/**
+			* Mark as weak object, indicating that the object needs to be destroyed,
+			* but it may not be immediately destroyed.
+			* This is determined by the heap allocator implementation
+			* @method weak()
+			*/
+			virtual void weak(Object* obj);
+		};
 		typedef ObjectTraits Traits;
-		virtual ~Object() = default;
+		typedef int HasObjectType;
+		virtual ~Object();
 		virtual void destroy(); // Heap allocation destructor function call and memory free
-		virtual bool retain(); // Heap allocation retain
-		virtual void release(); // Heap allocation release
+		virtual void retain(); // Heap allocation strong
+		virtual void release(); // Heap allocation weak
 		virtual bool isReference() const;
 		virtual String toString() const;
 		static void* operator new(size_t size);
-		static void* operator new(size_t size, void* p);
-		static void  operator delete(void* p);
-		static void setAllocator(
-			void* (*alloc)(size_t size), void (*free)(void *ptr),
-			void (*strong)(Object* obj), void (*weak)(Object* obj)
-		);
-		typedef void* __has_object_type;
+		static void* operator new(size_t size, void *p);
+		static void  operator delete(void *p);
+		static HeapAllocator* heapAllocator();
+		static void setHeapAllocator(HeapAllocator *allocator);
 	};
 
 	/**
@@ -80,21 +113,33 @@ namespace qk {
 	class Qk_EXPORT Reference: public Object {
 	public:
 		typedef ReferenceTraits Traits;
+		typedef int HasReferenceType;
 		inline Reference(): _refCount(0) {}
 		inline Reference(const Reference& ref): _refCount(0) {}
 		inline Reference& operator=(const Reference& ref) { return *this; }
 		virtual ~Reference();
-		virtual bool retain();
-		virtual void release();
+		// It is not completely thread safe,
+		// and it must be confirmed before calling 
+		// that it has not been released by another thread at the same time
+		virtual void retain(); // ref++
+		virtual void release(); // --ref
 		virtual bool isReference() const;
-		inline int refCount() const { return _refCount; }
-		typedef void* __has_ref_type; private:
-		typedef void* __has_object_type;
+		inline  int  refCount() const { return _refCount; }
+	private:
+		typedef int HasObjectType;
 	protected:
 		std::atomic_int _refCount;
 	};
 
-	Qk_EXPORT bool Retain(Object* obj);
+	class SafeFlag {
+	public:
+		inline ~SafeFlag() { _flagValue = 0; }
+		inline bool isValid() { return _flagValue == 0xff00ffab; }
+	private:
+		uint32_t _flagValue = 0xff00ffab;
+	};
+
+	Qk_EXPORT void Retain(Object* obj);
 	Qk_EXPORT void Release(Object* obj);
 	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
@@ -112,13 +157,13 @@ namespace qk {
 	*/
 	struct ObjectTraits {
 		inline static bool Retain(Object* obj) {
-			return obj ? obj->retain(): 0;
+			if (obj) obj->retain();
 		}
 		inline static void Release(Object* obj) {
 			if (obj) obj->release();
 		}
-		static constexpr bool isReference = false;
 		static constexpr bool isObject = true;
+		static constexpr bool isReference = false;
 	};
 
 	/**
@@ -132,8 +177,8 @@ namespace qk {
 	* @class ProtocolTraits
 	*/
 	struct ProtocolTraits {
-		template<class T> inline static bool Retain(T* obj) {
-			return obj ? qk::Retain(obj->toObject()) : 0;
+		template<class T> inline static void Retain(T* obj) {
+			if (obj) qk::Retain(obj->toObject());
 		}
 		template<class T> inline static void Release(T* obj) {
 			if (obj) qk::Release(obj->toObject());
@@ -145,8 +190,7 @@ namespace qk {
 	 * @class NonObjectTraits
 	 */
 	struct NonObjectTraits {
-		template<class T> inline static bool Retain(T* obj) {
-			return 0; /* Non referential pairs need not be Retain */
+		template<class T> inline static void Retain(T* obj) {
 		}
 		template<class T> inline static void Release(T* obj) {
 			delete obj;
@@ -154,36 +198,14 @@ namespace qk {
 		static constexpr bool isReference = false;
 	};
 
-	struct MemoryAllocator {
-		template<typename T, typename A = MemoryAllocator>
-		struct Prt {
-			void realloc(uint32_t size) {
-				A::realloc((Prt<void>*)this, size, sizeof(T));
-			}
-			void increase(uint32_t size) {
-				A::increase((Prt<void>*)this, size, sizeof(T));
-			}
-			void reduce(uint32_t size) {
-				A::reduce((Prt<void>*)this, size, sizeof(T));
-			}
-			T*       val = nullptr;
-			uint32_t capacity = 0;
-		};
-		static void* alloc(uint32_t size);
-		static void  free(void *ptr);
-		static void  realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-		static void  increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-		static void  reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-	};
-
 	template<typename T>
 	struct has_object_type {
 		typedef char Non[1]; typedef char Obj[2];
 		typedef char Ref[3];
-		template<typename C> static Obj& test(typename C::__has_object_type);
-		template<typename C> static Ref& test(typename C::__has_ref_type);
-		template<typename> static Non& test(...);
-		static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
+		template<typename C> static Obj& test(typename C::HasObjectType);
+		template<typename C> static Ref& test(typename C::HasReferenceType);
+		template<typename>   static Non& test(...);
+		static const int  type = sizeof(test<T>(0)) / sizeof(char) - 1;
 		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
 		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
 	};

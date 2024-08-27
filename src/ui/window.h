@@ -41,7 +41,7 @@
 
 namespace qk {
 	class Application;
-	class UIRender;
+	class UIDraw;
 	class EventDispatch;
 	class WindowImpl; // window platform impl
 	class RenderTask;
@@ -211,7 +211,7 @@ namespace qk {
 		Window(Options &opts);
 
 		// props data
-		UIRender       *_uiRender;
+		UIDraw       *_uiRender;
 		Vec2           _lockSize;  //!< Lock the size of the viewport
 		List<Cb>       _nextFrame;
 		uint32_t       _fspTick;

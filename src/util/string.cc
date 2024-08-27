@@ -165,7 +165,7 @@ namespace qk {
 	typedef StringBase::Realloc Realloc;
 	typedef StringBase::Free Free;
 	typedef StringBase::Long::Base Base;
-	typedef MemoryAllocator::Prt<char> Ptr;
+	typedef Allocator::Prt<char> Ptr;
 	typedef StringBase::Long Long;
 	typedef StringBase::Short Short;
 
@@ -326,7 +326,7 @@ namespace qk {
 			default: Qk_FATAL("I won't support it, format");
 		}
 
-		if (&MemoryAllocator::alloc != alloc && alloc != (void*)&::malloc) {
+		if (&Allocator::alloc != alloc && alloc != (void*)&::malloc) {
 			char* val = (char*)alloc(base.ptr.capacity * sizeOf);
 			::memcpy(val, base.ptr.val, base.length * sizeOf);
 			::memset(val + base.length * sizeOf, 0, sizeOf);
@@ -338,7 +338,7 @@ namespace qk {
 	}
 
 	String _Str::printfv(cChar* f, va_list arg) {
-		auto base = _Str::sPrintfv(1, &MemoryAllocator::alloc, f, arg);
+		auto base = _Str::sPrintfv(1, &Allocator::alloc, f, arg);
 		if (base.ptr.val) {
 			return Buffer::from((char*)base.ptr.val, base.length, base.ptr.capacity).collapseString();
 		}
@@ -412,11 +412,11 @@ namespace qk {
 	String StringImpl<>::format(cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-		auto base = _Str::sPrintfv(1, &MemoryAllocator::alloc, f, arg);
+		auto base = _Str::sPrintfv(1, &Allocator::alloc, f, arg);
 		va_end(arg);
 		StringImpl s;
 		if (base.ptr.val)
-			s.StringBase::assign(base, 1, &MemoryAllocator::free);
+			s.StringBase::assign(base, 1, &Allocator::free);
 		Qk_ReturnLocal(s);
 	}
 

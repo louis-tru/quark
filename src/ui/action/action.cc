@@ -73,6 +73,7 @@ namespace qk {
 				// it should be Completely destroyed in RT (render thread)
 				self->Object::destroy();
 			}, this, 0);
+			_window = nullptr;
 		} else {
 			Object::destroy();
 		}

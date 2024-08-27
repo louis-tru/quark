@@ -14,7 +14,7 @@ constexpr unsigned int u32 = 1;
 class TestRRect: public Box {
 public:
 
-	void draw(UIRender *r) override {
+	void draw(UIDraw *r) override {
 		auto canvas = window()->render()->getCanvas();
 		canvas->save();
 		canvas->translate({-115, 0});

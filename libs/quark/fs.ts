@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import errno from './errno';
+import _util from './_util';
 import {Encoding} from './buffer';
 
 const _fs = __binding__('_fs');
@@ -153,10 +153,12 @@ export class AsyncTask<T> extends Promise<T> {
 	}
 	get id() { return this._id }
 	get complete() { return this._complete }
-	abort(): void {
-		if (!this._complete) {
-			_fs.abort(this._id);
-			this._err(Error.new(errno.ERR_READ_STREAM_ABORT));
+
+	abort(reason?: Error): void {
+		_fs.abort(this._id);
+		if (reason) {
+			// ERR_READ_STREAM_ABORT: ErrnoCode = [-12001, 'ERR_READ_STREAM_ABORT']
+			_util.nextTick(()=>this._err(reason));
 		}
 	}
 }

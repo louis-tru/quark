@@ -74,14 +74,14 @@ namespace qk {
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				HttpError e(error.code(),
 										error.message() + ", " + req->url(), req->status_code(), req->url());
-				cb->reject(&e);
+				stream ? cb->reject(&e): scb->reject(&e);
 				abort(); // abort and release
 			}
 
 			virtual void trigger_http_timeout(HttpClientRequest* req) {
 				HttpError e(ERR_HTTP_REQUEST_TIMEOUT,
 										String("http request timeout") + ", " + req->url(), 0, req->url());
-				cb->reject(&e);
+				stream ? cb->reject(&e): scb->reject(&e);
 				abort(); // abort and release
 			}
 

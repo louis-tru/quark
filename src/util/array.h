@@ -37,9 +37,9 @@
 
 namespace qk {
 
-	template<typename T = char, typename A = MemoryAllocator> class Array;
-	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer; // array no copy
-	template<typename T = char, typename A = MemoryAllocator> using cArray = const Array<T, A>;
+	template<typename T = char, typename A = Allocator> class Array;
+	template<typename T = char, typename A = Allocator> class ArrayBuffer; // array no copy
+	template<typename T = char, typename A = Allocator> using cArray = const Array<T, A>;
 	template<typename T = char> class ArrayWeak;
 
 	typedef       ArrayBuffer<char>   Buffer; // Array No Copy
@@ -92,11 +92,11 @@ namespace qk {
 
 		// get ptr
 				T& operator[](uint32_t index) {
-			Qk_ASSERT(index < _length, "Array Index Overflow.");
+			Qk_Assert(index < _length, "Array Index Overflow.");
 			return _ptr.val[index];
 		}
 		const T& operator[](uint32_t index) const {
-			Qk_ASSERT(index < _length, "Array Index Overflow.");
+			Qk_Assert(index < _length, "Array Index Overflow.");
 			return _ptr.val[index];
 		}
 					T& at(uint32_t index) { return operator[](index); }
@@ -212,7 +212,7 @@ namespace qk {
 		void increase_(uint32_t capacity);
 
 		struct Sham { T _item; }; // Used to call data destructors
-		typedef MemoryAllocator::Prt<T, A> Ptr;
+		typedef Allocator::Prt<T, A> Ptr;
 		/**
 		 * @method copy data and output data pointer and capacity
 		*/
@@ -289,7 +289,7 @@ namespace qk {
 
 	private:
 		char __[sizeof(Object)];
-		MemoryAllocator::Prt<T, MemoryAllocator> _ptr;
+		Allocator::Prt<T, Allocator> _ptr;
 		uint32_t _length;
 	};
 
@@ -531,7 +531,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::reverse() {
-		Array<char, MemoryAllocator>::_Reverse(_ptr.val, sizeof(T), _length);
+		Array<char, Allocator>::_Reverse(_ptr.val, sizeof(T), _length);
 		return *this;
 	}
 
@@ -542,7 +542,7 @@ namespace qk {
 	}
 
 	template<> Qk_EXPORT
-	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
+	void Array<char, Allocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
 		template<> Qk_EXPORT void            Array<T, A>::reset(uint32_t capacity); \
@@ -557,7 +557,7 @@ namespace qk {
 		template<> Qk_EXPORT void            Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const \
 
 	#define Qk_DEF_ARRAY_SPECIAL(T) \
-		Qk_DEF_ARRAY_SPECIAL_(T, MemoryAllocator)
+		Qk_DEF_ARRAY_SPECIAL_(T, Allocator)
 
 	Qk_DEF_ARRAY_SPECIAL(char);
 	Qk_DEF_ARRAY_SPECIAL(uint8_t);

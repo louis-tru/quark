@@ -216,7 +216,7 @@ namespace qk {
 		inline bool has(uint32_t id) { return _touches.has(id); }
 		inline void del(uint32_t id) { _touches.erase(id); }
 		static OriginTouche* Make(View* view) {
-			return view->safeRetain() ? new OriginTouche(view): nullptr;
+			return view->tryRetain() ? new OriginTouche(view): nullptr;
 		}
 	private:
 		OriginTouche(View* view)
@@ -818,7 +818,7 @@ namespace qk {
 			if ( dir != FindDirection::None ) {
 				auto view = btn->next_button(dir);
 				if (view)
-					next_focus = view->safeRetain(); // safe retain view
+					next_focus = view->tryRetain(); // safe retain view
 			}
 		}
 

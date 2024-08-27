@@ -97,7 +97,7 @@ namespace qk {
 	}
 
 	void PreRender::post(Cb cb, View *v, uint64_t delayUs) {
-		if (v->safeRetain()) {
+		if (v->tryRetain()) {
 			auto core = cb.Handle::collapse();
 			post(Cb([core,v](auto&e) {
 				core->call(e);

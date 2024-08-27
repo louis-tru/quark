@@ -58,6 +58,7 @@
 			'util/test-util.cc',
 			'util/test-uv.cc',
 			'util/test-zlib.cc',
+			'util/test-atomic.cc',
 			'test-jsx.cc',
 			'test-v8.cc',
 			'test-jsc.cc',

@@ -34,33 +34,33 @@
 namespace qk {
 
 	template<>
-	void Dict<uint64_t, Path*, Compare<uint64_t>, MemoryAllocator>::
+	void Dict<uint64_t, Path*, Compare<uint64_t>, Allocator>::
 	clear() {
-		MemoryAllocator::free(_indexed);
+		Allocator::free(_indexed);
 		_indexed = nullptr;
 		_length = 0;
 		_capacity = 0;
 	}
 	template<>
-	void Dict<uint64_t, PathvCache::Wrap<VertexData>*, Compare<uint64_t>, MemoryAllocator>::
+	void Dict<uint64_t, PathvCache::Wrap<VertexData>*, Compare<uint64_t>, Allocator>::
 	clear() {
-		MemoryAllocator::free(_indexed);
+		Allocator::free(_indexed);
 		_indexed = nullptr;
 		_length = 0;
 		_capacity = 0;
 	}
 	template<>
-	void Dict<uint64_t, PathvCache::Wrap<RectPath>*, Compare<uint64_t>, MemoryAllocator>::
+	void Dict<uint64_t, PathvCache::Wrap<RectPath>*, Compare<uint64_t>, Allocator>::
 	clear() {
-		MemoryAllocator::free(_indexed);
+		Allocator::free(_indexed);
 		_indexed = nullptr;
 		_length = 0;
 		_capacity = 0;
 	}
 	template<>
-	void Dict<uint64_t, PathvCache::Wrap<RectOutlinePath,4>*, Compare<uint64_t>, MemoryAllocator>::
+	void Dict<uint64_t, PathvCache::Wrap<RectOutlinePath,4>*, Compare<uint64_t>, Allocator>::
 	clear() {
-		MemoryAllocator::free(_indexed);
+		Allocator::free(_indexed);
 		_indexed = nullptr;
 		_length = 0;
 		_capacity = 0;

@@ -81,45 +81,45 @@ namespace qk {
 		};
 
 		/**
-		* @func find_clazz
+		* @method find_clazz
 		* */
 		static jclass find_clazz(cChar* clazz);
 
 		/**
-			* @func find_method
+			* @method find_method
 			*/
 		inline static jmethodID find_method(jclass clazz, cChar* method, cChar* param_code) {
 			return MethodInfo(clazz, method, param_code).method();
 		}
 
 		/**
-		* @func find_static_method
+		* @method find_static_method
 		* */
 		inline static jmethodID find_static_method(jclass clazz, cChar* method, cChar* param_code) {
 			return MethodInfo(clazz, method, param_code, true).method();
 		}
 
 		/**
-		* @func find_method
+		* @method find_method
 		* */
 		inline static jmethodID find_method(cChar* clazz, cChar* method, cChar* param_code) {
 			return MethodInfo(clazz, method, param_code).method();
 		}
 
 		/**
-		* @func find_static_method
+		* @method find_static_method
 		* */
 		static jmethodID find_static_method(cChar* clazz, cChar* method, cChar* param_code) {
 			return MethodInfo(clazz, method, param_code, true).method();
 		}
 
 		/**
-		* @func jvm
+		* @method jvm
 		*/
 		static JavaVM* jvm();
 
 		/**
-		* @func jstring_to_string
+		* @method jstring_to_string
 		*/
 		static String jstring_to_string(jstring jstr, JNIEnv* env = NULL);
 	};

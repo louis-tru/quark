@@ -44,33 +44,40 @@ namespace qk { namespace js {
 		});
 	}
 
-	void* object_allocator_alloc(size_t size) {
+	void* JsHeapAllocator::alloc(size_t size) {
 		auto o = ::malloc(size + sizeof(WrapObject));
 		Qk_Assert(o);
 		::memset(o, 0, sizeof(WrapObject));
 		return static_cast<WrapObject*>(o) + 1;
 	}
 
-	void  object_allocator_free(void *ptr) {
+	void JsHeapAllocator::free(void *ptr) {
 		auto o = static_cast<WrapObject*>(ptr) - 1;
 		::free(o);
 	}
 
-	void object_allocator_weak(Object* obj) {
-		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-		auto worker = wrap->worker();
-		if ( worker ) {
-			Qk_Assert_Eq(thread_self_id(), worker->thread_id());
-			setWeak(wrap);
-		} else {
-			obj->destroy();
-		}
-	}
-
-	void object_allocator_strong(Object* obj) {
+	void JsHeapAllocator::strong(Object* obj) {
 		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
 		if ( wrap->worker() ) {
 			clearWeak(wrap);
+		}
+	}
+
+	void JsHeapAllocator::weak(Object* obj) {
+		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
+		auto worker = wrap->worker();
+		if ( worker ) {
+			if (thread_self_id() == worker->thread_id()) {
+				setWeak(wrap);
+			} else if (worker->isValid()) {
+				worker->loop()->post(Cb((Cb::Static<>)[](auto e, auto obj) {
+					setWeak(reinterpret_cast<WrapObject*>(obj) - 1); // Must be called on the js worker thread
+				}, obj));
+			} else {
+				obj->destroy();
+			}
+		} else {
+			obj->destroy();
 		}
 	}
 

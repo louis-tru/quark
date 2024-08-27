@@ -174,8 +174,8 @@
 # define Qk_Assert Qk_Fatal_Assert
 # define Qk_Assert_Op(a, op, b, ...) Qk_Fatal_Assert(((a) op (b)), ##__VA_ARGS__)
 #else
-# define Qk_Assert(cond, ...) ((void)0)(cond)
-# define Qk_Assert_Op(a, op, b, ...) ((void)0)((a) op (b))
+# define Qk_Assert(cond, ...) ((void)(cond))
+# define Qk_Assert_Op(a, op, b, ...) ((void)((a) op (b)))
 #endif
 #define Qk_ASSERT Qk_Assert
 #define Qk_Assert_Eq(a, b, ...) Qk_Assert_Op((a), ==, (b), ##__VA_ARGS__)
@@ -339,6 +339,13 @@
 
 #define Qk_DEFINE_PROP(type, name, ...) \
 	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) void set_##name (type val)
+
+#define Qk_DEFINE_PROP_GET_Atomic(type, name, ...) \
+	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: std::atomic<type> _##name; public:\
+	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name.load(); }
+
+#define Qk_DEFINE_PROP_Atomic(type, name, ...) \
+	Qk_DEFINE_PROP_GET_Atomic(type, name, ##__VA_ARGS__) void set_##name (type val)
 
 #define __Qk_DEFINE_CLASS(Name) class Name;
 #define __Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;

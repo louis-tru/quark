@@ -84,16 +84,6 @@ namespace qk {
 	};
 
 	template<class T, class D, class E>
-	class LambdaCallback: public CallbackCoreIMPL<T, D, E> {
-	public:
-		typedef std::function<void(CallbackData<D, E>& evt)> Func;
-		inline LambdaCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
-		virtual void call(CallbackData<D, E>& evt) const { _func(evt); }
-	private:
-		Func _func;
-	};
-
-	template<class T, class D, class E>
 	class StaticCallback: public CallbackCoreIMPL<T, D, E> {
 	public:
 		typedef void (*Func)(CallbackData<D, E>& evt, T* ctx);
@@ -113,26 +103,46 @@ namespace qk {
 		Func  _func;
 	};
 
+	template<class T, class D, class E>
+	class LambdaCallback: public CallbackCoreIMPL<T, D, E> {
+	public:
+		typedef std::function<void(CallbackData<D, E>& evt)> Func;
+		inline LambdaCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
+		virtual void call(CallbackData<D, E>& evt) const { _func(evt); }
+	private:
+		Func _func;
+	};
+
 	template<class D = Object, class E = Error>
 	class Callback: public Handle<CallbackCore<D, E>> {
 	public:
 		typedef CallbackCore<D, E> Core;
 		typedef CallbackData<D, E> Data;
+
+		template <class T = Object>
+		using Static = typename StaticCallback<T, D, E>::Func;
+		template <class T = Object>
+		using Member = typename MemberCallback<T, D, E>::Func;
+
 		enum { kNoop = 0 };
-		Callback(int type = kNoop): Handle<Core>(static_cast<Core*>(Callback<>::DefaultCore())) {}
+		inline Callback(int type = kNoop): Handle<Core>(static_cast<Core*>(Callback<>::DefaultCore())){}
 		inline Callback(Core* cb): Handle<Core>(cb) {}
 		inline Callback(const Callback& cb): Handle<Core>(*const_cast<Callback*>(&cb)) {}
 		inline Callback(Callback& cb): Handle<Core>(cb) {}
 		inline Callback(Callback&& cb): Handle<Core>(cb) {}
-		template<class T = Object>
-		inline Callback(typename LambdaCallback<T, D, E>::Func func, T* ctx = nullptr):
-			Handle<Core>(new LambdaCallback<T, D, E>(func, ctx)) {}
+
 		template<class T = Object>
 		inline Callback(void (*func)(Data& evt, T* ctx), T* ctx = nullptr):
 			Handle<Core>(new StaticCallback<T, D, E>(func, ctx)) {}
+
 		template<class T = Object>
 		inline Callback(typename MemberCallback<T, D, E>::Func func, T* ctx):
 			Handle<Core>(new MemberCallback<T, D, E>(func, ctx)) {}
+
+		template<class T = Object>
+		inline Callback(typename LambdaCallback<T, D, E>::Func func, T* ctx = nullptr):
+			Handle<Core>(new LambdaCallback<T, D, E>(func, ctx)) {}
+
 		inline Callback& operator=(const Callback& cb) {
 			Handle<Core>::operator=(*const_cast<Callback*>(&cb));
 			return *this;

@@ -11,7 +11,7 @@ using namespace qk;
 class TestOutImg: public Box {
 public:
 
-	void draw(UIRender *r) override {
+	void draw(UIDraw *r) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 		float width = 300;

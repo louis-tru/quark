@@ -83,7 +83,7 @@ namespace qk {
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* toObject() override;
-		virtual void draw(UIRender *render) override;
+		virtual void draw(UIDraw *render) override;
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void solve_cursor_offset();
@@ -109,7 +109,7 @@ namespace qk {
 		Mat _mat; // position matrix
 
 		friend class Textarea;
-		friend class UIRender;
+		friend class UIDraw;
 	};
 
 }

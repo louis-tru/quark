@@ -124,10 +124,10 @@ namespace qk {
 #define Qk_DEF_ARRAY_APPEND_CODE(ptr,len) ptr.val[len] = '\0'
 
 #define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T,APPEND_ZERO,APPEND_CODE) \
-	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,MemoryAllocator,APPEND_ZERO,APPEND_CODE)
+	Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,Allocator,APPEND_ZERO,APPEND_CODE)
 
 #ifndef Qk_ARRAY_SKIP_DEFAULT_IMPL
-	template<> void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
+	template<> void Array<char, Allocator>::_Reverse(void *src, size_t size, uint32_t len) {
 		if (len > 1) {
 			char* _src = (char*)src;
 			void* tmp = malloc(size);

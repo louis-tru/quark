@@ -42,7 +42,7 @@ namespace qk {
 	class TextLines;
 	class TextConfig;
 	class TextOptions;
-	class UIRender;
+	class UIDraw;
 	class Window;
 	class Matrix;
 	class ScrollBase;
@@ -561,7 +561,7 @@ namespace qk {
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		virtual void draw(UIRender *render);
+		virtual void draw(UIDraw *render);
 
 		/**
 			* @method mark(mark)
@@ -611,11 +611,11 @@ namespace qk {
 		/**
 		 * Safely use and hold view objects in rendering thread,
 		 * Because view objects may be destroyed at any time on the main thread
-		 * @method safeRetain() Returns safe self hold
+		 * @method tryRetain() Returns safe self hold
 		*/
-		View* safeRetain();
+		View* tryRetain();
 
-		friend class UIRender;
+		friend class UIDraw;
 		friend class PreRender;
 		friend class EventDispatch;
 		friend class Root;
