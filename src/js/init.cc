@@ -131,7 +131,7 @@ namespace qk { namespace js {
 			else if (arg->isObject()) {
 				JSObject* o = arg->as<JSObject>();
 				if (o->has(worker, worker->strs()->toStringStyled())) {
-					auto indent = worker->newInstance(_indent)->as();
+					auto indent = worker->newValue(_indent)->as();
 					auto toStringStyled = o->get(worker, worker->strs()->toStringStyled());
 					auto str = toStringStyled->as<JSFunction>()->call(worker, 1, &indent, o);
 					if (!str)
@@ -432,7 +432,7 @@ namespace qk { namespace js {
 			Qk_ASSERT(__quark_js_argv);
 			auto argv = worker->newArray();
 			for (uint32_t i = 0; i < __quark_js_argc; i++) {
-				argv->set(worker, i, worker->newInstance(String(__quark_js_argv[i])));
+				argv->set(worker, i, worker->newValue(String(__quark_js_argv[i])));
 			}
 
 			Js_Set_Property(argv, argv);
@@ -488,7 +488,7 @@ namespace qk { namespace js {
 					if (ok) {
 						wrap->set(worker->newStringOneByte(func), args[2]);
 					}
-					Js_Return(ok);
+					Js_ReturnBool(ok);
 				}
 			});
 
@@ -511,7 +511,7 @@ namespace qk { namespace js {
 						String func = String("_on").append(name).append("Native").append(String(id));
 						wrap->Delete( worker->newStringOneByte(func) );
 					}
-					Js_Return(ok);
+					Js_ReturnBool(ok);
 				}
 			});
 

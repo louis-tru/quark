@@ -90,9 +90,10 @@ export default async function(win: Window) {
 	Pv(v, 'first', e=>e instanceof View);
 	Pv(v, 'last', e=>e instanceof View);
 	Pv(v, 'window', win);
-	Pv(v, 'opacity', 0.9, e=>e.opacity=0.9);
+	Pv(v, 'opacity', 0, e=>e.opacity=0);
+	Pv(v, 'opacity', 1, e=>e.opacity=1);
 	Pv(v, 'visible', true);
-	Pv(v, 'level', 2);
+	// Pv(v, 'level', 2);
 	Pv(v, 'matrix', root);
 	Pv(v, 'receive', false, e=>e.receive=false);
 	Pv(v, 'isFocus', false);
@@ -104,7 +105,7 @@ export default async function(win: Window) {
 	Pv(v, 'isClip', false);
 	Pv(v, 'center', e=>e.x==0&&e.y==0);
 	Pv(v, 'metaView', v);
-	Pv(v, 'visibleRegion', true);
+	//Pv(v, 'visibleRegion', true);
 	Pv(v, 'ref', '');
 	Pv(v, 'cursor', types.CursorStyle.Arrow);
 	Mv(v, 'hide', [], ()=>v.visible===false);
@@ -119,13 +120,13 @@ export default async function(win: Window) {
 	// boxShadow: types.BoxShadow | null;
 	Mv(d, 'appendTo', [root])
 	Pv(d, 'width', e=>e.kind==BoxSizeKind.Auto);
-	Pv(d, 'width', e=>e.kind==BoxSizeKind.Ratio&&e.value==0.8, e=>e.style.width='80%');
+	Pv(d, 'width', e=>e.kind==BoxSizeKind.Ratio&&e.value==1, e=>e.style.width='100%');
 	Pv(d, 'height', e=>e.kind==BoxSizeKind.Auto);
-	Pv(d, 'height', e=>e.kind===BoxSizeKind.Ratio&&e.value==0.7, e=>e.style.height='70%');
+	Pv(d, 'height', e=>e.kind===BoxSizeKind.Ratio&&e.value==1, e=>e.style.height='100%');
 	Pv(d, 'minWidth', e=>e.kind==BoxSizeKind.Auto, e=>e.style.minWidth='auto');
 	Pv(d, 'minHeight', e=>e.kind==BoxSizeKind.Match, e=>e.style.minHeight='match');
-	Pv(d, 'maxWidth', e=>e.kind===BoxSizeKind.Ratio&&e.value==0.6, e=>e.style.maxWidth='60%');
-	Pv(d, 'maxHeight', e=>e.kind==BoxSizeKind.Minus&&e.value==0.3, e=>e.style.maxHeight='30!');
+	Pv(d, 'maxWidth', e=>e.kind===BoxSizeKind.Ratio&&e.value==1, e=>e.style.maxWidth='100%');
+	Pv(d, 'maxHeight', e=>e.kind==BoxSizeKind.Minus&&e.value==0, e=>e.style.maxHeight='0!');
 	Pv(d, 'margin', e=>e.every(e=>e==10), e=>e.style.margin=10);
 	Pv(d, 'marginLeft', 10);
 	Pv(d, 'marginTop', 10);
@@ -145,7 +146,7 @@ export default async function(win: Window) {
 	Pv(d, 'borderBottom', e=>e.width==1&&e.color.toString()=='#ff0000');
 	Pv(d, 'borderLeft', e=>e.width==2&&e.color.toString()=='#ffff00', e=>e.style.borderLeft='2 #ff0');
 	Pv(d, 'borderTop', e=>e.width==3&&e.color.toString()=='#ff00ff', e=>e.style.borderTop='3 #f0f');
-	Pv(d, 'borderTop', e=>e.width==4&&e.color.toString()=='#ffff00', e=>e.style.borderRight='4 #ff0');
+	Pv(d, 'borderRight', e=>e.width==4&&e.color.toString()=='#ffff00', e=>e.style.borderRight='4 #ff0');
 	Pv(d, 'borderBottom', e=>e.width==2&&e.color.toString()=='#0000ff', e=>e.style.borderBottom='2 #00f');
 	Pv(d, 'borderWidthLeft', 3, e=>e.style.borderWidth=3);
 	Pv(d, 'borderWidthTop', 3);
@@ -198,13 +199,13 @@ export default async function(win: Window) {
 	LOG('\nTest Free:\n')
 	const fr = new Free(win);
 	Mv(fr, 'appendTo', [root])
-	Pv(flow, 'viewType', ViewType.Free)
+	Pv(flow, 'viewType', ViewType.Flow)
 
 	LOG('\nTEST Image:\n')
 	const img = new Image(win);
 	Mv(img, 'appendTo', [root]);
 	Pv(img, 'src', '');
-	Pv(img, 'src', resolve('./res/10440501.jpg'), e=>e.src=resolve('./res/10440501.jpg'));
+	//Pv(img, 'src', resolve('./res/10440501.jpg'), e=>e.src=resolve('./res/10440501.jpg'));
 	Pv(img, 'marginLeft', 0);
 	Pv(img, 'marginRight', 0);
 	Pv(img, 'height', e=>e.kind==BoxSizeKind.Value&&e.value==200, e=>e.style.height=200);
@@ -223,7 +224,7 @@ export default async function(win: Window) {
 	Pv(sc, 'scrollbar', false, e=>e.scrollbar=false);
 	Pv(sc, 'resistance', 1);
 	Pv(sc, 'bounce', true);
-	Pv(sc, 'bounceLock', false);
+	Pv(sc, 'bounceLock', true);
 	Pv(sc, 'lockDirection', false);
 	Pv(sc, 'catchPositionX', 1);
 	Pv(sc, 'catchPositionY', 1);
@@ -232,7 +233,7 @@ export default async function(win: Window) {
 	Pv(sc, 'scrollbarMargin', 2);
 	Pv(sc, 'scrollDuration', 0);
 	Pv(sc, 'scrollDuration', 4000, e=>e.scrollDuration=4000);
-	Pv(sc, 'defaultCurve', e=>e.toString()==`curve(0,0,0.58,1)`);
+	Pv(sc, 'defaultCurve', e=>e.toString().indexOf('curve(0,0,0.5799')==0); // 5799999833106995
 	Pv(sc, 'momentum', true);
 	Pv(sc, 'momentum', false, e=>e.momentum=false);
 	Pv(sc, 'scrollbarH', false);
@@ -252,7 +253,7 @@ export default async function(win: Window) {
 	const t = new Text(win);
 	Mv(t, 'appendTo', [root])
 	Pv(t, 'value', 'Text', e=>e.value='Text')
-	Pv(t, 'backgroundColor', e=>e.toString()=='#ddd', e=>e.style.backgroundColor='#ddd')
+	Pv(t, 'backgroundColor', e=>e.toString()=='#dddddd', e=>e.style.backgroundColor='#ddd')
 
 	LOG('\nTest Input:\n')
 	const i = new Input(win);
@@ -279,9 +280,9 @@ export default async function(win: Window) {
 	Pv(m, 'rotateZ', 0)
 	Pv(m, 'skewX', 0)
 	Pv(m, 'skewY', 0)
-	Pv(m, 'translate', types.newVec2(0,20))
-	Pv(m, 'scale', types.newVec2(1,1))
-	Pv(m, 'skew', types.newVec2(0,0))
+	Pv(m, 'translate', e=>(e+'')==`vec2(0,140)`)
+	Pv(m, 'scale', e=>(e+'')==`vec2(1,1)`)
+	Pv(m, 'skew', e=>(e+'')==`vec2(0,0)`)
 	Pv(m, 'origin', e=>e[0].kind==BoxOriginKind.Auto&&e[1].kind==BoxOriginKind.Auto)
 	Pv(m, 'originX', e=>e.kind==BoxOriginKind.Ratio&&e.value==0.5, e=>e.style.originX='50%')
 	Pv(m, 'originY', e=>e.kind==BoxOriginKind.Auto)

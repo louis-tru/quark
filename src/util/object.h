@@ -124,7 +124,7 @@ namespace qk {
 		virtual void retain(); // ref++
 		virtual void release(); // --ref
 		virtual bool isReference() const;
-		inline  int  refCount() const { return _refCount; }
+		inline  int  refCount() const { return _refCount.load(); }
 	private:
 		typedef int HasObjectType;
 	protected:

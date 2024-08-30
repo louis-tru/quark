@@ -39,8 +39,8 @@ namespace qk {
 
 	// ------------------------ S c r o l l . B a s e --------------------------
 
-	static const Curve ease_in_out({0.3, 0.3}, {0.3, 1});
-	static const Curve ease_out({0, 0}, {0.58, 1});
+	static const Curve ease_in_out(Vec2{0.3f, 0.3f}, Vec2{0.3f, 1.0f});
+	static const Curve ease_out(Vec2{0.0f, 0.0f}, Vec2{0.58f, 1.0f});
 
 	class ScrollBase::Task: public RenderTask {
 	public:
@@ -846,6 +846,7 @@ namespace qk {
 			padding_left() - scroll_x(),
 			padding_top() - scroll_y()
 		);
+		auto _border = this->_border.load();
 		if (_border) {
 			offset.val[0] += _border->width[3]; // left
 			offset.val[1] += _border->width[0]; // top

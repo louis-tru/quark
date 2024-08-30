@@ -122,7 +122,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(isLoaded, {
 				Js_Self(Type);
-				Js_Return( self->isLoaded() );
+				Js_ReturnBool( self->isLoaded() );
 			});
 
 			Js_Set_Class_Accessor_Get(defaultTextOptions, {

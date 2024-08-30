@@ -189,7 +189,7 @@ namespace qk { namespace js {
 			if (!exports) exports = newObject();
 
 			v8::EscapableHandleScope scope(_isolate);
-			v8::Local<v8::Value> _name = Back(newInstance(name));
+			v8::Local<v8::Value> _name = Back(newValue(name));
 			v8::Local<v8::Value> _souece = Back(newString(source));
 			v8::MaybeLocal<v8::Value> rv;
 
@@ -990,11 +990,11 @@ namespace qk { namespace js {
 		return _val;
 	}
 
-	JSNumber* Worker::newInstance(float data) {
+	JSNumber* Worker::newValue(float data) {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
-	JSNumber* Worker::newInstance(double data) {
+	JSNumber* Worker::newValue(double data) {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
@@ -1002,35 +1002,35 @@ namespace qk { namespace js {
 		return Cast<JSBoolean>(v8::Boolean::New(ISOLATE(this), data));
 	}
 
-	JSInt32* Worker::newInstance(Char data) {
+	JSInt32* Worker::newValue(Char data) {
 		return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 	}
 
-	JSUint32* Worker::newInstance(uint8_t data) {
+	JSUint32* Worker::newValue(uint8_t data) {
 		return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
 	}
 
-	JSInt32* Worker::newInstance(int16_t data) {
+	JSInt32* Worker::newValue(int16_t data) {
 		return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 	}
 
-	JSUint32* Worker::newInstance(uint16_t data) {
+	JSUint32* Worker::newValue(uint16_t data) {
 		return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
 	}
 
-	JSInt32* Worker::newInstance(int data) {
+	JSInt32* Worker::newValue(int data) {
 		return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 	}
 
-	JSUint32* Worker::newInstance(uint32_t data) {
+	JSUint32* Worker::newValue(uint32_t data) {
 		return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
 	}
 
-	JSNumber* Worker::newInstance(int64_t data) {
+	JSNumber* Worker::newValue(int64_t data) {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
-	JSNumber* Worker::newInstance(uint64_t data) {
+	JSNumber* Worker::newValue(uint64_t data) {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
@@ -1039,19 +1039,19 @@ namespace qk { namespace js {
 																									v8::String::kNormalString, data.length()));
 	}
 
-	JSString* Worker::newInstance(cString& data) {
+	JSString* Worker::newValue(cString& data) {
 		return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), *data,
 																									v8::String::kNormalString, data.length()));
 	}
 
-	JSString* Worker::newInstance(cString2& data) {
+	JSString* Worker::newValue(cString2& data) {
 		return Cast<JSString>(v8::String::NewExternalTwoByte(
 			ISOLATE(this),
 			new V8ExternalStringResource(data)
 		));
 	}
 
-	JSUint8Array* Worker::newInstance(Buffer&& buff) {
+	JSUint8Array* Worker::newValue(Buffer&& buff) {
 		size_t offset = 0;
 		size_t len = buff.length();
 		v8::Local<v8::ArrayBuffer> ab;
@@ -1112,7 +1112,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::RangeError(Back<v8::String>(newInstance(str))));
+		return Cast<JSObject>(v8::Exception::RangeError(Back<v8::String>(newValue(str))));
 	}
 
 	JSObject* Worker::newReferenceError(cChar* errmsg, ...) {
@@ -1120,7 +1120,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::ReferenceError(Back<v8::String>(newInstance(str))));
+		return Cast<JSObject>(v8::Exception::ReferenceError(Back<v8::String>(newValue(str))));
 	}
 
 	JSObject* Worker::newSyntaxError(cChar* errmsg, ...) {
@@ -1128,7 +1128,7 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::SyntaxError(Back<v8::String>(newInstance(str))));
+		return Cast<JSObject>(v8::Exception::SyntaxError(Back<v8::String>(newValue(str))));
 	}
 
 	JSObject* Worker::newTypeError(cChar* errmsg, ...) {
@@ -1136,13 +1136,13 @@ namespace qk { namespace js {
 		va_start(arg, errmsg);
 		auto str = _Str::printfv(errmsg, arg);
 		va_end(arg);
-		return Cast<JSObject>(v8::Exception::TypeError(Back<v8::String>(newInstance(str))));
+		return Cast<JSObject>(v8::Exception::TypeError(Back<v8::String>(newValue(str))));
 	}
 
-	JSObject* Worker::newInstance(cError& err) {
+	JSObject* Worker::newValue(cError& err) {
 		v8::Local<v8::Object> e =
-			v8::Exception::Error(Back<v8::String>(newInstance(err.message()))).As<v8::Object>();
-		e->Set(Back(strs()->Errno()), Back(newInstance(err.code())));
+			v8::Exception::Error(Back<v8::String>(newValue(err.message()))).As<v8::Object>();
+		e->Set(Back(strs()->Errno()), Back(newValue(err.code())));
 		return Cast<JSObject>(e);
 	}
 
@@ -1185,7 +1185,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* Worker::runScript(cString& source, cString& name, JSObject* sandbox) {
-		return runScript(newInstance(source), newInstance(name), sandbox);
+		return runScript(newValue(source), newValue(name), sandbox);
 	}
 
 	JSValue* Worker::runNativeScript(cBuffer& source, cString& name, JSObject* exports) {

@@ -84,7 +84,6 @@ export declare class FileStat {
 	isValid(): boolean;
 	isFile(): boolean;
 	isDir(): boolean;
-	isDirectory(): boolean;
 	isLink(): boolean;
 	isSock(): boolean;
 	mode(): number;

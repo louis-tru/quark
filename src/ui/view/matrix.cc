@@ -34,7 +34,7 @@ namespace qk {
 
 	Matrix::Matrix()
 		: _translate(0), _scale(1), _skew(0), _rotate_z(0)
-		, _origin_x{0, BoxOriginKind::Value}, _origin_y{0, BoxOriginKind::Value}
+		, _origin_x{0, BoxOriginKind::Auto}, _origin_y{0, BoxOriginKind::Auto}
 	{
 	}
 

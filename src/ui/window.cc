@@ -71,7 +71,7 @@ namespace qk {
 		, Qk_Init_Event(Foreground)
 		, Qk_Init_Event(Close)
 		, _host(shared_app())
-		, _uiRender(nullptr)
+		, _uiDraw(nullptr)
 		, _lockSize()
 		, _size(), _scale(1)
 		, _atomPixel(1)
@@ -86,7 +86,7 @@ namespace qk {
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
-		_uiRender = new UIDraw(this);
+		_uiDraw = new UIDraw(this);
 		_actionCenter = new ActionCenter(this);
 		_styleSheets = _host->styleSheets();
 		_backgroundColor = opts.backgroundColor;
@@ -118,7 +118,6 @@ namespace qk {
 	}
 
 	Window::~Window() {
-		// Destroy();
 		Qk_Fatal_Assert(_render == nullptr);
 	}
 
@@ -144,14 +143,14 @@ namespace qk {
 		Release(_render); _render = nullptr; // delete obj and stop render draw
 		lock.lock(); // relock
 		Release(_dispatch); _dispatch = nullptr;
-		Release(_uiRender); _uiRender = nullptr;
+		Release(_uiDraw); _uiDraw = nullptr;
 
 		_preRender.clearTasks(); // clear tasks
 		_preRender.flushAsyncCall(); // reflush async call
 
 		Release(_actionCenter); _actionCenter = nullptr;
-
-		{ ScopeLock lock(_host->_mutex);
+		{
+			ScopeLock lock(_host->_mutex);
 			_host->_windows.erase(_id);
 			if (_host->_activeWindow == this) {
 				Inl_Application(_host)->setActiveWindow(nullptr);
@@ -320,7 +319,7 @@ namespace qk {
 		}
 		_fspTick++;
 
-		_root->draw(_uiRender); // start drawing
+		_root->draw(_uiDraw); // start drawing
 
 		solveNextFrame(); // solve frame
 

@@ -39,7 +39,7 @@ const win = new Window({
 	backgroundColor: types.newColor(0,0,255,255),
 }).activate();
 
-async function test_index(win: Window) {
+async function test_(win: Window) {
 	const box = new Box(win);
 	box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
 	box.height = types.newBoxSize(types.BoxSizeKind.Ratio, 0.5);
@@ -48,14 +48,13 @@ async function test_index(win: Window) {
 	win.root.append(box);
 }
 
-import test from './test_action'
+// import test from './test_action'
 // import test from './test_app'
-// import test from './test_buf'
 // import test from './test_css'
 // import test from './test_event'
 // import test from './test_font'
 // import test from './test_fs'
-// import test from './test_gui'
+// import test from './test_gui'#
 // import test from './test_http'
 // import test from './test_os'
 // import test from './test_path'
@@ -63,8 +62,9 @@ import test from './test_action'
 // import test from './test_storage'
 // import test from './test_types'
 // import test from './test_util'
-// import test from './test_view' #
+// import test from './test_view'#
 // import test from './test_window'
+import test from './test_buf'
 
 (async function() {
 	await test(win);

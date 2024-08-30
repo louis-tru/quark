@@ -64,7 +64,7 @@ namespace qk { namespace js {
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				if ( !_error.isEmpty() ) {
 					HandleScope scope(worker());
-					JSValue* arg = worker()->newInstance( error );
+					JSValue* arg = worker()->newValue( error );
 					_host->call( worker()->newStringOneByte(_error), 1, &arg );
 				}
 			}
@@ -83,7 +83,7 @@ namespace qk { namespace js {
 			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
 				if ( !_data.isEmpty() ) {
 					HandleScope scope(_host->worker());
-					JSValue* arg = worker()->newInstance( std::move(buffer) );
+					JSValue* arg = worker()->newValue( std::move(buffer) );
 					_host->call( worker()->newStringOneByte(_data), 1, &arg );
 				}
 			}

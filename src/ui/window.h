@@ -211,7 +211,7 @@ namespace qk {
 		Window(Options &opts);
 
 		// props data
-		UIDraw       *_uiRender;
+		UIDraw        *_uiDraw;
 		Vec2           _lockSize;  //!< Lock the size of the viewport
 		List<Cb>       _nextFrame;
 		uint32_t       _fspTick;

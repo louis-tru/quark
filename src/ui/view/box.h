@@ -200,7 +200,7 @@ namespace qk {
 			float width[4];
 			Color color[4]; // top/right/bottom/left
 		};
-		BoxBorderInl *_border; // BoxBorder, top/right/bottom/left
+		std::atomic<BoxBorderInl*> _border; // BoxBorder, top/right/bottom/left
 		// box view attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）

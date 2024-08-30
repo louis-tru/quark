@@ -117,59 +117,59 @@ namespace qk { namespace js {
 		bool     isTypesBase(JSObject *arg);
 		void     throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
 		inline
-		JSValue* jsvalue(double val) { return worker->newInstance(val); }
+		JSValue* jsvalue(double val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(Char val) { return worker->newInstance(val); }
+		JSValue* jsvalue(Char val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(uint8_t val) { return worker->newInstance(val); }
+		JSValue* jsvalue(uint8_t val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(int16_t val) { return worker->newInstance(val); }
+		JSValue* jsvalue(int16_t val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(uint16_t val) { return worker->newInstance(val); }
+		JSValue* jsvalue(uint16_t val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(int64_t val) { return worker->newInstance(val); }
+		JSValue* jsvalue(int64_t val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(uint64_t val) { return worker->newInstance(val); }
+		JSValue* jsvalue(uint64_t val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(cString2& val) { return worker->newInstance(val); }
+		JSValue* jsvalue(cString2& val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(cString4& val) { return worker->newInstance(val); }
+		JSValue* jsvalue(cString4& val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(const Error& val) { return worker->newInstance(val); }
+		JSValue* jsvalue(const Error& val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(const HttpError& val) { return worker->newInstance(val); }
+		JSValue* jsvalue(const HttpError& val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(cDictSS& val) { return worker->newInstance(val); }
+		JSValue* jsvalue(cDictSS& val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(Buffer& val) { return worker->newInstance(val); }
+		JSValue* jsvalue(Buffer& val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(Buffer&& val) { return worker->newInstance(val);}
+		JSValue* jsvalue(Buffer&& val) { return worker->newValue(val);}
 		template <class S>
 		inline S* jsvalue(const Persistent<S>& value) { return *value; }
 		inline
 		JSValue* jsvalue(JSValue* val) { return val; }
 		inline
-		JSValue* jsvalue(const Bool& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Bool& v) { return worker->newBool(v.value); }
 		inline
-		JSValue* jsvalue(const Float32& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Float32& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Float64& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Float64& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int8& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Int8& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint8& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Uint8& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int16& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Int16& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint16& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Uint16& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int32& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Int32& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint32& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Uint32& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Int64& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Int64& v) { return worker->newValue(v.value); }
 		inline
-		JSValue* jsvalue(const Uint64& v) { return worker->newInstance(v.value); }
+		JSValue* jsvalue(const Uint64& v) { return worker->newValue(v.value); }
 		JSValue* jsvalue(const Dirent& val);
 		JSValue* jsvalue(const FileStat& val);
 		JSValue* jsvalue(const Array<Dirent>& val);

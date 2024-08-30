@@ -44,23 +44,23 @@ namespace qk { namespace js {
 			});
 			Js_Set_Class_Method(isValid, {
 				Js_Self(FileStat);
-				Js_Return( self->is_valid() );
+				Js_ReturnBool( self->is_valid() );
 			});
 			Js_Set_Class_Method(isFile, {
 				Js_Self(FileStat);
-				Js_Return( self->is_file() );
+				Js_ReturnBool( self->is_file() );
 			});
 			Js_Set_Class_Method(isDir, {
 				Js_Self(FileStat);
-				Js_Return( self->is_dir() );
+				Js_ReturnBool( self->is_dir() );
 			});
 			Js_Set_Class_Method(isLink, {
 				Js_Self(FileStat);
-				Js_Return( self->is_link() );
+				Js_ReturnBool( self->is_link() );
 			});
 			Js_Set_Class_Method(isSock, {
 				Js_Self(FileStat);
-				Js_Return( self->is_sock() );
+				Js_ReturnBool( self->is_sock() );
 			});
 			Js_Set_Class_Method(mode, {
 				Js_Self(FileStat);
@@ -285,7 +285,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_reader()->exists_sync( args[0]->toStringValue(worker) ) );
+				Js_ReturnBool( fs_reader()->exists_sync( args[0]->toStringValue(worker) ) );
 			});
 
 			Js_Set_Method(isFileSync, {
@@ -296,7 +296,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_reader()->is_file_sync( args[0]->toStringValue(worker) ) );
+				Js_ReturnBool( fs_reader()->is_file_sync( args[0]->toStringValue(worker) ) );
 			});
 
 			Js_Set_Method(isDirectorySync, {
@@ -307,7 +307,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_reader()->is_directory_sync( args[0]->toStringValue(worker) ) );
+				Js_ReturnBool( fs_reader()->is_directory_sync( args[0]->toStringValue(worker) ) );
 			});
 
 			Js_Set_Method(readdirSync, {
@@ -908,7 +908,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_exists_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_exists_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -931,7 +931,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_is_file_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_is_file_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -954,7 +954,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_is_directory_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_is_directory_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -977,7 +977,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_readable_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_readable_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -1000,7 +1000,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_writable_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_writable_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -1023,7 +1023,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Return( fs_executable_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_executable_sync(args[0]->toStringValue(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -1489,9 +1489,9 @@ namespace qk { namespace js {
 			});
 			Js_Set_Method(chdir, {
 				if (args.length() == 0 || !args[0]->isString()) {
-					Js_Return( false );
+					Js_ReturnBool( false );
 				}
-				Js_Return( fs_chdir(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_chdir(args[0]->toStringValue(worker)) );
 			});
 			Js_Set_Method(extname, {
 				if (args.length() == 0 || !args[0]->isString())

@@ -34,6 +34,9 @@
 #include "./textarea.h"
 #include "../../util/codec.h"
 
+#define _Border() auto _border = this->_border.load()
+#define _IfBorder() _Border(); if (_border)
+
 namespace qk {
 
 	enum {
@@ -64,7 +67,7 @@ namespace qk {
 
 		Vec2 get_position() {
 			Vec2 point(padding_left(), padding_top());
-			if (_border) {
+			_IfBorder() {
 				point[0] += _border->width[3]; // left
 				point[1] += _border->width[0]; // top
 			}
@@ -308,7 +311,7 @@ namespace qk {
 			x += padding_left();
 			y += padding_top();
 
-			if (_border) {
+			_IfBorder() {
 				x += _border->width[3]; // left
 				y += _border->width[0]; // top
 			}
@@ -1106,7 +1109,7 @@ namespace qk {
 			padding_left() + text_offset.x(),
 			padding_top() + text_offset.y()
 		);
-		if (_border) {
+		_IfBorder() {
 			offset.val[0] += _border->width[3]; // left
 			offset.val[1] += _border->width[0]; // top
 		}

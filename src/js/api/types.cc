@@ -117,13 +117,13 @@ namespace qk { namespace js {
 	JSValue* TypesParser::jsvalue(const TouchPoint& val) {
 		auto rv = worker->newObject();
 		auto view = WrapObject::wrap(val.view);
-		rv->set(worker,worker->strs()->id(), worker->newInstance(val.id));
-		rv->set(worker,worker->strs()->startX(), worker->newInstance(val.start_x));
-		rv->set(worker,worker->strs()->startY(), worker->newInstance(val.start_y));
-		rv->set(worker,worker->strs()->x(), worker->newInstance(val.x));
-		rv->set(worker,worker->strs()->y(), worker->newInstance(val.y));
-		rv->set(worker,worker->strs()->force(), worker->newInstance(val.force));
-		rv->set(worker,worker->strs()->clickIn(), worker->newInstance(val.click_in));
+		rv->set(worker,worker->strs()->id(), worker->newValue(val.id));
+		rv->set(worker,worker->strs()->startX(), worker->newValue(val.start_x));
+		rv->set(worker,worker->strs()->startY(), worker->newValue(val.start_y));
+		rv->set(worker,worker->strs()->x(), worker->newValue(val.x));
+		rv->set(worker,worker->strs()->y(), worker->newValue(val.y));
+		rv->set(worker,worker->strs()->force(), worker->newValue(val.force));
+		rv->set(worker,worker->strs()->clickIn(), worker->newValue(val.click_in));
 		rv->set(worker,worker->strs()->view(), view->that());
 		return rv;
 	}
@@ -144,94 +144,94 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const float& value) {
-		return worker->newInstance(value);
+		return worker->newValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const int32_t& value) {
-		return worker->newInstance(value);
+		return worker->newValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const uint32_t& value) {
-		return worker->newInstance(value);
+		return worker->newValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const Color& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.r()),
-			worker->newInstance(value.g()),
-			worker->newInstance(value.b()),
-			worker->newInstance(value.a()),
+			worker->newValue(value.r()),
+			worker->newValue(value.g()),
+			worker->newValue(value.b()),
+			worker->newValue(value.a()),
 		};
 		return _newColor->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Vec2& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.x()),
-			worker->newInstance(value.y()),
+			worker->newValue(value.x()),
+			worker->newValue(value.y()),
 		};
 		return _newVec2->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Vec3& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.x()),
-			worker->newInstance(value.y()),
-			worker->newInstance(value.z()),
+			worker->newValue(value.x()),
+			worker->newValue(value.y()),
+			worker->newValue(value.z()),
 		};
 		return _newVec3->call(worker, 3, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Vec4& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.x()),
-			worker->newInstance(value.y()),
-			worker->newInstance(value.z()),
-			worker->newInstance(value.w()),
+			worker->newValue(value.x()),
+			worker->newValue(value.y()),
+			worker->newValue(value.z()),
+			worker->newValue(value.w()),
 		};
 		return _newVec4->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Rect& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.origin.x()),
-			worker->newInstance(value.origin.y()),
-			worker->newInstance(value.size.width()),
-			worker->newInstance(value.size.height()),
+			worker->newValue(value.origin.x()),
+			worker->newValue(value.origin.y()),
+			worker->newValue(value.size.width()),
+			worker->newValue(value.size.height()),
 		};
 		return _newRect->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Mat& value) {
 		JSValue* args[] = {
-			worker->newInstance(value[0]),
-			worker->newInstance(value[1]),
-			worker->newInstance(value[2]),
-			worker->newInstance(value[3]),
-			worker->newInstance(value[4]),
-			worker->newInstance(value[5]),
+			worker->newValue(value[0]),
+			worker->newValue(value[1]),
+			worker->newValue(value[2]),
+			worker->newValue(value[3]),
+			worker->newValue(value[4]),
+			worker->newValue(value[5]),
 		};
 		return _newMat->call(worker, 6, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Mat4& value) {
 		JSValue* args[] = {
-			worker->newInstance(value[0]),
-			worker->newInstance(value[1]),
-			worker->newInstance(value[2]),
-			worker->newInstance(value[3]),
-			worker->newInstance(value[4]),
-			worker->newInstance(value[5]),
-			worker->newInstance(value[6]),
-			worker->newInstance(value[7]),
-			worker->newInstance(value[8]),
-			worker->newInstance(value[9]),
-			worker->newInstance(value[10]),
-			worker->newInstance(value[11]),
-			worker->newInstance(value[12]),
-			worker->newInstance(value[13]),
-			worker->newInstance(value[14]),
-			worker->newInstance(value[15]),
+			worker->newValue(value[0]),
+			worker->newValue(value[1]),
+			worker->newValue(value[2]),
+			worker->newValue(value[3]),
+			worker->newValue(value[4]),
+			worker->newValue(value[5]),
+			worker->newValue(value[6]),
+			worker->newValue(value[7]),
+			worker->newValue(value[8]),
+			worker->newValue(value[9]),
+			worker->newValue(value[10]),
+			worker->newValue(value[11]),
+			worker->newValue(value[12]),
+			worker->newValue(value[13]),
+			worker->newValue(value[14]),
+			worker->newValue(value[15]),
 		};
 		return _newMat4->call(worker, 16, args);
 	}
@@ -239,13 +239,13 @@ namespace qk { namespace js {
 	JSValue* TypesParser::jsvalue(const ArrayFloat& value) {
 		auto arr = worker->newArray(value.length());
 		for (int i = 0; i < value.length(); i ++) {
-			arr->set(worker, i, worker->newInstance(value[i]));
+			arr->set(worker, i, worker->newValue(value[i]));
 		}
 		return arr;
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayString& value) {
-		return worker->newInstance(value);
+		return worker->newValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayColor& value) {
@@ -273,209 +273,209 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const String& value) {
-		return worker->newInstance(value);
+		return worker->newValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(cCurve& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.p1().x()),
-			worker->newInstance(value.p1().y()),
-			worker->newInstance(value.p2().x()),
-			worker->newInstance(value.p2().y()),
+			worker->newValue(value.p1().x()),
+			worker->newValue(value.p1().y()),
+			worker->newValue(value.p2().x()),
+			worker->newValue(value.p2().y()),
 		};
 		return _newCurve->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Shadow& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.x),
-			worker->newInstance(value.y),
-			worker->newInstance(value.size),
-			worker->newInstance(value.color.b()),
-			worker->newInstance(value.color.g()),
-			worker->newInstance(value.color.b()),
-			worker->newInstance(value.color.a()),
+			worker->newValue(value.x),
+			worker->newValue(value.y),
+			worker->newValue(value.size),
+			worker->newValue(value.color.r()),
+			worker->newValue(value.color.g()),
+			worker->newValue(value.color.b()),
+			worker->newValue(value.color.a()),
 		};
 		return _newShadow->call(worker, 7, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxBorder& value) {
 		JSValue* args[] = {
-			worker->newInstance(value.width),
-			worker->newInstance(value.color.b()),
-			worker->newInstance(value.color.g()),
-			worker->newInstance(value.color.b()),
-			worker->newInstance(value.color.a()),
+			worker->newValue(value.width),
+			worker->newValue(value.color.r()),
+			worker->newValue(value.color.g()),
+			worker->newValue(value.color.b()),
+			worker->newValue(value.color.a()),
 		};
 		return _newBoxBorder->call(worker, 5, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const FillPosition& val) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)val.kind),
-			worker->newInstance(val.value),
+			worker->newValue((uint32_t)val.kind),
+			worker->newValue(val.value),
 		};
 		return _newFillPosition->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const FillSize& val) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)val.kind),
-			worker->newInstance(val.value),
+			worker->newValue((uint32_t)val.kind),
+			worker->newValue(val.value),
 		};
 		return _newFillSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Repeat& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxFilterPtr& value) {
-		return worker->newInstance(value);
+		return worker->newValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxShadowPtr& value) {
-		return worker->newInstance(value);
+		return worker->newValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const Direction& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const ItemsAlign& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const CrossAlign& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const Wrap& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const WrapAlign& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const Align& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxSize& value) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value),
+			worker->newValue((uint32_t)value.kind),
+			worker->newValue(value.value),
 		};
 		return _newBoxSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxOrigin& value) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value),
+			worker->newValue((uint32_t)value.kind),
+			worker->newValue(value.value),
 		};
 		return _newBoxOrigin->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextAlign& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextDecoration& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextOverflow& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWhiteSpace& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWordBreak& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextColor& value) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value.r()),
-			worker->newInstance(value.value.g()),
-			worker->newInstance(value.value.b()),
-			worker->newInstance(value.value.a()),
+			worker->newValue((uint32_t)value.kind),
+			worker->newValue(value.value.r()),
+			worker->newValue(value.value.g()),
+			worker->newValue(value.value.b()),
+			worker->newValue(value.value.a()),
 		};
 		return _newTextColor->call(worker, 5, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextSize& value) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value),
+			worker->newValue((uint32_t)value.kind),
+			worker->newValue(value.value),
 		};
 		return _newTextSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextShadow& value) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
-			worker->newInstance(value.value.x),
-			worker->newInstance(value.value.y),
-			worker->newInstance(value.value.size),
-			worker->newInstance(value.value.color.r()),
-			worker->newInstance(value.value.color.g()),
-			worker->newInstance(value.value.color.b()),
-			worker->newInstance(value.value.color.a()),
+			worker->newValue((uint32_t)value.kind),
+			worker->newValue(value.value.x),
+			worker->newValue(value.value.y),
+			worker->newValue(value.value.size),
+			worker->newValue(value.value.color.r()),
+			worker->newValue(value.value.color.g()),
+			worker->newValue(value.value.color.b()),
+			worker->newValue(value.value.color.a()),
 		};
 		return _newTextShadow->call(worker, 8, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextFamily& value) {
 		JSValue* args[] = {
-			worker->newInstance((uint32_t)value.kind),
+			worker->newValue((uint32_t)value.kind),
 			jsvalue(value.value),
 		};
 		return _newTextFamily->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWeight& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWidth& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextSlant& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const FontStyle& value) {
-		return worker->newInstance(value.value());
+		return worker->newValue(value.value());
 	}
 
 	JSValue* TypesParser::jsvalue(const KeyboardType& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const KeyboardReturnType& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const CursorStyle& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const FindDirection& value) {
-		return worker->newInstance((uint32_t)value);
+		return worker->newValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const FFID& val) {
 		cChar* addr = reinterpret_cast<cChar*>(&val);
 		Buffer buffer(sizeof(FFID));
 		buffer.write(addr, sizeof(FFID), 0);
-		return worker->newInstance(buffer);
+		return worker->newValue(buffer);
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -484,7 +484,7 @@ namespace qk { namespace js {
 		JSObject* obj;\
 		JSValue* val;\
 		if (desc) {\
-			JSValue* args[] = { in, worker->newInstance(String(desc))->as() };\
+			JSValue* args[] = { in, worker->newValue(String(desc))->as() };\
 			val = _parse##Type->call(worker, 2, args);\
 		} else {\
 			val = _parse##Type->call(worker, 1, &in);\

@@ -38,6 +38,9 @@
 
 namespace qk {
 
+	#define _Border() auto _border = this->_border.load()
+	#define _IfBorder() _Border(); if (_border)
+
 	float Box::solve_layout_content_width(Size &pSize) {
 		float result = _content_size.x();
 		if (_max_width.kind != BoxSizeKind::None) { // use range size wrap
@@ -60,7 +63,7 @@ namespace qk {
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (!pSize.wrap_x) {// explicit value
 					result = size - _margin_left - _margin_right - _padding_left - _padding_right;
-					if (_border)
+					_IfBorder()
 						result -= (_border->width[3] + _border->width[1]); // left + right
 					result = Float32::max(result, 0);
 				}
@@ -99,7 +102,7 @@ namespace qk {
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
 				if (!pSize.wrap_y) {
 					result = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
-					if (_border)
+					_IfBorder()
 						result -= (_border->width[0] + _border->width[2]); // top + bottom
 					result = Float32::max(result, 0);
 				}
@@ -128,7 +131,7 @@ namespace qk {
 			case BoxSizeKind::Match:
 				if (!pSize.wrap_x) {
 					limit_max = size - _margin_left - _margin_right - _padding_left - _padding_right;
-					if (_border)
+					_IfBorder()
 						limit_max -= (_border->width[3] + _border->width[1]); // left + right
 				}
 				break;
@@ -156,7 +159,7 @@ namespace qk {
 			case BoxSizeKind::Match:
 				if (!pSize.wrap_y) {
 					limit_max = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
-					if (_border)
+					_IfBorder()
 						limit_max -= (_border->width[0] + _border->width[2]); // top + bottom
 				}
 				break;
@@ -188,7 +191,7 @@ namespace qk {
 			case BoxSizeKind::Match:
 				if (!pSize.wrap_x) {
 					limit_min = size - _margin_left - _margin_right - _padding_left - _padding_right;
-					if (_border)
+					_IfBorder()
 						limit_min -= (_border->width[3] + _border->width[1]); // left + right
 					limit_min = Float32::max(limit_min, 0);
 				}
@@ -225,7 +228,7 @@ namespace qk {
 			case BoxSizeKind::Match:
 				if (!pSize.wrap_y) {
 					limit_min = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
-					if (_border)
+					_IfBorder()
 						limit_min -= (_border->width[0] + _border->width[2]); // top + bottom
 					limit_min = Float32::max(limit_min, 0);
 				}
@@ -283,7 +286,7 @@ namespace qk {
 	Box::~Box() {
 		Release(_background.load());
 		Release(_boxShadow.load());
-		::free(_border); _border = nullptr;
+		free(_border.load());
 	}
 
 	// is clip box display range
@@ -534,6 +537,7 @@ namespace qk {
 	static ArrayFloat default_border_width(4);
 
 	ArrayBorder Box::border() const {
+		_Border();
 		return _border ? ArrayBorder{
 			{_border->width[0],_border->color[0]},{_border->width[1],_border->color[1]},
 			{_border->width[2],_border->color[2]},{_border->width[3],_border->color[3]},
@@ -571,18 +575,22 @@ namespace qk {
 	}
 
 	BoxBorder Box::border_top() const {
+		_Border();
 		return _border ? BoxBorder{_border->width[0],_border->color[0]}: default_border;
 	}
 
 	BoxBorder Box::border_right() const {
+		_Border();
 		return _border ? BoxBorder{_border->width[1],_border->color[1]}: default_border;
 	}
 
 	BoxBorder Box::border_bottom() const {
+		_Border();
 		return _border ? BoxBorder{_border->width[2],_border->color[2]}: default_border;
 	}
 
 	BoxBorder Box::border_left() const {
+		_Border();
 		return _border ? BoxBorder{_border->width[3],_border->color[3]}: default_border;
 	}
 
@@ -607,7 +615,8 @@ namespace qk {
 	}
 
 	ArrayFloat Box::border_width() const {
-		return _border ? 
+		_Border();
+		return _border ?
 			ArrayFloat({_border->width[0],_border->width[1],_border->width[2],_border->width[3]}):
 			default_border_width;
 	}
@@ -643,7 +652,8 @@ namespace qk {
 	}
 
 	ArrayColor Box::border_color() const {
-		return _border ? 
+		_Border();
+		return _border ?
 			ArrayColor({_border->color[0],_border->color[1],_border->color[2],_border->color[3]}):
 			default_border_color;
 	}
@@ -679,138 +689,124 @@ namespace qk {
 	}
 
 	Color Box::border_color_top() const {
+		_Border();
 		return _border ? _border->color[0]: Color::from(0);
 	}
 
 	Color Box::border_color_right() const {
+		_Border();
 		return _border ? _border->color[1]: Color::from(0);
 	}
 
 	Color Box::border_color_bottom() const {
+		_Border();
 		return _border ? _border->color[2]: Color::from(0);
 	}
 
 	Color Box::border_color_left() const {
+		_Border();
 		return _border ? _border->color[3]: Color::from(0);
 	}
 
 	float Box::border_width_top() const {
+		_Border();
 		return _border ? _border->width[0]: 0;
 	}
 
 	float Box::border_width_right() const {
+		_Border();
 		return _border ? _border->width[1]: 0;
 	}
 
 	float Box::border_width_bottom() const {
+		_Border();
 		return _border ? _border->width[2]: 0;
 	}
 
 	float Box::border_width_left() const {
+		_Border();
 		return _border ? _border->width[3]: 0;
 	}
 
 	struct SetBorder: public Box {
-		#define _SetBorder static_cast<SetBorder*>(this)->set
-		void alloc() {
-			if (!_border) {// alloc border memory
-				_border = (BoxBorderInl*)::malloc(sizeof(BoxBorderInl));
-				::memset(_border, 0, sizeof(BoxBorderInl));
+		#define _BorderAlloc() auto _border = static_cast<SetBorder*>(this)->alloc()
+		BoxBorderInl* alloc() {
+			auto border = _border.load();
+			if (!border) {
+				border = (BoxBorderInl*)malloc(sizeof(BoxBorderInl));
+				memset(border, 0, sizeof(BoxBorderInl));
+				_border.store(border);
 			}
-		}
-		template<typename E, typename Arg>
-		void set(E exec, Arg arg, bool isRt) {
-			typedef void (*Exec)(Box*, Arg, bool isRt);
-			if (_border) {
-				((Exec)exec)(this, arg, isRt);
-			} else if (isRt) {
-				alloc();
-				((Exec)exec)(this, arg, true);
-			} else {
-				struct Arg_ { Arg val; Exec exec; };
-				preRender().async_call([](auto self, auto arg) {
-					self->alloc();
-					arg.arg->exec(self, arg.arg->val, true);
-					delete arg.arg;
-				}, this, new Arg_{arg,(Exec)exec});
-			}
+			return border;
 		}
 	};
 
 	void Box::set_border_color_top(Color val, bool isRt) {
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->color[0] != val) {
-				self->_border->color[0] = val;
-				self->mark(kLayout_None, isRt);
-			}
-		}, val, isRt);
+		_BorderAlloc();
+		if (_border->color[0] != val) {
+			_border->color[0] = val;
+			mark(kLayout_None, isRt);
+		}
 	}
 
 	void Box::set_border_color_right(Color val, bool isRt) {
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->color[1] != val) {
-				self->_border->color[1] = val;
-				self->mark(kLayout_None, isRt);
-			}
-		}, val, isRt);
+		_BorderAlloc();
+		if (_border->color[1] != val) {
+			_border->color[1] = val;
+			mark(kLayout_None, isRt);
+		}
 	}
 
 	void Box::set_border_color_bottom(Color val, bool isRt) {
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->color[2] != val) {
-				self->_border->color[2] = val;
-				self->mark(kLayout_None, isRt);
-			}
-		}, val, isRt);
+		_BorderAlloc();
+		if (_border->color[2] != val) {
+			_border->color[2] = val;
+			mark(kLayout_None, isRt);
+		}
 	}
 
 	void Box::set_border_color_left(Color val, bool isRt) {
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->color[3] != val) {
-				self->_border->color[3] = val;
-				self->mark(kLayout_None, isRt);
-			}
-		}, val, isRt);
+		_BorderAlloc();
+		if (_border->color[3] != val) {
+			_border->color[3] = val;
+			mark(kLayout_None, isRt);
+		}
 	}
 
 	void Box::set_border_width_top(float val, bool isRt) {
+		_BorderAlloc();
 		val = Qk_MAX(0, val);
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->width[0] != val) {
-				self->_border->width[0] = val;
-				self->mark_layout(kLayout_Size_Height, isRt);
-			}
-		}, val, isRt);
+		if (_border->width[0] != val) {
+			_border->width[0] = val;
+			mark_layout(kLayout_Size_Height, isRt);
+		}
 	}
 
 	void Box::set_border_width_right(float val, bool isRt) {
+		_BorderAlloc();
 		val = Qk_MAX(0, val);
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->width[1] != val) {
-				self->_border->width[1] = val;
-				self->mark_layout(kLayout_Size_Width, isRt);
-			}
-		}, val, isRt);
+		if (_border->width[1] != val) {
+			_border->width[1] = val;
+			mark_layout(kLayout_Size_Width, isRt);
+		}
 	}
 
 	void Box::set_border_width_bottom(float val, bool isRt) {
+		_BorderAlloc();
 		val = Qk_MAX(0, val);
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->width[2] != val) {
-				self->_border->width[2] = val;
-				self->mark_layout(kLayout_Size_Height, isRt);
-			}
-		}, val, isRt);
+		if (_border->width[2] != val) {
+			_border->width[2] = val;
+			mark_layout(kLayout_Size_Height, isRt);
+		}
 	}
 
 	void Box::set_border_width_left(float val, bool isRt) {
+		_BorderAlloc();
 		val = Qk_MAX(0, val);
-		_SetBorder([](auto self, auto val, auto isRt) {
-			if (self->_border->width[3] != val) {
-				self->_border->width[3] = val;
-				self->mark_layout(kLayout_Size_Width, isRt);
-			}
-		}, val, isRt);
+		if (_border->width[3] != val) {
+			_border->width[3] = val;
+			mark_layout(kLayout_Size_Width, isRt);
+		}
 	}
 
 	void Box::set_background_color(Color color, bool isRt) {
@@ -861,7 +857,7 @@ namespace qk {
 					change_mark = kLayout_Size_Width;
 				}
 				_client_size[0] = _padding_left + _padding_right + val;
-				if (_border)
+				_IfBorder()
 					_client_size[0] += _border->width[3] + _border->width[1]; // left + right
 
 				float x = _margin_left + _margin_right + _client_size[0];
@@ -880,7 +876,7 @@ namespace qk {
 					change_mark |= kLayout_Size_Height;
 				}
 				_client_size[1] = _padding_top + _padding_bottom + val;
-				if (_border)
+				_IfBorder()
 					_client_size[1] += _border->width[0] + _border->width[2]; // top + bottom
 
 				float y = _margin_top + _margin_bottom + _client_size[1];
@@ -927,7 +923,7 @@ namespace qk {
 
 		auto bp_x = _padding_left + _padding_right;
 		auto bp_y = _padding_left + _padding_right;
-		if (_border) {
+		_IfBorder() {
 			bp_x += _border->width[3] + _border->width[1]; // left + right
 			bp_y += _border->width[0] + _border->width[2]; // top + bottom
 		}
@@ -1097,7 +1093,7 @@ namespace qk {
 		_content_size = content_size;
 		_client_size = Vec2(content_size.x() + _padding_left + _padding_right,
 												content_size.y() + _padding_top + _padding_bottom);
-		if (_border) {
+		_IfBorder() {
 			_client_size.val[0] += _border->width[3] + _border->width[1]; // left + right
 			_client_size.val[1] += _border->width[0] + _border->width[2]; // top + bottom
 		}
@@ -1143,7 +1139,7 @@ namespace qk {
 		Vec2 offset(
 			_padding_left, _padding_top
 		);
-		if (_border) {
+		_IfBorder() {
 			offset.val[0] += _border->width[3]; // left
 			offset.val[1] += _border->width[0]; // top
 		}

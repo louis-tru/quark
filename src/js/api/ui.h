@@ -38,7 +38,7 @@
 #define Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
 	Js_Set_Class_Accessor(Name, {\
 		Self_Fun(Obj); \
-		Js_Return( worker->types()->jsvalue(self->Prop()) ); \
+		args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
 	}, { \
 		Js_Parse_Type(T, val, "@prop Obj."#Name" = %s"); \
 		Self_Fun(Obj); \

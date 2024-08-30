@@ -116,10 +116,10 @@ namespace qk {
 	}
 
 	void View::set_opacity(float val, bool isRt) {
+		val = Float32::clamp(val, 0, 1);
 		if (_opacity != val) {
-			val = Qk_MAX(0, Qk_MIN(val, 1));
-			if (_opacity != val)
-				mark(0, isRt); // mark render
+			_opacity = val;
+			mark(0, isRt); // mark render
 		}
 	}
 
@@ -132,7 +132,7 @@ namespace qk {
 	}
 
 	Matrix* View::matrix() {
-		auto *v = this;
+		auto v = this;
 		do {
 			auto t = v->asMatrix();
 			if (t)

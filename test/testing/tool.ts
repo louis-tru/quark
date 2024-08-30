@@ -5,7 +5,9 @@ type Functions<Type> = {
 	[Key in keyof Type as Type[Key] extends Function ? Key: never]: Type[Key];
 };
 type FunctionName<Self, Name extends keyof Self> = Self[Name] extends Function ? Name : never;
+
 type Parameters<Self, Name extends keyof Self> = Self[Name] extends (...args: infer Args) => any ? Args : never;
+
 type VerifyType<Self, Name extends keyof Self> =
 	Self[Name] extends (...args: any) => Promise<infer R> ? R:
 	Self[Name] extends (...args: any) => infer R ? R : any;
@@ -88,50 +90,35 @@ function MethodVcb<
 	let argc = arguments.length;
 
 	return new Promise<any>(function(resolve, reject) {
-		let sync = false;
-		let r: any;
-
-		function ok(...args: any[]) {
+		function ok(r: any[]) {
 			let ok: boolean = true;
-			if ( argc > 3 ) {
-				let v_args = args;
-				if (sync)
-					v_args = [r];
+			if ( argc > 4 ) {
 				if (typeof verify === 'function') {
-					ok = (verify as any)(...v_args);
+					ok = (verify as any)(...r);
 				} else {
-					ok = verify === v_args[0];
+					ok = verify === r[0];
 				}
 			}
-			console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no', ...(print ? args: []));
-			if (!ok)
-				throw new Error('test fail');
-			resolve(args[0]);
+			console.log( 'Method', String(name) + '()', ':', ok ? 'ok': 'no', ...(print ? r: []));
+			if (ok) {
+				resolve(r);
+			} else {
+				reject(new Error('test fail'));
+			}
 		}
-
-		if (args.length && args.indexReverse(0)) {
-			let last = args.length - 1;
-			let f = args[last] as any;
-			args[last] = async (err: any, ...args: any[])=>{
+		if (typeof args.indexReverse(0) == 'function' ) {
+			let cb = args.indexReverse(0) as any;
+			args[args.length - 1] = async (err: any, ...args: any[])=>{
+				await cb(err, ...args);
 				if (err) {
 					reject(err)
 				} else {
-					await f(...args);
-					ok(...args);
+					ok(args);
 				}
 			}
+			(self[name] as any)(...args);
 		} else {
-			sync = true;
-		}
-
-		try {
-			r = (self[name] as any)( ...args );
-		} catch(err) {
-			reject(err);
-		}
-
-		if (sync) {
-			ok(r);
+			ok([(self[name] as any)(...args)]);
 		}
 	});
 }

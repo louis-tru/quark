@@ -32,6 +32,7 @@
 #include "../../ui/window.h"
 #include "../../ui/action/action.h"
 #include "../../ui/css/css.h"
+#include "../../ui/view/matrix.h"
 
 namespace qk { namespace js {
 
@@ -49,7 +50,7 @@ namespace qk { namespace js {
 				// cData->as(worker, e.data());
 				ev->set(worker->strs()->_data(), cData->cast(worker, e.data()));
 			}
-			JSValue* args[2] = { ev->that(), worker->newInstance(true) };
+			JSValue* args[2] = { ev->that(), worker->newValue(true) };
 
 			// Qk_DEBUG("addEventListener_Static, %s, EventType: %s", *func, *e.name());
 			// call js trigger func
@@ -177,7 +178,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(matrix, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->jsvalue(self->matrix()) );
+				Js_Return( self->matrix() );
 			});
 
 			Js_Set_Class_Accessor_Get(level, {
@@ -206,7 +207,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor(visible, {
 				Js_Self(View);
-				Js_Return( self->visible() );
+				Js_ReturnBool( self->visible() );
 			}, {
 				Js_Self(View);
 				self->set_visible(val->toBooleanValue(worker));
@@ -214,12 +215,12 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(visibleRegion, {
 				Js_Self(View);
-				Js_Return( self->visible_region() );
+				Js_ReturnBool( self->visible_region() );
 			});
 
 			Js_Set_Class_Accessor(receive, {
 				Js_Self(View);
-				Js_Return( self->receive() );
+				Js_ReturnBool( self->receive() );
 			}, {
 				Js_Self(View);
 				self->set_receive(val->toBooleanValue(worker));
@@ -227,17 +228,17 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(isFocus, {
 				Js_Self(View);
-				Js_Return( self->is_focus() );
+				Js_ReturnBool( self->is_focus() );
 			});
 
 			Js_Set_Class_Method(focus, {
 				Js_Self(View);
-				self->focus();
+				Js_ReturnBool( self->focus() );
 			});
 
 			Js_Set_Class_Method(blur, {
 				Js_Self(View);
-				self->blur();
+				Js_ReturnBool( self->blur() );
 			});
 
 			Js_Set_Class_Method(isSelfChild, {
@@ -250,7 +251,7 @@ namespace qk { namespace js {
 				}
 				Js_Self(View);
 				auto v = wrap<View>(args[0])->self();
-				Js_Return( self->is_self_child(v) );
+				Js_ReturnBool( self->is_self_child(v) );
 			});
 
 			Js_Set_Class_Method(before, {
@@ -323,7 +324,7 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(isClip, {
 				Js_Self(View);
-				Js_Return( self->is_clip() );
+				Js_ReturnBool( self->is_clip());
 			});
 
 			Js_Set_Class_Accessor_Get(viewType, {
@@ -343,7 +344,7 @@ namespace qk { namespace js {
 				}
 				Js_Parse_Type(Vec2, args[0], "@method View.overlapTest(point = %s)");
 				Js_Self(View);
-				Js_Return(self->overlap_test(out));
+				Js_ReturnBool(self->overlap_test(out));
 			});
 			Js_Set_Class_Accessor_Get(position, {
 				Js_Self(View);

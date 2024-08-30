@@ -116,7 +116,7 @@ namespace qk { namespace js {
 					auto unicode = codec_decode_to_unicode( // decode to unicode
 						en, WeakBuffer(data+start, end-start).buffer()
 					);
-					Js_Return( worker->newInstance(unicode.collapseString()) );
+					Js_Return( worker->newValue(unicode.collapseString()) );
 					break;
 				}
 			}

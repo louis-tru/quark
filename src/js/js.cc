@@ -380,15 +380,15 @@ namespace qk {
 		String str = _Str::printfv(errmsg, arg);
 		va_end(arg);
 		Error err(ERR_UNKNOWN_ERROR, str);
-		return newInstance(err);
+		return newValue(err);
 	}
 
 	JSObject* Worker::newError(cError& err) {
-		return newInstance(err);
+		return newValue(err);
 	}
 
 	JSObject* Worker::newError(JSObject* value) {
-		auto err = newInstance(Error(""));
+		auto err = newValue(Error(""));
 		auto names = value->getPropertyNames(this);
 		for (uint32_t i = 0, j = 0; i < names->length(); i++) {
 			auto key = names->get(this, i);
@@ -397,7 +397,7 @@ namespace qk {
 		return err;
 	}
 
-	JSValue* Worker::newInstance(Object* val) {
+	JSValue* Worker::newValue(Object* val) {
 		if (val) {
 			auto wrap = WrapObject::wrap(val);
 			if (wrap)
@@ -406,46 +406,46 @@ namespace qk {
 		return newNull();
 	}
 
-	JSObject* Worker::newInstance(const HttpError& err) {
-		auto rv = newInstance(*static_cast<cError*>(&err));
+	JSObject* Worker::newValue(const HttpError& err) {
+		auto rv = newValue(*static_cast<cError*>(&err));
 		if ( rv ) {
-			if (!rv->set(this, strs()->status(), newInstance(err.status())))
+			if (!rv->set(this, strs()->status(), newValue(err.status())))
 				return nullptr;
-			if (!rv->set(this, strs()->url(), newInstance(err.url())))
+			if (!rv->set(this, strs()->url(), newValue(err.url())))
 				return nullptr;
 		}
 		return rv;
 	}
 
-	JSObject* Worker::newInstance(cDictSS& data) {
+	JSObject* Worker::newValue(cDictSS& data) {
 		auto rev = newObject();
 		{ HandleScope scope(this);
 			for (auto& i : data)
-				rev->set(this, newStringOneByte(i.key), newInstance(i.value));
+				rev->set(this, newStringOneByte(i.key), newValue(i.value));
 		}
 		return rev;
 	}
 
-	JSString* Worker::newInstance(cString4& data) {
-		return newInstance(codec_encode_to_utf16(data.array().buffer()).collapseString());
+	JSString* Worker::newValue(cString4& data) {
+		return newValue(codec_encode_to_utf16(data.array().buffer()).collapseString());
 	}
 
-	JSArray* Worker::newInstance(cArray<String>& data) {
+	JSArray* Worker::newValue(cArray<String>& data) {
 		auto rev = newArray();
 		{ HandleScope scope(this);
 			for (int i = 0, e = data.length(); i < e; i++) {
-				rev->set(this, i, newInstance(data[i]));
+				rev->set(this, i, newValue(data[i]));
 			}
 		}
 		return rev;
 	}
 
-	JSUint8Array* Worker::newInstance(Buffer& buff) {
-		return newInstance(std::move(buff));
+	JSUint8Array* Worker::newValue(Buffer& buff) {
+		return newValue(std::move(buff));
 	}
 
 	JSUint8Array* Worker::newUint8Array(JSString* str, Encoding en) {
-		return newInstance(str->toBuffer(this, en));
+		return newValue(str->toBuffer(this, en));
 	}
 
 	JSUint8Array* Worker::newUint8Array(int size, Char fill) {
@@ -492,7 +492,7 @@ namespace qk {
 
 	static int TriggerExit(Worker* worker, cString& name, int code) {
 		Js_Handle_Scope();
-		auto argv = worker->newInstance(code)->as<JSValue>();
+		auto argv = worker->newValue(code)->as<JSValue>();
 		auto rc = TriggerEventFromUtil(worker, name, 1, &argv);
 		if (rc && rc->isInt32()) {
 			return rc->toInt32Value(worker).unsafe();

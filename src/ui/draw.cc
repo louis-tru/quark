@@ -42,6 +42,10 @@
 #include "./view/label.h"
 #include "./view/matrix.h"
 
+#define _Border(v) auto _border = v->_border.load()
+#define _IfBorder(v) _Border(v); if (_border)
+#define _IfNotBorder(v) _Border(v); if (!_border) return
+
 namespace qk {
 
 	typedef UIDraw::BoxData BoxData;
@@ -65,10 +69,10 @@ namespace qk {
 	void UIDraw::getInsideRectPath(Box *box, BoxData &out) {
 		if (out.inside)
 			return;
-		if (box->_border) {
+		_IfBorder(box) {
 			auto rect = getRect(box);
 			auto radius = &box->_border_radius_left_top;
-			auto border = box->_border->width;
+			auto border = _border->width;
 			Hash5381 hash;
 			hash.updatefv4(rect.origin.val);
 			hash.updatefv4(radius);
@@ -95,7 +99,7 @@ namespace qk {
 				} else {
 					float lt = Qk_MIN(radius[0],xy_0_5), rt = Qk_MIN(radius[1],xy_0_5);
 					float rb = Qk_MIN(radius[2],xy_0_5), lb = Qk_MIN(radius[3],xy_0_5);
-					auto border = box->_border->width;
+					auto border = _border->width;
 					Path::BorderRadius Br{
 						{lt-border[3], lt-border[0]}, {rt-border[1], rt-border[0]},
 						{rb-border[1], rb-border[2]}, {lb-border[3], lb-border[2]},
@@ -115,7 +119,8 @@ namespace qk {
 
 	void UIDraw::getRRectOutlinePath(Box *box, BoxData &out) {
 		if (!out.outline) {
-			auto border = box->_border->width;
+			_Border(box);
+			auto border = _border->width;
 			float borderFix[4] = {
 				Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
 				Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
@@ -165,9 +170,9 @@ namespace qk {
 		auto dw = cli.x(), dh = cli.y();
 		float w, h, x, y;
 
-		if (box->_border) {
-			dw -= (box->_border->width[3] + box->_border->width[1]); // left + right
-			dh -= (box->_border->width[0] + box->_border->width[2]); // top + bottom
+		_IfBorder(box) {
+			dw -= (_border->width[3] + _border->width[1]); // left + right
+			dh -= (_border->width[0] + _border->width[2]); // top + bottom
 		}
 		if (FillImage::compute_size(fill->width(), dw, w)) { // ok x
 			if (!FillImage::compute_size(fill->height(), dh, h)) // auto y
@@ -181,9 +186,9 @@ namespace qk {
 		x = FillImage::compute_position(fill->x(), dw, w);
 		y = FillImage::compute_position(fill->y(), dh, h);
 
-		if (box->_border) {
-			x += box->_border->width[3]; // left
-			y += box->_border->width[0]; // top
+		if (_border) {
+			x += _border->width[3]; // left
+			y += _border->width[0]; // top
 		}
 
 		Paint paint0;
@@ -303,21 +308,20 @@ namespace qk {
 	}
 
 	void UIDraw::drawBoxBorder(Box *box, BoxData &data) {
-		auto border = box->_border;
-		if (!border) return;
+		_IfNotBorder(box);
 
 		getRRectOutlinePath(box, data);
 		Paint stroke;
 		stroke.style = Paint::kStroke_Style;
 
 		for (int i = 0; i < 4; i++) {
-			if (border->width[i] > 0) { // top
+			if (_border->width[i] > 0) { // top
 				auto pv = &data.outline->top + i;
 				if (pv->vCount) {
-					_canvas->drawPathvColor(*pv, border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+					_canvas->drawPathvColor(*pv, _border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 				} else { // stroke
-					stroke.color = border->color[i].to_color4f_alpha(_opacity);
-					stroke.width = border->width[i];
+					stroke.color = _border->color[i].to_color4f_alpha(_opacity);
+					stroke.width = _border->width[i];
 					_canvas->drawPath(pv->path, stroke);
 				}
 			}
@@ -347,11 +351,11 @@ namespace qk {
 			auto origin = Vec2();
 			auto size = b->_client_size;
 			auto color = v->scrollbar_color().to_color4f_alpha(_opacity * v->_scrollbar_opacity);
-
-			if (b->_border) {
-				origin = Vec2{b->_border->width[3],b->_border->width[0]};
-				size[0] -= (b->_border->width[3] + b->_border->width[1]); // left + right
-				size[1] -= (b->_border->width[0] + b->_border->width[2]); // top + bottom
+			
+			_IfBorder(b) {
+				origin = Vec2{_border->width[3],_border->width[0]};
+				size[0] -= (_border->width[3] + _border->width[1]); // left + right
+				size[1] -= (_border->width[0] + _border->width[2]); // top + bottom
 			}
 
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar

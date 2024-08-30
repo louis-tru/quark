@@ -68,7 +68,7 @@ namespace qk { namespace js {
 		JSValue* result;
 		switch (encoding) { // buffer
 			case kInvalid_Encoding: // no convert
-				result = worker->newInstance(buffer);
+				result = worker->newValue(buffer);
 				break;
 			case kHex_Encoding: // encode to hex or base64 string
 			case kBase64_Encoding: {
@@ -78,7 +78,7 @@ namespace qk { namespace js {
 			}
 			default: { // encode to js uft16 string
 				auto unicode = codec_decode_to_unicode( encoding, buffer); // decode to unicode
-				result = worker->newInstance(unicode.collapseString());
+				result = worker->newValue(unicode.collapseString());
 				break;
 			}
 		}
@@ -122,10 +122,10 @@ namespace qk { namespace js {
 				} else {
 					StreamResponse* data = static_cast<StreamResponse*>(d.data);
 					JSObject* arg = worker->newObject();
-					arg->set(worker, worker->strs()->data(), worker->newInstance(data->buffer()) );
-					arg->set(worker, worker->strs()->complete(), worker->newInstance(data->complete()) );
-					arg->set(worker, worker->strs()->size(), worker->newInstance(data->size()) );
-					arg->set(worker, worker->strs()->total(), worker->newInstance(data->total()) );
+					arg->set(worker, worker->strs()->data(), worker->newValue(data->buffer()) );
+					arg->set(worker, worker->strs()->complete(), worker->newBool(data->complete()) );
+					arg->set(worker, worker->strs()->size(), worker->newValue(data->size()) );
+					arg->set(worker, worker->strs()->total(), worker->newValue(data->total()) );
 					JSValue* args[2] = { worker->newNull(), arg };
 					func.val->call(worker, 2, args);
 				}
@@ -150,10 +150,10 @@ namespace qk { namespace js {
 				} else {
 					ResponseData* data = d.data;
 					JSObject* arg = worker->newObject();
-					arg->set(worker, worker->strs()->data(), worker->newInstance(data->data) );
-					arg->set(worker, worker->strs()->httpVersion(), worker->newInstance(data->http_version) );
-					arg->set(worker, worker->strs()->statusCode(), worker->newInstance(data->status_code) );
-					arg->set(worker, worker->strs()->responseHeaders(), worker->newInstance(data->response_headers) );
+					arg->set(worker, worker->strs()->data(), worker->newValue(data->data) );
+					arg->set(worker, worker->strs()->httpVersion(), worker->newValue(data->http_version) );
+					arg->set(worker, worker->strs()->statusCode(), worker->newValue(data->status_code) );
+					arg->set(worker, worker->strs()->responseHeaders(), worker->newValue(data->response_headers) );
 					JSValue* args[2] = { worker->newNull(), arg };
 					func.val->call(worker, 2, args);
 				}

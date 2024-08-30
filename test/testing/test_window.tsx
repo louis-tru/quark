@@ -52,7 +52,7 @@ export default async function(win: Window) {
 	LOG('\nTest Window:\n')
 	Mv(screen, 'mainScreenScale', [], e=>[1,2,3].indexOf(e)!=-1)
 	Pv(win, 'atomPixel', e=>[0.5,1].indexOf(e)!=-1)
-	Mvcb(win, 'nextFrame', [()=>console.log('win.nextFrame')])
+	await Mvcb(win, 'nextFrame', [()=>console.log('win.nextFrame')])
 	Pv(win, 'size', e=>e.x==500&&e.y==500, e=>e.size=types.parseVec2([500,500]))
 	Pv(win, 'atomPixel', e=>[0.5,1].indexOf(e)!=-1)
 	Pv(win, 'surfaceSize', e=>true)

@@ -44,7 +44,7 @@ Qk_EXPORT int (*__qk_run_main__)(int, char**) = nullptr;
 namespace qk {
 	typedef Application::Inl AppInl;
 	// thread helper
-	static auto __run_main_wait = new CondMutex;
+	static auto _run_main_wait = new CondMutex;
 
 	void view_prop_acc_init();
 
@@ -78,7 +78,7 @@ namespace qk {
 		_imgPool = new ImageSourcePool(_loop);
 		_defaultTextOptions = new DefaultTextOptions(_fontPool);
 		_styleSheets = new RootStyleSheets();
-		__run_main_wait->lock_notify_all(); // The external thread continues to run
+		_run_main_wait->lock_notify_all(); // The external thread continues to run
 
 		struct Tick {
 			static void cb(Cb::Data& e, Application *self) {
@@ -130,7 +130,7 @@ namespace qk {
 
 		// Block this main thread until calling new Application
 		while (!_shared) {
-			__run_main_wait->lock_wait_for();
+			_run_main_wait->lock_wait_for();
 		}
 	}
 
@@ -161,20 +161,17 @@ namespace qk {
 	void Application::lockAllRenderThreads(Cb cb) {
 		ScopeLock lock(_mutex);
 		Array<UILock*> locks;
-		for (auto w: _windows)
-			locks.push(new UILock(w));
+		for (auto w: _windows) locks.push(new UILock(w));
 		cb->resolve();
-		for (auto lock: locks)
-			delete lock;
+		for (auto lock: locks) delete lock;
 	}
 
 	// ------------------- A p p l i c a t i o n :: I n l -------------------
 
-	typedef void (*CbFunc) (Cb::Data&, AppInl*);
+	typedef Cb::Static<AppInl> CbFunc;
 
 	void AppInl::triggerLoad() {
 		_loop->post(Cb((CbFunc)[](Cb::Data& d, AppInl* app) {
-			ScopeLock lock(app->_mutex);
 			if (!app->_isLoaded) {
 				app->_isLoaded = true;
 				app->Qk_Trigger(Load);
@@ -184,7 +181,6 @@ namespace qk {
 
 	void AppInl::triggerUnload() {
 		_loop->post(Cb((CbFunc)[](auto& d, AppInl* app) {
-			ScopeLock lock(app->_mutex);
 			if (app->_isLoaded) {
 				app->_isLoaded = false;
 				app->Qk_Trigger(Unload);
@@ -203,8 +199,10 @@ namespace qk {
 	}
 
 	void AppInl::triggerMemorywarning() {
-		clear();
-		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){ app->Qk_Trigger(Memorywarning); }, this));
+		_loop->post(Cb((CbFunc)[](Cb::Data&, AppInl* app){
+			app->clear();
+			app->Qk_Trigger(Memorywarning);
+		}, this));
 	}
 
 	void AppInl::triggerBackground(Window *win) {
@@ -224,5 +222,4 @@ namespace qk {
 		}
 		_activeWindow = win;
 	}
-
 }

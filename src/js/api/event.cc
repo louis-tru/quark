@@ -157,23 +157,23 @@ namespace qk { namespace js {
 			});
 			Js_Set_Class_Accessor_Get(shift, {
 				Js_Self(Type);
-				Js_Return( self->shift() );
+				Js_ReturnBool( self->shift() );
 			});
 			Js_Set_Class_Accessor_Get(ctrl, {
 				Js_Self(Type);
-				Js_Return( self->ctrl() );
+				Js_ReturnBool( self->ctrl() );
 			});
 			Js_Set_Class_Accessor_Get(alt, {
 				Js_Self(Type);
-				Js_Return( self->alt() );
+				Js_ReturnBool( self->alt() );
 			});
 			Js_Set_Class_Accessor_Get(command, {
 				Js_Self(Type);
-				Js_Return( self->command() );
+				Js_ReturnBool( self->command() );
 			});
 			Js_Set_Class_Accessor_Get(caps_lock, {
 				Js_Self(Type);
-				Js_Return( self->caps_lock() );
+				Js_ReturnBool( self->caps_lock() );
 			});
 			Js_Set_Class_Accessor_Get(device, {
 				Js_Self(Type);

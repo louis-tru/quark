@@ -40,7 +40,8 @@
 // -------------------------- Js common macro --------------------------
 
 #define Js_Worker(...)   auto worker = Worker::worker(__VA_ARGS__)
-#define Js_Return(v)     return args.returnValue().set(worker->newInstance((v)))
+#define Js_Return(v)     return args.returnValue().set(worker->newValue((v)))
+#define Js_ReturnBool(v) return args.returnValue().set(bool(v))
 #define Js_Return_Null() return args.returnValue().setNull()
 #define Js_Wrap(type)    auto wrap = qk::js::WrapObject::wrap<type>(args.This())
 #define Js_Self(type)    auto self = qk::js::WrapObject::wrap<type>(args.This())->self()
@@ -462,32 +463,30 @@ namespace qk { namespace js {
 		void garbageCollection();
 
 		// new instance
-		JSValue* newInstance(Object *val);
-		// May receive unknown pointers
-		JSBoolean* newInstance(bool val) { return newBool(val); }
-		JSNumber* newInstance(float val);
-		JSNumber* newInstance(double val);
-		JSInt32*  newInstance(Char val);
-		JSUint32* newInstance(uint8_t val);
-		JSInt32*  newInstance(int16_t val);
-		JSUint32* newInstance(uint16_t val);
-		JSInt32*  newInstance(int32_t val);
-		JSUint32* newInstance(uint32_t val);
-		JSNumber* newInstance(int64_t val);
-		JSNumber* newInstance(uint64_t val);
-		JSString* newInstance(cString& val);
-		JSString* newInstance(cString2& val);
-		JSString* newInstance(cString4& val);
-		JSObject* newInstance(cError& val);
-		JSObject* newInstance(const HttpError& val);
-		JSArray*  newInstance(cArray<String>& val);
-		JSObject* newInstance(cDictSS& val);
-		JSUint8Array* newInstance(Buffer& val);
-		JSUint8Array* newInstance(Buffer&& val);
+		JSValue* newValue(Object *val);
+		JSNumber* newValue(float val);
+		JSNumber* newValue(double val);
+		JSInt32*  newValue(Char val);
+		JSUint32* newValue(uint8_t val);
+		JSInt32*  newValue(int16_t val);
+		JSUint32* newValue(uint16_t val);
+		JSInt32*  newValue(int32_t val);
+		JSUint32* newValue(uint32_t val);
+		JSNumber* newValue(int64_t val);
+		JSNumber* newValue(uint64_t val);
+		JSString* newValue(cString& val);
+		JSString* newValue(cString2& val);
+		JSString* newValue(cString4& val);
+		JSObject* newValue(cError& val);
+		JSObject* newValue(const HttpError& val);
+		JSArray*  newValue(cArray<String>& val);
+		JSObject* newValue(cDictSS& val);
+		JSUint8Array* newValue(Buffer& val);
+		JSUint8Array* newValue(Buffer&& val);
 		template <class S>
-		inline S* newInstance(const Persistent<S>& val) { return *val; }
+		inline S* newValue(const Persistent<S>& val) { return *val; }
 		inline
-		JSValue* newInstance(JSValue* val) { return val; }
+		JSValue* newValue(JSValue* val) { return val; }
 
 		JSBoolean*    newBool(bool val);
 		JSValue*      newNull();
@@ -653,15 +652,15 @@ namespace qk { namespace js {
 
 	template<class T>
 	bool JSObject::setProperty(Worker* worker, cString& name, T value) {
-		return set(worker, worker->newStringOneByte(name), worker->newInstance(value));
+		return set(worker, worker->newStringOneByte(name), worker->newValue(value));
 	}
 	template<class T>
 	bool JSClass::setMemberProperty(cString& name, T value) {
-		return setMemberProperty<JSValue*>(name, _worker->newInstance(value));
+		return setMemberProperty<JSValue*>(name, _worker->newValue(value));
 	}
 	template<class T>
 	bool JSClass::setStaticProperty(cString& name, T value) {
-		return setStaticProperty<JSValue*>(name, _worker->newInstance(value));
+		return setStaticProperty<JSValue*>(name, _worker->newValue(value));
 	}
 	template<>
 	Qk_EXPORT bool JSClass::setMemberProperty<JSValue*>(cString& name, JSValue* value);
