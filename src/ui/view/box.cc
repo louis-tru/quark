@@ -36,10 +36,13 @@
 #include "../text/text_lines.h"
 #include "../text/text_opts.h"
 
-namespace qk {
+#define _Parent() auto _parent = this->parent()
+#define _IfParent() _Parent(); if (_parent)
+#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
+#define _Border() auto _border = this->_border.load()
+#define _IfBorder() _Border(); if (_border)
 
-	#define _Border() auto _border = this->_border.load()
-	#define _IfBorder() _Border(); if (_border)
+namespace qk {
 
 	float Box::solve_layout_content_width(Size &pSize) {
 		float result = _content_size.x();
@@ -179,7 +182,8 @@ namespace qk {
 		if (_max_width.kind == BoxSizeKind::None) { // no limit
 			return inside;
 		}
-		auto pSize = parent_Rt()->layout_size();
+		_CheckParent(inside);
+		auto pSize = _parent->layout_size();
 		auto size = pSize.content.x();
 		float limit_min = 0, limit_max = get_max_width_limit_value(pSize);
 
@@ -216,7 +220,8 @@ namespace qk {
 		if (_max_height.kind == BoxSizeKind::None) { // no limit
 			return inside;
 		}
-		auto pSize = parent_Rt()->layout_size();
+		_CheckParent(inside);
+		auto pSize = _parent->layout_size();
 		auto size = pSize.content.y();
 		float limit_min = 0, limit_max = get_max_height_limit_value(pSize);
 
@@ -253,7 +258,8 @@ namespace qk {
 		float x = 0;
 		if (_wrap_x) {
 			if (_max_width.kind != BoxSizeKind::None) { // no limit
-				auto size = parent_Rt()->layout_size();
+				_CheckParent(Vec2());
+				auto size = _parent->layout_size();
 				x = Float32::max(get_max_width_limit_value(size), 1);
 			}
 		} else {
@@ -845,8 +851,8 @@ namespace qk {
 
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
 			uint32_t child_layout_change_mark = kLayout_None;
-			auto parent = parent_Rt();
-			auto size = parent->layout_size();
+			_CheckParent(change_mark);
+			auto size = _parent->layout_size();
 
 			if (mark & kLayout_Size_Width)
 			{
@@ -886,7 +892,7 @@ namespace qk {
 				}
 			}
 
-			parent->onChildLayoutChange(this, child_layout_change_mark); // notice parent
+			_parent->onChildLayoutChange(this, child_layout_change_mark); // notice parent
 			unmark(kLayout_Size_Width | kLayout_Size_Height);
 		}
 
@@ -902,11 +908,11 @@ namespace qk {
 		uint32_t change_mark = solve_layout_forward(_mark);
 
 		if (change_mark) {
-			auto v = first_Rt();
+			auto v = first();
 			while (v) {
 				if (v->visible())
 					v->layout_forward(change_mark | v->mark_value());
-				v = v->next_Rt();
+				v = v->next();
 			}
 			mark_layout(kLayout_Typesetting | kRecursive_Visible_Region, true); // layout reverse
 		}
@@ -952,11 +958,11 @@ namespace qk {
 		_content_size = content;
 
 		if (change_mark) {
-			auto v = first_Rt();
+			auto v = first();
 			while (v) {
 				if (v->visible())
 					v->layout_forward(change_mark | v->mark_value());
-				v = v->next_Rt();
+				v = v->next();
 			}
 			mark_layout(kLayout_Typesetting | kRecursive_Visible_Region, true); // rearrange
 		}
@@ -971,7 +977,7 @@ namespace qk {
 		auto cur = content_size();
 		auto cur_x = cur.x();
 
-		auto v = first_Rt();
+		auto v = first();
 		if (v) {
 			if ( _wrap_x ) { // wrap width
 				cur_x = 0;
@@ -979,9 +985,9 @@ namespace qk {
 					if (v->visible()) {
 						cur_x = Float32::max(cur_x, v->layout_size().layout.x());
 					}
-					v = v->next_Rt();
+					v = v->next();
 				} while(v);
-				v = first_Rt();
+				v = first();
 				cur_x = solve_layout_content_wrap_limit_width(cur_x);
 			}
 
@@ -1033,7 +1039,7 @@ namespace qk {
 							break;
 					}
 				}
-				v = v->next_Rt();
+				v = v->next();
 			} while(v);
 
 			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
@@ -1049,7 +1055,8 @@ namespace qk {
 
 		if (new_size != cur) {
 			set_content_size(new_size);
-			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
+			_IfParent()
+				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 
 		unmark(kLayout_Typesetting);
@@ -1123,11 +1130,12 @@ namespace qk {
 
 	void Box::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kRecursive_Transform) { // update transform matrix
+			_CheckParent();
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			Vec2 offset = layout_offset() + parent_Rt()->layout_offset_inside()
+			Vec2 offset = layout_offset() + _parent->layout_offset_inside()
 				+ Vec2(_margin_left, _margin_top);
 			_position =
-				mat.mul_vec2_no_translate(offset) + parent_Rt()->position();
+				mat.mul_vec2_no_translate(offset) + _parent->position();
 			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark
@@ -1150,9 +1158,9 @@ namespace qk {
 		if (_align != align) {
 			_align = align;
 			preRender().async_call([](auto self, auto arg) {
-				if (self->parent_Rt()) {
-					self->parent_Rt()->onChildLayoutChange(self, kChild_Layout_Align);
-				}
+				auto _parent = self->parent();
+				if (_parent)
+					_parent->onChildLayoutChange(self, kChild_Layout_Align);
 			}, this, 0);
 		}
 	}
@@ -1161,9 +1169,9 @@ namespace qk {
 		if (_weight != weight) {
 			_weight = weight;
 			preRender().async_call([](auto self, auto arg) {
-				if (self->parent_Rt()) {
-					self->parent_Rt()->onChildLayoutChange(self, kChild_Layout_Weight);
-				}
+				auto _parent = self->parent();
+				if (_parent)
+					_parent->onChildLayoutChange(self, kChild_Layout_Weight);
 			}, this, 0);
 		}
 	}

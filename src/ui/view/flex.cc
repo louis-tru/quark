@@ -30,6 +30,9 @@
 
 #include "./flex.h"
 
+#define _Parent() auto _parent = this->parent()
+#define _IfParent() _Parent(); if (_parent)
+
 namespace qk {
 
 	float parse_align_space(ItemsAlign align, bool is_reverse, float overflow, int count, float *space_out) {
@@ -95,7 +98,7 @@ namespace qk {
 		if (!is_wrap_cross) { // no wrap cross axis
 			max_cross = is_horizontal ? cur.y(): cur.x();
 		}
-		auto v = first_Rt();
+		auto v = first();
 		while (v) {
 			if (v->visible()) {
 				auto size = v->layout_size().layout;
@@ -104,7 +107,7 @@ namespace qk {
 					max_cross = Qk_MAX(max_cross, cross);
 				total_main += is_horizontal ? size.x(): size.y();
 			}
-			v = v->next_Rt();
+			v = v->next();
 			items++;
 		}
 
@@ -122,7 +125,7 @@ namespace qk {
 			if (overflow != 0) {
 				offset = parse_align_space(_items_align, is_reverse, overflow, items, &space);
 			}
-			v = is_reverse ? last_Rt(): first_Rt();
+			v = is_reverse ? last(): first();
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout;
@@ -144,13 +147,14 @@ namespace qk {
 						offset += (size.y() + space);
 					}
 				}
-				v = is_reverse ? v->prev_Rt() : v->next_Rt();
+				v = is_reverse ? v->prev() : v->next();
 			} while (v);
 		}
 
 		if (new_size != cur) {
 			set_content_size(new_size);
-			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
+			_IfParent()
+				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}
 
@@ -164,13 +168,12 @@ namespace qk {
 		float cross_size_old = is_horizontal ? cur.y(): cur.x();
 		float cross_size = is_wrap_cross ? 0: cross_size_old;
 
-		if (first_Rt()) {
+		auto v = is_reverse ? last(): first();
+		if (v) {
 			struct Item { Vec2 size; View* view; };
 			Array<Item> items;
 			float total_main = 0, max_cross = 0;
 			float total_weight = 0;
-
-			auto v = is_reverse ? last_Rt(): first_Rt();
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout;
@@ -179,7 +182,7 @@ namespace qk {
 					total_weight += v->layout_weight();
 					items.push({size, v});
 				}
-				v = is_reverse ? v->prev_Rt() : v->next_Rt();
+				v = is_reverse ? v->prev() : v->next();
 			} while(v);
 
 			if (is_wrap_cross) {
@@ -240,7 +243,8 @@ namespace qk {
 		}
 		if (cross_size != cross_size_old) {
 			set_content_size(is_horizontal ? Vec2{main_size, cross_size}: Vec2{cross_size, main_size});
-			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
+			_IfParent()
+				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}
 

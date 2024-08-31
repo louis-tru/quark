@@ -330,7 +330,7 @@ namespace qk {
 
 	void UIDraw::drawBoxEnd(Box *box, BoxData &data) {
 		if (box->_clip) {
-			if (box->_first_Rt) {
+			if (box->_first.load()) {
 				getInsideRectPath(box, data);
 				_window->clipRegion(screen_region_from_convex_quadrilateral(box->_vertex));
 				_canvas->save();
@@ -434,7 +434,7 @@ namespace qk {
 
 	void UIDraw::visitView(View *view) {
 		// visit child
-		auto v = view->_first_Rt;
+		auto v = view->_first.load();
 		if (v) {
 			auto opacityCurr = _opacity;
 			auto markCurr = _mark_recursive;
@@ -450,7 +450,7 @@ namespace qk {
 						v->draw(this);
 					}
 				}
-				v = v->_next_Rt;
+				v = v->_next.load();
 			} while(v);
 			_opacity = opacityCurr;
 			_mark_recursive = markCurr;
@@ -509,7 +509,7 @@ namespace qk {
 		drawBoxBorder(v, data);
 
 		if (v->_clip) {
-			if (v->_first_Rt || v->_blob_visible.length()) {
+			if (v->_first.load() || v->_blob_visible.length()) {
 				getInsideRectPath(v, data);
 				_window->clipRegion(screen_region_from_convex_quadrilateral(v->_vertex));
 				_canvas->save();

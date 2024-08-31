@@ -30,6 +30,10 @@
 
 #include "./flow.h"
 
+#define _Parent() auto _parent = this->parent()
+#define _IfParent() _Parent(); if (_parent)
+#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
+
 namespace qk {
 
 	float parse_align_space(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out);
@@ -40,8 +44,9 @@ namespace qk {
 		auto wrap_x = _wrap_x,
 				 wrap_y = _wrap_y;
 		Vec2 cur = content_size(), new_size;
-
-		if (first_Rt()) {
+		
+		auto v = first();
+		if (v) {
 			bool is_wrap_main = is_horizontal ? wrap_x: wrap_y;
 			bool is_wrap_cross = is_horizontal ? wrap_y: wrap_x;
 			float max_main = 0;
@@ -59,12 +64,13 @@ namespace qk {
 			Array<typename Line::Item> _items; // temp items
 			float _total_main = 0, _max_cross = 0;
 
+			_CheckParent();
+
 			float main_limit = is_horizontal ? (
-				is_wrap_main ? get_max_width_limit_value(parent_Rt()->layout_size()): cur.x()
+				is_wrap_main ? get_max_width_limit_value(_parent->layout_size()): cur.x()
 			): (
-				is_wrap_main ? get_max_height_limit_value(parent_Rt()->layout_size()): cur.y()
+				is_wrap_main ? get_max_height_limit_value(_parent->layout_size()): cur.y()
 			);
-			auto v = first_Rt();
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout;
@@ -83,7 +89,7 @@ namespace qk {
 					}
 					_items.push({ size, v });
 				}
-				v = v->next_Rt();
+				v = v->next();
 			} while(v);
 
 			if (_items.length()) { // last items
@@ -162,7 +168,8 @@ namespace qk {
 
 		if (new_size != cur) {
 			set_content_size(new_size);
-			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
+			_IfParent()
+				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}
 

@@ -32,6 +32,9 @@
 #include "../screen.h"
 #include "../app.h"
 
+#define _Parent() auto _parent = this->parent()
+#define _IfParent() _Parent(); if (_parent)
+
 namespace qk {
 
 	void Label::set_value(String val, bool isRt) {
@@ -45,7 +48,8 @@ namespace qk {
 
 	void Label::layout_reverse(uint32_t mark) {
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting)) {
-			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Text);
+			_IfParent()
+				_parent->onChildLayoutChange(this, kChild_Layout_Text);
 			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
 		}
 	}
@@ -61,12 +65,12 @@ namespace qk {
 
 		TextBlobBuilder(lines, this, &_blob).make(value);
 
-		auto v = first_Rt();
+		auto v = first();
 		while(v) {
 			if (v->visible()) {
 				v->layout_text(lines, &cfg);
 			}
-			v = v->next_Rt();
+			v = v->next();
 		}
 	}
 

@@ -109,22 +109,11 @@ namespace qk {
 		 * @safe Mt
 		 * @note Can only be used in main threads
 		*/
-		Qk_DEFINE_PROP_GET(View*, parent); // @safe Mt
-		Qk_DEFINE_PROP_GET(View*, prev); // @safe Mt
-		Qk_DEFINE_PROP_GET(View*, next); // @safe Mt
-		Qk_DEFINE_PROP_GET(View*, first); // @safe Mt
-		Qk_DEFINE_PROP_GET(View*, last); // @safe Mt
-
-		/**
-		 * @prop parent_Rt view
-		 * @safe Rt
-		 * @note Can only be used in rendering threads
-		*/
-		Qk_DEFINE_PROP_GET(View*, parent_Rt); // @safe Rt
-		Qk_DEFINE_PROP_GET(View*, prev_Rt); // @safe Rt
-		Qk_DEFINE_PROP_GET(View*, next_Rt); // @safe Rt
-		Qk_DEFINE_PROP_GET(View*, first_Rt); // @safe Rt
-		Qk_DEFINE_PROP_GET(View*, last_Rt); // @safe Rt
+		Qk_DEFINE_PROP_GET_Atomic(View*, parent);
+		Qk_DEFINE_PROP_GET_Atomic(View*, prev);
+		Qk_DEFINE_PROP_GET_Atomic(View*, next);
+		Qk_DEFINE_PROP_GET_Atomic(View*, first);
+		Qk_DEFINE_PROP_GET_Atomic(View*, last);
 
 		/**
 		* @prop window
@@ -611,7 +600,7 @@ namespace qk {
 		void clear_link_Rt(); // Cleaning up associated view information rt
 		void clear_level_Rt(); //  clear view depth rt
 		void set_level_Rt(uint32_t level); // settings depth
-		void set_visible_Rt(bool visible, uint32_t level);
+		void set_visible_Rt(bool visible);
 		void applyClass_Rt(CStyleSheetsClass* parentSsc);
 		CStyleSheetsClass* parentSsclass_Rt();
 

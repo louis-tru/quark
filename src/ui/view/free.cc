@@ -34,13 +34,13 @@ namespace qk {
 
 	void Free::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			auto v = first_Rt();
+			auto v = first();
 			if (v) {
 				auto _content_size = content_size();
 				do { // lazy free layout
 					if (v->visible())
 						v->set_layout_offset_free(_content_size); // free layout
-					v = v->next_Rt();
+					v = v->next();
 				} while(v);
 			}
 			unmark(kLayout_Typesetting);

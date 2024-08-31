@@ -32,6 +32,9 @@
 #include "../text/text_lines.h"
 #include "../app.h"
 
+#define _Parent() auto _parent = this->parent()
+#define _IfParent() _Parent(); if (_parent)
+
 namespace qk {
 
 	void Text::set_value(String val, bool isRt) {
@@ -44,7 +47,7 @@ namespace qk {
 
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			auto size = content_size();
-			auto v = first_Rt();
+			auto v = first();
 			_lines = new TextLines(this, text_align_value(), get_text_lines_limit_size(), _wrap_x);
 			_lines->set_init_line_height(text_size().value, text_line_height().value);
 
@@ -60,7 +63,7 @@ namespace qk {
 			if (v) {
 				do {
 					v->layout_text(*_lines, &cfg);
-					v = v->next_Rt();
+					v = v->next();
 				} while(v);
 			}
 			_lines->finish();
@@ -72,7 +75,8 @@ namespace qk {
 
 			if (new_size != size) {
 				set_content_size(new_size);
-				parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
+				_IfParent()
+					_parent->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 
 			unmark(kLayout_Typesetting);

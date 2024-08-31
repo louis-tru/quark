@@ -34,6 +34,8 @@
 #include "./textarea.h"
 #include "../../util/codec.h"
 
+#define _Parent() auto _parent = this->parent()
+#define _IfParent() _Parent(); if (_parent)
 #define _Border() auto _border = this->_border.load()
 #define _IfBorder() _Border(); if (_border)
 
@@ -758,7 +760,8 @@ namespace qk {
 
 		if (new_size != size) {
 			set_content_size(new_size);
-			parent_Rt()->onChildLayoutChange(this, kChild_Layout_Size);
+			_IfParent()
+				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 
 		unmark(kLayout_Typesetting);
