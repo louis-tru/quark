@@ -120,7 +120,7 @@ namespace qk {
 		 * @param view {View} safe retain view object to main loop, if retain fail then cancel call
 		 * @param delayUs
 		*/
-		void post(Cb cb, View *view, uint64_t delayUs = 0);
+		bool post(Cb cb, View *view, uint64_t delayUs = 0);
 
 	private:
 		/**

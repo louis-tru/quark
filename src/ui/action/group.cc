@@ -43,6 +43,12 @@ namespace qk {
 
 	void ActionGroup::clear() {
 		if (_actions.length()) {
+			Qk_Assert(_window);
+			for ( auto &i : _actions ) {
+				i.key->del_parent(); // release for main thread
+			}
+			_actions.clear();
+
 			_async_call([](auto self, auto arg) {
 				if (self->isSequence())
 					static_cast<SequenceAction*>(self)->_play_Rt = nullId;
@@ -51,10 +57,6 @@ namespace qk {
 				}
 				self->_actions_Rt.clear();
 			}, this, 0);
-			for ( auto &i : _actions ) {
-				i.key->del_parent(); // release for main thread
-			}
-			_actions.clear();
 		}
 		if ( _duration ) {
 			ActionGroup::setDuration( _duration );

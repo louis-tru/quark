@@ -50,18 +50,28 @@ namespace qk {
 		, _target(nullptr)
 		, _looped(0)
 	{
-		Qk_ASSERT(win);
+		Qk_Assert(win);
 	}
 
 	Action::~Action() {
-		Qk_ASSERT( _id == Id() );
-		_window = nullptr;
+		Qk_Assert( _id == Id() );
+	}
+
+	Action* Action::tryRetain() {
+		if (_refCount++ > 0) {
+			return this;
+		} else {
+			_refCount--; // Revoke self increase
+			return nullptr;
+		}
 	}
 
 	void Action::release_for_only_center_Rt() {
-		Qk_ASSERT(refCount() == 1);
-		_window = nullptr;
-		release();
+		Qk_Assert(_refCount >= 0);
+		if ( --_refCount <= 0 ) {
+			_window = nullptr;
+			heapAllocator()->weak(this);
+		}
 	}
 
 	void Action::destroy() {
@@ -163,14 +173,14 @@ namespace qk {
 	}
 
 	void ActionGroup::append(Action* child) {
-		Qk_ASSERT(child);
+		Qk_Assert(child);
 		if (child->set_parent(this) == 0) {
 			insertChild(_actions_Rt.end(), child);
 		}
 	}
 
 	void Action::before(Action *act) {
-		Qk_ASSERT(act);
+		Qk_Assert(act);
 		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			_parent->insertChild(_id, act);
@@ -178,7 +188,7 @@ namespace qk {
 	}
 
 	void Action::after(Action *act) {
-		Qk_ASSERT(act);
+		Qk_Assert(act);
 		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			auto id = _id;
@@ -196,8 +206,8 @@ namespace qk {
 	}
 
 	void Action::set_target(View *target) {
-		Qk_ASSERT(target);
-		Qk_ASSERT(target->window() == _window);
+		Qk_Assert(target);
+		Qk_Assert(target->window() == _window);
 		if (_parent)
 			return Qk_ERR("Action::set_target, cannot set non root action");
 		if (_target)
@@ -206,7 +216,7 @@ namespace qk {
 	}
 
 	void Action::del_target(View* target) {
-		Qk_ASSERT(target);
+		Qk_Assert(target);
 		if (target == _target) {
 			stop(); // stop action
 			_target = nullptr;
@@ -233,7 +243,7 @@ namespace qk {
 	}
 
 	void Action::del_parent() {
-		Qk_ASSERT(_parent);
+		Qk_Assert(_parent);
 		_parent = nullptr;
 		release(); // release for parent
 	}
@@ -255,23 +265,42 @@ namespace qk {
 			Action::setDuration(diff);
 		}
 	}
+	
+	struct CbCore: CallbackCore<Object> {
+		CbCore(Action *a, View *v, uint32_t delay, uint32_t frame, const UIEventName &name)
+			: action(a->tryRetain())
+			, view(v->tryRetain())
+			, delay(delay)
+			, frame(frame)
+			, loop(a->loop())
+			, name(name) {}
+		~CbCore() override {
+			Release(action);
+			Release(view);
+		}
+		void call(Data& e) const override {
+			if (action && view) {
+				Sp<ActionEvent> h(
+					new ActionEvent(action, view, delay, frame, loop)
+				);
+				view->trigger(name, **h);
+			}
+		}
+		Action *action;
+		View   *view;
+		uint32_t delay, frame, loop;
+		const UIEventName &name;
+	};
 
 	void Action::trigger_ActionLoop_Rt(uint32_t delay, Action* root) {
-		auto v = root->_target;
-		auto loop = _loop;
-		v->preRender().post(Cb([this,v,delay,loop](auto& e) {
-			Sp<ActionEvent> h(new ActionEvent(this, v, delay, 0, loop));
-			v->trigger(UIEvent_ActionLoop, **h);
-		}), v);
+		_window->loop()->post(Cb(new CbCore(
+			this, root->_target, delay, 0, UIEvent_ActionLoop
+		)));
 	}
 
 	void Action::trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frameIndex, Action* root) {
-		auto v = root->_target;
-		auto loop = _loop;
-		v->preRender().post(Cb([this,v,delay,frameIndex,loop](auto&e) {
-			Sp<ActionEvent> h(new ActionEvent(this, v, delay, frameIndex, loop));
-			v->trigger(UIEvent_ActionKeyframe, **h);
-		}), v);
+		_window->loop()->post(Cb(new CbCore(
+			this, root->_target, delay, frameIndex, UIEvent_ActionKeyframe
+		)));
 	}
-
 }

@@ -54,7 +54,7 @@ async function test_(win: Window) {
 // import test from './test_event'
 // import test from './test_font'
 // import test from './test_fs'
-// import test from './test_gui'#
+import test from './test_gui'
 // import test from './test_http'
 // import test from './test_os'
 // import test from './test_path'
@@ -64,7 +64,7 @@ async function test_(win: Window) {
 // import test from './test_util'
 // import test from './test_view'#
 // import test from './test_window'
-import test from './test_buf'
+// import test from './test_buf'
 
 (async function() {
 	await test(win);

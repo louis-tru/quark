@@ -51,9 +51,10 @@ namespace qk {
 	class CallbackCore: public Reference {
 		Qk_HIDDEN_ALL_COPY(CallbackCore);
 	public:
+		typedef CallbackData<D, E> Data;
 		inline CallbackCore() {}
 		inline int call(E* e, D* d) const {
-			CallbackData<D, E> evt = { e,d,0 };
+			Data evt = { e,d,0 };
 			call(evt);
 			return evt.rc;
 		}
@@ -63,7 +64,7 @@ namespace qk {
 		inline int reject(E* e) const {
 			return call(e, 0);
 		}
-		virtual void call(CallbackData<D, E>& evt) const = 0;
+		virtual void call(Data& evt) const = 0;
 	};
 
 	template<class T, class D, class E>

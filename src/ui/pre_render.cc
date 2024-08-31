@@ -96,14 +96,19 @@ namespace qk {
 			_window->loop()->post(cb);
 	}
 
-	void PreRender::post(Cb cb, View *v, uint64_t delayUs) {
+	bool PreRender::post(Cb cb, View *v, uint64_t delayUs) {
 		if (v->tryRetain()) {
-			auto core = cb.Handle::collapse();
-			post(Cb([core,v](auto&e) {
-				core->call(e);
-				core->release();
-				v->release();
-			}), delayUs);
+			struct Core: CallbackCore<Object> {
+				Cb   cb;
+				View *view;
+				Core(Cb &cb, View *v): cb(cb), view(v) {}
+				~Core() { view->release(); }
+				void call(Data& e) const { cb->call(e); }
+			};
+			post(Cb(new Core(cb,v)), delayUs);
+			return true;
+		} else {
+			return false;
 		}
 	}
 

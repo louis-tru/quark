@@ -205,6 +205,7 @@ namespace qk {
 
 			CStyleSheets *css_pt = nullptr;
 			switch (_status) {
+				case kNone_CSSType: break;
 				case kNormal_CSSType: css_pt = css->_normal; break;
 				case kHover_CSSType: css_pt = css->_hover; break;
 				case kActive_CSSType: css_pt = css->_active; break;

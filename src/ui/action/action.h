@@ -128,6 +128,13 @@ namespace qk {
 		*/
 		virtual void clear() = 0;
 
+		/**
+		 * Safely use and hold action objects in rendering thread,
+		 * Because action objects may be destroyed at any time on the main thread
+		 * @method tryRetain() Returns safe self hold
+		*/
+		Action* tryRetain();
+
 	private:
 		void set_target(View* t);
 		void del_target(View* t);
@@ -144,6 +151,7 @@ namespace qk {
 		virtual void seek_time_Rt(uint32_t time, Action *root) = 0;
 		virtual void seek_before_Rt(uint32_t time, Action *child) = 0;
 		virtual void setDuration(int32_t diff);
+
 		// Props
 		ActionGroup *_parent;
 		View *_target;
@@ -199,11 +207,11 @@ namespace qk {
 		SequenceAction(Window *win);
 	private:
 		virtual bool isSequence() override;
-		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root);
-		virtual void seek_time_Rt(uint32_t time, Action* root);
-		virtual void seek_before_Rt(uint32_t time, Action* child);
-		virtual void insertChild(Id after, Action *child);
-		virtual void removeChild(Id id);
+		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root) override;
+		virtual void seek_time_Rt(uint32_t time, Action* root) override;
+		virtual void seek_before_Rt(uint32_t time, Action* child) override;
+		virtual void insertChild(Id after, Action *child) override;
+		virtual void removeChild(Id id) override;
 		Id _play_Rt;
 		friend class ActionGroup;
 	};

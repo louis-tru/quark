@@ -55,16 +55,22 @@ namespace qk {
 
 	void KeyframeAction::clear() {
 		if (_frames.length()) {
-			_async_call([](auto self, auto arg) {
-				for (auto i : self->_frames_Rt) {
-					i->destroy();
-				}
-				self->_frames_Rt.clear();
-			}, this, 0);
 			for (auto i : _frames) {
 				i->release();
 			}
 			_frames.clear();
+
+			if (_window) { // @ Action::release_for_only_center_Rt()
+				_async_call([](auto self, auto arg) {
+					for (auto i : self->_frames_Rt)
+						i->destroy(); // last call destroy
+					self->_frames_Rt.clear();
+				}, this, 0);
+			} else {
+				for (auto i : _frames_Rt)
+					i->destroy(); // last call destroy
+				_frames_Rt.clear();
+			}
 		}
 		if ( _duration ) {
 			setDuration( -_duration );

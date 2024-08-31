@@ -160,7 +160,7 @@ export default async function(win: Window) {
 
 	win.root.onClick.on(e=>{
 		if ( !(e.origin instanceof Button) ) {
-			e.origin.style.backgroundColor = '#fff';
+			// e.origin.style.backgroundColor = '#fff';
 			console.log(e.x, e.y, e.data);
 		}
 	})
@@ -168,9 +168,9 @@ export default async function(win: Window) {
 	win.root.onHighlighted.on(e=>{
 		if ( !(e.origin instanceof Button) ) {
 			if ( e.status == HighlightedStatus.Active ) {
-				e.origin.style.backgroundColor = '#f0f';
+				e.origin.style.backgroundColor = '#f00';
 			} else {
-				e.origin.style.backgroundColor = '#ff0';
+				e.origin.style.backgroundColor = '#fff';
 			}
 		}
 	})

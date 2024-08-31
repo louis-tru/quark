@@ -37,6 +37,8 @@
 #include "../../errno.h"
 
 #define _isRt (RunLoop::first()->thread_id() != thread_self_id())
+#define _Cssclass() auto _cssclass = this->_cssclass.load()
+#define _IfCssclass() _Cssclass(); if (_cssclass)
 
 namespace qk {
 
@@ -66,8 +68,8 @@ namespace qk {
 		// The object maintained by the parent view should not be deconstructed,
 		// where the parent must be empty
 		Qk_ASSERT(_parent == nullptr);
-		auto cssclass = _cssclass;
-		_cssclass = nullptr;
+		auto cssclass = _cssclass.load();
+		_cssclass.store(nullptr);
 		Release(cssclass);
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
@@ -124,11 +126,13 @@ namespace qk {
 	}
 
 	CStyleSheetsClass* View::cssclass() {
-		if (!_cssclass) {
+		auto cssclass = _cssclass.load();
+		if (!cssclass) {
 			// After alignment, pointers can be read and written atomically
-			_cssclass = new CStyleSheetsClass(this);
+			cssclass = new CStyleSheetsClass(this);
+			_cssclass.store(cssclass);
 		}
-		return _cssclass;
+		return cssclass;
 	}
 
 	Matrix* View::matrix() {
@@ -378,6 +382,25 @@ namespace qk {
 		preRender().async_call([](auto self, auto arg) { self->before_Rt(arg.arg); }, this, view);
 	}
 
+	void View::before_Rt(View *_view) {
+		if (_view == this) return;
+		if (_parent_Rt) {
+			if (_view->_parent_Rt == _parent_Rt) {
+				_view->clear_link_Rt();  // clear link
+			} else {
+				_view->set_parent_Rt(_parent_Rt);
+			}
+			if (_prev_Rt) {
+				_prev_Rt->_next_Rt = _view;
+			} else { // There are no brothers on top
+				_parent_Rt->_first_Rt = _view;
+			}
+			_view->_prev_Rt = _prev_Rt;
+			_view->_next_Rt = this;
+			_prev_Rt = _view;
+		}
+	}
+
 	void View::after(View *view) {
 		if (view == this) return;
 		if (_parent) {
@@ -396,6 +419,25 @@ namespace qk {
 			_next = view;
 		}
 		preRender().async_call([](auto self, auto arg) { self->after_Rt(arg.arg); }, this, view);
+	}
+
+	void View::after_Rt(View *_view) {
+		if (_view == this) return;
+		if (_parent_Rt) {
+			if (_view->_parent_Rt == _parent_Rt) {
+				_view->clear_link_Rt(); // clear link
+			} else {
+				_view->set_parent_Rt(_parent_Rt);
+			}
+			if (_next_Rt) {
+				_next_Rt->_prev_Rt = _view;
+			} else { // There are no brothers below
+				_parent_Rt->_last_Rt = _view;
+			}
+			_view->_prev_Rt = this;
+			_view->_next_Rt = _next_Rt;
+			_next_Rt = _view;
+		}
 	}
 
 	void View::prepend(View *child) {
@@ -418,6 +460,25 @@ namespace qk {
 		preRender().async_call([](auto self, auto arg) { self->prepend_Rt(arg.arg); }, this, child);
 	}
 
+	void View::prepend_Rt(View *_child) {
+		if (this == _child->_parent_Rt) {
+			_child->clear_link_Rt();
+		} else {
+			_child->set_parent_Rt(this);
+		}
+		if (_first_Rt) {
+			_child->_prev_Rt = nullptr;
+			_child->_next_Rt = _first_Rt;
+			_first_Rt->_prev_Rt = _child;
+			_first_Rt = _child;
+		} else { // There are currently no sub views available yet
+			_child->_prev_Rt = nullptr;
+			_child->_next_Rt = nullptr;
+			_first_Rt = _child;
+			_last_Rt = _child;
+		}
+	}
+
 	void View::append(View *child) {
 		if (this == child->_parent) {
 			child->clear_link();
@@ -436,120 +497,6 @@ namespace qk {
 			_last = child;
 		}
 		preRender().async_call([](auto self, auto arg) { self->append_Rt(arg.arg); }, this, child);
-	}
-
-	void View::remove() {
-		if (_parent) {
-			blur();
-			clear_link();
-			_parent = nullptr;
-			preRender().async_call([](auto self, auto arg) { self->remove_Rt(); }, this, 0);
-			release(); // Disconnect from parent view strong reference
-		}
-	}
-
-	void View::remove_all_child() {
-		while (_first) {
-			_first->remove_all_child();
-			_first->remove();
-		}
-	}
-
-	// @private
-	// --------------------------------------------------------------------------------------
-
-	View* View::init(Window* win) {
-		Qk_ASSERT(win);
-		_window = win;
-		_accessor = prop_accessor_at_view(viewType(), kOPACITY_ViewProp);
-		return this;
-	}
-
-	void View::clear_link() { // Cleaning up associated view information
-		if (_parent) {
-			/* Currently the first sub view */
-			if (_parent->_first == this) {
-				_parent->_first = _next;
-			} else {
-				_prev->_next = _next;
-			}
-			/* Currently the last sub view */
-			if (_parent->_last == this) {
-				_parent->_last = _prev;
-			} else {
-				_next->_prev = _prev;
-			}
-		}
-	}
-
-	void View::set_parent(View *parent) {
-		Qk_Fatal_Assert(_window == parent->_window, "window no match, parent->_window no equal _window");
-		if (parent != _parent) {
-			#define is_root (_window->root() == this)
-			Qk_Fatal_Assert(!is_root, "root view not allow set parent"); // check
-			clear_link();
-			if ( !_parent ) {
-				retain(); // link to parent and retain ref
-			}
-			_parent = parent;
-		}
-	}
-
-	void View::before_Rt(View *_view) {
-		if (_view == this) return;
-		if (_parent_Rt) {
-			if (_view->_parent_Rt == _parent_Rt) {
-				_view->clear_link_Rt();  // clear link
-			} else {
-				_view->set_parent_Rt(_parent_Rt);
-			}
-			if (_prev_Rt) {
-				_prev_Rt->_next_Rt = _view;
-			} else { // There are no brothers on top
-				_parent_Rt->_first_Rt = _view;
-			}
-			_view->_prev_Rt = _prev_Rt;
-			_view->_next_Rt = this;
-			_prev_Rt = _view;
-		}
-	}
-
-	void View::after_Rt(View *_view) {
-		if (_view == this) return;
-		if (_parent_Rt) {
-			if (_view->_parent_Rt == _parent_Rt) {
-				_view->clear_link_Rt(); // clear link
-			} else {
-				_view->set_parent_Rt(_parent_Rt);
-			}
-			if (_next_Rt) {
-				_next_Rt->_prev_Rt = _view;
-			} else { // There are no brothers below
-				_parent_Rt->_last_Rt = _view;
-			}
-			_view->_prev_Rt = this;
-			_view->_next_Rt = _next_Rt;
-			_next_Rt = _view;
-		}
-	}
-
-	void View::prepend_Rt(View *_child) {
-		if (this == _child->_parent_Rt) {
-			_child->clear_link_Rt();
-		} else {
-			_child->set_parent_Rt(this);
-		}
-		if (_first_Rt) {
-			_child->_prev_Rt = nullptr;
-			_child->_next_Rt = _first_Rt;
-			_first_Rt->_prev_Rt = _child;
-			_first_Rt = _child;
-		} else { // There are currently no sub views available yet
-			_child->_prev_Rt = nullptr;
-			_child->_next_Rt = nullptr;
-			_first_Rt = _child;
-			_last_Rt = _child;
-		}
 	}
 
 	void View::append_Rt(View *_child) {
@@ -571,12 +518,46 @@ namespace qk {
 		}
 	}
 
+	void View::remove() {
+		if (_parent) {
+			blur();
+			clear_link();
+			_parent = nullptr;
+			preRender().async_call([](auto self, auto arg) { self->remove_Rt(); }, this, 0);
+			release(); // Disconnect from parent view strong reference
+		}
+	}
+
 	void View::remove_Rt() {
 		if (_parent_Rt) {
 			clear_link_Rt();
 			_parent_Rt = nullptr;
 			if (_level) {
 				clear_level_Rt();
+			}
+		}
+	}
+
+	void View::remove_all_child() {
+		while (_first) {
+			_first->remove_all_child();
+			_first->remove();
+		}
+	}
+
+	void View::clear_link() { // Cleaning up associated view information
+		if (_parent) {
+			/* Currently the first sub view */
+			if (_parent->_first == this) {
+				_parent->_first = _next;
+			} else {
+				_prev->_next = _next;
+			}
+			/* Currently the last sub view */
+			if (_parent->_last == this) {
+				_parent->_last = _prev;
+			} else {
+				_next->_prev = _prev;
 			}
 		}
 	}
@@ -598,6 +579,47 @@ namespace qk {
 		}
 	}
 
+	void View::set_parent(View *parent) {
+		Qk_Fatal_Assert(_window == parent->_window, "window no match, parent->_window no equal _window");
+		if (parent != _parent) {
+			#define is_root (_window->root() == this)
+			Qk_Fatal_Assert(!is_root, "root view not allow set parent"); // check
+			clear_link();
+			if ( !_parent ) {
+				retain(); // link to parent and retain ref
+			}
+			_parent = parent;
+		}
+	}
+	
+	void View::set_parent_Rt(View *parent) {
+		if (parent != _parent_Rt) {
+			clear_link_Rt();
+			if ( _parent_Rt ) {
+				_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
+			}
+			_parent_Rt = parent;
+
+			auto level = parent->_level;
+			if (_visible && level) {
+				if (_level != ++level)
+					set_level_Rt(level);
+			} else {
+				if (_level)
+					clear_level_Rt();
+			}
+			_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
+			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // mark view size, reset view size
+
+			_IfCssclass() {
+				_cssclass->updateClass_Rt();
+			}
+			onActivate();
+		}
+	}
+
+	// --------------------------------------------------------------------------------------
+
 	void View::set_visible_Rt(bool visible, uint32_t level) {
 		// _visible = visible;
 		if (visible && level) {
@@ -612,7 +634,7 @@ namespace qk {
 		}
 		if (visible) {
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // reset view size
-			if (_cssclass) {
+			_IfCssclass() {
 				_cssclass->updateClass_Rt();
 			}
 		}
@@ -621,7 +643,6 @@ namespace qk {
 	void View::clear_level_Rt() { //  clear view depth
 		auto win = _window;
 		if (win->dispatch()->focus_view() == this) {
-		
 			preRender().post(Cb([this,win](auto &e) {
 				if (win->dispatch()->focus_view() == this) {
 					blur();
@@ -661,36 +682,12 @@ namespace qk {
 		}
 	}
 
-	void View::set_parent_Rt(View *parent) {
-		if (parent != _parent_Rt) {
-			clear_link_Rt();
-			if ( _parent_Rt ) {
-				_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
-			}
-			_parent_Rt = parent;
-
-			auto level = parent->_level;
-			if (_visible && level) {
-				if (_level != ++level)
-					set_level_Rt(level);
-			} else {
-				if (_level)
-					clear_level_Rt();
-			}
-			_parent_Rt->onChildLayoutChange(this, kChild_Layout_Visible); // notice parent view
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // mark view size, reset view size
-
-			if (_cssclass) {
-				_cssclass->updateClass_Rt();
-			}
-			onActivate();
-		}
-	}
-
 	void View::applyClass_Rt(CStyleSheetsClass *ssc) {
+		_Cssclass();
 		if (_cssclass->apply_Rt(ssc)) { // Impact sub view
-			if (_cssclass->haveSubstyles())
+			if (_cssclass->haveSubstyles()) {
 				ssc = _cssclass;
+			}
 			auto l = _first_Rt;
 			while (l) {
 				if (l->_visible && l->_cssclass) {
@@ -705,13 +702,20 @@ namespace qk {
 	CStyleSheetsClass* View::parentSsclass_Rt() {
 		auto view = _parent_Rt;
 		while (view) {
-			auto ss = view->_cssclass;
+			auto ss = view->_cssclass.load();
 			if (ss && ss->haveSubstyles()) {
 				return ss;
 			}
 			view = view->_parent_Rt;
 		}
 		return nullptr;
+	}
+
+	View* View::init(Window* win) {
+		Qk_ASSERT(win);
+		_window = win;
+		_accessor = prop_accessor_at_view(viewType(), kOPACITY_ViewProp);
+		return this;
 	}
 
 }

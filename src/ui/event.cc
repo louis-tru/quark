@@ -69,8 +69,9 @@ namespace qk {
 			if ( evt.is_default() ) {
 				preRender().async_call([](auto self, auto arg) {
 					do {
-						if (self->_cssclass)
-							self->_cssclass->setStatus_Rt(arg.arg);
+						auto ss = self->_cssclass.load();
+						if (ss)
+							ss->setStatus_Rt(arg.arg);
 						self = self->_parent_Rt;
 					} while(self);
 				}, (View*)this, CSSType(evt.status()));

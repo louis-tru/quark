@@ -62,7 +62,7 @@ namespace qk {
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
 		Qk_HIDDEN_ALL_COPY(View);
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
-		CStyleSheetsClass *_cssclass;
+		std::atomic<CStyleSheetsClass*> _cssclass;
 	public:
 
 		// Layout mark key values
@@ -589,6 +589,13 @@ namespace qk {
 		*/
 		PreRender& preRender();
 
+		/**
+		 * Safely use and hold view objects in rendering thread,
+		 * Because view objects may be destroyed at any time on the main thread
+		 * @method tryRetain() Returns safe self hold
+		*/
+		View* tryRetain();
+
 	protected:
 		View(); // @constructor
 		virtual View* init(Window* win);
@@ -607,13 +614,6 @@ namespace qk {
 		void set_visible_Rt(bool visible, uint32_t level);
 		void applyClass_Rt(CStyleSheetsClass* parentSsc);
 		CStyleSheetsClass* parentSsclass_Rt();
-
-		/**
-		 * Safely use and hold view objects in rendering thread,
-		 * Because view objects may be destroyed at any time on the main thread
-		 * @method tryRetain() Returns safe self hold
-		*/
-		View* tryRetain();
 
 		friend class UIDraw;
 		friend class PreRender;
