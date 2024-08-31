@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Window, createCss, Button } from 'quark'
+import { _CVD, Window, createCss, Button, Matrix } from 'quark'
 import {HighlightedStatus} from 'quark/event'
 
 const hao = 'hello!'
@@ -39,13 +39,11 @@ export default async function(win: Window) {
 		'.btn': {
 			width: 100,
 			height: 100,
-			scale: '1 1',
-			origin: [50,50],
 			borderRadius: 20,
-			time: 200,
 		},
-		'.btn:hover': { time: 200, scale: '1.1 1.1' },
-		'.btn:active': { time: 200, scale: '1.2 1.2' }
+		'.btn:normal': { time: 200, scale: 1 },
+		'.btn:hover': { time: 200, scale: 1.3 },
+		'.btn:active': { time: 200, scale: 1.5 }
 	})
 
 	console.log(resolve('./res/bb.jpg'));
@@ -74,12 +72,12 @@ export default async function(win: Window) {
 			}}
 			ref="view1"
 		>
-			<button class="btn" backgroundColor="#f10" />
-			<button class="btn" backgroundColor="#f30" />
-			<button class="btn" backgroundColor="#f50" />
-			<button class="btn" backgroundColor="#f70" />
-			<button class="btn" backgroundColor="#f90" />
-			<button class="btn" backgroundColor="#f0a" />
+			<matrix class="btn" backgroundColor="#f10" />
+			<matrix class="btn" backgroundColor="#f30" />
+			<matrix class="btn" backgroundColor="#f50" />
+			<matrix class="btn" backgroundColor="#f70" />
+			<matrix class="btn" backgroundColor="#f90" />
+			<matrix class="btn" backgroundColor="#f0a" />
 			<box backgroundColor="#0f0" width="100%" height={100} />
 			{Array.from({length:5}).map((_,j)=>
 				<box key={j} width="100%">
@@ -159,14 +157,14 @@ export default async function(win: Window) {
 	})
 
 	win.root.onClick.on(e=>{
-		if ( !(e.origin instanceof Button) ) {
+		if ( !(e.origin instanceof Matrix) ) {
 			// e.origin.style.backgroundColor = '#fff';
 			console.log(e.x, e.y, e.data);
 		}
 	})
 
 	win.root.onHighlighted.on(e=>{
-		if ( !(e.origin instanceof Button) ) {
+		if ( !(e.origin instanceof Matrix) ) {
 			if ( e.status == HighlightedStatus.Active ) {
 				e.origin.style.backgroundColor = '#f00';
 			} else {

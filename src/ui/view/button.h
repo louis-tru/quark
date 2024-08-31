@@ -39,7 +39,7 @@ namespace qk {
 	public:
 		virtual Button* next_button(FindDirection dir);
 		virtual ViewType viewType() const override;
-		virtual bool can_become_focus() override;
+		virtual bool    can_become_focus() override;
 		virtual Button* asButton() override;
 	};
 

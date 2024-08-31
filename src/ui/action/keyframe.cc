@@ -80,42 +80,35 @@ namespace qk {
 	KeyframeAction* KeyframeAction::MakeSSTransition(
 		View *view, StyleSheets *to, uint32_t time, bool isRt
 	) {
-		Qk_ASSERT(time);
+		Qk_Assert(time);
 		auto action = new KeyframeAction(view->window());
 		// only use isRt=true, Because it is initialization and there will be no security issues
-		auto f0 = action->add_unsafe(0, EASE, false);
-		auto f1 = action->add_unsafe(time, to->curve(), false);
+		auto f0 = action->add_unsafe(0, EASE, isRt);
+		auto f1 = action->add_unsafe(time, to->curve(), isRt);
+
+		action->set_target(view);
+
+		struct SetFrames_Rt {
+			static void call(KeyframeAction *self, StyleSheets *to) {
+				auto v = self->_target;
+				auto f0 = self->_frames_Rt[0];
+				auto f1 = self->_frames_Rt[1];
+				for (auto &i: to->_props) { // copy prop
+					f0->_props.set(i.key, i.value->copy())->fetch(v);
+					f1->_props.set(i.key, i.value->copy());
+				}
+			}
+		};
 
 		if (isRt) {
-			for (auto &i: to->_props) // copy prop
-				f1->_props.set(i.key, i.value->copy());
+			SetFrames_Rt::call(action, to);
 		} else {
-			view->preRender().async_call([](auto f1, auto arg) {
-				for (auto &i: arg.arg->_props)
-					f1->_props.set(i.key, i.value->copy());
-			}, f1, to);
+			view->preRender().async_call([](auto self, auto arg) {
+				SetFrames_Rt::call(self, arg.arg);
+			}, action, to);
 		}
-		f0->fetch(view, isRt);
 
 		return action;
-	}
-
-	Keyframe* KeyframeAction::addFrame(uint32_t time, cCurve& curve) {
-		return add_unsafe(time, curve, false);
-	}
-
-	Keyframe* KeyframeAction::addFrameWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) {
-		auto css = _window->styleSheets()->searchItem(cssExp, false);
-		if (css) {
-			auto f = add_unsafe(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);
-			_async_call([](auto f, auto arg) {
-				for (auto &i: arg.arg->_props)
-					f->_props.set(i.key, i.value->copy());
-			}, f, css);
-			return f;
-		} else {
-			return add_unsafe(timeMs ? *timeMs: 0, curve ? *curve: EASE, false);
-		}
 	}
 
 	Keyframe* KeyframeAction::add_unsafe(uint32_t time, cCurve& curve, bool isRt) {
@@ -134,8 +127,8 @@ namespace qk {
 		}
 		_frames.push(frame);
 
-		struct SetFrames {
-			static void Set_Rt(KeyframeAction *self, Keyframe* frame) {
+		struct SetFrames_Rt {
+			static void call(KeyframeAction *self, Keyframe *frame) {
 				if (self->_frames_Rt.length()) {
 					for (auto i: self->_frames_Rt.back()->_props) // copy prop
 						frame->_props.set(i.key, i.value->copy());
@@ -144,14 +137,32 @@ namespace qk {
 			}
 		};
 		if (isRt) {
-			SetFrames::Set_Rt(this, frame);
+			SetFrames_Rt::call(this, frame);
 		} else {
-			_async_call([](auto self, auto frame) {
-				SetFrames::Set_Rt(self, frame.arg);
+			_async_call([](auto self, auto arg) {
+				SetFrames_Rt::call(self, arg.arg);
 			}, this, frame);
 		}
 
 		return frame;
+	}
+
+	Keyframe* KeyframeAction::addFrame(uint32_t time, cCurve& curve) {
+		return add_unsafe(time, curve, false);
+	}
+
+	Keyframe* KeyframeAction::addFrameWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) {
+		auto css = _window->styleSheets()->searchItem(cssExp, false);
+		if (css) {
+			auto f = add_unsafe(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);
+			_async_call([](auto f, auto arg) {
+				for (auto &i: arg.arg->_props)
+					f->_props.set(i.key, i.value->copy());
+			}, f, css);
+			return f;
+		} else {
+			return add_unsafe(timeMs ? *timeMs: 0, curve ? *curve: EASE, false);
+		}
 	}
 
 	Window* Keyframe::getWindowForAsyncSet() {

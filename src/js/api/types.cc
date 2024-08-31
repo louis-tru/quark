@@ -123,7 +123,7 @@ namespace qk { namespace js {
 		rv->set(worker,worker->strs()->x(), worker->newValue(val.x));
 		rv->set(worker,worker->strs()->y(), worker->newValue(val.y));
 		rv->set(worker,worker->strs()->force(), worker->newValue(val.force));
-		rv->set(worker,worker->strs()->clickIn(), worker->newValue(val.click_in));
+		rv->set(worker,worker->strs()->clickIn(), worker->newBool(val.click_in));
 		rv->set(worker,worker->strs()->view(), view->that());
 		return rv;
 	}

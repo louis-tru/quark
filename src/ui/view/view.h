@@ -31,9 +31,8 @@
 #ifndef __quark__ui__view__
 #define __quark__ui__view__
 
-#include "../types.h"
-#include "../event.h"
 #include "../view_prop.h"
+#include "../event.h"
 #include "../pre_render.h"
 
 namespace qk {
@@ -99,15 +98,11 @@ namespace qk {
 
 		/**
 		 * @prop style sheets class object
-		 * @safe Mt
-		 * @note Can only be used in main threads
 		*/
 		Qk_DEFINE_PROP_ACC_GET(CStyleSheetsClass*, cssclass);
 
 		/**
 		 * @prop parent view
-		 * @safe Mt
-		 * @note Can only be used in main threads
 		*/
 		Qk_DEFINE_PROP_GET_Atomic(View*, parent);
 		Qk_DEFINE_PROP_GET_Atomic(View*, prev);
@@ -591,16 +586,9 @@ namespace qk {
 	private:
 		void set_parent(View *parent); // setting parent view
 		void clear_link(); // Cleaning up associated view information
-		void before_Rt(View *view);
-		void after_Rt(View *view);
-		void prepend_Rt(View *child);
-		void append_Rt(View *child);
-		void remove_Rt();
-		void set_parent_Rt(View *parent);
-		void clear_link_Rt(); // Cleaning up associated view information rt
-		void clear_level_Rt(); //  clear view depth rt
-		void set_level_Rt(uint32_t level); // settings depth
 		void set_visible_Rt(bool visible);
+		void set_level_Rt(uint32_t level); // settings depth
+		void clear_level_Rt(); //  clear view depth rt
 		void applyClass_Rt(CStyleSheetsClass* parentSsc);
 		CStyleSheetsClass* parentSsclass_Rt();
 

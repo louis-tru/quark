@@ -31,7 +31,7 @@
 #ifndef __quark_textopts__
 #define __quark_textopts__
 
-#include "../types.h"
+#include "../view_prop.h"
 
 namespace qk {
 	class FontStyle;
@@ -54,19 +54,19 @@ namespace qk {
 			TextWordBreak  text_word_break, text_word_break_value;
 		};
 		// main props
-		Qk_DEFINE_VIEW_PROP(TextAlign, text_align, Const);
-		Qk_DEFINE_VIEW_PROP_GET(TextAlign, text_align_value, Const); // @safe Rt
-		Qk_DEFINE_VIEW_PROP(TextSize,  text_size, Const);
-		Qk_DEFINE_VIEW_PROP(TextColor, text_color, Const);
-		Qk_DEFINE_VIEW_PROP(TextLineHeight, text_line_height, Const);
+		Qk_DEFINE_VIEW_PROP(TextAlign,          text_align, Const);
+		Qk_DEFINE_VIEW_PROP_GET(TextAlign,      text_align_value, Const); // @safe Rt
+		Qk_DEFINE_VIEW_PROP(TextSize,           text_size, Const);
+		Qk_DEFINE_VIEW_PROP(TextColor,          text_color, Const);
+		Qk_DEFINE_VIEW_PROP(TextLineHeight,     text_line_height, Const);
 		// secondary props
-		Qk_DEFINE_VIEW_PROP_ACC(TextFamily, text_family, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(TextShadow, text_shadow, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(TextColor,  text_background_color, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(TextWeight, text_weight, Const);
-		Qk_DEFINE_PROP_ACC_GET(TextWeight,  text_weight_value, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(TextSlant,  text_slant, Const);
-		Qk_DEFINE_PROP_ACC_GET(TextSlant,   text_slant_value, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(TextFamily,     text_family, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(TextShadow,     text_shadow, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(TextColor,      text_background_color, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(TextWeight,     text_weight, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextWeight,      text_weight_value, Const);
+		Qk_DEFINE_VIEW_PROP_ACC(TextSlant,      text_slant, Const);
+		Qk_DEFINE_PROP_ACC_GET(TextSlant,       text_slant_value, Const);
 		Qk_DEFINE_VIEW_PROP_ACC(TextDecoration, text_decoration, Const);
 		Qk_DEFINE_PROP_ACC_GET(TextDecoration,  text_decoration_value, Const);
 		Qk_DEFINE_VIEW_PROP_ACC(TextOverflow,   text_overflow, Const);
@@ -75,7 +75,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(TextWhiteSpace,  text_white_space_value, Const);
 		Qk_DEFINE_VIEW_PROP_ACC(TextWordBreak,  text_word_break, Const);
 		Qk_DEFINE_PROP_ACC_GET(TextWordBreak,   text_word_break_value, Const);
-		Qk_DEFINE_PROP_ACC_GET(FontStyle, font_style, Const);
+		Qk_DEFINE_PROP_ACC_GET(FontStyle,       font_style, Const);
 
 		Vec2 compute_layout_size(cString& value);
 
@@ -120,7 +120,7 @@ namespace qk {
 	public:
 		DefaultTextOptions(FontPool *pool);
 	private:
-		virtual void onTextChange(uint32_t mark, uint32_t type, bool isRt) override;
+		void onTextChange(uint32_t mark, uint32_t type, bool isRt) override;
 		TextOptions _default;
 	};
 

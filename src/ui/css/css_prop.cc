@@ -191,7 +191,7 @@ namespace qk {
 		PropImpl(ViewProp prop, T* value): _prop(prop), _value(value) {
 			Qk_ASSERT(_value);
 			static_assert(T::Traits::isObject, "Property value must be a object type");
-			// value->retain(); // @line SetProp<Object*>::set, value->retain();
+			value->retain();
 		}
 		~PropImpl() {
 			_value->release();
@@ -538,11 +538,11 @@ namespace qk {
 				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
 				p->_value = BoxFilter::assign(p->_value, value, nullptr, isRt);
 			} else {
-				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key,
-					BoxFilter::assign(nullptr, value, nullptr, isRt)
-				)));
+				auto filter = BoxFilter::assign(nullptr, value, nullptr, isRt);
+				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key, filter)));
+				filter->release(); // @BoxFilter::assign
 			}
-			value->release(); // release the object after calling
+			value->release(); // @asyncSet, release the object after calling
 		}
 		template<ViewProp key>
 		void asyncSet(BoxFilter* value) {

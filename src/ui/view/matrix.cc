@@ -30,6 +30,10 @@
 
 #include "./matrix.h"
 
+#define _Parent() auto _parent = this->parent()
+#define _IfParent() _Parent(); if (_parent)
+#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
+
 namespace qk {
 
 	Matrix::Matrix()
@@ -240,12 +244,13 @@ namespace qk {
 
 	void Matrix::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kRecursive_Transform) { // update transform matrix
+			_CheckParent();
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
 
-			auto v = layout_offset() + parent_Rt()->layout_offset_inside()
+			auto v = layout_offset() + _parent->layout_offset_inside()
 				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;
 
-			_matrix = Mat(mat).set_translate(parent_Rt()->position()) * Mat(v, _scale, -_rotate_z, _skew);
+			_matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
 			_visible_region = solve_visible_region(_matrix);
 

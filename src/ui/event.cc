@@ -72,7 +72,7 @@ namespace qk {
 						auto ss = self->_cssclass.load();
 						if (ss)
 							ss->setStatus_Rt(arg.arg);
-						self = self->_parent.load();
+						self = self->parent();
 					} while(self);
 				}, (View*)this, CSSType(evt.status()));
 			}
@@ -403,7 +403,7 @@ namespace qk {
 	void EventDispatch::touchstart(View *view, List<TouchPoint> &in) {
 		if ( view->_visible && in.length() ) {
 			if ( view->_visible_region ) {
-				if ( view->_last.load() && view->is_clip() ) {
+				if ( view->last() && view->is_clip() ) {
 					List<TouchPoint> clipIn;
 
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -414,7 +414,7 @@ namespace qk {
 							i++;
 						}
 					}
-					auto v = view->_last.load();
+					auto v = view->last();
 					while( v && clipIn.length() ) {
 						touchstart(v, clipIn);
 						v = v->prev();
@@ -425,7 +425,7 @@ namespace qk {
 						in.splice(in.end(), clipIn);
 					}
 				} else {
-					auto v = view->_last.load();
+					auto v = view->last();
 					while( v && in.length() ) {
 						touchstart(v, in);
 						v = v->prev();

@@ -47,5 +47,4 @@ namespace qk {
 	ViewType Button::viewType() const {
 		return kButton_ViewType;
 	}
-
 }

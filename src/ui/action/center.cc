@@ -53,7 +53,6 @@ namespace qk {
 	void ActionCenter::addCSSTransition_Rt(View *view, CStyleSheets *css) {
 		auto action = KeyframeAction::MakeSSTransition(view, css, css->time(), true);
 		action->retain(); // retain for center
-		action->set_target(view);
 		action->play_Rt();
 		_CSSTransitions_Rt.get(uint64_t(view)).push(action);
 	}
@@ -70,7 +69,7 @@ namespace qk {
 	}
 
 	void ActionCenter::advance_Rt(uint32_t timeMs) {
-		if ( _actions_Rt.length() == 0) return; 
+		if ( _actions_Rt.length() == 0) return;
 
 		uint32_t time_span = 0;
 		if (_prevTime_Rt) {  // 0表示还没开始

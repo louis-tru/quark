@@ -90,12 +90,12 @@ namespace qk { namespace js {
 
 			Js_Set_Class_Accessor_Get(isDefault, {
 				Js_Self(Type);
-				Js_Return( self->is_default() );
+				Js_ReturnBool( self->is_default() );
 			});
 
 			Js_Set_Class_Accessor_Get(isBubble, {
 				Js_Self(Type);
-				Js_Return( self->is_bubble() );
+				Js_ReturnBool( self->is_bubble() );
 			});
 
 			Js_Set_Class_Method(cancelDefault, {
@@ -171,7 +171,7 @@ namespace qk { namespace js {
 				Js_Self(Type);
 				Js_ReturnBool( self->command() );
 			});
-			Js_Set_Class_Accessor_Get(caps_lock, {
+			Js_Set_Class_Accessor_Get(capsLock, {
 				Js_Self(Type);
 				Js_ReturnBool( self->caps_lock() );
 			});

@@ -31,7 +31,7 @@
 #ifndef __quark__filter__
 #define __quark__filter__
 
-#include "./types.h"
+#include "./view_prop.h"
 #include "../render/source.h"
 #include "../util/handle.h"
 #include "../util/array.h"

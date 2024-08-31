@@ -47,7 +47,7 @@ namespace qk {
 	}
 
 	void StyleSheets::apply(View *view, bool isRt) const {
-		Qk_ASSERT(view);
+		Qk_Assert(view);
 		if (_props.length()) {
 			for ( auto i: _props ) {
 				i.value->apply(view, isRt);
@@ -56,7 +56,7 @@ namespace qk {
 	}
 
 	void StyleSheets::fetch(View *view, bool isRt) {
-		Qk_ASSERT(view);
+		Qk_Assert(view);
 		if (_props.length()) {
 			if (isRt) {
 				for ( auto i: _props ) {
@@ -150,7 +150,8 @@ namespace qk {
 
 		// find pseudo type
 		CStyleSheets **ss_pseudo = nullptr;
-		switch ( type ) { 
+		switch ( type ) {
+			case kNone_CSSType: break;
 			case kNormal_CSSType: ss_pseudo = &ss->_normal; break;
 			case kHover_CSSType: ss_pseudo = &ss->_hover; break;
 			case kActive_CSSType: ss_pseudo = &ss->_active; break;

@@ -67,7 +67,7 @@ namespace qk {
 	void View::destroy() {
 		// The object maintained by the parent view should not be deconstructed,
 		// where the parent must be empty
-		Qk_ASSERT(_parent == nullptr);
+		Qk_Assert_Eq(_parent, nullptr);
 		auto cssclass = _cssclass.load();
 		_cssclass.store(nullptr);
 		Release(cssclass);
@@ -218,10 +218,10 @@ namespace qk {
 
 	void View::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			auto v = _first.load();
+			auto v = first();
 			while (v) {
 				v->set_layout_offset_free(Vec2()); // lazy view
-				v = v->_next.load();
+				v = v->next();
 			}
 			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
 		}
@@ -347,12 +347,12 @@ namespace qk {
 
 	bool View::is_self_child(View *child) {
 		if ( child ) {
-			auto parent = child->_parent.load();
+			auto parent = child->parent();
 			while (parent) {
 				if ( parent == this ) {
 					return true;
 				}
-				parent = parent->_parent.load();
+				parent = parent->parent();
 			}
 		}
 		return false;
@@ -360,14 +360,13 @@ namespace qk {
 
 	void View::before(View *view) {
 		if (view == this) return;
-		auto _parent = this->_parent.load();
-		if (_parent) {
+		_IfParent() {
 			if (view->_parent == _parent) {
 				view->clear_link();  // clear link
 			} else {
 				view->set_parent(_parent);
 			}
-			auto _prev = this->_prev.load();
+			auto _prev = this->prev();
 			if (_prev) {
 				_prev->_next = view;
 			} else { // There are no brothers on top
@@ -381,14 +380,13 @@ namespace qk {
 
 	void View::after(View *view) {
 		if (view == this) return;
-		auto _parent = this->_parent.load();
-		if (_parent) {
+		_IfParent() {
 			if (view->_parent == _parent) {
 				view->clear_link(); // clear link
 			} else {
 				view->set_parent(_parent);
 			}
-			auto _next = this->_next.load();
+			auto _next = this->next();
 			if (_next) {
 				_next->_prev = view;
 			} else { // There are no brothers below
@@ -406,7 +404,7 @@ namespace qk {
 		} else {
 			child->set_parent(this);
 		}
-		auto _first = this->_first.load();
+		auto _first = this->first();
 		if (_first) {
 			child->_prev = nullptr;
 			child->_next = _first;
@@ -426,7 +424,7 @@ namespace qk {
 		} else {
 			child->set_parent(this);
 		}
-		auto _last = this->_last.load();
+		auto _last = this->last();
 		if (_last) {
 			child->_prev = _last;
 			child->_next = nullptr;
@@ -453,18 +451,18 @@ namespace qk {
 	}
 
 	void View::remove_all_child() {
-		auto _first = this->_first.load();
+		auto _first = this->first();
 		while (_first) {
 			_first->remove_all_child();
 			_first->remove();
-			_first = this->_first.load();
+			_first = this->first();
 		}
 	}
 
 	void View::clear_link() { // Cleaning up associated view information
 		_IfParent() {
-			auto _prev = this->_prev.load();
-			auto _next = this->_next.load();
+			auto _prev = this->prev();
+			auto _next = this->next();
 			/* Currently the first sub view */
 			if (_parent->_first == this) {
 				_parent->_first = _next;
@@ -495,16 +493,18 @@ namespace qk {
 				if ( arg.arg ) { // notice old parent
 					arg.arg->onChildLayoutChange(self, kChild_Layout_Visible); // notice parent view
 				}
-				auto parent = self->_parent.load();
-				auto level = parent->_level;
-				if (self->_visible && level) {
-					if (self->_level != ++level)
-						self->set_level_Rt(level);
-				} else {
-					if (self->_level)
-						self->clear_level_Rt();
+				auto _parent = self->parent();
+				if (_parent) {
+					auto level = _parent->_level;
+					if (self->_visible && level) {
+						if (self->_level != ++level)
+							self->set_level_Rt(level);
+					} else {
+						if (self->_level)
+							self->clear_level_Rt();
+					}
+					_parent->onChildLayoutChange(self, kChild_Layout_Visible); // notice new parent view
 				}
-				parent->onChildLayoutChange(self, kChild_Layout_Visible); // notice parent view
 				self->mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // mark view size, reset view size
 
 				auto _cssclass = self->_cssclass.load();
@@ -521,9 +521,9 @@ namespace qk {
 
 	void View::set_visible_Rt(bool visible) {
 		#define _Is_root(self) (self->_window->root() == self)
-		auto parent = _parent.load();
-		auto level = parent && parent->_level ?
-			parent->_level + 1: visible && _Is_root(this) ? 1: 0;
+		_Parent();
+		auto level = _parent && _parent->_level ?
+			_parent->_level + 1: visible && _Is_root(this) ? 1: 0;
 
 		if (visible && level) {
 			if (_level != level)
@@ -532,14 +532,35 @@ namespace qk {
 			if (_level)
 				clear_level_Rt();
 		}
-		if (parent) {
-			parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view
+		if (_parent) {
+			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view
 		}
 		if (visible) {
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // reset view size
 			_IfCssclass() {
 				_cssclass->updateClass_Rt();
 			}
+		}
+	}
+
+	void View::set_level_Rt(uint32_t level) { // settings level
+		if (_visible) {
+			// if level > 0 then
+			if (_mark_index >= 0) {
+				preRender().unmark_layout(this, _level);
+			}
+			preRender().mark_layout(this, level);
+			_level = level++;
+			onActivate();
+
+			auto v = first();
+			while ( v ) {
+				v->set_level_Rt(level);
+				v = v->next();
+			}
+		} else {
+			if ( _level )
+				clear_level_Rt();
 		}
 	}
 
@@ -557,31 +578,10 @@ namespace qk {
 		}
 		_level = 0;
 		onActivate();
-		auto v = _first.load();
+		auto v = first();
 		while ( v ) {
 			v->clear_level_Rt();
-			v = v->_next.load();
-		}
-	}
-
-	void View::set_level_Rt(uint32_t level) { // settings level
-		if (_visible) {
-			// if level > 0 then
-			if (_mark_index >= 0) {
-				preRender().unmark_layout(this, _level);
-			}
-			preRender().mark_layout(this, level);
-			_level = level++;
-			onActivate();
-
-			auto v = _first.load();
-			while ( v ) {
-				v->set_level_Rt(level);
-				v = v->_next.load();
-			}
-		} else {
-			if ( _level )
-				clear_level_Rt();
+			v = v->next();
 		}
 	}
 
@@ -591,12 +591,12 @@ namespace qk {
 			if (_cssclass->haveSubstyles()) {
 				ssc = _cssclass;
 			}
-			auto l = _first.load();
+			auto l = first();
 			while (l) {
 				if (l->_visible && l->_cssclass) {
 					l->applyClass_Rt(ssc);
 				}
-				l = l->_next.load();
+				l = l->next();
 			}
 		}
 		unmark(kStyle_Class);
@@ -609,13 +609,13 @@ namespace qk {
 			if (ss && ss->haveSubstyles()) {
 				return ss;
 			}
-			_parent = _parent->_parent.load();
+			_parent = _parent->parent();
 		}
 		return nullptr;
 	}
 
 	View* View::init(Window* win) {
-		Qk_ASSERT(win);
+		Qk_Assert(win);
 		_window = win;
 		_accessor = prop_accessor_at_view(viewType(), kOPACITY_ViewProp);
 		return this;

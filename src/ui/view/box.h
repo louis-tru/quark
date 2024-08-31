@@ -126,7 +126,6 @@ namespace qk {
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]); // compute rect vertex
 
 	protected:
-
 		/**
 			* @method solve_layout_forward(mark)
 			* @safe Rt
