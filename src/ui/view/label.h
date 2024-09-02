@@ -47,7 +47,7 @@ namespace qk {
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
-		virtual bool solve_visible_region(const Mat &mat) override;
+		virtual void solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(UIDraw *render) override;
 	protected:

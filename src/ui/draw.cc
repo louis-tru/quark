@@ -348,12 +348,11 @@ namespace qk {
 		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 			auto width = v->_scrollbar_width;
 			auto margin = v->_scrollbar_margin;
-			auto origin = Vec2();
+			auto origin = Vec2{b->margin_left(),b->margin_top()};
 			auto size = b->_client_size;
 			auto color = v->scrollbar_color().to_color4f_alpha(_opacity * v->_scrollbar_opacity);
-			
+
 			_IfBorder(b) {
-				origin = Vec2{_border->width[3],_border->width[0]};
 				size[0] -= (_border->width[3] + _border->width[1]); // left + right
 				size[1] -= (_border->width[0] + _border->width[2]); // top + bottom
 			}
@@ -361,7 +360,7 @@ namespace qk {
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar
 				float radius[] = {width,width,width,width};
 				auto &rect = _cache->getRRectPath({
-					{-origin.x(), size.y() - width - margin - origin.y()},
+					{origin.x(), size.y() - width - margin + origin.y()},
 					{v->_scrollbar_position_h.val[1], width}
 				}, radius);
 				auto mat = Mat(*_matrix).set_translate(b->position());
@@ -372,7 +371,7 @@ namespace qk {
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
 				float radius[] = {width,width,width,width};
 				auto &rect = _cache->getRRectPath({
-					{size.x() - width - margin - origin.x(), -origin.y()},
+					{size.x() - width - margin + origin.x(), origin.y()},
 					{width, v->_scrollbar_position_v.val[1]}
 				}, radius);
 				auto mat = Mat(*_matrix).set_translate(b->position());
@@ -436,7 +435,7 @@ namespace qk {
 		// visit child
 		auto v = view->_first.load();
 		if (v) {
-			auto opacityCurr = _opacity;
+			auto opacity = _opacity;
 			auto markCurr = _mark_recursive;
 			do {
 				if (v->_visible) {
@@ -445,14 +444,14 @@ namespace qk {
 						v->solve_marks(*_matrix, mark);
 						_mark_recursive = mark & View::kRecursive_Mark;
 					}
-					if (v->_visible_region && v->_opacity) {
-						_opacity = opacityCurr * v->_opacity;
+					if (v->_opacity) {
+						_opacity = opacity * v->_opacity;
 						v->draw(this);
 					}
 				}
 				v = v->_next.load();
 			} while(v);
-			_opacity = opacityCurr;
+			_opacity = opacity;
 			_mark_recursive = markCurr;
 		}
 	}
@@ -637,7 +636,6 @@ namespace qk {
 			_canvas->setTranslate(v->position());
 			drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
 		}
-
 		UIDraw::visitView(v);
 	}
 
@@ -670,11 +668,11 @@ namespace qk {
 				_mark_recursive = mark & View::kRecursive_Mark;
 			}
 			if (v->_visible_region && v->_opacity != 0) {
+				BoxData data;
 				// Fix rect aa stroke width
 				auto origin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
 				_fixSize = origin + origin;
 				_origin = Vec2(origin) - v->_origin_value;
-				BoxData data;
 				_matrix = &v->mat();
 				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
 				_canvas->clearColor(v->_background_color.to_color4f());
@@ -691,39 +689,53 @@ namespace qk {
 		}
 	}
 
-	void View::draw(UIDraw *render) {
-		render->visitView(this);
+	void View::draw(UIDraw *draw) {
+		if (_visible_region) {
+			draw->visitView(this);
+		}
 	}
 
-	void Box::draw(UIDraw *render) {
-		render->visitBox(this);
+	void Box::draw(UIDraw *draw) {
+		if (_visible_region) {
+			draw->visitBox(this);
+		}
 	}
 
-	void Image::draw(UIDraw *render) {
-		render->visitImage(this);
+	void Image::draw(UIDraw *draw) {
+		if (_visible_region) {
+			draw->visitImage(this);
+		}
 	}
 
-	void Scroll::draw(UIDraw *render) {
-		render->visitScroll(this);
+	void Scroll::draw(UIDraw *draw) {
+		if (_visible_region) {
+			draw->visitScroll(this);
+		}
 	}
 
-	void Text::draw(UIDraw *render) {
-		render->visitText(this);
+	void Text::draw(UIDraw *draw) {
+		if (_visible_region) {
+			draw->visitText(this);
+		}
 	}
 
-	void Input::draw(UIDraw *render) {
-		render->visitInput(this);
+	void Input::draw(UIDraw *draw) {
+		if (_visible_region) {
+			draw->visitInput(this);
+		}
 	}
 
-	void Label::draw(UIDraw *render) {
-		render->visitLabel(this);
+	void Label::draw(UIDraw *draw) {
+		draw->visitLabel(this);
 	}
 
-	void Root::draw(UIDraw *render) {
-		render->visitRoot(this);
+	void Matrix::draw(UIDraw *draw) {
+		if (_visible_region) {
+			draw->visitMatrix(this);
+		}
 	}
 
-	void Matrix::draw(UIDraw *render) {
-		render->visitMatrix(this);
+	void Root::draw(UIDraw *draw) {
+		draw->visitRoot(this);
 	}
 }

@@ -66,7 +66,7 @@ namespace qk {
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
-		virtual bool solve_visible_region(const Mat &mat) override;
+		virtual void solve_visible_region(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual TextInput* asTextInput() override;
 		virtual TextOptions* asTextOptions() override;

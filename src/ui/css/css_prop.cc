@@ -155,6 +155,7 @@ namespace qk {
 	_Define_Enum_transition(TextFamily)
 	_Define_Enum_transition(KeyboardType)
 	_Define_Enum_transition(KeyboardReturnType)
+	_Define_Enum_transition(CursorStyle)
 	#undef _Define_Enum_transition
 
 	// ----------------------------------------------------------------------------------------------

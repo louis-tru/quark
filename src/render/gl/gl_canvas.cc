@@ -638,11 +638,14 @@ namespace qk {
 			auto tf = blob->typeface;
 			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
 			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, &blob->out.img, _render);
-			Qk_ASSERT(blob->out.img->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
+			Qk_Assert(blob->out.img->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
 			blob->out.fontSize = finalFontSize;
 			Qk_DEBUG("GLCanvas::drawTextBlob origin, %f", origin.y());
 		}
-		_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelScale, origin, paint);
+		auto img = *blob->out.img;
+		if (img->width() && img->height()) {
+			_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelScale, origin, paint);
+		}
 	}
 
 	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {

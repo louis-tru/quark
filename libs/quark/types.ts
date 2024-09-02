@@ -317,6 +317,7 @@ export enum CursorStyle {
 	Arrow,
 	Ibeam,
 	PointingHand,
+	Pointer = PointingHand,
 	ClosedHand,
 	OpenHand,
 	ResizeLeft,

@@ -73,16 +73,14 @@ namespace qk {
 
 			_position = layout_offset() + Vec2(margin_left(), margin_top()) +
 				origin_value() + translate();
-
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());
-			_visible_region = solve_visible_region(_matrix);
-
-			_matrix.set_translate(Vec2(0)); // clear translate, use position value
+			solve_visible_region(_matrix);
 		}
 		else if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark
-			_visible_region = solve_visible_region(_matrix.set_translate(_position));
+			solve_visible_region(_matrix.set_translate(_position));
 		}
+		_matrix.set_translate(Vec2(0)); // clear translate, use position value
 	}
 
 	ViewType Root::viewType() const {

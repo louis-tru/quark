@@ -59,6 +59,7 @@ namespace qk {
 
 #define Qk_View_Props(F) \
 	F(OPACITY, float, opacity, View) /*view*/\
+	F(CURSOR, CursorStyle, cursor, View) \
 	F(VISIBLE, bool, visible, View) \
 	F(RECEIVE, bool, receive, View) \
 	F(CLIP, bool, clip, Box) /* box */ \

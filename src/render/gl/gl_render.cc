@@ -510,7 +510,7 @@ namespace qk {
 			GLRender::makeTexture(pixel, _texStat[slot], true);
 			tex = _texStat[slot];
 			if (!tex) {
-				Qk_DEBUG("setTexturePixel() fail");
+				Qk_DEBUG("setTexturePixel() Fail");
 				return false;
 			}
 		} else if (src->render() != this) {

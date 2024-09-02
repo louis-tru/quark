@@ -41,6 +41,7 @@ export interface StyleSheet {
 	curve?: types.CurveIn; // keyframe curve or css transition curve
 	// Meta attribute
 	opacity?: number;
+	cursor?: types.CursorStyleIn;
 	visible?: boolean;
 	receive?: boolean;
 	clip?: boolean;

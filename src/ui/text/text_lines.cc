@@ -314,11 +314,10 @@ namespace qk {
 					Qk_MAX( clip.end.x(), re.end.x() ) - Qk_MIN( clip.origin.x(), re.origin.x() )
 						<= re.end.x() - re.origin.x() + clip.size.x()
 			) {
-				line.visible_region = true;
 				_visible_region = true;
+				line.visible_region = true;
 			} else {
-				if (_visible_region)
-					is_all_false = true;
+				if (_visible_region) is_all_false = true;
 				line.visible_region = false;
 			}
 			vertex[0] = vertex[3];

@@ -112,7 +112,7 @@ namespace qk {
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
-		virtual bool solve_visible_region(const Mat &mat) override; // compute visible region
+		virtual void solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 center() override;
 		virtual void draw(UIDraw *render) override;

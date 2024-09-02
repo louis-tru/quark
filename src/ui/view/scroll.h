@@ -60,9 +60,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_ACC(cCurve&, default_curve, Const); // default scroll curve
 		// define methods
 		void scrollTo(Vec2 value, uint64_t duration, cCurve& curve);
-		void scrollTo(Vec2 value, uint64_t duration) {
-			scrollTo(value, duration, _default_curve_Mt);
-		}
+		void scrollTo(Vec2 value, uint64_t duration) { scrollTo(value, duration, _default_curve_Mt);}
 		void terminate();
 	protected:
 		ScrollBase(Box *host);
@@ -72,11 +70,11 @@ namespace qk {
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
-		void scroll_to_Rt(Vec2 value, uint64_t duration, cCurve& curve);
 		friend class UIDraw;
 		Box *_host;
 		List<Task*> _tasks;
-		Vec2 _scroll, _scroll_max, _scroll_for_Mt;
+		std::atomic<Vec2> _scroll;
+		Vec2 _scroll_max;
 		Vec2 _move_start_scroll, _move_point, _move_dist;
 		Vec2 _scrollbar_position_h, _scrollbar_position_v;
 		uint64_t _move_start_time;

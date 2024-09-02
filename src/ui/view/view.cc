@@ -148,10 +148,10 @@ namespace qk {
 			_position =
 				mat.mul_vec2_no_translate(layout_offset() + _parent->layout_offset_inside()) +
 				_parent->_position;
-			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark
-			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_region(Mat(mat).set_translate(_position));
 		}
 	}
 
@@ -159,8 +159,8 @@ namespace qk {
 		return Vec2();
 	}
 
-	bool View::solve_visible_region(const Mat &mat) {
-		return true;
+	void View::solve_visible_region(const Mat &mat) {
+		_visible_region = true;
 	}
 
 	bool View::overlap_test(Vec2 point) {

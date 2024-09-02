@@ -529,7 +529,7 @@ namespace qk {
 			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		virtual bool solve_visible_region(const Mat &mat);
+		virtual void solve_visible_region(const Mat &mat);
 
 		/**
 		 * notice update for set parent or level

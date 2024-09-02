@@ -88,12 +88,13 @@ namespace qk {
 		return this;
 	}
 
-	bool Text::solve_visible_region(const Mat &mat) {
-		bool ok = Box::solve_visible_region(mat);
-		if (ok && _lines) {
+	void Text::solve_visible_region(const Mat &mat) {
+		Box::solve_visible_region(mat);
+		Qk_Assert(_lines);
+		if (_visible_region && _lines) {
 			_lines->solve_visible_region(mat);
+			_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		}
-		return ok;
 	}
 
 	void Text::onActivate() {

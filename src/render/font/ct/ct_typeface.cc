@@ -709,13 +709,15 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 	uint32_t width = ceilf(width_f + cgBounds.back().origin.x/* ITALIC compensate */);
 	uint32_t height = ceilf(cgBound.size.height);
 
-	if (!height)
-		height = 1;
+	if (!height || !width) {
+		*imgOut = ImageSource::Make(Array<Pixel>({Pixel(PixelInfo())}), render);
+		return Vec2{};
+	}
 
 	Qk_DEBUG("#Typeface_Mac::onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", cgBound.origin.y, top, height);
 
 	int rowBytes = width * sizeof(uint32_t);
-	Buffer image = Buffer::alloc(rowBytes * height);
+	Buffer image(rowBytes * height);
 
 	memset(*image, 0, image.length()); // reset storage
 

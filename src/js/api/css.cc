@@ -49,6 +49,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(StyleSheets, 0, { Js_Throw("Access forbidden."); });
 			Js_Set_StyleSheets_Accessor(float, opacity, opacity);
+			Js_Set_StyleSheets_Accessor(CursorStyle, cursor, cursor);
 			Js_Set_StyleSheets_Accessor(bool, visible, visible);
 			Js_Set_StyleSheets_Accessor(bool, receive, receive);
 			Js_Set_StyleSheets_Accessor(bool, clip, clip);

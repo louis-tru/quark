@@ -249,17 +249,15 @@ namespace qk {
 
 			auto v = layout_offset() + _parent->layout_offset_inside()
 				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;
-
 			_matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
-			_visible_region = solve_visible_region(_matrix);
-
-			_matrix.set_translate(Vec2(0)); // clear translate, use position value
-		} else if (mark & kRecursive_Visible_Region) {
-			unmark(kRecursive_Visible_Region); // unmark
-			// _visible_region = solve_visible_region(Mat(mat).set_translate(_position));
-			_visible_region = solve_visible_region(_matrix.set_translate(_position));
+			solve_visible_region(_matrix);
 		}
+		else if (mark & kRecursive_Visible_Region) {
+			unmark(kRecursive_Visible_Region); // unmark
+			solve_visible_region(_matrix.set_translate(_position));
+		}
+		_matrix.set_translate(Vec2(0)); // clear translate, use position value
 	}
 
 	void Matrix::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {

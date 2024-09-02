@@ -83,8 +83,8 @@ namespace qk {
 		void drawBoxEnd(Box *box, BoxData &data);
 		void drawScrollBar(Box *box, ScrollBase *v);
 		void drawTextBlob(TextOptions *opts,
-			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible);
-
+			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
+		);
 		Window     *_window;
 		Render     *_render;
 		Canvas     *_canvas;

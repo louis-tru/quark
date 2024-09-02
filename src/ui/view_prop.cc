@@ -104,6 +104,7 @@ namespace qk {
 
 		// view
 		Qk_Set_Accessor(View, OPACITY, opacity);
+		Qk_Set_Accessor(View, CURSOR, cursor);
 		Qk_Set_Accessor(View, VISIBLE, visible);
 		Qk_Set_Accessor(View, RECEIVE, receive);
 		prop_accessors[kBox_ViewType] = prop_accessors[kView_ViewType];

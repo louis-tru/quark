@@ -790,15 +790,14 @@ namespace qk {
 		}
 	}
 
-	bool Input::solve_visible_region(const Mat &mat) {
-		if (!Box::solve_visible_region(mat))
-			return false;
+	void Input::solve_visible_region(const Mat &mat) {
+		Box::solve_visible_region(mat);
+		if (!_visible_region) return;
 		_mat = mat;
 		window()->clipRegion(screen_region_from_convex_quadrilateral(_vertex));
 		_lines->solve_visible_region(mat);
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
 		window()->clipRestore();
-		return true;
 	}
 
 	/**

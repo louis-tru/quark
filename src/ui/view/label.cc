@@ -62,7 +62,6 @@ namespace qk {
 		_lines = lines;
 
 		String value(_value); // safe hold
-
 		TextBlobBuilder(lines, this, &_blob).make(value);
 
 		auto v = first();
@@ -90,11 +89,11 @@ namespace qk {
 		mark(kRecursive_Transform, true);
 	}
 
-	bool Label::solve_visible_region(const Mat &mat) {
-		if (_lines->host() == this)
+	void Label::solve_visible_region(const Mat &mat) {
+		if (_lines->host() == this) // At Label::set_layout_offset_free(), new TextLines()
 			_lines->solve_visible_region(mat);
 		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
-		return _blob_visible.length();
+		_visible_region = _blob_visible.length();
 	}
 
 	void Label::onActivate() {

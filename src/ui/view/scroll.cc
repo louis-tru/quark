@@ -35,12 +35,16 @@
 #include "../../util/numbers.h"
 #include <math.h>
 
+#define _async_call preRender().async_call
+
 namespace qk {
 
 	// ------------------------ S c r o l l . B a s e --------------------------
 
 	static const Curve ease_in_out(Vec2{0.3f, 0.3f}, Vec2{0.3f, 1.0f});
 	static const Curve ease_out(Vec2{0.0f, 0.0f}, Vec2{0.58f, 1.0f});
+
+	constexpr uint32_t kScrollMark = View::kScroll | View::kRecursive_Transform;
 
 	class ScrollBase::Task: public RenderTask {
 	public:
@@ -254,25 +258,23 @@ namespace qk {
 
 		Vec2 get_catch_valid_scroll(Vec2 scroll) {
 			Vec2 valid = get_valid_scroll(scroll.x(), scroll.y());
-			Vec2 Catch = get_catch_value();
+			Vec2 catch_ = get_catch_value();
 
-			if ( Catch.x() != 1 && Catch.y() != 1 ) { // 捕获位置
-				valid.set_x( roundf(valid.x() / Catch.x()) * Catch.x() );
+			if ( catch_.x() != 1 && catch_.y() != 1 ) { // 捕获位置
+				valid.set_x( roundf(valid.x() / catch_.x()) * catch_.x() );
 				if ( valid.x() < _scroll_max.x() ) {
-					valid.set_x( valid.x() + Catch.x() );
+					valid.set_x( valid.x() + catch_.x() );
 				}
-				valid.set_y( roundf(valid.y() / Catch.y()) * Catch.y() );
+				valid.set_y( roundf(valid.y() / catch_.y()) * catch_.y() );
 				if ( valid.y() < _scroll_max.y() ) {
-					valid.set_y( valid.y() + Catch.y() );
+					valid.set_y( valid.y() + catch_.y() );
 				}
 			}
 			return get_optimal_display(valid);
 		}
 
 		void set_h_scrollbar_pos() {
-			if ( ! _scrollbar_h ) {
-				return;
-			}
+			if ( ! _scrollbar_h ) return;
 
 			float size_x = _host->content_size().x() + _host->padding_left() + _host->padding_right();
 			float left_margin = scrollbar_margin();
@@ -283,12 +285,12 @@ namespace qk {
 			h_scrollbar_indicator_size = Float32::max(h_scrollbar_indicator_size, 8);
 			float h_scrollbar_max_scroll = h_scrollbar_max_size - h_scrollbar_indicator_size;
 			float h_scrollbar_prop = h_scrollbar_max_scroll / _scroll_max.x();
-			
+
 			// ------------------------------------------------------
-			
-			float pos = h_scrollbar_prop * _scroll.x();
+
+			float pos = h_scrollbar_prop * _scroll.load().x();
 			float size = h_scrollbar_indicator_size;
-			
+
 			if ( pos < 0 ) {
 				size = h_scrollbar_indicator_size + roundf(pos * 3);
 				size = Qk_MAX(size, 8);
@@ -298,29 +300,27 @@ namespace qk {
 				size = Qk_MAX(size, 8);
 				pos = h_scrollbar_max_scroll + h_scrollbar_indicator_size - size;
 			}
-			
+
 			_scrollbar_position_h = Vec2(pos + left_margin, size);
 		}
 
 		void set_v_scrollbar_pos() {
-			if ( ! _scrollbar_v ) {
-				return;
-			}
+			if ( ! _scrollbar_v ) return;
 
 			float size_y = _host->content_size().y() + _host->padding_top() + _host->padding_bottom();
 			float top_margin = scrollbar_margin();
 			float bottom_margin = _scrollbar_h ? top_margin + scrollbar_width() : top_margin;
 			float v_scrollbar_max_size = Float32::max(size_y - top_margin - bottom_margin, 0);
-			
+
 			float v_scrollbar_indicator_size = roundf(powf(v_scrollbar_max_size, 2) / _scroll_size.y());
 			v_scrollbar_indicator_size = Float32::max(v_scrollbar_indicator_size, 8);
-			
+
 			float v_scrollbar_max_scroll = v_scrollbar_max_size - v_scrollbar_indicator_size;
 			float v_scrollbar_prop = v_scrollbar_max_scroll / _scroll_max.y();
 
 			// ------------------------------------------------------
 
-			float pos = v_scrollbar_prop * _scroll.y();
+			float pos = v_scrollbar_prop * _scroll.load().y();
 			float size = v_scrollbar_indicator_size;
 
 			if ( pos < 0 ) {
@@ -336,21 +336,18 @@ namespace qk {
 			_scrollbar_position_v = Vec2(pos + top_margin, size);
 		}
 
-		void set_scroll_and_trigger_event(Vec2 scroll) {
-			scroll = get_optimal_display(scroll);
-			scroll.set_x( _scroll_h ? scroll.x() : 0 );
-			scroll.set_y( _scroll_v ? scroll.y() : 0 );
+		void set_scroll_and_trigger_event(Vec2 scroll, bool forceTrigger = false) {
+			scroll    = get_optimal_display(scroll);
+			scroll[0] = _scroll_h ? scroll.x() : 0;
+			scroll[1] = _scroll_v ? scroll.y() : 0;
 
-			if ( _scroll.x() != scroll.x() || _scroll.y() != scroll.y() ) {
+			if (forceTrigger || _scroll.load() != scroll) {
 				_scroll = scroll;
-
 				set_h_scrollbar_pos();
 				set_v_scrollbar_pos();
-
-				_host->mark(View::kScroll, true); // mark
+				_host->mark(kScrollMark, true); // mark
 
 				_host->preRender().post(Cb([this, scroll](auto& e) {
-					_scroll_for_Mt = Vec2(-scroll.x(), -scroll.y());
 					Sp<UIEvent> evt = New<UIEvent>(_host);
 					_host->trigger(UIEvent_Scroll, **evt);
 				}), _host);
@@ -370,7 +367,7 @@ namespace qk {
 			termination_all_task_Rt();
 
 			Vec2 scroll = get_catch_valid_scroll(_scroll);
-			if ( scroll.x() == _scroll.x() && scroll.y() == _scroll.y() ) {
+			if ( scroll == _scroll ) {
 				if ( duration ) {
 					if ( _scrollbar_opacity != 0 ) {
 						register_task( new ScrollBarFadeInOutTask(this, 3e5, 0) );
@@ -388,7 +385,7 @@ namespace qk {
 
 		void motion_start(Vec2 scroll, uint64_t duration, cCurve& curve) {
 			if ( !is_task() && ! _moved ) {
-				if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
+				if ( scroll != _scroll ) {
 					register_task( new ScrollMotionTask(this, duration, scroll, curve) );
 					if ( _scrollbar_opacity != 1 ) {
 						register_task( new ScrollBarFadeInOutTask(this, 5e4, 1) );
@@ -409,11 +406,12 @@ namespace qk {
 		void move(Vec2 point) {
 			float delta_x = point.x() - _move_point.x();
 			float delta_y = point.y() - _move_point.y();
+			Vec2 _scroll = this->_scroll.load();
 			float new_x = _scroll.x() + delta_x;
 			float new_y = _scroll.y() + delta_y;
 
 			_move_point = point;
-			
+
 			// Slow down if outside of the boundaries
 			if ( new_x > 0 || new_x < _scroll_max.x() ) {
 				if ( _bounce ) {
@@ -429,13 +427,13 @@ namespace qk {
 					new_y = (new_y >= 0 || _scroll_max.y() >= 0 ? 0 : _scroll_max.y());
 				}
 			}
-			
+
 			_move_dist.set_x( _move_dist.x() + delta_x );
 			_move_dist.set_y( _move_dist.y() + delta_y );
-			
+
 			float dist_x = fabsf(_move_dist.x());
 			float dist_y = fabsf(_move_dist.y());
-			
+
 			if ( !_moved ) {
 				if ( dist_x < 3 && dist_y < 3 ) { // 距离小余3不处理
 					return;
@@ -448,7 +446,6 @@ namespace qk {
 
 			// Lock direction
 			if ( _lock_direction ) {
-				
 				if ( _lock_v ) {
 					new_y = _scroll.y();
 					delta_y = 0;
@@ -471,17 +468,18 @@ namespace qk {
 				_move_start_time = time;
 				_move_start_scroll = _scroll;
 			}
-			
+
 			set_scroll_and_trigger_event(Vec2(new_x, new_y));
 		}
 
 		void move_end(Vec2 point) {
 			uint64_t time = time_monotonic();
-			
+
 			Momentum momentum_x = { 0,0 };
 			Momentum momentum_y = { 0,0 };
-			
+
 			uint64_t duration = int64_t(time) - _move_start_time;
+			Vec2 _scroll = this->_scroll;
 			float new_x = _scroll.x();
 			float new_y = _scroll.y();
 
@@ -504,7 +502,7 @@ namespace qk {
 					}
 					new_x = _scroll.x() + momentum_x.dist;
 					new_y = _scroll.y() + momentum_y.dist;
-					
+
 					if ((_scroll.x() > 0 && new_x > 0) ||
 							(_scroll.x() < _scroll_max.x() && new_x < _scroll_max.x())) {
 						momentum_x = { 0, 0 };
@@ -532,7 +530,7 @@ namespace qk {
 
 					momentum_x.time = Qk_MAX(Qk_MIN(dist_x, 3e5), momentum_x.time);
 				}
-				
+
 				if ( new_y < 0 && new_y > _scroll_max.y() && mod_y != 0 ) {
 					if (_scroll.y() - _move_start_scroll.y() < 0) {
 						dist_y = Catch.y() + mod_y;
@@ -541,7 +539,7 @@ namespace qk {
 					}
 					new_y -= dist_y;
 					dist_y = fabsf(dist_y) * 1e4;
-					
+
 					momentum_y.time = Qk_MAX(Qk_MIN(dist_y, 3e5), momentum_y.time);
 				}
 			}
@@ -564,7 +562,7 @@ namespace qk {
 		void handle_TouchStart(UIEvent& e) {
 			auto evt = static_cast<TouchEvent*>(&e);
 			auto args = new TouchEvent::TouchPoint(evt->changed_touches()[0]);
-			preRender().async_call([](auto ctx, auto arg) {
+			_async_call([](auto ctx, auto arg) {
 				Sp<TouchEvent::TouchPoint, NonObjectTraits> handle(arg.arg);
 				if ( !ctx->_action_id ) {
 					ctx->_action_id = arg.arg->id;
@@ -577,7 +575,7 @@ namespace qk {
 			if (_action_id && e.return_value) {
 				auto evt = static_cast<TouchEvent*>(&e);
 				auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
-				preRender().async_call([](auto ctx, auto arg) {
+				_async_call([](auto ctx, auto arg) {
 					Sp<Array<TouchEvent::TouchPoint>> handle(arg.arg);
 					if ( ctx->_action_id ) {
 						for ( auto &i : *arg.arg ) {
@@ -593,7 +591,7 @@ namespace qk {
 		void handle_TouchEnd(UIEvent& e) {
 			auto evt = static_cast<TouchEvent*>(&e);
 			auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
-			preRender().async_call([](auto ctx, auto arg) {
+			_async_call([](auto ctx, auto arg) {
 				if ( ctx->_action_id ) {
 					for ( auto &i: *arg.arg ) {
 						if (i.id == ctx->_action_id) {
@@ -608,7 +606,7 @@ namespace qk {
 
 		void handle_MouseDown(UIEvent& e) {
 			auto evt = static_cast<MouseEvent*>(&e);
-			preRender().async_call([](auto ctx, auto arg) {
+			_async_call([](auto ctx, auto arg) {
 				if ( !ctx->_action_id ) {
 					ctx->_action_id = 1;
 					ctx->move_start(arg.arg);
@@ -619,7 +617,7 @@ namespace qk {
 		void handle_MouseMove(UIEvent& e) {
 			if (_action_id && e.return_value) {
 				auto evt = static_cast<MouseEvent*>(&e);
-				preRender().async_call([](auto ctx, auto arg) {
+				_async_call([](auto ctx, auto arg) {
 					if ( ctx->_action_id ) {
 						ctx->move(arg.arg);
 					}
@@ -629,7 +627,7 @@ namespace qk {
 
 		void handle_MouseUp(UIEvent& e) {
 			auto evt = static_cast<MouseEvent*>(&e);
-			preRender().async_call([](auto ctx, auto arg) {
+			_async_call([](auto ctx, auto arg) {
 				if ( ctx->_action_id ) {
 					ctx->move_end(arg.arg);
 					ctx->_action_id = 0;
@@ -729,83 +727,79 @@ namespace qk {
 	}
 
 	void ScrollBase::terminate() {
-		_host->preRender().async_call([](auto self, auto arg) {
+		_host->_async_call([](auto self, auto arg) {
 			self->termination_recovery(0);
 		}, _this, 0);
 	}
 
 	float ScrollBase::scroll_x() const {
-		return _scroll_for_Mt.x();
+		return -_scroll.load().x();
 	}
 
 	float ScrollBase::scroll_y() const {
-		return _scroll_for_Mt.y();
+		return -_scroll.load().y();
 	}
 
 	void ScrollBase::set_scroll_x(float value, bool isRt) {
-		set_scroll({value, _scroll_for_Mt.y()});
+		set_scroll({value, -_scroll.load()[1]});
 	}
 
 	void ScrollBase::set_scroll_y(float value, bool isRt) {
-		set_scroll({_scroll_for_Mt.x(), value});
+		set_scroll({-_scroll.load()[0], value});
 	}
 
 	Vec2 ScrollBase::scroll() const {
-		return _scroll_for_Mt;
+		Vec2 v = _scroll;
+		return {-v[0],-v[1]};
 	}
 
 	void ScrollBase::set_scroll(Vec2 value, bool isRt) {
 		if (_scroll_duration) {
 			scrollTo(value, _scroll_duration, _default_curve_Mt);
 		} else {
-			_scroll_for_Mt = value;
-			_host->preRender().async_call([](auto self, auto arg) {
-				auto scroll = _inl(self)->get_catch_valid_scroll( Vec2(-arg.arg.x(), -arg.arg.y()) );
-				if (scroll != self->_scroll) {
-					self->_scroll = scroll;
-					self->_host->mark(View::kScroll, true);
-				}
-			}, this, value);
-		}
+			value = Vec2(
+				Float32::clamp(value[0], 0, _scroll_max[0]),
+				Float32::clamp(value[1], 0, _scroll_max[1])
+			);
+			if (value != _scroll) {
+				_scroll = Vec2{-value[0],-value[1]};
+				_host->_async_call([](auto self, auto arg) {
+					self->set_scroll_and_trigger_event(
+						self->get_catch_valid_scroll({-arg.arg.x(), -arg.arg.y()}),
+						true
+					);
+				}, _this, value);
+			}
+		} // if (_scroll_duration)
 	}
 
 	void ScrollBase::scrollTo(Vec2 value, uint64_t duration, cCurve& curve) {
-		//_scroll_for_Mt = value;
 		struct Args { Vec2 value; uint64_t duration; Curve curve; };
-		_host->preRender().async_call([](auto self, auto val) {
-			self->scroll_to_Rt(val.arg->value, val.arg->duration, val.arg->curve);
+		_host->_async_call([](auto self, auto val) {
+			Vec2 v = self->get_catch_valid_scroll({-val.arg->value.x(), -val.arg->value.y()});
+			if ( v != self->_scroll ) {
+				self->scroll_to_valid_scroll(v, val.arg->duration, val.arg->curve);
+			}
 			delete val.arg;
-		}, this, new Args{value,duration,curve});
-	}
-
-	// @private
-	// ----------------------------------------------------------------------------------
-
-	void ScrollBase::scroll_to_Rt(Vec2 value, uint64_t duration, cCurve& curve) {
-		Vec2 scroll = _this->get_catch_valid_scroll( Vec2(-value.x(), -value.y()) );
-		if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
-			_this->scroll_to_valid_scroll(scroll, duration, curve);
-			_host->mark(View::kScroll, true);
-		}
+		}, _this, new Args{value,duration,curve});
 	}
 
 	void ScrollBase::solve(uint32_t mark) {
 		if ( mark & View::kScroll ) {
 			if ( !_moved && !_this->is_task() ) {
-				_scroll = _this->get_catch_valid_scroll(_scroll);
+				_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll(_scroll));
 			}
 			_host->unmark(View::kScroll);
-			_host->mark(View::kRecursive_Transform, true);
 		}
 	}
 
 	void ScrollBase::set_scroll_size_Rt(Vec2 size) {
 		if (_scroll_size != size) {
-			_this->immediate_end_all_task(); // change size immediate task
 			_scroll_size = size;
+			_this->immediate_end_all_task(); // change size immediate task
 		}
-		auto content_size = _host->content_size();
-		_scroll_max = Vec2(Float32::min(content_size.x() - size.x(), 0), Float32::min(content_size.y() - size.y(), 0));
+		auto cSize = _host->content_size();
+		_scroll_max = Vec2(Float32::min(cSize.x() - size.x(), 0), Float32::min(cSize.y() - size.y(), 0));
 
 		_scroll_h = _scroll_max.x() < 0;
 		_scroll_v = ((!_bounce_lock && !_scroll_h) || _scroll_max.y() < 0);
@@ -815,8 +809,8 @@ namespace qk {
 
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);
-		//
-		_host->mark(View::kScroll, true);
+
+		_host->mark(kScrollMark, true);
 	}
 
 	// ------------------------ S c r o l l . L a y o u t --------------------------
@@ -862,7 +856,7 @@ namespace qk {
 
 	void Scroll::solve_marks(const Mat &mat, uint32_t mark) {
 		ScrollBase::solve(mark);
-		View::solve_marks(mat, mark_value());
+		Box::solve_marks(mat, mark_value());
 	}
 
 	ScrollBase* Scroll::asScrollBase() {

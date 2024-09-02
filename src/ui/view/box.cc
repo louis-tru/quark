@@ -1027,12 +1027,11 @@ namespace qk {
 							break;
 						default: // new line
 							offset_y += line_height;
-							v->set_layout_offset(Vec2{
-								align == Align::Auto ? 0: // left
+							offset_left = align == Align::Auto ? 0: // left
 								align == Align::Center ? (cur_x - size.x()) * 0.5f: // center
-								cur_x - size.x(), // right
-								offset_y
-							});
+								cur_x - size.x(); // right
+							v->set_layout_offset({offset_left,offset_y});
+							max_width = Float32::max(max_width, offset_left + size.x());
 							offset_left = offset_right = 0;
 							line_width = line_height = 0;
 							offset_y += size.y();
@@ -1132,14 +1131,14 @@ namespace qk {
 		if (mark & kRecursive_Transform) { // update transform matrix
 			_CheckParent();
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			Vec2 offset = layout_offset() + _parent->layout_offset_inside()
+			Vec2 offset = _parent->layout_offset_inside() + layout_offset()
 				+ Vec2(_margin_left, _margin_top);
 			_position =
 				mat.mul_vec2_no_translate(offset) + _parent->position();
-			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark
-			_visible_region = solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_region(Mat(mat).set_translate(_position));
 		}
 	}
 
@@ -1234,15 +1233,14 @@ namespace qk {
 	}
 
 	void Box::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {
-		Vec2 origin;
 		Vec2 end = _client_size;
-		vertex[0] = mat * origin;
-		vertex[1] = mat * Vec2(end.x(), origin.y());
-		vertex[2] = mat * end;
-		vertex[3] = mat * Vec2(origin.x(), end.y());
+		vertex[0] = Vec2{mat[2], mat[5]}; // left,top
+		vertex[1] = mat * Vec2(end.x(), 0); // right,top
+		vertex[2] = mat * end; // right,bottom
+		vertex[3] = mat * Vec2(0, end.y()); // left,bottom
 	}
 
-	bool Box::solve_visible_region(const Mat &mat) {
+	void Box::solve_visible_region(const Mat &mat) {
 		solve_rect_vertex(mat, _vertex);
 		/*
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
@@ -1256,17 +1254,17 @@ namespace qk {
 				Qk_MAX( clip.end.x(), re.end.x() ) - Qk_MIN( clip.origin.x(), re.origin.x() )
 					<= re.end.x() - re.origin.x() + clip.size.x()
 				) {
-			return true;
-		}
+			_visible_region = true;
+		} else {
 
 #if 0
-		Qk_DEBUG("visible_region-x: %f<=%f", Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ),
+			Qk_DEBUG("visible_region-x: %f<=%f", Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ),
 																				re.end.y() - re.origin.y() + clip.height);
-		Qk_DEBUG("visible_region-y: %f<=%f", Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ),
+			Qk_DEBUG("visible_region-y: %f<=%f", Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ),
 																				re.end.x() - re.origin.x() + clip.width);
 #endif
-
-		return false;
+			_visible_region = false;
+		}
 	}
 
 	bool Box::overlap_test(Vec2 point) {
@@ -1280,10 +1278,10 @@ namespace qk {
 		* [(x-x1)(y2-y1)-(y-y1)(x2-x1)][(x-x4)(y3-y4)-(y-y4)(x3-x4)] < 0  and
 		* [(x-x2)(y3-y2)-(y-y2)(x3-x2)][(x-x1)(y4-y1)-(y-y1)(x4-x1)] < 0
 		*/
-		
+
 		float x = point.x();
 		float y = point.y();
-		
+
 		#define x1 quadrilateral_vertex[0].x()
 		#define y1 quadrilateral_vertex[0].y()
 		#define x2 quadrilateral_vertex[1].x()
@@ -1292,13 +1290,13 @@ namespace qk {
 		#define y3 quadrilateral_vertex[2].y()
 		#define x4 quadrilateral_vertex[3].x()
 		#define y4 quadrilateral_vertex[3].y()
-		
+
 		if (((x-x1)*(y2-y1)-(y-y1)*(x2-x1))*((x-x4)*(y3-y4)-(y-y4)*(x3-x4)) < 0 &&
 				((x-x2)*(y3-y2)-(y-y2)*(x3-x2))*((x-x1)*(y4-y1)-(y-y1)*(x4-x1)) < 0
 		) {
 			return true;
 		}
-		
+
 		#undef x1
 		#undef y1
 		#undef x2
@@ -1307,7 +1305,7 @@ namespace qk {
 		#undef y3
 		#undef x4
 		#undef y4
-		
+
 		return false;
 	}
 
@@ -1316,12 +1314,12 @@ namespace qk {
 		#define B quadrilateral_vertex[1]
 		#define C quadrilateral_vertex[2]
 		#define D quadrilateral_vertex[3]
-		
+
 		Vec2 min, max;//, size;
-		
+
 		float w1 = fabs(A.x() - C.x());
 		float w2 = fabs(B.x() - D.x());
-		
+
 		if (w1 > w2) {
 			if ( A.x() > C.x() ) {
 				max.set_x( A.x() ); min.set_x( C.x() );
@@ -1347,12 +1345,12 @@ namespace qk {
 			}
 			//size = Vec2(w2, max.y() - min.y());
 		}
-		
+
 		#undef A
 		#undef B
 		#undef C
 		#undef D
-			
+
 		return {
 			min, max
 		};
