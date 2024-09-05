@@ -425,9 +425,8 @@ namespace qk {
 		 * 通过窗口绝对座标查找并设置光标索引
 		*/
 		void find_cursor(Vec2 coord) {
-			if ( !_editing || text_length() == 0 ) {
+			if ( !_editing || text_length() == 0 )
 				return;
-			}
 
 			auto pos = get_position();
 			// find line
@@ -484,7 +483,9 @@ namespace qk {
 				if ( x <= offset_start ) { // 行开始位置
 					_cursor = _blob[cell_begin].index;
 				} else if ( x >= offset_start + line->width ) { // 行结束位置
-					_cursor = _blob[cell_end].index + _blob[cell_end].blob.glyphs.length(); // end_action
+					_cursor = Float32::min(
+						_blob[cell_end].index + _blob[cell_end].blob.glyphs.length(), text_length()
+					); // end_action
 				} else {
 					// 通过在cells中查询光标位置
 					for ( int i = cell_begin; i <= cell_end; i++ ) {
@@ -510,8 +511,8 @@ namespace qk {
 				}
 				// if ( x <= offset_start )
 			}
+			Qk_Assert(_cursor <= text_length());
 		end_action:
-
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
 			mark(kInput_Status, true);
@@ -560,9 +561,9 @@ namespace qk {
 					return;
 
 				if ( _cursor < text_length() ) { // insertd text
-					String4 old = _value_u4;
-					_value_u4 = String4(*old, _cursor, *text, text.length());
-					_value_u4.append(*old + _cursor, old.length() - _cursor);
+					String4 u4(_value_u4);
+					_value_u4 = String4(*u4, _cursor, *text, text.length());
+					_value_u4.append(*u4 + _cursor, u4.length() - _cursor);
 				} else { // append text
 					_value_u4.append( text );
 				}
@@ -579,10 +580,10 @@ namespace qk {
 			if ( _marked_text.length() == 0 ) {
 				_marked_text_idx = _cursor;
 			}
-			String4 old = _value_u4;
-			_value_u4 = String4(*old, _marked_text_idx, *text, text.length());
-			_value_u4.append(*old + _marked_text_idx + _marked_text.length(),
-												old.length() - _marked_text_idx - _marked_text.length());
+			String4 u4(_value_u4);
+			_value_u4 = String4(*u4, _marked_text_idx, *text, text.length());
+			_value_u4.append(*u4 + _marked_text_idx + _marked_text.length(),
+												u4.length() - _marked_text_idx - _marked_text.length());
 
 			_cursor += text.length() - _marked_text.length();
 			_cursor = Qk_MAX(_marked_text_idx, _cursor);
@@ -707,39 +708,40 @@ namespace qk {
 			}
 			tbb.set_disable_overflow(true);
 
-			if (value_u4.length() && !_security && _marked_text.length()) { // marked text layout
+			if (value_u4.length() && !_security && _marked_text.length()) {
+				// marked text layout
 				auto src = *value_u4;
 				auto marked = _marked_text_idx;
 				auto marked_end = marked + _marked_text.length();
 
-				Array<TextBlob> blobTmp;
+				Array<TextBlob> blob;
 
 				auto make = [&](const Unichar *src, uint32_t len) {
 					tbb.make(string4_to_unichar(src, len, false, false, !is_multiline()));
 					_lines->finish_text_blob_pre();
-					if (blobTmp.length())
-						blobTmp.concat(std::move(_blob));
+					if (blob.length())
+						blob.concat(std::move(_blob));
 					else
-						blobTmp = std::move(_blob);
+						blob = std::move(_blob);
 				};
 
 				if ( marked ) { // start
 					make(src, marked);
 				}
-				_marked_blob_begin = blobTmp.length();
+				_marked_blob_begin = blob.length();
 				make(src+marked, _marked_text.length());
-				_marked_blob_end = blobTmp.length();
+				_marked_blob_end = blob.length();
 
 				if ( marked_end < value_u4.length() ) {
 					make(src+marked_end, value_u4.length()-marked_end);
 				}
-				_blob = std::move(blobTmp);
+				_blob = std::move(blob);
 			}
 			else if ( value_u4.length() && _security ) { // password
 				Unichar pwd = 9679; /*●*/
-				Array<Array<Unichar>> lines(1);
-				lines.front().extend(value_u4.length());
-				memset_pattern4(*lines.front(), &pwd, value_u4.length());
+				Array<Array<Unichar>> lines;
+				lines.push(Array<Unichar>(value_u4.length()));
+				memset_pattern4(*lines.front(), &pwd, value_u4.length() << 2);
 				tbb.make(lines);
 			}
 			else {
@@ -820,24 +822,26 @@ namespace qk {
 		// 查找光标位置附近的blob
 		// ===========================
 		TextBlob *cursor_blob = nullptr;
-		for ( int i = _blob.length() - 1; i >= 0; i-- ) {
-			if (_blob[i].index <= _cursor) { // blob index 小于等于_cursor 做为光标位置
-				cursor_blob = &_blob[i];
-				break;
+		if (_value_u4.length()) {
+			for ( int i = _blob.length() - 1; i >= 0; i-- ) {
+				if (_blob[i].index <= _cursor) { // blob index 小于等于_cursor 做为光标位置
+					cursor_blob = &_blob[i];
+					break;
+				}
 			}
 		}
 
 		// ===========================
 		// 计算光标的具体偏移位置x
 		// ===========================
-		auto c_size = content_size();
+		auto cSize = content_size();
 		TextLines::Line* line = nullptr;
 
 		if ( cursor_blob ) { // set cursor pos
-			Qk_ASSERT(_value_u4.length());
+			Qk_Assert(_value_u4.length());
 			auto len = cursor_blob->blob.offset.length();
 			auto index = _cursor - cursor_blob->index;
-			Qk_ASSERT(index >= 0);
+			Qk_Assert(index >= 0);
 			float offset = 0;
 			if (index < len) { // Index is within the offset range
 				offset = cursor_blob->blob.offset[index].x();
@@ -847,15 +851,16 @@ namespace qk {
 			_cursor_line = cursor_blob->line; // y
 			line = &_lines->line(_cursor_line);
 			_cursor_x = line->origin + cursor_blob->origin + offset; // x
+			// Qk_DEBUG("------------------ solve_cursor_offset, _cursor, %d %f", _cursor, _cursor_x);
 		} else {
 			// 找不到blob定位到最后行
 			switch ( text_align_value() ) {
 				default:
 					_cursor_x = 0; break;
 				case TextAlign::Center:
-					_cursor_x = c_size.width() * 0.5; break;
+					_cursor_x = cSize.width() * 0.5; break;
 				case TextAlign::Right:
-					_cursor_x = c_size.width(); break;
+					_cursor_x = cSize.width(); break;
 			}
 			_cursor_line = _lines->last()->line; // y
 			line = &_lines->line(_cursor_line);
@@ -867,27 +872,27 @@ namespace qk {
 		auto text_offset = input_text_offset();
 		// y
 		if ( is_multiline() ) {
-			if ( _lines->max_height() < c_size.height()) {
+			if ( _lines->max_height() < cSize.height()) {
 				text_offset.set_y(0);
 			} else {
 				if ( line->start_y + text_offset.y() < 0 ) { // top cursor
 					text_offset.set_y(-line->start_y);
-				} else if (line->end_y + text_offset.y() > c_size.height()) { // bottom cursor
-					text_offset.set_y(c_size.height() - line->end_y);
+				} else if (line->end_y + text_offset.y() > cSize.height()) { // bottom cursor
+					text_offset.set_y(cSize.height() - line->end_y);
 				}
 				if ( text_offset.y() > 0 ) { // top
 					text_offset.set_y(0);
-				} else if ( text_offset.y() + _lines->max_height() < c_size.height() ) { // bottom
-					text_offset.set_y(c_size.height() - _lines->max_height());
+				} else if ( text_offset.y() + _lines->max_height() < cSize.height() ) { // bottom
+					text_offset.set_y(cSize.height() - _lines->max_height());
 				}
 			}
 		} else {
-			text_offset.set_y((c_size.height() - _lines->max_height()) / 2);
+			text_offset.set_y((cSize.height() - _lines->max_height()) / 2);
 		}
 
 		// x
 		auto max_width = _lines->max_width();
-		if ( max_width <= c_size.width() ) {
+		if ( max_width <= cSize.width() ) {
 			text_offset.set_x(0);
 		} else {
 			// 让光标x轴始终在可见范围
@@ -895,8 +900,8 @@ namespace qk {
 
 			if ( offset < 0 ) { // left cursor
 				text_offset.set_x(-_cursor_x);
-			} else if ( offset > c_size.width() ) { // right cursor
-				text_offset.set_x(c_size.width() - _cursor_x);
+			} else if ( offset > cSize.width() ) { // right cursor
+				text_offset.set_x(cSize.width() - _cursor_x);
 			}
 
 			// 检测文本x轴两端是在非法显示区域
@@ -904,17 +909,17 @@ namespace qk {
 				default:
 					offset = text_offset.x(); break;
 				case TextAlign::Center:
-					offset = text_offset.x() + (c_size.width() - max_width) * 0.5; break;
+					offset = text_offset.x() + (cSize.width() - max_width) * 0.5; break;
 				case TextAlign::Right:
-					offset = text_offset.x() + c_size.width() - max_width; break;
+					offset = text_offset.x() + cSize.width() - max_width; break;
 			}
 
 			if ( offset > 0 ) { // left
 				text_offset.set_x(text_offset.x() - offset);
 			} else {
 				offset += max_width;
-				if ( offset < c_size.width() ) { // right
-					text_offset.set_x(text_offset.x() - offset + c_size.width());
+				if ( offset < cSize.width() ) { // right
+					text_offset.set_x(text_offset.x() - offset + cSize.width());
 				}
 			}
 		}
@@ -940,26 +945,26 @@ namespace qk {
 		if ( _editing ) {
 			int cursor = _cursor;
 			if ( !_marked_text.length() ) {
+				Qk_Assert(cursor <= _value_u4.length());
 				if ( count < 0 ) {
 					count = Qk_MIN(cursor, -count);
 					if ( count ) {
-						String4 old = _value_u4;
-						_value_u4 = String4(*old, cursor - count, *old + cursor, int(old.length()) - cursor);
+						String4 u4(_value_u4);
+						_value_u4 = String4(*u4, cursor - count, *u4 + cursor, u4.length() - cursor);
 						_cursor -= count;
 						mark_layout(kLayout_Typesetting, true); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
 					count = Qk_MIN(int(text_length()) - cursor, count);
 					if ( count ) {
-						String4 old = _value_u4;
-						_value_u4 = String4(*old, cursor,
-																*old + cursor + count,
-																old.length() - cursor - count);
+						String4 u4(_value_u4);
+						_value_u4 = String4(*u4, cursor,
+																*u4 + cursor + count,
+																u4.length() - cursor - count);
 						mark_layout(kLayout_Typesetting, true); // 标记内容变化
 					}
 				}
 			}
-
 			_this->trigger_Change();
 			_this->reset_cursor_twinkle_task_timeout();
 		}

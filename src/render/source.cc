@@ -114,7 +114,7 @@ namespace qk {
 			_state = State(_state | kSTATE_LOADING);
 			Qk_Trigger(State, _state); // trigger
 
-			_loadId = fs_reader()->read_file(_uri, Callback<Buffer>([this](auto& e) { // read data
+			_loadId = fs_reader()->read_file(_uri, Callback<Buffer>([this](auto e) { // read data
 				if (_state & kSTATE_LOADING) {
 					if (e.error) {
 						_state = State((_state | kSTATE_LOAD_ERROR) & ~kSTATE_LOADING);

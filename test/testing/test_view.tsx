@@ -257,11 +257,14 @@ export default async function(win: Window) {
 
 	LOG('\nTest Input:\n')
 	const i = new Input(win);
+	i.style = {width: 'match', height: 20, border: '1 #666'};
 	Mv(i, 'appendTo', [root])
 	Pv(i, 'type', types.KeyboardType.Ascii, e=>e.style.type='ascii');
 	Pv(i, 'returnType', types.KeyboardReturnType.Done, e=>e.style.returnType='done');
 	Pv(i, 'placeholder', 'AAAAAA...', e=>e.placeholder='AAAAAA...');
-	Pv(i, 'placeholderColor', e=>e.toString()=='#ff0000', e=>e.style.placeholderColor='#f00');
+	Pv(i, 'placeholderColor', e=>e.toString()=='#ff0000', e=>e.style.placeholderColor='#f006');
+	Pv(i, 'marginLeft', 2, e=>e.margin=[2]);
+	Pv(i, 'paddingLeft', 2, e=>e.padding=[2]);
 	Pv(i, 'security', true, e=>e.security=true);
 
 	LOG('\nTest Textarea:\n')

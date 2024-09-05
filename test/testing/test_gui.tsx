@@ -145,7 +145,7 @@ export default async function test1(win: Window) {
 				<box class="box" backgroundColor="#f60" />
 				<box class="box" backgroundColor="#f50" />
 				<box class="box" backgroundColor="#f40" />
-				{/* <image width="20%" height={80} src={resolve('./res/bb.jpg')} /> */}
+				<image width="20%" height={80} src={resolve('./res/bb.jpg')} />
 				<box class="box" backgroundColor="#f30" />
 				<box class="box" backgroundColor="#f20" />
 				<box class="box" backgroundColor="#f10" />

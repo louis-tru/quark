@@ -180,7 +180,7 @@ namespace qk {
 
 	bool PreRender::solve(int64_t time) {
 		solveAsyncCall();
-		_window->actionCenter()->advance_Rt(uint64_t(time) / 1000); // advance action
+		_window->actionCenter()->advance_Rt(uint32_t(time / 1000)); // advance action
 
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();

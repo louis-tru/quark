@@ -36,6 +36,12 @@
 #include "../action/action.h"
 #include "../../errno.h"
 
+#if DEBUG
+# define _Assert_IsRt(isRt, ...) \
+	Qk_Assert(!_window->root() || (_isRt==isRt), ##__VA_ARGS__)
+#else
+# define _Assert_IsRt(isRt, ...)
+#endif
 #define _isRt (RunLoop::first()->thread_id() != thread_self_id())
 #define _Cssclass() auto _cssclass = this->_cssclass.load()
 #define _IfCssclass() _Cssclass(); if (_cssclass)
@@ -244,7 +250,7 @@ namespace qk {
 	}
 
 	void View::mark_layout(uint32_t mark, bool isRt) {
-		Qk_Assert_Eq(_isRt, isRt, "View::mark_layout(), isRt param no match");
+		_Assert_IsRt(isRt, "View::mark_layout(), isRt param no match");
 		if (isRt) {
 			_mark_value |= mark;
 			if (_mark_index < 0) {
@@ -266,7 +272,7 @@ namespace qk {
 
 	void View::mark(uint32_t mark, bool isRt) {
 		if (mark) {
-			Qk_Assert_Eq(_isRt, isRt, "View::mark(), isRt param no match");
+			_Assert_IsRt(isRt, "View::mark(), isRt param no match");
 			if (isRt) {
 				_mark_value |= mark;
 				if (_level) {

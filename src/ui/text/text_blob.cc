@@ -88,21 +88,17 @@ namespace qk {
 	) {
 		Array<Array<Unichar>> lines;
 		Array<Unichar> row;
-
+		Unichar data;
 		bool is_merge_runing = false;
 		bool is_push_row = false;
-
+		
 		auto push_row = [&]() {
 			if (ignore_single_white_space) {
 				if (row.length() == 1 && row[0] == 0x20)
 					return;
 			}
-			row.reset(row.length() + 1);
-			(*row)[row.length()] = 0;
 			lines.push(std::move(row));
 		};
-
-		Unichar data;
 
 		while (each(data, ctx)) {
 			is_push_row = false;

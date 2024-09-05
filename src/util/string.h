@@ -92,7 +92,7 @@ namespace qk {
 		StringImpl(ArrayBuffer<T, A>&& data); // right value copy constructors
 		StringImpl(const T* s); // copy constructors
 		StringImpl(const T* s, uint32_t len); // copy constructors
-		StringImpl(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
+		StringImpl(const T* a, uint32_t aLen, const T* b, uint32_t bLen); // copy constructors
 		StringImpl(char i); // char string
 
 		StringImpl(int32_t i); // number to string constructors
@@ -315,15 +315,18 @@ namespace qk {
 	StringImpl<T, A>::StringImpl(const T* s, uint32_t len)
 		: StringBase(len, (Realloc)&A::realloc, sizeof(T))
 	{
+		Qk_Assert(len < 268435456); // 256 MB
 		_Str::strcpy(val(), s, len);
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A>::StringImpl(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
-		: StringBase(a_len + b_len, (Realloc)&A::realloc, sizeof(T))
+	StringImpl<T, A>::StringImpl(const T* a, uint32_t aLen, const T* b, uint32_t bLen)
+		: StringBase(aLen + bLen, (Realloc)&A::realloc, sizeof(T))
 	{
-		_Str::strcpy(val(),         a, a_len);
-		_Str::strcpy(val() + a_len, b, b_len);
+		Qk_Assert(aLen < 268435456); // 256 MB
+		Qk_Assert(bLen < 268435456); // 256 MB
+		_Str::strcpy(val(),        a, aLen);
+		_Str::strcpy(val() + aLen, b, bLen);
 	}
 	
 	template <typename T, typename A>
@@ -428,6 +431,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>& StringImpl<T, A>::assign(const T* s, uint32_t len) {
+		Qk_Assert(len < 268435456); // 256 MB
 		_Str::strcpy((T*)realloc(len, (Realloc)&A::realloc, &A::free, sizeof(T)), s, len); // copy str
 		return *this;
 	}

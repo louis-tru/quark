@@ -122,6 +122,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_PROP_ACC_GET(RunLoop*, loop); //! host main loop
 		Qk_DEFINE_PROP_ACC_GET(View*, focusView); //! focus view
+		
 		/**
 		 * @prop surfaceSize
 		 * returns surface only display region and size
