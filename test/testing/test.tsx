@@ -61,8 +61,8 @@ async function test_(win: Window) {
 // import test from './test_font'
 // import test from './test_css'
 // import test from './test_event'
-import test from './test_gui'
-// import test from './test_view'
+// import test from './test_gui'
+import test from './test_view'
 // import test from './test_window'
 // import test from './test_buf'
 

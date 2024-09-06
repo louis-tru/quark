@@ -91,7 +91,7 @@ namespace qk {
 		inline StaticCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
 		virtual void call(CallbackData<D, E>& evt) const { _func(evt, this->_ctx); }
 	private:
-		Func  _func;
+		Func _func;
 	};
 
 	template<class T, class D, class E>
@@ -101,7 +101,7 @@ namespace qk {
 		inline MemberCallback(Func func, T* ctx): CallbackCoreIMPL<T, D, E>(ctx), _func(func) { }
 		virtual void call(CallbackData<D, E>& evt) const { (this->_ctx->*_func)(evt); }
 	private:
-		Func  _func;
+		Func _func;
 	};
 
 	template<class T, class D, class E>

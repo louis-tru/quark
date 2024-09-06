@@ -160,7 +160,6 @@ namespace qk {
 		void _Decode(Buffer& data);
 		void _Unload(bool isDestroy);
 		void _ReloadTexture(Array<Pixel>& pixels);
-		Array<Pixel> _copyInfo(Array<Pixel>& src);
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
 		Array<const TexStat*> _tex_Rt;
@@ -187,7 +186,7 @@ namespace qk {
 		/**
 		 * @destructor
 		 */
-		virtual ~ImageSourcePool();
+		~ImageSourcePool() override;
 
 		/**
 		 * @method get(uri) get image source by uri
@@ -214,8 +213,8 @@ namespace qk {
 
 		struct Member {
 			Sp<ImageSource> source;
-			uint32_t bytes; // image size
-			int64_t time; // load time
+			uint32_t        bytes; // image size
+			int64_t         time; // load time
 		};
 		Dict<uint64_t, Member> _sources;
 		Mutex _Mutex;
@@ -224,18 +223,19 @@ namespace qk {
 	typedef ImageSourcePool ImagePool;
 
 	/**
-	* @class ImageSourceHolder
+	* @class ImageSourceHold
 	*/
-	class Qk_EXPORT ImageSourceHolder {
+	class Qk_EXPORT ImageSourceHold {
 	public:
-		~ImageSourceHolder();
+		ImageSourceHold();
+		~ImageSourceHold();
 		Qk_DEFINE_PROP_ACC(String, src, Const);
-		Qk_DEFINE_PROP_ACC(ImageSource*, source);
+		Qk_DEFINE_PROP_ACC(Sp<ImageSource>, source);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual ImagePool* imgPool();
-		Sp<ImageSource> _imageSource;
+		std::atomic<ImageSource*> _imageSource;
 	};
 
 }

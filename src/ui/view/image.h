@@ -36,10 +36,9 @@
 
 namespace qk {
 
-	class Qk_EXPORT Image: public Box, public ImageSourceHolder {
+	class Qk_EXPORT Image: public Box, public ImageSourceHold {
 	public:
 		Qk_DEFINE_VIEW_PROP_ACC(String, src, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ImageSource*, source);
 		virtual ViewType viewType() const override;
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void draw(UIDraw *render) override;

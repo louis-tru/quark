@@ -115,9 +115,10 @@ namespace qk {
 		void off_all(); // off all
 		void trigger_event(Object& event);
 		void add_listener(Listener *l);
-	protected:
+
 		virtual void lock(); // thread safe lock
 		virtual void unlock();
+	protected:
 		void off2(bool destroy);
 		void            *_sender;
 		List<Listener*> *_listener;
@@ -263,8 +264,7 @@ namespace qk {
 		void trigger(Event& event) {
 			trigger_event(event);
 		}
-		
-	protected:
+
 		virtual void lock() override {
 			Lock::lock();
 		}

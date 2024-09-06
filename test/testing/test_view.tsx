@@ -205,7 +205,7 @@ export default async function(win: Window) {
 	const img = new Image(win);
 	Mv(img, 'appendTo', [root]);
 	Pv(img, 'src', '');
-	//Pv(img, 'src', resolve('./res/10440501.jpg'), e=>e.src=resolve('./res/10440501.jpg'));
+	Pv(img, 'src', resolve('./res/10440501.jpg'), e=>e.src=resolve('./res/10440501.jpg'));
 	Pv(img, 'marginLeft', 0);
 	Pv(img, 'marginRight', 0);
 	Pv(img, 'height', e=>e.kind==BoxSizeKind.Value&&e.value==200, e=>e.style.height=200);

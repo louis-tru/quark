@@ -214,7 +214,7 @@ namespace qk {
 		, _repeat(init.repeat)
 	{
 		if (!src.isEmpty()) {
-			ImageSourceHolder::set_src(src);
+			set_src(src);
 		}
 	}
 
@@ -310,29 +310,11 @@ namespace qk {
 	}
 
 	String FillImage::src() const {
-		return ImageSourceHolder::src();
-	}
-
-	ImageSource* FillImage::source() {
-		return ImageSourceHolder::source();
+		return ImageSourceHold::src();
 	}
 
 	void FillImage::set_src(String src, bool isRt) {
-		auto pool = imgPool();
-		set_source(pool ? pool->get(src): *ImageSource::Make(src), isRt);
-	}
-
-	void FillImage::set_source(ImageSource* val, bool isRt) {
-		auto v = view(); // safe get
-		if (isRt || !v) {
-			ImageSourceHolder::set_source(val);
-		} else {
-			Retain(val); // temp retain
-			v->preRender().async_call([](auto self, auto arg) {
-				self->ImageSourceHolder::set_source(arg.arg);
-				Release(arg.arg); // temp release
-			}, this, val);
-		}
+		ImageSourceHold::set_src(src);
 	}
 
 	ImagePool* FillImage::imgPool() {

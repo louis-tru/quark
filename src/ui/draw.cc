@@ -193,7 +193,7 @@ namespace qk {
 
 		Paint paint0;
 		ImagePaint paint;
-		paint.setImage(src, {{x,y}, {w,h}});
+		paint.setImage(src.value(), {{x,y}, {w,h}});
 		paint0.image = &paint;
 		paint0.color.set_a(_opacity);
 
@@ -473,7 +473,7 @@ namespace qk {
 		drawBoxColor(v, data);
 		drawBoxFill(v, data);
 
-		auto src = v->ImageSourceHolder::source();
+		auto src = v->source();
 		if (src && src->load()) {
 			src->markAsTexture(_render);
 			getInsideRectPath(v, data);
@@ -481,13 +481,14 @@ namespace qk {
 			//Qk_DEBUG("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());
 			Paint p0;
 			ImagePaint paint;
+			p0.type = Paint::kBitmap_Type;
 			p0.image = &paint;
 			p0.color.set_a(_opacity);
 			paint.tileModeX = ImagePaint::kDecal_TileMode;
 			paint.tileModeY = ImagePaint::kDecal_TileMode;
 			paint.filterMode = ImagePaint::kLinear_FilterMode;
 			paint.mipmapMode = ImagePaint::kNearest_MipmapMode;
-			paint.setImage(src, data.inside->rect);
+			paint.setImage(src.value(), data.inside->rect);
 			_canvas->drawPathv(*data.inside, p0);
 		}
 		drawBoxBorder(v, data);

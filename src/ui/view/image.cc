@@ -49,7 +49,7 @@ namespace qk {
 
 	float Image::solve_layout_content_width(Size &pSize) {
 		auto result = Box::solve_layout_content_width(pSize);
-		auto src = ImageSourceHolder::source(); // Rt
+		auto src = source(); // Rt
 
 		if (src && src->type()) {
 			if (pSize.wrap_x) { // wrap x
@@ -67,7 +67,7 @@ namespace qk {
 
 	float Image::solve_layout_content_height(Size &pSize) {
 		auto result = Box::solve_layout_content_height(pSize);
-		auto src = ImageSourceHolder::source(); // Rt
+		auto src = source(); // Rt
 
 		if (src && src->type()) {
 			if (pSize.wrap_y) { // wrap y
@@ -100,26 +100,10 @@ namespace qk {
 	}
 
 	String Image::src() const {
-		return ImageSourceHolder::src();
-	}
-
-	ImageSource* Image::source() {
-		return ImageSourceHolder::source();
+		return ImageSourceHold::src();
 	}
 
 	void Image::set_src(String val, bool isRt) {
-		set_source(window()->host()->imgPool()->get(val), isRt);
-	}
-
-	void Image::set_source(ImageSource* val, bool isRt) {
-		if (isRt) {
-			ImageSourceHolder::set_source(val);
-		} else {
-			Retain(val); // temp retain
-			preRender().async_call([](auto self, auto arg) {
-				self->ImageSourceHolder::set_source(arg.arg);
-				Release(arg.arg); // temp release
-			}, this, val);
-		}
+		ImageSourceHold::set_src(val);
 	}
 }

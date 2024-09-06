@@ -75,7 +75,7 @@ namespace qk {
 		bool  _isIndependent;
 	};
 
-	class Qk_EXPORT FillImage: public BoxFilter, public ImageSourceHolder {
+	class Qk_EXPORT FillImage: public BoxFilter, public ImageSourceHold {
 	public:
 		struct Init {
 			FillSize width, height;
@@ -83,7 +83,6 @@ namespace qk {
 			Repeat repeat;
 		};
 		Qk_DEFINE_VIEW_PROP_ACC(String, src, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ImageSource*, source);
 		Qk_DEFINE_VIEW_PROP(FillSize, width, Const);
 		Qk_DEFINE_VIEW_PROP(FillSize, height, Const);
 		Qk_DEFINE_VIEW_PROP(FillPosition, x, Const);
