@@ -741,11 +741,11 @@ namespace qk {
 	}
 
 	void ScrollBase::set_scroll_x(float value, bool isRt) {
-		set_scroll({value, -_scroll.load()[1]});
+		set_scroll({value, -_scroll.load()[1]}, isRt);
 	}
 
 	void ScrollBase::set_scroll_y(float value, bool isRt) {
-		set_scroll({-_scroll.load()[0], value});
+		set_scroll({-_scroll.load()[0], value}, isRt);
 	}
 
 	Vec2 ScrollBase::scroll() const {
@@ -754,15 +754,14 @@ namespace qk {
 	}
 
 	void ScrollBase::set_scroll(Vec2 value, bool isRt) {
-		if (_scroll_duration) {
+		if (isRt) {
+			_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll({-value.x(), -value.y()}));
+		} else if (_scroll_duration) {
 			scrollTo(value, _scroll_duration, _default_curve_Mt);
 		} else {
-			value = Vec2(
-				Float32::clamp(value[0], 0, _scroll_max[0]),
-				Float32::clamp(value[1], 0, _scroll_max[1])
-			);
+			value = _this->get_valid_scroll(-value[0], -value[1]);
 			if (value != _scroll) {
-				_scroll = Vec2{-value[0],-value[1]};
+				_scroll = value;
 				_host->_async_call([](auto self, auto arg) {
 					self->set_scroll_and_trigger_event(
 						self->get_catch_valid_scroll({-arg.arg.x(), -arg.arg.y()}),
@@ -770,7 +769,7 @@ namespace qk {
 					);
 				}, _this, value);
 			}
-		} // if (_scroll_duration)
+		}
 	}
 
 	void ScrollBase::scrollTo(Vec2 value, uint64_t duration, cCurve& curve) {

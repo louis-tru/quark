@@ -84,11 +84,11 @@ namespace qk {
 	}
 
 	Vec2 Textarea::input_text_offset() {
-		return Vec2( -scroll_x() + _input_text_offset_x, -scroll_y() );
+		return Vec2( _input_text_offset_x - scroll_x(), -scroll_y() );
 	}
 
 	void Textarea::set_input_text_offset(Vec2 value) {
-		set_scroll( Vec2(-value.x() + _input_text_offset_x, -value.y()) );
+		set_scroll( Vec2(_input_text_offset_x - value.x(), -value.y()), true );
 	}
 
 	ScrollBase* Textarea::asScrollBase() {

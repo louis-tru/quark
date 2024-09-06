@@ -269,8 +269,10 @@ export default async function(win: Window) {
 
 	LOG('\nTest Textarea:\n')
 	const i1 = new Textarea(win);
+	i1.style = {width: 'match', height: 150, border: '1 #666'};
 	Mv(i1, 'appendTo', [root])
-	Pv(i1, 'marginTop', 2, e=>e.marginTop=2)
+	Pv(i1, 'marginLeft', 2, e=>e.margin=[2]);
+	Pv(i1, 'paddingLeft', 2, e=>e.padding=[2]);
 	Pv(i1, 'width', e=>e.kind==BoxSizeKind.Match, e=>e.style.width='match')
 	Pv(i1, 'security', false)
 
