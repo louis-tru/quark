@@ -326,7 +326,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::vector<T>& list)
-		: _ptr{0, nullptr}, _length(0)
+		: _ptr{nullptr, 0}, _length(0)
 	{
 		write(list.data(), (uint32_t)list.size());
 	}

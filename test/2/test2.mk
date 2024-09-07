@@ -18,21 +18,8 @@ NAME       ?= test2
 TARGET     ?= $(OUT)/$(NAME)
 TEST       ?= sys
 
-ifeq ($(BUILDTYPE),Release)
-	DEBUG=1
-endif
-
 ifeq ($(OS),Darwin)
 	OS = osx
-endif
-
-ifeq ($(OS),Linux)
-	LINUX = 1
-endif
-
-# is mac osx
-ifeq ($(OS),osx)
-	OSX = 1
 endif
 
 # --------------------------------------------------------------------
@@ -89,7 +76,7 @@ C_SOURCES += \
 
 # ---------------------------- Platform ----------------------------
 
-ifeq ($(LINUX),1)
+ifeq ($(OS),Linux)
 	INCLUDES += -I$(BASE)/tools/linux/usr/include
 	LINKFLAGS_START += -Wl,--whole-archive
 	LINKFLAGS += -Wl,--no-whole-archive -lGLESv2 -lEGL -lX11 -pthread -lasound
@@ -100,7 +87,9 @@ ifeq ($(LINUX),1)
 									test2-xopen.cc
 endif
 
-ifeq ($(OSX),1)
+ifeq ($(OS),osx)
+	SYSROOT = $(shell xcrun --show-sdk-path)
+	CFLAGS += -arch $(ARCH) -isysroot $(SYSROOT)
 	LINKFLAGS += -arch $(ARCH) \
 		-isysroot $(SYSROOT) \
 		-all_load \
