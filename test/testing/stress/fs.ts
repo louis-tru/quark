@@ -1,9 +1,9 @@
 
 import * as fs from 'quark/fs';
-import url from 'quark/path';
+import paths from 'quark/path';
 import * as uu from './uu';
 
-var path = url.documents('benchmark.txt');
+var path = paths.documents('benchmark.txt');
 
 fs.writeFileSync(path, 'ABCDEFGHIJKMLN');
 

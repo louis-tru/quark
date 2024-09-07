@@ -32,10 +32,58 @@
 #include "quark/util/loop.h"
 
 #ifndef TEST_FUNC_NAME
- #define TEST_FUNC_NAME test_testing
-// #define TEST_FUNC_NAME test_https
-// #define TEST_FUNC_NAME test_http_cookie
+////
 // #define TEST_FUNC_NAME test_atomic
+// #define TEST_FUNC_NAME test_buffer
+// #define TEST_FUNC_NAME test_event
+// #define TEST_FUNC_NAME test_fs_async
+// #define TEST_FUNC_NAME test_fs
+// #define TEST_FUNC_NAME test_fs2
+// #define TEST_FUNC_NAME test_http_cookie
+// #define TEST_FUNC_NAME test_http
+// #define TEST_FUNC_NAME test_http2
+// #define TEST_FUNC_NAME test_http3
+// #define TEST_FUNC_NAME test_https
+// #define TEST_FUNC_NAME test_ios_run_loop
+// #define TEST_FUNC_NAME test_json
+// #define TEST_FUNC_NAME test_list
+// #define TEST_FUNC_NAME test_localstorage
+// #define TEST_FUNC_NAME test_loop
+// #define TEST_FUNC_NAME test_map
+// #define TEST_FUNC_NAME test_mutex
+// #define TEST_FUNC_NAME test_net-ssl
+// #define TEST_FUNC_NAME test_net
+// #define TEST_FUNC_NAME test_number
+// #define TEST_FUNC_NAME test_os_info
+// #define TEST_FUNC_NAME test_sizeof
+// #define TEST_FUNC_NAME test_ssl
+// #define TEST_FUNC_NAME test_string
+// #define TEST_FUNC_NAME test_thread
+// #define TEST_FUNC_NAME test_util
+// #define TEST_FUNC_NAME test_uv
+// #define TEST_FUNC_NAME test_zlib
+////
+// #define TEST_FUNC_NAME test_action
+// #define TEST_FUNC_NAME test_alsa_ff
+// #define TEST_FUNC_NAME test_blur
+// #define TEST_FUNC_NAME test_canvas
+// #define TEST_FUNC_NAME test_css
+// #define TEST_FUNC_NAME test_draw_efficiency
+// #define TEST_FUNC_NAME test_ffmpeg
+// #define TEST_FUNC_NAME test_freetype
+// #define TEST_FUNC_NAME test_gui
+// #define TEST_FUNC_NAME test_input
+// #define TEST_FUNC_NAME test_jsc
+// #define TEST_FUNC_NAME test_jsx
+// #define TEST_FUNC_NAME test_layout
+// #define TEST_FUNC_NAME test_linux_input_2
+// #define TEST_FUNC_NAME test_linux_input
+// #define TEST_FUNC_NAME test_openurl
+// #define TEST_FUNC_NAME test_outimg
+// #define TEST_FUNC_NAME test_rrect
+// #define TEST_FUNC_NAME test_subcanvas
+#define TEST_FUNC_NAME test_testing
+// #define TEST_FUNC_NAME test_v8
 #endif
 
 using namespace qk;

@@ -71,7 +71,7 @@ void test_gui(int argc, char **argv) {
 	div->set_border_color_bottom(Color(255, 0, 255));
 
 	auto sp1 = div->append_new<Image>();
-	sp0->set_src(fs_resources("testing/bb.pvr"));
+	sp0->set_src(fs_resources("testing/res/bb.pvr"));
 	sp1->set_width({256});
 	sp1->set_height({256});
 
