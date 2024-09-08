@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('somes/fs');
+var fs = require('suark/fs');
 var path = require('path');
 
 function copy_header(source, target) {

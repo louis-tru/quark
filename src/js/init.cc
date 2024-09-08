@@ -34,8 +34,7 @@ namespace qk { namespace js {
 	extern int    __quark_js_argc;
 	extern char** __quark_js_argv;
 
-	class JSONStringify {
-	public:
+	struct JSONStringify {
 		uint32_t _indent;
 		Array<String>* _rv;
 		Worker* worker;
@@ -195,8 +194,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class NativeConsole {
-	public:
+	struct NativeConsole {
 		static void print_to(FunctionArgs args, void(*print)(cString&)) {
 			Js_Worker(args);
 			Array<String> rv;
@@ -275,8 +273,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class NativeTimer {
-	public:
+	struct NativeTimer {
 		static void timer_(FunctionArgs args, int64_t repeat, cChar* name, bool repeatArg) {
 			Js_Worker(args);
 			if (!args.length() || !args[0]->isFunction()) {
@@ -351,8 +348,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapNativeObject: public WrapObject {
-	public:
+	struct WrapNativeObject: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Object, 0, {
 				New<WrapNativeObject>(args, new Object());
@@ -364,8 +360,7 @@ namespace qk { namespace js {
 		Hash5381 hash;
 	};
 
-	class WrapHash5381Object: public WrapObject {
-	public:
+	struct WrapHash5381Object: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Hash5381Object, 0, {
 				New<WrapHash5381Object>(args, new Hash5381Object());
@@ -419,8 +414,7 @@ namespace qk { namespace js {
 		NativeTimer::binding(global(), this);
 	}
 
-	class NativeInit {
-	public:
+	struct NativeInit {
 		static Hash5381 get_hashCode(Worker *worker, FunctionArgs args) {
 			Hash5381 hash;
 			String2 str = args[0]->toStringValue2(worker);

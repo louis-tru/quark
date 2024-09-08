@@ -90,10 +90,12 @@ namespace qk {
 	}
 
 	void Label::solve_visible_region(const Mat &mat) {
-		if (_lines->host() == this) // At Label::set_layout_offset_free(), new TextLines()
-			_lines->solve_visible_region(mat);
-		_lines->solve_visible_region_blob(&_blob, &_blob_visible);
-		_visible_region = _blob_visible.length();
+		if (_lines) {
+			if (_lines->host() == this) // At Label::set_layout_offset_free(), new TextLines()
+				_lines->solve_visible_region(mat);
+			_lines->solve_visible_region_blob(&_blob, &_blob_visible);
+			_visible_region = _blob_visible.length();
+		}
 	}
 
 	void Label::onActivate() {

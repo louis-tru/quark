@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('somes').default;
-var fs = require('somes/fs');
+var util = require('suark').default;
+var fs = require('suark/fs');
 var path = require('path');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('somes/arguments');
-var { syscall, execSync, exec } = require('somes/syscall');
+var argument = require('suark/arguments');
+var { syscall, execSync, exec } = require('suark/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

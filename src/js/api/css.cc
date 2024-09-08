@@ -42,8 +42,7 @@
 namespace qk { namespace js {
 	typedef qk::Wrap Wrap;
 
-	class WrapStyleSheets: public WrapObject {
-	public:
+	struct WrapStyleSheets: WrapObject {
 		typedef StyleSheets Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -161,8 +160,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapCStyleSheets: public WrapObject {
-	public:
+	struct WrapCStyleSheets: WrapObject {
 		typedef CStyleSheets Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(CStyleSheets, StyleSheets, { Js_Throw("Access forbidden."); });
@@ -171,8 +169,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapCStyleSheetsClass: public WrapObject {
-	public:
+	struct WrapCStyleSheetsClass: WrapObject {
 		typedef CStyleSheetsClass Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -218,8 +215,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class NativeCSS {
-	public:
+	struct NativeCSS {
 		static void create(Worker *worker, JSArray *names, JSObject *arg) {
 			auto rss = shared_app()->styleSheets();
 

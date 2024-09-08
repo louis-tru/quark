@@ -43,12 +43,10 @@ namespace qk { namespace js {
 	static cString const_disable_cache("disableCache");
 	static cString const_disable_cookie("disableCookie");
 
-	class WrapHttpClientRequest: public WrapObject {
-	public:
+	struct WrapHttpClientRequest: WrapObject {
 		typedef HttpClientRequest Type;
 
-		class Delegate: public Object, public HttpClientRequest::Delegate {
-		public:
+		struct Delegate: Object, HttpClientRequest::Delegate {
 			WrapHttpClientRequest* _host;
 			String _error;
 			String _write;
@@ -482,8 +480,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class NativeHttp {
-	public:
+	struct NativeHttp {
 		static bool get_options(Worker* worker, JSValue* arg, RequestOptions& opt) {
 			Js_Handle_Scope();
 			JSObject* obj = arg->as<JSObject>();

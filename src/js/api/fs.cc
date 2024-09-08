@@ -32,8 +32,7 @@
 
 namespace qk { namespace js {
 
-	class WrapFileStat: public WrapObject {
-	public:
+	struct WrapFileStat: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FileStat, 0, {
 				if (args.length() == 0 || !args[0]->isString()) {
@@ -207,8 +206,7 @@ namespace qk { namespace js {
 		return data;
 	}
 
-	class NativeFileReader {
-	public:
+	struct NativeFileReader {
 		static void read(FunctionArgs args, bool isStream) {
 			Js_Worker(args);
 			uint32_t args_index = 1;
@@ -337,8 +335,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class NativeFs {
-	public:
+	struct NativeFs {
 		static void chmod(FunctionArgs args, bool sync) {
 			Js_Worker(args);
 			if (args.length() < 1 || ! args[0]->isString()) {

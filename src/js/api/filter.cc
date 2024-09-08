@@ -33,8 +33,7 @@
 
 namespace qk { namespace js {
 
-	class WrapBoxFilter: public WrapObject {
-	public:
+	struct WrapBoxFilter: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(BoxFilter, 0, { Js_Throw("Forbidden access abstract"); });
 
@@ -56,8 +55,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapFillImage: public WrapObject {
-	public:
+	struct WrapFillImage: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FillImage, BoxFilter, {
 				if (!args.length() || !args[0]->isString()) {
@@ -84,8 +82,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapFillGradientRadial: public WrapObject {
-	public:
+	struct WrapFillGradientRadial: WrapObject {
 		static bool parse(
 			FunctionArgs args, Array<float> *pos, Array<Color4f> *colors, cChar* msg, cChar* msg2
 		) {
@@ -132,8 +129,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapFillGradientLinear: public WrapObject {
-	public:
+	struct WrapFillGradientLinear: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FillGradientLinear, FillGradientRadial, {
 				ArrayFloat pos;
@@ -156,8 +152,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapBoxShadow: public WrapObject {
-	public:
+	struct WrapBoxShadow: WrapObject {
 		static void NewBoxShadow(Worker *worker, FunctionArgs args) {
 			if (!args.length()) {
 				Js_Throw("@constructor BoxShadow(Shadow value)");

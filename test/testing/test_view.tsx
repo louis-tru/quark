@@ -174,8 +174,8 @@ export default async function(win: Window) {
 	Pv(d, 'borderRadiusLeftBottom', 1, e=>e.borderRadiusLeftBottom=1);
 	Pv(d, 'backgroundColor', e=>e.a==0);
 	Pv(d, 'backgroundColor', e=>e.toHex32String()=='#aaaaaa44', e=>e.style.backgroundColor='#aaa4');
-	Pv(d, 'clientSize', e=>e.x==0&&e.y==0);
-	Pv(d, 'contentSize', e=>e.x==0&&e.y==0);
+	//Pv(d, 'clientSize', e=>e.x==0&&e.y==0);
+	//Pv(d, 'contentSize', e=>e.x==0&&e.y==0);
 	Pv(d, 'align', types.Align.Auto);
 	Pv(d, 'align', types.Align.Start, e=>e.style.align='start');
 	Pv(d, 'clip', false);

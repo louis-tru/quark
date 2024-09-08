@@ -544,7 +544,7 @@ export class Module implements IModule {
 			if (parent && parent.paths && parent.paths.length) {
 				paths = parent.paths.concat(paths);
 			}
-			debug('resolvePaths 1 for %j in %j', request, paths);
+			debug('_resolvePaths for %j in %j', request, paths);
 			return paths.length > 0 ? paths : null;
 		}
 
@@ -554,13 +554,13 @@ export class Module implements IModule {
 			// Make require('./path/to/foo') work - normally the path is taken
 			// from realpath(__filename) but in REPL there is no filename
 			const mainPaths = ['.'];
-			debug('resolvePaths 2 for %j in %j', request, mainPaths);
+			debug('_resolvePaths 1 for %j in %j', request, mainPaths);
 			return mainPaths;
 		}
 
 		debug('RELATIVE: requested: %s from parent.id %s', request, parent.id);
 		const parentDir = [parent.dirname];
-		debug('resolvePaths 3 for %j', parentDir);
+		debug('_resolvePaths 2 for %j', parentDir);
 		return parentDir;
 	}
 
@@ -611,7 +611,6 @@ export class Module implements IModule {
 
 	// Given a file name, pass it to the proper extension handler.
 	private _load(resolve: string, filename: string) {
-		debug('load %j for module %j', resolve, this.id);
 		assert(!this.loaded);
 
 		let self = this as {
@@ -642,11 +641,7 @@ export class Module implements IModule {
 	}
 
 	static load(request: string, parent?: Module): any {
-		if (parent) {
-			debug('Module._load REQUEST %s parent: %s', request, parent.id);
-		}
 		let { filename, resolve, pkg } = resolveFilename(request, parent);
-
 		let cachedModule = Module._cache[filename];
 		if (cachedModule) {
 			if (parent)
@@ -656,6 +651,8 @@ export class Module implements IModule {
 		let module = new Module(filename, parent, pkg);
 
 		Module._cache[filename] = module;
+
+		debug('load %j for module %j', resolve, parent && parent.id);
 
 		let threw = true;
 		try {

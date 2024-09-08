@@ -33,8 +33,7 @@
 
 namespace qk { namespace js {
 
-	class NativeOs {
-	public:
+	struct NativeOs {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Set_Method(version, {
 				Js_Return( os_version() );

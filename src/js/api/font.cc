@@ -34,8 +34,7 @@
 
 namespace qk { namespace js {
 
-	class WrapFontPool: public WrapObject {
-	public:
+	struct WrapFontPool: WrapObject {
 
 		static void getFontFamilysFromPool(FunctionArgs args, FontPool* pool) {
 			Js_Worker(args);

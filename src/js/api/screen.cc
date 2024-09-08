@@ -34,8 +34,7 @@
 
 namespace qk { namespace js {
 
-	class WrapScreen: public WrapObject {
-	public:
+	struct WrapScreen: WrapObject {
 		typedef Screen Type;
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {

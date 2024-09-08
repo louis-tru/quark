@@ -33,8 +33,7 @@
 
 namespace qk { namespace js {
 
-	class WrapStorage {
-	public:
+	struct WrapStorage {
 		static void binding(JSObject* exports, Worker* worker) {
 
 			Js_Set_Method(get, {

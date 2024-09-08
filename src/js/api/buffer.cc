@@ -44,9 +44,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	class NativeBuffer {
-	public:
-
+	struct NativeBuffer {
 		static void fromString(FunctionArgs args) {
 			Js_Worker(args);
 			if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误

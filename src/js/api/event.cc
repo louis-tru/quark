@@ -38,8 +38,7 @@
 namespace qk { namespace js {
 	typedef Event<> NativeEvent;
 
-	class WrapNativeEvent: public WrapObject {
-	public:
+	struct WrapNativeEvent: WrapObject {
 		typedef Event<> Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -69,8 +68,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapUIEvent: public WrapObject {
-	public:
+	struct WrapUIEvent: WrapObject {
 		typedef UIEvent Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -112,8 +110,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapActionEvent: public WrapObject {
-	public:
+	struct WrapActionEvent: WrapObject {
 		typedef ActionEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ActionEvent, UIEvent, {
@@ -139,8 +136,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapKeyEvent: public WrapObject {
-	public:
+	struct WrapKeyEvent: WrapObject {
 		typedef KeyEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(KeyEvent, UIEvent, {
@@ -200,8 +196,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapClickEvent: public WrapObject {
-	public:
+	struct WrapClickEvent: WrapObject {
 		typedef ClickEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ClickEvent, UIEvent, {
@@ -227,8 +222,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapHighlightedEvent: public WrapObject {
-	public:
+	struct WrapHighlightedEvent: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(HighlightedEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
@@ -241,8 +235,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapMouseEvent: public WrapObject {
-	public:
+	struct WrapMouseEvent: WrapObject {
 		typedef MouseEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(MouseEvent, KeyEvent, {
@@ -260,8 +253,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapTouchEvent: public WrapObject {
-	public:
+	struct WrapTouchEvent: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(TouchEvent, UIEvent, {
 				Js_Throw("Access forbidden.");

@@ -48,8 +48,7 @@ namespace qk { namespace js {
 		return WrapObject::wrap<Window>(args[0])->self();
 	}
 
-	class WrapAction: public WrapObject {
-	public:
+	struct WrapAction: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Action, 0, { Js_Throw("Access forbidden."); });
 
@@ -138,8 +137,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapSpawnAction: public WrapObject {
-	public:
+	struct WrapSpawnAction: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(SpawnAction, Action, {
 				auto win = NewActionCheck(args, "SpawnAction");
@@ -150,8 +148,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapSequenceAction: public WrapObject {
-	public:
+	struct WrapSequenceAction: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(SequenceAction, Action, {
 				auto win = NewActionCheck(args, "SequenceAction");
@@ -162,8 +159,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapKeyframeAction: public WrapObject {
-	public:
+	struct WrapKeyframeAction: WrapObject {
 		typedef KeyframeAction Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -245,8 +241,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapKeyframe: public WrapObject {
-	public:
+	struct WrapKeyframe: WrapObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Keyframe, StyleSheets, { Js_Throw("Access forbidden."); });
 
@@ -269,8 +264,7 @@ namespace qk { namespace js {
 		};
 	};
 
-	class NativeAction {
-	public:
+	struct NativeAction {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_css");
 			WrapAction::binding(exports, worker);

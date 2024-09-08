@@ -1,6 +1,6 @@
-[submodule "libs/somes"]
-	path = libs/somes
-	url = https://github.com/louis-tru/somes.git
+[submodule "libs/suark"]
+	path = libs/suark
+	url = https://github.com/louis-tru/suark.git
 [submodule "libs/qkmake"]
 	path = libs/qkmake
 	url = https://github.com/louis-tru/qkmake.git

@@ -33,8 +33,7 @@
 
 namespace qk { namespace js {
 
-	class WrapWindow: public WrapObject {
-	public:
+	struct WrapWindow: WrapObject {
 		typedef Window Type;
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {

@@ -35,7 +35,7 @@ using namespace qk;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
-//#define USE_INSPECT 1
+#define USE_INSPECT 0
 
 void test_testing(int argc, char **_) {
 	Array<String> argv;
@@ -45,15 +45,14 @@ void test_testing(int argc, char **_) {
 #endif
 
 #if USE_REMOTE
-		js::Start("http://" IP_REMOTE ":1026/testing", argv);
+	js::Start("http://" IP_REMOTE ":1026/testing", argv);
 #else
-		js::Start(fs_resources("testing"), argv);
+	js::Start(fs_resources("testing"), argv);
 #endif
 }
 
 extern "C" {
-
-#if FX_ANDROID
+#if Qk_ANDROID
 #include <quark/util/android-jni.h>
 	JNIEXPORT extern void
 	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {

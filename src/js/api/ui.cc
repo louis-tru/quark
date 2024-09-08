@@ -65,8 +65,7 @@ namespace qk { namespace js {
 		return nullptr;
 	}
 
-	class WrapNativeApplication: public WrapObject {
-	public:
+	struct WrapNativeApplication: WrapObject {
 		typedef Application Type;
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
@@ -227,8 +226,7 @@ namespace qk { namespace js {
 	void binding_scroll(JSObject* exports, Worker* worker);
 	void binding_transform(JSObject* exports, Worker* worker);
 
-	class NativeUI {
-	public:
+	struct NativeUI {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_font");
 			worker->bindingModule("_types");
