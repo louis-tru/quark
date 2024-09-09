@@ -30,11 +30,11 @@
 
 // console.log(process.argv)
 
-var fs = require('suark/fs');
+var fs = require('encark/fs');
 var path = require('path');
-var syscall = require('suark/syscall').syscall;
+var syscall = require('encark/syscall').syscall;
 var copy_header = require('./cp_header').copy_header;
-var large_file_cut = require('suark/large_file_cut').cut;
+var large_file_cut = require('encark/large_file_cut').cut;
 var read_quark_version = require('./read_version').read_quark_version
 var argv = process.argv.slice(2);
 var os = argv.shift();

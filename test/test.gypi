@@ -28,7 +28,7 @@
 		'ldflags': [ '<@(other_ldflags)' ],
 		'sources': [
 			'../libs/qkmake',
-			'../libs/suark',
+			'../libs/encark',
 			'util/test-event.cc',
 			'util/test-fs-async.cc',
 			'util/test-fs.cc',

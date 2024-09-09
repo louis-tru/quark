@@ -31,7 +31,7 @@ if [ "`which tsc`" = "" ]; then
 	$SUDO npm install typescript -g;
 fi
 
-if   [ ! -d libs/suark ] \
+if   [ ! -d libs/encark ] \
 	|| [ ! -d libs/quark ] \
 	|| [ ! -d libs/qkmake ] \
 	|| [ ! -d deps/v8 ] \
@@ -49,9 +49,9 @@ if [ ! -f libs/quark/out/quark/package.json ]; then
 	cd ../..
 fi
 
-# build libs/suark
-if [ ! -f libs/suark/out/suark/package.json ]; then
-	cd libs/suark
+# build libs/encark
+if [ ! -f libs/encark/out/encark/package.json ]; then
+	cd libs/encark
 	npm i
 	npm run build
 	cd ../..
@@ -61,23 +61,23 @@ fi
 if [ ! -f libs/qkmake/out/qkmake/.build ]; then
 	cd libs/qkmake
 	npm i
-	rm -rf node_modules/suark
+	rm -rf node_modules/encark
 	cd node_modules
-	ln -s ../../suark/out/suark
+	ln -s ../../encark/out/encark
 	cd ..
 	npm run build
 	cd ../..
 	echo '' > libs/qkmake/out/qkmake/.build
 fi
 
-if   [ ! -d tools/node_modules/suark ] \
+if   [ ! -d tools/node_modules/encark ] \
 	|| [ ! -d tools/node_modules/qkmake ] \
 	|| [ ! -d tools/node_modules/quark ] \
 ; then
 	rm -rf tools/node_modules/*
 	mkdir -p tools/node_modules
 	cd tools/node_modules
-	ln -s ../../libs/suark/out/suark
+	ln -s ../../libs/encark/out/encark
 	ln -s ../../libs/qkmake/out/qkmake
 	ln -s ../../libs/quark/out/quark
 	cd ../..

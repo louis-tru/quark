@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('suark/util').default;
-var fs = require('suark/fs');
-// var service = require('suark/service').default;
-var HttpService = require('suark/http_service').HttpService;
-var FileStream = require('suark/incoming_form').FileStream;
+var util = require('encark/util').default;
+var fs = require('encark/fs');
+// var service = require('encark/service').default;
+var HttpService = require('encark/http_service').HttpService;
+var FileStream = require('encark/incoming_form').FileStream;
 var start_server = require('qkmake/server').default;
 
 // Tools service

@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('suark/fs');
-var { execSync } = require('suark/syscall');
+var fs = require('encark/fs');
+var { execSync } = require('encark/syscall');
 var { copy_header } = require('./cp_header');
 var path = require('path');
 var read_version = require('./read_version');

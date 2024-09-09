@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('suark/fs');
+var fs = require('encark/fs');
 
 function read_quark_version() {
 	var str = fs.readFileSync(__dirname + '/../quark/version.h').toString('utf-8');

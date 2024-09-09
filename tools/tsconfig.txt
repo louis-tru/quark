@@ -21,7 +21,7 @@
 		// "emitDecoratorMetadata": true, // 给源码里的装饰器声明加上设计类型元数据
 		// "experimentalDecorators": true,// 启用实验性的ES装饰器
 		// "typeRoots" : ["@types", "node_modules/@types"],
-		// "types": ["suark", "node"],
+		// "types": ["encark", "node"],
 	},
 	// "files": [ "_test.ts" ],
 	"include": [
