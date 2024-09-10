@@ -55,39 +55,39 @@ namespace qk {
 #define GL_LUMINANCE_ALPHA                0x190A
 #endif
 		switch (type) {
-			case kColor_Type_Alpha_8: return GL_ALPHA;
-			case kColor_Type_RGB_565: return GL_RGB;
-			case kColor_Type_RGBA_4444: return GL_RGBA;
-			case kColor_Type_RGB_444X: return GL_RGBA;//GL_RGB;
-			case kColor_Type_RGBA_8888: return GL_RGBA;
-			case kColor_Type_RGB_888X: return GL_RGBA;//GL_RGB;
-			case kColor_Type_BGRA_8888: return GL_BGRA;
-			case kColor_Type_RGBA_1010102: return GL_RGBA;
-			case kColor_Type_BGRA_1010102: return GL_BGRA;
-			case kColor_Type_RGB_101010X: return GL_RGBA; // GL_RGB
-			case kColor_Type_BGR_101010X: return GL_BGRA; // GL_BGR;
-			case kColor_Type_RGB_888: return GL_RGB;
-			case kColor_Type_RGBA_5551: return GL_RGBA;
-			case kColor_Type_Luminance_8: return GL_LUMINANCE;
-			case kColor_Type_Luminance_Alpha_88: return GL_LUMINANCE_ALPHA;
-			// case kColor_Type_SDF_Float: return GL_RGBA;
-			// case kColor_Type_YUV420SP_Y_8:
-			case kColor_Type_YUV420P_Y_8: return GL_LUMINANCE;
-			// case kColor_Type_YUV420P_V_8:
-			case kColor_Type_YUV420P_U_8: return GL_LUMINANCE;
-			case kColor_Type_YUV420SP_UV_88: return GL_LUMINANCE_ALPHA;
+			case kAlpha_8_ColorType: return GL_ALPHA;
+			case kRGB_565_ColorType: return GL_RGB;
+			case kRGBA_4444_ColorType: return GL_RGBA;
+			case kRGB_444X_ColorType: return GL_RGBA;//GL_RGB;
+			case kRGBA_8888_ColorType: return GL_RGBA;
+			case kRGB_888X_ColorType: return GL_RGBA;//GL_RGB;
+			case kBGRA_8888_ColorType: return GL_BGRA;
+			case kRGBA_1010102_ColorType: return GL_RGBA;
+			case kBGRA_1010102_ColorType: return GL_BGRA;
+			case kRGB_101010X_ColorType: return GL_RGBA; // GL_RGB
+			case kBGR_101010X_ColorType: return GL_BGRA; // GL_BGR;
+			case kRGB_888_ColorType: return GL_RGB;
+			case kRGBA_5551_ColorType: return GL_RGBA;
+			case kLuminance_8_ColorType: return GL_LUMINANCE;
+			case kLuminance_Alpha_88_ColorType: return GL_LUMINANCE_ALPHA;
+			// case kSDF_Float_ColorType: return GL_RGBA;
+			// case kYUV420SP_Y_8_ColorType:
+			case kYUV420P_Y_8_ColorType: return GL_LUMINANCE;
+			// case kYUV420P_V_8_ColorType:
+			case kYUV420P_U_8_ColorType: return GL_LUMINANCE;
+			case kYUV420SP_UV_88_ColorType: return GL_LUMINANCE_ALPHA;
 #if Qk_iOS // ios
 				// compressd texture
-			case kColor_Type_PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-			case kColor_Type_PVRTCI_2BPP_RGBA:
-			case kColor_Type_PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-			case kColor_Type_PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-			case kColor_Type_PVRTCI_4BPP_RGBA:
-			case kColor_Type_PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-			case kColor_Type_ETC1:
-			case kColor_Type_ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
-			case kColor_Type_ETC2_RGB_A1:
-			case kColor_Type_ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
+			case kPVRTCI_2BPP_RGB_ColorType: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+			case kPVRTCI_2BPP_RGBA_ColorType:
+			case kPVRTCII_2BPP_ColorType: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+			case kPVRTCI_4BPP_RGB_ColorType: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+			case kPVRTCI_4BPP_RGBA_ColorType:
+			case kPVRTCII_4BPP_ColorType: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+			case kETC1_ColorType:
+			case kETC2_RGB_ColorType: return GL_COMPRESSED_RGB8_ETC2;
+			case kETC2_RGB_A1_ColorType:
+			case kETC2_RGBA_ColorType: return GL_COMPRESSED_RGBA8_ETC2_EAC;
 #endif
 			default: return 0;
 		}
@@ -100,29 +100,29 @@ namespace qk {
 
 	GLint gl_get_texture_data_type(ColorType format) {
 		switch (format) {
-			case kColor_Type_Alpha_8: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGB_565: return GL_UNSIGNED_SHORT_5_6_5;
-			case kColor_Type_RGBA_4444: return GL_UNSIGNED_SHORT_4_4_4_4;
-			case kColor_Type_RGB_444X: return GL_UNSIGNED_SHORT_4_4_4_4;
+			case kAlpha_8_ColorType: return GL_UNSIGNED_BYTE;
+			case kRGB_565_ColorType: return GL_UNSIGNED_SHORT_5_6_5;
+			case kRGBA_4444_ColorType: return GL_UNSIGNED_SHORT_4_4_4_4;
+			case kRGB_444X_ColorType: return GL_UNSIGNED_SHORT_4_4_4_4;
 #if Qk_OSX
-			case kColor_Type_RGBA_8888: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_RGB_888X: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_BGRA_8888: return GL_UNSIGNED_INT_8_8_8_8;
-			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_10_10_10_2;
-			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_10_10_10_2;
+			case kRGBA_8888_ColorType: return GL_UNSIGNED_INT_8_8_8_8;
+			case kRGB_888X_ColorType: return GL_UNSIGNED_INT_8_8_8_8;
+			case kBGRA_8888_ColorType: return GL_UNSIGNED_INT_8_8_8_8;
+			case kRGBA_1010102_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
+			case kBGRA_1010102_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
+			case kRGB_101010X_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
+			case kBGR_101010X_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
 #else
-			case kColor_Type_RGBA_8888: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGB_888X: return GL_UNSIGNED_BYTE;
-			case kColor_Type_BGRA_8888: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGBA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kColor_Type_BGRA_1010102: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kColor_Type_RGB_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kColor_Type_BGR_101010X: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kRGBA_8888_ColorType: return GL_UNSIGNED_BYTE;
+			case kRGB_888X_ColorType: return GL_UNSIGNED_BYTE;
+			case kBGRA_8888_ColorType: return GL_UNSIGNED_BYTE;
+			case kRGBA_1010102_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kBGRA_1010102_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kRGB_101010X_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kBGR_101010X_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
 #endif
-			case kColor_Type_RGB_888: return GL_UNSIGNED_BYTE;
-			case kColor_Type_RGBA_5551: return GL_UNSIGNED_SHORT_5_5_5_1;
+			case kRGB_888_ColorType: return GL_UNSIGNED_BYTE;
+			case kRGBA_5551_ColorType: return GL_UNSIGNED_SHORT_5_5_5_1;
 			default: return GL_UNSIGNED_BYTE;
 		}
 	}
@@ -219,11 +219,11 @@ namespace qk {
 		} else {
 			GLenum ifo;
 			switch (type) {
-				case kColor_Type_RGB_565: ifo = GL_RGB565; break;
-				case kColor_Type_RGBA_8888: ifo = GL_RGBA8; break;
-				case kColor_Type_RGB_888X: ifo = GL_RGBA8; break;
-				case kColor_Type_RGBA_1010102: ifo = GL_RGB10_A2; break;
-				case kColor_Type_RGB_101010X: ifo = GL_RGB10_A2; break;
+				case kRGB_565_ColorType: ifo = GL_RGB565; break;
+				case kRGBA_8888_ColorType: ifo = GL_RGBA8; break;
+				case kRGB_888X_ColorType: ifo = GL_RGBA8; break;
+				case kRGBA_1010102_ColorType: ifo = GL_RGB10_A2; break;
+				case kRGB_101010X_ColorType: ifo = GL_RGB10_A2; break;
 				default: ifo = GL_RGBA8; break;
 			}
 			gl_set_framebuffer_renderbuffer(rbo, size, ifo, GL_COLOR_ATTACHMENT0);
@@ -232,8 +232,8 @@ namespace qk {
 
 	void gl_set_blur_renderbuffer(GLuint tex, Vec2 size) {
 		gl_tex_image2D_null(tex, size,
-			gl_get_texture_pixel_format(kColor_Type_RGBA_8888),
-			gl_get_texture_data_type(kColor_Type_RGBA_8888), 0);
+			gl_get_texture_pixel_format(kRGBA_8888_ColorType),
+			gl_get_texture_data_type(kRGBA_8888_ColorType), 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -424,7 +424,7 @@ namespace qk {
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-		if ( type >= kColor_Type_PVRTCI_2BPP_RGB ) {
+		if ( type >= kPVRTCI_2BPP_RGB_ColorType ) {
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
 			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
@@ -545,7 +545,7 @@ namespace qk {
 
 	Canvas* GLRender::newCanvas(Options opts) {
 #if Qk_USE_GLC_CMD_QUEUE
-		opts.colorType = opts.colorType ? opts.colorType: kColor_Type_RGBA_8888;
+		opts.colorType = opts.colorType ? opts.colorType: kRGBA_8888_ColorType;
 		return new GLCanvas(this, opts);
 #else
 		return nullptr;

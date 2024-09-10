@@ -62,7 +62,7 @@ namespace qk {
 		return audio.collapse();
 	}
 
-	typedef MultimediaSource::TrackInfo TrackInfo;
+	typedef MediaSource::TrackInfo TrackInfo;
 
 	/**
 	 * @class Video::Inl
@@ -104,7 +104,7 @@ namespace qk {
 								_waiting_buffer = false;
 							}
 						} else {
-							MultimediaSourceStatus status = _source->status();
+							MediaSourceStatus status = _source->status();
 							if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
 								if ( _waiting_buffer == false ) {
 									_keep->post(Cb([this](Cb::Data& evt) { trigger(UIEvent_WaitBuffer, Float(0.0F)); /* trigger source WAIT event */ }));
@@ -246,7 +246,7 @@ namespace qk {
 
 	};
 
-	void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
+	void AudioPlayer::multimedia_source_ready(MediaSource* src) {
 		Qk_ASSERT(_source == src);
 		
 		if (_audio) {
@@ -304,7 +304,7 @@ namespace qk {
 		}));
 	}
 
-	void AudioPlayer::multimedia_source_wait_buffer(MultimediaSource* so, float process) {
+	void AudioPlayer::multimedia_source_wait_buffer(MediaSource* so, float process) {
 		if ( _waiting_buffer ) {/* 开始等待数据缓存不触发事件,因为在解码器队列可能还存在数据,
 															* 所以等待解码器也无法输出数据时再触发事件
 															*/
@@ -315,11 +315,11 @@ namespace qk {
 		}
 	}
 
-	void AudioPlayer::multimedia_source_eof(MultimediaSource* so) {
+	void AudioPlayer::multimedia_source_eof(MediaSource* so) {
 		Inl_AudioPlayer(this)->trigger(UIEvent_SourceEnd); // trigger event eof
 	}
 
-	void AudioPlayer::multimedia_source_error(MultimediaSource* so, cError& err) {
+	void AudioPlayer::multimedia_source_error(MediaSource* so, cError& err) {
 		Inl_AudioPlayer(this)->trigger(UIEvent_Error, err); // trigger event error
 		stop();
 	}
@@ -392,7 +392,7 @@ namespace qk {
 		}
 		auto loop = _host->loop();
 		Qk_ASSERT(loop, "Cannot find main run loop");
-		_source = new MultimediaSource(src, loop);
+		_source = new MediaSource(src, loop);
 		_keep = loop->keep_alive("AudioPlayer::set_src");
 		_source->set_delegate(this);
 		_source->disable_wait_buffer(_disable_wait_buffer);
@@ -426,7 +426,7 @@ namespace qk {
 	/**
 	 * @func source_status()
 	 * */
-	MultimediaSourceStatus AudioPlayer::source_status() {
+	MediaSourceStatus AudioPlayer::source_status() {
 		ScopeLock scope(_mutex);
 		if ( _source ) {
 			return _source->status();

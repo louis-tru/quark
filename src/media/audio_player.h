@@ -40,10 +40,10 @@
 namespace qk {
 
 	class Qk_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
-															public MultimediaSource::Delegate {
+															public MediaSource::Delegate {
 		Qk_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
-		typedef MultimediaSource::TrackInfo TrackInfo;
+		typedef MediaSource::TrackInfo TrackInfo;
 		typedef Mediacodec_OutputBuffer    OutputBuffer;
 		// define props
 		Qk_DEFINE_PROP_ACC(bool, auto_play, NoConst);
@@ -51,7 +51,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer, NoConst);
 		Qk_DEFINE_PROP_ACC(uint32_t, volume, NoConst);
 		Qk_DEFINE_PROP_ACC(String, src, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(MultimediaSourceStatus, source_status, NoConst);
+		Qk_DEFINE_PROP_ACC_GET(MediaSourceStatus, source_status, NoConst);
 		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status, NoConst);
 		Qk_DEFINE_PROP_ACC_GET(uint64_t, time, NoConst);
 		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration, NoConst);
@@ -72,14 +72,14 @@ namespace qk {
 		void stop();
 
 		// @overwrite
-		virtual void multimedia_source_ready(MultimediaSource* src);
-		virtual void multimedia_source_wait_buffer(MultimediaSource* src, float process);
-		virtual void multimedia_source_eof(MultimediaSource* src);
-		virtual void multimedia_source_error(MultimediaSource* src, cError& err);
+		virtual void multimedia_source_ready(MediaSource* src);
+		virtual void multimedia_source_wait_buffer(MediaSource* src, float process);
+		virtual void multimedia_source_eof(MediaSource* src);
+		virtual void multimedia_source_error(MediaSource* src, cError& err);
 
 	private:
 		Application *_host;
-		MultimediaSource* _source;
+		MediaSource* _source;
 		PCMPlayer*    _pcm;
 		MediaCodec*   _audio;
 		KeepLoop*     _keep;

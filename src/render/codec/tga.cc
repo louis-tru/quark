@@ -186,17 +186,17 @@ namespace qk {
 		
 		if( bytes == 2) {
 			if (code == 2 || code == 10) { // RGB | RLE RGB
-				format = kColor_Type_RGBA_5551;
+				format = kRGBA_5551_ColorType;
 			} else { // GRAY | RLE GRAY
-				format = kColor_Type_Luminance_Alpha_88;
+				format = kLuminance_Alpha_88_ColorType;
 			}
 		} else if (bytes == 3) {
-			format = kColor_Type_RGB_888;
+			format = kRGB_888_ColorType;
 		} else {
-			format = alpha ? kColor_Type_RGBA_8888: kColor_Type_RGB_888X;
+			format = alpha ? kRGBA_8888_ColorType: kRGB_888X_ColorType;
 		}
 
-		*out = PixelInfo(header->width, header->height, format, kAlphaType_Unpremul);
+		*out = PixelInfo(header->width, header->height, format, kUnpremul_AlphaType);
 
 		return true;
 	}
@@ -214,16 +214,16 @@ namespace qk {
 		
 		if (bytes == 2) {
 			if (code == 2 || code == 10) { // RGB | RLE RGB
-				format = kColor_Type_RGBA_5551; // RGBA5551
+				format = kRGBA_5551_ColorType; // RGBA5551
 			} else { // GRAY | RLE GRAY
-				format = kColor_Type_Luminance_Alpha_88;
+				format = kLuminance_Alpha_88_ColorType;
 			}
 			func = &tga_read_16_data_black;
 		} else if (bytes == 3) {
-			format = kColor_Type_RGB_888;
+			format = kRGB_888_ColorType;
 			func = &tga_read_24_data_black;
 		} else {
-			format = alpha ? kColor_Type_RGBA_8888: kColor_Type_RGB_888X;
+			format = alpha ? kRGBA_8888_ColorType: kRGB_888X_ColorType;
 			func = &tga_read_32_data_black;
 		}
 		
@@ -267,7 +267,7 @@ namespace qk {
 		// BOTTOM_LEFT
 			out = tga_flip_vertical(*out, width, height, bytes);
 		}
-		pixel->push( Pixel(PixelInfo(width, height, format, kAlphaType_Unpremul), out) );
+		pixel->push( Pixel(PixelInfo(width, height, format, kUnpremul_AlphaType), out) );
 
 		return true;
 	}
@@ -276,8 +276,8 @@ namespace qk {
 		auto type = pixel.type();
 		auto pix = &pixel;
 
-		if (pix->type() == kColor_Type_RGBA_8888 ||
-			type == kColor_Type_Alpha_8 || type == kColor_Type_Luminance_8
+		if (pix->type() == kRGBA_8888_ColorType ||
+			type == kAlpha_8_ColorType || type == kLuminance_8_ColorType
 		) {
 			auto ret_data = Buffer::alloc(sizeof(TGAHeader) + pix->width() * pix->height() * 4);
 
@@ -301,7 +301,7 @@ namespace qk {
 			auto src  = (const uint8_t*)pix->body().val();
 			auto dest = (uint8_t*)*ret_data + sizeof(TGAHeader);
 
-			if (pix->type() != kColor_Type_RGBA_8888) {
+			if (pix->type() != kRGBA_8888_ColorType) {
 				for ( int i = 0; i < pixels; i++ ) {
 					dest[2] = 0;
 					dest[1] = 0;
@@ -312,7 +312,7 @@ namespace qk {
 				}
 			} else {
 				// 写入BGRA数据
-				if ( pix->alphaType() == kAlphaType_Premul ) {
+				if ( pix->alphaType() == kPremul_AlphaType ) {
 					for (int i = 0; i < pixels; i++) {
 						float alpha = src[3] / 255;
 						dest[2] = src[0] / alpha;

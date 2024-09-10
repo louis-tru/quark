@@ -127,7 +127,7 @@ namespace qk {
 
 			_async_call([](auto self, auto arg) {
 				if ( self->_editing ) {
-					self->window()->dispatch()->set_ime_keyboard_open({
+					self->window()->dispatch()->setImeKeyboardOpen({
 						false, self->_type, self->_return_type, self->spot_rect()
 					});
 				} else {
@@ -785,7 +785,7 @@ namespace qk {
 
 			if (_editing) {
 				// update system ime input position
-				window()->dispatch()->set_ime_keyboard_spot_rect(input_spot_rect());
+				window()->dispatch()->setImeKeyboardSpotRect(input_spot_rect());
 			}
 		} else {
 			Box::solve_marks(mat, mark);
@@ -1027,7 +1027,7 @@ namespace qk {
 		return _return_type;
 	}
 
-	Object* Input::toObject() {
+	Object* Input::asObject() {
 		return nullptr;
 	}
 
@@ -1040,7 +1040,7 @@ namespace qk {
 			_type = value;
 			if ( _editing ) {
 				window()->dispatch()->
-					set_ime_keyboard_open({ false, _type, _return_type, input_spot_rect() });
+					setImeKeyboardOpen({ false, _type, _return_type, input_spot_rect() });
 			}
 		}
 	}
@@ -1050,7 +1050,7 @@ namespace qk {
 			_return_type = value;
 			if ( _editing ) {
 				window()->dispatch()->
-					set_ime_keyboard_open({ false, _type, _return_type, input_spot_rect() });
+					setImeKeyboardOpen({ false, _type, _return_type, input_spot_rect() });
 			}
 		}
 	}

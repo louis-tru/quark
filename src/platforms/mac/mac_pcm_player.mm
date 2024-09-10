@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "quark/media/pcm.h"
+#import "quark/media/pcm_player.h"
 #import "quark/util/handle.h"
 #import "quark/util/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
@@ -38,14 +38,11 @@ namespace qk {
 	#define QUEUE_BUFFER_COUNT 3
 	#define WAIT_WRITE_BUFFER_COUNT 3
 
-	/**
-	* @class MacPCMPlayer
-	*/
 	class MacPCMPlayer: public Object, public PCMPlayer {
 	public:
 		typedef ObjectTraits Traits;
 
-		virtual Object* toObject() { return this; }
+		virtual Object* asObject() { return this; }
 		
 		struct WaitWriteBuffer {
 			Buffer  data;
@@ -62,8 +59,8 @@ namespace qk {
 			memset(_buffer_free, 0, sizeof(_buffer_free));
 		}
 		
-		virtual ~MacPCMPlayer() {
-			
+		~MacPCMPlayer() overwrite {
+
 			for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
 				if ( _buffer_all[i] ) {
 					AudioQueueFreeBuffer(_queue, _buffer_all[i]);
@@ -108,18 +105,12 @@ namespace qk {
 			}
 			return false;
 		}
-		
-		/**
-		* @func buffer_callback
-		*/
+
 		static void buffer_callback(MacPCMPlayer* self,
 																AudioQueueRef queue, AudioQueueBufferRef in) {
 			self->buffer_callback2(in);
 		}
-		
-		/**
-		* @func buffer_callback2
-		*/
+
 		void buffer_callback2(AudioQueueBufferRef in) {
 			ScopeLock scope(_mutex);
 			
@@ -161,11 +152,8 @@ namespace qk {
 				}
 			}
 		}
-		
-		/**
-		* @overwrite
-		*/
-		virtual bool write(cBuffer& buffer) {
+
+		bool write(cBuffer& buffer) override {
 			ScopeLock scope(_mutex);
 			
 			if ( !_player ) {
@@ -206,29 +194,20 @@ namespace qk {
 			}
 			return r;
 		}
-		
-		/**
-		* @overwrite
-		*/
-		virtual float compensate() {
+
+		float compensate() override {
 			return -1.0;
 		}
 
-		/**
-		* @overwrite
-		*/
-		virtual void flush() {
+		void flush() override {
 			ScopeLock scope(_mutex);
 			_wait_write_buffer_index = 0;
 			_wait_write_buffer_count = 0;
 			AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, 0);
 			_flush = true;
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual bool set_mute(bool value) {
+
+		bool set_mute(bool value) override {
 			AudioQueueParameterValue volume;
 			OSStatus status;
 			
@@ -251,11 +230,8 @@ namespace qk {
 			}
 			return false;
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual bool set_volume(uint32_t value) {
+
+		bool set_volume(uint32_t value) override {
 			ScopeLock scope(_mutex);
 			OSStatus status;
 			AudioQueueParameterValue v;
@@ -270,11 +246,8 @@ namespace qk {
 			}
 			return false;
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual uint32_t buffer_size() {
+
+		uint32_t buffer_size() override {
 			return Qk_MAX(4096, _channel_count * _sample_rate / 10);
 		}
 		
@@ -283,10 +256,10 @@ namespace qk {
 		AudioQueueBufferRef       _buffer_all[QUEUE_BUFFER_COUNT];
 		AudioQueueBufferRef       _buffer_free[QUEUE_BUFFER_COUNT];
 		WaitWriteBuffer           _wait_write_buffer[WAIT_WRITE_BUFFER_COUNT];
-		uint32_t                      _wait_write_buffer_index;
-		uint32_t                      _wait_write_buffer_count;
-		uint32_t                      _channel_count;
-		uint32_t                      _sample_rate;
+		uint32_t                  _wait_write_buffer_index;
+		uint32_t                  _wait_write_buffer_count;
+		uint32_t                  _channel_count;
+		uint32_t                  _sample_rate;
 		Mutex                     _mutex;
 		AudioQueueParameterValue  _volume;
 		bool                      _player;
@@ -298,7 +271,6 @@ namespace qk {
 		if ( player->initialize(channel_count, sample_rate) ) {
 			return player.collapse();
 		}
-		return NULL;
+		return nullptr;
 	}
-
 }

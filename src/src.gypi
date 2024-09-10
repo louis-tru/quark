@@ -139,8 +139,6 @@
 			'render/math.cc',
 			'render/source.h',
 			'render/source.cc',
-			'media/media.h', # media
-			'media/media.cc',
 			'os/os.h', # os
 			'os/os.cc',
 			'errno.h',
@@ -210,8 +208,8 @@
 					'os/os_mac.mm',
 					'platforms/mac/mac_app.h',
 					'platforms/mac/mac_app.mm',
-					'platforms/mac/mac_image_codec.mm',
 					'platforms/mac/mac_keyboard.mm',
+					'render/codec/codec_mac.mm',
 					'render/render_mac.h',
 					'render/render_mac.mm',
 					'render/font/util_mac.h',
@@ -349,16 +347,16 @@
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 		],
 		'sources': [
-			'media/pcm.h',
 			'media/audio_player.h',
 			'media/audio_player.cc',
-			'media/media_codec.h',
-			'media/media_codec.cc',
-			'media/media_codec_inl.h',
-			'media/media_codec_inl.cc',
 			'media/media_codec_software.cc',
-			'media/media_init.cc',
-			# 'ui/view/video.cc',
+			'media/media_codec.cc',
+			'media/media_extractor.cc',
+			'media/media_inl.h',
+			'media/media_source.cc',
+			'media/media.h',
+			'media/pcm_player.h',
+			'ui/view/video.cc',
 		],
 		'conditions': [
 			['os=="android"', {

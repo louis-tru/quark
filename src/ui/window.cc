@@ -110,7 +110,7 @@ namespace qk {
 	}
 
 	View* Window::focusView() {
-		return _dispatch->focus_view();
+		return _dispatch->focusView();
 	}
 
 	Window* Window::Make(Options opts) {

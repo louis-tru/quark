@@ -57,7 +57,7 @@ namespace qk {
 	/**
 	* @func hardware
 	*/
-	MediaCodec* Mediacodec_hardware(MediaType type, MultimediaSource* source) {
+	MediaCodec* Mediacodec_hardware(MediaType type, MediaSource* source) {
 		return nullptr;
 	}
 

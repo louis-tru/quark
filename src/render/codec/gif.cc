@@ -100,7 +100,7 @@ namespace qk {
 				}
 			}
 
-			PixelInfo info(width, height, kColor_Type_RGBA_5551, kAlphaType_Unpremul);
+			PixelInfo info(width, height, kRGBA_5551_ColorType, kUnpremul_AlphaType);
 
 			rv->push( Pixel(info, buff) );
 		}
@@ -119,7 +119,7 @@ namespace qk {
 		uint32_t h = gif->SHeight;
 		DGifCloseFile(gif, NULL);
 
-		*out = PixelInfo(w, h, kColor_Type_RGBA_5551, kAlphaType_Unpremul);
+		*out = PixelInfo(w, h, kRGBA_5551_ColorType, kUnpremul_AlphaType);
 
 		return true;
 	}

@@ -82,7 +82,7 @@ namespace qk {
 		virtual Rect input_spot_rect() override;
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
-		virtual Object* toObject() override;
+		virtual Object* asObject() override;
 		virtual void draw(UIDraw *render) override;
 	protected:
 		Vec2 layout_typesetting_input_text();

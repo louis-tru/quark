@@ -28,115 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./media_codec_inl.h"
+#include "./media_inl.h"
 
 namespace qk {
 
-	static Mediacodec_Delegate default_media_decoder_delegate;
-
-	// ------------------- MultimediaSource ------------------
-
-	MultimediaSource::MultimediaSource(cString& uri, RunLoop* loop): _inl(nullptr) {
-		_inl = new Inl(this, uri, loop);
-	}
-
-	MultimediaSource::~MultimediaSource() { 
-		Release(_inl); _inl = nullptr; 
-	}
-
-	void MultimediaSource::set_delegate(Delegate* delegate) { _inl->set_delegate(delegate); }
-	const URI& MultimediaSource::uri() const { return _inl->_uri; }
-	MultimediaSourceStatus MultimediaSource::status() const {
-		return (MultimediaSourceStatus)(int)_inl->_status;
-	}
-	uint64_t MultimediaSource::duration() const { return _inl->_duration; }
-	uint32_t MultimediaSource::bit_rate_index() const { return _inl->bit_rate_index(); }
-	const Array<BitRateInfo>& MultimediaSource::bit_rate()const{ return _inl->bit_rate();}
-	bool MultimediaSource::select_bit_rate(int index) { return _inl->select_bit_rate(index); }
-	Extractor* MultimediaSource::extractor(MediaType type) { return _inl->extractor(type); }
-	bool MultimediaSource::seek(uint64_t timeUs) { return _inl->seek(timeUs); }
-	void MultimediaSource::start() { _inl->start(); }
-	void MultimediaSource::stop() { _inl->stop(); }
-	bool MultimediaSource::is_active() { return _inl->is_active(); }
-	void MultimediaSource::disable_wait_buffer(bool value) { _inl->disable_wait_buffer(value); }
-	AVStream* MultimediaSource::get_stream(const TrackInfo& t) { return _inl->get_stream(t); }
-
-	// ----------------- MultimediaSource::Extractor -------------------
-
-	Extractor::Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& tracks)
-		: _host(host)
-		, _type(type)
-		, _track_index(0)
-		, _tracks(std::move(tracks))
-		, _sample_data_cache()
-		, _sample_index_cache(0)
-		, _sample_count_cache(0)
-		, _sample_data({ Buffer(), NULL, 0, 0, 0 })
-		, _eof_flags(0)
-		, _disable(1)
-	{
-	}
-
-	/**
-	* @func select_track
-	*/
-	bool Extractor::select_track(uint32_t index) {
-		ScopeLock lock(_host->_inl->mutex());
-		if ( _track_index != index && index < _tracks.length() ) {
-			_host->_inl->extractor_flush(this);
-			_track_index = index;
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	* @func deplete_sample
-	* */
-	uint32_t Extractor::deplete_sample(Char* out, uint32_t size) {
-		if ( _sample_data.size ) {
-			size = Qk_MIN(_sample_data.size, size);
-			memcpy(out, _sample_data.data, size);
-			_sample_data.data += size;
-			_sample_data.size -= size;
-			return size;
-		}
-		return 0;
-	}
-
-
-	/**
-	* @func deplete_sample
-	* */
-	uint32_t Extractor::deplete_sample(Buffer& out) {
-		uint32_t size = out.write(_sample_data.data, 0, _sample_data.size);
-		_sample_data.size = 0;
-		return size;
-	}
-
-	/**
-	* @func deplete_sample
-	* */
-	uint32_t Extractor::deplete_sample(uint32_t size) {
-		size = Qk_MIN(size, _sample_data.size);
-		_sample_data.size -= size;
-		_sample_data.data += size;
-		return size;
-	}
-
-	/**
-	* @func advance
-	* */
-	bool Extractor::advance() {
-		return _host->_inl->extractor_advance(this);
-	}
+	static MediaCodec::Delegate default_media_decoder_delegate;
 
 	// ----------------- MediaCodec -------------------
 
-	/**
-	* @constructor
-	*/
-	Mediacodec_MediaCodec(Extractor* extractor)
+	MediaCodec::MediaCodec(Extractor* extractor)
 		: _extractor(extractor)
 		, _delegate(&default_media_decoder_delegate)
 		, _color_format(VIDEO_COLOR_FORMAT_INVALID)
@@ -147,10 +47,7 @@ namespace qk {
 		_frame_interval = extractor->track().frame_interval;
 	}
 
-	/**
-	* @func set_delegate
-	*/
-	void Mediacodec_set_delegate(Delegate* delegate) {
+	void MediaCodec::set_delegate(Delegate* delegate) {
 		Qk_ASSERT(delegate);
 		_delegate = delegate;
 	}
@@ -182,10 +79,7 @@ namespace qk {
 		return false;
 	}
 
-	/**
-	* @func parse_psp_pps
-	* */
-	bool Mediacodec_parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
+	bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
 		// set sps and pps
 		uint8_t* buf = (uint8_t*)*extradata;
 		
@@ -221,10 +115,7 @@ namespace qk {
 		return false;
 	}
 
-	/**
-	* @func convert_sample_data_to_nalu
-	* */
-	bool Mediacodec_convert_sample_data_to_nalu(Buffer& buffer) {
+	bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
 		uint32_t size = buffer.length();
 		if (size) {
 			uint8_t* buf = (uint8_t*)*buffer;
@@ -245,10 +136,7 @@ namespace qk {
 		return false;
 	}
 
-	/**
-	* @func convert_sample_data_to_mp4_style
-	* */
-	bool Mediacodec_convert_sample_data_to_mp4_style(Buffer& buffer) {
+	bool MediaCodec::convert_sample_data_to_mp4_style(Buffer& buffer) {
 		uint32_t size = buffer.length();
 		if (size) {
 			uint8_t* buf = (uint8_t*)*buffer;
@@ -266,10 +154,7 @@ namespace qk {
 		return false;
 	}
 
-	/**
-	* @func create decoder
-	* */
-	MediaCodec* Mediacodec_create(MediaType type, MultimediaSource* source) {
+	MediaCodec* MediaCodec::create(MediaType type, MediaSource* source) {
 		MediaCodec* rv = hardware(type, source);
 		if ( ! rv ) {
 			rv = software(type, source);

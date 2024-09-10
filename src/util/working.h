@@ -43,7 +43,7 @@ namespace qk {
 	public:
 		typedef std::function<void()> Func;
 		ParallelWorking(RunLoop* loop = RunLoop::current());
-		~ParallelWorking();
+		~ParallelWorking() override;
 		ThreadID spawn_child(Func func, cString& name);
 		void awaken_child(ThreadID id = ThreadID());  // default awaken all child
 		void abort_child(ThreadID id = ThreadID());   // default abort all child

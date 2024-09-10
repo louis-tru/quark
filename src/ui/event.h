@@ -261,7 +261,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Application*, host);
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
-		Qk_DEFINE_PROP_GET(View*, focus_view);
+		Qk_DEFINE_PROP_GET(View*, focusView);
 
 		EventDispatch(Window* win);
 		~EventDispatch();
@@ -282,13 +282,13 @@ namespace qk {
 		void onKeyboardDown();
 		void onKeyboardUp();
 		// setting state
-		void set_volume_up();
-		void set_volume_down();
-		void set_ime_keyboard_open(KeyboardOptions options);
-		void set_ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-		void set_ime_keyboard_close();
-		void set_ime_keyboard_spot_rect(Rect rect);
-		bool set_focus_view(View *view); // set focus from main thread
+		void setVolumeUp();
+		void setVolumeDown();
+		void setImeKeyboardOpen(KeyboardOptions options);
+		void setImeKeyboardCanBackspace(bool can_back_space, bool can_delete);
+		void setImeKeyboardClose();
+		void setImeKeyboardSpotRect(Rect rect);
+		bool setFocusView(View *view); // set focus from main thread
 	private:
 		void touchstartErase(View *view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);

@@ -1,9 +1,9 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, blue.chu
+ * Copyright © 2015-2016, blue.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of blue.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,31 +25,79 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./pcm.h"
-#include "./audio_player.h"
-#include "../layout/video.h"
+#include "./media_inl.h"
 
 namespace qk {
 
-	Qk_INIT_BLOCK(media_init) {
+	Extractor::Extractor(MediaType type, MediaSource* host, Array<TrackInfo>&& tracks)
+		: _host(host)
+		, _type(type)
+		, _track_index(0)
+		, _tracks(std::move(tracks))
+		, _sample_data_cache()
+		, _sample_index_cache(0)
+		, _sample_count_cache(0)
+		, _sample_data({ Buffer(), NULL, 0, 0, 0 })
+		, _eof_flags(0)
+		, _disable(1)
+	{
+	}
 
-		static module_info_t audio_player = {
-			[](void* arg) -> Object* {
-				return AudioPlayer::create(arg ? *(String*)arg: String());
-			},
-			typeid(AudioPlayer).hashCode(),
-		};
+	/**
+	* @func select_track
+	*/
+	bool Extractor::select_track(uint32_t index) {
+		ScopeLock lock(_host->_inl->mutex());
+		if ( _track_index != index && index < _tracks.length() ) {
+			_host->_inl->extractor_flush(this);
+			_track_index = index;
+			return true;
+		}
+		return false;
+	}
 
-		static module_info_t video = {
-			[](void* arg) -> Object* { return nullptr;/*new Video();*/ },
-			0,//typeid(Video).hashCode(),
-		};
+	/**
+	* @func deplete_sample
+	* */
+	uint32_t Extractor::deplete_sample(Char* out, uint32_t size) {
+		if ( _sample_data.size ) {
+			size = Qk_MIN(_sample_data.size, size);
+			memcpy(out, _sample_data.data, size);
+			_sample_data.data += size;
+			_sample_data.size -= size;
+			return size;
+		}
+		return 0;
+	}
 
-		module_audio_player = &audio_player;
-		module_video = &video;
+
+	/**
+	* @func deplete_sample
+	* */
+	uint32_t Extractor::deplete_sample(Buffer& out) {
+		uint32_t size = out.write(_sample_data.data, 0, _sample_data.size);
+		_sample_data.size = 0;
+		return size;
+	}
+
+	/**
+	* @func deplete_sample
+	* */
+	uint32_t Extractor::deplete_sample(uint32_t size) {
+		size = Qk_MIN(size, _sample_data.size);
+		_sample_data.size -= size;
+		_sample_data.data += size;
+		return size;
+	}
+
+	/**
+	* @func advance
+	* */
+	bool Extractor::advance() {
+		return _host->_inl->extractor_advance(this);
 	}
 
 }

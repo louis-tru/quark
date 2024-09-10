@@ -34,7 +34,7 @@
 
 namespace qk { namespace js {
 
-	typedef MultimediaSource::TrackInfo TrackInfo;
+	typedef MediaSource::TrackInfo TrackInfo;
 
 	JSValue* inl_track_to_jsvalue(const TrackInfo* track, Worker* worker) {
 		if ( ! track ) {
@@ -188,7 +188,7 @@ namespace qk { namespace js {
 		}
 		
 		/**
-		 * @get source_status {enum MultimediaSourceStatus}
+		 * @get source_status {enum MediaSourceStatus}
 		 */
 		static void source_status(JSString* name, PropertyArgs args) {
 			Js_Worker(args);

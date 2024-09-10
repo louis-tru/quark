@@ -370,7 +370,7 @@ namespace qk {
 				memcpy(_data, bytes + dataOffset, data_size);
 
 				PixelInfo info(width, height,
-					ColorType(format + kColor_Type_PVRTCI_2BPP_RGB), kAlphaType_Unpremul
+					ColorType(format + kPVRTCI_2BPP_RGB_ColorType), kUnpremul_AlphaType
 				);
 
 				rest->push(Pixel(info, Buffer::from(_data, data_size)));
@@ -413,8 +413,8 @@ namespace qk {
 
 				memcpy(new_data, bytes + dataOffset, dataSize);
 
-				PixelInfo info(width, height, ColorType(format + kColor_Type_PVRTCI_2BPP_RGB),
-					isPremultipliedAlpha ? kAlphaType_Premul: kAlphaType_Unpremul
+				PixelInfo info(width, height, ColorType(format + kPVRTCI_2BPP_RGB_ColorType),
+					isPremultipliedAlpha ? kPremul_AlphaType: kUnpremul_AlphaType
 				);
 
 				rest->push(Pixel(info, Buffer::from(new_data, dataSize)));
@@ -470,7 +470,7 @@ namespace qk {
 					kCF_PVRTCI_2BPP_RGBA : kCF_PVRTCI_4BPP_RGBA;
 
 				*out = PixelInfo(header->width, header->height,
-					ColorType(format + kColor_Type_PVRTCI_2BPP_RGB), kAlphaType_Unpremul);
+					ColorType(format + kPVRTCI_2BPP_RGB_ColorType), kUnpremul_AlphaType);
 
 				return true;
 			}
@@ -488,8 +488,8 @@ namespace qk {
 			if (format < kCF_NumCompressedPFs) {
 
 				*out = PixelInfo(header->width, header->height,
-					ColorType(format + kColor_Type_PVRTCI_2BPP_RGB),
-					isPremultipliedAlpha ? kAlphaType_Premul: kAlphaType_Unpremul
+					ColorType(format + kPVRTCI_2BPP_RGB_ColorType),
+					isPremultipliedAlpha ? kPremul_AlphaType: kUnpremul_AlphaType
 				);
 				return true;
 			}

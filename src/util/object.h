@@ -149,7 +149,7 @@ namespace qk {
 	class Protocol {
 	public:
 		typedef ProtocolTraits Traits;
-		virtual Object* toObject() = 0;
+		virtual Object* asObject() = 0;
 	};
 
 	/**
@@ -178,10 +178,10 @@ namespace qk {
 	*/
 	struct ProtocolTraits {
 		template<class T> inline static void Retain(T* obj) {
-			if (obj) qk::Retain(obj->toObject());
+			if (obj) qk::Retain(obj->asObject());
 		}
 		template<class T> inline static void Release(T* obj) {
-			if (obj) qk::Release(obj->toObject());
+			if (obj) qk::Release(obj->asObject());
 		}
 		static constexpr bool isReference = false;
 	};

@@ -443,14 +443,14 @@ namespace qk {
 				auto src = paint->image;
 				auto srcIndex = paint->srcIndex;
 
-				if (kColor_Type_YUV420P_Y_8 == src->type()) { // yuv420p or yuv420sp
+				if (kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
 					auto yuv = aafuzz ?
 						aaclip ? &_render->_shaders.imageYuv_AAFUZZ_AACLIP: &_render->_shaders.imageYuv_AAFUZZ:
 						aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
 					s = (GLSLImage*)yuv;
 					useShaderProgram(s, vertex);
 
-					if (src->pixels()[1].type() == kColor_Type_YUV420P_U_8) { // yuv420p
+					if (src->pixels()[1].type() == kYUV420P_U_8_ColorType) { // yuv420p
 						glUniform1i(yuv->format, 1);
 						_render->gl_set_texture(src, 2, paint); // v
 					} else { // yuv420sp

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "quark/media/media_codec_inl.h"
+#import "quark/media/media_inl.h"
 #import <VideoToolbox/VideoToolbox.h>
 #import <AudioToolbox/AudioToolbox.h>
 
@@ -73,7 +73,7 @@ namespace qk {
 		}
 		
 		/**
-		* @func initializ
+		* @method initializ
 		*/
 		bool initialize() {
 			
@@ -145,7 +145,7 @@ namespace qk {
 		}
 		
 		/**
-		* @func decompress_frame_cb
+		* @method decompress_frame_cb
 		*/
 		static void decompress_frame_cb(MacVideoCodec* self,
 																		void* source_sample,
@@ -256,7 +256,7 @@ namespace qk {
 		}
 		
 		/**
-		* @func get_sample_data
+		* @method get_sample_data
 		*/
 		CMSampleBufferRef get_sample_data() {
 			OSStatus status;
@@ -456,9 +456,9 @@ namespace qk {
 	};
 
 	/**
-	* @func hardware
+	* @method hardware
 	*/
-	MediaCodec* Mediacodec_hardware(MediaType type, MultimediaSource* source) {
+	MediaCodec* Mediacodec_hardware(MediaType type, MediaSource* source) {
 		Extractor* ex = source->extractor(type);
 		if ( ex ) {
 			if (type == MEDIA_TYPE_AUDIO) {

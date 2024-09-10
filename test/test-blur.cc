@@ -34,7 +34,7 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		auto img = canvas->readImage(rect, {width}, kColor_Type_RGBA_8888, false);
+		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, false);
 
 		paint.color = Color4f(1, 0, 0, 1);
 		paint.filter = nullptr;

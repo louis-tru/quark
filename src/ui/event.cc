@@ -81,7 +81,7 @@ namespace qk {
 		void trigger_click(UIEvent &evt) {
 			bubble_trigger(UIEvent_Click, evt);
 			if ( evt.is_default() ) {
-				auto focus_view = _window->dispatch()->_focus_view;
+				auto focus_view = _window->dispatch()->_focusView;
 				auto root = _window->root();
 				if (focus_view != evt.origin() && focus_view != root) {
 					if (!focus_view->is_self_child(evt.origin())) {
@@ -96,9 +96,9 @@ namespace qk {
 		if ( is_focus() ) return true;
 
 		auto dispatch = _window->dispatch();
-		auto old = dispatch->focus_view();
+		auto old = dispatch->focusView();
 
-		if ( !dispatch->set_focus_view(this) ) {
+		if ( !dispatch->setFocusView(this) ) {
 			return false;
 		}
 
@@ -286,7 +286,7 @@ namespace qk {
 	EventDispatch::EventDispatch(Window* win)
 		: _window(win)
 		, _host(win->host())
-		, _text_input(nullptr), _focus_view(nullptr)
+		, _text_input(nullptr), _focusView(nullptr)
 	{
 		_keyboard = KeyboardAdapter::create();
 		_keyboard->_host = this;
@@ -296,9 +296,9 @@ namespace qk {
 	EventDispatch::~EventDispatch() {
 		for (auto& i : _origin_touches)
 			delete i.value;
-		if ( _focus_view ) {
-			_focus_view->release();
-			_focus_view = nullptr;
+		if ( _focusView ) {
+			_focusView->release();
+			_focusView = nullptr;
 		}
 		Release(_keyboard);
 		delete _mouse_handle;
@@ -306,35 +306,35 @@ namespace qk {
 
 	Sp<View> EventDispatch::safe_focus_view() {
 		ScopeLock lock(_focus_view_mutex);
-		return Sp<View>(_focus_view);
+		return Sp<View>(_focusView);
 	}
 
-	bool EventDispatch::set_focus_view(View *view) {
-		if ( _focus_view != view ) {
+	bool EventDispatch::setFocusView(View *view) {
+		if ( _focusView != view ) {
 			if ( view->_level && view->can_become_focus() ) {
 				Lock lock(_focus_view_mutex);
-				if ( _focus_view ) {
-					_focus_view->release(); // unref
+				if ( _focusView ) {
+					_focusView->release(); // unref
 				}
-				_focus_view = view;
-				_focus_view->retain(); // strong ref
+				_focusView = view;
+				_focusView->retain(); // strong ref
 				lock.unlock();
 				// set text input
 				auto input = view->asTextInput();
 				if ( _text_input != input ) {
 					_text_input = input;
 					if ( input ) {
-						set_ime_keyboard_open({
+						setImeKeyboardOpen({
 							true,
 							input->input_keyboard_type(),
 							input->input_keyboard_return_type(),
 							input->input_spot_rect(),
 						});
 					} else {
-						set_ime_keyboard_close();
+						setImeKeyboardClose();
 					}
 				} else if ( input ) {
-					set_ime_keyboard_open({
+					setImeKeyboardOpen({
 						false,
 						input->input_keyboard_type(),
 						input->input_keyboard_return_type(),
@@ -845,9 +845,9 @@ namespace qk {
 				} else if (cdoe == KEYCODE_ESC) {
 					window()->setFullscreen(false);
 				} else if ( cdoe == KEYCODE_VOLUME_UP ) {
-					set_volume_up();
+					setVolumeUp();
 				} else if ( cdoe == KEYCODE_VOLUME_DOWN ) {
-					set_volume_down();
+					setVolumeDown();
 				}
 
 				if ( keypress ) { // keypress
@@ -919,7 +919,7 @@ namespace qk {
 			input->input_delete(count);
 			bool can_backspace = input->input_can_backspace();
 			bool can_delete = input->input_can_delete();
-			set_ime_keyboard_can_backspace(can_backspace, can_delete);
+			setImeKeyboardCanBackspace(can_backspace, can_delete);
 		}
 	}
 

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../render/codec/codec.h"
+#import "./codec.h"
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 #if Qk_OSX
@@ -37,7 +37,7 @@
 #else
 #import <UIKit/UIKit.h>
 #endif
-#include "../../render/font/util_mac.h"
+#include "../font/util_mac.h"
 
 namespace qk {
 
@@ -70,13 +70,13 @@ namespace qk {
 			case kCGImageAlphaPremultipliedFirst:
 			case kCGImageAlphaLast:
 			case kCGImageAlphaFirst:
-				colorType = kColor_Type_RGBA_8888;
-				alphaType = kAlphaType_Premul;
+				colorType = kRGBA_8888_ColorType;
+				alphaType = kPremul_AlphaType;
 				cgAlpha = kCGImageAlphaPremultipliedLast;
 				break;
 			default:
-				colorType = kColor_Type_RGB_888X;
-				alphaType = kAlphaType_Unpremul;
+				colorType = kRGB_888X_ColorType;
+				alphaType = kUnpremul_AlphaType;
 				cgAlpha = kCGImageAlphaNoneSkipLast;
 				space = CGColorSpaceCreateDeviceRGB(); // create rgb
 				spaceHold.reset(space);
@@ -91,7 +91,7 @@ namespace qk {
 		);
 		CGContextDrawImage(ctx.get(), CGRectMake(0, 0, width, height), image);
 
-		PixelInfo info(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
+		PixelInfo info(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType);
 		out->push(Pixel(info, pixel));
 
 		return true;
@@ -120,12 +120,12 @@ namespace qk {
 			case kCGImageAlphaPremultipliedFirst:
 			case kCGImageAlphaLast:
 			case kCGImageAlphaFirst:
-				colorType = kColor_Type_RGBA_8888;
-				alphaType = kAlphaType_Premul;
+				colorType = kRGBA_8888_ColorType;
+				alphaType = kPremul_AlphaType;
 				break;
 			default:
-				colorType = kColor_Type_RGB_888X;
-				alphaType = kAlphaType_Unpremul;
+				colorType = kRGB_888X_ColorType;
+				alphaType = kUnpremul_AlphaType;
 				break;
 		}
 

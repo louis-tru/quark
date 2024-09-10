@@ -29,97 +29,94 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark__media_codec_inl__
 #define __quark__media_codec_inl__
 
 extern "C" {
-# include <libavutil/avutil.h>
-# include <libavformat/avformat.h>
-# include <libswresample/swresample.h>
+#include <libavutil/avutil.h>
+#include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
 }
 #include "./media_codec.h"
 #include "../util/working.h"
 
 namespace qk {
-
-	typedef MultimediaSource::BitRateInfo BitRateInfo;
-	typedef MultimediaSource::Extractor   Extractor;
-	typedef MultimediaSource::Inl         Inl;
-	typedef MultimediaSource::TrackInfo   TrackInfo;
+	typedef MediaSource::BitRateInfo BitRateInfo;
+	typedef MediaSource::Extractor   Extractor;
+	typedef MediaSource::Inl         Inl;
+	typedef MediaSource::TrackInfo   TrackInfo;
 
 	class SoftwareMediaCodec;
 
-	class MultimediaSource::Inl: public ParallelWorking {
+	class MediaSource::Inl: public ParallelWorking {
 	public:
-		
-		Inl(MultimediaSource*, cString& uri, RunLoop* loop);
-		
+
+		Inl(MediaSource*, cString& uri, RunLoop* loop);
+		~Inl() override;
+
 		/**
-		* @destructor
-		*/
-		virtual ~Inl();
-		
-		/**
-		* @func set_delegate
+		* @method set_delegate
 		*/
 		void set_delegate(Delegate* delegate);
-		
+
 		/**
-		* @func bit_rate_index
+		* @method bit_rate_index
 		*/
 		uint32_t bit_rate_index();
-		
+
 		/**
-		* @func bit_rates
+		* @method bit_rates
 		*/
 		const Array<BitRateInfo>& bit_rate();
-		
+
 		/**
-		* @func bit_rate
+		* @method bit_rate
 		*/
 		bool select_bit_rate(uint32_t index);
-		
+
 		/**
-		* @func extractor
+		* @method extractor
 		*/
 		Extractor* extractor(MediaType type);
-			
+
 		/**
-		* @func seek
+		* @method seek
 		* */
 		bool seek(uint64_t timeUs);
 
 		/**
-		* @func start
+		* @method start
 		* */
 		void start();
 
 		/**
-		* @func start
+		* @method start
 		* */
 		void stop();
-		
+
 		/**
-		* @func is_active
+		* @method is_active
 		*/
 		inline bool is_active() {
 			return  _status == MULTIMEDIA_SOURCE_STATUS_READY ||
 							_status == MULTIMEDIA_SOURCE_STATUS_WAIT;
 		}
-		
+
 		/**
-		* @func disable_wait_buffer
+		* @method disable_wait_buffer
 		*/
 		void disable_wait_buffer(bool value);
-		
+
 		/**
-		* @func get_stream
+		* @method get_stream
 		*/
 		AVStream* get_stream(const TrackInfo& track);
-		
+
 	private:
 		typedef Extractor::SampleData SampleData;
-		
+
 		void reset();
 		bool has_empty_extractor();
 		void extractor_flush(Extractor* ex);
@@ -136,20 +133,20 @@ namespace qk {
 		void trigger_ready_buffer();
 		void trigger_eof();
 		inline Mutex& mutex() { return _mutex; }
-		
-		friend class MultimediaSource;
+
+		friend class MediaSource;
 		friend class Extractor;
 		friend class MediaCodec;
 		friend class SoftwareMediaCodec;
-		
-		MultimediaSource*           _host;
+
+		MediaSource*           _host;
 		URI                         _uri;
-		MultimediaSourceStatus      _status;
+		MediaSourceStatus      _status;
 		Delegate*                   _delegate;
-		uint32_t                        _bit_rate_index;
+		uint32_t                    _bit_rate_index;
 		Array<BitRateInfo>          _bit_rate;
 		Dict<int, Extractor*>       _extractors;
-		uint64_t                      _duration;
+		uint64_t                    _duration;
 		AVFormatContext*            _fmt_ctx;
 		Mutex                       _mutex;
 		bool                        _read_eof;

@@ -308,7 +308,7 @@ namespace qk {
 	}
 
 	bool View::is_focus() const {
-		return _window->dispatch()->focus_view() == this;
+		return _window->dispatch()->focusView() == this;
 	}
 
 	void View::set_action(Action* action) throw(Error) {
@@ -572,9 +572,9 @@ namespace qk {
 
 	void View::clear_level_Rt() { //  clear view depth
 		auto win = _window;
-		if (win->dispatch()->focus_view() == this) {
+		if (win->dispatch()->focusView() == this) {
 			preRender().post(Cb([this,win](auto &e) {
-				if (win->dispatch()->focus_view() == this) {
+				if (win->dispatch()->focusView() == this) {
 					blur();
 				}
 			}, win));

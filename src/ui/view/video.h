@@ -32,17 +32,16 @@
 #define __quark__view__video__
 
 #include "./image.h"
-#include "../task.h"
-#include "../media/media_codec.h"
-#include "../media/pcm.h"
+#include "../media/media.h"
+#include "../media/pcm_player.h"
 
 namespace qk {
 
 	class Qk_EXPORT Video: public Image,
-												public RenderTask, public MultimediaSource::Delegate {
+												public RenderTask, public MediaSource::Delegate {
 	public:
-		typedef Mediacodec_OutputBuffer OutputBuffer;
-		typedef MultimediaSource::TrackInfo TrackInfo;
+		typedef MediaCodec::OutputBuffer OutputBuffer;
+		typedef MediaSource::TrackInfo TrackInfo;
 		typedef RenderTask::ID TaskID;
 
 		// define props
@@ -51,7 +50,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_ACC(bool, disable_wait_buffer);
 		Qk_DEFINE_VIEW_PROP_ACC(uint32_t, volume);
 		Qk_DEFINE_VIEW_PROP_ACC(String, src);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(MultimediaSourceStatus, source_status);
+		Qk_DEFINE_VIEW_PROP_ACC_GET(MediaSourceStatus, source_status);
 		Qk_DEFINE_VIEW_PROP_ACC_GET(PlayerStatus, status);
 		Qk_DEFINE_VIEW_PROP_ACC_GET(uint64_t, time);
 		Qk_DEFINE_VIEW_PROP_ACC_GET(uint64_t, duration);
@@ -73,18 +72,18 @@ namespace qk {
 		void resume();
 		void stop();
 		// @overwrite
-		virtual bool run_task(int64_t time);
-		virtual void multimedia_source_ready(MultimediaSource* src);
-		virtual void multimedia_source_wait_buffer(MultimediaSource* src, float process);
-		virtual void multimedia_source_eof(MultimediaSource* src);
-		virtual void multimedia_source_error(MultimediaSource* src, cError& err);
-		virtual void onActivate() override;
-		virtual ViewType viewType() const override;
+		bool run_task(int64_t time) override;
+		void media_source_ready(MediaSource* src) override;
+		void media_source_wait_buffer(MediaSource* src, float process) override;
+		void media_source_eof(MediaSource* src) override;
+		void media_source_error(MediaSource* src, cError& err) override;
+		void onActivate() override;
+		ViewType viewType() const override;
 	private:
-		MultimediaSource* _source;
+		MediaSource  *_source;
 		MediaCodec   *_audio, *_video;
-		PCMPlayer*    _pcm;
-		KeepLoop*     _keep;
+		PCMPlayer    *_pcm;
+		// KeepLoop*     _keep;
 		bool          _auto_play, _mute, _disable_wait_buffer, _waiting_buffer;
 		PlayerStatus  _status;
 		VideoColorFormat _color_format;

@@ -75,7 +75,7 @@ namespace qk {
 
 			if (_editing) {
 				// update system ime input position
-				window()->dispatch()->set_ime_keyboard_spot_rect(input_spot_rect());
+				window()->dispatch()->setImeKeyboardSpotRect(input_spot_rect());
 			}
 		} else {
 			ScrollBase::solve(mark);

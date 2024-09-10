@@ -114,7 +114,7 @@ namespace qk {
 		public:
 			typedef ObjectTraits Traits;
 
-			virtual Object* toObject() { return this; }
+			virtual Object* asObject() { return this; }
 
 			AndroidPCMOpenSLES()
 							: _max_volume_level(100)

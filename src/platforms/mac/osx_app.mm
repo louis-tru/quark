@@ -117,18 +117,18 @@ void Application::sendEmail(cString& recipient,
 
 // ***************** E v e n t . D i s p a t c h *****************
 
-void EventDispatch::set_volume_up() {
+void EventDispatch::setVolumeUp() {
 }
 
-void EventDispatch::set_volume_down() {
+void EventDispatch::setVolumeDown() {
 }
 
-void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
+void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
 }
 
-void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
+void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
 	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([options,delegate](auto&e) {
+	qk_post_messate_main(Cb([options,delegate](auto e) {
 		[delegate.ime set_keyboard_type:options.type];
 		[delegate.ime set_keyboard_return_type:options.return_type];
 		[delegate.ime activate: options.is_clear];
@@ -136,17 +136,16 @@ void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
 	}), false);
 }
 
-void EventDispatch::set_ime_keyboard_close() {
+void EventDispatch::setImeKeyboardClose() {
 	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([delegate](auto&e) {
+	qk_post_messate_main(Cb([delegate](auto e) {
 		[delegate.ime deactivate];
 	}), false);
 }
 
-void EventDispatch::set_ime_keyboard_spot_rect(Rect rect) {
+void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([delegate,rect](auto&e) {
+	qk_post_messate_main(Cb([delegate,rect](auto e) {
 		[delegate.ime set_spot_rect:rect];
 	}), false);
 }
-

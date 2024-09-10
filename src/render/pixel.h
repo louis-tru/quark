@@ -45,71 +45,71 @@ namespace qk {
 	 * @enum ColorType color tye enum
 	 */
 	enum ColorType {
-		kColor_Type_Invalid, //!< Invalid 
-		kColor_Type_Alpha_8, //!< Alpha 8 bit
-		kColor_Type_RGB_565,
-		kColor_Type_RGBA_4444,
-		kColor_Type_RGB_444X,
-		kColor_Type_RGBA_8888,
-		kColor_Type_RGB_888X,
-		kColor_Type_BGRA_8888,
-		kColor_Type_RGBA_1010102,
-		kColor_Type_BGRA_1010102,
-		kColor_Type_RGB_101010X,
-		kColor_Type_BGR_101010X,
-		kColor_Type_RGB_888,
-		kColor_Type_RGBA_5551,
-		kColor_Type_Gray_8,
-		kColor_Type_Luminance_8 = kColor_Type_Gray_8,
-		kColor_Type_Luminance_Alpha_88,
-		kColor_Type_SDF_Float, //! signed distance function
-		kColor_Type_YUV420P_Y_8,  // YUV420P
-		kColor_Type_YUV420SP_Y_8 = kColor_Type_YUV420P_Y_8, // YUV420SP
-		kColor_Type_YUV420P_U_8,
-		kColor_Type_YUV420P_V_8 = kColor_Type_YUV420P_U_8,
-		kColor_Type_YUV420SP_UV_88,
+		kInvalid_ColorType, //!< Invalid 
+		kAlpha_8_ColorType, //!< Alpha 8 bit
+		kRGB_565_ColorType,
+		kRGBA_4444_ColorType,
+		kRGB_444X_ColorType,
+		kRGBA_8888_ColorType,
+		kRGB_888X_ColorType,
+		kBGRA_8888_ColorType,
+		kRGBA_1010102_ColorType,
+		kBGRA_1010102_ColorType,
+		kRGB_101010X_ColorType,
+		kBGR_101010X_ColorType,
+		kRGB_888_ColorType,
+		kRGBA_5551_ColorType,
+		kGray_8_ColorType,
+		kLuminance_8_ColorType = kGray_8_ColorType,
+		kLuminance_Alpha_88_ColorType,
+		kSDF_Float_ColorType, //! signed distance function
+		kYUV420P_Y_8_ColorType,  // YUV420P
+		kYUV420SP_Y_8_ColorType = kYUV420P_Y_8_ColorType, // YUV420SP
+		kYUV420P_U_8_ColorType,
+		kYUV420P_V_8_ColorType = kYUV420P_U_8_ColorType,
+		kYUV420SP_UV_88_ColorType,
 		// Compressed package for pvrtc
-		kColor_Type_PVRTCI_2BPP_RGB,
-		kColor_Type_PVRTCI_2BPP_RGBA,
-		kColor_Type_PVRTCI_4BPP_RGB,
-		kColor_Type_PVRTCI_4BPP_RGBA,
-		kColor_Type_PVRTCII_2BPP,
-		kColor_Type_PVRTCII_4BPP,
-		kColor_Type_ETC1,
-		kColor_Type_DXT1,
-		kColor_Type_DXT2,
-		kColor_Type_DXT3,
-		kColor_Type_DXT4,
-		kColor_Type_DXT5,
-		kColor_Type_BC1 = kColor_Type_DXT1,
-		kColor_Type_BC2 = kColor_Type_DXT3,
-		kColor_Type_BC3 = kColor_Type_DXT5,
-		kColor_Type_BC4,
-		kColor_Type_BC5,
-		kColor_Type_BC6,
-		kColor_Type_BC7,
-		kColor_Type_UYVY,
-		kColor_Type_YUY2,
-		kColor_Type_YUV420P,
-		kColor_Type_YUV420SP,
-		kColor_Type_YUV411P,
-		kColor_Type_YUV411SP,
-		kColor_Type_BW1BPP,
-		kColor_Type_SharedExponentR9G9B9E5,
-		kColor_Type_RGBG8888,
-		kColor_Type_GRGB8888,
-		kColor_Type_ETC2_RGB,
-		kColor_Type_ETC2_RGBA,
-		kColor_Type_ETC2_RGB_A1,
-		kColor_Type_EAC_R11,
-		kColor_Type_EAC_RG11,
+		kPVRTCI_2BPP_RGB_ColorType,
+		kPVRTCI_2BPP_RGBA_ColorType,
+		kPVRTCI_4BPP_RGB_ColorType,
+		kPVRTCI_4BPP_RGBA_ColorType,
+		kPVRTCII_2BPP_ColorType,
+		kPVRTCII_4BPP_ColorType,
+		kETC1_ColorType,
+		kDXT1_ColorType,
+		kDXT2_ColorType,
+		kDXT3_ColorType,
+		kDXT4_ColorType,
+		kDXT5_ColorType,
+		kBC1_ColorType = kDXT1_ColorType,
+		kBC2_ColorType = kDXT3_ColorType,
+		kBC3_ColorType = kDXT5_ColorType,
+		kBC4_ColorType,
+		kBC5_ColorType,
+		kBC6_ColorType,
+		kBC7_ColorType,
+		kUYVY_ColorType,
+		kYUY2_ColorType,
+		kYUV420P_ColorType, // yuv420p
+		kYUV420SP_ColorType,
+		kYUV411P_ColorType,
+		kYUV411SP_ColorType,
+		kBW1BPP_ColorType,
+		kSharedExponentR9G9B9E5_ColorType,
+		kRGBG8888_ColorType,
+		kGRGB8888_ColorType,
+		kETC2_RGB_ColorType,
+		kETC2_RGBA_ColorType,
+		kETC2_RGB_A1_ColorType,
+		kEAC_R11_ColorType,
+		kEAC_RG11_ColorType,
 	};
 
 	enum AlphaType {
-		kAlphaType_Unknown,
-		kAlphaType_Opaque,   //!< pixel is opaque
-		kAlphaType_Premul,   //!< pixel components are premultiplied by alpha
-		kAlphaType_Unpremul, //!< pixel components are independent of alpha
+		kUnknown_AlphaType,
+		kOpaque_AlphaType,   //!< pixel is opaque
+		kPremul_AlphaType,   //!< pixel components are premultiplied by alpha
+		kUnpremul_AlphaType, //!< pixel components are independent of alpha
 	};
 
 	class Qk_EXPORT PixelInfo {
@@ -119,7 +119,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(ColorType, type, Const); //!< bitmap pixel color type
 		Qk_DEFINE_PROP_GET(AlphaType, alphaType, Const); //!< is premultiplied by alpha
 		PixelInfo();
-		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown);
+		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kUnknown_AlphaType);
 		uint32_t rowbytes() const;
 		uint32_t bytes() const;
 	};

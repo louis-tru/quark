@@ -759,7 +759,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 	}*/
 
 	Array<Pixel> pixs;
-	pixs.push(Pixel(PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), image));
+	pixs.push(Pixel(PixelInfo(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType), image));
 
 	//auto data = img_tga_encode(pixs[0]);
 	//auto path = fs_documents("test.tga");

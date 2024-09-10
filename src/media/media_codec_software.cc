@@ -28,19 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./media_codec_inl.h"
+#include "./media_inl.h"
 
 namespace qk {
 
-	/**
-	* @class SoftwareMediaCodec
-	*/
 	class SoftwareMediaCodec: public MediaCodec {
 	public:
-		
-		/**
-		* @constructor
-		*/
+
 		SoftwareMediaCodec(Extractor* extractor, AVCodecContext* ctx)
 			: MediaCodec(extractor)
 			, _codec_ctx(ctx)
@@ -55,7 +49,7 @@ namespace qk {
 			, _output_occupy(false)
 		{
 			_frame = av_frame_alloc(); Qk_ASSERT(_frame);
-			
+
 			if (type() == MEDIA_TYPE_VIDEO) {
 				_color_format = VIDEO_COLOR_FORMAT_YUV420P;
 			} else {
@@ -64,17 +58,13 @@ namespace qk {
 				_audio_buffer = Buffer::alloc(1024 * 64); // 64k
 			}
 		}
-		
-		/**
-		* @destructor
-		*/
-		virtual ~SoftwareMediaCodec() {
-			
+
+		~SoftwareMediaCodec() override {
 			close();
-			
+
 			avcodec_free_context(&_codec_ctx); _codec_ctx = nullptr;
 			av_frame_free(&_frame); _frame = nullptr;
-			
+
 			if ( _audio_swr_ctx ) {
 				swr_free(&_audio_swr_ctx); _audio_swr_ctx = nullptr;
 			}
@@ -89,11 +79,8 @@ namespace qk {
 												0, nullptr);
 			swr_init(_audio_swr_ctx);
 		}
-		
-		/**
-		* @overwrite
-		*/
-		virtual bool open() {
+
+		bool open() override {
 			ScopeLock lock(_mutex);
 			
 			if ( !_is_open ) {
@@ -137,11 +124,8 @@ namespace qk {
 			}
 			return _is_open;
 		}
-		
-		/**
-		* @overwrite
-		*/
-		virtual bool close() {
+
+		bool close() override {
 			Lock lock(_mutex);
 			if ( _is_open ) {
 				flush2();
@@ -166,19 +150,13 @@ namespace qk {
 				// avcodec_flush_buffers(_codec_ctx);
 			}
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual bool flush() {
+
+		bool flush() override {
 			ScopeLock scope(_mutex);
 			flush2();
 			return false;
 		}
-		
-		/**
-		* @func background_run
-		*/
+
 		void background_run(Thread& t) {
 			while ( !t.is_abort() ) {
 				if ( !advance2() ) {
@@ -186,10 +164,7 @@ namespace qk {
 				}
 			}
 		}
-		
-		/**
-		* @func advance2
-		*/
+
 		bool advance2() {
 			if ( _extractor->advance() ) {
 				WeakBuffer data = _extractor->sample_data();
@@ -211,21 +186,15 @@ namespace qk {
 			}
 			return false;
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual bool advance() {
+
+		bool advance() override {
 			if ( !_background_run ) {
 				return advance2();
 			}
 			return false;
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual OutputBuffer output() {
+
+		OutputBuffer output() override {
 			if ( _output_occupy ) {
 				return OutputBuffer();
 			}
@@ -235,12 +204,8 @@ namespace qk {
 				return output_video();
 			}
 		}
-		
-		/**
-		* @func output_audio
-		*/
+
 		OutputBuffer output_audio() {
-			
 			if ( _audio_buffer_size ) {
 				if (_audio_buffer_size >= _audio_frame_size) {
 					OutputBuffer out;
@@ -286,10 +251,7 @@ namespace qk {
 			}
 			return OutputBuffer();
 		}
-		
-		/**
-		* @func output_video
-		*/
+
 		OutputBuffer output_video() {
 			int ret = avcodec_receive_frame(_codec_ctx, _frame);
 			if ( ret == 0 ) {
@@ -313,11 +275,8 @@ namespace qk {
 			}
 			return OutputBuffer();
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual void release(OutputBuffer& buffer) {
+
+		void release(OutputBuffer& buffer) override {
 			if (buffer.total) {
 				if (type() == MEDIA_TYPE_AUDIO) {
 					if ( _audio_buffer_size > buffer.total ) {
@@ -331,11 +290,8 @@ namespace qk {
 				_output_occupy = false;
 			}
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual void set_frame_size(uint32_t size) {
+
+		void set_frame_size(uint32_t size) override {
 			if ( type() == MEDIA_TYPE_AUDIO ) {
 				_audio_frame_size = Qk_MAX(512, size);
 				if (_audio_frame_size * 2 > _audio_buffer.length()) {
@@ -349,27 +305,21 @@ namespace qk {
 				_frame_interval = uint32_t(uint64_t(_audio_frame_size) * 1000LL * 1000LL / second_size);
 			}
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual void set_threads(uint32_t value) {
+
+		void set_threads(uint32_t value) override {
 			ScopeLock scope(_mutex);
 			if ( !_is_open ) {
 				_threads = Qk_MAX(1, Qk_MIN(8, value));
 			}
 		}
-		
-		/**
-		* @overwrite
-		* */
-		virtual void set_background_run(bool value) {
+
+		void set_background_run(bool value) override {
 			ScopeLock scope(_mutex);
 			if ( !_is_open ) {
 				_background_run = value;
 			}
 		}
-		
+
 		const AVCodec* get_avcodec() {
 			const AVCodec* rv = _codec_ctx->codec;
 			if ( rv ) return rv;
@@ -385,10 +335,9 @@ namespace qk {
 			}
 			return rv;
 		}
-		
+
 		static AVCodecContext* find_avcodec_ctx(Extractor* ex) {
 			const TrackInfo& track = ex->track();
-			
 			/* find decoder for the stream */
 			AVCodec* codec = avcodec_find_decoder((AVCodecID)track.codec_id);
 			if (codec) {
@@ -397,7 +346,7 @@ namespace qk {
 			}
 			return nullptr;
 		}
-		
+
 	private:
 		AVCodecContext* _codec_ctx;
 		AVFrame*        _frame;
@@ -415,9 +364,9 @@ namespace qk {
 	};
 
 	/**
-	* @func software create software decoder
-	* */
-	MediaCodec* Mediacodec_software(MediaType type, MultimediaSource* source) {
+	* @method software create software decoder
+	*/
+	MediaCodec* Mediacodec_software(MediaType type, MediaSource* source) {
 		SoftwareMediaCodec* rv = nullptr;
 		Extractor* ex = source->extractor(type);
 		

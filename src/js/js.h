@@ -279,7 +279,7 @@ namespace qk { namespace js {
 		JSNumber* toNumber(Worker* worker) const;
 		JSInt32* toInt32(Worker* worker) const;
 		JSUint32* toUint32(Worker* worker) const;
-		JSObject* toObject(Worker* worker) const;
+		JSObject* asObject(Worker* worker) const;
 		JSBoolean* toBoolean(Worker* worker) const;
 		String toStringValue(Worker* worker, bool oneByte = false) const; // to utf8 or one byte string
 		String2 toStringValue2(Worker* worker) const; // to utf16 string

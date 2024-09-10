@@ -183,7 +183,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 	} else {
 		self.markedText = [NSString stringWithFormat:@"%@", aString];
 	}
-	
+
 	_selectedRange = selectedRange;
 	_markedRange = selectedRange.location == NSNotFound ? kEmptyRange: NSRange{0,_markedText.length};
 

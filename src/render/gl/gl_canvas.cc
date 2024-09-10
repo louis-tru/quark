@@ -354,12 +354,12 @@ namespace qk {
 		, _isClipState(false), _isTexRender(true)
 	{
 		switch(_opts.colorType) {
-			case kColor_Type_BGRA_8888:
-				_opts.colorType = kColor_Type_RGBA_8888; break;
-			case kColor_Type_BGRA_1010102:
-				_opts.colorType = kColor_Type_RGBA_1010102; break;
-			case kColor_Type_BGR_101010X:
-				_opts.colorType = kColor_Type_RGB_101010X; break;
+			case kBGRA_8888_ColorType:
+				_opts.colorType = kRGBA_8888_ColorType; break;
+			case kBGRA_1010102_ColorType:
+				_opts.colorType = kRGBA_1010102_ColorType; break;
+			case kBGR_101010X_ColorType:
+				_opts.colorType = kRGB_101010X_ColorType; break;
 			default: break;
 		}
 		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
@@ -668,7 +668,7 @@ namespace qk {
 		Sp<ImageSource> ret(dest);
 		if (!dest) {
 			ret = ImageSource::Make({
-				int(_surfaceSize[0]),int(_surfaceSize[1]),kColor_Type_RGBA_8888
+				int(_surfaceSize[0]),int(_surfaceSize[1]),kRGBA_8888_ColorType
 			}, _render);
 		}
 		if (ret->markAsTexture(_render)) {

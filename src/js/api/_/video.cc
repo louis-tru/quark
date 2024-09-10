@@ -34,7 +34,7 @@
 
 namespace qk { namespace js {
 
-	typedef MultimediaSource::TrackInfo TrackInfo;
+	typedef MediaSource::TrackInfo TrackInfo;
 
 	extern JSValue* inl_track_to_jsvalue(const TrackInfo* track, Worker* worker);
 

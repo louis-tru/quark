@@ -481,7 +481,7 @@ namespace qk { namespace js {
 		return Cast<JSUint32>(reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker)));
 	}
 
-	JSObject* JSValue::toObject(Worker* worker) const {
+	JSObject* JSValue::asObject(Worker* worker) const {
 		return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject(CONTEXT(worker)));
 	}
 

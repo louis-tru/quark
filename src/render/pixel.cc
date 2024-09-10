@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	PixelInfo::PixelInfo(): _width(0), _height(0), _type(kColor_Type_Invalid), _alphaType(kAlphaType_Unknown) {
+	PixelInfo::PixelInfo(): _width(0), _height(0), _type(kInvalid_ColorType), _alphaType(kUnknown_AlphaType) {
 	}
 	PixelInfo::PixelInfo(int width, int height, ColorType type, AlphaType alphaType)
 		: _width(width), _height(height), _type(type), _alphaType(alphaType) {
@@ -54,26 +54,26 @@ namespace qk {
 	*/
 	uint32_t Pixel::bytes_per_pixel(ColorType type) {
 		switch (type) {
-			case kColor_Type_Invalid: return 0;
-			case kColor_Type_Alpha_8: return 1;
-			case kColor_Type_RGB_565: return 2;
-			case kColor_Type_RGBA_4444: return 2;
-			case kColor_Type_RGB_444X:  return 2;
-			case kColor_Type_RGBA_8888: return 4;
-			case kColor_Type_RGB_888X: return 4;
-			case kColor_Type_BGRA_8888: return 4;
-			case kColor_Type_RGBA_1010102: return 4;
-			case kColor_Type_BGRA_1010102: return 4;
-			case kColor_Type_RGB_101010X: return 4;
-			case kColor_Type_BGR_101010X: return 4;
-			case kColor_Type_RGB_888: return 3;
-			case kColor_Type_RGBA_5551: return 2;
-			case kColor_Type_Luminance_8: return 1;
-			case kColor_Type_Luminance_Alpha_88: return 2;
-			case kColor_Type_SDF_Float: return 4;
-			case kColor_Type_YUV420P_Y_8: return 1; // kColor_Type_YUV420SP_Y_8
-			case kColor_Type_YUV420P_U_8: return 1;
-			case kColor_Type_YUV420SP_UV_88: return 2;
+			case kInvalid_ColorType: return 0;
+			case kAlpha_8_ColorType: return 1;
+			case kRGB_565_ColorType: return 2;
+			case kRGBA_4444_ColorType: return 2;
+			case kRGB_444X_ColorType:  return 2;
+			case kRGBA_8888_ColorType: return 4;
+			case kRGB_888X_ColorType: return 4;
+			case kBGRA_8888_ColorType: return 4;
+			case kRGBA_1010102_ColorType: return 4;
+			case kBGRA_1010102_ColorType: return 4;
+			case kRGB_101010X_ColorType: return 4;
+			case kBGR_101010X_ColorType: return 4;
+			case kRGB_888_ColorType: return 3;
+			case kRGBA_5551_ColorType: return 2;
+			case kLuminance_8_ColorType: return 1;
+			case kLuminance_Alpha_88_ColorType: return 2;
+			case kSDF_Float_ColorType: return 4;
+			case kYUV420P_Y_8_ColorType: return 1; // kColor_Type_YUV420SP_Y_8
+			case kYUV420P_U_8_ColorType: return 1;
+			case kYUV420SP_UV_88_ColorType: return 2;
 			default: return 0; // Invalid is compressed format
 		}
 	}
