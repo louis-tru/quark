@@ -14,6 +14,7 @@
 		],
 		'dependencies': [
 			'quark',
+			'quark-media',
 			'build_libs_quark_',
 		],
 		'sources': [

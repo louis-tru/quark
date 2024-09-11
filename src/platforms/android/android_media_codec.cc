@@ -260,14 +260,13 @@ namespace qk {
 			* @overwrite
 			* */
 			virtual bool advance() {
-
 				if ( _extractor->advance() ) {
 					_eof_flags = false;
 
 					ssize_t bufidx = AMediaCodec_dequeueInputBuffer(_codec, 0);
 					if ( bufidx >= 0 ) {
 						size_t bufsize;
-						uint8_t * buf = AMediaCodec_getInputBuffer(_codec, bufidx, &bufsize);
+						uint8_t* buf = AMediaCodec_getInputBuffer(_codec, bufidx, &bufsize);
 						uint32_t sample_size = _extractor->deplete_sample((Char*)buf, bufsize);
 						int sample_flags = _extractor->eof_flags() ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0;
 						uint64_t sample_time = _extractor->sample_time();
@@ -280,8 +279,7 @@ namespace qk {
 						}
 						if ( sample_size ) {
 							if ( type() == MEDIA_TYPE_VIDEO ) {
-								WeakBuffer buffer((Char*)buf, sample_size);
-								Mediacodec_convert_sample_data_to_nalu(buffer);
+								MediaCodec::convert_sample_data_to_nalu(buf, bufsize);
 							}
 							AMediaCodec_queueInputBuffer( _codec, bufidx, 0,
 																						sample_size, sample_time, sample_flags);

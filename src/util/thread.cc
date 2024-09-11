@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./loop_.h"
+#include "./thread.h"
 #include <uv.h>
 #include <pthread.h>
 
@@ -72,7 +72,7 @@ namespace qk {
 		cond.notify_all();
 	}
 
-	static Thread_INL* Thread_INL_New(cString& tag, void *arg, void (*exec)(void* arg)) {
+	static Thread_INL* Thread_INL_New(cString& tag, void *arg, void (*exec)(cThread *t, void* arg)) {
 		auto t = new Thread_INL;
 		t->tag = tag;
 		t->abort = 0;
@@ -82,47 +82,40 @@ namespace qk {
 		return t;
 	}
 
-	static void thread_set_specific_data(Thread *t) {
-		Qk_ASSERT(!pthread_getspecific(__specific_key));
+	static void thread_set_specific_data(Thread_INL *t) {
+		Qk_Assert(!pthread_getspecific(__specific_key));
 		pthread_setspecific(__specific_key, t);
+	}
+
+	cThread* thread_self() {
+		return reinterpret_cast<cThread*>(pthread_getspecific(__specific_key));
+	}
+
+	Thread_INL* thread_self_inl() {
+		return reinterpret_cast<Thread_INL*>(pthread_getspecific(__specific_key));
 	}
 
 	ThreadID thread_self_id() {
 		return std::this_thread::get_id();
 	}
 
-	void thread_check_self_first() {
-		Qk_Fatal_Assert(__first_loop && __first_loop->thread_id() == thread_self_id(),
-			"Must be called on the first thread loop");
-	}
-
-	const Thread* thread_current() {
-		return reinterpret_cast<const Thread*>(pthread_getspecific(__specific_key));
-	}
-
-	Thread_INL* thread_current_() {
-		return reinterpret_cast<Thread_INL*>(pthread_getspecific(__specific_key));
-	}
-
-	ThreadID thread_new(void (*exec)(void* arg), void* arg, cString& tag) {
+	ThreadID thread_new(void (*exec)(cThread *t, void* arg), void* arg, cString& tag) {
 		if ( __is_process_exit_atomic != 0 ) {
 			return ThreadID();
 		}
+		ThreadID id;
 		Thread_INL *t = Thread_INL_New(tag, arg, exec);
 		ScopeLock scope(*__threads_mutex);
-		ThreadID id;
 
 		uv_thread_create((uv_thread_t*)&id, [](void* arg) {
-			{ // wait thread_new main call return
-				ScopeLock scope(*__threads_mutex);
-			}
-			auto t = (Thread_INL*)arg;
+			{ ScopeLock scope(*__threads_mutex); /* wait thread_new main call return*/ }
+			auto t = static_cast<Thread_INL*>(arg);
 #if Qk_ANDROID
 			JNI::ScopeENV scope;
 #endif
 			thread_set_specific_data(t);
 			if ( !t->abort ) {
-				t->exec(t->arg);
+				t->exec(t, t->arg);
 			}
 			{ // delete global handle
 				ScopeLock scope(*__threads_mutex);
@@ -133,7 +126,7 @@ namespace qk {
 				if (!t->abort) {
 					t->abort = -3; // exit abort
 				}
-				Runloop_death(t->loop); // release loop object
+				runloop_death(t->loop); // release loop object
 				t->loop = nullptr;
 				Qk_DEBUG("Thread end ..., %s", t->tag.c_str());
 				for (auto& i : t->waitSelfEnd) {
@@ -153,13 +146,13 @@ namespace qk {
 		return id;
 	}
 
-	typedef std::function<void()> ForkFunc;
+	typedef std::function<void(cThread *t)> ForkFunc;
 
 	ThreadID thread_new(ForkFunc func, cString& tag) {
 		auto funcp = new ForkFunc(func);
-		return thread_new([](void* arg) {
+		return thread_new([](cThread *t, void* arg) {
 			std::unique_ptr<ForkFunc> f( (ForkFunc*)arg );
-			(*f)();
+			(*f)(t);
 		}, funcp, tag);
 	}
 
@@ -168,8 +161,8 @@ namespace qk {
 	}
 
 	void thread_pause(uint64_t timeoutUs) {
-		auto t = thread_current_();
-		Qk_ASSERT(t, "Cannot find current qk::Thread handle, use Thread::sleep()");
+		auto t = thread_self_inl();
+		Qk_Assert(t, "Cannot find current qk::Thread handle, use Thread::sleep()");
 		t->lock_wait_for(timeoutUs);
 	}
 
@@ -266,6 +259,6 @@ namespace qk {
 		Qk_DEBUG("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_process_exit(0); });
 		int err = pthread_key_create(&__specific_key, nullptr);
-		Qk_ASSERT(err == 0);
+		Qk_Assert(err == 0);
 	}
 }

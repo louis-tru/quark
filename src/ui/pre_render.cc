@@ -103,7 +103,7 @@ namespace qk {
 				View *view;
 				Core(Cb &cb, View *v): cb(cb), view(v) {}
 				~Core() { view->release(); }
-				void call(Data& e) const { cb->call(e); }
+				void call(Data& e) { cb->call(e); }
 			};
 			post(Cb(new Core(cb,v)), delayUs);
 			return true;

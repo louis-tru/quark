@@ -31,16 +31,16 @@
 
 // @private head
 
-#ifndef __quark__media_codec_inl__
-#define __quark__media_codec_inl__
+#ifndef __quark__media_inl__
+#define __quark__media_inl__
 
 extern "C" {
 #include <libavutil/avutil.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-#include "./media_codec.h"
-#include "../util/working.h"
+#include "./media.h"
+#include "../util/thread.h"
 
 namespace qk {
 	typedef MediaSource::BitRateInfo BitRateInfo;
@@ -50,11 +50,10 @@ namespace qk {
 
 	class SoftwareMediaCodec;
 
-	class MediaSource::Inl: public ParallelWorking {
+	class MediaSource::Inl {
 	public:
-
 		Inl(MediaSource*, cString& uri, RunLoop* loop);
-		~Inl() override;
+		~Inl();
 
 		/**
 		* @method set_delegate
@@ -100,8 +99,8 @@ namespace qk {
 		* @method is_active
 		*/
 		inline bool is_active() {
-			return  _status == MULTIMEDIA_SOURCE_STATUS_READY ||
-							_status == MULTIMEDIA_SOURCE_STATUS_WAIT;
+			return  _status == kReady_MediaSourceStatus ||
+							_status == kWait_MediaSourceStatus;
 		}
 
 		/**
@@ -122,7 +121,7 @@ namespace qk {
 		void extractor_flush(Extractor* ex);
 		BitRateInfo read_bit_rate_info(AVFormatContext* fmt_ctx, int i, int size);
 		void select_multi_bit_rate2(uint32_t index);
-		void read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index);
+		void read_stream(cThread *t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index);
 		bool extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn);
 		bool extractor_advance(Extractor* ex);
 		bool extractor_advance_no_wait(Extractor* ex);
@@ -139,18 +138,20 @@ namespace qk {
 		friend class MediaCodec;
 		friend class SoftwareMediaCodec;
 
+		Threads                _threads;
+		RunLoop               *_loop;
 		MediaSource*           _host;
-		URI                         _uri;
+		URI                    _uri;
 		MediaSourceStatus      _status;
-		Delegate*                   _delegate;
-		uint32_t                    _bit_rate_index;
-		Array<BitRateInfo>          _bit_rate;
-		Dict<int, Extractor*>       _extractors;
-		uint64_t                    _duration;
-		AVFormatContext*            _fmt_ctx;
-		Mutex                       _mutex;
-		bool                        _read_eof;
-		bool                        _disable_wait_buffer;
+		Delegate*              _delegate;
+		uint32_t               _bit_rate_index;
+		Array<BitRateInfo>     _bit_rate;
+		Dict<int, Extractor*>  _extractors;
+		uint64_t               _duration;
+		AVFormatContext*       _fmt_ctx;
+		Mutex                  _mutex;
+		bool                   _read_eof;
+		bool                   _disable_wait_buffer;
 	};
 
 }

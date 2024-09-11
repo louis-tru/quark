@@ -48,14 +48,14 @@ namespace qk {
 			, _is_open(false)
 			, _output_occupy(false)
 		{
-			_frame = av_frame_alloc(); Qk_ASSERT(_frame);
+			_frame = av_frame_alloc(); Qk_Assert(_frame);
 
-			if (type() == MEDIA_TYPE_VIDEO) {
-				_color_format = VIDEO_COLOR_FORMAT_YUV420P;
+			if (type() == kVideo_MediaType) {
+				_color_format = kYUV420P_VideoColorFormat;
 			} else {
-				_channel_layout = CH_FRONT_LEFT | CH_FRONT_RIGHT;
+				_channel_layout = kFront_Left_AudioChannelMask | kFront_Right_AudioChannelMask;
 				_channel_count  = 2;
-				_audio_buffer = Buffer::alloc(1024 * 64); // 64k
+				_audio_buffer = Buffer(1024 * 64 - 1); // 64k - 1
 			}
 		}
 
@@ -88,10 +88,10 @@ namespace qk {
 				AVStream* stream = _extractor->host()->get_stream(_extractor->track());
 				if ( !stream ) {
 					stream = _extractor->host()->get_stream(_extractor->track());
-					Qk_ASSERT( stream );
+					Qk_Assert( stream );
 				}
 				
-				const AVCodec* codec = get_avcodec(); Qk_ASSERT(codec);
+				const AVCodec* codec = get_avcodec(); Qk_Assert(codec);
 				
 				if ( _threads > 1 ) { // set threads
 					if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
@@ -107,15 +107,16 @@ namespace qk {
 					if (avcodec_open2(_codec_ctx, codec, NULL) >= 0) {
 						_is_open = true;
 						
-						if ( type() == MEDIA_TYPE_AUDIO ) {
+						if ( type() == kAudio_MediaType ) {
 							init_audio_swr();
 						}
 						
 						if ( _background_run ) { // background_run
-							_background_run_id = Thread::create([](Thread& t, void* arg) {
-								auto self = (SoftwareMediaCodec*)arg;
-								self->background_run(t);
-							}, this, "x_decoder_background_run_thread");
+							// TODO ...
+							//_background_run_id = thread_new([](Thread& t, void* arg) {
+							//	auto self = (SoftwareMediaCodec*)arg;
+							//	self->background_run(t);
+							//}, this, "x_decoder_background_run_thread");
 						}
 					}
 				}
@@ -132,8 +133,8 @@ namespace qk {
 				
 				if ( _background_run ) {
 					lock.unlock();
-					Thread::abort(_background_run_id);
-					Thread::wait(_background_run_id);
+					thread_try_abort(_background_run_id);
+					thread_join_for(_background_run_id);
 					lock.lock();
 				}
 				if ( avcodec_close(_codec_ctx) >= 0 ) {
@@ -157,10 +158,11 @@ namespace qk {
 			return false;
 		}
 
-		void background_run(Thread& t) {
-			while ( !t.is_abort() ) {
+		void background_run(Thread &t) {
+			// TODO ...
+			while ( 1/*!t.is_abort() */) {
 				if ( !advance2() ) {
-					Thread::sleep(10000); // sleep 10ms
+					thread_sleep(10000); // sleep 10ms
 				}
 			}
 		}
@@ -198,7 +200,7 @@ namespace qk {
 			if ( _output_occupy ) {
 				return OutputBuffer();
 			}
-			if ( type() == MEDIA_TYPE_AUDIO ) {
+			if ( type() == kAudio_MediaType ) {
 				return output_audio();
 			} else {
 				return output_video();
@@ -278,7 +280,7 @@ namespace qk {
 
 		void release(OutputBuffer& buffer) override {
 			if (buffer.total) {
-				if (type() == MEDIA_TYPE_AUDIO) {
+				if (type() == kAudio_MediaType) {
 					if ( _audio_buffer_size > buffer.total ) {
 						_audio_buffer_size -= buffer.total;
 						_audio_buffer.write(*_audio_buffer + buffer.total, 0, _audio_buffer_size);
@@ -292,7 +294,7 @@ namespace qk {
 		}
 
 		void set_frame_size(uint32_t size) override {
-			if ( type() == MEDIA_TYPE_AUDIO ) {
+			if (type() == kAudio_MediaType) {
 				_audio_frame_size = Qk_MAX(512, size);
 				if (_audio_frame_size * 2 > _audio_buffer.length()) {
 					_audio_buffer = Buffer::alloc(_audio_frame_size * 2);
@@ -366,12 +368,12 @@ namespace qk {
 	/**
 	* @method software create software decoder
 	*/
-	MediaCodec* Mediacodec_software(MediaType type, MediaSource* source) {
+	MediaCodec* MediaCodec::software(MediaType type, MediaSource* source) {
 		SoftwareMediaCodec* rv = nullptr;
 		Extractor* ex = source->extractor(type);
-		
+
 		if ( ex ) {
-			AVCodecContext* codec_ctx = SoftwareMediacodec_find_avcodec_ctx(ex);
+			AVCodecContext* codec_ctx = SoftwareMediaCodec::find_avcodec_ctx(ex);
 			if (codec_ctx) {
 				rv = new SoftwareMediaCodec(ex, codec_ctx);
 			}

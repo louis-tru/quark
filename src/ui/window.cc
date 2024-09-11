@@ -82,7 +82,7 @@ namespace qk {
 		, _preRender(this)
 	{
 		Qk_Fatal_Assert(_host);
-		thread_check_self_first();
+		Qk_Fatal_Assert(first_loop() == current_loop(), "Must be called on the first thread loop");
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);

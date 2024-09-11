@@ -32,7 +32,7 @@
 #include "./http.h"
 #include "./fs.h"
 #include "./uv.h"
-#include "./working.h"
+#include "./thread.h"
 
 namespace qk {
 
@@ -60,7 +60,7 @@ namespace qk {
 			bool stream, response_data;
 			Array<String> data;
 			HttpClientRequest* client;
-			
+
 			Task() {
 				client = new HttpClientRequest(loop());
 				client->set_delegate(this);

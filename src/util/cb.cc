@@ -38,7 +38,7 @@ namespace qk {
 	public:
 		virtual void retain() {}
 		virtual void release() {}
-		virtual void call(Cb::Data& event) const {}
+		virtual void call(Cb::Data& event) {}
 	};
 
 	static DefaultCallbackCore* default_callback_ = nullptr;
@@ -67,7 +67,7 @@ namespace qk {
 			Release(_err);
 			Release(_data);
 		}
-		void call(Cb::Data& evt) const override {
+		void call(Cb::Data& evt) override {
 			evt.error = _err;
 			evt.data = _data;
 			_cb->call(evt);

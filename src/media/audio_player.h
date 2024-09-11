@@ -31,11 +31,10 @@
 #ifndef __quark__audio_player__
 #define __quark__audio_player__
 
-#include "../app.h"
-#include "../event.h"
+#include "../ui/event.h"
 #include "./media.h"
-#include "./pcm.h"
-#include "./media_codec.h"
+#include "./pcm_player.h"
+#include "./media.h"
 
 namespace qk {
 
@@ -44,24 +43,23 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
 		typedef MediaSource::TrackInfo TrackInfo;
-		typedef Mediacodec_OutputBuffer    OutputBuffer;
+		typedef MediaCodec::OutputBuffer OutputBuffer;
 		// define props
-		Qk_DEFINE_PROP_ACC(bool, auto_play, NoConst);
-		Qk_DEFINE_PROP_ACC(bool, mute, NoConst);
-		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer, NoConst);
-		Qk_DEFINE_PROP_ACC(uint32_t, volume, NoConst);
-		Qk_DEFINE_PROP_ACC(String, src, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(MediaSourceStatus, source_status, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, time, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index, NoConst);
-		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track, NoConst);
+		Qk_DEFINE_PROP_ACC(bool, auto_play);
+		Qk_DEFINE_PROP_ACC(bool, mute);
+		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer);
+		Qk_DEFINE_PROP_ACC(uint32_t, volume);
+		Qk_DEFINE_PROP_ACC(String, src);
+		Qk_DEFINE_PROP_ACC_GET(MediaSourceStatus, source_status);
+		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, time);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index);
+		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track);
 
-		AudioPlayer(Application* host);
-		virtual ~AudioPlayer();
-		static AudioPlayer* create(String src, Application* host = nullptr);
+		AudioPlayer();
+		~AudioPlayer() override;
 		// define methods
 		const TrackInfo* audio_track_at(uint32_t index);
 		void select_audio_track(uint32_t index);
@@ -70,22 +68,18 @@ namespace qk {
 		void pause();
 		void resume();
 		void stop();
-
-		// @overwrite
-		virtual void multimedia_source_ready(MediaSource* src);
-		virtual void multimedia_source_wait_buffer(MediaSource* src, float process);
-		virtual void multimedia_source_eof(MediaSource* src);
-		virtual void multimedia_source_error(MediaSource* src, cError& err);
-
+		void media_source_ready(MediaSource* src) override;
+		void media_source_wait_buffer(MediaSource* src, float process) override;
+		void media_source_eof(MediaSource* src) override;
+		void media_source_error(MediaSource* src, cError& err) override;
 	private:
-		Application *_host;
 		MediaSource* _source;
-		PCMPlayer*    _pcm;
-		MediaCodec*   _audio;
-		KeepLoop*     _keep;
-		bool          _auto_play, _mute, _disable_wait_buffer, _waiting_buffer;
-		PlayerStatus  _status;
-		OutputBuffer  _audio_buffer;
+		PCMPlayer*   _pcm;
+		MediaCodec*  _audio;
+		RunLoop*     _loop;
+		bool         _auto_play, _mute, _disable_wait_buffer, _waiting_buffer;
+		PlayerStatus _status;
+		OutputBuffer _audio_buffer;
 		uint64_t  _duration, _time;
 		uint64_t  _uninterrupted_play_start_time;
 		uint64_t  _uninterrupted_play_start_systime;

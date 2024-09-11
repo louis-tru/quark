@@ -39,8 +39,8 @@ namespace qk {
 	MediaCodec::MediaCodec(Extractor* extractor)
 		: _extractor(extractor)
 		, _delegate(&default_media_decoder_delegate)
-		, _color_format(VIDEO_COLOR_FORMAT_INVALID)
-		, _channel_layout(CH_INVALID)
+		, _color_format(kInvalid_VideoColorFormat)
+		, _channel_layout(kInvalid_AudioChannelMask)
 		, _channel_count(0)
 		, _frame_interval(0)
 	{
@@ -48,7 +48,7 @@ namespace qk {
 	}
 
 	void MediaCodec::set_delegate(Delegate* delegate) {
-		Qk_ASSERT(delegate);
+		Qk_Assert(delegate);
 		_delegate = delegate;
 	}
 
@@ -72,7 +72,8 @@ namespace qk {
 						start++; c++;
 					}
 				} else {
-					end = length; return true;
+					end = length;
+					return true;
 				}
 			}
 		}
@@ -115,10 +116,10 @@ namespace qk {
 		return false;
 	}
 
-	bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
-		uint32_t size = buffer.length();
+	bool MediaCodec::convert_sample_data_to_nalu(uint8_t *buf, uint32_t size) {
+		// uint32_t size = buffer.length();
 		if (size) {
-			uint8_t* buf = (uint8_t*)*buffer;
+			// uint8_t* buf = (uint8_t*)*buffer;
 			if ( !is_nalu_start(buf) ) {
 				uint32_t i = 0;
 				while ( i + 4 < size ) {
@@ -136,13 +137,13 @@ namespace qk {
 		return false;
 	}
 
-	bool MediaCodec::convert_sample_data_to_mp4_style(Buffer& buffer) {
-		uint32_t size = buffer.length();
+	bool MediaCodec::convert_sample_data_to_mp4_style(uint8_t *buf, uint32_t size) {
+		// uint32_t size = buffer.length();
 		if (size) {
-			uint8_t* buf = (uint8_t*)*buffer;
+			// uint8_t* buf = (uint8_t*)*buffer;
 			if ( is_nalu_start(buf) ) {
 				uint32_t start = 4, end = 0;
-				while( find_nalu_package(buffer, start, end) ) {
+				while( find_nalu_package(WeakBuffer((Char*)buf, size).buffer(), start, end) ) {
 					int s = end - start;
 					uint8_t header[4] = { (uint8_t)(s >> 24), (uint8_t)(s >> 16), (uint8_t)(s >> 8), (uint8_t)s };
 					memcpy(buf + start - 4, header, 4);

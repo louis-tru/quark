@@ -47,7 +47,7 @@ namespace qk {
 	}
 
 	/**
-	* @func select_track
+	* @method select_track
 	*/
 	bool Extractor::select_track(uint32_t index) {
 		ScopeLock lock(_host->_inl->mutex());
@@ -60,7 +60,7 @@ namespace qk {
 	}
 
 	/**
-	* @func deplete_sample
+	* @method deplete_sample
 	* */
 	uint32_t Extractor::deplete_sample(Char* out, uint32_t size) {
 		if ( _sample_data.size ) {
@@ -75,7 +75,7 @@ namespace qk {
 
 
 	/**
-	* @func deplete_sample
+	* @method deplete_sample
 	* */
 	uint32_t Extractor::deplete_sample(Buffer& out) {
 		uint32_t size = out.write(_sample_data.data, 0, _sample_data.size);
@@ -84,7 +84,7 @@ namespace qk {
 	}
 
 	/**
-	* @func deplete_sample
+	* @method deplete_sample
 	* */
 	uint32_t Extractor::deplete_sample(uint32_t size) {
 		size = Qk_MIN(size, _sample_data.size);
@@ -94,7 +94,7 @@ namespace qk {
 	}
 
 	/**
-	* @func advance
+	* @method advance
 	* */
 	bool Extractor::advance() {
 		return _host->_inl->extractor_advance(this);

@@ -146,7 +146,7 @@ namespace qk {
 
 	void ImageSource::_Decode(Buffer& data) {
 		struct Running: Cb::Core {
-			void done() {
+			void call(Data& evt) override {
 				auto self = source.value();
 				if (self->_state & kSTATE_LOADING) {
 					if (isComplete) { // decode image complete
@@ -165,9 +165,6 @@ namespace qk {
 					}
 					self->Qk_Trigger(State, self->_state);
 				}
-			}
-			void call(Data& evt) const override {
-				const_cast<Running*>(this)->done();
 			}
 			void decode() {
 				isComplete = img_decode(data, &pixels);
@@ -190,8 +187,7 @@ namespace qk {
 		// set gpu texture, Must be processed in the rendering thread
 		struct Running: Cb::Core {
 			Running(ImageSource* s, Array<Pixel>& p): source(s), pixels(std::move(p)){}
-			void call(Data& evt) const override { const_cast<Running*>(this)->call(); }
-			void call() {
+			void call(Data& evt) override {
 				auto self = source.value();
 				int i = 0;
 				int len = pixels.length(), old_len = self->_tex_Rt.length();

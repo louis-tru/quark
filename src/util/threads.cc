@@ -28,44 +28,40 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
- #include "./working.h"
- #include "./loop_.h"
- #include <uv.h>
+#include "./thread.h"
 
 namespace qk {
 
-	ParallelWorking::ParallelWorking(RunLoop* loop) : _loop(loop) {
-		Qk_Assert(loop, "Can not find current thread run loop.");
+	Threads::Threads() {
 	}
 
-	ParallelWorking::~ParallelWorking() {
-		abort_child();
+	Threads::~Threads() {
+		abort();
 	}
 
-	ThreadID ParallelWorking::spawn_child(Func func, cString& name) {
-		ScopeLock scope(_mutex2);
-		struct Tmp {
+	ThreadID Threads::spawn(std::function<void(cThread *t)> func, cString& name) {
+		ScopeLock scope(_mutex);
+		struct Arg {
 			typedef NonObjectTraits Traits;
-			ParallelWorking* self;
-			Func func;
+			std::function<void(cThread *t)> func;
+			Threads *self;
 		};
-		auto id = thread_new([](void* arg) {
-			Handle<Tmp> tmp = (Tmp*)arg;
-			auto id = thread_self_id();
-			tmp->func();
-			ScopeLock scope(tmp->self->_mutex2);
-			tmp->self->_childs.erase(id);
-		}, new Tmp, name);
-		_childs[id] = 1;
+		auto id = thread_new([](auto t, void* arg) {
+			Sp<Arg> arg_(static_cast<Arg*>(arg));
+			arg_->func(t);
+			ScopeLock scope(arg_->self->_mutex);
+			arg_->self->_childs.erase(t->id);
+		}, new Arg, name);
+		_childs.add(id);
 		return id;
 	}
 
-	void ParallelWorking::abort_child(ThreadID id) {
+	void Threads::abort(ThreadID id) {
 		if ( id == ThreadID() ) {
-			Dict<ThreadID, int> childs;
+			Set<ThreadID> childs;
 			{
-				ScopeLock scope(_mutex2);
-				childs = _childs;
+				ScopeLock scope(_mutex);
+				childs = std::move(_childs);
 			}
 			for (auto& i : childs) {
 				thread_try_abort(i.key);
@@ -73,34 +69,32 @@ namespace qk {
 			for (auto& i : childs) {
 				thread_join_for(i.key);
 			}
-			Qk_DEBUG("ParallelWorking::abort_child() ok, count: %d", childs.length());
+			Qk_DEBUG("Threads::abort() ok, count: %d", childs.length());
 		} else {
 			{
-				ScopeLock scope(_mutex2);
-				Qk_ASSERT(_childs.find(id) != _childs.end(),
-					"Only subthreads belonging to \"ParallelWorking\" can be aborted");
+#if DEBUG
+				ScopeLock scope(_mutex);
+				Qk_Assert(_childs.has(id),
+					"Only subthreads belonging to \"Threads\" can be aborted");
+#endif
 			}
 			thread_try_abort(id);
 			thread_join_for(id);
-			Qk_DEBUG("ParallelWorking::abort_child(id) ok");
+			Qk_DEBUG("Threads::abort(id) ok");
 		}
 	}
 
-	void ParallelWorking::awaken_child(ThreadID id) {
-		ScopeLock scope(_mutex2);
+	void Threads::resume(ThreadID id) {
+		ScopeLock scope(_mutex);
 		if ( id == ThreadID() ) {
 			for (auto& i : _childs) {
 				thread_resume(i.key);
 			}
 		} else {
-			Qk_ASSERT(_childs.find(id) != _childs.end(),
-				"Only subthreads belonging to \"ParallelWorking\" can be resume");
+			Qk_Assert(_childs.has(id),
+				"Only subthreads belonging to \"Threads\" can be resume");
 			thread_resume(id);
 		}
-	}
-
-	void ParallelWorking::post(Cb cb) {
-		return _loop->post(cb);
 	}
 
 	struct BackendLoop {
@@ -109,15 +103,15 @@ namespace qk {
 		Mutex mutex;
 		Condition cond;
 
-		static void run(void* arg) {
+		static void run(cThread *t, void* arg) {
 			auto self = (BackendLoop*)arg;
-			auto t = thread_current_();
 			auto loop = current_from(&self->loop);
-			self->mutex.lock();
-			self->id = t->id;
-			self->cond.notify_all(); // call wait ok
-			self->mutex.unlock();
-		run:
+			{
+				ScopeLock lock(self->mutex);
+				self->id = t->id;
+				self->cond.notify_all(); // call wait ok
+			}
+		 run:
 			loop->timer(Cb([](auto&e){}), 5e6); // 5s
 			loop->run();
 			int wait = 100; // wait 10s

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./loop_.h"
+#include "./thread.h"
 
 namespace qk {
 	RunLoop        *__first_loop = nullptr;
@@ -140,7 +140,7 @@ namespace qk {
 		}
 
 		static RunLoop* current_from(RunLoop **inOut) {
-			auto t = thread_current_();
+			auto t = thread_self_inl();
 			if (!t)
 				return nullptr;
 
@@ -179,7 +179,7 @@ namespace qk {
 		}
 	};
 
-	void Runloop_death(RunLoop *loop) {
+	void runloop_death(RunLoop *loop) {
 		if (loop)
 			_inl(loop)->death();
 	}

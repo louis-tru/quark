@@ -135,64 +135,64 @@ namespace qk {
 		class Qk_EXPORT Extractor: public Object {
 			Qk_HIDDEN_ALL_COPY(Extractor);
 		public:
-			
+
 			/**
 			* @method track_count
 			*/
 			inline uint32_t track_count() const { return _tracks.length(); }
-			
+
 			/**
 			* @method track_index current
 			*/
 			inline uint32_t track_index() const { return _track_index; }
-			
+
 			/**
 			* @method track current
 			* */
 			inline const TrackInfo& track() const { return _tracks[_track_index]; }
-			
+
 			/**
 			* @method track get track info with index
 			*/
 			inline const TrackInfo& track(uint32_t index) const { return _tracks[index]; }
-			
+
 			/**
 			* @method host
 			*/
 			inline MediaSource* host() const { return _host; }
-			
+
 			/**
 			* @method type
 			*/
 			inline MediaType type() const { return _type; }
-			
+
 			/**
 			* @method frame_interval
 			* */
 			inline uint32_t frame_interval() const { return _tracks[0].frame_interval; }
-			
+
 			/**
 			* @method select_track
 			*/
 			bool select_track(uint32_t index);
-			
+
 			/**
 			* @method sample_time
 			* */
 			inline uint64_t sample_time() const { return _sample_data.time; }
-			
+
 			/**
 			* @method sample_d_time
 			* */
 			inline uint64_t sample_d_time() const { return _sample_data.d_time; }
-			
+
 			/**
 			* @method sample_data
 			* */
 			inline WeakBuffer sample_data() const {
 				return WeakBuffer(_sample_data.data, _sample_data.size);
 			}
-			
+
 			/**
 			* @method sample_size
 			* */
@@ -217,19 +217,19 @@ namespace qk {
 			* @method deplete_sample
 			* */
 			uint32_t deplete_sample(Buffer& out);
-			
+
 			/**
 			* @method deplete_sample
 			* */
 			uint32_t deplete_sample(uint32_t size);
-			
+
 			/**
 			* @method deplete_sample
 			* */
 			inline uint32_t deplete_sample() {
 				return deplete_sample(_sample_data.size);
 			}
-			
+
 			/**
 			* @method advance
 			* */
@@ -249,7 +249,7 @@ namespace qk {
 			Extractor(MediaType type, MediaSource* host, Array<TrackInfo>&& tracks);
 
 			struct SampleData {
-				Buffer  buf;
+				Buffer  databuf;
 				Char*   data;
 				uint32_t size;
 				uint64_t time;
@@ -455,12 +455,12 @@ namespace qk {
 		/**
 		* @method convert_sample_data_to_nalu
 		* */
-		static bool convert_sample_data_to_nalu(Buffer& buffer);
+		static bool convert_sample_data_to_nalu(uint8_t *data, uint32_t size);
 
 		/**
 		* @method convert_sample_data_to_mp4_style
 		* */
-		static bool convert_sample_data_to_mp4_style(Buffer& buffer);
+		static bool convert_sample_data_to_mp4_style(uint8_t *data, uint32_t size);
 
 		/**
 		* @method parse_psp_pps

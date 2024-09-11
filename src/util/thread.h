@@ -30,8 +30,8 @@
 
 // @private head
 
-#ifndef __quark__util__loop___
-#define __quark__util__loop___
+#ifndef __quark__util__thread___
+#define __quark__util__thread___
 
 #include "./loop.h"
 #include <uv.h>
@@ -41,17 +41,11 @@ namespace qk {
 	extern Mutex          *__threads_mutex;
 	extern std::atomic_int __is_process_exit_atomic;
 
-	struct Thread {
-		int               abort; // abort signal of run loop
-		ThreadID          id;
-		String            tag;
-	};
-
 	struct Thread_INL: Thread, CondMutex {
-		RunLoop*          loop;
-		List<CondMutex*>  waitSelfEnd; // external wait thread end
-		void             (*exec)(void *arg);
-		void              *arg;
+		void     (*exec)(cThread *t, void *arg);
+		void      *arg;
+		RunLoop*  loop;
+		List<CondMutex*> waitSelfEnd; // external wait thread end
 	};
 
 	struct RunLoop::Work {
@@ -78,8 +72,24 @@ namespace qk {
 		Cb cb;
 	};
 
-	Thread_INL* thread_current_();
-	void        Runloop_death(RunLoop *loop);
+	//////
+	class Threads: public Object {
+		Qk_HIDDEN_ALL_COPY(Threads);
+	public:
+		Threads();
+		~Threads() override;
+		ThreadID spawn(std::function<void(cThread *t)> func, cString& name);
+		void resume(ThreadID id = ThreadID());  // default resume all child
+		void abort(ThreadID id = ThreadID());   // default abort all child
+	private:
+		Mutex _mutex;
+		Set<ThreadID> _childs;
+	};
+
+	Thread_INL* thread_self_inl();
+	void        runloop_death(RunLoop *loop);
 	RunLoop*    current_from(RunLoop **inOut);
+	RunLoop*    backend_loop();
+	bool        has_backend_thread();
 }
 #endif

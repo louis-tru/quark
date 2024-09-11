@@ -27,7 +27,7 @@
 					'<(output)/obj.target/libquark-util.a',
 					'<(output)/obj.target/libquark.a',
 					'<(output)/obj.target/libquark-js.a',
-					# '<(output)/obj.target/libquark-media.a',
+					'<(output)/obj.target/libquark-media.a',
 					'-Wl,--no-whole-archive',
 				],
 			}],
@@ -44,7 +44,7 @@
 		'dependencies': [
 			'quark',
 			'quark-js',
-			# 'quark-media',
+			'quark-media',
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
@@ -139,7 +139,7 @@
 				'dependencies': [
 					'quark',
 					'quark-js',
-					# 'quark-media',
+					'quark-media',
 				],
 				'ldflags': [ '<@(other_ldflags)' ],
 				'sources': [

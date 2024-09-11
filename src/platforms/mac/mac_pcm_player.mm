@@ -42,13 +42,13 @@ namespace qk {
 	public:
 		typedef ObjectTraits Traits;
 
-		virtual Object* asObject() { return this; }
-		
+		virtual Object* asObject() override { return this; }
+
 		struct WaitWriteBuffer {
-			Buffer  data;
-			uint32_t    size = 0;
+			Buffer   data;
+			uint32_t size = 0;
 		};
-		
+
 		MacPCMPlayer()
 			: _queue(NULL)
 			, _wait_write_buffer_index(0)
@@ -58,8 +58,8 @@ namespace qk {
 			memset(_buffer_all, 0, sizeof(_buffer_all));
 			memset(_buffer_free, 0, sizeof(_buffer_free));
 		}
-		
-		~MacPCMPlayer() overwrite {
+
+		~MacPCMPlayer() {
 
 			for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
 				if ( _buffer_all[i] ) {
@@ -71,7 +71,7 @@ namespace qk {
 				AudioQueueDispose(_queue, false); _queue = NULL;
 			}
 		}
-		
+
 		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
 			OSStatus status;
 			
@@ -173,16 +173,16 @@ namespace qk {
 					}
 				}
 			}
-			
+
 			bool r = false;
-			
+
 			// Wait write buffer
 			if ( _wait_write_buffer_count < WAIT_WRITE_BUFFER_COUNT ) {
 				WaitWriteBuffer* buf =  _wait_write_buffer +
 				(_wait_write_buffer_index + _wait_write_buffer_count) % WAIT_WRITE_BUFFER_COUNT;
 				_wait_write_buffer_count++;
-				
-				buf->data.write(buffer, 0);
+
+				buf->data.write(*buffer, buffer.length(), 0);
 				buf->size = buffer.length();
 				r = true;
 			}
@@ -210,7 +210,7 @@ namespace qk {
 		bool set_mute(bool value) override {
 			AudioQueueParameterValue volume;
 			OSStatus status;
-			
+
 			{ //
 				ScopeLock scope(_mutex);
 				status = AudioQueueGetParameter(_queue, kAudioQueueParam_Volume, &volume);
@@ -250,7 +250,7 @@ namespace qk {
 		uint32_t buffer_size() override {
 			return Qk_MAX(4096, _channel_count * _sample_rate / 10);
 		}
-		
+
 	private:
 		AudioQueueRef             _queue;
 		AudioQueueBufferRef       _buffer_all[QUEUE_BUFFER_COUNT];

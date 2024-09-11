@@ -31,10 +31,10 @@
 #include <math.h>
 #include "./video.h"
 #include "../app.h"
-#include "../media/media.h"
-#include "../util/loop.h"
-#include "../util/fs.h"
-#include "../errno.h"
+#include "../../media/media.h"
+#include "../../util/loop.h"
+#include "../../util/fs.h"
+#include "../../errno.h"
 
 namespace qk {
 	typedef MediaSource::TrackInfo TrackInfo;
@@ -43,48 +43,55 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	public:
+		#define _this _inl(this)
+		#define _inl(self) static_cast<Video::Inl*>(self)
 
 		bool load_yuv_texture(OutputBuffer& buffer) { // set yuv texture ..
 			Array<WeakBuffer> body(3);
 			body[0] = WeakBuffer((char*)buffer.data[0], buffer.linesize[0]);  // y
 			body[1] = WeakBuffer((char*)buffer.data[1], buffer.linesize[1]);  // u
 			body[2] = WeakBuffer((char*)buffer.data[2], buffer.linesize[2]);  // v
-			
+
+			// TODO ..
 			// PixelData pixel(body, _video_width, _video_height, (PixelData::Format)_color_format );
-			
+
 			// bool r = static_cast<TextureYUV*>(texture())->load_yuv(pixel); // load texture
 			// _video->release(buffer);
 			// return r;
 		}
 		
 		bool advance_video(uint64_t sys_time) {
-			Qk_Assert(m_status != PLAYER_STATUS_STOP, "#Video#Inl#advance_video 0");
-			
+			Qk_Assert(_status != kStop_PlayerStatus, "Video::Inl::advance_video()");
+
 			bool draw = false;
-			
+
 			if ( ! _video_buffer.total ) {
-				if ( _status == PLAYER_STATUS_PLAYING || _status == PLAYER_STATUS_START ) {
+				if ( _status == kPlaying_PlayerStatus || _status == kStart_PlayerStatus ) {
 					_video_buffer = _video->output();
 					//t_debug("output, %llu", sys_time_monotonic() - sys_time);
 
 					if ( _video_buffer.total ) {
 						if ( _waiting_buffer ) {
 							_waiting_buffer = false;
-							_keep->post(Cb([this](Cb::Data& e){ trigger(UIEvent_WaitBuffer, Float(1.0F)); /* trigger source WAIT event */ }));
+							_loop->post(Cb([this](auto e){
+								trigger(UIEvent_WaitBuffer, Float32(1.0F)); /* trigger source WAIT event */
+							}));
 						}
 					} else { // 没有取到数据
 						MediaSourceStatus status = _source->status();
-						if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
+						if ( status == kWait_MediaSourceStatus ) { // 源..等待数据
 							if ( _waiting_buffer == false ) {
 								_waiting_buffer = true;
-								_keep->post(Cb([this](Cb::Data& e) { trigger(UIEvent_WaitBuffer, Float(0.0F)); /* trigger source WAIT event */ }));
+								_loop->post(Cb([this](auto e) {
+									trigger(UIEvent_WaitBuffer, Float32(0.0F)); /* trigger source WAIT event */
+								}));
 							}
-						} else if ( status == MULTIMEDIA_SOURCE_STATUS_EOF ) {
+						} else if ( status == kEOF_MediaSourceStatus ) {
 							stop();
 						}
 					}
 					
-				}  else if ( _status == PLAYER_STATUS_PAUSED ) {
+				}  else if ( _status == kPaused_PlayerStatus ) {
 					// 大于1000ms可更新画面
 					if ( _duration && sys_time - _prev_presentation_time > 1000000 ) {
 						OutputBuffer buffer = _video->output();
@@ -118,10 +125,12 @@ namespace qk {
 									pts,
 									sys_time - _prev_presentation_time, _uninterrupted_play_start_systime);
 
-					if ( _status == PLAYER_STATUS_START ) {
+					if ( _status == kStart_PlayerStatus ) {
 						ScopeLock scope(_mutex);
-						_status = PLAYER_STATUS_PLAYING;
-						_keep->post(Cb([this](Cb::Data& e){ trigger(UIEvent_StartPlay); /* trigger start_play event */ }));
+						_status = kPlaying_PlayerStatus;
+						_loop->post(Cb([this](Cb::Data& e){
+							trigger(UIEvent_StartPlay); /* trigger start_play event */
+						}));
 					}
 					{
 						ScopeLock scope(_mutex);
@@ -142,7 +151,8 @@ namespace qk {
 
 		// set pcm ..
 		bool write_audio_pcm() {
-			bool r = _pcm->write(WeakBuffer((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
+			WeakBuffer buff((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]);
+			bool r = _pcm->write(buff.buffer());
 			if ( !r ) {
 				Qk_LOG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 			}
@@ -160,12 +170,12 @@ namespace qk {
 			{ //
 				ScopeLock scope(_mutex);
 				
-				if ( _status == PLAYER_STATUS_STOP ) { // stop
+				if ( _status == kStop_PlayerStatus ) { // stop
 					return; // stop audio
 				}
 				
 				if ( !_audio_buffer.total ) {
-					if ( _status == PLAYER_STATUS_PLAYING || _status == PLAYER_STATUS_START ) {
+					if ( _status == kPlaying_PlayerStatus || _status == kStart_PlayerStatus ) {
 						_audio_buffer = _audio->output();
 					}
 				}
@@ -191,7 +201,7 @@ namespace qk {
 			int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
 			int64_t sleep_st = frame_interval - time_monotonic() + sys_time;
 			if ( sleep_st > 0 ) {
-				Thread::sleep(sleep_st);
+				thread_sleep(sleep_st);
 			}
 
 			goto loop;
@@ -204,9 +214,9 @@ namespace qk {
 		
 		bool stop_from(Lock& lock, bool is_event) {
 			
-			if ( _status != PLAYER_STATUS_STOP ) {
+			if ( _status != kStop_PlayerStatus ) {
 				
-				_status = PLAYER_STATUS_STOP;
+				_status = kStop_PlayerStatus;
 				_uninterrupted_play_start_systime = 0;
 				_uninterrupted_play_start_time = 0;
 				_prev_presentation_time = 0;
@@ -221,45 +231,46 @@ namespace qk {
 					_video->release(_video_buffer);
 					_video->extractor()->set_disable(true);
 					_video->close();
-					SourceHold::set_source(nullptr);
+					// SourceHold::set_source(nullptr);
+					ImageSourceHold::set_source(nullptr); // TODO ...
 				}
 
 				if (_pcm) {
 					_pcm->flush();
 				}
-				
-				unregister_task();
+
+				preRender().untask(this);
 				_source->stop();
-				
+
 				auto loop_id = _run_loop_id;
 				lock.unlock();
-				Thread::wait(loop_id); // wait audio thread end
+				thread_join_for(loop_id); // wait audio thread end
 
 				if ( is_event ) {
-					_keep->post(Cb([this](Cb::Data& e){ trigger(UIEvent_Stop); /* trigger stop event */ }));
+					_loop->post(Cb([this](auto e){
+						trigger(UIEvent_Stop); /* trigger stop event */
+					}));
 				}
 				lock.lock();
-				
+
 				return true;
 			}
 			return false;
 		}
 		
 		void stop_and_release(Lock& lock, bool is_event) {
-			
 			if ( _task_id ) {
-				_keep->host()->cancel_work(_task_id);
+				_loop->work_cancel(_task_id);
 				_task_id = 0;
 			}
-			
+
 			stop_from(lock, is_event);
-			
+
 			Release(_audio); _audio = nullptr;
 			Release(_video); _video = nullptr;
 			Release(_source); _source = nullptr;
-			Release(_keep); _keep = nullptr;
 			PCMPlayer::Traits::Release(_pcm); _pcm = nullptr;
-			
+
 			_time = 0;
 			_duration = 0;
 			_video_width = 0;
@@ -271,7 +282,7 @@ namespace qk {
 
 			Qk_Assert( _source && _video);
 			Qk_Assert( _source->is_active());
-			Qk_Assert( _status == PLAYER_STATUS_START);
+			Qk_Assert( _status == kStart_PlayerStatus);
 
 			_waiting_buffer = false;
 
@@ -294,15 +305,16 @@ namespace qk {
 				_pcm->set_volume(_volume);
 				_pcm->set_mute(_mute);
 
-				_run_loop_id = Thread::create([](Thread& t, void* self) { // new thread
-					((Inl*)self)->run_play_audio_loop(); }, this, "audio_loop");
+				_run_loop_id = thread_new([](auto t, void* self) { // new thread
+					static_cast<Inl*>(self)->run_play_audio_loop();
+				}, this, "Video::audio_loop");
 			}
 
-			register_task();
+			preRender().addtask(this); // TODO ...
 		}
 
 		bool is_active() {
-			return _status == PLAYER_STATUS_PAUSED || _status == PLAYER_STATUS_PLAYING;
+			return _status == kPaused_PlayerStatus || _status == kPlaying_PlayerStatus;
 		}
 	};
 
@@ -312,8 +324,8 @@ namespace qk {
 		, _audio(NULL)
 		, _video(NULL)
 		, _pcm(NULL)
-		, _keep(nullptr)
-		, _status(PLAYER_STATUS_STOP)
+		, _loop(current_loop())
+		, _status(kStop_PlayerStatus)
 		, _audio_buffer(), _video_buffer()
 		, _time(0), _duration(0)
 		, _uninterrupted_play_start_time(0)
@@ -322,13 +334,14 @@ namespace qk {
 		, _prev_run_task_systime(0)
 		, _video_width(0), _video_height(0)
 		, _task_id(0)
-		, _color_format(VIDEO_COLOR_FORMAT_INVALID)
+		, _color_format(kInvalid_VideoColorFormat)
 		, _volume(100)
 		, _auto_play(true)
 		, _mute(false)
 		, _disable_wait_buffer(false)
 		, _waiting_buffer(false)
 	{
+		Qk_Assert(_loop);
 	}
 
 	Video::~Video() {
@@ -336,22 +349,21 @@ namespace qk {
 		_this->stop_and_release(lock, false);
 	}
 
-	void Video::multimedia_source_wait_buffer(MediaSource* so, float process) {
-		
+	void Video::media_source_wait_buffer(MediaSource* so, float process) {
 		if ( _waiting_buffer ) { /* 开始等待数据缓存不触发事件,因为在解码器队列可能还存在数据,
 															* 所以等待解码器也无法输出数据时再触发事件
 															*/
 			if ( process < 1 ) { // trigger event wait_buffer
-				_this->trigger(UIEvent_WaitBuffer, Float(process));
+				_this->trigger(UIEvent_WaitBuffer, Float32(process));
 			}
 		}
 	}
 
-	void Video::multimedia_source_eof(MediaSource* so) {
+	void Video::media_source_eof(MediaSource* so) {
 		_this->trigger(UIEvent_SourceEnd); // trigger event eof
 	}
 
-	void Video::multimedia_source_error(MediaSource* so, cError& err) {
+	void Video::media_source_error(MediaSource* so, cError& err) {
 		_this->trigger(UIEvent_Error, err); // trigger event error
 		stop();
 	}
@@ -364,77 +376,90 @@ namespace qk {
 		}
 	}
 
-	void Video::multimedia_source_ready(MediaSource* src) {
-		Qk_Assert( _source == src);
-		
+	void Video::media_source_ready(MediaSource* src) {
+		Qk_Assert_Eq( _source, src);
+
 		if ( _video ) {
 			_this->trigger(UIEvent_Ready); // trigger event ready
-			if ( _status == PLAYER_STATUS_START ) {
+			if ( _status == kStart_PlayerStatus ) {
 				_this->start_run();
 			}
 			return;
 		}
-
-		Qk_Assert(!_video);
 		Qk_Assert(!_audio);
 
-		// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
-		_task_id = _keep->host()->work(Cb([=](Cb::Data& d) {
-			if (_source != src) return; // 源已被更改,所以取消
-			
-			MediaCodec* audio = Mediacodec_create(MEDIA_TYPE_AUDIO, _source);
-			MediaCodec* video = Mediacodec_create(MEDIA_TYPE_VIDEO, _source);
-			PCMPlayer* pcm = _pcm;
-			
-			if ( audio && !_pcm ) {
-				pcm = PCMPlayer::create(audio->channel_count(),
-																audio->extractor()->track(0).sample_rate );
-			}
-			ScopeLock scope(_mutex);
-			_pcm = pcm;
-			
-			if ( _source != src ) {
-				Release(audio);
-				Release(video); return;
-			} else {
-				_audio = audio;
-				_video = video;
-			}
-		}, this/*保持Video*/), Cb([=](Cb::Data& d) {
-			_task_id = 0;
-			if ( _source != src ) return;
-			if ( !_audio) Qk_ERR("Unable to create audio decoder");
-			if (_video) {
-				{ //
-					ScopeLock scope(_mutex);
-					const TrackInfo& info = _video->extractor()->track(0);
-					_video_width   = info.width;
-					_video_height  = info.height;
-					_duration      = _source->duration();
-					_color_format  = _video->color_format();
-					_video->set_threads(2);
-					_video->set_background_run(true);
+		// Creating a decoder is time-consuming and can cause delays in the main thread, 
+		// so the task is sent to the worker thread
+		struct Running: CallbackCore<Object> {
+			void create() {
+				auto self = *hold;
+				if (self->_source != src) return; // 源已被更改,所以取消
+
+				auto audio = MediaCodec::create(kAudio_MediaType, self->_source);
+				auto video = MediaCodec::create(kVideo_MediaType, self->_source);
+				auto pcm = self->_pcm;
+
+				if ( audio && !self->_pcm ) {
+					pcm = PCMPlayer::create(audio->channel_count(),
+																	audio->extractor()->track(0).sample_rate );
 				}
-				_this->trigger(UIEvent_Ready); // trigger event ready
-				
-				if ( _status == PLAYER_STATUS_START ) {
-					_this->start_run();
+				if (!audio) Qk_ERR("Unable to create audio decoder");
+
+				ScopeLock scope(self->_mutex);
+				self->_pcm = pcm;
+
+				if ( self->_source != src ) {
+					Release(audio);
+					Release(video);
 				} else {
-					if ( _auto_play ) {
-						start();
-					}
+					self->_audio = audio;
+					self->_video = video;
 				}
-			} else {
-				Error e(ERR_VIDEO_NEW_CODEC_FAIL, "Unable to create video decoder");
-				Qk_ERR("%s", *e.message());
-				_this->trigger(UIEvent_Error, e); // trigger event error
-				stop();
-			} 
-		}));
+			}
+			void call(Data& evt) override { // done
+				auto self = *hold;
+				self->_task_id = 0;
+				if ( self->_source != src ) return;
+				if (self->_video) {
+					{ //
+						ScopeLock scope(self->_mutex);
+						const TrackInfo& info = self->_video->extractor()->track(0);
+						self->_video_width   = info.width;
+						self->_video_height  = info.height;
+						self->_duration      = self->_source->duration();
+						self->_color_format  = self->_video->color_format();
+						self->_video->set_threads(2);
+						self->_video->set_background_run(true);
+					}
+					_inl(self)->trigger(UIEvent_Ready); // trigger event ready
+
+					if ( self->_status == kStart_PlayerStatus ) {
+						_inl(self)->start_run();
+					} else {
+						if ( self->_auto_play ) {
+							self->start();
+						}
+					}
+				} else {
+					Error e(ERR_VIDEO_NEW_CODEC_FAIL, "Unable to create video decoder");
+					Qk_ERR("%s", *e.message());
+					_inl(self)->trigger(UIEvent_Error, e); // trigger event error
+					self->stop();
+				}
+			}
+			Running(Video *self, MediaSource* src): hold(self), src(src) {
+				self->_task_id =
+				self->_loop->work(Cb((Cb::Member<Running>)&Running::create, this), this);
+			}
+			Sp<Video>    hold;
+			MediaSource* src;
+		};
+
+		New<Running>(this, src);
 	}
 
-	void Video::set_src(String value) {
-		if ( value.is_empty() ) {
+	void Video::set_src(String value, bool isRt) {
+		if ( value.isEmpty() ) {
 			return;
 		}
 		String src = fs_reader()->format(value);
@@ -446,10 +471,7 @@ namespace qk {
 			}
 			_this->stop_and_release(lock, true);
 		}
-		auto loop = shared_app()->loop();
-		Qk_Assert(loop, "Cannot find main run loop");
-		_source = new MediaSource(src, loop);
-		_keep = loop->keep_alive("Video::set_source");
+		_source = new MediaSource(src, _loop);
 		_source->set_delegate(this);
 		_source->disable_wait_buffer(_disable_wait_buffer);
 		_source->start();
@@ -458,8 +480,8 @@ namespace qk {
 	void Video::start() {
 		Lock scope(_mutex);
 		
-		if ( _status == PLAYER_STATUS_STOP && _source ) {
-			_status = PLAYER_STATUS_START;
+		if ( _status == kStop_PlayerStatus && _source ) {
+			_status = kStart_PlayerStatus;
 			_uninterrupted_play_start_systime = 0;
 			_uninterrupted_play_start_time = 0;
 			_prev_presentation_time = 0;
@@ -478,7 +500,7 @@ namespace qk {
 	void Video::stop() {
 		Lock lock(_mutex);
 		if ( _this->stop_from(lock, true) ) {
-			mark_render();
+			mark(kLayout_None, false);
 		}
 	}
 
@@ -486,7 +508,7 @@ namespace qk {
 		ScopeLock scope(_mutex);
 		
 		if ( _this->is_active() && timeUs < _duration ) {
-			Qk_Assert( m_source );
+			Qk_Assert( _source );
 			
 			if ( _source->seek(timeUs) ) {
 				_uninterrupted_play_start_systime = 0;
@@ -502,7 +524,7 @@ namespace qk {
 				if ( _pcm ) {
 					_pcm->flush();
 				}
-				_keep->post(Cb([this](Cb::Data& e) {
+				_loop->post(Cb([this](Cb::Data& e) {
 					_this->trigger(UIEvent_Seek, Uint64(_time)); /* trigger seek event */
 				}));
 				return true;
@@ -516,10 +538,10 @@ namespace qk {
 	 */
 	void Video::pause() {
 		ScopeLock scope(_mutex);
-		if ( _status == PLAYER_STATUS_PLAYING && _duration /* 没有长度信息不能暂停*/ ) {
-			_status = PLAYER_STATUS_PAUSED;
+		if ( _status == kPlaying_PlayerStatus && _duration /* 没有长度信息不能暂停*/ ) {
+			_status = kPaused_PlayerStatus;
 			_uninterrupted_play_start_systime = 0;
-			_keep->post(Cb([this](Cb::Data& e) {
+			_loop->post(Cb([this](Cb::Data& e) {
 				_this->trigger(UIEvent_Pause); // trigger pause event
 			}));
 		}
@@ -530,16 +552,16 @@ namespace qk {
 	 */
 	void Video::resume() {
 		ScopeLock scope(_mutex);
-		if ( _status == PLAYER_STATUS_PAUSED ) {
-			_status = PLAYER_STATUS_PLAYING;
+		if ( _status == kPaused_PlayerStatus ) {
+			_status = kPlaying_PlayerStatus;
 			_uninterrupted_play_start_systime = 0;
-			_keep->post(Cb([this](Cb::Data& e) {
+			_loop->post(Cb([this](auto e) {
 				_this->trigger(UIEvent_Resume); // trigger resume event
 			}));
 		}
 	}
 
-	void Video::set_mute(bool value) {
+	void Video::set_mute(bool value, bool isRt) {
 		ScopeLock scope(_mutex);
 		if ( value != _mute ) {
 			_mute = value;
@@ -549,7 +571,7 @@ namespace qk {
 		}
 	}
 
-	void Video::set_volume(uint32_t value) {
+	void Video::set_volume(uint32_t value, bool isRt) {
 		ScopeLock scope(_mutex);
 		value = Qk_MIN(value, 100);
 		_volume = value;
@@ -620,7 +642,7 @@ namespace qk {
 		if ( _source ) {
 			return _source->status();
 		}
-		return MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
+		return kUninitialized_MediaSourceStatus;
 	}
 
 	uint32_t Video::video_width() {
@@ -654,10 +676,11 @@ namespace qk {
 			}
 		}
 		
-		return draw && view_depth();
+		//return draw && view_depth();
+		return draw && level();
 	}
 
-	void Video::set_disable_wait_buffer(bool value) {
+	void Video::set_disable_wait_buffer(bool value, bool isRt) {
 		ScopeLock scope(_mutex);
 		_disable_wait_buffer = value;
 		if (_source) {
@@ -665,7 +688,7 @@ namespace qk {
 		}
 	}
 
-	void Video::set_auto_play(bool value) {
+	void Video::set_auto_play(bool value, bool isRt) {
 		ScopeLock scope(_mutex);
 		_auto_play = value;
 	}

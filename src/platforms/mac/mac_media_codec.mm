@@ -41,13 +41,13 @@ namespace qk {
 	*/
 	class MacVideoCodec: public MediaCodec {
 	 public:
-		
+
 		struct OutputBufferInfo {
 			CVPixelBufferRef        buffer = nullptr;
 			CVPixelBufferLockFlags  lock;
-			uint64_t                  time;
+			uint64_t                time;
 		};
-		
+
 		MacVideoCodec(Extractor* ex)
 			: MediaCodec(ex)
 			, _session(nullptr)
@@ -71,12 +71,8 @@ namespace qk {
 				_format_desc = nil;
 			}
 		}
-		
-		/**
-		* @method initializ
-		*/
+
 		bool initialize() {
-			
 			OSStatus status;
 			CMVideoCodecType codec_type;
 			const TrackInfo& track = _extractor->track();
@@ -103,15 +99,15 @@ namespace qk {
 				default:
 					return false;
 			}
-			
+
 			_video_width = track.width;
 			_video_height = track.height;
-			_color_format = VIDEO_COLOR_FORMAT_YUV420SP;
-			
+			_color_format = kYUV420SP_VideoColorFormat;
+
 			// init CMFormatDescriptionRef
 			Buffer psp, pps;
-			
-			if ( Mediacodec_parse_avc_psp_pps(WeakBuffer(track.extradata), psp, pps) ) {
+
+			if ( MediaCodec::parse_avc_psp_pps(WeakBuffer(track.extradata).buffer(), psp, pps) ) {
 				uint8_t*  param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
 				size_t size[2]  = { psp.length() - 4, pps.length() - 4 };
 				status = CMVideoFormatDescriptionCreateFromH264ParameterSets(NULL, 2,
@@ -143,10 +139,7 @@ namespace qk {
 			}
 			return false;
 		}
-		
-		/**
-		* @method decompress_frame_cb
-		*/
+
 		static void decompress_frame_cb(MacVideoCodec* self,
 																		void* source_sample,
 																		OSStatus status,
@@ -173,23 +166,19 @@ namespace qk {
 				}
 			}
 		}
-		
-		/**
-		* @overwrite
-		*/
+
 		virtual bool open() {
-			
 			if ( _session )  {
 				return true;
 			}
-			
+
 			_start_decoder = 0;
 			OSStatus status;
 			const TrackInfo& track = _extractor->track();
-			
-			Qk_ASSERT(track.width);
-			Qk_ASSERT(track.height);
-			
+
+			Qk_Assert(track.width);
+			Qk_Assert(track.height);
+
 			CFDictionaryRef attrs = (__bridge CFDictionaryRef)
 			[NSDictionary dictionaryWithObjectsAndKeys:
 			[NSNumber numberWithInt:
@@ -203,25 +192,22 @@ namespace qk {
 				#endif
 				nil
 			];
-			
+
 			VTDecompressionOutputCallbackRecord cb = {
-				(VTDecompressionOutputCallback)&MacVideocodec_decompress_frame_cb,
+				(VTDecompressionOutputCallback)&MacVideoCodec::decompress_frame_cb,
 				this,
 			};
 			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
-			
-			Qk_ASSERT(status >= 0);
-			
+
+			Qk_Assert(status >= 0);
+
 			CFRetain(_session);
-			
+
 			flush();
-			
+
 			return status == noErr;
 		}
-		
-		/**
-		* @overwrite
-		*/
+
 		virtual bool close() {
 			if ( _session ) {
 				flush();
@@ -234,10 +220,7 @@ namespace qk {
 			}
 			return true;
 		}
-		
-		/**
-		* @overwrite
-		*/
+
 		virtual bool flush() {
 			ScopeLock scope(_output_buffer_mutex);
 			
@@ -254,48 +237,46 @@ namespace qk {
 			_start_decoder = 0;
 			return true;
 		}
-		
-		/**
-		* @method get_sample_data
-		*/
+
 		CMSampleBufferRef get_sample_data() {
 			OSStatus status;
 			CMBlockBufferRef block;
-			
+
 			uint64_t sample_time = _extractor->sample_time();
-			
+
 			if ( _sample_data && _sample_time == sample_time ) {
 				return _sample_data;
 			}
-			
+
 			if ( _sample_data ) {
 				CFRelease(_sample_data);
 				_sample_data = nullptr;
 			}
-			
-			WeakBuffer data = _extractor->sample_data();
-			Mediacodec_convert_sample_data_to_mp4_style(data);
-			
+
+			auto size = _extractor->sample_size();
+			auto buf = (uint8_t*)_extractor->sample_data().val();
+			MediaCodec::convert_sample_data_to_mp4_style(buf, size);
+
 			status = CMBlockBufferCreateWithMemoryBlock(nullptr,
-																									(uint8_t*)*data,
-																									data.length(),
+																									buf,
+																									size,
 																									kCFAllocatorNull,
-																									nullptr, 0, data.length(), 0, &block);
+																									nullptr, 0, size, 0, &block);
 			if ( status == noErr ) {
 				CMSampleTimingInfo frameTimingInfo;
 				frameTimingInfo.decodeTimeStamp = CMTimeMake(_extractor->sample_d_time(), 1);
 				frameTimingInfo.duration = CMTimeMake(0, 1);
 				frameTimingInfo.presentationTimeStamp = CMTimeMake(sample_time, 1);
 				
-				size_t sample_size = data.length();
-				
+				size_t sample_size = size;
+
 				status = CMSampleBufferCreate(kCFAllocatorDefault, block, true,
 																			nullptr,
 																			nullptr,
 																			_format_desc, 1, 1,
 																			&frameTimingInfo, 1, &sample_size, &_sample_data);
 				CFRelease(block);
-				
+
 				if ( status == noErr ) {
 					_sample_time = sample_time;
 					return _sample_data;
@@ -303,19 +284,16 @@ namespace qk {
 			}
 			return nullptr;
 		}
-		
-		/**
-		* @overwrite
-		* */
+
 		virtual bool advance() {
 			if ( _session && _extractor->advance() ) {
 				{ //
 					ScopeLock scope(_output_buffer_mutex);
-					if ( _output_buffer_count >= uint(OUTPUT_BUFFER_NUM / 1.5) ) {
+					if ( _output_buffer_count >= uint32_t(OUTPUT_BUFFER_NUM / 1.5) ) {
 						return false;
 					}
 				}
-				
+
 				if ( !_start_decoder ) { // no start decoder
 					if ( _extractor->sample_flags() ) { // i frame
 						_start_decoder = 1; // start
@@ -324,15 +302,15 @@ namespace qk {
 						return false;
 					}
 				}
-				
+
 				OSStatus status;
 				VTDecodeFrameFlags flags = kVTDecodeFrame_EnableAsynchronousDecompression;
 				CMSampleBufferRef sample_data = get_sample_data();
 				VTDecodeInfoFlags flagOut;
-				
+
 				if ( sample_data ) {
 					status = VTDecompressionSessionDecodeFrame(_session, sample_data, flags, NULL, &flagOut);
-					
+
 					if ( status == noErr ) {
 						if ( _extractor->eof_flags() ) {
 							Qk_DEBUG("%s", "eos flags");
@@ -350,18 +328,15 @@ namespace qk {
 			}
 			return false;
 		}
-		
-		/**
-		* @overwrite
-		* */
+
 		virtual OutputBuffer output() {
 			ScopeLock scope(_output_buffer_mutex);
-			
+
 			if ( _output_buffer_count ) {
 				OutputBufferInfo* buf = nullptr;
 				OutputBufferInfo* unknown_time_frame = nullptr;
 				OutputBuffer out;
-				
+
 				// sort frame
 				for (int i = 0; i < OUTPUT_BUFFER_NUM; i++) {
 					OutputBufferInfo* b2 = _output_buffer + i;
@@ -385,7 +360,7 @@ namespace qk {
 						}
 					}
 				}
-				
+
 				// correct time
 				if ( buf ) {
 					if ( _presentation_time ) {
@@ -401,7 +376,7 @@ namespace qk {
 					buf = unknown_time_frame;
 					buf->time = _presentation_time + _frame_interval;
 				}
-				
+
 				// yuv420sp
 				out.linesize[0] =  _video_width * _video_height;
 				out.linesize[1] = out.linesize[0] / 2;
@@ -413,16 +388,13 @@ namespace qk {
 			}
 			return OutputBuffer();
 		}
-		
-		/**
-		* @overwrite
-		*/
+
 		virtual void release(OutputBuffer& buffer) {
 			ScopeLock scope(_output_buffer_mutex);
-			
+
 			if ( buffer.total ) {
 				int index = buffer.index;
-				
+
 				memset(&buffer, 0, sizeof(OutputBuffer));
 				if ( _output_buffer[index].buffer ) {
 					OutputBufferInfo* buf = _output_buffer + index;
@@ -433,21 +405,18 @@ namespace qk {
 				}
 			}
 		}
-		
-		/**
-		* @overwrite
-		*/
+
 		virtual void set_frame_size(uint32_t size) {}
 		virtual void set_threads(uint32_t value) {}
 		virtual void set_background_run(bool value) {}
-		
+
 	 private:
 		VTDecompressionSessionRef _session;
-		CMFormatDescriptionRef    _format_desc;
-		CMSampleBufferRef         _sample_data;
-		uint64_t                    _sample_time;
-		Mutex                     _output_buffer_mutex;
-		OutputBufferInfo          _output_buffer[OUTPUT_BUFFER_NUM];
+		CMFormatDescriptionRef _format_desc;
+		CMSampleBufferRef  _sample_data;
+		uint64_t         _sample_time;
+		Mutex            _output_buffer_mutex;
+		OutputBufferInfo _output_buffer[OUTPUT_BUFFER_NUM];
 		uint32_t  _output_buffer_count;
 		uint32_t  _start_decoder;
 		uint32_t  _video_width;
@@ -461,8 +430,8 @@ namespace qk {
 	MediaCodec* Mediacodec_hardware(MediaType type, MediaSource* source) {
 		Extractor* ex = source->extractor(type);
 		if ( ex ) {
-			if (type == MEDIA_TYPE_AUDIO) {
-				return NULL;
+			if (type == kAudio_MediaType) {
+				return nullptr;
 			} else {
 				Handle<MacVideoCodec> codec = new MacVideoCodec(ex);
 				if (codec->initialize()) {
@@ -470,7 +439,7 @@ namespace qk {
 				}
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 }

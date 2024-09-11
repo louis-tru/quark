@@ -122,7 +122,7 @@ void test_uv_async_check_idle() {
 	uv_check_start(&uv_check_handle, test_uv_check_cb);
 	uv_async_init(uv_loop, &uv_async_handle, test_uv_async_cb);
 	
-	thread_new([](void* arg) {
+	thread_new([](auto t, void* arg) {
 		Qk_LOG("Send message:");
 		for ( int i = 0; i < 5; i++ ) {
 			thread_sleep(1e6);

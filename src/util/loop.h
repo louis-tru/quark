@@ -56,10 +56,9 @@ namespace qk {
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
-	template<>
-	Qk_EXPORT uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
+	template<> Qk_EXPORT
+	uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
 
-	struct Thread;
 	struct CondMutex {
 		Mutex     mutex;
 		Condition cond;
@@ -67,9 +66,15 @@ namespace qk {
 		void lock_notify_one();
 		void lock_notify_all();
 	};
+	struct Thread {
+		ThreadID id; // thread id
+		String   tag; // new thread tag string
+		int      abort; // abort signal of thread and run loop
+	};
+	typedef const Thread cThread;
 
-	Qk_EXPORT ThreadID thread_new(void exec(void* arg), void* arg = nullptr, cString& tag = String());
-	Qk_EXPORT ThreadID thread_new(std::function<void()> func, cString& tag = String());
+	Qk_EXPORT ThreadID thread_new(void exec(cThread *t, void* arg), void* arg = nullptr, cString& tag = String());
+	Qk_EXPORT ThreadID thread_new(std::function<void(cThread *t)> func, cString& tag = String());
 	//!< sleep The current thread cannot be awakened
 	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0);
 	//!< Pause the current operation can be awakened by 'resume()'
@@ -79,7 +84,7 @@ namespace qk {
 	//!< wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
 	Qk_EXPORT void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
 	Qk_EXPORT ThreadID thread_self_id();
-	Qk_EXPORT void     thread_check_self_first(); // !< Check if self is the first thread
+	Qk_EXPORT cThread* thread_self(); // return the self thread object created by `thread_new`
 	Qk_EXPORT void     thread_exit(int exit_rc); // !< try abort all thread and exit process, abort=-2
 
 	Qk_EXPORT EventNoticer<Event<>, Mutex>& onProcessExit();

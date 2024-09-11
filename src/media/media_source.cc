@@ -31,7 +31,6 @@
 
 #include "./media_inl.h"
 #include "../util/loop.h"
-#include "../app.h"
 #include "../errno.h"
 #include "../util/fs.h"
 
@@ -40,21 +39,21 @@ namespace qk {
 
 	class DefaultMediaSourceDelegate: public MediaSource::Delegate {
 	public:
-		virtual void multimedia_source_ready(MediaSource* source) {}
-		virtual void multimedia_source_wait_buffer(MediaSource* source, float process) {}
-		virtual void multimedia_source_eof(MediaSource* source) {}
-		virtual void multimedia_source_error(MediaSource* source, cError& err) {}
+		virtual void media_source_ready(MediaSource* source) {}
+		virtual void media_source_wait_buffer(MediaSource* source, float process) {}
+		virtual void media_source_eof(MediaSource* source) {}
+		virtual void media_source_error(MediaSource* source, cError& err) {}
 	};
 
-	static DefaultMediaSourceDelegate default_multimedia_source_delegate;
+	static DefaultMediaSourceDelegate default_media_source_delegate;
 
 	// ------------------- MediaSource::Inl ------------------
 
 	Inl::Inl(MediaSource* host, cString& uri, RunLoop* loop)
-		: ParallelWorking(loop)
+		: _loop(loop)
 		, _host(host)
-		, _status(MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED)
-		, _delegate(&default_multimedia_source_delegate)
+		, _status(kUninitialized_MediaSourceStatus)
+		, _delegate(&default_media_source_delegate)
 		, _bit_rate_index(0)
 		, _duration(0)
 		, _fmt_ctx(nullptr)
@@ -77,8 +76,8 @@ namespace qk {
 	}
 
 	void Inl::reset() {
-		abort_child(); //
-		_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
+		_threads.abort(); //
+		_status = kUninitialized_MediaSourceStatus;
 		_duration = 0;
 		_bit_rate_index = 0;
 		_bit_rate.clear();
@@ -173,8 +172,8 @@ namespace qk {
 	Extractor* Inl::extractor(MediaType type) {
 		ScopeLock scope(mutex());
 		
-		if (_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-				_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+		if (_status == kReady_MediaSourceStatus ||
+				_status == kWait_MediaSourceStatus ) {
 			auto i = _extractors.find(type);
 			
 			if ( i != _extractors.end() ) {
@@ -202,8 +201,8 @@ namespace qk {
 	bool Inl::seek(uint64_t timeUs) {
 		ScopeLock scope(mutex());
 		
-		if ( (_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-					_status == MULTIMEDIA_SOURCE_STATUS_WAIT) && timeUs < _duration ) {
+		if ( (_status == kReady_MediaSourceStatus ||
+					_status == kWait_MediaSourceStatus) && timeUs < _duration ) {
 			
 			if ( _read_eof == false ) { // not eof
 				
@@ -243,7 +242,7 @@ namespace qk {
 			if ( type == AVMEDIA_TYPE_VIDEO || type == AVMEDIA_TYPE_AUDIO ) {
 				TrackInfo tr;
 				tr.track = uint32_t(start);
-				tr.type = (type == AVMEDIA_TYPE_VIDEO) ? MEDIA_TYPE_VIDEO : MEDIA_TYPE_AUDIO;
+				tr.type = (type == AVMEDIA_TYPE_VIDEO) ? kVideo_MediaType : kAudio_MediaType;
 				tr.mime = String::format("%s/%s", av_get_media_type_string(type),
 																avcodec_get_name(codecpar->codec_id));
 				tr.codec_id = codecpar->codec_id;
@@ -258,7 +257,7 @@ namespace qk {
 				tr.channel_layout = codecpar->channel_layout;
 				tr.frame_interval = stream->avg_frame_rate.den *
 								(double(1000000.0) / double(stream->avg_frame_rate.num));
-				tr.extradata = WeakBuffer((Char *) codecpar->extradata, codecpar->extradata_size).copy();
+				tr.extradata = WeakBuffer((Char *) codecpar->extradata, codecpar->extradata_size).buffer().copy();
 
 				entry = av_dict_get(stream->metadata, "variant_language", nullptr, 0);
 				if ( entry ) {
@@ -266,7 +265,7 @@ namespace qk {
 				}
 				entry = av_dict_get(stream->metadata, "variant_bitrate", nullptr, 0);
 				if ( entry ) {
-					tr.bitrate = String(entry->value).to_number<uint32_t>();
+					tr.bitrate = String(entry->value).toNumber<uint32_t>();
 				}
 				
 				if ( type == AVMEDIA_TYPE_VIDEO ) {
@@ -274,7 +273,7 @@ namespace qk {
 					info.height = codecpar->height;
 				}
 				
-				info.codecs = (info.codecs.is_empty() ? info.codecs : info.codecs + ", ") +
+				info.codecs = (info.codecs.isEmpty() ? info.codecs : info.codecs + ", ") +
 				String::format( "%s (%s)",
 											avcodec_get_name    (codecpar->codec_id),
 											avcodec_profile_name(codecpar->codec_id, codecpar->profile)
@@ -291,15 +290,15 @@ namespace qk {
 	void Inl::start() {
 		ScopeLock scope(mutex());
 
-		if (_status == MULTIMEDIA_SOURCE_STATUS_READYING ||
-				_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-				_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+		if (_status == kReadying_MediaSourceStatus ||
+				_status == kReady_MediaSourceStatus ||
+				_status == kWait_MediaSourceStatus ) {
 			return;
 		}
 		
 		reset();
 		
-		_status = MULTIMEDIA_SOURCE_STATUS_READYING;
+		_status = kReadying_MediaSourceStatus;
 		
 		if ( _uri.type() == URI_ZIP ) { // the now not support zip path
 			trigger_error(Error(ERR_MEDIA_INVALID_SOURCE, "invalid source file `%s`", *_uri.href()));
@@ -308,29 +307,24 @@ namespace qk {
 		
 		String uri = fs_fallback_c(_uri.href());
 
-		spawn_child([this, uri]() {
-			auto t = thread_current();
-			
+		_threads.spawn([this, uri](auto t) {;
 			AVFormatContext* fmt_ctx = nullptr;
-			
-			int r;
-			
+
 			/* open input file, and allocate format context */
-			r = avformat_open_input(&fmt_ctx, *uri, nullptr, nullptr);
+			int r = avformat_open_input(&fmt_ctx, *uri, nullptr, nullptr);
 			if ( r < 0 ) {
-				
 				Char msg[AV_ERROR_MAX_STRING_SIZE] = { 0 };
 				av_make_error_string(msg, AV_ERROR_MAX_STRING_SIZE, r);
 				Error e(ERR_MEDIA_INVALID_SOURCE,
 								"Could not open source file: `%s`, msg: %s", *uri, msg);
 				ABORT();
 			}
-			
+
 			CPointerHold<AVFormatContext> clear(fmt_ctx, [](AVFormatContext *fmt_ctx) {
 				avformat_close_input(&fmt_ctx);
 				Qk_DEBUG("free ffmpeg AVFormatContext");
 			});
-			
+
 			/* retrieve stream information */
 			r = avformat_find_stream_info(fmt_ctx, nullptr);
 			if ( r < 0 ) {
@@ -344,9 +338,9 @@ namespace qk {
 #if DEBUG
 			av_dump_format(fmt_ctx, 0, *uri, 0); // print info
 #endif
-			
+
 			Array<BitRateInfo> bit_rate;
-			
+
 			if (fmt_ctx->nb_programs) {
 				for (uint32_t i = 0; i < fmt_ctx->nb_programs; i++) {
 					AVProgram* program = fmt_ctx->programs[i];
@@ -354,7 +348,7 @@ namespace qk {
 																							*program->stream_index + program->nb_stream_indexes);
 					AVDictionaryEntry* entry = av_dict_get(program->metadata, "variant_bitrate", NULL, 0);
 					if ( entry ) {
-						info.bandwidth = String(entry->value).to_number<uint32_t>();
+						info.bandwidth = String(entry->value).toNumber<uint32_t>();
 					}
 					bit_rate.push(info);
 				}
@@ -374,13 +368,13 @@ namespace qk {
 			select_bit_rate(bit_rate_index);
 			select_multi_bit_rate2(bit_rate_index);
 
-			post(Cb([this](Cb::Data& d) {
+			_loop->post(Cb([this](auto d) {
 				{ ScopeLock scope(mutex());
-					_status = MULTIMEDIA_SOURCE_STATUS_READY;
+					_status = kReady_MediaSourceStatus;
 				}
-				_delegate->multimedia_source_ready(_host);
+				_delegate->media_source_ready(_host);
 			}));
-			
+
 			read_stream(t, fmt_ctx, uri, bit_rate_index);
 
 		}, "ffmpeg_read_source");
@@ -388,7 +382,7 @@ namespace qk {
 
 	void Inl::stop() {
 		ScopeLock scope(mutex());
-		abort_child();
+		_threads.abort();
 		_read_eof = 0;
 		_fmt_ctx = nullptr;
 
@@ -396,9 +390,9 @@ namespace qk {
 			extractor_flush(i.value);
 		}
 
-		post(Cb([this](Cb::Data& d) {
+		_loop->post(Cb([this](auto d) {
 			ScopeLock scope(mutex());
-			_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
+			_status = kUninitialized_MediaSourceStatus;
 		}));
 	}
 
@@ -408,7 +402,7 @@ namespace qk {
 
 	bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn) {
 
-		if ( ex->type() == MEDIA_TYPE_VIDEO ) {
+		if ( ex->type() == kVideo_MediaType ) {
 			if ( ex->_sample_data_cache.length() == 0 ) { // allocation
 				AVRational& rat = stream->avg_frame_rate.den ?
 													stream->avg_frame_rate : stream->r_frame_rate;
@@ -444,11 +438,11 @@ namespace qk {
 			ex->_sample_count_cache++;
 		}
 		int i = ex->_sample_index_cache + ex->_sample_count_cache - 1;
-		
+
 		SampleData& data = ex->_sample_data_cache[i % len];
-		
-		data._buf.write(WeakBuffer((Char*)pkt.data, pkt.size), 0);
-		data.data   = *data._buf;
+
+		data.databuf.write((char*)pkt.data, pkt.size, 0);
+		data.data   = *data.databuf;
 		data.size   = pkt.size;
 		data.time   = pkt.pts * tbn;
 		data.d_time = pkt.dts * tbn;
@@ -466,7 +460,7 @@ namespace qk {
 				Qk_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
 			}
 			
-			if ( ex->type() == MEDIA_TYPE_VIDEO ) { // VIDEO
+			if ( ex->type() == kVideo_MediaType ) { // VIDEO
 				data.time = Uint64::limit_max; // Unknown time
 			}
 		}
@@ -476,7 +470,7 @@ namespace qk {
 
 	Extractor* Inl::valid_extractor(AVMediaType type) {
 		if (type == AVMEDIA_TYPE_VIDEO || type == AVMEDIA_TYPE_AUDIO) {
-			auto it = _extractors.find(type == AVMEDIA_TYPE_VIDEO ? MEDIA_TYPE_VIDEO : MEDIA_TYPE_AUDIO);
+			auto it = _extractors.find(type == AVMEDIA_TYPE_VIDEO ? kVideo_MediaType : kAudio_MediaType);
 			
 			if (_extractors.end() != it) {
 				Extractor* ex = it->value;
@@ -526,20 +520,20 @@ namespace qk {
 		if (ex->_sample_data.size) {
 			return true;
 		}
-		if ( _status != MULTIMEDIA_SOURCE_STATUS_READY &&
-				_status != MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+		if ( _status != kReady_MediaSourceStatus &&
+				_status != kWait_MediaSourceStatus ) {
 			return false;
 		}
 		
 		if ( _disable_wait_buffer ) {
-			if ( _status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+			if ( _status == kWait_MediaSourceStatus ) {
 				trigger_ready_buffer();
 			}
 			return extractor_advance_no_wait(ex);
 		}
 		
 		if ( ex->_sample_count_cache ) {
-			if ( _status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+			if ( _status == kWait_MediaSourceStatus ) {
 				if ( ex->_sample_count_cache == ex->_sample_data_cache.length() || _read_eof ) { //
 					trigger_ready_buffer();
 				}
@@ -558,11 +552,11 @@ namespace qk {
 
 		} else { // no data
 			// Qk_DEBUG("extractor_advance(), no data ");
-			
+
 			if ( _read_eof ) { // eos
 				trigger_eof();
 			} else {
-				if ( _status == MULTIMEDIA_SOURCE_STATUS_READY ) {
+				if ( _status == kReady_MediaSourceStatus ) {
 					trigger_wait_buffer();
 				}
 			}
@@ -571,7 +565,7 @@ namespace qk {
 		return ex->_sample_data.size != 0;
 	}
 
-	void Inl::read_stream(const Thread* t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index) {
+	void Inl::read_stream(cThread* t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index) {
 		Array<double> tbns;
 
 		for (uint32_t i = 0; i < fmt_ctx->nb_streams; i++) {
@@ -605,7 +599,7 @@ namespace qk {
 				if ( AVERROR_EOF == ok ) {
 					Qk_DEBUG("read_frame() eof break;");
 					
-					post(Cb([this](Cb::Data& d) {
+					_loop->post(Cb([this](Cb::Data& d) {
 						ScopeLock scope(mutex());
 						_read_eof = 1;
 						_fmt_ctx = nullptr;
@@ -652,7 +646,7 @@ namespace qk {
 
 			if ( pkt.size ) {
 				if (sleep) {
-					Thread::sleep(2e5); // sleep 200ms
+					thread_sleep(2e5); // sleep 200ms
 					goto TAG1;
 				}
 				av_packet_unref(&pkt);
@@ -664,46 +658,47 @@ namespace qk {
 
 	void Inl::trigger_error(cError& e) {
 		Qk_ERR(e);
-		post(Cb([e, this](Cb::Data& d) {
+		_loop->post(Cb([e, this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
-				_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
+				_status = kFault_MediaSourceStatus;
 				_fmt_ctx = nullptr;
 			}
-			_delegate->multimedia_source_error(_host, e);
+			_delegate->media_source_error(_host, e);
 		}));
 	}
 
 	void Inl::trigger_wait_buffer() {
-		post(Cb([this](Cb::Data& d) {
+		_loop->post(Cb([this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
-				if ( _status != MULTIMEDIA_SOURCE_STATUS_READY ) {
+				if ( _status != kReady_MediaSourceStatus ) {
 					return;
 				}
-				_status = MULTIMEDIA_SOURCE_STATUS_WAIT;
+				_status = kWait_MediaSourceStatus;
 			}
 			Qk_DEBUG("extractor_advance(), WAIT, 0");
-			_delegate->multimedia_source_wait_buffer(_host, 0);
+			_delegate->media_source_wait_buffer(_host, 0);
 		}));
 	}
 
 	void Inl::trigger_ready_buffer() {
-		post(Cb([this](Cb::Data& d) {
+		_loop->post(Cb([this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
-				if ( _status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
-				_status = MULTIMEDIA_SOURCE_STATUS_READY;
+				if ( _status != kWait_MediaSourceStatus ) return;
+				_status = kReady_MediaSourceStatus;
 			}
 			Qk_DEBUG("extractor_advance(), WAIT, 1");
-			_delegate->multimedia_source_wait_buffer(_host, 1);
+			_delegate->media_source_wait_buffer(_host, 1);
 		}));
 	}
 
 	void Inl::trigger_eof() {
-		post(Cb([this](Cb::Data& d) {
+		_loop->post(Cb([this](Cb::Data& d) {
 			{ ScopeLock scope(mutex());
-				if (_status == MULTIMEDIA_SOURCE_STATUS_EOF) return;
-				_status = MULTIMEDIA_SOURCE_STATUS_EOF;
+				if (_status == kEOF_MediaSourceStatus)
+					return;
+				_status = kEOF_MediaSourceStatus;
 			}
-			_delegate->multimedia_source_eof(_host);
+			_delegate->media_source_eof(_host);
 		}));
 	}
 
@@ -724,7 +719,7 @@ namespace qk {
 	}
 
 	MediaSource::~MediaSource() {
-		Release(_inl); _inl = nullptr;
+		delete _inl; _inl = nullptr;
 	}
 
 	void MediaSource::set_delegate(Delegate* delegate) { _inl->set_delegate(delegate); }

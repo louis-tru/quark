@@ -119,7 +119,7 @@ namespace qk {
 	void Application::runMain(int argc, char* argv[]) {
 		struct Args { int argc; char** argv; };
 		// Create a new child worker thread. This function must be called by the main entry
-		thread_new([](void* arg) {
+		thread_new([](auto t, auto arg) {
 			auto args = (Args*)arg;
 			Qk_ASSERT(__qk_run_main__, "No gui main");
 			int rc = __qk_run_main__(args->argc, args->argv); // Run this custom gui entry function

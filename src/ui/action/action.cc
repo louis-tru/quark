@@ -278,7 +278,7 @@ namespace qk {
 			Release(action);
 			Release(view);
 		}
-		void call(Data& e) const override {
+		void call(Data& e) override {
 			if (action && view) {
 				Sp<ActionEvent> h(
 					new ActionEvent(action, view, delay, frame, loop)

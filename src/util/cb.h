@@ -55,7 +55,7 @@ namespace qk {
 		inline CallbackCore() {}
 		inline int call(E* e, D* d) const {
 			Data evt = { e,d,0 };
-			call(evt);
+			const_cast<CallbackCore*>(this)->call(evt);
 			return evt.rc;
 		}
 		inline int resolve(D* d = nullptr) const {
@@ -64,7 +64,7 @@ namespace qk {
 		inline int reject(E* e) const {
 			return call(e, 0);
 		}
-		virtual void call(Data& evt) const = 0;
+		virtual void call(Data& evt) = 0;
 	};
 
 	template<class T, class D, class E>
@@ -89,7 +89,7 @@ namespace qk {
 	public:
 		typedef void (*Func)(CallbackData<D, E>& evt, T* ctx);
 		inline StaticCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
-		virtual void call(CallbackData<D, E>& evt) const { _func(evt, this->_ctx); }
+		virtual void call(CallbackData<D, E>& evt) { _func(evt, this->_ctx); }
 	private:
 		Func _func;
 	};
@@ -99,7 +99,7 @@ namespace qk {
 	public:
 		typedef void (T::*Func)(CallbackData<D, E>& evt);
 		inline MemberCallback(Func func, T* ctx): CallbackCoreIMPL<T, D, E>(ctx), _func(func) { }
-		virtual void call(CallbackData<D, E>& evt) const { (this->_ctx->*_func)(evt); }
+		virtual void call(CallbackData<D, E>& evt) { (this->_ctx->*_func)(evt); }
 	private:
 		Func _func;
 	};
@@ -109,7 +109,7 @@ namespace qk {
 	public:
 		typedef std::function<void(CallbackData<D, E>& evt)> Func;
 		inline LambdaCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
-		virtual void call(CallbackData<D, E>& evt) const { _func(evt); }
+		virtual void call(CallbackData<D, E>& evt) { _func(evt); }
 	private:
 		Func _func;
 	};

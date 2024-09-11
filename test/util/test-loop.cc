@@ -38,10 +38,10 @@ static void message_cb(Cb::Data& ev, RunLoop* loop) {
 }
 
 void test_loop(int argc, char **argv) {
-	RunLoop* loop = RunLoop::current();
+	auto loop = RunLoop::current();
 	auto tick = loop->tick(Cb([](auto&e){ }), -1); // keep loop
 
-	thread_new([&]() {
+	thread_new([&](auto t) {
 		for ( int i = 0; i < 5; i++) {
 			thread_sleep(1e6);
 			loop->post(Cb(message_cb, loop));

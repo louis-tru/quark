@@ -32,8 +32,8 @@
 #define __quark__view__video__
 
 #include "./image.h"
-#include "../media/media.h"
-#include "../media/pcm_player.h"
+#include "../../media/media.h"
+#include "../../media/pcm_player.h"
 
 namespace qk {
 
@@ -83,7 +83,7 @@ namespace qk {
 		MediaSource  *_source;
 		MediaCodec   *_audio, *_video;
 		PCMPlayer    *_pcm;
-		// KeepLoop*     _keep;
+		RunLoop      *_loop;
 		bool          _auto_play, _mute, _disable_wait_buffer, _waiting_buffer;
 		PlayerStatus  _status;
 		VideoColorFormat _color_format;

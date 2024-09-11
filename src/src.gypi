@@ -99,7 +99,6 @@
 			'ui/view/text.cc',
 			'ui/view/button.h',
 			'ui/view/button.cc',
-			# 'ui/view/video.h',
 			'ui/view/view.h',
 			'ui/view/view.cc',
 			'ui/view/matrix.h',
@@ -346,6 +345,9 @@
 			'quark',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 		],
+		'include_dirs': [
+			'../deps/libuv/include',
+		],
 		'sources': [
 			'media/audio_player.h',
 			'media/audio_player.cc',
@@ -356,6 +358,7 @@
 			'media/media_source.cc',
 			'media/media.h',
 			'media/pcm_player.h',
+			'ui/view/video.h',
 			'ui/view/video.cc',
 		],
 		'conditions': [

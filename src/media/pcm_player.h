@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK *****/
 
-#ifndef __quark__media__pcm__
-#define __quark__media__pcm__
+#ifndef __quark__media__pcm_player__
+#define __quark__media__pcm_player__
 
 #include "../util/util.h"
 #include "../util/array.h"
