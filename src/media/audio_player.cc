@@ -125,7 +125,7 @@ namespace qk {
 				_audio->advance();
 			}
 
-			int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
+			int frame_interval = 1000.0 / 30.0 * 1000; // 30fsp
 			int64_t sleep_st = frame_interval - time_monotonic() + sys_time;
 			if ( sleep_st > 0 ) {
 				thread_sleep(sleep_st);

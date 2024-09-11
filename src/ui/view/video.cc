@@ -663,7 +663,7 @@ namespace qk {
 	bool Video::run_task(int64_t sys_time) {
 		// video
 		bool draw = _this->advance_video(sys_time);
-		// FX_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
+		// Qk_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
 		{
 			ScopeLock scope(_mutex);
 			if (_uninterrupted_play_start_systime) {
@@ -675,7 +675,7 @@ namespace qk {
 				_prev_presentation_time = sys_time;
 			}
 		}
-		
+
 		//return draw && view_depth();
 		return draw && level();
 	}

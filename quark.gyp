@@ -83,12 +83,10 @@
 						'<(output)/libfreetype.a',
 						'<(output)/libtinyxml2.a',
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
-						# '<(output)/libnghttp2.a',
-						# '<(output)/libcares.a',
 						'<(output)/libquark-utils.a',
 						'<(output)/libquark.a',
 						'<(output)/libquark-media.a',
-						# '<(output)/libquark-js.a',
+						'<(output)/libquark-js.a',
 						'<@(lib_v8_a)',
 					],
 					'outputs': [
@@ -118,7 +116,7 @@
 					'files': [
 						'<(output)/lib.target/libquark.so',
 						'<(output)/lib.target/libquark-js.so',
-						# '<(output)/lib.target/libquark-media.so',
+						'<(output)/lib.target/libquark-media.so',
 					],
 				}], # copy libquark.so to product directory
 			}],

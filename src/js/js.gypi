@@ -15,7 +15,7 @@
 		'dependencies': [
 			'quark',
 			'quark-media',
-			'build_libs_quark_',
+			'build_libs_quark',
 		],
 		'sources': [
 			'cb.cc',
@@ -117,7 +117,7 @@
 				'process_outputs_as_sources': 1,
 			},
 			{
-				'action_name': 'gen_lib_js_natives_',
+				'action_name': 'gen_lib_js_natives',
 				'inputs': [
 					'../../tools/gen-js-natives.js',
 					'<@(libs_quark_js_out)',
@@ -139,7 +139,7 @@
 		],
 	},
 	{ # build quark ts
-		'target_name': 'build_libs_quark_',
+		'target_name': 'build_libs_quark',
 		'type': 'none',
 		'actions': [{
 			'action_name': 'build',

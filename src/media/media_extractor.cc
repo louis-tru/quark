@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * ***** END LICENSE BLOCK ***** */
+ * ***** END LICENSE BLOCK *****/
 
 #include "./media_inl.h"
 
@@ -61,7 +61,7 @@ namespace qk {
 
 	/**
 	* @method deplete_sample
-	* */
+	*/
 	uint32_t Extractor::deplete_sample(Char* out, uint32_t size) {
 		if ( _sample_data.size ) {
 			size = Qk_MIN(_sample_data.size, size);
@@ -76,7 +76,7 @@ namespace qk {
 
 	/**
 	* @method deplete_sample
-	* */
+	*/
 	uint32_t Extractor::deplete_sample(Buffer& out) {
 		uint32_t size = out.write(_sample_data.data, 0, _sample_data.size);
 		_sample_data.size = 0;
@@ -85,7 +85,7 @@ namespace qk {
 
 	/**
 	* @method deplete_sample
-	* */
+	*/
 	uint32_t Extractor::deplete_sample(uint32_t size) {
 		size = Qk_MIN(size, _sample_data.size);
 		_sample_data.size -= size;
@@ -95,7 +95,7 @@ namespace qk {
 
 	/**
 	* @method advance
-	* */
+	*/
 	bool Extractor::advance() {
 		return _host->_inl->extractor_advance(this);
 	}
