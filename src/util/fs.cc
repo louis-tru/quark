@@ -125,9 +125,9 @@ namespace qk {
 	 * @func get C file flga
 	 */
 	int file_flag_mask(int flag) {
-#if Qk_POSIX || Qk_UNIX
+#if Qk_POSIX
 		return flag;
-#else
+#else // Qk_WIN
 		int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR |
 			O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | O_APPEND | O_NONBLOCK);
 		if (FOPEN_ACCMODE & flag) r_flag =| O_ACCMODE;

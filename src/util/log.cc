@@ -47,7 +47,7 @@
 # include <backtrace.h>
 #endif  // Qk_VLIBC_GLIBC || Qk_BSD
 
-#if Qk_GNUC && !Qk_ANDROID
+#if defined(__GNUC__) && !Qk_ANDROID
 # define IMMEDIATE_CRASH() __builtin_trap()
 #else
 # define IMMEDIATE_CRASH() ((void(*)())0)()

@@ -56,6 +56,9 @@
 				'defines': [ 'USE_JSC=1' ],
 				'sources': [ 'link_jsc.cc' ],
 			}, { # use v8
+				'include_dirs': [
+					# '../../deps/v8', # v8 root
+				],
 				'dependencies': [
 					'tools/v8_gypfiles/v8.gyp:v8_maybe_snapshot',
 					'tools/v8_gypfiles/v8.gyp:v8_libplatform',

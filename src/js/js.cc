@@ -33,6 +33,7 @@
 #include "./api/types.h"
 #include "../errno.h"
 #include "../ui/app.h"
+#include <stdlib.h>
 
 namespace qk {
 	bool is_process_exit();
@@ -571,7 +572,9 @@ namespace qk {
 	int Start(int argc, char** argv) {
 		Qk_ASSERT(!__quark_js_argv);
 
-		Object::setHeapAllocator(new JsHeapAllocator());
+		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
+
+		::setenv("UV_THREADPOOL_SIZE", "1", 0); // set uv thread loop size as 1
 
 		// Mark the current main thread and check current thread
 		Qk_Assert_Eq(RunLoop::first(), RunLoop::current());

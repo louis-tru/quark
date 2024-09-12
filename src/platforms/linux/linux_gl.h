@@ -33,7 +33,7 @@
 
 #include "quark/util/macros.h"
 
-#if Qk_UNIX || Qk_ANDROID
+#if Qk_ANDROID
 
 #include "quark/render/gl.h"
 #include <EGL/egl.h>

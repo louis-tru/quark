@@ -31,6 +31,7 @@
 #include "./thread.h"
 #include <uv.h>
 #include <pthread.h>
+#include <dlfcn.h>
 
 #ifndef Qk_ATEXIT_WAIT_TIMEOUT
 # define Qk_ATEXIT_WAIT_TIMEOUT 1e6 // 1s
@@ -72,9 +73,9 @@ namespace qk {
 		cond.notify_all();
 	}
 
-	static Thread_INL* Thread_INL_New(cString& tag, void *arg, void (*exec)(cThread *t, void* arg)) {
+	static Thread_INL* Thread_INL_New(cString& name, void *arg, void (*exec)(cThread *t, void* arg)) {
 		auto t = new Thread_INL;
-		t->tag = tag;
+		t->name = name;
 		t->abort = 0;
 		t->loop = nullptr;
 		t->exec = exec;
@@ -99,6 +100,23 @@ namespace qk {
 		return std::this_thread::get_id();
 	}
 
+	static void SetThreadName(cString &name) {
+#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+		pthread_set_name_np(pthread_self(), *name);
+#elif defined(__NetBSD__)
+		Qk_Assert(name.length() <= PTHREAD_MAX_NAMELEN_NP);
+		pthread_setname_np(pthread_self(), "%s", *name);
+#elif Qk_MAC
+		// Mac OS X does not expose the length limit of the name, so hardcode it.
+		Qk_Assert(name.length() <= 63);
+		pthread_setname_np(*name);
+#elif defined(PR_SET_NAME)
+		prctl(PR_SET_NAME,
+					reinterpret_cast<unsigned long>(*name), // NOLINT
+					0, 0, 0);
+#endif
+	}
+
 	ThreadID thread_new(void (*exec)(cThread *t, void* arg), void* arg, cString& tag) {
 		if ( __is_process_exit_atomic != 0 ) {
 			return ThreadID();
@@ -113,6 +131,7 @@ namespace qk {
 #if Qk_ANDROID
 			JNI::ScopeENV scope;
 #endif
+			SetThreadName(t->name);
 			thread_set_specific_data(t);
 			if ( !t->abort ) {
 				t->exec(t, t->arg);
@@ -128,11 +147,11 @@ namespace qk {
 				}
 				runloop_death(t->loop); // release loop object
 				t->loop = nullptr;
-				Qk_DEBUG("Thread end ..., %s", t->tag.c_str());
+				Qk_DEBUG("Thread end ..., %s", t->name.c_str());
 				for (auto& i : t->waitSelfEnd) {
 					i->lock_notify_one();
 				}
-				Qk_DEBUG("Thread end  ok, %s", t->tag.c_str());
+				Qk_DEBUG("Thread end  ok, %s", t->name.c_str());
 			}
 			delete t;
 		}, t);
@@ -201,9 +220,9 @@ namespace qk {
 			CondMutex wait;
 			t->waitSelfEnd.pushBack(&wait);
 			t->mutex.unlock();
-			Qk_DEBUG("thread_join_for(), ..., %p, %s", id, *t->tag);
+			Qk_DEBUG("thread_join_for(), ..., %p, %s", id, *t->name);
 			wait.lock_wait_for(timeoutUs); // permanent wait
-			Qk_DEBUG("thread_join_for(), end, %p, %s", id, *t->tag);
+			Qk_DEBUG("thread_join_for(), end, %p, %s", id, *t->name);
 		}
 	}
 
@@ -224,7 +243,7 @@ namespace qk {
 			ScopeLock scope(*__threads_mutex);
 			Qk_DEBUG("threads count, %d", __threads->length());
 			for ( auto& i : *__threads ) {
-				Qk_DEBUG("thread_process_exit(), tag, %p, %s", i.value->id, *i.value->tag);
+				Qk_DEBUG("thread_process_exit(), tag, %p, %s", i.value->id, *i.value->name);
 				thread_resume_(i.value, -2); // resume sleep status and abort
 				threads_id.push(i.value->id);
 			}

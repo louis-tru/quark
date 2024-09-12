@@ -17,10 +17,6 @@
 			'deps/libgif/libgif.gyp:libgif',
 		],
 		'direct_dependent_settings': {
-			'include_dirs': [],
-			'xcode_settings': {
-				# 'OTHER_LDFLAGS': '-all_load',
-			},
 			'conditions': [
 				['cplusplus_exceptions==1', {
 					'xcode_settings': {

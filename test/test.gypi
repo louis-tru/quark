@@ -15,7 +15,7 @@
 			'quark',
 			'quark-js',
 			'quark-media',
-			'build_testing_ts_',
+			'build_testing_ts',
 			'trial',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 			'deps/freetype/freetype.gyp:freetype',
@@ -88,6 +88,7 @@
 					'Storyboard-<(os).storyboard',
 				],
 				'xcode_settings': {
+					# 'OTHER_LDFLAGS': '-all_load',
 					'INFOPLIST_FILE': '<(output)/../../test/test-<(os).plist',
 				},
 				'link_settings': {
@@ -99,7 +100,7 @@
 		],
 	},
 	{
-		'target_name': 'build_testing_ts_',
+		'target_name': 'build_testing_ts',
 		'type': 'none',
 		'actions': [{
 			'action_name': 'build',

@@ -32,7 +32,7 @@
 #include "../version.h"
 #include <vector>
 
-#if Qk_UNIX
+#if Qk_POSIX
 # include <sys/utsname.h>
 # include <unistd.h>
 #endif

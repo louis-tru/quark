@@ -36,7 +36,7 @@
 #include <atomic>
 #include <unistd.h>
 
-#if Qk_UNIX
+#if Qk_POSIX
 # include <sys/utsname.h>
 #endif
 
@@ -46,7 +46,7 @@
 
 namespace qk {
 	static Mutex mutex;
-#if Qk_UNIX
+#if Qk_POSIX
 	static String* info_str = nullptr;
 	String os_info() {
 		if (!info_str) {

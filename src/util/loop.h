@@ -68,7 +68,7 @@ namespace qk {
 	};
 	struct Thread {
 		ThreadID id; // thread id
-		String   tag; // new thread tag string
+		String   name; // new thread name string
 		int      abort; // abort signal of thread and run loop
 	};
 	typedef const Thread cThread;

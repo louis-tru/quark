@@ -358,7 +358,7 @@ namespace qk {
 		if (isSelfThread) {
 			_this->check_start(check);
 		} else {
-			Cb cb1([this,check](auto&e){
+			Cb cb1([this,check](auto e){ // TODO Memory leak `check`
 				_this->check_start(check);
 			});
 			_this->post(cb1);
@@ -374,7 +374,7 @@ namespace qk {
 		work->uv_req.data = work;
 		work->host = this;
 
-		post(Cb([this, work](auto&ev) {
+		post(Cb([this, work](auto&ev) { // TODO Memory leak `work`
 			_work.set(work->id, work);
 			Qk_Assert_Eq(0, uv_queue_work(_uv_loop, &work->uv_req, Work::uv_work_cb, Work::uv_after_work_cb));
 		}));

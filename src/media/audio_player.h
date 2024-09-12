@@ -44,6 +44,7 @@ namespace qk {
 	public:
 		typedef MediaSource::TrackInfo TrackInfo;
 		typedef MediaCodec::OutputBuffer OutputBuffer;
+
 		// define props
 		Qk_DEFINE_PROP_ACC(bool, auto_play);
 		Qk_DEFINE_PROP_ACC(bool, mute);
@@ -60,18 +61,20 @@ namespace qk {
 
 		AudioPlayer();
 		~AudioPlayer() override;
-		// define methods
-		const TrackInfo* audio_track_at(uint32_t index);
-		void select_audio_track(uint32_t index);
+
+		// methods
 		void start();
 		bool seek(uint64_t timeUs);
 		void pause();
 		void resume();
 		void stop();
+		const TrackInfo* audio_track_at(uint32_t index);
+		void select_audio_track(uint32_t index);
 		void media_source_ready(MediaSource* src) override;
 		void media_source_wait_buffer(MediaSource* src, float process) override;
 		void media_source_eof(MediaSource* src) override;
 		void media_source_error(MediaSource* src, cError& err) override;
+
 	private:
 		MediaSource* _source;
 		PCMPlayer*   _pcm;

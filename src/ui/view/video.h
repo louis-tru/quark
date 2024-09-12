@@ -62,23 +62,24 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, video_height);
 
 		Video();
-		~Video();
-		// define methods
-		const TrackInfo* audio_track_at(uint32_t index);
-		void select_audio_track(uint32_t index);
+		~Video() override;
+
+		// methods
 		void start();
 		bool seek(uint64_t timeUs);
 		void pause();
 		void resume();
 		void stop();
-		// @overwrite
-		bool run_task(int64_t time) override;
+		const TrackInfo* audio_track_at(uint32_t index);
+		void select_audio_track(uint32_t index);
 		void media_source_ready(MediaSource* src) override;
 		void media_source_wait_buffer(MediaSource* src, float process) override;
 		void media_source_eof(MediaSource* src) override;
 		void media_source_error(MediaSource* src, cError& err) override;
+		bool run_task(int64_t time) override;
 		void onActivate() override;
 		ViewType viewType() const override;
+
 	private:
 		MediaSource  *_source;
 		MediaCodec   *_audio, *_video;

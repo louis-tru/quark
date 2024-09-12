@@ -31,131 +31,82 @@
 #ifndef __quark__util__macros__
 #define __quark__util__macros__
 
-#if defined(__GNUC__)
-# define Qk_GNUC       1
-#endif
-
-#if defined(__clang__)
-# define Qk_CLANG       1
-#endif
-
-#if defined(_MSC_VER)
-# define Qk_MSC       1
-#endif
-
 #if defined(_M_X64) || defined(__x86_64__)
-# define Qk_ARCH_X86        1
-# if defined(__native_client__)
-#   define Qk_ARCH_IA32     1
-#   define Qk_ARCH_32BIT    1
-# else // else __native_client__
-#   define Qk_ARCH_X64      1
-#   define Qk_ARCH_64BIT    1
-# endif  // __native_client__
-
+# define Qk_ARCH_X86 1
+# ifndef __native_client__
+#  define Qk_ARCH_X86_64 1
+#  define Qk_ARCH_64BIT 1
+# endif
 #elif defined(_M_IX86) || defined(__i386__)
-# define Qk_ARCH_X86        1
-# define Qk_ARCH_IA32       1
-# define Qk_ARCH_32BIT      1
-
+# define Qk_ARCH_X86 1
 #elif defined(__arm64__) || defined(__AARCH64EL__)
-# define Qk_ARCH_ARM        1
-# define Qk_ARCH_ARM64      1
-# define Qk_ARCH_64BIT      1
-
+# define Qk_ARCH_ARM 1
+# define Qk_ARCH_ARM64 1
+# define Qk_ARCH_64BIT 1
 #elif defined(__ARMEL__)
-# define Qk_ARCH_ARM        1
-# define Qk_ARCH_32BIT      1
-
+# define Qk_ARCH_ARM 1
 #elif defined(__mips64)
-# define Qk_ARCH_MIPS       1
-# define Qk_ARCH_MIPS64     1
-# define Qk_ARCH_64BIT      1
-
+# define Qk_ARCH_MIPS 1
+# define Qk_ARCH_MIPS64 1
+# define Qk_ARCH_64BIT 1
 #elif defined(__MIPSEL__)
-# define Qk_ARCH_MIPS       1
-# define Qk_ARCH_32BIT      1
-
+# define Qk_ARCH_MIPS 1
 #else
 # error Host architecture was not detected as supported by quark
-#endif
-
-#if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7__)
-# define Qk_ARCH_ARMV7  1
-#endif
-
-#if defined(__sun)
-# define Qk_BSD        1
-# define Qk_UNIX       1
-#endif
-
-#if defined(__OpenBSD__) || defined(__NetBSD__) || \
-		defined(__FreeBSD__) || defined(__DragonFly__)
-# define Qk_POSIX      1
-# define Qk_BSD        1
-# define Qk_UNIX       1
-#endif
-
-#if defined(__APPLE__)
-# include <TargetConditionals.h>
-# define Qk_MAC        TARGET_OS_MAC
-# define Qk_POSIX      1
-# define Qk_BSD        1
-# define Qk_UNIX       1
-#endif
-
-#if defined(__CYGWIN__)
-# define Qk_CYGWIN     1
-# define Qk_POSIX      1
-#endif
-
-#if defined(__unix__)
-# define Qk_UNIX       1
-#endif
-
-#if defined(__linux__)
-# define Qk_LINUX      1
-# define Qk_POSIX      1
-# define Qk_UNIX       1
-#endif
-
-#if defined(__native_client__)
-# define Qk_NACL       1
-# define Qk_POSIX      1
-#endif
-
-#if TARGET_OS_IPHONE
-# define Qk_iOS        1
-#else
-# define Qk_iOS        0
-#endif
-
-#if TARGET_OS_MAC && !TARGET_OS_IPHONE
-# define Qk_OSX        1
-#endif
-
-#if defined(__ANDROID__)
-# define Qk_ANDROID    1
-# define Qk_POSIX      1
-# define Qk_LINUX      1
-# define Qk_UNIX       1
-#endif
-
-#if defined(_WINDOWS) || defined(_MSC_VER)
-# define Qk_WIN        1
-#endif
-
-#if defined(__QNXNTO__)
-# define Qk_POSIX 1
-# define Qk_QNX 1
 #endif
 
 #ifndef Qk_ARCH_64BIT
 # define Qk_ARCH_64BIT 0
 #endif
 
-#ifndef NULL
-# define NULL 0
+#if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7__)
+# define Qk_ARCH_ARMV7 1
+#endif
+
+#define Qk_POSIX 1
+
+#if defined(__ANDROID__)
+# define Qk_ANDROID 1
+# define Qk_LINUX 1
+#elif defined(__APPLE__)
+# include <TargetConditionals.h>
+# define Qk_BSD 1
+# define Qk_MAC TARGET_OS_MAC
+# if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#  define Qk_iOS 1
+# else
+#  define Qk_OSX 1
+# endif
+#elif defined(__CYGWIN__)
+# define Qk_CYGWIN 1
+#elif defined(__linux__)
+# define Qk_LINUX 1
+#elif defined(__sun)
+# define Qk_SOLARIS 1
+#elif defined(_AIX)
+# define Qk_AIX 1
+#elif defined(__FreeBSD__)
+# define Qk_BSD 1
+# define Qk_FREEBSD 1
+#elif defined(__Fuchsia__)
+# define Qk_FUCHSIA 1
+#elif defined(__DragonFly__)
+# define Qk_BSD 1
+# define Qk_DRAGONFLYBSD 1
+#elif defined(__NetBSD__)
+# define Qk_BSD 1
+# define Qk_NETBSD 1
+#elif defined(__OpenBSD__)
+# define Qk_BSD 1
+# define Qk_OPENBSD 1
+#elif defined(__QNXNTO__)
+# define Qk_QNX 1
+#elif defined(__native_client__)
+# undef Qk_POSIX
+# define Qk_NACL 1
+#elif defined(_WIN32)
+# undef Qk_POSIX
+# define Qk_WIN 1
 #endif
 
 // ------------------------------------------------------------------
@@ -227,22 +178,22 @@
 # define Qk_GNUC_PREREQ(major, minor, patchlevel) 0
 #endif
 
-#if Qk_CLANG
+#if __clang__
 # define __Qk_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
 # define __Qk_HAS_ATTRIBUTE_VISIBILITY (__has_attribute(visibility))
-#elif Qk_GNUC
+#elif __GNUC__
 // always_inline is available in gcc 4.0 but not very reliable until 4.4.
 // Works around "sorry, unimplemented: inlining failed" build errors with
 // older compilers.
 # define __Qk_HAS_ATTRIBUTE_ALWAYS_INLINE (Qk_GNUC_PREREQ(4, 4, 0))
 # define __Qk_HAS_ATTRIBUTE_VISIBILITY (Qk_GNUC_PREREQ(4, 3, 0))
-#elif Qk_MSC
+#elif defined(_MSC_VER)
 # define __Qk_HAS_FORCE_INLINE 1
 #endif
 
 // ------------------------------------------------------------------
 
-#if Qk_MSC
+#ifdef _MSC_VER
 	#ifdef Qk_BUILDING_SHARED
 	# define Qk_EXPORT __declspec(dllexport)
 	#elif Qk_USING_SHARED
@@ -250,7 +201,7 @@
 	#else
 	# define Qk_EXPORT
 	#endif  // Qk_BUILDING_SHARED
-#else  // Qk_MSC
+#else  // _MSC_VER
 	// Setup for Linux shared library export.
 	#if __Qk_HAS_ATTRIBUTE_VISIBILITY
 	# ifdef Qk_BUILDING_SHARED
@@ -261,7 +212,7 @@
 	#else
 	# define Qk_EXPORT
 	#endif
-#endif // Qk_MSC
+#endif // _MSC_VER
 
 // A macro used to make better inlining. Don't bother for debug builds.
 //
@@ -278,14 +229,14 @@
 
 // ------------------------------------------------------------------
 
-#if Qk_MSC
+#ifdef _MSC_VER
 	#pragma section(".CRT$XCU", read)
 	# define Qk_INIT_BLOCK(fn)\
 	extern void __cdecl fn(void);\
 	__declspec(dllexport, allocate(".CRT$XCU"))\
 	void (__cdecl*fn##_)(void) = fn;\
 	extern void __cdecl fn(void)
-#else // Qk_MSC
+#else // _MSC_VER
 	# define Qk_INIT_BLOCK(fn)\
 	extern __attribute__((constructor)) void fn##__(void)
 #endif

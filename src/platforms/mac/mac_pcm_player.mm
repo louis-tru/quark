@@ -60,7 +60,6 @@ namespace qk {
 		}
 
 		~MacPCMPlayer() {
-
 			for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
 				if ( _buffer_all[i] ) {
 					AudioQueueFreeBuffer(_queue, _buffer_all[i]);
@@ -74,12 +73,12 @@ namespace qk {
 
 		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
 			OSStatus status;
-			
+
 			_channel_count = channel_count;
 			_sample_rate = sample_rate;
-			
+
 			AudioStreamBasicDescription desc;
-			
+
 			desc.mSampleRate  = sample_rate;
 			desc.mFormatID    = kAudioFormatLinearPCM;
 			desc.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
@@ -88,12 +87,12 @@ namespace qk {
 			desc.mBitsPerChannel    = 16;
 			desc.mBytesPerFrame     = 2 * channel_count;
 			desc.mBytesPerPacket    = 2 * channel_count;
-			
+
 			AudioQueueOutputCallback cb = (AudioQueueOutputCallback)&MacPCMPlayer::buffer_callback;
-			
+
 			if ( AudioQueueNewOutput(&desc, cb, this, NULL, NULL, 0, &_queue) == noErr ) { // new
 				uint32_t size = buffer_size() * 4;
-				
+
 				for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
 					if ( AudioQueueAllocateBuffer(_queue, size, &_buffer_all[i]) == noErr ) {
 						_buffer_free[i] = _buffer_all[i];
@@ -113,21 +112,21 @@ namespace qk {
 
 		void buffer_callback2(AudioQueueBufferRef in) {
 			ScopeLock scope(_mutex);
-			
+
 			if ( _flush ) {
 				_flush = false;
 				AudioQueueReset(_queue);
 				AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _volume);
 			}
-			
+
 			if ( _player ) {
 				if ( _wait_write_buffer_count ) { // Write waiting buffer data
 					WaitWriteBuffer* buf = _wait_write_buffer + _wait_write_buffer_index;
-					
+
 					if (buf->size <= in->mAudioDataBytesCapacity) {
 						in->mAudioDataByteSize = buf->size;            // size
 						memcpy(in->mAudioData, *buf->data, buf->size);  // copy audio data
-						
+
 						// next buffer
 						_wait_write_buffer_index = (_wait_write_buffer_index + 1) % WAIT_WRITE_BUFFER_COUNT;
 						_wait_write_buffer_count--;
@@ -139,12 +138,12 @@ namespace qk {
 						Qk_ERR("self->_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
 					}
 				}
-				
+
 				if ( AudioQueuePause(_queue) == noErr ) {
 					_player = false;
 				}
 			}
-			
+
 			for ( int i = 0; i < QUEUE_BUFFER_COUNT; i++ ) {
 				if ( !_buffer_free[i] ) {
 					_buffer_free[i] = in;
@@ -155,7 +154,7 @@ namespace qk {
 
 		bool write(cBuffer& buffer) override {
 			ScopeLock scope(_mutex);
-			
+
 			if ( !_player ) {
 				for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) { // First fill audio queue
 					AudioQueueBufferRef in = _buffer_free[i];
@@ -186,7 +185,7 @@ namespace qk {
 				buf->size = buffer.length();
 				r = true;
 			}
-			
+
 			if ( !_player && _wait_write_buffer_count == WAIT_WRITE_BUFFER_COUNT ) { // start play
 				if ( AudioQueueStart(_queue, NULL) == noErr ) {
 					_player = true;
@@ -235,11 +234,11 @@ namespace qk {
 			ScopeLock scope(_mutex);
 			OSStatus status;
 			AudioQueueParameterValue v;
-			
+
 			v = Qk_MIN(value, 100) / 100.0;
-			
+
 			status = AudioQueueSetParameter(_queue, kAudioQueueParam_Volume, _flush ? 0 : v);
-			
+
 			if ( status == noErr ) {
 				_volume = v;
 				return true;

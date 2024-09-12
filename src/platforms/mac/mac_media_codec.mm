@@ -410,7 +410,7 @@ namespace qk {
 		virtual void set_threads(uint32_t value) {}
 		virtual void set_background_run(bool value) {}
 
-	 private:
+	private:
 		VTDecompressionSessionRef _session;
 		CMFormatDescriptionRef _format_desc;
 		CMSampleBufferRef  _sample_data;
