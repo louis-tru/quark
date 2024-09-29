@@ -166,7 +166,7 @@ namespace qk { namespace js {
 			if (!player) {
 				Js_Throw("create AudioPlayer fail");
 			}
-			New<WrapAudioPlayer>(args, player);
+			new WrapAudioPlayer(args, player);
 		}
 		
 		/**

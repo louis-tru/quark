@@ -602,7 +602,7 @@ namespace qk {
 
 		void trigger_Change() {
 			preRender().post(Cb([this](Cb::Data& e){
-				Sp<UIEvent> evt(qk::New<UIEvent>(this));
+				Sp<UIEvent> evt(new UIEvent(this));
 				trigger(UIEvent_Change, **evt);
 			}),this);
 		}

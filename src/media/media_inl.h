@@ -36,23 +36,25 @@
 
 extern "C" {
 #include <libavutil/avutil.h>
+#include <libavutil/imgutils.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
+#include <libswscale/swscale.h>
 }
 #include "./media.h"
 #include "../util/thread.h"
 
 namespace qk {
-	typedef MediaSource::BitRateInfo BitRateInfo;
-	typedef MediaSource::Extractor   Extractor;
-	typedef MediaSource::Inl         Inl;
-	typedef MediaSource::TrackInfo   TrackInfo;
+	typedef MediaSource::Program   Program;
+	typedef MediaSource::Extractor Extractor;
+	typedef MediaSource::Inl       Inl;
+	typedef MediaSource::Stream    AvStream;
 
 	class SoftwareMediaCodec;
 
 	class MediaSource::Inl {
 	public:
-		Inl(MediaSource*, cString& uri, RunLoop* loop);
+		Inl(MediaSource*, cString& uri);
 		~Inl();
 
 		/**
@@ -61,19 +63,9 @@ namespace qk {
 		void set_delegate(Delegate* delegate);
 
 		/**
-		* @method bit_rate_index
+		* @method switch_program
 		*/
-		uint32_t bit_rate_index();
-
-		/**
-		* @method bit_rates
-		*/
-		const Array<BitRateInfo>& bit_rate();
-
-		/**
-		* @method bit_rate
-		*/
-		bool select_bit_rate(uint32_t index);
+		bool switch_program(uint32_t index);
 
 		/**
 		* @method extractor
@@ -86,72 +78,43 @@ namespace qk {
 		bool seek(uint64_t timeUs);
 
 		/**
-		* @method start
+		* @method start running
 		* */
-		void start();
+		void open();
 
 		/**
-		* @method start
+		* @method stop running
 		* */
 		void stop();
 
-		/**
-		* @method is_active
-		*/
-		inline bool is_active() {
-			return  _status == kReady_MediaSourceStatus ||
-							_status == kWait_MediaSourceStatus;
-		}
-
-		/**
-		* @method disable_wait_buffer
-		*/
-		void disable_wait_buffer(bool value);
-
-		/**
-		* @method get_stream
-		*/
-		AVStream* get_stream(const TrackInfo& track);
-
 	private:
-		typedef Extractor::SampleData SampleData;
-
-		void reset();
-		bool has_empty_extractor();
-		void extractor_flush(Extractor* ex);
-		BitRateInfo read_bit_rate_info(AVFormatContext* fmt_ctx, int i, int size);
-		void select_multi_bit_rate2(uint32_t index);
-		void read_stream(cThread *t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index);
-		bool extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn);
-		bool extractor_advance(Extractor* ex);
-		bool extractor_advance_no_wait(Extractor* ex);
-		Extractor* valid_extractor(AVMediaType type);
-		bool has_valid_extractor();
+		void read_stream(cThread *t, AVFormatContext* fmt_ctx, cString& uri);
+		bool packet_push(AVPacket& avpkt);
+		Packet* advance(Extractor* ex);
+		void trigger_fferr(int err, cChar *f, ...);
 		void trigger_error(cError& err);
-		void trigger_wait_buffer();
-		void trigger_ready_buffer();
-		void trigger_eof();
-		inline Mutex& mutex() { return _mutex; }
+		void thread_abort();
+		void switch_program_for(uint32_t index);
+		bool switch_stream(Extractor *ex, uint32_t index);
+
+		ThreadID               _tid;
+		MediaSource*           _host;
+		URI                    _uri;
+		MediaSourceStatus      _status;
+		Delegate*              _delegate;
+		uint32_t               _program_idx;
+		Array<Program>         _programs;
+		Dict<int, Extractor*>  _extractors; // MediaType => Extractor*
+		Extractor             *_video_ex, *_audio_ex;
+		uint64_t               _duration, _seek;
+		uint32_t               _packets; // packets total count on extractors
+		AVFormatContext*       _fmt_ctx;
+		Mutex                  _mutex;
 
 		friend class MediaSource;
 		friend class Extractor;
 		friend class MediaCodec;
 		friend class SoftwareMediaCodec;
-
-		Threads                _threads;
-		RunLoop               *_loop;
-		MediaSource*           _host;
-		URI                    _uri;
-		MediaSourceStatus      _status;
-		Delegate*              _delegate;
-		uint32_t               _bit_rate_index;
-		Array<BitRateInfo>     _bit_rate;
-		Dict<int, Extractor*>  _extractors;
-		uint64_t               _duration;
-		AVFormatContext*       _fmt_ctx;
-		Mutex                  _mutex;
-		bool                   _read_eof;
-		bool                   _disable_wait_buffer;
 	};
 
 }

@@ -65,11 +65,9 @@
 		'v8_optimized_debug%': 0,         # Default to -O0 for debug builds.
 		'v8_promise_internal_field_count%': 1,
 		'v8_enable_disassembler': 0,      # Enable disassembler
-		'v8_use_external_startup_data': 0,# Don't bake anything extra into the snapshot.
 		'v8_postmortem_support%': 0,
 		'v8_enable_inspector%': 0,
 		'icu_use_data_file_flag': 0,      # Don't use ICU data file (icudtl.dat) from V8, we use our own.
-		'icu_small%': 1,
 
 		# Default ARM variable settings.
 		'arm_version': 'default',

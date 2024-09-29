@@ -48,7 +48,6 @@ namespace qk {
 			bool            aaclip; // is aaclip
 		};
 		struct Output {
-			typedef NonObjectTraits Traits;
 			Sp<ImageSource> dest; // output draw target
 			bool       isMipmap;
 		};

@@ -150,7 +150,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		//'--disable-avcodec',
 		//'--disable-avformat',
 		//'--disable-swresample',
-		'--disable-swscale',
+		//'--disable-swscale',
 		'--disable-postproc',
 		'--disable-avfilter',
 		'--disable-pixelutils',
@@ -215,6 +215,10 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		'--enable-protocol=http',
 		'--enable-protocol=file',
 		'--enable-protocol=rtmp',
+		// '--enable-openssl',
+		// others
+		// `--extra-cflags="${path.resolve(__dirname, '../deps/openssl/openssl/include')}"`,
+		// --extra-ldflags="-L/path/to/openssl/lib"
 	];
 
 	if (os == 'android') {
@@ -331,6 +335,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		${source}/libavformat/libavformat.pc \
 		${source}/libavutil/libavutil.pc \
 		${source}/libswresample/libswresample.pc \
+		${source}/libswscale/libswscale.pc \
 	`);
 
 	console.log('FFMpeg Configuration:\n');
@@ -643,7 +648,7 @@ async function configure() {
 			openssl_no_asm: bi(os.match(/^(ios|android)$/) || arch.match(/arm/)),
 			force_dynamic_crt: 0,
 			v8_enable_gdbjit: 0,
-			v8_enable_inspector: bi(use_v8 && !opts.without_inspector && !opts.without_ssl),
+			v8_enable_inspector: bi(use_v8 && !opts.without_inspector),
 			v8_no_strict_aliasing: 1,
 			v8_optimized_debug: 0,
 			v8_promise_internal_field_count: 1,

@@ -34,351 +34,288 @@ namespace qk {
 
 	class SoftwareMediaCodec: public MediaCodec {
 	public:
-
-		SoftwareMediaCodec(Extractor* extractor, AVCodecContext* ctx)
-			: MediaCodec(extractor)
-			, _codec_ctx(ctx)
-			, _frame(NULL)
-			, _audio_buffer_size(0)
-			, _audio_swr_ctx(NULL)
-			, _audio_frame_size(0)
-			, _presentation_time(0)
+		SoftwareMediaCodec(const Stream &stream, AVCodecContext* ctx)
+			: MediaCodec(stream)
+			, _ctx(ctx)
+			, _packet(nullptr)
+			, _frame(nullptr)
+			, _swr(nullptr)
+			, _sws(nullptr)
 			, _threads(1)
-			, _background_run(false)
-			, _is_open(false)
-			, _output_occupy(false)
 		{
-			_frame = av_frame_alloc(); Qk_Assert(_frame);
-
-			if (type() == kVideo_MediaType) {
-				_color_format = kYUV420P_VideoColorFormat;
-			} else {
-				_channel_layout = kFront_Left_AudioChannelMask | kFront_Right_AudioChannelMask;
-				_channel_count  = 2;
-				_audio_buffer = Buffer(1024 * 64 - 1); // 64k - 1
-			}
+			_frame = av_frame_alloc();
+			Qk_Assert(_frame);
 		}
 
 		~SoftwareMediaCodec() override {
 			close();
 
-			avcodec_free_context(&_codec_ctx); _codec_ctx = nullptr;
-			av_frame_free(&_frame); _frame = nullptr;
-
-			if ( _audio_swr_ctx ) {
-				swr_free(&_audio_swr_ctx); _audio_swr_ctx = nullptr;
-			}
-		}
-		
-		void init_audio_swr() {
-			AVCodecContext* ctx = _codec_ctx;
-			_audio_swr_ctx  =
-			swr_alloc_set_opts(_audio_swr_ctx,
-												_channel_layout, AV_SAMPLE_FMT_S16, ctx->sample_rate,
-												ctx->channel_layout, ctx->sample_fmt, ctx->sample_rate,
-												0, nullptr);
-			swr_init(_audio_swr_ctx);
+			avcodec_free_context(&_ctx);
+			av_frame_free(&_frame);
 		}
 
-		bool open() override {
-			ScopeLock lock(_mutex);
-			
-			if ( !_is_open ) {
-				
-				AVStream* stream = _extractor->host()->get_stream(_extractor->track());
-				if ( !stream ) {
-					stream = _extractor->host()->get_stream(_extractor->track());
-					Qk_Assert( stream );
-				}
-				
-				const AVCodec* codec = get_avcodec(); Qk_Assert(codec);
-				
+		void init_swr() {
+			if (_ctx->sample_fmt == AV_SAMPLE_FMT_S16)
+				return;
+			//cChar *layout_name = av_get_channel_layout_name(_ctx->channel_layout);
+			//cChar *layout_name = av_get_channel_description(0);
+			//Qk_DEBUG("layout_name, %s", layout_name);
+			_swr = swr_alloc_set_opts(_swr,
+				_ctx->channel_layout, // out ch layout
+				AV_SAMPLE_FMT_S16, // out sample format, signed 16 bits
+				_ctx->sample_rate, // out sample rate
+				_ctx->channel_layout, // in ch layout
+				_ctx->sample_fmt, // in sample foramt
+				_ctx->sample_rate, // in_sample_rate
+				0, nullptr
+			);
+			swr_init(_swr);
+		}
+
+		void init_sws() {
+			if (_ctx->pix_fmt == AV_PIX_FMT_YUV420P || _ctx->pix_fmt == AV_PIX_FMT_NV12)
+				return;
+			_sws = sws_getContext(
+				_ctx->width,
+				_ctx->height,
+				_ctx->pix_fmt,
+				_ctx->width,
+				_ctx->height,
+				AV_PIX_FMT_YUV420P,
+				SWS_BILINEAR, NULL, NULL, NULL
+			);
+		}
+
+		bool is_open() const override {
+			return avcodec_is_open(_ctx);
+		}
+
+		bool open(const Stream *stream) override {
+			if ( !avcodec_is_open(_ctx) ) {
+				if (!stream)
+					stream = &_stream;
+				Qk_Assert_Eq(stream->codec_id, _stream.codec_id);
+				ScopeLock lock(_mutex);
+				Qk_Assert(_ctx->codec);
+				Qk_Assert_Eq(_ctx->codec_id, stream->extra.codecpar->codec_id);
+
 				if ( _threads > 1 ) { // set threads
-					if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
-							&& !(_codec_ctx->flags & AV_CODEC_FLAG_TRUNCATED)
-							&& !(_codec_ctx->flags & AV_CODEC_FLAG_LOW_DELAY)
-							&& !(_codec_ctx->flags2 & AV_CODEC_FLAG2_CHUNKS)) {
-						_codec_ctx->thread_count = _threads;
-						_codec_ctx->active_thread_type = FF_THREAD_FRAME;
+					if (    (_ctx->codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
+							&& !(_ctx->flags & AV_CODEC_FLAG_TRUNCATED)
+							&& !(_ctx->flags & AV_CODEC_FLAG_LOW_DELAY)
+							&& !(_ctx->flags2 & AV_CODEC_FLAG2_CHUNKS)
+					) {
+						_ctx->thread_count = _threads;
+						_ctx->active_thread_type = FF_THREAD_FRAME;
 					}
 				}
+
 				/* Copy codec parameters from input stream to output codec context */
-				if (avcodec_parameters_to_context(_codec_ctx, stream->codecpar) >= 0) {
-					if (avcodec_open2(_codec_ctx, codec, NULL) >= 0) {
-						_is_open = true;
-						
+				if (avcodec_parameters_to_context(_ctx, stream->extra.codecpar) >= 0) {
+					if (avcodec_open2(_ctx, nullptr, nullptr) >= 0) {
+						if (stream != &_stream)
+							_stream = *stream; // copy stream infomaction
 						if ( type() == kAudio_MediaType ) {
-							init_audio_swr();
-						}
-						
-						if ( _background_run ) { // background_run
-							// TODO ...
-							//_background_run_id = thread_new([](Thread& t, void* arg) {
-							//	auto self = (SoftwareMediaCodec*)arg;
-							//	self->background_run(t);
-							//}, this, "x_decoder_background_run_thread");
+							init_swr();
+						} else {
+							init_sws();
 						}
 					}
 				}
-				
 				flush2();
 			}
-			return _is_open;
+			return avcodec_is_open(_ctx);
 		}
 
-		bool close() override {
-			Lock lock(_mutex);
-			if ( _is_open ) {
-				flush2();
-				
-				if ( _background_run ) {
-					lock.unlock();
-					thread_try_abort(_background_run_id);
-					thread_join_for(_background_run_id);
-					lock.lock();
-				}
-				if ( avcodec_close(_codec_ctx) >= 0 ) {
-					_is_open = false;
-				}
-			}
-			return !_is_open;
-		}
-		
 		void flush2() {
-			if ( _is_open ) {
-				_presentation_time = 0;
-				_audio_buffer_size = 0;
-				// avcodec_flush_buffers(_codec_ctx);
+			if ( avcodec_is_open(_ctx) ) {
+				avcodec_flush_buffers(_ctx);
+				delete _packet; _packet = nullptr;
 			}
 		}
 
-		bool flush() override {
+		void close() override {
+			if (avcodec_is_open(_ctx)) {
+				ScopeLock lock(_mutex);
+				flush2();
+				avcodec_close(_ctx);
+				if (_swr) {
+					swr_free(&_swr);
+				}
+				if (_sws) {
+					sws_freeContext(_sws); _sws = nullptr;
+				}
+			}
+		}
+
+		void flush() override {
 			ScopeLock scope(_mutex);
 			flush2();
-			return false;
 		}
 
-		void background_run(Thread &t) {
-			// TODO ...
-			while ( 1/*!t.is_abort() */) {
-				if ( !advance2() ) {
-					thread_sleep(10000); // sleep 10ms
-				}
-			}
+		int send_packet(const Packet *pkt) override {
+			ScopeLock scope(_mutex);
+			// * @return 0 on success, otherwise negative error code:
+			// *      AVERROR(EAGAIN):   input is not accepted right now - the packet must be
+			// *                         resent after trying to read output
+			// *      AVERROR_EOF:       the decoder has been flushed, and no new packets can
+			// *                         be sent to it (also returned if more than 1 flush
+			// *                         packet is sent)
+			// *      AVERROR(EINVAL):   codec not opened, it is an encoder, or requires flush
+			// *      AVERROR(ENOMEM):   failed to add packet to internal queue, or similar
+			// *      other errors: legitimate decoding errors
+			// */
+			return avcodec_send_packet(_ctx, pkt->avpkt);
 		}
 
-		bool advance2() {
-			if ( _extractor->advance() ) {
-				WeakBuffer data = _extractor->sample_data();
-				
-				AVPacket pkt;
-				av_init_packet(&pkt);
-				av_packet_from_data(&pkt, (uint8_t*)*data, data.length());
-				pkt.flags = _extractor->sample_flags();
-				pkt.pts = _extractor->sample_time();
-				pkt.dts = 0;
-				
-				int ret = avcodec_send_packet(_codec_ctx, &pkt);
-				if (ret == 0) {
-					_extractor->deplete_sample(pkt.size);
-					return true;
-				} else if ( ret < 0 ) {
-					// err..
-				}
+		int send_packet_for(Extractor *extractor) override {
+			Qk_Assert_Eq(type(), extractor->type());
+			if (!avcodec_is_open(_ctx)) {
+				return AVERROR(EINVAL);
 			}
-			return false;
+			ScopeLock scope(_mutex);
+			if (!_packet) {
+				_packet = extractor->advance();
+			}
+			if (!_packet) {
+				return AVERROR(EAGAIN);
+			}
+			//auto ts = time_monotonic();
+			int rc = avcodec_send_packet(_ctx, _packet->avpkt);
+			if (rc == 0) {
+				delete _packet; _packet = nullptr;
+				//Qk_DEBUG("avcodec_send_packet, %d", time_monotonic() - ts);
+			}
+			return rc;
 		}
 
-		bool advance() override {
-			if ( !_background_run ) {
-				return advance2();
-			}
-			return false;
-		}
-
-		OutputBuffer output() override {
-			if ( _output_occupy ) {
-				return OutputBuffer();
-			}
-			if ( type() == kAudio_MediaType ) {
-				return output_audio();
+		int receive_frame(Frame **out) override {
+			ScopeLock scope(_mutex);
+			Frame tmp;
+			int rc;
+			if ( type() == kVideo_MediaType ) {
+				rc = receive_frame_video(tmp);
 			} else {
-				return output_video();
+				rc = receive_frame_audio(tmp);
 			}
+			if (rc == 0) {
+				auto f = (Frame*)::malloc(sizeof(Frame) + sizeof(AVFrame));
+				*f = tmp;
+				f->avframe = reinterpret_cast<AVFrame*>(f + 1);
+				av_frame_move_ref(f->avframe, _frame);
+				f->data = f->avframe->data;
+				f->datasize = reinterpret_cast<uint32_t*>(f->avframe->linesize);
+				*out = f;
+			}
+			return rc;
 		}
 
-		OutputBuffer output_audio() {
-			if ( _audio_buffer_size ) {
-				if (_audio_buffer_size >= _audio_frame_size) {
-					OutputBuffer out;
-					out.data[0] = (uint8_t *) *_audio_buffer;
-					out.linesize[0] = _audio_frame_size;
-					out.total = _audio_frame_size;
-					out.time = _presentation_time + _frame_interval;
-					_presentation_time = out.time;
-					_output_occupy = true;
-					return out;
-				}
-			}
-			
-			int ret = avcodec_receive_frame(_codec_ctx, _frame);
-			if ( ret == 0 ) {
-				int sample_bytes = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
-				uint32_t size = _frame->nb_samples * sample_bytes * _channel_count;
-				
-				if (_audio_frame_size == 0) {
-					set_frame_size(size);
-				}
-				
-				if ( size ) {
-					OutputBuffer out;
-					uint8_t* buffer = (uint8_t*)*_audio_buffer + _audio_buffer_size;
-					swr_convert(_audio_swr_ctx,
-											&buffer, _frame->nb_samples,
-											(const uint8_t  **) _frame->extended_data, _frame->nb_samples);
-					_audio_buffer_size += size;
-					
-					if (_audio_buffer_size >= _audio_frame_size) {
-						out.data[0] = (uint8_t*)*_audio_buffer;
-						out.linesize[0] = _audio_frame_size;
-						out.total = _audio_frame_size;
-						// time
-						float front = (_audio_buffer_size - size) / float(_audio_frame_size);
-						out.time = _frame->pts - front * _frame_interval;
-						_presentation_time = out.time;
-						_output_occupy = true;
-						return out;
+		int receive_frame_video(Frame &out) {
+			int rc = avcodec_receive_frame(_ctx, _frame);
+			if (rc == 0) {
+				auto unit = 1000000.0 * _stream.time_base[0] / _stream.time_base[1];
+				auto w = _ctx->width, h = _ctx->height;
+
+				if (_sws) {
+					AVFrame dest;
+					memset(&dest, 0, sizeof(AVPicture));
+
+					auto buf = av_buffer_alloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, w, h, 1));
+					Qk_Assert_Eq(buf->size,
+						av_image_fill_arrays(dest.data, dest.linesize, buf->data, AV_PIX_FMT_YUV420P, w, h, 1)
+					);
+					Qk_Assert_Eq(h, sws_scale(_sws,
+						_frame->data,
+						_frame->linesize,
+						0, h,
+						dest.data,
+						dest.linesize
+					));
+					for (int i = 0; i < FF_ARRAY_ELEMS(_frame->buf); i++) {
+						av_buffer_unref(&_frame->buf[i]);
 					}
+					_frame->buf[0] = buf;
+					_frame->format = AV_PIX_FMT_YUV420P;
+					*((AVPicture*)_frame) = *((AVPicture*)&dest);
 				}
+				if (_frame->format == AV_PIX_FMT_YUV420P) { // yuv420p
+					out.format = kYUV420P_ColorType;
+				} else { // yuv420sp
+					out.format = kYUV420SP_ColorType;
+					Qk_Assert_Eq(_frame->format, AV_PIX_FMT_NV12);
+				}
+				out.dataitems = 3;
+				out.pts = _frame->pts * unit;
+				out.pkt_duration = _frame->pkt_duration * unit;
+				out.nb_samples = 0;
+				out.width = w;
+				out.height = h;
+				//Qk_DEBUG("sws_scale, %d", time_monotonic() - ts);
 			}
-			return OutputBuffer();
+			return rc;
 		}
 
-		OutputBuffer output_video() {
-			int ret = avcodec_receive_frame(_codec_ctx, _frame);
-			if ( ret == 0 ) {
-				OutputBuffer out;
-				// yuv420p
-				out.linesize[0] = _frame->width * _frame->height;
-				out.linesize[1] = out.linesize[0] / 4;
-				out.linesize[2] = out.linesize[1];
-				out.data[0] = _frame->data[0]; // y
-				out.data[1] = _frame->data[1]; // u
-				out.data[2] = _frame->data[2]; // v
-				out.time = _frame->pts;
-				out.total = out.linesize[0] + out.linesize[1] + out.linesize[2];
-				//
-				if ( out.time == Uint64::limit_max ) { // Unknown time frame
-					out.time = _presentation_time + _frame_interval; // correct time
-				}
-				_presentation_time = out.time;
-				_output_occupy = true;
-				return out;
-			}
-			return OutputBuffer();
-		}
-
-		void release(OutputBuffer& buffer) override {
-			if (buffer.total) {
-				if (type() == kAudio_MediaType) {
-					if ( _audio_buffer_size > buffer.total ) {
-						_audio_buffer_size -= buffer.total;
-						_audio_buffer.write(*_audio_buffer + buffer.total, 0, _audio_buffer_size);
-					} else {
-						_audio_buffer_size = 0;
+		int receive_frame_audio(Frame &out) {
+			int rc = avcodec_receive_frame(_ctx, _frame);
+			if (rc == 0) {
+				auto unit = 1000000.0 * _stream.time_base[0] / _stream.time_base[1];
+				if (_swr) {
+					auto nb_samples = _frame->nb_samples;
+					auto sample_bytes = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+					auto fsize = nb_samples * _frame->channels * sample_bytes;
+					auto noalloc = _frame->buf[1] && _frame->buf[1]->size >= fsize;
+					Qk_Assert_Ne(fsize, 0);
+					auto buf = noalloc ? _frame->buf[1]: av_buffer_alloc(fsize);
+					Qk_Assert_Eq(nb_samples,
+						swr_convert(_swr, &buf->data, nb_samples, (const uint8_t**)_frame->data, nb_samples)
+					);
+					if (!noalloc) {
+						av_buffer_unref(_frame->buf); // free old buf
+						_frame->buf[0] = buf;
 					}
+					_frame->format = AV_SAMPLE_FMT_S16;
+					_frame->data[0] = buf->data;
+					_frame->linesize[0] = fsize;
 				}
-				memset(&buffer, 0, sizeof(OutputBuffer));
-				_output_occupy = false;
+				Qk_Assert_Eq(_frame->format, AV_SAMPLE_FMT_S16);
+				out.dataitems = 1;
+				out.pts = _frame->pts * unit;
+				out.pkt_duration = _frame->pkt_duration * unit;;
+				out.nb_samples = _frame->nb_samples;
+				out.width = 0;
+				out.height = 0;
+				out.format = AV_SAMPLE_FMT_S16;
 			}
-		}
-
-		void set_frame_size(uint32_t size) override {
-			if (type() == kAudio_MediaType) {
-				_audio_frame_size = Qk_MAX(512, size);
-				if (_audio_frame_size * 2 > _audio_buffer.length()) {
-					_audio_buffer = Buffer::alloc(_audio_frame_size * 2);
-					_audio_buffer_size = 0;
-					_presentation_time = 0;
-				}
-				// compute audio frame interval
-				const TrackInfo &track = extractor()->track();
-				uint64_t second_size = track.sample_rate * _channel_count * 2;
-				_frame_interval = uint32_t(uint64_t(_audio_frame_size) * 1000LL * 1000LL / second_size);
-			}
+			return rc;
 		}
 
 		void set_threads(uint32_t value) override {
-			ScopeLock scope(_mutex);
-			if ( !_is_open ) {
-				_threads = Qk_MAX(1, Qk_MIN(8, value));
-			}
-		}
-
-		void set_background_run(bool value) override {
-			ScopeLock scope(_mutex);
-			if ( !_is_open ) {
-				_background_run = value;
-			}
-		}
-
-		const AVCodec* get_avcodec() {
-			const AVCodec* rv = _codec_ctx->codec;
-			if ( rv ) return rv;
-			
-			const TrackInfo& track = _extractor->track();
-			
-			/* find decoder for the stream */
-			AVCodec* codec = avcodec_find_decoder((AVCodecID)track.codec_id);
-			if (codec) {
-				/* Allocate a codec context for the decoder */
-				avcodec_open2(_codec_ctx, codec, nullptr);
-				rv = _codec_ctx->codec;
-			}
-			return rv;
-		}
-
-		static AVCodecContext* find_avcodec_ctx(Extractor* ex) {
-			const TrackInfo& track = ex->track();
-			/* find decoder for the stream */
-			AVCodec* codec = avcodec_find_decoder((AVCodecID)track.codec_id);
-			if (codec) {
-				/* Allocate a codec context for the decoder */
-				return avcodec_alloc_context3(codec);
-			}
-			return nullptr;
+			_threads = Uint32::clamp(value, 1, 8);
 		}
 
 	private:
-		AVCodecContext* _codec_ctx;
-		AVFrame*        _frame;
-		Buffer          _audio_buffer;
-		uint32_t        _audio_buffer_size;
-		SwrContext*     _audio_swr_ctx;
-		uint32_t        _audio_frame_size;
-		uint64_t        _presentation_time;
+		AVCodecContext* _ctx;
+		Packet*         _packet; // send a packet to decoder
+		AVFrame*        _frame; // temp av frame
+		SwrContext*     _swr;
+		SwsContext*     _sws;
 		uint32_t        _threads;
-		bool            _background_run;
-		bool            _is_open;
-		bool            _output_occupy;
 		Mutex           _mutex;
-		ThreadID        _background_run_id;
 	};
 
 	/**
-	* @method software create software decoder
+	* @method MediaCodec_software create software decoder
 	*/
-	MediaCodec* MediaCodec::software(MediaType type, MediaSource* source) {
+	MediaCodec* MediaCodec_software(MediaType type, MediaSource* source) {
 		SoftwareMediaCodec* rv = nullptr;
 		Extractor* ex = source->extractor(type);
-
 		if ( ex ) {
-			AVCodecContext* codec_ctx = SoftwareMediaCodec::find_avcodec_ctx(ex);
-			if (codec_ctx) {
-				rv = new SoftwareMediaCodec(ex, codec_ctx);
+			auto codec = avcodec_find_decoder((AVCodecID)ex->stream().codec_id);
+			auto ctx = avcodec_alloc_context3(codec);
+			if (ctx) {
+				rv = new SoftwareMediaCodec(ex->stream(), ctx);
 			}
 		}
 		return rv;
 	}
-
 }

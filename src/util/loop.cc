@@ -44,50 +44,22 @@ namespace qk {
 			auto timeout = timer->timeout;
 			auto repeatTimeout = timer->repeatCount ? (timeout ? timeout: 1): 0;
 			Qk_Assert_Eq(0, uv_timer_init(_uv_loop, timer));
-			auto r = uv_timer_start(timer, [](uv_timer_t *h) {
-				auto timer = (timer_t*)h;
-				timer->calling = true;
+			Qk_Assert_Eq(0, uv_timer_start(timer, [](uv_timer_t *h) {
+				auto timer = static_cast<timer_t*>(h);
 				auto rc = timer->cb->resolve();
-				timer->calling = false;
 				if (rc != 0 || timer->repeatCount == 0) {
 					_inl(timer->data)->timer_stop(timer);
 				} else if (timer->repeatCount > 0) {
 					timer->repeatCount--;
 				}
-			}, timeout, repeatTimeout);
-			Qk_Assert_Eq(0, r);
-		}
-
-		void check_start(check_t *check) {
-			_check.set(check->id, check);
-			Qk_Assert_Eq(0, uv_check_init(_uv_loop, check));
-			Qk_Assert_Eq(0, uv_check_start(check, [](uv_check_t *h) {
-				auto check = (check_t*)(h);
-				check->cb->resolve();
-				if (check->repeatCount == 0) {
-					_inl(check->data)->check_stop(check);
-				} else if (check->repeatCount > 0) {
-					check->repeatCount--;
-				}
-			}));
-		}
-
-		void check_stop(check_t *check) {
-			uv_close((uv_handle_t*)check, [](uv_handle_t* h) {
-				delete (check_t*)(h);
-			});
-			_check.erase(check->id);
+			}, timeout, repeatTimeout));
 		}
 
 		void timer_stop(timer_t *timer) {
-			if (timer->calling) {
-				timer->repeatCount = 0;
-			} else {
-				uv_close((uv_handle_t*)timer, [](uv_handle_t* h){
-					delete (timer_t*)(h);
-				});
-				_timer.erase(timer->id);
-			}
+			uv_close((uv_handle_t*)timer, [](uv_handle_t* h){
+				delete (timer_t*)(h);
+			});
+			_timer.erase(timer->id);
 		}
 
 		void async_send() {
@@ -121,9 +93,10 @@ namespace qk {
 		}
 
 		void post(Cb &cb) {
-			ScopeLock lock(_mutex);
+			_mutex.lock();
 			_msg.pushBack({ 0, cb });
 			_this->async_send();
+			_mutex.unlock();
 		}
 
 		void death() {
@@ -229,18 +202,44 @@ namespace qk {
 		_mutex.unlock();
 	}
 
-	void RunLoop::Work::uv_work_cb(uv_work_t* req) {
-		auto self = (Work*)req->data;
-		self->work->resolve(self->host);
+	void RunLoop::check_t::call(Data &e) {
+		host->_check.set(id, this);
+		retain(); // retain for _check.set
+		Qk_Assert_Eq(0, uv_check_init(host->_uv_loop, &uv_check));
+		Qk_Assert_Eq(0, uv_check_start(&uv_check, [](uv_check_t *h) {
+			auto self = (check_t*)(h->data);
+			self->cb->resolve();
+			if (self->repeatCount == 0) {
+				self->stop_check();
+			} else if (self->repeatCount > 0) {
+				self->repeatCount--;
+			}
+		}));
 	}
 
-	void RunLoop::Work::uv_after_work_cb(uv_work_t* req, int status) {
-		Sp<Work> self((Work*)req->data);
-		auto host = _inl(self->host);
-		host->_work.erase(self->id);
-		if (UV_ECANCELED != status) // no cancel
-			self->done->resolve(host);
-		host->async_send();
+	void RunLoop::check_t::stop_check() {
+		uv_close((uv_handle_t*)&uv_check, [](uv_handle_t* h) {
+			static_cast<check_t*>(h->data)->release(); // release for hold on _check.set
+		});
+		host->_check.erase(id);
+	}
+
+	void RunLoop::work_t::call(Data &e) {
+		host->_work.set(id, this);
+		retain(); // retain for _work.set
+		Qk_Assert_Eq(0, uv_queue_work(host->_uv_loop, &uv_req, [](uv_work_t* req) {
+			auto self = static_cast<work_t*>(req->data);
+			self->work->resolve(self->host);
+		}, [](uv_work_t* req, int status) {
+			auto self = static_cast<work_t*>(req->data);
+			auto host = _inl(self->host);
+			Qk_Assert_Eq(host->_tid, thread_self_id());
+			host->_work.erase(self->id);
+			if (UV_ECANCELED != status) // no cancel
+				self->done->resolve(host);
+			host->async_send();
+			self->release(); // release hold for _work.set
+		}));
 	}
 
 	// ----------------------------- R u n . L o o p -----------------------------
@@ -261,9 +260,9 @@ namespace qk {
 
 		_mutex.lock();
 		List<Msg>             msgs(std::move(_msg));
-		Dict<uint32_t, Work*> works(std::move(_work));
 		Dict<uint32_t, uv_timer_t*> timers(std::move(_timer));
-		Dict<uint32_t, uv_check_t*> checks(std::move(_check));
+		Dict<uint32_t, check_t*> checks(std::move(_check));
+		Dict<uint32_t, work_t*> works(std::move(_work));
 		_mutex.unlock();
 
 		for (auto &i: msgs) {
@@ -276,12 +275,6 @@ namespace qk {
 			}
 		}
 
-		for (auto& i: works) {
-			Qk_WARN("RunLoop::clear(), discard work %p", i.value);
-			Qk_Assert_Eq(0, uv_cancel((uv_req_t*)&i.value->uv_req));
-			delete i.value;
-		}
-
 		for (auto &i: timers) {
 			auto timer = (timer_t*)(i.value);
 			_this->timer_stop(timer);
@@ -290,8 +283,13 @@ namespace qk {
 
 		for (auto &i: checks) {
 			auto check = (check_t*)(i.value);
-			_this->check_stop(check);
+			check->stop_check();
 			Qk_WARN("RunLoop::clear(), discard check %p", check);
+		}
+
+		for (auto& i: works) {
+			Qk_WARN("RunLoop::clear(), discard work %p", i.value);
+			Qk_Assert_Eq(0, uv_cancel((uv_req_t*)&i.value->uv_req));
 		}
 	}
 
@@ -330,7 +328,6 @@ namespace qk {
 		timer->data = this;
 		timer->id = getId32();
 		timer->repeatCount = repeat;
-		timer->calling = false;
 		timer->cb = cb;
 
 		if (thread_self_id() == _tid) { // is self thread
@@ -343,6 +340,17 @@ namespace qk {
 		return timer->id;
 	}
 
+	void RunLoop::timer_stop(uint32_t id) {
+		if (id) {
+			post(Cb([this,id](auto e) {
+				uv_timer_t* out;
+				if (_timer.get(id, out)) {
+					_this->timer_stop((timer_t*)out);
+				}
+			}));
+		}
+	}
+
 	uint32_t RunLoop::tick(Cb cb, int64_t repeat) {
 		auto isSelfThread = thread_self_id() == _tid;
 		if (!isSelfThread && repeat == 0) { // Once on an external thread
@@ -350,67 +358,57 @@ namespace qk {
 			return 0;
 		}
 		auto check = new check_t;
-		check->data = this;
+		check->host = this;
 		check->id = getId32();
 		check->repeatCount = repeat;
 		check->cb = cb;
+		check->uv_check.data = check;
 
 		if (isSelfThread) {
-			_this->check_start(check);
+			check->resolve();
 		} else {
-			Cb cb1([this,check](auto e){ // TODO Memory leak `check`
-				_this->check_start(check);
-			});
+			Cb cb1(check);
 			_this->post(cb1);
 		}
 		return check->id;
 	}
 
+	void RunLoop::tick_stop(uint32_t id) {
+		if (id) {
+			post(Cb([this,id](auto e) {
+				check_t* out;
+				if (_check.get(id, out))
+					out->stop_check();
+			}));
+		}
+	}
+
 	uint32_t RunLoop::work(Cb cb, Cb done) {
-		auto work = new Work();
+		auto work = new work_t();
+		work->host = this;
 		work->id = getId32();
 		work->work = cb;
 		work->done = done;
 		work->uv_req.data = work;
-		work->host = this;
 
-		post(Cb([this, work](auto&ev) { // TODO Memory leak `work`
-			_work.set(work->id, work);
-			Qk_Assert_Eq(0, uv_queue_work(_uv_loop, &work->uv_req, Work::uv_work_cb, Work::uv_after_work_cb));
-		}));
+		if (thread_self_id() == _tid) {
+			cb->resolve();
+		} else {
+			ScopeLock lock(_mutex);
+			cb->resolve();
+		}
 		return work->id;
-	}
-
-	void RunLoop::timer_stop(uint32_t id) {
-		if (id) {
-			post(Cb([this,id](auto&e) {
-				uv_timer_t* out;
-				if (_timer.get(id, out)) {
-					Qk_Assert_Eq(id, ((timer_t*)out)->id);
-					_this->timer_stop((timer_t*)out);
-				}
-			}));
-		}
-	}
-
-	void RunLoop::tick_stop(uint32_t id) {
-		if (id) {
-			post(Cb([this,id](auto&e) {
-				uv_check_t* out;
-				if (_check.get(id, out))
-					((check_t*)out)->repeatCount = 0;
-			}));
-		}
 	}
 
 	void RunLoop::work_cancel(uint32_t id) {
 		if (id) {
-			post(Cb([this,id](auto&e) {
-				Work *out;
-				if (_work.get(id, out)) {
-					Qk_Assert_Eq(0, uv_cancel((uv_req_t*)&out->uv_req));
-				}
-			}));
+			auto isNoSelfThread = thread_self_id() != _tid;
+			if (isNoSelfThread) _mutex.lock();
+			work_t *out;
+			if (_work.get(id, out)) {
+				Qk_Assert_Eq(0, uv_cancel((uv_req_t*)&out->uv_req));
+			}
+			if (isNoSelfThread) _mutex.unlock();
 		}
 	}
 

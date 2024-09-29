@@ -18,7 +18,7 @@ if [ ! -d $OBJS_DIR ] || [ ! -f $PRODUCT_PATH ]; then
 	mkdir $OBJS_DIR
 	V=$V make install -j2 || exit 1
 
-	OBJS=`find libavutil libavformat libswresample libavcodec compat -name *.o|xargs`
+	OBJS=`find libavutil libavformat libavcodec libswresample libswscale compat -name *.o|xargs`
 
 	for OBJ in $OBJS
 	do

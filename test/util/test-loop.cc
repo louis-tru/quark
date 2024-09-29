@@ -39,7 +39,7 @@ static void message_cb(Cb::Data& ev, RunLoop* loop) {
 
 void test_loop(int argc, char **argv) {
 	auto loop = RunLoop::current();
-	auto tick = loop->tick(Cb([](auto&e){ }), -1); // keep loop
+	auto tick = loop->tick(Cb([](auto&e){}), -1); // keep loop
 
 	thread_new([&](auto t) {
 		for ( int i = 0; i < 5; i++) {

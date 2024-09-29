@@ -134,24 +134,32 @@ namespace qk {
 		*/
 		static uint32_t bytes_per_pixel(ColorType type);
 
+		class Body {
+		public:
+			virtual void release() = 0;
+			virtual uint8_t* val() = 0;
+			virtual uint32_t len() = 0;
+		};
+
+		Qk_DEFINE_PROP_GET(uint8_t*, val);
+		Qk_DEFINE_PROP_GET(uint32_t, length, Const);
+		Qk_DEFINE_PROP_ACC_GET(WeakBuffer, body, Const);
+
 		Pixel();
 		Pixel(cPixel& data); // copy
 		Pixel(Pixel&& data); // move
 		Pixel(cPixelInfo& info, Buffer body); // move body
+		Pixel(cPixelInfo& info, Body *body); // move body
 		Pixel(cPixelInfo& info);
+
+		~Pixel();
 
 		// operator=
 		Pixel& operator=(cPixel& pixel); // copy
 		Pixel& operator=(Pixel&& pixel); // move
 
-		/**
-		 * Returns image data body
-		*/
-		inline cBuffer& body() const { return _body; }
-		inline uint8_t* val() { return reinterpret_cast<uint8_t*>(_body.val()); }
-
 	private:
-		Buffer _body; // pixel data
+		Body *_body;
 	};
 
 }

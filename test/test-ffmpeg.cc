@@ -28,16 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
 extern "C" {
-	#include <libavutil/imgutils.h>
-	#include <libavutil/samplefmt.h>
-	#include <libavutil/timestamp.h>
-	#include <libavformat/avformat.h>
-	#include <libavcodec/avcodec.h>
-	// #include <libavcodec/fft.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/samplefmt.h>
+#include <libavutil/timestamp.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+//#include <libavcodec/fft.h>
 }
-
 #include <quark/util/util.h>
 #include <quark/util/fs.h>
 
@@ -79,16 +77,15 @@ static uint64_t systemtime() {
 
 static int decode_packet(int *got_frame, int cached)
 {
-	
 	//FFTSample sample = ff_cos_16[0];
-	
+
 	int ret = 0;
 	int decoded = pkt.size;
-	
+
 	*got_frame = 0;
-	
+
 	uint64_t st = systemtime();
-	
+
 	if (pkt.stream_index == video_stream_idx) {
 		/* decode video frame */
 		
@@ -261,14 +258,14 @@ static int get_format_from_sample_fmt(const char **fmt,
 			return 0;
 		}
 	}
-	
+
 	fprintf(stderr,
 					"sample format %s is not supported as output format\n",
 					av_get_sample_fmt_name(sample_fmt));
 	return -1;
 }
 
-int test_ffmpeg (int argc, char **argv)
+int test_ffmpeg(int argc, char **argv)
 {
 	int ret = 0, got_frame;
 	

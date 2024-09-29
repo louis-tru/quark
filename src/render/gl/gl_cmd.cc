@@ -441,7 +441,7 @@ namespace qk {
 			if (setTextureSlot0(paint)) { // rgb or y
 				GLSLImage *s;
 				auto src = paint->image;
-				auto srcIndex = paint->srcIndex;
+				// auto srcIndex = paint->srcIndex;
 
 				if (kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
 					auto yuv = aafuzz ?
@@ -450,11 +450,11 @@ namespace qk {
 					s = (GLSLImage*)yuv;
 					useShaderProgram(s, vertex);
 
-					if (src->pixels()[1].type() == kYUV420P_U_8_ColorType) { // yuv420p
-						glUniform1i(yuv->format, 1);
+					if (src->pixels()[1].type() == kYUV420P_U_8_ColorType) {
 						_render->gl_set_texture(src, 2, paint); // v
-					} else { // yuv420sp
-						glUniform1i(yuv->format, 0);
+						glUniform1i(yuv->format, 1); // yuv420p
+					} else {
+						glUniform1i(yuv->format, 0); // yuv420sp
 					}
 					_render->gl_set_texture(src, 1, paint); // u or uv
 				} else {

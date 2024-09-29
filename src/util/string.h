@@ -46,7 +46,6 @@ namespace qk {
 
 	class Qk_EXPORT StringBase {
 	public:
-		typedef NonObjectTraits Traits;
 		typedef Allocator::Prt<char> Ptr;
 		typedef void (*Realloc)(Ptr *ptr, uint32_t, uint32_t);
 		typedef void (*Free)(void* ptr);
@@ -235,7 +234,7 @@ namespace qk {
 		static String toString(const void* ptr, uint32_t len, int sizeOf);
 		template<typename T>
 		static String toString(const T& t) {
-			return _To<T, has_object_type<T>::isObj>::call(t);
+			return _To<T, object_traits<T>::isObj>::call(t);
 		}
 		template<typename T, bool isObj> struct _To {
 			static String call(const T& t) { return String("[unknown]"); }

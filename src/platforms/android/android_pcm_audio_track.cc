@@ -207,7 +207,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 
 			return r == buffer.length();
 		}
-		
+
 		/**
 		* @overwrite
 		*/

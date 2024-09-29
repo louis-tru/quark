@@ -26,17 +26,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * ***** END LICENSE BLOCK ***** */
+ * ***** END LICENSE BLOCK *****/
 
 #ifndef __quark__media__media__
 #define __quark__media__media__
 
 #include "../util/util.h"
-#include "../util/string.h"
-#include "../util/array.h"
 #include "../util/http.h"
+#include "../render/pixel.h"
 
-typedef struct AVStream AVStream;
+typedef struct AVPacket AVPacket;
+typedef struct AVFrame AVFrame;
+typedef struct AVCodecParameters AVCodecParameters;
 
 namespace qk {
 
@@ -49,228 +50,145 @@ namespace qk {
 
 	enum MediaSourceStatus {
 		kUninitialized_MediaSourceStatus = 0,
-		kReadying_MediaSourceStatus,
-		kReady_MediaSourceStatus,
-		kWait_MediaSourceStatus,
-		kFault_MediaSourceStatus,
+		kOpening_MediaSourceStatus,
+		kOpen_MediaSourceStatus,
+		kError_MediaSourceStatus,
 		kEOF_MediaSourceStatus,
 	};
 
 	enum MediaType {
-		kAudio_MediaType,
+		kUnknown_MediaType = 0,
 		kVideo_MediaType,
+		kAudio_MediaType,
 	};
 
-	enum AudioChannelMask {
-		kInvalid_AudioChannelMask                = 0,
-		kFront_Left_AudioChannelMask             = 0x00000001,
-		kFront_Right_AudioChannelMask            = 0x00000002,
-		kFront_Center_AudioChannelMask           = 0x00000004,
-		kLow_Frequency_AudioChannelMask          = 0x00000008,
-		kBack_Left_AudioChannelMask              = 0x00000010,
-		kBack_Right_AudioChannelMask             = 0x00000020,
-		kFront_Left_Of_Center_AudioChannelMask   = 0x00000040,
-		kFront_Right_Of_Center_AudioChannelMask  = 0x00000080,
-		kBack_Center_AudioChannelMask            = 0x00000100,
-		kSide_Left_AudioChannelMask              = 0x00000200,
-		kSide_Right_AudioChannelMask             = 0x00000400,
-		kTop_Center_AudioChannelMask             = 0x00000800,
-		kTop_Front_Left_AudioChannelMask         = 0x00001000,
-		kTop_Front_Center_AudioChannelMask       = 0x00002000,
-		kTop_Front_Right_AudioChannelMask        = 0x00004000,
-		kTop_Back_Left_AudioChannelMask          = 0x00008000,
-		kTop_Back_Center_AudioChannelMask        = 0x00010000,
-		kTop_Back_Right_AudioChannelMask         = 0x00020000,
-	};
-
-	enum VideoColorFormat {
-		kInvalid_VideoColorFormat = 0,
-		kYUV420P_VideoColorFormat,
-		kYUV420SP_VideoColorFormat,
-		kYUV411P_VideoColorFormat,
-		kYUV411SP_VideoColorFormat,
-	};
+	class MediaCodec;
 
 	class Qk_EXPORT MediaSource: public Object {
 		Qk_HIDDEN_ALL_COPY(MediaSource);
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 
-		struct TrackInfo {
-			uint32_t    track;            /* 轨道在源中的索引 */
+		struct StreamExtra {
+			StreamExtra();
+			~StreamExtra();
+			StreamExtra(const StreamExtra& Extra);
+			void set_codecpar(AVCodecParameters *codecpar);
+			Array<char>        extradata; /* extradata */
+			AVCodecParameters *codecpar;
+		};
+
+		struct Stream { // av stream info
 			MediaType   type;             /* type */
-			String      mime;             /* mime类型 */
+			String      mime;             /* mime type */
 			int         codec_id;         /* codec id */
 			uint32_t    codec_tag;        /* codec tag */
-			int         format;           /* format */
+			int         format;           /* codec av format output */
 			int         profile;          /* profile */
 			int         level;            /* level */
-			uint32_t    width;            /* 输出图像宽度 */
-			uint32_t    height;           /* 输出图像高度 */
-			String      language;         /* 语言 */
-			uint32_t    bitrate;          /* 码率 */
-			uint32_t    sample_rate;      /* 声音采样率 */
-			uint32_t    channel_count;    /* 声音声道数量 */
-			uint64_t    channel_layout;   /* channel_layout */
-			uint32_t    frame_interval;   /* 图像帧时间间隔 */
-			Array<char> extradata;        /* extradata */
+			uint32_t    width;            /* video width */
+			uint32_t    height;           /* video height */
+			String      language;         /* language */
+			uint32_t    bitrate;          /* bit rate */
+			uint32_t    sample_rate;      /* audio sample rate */
+			uint32_t    channels;         /* audio channel count */
+			uint64_t    channel_layout;   /* audio channel layout to enum AudioChannelMask */
+			uint32_t    avg_framerate[2]; /* video frame average framerate */
+			uint32_t    time_base[2];     // Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds)
+			uint32_t    index;            /* stream index in source */
+			StreamExtra extra;
 		};
 
-		struct BitRateInfo {
-			int         bandwidth;
+		struct Program { // channel program info
+			int         bitrate;
 			uint32_t    width;
 			uint32_t    height;
-			String      codecs;
-			Array<TrackInfo>  tracks;
+			String      codecs; // streams codec info
+			Array<Stream> streams;
 		};
 
-		class Delegate {
-		public:
-			virtual void media_source_ready(MediaSource* source) = 0;
-			virtual void media_source_wait_buffer(MediaSource* source, float process) = 0;
-			virtual void media_source_eof(MediaSource* source) = 0;
-			virtual void media_source_error(MediaSource* source, cError& err) = 0;
+		struct Packet { // av packet
+			AVPacket* avpkt; // ff avpacket
+			uint8_t*  data; // packet data
+			uint32_t  size; // packet data size
+			uint64_t  pts; // Presentation timestamp, (Microseconds)
+			uint64_t  dts; // Decompression timestamp, (Microseconds)
+			uint64_t  duration; // Duration of this packet, (Microseconds)
+			int       flags; // keyframe flags
+			~Packet();
 		};
 
 		class Qk_EXPORT Extractor: public Object {
 			Qk_HIDDEN_ALL_COPY(Extractor);
 		public:
+			Qk_DEFINE_PROP_GET(MediaSource*, host);
+			Qk_DEFINE_PROP_GET(MediaType, type, Const);
+			Qk_DEFINE_PROP_GET(uint32_t, stream_index, Const);
+			Qk_DEFINE_PROP_ACC_GET(const Stream&, stream, Const);
+
+			~Extractor();
 
 			/**
-			* @method track_count
+			* @method streams() get streams
 			*/
-			inline uint32_t track_count() const { return _tracks.length(); }
+			inline cArray<Stream>& streams() const { return _streams; }
 
 			/**
-			* @method track_index current
+			* @method switch_stream
 			*/
-			inline uint32_t track_index() const { return _track_index; }
-
-			/**
-			* @method track current
-			* */
-			inline const TrackInfo& track() const { return _tracks[_track_index]; }
-
-			/**
-			* @method track get track info with index
-			*/
-			inline const TrackInfo& track(uint32_t index) const { return _tracks[index]; }
-
-			/**
-			* @method host
-			*/
-			inline MediaSource* host() const { return _host; }
-
-			/**
-			* @method type
-			*/
-			inline MediaType type() const { return _type; }
-
-			/**
-			* @method frame_interval
-			* */
-			inline uint32_t frame_interval() const { return _tracks[0].frame_interval; }
-
-			/**
-			* @method select_track
-			*/
-			bool select_track(uint32_t index);
-
-			/**
-			* @method sample_time
-			* */
-			inline uint64_t sample_time() const { return _sample_data.time; }
-
-			/**
-			* @method sample_d_time
-			* */
-			inline uint64_t sample_d_time() const { return _sample_data.d_time; }
-
-			/**
-			* @method sample_data
-			* */
-			inline WeakBuffer sample_data() const {
-				return WeakBuffer(_sample_data.data, _sample_data.size);
-			}
-
-			/**
-			* @method sample_size
-			* */
-			inline uint32_t sample_size() const { return _sample_data.size; }
-
-			/**
-			* @method presentation_time
-			* */
-			inline int sample_flags() const { return _sample_data.flags; }
-
-			/**
-			* @method eof_flags
-			* */
-			inline bool eof_flags() const { return _eof_flags; }
-
-			/**
-			* @method deplete_sample
-			* */
-			uint32_t deplete_sample(Char* out, uint32_t size);
-
-			/**
-			* @method deplete_sample
-			* */
-			uint32_t deplete_sample(Buffer& out);
-
-			/**
-			* @method deplete_sample
-			* */
-			uint32_t deplete_sample(uint32_t size);
-
-			/**
-			* @method deplete_sample
-			* */
-			inline uint32_t deplete_sample() {
-				return deplete_sample(_sample_data.size);
-			}
+			bool switch_stream(uint32_t index);
 
 			/**
 			* @method advance
-			* */
-			bool advance();
-
-			/**
-			* @method set_disable
 			*/
-			inline void set_disable(bool value) {  _disable = value; }
+			Packet* advance();
 
-			/**
-			* @method is_disable default true
-			* */
-			inline bool is_disable() const { return _disable; }
-			
 		private:
-			Extractor(MediaType type, MediaSource* host, Array<TrackInfo>&& tracks);
+			Extractor(MediaType type, MediaSource* host, Array<Stream>&& streams);
+			void flush();
 
-			struct SampleData {
-				Buffer  databuf;
-				Char*   data;
-				uint32_t size;
-				uint64_t time;
-				uint64_t d_time;
-				int      flags;
-			};
-			MediaSource*      _host;
-			MediaType         _type;
-			uint32_t          _track_index;
-			Array<TrackInfo>  _tracks;
-			Array<SampleData> _sample_data_cache;
-			uint32_t          _sample_index_cache;
-			uint32_t          _sample_count_cache;
-			SampleData        _sample_data;
-			bool              _eof_flags, _disable;
+			Array<Stream>     _streams;
+			List<Packet*>     _packets;
+			uint64_t          _packets_duration;
 			friend class MediaSource;
 			friend class MediaSource::Inl;
 		};
 
-		MediaSource(cString& uri, RunLoop* loop = RunLoop::current());
+		class Delegate {
+		public:
+			virtual void media_source_open(MediaSource* source) = 0;
+			virtual void media_source_advance(MediaSource* source) = 0;
+			virtual void media_source_eof(MediaSource* source) = 0;
+			virtual void media_source_error(MediaSource* source, cError& err) = 0;
+			virtual void media_source_switch(MediaSource* source, Extractor *ex) = 0;
+		};
+
+		// @props
+		Qk_DEFINE_PROP_ACC_GET(const URI&, uri, Const); //!< Getting media source path
+		Qk_DEFINE_PROP_ACC_GET(MediaSourceStatus, status, Const); //!< Getting current work status
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration, Const); // !< source duration
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, programs, Const); // !< Returns the programs count
+		Qk_DEFINE_PROP_ACC_GET(Extractor*, video_extractor); //!< extractor() must be called first
+		Qk_DEFINE_PROP_ACC_GET(Extractor*, audio_extractor); //!< extractor() must be called first
+		Qk_DEFINE_PROP_ACC_GET(bool, is_open, Const); // !< Getting whether it's open
+
+		MediaSource(cString& uri);
 		~MediaSource() override;
+
+		/**
+		* @method open running on new work thread
+		*/
+		void open();
+
+		/**
+		* @method stop running
+		*/
+		void stop();
+
+		/**
+		* @method seek
+		*/
+		bool seek(uint64_t timeUs);
 
 		/**
 		* @method set_delegate # Setting media delegate
@@ -278,70 +196,15 @@ namespace qk {
 		void set_delegate(Delegate* delegate);
 
 		/**
-		* @method disable_wait_buffer
+		* @method switch_program
 		*/
-		void disable_wait_buffer(bool value);
-
-		/**
-		* @method source # Getting media source path
-		*/
-		const URI& uri() const;
-
-		/**
-		* @method status # Getting current work status
-		*/
-		MediaSourceStatus status() const;
-
-		/**
-		* @method duration
-		*/
-		uint64_t duration() const;
-
-		/**
-		* @method bit_rate_index
-		*/
-		uint32_t bit_rate_index() const;
-
-		/**
-		* @method bit_rate
-		*/
-		const Array<BitRateInfo>& bit_rate() const;
-
-		/**
-		* @method select_bit_rate
-		*/
-		bool select_bit_rate(int index);
+		bool switch_program(uint32_t index);
 
 		/**
 		* @method extractor
 		*/
 		Extractor* extractor(MediaType type);
 
-		/**
-		* @method seek
-		* */
-		bool seek(uint64_t timeUs);
-
-		/**
-		* @method start
-		*/
-		void start();
-
-		/**
-		* @method stop
-		*/
-		void stop();
-		
-		/**
-		* @method is_active
-		*/
-		bool is_active();
-		
-		/**
-		* @method get_stream
-		*/
-		AVStream* get_stream(const TrackInfo& track);
-		
 	private:
 		Inl*         _inl;
 		friend class Extractor;
@@ -352,145 +215,96 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(MediaCodec);
 	public:
 		typedef MediaSource::Extractor Extractor;
+		typedef MediaSource::Packet Packet;
+		typedef MediaSource::Stream Stream;
 
-		struct OutputBuffer {
-			uint8_t*  data[8] = {0};      /* 数据Buffer */
-			uint32_t  linesize[8] = {0};  /* 数据大小 */
-			uint32_t  total = 0;        /* 数据总大小 */
-			uint64_t  time = 0;         /* 演示时间 */
-			int       index = 0;        /* 数据Buffer在解码器中的索引 */
+		struct Frame {
+			AVFrame*  avframe = 0; // ff avframe
+			uint8_t** data;     // data items
+			uint32_t* datasize; // Data item size
+			uint32_t  dataitems;// items size of data
+			int64_t   pts;      // Presentation timestamp
+			int64_t   pkt_duration; // Duration of frame on packet, (Microseconds)
+			uint32_t  nb_samples; // number of audio samples (per channel) described by this frame
+			uint32_t  width, height; // width and height of the video frame
+			uint32_t  format; // frame output format, video to ColorType, audio default to signed 16 bits
+			~Frame();
 		};
+		Qk_DEFINE_PROP_GET(MediaType, type, Const); //!< media type
 
-		class Qk_EXPORT Delegate {
-		 public:
-			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) {}
-			virtual void media_decoder_error(MediaCodec* de, cError& err) {}
-		};
-
-		/**
-		* @method type
-		* */
-		inline MediaType type() const { return _extractor->type(); }
-
-		/**
-		* @method set_delegate
-		*/
-		void set_delegate(Delegate* delegate);
-
-		/**
-		* @method source # return decoder source path
-		*/
-		inline MediaSource* source() const { return _extractor->host(); }
-
-		/**
-		* @method extractor
-		*/
-		inline Extractor* extractor() const { return _extractor; }
-
-		/**
-		* @method color_format decode output video color format 
-		*/
-		inline VideoColorFormat color_format() const { return _color_format; }
-
-		/**
-		* @method channel_count
-		* */
-		inline uint32_t channel_count() const { return _channel_count; }
-
-		/**
-		* @method channel_layout
-		* */
-		inline uint64_t channel_layout() const { return _channel_layout; }
-
-		/**
-		* @method frame_interval
-		* */
-		inline uint32_t frame_interval() const { return _frame_interval; }
+ 		/**
+		 * @method stream() Returns stream infomaciton
+		 */
+		inline const Stream& stream() const { return _stream; }
 
 		/**
 		* @method open
 		*/
-		virtual bool open() = 0;
+		virtual bool is_open() const = 0;
+
+		/**
+		* @method open
+		*/
+		virtual bool open(const Stream *stream = nullptr) = 0;
 
 		/**
 		* @method close
 		*/
-		virtual bool close() = 0;
+		virtual void close() = 0;
 
 		/**
 		* @method flush
-		* */
-		virtual bool flush() = 0;
-
-		/**
-		* @method advance frame
-		* */
-		virtual bool advance() = 0;
-
-		/**
-		* @method output frame buffer
 		*/
-		virtual OutputBuffer output() = 0;
+		virtual void flush() = 0;
 
 		/**
-		* @method release frame buffer
-		* */
-		virtual void release(OutputBuffer& buffer) = 0;
+		* @method send_packet send packet to codec
+		*/
+		virtual int send_packet(const Packet *pkt) = 0;
 
 		/**
-		* @method set_frame_size set audio frame buffer size
-		* */
-		virtual void set_frame_size(uint32_t size) = 0;
+		* @method send_packet send packet to codec by extractor
+		*/
+		virtual int send_packet_for(Extractor *extractor) = 0;
+
+		/**
+		* @method receive_frame receive frame data
+		*/
+		virtual int receive_frame(Frame **out) = 0;
 
 		/**
 		* @method set_threads set soft multi thread run
-		* */
+		*/
 		virtual void set_threads(uint32_t value) = 0;
 
 		/**
-		* @method set_background_run
-		* */
-		virtual void set_background_run(bool value) = 0;
-
-		/**
 		* @method convert_sample_data_to_nalu
-		* */
+		*/
 		static bool convert_sample_data_to_nalu(uint8_t *data, uint32_t size);
 
 		/**
 		* @method convert_sample_data_to_mp4_style
-		* */
+		*/
 		static bool convert_sample_data_to_mp4_style(uint8_t *data, uint32_t size);
 
 		/**
 		* @method parse_psp_pps
-		* */
+		*/
 		static bool parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps);
 
 		/**
 		* @method create decoder
-		* */
+		*/
 		static MediaCodec* create(MediaType type, MediaSource* source);
 
 		/**
-		* @method create create hardware decoder
+		 * @method frameToPixel frame convert to pixel and lose holding
 		*/
-		static MediaCodec* hardware(MediaType type, MediaSource* source);
-
-		/**
-		* @method software create software decoder
-		* */
-		static MediaCodec* software(MediaType type, MediaSource* source);
+		static Array<Pixel> frameToPixel(Frame *&useFrame);
 
 	protected:
-		MediaCodec(Extractor* extractor);
-
-		Extractor*  _extractor;
-		Delegate*   _delegate;
-		VideoColorFormat _color_format;
-		uint64_t      _channel_layout;
-		uint32_t      _channel_count;
-		uint32_t      _frame_interval;
+		MediaCodec(const Stream &stream);
+		Stream _stream; // media source stream info
 	};
 
 }

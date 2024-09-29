@@ -348,7 +348,7 @@ namespace qk {
 				_host->mark(kScrollMark, true); // mark
 
 				_host->preRender().post(Cb([this, scroll](auto& e) {
-					Sp<UIEvent> evt = New<UIEvent>(_host);
+					Sp<UIEvent> evt = new UIEvent(_host);
 					_host->trigger(UIEvent_Scroll, **evt);
 				}), _host);
 			}
@@ -563,7 +563,7 @@ namespace qk {
 			auto evt = static_cast<TouchEvent*>(&e);
 			auto args = new TouchEvent::TouchPoint(evt->changed_touches()[0]);
 			_async_call([](auto ctx, auto arg) {
-				Sp<TouchEvent::TouchPoint, NonObjectTraits> handle(arg.arg);
+				Sp<TouchEvent::TouchPoint> handle(arg.arg);
 				if ( !ctx->_action_id ) {
 					ctx->_action_id = arg.arg->id;
 					ctx->move_start(Vec2( arg.arg->x, arg.arg->y ));

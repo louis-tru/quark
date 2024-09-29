@@ -42,7 +42,6 @@ namespace qk {
 		enum Type {
 			kLog,kWarn,kError
 		};
-		typedef NonObjectTraits Traits;
 		virtual ~Log();
 		virtual void log(cChar* log, cChar* end = nullptr);
 		virtual void warn(cChar* log, cChar* end = nullptr);

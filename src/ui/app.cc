@@ -126,7 +126,7 @@ namespace qk {
 			Qk_DEBUG("Application::runMain() thread_new() Exit");
 			thread_exit(rc); // if sub thread end then exit
 			Qk_DEBUG("Application::runMain() thread_new() Exit ok");
-		}, new Args{argc, argv}, "runMain");
+		}, new Args{argc, argv}, "Application::runMain");
 
 		// Block this main thread until calling new Application
 		while (!_shared) {

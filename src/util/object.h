@@ -37,10 +37,6 @@
 
 namespace qk {
 	struct Allocator;
-	struct ObjectTraits;
-	struct ReferenceTraits;
-	struct ProtocolTraits;
-
 	template<typename T = char, typename A = Allocator>
 	class StringImpl;
 	typedef StringImpl<> String;
@@ -92,8 +88,6 @@ namespace qk {
 			*/
 			virtual void weak(Object* obj);
 		};
-		typedef ObjectTraits Traits;
-		typedef int HasObjectType;
 		virtual ~Object();
 		virtual void destroy(); // Heap allocation destructor function call and memory free
 		virtual void retain(); // Heap allocation strong
@@ -105,6 +99,7 @@ namespace qk {
 		static void  operator delete(void *p);
 		static HeapAllocator* heapAllocator();
 		static void setHeapAllocator(HeapAllocator *allocator);
+		typedef int __have_object__;
 	};
 
 	/**
@@ -112,8 +107,6 @@ namespace qk {
 	*/
 	class Qk_EXPORT Reference: public Object {
 	public:
-		typedef ReferenceTraits Traits;
-		typedef int HasReferenceType;
 		inline Reference(): _refCount(0) {}
 		inline Reference(const Reference& ref): _refCount(0) {}
 		inline Reference& operator=(const Reference& ref) { return *this; }
@@ -125,10 +118,17 @@ namespace qk {
 		virtual void release(); // --ref
 		virtual bool isReference() const;
 		inline  int  refCount() const { return _refCount.load(); }
+		typedef int __have_reference__;
 	private:
-		typedef int HasObjectType;
+		typedef int __have_object__;
 	protected:
 		std::atomic_int _refCount;
+	};
+
+	class Protocol {
+	public:
+		virtual Object* asObject() = 0;
+		typedef void* __have_protocol__;
 	};
 
 	class SafeFlag {
@@ -143,71 +143,33 @@ namespace qk {
 	Qk_EXPORT void Release(Object* obj);
 	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
-	/**
-	* @class Protocol protocol base
-	*/
-	class Protocol {
-	public:
-		typedef ProtocolTraits Traits;
-		virtual Object* asObject() = 0;
-	};
-
-	/**
-	* @class ObjectTraits
-	*/
-	struct ObjectTraits {
-		inline static bool Retain(Object* obj) {
-			if (obj) obj->retain();
-		}
-		inline static void Release(Object* obj) {
-			if (obj) obj->release();
-		}
-		static constexpr bool isObject = true;
-		static constexpr bool isReference = false;
-	};
-
-	/**
-	* @class ReferenceTraits
-	*/
-	struct ReferenceTraits: ObjectTraits {
-		static constexpr bool isReference = true;
-	};
-
-	/**
-	* @class ProtocolTraits
-	*/
-	struct ProtocolTraits {
-		template<class T> inline static void Retain(T* obj) {
-			if (obj) qk::Retain(obj->asObject());
-		}
-		template<class T> inline static void Release(T* obj) {
-			if (obj) qk::Release(obj->asObject());
-		}
-		static constexpr bool isReference = false;
-	};
-
-	/**
-	 * @class NonObjectTraits
-	 */
-	struct NonObjectTraits {
-		template<class T> inline static void Retain(T* obj) {
-		}
-		template<class T> inline static void Release(T* obj) {
-			delete obj;
-		}
-		static constexpr bool isReference = false;
-	};
-
 	template<typename T>
-	struct has_object_type {
-		typedef char Non[1]; typedef char Obj[2];
-		typedef char Ref[3];
-		template<typename C> static Obj& test(typename C::HasObjectType);
-		template<typename C> static Ref& test(typename C::HasReferenceType);
-		template<typename>   static Non& test(...);
-		static const int  type = sizeof(test<T>(0)) / sizeof(char) - 1;
-		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
-		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
+	struct object_traits {
+		typedef char __non[0];
+		typedef char __obj[1]; typedef char __ref[2]; typedef char __pro[3];
+		template<typename C> static __obj& test(typename C::__have_object__);
+		template<typename C> static __ref& test(typename C::__have_reference__);
+		template<typename C> static __pro& test(typename C::__have_protocol__);
+		template<typename>   static __non& test(...);
+		static constexpr int  type = sizeof(test<T>(0)) / sizeof(char);
+		static constexpr bool isNon = sizeof(test<T>(0)) / sizeof(char) == 0;
+		static constexpr bool isObj = sizeof(test<T>(0)) / sizeof(char) > 0;
+		static constexpr bool isRef = sizeof(test<T>(0)) / sizeof(char) == 2;
+		static constexpr bool isProtocol = sizeof(test<T>(0)) / sizeof(char) == 3;
+		template <int i> struct inl {
+			static inline void retain(T *obj) { Retain(obj); }
+			static inline void release(T *obj) { Release(obj); }
+		};
+		template <> struct inl<0> {
+			static inline void retain(T *obj) {}
+			static inline void release(T *obj) { delete obj; }
+		};
+		template <> struct inl<3> { //protocol
+			static inline void retain(T *obj) { if (obj) Retain(obj->asObject()); }
+			static inline void release(T *obj) { if (obj) Release(obj->asObject()); }
+		};
+		inline static void retain(T* obj) { inl<type>::retain(obj); }
+		inline static void release(T* obj) { inl<type>::release(obj); }
 	};
 
 	template<class T, typename... Args>

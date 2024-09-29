@@ -584,7 +584,7 @@ namespace qk { namespace js {
 
 		template<class T = Object>
 		static inline Wobj<T>* wrap(JSValue *value) {
-			static_assert(T::Traits::isObject, "Must be object");
+			static_assert(object_traits<T>::isObj, "Must be object");
 			return static_cast<Wobj<T>*>(unpack(value));
 		}
 		template<class T = WrapObject>
@@ -598,7 +598,7 @@ namespace qk { namespace js {
 		}
 		template<class T>
 		static inline Wobj<T>* wrap(T *object, uint64_t type_id) {
-			static_assert(T::Traits::isObject, "Must be object");
+			static_assert(object_traits<T>::isObj, "Must be object");
 			return static_cast<js::Wobj<T>*>(pack(object, type_id));
 		}
 
@@ -606,7 +606,7 @@ namespace qk { namespace js {
 		static Wobj<O>* New(FunctionArgs args, O *o) {
 			static_assert(sizeof(W) == sizeof(WrapObject),
 										"Derived wrap class pairs cannot declare data members");
-			static_assert(O::Traits::isObject, "Must be object");
+			static_assert(object_traits<O>::isObj, "Must be object");
 			auto wrap = (new(reinterpret_cast<WrapObject*>(o) - 1) W())->newInit(args);
 			return static_cast<Wobj<O>*>(static_cast<WrapObject*>(wrap));
 		}

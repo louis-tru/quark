@@ -71,13 +71,13 @@ namespace qk {
 	class CallbackCoreIMPL: public CallbackCore<D, E> {
 	public:
 		inline CallbackCoreIMPL(T* ctx): _ctx(ctx) {
-			if ( T::Traits::isReference ) {
-				T::Traits::Retain(_ctx);
+			if ( object_traits<T>::isRef ) {
+				object_traits<T>::retain(_ctx);
 			}
 		}
 		virtual ~CallbackCoreIMPL() {
-			if ( T::Traits::isReference ) {
-				T::Traits::Release(_ctx);
+			if ( object_traits<T>::isRef ) {
+				object_traits<T>::release(_ctx);
 			}
 		}
 	protected:

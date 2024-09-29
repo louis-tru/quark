@@ -46,8 +46,6 @@ namespace qk {
 	*/
 	class Qk_EXPORT QuadraticBezier {
 	public:
-		typedef NonObjectTraits Traits;
-
 		// define props
 		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
@@ -87,8 +85,6 @@ namespace qk {
 	*/
 	class Qk_EXPORT CubicBezier {
 	public:
-		typedef NonObjectTraits Traits;
-
 		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
 		Qk_DEFINE_PROP_GET(Vec2, p2, Const);

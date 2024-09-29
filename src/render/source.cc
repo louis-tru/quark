@@ -207,9 +207,9 @@ namespace qk {
 				self->_tex_Rt = std::move(texStat);
 			}
 			Sp<ImageSource> source;
-			Array<Pixel> pixels;
+			Array<Pixel>    pixels;
 		};
-		_render->post_message(Cb(New<Running>(this, pixels)));
+		_render->post_message(Cb(new Running(this, pixels)));
 	}
 
 	void ImageSource::unload() {

@@ -42,52 +42,47 @@ namespace qk {
 															public MediaSource::Delegate {
 		Qk_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
-		typedef MediaSource::TrackInfo TrackInfo;
-		typedef MediaCodec::OutputBuffer OutputBuffer;
+		typedef MediaSource::Stream Stream;
+		typedef MediaCodec::Frame Frame;
 
 		// define props
 		Qk_DEFINE_PROP_ACC(bool, auto_play);
 		Qk_DEFINE_PROP_ACC(bool, mute);
-		Qk_DEFINE_PROP_ACC(bool, disable_wait_buffer);
 		Qk_DEFINE_PROP_ACC(uint32_t, volume);
 		Qk_DEFINE_PROP_ACC(String, src);
 		Qk_DEFINE_PROP_ACC_GET(MediaSourceStatus, source_status);
 		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status);
 		Qk_DEFINE_PROP_ACC_GET(uint64_t, time);
 		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_count);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_track_index);
-		Qk_DEFINE_PROP_ACC_GET(const TrackInfo*, audio_track);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_stream_count);
+		Qk_DEFINE_PROP_ACC_GET(const Stream*, audio_stream);
 
 		AudioPlayer();
 		~AudioPlayer() override;
-
+		// @overwrite
+		void media_source_open(MediaSource* src) override;
+		void media_source_eof(MediaSource* src) override;
+		void media_source_error(MediaSource* src, cError& err) override;
 		// methods
 		void start();
 		bool seek(uint64_t timeUs);
 		void pause();
 		void resume();
 		void stop();
-		const TrackInfo* audio_track_at(uint32_t index);
-		void select_audio_track(uint32_t index);
-		void media_source_ready(MediaSource* src) override;
-		void media_source_wait_buffer(MediaSource* src, float process) override;
-		void media_source_eof(MediaSource* src) override;
-		void media_source_error(MediaSource* src, cError& err) override;
+		void switch_audio_stream(uint32_t index);
 
 	private:
 		MediaSource* _source;
 		PCMPlayer*   _pcm;
 		MediaCodec*  _audio;
 		RunLoop*     _loop;
-		bool         _auto_play, _mute, _disable_wait_buffer, _waiting_buffer;
+		bool         _auto_play, _mute, _waiting_buffer;
 		PlayerStatus _status;
-		OutputBuffer _audio_buffer;
+		Frame     _audio_buffer;
 		uint64_t  _duration, _time;
 		uint64_t  _uninterrupted_play_start_time;
 		uint64_t  _uninterrupted_play_start_systime;
 		uint64_t  _prev_presentation_time;
-		uint32_t  _task_id;
 		uint32_t  _volume;
 		Mutex     _mutex;
 		ThreadID  _run_loop_id;

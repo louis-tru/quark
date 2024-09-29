@@ -349,7 +349,7 @@
 			'media/audio_player.cc',
 			'media/media_codec_software.cc',
 			'media/media_codec.cc',
-			'media/media_extractor.cc',
+			'media/media.cc',
 			'media/media_inl.h',
 			'media/media_source.cc',
 			'media/media.h',

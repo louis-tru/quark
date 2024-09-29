@@ -78,35 +78,67 @@ namespace qk {
 		}
 	}
 
-	Pixel::Pixel()
+	Pixel::Pixel(): _val(nullptr), _length(0), _body(nullptr)
 	{}
 
 	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
-		, _body(pixel._body.copy()) {
+		, _val(reinterpret_cast<uint8_t*>(pixel.body().buffer().copy().collapse()))
+		, _length(pixel._length)
+		, _body(nullptr) {
 	}
 
 	Pixel::Pixel(Pixel&& pixel): PixelInfo(pixel)
-		, _body(pixel._body) {
+		, _val(pixel._val), _length(pixel._length), _body(pixel._body) {
+		pixel._val = nullptr;
+		pixel._length = 0;
+		pixel._body = nullptr;
 	}
 
 	Pixel::Pixel(const PixelInfo& info, Buffer body): PixelInfo(info)
+		, _length(body.length())
+		, _val(reinterpret_cast<uint8_t*>(body.collapse()))
+		, _body(nullptr) {
+	}
+
+	Pixel::Pixel(const PixelInfo& info, Body *body): PixelInfo(info)
+		, _length(body->len())
+		, _val(body->val())
 		, _body(body) {
 	}
 
 	Pixel::Pixel(cPixelInfo& info): PixelInfo(info)
-	{
+		, _val(nullptr), _length(0), _body(nullptr)
+	{}
+
+	Pixel::~Pixel() {
+		if (_body) {
+			_body->release(); _body = nullptr;
+		} else {
+			::free(_val);
+		}
+		_val = nullptr;
+		_length = 0;
 	}
 
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
-		_body = pixel._body.copy();
+		this->~Pixel();
+		_val    = reinterpret_cast<uint8_t*>(pixel.body().buffer().copy().collapse());
+		_length = pixel.length();
 		return *this;
 	}
 
 	Pixel& Pixel::operator=(Pixel&& pixel) {
 		PixelInfo::operator=(pixel);
-		_body = pixel._body;
+		this->~Pixel();
+		_val    = pixel._val;    pixel._val = nullptr;
+		_length = pixel._length; pixel._length = 0;
+		_body   = pixel._body;   pixel._body = nullptr;
 		return *this;
+	}
+
+	WeakBuffer Pixel::body() const {
+		return WeakBuffer(reinterpret_cast<cChar*>(_val), _length);
 	}
 
 }

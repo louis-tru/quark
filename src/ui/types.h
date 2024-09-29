@@ -273,7 +273,6 @@ namespace qk {
 
 	template<typename Kind, Kind KindInit, typename Value = float>
 	struct WrapValue {
-		typedef NonObjectTraits Traits;
 		inline bool operator!=(const WrapValue& val) const {
 			return val.kind != kind || val.value != value;
 		}

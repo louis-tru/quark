@@ -180,7 +180,6 @@ namespace qk { namespace js {
 		if (!sync) {
 			// keep war buffer Persistent javascript object
 			struct PersistentValue {
-				typedef NonObjectTraits Traits;
 				PersistentValue(FunctionArgs args): source(args.worker(), args[2]) {}
 				Persistent<JSValue> source;
 			} *pv = new PersistentValue(args);
@@ -1279,7 +1278,6 @@ namespace qk { namespace js {
 			} else {
 				// keep war buffer Persistent javascript object
 				struct PersistentValue {
-					typedef NonObjectTraits Traits;
 					Persistent<JSValue> args[2];
 				} *pv = new PersistentValue;
 

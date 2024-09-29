@@ -39,40 +39,40 @@ namespace qk {
 	/**
 	 * @class Handle
 	*/
-	template<class T, class T2 = typename T::Traits> class Handle {
+	template<class T> class Handle {
 		//! Copy constructor is not permitted.
 		Qk_HIDDEN_ALL_COPY(Handle);
+		T* _data;
 
 		inline T* move() {
-			return Traits::isReference ? (Traits::Retain(_data), _data) : collapse();
+			return Traits::isRef ? (Traits::retain(_data), _data) : collapse();
 		}
-
 	public:
-		typedef T Type;
-		typedef T2 Traits;
+		typedef T                Type;
+		typedef object_traits<T> Traits;
 
 		inline Handle(): _data(nullptr) {}
-		inline Handle(T* data): _data(data) { Traits::Retain(data); }
+		inline Handle(T* data): _data(data) { Traits::retain(data); }
 		inline Handle(Handle& handle) { _data = handle.move(); }
 		inline Handle(Handle&& handle) { _data = handle.move(); }
 
 		inline ~Handle() { release(); }
 
 		inline Handle& operator=(Handle& handle) {
-			Traits::Release(_data);
+			Traits::release(_data);
 			_data = handle.move();
 			return *this;
 		}
 
 		inline Handle& operator=(Handle&& handle) {
-			Traits::Release(_data);
+			Traits::release(_data);
 			_data = handle.move();
 			return *this;
 		}
 
 		inline Handle& operator=(T *data) {
-			Traits::Retain(data);
-			Traits::Release(_data);
+			Traits::retain(data);
+			Traits::release(_data);
 			_data = data;
 			return *this;
 		}
@@ -121,37 +121,33 @@ namespace qk {
 		}
 
 		inline void release() {
-			Traits::Release(_data);
+			Traits::release(_data);
 			_data = nullptr;
 		}
-
-	private:
-
-		T* _data;
 	};
 
 	/**
 	 * Shared pointer
 	 */
-	template <class T, class T2 = typename T::Traits> using Sp = Handle<T, T2>;
+	template <class T> using Sp = Handle<T>;
 
 	/**
 	 * @class CPointerHold
 	*/
 	template<typename T> class CPointerHold {
 	public:
-		typedef std::function<void(T*)> Destroy;
-		CPointerHold(T* ptr, Destroy destroy): _destroy(destroy) {}
-		~CPointerHold() { _destroy(_ptr); }
-		inline void collapse() { _destroy = [](T*p){}; }
+		typedef std::function<void(T*)> Fun;
+		CPointerHold(T* ptr, Fun fun): _fun(fun) {}
+		~CPointerHold() { _fun(_ptr); }
+		inline void collapse() { _fun = [](T*p){}; }
 		inline operator bool() const { return _ptr != nullptr; }
 		inline T* operator->() { return _ptr; }
 		inline T* operator*() { return _ptr; }
 		inline const T* operator->() const { return _ptr; }
 		inline const T* operator*() const { return _ptr; }
 	private:
-		T *_ptr;
-		Destroy _destroy;
+		T  *_ptr;
+		Fun _fun;
 	};
 
 }

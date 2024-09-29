@@ -73,7 +73,7 @@ namespace qk {
 	};
 	typedef const Thread cThread;
 
-	Qk_EXPORT ThreadID thread_new(void exec(cThread *t, void* arg), void* arg = nullptr, cString& tag = String());
+	Qk_EXPORT ThreadID thread_new(void exec(cThread *t, void* arg), void* arg, cString& tag = String());
 	Qk_EXPORT ThreadID thread_new(std::function<void(cThread *t)> func, cString& tag = String());
 	//!< sleep The current thread cannot be awakened
 	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0);
@@ -220,11 +220,12 @@ namespace qk {
 		~RunLoop();
 
 		struct Msg { uv_timer_t *timer; Cb cb; };
-		struct Work;
+		struct work_t;
+		struct check_t;
 		List<Msg>       _msg;
-		Dict<uint32_t, Work*> _work;
 		Dict<uint32_t, uv_timer_t*> _timer;
-		Dict<uint32_t, uv_check_t*> _check;
+		Dict<uint32_t, check_t*> _check;
+		Dict<uint32_t, work_t*> _work;
 		Mutex       _mutex;
 		Thread*     _thread;
 		ThreadID    _tid;

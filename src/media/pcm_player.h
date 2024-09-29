@@ -31,21 +31,44 @@
 #ifndef __quark__media__pcm_player__
 #define __quark__media__pcm_player__
 
-#include "../util/util.h"
-#include "../util/array.h"
+#include "./media.h"
 
 namespace qk {
+
+	enum AudioChannelLayoutMask {
+		kInvalid_AudioChannelLayoutMask                = 0,
+		kFront_Left_AudioChannelLayoutMask             = 0x00000001,
+		kFront_Right_AudioChannelLayoutMask            = 0x00000002,
+		kFront_Center_AudioChannelLayoutMask           = 0x00000004,
+		kLow_Frequency_AudioChannelLayoutMask          = 0x00000008,
+		kBack_Left_AudioChannelLayoutMask              = 0x00000010,
+		kBack_Right_AudioChannelLayoutMask             = 0x00000020,
+		kFront_Left_Of_Center_AudioChannelLayoutMask   = 0x00000040,
+		kFront_Right_Of_Center_AudioChannelLayoutMask  = 0x00000080,
+		kBack_Center_AudioChannelLayoutMask            = 0x00000100,
+		kSide_Left_AudioChannelLayoutMask              = 0x00000200,
+		kSide_Right_AudioChannelLayoutMask             = 0x00000400,
+		kTop_Center_AudioChannelLayoutMask             = 0x00000800,
+		kTop_Front_Left_AudioChannelLayoutMask         = 0x00001000,
+		kTop_Front_Center_AudioChannelLayoutMask       = 0x00002000,
+		kTop_Front_Right_AudioChannelLayoutMask        = 0x00004000,
+		kTop_Back_Left_AudioChannelLayoutMask          = 0x00008000,
+		kTop_Back_Center_AudioChannelLayoutMask        = 0x00010000,
+		kTop_Back_Right_AudioChannelLayoutMask         = 0x00020000,
+	};
 
 	/**
 	* @class PCMPlayer
 	*/
 	class PCMPlayer: public Protocol {
 	public:
+		typedef MediaCodec::Frame Frame;
+		typedef MediaSource::Stream Stream;
 
 		/**
 		* @method write
 		*/
-		virtual bool write(cBuffer& buffer) = 0;
+		virtual bool write(const Frame *frame) = 0;
 
 		/**
 		* @method flush
@@ -55,27 +78,22 @@ namespace qk {
 		/**
 		* @method set_mute
 		*/
-		virtual bool set_mute(bool value) = 0;
+		virtual void set_mute(bool value) = 0;
 
 		/**
-		* @method set_volume 0-100
+		* @method set_volume 0-1
 		*/
-		virtual bool set_volume(uint32_t value) = 0;
+		virtual void set_volume(float value) = 0;
 
 		/**
-		* @method buffer_size
+		* @method delay() Delay from writing PCM data to hearing sound, Unit frame
 		*/
-		virtual uint32_t buffer_size() = 0;
-
-		/**
-		* @method compensate
-		*/
-		virtual float compensate() = 0;
+		virtual float delay() = 0;
 
 		/**
 		* @method create
 		*/
-		static PCMPlayer* create(uint32_t channel_count, uint32_t sample_rate);
+		static PCMPlayer* create(const Stream &stream);
 
 	};
 

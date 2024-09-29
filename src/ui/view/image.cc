@@ -86,11 +86,11 @@ namespace qk {
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height, false);
-			Sp<UIEvent> evt = New<UIEvent>(this);
+			Sp<UIEvent> evt = new UIEvent(this);
 			trigger(UIEvent_Load, **evt);
 		} else if (*evt.data() & (ImageSource::kSTATE_LOAD_ERROR | ImageSource::kSTATE_DECODE_ERROR)) {
 			Error err(ERR_IMAGE_LOAD_ERROR, "ERR_IMAGE_LOAD_ERROR");
-			Sp<UIEvent> evt = New<UIEvent>(this, err);
+			Sp<UIEvent> evt = new UIEvent(this, err);
 			trigger(UIEvent_Error, **evt);
 		}
 	}

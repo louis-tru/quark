@@ -40,42 +40,39 @@ namespace qk {
 	class Qk_EXPORT Video: public Image,
 												public RenderTask, public MediaSource::Delegate {
 	public:
-		typedef MediaCodec::OutputBuffer OutputBuffer;
-		typedef MediaSource::TrackInfo TrackInfo;
+		typedef MediaCodec::Frame Frame;
+		typedef MediaCodec::Extractor Extractor;
+		typedef MediaSource::Stream Stream;
 		typedef RenderTask::ID TaskID;
 
 		// define props
-		Qk_DEFINE_VIEW_PROP_ACC(bool, auto_play);
-		Qk_DEFINE_VIEW_PROP_ACC(bool, mute);
-		Qk_DEFINE_VIEW_PROP_ACC(bool, disable_wait_buffer);
-		Qk_DEFINE_VIEW_PROP_ACC(uint32_t, volume);
+		Qk_DEFINE_PROP_ACC(bool, auto_play);
+		Qk_DEFINE_PROP_ACC(bool, mute);
+		Qk_DEFINE_PROP_ACC(uint32_t, volume);
 		Qk_DEFINE_VIEW_PROP_ACC(String, src);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(MediaSourceStatus, source_status);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(PlayerStatus, status);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(uint64_t, time);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(uint64_t, duration);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, audio_track_count);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, audio_track_index);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(const TrackInfo*, audio_track);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(const TrackInfo*, video_track);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, video_width);
-		Qk_DEFINE_VIEW_PROP_ACC_GET(uint32_t, video_height);
+		Qk_DEFINE_PROP_ACC_GET(MediaSourceStatus, source_status);
+		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, time);
+		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration);
+		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_stream_count);
+		Qk_DEFINE_PROP_ACC_GET(const Stream*, audio_stream);
+		Qk_DEFINE_PROP_ACC_GET(const Stream*, video_stream);
+		// Qk_DEFINE_PROP_ACC_GET(uint32_t, video_width);
+		// Qk_DEFINE_PROP_ACC_GET(uint32_t, video_height);
 
 		Video();
 		~Video() override;
-
+		// @overwrite
+		void media_source_open(MediaSource* src) override;
+		void media_source_eof(MediaSource* src) override;
+		void media_source_error(MediaSource* src, cError& err) override;
 		// methods
 		void start();
 		bool seek(uint64_t timeUs);
 		void pause();
 		void resume();
 		void stop();
-		const TrackInfo* audio_track_at(uint32_t index);
-		void select_audio_track(uint32_t index);
-		void media_source_ready(MediaSource* src) override;
-		void media_source_wait_buffer(MediaSource* src, float process) override;
-		void media_source_eof(MediaSource* src) override;
-		void media_source_error(MediaSource* src, cError& err) override;
+		void switch_audio_stream(uint32_t index);
 		bool run_task(int64_t time) override;
 		void onActivate() override;
 		ViewType viewType() const override;
@@ -85,20 +82,16 @@ namespace qk {
 		MediaCodec   *_audio, *_video;
 		PCMPlayer    *_pcm;
 		RunLoop      *_loop;
-		bool          _auto_play, _mute, _disable_wait_buffer, _waiting_buffer;
+		bool          _auto_play, _mute, _waiting_buffer;
 		PlayerStatus  _status;
-		VideoColorFormat _color_format;
-		OutputBuffer  _audio_buffer, _video_buffer;
+		Frame  _audio_buffer, _video_buffer;
 		uint64_t  _time, _duration;
 		uint64_t  _uninterrupted_play_start_time;
 		uint64_t  _uninterrupted_play_start_systime;
 		uint64_t  _prev_presentation_time;
 		uint64_t  _prev_run_task_systime;
-		uint32_t  _video_width, _video_height;
-		uint32_t  _task_id;
 		uint32_t  _volume;
 		Mutex     _mutex;
-		ThreadID  _run_loop_id;
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};

@@ -65,7 +65,6 @@ namespace qk {
 
 	class Socket::Inl: public Reference, public Socket::Delegate {
 	public:
-		typedef ReferenceTraits Traits;
 		virtual void trigger_socket_open(Socket* stream) override {}
 		virtual void trigger_socket_close(Socket* stream) override {}
 		virtual void trigger_socket_error(Socket* stream, cError& error) override {}
@@ -99,7 +98,6 @@ namespace qk {
 		}
 
 		struct RetainRef {
-			typedef NonObjectTraits Traits;
 			RetainRef(Inl* hold, uv_loop_t* loop): hold(hold) {
 				Qk_Assert_Eq(0, uv_tcp_init(loop, &tcp));
 				Qk_Assert_Eq(0, uv_timer_init(loop, &timer));

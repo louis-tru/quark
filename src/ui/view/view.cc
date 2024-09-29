@@ -83,9 +83,9 @@ namespace qk {
 		preRender().async_call([](auto self, auto arg) {
 			// To ensure safety and efficiency,
 			// it should be Completely destroyed in RT (render thread)
+			self->_window = nullptr;
 			self->Object::destroy();
 		}, this, 0);
-		_window = nullptr;
 	}
 
 	View* View::tryRetain() {

@@ -47,7 +47,6 @@ namespace qk {
 	*/
 	class Qk_EXPORT JSON {
 	public:
-		typedef NonObjectTraits Traits;
 		struct Member;
 
 		typedef SimpleIterator<Member,       Member>  Iterator;

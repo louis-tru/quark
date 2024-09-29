@@ -32,39 +32,24 @@
 
 namespace qk {
 
-	static MediaCodec::Delegate default_media_decoder_delegate;
-
-	// ----------------- MediaCodec -------------------
-
-	MediaCodec::MediaCodec(Extractor* extractor)
-		: _extractor(extractor)
-		, _delegate(&default_media_decoder_delegate)
-		, _color_format(kInvalid_VideoColorFormat)
-		, _channel_layout(kInvalid_AudioChannelMask)
-		, _channel_count(0)
-		, _frame_interval(0)
+	MediaCodec::MediaCodec(const Stream &stream)
+		: _type(stream.type)
+		, _stream(stream)
 	{
-		_frame_interval = extractor->track().frame_interval;
-	}
-
-	void MediaCodec::set_delegate(Delegate* delegate) {
-		Qk_Assert(delegate);
-		_delegate = delegate;
 	}
 
 	inline static bool is_nalu_start(uint8_t* str) {
 		return str[0] == 0 && str[1] == 0 && str[2] == 0 && str[3] == 1;
 	}
 
-	static bool find_nalu_package(cBuffer& buffer, uint32_t start, uint32_t& end) {
-		uint32_t length = buffer.length();
-		if ( start < length ) {
-			cChar* c = *buffer + start;
-			while(1) {
-				size_t size = strlen(c);
+	static bool find_nalu_package(const uint8_t *src, uint32_t srcLen, uint32_t start, uint32_t& end) {
+		if ( start < srcLen ) {
+			const uint8_t* c = src + start;
+			do {
+				size_t size = strlen((cChar*)c);
 				start += size;
 				c     += size;
-				if ( start + 4 < length ) {
+				if ( start + 4 < srcLen ) {
 					if (c[1] == 0 && c[2] == 0 && c[3] == 1) {
 						end = start;
 						return true;
@@ -72,10 +57,10 @@ namespace qk {
 						start++; c++;
 					}
 				} else {
-					end = length;
+					end = srcLen;
 					return true;
 				}
-			}
+			} while(true);
 		}
 		return false;
 	}
@@ -86,7 +71,7 @@ namespace qk {
 		
 		if ( is_nalu_start(buf) ) { // nalu
 			uint32_t start = 4, end = 0;
-			while (find_nalu_package(extradata, start, end)) {
+			while (find_nalu_package(buf, extradata.length(), start, end)) {
 				int nalu_type = buf[start] & 0x1F;
 				if (nalu_type == 0x07) {        // SPS
 					out_psp.write((Char*)buf + start - 4, 0, end - start + 4);
@@ -143,7 +128,7 @@ namespace qk {
 			// uint8_t* buf = (uint8_t*)*buffer;
 			if ( is_nalu_start(buf) ) {
 				uint32_t start = 4, end = 0;
-				while( find_nalu_package(WeakBuffer((Char*)buf, size).buffer(), start, end) ) {
+				while( find_nalu_package(buf, size, start, end) ) {
 					int s = end - start;
 					uint8_t header[4] = { (uint8_t)(s >> 24), (uint8_t)(s >> 16), (uint8_t)(s >> 8), (uint8_t)s };
 					memcpy(buf + start - 4, header, 4);
@@ -155,10 +140,13 @@ namespace qk {
 		return false;
 	}
 
+	MediaCodec* MediaCodec_software(MediaType type, MediaSource* source);
+	MediaCodec* MediaCodec_hardware(MediaType type, MediaSource* source);
+
 	MediaCodec* MediaCodec::create(MediaType type, MediaSource* source) {
-		MediaCodec* rv = hardware(type, source);
-		if ( ! rv ) {
-			rv = software(type, source);
+		MediaCodec* rv = MediaCodec_hardware(type, source);
+		if ( !rv ) {
+			rv = MediaCodec_software(type, source);
 		}
 		return rv;
 	}

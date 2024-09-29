@@ -42,7 +42,6 @@ namespace qk {
 	ThreadID Threads::spawn(std::function<void(cThread *t)> func, cString& name) {
 		ScopeLock scope(_mutex);
 		struct Arg {
-			typedef NonObjectTraits Traits;
 			std::function<void(cThread *t)> func;
 			Threads *self;
 		};

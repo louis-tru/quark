@@ -142,8 +142,7 @@ namespace qk {
 	}
 
 	void Object::operator delete(void* p) {
-		Release(static_cast<Object*>(p));
-		// Qk_UNREACHABLE("Modify to `Release(obj)`");
+		Qk_UNREACHABLE("Modify to `Release(obj)`");
 	}
 
 	// ---------------- R e f e r e n c e ----------------

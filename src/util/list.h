@@ -227,7 +227,7 @@ namespace qk {
 		if (_length)
 			erase(IteratorConst(_end._next));
 	}
-	
+
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
 	List<T, A>::insert(IteratorConst after, const T& item) {

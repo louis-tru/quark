@@ -66,6 +66,7 @@
 			'test-testing.cc',
 			'test-alsa-ff.cc',
 			'test-ffmpeg.cc',
+			'test-media.cc',
 			'test-layout.cc',
 			'test-canvas.cc',
 			'test-rrect.cc',

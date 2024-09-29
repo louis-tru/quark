@@ -48,28 +48,28 @@ namespace qk {
 		List<CondMutex*> waitSelfEnd; // external wait thread end
 	};
 
-	struct RunLoop::Work {
-		typedef NonObjectTraits Traits;
+	struct timer_t: uv_timer_t {
+		uint32_t id;
+		int64_t repeatCount;
+		Cb cb;
+	};
+
+	struct RunLoop::check_t: CallbackCore<Object> {
+		RunLoop* host;
+		uint32_t id;
+		int64_t repeatCount;
+		Cb cb;
+		uv_check_t uv_check;
+		void call(Data &e) override; // call start uv check
+		void stop_check();
+	};
+
+	struct RunLoop::work_t: CallbackCore<Object> {
 		RunLoop* host;
 		uint32_t id;
 		Cb work, done;
 		uv_work_t uv_req;
-		String name;
-		static void uv_work_cb(uv_work_t* req);
-		static void uv_after_work_cb(uv_work_t* req, int status);
-	};
-
-	struct timer_t: uv_timer_t {
-		uint32_t id;
-		int64_t repeatCount;
-		bool calling;
-		Cb cb;
-	};
-
-	struct check_t: uv_check_t {
-		uint32_t id;
-		int64_t repeatCount;
-		Cb cb;
+		void call(Data &e) override; // call start uv work
 	};
 
 	//////

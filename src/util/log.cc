@@ -129,7 +129,7 @@ namespace qk {
 
 	Log* Log::shared() {
 		if (!_shared_log) {
-			set_shared(New<Log>());
+			set_shared(new Log());
 		}
 		return _shared_log;
 	}

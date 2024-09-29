@@ -17,7 +17,7 @@ public:
 	void draw(UIDraw *r) override {
 		auto canvas = window()->render()->getCanvas();
 		canvas->save();
-		canvas->translate({-115, 0});
+		canvas->setMatrix(Mat().translate({-115, 0})); // reset mat
 
 		canvas->clearColor(Color4f(0,0,1));
 		auto size = window()->size();
