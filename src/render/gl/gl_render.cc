@@ -50,10 +50,6 @@ namespace qk {
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
 #if Qk_MAC
-#if Qk_OSX
-#define GL_LUMINANCE                      GL_RED
-#define GL_LUMINANCE_ALPHA                0x190A
-#endif
 		switch (type) {
 			case kAlpha_8_ColorType: return GL_ALPHA;
 			case kRGB_565_ColorType: return GL_RGB;
@@ -68,6 +64,11 @@ namespace qk {
 			case kBGR_101010X_ColorType: return GL_BGRA; // GL_BGR;
 			case kRGB_888_ColorType: return GL_RGB;
 			case kRGBA_5551_ColorType: return GL_RGBA;
+#if Qk_OSX
+# define GL_LUMINANCE       GL_RED
+# define GL_LUMINANCE_ALPHA GL_RG
+#endif
+			// TODO Grayscale images may not display properly for macos
 			case kLuminance_8_ColorType: return GL_LUMINANCE;
 			case kLuminance_Alpha_88_ColorType: return GL_LUMINANCE_ALPHA;
 			// case kSDF_Float_ColorType: return GL_RGBA;
@@ -75,7 +76,7 @@ namespace qk {
 			case kYUV420P_Y_8_ColorType: return GL_LUMINANCE;
 			// case kYUV420P_V_8_ColorType:
 			case kYUV420P_U_8_ColorType: return GL_LUMINANCE;
-			case kYUV420SP_UV_88_ColorType: return GL_LUMINANCE_ALPHA;
+			case kYUV420SP_UV_88_ColorType: return GL_RG;
 #if Qk_iOS // ios
 				// compressd texture
 			case kPVRTCI_2BPP_RGB_ColorType: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;

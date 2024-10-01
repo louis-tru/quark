@@ -35,46 +35,24 @@ namespace qk {
 	typedef MediaSource::Packet Packet;
 	typedef MediaCodec::Frame Frame;
 
-	StreamExtra::StreamExtra() {
-		codecpar = (AVCodecParameters*)::malloc(sizeof(AVCodecParameters));
-	}
-
-	StreamExtra::StreamExtra(const StreamExtra& extra): StreamExtra() {
-		*codecpar = *extra.codecpar;
-		set_codecpar(extra.codecpar);
-	}
-
-	StreamExtra::~StreamExtra() {
-		::free(codecpar); codecpar = nullptr;
-	}
-
-	void StreamExtra::set_codecpar(AVCodecParameters *par) {
-		extradata = WeakBuffer((Char *) par->extradata, par->extradata_size).buffer().copy();
-		*codecpar = *par;
-		codecpar->extradata = (uint8_t*)*extradata;
-		codecpar->extradata_size = extradata.length();
-	}
-
-	Packet::~Packet() {
-		av_packet_unref(avpkt);
-	}
-
-	Frame::~Frame() {
-		av_frame_unref(avframe);
-	}
-
 	struct MakingPixel {
 		struct Body: Pixel::Body {
-			Body(MakingPixel *host, int idx): _host(host), _idx(idx) {}
+			Body(MakingPixel *host, uint32_t idx)
+				: _host(host), _val(host->frame->data[idx])
+			{
+				_len = idx ? host->frame->height >> 1: host->frame->height;
+				_len *= host->frame->linesize[idx];
+			}
 			virtual void release() override {
 				if (--_host->bodyLen == 0) {
 					delete _host; _host = nullptr;
 				}
 			}
-			uint8_t* val() override { return _host->frame->data[_idx]; }
-			uint32_t len() override { return _host->frame->datasize[_idx]; }
+			uint8_t* val() override { return _val; }
+			uint32_t len() override { return _len; }
 			MakingPixel *_host;
-			int           _idx;
+			uint8_t     *_val;
+			uint32_t     _len;
 		};
 
 		Frame   *frame;
@@ -87,7 +65,6 @@ namespace qk {
 		~MakingPixel() {
 			delete frame; frame = nullptr;
 		}
-
 		static Array<Pixel> make(Frame *&frame) {
 			Array<Pixel> pixel;
 			auto format = frame->avframe->format;
@@ -116,12 +93,58 @@ namespace qk {
 		return MakingPixel::make(useFrame);
 	}
 
+	StreamExtra::StreamExtra() {
+		codecpar = (AVCodecParameters*)::malloc(sizeof(AVCodecParameters));
+	}
+
+	StreamExtra::StreamExtra(const StreamExtra& extra): StreamExtra() {
+		*codecpar = *extra.codecpar;
+		set_codecpar(extra.codecpar);
+	}
+
+	StreamExtra::~StreamExtra() {
+		::free(codecpar); codecpar = nullptr;
+	}
+
+	void StreamExtra::set_codecpar(AVCodecParameters *par) {
+		extradata = WeakBuffer((Char *) par->extradata, par->extradata_size).buffer().copy();
+		*codecpar = *par;
+		codecpar->extradata = (uint8_t*)*extradata;
+		codecpar->extradata_size = extradata.length();
+	}
+
+	Packet::~Packet() {
+		av_packet_unref(avpkt); avpkt = nullptr;
+	}
+
+	Packet* Packet::clone() const {
+		auto pkt = new (::malloc(sizeof(Packet) + sizeof(AVPacket))) Packet{
+			nullptr,
+			nullptr,
+			size,
+			pts,
+			dts,
+			duration,
+			flags,
+		};
+		pkt->avpkt = reinterpret_cast<AVPacket*>(pkt + 1);
+		// av_init_packet(pkt->avpkt);
+		av_copy_packet(pkt->avpkt, avpkt);
+		pkt->data = pkt->avpkt->data;
+		return pkt;
+	}
+
+	Frame::~Frame() {
+		av_frame_unref(avframe);
+	}
+
 	Extractor::Extractor(MediaType type, MediaSource* host, Array<Stream>&& streams)
 		: _host(host)
 		, _type(type)
 		, _stream_index(0)
 		, _streams(std::move(streams))
-		, _packets_duration(0)
+		, _before_duration(0), _after_duration(0)
+		, _pkt(_packets.end())
 	{
 	}
 
@@ -142,9 +165,12 @@ namespace qk {
 	}
 
 	void Extractor::flush() {
-		for (auto pkt: _packets)
+		for (auto pkt: _packets) {
 			delete pkt;
-		_host->_inl->_packets -= _packets.length();
+		}
 		_packets.clear();
+		_before_duration = 0;
+		_after_duration = 0;
+		_pkt = _packets.end();
 	}
 }

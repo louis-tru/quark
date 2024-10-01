@@ -30,82 +30,53 @@
 
 #import "quark/media/media_inl.h"
 #import <VideoToolbox/VideoToolbox.h>
-#import <AudioToolbox/AudioToolbox.h>
 
 namespace qk {
-	#define OUTPUT_BUFFER_NUM 12
 
 	class MacVideoCodec: public MediaCodec {
 	public:
 
-		struct OutputBufferInfo {
-			CVPixelBufferRef        buffer = nullptr;
-			CVPixelBufferLockFlags  lock;
-			uint64_t                time;
-		};
-
-		MacVideoCodec(const Stream &stream)
-			: MediaCodec(stream)
-			, _session(nullptr)
-			, _format_desc(nullptr)
-			, _sample_data(nullptr), _sample_time(0)
-			, _output_buffer_count(0)
-			, _video_width(0), _video_height(0)
-			, _presentation_time(0)
-			, _packet(nullptr)
+		MacVideoCodec(const Stream &stream): MediaCodec(stream)
+			, _session(nil)
+			, _desc(nil)
+			, _packet(nil)
 		{
 		}
-		
+
 		~MacVideoCodec() {
 			close();
-			if ( _sample_data ) {
-				CFRelease(_sample_data);
-				_sample_data = nil;
-			}
-			if (_format_desc) {
-				CFRelease(_format_desc);
-				_format_desc = nil;
+			if (_desc) {
+				CFRelease(_desc); _desc = nil;
 			}
 		}
 
-		bool initialize() {
-			CMVideoCodecType codec_type;
-
+		bool init() {
+			CMVideoCodecType codec;
 			switch( _stream.codec_id ) {
-				case AV_CODEC_ID_H263 : // h.263
-					codec_type = kCMVideoCodecType_H263;
-					break;
-				case AV_CODEC_ID_H264 : // h.264
-					codec_type = kCMVideoCodecType_H264;
-					break;
-				case AV_CODEC_ID_HEVC : // h.265
-					codec_type = kCMVideoCodecType_HEVC;
-					break;
-				case AV_CODEC_ID_MPEG1VIDEO :
-					codec_type = kCMVideoCodecType_MPEG1Video;
-					break;
-				case AV_CODEC_ID_MPEG2VIDEO :
-					codec_type = kCMVideoCodecType_MPEG2Video;
-					break;
-				case AV_CODEC_ID_MPEG4 :
-					codec_type = kCMVideoCodecType_MPEG4Video;
-					break;
+				case AV_CODEC_ID_H263: // h.263
+					codec = kCMVideoCodecType_H263; break;
+				case AV_CODEC_ID_H264: // h.264
+					codec = kCMVideoCodecType_H264; break;
+				case AV_CODEC_ID_HEVC: // h.265
+					codec = kCMVideoCodecType_HEVC; break;
+				case AV_CODEC_ID_MPEG1VIDEO:
+					codec = kCMVideoCodecType_MPEG1Video; break;
+				case AV_CODEC_ID_MPEG2VIDEO:
+					codec = kCMVideoCodecType_MPEG2Video; break;
+				case AV_CODEC_ID_MPEG4:
+					codec = kCMVideoCodecType_MPEG4Video; break;
 				default:
 					return false;
 			}
-
-			_video_width = _stream.width;
-			_video_height = _stream.height;
-
 			// init CMFormatDescriptionRef
 			Buffer psp, pps;
 			OSStatus status;
+			auto &extra = _stream.extra.extradata;
 
-			if ( MediaCodec::parse_avc_psp_pps(WeakBuffer(_stream.extra.extradata).buffer(), psp, pps) ) {
-				uint8_t*  param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
-				size_t size[2]  = { psp.length() - 4, pps.length() - 4 };
-				status = CMVideoFormatDescriptionCreateFromH264ParameterSets(NULL, 2,
-																																		param, size, 4, &_format_desc);
+			if ( MediaCodec::parse_avc_psp_pps(extra, psp, pps) ) {
+				uint8_t *param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
+				size_t   size[2]  = { psp.length() - 4, pps.length() - 4 };
+				status = CMVideoFormatDescriptionCreateFromH264ParameterSets(nil, 2, param, size, 4, &_desc);
 			} else {
 				NSDictionary* extensions =
 				@{
@@ -117,47 +88,20 @@ namespace qk {
 						@"VerticalSpacing": @0,
 					},
 					@"SampleDescriptionExtensionAtoms": @{
-						@"avcC": [NSData dataWithBytes:*_stream.extra.extradata length:_stream.extra.extradata.length()],
+						@"avcC": [NSData dataWithBytes:*extra length:extra.length()],
 					},
 				};
-				status = CMVideoFormatDescriptionCreate(NULL, codec_type,
+				status = CMVideoFormatDescriptionCreate(nil, codec,
 																								_stream.width, _stream.height,
-																								(__bridge CFDictionaryRef)extensions, &_format_desc);
+																								(__bridge CFDictionaryRef)extensions, &_desc);
 			}
 
 			// create decoder session
 			if ( status == noErr ) {
-				CFRetain(_format_desc);
+				CFRetain(_desc);
 				return open();
 			}
 			return false;
-		}
-
-		static void decompress_frame_cb(MacVideoCodec* self,
-																		void* source_sample,
-																		OSStatus status,
-																		VTDecodeInfoFlags flags,
-																		CVImageBufferRef buffer, CMTime pts, CMTime duration
-		) {
-			if (status == noErr) {
-				ScopeLock scope(self->_mutex); // lock scope
-				
-				if ( self->_output_buffer_count < OUTPUT_BUFFER_NUM ) {
-					self->_output_buffer_count++;
-					
-					for ( int i = 0; i < OUTPUT_BUFFER_NUM; i++ ) {
-						OutputBufferInfo& output = self->_output_buffer[i];
-						if ( !output.buffer ) {
-							output.buffer = CVPixelBufferRetain(buffer);
-							output.time = pts.value;
-							CVPixelBufferLockBaseAddress(output.buffer, output.lock);
-							return;
-						}
-					}
-				} else {
-					CVPixelBufferRelease(buffer);
-				}
-			}
 		}
 
 		bool is_open() const override {
@@ -165,14 +109,13 @@ namespace qk {
 		}
 
 		bool open(const Stream *stream = nullptr) override {
-			if ( _session ) return true;
-			if (!stream) stream = &_stream;
+			if (_session) return true;
+			if (!stream)  stream = &_stream;
 
-			Qk_Assert(stream->width);
-			Qk_Assert(stream->height);
+			Qk_Assert_Ne(0, stream->width);
+			Qk_Assert_Ne(0, stream->height);
 
-			CFDictionaryRef attrs = (__bridge CFDictionaryRef)
-			[NSDictionary dictionaryWithObjectsAndKeys:
+			CFDictionaryRef attrs = (__bridge CFDictionaryRef)[NSDictionary dictionaryWithObjectsAndKeys:
 				[NSNumber numberWithInt: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange],
 					(id)kCVPixelBufferPixelFormatTypeKey,
 				[NSNumber numberWithUnsignedInt:stream->width], (id)kCVPixelBufferWidthKey,
@@ -189,15 +132,13 @@ namespace qk {
 				(VTDecompressionOutputCallback)&MacVideoCodec::decompress_frame_cb,
 				this,
 			};
-			OSStatus status;
-			status = VTDecompressionSessionCreate(NULL, _format_desc, NULL, attrs, &cb, &_session);
-			
+			OSStatus status = VTDecompressionSessionCreate(nil, _desc, nil, attrs, &cb, &_session);
+
 			if (status == noErr) {
 				CFRetain(_session);
 				flush();
 				return true;
 			} else {
-				CFRelease(_session); _session = nullptr;
 				return false;
 			}
 		}
@@ -207,85 +148,102 @@ namespace qk {
 				flush();
 				// Prevent deadlocks in VTDecompressionSessionInvalidate by waiting for the frames to complete manually.
 				// Seems to have appeared in iOS11
-				VTDecompressionSessionWaitForAsynchronousFrames(_session);
 				VTDecompressionSessionInvalidate(_session);
-				CFRelease(_session); _session = nullptr;
+				CFRelease(_session); _session = nil;
 			}
 		}
-		
+
 		void flush() override {
 			if ( is_open() ) {
+				VTDecompressionSessionWaitForAsynchronousFrames(_session);
 				ScopeLock scope(_mutex);
-				for ( int i = 0; i < OUTPUT_BUFFER_NUM; i++ ) {
-					OutputBufferInfo& output = _output_buffer[i];
-					if (output.buffer) {
-						CVPixelBufferUnlockBaseAddress(output.buffer, output.lock);
-						CVPixelBufferRelease(output.buffer);
-						output.buffer = nil;
-					}
-				}
-				_output_buffer_count = 0;
-				_presentation_time = 0;
+				for (auto f: _frames)
+					delete f;
+				_frames.clear();
 				_need_keyframe = true;
-				delete _packet; _packet = nullptr;
+				delete _packet; _packet = nil;
 			}
 		}
 
-		CMSampleBufferRef get_sample_data(const Packet *pkt) {
+		static void decompress_frame_cb(MacVideoCodec* self, void* source, OSStatus status,
+																		VTDecodeInfoFlags flags,
+																		CVImageBufferRef buffer, CMTime pts, CMTime duration
+		) {
+			if (status != noErr)
+				return;
+			ScopeLock scope(self->_mutex); // lock scope
+			auto w = self->_stream.width, h = self->_stream.height;
+			auto f = (Frame*)::malloc(sizeof(Frame) + sizeof(AVFrame));
+			auto avf = reinterpret_cast<AVFrame*>(f + 1);
+			memset(avf, 0, sizeof(AVFrame));
+			auto buf = av_buffer_alloc(av_image_get_buffer_size(AV_PIX_FMT_NV12, w, h, 1));
+			Qk_Assert_Eq(buf->size,
+				av_image_fill_arrays(avf->data, avf->linesize, buf->data, AV_PIX_FMT_NV12, w, h, 1)
+			);
+			CVPixelBufferLockFlags lock;
+			CVPixelBufferLockBaseAddress(buffer, lock);
+
+			memcpy(avf->data[0], CVPixelBufferGetBaseAddressOfPlane(buffer, 0), avf->linesize[0] * h); // y
+			memcpy(avf->data[1], CVPixelBufferGetBaseAddressOfPlane(buffer, 1), avf->linesize[1] * h >> 1); // uv
+
+			CVPixelBufferUnlockBaseAddress(buffer, lock);
+
+			avf->buf[0] = buf;
+			avf->extended_data = nil;
+			avf->format = AV_PIX_FMT_NV12;
+			avf->flags = 0; // flags
+			avf->key_frame = 0;
+			avf->width = w;
+			avf->height = h;
+			f->avframe = avf;
+			f->data = avf->data;
+			f->linesize = reinterpret_cast<uint32_t*>(avf->linesize);
+			f->dataitems = 2;
+			f->pts = Qk_MAX(0, pts.value);
+			f->pkt_duration = duration.value;
+			f->nb_samples = 0;
+			f->width = w;
+			f->height = h;
+			f->format = kYUV420SP_ColorType; // yuv420sp
+
+			self->_frames.pushBack(f);
+		}
+
+		CMSampleBufferRef new_sample_data(const Packet *pkt) {
+			if (!MediaCodec::convert_sample_data_to_mp4_style(pkt->data, pkt->size))
+				return nil;
+
 			OSStatus status;
 			CMBlockBufferRef block;
+			CMSampleBufferRef buf = nil;
 
-			uint64_t sample_time = pkt->pts;
-
-			if ( _sample_data && _sample_time == sample_time ) {
-				return _sample_data;
-			}
-
-			if ( _sample_data ) {
-				CFRelease(_sample_data);
-				_sample_data = nullptr;
-			}
-
-			auto size = pkt->size;
-			auto buf = pkt->data;
-			MediaCodec::convert_sample_data_to_mp4_style(buf, size);
-
-			status = CMBlockBufferCreateWithMemoryBlock(nullptr,
-																									buf,
-																									size,
+			status = CMBlockBufferCreateWithMemoryBlock(nil,
+																									pkt->data, pkt->size,
 																									kCFAllocatorNull,
-																									nullptr, 0, size, 0, &block);
-			if ( status == noErr ) {
-				CMSampleTimingInfo frameTimingInfo;
-				frameTimingInfo.decodeTimeStamp = CMTimeMake(pkt->dts, 1);
-				frameTimingInfo.duration = CMTimeMake(0, 1);
-				frameTimingInfo.presentationTimeStamp = CMTimeMake(sample_time, 1);
+																									nil, 0, pkt->size, 0, &block);
+			if ( status != noErr )
+				return nil;
 
-				size_t sample_size = size;
+			CMSampleTimingInfo info;
+			info.duration = CMTimeMake(pkt->duration, 1e6);
+			info.presentationTimeStamp = CMTimeMake(pkt->pts, 1e6);
+			info.decodeTimeStamp = CMTimeMake(pkt->dts, 1e6);
 
-				status = CMSampleBufferCreate(kCFAllocatorDefault, block, true,
-																			nullptr,
-																			nullptr,
-																			_format_desc, 1, 1,
-																			&frameTimingInfo, 1, &sample_size, &_sample_data);
-				CFRelease(block);
+			size_t ssize = pkt->size;
 
-				if ( status == noErr ) {
-					_sample_time = sample_time;
-					return _sample_data;
-				}
-			}
-			return nullptr;
+			status = CMSampleBufferCreate(kCFAllocatorDefault,
+																		block, true,
+																		nil, nil,
+																		_desc, 1, 1, &info, 1, &ssize, &buf);
+			CFRelease(block);
+
+			return buf;
 		}
 
 		int send_packet(const Packet *pkt) override {
 			if ( _session ) {
-				{
-					ScopeLock scope(_mutex);
-					if ( _output_buffer_count >= uint32_t(OUTPUT_BUFFER_NUM / 1.5) ) {
-						return AVERROR(EAGAIN);
-					}
-				}
+				if (_frames.length() >= 6)
+					return AVERROR(EAGAIN);
 				if ( _need_keyframe ) { // need key frame
 					if ( pkt->flags & AV_PKT_FLAG_KEY ) { // i frame
 						_need_keyframe = false; // start
@@ -293,21 +251,19 @@ namespace qk {
 						return 0;
 					}
 				}
-
 				OSStatus status;
 				VTDecodeFrameFlags flags = kVTDecodeFrame_EnableAsynchronousDecompression;
-				CMSampleBufferRef sample_data = get_sample_data(pkt);
 				VTDecodeInfoFlags flagOut;
+				CMSampleBufferRef data = new_sample_data(pkt);
 
-				if ( sample_data ) {
-					status = VTDecompressionSessionDecodeFrame(_session, sample_data, flags, NULL, &flagOut);
-
-					if (status == noErr) {
-						return 0;
-					} else if (status == kVTInvalidSessionErr) {
+				if ( data ) {
+					status = VTDecompressionSessionDecodeFrame(_session, data, flags, nil, &flagOut);
+					if (status == kVTInvalidSessionErr) {
 						close();
 						open(); // reopen
 					}
+					CFRelease(data);
+					return status;
 				}
 			}
 			return AVERROR(ENOMEM);
@@ -322,122 +278,59 @@ namespace qk {
 			if (!packet) {
 				return AVERROR(EAGAIN);
 			}
-			int rc = send_packet(_packet);
+			int rc = send_packet(packet);
 			if (rc) {
 				ScopeLock lock(_mutex);
 				_packet = packet;
-			} else if (_packet) {
+			} else {
 				ScopeLock lock(_mutex);
-				delete _packet; _packet = nullptr;
+				delete packet; _packet = nil;
 			}
 			return rc;
 		}
 
 		int receive_frame(Frame **frame) override {
-			ScopeLock scope(_mutex);
-			/*
-			if ( _output_buffer_count ) {
-				OutputBufferInfo* buf = nullptr;
-				OutputBufferInfo* unknown_time_frame = nullptr;
-				Frame out;
-
-				// sort frame
-				for (int i = 0; i < OUTPUT_BUFFER_NUM; i++) {
-					OutputBufferInfo* b2 = _output_buffer + i;
-					if ( b2->buffer ) {
-						if ( b2->time == Uint64::limit_max ) { //  Unknown time frame
-							if ( unknown_time_frame ) {
-								_output_buffer_count--;
-								CVPixelBufferUnlockBaseAddress(unknown_time_frame->buffer, unknown_time_frame->lock);
-								CVPixelBufferRelease(unknown_time_frame->buffer);
-								unknown_time_frame->buffer = nullptr;
-							}
-							unknown_time_frame = b2;
-						} else {
-							if ( buf ) {
-								if ( b2->time < buf->time ) {
-									buf = b2; out.index = i;
-								}
-							} else {
-								buf = b2; out.index = i;
-							}
-						}
+			if (_frames.length()) {
+				ScopeLock scope(_mutex);
+				auto cu = _frames.begin(), it = cu.next();
+				if ((*cu)->pts) {
+					auto len = Uint32::min(_frames.length() - 1, 5);
+					for (int i = 0; i < len; i++) {
+						if ((*cu)->pts > (*it)->pts)
+							cu = it; // Sort frames
+						it++;
 					}
 				}
-
-				// correct time
-				if ( buf ) {
-					if ( _presentation_time ) {
-						int64_t diff = buf->time - _presentation_time - _stream.average_framerate;
-						if ( diff > _stream.average_framerate / 2 && diff < _stream.average_framerate * 3 ) {
-							if (unknown_time_frame) {
-								buf = unknown_time_frame;
-								buf->time = _presentation_time + _stream.average_framerate;
-							}
-						}
-					}
-				} else {
-					buf = unknown_time_frame;
-					buf->time = _presentation_time + _stream.average_framerate;
-				}
-
-				// yuv420sp
-				out.linesize[0] =  _video_width * _video_height;
-				out.linesize[1] = out.linesize[0] / 2;
-				out.data[0] = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(buf->buffer, 0);  // y
-				out.data[1] = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(buf->buffer, 1);  // uv
-				out.time  = _presentation_time = buf->time;
-				out.total = out.linesize[0] + out.linesize[1];
-				return out;
+				*frame = *cu;
+				_frames.erase(cu);
+				return 0;
 			}
-			return Frame();*/
-		}
-
-		void release(Frame& frame) {
-			/*ScopeLock scope(_mutex);
-
-			if ( frame.total ) {
-				int index = frame.index;
-
-				memset(&frame, 0, sizeof(Frame));
-				if ( _output_buffer[index].buffer ) {
-					OutputBufferInfo* buf = _output_buffer + index;
-					_output_buffer_count--;
-					CVPixelBufferUnlockBaseAddress(buf->buffer, buf->lock);
-					CVPixelBufferRelease(buf->buffer);
-					buf->buffer = nullptr;
-				}
-			}*/
+			return AVERROR(EAGAIN);
 		}
 
 		void set_threads(uint32_t value) override {}
 
 	private:
 		VTDecompressionSessionRef _session;
-		CMFormatDescriptionRef _format_desc;
-		CMSampleBufferRef  _sample_data;
-		uint64_t         _sample_time;
-		Mutex            _mutex;
-		OutputBufferInfo _output_buffer[OUTPUT_BUFFER_NUM];
-		uint32_t  _output_buffer_count;
-		uint32_t  _video_width, _video_height;
-		uint64_t  _presentation_time;
-		Packet*   _packet;
-		bool      _need_keyframe;
+		CMFormatDescriptionRef _desc;
+		Mutex        _mutex;
+		Packet      *_packet;
+		List<Frame*> _frames;
+		bool         _need_keyframe;
 	};
 
 	MediaCodec* MediaCodec_hardware(MediaType type, MediaSource* source) {
 		Extractor* ex = source->extractor(type);
 		if ( ex ) {
 			if (type == kAudio_MediaType) {
-				return nullptr;
+				return nil;
 			}
-			//Sp<MacVideoCodec> codec = new MacVideoCodec(ex->stream());
-			//if (codec->initialize()) {
-			//	return codec.collapse();
-			//}
+			Sp<MacVideoCodec> codec = new MacVideoCodec(ex->stream());
+			if (codec->init()) {
+				return codec.collapse();
+			}
 		}
-		return nullptr;
+		return nil;
 	}
 
 }

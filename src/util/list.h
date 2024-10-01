@@ -50,8 +50,8 @@ namespace qk {
 			inline const T& data() const { return *reinterpret_cast<const T*>((&_next) + 1); }
 			Node *_prev, *_next;
 		};
-		typedef ComplexIterator<const Node, Node> IteratorConst;
-		typedef ComplexIterator<Node, Node> Iterator;
+		typedef ComplexIterator<Node, false> Iterator;
+		typedef ComplexIterator<Node, true>  IteratorConst;
 
 		List();
 		List(List&&);

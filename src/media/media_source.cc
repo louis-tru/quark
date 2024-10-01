@@ -35,7 +35,7 @@
 #include "../util/fs.h"
 
 namespace qk {
-	#define CACHE_DATA_TIME_SECOND 10
+	#define Qk_BUFFER_DURATION 1e7
 
 	class DefaultMediaSourceDelegate: public MediaSource::Delegate {
 	public:
@@ -133,7 +133,7 @@ namespace qk {
 		, _status(kUninitialized_MediaSourceStatus)
 		, _delegate(&default_media_source_delegate)
 		, _program_idx(0)
-		, _duration(0), _seek(0), _packets(0)
+		, _duration(0), _seek(0), _fixed_packet_duration(Qk_BUFFER_DURATION)
 		, _fmt_ctx(nullptr)
 		, _uri(fs_reader()->format(uri))
 		, _video_ex(nullptr), _audio_ex(nullptr)
@@ -216,7 +216,7 @@ namespace qk {
 	bool Inl::switch_program(uint32_t index) {
 		ScopeLock scope(_mutex);
 		return Uint32::min(_programs.length() - 1, index) == _program_idx ?
-			false: (switch_program_for(index), true);
+			false: (switch_program_by(index), true);
 	}
 
 	void Inl::stop() {
@@ -227,6 +227,14 @@ namespace qk {
 		for ( auto& i : _extractors ) {
 			i.value->flush();
 		}
+	}
+
+	bool Inl::advance_eof() {
+		for ( auto& i : _extractors ) {
+			if (i.value->_pkt != i.value->_packets.end())
+				return false;
+		}
+		return true;
 	}
 
 	#define Abort_fferr(err, msg, ...) trigger_fferr(err, msg, ##__VA_ARGS__); return
@@ -270,7 +278,7 @@ namespace qk {
 			_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
 			_status = kOpen_MediaSourceStatus;
 			_fmt_ctx = fmt_ctx;
-			switch_program_for(Uint32::min(_programs.length() - 1, _program_idx));
+			switch_program_by(Uint32::min(_programs.length() - 1, _program_idx));
 			_mutex.unlock();
 			_delegate->media_source_open(_host);
 			Qk_Assert_Ne(_extractors.length(), 0, "No Extractors on MediaSource");
@@ -318,7 +326,7 @@ namespace qk {
 			}
 
 			if (rc == AVERROR_EOF) {
-				if (_packets == 0) {
+				if (advance_eof()) {
 					Qk_DEBUG("read_frame() eof break;");
 					_status = kEOF_MediaSourceStatus;
 					_delegate->media_source_eof(_host);
@@ -346,7 +354,7 @@ namespace qk {
 		av_packet_unref(&pkt);
 	}
 
-	void Inl::switch_program_for(uint32_t index) {
+	void Inl::switch_program_by(uint32_t index) {
 		for ( auto& i: _extractors ) {
 			auto ex = i.value;
 			Array<Stream> streams;
@@ -401,13 +409,9 @@ namespace qk {
 			av_packet_unref(&avpkt);
 			return true; // discard packet
 		}
-		if (ex->_packets.length() > 1024) {
+		if (ex->_after_duration > _fixed_packet_duration/*default 10 second*/) {
 			return false;
 		}
-		if (ex->_packets_duration > 1e7/*10 second*/) { // cache packet data 10 second
-			return false;
-		}
-
 		auto unit = 1000000.0 * stream.time_base[0] / stream.time_base[1];
 
 		auto pkt = new (::malloc(sizeof(Packet) + sizeof(AVPacket))) Packet{
@@ -419,26 +423,38 @@ namespace qk {
 			static_cast<uint64_t>(avpkt.duration * unit),
 			avpkt.flags,
 		};
+		Qk_Assert_Ne(pkt->duration, 0);
 		pkt->avpkt = reinterpret_cast<AVPacket*>(pkt + 1);
 		*pkt->avpkt = avpkt; // copy
 		av_init_packet(&avpkt);
-		_packets++;
-		ex->_packets_duration += pkt->duration;
-		ex->_packets.pushBack(pkt);
+		ex->_after_duration += pkt->duration;
+
+		if (ex->_pkt == ex->_packets.end()) {
+			ex->_pkt = ex->_packets.pushBack(pkt);
+		} else {
+			ex->_packets.pushBack(pkt);
+		}
 		return true;
 	}
 
 	MediaSource::Packet* Inl::advance(Extractor* ex) {
 		ScopeLock scope(_mutex);
-		if ( ex->_packets.length() ) {
-			auto pkt = ex->_packets.front();
-			ex->_packets.popFront();
-			ex->_packets_duration -= pkt->duration;
-			_packets--;
-			return pkt;
-		} else {
+		if (ex->_pkt == ex->_packets.end())
 			return nullptr;
+		auto pkt = *ex->_pkt;
+		ex->_after_duration -= pkt->duration;
+		ex->_before_duration += pkt->duration;
+
+		if (ex->_before_duration > _fixed_packet_duration) {
+			if (ex->_pkt != ex->_packets.begin()) {
+				auto pkt = ex->_packets.front();
+				ex->_before_duration -= pkt->duration;
+				ex->_packets.popFront();
+				delete pkt;
+			}
 		}
+		ex->_pkt++;
+		return pkt->clone();
 	}
 
 	// ------------------- MediaSource ------------------
@@ -464,4 +480,6 @@ namespace qk {
 	bool MediaSource::seek(uint64_t timeUs) { return _inl->seek(timeUs); }
 	void MediaSource::open() { _inl->open(); }
 	void MediaSource::stop() { _inl->stop(); }
+	uint64_t MediaSource::packet_duration() { return _inl->_fixed_packet_duration; }
+	void MediaSource::set_packet_duration(uint64_t val) { _inl->_fixed_packet_duration = val; }
 }

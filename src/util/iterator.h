@@ -33,22 +33,28 @@
 
 namespace qk {
 
-	template <typename T, typename T2>
+	template<typename T, bool IsConst>
+	struct IteratorType          { typedef T Type; };
+	template<typename T>
+	struct IteratorType<T, true> { typedef const T Type; };
+
+	template <typename T, bool IsConst>
 	class SimpleIterator {
-		template<typename, typename> friend class SimpleIterator;
+		template<typename, bool> friend class SimpleIterator;
 	public:
 		//! Constant iterator type
-		typedef SimpleIterator<const T2, T2> IteratorConst;
+		typedef SimpleIterator<T, true>  IteratorConst;
 		//! Non-constant iterator type
-		typedef SimpleIterator<T2, T2>       NonIteratorConst;
+		typedef SimpleIterator<T, false> Iterator;
 		//! Pointer to (const) GenericMember
-		typedef   T*       Pointer;
+		typedef typename IteratorType<T, IsConst>::Type* Pointer;
 		//! Reference to (const) GenericMember
-		typedef   T&       Reference;
+		typedef typename IteratorType<T, IsConst>::Type& Reference;
 
 		SimpleIterator(): _ptr(nullptr) {}
-		explicit SimpleIterator(Pointer ptr): _ptr(ptr) {}
-		SimpleIterator(const NonIteratorConst& it): _ptr(it._ptr) {}
+		explicit
+		SimpleIterator(Pointer ptr): _ptr(ptr) {}
+		SimpleIterator(const Iterator& it): _ptr(it._ptr) {}
 
 		SimpleIterator& operator++() {    // ++i
 			++_ptr; return *this;
@@ -62,45 +68,51 @@ namespace qk {
 		SimpleIterator operator--(int) { // i--
 			SimpleIterator old(*this); --_ptr; return old;
 		}
-
+		SimpleIterator prev() const {
+			return SimpleIterator(_ptr-1);
+		}
+		SimpleIterator next() const {
+			return SimpleIterator(_ptr+1);
+		}
 		bool operator==(const IteratorConst& that) const {
 			return _ptr == that._ptr;
 		}
 		bool operator!=(const IteratorConst& that) const {
 			return !(_ptr == that._ptr);
 		}
-		bool operator==(const NonIteratorConst& that) const {
+		bool operator==(const Iterator& that) const {
 			return _ptr == that._ptr;
 		}
-		bool operator!=(const NonIteratorConst& that) const {
+		bool operator!=(const Iterator& that) const {
 			return !(_ptr == that._ptr);
 		}
-
 		Pointer   operator->() const { return _ptr; }
 		Reference operator*() const { return *_ptr; }
 		//
-	protected:
+	private:
 		Pointer _ptr; //!< raw pointer
 	};
 
-	template <typename T, typename T2>
+	template <typename T, bool IsConst>
 	class ComplexIterator {
-		template<typename, typename> friend class ComplexIterator;
+		template<typename, bool> friend class ComplexIterator;
 	public:
+		typedef typename IteratorType<T, IsConst>::Type Type;
 		//! Constant iterator type
-		typedef ComplexIterator<const T2, T2> IteratorConst;
+		typedef ComplexIterator<T, true> IteratorConst;
 		//! Non-constant iterator type
-		typedef ComplexIterator<      T2, T2> NonIteratorConst;
+		typedef ComplexIterator<T, false> Iterator;
 		//! Pointer to (const) GenericMember
-		typedef typename T::Data* Pointer;
+		typedef typename IteratorType<typename T::Data, IsConst>::Type* Pointer;
 		//! Reference to (const) GenericMember
-		typedef typename T::Data& Reference;
+		typedef typename IteratorType<typename T::Data, IsConst>::Type& Reference;
 
 		ComplexIterator(): _ptr(nullptr) {}
-		explicit ComplexIterator(T* ptr): _ptr(ptr) {}
-		ComplexIterator(const NonIteratorConst& it): _ptr(it._ptr) {}
-		
-		T* ptr() const { return _ptr; }
+		explicit
+		ComplexIterator(Type* ptr): _ptr(ptr) {}
+		ComplexIterator(const Iterator& it): _ptr(it._ptr) {}
+
+		Type* ptr() const { return _ptr; }
 
 		ComplexIterator& operator++() {    // ++i
 			_ptr = _ptr->next(); return *this;
@@ -114,6 +126,12 @@ namespace qk {
 		ComplexIterator operator--(int) { // i--
 			ComplexIterator old(*this); _ptr = _ptr->prev(); return old;
 		}
+		ComplexIterator prev() const {
+			return ComplexIterator(_ptr->prev());
+		}
+		ComplexIterator next() const {
+			return ComplexIterator(_ptr->next());
+		}
 		
 		bool operator==(const IteratorConst& that) const {
 			return _ptr == that._ptr;
@@ -121,18 +139,18 @@ namespace qk {
 		bool operator!=(const IteratorConst& that) const {
 			return !(_ptr == that._ptr);
 		}
-		bool operator==(const NonIteratorConst& that) const {
+		bool operator==(const Iterator& that) const {
 			return _ptr == that._ptr;
 		}
-		bool operator!=(const NonIteratorConst& that) const {
+		bool operator!=(const Iterator& that) const {
 			return !(_ptr == that._ptr);
 		}
 
-		Pointer   operator->() const { return &((T2*)_ptr)->data(); }
-		Reference operator*() const { return ((T2*)_ptr)->data(); }
+		Pointer   operator->() const { return &_ptr->data(); }
+		Reference operator*() const { return _ptr->data(); }
 
 	private:
-		T* _ptr; //!< raw pointer
+		Type* _ptr; //!< raw pointer
 	};
 
 }

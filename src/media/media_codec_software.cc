@@ -38,18 +38,16 @@ namespace qk {
 			: MediaCodec(stream)
 			, _ctx(ctx)
 			, _packet(nullptr)
-			, _frame(nullptr)
+			, _frame(av_frame_alloc())
 			, _swr(nullptr)
 			, _sws(nullptr)
 			, _threads(1)
 		{
-			_frame = av_frame_alloc();
 			Qk_Assert(_frame);
 		}
 
 		~SoftwareMediaCodec() override {
 			close();
-
 			avcodec_free_context(&_ctx);
 			av_frame_free(&_frame);
 		}
@@ -204,7 +202,7 @@ namespace qk {
 				f->avframe = reinterpret_cast<AVFrame*>(f + 1);
 				av_frame_move_ref(f->avframe, _frame);
 				f->data = f->avframe->data;
-				f->datasize = reinterpret_cast<uint32_t*>(f->avframe->linesize);
+				f->linesize = reinterpret_cast<uint32_t*>(f->avframe->linesize);
 				*out = f;
 			}
 			return rc;
@@ -240,12 +238,13 @@ namespace qk {
 				}
 				if (_frame->format == AV_PIX_FMT_YUV420P) { // yuv420p
 					out.format = kYUV420P_ColorType;
+					out.dataitems = 3;
 				} else { // yuv420sp
 					out.format = kYUV420SP_ColorType;
+					out.dataitems = 2;
 					Qk_Assert_Eq(_frame->format, AV_PIX_FMT_NV12);
 				}
-				out.dataitems = 3;
-				out.pts = _frame->pts * unit;
+				out.pts = Int64::max(_frame->pts * unit, 0);
 				out.pkt_duration = _frame->pkt_duration * unit;
 				out.nb_samples = 0;
 				out.width = w;
@@ -279,7 +278,7 @@ namespace qk {
 				}
 				Qk_Assert_Eq(_frame->format, AV_SAMPLE_FMT_S16);
 				out.dataitems = 1;
-				out.pts = _frame->pts * unit;
+				out.pts = Int64::max(_frame->pts * unit, 0);
 				out.pkt_duration = _frame->pkt_duration * unit;;
 				out.nb_samples = _frame->nb_samples;
 				out.width = 0;

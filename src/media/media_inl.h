@@ -94,8 +94,9 @@ namespace qk {
 		void trigger_fferr(int err, cChar *f, ...);
 		void trigger_error(cError& err);
 		void thread_abort();
-		void switch_program_for(uint32_t index);
+		void switch_program_by(uint32_t index);
 		bool switch_stream(Extractor *ex, uint32_t index);
+		bool advance_eof();
 
 		ThreadID               _tid;
 		MediaSource*           _host;
@@ -106,8 +107,7 @@ namespace qk {
 		Array<Program>         _programs;
 		Dict<int, Extractor*>  _extractors; // MediaType => Extractor*
 		Extractor             *_video_ex, *_audio_ex;
-		uint64_t               _duration, _seek;
-		uint32_t               _packets; // packets total count on extractors
+		uint64_t               _duration, _seek, _fixed_packet_duration;
 		AVFormatContext*       _fmt_ctx;
 		Mutex                  _mutex;
 

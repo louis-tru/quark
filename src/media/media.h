@@ -116,6 +116,7 @@ namespace qk {
 			uint64_t  duration; // Duration of this packet, (Microseconds)
 			int       flags; // keyframe flags
 			~Packet();
+			Packet* clone() const;
 		};
 
 		class Qk_EXPORT Extractor: public Object {
@@ -149,7 +150,9 @@ namespace qk {
 
 			Array<Stream>     _streams;
 			List<Packet*>     _packets;
-			uint64_t          _packets_duration;
+			uint64_t          _before_duration, _after_duration;
+			List<Packet*>::Iterator _pkt; // next presentation packet
+
 			friend class MediaSource;
 			friend class MediaSource::Inl;
 		};
@@ -171,6 +174,7 @@ namespace qk {
 		Qk_DEFINE_PROP_ACC_GET(Extractor*, video_extractor); //!< extractor() must be called first
 		Qk_DEFINE_PROP_ACC_GET(Extractor*, audio_extractor); //!< extractor() must be called first
 		Qk_DEFINE_PROP_ACC_GET(bool, is_open, Const); // !< Getting whether it's open
+		Qk_DEFINE_PROP_ACC(uint64_t, packet_duration); // the length of the packet buffer time before and after, default 10 seconds
 
 		MediaSource(cString& uri);
 		~MediaSource() override;
@@ -221,7 +225,7 @@ namespace qk {
 		struct Frame {
 			AVFrame*  avframe = 0; // ff avframe
 			uint8_t** data;     // data items
-			uint32_t* datasize; // Data item size
+			uint32_t* linesize; // data a linesize
 			uint32_t  dataitems;// items size of data
 			int64_t   pts;      // Presentation timestamp
 			int64_t   pkt_duration; // Duration of frame on packet, (Microseconds)
@@ -290,7 +294,7 @@ namespace qk {
 		/**
 		* @method parse_psp_pps
 		*/
-		static bool parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps);
+		static bool parse_avc_psp_pps(cArray<char>& extradata, Buffer& out_psp, Buffer& out_pps);
 
 		/**
 		* @method create decoder

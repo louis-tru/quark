@@ -88,8 +88,8 @@ namespace qk {
 			uint64_t hashCode;
 			Node *_prev, *_next, *_conflict;
 		};
-		typedef ComplexIterator<const Node, Node> IteratorConst;
-		typedef ComplexIterator<Node, Node> Iterator;
+		typedef ComplexIterator<Node, true>  IteratorConst;
+		typedef ComplexIterator<Node, false> Iterator;
 
 		Dict();
 		Dict(Dict&& dict);

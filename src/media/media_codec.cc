@@ -65,18 +65,18 @@ namespace qk {
 		return false;
 	}
 
-	bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
+	bool MediaCodec::parse_avc_psp_pps(cArray<char>& extradata, Buffer& out_psp, Buffer& out_pps) {
 		// set sps and pps
 		uint8_t* buf = (uint8_t*)*extradata;
-		
+
 		if ( is_nalu_start(buf) ) { // nalu
 			uint32_t start = 4, end = 0;
 			while (find_nalu_package(buf, extradata.length(), start, end)) {
 				int nalu_type = buf[start] & 0x1F;
 				if (nalu_type == 0x07) {        // SPS
-					out_psp.write((Char*)buf + start - 4, 0, end - start + 4);
+					out_psp.write((Char*)buf + start - 4, end - start + 4, 0);
 				} else if (nalu_type == 0x08) { // PPS
-					out_pps.write((Char*)buf + start - 4, 0, end - start + 4);
+					out_pps.write((Char*)buf + start - 4, end - start + 4, 0);
 				}
 				if (out_psp.length() && out_pps.length()) {
 					return true;
@@ -90,10 +90,10 @@ namespace qk {
 				uint32_t pps_size = buf[10 + sps_size];
 				if (sps_size + pps_size < extradata.length()) {
 					Char csd_s[4] = {0, 0, 0, 1};
-					out_psp.write(csd_s, 0, 4);
-					out_pps.write(csd_s, 0, 4);
-					out_psp.write((Char*)buf + 8, 4, sps_size);
-					out_pps.write((Char*)buf + 11 + sps_size, 4, pps_size);
+					out_psp.write(csd_s, 4, 0);
+					out_psp.write((Char*)buf + 8, sps_size, 4);
+					out_pps.write(csd_s, 4, 0);
+					out_pps.write((Char*)buf + sps_size + 11, pps_size, 4);
 					return true;
 				}
 			}

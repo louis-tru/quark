@@ -28,14 +28,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-extern "C" {
-	#include <libavutil/imgutils.h>
-	#include <libavutil/samplefmt.h>
-	#include <libavutil/timestamp.h>
-	#include <libavformat/avformat.h>
-	#include <libavcodec/avcodec.h>
-	//#include <libavcodec/fft.h>
-}
 #include <quark/util/util.h>
 #include <quark/util/fs.h>
 #include <quark/media/media.h>
@@ -58,8 +50,8 @@ typedef MediaCodec::Frame Frame;
 class TestMedia: public Image, public MediaSource::Delegate, public PreRender::Task {
 public:
 	~TestMedia() {
-		delete _frame_v;
-		delete _frame_a;
+		delete _frame_v; _frame_v = nullptr;
+		delete _frame_a; _frame_a = nullptr;
 	}
 	void media_source_open(MediaSource* source) override {
 		UILock lock(window());
@@ -110,9 +102,8 @@ public:
 			return;
 		}
 		if (!_play_ts) {
-			_play_ts = time_monotonic();
+			_play_ts = time_monotonic() - _frame_a->pts;
 		}
-
 		if (_frame_a->pts) {
 			auto pts = _frame_a->pts - (_pcm->delay() * _frame_a->pkt_duration);
 			if (time_monotonic() - _play_ts < pts)
@@ -136,16 +127,16 @@ public:
 			return false;
 		}
 		if (!_play_ts) {
-			_play_ts = now;
+			_play_ts = now - _frame_v->pts;
 		}
 		if (_frame_v->pts) {
 			int64_t pts = now - _play_ts;
 			if (pts < _frame_v->pts)
 				return false;
-			int64_t dts = pts - _frame_v->pts;
-			if (dts > _frame_v->pkt_duration * 2) { // decoding timeout
-				Qk_DEBUG("pkt_duration, timeout %d", dts - _frame_v->pkt_duration);
-				_play_ts += (dts - _frame_v->pkt_duration); // correct play ts
+			int64_t dur = pts - _frame_v->pts;
+			if (dur > _frame_v->pkt_duration * 2) { // decoding timeout
+				Qk_DEBUG("pkt_duration, timeout %d", dur - _frame_v->pkt_duration);
+				_play_ts += (dur - _frame_v->pkt_duration); // correct play ts
 			}
 		}
 		auto src = source();
@@ -167,8 +158,8 @@ private:
 	Sp<MediaSource> _src;
 	Sp<MediaCodec> _video, _audio;
 	Sp<PCMPlayer>  _pcm;
-	Frame         *_frame_a = 0;
-	Frame         *_frame_v = 0;
+	Frame         *_frame_a = nullptr;
+	Frame         *_frame_v = nullptr;
 	int64_t        _play_ts = 0;
 };
 
@@ -184,12 +175,13 @@ int test_media(int argc, char **argv) {
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_align(Align::CenterMiddle);
 
-	//t->open("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
+	t->open("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
 	//t->open("/Users/louis/Movies/e7bb722c-3f66-11ee-ab2c-aad3d399777e-v8_f2_t1_maSNnEvY.mp4");
 	//t->open("/Users/louis/Movies/申冤人/The.Equalizer.3.2023.2160p.WEB.H265-HUZZAH[TGx]/the.equalizer.3.2023.2160p.web.h265-huzzah.mkv");
-	t->open("/Users/louis/Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4");
+	//t->open("/Users/louis/Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4");
 	//t->open("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
 	//t->open("/Users/louis/Movies/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4");
+	//t->open("/Users/louis/Movies/巡回检查组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP01.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
 
 	app.run();
 }

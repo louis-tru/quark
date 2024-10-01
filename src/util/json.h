@@ -49,10 +49,10 @@ namespace qk {
 	public:
 		struct Member;
 
-		typedef SimpleIterator<Member,       Member>  Iterator;
-		typedef SimpleIterator<const Member, Member>  IteratorConst;
-		typedef       JSON*                           ArrayIterator;
-		typedef const JSON*                           ArrayIteratorConst;
+		typedef SimpleIterator<Member, false>  Iterator;
+		typedef SimpleIterator<Member, true>   IteratorConst;
+		typedef       JSON*                    ArrayIterator;
+		typedef const JSON*                    ArrayIteratorConst;
 		
 		//! Type of JSON value
 		enum Type {

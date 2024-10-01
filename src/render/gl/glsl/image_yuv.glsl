@@ -11,7 +11,7 @@ uniform   lowp int       format; // 0: YUV420SP, 1: YUV420P
 
 void main() {
 	lowp float y = texture(image, coord_f).r;
-	lowp vec2  uv = texture(image_u, coord_f).ra;
+	lowp vec2  uv = texture(image_u, coord_f).rg;
 	lowp float u = uv.x;
 	lowp float v = mix(uv.y, texture(image_v, coord_f).r, format);
 

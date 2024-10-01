@@ -125,10 +125,10 @@ namespace qk {
 
 			if (_queue.length()) {
 				AudioQueueBufferRef buf = _queue.front();
-				Qk_Assert_Le(frame->datasize[0], buf->mAudioDataBytesCapacity); // <=
+				Qk_Assert_Le(frame->linesize[0], buf->mAudioDataBytesCapacity); // <=
 
-				buf->mAudioDataByteSize = frame->datasize[0];
-				memcpy(buf->mAudioData, frame->data[0], frame->datasize[0]);
+				buf->mAudioDataByteSize = frame->linesize[0];
+				memcpy(buf->mAudioData, frame->data[0], frame->linesize[0]);
 
 				if (AudioQueueEnqueueBuffer(_audio, buf, 0, nullptr) == noErr) {
 					_queue.popFront();
