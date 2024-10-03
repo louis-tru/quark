@@ -150,7 +150,6 @@ namespace qk {
 		}
 
 		void flush() override {
-			ScopeLock scope(_mutex);
 			Qk_Assert_Eq(noErr, AudioQueueReset(_audio));
 		}
 

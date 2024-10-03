@@ -65,7 +65,7 @@ namespace qk {
 		~MakingPixel() {
 			delete frame; frame = nullptr;
 		}
-		static Array<Pixel> make(Frame *&frame) {
+		static Array<Pixel> make(Frame *frame) {
 			Array<Pixel> pixel;
 			auto format = frame->avframe->format;
 			if (frame->dataitems && (format == AV_PIX_FMT_YUV420P || format == AV_PIX_FMT_NV12)) {
@@ -83,13 +83,12 @@ namespace qk {
 					Qk_Assert_Eq(frame->dataitems, 2);
 					pixel.push(Pixel(PixelInfo(width, height, kYUV420SP_UV_88_ColorType), pf->body+1));
 				}
-				frame = nullptr;
 			}
 			Qk_ReturnLocal(pixel);
 		}
 	};
 
-	Array<Pixel> MediaCodec::frameToPixel(Frame *&useFrame) {
+	Array<Pixel> MediaCodec::frameToPixel(Frame *useFrame) {
 		return MakingPixel::make(useFrame);
 	}
 

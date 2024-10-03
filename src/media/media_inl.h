@@ -56,48 +56,23 @@ namespace qk {
 	public:
 		Inl(MediaSource*, cString& uri);
 		~Inl();
-
-		/**
-		* @method set_delegate
-		*/
-		void set_delegate(Delegate* delegate);
-
-		/**
-		* @method switch_program
-		*/
-		bool switch_program(uint32_t index);
-
-		/**
-		* @method extractor
-		*/
-		Extractor* extractor(MediaType type);
-
-		/**
-		* @method seek
-		* */
-		bool seek(uint64_t timeUs);
-
-		/**
-		* @method start running
-		* */
 		void open();
-
-		/**
-		* @method stop running
-		* */
 		void stop();
-
-	private:
-		void read_stream(cThread *t, AVFormatContext* fmt_ctx, cString& uri);
+		bool seek(uint64_t timeUs);
+		bool seek_ex(uint64_t timeUs, Extractor *ex);
+		void read_stream(cThread *t, cString& uri);
 		bool packet_push(AVPacket& avpkt);
 		Packet* advance(Extractor* ex);
+		Extractor* extractor(MediaType type);
+		void remove_extractor(MediaType type);
 		void trigger_fferr(int err, cChar *f, ...);
 		void trigger_error(cError& err);
 		void thread_abort();
-		void switch_program_by(uint32_t index);
+		void switch_program_sure(uint32_t index, bool event);
 		bool switch_stream(Extractor *ex, uint32_t index);
+		void flush();
 		bool advance_eof();
-
+	private:
 		ThreadID               _tid;
 		MediaSource*           _host;
 		URI                    _uri;
@@ -110,11 +85,8 @@ namespace qk {
 		uint64_t               _duration, _seek, _fixed_packet_duration;
 		AVFormatContext*       _fmt_ctx;
 		Mutex                  _mutex;
-
 		friend class MediaSource;
 		friend class Extractor;
-		friend class MediaCodec;
-		friend class SoftwareMediaCodec;
 	};
 
 }

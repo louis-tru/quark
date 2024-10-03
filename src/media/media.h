@@ -209,6 +209,16 @@ namespace qk {
 		*/
 		Extractor* extractor(MediaType type);
 
+		/**
+		 * @method remove_extractor() remove the a extractor by type
+		*/
+		void remove_extractor(MediaType type);
+
+		/**
+		 * @method flush flush all extractors and seek stream packet
+		*/
+		void flush();
+
 	private:
 		Inl*         _inl;
 		friend class Extractor;
@@ -269,12 +279,12 @@ namespace qk {
 		/**
 		* @method send_packet send packet to codec by extractor
 		*/
-		virtual int send_packet_for(Extractor *extractor) = 0;
+		virtual int send_packet(Extractor *extractor) = 0;
 
 		/**
 		* @method receive_frame receive frame data
 		*/
-		virtual int receive_frame(Frame **out) = 0;
+		virtual Frame* receive_frame() = 0;
 
 		/**
 		* @method set_threads set soft multi thread run
@@ -304,7 +314,7 @@ namespace qk {
 		/**
 		 * @method frameToPixel frame convert to pixel and lose holding
 		*/
-		static Array<Pixel> frameToPixel(Frame *&useFrame);
+		static Array<Pixel> frameToPixel(Frame *useFrame);
 
 	protected:
 		MediaCodec(const Stream &stream);

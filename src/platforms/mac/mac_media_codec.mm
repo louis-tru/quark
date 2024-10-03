@@ -269,27 +269,29 @@ namespace qk {
 			return AVERROR(ENOMEM);
 		}
 
-		int send_packet_for(Extractor *extractor) override {
-			Qk_Assert_Eq(type(), extractor->type());
-			if (!_session) {
+		int send_packet(Extractor *extractor) override {
+			if (!extractor || !_session) {
 				return AVERROR(EINVAL);
 			}
-			auto packet = _packet ? _packet: extractor->advance();
-			if (!packet) {
+			Qk_Assert_Eq(type(), extractor->type());
+
+			Lock lock(_mutex);
+			if (!_packet) {
+				_packet = extractor->advance();
+			}
+			if (!_packet) {
 				return AVERROR(EAGAIN);
 			}
-			int rc = send_packet(packet);
-			if (rc) {
-				ScopeLock lock(_mutex);
-				_packet = packet;
-			} else {
-				ScopeLock lock(_mutex);
-				delete packet; _packet = nil;
+			lock.unlock();
+			int rc = send_packet(_packet);
+			if (rc == 0) {
+				lock.lock();
+				delete _packet; _packet = nullptr;
 			}
 			return rc;
 		}
 
-		int receive_frame(Frame **frame) override {
+		Frame* receive_frame() override {
 			if (_frames.length()) {
 				ScopeLock scope(_mutex);
 				auto cu = _frames.begin(), it = cu.next();
@@ -301,11 +303,12 @@ namespace qk {
 						it++;
 					}
 				}
-				*frame = *cu;
+				auto f = *cu;
 				_frames.erase(cu);
-				return 0;
+				return f;
 			}
-			return AVERROR(EAGAIN);
+			// return AVERROR(EAGAIN);
+			return nullptr;
 		}
 
 		void set_threads(uint32_t value) override {}
@@ -319,8 +322,7 @@ namespace qk {
 		bool         _need_keyframe;
 	};
 
-	MediaCodec* MediaCodec_hardware(MediaType type, MediaSource* source) {
-		Extractor* ex = source->extractor(type);
+	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {
 		if ( ex ) {
 			if (type == kAudio_MediaType) {
 				return nil;

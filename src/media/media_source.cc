@@ -35,6 +35,7 @@
 #include "../util/fs.h"
 
 namespace qk {
+	// 10 seconds
 	#define Qk_BUFFER_DURATION 1e7
 
 	class DefaultMediaSourceDelegate: public MediaSource::Delegate {
@@ -152,11 +153,6 @@ namespace qk {
 		_video_ex = _audio_ex = nullptr;
 	}
 
-	void Inl::set_delegate(Delegate* delegate) {
-		ScopeLock scope(_mutex);
-		_delegate = delegate ? delegate : &default_media_source_delegate;
-	}
-
 	void Inl::trigger_error(cError& e) {
 #if DEBUG
 		Qk_ERR(e);
@@ -193,7 +189,7 @@ namespace qk {
 					if (i.type == type)
 						streams.push(i);
 				}
-				if ( streams.length() ) {
+				if (streams.length()) {
 					ex = _extractors.set(type, new Extractor(type, _host, std::move(streams)));
 					if (type == kVideo_MediaType)
 						_video_ex = ex;
@@ -205,18 +201,19 @@ namespace qk {
 		return ex;
 	}
 
-	bool Inl::seek(uint64_t timeUs) {
-		if ( _status == kOpen_MediaSourceStatus && timeUs < _duration ) {
-			_seek = Qk_MAX(1, timeUs);
-			return true;
-		}
-		return false;
-	}
-
-	bool Inl::switch_program(uint32_t index) {
+	void Inl::remove_extractor(MediaType type) {
 		ScopeLock scope(_mutex);
-		return Uint32::min(_programs.length() - 1, index) == _program_idx ?
-			false: (switch_program_by(index), true);
+		auto it = _extractors.find(type);
+		if (it != _extractors.end()) {
+			auto ex = it->value;
+			if (ex == _video_ex) {
+				_video_ex = nullptr;
+			} else if (ex == _audio_ex) {
+				_audio_ex = nullptr;
+			}
+			_extractors.erase(it);
+			ex->release();
+		}
 	}
 
 	void Inl::stop() {
@@ -224,17 +221,69 @@ namespace qk {
 		thread_abort(); // abort thread
 		_status = kUninitialized_MediaSourceStatus;
 
-		for ( auto& i : _extractors ) {
+		for (auto i : _extractors) {
 			i.value->flush();
 		}
 	}
 
 	bool Inl::advance_eof() {
-		for ( auto& i : _extractors ) {
+		for (auto i : _extractors) {
 			if (i.value->_pkt != i.value->_packets.end())
 				return false;
 		}
 		return true;
+	}
+
+	void Inl::switch_program_sure(uint32_t index, bool event) {
+		Lock lock(_mutex);
+
+		if (_extractors.length() == 0) {
+			return;
+		}
+
+		for ( auto i: _extractors ) {
+			auto ex = i.value;
+			Array<Stream> streams;
+
+			for (auto &s: _programs[index].streams) {
+				if (s.type == ex->type())
+					streams.push(s); // copy
+			}
+			if (streams.length()) {
+				ex->_streams = std::move(streams); // update streams on extractor
+				ex->_stream_index = Uint32::min(ex->_stream_index, ex->_streams.length() - 1);
+			} else {
+				Qk_LOG("No streams object the program of switch_program to %d, keep last", index);
+			}
+		}
+		_program_idx = index;
+
+		if (_fmt_ctx) {
+			for (int i = 0; i < _fmt_ctx->nb_programs; i++) {
+				_fmt_ctx->programs[i]->discard = index == i ? AVDISCARD_NONE: AVDISCARD_ALL;
+			}
+		}
+
+		if (event) {
+			auto ex = _extractors.values();
+			lock.unlock();
+			for (auto i: ex) {
+				_delegate->media_source_switch(_host, i);
+			}
+		}
+	}
+
+	bool Inl::switch_stream(Extractor *ex, uint32_t index) {
+		Lock lock(_mutex);
+		index = Uint32::min(index, ex->_streams.length() - 1);
+		if ( ex->_stream_index != index ) {
+			ex->_stream_index = index;
+			lock.unlock();
+			_delegate->media_source_switch(_host, ex);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	#define Abort_fferr(err, msg, ...) trigger_fferr(err, msg, ##__VA_ARGS__); return
@@ -278,21 +327,23 @@ namespace qk {
 			_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
 			_status = kOpen_MediaSourceStatus;
 			_fmt_ctx = fmt_ctx;
-			switch_program_by(Uint32::min(_programs.length() - 1, _program_idx));
 			_mutex.unlock();
+			switch_program_sure(Uint32::min(_programs.length() - 1, _program_idx), false);
 			_delegate->media_source_open(_host);
 			Qk_Assert_Ne(_extractors.length(), 0, "No Extractors on MediaSource");
 			if (_extractors.length())
-				read_stream(t, fmt_ctx, url);
+				read_stream(t, url);
 			_mutex.lock();
 			_fmt_ctx = nullptr;
 			_mutex.unlock();
+			_seek = 0;
 		}, "MediaSource::open,read_stream");
 	}
 
 	// -------------------------------------------------------------------------------
 
-	void Inl::read_stream(cThread* t, AVFormatContext* fmt_ctx, cString& url) {
+	void Inl::read_stream(cThread* t, cString& url) {
+		auto fmt_ctx = _fmt_ctx;
 		AVPacket pkt;
 		av_init_packet(&pkt);
 		int64_t st = 0;
@@ -307,16 +358,22 @@ namespace qk {
 			}
 			// SEEK check
 			if (_seek) {
-				int stream = av_find_default_stream_index(fmt_ctx);
+				if (_seek < _duration) {
+					_mutex.lock();
+					for (auto i : _extractors)
+						i.value->flush();
+					_mutex.unlock();
 
-				auto time_base = fmt_ctx->streams[stream]->time_base;
-				auto time = fmt_ctx->streams[stream]->start_time +
-										av_rescale(_seek / 1000000.0, time_base.den, time_base.num);
+					auto idx = av_find_default_stream_index(fmt_ctx);
+					auto stream = fmt_ctx->streams[idx];
+					auto time_base = stream->time_base;
+					// auto time = stream->start_time + av_rescale(_seek / 1000000.0, time_base.den, time_base.num);
+					auto time = stream->start_time + _seek * time_base.den / (time_base.num * 1000000);
 
-				if ( av_seek_frame(fmt_ctx, stream, time, AVSEEK_FLAG_BACKWARD) >= 0 ) {
-					// TODO ... clear Extractor cache sample data
-					rc = EAGAIN; // modify AVERROR_EOF
-					av_packet_unref(&pkt);
+					if ( av_seek_frame(fmt_ctx, idx, time, AVSEEK_FLAG_BACKWARD) >= 0 ) {
+						rc = EAGAIN; // modify AVERROR_EOF
+						av_packet_unref(&pkt);
+					}
 				}
 				_seek = 0;
 			}
@@ -354,44 +411,64 @@ namespace qk {
 		av_packet_unref(&pkt);
 	}
 
-	void Inl::switch_program_by(uint32_t index) {
-		for ( auto& i: _extractors ) {
+	void Inl::flush() {
+		ScopeLock lock(_mutex);
+		for (auto i: _extractors) {
 			auto ex = i.value;
-			Array<Stream> streams;
-
-			for (auto &s: _programs[index].streams) {
-				if (s.type == ex->type())
-					streams.push(s); // copy
-			}
-			if (streams.length()) {
-				ex->flush();
-				ex->_streams = std::move(streams); // update streams on extractor
-				ex->_stream_index = Uint32::min(ex->_stream_index, ex->_streams.length() - 1);
-				// notice decoder change..
-			} else {
-				Qk_LOG("No streams object the program of switch_program to %d, keep last", index);
+			if (ex->_pkt != ex->_packets.end()) {
+				auto pts = (*ex->_pkt)->pts;
+				if (pts) {
+					_seek = pts; // seek core
+				}
+				break;
 			}
 		}
-		_program_idx = index;
-
-		if (_fmt_ctx) {
-			for (int i = 0; i < _fmt_ctx->nb_programs; i++) {
-				_fmt_ctx->programs[i]->discard = index == i ? AVDISCARD_NONE: AVDISCARD_ALL;
-			}
+		for (auto i: _extractors) {
+			i.value->flush();
 		}
 	}
 
-	bool Inl::switch_stream(Extractor *ex, uint32_t index) {
+	bool Inl::seek(uint64_t timeUs) {
 		ScopeLock lock(_mutex);
-		index = Uint32::min(index, ex->_streams.length() - 1);
-		if ( ex->_stream_index != index ) {
-			ex->flush();
-			ex->_stream_index = index;
-			// notice decoder change..
-			return true;
+		if (_status != kOpen_MediaSourceStatus) {
+			_seek = Qk_MAX(1, timeUs); // seek core
 		} else {
-			return false;
+			if (timeUs >= _duration) {
+				return false;
+			}
+			for (auto i: _extractors) {
+				if (!seek_ex(timeUs, i.value)) {
+					_seek = Qk_MAX(1, timeUs); // seek core
+					break;
+				}
+			}
 		}
+		return true;
+	}
+
+	bool Inl::seek_ex(uint64_t timeUs, Extractor *ex) {
+		if (ex->_packets.length() == 0)
+			return false;
+
+		if (timeUs < ex->_packets.front()->pts)
+			return false;
+
+		auto it = ex->_packets.begin(), end = ex->_packets.end();
+		auto key = end;
+		do {
+			auto pkt = *it;
+			if (pkt->flags & AV_PKT_FLAG_KEY)
+				key = it;
+			if (pkt->pts >= timeUs) {
+				if (key != end) {
+					ex->_pkt = key;
+					return true;
+				}
+				break;
+			}
+		} while (++it != end);
+
+		return false;
 	}
 
 	bool Inl::packet_push(AVPacket& avpkt) {
@@ -445,7 +522,7 @@ namespace qk {
 		ex->_after_duration -= pkt->duration;
 		ex->_before_duration += pkt->duration;
 
-		if (ex->_before_duration > _fixed_packet_duration) {
+		while (ex->_before_duration > _fixed_packet_duration) {
 			if (ex->_pkt != ex->_packets.begin()) {
 				auto pkt = ex->_packets.front();
 				ex->_before_duration -= pkt->duration;
@@ -467,7 +544,11 @@ namespace qk {
 		delete _inl; _inl = nullptr;
 	}
 
-	void MediaSource::set_delegate(Delegate* delegate) { _inl->set_delegate(delegate); }
+	void MediaSource::set_delegate(Delegate* delegate) {
+		ScopeLock scope(_inl->_mutex);
+		_inl->_delegate = delegate ? delegate : &default_media_source_delegate;
+	}
+
 	const URI& MediaSource::uri() const { return _inl->_uri; }
 	MediaSourceStatus MediaSource::status() const { return _inl->_status; }
 	uint64_t MediaSource::duration() const { return _inl->_duration; }
@@ -475,8 +556,13 @@ namespace qk {
 	bool MediaSource::is_open() const { return _inl->_status == kOpen_MediaSourceStatus; }
 	Extractor* MediaSource::video_extractor() { return _inl->_video_ex; }
 	Extractor* MediaSource::audio_extractor() { return _inl->_audio_ex; }
-	bool MediaSource::switch_program(uint32_t index) { return _inl->switch_program(index); }
+	bool MediaSource::switch_program(uint32_t index) {
+		return Uint32::min(_inl->_programs.length() - 1, index) == _inl->_program_idx ?
+			false: (_inl->switch_program_sure(index, true), true);
+	}
 	Extractor* MediaSource::extractor(MediaType type) { return _inl->extractor(type); }
+	void MediaSource::remove_extractor(MediaType type) { _inl->remove_extractor(type); }
+	void MediaSource::flush() { _inl->flush(); }
 	bool MediaSource::seek(uint64_t timeUs) { return _inl->seek(timeUs); }
 	void MediaSource::open() { _inl->open(); }
 	void MediaSource::stop() { _inl->stop(); }

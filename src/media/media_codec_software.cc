@@ -166,11 +166,12 @@ namespace qk {
 			return avcodec_send_packet(_ctx, pkt->avpkt);
 		}
 
-		int send_packet_for(Extractor *extractor) override {
-			Qk_Assert_Eq(type(), extractor->type());
-			if (!avcodec_is_open(_ctx)) {
+		int send_packet(Extractor *extractor) override {
+			if (!extractor || !avcodec_is_open(_ctx)) {
 				return AVERROR(EINVAL);
 			}
+			Qk_Assert_Eq(type(), extractor->type());
+
 			ScopeLock scope(_mutex);
 			if (!_packet) {
 				_packet = extractor->advance();
@@ -187,7 +188,7 @@ namespace qk {
 			return rc;
 		}
 
-		int receive_frame(Frame **out) override {
+		Frame* receive_frame() override {
 			ScopeLock scope(_mutex);
 			Frame tmp;
 			int rc;
@@ -203,9 +204,9 @@ namespace qk {
 				av_frame_move_ref(f->avframe, _frame);
 				f->data = f->avframe->data;
 				f->linesize = reinterpret_cast<uint32_t*>(f->avframe->linesize);
-				*out = f;
+				return f;
 			}
-			return rc;
+			return nullptr;
 		}
 
 		int receive_frame_video(Frame &out) {
@@ -305,9 +306,8 @@ namespace qk {
 	/**
 	* @method MediaCodec_software create software decoder
 	*/
-	MediaCodec* MediaCodec_software(MediaType type, MediaSource* source) {
+	MediaCodec* MediaCodec_software(MediaType type, Extractor* ex) {
 		SoftwareMediaCodec* rv = nullptr;
-		Extractor* ex = source->extractor(type);
 		if ( ex ) {
 			auto codec = avcodec_find_decoder((AVCodecID)ex->stream().codec_id);
 			auto ctx = avcodec_alloc_context3(codec);

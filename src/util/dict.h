@@ -267,7 +267,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	Array<V> Dict<K, V, C, A>::values() const {
-		Array<K> ls;
+		Array<V> ls;
 		for (auto& i: *this)
 			ls.push(i.value);
 		Qk_ReturnLocal(ls);

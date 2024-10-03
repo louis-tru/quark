@@ -140,13 +140,14 @@ namespace qk {
 		return false;
 	}
 
-	MediaCodec* MediaCodec_software(MediaType type, MediaSource* source);
-	MediaCodec* MediaCodec_hardware(MediaType type, MediaSource* source);
+	MediaCodec* MediaCodec_software(MediaType type, Extractor* ex);
+	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex);
 
 	MediaCodec* MediaCodec::create(MediaType type, MediaSource* source) {
-		MediaCodec* rv = MediaCodec_hardware(type, source);
+		Extractor* ex = source->extractor(type);
+		MediaCodec* rv = MediaCodec_hardware(type, ex);
 		if ( !rv ) {
-			rv = MediaCodec_software(type, source);
+			rv = MediaCodec_software(type, ex);
 		}
 		return rv;
 	}
