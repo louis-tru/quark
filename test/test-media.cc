@@ -47,6 +47,8 @@ typedef MediaCodec::Frame Frame;
 
 class VideoPlayer: public Image, public MediaSource::Delegate, public PreRender::Task {
 public:
+	Qk_DEFINE_PROP_GET(int64_t, pts);
+
 	void media_source_open(MediaSource* source) override {
 		UILock lock(window());
 		Qk_DEBUG("media_source_open");
@@ -87,10 +89,27 @@ public:
 		Qk_DEBUG("media_source_switch");
 	}
 	void media_source_advance(MediaSource* source) override {
-		if (!_audio)
-			return;
-		ScopeLock lock(_mutex);
+		if (_seekCmd) {
+			if (_src->seek(_seekCmd)) {
+				if (_video) {
+					_video->flush();
+				}
+				if (_audio) {
+					_audio->flush();
+					_pcm->flush();
+				}
+				UILock lock(window());
+				_fv = _fa = nullptr;
+				_start = 0; // reset start point
+				_seeking = _seekCmd;
+			}
+			_seekCmd = 0;
+		}
+		auto now = time_monotonic();
 
+		if (!_audio) {
+			return;
+		}
 		_audio->send_packet(_src->audio_extractor());
 
 		if (!_fa) {
@@ -99,18 +118,20 @@ public:
 		if (!_fa) {
 			return;
 		}
-		auto now = time_monotonic();
-		if (!_begen) {
-			_begen = now - _fa->pts;
-		}
 		if (_fa->pts) {
-			auto play = now - _begen;
-			auto pts = _fa->pts - (_pcm->delay() * _fa->pkt_duration);
-			if (play < pts)
+			if (!_start) return;
+			auto play = now - _start;
+			auto pts = _fa->pts - (_fa->pkt_duration * _pcm->delay());
+			if (pts > play) return;
+
+			int64_t du = play - pts;
+			if (du > _fa->pkt_duration) { // decoding timeout, discard frame
+				_fa = nullptr;
 				return;
+			}
 		}
 		if (!_pcm->write(*_fa)) {
-			Qk_DEBUG("PCM_write fail %d, %d", _fa->pts, now - _begen);
+			Qk_DEBUG("PCM_write fail %d, %d", _fa->pts, now - _start);
 		}
 		_fa = nullptr;
 	}
@@ -126,36 +147,36 @@ public:
 		if (!_fv) {
 			return false;
 		}
-		if (!_begen) {
-			_begen = now - (_seek ? _seek: _fv->pts);
+		if (!_start) {
+			_start = now - (_seeking ? _seeking: _fv->pts);
 		}
 		if (_fv->pts) {
-			auto play = now - _begen;
-			if (play < _fv->pts) {
-				return false;
-			}
-			int64_t dur = play - _fv->pts;
-			if (dur > _fv->pkt_duration * 2) { // decoding timeout
-				if (_seek) {
-				 	int j = 3;
-					do { // Accelerated decoding
+			auto play = now - _start;
+			auto pts = _fv->pts;
+			if (pts > play) return false;
+
+			int64_t du = play - pts;
+			if (du > _fv->pkt_duration * 2) { // decoding timeout, discard frame or reset start point
+				if (_seeking) {
+					do { // skip expired videos frame
 						_fv = nullptr;
-						_video->send_packet(_src->video_extractor());
-						_fv = _video->receive_frame();
-					} while(--j && (!_fv || _fv->pts <= play));
+						if (_video->send_packet(_src->video_extractor()) == 0)
+							_fv = _video->receive_frame();
+						play = time_monotonic() - _start;
+					} while(_fv && _fv->pts < play);
+					_fv = nullptr;
 					return;
 				}
-				Qk_DEBUG("pkt_duration, timeout %d", dur - _fv->pkt_duration);
-				_begen += (dur - _fv->pkt_duration); // correct play ts
+				Qk_DEBUG("pkt_duration, timeout %d", du - _fv->pkt_duration);
+				_start += (du - _fv->pkt_duration); // correct play ts
 			}
 		}
 		auto src = source();
 		if (!src || !(src->state() & ImageSource::kSTATE_LOAD_COMPLETE)) {
 			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true);
 		}
-		_seek = 0;
+		_seeking = 0;
 		_pts = _fv->pts; // set current the presentation timestamp
-		// Qk_DEBUG("_pts %d", _pts);
 		set_source(ImageSource::Make(
 			MediaCodec::frameToPixel(*_fv), window()->render(), window()->loop()
 		));
@@ -169,32 +190,16 @@ public:
 		_src->open();
 	}
 	void seek(uint64_t timeUs) {
-		if (_src->seek(timeUs)) {
-			if (_video) {
-				_video->flush();
-			}
-			if (_audio) {
-				_audio->flush();
-				_pcm->flush();
-			}
-			{
-				UILock lock(window());
-				ScopeLock lock2(_mutex);
-				_fv = _fa = nullptr;
-			}
-			_begen = 0; // reset begen point
-			_seek = timeUs;
-		}
+		_seekCmd = Qk_MAX(timeUs, 1);
 	}
 private:
 	Sp<MediaSource> _src;
 	Sp<MediaCodec> _video, _audio;
 	Sp<PCMPlayer>  _pcm;
 	Sp<Frame>      _fv, _fa;
-	int64_t        _begen = 0;
-	int64_t        _seek = 0;
-	int64_t        _pts = 0;
-	Mutex          _mutex;
+	int64_t        _start = 0;
+	int64_t        _seeking = 0;
+	int64_t        _seekCmd = 0;
 };
 
 int test_media(int argc, char **argv) {
@@ -213,15 +218,16 @@ int test_media(int argc, char **argv) {
 	//v->open("/Users/louis/Movies/e7bb722c-3f66-11ee-ab2c-aad3d399777e-v8_f2_t1_maSNnEvY.mp4");
 	//v->open("/Users/louis/Movies/申冤人/The.Equalizer.3.2023.2160p.WEB.H265-HUZZAH[TGx]/the.equalizer.3.2023.2160p.web.h265-huzzah.mkv");
 	//v->open("/Users/louis/Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4");
-	//v->open("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
+	v->open("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
 	//v->open("/Users/louis/Movies/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4");
-	v->open("/Users/louis/Movies/巡回检察组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP01.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
+	//v->open("/Users/louis/Movies/巡回检察组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP03.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
 
-	// v->seek(1e6*1000); // seek to 1000 seconds
+	//v->seek(1e6*1000); // seek to 1000 seconds
+	//v->seek(1e6*9); // seek to 9 seconds
 
 	app.loop()->timer(Cb([v](auto e){
-		v->seek(1e6*9); // seek to 8 seconds
-	}), 1e6);
+		v->seek(1e6*9); // seek to 9 seconds
+	}), 2e6);
 
 	app.run();
 }

@@ -438,6 +438,9 @@ namespace qk {
 			}
 			for (auto i: _extractors) {
 				if (!seek_ex(timeUs, i.value)) {
+					for (auto i: _extractors) {
+						i.value->flush();
+					}
 					_seek = Qk_MAX(1, timeUs); // seek core
 					break;
 				}

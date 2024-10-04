@@ -324,12 +324,11 @@ namespace qk {
 
 	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {
 		if ( ex ) {
-			if (type == kAudio_MediaType) {
-				return nil;
-			}
-			Sp<MacVideoCodec> codec = new MacVideoCodec(ex->stream());
-			if (codec->init()) {
-				return codec.collapse();
+			if (type == kVideo_MediaType) {
+				Sp<MacVideoCodec> codec = new MacVideoCodec(ex->stream());
+				if (codec->init()) {
+					return codec.collapse();
+				}
 			}
 		}
 		return nil;
