@@ -66,7 +66,7 @@ public:
 			}
 		}
 		if (!_audio) {
-			source->remove_extractor(kVideo_MediaType);
+			source->remove_extractor(kAudio_MediaType);
 		}
 		preRender().addtask(this);
 	}
@@ -89,8 +89,8 @@ public:
 		Qk_DEBUG("media_source_switch");
 	}
 	void media_source_advance(MediaSource* source) override {
-		if (_seekCmd) {
-			if (_src->seek(_seekCmd)) {
+		if (_seek) {
+			if (_src->seek(_seek)) {
 				if (_video) {
 					_video->flush();
 				}
@@ -101,9 +101,9 @@ public:
 				UILock lock(window());
 				_fv = _fa = nullptr;
 				_start = 0; // reset start point
-				_seeking = _seekCmd;
+				_seeking = _seek;
 			}
-			_seekCmd = 0;
+			_seek = 0;
 		}
 		auto now = time_monotonic();
 
@@ -156,16 +156,11 @@ public:
 			if (pts > play) return false;
 
 			int64_t du = play - pts;
-			if (du > _fv->pkt_duration * 2) { // decoding timeout, discard frame or reset start point
+			if (du > _fv->pkt_duration * 2) {
+				// decoding timeout, discard frame or reset start point
 				if (_seeking) {
-					do { // skip expired videos frame
-						_fv = nullptr;
-						if (_video->send_packet(_src->video_extractor()) == 0)
-							_fv = _video->receive_frame();
-						play = time_monotonic() - _start;
-					} while(_fv && _fv->pts < play);
-					_fv = nullptr;
-					return;
+					skip_vf();
+					return false;
 				}
 				Qk_DEBUG("pkt_duration, timeout %d", du - _fv->pkt_duration);
 				_start += (du - _fv->pkt_duration); // correct play ts
@@ -183,6 +178,14 @@ public:
 		_fv.collapse();
 		return true;
 	}
+	void skip_vf() {
+		do { // skip expired v frame
+			_fv = nullptr;
+			if (_video->send_packet(_src->video_extractor()) == 0)
+				_fv = _video->receive_frame();
+		} while(_fv && _fv->pts < time_monotonic() - _start);
+		_fv = nullptr; // delete v frame
+	}
 	void open(cString &uri) {
 		UILock lock(window());
 		_src = new MediaSource(uri);
@@ -190,7 +193,7 @@ public:
 		_src->open();
 	}
 	void seek(uint64_t timeUs) {
-		_seekCmd = Qk_MAX(timeUs, 1);
+		_seek = Qk_MAX(timeUs, 1);
 	}
 private:
 	Sp<MediaSource> _src;
@@ -199,7 +202,7 @@ private:
 	Sp<Frame>      _fv, _fa;
 	int64_t        _start = 0;
 	int64_t        _seeking = 0;
-	int64_t        _seekCmd = 0;
+	int64_t        _seek = 0;
 };
 
 int test_media(int argc, char **argv) {
