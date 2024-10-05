@@ -59,6 +59,10 @@ namespace qk {
 		_hash += (_hash << 5) + data; // update u64
 	}
 
+	void Hash5381::updateu32(const uint32_t data) {
+		_hash += (_hash << 5) + data; // update u32
+	}
+
 	void Hash5381::updatef(float data) {
 		_hash += (_hash << 5) + *reinterpret_cast<const uint64_t*>(&data); // update
 	}

@@ -109,6 +109,7 @@ namespace qk {
 		}
 
 		bool open(const Stream *stream = nullptr) override {
+			ScopeLock scope(_mutex);
 			if (_session) return true;
 			if (!stream)  stream = &_stream;
 
@@ -136,7 +137,7 @@ namespace qk {
 
 			if (status == noErr) {
 				CFRetain(_session);
-				flush();
+				flush2();
 				return true;
 			} else {
 				return false;
@@ -144,8 +145,9 @@ namespace qk {
 		}
 
 		void close() override {
-			if ( is_open() ) {
-				flush();
+			if ( _session ) {
+				ScopeLock scope(_mutex);
+				flush2();
 				// Prevent deadlocks in VTDecompressionSessionInvalidate by waiting for the frames to complete manually.
 				// Seems to have appeared in iOS11
 				VTDecompressionSessionInvalidate(_session);
@@ -154,15 +156,19 @@ namespace qk {
 			}
 		}
 
+		void flush2() {
+			for (auto f: _frames)
+				delete f;
+			_frames.clear();
+			_need_keyframe = true;
+			delete _packet; _packet = nil;
+			VTDecompressionSessionWaitForAsynchronousFrames(_session);
+		}
+
 		void flush() override {
-			if ( is_open() ) {
-				VTDecompressionSessionWaitForAsynchronousFrames(_session);
+			if ( _session ) {
 				ScopeLock scope(_mutex);
-				for (auto f: _frames)
-					delete f;
-				_frames.clear();
-				_need_keyframe = true;
-				delete _packet; _packet = nil;
+				flush2();
 			}
 		}
 
@@ -241,7 +247,7 @@ namespace qk {
 			return buf;
 		}
 
-		int send_packet(const Packet *pkt) override {
+		int send_packet2(const Packet *pkt) {
 			if ( _session ) {
 				if (_frames.length() >= 6)
 					return AVERROR(EAGAIN);
@@ -272,23 +278,30 @@ namespace qk {
 			return AVERROR(ENOMEM);
 		}
 
+		int send_packet(const Packet *pkt) override {
+			if (_session && pkt) {
+				ScopeLock scope(_mutex);
+				return send_packet2(pkt);
+			}
+			return AVERROR(ENOMEM);
+		}
+
 		int send_packet(Extractor *extractor) override {
 			if (!extractor || !_session) {
 				return AVERROR(EINVAL);
 			}
 			Qk_Assert_Eq(type(), extractor->type());
 
-			Lock lock(_mutex);
+			ScopeLock scope(_mutex);
+
 			if (!_packet) {
 				_packet = extractor->advance();
 			}
 			if (!_packet) {
 				return AVERROR(EAGAIN);
 			}
-			lock.unlock();
-			int rc = send_packet(_packet);
+			int rc = send_packet2(_packet);
 			if (rc == 0) {
-				lock.lock();
 				delete _packet; _packet = nullptr;
 			}
 			return rc;

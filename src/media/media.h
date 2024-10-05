@@ -96,7 +96,10 @@ namespace qk {
 			uint32_t    avg_framerate[2]; /* video frame average framerate */
 			uint32_t    time_base[2];     // Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds)
 			uint32_t    index;            /* stream index in source */
+			uint64_t    hash_code;        // key params hash code
 			StreamExtra extra;
+			inline bool operator==(const Stream& s) const { return hash_code == s.hash_code; }
+			inline bool operator!=(const Stream& s)  const { return hash_code != s.hash_code; }
 		};
 
 		struct Program { // channel program info

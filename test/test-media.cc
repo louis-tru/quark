@@ -74,7 +74,7 @@ public:
 		Qk_DLog("media_source_eof");
 		do {
 			media_source_advance(src);
-			thread_sleep(1e4);
+			thread_sleep(1e4); // 10 milliseconds
 		} while (_video && !_video->finished());
 		end();
 	}
@@ -84,6 +84,11 @@ public:
 	}
 	void media_source_switch(MediaSource* src, Extractor *ex) override {
 		Qk_DLog("media_source_switch");
+		if (_video && ex->type() == kVideo_MediaType) {
+				_video->close();
+				if (!_video->open(&ex->stream()))
+					end();
+		}
 	}
 	void media_source_advance(MediaSource* src) override {
 		if (_seek) {
@@ -106,6 +111,16 @@ public:
 
 		if (!_audio) {
 			return;
+		}
+		auto& stream = src->audio_extractor()->stream();
+		if (_audio->stream() != stream) {  // switch stream
+			_audio->close();
+			UILock lock(window());
+			if (!_audio->open(&stream) || !(_pcm = PCMPlayer::create(stream))) {
+				_audio = nullptr;
+				_pcm = nullptr;
+				return;
+			}
 		}
 		_audio->send_packet(src->audio_extractor());
 
@@ -197,6 +212,8 @@ private:
 	}
 	void end() {
 		UILock lock(window());
+		if (_src)
+			_src->stop();
 		_video = nullptr;
 		_audio = nullptr;
 		_pcm = nullptr;

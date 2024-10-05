@@ -91,6 +91,17 @@ namespace qk {
 				str.time_base[0] = stream->time_base.num;
 				str.time_base[1] = stream->time_base.den;
 
+				Hash5381 hash;
+				hash.updateu32(str.codec_tag);
+				hash.updateu32(str.format);
+				hash.updateu32(str.width);
+				hash.updateu32(str.height);
+				hash.updateu32(str.sample_rate);
+				hash.updateu32(str.channels);
+				hash.updateu64(str.channel_layout);
+
+				str.hash_code = hash.hashCode();
+
 				if ( type == AVMEDIA_TYPE_VIDEO ) {
 					info.width = codecpar->width;
 					info.height = codecpar->height;
