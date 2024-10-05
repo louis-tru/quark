@@ -239,8 +239,8 @@ namespace qk {
 	public:
 		MouseHandle(): _view(nullptr), _click_view(nullptr) {}
 		~MouseHandle() {
-			Release(_view); _view = nullptr;
-			Release(_click_view); _click_view = nullptr;
+			Releasep(_view);
+			Releasep(_click_view);
 		}
 		inline View* view() { return _view; }
 		inline Vec2 view_start_position() { return _start_position; }

@@ -120,9 +120,9 @@ namespace qk {
 			Release(i.value);
 		for ( auto i : _extends )
 			Release(i.value);
-		Release(_normal); _normal = nullptr;
-		Release(_hover); _hover = nullptr;
-		Release(_active); _active = nullptr;
+		Releasep(_normal);
+		Releasep(_hover);
+		Releasep(_active);
 	}
 
 	void CStyleSheets::set_time(uint32_t val) {

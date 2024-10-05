@@ -262,11 +262,11 @@ namespace qk {
 		void stop_and_release(Lock& lock, bool is_event) {
 			stop_from(lock, is_event);
 
-			Release(_audio); _audio = nullptr;
-			Release(_video); _video = nullptr;
-			Release(_source); _source = nullptr;
+			Releasep(_audio);
+			Releasep(_video);
+			Releasep(_source);
 			object_traits<PCMPlayer>::
-			release(_pcm); _pcm = nullptr;
+			Releasep(_pcm);
 
 			_time = 0;
 			_duration = 0;

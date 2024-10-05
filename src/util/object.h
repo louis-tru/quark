@@ -99,7 +99,7 @@ namespace qk {
 		static void  operator delete(void *p);
 		static HeapAllocator* heapAllocator();
 		static void setHeapAllocator(HeapAllocator *allocator);
-		typedef int __have_object__;
+		typedef int __HaveObject__;
 	};
 
 	/**
@@ -118,9 +118,9 @@ namespace qk {
 		virtual void release(); // --ref
 		virtual bool isReference() const;
 		inline  int  refCount() const { return _refCount.load(); }
-		typedef int __have_reference__;
+		typedef int __HaveReference__;
 	private:
-		typedef int __have_object__;
+		typedef int __HaveObject__;
 	protected:
 		std::atomic_int _refCount;
 	};
@@ -128,7 +128,7 @@ namespace qk {
 	class Protocol {
 	public:
 		virtual Object* asObject() = 0;
-		typedef void* __have_protocol__;
+		typedef void* __HaveProtocol__;
 	};
 
 	class SafeFlag {
@@ -147,9 +147,9 @@ namespace qk {
 	struct object_traits {
 		typedef char __non[0];
 		typedef char __obj[1]; typedef char __ref[2]; typedef char __pro[3];
-		template<typename C> static __obj& test(typename C::__have_object__);
-		template<typename C> static __ref& test(typename C::__have_reference__);
-		template<typename C> static __pro& test(typename C::__have_protocol__);
+		template<typename C> static __obj& test(typename C::__HaveObject__);
+		template<typename C> static __ref& test(typename C::__HaveReference__);
+		template<typename C> static __pro& test(typename C::__HaveProtocol__);
 		template<typename>   static __non& test(...);
 		static constexpr int  type = sizeof(test<T>(0)) / sizeof(char);
 		static constexpr bool isNon = sizeof(test<T>(0)) / sizeof(char) == 0;
@@ -157,20 +157,27 @@ namespace qk {
 		static constexpr bool isRef = sizeof(test<T>(0)) / sizeof(char) == 2;
 		static constexpr bool isProtocol = sizeof(test<T>(0)) / sizeof(char) == 3;
 		template <int i> struct inl {
-			static inline void retain(T *obj) { Retain(obj); }
-			static inline void release(T *obj) { Release(obj); }
+			static inline void Retain(T* obj) { qk::Retain(obj); }
+			static inline void Release(T* obj) { qk::Release(obj); }
 		};
 		template <> struct inl<0> {
-			static inline void retain(T *obj) {}
-			static inline void release(T *obj) { delete obj; }
+			static inline void Retain(T* obj) {}
+			static inline void Release(T* obj) { delete obj; }
 		};
 		template <> struct inl<3> { //protocol
-			static inline void retain(T *obj) { if (obj) Retain(obj->asObject()); }
-			static inline void release(T *obj) { if (obj) Release(obj->asObject()); }
+			static inline void Retain(T* obj) { if (obj) qk::Retain(obj->asObject()); }
+			static inline void Release(T* obj) { if (obj) qk::Release(obj->asObject()); }
 		};
-		inline static void retain(T* obj) { inl<type>::retain(obj); }
-		inline static void release(T* obj) { inl<type>::release(obj); }
+		inline static void Retain(T* obj) { inl<type>::Retain(obj); }
+		inline static void Release(T* obj) { inl<type>::Release(obj); }
+		inline static void Releasep(T*& obj) { inl<type>::Release(obj); obj = nullptr; }
 	};
+
+	/**
+	 * @method Releasep() release plus
+	*/
+	template<typename T>
+	inline void Releasep(T*& obj) { Release(obj); obj = nullptr; }
 
 	template<class T, typename... Args>
 	inline T* New(Args... args) { return new T(args...); }

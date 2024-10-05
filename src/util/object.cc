@@ -176,4 +176,5 @@ namespace qk {
 	void Release(Object* obj) {
 		if (obj) obj->release();
 	}
+
 }

@@ -45,34 +45,34 @@ namespace qk {
 		T* _data;
 
 		inline T* move() {
-			return Traits::isRef ? (Traits::retain(_data), _data) : collapse();
+			return Traits::isRef ? (Traits::Retain(_data), _data) : collapse();
 		}
 	public:
 		typedef T                Type;
 		typedef object_traits<T> Traits;
 
 		inline Handle(): _data(nullptr) {}
-		inline Handle(T* data): _data(data) { Traits::retain(data); }
+		inline Handle(T* data): _data(data) { Traits::Retain(data); }
 		inline Handle(Handle& handle) { _data = handle.move(); }
 		inline Handle(Handle&& handle) { _data = handle.move(); }
 
 		inline ~Handle() { release(); }
 
 		inline Handle& operator=(Handle& handle) {
-			Traits::release(_data);
+			Traits::Release(_data);
 			_data = handle.move();
 			return *this;
 		}
 
 		inline Handle& operator=(Handle&& handle) {
-			Traits::release(_data);
+			Traits::Release(_data);
 			_data = handle.move();
 			return *this;
 		}
 
 		inline Handle& operator=(T *data) {
-			Traits::retain(data);
-			Traits::release(_data);
+			Traits::Retain(data);
+			Traits::Release(_data);
 			_data = data;
 			return *this;
 		}
@@ -121,8 +121,7 @@ namespace qk {
 		}
 
 		inline void release() {
-			Traits::release(_data);
-			_data = nullptr;
+			Traits::Releasep(_data);
 		}
 	};
 

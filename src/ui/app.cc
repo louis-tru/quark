@@ -95,11 +95,11 @@ namespace qk {
 			(*(i++))->close(); // destroy
 		}
 		_activeWindow =  nullptr;
-		Release(_defaultTextOptions); _defaultTextOptions = nullptr;
-		Release(_styleSheets); _styleSheets = nullptr;
-		Release(_screen);    _screen = nullptr;
-		Release(_fontPool);  _fontPool = nullptr;
-		Release(_imgPool);   _imgPool = nullptr;
+		Releasep(_defaultTextOptions);
+		Releasep(_styleSheets);
+		Releasep(_screen);
+		Releasep(_fontPool);
+		Releasep(_imgPool);
 	 	_loop->tick_stop(_tick); _tick = 0;
 
 		_shared = nullptr;

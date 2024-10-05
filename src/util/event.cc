@@ -255,12 +255,11 @@ namespace qk {
 	void Basic::off2(bool destroy) {
 		if (_listener) {
 			lock();
-			auto l = _listener;
-			for ( auto &i : *l ) {
+			for ( auto &i : *_listener ) {
 				delete i; i = nullptr;
 			}
 			if (destroy) {
-				Release(l); _listener = nullptr;
+				Releasep(_listener);
 			}
 			unlock();
 		}
@@ -285,7 +284,7 @@ namespace qk {
 		if ( _noticers ) {
 			for (auto& i: *_noticers)
 				delete i.value;
-			Release(_noticers); _noticers = nullptr;
+			Releasep(_noticers);
 		}
 	}
 

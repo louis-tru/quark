@@ -130,32 +130,33 @@ namespace qk {
 
 	bool Window::Destroy() {
 		UILock lock(this); // lock ui
-		if (!_render)
+		if (!_root)
 			return false;
 
 		_root->remove_all_child(); // remove child view
-		Release(_root); _root = nullptr; // release root view
+		Releasep(_root); // release root view
 		_preRender.flushAsyncCall(); // flush async call
-
+		// ------------------------
+		Releasep(_dispatch);
+		Releasep(_uiDraw);
+		_preRender.flushAsyncCall(); // reflush async call
+		_preRender.clearTasks(); // clear tasks
+		// ------------------------
+		lock.unlock(); // Avoid deadlocks with rendering threads
+		Releasep(_render); // delete obj and stop render draw
+		lock.lock(); // relock
 		// ------------------------
 
-		lock.unlock(); // Avoid deadlocks with rendering threads
-		Release(_render); _render = nullptr; // delete obj and stop render draw
-		lock.lock(); // relock
-		Release(_dispatch); _dispatch = nullptr;
-		Release(_uiDraw); _uiDraw = nullptr;
+		Releasep(_actionCenter);
 
-		_preRender.clearTasks(); // clear tasks
-		_preRender.flushAsyncCall(); // reflush async call
+		// ------------------------
+		_host->_mutex.lock();
+		_host->_windows.erase(_id);
+		if (_host->_activeWindow == this)
+			Inl_Application(_host)->setActiveWindow(nullptr);
+		_host->_mutex.unlock();
+		// ------------------------
 
-		Release(_actionCenter); _actionCenter = nullptr;
-		{
-			ScopeLock lock(_host->_mutex);
-			_host->_windows.erase(_id);
-			if (_host->_activeWindow == this) {
-				Inl_Application(_host)->setActiveWindow(nullptr);
-			}
-		}
 		closeImpl(); // close platform window
 		return true;
 	}

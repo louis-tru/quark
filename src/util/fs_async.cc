@@ -191,8 +191,8 @@ namespace qk {
 	
 			void release_file_handle() {
 				if ( _source_file ) {
-					Release(_source_file); _source_file = nullptr;
-					Release(_target_file); _target_file = nullptr;
+					Releasep(_source_file);
+					Releasep(_target_file);
 				}
 			}
 	

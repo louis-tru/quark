@@ -72,12 +72,12 @@ namespace qk {
 	public:
 		inline CallbackCoreIMPL(T* ctx): _ctx(ctx) {
 			if ( object_traits<T>::isRef ) {
-				object_traits<T>::retain(_ctx);
+				object_traits<T>::Retain(_ctx);
 			}
 		}
 		virtual ~CallbackCoreIMPL() {
 			if ( object_traits<T>::isRef ) {
-				object_traits<T>::release(_ctx);
+				object_traits<T>::Release(_ctx);
 			}
 		}
 	protected:

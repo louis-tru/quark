@@ -392,7 +392,7 @@ namespace qk {
 		_cmdPack = _cmdPackFront = nullptr;
 		_mutex.mutex.unlock();
 
-		Release(_cache); _cache = nullptr;
+		Releasep(_cache);
 	}
 
 	void GLCanvas::swapBuffer() {

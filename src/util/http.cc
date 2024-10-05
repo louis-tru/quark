@@ -204,8 +204,8 @@ namespace qk {
 
 			~Connect() {
 				Qk_Assert( _id == ConnectID() );
-				Release(_socket);     _socket = nullptr;
-				Release(_upload_file);_upload_file = nullptr;
+				Releasep(_socket);
+				Releasep(_upload_file);
 				gzip_inflate_end();
 			}
 
@@ -352,7 +352,7 @@ namespace qk {
 
 			void send_http_request() {
 				http_parser_init(&_parser, HTTP_RESPONSE);
-				Release(_upload_file); _upload_file = nullptr;
+				Releasep(_upload_file);
 				_is_multipart_form_data = false;
 				_send_data = false;
 				_multipart_form_data.clear();
@@ -1022,7 +1022,7 @@ namespace qk {
 			}
 
 			~FileWriter() {
-				Release(_file); _file = nullptr;
+				Releasep(_file);
 				_client->_file_writer = nullptr;
 			}
 
@@ -1279,8 +1279,8 @@ namespace qk {
 				_retain->ending = true;
 
 				Qk_Assert(_pool);
-				Release(_cache_reader); _cache_reader = nullptr;
-				Release(_file_writer);  _file_writer = nullptr;
+				Releasep(_cache_reader);
+				Releasep(_file_writer);
 				_pool->recovery(_connect, abort); _connect = nullptr;
 				_pause = false;
 				_wait_connect_id = 0;
