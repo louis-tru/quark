@@ -137,6 +137,7 @@ namespace qk {
 		Releasep(_root); // release root view
 		_preRender.flushAsyncCall(); // flush async call
 		// ------------------------
+		Releasep(_actionCenter);
 		Releasep(_dispatch);
 		Releasep(_uiDraw);
 		_preRender.flushAsyncCall(); // reflush async call
@@ -145,10 +146,6 @@ namespace qk {
 		lock.unlock(); // Avoid deadlocks with rendering threads
 		Releasep(_render); // delete obj and stop render draw
 		lock.lock(); // relock
-		// ------------------------
-
-		Releasep(_actionCenter);
-
 		// ------------------------
 		_host->_mutex.lock();
 		_host->_windows.erase(_id);
@@ -305,6 +302,8 @@ namespace qk {
 
 	bool Window::onRenderBackendDisplay() {
 		UILock lock(this); // ui render lock
+		if (!_root) return false;
+
 		int64_t time = time_monotonic();
 
 		if (!_preRender.solve(time)) {
