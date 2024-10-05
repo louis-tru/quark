@@ -43,27 +43,27 @@ void test_map(int argc, char **argv) {
 	m[0] = "-100900978";
 	m[100] = "-0";
 	
-	Qk_LOG(m[0]);
-	Qk_LOG(m[100]);
+	Qk_Log(m[0]);
+	Qk_Log(m[100]);
 	
 	m.erase(100);
 	
-	Qk_LOG(m[0]);
+	Qk_Log(m[0]);
 	
-	Qk_LOG("%d", m.size());
+	Qk_Log("%d", m.size());
 	
 	auto begin = m.begin();
 	
-	Qk_LOG("%d", sizeof(decltype(begin)) );
+	Qk_Log("%d", sizeof(decltype(begin)) );
 	
-	Qk_LOG(begin->second.c_str());
+	Qk_Log(begin->second.c_str());
 	
 	begin++;
 	
-	Qk_LOG(begin->second);
+	Qk_Log(begin->second);
 	
-	Qk_LOG(m[0]);
-	Qk_LOG(m[100]);
+	Qk_Log(m[0]);
+	Qk_Log(m[100]);
 	
 	Dict<String, String> map;
 	
@@ -80,15 +80,15 @@ void test_map(int argc, char **argv) {
 	map.set("AA9", "BB8");
 	map.set("AA0", "BB9");
 	
-	Qk_LOG(map["AA8"]);
-	Qk_LOG(map["AA4"]);
-	Qk_LOG(map["AA7"]);
+	Qk_Log(map["AA8"]);
+	Qk_Log(map["AA4"]);
+	Qk_Log(map["AA7"]);
 	
 	for (uint32_t i = 0; i < 10000; i++) {
 		map.set(i, i);
 	}
 	
-	Qk_LOG(map.length());
+	Qk_Log(map.length());
 	
 	map.erase(String("AA1"));
 	// map.mark("AAA7");
@@ -105,22 +105,22 @@ void test_map(int argc, char **argv) {
 	int j = 0;
 	
 	for (; i != end; i++) {
-		Qk_LOG(i->value);
-		Qk_LOG(j);
+		Qk_Log(i->value);
+		Qk_Log(j);
 		j++;
 	}
 	
 	Dict<String, String> map2(std::move(map));
 	
 	for ( i = map.begin(); i != end; i++) {
-		Qk_LOG(i->value);
+		Qk_Log(i->value);
 	}
 	
 	i = map2.begin();
 	end = map2.end();
 	
 	for ( ; i != end; i++) {
-		Qk_LOG(i->value);
+		Qk_Log(i->value);
 	}
 	
 	map2 = map;

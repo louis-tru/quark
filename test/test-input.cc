@@ -23,7 +23,7 @@ void test_input(int argc, char **argv) {
 	box->set_margin_bottom(20);
 	box->set_background_color({200,128,128});
 	box->add_event_listener(UIEvent_Click, [](auto&e){
-		Qk_DEBUG("------------------ Box Click ------------------");
+		Qk_DLog("------------------ Box Click ------------------");
 	});
 
 	input->set_width({ 0.5, BoxSizeKind::Ratio });

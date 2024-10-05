@@ -56,7 +56,7 @@ extern "C" {
 #include <quark/util/android-jni.h>
 	JNIEXPORT extern void
 	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		Qk_LOG("Java_org_quark_examples_MainActivity_test");
+		Qk_Log("Java_org_quark_examples_MainActivity_test");
 	}
 #endif
 }

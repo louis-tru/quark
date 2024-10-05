@@ -46,25 +46,25 @@ void test_list(int argc, char **argv) {
 	
 	Array<String> ls = str.split(",");
 	
-	Qk_LOG("%d", ls.length());
+	Qk_Log("%d", ls.length());
 	
 	ls.push("ABCD");
 	ls.push("ABCD1");
 	ls.pop();
 	
-	Qk_LOG("%d", ls.length());
+	Qk_Log("%d", ls.length());
 	
-	Qk_LOG(ls[0]);
+	Qk_Log(ls[0]);
 	
-	Qk_LOG(ls.join("-"));
+	Qk_Log(ls.join("-"));
 	
 	String str2(str);
 	
-	Qk_LOG(str2.toString());
-	Qk_LOG(str2.copy().collapse());
+	Qk_Log(str2.toString());
+	Qk_Log(str2.copy().collapse());
 	
 	for (auto i = ls.begin(), end = ls.end(); i != end; i++) {
-		Qk_LOG(*i);
+		Qk_Log(*i);
 	}
 	
 	Array<int> ls2;

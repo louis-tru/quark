@@ -40,37 +40,37 @@ void test_json(int argc, char **argv) {
 	String str1("100");
 	String str2 = str1;
 	
-	Qk_LOG("OK");
+	Qk_Log("OK");
 	
 	cChar* json_str = "{ \"a\": \"ABCD\", \"b\": 100 }";
 	
 	JSON json = JSON::parse(json_str);
 	
-	Qk_LOG(JSON::stringify(json));
+	Qk_Log(JSON::stringify(json));
 	
-	Qk_LOG("short,%d", sizeof(short));
-	Qk_LOG("int,%d", sizeof(int));
-	Qk_LOG("long,%d", sizeof(long));
-	Qk_LOG("long int,%d", sizeof(long int));
-	Qk_LOG("long double,%d", sizeof(long double));
+	Qk_Log("short,%d", sizeof(short));
+	Qk_Log("int,%d", sizeof(int));
+	Qk_Log("long,%d", sizeof(long));
+	Qk_Log("long int,%d", sizeof(long int));
+	Qk_Log("long double,%d", sizeof(long double));
 	
-	Qk_LOG("\n");
+	Qk_Log("\n");
 	
-	Qk_LOG("%d", sizeof(int));
-	Qk_LOG("%d", sizeof(int*));
-	Qk_LOG("%d", sizeof(long));
+	Qk_Log("%d", sizeof(int));
+	Qk_Log("%d", sizeof(int*));
+	Qk_Log("%d", sizeof(long));
 	//  LOG(sizeof(EventDelegate<>));
 	
 	std::map<String, cChar*> m;
-	Qk_LOG("%s", m["a"]);
+	Qk_Log("%s", m["a"]);
 	cChar*& a = m["a"];
 	a = "110";
-	Qk_LOG("%s", m["a"]);
+	Qk_Log("%s", m["a"]);
 	
 	const int* i = new int(101);
 	
-	Qk_LOG(*i);
+	Qk_Log(*i);
 	
 	delete i;
-	Qk_LOG(*i);
+	Qk_Log(*i);
 }

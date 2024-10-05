@@ -68,7 +68,7 @@ namespace qk {
 			for (auto& i : childs) {
 				thread_join_for(i.key);
 			}
-			Qk_DEBUG("Threads::abort() ok, count: %d", childs.length());
+			Qk_DLog("Threads::abort() ok, count: %d", childs.length());
 		} else {
 			{
 #if DEBUG
@@ -79,7 +79,7 @@ namespace qk {
 			}
 			thread_try_abort(id);
 			thread_join_for(id);
-			Qk_DEBUG("Threads::abort(id) ok");
+			Qk_DLog("Threads::abort(id) ok");
 		}
 	}
 
@@ -121,7 +121,7 @@ namespace qk {
 			}
 			ScopeLock lock(self->mutex);
 			self->id = ThreadID();
-			Qk_DEBUG("backend_loop() thread end");
+			Qk_DLog("backend_loop() thread end");
 		}
 
 		RunLoop* get_loop() {

@@ -128,7 +128,7 @@ namespace qk {
 			// 			draw = true;
 			// 		}
 			// 	} else { // start reander one frame
-			// 		Qk_DEBUG("Reset timing : prs: %lld, %lld, %lld",
+			// 		Qk_DLog("Reset timing : prs: %lld, %lld, %lld",
 			// 						pts,
 			// 						sys_time - _prev_presentation_time, _uninterrupted_play_start_systime);
 
@@ -159,7 +159,7 @@ namespace qk {
 			// WeakBuffer buff((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]);
 			// bool r = _pcm->write(buff.buffer());
 			// if ( !r ) {
-			// 	Qk_LOG("Discard, audio PCM frame, %lld", _audio_buffer.time);
+			// 	Qk_Log("Discard, audio PCM frame, %lld", _audio_buffer.time);
 			// }
 			// _audio->release(_audio_buffer);
 			// return r;
@@ -287,7 +287,7 @@ namespace qk {
 				_video->flush();
 			} else {
 				stop_from(lock, true);
-				Qk_ERR("Unable to open video decoder");
+				Qk_ELog("Unable to open video decoder");
 				return;
 			}
 
@@ -368,7 +368,7 @@ namespace qk {
 		auto video = MediaCodec::create(kVideo_MediaType, _source);
 		auto audio = MediaCodec::create(kAudio_MediaType, _source);
 		if (!audio)
-			Qk_ERR("Unable to create audio decoder, %s", *src->uri().href());
+			Qk_ELog("Unable to create audio decoder, %s", *src->uri().href());
 		auto pcm = audio && !_pcm ?PCMPlayer::create(audio->stream()): _pcm;
 		_mutex.lock();
 		Qk_Assert_Eq(_video, nullptr);
@@ -396,7 +396,7 @@ namespace qk {
 			}
 		} else {
 			Error e(ERR_VIDEO_NEW_CODEC_FAIL, "Unable to create video decoder");
-			Qk_ERR("%s", *e.message());
+			Qk_ELog("%s", *e.message());
 			// _this->trigger(UIEvent_Error, e); // trigger event error
 			// stop();
 		}
@@ -515,7 +515,7 @@ namespace qk {
 
 	void Video::set_volume(uint32_t value) {
 		//ScopeLock scope(_mutex);
-		value = Qk_MIN(value, 100);
+		value = Qk_Min(value, 100);
 		_volume = value;
 		if ( _pcm ) {
 			_pcm->set_volume(value);
@@ -579,7 +579,7 @@ namespace qk {
 	bool Video::run_task(int64_t sys_time) {
 		// video
 		bool draw = _this->advance_video(sys_time);
-		// Qk_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
+		// Qk_DLog("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
 		{
 			ScopeLock scope(_mutex);
 			if (_uninterrupted_play_start_systime) {

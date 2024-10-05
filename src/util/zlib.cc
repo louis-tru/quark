@@ -135,7 +135,7 @@ namespace qk {
 
 	// Override
 	int GZip::open(int flag) {
-		Qk_ASSERT(!_gzfp);
+		Qk_Assert(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
 		_gzfp = gzopen(fs_fallback_c(_path), file_flag_str(flag));
@@ -260,19 +260,19 @@ namespace qk {
 	 */
 	bool ZipReader::open() {
 		if ( _unzp ) {
-			// Qk_ERR("First close the open file");
+			// Qk_ELog("First close the open file");
 			return true;
 		}
 
 		unzFile unzp = unzOpen(fs_fallback_c(_path));
 		if ( !unzp ) {
-			Qk_ERR("Cannot open file ZipReader, %s", _path.c_str());
+			Qk_ELog("Cannot open file ZipReader, %s", _path.c_str());
 			return false;
 		}
 		
 		CPointerHold<void> clear(unzp, [](unzFile unzp) {
 			if ( unzClose((unzFile) unzp) != UNZ_OK ) {
-				//Qk_ERR("Cannot close file ZipReader, %s", _path.c_str());
+				//Qk_ELog("Cannot close file ZipReader, %s", _path.c_str());
 			}
 		});
 		
@@ -285,12 +285,12 @@ namespace qk {
 		do {
 			code = unzGetFilePos(unzp, &pos);
 			if ( code ) {
-				Qk_ERR("Open current file pos info error"); return false;
+				Qk_ELog("Open current file pos info error"); return false;
 			}
 			_unz_file_pos _pos = { pos.pos_in_zip_directory, pos.num_of_file };
 			code = unzGetCurrentFileInfo(unzp, &unzfi, name, 256, NULL, 0, NULL, 0);
 			if ( code ) {
-				Qk_ERR("Get current file info error"); return false;
+				Qk_ELog("Get current file info error"); return false;
 			}
 			String pathname = name;
 			uint32_t compressed_size = (uint32_t)unzfi.compressed_size;
@@ -311,13 +311,13 @@ namespace qk {
 	bool ZipReader::close() {
 		if ( _unzp ) {
 			if ( !_inl_reader(this)->_close_current_file() ) {
-				Qk_ERR("Cannot close file reader internal documents, %s, %s",
+				Qk_ELog("Cannot close file reader internal documents, %s, %s",
 							 _path.c_str(), _cur_it->value.pathname.c_str());
 			}
 			if ( unzClose((unzFile)_unzp) == UNZ_OK ) {
 				_unzp = nullptr;
 			} else {
-				Qk_ERR("Cannot close file ZipReader, %s", _path.c_str());
+				Qk_ELog("Cannot close file ZipReader, %s", _path.c_str());
 			}
 			_file_info.clear();
 			_dir_info.clear();
@@ -428,7 +428,7 @@ namespace qk {
 	bool ZipWriter::open(OpenMode mode) {
 		
 		if ( _zipp ) {
-			Qk_ERR("First close the open file");
+			Qk_ELog("First close the open file");
 			return false;
 		}
 
@@ -436,7 +436,7 @@ namespace qk {
 		_zipp = zipOpen(fs_fallback(_path).c_str(), _open_mode);
 
 		if ( !_zipp ) {
-			Qk_ERR("Cannot open file ZipWriter, %s", _path.c_str());
+			Qk_ELog("Cannot open file ZipWriter, %s", _path.c_str());
 			return false;
 		}
 		return true;
@@ -448,7 +448,7 @@ namespace qk {
 			if ( zipClose((zipFile*)_zipp, NULL) == ZIP_OK ) {
 				_zipp = nullptr;
 			} else {
-				Qk_ERR("Cannot close zip ZipWriter, %s", _path.c_str());
+				Qk_ELog("Cannot close zip ZipWriter, %s", _path.c_str());
 			}
 		}
 		return !_zipp;
@@ -477,7 +477,7 @@ namespace qk {
 			if ( i == ZIP_OK ) {
 				return true;
 			} else {
-				Qk_ERR("add zip file error, `%s, %s`", _path.c_str(), path.c_str());
+				Qk_ELog("add zip file error, `%s, %s`", _path.c_str(), path.c_str());
 			}
 		}
 		return false;
@@ -491,7 +491,7 @@ namespace qk {
 		if ( ! _new_name.isEmpty() ) { // 当前有打开的新文件
 			int code = zipCloseFileInZip((zipFile*)_zipp);
 			if ( code != ZIP_OK ) {
-				Qk_ERR("Cannot close file writer internal documents, %s, %s", _path.c_str(), _new_name.c_str());
+				Qk_ELog("Cannot close file writer internal documents, %s, %s", _path.c_str(), _new_name.c_str());
 				return false;
 			}
 			_new_name = String();

@@ -34,7 +34,7 @@ using namespace qk;
 
 static void message_cb(Cb::Data& ev, RunLoop* loop) {
 	static int i = 0;
-	Qk_LOG("message_cb, %d", i++);
+	Qk_Log("message_cb, %d", i++);
 }
 
 void test_loop(int argc, char **argv) {
@@ -46,7 +46,7 @@ void test_loop(int argc, char **argv) {
 			thread_sleep(1e6);
 			loop->post(Cb(message_cb, loop));
 		}
-		Qk_LOG("test_loop 1 end");
+		Qk_Log("test_loop 1 end");
 		loop->tick_stop(tick);
 		return 0;
 	}, "test");
@@ -66,14 +66,14 @@ void test_loop(int argc, char **argv) {
 	int id = loop->work(Cb([&](Cb::Data& e){
 		for (int i = 0; i < 6; i++) {
 			thread_sleep(1e6);
-			Qk_LOG("Exec work");
+			Qk_Log("Exec work");
 			loop->post(Cb(message_cb, loop));
 		}
 	}), Cb([](Cb::Data& e){
-		Qk_LOG("Done");
+		Qk_Log("Done");
 	}));
 
 	loop->run();
 
-	Qk_LOG("Loop ok");
+	Qk_Log("Loop ok");
 }

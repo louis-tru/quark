@@ -53,7 +53,7 @@ namespace qk {
 	}
 
 	static int bp__fuzz_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b) {
-		auto len = (uint32_t)Qk_MIN(a->length, b->length);
+		auto len = (uint32_t)Qk_Min(a->length, b->length);
 		for (uint32_t i = 0; i < len; i++) {
 			if (a->value[i] != b->value[i])
 				return a->value[i] - b->value[i];// ? 1 : -1;

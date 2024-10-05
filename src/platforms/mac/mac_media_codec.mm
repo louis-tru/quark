@@ -199,7 +199,7 @@ namespace qk {
 			f->data = avf->data;
 			f->linesize = reinterpret_cast<uint32_t*>(avf->linesize);
 			f->dataitems = 2;
-			f->pts = Qk_MAX(0, pts.value);
+			f->pts = Qk_Max(0, pts.value);
 			f->pkt_duration = duration.value;
 			f->nb_samples = 0;
 			f->width = w;

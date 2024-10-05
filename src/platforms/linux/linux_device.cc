@@ -84,7 +84,7 @@ namespace qk {
 		memory_info_t r = {0,0,0};
 
 		String s = fs_read_file_sync("/proc/meminfo", 127).collapse_string();
-		Qk_DEBUG("/proc/meminfo, %s", *s);
+		Qk_DLog("/proc/meminfo, %s", *s);
 
 		if (!s.is_empty()) {
 			int i, j;
@@ -95,7 +95,7 @@ namespace qk {
 			if (j == -1) return r;
 
 			r.MemTotal = s.substring(i + 9, j).trim().to_number<uint64_t>() * 1024;
-			Qk_DEBUG("MemTotal, %lu", r.MemTotal);
+			Qk_DLog("MemTotal, %lu", r.MemTotal);
 
 			i = s.index_of("MemFree:", j);
 			if (i == -1) return r;
@@ -103,7 +103,7 @@ namespace qk {
 			if (j == -1) return r;
 
 			r.MemFree = s.substring(i + 8, j).trim().to_number<uint64_t>() * 1024;
-			Qk_DEBUG("MemFree, %lu", r.MemFree);
+			Qk_DLog("MemFree, %lu", r.MemFree);
 
 			i = s.index_of("MemAvailable:", j);
 			if (i == -1) return r;
@@ -111,7 +111,7 @@ namespace qk {
 			if (j == -1) return r;
 
 			r.MemAvailable = s.substring(i + 13, j).trim().to_number<uint64_t>() * 1024;
-			Qk_DEBUG("MemAvailable, %lu", r.MemAvailable);
+			Qk_DLog("MemAvailable, %lu", r.MemAvailable);
 		}
 		return r;
 	}

@@ -51,7 +51,7 @@ public:
 
 	void media_source_open(MediaSource* source) override {
 		UILock lock(window());
-		Qk_DEBUG("media_source_open");
+		Qk_DLog("media_source_open");
 		_video = MediaCodec::create(kVideo_MediaType, source);
 		_video->set_threads(2);
 		Qk_Assert_Eq(true, _video->open());
@@ -72,7 +72,7 @@ public:
 	}
 	void media_source_eof(MediaSource* msrc) override {
 		UILock lock(window());
-		Qk_DEBUG("media_source_eof");
+		Qk_DLog("media_source_eof");
 		_video = nullptr;
 		_audio = nullptr;
 		_pcm = nullptr;
@@ -82,11 +82,11 @@ public:
 		preRender().untask(this);
 	}
 	void media_source_error(MediaSource* source, cError& err) override {
-		Qk_DEBUG("media_source_error");
+		Qk_DLog("media_source_error");
 		media_source_eof(source);
 	}
 	void media_source_switch(MediaSource* source, Extractor *ex) override {
-		Qk_DEBUG("media_source_switch");
+		Qk_DLog("media_source_switch");
 	}
 	void media_source_advance(MediaSource* source) override {
 		if (_seek) {
@@ -131,7 +131,7 @@ public:
 			}
 		}
 		if (!_pcm->write(*_fa)) {
-			Qk_DEBUG("PCM_write fail %d, %d", _fa->pts, now - _start);
+			Qk_DLog("PCM_write fail %ld, %ld", _fa->pts, now - _start);
 		}
 		_fa = nullptr;
 	}
@@ -162,7 +162,7 @@ public:
 					skip_vf();
 					return false;
 				}
-				Qk_DEBUG("pkt_duration, timeout %d", du - _fv->pkt_duration);
+				Qk_DLog("pkt_duration, timeout %d", du - _fv->pkt_duration);
 				_start += (du - _fv->pkt_duration); // correct play ts
 			}
 		}
@@ -193,7 +193,7 @@ public:
 		_src->open();
 	}
 	void seek(uint64_t timeUs) {
-		_seek = Qk_MAX(timeUs, 1);
+		_seek = Qk_Max(timeUs, 1);
 	}
 private:
 	Sp<MediaSource> _src;

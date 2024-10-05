@@ -46,46 +46,46 @@ public:
 		set_delegate(this);
 	}
 	void trigger_http_error(HttpClientRequest* req, cError& error) {
-		Qk_LOG("trigger_http_error, %s", *error.message());
+		Qk_Log("trigger_http_error, %s", *error.message());
 	}
 	void trigger_http_write(HttpClientRequest* req) {
-		Qk_LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		Qk_Log("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
 	}
 	void trigger_http_header(HttpClientRequest* req) {
-		Qk_LOG("Header: %d", status_code());
+		Qk_Log("Header: %d", status_code());
 		for ( auto& i : get_all_response_headers() ) {
-			//Qk_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
+			//Qk_Log("  %s: %s", i.key.c_str(), i.value.c_str());
 		}
-		Qk_LOG("");
+		Qk_Log("");
 	}
 	void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
-		//Qk_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-		//Qk_LOG("http ondata: %s", buffer.val());
+		//Qk_Log("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		//Qk_Log("http ondata: %s", buffer.val());
 	}
 	void trigger_http_end(HttpClientRequest* req) {
 		pause();
 		resume();
 		abort();
 
-		Qk_LOG("http_end, status: %d, %s", status_code(), url().c_str());
-		//Qk_LOG(fs_read_file_sync(fs_documents("baidu.html")));
+		Qk_Log("http_end, status: %d, %s", status_code(), url().c_str());
+		//Qk_Log(fs_read_file_sync(fs_documents("baidu.html")));
 
 		test_download(this);
 		//send();
 	}
 	void trigger_http_readystate_change(HttpClientRequest* req) {
-		Qk_LOG("http_readystate_change, %d", ready_state() );
+		Qk_Log("http_readystate_change, %d", ready_state() );
 	}
 	void trigger_http_timeout(HttpClientRequest* req) {
-		Qk_LOG("trigger_http_timeout" );
+		Qk_Log("trigger_http_timeout" );
 	}
 	void trigger_http_abort(HttpClientRequest* req) {
-		Qk_LOG("trigger_http_abort" );
+		Qk_Log("trigger_http_abort" );
 	}
 };
 
 void test_https(int argc, char **argv) {
-	Qk_LOG("\nHttpClientRequest:\n");
+	Qk_Log("\nHttpClientRequest:\n");
 
 	Sp<TestHttpClient> cl = new TestHttpClient();
 
@@ -118,7 +118,7 @@ void test_https(int argc, char **argv) {
 }
 
 void test_download(HttpClientRequest *cl) {
-	Qk_LOG("\nTest test_download:\n");
+	Qk_Log("\nTest test_download:\n");
 
 	cl->set_url("https://github.com/louis-tru/quark/blob/master/doc/index.md");
 	cl->set_save_path(""); // no save path

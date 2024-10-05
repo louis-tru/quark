@@ -68,9 +68,9 @@ namespace qk {
 		, _tick(0)
 	{
 		if (_shared)
-			Qk_FATAL("At the same time can only run a Application entity");
+			Qk_Fatal("At the same time can only run a Application entity");
 		if (!_loop)
-			Qk_FATAL("The current thread does not have a RunLoop");
+			Qk_Fatal("The current thread does not have a RunLoop");
 		view_prop_acc_init();
 		_shared = this;
 		_screen = new Screen(this); // strong ref
@@ -121,11 +121,11 @@ namespace qk {
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](auto t, auto arg) {
 			auto args = (Args*)arg;
-			Qk_ASSERT(__qk_run_main__, "No gui main");
+			Qk_Assert(__qk_run_main__, "No gui main");
 			int rc = __qk_run_main__(args->argc, args->argv); // Run this custom gui entry function
-			Qk_DEBUG("Application::runMain() thread_new() Exit");
+			Qk_DLog("Application::runMain() thread_new() Exit");
 			thread_exit(rc); // if sub thread end then exit
-			Qk_DEBUG("Application::runMain() thread_new() Exit ok");
+			Qk_DLog("Application::runMain() thread_new() Exit ok");
 		}, new Args{argc, argv}, "Application::runMain");
 
 		// Block this main thread until calling new Application
@@ -143,7 +143,7 @@ namespace qk {
 	}
 
 	void Application::set_maxResourceMemoryLimit(uint64_t limit) {
-		_maxResourceMemoryLimit = Qk_MAX(limit, 64 * 1024 * 1024);
+		_maxResourceMemoryLimit = Qk_Max(limit, 64 * 1024 * 1024);
 	}
 
 	uint32_t Application::usedResourceMemory() const {
@@ -185,7 +185,7 @@ namespace qk {
 				app->_isLoaded = false;
 				app->Qk_Trigger(Unload);
 				app->_loop->tick_stop(app->_tick);
-				Qk_DEBUG("AppInl::onUnload()");
+				Qk_DLog("AppInl::onUnload()");
 			}
 		}, this));
 	}

@@ -43,15 +43,15 @@ class TestAsyncFile: public File, public File::Delegate {
 	}
 
 	virtual ~TestAsyncFile() {
-		Qk_LOG("Delete TestAsyncFile");
+		Qk_Log("Delete TestAsyncFile");
 	}
 
 	virtual void trigger_file_error(File* file, cError& error) {
-		Qk_LOG("Error, %s", error.message().c_str());
+		Qk_Log("Error, %s", error.message().c_str());
 	}
 
 	virtual void trigger_file_open(File* file) {
-		Qk_LOG("Open, %s", *path());
+		Qk_Log("Open, %s", *path());
 
 		for ( i = 0; i < 30; i++ ) {
 			write(write_str.copy().collapse(), 0);
@@ -59,17 +59,17 @@ class TestAsyncFile: public File, public File::Delegate {
 	}
 
 	virtual void trigger_file_close(File* file) {
-		Qk_LOG("Close");
+		Qk_Log("Close");
 		Release(this);
 	}
 
 	virtual void trigger_file_write(File* file, Buffer& buffer, int mark) {
 		i--;
-		Qk_LOG("Write ok, %d", i);
+		Qk_Log("Write ok, %d", i);
 
 		if (i == 0) {
 			String s = fs_reader()->read_file_sync(fs_documents("test_fs2.txt"));
-			Qk_LOG("Write count, %d", s.length());
+			Qk_Log("Write count, %d", s.length());
 			close();
 		}
 	}
@@ -82,7 +82,7 @@ class TestAsyncFile: public File, public File::Delegate {
 
 void test_fs2(int argc, char **argv) {
 
-	Qk_LOG("START");
+	Qk_Log("START");
 	
 	write_str = fs_reader()->read_file_sync(fs_resources("quark/ctr.js"));
 
@@ -92,5 +92,5 @@ void test_fs2(int argc, char **argv) {
 
 	RunLoop::current()->run();
 
-	Qk_LOG("END");
+	Qk_Log("END");
 }

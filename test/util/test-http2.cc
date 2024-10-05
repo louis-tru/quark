@@ -42,36 +42,36 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	}
 	
 	virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
-		Qk_LOG("trigger_http_error, %s", *error.message());
+		Qk_Log("trigger_http_error, %s", *error.message());
 	}
 	virtual void trigger_http_write(HttpClientRequest* req) {
-		Qk_LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		Qk_Log("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
 	}
 	virtual void trigger_http_header(HttpClientRequest* req) {
-		Qk_LOG("Header: %d", status_code());
+		Qk_Log("Header: %d", status_code());
 		for ( auto& i : get_all_response_headers() ) {
-			Qk_LOG("  %s: %s", i.key.c_str(), i.value.c_str());
+			Qk_Log("  %s: %s", i.key.c_str(), i.value.c_str());
 		}
-		Qk_LOG("");
+		Qk_Log("");
 	}
 	virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
-		Qk_LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-		Qk_LOG( String(buffer.val(), buffer.length()) );
+		Qk_Log("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		Qk_Log( String(buffer.val(), buffer.length()) );
 	}
 	virtual void trigger_http_end(HttpClientRequest* req) {
-		Qk_LOG("http_end, status: %d, %s", status_code(), url().c_str());
+		Qk_Log("http_end, status: %d, %s", status_code(), url().c_str());
 		// LOG( fs_read_file_sync(fs_documents("http.cc")) );
 		release();
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_http_readystate_change(HttpClientRequest* req) {
-		Qk_LOG("http_readystate_change, %d", ready_state() );
+		Qk_Log("http_readystate_change, %d", ready_state() );
 	}
 	virtual void trigger_http_timeout(HttpClientRequest* req) {
-		Qk_LOG("trigger_http_timeout" );
+		Qk_Log("trigger_http_timeout" );
 	}
 	virtual void trigger_http_abort(HttpClientRequest* req) {
-		Qk_LOG("trigger_http_abort" );
+		Qk_Log("trigger_http_abort" );
 	}
 	
 	int count;

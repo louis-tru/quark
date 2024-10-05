@@ -238,7 +238,7 @@ QkCTFontSmoothBehavior QkCTFontGetSmoothBehavior() {
 		QkUniqueCFRef<CTFontDescriptorRef> desc(
 						CTFontManagerCreateFontDescriptorFromData(data.get()));
 		QkUniqueCFRef<CTFontRef> ctFont(CTFontCreateWithFontDescriptor(desc.get(), 16, nullptr));
-		Qk_ASSERT(ctFont);
+		Qk_Assert(ctFont);
 
 		CGContextSetShouldSmoothFonts(noSmoothContext.get(), false);
 		CGContextSetShouldAntialias(noSmoothContext.get(), true);

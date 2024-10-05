@@ -66,7 +66,7 @@ extern QkApplicationDelegate *qkappdelegate;
 - (void) display:(CADisplayLink*)displayLink {
 	static int _fps = 0;
 	if (_fps == 0) { // 3 = 15, 1 = 30
-		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
+		Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context 2");
 		self.render->delegate()->onRenderBackendDisplay();
 		_fps = 0;
 	} else {
@@ -152,7 +152,7 @@ public:
 
 	UIView* make_surface_view(CGRect rect) override {
 		[EAGLContext setCurrentContext:_ctx];
-		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context 2");
+		Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context 2");
 
 		_view = [[GLView alloc] initWithFrame:rect];
 		_view.render = this;
@@ -182,7 +182,7 @@ QkMacRender* qk_make_mac_gl_render(Render::Options opts) {
 	EAGLContext* ctx = [EAGLContext alloc];
 	if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
 		[EAGLContext setCurrentContext:ctx];
-		Qk_ASSERT([EAGLContext currentContext], "Failed to set current OpenGL context");
+		Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
 		ctx.multiThreaded = NO;
 		return new MacGLRender(opts, ctx);
 	}

@@ -54,18 +54,18 @@ Qk_GETCFTYPEID(CFNumber);
  */
 template <typename CF>
 static bool SkCFDynamicCast(CFTypeRef cf, CF* cfAsCF, char const* name) {
-	// Qk_DEBUG("SkCFDynamicCast '%s' of type %s to type %s\n", name ? name : "<annon>",
+	// Qk_DLog("SkCFDynamicCast '%s' of type %s to type %s\n", name ? name : "<annon>",
 	//         SkCFTypeIDDescription(  CFGetTypeID(cf)  ).c_str()
 	//         SkCFTypeIDDescription(SkCFGetTypeID<CF>()).c_str());
 	if (!cf) {
 		if (name) {
-			Qk_DEBUG("%s not present\n", name);
+			Qk_DLog("%s not present\n", name);
 		}
 		return false;
 	}
 	if (CFGetTypeID(cf) != QkCFGetTypeID<CF>()) {
 		if (name) {
-			Qk_DEBUG("%s is a %s but expected a %s\n", name,
+			Qk_DLog("%s is a %s but expected a %s\n", name,
 								QkCFTypeIDDescription(CFGetTypeID(cf)  ).c_str(),
 								QkCFTypeIDDescription(QkCFGetTypeID<CF>()).c_str());
 		}
@@ -84,8 +84,8 @@ template <typename S, typename D, typename C> struct QkLinearInterpolater {
 		: fMapping(mapping), fMappingCount(mappingCount) {}
 
 	static D map(S value, S src_min, S src_max, D dst_min, D dst_max) {
-		Qk_ASSERT(src_min < src_max);
-		Qk_ASSERT(dst_min <= dst_max);
+		Qk_Assert(src_min < src_max);
+		Qk_Assert(dst_min <= dst_max);
 		return C()(dst_min + (((value - src_min) * (dst_max - dst_min)) / (src_max - src_min)));
 	}
 
@@ -344,7 +344,7 @@ Typeface_Mac::Typeface_Mac(QkUniqueCFRef<CTFontRef> font, OpszVariation opszVari
 	, fHasColorGlyphs(CTFontGetSymbolicTraits(fFontRef.get()) & kCTFontColorGlyphsTrait)
 	, fIsData(isData)
 {
-	Qk_ASSERT(fFontRef);
+	Qk_Assert(fFontRef);
 	QkUniqueCFRef<CTFontDescriptorRef> desc(CTFontCopyFontDescriptor(fFontRef.get()));
 	FontStyle style = QkCTFontDescriptorGetSkFontStyle(desc.get(), fIsData);
 	//CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.get());
@@ -441,7 +441,7 @@ void Typeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyph
 	// If all are bmp, 'glyphs' already contains the compact glyphs.
 	// If some are non-bmp, copy and compact into 'glyphs'.
 	if (srcCount > count) {
-		Qk_ASSERT(glyphs != macGlyphs);
+		Qk_Assert(glyphs != macGlyphs);
 		int extra = 0;
 		for (int i = 0; i < count; ++i) {
 			glyphs[i] = macGlyphs[i + extra];
@@ -450,7 +450,7 @@ void Typeface_Mac::onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyph
 			}
 		}
 	} else {
-		Qk_ASSERT(glyphs == macGlyphs);
+		Qk_Assert(glyphs == macGlyphs);
 	}
 }
 
@@ -609,7 +609,7 @@ bool Typeface_Mac::onGetPath(GlyphID glyph, Path *path) const {
 				self.close();
 				break;
 			default:
-				Qk_FATAL("Unknown path element!");
+				Qk_Fatal("Unknown path element!");
 				break;
 		}
 	});
@@ -654,7 +654,7 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) const 
 	glyph->width = cgBounds.size.width;
 	glyph->height = cgBounds.size.height;
 
-	//Qk_DEBUG("#Typeface_Mac::onGetGlyphMetrics,%f", cgBounds.origin.x);
+	//Qk_DLog("#Typeface_Mac::onGetGlyphMetrics,%f", cgBounds.origin.x);
 }
 
 Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
@@ -701,7 +701,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 		} else {
 			width_f += cgAdvance[i].width;
 		}
-		//Qk_DEBUG("#Typeface_Mac::onGetImage,bounds, left:%f, top:%f, width:%f, height:%f | advanceX:%f",
+		//Qk_DLog("#Typeface_Mac::onGetImage,bounds, left:%f, top:%f, width:%f, height:%f | advanceX:%f",
 		//	cgBounds[i].origin.x, cgBounds[i].origin.y,
 		//	cgBounds[i].size.width, cgBounds[i].size.height, cgAdvance[i].width);
 	}
@@ -714,7 +714,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 		return Vec2{};
 	}
 
-	Qk_DEBUG("#Typeface_Mac::onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", cgBound.origin.y, top, height);
+	Qk_DLog("#Typeface_Mac::onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", cgBound.origin.y, top, height);
 
 	int rowBytes = width * sizeof(uint32_t);
 	Buffer image(rowBytes * height);
@@ -764,7 +764,7 @@ Vec2 Typeface_Mac::onGetImage(const Array<GlyphID>& glyphs,
 	//auto data = img_tga_encode(pixs[0]);
 	//auto path = fs_documents("test.tga");
 	//auto write = fs_write_file_sync(path, *data, data.size());
-	//Qk_DEBUG("#Typeface_Mac#onGetImage,write:%d,%s", write, path.c_str());
+	//Qk_DLog("#Typeface_Mac#onGetImage,write:%d,%s", write, path.c_str());
 
 	*imgOut = ImageSource::Make(std::move(pixs), render);
 

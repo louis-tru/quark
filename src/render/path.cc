@@ -341,7 +341,7 @@ namespace qk {
 					isZero = false;
 					break;
 				case kVerb_Close: // close
-					//Qk_ASSERT(verb == kVerb_Close);
+					//Qk_Assert(verb == kVerb_Close);
 					if (!isZero) {
 						if (move != from) { // close path
 							edges.push(from);
@@ -350,7 +350,7 @@ namespace qk {
 						isZero = true;
 					}
 					break;
-				default: Qk_FATAL("Path::getEdgeLines");
+				default: Qk_Fatal("Path::getEdgeLines");
 			}
 		}
 		
@@ -385,14 +385,14 @@ namespace qk {
 						len++;
 						break;
 					case kVerb_Close: // close
-						// Qk_ASSERT(verb == kVerb_Close);
+						// Qk_Assert(verb == kVerb_Close);
 						if (len) {
 							// tmpV.push(tmpV[tmpV.length() - len++]);
 							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
 							len = 0;
 						}
 						break;
-					default: Qk_FATAL("Path::getVertexsFromPaths");
+					default: Qk_Fatal("Path::getVertexsFromPaths");
 				}
 			}
 			if (len > 1) { // auto close
@@ -434,7 +434,7 @@ namespace qk {
 		auto nextStage = [&]() {
 			stageIdx = (stageIdx + 1) % stageCount;
 			stage = stageP[stageIdx];
-			Qk_ASSERT(stage > 0, "#Path.dashPath.nextStage() assert stage > 0");
+			Qk_Assert(stage > 0, "#Path.dashPath.nextStage() assert stage > 0");
 			useStage = !useStage;
 		};
 
@@ -494,7 +494,7 @@ namespace qk {
 						isZero = true;
 					}
 					break;
-				default: Qk_FATAL("Path::dashPath");
+				default: Qk_Fatal("Path::dashPath");
 			}
 		}
 
@@ -647,13 +647,13 @@ namespace qk {
 		static Array<float> num;
 		if (!num.length()) {
 			num.extend(5001);
-#if DEBUG || Qk_MoreLOG
+#if DEBUG
 			uint64_t t = qk::time_monotonic();
 #endif
 			for (int i = 0; i < 5001; i++) {
 				num[i] = sqrtf(sqrtf(float(i)));
 			}
-			Qk_DEBUG("sqrt_sqrtf, %ld Microsecond", qk::time_monotonic() - t);
+			Qk_DLog("sqrt_sqrtf, %ld Microsecond", qk::time_monotonic() - t);
 		}
 		if (i > 5000) {
 			return num[5000] * i * 0.0002; // 5000.0
@@ -990,8 +990,8 @@ namespace qk {
 							out->vertex.write(src, 6);
 							path2.push(v1);
 							lastV = v1;
-							//Qk_DEBUG("v0: %f %f, v1: %f %f", v0[0], v0[1], v1[0], v1[1]);
-							//Qk_DEBUG("ro: %f %f, ri: %f %f", radius[1][0], radius[1][1], radius_i[1][0], radius_i[1][1]);
+							//Qk_DLog("v0: %f %f, v1: %f %f", v0[0], v0[1], v1[0], v1[1]);
+							//Qk_DLog("ro: %f %f, ri: %f %f", radius[1][0], radius[1][1], radius_i[1][0], radius_i[1][1]);
 						} else { // inside radius is zero
 							if (i == 0) {
 								v1 = v[4]; goto RadiusI;

@@ -135,9 +135,9 @@ namespace qk { namespace js {
 			if (isSetWeak(data)) {
 				setWeak(p);
 			}
-			//Qk_DEBUG("%i", p->handle().isWeak());
+			//Qk_DLog("%i", p->handle().isWeak());
 			Qk_Assert(set(worker()->strs()->_wrap_external_data(), p->that()));
-			//Qk_DEBUG("%i", p->handle().isWeak());
+			//Qk_DLog("%i", p->handle().isWeak());
 			Qk_Assert(externalData());
 		}
 		return p;

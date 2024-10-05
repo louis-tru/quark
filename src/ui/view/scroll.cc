@@ -293,11 +293,11 @@ namespace qk {
 
 			if ( pos < 0 ) {
 				size = h_scrollbar_indicator_size + roundf(pos * 3);
-				size = Qk_MAX(size, 8);
+				size = Qk_Max(size, 8);
 				pos = 0;
 			} else if ( pos > h_scrollbar_max_scroll ) {
 				size = h_scrollbar_indicator_size - roundf((pos - h_scrollbar_max_scroll) * 3);
-				size = Qk_MAX(size, 8);
+				size = Qk_Max(size, 8);
 				pos = h_scrollbar_max_scroll + h_scrollbar_indicator_size - size;
 			}
 
@@ -528,7 +528,7 @@ namespace qk {
 					new_x -= dist_x;
 					dist_x = fabsf(dist_x) * 1e4;
 
-					momentum_x.time = Qk_MAX(Qk_MIN(dist_x, 3e5), momentum_x.time);
+					momentum_x.time = Qk_Max(Qk_Min(dist_x, 3e5), momentum_x.time);
 				}
 
 				if ( new_y < 0 && new_y > _scroll_max.y() && mod_y != 0 ) {
@@ -540,7 +540,7 @@ namespace qk {
 					new_y -= dist_y;
 					dist_y = fabsf(dist_y) * 1e4;
 
-					momentum_y.time = Qk_MAX(Qk_MIN(dist_y, 3e5), momentum_y.time);
+					momentum_y.time = Qk_Max(Qk_Min(dist_y, 3e5), momentum_y.time);
 				}
 			}
 
@@ -549,7 +549,7 @@ namespace qk {
 			//****************************************************************
 
 			if ( momentum_x.time || momentum_y.time ) {
-				uint64_t duration = Qk_MAX(Qk_MAX(momentum_x.time, momentum_y.time), 1e4);
+				uint64_t duration = Qk_Max(Qk_Max(momentum_x.time, momentum_y.time), 1e4);
 				scroll_to_valid_scroll(Vec2(new_x, new_y), duration);
 			} else {
 				termination_recovery(3e5, ease_in_out);
@@ -672,7 +672,7 @@ namespace qk {
 	}
 
 	void ScrollBase::set_resistance(float value, bool isRt) {
-		_resistance = Qk_MAX(0.5, value);
+		_resistance = Qk_Max(0.5, value);
 	}
 
 	void ScrollBase::set_bounce(bool value, bool isRt) {

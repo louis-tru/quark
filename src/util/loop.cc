@@ -163,10 +163,10 @@ namespace qk {
 
 	void RunLoop::run() {
 		if (__is_process_exit_atomic) {
-			Qk_WARN("cannot run RunLoop::run(), __is_process_exit_atomic != 0"); return;
+			Qk_Warn("cannot run RunLoop::run(), __is_process_exit_atomic != 0"); return;
 		}
 		if (!_thread) {
-			Qk_WARN("cannot run RunLoop::run(), _thread == nullptr"); return;
+			Qk_Warn("cannot run RunLoop::run(), _thread == nullptr"); return;
 		}
 		Qk_Assert(!_uv_async, "It is running and cannot be called repeatedly");
 		Qk_Assert(thread_self_id() == _tid, "Must run on the target thread");
@@ -251,7 +251,7 @@ namespace qk {
 	{}
 
 	RunLoop::~RunLoop() {
-		Qk_FATAL("Cannot call destructor");
+		Qk_Fatal("Cannot call destructor");
 	}
 
 	void RunLoop::clear() {
@@ -268,27 +268,27 @@ namespace qk {
 		for (auto &i: msgs) {
 			if (i.timer) {
 				auto timer = (timer_t*)(i.timer);
-				Qk_WARN("RunLoop::clear(), discard timer %p", timer);
+				Qk_Warn("RunLoop::clear(), discard timer %p", timer);
 				delete timer;
 			} else {
-				Qk_WARN("RunLoop::clear(), discard msg cb");
+				Qk_Warn("RunLoop::clear(), discard msg cb");
 			}
 		}
 
 		for (auto &i: timers) {
 			auto timer = (timer_t*)(i.value);
 			_this->timer_stop(timer);
-			Qk_WARN("RunLoop::clear(), discard timer %p", timer);
+			Qk_Warn("RunLoop::clear(), discard timer %p", timer);
 		}
 
 		for (auto &i: checks) {
 			auto check = (check_t*)(i.value);
 			check->stop_check();
-			Qk_WARN("RunLoop::clear(), discard check %p", check);
+			Qk_Warn("RunLoop::clear(), discard check %p", check);
 		}
 
 		for (auto& i: works) {
-			Qk_WARN("RunLoop::clear(), discard work %p", i.value);
+			Qk_Warn("RunLoop::clear(), discard work %p", i.value);
 			Qk_Assert_Eq(0, uv_cancel((uv_req_t*)&i.value->uv_req));
 		}
 	}

@@ -48,19 +48,19 @@ class Str {
 		_length = str._length;
 		_value = (char*)malloc(_length + 1);
 		memcpy(_value, str._value, _length + 1);
-		Qk_LOG("%s\n", "copy constructor");
+		Qk_Log("%s\n", "copy constructor");
 	}
 	Str (Str&& str) {
 		_length = str._length;
 		_value = str._value;
 		str._value = NULL;
-		Qk_LOG("%s\n", "move constructor");
+		Qk_Log("%s\n", "move constructor");
 	}
 	Str (const char* str) {
 		_length = strlen(str);
 		_value = (char*)malloc(_length + 1);
 		memcpy(_value, str, _length + 1);
-		Qk_LOG("%s\n", "new constructor");
+		Qk_Log("%s\n", "new constructor");
 	}
 	
 	~ Str () {
@@ -80,7 +80,7 @@ class Str {
 
 void test (const Str& str) {
 	printf("str:%s, len:%d, add:%s, test ok\n", str.c_str(), str.length(), str.c_str());
-	Qk_LOG("");
+	Qk_Log("");
 }
 
 void test2 (const string& str) {
@@ -97,27 +97,27 @@ void test_string (int argc, char **argv) {
 	String utf8_1 = codec_encode(kUTF8_Encoding, ucs2.array().buffer()); // 编码
 	String utf8_2 = codec_encode(kUTF8_Encoding, ucs4.array().buffer());
 	
-	Qk_LOG(ucs2.hashCode() % 10);
-	Qk_LOG(ucs4.hashCode() % 10);
-	Qk_LOG(utf8_1.hashCode() % 10);
-	Qk_LOG(utf8_2.hashCode() % 10);
+	Qk_Log(ucs2.hashCode() % 10);
+	Qk_Log(ucs4.hashCode() % 10);
+	Qk_Log(utf8_1.hashCode() % 10);
+	Qk_Log(utf8_2.hashCode() % 10);
 	
-	Qk_LOG(ucs2[0]);
-	Qk_LOG(ucs2[1]);
-	Qk_LOG(ucs2[2]);
-	Qk_LOG(ucs2[3]);
-	Qk_LOG(ucs4[0]);
-	Qk_LOG(ucs4[1]);
-	Qk_LOG(ucs4[2]);
-	Qk_LOG(ucs4[3]);
-	Qk_LOG(utf8_1);
-	Qk_LOG(utf8_2);
+	Qk_Log(ucs2[0]);
+	Qk_Log(ucs2[1]);
+	Qk_Log(ucs2[2]);
+	Qk_Log(ucs2[3]);
+	Qk_Log(ucs4[0]);
+	Qk_Log(ucs4[1]);
+	Qk_Log(ucs4[2]);
+	Qk_Log(ucs4[3]);
+	Qk_Log(utf8_1);
+	Qk_Log(utf8_2);
 	
-	Qk_LOG("%d", __cplusplus);
+	Qk_Log("%d", __cplusplus);
 	
 	const char* c = "op";
 	
-	Qk_LOG(c);
+	Qk_Log(c);
 	
 	// Str s = "op";
 	
@@ -129,7 +129,7 @@ void test_string (int argc, char **argv) {
 	
 	const char* str = "ABCD";
 	
-	Qk_LOG(str);
+	Qk_Log(str);
 	
 	string str0 = str;
 	
@@ -141,17 +141,17 @@ void test_string (int argc, char **argv) {
 	
 	string str3(str0.c_str());
 	
-	Qk_LOG("%u,%u\n", str0.c_str(), str3.c_str());
+	Qk_Log("%u,%u\n", str0.c_str(), str3.c_str());
 	
-	Qk_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
+	Qk_Log("capacity:%d,%d\n", str0.capacity(), str3.capacity());
 	
 	const_cast<char*>(str0.c_str())[0] = 'K';
 	
 	str0 = "ABCD-KKKKK";
 	
-	Qk_LOG("%u,%u\n", str0.c_str(), str3.c_str());
+	Qk_Log("%u,%u\n", str0.c_str(), str3.c_str());
 	
-	Qk_LOG("capacity:%d,%d\n", str0.capacity(), str3.capacity());
+	Qk_Log("capacity:%d,%d\n", str0.capacity(), str3.capacity());
 	
-	Qk_LOG("%s,%s\n", str0.c_str(), str3.c_str());
+	Qk_Log("%s,%s\n", str0.c_str(), str3.c_str());
 }

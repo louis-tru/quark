@@ -187,7 +187,7 @@ namespace qk { namespace js {
 			auto cbInt = get_callback_for_int(worker, args[0]);
 
 			cb = Callback<Buffer>([pv, cbInt, afterCollapse](auto &e) {
-				Qk_ASSERT( e.data );
+				Qk_Assert( e.data );
 				Sp<PersistentValue> h(pv);
 				auto len = e.data->length();
 				if (afterCollapse) {
@@ -1073,7 +1073,7 @@ namespace qk { namespace js {
 				}
 				Js_Return( convert_buffer(worker, r, encoding) );
 			} else {
-				// Qk_LOG("read_file,args,%d", args.length());
+				// Qk_Log("read_file,args,%d", args.length());
 				fs_read_file(path, get_callback_for_buffer(worker, args[0], encoding));
 			}
 		}
@@ -1257,7 +1257,7 @@ namespace qk { namespace js {
 			if ( args.length() > args_index && args[args_index]->isInt32() ) {
 				int num = args[args_index++]->toInt32Value(worker).unsafe();
 				if ( num >= 0 ) {
-					size = Qk_MIN(size, num);
+					size = Qk_Min(size, num);
 				}
 			}
 
@@ -1284,7 +1284,7 @@ namespace qk { namespace js {
 				auto cbInt = get_callback_for_int(worker, args[0]);
 
 				fs_read(fd, Buffer(data, size), offset, Callback<Buffer>([pv, cbInt](auto& e) {
-					Qk_ASSERT(e.data);
+					Qk_Assert(e.data);
 					Sp<PersistentValue> h(pv);
 					auto len = e.data->length();
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,不能在这里被释放

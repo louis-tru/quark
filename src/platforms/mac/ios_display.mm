@@ -55,7 +55,7 @@ void Display::keep_screen(bool keep) {
 
 float Display::status_bar_height() {
 	CGRect rect = __app.app.statusBarFrame;
-	return Qk_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
+	return Qk_Min(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale;
 }
 
 void Display::set_visible_status_bar(bool visible) {

@@ -33,8 +33,8 @@
 #include "./loop.h"
 #include <math.h>
 
-#ifndef Qk_MIN_CAPACITY
-# define Qk_MIN_CAPACITY (4)
+#ifndef Qk_Min_CAPACITY
+# define Qk_Min_CAPACITY (4)
 #endif
 
 namespace qk {
@@ -48,7 +48,7 @@ namespace qk {
 	}
 
 	static void increase_(Allocator::Prt<void> *ptr, uint32_t size,uint32_t sizeOf) {
-		size = Qk_MAX(Qk_MIN_CAPACITY, size);
+		size = Qk_Max(Qk_Min_CAPACITY, size);
 		size = powf(2, ceilf(log2f(size)));
 		ptr->val = ::realloc(ptr->val, sizeOf * size);
 		ptr->capacity = size;
@@ -71,11 +71,11 @@ namespace qk {
 
 	void Allocator::reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
 		uint32_t capacity = ptr->capacity;
-		if ( size > Qk_MIN_CAPACITY && size < (capacity >> 2) ) { // > 8
+		if ( size > Qk_Min_CAPACITY && size < (capacity >> 2) ) { // > 8
 			capacity >>= 1;
 			size = powf(2, ceilf(log2f(size)));
 			size <<= 1;
-			size = Qk_MIN(size, capacity);
+			size = Qk_Min(size, capacity);
 			ptr->val = ::realloc(ptr->val, sizeOf * size);
 			ptr->capacity = size;
 			Qk_Assert(ptr->val);
@@ -142,7 +142,7 @@ namespace qk {
 	}
 
 	void Object::operator delete(void* p) {
-		Qk_UNREACHABLE("Modify to `Release(obj)`");
+		Qk_Unreachable("Modify to `Release(obj)`");
 	}
 
 	// ---------------- R e f e r e n c e ----------------

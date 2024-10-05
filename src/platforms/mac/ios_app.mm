@@ -51,8 +51,8 @@ QkApplicationDelegate *qkappdelegate = nil; //
 	}
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		Qk_ASSERT(!qkappdelegate);
-		Qk_ASSERT(Application::shared());
+		Qk_Assert(!qkappdelegate);
+		Qk_Assert(Application::shared());
 		qkappdelegate = self;
 		_host = Application::shared();
 		_app = app;
@@ -106,7 +106,7 @@ QkApplicationDelegate *qkappdelegate = nil; //
 		self.host->render()->reload(); // set size
 
 		Inl_Application(_host)->triggerLoad();
-		Qk_DEBUG("application,triggerLoad");
+		Qk_DLog("application,triggerLoad");
 
 		return YES;
 	}
@@ -119,42 +119,42 @@ QkApplicationDelegate *qkappdelegate = nil; //
 
 	- (void)applicationWillResignActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerPause();
-		Qk_DEBUG("applicationWillResignActive,triggerPause");
+		Qk_DLog("applicationWillResignActive,triggerPause");
 	}
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerResume();
 		self.host->render()->reload(); // set size
-		Qk_DEBUG("applicationDidBecomeActive,triggerResume");
+		Qk_DLog("applicationDidBecomeActive,triggerResume");
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
 		_is_background = YES;
 		Inl_Application(_host)->triggerBackground();
-		Qk_DEBUG("applicationDidEnterBackground,triggerBackground");
+		Qk_DLog("applicationDidEnterBackground,triggerBackground");
 	}
 
 	- (void)applicationWillEnterForeground:(UIApplication*) application {
 		_is_background = NO;
 		Inl_Application(_host)->triggerForeground();
-		Qk_DEBUG("applicationWillEnterForeground,triggerForeground");
+		Qk_DLog("applicationWillEnterForeground,triggerForeground");
 	}
 
 	- (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
 		Inl_Application(_host)->triggerMemorywarning();
-		Qk_DEBUG("applicationDidReceiveMemoryWarning,triggerMemorywarning");
+		Qk_DLog("applicationDidReceiveMemoryWarning,triggerMemorywarning");
 	}
 
 	- (void)applicationWillTerminate:(UIApplication*)application {
 		Inl_Application(_host)->triggerUnload();
-		Qk_DEBUG("applicationWillTerminate,triggerUnload");
+		Qk_DLog("applicationWillTerminate,triggerUnload");
 	}
 
 	- (void) mailComposeController:(MFMailComposeViewController*)controller
 						didFinishWithResult:(MFMailComposeResult)result
 													error:(NSError*)error {
 		[controller dismissViewControllerAnimated:YES completion:nil];
-		Qk_DEBUG("mailComposeController");
+		Qk_DLog("mailComposeController");
 	}
 
 @end

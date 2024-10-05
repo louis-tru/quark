@@ -33,5 +33,5 @@
 using namespace qk;
 
 void test_http3(int argc, char **argv) {
-	Qk_LOG(http_get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
+	Qk_Log(http_get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
 }

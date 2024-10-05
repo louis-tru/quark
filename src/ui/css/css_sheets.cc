@@ -77,7 +77,7 @@ namespace qk {
 
 	void StyleSheets::applyTransition(View* view, StyleSheets *to, float y) const {
 		if (_props.length()) {
-			Qk_ASSERT(_props.length() == to->_props.length());
+			Qk_Assert(_props.length() == to->_props.length());
 			auto a = _props.begin(), e = _props.end();
 			auto b = to->_props.begin();
 			while (a != e) {
@@ -186,7 +186,7 @@ namespace qk {
 	}
 
 	CStyleSheets* RootStyleSheets::searchItem(cString &exp, bool make) {
-		#define Qk_InvalidCss(e) { Qk_WARN("Invalid css name \"%s\"", *e); return nullptr; }
+		#define Qk_InvalidCss(e) { Qk_Warn("Invalid css name \"%s\"", *e); return nullptr; }
 		CStyleSheets *ss = this;
 
 		for ( auto &j : exp.split(' ') ) { // .div_cls.div_cls2 .aa.bb.cc

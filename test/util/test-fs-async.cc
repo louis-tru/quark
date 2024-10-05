@@ -41,34 +41,34 @@ class AsyncFileRead: public File, public File::Delegate {
 	}
 	
 	virtual ~AsyncFileRead() {
-		Qk_LOG("Delete");
+		Qk_Log("Delete");
 		fs_read_file(fs_resources("res/bg.svg"), Callback<Buffer>([](auto& evt) {
 			if ( evt.error ) {
-				Qk_LOG("ERR, %s", evt.error->message().c_str());
+				Qk_Log("ERR, %s", evt.error->message().c_str());
 			} else {
-				Qk_LOG( evt.data->collapseString() );
+				Qk_Log( evt.data->collapseString() );
 			}
 			RunLoop::current()->stop();
 		}));
 	}
 	
 	virtual void trigger_file_error(File* file, cError& error) {
-		Qk_LOG("Error, %s", error.message().c_str());
+		Qk_Log("Error, %s", error.message().c_str());
 		delete this;
 	}
 	virtual void trigger_file_open(File* file) {
-		Qk_LOG("Open, %s", *path());
+		Qk_Log("Open, %s", *path());
 		read(Buffer::alloc(1024), 1024); // start read
 	}
 	virtual void trigger_file_close(File* file) {
-		Qk_LOG("Close");
+		Qk_Log("Close");
 		Release(this);
 	}
 	virtual void trigger_file_read(File* file, Buffer& buffer, int mark) {
 		if ( buffer.length() ) {
 			read(buffer, 1024); // read
 		} else { // read end
-			Qk_DEBUG("Read END");
+			Qk_DLog("Read END");
 			close();
 		}
 	}
@@ -85,24 +85,24 @@ class AsyncFileWrite: public File, public File::Delegate {
 	}
 	
 	virtual ~AsyncFileWrite() {
-		Qk_LOG("Delete WriteFileAsync");
+		Qk_Log("Delete WriteFileAsync");
 	}
 	
 	virtual void trigger_file_error(File* file, cError& error) {
-		Qk_LOG("Error, %s", error.message().c_str());
+		Qk_Log("Error, %s", error.message().c_str());
 		RunLoop::current()->stop();
 		Release(this);
 	}
 	virtual void trigger_file_open(File* file) {
-		Qk_LOG("Open, %s", *path());
+		Qk_Log("Open, %s", *path());
 		write(String("ABCDEFG-").collapse()); // start read
 	}
 	virtual void trigger_file_close(File* file) {
-		Qk_LOG("Close");
+		Qk_Log("Close");
 		Release(this);
 	}
 	virtual void trigger_file_write(File* file, Buffer& buffer, int mark) {
-		Qk_LOG("Write ok");
+		Qk_Log("Write ok");
 		(new AsyncFileRead(path()))->open();
 		close();
 	}

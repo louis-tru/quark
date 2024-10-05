@@ -467,7 +467,7 @@ namespace qk { namespace inspector {
 		auto context = firstContext();
 		auto result = fn->Call(context, Undefined(isolate), 0, nullptr);
 		if (result.IsEmpty()) {
-			Qk_FATAL("node::inspector::Agent::ToggleAsyncHook, Cannot toggle Inspector's AsyncHook, please report this.");
+			Qk_Fatal("node::inspector::Agent::ToggleAsyncHook, Cannot toggle Inspector's AsyncHook, please report this.");
 		}
 	}
 

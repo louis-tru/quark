@@ -204,7 +204,7 @@ namespace qk { namespace js {
 				rv = func->Call(_context, v8::Undefined(_isolate), 3, args);
 				if (!rv.IsEmpty()) {
 					auto rv = mod->get(this, strs()->exports());
-					Qk_ASSERT(rv->isObject());
+					Qk_Assert(rv->isObject());
 					return Cast(scope.Escape(Back(rv)));
 				}
 			}
@@ -266,14 +266,14 @@ namespace qk { namespace js {
 		}
 
 		void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			Qk_ERR("%s", *parse_exception_message(message, error) );
+			Qk_ELog("%s", *parse_exception_message(message, error) );
 		}
 
 		static void OnFatalError(cChar* location, cChar* message) {
 			if (location) {
-				Qk_FATAL("FATAL ERROR: %s %s\n", location, message);
+				Qk_Fatal("FATAL ERROR: %s %s\n", location, message);
 			} else {
-				Qk_FATAL("FATAL ERROR: %s\n", message);
+				Qk_Fatal("FATAL ERROR: %s\n", message);
 			}
 		}
 
@@ -409,7 +409,7 @@ namespace qk { namespace js {
 				auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
 				auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
 				ok = proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked();
-				Qk_ASSERT(ok);
+				Qk_Assert(ok);
 			}
 			auto func = Cast<JSFunction>(f);
 			_func.reset(_worker, func);
@@ -944,7 +944,7 @@ namespace qk { namespace js {
 
 	template <> template <>
 	void Persistent<JSValue>::reset(Worker* worker, JSValue* other) {
-		Qk_ASSERT(worker);
+		Qk_Assert(worker);
 		reinterpret_cast<v8::Persistent<v8::Value>*>(this)->
 			Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
 		_worker = worker;
@@ -955,7 +955,7 @@ namespace qk { namespace js {
 		reset();
 		if (that.isEmpty())
 			return;
-		Qk_ASSERT(that._worker);
+		Qk_Assert(that._worker);
 		typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
 		reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&that));
 		_worker = that._worker;
@@ -963,14 +963,14 @@ namespace qk { namespace js {
 
 	template <>
 	bool Persistent<JSValue>::isWeak() {
-		Qk_ASSERT( _val );
+		Qk_Assert( _val );
 		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
 		return h->IsWeak();
 	}
 
 	template <>
 	void Persistent<JSValue>::setWeak(void* ptr, WeakCallback callback) {
-		Qk_ASSERT( !isEmpty() );
+		Qk_Assert( !isEmpty() );
 		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
 		h->MarkIndependent();
 		h->SetWeak(ptr, reinterpret_cast<v8::WeakCallbackInfo<void>::Callback>(callback),
@@ -979,7 +979,7 @@ namespace qk { namespace js {
 
 	template <>
 	void Persistent<JSValue>::clearWeak() {
-		Qk_ASSERT( !isEmpty() );
+		Qk_Assert( !isEmpty() );
 		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
 		h->ClearWeak();
 	}
@@ -1100,7 +1100,7 @@ namespace qk { namespace js {
 
 	JSUint8Array* Worker::newUint8Array(JSArrayBuffer* abuffer, uint32_t offset, uint32_t size) {
 		auto ab2 = Back<v8::ArrayBuffer>(abuffer);
-		offset = Qk_MIN((uint)ab2->ByteLength(), offset);
+		offset = Qk_Min((uint)ab2->ByteLength(), offset);
 		if (size + offset > ab2->ByteLength()) {
 			size = (uint)ab2->ByteLength() - offset;
 		}

@@ -128,7 +128,6 @@
 # define Qk_Assert(cond, ...) ((void)(cond))
 # define Qk_Assert_Op(a, op, b, ...) ((void)((a) op (b)))
 #endif
-#define Qk_ASSERT Qk_Assert
 #define Qk_Assert_Eq(a, b, ...) Qk_Assert_Op((a), ==, (b), ##__VA_ARGS__)
 #define Qk_Assert_Ne(a, b, ...) Qk_Assert_Op((a), !=, (b), ##__VA_ARGS__)
 #define Qk_Assert_Ge(a, b, ...) Qk_Assert_Op((a), >=, (b), ##__VA_ARGS__)
@@ -142,21 +141,20 @@
 		return reinterpret_cast<cls::Inl*>(self); \
 	} class cls::Inl: public cls
 
-#define Qk_LOG(msg, ...)      ::qk::log_println(msg, ##__VA_ARGS__)
-#define Qk_WARN(msg, ...)     ::qk::log_println_warn(msg, ##__VA_ARGS__)
-#define Qk_ERR(msg, ...)      ::qk::log_println_error(msg, ##__VA_ARGS__)
-#define Qk_FATAL(...)         ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define Qk_UNIMPLEMENTED(...) Qk_FATAL("Unimplemented code, %s", ##__VA_ARGS__)
-#define Qk_UNREACHABLE(...)   Qk_FATAL("Unreachable code, %s", ##__VA_ARGS__)
-#define Qk_MIN(A, B)          ((A) < (B) ? (A) : (B))
-#define Qk_MAX(A, B)          ((A) > (B) ? (A) : (B))
+#define Qk_Log(msg, ...)      ::qk::log_println(msg, ##__VA_ARGS__)
+#define Qk_Warn(msg, ...)     ::qk::log_println_warn(msg, ##__VA_ARGS__)
+#define Qk_ELog(msg, ...)     ::qk::log_println_error(msg, ##__VA_ARGS__)
+#define Qk_Fatal(...)         ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define Qk_Unreachable(...)   Qk_Fatal("Unreachable code, %s", ##__VA_ARGS__)
+#define Qk_Min(A, B)          ((A) < (B) ? (A) : (B))
+#define Qk_Max(A, B)          ((A) > (B) ? (A) : (B))
 // return and move local
 #define Qk_ReturnLocal(x)     return (x)
 
-#if DEBUG || Qk_MoreLOG
-# define Qk_DEBUG Qk_LOG
+#if DEBUG
+# define Qk_DLog Qk_Log
 #else
-# define Qk_DEBUG(msg, ...) ((void)0)
+# define Qk_DLog(msg, ...) ((void)0)
 #endif
 
 #define throw(...)
@@ -231,13 +229,13 @@
 
 #ifdef _MSC_VER
 	#pragma section(".CRT$XCU", read)
-	# define Qk_INIT_BLOCK(fn)\
+	# define Qk_Init_Func(fn)\
 	extern void __cdecl fn(void);\
 	__declspec(dllexport, allocate(".CRT$XCU"))\
 	void (__cdecl*fn##_)(void) = fn;\
 	extern void __cdecl fn(void)
 #else // _MSC_VER
-	# define Qk_INIT_BLOCK(fn)\
+	# define Qk_Init_Func(fn)\
 	extern __attribute__((constructor)) void fn##__(void)
 #endif
 
@@ -260,8 +258,6 @@
 	#endif
 #endif
 
-#define Qk_HIDDEN_COPY_CONSTRUCTOR(T)  private: T(const T& t) = delete;
-#define Qk_HIDDEN_ASSIGN_OPERATOR(T)   private: T& operator=(const T& t) = delete;
 #define Qk_HIDDEN_ALL_COPY(T)	\
 	private: T(const T& t) = delete;	\
 	private: T& operator=(const T& t) = delete;

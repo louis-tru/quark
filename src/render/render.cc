@@ -42,7 +42,7 @@ namespace qk {
 
 	static uint32_t massSample(uint32_t n) {
 		n = integerExp(n);
-		return Qk_MIN(n, 9);
+		return Qk_Min(n, 9);
 	}
 
 	RenderBackend::RenderBackend(Options opts)

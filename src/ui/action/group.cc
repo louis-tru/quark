@@ -99,7 +99,7 @@ namespace qk {
 	}
 
 	void SpawnAction::removeChild(Id id) {
-		Qk_ASSERT(id != _actions_Rt.end());
+		Qk_Assert(id != _actions_Rt.end());
 		_async_call([](auto self, auto arg) {
 			self->_actions_Rt.erase( arg.arg );
 			(*arg.arg)->_id = nullId;
@@ -112,7 +112,7 @@ namespace qk {
 	}
 
 	void SequenceAction::removeChild(Id id) {
-		Qk_ASSERT(id != _actions_Rt.end());
+		Qk_Assert(id != _actions_Rt.end());
 		_async_call([](auto self, auto arg) {
 			if ( self->_play_Rt == arg.arg )
 				self->_play_Rt = nullId;
@@ -163,7 +163,7 @@ namespace qk {
 		for ( auto i: _actions_Rt ) {
 			uint32_t du = duration + i->_duration;
 			if ( du > time ) {
-				Qk_ASSERT(*i->_id == i);
+				Qk_Assert(*i->_id == i);
 				_play_Rt = i->_id;
 				i->seek_time_Rt(time - duration, root);
 				return;
@@ -187,7 +187,7 @@ namespace qk {
 	advance:
 		for ( auto i : _actions_Rt ) {
 			uint32_t time = i->advance_Rt(time_span, restart, root);
-			time_span_min = Qk_MIN(time_span_min, time);
+			time_span_min = Qk_Min(time_span_min, time);
 		}
 
 		if ( time_span_min ) {

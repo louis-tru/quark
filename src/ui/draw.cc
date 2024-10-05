@@ -90,15 +90,15 @@ namespace qk {
 				rect.size  [0] -= borderFix[3] + borderFix[1]; // left + right
 				rect.size  [1] -= borderFix[0] + borderFix[2]; // top + bottom
 
-				//Qk_DEBUG("getInsideRectPath have border");
+				//Qk_DLog("getInsideRectPath have border");
 
 				if (*reinterpret_cast<const uint64_t*>(radius) == 0 &&
 						*reinterpret_cast<const uint64_t*>(radius+2) == 0
 				) {
 					out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 				} else {
-					float lt = Qk_MIN(radius[0],xy_0_5), rt = Qk_MIN(radius[1],xy_0_5);
-					float rb = Qk_MIN(radius[2],xy_0_5), lb = Qk_MIN(radius[3],xy_0_5);
+					float lt = Qk_Min(radius[0],xy_0_5), rt = Qk_Min(radius[1],xy_0_5);
+					float rb = Qk_Min(radius[2],xy_0_5), lb = Qk_Min(radius[3],xy_0_5);
 					auto border = _border->width;
 					Path::BorderRadius Br{
 						{lt-border[3], lt-border[0]}, {rt-border[1], rt-border[0]},
@@ -248,7 +248,7 @@ namespace qk {
 		float centerX = _rect_inside.origin.x() + b;
 		float centerY = _rect_inside.origin.y() + a;
 
-		//Qk_DEBUG("%f, %f, %d", R * Qk_180_RATIO_PI, gradient->angle(), quadrant);
+		//Qk_DLog("%f, %f, %d", R * Qk_180_RATIO_PI, gradient->angle(), quadrant);
 
 		Vec2 pts[2] = {
 			{p0x + centerX, p0y + centerY}, // origin
@@ -478,7 +478,7 @@ namespace qk {
 			src->markAsTexture(_render);
 			getInsideRectPath(v, data);
 			//auto cli = v->client_size();
-			//Qk_DEBUG("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());
+			//Qk_DLog("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());
 			Paint p0;
 			ImagePaint paint;
 			p0.type = Paint::kBitmap_Type;

@@ -34,7 +34,7 @@
 using namespace qk;
 
 void echo_ipv6(hostent* host) {
-	Qk_LOG("addrtype, IPV6, %d", host->h_addrtype);
+	Qk_Log("addrtype, IPV6, %d", host->h_addrtype);
 	
 	char dst[64];
 	char dst2[64];
@@ -55,12 +55,12 @@ void echo_ipv6(hostent* host) {
 			uv_ip6_addr(dst2, 80, &addr6_2);
 			uv_ip6_name(&addr6_2, dst2, 64);
 		}
-		Qk_LOG("address, %s, port, %d, address, %s, port, %d", dst, addr6.sin6_port, dst2, addr6_2.sin6_port);
+		Qk_Log("address, %s, port, %d, address, %s, port, %d", dst, addr6.sin6_port, dst2, addr6_2.sin6_port);
 	}
 }
 
 void echo_ipv4(hostent* host) {
-	Qk_LOG("addrtype, IPV4, %d", host->h_addrtype);
+	Qk_Log("addrtype, IPV4, %d", host->h_addrtype);
 	
 	char dst[64];
 	char dst2[64];
@@ -82,7 +82,7 @@ void echo_ipv4(hostent* host) {
 			uv_ip4_name(&addr4_2, dst2, 64);
 			
 		}
-		Qk_LOG("address, %s, port, %d, address, %s, port, %d", dst, addr4.sin_port, dst2, addr4_2.sin_port);
+		Qk_Log("address, %s, port, %d, address, %s, port, %d", dst, addr4.sin_port, dst2, addr4_2.sin_port);
 	}
 }
 
@@ -90,13 +90,13 @@ void test_net_parse_host(cString& host_str, int af) {
 	hostent* host = (af == -1) ? gethostbyname(*host_str) : gethostbyname2( *host_str, af );
 	
 	if ( host ) {
-		Qk_LOG("name, %s", host->h_name);
+		Qk_Log("name, %s", host->h_name);
 		if ( host->h_addrtype == AF_INET ) {
 			echo_ipv4(host);
 		} else if ( host->h_addrtype == AF_INET6 ) {
 			echo_ipv6(host);
 		} else {
-			Qk_LOG("ERR");
+			Qk_Log("ERR");
 		}
 	}
 }
@@ -122,26 +122,26 @@ class MySocket: public Socket, public Socket::Delegate {
 	}
 	
 	virtual void trigger_socket_open(Socket* stream) {
-		Qk_LOG("Open Socket");
+		Qk_Log("Open Socket");
 		send_http();
 	}
 	virtual void trigger_socket_close(Socket* stream) {
-		Qk_LOG("Close Socket");
+		Qk_Log("Close Socket");
 		Release(this);
 		//RunLoop::current()->stop();
 	}
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
-		Qk_LOG("Error, %d, %s", error.code(), error.message().c_str());
+		Qk_Log("Error, %d, %s", error.code(), error.message().c_str());
 	}
 	virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
 		// LOG( String(buffer.value(), buffer.length()) );
-		Qk_LOG("DATA.., %d", buffer.length());
+		Qk_Log("DATA.., %d", buffer.length());
 	}
 	virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int mark) {
-		Qk_LOG("Write, OK");
+		Qk_Log("Write, OK");
 	}
 	virtual void trigger_socket_timeout(Socket* socket) {
-		Qk_LOG("Timeout Socket");
+		Qk_Log("Timeout Socket");
 		close();
 	}
 };
@@ -155,8 +155,8 @@ void test_net(int argc, char **argv) {
 	sockaddr_in sockaddr;
 	sockaddr_in6 sockaddr6;
 	
-	Qk_LOG(uv_ip4_addr("192.168.1.", 80, &sockaddr));
-	Qk_LOG(uv_ip4_addr("192.168.1.1", 80, &sockaddr));
+	Qk_Log(uv_ip4_addr("192.168.1.", 80, &sockaddr));
+	Qk_Log(uv_ip4_addr("192.168.1.1", 80, &sockaddr));
 	
 	New<MySocket>();
 	RunLoop::current()->run();

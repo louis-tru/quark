@@ -101,7 +101,7 @@ namespace qk {
 	}
 
 	void Action::set_speed(float value) {
-		_speed = Qk_MIN(10, Qk_MAX(value, 0.1));
+		_speed = Qk_Min(10, Qk_Max(value, 0.1));
 	}
 
 	void Action::set_loop(uint32_t value) {
@@ -163,7 +163,7 @@ namespace qk {
 	}
 
 	void Action::seek_Rt(uint32_t time) {
-		time = Qk_MIN(time, _duration);
+		time = Qk_Min(time, _duration);
 		auto parent = dynamic_cast<ActionGroup*>(_parent); // safe use parent ptr
 		if (parent) {
 			parent->seek_before_Rt(time, this);
@@ -199,7 +199,7 @@ namespace qk {
 	void Action::remove() {
 		// Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::remove, illegal parent empty");
 		if (_parent == nullptr) {
-			return Qk_ERR("Action::remove, illegal parent empty");
+			return Qk_ELog("Action::remove, illegal parent empty");
 		}
 		del_parent();
 		_parent->removeChild(_id);
@@ -209,9 +209,9 @@ namespace qk {
 		Qk_Assert(target);
 		Qk_Assert(target->window() == _window);
 		if (_parent)
-			return Qk_ERR("Action::set_target, cannot set non root action");
+			return Qk_ELog("Action::set_target, cannot set non root action");
 		if (_target)
-			return Qk_ERR("Action::set_target, action cannot set multiple target");
+			return Qk_ELog("Action::set_target, action cannot set multiple target");
 		_target = target;
 	}
 
@@ -225,16 +225,16 @@ namespace qk {
 
 	int Action::set_parent(ActionGroup *parent) {
 		if (parent->_window != _window) {
-			Qk_ERR("Action::set_parent_Rt, set action window not match");
+			Qk_ELog("Action::set_parent_Rt, set action window not match");
 			return ERR_ACTION_SET_WINDOW_NO_MATCH;
 		}
 		// Qk_Check(!_parent, ERR_ACTION_ILLEGAL_CHILD, "illegal child action");
 		if (_parent) {
-			Qk_ERR("Action::set_parent, illegal child action");
+			Qk_ELog("Action::set_parent, illegal child action");
 			return ERR_ACTION_ILLEGAL_CHILD;
 		}
 		if (_id != Id()) {
-			Qk_ERR("Action::set_parent, action playing state conflict");
+			Qk_ELog("Action::set_parent, action playing state conflict");
 			return ERR_ACTION_PLAYING_CONFLICT;
 		}
 		_parent = parent;
@@ -258,7 +258,7 @@ namespace qk {
 	void SpawnAction::setDuration(int32_t diff) {
 		int32_t new_duration = 0;
 		for ( auto &i : _actions ) {
-			new_duration = Qk_MAX(i.key->_duration, new_duration);
+			new_duration = Qk_Max(i.key->_duration, new_duration);
 		}
 		diff = new_duration - _duration;
 		if ( diff ) {

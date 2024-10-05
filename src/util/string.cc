@@ -49,8 +49,8 @@ namespace qk {
 				::memcpy(o, i, len * sizeof_o);
 				::memset(o + len * sizeof_o, 0, sizeof_o);
 			} else {
-				int min = Qk_MIN(sizeof_o, sizeof_i);
-				int max = Qk_MIN(sizeof_o, sizeof_i);
+				int min = Qk_Min(sizeof_o, sizeof_i);
+				int max = Qk_Min(sizeof_o, sizeof_i);
 				if (is_bigData) { // big data layout
 					for (int j = 0; j < len; j++) {
 						::memcpy(o, i + max - min, min); // Copy low order only
@@ -72,7 +72,7 @@ namespace qk {
 			return sscanf( (const char*)i, f, o);
 		} else {
 			Char i_[65];
-			_Str::strcpy(i_, 1, i, sizeof_i, Qk_MIN(len_i, 64));
+			_Str::strcpy(i_, 1, i, sizeof_i, Qk_Min(len_i, 64));
 			return sscanf( i_, f, o );
 		}
 	}
@@ -269,7 +269,7 @@ namespace qk {
 		va_start(arg, f);
 		int r = vsnprintf(o, len, f, arg);
 		va_end(arg);
-		return Qk_MIN(r, len);
+		return Qk_Min(r, len);
 	}
 
 	Base _Str::sPrinti(int sizeOf, Alloc alloc, int32_t i) {
@@ -323,7 +323,7 @@ namespace qk {
 				base.ptr.val = (char*)b.collapse();
 				break;
 			}
-			default: Qk_FATAL("I won't support it, format");
+			default: Qk_Fatal("I won't support it, format");
 		}
 
 		if (&Allocator::alloc != alloc && alloc != (void*)&::malloc) {
@@ -398,7 +398,7 @@ namespace qk {
 		} else if (sizeOf == 4) { // uint32_t
 			return codec_encode(kUTF8_Encoding, ArrayWeak<uint32_t>((const uint32_t*)ptr, len).buffer());
 		} else {
-			Qk_FATAL("I won't support it, to_string");
+			Qk_Fatal("I won't support it, to_string");
 			return String();
 		}
 	}
@@ -433,7 +433,7 @@ namespace qk {
 	}
 
 	static void ReleaseLong(Long* l, Free free) {
-		Qk_ASSERT(l->ref > 0);
+		Qk_Assert(l->ref > 0);
 		if ( --l->ref == 0) { // After entering, do not reverse
 			l->flag = 0; // destroy flag
 			free(l->val);
@@ -538,7 +538,7 @@ namespace qk {
 				auto old = _val.l;
 				_val.l = NewLong(len, 0, nullptr);
 				aalloc(_val.l->ptr(), len + sizeOf, 1);
-				::memcpy(_val.l->val, old->val, Qk_MIN(len, old->length));
+				::memcpy(_val.l->val, old->val, Qk_Min(len, old->length));
 				ReleaseLong(old, free); // release old
 			} else {
 				_val.l->length = len;

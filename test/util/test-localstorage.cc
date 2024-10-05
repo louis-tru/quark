@@ -34,26 +34,26 @@ using namespace qk;
 
 void test_localstorage(int argc, char **argv) {
 	
-	Qk_LOG(storage_get("test2"));
+	Qk_Log(storage_get("test2"));
 	
 	storage_set("test", "quarks.cc");
 	
-	Qk_LOG(storage_get("test"));
+	Qk_Log(storage_get("test"));
 	
 	storage_remove("test");
 	
-	Qk_LOG(storage_get("test"));
+	Qk_Log(storage_get("test"));
 	
 	storage_set("test", "quarks.cc");
 	
-	Qk_LOG(storage_get("test"));
+	Qk_Log(storage_get("test"));
 	
 	storage_clear();
 	
-	Qk_LOG(storage_get("test"));
+	Qk_Log(storage_get("test"));
 	
 	storage_set("test2", "test2");
 	
-	Qk_LOG(storage_get("test2"));
+	Qk_Log(storage_get("test2"));
 	
 }

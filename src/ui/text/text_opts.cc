@@ -112,7 +112,7 @@ namespace qk {
 
 	void TextOptions::set_text_size(TextSize value, bool isRt) {
 		if (value != _text_size) {
-			value.value = Qk_MAX(1, value.value);
+			value.value = Qk_Max(1, value.value);
 			_text_size = value;
 			onTextChange(View::kLayout_Typesetting, 1, isRt);
 		}
@@ -127,7 +127,7 @@ namespace qk {
 
 	void TextOptions::set_text_line_height(TextLineHeight value, bool isRt) {
 		if (value != _text_line_height) {
-			value.value = Qk_MAX(0, value.value);
+			value.value = Qk_Max(0, value.value);
 			_text_line_height = value;
 			onTextChange(View::kLayout_Typesetting, 3, isRt);
 		}

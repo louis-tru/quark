@@ -60,7 +60,7 @@ using namespace qk;
 
 - (void) LogMouse:(const char*)name event:(NSEvent *)e {
 	/*
-		Qk_DEBUG("%s,type:%d,modifierFlags:%d,eventNumber:%d,\
+		Qk_DLog("%s,type:%d,modifierFlags:%d,eventNumber:%d,\
 pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 ",
 		name, e.type,
@@ -146,7 +146,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 	_win->dispatch()->onMousemove(pos.x(), pos.y());
 }
 - (void)scrollWheel:(NSEvent *)e{
-	Qk_DEBUG("scrollWheel,type:%d,modifierFlags:%d,delta:%f %f", e.type, e.modifierFlags, e.deltaX,e.deltaY);
+	Qk_DLog("scrollWheel,type:%d,modifierFlags:%d,delta:%f %f", e.type, e.modifierFlags, e.deltaX,e.deltaY);
 	auto delta = Vec2(e.deltaX,e.deltaY);
 	_win->dispatch()->onMousepress(KEYCODE_MOUSE_WHEEL, true, &delta);
 }

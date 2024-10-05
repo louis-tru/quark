@@ -167,7 +167,7 @@ namespace qk {
 
 	int FileSync::open(int flag, uint32_t mode) {
 		if ( _fd ) { // 文件已经打开
-			Qk_WARN("File handle already open" );
+			Qk_Warn("File handle already open" );
 			return 0;
 		}
 		uv_fs_t req;
@@ -321,7 +321,7 @@ namespace qk {
 				uv_buf_t buf;
 				buf.base = req->data().buffer.val();
 				buf.len = req->data().buffer.length();
-				// Qk_LOG("write_first-- %ld", req->data().offset);
+				// Qk_Log("write_first-- %ld", req->data().offset);
 				uv_fs_write(uv_loop(), req->req(), _fd, &buf, 1, req->data().offset, &Inl::fs_write_cb);
 			}
 		}

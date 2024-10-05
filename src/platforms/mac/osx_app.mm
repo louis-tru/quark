@@ -51,8 +51,8 @@ QkApplicationDelegate* qkappdelegate = nil;
 @implementation QkApplicationDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
-	Qk_ASSERT(!qkappdelegate);
-	Qk_ASSERT(Application::shared());
+	Qk_Assert(!qkappdelegate);
+	Qk_Assert(Application::shared());
 	qkappdelegate = self;
 	_host = Application::shared();
 	_app = UIApplication.sharedApplication;
@@ -64,36 +64,36 @@ QkApplicationDelegate* qkappdelegate = nil;
 	if (self.isPause) return;
 	self.isPause = YES;
 	Inl_Application(_host)->triggerPause();
-	Qk_DEBUG("applicationWillResignActive, triggerPause");
+	Qk_DLog("applicationWillResignActive, triggerPause");
 }
 
 - (void)applicationDidBecomeActive:(NSNotification*)notification {
 	if (!self.isPause) return;
 	self.isPause = NO;
 	Inl_Application(_host)->triggerResume();
-	Qk_DEBUG("applicationDidBecomeActive, triggerResume");
+	Qk_DLog("applicationDidBecomeActive, triggerResume");
 }
 
 - (void)applicationDidHide:(NSNotification*)notification {
-	Qk_DEBUG("applicationDidHide, onBackground");
+	Qk_DLog("applicationDidHide, onBackground");
 }
 
 - (void)applicationWillUnhide:(NSNotification*)notification {
-	Qk_DEBUG("applicationWillUnhide, onForeground");
+	Qk_DLog("applicationWillUnhide, onForeground");
 }
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
 	Inl_Application(_host)->triggerUnload();
-	Qk_DEBUG("applicationWillTerminate, triggerUnload");
+	Qk_DLog("applicationWillTerminate, triggerUnload");
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
-	Qk_DEBUG("applicationShouldTerminateAfterLastWindowClosed, exit application");
+	Qk_DLog("applicationShouldTerminateAfterLastWindowClosed, exit application");
 	return YES;
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication*)sender hasVisibleWindows:(BOOL)flag {
-	Qk_DEBUG("applicationShouldHandleReopen");
+	Qk_DLog("applicationShouldHandleReopen");
 	return YES;
 }
 

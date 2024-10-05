@@ -40,7 +40,7 @@ extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
 		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 		[NSApp setDelegate:[[QkApplicationDelegate alloc] init]];
 		[NSApp run];
-		Qk_DEBUG("[NSApp run] end");
+		Qk_DLog("[NSApp run] end");
 	}
 	return 0;
 }

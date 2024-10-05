@@ -82,7 +82,7 @@ namespace qk {
 		if (!r)
 			r = make_mac_gl_render(opts);
 #endif
-		Qk_ASSERT(r, "create render object fail");
+		Qk_Assert(r, "create render object fail");
 
 		r->_delegate = delegate;
 		return r;

@@ -46,16 +46,16 @@ void test_zlib (int argc, char **argv) {
 	map["c"] = 300;
 	map["d"] = 400;
 	
-	Qk_LOG(map[a]);
-	Qk_LOG(map[b]);
-	Qk_LOG(map["c"]);
-	Qk_LOG(map["d"]);
-	Qk_LOG("");
+	Qk_Log(map[a]);
+	Qk_Log(map[b]);
+	Qk_Log(map["c"]);
+	Qk_Log(map["d"]);
+	Qk_Log("");
 	
 	const char* hello = "g++ -pthread -rdynamic -m64 ";
 	size_t len = strlen(hello) + 1;
-	Qk_LOG("%d", len);
-	Qk_LOG(hello);
+	Qk_Log("%d", len);
+	Qk_Log(hello);
 
 	{
 		uint8_t* compr = (uint8_t*)malloc(100);
@@ -79,72 +79,72 @@ void test_zlib (int argc, char **argv) {
 		free(compr2);
 	}
 	
-	Qk_LOG("K\n");
+	Qk_Log("K\n");
 	
 	GZip gzip("/tmp/test.gz");
-	Qk_LOG(gzip.open());
+	Qk_Log(gzip.open());
 	
-	Qk_LOG(gzip.write(hello, uint(len - 1)));
-	Qk_LOG(gzip.write("hello", 5));
+	Qk_Log(gzip.write(hello, uint(len - 1)));
+	Qk_Log(gzip.write("hello", 5));
 	
-	Qk_LOG("a\n");
+	Qk_Log("a\n");
 	gzip.close();
-	Qk_LOG(gzip.open(FOPEN_R));
+	Qk_Log(gzip.open(FOPEN_R));
 	char str[100] = { 0 };
-	Qk_LOG(gzip.read(str, 100));
-	Qk_LOG(str);
+	Qk_Log(gzip.read(str, 100));
+	Qk_Log(str);
 	
 	gzip.close();
 	
-	Qk_LOG("\nTEST zip\n");
+	Qk_Log("\nTEST zip\n");
 	
 	{
 		ZipWriter writer("/tmp/test.zip");
 		writer.open();
-		Qk_LOG(writer.add_file("aa.txt"));
-		Qk_LOG(writer.write(WeakBuffer("aa.txt", 6)));
-		Qk_LOG(writer.add_file("bb.txt"));
-		Qk_LOG(writer.write(WeakBuffer("bb.txt", 6)));
-		Qk_LOG(writer.add_file("cc.txt"));
-		Qk_LOG(writer.write(WeakBuffer("cc.txt", 6)));
-		Qk_LOG(writer.add_file("dd.txt"));
-		Qk_LOG(writer.write(WeakBuffer("dd.txt", 6)));
+		Qk_Log(writer.add_file("aa.txt"));
+		Qk_Log(writer.write(WeakBuffer("aa.txt", 6)));
+		Qk_Log(writer.add_file("bb.txt"));
+		Qk_Log(writer.write(WeakBuffer("bb.txt", 6)));
+		Qk_Log(writer.add_file("cc.txt"));
+		Qk_Log(writer.write(WeakBuffer("cc.txt", 6)));
+		Qk_Log(writer.add_file("dd.txt"));
+		Qk_Log(writer.write(WeakBuffer("dd.txt", 6)));
 	}
 
 	{
 		ZipReader reader("/tmp/test.zip");
 		reader.open();
 		char str2[101] = { 0 };
-		Qk_LOG(reader.read(str2, 100));
-		Qk_LOG(str2);
+		Qk_Log(reader.read(str2, 100));
+		Qk_Log(str2);
 		reader.next();
-		Qk_LOG(reader.read(str2, 100));
-		Qk_LOG(str2);
+		Qk_Log(reader.read(str2, 100));
+		Qk_Log(str2);
 		reader.next();
-		Qk_LOG(reader.read(str2, 100));
-		Qk_LOG(str2);
+		Qk_Log(reader.read(str2, 100));
+		Qk_Log(str2);
 		reader.first();
-		Qk_LOG(reader.read(str2, 100));
-		Qk_LOG(str2);
+		Qk_Log(reader.read(str2, 100));
+		Qk_Log(str2);
 		//
 		reader.jump("cc.txt");
 		char str3[101] = { 0 };
-		Qk_LOG(reader.read(str3, 3));
-		Qk_LOG(str3);
-		Qk_LOG(reader.exists("dd.txt"));
-		Qk_LOG(reader.read(str3, 3));
-		Qk_LOG(str3);
-		Qk_LOG(reader.exists("kk.txt"));
+		Qk_Log(reader.read(str3, 3));
+		Qk_Log(str3);
+		Qk_Log(reader.exists("dd.txt"));
+		Qk_Log(reader.read(str3, 3));
+		Qk_Log(str3);
+		Qk_Log(reader.exists("kk.txt"));
 		//
-		Qk_LOG("next, %d", reader.next());
-		Qk_LOG(reader.read(str2, 100));
-		Qk_LOG(str2);
-		Qk_LOG("next, %d", reader.next());
-		Qk_LOG(reader.read(str2, 100));
-		Qk_LOG(str2);
-		Qk_LOG("next, %d", reader.next());
-		Qk_LOG(reader.read(str2, 100));
-		Qk_LOG(str2);
-		Qk_LOG(reader.current());
+		Qk_Log("next, %d", reader.next());
+		Qk_Log(reader.read(str2, 100));
+		Qk_Log(str2);
+		Qk_Log("next, %d", reader.next());
+		Qk_Log(reader.read(str2, 100));
+		Qk_Log(str2);
+		Qk_Log("next, %d", reader.next());
+		Qk_Log(reader.read(str2, 100));
+		Qk_Log(str2);
+		Qk_Log(reader.current());
 	}
 }

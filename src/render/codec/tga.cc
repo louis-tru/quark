@@ -258,7 +258,7 @@ namespace qk {
 				tga_parse_gray_rle(in_p, out_p, bytes, pixex_size, alpha);
 				break;
 			default:
-				Qk_DEBUG("Parse tga image error, data type code undefined");
+				Qk_DLog("Parse tga image error, data type code undefined");
 				return false;
 		}
 		
@@ -336,7 +336,7 @@ namespace qk {
 			Qk_ReturnLocal(ret_data);
 		}
 
-		Qk_DEBUG("Pixel data: Invalid data, required for RGBA_8888 and Alpha_8 and Luminance_8 format");
+		Qk_DLog("Pixel data: Invalid data, required for RGBA_8888 and Alpha_8 and Luminance_8 format");
 		return Buffer();
 	}
 

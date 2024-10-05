@@ -40,14 +40,17 @@
 namespace qk {
 
 	template<> uint64_t Compare<ThreadID>::hashCode(const ThreadID& key) {
-		return *reinterpret_cast<const uint32_t*>(&key);
+		union Id {
+			ThreadID key; uint64_t hash;
+		} id = {.key=key};
+		return id.hash;
 	}
 
 	std::atomic_int                      __is_process_exit_atomic(0);
 	bool                                 __is_process_exit(false);
 	Mutex                               *__threads_mutex = nullptr;
 	static Dict<ThreadID, Thread_INL*>  *__threads = nullptr;
-	static pthread_key_t                 __specific_key = 0;
+	static uv_key_t                      __th_key;
 	static EventNoticer<Event<>, Mutex> *__on_process_safe_exit = nullptr;
 
 	Qk_EXPORT bool is_process_exit() {
@@ -83,17 +86,19 @@ namespace qk {
 		return t;
 	}
 
-	static void thread_set_specific_data(Thread_INL *t) {
-		Qk_Assert(!pthread_getspecific(__specific_key));
-		pthread_setspecific(__specific_key, t);
+	static void thread_set_thread_data(Thread_INL *t) {
+		//Qk_Assert(!pthread_getspecific(__th_key));
+		//pthread_setspecific(__th_key, t);
+		Qk_Assert(!uv_key_get(&__th_key));
+		uv_key_set(&__th_key, t);
 	}
 
 	cThread* thread_self() {
-		return reinterpret_cast<cThread*>(pthread_getspecific(__specific_key));
+		return reinterpret_cast<cThread*>(uv_key_get(&__th_key));
 	}
 
 	Thread_INL* thread_self_inl() {
-		return reinterpret_cast<Thread_INL*>(pthread_getspecific(__specific_key));
+		return reinterpret_cast<Thread_INL*>(uv_key_get(&__th_key));
 	}
 
 	ThreadID thread_self_id() {
@@ -125,14 +130,16 @@ namespace qk {
 		Thread_INL *t = Thread_INL_New(tag, arg, exec);
 		ScopeLock scope(*__threads_mutex);
 
-		uv_thread_create((uv_thread_t*)&id, [](void* arg) {
+		// uv_thread_create_ex
+		// uv_thread_create((uv_thread_t*)&id, [](void* arg) {
+		std::thread th([](void *arg) {
 			{ ScopeLock scope(*__threads_mutex); /* wait thread_new main call return*/ }
 			auto t = static_cast<Thread_INL*>(arg);
 #if Qk_ANDROID
 			JNI::ScopeENV scope;
 #endif
 			SetThreadName(t->name);
-			thread_set_specific_data(t);
+			thread_set_thread_data(t);
 			if ( !t->abort ) {
 				t->exec(t, t->arg);
 			}
@@ -147,22 +154,21 @@ namespace qk {
 				}
 				runloop_death(t->loop); // release loop object
 				t->loop = nullptr;
-				Qk_DEBUG("Thread end ..., %s", t->name.c_str());
+				Qk_DLog("Thread end ..., %s", t->name.c_str());
 				for (auto& i : t->waitSelfEnd) {
 					i->lock_notify_one();
 				}
-				Qk_DEBUG("Thread end  ok, %s", t->name.c_str());
+				Qk_DLog("Thread end  ok, %s", t->name.c_str());
 			}
 			delete t;
 		}, t);
 
-		if (id != ThreadID()) {
-			__threads->set((t->id = id), t);
-		} else { // fail
-			Qk_FATAL("id != ThreadID()");
-			// delete thread;
-		}
-		return id;
+		id = th.get_id();
+		th.detach();
+
+		Qk_Fatal_Assert(id != ThreadID(), "id != ThreadID()");
+
+		return __threads->set((t->id = id), t)->id;
 	}
 
 	typedef std::function<void(cThread *t)> ForkFunc;
@@ -181,8 +187,11 @@ namespace qk {
 
 	void thread_pause(uint64_t timeoutUs) {
 		auto t = thread_self_inl();
-		Qk_Assert(t, "Cannot find current qk::Thread handle, use Thread::sleep()");
-		t->lock_wait_for(timeoutUs);
+		if (t) {
+			t->lock_wait_for(timeoutUs);
+		} else {
+			thread_sleep(timeoutUs);
+		}
 	}
 
 	static void thread_resume_(Thread_INL *t, int abort) {
@@ -209,7 +218,7 @@ namespace qk {
 
 	void thread_join_for(ThreadID id, uint64_t timeoutUs) {
 		if (id == thread_self_id()) {
-			Qk_DEBUG("thread_join_for(), cannot wait self thread");
+			Qk_DLog("thread_join_for(), cannot wait self thread");
 			return;
 		}
 		Lock lock(*__threads_mutex);
@@ -220,9 +229,9 @@ namespace qk {
 			CondMutex wait;
 			t->waitSelfEnd.pushBack(&wait);
 			t->mutex.unlock();
-			Qk_DEBUG("thread_join_for(), ..., %p, %s", id, *t->name);
+			Qk_DLog("thread_join_for(), ..., %p, %s", id, *t->name);
 			wait.lock_wait_for(timeoutUs); // permanent wait
-			Qk_DEBUG("thread_join_for(), end, %p, %s", id, *t->name);
+			Qk_DLog("thread_join_for(), end, %p, %s", id, *t->name);
 		}
 	}
 
@@ -233,28 +242,28 @@ namespace qk {
 
 		Array<ThreadID> threads_id;
 
-		Qk_DEBUG("thread_process_exit(), 0");
+		Qk_DLog("thread_process_exit(), 0");
 		Event<> ev(Int32(rc), rc);
 		Qk_Trigger(ProcessExit, ev); // trigger event
 		rc = ev.return_value;
-		Qk_DEBUG("thread_process_exit(), 1");
+		Qk_DLog("thread_process_exit(), 1");
 
 		{
 			ScopeLock scope(*__threads_mutex);
-			Qk_DEBUG("threads count, %d", __threads->length());
+			Qk_DLog("threads count, %d", __threads->length());
 			for ( auto& i : *__threads ) {
-				Qk_DEBUG("thread_process_exit(), tag, %p, %s", i.value->id, *i.value->name);
+				Qk_DLog("thread_process_exit(), tag, %p, %s", i.value->id, *i.value->name);
 				thread_resume_(i.value, -2); // resume sleep status and abort
 				threads_id.push(i.value->id);
 			}
 		}
 		for ( auto& i: threads_id ) {
 			// CondMutex for the end of this thread here, this time defaults to 1 second
-			Qk_DEBUG("thread_process_exit(), join, %p", i);
+			Qk_DLog("thread_process_exit(), join, %p", i);
 			thread_join_for(i, Qk_ATEXIT_WAIT_TIMEOUT); // wait 1s
 		}
 
-		Qk_DEBUG("thread_process_exit() 2");
+		Qk_DLog("thread_process_exit() 2");
 	}
 
 	void thread_exit(int rc) {
@@ -268,16 +277,16 @@ namespace qk {
 		return *__on_process_safe_exit;
 	}
 
-	Qk_INIT_BLOCK(thread_init_once) {
-		Qk_DEBUG("thread_init_once");
+	Qk_Init_Func(thread_init_once) {
+		Qk_DLog("thread_init_once");
 		// Object heap allocator may not have been initialized yet
 		__threads = new(::malloc(sizeof(Dict<ThreadID, Thread_INL*>))) Dict<ThreadID, Thread_INL*>();
 		__threads_mutex = new Mutex();
 		__on_process_safe_exit = new EventNoticer<Event<>, Mutex>(nullptr);
-		Qk_DEBUG("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
-		Qk_DEBUG("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
+		Qk_DLog("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
+		Qk_DLog("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_process_exit(0); });
-		int err = pthread_key_create(&__specific_key, nullptr);
-		Qk_Assert(err == 0);
+		// Qk_Fatal_Assert(pthread_key_create(&__th_key, nullptr) == 0);
+		Qk_Fatal_Assert(uv_key_create(&__th_key) == 0);
 	}
 }

@@ -53,7 +53,7 @@
 #define Js_Try_Catch(block, Error) try block catch(const Error& e) { Js_Throw(e); }
 
 #define Js_Set_Module(name, cls) \
-	Qk_INIT_BLOCK(Js_Set_Module_##name) {\
+	Qk_Init_Func(Js_Set_Module_##name) {\
 		qk::js::Worker::setModule(#name, cls::binding, __FILE__); \
 	}
 #define Js_Typeid(t) (typeid(t).hash_code())

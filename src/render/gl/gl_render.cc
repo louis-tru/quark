@@ -241,7 +241,7 @@ namespace qk {
 #if DEBUG
 		int texDims;
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 4, GL_TEXTURE_WIDTH, &texDims);
-		Qk_DEBUG("glGetTexLevelParameteriv: %d", texDims);
+		Qk_DLog("glGetTexLevelParameteriv: %d", texDims);
 #endif
 	}
 
@@ -279,9 +279,9 @@ namespace qk {
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
 		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTextureBufferSize);
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
-		Qk_DEBUG("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
-		Qk_DEBUG("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
-		Qk_DEBUG("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
+		Qk_DLog("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
+		Qk_DLog("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
+		Qk_DLog("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
 #endif
 
 		if (!gl_MaxTextureImageUnits) {
@@ -293,7 +293,7 @@ namespace qk {
 #if DEBUG || QK_MoreLog
 		int64_t st = time_micro();
 		_shaders.buildAll(); // compile all shaders
-		Qk_DEBUG("shaders.buildAll time: %ld (micro s)", time_micro() - st);
+		Qk_DLog("shaders.buildAll time: %ld (micro s)", time_micro() - st);
 #else
 		_shaders.buildAll();
 #endif
@@ -355,7 +355,7 @@ namespace qk {
 			}
 			delete[] texStat;
 		}));
-		Qk_ASSERT(_glcanvas->refCount() == 1);
+		Qk_Assert(_glcanvas->refCount() == 1);
 		_glcanvas->release(); _glcanvas = nullptr;
 		_canvas = nullptr;
 	}
@@ -400,7 +400,7 @@ namespace qk {
 
 		ColorType type = pix->type();
 		GLint iformat = gl_get_texture_pixel_format(type);
-		Qk_ASSERT(iformat);
+		Qk_Assert(iformat);
 
 		if (!iformat)
 			return;
@@ -507,16 +507,16 @@ namespace qk {
 		auto pixel = &src->pixels()[index];
 		auto tex = const_cast<TexStat *>(src->texture_Rt(index));
 		if (!tex) {
-			Qk_ASSERT(slot < 8);
+			Qk_Assert(slot < 8);
 			GLRender::makeTexture(pixel, _texStat[slot], true);
 			tex = _texStat[slot];
 			if (!tex) {
-				Qk_DEBUG("setTexturePixel() Fail");
+				Qk_DLog("setTexturePixel() Fail");
 				return false;
 			}
 		} else if (src->render() != this) {
 			// Spanning multiple backends is not supported for the time being.
-			Qk_DEBUG("setTexturePixel() Spanning multiple backends is not supported for the time being.");
+			Qk_DLog("setTexturePixel() Spanning multiple backends is not supported for the time being.");
 			return false;
 		}
 		gl_set_texture_param(tex, slot, paint);

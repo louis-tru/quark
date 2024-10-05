@@ -179,12 +179,12 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 															1  /* MODE_STREAM */
 			);
 
-			Qk_ASSERT(_self);
+			Qk_Assert(_self);
 
 			_self = env->NewGlobalRef(_self);
 
 			// new buffer swap area
-			uint32_t size = Qk_MAX(_buffer_size, 1024 * 32);
+			uint32_t size = Qk_Max(_buffer_size, 1024 * 32);
 			_buffer = env->NewGlobalRef(env->NewDirectByteBuffer(malloc(size), size));
 
 			// audio track play
@@ -241,7 +241,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 		* */
 		virtual bool set_volume(uint32_t value) {
 			JNI::ScopeENV env;
-			_volume = Qk_MIN(100, value);
+			_volume = Qk_Min(100, value);
 			jfloat f = _volume / 100.0;
 			env->CallIntMethod(_self, _setVolume, f);
 			return true;
@@ -256,7 +256,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 
 		int min_buffer_size() {
 			JNI::ScopeENV env;
-			int mask = get_channel_mask(Qk_MAX(_channel_count, 2));
+			int mask = get_channel_mask(Qk_Max(_channel_count, 2));
 			return env->CallStaticIntMethod(_clazz, _getMinBufferSize,
 																			_sample_rate, mask, 2/*ENCODIN_PCM_16BIT*/);
 		}

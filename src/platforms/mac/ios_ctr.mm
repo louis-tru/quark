@@ -137,7 +137,7 @@ extern QkApplicationDelegate *qkappdelegate;
 	}
 
 	-(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable MacUIEvent *)event {
-		// Qk_DEBUG("touchesMoved, count: %d", touches.count);
+		// Qk_DLog("touchesMoved, count: %d", touches.count);
 		qkappdelegate.host->dispatch()->onTouchmove( [self touchsList:touches] );
 	}
 

@@ -200,7 +200,7 @@ namespace qk {
 	}
 
 	void Window::clipRestore() {
-		Qk_ASSERT( _clipRegion.length() > 1 );
+		Qk_Assert(_clipRegion.length() > 1);
 		_clipRegion.pop();
 	}
 
@@ -230,7 +230,7 @@ namespace qk {
 				reload(false);
 			}
 		} else {
-			Qk_DEBUG("Lock size value can not be less than zero\n");
+			Qk_DLog("Lock size value can not be less than zero\n");
 		}
 	}
 
@@ -279,14 +279,14 @@ namespace qk {
 			}, this, 0);
 		}
 
-		Qk_DEBUG("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
+		Qk_DLog("Display::updateSurface() %f, %f", region.size.x(), region.size.y());
 
 		_render->getCanvas()->setSurface(mat, size, _scale);
 	}
 
 	void Window::onRenderBackendReload(Region region, Vec2 size, float defaultScale) {
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
-			Qk_DEBUG("Window::onDeviceReload");
+			Qk_DLog("Window::onDeviceReload");
 			UILock lock(this);
 			if ( _surfaceRegion.origin != region.origin
 				|| _surfaceRegion.end != region.end
@@ -315,7 +315,7 @@ namespace qk {
 			_fsp = _fspTick;
 			_fspTick = 0;
 			_fspTime = time;
-			//Qk_DEBUG("fps: %d", _fsp);
+			//Qk_DLog("fps: %d", _fsp);
 		}
 		_fspTick++;
 
@@ -331,9 +331,9 @@ namespace qk {
 #if DEBUG && PRINT_RENDER_FRAME_TIME
 		int64_t ts2 = (time_micro() - st) / 1e3;
 		if (ts2 > 16) {
-			Qk_LOG("Window swapBuffer time: %ld -------------- ", ts2);
+			Qk_Log("Window swapBuffer time: %ld -------------- ", ts2);
 		} else {
-			Qk_LOG("Window swapBuffer time: %ld", ts2);
+			Qk_Log("Window swapBuffer time: %ld", ts2);
 		}
 #endif
 

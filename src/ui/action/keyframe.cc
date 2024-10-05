@@ -269,7 +269,7 @@ namespace qk {
 				frame0 = f;
 			}
 			_frame = frame0->index();
-			_time = Qk_MIN(time, _duration);
+			_time = Qk_Min(time, _duration);
 
 			uint32_t f0 = _frame, f1 = f0 + 1;
 
@@ -291,12 +291,12 @@ namespace qk {
 	}
 
 	void KeyframeAction::seek_before_Rt(uint32_t time, Action* child) {
-		Qk_UNIMPLEMENTED();
+		Qk_Unreachable();
 	}
 
 	void KeyframeAction::append(Action *child) {
 		Qk_Throw(ERR_ACTION_KEYFRAME_CANNOT_APPEND, "KeyframeAction::append, cannot call append method for keyframe");
-		// Qk_ERR("KeyframeAction::append, cannot call append method for keyframe");
+		// Qk_ELog("KeyframeAction::append, cannot call append method for keyframe");
 	}
 
 }

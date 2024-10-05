@@ -632,7 +632,7 @@ namespace qk {
 				return encode_to_utf16(source, len);
 			case kUCS4_Encoding:
 				return encode_to_ucs4(source, len);
-			default: Qk_ERR("%s", "Unknown encode."); break;
+			default: Qk_ELog("%s", "Unknown encode."); break;
 		}
 		return Buffer();
 	}
@@ -653,7 +653,7 @@ namespace qk {
 				return encode_to_utf16(source, len);
 			case kUCS4_Encoding:
 				return encode_to_ucs4(source, len);
-			default: Qk_ERR("%s", "Unknown encode."); break;
+			default: Qk_ELog("%s", "Unknown encode."); break;
 		}
 		return Buffer();
 	}
@@ -674,7 +674,7 @@ namespace qk {
 				return encode_to_utf16(source, len);
 			case kUCS4_Encoding:
 				return encode_to_ucs4(source, len);
-			default: Qk_ERR("%s", "Unknown encode."); break;
+			default: Qk_ELog("%s", "Unknown encode."); break;
 		}
 		return Buffer();
 	}
@@ -718,7 +718,7 @@ namespace qk {
 				return decode_from_utf16<char>(source, len);
 			case Encoding::kUCS4_Encoding: // 会丢失ucs1外的编码
 				return decode_from_ucs4<char>(source, len);
-			default: Qk_ERR("%s", "Unknown encode. decode_to_buffer"); break;
+			default: Qk_ELog("%s", "Unknown encode. decode_to_buffer"); break;
 		}
 		return Buffer();
 	}
@@ -739,7 +739,7 @@ namespace qk {
 				return decode_from_utf16<uint16_t>(source, len);
 			case kUCS4_Encoding: // 会丢失ucs2外的编码
 				return decode_from_ucs4<uint16_t>(source, len);
-			default: Qk_ERR("%s", "Unknown encode. decode_to_uint16"); break;
+			default: Qk_ELog("%s", "Unknown encode. decode_to_uint16"); break;
 		}
 		return ArrayBuffer<uint16_t>();
 	}
@@ -760,7 +760,7 @@ namespace qk {
 				return decode_from_utf16<uint32_t>(source, len);
 			case kUCS4_Encoding:
 				return decode_from_ucs4<uint32_t>(source, len);
-			default: Qk_ERR("%s", "Unknown encode. decode_to_uint32"); break;
+			default: Qk_ELog("%s", "Unknown encode. decode_to_uint32"); break;
 		}
 		return ArrayBuffer<uint32_t>();
 	}

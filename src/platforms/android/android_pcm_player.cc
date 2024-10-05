@@ -58,23 +58,23 @@ namespace qk {
 
 			// create engine
 			result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL); 
-			Qk_ASSERT(SL_RESULT_SUCCESS == result);
+			Qk_Assert(SL_RESULT_SUCCESS == result);
 
 			// realize the engine
 			result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-			Qk_ASSERT(SL_RESULT_SUCCESS == result);
+			Qk_Assert(SL_RESULT_SUCCESS == result);
 
 			// get the engine interface, which is needed in order to create other objects
 			result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
-			Qk_ASSERT(SL_RESULT_SUCCESS == result);
+			Qk_Assert(SL_RESULT_SUCCESS == result);
 
 			// create output mix,
 			result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
-			Qk_ASSERT(SL_RESULT_SUCCESS == result);
+			Qk_Assert(SL_RESULT_SUCCESS == result);
 
 			// realize the output mix
 			result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-			Qk_ASSERT(SL_RESULT_SUCCESS == result);
+			Qk_Assert(SL_RESULT_SUCCESS == result);
 		}
 
 		~AudioEngine() {
@@ -224,37 +224,37 @@ namespace qk {
 				result = (*engine->engineEngine)->CreateAudioPlayer(engine->engineEngine,
 																														&bqPlayerObject,
 																														&audioSrc, &audioSnk, 3, ids, req);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
 				// realize the player
 				result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
 				// get the play interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
 				// get the buffer queue interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
 				// get the effect send interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_EFFECTSEND, &bqPlayerEffectSend);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
 				// get the volume interface
 				result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
 				// get max volume level
 				result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &_max_volume_level);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
 				// set playing status
 				result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 
-				Qk_DEBUG("createAudioPlayer finish");
+				Qk_DLog("createAudioPlayer finish");
 
 				return true;
 			}
@@ -286,7 +286,7 @@ namespace qk {
 				ScopeLock scope(_lock);
 				// clear buffer
 				result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
-				Qk_ASSERT(SL_RESULT_SUCCESS == result);
+				Qk_Assert(SL_RESULT_SUCCESS == result);
 			}
 
 			/**

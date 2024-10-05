@@ -30,7 +30,7 @@ static void qk_ft_outline_move_to(Qk_FT_Outline* ft, Vec2 p)
 	ft->points[ft->n_points].y = FT_1616(p.y());
 	ft->tags[ft->n_points] = Qk_FT_CURVE_TAG_ON;
 	
-	//Qk_DEBUG("qk_ft_outline_move_to, %d, %d", ft->points[ft->n_points].x, ft->points[ft->n_points].y);
+	//Qk_DLog("qk_ft_outline_move_to, %d, %d", ft->points[ft->n_points].x, ft->points[ft->n_points].y);
 	
 	if(ft->n_points)
 	{
@@ -147,12 +147,12 @@ Qk_FT_Error qk_ft_path_convert(Qk_FT_Outline* outline, Path *out)
 	auto tags = outline->tags;
 
 	for (int c = 0, i = 0; c < outline->n_contours; c++) {
-		//Qk_DEBUG("tags[i] = %d, %d, %d, %d", i, tags[i], contours[c], outline->contours_flag[c]);
+		//Qk_DLog("tags[i] = %d, %d, %d, %d", i, tags[i], contours[c], outline->contours_flag[c]);
 		Vec2 move;
 		short end = contours[c];
 
 		if (tags[i] == Qk_FT_CURVE_TAG_ON) {
-			//Qk_DEBUG("Qk_FT_CURVE_TAG_ON moveTo, %d", i);
+			//Qk_DLog("Qk_FT_CURVE_TAG_ON moveTo, %d", i);
 			out->moveTo(move = FT_Vec2(pts[i]));
 			i++;
 		}
@@ -160,25 +160,25 @@ Qk_FT_Error qk_ft_path_convert(Qk_FT_Outline* outline, Path *out)
 		while (i <= end) {
 			switch (tags[i]) {
 				case Qk_FT_CURVE_TAG_ON: // line to
-					//Qk_DEBUG("Qk_FT_CURVE_TAG_ON, i: %d, x: %d, y: %d", i, pts[i].x, pts[i].y);
+					//Qk_DLog("Qk_FT_CURVE_TAG_ON, i: %d, x: %d, y: %d", i, pts[i].x, pts[i].y);
 					out->lineTo(FT_Vec2(pts[i]));
 					i++;
 					break;
 				case Qk_FT_CURVE_TAG_CONIC:
-					Qk_ASSERT(i > 0);
+					Qk_Assert(i > 0);
 					out->quadTo(FT_Vec2(pts[i]), i+1<=end ? FT_Vec2(pts[i+1]): move);
 					i += i+1<=end? 1: 2;
 					break;
 				case Qk_FT_CURVE_TAG_CUBIC:
-					Qk_ASSERT(i > 0);
-					//Qk_DEBUG("Qk_FT_CURVE_TAG_CUBIC, i: %d, xy:%d %d, xy1:%d %d, xy2:%d %d", i,
+					Qk_Assert(i > 0);
+					//Qk_DLog("Qk_FT_CURVE_TAG_CUBIC, i: %d, xy:%d %d, xy1:%d %d, xy2:%d %d", i,
 					//	pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y, to.x, to.y
 					//);
 					out->cubicTo(FT_Vec2(pts[i]), FT_Vec2(pts[i+1]), i+2<=end ? FT_Vec2(pts[i+2]): move);
 					i += i+2<=end? 2: 3;
 					break;
 				default:
-					Qk_FATAL("qk_ft_path_convert");
+					Qk_Fatal("qk_ft_path_convert");
 					break;
 			}
 		}

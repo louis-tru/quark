@@ -52,7 +52,7 @@ namespace qk { namespace js {
 			}
 			JSValue* args[2] = { ev->that(), worker->newValue(true) };
 
-			// Qk_DEBUG("addEventListener_Static, %s, EventType: %s", *func, *e.name());
+			// Qk_DLog("addEventListener_Static, %s, EventType: %s", *func, *e.name());
 			// call js trigger func
 			JSValue* r = wrap->call( func, 2, args );
 		};
@@ -99,7 +99,7 @@ namespace qk { namespace js {
 		if ( !UIEventNames.get(name_, name) ) {
 			return false;
 		}
-		Qk_DEBUG("removeEventListener, name:%s, id:%d", *name_, id);
+		Qk_DLog("removeEventListener, name:%s, id:%d", *name_, id);
 
 		auto wrap = reinterpret_cast<Wobj<View>*>(this);
 		wrap->self()->remove_event_listener(*name, id); // off event listener

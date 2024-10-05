@@ -110,7 +110,7 @@ namespace qk {
 	const VertexData& PathvCache::getAAFuzzStrokeTriangle(const Path &path, float width) {
 		auto hash = path.hashCode();
 		hash += (hash << 5) + *(int32_t*)&width;
-		//Qk_DEBUG("getAAFuzzTriangle, %lu", hash);
+		//Qk_DLog("getAAFuzzTriangle, %lu", hash);
 		Wrap<VertexData> *const *out;
 		if (_AAFuzzStrokeTriangleCache.get(hash, out)) return (*out)->base;
 		auto gb = new Wrap<VertexData>{path.getAAFuzzStrokeTriangle(width, 1),{{this,0,0,0}}};
@@ -188,8 +188,8 @@ namespace qk {
 		} else {
 			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius Br{
-				Qk_MIN(radius[0], xy_0_5), Qk_MIN(radius[1], xy_0_5),
-				Qk_MIN(radius[2], xy_0_5), Qk_MIN(radius[3], xy_0_5),
+				Qk_Min(radius[0], xy_0_5), Qk_Min(radius[1], xy_0_5),
+				Qk_Min(radius[2], xy_0_5), Qk_Min(radius[3], xy_0_5),
 			};
 			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
 		}
@@ -209,8 +209,8 @@ namespace qk {
 		} else {
 			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			Path::BorderRadius Br{
-				{Qk_MIN(radius[0],xy_0_5)}, {Qk_MIN(radius[1],xy_0_5)},
-				{Qk_MIN(radius[2],xy_0_5)}, {Qk_MIN(radius[3],xy_0_5)},
+				{Qk_Min(radius[0],xy_0_5)}, {Qk_Min(radius[1],xy_0_5)},
+				{Qk_Min(radius[2],xy_0_5)}, {Qk_Min(radius[3],xy_0_5)},
 			};
 			return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, Br));
 		}

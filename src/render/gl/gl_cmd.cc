@@ -189,7 +189,7 @@ namespace qk {
 				if (i.size == 0) break;
 				auto cmd = i.val;
 				auto end = (Cmd*)(((char*)cmd) + i.size);
-				Qk_ASSERT(cmd->size);
+				Qk_Assert(cmd->size);
 
 				while (cmd < end) {
 					switch (cmd->type) {
@@ -384,11 +384,11 @@ namespace qk {
 		void drawRRectBlurColorCall(const Rect& rect,
 			const float *r, float s, const Color4f &color, bool aaclip, float depth
 		) {
-			s = Qk_MAX(s, 0.5);
+			s = Qk_Max(s, 0.5);
 			float s1 = s * 1.15, s2 = s * 2.0;
 			auto sh = aaclip ?
 				&_render->_shaders.colorRrectBlur_AACLIP: &_render->_shaders.colorRrectBlur;
-			float min_edge = Qk_MIN(rect.size[0],rect.size[1]); // min w or h
+			float min_edge = Qk_Min(rect.size[0],rect.size[1]); // min w or h
 			float rmax = 0.5 * min_edge; // max r
 			Vec2 size = rect.size * 0.5;
 			Vec2 c = rect.origin + size; // rect center
@@ -612,9 +612,9 @@ namespace qk {
 			const int N[] = { 3,3,3,3, 7,7,7,7, 13,13,13,13,13,13, 19,19,19,19,19,19 };
 			size *= _canvas->_surfaceScale;
 			n = ceilf(size); // sampling rate
-			n = N[Qk_MIN(n,19)];
+			n = N[Qk_Min(n,19)];
 			lod = ceilf(Float32::max(0,log2f(size/n)));
-			// Qk_DEBUG("getBlurSampling %d, lod: %d", n, lod);
+			// Qk_DLog("getBlurSampling %d, lod: %d", n, lod);
 		}
 
 		void blurFilterBeginCall(Region bounds, bool isClipState, float depth) {
@@ -894,8 +894,8 @@ namespace qk {
 			auto w = size.x(), h = size.y();
 			auto type = _c->_opts.colorType;
 
-			Qk_ASSERT(w, "Invalid viewport size width");
-			Qk_ASSERT(h, "Invalid viewport size height");
+			Qk_Assert(w, "Invalid viewport size width");
+			Qk_Assert(h, "Invalid viewport size height");
 
 			chSize = chSize && size == _c->_surfaceSize;
 

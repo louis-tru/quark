@@ -88,7 +88,7 @@ namespace qk {
 			auto next = value->next();
 			while (next) {
 				if (self == next) {
-					return Qk_ERR("check_loop_ref(), Box filter loop reference error"), true;
+					return Qk_ELog("check_loop_ref(), Box filter loop reference error"), true;
 				}
 				next = next->next();
 			}

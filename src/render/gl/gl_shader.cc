@@ -48,7 +48,7 @@ namespace qk {
 		if ( ok != GL_TRUE ) {
 			char log[255] = { 0 };
 			glGetShaderInfoLog(shader_handle, 254, &ok, log);
-			Qk_FATAL("Compile shader error, %s\n\n%s", name, log);
+			Qk_Fatal("Compile shader error, %s\n\n%s", name, log);
 		}
 		return shader_handle;
 	}
@@ -77,7 +77,7 @@ namespace qk {
 
 		GLint status; // query status
 
-		//Qk_DEBUG("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
+		//Qk_DLog("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
 
 		GLuint *storeLocation = &s->vbo + 1;
 
@@ -95,7 +95,7 @@ namespace qk {
 		if ((glGetProgramiv(program, GL_LINK_STATUS, &status), status) != GL_TRUE) {
 			char log[256] = { 0 };
 			glGetProgramInfoLog(program, 255, &status, log);
-			Qk_FATAL("Link shader error, %s\n\n%s", name, log);
+			Qk_Fatal("Link shader error, %s\n\n%s", name, log);
 		}
 
 		// binding = 0 uniform block index as 0
@@ -107,7 +107,7 @@ namespace qk {
 		GLuint ubo = glGetUniformBlockIndex(program, "rootMatrixBlock");
 		GLint bufferSize;
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
-		Qk_ASSERT(bufferSize == 64);
+		Qk_Assert(bufferSize == 64);
 #endif
 
 		// Get Uniform Location index value

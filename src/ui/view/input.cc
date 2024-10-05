@@ -149,7 +149,7 @@ namespace qk {
 					auto line_height = ctx->_lines->line(0).end_y;
 					switch ( arg.arg ) {
 						case KEYCODE_LEFT:
-							ctx->_cursor = Qk_MAX(0, int(ctx->_cursor - 1));
+							ctx->_cursor = Qk_Max(0, int(ctx->_cursor - 1));
 							break;
 						case KEYCODE_UP: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
@@ -158,7 +158,7 @@ namespace qk {
 							break;
 						}
 						case KEYCODE_RIGHT:
-							ctx->_cursor = Qk_MIN(ctx->text_length(), ctx->_cursor + 1);
+							ctx->_cursor = Qk_Min(ctx->text_length(), ctx->_cursor + 1);
 							break;
 						case KEYCODE_DOWN: {
 							Vec2 pos = ctx->_mat * ctx->spot_offset();
@@ -318,7 +318,7 @@ namespace qk {
 				y += _border->width[0]; // top
 			}
 			Vec2 left_bottom(x, y);
-			// Qk_DEBUG("spot_offset,x:%f,y:%f", left_bottom.x(), left_bottom.y());
+			// Qk_DLog("spot_offset,x:%f,y:%f", left_bottom.x(), left_bottom.y());
 
 			return left_bottom;
 		}
@@ -329,7 +329,7 @@ namespace qk {
 			auto a = _mat * left_bottom;
 			auto b = _mat * right_top;
 			return {
-				{Qk_MIN(a.x(), b.x()),Qk_MIN(a.y(), b.y())},
+				{Qk_Min(a.x(), b.x()),Qk_Min(a.y(), b.y())},
 				{fabsf(a.x() - b.x()),fabsf(a.y() - b.y())}
 			};
 		}
@@ -379,7 +379,7 @@ namespace qk {
 				if ( dir.y() ) {
 					int linenum = _cursor_line;
 					linenum += dir.y();
-					linenum = Qk_MIN(_lines->last()->line, Qk_MAX(linenum, 0));
+					linenum = Qk_Min(_lines->last()->line, Qk_Max(linenum, 0));
 					point.set_y(pos.y() + _lines->line(linenum).baseline + offset.y());
 				}
 
@@ -391,14 +391,14 @@ namespace qk {
 					}
 
 					int cursor = _cursor + (dir.x() > 0 ? 1: -1);
-					cursor = Qk_MIN(text_length(), Qk_MAX(cursor, 0));
+					cursor = Qk_Min(text_length(), Qk_Max(cursor, 0));
 					
 					for ( int j = begin; j >= 0; j-- ) {
 						auto cell = &_blob[j];
 						if ( cell->line == _cursor_line ) {
 							if ( int(cell->index) <= cursor ) {
 								float x = cell->origin + cell->blob.offset[
-									Qk_MIN(cursor - cell->index, cell->blob.glyphs.length())
+									Qk_Min(cursor - cell->index, cell->blob.glyphs.length())
 								].x();
 								x += _lines->line(cell->line).origin;
 								point.set_x(pos.x() + offset.x() + x);
@@ -452,7 +452,7 @@ namespace qk {
 				}
 			}
 
-			Qk_ASSERT(line);
+			Qk_Assert(line);
 
 			// find cell start_action and end_action
 			int cell_begin = -1, cell_end = -1;
@@ -586,7 +586,7 @@ namespace qk {
 												u4.length() - _marked_text_idx - _marked_text.length());
 
 			_cursor += text.length() - _marked_text.length();
-			_cursor = Qk_MAX(_marked_text_idx, _cursor);
+			_cursor = Qk_Max(_marked_text_idx, _cursor);
 			_marked_text = text;
 			mark_layout(kLayout_Typesetting, true); // 标记内容变化
 
@@ -771,7 +771,7 @@ namespace qk {
 		// mark input status change
 		mark(kInput_Status | kRecursive_Visible_Region, true);
 		
-		// Qk_DEBUG("_lines->max_width(), _lines->max_height(), %f %f", _lines->max_width(), _lines->max_height());
+		// Qk_DLog("_lines->max_width(), _lines->max_height(), %f %f", _lines->max_width(), _lines->max_height());
 
 		return Vec2(_lines->max_width(), _lines->max_height());
 	}
@@ -854,7 +854,7 @@ namespace qk {
 			_cursor_line = cursor_blob->line; // y
 			line = &_lines->line(_cursor_line);
 			_cursor_x = line->origin + cursor_blob->origin + offset; // x
-			// Qk_DEBUG("------------------ solve_cursor_offset, _cursor, %d %f", _cursor, _cursor_x);
+			// Qk_DLog("------------------ solve_cursor_offset, _cursor, %d %f", _cursor, _cursor_x);
 		} else {
 			// 找不到blob定位到最后行
 			switch ( text_align_value() ) {
@@ -927,7 +927,7 @@ namespace qk {
 			}
 		}
 		
-		// Qk_DEBUG("set_input_text_offset, %f %f %f %d", text_offset.x(), text_offset.y(), _lines->max_height(), _lines->length());
+		// Qk_DLog("set_input_text_offset, %f %f %f %d", text_offset.x(), text_offset.y(), _lines->max_height(), _lines->length());
 
 		set_input_text_offset(text_offset);
 	}
@@ -950,7 +950,7 @@ namespace qk {
 			if ( !_marked_text.length() ) {
 				Qk_Assert(cursor <= _value_u4.length());
 				if ( count < 0 ) {
-					count = Qk_MIN(cursor, -count);
+					count = Qk_Min(cursor, -count);
 					if ( count ) {
 						String4 u4(_value_u4);
 						_value_u4 = String4(*u4, cursor - count, *u4 + cursor, u4.length() - cursor);
@@ -958,7 +958,7 @@ namespace qk {
 						mark_layout(kLayout_Typesetting, true); // 标记内容变化
 					}
 				} else if ( count > 0 ) {
-					count = Qk_MIN(int(text_length()) - cursor, count);
+					count = Qk_Min(int(text_length()) - cursor, count);
 					if ( count ) {
 						String4 u4(_value_u4);
 						_value_u4 = String4(*u4, cursor,

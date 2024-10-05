@@ -59,7 +59,7 @@ class Foo {
 		while (0 == flag_) {
 			cond_.wait(ul);
 		}
-		Qk_LOG("%d", flag_);
+		Qk_Log("%d", flag_);
 	}
 	
 	void threadFunc2()
@@ -100,7 +100,7 @@ void test_for() {
 	}
 	
 	m1.lock();
-	Qk_LOG("result: %d", j);
+	Qk_Log("result: %d", j);
 	m1.unlock();
 	
 }
@@ -120,6 +120,6 @@ void test_thread(int argc, char **argv) {
 	g_a.join();
 	g_b.join();
 	
-	Qk_LOG("done");
+	Qk_Log("done");
 	
 }

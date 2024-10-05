@@ -89,12 +89,12 @@ namespace qk { namespace js {
 			}
 			if (args.length() > args_index) {
 				start = args[args_index]->toUint32Value(worker).unsafe();
-				start = Qk_MIN(len, start);
+				start = Qk_Min(len, start);
 				args_index++;
 			}
 			if (args.length() > args_index) {
 				end = args[args_index]->toUint32Value(worker).unsafe();
-				end = Qk_MIN(len, end);
+				end = Qk_Min(len, end);
 				args_index++;
 			}
 

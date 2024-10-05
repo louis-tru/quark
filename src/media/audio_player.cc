@@ -44,7 +44,7 @@ namespace qk {
 			// WeakBuffer buff((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]);
 			// bool r = _pcm->write(buff.buffer());
 			// if ( !r ) {
-			// 	Qk_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
+			// 	Qk_DLog("Discard, audio PCM frame, %lld", _audio_buffer.time);
 			// } else {
 			// 	_prev_presentation_time = st;
 			// }
@@ -270,7 +270,7 @@ namespace qk {
 			}
 		} else {
 			Error e(ERR_AUDIO_NEW_CODEC_FAIL, "Unable to create video decoder");
-			Qk_ERR("%s", *e.message());
+			Qk_ELog("%s", *e.message());
 			//_this->trigger(UIEvent_Error, e); // trigger event error
 			//stop();
 		}
@@ -459,7 +459,7 @@ namespace qk {
 
 	void AudioPlayer::set_volume(uint32_t value) {
 		ScopeLock scope(_mutex);
-		value = Qk_MIN(value, 100);
+		value = Qk_Min(value, 100);
 		_volume = value;
 		if ( _pcm ) {
 			_pcm->set_volume(value);

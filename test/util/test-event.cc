@@ -41,14 +41,14 @@ void test_event(int argc, char **argv) {
 	EventNoticer<Event<void, int>> onTest;
 	
 	onTest.on([](Event<void, int>& evt) {
-		Qk_LOG("data:%d", evt.data());
+		Qk_Log("data:%d", evt.data());
 	});
 	
 	onTest.on([](Event<void, int>& evt) {
-		Qk_LOG("hh:%d", evt.data());
+		Qk_Log("hh:%d", evt.data());
 	});
 	
-	Qk_LOG("done");
+	Qk_Log("done");
 	
 	const Dict<String, String> map;
 	

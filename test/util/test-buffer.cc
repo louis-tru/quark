@@ -51,9 +51,9 @@ void test_buffer(int argc, char **argv) {
 	
 	bf4 = std::move(bf2);
 	
-	Qk_LOG("%i,%s", *bf, *bf);
-	Qk_LOG("%i,%s", *bf2, *bf2);
-	Qk_LOG("%i,%s", *bf3, *bf3);
-	Qk_LOG("%i,%s", *bf4, *bf4);
+	Qk_Log("%i,%s", *bf, *bf);
+	Qk_Log("%i,%s", *bf2, *bf2);
+	Qk_Log("%i,%s", *bf3, *bf3);
+	Qk_Log("%i,%s", *bf4, *bf4);
 	
 }

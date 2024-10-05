@@ -37,7 +37,7 @@
 using namespace qk;
 
 void test_http(int argc, char **argv) {
-	Qk_LOG(http_get_sync("http://www.163.com/"));
+	Qk_Log(http_get_sync("http://www.163.com/"));
 	
 	String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
 	"14461-ai-de-zhui-zong-01-ji_201608180551/14461-ai-de-zhui-zong-01-ji.m3u8";
@@ -47,18 +47,18 @@ void test_http(int argc, char **argv) {
 	
 	http_download_sync("https://www.baidu.com/", fs_documents("baidu3.htm"));
 	
-	Qk_LOG(fs_read_file_sync(fs_documents("baidu3.htm")));
+	Qk_Log(fs_read_file_sync(fs_documents("baidu3.htm")));
 	
 	typedef Callback<StreamResponse> SCb;
 	
 	http_get_stream(url, SCb([](SCb::Data& d) {
 		if ( d.error ) {
-			Qk_LOG(d.error->message());
+			Qk_Log(d.error->message());
 		} else {
 			StreamResponse* data = d.data;
 			int len = data->buffer().length();
-			Qk_LOG(String(data->buffer().collapse(), len));
-			Qk_LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
+			Qk_Log(String(data->buffer().collapse(), len));
+			Qk_Log("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
 			
 			fs_abort(data->id());
 		}
@@ -66,5 +66,5 @@ void test_http(int argc, char **argv) {
 	
 	RunLoop::current()->run();
 	
-	Qk_LOG("END");
+	Qk_Log("END");
 }

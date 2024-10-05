@@ -57,7 +57,7 @@ namespace qk {
 				return;
 			//cChar *layout_name = av_get_channel_layout_name(_ctx->channel_layout);
 			//cChar *layout_name = av_get_channel_description(0);
-			//Qk_DEBUG("layout_name, %s", layout_name);
+			//Qk_DLog("layout_name, %s", layout_name);
 			_swr = swr_alloc_set_opts(_swr,
 				_ctx->channel_layout, // out ch layout
 				AV_SAMPLE_FMT_S16, // out sample format, signed 16 bits
@@ -183,7 +183,7 @@ namespace qk {
 			int rc = avcodec_send_packet(_ctx, _packet->avpkt);
 			if (rc == 0) {
 				delete _packet; _packet = nullptr;
-				//Qk_DEBUG("avcodec_send_packet, %d", time_monotonic() - ts);
+				//Qk_DLog("avcodec_send_packet, %d", time_monotonic() - ts);
 			}
 			return rc;
 		}
@@ -250,7 +250,7 @@ namespace qk {
 				out.nb_samples = 0;
 				out.width = w;
 				out.height = h;
-				//Qk_DEBUG("sws_scale, %d", time_monotonic() - ts);
+				//Qk_DLog("sws_scale, %d", time_monotonic() - ts);
 			}
 			return rc;
 		}

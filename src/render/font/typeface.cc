@@ -75,12 +75,12 @@ namespace qk {
 	}
 
 	void Typeface::unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const {
-		Qk_DEBUG("Typeface::unicharsToGlyphs, %s", *getFamilyName());
+		Qk_DLog("Typeface::unicharsToGlyphs, %s", *getFamilyName());
 		onCharsToGlyphs(unichar, count, glyphs);
 	}
 
 	Array<GlyphID> Typeface::unicharsToGlyphs(const Array<Unichar>& unichar) const {
-		Qk_DEBUG("Typeface::unicharsToGlyphs, %s", *getFamilyName());
+		Qk_DLog("Typeface::unicharsToGlyphs, %s", *getFamilyName());
 		if (unichar.length() > 0) {
 			Array<GlyphID> result(unichar.length());
 			onCharsToGlyphs(*unichar, unichar.length(), *result);
@@ -178,7 +178,7 @@ namespace qk {
 			cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render)
 	{
 		if (offset)
-			Qk_ASSERT(offset->length() > glyphs.length());
+			Qk_Assert(offset->length() > glyphs.length());
 		return onGetImage(glyphs, fontSize, offset, offsetScale, imgOut, render);
 	}
 }

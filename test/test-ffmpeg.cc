@@ -367,7 +367,7 @@ int test_ffmpeg(int argc, char **argv)
 		ret = av_read_frame(fmt_ctx, &pkt);
 		if (ret < 0) break;
 		AVPacket orig_pkt = pkt;
-		Qk_LOG("----------------------------------------------------stream_index:%d", pkt.stream_index);
+		Qk_Log("----------------------------------------------------stream_index:%d", pkt.stream_index);
 		do {
 			ret = decode_packet(&got_frame, 0);
 			if (ret < 0)

@@ -131,14 +131,14 @@ QkWindowDelegate* WindowImpl::delegate() {
 	if (self.isBackground) return;
 	self.isBackground = YES;
 	Inl_Application(self.win->host())->triggerBackground(self.win);
-	Qk_DEBUG("windowDidMiniaturize, triggerBackground");
+	Qk_DLog("windowDidMiniaturize, triggerBackground");
 }
 
 - (void)windowDidDeminiaturize:(NSNotification*)notification {
 	if (!self.isBackground) return;
 	self.isBackground = NO;
 	Inl_Application(self.win->host())->triggerForeground(self.win);
-	Qk_DEBUG("windowDidDeminiaturize,triggerForeground");
+	Qk_DLog("windowDidDeminiaturize,triggerForeground");
 }
 
 @end

@@ -76,7 +76,7 @@ namespace qk {
 		template<> uint32_t Array<T, A>::write(const T* src, uint32_t size, int to) { \
 			if (size) { \
 				if ( to == -1 ) to = _length; \
-				_length = Qk_MAX(to + size, _length); \
+				_length = Qk_Max(to + size, _length); \
 				increase_(_length + APPEND_ZERO); \
 				memcpy((void*)(_ptr.val + to), src, size * sizeof(T) ); \
 				APPEND_CODE(_ptr,_length); \
@@ -97,7 +97,7 @@ namespace qk {
 			return *this; \
 		} \
 		template<> Array<T, A>& Array<T, A>::pop(uint32_t count) { \
-			uint32_t j = uint32_t(Qk_MAX(_length - count, 0)); \
+			uint32_t j = uint32_t(Qk_Max(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
 				_ptr.reduce(_length + APPEND_ZERO); \

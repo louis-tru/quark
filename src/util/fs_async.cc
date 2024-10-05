@@ -213,11 +213,11 @@ namespace qk {
 						break;
 					}
 				}
-				Qk_ASSERT(buffer.length() == 0);
+				Qk_Assert(buffer.length() == 0);
 			}
 	
 			void read_next() {
-				Qk_ASSERT(!_read_end);
+				Qk_Assert(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
@@ -243,11 +243,11 @@ namespace qk {
 			}
 	
 			void copy_complete() {
-				Qk_ASSERT(_reading_count == 0);
-				Qk_ASSERT(_writeing_count == 0);
-				Qk_ASSERT(_read_end);
+				Qk_Assert(_reading_count == 0);
+				Qk_Assert(_writeing_count == 0);
+				Qk_Assert(_read_end);
 				if ( !is_abort() ) { // copy complete
-					//Qk_DEBUG("-----copy_complete------");
+					//Qk_DLog("-----copy_complete------");
 					Handle<Task> handle(this);
 					abort();
 					async_callback(_end);
@@ -255,16 +255,16 @@ namespace qk {
 			}
 	
 			virtual void trigger_file_read(File* file, Buffer &buffer, int mark) {
-				Qk_ASSERT( file == _source_file );
-				Qk_ASSERT( _reading_count > 0 );
+				Qk_Assert( file == _source_file );
+				Qk_Assert( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
 					_target_file->write(buffer);
 					read_next();
 				} else {
-					Qk_ASSERT(_reading_count == 0);
-					Qk_ASSERT(!_read_end);
+					Qk_Assert(_reading_count == 0);
+					Qk_Assert(!_read_end);
 					_read_end = true;
 					if ( _writeing_count == 0 ) {
 						copy_complete();
@@ -273,8 +273,8 @@ namespace qk {
 			}
 
 			virtual void trigger_file_write(File* file, Buffer &buffer, int mark) {
-				Qk_ASSERT( file == _target_file );
-				Qk_ASSERT( _writeing_count > 0 );
+				Qk_Assert( file == _target_file );
+				Qk_Assert( _writeing_count > 0 );
 				_writeing_count--;
 				release_buffer(buffer);
 				if ( _read_end ) {
@@ -788,7 +788,7 @@ namespace qk {
 				Task* ctx = req->ctx();
 
 				ctx->_read_count--;
-				Qk_ASSERT(ctx->_read_count == 0);
+				Qk_Assert(ctx->_read_count == 0);
 
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();
@@ -838,7 +838,7 @@ namespace qk {
 					req->ctx()->_total = uv_req->statbuf.st_size;
 					if ( req->ctx()->_offset > 0 ) {
 						req->ctx()->_total -= req->ctx()->_offset;
-						req->ctx()->_total = Qk_MAX(req->ctx()->_total, 0);
+						req->ctx()->_total = Qk_Max(req->ctx()->_total, 0);
 					}
 					req->ctx()->read_advance(req);
 				} else { // err

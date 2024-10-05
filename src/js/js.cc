@@ -184,7 +184,7 @@ namespace qk {
 
 	JSObject* JSClass::newInstance(uint32_t argc, JSValue* argv[]) {
 		auto f = getFunction();
-		Qk_ASSERT( f );
+		Qk_Assert( f );
 		return f->newInstance(_worker, argc, argv);
 	}
 
@@ -220,7 +220,7 @@ namespace qk {
 
 	WrapObject* JsClassInfo::attachObject(uint64_t id, Object* object) {
 		auto wrap = reinterpret_cast<WrapObject*>(object) - 1;
-		Qk_ASSERT( !wrap->worker() );
+		Qk_Assert( !wrap->worker() );
 		JSClass *out;
 		if ( _jsclass.get(id, out) ) {
 			_isAttachFlag = true;
@@ -258,7 +258,7 @@ namespace qk {
 	static Dict<String, NativeModuleLib>* NativeModulesLib = nullptr;
 
 	void Worker::setModule(cString& name, BindingCallback binding, cChar* pathname) {
-		Qk_DEBUG("%s %s", "Worker_Set_Module ", *name);
+		Qk_DLog("%s %s", "Worker_Set_Module ", *name);
 		if (!NativeModulesLib) {
 			NativeModulesLib = new Dict<String, NativeModuleLib>();
 		}
@@ -272,7 +272,7 @@ namespace qk {
 		auto exports = newObject();
 		auto name_str = name->toStringValue(this);
 		const NativeModuleLib* lib;
-		Qk_DEBUG("binding: %s", *name_str);
+		Qk_DLog("binding: %s", *name_str);
 
 		if ( NativeModulesLib->get(name_str, lib) ) {
 			if (lib->binding) {
@@ -327,7 +327,7 @@ namespace qk {
 			Js_All_Modules(_Fun)
 			#undef _Fun
 		}
-		Qk_ASSERT(NativeModulesLib);
+		Qk_Assert(NativeModulesLib);
 
 		// register core native module
 		if ( !NativeModulesLib->has("_pkg") ) {
@@ -355,7 +355,7 @@ namespace qk {
 	}
 
 	void Worker::init() {
-		Qk_ASSERT(_global->isObject());
+		Qk_Assert(_global->isObject());
 		
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
@@ -482,7 +482,7 @@ namespace qk {
 		Worker* worker, cString& name, int argc = 0, JSValue* argv[] = 0
 	) {
 		auto _util = worker->bindingModule("_util")->as<JSObject>();
-		Qk_ASSERT(_util);
+		Qk_Assert(_util);
 
 		auto func = _util->getProperty(worker, String("__on").append(name).append("_native"));
 		if (!func->isFunction()) {
@@ -533,7 +533,7 @@ namespace qk {
 			typedef Callback<RunLoop::PostSyncData> Cb;
 			RunLoop::first()->post_sync(Cb([&](Cb::Data& e) {
 				auto worker = Worker::worker();
-				Qk_DEBUG("onProcessSafeHandle");
+				Qk_DLog("onProcessSafeHandle");
 				if (worker)
 					rc = triggerExit(worker, rc);
 				e.data->complete();
@@ -570,7 +570,7 @@ namespace qk {
 	}
 
 	int Start(int argc, char** argv) {
-		Qk_ASSERT(!__quark_js_argv);
+		Qk_Assert(!__quark_js_argv);
 
 		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
 
@@ -590,12 +590,12 @@ namespace qk {
 
 			{ // run main
 				auto _pkg = worker->bindingModule("_pkg");
-				Qk_ASSERT(_pkg && _pkg->isObject(), "Can't start worker");
+				Qk_Assert(_pkg && _pkg->isObject(), "Can't start worker");
 				auto r = _pkg->as<JSObject>()->
 					getProperty(worker, "Module")->as<JSObject>()->
 					getProperty(worker, "runMain")->as<JSFunction>()->call(worker);
 				if (!r) {
-					Qk_ERR("ERROR: Can't call runMain()");
+					Qk_ELog("ERROR: Can't call runMain()");
 					return ERR_RUN_MAIN_EXCEPTION;
 				}
 			}

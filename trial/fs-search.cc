@@ -102,7 +102,7 @@ namespace qk {
 			, m_zip (zip_path)
 		{
 			auto isOpen = m_zip.open();
-			Qk_ASSERT( isOpen, "Cannot open zip file, `%s`", *zip_path );
+			Qk_Assert( isOpen, "Cannot open zip file, `%s`", *zip_path );
 		}
 		~ZipInSearchPath() = default;
 		String m_zip_path;
@@ -122,13 +122,13 @@ namespace qk {
 			} else if (res[res.length() - 1] == '@') {
 				add_zip_search_path(res.substr(0, res.length() - 1), String());
 			} else {
-				Qk_WARN("SEARCH", "Invalid path, %s", *res);
+				Qk_Warn("SEARCH", "Invalid path, %s", *res);
 			}
 		} else {
 			if (fs_exists_sync(res)) {
 				add_search_path(res);
 			} else {
-				Qk_WARN("SEARCH", "Resource directory does not exists, %s", *res);
+				Qk_Warn("SEARCH", "Resource directory does not exists, %s", *res);
 			}
 		}
 	}
@@ -146,7 +146,7 @@ namespace qk {
 			FileSearch::SearchPath* s = *it;
 			if (!s->as_zip()) {
 				if (s->searchPath() == str) {
-					Qk_WARN("SEARCH", "The repetitive path, \"%s\"", *path);
+					Qk_Warn("SEARCH", "The repetitive path, \"%s\"", *path);
 					// Fault tolerance, skip the same path
 					return;
 				}
@@ -169,7 +169,7 @@ namespace qk {
 			if ((*it)->as_zip()) {
 				FileSearch::ZipInSearchPath* s = (*it)->as_zip();
 				if (s->zip_path() == _zip_path && s->searchPath() == _path) {
-					Qk_WARN("SEARCH", "The repetitive path, ZIP: %s, %s", *zip_path, *path);
+					Qk_Warn("SEARCH", "The repetitive path, ZIP: %s, %s", *zip_path, *path);
 					// Fault tolerance,skip the same path
 					return;
 				}

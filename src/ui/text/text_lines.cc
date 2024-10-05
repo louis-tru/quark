@@ -309,9 +309,9 @@ namespace qk {
 
 			auto re = screen_region_from_convex_quadrilateral(vertex);
 
-			if (Qk_MAX( clip.end.y(), re.end.y() ) - Qk_MIN( clip.origin.y(), re.origin.y() )
+			if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.origin.y(), re.origin.y() )
 						<= re.end.y() - re.origin.y() + clip.size.y() &&
-					Qk_MAX( clip.end.x(), re.end.x() ) - Qk_MIN( clip.origin.x(), re.origin.x() )
+					Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.origin.x(), re.origin.x() )
 						<= re.end.x() - re.origin.x() + clip.size.x()
 			) {
 				_visible_region = true;
@@ -327,7 +327,7 @@ namespace qk {
 	}
 
 	void TextLines::solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
-		//Qk_DEBUG("TextLines::solve_visible_region_blob");
+		//Qk_DLog("TextLines::solve_visible_region_blob");
 
 		blob_visible->clear();
 
@@ -350,7 +350,7 @@ namespace qk {
 				if (is_break)
 					break;
 			}
-			//Qk_DEBUG("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
+			//Qk_DLog("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
 			//	item.origin, item.line, item.blob.glyphs.length(), line.visible_region);
 		}
 	}

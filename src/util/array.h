@@ -238,7 +238,7 @@ namespace qk {
 		ArrayBuffer(ArrayBuffer<T, A>&& arr): Array<T, A>(std::move(arr)) {}
 
 		ArrayBuffer(T* data, uint32_t length, uint32_t capacity = 0)
-			: Array<T, A>(length, Qk_MAX(capacity, length), data) {}
+			: Array<T, A>(length, Qk_Max(capacity, length), data) {}
 		ArrayBuffer(uint32_t length, uint32_t capacity = 0)
 			: Array<T, A>(length, capacity) {}
 
@@ -345,7 +345,7 @@ namespace qk {
 		: _ptr{nullptr,0}, _length(0)
 	{
 		extend(length);
-		increase_(Qk_MAX(length, capacity));
+		increase_(Qk_Max(length, capacity));
 	}
 
 	template<typename T, typename A>
@@ -390,7 +390,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::pop(uint32_t count) {
-		int j = Qk_MAX(_length - count, 0);
+		int j = Qk_Max(_length - count, 0);
 		if (_length > j) {
 			do {
 				_length--;
@@ -407,7 +407,7 @@ namespace qk {
 			if ( to == -1 ) to = _length;
 			uint32_t old_len = _length;
 			uint32_t end = to + size_src;
-			_length = Qk_MAX(end, _length);
+			_length = Qk_Max(end, _length);
 			increase_(_length);
 			T* to_ = _ptr.val + to;
 			
@@ -446,7 +446,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	ArrayWeak<T> Array<T, A>::slice(uint32_t start, uint32_t end) const {
-		end = Qk_MIN(end, _length);
+		end = Qk_Min(end, _length);
 		if (start < end) {
 			return ArrayWeak<T>(_ptr.val + start, end - start);
 		} else {
@@ -456,7 +456,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const {
-		end = Qk_MIN(end, _length);
+		end = Qk_Min(end, _length);
 		if (start < end) {
 			ArrayBuffer<T, A> arr;
 			arr._length = end - start;

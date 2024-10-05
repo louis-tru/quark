@@ -268,16 +268,16 @@ void layout(Event<>& evt, Application* app) {
 	img2->set_border_color_bottom({255,0,255,255});
 	// img2->set_radius_right_bottom(5);
 
-	Qk_DEBUG("%s, %p\n", "ok test layout", app);
-	Qk_DEBUG("Object size %d", sizeof(Object));
-	Qk_DEBUG("Reference size %d", sizeof(Reference));
+	Qk_DLog("%s, %p\n", "ok test layout", app);
+	Qk_DLog("Object size %d", sizeof(Object));
+	Qk_DLog("Reference size %d", sizeof(Reference));
 	
-	Qk_DEBUG("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Reference>));
-	Qk_DEBUG("View size %d", sizeof(View));
-	Qk_DEBUG("Box size %d", sizeof(Box));
-	Qk_DEBUG("Flow size %d", sizeof(Flow));
-	Qk_DEBUG("Flex size %d", sizeof(Flex));
-	Qk_DEBUG("Root size %d", sizeof(Root));
+	Qk_DLog("Notification<UIEvent, UIEventName, Layout> size %d", sizeof(Notification<UIEvent, UIEventName, Reference>));
+	Qk_DLog("View size %d", sizeof(View));
+	Qk_DLog("Box size %d", sizeof(Box));
+	Qk_DLog("Flow size %d", sizeof(Flow));
+	Qk_DLog("Flex size %d", sizeof(Flex));
+	Qk_DLog("Root size %d", sizeof(Root));
 }
 
 void test_layout(int argc, char **argv) {

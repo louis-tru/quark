@@ -39,7 +39,7 @@
 
 #define Qk_Main() \
 	int __qk_main_func__(int, char**); \
-	Qk_INIT_BLOCK(__qk_main_func__) { qk::Application::setMain(&__qk_main_func__); } \
+	Qk_Init_Func(__qk_main_func__) { qk::Application::setMain(&__qk_main_func__); } \
 	int __qk_main_func__(int argc, char** argv)
 
 namespace qk {

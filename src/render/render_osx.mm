@@ -253,7 +253,7 @@ static CVReturn displayLinkCallback(
 	if (!NSOpenGLContext.currentContext) {
 		_renderThreadId = thread_self_id();
 		[_ctx makeCurrentContext];
-		Qk_ASSERT(NSOpenGLContext.currentContext);
+		Qk_Assert(NSOpenGLContext.currentContext);
 	}
 	_render->renderDisplay();
 }
@@ -317,12 +317,12 @@ namespace qk {
 		[ctx.pixelFormat getValues:&depthSize forAttribute:NSOpenGLPFADepthSize forVirtualScreen:0];
 		GLint sampleCount;
 		[ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
-		Qk_DEBUG("stencilBits:%d,depthSize:%d,sampleCount:%d", stencilBits, depthSize, sampleCount);
+		Qk_DLog("stencilBits:%d,depthSize:%d,sampleCount:%d", stencilBits, depthSize, sampleCount);
 #endif
 
 		CGLLockContext(ctx.CGLContextObj);
 		[ctx makeCurrentContext];
-		Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
+		Qk_Assert(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
 		auto render = new OsxGLRender(opts,ctx);
 		CGLUnlockContext(ctx.CGLContextObj);
 		[NSOpenGLContext clearCurrentContext]; // clear ctx

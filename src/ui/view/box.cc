@@ -781,7 +781,7 @@ namespace qk {
 
 	void Box::set_border_width_top(float val, bool isRt) {
 		_BorderAlloc();
-		val = Qk_MAX(0, val);
+		val = Qk_Max(0, val);
 		if (_border->width[0] != val) {
 			_border->width[0] = val;
 			mark_layout(kLayout_Size_Height, isRt);
@@ -790,7 +790,7 @@ namespace qk {
 
 	void Box::set_border_width_right(float val, bool isRt) {
 		_BorderAlloc();
-		val = Qk_MAX(0, val);
+		val = Qk_Max(0, val);
 		if (_border->width[1] != val) {
 			_border->width[1] = val;
 			mark_layout(kLayout_Size_Width, isRt);
@@ -799,7 +799,7 @@ namespace qk {
 
 	void Box::set_border_width_bottom(float val, bool isRt) {
 		_BorderAlloc();
-		val = Qk_MAX(0, val);
+		val = Qk_Max(0, val);
 		if (_border->width[2] != val) {
 			_border->width[2] = val;
 			mark_layout(kLayout_Size_Height, isRt);
@@ -808,7 +808,7 @@ namespace qk {
 
 	void Box::set_border_width_left(float val, bool isRt) {
 		_BorderAlloc();
-		val = Qk_MAX(0, val);
+		val = Qk_Max(0, val);
 		if (_border->width[3] != val) {
 			_border->width[3] = val;
 			mark_layout(kLayout_Size_Width, isRt);
@@ -1249,18 +1249,18 @@ namespace qk {
 		auto& clip = window()->getClipRegion();
 		auto  re   = screen_region_from_convex_quadrilateral(_vertex);
 
-		if (Qk_MAX( clip.end.y(), re.end.y() ) - Qk_MIN( clip.origin.y(), re.origin.y() )
+		if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.origin.y(), re.origin.y() )
 					<= re.end.y() - re.origin.y() + clip.size.y() &&
-				Qk_MAX( clip.end.x(), re.end.x() ) - Qk_MIN( clip.origin.x(), re.origin.x() )
+				Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.origin.x(), re.origin.x() )
 					<= re.end.x() - re.origin.x() + clip.size.x()
 				) {
 			_visible_region = true;
 		} else {
 
 #if 0
-			Qk_DEBUG("visible_region-x: %f<=%f", Qk_MAX( clip.y2, re.end.y() ) - Qk_MIN( clip.y, re.origin.y() ),
+			Qk_DLog("visible_region-x: %f<=%f", Qk_Max( clip.y2, re.end.y() ) - Qk_Min( clip.y, re.origin.y() ),
 																				re.end.y() - re.origin.y() + clip.height);
-			Qk_DEBUG("visible_region-y: %f<=%f", Qk_MAX( clip.x2, re.end.x() ) - Qk_MIN( clip.x, re.origin.x() ),
+			Qk_DLog("visible_region-y: %f<=%f", Qk_Max( clip.x2, re.end.x() ) - Qk_Min( clip.x, re.origin.x() ),
 																				re.end.x() - re.origin.x() + clip.width);
 #endif
 			_visible_region = false;

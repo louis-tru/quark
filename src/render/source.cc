@@ -131,7 +131,7 @@ namespace qk {
 				if (_state & kSTATE_LOADING) {
 					if (e.error) {
 						_state = State((_state | kSTATE_LOAD_ERROR) & ~kSTATE_LOADING);
-						Qk_DEBUG("#ImageSource::_Load kSTATE_LOAD_ERROR, %s", e.error->message().c_str());
+						Qk_DLog("#ImageSource::_Load kSTATE_LOAD_ERROR, %s", e.error->message().c_str());
 						Qk_Trigger(State, _state);
 					} else {
 						_Decode(*e.data);

@@ -104,7 +104,7 @@ namespace qk {
 				auto size = v->layout_size().layout;
 				auto cross = is_horizontal ? size.y(): size.x();
 				if (is_wrap_cross) // wrap cross axis
-					max_cross = Qk_MAX(max_cross, cross);
+					max_cross = Qk_Max(max_cross, cross);
 				total_main += is_horizontal ? size.x(): size.y();
 			}
 			v = v->next();
@@ -177,7 +177,7 @@ namespace qk {
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout;
-					max_cross = Qk_MAX(max_cross, size.y()); // solve content height
+					max_cross = Qk_Max(max_cross, size.y()); // solve content height
 					total_main += size.x();
 					total_weight += v->layout_weight();
 					items.push({size, v});
@@ -192,7 +192,7 @@ namespace qk {
 
 			if (overflow != 0 && total_weight > 0) {
 				total_main = 0;
-				const float min_total_weight = Qk_MIN(total_weight, 1);
+				const float min_total_weight = Qk_Min(total_weight, 1);
 				const float C = total_weight / (overflow * min_total_weight);
 				// in flex：size = size_raw + overflow * (weight / total_weight) * min(total_weight, 1)
 				for (auto i: items) {

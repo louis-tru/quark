@@ -391,7 +391,7 @@ namespace qk { namespace inspector {
 
 	void InspectorIo::Write(TransportAction action, int session_id,
 													const StringView& inspector_message) {
-		//Qk_DEBUG("Send_To_Inspector, %s \n", StringViewToUtf8(inspector_message).c_str());
+		//Qk_DLog("Send_To_Inspector, %s \n", StringViewToUtf8(inspector_message).c_str());
 		AppendMessage(&outgoing_message_queue_, action, session_id,
 									StringBuffer::create(inspector_message));
 		int err = uv_async_send(&thread_req_);

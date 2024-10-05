@@ -172,7 +172,7 @@ static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(cBuffer& data) {
 			nullptr, // void * (*allocate)(CFIndex size, CFOptionFlags hint, void *info);
 			nullptr, // void*(*reallocate)(void* ptr,CFIndex newsize,CFOptionFlags hint,void* info);
 			[](void*,void* info) -> void { // void (*deallocate)(void *ptr, void *info);
-				// Qk_ASSERT(info);
+				// Qk_Assert(info);
 				// Buffer::Alloc::free(info);
 			},
 			nullptr, // CFIndex (*preferredSize)(CFIndex size, CFOptionFlags hint, void *info);
@@ -255,7 +255,7 @@ class QkFontPool_Mac : public FontPool {
 	int fCount;
 
 	CFStringRef getFamilyNameAt(int index) const {
-		Qk_ASSERT((unsigned)index < (unsigned)fCount);
+		Qk_Assert((unsigned)index < (unsigned)fCount);
 		return (CFStringRef)CFArrayGetValueAtIndex(fNames.get(), index);
 	}
 

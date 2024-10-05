@@ -78,7 +78,7 @@ namespace qk {
 		, _current_orientation(Orientation::ORIENTATION_INVALID)
 		, _is_init_ok(false)
 		{
-			Qk_ASSERT(!application); application = this;
+			Qk_Assert(!application); application = this;
 			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 		}
 
@@ -113,7 +113,7 @@ namespace qk {
 		}
 
 		static void onDestroy(ANativeActivity* activity) {
-			Qk_ASSERT(application->_activity);
+			Qk_Assert(application->_activity);
 
 			activity->callbacks->onDestroy                  = nullptr;
 			activity->callbacks->onStart                    = nullptr;
@@ -150,7 +150,7 @@ namespace qk {
 					// ScopeLock scope(application->_mutex);
 					if ( window == application->_window ) {
 						ok = gl_draw_context->create_surface(window);
-						Qk_ASSERT(ok);
+						Qk_Assert(ok);
 					}
 				}
 				if ( ok ) {
@@ -188,9 +188,9 @@ namespace qk {
 				application->_dispatch = application->_host->dispatch();
 				application->_render_looper = new RenderLooper(application->_host);
 
-				Qk_ASSERT(application->_activity);
-				Qk_ASSERT(application->_host);
-				Qk_ASSERT(application->_host->render_loop());
+				Qk_Assert(application->_activity);
+				Qk_Assert(application->_host);
+				Qk_Assert(application->_host->render_loop());
 			}
 			application->_host->triggerForeground();
 			application->stop_render_task();
@@ -240,19 +240,19 @@ namespace qk {
 		}
 
 		static void onWindowFocusChanged(ANativeActivity* activity, int hasFocus) {
-			Qk_DEBUG("onWindowFocusChanged");
+			Qk_DLog("onWindowFocusChanged");
 			application->start_render_task();
 		}
 
 		static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) {
-			Qk_DEBUG("onNativeWindowRedrawNeeded");
+			Qk_DLog("onNativeWindowRedrawNeeded");
 			application->start_render_task();
 		}
 
 		// ----------------------------------------------------------------------
 		
 		static void onLowMemory(ANativeActivity* activity) {
-			Qk_DEBUG("onLowMemory");
+			Qk_DLog("onLowMemory");
 			application->_host->triggerMemorywarning();
 		}
 
@@ -271,11 +271,11 @@ namespace qk {
 		}
 		
 		static void onConfigurationChanged(ANativeActivity* activity) {
-			Qk_DEBUG("onConfigurationChanged");
+			Qk_DLog("onConfigurationChanged");
 		}
 		
 		static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-			Qk_DEBUG("onNativeWindowResized");
+			Qk_DLog("onNativeWindowResized");
 		}
 
 		// --------------------------- Dispatch event ---------------------------
@@ -307,7 +307,7 @@ namespace qk {
 					dispatchEvent(event);
 					AInputQueue_finishEvent(queue, event, fd);
 				} else {
-					Qk_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
+					Qk_DLog("AInputQueue_preDispatchEvent(queue, event) != 0");
 				}
 			}
 			return 1;
@@ -326,7 +326,7 @@ namespace qk {
 				int repeat = AKeyEvent_getRepeatCount(event);
 				int action = AKeyEvent_getAction(event);
 
-				Qk_DEBUG("code:%d, repeat:%d, action:%d, "
+				Qk_DLog("code:%d, repeat:%d, action:%d, "
 												"flags:%d, scancode:%d, metastate:%d, downtime:%ld, time:%ld",
 								code, repeat, action,
 								AKeyEvent_getFlags(event),
@@ -346,7 +346,7 @@ namespace qk {
 							dispatch->keyboard_adapter()->dispatch(code, 0, 0, repeat, device, source);
 						break;
 					case AKEY_EVENT_ACTION_MULTIPLE:
-						Qk_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
+						Qk_DLog("AKEY_EVENT_ACTION_MULTIPLE");
 						break;
 				}
 			}
@@ -374,7 +374,7 @@ namespace qk {
 					case AMOTION_EVENT_ACTION_MOVE:
 						touchs = toGuiTouchs(event, true);
 						if ( touchs.length() ) {
-							// Qk_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
+							// Qk_DLog("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
 							dispatch->dispatch_touchmove( std::move(touchs) );
 						}
 						break;
@@ -471,7 +471,7 @@ namespace qk {
 	}
 
 	void AppInl::initialize(cJSON& options) {
-		Qk_ASSERT(!gl_draw_context);
+		Qk_Assert(!gl_draw_context);
 		gl_draw_context = GLDrawProxy::create(this, options);
 		_draw_ctx = gl_draw_context->host();
 	}

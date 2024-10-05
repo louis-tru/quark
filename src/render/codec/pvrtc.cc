@@ -277,9 +277,9 @@ namespace qk {
 		uint64_t uiDataSize = 0;
 		
 		//Get the dimensions of the specified MIP Map level.
-		uint32_t uiWidth = Qk_MAX(1, header.width >> iMipLevel);
-		uint32_t uiHeight = Qk_MAX(1, header.height >> iMipLevel);
-		uint32_t uiDepth = Qk_MAX(1, header.depth >> iMipLevel);
+		uint32_t uiWidth = Qk_Max(1, header.width >> iMipLevel);
+		uint32_t uiHeight = Qk_Max(1, header.height >> iMipLevel);
+		uint32_t uiDepth = Qk_Max(1, header.depth >> iMipLevel);
 		
 		//If pixel format is compressed, the dimensions need to be padded.
 		if (PixelFormatPartHigh == 0) {
@@ -376,8 +376,8 @@ namespace qk {
 				rest->push(Pixel(info, Buffer::from(_data, data_size)));
 				dataOffset += data_size;
 				
-				width = Qk_MAX(width >> 1, 1);
-				height = Qk_MAX(height >> 1, 1);
+				width = Qk_Max(width >> 1, 1);
+				height = Qk_Max(height >> 1, 1);
 			}
 		}
 		return true;
@@ -421,15 +421,15 @@ namespace qk {
 				dataOffset += dataSize;
 				
 				if (dataOffset > dataLen) {
-					Qk_DEBUG("TexurePVR: Invalid lenght");
+					Qk_DLog("TexurePVR: Invalid lenght");
 					return false;
 				}
-				width = Qk_MAX(width >> 1, 1);
-				height = Qk_MAX(height >> 1, 1);
+				width = Qk_Max(width >> 1, 1);
+				height = Qk_Max(height >> 1, 1);
 			}
 		}
 		else {
-			Qk_DEBUG("TexurePVR: Invalid lenght");
+			Qk_DLog("TexurePVR: Invalid lenght");
 			return false;
 		}
 		
@@ -450,7 +450,7 @@ namespace qk {
 		else if (pvrt_is_pvr_v3(data)) {
 			return pvrt_decode_pvr_v3(data, pixel);
 		}
-		Qk_DEBUG("TexurePVR: Invalid data");
+		Qk_DLog("TexurePVR: Invalid data");
 		return false;
 	}
 
@@ -495,7 +495,7 @@ namespace qk {
 			}
 		}
 
-		Qk_DEBUG("TexurePVR: Invalid data");
+		Qk_DLog("TexurePVR: Invalid data");
 		return false;
 	}
 

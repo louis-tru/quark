@@ -136,12 +136,12 @@ namespace qk {
 
 			if (clip.op == kDifference_ClipOp) {
 				if (_stencilRefDecr == 0) {
-					Qk_WARN(" clip stencil ref decr value exceeds limit 0"); return;
+					Qk_Warn(" clip stencil ref decr value exceeds limit 0"); return;
 				}
 				_stencilRefDecr--;
 			} else {
 				if (_stencilRef == 255) {
-					Qk_WARN(" clip stencil ref value exceeds limit 255"); return;
+					Qk_Warn(" clip stencil ref value exceeds limit 255"); return;
 				}
 				_stencilRef++;
 			}
@@ -153,7 +153,7 @@ namespace qk {
 
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
 			if (path.vCount) {
-				Qk_ASSERT(path.path.isNormalized());
+				Qk_Assert(path.path.isNormalized());
 				fillv(path, paint);
 				if (aa) {
 					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
@@ -163,7 +163,7 @@ namespace qk {
 		}
 
 		void fillPath(const Path &path, const Paint &paint, bool aa) {
-			Qk_ASSERT(path.isNormalized());
+			Qk_Assert(path.isNormalized());
 			auto &vertex = _cache->getPathTriangles(path);
 			if (vertex.vCount) {
 				fillv(vertex, paint);
@@ -208,7 +208,7 @@ namespace qk {
 			//auto &vertex = _render->getAAFuzzStrokeTriangle(newPath, _Scale);
 			// _phy2Pixel*0.6=1.2/_Scale, 2.4px
 			auto &vertex = _cache->getAAFuzzStrokeTriangle(path, _phy2Pixel*aaFuzzWidth);
-			// Qk_DEBUG("%p", &vertex);
+			// Qk_DLog("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
 					_cmdPack->drawColor(vertex, paint.color.to_color4f_alpha(aaFuzzWeight), true); break;
@@ -231,7 +231,7 @@ namespace qk {
 
 			//auto a = _state->matrix * dst_start;
 			//auto b = _state->matrix * (dst_start + dst_size);
-			//Qk_DEBUG("drawTextImage, %f %f, %f %f", a.x(), a.y(), b.x(), b.y());
+			//Qk_DLog("drawTextImage, %f %f, %f %f", a.x(), a.y(), b.x(), b.y());
 
 			Rect rect{dst_start, dst_size};
 
@@ -639,7 +639,7 @@ namespace qk {
 			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, &blob->out.img, _render);
 			Qk_Assert(blob->out.img->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
 			blob->out.fontSize = finalFontSize;
-			Qk_DEBUG("GLCanvas::drawTextBlob origin, %f", origin.y());
+			Qk_DLog("GLCanvas::drawTextBlob origin, %f", origin.y());
 		}
 		auto img = *blob->out.img;
 		if (img->width() && img->height()) {
@@ -655,7 +655,7 @@ namespace qk {
 		};
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
 			auto img = ImageSource::Make({
-				int(Qk_MIN(dest.x(),_surfaceSize.x())),int(Qk_MIN(dest.y(),_surfaceSize.y())),type}, _render);
+				int(Qk_Min(dest.x(),_surfaceSize.x())),int(Qk_Min(dest.y(),_surfaceSize.y())),type}, _render);
 			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, *img, isMipmap);
 			_this->zDepthNext();
 			return img;
@@ -750,7 +750,7 @@ namespace qk {
 		glDrawBuffers(2, DrawBuffers);
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			Qk_FATAL("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+			Qk_Fatal("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 		}
 
 #if DEBUG
@@ -758,7 +758,7 @@ namespace qk {
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		Qk_DLog("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
 
 	}

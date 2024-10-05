@@ -264,7 +264,7 @@ namespace qk {
 							if ( dir && read->is_directory( inl_path ) )
 								return true;
 						} catch(cError &e) {
-							Qk_WARN("Warn, %s", e.message().c_str());
+							Qk_Warn("Warn, %s", e.message().c_str());
 						}
 					}
 					return false;
@@ -292,7 +292,7 @@ namespace qk {
 							String inl_path = fs_format_part_path( path.substr(zip.length() + fs_SEPARATOR.length()) );
 							rv = read->readdir(inl_path);
 						} catch(cError &e) {
-							Qk_WARN("Warn, %s", e.message().c_str());
+							Qk_Warn("Warn, %s", e.message().c_str());
 						}
 					}
 					break;
@@ -401,7 +401,7 @@ namespace qk {
 		try {
 			return _core->readdir_sync(path);
 		} catch(Error& err) {
-			// Qk_ERR(err);
+			// Qk_ELog(err);
 		}
 		return Array<Dirent>();
 	}

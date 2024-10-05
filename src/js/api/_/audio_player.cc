@@ -100,9 +100,9 @@ namespace qk { namespace js {
 			
 			// test:
 			//if (r->IsNumber(worker)) {
-			//  Qk_LOG("--------------number,%s", *r->toStringValue(wrap->worker()));
+			//  Qk_Log("--------------number,%s", *r->toStringValue(wrap->worker()));
 			//} else {
-			//  Qk_LOG("--------------string,%s", *r->toStringValue(wrap->worker()));
+			//  Qk_Log("--------------string,%s", *r->toStringValue(wrap->worker()));
 			//}
 		};
 		

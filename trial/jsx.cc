@@ -162,7 +162,7 @@ namespace qk {
 	}
 
 	static inline bool is_in_range(int value, int lower_limit, int higher_limit) {
-		Qk_ASSERT(lower_limit <= higher_limit);
+		Qk_Assert(lower_limit <= higher_limit);
 		return (uint32_t)(value - lower_limit) <= (uint32_t)(higher_limit - lower_limit);
 	}
 
@@ -582,7 +582,7 @@ namespace qk {
 			next_->location.line = line_;
 			next_->string_value = next_->string_space = String2();
 			
-			Qk_ASSERT(c0_ == '/');
+			Qk_Assert(c0_ == '/');
 			
 			advance();
 			if (c0_ == '/' || c0_ == '*') { // ILLEGAL
@@ -1027,8 +1027,8 @@ namespace qk {
 	/* 'keyword' is a char array, so sizeof(keyword) is */  \
 	/* strlen(keyword) plus 1 for the NUL char. */          \
 		const int keyword_length = sizeof(keyword) - 1;       \
-		Qk_ASSERT(keyword_length >= kMinLength);               \
-		Qk_ASSERT(keyword_length <= kMaxLength);               \
+		Qk_Assert(keyword_length >= kMinLength);               \
+		Qk_Assert(keyword_length <= kMaxLength);               \
 		if (input_length == keyword_length &&                 \
 			input[1] == keyword[1] &&                           \
 			(keyword_length <= 2 || input[2] == keyword[2]) &&  \
@@ -1316,7 +1316,7 @@ namespace qk {
 		}
 		
 		int scan_hex_number(int expected_length) {
-			Qk_ASSERT(expected_length <= 4);  // prevent overflow
+			Qk_Assert(expected_length <= 4);  // prevent overflow
 			int x = 0;
 			for (int i = 0; i < expected_length; i++) {
 				
@@ -1498,7 +1498,7 @@ namespace qk {
 		}
 		
 		bool set_pos(uint32_t pos) {
-			Qk_ASSERT(pos >= 0);
+			Qk_Assert(pos >= 0);
 			
 			if ( pos < size_ ) {
 				if (pos > pos_) {
@@ -1659,7 +1659,7 @@ namespace qk {
 		}
 
 		void parse_function() {
-			Qk_ASSERT(token() == FUNCTION);
+			Qk_Assert(token() == FUNCTION);
 			// function f(arg) { block }
 			fetch(); // function
 			if ( is_declaration_identifier(next()) ) {
@@ -1677,7 +1677,7 @@ namespace qk {
 		}
 
 		void parse_arrow_function() {
-			Qk_ASSERT(token() == ARROW);
+			Qk_Assert(token() == ARROW);
 			// TODO ...
 		}
 
@@ -1874,7 +1874,7 @@ namespace qk {
 		}
 
 		void parse_brace_expression(Token begin, Token end) { // 括号表达式
-			Qk_ASSERT( token() == begin );
+			Qk_Assert( token() == begin );
 			uint32_t level = _level;
 			_level++;
 
@@ -2052,7 +2052,7 @@ namespace qk {
 		}
 
 		void parse_regexp_expression() { // 正则表达式
-			Qk_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
+			Qk_Assert(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
 			
 			if (_scanner->scan_regexp_content(_scanner->location().beg_pos) == REGEXP_LITERAL) {
 				next();
@@ -2063,7 +2063,7 @@ namespace qk {
 		}
 
 		void parse_variable_visit_expression() { // 属性访问表达式
-			Qk_ASSERT( is_declaration_identifier(token()) );
+			Qk_Assert( is_declaration_identifier(token()) );
 
 			fetch(); // identifier
 
@@ -2111,13 +2111,13 @@ namespace qk {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 			while(true) {
-				Qk_ASSERT(peek() == LBRACE);
+				Qk_Assert(peek() == LBRACE);
 				append(_scanner->string_value());
 				append(S.COMMAND);  // ${
 				// next();
 				next();
 				parse_command_string_block(); // parse { block }
-				Qk_ASSERT(peek() == RBRACE);
+				Qk_Assert(peek() == RBRACE);
 				append(S.RBRACE);   // }
 				_scanner->scan_command_string(_scanner->next_location().end_pos);
 				Token tok = next();
@@ -2130,7 +2130,7 @@ namespace qk {
 		}
 
 		void parse_command_string_block() {
-			Qk_ASSERT( _scanner->token() == LBRACE );
+			Qk_Assert( _scanner->token() == LBRACE );
 			while(true) {
 				if (peek() == RBRACE)
 					break;
@@ -2165,7 +2165,7 @@ namespace qk {
 		}
 
 		void parse_class() {
-			Qk_ASSERT(token() == CLASS);
+			Qk_Assert(token() == CLASS);
 		
 			fetch();
 		
@@ -2209,7 +2209,7 @@ namespace qk {
 				CHECK_TOKEN(LBRACE); // {
 			}
 			
-			Qk_ASSERT(_scanner->token() == LBRACE); // {
+			Qk_Assert(_scanner->token() == LBRACE); // {
 			
 			append(S.LBRACE); // {
 			
@@ -2342,7 +2342,7 @@ namespace qk {
 		}
 
 		void parse_export() {
-			Qk_ASSERT(_scanner->token() == EXPORT);
+			Qk_Assert(_scanner->token() == EXPORT);
 			CHECK(_level == 0);
 			
 			Token tok = next();
@@ -2409,7 +2409,7 @@ namespace qk {
 			// import { Application as App } from 'quark/app';
 			// import app, { Application as App } from 'quark/app';
 
-			Qk_ASSERT(token() == LBRACE);
+			Qk_Assert(token() == LBRACE);
 			append(S.LBRACE);     // {
 
 			if (defaultId) {
@@ -2444,7 +2444,7 @@ namespace qk {
 		}
 
 		void parse_import() {
-			Qk_ASSERT(_scanner->token() == IMPORT);
+			Qk_Assert(_scanner->token() == IMPORT);
 			Token tok = next();
 
 			if (is_import_declaration_identifier(tok)) { // identifier
@@ -2705,7 +2705,7 @@ namespace qk {
 		}
 		
 		void parse_xml_element(bool inXml) {
-			Qk_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
+			Qk_Assert(_scanner->token() == XML_ELEMENT_TAG);
 
 			if ( !is_xml_element_legal_start(inXml) ) { // 是否为合法的xml开始
 				append(S.LT);
@@ -2847,7 +2847,7 @@ namespace qk {
 		}
 		
 		void parse_xml_element_context(cString2& tag_name) {
-			Qk_ASSERT(_scanner->token() == GT);  // >
+			Qk_Assert(_scanner->token() == GT);  // >
 			
 			// add chileren
 			append(S.COMMA);    // ,

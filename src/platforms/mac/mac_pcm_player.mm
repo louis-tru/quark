@@ -100,7 +100,7 @@ namespace qk {
 			_queue.pushBack(in);
 			len = _queue.length();
 			Qk_Assert_Le(len, _buffers.length()); // <=
-			//Qk_DEBUG("callback_proc, idle:%d %p", len, in);
+			//Qk_DLog("callback_proc, idle:%d %p", len, in);
 			if (len == _buffers.length()) {
 				_play = false;
 				Qk_Assert_Eq(AudioQueueStop(_audio, true), noErr);
@@ -132,16 +132,16 @@ namespace qk {
 
 				if (AudioQueueEnqueueBuffer(_audio, buf, 0, nullptr) == noErr) {
 					_queue.popFront();
-					//Qk_DEBUG("PCM_write,  ok idle:%d %p", _queue.length(), buf);
+					//Qk_DLog("PCM_write,  ok idle:%d %p", _queue.length(), buf);
 					if (!_play) {
 						_play = true;
 						Qk_Assert_Eq(noErr, AudioQueueStart(_audio, nullptr));
-						Qk_DEBUG("AudioQueueStart");
+						Qk_DLog("AudioQueueStart");
 					}
 					return true;
 				}
 			}
-			// Qk_DEBUG("PCM_write fail %d %d", _queue.length(), frame->pts);
+			// Qk_DLog("PCM_write fail %d %d", _queue.length(), frame->pts);
 			return false;
 		}
 

@@ -134,7 +134,7 @@ namespace qk {
 			}
 
 			virtual void trigger_http_abort(HttpClientRequest* req) {
-				Qk_DEBUG("request async abort");
+				Qk_DLog("request async abort");
 			}
 
 			virtual void trigger_http_write(HttpClientRequest* req) {}
@@ -276,7 +276,7 @@ namespace qk {
 											String::format("cannot send sync http request, %s"
 																		, options.url.c_str()), 0, options.url);
 		}
-		// Qk_DEBUG("request_sync %s", options.url.c_str());
+		// Qk_DLog("request_sync %s", options.url.c_str());
 		typedef Callback<RunLoop::PostSyncData> Cb2;
 		bool ok = false;
 		HttpError err = Error(0);
@@ -358,7 +358,7 @@ namespace qk {
 			fs_mkdirs_sync(path);
 			http_cache_path_ = path;
 		} catch(cError& err) {
-			Qk_ERR(err);
+			Qk_ELog(err);
 		}
 	}
 

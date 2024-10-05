@@ -38,13 +38,13 @@ namespace qk {
 
 	template<typename T>
 	T* copy_value_ptr(T* value) {
-		Qk_UNIMPLEMENTED();
+		Qk_Unreachable();
 		return nullptr;
 	}
 
 	template<typename T>
 	inline void transition_value_ptr(T *v1, T *v2, float y, ViewProp prop, View *target) {
-		Qk_UNIMPLEMENTED();
+		Qk_Unreachable();
 	}
 
 	template<>
@@ -174,7 +174,7 @@ namespace qk {
 				_value = (view->*get)();
 		}
 		void transition(View *view, Property *to, float y) override {
-			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
+			Qk_Assert(static_cast<PropImpl*>(to)->_prop == _prop);
 			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
 			if (set)
 				(view->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y),true);
@@ -190,7 +190,7 @@ namespace qk {
 	template<typename T>
 	struct PropImpl<T*>: Property {
 		PropImpl(ViewProp prop, T* value): _prop(prop), _value(value) {
-			Qk_ASSERT(_value);
+			Qk_Assert(_value);
 			static_assert(object_traits<T>::isObj, "Property value must be a object type");
 			value->retain();
 		}
@@ -208,7 +208,7 @@ namespace qk {
 				_value = BoxFilter::assign(_value, (view->*get)(), nullptr, true);
 		}
 		void transition(View *target, Property *to, float t) override {
-			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
+			Qk_Assert(static_cast<PropImpl*>(to)->_prop == _prop);
 			transition_value_ptr(
 				static_cast<BoxFilter*>(_value),
 				static_cast<BoxFilter*>(static_cast<PropImpl*>(to)->_value),

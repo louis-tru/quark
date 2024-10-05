@@ -97,7 +97,7 @@ Qk_Main() {
 
 	TEST_FUNC_NAME(argc, argv);
 	
-	Qk_LOG("Test eclapsed time:%dMs\n", (time_micro() - st) / 1000);
+	Qk_Log("Test eclapsed time:%dMs\n", (time_micro() - st) / 1000);
 
 	return 0;
 }

@@ -69,7 +69,7 @@ void each_fonts () {
 	auto ns = std::chrono::system_clock::now().time_since_epoch();
 	int64_t st = std::chrono::duration_cast<std::chrono::milliseconds>(ns).count(), st2;
 	
-	Qk_LOG("start st:%d", st);
+	Qk_Log("start st:%d", st);
 	
 	int count = 0;
 	
@@ -85,11 +85,11 @@ void each_fonts () {
 			error = FT_New_Face(library, *ent->pathname, 0, &face);
 			
 			if (error) {
-				Qk_LOG("error,------------------------path:%s", *ent->pathname);
+				Qk_Log("error,------------------------path:%s", *ent->pathname);
 			}
 			else {
 				
-				Qk_LOG("family:------------------------%s | num_faces:%d | path:%s",
+				Qk_Log("family:------------------------%s | num_faces:%d | path:%s",
 							face->family_name,
 							face->num_faces,
 							*ent->pathname);
@@ -100,7 +100,7 @@ void each_fonts () {
 					
 					cChar* name = FT_Get_Postscript_Name(face);
 					
-					Qk_LOG("font:%s | style:%s | style_flags:%d | glyphs:%d",
+					Qk_Log("font:%s | style:%s | style_flags:%d | glyphs:%d",
 								name,
 								face->style_name,
 								face->style_flags,
@@ -117,7 +117,7 @@ void each_fonts () {
 					if (i < face->num_faces) {
 						error = FT_New_Face(library, *ent->pathname, i, &face);
 						if (error) {
-							Qk_LOG("error"); break;
+							Qk_Log("error"); break;
 						}
 					} else {
 						break;
@@ -132,9 +132,9 @@ void each_fonts () {
 	ns = std::chrono::system_clock::now().time_since_epoch();
 	st2 = std::chrono::duration_cast<std::chrono::milliseconds>(ns).count();
 	
-	Qk_LOG("end st:%d,%d", st2, st2 - st);
+	Qk_Log("end st:%d,%d", st2, st2 - st);
 	
-	Qk_LOG("font count:%d", count);
+	Qk_Log("font count:%d", count);
 	
 	FT_Done_Face(face);
 	FT_Done_FreeType(library);
@@ -158,15 +158,15 @@ void each_glyph() {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	error = FT_Set_Char_Size(face, 0, 12 * 64, 300, 300);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	error = FT_Set_Pixel_Sizes(face, 0, 12);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	FT_GlyphSlot gl = face->glyph;
 	
@@ -174,7 +174,7 @@ void each_glyph() {
 	//  error = FT_Set_Charmap(face, face->charmaps[0]);
 	//  error = FT_Set_Charmap(face, face->charmaps[1]);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	uint32_t ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 妤氬鏂囷拷A
 	
@@ -185,23 +185,23 @@ void each_glyph() {
 	uint32_t unicode = 0;
 	uint32_t count = 0;
 	
-	Qk_LOG("%s", codec_encode(Encoding::kUTF8_Encoding, String2((uint16_t*)&unicode, 1)).val() );
+	Qk_Log("%s", codec_encode(Encoding::kUTF8_Encoding, String2((uint16_t*)&unicode, 1)).val() );
 	
 	do {
 		unicode = FT_Get_Next_Char(face, unicode, &glyph_index);
 		
 		Buffer data = codec_encode(Encoding::kUTF8_Encoding, String2((uint16_t*)&unicode, 1));
 		
-		Qk_LOG("unicode:%d, glyph_index:%d, char:%s", unicode, glyph_index, *data);
+		Qk_Log("unicode:%d, glyph_index:%d, char:%s", unicode, glyph_index, *data);
 		count++;
 		
 	} while(glyph_index);
 	
-	Qk_LOG("count:%d", count);
+	Qk_Log("count:%d", count);
 	
 	error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	FT_Pos x, y;
 	
@@ -219,19 +219,19 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	float font_size = 16;
 	
 	error = FT_Set_Char_Size(face, 0, font_size * 64, 72, 72);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	//  error = FT_Set_Pixel_Sizes(face, 0, 64);
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
-	Qk_LOG("VERTICAL:%i", FT_HAS_VERTICAL(face));
+	Qk_Log("VERTICAL:%i", FT_HAS_VERTICAL(face));
 	
 	FT_GlyphSlot gl = face->glyph;
 	
@@ -241,7 +241,7 @@ void onload_f(Event<>& evt, void* user) {
 	
 	FT_UInt glyph_index = FT_Get_Char_Index( face, '\t' );
 	
-	Qk_LOG("glyph_index:%d", glyph_index);
+	Qk_Log("glyph_index:%d", glyph_index);
 	
 	error = FT_Load_Glyph(face, glyph_index, /*FT_LOAD_NO_HINTING*/FT_LOAD_DEFAULT);
 	
@@ -254,13 +254,13 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_Get_Glyph( gl, &glyph );
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	FT_BBox bbox;
 	
 	FT_Glyph_Get_CBox( glyph, FT_LOAD_NO_SCALE, &bbox );
 	
-	Qk_ASSERT(!error);
+	Qk_Assert(!error);
 	
 	if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
 		FT_Outline_Embolden(&(gl->outline), 16); //
@@ -268,12 +268,12 @@ void onload_f(Event<>& evt, void* user) {
 	
 	if (gl->format != FT_GLYPH_FORMAT_BITMAP) {
 		error = FT_Render_Glyph(gl, FT_RENDER_MODE_NORMAL);
-		Qk_ASSERT(!error);
+		Qk_Assert(!error);
 	}
 	
 	FT_Bitmap bit = gl->bitmap;
 	
-	Qk_LOG("width:%d, height:%d", bit.width, bit.rows);
+	Qk_Log("width:%d, height:%d", bit.width, bit.rows);
 
 	// int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown
 	
@@ -310,7 +310,7 @@ void draw_char() {
 
 void test_freetype(int argc, char **argv) {
 	
-	Qk_LOG(os::info());
+	Qk_Log(os::info());
 	
 	//  each_fonts();
 	

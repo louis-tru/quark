@@ -570,7 +570,7 @@ namespace qk {
 	}
 
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
-		Qk_DEBUG("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
+		Qk_DLog("onTouchstart x: %f, y: %f", list.front().y, list.front().y);
 		UILock lock(_window);
 		auto r = _window->root();
 		if (r) {
@@ -579,19 +579,19 @@ namespace qk {
 	}
 
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
-		Qk_DEBUG("onTouchmove x: %f, y: %f", list.front().y, list.front().y);
+		Qk_DLog("onTouchmove x: %f, y: %f", list.front().y, list.front().y);
 		UILock lock(_window);
 		touchmove(list);
 	}
 
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
-		Qk_DEBUG("onTouchend x: %f, y: %f", list.front().y, list.front().y);
+		Qk_DLog("onTouchend x: %f, y: %f", list.front().y, list.front().y);
 		UILock lock(_window);
 		touchend(list, UIEvent_TouchEnd);
 	}
 
 	void EventDispatch::onTouchcancel(List<TouchPoint>&& list) {
-		Qk_DEBUG("onTouchcancel x: %f, y: %f", list.front().y, list.front().y);
+		Qk_DLog("onTouchcancel x: %f, y: %f", list.front().y, list.front().y);
 		UILock lock(_window);
 		touchend(list, UIEvent_TouchCancel);
 	}

@@ -45,7 +45,7 @@ namespace qk { namespace js {
 		_TypesBase.reset(worker, exports->get(worker,OneByte("Base"))->as<JSFunction>());
 
 		Js_Types_Each(_Fun)
-		Qk_DEBUG("Init types %s ok", "TypesParser");
+		Qk_DLog("Init types %s ok", "TypesParser");
 
 		#undef OneByte
 		#undef _Fun
@@ -97,7 +97,7 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const FileStat& stat) {
 		auto func = worker->classsinfo()->getFunction(Js_Typeid(FileStat));
-		Qk_ASSERT( func );
+		Qk_Assert( func );
 		auto r = func->newInstance(worker);
 		*WrapObject::wrap<FileStat>(r)->self() = stat;
 		return r;
@@ -1033,7 +1033,7 @@ namespace qk { namespace js {
 					if ( try_catch.hasCaught() ) {
 						worker->reportException(&try_catch);
 					}
-					Qk_FATAL("Could not initialize native _types.js");
+					Qk_Fatal("Could not initialize native _types.js");
 				}
 			}
 			static_cast<NativeTypes*>(worker)->setTypesParser(new TypesParser(worker, exports));

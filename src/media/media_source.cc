@@ -155,7 +155,7 @@ namespace qk {
 
 	void Inl::trigger_error(cError& e) {
 #if DEBUG
-		Qk_ERR(e);
+		Qk_ELog(e);
 #endif
 		_status = kError_MediaSourceStatus;
 		_delegate->media_source_error(_host, e);
@@ -253,7 +253,7 @@ namespace qk {
 				ex->_streams = std::move(streams); // update streams on extractor
 				ex->_stream_index = Uint32::min(ex->_stream_index, ex->_streams.length() - 1);
 			} else {
-				Qk_LOG("No streams object the program of switch_program to %d, keep last", index);
+				Qk_Log("No streams object the program of switch_program to %d, keep last", index);
 			}
 		}
 		_program_idx = index;
@@ -310,7 +310,7 @@ namespace qk {
 
 			CPointerHold<AVFormatContext> clear(fmt_ctx, [](AVFormatContext *fmt_ctx) {
 				avformat_close_input(&fmt_ctx);
-				Qk_DEBUG("Free ffmpeg AVFormatContext");
+				Qk_DLog("Free ffmpeg AVFormatContext");
 			});
 
 			/* retrieve stream information */
@@ -354,7 +354,7 @@ namespace qk {
 
 		do {
 			if (t->abort) {
-				Qk_DEBUG("read_frame() abort break;"); break;
+				Qk_DLog("read_frame() abort break;"); break;
 			}
 			// SEEK check
 			if (_seek) {
@@ -384,7 +384,7 @@ namespace qk {
 
 			if (rc == AVERROR_EOF) {
 				if (advance_eof()) {
-					Qk_DEBUG("read_frame() eof break;");
+					Qk_DLog("read_frame() eof break;");
 					_status = kEOF_MediaSourceStatus;
 					_delegate->media_source_eof(_host);
 					break;
@@ -395,7 +395,7 @@ namespace qk {
 					continue;
 				}
 			} else if (rc != EAGAIN) {
-				Qk_DEBUG("read_frame() error break;");
+				Qk_DLog("read_frame() error break;");
 				trigger_fferr(ERR_MEDIA_SOURCE_READ_ERROR, "Read source error `%s`", *url);
 				break;
 			}
@@ -431,7 +431,7 @@ namespace qk {
 	bool Inl::seek(uint64_t timeUs) {
 		ScopeLock lock(_mutex);
 		if (_status != kOpen_MediaSourceStatus) {
-			_seek = Qk_MAX(1, timeUs); // seek core
+			_seek = Qk_Max(1, timeUs); // seek core
 		} else {
 			if (timeUs >= _duration) {
 				return false;
@@ -441,7 +441,7 @@ namespace qk {
 					for (auto i: _extractors) {
 						i.value->flush();
 					}
-					_seek = Qk_MAX(1, timeUs); // seek core
+					_seek = Qk_Max(1, timeUs); // seek core
 					break;
 				}
 			}

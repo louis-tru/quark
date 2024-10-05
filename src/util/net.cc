@@ -403,7 +403,7 @@ namespace qk {
 				[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 					Inl* self = *static_cast<RetainRef*>(handle->data)->hold;
 					if ( self->_read_buffer.isNull() ) {
-						self->_read_buffer = Buffer( Qk_MIN(65535, uint32_t(suggested_size)) );
+						self->_read_buffer = Buffer( Qk_Min(65535, uint32_t(suggested_size)) );
 					}
 					buf->base = *self->_read_buffer;
 					buf->len = self->_read_buffer.length();
@@ -497,7 +497,7 @@ namespace qk {
 
 		static void ssl_info_callback(const SSL* ssl, int where, int ret) {
 			if ( where & SSL_CB_HANDSHAKE_START ) { /*LOG("----------------start");*/ }
-			if ( where & SSL_CB_HANDSHAKE_DONE ) { /* Qk_LOG("----------------done"); */ }
+			if ( where & SSL_CB_HANDSHAKE_DONE ) { /* Qk_Log("----------------done"); */ }
 		}
 
 		static int bio_puts(BIO *bp, cChar *str) {
@@ -683,7 +683,7 @@ namespace qk {
 			Qk_Assert(out);
 			SSL_INL* self = ((SSL_INL*)b->ptr);
 			
-			int ret = Qk_MIN(outl, self->_bio_read_source_buffer_length);
+			int ret = Qk_Min(outl, self->_bio_read_source_buffer_length);
 			if ( ret > 0 ) {
 				memcpy(out, self->_bio_read_source_buffer, ret);
 				self->_bio_read_source_buffer += ret;
@@ -906,7 +906,7 @@ namespace qk {
 		try {
 			NewRootCertStoreFromFile(fs_read_file_sync(path));
 		} catch(cError& err) {
-			Qk_ERR("SSL", "NewRootCertStoreFromFile() fail, %s", err.message().c_str());
+			Qk_ELog("SSL", "NewRootCertStoreFromFile() fail, %s", err.message().c_str());
 		}
 	}
 

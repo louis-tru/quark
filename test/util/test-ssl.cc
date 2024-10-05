@@ -182,15 +182,15 @@ static BIO_METHOD method = {
 
 static void SSLInfoCallback(const SSL* ssl_, int where, int ret) {
 	if (where & SSL_CB_HANDSHAKE_START) {
-		Qk_LOG("----------------start");
+		Qk_Log("----------------start");
 	}
 	if ( where & SSL_CB_HANDSHAKE_DONE ) {
-		Qk_LOG("----------------done");
+		Qk_Log("----------------done");
 	}
 }
 
 static int SSLCertCallback(SSL* s, void* arg) {
-	Qk_LOG("SSLCertCallback");
+	Qk_Log("SSLCertCallback");
 	return 1;
 }
 

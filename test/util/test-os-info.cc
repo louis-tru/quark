@@ -34,19 +34,19 @@
 using namespace qk;
 
 void test_os_info(int argc, char **argv) {
-	Qk_LOG(os_info());
-	Qk_LOG(os_version());
-	Qk_LOG(os_brand());
-	Qk_LOG(os_languages().join(','));
-	Qk_LOG(os_is_wifi());
-	Qk_LOG(os_is_mobile());
-	Qk_LOG(os_network_interface());
-	Qk_LOG(os_is_ac_power());
-	Qk_LOG(os_is_battery());
-	Qk_LOG(os_battery_level());
-	Qk_LOG(os_memory());
-	Qk_LOG(os_used_memory());
-	Qk_LOG(os_available_memory());
+	Qk_Log(os_info());
+	Qk_Log(os_version());
+	Qk_Log(os_brand());
+	Qk_Log(os_languages().join(','));
+	Qk_Log(os_is_wifi());
+	Qk_Log(os_is_mobile());
+	Qk_Log(os_network_interface());
+	Qk_Log(os_is_ac_power());
+	Qk_Log(os_is_battery());
+	Qk_Log(os_battery_level());
+	Qk_Log(os_memory());
+	Qk_Log(os_used_memory());
+	Qk_Log(os_available_memory());
 }
 
 

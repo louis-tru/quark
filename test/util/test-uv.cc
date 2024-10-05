@@ -48,20 +48,20 @@ void on_read(uv_fs_t *req);
 void on_open(uv_fs_t *req);
 
 void on_close(uv_fs_t *req) {
-	Qk_LOG("close file ok");
+	Qk_Log("close file ok");
 	uv_fs_req_cleanup(req);
 }
 
 void on_read(uv_fs_t *req) {
 	if (req->result < 0) {
-		Qk_ERR("Read error: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
+		Qk_ELog("Read error: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
 	}
 	else if (req->result == 0) {
 		// asynchronous
 		uv_fs_close(uv_loop, &close_req, (int)open_req.result, &on_close);
 	}
 	else {
-		Qk_LOG(String(buffer.base, (int)req->result));
+		Qk_Log(String(buffer.base, (int)req->result));
 		uv_fs_read(uv_loop, req, (int)open_req.result, &buffer, 1, -1, on_read);
 	}
 	uv_fs_req_cleanup(req);
@@ -72,19 +72,19 @@ void on_open(uv_fs_t *req) {
 		uv_fs_read(uv_loop, &read_req, (int)open_req.result, &buffer, 1, -1, on_read);
 	}
 	else {
-		Qk_ERR("error opening file: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
+		Qk_ELog("error opening file: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
 	}
 	uv_fs_req_cleanup(req);
 }
 
 void test_uv_file() {
-	Qk_LOG("test uv file:");
+	Qk_Log("test uv file:");
 	buffer.base = (char*)malloc(1024);
 	buffer.len = 1024;
 	uv_fs_open(uv_loop, &open_req, fs_fallback_c(fs_resources("testing/res/bg.svg")), O_RDONLY, 0, on_open);
 	
 	uv_run(uv_loop, UV_RUN_DEFAULT); // run loop
-	Qk_LOG("test uv file ok");
+	Qk_Log("test uv file ok");
 }
 
 // ----------------------------- test uv async check idle -----------------------------
@@ -94,19 +94,19 @@ static uv_check_t uv_check_handle;
 static uv_async_t uv_async_handle;
 
 void test_uv_idle_cb(uv_idle_t* handle) {
-	Qk_LOG("idle");
+	Qk_Log("idle");
 	uv_idle_stop(handle);
 	uv_close((uv_handle_t*)handle, nullptr);
 }
 
 void test_uv_check_cb(uv_check_t* handle) {
-	Qk_LOG("CHECK");
+	Qk_Log("CHECK");
 	uv_check_stop(handle);
 	uv_close((uv_handle_t*)handle, nullptr);
 }
 
 void test_uv_async_cb(uv_async_t* handle) {
-	Qk_LOG("ASYNC");
+	Qk_Log("ASYNC");
 	static int i = 5;
 	i--;
 	if (!i) {
@@ -115,7 +115,7 @@ void test_uv_async_cb(uv_async_t* handle) {
 }
 
 void test_uv_async_check_idle() {
-	Qk_LOG("test uv async:");
+	Qk_Log("test uv async:");
 	uv_idle_init(uv_loop, &uv_idler_handle);
 	uv_idle_start(&uv_idler_handle, &test_uv_idle_cb);
 	uv_check_init(uv_loop, &uv_check_handle);
@@ -123,16 +123,16 @@ void test_uv_async_check_idle() {
 	uv_async_init(uv_loop, &uv_async_handle, test_uv_async_cb);
 	
 	thread_new([](auto t, void* arg) {
-		Qk_LOG("Send message:");
+		Qk_Log("Send message:");
 		for ( int i = 0; i < 5; i++ ) {
 			thread_sleep(1e6);
 			uv_async_send(&uv_async_handle);
 		}
-		Qk_LOG("Send message ok");
+		Qk_Log("Send message ok");
 	}, nullptr, "test");
 	
 	uv_run(uv_loop, UV_RUN_DEFAULT); // run loop
-	Qk_LOG("test uv async ok");
+	Qk_Log("test uv async ok");
 }
 
 // ----------------------------- test uv timer -----------------------------
@@ -141,16 +141,16 @@ static uv_timer_t uv_timer_handle;
 
 void test_uv_timer_cb(uv_timer_t* handle) {
 	static int i = 0;
-	Qk_LOG("test_uv_timer_cb, %d", i++);
+	Qk_Log("test_uv_timer_cb, %d", i++);
 }
 
 void test_timer_uv() {
-	Qk_LOG("test uv timer:");
+	Qk_Log("test uv timer:");
 	uv_timer_init(uv_loop, &uv_timer_handle);
 	uv_timer_start(&uv_timer_handle, test_uv_timer_cb, 0, 0);
 	uv_close((uv_handle_t*)&uv_timer_handle, nullptr);
 	uv_run(uv_loop, UV_RUN_DEFAULT); // run loop
-	Qk_LOG("test uv timer ok");
+	Qk_Log("test uv timer ok");
 }
 
 void test_uv(int argc, char **argv) {

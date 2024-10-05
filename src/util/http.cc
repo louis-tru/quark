@@ -230,21 +230,21 @@ namespace qk {
 			}
 
 			static int on_message_begin(http_parser* parser) {
-				//Qk_DEBUG("--http response parser on_message_begin");
+				//Qk_DLog("--http response parser on_message_begin");
 				auto self = static_cast<Connect*>(parser->data);
 				self->_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
 				return 0;
 			}
 			
 			static int on_status(http_parser* parser, cChar *at, size_t length) {
-				//Qk_DEBUG("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
+				//Qk_DLog("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
 				auto self = static_cast<Connect*>(parser->data);
 				int status_code = String(at - 4, 3).toNumber<uint32_t>();
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
 				Qk_Assert(status_code == parser->status_code);
-				// Qk_LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
+				// Qk_Log("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
 					String::format("%d.%d", parser->http_major, parser->http_minor);
@@ -255,7 +255,7 @@ namespace qk {
 				auto self = static_cast<Connect*>(parser->data);
 				self->header_field_complete();
 				self->_header_field.append(at, uint32_t(length));
-				// Qk_DEBUG("on_header_field, %s", self->_header_field.c_str());
+				// Qk_DLog("on_header_field, %s", self->_header_field.c_str());
 				return 0;
 			}
 
@@ -266,7 +266,7 @@ namespace qk {
 			}
 
 			static int on_headers_complete(http_parser* parser) {
-				//Qk_DEBUG("--http response parser on_headers_complete");
+				//Qk_DLog("--http response parser on_headers_complete");
 				auto self = static_cast<Connect*>(parser->data);
 				auto cli = self->_client;
 				self->header_field_complete();
@@ -334,7 +334,7 @@ namespace qk {
 				if ( self->_z_strm.state ) {
 					int r = self->gzip_inflate(at, uint32_t(length), buff);
 					if (r < 0)
-						Qk_ERR("un gzip err, %d", r);
+						Qk_ELog("un gzip err, %d", r);
 				} else {
 					buff = WeakBuffer(at, uint32_t(length))->copy();
 				}
@@ -403,7 +403,7 @@ namespace qk {
 					
 					if ( _client->_post_data.length() ) { // ignore form data
 						if ( _client->_form_data.length() ) {
-							Qk_WARN("Ignore form data");
+							Qk_Warn("Ignore form data");
 						}
 						_client->_upload_total = _client->_post_data.length();
 						header["Content-Length"] = _client->_upload_total;
@@ -888,7 +888,7 @@ namespace qk {
 										_client->trigger_http_header(200, std::move(_header), true);
 										read_advance();
 									} else {
-										// Qk_LOG("Read -- %ld, %ld, %s", expires, time(), *_header.get("expires"));
+										// Qk_Log("Read -- %ld, %ld, %s", expires, time(), *_header.get("expires"));
 										if (parse_time(_header["last-modified"]) > 0 ||
 												!_header["etag"].isEmpty()
 										) {
@@ -902,7 +902,7 @@ namespace qk {
 								} else {
 									int k = str.indexOf(s2, i);
 									if ( k != -1 && k - i > 1 && j - k > 2 ) {
-										// Qk_DEBUG("%s: %s", *str.substring(i, k), *str.substring(k + 2, j));
+										// Qk_DLog("%s: %s", *str.substring(i, k), *str.substring(k + 2, j));
 										_header[str.substring(i, k).lowerCase()] = str.substring(k + 2, j);
 									}
 								}
@@ -984,7 +984,7 @@ namespace qk {
 				Qk_Assert_Eq(_client->_file_writer, nullptr);
 				_client->_file_writer = this;
 
-				// Qk_LOG("FileWriter _write_flag -- %i, %s", _write_flag, *path);
+				// Qk_Log("FileWriter _write_flag -- %i, %s", _write_flag, *path);
 
 				if ( _write_type ) { // verification cache is valid
 					auto headers = _client->response_header();
@@ -992,7 +992,7 @@ namespace qk {
 
 					if ( headers.has("cache-control") ) {
 						auto expires = to_expires_from_cache_content(headers["cache-control"]);
-						// Qk_LOG("FileWriter -- %s", *expires);
+						// Qk_Log("FileWriter -- %s", *expires);
 						if ( !expires.isEmpty() ) {
 							headers["expires"] = expires;
 						}
@@ -1218,7 +1218,7 @@ namespace qk {
 						_cache_reader->read_advance();
 						return;
 					} else {
-						Qk_ERR("http response status code error, %d", _status_code);
+						Qk_ELog("http response status code error, %d", _status_code);
 					}
 				}
 			}

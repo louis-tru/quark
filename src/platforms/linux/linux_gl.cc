@@ -56,10 +56,10 @@ namespace qk {
 			#else
 				display = eglGetDisplay(__get_x11_display());
 			#endif
-			Qk_DEBUG("eglGetDisplay, %p", display);
-			Qk_ASSERT(display != EGL_NO_DISPLAY);
+			Qk_DLog("eglGetDisplay, %p", display);
+			Qk_Assert(display != EGL_NO_DISPLAY);
 			EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-			Qk_ASSERT(displayState, "Cannot initialize EGL");
+			Qk_Assert(displayState, "Cannot initialize EGL");
 		}
 		return display;
 	}
@@ -73,7 +73,7 @@ namespace qk {
 
 		cJSON& msample = options["multisample"];
 		if (msample.is_uint()) 
-			multisample = Qk_MAX(msample.to_uint(), 0);
+			multisample = Qk_Max(msample.to_uint(), 0);
 
 		// choose configuration
 		EGLint attribs[] = {
@@ -105,11 +105,11 @@ namespace qk {
 			eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
 			
 			if (numConfigs == 0) {
-				Qk_FATAL("We can't have EGLConfig array with zero size!");
+				Qk_Fatal("We can't have EGLConfig array with zero size!");
 			}
 		}
 
-		Qk_DEBUG("numConfigs,%d", numConfigs);
+		Qk_DLog("numConfigs,%d", numConfigs);
 
 		// then we create array large equarkh to store all configs
 		Array<EGLConfig> supportedConfigs(numConfigs);
@@ -117,10 +117,10 @@ namespace qk {
 		// and load them
 		chooseConfigState = eglChooseConfig(display, attribs, 
 																				*supportedConfigs, numConfigs, &numConfigs);
-		Qk_ASSERT(chooseConfigState);
+		Qk_Assert(chooseConfigState);
 
 		if ( numConfigs == 0 ) {
-			Qk_FATAL("Value of `numConfigs` must be positive");
+			Qk_Fatal("Value of `numConfigs` must be positive");
 		}
 
 		EGLint configIndex = 0;
@@ -140,7 +140,7 @@ namespace qk {
 				&& (multisample <= 1 || sa >= multisample)
 			;
 			if ( hasMatch ) {
-				Qk_DEBUG("hasMatch,%d", configIndex);
+				Qk_DLog("hasMatch,%d", configIndex);
 				config = supportedConfigs[configIndex];
 				break;
 			}
@@ -219,7 +219,7 @@ namespace qk {
 		} else {
 			ctx_attrs[1] = 2; // opengl es 2
 			ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
-			Qk_ASSERT(ctx);
+			Qk_Assert(ctx);
 
 			rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
 																multisample_ok,
@@ -323,12 +323,12 @@ namespace qk {
 	}
 
 	bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-		Qk_ASSERT(!_window);
-		Qk_ASSERT(!_surface);
+		Qk_Assert(!_window);
+		Qk_Assert(!_surface);
 		EGLSurface surface = eglCreateWindowSurface(_display, _config, window, nullptr);
 
 		if ( !surface ) {
-			Qk_ERR("Unable to create a drawing surface");
+			Qk_ELog("Unable to create a drawing surface");
 			return false;
 		}
 
@@ -336,14 +336,14 @@ namespace qk {
 
 		#define CHECK(ok) \
 			if ( !(ok) ) { \
-				Qk_ERR("Unable to make egl current"); \
+				Qk_ELog("Unable to make egl current"); \
 				eglDestroySurface(_display, surface); \
 				return false; \
 			}
 
 		// _host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
 		// 	ok = eglMakeCurrent(_display, surface, surface, _context);
-		// 	Qk_ASSERT(ok);
+		// 	Qk_Assert(ok);
 		// }));
 		// CHECK(ok);
 		
@@ -358,7 +358,7 @@ namespace qk {
 
 	void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 		if ( _window ) {
-			Qk_ASSERT(window == _window);
+			Qk_Assert(window == _window);
 			if (_surface) {
 				eglDestroySurface(_display, _surface);
 			}
@@ -447,13 +447,13 @@ namespace qk {
 
 		// Test the framebuffer for completeness.
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			Qk_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+			Qk_ELog("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 		}
 
 		// Retrieve the height and width of the color renderbuffer.
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-		Qk_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+		Qk_DLog("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 	}
 
 	void GLDrawProxy::begin_render() {

@@ -122,7 +122,7 @@ namespace qk {
 				::close(fd);
 			}
 			int err = AMediaExtractor_selectTrack(_TEST_ex, select_track);
-			Qk_ASSERT(err == 0);
+			Qk_Assert(err == 0);
 		}
 
 		static void _TEST_get_sample_data(uint8_t* out, uint32_t size, uint& sample_size) {
@@ -139,7 +139,7 @@ namespace qk {
 					o++;
 				}
 			}
-			Qk_DEBUG("cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
+			Qk_DLog("cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
 							j[0], j[1], j[2], j[3], j[4], o, sample_size, sample_size2);
 
 			memcpy(out, *buf, sample_size2);
@@ -159,7 +159,7 @@ namespace qk {
 			if (!has_init) {
 				has_init = true;
 				if ( fx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
-					Qk_ERR("x_jni_set_java_vm(), unsuccessful." );
+					Qk_ELog("x_jni_set_java_vm(), unsuccessful." );
 				}
 			}
 		#endif 
@@ -272,10 +272,10 @@ namespace qk {
 						uint64_t sample_time = _extractor->sample_time();
 
 						if ( sample_time == 0 ) {
-							Qk_DEBUG("advance:0");
+							Qk_DLog("advance:0");
 						}
 						if (sample_flags) {
-							Qk_DEBUG("%s", "eos flags");
+							Qk_DLog("%s", "eos flags");
 						}
 						if ( sample_size ) {
 							if ( type() == MEDIA_TYPE_VIDEO ) {
@@ -300,14 +300,14 @@ namespace qk {
 
 					if ( status >= 0 ) {
 						if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
-							Qk_DEBUG("output EOS");
+							Qk_DLog("output EOS");
 							_eof_flags = true;
 							_delegate->media_decoder_eof(this, info.presentationTimeUs);
 						}
 						int64_t presentation = info.presentationTimeUs;
 
 						if ( presentation == 0 ) {
-							Qk_DEBUG("output:0");
+							Qk_DLog("output:0");
 						}
 
 						size_t size;
@@ -349,15 +349,15 @@ namespace qk {
 							AMediaCodec_releaseOutputBuffer(_codec, status, true);
 						}
 					} else if ( status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED ) {
-						Qk_DEBUG("output buffers changed");
+						Qk_DLog("output buffers changed");
 					} else if ( status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED ) {
 						AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
-						Qk_DEBUG("format changed to: %s", AMediaFormat_toString(format));
+						Qk_DLog("format changed to: %s", AMediaFormat_toString(format));
 						AMediaFormat_delete(format);
 					} else if ( status == AMEDIACODEC_INFO_TRY_AGAIN_LATER ) {
-						// Qk_DEBUG("no output buffer right now");
+						// Qk_DLog("no output buffer right now");
 					} else {
-						Qk_DEBUG("unexpected info code: %d", status);
+						Qk_DLog("unexpected info code: %d", status);
 					}
 				}
 				return OutputBuffer();
@@ -466,18 +466,18 @@ namespace qk {
 					// format = AMediaExtractor_getTrackFormat(_TEST_ex, 0);
 				}
 
-				Qk_DEBUG("%s", AMediaFormat_toString(format));
+				Qk_DLog("%s", AMediaFormat_toString(format));
 				int result = AMediaCodec_configure(codec, format, nullptr, nullptr, 0);
 
 				if ( result == 0 && AMediaCodec_start(codec) == 0 ) {
 					rv = new AndroidHardwareMediaCodec(ex, codec, format);
 				} else {
-					Qk_ERR("Unable to configure and run the decoder");
+					Qk_ELog("Unable to configure and run the decoder");
 					AMediaCodec_delete(codec);
 					AMediaFormat_delete(format);
 				}
 			} else {
-				Qk_ERR("cannot create decoder");
+				Qk_ELog("cannot create decoder");
 			}
 		}
 		return rv;

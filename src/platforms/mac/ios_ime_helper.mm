@@ -196,7 +196,7 @@ using namespace qk;
 
 	- (void)open {
 		if ([self becomeFirstResponder]) {
-			Qk_DEBUG("becomeFirstResponder ok");
+			Qk_DLog("becomeFirstResponder ok");
 		}
 	}
 	- (void)close {
@@ -276,7 +276,7 @@ using namespace qk;
 			if ( _keyboard_up_keycode == 0 ) {
 				_host->dispatch()->keyboard()->onDispatch(keycode, 1, true/*down*/, 0, -1, 0);
 			} else {
-				Qk_ASSERT( keycode == _keyboard_up_keycode );
+				Qk_Assert( keycode == _keyboard_up_keycode );
 			}
 			_host->dispatch()->onImeInsert([text UTF8String]);
 			_host->dispatch()->keyboard()->onDispatch(keycode, 1, false/*up*/, 0, -1, 0);
@@ -442,39 +442,39 @@ using namespace qk;
 	}
 
 	- (void)traitCollectionDidChange:(nullable UITraitCollection *)previousTraitCollection {
-		Qk_DEBUG("traitCollectionDidChange");
+		Qk_DLog("traitCollectionDidChange");
 	}
 
 	- (CGPoint)convertPoint:(CGPoint)point fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-		Qk_DEBUG("convertPoint:fromCoordinateSpace");
+		Qk_DLog("convertPoint:fromCoordinateSpace");
 	}
 
 	- (CGPoint)convertPoint:(CGPoint)point toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-		Qk_DEBUG("convertPoint:toCoordinateSpace");
+		Qk_DLog("convertPoint:toCoordinateSpace");
 	}
 
 	- (CGRect)convertRect:(CGRect)rect fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-		Qk_DEBUG("convertRect:fromCoordinateSpace");
+		Qk_DLog("convertRect:fromCoordinateSpace");
 	}
 
 	- (CGRect)convertRect:(CGRect)rect toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
-		Qk_DEBUG("convertRect:toCoordinateSpace");
+		Qk_DLog("convertRect:toCoordinateSpace");
 	}
 
 	- (void)didUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context withAnimationCoordinator:(nonnull UIFocusAnimationCoordinator *)coordinator {
-		Qk_DEBUG("didUpdateFocusInContext:withAnimationCoordinator");
+		Qk_DLog("didUpdateFocusInContext:withAnimationCoordinator");
 	}
 
 	- (void)setNeedsFocusUpdate {
-		Qk_DEBUG("setNeedsFocusUpdate");
+		Qk_DLog("setNeedsFocusUpdate");
 	}
 
 	- (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context {
-		Qk_DEBUG("shouldUpdateFocusInContext");
+		Qk_DLog("shouldUpdateFocusInContext");
 	}
 
 	- (void)updateFocusIfNeeded {
-		Qk_DEBUG("updateFocusIfNeeded");
+		Qk_DLog("updateFocusIfNeeded");
 	}
 
 @end
