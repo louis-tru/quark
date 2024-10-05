@@ -150,6 +150,7 @@ namespace qk {
 				// Seems to have appeared in iOS11
 				VTDecompressionSessionInvalidate(_session);
 				CFRelease(_session); _session = nil;
+				_pending = 0;
 			}
 		}
 
@@ -258,6 +259,8 @@ namespace qk {
 
 				if ( data ) {
 					status = VTDecompressionSessionDecodeFrame(_session, data, flags, nil, &flagOut);
+					if (status == noErr)
+						_pending++;
 					if (status == kVTInvalidSessionErr) {
 						close();
 						open(); // reopen
@@ -305,13 +308,17 @@ namespace qk {
 				}
 				auto f = *cu;
 				_frames.erase(cu);
+				_pending--;
 				return f;
 			}
-			// return AVERROR(EAGAIN);
 			return nullptr;
 		}
 
 		void set_threads(uint32_t value) override {}
+
+		bool finished() override {
+			return _pending == 0;
+		}
 
 	private:
 		VTDecompressionSessionRef _session;
@@ -320,6 +327,7 @@ namespace qk {
 		Packet      *_packet;
 		List<Frame*> _frames;
 		bool         _need_keyframe;
+		int          _pending;
 	};
 
 	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {

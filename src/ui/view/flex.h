@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT Flex: public Box {
+	class Qk_Export Flex: public Box {
 	public:
 		Flex();
 		// define props

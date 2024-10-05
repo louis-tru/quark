@@ -41,11 +41,11 @@ namespace qk {
 	/**
 	* @calss Socket
 	*/
-	class Qk_EXPORT Socket: public Object {
+	class Qk_Export Socket: public Object {
 		Qk_HIDDEN_ALL_COPY(Socket);
 	public:
 
-		class Qk_EXPORT Delegate {
+		class Qk_Export Delegate {
 		public:
 			virtual void trigger_socket_open(Socket* socket) = 0;
 			virtual void trigger_socket_close(Socket* socket) = 0;
@@ -106,7 +106,7 @@ namespace qk {
 	/**
 	* @class SSLSocket
 	*/
-	class Qk_EXPORT SSLSocket: public Socket {
+	class Qk_Export SSLSocket: public Socket {
 	public:
 
 		SSLSocket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());

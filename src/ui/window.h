@@ -55,7 +55,7 @@ namespace qk {
 	 * Note: If `main loop` and `render loop` run in different threads,
 	 * Then any UI-API function called in the main thread must be locked.
 	 */
-	class Qk_EXPORT UILock {
+	class Qk_Export UILock {
 	public:
 		UILock(Window *win);
 		~UILock();
@@ -69,7 +69,7 @@ namespace qk {
 	/**
 	 * @class Window system window ui components
 	*/
-	class Qk_EXPORT Window: public Reference, public RenderBackend::Delegate {
+	class Qk_Export Window: public Reference, public RenderBackend::Delegate {
 		Qk_HIDDEN_ALL_COPY(Window);
 	public:
 
@@ -106,28 +106,28 @@ namespace qk {
 		*/
 		Qk_DEFINE_PROP(Vec2, size, Const); //!< current viewport size
 		//!< display scale, the larger the value, the smaller the size and the less content displayed
-		Qk_DEFINE_PROP_GET(float, scale, Const);
-		Qk_DEFINE_PROP_GET(float, defaultScale, Const); //!< default display scale
-		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
-		Qk_DEFINE_PROP_GET(uint32_t, fsp, Const); //!< current fsp
-		Qk_DEFINE_PROP_GET(float, atomPixel, Const); // atom pixel size
-		Qk_DEFINE_PROP_GET(Root*, root); //! root view
-		Qk_DEFINE_PROP_GET(Application*, host); //! application host
-		Qk_DEFINE_PROP_GET(Render*, render); //! render object
-		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
-		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
+		Qk_DEFINE_PGET(float, scale, Const);
+		Qk_DEFINE_PGET(float, defaultScale, Const); //!< default display scale
+		Qk_DEFINE_PGET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
+		Qk_DEFINE_PGET(uint32_t, fsp, Const); //!< current fsp
+		Qk_DEFINE_PGET(float, atomPixel, Const); // atom pixel size
+		Qk_DEFINE_PGET(Root*, root); //! root view
+		Qk_DEFINE_PGET(Application*, host); //! application host
+		Qk_DEFINE_PGET(Render*, render); //! render object
+		Qk_DEFINE_PGET(EventDispatch*, dispatch); //! event dispatch
+		Qk_DEFINE_PGET(RootStyleSheets*, styleSheets); //! root style sheets
 		Qk_DEFINE_PROP(Color, backgroundColor, Const); //! background color
-		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
-		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
-		Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
-		Qk_DEFINE_PROP_ACC_GET(RunLoop*, loop); //! host main loop
-		Qk_DEFINE_PROP_ACC_GET(View*, focusView); //! focus view
+		Qk_DEFINE_PGET(WindowImpl*, impl); //! window platform impl
+		Qk_DEFINE_PGET(ActionCenter*, actionCenter); //! Action scheduling
+		Qk_DEFINE_AGET(FontPool*, fontPool); //! Font pool
+		Qk_DEFINE_AGET(RunLoop*, loop); //! host main loop
+		Qk_DEFINE_AGET(View*, focusView); //! focus view
 		
 		/**
 		 * @prop surfaceSize
 		 * returns surface only display region and size
 		 */
-		Qk_DEFINE_PROP_ACC_GET(Vec2, surfaceSize, Const);
+		Qk_DEFINE_AGET(Vec2, surfaceSize, Const);
 
 		/**
 		 * @static

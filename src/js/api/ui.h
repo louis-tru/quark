@@ -68,13 +68,13 @@ namespace qk { namespace js {
 	extern uint64_t kView_Typeid;
 	extern uint64_t kWindow_Typeid;
 
-	class Qk_EXPORT WrapUIObject: public WrapObject {
+	class Qk_Export WrapUIObject: public WrapObject {
 	public:
 		virtual TextOptions* asTextOptions();
 		virtual ScrollBase*  asScrollBase();
 	};
 
-	class Qk_EXPORT WrapViewObject: public WrapUIObject {
+	class Qk_Export WrapViewObject: public WrapUIObject {
 	public:
 		virtual void init() override;
 		virtual bool addEventListener(cString& name, cString& func, int id) override;

@@ -61,7 +61,7 @@ namespace qk {
 	/**
 	* @class Object
 	*/
-	class Qk_EXPORT Object {
+	class Qk_Export Object {
 	public:
 		class HeapAllocator {
 		public:
@@ -105,7 +105,7 @@ namespace qk {
 	/**
 	* @class Reference
 	*/
-	class Qk_EXPORT Reference: public Object {
+	class Qk_Export Reference: public Object {
 	public:
 		inline Reference(): _refCount(0) {}
 		inline Reference(const Reference& ref): _refCount(0) {}
@@ -139,9 +139,9 @@ namespace qk {
 		uint32_t _flagValue = 0xff00ffab;
 	};
 
-	Qk_EXPORT void Retain(Object* obj);
-	Qk_EXPORT void Release(Object* obj);
-	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+	Qk_Export void Retain(Object* obj);
+	Qk_Export void Release(Object* obj);
+	Qk_Export void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
 	template<typename T>
 	struct object_traits {

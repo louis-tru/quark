@@ -362,7 +362,7 @@ namespace qk {
 
 extern "C" {
 
-	Qk_EXPORT void Java_org_quark_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+	Qk_Export void Java_org_quark_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
 		using namespace qk;
 		documents_path = JNI::jstring_to_string(files_dir);
 		temp_path = JNI::jstring_to_string(cache_dir);

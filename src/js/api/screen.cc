@@ -58,7 +58,7 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 
-			// Qk_DEFINE_PROP_GET(Application*, host); // host app
+			// Qk_DEFINE_PGET(Application*, host); // host app
 
 			Js_Set_Class_Accessor(orientation, {
 				Js_Self(Type);

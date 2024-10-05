@@ -37,7 +37,7 @@
 namespace qk {
 	class Error;
 
-	class Qk_EXPORT Log {
+	class Qk_Export Log {
 	public:
 		enum Type {
 			kLog,kWarn,kError
@@ -53,28 +53,28 @@ namespace qk {
 		static	Log* shared();
 	};
 
-	Qk_EXPORT void log_fflush();
-	Qk_EXPORT void log_print(cChar*, ...);
-	Qk_EXPORT void log_println(int8_t);
-	Qk_EXPORT void log_println(uint8_t);
-	Qk_EXPORT void log_println(int16_t);
-	Qk_EXPORT void log_println(uint16_t);
-	Qk_EXPORT void log_println(int32_t);
-	Qk_EXPORT void log_println(uint32_t);
-	Qk_EXPORT void log_println(float);
-	Qk_EXPORT void log_println(double);
-	Qk_EXPORT void log_println(int64_t);
-	Qk_EXPORT void log_println(uint64_t);
-	Qk_EXPORT void log_println(size_t);
-	Qk_EXPORT void log_println(bool);
-	Qk_EXPORT void log_println(cBuffer&);
-	Qk_EXPORT void log_println(cString2&);
-	Qk_EXPORT void log_println(cChar*, ...);
-	Qk_EXPORT void log_println(cString&);
-	Qk_EXPORT void log_println_warn(cChar*, ...);
-	Qk_EXPORT void log_println_warn(cString&);
-	Qk_EXPORT void log_println_error(cChar*, ...);
-	Qk_EXPORT void log_println_error(cString&);
-	Qk_EXPORT void log_println_error(const Error&);
+	Qk_Export void log_fflush();
+	Qk_Export void log_print(cChar*, ...);
+	Qk_Export void log_println(int8_t);
+	Qk_Export void log_println(uint8_t);
+	Qk_Export void log_println(int16_t);
+	Qk_Export void log_println(uint16_t);
+	Qk_Export void log_println(int32_t);
+	Qk_Export void log_println(uint32_t);
+	Qk_Export void log_println(float);
+	Qk_Export void log_println(double);
+	Qk_Export void log_println(int64_t);
+	Qk_Export void log_println(uint64_t);
+	Qk_Export void log_println(size_t);
+	Qk_Export void log_println(bool);
+	Qk_Export void log_println(cBuffer&);
+	Qk_Export void log_println(cString2&);
+	Qk_Export void log_println(cChar*, ...);
+	Qk_Export void log_println(cString&);
+	Qk_Export void log_println_warn(cChar*, ...);
+	Qk_Export void log_println_warn(cString&);
+	Qk_Export void log_println_error(cChar*, ...);
+	Qk_Export void log_println_error(cString&);
+	Qk_Export void log_println_error(const Error&);
 }
 #endif

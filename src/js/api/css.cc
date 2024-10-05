@@ -175,10 +175,10 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(CStyleSheetsClass, 0, { Js_Throw("Access forbidden."); });
 
-		// Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
-		// Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
-		// Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
-		// Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
+		// Qk_DEFINE_PGET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
+		// Qk_DEFINE_PGET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
+		// Qk_DEFINE_PGET(View*, host); //!< apply style sheet target object
+		// Qk_DEFINE_PGET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
 
 			Js_Set_Class_Method(set, {
 				if (!args.length())

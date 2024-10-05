@@ -167,7 +167,7 @@ namespace qk {
 	typedef Callback<> Cb;
 	typedef const Cb cCb;
 
-	Qk_EXPORT void _async_callback_and_dealloc(Cb &cb, Error* e, Object* d, PostMessage* loop);
+	Qk_Export void _async_callback_and_dealloc(Cb &cb, Error* e, Object* d, PostMessage* loop);
 
 	/**
 	 *  @method _async_callback() async callback and move dealloc data

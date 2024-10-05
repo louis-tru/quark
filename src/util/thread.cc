@@ -53,7 +53,7 @@ namespace qk {
 	static uv_key_t                      __th_key;
 	static EventNoticer<Event<>, Mutex> *__on_process_safe_exit = nullptr;
 
-	Qk_EXPORT bool is_process_exit() {
+	Qk_Export bool is_process_exit() {
 		return __is_process_exit;
 	}
 

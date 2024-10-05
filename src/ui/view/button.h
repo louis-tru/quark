@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT Button: public Text {
+	class Qk_Export Button: public Text {
 	public:
 		virtual Button* next_button(FindDirection dir);
 		virtual ViewType viewType() const override;

@@ -44,7 +44,7 @@ namespace qk {
 	typedef const String2        cString2;
 	typedef const String4        cString4;
 
-	class Qk_EXPORT StringBase {
+	class Qk_Export StringBase {
 	public:
 		typedef Allocator::Prt<char> Ptr;
 		typedef void (*Realloc)(Ptr *ptr, uint32_t, uint32_t);
@@ -199,7 +199,7 @@ namespace qk {
 
 namespace qk {
 
-	class Qk_EXPORT _Str {
+	class Qk_Export _Str {
 	public:
 		typedef void* (*Alloc)(uint32_t);
 		typedef StringBase::Realloc Realloc;
@@ -389,7 +389,7 @@ namespace qk {
 		Qk_ReturnLocal(s);
 	}
 
-	template <> Qk_EXPORT
+	template <> Qk_Export
 	String StringImpl<>::format(cChar* f, ...);
 
 	// --------------------------------------------------------------------------------
@@ -519,7 +519,7 @@ namespace qk {
 		return _Str::toString(c_str(), length(), sizeof(T));
 	}
 
-	template <> Qk_EXPORT
+	template <> Qk_Export
 	String StringImpl<>::toString() const;
 
 	template <typename T, typename A>

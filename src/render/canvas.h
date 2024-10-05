@@ -42,7 +42,7 @@ namespace qk {
 	/**
 	 * @class Canvas base abstract type, define all draw apis
 	 */
-	class Qk_EXPORT Canvas: public Reference {
+	class Qk_Export Canvas: public Reference {
 		Qk_HIDDEN_ALL_COPY(Canvas);
 	public:
 		enum ClipOp {

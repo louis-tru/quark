@@ -41,7 +41,7 @@ namespace qk {
 	class View;
 	class TextBlobBuilder;
 
-	class Qk_EXPORT TextLines: public Reference {
+	class Qk_Export TextLines: public Reference {
 	public:
 		struct Line {
 			float start_y, end_y, width;
@@ -62,15 +62,15 @@ namespace qk {
 		// defines props
 		Qk_DEFINE_PROP(float, pre_width, Const);
 		Qk_DEFINE_PROP(bool, ignore_single_white_space, Const);
-		Qk_DEFINE_PROP_GET(bool, have_init_line_height, Const);
-		Qk_DEFINE_PROP_GET(bool, visible_region, Const);
-		Qk_DEFINE_PROP_GET(bool, host_wrap_x, Const);
-		Qk_DEFINE_PROP_GET(TextAlign, text_align, Const);
-		Qk_DEFINE_PROP_GET(Vec2, limit_size, Const);
-		Qk_DEFINE_PROP_GET(Line*, last);
-		Qk_DEFINE_PROP_GET(View*, host);
-		Qk_DEFINE_PROP_GET(float, max_width, Const);
-		Qk_DEFINE_PROP_GET(float, min_origin, Const);
+		Qk_DEFINE_PGET(bool, have_init_line_height, Const);
+		Qk_DEFINE_PGET(bool, visible_region, Const);
+		Qk_DEFINE_PGET(bool, host_wrap_x, Const);
+		Qk_DEFINE_PGET(TextAlign, text_align, Const);
+		Qk_DEFINE_PGET(Vec2, limit_size, Const);
+		Qk_DEFINE_PGET(Line*, last);
+		Qk_DEFINE_PGET(View*, host);
+		Qk_DEFINE_PGET(float, max_width, Const);
+		Qk_DEFINE_PGET(float, min_origin, Const);
 
 		// defines methods
 		TextLines(View *host, TextAlign text_align, Vec2 limit_size, bool host_wrap_x = true);

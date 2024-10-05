@@ -110,7 +110,7 @@ namespace qk { namespace js {
 		F(FindDirection) \
 		F(FFID) \
 
-	class Qk_EXPORT TypesParser {
+	class Qk_Export TypesParser {
 	public:
 		TypesParser(Worker* worker, JSObject* exports);
 

@@ -37,7 +37,7 @@
 namespace qk {
 	class FontPool;
 
-	class Qk_EXPORT FontGlyphs {
+	class Qk_Export FontGlyphs {
 	public:
 		FontGlyphs(float fontSize, Typeface *ft, const GlyphID glyphs[], uint32_t count);
 		FontGlyphs(float fontSize, Typeface *ft, Array<GlyphID> &&glyphs);
@@ -56,7 +56,7 @@ namespace qk {
 	 * @class FontFamilys
 	 * @safe Rt
 	*/
-	class Qk_EXPORT FontFamilys: public Object {
+	class Qk_Export FontFamilys: public Object {
 	public:
 		FontFamilys(FontPool* pool, cArray<String>& familys);
 		Sp<Typeface> match(FontStyle style, uint32_t index = 0);

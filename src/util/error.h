@@ -44,7 +44,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT Error: public Object {
+	class Qk_Export Error: public Object {
 	public:
 		Error(cChar* msg, ...);
 		Error(int code, cChar* msg, ...);

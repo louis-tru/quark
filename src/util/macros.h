@@ -112,15 +112,15 @@
 // ------------------------------------------------------------------
 
 #ifdef __GNUC__
-# define Qk_LIKELY(expr) __builtin_expect(!!(expr), 1)
-# define Qk_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
+# define Qk_Likely(expr) __builtin_expect(!!(expr), 1)
+# define Qk_UnLikely(expr) __builtin_expect(!!(expr), 0)
 #else
-# define Qk_LIKELY(expr) expr
-# define Qk_UNLIKELY(expr) expr
+# define Qk_Likely(expr) expr
+# define Qk_UnLikely(expr) expr
 #endif
 
 #define Qk_Fatal_Assert(cond, ...)\
-	if(Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+	if(Qk_UnLikely(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #if DEBUG
 # define Qk_Assert Qk_Fatal_Assert
 # define Qk_Assert_Op(a, op, b, ...) Qk_Fatal_Assert(((a) op (b)), ##__VA_ARGS__)
@@ -193,22 +193,22 @@
 
 #ifdef _MSC_VER
 	#ifdef Qk_BUILDING_SHARED
-	# define Qk_EXPORT __declspec(dllexport)
+	# define Qk_Export __declspec(dllexport)
 	#elif Qk_USING_SHARED
-	# define Qk_EXPORT __declspec(dllimport)
+	# define Qk_Export __declspec(dllimport)
 	#else
-	# define Qk_EXPORT
+	# define Qk_Export
 	#endif  // Qk_BUILDING_SHARED
 #else  // _MSC_VER
 	// Setup for Linux shared library export.
 	#if __Qk_HAS_ATTRIBUTE_VISIBILITY
 	# ifdef Qk_BUILDING_SHARED
-	#  define Qk_EXPORT __attribute__((visibility("default")))
+	#  define Qk_Export __attribute__((visibility("default")))
 	# else
-	#  define Qk_EXPORT
+	#  define Qk_Export
 	# endif
 	#else
-	# define Qk_EXPORT
+	# define Qk_Export
 	#endif
 #endif // _MSC_VER
 
@@ -274,25 +274,25 @@
 #define __Qk_DEFINE_PROP_ModifierProtected protected
 #define __Qk_DEFINE_PROP_ModifierProtectedConst protected
 
-#define Qk_DEFINE_PROP_ACC_GET(type, name, ...) public: \
+#define Qk_DEFINE_AGET(type, name, ...) public: \
 	type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__
 
-#define Qk_DEFINE_PROP_ACC(type, name, ...) \
-	Qk_DEFINE_PROP_ACC_GET(type, name, ##__VA_ARGS__); void set_##name (type val)
+#define Qk_DEFINE_ACCE(type, name, ...) \
+	Qk_DEFINE_AGET(type, name, ##__VA_ARGS__); void set_##name (type val)
 
-#define Qk_DEFINE_PROP_GET(type, name, ...) \
+#define Qk_DEFINE_PGET(type, name, ...) \
 	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: type _##name; public:\
 	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name; }
 
 #define Qk_DEFINE_PROP(type, name, ...) \
-	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) void set_##name (type val)
+	Qk_DEFINE_PGET(type, name, ##__VA_ARGS__) void set_##name (type val)
 
-#define Qk_DEFINE_PROP_GET_Atomic(type, name, ...) \
+#define Qk_DEFINE_PGET_Atomic(type, name, ...) \
 	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: std::atomic<type> _##name; public:\
 	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name.load(); }
 
 #define Qk_DEFINE_PROP_Atomic(type, name, ...) \
-	Qk_DEFINE_PROP_GET_Atomic(type, name, ##__VA_ARGS__) void set_##name (type val)
+	Qk_DEFINE_PGET_Atomic(type, name, ##__VA_ARGS__) void set_##name (type val)
 
 #define __Qk_DEFINE_CLASS(Name) class Name;
 #define __Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;

@@ -134,7 +134,7 @@ namespace qk { namespace js {
 				Js_Return( self->screen() );
 			});
 
-			// Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
+			// Qk_DEFINE_PGET(RunLoop*, loop); //! main run loop
 
 			Js_Set_Class_Accessor_Get(fontPool, {
 				Js_Self(Type);
@@ -142,14 +142,14 @@ namespace qk { namespace js {
 				Js_Return( val );
 			});
 
-			// Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
+			// Qk_DEFINE_PGET(ImageSourcePool*, imgPool); //! image loader and image cache
 
 			Js_Set_Class_Accessor_Get(activeWindow, {
 				Js_Self(Type);
 				Js_Return( self->activeWindow() );
 			});
 
-			// Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
+			// Qk_DEFINE_PGET(RootStyleSheets*, styleSheets); //! root style sheets
 
 			Js_Set_Class_Accessor(maxResourceMemoryLimit, {
 				Js_Self(Type);

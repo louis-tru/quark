@@ -112,12 +112,12 @@ namespace qk {
 		kUnpremul_AlphaType, //!< pixel components are independent of alpha
 	};
 
-	class Qk_EXPORT PixelInfo {
+	class Qk_Export PixelInfo {
 	public:
-		Qk_DEFINE_PROP_GET(int, width, Const); //!< bitmap width
-		Qk_DEFINE_PROP_GET(int, height, Const); //!< bitmap height
-		Qk_DEFINE_PROP_GET(ColorType, type, Const); //!< bitmap pixel color type
-		Qk_DEFINE_PROP_GET(AlphaType, alphaType, Const); //!< is premultiplied by alpha
+		Qk_DEFINE_PGET(int, width, Const); //!< bitmap width
+		Qk_DEFINE_PGET(int, height, Const); //!< bitmap height
+		Qk_DEFINE_PGET(ColorType, type, Const); //!< bitmap pixel color type
+		Qk_DEFINE_PGET(AlphaType, alphaType, Const); //!< is premultiplied by alpha
 		PixelInfo();
 		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kUnknown_AlphaType);
 		uint32_t rowbytes() const;
@@ -127,7 +127,7 @@ namespace qk {
 	/**
 	 * @class Pixel
 	 */
-	class Qk_EXPORT Pixel: public PixelInfo {
+	class Qk_Export Pixel: public PixelInfo {
 	public:
 		/**
 		 * @method pixel_bit_size()
@@ -141,9 +141,9 @@ namespace qk {
 			virtual uint32_t len() = 0;
 		};
 
-		Qk_DEFINE_PROP_GET(uint8_t*, val);
-		Qk_DEFINE_PROP_GET(uint32_t, length, Const);
-		Qk_DEFINE_PROP_ACC_GET(WeakBuffer, body, Const);
+		Qk_DEFINE_PGET(uint8_t*, val);
+		Qk_DEFINE_PGET(uint32_t, length, Const);
+		Qk_DEFINE_AGET(WeakBuffer, body, Const);
 
 		Pixel();
 		Pixel(cPixel& data); // copy

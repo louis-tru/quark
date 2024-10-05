@@ -39,7 +39,7 @@
 #include "./window.h"
 #include "./css/css.h"
 
-Qk_EXPORT int (*__qk_run_main__)(int, char**) = nullptr;
+Qk_Export int (*__qk_run_main__)(int, char**) = nullptr;
 
 namespace qk {
 	typedef Application::Inl AppInl;

@@ -52,14 +52,14 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP(BoxOrigin, origin_y, Const); //  y-axis transform origin
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
-		Qk_DEFINE_VIEW_PROP_GET(Vec2, origin_value, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(float, x, Const); // x-axis matrix displacement for the view
-		Qk_DEFINE_VIEW_PROP_ACC(float, y, Const); // y-axis matrix displacement for the view
-		Qk_DEFINE_VIEW_PROP_ACC(float, scale_x, Const); // x-axis matrix scaling for the view
-		Qk_DEFINE_VIEW_PROP_ACC(float, scale_y, Const); // y-axis matrix scaling for the view
-		Qk_DEFINE_VIEW_PROP_ACC(float, skew_x, Const); // x-axis matrix skew for the view
-		Qk_DEFINE_VIEW_PROP_ACC(float, skew_y, Const); // y-axis matrix skew for the view
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayOrigin, origin, Const);
+		Qk_DEFINE_VIEW_PGET(Vec2, origin_value, Const);
+		Qk_DEFINE_VIEW_ACCE(float, x, Const); // x-axis matrix displacement for the view
+		Qk_DEFINE_VIEW_ACCE(float, y, Const); // y-axis matrix displacement for the view
+		Qk_DEFINE_VIEW_ACCE(float, scale_x, Const); // x-axis matrix scaling for the view
+		Qk_DEFINE_VIEW_ACCE(float, scale_y, Const); // y-axis matrix scaling for the view
+		Qk_DEFINE_VIEW_ACCE(float, skew_x, Const); // x-axis matrix skew for the view
+		Qk_DEFINE_VIEW_ACCE(float, skew_y, Const); // y-axis matrix skew for the view
+		Qk_DEFINE_VIEW_ACCE(ArrayOrigin, origin, Const);
 		/**
 		 * @prop mat()
 		*/

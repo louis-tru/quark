@@ -39,55 +39,55 @@ namespace qk {
 	/**
 		* @class Box
 		*/
-	class Qk_EXPORT Box: public View {
+	class Qk_Export Box: public View {
 	public:
 		// define props
-		Qk_DEFINE_VIEW_PROP_GET(bool,       wrap_x, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
-		Qk_DEFINE_VIEW_PROP_GET(bool,       wrap_y, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
-		Qk_DEFINE_VIEW_PROP    (bool,       clip, Const); //!< is clip box display range
-		Qk_DEFINE_VIEW_PROP    (Align,      align, ProtectedConst); //!< view align
-		Qk_DEFINE_VIEW_PROP_ACC(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
-		Qk_DEFINE_VIEW_PROP_ACC(BoxSize,    height, Const); //!< min height alias
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    min_width, Const); //!< limit min width if max width not equal none then limit min width
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    min_height, Const); //!< limit min height
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_width, Const); //!< limit max width if min width not equal none then limit max width
-		Qk_DEFINE_VIEW_PROP    (BoxSize,    max_height, Const); //!< limit max width
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, margin, Const); //!< margin
-		Qk_DEFINE_VIEW_PROP    (float,      margin_top, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      margin_right, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      margin_bottom, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      margin_left, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, padding, Const); //!< padding
-		Qk_DEFINE_VIEW_PROP    (float,      padding_top, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      padding_right, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      padding_bottom, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      padding_left, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, border_radius, Const); //!< border_radius
-		Qk_DEFINE_VIEW_PROP    (float,      border_radius_left_top, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      border_radius_right_top, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      border_radius_right_bottom, Const);
-		Qk_DEFINE_VIEW_PROP    (float,      border_radius_left_bottom, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayBorder,border, Const); // border
-		Qk_DEFINE_VIEW_PROP_ACC(BoxBorder,  border_top, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(BoxBorder,  border_right, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(BoxBorder,  border_bottom, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(BoxBorder,  border_left, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayFloat, border_width, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(ArrayColor, border_color, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(float,      border_width_top, Const); // border_width
-		Qk_DEFINE_VIEW_PROP_ACC(float,      border_width_right, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(float,      border_width_bottom, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(float,      border_width_left, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(Color,      border_color_top, Const); // border_color
-		Qk_DEFINE_VIEW_PROP_ACC(Color,      border_color_right, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(Color,      border_color_bottom, Const);
-		Qk_DEFINE_VIEW_PROP_ACC(Color,      border_color_left, Const);
-		Qk_DEFINE_VIEW_PROP    (Color,      background_color, Const); // fill background color
-		Qk_DEFINE_VIEW_PROP_ACC(BoxFilter*, background); // fill background, image|gradient, async set
-		Qk_DEFINE_VIEW_PROP_ACC(BoxShadow*, box_shadow); // box shadow, shadow, async set method
-		Qk_DEFINE_VIEW_PROP    (float,      weight, Const); // view weight
-		Qk_DEFINE_VIEW_PROP_GET(Vec2,       content_size, Const); // width,height, no include padding
-		Qk_DEFINE_VIEW_PROP_GET(Vec2,       client_size, Const); // border + padding + content
+		Qk_DEFINE_VIEW_PGET(bool,       wrap_x, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_PGET(bool,       wrap_y, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_PROP(bool,       clip, Const); //!< is clip box display range
+		Qk_DEFINE_VIEW_PROP(Align,      align, ProtectedConst); //!< view align
+		Qk_DEFINE_VIEW_ACCE(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
+		Qk_DEFINE_VIEW_ACCE(BoxSize,    height, Const); //!< min height alias
+		Qk_DEFINE_VIEW_PROP(BoxSize,    min_width, Const); //!< limit min width if max width not equal none then limit min width
+		Qk_DEFINE_VIEW_PROP(BoxSize,    min_height, Const); //!< limit min height
+		Qk_DEFINE_VIEW_PROP(BoxSize,    max_width, Const); //!< limit max width if min width not equal none then limit max width
+		Qk_DEFINE_VIEW_PROP(BoxSize,    max_height, Const); //!< limit max width
+		Qk_DEFINE_VIEW_ACCE(ArrayFloat, margin, Const); //!< margin
+		Qk_DEFINE_VIEW_PROP(float,      margin_top, Const);
+		Qk_DEFINE_VIEW_PROP(float,      margin_right, Const);
+		Qk_DEFINE_VIEW_PROP(float,      margin_bottom, Const);
+		Qk_DEFINE_VIEW_PROP(float,      margin_left, Const);
+		Qk_DEFINE_VIEW_ACCE(ArrayFloat, padding, Const); //!< padding
+		Qk_DEFINE_VIEW_PROP(float,      padding_top, Const);
+		Qk_DEFINE_VIEW_PROP(float,      padding_right, Const);
+		Qk_DEFINE_VIEW_PROP(float,      padding_bottom, Const);
+		Qk_DEFINE_VIEW_PROP(float,      padding_left, Const);
+		Qk_DEFINE_VIEW_ACCE(ArrayFloat, border_radius, Const); //!< border_radius
+		Qk_DEFINE_VIEW_PROP(float,      border_radius_left_top, Const);
+		Qk_DEFINE_VIEW_PROP(float,      border_radius_right_top, Const);
+		Qk_DEFINE_VIEW_PROP(float,      border_radius_right_bottom, Const);
+		Qk_DEFINE_VIEW_PROP(float,      border_radius_left_bottom, Const);
+		Qk_DEFINE_VIEW_ACCE(ArrayBorder,border, Const); // border
+		Qk_DEFINE_VIEW_ACCE(BoxBorder,  border_top, Const);
+		Qk_DEFINE_VIEW_ACCE(BoxBorder,  border_right, Const);
+		Qk_DEFINE_VIEW_ACCE(BoxBorder,  border_bottom, Const);
+		Qk_DEFINE_VIEW_ACCE(BoxBorder,  border_left, Const);
+		Qk_DEFINE_VIEW_ACCE(ArrayFloat, border_width, Const);
+		Qk_DEFINE_VIEW_ACCE(ArrayColor, border_color, Const);
+		Qk_DEFINE_VIEW_ACCE(float,      border_width_top, Const); // border_width
+		Qk_DEFINE_VIEW_ACCE(float,      border_width_right, Const);
+		Qk_DEFINE_VIEW_ACCE(float,      border_width_bottom, Const);
+		Qk_DEFINE_VIEW_ACCE(float,      border_width_left, Const);
+		Qk_DEFINE_VIEW_ACCE(Color,      border_color_top, Const); // border_color
+		Qk_DEFINE_VIEW_ACCE(Color,      border_color_right, Const);
+		Qk_DEFINE_VIEW_ACCE(Color,      border_color_bottom, Const);
+		Qk_DEFINE_VIEW_ACCE(Color,      border_color_left, Const);
+		Qk_DEFINE_VIEW_PROP(Color,      background_color, Const); // fill background color
+		Qk_DEFINE_VIEW_ACCE(BoxFilter*, background); // fill background, image|gradient, async set
+		Qk_DEFINE_VIEW_ACCE(BoxShadow*, box_shadow); // box shadow, shadow, async set method
+		Qk_DEFINE_VIEW_PROP(float,      weight, Const); // view weight
+		Qk_DEFINE_VIEW_PGET(Vec2,       content_size, Const); // width,height, no include padding
+		Qk_DEFINE_VIEW_PGET(Vec2,       client_size, Const); // border + padding + content
 
 		Box();
 		~Box();
@@ -211,12 +211,12 @@ namespace qk {
 	/**
 	* @method overlap_test_from_convex_quadrilateral
 	*/
-	Qk_EXPORT bool overlap_test_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4], Vec2 point);
+	Qk_Export bool overlap_test_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4], Vec2 point);
 	
 	/**
 	 * @method screen_region_from_convex_quadrilateral
 	*/
-	Qk_EXPORT Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
+	Qk_Export Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
 
 }
 #endif

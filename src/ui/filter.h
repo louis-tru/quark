@@ -43,7 +43,7 @@ namespace qk {
 	/**
 	* @class Box Filter, Single linked list struct
 	*/
-	class Qk_EXPORT BoxFilter: public Reference {
+	class Qk_Export BoxFilter: public Reference {
 		Qk_HIDDEN_ALL_COPY(BoxFilter);
 	public:
 		enum Type {
@@ -51,8 +51,8 @@ namespace qk {
 			kGradientLinear, kGradientRadial,
 			kShadow, kBlur, kBackdropBlur,
 		};
-		Qk_DEFINE_PROP_GET(Window*, window);
-		Qk_DEFINE_PROP_GET_Atomic(View*, view);
+		Qk_DEFINE_PGET(Window*, window);
+		Qk_DEFINE_PGET_Atomic(View*, view);
 		Qk_DEFINE_VIEW_PROP_Atomic(BoxFilter*, next); // async set next
 
 		BoxFilter();
@@ -75,14 +75,14 @@ namespace qk {
 		bool  _isIndependent;
 	};
 
-	class Qk_EXPORT FillImage: public BoxFilter, public ImageSourceHold {
+	class Qk_Export FillImage: public BoxFilter, public ImageSourceHold {
 	public:
 		struct Init {
 			FillSize width, height;
 			FillPosition x, y;
 			Repeat repeat;
 		};
-		Qk_DEFINE_VIEW_PROP_ACC(String, src, Const);
+		Qk_DEFINE_VIEW_ACCE(String, src, Const);
 		Qk_DEFINE_VIEW_PROP(FillSize, width, Const);
 		Qk_DEFINE_VIEW_PROP(FillSize, height, Const);
 		Qk_DEFINE_VIEW_PROP(FillPosition, x, Const);
@@ -100,7 +100,7 @@ namespace qk {
 		void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 	};
 
-	class Qk_EXPORT FillGradientRadial: public BoxFilter {
+	class Qk_Export FillGradientRadial: public BoxFilter {
 	public:
 		FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors);
 		inline cArray<float>& positions() const { return _pos; }
@@ -114,11 +114,11 @@ namespace qk {
 		Array<Color4f> _colors;
 	};
 
-	class Qk_EXPORT FillGradientLinear: public FillGradientRadial {
+	class Qk_Export FillGradientLinear: public FillGradientRadial {
 	public:
 		Qk_DEFINE_VIEW_PROP(float, angle, Const);
-		Qk_DEFINE_VIEW_PROP_GET(float, radian, Const);
-		Qk_DEFINE_VIEW_PROP_GET(uint8_t, quadrant, Const);
+		Qk_DEFINE_VIEW_PGET(float, radian, Const);
+		Qk_DEFINE_VIEW_PGET(uint8_t, quadrant, Const);
 
 		FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle/*0-360*/);
 		virtual Type type() const override;
@@ -128,7 +128,7 @@ namespace qk {
 		void setRadian();
 	};
 
-	class Qk_EXPORT BoxShadow: public BoxFilter {
+	class Qk_Export BoxShadow: public BoxFilter {
 	public:
 		Qk_DEFINE_VIEW_PROP(Shadow, value, Const);
 		BoxShadow(Shadow value);

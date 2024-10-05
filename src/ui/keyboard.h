@@ -207,20 +207,20 @@ namespace qk {
 	/**
 	* @class KeyboardAdapter
 	*/
-	class Qk_EXPORT KeyboardAdapter: public Object {
+	class Qk_Export KeyboardAdapter: public Object {
 	public:
 		typedef int Ascii;
-		Qk_DEFINE_PROP_GET(EventDispatch*, host);
-		Qk_DEFINE_PROP_GET(KeyboardKeyCode, keycode, Const);
-		Qk_DEFINE_PROP_GET(Ascii, keypress, Const);
-		Qk_DEFINE_PROP_GET(bool, shift, Const);
-		Qk_DEFINE_PROP_GET(bool, alt, Const);
-		Qk_DEFINE_PROP_GET(bool, ctrl, Const);
-		Qk_DEFINE_PROP_GET(bool, command, Const);
-		Qk_DEFINE_PROP_GET(bool, caps_lock, Const);
-		Qk_DEFINE_PROP_GET(bool, repeat, Const);
-		Qk_DEFINE_PROP_GET(bool, device, Const);
-		Qk_DEFINE_PROP_GET(bool, source, Const);
+		Qk_DEFINE_PGET(EventDispatch*, host);
+		Qk_DEFINE_PGET(KeyboardKeyCode, keycode, Const);
+		Qk_DEFINE_PGET(Ascii, keypress, Const);
+		Qk_DEFINE_PGET(bool, shift, Const);
+		Qk_DEFINE_PGET(bool, alt, Const);
+		Qk_DEFINE_PGET(bool, ctrl, Const);
+		Qk_DEFINE_PGET(bool, command, Const);
+		Qk_DEFINE_PGET(bool, caps_lock, Const);
+		Qk_DEFINE_PGET(bool, repeat, Const);
+		Qk_DEFINE_PGET(bool, device, Const);
+		Qk_DEFINE_PGET(bool, source, Const);
 		KeyboardAdapter();
 		void dispatch(
 			int code, bool isAscii, bool isDown, bool isCapsLock,

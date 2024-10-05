@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT Flow: public Flex {
+	class Qk_Export Flow: public Flex {
 	public:
 		Flow();
 		// define props

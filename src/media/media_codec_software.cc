@@ -41,7 +41,7 @@ namespace qk {
 			, _frame(av_frame_alloc())
 			, _swr(nullptr)
 			, _sws(nullptr)
-			, _threads(1)
+			, _threads(1), _rc(AVERROR_EOF)
 		{
 			Qk_Assert(_frame);
 		}
@@ -128,6 +128,7 @@ namespace qk {
 		void flush2() {
 			if ( avcodec_is_open(_ctx) ) {
 				avcodec_flush_buffers(_ctx);
+				_rc = AVERROR_EOF;
 				delete _packet; _packet = nullptr;
 			}
 		}
@@ -191,13 +192,12 @@ namespace qk {
 		Frame* receive_frame() override {
 			ScopeLock scope(_mutex);
 			Frame tmp;
-			int rc;
 			if ( type() == kVideo_MediaType ) {
-				rc = receive_frame_video(tmp);
+				_rc = receive_frame_video(tmp);
 			} else {
-				rc = receive_frame_audio(tmp);
+				_rc = receive_frame_audio(tmp);
 			}
-			if (rc == 0) {
+			if (_rc == 0) {
 				auto f = (Frame*)::malloc(sizeof(Frame) + sizeof(AVFrame));
 				*f = tmp;
 				f->avframe = reinterpret_cast<AVFrame*>(f + 1);
@@ -293,6 +293,10 @@ namespace qk {
 			_threads = Uint32::clamp(value, 1, 8);
 		}
 
+		bool finished() override {
+			return _rc == AVERROR_EOF;
+		}
+
 	private:
 		AVCodecContext* _ctx;
 		Packet*         _packet; // send a packet to decoder
@@ -301,6 +305,7 @@ namespace qk {
 		SwsContext*     _sws;
 		uint32_t        _threads;
 		Mutex           _mutex;
+		int             _rc;
 	};
 
 	/**

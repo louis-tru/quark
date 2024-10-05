@@ -52,7 +52,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Action, 0, { Js_Throw("Access forbidden."); });
 
-			// Qk_DEFINE_PROP_GET(Window*, window, Protected);
+			// Qk_DEFINE_PGET(Window*, window, Protected);
 
 			Js_Set_WrapObject_Accessor(Action, uint32_t, loop, loop);
 

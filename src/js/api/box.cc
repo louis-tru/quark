@@ -151,7 +151,7 @@ namespace qk { namespace js {
 				Js_NewView(Image);
 			});
 			Js_Set_WrapObject_Accessor(Image, String, src, src);
-			// Qk_DEFINE_PROP_ACC(ImageSource*, source);
+			// Qk_DEFINE_ACCE(ImageSource*, source);
 			cls->exports("Image", exports);
 		}
 	};

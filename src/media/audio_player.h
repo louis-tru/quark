@@ -38,7 +38,7 @@
 
 namespace qk {
 
-	class Qk_EXPORT AudioPlayer: public Notification<Event<>, UIEventName>,
+	class Qk_Export AudioPlayer: public Notification<Event<>, UIEventName>,
 															public MediaSource::Delegate {
 		Qk_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
@@ -46,16 +46,16 @@ namespace qk {
 		typedef MediaCodec::Frame Frame;
 
 		// define props
-		Qk_DEFINE_PROP_ACC(bool, auto_play);
-		Qk_DEFINE_PROP_ACC(bool, mute);
-		Qk_DEFINE_PROP_ACC(uint32_t, volume);
-		Qk_DEFINE_PROP_ACC(String, src);
-		Qk_DEFINE_PROP_ACC_GET(MediaSourceStatus, source_status);
-		Qk_DEFINE_PROP_ACC_GET(PlayerStatus, status);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, time);
-		Qk_DEFINE_PROP_ACC_GET(uint64_t, duration);
-		Qk_DEFINE_PROP_ACC_GET(uint32_t, audio_stream_count);
-		Qk_DEFINE_PROP_ACC_GET(const Stream*, audio_stream);
+		Qk_DEFINE_ACCE(bool, auto_play);
+		Qk_DEFINE_ACCE(bool, mute);
+		Qk_DEFINE_ACCE(uint32_t, volume);
+		Qk_DEFINE_ACCE(String, src);
+		Qk_DEFINE_AGET(MediaSourceStatus, source_status);
+		Qk_DEFINE_AGET(PlayerStatus, status);
+		Qk_DEFINE_AGET(uint64_t, time);
+		Qk_DEFINE_AGET(uint64_t, duration);
+		Qk_DEFINE_AGET(uint32_t, audio_stream_count);
+		Qk_DEFINE_AGET(const Stream*, audio_stream);
 
 		AudioPlayer();
 		~AudioPlayer() override;

@@ -32,7 +32,7 @@
 
 using namespace qk;
 
-extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
+extern "C" Qk_Export int main(int argc, char* argv[]) {
 	@autoreleasepool {
 		Application::runMain(argc, argv);
 		UIApplicationMain(argc, argv, nil, NSStringFromClass(QkApplicationDelegate.class));

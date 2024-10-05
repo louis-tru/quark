@@ -94,7 +94,7 @@ namespace qk { namespace js {
 				Js_Return( self->defaultScale() );
 			});
 
-			// Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
+			// Qk_DEFINE_PGET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
 
 			Js_Set_Class_Accessor_Get(fsp, {
 				Js_Self(Type);
@@ -111,10 +111,10 @@ namespace qk { namespace js {
 				Js_Return( self->root() );
 			});
 
-			// Qk_DEFINE_PROP_GET(Application*, host); //! application host
-			// Qk_DEFINE_PROP_GET(Render*, render); //! render object
-			// Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
-			// Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
+			// Qk_DEFINE_PGET(Application*, host); //! application host
+			// Qk_DEFINE_PGET(Render*, render); //! render object
+			// Qk_DEFINE_PGET(EventDispatch*, dispatch); //! event dispatch
+			// Qk_DEFINE_PGET(RootStyleSheets*, styleSheets); //! root style sheets
 
 			Js_Set_Class_Accessor(backgroundColor, {
 				Js_Self(Type);
@@ -125,10 +125,10 @@ namespace qk { namespace js {
 				self->set_backgroundColor(out);
 			});
 
-			// Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
-			// Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
-			// Qk_DEFINE_PROP_ACC_GET(FontPool*, fontPool); //! Font pool
-			// Qk_DEFINE_PROP_ACC_GET(RunLoop*, loop); //! host main loop
+			// Qk_DEFINE_PGET(WindowImpl*, impl); //! window platform impl
+			// Qk_DEFINE_PGET(ActionCenter*, actionCenter); //! Action scheduling
+			// Qk_DEFINE_AGET(FontPool*, fontPool); //! Font pool
+			// Qk_DEFINE_AGET(RunLoop*, loop); //! host main loop
 
 			Js_Set_Class_Accessor_Get(focusView, {
 				Js_Self(Type);

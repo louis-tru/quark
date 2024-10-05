@@ -71,7 +71,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Set_WrapObject_Accessor(FillImage, String, src, src);
-			// Qk_DEFINE_VIEW_PROP_ACC(ImageSource*, source);
+			// Qk_DEFINE_VIEW_ACCE(ImageSource*, source);
 			Js_Set_WrapObject_Accessor(FillImage, FillSize, width, width);
 			Js_Set_WrapObject_Accessor(FillImage, FillSize, height, height);
 			Js_Set_WrapObject_Accessor(FillImage, FillPosition, x, x);

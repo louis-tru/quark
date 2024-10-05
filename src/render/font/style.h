@@ -76,9 +76,9 @@ namespace qk {
 	class FontFamilys;
 	typedef FontFamilys* FFID;
 
-	class Qk_EXPORT FontStyle {
+	class Qk_Export FontStyle {
 	public:
-		Qk_DEFINE_PROP_GET(uint32_t, value, Const);
+		Qk_DEFINE_PGET(uint32_t, value, Const);
 
 		FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
 			(Uint32::clamp(uint32_t(weight), uint32_t(TextWeight::Inherit), uint32_t(TextWeight::ExtraBlack))) +
@@ -110,7 +110,7 @@ namespace qk {
 		}
 	};
 
-	template<> Qk_EXPORT uint64_t Compare<FontStyle>::hashCode(const FontStyle& key);
+	template<> Qk_Export uint64_t Compare<FontStyle>::hashCode(const FontStyle& key);
 
 }
 #endif

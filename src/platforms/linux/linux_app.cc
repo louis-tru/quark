@@ -814,7 +814,7 @@ namespace qk {
 
 using namespace qk;
 
-extern "C" Qk_EXPORT int main(int argc, Char* argv[]) {
+extern "C" Qk_Export int main(int argc, Char* argv[]) {
 	Handle<UnixApplication> h = new UnixApplication();
 
 	/**************************************************/

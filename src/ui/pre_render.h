@@ -46,12 +46,12 @@ namespace qk {
 	/**
 	 * @class RenderTask render task
 	*/
-	class Qk_EXPORT RenderTask {
+	class Qk_Export RenderTask {
 	public:
 		typedef List<RenderTask*>::Iterator ID;
 		// define props
-		Qk_DEFINE_PROP_GET(ID, task_id, Const);
-		Qk_DEFINE_PROP_GET(PreRender*, pre);
+		Qk_DEFINE_PGET(ID, task_id, Const);
+		Qk_DEFINE_PGET(PreRender*, pre);
 		Qk_DEFINE_PROP(int64_t, task_timeout, Const); // Unit is subtle
 		inline RenderTask(): _task_timeout(0) {}
 		virtual ~RenderTask();

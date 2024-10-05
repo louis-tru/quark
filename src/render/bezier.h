@@ -44,12 +44,12 @@ namespace qk {
 	* F(t) = P_0(1-t)^2 t^0 + 2P_1(1-t)t^1 + P_2(1-t)^0 t^2, t∈[0,1]
 	* F(t) = P_0(1-t)^2     + 2P_1(1-t)t   + P_2t^2        , t∈[0,1]
 	*/
-	class Qk_EXPORT QuadraticBezier {
+	class Qk_Export QuadraticBezier {
 	public:
 		// define props
-		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
-		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
-		Qk_DEFINE_PROP_GET(Vec2, p2, Const);
+		Qk_DEFINE_PGET(Vec2, p0, Const);
+		Qk_DEFINE_PGET(Vec2, p1, Const);
+		Qk_DEFINE_PGET(Vec2, p2, Const);
 
 		/**
 		 * @constructor
@@ -83,12 +83,12 @@ namespace qk {
 	* F(t) = P_0(1-t)^3 t^0 + 3P_1(1-t)^2 t^1 + 3P_2(1-t)^1 t^2 + P_3(1-t)^0 t^3, t∈[0,1]
 	* F(t) = P_0(1-t)^3     + 3P_1(1-t)^2 t   + 3P_2(1-t)t^2    + P_3t^3        , t∈[0,1]
 	*/
-	class Qk_EXPORT CubicBezier {
+	class Qk_Export CubicBezier {
 	public:
-		Qk_DEFINE_PROP_GET(Vec2, p0, Const);
-		Qk_DEFINE_PROP_GET(Vec2, p1, Const);
-		Qk_DEFINE_PROP_GET(Vec2, p2, Const);
-		Qk_DEFINE_PROP_GET(Vec2, p3, Const);
+		Qk_DEFINE_PGET(Vec2, p0, Const);
+		Qk_DEFINE_PGET(Vec2, p1, Const);
+		Qk_DEFINE_PGET(Vec2, p2, Const);
+		Qk_DEFINE_PGET(Vec2, p3, Const);
 
 		CubicBezier(); // p0=0,p1=0,p2=1,p3=1
 		CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
@@ -133,7 +133,7 @@ namespace qk {
 	/**
 	 * @class FixedCubicBezier fixed points p0=0 ... p3=1
 	*/
-	class Qk_EXPORT FixedCubicBezier: public CubicBezier {
+	class Qk_Export FixedCubicBezier: public CubicBezier {
 	public:
 		FixedCubicBezier(); // Fixed LINEAR, p1=0,p2=1
 		FixedCubicBezier(Vec2 p1, Vec2 p2);
@@ -157,10 +157,10 @@ namespace qk {
 	typedef const FixedCubicBezier cCurve;
 
 	// Fixed value p0=0 ... p3=1
-	Qk_EXPORT extern cCurve LINEAR;
-	Qk_EXPORT extern cCurve EASE;
-	Qk_EXPORT extern cCurve EASE_IN;
-	Qk_EXPORT extern cCurve EASE_OUT;
-	Qk_EXPORT extern cCurve EASE_IN_OUT;
+	Qk_Export extern cCurve LINEAR;
+	Qk_Export extern cCurve EASE;
+	Qk_Export extern cCurve EASE_IN;
+	Qk_Export extern cCurve EASE_OUT;
+	Qk_Export extern cCurve EASE_IN_OUT;
 }
 #endif

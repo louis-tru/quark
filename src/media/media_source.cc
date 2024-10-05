@@ -145,8 +145,8 @@ namespace qk {
 	}
 
 	Inl::~Inl() {
-		ScopeLock scope(_mutex);
 		thread_abort(); // abort thread
+		ScopeLock scope(_mutex);
 		for (auto& i : _extractors ) {
 			i.value->release();
 		}
@@ -217,8 +217,8 @@ namespace qk {
 	}
 
 	void Inl::stop() {
-		ScopeLock scope(_mutex);
 		thread_abort(); // abort thread
+		ScopeLock scope(_mutex);
 		_status = kUninitialized_MediaSourceStatus;
 
 		for (auto i : _extractors) {

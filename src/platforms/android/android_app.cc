@@ -594,35 +594,35 @@ namespace qk {
 
 	extern "C" {
 
-		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
+		Qk_Export void Java_org_quark_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
 			shared_app()->dispatch()->dispatch_ime_delete(count);
 		}
 
-		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
+		Qk_Export void Java_org_quark_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
 			shared_app()->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
 		}
 
-		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
+		Qk_Export void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
 			shared_app()->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
 		}
 
-		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
+		Qk_Export void Java_org_quark_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
 			shared_app()->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
 		}
 		
-		Qk_EXPORT void Java_org_quark_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
+		Qk_Export void Java_org_quark_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 			jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
 			shared_app()->dispatch()->keyboard_adapter()->
 				dispatch(keycode, ascii, down, repeat, device, source);
 		}
 
-		Qk_EXPORT void Java_org_quark_QuarkActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
+		Qk_Export void Java_org_quark_QuarkActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
 			shared_app()->host()->main_loop()->post(Cb([](Cb::Data& ev) {
 				shared_app()->host()->display_port()->Qk_Trigger(change);
 			}));
 		}
 
-		Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
+		Qk_Export void ANativeActivity_onCreate(ANativeActivity* activity, 
 																						void* savedState, size_t savedStateSize)
 		{
 			AndroidApplication::onCreate(activity, savedState, savedStateSize);
