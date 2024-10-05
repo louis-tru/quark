@@ -47,6 +47,10 @@ typedef MediaCodec::Frame Frame;
 
 class VideoPlayer: public Image, public MediaSource::Delegate, public PreRender::Task {
 public:
+	~VideoPlayer() {
+		Qk_DLog("~VideoPlayer");
+		_src = nullptr;
+	}
 	Qk_DEFINE_PGET(int64_t, pts);
 
 	void media_source_open(MediaSource* src) override {
@@ -252,7 +256,7 @@ int test_media(int argc, char **argv) {
 	//v->open("/Users/louis/Movies/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4");
 	//v->open("/Users/louis/Movies/巡回检察组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP03.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
 
-	//v->seek(1e6*360); // seek to 350 seconds
+	v->seek(1e6*200); // seek to 200 seconds
 	//v->seek(1e6*9); // seek to 9 seconds
 
 	app.loop()->timer(Cb([v](auto e){

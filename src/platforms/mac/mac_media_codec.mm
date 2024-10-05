@@ -35,13 +35,11 @@ namespace qk {
 
 	class MacVideoCodec: public MediaCodec {
 	public:
-
 		MacVideoCodec(const Stream &stream): MediaCodec(stream)
 			, _session(nil)
 			, _desc(nil)
 			, _packet(nil)
-		{
-		}
+		{}
 
 		~MacVideoCodec() {
 			close();
@@ -137,38 +135,42 @@ namespace qk {
 
 			if (status == noErr) {
 				CFRetain(_session);
-				flush2();
+				clearData();
 				return true;
 			} else {
 				return false;
 			}
 		}
 
-		void close() override {
+		void clearData() {
 			if ( _session ) {
-				ScopeLock scope(_mutex);
-				flush2();
-				// Prevent deadlocks in VTDecompressionSessionInvalidate by waiting for the frames to complete manually.
-				// Seems to have appeared in iOS11
-				VTDecompressionSessionInvalidate(_session);
-				CFRelease(_session); _session = nil;
+				for (auto f: _frames)
+					delete f;
+				_frames.clear();
+				_need_keyframe = true;
+				delete _packet; _packet = nil;
 				_pending = 0;
 			}
 		}
 
-		void flush2() {
-			for (auto f: _frames)
-				delete f;
-			_frames.clear();
-			_need_keyframe = true;
-			delete _packet; _packet = nil;
-			VTDecompressionSessionWaitForAsynchronousFrames(_session);
+		void close() override {
+			if (_session) {
+				VTDecompressionSessionWaitForAsynchronousFrames(_session);
+				ScopeLock scope(_mutex);
+				clearData();
+				// Prevent deadlocks in VTDecompressionSessionInvalidate 
+				// by waiting for the frames to complete manually.
+				// Seems to have appeared in iOS11
+				VTDecompressionSessionInvalidate(_session);
+				CFRelease(_session); _session = nil;
+			}
 		}
 
 		void flush() override {
-			if ( _session ) {
+			if (_session) {
+				VTDecompressionSessionWaitForAsynchronousFrames(_session);
 				ScopeLock scope(_mutex);
-				flush2();
+				clearData();
 			}
 		}
 
@@ -247,8 +249,11 @@ namespace qk {
 			return buf;
 		}
 
-		int send_packet2(const Packet *pkt) {
-			if ( _session ) {
+		/**
+		 * Non atomic safe method
+		 */
+		int send_packet(const Packet *pkt) override {
+			if (_session && pkt) {
 				if (_frames.length() >= 6)
 					return AVERROR(EAGAIN);
 				if ( _need_keyframe ) { // need key frame
@@ -265,23 +270,13 @@ namespace qk {
 
 				if ( data ) {
 					status = VTDecompressionSessionDecodeFrame(_session, data, flags, nil, &flagOut);
+					Qk_Assert_Ne(status, kVTInvalidSessionErr); // need reopen ?
+
 					if (status == noErr)
 						_pending++;
-					if (status == kVTInvalidSessionErr) {
-						close();
-						open(); // reopen
-					}
 					CFRelease(data);
 					return status;
 				}
-			}
-			return AVERROR(ENOMEM);
-		}
-
-		int send_packet(const Packet *pkt) override {
-			if (_session && pkt) {
-				ScopeLock scope(_mutex);
-				return send_packet2(pkt);
 			}
 			return AVERROR(ENOMEM);
 		}
@@ -292,16 +287,17 @@ namespace qk {
 			}
 			Qk_Assert_Eq(type(), extractor->type());
 
-			ScopeLock scope(_mutex);
-
+			Lock lock(_mutex);
 			if (!_packet) {
 				_packet = extractor->advance();
 			}
 			if (!_packet) {
 				return AVERROR(EAGAIN);
 			}
-			int rc = send_packet2(_packet);
+			lock.unlock();
+			int rc = send_packet(_packet);
 			if (rc == 0) {
+				lock.lock();
 				delete _packet; _packet = nullptr;
 			}
 			return rc;
