@@ -62,9 +62,13 @@ namespace qk {
 	struct CondMutex {
 		Mutex     mutex;
 		Condition cond;
-		void lock_wait_for(uint64_t timeoutUs = 0);
-		void lock_notify_one();
-		void lock_notify_all();
+		struct Lock { Mutex &m; ~Lock(); };
+		void lock();
+		void unlock();
+		Lock scope_lock(); // scope lock
+		void lock_and_wait_for(uint64_t timeoutUs = 0);
+		void lock_and_notify_one();
+		void lock_and_notify_all();
 	};
 	struct Thread {
 		ThreadID id; // thread id

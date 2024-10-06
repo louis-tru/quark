@@ -142,13 +142,13 @@ namespace qk {
 
 	Inl::Inl(MediaSource* host, cString& uri)
 		: _host(host)
-		, _status(kUninitialized_MediaSourceStatus)
+		, _status(kNone_MediaSourceStatus)
 		, _delegate(&default_media_source_delegate)
 		, _program_idx(0)
 		, _duration(0), _seek(0), _buffer_pkt_duration(Qk_BUFFER_DURATION)
 		, _fmt_ctx(nullptr)
 		, _uri(fs_reader()->format(uri))
-		, _video_ex(nullptr), _audio_ex(nullptr)
+		, _video_ex(nullptr), _audio_ex(nullptr), _pause(false)
 	{
 		/* register all formats and codecs */
 		av_register_all();
@@ -157,7 +157,7 @@ namespace qk {
 
 	Inl::~Inl() {
 		thread_abort(); // abort thread
-		ScopeLock scope(_mutex);
+		auto lock = _cm.scope_lock();
 		for (auto& i : _extractors ) {
 			i.value->release();
 		}
@@ -189,10 +189,10 @@ namespace qk {
 	}
 
 	Extractor* Inl::extractor(MediaType type) {
-		ScopeLock scope(_mutex);
+		auto lock = _cm.scope_lock();
 		Extractor *ex = nullptr;
 
-		if ( _status == kOpen_MediaSourceStatus ) {
+		if (is_open()) {
 			if ( !_extractors.get(type, ex) ) {
 				Array<Stream> streams;
 
@@ -213,7 +213,7 @@ namespace qk {
 	}
 
 	void Inl::remove_extractor(MediaType type) {
-		ScopeLock scope(_mutex);
+		auto lock = _cm.scope_lock();
 		auto it = _extractors.find(type);
 		if (it != _extractors.end()) {
 			auto ex = it->value;
@@ -228,9 +228,10 @@ namespace qk {
 	}
 
 	void Inl::stop() {
+		resume();
 		thread_abort(); // abort thread
-		ScopeLock scope(_mutex);
-		_status = kUninitialized_MediaSourceStatus;
+		auto lock = _cm.scope_lock();
+		_status = kNone_MediaSourceStatus;
 
 		for (auto i : _extractors) {
 			i.value->flush();
@@ -245,8 +246,23 @@ namespace qk {
 		return true;
 	}
 
+	bool Inl::is_open() {
+		return _status == kPlaying_MediaSourceStatus || _status == kPaused_MediaSourceStatus;
+	}
+
+	void Inl::pause() {
+		_pause = true;
+	}
+
+	void Inl::resume() {
+		if (_pause) {
+			_pause = false;
+			_cm.lock_and_notify_one();
+		}
+	}
+
 	void Inl::switch_program_sure(uint32_t index, bool event) {
-		Lock lock(_mutex);
+		Lock lock(_cm.mutex);
 
 		if (_extractors.length() == 0) {
 			return;
@@ -285,7 +301,7 @@ namespace qk {
 	}
 
 	bool Inl::switch_stream(Extractor *ex, uint32_t index) {
-		Lock lock(_mutex);
+		Lock lock(_cm.mutex);
 		index = Uint32::min(index, ex->_streams.length() - 1);
 		if ( ex->_stream_index != index ) {
 			ex->_stream_index = index;
@@ -299,9 +315,9 @@ namespace qk {
 
 	#define Abort_fferr(err, msg, ...) trigger_fferr(err, msg, ##__VA_ARGS__); return
 
-	void Inl::open() {
-		if (_status == kOpening_MediaSourceStatus || 
-				_status == kOpen_MediaSourceStatus ) {
+	void Inl::play() {
+		if (_status == kOpening_MediaSourceStatus || is_open()) {
+			resume();
 			return;
 		}
 		stop();
@@ -333,58 +349,72 @@ namespace qk {
 #if DEBUG
 			av_dump_format(fmt_ctx, 0, *url, 0); // print info
 #endif
-			_mutex.lock();
+			_cm.lock();
 			_programs = get_programs(fmt_ctx);
 			_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
-			_status = kOpen_MediaSourceStatus;
+			_status = kPlaying_MediaSourceStatus;
 			_fmt_ctx = fmt_ctx;
-			_mutex.unlock();
+			_cm.unlock();
 			switch_program_sure(Uint32::min(_programs.length() - 1, _program_idx), false);
 			_delegate->media_source_open(_host);
 			Qk_Assert_Ne(_extractors.length(), 0, "No Extractors on MediaSource");
 			if (_extractors.length())
 				read_stream(t, url);
-			_mutex.lock();
+			_cm.lock();
 			_fmt_ctx = nullptr;
-			_mutex.unlock();
+			_cm.unlock();
 			_seek = 0;
+			_pause = false;
 		}, "MediaSource::open,read_stream");
 	}
 
 	// -------------------------------------------------------------------------------
 
 	void Inl::read_stream(cThread* t, cString& url) {
-		auto fmt_ctx = _fmt_ctx;
+		auto ctx = _fmt_ctx;
 		AVPacket pkt;
 		av_init_packet(&pkt);
 		int64_t st = 0;
 		Extractor *ex = nullptr;
 		int rc;
+		bool can_pause = false;
 
-		fmt_ctx->flags |= AVFMT_FLAG_NONBLOCK; // nonblock
+		ctx->flags |= AVFMT_FLAG_NONBLOCK; // nonblock
 
 		do {
 			if (t->abort) {
 				Qk_DLog("read_frame() abort break;"); break;
 			}
+			if (_pause && can_pause) {
+				Qk_Assert_Eq(0, av_read_pause(ctx));
+				_status = kPaused_MediaSourceStatus;
+				_cm.lock_and_wait_for();
+				_status = kPlaying_MediaSourceStatus;
+				Qk_Assert_Eq(0, av_read_play(ctx));
+
+				if (_pause && _seek) {
+					can_pause = false;
+				}
+			}
+
 			// SEEK check
 			if (_seek) {
 				if (_seek < _duration) {
-					_mutex.lock();
+					_cm.lock();
 					for (auto i : _extractors)
 						i.value->flush();
-					_mutex.unlock();
+					_cm.unlock();
 
 					auto idx = _video_ex ? _video_ex->stream().index:
 										_audio_ex ? _audio_ex->stream().index:
-										av_find_default_stream_index(fmt_ctx);
-					auto stream = fmt_ctx->streams[idx];
+										av_find_default_stream_index(ctx);
+					auto stream = ctx->streams[idx];
 					auto time_base = stream->time_base;
 					// auto time = stream->start_time + av_rescale(_seek / 1000000.0, time_base.den, time_base.num);
 					auto time = stream->start_time + _seek * time_base.den / (time_base.num * 1000000);
 
-					if ( av_seek_frame(fmt_ctx, idx, time, AVSEEK_FLAG_BACKWARD) >= 0 ) {
-						rc = EAGAIN; // modify AVERROR_EOF
+					if ( av_seek_frame(ctx, idx, time, AVSEEK_FLAG_BACKWARD) >= 0 ) {
+						rc = AVERROR(EAGAIN); // modify AVERROR_EOF
 						av_packet_unref(&pkt);
 					}
 				}
@@ -392,7 +422,7 @@ namespace qk {
 			}
 
 			if (rc != AVERROR_EOF && pkt.buf == nullptr) {
-				rc = av_read_frame(fmt_ctx, &pkt); // read next frame
+				rc = av_read_frame(ctx, &pkt); // read next frame
 			}
 
 			if (rc == AVERROR_EOF) {
@@ -406,8 +436,10 @@ namespace qk {
 				if (packet_push(pkt)) {
 					_delegate->media_source_advance(_host);
 					continue;
+				} else {
+					can_pause = true; // buffer is full the enable pause
 				}
-			} else if (rc != EAGAIN) {
+			} else if (rc != AVERROR(EAGAIN)) {
 				Qk_DLog("read_frame() error break;");
 				trigger_fferr(ERR_MEDIA_SOURCE_READ_ERROR, "Read source error `%s`", *url);
 				break;
@@ -425,7 +457,7 @@ namespace qk {
 	}
 
 	void Inl::flush() {
-		ScopeLock lock(_mutex);
+		auto lock = _cm.scope_lock();
 		for (auto i: _extractors) {
 			auto ex = i.value;
 			if (ex->_pkt != ex->_packets.end()) {
@@ -442,10 +474,8 @@ namespace qk {
 	}
 
 	bool Inl::seek(uint64_t timeUs) {
-		ScopeLock lock(_mutex);
-		if (_status != kOpen_MediaSourceStatus) {
-			_seek = Qk_Max(1, timeUs); // seek core
-		} else {
+		auto lock = _cm.scope_lock();
+		if (is_open()) { // _status == kPlayer_MediaSourceStatus
 			if (timeUs >= _duration) {
 				return false;
 			}
@@ -455,9 +485,13 @@ namespace qk {
 						i.value->flush();
 					}
 					_seek = Qk_Max(1, timeUs); // seek core
+					_cm.cond.notify_one(); // thread resume
 					break;
 				}
 			}
+		} else {
+			_seek = Qk_Max(1, timeUs); // seek core
+			_cm.cond.notify_one(); // thread resume
 		}
 		return true;
 	}
@@ -489,7 +523,7 @@ namespace qk {
 
 	bool Inl::packet_push(AVPacket& avpkt) {
 		Qk_Assert_Ne(avpkt.size, 0, "Inl::packet_push(), avpkt.size == 0");
-		ScopeLock lock(_mutex);
+		auto lock = _cm.scope_lock();
 		AVStream *avstream = _fmt_ctx->streams[avpkt.stream_index];
 		Extractor *ex;
 
@@ -531,7 +565,7 @@ namespace qk {
 	}
 
 	MediaSource::Packet* Inl::advance(Extractor* ex) {
-		ScopeLock scope(_mutex);
+		auto lock = _cm.scope_lock();
 		if (ex->_pkt == ex->_packets.end())
 			return nullptr;
 		auto pkt = *ex->_pkt;
@@ -561,7 +595,7 @@ namespace qk {
 	}
 
 	void MediaSource::set_delegate(Delegate* delegate) {
-		ScopeLock scope(_inl->_mutex);
+		auto lock = _inl->_cm.scope_lock();
 		_inl->_delegate = delegate ? delegate : &default_media_source_delegate;
 	}
 
@@ -569,7 +603,8 @@ namespace qk {
 	MediaSourceStatus MediaSource::status() const { return _inl->_status; }
 	uint64_t MediaSource::duration() const { return _inl->_duration; }
 	uint32_t MediaSource::programs()const{ return _inl->_programs.length();}
-	bool MediaSource::is_open() const { return _inl->_status == kOpen_MediaSourceStatus; }
+	bool MediaSource::is_open() const { return _inl->is_open(); }
+	bool MediaSource::is_pause() const { return _inl->_pause; }
 	Extractor* MediaSource::video() { return _inl->_video_ex; }
 	Extractor* MediaSource::audio() { return _inl->_audio_ex; }
 	bool MediaSource::switch_program(uint32_t index) {
@@ -580,8 +615,9 @@ namespace qk {
 	void MediaSource::remove_extractor(MediaType type) { _inl->remove_extractor(type); }
 	void MediaSource::flush() { _inl->flush(); }
 	bool MediaSource::seek(uint64_t timeUs) { return _inl->seek(timeUs); }
-	void MediaSource::open() { _inl->open(); }
+	void MediaSource::play() { _inl->play(); }
 	void MediaSource::stop() { _inl->stop(); }
+	void MediaSource::pause() { _inl->pause(); }
 	uint64_t MediaSource::buffer_pkt_duration() { return _inl->_buffer_pkt_duration; }
 	void MediaSource::set_buffer_pkt_duration(uint64_t val) { _inl->_buffer_pkt_duration = val; }
 }

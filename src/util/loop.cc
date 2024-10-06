@@ -424,11 +424,11 @@ namespace qk {
 		struct Data: public RunLoop::PostSyncData {
 			void complete() override {
 				ok = true;
-				cond.lock_notify_all();
+				cond.lock_and_notify_all();
 			}
 			void wait() {
 				while (!ok)
-					cond.lock_wait_for(); // wait
+					cond.lock_and_wait_for(); // wait
 			}
 			bool ok = false;
 			CondMutex cond;

@@ -56,7 +56,7 @@ namespace qk {
 	public:
 		Inl(MediaSource*, cString& uri);
 		~Inl();
-		void open();
+		void play();
 		void stop();
 		bool seek(uint64_t timeUs);
 		bool seek_ex(uint64_t timeUs, Extractor *ex);
@@ -72,6 +72,9 @@ namespace qk {
 		bool switch_stream(Extractor *ex, uint32_t index);
 		void flush();
 		bool advance_eof();
+		bool is_open();
+		void pause();
+		void resume();
 	private:
 		ThreadID               _tid;
 		MediaSource*           _host;
@@ -84,7 +87,8 @@ namespace qk {
 		Extractor             *_video_ex, *_audio_ex;
 		uint64_t               _duration, _seek, _buffer_pkt_duration;
 		AVFormatContext*       _fmt_ctx;
-		Mutex                  _mutex;
+		CondMutex              _cm;
+		bool                   _pause;
 		friend class MediaSource;
 		friend class Extractor;
 	};

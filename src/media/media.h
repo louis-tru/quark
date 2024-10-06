@@ -41,17 +41,11 @@ typedef struct AVCodecParameters AVCodecParameters;
 
 namespace qk {
 
-	enum PlayerStatus {
-		kStop_PlayerStatus = 0,
-		kStart_PlayerStatus,
-		kPlaying_PlayerStatus,
-		kPaused_PlayerStatus,
-	};
-
 	enum MediaSourceStatus {
-		kUninitialized_MediaSourceStatus = 0,
+		kNone_MediaSourceStatus = 0,
 		kOpening_MediaSourceStatus,
-		kOpen_MediaSourceStatus,
+		kPlaying_MediaSourceStatus,
+		kPaused_MediaSourceStatus,
 		kError_MediaSourceStatus,
 		kEOF_MediaSourceStatus,
 	};
@@ -177,20 +171,26 @@ namespace qk {
 		Qk_DEFINE_AGET(Extractor*, video); //!< extractor() must be called first
 		Qk_DEFINE_AGET(Extractor*, audio); //!< extractor() must be called first
 		Qk_DEFINE_AGET(bool, is_open, Const); // !< Getting whether it's open
+		Qk_DEFINE_AGET(bool, is_pause, Const); // !< Getting whether it's pause state
 		Qk_DEFINE_ACCE(uint64_t, buffer_pkt_duration); // the length of the packet buffer time before and after, default 10 seconds
 
 		MediaSource(cString& uri);
 		~MediaSource() override;
 
 		/**
-		* @method open running on new work thread
+		* @method open playing on new work thread or resume playing
 		*/
-		void open();
+		void play();
 
 		/**
-		* @method stop running
+		* @method stop playing
 		*/
 		void stop();
+
+		/**
+		* @method pause playing
+		*/
+		void pause();
 
 		/**
 		* @method seek

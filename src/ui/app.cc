@@ -78,7 +78,7 @@ namespace qk {
 		_imgPool = new ImageSourcePool(_loop);
 		_defaultTextOptions = new DefaultTextOptions(_fontPool);
 		_styleSheets = new RootStyleSheets();
-		_run_main_wait->lock_notify_all(); // The external thread continues to run
+		_run_main_wait->lock_and_notify_all(); // The external thread continues to run
 
 		struct Tick {
 			static void cb(Cb::Data& e, Application *self) {
@@ -130,7 +130,7 @@ namespace qk {
 
 		// Block this main thread until calling new Application
 		while (!_shared) {
-			_run_main_wait->lock_wait_for();
+			_run_main_wait->lock_and_wait_for();
 		}
 	}
 

@@ -46,9 +46,9 @@ void qk_post_messate_main(Cb cb, bool sync) {
 		dispatch_async(main, ^{
 			core->resolve();
 			core->release();
-			mutexp->lock_notify_one();
+			mutexp->lock_and_notify_one();
 		});
-		mutex.lock_wait_for(); // wait
+		mutex.lock_and_wait_for(); // wait
 	} else {
 		auto core = cb.Handle::collapse();
 		dispatch_async(main, ^{

@@ -34,60 +34,75 @@
 #include "../ui/event.h"
 #include "./media.h"
 #include "./pcm_player.h"
-#include "./media.h"
 
 namespace qk {
+
+	class Player {
+	public:
+		typedef MediaCodec::Frame Frame;
+		typedef MediaSource::Stream Stream;
+		typedef MediaSource::Extractor Extractor;
+		Player();
+		~Player();
+		// define props
+		Qk_DEFINE_PGET(int64_t, pts, Const);
+		Qk_DEFINE_PROP(float, volume, Const);
+		Qk_DEFINE_PROP(bool, mute, Const);
+		Qk_DEFINE_AGET(bool, is_pause, Const);
+		Qk_DEFINE_AGET(uint64_t, duration, Const);
+		Qk_DEFINE_AGET(MediaSourceStatus, status, Const);
+		Qk_DEFINE_ACCE(String, src, Const);
+		Qk_DEFINE_AGET(MediaSource*, media_source);
+		Qk_DEFINE_AGET(const Stream*, video, Const);
+		Qk_DEFINE_AGET(const Stream*, audio, Const); // current audio stream
+		Qk_DEFINE_AGET(uint32_t, audio_streams, Const); // audio stream count
+	protected:
+		Sp<MediaSource> _msrc;
+		Sp<MediaCodec> _audio, _video;
+		Sp<PCMPlayer>  _pcm;
+		Sp<Frame> _fa, _fv;
+		int64_t _start, _seeking, _seek;
+	};
 
 	class Qk_Export AudioPlayer: public Notification<Event<>, UIEventName>,
 															public MediaSource::Delegate {
 		Qk_HIDDEN_ALL_COPY(AudioPlayer);
 	public:
-		typedef MediaSource::Stream Stream;
 		typedef MediaCodec::Frame Frame;
-
+		typedef MediaSource::Stream Stream;
+		typedef MediaSource::Extractor Extractor;
 		// define props
-		Qk_DEFINE_ACCE(bool, auto_play);
-		Qk_DEFINE_ACCE(bool, mute);
-		Qk_DEFINE_ACCE(uint32_t, volume);
-		Qk_DEFINE_ACCE(String, src);
-		Qk_DEFINE_AGET(MediaSourceStatus, source_status);
-		Qk_DEFINE_AGET(PlayerStatus, status);
-		Qk_DEFINE_AGET(uint64_t, time);
-		Qk_DEFINE_AGET(uint64_t, duration);
-		Qk_DEFINE_AGET(uint32_t, audio_stream_count);
-		Qk_DEFINE_AGET(const Stream*, audio_stream);
-
+		Qk_DEFINE_PGET(int64_t, pts, Const);
+		Qk_DEFINE_PROP(float, volume, Const);
+		Qk_DEFINE_PROP(bool, mute, Const);
+		Qk_DEFINE_AGET(bool, is_pause, Const);
+		Qk_DEFINE_AGET(uint64_t, duration, Const);
+		Qk_DEFINE_AGET(MediaSourceStatus, status, Const);
+		Qk_DEFINE_ACCE(String, src, Const);
+		Qk_DEFINE_AGET(MediaSource*, media_source);
+		Qk_DEFINE_AGET(const Stream*, audio, Const); // current audio stream
+		Qk_DEFINE_AGET(uint32_t, audio_streams, Const); // audio stream count
 		AudioPlayer();
 		~AudioPlayer() override;
-		// @overwrite
 		void media_source_open(MediaSource* src) override;
 		void media_source_eof(MediaSource* src) override;
 		void media_source_error(MediaSource* src, cError& err) override;
-		// methods
-		void start();
-		bool seek(uint64_t timeUs);
+		void media_source_switch(MediaSource* src, Extractor *ex) override;
+		void media_source_advance(MediaSource* src) override;
+		void play();
 		void pause();
-		void resume();
 		void stop();
-		void switch_audio_stream(uint32_t index);
-
+		void seek(uint64_t timeUs);
+		void switch_audio(uint32_t index);
 	private:
-		MediaSource* _source;
-		PCMPlayer*   _pcm;
-		MediaCodec*  _audio;
-		RunLoop*     _loop;
-		bool         _auto_play, _mute, _waiting_buffer;
-		PlayerStatus _status;
-		Frame     _audio_buffer;
-		uint64_t  _duration, _time;
-		uint64_t  _uninterrupted_play_start_time;
-		uint64_t  _uninterrupted_play_start_systime;
-		uint64_t  _prev_presentation_time;
-		uint32_t  _volume;
-		Mutex     _mutex;
-		ThreadID  _run_loop_id;
-
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		void skip_af();
+		void end();
+		void trigger(const UIEventName& name, const Object& data);
+		Sp<MediaSource> _msrc;
+		Sp<MediaCodec> _audio;
+		Sp<PCMPlayer>  _pcm;
+		Sp<Frame> _fa;
+		int64_t _start, _seeking, _seek;
 	};
 }
 #endif

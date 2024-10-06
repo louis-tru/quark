@@ -59,9 +59,7 @@ public:
 		_pcm = PCMPlayer::create(_audio->stream());
 		if (!_audio || !_pcm || !_audio->open()) {
 			Qk_Warn("open audio codecer or pcm player fail");
-			_audio = nullptr;
-			_pcm = nullptr;
-			src->stop();
+			stop();
 		}
 	}
 	void media_source_eof(MediaSource* src) override {
@@ -70,11 +68,11 @@ public:
 			media_source_advance(src);
 			thread_sleep(1e4); // 10 milliseconds
 		} while (_audio && !_audio->finished());
-		end();
+		stop();
 	}
 	void media_source_error(MediaSource* src, cError& err) override {
 		Qk_DLog("media_source_error");
-		end();
+		stop();
 	}
 	void media_source_switch(MediaSource* src, Extractor *ex) override {
 		Qk_DLog("media_source_switch");
@@ -137,11 +135,16 @@ public:
 		_fa = nullptr;
 	}
 	void open(cString &uri) {
-		if (_src)
-			_src->stop();
+		stop();
 		_src = new MediaSource(uri);
 		_src->set_delegate(this);
-		_src->open();
+		_src->play();
+	}
+	void stop() {
+		if (_src)
+			_src->stop();
+		_audio = nullptr;
+		_pcm = nullptr;
 	}
 	void seek(uint64_t timeUs) {
 		_seek = Qk_Max(timeUs, 1);
@@ -156,13 +159,6 @@ private:
 		} while(_fa && _fa->pts < time_monotonic() - _start);
 		_fa = nullptr; // delete v frame
 	}
-	void end() {
-		if (_src)
-			_src->stop();
-		_audio = nullptr;
-		_pcm = nullptr;
-	}
-
 	Sp<MediaSource> _src;
 	Sp<MediaCodec> _audio;
 	Sp<PCMPlayer>  _pcm;
@@ -206,18 +202,18 @@ public:
 			media_source_advance(src);
 			thread_sleep(1e4); // 10 milliseconds
 		} while (_video && !_video->finished());
-		end();
+		stop();
 	}
 	void media_source_error(MediaSource* src, cError& err) override {
 		Qk_DLog("media_source_error");
-		end();
+		stop();
 	}
 	void media_source_switch(MediaSource* src, Extractor *ex) override {
 		Qk_DLog("media_source_switch");
 		if (_video && ex->type() == kVideo_MediaType) {
 				_video->close();
 				if (!_video->open(&ex->stream()))
-					end();
+					stop();
 		}
 	}
 	void media_source_advance(MediaSource* src) override {
@@ -317,26 +313,12 @@ public:
 		return true;
 	}
 	void open(cString &uri) {
-		if (_src)
-			_src->stop();
-		UILock lock(window());
+		stop();
 		_src = new MediaSource(uri);
 		_src->set_delegate(this);
-		_src->open();
+		_src->play();
 	}
-	void seek(uint64_t timeUs) {
-		_seek = Qk_Max(timeUs, 1);
-	}
-private:
-	void skip_vf() {
-		do { // skip expired v frame
-			_fv = nullptr;
-			if (_video->send_packet(_src->video()) == 0)
-				_fv = _video->receive_frame();
-		} while(_fv && _fv->pts < time_monotonic() - _start);
-		_fv = nullptr; // delete v frame
-	}
-	void end() {
+	void stop() {
 		UILock lock(window());
 		if (_src)
 			_src->stop();
@@ -348,14 +330,27 @@ private:
 			imgsrc->unload(); // unload, resource
 		preRender().untask(this);
 	}
+	void seek(uint64_t timeUs) {
+		_seek = Qk_Max(timeUs, 1);
+	}
+
+private:
+	void skip_vf() {
+		do { // skip expired v frame
+			_fv = nullptr;
+			if (_video->send_packet(_src->video()) == 0)
+				_fv = _video->receive_frame();
+		} while(_fv && _fv->pts < time_monotonic() - _start);
+		_fv = nullptr; // delete v frame
+	}
 
 	Sp<MediaSource> _src;
 	Sp<MediaCodec> _video, _audio;
 	Sp<PCMPlayer>  _pcm;
-	Sp<Frame>      _fv, _fa;
-	int64_t        _start = 0;
-	int64_t        _seeking = 0;
-	int64_t        _seek = 0;
+	Sp<Frame> _fv, _fa;
+	int64_t  _start = 0;
+	int64_t  _seeking = 0;
+	int64_t  _seek = 0;
 };
 
 int test_media(int argc, char **argv) {
@@ -370,7 +365,7 @@ int test_media(int argc, char **argv) {
 	v->set_width({ 0, BoxSizeKind::Match });
 	v->set_align(Align::CenterMiddle);
 
-	//v->open("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
+	v->open("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
 	//v->open("/Users/louis/Movies/e7bb722c-3f66-11ee-ab2c-aad3d399777e-v8_f2_t1_maSNnEvY.mp4");
 	//v->open("/Users/louis/Movies/申冤人/The.Equalizer.3.2023.2160p.WEB.H265-HUZZAH[TGx]/the.equalizer.3.2023.2160p.web.h265-huzzah.mkv");
 	v->open("/Users/louis/Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4");

@@ -57,8 +57,25 @@ namespace qk {
 		return __is_process_exit;
 	}
 
-	void CondMutex::lock_wait_for(uint64_t timeoutUs) {
-		Lock lock(mutex);
+	CondMutex::Lock::~Lock() {
+		m.unlock();
+	}
+
+	void CondMutex::lock() {
+		mutex.lock();
+	}
+
+	void CondMutex::unlock() {
+		mutex.unlock();
+	}
+
+	CondMutex::Lock CondMutex::scope_lock() {
+		mutex.lock();
+		return Lock{.m=mutex};
+	}
+
+	void CondMutex::lock_and_wait_for(uint64_t timeoutUs) {
+		qk::Lock lock(mutex);
 		if (timeoutUs) {
 			cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
 		} else {
@@ -66,14 +83,16 @@ namespace qk {
 		}
 	}
 
-	void CondMutex::lock_notify_one() {
-		ScopeLock scope(mutex);
+	void CondMutex::lock_and_notify_one() {
+		mutex.lock();
 		cond.notify_one();
+		mutex.unlock();
 	}
 
-	void CondMutex::lock_notify_all() {
-		ScopeLock scope(mutex);
+	void CondMutex::lock_and_notify_all() {
+		mutex.lock();
 		cond.notify_all();
+		mutex.unlock();
 	}
 
 	static Thread_INL* Thread_INL_New(cString& name, void *arg, void (*exec)(cThread *t, void* arg)) {
@@ -156,7 +175,7 @@ namespace qk {
 				t->loop = nullptr;
 				Qk_DLog("Thread end ..., %s", t->name.c_str());
 				for (auto& i : t->waitSelfEnd) {
-					i->lock_notify_one();
+					i->lock_and_notify_one();
 				}
 				Qk_DLog("Thread end  ok, %s", t->name.c_str());
 			}
@@ -188,7 +207,7 @@ namespace qk {
 	void thread_pause(uint64_t timeoutUs) {
 		auto t = thread_self_inl();
 		if (t) {
-			t->lock_wait_for(timeoutUs);
+			t->lock_and_wait_for(timeoutUs);
 		} else {
 			thread_sleep(timeoutUs);
 		}
@@ -226,11 +245,11 @@ namespace qk {
 		if ( __threads->get(id, t) ) {
 			t->mutex.lock();
 			lock.unlock();
-			CondMutex wait;
-			t->waitSelfEnd.pushBack(&wait);
+			CondMutex cm;
+			t->waitSelfEnd.pushBack(&cm);
 			t->mutex.unlock();
 			Qk_DLog("thread_join_for(), ..., %p, %s", id, *t->name);
-			wait.lock_wait_for(timeoutUs); // permanent wait
+			cm.lock_and_wait_for(timeoutUs); // permanent wait
 			Qk_DLog("thread_join_for(), end, %p, %s", id, *t->name);
 		}
 	}
