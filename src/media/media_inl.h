@@ -82,7 +82,7 @@ namespace qk {
 		Array<Program>         _programs;
 		Dict<int, Extractor*>  _extractors; // MediaType => Extractor*
 		Extractor             *_video_ex, *_audio_ex;
-		uint64_t               _duration, _seek, _fixed_packet_duration;
+		uint64_t               _duration, _seek, _buffer_pkt_duration;
 		AVFormatContext*       _fmt_ctx;
 		Mutex                  _mutex;
 		friend class MediaSource;

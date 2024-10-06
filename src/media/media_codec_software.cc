@@ -294,7 +294,7 @@ namespace qk {
 		}
 
 		bool finished() override {
-			return _rc == AVERROR_EOF;
+			return _rc == AVERROR(EAGAIN);
 		}
 
 	private:

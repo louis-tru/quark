@@ -145,7 +145,7 @@ namespace qk {
 		, _status(kUninitialized_MediaSourceStatus)
 		, _delegate(&default_media_source_delegate)
 		, _program_idx(0)
-		, _duration(0), _seek(0), _fixed_packet_duration(Qk_BUFFER_DURATION)
+		, _duration(0), _seek(0), _buffer_pkt_duration(Qk_BUFFER_DURATION)
 		, _fmt_ctx(nullptr)
 		, _uri(fs_reader()->format(uri))
 		, _video_ex(nullptr), _audio_ex(nullptr)
@@ -375,7 +375,9 @@ namespace qk {
 						i.value->flush();
 					_mutex.unlock();
 
-					auto idx = av_find_default_stream_index(fmt_ctx);
+					auto idx = _video_ex ? _video_ex->stream().index:
+										_audio_ex ? _audio_ex->stream().index:
+										av_find_default_stream_index(fmt_ctx);
 					auto stream = fmt_ctx->streams[idx];
 					auto time_base = stream->time_base;
 					// auto time = stream->start_time + av_rescale(_seek / 1000000.0, time_base.den, time_base.num);
@@ -500,7 +502,7 @@ namespace qk {
 			av_packet_unref(&avpkt);
 			return true; // discard packet
 		}
-		if (ex->_after_duration > _fixed_packet_duration/*default 10 second*/) {
+		if (ex->_after_duration > _buffer_pkt_duration/*default 10 second*/) {
 			return false;
 		}
 		auto unit = 1000000.0 * stream.time_base[0] / stream.time_base[1];
@@ -536,7 +538,7 @@ namespace qk {
 		ex->_after_duration -= pkt->duration;
 		ex->_before_duration += pkt->duration;
 
-		while (ex->_before_duration > _fixed_packet_duration) {
+		while (ex->_before_duration > _buffer_pkt_duration) {
 			if (ex->_pkt != ex->_packets.begin()) {
 				auto pkt = ex->_packets.front();
 				ex->_before_duration -= pkt->duration;
@@ -568,8 +570,8 @@ namespace qk {
 	uint64_t MediaSource::duration() const { return _inl->_duration; }
 	uint32_t MediaSource::programs()const{ return _inl->_programs.length();}
 	bool MediaSource::is_open() const { return _inl->_status == kOpen_MediaSourceStatus; }
-	Extractor* MediaSource::video_extractor() { return _inl->_video_ex; }
-	Extractor* MediaSource::audio_extractor() { return _inl->_audio_ex; }
+	Extractor* MediaSource::video() { return _inl->_video_ex; }
+	Extractor* MediaSource::audio() { return _inl->_audio_ex; }
 	bool MediaSource::switch_program(uint32_t index) {
 		return Uint32::min(_inl->_programs.length() - 1, index) == _inl->_program_idx ?
 			false: (_inl->switch_program_sure(index, true), true);
@@ -580,6 +582,6 @@ namespace qk {
 	bool MediaSource::seek(uint64_t timeUs) { return _inl->seek(timeUs); }
 	void MediaSource::open() { _inl->open(); }
 	void MediaSource::stop() { _inl->stop(); }
-	uint64_t MediaSource::packet_duration() { return _inl->_fixed_packet_duration; }
-	void MediaSource::set_packet_duration(uint64_t val) { _inl->_fixed_packet_duration = val; }
+	uint64_t MediaSource::buffer_pkt_duration() { return _inl->_buffer_pkt_duration; }
+	void MediaSource::set_buffer_pkt_duration(uint64_t val) { _inl->_buffer_pkt_duration = val; }
 }

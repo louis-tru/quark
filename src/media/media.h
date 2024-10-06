@@ -174,10 +174,10 @@ namespace qk {
 		Qk_DEFINE_AGET(MediaSourceStatus, status, Const); //!< Getting current work status
 		Qk_DEFINE_AGET(uint64_t, duration, Const); // !< source duration
 		Qk_DEFINE_AGET(uint32_t, programs, Const); // !< Returns the programs count
-		Qk_DEFINE_AGET(Extractor*, video_extractor); //!< extractor() must be called first
-		Qk_DEFINE_AGET(Extractor*, audio_extractor); //!< extractor() must be called first
+		Qk_DEFINE_AGET(Extractor*, video); //!< extractor() must be called first
+		Qk_DEFINE_AGET(Extractor*, audio); //!< extractor() must be called first
 		Qk_DEFINE_AGET(bool, is_open, Const); // !< Getting whether it's open
-		Qk_DEFINE_ACCE(uint64_t, packet_duration); // the length of the packet buffer time before and after, default 10 seconds
+		Qk_DEFINE_ACCE(uint64_t, buffer_pkt_duration); // the length of the packet buffer time before and after, default 10 seconds
 
 		MediaSource(cString& uri);
 		~MediaSource() override;

@@ -145,7 +145,7 @@ namespace qk {
 		}
 
 		float delay() override {
-			return _queue_num_half;
+			return Qk_Max(1, _queue_num_half);
 		}
 
 		void flush() override {
