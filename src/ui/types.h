@@ -36,7 +36,6 @@
 #include "../render/font/style.h"
 
 namespace qk {
-
 	// ---------------- F i l l ----------------
 
 	enum class Repeat: uint8_t {

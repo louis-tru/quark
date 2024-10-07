@@ -89,12 +89,14 @@ namespace qk {
 	}
 
 	View* View::tryRetain() {
-		if (_refCount++ > 0) {
-			return this;
-		} else {
-			_refCount--; // Revoke self increase
-			return nullptr;
+		if (_refCount > 0) {
+			if (_refCount++ > 0) {
+				return this;
+			} else {
+				_refCount--; // Revoke self increase, Maybe not safe
+			}
 		}
+		return nullptr;
 	}
 
 	void View::set_receive(bool val, bool isRt) {

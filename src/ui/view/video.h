@@ -33,51 +33,21 @@
 
 #include "./image.h"
 #include "../../media/media.h"
-#include "../../media/pcm_player.h"
+#include "../../media/player.h"
 
 namespace qk {
 
-	class Video: public Image, public MediaSource::Delegate, public PreRender::Task {
+	class Video: public Image, public Player, public PreRender::Task {
 	public:
-		typedef MediaCodec::Frame Frame;
-		typedef MediaSource::Stream Stream;
-		typedef MediaSource::Extractor Extractor;
-		// define props
-		Qk_DEFINE_PGET(int64_t, pts, Const);
-		Qk_DEFINE_PROP(float, volume, Const);
-		Qk_DEFINE_PROP(bool, mute, Const);
-		Qk_DEFINE_AGET(bool, is_pause, Const);
-		Qk_DEFINE_AGET(uint64_t, duration, Const);
-		Qk_DEFINE_AGET(MediaSourceStatus, status, Const);
 		Qk_DEFINE_ACCE(String, src, Const);
-		Qk_DEFINE_AGET(MediaSource*, media_source);
-		Qk_DEFINE_AGET(const Stream*, video, Const);
-		Qk_DEFINE_AGET(const Stream*, audio, Const); // current audio stream
-		Qk_DEFINE_AGET(uint32_t, audio_streams, Const); // audio stream count
 		Video();
-		~Video() override;
-		void media_source_open(MediaSource* src) override;
-		void media_source_eof(MediaSource* src) override;
-		void media_source_error(MediaSource* src, cError& err) override;
-		void media_source_switch(MediaSource* src, Extractor *ex) override;
-		void media_source_advance(MediaSource* src) override;
-		bool run_task(int64_t now) override;
 		void onActivate() override;
 		ViewType viewType() const override;
-		void play();
-		void pause();
-		void stop();
-		void seek(uint64_t timeUs);
-		void switch_audio(uint32_t index);
 	private:
-		void skip_vf();
-		void end();
-		void trigger(const UIEventName& name, const Object& data);
-		Sp<MediaSource> _msrc;
-		Sp<MediaCodec> _video, _audio;
-		Sp<PCMPlayer>  _pcm;
-		Sp<Frame> _fv, _fa;
-		int64_t _start, _seeking, _seek;
+		void lock() override;
+		void unlock() override;
+		void onEvent(const UIEventName& name, Object* data) override;
+		bool run_task(int64_t now) override;
 	};
 }
 #endif

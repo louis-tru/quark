@@ -412,8 +412,8 @@ namespace qk {
 		}
 	}
 
-	void RunLoop::post(Cb cb) {
-		if (thread_self_id() == _tid) {
+	void RunLoop::post(Cb cb, bool alwaysPost) {
+		if (!alwaysPost && thread_self_id() == _tid) {
 			cb->resolve();
 		} else {
 			_this->post(cb);

@@ -36,6 +36,7 @@
 #include <quark/ui/window.h>
 #include <quark/ui/view/root.h>
 #include <quark/ui/view/image.h>
+#include <quark/ui/view/video.h>
 #include <quark/ui/view/free.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
@@ -45,12 +46,12 @@ using namespace qk;
 typedef MediaSource::Extractor Extractor;
 typedef MediaCodec::Frame Frame;
 
-class AudioPlayer: public Object, public MediaSource::Delegate {
+class AudioPlayerTest: public Object, public MediaSource::Delegate {
 public:
 	Qk_DEFINE_PGET(int64_t, pts);
 
-	~AudioPlayer() override {
-		Qk_DLog("~AudioPlayer()");
+	~AudioPlayerTest() override {
+		Qk_DLog("~AudioPlayerTest()");
 		_src = nullptr;
 	}
 	void media_source_open(MediaSource* src) override {
@@ -134,11 +135,14 @@ public:
 		}
 		_fa = nullptr;
 	}
-	void open(cString &uri) {
+	void set_src(cString &uri) {
 		stop();
 		_src = new MediaSource(uri);
 		_src->set_delegate(this);
-		_src->play();
+	}
+	void play() {
+		if (_src)
+			_src->play();
 	}
 	void stop() {
 		if (_src)
@@ -183,6 +187,7 @@ public:
 		if (!_video && (_video->set_threads(2), !_video->open())) {
 			Qk_Warn("open video codecer fail");
 			_video = nullptr;
+			src->stop();
 			return;
 		}
 		_audio = MediaCodec::create(kAudio_MediaType, src);
@@ -312,11 +317,14 @@ public:
 		_fv.collapse();
 		return true;
 	}
-	void open(cString &uri) {
+	void set_src(cString &uri) {
 		stop();
 		_src = new MediaSource(uri);
 		_src->set_delegate(this);
-		_src->play();
+	}
+	void play() {
+		if (_src)
+			_src->play();
 	}
 	void stop() {
 		UILock lock(window());
@@ -361,23 +369,26 @@ int test_media(int argc, char **argv) {
 	auto f = win->root()->append_new<Free>();
 	f->set_width({ 0, BoxSizeKind::Match });
 	f->set_height({ 0, BoxSizeKind::Match });
-	auto v = f->append_new<VideoPlayer>();
+	auto v = f->append_new<Video>();
 	v->set_width({ 0, BoxSizeKind::Match });
 	v->set_align(Align::CenterMiddle);
 
-	v->open("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
-	//v->open("/Users/louis/Movies/e7bb722c-3f66-11ee-ab2c-aad3d399777e-v8_f2_t1_maSNnEvY.mp4");
-	//v->open("/Users/louis/Movies/申冤人/The.Equalizer.3.2023.2160p.WEB.H265-HUZZAH[TGx]/the.equalizer.3.2023.2160p.web.h265-huzzah.mkv");
-	v->open("/Users/louis/Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4");
-	//v->open("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
-	//v->open("/Users/louis/Movies/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4");
-	//v->open("/Users/louis/Movies/巡回检察组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP03.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
-	
-	AudioPlayer a;
-	//a.open("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
-	//a.open("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
+	//v->set_src("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
+	//v->set_src("/Users/louis/Movies/e7bb722c-3f66-11ee-ab2c-aad3d399777e-v8_f2_t1_maSNnEvY.mp4");
+	//v->set_src("/Users/louis/Movies/申冤人/The.Equalizer.3.2023.2160p.WEB.H265-HUZZAH[TGx]/the.equalizer.3.2023.2160p.web.h265-huzzah.mkv");
+	v->set_src("/Users/louis/Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4");
+	//v->set_src("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
+	//v->set_src("/Users/louis/Movies/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4");
+	//v->set_src("/Users/louis/Movies/巡回检察组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP03.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
+
+	//auto a = AudioPlayer::Make();
+	//a.set_src("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
+	//a->set_src("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
 	//a.seek(1e6*250);
-	//v->seek(1e6*9);
+	//a->play();
+
+	v->seek(1e6*200);
+	v->play();
 
 	app.loop()->timer(Cb([v](auto e){
 		//v->seek(1e6*9);

@@ -357,7 +357,7 @@ namespace qk {
 			_cm.unlock();
 			switch_program_sure(Uint32::min(_programs.length() - 1, _program_idx), false);
 			_delegate->media_source_open(_host);
-			Qk_Assert_Ne(_extractors.length(), 0, "No Extractors on MediaSource");
+			// Qk_Assert_Ne(_extractors.length(), 0, "No Extractors on MediaSource");
 			if (_extractors.length())
 				read_stream(t, url);
 			_cm.lock();

@@ -322,7 +322,7 @@ namespace qk {
 	}
 
 	void FillImage::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
+		if (evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
 			mark(this, false);
 		}
 	}

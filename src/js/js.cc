@@ -527,8 +527,8 @@ namespace qk {
 
 	// ---------------------------------------------------------------------------------------------
 
-	static void onProcessExitHandle(Event<>& e, void* ctx) {
-		int rc = static_cast<const Int32*>(e.data())->value;
+	static void onProcessExitHandle(Event<void, int>& e, void* ctx) {
+		int rc = e.data();
 		if (RunLoop::first()->runing()) {
 			typedef Callback<RunLoop::PostSyncData> Cb;
 			RunLoop::first()->post_sync(Cb([&](Cb::Data& e) {

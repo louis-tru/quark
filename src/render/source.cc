@@ -266,7 +266,7 @@ namespace qk {
 		auto id = evt.sender()->uri().hashCode();
 		auto it = _sources.find(id);
 		if (it != _sources.end()) {
-			if (*evt.data() == ImageSource::kSTATE_LOAD_COMPLETE) {
+			if (evt.data() == ImageSource::kSTATE_LOAD_COMPLETE) {
 				auto info = evt.sender()->info();
 				int ch = int(info.bytes()) - int(it->value.bytes);
 				if (ch != 0) {
@@ -393,7 +393,7 @@ namespace qk {
 	}
 
 	void ImageSourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (*evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {}
+		if (evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {}
 	}
 
 	ImagePool* ImageSourceHold::imgPool() {

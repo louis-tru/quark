@@ -91,7 +91,7 @@ namespace qk {
 	Qk_Export cThread* thread_self(); // return the self thread object created by `thread_new`
 	Qk_Export void     thread_exit(int exit_rc); // !< try abort all thread and exit process, abort=-2
 
-	Qk_Export EventNoticer<Event<>, Mutex>& onProcessExit();
+	Qk_Export EventNoticer<Event<void, int>, Mutex>& onProcessExit();
 
 	/**
 	* @class PostMessage
@@ -137,9 +137,10 @@ namespace qk {
 		void post_sync(Callback<PostSyncData> cb);
 
 		/**
-		* @func post(cb) post message
+		* @method post(cb) post message
+		* @param alwaysPost always post msg to queue
 		*/
-		void post(Cb cb);
+		void post(Cb cb, bool alwaysPost = false);
 
 		/**
 		 * @method timer() start timer and return handle id

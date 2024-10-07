@@ -135,17 +135,17 @@ namespace qk {
 	/**
 	* @class UIEvent gui event
 	*/
-	class Qk_Export UIEvent: public Event<View> {
+	class Qk_Export UIEvent: public Event<View, Object*> {
 		Qk_HIDDEN_ALL_COPY(UIEvent);
 	public:
-		UIEvent(View *origin , cSendData& data = SendData());
+		UIEvent(View *origin, SendData data = nullptr);
 		Qk_DEFINE_PGET(View*, origin);
 		Qk_DEFINE_PGET(uint64_t, timestamp, Const);
 		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }
 		inline bool is_bubble() const { return return_value & kBubble_ReturnValueMask; }
 		inline void cancel_default() { return_value &= ~kDefault_ReturnValueMask; }
 		inline void cancel_bubble() { return_value &= ~kBubble_ReturnValueMask; }
-		virtual void release() override;
+		void release() override;
 	};
 
 	/**
@@ -158,7 +158,7 @@ namespace qk {
 		Qk_DEFINE_PGET(uint64_t, delay, Const);
 		Qk_DEFINE_PGET(uint32_t, frame, Const);
 		Qk_DEFINE_PGET(uint32_t, loop, Const);
-		virtual void release() override;
+		void release() override;
 	};
 
 	/**
@@ -180,7 +180,7 @@ namespace qk {
 		Qk_DEFINE_PGET(bool, alt, Const);
 		Qk_DEFINE_PGET(bool, command, Const);
 		Qk_DEFINE_PGET(bool, caps_lock, Const);
-		virtual void release() override;
+		void release() override;
 	};
 
 	/**

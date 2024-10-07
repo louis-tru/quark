@@ -51,7 +51,7 @@ namespace qk {
 	Mutex                               *__threads_mutex = nullptr;
 	static Dict<ThreadID, Thread_INL*>  *__threads = nullptr;
 	static uv_key_t                      __th_key;
-	static EventNoticer<Event<>, Mutex> *__on_process_safe_exit = nullptr;
+	static EventNoticer<Event<void, int>, Mutex> *__on_process_safe_exit = nullptr;
 
 	Qk_Export bool is_process_exit() {
 		return __is_process_exit;
@@ -262,7 +262,7 @@ namespace qk {
 		Array<ThreadID> threads_id;
 
 		Qk_DLog("thread_process_exit(), 0");
-		Event<> ev(Int32(rc), rc);
+		Event<void, int> ev(rc, rc);
 		Qk_Trigger(ProcessExit, ev); // trigger event
 		rc = ev.return_value;
 		Qk_DLog("thread_process_exit(), 1");
@@ -292,7 +292,7 @@ namespace qk {
 		}
 	}
 
-	EventNoticer<Event<>, Mutex>& onProcessExit() {
+	EventNoticer<Event<void, int>, Mutex>& onProcessExit() {
 		return *__on_process_safe_exit;
 	}
 
@@ -301,7 +301,7 @@ namespace qk {
 		// Object heap allocator may not have been initialized yet
 		__threads = new(::malloc(sizeof(Dict<ThreadID, Thread_INL*>))) Dict<ThreadID, Thread_INL*>();
 		__threads_mutex = new Mutex();
-		__on_process_safe_exit = new EventNoticer<Event<>, Mutex>(nullptr);
+		__on_process_safe_exit = new EventNoticer<Event<void, int>, Mutex>(nullptr);
 		Qk_DLog("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
 		Qk_DLog("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_process_exit(0); });

@@ -84,7 +84,7 @@ namespace qk {
 				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 				if (_initialize++ == 0) {
 					_tempFlag = time_monotonic();
-					Qk_On(ProcessExit, [](Event<>& e) { http_cookie_close(); });
+					Qk_On(ProcessExit, [](auto e) { http_cookie_close(); });
 				}
 			}
 		}

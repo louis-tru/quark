@@ -345,8 +345,8 @@
 			'../deps/libuv/include',
 		],
 		'sources': [
-			# 'media/audio_player.h',
-			# 'media/audio_player.cc',
+			'media/player.h',
+			'media/player.cc',
 			'media/media_codec_software.cc',
 			'media/media_codec.cc',
 			'media/media.cc',

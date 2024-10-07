@@ -58,12 +58,14 @@ namespace qk {
 	}
 
 	Action* Action::tryRetain() {
-		if (_refCount++ > 0) {
-			return this;
-		} else {
-			_refCount--; // Revoke self increase
-			return nullptr;
+		if (_refCount > 0) {
+			if (_refCount++ > 0) {
+				return this;
+			} else {
+				_refCount--; // Revoke self increase, Maybe not safe
+			}
 		}
+		return nullptr;
 	}
 
 	void Action::release_for_only_center_Rt() {

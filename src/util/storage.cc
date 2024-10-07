@@ -60,7 +60,7 @@ namespace qk {
 		if ( _db == nullptr ) {
 			if ( bp_open(&_db, fs_fallback_c(get_db_filename())) == BP_OK ) {
 				if (_initialize++ == 0)
-					Qk_On(ProcessExit, [](Event<>& e) { storage_close(); });
+					Qk_On(ProcessExit, [](auto e) { storage_close(); });
 			}
 		}
 	}

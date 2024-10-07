@@ -64,13 +64,16 @@ namespace qk {
 		typedef T_RC             ReturnValue;
 		typedef const SendData   cSendData;
 
-		Event(cSendData& data = SendData(), const ReturnValue& rc = ReturnValue())
-			: _sender(nullptr), _data(&data), return_value(rc) {}
+		Event(SendData data = SendData(), const ReturnValue& rc = ReturnValue())
+			: _sender(nullptr), _data(std::move(data)), return_value(rc) {}
+		~Event() {
+			Releasep(_data); // Release when data is a pointer
+		}
 		inline Sender* sender() const { return _sender; }
-		inline cSendData* data() const { return _data; }
+		inline cSendData& data() const { return _data; }
 	protected:
-		Sender    *_sender;
-		cSendData *_data;
+		Sender   *_sender;
+		SendData  _data;
 	public:
 		ReturnValue return_value;
 	};
@@ -254,7 +257,7 @@ namespace qk {
 			}
 		}
 
-		void trigger(cSendData& data) {
+		void trigger(cSendData data) {
 			if (_listener) {
 				Event evt(data);
 				trigger_event(evt);
