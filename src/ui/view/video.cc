@@ -35,22 +35,16 @@
 
 namespace qk {
 
-	struct VideoLock {
+	struct VLock {
+		VLock(Video* h, bool isLock): _win(h->window()), _lock(!isLock) {
+			static_assert(sizeof(VLock) == sizeof(UILock), "assert sizeof(VLock) == sizeof(UILock)");
+			isLock ?
+				reinterpret_cast<UILock*>(this)->lock():
+				reinterpret_cast<UILock*>(this)->unlock();
+		}
 		Window *_win;
 		bool _lock;
 	};
-
-	static_assert(sizeof(Lock) == sizeof(Lock), "assert sizeof(Lock) == sizeof(Lock)");
-
-	void Video::lock() {
-		VideoLock lock{window(),false};
-		reinterpret_cast<UILock*>(&lock)->lock();
-	}
-
-	void Video::unlock() {
-		VideoLock lock{window(),true};
-		reinterpret_cast<UILock*>(&lock)->unlock();
-	}
 
 	Video::Video(): Player(kVideo_MediaType) {
 	}
@@ -61,6 +55,14 @@ namespace qk {
 
 	void Video::set_src(String value) {
 		Player::set_src(value);
+	}
+
+	void Video::lock() {
+		VLock lock(this, true);
+	}
+
+	void Video::unlock() {
+		VLock unlock(this, false);
 	}
 
 	void Video::onActivate() {
@@ -85,8 +87,7 @@ namespace qk {
 
 		struct Core: CallbackCore<Object> {
 			Core(Video *v, Object* d, const UIEventName& n)
-				: evt(new UIEvent(v, d)), name(n)
-			{
+				: evt(new UIEvent(v, d)), name(n) {
 				view.uncollapse(v);
 			}
 			void call(Data& e) {
