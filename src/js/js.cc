@@ -431,14 +431,23 @@ namespace qk {
 		return newValue(codec_encode_to_utf16(data.array().buffer()).collapseString());
 	}
 
-	JSArray* Worker::newValue(cArray<String>& data) {
-		auto rev = newArray();
-		{ HandleScope scope(this);
+	template<typename T>
+	static JSArray* newArrayTempl(cArray<T>& data, Worker *worker) {
+		auto rev = worker->newArray();
+		{ HandleScope scope(worker);
 			for (int i = 0, e = data.length(); i < e; i++) {
-				rev->set(this, i, newValue(data[i]));
+				rev->set(worker, i, worker->newValue(data[i]));
 			}
 		}
 		return rev;
+	}
+
+	JSArray* Worker::newValue(cArray<String>& data) {
+		return newArrayTempl(data, this);
+	}
+
+	JSArray* Worker::newValue(cArray<uint32_t>& data) {
+		return newArrayTempl(data, this);
 	}
 
 	JSUint8Array* Worker::newValue(Buffer& buff) {

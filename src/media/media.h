@@ -41,6 +41,12 @@ typedef struct AVCodecParameters AVCodecParameters;
 
 namespace qk {
 
+	enum MediaType {
+		kUnknown_MediaType = 0,
+		kVideo_MediaType,
+		kAudio_MediaType,
+	};
+
 	enum MediaSourceStatus {
 		kNone_MediaSourceStatus = 0,
 		kOpening_MediaSourceStatus,
@@ -48,12 +54,6 @@ namespace qk {
 		kPaused_MediaSourceStatus,
 		kError_MediaSourceStatus,
 		kEOF_MediaSourceStatus,
-	};
-
-	enum MediaType {
-		kUnknown_MediaType = 0,
-		kVideo_MediaType,
-		kAudio_MediaType,
 	};
 
 	class MediaCodec;
@@ -86,7 +86,7 @@ namespace qk {
 			uint32_t    bitrate;          /* bit rate */
 			uint32_t    sample_rate;      /* audio sample rate */
 			uint32_t    channels;         /* audio channel count */
-			uint64_t    channel_layout;   /* audio channel layout to enum AudioChannelMask */
+			uint64_t    channel_layout;   /* audio channel layout to enum AudioChannelLayoutMask */
 			uint32_t    avg_framerate[2]; /* video frame average framerate */
 			uint32_t    time_base[2];     // Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds)
 			uint32_t    index;            /* stream index in source */

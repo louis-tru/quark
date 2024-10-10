@@ -124,7 +124,7 @@ namespace qk { namespace js {
 	Object* WrapObject::externalData() {
 		auto data = get(worker()->strs()->_wrap_external_data());
 		if ( worker()->instanceOf(data, Js_Typeid(Object)) )
-			return wrap<Object>(data)->self();
+			return wrap(data)->self();
 		return nullptr;
 	}
 

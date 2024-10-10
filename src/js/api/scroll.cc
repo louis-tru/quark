@@ -52,15 +52,15 @@ namespace qk { namespace js {
 		Js_Set_UIObject_Accessor(ScrollBase, Curve, default_curve, defaultCurve);
 
 		Js_Set_Class_Accessor_Get(scrollbarH, {
-			Js_ScrollBase();
+			Js_UISelf(ScrollBase);
 			Js_Return( worker->types()->jsvalue(self->scrollbar_h()) );
 		});
 		Js_Set_Class_Accessor_Get(scrollbarV, {
-			Js_ScrollBase();
+			Js_UISelf(ScrollBase);
 			Js_Return( worker->types()->jsvalue(self->scrollbar_v()) );
 		});
 		Js_Set_Class_Accessor_Get(scrollSize, {
-			Js_ScrollBase();
+			Js_UISelf(ScrollBase);
 			Js_Return( worker->types()->jsvalue(self->scroll_size()) );
 		});
 
@@ -83,7 +83,7 @@ namespace qk { namespace js {
 				Js_Parse_Type(uint32_t, args[1], "@method ScrollBase.scrollTo(value, duration = %s)");
 				duration = out;
 			}
-			Js_ScrollBase();
+			Js_UISelf(ScrollBase);
 			if (args.length() > 2) {
 				Js_Parse_Type(Curve, args[2], "@method ScrollBase.scrollTo(value, duration, curve = %s)");
 				self->scrollTo(value, duration, out);
@@ -93,7 +93,7 @@ namespace qk { namespace js {
 		});
 
 		Js_Set_Class_Method(terminate, {
-			Js_ScrollBase();
+			Js_UISelf(ScrollBase);
 			self->terminate();
 		});
 	}

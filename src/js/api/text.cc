@@ -39,7 +39,7 @@ namespace qk { namespace js {
 
 	void inheritTextOptions(JSClass* cls, Worker* worker) {
 		Js_Set_Class_Accessor_Get(fontStyle, {
-			Js_TextOptions();
+			Js_UISelf(TextOptions);
 			Js_Return( worker->types()->jsvalue(self->font_style()) );
 		});
 		Js_Set_UIObject_Accessor(TextOptions, TextAlign, text_align, textAlign);

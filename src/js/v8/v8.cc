@@ -854,7 +854,10 @@ namespace qk { namespace js {
 	}
 
 	void ReturnValue::set(JSValue* value) {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
+		if (value)
+			reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
+		else
+			setNull();
 	}
 
 	int FunctionCallbackInfo::length() const {

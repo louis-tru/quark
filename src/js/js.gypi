@@ -34,6 +34,7 @@
 			'api/fs.cc',
 			'api/http.cc',
 			'api/os.cc',
+			'api/player.cc',
 			'api/screen.cc',
 			'api/scroll.cc',
 			'api/storage.cc',

@@ -182,8 +182,7 @@ namespace qk {
 
 	template<typename T>
 	struct ReleasePtr<T*> {
-		typedef T* Type;
-		inline static void Release(Type& obj) {
+		inline static void Release(T*& obj) {
 			object_traits<T>::Releasep(obj);
 		}
 	};

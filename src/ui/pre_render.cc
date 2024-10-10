@@ -99,11 +99,14 @@ namespace qk {
 	bool PreRender::post(Cb cb, View *v, uint64_t delayUs) {
 		if (v->tryRetain()) {
 			struct Core: CallbackCore<Object> {
-				Cb   cb;
-				View *view;
-				Core(Cb &cb, View *v): cb(cb), view(v) {}
-				~Core() { view->release(); }
-				void call(Data& e) { cb->call(e); }
+				Cb       cb;
+				Sp<View> view;
+				Core(Cb &cb, View *v): cb(cb) {
+					view.uncollapse(v);
+				}
+				void call(Data& e) {
+					cb->call(e);
+				}
 			};
 			post(Cb(new Core(cb,v)), delayUs);
 			return true;

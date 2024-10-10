@@ -480,6 +480,7 @@ namespace qk { namespace js {
 		JSObject* newValue(cError& val);
 		JSObject* newValue(const HttpError& val);
 		JSArray*  newValue(cArray<String>& val);
+		JSArray*  newValue(cArray<uint32_t>& val);
 		JSObject* newValue(cDictSS& val);
 		JSUint8Array* newValue(Buffer& val);
 		JSUint8Array* newValue(Buffer&& val);

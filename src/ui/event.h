@@ -135,7 +135,7 @@ namespace qk {
 	/**
 	* @class UIEvent gui event
 	*/
-	class Qk_Export UIEvent: public Event<View, Object*> {
+	class Qk_Export UIEvent: public Event<> {
 		Qk_HIDDEN_ALL_COPY(UIEvent);
 	public:
 		UIEvent(View *origin, SendData data = nullptr);

@@ -34,6 +34,7 @@
 #define __quark__js__api__view__
 #include "./types.h"
 #include "../../ui/view/view.h"
+#include "../../media/player.h"
 
 #define Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
 	Js_Set_Class_Accessor(Name, {\
@@ -48,20 +49,16 @@
 #define Js_Set_WrapObject_Accessor(Obj, T, Prop, Name) \
 	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
 
-#define _UI_Self(Obj) Js_##Obj()
+#define Js_UISelf(Obj) \
+	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->as##Obj()
 #define Js_Set_UIObject_Accessor(Obj, T, Prop, Name) \
-	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, _UI_Self)
+	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_UISelf)
 
 #define Js_IsView(v) isView(worker,v)
 #define Js_IsWindow(v) isWindow(worker,v)
 #define Js_NewView(Type, ...) \
 	auto win = checkNewView(args); \
 	if (win) New<Wrap##Type>(args, View::Make<Type>(win))
-
-#define Js_TextOptions() \
-	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asTextOptions()
-#define Js_ScrollBase() \
-	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->asScrollBase()
 
 namespace qk { namespace js {
 
@@ -72,13 +69,16 @@ namespace qk { namespace js {
 	public:
 		virtual TextOptions* asTextOptions();
 		virtual ScrollBase*  asScrollBase();
+		virtual Player*      asPlayer();
+		virtual NotificationBasic* asNotificationBasic();
+		virtual bool addEventListener(cString& name_, cString& func, int id) override;
+		virtual bool removeEventListener(cString& name, int id) override;
 	};
 
 	class Qk_Export WrapViewObject: public WrapUIObject {
 	public:
 		virtual void init() override;
-		virtual bool addEventListener(cString& name, cString& func, int id) override;
-		virtual bool removeEventListener(cString& name, int id) override;
+		virtual NotificationBasic* asNotificationBasic() override;
 		static Window* checkNewView(FunctionArgs args);
 	};
 

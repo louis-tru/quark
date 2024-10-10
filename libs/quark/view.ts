@@ -39,6 +39,7 @@ import { Window } from './window';
 import { Action, KeyframeAction,createAction,KeyframeIn,ActionCb } from './action';
 import * as action from './action';
 import {ViewController} from './ctr';
+import {Player,MediaType,MediaSourceStatus,Stream} from './media';
 
 export enum ViewType {
 	View,
@@ -393,6 +394,24 @@ export declare class Scroll extends Box implements ScrollBase {
 	terminate(): void;
 }
 
+export declare class Video extends Image implements Player {
+	readonly pts: number;
+	volume: number;
+	mute: boolean;
+	readonly isPause: boolean;
+	readonly type: MediaType;
+	readonly duration: number;
+	readonly status: MediaSourceStatus;
+	readonly video: Stream | null;
+	readonly audio: Stream | null;
+	readonly audioStreams: number;
+	play(): void;
+	pause(): void;
+	stop(): void;
+	seek(timeMs: number): void;
+	switch_audio(index: number): void;
+}
+
 const _ui = __binding__('_ui');
 
 Object.assign(exports, {
@@ -518,6 +537,13 @@ declare global {
 			src?: string;
 		}
 
+		interface VideoJSX extends ImageJSX {
+			onStop?: Listen<UIEvent, Image> | null;
+			onLoading?: Listen<UIEvent, Image> | null;
+			volume?: number;
+			mute?: boolean;
+		}
+
 		interface MatrixJSX extends BoxJSX {
 			translate?: types.Vec2In;
 			scale?: types.Vec2In;
@@ -616,6 +642,7 @@ declare global {
 			input: InputJSX;
 			textarea: TextareaJSX;
 			scroll: ScrollJSX;
+			video: VideoJSX;
 		}
 
 		type IntrinsicElementsName = keyof IntrinsicElements;
@@ -753,6 +780,11 @@ class _Image {
 	@event readonly onError: EventNoticer<UIEvent>;
 }
 
+class _Video {
+	@event readonly onStop: EventNoticer<UIEvent>;
+	@event readonly onLoading: EventNoticer<UIEvent>;
+}
+
 class _Input {
 	@event readonly onChange: EventNoticer<UIEvent>;
 }
@@ -772,5 +804,6 @@ _ui.View.prototype._children = [];
 util.extendClass(_ui.View, _View);
 util.extendClass(_ui.Scroll, _Scroll);
 util.extendClass(_ui.Image, _Image);
+util.extendClass(_ui.Video, _Video);
 util.extendClass(_ui.Input, _Input);
 util.extendClass(_ui.Textarea, _Textarea);

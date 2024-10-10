@@ -83,7 +83,7 @@ namespace qk {
 	};
 
 	class Qk_Export AudioPlayer
-		: public Notification<Event<AudioPlayer>, UIEventName, Reference>, public Player
+		: public Notification<Event<>, UIEventName, Reference>, public Player
 	{
 	public:
 		static Sp<AudioPlayer> Make();

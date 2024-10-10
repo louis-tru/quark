@@ -36,80 +36,14 @@
 
 namespace qk { namespace js {
 
-	template<class Event, class Self>
-	static void addEventListener_Static(
-		Wobj<Self>* wrap, const UIEventName* type, cString& func, int id, JsConverter *cData
-	)
-	{
-		auto f = [wrap, func, cData](typename Self::EventType& e) {
-			auto worker = wrap->worker();
-			Js_Handle_Scope(); // Callback Scope
-			// arg event
-			auto ev = WrapObject::wrap(static_cast<Event*>(&e), Js_Typeid(Event));
-			if (cData) {
-				// cData->as(worker, e.data());
-				ev->set(worker->strs()->_data(), cData->cast(worker, e.data()));
-			}
-			JSValue* args[2] = { ev->that(), worker->newValue(true) };
-
-			// Qk_DLog("addEventListener_Static, %s, EventType: %s", *func, *e.name());
-			// call js trigger func
-			JSValue* r = wrap->call( func, 2, args );
-		};
-
-		Self* self = wrap->self();
-		self->add_event_listener(*type, f, id);
-	}
-
-	bool WrapViewObject::addEventListener(cString& name_, cString& func, int id) {
-		const UIEventName *name;
-		if ( !UIEventNames.get(name_, name) ) {
-			return false;
-		}
-		auto wrap = static_cast<Wobj<View>*>(static_cast<WrapObject*>(this));
-		JsConverter* converter = nullptr;
-
-		switch ( kTypesMask_UIEventFlags & name->flag() ) {
-			case kError_UIEventFlags: converter = JsConverter::Instance<Error>(); break;
-			case kFloat32_UIEventFlags: converter = JsConverter::Instance<Float32>(); break;
-			case kUint64_UIEventFlags: converter = JsConverter::Instance<Uint64>(); break;
-		}
-
-		switch ( name->category() ) {
-			case kClick_UIEventCategory:
-				addEventListener_Static<ClickEvent>(wrap, name, func, id, converter); break;
-			case kKeyboard_UIEventCategory:
-				addEventListener_Static<KeyEvent>(wrap, name, func, id, converter); break;
-			case kMouse_UIEventCategory:
-			addEventListener_Static<MouseEvent>(wrap, name, func, id, converter); break;
-			case kTouch_UIEventCategory:
-				addEventListener_Static<TouchEvent>(wrap, name, func, id, converter); break;
-			case kHighlighted_UIEventCategory:
-				addEventListener_Static<HighlightedEvent>(wrap, name, func, id, converter); break;
-			case kAction_UIEventCategory:
-				addEventListener_Static<ActionEvent>(wrap, name, func, id, converter); break;
-			default: // DEFAULT
-				addEventListener_Static<UIEvent>(wrap, name, func, id, converter); break;
-		}
-		return true;
-	}
-
-	bool WrapViewObject::removeEventListener(cString& name_, int id) {
-		const UIEventName *name;
-		if ( !UIEventNames.get(name_, name) ) {
-			return false;
-		}
-		Qk_DLog("removeEventListener, name:%s, id:%d", *name_, id);
-
-		auto wrap = reinterpret_cast<Wobj<View>*>(this);
-		wrap->self()->remove_event_listener(*name, id); // off event listener
-		return true;
-	}
-	
 	void WrapViewObject::init() {
 		that()->defineOwnProperty(worker(), worker()->strs()->window(),
 			wrap<Window>(self<View>()->window())->that(), JSObject::ReadOnly | JSObject::DontDelete
 		);
+	}
+
+	NotificationBasic* WrapViewObject::asNotificationBasic() {
+		return static_cast<View*>(self());
 	}
 
 	Window* WrapViewObject::checkNewView(FunctionArgs args) {

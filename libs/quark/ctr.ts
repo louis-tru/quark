@@ -703,6 +703,7 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 	matrix: view.Matrix, text: view.Text,
 	button: view.Button, label: view.Label,
 	input: view.Input, textarea: view.Textarea, scroll: view.Scroll,
+	video: view.Video,
 };
 
 // create virtual dom, jsx element

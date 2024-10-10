@@ -65,6 +65,63 @@ namespace qk { namespace js {
 		return nullptr;
 	}
 
+	Player* WrapUIObject::asPlayer() {
+		return nullptr;
+	}
+
+	NotificationBasic* WrapUIObject::asNotificationBasic() {
+		return nullptr;
+	}
+
+	bool WrapUIObject::addEventListener(cString& name, cString& func, int id) {
+		auto notific = asNotificationBasic();
+		const UIEventName *key;
+		if (!notific || !UIEventNames.get(name, key)) {
+			return false;
+		}
+		JsConverter* cData = nullptr;
+
+		switch ( kTypesMask_UIEventFlags & key->flag() ) {
+			case kError_UIEventFlags: cData = JsConverter::Instance<Error>(); break;
+			case kFloat32_UIEventFlags: cData = JsConverter::Instance<Float32>(); break;
+			case kUint64_UIEventFlags: cData = JsConverter::Instance<Uint64>(); break;
+		}
+
+		typedef EventNoticerBasic Basic;
+		auto f = [this, func, cData](Event<>& e) {
+			auto worker = this->worker();
+			Js_Handle_Scope(); // Callback Scope
+			// arg event
+			auto ev = WrapObject::wrap(&e);
+			Qk_Assert_Ne(ev, nullptr);
+			if (cData) {
+				ev->set(worker->strs()->_data(), cData->cast(worker, e.data()));
+			}
+			JSValue* args[2] = { ev->that(), worker->newValue(true) };
+
+			// Qk_DLog("addEventListenerFrom, %s, EventType: %s", *func, *e.name());
+			JSValue* r = call(func, 2, args); // call js trigger func
+		};
+
+		notific->add_event_listener(
+			key->hashCode(), Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&f), id, false)
+		);
+
+		return true;
+	}
+
+	bool WrapUIObject::removeEventListener(cString& name, int id) {
+		auto notific = asNotificationBasic();
+		const UIEventName *key;
+		if (!notific || !UIEventNames.get(name, key)) {
+			return false;
+		}
+		Qk_DLog("removeEventListener, name:%s, id:%d", *name, id);
+
+		notific->remove_event_listener_for_id(key->hashCode(), id); // off event listener
+		return true;
+	}
+
 	struct WrapNativeApplication: WrapObject {
 		typedef Application Type;
 
@@ -225,6 +282,7 @@ namespace qk { namespace js {
 	void binding_text(JSObject* exports, Worker* worker);
 	void binding_scroll(JSObject* exports, Worker* worker);
 	void binding_transform(JSObject* exports, Worker* worker);
+	void binding_player(JSObject* exports, Worker* worker);
 
 	struct NativeUI {
 		static void binding(JSObject* exports, Worker* worker) {
@@ -239,6 +297,7 @@ namespace qk { namespace js {
 			binding_text(exports, worker);
 			binding_scroll(exports, worker);
 			binding_transform(exports, worker);
+			binding_player(exports, worker);
 		}
 	};
 

@@ -308,9 +308,9 @@ namespace qk {
 		Sp<Object> sp(data);
 		if (!_loop && refCount() <= 0)
 			return;
-		auto evt = new Event<AudioPlayer, Object*>(sp.collapse());
+		auto evt = new Event<>(sp.collapse());
 		_loop->post(Cb([this, evt, name](auto e) {
-			Sp<Event<AudioPlayer, Object*>> sp(evt);
+			Sp<Event<>> sp(evt);
 			trigger(name, *evt);
 		}, this));
 	}
