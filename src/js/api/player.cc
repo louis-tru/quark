@@ -200,6 +200,7 @@ namespace qk { namespace js {
 	};
 
 	void binding_player(JSObject* exports, Worker* worker) {
-		//WrapScroll::binding(exports, worker);
+		WrapAudioPlayer::binding(exports, worker);
+		WrapVideo::binding(exports, worker);
 	}
 } }
