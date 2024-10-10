@@ -71,7 +71,7 @@ F(Load, Default, kNone_UIEventFlags) /* Image */ \
 /* player */ \
 F(Error, Player, kError_UIEventFlags) \
 F(Stop, Player, kNone_UIEventFlags) \
-F(Loading, Player, kFloat32_UIEventFlags) \
+F(Buffering, Player, kFloat32_UIEventFlags) \
 
 namespace qk {
 	class Application;

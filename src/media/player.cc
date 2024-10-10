@@ -46,7 +46,7 @@ namespace qk {
 
 	Player::Player(MediaType type)
 		: _pts(0), _volume(1), _mute(false), _type(type), _start(0), _seeking(0), _seek(0) {
-		Qk_Assert_Ne(kUnknown_MediaType, type);
+		Qk_Assert_Ne(0, type);
 	}
 
 	Player::~Player() {
@@ -78,7 +78,7 @@ namespace qk {
 	}
 
 	MediaSourceStatus Player::status() const {
-		return _msrc ? _msrc->status(): kNone_MediaSourceStatus;
+		return _msrc ? _msrc->status(): kNormal_MediaSourceStatus;
 	}
 
 	MediaSource* Player::media_source() {

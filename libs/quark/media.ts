@@ -32,40 +32,39 @@ import util from './util';
 import event, { EventNoticer, NativeNotification, Notification, Event } from './event';
 
 export enum MediaType {
-	kUnknown_MediaType = 0,
-	kVideo_MediaType,
-	kAudio_MediaType,
+	kVideo = 1,
+	kAudio,
 }
 
 export enum MediaSourceStatus {
-	kNone_MediaSourceStatus = 0,
-	kOpening_MediaSourceStatus,
-	kPlaying_MediaSourceStatus,
-	kPaused_MediaSourceStatus,
-	kError_MediaSourceStatus,
-	kEOF_MediaSourceStatus,
+	kNormal = 0,
+	kOpening,
+	kPlaying,
+	kPaused,
+	kError,
+	kEOF,
 };
 
 export enum AudioChannelLayoutMask {
-	kInvalid_AudioChannelLayoutMask                = 0,
-	kFront_Left_AudioChannelLayoutMask             = 0x00000001,
-	kFront_Right_AudioChannelLayoutMask            = 0x00000002,
-	kFront_Center_AudioChannelLayoutMask           = 0x00000004,
-	kLow_Frequency_AudioChannelLayoutMask          = 0x00000008,
-	kBack_Left_AudioChannelLayoutMask              = 0x00000010,
-	kBack_Right_AudioChannelLayoutMask             = 0x00000020,
-	kFront_Left_Of_Center_AudioChannelLayoutMask   = 0x00000040,
-	kFront_Right_Of_Center_AudioChannelLayoutMask  = 0x00000080,
-	kBack_Center_AudioChannelLayoutMask            = 0x00000100,
-	kSide_Left_AudioChannelLayoutMask              = 0x00000200,
-	kSide_Right_AudioChannelLayoutMask             = 0x00000400,
-	kTop_Center_AudioChannelLayoutMask             = 0x00000800,
-	kTop_Front_Left_AudioChannelLayoutMask         = 0x00001000,
-	kTop_Front_Center_AudioChannelLayoutMask       = 0x00002000,
-	kTop_Front_Right_AudioChannelLayoutMask        = 0x00004000,
-	kTop_Back_Left_AudioChannelLayoutMask          = 0x00008000,
-	kTop_Back_Center_AudioChannelLayoutMask        = 0x00010000,
-	kTop_Back_Right_AudioChannelLayoutMask         = 0x00020000,
+	kInvalid                = 0,
+	kFront_Left             = 0x00000001,
+	kFront_Right            = 0x00000002,
+	kFront_Center           = 0x00000004,
+	kLow_Frequency          = 0x00000008,
+	kBack_Left              = 0x00000010,
+	kBack_Right             = 0x00000020,
+	kFront_Left_Of_Center   = 0x00000040,
+	kFront_Right_Of_Center  = 0x00000080,
+	kBack_Center            = 0x00000100,
+	kSide_Left              = 0x00000200,
+	kSide_Right             = 0x00000400,
+	kTop_Center             = 0x00000800,
+	kTop_Front_Left         = 0x00001000,
+	kTop_Front_Center       = 0x00002000,
+	kTop_Front_Right        = 0x00004000,
+	kTop_Back_Left          = 0x00008000,
+	kTop_Back_Center        = 0x00010000,
+	kTop_Back_Right         = 0x00020000,
 };
 
 export interface Stream {
@@ -108,7 +107,11 @@ export interface Player {
 	switch_audio(index: number): void;
 }
 
-export declare class AudioPlayer extends Notification<Event<AudioPlayer, any>> implements Player {
+export declare class AudioPlayer extends Notification<Event<AudioPlayer>> implements Player {
+	readonly onLoad: EventNoticer<Event<AudioPlayer, void>>;
+	readonly onStop: EventNoticer<Event<AudioPlayer, void>>;
+	readonly onError: EventNoticer<Event<AudioPlayer, Error>>;
+	readonly onBuffering: EventNoticer<Event<AudioPlayer, number>>;
 	readonly pts: number;
 	volume: number;
 	mute: boolean;
@@ -131,7 +134,7 @@ class _AudioPlayer extends NativeNotification {
 	@event readonly onLoad: EventNoticer<Event<AudioPlayer, void>>;
 	@event readonly onStop: EventNoticer<Event<AudioPlayer, void>>;
 	@event readonly onError: EventNoticer<Event<AudioPlayer, Error>>;
-	@event readonly onLoading: EventNoticer<Event<AudioPlayer, number>>;
+	@event readonly onBuffering: EventNoticer<Event<AudioPlayer, number>>;
 }
 
 exports.AudioPlayer = __binding__('_ui').AudioPlayer;

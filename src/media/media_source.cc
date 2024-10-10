@@ -142,7 +142,7 @@ namespace qk {
 
 	Inl::Inl(MediaSource* host, cString& uri)
 		: _host(host)
-		, _status(kNone_MediaSourceStatus)
+		, _status(kNormal_MediaSourceStatus)
 		, _delegate(&default_media_source_delegate)
 		, _program_idx(0)
 		, _duration(0), _seek(0), _buffer_pkt_duration(Qk_BUFFER_DURATION)
@@ -231,7 +231,7 @@ namespace qk {
 		resume();
 		thread_abort(); // abort thread
 		auto lock = _cm.scope_lock();
-		_status = kNone_MediaSourceStatus;
+		_status = kNormal_MediaSourceStatus;
 
 		for (auto i : _extractors) {
 			i.value->flush();

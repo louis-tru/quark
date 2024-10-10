@@ -175,9 +175,7 @@ export class Event<Sender = any, SendData = any> {
 	returnValue: number = 0;
 	get data() { return this._data; }
 	get sender() { return this._sender; }
-	constructor(data: SendData) {
-		this._data = data;
-	}
+	constructor(data: SendData) { this._data = data; }
 }
 
 export interface Listen<E = Event, Ctx extends object = object> {

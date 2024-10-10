@@ -395,6 +395,8 @@ export declare class Scroll extends Box implements ScrollBase {
 }
 
 export declare class Video extends Image implements Player {
+	readonly onStop: EventNoticer<UIEvent>;
+	readonly onBuffering: EventNoticer<UIEvent>;
 	readonly pts: number;
 	volume: number;
 	mute: boolean;
@@ -782,7 +784,7 @@ class _Image {
 
 class _Video {
 	@event readonly onStop: EventNoticer<UIEvent>;
-	@event readonly onLoading: EventNoticer<UIEvent>;
+	@event readonly onBuffering: EventNoticer<UIEvent>;
 }
 
 class _Input {

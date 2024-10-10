@@ -42,13 +42,12 @@ typedef struct AVCodecParameters AVCodecParameters;
 namespace qk {
 
 	enum MediaType {
-		kUnknown_MediaType = 0,
-		kVideo_MediaType,
+		kVideo_MediaType = 1,
 		kAudio_MediaType,
 	};
 
 	enum MediaSourceStatus {
-		kNone_MediaSourceStatus = 0,
+		kNormal_MediaSourceStatus = 0,
 		kOpening_MediaSourceStatus,
 		kPlaying_MediaSourceStatus,
 		kPaused_MediaSourceStatus,
