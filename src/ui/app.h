@@ -89,7 +89,7 @@ namespace qk {
 		/**
 		 * @method ~Application()
 		*/
-		virtual ~Application();
+		~Application();
 
 		/**
 		 * start run application message loop

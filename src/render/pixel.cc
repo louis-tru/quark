@@ -82,7 +82,7 @@ namespace qk {
 	{}
 
 	Pixel::Pixel(cPixel& pixel): PixelInfo(pixel)
-		, _val(reinterpret_cast<uint8_t*>(pixel.body().buffer().copy().collapse()))
+		, _val(reinterpret_cast<uint8_t*>(pixel.body().copy().collapse()))
 		, _length(pixel._length)
 		, _body(nullptr) {
 	}
@@ -96,8 +96,9 @@ namespace qk {
 
 	Pixel::Pixel(const PixelInfo& info, Buffer body): PixelInfo(info)
 		, _length(body.length())
-		, _val(reinterpret_cast<uint8_t*>(body.collapse()))
+		, _val(nullptr)
 		, _body(nullptr) {
+		_val = reinterpret_cast<uint8_t*>(body.collapse());
 	}
 
 	Pixel::Pixel(const PixelInfo& info, Body *body): PixelInfo(info)
@@ -123,7 +124,7 @@ namespace qk {
 	Pixel& Pixel::operator=(cPixel& pixel) {
 		PixelInfo::operator=(pixel);
 		this->~Pixel();
-		_val    = reinterpret_cast<uint8_t*>(pixel.body().buffer().copy().collapse());
+		_val    = reinterpret_cast<uint8_t*>(pixel.body().copy().collapse());
 		_length = pixel.length();
 		return *this;
 	}

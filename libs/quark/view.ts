@@ -411,7 +411,7 @@ export declare class Video extends Image implements Player {
 	pause(): void;
 	stop(): void;
 	seek(timeMs: number): void;
-	switch_audio(index: number): void;
+	switchAudio(index: number): void;
 }
 
 const _ui = __binding__('_ui');

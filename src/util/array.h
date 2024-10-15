@@ -283,6 +283,9 @@ namespace qk {
 		const ArrayBuffer<T>* operator->() const {
 			return reinterpret_cast<const ArrayBuffer<T>*>(this);
 		}
+		ArrayBuffer<T> copy(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const {
+			Qk_ReturnLocal(operator->()->copy(start, end));
+		}
 		const ArrayBuffer<T>& buffer() const { return *(operator->()); }
 		uint32_t length() const { return _length; }
 		const T* val() const { return _ptr.val; }

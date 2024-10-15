@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, _CVD } from 'quark';
-import { AudioPlayer, Video } from 'quark/media';
-import { Mynavpage } from './public';
+import { ViewController, _CVD, Video } from 'quark';
+import { AudioPlayer } from 'quark/media';
+import { Page } from './tool';
 import { ClickEvent } from 'quark/event';
 
 // const src_720 = 'http://quarks.cc/media/2017-09-11_15_41_19.mp4';
@@ -41,62 +41,72 @@ const resolve = require.resolve;
 
 var audio_player: AudioPlayer | null = null;
 
-function PlayVideo(evt: ClickEvent) {
-	StopAudio(evt);
-	var v = evt.sender.ownerAs().find<Video>('video');
-	v.src = src_720;
-	v.start();
-}
-
-function PlayAudio(evt: ClickEvent) {
-	StopVideo(evt);
-	if ( !audio_player ) {
-		audio_player = new AudioPlayer();
-	}
-	audio_player.src = audio_src;
-	audio_player.start();
-}
-
-function StopVideo(evt: ClickEvent) {
-	evt.sender.ownerAs().find<Video>('video').stop();
-}
-
-function StopAudio(evt: ClickEvent) {
-	if ( audio_player ) {
-		audio_player.stop();
-		audio_player = null;
+class Destroy extends ViewController {
+	protected triggerDestroy() {
+		if (audio_player)
+			audio_player.stop();
 	}
 }
 
-function Stop(evt: ClickEvent) {
-	StopVideo(evt);
-	StopAudio(evt);
-}
+export default (self: Page)=>{
 
-function Seek(evt: ClickEvent) {
-	if ( audio_player ) {
-		audio_player.seek(10000); // 10s
-	} else {
-		evt.sender.ownerAs().find<Video>('video').seek(100000); // 100s
+	function PlayVideo(evt: ClickEvent) {
+		StopAudio(evt);
+		var v = self.refAs<Video>('video');
+		v.src = src_720;
+		v.play();
 	}
-}
 
-export default ()=>(
-	<Mynavpage title="Media" source={resolve(__filename)} onRemove={StopAudio}>
-		<Div width="full">
-			<Button class="long_btn" onClick={PlayVideo}>Play Video</Button>
-			<Button class="long_btn" onClick={PlayAudio}>Play Audio</Button>
-			<Button class="long_btn" onClick={Stop}>Stop</Button>
+	function PlayAudio(evt: ClickEvent) {
+		StopVideo(evt);
+		if ( !audio_player ) {
+			audio_player = new AudioPlayer();
+		}
+		audio_player.src = audio_src;
+		audio_player.play();
+	}
 
-			<Video 
-				id="video" 
+	function StopVideo(evt: ClickEvent) {
+		self.refAs<Video>('video').stop();
+	}
+
+	function StopAudio(evt: ClickEvent) {
+		if ( audio_player ) {
+			audio_player.stop();
+			audio_player = null;
+		}
+	}
+
+	function Stop(evt: ClickEvent) {
+		StopVideo(evt);
+		StopAudio(evt);
+	}
+
+	function Seek(evt: ClickEvent) {
+		if ( audio_player ) {
+			audio_player.seek(10000); // 10s
+		} else {
+			//evt.sender.ownerAs().find<Video>('video').seek(100000); // 100s
+			self.refAs<Video>('video').seek(100000); // 100s
+		}
+	}
+
+	return (
+		<box width="match">
+			<Destroy />
+			<button class="long_btn" onClick={PlayVideo}>Play Video</button>
+			<button class="long_btn" onClick={PlayAudio}>Play Audio</button>
+			<button class="long_btn" onClick={Stop}>Stop</button>
+
+			<video 
+				ref="video" 
 				marginTop={10}
 				borderRadius={20} 
-				_border="8 #f00" 
-				clip={false}
-				width="full" 
-				backgroundColor="#000" 
+				// border="8 #f00" 
+				// clip={false}
+				width="match" 
+				backgroundColor="#000"
 			/>
-		</Div>
-	</Mynavpage>
-)
+		</box>
+	);
+}

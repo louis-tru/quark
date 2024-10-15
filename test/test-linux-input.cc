@@ -30,7 +30,7 @@
 
 #include <quark/util/util.h>
 
-#if FX_LINUX && !FX_ANDROID
+#if Qk_LINUX && !Qk_ANDROID
 
 #include <stdio.h>
 #include <unistd.h>
@@ -38,6 +38,12 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <linux/input.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <time.h>
+
+struct input_event event;
 
 /*
 对于有触摸设备的电脑或者手机，通过cat /proc/bus/input/devices应该就能够看到触摸设备的相关信息。比如
@@ -61,7 +67,144 @@ ABS_PRESSURE=0x18，这三个分别表示触摸屏报告触摸的x坐标，y坐�
 但是不同的触摸屏的x,y坐标的范围不一定，所以需要通过input_absinfo结构体去记录得到触摸屏的绝对值信息。
 */
 
-int test_linux_input2() 
+int test_linux_input_3(int argc, char **argv)
+{
+	char          name[64];           /* RATS: Use ok, but could be better */
+	char          buf[256] = { 0, };  /* RATS: Use ok */
+	unsigned char mask[EV_MAX/8 + 1]; /* RATS: Use ok */
+	int           version;
+	int           fd = 0;
+	int           rc;
+	int           i, j;
+	char          *tmp;
+
+	#define test_bit(bit) (mask[(bit)/8] & (1 << ((bit)%8)))
+
+	for (i = 0; i < 32; i++) {
+		sprintf(name, "/dev/input/event%d", i);
+		if ((fd = open(name, O_RDONLY, 0)) >= 0) {
+			ioctl(fd, EVIOCGVERSION, &version);
+			ioctl(fd, EVIOCGNAME(sizeof(buf)), buf);
+			ioctl(fd, EVIOCGBIT(0, sizeof(mask)), mask);
+			printf("%s\n", name);
+			printf("    evdev version: %d.%d.%d\n",
+				   version >> 16, (version >> 8) & 0xff, version & 0xff);
+			printf("    name: %s\n", buf);
+			printf("    features:");
+			for (j = 0; j < EV_MAX; j++) {
+				if (test_bit(j)) {
+					const char *type = "unknown";
+					switch(j) {
+					case EV_KEY: type = "keys/buttons"; break;
+					case EV_REL: type = "relative";     break;
+					case EV_ABS: type = "absolute";     break;
+					case EV_MSC: type = "reserved";     break;
+					case EV_LED: type = "leds";         break;
+					case EV_SND: type = "sound";        break;
+					case EV_REP: type = "repeat";       break;
+					case EV_FF:  type = "feedback";     break;
+					}
+					printf(" %s", type);
+				}
+			}
+			printf("\n");
+			close(fd);
+		}
+	}
+
+	if (argc > 1) {
+		sprintf(name, "/dev/input/event%d", atoi(argv[1]));
+		if ((fd = open(name, O_RDWR, 0)) >= 0) {
+			printf("%s: open, fd = %d\n", name, fd);
+			for (i = 0; i < LED_MAX; i++) {
+				event.time.tv_sec  = time(0);
+				event.time.tv_usec = 0;
+				event.type         = EV_LED;
+				event.code         = i;
+				event.value        = 0;
+				write(fd, &event, sizeof(event));
+			}
+			
+			while ((rc = read(fd, &event, sizeof(event))) > 0) {
+				printf("%-24.24s.%06lu type 0x%04x; code 0x%04x;"
+					   " value 0x%08x; ",
+					   ctime(&event.time.tv_sec),
+					   event.time.tv_usec,
+					   event.type, event.code, event.value);
+				switch (event.type) {
+				case EV_KEY:
+					if (event.code > BTN_MISC) {
+						printf("Button %d %s",
+							   event.code & 0xff,
+							   event.value ? "press" : "release");
+					} else {
+						printf("Key %d (0x%x) %s",
+							   event.code & 0xff,
+							   event.code & 0xff,
+							   event.value ? "press" : "release");
+					}
+					break;
+				case EV_REL:
+					switch (event.code) {
+					case REL_X:      tmp = "X";       break;
+					case REL_Y:      tmp = "Y";       break;
+					case REL_HWHEEL: tmp = "HWHEEL";  break;
+					case REL_DIAL:   tmp = "DIAL";    break;
+					case REL_WHEEL:  tmp = "WHEEL";   break;
+					case REL_MISC:   tmp = "MISC";    break;
+					default:         tmp = "UNKNOWN"; break;
+					}
+					printf("Relative %s %d", tmp, event.value);
+					break;
+				case EV_ABS:
+					switch (event.code) {
+					case ABS_X:        tmp = "X";        break;
+					case ABS_Y:        tmp = "Y";        break;
+					case ABS_Z:        tmp = "Z";        break;
+					case ABS_RX:       tmp = "RX";       break;
+					case ABS_RY:       tmp = "RY";       break;
+					case ABS_RZ:       tmp = "RZ";       break;
+					case ABS_THROTTLE: tmp = "THROTTLE"; break;
+					case ABS_RUDDER:   tmp = "RUDDER";   break;
+					case ABS_WHEEL:    tmp = "WHEEL";    break;
+					case ABS_GAS:      tmp = "GAS";      break;
+					case ABS_BRAKE:    tmp = "BRAKE";    break;
+					case ABS_HAT0X:    tmp = "HAT0X";    break;
+					case ABS_HAT0Y:    tmp = "HAT0Y";    break;
+					case ABS_HAT1X:    tmp = "HAT1X";    break;
+					case ABS_HAT1Y:    tmp = "HAT1Y";    break;
+					case ABS_HAT2X:    tmp = "HAT2X";    break;
+					case ABS_HAT2Y:    tmp = "HAT2Y";    break;
+					case ABS_HAT3X:    tmp = "HAT3X";    break;
+					case ABS_HAT3Y:    tmp = "HAT3Y";    break;
+					case ABS_PRESSURE: tmp = "PRESSURE"; break;
+					case ABS_DISTANCE: tmp = "DISTANCE"; break;
+					case ABS_TILT_X:   tmp = "TILT_X";   break;
+					case ABS_TILT_Y:   tmp = "TILT_Y";   break;
+					case ABS_MISC:     tmp = "MISC";     break;
+					default:           tmp = "UNKNOWN";  break;
+					}
+					printf("Absolute %s %d", tmp, event.value);
+					break;
+				case EV_MSC: printf("Misc"); break;
+				case EV_LED: printf("Led");  break;
+				case EV_SND: printf("Snd");  break;
+				case EV_REP: printf("Rep");  break;
+				case EV_FF:  printf("FF");   break;
+					break;
+				}
+				printf("\n");
+			}
+			printf("rc = %d, (%s)\n", rc, strerror(errno));
+			close(fd);
+		}
+	}
+
+	return 0;
+}
+
+
+int test_linux_input_2(int argc, char **argv)
 {
 	fd_set	rds;
 	int	ret;
@@ -120,8 +263,8 @@ int test_linux_input2()
 
 	return(0);
 }
- 
-int test_linux_input__(int argc, char **argv)
+
+int test_linux_input_1(int argc, char **argv)
 {
 	struct input_absinfo absI;
 	int ret;
@@ -152,11 +295,12 @@ int test_linux_input__(int argc, char **argv)
 
 	close(fd);
 
-	return test_linux_input2();
+	return 0;
 }
 
 void test_linux_input(int argc, char **argv){
-	test_linux_input__(argc, argv);
+	test_linux_input_1(argc, argv);
+	test_linux_input_2(argc, argv);
 }
 
 #else

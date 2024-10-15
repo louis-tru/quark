@@ -28,8 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Root, Application } from 'quark';
-import { AudioPlayer, Video } from 'quark/media';
+import { Video, Window } from 'quark'
+import { LOG, Mv, Pv } from './tool'
+import {BoxSizeKind} from 'quark/types'
 
 const src0 = '/sdcard/Download/Shutter.Island.2010.禁闭岛.双语字幕.HR-HDTV.AC3.1024X576.X264-人人影视制作.mkv';
 const src1 = '/sdcard/Download/神鬼奇谋.mp4';
@@ -61,10 +62,16 @@ const src20 = 'https://r4---sn-ogueln7y.googlevideo.com/videoplayback?id=cb36ef4
 
 const src21 = 'http://182.254.20.104/vipts.tc.qq.com/14x0qPPqKRFQDSwsxbfHRwUe4MaDLGx1tDPg5p2niVp1SZH4lKAec9oFnWKpnqCQSEwexaE8QsA2MYm1ZFyUG0fIJchA_5KaKxFLs9m1_wGqjRnE9ba9BQ/g0021kye2o2.320092.ts.m3u8?ver=4&amp;sdtfrom=v3000&amp;platform=10403&amp;appver=5.4.1.17650&amp;projection=dlna';
 
-// var player = new AudioPlayer(src11_1);
+export default async function(win: Window) {
+	const resolve = require.resolve;
+	const root = win.root;
+	const src = src21;
+	const v = new Video(win);
 
-new Application().start(
-	<Root background_color="#000">
-	  <Video width="100%" margin="auto" src={src21} autoPlay={true} />
-	</Root>
-);
+	LOG('\nTest Video:\n')
+	Mv(v, 'appendTo', [root])
+	Pv(v, 'width', e=>e.kind==BoxSizeKind.Match, e=>e.style.width='match')
+	Pv(v, 'height', e=>e.kind==BoxSizeKind.Match, e=>e.style.height='match')
+	Pv(v, 'src', e=>e==src, e=>e.src=src)
+	Mv(v, 'play', [])
+}

@@ -16,42 +16,8 @@
 
 using namespace qk;
 
-class TestImage: public Image {
-public:
-
-//	virtual void accept(ViewVisitor *visitor) override {
-//		auto render = static_cast<SkiaRender*>(visitor);
-//		auto src = source();
-//
-//		render->solveBox(this, src && src->ready() ? [](SkiaRender* render, Box* box, int &clip) {
-//			Image* v = static_cast<Image*>(box);
-//			auto img = CastSkImage(v->source());
-//			auto canvas = render->getCanvas();
-//			auto rect = MakeSkRectFrom(box);
-//			SkPaint paint;
-//			paint.setAlpha(200);
-//			canvas->drawImageRect(img, rect, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest), &paint);
-//
-//			auto img2 = img;//img->makeTextureImage(render()->direct(), GrMipmapped::kYes);
-//			/*
-//			canvas->drawImageRect(img, SkRect::MakeXYWH(10, 10, 145, 110),
-//														SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
-//			canvas->drawImageRect(img, SkRect::MakeXYWH(160, 10, 145, 110),
-//														SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest));
-//			canvas->drawImageRect(img2, SkRect::MakeXYWH(10, 140, 145, 110),
-//														SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone));
-//			canvas->drawImageRect(img2, SkRect::MakeXYWH(160, 140, 145, 110),
-//														SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
-//			*/
-//		}: nullptr);
-//
-//		auto r = app()->root();
-//		auto fill = static_cast<FillGradientLinear*>(static_cast<Box*>(r->first())->fill());
-//		fill->set_angle(fill->angle() + 2);
-//	}
-};
-
-void layout_text(Box* box) {
+void layout_text(Window* win) {
+	auto box = win->root();
 	auto text = box->append_new<Text>();
 	auto labe = text->append_new<Label>();
 
@@ -72,28 +38,20 @@ void layout_text(Box* box) {
 	labe->set_text_white_space(TextWhiteSpace::PreWrap);
 	labe->set_text_slant(TextSlant::Italic);
 	labe->set_text_weight(TextWeight::Bold);
-  //labe->set_text_value("楚文学");
-	labe->set_value("BAC");
-	//labe->set_text_value("ABC  DEFG楚");
-	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌");
-	//labe->set_text_value("Quark 1           abcdefghijkmln 禁忌学");
+	//labe->set_value("BAC");
+	labe->set_value("Quark 1           abcdefghijkmln 禁忌");
 	labe->set_text_color({ Color(0,0,0) });
 }
 
-void layout_scroll(Box *box) {
+void layout_scroll(Window* win) {
+	auto box = win->root();
 	auto v = box->append_new<Scroll>();
-	//v->set_is_clip(false);
 
-	v->set_width({ 200 });
-	v->set_height({ 150 });
-	v->set_padding_left(10);
-	v->set_padding_right(10);
-	v->set_padding_bottom(10);
+	//v->set_clip(false);
+	v->set_width({ 150, BoxSizeKind::Match });
+	v->set_height({ 0.5, BoxSizeKind::Ratio });
 	v->set_background_color(Color(255,255,255));
-	v->set_border_radius_left_top(5);
-	v->set_border_radius_right_top(5);
-	v->set_border_radius_left_bottom(5);
-	v->set_border_radius_right_bottom(5);
+	v->set_border_radius({20});
 
 	auto a = v->append_new<Box>();
 	a->set_margin_top(10);
@@ -136,15 +94,16 @@ void layout_scroll(Box *box) {
 	g->set_width({ 0, BoxSizeKind::Match });
 	g->set_height({ 100 });
 	g->set_background_color(Color(255,0,255));
-	
 }
 
-void layout_input(Box* box) {
+void layout_input(Window* win) {
+	auto box = win->root();
 	auto input = box->append_new<Textarea>();
 	//auto input = (Input*)New<Input>()->append_to(box);
 
 	input->set_width({ 200 });
 	input->set_height({ 150 });
+	input->set_border({ {1,Color(100,100,100,255)} });
 	input->set_background_color(Color(255,255,255));
 	// input->set_text_line_height({ 40 });
 	input->set_text_align(TextAlign::Center);
@@ -161,23 +120,11 @@ void layout_input(Box* box) {
 	//input->set_text_value("ABCDEFG AA");
 }
 
-void layout(Event<>& evt, Application* app) {
-	auto win = Window::Make({.msaa=1});
-	win->activate();
-	app->screen()->set_status_bar_style(Screen::kBlack);
-	app->defaultTextOptions()->set_text_family({
-		app->fontPool()->getFontFamilys("Helvetica, PingFang SC")
-	});
-
+void layout(Window* win) {
 	auto r = win->root();
 	auto flex = r->append_new<Flex>();
 	auto flow = r->append_new<Flow>();
-	auto img2 = r->append_new<TestImage>();
-
-	//layout_text(r);
-	//layout_text(flow);
-	//layout_input(flex);
-	//layout_scroll(flex);
+	auto img2 = r->append_new<Image>();
 
 	flex->set_background(
 		//(new FillImage(fs_resources("bench/img/99.jpeg"), {
@@ -268,7 +215,7 @@ void layout(Event<>& evt, Application* app) {
 	img2->set_border_color_bottom({255,0,255,255});
 	// img2->set_radius_right_bottom(5);
 
-	Qk_DLog("%s, %p\n", "ok test layout", app);
+	Qk_DLog("%s, %p\n", "ok test layout", win);
 	Qk_DLog("Object size %d", sizeof(Object));
 	Qk_DLog("Reference size %d", sizeof(Reference));
 	
@@ -281,8 +228,20 @@ void layout(Event<>& evt, Application* app) {
 }
 
 void test_layout(int argc, char **argv) {
-	Application app;
+	App app;
 	auto win = Window::Make({.msaa=1});
-	app.Qk_On(Load, layout, &app);
+	app.Qk_On(Load, [](auto e) {
+		Qk_Log("Applicatio::onLoad");
+	});
+	win->activate();
+	app.screen()->set_status_bar_style(Screen::kBlack);
+	app.defaultTextOptions()->set_text_family({
+		app.fontPool()->getFontFamilys("Helvetica, PingFang SC")
+	});
+	//layout_text(win);
+	layout_scroll(win);
+	//layout_input(win);
+	//layout(win);
+
 	app.run();
 }

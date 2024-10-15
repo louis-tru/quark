@@ -39,7 +39,7 @@ namespace qk {
 	/**
 	 * @class Handle
 	*/
-	template<class T> class Handle {
+	template<class T, typename Traits = object_traits<T>> class Handle {
 		//! Copy constructor is not permitted.
 		Qk_HIDDEN_ALL_COPY(Handle);
 		T* _data;
@@ -49,7 +49,6 @@ namespace qk {
 		}
 	public:
 		typedef T                Type;
-		typedef object_traits<T> Traits;
 
 		inline Handle(): _data(nullptr) {}
 		inline Handle(T* data): _data(data) { Traits::Retain(data); }
@@ -121,7 +120,7 @@ namespace qk {
 		}
 
 		inline void release() {
-			Traits::Releasep(_data);
+			Traits::Release(_data); _data = nullptr;
 		}
 	};
 

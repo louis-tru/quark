@@ -74,7 +74,6 @@
 			'test-blur.cc',
 			'test-subcanvas.cc',
 			'test-outimg.cc',
-			'test-linux-input-2.cc',
 			'test-linux-input.cc',
 			'test-css.cc',
 			'test-action.cc',

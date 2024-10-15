@@ -49,9 +49,9 @@ void test_http(int argc, char **argv) {
 	
 	Qk_Log(fs_read_file_sync(fs_documents("baidu3.htm")));
 	
-	typedef Callback<StreamResponse> SCb;
+	typedef Callback<StreamResponse> Cbs;
 	
-	http_get_stream(url, SCb([](SCb::Data& d) {
+	http_get_stream(url, Cbs([](Cbs::Data& d) {
 		if ( d.error ) {
 			Qk_Log(d.error->message());
 		} else {

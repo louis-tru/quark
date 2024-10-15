@@ -38,6 +38,5 @@
 		"out",
 		".git",
 		"_.js",
-		"./media.tsx",
 	]
 }

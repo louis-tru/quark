@@ -104,10 +104,12 @@ export interface Player {
 	pause(): void;
 	stop(): void;
 	seek(timeMs: number): void;
-	switch_audio(index: number): void;
+	switchAudio(index: number): void;
 }
 
-export declare class AudioPlayer extends Notification<Event<AudioPlayer>> implements Player {
+export declare class AudioPlayer extends 
+	Notification<Event<AudioPlayer>> implements Player
+{
 	readonly onLoad: EventNoticer<Event<AudioPlayer, void>>;
 	readonly onStop: EventNoticer<Event<AudioPlayer, void>>;
 	readonly onError: EventNoticer<Event<AudioPlayer, Error>>;
@@ -127,7 +129,7 @@ export declare class AudioPlayer extends Notification<Event<AudioPlayer>> implem
 	pause(): void;
 	stop(): void;
 	seek(timeMs: number): void;
-	switch_audio(index: number): void;
+	switchAudio(index: number): void;
 }
 
 class _AudioPlayer extends NativeNotification {

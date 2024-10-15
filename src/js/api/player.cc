@@ -171,7 +171,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	class WrapAudioPlayer: public WrapUIObject {
+	struct WrapAudioPlayer: WrapUIObject {
 		Player* asPlayer() override {
 			return self<AudioPlayer>();
 		}
@@ -185,8 +185,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapVideo: public WrapViewObject {
-	public:
+	struct WrapVideo: WrapViewObject {
 		Player* asPlayer() override {
 			return self<Video>();
 		}

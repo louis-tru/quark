@@ -28,13 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#if USE_JSC
+#include "quark/util/macros.h"
 
-#include <JavaScriptCore/JavaScript.h>
-#include "quark/util/util.h"
-//#include "quark/util/string-builder.h"
+#ifdef Qk_MAC
 #include "quark/util/array.h"
 #include "quark/util/loop.h"
+#include <JavaScriptCore/JavaScript.h>
 
 using namespace qk;
 
@@ -89,8 +88,8 @@ static void FinalizeCallback(JSObjectRef object) {
 	}
 }
 
-struct JSCStringTraits: public NonObjectTraits {
-	inline static void Release(JSStringRef str) {
+struct JSCStringTraits: object_traits<OpaqueJSString> {
+	static void Release(JSStringRef str) {
 		if ( str )
 			JSStringRelease(str);
 	}
@@ -112,10 +111,10 @@ static JSValueRef ConstructorFunc(JSContextRef ctx,
 
 String to_string_utf8(JSContextRef ctx, JSValueRef val) {
 	JSCStringPtr str = JSValueToStringCopy(ctx, val, 0);
-	Buffer buff = Buffer::alloc((uint32_t)JSStringGetMaximumUTF8CStringSize(*str));
+	Buffer buff((uint32_t)JSStringGetMaximumUTF8CStringSize(*str));
 	size_t size = JSStringGetUTF8CString(*str, *buff, buff.length());
-	buff.realloc(int(size) - 1);
-	return buff.collapse_string();
+	buff.reset(int(size) - 1);
+	return buff.collapseString();
 }
 
 static JSValueRef toStringCallback(JSContextRef ctx,

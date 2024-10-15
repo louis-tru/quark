@@ -170,9 +170,7 @@ namespace qk {
 		};
 		inline static void Retain(T* obj) { inl<type>::Retain(obj); }
 		inline static void Release(T* obj) { inl<type>::Release(obj); }
-		inline static void Releasep(T*& obj) {
-			inl<type>::Release(obj); obj = nullptr;
-		}
+		inline static void Releasep(T*& obj) { Release(obj); obj = nullptr; }
 	};
 
 	template<typename T>

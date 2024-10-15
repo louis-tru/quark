@@ -1,3 +1,7 @@
+// Ref:
+// https://raphlinus.github.io/graphics/2020/04/21/blurred-rounded-rects.html
+// https://madebyevan.com/shaders/fast-rounded-rectangle-shadows/
+// https://www.shadertoy.com/view/DsdfDN
 
 #include <quark/ui/app.h>
 #include <quark/ui/window.h>

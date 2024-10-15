@@ -45,7 +45,7 @@ export default (self: Page)=>{
 	function end_input(e: ClickEvent) {
 		e.origin.window.focusView.blur();
 	}
-	
+
 	return (
 		<box width="match">
 			<text margin={10} textBackgroundColor="#000" textColor="#fff" value="Examples Input" />
