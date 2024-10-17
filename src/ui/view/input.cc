@@ -62,7 +62,7 @@ namespace qk {
 		void prevent_default(UIEvent &evt) {
 			if (_editing) {
 				if (_flag == kFlag_Auto_Find_Cursor || _flag == kFlag_Find_Cursor) {
-					evt.return_value = 0;
+					evt.return_value &= ~kDefault_ReturnValueMask;
 				}
 			}
 		}

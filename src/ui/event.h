@@ -265,7 +265,7 @@ namespace qk {
 		void onTouchend(List<TouchPoint>&& touches);
 		void onTouchcancel(List<TouchPoint>&& touches);
 		void onMousemove(float x, float y);
-		void onMousepress(KeyboardKeyCode key, bool isDown, Vec2 *value);
+		void onMousepress(KeyboardKeyCode key, bool isDown, const Vec2 *value);
 		// ime
 		void onImeDelete(int count);
 		void onImeInsert(cString& text);

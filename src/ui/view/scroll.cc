@@ -48,14 +48,19 @@ namespace qk {
 
 	class ScrollBase::Task: public RenderTask {
 	public:
-		Task(ScrollBase* host, uint64_t duration, cCurve& curve = ease_out)
+		Task(ScrollBase* host, uint64_t duration, cCurve& curve = ease_out, ScrollBase::Task *next = 0)
 			: m_host(host)
-			, m_start_time(time_monotonic())
+			, m_start_time(0)
 			, m_duration(duration)
+			, _next(next)
 			, m_immediate_end_flag(false)
 			, m_curve(curve)
 			, m_is_inl_ease_out(&ease_out == &curve)
 		{}
+
+		virtual ~Task() {
+			Releasep(_next);
+		}
 
 		inline void immediate_end_flag() {
 			m_immediate_end_flag = true;
@@ -64,11 +69,16 @@ namespace qk {
 		virtual void end() = 0;
 		virtual void immediate_end() = 0;
 
+		void next();
+
 		virtual bool run_task(int64_t sys_time) {
 			if ( m_immediate_end_flag ) { // immediate end motion
 				immediate_end();
 			} else {
 				int64_t now = time_monotonic();
+				if (m_start_time == 0) {
+					m_start_time = now;
+				}
 				if ( now >= m_start_time + m_duration ) {
 					end();
 				} else {
@@ -89,6 +99,7 @@ namespace qk {
 		uint64_t m_start_time;
 		uint64_t m_duration;
 		List<Task*>::Iterator m_id2;
+		ScrollBase::Task *_next;
 		bool   m_immediate_end_flag;
 		cCurve m_curve;
 		bool m_is_inl_ease_out;
@@ -133,39 +144,69 @@ namespace qk {
 			Vec2  m_to;
 		};
 
-		class ScrollBarFadeInOutTask: public ScrollBase::Task {
+		class ScrollBarTask: public ScrollBase::Task {
 		public:
-			ScrollBarFadeInOutTask(ScrollBase* host, uint64_t duration, float to, cCurve& curve = ease_out)
-				: Task(host, duration, curve)
-				, m_from(host->_scrollbar_opacity)
+			ScrollBarTask(
+				ScrollBase* host, uint64_t duration,
+				float from, float to, cCurve& curve = ease_out, ScrollBase::Task *next = 0
+			)
+				: Task(host, duration, curve, next)
+				, m_from(from)
 				, m_to(to)
 			{}
 
 			virtual void run(float y) {
-				m_host->_scrollbar_opacity = (m_to - m_from) * y + m_from;
-				m_host->_host->mark(0, true);
+				auto op = (m_to - m_from) * y + m_from;
+				if (op != m_host->_scrollbar_opacity) {
+					m_host->_scrollbar_opacity = op;
+					m_host->_host->mark(0, true);
+				}
+				//Qk_DLog("run, %f, %p", m_host->_scrollbar_opacity, this);
 			}
 
 			virtual void end() {
+				//Qk_DLog("end, %f, %p", m_to, this, this);
 				m_host->_scrollbar_opacity = m_to;
 				m_host->_host->mark(0, true);
+				next();
 				_inl(m_host)->termination_task(this);
 			}
 
 			virtual void immediate_end() {
 				m_host->_scrollbar_opacity = m_to;
+				//Qk_DLog("immediate_end, %f, %p", m_to, this);
 				m_host->_host->mark(0, true);
 				_inl(m_host)->termination_task(this);
 			}
 
-		private:
+		protected:
 			float m_from;
 			float m_to;
 		};
-
-		friend class ScrollBase::Task;
-		friend class ScrollMotionTask;
-		friend class ScrollBarFadeOutTask;
+		
+		class ScrollBarFadeInOutTask: public ScrollBarTask {
+		public:
+			ScrollBarFadeInOutTask(ScrollBase* host, uint64_t in, uint64_t fixed, uint64_t out)
+				: ScrollBarTask(host, in, host->_scrollbar_opacity, 1, ease_out), _fixed(fixed), _out(out), _step(0)
+			{}
+			virtual void end() {
+				_step++;
+				if (_step == 1) {
+					m_start_time = time_monotonic();
+					m_from = m_to;
+					m_duration = _fixed;
+				} else if (_step == 2) {
+					m_start_time = time_monotonic();
+					m_to = 0;
+					m_duration = _out;
+				} else {
+					ScrollBarTask::end();
+				}
+			}
+		private:
+			uint64_t _fixed, _out;
+			int _step;
+		};
 
 		void register_task(Task* task) {
 			if ( !task->is_register_task() ) {
@@ -370,7 +411,7 @@ namespace qk {
 			if ( scroll == _scroll ) {
 				if ( duration ) {
 					if ( _scrollbar_opacity != 0 ) {
-						register_task( new ScrollBarFadeInOutTask(this, 3e5, 0) );
+						register_task( new ScrollBarTask(this, 3e5, _scrollbar_opacity, 0) );
 					}
 				} else {
 					if ( _scrollbar_opacity != 0 ) {
@@ -388,7 +429,7 @@ namespace qk {
 				if ( scroll != _scroll ) {
 					register_task( new ScrollMotionTask(this, duration, scroll, curve) );
 					if ( _scrollbar_opacity != 1 ) {
-						register_task( new ScrollBarFadeInOutTask(this, 5e4, 1) );
+						register_task( new ScrollBarTask(this, 5e4, _scrollbar_opacity, 1) );
 					}
 				}
 			}
@@ -439,7 +480,7 @@ namespace qk {
 					return;
 				}
 				if ( _scrollbar_opacity != 1 ) {
-					register_task( new ScrollBarFadeInOutTask(this, 2e5, 1) );
+					register_task( new ScrollBarTask(this, 2e5, _scrollbar_opacity, 1) );
 				}
 				_moved = true;
 			}
@@ -572,7 +613,7 @@ namespace qk {
 		}
 
 		void handle_TouchMove(UIEvent& e) {
-			if (_action_id && e.return_value) {
+			if (_action_id && e.is_default()) {
 				auto evt = static_cast<TouchEvent*>(&e);
 				auto args = new Array<TouchEvent::TouchPoint>(evt->changed_touches());
 				_async_call([](auto ctx, auto arg) {
@@ -615,7 +656,7 @@ namespace qk {
 		}
 
 		void handle_MouseMove(UIEvent& e) {
-			if (_action_id && e.return_value) {
+			if (_action_id && e.is_default()) {
 				auto evt = static_cast<MouseEvent*>(&e);
 				_async_call([](auto ctx, auto arg) {
 					if ( ctx->_action_id ) {
@@ -635,7 +676,26 @@ namespace qk {
 			}, this, Vec2( evt->x(), evt->y() ));
 		}
 
+		void handle_MouseWheel(UIEvent& e) {
+			auto &evt = static_cast<MouseEvent&>(e);
+			_async_call([](auto self, auto arg) {
+				Vec2 v0 = self->_scroll.load() + (arg.arg * 10);
+				Vec2 v = self->get_catch_valid_scroll(v0);
+				if ( v != self->_scroll ) {
+					self->scroll_to_valid_scroll(v, 0);
+					self->register_task(new ScrollBarFadeInOutTask(self, 5e4, 1e6, 3e5));
+				}
+			}, this, Vec2(evt.x(), evt.y()));
+		}
+
 	};
+	
+	void ScrollBase::Task::next() {
+		if (_next) {
+			_inl(m_host)->register_task(_next);
+			_next = nullptr;
+		}
+	}
 
 	ScrollBase::ScrollBase(Box *host)
 		: _scrollbar(true)
@@ -660,7 +720,18 @@ namespace qk {
 		, _moved(false)
 		, _scroll_h(false), _scroll_v(false)
 		, _lock_h(false), _lock_v(false)
-	{}
+	{
+		// bind touch event
+		host->add_event_listener(UIEvent_TouchStart, &Inl::handle_TouchStart, _inl(this));
+		host->add_event_listener(UIEvent_TouchMove, &Inl::handle_TouchMove, _inl(this));
+		host->add_event_listener(UIEvent_TouchEnd, &Inl::handle_TouchEnd, _inl(this));
+		host->add_event_listener(UIEvent_TouchCancel, &Inl::handle_TouchEnd, _inl(this));
+		// bind mouse event
+		//host->add_event_listener(UIEvent_MouseDown, &Inl::handle_MouseDown, _inl(this));
+		//host->add_event_listener(UIEvent_MouseMove, &Inl::handle_MouseMove, _inl(this));
+		//host->add_event_listener(UIEvent_MouseUp, &Inl::handle_MouseUp, _inl(this));
+		host->add_event_listener(UIEvent_MouseWheel, &Inl::handle_MouseWheel, _inl(this));
+	}
 
 	ScrollBase::~ScrollBase() {
 		_this->termination_all_task_Rt();
@@ -816,15 +887,6 @@ namespace qk {
 
 	Scroll::Scroll(): Box(), ScrollBase(this)
 	{
-		// bind touch event
-		add_event_listener(UIEvent_TouchStart, &Inl::handle_TouchStart, _inl(this));
-		add_event_listener(UIEvent_TouchMove, &Inl::handle_TouchMove, _inl(this));
-		add_event_listener(UIEvent_TouchEnd, &Inl::handle_TouchEnd, _inl(this));
-		add_event_listener(UIEvent_TouchCancel, &Inl::handle_TouchEnd, _inl(this));
-		// bind mouse event
-		add_event_listener(UIEvent_MouseDown, &Inl::handle_MouseDown, _inl(this));
-		add_event_listener(UIEvent_MouseMove, &Inl::handle_MouseMove, _inl(this));
-		add_event_listener(UIEvent_MouseUp, &Inl::handle_MouseUp, _inl(this));
 	}
 
 	View* Scroll::init(Window *win) {

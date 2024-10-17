@@ -49,9 +49,10 @@ void layout_scroll(Window* win) {
 
 	//v->set_clip(false);
 	v->set_width({ 150, BoxSizeKind::Match });
-	v->set_height({ 0.5, BoxSizeKind::Ratio });
+	v->set_height({ 0.5, BoxSizeKind::Match });
 	v->set_background_color(Color(255,255,255));
 	v->set_border_radius({20});
+	v->set_scrollbar_width(6);
 
 	auto a = v->append_new<Box>();
 	a->set_margin_top(10);
@@ -239,8 +240,8 @@ void test_layout(int argc, char **argv) {
 		app.fontPool()->getFontFamilys("Helvetica, PingFang SC")
 	});
 	//layout_text(win);
-	layout_scroll(win);
-	//layout_input(win);
+	//layout_scroll(win);
+	layout_input(win);
 	//layout(win);
 
 	app.run();

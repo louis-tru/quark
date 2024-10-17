@@ -122,8 +122,7 @@ namespace qk {
 	{}
 
 	UIEvent::UIEvent(View *origin, SendData data)
-		: Event(data), _origin(origin), _timestamp(time_micro()) {
-		return_value = kAll_ReturnValueMask;
+		: Event(data, kAll_ReturnValueMask), _origin(origin), _timestamp(time_micro()) {
 	}
 
 	void UIEvent::release() {
@@ -645,7 +644,8 @@ namespace qk {
 	View* EventDispatch::find_receive_view(Vec2 pos) {
 		auto root = _window->root();
 		if (root) {
-			return find_receive_view_exec(root, pos);
+			auto r = find_receive_view_exec(root, pos);
+			return r ? r: root;
 		} else {
 			return nullptr;
 		}
@@ -770,6 +770,7 @@ namespace qk {
 		UILock lock(_window);
 		if (_window->root()) {
 			Vec2 pos(x, y);
+			// Qk_DLog("onMousemove x: %f, y: %f", x, y);
 			_mouse_handle->set_position(pos); // set current mouse pos
 			auto v = find_receive_view(pos);
 			if (v) {
@@ -778,7 +779,7 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, Vec2 *value) {
+	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, const Vec2 *value) {
 		switch(code) {
 			case KEYCODE_MOUSE_LEFT:
 			case KEYCODE_MOUSE_CENTER:
@@ -786,6 +787,7 @@ namespace qk {
 				UILock lock(_window);
 				auto pos = value ? *value: _mouse_handle->position(); // get current mouse pos
 				auto v = find_receive_view(pos);
+				//Qk_DLog("onMousepress code: %d, isDown: %i, v: %p", code, isDown, v);
 				if (v) {
 					_pre.post(Cb([this,v,pos,code,isDown](auto& e) { mousepress(v, pos, code, isDown); }),v);
 				}
