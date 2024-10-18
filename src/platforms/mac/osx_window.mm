@@ -28,10 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#import <AppKit/AppKit.h>
 #import "../../ui/app.h"
-#include "./mac_app.h"
-#include "../../ui/window.h"
+#import "../../ui/window.h"
+#import "../../ui/event.h"
 #include "../../render/render_mac.h"
+#import "./mac_app.h"
 
 using namespace qk;
 
@@ -41,7 +43,11 @@ QkWindowDelegate* WindowImpl::delegate() {
 	return ((__bridge QkWindowDelegate*)(this));
 }
 
-@interface QkWindowDelegate()
+@interface QkWindowDelegate() {
+	@private
+	id _mouseMovedId;
+	id _keyDownId;
+}
 @property (assign, nonatomic) BOOL isClose;
 @property (assign, nonatomic) BOOL isBackground;
 @end
@@ -49,7 +55,8 @@ QkWindowDelegate* WindowImpl::delegate() {
 @implementation QkWindowDelegate
 
 - (id) init:(Window::Options&)opts win:(Window*)win render:(Render*)render {
-	if ( !(self = [super init]) ) return nil;
+	if ( !(self = [super init]) )
+		return nil;
 
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
@@ -75,49 +82,211 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 	self.isBackground = NO;
 	self.isClose = NO;
-	self.win = win;
+	self.qkwin = win;
 	self.uiwin = uiwin;
-	self.root_ctr = [QkRootViewController new];
-	self.root_ctr.win = win;
-	self.uiwin.contentViewController = self.root_ctr;
+	self.uiwin.contentViewController = self;
 	self.ime = qk_make_ime_helper(win);
 
 	if (opts.frame.origin.x() < 0 && opts.frame.origin.y() < 0) {
 		[uiwin center];
 	}
 
-	UIView *rootView = self.root_ctr.view;
+	UIView *rootView = self.view;
 	UIView *view = render->surface()->surfaceView();
 
 	view.frame = rootView.bounds;
 	view.translatesAutoresizingMaskIntoConstraints = NO;
 
 	[rootView addSubview:view];
-	[rootView addConstraint:[NSLayoutConstraint
-													constraintWithItem:view
-													attribute:NSLayoutAttributeWidth
-													relatedBy:NSLayoutRelationEqual
-													toItem:rootView
-													attribute:NSLayoutAttributeWidth
-													multiplier:1
-													constant:0]];
-	[rootView addConstraint:[NSLayoutConstraint
-													constraintWithItem:view
-													attribute:NSLayoutAttributeHeight
-													relatedBy:NSLayoutRelationEqual
-													toItem:rootView
-													attribute:NSLayoutAttributeHeight
-													multiplier:1
-													constant:0]];
 	[rootView addSubview:self.ime.view];
+	[rootView addConstraint:[NSLayoutConstraint
+													constraintWithItem:view
+													attribute:NSLayoutAttributeWidth
+													relatedBy:NSLayoutRelationEqual
+													toItem:rootView
+													attribute:NSLayoutAttributeWidth
+													multiplier:1
+													constant:0]];
+	[rootView addConstraint:[NSLayoutConstraint
+													constraintWithItem:view
+													attribute:NSLayoutAttributeHeight
+													relatedBy:NSLayoutRelationEqual
+													toItem:rootView
+													attribute:NSLayoutAttributeHeight
+													multiplier:1
+													constant:0]];
 	return self;
 }
+
+// UIViewController
+// -------------------------------------------------------------------------
+
+- (void)doCommandBySelector:(SEL)selector {
+	// [super doCommandBySelector:selector];
+}
+
+- (BOOL) acceptsFirstResponder {
+	return YES;
+}
+
+- (Vec2)location:(NSEvent *)e {
+	auto scale = self.qkwin->defaultScale() / self.qkwin->scale();
+	return Vec2(e.locationInWindow.x,e.window.contentView.frame.size.height-e.locationInWindow.y) * scale;
+}
+
+- (void) LogMouse:(const char*)name event:(NSEvent *)e {
+	/*
+		Qk_DLog("%s,type:%d,modifierFlags:%d,eventNumber:%d,\
+pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
+",
+		name, e.type,
+		e.modifierFlags,
+		e.eventNumber,
+		e.pressure,
+		e.locationInWindow.x,e.locationInWindow.y,
+		e.deltaX,e.deltaY,self.qkwin->defaultScale(),self.qkwin->scale()
+	);*/
+}
+- (void)viewDidAppear {
+	auto _uiwin = self.qkwin->impl()->delegate().uiwin;
+	_mouseMovedId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
+		if (event.window == _uiwin) {
+			[self _mouseMoved:event];
+		}
+		return event;
+	}];
+	_keyDownId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown | NSEventMaskFlagsChanged handler:^NSEvent *(NSEvent *e) {
+		if (e.window == _uiwin) {
+			if (e.type == NSEventTypeFlagsChanged) {
+				[self _flagsChanged:e];
+			} else {
+				[self _keyDown:e];
+			}
+		}
+		return e;
+	}];
+}
+-(void)viewDidDisappear {
+	[NSEvent removeMonitor:_mouseMovedId];
+	[NSEvent removeMonitor:_keyDownId];
+}
+- (void)mouseDown:(NSEvent *)e{
+	[self LogMouse:"mouseDown" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_LEFT, true, &pos);
+}
+- (void)rightMouseDown:(NSEvent *)e{
+	[self LogMouse:"rightMouseDown" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_RIGHT, true, &pos);
+}
+- (void)otherMouseDown:(NSEvent *)e{
+	[self LogMouse:"otherMouseDown" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_CENTER, true, &pos);
+}
+- (void)mouseUp:(NSEvent *)e{
+	[self LogMouse:"mouseUp" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_LEFT, false, &pos);
+}
+- (void)rightMouseUp:(NSEvent *)e{
+	[self LogMouse:"rightMouseUp" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_RIGHT, false, &pos);
+}
+- (void)otherMouseUp:(NSEvent *)e{
+	[self LogMouse:"otherMouseUp" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_CENTER, false, &pos);
+}
+- (void)_mouseMoved:(NSEvent *)e{
+	[self LogMouse:"mouseMoved" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
+}
+- (void)mouseDragged:(NSEvent *)e{
+	[self LogMouse:"mouseDragged" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
+}
+- (void)rightMouseDragged:(NSEvent *)e{
+	[self LogMouse:"rightMouseDragged" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
+}
+- (void)otherMouseDragged:(NSEvent *)e{
+	[self LogMouse:"otherMouseDragged" event:e];
+	auto pos = [self location:e];
+	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
+}
+- (void)scrollWheel:(NSEvent *)e{
+	Qk_DLog("scrollWheel,type:%d,modifierFlags:%d,delta:%f %f", e.type, e.modifierFlags, e.deltaX,e.deltaY);
+	auto delta = Vec2(e.deltaX,e.deltaY);
+	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_WHEEL, true, &delta);
+}
+- (void)_keyDown:(NSEvent *)e {
+	//NSLog(@"keyDown,%@", e);
+	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
+	_qkwin->dispatch()->keyboard()->dispatch(e.keyCode, false, true, isCapsLock, e.ARepeat, -1, 0);
+}
+- (void)keyUp:(NSEvent *)e {
+	//NSLog(@"keyUp,%@", e);
+	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
+	_qkwin->dispatch()->keyboard()->dispatch(e.keyCode, false, false, isCapsLock, 0, -1, 0);
+}
+- (void)_flagsChanged:(NSEvent *)e{
+	//NSLog(@"flagsChanged,%@", e);
+
+	auto flags = e.modifierFlags & NSEventModifierFlagDeviceIndependentFlagsMask;
+	BOOL isCapsLock = flags & NSEventModifierFlagCapsLock;
+	BOOL isDown;
+
+	switch (e.keyCode) {
+		case 55: // Command
+		case 54: // Command right
+			isDown = flags & NSEventModifierFlagCommand; break;
+		case 57: // CapsLock
+			isDown = isCapsLock; break;
+		case 56: // shift
+		case 60: // right shift
+			isDown = flags & NSEventModifierFlagShift; break;
+		case 58: // Option
+		case 61: // right Option
+			isDown = flags & NSEventModifierFlagOption; break;
+		case 59: // Control
+		case 62: // right Control
+			isDown = flags & NSEventModifierFlagControl; break;
+		case 63: // Function
+			isDown = flags & NSEventModifierFlagFunction; break;
+		case 114: // help
+			isDown = flags & NSEventModifierFlagHelp; break;
+		default: return;
+	}
+	_qkwin->dispatch()->keyboard()->dispatch(e.keyCode, false, isDown, isCapsLock, false, -1, 0);
+}
+
+//  - (void)mouseEntered:(NSEvent *)e{
+//  	[self LogMouse:"mouseEntered" event:e];
+//  }
+//  - (void)mouseExited:(NSEvent *)e{
+//  	[self LogMouse:"mouseExited" event:e];
+//  }
+// - (void)tabletPoint:(NSEvent *)e{
+// 	[self LogMouse:"tabletPoint" event:e];
+// }
+// - (void)tabletProximity:(NSEvent *)e{
+// 	[self LogMouse:"tabletProximity" event:e];
+// }
+
+// NSWindowDelegate
+// -------------------------------------------------------------------------
 
 - (BOOL)windowShouldClose:(NSWindow*)sender {
 	if (!self.isClose) {
 		self.isClose = YES;
-		self.win->host()->loop()->post(Cb([self](auto&e){
-			self.win->close(); // close destroy window
+		self.qkwin->host()->loop()->post(Cb([self](auto&e){
+			self.qkwin->close(); // close destroy window
 		}));
 	}
 	return YES;
@@ -130,14 +299,14 @@ QkWindowDelegate* WindowImpl::delegate() {
 - (void)windowDidMiniaturize:(NSNotification*)notification {
 	if (self.isBackground) return;
 	self.isBackground = YES;
-	Inl_Application(self.win->host())->triggerBackground(self.win);
+	Inl_Application(self.qkwin->host())->triggerBackground(self.qkwin);
 	Qk_DLog("windowDidMiniaturize, triggerBackground");
 }
 
 - (void)windowDidDeminiaturize:(NSNotification*)notification {
 	if (!self.isBackground) return;
 	self.isBackground = NO;
-	Inl_Application(self.win->host())->triggerForeground(self.win);
+	Inl_Application(self.qkwin->host())->triggerForeground(self.qkwin);
 	Qk_DLog("windowDidDeminiaturize,triggerForeground");
 }
 

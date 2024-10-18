@@ -28,7 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./mac_app.h"
+#if 0
+
+#import "../mac_app.h"
 #import "../../display.h"
 #import "../../render/gl/gl_render.h"
 
@@ -191,3 +193,4 @@ QkMacRender* qk_make_mac_gl_render(Render::Options opts) {
 
 #endif // #if Qk_ENABLE_GL
 
+#endif

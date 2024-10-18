@@ -55,7 +55,7 @@
 					]
 				},
 				'defines': [ 'USE_JSC=1' ],
-				'sources': [ 'link_jsc.cc' ],
+				'sources': [ 'jsc.cc' ],
 			}, { # use v8
 				'include_dirs': [
 					# '../../deps/v8', # v8 root

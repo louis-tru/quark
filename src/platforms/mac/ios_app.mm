@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../util/loop.h"
-#import "../../app.h"
-#import "../../event.h"
-#import "../../display.h"
+#import "../../ui/app.h"
+#import "../../ui/window.h"
+#import "../../ui/event.h"
+#import "../../ui/screen.h"
 #import "./mac_app.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
@@ -39,16 +39,19 @@ using namespace qk;
 
 // ***************** Q k . A p p l i c a t i o n . D e l e g a t e *****************
 
-QkApplicationDelegate *qkappdelegate = nil; //
+QkApplicationDelegate* qkappdelegate = nil;
 
-@implementation QkApplicationDelegate<MFMailComposeViewControllerDelegate>
+QkWindowDelegate* getActiveDelegate() {
+	auto qkwin = qkappdelegate.host->activeWindow();
+	if (qkwin)
+		return qkwin->impl()->delegate();
+	return nil;
+}
 
-	- (void)refresh_status {
-		if ( self.window.rootViewController == self.root_ctr ) {
-			self.window.rootViewController = nil;
-			self.window.rootViewController = self.root_ctr;
-		}
-	}
+@interface QkApplicationDelegate()<MFMailComposeViewControllerDelegate>
+@end
+
+@implementation QkApplicationDelegate
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
 		Qk_Assert(!qkappdelegate);
@@ -56,65 +59,14 @@ QkApplicationDelegate *qkappdelegate = nil; //
 		qkappdelegate = self;
 		_host = Application::shared();
 		_app = app;
-		_render = dynamic_cast<QkMacRender*>(_host->render());
-
+		Inl_Application(_host)->triggerLoad();
 		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 		//[app setStatusBarHidden:NO];
-		_is_background = NO;
-
-		self.setting_orientation = Orientation::ORIENTATION_USER;
-		self.current_orientation = Orientation::ORIENTATION_INVALID;
-		self.visible_status_bar = YES;
-		self.status_bar_style = UIStatusBarStyleDefault;
-
-		self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-		self.root_ctr = [[QkRootViewController alloc] init];
-		self.window.backgroundColor = [UIColor blackColor];
-		self.window.rootViewController = self.root_ctr;
-
-		[self.window makeKeyAndVisible];
-
-		UIView *rootView = self.window.rootViewController.view;
-
-		self.surface_view = self.render->make_surface_view(rootView.bounds);
-		self.surface_view.contentScaleFactor = UIScreen.mainScreen.scale;
-		self.surface_view.translatesAutoresizingMaskIntoConstraints = NO;
-		self.surface_view.multipleTouchEnabled = YES;
-		self.surface_view.userInteractionEnabled = YES;
-
-		self.ime = qk_ime_helper_new(_host);
-
-		[rootView addSubview:self.surface_view];
-		[rootView addSubview:self.ime.view];
-		[rootView addConstraint:[NSLayoutConstraint
-												constraintWithItem:self.surface_view
-												attribute:NSLayoutAttributeWidth
-												relatedBy:NSLayoutRelationEqual
-												toItem:rootView
-												attribute:NSLayoutAttributeWidth
-												multiplier:1
-												constant:0]];
-		[rootView addConstraint:[NSLayoutConstraint
-												constraintWithItem:self.surface_view
-												attribute:NSLayoutAttributeHeight
-												relatedBy:NSLayoutRelationEqual
-												toItem:rootView
-												attribute:NSLayoutAttributeHeight
-												multiplier:1
-												constant:0]];
-
-		self.host->render()->reload(); // set size
-
-		Inl_Application(_host)->triggerLoad();
-		Qk_DLog("application,triggerLoad");
-
 		return YES;
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
-		if ( qkappdelegate && !_is_background ) {
-			self.host->render()->reload(); // set size
-		}
+		// self.host->render()->reload(); // set size
 	}
 
 	- (void)applicationWillResignActive:(UIApplication*) application {
@@ -124,19 +76,17 @@ QkApplicationDelegate *qkappdelegate = nil; //
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerResume();
-		self.host->render()->reload(); // set size
+		//self.host->render()->reload(); // set size
 		Qk_DLog("applicationDidBecomeActive,triggerResume");
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
-		_is_background = YES;
-		Inl_Application(_host)->triggerBackground();
+		Inl_Application(_host)->triggerBackground(qkappdelegate.host->activeWindow());
 		Qk_DLog("applicationDidEnterBackground,triggerBackground");
 	}
 
 	- (void)applicationWillEnterForeground:(UIApplication*) application {
-		_is_background = NO;
-		Inl_Application(_host)->triggerForeground();
+		Inl_Application(_host)->triggerForeground(qkappdelegate.host->activeWindow());
 		Qk_DLog("applicationWillEnterForeground,triggerForeground");
 	}
 
@@ -169,20 +119,18 @@ static NSArray<NSString*>* split_ns_array(cString& str) {
 	return arr;
 }
 
-void Application::pending() {
-	// exit(0);
-}
-
-void Application::open_url(cString& url) {
+void Application::openURL(cString& url) {
 	NSURL* url_ = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[qkappdelegate.app openURL:url_ options:@{} completionHandler:nil];
 	});
 }
 
-void Application::send_email(cString& recipient,
-															cString& subject,
-															cString& cc, cString& bcc, cString& body) {
+void Application::sendEmail(cString& recipient,
+														cString& subject,
+														cString& cc, cString& bcc, cString& body) {
+	auto delegate = getActiveDelegate();
+	if (!delegate) return;
 	id recipient_ = split_ns_array(recipient);
 	id subject_ = [NSString stringWithUTF8String:*subject];
 	id cc_ = split_ns_array(cc);
@@ -197,42 +145,43 @@ void Application::send_email(cString& recipient,
 		[mail setBccRecipients:bcc_];
 		[mail setMessageBody:body_ isHTML:NO];
 		mail.mailComposeDelegate = qkappdelegate;
-		[qkappdelegate.root_ctr presentViewController:mail animated:YES completion:nil];
+
+		[delegate presentViewController:mail animated:YES completion:nil];
 	});
 }
 
 // ***************** E v e n t . D i s p a t c h *****************
 
-void EventDispatch::set_volume_up() {
+void EventDispatch::setVolumeUp() {
 	// TODO ..
 }
 
-void EventDispatch::set_volume_down() {
+void EventDispatch::setVolumeDown() {
 	// TODO ..
 }
 
-void EventDispatch::set_ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
+void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
+	auto delegate = window()->impl()->delegate();
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[qkappdelegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
+		[delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 	});
 }
 
-void EventDispatch::set_ime_keyboard_open(KeyboardOptions options) {
+void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
+	auto delegate = window()->impl()->delegate();
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[qkappdelegate.ime set_keyboard_type:options.type];
-		[qkappdelegate.ime set_keyboard_return_type:options.return_type];
-		if ( options.is_clear ) {
-			[qkappdelegate.ime clear];
-		}
-		[qkappdelegate.ime open];
+		[delegate.ime set_keyboard_type:options.type];
+		[delegate.ime set_keyboard_return_type:options.return_type];
+		[delegate.ime activate: options.is_clear];
 	});
 }
 
-void EventDispatch::set_ime_keyboard_close() {
+void EventDispatch::setImeKeyboardClose() {
+	auto delegate = window()->impl()->delegate();
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[qkappdelegate.ime close];
+		[delegate.ime deactivate];
 	});
 }
 
-void EventDispatch::set_ime_keyboard_spot_location(Vec2 location) {
+void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 }

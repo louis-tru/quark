@@ -36,7 +36,19 @@
 #include "../../ui/types.h"
 
 #if Qk_MAC
+@class QkWindowDelegate;
+namespace qk {
+	class Application;
+	class Window;
+	class WindowImpl {
+	public:
+		QkWindowDelegate* delegate();
+	};
+}
 
+/**
+ * @protocol QkIMEHelprt
+*/
 @protocol QkIMEHelprt<NSObject>
 - (void)activate:(bool)clear;
 - (void)deactivate;
@@ -48,54 +60,28 @@
 - (UIView*)view; // ime view
 @end
 
-@class QkWindowDelegate;
-namespace qk {
-	class Application;
-	class Window;
-	class WindowImpl {
-	public:
-		QkWindowDelegate* delegate();
-	};
-}
+/**
+ * @interface QkWindowDelegate
+*/
+@interface QkWindowDelegate: UIViewController
+#if Qk_OSX
+<NSWindowDelegate>
+#endif
+@property (assign, nonatomic) qk::Window *qkwin;
+@property (assign, nonatomic) UIWindow   *uiwin;
+@property (strong, nonatomic) id<QkIMEHelprt> ime;
+@end
+
+/**
+ * @interface QkApplicationDelegate
+*/
+@interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
+@property (assign, nonatomic, readonly) qk::Application *host;
+@property (assign, nonatomic, readonly) UIApplication *app;
+@end
 
 id<QkIMEHelprt> qk_make_ime_helper(qk::Window *win);
 void            qk_post_messate_main(qk::Cb cb, bool sync);
 
-@interface QkRootViewController: UIViewController
-	@property (assign, nonatomic) qk::Window *win;
-@end
-
-@interface QkWindowDelegate: NSObject
-#if Qk_OSX
-<NSWindowDelegate>
-#endif
-@property (assign, nonatomic) qk::Window *win;
-@property (strong, nonatomic) UIWindow *uiwin; // strong
-@property (strong, nonatomic) id<QkIMEHelprt> ime; // strong
-@property (strong, nonatomic) QkRootViewController *root_ctr;
-@end
-
-@interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
-@property (assign, nonatomic, readonly) qk::Application *host;
-@property (assign, nonatomic, readonly) UIApplication *app; // strong
-@end
-
 #endif // #if Qk_MAC
-
-#if Qk_iOS
-#include "../../ui/screen.h"
-
-typedef qk::Screen::Orientation Orientation;
-
-@interface QkApplicationDelegate() {
-	BOOL _is_background;
-}
-@property (assign, nonatomic) Orientation setting_orientation;
-@property (assign, nonatomic) Orientation current_orientation;
-@property (assign, nonatomic) bool        visible_status_bar;
-@property (assign, nonatomic) UIStatusBarStyle status_bar_style;
-- (void)refresh_status;
-@end
-#endif // #if Qk_iOS
-
 #endif

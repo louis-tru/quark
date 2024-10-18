@@ -238,7 +238,7 @@ namespace qk {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glGenerateMipmap(GL_TEXTURE_2D);
-#if DEBUG
+#if DEBUG && defined(GL_TEXTURE_WIDTH)
 		int texDims;
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 4, GL_TEXTURE_WIDTH, &texDims);
 		Qk_DLog("glGetTexLevelParameteriv: %d", texDims);
@@ -277,8 +277,11 @@ namespace qk {
 #if DEBUG
 		GLint maxTextureSize,maxTextureBufferSize,maxTextureImageUnits;
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+#ifdef GL_MAX_TEXTURE_BUFFER_SIZE
 		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTextureBufferSize);
+#endif
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+
 		Qk_DLog("GL_MAX_TEXTURE_SIZE: %d", maxTextureSize);
 		Qk_DLog("GL_MAX_TEXTURE_BUFFER_SIZE: %d", maxTextureBufferSize);
 		Qk_DLog("GL_MAX_TEXTURE_IMAGE_UNITS: %d", maxTextureImageUnits);
@@ -333,7 +336,7 @@ namespace qk {
 		// set depth test
 		glEnable(GL_DEPTH_TEST); // enable depth test
 		glDepthFunc(GL_GREATER); // passes if depth is greater than the stored depth.
-		glClearDepth(0.0f); // set depth clear value to -1.0
+		glClearDepthf(0.0f); // set depth clear value to -1.0
 	}
 
 	GLRender::~GLRender() {

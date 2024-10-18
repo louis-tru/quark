@@ -30,7 +30,6 @@
 
 #import <MacTypes.h>
 #import <AppKit/AppKit.h>
-#import "../../util/loop.h"
 #import "../../util/http.h"
 #import "../../ui/app.h"
 #import "../../ui/window.h"

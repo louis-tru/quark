@@ -223,14 +223,13 @@
 				},
 			}],
 			['os=="ios"', {
-				'sources':[
-					'platforms/mac/ios_app.h',
+				'sources': [
 					'platforms/mac/ios_app.mm',
-					'platforms/mac/ios_ctr.mm',
 					'platforms/mac/ios_screen.mm',
 					'platforms/mac/ios_ime_helper.mm',
 					'platforms/mac/ios_main.mm',
-					'platforms/mac/ios_render.mm',
+					'platforms/mac/ios_window.mm',
+					'render/render_ios.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -244,7 +243,6 @@
 			['os=="osx"', {
 				'sources': [
 					'platforms/mac/osx_app.mm',
-					'platforms/mac/osx_ctr.mm',
 					'platforms/mac/osx_screen.mm',
 					'platforms/mac/osx_ime_helper.mm',
 					'platforms/mac/osx_main.mm',

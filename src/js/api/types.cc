@@ -504,7 +504,7 @@ namespace qk { namespace js {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
-		_out = {};
+		_out = {.backgroundColor=Color(255,255,255)};
 		auto obj = in->as<JSObject>();
 		auto colorType = obj->get(worker, worker->newStringOneByte("colorType"));
 		auto msaa = obj->get(worker, worker->newStringOneByte("msaa"));

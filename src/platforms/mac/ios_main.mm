@@ -28,7 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./ios_app.h"
+#import "../../ui/app.h"
+#import "./mac_app.h"
 
 using namespace qk;
 
