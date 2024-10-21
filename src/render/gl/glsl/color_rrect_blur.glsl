@@ -26,21 +26,21 @@ uniform lowp vec3  __; // consts
 // 1/n
 #define n_inv __.z
 
-float erf(float x) {
-	float s = sign(x), a = abs(x);
+lowp float erf(lowp float x) {
+	lowp float s = sign(x), a = abs(x);
 	x = 1.0 + (0.278393 + (0.230389 + 0.078108 * (a * a)) * a) * a;
 	x *= x; // x^2
 	return s - s / (x * x);
 }
 
-float sqLen(vec2 p) { // squircle length
+lowp float sqLen(lowp vec2 p) { // squircle length
 	// https://en.wikipedia.org/wiki/Squircle
-	vec2 q = max(p,0.0);
+	lowp vec2 q = max(p,0.0);
 	return pow(pow(q.x,n) + pow(q.y,n), n_inv);
 }
 
-float sdf( vec2 p, float r ) {
-	vec2 q = p - horn + r;
+lowp float sdf(lowp vec2 p, lowp float r) {
+	lowp vec2 q = p - horn + r;
 	return /*min(max(q.x,q.y),0.0) + */sqLen(p)-r;
 }
 

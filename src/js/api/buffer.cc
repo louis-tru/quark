@@ -79,7 +79,7 @@ namespace qk { namespace js {
 			auto self = args[args_index++]->template as<JSUint8Array>();
 			Encoding en = kUTF8_Encoding;
 			int len = self->byteLength(worker);
-			cChar* data = self->weakBuffer(worker).val();
+			cChar* data = self->value(worker).val();
 			uint32_t start = 0;
 			uint32_t end = len;
 

@@ -154,7 +154,7 @@ namespace qk { namespace js {
 			size = holder.length();
 		}
 		else { // ArrayBuffer or TypedArray
-			auto weakBuffer = args[args_index++]->asBuffer(worker);
+			auto weakBuffer = args[args_index++]->toBufferValue(worker);
 
 			data = const_cast<char*>(*weakBuffer);
 			size = weakBuffer.length();
@@ -1248,7 +1248,7 @@ namespace qk { namespace js {
 			}
 
 			int fd = args[args_index++]->toInt32Value(worker).unsafe();
-			auto weakBuffer = args[args_index++]->asBuffer(worker);
+			auto weakBuffer = args[args_index++]->toBufferValue(worker);
 			char* data = const_cast<char*>(*weakBuffer);
 			uint32_t size = weakBuffer.length();
 			int64_t offset = -1;

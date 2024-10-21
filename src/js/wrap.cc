@@ -122,7 +122,7 @@ namespace qk { namespace js {
 	}
 
 	Object* WrapObject::externalData() {
-		auto data = get(worker()->strs()->_wrap_external_data());
+		auto data = getProp(worker()->strs()->_wrap_external_data());
 		if ( worker()->instanceOf(data, Js_Typeid(Object)) )
 			return wrap(data)->self();
 		return nullptr;
@@ -136,7 +136,7 @@ namespace qk { namespace js {
 				setWeak(p);
 			}
 			//Qk_DLog("%i", p->handle().isWeak());
-			Qk_Assert(set(worker()->strs()->_wrap_external_data(), p->that()));
+			Qk_Assert(setProp(worker()->strs()->_wrap_external_data(), p->that()));
 			//Qk_DLog("%i", p->handle().isWeak());
 			Qk_Assert(externalData());
 		}

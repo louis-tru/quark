@@ -180,13 +180,14 @@ namespace qk {
 	}
 
 	void AppInl::triggerUnload() {
-		_loop->post(Cb((CbFunc)[](auto& d, AppInl* app) {
-			if (app->_isLoaded) {
-				app->_isLoaded = false;
-				app->Qk_Trigger(Unload);
-				app->_loop->tick_stop(app->_tick);
+		_loop->post_sync(Callback<RunLoop::PostSyncData>([this](auto &d) {
+			if (_isLoaded) {
+				_isLoaded = false;
+				Qk_Trigger(Unload);
+				_loop->tick_stop(_tick);
 				Qk_DLog("AppInl::onUnload()");
 			}
+			d.data->complete();
 		}, this));
 	}
 

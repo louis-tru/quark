@@ -73,9 +73,9 @@ namespace qk {
 			case kLuminance_Alpha_88_ColorType: return GL_LUMINANCE_ALPHA;
 			// case kSDF_Float_ColorType: return GL_RGBA;
 			// case kYUV420SP_Y_8_ColorType:
-			case kYUV420P_Y_8_ColorType: return GL_LUMINANCE;
+			case kYUV420P_Y_8_ColorType: return GL_RED;
 			// case kYUV420P_V_8_ColorType:
-			case kYUV420P_U_8_ColorType: return GL_LUMINANCE;
+			case kYUV420P_U_8_ColorType: return GL_RED;
 			case kYUV420SP_UV_88_ColorType: return GL_RG;
 #if Qk_iOS // ios
 				// compressd texture
@@ -131,8 +131,8 @@ namespace qk {
 	void gl_set_texture_no_repeat(GLenum wrapdir) {
 #if Qk_OSX
 		glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_BORDER);
-		//constexpr float black[4] = {0,0,0,0};
-		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
+		constexpr float black[4] = {0,0,0,0};
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
 #else
 		glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_EDGE);
 #endif
@@ -290,10 +290,10 @@ namespace qk {
 		if (!gl_MaxTextureImageUnits) {
 			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
 			gl_MaxTextureImageUnits_GLSL_Macros = 
-				String("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS ") + gl_MaxTextureImageUnits + "\n";
+				String::format("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS %d\n", gl_MaxTextureImageUnits);
 		}
 
-#if DEBUG || QK_MoreLog
+#if DEBUG
 		int64_t st = time_micro();
 		_shaders.buildAll(); // compile all shaders
 		Qk_DLog("shaders.buildAll time: %ld (micro s)", time_micro() - st);
@@ -349,16 +349,15 @@ namespace qk {
 	void GLRender::release() {
 		GLuint fbo = _fbo, ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
 		auto texStat = _texStat;
-		post_message(Cb([fbo,ubo,texStat](auto &e){
+		post_message(Cb([fbo,ubo,texStat](auto &e) {
 			glDeleteFramebuffers(1, &fbo);
 			glDeleteBuffers(3, ubo);
 			for (int i = 0; i < 8; i++) {
-				if (texStat[i])
-					glDeleteTextures(1, &texStat[i]->id);
+				if (texStat[i]) glDeleteTextures(1, &texStat[i]->id);
 			}
 			delete[] texStat;
 		}));
-		Qk_Assert(_glcanvas->refCount() == 1);
+		Qk_Assert_Eq(_glcanvas->refCount(), 1);
 		_glcanvas->release(); _glcanvas = nullptr;
 		_canvas = nullptr;
 	}

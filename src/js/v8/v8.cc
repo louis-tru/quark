@@ -102,12 +102,8 @@ namespace qk { namespace js {
 			_isolate->SetFatalErrorHandler(OnFatalError);
 			_isolate->AddMessageListener(MessageCallback);
 			_isolate->SetPromiseRejectCallback(PromiseRejectCallback);
-		}
-
-		virtual void init() override {
 			_isolate->SetData(ISOLATE_INL_WORKER_DATA_INDEX, this);
 			_global.reset(this, Cast<JSObject>(_context->Global()) );
-			Worker::init();
 		}
 
 		void release() override {
@@ -308,7 +304,7 @@ namespace qk { namespace js {
 			}
 		}
 	};
-	
+
 	template<>
 	inline WorkerImpl* WorkerImpl::worker<Worker*>(Worker* worker) {
 		return static_cast<WorkerImpl*>(worker);
@@ -481,9 +477,9 @@ namespace qk { namespace js {
 		return Cast<JSUint32>(reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker)));
 	}
 
-	JSObject* JSValue::asObject(Worker* worker) const {
-		return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject(CONTEXT(worker)));
-	}
+	// JSObject* JSValue::asObject(Worker* worker) const {
+	// 	return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject(CONTEXT(worker)));
+	// }
 
 	JSBoolean* JSValue::toBoolean(Worker* worker) const {
 		return Cast<JSBoolean>(reinterpret_cast<const v8::Value*>(this)->ToBoolean(CONTEXT(worker)));
@@ -598,11 +594,11 @@ namespace qk { namespace js {
 			Has(CONTEXT(worker), index).FromMaybe(false);
 	}
 
-	bool JSObject::JSObject::Delete(Worker* worker, JSValue* key) {
+	bool JSObject::JSObject::deleteFor(Worker* worker, JSValue* key) {
 		return reinterpret_cast<v8::Object*>(this)->Delete(CONTEXT(worker), Back(key)).FromMaybe(false);
 	}
 
-	bool JSObject::Delete(Worker* worker, uint32_t index) {
+	bool JSObject::deleteFor(Worker* worker, uint32_t index) {
 		return reinterpret_cast<v8::Object*>(this)->Delete(CONTEXT(worker), index).FromMaybe(false);
 	}
 
@@ -667,9 +663,6 @@ namespace qk { namespace js {
 
 	int JSString::length() const {
 		return reinterpret_cast<const v8::String*>(this)->Length();
-	}
-	String JSString::value(Worker* worker, bool oneByte) const {
-		return toStringValue(worker, oneByte);
 	}
 	JSString* JSString::Empty(Worker* worker) {
 		return Cast<JSString>(v8::String::Empty(ISOLATE(worker)));
@@ -757,11 +750,11 @@ namespace qk { namespace js {
 		return set->Has(CONTEXT(worker), Back(key)).ToChecked();
 	}
 		
-	bool JSSet::Delete(Worker* worker, JSValue* key) {
+	bool JSSet::deleteFor(Worker* worker, JSValue* key) {
 		auto set = reinterpret_cast<v8::Set*>(this);
 		return set->Delete(CONTEXT(worker), Back(key)).ToChecked();
 	}
-		
+
 	bool JSClass::hasInstance(JSValue* val) {
 		return reinterpret_cast<V8JSClass*>(this)->Template()->HasInstance(Back(val));
 	}

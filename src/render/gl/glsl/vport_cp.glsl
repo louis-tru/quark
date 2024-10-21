@@ -1,6 +1,6 @@
 // viewport image copy
-uniform vec2                iResolution; // viewport resolution
-uniform vec2                oResolution; // output image resolution of fragColor
+uniform lowp vec2           iResolution; // viewport resolution
+uniform lowp vec2           oResolution; // output image resolution of fragColor
 #vert
 void main() {
 	gl_Position = rootMatrix * vec4(vertexIn.xy * oResolution / iResolution, depth, 1.0);
@@ -9,7 +9,7 @@ void main() {
 
 #frag
 uniform lowp vec4           coord; // texture offset coord, vec4(0,0,1,1) Fully mapped viewport
-uniform lowp int            imageLod; // input image lod level
+uniform lowp float          imageLod; // input image lod level
 uniform sampler2D           image; // input image
 
 void main() {

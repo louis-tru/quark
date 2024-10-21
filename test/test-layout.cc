@@ -30,7 +30,7 @@ void layout_text(Window* win) {
 	//text->set_text_line_height({16});
 	text->set_text_background_color({ Color(0,255,0) });
 
-	text->set_background_color(Color(255,0,0,255));
+	//text->set_background_color(Color(255,255,0,255));
 	text->set_text_align(TextAlign::Center);
 	//text->set_text_family({ app()->font_pool()->getFFID("Helvetica, PingFang SC") });
 	text->set_padding_top(20);
@@ -47,7 +47,7 @@ void layout_scroll(Window* win) {
 	auto box = win->root();
 	auto v = box->append_new<Scroll>();
 
-	//v->set_clip(false);
+	v->set_clip(false);
 	v->set_width({ 150, BoxSizeKind::Match });
 	v->set_height({ 0.5, BoxSizeKind::Match });
 	v->set_background_color(Color(255,255,255));
@@ -55,7 +55,7 @@ void layout_scroll(Window* win) {
 	v->set_scrollbar_width(6);
 
 	auto a = v->append_new<Box>();
-	a->set_margin_top(10);
+	//a->set_margin_top(10);
 	a->set_width({ 0, BoxSizeKind::Match });
 	a->set_height({ 100 });
 	a->set_background_color(Color(255,0,0));
@@ -90,11 +90,13 @@ void layout_scroll(Window* win) {
 	f->set_height({ 100 });
 	f->set_background_color(Color(0,0,255));
 	
-	auto g = v->append_new<Box>();
-	g->set_margin_top(10);
-	g->set_width({ 0, BoxSizeKind::Match });
-	g->set_height({ 100 });
-	g->set_background_color(Color(255,0,255));
+	for (int i = 0; i < 10; i++) {
+		auto g = v->append_new<Box>();
+		g->set_margin_top(10);
+		g->set_width({ 0, BoxSizeKind::Match });
+		g->set_height({ 100 });
+		g->set_background_color(Color(255,0,255));
+	}
 }
 
 void layout_input(Window* win) {
@@ -240,8 +242,8 @@ void test_layout(int argc, char **argv) {
 		app.fontPool()->getFontFamilys("Helvetica, PingFang SC")
 	});
 	//layout_text(win);
-	//layout_scroll(win);
-	layout_input(win);
+	layout_scroll(win);
+	//layout_input(win);
 	//layout(win);
 
 	app.run();

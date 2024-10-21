@@ -28,136 +28,131 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#if 0
-
-#import "../mac_app.h"
-#import "../../display.h"
-#import "../../render/gl/gl_render.h"
+#include "./render_mac.h"
+#import "./gl/gl_render.h"
 
 using namespace qk;
 
 // ------------------- OpenGL ------------------
-#if Qk_ENABLE_GL && Qk_iOS
+#if Qk_ENABLE_GL && defined(Qk_iOS)
 
-extern QkApplicationDelegate *qkappdelegate;
+class IosGLRender;
 
 @interface GLView: UIView
 {
 	CADisplayLink *_displayLink;
+	IosGLRender   *_render;
 }
-@property (assign, nonatomic) qk::Render *render;
+@property (assign, nonatomic) bool isRun;
+- (id)   init:(IosGLRender*)render;
+- (void) stopDisplay;
 @end
 
-@implementation GLView
+// ----------------------------------------------------------------------------------------------
 
-+ (Class) layerClass {
-	return CAEAGLLayer.class;
-}
+void qk_post_messate_main(Cb cb, bool sync);
 
-- (id) initWithFrame:(CGRect)frame {
-	self = [super initWithFrame:frame];
-	if (self) {
-		_displayLink = [CADisplayLink displayLinkWithTarget:self
-																								selector:@selector(display:)];
-		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
-												forMode:NSDefaultRunLoopMode];
-	}
-	return self;
-}
-
-- (void) display:(CADisplayLink*)displayLink {
-	static int _fps = 0;
-	if (_fps == 0) { // 3 = 15, 1 = 30
-		Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context 2");
-		self.render->delegate()->onRenderBackendDisplay();
-		_fps = 0;
-	} else {
-		_fps++;
-	}
-}
-
-- (void) stopDisplay {
-	[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-}
-
-@end
-
-class MacGLRender: public GLRender, public QkMacRender {
+class IosGLRender final: public GLRender, public RenderSurface {
 public:
-	MacGLRender(Options opts, EAGLContext* ctx)
-		: GLRender(opts), _ctx(ctx)
-	{}
-
-	~MacGLRender() {
-		[_view stopDisplay];
-		[EAGLContext setCurrentContext:nullptr];
+	IosGLRender(Options opts, EAGLContext* ctx)
+		: GLRender(opts), _ctx(ctx), _layer(nil), _view(nil), _fbo_0(0), _rbo_0(0)
+	{
+		glGenFramebuffers(1, &_fbo_0);
+		glGenRenderbuffers(1, &_rbo_0);
 	}
 
-	void post_message(Cb cb, uint64_t delayUs) override {
+	~IosGLRender() {
+		[EAGLContext setCurrentContext:nil];
+		Qk_Assert_Eq(_fbo_0, 0);
+	}
+
+	void release() override {
+		lock();
+		if (_view) {
+			[_view stopDisplay]; // thread task must be forced to end
+		}
+		unlock();
+
+		GLRender::release(); // Destroy the pre object first
+
+		GLuint fbo = _fbo_0, rbo = _rbo_0;
+		_fbo_0 = _rbo_0 = 0;
+		post_message(Cb([fbo,rbo](auto &e) {
+			glDeleteFramebuffers(1, &fbo);
+			glDeleteRenderbuffers(1, &rbo);
+		}));
+
+		Object::release(); // final destruction
+	}
+
+	RenderSurface* surface() override {
+		return this;
+	}
+
+	void reload() override {
+		GLRender::reload();
+		glBindFramebuffer(GL_FRAMEBUFFER, _fbo_0);
+		glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
+		[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable: _layer];
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rbo_0);
+	}
+
+	void lock() override {
+		_mutex.lock();
+	}
+
+	void unlock() override {
+		_mutex.unlock();
+	}
+
+	void post_message(Cb cb) override {
 		qk_post_messate_main(cb, false);
-		return 0;
 	}
 
-	Vec2 getSurfaceSize() override {
+	Vec2 getSurfaceSize(float *defaultScaleOut) override {
+		if (!_view) return {};
 		CGSize size = _view.frame.size;
-		_default_scale = UIScreen.mainScreen.scale;
-		float w = size.width * _default_scale;
-		float h = size.height * _default_scale;
-		_surface_size = Vec2(w, h);
-		return _surface_size;
+		float defaultScale = UIScreen.mainScreen.scale;
+		if (defaultScaleOut)
+			*defaultScaleOut = defaultScale;
+		return Vec2(size.width * defaultScale, size.height * defaultScale);
 	}
 
-	float getDefaultScale() override {
-		_default_scale = UIScreen.mainScreen.scale;
-		return _default_scale;
-	}
+	void renderDisplay() {
+		lock();
 
-	void setDepthBuffer(int width, int height, int msaaSample) override {
-	}
+		if (_delegate->onRenderBackendDisplay()) {
+			_glcanvas->flushBuffer(); // commit gl canvas cmd
 
-	void setRenderBuffer(int width, int height) override {
-		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-		[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
-	}
+			auto src = _glcanvas->surfaceSize();
+			auto dest = _surfaceSize;
+			auto filter = src == dest ? GL_NEAREST: GL_LINEAR;
 
-	void begin() override {
-		if (_IsDeviceMsaa) {
-			glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
-		} else {
-			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT };
+			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 4, attachments);
+			// copy pixels to default color buffer
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fbo_0);
+			glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
+			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
+
+			glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
+			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
+			// you present its contents by making it the current renderbuffer
+			// and calling the presentRenderbuffer: method on your rendering context.;
+			//[_ctx presentRenderbuffer: GL_FRAMEBUFFER];
+			[_ctx presentRenderbuffer: GL_RENDERBUFFER];
 		}
+		unlock();
 	}
 
-	void submit() override {
-		if (_IsDeviceMsaa) {
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
+	UIView* surfaceView() override {
+		if (_view) return _view;
 
-			auto w = _surface_size.x(), h = _surface_size.y();
-			glBlitFramebuffer(0, 0, w, h,
-												0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
-			glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
-		} else {
-			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-		}
-
-		glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
-		// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
-		// you present its contents by making it the current renderbuffer
-		// and calling the presentRenderbuffer: method on your rendering context.
-		[_ctx presentRenderbuffer:GL_RENDERBUFFER];
-	}
-
-	UIView* make_surface_view(CGRect rect) override {
 		[EAGLContext setCurrentContext:_ctx];
-		Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context 2");
+		Qk_Assert_Eq(EAGLContext.currentContext, _ctx, "Failed to set current OpenGL context");
 
-		_view = [[GLView alloc] initWithFrame:rect];
-		_view.render = this;
+		_view = [[GLView alloc] init: this];
 		_layer = (CAEAGLLayer*)_view.layer;
 		_layer.drawableProperties = @{
 			kEAGLDrawablePropertyRetainedBacking : @NO,
@@ -170,27 +165,59 @@ public:
 		return _view;
 	}
 
-	Render* render() override {
-		return this;
-	}
-
 private:
 	EAGLContext *_ctx;
 	CAEAGLLayer *_layer;
 	GLView      *_view;
+	GLuint     _fbo_0, _rbo_0;
+	RecursiveMutex _mutex;
 };
 
-QkMacRender* qk_make_mac_gl_render(Render::Options opts) {
-	EAGLContext* ctx = [EAGLContext alloc];
-	if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
-		[EAGLContext setCurrentContext:ctx];
-		Qk_Assert([EAGLContext currentContext], "Failed to set current OpenGL context");
-		ctx.multiThreaded = NO;
-		return new MacGLRender(opts, ctx);
-	}
-	return nullptr;
+@implementation GLView
+
++ (Class) layerClass {
+	return CAEAGLLayer.class;
 }
 
-#endif // #if Qk_ENABLE_GL
+- (id) init:(IosGLRender*)render {
+	self = [super initWithFrame:UIScreen.mainScreen.bounds];
+	if (self) {
+		_isRun = true;
+		_render = render;
+		_displayLink = [CADisplayLink displayLinkWithTarget:self
+																								selector:@selector(renderDisplay:)];
+		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+	}
+	return self;
+}
 
-#endif
+- (void) renderDisplay:(CADisplayLink*)displayLink {
+	if (_isRun) {
+		Qk_Assert(EAGLContext.currentContext, "Failed to set current OpenGL context");
+		_render->renderDisplay();
+	}
+}
+
+- (void) stopDisplay {
+	[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+	_isRun = false;
+}
+
+@end
+
+// ----------------------------------------------------------------------------------------------
+
+namespace qk {
+
+	Render* make_mac_gl_render(Render::Options opts) {
+		auto ctx = [EAGLContext alloc];
+		if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
+			[EAGLContext setCurrentContext:ctx];
+			Qk_Assert(EAGLContext.currentContext, "Failed to set current OpenGL context");
+			ctx.multiThreaded = NO;
+			return new IosGLRender(opts, ctx);
+		}
+		return nullptr;
+	}
+}
+#endif // #if Qk_ENABLE_GL

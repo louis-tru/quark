@@ -33,7 +33,7 @@
 #include "./gl_render.h"
 #include "./gl_canvas.h"
 
-#define Qk_CGCmd_Option_Capacity 1024
+#define Qk_CGCmd_Option_Capacity 256
 #define Qk_CGCmd_VertexBlock_Capacity 6555
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
@@ -591,7 +591,7 @@ namespace qk {
 				glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
 				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 				//glClearColor(color.r(), color.g(), color.b(), color.a());
-				// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			} else {
 				float x1 = region.origin.x(), y1 = region.origin.y();
 				float x2 = region.end.x(), y2 = region.end.y();
@@ -672,7 +672,7 @@ namespace qk {
 				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
 					glUniform1f(cp.depth, depth);
-					glUniform1i(cp.imageLod, level);
+					glUniform1f(cp.imageLod, level);
 					glUniform2f(cp.oResolution, oRw, oRh);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
 						_c->_blurTex, level+1);
@@ -701,7 +701,7 @@ namespace qk {
 			glUniform1f(blur->depth, depth);
 			glUniform2f(blur->iResolution, R.x(), R.y());
 			glUniform2f(blur->oResolution, oRw, oRh);
-			glUniform1i(blur->imageLod, lod);
+			glUniform1f(blur->imageLod, lod);
 			glUniform1f(blur->detail, 1.0f/(n-1));
 			glUniform2f(blur->size, fullSize / R.x(), 0); // horizontal blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur
@@ -766,7 +766,7 @@ namespace qk {
 				glUniform1f(cp.depth, depth);
 				glUniform2f(cp.iResolution, surfaceSize.x(), surfaceSize.y());
 				glUniform2f(cp.oResolution, w, h);
-				glUniform1i(cp.imageLod, 0);
+				glUniform1f(cp.imageLod, 0);
 				o /= surfaceSize; s /= surfaceSize;
 				glUniform4f(cp.coord, o[0], o[1], s[0], s[1]);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

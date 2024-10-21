@@ -101,7 +101,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 											multiplier:1
 											constant:0]];
 
-	// _qkwin->render()->reload(); // set size
+	_qkwin->render()->reload();
 	return self;
 }
 
@@ -151,15 +151,13 @@ QkWindowDelegate* WindowImpl::delegate() {
 			withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 {
 	[coordinator animateAlongsideTransition:^(id context) {
-		// TODO ...
-		//qkappdelegate.render->render()->reload();
+		_qkwin->render()->reload();
 
-		Orientation orient = shared_app()->screen()->orientation();
+		auto orient = shared_app()->screen()->orientation();
 		if (orient != self.current_orientation) {
 			self.current_orientation = orient;
 			_qkwin->loop()->post(Cb([](auto& e) {
-				// TODO
-				//shared_app()->screen()->Qk_Trigger(Orientation);
+				shared_app()->screen()->Qk_Trigger(Orientation);
 			}));
 		}
 	} completion:nil];
@@ -228,25 +226,12 @@ QkWindowDelegate* WindowImpl::delegate() {
 }
 
 - (void)set_visible_status_bar:(bool)visible {
-	if ( visible == self.visible_status_bar )
-		return;
-	self.visible_status_bar = visible;
-
-	dispatch_async(dispatch_get_main_queue(), ^{
-		//if ( visible ) {
-		//  [qkappdelegate.app setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
-		//} else {
-		//  [qkappdelegate.app setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
-		//}
-		[self refresh];
-		// TODO 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 ?
-		//_qkwin->render()->reload();
-
-		// TODO 绘图表面尺寸没有改变? 表示只是单纯状态栏改变? 这个改变也当成change通知给用户
-		_qkwin->loop()->post(Cb([self](auto& e) {
-			self.qkwin->Qk_Trigger(Change);
-		}));
-	});
+	if (visible != self.visible_status_bar) {
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self refresh];
+		});
+		self.visible_status_bar = visible;
+	}
 }
 
 - (void)set_status_bar_style:(Screen::StatusBarStyle)style {
@@ -282,18 +267,11 @@ QkWindowDelegate* WindowImpl::delegate() {
 void Window::openImpl(Options &opts) {
 	qk_post_messate_main(Cb([&opts,this](auto&e) {
 		auto del = [[QkWindowDelegate alloc] init:opts win:this render:_render];
-		CFBridgingRetain(del);
+		CFBridgingRetain(del); // Retain
 		_impl = (__bridge WindowImpl*)del;
 		set_backgroundColor(opts.backgroundColor);
 		activate();
 	}), true);
-}
-
-void Window::closeImpl() {
-	if (_impl) {
-		_impl = nullptr;
-		// exit app
-	}
 }
 
 void Window::set_backgroundColor(Color val) {
@@ -311,6 +289,12 @@ void Window::activate() {
 		[_impl->delegate().uiwin makeKeyAndVisible];
 	}), false);
 	Inl_Application(_host)->setActiveWindow(this);
+}
+
+void Window::closeImpl() {
+	//CFBridgingRelease(_impl);
+	_impl = nullptr;
+	// exit app
 }
 
 void Window::pending() {

@@ -43,6 +43,20 @@ namespace qk {
 		return isTypedArray() || isArrayBuffer();
 	}
 
+	WeakBuffer JSValue::toBufferValue(Worker *worker) {
+		if (isTypedArray()) {
+			return static_cast<JSTypedArray*>(this)->value(worker);
+		}
+		else if (isArrayBuffer()) {
+			return static_cast<JSArrayBuffer*>(this)->value(worker);
+		}
+		return WeakBuffer();
+	}
+
+	String JSString::value(Worker* worker, bool oneByte) const {
+		return toStringValue(worker, oneByte);
+	}
+
 	Buffer JSString::toBuffer(Worker* worker, Encoding en) const {
 		if (en == Encoding::kUTF16_Encoding) {
 			String2 str = toStringValue2(worker);
@@ -51,16 +65,6 @@ namespace qk {
 		} else {
 			return codec_encode(en, toStringValue4(worker).array().buffer());
 		}
-	}
-
-	WeakBuffer JSValue::asBuffer(Worker *worker) {
-		if (isTypedArray()) {
-			return static_cast<JSTypedArray*>(this)->weakBuffer(worker);
-		}
-		else if (isArrayBuffer()) {
-			return static_cast<JSArrayBuffer*>(this)->weakBuffer(worker);
-		}
-		return WeakBuffer();
 	}
 
 	Maybe<Dict<String, int>> JSObject::toIntegerDict(Worker* worker) {
@@ -148,13 +152,13 @@ namespace qk {
 		return Maybe<Buffer>(std::move(rv));
 	}
 
-	WeakBuffer JSArrayBuffer::weakBuffer(Worker* worker) {
+	WeakBuffer JSArrayBuffer::value(Worker* worker) {
 		int size = byteLength(worker);
 		Char* ptr = data(worker);
 		return WeakBuffer(ptr, size);
 	}
 
-	WeakBuffer JSTypedArray::weakBuffer(Worker* worker) {
+	WeakBuffer JSTypedArray::value(Worker* worker) {
 		auto buff = buffer(worker);
 		Char* ptr = buff->data(worker);
 		int offset = byteOffset(worker);
@@ -286,7 +290,7 @@ namespace qk {
 				)->as<JSObject>();
 
 				if ( !exports ) { // error
-					_nativeModules->Delete(this, name);
+					_nativeModules->deleteFor(this, name);
 					return exports;
 				}
 			}
@@ -356,7 +360,7 @@ namespace qk {
 
 	void Worker::init() {
 		Qk_Assert(_global->isObject());
-		
+
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);

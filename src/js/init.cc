@@ -138,7 +138,7 @@ namespace qk { namespace js {
 					_rv->push( str->toStringValue(worker) );
 				}
 				else if (arg->isUint8Array()) {
-					rv = stringify_buffer(o->asBuffer(worker));
+					rv = stringify_buffer(o->toBufferValue(worker));
 				}
 				else if ( arg->isDate() ) {
 					_rv->push( arg->toStringValue(worker) );
@@ -155,7 +155,7 @@ namespace qk { namespace js {
 					} else {
 						rv = stringify_object(o);
 					}
-					return _set->Delete(worker, o);
+					return _set->deleteFor(worker, o);
 				}
 			}
 			else if(arg->isInt32()) {
@@ -383,7 +383,7 @@ namespace qk { namespace js {
 					self->hash.update(*str, str.length());
 				}
 				else { // Buffer
-					auto buff = args[0]->asBuffer(worker);
+					auto buff = args[0]->toBufferValue(worker);
 					self->hash.update(*buff, buff.length());
 				}
 			});
@@ -480,7 +480,7 @@ namespace qk { namespace js {
 					String func = String("_on").append(name).append("Native").append(String(id));
 					bool ok = wrap->addEventListener(name, func, id);
 					if (ok) {
-						wrap->set(worker->newStringOneByte(func), args[2]);
+						wrap->setProp(worker->newStringOneByte(func), args[2]);
 					}
 					Js_ReturnBool(ok);
 				}
@@ -503,7 +503,7 @@ namespace qk { namespace js {
 					bool ok = wrap->removeEventListener(name, id);
 					if ( ok ) {
 						String func = String("_on").append(name).append("Native").append(String(id));
-						wrap->Delete( worker->newStringOneByte(func) );
+						wrap->deleteProp( worker->newStringOneByte(func) );
 					}
 					Js_ReturnBool(ok);
 				}

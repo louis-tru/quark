@@ -2,7 +2,7 @@
 #import "_image.glsl"
 
 #frag
-smooth in lowp vec2      coord_f;
+in        lowp vec2      coord_f;
 uniform   lowp float     alpha;
 uniform        sampler2D image;
 

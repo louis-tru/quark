@@ -2,7 +2,7 @@
 #import "_image.glsl"
 
 #frag
-smooth in lowp vec2      coord_f;
+in        lowp vec2      coord_f;
 uniform   lowp float     alpha;
 uniform        sampler2D image;   // y of yuv
 uniform        sampler2D image_u; // 420p u or 420sp uv
@@ -13,7 +13,7 @@ void main() {
 	lowp float y = texture(image, coord_f).r;
 	lowp vec2  uv = texture(image_u, coord_f).rg;
 	lowp float u = uv.x;
-	lowp float v = mix(uv.y, texture(image_v, coord_f).r, format);
+	lowp float v = mix(uv.y, texture(image_v, coord_f).r, float(format));
 
 	fragColor = vec4(	y + 1.4075 * (v - 0.5),
 										y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),

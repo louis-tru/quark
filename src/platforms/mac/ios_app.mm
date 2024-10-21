@@ -66,7 +66,7 @@ QkWindowDelegate* getActiveDelegate() {
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
-		// self.host->render()->reload(); // set size
+		_host->activeWindow()->render()->reload();
 	}
 
 	- (void)applicationWillResignActive:(UIApplication*) application {
@@ -76,17 +76,19 @@ QkWindowDelegate* getActiveDelegate() {
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
 		Inl_Application(_host)->triggerResume();
-		//self.host->render()->reload(); // set size
+		auto win = _host->activeWindow();
+		if (win)
+			win->render()->reload();
 		Qk_DLog("applicationDidBecomeActive,triggerResume");
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
-		Inl_Application(_host)->triggerBackground(qkappdelegate.host->activeWindow());
+		Inl_Application(_host)->triggerBackground(_host->activeWindow());
 		Qk_DLog("applicationDidEnterBackground,triggerBackground");
 	}
 
 	- (void)applicationWillEnterForeground:(UIApplication*) application {
-		Inl_Application(_host)->triggerForeground(qkappdelegate.host->activeWindow());
+		Inl_Application(_host)->triggerForeground(_host->activeWindow());
 		Qk_DLog("applicationWillEnterForeground,triggerForeground");
 	}
 

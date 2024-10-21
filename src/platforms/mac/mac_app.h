@@ -68,7 +68,7 @@ namespace qk {
 <NSWindowDelegate>
 #endif
 @property (assign, nonatomic) qk::Window *qkwin;
-@property (assign, nonatomic) UIWindow   *uiwin;
+@property (strong, nonatomic) UIWindow   *uiwin;
 @property (strong, nonatomic) id<QkIMEHelprt> ime;
 @end
 

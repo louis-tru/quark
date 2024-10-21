@@ -45,9 +45,8 @@ class OsxGLRender;
 {
 	CVDisplayLinkRef _displayLink;
 	OsxGLRender      *_render;
-	// bool             _isInit; // start render
 }
-@property (strong, nonatomic) NSOpenGLContext  *ctx;
+@property (strong, nonatomic) NSOpenGLContext *ctx;
 @property (assign, nonatomic) bool         isRun;
 @property (assign, nonatomic) qk::ThreadID renderThreadId;
 - (id)   init:(NSOpenGLContext*)ctx render:(OsxGLRender*)r;
@@ -59,7 +58,7 @@ class OsxGLRender;
 class OsxGLRender final: public GLRender, public RenderSurface {
 public:
 	OsxGLRender(Options opts, NSOpenGLContext *ctx)
-		: GLRender(opts), _ctx(ctx), _lockCount(0)
+		: GLRender(opts), _view(nil), _ctx(ctx), _lockCount(0)
 	{
 		//CFBridgingRetain(_ctx);
 	}
@@ -141,7 +140,6 @@ public:
 
 	void renderDisplay() {
 		lock();
-		if (!_view.isRun) return unlock();
 
 		if (_message.length()) { //
 			List<Cb> msg;
@@ -153,15 +151,14 @@ public:
 
 		if (_delegate->onRenderBackendDisplay()) {
 			_glcanvas->flushBuffer(); // commit gl canvas cmd
-			// copy pixels to default color buffer
 			auto src = _glcanvas->surfaceSize();
 			auto dest = _surfaceSize;
+			auto filter = src == dest ? GL_NEAREST: GL_LINEAR;
+			// copy pixels to default color buffer
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-			glBlitFramebuffer(0, 0, src[0], src[1],
-				0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, src == dest ? GL_NEAREST: GL_LINEAR);
+			glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
-			// flush gl buffer
-			glFlush(); // glFinish, glFenceSync, glWaitSync
+			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 			[_ctx flushBuffer]; // swap double buffer
 		}
 		unlock();
@@ -250,12 +247,14 @@ static CVReturn displayLinkCallback(
 }
 
 - (void) renderDisplay {
-	if (!NSOpenGLContext.currentContext) {
-		_renderThreadId = thread_self_id();
-		[_ctx makeCurrentContext];
-		Qk_Assert(NSOpenGLContext.currentContext);
+	if (_isRun) {
+		if (!NSOpenGLContext.currentContext) {
+			_renderThreadId = thread_self_id();
+			[_ctx makeCurrentContext];
+			Qk_Assert(NSOpenGLContext.currentContext);
+		}
+		_render->renderDisplay();
 	}
-	_render->renderDisplay();
 }
 
 - (void) stopDisplay {
@@ -276,7 +275,7 @@ namespace qk {
 		//	generate the GL display mask for all displays
 		CGDirectDisplayID		dspys[10];
 		CGDisplayCount			count = 0;
-		GLuint					    glDisplayMask = 0;
+		GLuint							glDisplayMask = 0;
 
 		if (CGGetActiveDisplayList(10, dspys, &count) == kCGErrorSuccess)	{
 			for (int i = 0; i < count; i++)

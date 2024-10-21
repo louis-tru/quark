@@ -412,7 +412,7 @@ namespace qk { namespace js {
 						}, Error);
 					}
 					else if ( args[0]->isBuffer() ) {
-						auto buff = args[0]->asBuffer(worker);
+						auto buff = args[0]->toBufferValue(worker);
 						Js_Try_Catch({ self->send(buff.buffer().copy()); }, Error);
 					}
 					else {
@@ -519,7 +519,7 @@ namespace qk { namespace js {
 				opt.post_data = value->toStringValue(worker).collapse();
 			}
 			else if ( value->isBuffer() ) {
-				opt.post_data = value->asBuffer(worker).buffer().copy();
+				opt.post_data = value->toBufferValue(worker).buffer().copy();
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_save));

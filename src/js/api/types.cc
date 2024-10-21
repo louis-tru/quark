@@ -1009,7 +1009,7 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, FFID& out, cChar* desc) {
-		auto buff = in->asBuffer(worker);
+		auto buff = in->toBufferValue(worker);
 		if (buff.length() < sizeof(FFID)) {
 			return throw_error(worker, in, desc), false;
 		}

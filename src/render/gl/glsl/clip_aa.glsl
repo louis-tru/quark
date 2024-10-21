@@ -5,9 +5,9 @@ void main() {
 }
 
 #frag
-uniform                float     aafuzzWeight;
-uniform                float     aafuzzConst;
-layout(location=1) out lowp vec4 aaclipOut; // output anti alias clip texture buffer
+uniform                lowp float aafuzzWeight;
+uniform                lowp float aafuzzConst;
+layout(location=1) out lowp vec4  aaclipOut; // output anti alias clip texture buffer
 
 void main() {
 	//

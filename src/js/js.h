@@ -275,13 +275,18 @@ namespace qk { namespace js {
 		bool isBuffer() const; // IsTypedArray or IsArrayBuffer
 		bool equals(Worker *worker, JSValue* val) const;
 		bool strictEquals(JSValue* val) const;
+		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
+		template<class T = JSValue>
+		inline T* as() {
+			return static_cast<T*>(this);
+		}
 		JSString* toString(Worker* worker) const; // to string
 		JSNumber* toNumber(Worker* worker) const;
 		JSInt32* toInt32(Worker* worker) const;
 		JSUint32* toUint32(Worker* worker) const;
-		JSObject* asObject(Worker* worker) const;
+		// JSObject* asObject(Worker* worker) const;
 		JSBoolean* toBoolean(Worker* worker) const;
-		String toStringValue(Worker* worker, bool oneByte = false) const; // to utf8 or one byte string
+		String  toStringValue(Worker* worker, bool oneByte = false) const; // to utf8 or one byte string
 		String2 toStringValue2(Worker* worker) const; // to utf16 string
 		String4 toStringValue4(Worker* worker) const; // to ucs4 string
 		bool toBooleanValue(Worker* worker) const;
@@ -289,10 +294,7 @@ namespace qk { namespace js {
 		Maybe<double> toNumberValue(Worker* worker) const;
 		Maybe<int> toInt32Value(Worker* worker) const;
 		Maybe<uint32_t> toUint32Value(Worker* worker) const;
-		WeakBuffer asBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
-		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
-		template<class T = JSValue>
-		inline T* as() { return static_cast<T*>(this); }
+		WeakBuffer toBufferValue(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 	};
 
 	class Qk_Export JSString: public JSValue {
@@ -317,8 +319,8 @@ namespace qk { namespace js {
 		bool set(Worker* worker, uint32_t index, JSValue* val);
 		bool has(Worker* worker, JSValue* key);
 		bool has(Worker* worker, uint32_t index);
-		bool Delete(Worker* worker, JSValue* key);
-		bool Delete(Worker* worker, uint32_t index);
+		bool deleteFor(Worker* worker, JSValue* key);
+		bool deleteFor(Worker* worker, uint32_t index);
 		JSArray* getPropertyNames(Worker* worker);
 		JSValue* getProperty(Worker* worker, cString& name);
 		JSFunction* getConstructor(Worker* worker);
@@ -383,15 +385,15 @@ namespace qk { namespace js {
 
 	class Qk_Export JSArrayBuffer: public JSObject {
 	public:
-		uint32_t byteLength(Worker* worker) const;
-		Char* data(Worker* worker);
-		WeakBuffer weakBuffer(Worker* worker);
+		uint32_t   byteLength(Worker* worker) const;
+		Char*      data(Worker* worker);
+		WeakBuffer value(Worker* worker);
 	};
 
 	class Qk_Export JSTypedArray: public JSObject {
 	public:
 		JSArrayBuffer* buffer(Worker* worker);
-		WeakBuffer weakBuffer(Worker* worker);
+		WeakBuffer value(Worker* worker);
 		uint32_t byteLength(Worker* worker);
 		uint32_t byteOffset(Worker* worker);
 	};
@@ -403,7 +405,7 @@ namespace qk { namespace js {
 	public:
 		bool add(Worker* worker, JSValue* key);
 		bool has(Worker* worker, JSValue* key);
-		bool Delete(Worker* worker, JSValue* key);
+		bool deleteFor(Worker* worker, JSValue* key);
 	};
 
 	class Qk_Export JSClass {
@@ -536,7 +538,7 @@ namespace qk { namespace js {
 
 	protected:
 		Worker();
-		virtual void init();
+		void init();
 		// props
 		Persistent<JSObject> _global, _console;
 		Persistent<JSObject> _nativeModules;
@@ -560,14 +562,14 @@ namespace qk { namespace js {
 		inline JSObject* that() {
 			return *_handle;
 		}
-		inline JSValue* get(JSValue* key) {
+		inline JSValue* getProp(JSValue* key) {
 			return _handle->get(worker(), key);
 		}
-		inline bool set(JSValue* key, JSValue* value) {
+		inline bool setProp(JSValue* key, JSValue* value) {
 			return _handle->set(worker(), key, value);
 		}
-		inline bool Delete(JSValue* key) {
-			return _handle->Delete(worker(), key);
+		inline bool deleteProp(JSValue* key) {
+			return _handle->deleteFor(worker(), key);
 		}
 
 		inline WrapObject() {}

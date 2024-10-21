@@ -95,7 +95,7 @@ namespace qk { namespace js {
 			auto ev = WrapObject::wrap(&e);
 			Qk_Assert_Ne(ev, nullptr);
 			if (cData) {
-				ev->set(worker->strs()->_data(), cData->cast(worker, e.data()));
+				ev->setProp(worker->strs()->_data(), cData->cast(worker, e.data()));
 			}
 			JSValue* args[2] = { ev->that(), worker->newValue(true) };
 

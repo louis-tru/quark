@@ -4,11 +4,10 @@
 
 // global shared data
 layout (std140/*std430?,binding=0*/) uniform rootMatrixBlock {
-	/*mediump*/
-	mat4  rootMatrix;
+	mediump mat4 rootMatrix;
 };
 layout (std140) uniform viewMatrixBlock {
-	mat4  viewMatrix;
+	mediump mat4 viewMatrix;
 };
 
 #ifndef Qk_SHAFER_FRAG

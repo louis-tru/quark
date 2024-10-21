@@ -2,16 +2,18 @@
 
 layout (std140) uniform optsBlock {
 	struct Option {
-		int   flags; // reserve
-		float depth;
-		float m0,m1,m2,m3,m4,m5; // 2d mat2x3
-		vec4  color; // color
-	} opts[1024];
+		mediump int   flags; // reserve
+		mediump float depth;
+		mediump float m0,m1,m2,m3,m4,m5; // 2d mat2x3
+		mediump vec4  color; // color
+	} opts[256];
 };
 
 #vert
 in           int   optidxIn; // options index form uniform optsBlock
-smooth   out vec4  color;
+// flat
+// smooth
+out vec4  color;
 
 #define _vmatrix mat4(\
 	opt.m0, opt.m3, 0.0, 0.0, \
@@ -28,7 +30,9 @@ void main() {
 }
 
 #frag
-smooth in lowp vec4 color;
+// flat
+// smooth
+in lowp vec4 color;
 
 void main() {
 	// fuzz value range: 1 => 0, alpha range: 0 => 1

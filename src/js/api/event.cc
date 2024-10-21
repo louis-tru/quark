@@ -262,11 +262,11 @@ namespace qk { namespace js {
 			Js_Set_Class_Accessor_Get(changedTouches, {
 				Js_Wrap(TouchEvent);
 
-				auto r = wrap->get(worker->strs()->_change_touches());
+				auto r = wrap->getProp(worker->strs()->_change_touches());
 				if (!r) return; // js error
 				if (!r->isArray()) {
 					r = worker->types()->jsvalue(wrap->self()->changed_touches());
-					wrap->set(worker->strs()->_change_touches(), r);
+					wrap->setProp(worker->strs()->_change_touches(), r);
 				}
 				Js_Return(r);
 			});
