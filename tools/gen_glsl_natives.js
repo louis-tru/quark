@@ -189,9 +189,9 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 
 	get_import_all(Import, {if_flags,import_all}, new Set);
 
-	// write(hpp, `const cString& ${call};`);
+	// write(hpp, `static cString& ${call};`);
 	if (isFrag || isVert) {
-		write(cpp, `const cString& ${call} {`,
+		write(cpp, `static cString& ${call} {`,
 			`	static String c;`,
 			`	if (c.isEmpty()) {`,
 				import_all.map(e=>(`		c.append(${e.call});`)),
@@ -237,7 +237,7 @@ function resolve_glsl(name, input, hpp, cpp) {
 	fragstr = '#import "_util.glsl"\n' + util + (fragstr || '');
 
 	let vert_ast = resolve_code_ast_from_codestr(name+'_vert', dir, vertstr, 1, 0, hpp, cpp);
-	let frag_ast = resolve_code_ast_from_codestr(name+'_ftag', dir, fragstr, 0, 1, hpp, cpp);
+	let frag_ast = resolve_code_ast_from_codestr(name+'_farg', dir, fragstr, 0, 1, hpp, cpp);
 	let set = {};
 
 	let attributes = vert_ast.import_all
