@@ -92,9 +92,7 @@ namespace qk {
 #endif
 			default: return 0;
 		}
-#endif
-
-#if Qk_LINUX
+#elif Qk_LINUX
 		return 0;
 #endif
 	}
@@ -131,8 +129,8 @@ namespace qk {
 	void gl_set_texture_no_repeat(GLenum wrapdir) {
 #if Qk_OSX
 		glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_BORDER);
-		constexpr float black[4] = {0,0,0,0};
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
+		//constexpr float black[4] = {0,0,0,0}; // system default value the Zero
+		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
 #else
 		glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_EDGE);
 #endif
@@ -182,8 +180,11 @@ namespace qk {
 
 	TexStat* gl_new_texture() {
 		auto tex = new TexStat{
-			0, ImagePaint::kClamp_TileMode, ImagePaint::kClamp_TileMode,
-			ImagePaint::kNearest_FilterMode, ImagePaint::kNone_MipmapMode,
+			.id=0,
+			.tileModeX=ImagePaint::kClamp_TileMode, // border repeat
+			.tileModeY=ImagePaint::kClamp_TileMode, // border repeat
+			.filterMode=ImagePaint::kNearest_FilterMode,
+			.mipmapMode=ImagePaint::kNone_MipmapMode,
 		};
 		glActiveTexture(GL_TEXTURE0);
 		glGenTextures(1, &tex->id);
@@ -210,13 +211,13 @@ namespace qk {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, buff);
 	}
 
-	void gl_set_color_renderbuffer(GLuint rbo, TexStat *t_rbo, ColorType type, Vec2 size) {
-		if (t_rbo) {
+	void gl_set_color_renderbuffer(GLuint rbo, TexStat *rboTex, ColorType type, Vec2 size) {
+		if (rboTex) {
 			// use texture render buffer
-			gl_tex_image2D_null(t_rbo->id, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
+			gl_tex_image2D_null(rboTex->id, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, t_rbo->id, 0);
-			//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, t_rbo->id, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rboTex->id, 0);
+			//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, rboTex->id, 0);
 		} else {
 			GLenum ifo;
 			switch (type) {
@@ -231,10 +232,23 @@ namespace qk {
 		}
 	}
 
-	void gl_set_blur_renderbuffer(GLuint tex, Vec2 size) {
+	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
+		// clip anti alias buffer
+		GLuint slot = gl_MaxTextureImageUnits - 1; // Binding go to the last channel
+		gl_tex_image2D_null(tex, size, GL_RGB/*GL_LUMINANCE*/, GL_UNSIGNED_BYTE, slot);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
+	}
+
+	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size) {
 		gl_tex_image2D_null(tex, size,
 			gl_get_texture_pixel_format(kRGBA_8888_ColorType),
-			gl_get_texture_data_type(kRGBA_8888_ColorType), 0);
+			gl_get_texture_data_type(kRGBA_8888_ColorType), 0
+		);
+		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
+		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -245,16 +259,6 @@ namespace qk {
 #endif
 	}
 
-	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
-		// clip anti alias buffer
-		uint32_t slot = gl_MaxTextureImageUnits - 1;
-		gl_tex_image2D_null(tex, size, GL_LUMINANCE, GL_UNSIGNED_BYTE, slot);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
-	}
-
 	GLRender::GLRender(Options opts)
 		: Render(opts)
 		, _texStat(new TexStat*[8]{0}), _glcanvas(nullptr)
@@ -263,7 +267,7 @@ namespace qk {
 		_canvas = _glcanvas; // set default canvas
 		_glcanvas->retain(); // retain
 
-		glGenFramebuffers(1, &_fbo);
+		// glGenFramebuffers(1, &_fbo);
 		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
@@ -292,6 +296,13 @@ namespace qk {
 			gl_MaxTextureImageUnits_GLSL_Macros = 
 				String::format("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS %d\n", gl_MaxTextureImageUnits);
 		}
+
+		_extensions = (cChar*)glGetString(GL_EXTENSIONS);
+
+		Qk_DLog("GL_VENDOR: %s", glGetString(GL_VENDOR));
+		Qk_DLog("GL_RENDERER: %s", glGetString(GL_RENDERER));
+		Qk_DLog("GL_VERSION: %s", glGetString(GL_VERSION));
+		Qk_DLog("GL_EXTENSIONS:\n%s", *_extensions);
 
 #if DEBUG
 		int64_t st = time_micro();
@@ -347,10 +358,9 @@ namespace qk {
 	void GLRender::unlock() {}
 
 	void GLRender::release() {
-		GLuint fbo = _fbo, ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
+		GLuint ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
 		auto texStat = _texStat;
-		post_message(Cb([fbo,ubo,texStat](auto &e) {
-			glDeleteFramebuffers(1, &fbo);
+		post_message(Cb([ubo,texStat](auto &e) {
 			glDeleteBuffers(3, ubo);
 			for (int i = 0; i < 8; i++) {
 				if (texStat[i]) glDeleteTextures(1, &texStat[i]->id);
@@ -506,9 +516,9 @@ namespace qk {
 
 	bool GLRender::gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint) {
 		auto index = paint->srcIndex + slot;
-		auto pixel = &src->pixels()[index];
 		auto tex = const_cast<TexStat *>(src->texture_Rt(index));
 		if (!tex) {
+			auto pixel = &src->pixels()[index];
 			Qk_Assert(slot < 8);
 			GLRender::makeTexture(pixel, _texStat[slot], true);
 			tex = _texStat[slot];

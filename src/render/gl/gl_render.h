@@ -59,13 +59,13 @@ namespace qk {
 	protected:
 		GLRender(Options opts);
 		// define props
-		GLuint _fbo; // temp fbo
 		TexStat **_texStat; // temp tbo
 		GLuint _rootMatrixBlock,_viewMatrixBlock; // ubo, matrixBlock => root view matrix
 		GLuint _optsBlock; // ubo, generic optsBlock
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status
+		String _extensions;
 
 		friend class GLCanvas;
 		friend class GLC_CmdPack;

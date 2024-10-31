@@ -89,14 +89,6 @@ public:
 		return this;
 	}
 
-	void reload() override {
-		GLRender::reload();
-		glBindFramebuffer(GL_FRAMEBUFFER, _fbo_0);
-		glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
-		[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable: _layer];
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rbo_0);
-	}
-
 	void lock() override {
 		_mutex.lock();
 	}
@@ -130,17 +122,25 @@ public:
 
 			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT };
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 4, attachments);
+
+			if (_rbo_0_size != _surfaceSize) {
+				_rbo_0_size = _surfaceSize;
+				glBindFramebuffer(GL_FRAMEBUFFER, _fbo_0);
+				glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
+				[_ctx renderbufferStorage:GL_RENDERBUFFER fromDrawable: _layer];
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rbo_0);
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, _glcanvas->fbo());
+			}
 			// copy pixels to default color buffer
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fbo_0);
 			glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
 			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 
-			glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
 			// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 			// you present its contents by making it the current renderbuffer
 			// and calling the presentRenderbuffer: method on your rendering context.;
-			//[_ctx presentRenderbuffer: GL_FRAMEBUFFER];
+			glBindRenderbuffer(GL_RENDERBUFFER, _rbo_0);
 			[_ctx presentRenderbuffer: GL_RENDERBUFFER];
 		}
 		unlock();
@@ -169,6 +169,7 @@ private:
 	EAGLContext *_ctx;
 	CAEAGLLayer *_layer;
 	GLView      *_view;
+	Vec2       _rbo_0_size;
 	GLuint     _fbo_0, _rbo_0;
 	RecursiveMutex _mutex;
 };

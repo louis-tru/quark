@@ -8,7 +8,7 @@ void main() {
 }
 
 #frag
-uniform lowp vec4           coord; // texture offset coord, vec4(0,0,1,1) Fully mapped viewport
+uniform lowp vec4           coord; // texture offset coord, vec4(offset,scale) Fully mapped viewport
 uniform lowp float          imageLod; // input image lod level
 uniform sampler2D           image; // input image
 

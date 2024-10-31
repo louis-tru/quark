@@ -12,7 +12,7 @@ uniform sampler2D           image; // image image input
 uniform lowp vec2           size; // blur size resolution %
 uniform lowp float          detail; // N target sampling rate, detail = 1.0 / ((n-1)*0.5)
 
-#ifndef Qk_SHAFER_FRAG
+#ifdef Qk_SHAFER_VERT
 void main() {
 	gl_Position = rootMatrix * vec4(vertexIn.xy * oResolution / iResolution, depth, 1.0);
 	gl_Position.y += (oResolution.y / iResolution.y - 1.0) * 2.0; // correct canvas offset

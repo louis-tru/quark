@@ -38,9 +38,9 @@ namespace qk {
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
-	void  gl_set_color_renderbuffer(GLuint rbo, TexStat *t_rbo, ColorType type, Vec2 size);
+	void  gl_set_color_renderbuffer(GLuint rbo, TexStat *rboTex, ColorType type, Vec2 size);
 	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
-	void  gl_set_blur_renderbuffer(GLuint tex, Vec2 size);
+	void  gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
 	TexStat* gl_new_texture();
 
 	extern const Region ZeroRegion;
@@ -135,10 +135,10 @@ namespace qk {
 			}
 
 			if (clip.op == kDifference_ClipOp) {
-				if (_stencilRefDecr == 0) {
-					Qk_Warn(" clip stencil ref decr value exceeds limit 0"); return;
+				if (_stencilRefDrop == 0) {
+					Qk_Warn(" clip stencil ref drop value exceeds limit 0"); return;
 				}
-				_stencilRefDecr--;
+				_stencilRefDrop--;
 			} else {
 				if (_stencilRef == 255) {
 					Qk_Warn(" clip stencil ref value exceeds limit 255"); return;
@@ -283,7 +283,7 @@ namespace qk {
 		GLCBlurFilter(GLCanvas *host, const Paint &paint, const Rect *rect)
 			: _host(host), _size(paint.filter->val0), _bounds{rect->origin,rect->origin+rect->size}
 		{
-			if (!host->_state->matrix.is_unit_matrix()) {
+			if (!host->_state->matrix.is_unit_matrix()) { // Not unit matrix
 				auto &mat = host->_state->matrix;
 				if (mat[0] != 1 || mat[4] != 1) { // rotate or skew
 					Vec2 pts[] = {
@@ -301,8 +301,8 @@ namespace qk {
 		}
 
 		~GLCBlurFilter() override {
-			auto ct = _host->_cmdPack->blurFilterEnd(
-				_bounds, _size, _host->_state->output ? *_host->_state->output->dest: nullptr);
+			auto output = _host->_state->output ? *_host->_state->output->dest: nullptr;
+			auto ct = _host->_cmdPack->blurFilterEnd(_bounds, _size, output);
 			_inl(_host)->zDepthNextCount(ct);
 		}
 
@@ -310,8 +310,7 @@ namespace qk {
 		void begin() {
 			_size *= _host->_scale;
 			_bounds = {_bounds.origin - _size, _bounds.end + _size};
-			// clear more region, Easy for fuzzy sampling without contamination
-			_host->_cmdPack->blurFilterBegin({_bounds.origin - _size, _bounds.end + _size});
+			_host->_cmdPack->blurFilterBegin(_bounds, _size);
 			_inl(_host)->zDepthNext();
 		}
 		GLCanvas *_host;
@@ -341,16 +340,16 @@ namespace qk {
 	GLCanvas::GLCanvas(GLRender *render, Render::Options opts)
 		: _render(render)
 		, _cache(nullptr)
-		, _fbo(0), _rbo(0), _depthBuffer(0), _stencilBuffer(0)
-		, _aaclipTex(0)
-		, _blurTex(0)
-		, _stencilRef(127), _stencilRefDecr(127)
+		, _fbo(0), _outDepth(0)
+		, _outTex(nullptr)
+		, _outAAClipTex(0), _outA(0), _outB(0)
+		, _stencilRef(127), _stencilRefDrop(127)
 		, _zDepth(0)
 		, _surfaceScale(1), _scale(1), _fullScale(1), _phy2Pixel(1)
 		, _rootMatrix()
 		, _blendMode(kSrcOver_BlendMode)
 		, _opts(opts)
-		, _isClipState(false), _isTexRender(true)
+		, _isClipState(false)
 	{
 		switch(_opts.colorType) {
 			case kBGRA_8888_ColorType:
@@ -373,16 +372,16 @@ namespace qk {
 
 	GLCanvas::~GLCanvas() {
 		GLuint fbo = _fbo,
-					rbo[] = { _rbo,_depthBuffer, _stencilBuffer },
-					tex[] = { _aaclipTex, _blurTex };
-		auto t_rbo = _t_rbo;
+					rbo[] = { _outDepth },
+					tex[] = { _outAAClipTex, _outA, _outB };
+		auto outTex = _outTex;
 		auto render = _render;
-		_render->post_message(Cb([render,fbo,rbo,tex,t_rbo](auto &e) {
+		_render->post_message(Cb([render,fbo,rbo,tex,outTex](auto &e) {
 			glDeleteFramebuffers(1, &fbo);
-			glDeleteRenderbuffers(3, rbo);
-			glDeleteTextures(2, tex);
-			if (t_rbo)
-				render->GLRender::deleteTexture(t_rbo);
+			glDeleteRenderbuffers(1, rbo);
+			glDeleteTextures(3, tex);
+			if (outTex)
+				render->GLRender::deleteTexture(outTex);
 		}));
 
 		_mutex.mutex.lock();
@@ -432,7 +431,7 @@ namespace qk {
 				for (int i = _state->clips.length() - 1; i >= 0; i--) {
 					auto &clip = _state->clips[i];
 					if (clip.op == kDifference_ClipOp) {
-						_stencilRefDecr++;
+						_stencilRefDrop++;
 					} else {
 						_stencilRef--;
 					}
@@ -455,7 +454,7 @@ namespace qk {
 				count--;
 			} while (count > 0);
 
-			if (_isClipState && _stencilRef == _stencilRefDecr) { // not stencil test
+			if (_isClipState && _stencilRef == _stencilRefDrop) { // not stencil test
 				_isClipState = false;
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
 			}
@@ -691,7 +690,7 @@ namespace qk {
 		_stateStack.clear();
 		_stateStack.push({ .matrix=Mat(), .aaclip=0 });
 		_state = &_stateStack.back();
-		_stencilRef = _stencilRefDecr = 127;
+		_stencilRef = _stencilRefDrop = 127;
 		// set surface scale
 		_surfaceSize = surfaceSize;
 		_size = surfaceSize / scale;
@@ -713,38 +712,35 @@ namespace qk {
 		auto init = !_fbo;
 
 		if (init) {
-			if (_isTexRender) {
-				// Create a texture color renderbuffer
-				_t_rbo = gl_new_texture();
-			} else {
-				// Create a color renderbuffer
-				glGenRenderbuffers(1, &_rbo);
-			}
+			// Create a color renderbuffer of texture
+			_outTex = gl_new_texture();
 			// Create the framebuffer
 			glGenFramebuffers(1, &_fbo);
 			// Create depth buffer
-			glGenRenderbuffers(1, &_depthBuffer);
+			glGenRenderbuffers(1, &_outDepth);
 		}
 		// Bind framebuffer future OpenGL ES framebuffer commands are directed to it.
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 		// Allocate storage for it, and attach it to the framebuffer.
-		gl_set_color_renderbuffer(_rbo, _t_rbo, type, size);
-		gl_set_framebuffer_renderbuffer(_depthBuffer, size, GL_DEPTH_COMPONENT24, GL_DEPTH_ATTACHMENT);
+		gl_set_color_renderbuffer(0, _outTex, type, size);
+		gl_set_framebuffer_renderbuffer(_outDepth, size, GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _outDepth);
 
 		if (init) {
 			float depth = 0;
 			Color4f color{0,0,0,0};
 			glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
+			glClear(GL_STENCIL_BUFFER_BIT); // stencil = 127
 			glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 		}
-		if (_aaclipTex) {
-			gl_set_aaclip_buffer(_aaclipTex, size);
+		if (_outAAClipTex) {
+			gl_set_aaclip_buffer(_outAAClipTex, size);
 		}
-		if (_stencilBuffer) {
-			gl_set_framebuffer_renderbuffer(_stencilBuffer, size, GL_STENCIL_INDEX8, GL_STENCIL_ATTACHMENT);
+		if (_outA) {
+			gl_set_tex_renderbuffer(_outA, size);
 		}
-		if (_blurTex) {
-			gl_set_blur_renderbuffer(_blurTex, size);
+		if (_outB) {
+			gl_set_tex_renderbuffer(_outB, size);
 		}
 
 		glDrawBuffers(2, DrawBuffers);
@@ -760,7 +756,6 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DLog("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
-
 	}
 
 	Vec2 GLCanvas::size() {

@@ -47,9 +47,9 @@ void layout_scroll(Window* win) {
 	auto box = win->root();
 	auto v = box->append_new<Scroll>();
 
-	v->set_clip(false);
+	//v->set_clip(false);
 	v->set_width({ 150, BoxSizeKind::Match });
-	v->set_height({ 0.5, BoxSizeKind::Match });
+	v->set_height({ 0.5, BoxSizeKind::Ratio });
 	v->set_background_color(Color(255,255,255));
 	v->set_border_radius({20});
 	v->set_scrollbar_width(6);

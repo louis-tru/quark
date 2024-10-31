@@ -99,7 +99,7 @@ namespace qk {
 		virtual PathvCache* getPathvCache() override;
 		virtual void setSurface(const Mat4& root, Vec2 surfaceSize, Vec2 scale) override;
 		virtual Vec2 size() override;
-		inline uint8_t  isDeviceMsaa() { return _DeviceMsaa; }
+		inline uint8_t isDeviceMsaa() { return _DeviceMsaa; }
 		inline GLuint fbo() { return _fbo; }
 		virtual bool isGpu() override;
 		inline Vec2 surfaceSize() { return _surfaceSize; }
@@ -115,10 +115,12 @@ namespace qk {
 		GLC_CmdPack  *_cmdPackFront;
 		GLRender     *_render;
 		PathvCache   *_cache;
-		GLuint _fbo, _rbo, _depthBuffer, _stencilBuffer;
-		GLuint _aaclipTex, _blurTex; // aa clop tex buffer, blur filter tex buffer
-		GLuint _stencilRef, _stencilRefDecr; // stencil clip state
-		TexStat *_t_rbo; // texture render buffer
+		GLuint _fbo; // frame buffer object
+		TexStat *_outTex; // Color render buffer object of texture
+		GLuint _outDepth; // Depth and stencil buffer object
+		GLuint _outAAClipTex; // Output texture AA clip buffer object
+		GLuint _outA, _outB; // Output texture buffer object A and B
+		GLuint _stencilRef, _stencilRefDrop; // stencil clip state
 		float  _zDepth;
 		float  _surfaceScale, _scale;
 		float  _fullScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale
@@ -127,7 +129,6 @@ namespace qk {
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa
 		bool   _isClipState; // clip state
-		bool   _isTexRender; // is use texture render color buffer
 		Render::Options _opts;
 		CondMutex _mutex; // submit swap mutex
 

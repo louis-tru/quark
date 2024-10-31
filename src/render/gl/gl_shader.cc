@@ -59,7 +59,7 @@ namespace qk {
 		cString& vertexShader, cString& fragmentShader,
 		const Array<GLShaderAttr> &attributes, cChar *uniforms)
 	{
-		String vertexCode("#version " Qk_GL_Version "\n");
+		String vertexCode("#version " Qk_GL_Version "\n#define Qk_SHAFER_VERT\n");
 		String fragmentCode("#version " Qk_GL_Version "\n#define Qk_SHAFER_FRAG\n");
 
 		vertexCode += gl_MaxTextureImageUnits_GLSL_Macros;

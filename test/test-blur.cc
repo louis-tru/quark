@@ -22,7 +22,7 @@ public:
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 
-		i+=Qk_PI_RATIO_180*0.2;
+		i+=Qk_PI_RATIO_180;
 
 		float c = abs(sinf(i));
 		float width = 300;
@@ -38,8 +38,8 @@ public:
 
 		canvas->drawPath(path, paint);
 
+		/*
 		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, false);
-
 		paint.color = Color4f(1, 0, 0, 1);
 		paint.filter = nullptr;
 		ImagePaint ipaint;
@@ -51,7 +51,7 @@ public:
 		paint.image = &ipaint;
 		paint.type = Paint::kBitmapMask_Type;
 		//paint.type = Paint::kBitmap_Type;
-		canvas->drawRect({{0},{width}}, paint);
+		canvas->drawRect({{0},{width}}, paint);*/
 
 		mark(kLayout_None,true);
 	}
@@ -63,6 +63,7 @@ void test_blur(int argc, char **argv) {
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});
 	auto r = win->root();
 	auto t = r->append_new<TestBlur>();
+	r->set_origin({BoxOrigin{0,BoxOriginKind::Value}});
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_height({ 0, BoxSizeKind::Match });

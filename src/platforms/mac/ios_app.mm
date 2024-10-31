@@ -66,7 +66,7 @@ QkWindowDelegate* getActiveDelegate() {
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
-		_host->activeWindow()->render()->reload();
+		//_host->activeWindow()->render()->reload();
 	}
 
 	- (void)applicationWillResignActive:(UIApplication*) application {

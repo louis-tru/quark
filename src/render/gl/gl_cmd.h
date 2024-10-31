@@ -107,6 +107,7 @@ namespace qk {
 		struct BlurFilterBeginCmd: Cmd {
 			float           depth;
 			Region          bounds;
+			float           size; // blur size
 			bool            isClipState;
 		};
 
@@ -116,7 +117,7 @@ namespace qk {
 			float           size; // blur size
 			Sp<ImageSource> output; // output dest
 			int             n,lod; // sampling rate and image lod
-			BlendMode       mode;
+			BlendMode       backMode;
 			bool            isClipState;
 		};
 
@@ -217,7 +218,7 @@ namespace qk {
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);
-		void blurFilterBegin(Region bounds);
+		void blurFilterBegin(Region bounds, float size);
 		int  blurFilterEnd(Region bounds, float size, ImageSource* output);
 		void readImage(const Rect &src, ImageSource* img, bool isMipmap);
 		void outputImageBegin(ImageSource* img, bool isMipmap);
