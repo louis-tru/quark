@@ -313,7 +313,7 @@ namespace qk {
 #endif
 
 		// settings shader
-		for (auto s = &_shaders.color1, e = s + 2; s < e; s++) {
+		for (auto s = &_shaders.colors, e = s + 2; s < e; s++) {
 			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
 		}
 		for (auto s = &_shaders.image, e = s + 4; s < e; s++) {

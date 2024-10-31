@@ -259,7 +259,7 @@ namespace qk {
 						}
 						case kColorGroup_CmdType: {
 							auto c = (ColorGroupCmd*)cmd;
-							auto s = c->aaclip ? &_render->_shaders.color1_AACLIP: &_render->_shaders.color1;
+							auto s = c->aaclip ? &_render->_shaders.colors_AACLIP: &_render->_shaders.colors;
 							glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
 							glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorGroupCmd::Option) * c->subcmd, c->opts,
 								GL_DYNAMIC_DRAW);
