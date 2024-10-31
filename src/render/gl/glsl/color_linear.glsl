@@ -19,7 +19,7 @@ uniform lowp vec4      colors[256];/*max 256 color points*/
 uniform lowp float     positions[256];
 
 void main() {
-#ifdef Qk_SHAFER_IF_FLAGS_COUNT2
+#ifdef Qk_SHADER_IF_FLAGS_COUNT2
 	lowp float w = (indexed - positions[0]) / (positions[1] - positions[0]);
 	fragColor = mix(colors[0], colors[1], w);
 #else
@@ -40,7 +40,7 @@ void main() {
 #endif
 	fragColor.a *= alpha * (1.0 - abs(aafuzz));
 
-#ifdef Qk_SHAFER_IF_FLAGS_AACLIP
+#ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 #endif
 }

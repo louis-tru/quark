@@ -50,7 +50,7 @@ void main() {
 	fragColor = color;
 	fragColor.a *= z;
 
-#ifdef Qk_SHAFER_IF_FLAGS_AACLIP
+#ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 #endif
 }

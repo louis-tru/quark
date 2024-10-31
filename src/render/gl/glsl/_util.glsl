@@ -10,7 +10,7 @@ layout (std140) uniform viewMatrixBlock {
 	mediump mat4 viewMatrix;
 };
 
-#ifdef Qk_SHAFER_VERT
+#ifdef Qk_SHADER_VERT
 /*layout(location=0)*/in    vec2  vertexIn;
 in                          float aafuzzIn; // anti alias fuzz
 out                         float aafuzz;

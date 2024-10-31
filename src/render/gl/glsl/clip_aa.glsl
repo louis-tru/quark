@@ -23,7 +23,7 @@ void main() {
 	lowp float alpha = (aafuzzConst + abs(aafuzz)) * aafuzzWeight;
 	lowp float clip = texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r;
 
-#ifdef Qk_SHAFER_IF_FLAGS_AACLIP_REVOKE
+#ifdef Qk_SHADER_IF_FLAGS_AACLIP_REVOKE
 	aaclipOut = vec4(clip / alpha, 1.0,1.0,1.0); // aaclip revoke
 #else
 	aaclipOut = vec4(clip * alpha, 1.0,1.0,1.0);

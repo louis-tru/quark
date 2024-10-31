@@ -179,7 +179,7 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 	}).replace(/^\s+/mg, '').replace(/#version\s+300(\s+es)?/, '');
 
 	let source_len = Buffer.byteLength(source);
-	let if_reg = / Qk_SHAFER_IF_FLAGS_([a-z0-9\_]+)/igm,if_m;
+	let if_reg = / Qk_SHADER_IF_FLAGS_([a-z0-9\_]+)/igm,if_m;
 	// query if flags
 	while (if_m = if_reg.exec(source)) {
 		if_flags.push(if_m[1]);
@@ -331,12 +331,12 @@ function main() {
 			for (let if_f of glsl.if_flags) {
 				let name = glsl.name + '_' + if_f;
 				names.push(name);
-				write(cpp, `	${glsl.name}_${if_f}.build("${name}","#define Qk_SHAFER_IF_FLAGS_${if_f}\\n");`);
+				write(cpp, `	${glsl.name}_${if_f}.build("${name}","#define Qk_SHADER_IF_FLAGS_${if_f}\\n");`);
 			}
 			if (glsl.if_flags.length > 1) {
 				let name = glsl.name + '_' + glsl.if_flags.join('_');
 				names.push(name);
-				write(cpp, `	${name}.build("${name}","${glsl.if_flags.map(e=>`#define Qk_SHAFER_IF_FLAGS_${e}\\n`).join('')}");`);
+				write(cpp, `	${name}.build("${name}","${glsl.if_flags.map(e=>`#define Qk_SHADER_IF_FLAGS_${e}\\n`).join('')}");`);
 			}
 		}
 		write(hpp, '		' + glsl.className + ' ' + names.join(',') + ';');
