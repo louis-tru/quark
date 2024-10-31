@@ -38,7 +38,6 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		/*
 		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, false);
 		paint.color = Color4f(1, 0, 0, 1);
 		paint.filter = nullptr;
@@ -51,7 +50,7 @@ public:
 		paint.image = &ipaint;
 		paint.type = Paint::kBitmapMask_Type;
 		//paint.type = Paint::kBitmap_Type;
-		canvas->drawRect({{0},{width}}, paint);*/
+		canvas->drawRect({{0},{width}}, paint);
 
 		mark(kLayout_None,true);
 	}
