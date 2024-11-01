@@ -392,10 +392,10 @@ namespace qk {
 		work->uv_req.data = work;
 
 		if (thread_self_id() == _tid) {
-			cb->resolve();
+			work->resolve();
 		} else {
 			ScopeLock lock(_mutex);
-			cb->resolve();
+			work->resolve();
 		}
 		return work->id;
 	}
