@@ -119,9 +119,9 @@ public:
 			auto src = _glcanvas->surfaceSize();
 			auto dest = _surfaceSize;
 			auto filter = src == dest ? GL_NEAREST: GL_LINEAR;
-
-			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT };
-			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 4, attachments);
+			
+			GLenum attachments[] = {GL_COLOR_ATTACHMENT1,GL_STENCIL_ATTACHMENT,GL_DEPTH_ATTACHMENT};
+			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, sizeof(attachments)/sizeof(GLenum), attachments);
 
 			if (_rbo_0_size != _surfaceSize) {
 				_rbo_0_size = _surfaceSize;
@@ -187,6 +187,8 @@ private:
 		_render = render;
 		_displayLink = [CADisplayLink displayLinkWithTarget:self
 																								selector:@selector(renderDisplay:)];
+		//_displayLink.frameInterval = 0;
+		//_displayLink.preferredFramesPerSecond = 0;
 		[_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
 	}
 	return self;

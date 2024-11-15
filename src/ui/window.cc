@@ -308,6 +308,7 @@ namespace qk {
 
 		if (!_preRender.solve(time)) {
 			solveNextFrame();
+			//Qk_DLog("onRenderBackendDisplay: No");
 			return false;
 		}
 

@@ -15,7 +15,7 @@
 		'project%': 'make',
 		'media%': 1,
 		'use_gl%': 0,
-		'std_cpp%': 'c++14',
+		'std_cpp%': 'c++14', #'c++0x',
 		'gcc_version%': 0,
 		'llvm_version%': 0,
 		'xcode_version%': 0,

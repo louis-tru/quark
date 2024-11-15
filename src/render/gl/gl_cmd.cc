@@ -445,9 +445,7 @@ namespace qk {
 				// auto srcIndex = paint->srcIndex;
 
 				if (kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
-					auto yuv = aafuzz ?
-						aaclip ? &_render->_shaders.imageYuv_AAFUZZ_AACLIP: &_render->_shaders.imageYuv_AAFUZZ:
-						aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
+					auto yuv = aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
 					s = (GLSLImage*)yuv;
 					useShaderProgram(s, vertex);
 
@@ -459,9 +457,7 @@ namespace qk {
 					}
 					_render->gl_set_texture(src, 1, paint); // u or uv
 				} else {
-					s = aafuzz ?
-						aaclip ? &_render->_shaders.image_AAFUZZ_AACLIP: &_render->_shaders.image_AAFUZZ:
-						aaclip ? &_render->_shaders.image_AACLIP: &_render->_shaders.image;
+					s = aaclip ? &_render->_shaders.image_AACLIP: &_render->_shaders.image;
 					useShaderProgram(s, vertex);
 				}
 				glUniform1f(s->depth, depth);
@@ -476,9 +472,7 @@ namespace qk {
 			const ImagePaint *paint, float fullScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
 			if (setTextureSlot0(paint)) {
-				auto s = aafuzz ? 
-					aaclip ? &_render->_shaders.imageMask_AAFUZZ_AACLIP: &_render->_shaders.imageMask_AAFUZZ:
-					aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
+				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
 				useShaderProgram(s, vertex);
 				glUniform1f(s->depth, depth);
 				glUniform1f(s->fullScale, fullScale);
@@ -540,8 +534,8 @@ namespace qk {
 				// float aafuzzWeight = W;
 				shader->use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
 				glUniform1f(shader->depth, depth);
-				glUniform1f(shader->aafuzzWeight, aafuzzWeight);
-				glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W
+				glUniform1f(shader->aafuzzWeight, aafuzzWeight); // Difference: -0.09
+				glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
 				// glUniform1f(shader->aafuzzConst, C);
 				glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
 				if (ch)
@@ -564,7 +558,8 @@ namespace qk {
 					return;
 				}
 			} else { // intersect clip
-				auto shader = ref == 128 && !revoke ?
+				bool isFill = ref == 128 && !revoke;
+				auto shader = isFill ?
 					(GLSLClipTest*)&_render->_shaders.clipTest_CLIP_FILL: &_render->_shaders.clipTest; // init fill
 				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
 				shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
@@ -573,6 +568,8 @@ namespace qk {
 
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
 					aaClip(this, depth, clip, revoke, -aa_fuzz_weight, -1);
+				} else if (isFill && _c->_outAAClipTex) {
+					flushAAClipBuffer();
 				}
 			}
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep

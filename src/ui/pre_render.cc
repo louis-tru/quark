@@ -194,6 +194,8 @@ namespace qk {
 						if ( task->run_task(time) ) {
 							_is_render = true;
 						}
+					} else {
+						// Qk_DLog("time > task->task_timeout(), %ld > %ld", time, task->task_timeout());
 					}
 					i++;
 				} else {

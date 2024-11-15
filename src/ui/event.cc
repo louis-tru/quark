@@ -64,20 +64,6 @@ namespace qk {
 			} while( view );
 		}
 
-		void trigger_highlightted(HighlightedEvent &evt) {
-			bubble_trigger(UIEvent_Highlighted, evt);
-			if ( evt.is_default() ) {
-				preRender().async_call([](auto self, auto arg) {
-					do {
-						auto ss = self->_cssclass.load();
-						if (ss)
-							ss->setStatus_Rt(arg.arg);
-						self = self->parent();
-					} while(self);
-				}, (View*)this, CSSType(evt.status()));
-			}
-		}
-
 		void trigger_click(UIEvent &evt) {
 			bubble_trigger(UIEvent_Click, evt);
 			if ( evt.is_default() ) {
@@ -90,6 +76,42 @@ namespace qk {
 				}
 			}
 		}
+		
+		void trigger_highlightted(HighlightedEvent &evt) {
+			bubble_trigger(UIEvent_Highlighted, evt);
+			if ( evt.is_default() ) {
+				/*
+				// TODO: Can't running this codes on iphone
+				auto execTest = [](){
+					Qk_DLog("Test");
+				};
+				execTest();
+
+				typedef void (*ExecFunc)();
+
+				decltype(execTest) b = execTest;
+
+				ExecFunc ex0 = execTest;
+				std::function<void()> ex1 = std::function<void()>(execTest);
+
+				ex1();
+
+				auto ex2 = (void*)ex0;
+
+				((ExecFunc)ex2)();
+				*/
+
+				preRender().async_call([](auto self, auto arg) {
+					do {
+						auto ss = self->_cssclass.load();
+						if (ss)
+							ss->setStatus_Rt(arg.arg);
+						self = self->parent();
+					} while(self);
+				}, (View*)this, CSSType(evt.status()));
+			}
+		}
+
 	};
 
 	bool View::focus() {

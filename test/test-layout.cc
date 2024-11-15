@@ -49,10 +49,10 @@ void layout_scroll(Window* win) {
 
 	//v->set_clip(false);
 	v->set_width({ 150, BoxSizeKind::Match });
-	v->set_height({ 0.5, BoxSizeKind::Ratio });
+	v->set_height({ 1, BoxSizeKind::Ratio });
 	v->set_background_color(Color(255,255,255));
 	v->set_border_radius({20});
-	v->set_scrollbar_width(6);
+	//v->set_scrollbar_width(6);
 
 	auto a = v->append_new<Box>();
 	//a->set_margin_top(10);
@@ -89,7 +89,7 @@ void layout_scroll(Window* win) {
 	f->set_width({ 0, BoxSizeKind::Match });
 	f->set_height({ 100 });
 	f->set_background_color(Color(0,0,255));
-	
+
 	for (int i = 0; i < 10; i++) {
 		auto g = v->append_new<Box>();
 		g->set_margin_top(10);
@@ -104,6 +104,8 @@ void layout_input(Window* win) {
 	auto input = box->append_new<Textarea>();
 	//auto input = (Input*)New<Input>()->append_to(box);
 
+	input->set_align(Align::Center);
+	input->set_margin_top(60);
 	input->set_width({ 200 });
 	input->set_height({ 150 });
 	input->set_border({ {1,Color(100,100,100,255)} });
@@ -233,17 +235,17 @@ void layout(Window* win) {
 void test_layout(int argc, char **argv) {
 	App app;
 	auto win = Window::Make({.msaa=1});
-	app.Qk_On(Load, [](auto e) {
-		Qk_Log("Applicatio::onLoad");
-	});
+	//app.Qk_On(Load, [](auto e) {
+	//	Qk_Log("Applicatio::onLoad");
+	//});
 	win->activate();
-	app.screen()->set_status_bar_style(Screen::kBlack);
-	app.defaultTextOptions()->set_text_family({
-		app.fontPool()->getFontFamilys("Helvetica, PingFang SC")
-	});
+	//app.screen()->set_status_bar_style(Screen::kBlack);
+	//app.defaultTextOptions()->set_text_family({
+	//	app.fontPool()->getFontFamilys("Helvetica, PingFang SC")
+	//});
 	//layout_text(win);
-	layout_scroll(win);
-	//layout_input(win);
+	//layout_scroll(win);
+	layout_input(win);
 	//layout(win);
 
 	app.run();

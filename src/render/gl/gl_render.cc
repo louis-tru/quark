@@ -235,7 +235,14 @@ namespace qk {
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
 		// clip anti alias buffer
 		GLuint slot = gl_MaxTextureImageUnits - 1; // Binding go to the last channel
-		gl_tex_image2D_null(tex, size, GL_RGB/*GL_LUMINANCE*/, GL_UNSIGNED_BYTE, slot);
+#if Qk_iOS
+		ColorType type = kRGBA_8888_ColorType;
+#else
+		ColorType type = kLuminance_8_ColorType;
+#endif
+		gl_tex_image2D_null(tex, size,
+			gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), slot
+		);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);

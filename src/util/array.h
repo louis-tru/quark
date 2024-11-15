@@ -271,7 +271,7 @@ namespace qk {
 	template<typename T>
 	class ArrayWeak {
 	public:
-		ArrayWeak(): _ptr{nullptr,0},_length(0) {}
+		ArrayWeak(): _ptr({nullptr,0}),_length(0) {}
 		ArrayWeak(const T* data, uint32_t length)
 			: _ptr{const_cast<T*>(data),length}, _length(length) {}
 		template<class A2>

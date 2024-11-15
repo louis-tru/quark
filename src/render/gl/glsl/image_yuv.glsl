@@ -18,11 +18,7 @@ void main() {
 	fragColor = vec4(	y + 1.4075 * (v - 0.5),
 										y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),
 										y + 1.779  * (u - 0.5),
-										alpha);
-
-#ifdef Qk_SHADER_IF_FLAGS_AAFUZZ
-	fragColor.a *= (1.0 - abs(aafuzz));
-#endif
+										alpha * (1.0 - abs(aafuzz)));
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);

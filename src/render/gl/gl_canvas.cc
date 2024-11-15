@@ -105,7 +105,7 @@ namespace qk {
 
 		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool antiAlias) {
 			GLC_State::Clip clip{
-				.matrix=_state->matrix, .path=path, .op=op,
+				.matrix=_state->matrix, /*.path=path,*/ .op=op,
 			};
 			if (vertex.vertex.val()) { // copy vertex data
 				clip.vertex = vertex;
@@ -435,7 +435,8 @@ namespace qk {
 					} else {
 						_stencilRef--;
 					}
-					_this->setMatrixAndScale(clip.matrix);
+					//_this->setMatrixAndScale(clip.matrix);
+					setMatrix(clip.matrix);
 					_cmdPack->drawClip(clip, _stencilRef, true);
 					_this->zDepthNext();
 
@@ -461,7 +462,8 @@ namespace qk {
 			if (restore_output && _state->output) { // restore region draw
 				_cmdPack->outputImageBegin(*_state->output->dest, _state->output->isMipmap);
 			}
-			_this->setMatrixAndScale(_state->matrix);
+			//_this->setMatrixAndScale(_state->matrix);
+			setMatrix(_state->matrix);
 		}
 	}
 

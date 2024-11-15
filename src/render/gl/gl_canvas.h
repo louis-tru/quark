@@ -43,7 +43,6 @@ namespace qk {
 		struct Clip { // gl canvas clip
 			Mat             matrix;
 			VertexData      vertex,aafuzz;
-			Path            path;
 			Canvas::ClipOp  op;
 			bool            aaclip; // is aaclip
 		};

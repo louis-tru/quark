@@ -102,7 +102,8 @@ namespace qk {
 			static_assert(sizeof(Arg) <= sizeof(AsyncCall::Arg), "");
 			union uArg { AsyncCall::Arg _; Arg arg; };
 			typedef void (*Exec)(Ctx*, uArg);
-			_asyncCall.push({*(AsyncCall::Arg*)&arg,ctx,(void*)static_cast<Exec>(exec)});
+			auto ex = static_cast<Exec>(exec);
+			_asyncCall.push({*(AsyncCall::Arg*)&arg,ctx,(void*)ex});
 		}
 
 		/**

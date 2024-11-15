@@ -91,7 +91,7 @@ namespace qk {
 					}
 				}
 			}
-			return false;
+			return true;
 		}
 
 	protected:

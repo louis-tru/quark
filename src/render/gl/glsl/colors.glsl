@@ -41,6 +41,7 @@ void main() {
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	fragColor.a *= aaalpha * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+	//fragColor.a *= aaalpha * texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r;
 #else
 	fragColor.a *= aaalpha;
 #endif
