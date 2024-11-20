@@ -561,6 +561,7 @@ namespace qk {
 				bool isFill = ref == 128 && !revoke;
 				auto shader = isFill ?
 					(GLSLClipTest*)&_render->_shaders.clipTest_CLIP_FILL: &_render->_shaders.clipTest; // init fill
+				//Qk_DLog("Clip ref, %d", ref);
 				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
 				shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
 				glUniform1f(shader->depth, depth);

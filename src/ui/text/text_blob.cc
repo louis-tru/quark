@@ -257,11 +257,11 @@ namespace qk {
 		for ( int i = 0, len = lines.length(); i < len; i++ ) {
 #if DEBUG
 				if (lines[i].length() == 0) {
-					Qk_Log("====== TextBlobBuilder::make 0 %s", "\\n");
+					//Qk_Log("====== TextBlobBuilder::make 0 %s", "\\n");
 				} else {
 					auto &weak = ArrayWeak<Unichar>(*lines[i], lines[i].length()).buffer();
 					auto buf = codec_encode(Encoding::kUTF8_Encoding, weak);
-					Qk_Log("====== TextBlobBuilder::make 1 %s", *buf);
+					//Qk_Log("====== TextBlobBuilder::make 1 %s", *buf);
 				}
 #endif
 

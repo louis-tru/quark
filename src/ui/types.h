@@ -289,7 +289,7 @@ namespace qk {
 	typedef WrapValue<BoxOriginKind, BoxOriginKind::Value> BoxOrigin;
 
 	template <typename T>
-	using WrapTextValue = WrapValue<TextValueKind, TextValueKind::Inherit, T>;
+	using WrapTextValue = WrapValue<TextValueKind, TextValueKind::Value, T>;
 
 	// inherit / default / value
 	typedef WrapTextValue<Color>  TextColor;

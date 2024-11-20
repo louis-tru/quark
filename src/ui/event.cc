@@ -81,7 +81,7 @@ namespace qk {
 			bubble_trigger(UIEvent_Highlighted, evt);
 			if ( evt.is_default() ) {
 				/*
-				// TODO: Can't running this codes on iphone
+				// TODO: Can't running this code on iphone6
 				auto execTest = [](){
 					Qk_DLog("Test");
 				};

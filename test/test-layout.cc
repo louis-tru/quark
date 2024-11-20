@@ -23,7 +23,7 @@ void layout_text(Window* win) {
 
 	text->set_width({ 0, BoxSizeKind::Match });
 	text->set_height({ 0, BoxSizeKind::Match });
-	text->set_text_size({ 80 });
+	text->set_text_size({ 22 });
 	//text->set_origin_x({ 0, BoxOriginKind::kAuto });
 	//text->set_origin_y({ 0, BoxOriginKind::kAuto });
 	//text->set_rotate(45);
@@ -40,19 +40,26 @@ void layout_text(Window* win) {
 	labe->set_text_weight(TextWeight::Bold);
 	//labe->set_value("BAC");
 	labe->set_value("Quark 1           abcdefghijkmln 禁忌");
-	labe->set_text_color({ Color(0,0,0) });
+	labe->set_text_color({ Color(255,0,0) });
 }
 
 void layout_scroll(Window* win) {
 	auto box = win->root();
 	auto v = box->append_new<Scroll>();
 
+	//box->set_rotate_z(10);
+	//box->set_translate({100,100});
+
 	//v->set_clip(false);
-	v->set_width({ 150, BoxSizeKind::Match });
+	//v->set_width({ 150, BoxSizeKind::Match });
+	v->set_width({ 1, BoxSizeKind::Ratio });
 	v->set_height({ 1, BoxSizeKind::Ratio });
+	//v->set_margin_left(100);
+	//v->set_margin_top(100);
+	v->set_align(Align::Center);
 	v->set_background_color(Color(255,255,255));
 	v->set_border_radius({20});
-	//v->set_scrollbar_width(6);
+	v->set_scrollbar_width(4);
 
 	auto a = v->append_new<Box>();
 	//a->set_margin_top(10);
@@ -104,6 +111,8 @@ void layout_input(Window* win) {
 	auto input = box->append_new<Textarea>();
 	//auto input = (Input*)New<Input>()->append_to(box);
 
+	//input->set_readonly(true);
+	//input->set_clip(false);
 	input->set_align(Align::Center);
 	input->set_margin_top(60);
 	input->set_width({ 200 });
@@ -122,7 +131,7 @@ void layout_input(Window* win) {
  	input->set_text_weight(TextWeight::Bold);
 	input->set_scrollbar_width(5);
 	//input->set_readonly(true);
-	//input->set_text_value("ABCDEFG AA");
+	input->set_value("ABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\nABCDEFG AA\n");
 }
 
 void layout(Window* win) {
@@ -234,7 +243,7 @@ void layout(Window* win) {
 
 void test_layout(int argc, char **argv) {
 	App app;
-	auto win = Window::Make({.msaa=1});
+	auto win = Window::Make({.msaa=1, .backgroundColor={255,255,255}});
 	//app.Qk_On(Load, [](auto e) {
 	//	Qk_Log("Applicatio::onLoad");
 	//});
@@ -243,9 +252,9 @@ void test_layout(int argc, char **argv) {
 	//app.defaultTextOptions()->set_text_family({
 	//	app.fontPool()->getFontFamilys("Helvetica, PingFang SC")
 	//});
+	//layout_input(win);
 	//layout_text(win);
-	//layout_scroll(win);
-	layout_input(win);
+	layout_scroll(win);
 	//layout(win);
 
 	app.run();

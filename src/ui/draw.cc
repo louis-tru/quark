@@ -348,7 +348,7 @@ namespace qk {
 		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 			auto width = v->_scrollbar_width;
 			auto margin = v->_scrollbar_margin;
-			auto origin = Vec2{b->margin_left(),b->margin_top()};
+			auto origin = Vec2();// Vec2{b->margin_left(),b->margin_top()};
 			auto size = b->_client_size;
 			auto color = v->scrollbar_color().to_color4f_alpha(_opacity * v->_scrollbar_opacity);
 
@@ -360,22 +360,18 @@ namespace qk {
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar
 				float radius[] = {width,width,width,width};
 				auto &rect = _cache->getRRectPath({
-					{origin.x(), size.y() - width - margin + origin.y()},
-					{v->_scrollbar_position_h.val[1], width}
+					{v->_scrollbar_position_h[0], size.y() - width - margin},
+					{v->_scrollbar_position_h[1], width}
 				}, radius);
-				auto mat = Mat(*_matrix).set_translate(b->position());
-				_canvas->setMatrix(mat.translate_x(v->_scrollbar_position_h.val[0]));
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			}
 
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
 				float radius[] = {width,width,width,width};
 				auto &rect = _cache->getRRectPath({
-					{size.x() - width - margin + origin.x(), origin.y()},
-					{width, v->_scrollbar_position_v.val[1]}
+					{size.x() - width - margin, v->_scrollbar_position_v[0]},
+					{width,                     v->_scrollbar_position_v[1]}
 				}, radius);
-				auto mat = Mat(*_matrix).set_translate(b->position());
-				_canvas->setMatrix(mat.translate_y(v->_scrollbar_position_v.val[0]));
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			}
 		}
@@ -616,10 +612,10 @@ namespace qk {
 		// draw cursor
 		if (twinkle) {
 			auto &line = lines->line(v->_cursor_line);
-			auto x = Float32::max(0, offset.x() + v->_cursor_x - 0.5f);
+			auto x = Float32::max(0, offset.x() + v->_cursor_x - 1.0f);
 			//auto y = offset.y() + line.baseline - v->_text_ascent;
 			auto y = offset.y() + (line.end_y + line.start_y - v->_cursor_height) * 0.5f;
-			auto &rect = _cache->getRectPath({{x, y},{1,v->_cursor_height}});
+			auto &rect = _cache->getRectPath({{x, y},{2.0,v->_cursor_height}});
 			_canvas->drawPathvColor(rect, v->cursor_color().to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 		}
 

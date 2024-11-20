@@ -121,15 +121,19 @@ namespace qk {
 		void handle_Click(UIEvent& evt) {
 			auto e = static_cast<ClickEvent*>(&evt);
 
+			if (_readonly) return;
+
 			if ( !_editing && _flag != kFlag_Disable_Click_Focus ) {
 				focus();
 			}
 
-			_async_call([](auto self, auto arg) {
+			//_async_call([](auto self, auto arg) {
+			window()->preRender().async_call([](auto self, auto arg) {
 				if ( self->_editing ) {
 					self->window()->dispatch()->setImeKeyboardOpen({
 						false, self->_type, self->_return_type, self->spot_rect()
 					});
+					self->find_cursor(arg.arg);
 				} else {
 					if ( self->_flag == kFlag_Disable_Click_Focus ) { // 禁用点击聚焦
 						self->_flag = kFlag_Normal;
@@ -186,11 +190,13 @@ namespace qk {
 		}
 
 		void handle_Focus_for_render_t() {
-			_editing = _readonly ? false: true;
-			_cursor_twinkle_status = 0;
-			_flag = kFlag_Normal;
-			mark(kInput_Status, true);
-			window()->preRender().addtask(this);
+		if (!_readonly) {
+				_editing = true;
+				_cursor_twinkle_status = 0;
+				_flag = kFlag_Normal;
+				mark(kInput_Status, true);
+				window()->preRender().addtask(this);
+			}
 		}
 
 		void handle_Focus(UIEvent& evt) {
@@ -1084,16 +1090,9 @@ namespace qk {
 	void Input::set_readonly(bool value, bool isRt) {
 		if (_readonly != value) {
 			_readonly = value;
-			preRender().async_call([](auto self, auto arg) {
-				if (arg.arg) {
-					self->_editing = false;
-				} else{
-					if (self->is_focus()) {
-						self->_editing = true;
-					}
-				}
-				self->mark_layout(kInput_Status, true);
-			}, this, value);
+			if (value) {
+				blur();
+			}
 		}
 	}
 
@@ -1140,7 +1139,7 @@ namespace qk {
 			if ( _flag == kFlag_Auto_Find_Cursor || _flag == kFlag_Auto_Range_Select ) {
 				_this->auto_find_cursor();
 			}
-			_cursor_twinkle_status = 1;
+			_cursor_twinkle_status = true;
 			set_task_timeout(time + 100000); /* 100ms */
 		} else {
 			_cursor_twinkle_status = !_cursor_twinkle_status;
@@ -1151,7 +1150,7 @@ namespace qk {
 	}
 
 	bool Input::can_become_focus() {
-		return true;
+		return !_readonly;
 	}
 
 	ViewType Input::viewType() const {

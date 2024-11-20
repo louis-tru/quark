@@ -54,7 +54,7 @@ using namespace qk;
 	NSString*    _marked_text;
 	UITextInputStringTokenizer* _tokenizer;
 	Window*      _host;
-	uint16_t     _keyboard_up_keycode;
+	uint16_t     _keyboard_down_keycode;
 	BOOL         _can_backspace;
 	BOOL         _clearing;
 }
@@ -138,7 +138,7 @@ using namespace qk;
 		_tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
 		_can_backspace = NO;
 		_host = win;
-		_keyboard_up_keycode = 0;
+		_keyboard_down_keycode = 0;
 		_clearing = NO;
 		
 		NSNotificationCenter* notification = [NSNotificationCenter defaultCenter];
@@ -202,7 +202,7 @@ using namespace qk;
 
 - (void)clear {
 	_marked_text = @"";
-	_keyboard_up_keycode = 0;
+	_keyboard_down_keycode = 0;
 	_clearing = YES;
 	if ( self.isFirstResponder ) {
 		[self resignFirstResponder];
@@ -274,21 +274,22 @@ using namespace qk;
 - (void)insertText:(NSString*)text {
 	if ( text.length == 1 && _marked_text.length == 0 ) {
 		uint16_t keycode = [text characterAtIndex:0];
-		if ( _keyboard_up_keycode == 0 ) {
-			_host->dispatch()->keyboard()->dispatch(keycode, true, true, false, 0, -1, 0);
+		if ( _keyboard_down_keycode == 0 ) {
+			_host->dispatch()->keyboard()->dispatch(keycode, true, true, false, 0, -1, 0); // down
 		} else {
-			Qk_Assert_Eq(keycode, _keyboard_up_keycode);
+			//Qk_Assert_Eq(keycode, _keyboard_up_keycode);
+			keycode = _keyboard_down_keycode; // used keydown keycode
 		}
 		_host->dispatch()->onImeInsert([text UTF8String]);
 		_host->dispatch()->keyboard()->dispatch(keycode, true, false, false, 0, -1, 0);
-		_keyboard_up_keycode = 0;
+		_keyboard_down_keycode = 0;
 	} else {
 		_host->dispatch()->onImeInsert([text UTF8String]);
 	}
 }
 
 - (void)deleteBackward {
-	_keyboard_up_keycode = 0;
+	_keyboard_down_keycode = 0;
 	_host->dispatch()->keyboard()->dispatch(KEYCODE_BACK_SPACE, true, true, false, 0, -1, 0);
 	_host->dispatch()->onImeDelete(-1);
 	_host->dispatch()->keyboard()->dispatch(KEYCODE_BACK_SPACE, true, false, false, 0, -1, 0);
@@ -299,9 +300,9 @@ using namespace qk;
 	_marked_text = markedText;
 	_host->dispatch()->onImeMarked([_marked_text UTF8String]);
 
-	if ( _keyboard_up_keycode ) {
-		_host->dispatch()->keyboard()->dispatch(_keyboard_up_keycode, true, false, false, 0, -1, 0);
-		_keyboard_up_keycode = 0;
+	if ( _keyboard_down_keycode ) {
+		_host->dispatch()->keyboard()->dispatch(_keyboard_down_keycode, true, false, false, 0, -1, 0);
+		_keyboard_down_keycode = 0;
 	}
 }
 
@@ -312,14 +313,14 @@ using namespace qk;
 }
 
 - (BOOL)shouldChangeTextInRange:(UITextRange*)range replacementText:(NSString*)text {
-	_keyboard_up_keycode = 0;
+	_keyboard_down_keycode = 0;
 	if ( text ) {
 		if ( text.length == 1 ) {
 			uint16_t keycode = [text characterAtIndex:0];
 			
 			if ( ![text isEqualToString:_marked_text] ) {
-				_keyboard_up_keycode = keycode;
-				_host->dispatch()->keyboard()->dispatch(keycode, true, true, false, 0, -1, 0);
+				_keyboard_down_keycode = keycode;
+				_host->dispatch()->keyboard()->dispatch(keycode, true, true, false, 0, -1, 0); // down
 			}
 		}
 	}

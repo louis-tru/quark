@@ -1020,7 +1020,7 @@ namespace qk {
 							v->set_layout_offset(Vec2(offset_left, offset_y));
 							offset_left += size.x();
 							break;
-						case Align::End: // float start
+						case Align::End: // float end
 							nextStep(size);
 							v->set_layout_offset(Vec2(cur_x - offset_right - size.x(), offset_y));
 							offset_right += size.x();

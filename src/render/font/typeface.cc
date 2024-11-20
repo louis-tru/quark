@@ -75,12 +75,12 @@ namespace qk {
 	}
 
 	void Typeface::unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const {
-		Qk_DLog("Typeface::unicharsToGlyphs, %s", *getFamilyName());
+		//Qk_DLog("Typeface::unicharsToGlyphs, %s", *getFamilyName());
 		onCharsToGlyphs(unichar, count, glyphs);
 	}
 
 	Array<GlyphID> Typeface::unicharsToGlyphs(const Array<Unichar>& unichar) const {
-		Qk_DLog("Typeface::unicharsToGlyphs, %s", *getFamilyName());
+		//Qk_DLog("Typeface::unicharsToGlyphs, %s", *getFamilyName());
 		if (unichar.length() > 0) {
 			Array<GlyphID> result(unichar.length());
 			onCharsToGlyphs(*unichar, unichar.length(), *result);
