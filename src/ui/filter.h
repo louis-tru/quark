@@ -51,8 +51,8 @@ namespace qk {
 			kGradientLinear, kGradientRadial,
 			kShadow, kBlur, kBackdropBlur,
 		};
-		Qk_DEFINE_PGET(Window*, window);
-		Qk_DEFINE_PGET_Atomic(View*, view);
+		Qk_DEFINE_P_GET(Window*, window);
+		Qk_DEFINE_P_GET_Atomic(View*, view);
 		Qk_DEFINE_VIEW_PROP_Atomic(BoxFilter*, next); // async set next
 
 		BoxFilter();
@@ -117,8 +117,8 @@ namespace qk {
 	class Qk_Export FillGradientLinear: public FillGradientRadial {
 	public:
 		Qk_DEFINE_VIEW_PROP(float, angle, Const);
-		Qk_DEFINE_VIEW_PGET(float, radian, Const);
-		Qk_DEFINE_VIEW_PGET(uint8_t, quadrant, Const);
+		Qk_DEFINE_VIEW_P_GET(float, radian, Const);
+		Qk_DEFINE_VIEW_P_GET(uint8_t, quadrant, Const);
 
 		FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle/*0-360*/);
 		virtual Type type() const override;

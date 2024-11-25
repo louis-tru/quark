@@ -44,18 +44,18 @@ namespace qk {
 		typedef MediaSource::Stream Stream;
 		typedef MediaSource::Extractor Extractor;
 		// define props
-		Qk_DEFINE_PGET(int64_t, pts, ProtectedConst);
+		Qk_DEFINE_P_GET(int64_t, pts, ProtectedConst);
 		Qk_DEFINE_PROP(float, volume, Const);
 		Qk_DEFINE_PROP(bool, mute, Const);
-		Qk_DEFINE_AGET(bool, is_pause, Const);
-		Qk_DEFINE_PGET(MediaType, type, Const);
-		Qk_DEFINE_AGET(uint64_t, duration, Const);
-		Qk_DEFINE_AGET(MediaSourceStatus, status, Const);
+		Qk_DEFINE_A_GET(bool, is_pause, Const);
+		Qk_DEFINE_P_GET(MediaType, type, Const);
+		Qk_DEFINE_A_GET(uint64_t, duration, Const);
+		Qk_DEFINE_A_GET(MediaSourceStatus, status, Const);
 		Qk_DEFINE_ACCE(String, src, Const);
-		Qk_DEFINE_AGET(MediaSource*, media_source);
-		Qk_DEFINE_AGET(const Stream*, video, Const);
-		Qk_DEFINE_AGET(const Stream*, audio, Const); // current audio stream
-		Qk_DEFINE_AGET(uint32_t, audio_streams, Const); // audio stream count
+		Qk_DEFINE_A_GET(MediaSource*, media_source);
+		Qk_DEFINE_A_GET(const Stream*, video, Const);
+		Qk_DEFINE_A_GET(const Stream*, audio, Const); // current audio stream
+		Qk_DEFINE_A_GET(uint32_t, audio_streams, Const); // audio stream count
 		Player(MediaType type);
 		virtual ~Player();
 		void play();

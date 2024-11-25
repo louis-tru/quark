@@ -55,7 +55,7 @@ namespace qk {
 		};
 		// main props
 		Qk_DEFINE_VIEW_PROP(TextAlign,      text_align, Const);
-		Qk_DEFINE_VIEW_PGET(TextAlign,      text_align_value, Const); // @safe Rt
+		Qk_DEFINE_VIEW_P_GET(TextAlign,     text_align_value, Const); // @safe Rt
 		Qk_DEFINE_VIEW_PROP(TextSize,       text_size, Const);
 		Qk_DEFINE_VIEW_PROP(TextColor,      text_color, Const);
 		Qk_DEFINE_VIEW_PROP(TextLineHeight, text_line_height, Const);
@@ -64,18 +64,18 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCE(TextShadow,     text_shadow, Const);
 		Qk_DEFINE_VIEW_ACCE(TextColor,      text_background_color, Const);
 		Qk_DEFINE_VIEW_ACCE(TextWeight,     text_weight, Const);
-		Qk_DEFINE_AGET(TextWeight,          text_weight_value, Const);
+		Qk_DEFINE_VIEW_A_GET(TextWeight,    text_weight_value, Const);
 		Qk_DEFINE_VIEW_ACCE(TextSlant,      text_slant, Const);
-		Qk_DEFINE_AGET(TextSlant,           text_slant_value, Const);
+		Qk_DEFINE_VIEW_A_GET(TextSlant,     text_slant_value, Const);
 		Qk_DEFINE_VIEW_ACCE(TextDecoration, text_decoration, Const);
-		Qk_DEFINE_AGET(TextDecoration,      text_decoration_value, Const);
+		Qk_DEFINE_VIEW_A_GET(TextDecoration,text_decoration_value, Const);
 		Qk_DEFINE_VIEW_ACCE(TextOverflow,   text_overflow, Const);
-		Qk_DEFINE_AGET(TextOverflow,        text_overflow_value, Const);
+		Qk_DEFINE_VIEW_A_GET(TextOverflow,  text_overflow_value, Const);
 		Qk_DEFINE_VIEW_ACCE(TextWhiteSpace, text_white_space, Const);
-		Qk_DEFINE_AGET(TextWhiteSpace,      text_white_space_value, Const);
+		Qk_DEFINE_VIEW_A_GET(TextWhiteSpace,text_white_space_value, Const);
 		Qk_DEFINE_VIEW_ACCE(TextWordBreak,  text_word_break, Const);
-		Qk_DEFINE_AGET(TextWordBreak,       text_word_break_value, Const);
-		Qk_DEFINE_AGET(FontStyle,           font_style, Const);
+		Qk_DEFINE_VIEW_A_GET(TextWordBreak, text_word_break_value, Const);
+		Qk_DEFINE_VIEW_A_GET(FontStyle,     font_style, Const);
 
 		Vec2 compute_layout_size(cString& value);
 
@@ -112,8 +112,8 @@ namespace qk {
 	public:
 		TextConfig(TextOptions *opts, TextConfig *inherit);
 		~TextConfig();
-		Qk_DEFINE_PGET(TextOptions*, opts);
-		Qk_DEFINE_PGET(TextConfig*,  inherit);
+		Qk_DEFINE_P_GET(TextOptions*, opts);
+		Qk_DEFINE_P_GET(TextConfig*,  inherit);
 	};
 
 	class Qk_Export DefaultTextOptions: public Object, public TextOptions, public TextConfig {

@@ -118,10 +118,10 @@ namespace qk {
 		class Qk_Export Extractor: public Object {
 			Qk_HIDDEN_ALL_COPY(Extractor);
 		public:
-			Qk_DEFINE_PGET(MediaSource*, host);
-			Qk_DEFINE_PGET(MediaType, type, Const);
-			Qk_DEFINE_PGET(uint32_t, stream_index, Const);
-			Qk_DEFINE_AGET(const Stream&, stream, Const);
+			Qk_DEFINE_P_GET(MediaSource*, host);
+			Qk_DEFINE_P_GET(MediaType, type, Const);
+			Qk_DEFINE_P_GET(uint32_t, stream_index, Const);
+			Qk_DEFINE_A_GET(const Stream&, stream, Const);
 
 			~Extractor();
 
@@ -163,14 +163,14 @@ namespace qk {
 		};
 
 		// @props
-		Qk_DEFINE_AGET(const URI&, uri, Const); //!< Getting media source path
-		Qk_DEFINE_AGET(MediaSourceStatus, status, Const); //!< Getting current work status
-		Qk_DEFINE_AGET(uint64_t, duration, Const); // !< source duration
-		Qk_DEFINE_AGET(uint32_t, programs, Const); // !< Returns the programs count
-		Qk_DEFINE_AGET(Extractor*, video); //!< extractor() must be called first
-		Qk_DEFINE_AGET(Extractor*, audio); //!< extractor() must be called first
-		Qk_DEFINE_AGET(bool, is_open, Const); // !< Getting whether it's open
-		Qk_DEFINE_AGET(bool, is_pause, Const); // !< Getting whether it's pause state
+		Qk_DEFINE_A_GET(const URI&, uri, Const); //!< Getting media source path
+		Qk_DEFINE_A_GET(MediaSourceStatus, status, Const); //!< Getting current work status
+		Qk_DEFINE_A_GET(uint64_t, duration, Const); // !< source duration
+		Qk_DEFINE_A_GET(uint32_t, programs, Const); // !< Returns the programs count
+		Qk_DEFINE_A_GET(Extractor*, video); //!< extractor() must be called first
+		Qk_DEFINE_A_GET(Extractor*, audio); //!< extractor() must be called first
+		Qk_DEFINE_A_GET(bool, is_open, Const); // !< Getting whether it's open
+		Qk_DEFINE_A_GET(bool, is_pause, Const); // !< Getting whether it's pause state
 		Qk_DEFINE_ACCE(uint64_t, buffer_pkt_duration); // the length of the packet buffer time before and after, default 10 seconds
 
 		MediaSource(cString& uri);
@@ -246,7 +246,7 @@ namespace qk {
 			uint32_t  format; // frame output format, video to ColorType, audio default to signed 16 bits
 			~Frame();
 		};
-		Qk_DEFINE_PGET(MediaType, type, Const); //!< media type
+		Qk_DEFINE_P_GET(MediaType, type, Const); //!< media type
 
  		/**
 		 * @method stream() Returns stream infomaciton

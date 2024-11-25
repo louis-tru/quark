@@ -43,9 +43,9 @@ namespace qk {
 	*/
 	class Qk_Export Keyframe: public StyleSheets {
 	public:
-		Qk_DEFINE_PGET(uint32_t, index, Const);
-		Qk_DEFINE_PGET(uint32_t, time, Const);
-		Qk_DEFINE_PGET(Curve, curve, Const);
+		Qk_DEFINE_P_GET(uint32_t, index, Const);
+		Qk_DEFINE_P_GET(uint32_t, time, Const);
+		Qk_DEFINE_P_GET(Curve, curve, Const);
 		// @overwrite
 		virtual Window* getWindowForAsyncSet() override;
 		/**
@@ -73,8 +73,8 @@ namespace qk {
 	class Qk_Export KeyframeAction: public Action {
 	public:
 		// Props
-		Qk_DEFINE_PGET(uint32_t, time, Const); //@safe Rt get, play time
-		Qk_DEFINE_PGET(uint32_t, frame, Const); //@safe Rt get, play frame
+		Qk_DEFINE_P_GET(uint32_t, time, Const); //@safe Rt get, play time
+		Qk_DEFINE_P_GET(uint32_t, frame, Const); //@safe Rt get, play frame
 
 		KeyframeAction(Window *win);
 

@@ -48,7 +48,7 @@ namespace qk {
 	class Qk_Export Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);
 	public:
-		Qk_DEFINE_PGET(FontStyle, fontStyle, ProtectedConst);
+		Qk_DEFINE_P_GET(FontStyle, fontStyle, ProtectedConst);
 		bool isBold() const { return _fontStyle.weight() >= TextWeight::Semibold; }
 		bool isItalic() const { return _fontStyle.slant() >= TextSlant::Italic; }
 		int countGlyphs() const;

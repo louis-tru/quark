@@ -52,7 +52,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP(BoxOrigin, origin_y, Const); //  y-axis transform origin
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
-		Qk_DEFINE_VIEW_PGET(Vec2, origin_value, Const);
+		Qk_DEFINE_VIEW_P_GET(Vec2, origin_value, Const);
 		Qk_DEFINE_VIEW_ACCE(float, x, Const); // x-axis matrix displacement for the view
 		Qk_DEFINE_VIEW_ACCE(float, y, Const); // y-axis matrix displacement for the view
 		Qk_DEFINE_VIEW_ACCE(float, scale_x, Const); // x-axis matrix scaling for the view

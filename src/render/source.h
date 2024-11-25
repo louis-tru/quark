@@ -62,8 +62,8 @@ namespace qk {
 		Qk_Event(State, Event<ImageSource, State>, Mutex);
 
 		// Defines props
-		Qk_DEFINE_PGET(String, uri, Const);
-		Qk_DEFINE_PGET(State, state, Const);
+		Qk_DEFINE_P_GET(String, uri, Const);
+		Qk_DEFINE_P_GET(State, state, Const);
 
 		// <FlowLayout>
 		// 	<Image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
@@ -175,8 +175,8 @@ namespace qk {
 	class Qk_Export ImageSourcePool: public Object {
 		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
 	public:
-		Qk_DEFINE_PGET(RunLoop*, loop);
-		Qk_DEFINE_PGET(uint32_t, capacity, Const); // Used memory size total
+		Qk_DEFINE_P_GET(RunLoop*, loop);
+		Qk_DEFINE_P_GET(uint32_t, capacity, Const); // Used memory size total
 
 		/**
 		 * @constructor

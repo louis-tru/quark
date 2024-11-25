@@ -52,8 +52,8 @@ namespace qk {
 	// css class name
 	class Qk_Export CSSCName {
 	public:
-		Qk_DEFINE_PGET(uint64_t, hashCode, Const);
-		Qk_DEFINE_PGET(String, name, Const);
+		Qk_DEFINE_P_GET(uint64_t, hashCode, Const);
+		Qk_DEFINE_P_GET(String, name, Const);
 		CSSCName(cString& name);
 	};
 
@@ -75,7 +75,7 @@ namespace qk {
 			Qk_View_Props(_Fun)
 		#undef _Fun
 
-		Qk_DEFINE_AGET(cCurve&, curve, Const);
+		Qk_DEFINE_A_GET(cCurve&, curve, Const);
 
 		StyleSheets();
 		~StyleSheets();
@@ -125,13 +125,13 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(CStyleSheets);
 	public:
 		Qk_DEFINE_PROP   (uint32_t, time, Const); // css transition time
-		Qk_DEFINE_PGET(CStyleSheets*, parent);
-		Qk_DEFINE_PGET(CStyleSheets*, normal); // style sheets for pseudo type
-		Qk_DEFINE_PGET(CStyleSheets*, hover);
-		Qk_DEFINE_PGET(CStyleSheets*, active);
-		Qk_DEFINE_PGET(CSSType, type, Const);
-		Qk_DEFINE_PGET(bool, havePseudoType, Const); // normal | hover | active
-		Qk_DEFINE_PGET(bool, haveSubstyles, Const);
+		Qk_DEFINE_P_GET(CStyleSheets*, parent);
+		Qk_DEFINE_P_GET(CStyleSheets*, normal); // style sheets for pseudo type
+		Qk_DEFINE_P_GET(CStyleSheets*, hover);
+		Qk_DEFINE_P_GET(CStyleSheets*, active);
+		Qk_DEFINE_P_GET(CSSType, type, Const);
+		Qk_DEFINE_P_GET(bool, havePseudoType, Const); // normal | hover | active
+		Qk_DEFINE_P_GET(bool, haveSubstyles, Const);
 
 		/**
 		 * @constructor
@@ -193,10 +193,10 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(CStyleSheetsClass);
 		CSSType _status, _setStatus; //!< @safe Rt Current pseudo type application status
 	public:
-		Qk_DEFINE_PGET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
-		Qk_DEFINE_PGET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
-		Qk_DEFINE_PGET(View*, host); //!< apply style sheet target object
-		Qk_DEFINE_PGET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
+		Qk_DEFINE_P_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
+		Qk_DEFINE_P_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
+		Qk_DEFINE_P_GET(View*, host); //!< apply style sheet target object
+		Qk_DEFINE_P_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
 
 		CStyleSheetsClass(View *host);
 		~CStyleSheetsClass();

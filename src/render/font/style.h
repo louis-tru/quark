@@ -78,7 +78,7 @@ namespace qk {
 
 	class Qk_Export FontStyle {
 	public:
-		Qk_DEFINE_PGET(uint32_t, value, Const);
+		Qk_DEFINE_P_GET(uint32_t, value, Const);
 
 		FontStyle(TextWeight weight, TextWidth width, TextSlant slant) : _value(
 			(Uint32::clamp(uint32_t(weight), uint32_t(TextWeight::Inherit), uint32_t(TextWeight::ExtraBlack))) +

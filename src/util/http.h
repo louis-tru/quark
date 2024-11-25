@@ -212,8 +212,8 @@ namespace qk {
 	public:
 		HttpError(int rc, cString& msg, uint32_t status, cString& url);
 		HttpError(const Error& err);
-		Qk_DEFINE_PGET(uint32_t, status, Const);
-		Qk_DEFINE_PGET(String, url, Const);
+		Qk_DEFINE_P_GET(uint32_t, status, Const);
+		Qk_DEFINE_P_GET(String, url, Const);
 	};
 
 	Qk_Export uint32_t http_request(RequestOptions& options, HttpCb cb = 0) throw(HttpError);

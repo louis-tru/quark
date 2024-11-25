@@ -90,7 +90,7 @@ namespace qk { namespace js {
 
 	class JsClasses {
 	public:
-		Qk_DEFINE_PGET(bool, isAttachFlag);
+		Qk_DEFINE_P_GET(bool, isAttachFlag);
 		JsClasses(Worker* worker);
 		~JsClasses();
 		void add(uint64_t id, JSClass *cls) throw(Error);

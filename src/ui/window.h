@@ -106,28 +106,28 @@ namespace qk {
 		*/
 		Qk_DEFINE_PROP(Vec2, size, Const); //!< current viewport size
 		//!< display scale, the larger the value, the smaller the size and the less content displayed
-		Qk_DEFINE_PGET(float, scale, Const);
-		Qk_DEFINE_PGET(float, defaultScale, Const); //!< default display scale
-		Qk_DEFINE_PGET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
-		Qk_DEFINE_PGET(uint32_t, fsp, Const); //!< current fsp
-		Qk_DEFINE_PGET(float, atomPixel, Const); // atom pixel size
-		Qk_DEFINE_PGET(Root*, root); //! root view
-		Qk_DEFINE_PGET(Application*, host); //! application host
-		Qk_DEFINE_PGET(Render*, render); //! render object
-		Qk_DEFINE_PGET(EventDispatch*, dispatch); //! event dispatch
-		Qk_DEFINE_PGET(RootStyleSheets*, styleSheets); //! root style sheets
+		Qk_DEFINE_P_GET(float, scale, Const);
+		Qk_DEFINE_P_GET(float, defaultScale, Const); //!< default display scale
+		Qk_DEFINE_P_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
+		Qk_DEFINE_P_GET(uint32_t, fsp, Const); //!< current fsp
+		Qk_DEFINE_P_GET(float, atomPixel, Const); // atom pixel size
+		Qk_DEFINE_P_GET(Root*, root); //! root view
+		Qk_DEFINE_P_GET(Application*, host); //! application host
+		Qk_DEFINE_P_GET(Render*, render); //! render object
+		Qk_DEFINE_P_GET(EventDispatch*, dispatch); //! event dispatch
+		Qk_DEFINE_P_GET(RootStyleSheets*, styleSheets); //! root style sheets
 		Qk_DEFINE_PROP(Color, backgroundColor, Const); //! background color
-		Qk_DEFINE_PGET(WindowImpl*, impl); //! window platform impl
-		Qk_DEFINE_PGET(ActionCenter*, actionCenter); //! Action scheduling
-		Qk_DEFINE_AGET(FontPool*, fontPool); //! Font pool
-		Qk_DEFINE_AGET(RunLoop*, loop); //! host main loop
-		Qk_DEFINE_AGET(View*, focusView); //! focus view
+		Qk_DEFINE_P_GET(WindowImpl*, impl); //! window platform impl
+		Qk_DEFINE_P_GET(ActionCenter*, actionCenter); //! Action scheduling
+		Qk_DEFINE_A_GET(FontPool*, fontPool); //! Font pool
+		Qk_DEFINE_A_GET(RunLoop*, loop); //! host main loop
+		Qk_DEFINE_A_GET(View*, focusView); //! focus view
 
 		/**
 		 * @prop surfaceSize
 		 * returns surface only display region and size
 		 */
-		Qk_DEFINE_AGET(Vec2, surfaceSize, Const);
+		Qk_DEFINE_A_GET(Vec2, surfaceSize, Const);
 
 		/**
 		 * @static

@@ -61,8 +61,8 @@ namespace qk
 			virtual void unlock() = 0;
 		};
 
-		Qk_DEFINE_PGET(uint32_t, capacity, Const); // Used memory capacity
-		Qk_DEFINE_PGET(uint32_t, maxCapacity, Const); // max memory capacity
+		Qk_DEFINE_P_GET(uint32_t, capacity, Const); // Used memory capacity
+		Qk_DEFINE_P_GET(uint32_t, maxCapacity, Const); // max memory capacity
 
 		PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *lock);
 		~PathvCache();

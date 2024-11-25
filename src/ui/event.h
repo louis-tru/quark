@@ -110,10 +110,10 @@ namespace qk {
 
 	class Qk_Export UIEventName {
 	public:
-		Qk_DEFINE_PGET(uint32_t, category, Const);
-		Qk_DEFINE_PGET(uint32_t, flag, Const);
-		Qk_DEFINE_PGET(uint32_t, hashCode, Const);
-		Qk_DEFINE_PGET(String, toString, Const);
+		Qk_DEFINE_P_GET(uint32_t, category, Const);
+		Qk_DEFINE_P_GET(uint32_t, flag, Const);
+		Qk_DEFINE_P_GET(uint32_t, hashCode, Const);
+		Qk_DEFINE_P_GET(String, toString, Const);
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
 		inline bool equals(const UIEventName& v) const { return v._hashCode == _hashCode; }
 		inline bool operator==(const UIEventName& v) const { return v._hashCode == _hashCode; }
@@ -139,8 +139,8 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(UIEvent);
 	public:
 		UIEvent(View *origin, SendData data = nullptr);
-		Qk_DEFINE_PGET(View*, origin);
-		Qk_DEFINE_PGET(uint64_t, timestamp, Const);
+		Qk_DEFINE_P_GET(View*, origin);
+		Qk_DEFINE_P_GET(uint64_t, timestamp, Const);
 		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }
 		inline bool is_bubble() const { return return_value & kBubble_ReturnValueMask; }
 		inline void cancel_default() { return_value &= ~kDefault_ReturnValueMask; }
@@ -154,10 +154,10 @@ namespace qk {
 	class Qk_Export ActionEvent: public UIEvent {
 	public:
 		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
-		Qk_DEFINE_PGET(Action*, action);
-		Qk_DEFINE_PGET(uint64_t, delay, Const);
-		Qk_DEFINE_PGET(uint32_t, frame, Const);
-		Qk_DEFINE_PGET(uint32_t, loop, Const);
+		Qk_DEFINE_P_GET(Action*, action);
+		Qk_DEFINE_P_GET(uint64_t, delay, Const);
+		Qk_DEFINE_P_GET(uint32_t, frame, Const);
+		Qk_DEFINE_P_GET(uint32_t, loop, Const);
 		void release() override;
 	};
 
@@ -172,14 +172,14 @@ namespace qk {
 		Qk_DEFINE_PROP(View*, next_focus);
 		Qk_DEFINE_PROP(KeyboardKeyCode, keycode, Const);
 		Qk_DEFINE_PROP(int, keypress, Const);
-		Qk_DEFINE_PGET(uint32_t, repeat, Const);
-		Qk_DEFINE_PGET(uint32_t, device, Const);
-		Qk_DEFINE_PGET(uint32_t, source, Const);
-		Qk_DEFINE_PGET(bool, shift, Const);
-		Qk_DEFINE_PGET(bool, ctrl, Const);
-		Qk_DEFINE_PGET(bool, alt, Const);
-		Qk_DEFINE_PGET(bool, command, Const);
-		Qk_DEFINE_PGET(bool, caps_lock, Const);
+		Qk_DEFINE_P_GET(uint32_t, repeat, Const);
+		Qk_DEFINE_P_GET(uint32_t, device, Const);
+		Qk_DEFINE_P_GET(uint32_t, source, Const);
+		Qk_DEFINE_P_GET(bool, shift, Const);
+		Qk_DEFINE_P_GET(bool, ctrl, Const);
+		Qk_DEFINE_P_GET(bool, alt, Const);
+		Qk_DEFINE_P_GET(bool, command, Const);
+		Qk_DEFINE_P_GET(bool, caps_lock, Const);
 		void release() override;
 	};
 
@@ -192,10 +192,10 @@ namespace qk {
 			kTouch = 1, kKeyboard = 2, kMouse = 3
 		};
 		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
-		Qk_DEFINE_PGET(float, x, Const);
-		Qk_DEFINE_PGET(float, y, Const);
-		Qk_DEFINE_PGET(uint32_t, count, Const);
-		Qk_DEFINE_PGET(Type, type, Const);
+		Qk_DEFINE_P_GET(float, x, Const);
+		Qk_DEFINE_P_GET(float, y, Const);
+		Qk_DEFINE_P_GET(uint32_t, count, Const);
+		Qk_DEFINE_P_GET(Type, type, Const);
 	};
 
 	/**
@@ -206,8 +206,8 @@ namespace qk {
 		MouseEvent(View* origin, float x, float y, KeyboardKeyCode keycode, int keypress,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		Qk_DEFINE_PGET(float, x, Const);
-		Qk_DEFINE_PGET(float, y, Const);
+		Qk_DEFINE_P_GET(float, x, Const);
+		Qk_DEFINE_P_GET(float, y, Const);
 	};
 
 	/**
@@ -219,7 +219,7 @@ namespace qk {
 			kNormal = 1, kHover, kActive,
 		};
 		HighlightedEvent(View* origin, Status status);
-		Qk_DEFINE_PGET(Status, status, Const);
+		Qk_DEFINE_P_GET(Status, status, Const);
 	};
 
 	typedef HighlightedEvent::Status HighlightedStatus;
@@ -252,10 +252,10 @@ namespace qk {
 			KeyboardReturnType return_type;
 			Rect               spot_rect;
 		};
-		Qk_DEFINE_PGET(Application*, host);
-		Qk_DEFINE_PGET(Window*, window);
-		Qk_DEFINE_PGET(KeyboardAdapter*, keyboard);
-		Qk_DEFINE_PGET(View*, focusView);
+		Qk_DEFINE_P_GET(Application*, host);
+		Qk_DEFINE_P_GET(Window*, window);
+		Qk_DEFINE_P_GET(KeyboardAdapter*, keyboard);
+		Qk_DEFINE_P_GET(View*, focusView);
 
 		EventDispatch(Window* win);
 		~EventDispatch();

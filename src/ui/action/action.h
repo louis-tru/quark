@@ -54,9 +54,9 @@ namespace qk {
 	public:
 		typedef List<Action*>::Iterator Id;
 
-		Qk_DEFINE_PGET(Window*, window, Protected);
+		Qk_DEFINE_P_GET(Window*, window, Protected);
 		Qk_DEFINE_PROP(uint32_t, loop, Const);
-		Qk_DEFINE_PGET(uint32_t, duration, Const);
+		Qk_DEFINE_P_GET(uint32_t, duration, Const);
 		Qk_DEFINE_PROP(float, speed, Const);
 		Qk_DEFINE_ACCE(bool, playing, Const);
 
@@ -222,7 +222,7 @@ namespace qk {
 	class ActionCenter: public Object {
 		Qk_HIDDEN_ALL_COPY(ActionCenter)
 	public:
-		Qk_DEFINE_PGET(Window*, window)
+		Qk_DEFINE_P_GET(Window*, window)
 		ActionCenter(Window *window);
 		~ActionCenter();
 	private:

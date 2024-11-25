@@ -55,7 +55,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP(uint32_t, max_length, Const);
 		Qk_DEFINE_VIEW_ACCE(String, value, Const);
 		Qk_DEFINE_VIEW_ACCE(String, placeholder, Const);
-		Qk_DEFINE_VIEW_AGET(uint32_t, text_length, Const);
+		Qk_DEFINE_VIEW_A_GET(uint32_t, text_length, Const);
 
 		Input();
 		virtual bool is_multiline();

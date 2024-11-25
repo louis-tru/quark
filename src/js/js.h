@@ -176,7 +176,7 @@ namespace qk { namespace js {
 
 	template<class T> class Maybe {
 		T  _val;
-		Qk_DEFINE_PGET(bool, ok);
+		Qk_DEFINE_P_GET(bool, ok);
 		Maybe(): _ok(false) {}
 		Maybe(const T& t): _val(t),_ok(true) {}
 		Maybe(T&& t): _val(std::move(t)), _ok(true) {}
@@ -417,8 +417,8 @@ namespace qk { namespace js {
 	class Qk_Export JSClass {
 		Qk_HIDDEN_ALL_COPY(JSClass);
 	public:
-		Qk_DEFINE_PGET(Worker*, worker, Protected);
-		Qk_DEFINE_PGET(uint64_t, alias, Protected);
+		Qk_DEFINE_P_GET(Worker*, worker, Protected);
+		Qk_DEFINE_P_GET(uint64_t, alias, Protected);
 		virtual ~JSClass() = default;
 		void exports(cString& name, JSObject* exports);
 		bool hasInstance(JSValue* val);
@@ -459,12 +459,12 @@ namespace qk { namespace js {
 		JSValue* bindingModule(cString& name);
 
 		// @prop
-		Qk_DEFINE_PGET(TypesParser*, types, Protected);
-		Qk_DEFINE_PGET(Strings*, strs, Protected);
-		Qk_DEFINE_PGET(JsClasses*, classses, Protected);
-		Qk_DEFINE_PGET(ThreadID, thread_id, Protected);
-		Qk_DEFINE_PGET(RunLoop*, loop);
-		Qk_DEFINE_AGET(JSObject*, global);
+		Qk_DEFINE_P_GET(TypesParser*, types, Protected);
+		Qk_DEFINE_P_GET(Strings*, strs, Protected);
+		Qk_DEFINE_P_GET(JsClasses*, classses, Protected);
+		Qk_DEFINE_P_GET(ThreadID, thread_id, Protected);
+		Qk_DEFINE_P_GET(RunLoop*, loop);
+		Qk_DEFINE_A_GET(JSObject*, global);
 
 		void release() override;
 		void garbageCollection();

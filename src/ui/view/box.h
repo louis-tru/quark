@@ -42,8 +42,8 @@ namespace qk {
 	class Qk_Export Box: public View {
 	public:
 		// define props
-		Qk_DEFINE_VIEW_PGET(bool,       wrap_x, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
-		Qk_DEFINE_VIEW_PGET(bool,       wrap_y, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_P_GET(bool,       wrap_x, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
+		Qk_DEFINE_VIEW_P_GET(bool,       wrap_y, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
 		Qk_DEFINE_VIEW_PROP(bool,       clip, Const); //!< is clip box display range
 		Qk_DEFINE_VIEW_PROP(Align,      align, ProtectedConst); //!< view align
 		Qk_DEFINE_VIEW_ACCE(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
@@ -86,8 +86,8 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCE(BoxFilter*, background); // fill background, image|gradient, async set
 		Qk_DEFINE_VIEW_ACCE(BoxShadow*, box_shadow); // box shadow, shadow, async set method
 		Qk_DEFINE_VIEW_PROP(float,      weight, Const); // view weight
-		Qk_DEFINE_VIEW_PGET(Vec2,       content_size, Const); // width,height, no include padding
-		Qk_DEFINE_VIEW_PGET(Vec2,       client_size, Const); // border + padding + content
+		Qk_DEFINE_VIEW_P_GET(Vec2,       content_size, Const); // width,height, no include padding
+		Qk_DEFINE_VIEW_P_GET(Vec2,       client_size, Const); // border + padding + content
 
 		Box();
 		~Box();
