@@ -579,7 +579,7 @@ async function configure() {
 	var PYTHON = process.env.PYTHON || 'python';
 
 	if ( os == 'ios' ) {
-		if ( opts.use_v8 == 'auto' ) { // ios默认使用 javascriptcore
+		if ( opts.use_v8 == 'auto' ) { // iOS use default javascriptcore
 			if ( arch != 'x86' && arch != 'x64' ) {
 				opts.use_v8 = 0;
 			}

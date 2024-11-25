@@ -166,81 +166,12 @@ namespace qk {
 		return WeakBuffer(ptr + offset, len);
 	}
 
-	// --------------------------- S t r i n g s ---------------------------
-
 	Strings::Strings(Worker* worker) {
 		#define _Fun(name) \
 			__##name##__.reset(worker, worker->newStringOneByte(#name));
 		Js_Strings_Each(_Fun);
 		__Errno__.reset(worker, worker->newStringOneByte("errno"));
 		#undef _Fun
-	}
-
-	// --------------------------- J S . C l a s s ---------------------------
-
-	JSClass::JSClass(FunctionCallback constructor, AttachCallback attach)
-		: _constructor(constructor), _attachConstructor(attach) {}
-
-	void JSClass::exports(cString& name, JSObject* exports) {
-		_func.reset(); // reset func
-		exports->setProperty(_worker, name, getFunction());
-	}
-
-	JSObject* JSClass::newInstance(uint32_t argc, JSValue* argv[]) {
-		auto f = getFunction();
-		Qk_Assert( f );
-		return f->newInstance(_worker, argc, argv);
-	}
-
-	JsClassInfo::JsClassInfo(Worker* worker)
-		: _worker(worker), _isAttachFlag(false)
-	{
-	}
-
-	JsClassInfo::~JsClassInfo() {
-		for ( auto i : _jsclass )
-			delete i.value;
-	}
-
-	JSClass* JsClassInfo::get(uint64_t id) {
-		JSClass *out = nullptr;
-		_jsclass.get(id, out);
-		return out;
-	}
-
-	JSFunction* JsClassInfo::getFunction(uint64_t id) {
-		JSClass *out;
-		if ( _jsclass.get(id, out) ) {
-			return out->getFunction();
-		}
-		return nullptr;
-	}
-
-	void JsClassInfo::add(uint64_t id, JSClass *cls) throw(Error) {
-		Qk_Check( ! _jsclass.has(id), "Set native Constructors ID repeat");
-		cls->_id = id;
-		_jsclass.set(id, cls);
-	}
-
-	WrapObject* JsClassInfo::attachObject(uint64_t id, Object* object) {
-		auto wrap = reinterpret_cast<WrapObject*>(object) - 1;
-		Qk_Assert( !wrap->worker() );
-		JSClass *out;
-		if ( _jsclass.get(id, out) ) {
-			_isAttachFlag = true;
-			auto jsobj = out->getFunction()->newInstance(_worker);
-			_isAttachFlag = false;
-			out->_attachConstructor(wrap);
-			return wrap->attach(_worker, jsobj);
-		}
-		return nullptr;
-	}
-
-	bool JsClassInfo::instanceOf(JSValue* val, uint64_t id) {
-		JSClass *out;
-		if ( _jsclass.get(id, out) )
-			return out->hasInstance(val);
-		return false;
 	}
 
 	// ----------------------------------- W o r k e r -----------------------------------
@@ -316,18 +247,18 @@ namespace qk {
 			Js_Return(r);
 	}
 
-	#define _Fun(N) void Js_Set_Module_##N##__();
+	#define _Fun(N) void Js_Module_##N##__();
 	Js_All_Modules(_Fun)
 	#undef _Fun
 
 	Worker::Worker()
 		: _types(nullptr)
 		, _strs(nullptr)
-		, _classsinfo(nullptr)
+		, _classses(nullptr)
 		, _thread_id(thread_self_id())
 	{
 		if (!NativeModulesLib) {
-			#define _Fun(N) Js_Set_Module_##N##__();
+			#define _Fun(N) Js_Module_##N##__();
 			Js_All_Modules(_Fun)
 			#undef _Fun
 		}
@@ -352,7 +283,7 @@ namespace qk {
 		SafeFlag::~SafeFlag();
 		delete _types; _types = nullptr;
 		delete _strs; _strs = nullptr;
-		delete _classsinfo; _classsinfo = nullptr;
+		delete _classses; _classses = nullptr;
 		_nativeModules.reset();
 		_global.reset();
 		_console.reset();
@@ -364,7 +295,7 @@ namespace qk {
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);
-		_classsinfo = new JsClassInfo(this);
+		_classses = new JsClasses(this);
 		_global->setProperty(this, "global", *_global);
 		_global->setMethod(this, "__binding__", __binding__);
 
@@ -481,12 +412,12 @@ namespace qk {
 		throwError(newError(*str));
 	}
 
-	bool Worker::instanceOf(JSValue* val, uint64_t id) {
-		return _classsinfo->instanceOf(val, id);
+	bool Worker::instanceOf(JSValue* val, uint64_t alias) {
+		return _classses->instanceOf(val, alias);
 	}
 
-	JSClass* Worker::jsclass(uint64_t id) {
-		return _classsinfo->get(id);
+	JSClass* Worker::jsclass(uint64_t alias) {
+		return _classses->get(alias);
 	}
 	
 	// ---------------------------------------------------------------------------------------------

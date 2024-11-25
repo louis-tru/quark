@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "quark/util/macros.h"
-
 #ifdef Qk_MAC
 #include "quark/util/array.h"
 #include "quark/util/loop.h"
@@ -74,7 +73,6 @@ static JSStringRef proxy_s = JSStringCreateWithUTF8CString("proxy");
 static JSStringRef revoke_s = JSStringCreateWithUTF8CString("revoke");
 static JSStringRef print_s = JSStringCreateWithUTF8CString("print");
 static JSStringRef Uint8Array_s = JSStringCreateWithUTF8CString("Uint8Array");
-
 
 static JSObjectRef B_prototyp;
 
@@ -443,5 +441,6 @@ void test_jsc(int argc, char **argv) {
 	JSContextGroupRelease(group);
 }
 
+#else
+void test_jsc(int argc, char **argv) {}
 #endif
-

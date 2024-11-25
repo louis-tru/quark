@@ -225,50 +225,50 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker, bool isOrigin) {
 			if (isOrigin) {
-				Js_Set_Property(_log, exports->getProperty(worker, "log"));
-				Js_Set_Property(_warn, exports->getProperty(worker, "warn"));
-				Js_Set_Property(_error, exports->getProperty(worker, "error"));
-				Js_Set_Property(_clear, exports->getProperty(worker, "clear"));
-				Js_Set_Method(log, {
+				Js_Property(_log, exports->getProperty(worker, "log"));
+				Js_Property(_warn, exports->getProperty(worker, "warn"));
+				Js_Property(_error, exports->getProperty(worker, "error"));
+				Js_Property(_clear, exports->getProperty(worker, "clear"));
+				Js_Method(log, {
 					print_to(args, log_println);
 					NativeConsole::call_origin(args, worker->strs()->_log());
 				});
-				Js_Set_Method(warn, {
+				Js_Method(warn, {
 					print_to(args, log_println_warn);
 					NativeConsole::call_origin(args, worker->strs()->_warn());
 				});
-				Js_Set_Method(error, {
+				Js_Method(error, {
 					print_to(args, log_println_error);
 					NativeConsole::call_origin(args, worker->strs()->_error());
 				});
-				Js_Set_Method(clear, {
+				Js_Method(clear, {
 					log_fflush();
 					NativeConsole::call_origin(args, worker->strs()->_clear());
 				});
 			} else {
-				Js_Set_Method(log, { print_to(args, log_println); });
-				Js_Set_Method(warn, { print_to(args, log_println_warn); });
-				Js_Set_Method(error, { print_to(args, log_println_error); });
-				Js_Set_Method(clear, { log_fflush(); });
-				Js_Set_Method(debug, {});
-				Js_Set_Method(info, {});
-				Js_Set_Method(dir, {});
-				Js_Set_Method(dirxml, {});
-				Js_Set_Method(table, {});
-				Js_Set_Method(trace, {});
-				Js_Set_Method(group, {});
-				Js_Set_Method(groupCollapsed, {});
-				Js_Set_Method(groupEnd, {});
-				Js_Set_Method(count, {});
-				Js_Set_Method(assert, {});
-				Js_Set_Method(markTimeline, {});
-				Js_Set_Method(profile, {});
-				Js_Set_Method(profileEnd, {});
-				Js_Set_Method(timeline, {});
-				Js_Set_Method(timelineEnd, {});
-				Js_Set_Method(time, {});
-				Js_Set_Method(timeEnd, {});
-				Js_Set_Method(timeStamp, {});
+				Js_Method(log, { print_to(args, log_println); });
+				Js_Method(warn, { print_to(args, log_println_warn); });
+				Js_Method(error, { print_to(args, log_println_error); });
+				Js_Method(clear, { log_fflush(); });
+				Js_Method(debug, {});
+				Js_Method(info, {});
+				Js_Method(dir, {});
+				Js_Method(dirxml, {});
+				Js_Method(table, {});
+				Js_Method(trace, {});
+				Js_Method(group, {});
+				Js_Method(groupCollapsed, {});
+				Js_Method(groupEnd, {});
+				Js_Method(count, {});
+				Js_Method(assert, {});
+				Js_Method(markTimeline, {});
+				Js_Method(profile, {});
+				Js_Method(profileEnd, {});
+				Js_Method(timeline, {});
+				Js_Method(timelineEnd, {});
+				Js_Method(time, {});
+				Js_Method(timeEnd, {});
+				Js_Method(timeStamp, {});
 			}
 		}
 	};
@@ -313,16 +313,16 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Set_Method(setTimer, {
+			Js_Method(setTimer, {
 				timer_(args, 0, "setTimer", true);
 			});
-			Js_Set_Method(setTimeout, {
+			Js_Method(setTimeout, {
 				timer_(args, 0, "setTimeout", false);
 			});
-			Js_Set_Method(setInterval, {
+			Js_Method(setInterval, {
 				timer_(args, -1, "setInterval", false);
 			});
-			Js_Set_Method(setImmediate, {
+			Js_Method(setImmediate, {
 				if (!args.length() || !args[0]->isFunction()) {
 					Js_Throw(
 						"@method setImmediate(cb)\n"
@@ -333,16 +333,16 @@ namespace qk { namespace js {
 				auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), 0, 0);
 				Js_Return(id);
 			});
-			Js_Set_Method(clearTimer, {
+			Js_Method(clearTimer, {
 				clear_timer(worker, args, "clearTimer");
 			});
-			Js_Set_Method(clearTimeout, {
+			Js_Method(clearTimeout, {
 				clear_timer(worker, args, "clearTimeout");
 			});
-			Js_Set_Method(clearInterval, {
+			Js_Method(clearInterval, {
 				clear_timer(worker, args, "clearInterval");
 			});
-			Js_Set_Method(clearImmediate, {
+			Js_Method(clearImmediate, {
 				clear_timer(worker, args, "clearImmediate");
 			});
 		}
@@ -366,12 +366,12 @@ namespace qk { namespace js {
 				New<WrapHash5381Object>(args, new Hash5381Object());
 			});
 
-			Js_Set_Class_Method(hashCode, {
+			Js_Class_Method(hashCode, {
 				Js_Self(Hash5381Object);
 				Js_Return( self->hash.hashCode() );
 			});
 
-			Js_Set_Class_Method(update, {
+			Js_Class_Method(update, {
 				if (  args.length() < 1 ||
 						!(args[0]->isString() || args[0]->isBuffer())
 				) {
@@ -388,12 +388,12 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Class_Method(digest, {
+			Js_Class_Method(digest, {
 				Js_Self(Hash5381Object);
 				Js_Return( self->hash.digest() );
 			});
 
-			Js_Set_Class_Method(clear, {
+			Js_Class_Method(clear, {
 				Js_Self(Hash5381Object);
 				self->hash = Hash5381();
 			});
@@ -429,40 +429,40 @@ namespace qk { namespace js {
 				argv->set(worker, i, worker->newValue(String(__quark_js_argv[i])));
 			}
 
-			Js_Set_Property(argv, argv);
+			Js_Property(argv, argv);
 
-			Js_Set_Method(version, {
+			Js_Method(version, {
 				Js_Return( qk::version() );
 			});
 
-			Js_Set_Method(platform, {
+			Js_Method(platform, {
 				Js_Return( qk::platform() );
 			});
 
-			Js_Set_Method(timeMonotonic, {
+			Js_Method(timeMonotonic, {
 				Js_Return( time_monotonic() / 1e3 );
 			});
 
-			Js_Set_Method(hashCode, {
+			Js_Method(hashCode, {
 				if (!args.length())
 					Js_Throw("Bad argument");
 				Js_Return( get_hashCode(worker, args).hashCode() );
 			});
 
-			Js_Set_Method(hash, {
+			Js_Method(hash, {
 				if (!args.length()) {
 					Js_Throw("Bad argument");
 				}
 				Js_Return( get_hashCode(worker, args).digest() );
 			});
 
-			Js_Set_Method(nextTick, {
+			Js_Method(nextTick, {
 				if (!args.length() || !args[0]->isFunction())
 					Js_Throw("@method nextTick(cb,...args), cb must be a function");
 				first_loop()->tick(get_callback_for_none(worker, args[0]));
 			});
 
-			Js_Set_Method(addNativeEventListener, {
+			Js_Method(addNativeEventListener, {
 				if ( args.length() < 3 || !args[0]->isObject() ||
 						!args[1]->isString() || !args[2]->isFunction()) {
 					Js_Throw("Bad argument");
@@ -486,7 +486,7 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Method(removeNativeEventListener, {
+			Js_Method(removeNativeEventListener, {
 				if ( args.length() < 2 || !args[0]->isObject() || !args[1]->isString()) {
 					Js_Throw("Bad argument");
 				}
@@ -509,11 +509,11 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Method(garbageCollection, {
+			Js_Method(garbageCollection, {
 				args.worker()->garbageCollection();
 			});
 
-			Js_Set_Method(runScript, {
+			Js_Method(runScript, {
 				if (!args.length() || ! args[0]->isString()) {
 					Js_Throw("Bad argument");
 				}
@@ -534,7 +534,7 @@ namespace qk { namespace js {
 				} // else js error
 			});
 
-			Js_Set_Method(exit, {
+			Js_Method(exit, {
 				int code = 0;
 				if (args.length() && args[0]->isInt32()) {
 					code = args[0]->toInt32Value(worker).unsafe();
@@ -542,7 +542,7 @@ namespace qk { namespace js {
 				thread_exit(code);
 			});
 
-			Js_Set_Method(runDebugger, {
+			Js_Method(runDebugger, {
 				int port = 9229;
 				String host_name = "127.0.0.1";
 				String script_path = "";
@@ -555,11 +555,11 @@ namespace qk { namespace js {
 				runDebugger(worker, {false,port,host_name,script_path});
 			});
 
-			Js_Set_Method(stopDebugger, {
+			Js_Method(stopDebugger, {
 				stopDebugger(worker);
 			});
 
-			Js_Set_Method(debuggerBreakNextStatement, {
+			Js_Method(debuggerBreakNextStatement, {
 				debuggerBreakNextStatement(worker);
 			});
 
@@ -568,5 +568,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Set_Module(_init, NativeInit);
+	Js_Module(_init, NativeInit);
 } }

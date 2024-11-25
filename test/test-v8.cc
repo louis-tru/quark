@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#if !USE_JSC
 #include "quark/util/util.h"
 #include "quark/util/string.h"
 #include <v8.h>
@@ -191,3 +192,7 @@ void test_v8(int argc, char **argv) {
 	v8::V8::ShutdownPlatform();
 	v8::V8::Dispose();
 }
+
+#else
+void test_v8(int argc, char **argv) {}
+#endif

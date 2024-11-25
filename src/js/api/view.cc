@@ -65,37 +65,37 @@ namespace qk { namespace js {
 				Js_NewView(View);
 			});
 
-			Js_Set_Class_Accessor_Get(cssclass, {
+			Js_Class_Accessor_Get(cssclass, {
 				Js_Self(View);
 				Js_Return(self->cssclass());
 			});
 
-			Js_Set_Class_Accessor_Get(parent, {
+			Js_Class_Accessor_Get(parent, {
 				Js_Self(View);
 				Js_Return(self->parent());
 			});
 
-			Js_Set_Class_Accessor_Get(prev, {
+			Js_Class_Accessor_Get(prev, {
 				Js_Self(View);
 				Js_Return( self->prev() );
 			});
 
-			Js_Set_Class_Accessor_Get(next, {
+			Js_Class_Accessor_Get(next, {
 				Js_Self(View);
 				Js_Return( self->next() );
 			});
 
-			Js_Set_Class_Accessor_Get(first, {
+			Js_Class_Accessor_Get(first, {
 				Js_Self(View);
 				Js_Return( self->first() );
 			});
 
-			Js_Set_Class_Accessor_Get(last, {
+			Js_Class_Accessor_Get(last, {
 				Js_Self(View);
 				Js_Return( self->last() );
 			});
 
-			Js_Set_Class_Accessor(action_, {
+			Js_Class_Accessor(action_, {
 				Js_Self(View);
 				Js_Return( self->action() );
 			}, {
@@ -110,17 +110,17 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Class_Accessor_Get(matrix, {
+			Js_Class_Accessor_Get(matrix, {
 				Js_Self(View);
 				Js_Return( self->matrix() );
 			});
 
-			Js_Set_Class_Accessor_Get(level, {
+			Js_Class_Accessor_Get(level, {
 				Js_Self(View);
 				Js_Return( self->level() );
 			});
 
-			Js_Set_Class_Accessor(opacity, {
+			Js_Class_Accessor(opacity, {
 				Js_Self(View);
 				Js_Return( self->opacity() );
 			}, {
@@ -130,7 +130,7 @@ namespace qk { namespace js {
 				self->set_opacity(val->toFloatValue(worker).unsafe());
 			});
 
-			Js_Set_Class_Accessor(cursor, {
+			Js_Class_Accessor(cursor, {
 				Js_Self(View);
 				Js_Return( uint32_t(self->cursor()) );
 			}, {
@@ -139,7 +139,7 @@ namespace qk { namespace js {
 				self->set_cursor(out);
 			});
 
-			Js_Set_Class_Accessor(visible, {
+			Js_Class_Accessor(visible, {
 				Js_Self(View);
 				Js_ReturnBool( self->visible() );
 			}, {
@@ -147,12 +147,12 @@ namespace qk { namespace js {
 				self->set_visible(val->toBooleanValue(worker));
 			});
 
-			Js_Set_Class_Accessor_Get(visibleRegion, {
+			Js_Class_Accessor_Get(visibleRegion, {
 				Js_Self(View);
 				Js_ReturnBool( self->visible_region() );
 			});
 
-			Js_Set_Class_Accessor(receive, {
+			Js_Class_Accessor(receive, {
 				Js_Self(View);
 				Js_ReturnBool( self->receive() );
 			}, {
@@ -160,22 +160,22 @@ namespace qk { namespace js {
 				self->set_receive(val->toBooleanValue(worker));
 			});
 
-			Js_Set_Class_Accessor_Get(isFocus, {
+			Js_Class_Accessor_Get(isFocus, {
 				Js_Self(View);
 				Js_ReturnBool( self->is_focus() );
 			});
 
-			Js_Set_Class_Method(focus, {
+			Js_Class_Method(focus, {
 				Js_Self(View);
 				Js_ReturnBool( self->focus() );
 			});
 
-			Js_Set_Class_Method(blur, {
+			Js_Class_Method(blur, {
 				Js_Self(View);
 				Js_ReturnBool( self->blur() );
 			});
 
-			Js_Set_Class_Method(isSelfChild, {
+			Js_Class_Method(isSelfChild, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"@method View.is_self_child(child)\n"
@@ -188,7 +188,7 @@ namespace qk { namespace js {
 				Js_ReturnBool( self->is_self_child(v) );
 			});
 
-			Js_Set_Class_Method(before, {
+			Js_Class_Method(before, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"@method View.before(prev)\n"
@@ -200,7 +200,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->before(v); }, Error);
 			});
 
-			Js_Set_Class_Method(after, {
+			Js_Class_Method(after, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"@method View.after(next)\n"
@@ -212,7 +212,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->after(v); }, Error);
 			});
 
-			Js_Set_Class_Method(prepend, {
+			Js_Class_Method(prepend, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"@method View.prepend(child)\n"
@@ -224,7 +224,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->prepend(v); }, Error);
 			});
 
-			Js_Set_Class_Method(append, {
+			Js_Class_Method(append, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
 						"@method View.append(child)\n"
@@ -236,39 +236,39 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->append(v); }, Error);
 			});
 
-			Js_Set_Class_Method(remove, {
+			Js_Class_Method(remove, {
 				Js_Self(View);
 				self->remove();
 			});
 
-			Js_Set_Class_Method(removeAllChild, {
+			Js_Class_Method(removeAllChild, {
 				Js_Self(View);
 				self->remove_all_child();
 			});
 
-			Js_Set_Class_Accessor_Get(layoutWeight, {
+			Js_Class_Accessor_Get(layoutWeight, {
 				Js_Self(View);
 				Js_Return( self->layout_weight() );
 			});
 
-			Js_Set_Class_Accessor_Get(layoutAlign, {
+			Js_Class_Accessor_Get(layoutAlign, {
 				Js_Self(View);
 				Js_Return( uint32_t(self->layout_align()) );
 			});
 
-			Js_Set_Class_Accessor_Get(isClip, {
+			Js_Class_Accessor_Get(isClip, {
 				Js_Self(View);
 				Js_ReturnBool( self->is_clip());
 			});
 
-			Js_Set_Class_Accessor_Get(viewType, {
+			Js_Class_Accessor_Get(viewType, {
 				Js_Self(View);
 				Js_Return( self->viewType() );
 			});
 
 			// -----------------------------------------------------------------------------
 			// @safe Rt
-			Js_Set_Class_Method(overlapTest, {
+			Js_Class_Method(overlapTest, {
 				if (!args.length()) {
 					Js_Throw(
 						"@method View.overlapTest(point)\n"
@@ -280,15 +280,15 @@ namespace qk { namespace js {
 				Js_Self(View);
 				Js_ReturnBool(self->overlap_test(out));
 			});
-			Js_Set_Class_Accessor_Get(position, {
+			Js_Class_Accessor_Get(position, {
 				Js_Self(View);
 				Js_Return( args.worker()->types()->jsvalue(self->position()) );
 			});
-			Js_Set_Class_Accessor_Get(layoutOffset, {
+			Js_Class_Accessor_Get(layoutOffset, {
 				Js_Self(View);
 				Js_Return( args.worker()->types()->jsvalue(self->layout_offset()) );
 			});
-			Js_Set_Class_Accessor_Get(center, {
+			Js_Class_Accessor_Get(center, {
 				Js_Self(View);
 				Js_Return( args.worker()->types()->jsvalue(self->center()) );
 			});

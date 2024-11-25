@@ -335,84 +335,6 @@ namespace qk { namespace js {
 
 	// ----------------------------------------------------------------------------------
 
-	class V8JSClass: public JSClass {
-	public:
-		V8JSClass(Worker* worker, cString& name,
-							FunctionCallback constructor, AttachCallback attach, V8JSClass* base,
-							v8::Local<v8::Function> baseFunc = v8::Local<v8::Function>())
-			: JSClass(constructor, attach), _base(base)
-		{
-			_worker = worker;
-			auto data = External::New(ISOLATE(worker), this);
-			auto cb = (v8::FunctionCallback)[](const v8::FunctionCallbackInfo<v8::Value>& info) {
-				auto self = (V8JSClass*)info.Data().As<External>()->Value();
-				if (!self->_worker->classsinfo()->isAttachFlag()) {
-					self->_constructor(*reinterpret_cast<const FunctionCallbackInfo*>(&info));
-				}
-			};
-			v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(ISOLATE(worker), cb, data);
-			v8::Local<v8::String> className = Back<v8::String>(worker->newStringOneByte(name));
-
-			if ( base ) {
-				ft->Inherit( base->Template() );
-			}
-			else if ( !baseFunc.IsEmpty() ) {
-				_baseFunc.Reset(ISOLATE(worker), baseFunc);
-			}
-
-			ft->SetClassName(className);
-			ft->InstanceTemplate()->SetInternalFieldCount(1);
-			_funcTemplate.Reset(ISOLATE(worker), ft);
-		}
-
-		~V8JSClass() {
-			_baseFunc.Reset();
-			_funcTemplate.Reset();
-		}
-
-		v8::Local<v8::FunctionTemplate> Template() {
-			auto _ = reinterpret_cast<v8::Local<v8::FunctionTemplate>*>(&_funcTemplate);
-			return *_;
-		}
-
-		v8::Local<v8::Function> BaseFunction() {
-			auto _ = reinterpret_cast<v8::Local<v8::Function>*>(&_baseFunc);
-			return *_;
-		}
-
-		bool HasBaseFunction() {
-			return !_baseFunc.IsEmpty();
-		}
-
-	private:
-		V8JSClass*                   _base;
-		v8::Persistent<v8::Function> _baseFunc; // base constructor function
-		v8::Persistent<v8::FunctionTemplate> _funcTemplate; // v8 func template
-	};
-
-	JSFunction* JSClass::getFunction() {
-		if (_func.isEmpty()) {
-			// Gen constructor
-			auto v8cls = static_cast<V8JSClass*>(this);
-			auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
-			if (v8cls->HasBaseFunction()) {
-				bool ok;
-				// function.__proto__ = base;
-				// f->SetPrototype(v8cls->BaseFunction());
-				// function.prototype.__proto__ = base.prototype;
-				auto str = Back(_worker->strs()->prototype());
-				auto base = v8cls->BaseFunction();
-				auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-				auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-				ok = proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked();
-				Qk_Assert(ok);
-			}
-			auto func = Cast<JSFunction>(f);
-			_func.reset(_worker, func);
-		}
-		return *_func;
-	}
-
 	struct V8HandleScope {
 		v8::HandleScope value;
 		inline V8HandleScope(Isolate* isolate): value(isolate) {}
@@ -439,6 +361,41 @@ namespace qk { namespace js {
 	JSValue* EscapableHandleScope::escape(JSValue* val) {
 		return Cast(reinterpret_cast<V8EscapableHandleScope*>(this)->value.Escape(Back(val)));
 	}
+
+	struct TryCatchWrap {
+		TryCatchWrap(Worker *worker)
+			: _try(ISOLATE(worker)), _worker(WORKER(worker)) {}
+		v8::TryCatch _try;
+		WorkerImpl *_worker;
+	};
+
+	TryCatch::TryCatch(Worker *worker) {
+		_val = new TryCatchWrap(worker);
+	}
+
+	TryCatch::~TryCatch() {
+		delete reinterpret_cast<TryCatchWrap*>(_val);
+		_val = nullptr;
+	}
+
+	bool TryCatch::hasCaught() const {
+		return reinterpret_cast<TryCatchWrap*>(_val)->_try.HasCaught();
+	}
+
+	JSValue* TryCatch::exception() const {
+		return Cast(wrap->_try.Exception());
+	}
+
+	void TryCatch::reThrow() {
+		reinterpret_cast<TryCatchWrap*>(_val)->_try.ReThrow();
+	}
+
+	void TryCatch::print() const {
+		auto wrap = reinterpret_cast<TryCatchWrap*>(_val);
+		wrap->_worker->print_exception(wrap->_try.Message(), wrap->_try.Exception());
+	}
+
+	// ----------------------------------------------------------------------------------
 
 	bool JSValue::isUndefined() const { return reinterpret_cast<const v8::Value*>(this)->IsUndefined(); }
 	bool JSValue::isNull() const { return reinterpret_cast<const v8::Value*>(this)->IsNull(); }
@@ -639,7 +596,7 @@ namespace qk { namespace js {
 			.FromMaybe(false);
 	}
 
-	void* JSObject::objectPrivate() {
+	void* JSObject::getObjectPrivate() {
 		auto self = reinterpret_cast<v8::Object*>(this);
 		if (self->InternalFieldCount() > 0) {
 			return self->GetAlignedPointerFromInternalField(0);
@@ -656,7 +613,7 @@ namespace qk { namespace js {
 		return false;
 	}
 
-	bool JSObject::set__Proto__(Worker* worker, JSObject* __proto__) {
+	bool JSObject::SetPrototype(Worker* worker, JSObject* __proto__) {
 		return reinterpret_cast<v8::Object*>(this)->
 			SetPrototype(CONTEXT(worker), Back(__proto__)).FromMaybe(false);
 	}
@@ -711,7 +668,7 @@ namespace qk { namespace js {
 		return Cast<JSObject>(r);
 	}
 
-	JSObject* JSFunction::getPrototype(Worker* worker) {
+	JSObject* JSFunction::getFunctionPrototype(Worker* worker) {
 		auto fn = reinterpret_cast<v8::Function*>(this);
 		auto str = Back(worker->strs()->prototype());
 		auto r = fn->Get(CONTEXT(worker), str);
@@ -753,69 +710,6 @@ namespace qk { namespace js {
 	bool JSSet::deleteFor(Worker* worker, JSValue* key) {
 		auto set = reinterpret_cast<v8::Set*>(this);
 		return set->Delete(CONTEXT(worker), Back(key)).ToChecked();
-	}
-
-	bool JSClass::hasInstance(JSValue* val) {
-		return reinterpret_cast<V8JSClass*>(this)->Template()->HasInstance(Back(val));
-	}
-
-	bool JSClass::setMemberMethod(cString& name, FunctionCallback func) {
-		v8::Local<v8::FunctionTemplate> ftemp = reinterpret_cast<V8JSClass*>(this)->Template();
-		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
-		v8::Local<Signature> sign = Signature::New(ISOLATE(_worker), ftemp);
-		v8::Local<v8::FunctionTemplate> t =
-			FunctionTemplate::New(ISOLATE(_worker), func2, v8::Local<v8::Value>(), sign);
-		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		t->SetClassName(fn_name);
-		ftemp->PrototypeTemplate()->Set(fn_name, t);
-		return true;
-	}
-
-	bool JSClass::setMemberAccessor(cString& name,
-																	AccessorGetterCallback get, AccessorSetterCallback set) {
-		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
-		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
-		v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		v8::Local<AccessorSignature> sign = AccessorSignature::New(ISOLATE(_worker), temp);
-		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
-																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, sign);
-		return true;
-	}
-
-	/*
-	bool JSClass::setLazyDataProperty(cString& name, AccessorGetterCallback get) {
-		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
-		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
-		// v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), temp);
-		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, nullptr,
-																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
-		return true;
-	}*/
-
-	bool JSClass::setMemberIndexedAccessor(IndexedAccessorGetterCallback get,
-																				IndexedAccessorSetterCallback set) {
-		v8::IndexedPropertyGetterCallback get2 = reinterpret_cast<v8::IndexedPropertyGetterCallback>(get);
-		v8::IndexedPropertySetterCallback set2 = reinterpret_cast<v8::IndexedPropertySetterCallback>(set);
-		v8::IndexedPropertyHandlerConfiguration cfg(get2, set2);
-		reinterpret_cast<V8JSClass*>(this)->Template()->PrototypeTemplate()->SetHandler(cfg);
-		return true;
-	}
-
-	template<>
-	bool JSClass::setMemberProperty<JSValue*>(cString& name, JSValue* value) {
-		reinterpret_cast<V8JSClass*>(this)->Template()->
-						PrototypeTemplate()->Set(Back<v8::String>(_worker->newStringOneByte(name)), Back(value));
-		return true;
-	}
-
-	template<>
-	bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value) {
-		reinterpret_cast<V8JSClass*>(this)->Template()->
-						Set(Back<v8::String>(_worker->newStringOneByte(name)), Back(value));
-		return true;
 	}
 
 	void ReturnValue::set(bool value) {
@@ -904,25 +798,6 @@ namespace qk { namespace js {
 	Worker* PropertySetCallbackInfo::worker() const {
 		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this);
 		return WorkerImpl::worker(info->GetIsolate());
-	}
-
-	struct TryCatchWrap {
-		TryCatchWrap(Worker *worker)
-			: _try(ISOLATE(worker)) {}
-		v8::TryCatch _try;
-	};
-
-	TryCatch::TryCatch(Worker *worker) {
-		_val = new TryCatchWrap(worker);
-	}
-
-	TryCatch::~TryCatch() {
-		delete reinterpret_cast<TryCatchWrap*>(_val);
-		_val = nullptr;
-	}
-
-	bool TryCatch::hasCaught() const {
-		return reinterpret_cast<TryCatchWrap*>(_val)->_try.HasCaught();
 	}
 
 	Worker* WeakCallbackInfo::worker() const {
@@ -1014,7 +889,7 @@ namespace qk { namespace js {
 		return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
 	}
 
-	JSInt32* Worker::newValue(int data) {
+	JSInt32* Worker::newValue(int32_t data) {
 		return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 	}
 
@@ -1146,33 +1021,6 @@ namespace qk { namespace js {
 		ISOLATE(this)->ThrowException(Back(exception));
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t id,
-															FunctionCallback constructor,
-															AttachCallback attach, JSClass* base) {
-		auto cls = new V8JSClass(this, name, constructor, attach, static_cast<V8JSClass*>(base));
-		_classsinfo->add(id, cls);
-		return cls;
-	}
-
-	JSClass* Worker::newClass(cString& name, uint64_t id,
-																	FunctionCallback constructor,
-																	AttachCallback attach, uint64_t base) {
-		return newClass(name, id, constructor, attach, _classsinfo->get(base));
-	}
-
-	JSClass* Worker::newClass(cString& name, uint64_t id,
-															FunctionCallback constructor,
-															AttachCallback attach, JSFunction* base) {
-		auto cls = new V8JSClass(this, name, constructor, attach, nullptr, Back<v8::Function>(base));
-		_classsinfo->add(id, cls);
-		return cls;
-	}
-
-	void Worker::reportException(TryCatch* try_catch) {
-		TryCatchWrap* wrap = *reinterpret_cast<TryCatchWrap**>(try_catch);
-		WORKER(this)->print_exception(wrap->_try.Message(), wrap->_try.Exception());
-	}
-
 	JSValue* Worker::runScript(JSString* source, JSString* name, JSObject* sandbox) {
 		v8::MaybeLocal<v8::Value> r = WORKER(this)->runScript(Back<v8::String>(source),
 																													Back<v8::String>(name),
@@ -1214,7 +1062,7 @@ namespace qk { namespace js {
 		{ //
 			Sp<Worker> worker = Worker::Make();
 			v8::SealHandleScope sealhandle(ISOLATE(*worker));
-			v8::HandleScope handle(ISOLATE(*worker));
+			//v8::HandleScope handle(ISOLATE(*worker));
 			// Startup debugger
 			for (int i = 2; i < argc; i++) {
 				String arg(argv[i]);

@@ -96,7 +96,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const FileStat& stat) {
-		auto func = worker->classsinfo()->getFunction(Js_Typeid(FileStat));
+		auto func = worker->classses()->getFunction(Js_Typeid(FileStat));
 		Qk_Assert( func );
 		auto r = func->newInstance(worker);
 		*WrapObject::wrap<FileStat>(r)->self() = stat;
@@ -1042,5 +1042,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Set_Module(_types, NativeTypes);
+	Js_Module(_types, NativeTypes);
 } }

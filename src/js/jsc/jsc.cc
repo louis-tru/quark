@@ -28,91 +28,150 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./js_.h"
+#include "./jsc.h"
 #include <uv.h>
-#include <JavaScriptCore/JavaScript.h>
 
 namespace qk { namespace js {
 	static uv_key_t th_key;
+	static Worker* first_worker = nullptr;
+	static std::atomic_int workers = 0;
 
-	Qk_Init_Func(jsc_th_key_init) {
-		uv_key_create(&th_key);
-	};
+	static JSStringRef __native__body_s = JsStringWithUTF8(
+		"return arguments.callee.__native__.apply(this,arguments)");
+	static JSStringRef anonymous_s = JsStringWithUTF8("<anonymous>");
+	static JSStringRef eval_s = JsStringWithUTF8("<eval>");
+	static JSStringRef empty_s = JsStringWithUTF8("");
 
-	class JscWorker: public Worker {
-	public:
-		JscWorker()
-		{
-			uv_key_set(&th_key, this);
+	#define _Fun(name) \
+		static JSStringRef name##_s = JsStringWithUTF8(name);
+	Js_Const_List(_Fun)
+	Js_Worker_Data_List(_Fun)
+	Js_Context_Data_List(_Fun)
+	#undef _Fun
+
+	void checkFatal(JSContextRef ctx, JSValueRef exception) {
+		if (exception) { // err
+			JSValueRef line = JSObjectGetProperty(ctx, (JSObjectRef)exception, line_s, 0);
+			JSValueRef column = JSObjectGetProperty(ctx, (JSObjectRef)exception, column_s, 0);
+			JSValueRef message = JSObjectGetProperty(ctx, (JSObjectRef)exception, message_s, 0);
+			JSValueRef stack = JSObjectGetProperty(ctx, (JSObjectRef)exception, stack_s, 0);
+			double l = JSValueToNumber(ctx, line, 0);
+			double c = JSValueToNumber(ctx, column, 0);
+			// std::string m = Isolate::ToSTDString(ctx, message);
+			// std::string s = Isolate::ToSTDString(ctx, stack);
+			// v8::fatal("", l, "", "%s\n\n%s", m.c_str(), s.c_str());
 		}
-
-		void init() {
-			Worker::init();
-		}
-
-		void release() override {
-		}
-
-		inline static JscWorker* worker() {
-			return static_cast<JscWorker*>(Worker::current());
-		}
-
-		template<class Args>
-		inline static JscWorker* worker(Args args) {
-			// return static_cast<JscWorker*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
-		}
-
-	private:
-		JSContextGroupRef _group;
-		JSGlobalContextRef _ctx;
-		JSValueRef  _exception;
-		JSValueRef _undefined;     // kUndefinedValueRootIndex = 4;
-		JSValueRef _the_hole_value;// kTheHoleValueRootIndex = 5;
-		JSValueRef _null;          // kNullValueRootIndex = 6;
-		JSValueRef _true;          // kTrueValueRootIndex = 7;
-		JSValueRef _false;         // kFalseValueRootIndex = 8;
-		JSValueRef _empty_s;       // kEmptyStringRootIndex = 9;
-		JSObjectRef _external;
-	};
-
-	template<>
-	inline JscWorker* JscWorker::worker<Worker*>(Worker* worker) {
-		return static_cast<JscWorker*>(worker);
 	}
 
-	// template<>
-	// inline JscWorker* JscWorker::worker<JSContextGroupRef>(JSContextGroupRef ref) {
-	// 	return static_cast<JscWorker*>( isolate->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
-	// }
+	JSObjectRef runNativeScript(JSGlobalContextRef ctx, cChar* script, cChar* name) {
+		JSValueRef ex = nullptr;
+		JSObjectRef global = (JSObjectRef)JSContextGetGlobalObject(ctx);
+		JSCStringPtr jsc_v8_js = JSStringCreateWithUTF8CString(name);
+		JSCStringPtr script2 = JSStringCreateWithUTF8CString(script);
+		auto fn = (JSObjectRef)JSEvaluateScript(ctx, *script2, nullptr, *jsc_v8_js, 1, JsFatal(ctx));
+		auto exports = JSObjectMake(ctx, 0, 0);
+		JSValueProtect(ctx, exports); // Protect
+		JSValueRef argv[2] = { exports, global };
+		JSObjectCallAsFunction(ctx, fn, 0, 2, argv, JsFatal(ctx));
+		JSValueUnprotect(ctx, exports); // UnProtect
+		return exports;
+	}
+
+	void GlobalData::initialize(JSGlobalContextRef ctx) {
+		JSValueRef ex = nullptr;
+		Undefined = JSValueMakeUndefined(ctx);   JSValueProtect(ctx, Undefined);
+		Null = JSValueMakeNull(ctx);             JSValueProtect(ctx, Null);
+		True = JSValueMakeBoolean(ctx, true);    JSValueProtect(ctx, true);
+		False = JSValueMakeBoolean(ctx, false);  JSValueProtect(ctx, false);
+		Empty = JSValueMakeString(ctx, empty_s); JSValueProtect(ctx, Empty);
+		// auto exports = runNativeScript(ctx, (const char*)
+		// 																native_js::JSC_native_js_code_jsc_v8_isolate_,
+		// 																"[jsc-v8-isolate.js]");
+		#define _Init_Fun(name) name = (JSObjectRef) \
+		JSObjectGetProperty(ctx, exports, name##_s, JsFatal(ctx)); \
+		JSValueProtect(ctx, name);
+		Js_Worker_Data_List(_Fun)
+		#undef _Fun
+	}
+
+	void GlobalData::destroy(JSGlobalContextRef ctx) {
+		JSValueUnprotect(ctx, Undefined);
+		JSValueUnprotect(ctx, Null);
+		JSValueUnprotect(ctx, True);
+		JSValueUnprotect(ctx, False);
+		JSValueUnprotect(ctx, Empty_s);
+		#define _Des_Fun(name) JSValueUnprotect(ctx, name);
+		Js_Worker_Data_List(_Des_Fun)
+	}
+
+	void ContextData::initialize(JSGlobalContextRef ctx) {
+		JSValueRef ex = nullptr;
+		// auto exports = runNativeScript(ctx, (const char*)
+		// 																native_js::JSC_native_js_code_jsc_v8_context_,
+		// 																"[jsc-v8-context.js]");
+		Js_Context_Data_List(_Init_Fun)
+	}
+	void ContextData::destroy(JSGlobalContextRef ctx) {
+		Js_Context_Data_List(_Des_Fun)
+	}
+	#undef _Init_Fun
+	#undef _Des_Fun
+
+	JscWorker::JscWorker()
+		: _exception(nullptr)
+		, _try(nullptr)
+		, _scope(nullptr)
+		, _messageListener(nullptr)
+		, _hasTerminated(false)
+		, _hasDestroy(false)
+	{
+		uv_key_set(&th_key, this);
+		first_worker = workers++ ? nullptr: this;
+
+		_group = JSContextGroupCreate();
+		_ctx = JSGlobalContextCreateInGroup(_group, nullptr);
+
+		// JSObjectRef global = (JSObjectRef)JSContextGetGlobalObject(_ctx);
+		// v8::HandleScope scope(reinterpret_cast<v8::Isolate*>(this));
+		_globalData.initialize(_ctx);
+		_ctxData.initialize(_ctx);
+		_templates.initialize(_ctx);
+	}
+
+	void JscWorker::release() {
+		Worker::release();
+		_hasTerminated = true;
+		_exception = nullptr;
+		_templates.destroy(_ctx);
+		_globalData.destroy(_ctx);
+		_ctxData.destroy(_ctx);
+		_hasDestroy = true;
+		JSGlobalContextRelease(_ctx);
+		JSContextGroupRelease(_group);
+
+		if (first_worker == this)
+			first_worker = nullptr;
+		workers--;
+		uv_key_set(&th_key, nullptr);
+	}
+
+	JSObjectRef JscWorker::newError(cChar* message) {
+		auto str = JSValueMakeString(_ctx, JSStringCreateWithUTF8CString(message));
+		auto error = JSObjectCallAsConstructor(_ctx, _ctxData.Error, 1, &str, nullptr);
+		DCHECK(error);
+		return error;
+	}
+
+	// -----------------------------------------------------------------------------------------
 
 	Worker* Worker::current() {
-		return reinterpret_cast<Worker*>(uv_key_get(&th_key));
+		return first_worker ? first_worker : reinterpret_cast<Worker*>(uv_key_get(&th_key));
 	}
 
 	Worker* Worker::Make() {
 		auto o = new JscWorker();
 		o->init();
 		return o;
-	}
-
-	JSFunction* JSClass::getFunction() {
-	}
-
-	HandleScope::HandleScope(Worker* worker) {
-		// new(this) V8HandleScope(ISOLATE(worker));
-	}
-
-	HandleScope::~HandleScope() {
-		// reinterpret_cast<V8HandleScope*>(this)->~V8HandleScope();
-	}
-
-	EscapableHandleScope::EscapableHandleScope(Worker* worker) {
-		// new(this) V8EscapableHandleScope(ISOLATE(worker));
-	}
-
-	template<>
-	JSValue* EscapableHandleScope::escape(JSValue* val) {
-		// return Cast(reinterpret_cast<V8EscapableHandleScope*>(this)->value.Escape(Back(val)));
 	}
 
 	bool JSValue::isUndefined() const {
@@ -342,7 +401,7 @@ namespace qk { namespace js {
 		// 	.FromMaybe(false);
 	}
 
-	void* JSObject::objectPrivate() {
+	void* JSObject::getObjectPrivate() {
 		// auto self = reinterpret_cast<v8::Object*>(this);
 		// if (self->InternalFieldCount() > 0) {
 		// 	return self->GetAlignedPointerFromInternalField(0);
@@ -359,7 +418,7 @@ namespace qk { namespace js {
 		// return false;
 	}
 
-	bool JSObject::set__Proto__(Worker* worker, JSObject* __proto__) {
+	bool JSObject::setPrototype(Worker* worker, JSObject* __proto__) {
 		// return reinterpret_cast<v8::Object*>(this)->
 		// 	SetPrototype(CONTEXT(worker), Back(__proto__)).FromMaybe(false);
 	}
@@ -414,7 +473,7 @@ namespace qk { namespace js {
 		// return Cast<JSObject>(r);
 	}
 
-	JSObject* JSFunction::getPrototype(Worker* worker) {
+	JSObject* JSFunction::getFunctionPrototype(Worker* worker) {
 		// auto fn = reinterpret_cast<v8::Function*>(this);
 		// auto str = Back(worker->strs()->prototype());
 		// auto r = fn->Get(CONTEXT(worker), str);
@@ -456,57 +515,6 @@ namespace qk { namespace js {
 	bool JSSet::deleteFor(Worker* worker, JSValue* key) {
 		// auto set = reinterpret_cast<v8::Set*>(this);
 		// return set->Delete(CONTEXT(worker), Back(key)).ToChecked();
-	}
-
-	bool JSClass::hasInstance(JSValue* val) {
-		//return reinterpret_cast<V8JSClass*>(this)->Template()->HasInstance(Back(val));
-	}
-
-	bool JSClass::setMemberMethod(cString& name, FunctionCallback func) {
-		// v8::Local<v8::FunctionTemplate> ftemp = reinterpret_cast<V8JSClass*>(this)->Template();
-		// v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
-		// v8::Local<Signature> sign = Signature::New(ISOLATE(_worker), ftemp);
-		// v8::Local<v8::FunctionTemplate> t =
-		// 	FunctionTemplate::New(ISOLATE(_worker), func2, v8::Local<v8::Value>(), sign);
-		// v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		// t->SetClassName(fn_name);
-		// ftemp->PrototypeTemplate()->Set(fn_name, t);
-		// return true;
-	}
-
-	bool JSClass::setMemberAccessor(cString& name,
-																	AccessorGetterCallback get, AccessorSetterCallback set) {
-		// v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
-		// v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
-		// v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		// v8::Local<AccessorSignature> sign = AccessorSignature::New(ISOLATE(_worker), temp);
-		// v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		// temp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
-		// 																			v8::Local<v8::Value>(), v8::DEFAULT, v8::None, sign);
-		// return true;
-	}
-
-	bool JSClass::setMemberIndexedAccessor(IndexedAccessorGetterCallback get,
-																				IndexedAccessorSetterCallback set) {
-		// v8::IndexedPropertyGetterCallback get2 = reinterpret_cast<v8::IndexedPropertyGetterCallback>(get);
-		// v8::IndexedPropertySetterCallback set2 = reinterpret_cast<v8::IndexedPropertySetterCallback>(set);
-		// v8::IndexedPropertyHandlerConfiguration cfg(get2, set2);
-		// reinterpret_cast<V8JSClass*>(this)->Template()->PrototypeTemplate()->SetHandler(cfg);
-		// return true;
-	}
-
-	template<>
-	bool JSClass::setMemberProperty<JSValue*>(cString& name, JSValue* value) {
-		// reinterpret_cast<V8JSClass*>(this)->Template()->
-		// 				PrototypeTemplate()->Set(Back<v8::String>(_worker->newStringOneByte(name)), Back(value));
-		// return true;
-	}
-
-	template<>
-	bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value) {
-		// reinterpret_cast<V8JSClass*>(this)->Template()->
-		// 				Set(Back<v8::String>(_worker->newStringOneByte(name)), Back(value));
-		// return true;
 	}
 
 	void ReturnValue::set(bool value) {
@@ -831,33 +839,6 @@ namespace qk { namespace js {
 		// ISOLATE(this)->ThrowException(Back(exception));
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t id,
-															FunctionCallback constructor,
-															AttachCallback attach, JSClass* base) {
-		// auto cls = new V8JSClass(this, name, constructor, attach, static_cast<V8JSClass*>(base));
-		// _classsinfo->add(id, cls);
-		// return cls;
-	}
-
-	JSClass* Worker::newClass(cString& name, uint64_t id,
-																	FunctionCallback constructor,
-																	AttachCallback attach, uint64_t base) {
-		// return newClass(name, id, constructor, attach, _classsinfo->get(base));
-	}
-
-	JSClass* Worker::newClass(cString& name, uint64_t id,
-															FunctionCallback constructor,
-															AttachCallback attach, JSFunction* base) {
-		// auto cls = new V8JSClass(this, name, constructor, attach, nullptr, Back<v8::Function>(base));
-		// _classsinfo->add(id, cls);
-		// return cls;
-	}
-
-	void Worker::reportException(TryCatch* try_catch) {
-		// TryCatchWrap* wrap = *reinterpret_cast<TryCatchWrap**>(try_catch);
-		// WORKER(this)->print_exception(wrap->_try.Message(), wrap->_try.Exception());
-	}
-
 	JSValue* Worker::runScript(JSString* source, JSString* name, JSObject* sandbox) {
 		// v8::MaybeLocal<v8::Value> r = WORKER(this)->runScript(Back<v8::String>(source),
 		// 																											Back<v8::String>(name),
@@ -893,4 +874,7 @@ namespace qk { namespace js {
 		return rc;
 	}
 
+	Qk_Init_Func(jsc_th_key_init) {
+		uv_key_create(&th_key);
+	};
 } }

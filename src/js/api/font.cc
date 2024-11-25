@@ -58,27 +58,27 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FontPool, 0, { Js_Throw("Access forbidden."); });
 
-			Js_Set_Class_Accessor_Get(countFamilies, {
+			Js_Class_Accessor_Get(countFamilies, {
 				Js_Self(FontPool);
 				Js_Return(self->countFamilies());
 			});
 
-			Js_Set_Class_Accessor_Get(defaultFamilyNames, {
+			Js_Class_Accessor_Get(defaultFamilyNames, {
 				Js_Self(FontPool);
 				Js_Return(self->defaultFamilyNames());
 			});
 
-			Js_Set_Class_Accessor_Get(defaultFontFamilys, {
+			Js_Class_Accessor_Get(defaultFontFamilys, {
 				Js_Self(FontPool);
 				Js_Return( worker->types()->jsvalue(self->defaultFontFamilys()) );
 			});
 
-			Js_Set_Class_Method(getFontFamilys, {
+			Js_Class_Method(getFontFamilys, {
 				Js_Self(FontPool);
 				getFontFamilysFromPool(args, self);
 			});
 
-			Js_Set_Class_Method(addFontFamily, {
+			Js_Class_Method(addFontFamily, {
 				WeakBuffer buff;
 				if (!args.length() || !(buff = args[0]->toBufferValue(worker)).length()) {
 					Js_Throw("@method FontPool.addFontFamily(cBuffer& buff, cString& alias = String())");
@@ -91,7 +91,7 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Class_Method(getFamilyName, {
+			Js_Class_Method(getFamilyName, {
 				if (!args.length() || !args[0]->isUint32()) {
 					Js_Throw("@method FontPool.getFamilyName(int index)");
 				}
@@ -99,12 +99,12 @@ namespace qk { namespace js {
 				Js_Return( self->getFamilyName(args[0]->toInt32Value(worker).unsafe()) );
 			});
 
-			Js_Set_Method(getFontFamilys, {
+			Js_Method(getFontFamilys, {
 				if ( !checkApp(worker) ) return;
 				getFontFamilysFromPool(args, shared_app()->fontPool());
 			});
 
-			Js_Set_Method(getFamilysName, {
+			Js_Method(getFamilysName, {
 				getFamilysNameFromFFID(args);
 			});
 
@@ -112,5 +112,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Set_Module(_font, WrapFontPool);
+	Js_Module(_font, WrapFontPool);
 } }

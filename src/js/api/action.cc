@@ -54,29 +54,29 @@ namespace qk { namespace js {
 
 			// Qk_DEFINE_PGET(Window*, window, Protected);
 
-			Js_Set_WrapObject_Accessor(Action, uint32_t, loop, loop);
+			Js_WrapObject_Accessor(Action, uint32_t, loop, loop);
 
-			Js_Set_Class_Accessor_Get(duration, {
+			Js_Class_Accessor_Get(duration, {
 				Js_Self(Action);
 				Js_Return(self->duration());
 			});
 
-			Js_Set_WrapObject_Accessor(Action, float, speed, speed);
-			Js_Set_WrapObject_Accessor(Action, bool, playing, playing);
+			Js_WrapObject_Accessor(Action, float, speed, speed);
+			Js_WrapObject_Accessor(Action, bool, playing, playing);
 
-			Js_Set_Class_Method(play, {
+			Js_Class_Method(play, {
 				Js_Self(Action);
 				self->play();
 				Js_Return(args.This());
 			});
 
-			Js_Set_Class_Method(stop, {
+			Js_Class_Method(stop, {
 				Js_Self(Action);
 				self->stop();
 				Js_Return(args.This());
 			});
 
-			Js_Set_Class_Method(seek, {
+			Js_Class_Method(seek, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek(uint32_t timeMs)");
 				Js_Self(Action);
@@ -84,7 +84,7 @@ namespace qk { namespace js {
 				Js_Return(args.This());
 			});
 
-			Js_Set_Class_Method(seekPlay, {
+			Js_Class_Method(seekPlay, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek_play(uint32_t timeMs)");
 				Js_Self(Action);
@@ -92,7 +92,7 @@ namespace qk { namespace js {
 				Js_Return(args.This());
 			});
 
-			Js_Set_Class_Method(seekStop, {
+			Js_Class_Method(seekStop, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek_stop(uint32_t timeMs)");
 				Js_Self(Action);
@@ -100,26 +100,26 @@ namespace qk { namespace js {
 				Js_Return(args.This());
 			});
 
-			Js_Set_Class_Method(before, {
+			Js_Class_Method(before, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.before(Action *act)");
 				Js_Self(Action);
 				self->before(wrap<Action>(args[0])->self());
 			});
 
-			Js_Set_Class_Method(after, {
+			Js_Class_Method(after, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.after(Action *act)");
 				Js_Self(Action);
 				self->after(wrap<Action>(args[0])->self());
 			});
 
-			Js_Set_Class_Method(remove, {
+			Js_Class_Method(remove, {
 				Js_Self(Action);
 				self->remove();
 			});
 
-			Js_Set_Class_Method(append, {
+			Js_Class_Method(append, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.append(Action *child)");
 				Js_Self(Action);
@@ -128,7 +128,7 @@ namespace qk { namespace js {
 				}, Error);
 			});
 
-			Js_Set_Class_Method(clear, {
+			Js_Class_Method(clear, {
 				Js_Self(Action);
 				self->clear();
 			});
@@ -169,22 +169,22 @@ namespace qk { namespace js {
 					New<WrapKeyframeAction>(args, new KeyframeAction(win));
 			});
 
-			Js_Set_Class_Accessor_Get(time, {
+			Js_Class_Accessor_Get(time, {
 				Js_Self(Type);
 				Js_Return(self->time());
 			});
 
-			Js_Set_Class_Accessor_Get(frame, {
+			Js_Class_Accessor_Get(frame, {
 				Js_Self(Type);
 				Js_Return(self->frame());
 			});
 
-			Js_Set_Class_Accessor_Get(length, {
+			Js_Class_Accessor_Get(length, {
 				Js_Self(Type);
 				Js_Return(self->length());
 			});
 
-			Js_Set_Class_Indexed_Get({
+			Js_Class_Indexed_Get({
 				Js_Self(Type);
 				if (key >= self->length()) {
 					Js_Throw("@method KeyframeAction[](uint32_t index) Frame array index overflow.");
@@ -195,7 +195,7 @@ namespace qk { namespace js {
 
 			// bool hasProperty(ViewProp name);
 
-			Js_Set_Class_Method(addFrame, {
+			Js_Class_Method(addFrame, {
 				if (!args.length() || !args[0]->isUint32()) {
 					Js_Throw("\
 						Param timeMs cannot be empty \n\
@@ -212,7 +212,7 @@ namespace qk { namespace js {
 				Js_Return( self->addFrame(timeMs, curve) );
 			});
 
-			Js_Set_Class_Method(addFrameWithCss, {
+			Js_Class_Method(addFrameWithCss, {
 				if (!args.length() || !args[0]->isString()) {
 					Js_Throw("\
 						Bad argument cssExp \n\
@@ -245,17 +245,17 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Keyframe, StyleSheets, { Js_Throw("Access forbidden."); });
 
-			Js_Set_Class_Accessor_Get(index, {
+			Js_Class_Accessor_Get(index, {
 				Js_Self(Keyframe);
 				Js_Return(self->index());
 			});
 
-			Js_Set_Class_Accessor_Get(time, {
+			Js_Class_Accessor_Get(time, {
 				Js_Self(Keyframe);
 				Js_Return(self->time());
 			});
 
-			Js_Set_Class_Accessor_Get(curve, {
+			Js_Class_Accessor_Get(curve, {
 				Js_Self(Keyframe);
 				Js_Return( worker->types()->jsvalue(self->curve()) );
 			});
@@ -275,5 +275,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Set_Module(_action, NativeAction);
+	Js_Module(_action, NativeAction);
 } }

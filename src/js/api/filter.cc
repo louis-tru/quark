@@ -37,12 +37,12 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(BoxFilter, 0, { Js_Throw("Forbidden access abstract"); });
 
-			Js_Set_Class_Accessor_Get(type, {
+			Js_Class_Accessor_Get(type, {
 				Js_Self(BoxFilter);
 				Js_Return(self->type());
 			});
 
-			Js_Set_Class_Accessor(next, {
+			Js_Class_Accessor(next, {
 				Js_Self(BoxFilter);
 				Js_Return(self->next());
 			}, {
@@ -70,13 +70,13 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_WrapObject_Accessor(FillImage, String, src, src);
+			Js_WrapObject_Accessor(FillImage, String, src, src);
 			// Qk_DEFINE_VIEW_ACCE(ImageSource*, source);
-			Js_Set_WrapObject_Accessor(FillImage, FillSize, width, width);
-			Js_Set_WrapObject_Accessor(FillImage, FillSize, height, height);
-			Js_Set_WrapObject_Accessor(FillImage, FillPosition, x, x);
-			Js_Set_WrapObject_Accessor(FillImage, FillPosition, y, y);
-			Js_Set_WrapObject_Accessor(FillImage, Repeat, repeat, repeat);
+			Js_WrapObject_Accessor(FillImage, FillSize, width, width);
+			Js_WrapObject_Accessor(FillImage, FillSize, height, height);
+			Js_WrapObject_Accessor(FillImage, FillPosition, x, x);
+			Js_WrapObject_Accessor(FillImage, FillPosition, y, y);
+			Js_WrapObject_Accessor(FillImage, Repeat, repeat, repeat);
 
 			cls->exports("FillImage", exports);
 		}
@@ -115,12 +115,12 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Class_Accessor_Get(positions, {
+			Js_Class_Accessor_Get(positions, {
 				Js_Self(FillGradientRadial);
 				Js_Return( worker->types()->jsvalue(self->positions()) );
 			});
 
-			Js_Set_Class_Accessor_Get(positions, {
+			Js_Class_Accessor_Get(positions, {
 				Js_Self(FillGradientRadial);
 				Js_Return( worker->types()->jsvalue(self->colors()) );
 			});
@@ -146,7 +146,7 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_WrapObject_Accessor(FillGradientLinear, float, angle, angle);
+			Js_WrapObject_Accessor(FillGradientLinear, float, angle, angle);
 
 			cls->exports("FillGradientLinear", exports);
 		}
@@ -164,7 +164,7 @@ namespace qk { namespace js {
 			Js_Define_Class(BoxShadow, BoxFilter, {
 				NewBoxShadow(worker, args);
 			});
-			Js_Set_WrapObject_Accessor(BoxShadow, Shadow, value, value);
+			Js_WrapObject_Accessor(BoxShadow, Shadow, value, value);
 
 			cls->exports("BoxShadow", exports);
 		}

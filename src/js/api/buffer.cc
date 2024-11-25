@@ -122,10 +122,10 @@ namespace qk { namespace js {
 	
 		static void binding(JSObject* exports, Worker* worker) {
 
-			Js_Set_Method(fromString, { fromString(args); });
-			Js_Set_Method(toString, { toString(args); });
+			Js_Method(fromString, { fromString(args); });
+			Js_Method(toString, { toString(args); });
 		}
 	};
 
-	Js_Set_Module(_buffer, NativeBuffer);
+	Js_Module(_buffer, NativeBuffer);
 } }

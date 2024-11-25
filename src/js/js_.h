@@ -88,11 +88,11 @@ namespace qk { namespace js {
 		void weak(Object* obj) override;
 	};
 
-	class JsClassInfo {
+	class JsClasses {
 	public:
 		Qk_DEFINE_PGET(bool, isAttachFlag);
-		JsClassInfo(Worker* worker);
-		~JsClassInfo();
+		JsClasses(Worker* worker);
+		~JsClasses();
 		void add(uint64_t id, JSClass *cls) throw(Error);
 		JSClass* get(uint64_t id);
 		JSFunction* getFunction(uint64_t id);

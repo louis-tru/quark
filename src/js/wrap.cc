@@ -160,14 +160,14 @@ namespace qk { namespace js {
 
 	WrapObject* WrapObject::unpack(JSValue* object) {
 		Qk_Assert(object);
-		return static_cast<WrapObject*>(object->as<JSObject>()->objectPrivate());
+		return static_cast<WrapObject*>(object->as<JSObject>()->getObjectPrivate());
 	}
 
 	WrapObject* WrapObject::pack(Object* object, uint64_t type_id) {
 		WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
 		if ( !wrap->worker() ) {
 			Js_Worker();
-			return worker->classsinfo()->attachObject(type_id, object);
+			return worker->classses()->attachObject(type_id, object);
 		}
 		return wrap;
 	}

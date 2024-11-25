@@ -86,69 +86,69 @@ namespace qk { namespace js {
 	}
 
 	void inheritPlayer(JSClass* cls, Worker* worker) {
-		Js_Set_Class_Accessor_Get(pts, {
+		Js_Class_Accessor_Get(pts, {
 			Js_UISelf(Player);
 			Js_Return(worker->types()->jsvalue(self->pts()));
 		});
 
-		Js_Set_UIObject_Accessor(Player, float, volume, volume);
-		Js_Set_UIObject_Accessor(Player, bool, mute, mute);
+		Js_UIObject_Accessor(Player, float, volume, volume);
+		Js_UIObject_Accessor(Player, bool, mute, mute);
 
-		Js_Set_Class_Accessor_Get(isPause, {
+		Js_Class_Accessor_Get(isPause, {
 			Js_UISelf(Player);
 			Js_Return(worker->types()->jsvalue(self->is_pause()));
 		});
 
-		Js_Set_Class_Accessor_Get(type, {
+		Js_Class_Accessor_Get(type, {
 			Js_UISelf(Player);
 			Js_Return(worker->types()->jsvalue(self->type()));
 		});
 
-		Js_Set_Class_Accessor_Get(duration, {
+		Js_Class_Accessor_Get(duration, {
 			Js_UISelf(Player);
 			Js_Return(worker->types()->jsvalue(self->duration()));
 		});
 
-		Js_Set_Class_Accessor_Get(status, {
+		Js_Class_Accessor_Get(status, {
 			Js_UISelf(Player);
 			Js_Return(worker->types()->jsvalue(self->status()));
 		});
 
-		Js_Set_UIObject_Accessor(Player, String, src, src);
+		Js_UIObject_Accessor(Player, String, src, src);
 
 		// Qk_DEFINE_AGET(MediaSource*, media_source);
 
-		Js_Set_Class_Accessor_Get(video, {
+		Js_Class_Accessor_Get(video, {
 			Js_UISelf(Player);
 			Js_Return(stream_to_jsvalue(self->video(), worker));
 		});
 
-		Js_Set_Class_Accessor_Get(audio, {
+		Js_Class_Accessor_Get(audio, {
 			Js_UISelf(Player);
 			Js_Return(stream_to_jsvalue(self->audio(), worker));
 		});
 
-		Js_Set_Class_Accessor_Get(audioStreams, {
+		Js_Class_Accessor_Get(audioStreams, {
 			Js_UISelf(Player);
 			Js_Return(worker->types()->jsvalue(self->audio_streams()));
 		});
 
-		Js_Set_Class_Method(play, {
+		Js_Class_Method(play, {
 			Js_UISelf(Player);
 			self->play();
 		});
 
-		Js_Set_Class_Method(pause, {
+		Js_Class_Method(pause, {
 			Js_UISelf(Player);
 			self->pause();
 		});
 
-		Js_Set_Class_Method(stop, {
+		Js_Class_Method(stop, {
 			Js_UISelf(Player);
 			self->stop();
 		});
 
-		Js_Set_Class_Method(seek, {
+		Js_Class_Method(seek, {
 			if (args.length() < 1 || args[0]->isUint32()) {
 				Js_Throw(
 					"@method Player.seek(timeMs)\n"
@@ -159,7 +159,7 @@ namespace qk { namespace js {
 			self->seek(args[0]->toUint32Value(worker).unsafe() * 1e3);
 		});
 
-		Js_Set_Class_Method(switchAudio, {
+		Js_Class_Method(switchAudio, {
 			if (args.length() < 1 || args[0]->isUint32()) {
 				Js_Throw(
 					"@method Player.switch_audio(index)\n"

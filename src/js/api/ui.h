@@ -36,8 +36,8 @@
 #include "../../ui/view/view.h"
 #include "../../media/player.h"
 
-#define Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
-	Js_Set_Class_Accessor(Name, {\
+#define Js_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
+	Js_Class_Accessor(Name, {\
 		Self_Fun(Obj); \
 		args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
 	}, { \
@@ -46,13 +46,13 @@
 		self->set_##Prop(out); \
 	})
 
-#define Js_Set_WrapObject_Accessor(Obj, T, Prop, Name) \
-	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
+#define Js_WrapObject_Accessor(Obj, T, Prop, Name) \
+	Js_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
 
 #define Js_UISelf(Obj) \
 	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->as##Obj()
-#define Js_Set_UIObject_Accessor(Obj, T, Prop, Name) \
-	Js_Set_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_UISelf)
+#define Js_UIObject_Accessor(Obj, T, Prop, Name) \
+	Js_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_UISelf)
 
 #define Js_IsView(v) isView(worker,v)
 #define Js_IsWindow(v) isWindow(worker,v)

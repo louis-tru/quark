@@ -176,24 +176,24 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(NativeApplication, 0, { NewApp(args); });
 
-			Js_Set_Class_Accessor_Get(isLoaded, {
+			Js_Class_Accessor_Get(isLoaded, {
 				Js_Self(Type);
 				Js_ReturnBool( self->isLoaded() );
 			});
 
-			Js_Set_Class_Accessor_Get(defaultTextOptions, {
+			Js_Class_Accessor_Get(defaultTextOptions, {
 				Js_Self(Type);
 				Js_Return( self->defaultTextOptions() );
 			});
 
-			Js_Set_Class_Accessor_Get(screen, {
+			Js_Class_Accessor_Get(screen, {
 				Js_Self(Type);
 				Js_Return( self->screen() );
 			});
 
 			// Qk_DEFINE_PGET(RunLoop*, loop); //! main run loop
 
-			Js_Set_Class_Accessor_Get(fontPool, {
+			Js_Class_Accessor_Get(fontPool, {
 				Js_Self(Type);
 				auto val = WrapObject::wrap(self->fontPool(), Js_Typeid(FontPool))->that();
 				Js_Return( val );
@@ -201,14 +201,14 @@ namespace qk { namespace js {
 
 			// Qk_DEFINE_PGET(ImageSourcePool*, imgPool); //! image loader and image cache
 
-			Js_Set_Class_Accessor_Get(activeWindow, {
+			Js_Class_Accessor_Get(activeWindow, {
 				Js_Self(Type);
 				Js_Return( self->activeWindow() );
 			});
 
 			// Qk_DEFINE_PGET(RootStyleSheets*, styleSheets); //! root style sheets
 
-			Js_Set_Class_Accessor(maxResourceMemoryLimit, {
+			Js_Class_Accessor(maxResourceMemoryLimit, {
 				Js_Self(Type);
 				Js_Return( self->maxResourceMemoryLimit() );
 			}, {
@@ -218,7 +218,7 @@ namespace qk { namespace js {
 				self->set_maxResourceMemoryLimit(val->toUint32Value(worker).unsafe());
 			});
 
-			Js_Set_Class_Accessor_Get(windows, {
+			Js_Class_Accessor_Get(windows, {
 				Js_Self(Type);
 				uint32_t i = 0;
 				auto arr = worker->newArray();
@@ -228,18 +228,18 @@ namespace qk { namespace js {
 				Js_Return(arr);
 			});
 
-			Js_Set_Class_Method(clear, {
+			Js_Class_Method(clear, {
 				auto all = args.length() && args[0]->toBooleanValue(worker);
 				Js_Self(Type);
 				self->clear(all);
 			});
 
-			Js_Set_Class_Method(usedResourceMemory, {
+			Js_Class_Method(usedResourceMemory, {
 				Js_Self(Type);
 				Js_Return(self->usedResourceMemory());
 			});
 
-			Js_Set_Class_Method(openURL, {
+			Js_Class_Method(openURL, {
 				if (!args.length() || !args[0]->isString()) {
 					Js_Throw(
 						"@methos Application.openURL(url)\n"
@@ -250,7 +250,7 @@ namespace qk { namespace js {
 				self->openURL(args[0]->toStringValue(worker));
 			});
 
-			Js_Set_Class_Method(sendEmail, {
+			Js_Class_Method(sendEmail, {
 				if (args.length() < 3 || !args[0]->isString() || !args[1]->isString() || !args[2]->isString()) {
 					Js_Throw(
 						"@methos Application.sendEmail(recipient,subject,body[,cc[,bcc]])\n"
@@ -301,5 +301,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Set_Module(_ui, NativeUI);
+	Js_Module(_ui, NativeUI);
 } }

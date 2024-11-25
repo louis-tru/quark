@@ -28,60 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../js_.h"
-#include "../../os/os.h"
+#include "./jsc.h"
 
 namespace qk { namespace js {
 
-	struct NativeOs {
-		static void binding(JSObject* exports, Worker* worker) {
-			Js_Method(version, {
-				Js_Return( os_version() );
-			});
-			Js_Method(brand, {
-				Js_Return( os_brand() );
-			});
-			Js_Method(model, {
-				Js_Return( os_model() );
-			});
-			Js_Method(info, {
-				Js_Return( os_info() );
-			});
-			Js_Method(languages, {
-				Js_Return( os_languages() );
-			});
-			Js_Method(isWifi, {
-				Js_Return( os_is_wifi() );
-			});
-			Js_Method(isMobile, {
-				Js_Return( os_is_mobile() );
-			});
-			Js_Method(networkInterface, {
-				Js_Return( os_network_interface() );
-			});
-			Js_Method(isAcPower, {
-				Js_Return( os_is_ac_power() );
-			});
-			Js_Method(isBattery, {
-				Js_Return( os_is_battery() );
-			});
-			Js_Method(batteryLevel, {
-				Js_Return( os_battery_level() );
-			});
-			Js_Method(memory, {
-				Js_Return( os_memory() );
-			});
-			Js_Method(usedMemory, {
-				Js_Return( os_used_memory() );
-			});
-			Js_Method(availableMemory, {
-				Js_Return( os_available_memory() );
-			});
-			Js_Method(cpuUsage, {
-				Js_Return( os_cpu_usage() );
-			});
-		}
-	};
+	void Templates::initialize(JSGlobalContextRef ctx) {
 
-	Js_Module(_os, NativeOs)
+	}
+
+	void Templates::destroy(JSGlobalContextRef ctx) {
+
+	}
+
 }}

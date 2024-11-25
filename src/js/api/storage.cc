@@ -36,7 +36,7 @@ namespace qk { namespace js {
 	struct WrapStorage {
 		static void binding(JSObject* exports, Worker* worker) {
 
-			Js_Set_Method(get, {
+			Js_Method(get, {
 				if (args.length() < 1) {
 					Js_Throw(
 						"@method get(key)\n"
@@ -47,7 +47,7 @@ namespace qk { namespace js {
 				Js_Return( storage_get( args[0]->toStringValue(worker)) );
 			});
 
-			Js_Set_Method(set, {
+			Js_Method(set, {
 				if (args.length() < 2) {
 					Js_Throw(
 						"@method set(key)\n"
@@ -58,7 +58,7 @@ namespace qk { namespace js {
 				storage_set( args[0]->toStringValue(worker), args[1]->toStringValue(worker) );
 			});
 
-			Js_Set_Method(remove, {
+			Js_Method(remove, {
 				if (args.length() < 1) {
 					Js_Throw(
 						"@method del(key)\n"
@@ -68,11 +68,11 @@ namespace qk { namespace js {
 				storage_remove( args[0]->toStringValue(worker) );
 			});
 
-			Js_Set_Method(clear, {
+			Js_Method(clear, {
 				storage_clear();
 			});
 		}
 	};
 
-	Js_Set_Module(_storage, WrapStorage);
+	Js_Module(_storage, WrapStorage);
 } }

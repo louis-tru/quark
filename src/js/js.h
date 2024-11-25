@@ -52,8 +52,8 @@
 #define Js_Throw(err, ...) Js_Throw_Error(Error, err, ##__VA_ARGS__)
 #define Js_Try_Catch(block, Error) try block catch(const Error& e) { Js_Throw(e); }
 
-#define Js_Set_Module(name, cls) \
-	Qk_Init_Func(Js_Set_Module_##name) {\
+#define Js_Module(name, cls) \
+	Qk_Init_Func(Js_Module_##name) {\
 		qk::js::Worker::setModule(#name, cls::binding, __FILE__); \
 	}
 #define Js_Typeid(t) (typeid(t).hash_code())
@@ -61,10 +61,10 @@
 	while (false) { *(static_cast<T* volatile*>(0)) = static_cast<S*>(0); }
 
 // define class macro
-#define Js_New_Class(name, id, base, constructor) \
+#define Js_New_Class(name, alias, base, constructor) \
 	static_assert(sizeof(WrapObject)==sizeof(Wrap##name), \
 		"Derived wrap class pairs cannot declare data members"); \
-	auto cls = worker->newClass(#name,id,constructor,([](auto o){new(o) Wrap##name();}),base)
+	auto cls = worker->newClass(#name,alias,constructor,([](auto o){new(o) Wrap##name();}),base)
 
 #define Js_Define_Class(name, base, constructor) \
 	Js_New_Class(name,Js_Typeid(name),Js_Typeid(base),_Js_Fun(constructor))
@@ -72,21 +72,25 @@
 #define _Js_Fun(f)([](auto args){auto worker=args.worker();f})
 #define _Js_Get(f)([](auto key,auto args){auto worker=args.worker();f})
 #define _Js_Set(f)([](auto key,auto val,auto args){auto worker=args.worker();f})
+// object
+#define Js_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(func))
+#define Js_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
+#define Js_Accessor_Get(name,get)        exports->getAccessor(worker,#name,_Js_Get(get))
+#define Js_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(set))
+#define Js_Property(name, value)         exports->setProperty(worker,#name,value)
+// class
+#define Js_Class_Accessor(name,get,set)  cls->setAccessor(#name,_Js_Get(get),_Js_Set(set))
+#define Js_Class_Accessor_Get(name,get)  cls->setAccessor(#name,_Js_Get(get))
+#define Js_Class_Accessor_Set(name,set)  cls->setAccessor(#name,0,_Js_Set(set))
+#define Js_Class_Method(name,func)       cls->setMethod(#name,_Js_Fun(func))
+#define Js_Class_Indexed(get,set)        cls->setIndexedAccessor(_Js_Get(get),_Js_Set(set))
+#define Js_Class_Indexed_Get(get)        cls->setIndexedAccessor(_Js_Get(get),0)
+#define Js_Class_Indexed_Set(set)        cls->setIndexedAccessor(0,_Js_Set(set))
+#define Js_Class_Property(name,value)    cls->setProperty(#name,value)
+#define Js_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
+#define Js_Class_Static_Method(name,value) cls->setStaticMethod(#name,_Js_Fun(func))
 
-#define Js_Set_Class_Accessor(name,get,set)  cls->setMemberAccessor(#name,_Js_Get(get),_Js_Set(set))
-#define Js_Set_Class_Accessor_Get(name,get)  cls->setMemberAccessor(#name,_Js_Get(get))
-#define Js_Set_Class_Accessor_Set(name,set)  cls->setMemberAccessor(#name,0,_Js_Set(set))
-#define Js_Set_Class_Method(name,func)       cls->setMemberMethod(#name,_Js_Fun(func))
-#define Js_Set_Class_Indexed(get,set)        cls->setMemberIndexedAccessor(_Js_Get(get),_Js_Set(set))
-#define Js_Set_Class_Indexed_Get(get)        cls->setMemberIndexedAccessor(_Js_Get(get),0)
-#define Js_Set_Class_Indexed_Set(set)        cls->setMemberIndexedAccessor(0,_Js_Set(set))
-#define Js_Set_Class_Property(name,value)    cls->setMemberProperty(#name,value)
-#define Js_Set_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
-#define Js_Set_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(func))
-#define Js_Set_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
-#define Js_Set_Accessor_Get(name,get)        exports->setAccessor(worker,#name,_Js_Get(get))
-#define Js_Set_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(set))
-#define Js_Set_Property(name, value)         exports->setProperty(worker,#name,value)
+// -------------------------------------------------------------------
 
 namespace qk { namespace js {
 	class Worker;
@@ -95,7 +99,7 @@ namespace qk { namespace js {
 	class JSObject;
 	class TypesParser;
 	class Strings;
-	class JsClassInfo;
+	class JsClasses;
 	class JSString;
 	class JSNumber;
 	class JSInt32;
@@ -204,6 +208,8 @@ namespace qk { namespace js {
 		~TryCatch();
 		bool hasCaught() const;
 		JSValue* exception() const;
+		void reThrow();
+		void print() const;
 	private:
 		void *_val;
 	};
@@ -327,12 +333,12 @@ namespace qk { namespace js {
 		template<class T>
 		bool setProperty(Worker* worker, cString& name, T value);
 		bool setMethod(Worker* worker, cString& name, FunctionCallback func);
-		bool setAccessor(Worker* worker, cString& name,
-										AccessorGetterCallback get, AccessorSetterCallback set = nullptr);
+		bool setAccessor(Worker* worker, cString& name, AccessorGetterCallback get,
+			AccessorSetterCallback set = nullptr);
 		bool defineOwnProperty(Worker *worker, JSValue *key, JSValue *value, int flags = None);
-		void* objectPrivate();
+		bool setPrototype(Worker* worker, JSObject* __proto__); // set obj.__proto__
+		void* getObjectPrivate();
 		bool setObjectPrivate(void* value);
-		bool set__Proto__(Worker* worker, JSObject* __proto__); // set __proto__
 		Maybe<Dict<String, int>> toIntegerDict(Worker* worker);
 		Maybe<Dict<String, String>> toStringDict(Worker* worker);
 	};
@@ -379,8 +385,8 @@ namespace qk { namespace js {
 	public:
 		JSValue*  call(Worker* worker, JSValue* recv);
 		JSValue*  call(Worker* worker, int argc = 0, JSValue* argv[] = 0, JSValue* recv = 0);
-		JSObject* newInstance(Worker* worker, int argc = 0, JSValue* argv[] = 0);
-		JSObject* getPrototype(Worker* worker); // funciton.prototype prop
+		JSObject* newInstance(Worker* worker, int argc = 0, JSValue* argv[] = 0); // call as constructor
+		JSObject* getFunctionPrototype(Worker* worker); // funciton.prototype
 	};
 
 	class Qk_Export JSArrayBuffer: public JSObject {
@@ -412,20 +418,20 @@ namespace qk { namespace js {
 		Qk_HIDDEN_ALL_COPY(JSClass);
 	public:
 		Qk_DEFINE_PGET(Worker*, worker, Protected);
-		Qk_DEFINE_PGET(uint64_t, id, Protected);
+		Qk_DEFINE_PGET(uint64_t, alias, Protected);
 		virtual ~JSClass() = default;
 		void exports(cString& name, JSObject* exports);
 		bool hasInstance(JSValue* val);
 		JSFunction* getFunction(); // constructor function
 		JSObject* newInstance(uint32_t argc = 0, JSValue* argv[] = nullptr);
-		bool setMemberMethod(cString& name, FunctionCallback func);
-		bool setMemberAccessor(cString& name,
-													AccessorGetterCallback get,
-													AccessorSetterCallback set = nullptr);
-		bool setMemberIndexedAccessor(IndexedAccessorGetterCallback get,
-																	IndexedAccessorSetterCallback set = nullptr);
+		bool setMethod(cString& name, FunctionCallback func);
+		bool setAccessor(cString& name, AccessorGetterCallback get,
+			AccessorSetterCallback set = nullptr);
+		bool setIndexedAccessor(IndexedAccessorGetterCallback get,
+			IndexedAccessorSetterCallback set = nullptr);
+		bool setStaticMethod(cString& name, FunctionCallback func);
 		template<class T>
-		bool setMemberProperty(cString& name, T value);
+		bool setProperty(cString& name, T value);
 		template<class T>
 		bool setStaticProperty(cString& name, T value);
 	protected:
@@ -433,7 +439,7 @@ namespace qk { namespace js {
 		Persistent<JSFunction> _func; // constructor function
 		FunctionCallback _constructor;
 		AttachCallback _attachConstructor;
-		friend class JsClassInfo;
+		friend class JsClasses;
 	};
 
 	class Qk_Export Worker: public Object, public SafeFlag {
@@ -455,17 +461,16 @@ namespace qk { namespace js {
 		// @prop
 		Qk_DEFINE_PGET(TypesParser*, types, Protected);
 		Qk_DEFINE_PGET(Strings*, strs, Protected);
-		Qk_DEFINE_PGET(JsClassInfo*, classsinfo, Protected);
+		Qk_DEFINE_PGET(JsClasses*, classses, Protected);
 		Qk_DEFINE_PGET(ThreadID, thread_id, Protected);
 		Qk_DEFINE_PGET(RunLoop*, loop);
 		Qk_DEFINE_AGET(JSObject*, global);
 
 		void release() override;
-		void reportException(TryCatch* try_catch);
 		void garbageCollection();
 
 		// new instance
-		JSValue* newValue(Object *val);
+		JSValue*  newValue(Object *val);
 		JSNumber* newValue(float val);
 		JSNumber* newValue(double val);
 		JSInt32*  newValue(Char val);
@@ -520,18 +525,19 @@ namespace qk { namespace js {
 		inline bool instanceOf(JSValue* val) { // val instanceOf Js_Typeid(T)
 			return instanceOf(val, Js_Typeid(T));
 		}
-		bool instanceOf(JSValue* val, uint64_t id); // val instanceOf id
+		bool instanceOf(JSValue* val, uint64_t alias); // val instanceOf alias
 
-		JSClass* jsclass(uint64_t id);
-		JSClass* newClass(cString& name, uint64_t id,
+		JSClass* jsclass(uint64_t alias); // Get js class by alias
+		JSClass* newClass(cString& name, uint64_t alias,
 											FunctionCallback constructor,
 											AttachCallback attachConstructor, JSClass* base = 0);
-		JSClass* newClass(cString& name, uint64_t id,
+		JSClass* newClass(cString& name, uint64_t alias,
 											FunctionCallback constructor,
 											AttachCallback attachConstructor, uint64_t base);
-		JSClass* newClass(cString& name, uint64_t id,
+		JSClass* newClass(cString& name, uint64_t alias,
 											FunctionCallback constructor,
 											AttachCallback attachConstructor, JSFunction* base);
+		JSFunction* newFunction(cString& name, FunctionCallback func); // new native function
 		JSValue* runScript(cString& source, cString& name, JSObject* sandbox = 0);
 		JSValue* runScript(JSString* source, JSString* name, JSObject* sandbox = 0);
 		JSValue* runNativeScript(cBuffer& source, cString& name, JSObject* exports = 0);
@@ -620,7 +626,7 @@ namespace qk { namespace js {
 		WrapObject* attach(Worker *worker, JSObject* This);
 		Persistent<JSObject> _handle;
 
-		friend class JsClassInfo;
+		friend class JsClasses;
 	};
 
 	template<class T = Object>
@@ -658,15 +664,15 @@ namespace qk { namespace js {
 		return set(worker, worker->newStringOneByte(name), worker->newValue(value));
 	}
 	template<class T>
-	bool JSClass::setMemberProperty(cString& name, T value) {
-		return setMemberProperty<JSValue*>(name, _worker->newValue(value));
+	bool JSClass::setProperty(cString& name, T value) {
+		return setProperty<JSValue*>(name, _worker->newValue(value));
 	}
 	template<class T>
 	bool JSClass::setStaticProperty(cString& name, T value) {
 		return setStaticProperty<JSValue*>(name, _worker->newValue(value));
 	}
 	template<>
-	Qk_Export bool JSClass::setMemberProperty<JSValue*>(cString& name, JSValue* value);
+	Qk_Export bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
 	template<>
 	Qk_Export bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value);
 } }

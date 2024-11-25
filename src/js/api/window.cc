@@ -75,7 +75,7 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Class_Accessor(size, {
+			Js_Class_Accessor(size, {
 				Js_Self(Type);
 				Js_Return( worker->types()->jsvalue(self->size()) );
 			}, {
@@ -84,29 +84,29 @@ namespace qk { namespace js {
 				self->set_size(out);
 			});
 
-			Js_Set_Class_Accessor_Get(scale, {
+			Js_Class_Accessor_Get(scale, {
 				Js_Self(Type);
 				Js_Return( self->scale() );
 			});
 
-			Js_Set_Class_Accessor_Get(defaultScale, {
+			Js_Class_Accessor_Get(defaultScale, {
 				Js_Self(Type);
 				Js_Return( self->defaultScale() );
 			});
 
 			// Qk_DEFINE_PGET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
 
-			Js_Set_Class_Accessor_Get(fsp, {
+			Js_Class_Accessor_Get(fsp, {
 				Js_Self(Type);
 				Js_Return( self->fsp() );
 			});
 
-			Js_Set_Class_Accessor_Get(atomPixel, {
+			Js_Class_Accessor_Get(atomPixel, {
 				Js_Self(Type);
 				Js_Return( self->atomPixel() );
 			});
 
-			Js_Set_Class_Accessor_Get(root, {
+			Js_Class_Accessor_Get(root, {
 				Js_Self(Type);
 				Js_Return( self->root() );
 			});
@@ -116,7 +116,7 @@ namespace qk { namespace js {
 			// Qk_DEFINE_PGET(EventDispatch*, dispatch); //! event dispatch
 			// Qk_DEFINE_PGET(RootStyleSheets*, styleSheets); //! root style sheets
 
-			Js_Set_Class_Accessor(backgroundColor, {
+			Js_Class_Accessor(backgroundColor, {
 				Js_Self(Type);
 				Js_Return( worker->types()->jsvalue(self->backgroundColor()) );
 			}, {
@@ -130,17 +130,17 @@ namespace qk { namespace js {
 			// Qk_DEFINE_AGET(FontPool*, fontPool); //! Font pool
 			// Qk_DEFINE_AGET(RunLoop*, loop); //! host main loop
 
-			Js_Set_Class_Accessor_Get(focusView, {
+			Js_Class_Accessor_Get(focusView, {
 				Js_Self(Type);
 				Js_Return( self->focusView() );
 			});
 
-			Js_Set_Class_Accessor_Get(surfaceSize, {
+			Js_Class_Accessor_Get(surfaceSize, {
 				Js_Self(Type);
 				Js_Return( worker->types()->jsvalue(self->surfaceSize()) );
 			});
 
-			Js_Set_Class_Method(nextFrame, {
+			Js_Class_Method(nextFrame, {
 				if (!args.length() || !args[0]->isFunction()) {
 					Js_Throw(
 						"@method Window.nextFrame(cb)\n"
@@ -152,23 +152,23 @@ namespace qk { namespace js {
 				Js_Return(args.This());
 			});
 
-			Js_Set_Class_Method(activate, {
+			Js_Class_Method(activate, {
 				Js_Self(Type);
 				self->activate();
 				Js_Return(args.This());
 			});
 
-			Js_Set_Class_Method(close, {
+			Js_Class_Method(close, {
 				Js_Self(Type);
 				self->close();
 			});
 
-			Js_Set_Class_Method(pending, {
+			Js_Class_Method(pending, {
 				Js_Self(Type);
 				self->pending();
 			});
 
-			Js_Set_Class_Method(setFullscreen, {
+			Js_Class_Method(setFullscreen, {
 				Js_Self(Type);
 				if (!args.length()) {
 					Js_Throw(
@@ -179,7 +179,7 @@ namespace qk { namespace js {
 				self->setFullscreen(args[0]->toBooleanValue(worker));
 			});
 
-			Js_Set_Class_Method(setCursorStyle, {
+			Js_Class_Method(setCursorStyle, {
 				Js_Self(Type);
 				if (!args.length()) {
 					Js_Throw(

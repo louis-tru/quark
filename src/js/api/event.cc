@@ -49,12 +49,12 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			}));
 
-			Js_Set_Class_Accessor_Get(sender, {
+			Js_Class_Accessor_Get(sender, {
 				Js_Self(Type);
 				Js_Return(self->sender());
 			});
 
-			Js_Set_Class_Accessor(returnValue, {
+			Js_Class_Accessor(returnValue, {
 				Js_Self(Type);
 				Js_Return( self->return_value );
 			}, {
@@ -76,32 +76,32 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 
-			Js_Set_Class_Accessor_Get(origin, {
+			Js_Class_Accessor_Get(origin, {
 				Js_Self(Type);
 				Js_Return(self->origin());
 			});
 
-			Js_Set_Class_Accessor_Get(timestamp, {
+			Js_Class_Accessor_Get(timestamp, {
 				Js_Self(Type);
 				Js_Return( self->timestamp() );
 			});
 
-			Js_Set_Class_Accessor_Get(isDefault, {
+			Js_Class_Accessor_Get(isDefault, {
 				Js_Self(Type);
 				Js_ReturnBool( self->is_default() );
 			});
 
-			Js_Set_Class_Accessor_Get(isBubble, {
+			Js_Class_Accessor_Get(isBubble, {
 				Js_Self(Type);
 				Js_ReturnBool( self->is_bubble() );
 			});
 
-			Js_Set_Class_Method(cancelDefault, {
+			Js_Class_Method(cancelDefault, {
 				Js_Self(Type);
 				self->cancel_default();
 			});
 
-			Js_Set_Class_Method(cancelBubble, {
+			Js_Class_Method(cancelBubble, {
 				Js_Self(Type);
 				self->cancel_bubble();
 			});
@@ -116,19 +116,19 @@ namespace qk { namespace js {
 			Js_Define_Class(ActionEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Set_Class_Accessor_Get(action, {
+			Js_Class_Accessor_Get(action, {
 				Js_Self(ActionEvent);
 				Js_Return( self->action() );
 			});
-			Js_Set_Class_Accessor_Get(delay, {
+			Js_Class_Accessor_Get(delay, {
 				Js_Self(ActionEvent);
 				Js_Return( self->delay() / 1000 );
 			});
-			Js_Set_Class_Accessor_Get(frame, {
+			Js_Class_Accessor_Get(frame, {
 				Js_Self(ActionEvent);
 				Js_Return( self->frame() );
 			});
-			Js_Set_Class_Accessor_Get(loop, {
+			Js_Class_Accessor_Get(loop, {
 				Js_Self(ActionEvent);
 				Js_Return( self->loop() );
 			});
@@ -143,43 +143,43 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 
-			Js_Set_Class_Accessor_Get(keycode, {
+			Js_Class_Accessor_Get(keycode, {
 				Js_Self(Type);
 				Js_Return( self->keycode() );
 			});
-			Js_Set_Class_Accessor_Get(repeat, {
+			Js_Class_Accessor_Get(repeat, {
 				Js_Self(Type);
 				Js_Return( self->repeat() );
 			});
-			Js_Set_Class_Accessor_Get(shift, {
+			Js_Class_Accessor_Get(shift, {
 				Js_Self(Type);
 				Js_ReturnBool( self->shift() );
 			});
-			Js_Set_Class_Accessor_Get(ctrl, {
+			Js_Class_Accessor_Get(ctrl, {
 				Js_Self(Type);
 				Js_ReturnBool( self->ctrl() );
 			});
-			Js_Set_Class_Accessor_Get(alt, {
+			Js_Class_Accessor_Get(alt, {
 				Js_Self(Type);
 				Js_ReturnBool( self->alt() );
 			});
-			Js_Set_Class_Accessor_Get(command, {
+			Js_Class_Accessor_Get(command, {
 				Js_Self(Type);
 				Js_ReturnBool( self->command() );
 			});
-			Js_Set_Class_Accessor_Get(capsLock, {
+			Js_Class_Accessor_Get(capsLock, {
 				Js_Self(Type);
 				Js_ReturnBool( self->caps_lock() );
 			});
-			Js_Set_Class_Accessor_Get(device, {
+			Js_Class_Accessor_Get(device, {
 				Js_Self(Type);
 				Js_Return( self->device() );
 			});
-			Js_Set_Class_Accessor_Get(source, {
+			Js_Class_Accessor_Get(source, {
 				Js_Self(Type);
 				Js_Return( self->source() );
 			});
-			Js_Set_Class_Accessor(nextFocus, {
+			Js_Class_Accessor(nextFocus, {
 				Js_Self(Type);
 				Js_Return( self->next_focus() );
 			}, {
@@ -202,19 +202,19 @@ namespace qk { namespace js {
 			Js_Define_Class(ClickEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Set_Class_Accessor_Get(x, {
+			Js_Class_Accessor_Get(x, {
 				Js_Self(ClickEvent);
 				Js_Return( self->x() );
 			});
-			Js_Set_Class_Accessor_Get(y, {
+			Js_Class_Accessor_Get(y, {
 				Js_Self(ClickEvent);
 				Js_Return( self->y() );
 			});
-			Js_Set_Class_Accessor_Get(count, {
+			Js_Class_Accessor_Get(count, {
 				Js_Self(ClickEvent);
 				Js_Return( self->count() );
 			});
-			Js_Set_Class_Accessor_Get(type, {
+			Js_Class_Accessor_Get(type, {
 				Js_Self(ClickEvent);
 				Js_Return( int(self->type()) );
 			});
@@ -227,7 +227,7 @@ namespace qk { namespace js {
 			Js_Define_Class(HighlightedEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Set_Class_Accessor_Get(status, {
+			Js_Class_Accessor_Get(status, {
 				Js_Self(HighlightedEvent);
 				Js_Return(self->status());
 			});
@@ -241,11 +241,11 @@ namespace qk { namespace js {
 			Js_Define_Class(MouseEvent, KeyEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Set_Class_Accessor_Get(x, {
+			Js_Class_Accessor_Get(x, {
 				Js_Self(MouseEvent);
 				Js_Return( self->x() );
 			});
-			Js_Set_Class_Accessor_Get(y, {
+			Js_Class_Accessor_Get(y, {
 				Js_Self(MouseEvent);
 				Js_Return( self->y() );
 			});
@@ -259,7 +259,7 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 
-			Js_Set_Class_Accessor_Get(changedTouches, {
+			Js_Class_Accessor_Get(changedTouches, {
 				Js_Wrap(TouchEvent);
 
 				auto r = wrap->getProp(worker->strs()->_change_touches());
@@ -291,5 +291,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Set_Module(_event, WrapEvent)
+	Js_Module(_event, WrapEvent)
 } }

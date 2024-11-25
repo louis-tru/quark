@@ -54,12 +54,15 @@
 						'$(SDKROOT)/System/Library/Frameworks/JavaScriptCore.framework',
 					]
 				},
+				'direct_dependent_settings': {
+					'defines': [ 'USE_JSC=1' ],
+				},
 				'defines': [ 'USE_JSC=1' ],
-				'sources': [ 'jsc.cc' ],
-			}, { # use v8
-				'include_dirs': [
-					# '../../deps/v8', # v8 root
+				'sources': [
+					'jsc/jsc.cc',
+					'jsc/macros.h',
 				],
+			}, { # use v8
 				'dependencies': [
 					'tools/v8_gypfiles/v8.gyp:v8_maybe_snapshot',
 					'tools/v8_gypfiles/v8.gyp:v8_libplatform',

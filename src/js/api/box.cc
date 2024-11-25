@@ -43,63 +43,63 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Box, View, { Js_NewView(Box); });
 
-			Js_Set_WrapObject_Accessor(Box, bool, clip, clip);
-			Js_Set_WrapObject_Accessor(Box, Align, align, align);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, width, width);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, height, height);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, min_width, minWidth);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, min_height, minHeight);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, max_width, maxWidth);
-			Js_Set_WrapObject_Accessor(Box, BoxSize, max_height, maxHeight);
-			Js_Set_WrapObject_Accessor(Box, ArrayFloat, margin, margin);
-			Js_Set_WrapObject_Accessor(Box, float, margin_top, marginTop);
-			Js_Set_WrapObject_Accessor(Box, float, margin_right, marginRight);
-			Js_Set_WrapObject_Accessor(Box, float, margin_bottom, marginBottom);
-			Js_Set_WrapObject_Accessor(Box, float, margin_left, marginLeft);
-			Js_Set_WrapObject_Accessor(Box, ArrayFloat, padding, padding);
-			Js_Set_WrapObject_Accessor(Box, float, padding_top, paddingTop);
-			Js_Set_WrapObject_Accessor(Box, float, padding_right, paddingRight);
-			Js_Set_WrapObject_Accessor(Box, float, padding_bottom, paddingBottom);
-			Js_Set_WrapObject_Accessor(Box, float, padding_left, paddingLeft);
-			Js_Set_WrapObject_Accessor(Box, ArrayFloat, border_radius, borderRadius);
-			Js_Set_WrapObject_Accessor(Box, float, border_radius_left_top, borderRadiusLeftTop);
-			Js_Set_WrapObject_Accessor(Box, float, border_radius_right_top, borderRadiusRightTop);
-			Js_Set_WrapObject_Accessor(Box, float, border_radius_right_bottom, borderRadiusRightBottom);
-			Js_Set_WrapObject_Accessor(Box, float, border_radius_left_bottom, borderRadiusLeftBottom);
-			Js_Set_WrapObject_Accessor(Box, ArrayBorder, border, border); // border width
-			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_top, borderTop);
-			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_right, borderRight);
-			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_bottom, borderBottom);
-			Js_Set_WrapObject_Accessor(Box, BoxBorder, border_left, borderLeft);
-			Js_Set_WrapObject_Accessor(Box, ArrayFloat, border_width, borderWidth);
-			Js_Set_WrapObject_Accessor(Box, ArrayColor, border_color, borderColor);
-			Js_Set_WrapObject_Accessor(Box, float, border_width_top, borderWidthTop); // border width
-			Js_Set_WrapObject_Accessor(Box, float, border_width_right, borderWidthRight);
-			Js_Set_WrapObject_Accessor(Box, float, border_width_bottom, borderWidthBottom);
-			Js_Set_WrapObject_Accessor(Box, float, border_width_left, borderWidthLeft);
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_top, borderColorTop); // border color
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_right, borderColorRight);
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_bottom, borderColorBottom);
-			Js_Set_WrapObject_Accessor(Box, Color, border_color_left, borderColorLeft);
-			Js_Set_WrapObject_Accessor(Box, Color, background_color, backgroundColor);
-			Js_Set_WrapObject_Accessor(Box, BoxFilterPtr, background, background);
-			Js_Set_WrapObject_Accessor(Box, BoxShadowPtr, box_shadow, boxShadow);
-			Js_Set_WrapObject_Accessor(Box, float, weight, weight);
+			Js_WrapObject_Accessor(Box, bool, clip, clip);
+			Js_WrapObject_Accessor(Box, Align, align, align);
+			Js_WrapObject_Accessor(Box, BoxSize, width, width);
+			Js_WrapObject_Accessor(Box, BoxSize, height, height);
+			Js_WrapObject_Accessor(Box, BoxSize, min_width, minWidth);
+			Js_WrapObject_Accessor(Box, BoxSize, min_height, minHeight);
+			Js_WrapObject_Accessor(Box, BoxSize, max_width, maxWidth);
+			Js_WrapObject_Accessor(Box, BoxSize, max_height, maxHeight);
+			Js_WrapObject_Accessor(Box, ArrayFloat, margin, margin);
+			Js_WrapObject_Accessor(Box, float, margin_top, marginTop);
+			Js_WrapObject_Accessor(Box, float, margin_right, marginRight);
+			Js_WrapObject_Accessor(Box, float, margin_bottom, marginBottom);
+			Js_WrapObject_Accessor(Box, float, margin_left, marginLeft);
+			Js_WrapObject_Accessor(Box, ArrayFloat, padding, padding);
+			Js_WrapObject_Accessor(Box, float, padding_top, paddingTop);
+			Js_WrapObject_Accessor(Box, float, padding_right, paddingRight);
+			Js_WrapObject_Accessor(Box, float, padding_bottom, paddingBottom);
+			Js_WrapObject_Accessor(Box, float, padding_left, paddingLeft);
+			Js_WrapObject_Accessor(Box, ArrayFloat, border_radius, borderRadius);
+			Js_WrapObject_Accessor(Box, float, border_radius_left_top, borderRadiusLeftTop);
+			Js_WrapObject_Accessor(Box, float, border_radius_right_top, borderRadiusRightTop);
+			Js_WrapObject_Accessor(Box, float, border_radius_right_bottom, borderRadiusRightBottom);
+			Js_WrapObject_Accessor(Box, float, border_radius_left_bottom, borderRadiusLeftBottom);
+			Js_WrapObject_Accessor(Box, ArrayBorder, border, border); // border width
+			Js_WrapObject_Accessor(Box, BoxBorder, border_top, borderTop);
+			Js_WrapObject_Accessor(Box, BoxBorder, border_right, borderRight);
+			Js_WrapObject_Accessor(Box, BoxBorder, border_bottom, borderBottom);
+			Js_WrapObject_Accessor(Box, BoxBorder, border_left, borderLeft);
+			Js_WrapObject_Accessor(Box, ArrayFloat, border_width, borderWidth);
+			Js_WrapObject_Accessor(Box, ArrayColor, border_color, borderColor);
+			Js_WrapObject_Accessor(Box, float, border_width_top, borderWidthTop); // border width
+			Js_WrapObject_Accessor(Box, float, border_width_right, borderWidthRight);
+			Js_WrapObject_Accessor(Box, float, border_width_bottom, borderWidthBottom);
+			Js_WrapObject_Accessor(Box, float, border_width_left, borderWidthLeft);
+			Js_WrapObject_Accessor(Box, Color, border_color_top, borderColorTop); // border color
+			Js_WrapObject_Accessor(Box, Color, border_color_right, borderColorRight);
+			Js_WrapObject_Accessor(Box, Color, border_color_bottom, borderColorBottom);
+			Js_WrapObject_Accessor(Box, Color, border_color_left, borderColorLeft);
+			Js_WrapObject_Accessor(Box, Color, background_color, backgroundColor);
+			Js_WrapObject_Accessor(Box, BoxFilterPtr, background, background);
+			Js_WrapObject_Accessor(Box, BoxShadowPtr, box_shadow, boxShadow);
+			Js_WrapObject_Accessor(Box, float, weight, weight);
 			// -----------------------------------------------------------------------------
 			// @safe Rt
-			Js_Set_Class_Accessor_Get(wrapX, {
+			Js_Class_Accessor_Get(wrapX, {
 				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->wrap_x()) );
 			});
-			Js_Set_Class_Accessor_Get(wrapY, {
+			Js_Class_Accessor_Get(wrapY, {
 				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->wrap_y()) );
 			});
-			Js_Set_Class_Accessor_Get(contentSize, {
+			Js_Class_Accessor_Get(contentSize, {
 				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->content_size()) );
 			});
-			Js_Set_Class_Accessor_Get(clientSize, {
+			Js_Class_Accessor_Get(clientSize, {
 				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->client_size()) );
 			});
@@ -115,9 +115,9 @@ namespace qk { namespace js {
 			Js_Define_Class(Flex, Box, {
 				Js_NewView(Flex);
 			});
-			Js_Set_WrapObject_Accessor(Flex, Direction, direction, direction);
-			Js_Set_WrapObject_Accessor(Flex, ItemsAlign, items_align, itemsAlign);
-			Js_Set_WrapObject_Accessor(Flex, CrossAlign, cross_align, crossAlign);
+			Js_WrapObject_Accessor(Flex, Direction, direction, direction);
+			Js_WrapObject_Accessor(Flex, ItemsAlign, items_align, itemsAlign);
+			Js_WrapObject_Accessor(Flex, CrossAlign, cross_align, crossAlign);
 			cls->exports("Flex", exports);
 		}
 	};
@@ -128,8 +128,8 @@ namespace qk { namespace js {
 			Js_Define_Class(Flow, Flex, {
 				Js_NewView(Flow);
 			});
-			Js_Set_WrapObject_Accessor(Flow, Wrap, wrap, wrap);
-			Js_Set_WrapObject_Accessor(Flow, WrapAlign, wrap_align, wrapAlign);
+			Js_WrapObject_Accessor(Flow, Wrap, wrap, wrap);
+			Js_WrapObject_Accessor(Flow, WrapAlign, wrap_align, wrapAlign);
 			cls->exports("Flow", exports);
 		}
 	};
@@ -150,7 +150,7 @@ namespace qk { namespace js {
 			Js_Define_Class(Image, Box, {
 				Js_NewView(Image);
 			});
-			Js_Set_WrapObject_Accessor(Image, String, src, src);
+			Js_WrapObject_Accessor(Image, String, src, src);
 			// Qk_DEFINE_ACCE(ImageSource*, source);
 			cls->exports("Image", exports);
 		}

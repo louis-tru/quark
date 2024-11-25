@@ -38,25 +38,25 @@
 namespace qk { namespace js {
 
 	void inheritTextOptions(JSClass* cls, Worker* worker) {
-		Js_Set_Class_Accessor_Get(fontStyle, {
+		Js_Class_Accessor_Get(fontStyle, {
 			Js_UISelf(TextOptions);
 			Js_Return( worker->types()->jsvalue(self->font_style()) );
 		});
-		Js_Set_UIObject_Accessor(TextOptions, TextAlign, text_align, textAlign);
-		Js_Set_UIObject_Accessor(TextOptions, TextWeight, text_weight, textWeight);
-		Js_Set_UIObject_Accessor(TextOptions, TextSlant, text_slant, textSlant);
-		Js_Set_UIObject_Accessor(TextOptions, TextDecoration, text_decoration, textDecoration);
-		Js_Set_UIObject_Accessor(TextOptions, TextOverflow, text_overflow, textOverflow);
-		Js_Set_UIObject_Accessor(TextOptions, TextWhiteSpace, text_white_space, textWhiteSpace);
-		Js_Set_UIObject_Accessor(TextOptions, TextWordBreak, text_word_break, textWordBreak);
-		Js_Set_UIObject_Accessor(TextOptions, TextSize, text_size, textSize);
-		Js_Set_UIObject_Accessor(TextOptions, TextColor, text_background_color, textBackgroundColor);
-		Js_Set_UIObject_Accessor(TextOptions, TextColor, text_color, textColor);
-		Js_Set_UIObject_Accessor(TextOptions, TextSize, text_line_height, textLineHeight);
-		Js_Set_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);
-		Js_Set_UIObject_Accessor(TextOptions, TextFamily, text_family, textFamily);
+		Js_UIObject_Accessor(TextOptions, TextAlign, text_align, textAlign);
+		Js_UIObject_Accessor(TextOptions, TextWeight, text_weight, textWeight);
+		Js_UIObject_Accessor(TextOptions, TextSlant, text_slant, textSlant);
+		Js_UIObject_Accessor(TextOptions, TextDecoration, text_decoration, textDecoration);
+		Js_UIObject_Accessor(TextOptions, TextOverflow, text_overflow, textOverflow);
+		Js_UIObject_Accessor(TextOptions, TextWhiteSpace, text_white_space, textWhiteSpace);
+		Js_UIObject_Accessor(TextOptions, TextWordBreak, text_word_break, textWordBreak);
+		Js_UIObject_Accessor(TextOptions, TextSize, text_size, textSize);
+		Js_UIObject_Accessor(TextOptions, TextColor, text_background_color, textBackgroundColor);
+		Js_UIObject_Accessor(TextOptions, TextColor, text_color, textColor);
+		Js_UIObject_Accessor(TextOptions, TextSize, text_line_height, textLineHeight);
+		Js_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);
+		Js_UIObject_Accessor(TextOptions, TextFamily, text_family, textFamily);
 
-		Js_Set_Class_Method(computeLayoutSize, {
+		Js_Class_Method(computeLayoutSize, {
 			if (!args.length()) {
 				Js_Throw("@method TextOptions.compute_layout_size(cString& value)\n");
 			}
@@ -76,7 +76,7 @@ namespace qk { namespace js {
 				Js_NewView(Text);
 			});
 			inheritTextOptions(cls, worker);
-			Js_Set_WrapObject_Accessor(Text, String, value, value);
+			Js_WrapObject_Accessor(Text, String, value, value);
 			cls->exports("Text", exports);
 		}
 	};
@@ -90,7 +90,7 @@ namespace qk { namespace js {
 			Js_Define_Class(Button, Text, {
 				Js_NewView(Button);
 			});
-			Js_Set_Class_Method(nextButton, {
+			Js_Class_Method(nextButton, {
 				if (!args.length()) {
 					Js_Throw("@method next_button(FindDirection dir)\n");
 				}
@@ -112,7 +112,7 @@ namespace qk { namespace js {
 				Js_NewView(Label);
 			});
 			inheritTextOptions(cls, worker);
-			Js_Set_WrapObject_Accessor(Label, String, value, value);
+			Js_WrapObject_Accessor(Label, String, value, value);
 			cls->exports("Label", exports);
 		}
 	};
@@ -128,15 +128,15 @@ namespace qk { namespace js {
 			});
 			inheritTextOptions(cls, worker);
 
-			Js_Set_WrapObject_Accessor(Input, bool, security, security);
-			Js_Set_WrapObject_Accessor(Input, bool, readonly, readonly);
-			Js_Set_WrapObject_Accessor(Input, KeyboardType, type, type);
-			Js_Set_WrapObject_Accessor(Input, KeyboardReturnType, return_type, returnType);
-			Js_Set_WrapObject_Accessor(Input, Color, placeholder_color, placeholderColor);
-			Js_Set_WrapObject_Accessor(Input, Color, cursor_color, cursorColor);
-			Js_Set_WrapObject_Accessor(Input, uint32_t, max_length, maxLength);
+			Js_WrapObject_Accessor(Input, bool, security, security);
+			Js_WrapObject_Accessor(Input, bool, readonly, readonly);
+			Js_WrapObject_Accessor(Input, KeyboardType, type, type);
+			Js_WrapObject_Accessor(Input, KeyboardReturnType, return_type, returnType);
+			Js_WrapObject_Accessor(Input, Color, placeholder_color, placeholderColor);
+			Js_WrapObject_Accessor(Input, Color, cursor_color, cursorColor);
+			Js_WrapObject_Accessor(Input, uint32_t, max_length, maxLength);
 
-			Js_Set_Class_Accessor(value, {
+			Js_Class_Accessor(value, {
 				Js_Self(Input);
 				Js_Return( self->value_u4() );
 			}, {
@@ -144,7 +144,7 @@ namespace qk { namespace js {
 				self->set_value_u4(val->toStringValue4(worker));
 			});
 
-			Js_Set_Class_Accessor(placeholder, {
+			Js_Class_Accessor(placeholder, {
 				Js_Self(Input);
 				Js_Return( self->placeholder_u4() );
 			}, {
@@ -152,7 +152,7 @@ namespace qk { namespace js {
 				self->set_placeholder_u4(val->toStringValue4(worker));
 			});
 
-			Js_Set_Class_Accessor_Get(textLength, {
+			Js_Class_Accessor_Get(textLength, {
 				Js_Self(Input);
 				Js_Return( worker->types()->jsvalue(self->text_length()) );
 			});

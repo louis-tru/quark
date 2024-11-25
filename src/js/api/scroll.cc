@@ -34,37 +34,37 @@
 namespace qk { namespace js {
 
 	void inheritScrollBase(JSClass* cls, Worker* worker) {
-		Js_Set_UIObject_Accessor(ScrollBase, bool, scrollbar, scrollbar);
-		Js_Set_UIObject_Accessor(ScrollBase, bool, bounce, bounce);
-		Js_Set_UIObject_Accessor(ScrollBase, bool, bounce_lock, bounceLock);
-		Js_Set_UIObject_Accessor(ScrollBase, bool, momentum, momentum);
-		Js_Set_UIObject_Accessor(ScrollBase, bool, lock_direction, lockDirection);
-		Js_Set_UIObject_Accessor(ScrollBase, float, scroll_x, scrollX);
-		Js_Set_UIObject_Accessor(ScrollBase, float, scroll_y, scrollY);
-		Js_Set_UIObject_Accessor(ScrollBase, Vec2, scroll, scroll);
-		Js_Set_UIObject_Accessor(ScrollBase, float, resistance, resistance);
-		Js_Set_UIObject_Accessor(ScrollBase, float, catch_position_x, catchPositionX);
-		Js_Set_UIObject_Accessor(ScrollBase, float, catch_position_y, catchPositionY);
-		Js_Set_UIObject_Accessor(ScrollBase, Color, scrollbar_color, scrollbarColor);
-		Js_Set_UIObject_Accessor(ScrollBase, float, scrollbar_width, scrollbarWidth);
-		Js_Set_UIObject_Accessor(ScrollBase, float, scrollbar_margin, scrollbarMargin);
-		Js_Set_UIObject_Accessor(ScrollBase, uint32_t, scroll_duration, scrollDuration);
-		Js_Set_UIObject_Accessor(ScrollBase, Curve, default_curve, defaultCurve);
+		Js_UIObject_Accessor(ScrollBase, bool, scrollbar, scrollbar);
+		Js_UIObject_Accessor(ScrollBase, bool, bounce, bounce);
+		Js_UIObject_Accessor(ScrollBase, bool, bounce_lock, bounceLock);
+		Js_UIObject_Accessor(ScrollBase, bool, momentum, momentum);
+		Js_UIObject_Accessor(ScrollBase, bool, lock_direction, lockDirection);
+		Js_UIObject_Accessor(ScrollBase, float, scroll_x, scrollX);
+		Js_UIObject_Accessor(ScrollBase, float, scroll_y, scrollY);
+		Js_UIObject_Accessor(ScrollBase, Vec2, scroll, scroll);
+		Js_UIObject_Accessor(ScrollBase, float, resistance, resistance);
+		Js_UIObject_Accessor(ScrollBase, float, catch_position_x, catchPositionX);
+		Js_UIObject_Accessor(ScrollBase, float, catch_position_y, catchPositionY);
+		Js_UIObject_Accessor(ScrollBase, Color, scrollbar_color, scrollbarColor);
+		Js_UIObject_Accessor(ScrollBase, float, scrollbar_width, scrollbarWidth);
+		Js_UIObject_Accessor(ScrollBase, float, scrollbar_margin, scrollbarMargin);
+		Js_UIObject_Accessor(ScrollBase, uint32_t, scroll_duration, scrollDuration);
+		Js_UIObject_Accessor(ScrollBase, Curve, default_curve, defaultCurve);
 
-		Js_Set_Class_Accessor_Get(scrollbarH, {
+		Js_Class_Accessor_Get(scrollbarH, {
 			Js_UISelf(ScrollBase);
 			Js_Return( worker->types()->jsvalue(self->scrollbar_h()) );
 		});
-		Js_Set_Class_Accessor_Get(scrollbarV, {
+		Js_Class_Accessor_Get(scrollbarV, {
 			Js_UISelf(ScrollBase);
 			Js_Return( worker->types()->jsvalue(self->scrollbar_v()) );
 		});
-		Js_Set_Class_Accessor_Get(scrollSize, {
+		Js_Class_Accessor_Get(scrollSize, {
 			Js_UISelf(ScrollBase);
 			Js_Return( worker->types()->jsvalue(self->scroll_size()) );
 		});
 
-		Js_Set_Class_Method(scrollTo, {
+		Js_Class_Method(scrollTo, {
 			if (args.length() < 1) {
 				Js_Throw(
 					"@method ScrollBase.scrollTo(vec2[,uint64_t[,curve]])\n"
@@ -92,7 +92,7 @@ namespace qk { namespace js {
 			}
 		});
 
-		Js_Set_Class_Method(terminate, {
+		Js_Class_Method(terminate, {
 			Js_UISelf(ScrollBase);
 			self->terminate();
 		});

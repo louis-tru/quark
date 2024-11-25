@@ -41,27 +41,27 @@ namespace qk { namespace js {
 				Js_NewView(Matrix);
 			});
 
-			Js_Set_WrapObject_Accessor(Matrix, Vec2, translate, translate);
-			Js_Set_WrapObject_Accessor(Matrix, Vec2, scale, scale);
-			Js_Set_WrapObject_Accessor(Matrix, Vec2, skew, skew);
-			Js_Set_WrapObject_Accessor(Matrix, float, rotate_z, rotateZ);
-			Js_Set_WrapObject_Accessor(Matrix, BoxOrigin, origin_x, originX);
-			Js_Set_WrapObject_Accessor(Matrix, BoxOrigin, origin_y, originY);
+			Js_WrapObject_Accessor(Matrix, Vec2, translate, translate);
+			Js_WrapObject_Accessor(Matrix, Vec2, scale, scale);
+			Js_WrapObject_Accessor(Matrix, Vec2, skew, skew);
+			Js_WrapObject_Accessor(Matrix, float, rotate_z, rotateZ);
+			Js_WrapObject_Accessor(Matrix, BoxOrigin, origin_x, originX);
+			Js_WrapObject_Accessor(Matrix, BoxOrigin, origin_y, originY);
 
-			Js_Set_Class_Accessor_Get(originValue, {
+			Js_Class_Accessor_Get(originValue, {
 				Js_Self(Matrix);
 				Js_Return( worker->types()->jsvalue(self->origin_value()) );
 			});
 
-			Js_Set_WrapObject_Accessor(Matrix, float, x, x);
-			Js_Set_WrapObject_Accessor(Matrix, float, y, y);
-			Js_Set_WrapObject_Accessor(Matrix, float, scale_x, scaleX);
-			Js_Set_WrapObject_Accessor(Matrix, float, scale_y, scaleY);
-			Js_Set_WrapObject_Accessor(Matrix, float, skew_x, skewX);
-			Js_Set_WrapObject_Accessor(Matrix, float, skew_y, skewY);
-			Js_Set_WrapObject_Accessor(Matrix, ArrayOrigin, origin, origin);
+			Js_WrapObject_Accessor(Matrix, float, x, x);
+			Js_WrapObject_Accessor(Matrix, float, y, y);
+			Js_WrapObject_Accessor(Matrix, float, scale_x, scaleX);
+			Js_WrapObject_Accessor(Matrix, float, scale_y, scaleY);
+			Js_WrapObject_Accessor(Matrix, float, skew_x, skewX);
+			Js_WrapObject_Accessor(Matrix, float, skew_y, skewY);
+			Js_WrapObject_Accessor(Matrix, ArrayOrigin, origin, origin);
 
-			Js_Set_Class_Accessor_Get(mat, {
+			Js_Class_Accessor_Get(mat, {
 				Js_Self(Matrix);
 				Js_Return( worker->types()->jsvalue(self->mat()) );
 			});

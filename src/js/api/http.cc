@@ -187,7 +187,7 @@ namespace qk { namespace js {
 				New<WrapHttpClientRequest>(args, new HttpClientRequest());
 			});
 
-			Js_Set_Class_Method(setMethod, {
+			Js_Class_Method(setMethod, {
 				if (args.length() < 1 || !args[0]->isUint32()) {
 					Js_Throw(
 						"@method setMethod(method)\n"
@@ -201,7 +201,7 @@ namespace qk { namespace js {
 			});
 			
 
-			Js_Set_Class_Method(setUrl, {
+			Js_Class_Method(setUrl, {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
 						"@method setUrl(url)\n"
@@ -213,7 +213,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->set_url(arg); }, Error);
 			});
 
-			Js_Set_Class_Method(setSavePath, {
+			Js_Class_Method(setSavePath, {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
 						"@method setSavePath(path)\n"
@@ -225,7 +225,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->set_save_path(arg); }, Error);
 			});
 
-			Js_Set_Class_Method(setUsername, {
+			Js_Class_Method(setUsername, {
 				if (args.length() < 1 || !args[0]->isString()) {
 					Js_Throw(
 						"@method setUsername(username)\n"
@@ -237,7 +237,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->set_username(arg); }, Error);
 			});
 
-			Js_Set_Class_Method(setPassword, {
+			Js_Class_Method(setPassword, {
 				if (args.length() < 1 || ! args[0]->isString()) {
 					Js_Throw(
 						"@method setPassword(password)\n"
@@ -249,7 +249,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->set_password(arg); }, Error);
 			});
 
-			Js_Set_Class_Method(disableCache, {
+			Js_Class_Method(disableCache, {
 				if (args.length() < 1) {
 					Js_Throw(
 						"@method disableCache(disable)\n"
@@ -261,7 +261,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->disable_cache(arg); }, Error);
 			});
 
-			Js_Set_Class_Method(disableCookie, {
+			Js_Class_Method(disableCookie, {
 				if (args.length() < 1) {
 					Js_Throw(
 						"@method disableCookie(disable)\n"
@@ -273,7 +273,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->disable_cookie(arg); }, Error);
 			});
 
-			Js_Set_Class_Method(disableSendCookie, {
+			Js_Class_Method(disableSendCookie, {
 				if (args.length() < 1) {
 					Js_Throw(
 						"@method disableSendCookie(disable)\n"
@@ -285,7 +285,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->disable_send_cookie(arg); }, Error);
 			});
 
-			Js_Set_Class_Method(disableSslVerify, {
+			Js_Class_Method(disableSslVerify, {
 				if (args.length() < 1) {
 					Js_Throw(
 						"@method disableSslVerify(disable)\n"
@@ -298,7 +298,7 @@ namespace qk { namespace js {
 				}, Error);
 			});
 
-			Js_Set_Class_Method(setRequestHeader, {
+			Js_Class_Method(setRequestHeader, {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 					Js_Throw(
 						"@method setRequestHeader(header_name, value)\n"
@@ -312,7 +312,7 @@ namespace qk { namespace js {
 				}, Error);
 			});
 
-			Js_Set_Class_Method(setForm, {
+			Js_Class_Method(setForm, {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
 					Js_Throw(
 						"@method setForm(form_name, value)\n"
@@ -328,7 +328,7 @@ namespace qk { namespace js {
 				}, Error);
 			});
 
-			Js_Set_Class_Method(setUploadFile, {
+			Js_Class_Method(setUploadFile, {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
 					Js_Throw(
 						"@method setUploadFile(form_name, local_path)\n"
@@ -344,17 +344,17 @@ namespace qk { namespace js {
 				}, Error);
 			});
 
-			Js_Set_Class_Method(clearRequestHeader, {
+			Js_Class_Method(clearRequestHeader, {
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->clear_request_header(); }, Error);
 			});
 
-			Js_Set_Class_Method(clearFormData, {
+			Js_Class_Method(clearFormData, {
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->clear_form_data(); }, Error);
 			});
 
-			Js_Set_Class_Method(getResponseHeader, {
+			Js_Class_Method(getResponseHeader, {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Throw(
 						"@method getResponseHeader(header_name)\n"
@@ -369,13 +369,13 @@ namespace qk { namespace js {
 
 			typedef cDict<String, String> cDictSS;
 
-			Js_Set_Class_Method(getAllResponseHeaders, {
+			Js_Class_Method(getAllResponseHeaders, {
 				Js_Self(HttpClientRequest);
 				cDictSS &rv = self->get_all_response_headers();
 				Js_Return( rv );
 			});
 
-			Js_Set_Class_Method(setKeepAlive, {
+			Js_Class_Method(setKeepAlive, {
 				if (args.length() == 0) {
 					Js_Throw(
 						"@method setKeepAlive(keep_alive)\n"
@@ -387,7 +387,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->set_keep_alive(enable); }, Error);
 			});
 
-			Js_Set_Class_Method(setTimeout, {
+			Js_Class_Method(setTimeout, {
 				if (args.length() == 0 || !args[0]->isNumber()) {
 					Js_Throw(
 						"@method setTimeout(time)\n"
@@ -401,7 +401,7 @@ namespace qk { namespace js {
 				Js_Try_Catch({ self->set_timeout(time); }, Error);
 			});
 
-			Js_Set_Class_Method(send, {
+			Js_Class_Method(send, {
 				Js_Self(HttpClientRequest);
 				if (args.length() == 0) {
 					Js_Try_Catch({ self->send(); }, Error);
@@ -421,57 +421,57 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Set_Class_Method(pause, {
+			Js_Class_Method(pause, {
 				Js_Self(HttpClientRequest);
 				self->pause();
 			});
 
-			Js_Set_Class_Method(resume, {
+			Js_Class_Method(resume, {
 				Js_Self(HttpClientRequest);
 				self->resume();
 			});
 
-			Js_Set_Class_Method(abort, {
+			Js_Class_Method(abort, {
 				Js_Self(HttpClientRequest);
 				self->abort();
 			});
 
-			Js_Set_Class_Accessor_Get(uploadTotal, {
+			Js_Class_Accessor_Get(uploadTotal, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->upload_total() );
 			});
 
-			Js_Set_Class_Accessor_Get(uploadSize, {
+			Js_Class_Accessor_Get(uploadSize, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->upload_size() );
 			});
 
-			Js_Set_Class_Accessor_Get(downloadTotal, {
+			Js_Class_Accessor_Get(downloadTotal, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->download_total() );
 			});
 
-			Js_Set_Class_Accessor_Get(downloadSize, {
+			Js_Class_Accessor_Get(downloadSize, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->download_size() );
 			});
 
-			Js_Set_Class_Accessor_Get(readyState, {
+			Js_Class_Accessor_Get(readyState, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->ready_state() );
 			});
 
-			Js_Set_Class_Accessor_Get(statusCode, {
+			Js_Class_Accessor_Get(statusCode, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->status_code() );
 			});
 
-			Js_Set_Class_Accessor_Get(httpResponseVersion, {
+			Js_Class_Accessor_Get(httpResponseVersion, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->http_response_version() );
 			});
 
-			Js_Set_Class_Accessor_Get(url, {
+			Js_Class_Accessor_Get(url, {
 				Js_Self(HttpClientRequest);
 				Js_Return( self->url() );
 			});
@@ -591,7 +591,7 @@ namespace qk { namespace js {
 			worker->bindingModule("_buffer");
 			WrapHttpClientRequest::binding(exports, worker);
 
-			Js_Set_Method(request, {
+			Js_Method(request, {
 				request(args,
 					"@method request(options[,cb])\n"
 					"@param options {RequestOptions}\n"
@@ -600,7 +600,7 @@ namespace qk { namespace js {
 				);
 			});
 
-			Js_Set_Method(requestStream, {
+			Js_Method(requestStream, {
 				request(args, 
 					"@method requestStream(options[,cb])\n"
 					"@param options {RequestOptions}\n"
@@ -609,7 +609,7 @@ namespace qk { namespace js {
 				);
 			});
 
-			Js_Set_Method(requestSync, {
+			Js_Method(requestSync, {
 				if (args.length() == 0 || !args[0]->isObject()) {
 					Js_Throw(
 						"@method requestSync(url)\n"
@@ -626,7 +626,7 @@ namespace qk { namespace js {
 				}, HttpError);
 			});
 
-			Js_Set_Method(abort, {
+			Js_Method(abort, {
 				if ( args.length() == 0 || !args[0]->isUint32() ) {
 					Js_Throw(
 						"@method abort(id)\n"
@@ -636,22 +636,22 @@ namespace qk { namespace js {
 				http_abort( args[0]->toUint32Value(worker).unsafe() );
 			});
 
-			Js_Set_Method(userAgent, {
+			Js_Method(userAgent, {
 				Js_Return( http_user_agent() );
 			});
 
-			Js_Set_Method(setUserAgent, {
+			Js_Method(setUserAgent, {
 				if (args.length() == 0 || ! args[0]->isString()) {
 					Js_Throw("Bad argument");
 				}
 				http_set_user_agent( args[0]->toStringValue(worker) );
 			});
 
-			Js_Set_Method(cachePath, {
+			Js_Method(cachePath, {
 				Js_Return( http_cache_path() );
 			});
 
-			Js_Set_Method(setCachePath, {
+			Js_Method(setCachePath, {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Throw(
 						"@method setCachePath(path)\n"
@@ -661,11 +661,11 @@ namespace qk { namespace js {
 				http_set_cache_path( args[0]->toStringValue(worker) );
 			});
 
-			Js_Set_Method(maxConnectPoolSize, {
+			Js_Method(maxConnectPoolSize, {
 				Js_Return( http_max_connect_pool_size() );
 			});
 
-			Js_Set_Method(setMaxConnectPoolSize, {
+			Js_Method(setMaxConnectPoolSize, {
 				if (args.length() == 0 || !args[0]->isUint32()) {
 					Js_Throw(
 						"@method setMaxConnectPoolSize(size)\n"
@@ -675,15 +675,15 @@ namespace qk { namespace js {
 				http_set_max_connect_pool_size( args[0]->toUint32Value(worker).unsafe() );
 			});
 
-			Js_Set_Method(clearCache, {
+			Js_Method(clearCache, {
 				http_clear_cache();
 			});
 
-			Js_Set_Method(clearCookie, {
+			Js_Method(clearCookie, {
 				http_clear_cookie();
 			});
 		}
 	};
 
-	Js_Set_Module(_http, NativeHttp);
+	Js_Module(_http, NativeHttp);
 } }
