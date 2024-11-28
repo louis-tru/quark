@@ -23,7 +23,8 @@
 			'js_.h',
 			'js.h',
 			'js.cc',
-			'wrap.cc',
+			'cls.cc',
+			'mix.cc',
 			'api/action.cc', # api
 			'api/box.cc',
 			'api/buffer.cc',
@@ -59,7 +60,11 @@
 				},
 				'defines': [ 'USE_JSC=1' ],
 				'sources': [
+					'jsc/exceptions.cc',
+					'jsc/handle_scope.cc',
 					'jsc/jsc.cc',
+					'jsc/jsc.h',
+					'jsc/jsccls.h',
 					'jsc/macros.h',
 				],
 			}, { # use v8
@@ -77,7 +82,9 @@
 					'v8/inspector_socket_server.h',
 					'v8/inspector_socket.cc',
 					'v8/inspector_socket.h',
-					'v8/v8.cc',
+					'v8/v8js.h',
+					'v8/v8js.cc',
+					'v8/v8cls.cc',
 				],
 				'actions': [{
 					'action_name': 'v8_inspector_compress_protocol_json',

@@ -33,7 +33,7 @@
 
 namespace qk { namespace js {
 
-	struct WrapWindow: WrapObject {
+	struct MixWindow: MixObject {
 		typedef Window Type;
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
@@ -69,9 +69,9 @@ namespace qk { namespace js {
 				checkApp(worker);
 				if (args.length()) {
 					Js_Parse_Type(WindowOptions, args[0], "new Window(opts) %s");
-					New<WrapWindow>(args, Window::Make(out));
+					New<MixWindow>(args, Window::Make(out));
 				} else {
-					New<WrapWindow>(args, Window::Make({}));
+					New<MixWindow>(args, Window::Make({}));
 				}
 			});
 
@@ -196,6 +196,6 @@ namespace qk { namespace js {
 	};
 
 	void binding_window(JSObject* exports, Worker* worker) {
-		WrapWindow::binding(exports, worker);
+		MixWindow::binding(exports, worker);
 	}
 } }

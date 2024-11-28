@@ -36,17 +36,17 @@
 
 namespace qk { namespace js {
 
-	void WrapViewObject::init() {
-		that()->defineOwnProperty(worker(), worker()->strs()->window(),
-			wrap<Window>(self<View>()->window())->that(), JSObject::ReadOnly | JSObject::DontDelete
+	void MixViewObject::init() {
+		handle()->defineOwnProperty(worker(), worker()->strs()->window(),
+			mix<Window>(self<View>()->window())->handle(), JSObject::ReadOnly | JSObject::DontDelete
 		);
 	}
 
-	NotificationBasic* WrapViewObject::asNotificationBasic() {
+	NotificationBasic* MixViewObject::asNotificationBasic() {
 		return static_cast<View*>(self());
 	}
 
-	Window* WrapViewObject::checkNewView(FunctionArgs args) {
+	Window* MixViewObject::checkNewView(FunctionArgs args) {
 		Js_Worker(args);
 		if (!args.length() || !Js_IsWindow(args[0])) {
 			Js_Throw("\
@@ -55,10 +55,10 @@ namespace qk { namespace js {
 				@param window {Window} \n\
 			"), nullptr;
 		}
-		return wrap<Window>(args[0])->self();
+		return mix<Window>(args[0])->self();
 	}
 
-	class WrapView: public WrapViewObject {
+	class MixView: public MixViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(View, 0, {
@@ -106,7 +106,7 @@ namespace qk { namespace js {
 					if (!worker->template instanceOf<Action>(val))
 						Js_Throw("@prop set_action {Action}\n");
 					Js_Self(View);
-					self->set_action(wrap<Action>(val)->self());
+					self->set_action(mix<Action>(val)->self());
 				}
 			});
 
@@ -184,7 +184,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(View);
-				auto v = wrap<View>(args[0])->self();
+				auto v = mix<View>(args[0])->self();
 				Js_ReturnBool( self->is_self_child(v) );
 			});
 
@@ -196,7 +196,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(View);
-				auto v = wrap<View>(args[0])->self();
+				auto v = mix<View>(args[0])->self();
 				Js_Try_Catch({ self->before(v); }, Error);
 			});
 
@@ -208,7 +208,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(View);
-				auto v = wrap<View>(args[0])->self();
+				auto v = mix<View>(args[0])->self();
 				Js_Try_Catch({ self->after(v); }, Error);
 			});
 
@@ -220,7 +220,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(View);
-				auto v = wrap<View>(args[0])->self();
+				auto v = mix<View>(args[0])->self();
 				Js_Try_Catch({ self->prepend(v); }, Error);
 			});
 
@@ -232,7 +232,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(View);
-				auto v = wrap<View>(args[0])->self();
+				auto v = mix<View>(args[0])->self();
 				Js_Try_Catch({ self->append(v); }, Error);
 			});
 
@@ -298,6 +298,6 @@ namespace qk { namespace js {
 	};
 
 	void binding_view(JSObject* exports, Worker* worker) {
-		WrapView::binding(exports, worker);
+		MixView::binding(exports, worker);
 	}
 } }

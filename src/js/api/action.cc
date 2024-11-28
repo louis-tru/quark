@@ -45,24 +45,24 @@ namespace qk { namespace js {
 				* @constructor %s(Window *window) \n\
 			", name), nullptr;
 		}
-		return WrapObject::wrap<Window>(args[0])->self();
+		return MixObject::mix<Window>(args[0])->self();
 	}
 
-	struct WrapAction: WrapObject {
+	struct MixAction: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Action, 0, { Js_Throw("Access forbidden."); });
 
 			// Qk_DEFINE_P_GET(Window*, window, Protected);
 
-			Js_WrapObject_Accessor(Action, uint32_t, loop, loop);
+			Js_MixObject_Accessor(Action, uint32_t, loop, loop);
 
 			Js_Class_Accessor_Get(duration, {
 				Js_Self(Action);
 				Js_Return(self->duration());
 			});
 
-			Js_WrapObject_Accessor(Action, float, speed, speed);
-			Js_WrapObject_Accessor(Action, bool, playing, playing);
+			Js_MixObject_Accessor(Action, float, speed, speed);
+			Js_MixObject_Accessor(Action, bool, playing, playing);
 
 			Js_Class_Method(play, {
 				Js_Self(Action);
@@ -104,14 +104,14 @@ namespace qk { namespace js {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.before(Action *act)");
 				Js_Self(Action);
-				self->before(wrap<Action>(args[0])->self());
+				self->before(mix<Action>(args[0])->self());
 			});
 
 			Js_Class_Method(after, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.after(Action *act)");
 				Js_Self(Action);
-				self->after(wrap<Action>(args[0])->self());
+				self->after(mix<Action>(args[0])->self());
 			});
 
 			Js_Class_Method(remove, {
@@ -124,7 +124,7 @@ namespace qk { namespace js {
 					Js_Throw("@method Action.append(Action *child)");
 				Js_Self(Action);
 				Js_Try_Catch({
-					self->append(wrap<Action>(args[0])->self());
+					self->append(mix<Action>(args[0])->self());
 				}, Error);
 			});
 
@@ -137,36 +137,36 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapSpawnAction: WrapObject {
+	struct MixSpawnAction: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(SpawnAction, Action, {
 				auto win = NewActionCheck(args, "SpawnAction");
 				if (win)
-					New<WrapSpawnAction>(args, new SpawnAction(win));
+					New<MixSpawnAction>(args, new SpawnAction(win));
 			});
 			cls->exports("SpawnAction", exports);
 		}
 	};
 
-	struct WrapSequenceAction: WrapObject {
+	struct MixSequenceAction: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(SequenceAction, Action, {
 				auto win = NewActionCheck(args, "SequenceAction");
 				if (win)
-					New<WrapSequenceAction>(args, new SequenceAction(win));
+					New<MixSequenceAction>(args, new SequenceAction(win));
 			});
 			cls->exports("SequenceAction", exports);
 		}
 	};
 
-	struct WrapKeyframeAction: WrapObject {
+	struct MixKeyframeAction: MixObject {
 		typedef KeyframeAction Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(KeyframeAction, Action, {
 				auto win = NewActionCheck(args, "KeyframeAction");
 				if (win)
-					New<WrapKeyframeAction>(args, new KeyframeAction(win));
+					New<MixKeyframeAction>(args, new KeyframeAction(win));
 			});
 
 			Js_Class_Accessor_Get(time, {
@@ -189,8 +189,8 @@ namespace qk { namespace js {
 				if (key >= self->length()) {
 					Js_Throw("@method KeyframeAction[](uint32_t index) Frame array index overflow.");
 				}
-				auto wobj = wrap<Keyframe>(self->operator[](key), kKeyframe_Typeid);
-				Js_Return( wobj->that() );
+				auto wobj = mix<Keyframe>(self->operator[](key), kKeyframe_Typeid);
+				Js_Return( wobj->handle() );
 			});
 
 			// bool hasProperty(ViewProp name);
@@ -241,7 +241,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapKeyframe: WrapObject {
+	struct MixKeyframe: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Keyframe, StyleSheets, { Js_Throw("Access forbidden."); });
 
@@ -267,11 +267,11 @@ namespace qk { namespace js {
 	struct NativeAction {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_css");
-			WrapAction::binding(exports, worker);
-			WrapSpawnAction::binding(exports, worker);
-			WrapSequenceAction::binding(exports, worker);
-			WrapKeyframeAction::binding(exports, worker);
-			WrapKeyframe::binding(exports, worker);
+			MixAction::binding(exports, worker);
+			MixSpawnAction::binding(exports, worker);
+			MixSequenceAction::binding(exports, worker);
+			MixKeyframeAction::binding(exports, worker);
+			MixKeyframe::binding(exports, worker);
 		}
 	};
 

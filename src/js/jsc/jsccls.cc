@@ -32,167 +32,144 @@
 
 namespace qk { namespace js {
 
+	class JscPrivateData: SafeFlag {
+	public:
+		JscPrivateData() {
+		}
+	private:
+		void *_data;
+	};
+
 	class JscClass: public JSClass {
 	public:
 		JscClass(Worker* worker, cString& name,
-							FunctionCallback constructor, AttachCallback attach, V8JSClass* base,
-							v8::Local<v8::Function> baseFunc = v8::Local<v8::Function>())
-			: JSClass(constructor, attach), _base(base)
+						FunctionCallback constructor,
+						AttachCallback attach, JscClass* base, JSObjectRef baseFunc)
+			: JSClass(constructor, attach)
+			, _jsclass(nullptr)
+			, _base(base)
+			, _baseFunc(baseFunc)
+			, _prototype(nullptr)
 		{
 			_worker = worker;
-			auto data = External::New(ISOLATE(worker), this);
-			auto cb = (v8::FunctionCallback)[](const v8::FunctionCallbackInfo<v8::Value>& info) {
-				auto self = (V8JSClass*)info.Data().As<External>()->Value();
-				if (!self->_worker->classses()->isAttachFlag()) {
-					self->_constructor(*reinterpret_cast<const FunctionCallbackInfo*>(&info));
+			auto ctx = CONTEXT(worker);
+			if (_baseFunc) {
+				JSValueProtect(ctx, _baseFunc);
+			}
+			JSClassDefinition def = kJSClassDefinitionEmpty;
+
+			def.callAsFunction = [](JSContextRef ctx, JSObjectRef func, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
+				auto priv = static_cast<JscPrivateData*>(JSObjectGetPrivate(thisObject));
+				if (!priv->isValid()) {
+					
 				}
+				return nullptr;
 			};
-			v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(ISOLATE(worker), cb, data);
-			v8::Local<v8::String> className = Back<v8::String>(worker->newStringOneByte(name));
 
-			if ( base ) {
-				ft->Inherit( base->Template() );
+			def.callAsConstructor = [](JSContextRef ctx, JSObjectRef constr, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
+				return nullptr;
+			};
+
+			def.hasProperty = [](JSContextRef ctx, JSObjectRef self, JSStringRef name) {
+				return false;
+			};
+
+			def.getProperty = [](JSContextRef ctx, JSObjectRef self, JSStringRef name, JSValueRef* ex) {
+				return nullptr;
+			};
+
+			def.setProperty = [](JSContextRef ctx, JSObjectRef self, JSStringRef name, JSValueRef value, JSValueRef* ex) {
+				return false;
+			};
+
+			def.deleteProperty = [](JSContextRef ctx, JSObjectRef self, JSStringRef name, JSValueRef* ex) {
+				return false;
+			};
+
+			def.getPropertyNames = [](JSContextRef ctx, JSObjectRef self, JSPropertyNameAccumulatorRef names) {
+			};
+
+			_jsclass = JSClassCreate(&def);
+			_jsclass = JSClassRetain(_jsclass);
+		}
+		~JscClass() {
+			ENV(_worker);
+			DCHECK(worker->hasDestroy());
+
+			if (_jsclass) {
+				JSClassRelease(_jsclass);
 			}
-			else if ( !baseFunc.IsEmpty() ) {
-				_baseFunc.Reset(ISOLATE(worker), baseFunc);
+			if (_baseFunc) {
+				JSValueUnprotect(ctx, _baseFunc);
 			}
-
-			ft->SetClassName(className);
-			ft->InstanceTemplate()->SetInternalFieldCount(1);
-			_funcTemplate.Reset(ISOLATE(worker), ft);
+			if (_func) {
+				JSValueUnprotect(ctx, _func);
+			}
 		}
-
-		~V8JSClass() {
-			_baseFunc.Reset();
-			_funcTemplate.Reset();
-		}
-
-		v8::Local<v8::FunctionTemplate> Template() {
-			auto _ = reinterpret_cast<v8::Local<v8::FunctionTemplate>*>(&_funcTemplate);
-			return *_;
-		}
-
-		v8::Local<v8::Function> BaseFunction() {
-			auto _ = reinterpret_cast<v8::Local<v8::Function>*>(&_baseFunc);
-			return *_;
-		}
-
-		bool HasBaseFunction() {
-			return !_baseFunc.IsEmpty();
-		}
-
 	private:
-		V8JSClass*                   _base;
-		v8::Persistent<v8::Function> _baseFunc; // base constructor function
-		v8::Persistent<v8::FunctionTemplate> _funcTemplate; // v8 func template
+		JSClassRef  _jsclass;
+		JscClass   *_base;
+		JSObjectRef _baseFunc;
+		JSObjectRef _prototype;
+		friend class JSClass;
 	};
 
 	JSFunction* JSClass::getFunction() {
-		// if (_func.isEmpty()) {
-		// 	// Gen constructor
-		// 	auto v8cls = static_cast<V8JSClass*>(this);
-		// 	auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
-		// 	if (v8cls->HasBaseFunction()) {
-		// 		bool ok;
-		// 		// function.__proto__ = base;
-		// 		// f->SetPrototype(v8cls->BaseFunction());
-		// 		// function.prototype.__proto__ = base.prototype;
-		// 		auto str = Back(_worker->strs()->prototype());
-		// 		auto base = v8cls->BaseFunction();
-		// 		auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-		// 		auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-		// 		ok = proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked();
-		// 		Qk_Assert(ok);
-		// 	}
-		// 	auto func = Cast<JSFunction>(f);
-		// 	_func.reset(_worker, func);
-		// }
-		// return *_func;
+		// ...
 	}
 
 	bool JSClass::hasInstance(JSValue* val) {
-		// return reinterpret_cast<V8JSClass*>(this)->Template()->HasInstance(Back(val));
+		// TODO ...
 	}
 
-	bool JSClass::setMemberMethod(cString& name, FunctionCallback func) {
-		// v8::Local<v8::FunctionTemplate> ftemp = reinterpret_cast<V8JSClass*>(this)->Template();
-		// v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
-		// v8::Local<Signature> sign = Signature::New(ISOLATE(_worker), ftemp);
-		// v8::Local<v8::FunctionTemplate> t =
-		// 	FunctionTemplate::New(ISOLATE(_worker), func2, v8::Local<v8::Value>(), sign);
-		// v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		// t->SetClassName(fn_name);
-		// ftemp->PrototypeTemplate()->Set(fn_name, t);
-		// return true;
+	bool JSClass::setMethod(cString& name, FunctionCallback func) {
+		// To prototype
 	}
 
-	bool JSClass::setMemberAccessor(cString& name,
-																	AccessorGetterCallback get, AccessorSetterCallback set) {
-		// v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
-		// v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
-		// v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		// v8::Local<AccessorSignature> sign = AccessorSignature::New(ISOLATE(_worker), temp);
-		// v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		// temp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
-		// 																			v8::Local<v8::Value>(), v8::DEFAULT, v8::None, sign);
-		// return true;
+	bool JSClass::setAccessor(cString& name,
+														AccessorGetterCallback get, AccessorSetterCallback set) {
+		// To prototype
 	}
 
-	/*
-	bool JSClass::setLazyDataProperty(cString& name, AccessorGetterCallback get) {
-		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
-		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
-		// v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), temp);
-		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, nullptr,
-																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
-		return true;
-	}*/
-
-	bool JSClass::setMemberIndexedAccessor(IndexedAccessorGetterCallback get,
-																				IndexedAccessorSetterCallback set) {
-		// v8::IndexedPropertyGetterCallback get2 = reinterpret_cast<v8::IndexedPropertyGetterCallback>(get);
-		// v8::IndexedPropertySetterCallback set2 = reinterpret_cast<v8::IndexedPropertySetterCallback>(set);
-		// v8::IndexedPropertyHandlerConfiguration cfg(get2, set2);
-		// reinterpret_cast<V8JSClass*>(this)->Template()->PrototypeTemplate()->SetHandler(cfg);
-		// return true;
+	bool JSClass::setIndexedAccessor(IndexedAccessorGetterCallback get,
+																	IndexedAccessorSetterCallback set) {
+		// To prototype
 	}
 
 	template<>
-	bool JSClass::setMemberProperty<JSValue*>(cString& name, JSValue* value) {
-		// reinterpret_cast<V8JSClass*>(this)->Template()->
-		// 				PrototypeTemplate()->Set(Back<v8::String>(_worker->newStringOneByte(name)), Back(value));
-		// return true;
+	bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value) {
+		// To prototype
+	}
+
+	bool JSClass::setStaticMethod(cString& name, FunctionCallback func) {
+		// To func
 	}
 
 	template<>
 	bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value) {
-		// reinterpret_cast<V8JSClass*>(this)->Template()->
-		// 				Set(Back<v8::String>(_worker->newStringOneByte(name)), Back(value));
-		// return true;
+		// To func
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t id,
+	JSClass* Worker::newClass(cString& name, uint64_t alias,
 															FunctionCallback constructor,
 															AttachCallback attach, JSClass* base) {
-		// auto cls = new V8JSClass(this, name, constructor, attach, static_cast<V8JSClass*>(base));
-		// _classses->add(id, cls);
-		// return cls;
+		auto cls = new JscClass(this, name, constructor, attach, static_cast<JscClass*>(base), NULL);
+		_classses->add(alias, cls);
+		return cls;
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t id,
+	JSClass* Worker::newClass(cString& name, uint64_t alias,
 																	FunctionCallback constructor,
 																	AttachCallback attach, uint64_t base) {
-		// return newClass(name, id, constructor, attach, _classses->get(base));
+		return newClass(name, alias, constructor, attach, _classses->get(base));
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t id,
+	JSClass* Worker::newClass(cString& name, uint64_t alias,
 															FunctionCallback constructor,
 															AttachCallback attach, JSFunction* base) {
-		// auto cls = new V8JSClass(this, name, constructor, attach, nullptr, Back<v8::Function>(base));
-		// _classses->add(id, cls);
-		// return cls;
+		auto cls = new JscClass(this, name, constructor, attach, NULL, Back<JSObjectRef>(base));
+		_classses->add(alias, cls);
+		return cls;
 	}
 
 	JSFunction* Worker::newFunction(cString& name, FunctionCallback func) {

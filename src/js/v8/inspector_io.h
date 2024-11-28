@@ -108,7 +108,7 @@ namespace qk { namespace inspector {
 		// Callback for main_thread_req_'s uv_async_t
 		static void MainThreadReqAsyncCb(uv_async_t* req);
 
-		// Wrapper for agent->ThreadMain()
+		// Mixper for agent->ThreadMain()
 		static void ThreadMain(void* agent);
 
 		// Runs a uv_loop_t

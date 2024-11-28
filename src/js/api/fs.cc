@@ -32,13 +32,13 @@
 
 namespace qk { namespace js {
 
-	struct WrapFileStat: WrapObject {
+	struct MixFileStat: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FileStat, 0, {
 				if (args.length() == 0 || !args[0]->isString()) {
-					New<WrapFileStat>(args, new FileStat());
+					New<MixFileStat>(args, new FileStat());
 				} else {
-					New<WrapFileStat>(args, new FileStat(args[0]->toStringValue(args.worker())));
+					New<MixFileStat>(args, new FileStat(args[0]->toStringValue(args.worker())));
 				}
 			});
 			Js_Class_Method(isValid, {
@@ -1366,7 +1366,7 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			WrapFileStat::binding(exports, worker);
+			MixFileStat::binding(exports, worker);
 
 			Js_Property(defaultMode, fs_default_mode);
 			// sync

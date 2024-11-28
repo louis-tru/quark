@@ -42,7 +42,7 @@
 namespace qk { namespace js {
 	typedef qk::Wrap Wrap;
 
-	struct WrapStyleSheets: WrapObject {
+	struct MixStyleSheets: MixObject {
 		typedef StyleSheets Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -148,19 +148,19 @@ namespace qk { namespace js {
 				if (!args.length() || !Js_IsView(args[0]))
 					Js_Throw("@method StyleSheets.apply(view) Bad argument.");
 				Js_Self(StyleSheets);
-				self->apply(wrap<View>(args[0])->self(), false);
+				self->apply(mix<View>(args[0])->self(), false);
 			});
 
 			Js_Class_Method(fetch, {
 				if (!args.length() || !Js_IsView(args[0]))
 					Js_Throw("@method StyleSheets.fetch(view) Bad argument.");
 				Js_Self(StyleSheets);
-				self->fetch(wrap<View>(args[0])->self(), false);
+				self->fetch(mix<View>(args[0])->self(), false);
 			});
 		}
 	};
 
-	struct WrapCStyleSheets: WrapObject {
+	struct MixCStyleSheets: MixObject {
 		typedef CStyleSheets Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(CStyleSheets, StyleSheets, { Js_Throw("Access forbidden."); });
@@ -169,7 +169,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapCStyleSheetsClass: WrapObject {
+	struct MixCStyleSheetsClass: MixObject {
 		typedef CStyleSheetsClass Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -237,7 +237,7 @@ namespace qk { namespace js {
 						auto val = props->get(worker, key);
 						if ( !val ) return; // js error
 						for ( auto ss : arr ) {
-							auto that = WrapObject::wrap<CStyleSheets>(ss)->that();
+							auto that = MixObject::mix<CStyleSheets>(ss)->handle();
 							if ( !that->set(worker, key, val) ) {
 								return; // js error
 							}
@@ -249,9 +249,9 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_types");
-			WrapStyleSheets::binding(exports, worker);
-			WrapCStyleSheets::binding(exports, worker);
-			WrapCStyleSheetsClass::binding(exports, worker);
+			MixStyleSheets::binding(exports, worker);
+			MixCStyleSheets::binding(exports, worker);
+			MixCStyleSheetsClass::binding(exports, worker);
 
 			Js_Method(create, {
 				if ( !checkApp(worker) ) return;

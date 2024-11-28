@@ -33,7 +33,7 @@
 
 namespace qk { namespace js {
 
-	struct WrapBoxFilter: WrapObject {
+	struct MixBoxFilter: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(BoxFilter, 0, { Js_Throw("Forbidden access abstract"); });
 
@@ -55,7 +55,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapFillImage: WrapObject {
+	struct MixFillImage: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FillImage, BoxFilter, {
 				if (!args.length() || !args[0]->isString()) {
@@ -64,25 +64,25 @@ namespace qk { namespace js {
 				auto src = args[0]->toStringValue(worker);
 				if (args.length() > 1) {
 					Js_Parse_Type(FillImageInit, args[1], "@constructor FillImage(src,Init init = %s)");
-					New<WrapFillImage>(args, new FillImage(src, out));
+					New<MixFillImage>(args, new FillImage(src, out));
 				} else {
-					New<WrapFillImage>(args, new FillImage(src));
+					New<MixFillImage>(args, new FillImage(src));
 				}
 			});
 
-			Js_WrapObject_Accessor(FillImage, String, src, src);
+			Js_MixObject_Accessor(FillImage, String, src, src);
 			// Qk_DEFINE_VIEW_ACCE(ImageSource*, source);
-			Js_WrapObject_Accessor(FillImage, FillSize, width, width);
-			Js_WrapObject_Accessor(FillImage, FillSize, height, height);
-			Js_WrapObject_Accessor(FillImage, FillPosition, x, x);
-			Js_WrapObject_Accessor(FillImage, FillPosition, y, y);
-			Js_WrapObject_Accessor(FillImage, Repeat, repeat, repeat);
+			Js_MixObject_Accessor(FillImage, FillSize, width, width);
+			Js_MixObject_Accessor(FillImage, FillSize, height, height);
+			Js_MixObject_Accessor(FillImage, FillPosition, x, x);
+			Js_MixObject_Accessor(FillImage, FillPosition, y, y);
+			Js_MixObject_Accessor(FillImage, Repeat, repeat, repeat);
 
 			cls->exports("FillImage", exports);
 		}
 	};
 
-	struct WrapFillGradientRadial: WrapObject {
+	struct MixFillGradientRadial: MixObject {
 		static bool parse(
 			FunctionArgs args, Array<float> *pos, Array<Color4f> *colors, cChar* msg, cChar* msg2
 		) {
@@ -111,7 +111,7 @@ namespace qk { namespace js {
 				ArrayFloat pos;
 				Array<Color4f> colors;
 				if (parse(args, &pos, &colors, "FillGradientRadial", "")) {
-					New<WrapFillGradientRadial>(args, new FillGradientRadial(pos, colors));
+					New<MixFillGradientRadial>(args, new FillGradientRadial(pos, colors));
 				}
 			});
 
@@ -129,12 +129,12 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapFillGradientLinear: WrapObject {
+	struct MixFillGradientLinear: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FillGradientLinear, FillGradientRadial, {
 				ArrayFloat pos;
 				Array<Color4f> colors;
-				if (WrapFillGradientRadial::parse(args, &pos, &colors, "FillGradientLinear", ",float angle")) {
+				if (MixFillGradientRadial::parse(args, &pos, &colors, "FillGradientLinear", ",float angle")) {
 					float angle = 0;
 					if (args.length() > 2) {
 						Js_Parse_Type(float, args[2],
@@ -142,39 +142,39 @@ namespace qk { namespace js {
 						);
 						angle = out;
 					}
-					New<WrapFillGradientLinear>(args, new FillGradientLinear(pos, colors, angle));
+					New<MixFillGradientLinear>(args, new FillGradientLinear(pos, colors, angle));
 				}
 			});
 
-			Js_WrapObject_Accessor(FillGradientLinear, float, angle, angle);
+			Js_MixObject_Accessor(FillGradientLinear, float, angle, angle);
 
 			cls->exports("FillGradientLinear", exports);
 		}
 	};
 
-	struct WrapBoxShadow: WrapObject {
+	struct MixBoxShadow: MixObject {
 		static void NewBoxShadow(Worker *worker, FunctionArgs args) {
 			if (!args.length()) {
 				Js_Throw("@constructor BoxShadow(Shadow value)");
 			}
 			Js_Parse_Type(Shadow, args[0], "@constructor BoxShadow(Shadow value = %s)");
-			New<WrapBoxShadow>(args, new BoxShadow(out));
+			New<MixBoxShadow>(args, new BoxShadow(out));
 		}
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(BoxShadow, BoxFilter, {
 				NewBoxShadow(worker, args);
 			});
-			Js_WrapObject_Accessor(BoxShadow, Shadow, value, value);
+			Js_MixObject_Accessor(BoxShadow, Shadow, value, value);
 
 			cls->exports("BoxShadow", exports);
 		}
 	};
 
 	void binding_filter(JSObject* exports, Worker* worker) {
-		WrapBoxFilter::binding(exports, worker);
-		WrapFillImage::binding(exports, worker);
-		WrapFillGradientRadial::binding(exports, worker);
-		WrapFillGradientLinear::binding(exports, worker);
-		WrapBoxShadow::binding(exports, worker);
+		MixBoxFilter::binding(exports, worker);
+		MixFillImage::binding(exports, worker);
+		MixFillGradientRadial::binding(exports, worker);
+		MixFillGradientLinear::binding(exports, worker);
+		MixBoxShadow::binding(exports, worker);
 	}
 } }

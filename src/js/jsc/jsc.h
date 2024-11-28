@@ -33,24 +33,9 @@
 #ifndef __quark__js__jsc__jsc__
 #define __quark__js__jsc__jsc__
 
-#include "./macros.h"
 #include "./js_.h"
+#include "./macros.h"
 #include <JavaScriptCore/JavaScript.h>
-
-#define ENV(...) \
-auto worker = WORKER(__VA_ARGS__); \
-auto ctx = worker->jscc(); \
-JSValueRef ex = nullptr
-#define WORKER(...) qk::js::JscWorker::worker(__VA_ARGS__)
-#define JSC_CTX(...) WORKER(__VA_ARGS__)->jscc()
-#define OK(...) &ex); do { \
-if (ex) { \
-	worker->ThrowException(ex); \
-	return __VA_ARGS__ ;\
-}}while(0
-
-#define JsFatal(ctx) &ex); do { qj::js::checkFatal(ctx, ex); }while(0
-#define DCHECK Qk_Assert
 
 namespace qk {
 	template<>
@@ -68,6 +53,21 @@ namespace qk {
 }
 
 namespace qk { namespace js {
+	#define ENV(...) \
+	auto worker = WORKER(__VA_ARGS__); \
+	auto ctx = worker->jscc(); \
+	JSValueRef ex = nullptr
+	#define WORKER(...) qk::js::JscWorker::worker(__VA_ARGS__)
+	#define JSC_CTX(...) WORKER(__VA_ARGS__)->jscc()
+	#define OK(...) &ex); do { \
+	if (ex) { \
+		worker->ThrowException(ex); \
+		return __VA_ARGS__ ;\
+	}}while(0
+
+	#define JsFatal(ctx) &ex); do { qj::js::checkFatal(ctx, ex); }while(0
+	#define DCHECK Qk_Assert
+
 	class StackFrame;
 	class StackTrace;
 	class Message;
@@ -111,8 +111,8 @@ namespace qk { namespace js {
 	};
 
 	struct Templates {
-		void initialize(JSGlobalContextRef ctx);
-		void destroy(JSGlobalContextRef ctx);
+		void initialize(JSGlobalContextRef ctx) {}
+		void destroy(JSGlobalContextRef ctx) {}
 	};
 
 	class JscWorker: public Worker {

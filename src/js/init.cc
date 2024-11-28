@@ -348,10 +348,10 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapNativeObject: WrapObject {
+	struct MixNativeObject: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Object, 0, {
-				New<WrapNativeObject>(args, new Object());
+				New<MixNativeObject>(args, new Object());
 			});
 		}
 	};
@@ -360,10 +360,10 @@ namespace qk { namespace js {
 		Hash5381 hash;
 	};
 
-	struct WrapHash5381Object: WrapObject {
+	struct MixHash5381Object: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Hash5381Object, 0, {
-				New<WrapHash5381Object>(args, new Hash5381Object());
+				New<MixHash5381Object>(args, new Hash5381Object());
 			});
 
 			Js_Class_Method(hashCode, {
@@ -467,7 +467,7 @@ namespace qk { namespace js {
 						!args[1]->isString() || !args[2]->isFunction()) {
 					Js_Throw("Bad argument");
 				}
-				if ( ! WrapObject::wrap(args[0]) ) {
+				if ( ! MixObject::mix(args[0]) ) {
 					Js_Throw("Bad argument");
 				}
 				int id = 0;
@@ -475,12 +475,12 @@ namespace qk { namespace js {
 					id = args[3]->toInt32Value(worker).unsafe();
 				}
 				{ HandleScope scope(worker);
-					WrapObject* wrap = WrapObject::wrap(args[0]);
+					MixObject* mix = MixObject::mix(args[0]);
 					String name = args[1]->toStringValue(worker,true);
 					String func = String("_on").append(name).append("Native").append(String(id));
-					bool ok = wrap->addEventListener(name, func, id);
+					bool ok = mix->addEventListener(name, func, id);
 					if (ok) {
-						wrap->setProp(worker->newStringOneByte(func), args[2]);
+						mix->handle()->set(worker, worker->newStringOneByte(func), args[2]);
 					}
 					Js_ReturnBool(ok);
 				}
@@ -490,7 +490,7 @@ namespace qk { namespace js {
 				if ( args.length() < 2 || !args[0]->isObject() || !args[1]->isString()) {
 					Js_Throw("Bad argument");
 				}
-				if ( ! WrapObject::wrap(args[0]) ) {
+				if ( ! MixObject::mix(args[0]) ) {
 					Js_Throw("Bad argument");
 				}
 				int id = 0;
@@ -499,11 +499,11 @@ namespace qk { namespace js {
 				}
 				{ HandleScope scope(worker);
 					String name = args[1]->toStringValue(worker,true);
-					WrapObject* wrap = WrapObject::wrap(args[0]);
-					bool ok = wrap->removeEventListener(name, id);
+					MixObject* mix = MixObject::mix(args[0]);
+					bool ok = mix->removeEventListener(name, id);
 					if ( ok ) {
 						String func = String("_on").append(name).append("Native").append(String(id));
-						wrap->deleteProp( worker->newStringOneByte(func) );
+						mix->handle()->deleteFor(worker, worker->newStringOneByte(func) );
 					}
 					Js_ReturnBool(ok);
 				}
@@ -563,8 +563,8 @@ namespace qk { namespace js {
 				debuggerBreakNextStatement(worker);
 			});
 
-			WrapNativeObject::binding(exports, worker);
-			WrapHash5381Object::binding(exports, worker);
+			MixNativeObject::binding(exports, worker);
+			MixHash5381Object::binding(exports, worker);
 		}
 	};
 

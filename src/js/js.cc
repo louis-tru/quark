@@ -335,9 +335,9 @@ namespace qk {
 
 	JSValue* Worker::newValue(Object* val) {
 		if (val) {
-			auto wrap = WrapObject::wrap(val);
-			if (wrap)
-				return wrap->that();
+			auto mix = MixObject::mix(val);
+			if (mix)
+				return mix->handle();
 		}
 		return newNull();
 	}
@@ -533,6 +533,7 @@ namespace qk {
 			auto loop = RunLoop::current();
 
 			{ // run main
+				Js_Handle_Scope();
 				auto _pkg = worker->bindingModule("_pkg");
 				Qk_Assert(_pkg && _pkg->isObject(), "Can't start worker");
 				auto r = _pkg->as<JSObject>()->

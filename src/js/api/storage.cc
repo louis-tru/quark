@@ -33,7 +33,7 @@
 
 namespace qk { namespace js {
 
-	struct WrapStorage {
+	struct MixStorage {
 		static void binding(JSObject* exports, Worker* worker) {
 
 			Js_Method(get, {
@@ -74,5 +74,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Module(_storage, WrapStorage);
+	Js_Module(_storage, MixStorage);
 } }

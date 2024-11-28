@@ -99,7 +99,7 @@ namespace qk { namespace js {
 		auto func = worker->classses()->getFunction(Js_Typeid(FileStat));
 		Qk_Assert( func );
 		auto r = func->newInstance(worker);
-		*WrapObject::wrap<FileStat>(r)->self() = stat;
+		*MixObject::mix<FileStat>(r)->self() = stat;
 		return r;
 	}
 
@@ -116,7 +116,7 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const TouchPoint& val) {
 		auto rv = worker->newObject();
-		auto view = WrapObject::wrap(val.view);
+		auto view = MixObject::mix(val.view);
 		rv->set(worker,worker->strs()->id(), worker->newValue(val.id));
 		rv->set(worker,worker->strs()->startX(), worker->newValue(val.start_x));
 		rv->set(worker,worker->strs()->startY(), worker->newValue(val.start_y));
@@ -124,7 +124,7 @@ namespace qk { namespace js {
 		rv->set(worker,worker->strs()->y(), worker->newValue(val.y));
 		rv->set(worker,worker->strs()->force(), worker->newValue(val.force));
 		rv->set(worker,worker->strs()->clickIn(), worker->newBool(val.click_in));
-		rv->set(worker,worker->strs()->view(), view->that());
+		rv->set(worker,worker->strs()->view(), view->handle());
 		return rv;
 	}
 
@@ -823,13 +823,13 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, BoxFilterPtr& out, cChar* desc) {
 		js_parse(BoxFilterPtr, {
-			out = WrapObject::wrap<BoxFilter>(obj)->self();
+			out = MixObject::mix<BoxFilter>(obj)->self();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, BoxShadowPtr& out, cChar* desc) {
 		js_parse(BoxShadowPtr, {
-			out = WrapObject::wrap<BoxShadow>(obj)->self();
+			out = MixObject::mix<BoxShadow>(obj)->self();
 		});
 	}
 
@@ -1031,7 +1031,7 @@ namespace qk { namespace js {
 							native_js::INL_native_js_code__types_,
 							native_js::INL_native_js_code__types_count_).buffer(), "_types.js", exports)) {
 					if ( try_catch.hasCaught() ) {
-						worker->reportException(&try_catch);
+						try_catch.print();
 					}
 					Qk_Fatal("Could not initialize native _types.js");
 				}

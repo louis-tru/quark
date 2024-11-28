@@ -2,6 +2,7 @@
 import { LOG, Mv } from './tool'
 import * as fs from 'quark/fs'
 import path from 'quark/path';
+import util from 'quark/util'
 
 function stat(path: string) {
 	return fs.statSync(path);
@@ -78,4 +79,6 @@ export default async function(_: any) {
 	Mv(fs, 'isFileSync', [FILE], true);
 	await Mv(fs, 'isDirectory', [A], true);
 	Mv(fs, 'isDirectorySync', [A], true);
+
+	util.gc();
 }

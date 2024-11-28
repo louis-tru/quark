@@ -34,7 +34,7 @@
 
 namespace qk { namespace js {
 
-	struct WrapScreen: WrapObject {
+	struct MixScreen: MixObject {
 		typedef Screen Type;
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
@@ -110,6 +110,6 @@ namespace qk { namespace js {
 	};
 
 	void binding_screen(JSObject* exports, Worker* worker) {
-		WrapScreen::binding(exports, worker);
+		MixScreen::binding(exports, worker);
 	}
 } }

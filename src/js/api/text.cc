@@ -66,7 +66,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	class WrapText: public WrapViewObject {
+	class MixText: public MixViewObject {
 	public:
 		virtual TextOptions* asTextOptions() {
 			return self<Text>();
@@ -76,12 +76,12 @@ namespace qk { namespace js {
 				Js_NewView(Text);
 			});
 			inheritTextOptions(cls, worker);
-			Js_WrapObject_Accessor(Text, String, value, value);
+			Js_MixObject_Accessor(Text, String, value, value);
 			cls->exports("Text", exports);
 		}
 	};
 
-	class WrapButton: public WrapViewObject {
+	class MixButton: public MixViewObject {
 	public:
 		virtual TextOptions* asTextOptions() {
 			return self<Button>();
@@ -102,7 +102,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapLabel: public WrapViewObject {
+	class MixLabel: public MixViewObject {
 	public:
 		virtual TextOptions* asTextOptions() {
 			return self<Label>();
@@ -112,12 +112,12 @@ namespace qk { namespace js {
 				Js_NewView(Label);
 			});
 			inheritTextOptions(cls, worker);
-			Js_WrapObject_Accessor(Label, String, value, value);
+			Js_MixObject_Accessor(Label, String, value, value);
 			cls->exports("Label", exports);
 		}
 	};
 
-	class WrapInput: public WrapViewObject {
+	class MixInput: public MixViewObject {
 	public:
 		virtual TextOptions* asTextOptions() {
 			return self<Input>();
@@ -128,13 +128,13 @@ namespace qk { namespace js {
 			});
 			inheritTextOptions(cls, worker);
 
-			Js_WrapObject_Accessor(Input, bool, security, security);
-			Js_WrapObject_Accessor(Input, bool, readonly, readonly);
-			Js_WrapObject_Accessor(Input, KeyboardType, type, type);
-			Js_WrapObject_Accessor(Input, KeyboardReturnType, return_type, returnType);
-			Js_WrapObject_Accessor(Input, Color, placeholder_color, placeholderColor);
-			Js_WrapObject_Accessor(Input, Color, cursor_color, cursorColor);
-			Js_WrapObject_Accessor(Input, uint32_t, max_length, maxLength);
+			Js_MixObject_Accessor(Input, bool, security, security);
+			Js_MixObject_Accessor(Input, bool, readonly, readonly);
+			Js_MixObject_Accessor(Input, KeyboardType, type, type);
+			Js_MixObject_Accessor(Input, KeyboardReturnType, return_type, returnType);
+			Js_MixObject_Accessor(Input, Color, placeholder_color, placeholderColor);
+			Js_MixObject_Accessor(Input, Color, cursor_color, cursorColor);
+			Js_MixObject_Accessor(Input, uint32_t, max_length, maxLength);
 
 			Js_Class_Accessor(value, {
 				Js_Self(Input);
@@ -161,7 +161,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapTextarea: public WrapViewObject {
+	class MixTextarea: public MixViewObject {
 	public:
 		virtual TextOptions* asTextOptions() {
 			return self<Textarea>();
@@ -179,7 +179,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapDefaultTextOptions: public WrapUIObject {
+	class MixDefaultTextOptions: public MixUIObject {
 	public:
 		virtual TextOptions* asTextOptions() {
 			return self<DefaultTextOptions>();
@@ -193,11 +193,11 @@ namespace qk { namespace js {
 	};
 
 	void binding_text(JSObject* exports, Worker* worker) {
-		WrapText::binding(exports, worker);
-		WrapButton::binding(exports, worker);
-		WrapLabel::binding(exports, worker);
-		WrapInput::binding(exports, worker);
-		WrapTextarea::binding(exports, worker);
-		WrapDefaultTextOptions::binding(exports, worker);
+		MixText::binding(exports, worker);
+		MixButton::binding(exports, worker);
+		MixLabel::binding(exports, worker);
+		MixInput::binding(exports, worker);
+		MixTextarea::binding(exports, worker);
+		MixDefaultTextOptions::binding(exports, worker);
 	}
 } }

@@ -36,36 +36,36 @@
 #include "../../ui/view/view.h"
 #include "../../media/player.h"
 
-#define Js_WrapObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
-	Js_Class_Accessor(Name, {\
-		Self_Fun(Obj); \
-		args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
-	}, { \
-		Js_Parse_Type(T, val, "@prop Obj."#Name" = %s"); \
-		Self_Fun(Obj); \
-		self->set_##Prop(out); \
-	})
-
-#define Js_WrapObject_Accessor(Obj, T, Prop, Name) \
-	Js_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
-
-#define Js_UISelf(Obj) \
-	auto self = qk::js::WrapObject::wrapObject<WrapUIObject>(args.This())->as##Obj()
-#define Js_UIObject_Accessor(Obj, T, Prop, Name) \
-	Js_WrapObject_Accessor_Base(Obj, T, Prop, Name, Js_UISelf)
-
-#define Js_IsView(v) isView(worker,v)
-#define Js_IsWindow(v) isWindow(worker,v)
-#define Js_NewView(Type, ...) \
-	auto win = checkNewView(args); \
-	if (win) New<Wrap##Type>(args, View::Make<Type>(win))
-
 namespace qk { namespace js {
+
+	#define Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
+		Js_Class_Accessor(Name, {\
+			Self_Fun(Obj); \
+			args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
+		}, { \
+			Js_Parse_Type(T, val, "@prop Obj."#Name" = %s"); \
+			Self_Fun(Obj); \
+			self->set_##Prop(out); \
+		})
+
+	#define Js_MixObject_Accessor(Obj, T, Prop, Name) \
+		Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
+
+	#define Js_UISelf(Obj) \
+		auto self = qk::js::MixObject::mixObject<MixUIObject>(args.This())->as##Obj()
+	#define Js_UIObject_Accessor(Obj, T, Prop, Name) \
+		Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Js_UISelf)
+
+	#define Js_IsView(v) isView(worker,v)
+	#define Js_IsWindow(v) isWindow(worker,v)
+	#define Js_NewView(Type, ...) \
+		auto win = checkNewView(args); \
+		if (win) New<Mix##Type>(args, View::Make<Type>(win))
 
 	extern uint64_t kView_Typeid;
 	extern uint64_t kWindow_Typeid;
 
-	class Qk_Export WrapUIObject: public WrapObject {
+	class Qk_Export MixUIObject: public MixObject {
 	public:
 		virtual TextOptions* asTextOptions();
 		virtual ScrollBase*  asScrollBase();
@@ -75,7 +75,7 @@ namespace qk { namespace js {
 		virtual bool removeEventListener(cString& name, int id) override;
 	};
 
-	class Qk_Export WrapViewObject: public WrapUIObject {
+	class Qk_Export MixViewObject: public MixUIObject {
 	public:
 		virtual void init() override;
 		virtual NotificationBasic* asNotificationBasic() override;

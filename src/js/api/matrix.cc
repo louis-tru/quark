@@ -34,32 +34,32 @@
 
 namespace qk { namespace js {
 
-	class WrapMatrix: public WrapViewObject {
+	class MixMatrix: public MixViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Matrix, Box, {
 				Js_NewView(Matrix);
 			});
 
-			Js_WrapObject_Accessor(Matrix, Vec2, translate, translate);
-			Js_WrapObject_Accessor(Matrix, Vec2, scale, scale);
-			Js_WrapObject_Accessor(Matrix, Vec2, skew, skew);
-			Js_WrapObject_Accessor(Matrix, float, rotate_z, rotateZ);
-			Js_WrapObject_Accessor(Matrix, BoxOrigin, origin_x, originX);
-			Js_WrapObject_Accessor(Matrix, BoxOrigin, origin_y, originY);
+			Js_MixObject_Accessor(Matrix, Vec2, translate, translate);
+			Js_MixObject_Accessor(Matrix, Vec2, scale, scale);
+			Js_MixObject_Accessor(Matrix, Vec2, skew, skew);
+			Js_MixObject_Accessor(Matrix, float, rotate_z, rotateZ);
+			Js_MixObject_Accessor(Matrix, BoxOrigin, origin_x, originX);
+			Js_MixObject_Accessor(Matrix, BoxOrigin, origin_y, originY);
 
 			Js_Class_Accessor_Get(originValue, {
 				Js_Self(Matrix);
 				Js_Return( worker->types()->jsvalue(self->origin_value()) );
 			});
 
-			Js_WrapObject_Accessor(Matrix, float, x, x);
-			Js_WrapObject_Accessor(Matrix, float, y, y);
-			Js_WrapObject_Accessor(Matrix, float, scale_x, scaleX);
-			Js_WrapObject_Accessor(Matrix, float, scale_y, scaleY);
-			Js_WrapObject_Accessor(Matrix, float, skew_x, skewX);
-			Js_WrapObject_Accessor(Matrix, float, skew_y, skewY);
-			Js_WrapObject_Accessor(Matrix, ArrayOrigin, origin, origin);
+			Js_MixObject_Accessor(Matrix, float, x, x);
+			Js_MixObject_Accessor(Matrix, float, y, y);
+			Js_MixObject_Accessor(Matrix, float, scale_x, scaleX);
+			Js_MixObject_Accessor(Matrix, float, scale_y, scaleY);
+			Js_MixObject_Accessor(Matrix, float, skew_x, skewX);
+			Js_MixObject_Accessor(Matrix, float, skew_y, skewY);
+			Js_MixObject_Accessor(Matrix, ArrayOrigin, origin, origin);
 
 			Js_Class_Accessor_Get(mat, {
 				Js_Self(Matrix);
@@ -70,7 +70,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class WrapRoot: public WrapViewObject {
+	class MixRoot: public MixViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Root, Matrix, {
@@ -82,7 +82,7 @@ namespace qk { namespace js {
 	};
 
 	void binding_transform(JSObject* exports, Worker* worker) {
-		WrapMatrix::binding(exports, worker);
-		WrapRoot::binding(exports, worker);
+		MixMatrix::binding(exports, worker);
+		MixRoot::binding(exports, worker);
 	}
 } }

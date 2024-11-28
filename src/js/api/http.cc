@@ -43,11 +43,11 @@ namespace qk { namespace js {
 	static cString const_disable_cache("disableCache");
 	static cString const_disable_cookie("disableCookie");
 
-	struct WrapHttpClientRequest: WrapObject {
+	struct MixHttpClientRequest: MixObject {
 		typedef HttpClientRequest Type;
 
 		struct Delegate: Object, HttpClientRequest::Delegate {
-			WrapHttpClientRequest* _host;
+			MixHttpClientRequest* _host;
 			String _error;
 			String _write;
 			String _header;
@@ -87,7 +87,7 @@ namespace qk { namespace js {
 			}
 			virtual void trigger_http_readystate_change(HttpClientRequest* req) {
 				if (req->ready_state() == HTTP_READY_STATE_READY) {
-					_host->handle().clearWeak(); // v8 handle keep active
+					_host->self()->retain(); // TODO: js handle keep active
 				}
 				if ( !_readystate_change.isEmpty() ) {
 					HandleScope scope(worker());
@@ -106,7 +106,7 @@ namespace qk { namespace js {
 					_host->call( worker()->newStringOneByte(_end) );
 				}
 				if (req->ready_state() > HTTP_READY_STATE_SENDING) {
-					req->release(); // v8 handle set weak object
+					req->release(); // TODO: js handle set weak object
 				}
 			}
 			virtual void trigger_http_abort(HttpClientRequest* req) {
@@ -184,7 +184,7 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(HttpClientRequest, 0, {
-				New<WrapHttpClientRequest>(args, new HttpClientRequest());
+				New<MixHttpClientRequest>(args, new HttpClientRequest());
 			});
 
 			Js_Class_Method(setMethod, {
@@ -589,7 +589,7 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->bindingModule("_buffer");
-			WrapHttpClientRequest::binding(exports, worker);
+			MixHttpClientRequest::binding(exports, worker);
 
 			Js_Method(request, {
 				request(args,

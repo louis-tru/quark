@@ -32,46 +32,34 @@
 
 namespace qk { namespace js {
 
-	static void clearWeak(WrapObject *wrap) {
-		wrap->handle().clearWeak();
-	}
-
-	static void setWeak(WrapObject *wrap) {
-		wrap->handle().setWeak(wrap, [](const WeakCallbackInfo& info) {
-			auto self = static_cast<WrapObject*>(info.getParameter());
-			self->~WrapObject(); // destroy wrap
-			self->self()->destroy(); // destroy object
-		});
-	}
-
 	void* JsHeapAllocator::alloc(size_t size) {
-		auto o = ::malloc(size + sizeof(WrapObject));
+		auto o = ::malloc(size + sizeof(MixObject));
 		Qk_Assert(o);
-		::memset(o, 0, sizeof(WrapObject));
-		return static_cast<WrapObject*>(o) + 1;
+		::memset(o, 0, sizeof(MixObject));
+		return static_cast<MixObject*>(o) + 1;
 	}
 
 	void JsHeapAllocator::free(void *ptr) {
-		auto o = static_cast<WrapObject*>(ptr) - 1;
+		auto o = static_cast<MixObject*>(ptr) - 1;
 		::free(o);
 	}
 
 	void JsHeapAllocator::strong(Object* obj) {
-		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-		if ( wrap->worker() ) {
-			clearWeak(wrap);
+		auto mix = reinterpret_cast<MixObject*>(obj) - 1;
+		if ( mix->worker() ) {
+			MixObject::clearWeak(mix);
 		}
 	}
 
 	void JsHeapAllocator::weak(Object* obj) {
-		auto wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-		auto worker = wrap->worker();
+		auto mix = reinterpret_cast<MixObject*>(obj) - 1;
+		auto worker = mix->worker();
 		if ( worker ) {
 			if (thread_self_id() == worker->thread_id()) {
-				setWeak(wrap);
+				MixObject::setWeak(mix);
 			} else if (worker->isValid()) {
 				worker->loop()->post(Cb((Cb::Static<>)[](auto e, auto obj) {
-					setWeak(reinterpret_cast<WrapObject*>(obj) - 1); // Must be called on the js worker thread
+					MixObject::setWeak(reinterpret_cast<MixObject*>(obj) - 1); // Must be called on the js worker thread
 				}, obj));
 			} else {
 				obj->destroy();
@@ -83,18 +71,18 @@ namespace qk { namespace js {
 
 	// ------------------------- W r a p . O b j e c t -------------------------
 
-	bool WrapObject::addEventListener(cString& name, cString& func, int id) {
+	bool MixObject::addEventListener(cString& name, cString& func, int id) {
 		return false;
 	}
 
-	bool WrapObject::removeEventListener(cString& name, int id) {
+	bool MixObject::removeEventListener(cString& name, int id) {
 		return false;
 	}
 
-	void WrapObject::init() {
+	void MixObject::init() {
 	}
 
-	WrapObject::~WrapObject() {
+	MixObject::~MixObject() {
 	}
 
 	static bool isSetWeak(Object *obj) {
@@ -102,7 +90,7 @@ namespace qk { namespace js {
 			static_cast<Reference*>(obj)->refCount() <= 0;
 	}
 
-	WrapObject* WrapObject::newInit(FunctionArgs args) {
+	MixObject* MixObject::newInit(FunctionArgs args) {
 		Qk_Assert(_handle.isEmpty());
 		Qk_Assert(args.isConstructCall());
 		_handle.reset(args.worker(), args.This());
@@ -114,37 +102,39 @@ namespace qk { namespace js {
 		return this;
 	}
 
-	WrapObject* WrapObject::attach(Worker *worker, JSObject* This) {
+	MixObject* MixObject::attach(Worker *worker, JSObject* This) {
 		_handle.reset(worker, This);
 		Qk_Assert(This->setObjectPrivate(this));
 		init();
 		return this;
 	}
 
-	Object* WrapObject::externalData() {
-		auto data = getProp(worker()->strs()->_wrap_external_data());
-		if ( worker()->instanceOf(data, Js_Typeid(Object)) )
-			return wrap(data)->self();
+	Object* MixObject::externalData() {
+		auto worker = _handle.worker();
+		auto data = _handle->get(worker, worker->strs()->_mix_external_data());
+		if ( worker->instanceOf(data, Js_Typeid(Object)) )
+			return mix(data)->self();
 		return nullptr;
 	}
 
-	bool WrapObject::setExternalData(Object* data) {
+	bool MixObject::setExternalData(Object* data) {
 		Qk_Assert(data);
-		auto p = wrap(data, Js_Typeid(Object));
+		auto p = mix(data, Js_Typeid(Object));
 		if (p) {
 			if (isSetWeak(data)) {
 				setWeak(p);
 			}
+			auto worker = _handle.worker();
 			//Qk_DLog("%i", p->handle().isWeak());
-			Qk_Assert(setProp(worker()->strs()->_wrap_external_data(), p->that()));
+			Qk_Assert(_handle->set(worker, worker->strs()->_mix_external_data(), p->handle()));
 			//Qk_DLog("%i", p->handle().isWeak());
 			Qk_Assert(externalData());
 		}
 		return p;
 	}
 
-	JSValue* WrapObject::call(JSValue* method, int argc, JSValue* argv[]) {
-		auto recv = that();
+	JSValue* MixObject::call(JSValue* method, int argc, JSValue* argv[]) {
+		auto recv = *_handle;
 		auto func = recv->get(worker(), method);
 		if ( func->isFunction() ) {
 			return func->as<JSFunction>()->call(worker(), argc, argv, recv);
@@ -154,22 +144,22 @@ namespace qk { namespace js {
 		}
 	}
 
-	JSValue* WrapObject::call(cString& name, int argc, JSValue* argv[]) {
+	JSValue* MixObject::call(cString& name, int argc, JSValue* argv[]) {
 		return call(worker()->newStringOneByte(name), argc, argv);
 	}
 
-	WrapObject* WrapObject::unpack(JSValue* object) {
+	MixObject* MixObject::unpack(JSValue* object) {
 		Qk_Assert(object);
-		return static_cast<WrapObject*>(object->as<JSObject>()->getObjectPrivate());
+		return static_cast<MixObject*>(object->as<JSObject>()->getObjectPrivate());
 	}
 
-	WrapObject* WrapObject::pack(Object* object, uint64_t type_id) {
-		WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
-		if ( !wrap->worker() ) {
+	MixObject* MixObject::pack(Object* object, uint64_t type_id) {
+		MixObject* mix = reinterpret_cast<MixObject*>(object) - 1;
+		if ( !mix->worker() ) {
 			Js_Worker();
 			return worker->classses()->attachObject(type_id, object);
 		}
-		return wrap;
+		return mix;
 	}
 
 } }

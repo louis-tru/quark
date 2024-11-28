@@ -171,21 +171,21 @@ namespace qk { namespace js {
 		});
 	}
 
-	struct WrapAudioPlayer: WrapUIObject {
+	struct MixAudioPlayer: MixUIObject {
 		Player* asPlayer() override {
 			return self<AudioPlayer>();
 		}
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(AudioPlayer, 0, {
 				auto audio = AudioPlayer::Make();
-				New<WrapAudioPlayer>(args, *audio);
+				New<MixAudioPlayer>(args, *audio);
 			});
 			inheritPlayer(cls, worker);
 			cls->exports("AudioPlayer", exports);
 		}
 	};
 
-	struct WrapVideo: WrapViewObject {
+	struct MixVideo: MixViewObject {
 		Player* asPlayer() override {
 			return self<Video>();
 		}
@@ -199,7 +199,7 @@ namespace qk { namespace js {
 	};
 
 	void binding_player(JSObject* exports, Worker* worker) {
-		WrapAudioPlayer::binding(exports, worker);
-		WrapVideo::binding(exports, worker);
+		MixAudioPlayer::binding(exports, worker);
+		MixVideo::binding(exports, worker);
 	}
 } }

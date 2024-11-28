@@ -98,7 +98,7 @@ namespace qk { namespace js {
 		});
 	}
 
-	class WrapScroll: public WrapViewObject {
+	class MixScroll: public MixViewObject {
 	public:
 		virtual ScrollBase* asScrollBase() {
 			return self<Scroll>();
@@ -113,6 +113,6 @@ namespace qk { namespace js {
 	};
 
 	void binding_scroll(JSObject* exports, Worker* worker) {
-		WrapScroll::binding(exports, worker);
+		MixScroll::binding(exports, worker);
 	}
 } }

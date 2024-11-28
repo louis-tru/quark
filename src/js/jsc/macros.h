@@ -91,7 +91,7 @@
 	F(typeOf) \
 	F(valueOf) \
 	F(newRegExp) \
-	F(wrapFunctionScript) \
+	F(mixFunctionScript) \
 	F(mapAsArray) \
 	F(setAsArray) \
 	F(newPrivateValue) \

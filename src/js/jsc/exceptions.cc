@@ -431,7 +431,7 @@ namespace qk { namespace js {
 	}
 
 	void TryCatch::print() const {
-		//wrap->_worker->print_exception(wrap->_try.Message(), wrap->_try.Exception());
+		//mix->_worker->print_exception(mix->_try.Message(), mix->_try.Exception());
 		// ((JscTryCatch*)_val)->print_exception();
 	}
 

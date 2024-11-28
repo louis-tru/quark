@@ -34,7 +34,7 @@
 
 namespace qk { namespace js {
 
-	struct WrapFontPool: WrapObject {
+	struct MixFontPool: MixObject {
 
 		static void getFontFamilysFromPool(FunctionArgs args, FontPool* pool) {
 			Js_Worker(args);
@@ -112,5 +112,5 @@ namespace qk { namespace js {
 		}
 	};
 
-	Js_Module(_font, WrapFontPool);
+	Js_Module(_font, MixFontPool);
 } }

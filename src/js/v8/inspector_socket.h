@@ -76,7 +76,7 @@ namespace qk { namespace inspector {
 		bool received_close;
 	};
 
-	// HTTP Wrapper around a uv_tcp_t
+	// HTTP Mixper around a uv_tcp_t
 	class InspectorSocket {
 		Qk_HIDDEN_ALL_COPY(InspectorSocket);
 	public:

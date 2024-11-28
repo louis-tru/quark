@@ -5,6 +5,7 @@ import * as http from 'quark/http'
 import path from 'quark/path'
 import * as fs from 'quark/fs'
 import * as buffer from 'quark/buffer'
+import util from 'quark/util'
 
 const tools_test_url = 'http://192.168.2.169:1026'
 

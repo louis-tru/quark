@@ -38,7 +38,7 @@
 namespace qk { namespace js {
 	typedef Event<> NativeEvent;
 
-	struct WrapNativeEvent: WrapObject {
+	struct MixNativeEvent: MixObject {
 		typedef Event<> Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -68,7 +68,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapUIEvent: WrapObject {
+	struct MixUIEvent: MixObject {
 		typedef UIEvent Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -110,7 +110,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapActionEvent: WrapObject {
+	struct MixActionEvent: MixObject {
 		typedef ActionEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ActionEvent, UIEvent, {
@@ -136,7 +136,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapKeyEvent: WrapObject {
+	struct MixKeyEvent: MixObject {
 		typedef KeyEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(KeyEvent, UIEvent, {
@@ -186,7 +186,7 @@ namespace qk { namespace js {
 				Js_Self(Type);
 				View* view = nullptr;
 				if ( Js_IsView(val) ) {
-					view = wrap<View>(val)->self();
+					view = mix<View>(val)->self();
 				} else if ( !val->isNull() ) {
 					Js_Throw("Bad argument.");
 				}
@@ -196,7 +196,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapClickEvent: WrapObject {
+	struct MixClickEvent: MixObject {
 		typedef ClickEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ClickEvent, UIEvent, {
@@ -222,7 +222,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapHighlightedEvent: WrapObject {
+	struct MixHighlightedEvent: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(HighlightedEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
@@ -235,7 +235,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapMouseEvent: WrapObject {
+	struct MixMouseEvent: MixObject {
 		typedef MouseEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(MouseEvent, KeyEvent, {
@@ -253,20 +253,20 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapTouchEvent: WrapObject {
+	struct MixTouchEvent: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(TouchEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
 
 			Js_Class_Accessor_Get(changedTouches, {
-				Js_Wrap(TouchEvent);
+				Js_Mix(TouchEvent);
 
-				auto r = wrap->getProp(worker->strs()->_change_touches());
+				auto r = mix->handle()->get(worker, worker->strs()->_change_touches());
 				if (!r) return; // js error
 				if (!r->isArray()) {
-					r = worker->types()->jsvalue(wrap->self()->changed_touches());
-					wrap->setProp(worker->strs()->_change_touches(), r);
+					r = worker->types()->jsvalue(mix->self()->changed_touches());
+					mix->handle()->set(worker, worker->strs()->_change_touches(), r);
 				}
 				Js_Return(r);
 			});
@@ -275,21 +275,21 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct WrapEvent {
+	struct MixEvent {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->runNativeScript(WeakBuffer((Char*)
 				native_js::INL_native_js_code__event_,
 				native_js::INL_native_js_code__event_count_).buffer(), "_event.js", exports);
-			WrapNativeEvent::binding(exports, worker);
-			WrapUIEvent::binding(exports, worker);
-			WrapActionEvent::binding(exports, worker);
-			WrapKeyEvent::binding(exports, worker);
-			WrapClickEvent::binding(exports, worker);
-			WrapMouseEvent::binding(exports, worker);
-			WrapTouchEvent::binding(exports, worker);
-			WrapHighlightedEvent::binding(exports, worker);
+			MixNativeEvent::binding(exports, worker);
+			MixUIEvent::binding(exports, worker);
+			MixActionEvent::binding(exports, worker);
+			MixKeyEvent::binding(exports, worker);
+			MixClickEvent::binding(exports, worker);
+			MixMouseEvent::binding(exports, worker);
+			MixTouchEvent::binding(exports, worker);
+			MixHighlightedEvent::binding(exports, worker);
 		}
 	};
 
-	Js_Module(_event, WrapEvent)
+	Js_Module(_event, MixEvent)
 } }

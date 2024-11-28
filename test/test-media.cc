@@ -48,7 +48,7 @@ typedef MediaCodec::Frame Frame;
 
 class AudioPlayerTest: public Object, public MediaSource::Delegate {
 public:
-	Qk_DEFINE_PGET(int64_t, pts);
+	Qk_DEFINE_P_GET(int64_t, pts);
 
 	~AudioPlayerTest() override {
 		Qk_DLog("~AudioPlayerTest()");
@@ -174,7 +174,7 @@ private:
 
 class VideoPlayer: public Image, public MediaSource::Delegate, public PreRender::Task {
 public:
-	Qk_DEFINE_PGET(int64_t, pts);
+	Qk_DEFINE_P_GET(int64_t, pts);
 
 	~VideoPlayer() override {
 		Qk_DLog("~VideoPlayer()");

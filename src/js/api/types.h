@@ -51,7 +51,6 @@ namespace qk { namespace js {
 	#define Js_Throw_Types(value, msg, ...)\
 		worker->types()->throwError(t, msg, ##__VA_ARGS__)
 
-	typedef qk::Wrap Wrap;
 	typedef Window::Options WindowOptions;
 	typedef FillImage::Init FillImageInit;
 	typedef TouchEvent::TouchPoint TouchPoint;

@@ -78,16 +78,16 @@ namespace qk { namespace js {
 		_jsclass.set(alias, cls);
 	}
 
-	WrapObject* JsClasses::attachObject(uint64_t alias, Object* object) {
-		auto wrap = reinterpret_cast<WrapObject*>(object) - 1;
-		Qk_Assert( !wrap->worker() );
+	MixObject* JsClasses::attachObject(uint64_t alias, Object* object) {
+		auto mix = reinterpret_cast<MixObject*>(object) - 1;
+		Qk_Assert( !mix->worker() );
 		JSClass *out;
 		if ( _jsclass.get(alias, out) ) {
 			_isAttachFlag = true;
 			auto jsobj = out->getFunction()->newInstance(_worker);
 			_isAttachFlag = false;
-			out->_attachConstructor(wrap);
-			return wrap->attach(_worker, jsobj);
+			out->_attachConstructor(mix);
+			return mix->attach(_worker, jsobj);
 		}
 		return nullptr;
 	}

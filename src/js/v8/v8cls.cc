@@ -28,8 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <v8.h>
-#include "../js_.h"
+#include "./v8js.h"
 
 namespace qk { namespace js {
 
@@ -89,21 +88,19 @@ namespace qk { namespace js {
 	};
 
 	JSFunction* JSClass::getFunction() {
-		if (_func.isEmpty()) {
-			// Gen constructor
+		if (_func.isEmpty()) { // Gen constructor
 			auto v8cls = static_cast<V8JSClass*>(this);
 			auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
+			Qk_Assert_Eq(f.IsEmpty(), false);
 			if (v8cls->HasBaseFunction()) {
-				bool ok;
-				// function.__proto__ = base;
-				// f->SetPrototype(v8cls->BaseFunction());
-				// function.prototype.__proto__ = base.prototype;
 				auto str = Back(_worker->strs()->prototype());
 				auto base = v8cls->BaseFunction();
 				auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
 				auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-				ok = proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked();
-				Qk_Assert(ok);
+				// function.__proto__ = base;
+				// f->SetPrototype(v8cls->BaseFunction());
+				// function.prototype.__proto__ = base.prototype;
+				Qk_Assert_Eq(true, proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked());
 			}
 			auto func = Cast<JSFunction>(f);
 			_func.reset(_worker, func);
@@ -120,7 +117,7 @@ namespace qk { namespace js {
 		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
 		v8::Local<Signature> sign = Signature::New(ISOLATE(_worker), ftemp);
 		v8::Local<v8::FunctionTemplate> t =
-			FunctionTemplate::New(ISOLATE(_worker), func2, v8::Local<v8::Value>(), sign);
+			v8::FunctionTemplate::New(ISOLATE(_worker), func2, v8::Local<v8::Value>(), sign);
 		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
 		t->SetClassName(fn_name);
 		ftemp->PrototypeTemplate()->Set(fn_name, t);
@@ -129,24 +126,24 @@ namespace qk { namespace js {
 
 	bool JSClass::setAccessor(cString& name,
 																	AccessorGetterCallback get, AccessorSetterCallback set) {
-		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
+		v8::Local<v8::FunctionTemplate> ftemp = reinterpret_cast<V8JSClass*>(this)->Template();
 		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
 		v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		v8::Local<AccessorSignature> sign = AccessorSignature::New(ISOLATE(_worker), temp);
+		v8::Local<AccessorSignature> sign = AccessorSignature::New(ISOLATE(_worker), ftemp);
 		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
+		ftemp->PrototypeTemplate()->SetAccessor(fn_name, get2, set2,
 																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, sign);
 		return true;
 	}
 
 	/*
 	bool JSClass::setLazyDataProperty(cString& name, AccessorGetterCallback get) {
-		v8::Local<v8::FunctionTemplate> temp = reinterpret_cast<V8JSClass*>(this)->Template();
+		v8::Local<v8::FunctionTemplate> ftemp = reinterpret_cast<V8JSClass*>(this)->Template();
 		v8::AccessorGetterCallback get2 = reinterpret_cast<v8::AccessorGetterCallback>(get);
 		// v8::AccessorSetterCallback set2 = reinterpret_cast<v8::AccessorSetterCallback>(set);
-		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), temp);
+		v8::Local<AccessorSignature> s = AccessorSignature::New(ISOLATE(_worker), ftemp);
 		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
-		temp->PrototypeTemplate()->SetAccessor(fn_name, get2, nullptr,
+		ftemp->PrototypeTemplate()->SetAccessor(fn_name, get2, nullptr,
 																					v8::Local<v8::Value>(), v8::DEFAULT, v8::None, s);
 		return true;
 	}*/
@@ -160,15 +157,19 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	bool JSClass::setStaticMethod(cString& name, FunctionCallback func) {
-		// TODO ...
-		return false;
-	}
-
 	template<>
 	bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value) {
 		reinterpret_cast<V8JSClass*>(this)->Template()->
 						PrototypeTemplate()->Set(Back<v8::String>(_worker->newStringOneByte(name)), Back(value));
+		return true;
+	}
+
+	bool JSClass::setStaticMethod(cString& name, FunctionCallback func) {
+		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
+		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(ISOLATE(_worker), func2);
+		v8::Local<v8::String> fn_name = Back<v8::String>(_worker->newStringOneByte(name));
+		t->SetClassName(fn_name);
+		reinterpret_cast<V8JSClass*>(this)->Template()->Set(fn_name, t);
 		return true;
 	}
 
@@ -202,8 +203,10 @@ namespace qk { namespace js {
 	}
 
 	JSFunction* Worker::newFunction(cString& name, FunctionCallback func) {
-		// TODO ...
-		return nullptr;
+		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
+		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(ISOLATE(this), func2);
+		t->SetClassName(Back<v8::String>(newStringOneByte(name)));
+		return Cast<JSFunction>(t->GetFunction(CONTEXT(this)));
 	}
 
 }}

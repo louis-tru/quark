@@ -28,291 +28,203 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <v8.h>
-#include <libplatform/libplatform.h>
-#include "../js_.h"
-#include "../../errno.h"
-#include "../../util/codec.h"
-#include "./inspector_agent.h"
+#include "./v8js.h"
 
 namespace qk { namespace js {
-	using namespace v8;
-
-	#ifndef ISOLATE_INL_WORKER_DATA_INDEX
-	# define ISOLATE_INL_WORKER_DATA_INDEX (0)
-	#endif
-
-	#define WORKER(...) WorkerImpl::worker( __VA_ARGS__ )
-	#define ISOLATE(...) WorkerImpl::worker( __VA_ARGS__ )->_isolate
-	#define CONTEXT(...) WorkerImpl::worker( __VA_ARGS__ )->_context
-
-	typedef const v8::FunctionCallbackInfo<Value>& V8FunctionCall;
-	typedef const v8::PropertyCallbackInfo<Value>& V8PropertyCall;
-	typedef const v8::PropertyCallbackInfo<void>& V8PropertySetCall;
-
-	template<class T = JSValue, class S>
-	inline T* Cast(v8::Local<S> o) { return reinterpret_cast<T*>(*o); }
-
-	template<class T = JSValue, class S>
-	inline T* Cast(v8::MaybeLocal<S> o) { return *reinterpret_cast<T**>(&o); }
-
-	template<class T = v8::Value>
-	inline v8::Local<T> Back(JSValue* o) { return *reinterpret_cast<v8::Local<T>*>(&o); }
-
-	class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringResource {
-		String _str;
-	public:
-		V8ExternalOneByteStringResource(cString& value): _str(value) {}
-		virtual cChar* data() const { return _str.c_str(); }
-		virtual size_t length() const { return _str.length(); }
-	};
-
-	class V8ExternalStringResource: public v8::String::ExternalStringResource {
-		String2 _str;
-	public:
-		V8ExternalStringResource(const String2& value): _str(value) {}
-		virtual const uint16_t* data() const { return _str.c_str(); }
-		virtual size_t length() const { return _str.length(); }
-	};
 
 	// -------------------------- W o r k e r . I m p l --------------------------
 
-	class WorkerImpl: public Worker {
-	public:
-		struct HandleScopeWrap {
-			v8::HandleScope value;
-			inline HandleScopeWrap(Isolate* isolate): value(isolate) {}
-		};
-		Isolate*  _isolate;
-		Locker*   _locker;
-		HandleScopeWrap* _handle_scope;
-		v8::Local<v8::Context> _context;
-		inspector::Agent* _inspector;
-		Isolate::CreateParams _params;
-
-		WorkerImpl(): _locker(nullptr), _handle_scope(nullptr), _inspector(nullptr)
-		{
-			_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-			_isolate = Isolate::New(_params);
-			_locker = new Locker(_isolate);
-			_isolate->Enter();
-			_handle_scope = new HandleScopeWrap(_isolate);
-			_context = v8::Context::New(_isolate);
-			_context->Enter();
-			_isolate->SetFatalErrorHandler(OnFatalError);
-			_isolate->AddMessageListener(MessageCallback);
-			_isolate->SetPromiseRejectCallback(PromiseRejectCallback);
-			_isolate->SetData(ISOLATE_INL_WORKER_DATA_INDEX, this);
-			_global.reset(this, Cast<JSObject>(_context->Global()) );
-		}
-
-		void release() override {
-			delete _inspector; _inspector = nullptr;
-			Worker::release();
-			_context->Exit();
-			_context.Clear();
-			delete _handle_scope; _handle_scope = nullptr;
-			_isolate->Exit();
-			delete _locker; _locker = nullptr;
-			_isolate->Dispose(); _isolate = nullptr;
-			Object::release();
-			delete _params.array_buffer_allocator;
-		}
-
-		inline static WorkerImpl* worker() {
-			return static_cast<WorkerImpl*>(Worker::current());
-		}
-
-		template<class Args>
-		inline static WorkerImpl* worker(Args args) {
-			return static_cast<WorkerImpl*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
-		}
-
-		inline v8::Local<v8::String> newFromOneByte(cChar* str) {
-			return v8::String::NewFromOneByte(_isolate, (uint8_t*)str, NewStringType::kNormal).ToLocalChecked();
-		}
-
-		inline v8::Local<v8::String> newFromUtf8(cChar* str) {
-			return v8::String::NewFromUtf8(_isolate, str);
-		}
-
-		template <class T, class M = NonCopyablePersistentTraits<T>>
-		inline v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
-			return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
-		}
-
-		void runDebugger(const DebugOptions &opts) {
-			if (!_inspector)
-				_inspector = new inspector::Agent(this);
-			_inspector->Start(opts);
-		}
-
-		void stopDebugger() {
-			if (_inspector)
-				_inspector->Stop();
-		}
-
-		void debuggerBreakNextStatement() {
-			if (_inspector) {
-				_inspector->PauseOnNextJavascriptStatement("Break on start");
-			}
-		}
-
-		v8::MaybeLocal<v8::Value> runScript(v8::Local<v8::String> source_string,
-																		v8::Local<v8::String> name, v8::Local<v8::Object> sandbox) 
-		{
-			v8::ScriptCompiler::Source source(source_string, ScriptOrigin(name));
-			v8::MaybeLocal<v8::Value> result;
-
-			if ( sandbox.IsEmpty() ) { // use default sandbox
-				v8::Local<v8::Script> script;
-				if ( v8::ScriptCompiler::Compile(_context, &source).ToLocal(&script) ) {
-					result = script->Run(_context);
-				}
-			} else {
-				v8::Local<v8::Function> func;
-				if (v8::ScriptCompiler::
-						CompileFunctionInContext(_context, &source, 0, NULL, 1, &sandbox)
-						.ToLocal(&func)
-						) {
-					result = func->Call(_context, v8::Undefined(_isolate), 0, NULL);
-				}
-			}
-			return result;
-		}
-
-		JSValue* runNativeScript(cBuffer& source, cString& name, JSObject* exports) {
-			if (!exports) exports = newObject();
-
-			v8::EscapableHandleScope scope(_isolate);
-			v8::Local<v8::Value> _name = Back(newValue(name));
-			v8::Local<v8::Value> _souece = Back(newString(source));
-			v8::MaybeLocal<v8::Value> rv;
-
-			rv = runScript(_souece.As<v8::String>(),
-											_name.As<v8::String>(), v8::Local<v8::Object>());
-			if ( !rv.IsEmpty() ) {
-				auto mod = newObject();
-				mod->set(this, strs()->exports(), exports);
-				v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
-				v8::Local<v8::Value> args[] = { Back(exports), Back(mod), Back(global()) };
-				// '(function (exports, require, module, __filename, __dirname) {', '\n})'
-				rv = func->Call(_context, v8::Undefined(_isolate), 3, args);
-				if (!rv.IsEmpty()) {
-					auto rv = mod->get(this, strs()->exports());
-					Qk_Assert(rv->isObject());
-					return Cast(scope.Escape(Back(rv)));
-				}
-			}
-			return nullptr;
-		}
-
-		// Extracts a C string from a V8 Utf8Value.
-		static cChar* to_cstring(const v8::String::Utf8Value& value) {
-			return *value ? *value : "<string conversion failed>";
-		}
-
-		String parse_exception_message(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			v8::HandleScope handle_scope(_isolate);
-			v8::String::Utf8Value exception(_isolate, error);
-			cChar* exception_string = to_cstring(exception);
-			if (message.IsEmpty()) {
-				// V8 didn't provide any extra information about this error; just
-				return exception_string;
-			} else {
-				Array<String> out;
-				// Print (filename):(line number): (message).
-				v8::String::Utf8Value filename(_isolate, message->GetScriptOrigin().ResourceName());
-				v8::Local<v8::Context> context(_isolate->GetCurrentContext());
-				cChar* filename_string = to_cstring(filename);
-				int linenum = message->GetLineNumber(context).FromJust();
-				out.push(String::format("%s:%d: %s\n", filename_string, linenum, exception_string));
-				// Print line of source code.
-				v8::String::Utf8Value sourceline(_isolate, message->GetSourceLine(context).ToLocalChecked());
-				cChar* sourceline_string = to_cstring(sourceline);
-				out.push(sourceline_string); out.push('\n');
-				int start = message->GetStartColumn(context).FromJust();
-				for (int i = 0; i < start; i++) {
-					if (sourceline_string[i] == 9) { // \t
-						out.push( '\t' );
-					} else {
-						out.push( ' ' );
-					}
-				}
-				int end = message->GetEndColumn(context).FromJust();
-				for (int i = start; i < end; i++) {
-					out.push( '^' );
-				}
-				out.push( '\n' );
-				
-				if (error->IsObject()) {
-					v8::Local<v8::Value> stack_trace_string;
-					
-					if (error.As<v8::Object>()->Get(_context, newFromOneByte("stack"))
-							.ToLocal(&stack_trace_string) &&
-							stack_trace_string->IsString() &&
-							v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
-						v8::String::Utf8Value stack_trace(_isolate, stack_trace_string);
-						cChar* stack_trace_string = to_cstring(stack_trace);
-						out.push( stack_trace_string ); out.push('\n');
-					}
-				}
-				return out.join(String());
-			}
-		}
-
-		void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			Qk_ELog("%s", *parse_exception_message(message, error) );
-		}
-
-		static void OnFatalError(cChar* location, cChar* message) {
-			if (location) {
-				Qk_Fatal("FATAL ERROR: %s %s\n", location, message);
-			} else {
-				Qk_Fatal("FATAL ERROR: %s\n", message);
-			}
-		}
-
-		static void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			worker()->uncaught_exception(message, error);
-		}
-
-		static void PromiseRejectCallback(PromiseRejectMessage message) {
-			if (message.GetEvent() == v8::kPromiseRejectWithNoHandler) {
-				worker()->unhandled_rejection(message);
-			}
-		}
-
-		void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-			// print_exception(message, error);
-			if ( !triggerUncaughtException(this, Cast(error)) ) {
-				print_exception(message, error);
-				qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
-			}
-		}
-
-		void unhandled_rejection(PromiseRejectMessage& message) {
-			v8::Local<v8::Promise> promise = message.GetPromise();
-			v8::Local<v8::Value> reason = message.GetValue();
-			if (reason.IsEmpty())
-				reason = v8::Undefined(_isolate);
-			if ( !triggerUnhandledRejection(this, Cast(reason), Cast(promise)) ) {
-				v8::HandleScope scope(_isolate);
-				v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
-				print_exception(message, reason);
-				qk::thread_exit(ERR_UNHANDLED_REJECTION);
-			}
-		}
-	};
-
-	template<>
-	inline WorkerImpl* WorkerImpl::worker<Worker*>(Worker* worker) {
-		return static_cast<WorkerImpl*>(worker);
+	// Extracts a C string from a V8 Utf8Value.
+	static cChar* ToCstring(const v8::String::Utf8Value& value) {
+		return *value ? *value : "<string conversion failed>";
 	}
 
-	template<>
-	inline WorkerImpl* WorkerImpl::worker<Isolate*>(Isolate* isolate) {
-		return static_cast<WorkerImpl*>( isolate->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
+	static void OnFatalError(cChar* location, cChar* message) {
+		if (location) {
+			Qk_Fatal("FATAL ERROR: %s %s\n", location, message);
+		} else {
+			Qk_Fatal("FATAL ERROR: %s\n", message);
+		}
+	}
+
+	static void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		WORKER()->uncaught_exception(message, error);
+	}
+
+	static void PromiseRejectCallback(PromiseRejectMessage message) {
+		if (message.GetEvent() == v8::kPromiseRejectWithNoHandler) {
+			WORKER()->unhandled_rejection(message);
+		}
+	}
+
+	WorkerImpl::WorkerImpl(): _locker(nullptr), _handle_scope(nullptr), _inspector(nullptr)
+	{
+		_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+		_isolate = Isolate::New(_params);
+		_locker = new Locker(_isolate);
+		_isolate->Enter();
+		_handle_scope = new HandleScopeMix(_isolate);
+		_context = v8::Context::New(_isolate);
+		_context->Enter();
+		_isolate->SetFatalErrorHandler(OnFatalError);
+		_isolate->AddMessageListener(MessageCallback);
+		_isolate->SetPromiseRejectCallback(PromiseRejectCallback);
+		_isolate->SetData(ISOLATE_INL_WORKER_DATA_INDEX, this);
+		_global.reset(this, Cast<JSObject>(_context->Global()) );
+	}
+
+	void WorkerImpl::release() {
+		delete _inspector; _inspector = nullptr;
+		Worker::release();
+		_context->Exit();
+		_context.Clear();
+		delete _handle_scope; _handle_scope = nullptr;
+		_isolate->Exit();
+		delete _locker; _locker = nullptr;
+		_isolate->Dispose(); _isolate = nullptr;
+		Object::release();
+		delete _params.array_buffer_allocator;
+	}
+
+	void WorkerImpl::runDebugger(const DebugOptions &opts) {
+		if (!_inspector)
+			_inspector = new inspector::Agent(this);
+		_inspector->Start(opts);
+	}
+
+	void WorkerImpl::stopDebugger() {
+		if (_inspector)
+			_inspector->Stop();
+	}
+
+	void WorkerImpl::debuggerBreakNextStatement() {
+		if (_inspector) {
+			_inspector->PauseOnNextJavascriptStatement("Break on start");
+		}
+	}
+
+	v8::MaybeLocal<v8::Value> WorkerImpl::runScript(
+		v8::Local<v8::String> source_string,
+		v8::Local<v8::String> name, v8::Local<v8::Object> sandbox)
+	{
+		v8::ScriptCompiler::Source source(source_string, ScriptOrigin(name));
+		v8::MaybeLocal<v8::Value> result;
+
+		if ( sandbox.IsEmpty() ) { // use default sandbox
+			v8::Local<v8::Script> script;
+			if ( v8::ScriptCompiler::Compile(_context, &source).ToLocal(&script) ) {
+				result = script->Run(_context);
+			}
+		} else {
+			v8::Local<v8::Function> func;
+			if (v8::ScriptCompiler::
+					CompileFunctionInContext(_context, &source, 0, NULL, 1, &sandbox)
+					.ToLocal(&func)
+					) {
+				result = func->Call(_context, v8::Undefined(_isolate), 0, NULL);
+			}
+		}
+		return result;
+	}
+
+	JSValue* WorkerImpl::runNativeScript(cBuffer& source, cString& name, JSObject* exports) {
+		if (!exports) exports = newObject();
+
+		v8::EscapableHandleScope scope(_isolate);
+		v8::Local<v8::Value> _name = Back(newValue(name));
+		v8::Local<v8::Value> _souece = Back(newString(source));
+		v8::MaybeLocal<v8::Value> rv;
+
+		rv = runScript(_souece.As<v8::String>(),
+										_name.As<v8::String>(), v8::Local<v8::Object>());
+		if ( !rv.IsEmpty() ) {
+			auto mod = newObject();
+			mod->set(this, strs()->exports(), exports);
+			v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
+			v8::Local<v8::Value> args[] = { Back(exports), Back(mod), Back(global()) };
+			// '(function (exports, require, module, __filename, __dirname) {', '\n})'
+			rv = func->Call(_context, v8::Undefined(_isolate), 3, args);
+			if (!rv.IsEmpty()) {
+				auto rv = mod->get(this, strs()->exports());
+				Qk_Assert(rv->isObject());
+				return Cast(scope.Escape(Back(rv)));
+			}
+		}
+		return nullptr;
+	}
+
+	String WorkerImpl::parse_exception_message(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		v8::HandleScope handle_scope(_isolate);
+		v8::String::Utf8Value exception(_isolate, error);
+		cChar* exception_string = ToCstring(exception);
+		if (message.IsEmpty()) {
+			// V8 didn't provide any extra information about this error; just
+			return exception_string;
+		} else {
+			Array<String> out;
+			// Print (filename):(line number): (message).
+			v8::String::Utf8Value filename(_isolate, message->GetScriptOrigin().ResourceName());
+			v8::Local<v8::Context> context(_isolate->GetCurrentContext());
+			cChar* filename_string = ToCstring(filename);
+			int linenum = message->GetLineNumber(context).FromJust();
+			out.push(String::format("%s:%d: %s\n", filename_string, linenum, exception_string));
+			// Print line of source code.
+			v8::String::Utf8Value sourceline(_isolate, message->GetSourceLine(context).ToLocalChecked());
+			cChar* sourceline_string = ToCstring(sourceline);
+			out.push(sourceline_string); out.push('\n');
+			int start = message->GetStartColumn(context).FromJust();
+			for (int i = 0; i < start; i++) {
+				if (sourceline_string[i] == 9) { // \t
+					out.push( '\t' );
+				} else {
+					out.push( ' ' );
+				}
+			}
+			int end = message->GetEndColumn(context).FromJust();
+			for (int i = start; i < end; i++) {
+				out.push( '^' );
+			}
+			out.push( '\n' );
+			
+			if (error->IsObject()) {
+				v8::Local<v8::Value> stack_trace_string;
+				
+				if (error.As<v8::Object>()->Get(_context, newFromOneByte("stack"))
+						.ToLocal(&stack_trace_string) &&
+						stack_trace_string->IsString() &&
+						v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
+					v8::String::Utf8Value stack_trace(_isolate, stack_trace_string);
+					cChar* stack_trace_string = ToCstring(stack_trace);
+					out.push( stack_trace_string ); out.push('\n');
+				}
+			}
+			return out.join(String());
+		}
+	}
+
+	void WorkerImpl::print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		Qk_ELog("%s", *parse_exception_message(message, error) );
+	}
+
+	void WorkerImpl::uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		//print_exception(message, error);
+		if ( !triggerUncaughtException(this, Cast(error)) ) {
+			print_exception( message, error);
+			qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
+		}
+	}
+
+	void WorkerImpl::unhandled_rejection(PromiseRejectMessage& message) {
+		v8::Local<v8::Promise> promise = message.GetPromise();
+		v8::Local<v8::Value> reason = message.GetValue();
+		if (reason.IsEmpty())
+			reason = v8::Undefined(_isolate);
+		if ( !triggerUnhandledRejection(this, Cast(reason), Cast(promise)) ) {
+			v8::HandleScope scope(_isolate);
+			v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
+			print_exception(message, reason);
+			qk::thread_exit(ERR_UNHANDLED_REJECTION);
+		}
 	}
 
 	Worker* Worker::current() {
@@ -362,37 +274,37 @@ namespace qk { namespace js {
 		return Cast(reinterpret_cast<V8EscapableHandleScope*>(this)->value.Escape(Back(val)));
 	}
 
-	struct TryCatchWrap {
-		TryCatchWrap(Worker *worker)
+	struct TryCatchMix {
+		TryCatchMix(Worker *worker)
 			: _try(ISOLATE(worker)), _worker(WORKER(worker)) {}
 		v8::TryCatch _try;
 		WorkerImpl *_worker;
 	};
 
 	TryCatch::TryCatch(Worker *worker) {
-		_val = new TryCatchWrap(worker);
+		_val = new TryCatchMix(worker);
 	}
 
 	TryCatch::~TryCatch() {
-		delete reinterpret_cast<TryCatchWrap*>(_val);
+		delete reinterpret_cast<TryCatchMix*>(_val);
 		_val = nullptr;
 	}
 
 	bool TryCatch::hasCaught() const {
-		return reinterpret_cast<TryCatchWrap*>(_val)->_try.HasCaught();
+		return reinterpret_cast<TryCatchMix*>(_val)->_try.HasCaught();
 	}
 
 	JSValue* TryCatch::exception() const {
-		return Cast(wrap->_try.Exception());
+		return Cast(reinterpret_cast<TryCatchMix*>(_val)->_try.Exception());
 	}
 
 	void TryCatch::reThrow() {
-		reinterpret_cast<TryCatchWrap*>(_val)->_try.ReThrow();
+		reinterpret_cast<TryCatchMix*>(_val)->_try.ReThrow();
 	}
 
 	void TryCatch::print() const {
-		auto wrap = reinterpret_cast<TryCatchWrap*>(_val);
-		wrap->_worker->print_exception(wrap->_try.Message(), wrap->_try.Exception());
+		auto mix = reinterpret_cast<TryCatchMix*>(_val);
+		mix->_worker->print_exception(mix->_try.Message(), mix->_try.Exception());
 	}
 
 	// ----------------------------------------------------------------------------------
@@ -613,7 +525,7 @@ namespace qk { namespace js {
 		return false;
 	}
 
-	bool JSObject::SetPrototype(Worker* worker, JSObject* __proto__) {
+	bool JSObject::setPrototype(Worker* worker, JSObject* __proto__) {
 		return reinterpret_cast<v8::Object*>(this)->
 			SetPrototype(CONTEXT(worker), Back(__proto__)).FromMaybe(false);
 	}
@@ -800,15 +712,6 @@ namespace qk { namespace js {
 		return WorkerImpl::worker(info->GetIsolate());
 	}
 
-	Worker* WeakCallbackInfo::worker() const {
-		auto info = reinterpret_cast<const v8::WeakCallbackInfo<Object>*>(this);
-		return WorkerImpl::worker(info->GetIsolate());
-	}
-
-	void* WeakCallbackInfo::getParameter() const {
-		return reinterpret_cast<const v8::WeakCallbackInfo<void>*>(this)->GetParameter();
-	}
-
 	template <> void Persistent<JSValue>::reset() {
 		reinterpret_cast<v8::Persistent<v8::Value>*>(this)->Reset();
 	}
@@ -822,42 +725,36 @@ namespace qk { namespace js {
 	}
 
 	template<> template<>
-	void Persistent<JSValue>::copy(const Persistent<JSValue>& that) {
+	void Persistent<JSValue>::copy(const Persistent<JSValue>& from) {
 		reset();
-		if (that.isEmpty())
+		if (from.isEmpty())
 			return;
-		Qk_Assert(that._worker);
+		Qk_Assert(from._worker);
 		typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
-		reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&that));
-		_worker = that._worker;
+		reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&from));
+		_worker = from._worker;
 	}
 
-	template <>
-	bool Persistent<JSValue>::isWeak() {
-		Qk_Assert( _val );
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
-		return h->IsWeak();
-	}
-
-	template <>
-	void Persistent<JSValue>::setWeak(void* ptr, WeakCallback callback) {
-		Qk_Assert( !isEmpty() );
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
-		h->MarkIndependent();
-		h->SetWeak(ptr, reinterpret_cast<v8::WeakCallbackInfo<void>::Callback>(callback),
-							v8::WeakCallbackType::kParameter);
-	}
-
-	template <>
-	void Persistent<JSValue>::clearWeak() {
-		Qk_Assert( !isEmpty() );
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(this);
+	void MixObject::clearWeak(MixObject *mix) {
+		Qk_Assert_Eq( mix->_handle.isEmpty(), false);
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&mix->_handle);
 		h->ClearWeak();
+	}
+
+	void MixObject::setWeak(MixObject *mix) {
+		Qk_Assert_Eq( mix->_handle.isEmpty(), false);
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&mix->_handle);
+		//h->MarkIndependent();
+		h->SetWeak(mix, [](const v8::WeakCallbackInfo<MixObject>& info) {
+			auto ptr = info.GetParameter();
+			ptr->~MixObject(); // destroy mix
+			ptr->self()->destroy(); // destroy object
+		}, v8::WeakCallbackType::kParameter);
 	}
 
 	template<>
 	JSValue* Persistent<JSValue>::operator*() const {
-		// return Cast(Local<Value>::New(ISOLATE(_worker), Back(_val)));
+		//return Cast(Local<Value>::New(ISOLATE(_worker), Back(_val)));
 		return _val;
 	}
 

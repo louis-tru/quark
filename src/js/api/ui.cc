@@ -57,23 +57,23 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	TextOptions* WrapUIObject::asTextOptions() {
+	TextOptions* MixUIObject::asTextOptions() {
 		return nullptr;
 	}
 
-	ScrollBase* WrapUIObject::asScrollBase() {
+	ScrollBase* MixUIObject::asScrollBase() {
 		return nullptr;
 	}
 
-	Player* WrapUIObject::asPlayer() {
+	Player* MixUIObject::asPlayer() {
 		return nullptr;
 	}
 
-	NotificationBasic* WrapUIObject::asNotificationBasic() {
+	NotificationBasic* MixUIObject::asNotificationBasic() {
 		return nullptr;
 	}
 
-	bool WrapUIObject::addEventListener(cString& name, cString& func, int id) {
+	bool MixUIObject::addEventListener(cString& name, cString& func, int id) {
 		auto notific = asNotificationBasic();
 		const UIEventName *key;
 		if (!notific || !UIEventNames.get(name, key)) {
@@ -92,12 +92,12 @@ namespace qk { namespace js {
 			auto worker = this->worker();
 			Js_Handle_Scope(); // Callback Scope
 			// arg event
-			auto ev = WrapObject::wrap(&e);
+			auto ev = MixObject::mix(&e);
 			Qk_Assert_Ne(ev, nullptr);
 			if (cData) {
-				ev->setProp(worker->strs()->_data(), cData->cast(worker, e.data()));
+				ev->handle()->set(worker, worker->strs()->_data(), cData->cast(worker, e.data()));
 			}
-			JSValue* args[2] = { ev->that(), worker->newValue(true) };
+			JSValue* args[2] = { ev->handle(), worker->newValue(true) };
 
 			// Qk_DLog("addEventListenerFrom, %s, EventType: %s", *func, *e.name());
 			JSValue* r = call(func, 2, args); // call js trigger func
@@ -110,7 +110,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	bool WrapUIObject::removeEventListener(cString& name, int id) {
+	bool MixUIObject::removeEventListener(cString& name, int id) {
 		auto notific = asNotificationBasic();
 		const UIEventName *key;
 		if (!notific || !UIEventNames.get(name, key)) {
@@ -122,7 +122,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	struct WrapNativeApplication: WrapObject {
+	struct MixNativeApplication: MixObject {
 		typedef Application Type;
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
@@ -166,11 +166,12 @@ namespace qk { namespace js {
 		static void NewApp(FunctionArgs args) {
 			Js_Worker(args);
 			auto app = new Application();
-			auto wrap = New<WrapNativeApplication>(args, app);
+			auto mix = New<MixNativeApplication>(args, app);
 			app->Qk_On(Memorywarning,
-								&WrapNativeApplication::memorywarning_handle,
-								reinterpret_cast<WrapNativeApplication*>(wrap));
-			wrap->handle().clearWeak(); // clear weak, persistent object
+								&MixNativeApplication::memorywarning_handle,
+								reinterpret_cast<MixNativeApplication*>(mix));
+			// mix->handle().clearWeak(); // clear weak, persistent object
+			app->retain(); // TODO: clear weak, persistent object
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -195,7 +196,7 @@ namespace qk { namespace js {
 
 			Js_Class_Accessor_Get(fontPool, {
 				Js_Self(Type);
-				auto val = WrapObject::wrap(self->fontPool(), Js_Typeid(FontPool))->that();
+				auto val = MixObject::mix(self->fontPool(), Js_Typeid(FontPool))->handle();
 				Js_Return( val );
 			});
 
@@ -223,7 +224,7 @@ namespace qk { namespace js {
 				uint32_t i = 0;
 				auto arr = worker->newArray();
 				for (auto it: self->windows()) {
-					arr->set(worker, i++, wrap<Window>(it)->that());
+					arr->set(worker, i++, mix<Window>(it)->handle());
 				}
 				Js_Return(arr);
 			});
@@ -289,7 +290,7 @@ namespace qk { namespace js {
 			worker->bindingModule("_font");
 			worker->bindingModule("_types");
 			worker->bindingModule("_event");
-			WrapNativeApplication::binding(exports, worker);
+			MixNativeApplication::binding(exports, worker);
 			binding_screen(exports, worker);
 			binding_window(exports, worker);
 			binding_view(exports, worker);

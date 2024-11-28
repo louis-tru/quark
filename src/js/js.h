@@ -37,64 +37,62 @@
 #include "../util/http.h"
 #include "../util/codec.h"
 
-// -------------------------- Js common macro --------------------------
-
-#define Js_Worker(...)   auto worker = Worker::worker(__VA_ARGS__)
-#define Js_Return(v)     return args.returnValue().set(worker->newValue((v)))
-#define Js_ReturnBool(v) return args.returnValue().set(bool(v))
-#define Js_Return_Null() return args.returnValue().setNull()
-#define Js_Wrap(type)    auto wrap = qk::js::WrapObject::wrap<type>(args.This())
-#define Js_Self(type)    auto self = qk::js::WrapObject::wrap<type>(args.This())->self()
-#define Js_Handle_Scope() qk::js::HandleScope scope(worker)
-
-#define Js_Throw_Error(Error, err, ...) \
-	return worker->throwError(worker->new##Error((err), ##__VA_ARGS__))
-#define Js_Throw(err, ...) Js_Throw_Error(Error, err, ##__VA_ARGS__)
-#define Js_Try_Catch(block, Error) try block catch(const Error& e) { Js_Throw(e); }
-
-#define Js_Module(name, cls) \
-	Qk_Init_Func(Js_Module_##name) {\
-		qk::js::Worker::setModule(#name, cls::binding, __FILE__); \
-	}
-#define Js_Typeid(t) (typeid(t).hash_code())
-#define Js_Type_Check(T, S) \
-	while (false) { *(static_cast<T* volatile*>(0)) = static_cast<S*>(0); }
-
-// define class macro
-#define Js_New_Class(name, alias, base, constructor) \
-	static_assert(sizeof(WrapObject)==sizeof(Wrap##name), \
-		"Derived wrap class pairs cannot declare data members"); \
-	auto cls = worker->newClass(#name,alias,constructor,([](auto o){new(o) Wrap##name();}),base)
-
-#define Js_Define_Class(name, base, constructor) \
-	Js_New_Class(name,Js_Typeid(name),Js_Typeid(base),_Js_Fun(constructor))
-
-#define _Js_Fun(f)([](auto args){auto worker=args.worker();f})
-#define _Js_Get(f)([](auto key,auto args){auto worker=args.worker();f})
-#define _Js_Set(f)([](auto key,auto val,auto args){auto worker=args.worker();f})
-// object
-#define Js_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(func))
-#define Js_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
-#define Js_Accessor_Get(name,get)        exports->getAccessor(worker,#name,_Js_Get(get))
-#define Js_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(set))
-#define Js_Property(name, value)         exports->setProperty(worker,#name,value)
-// class
-#define Js_Class_Accessor(name,get,set)  cls->setAccessor(#name,_Js_Get(get),_Js_Set(set))
-#define Js_Class_Accessor_Get(name,get)  cls->setAccessor(#name,_Js_Get(get))
-#define Js_Class_Accessor_Set(name,set)  cls->setAccessor(#name,0,_Js_Set(set))
-#define Js_Class_Method(name,func)       cls->setMethod(#name,_Js_Fun(func))
-#define Js_Class_Indexed(get,set)        cls->setIndexedAccessor(_Js_Get(get),_Js_Set(set))
-#define Js_Class_Indexed_Get(get)        cls->setIndexedAccessor(_Js_Get(get),0)
-#define Js_Class_Indexed_Set(set)        cls->setIndexedAccessor(0,_Js_Set(set))
-#define Js_Class_Property(name,value)    cls->setProperty(#name,value)
-#define Js_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
-#define Js_Class_Static_Method(name,value) cls->setStaticMethod(#name,_Js_Fun(func))
-
-// -------------------------------------------------------------------
-
 namespace qk { namespace js {
+	#define Js_Worker(...)   auto worker = Worker::worker(__VA_ARGS__)
+	#define Js_Return(v)     return args.returnValue().set(worker->newValue((v)))
+	#define Js_ReturnBool(v) return args.returnValue().set(bool(v))
+	#define Js_Return_Null() return args.returnValue().setNull()
+	#define Js_Mix(type)     auto mix = qk::js::MixObject::mix<type>(args.This())
+	#define Js_Self(type)    auto self = qk::js::MixObject::mix<type>(args.This())->self()
+	#define Js_Handle_Scope() qk::js::HandleScope scope(worker)
+
+	#define Js_Throw_Error(Error, err, ...) \
+		return worker->throwError(worker->new##Error((err), ##__VA_ARGS__))
+	#define Js_Throw(err, ...) Js_Throw_Error(Error, err, ##__VA_ARGS__)
+	#define Js_Try_Catch(block, Error) try block catch(const Error& e) { Js_Throw(e); }
+
+	#define Js_Module(name, cls) \
+		Qk_Init_Func(Js_Module_##name) {\
+			qk::js::Worker::setModule(#name, cls::binding, __FILE__); \
+		}
+	#define Js_Typeid(t) (typeid(t).hash_code())
+	#define Js_Type_Check(T, S) \
+		while (false) { *(static_cast<T* volatile*>(0)) = static_cast<S*>(0); }
+
+	// define class macro
+	#define Js_New_Class(name, alias, base, constructor) \
+		static_assert(sizeof(MixObject)==sizeof(Mix##name), \
+			"Derived mix class pairs cannot declare data members"); \
+		auto cls = worker->newClass(#name,alias,constructor,([](auto o){new(o) Mix##name();}),base)
+
+	#define Js_Define_Class(name, base, constructor) \
+		Js_New_Class(name,Js_Typeid(name),Js_Typeid(base),_Js_Fun(constructor))
+
+	#define _Js_Fun(f)([](auto args){auto worker=args.worker();f})
+	#define _Js_Get(f)([](auto key,auto args){auto worker=args.worker();f})
+	#define _Js_Set(f)([](auto key,auto val,auto args){auto worker=args.worker();f})
+	// object
+	#define Js_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(func))
+	#define Js_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
+	#define Js_Accessor_Get(name,get)        exports->getAccessor(worker,#name,_Js_Get(get))
+	#define Js_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(set))
+	#define Js_Property(name, value)         exports->setProperty(worker,#name,value)
+	// class
+	#define Js_Class_Accessor(name,get,set)  cls->setAccessor(#name,_Js_Get(get),_Js_Set(set))
+	#define Js_Class_Accessor_Get(name,get)  cls->setAccessor(#name,_Js_Get(get))
+	#define Js_Class_Accessor_Set(name,set)  cls->setAccessor(#name,0,_Js_Set(set))
+	#define Js_Class_Method(name,func)       cls->setMethod(#name,_Js_Fun(func))
+	#define Js_Class_Indexed(get,set)        cls->setIndexedAccessor(_Js_Get(get),_Js_Set(set))
+	#define Js_Class_Indexed_Get(get)        cls->setIndexedAccessor(_Js_Get(get),0)
+	#define Js_Class_Indexed_Set(set)        cls->setIndexedAccessor(0,_Js_Set(set))
+	#define Js_Class_Property(name,value)    cls->setProperty(#name,value)
+	#define Js_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
+	#define Js_Class_Static_Method(name,value) cls->setStaticMethod(#name,_Js_Fun(func))
+
+	// -------------------------------------------------------------------
+
 	class Worker;
-	class WrapObject;
+	class MixObject;
 	class JSValue;
 	class JSObject;
 	class TypesParser;
@@ -114,13 +112,6 @@ namespace qk { namespace js {
 		Qk_HIDDEN_ALL_COPY(NoCopy);
 		Qk_HIDDEN_HEAP_ALLOC();
 	};
-
-	class WeakCallbackInfo {
-	public:
-		Worker* worker() const;
-		void* getParameter() const;
-	};
-	typedef void (*WeakCallback)(const WeakCallbackInfo& info);
 
 	template<class T> class Persistent: public NoCopy {
 		T      *_val;
@@ -154,24 +145,15 @@ namespace qk { namespace js {
 			reinterpret_cast<Persistent<JSValue>*>(this)->
 				copy(*reinterpret_cast<const Persistent<JSValue>*>(&from));
 		}
-		inline bool isEmpty() const { return _val == 0; }
+		inline bool isEmpty() const { return _val == nullptr; }
 		inline T* operator->() const { return operator*(); }
 		inline T* operator*() const {
 			return static_cast<T*>(reinterpret_cast<const Persistent<JSValue>*>(this)->operator*());
 		}
 		inline operator bool() const { return _val; }
 		inline Worker* worker() const { return _worker; }
-		inline bool isWeak() {
-			return reinterpret_cast<Persistent<JSValue>*>(this)->isWeak();
-		}
-		inline void clearWeak() {
-			reinterpret_cast<Persistent<JSValue>*>(this)->clearWeak();
-		}
-		inline void setWeak(void *ptr, WeakCallback cb) {
-			reinterpret_cast<Persistent<JSValue>*>(this)->setWeak(ptr, cb);
-		}
-		friend class WrapObject;
-		friend class Worker;
+
+		friend class MixObject;
 	};
 
 	template<class T> class Maybe {
@@ -260,7 +242,7 @@ namespace qk { namespace js {
 	typedef void (*IndexedAccessorGetterCallback)(uint32_t index, PropertyArgs args);
 	typedef void (*IndexedAccessorSetterCallback)(uint32_t index, JSValue* value, PropertyArgs args);
 	typedef void (*BindingCallback)(JSObject* exports, Worker* worker);
-	typedef void (*AttachCallback)(WrapObject* wrap);
+	typedef void (*AttachCallback)(MixObject* mix);
 
 	class Qk_Export JSValue {
 	public:
@@ -550,90 +532,81 @@ namespace qk { namespace js {
 		Persistent<JSObject> _nativeModules;
 	};
 
-	template<class T> class Wobj;
+	template<class T> class Mix;
 
-	class Qk_Export WrapObject {
-		Qk_HIDDEN_ALL_COPY(WrapObject);
+	class Qk_Export MixObject {
+		Qk_HIDDEN_ALL_COPY(MixObject);
 	public:
 		inline Worker* worker() {
 			return _handle._worker;
+		}
+		inline JSObject* handle() {
+			return *_handle;
 		}
 		template<class T = Object>
 		inline T* self() {
 			return static_cast<T*>(reinterpret_cast<Object*>(this + 1));
 		}
-		inline Persistent<JSObject>& handle() {
-			return _handle;
-		}
-		inline JSObject* that() {
-			return *_handle;
-		}
-		inline JSValue* getProp(JSValue* key) {
-			return _handle->get(worker(), key);
-		}
-		inline bool setProp(JSValue* key, JSValue* value) {
-			return _handle->set(worker(), key, value);
-		}
-		inline bool deleteProp(JSValue* key) {
-			return _handle->deleteFor(worker(), key);
-		}
-
-		inline WrapObject() {}
-		virtual ~WrapObject();
+		inline MixObject() {}
+		virtual ~MixObject();
 		virtual void init();
 		virtual bool addEventListener(cString& name, cString& func, int id);
 		virtual bool removeEventListener(cString& name, int id);
 
 		Object* externalData();
-		bool    setExternalData(Object* data);
+		bool setExternalData(Object* data);
 
 		// call member func
 		JSValue* call(JSValue* method, int argc = 0, JSValue* argv[] = 0);
 		JSValue* call(cString& method, int argc = 0, JSValue* argv[] = 0);
 
-		template<class T = Object>
-		static inline Wobj<T>* wrap(JSValue *value) {
-			static_assert(object_traits<T>::isObj, "Must be object");
-			return static_cast<Wobj<T>*>(unpack(value));
+		template<class Self = Object>
+		static inline Mix<Self>* mix(JSValue *value) {
+			static_assert(object_traits<Self>::isObj, "Must be object");
+			return static_cast<Mix<Self>*>(unpack(value));
 		}
-		template<class T = WrapObject>
-		static inline T* wrapObject(JSValue *value) {
-			Js_Type_Check(WrapObject, T);
+		template<class T = MixObject>
+		static inline T* mixObject(JSValue *value) {
+			Js_Type_Check(MixObject, T);
 			return static_cast<T*>(unpack(value));
 		}
-		template<class T>
-		static inline Wobj<T>* wrap(T *object) {
-			return wrap(object, Js_Typeid(*object));
+		template<class Self>
+		static inline Mix<Self>* mix(Self *object) {
+			return mix(object, Js_Typeid(*object));
 		}
-		template<class T>
-		static inline Wobj<T>* wrap(T *object, uint64_t type_id) {
-			static_assert(object_traits<T>::isObj, "Must be object");
-			return static_cast<js::Wobj<T>*>(pack(object, type_id));
+		template<class Self>
+		static inline Mix<Self>* mix(Self *object, uint64_t type_id) {
+			static_assert(object_traits<Self>::isObj, "Must be object");
+			return static_cast<js::Mix<Self>*>(pack(object, type_id));
 		}
 
-		template<class W, class O>
-		static Wobj<O>* New(FunctionArgs args, O *o) {
-			static_assert(sizeof(W) == sizeof(WrapObject),
-										"Derived wrap class pairs cannot declare data members");
-			static_assert(object_traits<O>::isObj, "Must be object");
-			auto wrap = (new(reinterpret_cast<WrapObject*>(o) - 1) W())->newInit(args);
-			return static_cast<Wobj<O>*>(static_cast<WrapObject*>(wrap));
+		template<class M, class Self>
+		static Mix<Self>* New(FunctionArgs args, Self *self) {
+			static_assert(sizeof(M) == sizeof(MixObject),
+										"Derived mix class pairs cannot declare data members");
+			static_assert(object_traits<Self>::isObj, "Must be object");
+			auto mix = (new(reinterpret_cast<MixObject*>(self) - 1) M())->newInit(args);
+			return static_cast<Mix<Self>*>(static_cast<MixObject*>(mix));
 		}
+
 	private:
-		static WrapObject* unpack(JSValue* object);
-		static WrapObject* pack(Object* object, uint64_t type_id);
-		WrapObject* newInit(FunctionArgs args);
-		WrapObject* attach(Worker *worker, JSObject* This);
+		static void clearWeak(MixObject *mix);
+		static void setWeak(MixObject *mix);
+		static MixObject* unpack(JSValue* object);
+		static MixObject* pack(Object* object, uint64_t type_id);
+		MixObject* newInit(FunctionArgs args);
+		MixObject* attach(Worker *worker, JSObject* This);
 		Persistent<JSObject> _handle;
 
 		friend class JsClasses;
+		friend class JsHeapAllocator;
 	};
 
-	template<class T = Object>
-	class Wobj: public WrapObject {
+	template<class Self = Object>
+	class Mix: public MixObject {
 	public:
-		inline T* self() {
-			return reinterpret_cast<T*>(this + 1);
+		inline Self* self() {
+			return reinterpret_cast<Self*>(this + 1);
 		}
 	};
 
@@ -648,12 +621,6 @@ namespace qk { namespace js {
 	Qk_Export void Persistent<JSValue>::reset(Worker* worker, JSValue* other);
 	template<> template<>
 	Qk_Export void Persistent<JSValue>::copy(const Persistent<JSValue>& that);
-	template<>
-	Qk_Export bool Persistent<JSValue>::isWeak();
-	template<>
-	Qk_Export void Persistent<JSValue>::clearWeak();
-	template<>
-	Qk_Export void Persistent<JSValue>::setWeak(void *ptr, WeakCallback cb);
 	template<>
 	Qk_Export JSValue* Persistent<JSValue>::operator*() const;
 	template<>

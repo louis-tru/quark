@@ -38,13 +38,13 @@
 #include "../util/codec.h"
 #include "../util/fs.h"
 
-#define Js_On( name, block, id, ...) \
-	Qk_On(name, [this,##__VA_ARGS__]( auto & evt) { qk::js::HandleScope scope(worker()); block }, id)
-
-#define Js_Native_On(name, func, id) \
-	Js_On(name, { call(worker()->newStringOneByte(func)); }, id, func)
-
 namespace qk { namespace js {
+
+	#define Js_On( name, block, id, ...) \
+		Qk_On(name, [this,##__VA_ARGS__]( auto & evt) { qk::js::HandleScope scope(worker()); block }, id)
+
+	#define Js_Native_On(name, func, id) \
+		Js_On(name, { call(worker()->newStringOneByte(func)); }, id, func)
 
 	#define Js_All_Modules(F)\
 		F(_init)    F(_action)   F(_buffer)\
@@ -54,7 +54,7 @@ namespace qk { namespace js {
 
 	#define Js_Strings_Each(F)  \
 		F(exports)         F(constructor)    F(__proto__)\
-		F(prototype)       F(toStringStyled) F(_wrap_external_data) \
+		F(prototype)       F(toStringStyled) F(_mix_external_data) \
 		F(type)            F(kind)           F(value) \
 		F(width)           F(height)         F(r) \
 		F(g)               F(b)              F(a) \
@@ -93,14 +93,14 @@ namespace qk { namespace js {
 		Qk_DEFINE_P_GET(bool, isAttachFlag);
 		JsClasses(Worker* worker);
 		~JsClasses();
-		void add(uint64_t id, JSClass *cls) throw(Error);
-		JSClass* get(uint64_t id);
-		JSFunction* getFunction(uint64_t id);
-		WrapObject* attachObject(uint64_t id, Object* object);
-		bool instanceOf(JSValue* val, uint64_t id);
+		void add(uint64_t alias, JSClass *cls) throw(Error);
+		JSClass* get(uint64_t alias);
+		JSFunction* getFunction(uint64_t alias);
+		MixObject* attachObject(uint64_t alias, Object* object);
+		bool instanceOf(JSValue* val, uint64_t alias);
 	private:
 		Worker *_worker;
-		Dict<uint64_t, JSClass*> _jsclass;
+		Dict<uint64_t, JSClass*> _jsclass; // alias => JSClass
 	};
 
 	struct WorkerInl: public Worker {

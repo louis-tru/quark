@@ -606,16 +606,16 @@ namespace qk { namespace js {
 	}
 
 	TryCatch::TryCatch(Worker *worker) {
-		// _val = new TryCatchWrap(worker);
+		// _val = new TryCatchMix(worker);
 	}
 
 	TryCatch::~TryCatch() {
-		// delete reinterpret_cast<TryCatchWrap*>(_val);
+		// delete reinterpret_cast<TryCatchMix*>(_val);
 		// _val = nullptr;
 	}
 
 	bool TryCatch::hasCaught() const {
-		// return reinterpret_cast<TryCatchWrap*>(_val)->_try.HasCaught();
+		// return reinterpret_cast<TryCatchMix*>(_val)->_try.HasCaught();
 	}
 
 	Worker* WeakCallbackInfo::worker() const {
