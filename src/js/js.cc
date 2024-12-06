@@ -37,7 +37,9 @@
 
 namespace qk {
 	bool is_process_exit();
-	namespace js {
+namespace js {
+	std::atomic_int workers_count(0);
+	Worker* first_worker = nullptr;
 
 	bool JSValue::isBuffer() const {
 		return isTypedArray() || isArrayBuffer();
@@ -254,7 +256,7 @@ namespace qk {
 	Worker::Worker()
 		: _types(nullptr)
 		, _strs(nullptr)
-		, _classses(nullptr)
+		, _classes(nullptr)
 		, _thread_id(thread_self_id())
 	{
 		if (!NativeModulesLib) {
@@ -283,19 +285,25 @@ namespace qk {
 		SafeFlag::~SafeFlag();
 		delete _types; _types = nullptr;
 		delete _strs; _strs = nullptr;
-		delete _classses; _classses = nullptr;
+		delete _classes; _classes = nullptr;
 		_nativeModules.reset();
 		_global.reset();
 		_console.reset();
+
+		if (first_worker == this)
+			first_worker = nullptr;
+		workers_count--;
 	}
 
 	void Worker::init() {
 		Qk_Assert(_global->isObject());
 
+		first_worker = workers_count++ ? nullptr: this;
+
 		HandleScope scope(this);
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);
-		_classses = new JsClasses(this);
+		_classes = new JsClasses(this);
 		_global->setProperty(this, "global", *_global);
 		_global->setMethod(this, "__binding__", __binding__);
 
@@ -413,11 +421,11 @@ namespace qk {
 	}
 
 	bool Worker::instanceOf(JSValue* val, uint64_t alias) {
-		return _classses->instanceOf(val, alias);
+		return _classes->instanceOf(val, alias);
 	}
 
 	JSClass* Worker::jsclass(uint64_t alias) {
-		return _classses->get(alias);
+		return _classes->get(alias);
 	}
 	
 	// ---------------------------------------------------------------------------------------------

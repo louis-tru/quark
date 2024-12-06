@@ -52,7 +52,7 @@ namespace qk { namespace js {
 		Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
 
 	#define Js_UISelf(Obj) \
-		auto self = qk::js::MixObject::mixObject<MixUIObject>(args.This())->as##Obj()
+		auto self = qk::js::MixObject::mixObject<MixUIObject>(args.thisObj())->as##Obj()
 	#define Js_UIObject_Accessor(Obj, T, Prop, Name) \
 		Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Js_UISelf)
 
@@ -77,7 +77,6 @@ namespace qk { namespace js {
 
 	class Qk_Export MixViewObject: public MixUIObject {
 	public:
-		virtual void init() override;
 		virtual NotificationBasic* asNotificationBasic() override;
 		static Window* checkNewView(FunctionArgs args);
 	};

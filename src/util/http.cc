@@ -1286,6 +1286,7 @@ namespace qk {
 				_wait_connect_id = 0;
 
 				if ( abort ) {
+					trigger_http_readystate_change(HTTP_READY_STATE_INITIAL);
 					delete _retain;
 					_delegate->trigger_http_abort(_host);
 				} else {

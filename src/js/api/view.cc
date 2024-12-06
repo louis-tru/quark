@@ -36,11 +36,11 @@
 
 namespace qk { namespace js {
 
-	void MixViewObject::init() {
+	/*void MixViewObject::initialize() {
 		handle()->defineOwnProperty(worker(), worker()->strs()->window(),
 			mix<Window>(self<View>()->window())->handle(), JSObject::ReadOnly | JSObject::DontDelete
 		);
-	}
+	}*/
 
 	NotificationBasic* MixViewObject::asNotificationBasic() {
 		return static_cast<View*>(self());
@@ -60,9 +60,26 @@ namespace qk { namespace js {
 
 	class MixView: public MixViewObject {
 	public:
+
+		static void getWindow(Worker *worker, PropertyArgs args) {
+			Js_Self(View);
+			auto win = self->window();
+			// TODO: win pre safe check ..
+			Js_Return( win );
+		}
+	
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(View, 0, {
 				Js_NewView(View);
+			});
+
+			Js_Class_Accessor_Get(window, {
+				getWindow(worker, args);
+			});
+
+			Js_Class_Accessor_Get(cssclass, {
+				Js_Self(View);
+				Js_Return(self->cssclass());
 			});
 
 			Js_Class_Accessor_Get(cssclass, {

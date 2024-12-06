@@ -87,11 +87,11 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Box, float, weight, weight);
 			// -----------------------------------------------------------------------------
 			// @safe Rt
-			Js_Class_Accessor_Get(mixX, {
+			Js_Class_Accessor_Get(wrapX, {
 				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->wrap_x()) );
 			});
-			Js_Class_Accessor_Get(mixY, {
+			Js_Class_Accessor_Get(wrapY, {
 				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->wrap_y()) );
 			});

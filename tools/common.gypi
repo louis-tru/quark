@@ -169,11 +169,15 @@
 			}
 		},
 		'cflags!': ['-Werror'],
+		'cflags': [ '-Wno-enum-constexpr-conversion' ],
 		'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=<(std_cpp)' ],
 		'xcode_settings': {
-			'CLANG_CXX_LANGUAGE_STANDARD': '<(std_cpp)',# -std=c++0x
+			# 'GCC_C_LANGUAGE_STANDARD': 'c99',
+			'CLANG_CXX_LANGUAGE_STANDARD': '<(std_cpp)',# -std=c++14
 			'CLANG_CXX_LIBRARY': 'libc++',             # c++11 libc support
-				# 'GCC_C_LANGUAGE_STANDARD': 'c99',
+			'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',   # -fno-exceptions
+			'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
+			'OTHER_CFLAGS': [ '-Wno-enum-constexpr-conversion' ],
 		},
 		'include_dirs': [
 			'../out',
@@ -309,7 +313,7 @@
 					'-isysroot <(sysroot)', 
 				],
 				'cflags_cc': [ '-stdlib=libc++' ],
-				'ldflags': [ 
+				'ldflags': [
 					'-mmacosx-version-min=<(version_min)',
 					'-arch <(arch_name)',
 				],
@@ -344,10 +348,6 @@
 			}],
 			['OS=="mac"', {
 				'libraries!': ['-framework CoreFoundation', '-lz'],
-				'xcode_settings': {
-					'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',   # -fno-exceptions
-					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
-				},
 			}],
 			['more_log==1',{ 'defines': [ 'Qk_MoreLOG=1' ]}],
 		],

@@ -35,7 +35,7 @@ namespace qk { namespace js {
 	// --------------------------- J S . C l a s s ---------------------------
 
 	JSClass::JSClass(FunctionCallback constructor, AttachCallback attach)
-		: _constructor(constructor), _attachConstructor(attach) {}
+		: _alias(0), _constructor(constructor), _attachConstructor(attach) {}
 
 	void JSClass::exports(cString& name, JSObject* exports) {
 		_func.reset(); // reset func
@@ -48,8 +48,21 @@ namespace qk { namespace js {
 		return f->newInstance(_worker, argc, argv);
 	}
 
+	void JSClass::callConstructor(FunctionArgs args) {
+		auto classes = _worker->classes();
+		auto mix = classes->_attachObject;
+		if (mix) {
+			_attachConstructor(mix);
+		} else {
+			Qk_Assert_Eq(classes->_runClass, nullptr);
+			classes->_runClass = this;
+			_constructor(args);
+			classes->_runClass = nullptr;
+		}
+	}
+
 	JsClasses::JsClasses(Worker* worker)
-		: _worker(worker), _isAttachFlag(false)
+		: _worker(worker), _attachObject(nullptr), _runClass(nullptr)
 	{
 	}
 
@@ -73,23 +86,9 @@ namespace qk { namespace js {
 	}
 
 	void JsClasses::add(uint64_t alias, JSClass *cls) throw(Error) {
-		Qk_Check( ! _jsclass.has(alias), "Set native Constructors Alias repeat");
+		Qk_Check( !_jsclass.has(alias), "Set native Constructors Alias repeat");
 		cls->_alias = alias;
 		_jsclass.set(alias, cls);
-	}
-
-	MixObject* JsClasses::attachObject(uint64_t alias, Object* object) {
-		auto mix = reinterpret_cast<MixObject*>(object) - 1;
-		Qk_Assert( !mix->worker() );
-		JSClass *out;
-		if ( _jsclass.get(alias, out) ) {
-			_isAttachFlag = true;
-			auto jsobj = out->getFunction()->newInstance(_worker);
-			_isAttachFlag = false;
-			out->_attachConstructor(mix);
-			return mix->attach(_worker, jsobj);
-		}
-		return nullptr;
 	}
 
 	bool JsClasses::instanceOf(JSValue* val, uint64_t alias) {

@@ -61,12 +61,19 @@ namespace qk { namespace js {
 	#define JSC_CTX(...) WORKER(__VA_ARGS__)->jscc()
 	#define OK(...) &ex); do { \
 	if (ex) { \
-		worker->ThrowException(ex); \
+		worker->throwException(ex); \
 		return __VA_ARGS__ ;\
 	}}while(0
+	#define THROW_ERR(msg) worker->throwException(worker->newErrorJsc(msg))
 
-	#define JsFatal(ctx) &ex); do { qj::js::checkFatal(ctx, ex); }while(0
+	#define JsStringWithUTF8(S) JSStringCreateWithUTF8CString(S)
+	#define JsFatal(ctx) &ex); do { qk::js::jsFatal(ctx,ex); }while(0
 	#define DCHECK Qk_Assert
+	#define CHECK  Qk_Fatal_Assert
+
+	#define _Fun(name) JSStringRef name##_s;
+	Js_Const_Strings(_Fun)
+	#undef _Fun
 
 	class StackFrame;
 	class StackTrace;
@@ -74,11 +81,12 @@ namespace qk { namespace js {
 	class JscHandleScope;
 	class JscTryCatch;
 	class JscWorker;
+	class JscClass;
 	struct GlobalData;
 	struct ContextData;
 	struct Templates;
 
-	typedef void (*MessageCallback)(Message* message, JSValue* exception);
+	typedef void (*MessageCallback)(Message* msg, JSValue* exception);
 	typedef Handle<OpaqueJSString> JSCStringPtr;
 	typedef Handle<OpaqueJSPropertyNameArray> JSCPropertyNameArrayPtr;
 
@@ -92,27 +100,32 @@ namespace qk { namespace js {
 		return reinterpret_cast<T>(o);
 	}
 
-	void        checkFatal     (JSContextRef ctx, JSValueRef exception);
+	template<typename TO, typename FROM>
+	TO bitwise_cast(FROM in) {
+		DCHECK(sizeof(TO) == sizeof(FROM), "WTF_wtf_reinterpret_cast_sizeof_types_is_equal");
+		union {
+			FROM from;
+			TO to;
+		} u;
+		u.from = in;
+		return u.to;
+	}
+
+	void initFactorys();
+	void jsFatal(JSContextRef ctx, JSValueRef ex);
+	String jsToString(JSStringRef value)
+	String jsToString(JSContextRef ctx, JSValueRef value) {
+		return jsToString(*JSValueToStringCopy(ctx, value, nullptr));
+	}
 	JSObjectRef runNativeScript(JSGlobalContextRef ctx, cChar* script, cChar* name);
 
-	struct GlobalData {
+	struct WorkerData {
 		void initialize(JSGlobalContextRef ctx);
 		void destroy(JSGlobalContextRef ctx);
-		JSValueRef Undefined, Null, True, False, Empty;
-		#define _Attr_Fun(name) JSObjectRef name;
-		Js_Worker_Data_List(_Attr_Fun)
-	};
-
-	struct ContextData {
-		void initialize(JSGlobalContextRef ctx);
-		void destroy(JSGlobalContextRef ctx);
-		Js_Context_Data_List(_Attr_Fun)
+		JSValueRef Undefined, Null, True, False, EmptyString, TypedArray;
+		#define _Attr_Fun(name,from) JSObjectRef from##_##name;
+		Js_Worker_Data_Each(_Attr_Fun)
 		#undef _Attr_Fun
-	};
-
-	struct Templates {
-		void initialize(JSGlobalContextRef ctx) {}
-		void destroy(JSGlobalContextRef ctx) {}
 	};
 
 	class JscWorker: public Worker {
@@ -122,35 +135,42 @@ namespace qk { namespace js {
 		inline bool hasTerminated() { return _hasTerminated; }
 		inline bool hasDestroy() { return _hasDestroy; }
 		inline void addMessageListener(MessageCallback that) { _messageListener = that; }
-		JSObjectRef newError(cChar* message);
+		JSObjectRef newErrorJsc(cChar* message);
 		void throwException(JSValueRef exception);
-		void reportException(JSObjectRef exception);
-		void addToScope(JSValueRef ref);
+		void reportException(JSValueRef exception);
+		template<typename T = JSValue>
+		inline T* addToScope(JSValueRef ref) {
+			return reinterpret_cast<T*>(addToScope<JSValue>(ref));
+		}
+		void initBase();
 		inline static JscWorker* worker() {
 			return static_cast<JscWorker*>(Worker::current());
 		}
 		template<class Args>
 		inline static JscWorker* worker(Args args) {
-			// return static_cast<JscWorker*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
 			return nullptr;
 		}
 	private:
 		JSContextGroupRef _group;
-		JSGlobalContextRef _ctx; // default ctx for jsc global
-		GlobalData  _globalData;
-		ContextData _ctxData; // default ctx data
-		Templates   _templates;
-		JSValueRef  _exception;
+		JSGlobalContextRef _ctx;
+		WorkerData  _data;
+		JSValueRef  _ex;
 		JscTryCatch *_try;
 		JscHandleScope *_scope;
+		JscClass *_base;
 		MessageCallback _messageListener;
+		int _callStack;
 		bool _hasTerminated, _hasDestroy;
 		friend class StackFrame;
 		friend class StackTrace;
 		friend class Message;
 		friend class JscHandleScope;
 		friend class JscTryCatch;
+		friend class JscClass;
 	};
+
+	template<>
+	JSValue* JscWorker::addToScope(JSValueRef ref);
 
 	template<>
 	inline JscWorker* JscWorker::worker<Worker*>(Worker* arg) {
@@ -161,6 +181,32 @@ namespace qk { namespace js {
 	inline JscWorker* JscWorker::worker<Worker*>(JscWorker* arg) {
 		return arg;
 	}
+
+	struct ReturnValueImpl {
+		JscWorker *_worker;
+		JSObjectRef* _this;
+		JSValueRef *_return;
+	};
+
+	struct FunctionCallbackInfoImpl {
+		JscWorker* _worker;
+		JSObjectRef* _this;
+		JSValueRef *_return;
+		const JSValueRef **argv;
+		int argc;
+		bool isConstructCall;
+	};
+
+	struct PropertyCallbackInfoImpl {
+		JscWorker* _worker;
+		JSObjectRef* _this;
+		JSValueRef *_return;
+	};
+
+	struct PropertySetCallbackInfoImpl {
+		Worker* _worker;
+		JSObjectRef* _this;
+	};
 
 } }
 

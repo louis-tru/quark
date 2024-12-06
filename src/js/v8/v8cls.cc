@@ -32,6 +32,31 @@
 
 namespace qk { namespace js {
 
+	void MixObject::clearWeak() {
+		Qk_Assert_Ne(_handle, nullptr);
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&_handle);
+		h->ClearWeak();
+	}
+
+	void MixObject::setWeak() {
+		Qk_Assert_Ne( _handle, nullptr);
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&_handle);
+		//h->MarkIndependent();
+		h->SetWeak(this, [](const v8::WeakCallbackInfo<MixObject>& info) {
+			auto ptr = info.GetParameter();
+			ptr->~MixObject(); // destroy mix
+			ptr->self()->destroy(); // destroy object
+		}, v8::WeakCallbackType::kParameter);
+	}
+
+	void MixObject::bindObject(JSObject* handle) {
+		Qk_Assert_Eq(_handle, nullptr);
+		auto h = reinterpret_cast<v8::PersistentBase<v8::Object>*>(&_handle);
+		auto v8h = Back<v8::Object>(handle);
+		h->Reset(ISOLATE(worker()), v8h);
+		v8h->SetAlignedPointerInInternalField(0, this);
+	}
+
 	class V8JSClass: public JSClass {
 	public:
 		V8JSClass(Worker* worker, cString& name,
@@ -42,10 +67,8 @@ namespace qk { namespace js {
 			_worker = worker;
 			auto data = External::New(ISOLATE(worker), this);
 			auto cb = (v8::FunctionCallback)[](const v8::FunctionCallbackInfo<v8::Value>& info) {
-				auto self = (V8JSClass*)info.Data().As<External>()->Value();
-				if (!self->_worker->classses()->isAttachFlag()) {
-					self->_constructor(*reinterpret_cast<const FunctionCallbackInfo*>(&info));
-				}
+				auto self = static_cast<V8JSClass*>(info.Data().As<External>()->Value());
+				self->callConstructor(*reinterpret_cast<const FunctionCallbackInfo*>(&info));
 			};
 			v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(ISOLATE(worker), cb, data);
 			v8::Local<v8::String> className = Back<v8::String>(worker->newStringOneByte(name));
@@ -184,21 +207,21 @@ namespace qk { namespace js {
 															FunctionCallback constructor,
 															AttachCallback attach, JSClass* base) {
 		auto cls = new V8JSClass(this, name, constructor, attach, static_cast<V8JSClass*>(base));
-		_classses->add(alias, cls);
+		_classes->add(alias, cls);
 		return cls;
 	}
 
 	JSClass* Worker::newClass(cString& name, uint64_t alias,
 																	FunctionCallback constructor,
 																	AttachCallback attach, uint64_t base) {
-		return newClass(name, alias, constructor, attach, _classses->get(base));
+		return newClass(name, alias, constructor, attach, _classes->get(base));
 	}
 
 	JSClass* Worker::newClass(cString& name, uint64_t alias,
 															FunctionCallback constructor,
 															AttachCallback attach, JSFunction* base) {
 		auto cls = new V8JSClass(this, name, constructor, attach, nullptr, Back<v8::Function>(base));
-		_classses->add(alias, cls);
+		_classes->add(alias, cls);
 		return cls;
 	}
 

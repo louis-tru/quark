@@ -31,7 +31,6 @@
 #include "./v8js.h"
 
 namespace qk { namespace js {
-
 	// -------------------------- W o r k e r . I m p l --------------------------
 
 	// Extracts a C string from a V8 Utf8Value.
@@ -228,7 +227,8 @@ namespace qk { namespace js {
 	}
 
 	Worker* Worker::current() {
-		return reinterpret_cast<Worker*>(v8::Isolate::GetCurrent()->GetData(ISOLATE_INL_WORKER_DATA_INDEX));
+		return first_worker ? first_worker:
+			reinterpret_cast<Worker*>(v8::Isolate::GetCurrent()->GetData(ISOLATE_INL_WORKER_DATA_INDEX));
 	}
 
 	Worker* Worker::Make() {
@@ -508,23 +508,6 @@ namespace qk { namespace js {
 			.FromMaybe(false);
 	}
 
-	void* JSObject::getObjectPrivate() {
-		auto self = reinterpret_cast<v8::Object*>(this);
-		if (self->InternalFieldCount() > 0) {
-			return self->GetAlignedPointerFromInternalField(0);
-		}
-		return nullptr;
-	}
-
-	bool JSObject::setObjectPrivate(void *value) {
-		auto self = reinterpret_cast<v8::Object*>(this);
-		if (self->InternalFieldCount() > 0) {
-			self->SetAlignedPointerInInternalField(0, value);
-			return true;
-		}
-		return false;
-	}
-
 	bool JSObject::setPrototype(Worker* worker, JSObject* __proto__) {
 		return reinterpret_cast<v8::Object*>(this)->
 			SetPrototype(CONTEXT(worker), Back(__proto__)).FromMaybe(false);
@@ -547,9 +530,6 @@ namespace qk { namespace js {
 	}
 	int JSInt32::value() const {
 		return reinterpret_cast<const v8::Int32*>(this)->Value();
-	}
-	int64_t JSInteger::value() const {
-		return reinterpret_cast<const v8::Integer*>(this)->Value();
 	}
 	uint32_t JSUint32::value() const {
 		return reinterpret_cast<const v8::Uint32*>(this)->Value();
@@ -667,8 +647,8 @@ namespace qk { namespace js {
 		return Cast(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->operator[](i));
 	}
 
-	JSObject* FunctionCallbackInfo::This() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->This());
+	JSObject* FunctionCallbackInfo::thisObj() const {
+		return Cast<JSObject>(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->thisObj());
 	}
 
 	bool FunctionCallbackInfo::isConstructCall() const {
@@ -682,8 +662,8 @@ namespace qk { namespace js {
 		return *_;
 	}
 
-	JSObject* PropertyCallbackInfo::This() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this)->This());
+	JSObject* PropertyCallbackInfo::thisObj() const {
+		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this)->thisObj());
 	}
 
 	ReturnValue PropertyCallbackInfo::returnValue() const {
@@ -693,21 +673,27 @@ namespace qk { namespace js {
 		return *_;
 	}
 
-	JSObject* PropertySetCallbackInfo::This() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this)->This());
+	JSObject* PropertySetCallbackInfo::thisObj() const {
+		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this)->thisObj());
 	}
 
 	Worker* FunctionCallbackInfo::worker() const {
+		if (first_worker)
+			return first_worker;
 		auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
 		return WorkerImpl::worker(info->GetIsolate());
 	}
 
 	Worker* PropertyCallbackInfo::worker() const {
+		if (first_worker)
+			return first_worker;
 		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
 		return WorkerImpl::worker(info->GetIsolate());
 	}
 
 	Worker* PropertySetCallbackInfo::worker() const {
+		if (first_worker)
+			return first_worker;
 		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this);
 		return WorkerImpl::worker(info->GetIsolate());
 	}
@@ -729,27 +715,17 @@ namespace qk { namespace js {
 		reset();
 		if (from.isEmpty())
 			return;
-		Qk_Assert(from._worker);
+		Qk_Assert_Ne(from._worker, nullptr);
 		typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
 		reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&from));
 		_worker = from._worker;
 	}
 
-	void MixObject::clearWeak(MixObject *mix) {
-		Qk_Assert_Eq( mix->_handle.isEmpty(), false);
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&mix->_handle);
-		h->ClearWeak();
-	}
-
-	void MixObject::setWeak(MixObject *mix) {
-		Qk_Assert_Eq( mix->_handle.isEmpty(), false);
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&mix->_handle);
-		//h->MarkIndependent();
-		h->SetWeak(mix, [](const v8::WeakCallbackInfo<MixObject>& info) {
-			auto ptr = info.GetParameter();
-			ptr->~MixObject(); // destroy mix
-			ptr->self()->destroy(); // destroy object
-		}, v8::WeakCallbackType::kParameter);
+	MixObject* MixObject::unpack(JSValue* obj) {
+		Qk_Assert_Ne(obj, nullptr);
+		auto v8obj = reinterpret_cast<v8::Object*>(obj);
+		Qk_Assert_Gt(v8obj->InternalFieldCount(), 0);
+		return static_cast<MixObject*>(v8obj->GetAlignedPointerFromInternalField(0));
 	}
 
 	template<>

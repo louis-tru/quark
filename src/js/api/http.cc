@@ -43,95 +43,94 @@ namespace qk { namespace js {
 	static cString const_disable_cache("disableCache");
 	static cString const_disable_cookie("disableCookie");
 
+	struct HttpDelegate: Object, qk::HttpClientRequest::Delegate {
+		MixObject* _host; // JsHttpClientRequest
+		String _error;
+		String _write;
+		String _header;
+		String _data;
+		String _end;
+		String _readystate_change;
+		String _timeout;
+		String _abort;
+
+		Worker* worker() { return _host->worker(); }
+
+		virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
+			if ( !_error.isEmpty() ) {
+				HandleScope scope(worker());
+				JSValue* arg = worker()->newValue( error );
+				_host->call( worker()->newStringOneByte(_error), 1, &arg );
+			}
+		}
+		virtual void trigger_http_write(HttpClientRequest* req) {
+			if ( !_write.isEmpty() ) {
+				HandleScope scope(worker());
+				_host->call( worker()->newStringOneByte(_write) );
+			}
+		}
+		virtual void trigger_http_header(HttpClientRequest* req) {
+			if ( !_header.isEmpty() ) {
+				HandleScope scope(worker());
+				_host->call( worker()->newStringOneByte(_header) );
+			}
+		}
+		virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
+			if ( !_data.isEmpty() ) {
+				HandleScope scope(_host->worker());
+				JSValue* arg = worker()->newValue( std::move(buffer) );
+				_host->call( worker()->newStringOneByte(_data), 1, &arg );
+			}
+		}
+		virtual void trigger_http_readystate_change(HttpClientRequest* req) {
+			if (req->ready_state() == HTTP_READY_STATE_READY) {
+				_host->self()->retain(); // TODO: js handle keep active
+			}
+			if ( !_readystate_change.isEmpty() ) {
+				HandleScope scope(worker());
+				_host->call( worker()->newStringOneByte(_readystate_change) );
+			}
+		}
+		virtual void trigger_http_timeout(HttpClientRequest* req) {
+			if ( !_timeout.isEmpty() ) {
+				HandleScope scope(worker());
+				_host->call( worker()->newStringOneByte(_timeout) );
+			}
+		}
+		virtual void trigger_http_end(HttpClientRequest* req) {
+			if ( !_end.isEmpty() ) {
+				HandleScope scope(worker());
+				_host->call( worker()->newStringOneByte(_end) );
+			}
+			if (req->ready_state() != HTTP_READY_STATE_READY) { // Maybe will resend
+				req->release(); // TODO: js handle set weak object
+			}
+		}
+		virtual void trigger_http_abort(HttpClientRequest* req) {
+			if ( !_abort.isEmpty() ) {
+				HandleScope scope(worker());
+				_host->call( worker()->newStringOneByte(_abort) );
+			}
+			if (req->ready_state() != HTTP_READY_STATE_READY) { // Maybe will resend
+				req->release(); // TODO: js handle set weak object
+			}
+		}
+	};
+
+	struct HttpClientRequest: qk::HttpClientRequest {
+		HttpClientRequest() {
+			_del._host = reinterpret_cast<MixObject*>(this) - 1;
+			set_delegate(&_del);
+		}
+		HttpDelegate _del;
+	};
+
 	struct MixHttpClientRequest: MixObject {
 		typedef HttpClientRequest Type;
 
-		struct Delegate: Object, HttpClientRequest::Delegate {
-			MixHttpClientRequest* _host;
-			String _error;
-			String _write;
-			String _header;
-			String _data;
-			String _end;
-			String _readystate_change;
-			String _timeout;
-			String _abort;
-
-			Worker* worker() { return _host->worker(); }
-
-			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
-				if ( !_error.isEmpty() ) {
-					HandleScope scope(worker());
-					JSValue* arg = worker()->newValue( error );
-					_host->call( worker()->newStringOneByte(_error), 1, &arg );
-				}
-			}
-			virtual void trigger_http_write(HttpClientRequest* req) {
-				if ( !_write.isEmpty() ) {
-					HandleScope scope(worker());
-					_host->call( worker()->newStringOneByte(_write) );
-				}
-			}
-			virtual void trigger_http_header(HttpClientRequest* req) {
-				if ( !_header.isEmpty() ) {
-					HandleScope scope(worker());
-					_host->call( worker()->newStringOneByte(_header) );
-				}
-			}
-			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
-				if ( !_data.isEmpty() ) {
-					HandleScope scope(_host->worker());
-					JSValue* arg = worker()->newValue( std::move(buffer) );
-					_host->call( worker()->newStringOneByte(_data), 1, &arg );
-				}
-			}
-			virtual void trigger_http_readystate_change(HttpClientRequest* req) {
-				if (req->ready_state() == HTTP_READY_STATE_READY) {
-					_host->self()->retain(); // TODO: js handle keep active
-				}
-				if ( !_readystate_change.isEmpty() ) {
-					HandleScope scope(worker());
-					_host->call( worker()->newStringOneByte(_readystate_change) );
-				}
-			}
-			virtual void trigger_http_timeout(HttpClientRequest* req) {
-				if ( !_timeout.isEmpty() ) {
-					HandleScope scope(worker());
-					_host->call( worker()->newStringOneByte(_timeout) );
-				}
-			}
-			virtual void trigger_http_end(HttpClientRequest* req) {
-				if ( !_end.isEmpty() ) {
-					HandleScope scope(worker());
-					_host->call( worker()->newStringOneByte(_end) );
-				}
-				if (req->ready_state() > HTTP_READY_STATE_SENDING) {
-					req->release(); // TODO: js handle set weak object
-				}
-			}
-			virtual void trigger_http_abort(HttpClientRequest* req) {
-				if ( !_abort.isEmpty() ) {
-					HandleScope scope(worker());
-					_host->call( worker()->newStringOneByte(_abort) );
-				}
-				if (req->ready_state() > HTTP_READY_STATE_SENDING) {
-					req->release(); // v8 handle set weak object
-				}
-			}
-		};
-
-		Delegate* getDelegate() {
-			return static_cast<Delegate*>(externalData());
-		}
-
 		virtual bool addEventListener(cString& name, cString& func, int id) {
-			Delegate* _del = getDelegate();
-			if (!_del) {
-				_del = new Delegate();
-				_del->_host = this;
-				self<HttpClientRequest>()->set_delegate(_del);
-				setExternalData(_del);
-			}
+			auto _del = &self<Type>()->_del;
+
 			if ( id != -1 ) return 0; // 只接收id==-1的监听器
 
 			if ( name == "Error" ) {
@@ -157,7 +156,8 @@ namespace qk { namespace js {
 		}
 
 		virtual bool removeEventListener(cString& name, int id) {
-			auto _del = getDelegate();
+			auto _del = &self<Type>()->_del;
+
 			if ( id != -1 || !_del ) return 0;
 
 			if ( name == "Error" ) {

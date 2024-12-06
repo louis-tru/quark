@@ -67,13 +67,13 @@ namespace qk { namespace js {
 			Js_Class_Method(play, {
 				Js_Self(Action);
 				self->play();
-				Js_Return(args.This());
+				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(stop, {
 				Js_Self(Action);
 				self->stop();
-				Js_Return(args.This());
+				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(seek, {
@@ -81,7 +81,7 @@ namespace qk { namespace js {
 					Js_Throw("@method Action.seek(uint32_t timeMs)");
 				Js_Self(Action);
 				self->seek(args[0]->toUint32Value(worker).unsafe());
-				Js_Return(args.This());
+				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(seekPlay, {
@@ -89,7 +89,7 @@ namespace qk { namespace js {
 					Js_Throw("@method Action.seek_play(uint32_t timeMs)");
 				Js_Self(Action);
 				self->seek_play(args[0]->toUint32Value(worker).unsafe());
-				Js_Return(args.This());
+				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(seekStop, {
@@ -97,7 +97,7 @@ namespace qk { namespace js {
 					Js_Throw("@method Action.seek_stop(uint32_t timeMs)");
 				Js_Self(Action);
 				self->seek_stop(args[0]->toUint32Value(worker).unsafe());
-				Js_Return(args.This());
+				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(before, {

@@ -71,7 +71,7 @@ namespace qk {
 	* @enum HttpReadyState
 	*/
 	enum HttpReadyState {
-		HTTP_READY_STATE_INITIAL = 0,        //（初始） 还没有调用send发送请求
+		HTTP_READY_STATE_INITIAL = 0,        //（初始） 还没有调用send发送请求,或者终止错误
 		HTTP_READY_STATE_READY   = 1,        // (准备) 已经调用send进入就绪状态等待打开连接或缓存文件
 		HTTP_READY_STATE_SENDING = 2,        //（发送） http socket连接打开,开始发送请求
 		HTTP_READY_STATE_RESPONSE = 3,       //（接收） 数据发送完成，正在接收数据

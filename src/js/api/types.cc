@@ -96,7 +96,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const FileStat& stat) {
-		auto func = worker->classses()->getFunction(Js_Typeid(FileStat));
+		auto func = worker->classes()->getFunction(Js_Typeid(FileStat));
 		Qk_Assert( func );
 		auto r = func->newInstance(worker);
 		*MixObject::mix<FileStat>(r)->self() = stat;

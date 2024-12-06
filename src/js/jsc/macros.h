@@ -31,128 +31,32 @@
 #ifndef __quark__js__jsc__macros__
 #define __quark__js__jsc__macros__
 
-#define Js_Const_List(F) \
-	F(__native__) \
+#define Js_Const_Strings(F) \
 	F(prototype) \
+	F(constructor) \
 	F(set) \
 	F(get) \
-	F(configurable) \
-	F(enumerable) \
-	F(writable) \
-	F(length) \
 	F(name) \
-	F(column) \
+	F(Error) \
 	F(line) \
-	F(message) \
-	F(stack) \
-	F(_stack) \
-	F(constructor) \
-	F(parent) \
-	F(data) \
-	F(value) \
-	F(result) \
-	F(source) \
-	F(flags) \
-	F(undefined) \
-	F(null) \
-	F(object) \
-	F(boolean) \
-	F(string) \
-	F(number) \
-	F(size) \
+	F(column) \
 	F(scriptId) \
-	F(isWasm) \
 	F(functionName) \
 	F(scriptName) \
-	F(sourceMapUrl) \
-	F(programFunc) \
 	F(isEval) \
 	F(isConstructor) \
-	F(prototype_instance) \
-	F(function_instance) \
-	F(instance_template) \
-	F(prototype_template) \
-	F(toString) \
+	F(isWasm) \
+	F(stack) \
+	F(_stack) \
+	F(length) \
 
-#define Js_Worker_Data_List(F) \
-	F(getPropertyNames) \
-	F(getOwnPropertyNames) \
-	F(getOwnPropertyNames2) \
-	F(getOwnPropertyDescriptor) \
-	F(getOwnPropertyDescriptors) \
-	F(defineProperty) \
-	F(defineProperties) \
-	F(hasOwnProperty) \
-	F(isSymbol) \
-	F(promiseState) \
-	F(promiseCatch) \
-	F(promiseThen) \
-	F(stringLength) \
-	F(typeOf) \
-	F(valueOf) \
-	F(newRegExp) \
-	F(mixFunctionScript) \
-	F(mapAsArray) \
-	F(setAsArray) \
-	F(newPrivateValue) \
-	F(symbolName) \
-	F(NativeToString) \
-	F(Function_prototype) \
-	F(symbol_for_api) \
-	F(private_for_api) \
-	F(JSONStringify) \
-	F(JSONParse) \
-	F(mapSet) \
-	F(mapGet) \
-	F(mapClear) \
-	F(mapHas) \
-	F(mapDelete) \
-	F(setClear) \
-	F(setAdd) \
-	F(setHas) \
-	F(setDelete) \
-	F(symbolFor) \
-	F(stringConcat) \
-	F(getProperty) \
-	F(setProperty) \
-	F(deleteProperty) \
-	F(hasProperty) \
-
-#define Js_Context_Data_List(F) \
-	F(Object) \
-	F(Function) \
-	F(Number) \
-	F(Boolean) \
-	F(String) \
-	F(Date) \
-	F(RegExp) \
-	F(Error) \
-	F(RangeError) \
-	F(ReferenceError) \
-	F(SyntaxError) \
-	F(TypeError) \
-	F(Map) \
-	F(Set) \
-	F(WeakMap) \
-	F(WeakSet) \
-	F(Symbol) \
-	F(Proxy) \
-	F(Promise) \
-	F(DataView) \
-	/*F(SharedArrayBuffer)*/ \
-	F(ArrayBuffer) \
-	F(TypedArray) \
-	F(Uint8Array) \
-	F(Int8Array) \
-	F(Uint16Array) \
-	F(Int16Array) \
-	F(Uint32Array) \
-	F(Int32Array) \
-	F(Float32Array) \
-	F(Float64Array) \
-	F(Uint8ClampedArray) \
-	F(AsyncFunction) \
-	F(SetIterator) \
-	F(MapIterator) \
+#define Js_Worker_Data_Each(F) \
+	F(Object, global) \
+	F(Error, global) \
+	F(Function, global) \
+	F(ArrayBuffer, global) \
+	F(Uint8Array, global) \
+	F(prototype, Object) \
+	F(defineProperty, Object) \
 
 #endif

@@ -70,6 +70,8 @@ namespace qk { namespace js {
 		F(httpVersion)     F(statusCode)     F(responseHeaders) \
 		F(window) F(_log) F(_warn) F(_error) F(_clear)
 
+	extern Worker* first_worker;
+
 	class Strings {
 	public:
 		Strings(Worker* worker);
@@ -90,17 +92,19 @@ namespace qk { namespace js {
 
 	class JsClasses {
 	public:
-		Qk_DEFINE_P_GET(bool, isAttachFlag);
 		JsClasses(Worker* worker);
 		~JsClasses();
 		void add(uint64_t alias, JSClass *cls) throw(Error);
 		JSClass* get(uint64_t alias);
 		JSFunction* getFunction(uint64_t alias);
-		MixObject* attachObject(uint64_t alias, Object* object);
 		bool instanceOf(JSValue* val, uint64_t alias);
 	private:
 		Worker *_worker;
+		MixObject *_attachObject;
+		JSClass *_runClass;
 		Dict<uint64_t, JSClass*> _jsclass; // alias => JSClass
+		friend class MixObject;
+		friend class JSClass;
 	};
 
 	struct WorkerInl: public Worker {

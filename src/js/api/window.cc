@@ -149,13 +149,13 @@ namespace qk { namespace js {
 				}
 				Js_Self(Type);
 				self->nextFrame(get_callback_for_none(worker, args[0]));
-				Js_Return(args.This());
+				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(activate, {
 				Js_Self(Type);
 				self->activate();
-				Js_Return(args.This());
+				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(close, {

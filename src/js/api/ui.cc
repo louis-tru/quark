@@ -162,7 +162,7 @@ namespace qk { namespace js {
 		void memorywarning_handle(Event<>& evt) {
 			worker()->garbageCollection(); // js gc
 		}
-		
+
 		static void NewApp(FunctionArgs args) {
 			Js_Worker(args);
 			auto app = new Application();
@@ -170,8 +170,7 @@ namespace qk { namespace js {
 			app->Qk_On(Memorywarning,
 								&MixNativeApplication::memorywarning_handle,
 								reinterpret_cast<MixNativeApplication*>(mix));
-			// mix->handle().clearWeak(); // clear weak, persistent object
-			app->retain(); // TODO: clear weak, persistent object
+			app->retain(); // TODO: clear weak, force persistent object
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {

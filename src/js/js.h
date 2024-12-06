@@ -42,8 +42,8 @@ namespace qk { namespace js {
 	#define Js_Return(v)     return args.returnValue().set(worker->newValue((v)))
 	#define Js_ReturnBool(v) return args.returnValue().set(bool(v))
 	#define Js_Return_Null() return args.returnValue().setNull()
-	#define Js_Mix(type)     auto mix = qk::js::MixObject::mix<type>(args.This())
-	#define Js_Self(type)    auto self = qk::js::MixObject::mix<type>(args.This())->self()
+	#define Js_Mix(type)     auto mix = qk::js::MixObject::mix<type>(args.thisObj())
+	#define Js_Self(type)    auto self = qk::js::MixObject::mix<type>(args.thisObj())->self()
 	#define Js_Handle_Scope() qk::js::HandleScope scope(worker)
 
 	#define Js_Throw_Error(Error, err, ...) \
@@ -105,6 +105,7 @@ namespace qk { namespace js {
 	class JSBoolean;
 	class JSArray;
 	class JSFunction;
+	class JSClass;
 
 	class NoCopy {
 	public:
@@ -117,7 +118,7 @@ namespace qk { namespace js {
 		T      *_val;
 		Worker *_worker;
 	public:
-		inline Persistent(): _val(0), _worker(0) {
+		inline Persistent(): _val(0) , _worker(0) {
 			Js_Type_Check(JSValue, T);
 		}
 		template <class S>
@@ -213,7 +214,7 @@ namespace qk { namespace js {
 	class Qk_Export FunctionCallbackInfo {
 	public:
 		Worker* worker() const;
-		JSObject* This() const;
+		JSObject* thisObj() const;
 		ReturnValue returnValue() const;
 		JSValue* operator[](int i) const;
 		int length() const;
@@ -223,14 +224,14 @@ namespace qk { namespace js {
 	class Qk_Export PropertyCallbackInfo {
 	public:
 		Worker* worker() const;
-		JSObject* This() const;
+		JSObject* thisObj() const;
 		ReturnValue returnValue() const;
 	};
 
 	class Qk_Export PropertySetCallbackInfo {
 	public:
 		Worker* worker() const;
-		JSObject* This() const;
+		JSObject* thisObj() const;
 	};
 
 	typedef const FunctionCallbackInfo& FunctionArgs;
@@ -263,7 +264,7 @@ namespace qk { namespace js {
 		bool isBuffer() const; // IsTypedArray or IsArrayBuffer
 		bool equals(Worker *worker, JSValue* val) const;
 		bool strictEquals(JSValue* val) const;
-		bool instanceOf(Worker* worker, JSObject* value); // this instanceOf value
+		bool instanceOf(Worker* worker, JSObject* constructor); // this instanceOf constructor
 		template<class T = JSValue>
 		inline T* as() {
 			return static_cast<T*>(this);
@@ -272,7 +273,6 @@ namespace qk { namespace js {
 		JSNumber* toNumber(Worker* worker) const;
 		JSInt32* toInt32(Worker* worker) const;
 		JSUint32* toUint32(Worker* worker) const;
-		// JSObject* asObject(Worker* worker) const;
 		JSBoolean* toBoolean(Worker* worker) const;
 		String  toStringValue(Worker* worker, bool oneByte = false) const; // to utf8 or one byte string
 		String2 toStringValue2(Worker* worker) const; // to utf16 string
@@ -319,8 +319,6 @@ namespace qk { namespace js {
 			AccessorSetterCallback set = nullptr);
 		bool defineOwnProperty(Worker *worker, JSValue *key, JSValue *value, int flags = None);
 		bool setPrototype(Worker* worker, JSObject* __proto__); // set obj.__proto__
-		void* getObjectPrivate();
-		bool setObjectPrivate(void* value);
 		Maybe<Dict<String, int>> toIntegerDict(Worker* worker);
 		Maybe<Dict<String, String>> toStringDict(Worker* worker);
 	};
@@ -346,11 +344,6 @@ namespace qk { namespace js {
 	class Qk_Export JSInt32: public JSNumber {
 	public:
 		int value() const;
-	};
-
-	class Qk_Export JSInteger: public JSNumber {
-	public:
-		int64_t value() const;
 	};
 
 	class Qk_Export JSUint32: public JSNumber {
@@ -417,11 +410,95 @@ namespace qk { namespace js {
 		template<class T>
 		bool setStaticProperty(cString& name, T value);
 	protected:
+		void callConstructor(FunctionArgs args);
 		JSClass(FunctionCallback constructor, AttachCallback attach);
 		Persistent<JSFunction> _func; // constructor function
 		FunctionCallback _constructor;
 		AttachCallback _attachConstructor;
 		friend class JsClasses;
+		friend class MixObject;
+	};
+
+	template<class T> class Mix;
+
+	class Qk_Export MixObject {
+		Qk_HIDDEN_ALL_COPY(MixObject);
+	public:
+		inline Worker* worker() {
+			return _class->worker();
+		}
+		inline JSObject* handle() {
+			return _handle;
+		}
+		inline JSClass* jsclass() {
+			return _class;
+		}
+		template<class Self = Object>
+		inline Self* self() {
+			return static_cast<Self*>(reinterpret_cast<Object*>(this + 1));
+		}
+		inline MixObject() {}
+		virtual ~MixObject();
+		virtual void initialize();
+		virtual bool addEventListener(cString& name, cString& func, int id);
+		virtual bool removeEventListener(cString& name, int id);
+
+		// Calling member function
+		JSValue* call(JSValue* method, int argc = 0, JSValue* argv[] = 0);
+		JSValue* call(cString& method, int argc = 0, JSValue* argv[] = 0);
+
+		/**
+		* Note: value must instance of MixObject else causes the program to crash
+		*/
+		template<class T = MixObject>
+		static inline T* mixObject(JSValue *value) {
+			Js_Type_Check(MixObject, T);
+			return static_cast<T*>(unpack(value));
+		}
+		template<class Self = Object>
+		static inline Mix<Self>* mix(JSValue *value) {
+			static_assert(object_traits<Self>::isObj, "Must be object");
+			return static_cast<Mix<Self>*>(unpack(value));
+		}
+		template<class Self>
+		static inline Mix<Self>* mix(Self *object) {
+			return mix(object, Js_Typeid(*object));
+		}
+		template<class Self>
+		static inline Mix<Self>* mix(Self *object, uint64_t classAlias) {
+			static_assert(object_traits<Self>::isObj, "Must be object");
+			return static_cast<js::Mix<Self>*>(pack(object, classAlias));
+		}
+
+	protected:
+		template<class M, class Self>
+		static Mix<Self>* New(FunctionArgs args, Self *self) {
+			static_assert(sizeof(M) == sizeof(MixObject),
+										"Derived mix class pairs cannot declare data members");
+			static_assert(object_traits<Self>::isObj, "Must be object");
+			auto mix = (new(reinterpret_cast<MixObject*>(self) - 1) M())->newInit(args);
+			return static_cast<Mix<Self>*>(static_cast<MixObject*>(mix));
+		}
+
+	private:
+		static MixObject* pack(Object* obj, uint64_t classAlias);
+		static MixObject* unpack(JSValue* obj);
+		void clearWeak();
+		void setWeak();
+		void bindObject(JSObject* handle);
+		MixObject* newInit(FunctionArgs args);
+
+		JSObject *_handle;
+		JSClass *_class;
+		friend class JsHeapAllocator;
+	};
+
+	template<class Self = Object>
+	class Mix: public MixObject {
+	public:
+		inline Self* self() {
+			return reinterpret_cast<Self*>(this + 1);
+		}
 	};
 
 	class Qk_Export Worker: public Object, public SafeFlag {
@@ -443,7 +520,7 @@ namespace qk { namespace js {
 		// @prop
 		Qk_DEFINE_P_GET(TypesParser*, types, Protected);
 		Qk_DEFINE_P_GET(Strings*, strs, Protected);
-		Qk_DEFINE_P_GET(JsClasses*, classses, Protected);
+		Qk_DEFINE_P_GET(JsClasses*, classes, Protected);
 		Qk_DEFINE_P_GET(ThreadID, thread_id, Protected);
 		Qk_DEFINE_P_GET(RunLoop*, loop);
 		Qk_DEFINE_A_GET(JSObject*, global);
@@ -530,84 +607,6 @@ namespace qk { namespace js {
 		// props
 		Persistent<JSObject> _global, _console;
 		Persistent<JSObject> _nativeModules;
-	};
-
-	template<class T> class Mix;
-
-	class Qk_Export MixObject {
-		Qk_HIDDEN_ALL_COPY(MixObject);
-	public:
-		inline Worker* worker() {
-			return _handle._worker;
-		}
-		inline JSObject* handle() {
-			return *_handle;
-		}
-		template<class T = Object>
-		inline T* self() {
-			return static_cast<T*>(reinterpret_cast<Object*>(this + 1));
-		}
-		inline MixObject() {}
-		virtual ~MixObject();
-		virtual void init();
-		virtual bool addEventListener(cString& name, cString& func, int id);
-		virtual bool removeEventListener(cString& name, int id);
-
-		Object* externalData();
-		bool setExternalData(Object* data);
-
-		// call member func
-		JSValue* call(JSValue* method, int argc = 0, JSValue* argv[] = 0);
-		JSValue* call(cString& method, int argc = 0, JSValue* argv[] = 0);
-
-		template<class Self = Object>
-		static inline Mix<Self>* mix(JSValue *value) {
-			static_assert(object_traits<Self>::isObj, "Must be object");
-			return static_cast<Mix<Self>*>(unpack(value));
-		}
-		template<class T = MixObject>
-		static inline T* mixObject(JSValue *value) {
-			Js_Type_Check(MixObject, T);
-			return static_cast<T*>(unpack(value));
-		}
-		template<class Self>
-		static inline Mix<Self>* mix(Self *object) {
-			return mix(object, Js_Typeid(*object));
-		}
-		template<class Self>
-		static inline Mix<Self>* mix(Self *object, uint64_t type_id) {
-			static_assert(object_traits<Self>::isObj, "Must be object");
-			return static_cast<js::Mix<Self>*>(pack(object, type_id));
-		}
-
-		template<class M, class Self>
-		static Mix<Self>* New(FunctionArgs args, Self *self) {
-			static_assert(sizeof(M) == sizeof(MixObject),
-										"Derived mix class pairs cannot declare data members");
-			static_assert(object_traits<Self>::isObj, "Must be object");
-			auto mix = (new(reinterpret_cast<MixObject*>(self) - 1) M())->newInit(args);
-			return static_cast<Mix<Self>*>(static_cast<MixObject*>(mix));
-		}
-
-	private:
-		static void clearWeak(MixObject *mix);
-		static void setWeak(MixObject *mix);
-		static MixObject* unpack(JSValue* object);
-		static MixObject* pack(Object* object, uint64_t type_id);
-		MixObject* newInit(FunctionArgs args);
-		MixObject* attach(Worker *worker, JSObject* This);
-		Persistent<JSObject> _handle;
-
-		friend class JsClasses;
-		friend class JsHeapAllocator;
-	};
-
-	template<class Self = Object>
-	class Mix: public MixObject {
-	public:
-		inline Self* self() {
-			return reinterpret_cast<Self*>(this + 1);
-		}
 	};
 
 	Qk_Export int Start(cString &startup, cArray<String> &argv);

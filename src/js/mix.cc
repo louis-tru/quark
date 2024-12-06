@@ -46,20 +46,21 @@ namespace qk { namespace js {
 
 	void JsHeapAllocator::strong(Object* obj) {
 		auto mix = reinterpret_cast<MixObject*>(obj) - 1;
-		if ( mix->worker() ) {
-			MixObject::clearWeak(mix);
+		if ( mix->_class ) {
+			mix->clearWeak();
 		}
 	}
 
 	void JsHeapAllocator::weak(Object* obj) {
 		auto mix = reinterpret_cast<MixObject*>(obj) - 1;
-		auto worker = mix->worker();
-		if ( worker ) {
+		if ( mix->_class ) {
+			auto worker = mix->worker();
 			if (thread_self_id() == worker->thread_id()) {
-				MixObject::setWeak(mix);
+				mix->setWeak();
 			} else if (worker->isValid()) {
 				worker->loop()->post(Cb((Cb::Static<>)[](auto e, auto obj) {
-					MixObject::setWeak(reinterpret_cast<MixObject*>(obj) - 1); // Must be called on the js worker thread
+					// Must be called on the js worker thread
+					(reinterpret_cast<MixObject*>(obj) - 1)->setWeak();
 				}, obj));
 			} else {
 				obj->destroy();
@@ -79,10 +80,11 @@ namespace qk { namespace js {
 		return false;
 	}
 
-	void MixObject::init() {
+	MixObject::~MixObject() {
+		_handle = nullptr;
 	}
 
-	MixObject::~MixObject() {
+	void MixObject::initialize() {
 	}
 
 	static bool isSetWeak(Object *obj) {
@@ -90,51 +92,8 @@ namespace qk { namespace js {
 			static_cast<Reference*>(obj)->refCount() <= 0;
 	}
 
-	MixObject* MixObject::newInit(FunctionArgs args) {
-		Qk_Assert(_handle.isEmpty());
-		Qk_Assert(args.isConstructCall());
-		_handle.reset(args.worker(), args.This());
-		Qk_Assert(args.This()->setObjectPrivate(this));
-		if (isSetWeak(self())) {
-			setWeak(this);
-		}
-		init();
-		return this;
-	}
-
-	MixObject* MixObject::attach(Worker *worker, JSObject* This) {
-		_handle.reset(worker, This);
-		Qk_Assert(This->setObjectPrivate(this));
-		init();
-		return this;
-	}
-
-	Object* MixObject::externalData() {
-		auto worker = _handle.worker();
-		auto data = _handle->get(worker, worker->strs()->_mix_external_data());
-		if ( worker->instanceOf(data, Js_Typeid(Object)) )
-			return mix(data)->self();
-		return nullptr;
-	}
-
-	bool MixObject::setExternalData(Object* data) {
-		Qk_Assert(data);
-		auto p = mix(data, Js_Typeid(Object));
-		if (p) {
-			if (isSetWeak(data)) {
-				setWeak(p);
-			}
-			auto worker = _handle.worker();
-			//Qk_DLog("%i", p->handle().isWeak());
-			Qk_Assert(_handle->set(worker, worker->strs()->_mix_external_data(), p->handle()));
-			//Qk_DLog("%i", p->handle().isWeak());
-			Qk_Assert(externalData());
-		}
-		return p;
-	}
-
 	JSValue* MixObject::call(JSValue* method, int argc, JSValue* argv[]) {
-		auto recv = *_handle;
+		auto recv = _handle;
 		auto func = recv->get(worker(), method);
 		if ( func->isFunction() ) {
 			return func->as<JSFunction>()->call(worker(), argc, argv, recv);
@@ -148,16 +107,34 @@ namespace qk { namespace js {
 		return call(worker()->newStringOneByte(name), argc, argv);
 	}
 
-	MixObject* MixObject::unpack(JSValue* object) {
-		Qk_Assert(object);
-		return static_cast<MixObject*>(object->as<JSObject>()->getObjectPrivate());
+	MixObject* MixObject::newInit(FunctionArgs args) {
+		Qk_Assert_Eq(_handle, nullptr);
+		Qk_Assert_Eq(true, args.isConstructCall());
+		auto worker = args.worker();
+		_class = worker->classes()->_runClass;
+		Qk_Assert_Ne(_class, nullptr);
+		bindObject(args.thisObj());
+		if (isSetWeak(self()))
+			setWeak();
+		initialize();
+		return this;
 	}
 
-	MixObject* MixObject::pack(Object* object, uint64_t type_id) {
-		MixObject* mix = reinterpret_cast<MixObject*>(object) - 1;
-		if ( !mix->worker() ) {
+	MixObject* MixObject::pack(Object* obj, uint64_t classAlias) {
+		auto mix = reinterpret_cast<MixObject*>(obj) - 1;
+		if (!mix->_class) {
 			Js_Worker();
-			return worker->classses()->attachObject(type_id, object);
+			auto classes = worker->classes();
+			auto cls = classes->get(classAlias);
+			if (!cls)
+				return nullptr;
+			Qk_Assert_Eq(classes->_attachObject, nullptr);
+			classes->_attachObject = mix;
+			auto handle = cls->newInstance();
+			classes->_attachObject = nullptr;
+			mix->_class = cls;
+			mix->bindObject(handle);
+			mix->initialize();
 		}
 		return mix;
 	}

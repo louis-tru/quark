@@ -85,9 +85,11 @@ namespace qk { namespace js {
 		Array<JSValueRef> _handles;
 	};
 
-	void JscWorker::addToScope(JSValueRef ref) {
+	template<>
+	JSValue* JscWorker::addToScope(JSValueRef ref) {
 		DCHECK(_scope);
 		_scope->add(ref);
+		return Cast(ref);
 	}
 
 	HandleScope::HandleScope(Worker* worker) {
