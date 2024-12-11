@@ -41,31 +41,24 @@ namespace js {
 	std::atomic_int workers_count(0);
 	Worker* first_worker = nullptr;
 
-	bool JSValue::isBuffer() const {
-		return isTypedArray() || isArrayBuffer();
-	}
-
-	WeakBuffer JSValue::toBufferValue(Worker *worker) {
+	Maybe<WeakBuffer> JSValue::asBuffer(Worker *worker) const {
 		if (isTypedArray()) {
 			return static_cast<JSTypedArray*>(this)->value(worker);
 		}
 		else if (isArrayBuffer()) {
 			return static_cast<JSArrayBuffer*>(this)->value(worker);
 		}
-		return WeakBuffer();
+		return Maybe<WeakBuffer>();
 	}
 
-	String JSString::value(Worker* worker, bool oneByte) const {
-		return toStringValue(worker, oneByte);
-	}
-
-	Buffer JSString::toBuffer(Worker* worker, Encoding en) const {
+	Buffer JSString::toBuffer(Worker* w, Encoding en) const {
 		if (en == Encoding::kUTF16_Encoding) {
-			String2 str = toStringValue2(worker);
-			uint32_t len = str.length() * 2;
-			return Buffer((Char*)str.collapse().collapse(), len);
+			auto str = value2(w);
+			auto len = str.length() << 1;
+			auto capacity = str.capacity() << 1;
+			return Buffer((char*)str.collapse().collapse(), len, capacity);
 		} else {
-			return codec_encode(en, toStringValue4(worker).array().buffer());
+			return value(w).collapse();
 		}
 	}
 
@@ -203,9 +196,9 @@ namespace js {
 	}
 
 	JSValue* WorkerInl::binding(JSValue* name) {
-		auto r = _nativeModules->get(this, name);
-		if (!r->isUndefined())
-			return r;
+		auto mod = _nativeModules->get(this, name);
+		if (!mod->isUndefined())
+			return mod;
 		auto exports = newObject();
 		auto name_str = name->toStringValue(this);
 		const NativeModuleLib* lib;
@@ -216,11 +209,11 @@ namespace js {
 				lib->binding(exports, this);
 			}
 			else if (lib->native_code) {
+				auto nc = lib->native_code;
 				_nativeModules->set(this, name, exports);
+
 				exports = runNativeScript(
-					WeakBuffer(lib->native_code->code, lib->native_code->count).buffer(),
-					String(lib->native_code->name) + lib->native_code->ext, exports
-				)->as<JSObject>();
+					nc->code, nc->count, String(nc->name) + nc->ext, exports)->cast<JSObject>();
 
 				if ( !exports ) { // error
 					_nativeModules->deleteFor(this, name);
@@ -229,10 +222,10 @@ namespace js {
 			}
 			_nativeModules->set(this, name, exports);
 			return exports;
-		} else {
-			auto worker = this;
-			Js_Throw("Module does not exist, %s", *name_str), nullptr;
 		}
+
+		auto worker = this;
+		Js_Throw("Module does not exist, %s", *name_str), nullptr;
 	}
 
 	JSValue* Worker::bindingModule(cString& name) {
@@ -371,7 +364,7 @@ namespace js {
 	}
 
 	JSString* Worker::newValue(cString4& data) {
-		return newValue(codec_encode_to_utf16(data.array().buffer()).collapseString());
+		return newValue(codec_unicode_to_utf16(data.array().buffer()).collapseString());
 	}
 
 	template<typename T>
@@ -401,7 +394,7 @@ namespace js {
 		return newValue(str->toBuffer(this, en));
 	}
 
-	JSUint8Array* Worker::newUint8Array(int size, Char fill) {
+	JSUint8Array* Worker::newUint8Array(int size, char fill) {
 		auto ab = newArrayBuffer(size);
 		if (fill)
 			memset(ab->data(this), fill, size);
@@ -427,25 +420,44 @@ namespace js {
 	JSClass* Worker::jsclass(uint64_t alias) {
 		return _classes->get(alias);
 	}
-	
+
+	JSValue* Worker::runNativeScript(cChar* source, int sLen, cString& name, JSObject* exports) {
+		EscapableHandleScope scope(this);
+		if (!exports)
+			exports = newObject();
+		auto srcBuf = WeakBuffer(source, sLen).buffer();
+		auto func = runScript(newString(srcBuf), newValue(name))->cast<JSFunction>();
+		if ( func ) {
+			Qk_Assert(func->isFunction());
+			auto mod = newObject();
+			mod->set(this, strs()->exports(), exports);
+			JSValue *args[] = { exports->cast(), mod->cast(), global()->cast() };
+			// (function(exports,module,global){ ... })
+			if (func->call(this, 3, args)) {
+				return scope.escape( mod->get(this, strs()->exports()) );
+			}
+		}
+		return nullptr;
+	}
+
 	// ---------------------------------------------------------------------------------------------
 
 	static JSValue* TriggerEventFromUtil(
 		Worker* worker, cString& name, int argc = 0, JSValue* argv[] = 0
 	) {
-		auto _util = worker->bindingModule("_util")->as<JSObject>();
+		auto _util = worker->bindingModule("_util")->cast<JSObject>();
 		Qk_Assert(_util);
 
 		auto func = _util->getProperty(worker, String("__on").append(name).append("_native"));
 		if (!func->isFunction()) {
 			return nullptr;
 		}
-		return func->as<JSFunction>()->call(worker, argc, argv);
+		return func->cast<JSFunction>()->call(worker, argc, argv);
 	}
 
 	static int TriggerExit(Worker* worker, cString& name, int code) {
 		Js_Handle_Scope();
-		auto argv = worker->newValue(code)->as<JSValue>();
+		auto argv = worker->newValue(code)->cast<JSValue>();
 		auto rc = TriggerEventFromUtil(worker, name, 1, &argv);
 		if (rc && rc->isInt32()) {
 			return rc->toInt32Value(worker).unsafe();
@@ -536,7 +548,26 @@ namespace js {
 		__quark_js_argc = argc;
 		__quark_js_argv = argv;
 
-		int rc = platformStart(argc, argv, [](Worker* worker) -> int {
+		int rc = StartPlatform(argc, argv, [](Worker* worker) -> int {
+			// Startup debugger
+			for (int i = 2; i < __quark_js_argc; i++) {
+				String arg(__quark_js_argv[i]);
+				if (arg.indexOf("--inspect") == 0) {
+					auto script_path = fs_reader()->format(__quark_js_argv[1]);
+					auto kv = arg.split('=');
+					bool brk = arg.indexOf("-brk") != -1;
+					if (kv.length() == 1) {
+						runDebugger(worker, {brk,9229,"127.0.0.1",script_path});
+					} else {
+						auto host = kv[1].split(':');
+						int port = 9229;
+						if (host.length() > 1) host[1].toNumber<int>(&port);
+						runDebugger(worker, {brk,port,host[0],script_path});
+					}
+					break;
+				}
+			}
+
 			int rc = 0;
 			auto loop = RunLoop::current();
 
@@ -544,9 +575,9 @@ namespace js {
 				Js_Handle_Scope();
 				auto _pkg = worker->bindingModule("_pkg");
 				Qk_Assert(_pkg && _pkg->isObject(), "Can't start worker");
-				auto r = _pkg->as<JSObject>()->
-					getProperty(worker, "Module")->as<JSObject>()->
-					getProperty(worker, "runMain")->as<JSFunction>()->call(worker);
+				auto r = _pkg->cast<JSObject>()->
+					getProperty(worker, "Module")->cast<JSObject>()->
+					getProperty(worker, "runMain")->cast<JSFunction>()->call(worker);
 				if (!r) {
 					Qk_ELog("ERROR: Can't call runMain()");
 					return ERR_RUN_MAIN_EXCEPTION;

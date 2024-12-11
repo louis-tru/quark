@@ -43,7 +43,7 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			auto Event = exports->get(worker, worker->newStringOneByte("Event"))
-				->as<JSFunction>();
+				->cast<JSFunction>();
 
 			Js_New_Class(NativeEvent, Js_Typeid(NativeEvent), Event, _Js_Fun({
 				Js_Throw("Access forbidden.");
@@ -277,9 +277,9 @@ namespace qk { namespace js {
 
 	struct MixEvent {
 		static void binding(JSObject* exports, Worker* worker) {
-			worker->runNativeScript(WeakBuffer((Char*)
+			worker->runNativeScript((Char*)
 				native_js::INL_native_js_code__event_,
-				native_js::INL_native_js_code__event_count_).buffer(), "_event.js", exports);
+				native_js::INL_native_js_code__event_count_, "_event.js", exports);
 			MixNativeEvent::binding(exports, worker);
 			MixUIEvent::binding(exports, worker);
 			MixActionEvent::binding(exports, worker);

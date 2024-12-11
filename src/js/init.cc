@@ -128,11 +128,11 @@ namespace qk { namespace js {
 				_rv->push( "[Function]" );
 			}
 			else if (arg->isObject()) {
-				JSObject* o = arg->as<JSObject>();
+				JSObject* o = arg->cast<JSObject>();
 				if (o->has(worker, worker->strs()->toStringStyled())) {
-					auto indent = worker->newValue(_indent)->as();
+					auto indent = worker->newValue(_indent)->cast();
 					auto toStringStyled = o->get(worker, worker->strs()->toStringStyled());
-					auto str = toStringStyled->as<JSFunction>()->call(worker, 1, &indent, o);
+					auto str = toStringStyled->cast<JSFunction>()->call(worker, 1, &indent, o);
 					if (!str)
 						return false; // error
 					_rv->push( str->toStringValue(worker) );
@@ -151,7 +151,7 @@ namespace qk { namespace js {
 					_set->add(worker, o);
 
 					if (arg->isArray()) {
-						rv = stringify_array(o->as<JSArray>());
+						rv = stringify_array(o->cast<JSArray>());
 					} else {
 						rv = stringify_object(o);
 					}
@@ -174,7 +174,7 @@ namespace qk { namespace js {
 			else if(arg->isDate()) {
 				_rv->push('"');
 				auto f =
-					arg->as<JSObject>()->get(worker, worker->strs()->toJSON())->as<JSFunction>();
+					arg->cast<JSObject>()->get(worker, worker->strs()->toJSON())->cast<JSFunction>();
 				_rv->push( f->call(worker, 0, nullptr, arg)->toStringValue(worker) );
 				_rv->push('"');
 			}
@@ -219,7 +219,7 @@ namespace qk { namespace js {
 				argv[i] = args[i];
 			}
 			auto console = Qk_WorkerInl(worker)->console();
-			auto f = console->get(worker, name)->as<JSFunction>();
+			auto f = console->get(worker, name)->cast<JSFunction>();
 			f->call(worker, argv.length(), *argv, console);
 		}
 
@@ -303,13 +303,14 @@ namespace qk { namespace js {
 		}
 
 		static void clear_timer(Worker *worker, FunctionArgs args, cChar* name) {
-			if (!args.length() || !args[0]->isUint32()) {
+			uint32_t id;
+			if (!args.length() || !args[0]->toUint32Value().to(id)) {
 				Js_Throw(
 					"@method %s(id)\n"
 					"@param id {Number}\n", name
 				);
 			}
-			first_loop()->timer_stop(args[0]->toUint32Value(worker).unsafe());
+			first_loop()->timer_stop(id);
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -404,7 +405,7 @@ namespace qk { namespace js {
 
 	void WorkerInl::initGlobalAPIs() {
 		auto str = newStringOneByte("console");
-		auto console = global()->get(this, str)->as<JSObject>();
+		auto console = global()->get(this, str)->cast<JSObject>();
 		auto isObject = console->isObject();
 		if (!isObject) {
 			global()->set(this, str, (console = newObject()));
@@ -526,7 +527,7 @@ namespace qk { namespace js {
 					name = worker->newStringOneByte("[eval]");
 				}
 				if (args.length() > 2 && args[2]->isObject()) {
-					sandbox = args[2]->template as<JSObject>();
+					sandbox = args[2]->template cast<JSObject>();
 				}
 				auto rv = worker->runScript(args[0]->template as<JSString>(), name, sandbox);
 				if (rv) {

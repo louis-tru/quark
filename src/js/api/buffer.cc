@@ -88,18 +88,18 @@ namespace qk { namespace js {
 				args_index++;
 			}
 			if (args.length() > args_index) {
-				start = args[args_index]->toUint32Value(worker).unsafe();
+				start = args[args_index]->asUint32(worker).from(0);
 				start = Qk_Min(len, start);
 				args_index++;
 			}
 			if (args.length() > args_index) {
-				end = args[args_index]->toUint32Value(worker).unsafe();
+				end = args[args_index]->asUint32(worker).from(0);
 				end = Qk_Min(len, end);
 				args_index++;
 			}
 
 			if ( end <= start ) {
-				Js_Return( JSString::Empty(worker) );
+				Js_Return( worker->newEmpty() );
 			}
 
 			switch (en) {

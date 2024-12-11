@@ -70,6 +70,12 @@ namespace qk { namespace js {
 		F(httpVersion)     F(statusCode)     F(responseHeaders) \
 		F(window) F(_log) F(_warn) F(_error) F(_clear)
 
+	#define Js_Format_Str(msg) \
+		va_list arg; \
+		va_start(arg, errmsg); \
+		auto str = _Str::printfv(errmsg, arg); \
+		va_end(arg) \
+
 	extern Worker* first_worker;
 
 	class Strings {
@@ -123,7 +129,7 @@ namespace qk { namespace js {
 	void runDebugger(Worker* worker, const DebugOptions &opts);
 	void stopDebugger(Worker* worker);
 	void debuggerBreakNextStatement(Worker* worker);
-	int  platformStart(int argc, Char** argv, int (*exec)(Worker *worker));
+	int  StartPlatform(int argc, Char** argv, int (*exec)(Worker *worker));
 	int  triggerExit(Worker* worker, int code);
 	int  triggerBeforeExit(Worker* worker, int code);
 	bool triggerUncaughtException(Worker* worker, JSValue* err);

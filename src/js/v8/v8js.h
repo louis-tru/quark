@@ -45,6 +45,9 @@ namespace qk { namespace js {
 	# define ISOLATE_INL_WORKER_DATA_INDEX (0)
 	#endif
 
+	#define DCHECK Qk_Assert
+	#define CHECK  Qk_Fatal_Assert
+
 	#define WORKER(...) WorkerImpl::worker( __VA_ARGS__ )
 	#define ISOLATE(...) WorkerImpl::worker( __VA_ARGS__ )->_isolate
 	#define CONTEXT(...) WorkerImpl::worker( __VA_ARGS__ )->_context
@@ -114,14 +117,9 @@ namespace qk { namespace js {
 		inline v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
 			return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
 		}
-
-		v8::MaybeLocal<v8::Value> runScript(v8::Local<v8::String> source_string,
-																		v8::Local<v8::String> name, v8::Local<v8::Object> sandbox);
-		JSValue* runNativeScript(cBuffer& source, cString& name, JSObject* exports);
-		String parse_exception_message(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
-		void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
-		void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
-		void unhandled_rejection(PromiseRejectMessage& message);
+		void printException(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
+		void uncaughtException(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
+		void unhandledRejection(PromiseRejectMessage& message);
 
 		void runDebugger(const DebugOptions &opts);
 		void stopDebugger();

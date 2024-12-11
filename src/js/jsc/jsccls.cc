@@ -41,13 +41,6 @@ namespace qk { namespace js {
 		static JSClassRef accessorGet;
 	} static factorys = {0};
 
-#if DEBUG
-	struct DebugPrivate {
-		MixObject* mix;
-		bool isWeak;
-	};
-#endif
-
 	constexpr int FunctionPrivateMark = 125894334;
 
 	template<typename Func>
@@ -58,6 +51,13 @@ namespace qk { namespace js {
 		JscClass *sign;
 		int _mark = FunctionPrivateMark;
 	};
+
+#if DEBUG
+	struct DebugPrivate {
+		MixObject* mix;
+		bool isWeak;
+	};
+#endif
 
 	void MixObject::clearWeak() {
 		Qk_Assert_Ne(_handle, nullptr);
@@ -187,9 +187,7 @@ namespace qk { namespace js {
 			auto mix = static_cast<MixObject*>(JSObjectGetPrivate(thisObj));
 			auto worker = WORKER(mix->worker());
 			// TODO ...
-
 			worker->throwException(worker->newErrorJsc("Illegal call"));
-
 			return false;
 		}
 
@@ -327,7 +325,7 @@ namespace qk { namespace js {
 	bool JSClass::hasInstance(JSValue* val) {
 		Qk_Assert_Ne(val, nullptr);
 		ENV(_worker);
-		auto ok = JSValueIsInstanceOfConstructor(ctx, val, _jscclass(this)->_constructor, ex, OK(false));
+		auto ok = JSValueIsInstanceOfConstructor(ctx, val, _jscclass(this)->_constructor, OK(false));
 		return ok;
 	}
 
@@ -339,7 +337,8 @@ namespace qk { namespace js {
 		auto s = JsStringWithUTF8(*name);
 		auto f = JSObjectMake(ctx, factorys.function, new FunctionPrivate<FunctionCallback>{func, s, worker, sign});
 		DCHECK(f);
-		JSObjectSetProperty(ctx, target, JSValueMakeString(ctx, s), f, nullptr, OK(false));
+		auto ok = JSObjectSetProperty(ctx, target, JSValueMakeString(ctx, s), f, nullptr, OK(false));
+		return ok;
 	}
 
 	static bool setAccessorFunction(

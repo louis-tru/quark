@@ -87,16 +87,11 @@ namespace qk { namespace js {
 	void MixObject::initialize() {
 	}
 
-	static bool isSetWeak(Object *obj) {
-		return !obj->isReference() || /* non reference */
-			static_cast<Reference*>(obj)->refCount() <= 0;
-	}
-
 	JSValue* MixObject::call(JSValue* method, int argc, JSValue* argv[]) {
 		auto recv = _handle;
 		auto func = recv->get(worker(), method);
 		if ( func->isFunction() ) {
-			return func->as<JSFunction>()->call(worker(), argc, argv, recv);
+			return func->cast<JSFunction>()->call(worker(), argc, argv, recv);
 		} else {
 			worker()->throwError("Function not found, \"%s\"", *method->toStringValue(worker()));
 			return nullptr;
@@ -114,7 +109,8 @@ namespace qk { namespace js {
 		_class = worker->classes()->_runClass;
 		Qk_Assert_Ne(_class, nullptr);
 		bindObject(args.thisObj());
-		if (isSetWeak(self()))
+		auto obj = self();
+		if (!obj->isReference() || static_cast<Reference*>(obj)->refCount() <= 0)
 			setWeak();
 		initialize();
 		return this;

@@ -229,7 +229,7 @@ namespace qk { namespace js {
 				auto arr = rss->search( key->toStringValue(worker, true), true );
 
 				if ( arr.length() ) {
-					auto props = val->as<JSObject>();
+					auto props = val->cast<JSObject>();
 					auto names = props->getPropertyNames(worker);
 
 					for ( uint32_t j = 0, len = names->length(); j < len; j++ ) {

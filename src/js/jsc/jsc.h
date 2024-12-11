@@ -67,7 +67,7 @@ namespace qk { namespace js {
 	#define THROW_ERR(msg) worker->throwException(worker->newErrorJsc(msg))
 
 	#define JsStringWithUTF8(S) JSStringCreateWithUTF8CString(S)
-	#define JsFatal(ctx) &ex); do { qk::js::jsFatal(ctx,ex); }while(0
+	#define JsFatal(...) &ex); do { qk::js::jsFatal(ctx,ex, ##__VA_ARGS__); }while(0
 	#define DCHECK Qk_Assert
 	#define CHECK  Qk_Fatal_Assert
 
@@ -112,17 +112,16 @@ namespace qk { namespace js {
 	}
 
 	void initFactorys();
-	void jsFatal(JSContextRef ctx, JSValueRef ex);
+	void jsFatal(JSContextRef ctx, JSValueRef ex, cCher* msg = 0);
 	String jsToString(JSStringRef value)
 	String jsToString(JSContextRef ctx, JSValueRef value) {
 		return jsToString(*JSValueToStringCopy(ctx, value, nullptr));
 	}
-	JSObjectRef runNativeScript(JSGlobalContextRef ctx, cChar* script, cChar* name);
 
 	struct WorkerData {
 		void initialize(JSGlobalContextRef ctx);
 		void destroy(JSGlobalContextRef ctx);
-		JSValueRef Undefined, Null, True, False, EmptyString, TypedArray;
+		JSValueRef Undefined, Null, True, False, EmptyString, TypedArray, WrapSandboxScriptFunc;
 		#define _Attr_Fun(name,from) JSObjectRef from##_##name;
 		Js_Worker_Data_Each(_Attr_Fun)
 		#undef _Attr_Fun
@@ -138,6 +137,7 @@ namespace qk { namespace js {
 		JSObjectRef newErrorJsc(cChar* message);
 		void throwException(JSValueRef exception);
 		void reportException(JSValueRef exception);
+		JSValue* runScript(JSString* jsSource, cString& source, JSString* name, JSObject* sandbox);
 		template<typename T = JSValue>
 		inline T* addToScope(JSValueRef ref) {
 			return reinterpret_cast<T*>(addToScope<JSValue>(ref));
@@ -167,6 +167,7 @@ namespace qk { namespace js {
 		friend class JscHandleScope;
 		friend class JscTryCatch;
 		friend class JscClass;
+		friend class Worker;
 	};
 
 	template<>

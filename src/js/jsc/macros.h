@@ -49,13 +49,26 @@
 	F(stack) \
 	F(_stack) \
 	F(length) \
+	F(errno) \
 
 #define Js_Worker_Data_Each(F) \
 	F(Object, global) \
 	F(Error, global) \
+	F(RangeError, global) \
+	F(ReferenceError, global) \
+	F(SyntaxError, global) \
+	F(TypeError, global) \
 	F(Function, global) \
 	F(ArrayBuffer, global) \
 	F(Uint8Array, global) \
+	F(Set, global) \
+	F(prototype, global_Set) \
+	F(add, global_Set_prototype) \
+	F(has, global_Set_prototype) \
+	F(delete, global_Set_prototype) \
+	F(Date, global) \
+	F(prototype, global_Date) \
+	F(valueOf, global_Date_prototype) \
 	F(prototype, Object) \
 	F(defineProperty, Object) \
 

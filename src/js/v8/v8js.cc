@@ -47,12 +47,12 @@ namespace qk { namespace js {
 	}
 
 	static void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		WORKER()->uncaught_exception(message, error);
+		WORKER()->uncaughtException(message, error);
 	}
 
 	static void PromiseRejectCallback(PromiseRejectMessage message) {
 		if (message.GetEvent() == v8::kPromiseRejectWithNoHandler) {
-			WORKER()->unhandled_rejection(message);
+			WORKER()->unhandledRejection(message);
 		}
 	}
 
@@ -102,64 +102,13 @@ namespace qk { namespace js {
 		}
 	}
 
-	v8::MaybeLocal<v8::Value> WorkerImpl::runScript(
-		v8::Local<v8::String> source_string,
-		v8::Local<v8::String> name, v8::Local<v8::Object> sandbox)
-	{
-		v8::ScriptCompiler::Source source(source_string, ScriptOrigin(name));
-		v8::MaybeLocal<v8::Value> result;
-
-		if ( sandbox.IsEmpty() ) { // use default sandbox
-			v8::Local<v8::Script> script;
-			if ( v8::ScriptCompiler::Compile(_context, &source).ToLocal(&script) ) {
-				result = script->Run(_context);
-			}
-		} else {
-			v8::Local<v8::Function> func;
-			if (v8::ScriptCompiler::
-					CompileFunctionInContext(_context, &source, 0, NULL, 1, &sandbox)
-					.ToLocal(&func)
-					) {
-				result = func->Call(_context, v8::Undefined(_isolate), 0, NULL);
-			}
-		}
-		return result;
-	}
-
-	JSValue* WorkerImpl::runNativeScript(cBuffer& source, cString& name, JSObject* exports) {
-		if (!exports) exports = newObject();
-
-		v8::EscapableHandleScope scope(_isolate);
-		v8::Local<v8::Value> _name = Back(newValue(name));
-		v8::Local<v8::Value> _souece = Back(newString(source));
-		v8::MaybeLocal<v8::Value> rv;
-
-		rv = runScript(_souece.As<v8::String>(),
-										_name.As<v8::String>(), v8::Local<v8::Object>());
-		if ( !rv.IsEmpty() ) {
-			auto mod = newObject();
-			mod->set(this, strs()->exports(), exports);
-			v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
-			v8::Local<v8::Value> args[] = { Back(exports), Back(mod), Back(global()) };
-			// '(function (exports, require, module, __filename, __dirname) {', '\n})'
-			rv = func->Call(_context, v8::Undefined(_isolate), 3, args);
-			if (!rv.IsEmpty()) {
-				auto rv = mod->get(this, strs()->exports());
-				Qk_Assert(rv->isObject());
-				return Cast(scope.Escape(Back(rv)));
-			}
-		}
-		return nullptr;
-	}
-
-	String WorkerImpl::parse_exception_message(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+	void WorkerImpl::printException(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 		v8::HandleScope handle_scope(_isolate);
 		v8::String::Utf8Value exception(_isolate, error);
-		cChar* exception_string = ToCstring(exception);
-		if (message.IsEmpty()) {
-			// V8 didn't provide any extra information about this error; just
-			return exception_string;
-		} else {
+		// V8 didn't provide any extra information about this error; just
+		String msgStr = ToCstring(exception);
+
+		if (!message.IsEmpty()) {
 			Array<String> out;
 			// Print (filename):(line number): (message).
 			v8::String::Utf8Value filename(_isolate, message->GetScriptOrigin().ResourceName());
@@ -197,23 +146,21 @@ namespace qk { namespace js {
 					out.push( stack_trace_string ); out.push('\n');
 				}
 			}
-			return out.join(String());
+			msgStr = out.join(String());
 		}
+
+		Qk_ELog("%s", *msgStr );
 	}
 
-	void WorkerImpl::print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		Qk_ELog("%s", *parse_exception_message(message, error) );
-	}
-
-	void WorkerImpl::uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		//print_exception(message, error);
+	void WorkerImpl::uncaughtException(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		//printException(message, error);
 		if ( !triggerUncaughtException(this, Cast(error)) ) {
-			print_exception( message, error);
+			printException( message, error);
 			qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
 		}
 	}
 
-	void WorkerImpl::unhandled_rejection(PromiseRejectMessage& message) {
+	void WorkerImpl::unhandledRejection(PromiseRejectMessage& message) {
 		v8::Local<v8::Promise> promise = message.GetPromise();
 		v8::Local<v8::Value> reason = message.GetValue();
 		if (reason.IsEmpty())
@@ -221,7 +168,7 @@ namespace qk { namespace js {
 		if ( !triggerUnhandledRejection(this, Cast(reason), Cast(promise)) ) {
 			v8::HandleScope scope(_isolate);
 			v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
-			print_exception(message, reason);
+			printException(message, reason);
 			qk::thread_exit(ERR_UNHANDLED_REJECTION);
 		}
 	}
@@ -304,7 +251,7 @@ namespace qk { namespace js {
 
 	void TryCatch::print() const {
 		auto mix = reinterpret_cast<TryCatchMix*>(_val);
-		mix->_worker->print_exception(mix->_try.Message(), mix->_try.Exception());
+		mix->_worker->printException(mix->_try.Message(), mix->_try.Exception());
 	}
 
 	// ----------------------------------------------------------------------------------
@@ -323,6 +270,7 @@ namespace qk { namespace js {
 	bool JSValue::isArrayBuffer() const { return reinterpret_cast<const v8::Value*>(this)->IsArrayBuffer(); }
 	bool JSValue::isTypedArray() const { return reinterpret_cast<const v8::Value*>(this)->IsTypedArray(); }
 	bool JSValue::isUint8Array() const { return reinterpret_cast<const v8::Value*>(this)->IsUint8Array(); }
+	bool JSValue::isBuffer() const { return isTypedArray() || isArrayBuffer(); }
 	bool JSValue::equals(Worker *worker, JSValue* val) const {
 		return reinterpret_cast<const v8::Value*>(this)->Equals(CONTEXT(worker), Back(val)).ToChecked();
 	}
@@ -330,8 +278,17 @@ namespace qk { namespace js {
 		return reinterpret_cast<const v8::Value*>(this)->StrictEquals(Back(val));
 	}
 
+	bool JSValue::instanceOf(Worker* worker, JSObject* value) const {
+		return reinterpret_cast<v8::Value*>(this)->
+			InstanceOf(CONTEXT(worker), Back<v8::Object>(value)).FromMaybe(false);
+	}
+
 	JSString* JSValue::toString(Worker* worker) const {
 		return Cast<JSString>(reinterpret_cast<const v8::Value*>(this)->ToString(CONTEXT(worker)));
+	}
+
+	JSBoolean* JSValue::toBoolean(Worker* worker) const {
+		return Cast<JSBoolean>(reinterpret_cast<const v8::Value*>(this)->ToBoolean(CONTEXT(worker)));
 	}
 
 	JSNumber* JSValue::toNumber(Worker* worker) const {
@@ -346,143 +303,118 @@ namespace qk { namespace js {
 		return Cast<JSUint32>(reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker)));
 	}
 
-	// JSObject* JSValue::asObject(Worker* worker) const {
-	// 	return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject(CONTEXT(worker)));
-	// }
-
-	JSBoolean* JSValue::toBoolean(Worker* worker) const {
-		return Cast<JSBoolean>(reinterpret_cast<const v8::Value*>(this)->ToBoolean(CONTEXT(worker)));
-	}
-
-	String JSValue::toStringValue(Worker* worker, bool oneByte) const {
-		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		if (!str->Length()) return String();
-		if ( oneByte ) {
-			Buffer buffer(str->Length());
-			str->WriteOneByte(ISOLATE(worker), (uint8_t*)*buffer, 0, buffer.capacity());
-			return buffer.collapseString();
+	Maybe<String> JSValue::asString(Worker *worker) const {
+		if (isString()) {
+			return static_cast<const JSString*>(this)->value(worker);
 		} else {
-			uint16_t source[128];
-			int start = 0, count;
-			auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
-			Array<String> rev;
-
-			while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
-				auto unicode = codec_decode_form_utf16(ArrayWeak<uint16_t>(source, count).buffer());
-				rev.push(codec_encode(kUTF8_Encoding, unicode).collapseString());
-				start += count;
-			}
-
-			return rev.length() == 0 ? String():
-						 rev.length() == 1 ? rev[0]:
-						 rev.join(String());
+			return Maybe<String>();
 		}
 	}
 
-	String2 JSValue::toStringValue2(Worker* worker) const {
-		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		if (!str->Length()) return String2();
-		ArrayBuffer<uint16_t> source(str->Length());
-		str->Write(ISOLATE(worker), *source, 0, str->Length());
-		return source.collapseString();
+	Maybe<bool> JSValue::asBoolean(Worker* worker) const {
+		return Back(this)->ToBoolean(CONTEXT(worker)).ToLocalChecked()->Value();
 	}
 
-	String4 JSValue::toStringValue4(Worker* worker) const {
-		v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		if (!str->Length()) return String4();
-
-		uint16_t source[128];
-		int start = 0, count, revOffset = 0;
-		auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
-		Array<uint32_t> rev(str->Length());
-
-		while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
-			auto unicode = codec_decode_form_utf16(ArrayWeak<uint16_t>(source, count).buffer());
-			rev.write(*unicode, unicode.length(), revOffset);
-			revOffset += unicode.length();
-			start += count;
+	Maybe<double> JSValue::asNumber(Worker* worker) const {
+		if (isNumber()) {
+			return static_cast<const JSNumber*>(this)->value();
+		} else {
+			return Maybe<double>();
 		}
-		rev.reset(revOffset);
-		return rev.collapseString();
 	}
 
-	Maybe<float> JSValue::toFloatValue(Worker* worker) const {
-		auto v = reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker));
-		return v.IsEmpty() ? Maybe<float>(): Maybe<float>(Cast<JSNumber>(v)->value());
+	Maybe<float> JSValue::asFloat32(Worker* worker) const {
+		if (isNumber()) {
+			return Maybe<float>(static_cast<const JSNumber*>(this)->value());
+		} else {
+			return Maybe<float>();
+		}
 	}
 
-	Maybe<double> JSValue::toNumberValue(Worker* worker) const {
-		auto v = reinterpret_cast<const v8::Value*>(this)->ToNumber(CONTEXT(worker));
-		return v.IsEmpty() ? Maybe<double>(): Maybe<double>(Cast<JSNumber>(v)->value());
+	Maybe<int32_t> JSValue::asInt32(Worker* worker) const {
+		if (isInt32()) {
+			return static_cast<const JSInt32*>(this)->value();
+		} else {
+			return Maybe<int32_t>();
+		}
 	}
 
-	Maybe<int> JSValue::toInt32Value(Worker* worker) const {
-		auto v = reinterpret_cast<const v8::Value*>(this)->ToInt32(CONTEXT(worker));
-		return v.IsEmpty() ? Maybe<int>(): Maybe<int>(Cast<JSInt32>(v)->value());
-	}
-
-	Maybe<uint32_t> JSValue::toUint32Value(Worker* worker) const {
-		auto v = reinterpret_cast<const v8::Value*>(this)->ToUint32(CONTEXT(worker));
-		return v.IsEmpty() ? Maybe<uint32_t>(): Maybe<uint32_t>(Cast<JSUint32>(v)->value());
-	}
-
-	bool JSValue::toBooleanValue(Worker* worker) const {
-		return reinterpret_cast<const v8::Value*>(this)->ToBoolean(CONTEXT(worker)).ToLocalChecked()->Value();
-	}
-
-	bool JSValue::instanceOf(Worker* worker, JSObject* value) {
-		return reinterpret_cast<v8::Value*>(this)->
-			InstanceOf(CONTEXT(worker), Back<v8::Object>(value)).FromMaybe(false);
+	Maybe<uint32_t> JSValue::asUint32(Worker* worker) const {
+		if (isUint32()) {
+			return static_cast<const JSUint32*>(this)->value();
+		} else {
+			return Maybe<uint32_t>();
+		}
 	}
 
 	JSValue* JSObject::get(Worker* worker, JSValue* key) {
+		DCHECK(isObject());
 		return Cast(reinterpret_cast<v8::Object*>(this)->Get(CONTEXT(worker), Back(key)));
 	}
 
 	JSValue* JSObject::get(Worker* worker, uint32_t index) {
+		DCHECK(isObject());
 		return Cast(reinterpret_cast<v8::Object*>(this)->Get(CONTEXT(worker), index));
 	}
 
 	bool JSObject::set(Worker* worker, JSValue* key, JSValue* val) {
+		DCHECK(isObject());
 		return reinterpret_cast<v8::Object*>(this)->
 			Set(CONTEXT(worker), Back(key), Back(val)).FromMaybe(false);
 	}
 
 	bool JSObject::set(Worker* worker, uint32_t index, JSValue* val) {
+		DCHECK(isObject());
 		return reinterpret_cast<v8::Object*>(this)->
 			Set(CONTEXT(worker), index, Back(val)).FromMaybe(false);
 	}
 
 	bool JSObject::has(Worker* worker, JSValue* key) {
+		DCHECK(isObject());
 		return reinterpret_cast<v8::Object*>(this)->
 			Has(CONTEXT(worker), Back(key)).FromMaybe(false);
 	}
 
 	bool JSObject::has(Worker* worker, uint32_t index) {
+		DCHECK(isObject());
 		return reinterpret_cast<v8::Object*>(this)->
 			Has(CONTEXT(worker), index).FromMaybe(false);
 	}
 
 	bool JSObject::JSObject::deleteFor(Worker* worker, JSValue* key) {
+		DCHECK(isObject());
 		return reinterpret_cast<v8::Object*>(this)->Delete(CONTEXT(worker), Back(key)).FromMaybe(false);
 	}
 
 	bool JSObject::deleteFor(Worker* worker, uint32_t index) {
+		DCHECK(isObject());
 		return reinterpret_cast<v8::Object*>(this)->Delete(CONTEXT(worker), index).FromMaybe(false);
 	}
 
 	JSArray* JSObject::getPropertyNames(Worker* worker) {
+		DCHECK(isObject());
 		return Cast<JSArray>(reinterpret_cast<v8::Object*>(this)->
 												GetPropertyNames(CONTEXT(worker)).FromMaybe(v8::Local<v8::Array>()));
 	}
 
+	Maybe<Array<String>> JSObject::getPropertyKeys(Worker* w) {
+		DCHECK(isObject());
+		auto arr = getPropertyNames(this);
+		if (arr) {
+			return arr->toStringArray(w)
+		}
+		return Maybe<Array<String>>();
+	}
+
 	JSFunction* JSObject::getConstructor(Worker* worker) {
+		DCHECK(isObject());
 		auto rv = reinterpret_cast<v8::Object*>(this)->
 			Get(CONTEXT(worker), Back(worker->strs()->constructor()));
 		return Cast<JSFunction>(rv.FromMaybe(v8::Local<v8::Value>()));
 	}
 
 	bool JSObject::setMethod(Worker* worker, cString& name, FunctionCallback func) {
+		DCHECK(isObject());
 		v8::FunctionCallback func2 = reinterpret_cast<v8::FunctionCallback>(func);
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(ISOLATE(worker), func2);
 		v8::Local<v8::Function> fn = t->GetFunction(CONTEXT(worker)).ToLocalChecked();
@@ -494,6 +426,7 @@ namespace qk { namespace js {
 
 	bool JSObject::setAccessor(Worker* worker, cString& name,
 														AccessorGetterCallback get, AccessorSetterCallback set) {
+		DCHECK(isObject());
 		auto get2 = reinterpret_cast<v8::AccessorNameGetterCallback>(get);
 		auto set2 = reinterpret_cast<v8::AccessorNameSetterCallback>(set);
 		v8::Local<v8::String> fn_name = Back<v8::String>(worker->newStringOneByte(name));
@@ -501,6 +434,7 @@ namespace qk { namespace js {
 	}
 
 	bool JSObject::defineOwnProperty(Worker *worker, JSValue *key, JSValue *value, int flags) {
+		DCHECK(isObject());
 		auto name = v8::Name::Cast(reinterpret_cast<v8::Value*>(key));
 		auto name_ = *reinterpret_cast<v8::Local<v8::Name>*>(&name);
 		return reinterpret_cast<v8::Object*>(this)->
@@ -509,36 +443,111 @@ namespace qk { namespace js {
 	}
 
 	bool JSObject::setPrototype(Worker* worker, JSObject* __proto__) {
+		DCHECK(isObject());
 		return reinterpret_cast<v8::Object*>(this)->
 			SetPrototype(CONTEXT(worker), Back(__proto__)).FromMaybe(false);
 	}
 
 	int JSString::length() const {
+		DCHECK(isString());
 		return reinterpret_cast<const v8::String*>(this)->Length();
 	}
-	JSString* JSString::Empty(Worker* worker) {
-		return Cast<JSString>(v8::String::Empty(ISOLATE(worker)));
+
+	String JSString::value(Worker* worker) const {
+		DCHECK(isString());
+		// v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
+		v8::Local<v8::String> str = Back<v8::String>(this);
+		if (!str->Length()) {
+			return String();
+		}
+		if ( str->IsOneByte() ) {
+			Buffer buffer(str->Length());
+			str->WriteOneByte(ISOLATE(worker), (uint8_t*)*buffer, 0, buffer.capacity());
+			return buffer.collapseString();
+		} else {
+			uint16_t source[128];
+			int start = 0, count;
+			auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
+			Array<String> rev;
+
+			while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
+				auto buf = codec_utf16_to_utf8(ArrayWeak<uint16_t>(source, count).buffer());
+				rev.push(buf.collapseString());
+				start += count;
+			}
+
+			return rev.length() == 0 ? String():
+						 rev.length() == 1 ? rev[0]:
+						 rev.join(String());
+		}
 	}
+
+	String2 JSString::value2(Worker* worker) const {
+		DCHECK(isString());
+		//v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
+		v8::Local<v8::String> str = Back<v8::String>(this);
+		if (!str->Length()) {
+			return String2();
+		}
+		ArrayBuffer<uint16_t> source(str->Length());
+		str->Write(ISOLATE(worker), *source, 0, str->Length());
+		return source.collapseString();
+	}
+
+	String4 JSString::value4(Worker* worker) const {
+		DCHECK(isString());
+		// v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
+		v8::Local<v8::String> str = Back<v8::String>(this);
+		if (!str->Length()) {
+			return String4();
+		}
+		uint16_t source[128];
+		int start = 0, count, revOffset = 0;
+		auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
+		Array<uint32_t> rev(str->Length());
+
+		while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
+			auto unicode = codec_utf16_to_unicode(ArrayWeak<uint16_t>(source, count).buffer());
+			rev.write(*unicode, unicode.length(), revOffset);
+			revOffset += unicode.length();
+			start += count;
+		}
+		rev.reset(revOffset);
+		return rev.collapseString();
+	}
+
 	int JSArray::length() const {
+		DCHECK(isArray());
 		return reinterpret_cast<const v8::Array*>(this)->Length();
 	}
+
 	double JSDate::valueOf() const {
+		DCHECK(isDate());
 		return reinterpret_cast<const v8::Date*>(this)->ValueOf();
 	}
+
 	double JSNumber::value() const {
+		DCHECK(isNumber());
 		return reinterpret_cast<const v8::Number*>(this)->Value();
 	}
+
 	int JSInt32::value() const {
+		DCHECK(isInt32());
 		return reinterpret_cast<const v8::Int32*>(this)->Value();
 	}
+
 	uint32_t JSUint32::value() const {
+		DCHECK(isUint32());
 		return reinterpret_cast<const v8::Uint32*>(this)->Value();
 	}
+
 	bool JSBoolean::value() const {
+		DCHECK(isBoolean());
 		return reinterpret_cast<const v8::Boolean*>(this)->Value();
 	}
 
 	JSValue* JSFunction::call(Worker* worker, int argc, JSValue* argv[], JSValue* recv) {
+		DCHECK(isFunction());
 		if ( !recv ) {
 			recv = worker->newUndefined();
 		}
@@ -554,6 +563,7 @@ namespace qk { namespace js {
 	}
 
 	JSObject* JSFunction::newInstance(Worker* worker, int argc, JSValue* argv[]) {
+		DCHECK(isFunction());
 		auto fn = reinterpret_cast<v8::Function*>(this);
 		v8::MaybeLocal<v8::Object> r = fn->NewInstance(CONTEXT(worker), argc,
 																										reinterpret_cast<v8::Local<v8::Value>*>(argv));
@@ -561,6 +571,7 @@ namespace qk { namespace js {
 	}
 
 	JSObject* JSFunction::getFunctionPrototype(Worker* worker) {
+		DCHECK(isFunction());
 		auto fn = reinterpret_cast<v8::Function*>(this);
 		auto str = Back(worker->strs()->prototype());
 		auto r = fn->Get(CONTEXT(worker), str);
@@ -568,134 +579,48 @@ namespace qk { namespace js {
 	}
 
 	uint32_t JSArrayBuffer::byteLength(Worker* worker) const {
+		DCHECK(isArrayBuffer());
 		return (uint32_t)reinterpret_cast<const v8::ArrayBuffer*>(this)->ByteLength();
 	}
 
 	Char* JSArrayBuffer::data(Worker* worker) {
+		DCHECK(isArrayBuffer());
 		return (Char*)reinterpret_cast<v8::ArrayBuffer*>(this)->GetContents().Data();
 	}
 
 	JSArrayBuffer* JSTypedArray::buffer(Worker* worker) {
+		DCHECK(isTypedArray());
 		auto typedArray = reinterpret_cast<v8::TypedArray*>(this);
 		v8::Local<v8::ArrayBuffer> abuff = typedArray->Buffer();
 		return Cast<JSArrayBuffer>(abuff);
 	}
 
 	uint32_t JSTypedArray::byteLength(Worker* worker) {
+		DCHECK(isTypedArray());
 		return (uint32_t)reinterpret_cast<v8::TypedArray*>(this)->ByteLength();
 	}
 
 	uint32_t JSTypedArray::byteOffset(Worker* worker) {
+		DCHECK(isTypedArray());
 		return (uint32_t)reinterpret_cast<v8::TypedArray*>(this)->ByteOffset();
 	}
 
 	bool JSSet::add(Worker* worker, JSValue* key) {
+		DCHECK(Back(this)->IsSet());
 		auto set = reinterpret_cast<v8::Set*>(this);
 		return !set->Add(CONTEXT(worker), Back(key)).IsEmpty();
 	}
 
 	bool JSSet::has(Worker* worker, JSValue* key) {
+		DCHECK(Back(this)->IsSet());
 		auto set = reinterpret_cast<v8::Set*>(this);
 		return set->Has(CONTEXT(worker), Back(key)).ToChecked();
 	}
 		
 	bool JSSet::deleteFor(Worker* worker, JSValue* key) {
+		DCHECK(Back(this)->IsSet());
 		auto set = reinterpret_cast<v8::Set*>(this);
 		return set->Delete(CONTEXT(worker), Back(key)).ToChecked();
-	}
-
-	void ReturnValue::set(bool value) {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(value);
-	}
-
-	void ReturnValue::set(double i) {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
-	}
-
-	void ReturnValue::set(int i) {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
-	}
-
-	void ReturnValue::set(uint32_t i) {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
-	}
-
-	void ReturnValue::setNull() {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetNull();
-	}
-
-	void ReturnValue::setUndefined() {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetUndefined();
-	}
-
-	void ReturnValue::setEmptyString() {
-		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetEmptyString();
-	}
-
-	void ReturnValue::set(JSValue* value) {
-		if (value)
-			reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
-		else
-			setNull();
-	}
-
-	int FunctionCallbackInfo::length() const {
-		return reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->Length();
-	}
-
-	JSValue* FunctionCallbackInfo::operator[](int i) const {
-		return Cast(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->operator[](i));
-	}
-
-	JSObject* FunctionCallbackInfo::thisObj() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->thisObj());
-	}
-
-	bool FunctionCallbackInfo::isConstructCall() const {
-		return reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->IsConstructCall();
-	}
-
-	ReturnValue FunctionCallbackInfo::returnValue() const {
-		auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
-		v8::ReturnValue<v8::Value> rv = info->GetReturnValue();
-		auto _ = reinterpret_cast<ReturnValue*>(&rv);
-		return *_;
-	}
-
-	JSObject* PropertyCallbackInfo::thisObj() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this)->thisObj());
-	}
-
-	ReturnValue PropertyCallbackInfo::returnValue() const {
-		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
-		v8::ReturnValue<v8::Value> rv = info->GetReturnValue();
-		auto _ = reinterpret_cast<ReturnValue*>(&rv);
-		return *_;
-	}
-
-	JSObject* PropertySetCallbackInfo::thisObj() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this)->thisObj());
-	}
-
-	Worker* FunctionCallbackInfo::worker() const {
-		if (first_worker)
-			return first_worker;
-		auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
-		return WorkerImpl::worker(info->GetIsolate());
-	}
-
-	Worker* PropertyCallbackInfo::worker() const {
-		if (first_worker)
-			return first_worker;
-		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
-		return WorkerImpl::worker(info->GetIsolate());
-	}
-
-	Worker* PropertySetCallbackInfo::worker() const {
-		if (first_worker)
-			return first_worker;
-		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this);
-		return WorkerImpl::worker(info->GetIsolate());
 	}
 
 	template <> void Persistent<JSValue>::reset() {
@@ -704,7 +629,7 @@ namespace qk { namespace js {
 
 	template <> template <>
 	void Persistent<JSValue>::reset(Worker* worker, JSValue* other) {
-		Qk_Assert(worker);
+		Qk_Assert_Ne(worker, nullptr);
 		reinterpret_cast<v8::Persistent<v8::Value>*>(this)->
 			Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
 		_worker = worker;
@@ -801,7 +726,7 @@ namespace qk { namespace js {
 		v8::Local<v8::ArrayBuffer> ab;
 		if (buff.length()) {
 			size_t len = buff.length();
-			Char* data = buff.collapse();
+			char* data = buff.collapse();
 			ab = v8::ArrayBuffer::New(ISOLATE(this), data, len, ArrayBufferCreationMode::kInternalized);
 		} else {
 			ab = v8::ArrayBuffer::New(ISOLATE(this), 0);
@@ -829,6 +754,10 @@ namespace qk { namespace js {
 		return Cast<JSSet>(v8::Set::New(ISOLATE(this)));
 	}
 
+	JSString* Worker::newEmpty() {
+		return Cast<JSString>(v8::String::Empty(ISOLATE(this)));
+	}
+
 	JSString* Worker::newStringOneByte(cString& data) {
 		return Cast<JSString>(v8::String::NewExternal(ISOLATE(this),
 																									new V8ExternalOneByteStringResource(data)));
@@ -852,34 +781,22 @@ namespace qk { namespace js {
 	}
 
 	JSObject* Worker::newRangeError(cChar* errmsg, ...) {
-		va_list arg;
-		va_start(arg, errmsg);
-		auto str = _Str::printfv(errmsg, arg);
-		va_end(arg);
+		Js_Format_Str(errmsg);
 		return Cast<JSObject>(v8::Exception::RangeError(Back<v8::String>(newValue(str))));
 	}
 
 	JSObject* Worker::newReferenceError(cChar* errmsg, ...) {
-		va_list arg;
-		va_start(arg, errmsg);
-		auto str = _Str::printfv(errmsg, arg);
-		va_end(arg);
+		Js_Format_Str(errmsg);
 		return Cast<JSObject>(v8::Exception::ReferenceError(Back<v8::String>(newValue(str))));
 	}
 
 	JSObject* Worker::newSyntaxError(cChar* errmsg, ...) {
-		va_list arg;
-		va_start(arg, errmsg);
-		auto str = _Str::printfv(errmsg, arg);
-		va_end(arg);
+		Js_Format_Str(errmsg);
 		return Cast<JSObject>(v8::Exception::SyntaxError(Back<v8::String>(newValue(str))));
 	}
 
 	JSObject* Worker::newTypeError(cChar* errmsg, ...) {
-		va_list arg;
-		va_start(arg, errmsg);
-		auto str = _Str::printfv(errmsg, arg);
-		va_end(arg);
+		Js_Format_Str(errmsg);
 		return Cast<JSObject>(v8::Exception::TypeError(Back<v8::String>(newValue(str))));
 	}
 
@@ -895,18 +812,30 @@ namespace qk { namespace js {
 	}
 
 	JSValue* Worker::runScript(JSString* source, JSString* name, JSObject* sandbox) {
-		v8::MaybeLocal<v8::Value> r = WORKER(this)->runScript(Back<v8::String>(source),
-																													Back<v8::String>(name),
-																													Back<v8::Object>(sandbox));
-		return Cast(r.FromMaybe(v8::Local<v8::Value>()));
+		v8::ScriptCompiler::Source _source(
+			Back<v8::String>(source), ScriptOrigin(Back<v8::String>(name)));
+		v8::MaybeLocal<v8::Value> result;
+
+		auto isolate = ISOLATE(this);
+		auto ctx = CONTEXT(this);
+		if ( sandbox ) {
+			v8::Local<v8::Function> func;
+			if (v8::ScriptCompiler::
+					CompileFunctionInContext(ctx, &_source, 0, nullptr, 1, &sandbox).ToLocal(&func)
+			) {
+				result = func->Call(ctx, v8::Undefined(isolate), 0, nullptr);
+			}
+		} else { // use default sandbox
+			v8::Local<v8::Script> script;
+			if (v8::ScriptCompiler::Compile(ctx, &_source).ToLocal(&script)) {
+				result = script->Run(ctx);
+			}
+		}
+		return Cast(result.FromMaybe(v8::Local<v8::Value>()));
 	}
 
-	JSValue* Worker::runScript(cString& source, cString& name, JSObject* sandbox) {
-		return runScript(newValue(source), newValue(name), sandbox);
-	}
-
-	JSValue* Worker::runNativeScript(cBuffer& source, cString& name, JSObject* exports) {
-		return WORKER(this)->runNativeScript(source, name, exports);
+	JSValue* Worker::runScript(JSString* source, JSString* name, JSObject* sandbox) {
+		return runScript(source, name, sandbox);
 	}
 
 	void Worker::garbageCollection() {
@@ -925,35 +854,15 @@ namespace qk { namespace js {
 		WORKER(worker)->debuggerBreakNextStatement();
 	}
 
-	int platformStart(int argc, Char** argv, int (*exec)(Worker *worker)) {
+	int StartPlatform(int argc, Char** argv, int (*exec)(Worker *worker)) {
 		auto platform = v8::platform::NewDefaultPlatform(1);
 		v8::V8::InitializePlatform(platform.get());
 		v8::V8::Initialize();
 		v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
-
 		int rc = 0;
 		{ //
 			Sp<Worker> worker = Worker::Make();
 			v8::SealHandleScope sealhandle(ISOLATE(*worker));
-			//v8::HandleScope handle(ISOLATE(*worker));
-			// Startup debugger
-			for (int i = 2; i < argc; i++) {
-				String arg(argv[i]);
-				if (arg.indexOf("--inspect") == 0) {
-					auto script_path = fs_reader()->format(argv[1]);
-					auto kv = arg.split('=');
-					bool brk = arg.indexOf("-brk") != -1;
-					if (kv.length() == 1) {
-						runDebugger(*worker, {brk,9229,"127.0.0.1",script_path});
-					} else {
-						auto host = kv[1].split(':');
-						int port = 9229;
-						if (host.length() > 1) host[1].toNumber<int>(&port);
-						runDebugger(*worker, {brk,port,host[0],script_path});
-					}
-					break;
-				}
-			}
 			rc = exec(*worker); // exec main script
 		}
 		v8::V8::ShutdownPlatform();

@@ -43,18 +43,6 @@ namespace qk { namespace js {
 		}
 		~JscHandleScope() {
 			auto ctx = _worker->_ctx;
-			//if (_worker->_callStack == 0) { // exec handle clear
-				// std::lock_guard<std::mutex> scope(_worker->_garbage_handle_mutex);
-				// if (_worker->_garbage_handle.size()) {
-				// 	std::vector<i::PrivateData*> handles(std::move(_worker->_garbage_handle));
-				// 	for (auto& i: handles) {
-				// 		delete i;
-				// 	}
-				// }
-			//}
-			// if (_worker->_microtask_policy != MicrotasksPolicy::kExplicit) {
-			// 	_worker->runMicrotasks(false);
-			// }
 			for (auto i: _handles) {
 				JSValueUnprotect(ctx, i);
 			}

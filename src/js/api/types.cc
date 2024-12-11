@@ -237,7 +237,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayFloat& value) {
-		auto arr = worker->newArray(value.length());
+		auto arr = worker->newArray(/*value.length()*/);
 		for (int i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, worker->newValue(value[i]));
 		}
@@ -249,7 +249,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayColor& value) {
-		auto arr = worker->newArray(value.length());
+		auto arr = worker->newArray(/*value.length()*/);
 		for (int i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, jsvalue(value[i]));
 		}
@@ -257,7 +257,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayOrigin& value) {
-		auto arr = worker->newArray(value.length());
+		auto arr = worker->newArray(/*value.length()*/);
 		for (int i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, jsvalue(value[i]));
 		}
@@ -265,7 +265,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayBorder& value) {
-		auto arr = worker->newArray(value.length());
+		auto arr = worker->newArray(/*value.length()*/);
 		for (int i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, jsvalue(value[i]));
 		}
@@ -1027,9 +1027,9 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			{
 				TryCatch try_catch(worker);
-				if (!worker->runNativeScript(WeakBuffer((Char*)
+				if (!worker->runNativeScript((Char*)
 							native_js::INL_native_js_code__types_,
-							native_js::INL_native_js_code__types_count_).buffer(), "_types.js", exports)) {
+							native_js::INL_native_js_code__types_count_, "_types.js", exports)) {
 					if ( try_catch.hasCaught() ) {
 						try_catch.print();
 					}

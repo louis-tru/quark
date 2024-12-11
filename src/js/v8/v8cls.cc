@@ -232,4 +232,100 @@ namespace qk { namespace js {
 		return Cast<JSFunction>(t->GetFunction(CONTEXT(this)));
 	}
 
+	// ------------------- F u n c t i o n . C a l l b a c k . I n f o -------------------
+
+	void ReturnValue::set(bool value) {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(value);
+	}
+
+	void ReturnValue::set(double i) {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
+	}
+
+	void ReturnValue::set(int i) {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
+	}
+
+	void ReturnValue::set(uint32_t i) {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
+	}
+
+	void ReturnValue::setNull() {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetNull();
+	}
+
+	void ReturnValue::setUndefined() {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetUndefined();
+	}
+
+	void ReturnValue::setEmptyString() {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetEmptyString();
+	}
+
+	void ReturnValue::set(JSValue* value) {
+		if (value)
+			reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
+		else
+			setNull();
+	}
+
+	int FunctionCallbackInfo::length() const {
+		return reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->Length();
+	}
+
+	JSValue* FunctionCallbackInfo::operator[](int i) const {
+		return Cast(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->operator[](i));
+	}
+
+	JSObject* FunctionCallbackInfo::thisObj() const {
+		return Cast<JSObject>(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->thisObj());
+	}
+
+	bool FunctionCallbackInfo::isConstructCall() const {
+		return reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->IsConstructCall();
+	}
+
+	ReturnValue FunctionCallbackInfo::returnValue() const {
+		auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
+		v8::ReturnValue<v8::Value> rv = info->GetReturnValue();
+		auto _ = reinterpret_cast<ReturnValue*>(&rv);
+		return *_;
+	}
+
+	JSObject* PropertyCallbackInfo::thisObj() const {
+		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this)->thisObj());
+	}
+
+	ReturnValue PropertyCallbackInfo::returnValue() const {
+		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
+		v8::ReturnValue<v8::Value> rv = info->GetReturnValue();
+		auto _ = reinterpret_cast<ReturnValue*>(&rv);
+		return *_;
+	}
+
+	JSObject* PropertySetCallbackInfo::thisObj() const {
+		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this)->thisObj());
+	}
+
+	Worker* FunctionCallbackInfo::worker() const {
+		if (first_worker)
+			return first_worker;
+		auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
+		return WorkerImpl::worker(info->GetIsolate());
+	}
+
+	Worker* PropertyCallbackInfo::worker() const {
+		if (first_worker)
+			return first_worker;
+		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
+		return WorkerImpl::worker(info->GetIsolate());
+	}
+
+	Worker* PropertySetCallbackInfo::worker() const {
+		if (first_worker)
+			return first_worker;
+		auto info = reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this);
+		return WorkerImpl::worker(info->GetIsolate());
+	}
+
 }}

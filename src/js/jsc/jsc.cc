@@ -19,7 +19,7 @@
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL blue.chu BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, &exEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -31,7 +31,6 @@
 #include "./jsc.h"
 #include <uv.h>
 #include <limits>
-// #include <cmath>
 
 namespace qk { namespace js {
 	static uv_key_t th_key;
@@ -39,28 +38,27 @@ namespace qk { namespace js {
 	#define _Fun(name) \
 		JSStringRef name##_s = JsStringWithUTF8(name);
 	Js_Const_Strings(_Fun)
-	// JSStringRef name##_s = JSStringRetain(JsStringWithUTF8(name));
 	#undef _Fun
 
-	void jsFatal(JSContextRef ctx, JSValueRef ex_) {
+	void jsFatal(JSContextRef ctx, JSValueRef ex_, cCher* msg = "") {
 		if (ex_) { // err
 			auto ex = (JSObjectRef)ex_;
-			if (!JSValueIsObject(ctx, ex)) {
+			if (!JSValueIsObject(ctx, &ex)) {
 				auto Error = JSObjectGetProperty(ctx, JSContextGetGlobalObject(ctx), Error_s, nullptr);
 				DCHECK(Error);
 				ex = JSObjectCallAsConstructor(ctx, Error, 1, &ex, nullptr);
 				DCHECK(ex);
 			}
 			auto ex = (JSObjectRef)ex_;
-			JSValueRef line = JSObjectGetProperty(ctx, ex, line_s, 0);
-			JSValueRef column = JSObjectGetProperty(ctx, ex, column_s, 0);
-			JSValueRef message = JSObjectGetProperty(ctx, ex, message_s, 0);
-			JSValueRef stack = JSObjectGetProperty(ctx, ex, stack_s, 0);
+			JSValueRef line = JSObjectGetProperty(ctx, &ex, line_s, 0);
+			JSValueRef column = JSObjectGetProperty(ctx, &ex, column_s, 0);
+			JSValueRef message = JSObjectGetProperty(ctx, &ex, message_s, 0);
+			JSValueRef stack = JSObjectGetProperty(ctx, &ex, stack_s, 0);
 			double l = JSValueToNumber(ctx, line, 0);
 			double c = JSValueToNumber(ctx, column, 0);
 			auto m = jsToString(ctx, message);
 			auto s = jsToString(ctx, stack);
-			qk::Fatal("", l, "", "%s\n\n%s", m.c_str(), s.c_str());
+			qk::Fatal("", l, "", "%s\n\n%s\n\n%s", msg?msg:"", m.c_str(), s.c_str());
 		}
 	}
 
@@ -72,25 +70,11 @@ namespace qk { namespace js {
 		return Buffer(str, size, bufferSize).collapseString();
 	}
 
-	JSObjectRef runNativeScript(JSGlobalContextRef ctx, cChar* script, cChar* name) {
-		JSValueRef ex = nullptr;
-		JSObjectRef global = (JSObjectRef)JSContextGetGlobalObject(ctx);
-		JSCStringPtr jsc_v8_js = JsStringWithUTF8(name);
-		JSCStringPtr script2 = JsStringWithUTF8(script);
-		auto fn = (JSObjectRef)JSEvaluateScript(ctx, *script2, nullptr, *jsc_v8_js, 1, JsFatal(ctx));
-		auto exports = JSObjectMake(ctx, 0, 0);
-		JSValueProtect(ctx, exports); // Protect
-		JSValueRef argv[2] = { exports, global };
-		JSObjectCallAsFunction(ctx, fn, 0, 2, argv, JsFatal(ctx));
-		JSValueUnprotect(ctx, exports); // Unprotect
-		return exports;
-	}
-
 	void WorkerData::initialize(JSGlobalContextRef ctx) {
 		JSValueRef ex = nullptr;
 		auto global = JSContextGetGlobalObject(ctx);
 		#define _Init_Fun(name,from) from##_##name = (JSObjectRef) \
-		JSObjectGetProperty(ctx, from, *JSCStringPtr(JsStringWithUTF8(name)), JsFatal(ctx)); \
+		JSObjectGetProperty(ctx, from, *JSCStringPtr(JsStringWithUTF8(name)), JsFatal()); \
 		JSValueProtect(ctx, from##_##name);
 		Js_Worker_Data_Each(_Init_Fun)
 		#undef _Init_Fun
@@ -102,6 +86,13 @@ namespace qk { namespace js {
 		EmptyString = JSValueMakeString(ctx, JsStringWithUTF8("")); JSValueProtect(ctx, EmptyString);
 		TypedArray = JSObjectGetPrototype(global_Uint8Array); JSValueProtect(ctx, TypedArray);
 		DCHECK(JSValueIsObject(ctx, TypedArray));
+
+		JSCStringPtr sourceName = JsStringWithUTF8("source");
+		JSCStringPtr sandboxName = JsStringWithUTF8("sandbox");
+		JSCStringPtr body = JsStringWithUTF8("return arguments.callee.__native__.apply(this,arguments)");
+		JSStringRef argvNames[] = { *sourceName, *sandboxName };
+		WrapSandboxScriptFunc = JSObjectMakeFunction(ctx, nullptr, 2, argvNames, body, nullptr, 1, JsFatal());
+		JSValueProtect(ctx, WrapSandboxScriptFunc);
 	}
 
 	void WorkerData::destroy(JSGlobalContextRef ctx) {
@@ -114,6 +105,7 @@ namespace qk { namespace js {
 		JSValueUnprotect(ctx, False);
 		JSValueUnprotect(ctx, EmptyString);
 		JSValueUnprotect(ctx, TypedArray);
+		JSValueUnprotect(ctx, WrapSandboxScript);
 	}
 
 	JscWorker::JscWorker()
@@ -157,11 +149,11 @@ namespace qk { namespace js {
 
 	// -----------------------------------------------------------------------------------------
 
-	Worker* Worker::current() {
+	Worker* w::current() {
 		return first_worker ? first_worker : reinterpret_cast<Worker*>(uv_key_get(&th_key));
 	}
 
-	Worker* Worker::Make() {
+	Worker* w::Make() {
 		auto o = new JscWorker();
 		o->init();
 		return o;
@@ -231,21 +223,37 @@ namespace qk { namespace js {
 #endif
 	}
 
-	inline int32_t asInt32(JSValue* val) {
-		DCHECK(isInt32(val));
-#if Qk_ARCH_64BIT
-		return bitwise_cast<JscValueImpl*>(val)->u.asInt64;
-#else
-		return bitwise_cast<JscValueImpl*>(val)->u.asBits.payload;
-#endif
-	}
-
 	inline bool isDouble(JSValue* val) {
 #if Qk_ARCH_64BIT
 		auto mask = bitwise_cast<JscValueImpl*>(val)->u.asInt64 & NumberTag;
 		return mask && mask != NumberTag;
 #else
 		return bitwise_cast<JscValueImpl*>(val)->u.asBits.tag < LowestTag;
+#endif
+	}
+
+	inline bool isNumber(JSValue* val) {
+#if Qk_ARCH_64BIT
+		return bitwise_cast<JscValueImpl*>(val)->asInt64 & NumberTag;
+#else
+		return js::isInt32(val) || isDouble(val);
+#endif
+	}
+
+	inline bool isBoolean(JSValue* val) {
+#if Qk_ARCH_64BIT
+		return (bitwise_cast<JscValueImpl*>(val)->u.asInt64 & ~1) == ValueFalse;
+#else
+		return bitwise_cast<JscValueImpl*>(val)->u.asBits.tag == BooleanTag;
+#endif
+	}
+
+	inline int32_t asInt32(JSValue* val) {
+		DCHECK(isInt32(val));
+#if Qk_ARCH_64BIT
+		return bitwise_cast<JscValueImpl*>(val)->u.asInt64;
+#else
+		return bitwise_cast<JscValueImpl*>(val)->u.asBits.payload;
 #endif
 	}
 
@@ -258,14 +266,6 @@ namespace qk { namespace js {
 #endif
 	}
 
-	inline bool isBoolean(JSValue* val) {
-#if Qk_ARCH_64BIT
-		return (bitwise_cast<JscValueImpl*>(val)->u.asInt64 & ~1) == ValueFalse;
-#else
-		return bitwise_cast<JscValueImpl*>(val)->u.asBits.tag == BooleanTag;
-#endif
-	}
-
 	inline bool asBoolean(JSValue* val) {
 		DCHECK(isBoolean(val));
 #if Qk_ARCH_64BIT
@@ -274,14 +274,6 @@ namespace qk { namespace js {
 		return bitwise_cast<JscValueImpl*>(val)->u.asBits.payload;
 #endif
 	}
-
-// 	inline JSCell* asCell(JSValue* val) {
-// #if Qk_ARCH_64BIT
-// 		return bitwise_cast<JscValueImpl*>(val)->u.ptr;
-// #else
-// 		return reinterpret_cast<JSCell*>(bitwise_cast<JscValueImpl*>(val)->u.asBits.payload);
-// #endif
-// 	}
 
 	bool JSValue::isUndefined() const {
 		return JSValueIsUndefined(test_type_jsc_ctx, Back(this));
@@ -296,8 +288,7 @@ namespace qk { namespace js {
 	}
 
 	bool JSValue::isBoolean() const {
-		// return JSValueIsBoolean(test_type_jsc_ctx, Back(this));
-		return isBoolean(this);
+		return js::isBoolean(this);
 	}
 
 	bool JSValue::isObject() const {
@@ -313,12 +304,7 @@ namespace qk { namespace js {
 	}
 
 	bool JSValue::isNumber() const {
-		// return JSValueIsNumber(test_type_jsc_ctx, Back(this));
-#if Qk_ARCH_64BIT
-		bitwise_cast<JscValueImpl*>(this)->asInt64 & NumberTag;
-#else
-		return js::isInt32(this) || isDouble(this);
-#endif
+		return js::isNumber(this);
 	}
 
 	bool JSValue::isInt32() const {
@@ -326,86 +312,106 @@ namespace qk { namespace js {
 	}
 
 	bool JSValue::isUint32() const {
-		return isInt32() && asInt32(this) >= 0;
+		if (js::isNumber(this)) {
+			if (js::isInt32(this)) {
+				return js::asInt32(this) >= 0;
+			} else {
+				return isUint32Range(js::asDouble(this));
+			}
+		}
+		return false;
 	}
 
 	bool JSValue::isFunction() const {
 		ENV();
-		return JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.global_Function, ex. OK(false));
+		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.global_Function, JsFatal("JSValue::isFunction"));
+		return ok;
 	}
 
 	bool JSValue::isArrayBuffer() const {
 		ENV();
-		return JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.global_ArrayBuffer, ex. OK(false));
+		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.global_ArrayBuffer, JsFatal("JSValue::isArrayBuffer"));
+		return ok;
 	}
 
 	bool JSValue::isTypedArray() const {
 		ENV();
-		return JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.TypedArray, ex. OK(false));
+		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.TypedArray, JsFatal("JSValue::isTypedArray"));
+		return ok;
 	}
 
 	bool JSValue::isUint8Array() const {
 		ENV();
-		return JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.global_Uint8Array, ex. OK(false));
+		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.global_Uint8Array, JsFatal("JSValue::isUint8Array"));
+		return ok;
 	}
 
-	bool JSValue::equals(Worker *worker, JSValue* val) const {
-		ENV(worker);
-		return JSValueIsEqual(ctx, Back(this), Back(val), ex, OK(false));
+	bool JSValue::isBuffer() const {
+		ENV();
+		auto ok = JSValueIsInstanceOfConstructor(
+			ctx, Back(this), worker->_data.global_ArrayBuffer, JsFatal("JSValue::isBuffer")
+		);
+		if (ok)
+			return true;
+		ok = JSValueIsInstanceOfConstructor(
+			ctx, Back(this), worker->_data.TypedArray, JsFatal("JSValue::isBuffer 1")
+		);
+		return ok;
 	}
 
-	bool JSValue::strictEquals(JSValue* val) const {
-		ENV(worker);
+	bool JSValue::equals(Worker *w, JSValue* val) const {
+		ENV(w);
+		auto ok = JSValueIsEqual(ctx, Back(this), Back(val), OK(false));
+		return ok;
+	}
+
+	bool JSValue::strictEquals(Worker *w, JSValue* val) const {
+		ENV(w);
 		return JSValueIsStrictEqual(ctx, Back(this), Back(val));
 	}
 
-	bool JSValue::instanceOf(Worker* worker, JSObject* constructor) {
-		ENV(worker);
-		return JSValueIsInstanceOfConstructor(ctx, Back(this), Back<JSObjectRef>(constructor), ex. OK(false));
+	bool JSValue::instanceOf(Worker* w, JSObject* constructor) const {
+		ENV(w);
+		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(this), Back<JSObjectRef>(constructor), JsFatal("JSValue::instanceOf"));
+		return ok;
+	}
+
+	JSString* JSValue::toString(Worker* w) const {
+		ENV(w);
+		if (JSValueIsString(ctx, Back(this))) {
+			return static_cast<JSString*>(this);
+		}
+		auto str = JSValueToStringCopy(ctx, Back(this), OK(nullptr));
+		auto val = JSValueMakeString(ctx, str);
+		return worker->addToScope<JSString>(val);
+	}
+
+	JSBoolean* JSValue::toBoolean(Worker* w) const {
+		if (js::isBoolean(this))
+			return bitwise_cast<JSBoolean*>(this);
+		ENV(w);
+		auto ret = JSValueMakeBoolean(ctx, JSValueToBoolean(ctx, Back(this))); // Force convert
+		return worker->addToScope<JSBoolean>(ret);
 	}
 
 	JSNumber* JSValue::toNumber(Worker* w) const {
-		if (isNumber()) {
+		if (js::isNumber(this))
 			return bitwise_cast<JSNumber*>(this);
-		}
 		ENV(w);
-		auto num = JSValueToNumber(ctx, Back(this), ex, OK(nullptr)); // Force convert
+		auto num = JSValueToNumber(ctx, Back(this), OK(nullptr)); // Force convert
 		auto ret = JSValueMakeNumber(ctx, num);
 		return worker->addToScope<JSNumber>(ret);
 	}
 
-	inline bool isInt32Range(double value) {
-		constexpr double mix = std::numeric_limits<int32_t>::min();
-		constexpr double max = std::numeric_limits<int32_t>::max();
-		if (num < mix || max < num) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	inline bool isUint32Range(double value) {
-		constexpr double mix = 0;
-		// The jsc number storage structure only uses half a uint32,
-		// which makes the conversion more efficient
-		constexpr double max = std::numeric_limits<int32_t>::max(); // jsc 
-		if (num < mix || max < num) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
 	JSInt32* JSValue::toInt32(Worker* w) const {
-		if (isInt32()) {
+		if (js::isInt32(this))
 			return bitwise_cast<JSInt32*>(this);
-		}
 		ENV(w);
 		double num;
-		if (isDouble(this)) {
-			num = asDouble(this);
+		if (js::isDouble(this)) {
+			num = js::asDouble(this);
 		} else {
-			num = JSValueToNumber(ctx, Back(this), ex, OK(nullptr)); // Force convert
+			num = JSValueToNumber(ctx, Back(this), OK(nullptr)); // Force convert
 		}
 		if (!isInt32Range(num)) {
 			return THROW_ERR("Invalid conversion toInt32, Range overflow"), Maybe<int>;
@@ -414,20 +420,20 @@ namespace qk { namespace js {
 		return worker->addToScope<JSInt32>(ret);
 	}
 
-	JSUint32* JSValue::toUint32(Worker* worker) const {
+	JSUint32* JSValue::toUint32(Worker* w) const {
 		ENV(w);
-		if (isInt32()) {
-			if (asInt32(this) >= 0) {
+		if (js::isInt32(this)) {
+			if (js::asInt32(this) >= 0) {
 				return bitwise_cast<JSUint32*>(this);
 			} else {
 				return THROW_ERR("Invalid conversion toUint32, Can't be a negative number"), nullptr;
 			}
 		}
 		double num;
-		if (isDouble(this)) {
-			num = asDouble(this);
+		if (js::isDouble(this)) {
+			num = js::asDouble(this);
 		} else {
-			num = JSValueToNumber(ctx, Back(this), ex, OK(nullptr)); // Force convert
+			num = JSValueToNumber(ctx, Back(this), OK(nullptr)); // Force convert
 		}
 		if (isUint32Range(num)) {
 			return THROW_ERR("Invalid conversion toUint32, Range overflow"), Maybe<int>;
@@ -436,195 +442,163 @@ namespace qk { namespace js {
 		return worker->addToScope<JSUint32>(ret);
 	}
 
-	JSBoolean* JSValue::toBoolean(Worker* w) const {
-		if (isBoolean())
-			return bitwise_cast<JSBoolean*>(this);
+	Maybe<String> JSValue::asString(Worker *w) const {
 		ENV(w);
-		auto ret = JSValueMakeBoolean(ctx, JSValueToBoolean(ctx, Back(this))); // Force convert
-		return worker->addToScope<JSBoolean>(ret);
-	}
-
-	JSString* JSValue::toString(Worker* worker) const {
-		ENV(worker);
-		// TODO ...
-		return nullptr;
-	}
-
-	String JSValue::toStringValue(Worker* worker, bool oneByte) const {
-		// v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		// if (!str->Length()) return String();
-		// if ( oneByte ) {
-		// 	Buffer buffer(str->Length());
-		// 	str->WriteOneByte(ISOLATE(worker), (uint8_t*)*buffer, 0, buffer.capacity());
-		// 	return buffer.collapseString();
-		// } else {
-		// 	uint16_t source[128];
-		// 	int start = 0, count;
-		// 	auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
-		// 	Array<String> rev;
-
-		// 	while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
-		// 		auto unicode = codec_decode_form_utf16(ArrayWeak<uint16_t>(source, count).buffer());
-		// 		rev.push(codec_encode(kUTF8_Encoding, unicode).collapseString());
-		// 		start += count;
-		// 	}
-
-		// 	return rev.length() == 0 ? String():
-		// 				 rev.length() == 1 ? rev[0]:
-		// 				 rev.join(String());
-		// }
-	}
-
-	String2 JSValue::toStringValue2(Worker* worker) const {
-		// v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		// if (!str->Length()) return String2();
-		// ArrayBuffer<uint16_t> source(str->Length());
-		// str->Write(ISOLATE(worker), *source, 0, str->Length());
-		// return source.collapseString();
-	}
-
-	String4 JSValue::toStringValue4(Worker* worker) const {
-		// v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();
-		// if (!str->Length()) return String4();
-
-		// uint16_t source[128];
-		// int start = 0, count, revOffset = 0;
-		// auto opts = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
-		// Array<uint32_t> rev(str->Length());
-
-		// while ( (count = str->Write(ISOLATE(worker), source, start, 128, opts)) ) {
-		// 	auto unicode = codec_decode_form_utf16(ArrayWeak<uint16_t>(source, count).buffer());
-		// 	rev.write(*unicode, unicode.length(), revOffset);
-		// 	revOffset += unicode.length();
-		// 	start += count;
-		// }
-		// rev.reset(revOffset);
-		// return rev.collapseString();
-	}
-
-	Maybe<float> JSValue::toFloatValue(Worker* w) const {
-		ENV(w);
-		auto num = JSValueToNumber(ctx, Back(this), ex, OK(Maybe<float>())); // Force convert
-		return Maybe<float>(num);
-	}
-
-	Maybe<double> JSValue::toNumberValue(Worker* w) const {
-		ENV(w);
-		auto num = JSValueToNumber(ctx, Back(this), ex, OK(Maybe<double>())); // Force convert
-		return Maybe<double>(num);
-	}
-
-	Maybe<int> JSValue::toInt32Value(Worker* w) const {
-		if (isInt32()) {
-			return Maybe<int>(asInt32(this));
+		if (JSValueIsString(ctx, Back(this))) {
+			return static_cast<JSString*>(this)->value(w);
 		}
-		ENV(w);
-		double num;
-		if (isDouble(this)) {
-			num = asDouble(this);
-		} else {
-			num = JSValueToNumber(ctx, Back(this), ex, OK(Maybe<int>())); // Force convert
-		}
-		if (!isInt32Range(num)) {
-			return THROW_ERR("Invalid conversion toInt32Value, Range overflow"), Maybe<int>();
-		}
-		return Maybe<int>(num);
+		return Maybe<String>();
 	}
 
-	Maybe<uint32_t> JSValue::toUint32Value(Worker* w) const {
-		ENV(w);
-		if (isInt32()) {
-			int32_t out = asInt32(this);
-			if (out >= 0) {
-				return Maybe<uint32_t>(out);
-			} else {
-				return THROW_ERR("Invalid conversion toUint32Value, Can't be a negative number"), Maybe<uint32_t>;
-			}
-		}
-		double num;
-		if (isDouble(this)) {
-			num = asDouble(this);
-		} else {
-			num = JSValueToNumber(ctx, Back(this), ex, OK(Maybe<uint32_t>())); // Force convert
-		}
-		if (isUint32Range(num)) {
-			return THROW_ERR("Invalid conversion toUint32Value, Range overflow"), Maybe<uint32_t>();
-		}
-		return Maybe<uint32_t>(num);
-	}
-
-	bool JSValue::toBooleanValue(Worker* w) const {
+	Maybe<bool> JSValue::asBoolean(Worker* w) const {
 		return JSValueToBoolean(JSC_CTX(w), Back(this));
 	}
 
+	Maybe<double> JSValue::asNumber(Worker* w) const {
+		if (js::isNumber(this)) {
+			if (js::isInt32(this))
+				return js::asInt32(this);
+			else
+				return js::asDouble(this);
+		} 
+		return Maybe<double>();
+	}
+
+	Maybe<float> JSValue::asFloat32(Worker* w) const {
+		if (js::isNumber(this)) {
+			if (js::isInt32(this))
+				return Maybe<float>(js::asInt32(this));
+			else
+				return Maybe<float>(js::asDouble(this));
+		} 
+		return Maybe<float>();
+	}
+
+	Maybe<int32_t> JSValue::asInt32(Worker* w) const {
+		if (js::isInt32(this))
+			return Maybe<int>(js::asInt32(this));
+		if (js::isDouble(this)) {
+			auto num = js::asDouble(this);
+			if (isInt32Range(num)) {
+				return Maybe<int>(num);
+			}
+		}
+		return Maybe<int>();
+	}
+
+	Maybe<uint32_t> JSValue::asUint32(Worker* w) const {
+		if (js::isInt32(this)) {
+			int32_t num = js::asInt32(this);
+			if (num >= 0) {
+				return Maybe<uint32_t>(num);
+			} else {
+				return Maybe<uint32_t>();
+			}
+		}
+		if (js::isDouble(this)) {
+			auto num = js::asDouble(this);
+			if (isUint32Range(num)) {
+				return Maybe<uint32_t>(num);
+			}
+		}
+		return Maybe<uint32_t>();
+	}
+
 	JSValue* JSObject::get(Worker* w, JSValue* key) {
+		DCHECK(isObject());
 		ENV(w);
-		auto ret = JSObjectGetPropertyForKey(ctx,
-			Back<JSObjectRef>(this), Back(key), ex, OK(nullptr)
-		);
+		auto ret = JSObjectGetPropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), OK(nullptr));
 		// worker->addToScope(ret);
 		return Cast(ret);
 	}
 
 	JSValue* JSObject::get(Worker* w, uint32_t index) {
+		DCHECK(isObject());
 		ENV(w);
-		auto ret = JSObjectGetPropertyAtIndex(ctx, Back<JSObjectRef>(this), index, ex, OK(nullptr));
+		auto ret = JSObjectGetPropertyAtIndex(ctx, Back<JSObjectRef>(this), index, OK(nullptr));
 		// worker->addToScope(ret);
 		return Cast(ret);
 	}
 
 	bool JSObject::set(Worker* w, JSValue* key, JSValue* val) {
+		DCHECK(isObject());
 		ENV(w);
-		JSObjectSetPropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), Back(val), 0, ex, OK(false));
+		JSObjectSetPropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), Back(val), 0, OK(false));
 		return true;
 	}
 
 	bool JSObject::set(Worker* w, uint32_t index, JSValue* val) {
+		DCHECK(isObject());
 		ENV(w);
-		JSObjectSetPropertyAtIndex(ctx, Back<JSObjectRef>(this), index, Back(val), 0, ex, OK(false));
+		JSObjectSetPropertyAtIndex(ctx, Back<JSObjectRef>(this), index, Back(val), 0, OK(false));
 		return true;
 	}
 
 	bool JSObject::has(Worker* w, JSValue* key) {
+		DCHECK(isObject());
 		ENV(worker);
-		return JSObjectHasPropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), ex, OK(false));
+		return JSObjectHasPropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), OK(false));
 	}
 
-	bool JSObject::has(Worker* worker, uint32_t index) {
+	bool JSObject::has(Worker* w, uint32_t index) {
+		DCHECK(isObject());
 		ENV(worker);
-		return JSObjectHasPropertyForKey(ctx,
-			Back<JSObjectRef>(this), JSValueMakeNumber(ctx, index), ex, OK(false)
+		auto ok = JSObjectHasPropertyForKey(ctx,
+			Back<JSObjectRef>(this), JSValueMakeNumber(ctx, index), OK(false)
 		);
+		return ok;
 	}
 
 	bool JSObject::JSObject::deleteFor(Worker* w, JSValue* key) {
+		DCHECK(isObject());
 		ENV(w);
-		return JSObjectDeletePropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), ex, OK(false));
+		auto ok = JSObjectDeletePropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), OK(false));
+		return ok;
 	}
 
-	bool JSObject::deleteFor(Worker* worker, uint32_t index) {
+	bool JSObject::deleteFor(Worker* w, uint32_t index) {
+		DCHECK(isObject());
 		ENV(w);
-		return JSObjectDeletePropertyForKey(ctx,
-			Back<JSObjectRef>(this), JSValueMakeNumber(ctx, index), ex, OK(false)
+		auto ok = JSObjectDeletePropertyForKey(ctx,
+			Back<JSObjectRef>(this), JSValueMakeNumber(ctx, index), OK(false)
 		);
+		return ok;
 	}
 
 	JSArray* JSObject::getPropertyNames(Worker* w) {
+		DCHECK(isObject());
 		ENV(w);
 		JSCPropertyNameArrayPtr names = JSObjectCopyPropertyNames(ctx, Back<JSObjectRef>(this));
-		auto ret = JSObjectMakeArray(ctx, 0, nullptr, ex, OK(nullptr));
+		auto ret = JSObjectMakeArray(ctx, 0, nullptr, OK(nullptr));
 		auto count = JSPropertyNameArrayGetCount(*names);
 
 		for (int i = 0; i < count; i++) {
 			auto key = JSValueMakeString(ctx, JSPropertyNameArrayGetNameAtIndex(*names, i));
-			JSObjectSetPropertyAtIndex(ctx, ret, i, key, ex, OK(nullptr));
+			JSObjectSetPropertyAtIndex(ctx, ret, i, key, OK(nullptr));
 		}
 		return worker->addToScope<JSBoolean>(ret);
 	}
 
-	JSFunction* JSObject::getConstructor(Worker* w) {
+	Maybe<Array<String>> JSObject::getPropertyKeys(Worker* w) {
+		DCHECK(isObject());
 		ENV(w);
-		auto ret = JSObjectGetProperty(ctx, Back<JSObjectRef>(this), constructor_s, ex, OK(nullptr));
+		JSCPropertyNameArrayPtr names = JSObjectCopyPropertyNames(ctx, Back<JSObjectRef>(this));
+		auto count = JSPropertyNameArrayGetCount(*names);
+		Array<String> ret;
+		for (int i = 0; i < count; i++) {
+			auto s = JSPropertyNameArrayGetNameAtIndex(*names, i)
+			size_t len = JSStringGetLength(*s);
+			const JSChar* ch = JSStringGetCharactersPtr(*s);
+			auto buf = codec_utf16_to_utf8(ArrayWeak(ch, len).buffer());
+			ret.push(buf.collapseString());
+		}
+		Qk_ReturnLocal(ret);
+	}
+
+	JSFunction* JSObject::getConstructor(Worker* w) {
+		DCHECK(isObject());
+		ENV(w);
+		auto ret = JSObjectGetProperty(ctx, Back<JSObjectRef>(this), constructor_s, OK(nullptr));
 		auto jsret = Cast<JSFunction>(ret);
 		// worker->addToScope(ret);
 		DCHECK(jsret->isFunction());
@@ -635,7 +609,7 @@ namespace qk { namespace js {
 		ENV(w);
 		JSPropertyAttributes attrs = flags << 1;
 		JSObjectSetPropertyForKey(ctx,
-			Back<JSObjectRef>(this), Back(key), Back(value), attrs, ex, OK(false)
+			Back<JSObjectRef>(this), Back(key), Back(value), attrs, OK(false)
 		);
 		return true;
 	}
@@ -648,140 +622,213 @@ namespace qk { namespace js {
 	}
 
 	int JSString::length() const {
-		// return reinterpret_cast<const v8::String*>(this)->Length();
-		//JSStringGetLength()
-		// JSValueToStringCopy(0, 0, 0);
-		//JSStringGetCharactersPtr()
+		DCHECK(isString());
+		ENV();
+		auto len = JSObjectGetProperty(ctx, Back<JSObjectRef>(this), length_s, &ex);
+		CHECK(ex);
+		return js::asInt32(len);
 	}
 
-	JSString* JSString::Empty(Worker* w) {
-		return Cast<JSString>(WORKER(w)->_data.EmptyString);
+	String JSString::value(Worker* w) const {
+		DCHECK(isString());
+		ENV(w);
+		JSCStringPtr s = JSValueToStringCopy(ctx, Back(this), JsFatal("JSString::value()"));
+		size_t len = JSStringGetLength(*s);
+		const JSChar* ch = JSStringGetCharactersPtr(*s);
+		auto buf = codec_utf16_to_utf8(ArrayWeak(ch, len).buffer());
+		return buf.collapseString();
+	}
+
+	String2 JSString::value2(Worker* w) const {
+		DCHECK(isString());
+		ENV(w);
+		JSCStringPtr s = JSValueToStringCopy(ctx, Back(this), JsFatal("JSString::value2()"));
+		size_t len = JSStringGetLength(*s);
+		const JSChar* ch = JSStringGetCharactersPtr(*s);
+		return String2(ch, len);
+	}
+
+	String4 JSString::value4(Worker* w) const {
+		DCHECK(isString());
+		ENV(w);
+		JSCStringPtr s = JSValueToStringCopy(ctx, Back(this), JsFatal("JSString::value4()"));
+		size_t len = JSStringGetLength(*s);
+		const JSChar* ch = JSStringGetCharactersPtr(*s);
+		auto str4 = codec_utf16_to_unicode(ArrayWeak(ch, len).buffer());
+		return str4.collapseString();
 	}
 
 	int JSArray::length() const {
 		ENV();
-		auto val = JSObjectGetProperty(ctx, Back<JSObjectRef>(this), length_s, ex, OK(0));
-		auto len = asInt32(val);
+		auto val = JSObjectGetProperty(ctx, Back<JSObjectRef>(this), length_s, JsFatal("JSArray::length()"));
+		auto len = js::asInt32(val);
 		return len;
 	}
 
 	double JSDate::valueOf() const {
-		return 0;
+		ENV();
+		auto val = JSObjectCallAsFunction(ctx,
+			worker->_data.global_Date_prototype_valueOf,
+			Back<JSObjectRef>(this), 0. nullptr, JsFatal("JSDate::valueOf()")
+		);
+		auto val = js::asDouble(val);
+		return val;
 	}
 
 	double JSNumber::value() const {
-		if (isInt32(this))
-			return asInt32(this)
+		if (js::isInt32(this))
+			return js::asInt32(this)
 		else
-			return asDouble(this);
+			return js::asDouble(this);
 	}
 
 	int JSInt32::value() const {
-		return asInt32(this);
+		return js::asInt32(this);
 	}
 
 	uint32_t JSUint32::value() const {
-		return asInt32(this);
+		if (js::isInt32(this))
+			return js::asInt32(this)
+		else
+			return js::asDouble(this);
 	}
 
 	bool JSBoolean::value() const {
-		return asBoolean(this);
+		return js::asBoolean(this);
 	}
 
-	JSValue* JSFunction::call(Worker* worker, int argc, JSValue* argv[], JSValue* recv) {
-		// if ( !recv ) {
-		// 	recv = worker->newUndefined();
-		// }
-		// auto fn = reinterpret_cast<v8::Function*>(this);
-		// v8::MaybeLocal<v8::Value> r = fn->Call(CONTEXT(worker), Back(recv), argc,
-		// 																				reinterpret_cast<v8::Local<v8::Value>*>(argv));
-		// Local<v8::Value> out;
-		// return r.ToLocal(&out) ? Cast(out): nullptr;
+	JSValue* JSFunction::call(Worker* w, int argc, JSValue* argv[], JSValue* recv) {
+		DCHECK(isFunction());
+		ENV(w);
+		auto rev = JSObjectCallAsFunction(ctx, Cast<JSObjectRef>(this),
+			Back<JSObjectRef>(recv), argc, reinterpret_cast<const JSValueRef*>(argv), OK(nullptr)
+		);
+		DCHECK(rev);
+		return worker->addToScope(rev);
 	}
 
-	JSValue* JSFunction::call(Worker* worker, JSValue* recv) {
-		// return call(worker, 0, nullptr, recv);
+	JSValue* JSFunction::call(Worker* w, JSValue* recv) {
+		return call(w, 0, nullptr, recv);
 	}
 
-	JSObject* JSFunction::newInstance(Worker* worker, int argc, JSValue* argv[]) {
-		// auto fn = reinterpret_cast<v8::Function*>(this);
-		// v8::MaybeLocal<v8::Object> r = fn->NewInstance(CONTEXT(worker), argc,
-		// 																								reinterpret_cast<v8::Local<v8::Value>*>(argv));
-		// return Cast<JSObject>(r);
+	JSObject* JSFunction::newInstance(Worker* w, int argc, JSValue* argv[]) {
+		DCHECK(isFunction());
+		ENV(w);
+		auto rev = JSObjectCallAsConstructor(ctx, Cast<JSObjectRef>(this),
+			argc, reinterpret_cast<const JSValueRef*>(argv), OK(nullptr)
+		);
+		DCHECK(rev);
+		return worker->addToScope<JSObject>(rev);
 	}
 
-	JSObject* JSFunction::getFunctionPrototype(Worker* worker) {
-		// auto fn = reinterpret_cast<v8::Function*>(this);
-		// auto str = Back(worker->strs()->prototype());
-		// auto r = fn->Get(CONTEXT(worker), str);
-		// return Cast<JSObject>(r);
+	JSObject* JSFunction::getFunctionPrototype(Worker* w) {
+		DCHECK(isFunction());
+		ENV(w);
+		auto rev = JSObjectGetProperty(ctx, Back<JSObjectRef>(this), prototype_s, OK(nullptr));
+		DCHECK(rev);
+		return worker->addToScope<JSObject>(rev);
 	}
 
-	uint32_t JSArrayBuffer::byteLength(Worker* worker) const {
-		// return (uint32_t)reinterpret_cast<const v8::ArrayBuffer*>(this)->ByteLength();
+	uint32_t JSArrayBuffer::byteLength(Worker* w) const {
+		DCHECK(isArrayBuffer());
+		ENV(w);
+		auto len = JSObjectGetArrayBufferByteLength(ctx, Back<JSObjectRef>(this), JsFatal("JSArrayBuffer::byteLength()"));
+		return len;
 	}
 
-	Char* JSArrayBuffer::data(Worker* worker) {
-		// return (Char*)reinterpret_cast<v8::ArrayBuffer*>(this)->GetContents().Data();
+	Char* JSArrayBuffer::data(Worker* w) {
+		DCHECK(isArrayBuffer());
+		ENV(w);
+		auto ptr = JSObjectGetArrayBufferBytesPtr(ctx, Back<JSObjectRef>(this), JsFatal("JSArrayBuffer::data()"));
+		return static_cast<Char*>(ptr);
 	}
 
-	JSArrayBuffer* JSTypedArray::buffer(Worker* worker) {
-		// auto typedArray = reinterpret_cast<v8::TypedArray*>(this);
-		// v8::Local<v8::ArrayBuffer> abuff = typedArray->Buffer();
-		// return Cast<JSArrayBuffer>(abuff);
+	JSArrayBuffer* JSTypedArray::buffer(Worker* w) {
+		DCHECK(isArrayBuffer());
+		ENV(w);
+		auto buff = JSObjectGetTypedArrayBuffer(ctx, Back<JSObjectRef>(this), JsFatal("JSArrayBuffer::buffer()"));
+		DCHECK(buff);
+		return Cast<JSArrayBuffer*>(buff);
 	}
 
-	uint32_t JSTypedArray::byteLength(Worker* worker) {
-		// return (uint32_t)reinterpret_cast<v8::TypedArray*>(this)->ByteLength();
+	uint32_t JSTypedArray::byteLength(Worker* w) {
+		DCHECK(isTypedArray());
+		ENV(w);
+		auto len = JSObjectGetTypedArrayByteLength(ctx, Back<JSObjectRef>(this), JsFatal("JSTypedArray::byteLength()"));
+		return len;
 	}
 
-	uint32_t JSTypedArray::byteOffset(Worker* worker) {
-		// return (uint32_t)reinterpret_cast<v8::TypedArray*>(this)->ByteOffset();
+	uint32_t JSTypedArray::byteOffset(Worker* w) {
+		DCHECK(isTypedArray());
+		ENV(w);
+		auto off = JSObjectGetTypedArrayByteOffset(ctx, Back<JSObjectRef>(this), JsFatal("JSTypedArray::byteOffset()"));
+		return off;
 	}
 
-	bool JSSet::add(Worker* worker, JSValue* key) {
-		// auto set = reinterpret_cast<v8::Set*>(this);
-		// return !set->Add(CONTEXT(worker), Back(key)).IsEmpty();
+	inline bool isSet(Worker* w, JSValue* val) {
+		ENV(w);
+		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(this), worker->_data.global_Set, JsFatal("isSet"));
+		return ok;
 	}
 
-	bool JSSet::has(Worker* worker, JSValue* key) {
-		// auto set = reinterpret_cast<v8::Set*>(this);
-		// return set->Has(CONTEXT(worker), Back(key)).ToChecked();
+	bool JSSet::add(Worker* w, JSValue* key) {
+		ENV(w);
+		DCHECK(isSet(w, this));
+		auto argv = Back(key);
+		JSObjectCallAsFunction(ctx,
+			worker->_data.global_Set_prototype_add, Back<JSObjectRef>(this), 1, &argv, OK(false)
+		);
+		return true;
 	}
 
-	bool JSSet::deleteFor(Worker* worker, JSValue* key) {
-		// auto set = reinterpret_cast<v8::Set*>(this);
-		// return set->Delete(CONTEXT(worker), Back(key)).ToChecked();
+	bool JSSet::has(Worker* w, JSValue* key) {
+		ENV(w);
+		DCHECK(isSet(w, this));
+		auto argv = Back(key);
+		auto rev = JSObjectCallAsFunction(ctx,
+			worker->_data.global_Set_prototype_has, Back<JSObjectRef>(this), 1, &argv, OK(false)
+		);
+		return js::asBoolean(rev);
+	}
+
+	bool JSSet::deleteFor(Worker* w, JSValue* key) {
+		ENV(w);
+		DCHECK(isSet(w, this));
+		auto argv = Back(key);
+		auto rev = JSObjectCallAsFunction(ctx,
+			worker->_data.global_Set_prototype_delete, Back<JSObjectRef>(this), 1, &argv, OK(false)
+		);
+		return true;
 	}
 
 	template <> void Persistent<JSValue>::reset() {
-		// reinterpret_cast<v8::Persistent<v8::Value>*>(this)->Reset();
+		if (_val) {
+			JSValueUnprotect(JSC_CTX(_worker), Back(_val));
+			_val = nullptr;
+		}
 	}
 
 	template <> template <>
-	void Persistent<JSValue>::reset(Worker* worker, JSValue* other) {
-		// Qk_Assert(worker);
-		// reinterpret_cast<v8::Persistent<v8::Value>*>(this)->
-		// 	Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
-		// _worker = worker;
+	void Persistent<JSValue>::reset(Worker* w, JSValue* other) {
+		reset();
+		if (other) {
+			DCHECK(w);
+			JSValueProtect(JSC_CTX(w), Back(other));
+			_val = other;
+			_worker = w;
+		}
 	}
 
 	template<> template<>
 	void Persistent<JSValue>::copy(const Persistent<JSValue>& that) {
-		// reset();
-		// if (that.isEmpty())
-		// 	return;
-		// Qk_Assert(that._worker);
-		// typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
-		// reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&that));
-		// _worker = that._worker;
+		reset(that._worker, that._val);
 	}
 
 	template<>
 	JSValue* Persistent<JSValue>::operator*() const {
-		// // return Cast(Local<Value>::New(ISOLATE(_worker), Back(_val)));
-		// add to scope ... ?
-		// return _val;
+		// if (_val)
+		// 	WORKER(_worker)->addToScope(_val);
+		return _val;
 	}
 
 	JSNumber* Worker::newValue(float val) {
@@ -832,7 +879,6 @@ namespace qk { namespace js {
 	}
 
 	JSUint32* Worker::newValue(uint32_t val) {
-		// TODO ...
 		ENV(this);
 		auto ret = JSValueMakeNumber(ctx, val);
 		return worker->addToScope<JSUint32>(ret);
@@ -851,42 +897,49 @@ namespace qk { namespace js {
 	}
 
 	JSString* Worker::newString(cBuffer& val) {
-		// return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), *data,
-																									// v8::String::kNormalString, data.length()));
+		auto str = JSStringCreateWithUTF8CString(*val);
+		auto obj = JSValueMakeString(JSX_CTX(this), str);
+		DCHECK(obj);
+		return WORKER(this)->addToScope<JSString>(obj);
 	}
 
 	JSString* Worker::newValue(cString& val) {
-		// return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), *data,
-																									// v8::String::kNormalString, data.length()));
+		auto str = JSStringCreateWithUTF8CString(*val);
+		auto obj = JSValueMakeString(JSX_CTX(this), str);
+		DCHECK(obj);
+		return WORKER(this)->addToScope<JSString>(str);
 	}
 
 	JSString* Worker::newValue(cString2& val) {
-		// return Cast<JSString>(v8::String::NewExternalTwoByte(
-			// ISOLATE(this),
-			// new V8ExternalStringResource(data)
-		// ));
+		auto str = JSStringCreateWithCharacters(*val, val.length());
+		auto obj = JSValueMakeString(JSX_CTX(this), str);
+		DCHECK(obj);
+		return WORKER(this)->addToScope<JSString>(obj);
 	}
 
 	JSUint8Array* Worker::newValue(Buffer&& buff) {
-		// size_t offset = 0;
-		// size_t len = buff.length();
-		// v8::Local<v8::ArrayBuffer> ab;
-		// if (buff.length()) {
-		// 	size_t len = buff.length();
-		// 	Char* data = buff.collapse();
-		// 	ab = v8::ArrayBuffer::New(ISOLATE(this), data, len, ArrayBufferCreationMode::kInternalized);
-		// } else {
-		// 	ab = v8::ArrayBuffer::New(ISOLATE(this), 0);
-		// }
-		// return Cast<JSUint8Array>(v8::Uint8Array::New(ab, offset, len));
+		ENV(this);
+		auto arr = JSObjectMakeTypedArrayWithBytesNoCopy(
+			ctx, kJSTypedArrayTypeUint8Array, *buff, buff.length(), [](void* bytes, void* data) {
+			Allocator::free(bytes);
+		}, nullptr, OK(nullptr));
+		DCHECK(arr);
+		buff.collapse();
+		return worker->addToScope<JSUint8Array>(arr);
 	}
 
 	JSObject* Worker::newObject() {
-		// return Cast<JSObject>(v8::Object::New(ISOLATE(this)));
+		ENV(this);
+		auto obj = JSObjectMake(ctx, nullptr, nullptr);
+		DCHECK(obj);
+		return worker->addToScope<JSObject>(obj);
 	}
 
-	JSArray* Worker::newArray(uint32_t len) {
-		// return Cast<JSArray>(v8::Array::New(ISOLATE(this), len));
+	JSArray* Worker::newArray() {
+		ENV(this);
+		auto obj = JSObjectMakeArray(ctx, 0, nullptr, OK(nullptr));
+		DCHECK(obj);
+		return worker->addToScope<JSArray>(obj);
 	}
 
 	JSValue* Worker::newNull() {
@@ -900,107 +953,158 @@ namespace qk { namespace js {
 	}
 
 	JSSet* Worker::newSet() {
-		// return Cast<JSSet>(v8::Set::New(ISOLATE(this)));
+		ENV(this);
+		auto obj = JSObjectCallAsConstructor(ctx, worker->_data.global_Set, 0, nullptr, OK(nullptr));
+		DCHECK(obj);
+		return worker->addToScope<JSSet>(obj);
+	}
+
+	JSString* Worker::newEmpty() {
+		return Cast<JSString>(WORKER(this)->_data.EmptyString);
 	}
 
 	JSString* Worker::newStringOneByte(cString& data) {
-		// return Cast<JSString>(v8::String::NewExternal(ISOLATE(this),
-																									// new V8ExternalOneByteStringResource(data)));
+		return newValue(data);
 	}
 
-	JSArrayBuffer* Worker::newArrayBuffer(Char* use_buff, uint32_t len) {
-		// return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), use_buff, len));
+	JSArrayBuffer* Worker::newArrayBuffer(char* use_buff, uint32_t len) {
+		ENV(this);
+		auto obj = JSObjectMakeArrayBufferWithBytesNoCopy(ctx, use_buff, len,
+			[](void* bytes, void* data) { ::free(bytes); }, nullptr, OK(nullptr)
+		);
+		DCHECK(obj);
+		return worker->addToScope<JSArrayBuffer>(obj);
 	}
 
 	JSArrayBuffer* Worker::newArrayBuffer(uint32_t len) {
-		// return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), len));
+		ENV(this);
+		Buffer buff(len);
+		auto obj = JSObjectMakeArrayBufferWithBytesNoCopy(ctx, *buff, len, [](void* bytes, void* data){
+			Allocator::free(bytes);
+		}, nullptr, OK(nullptr));
+		DCHECK(obj);
+		buff.collapse();
+		return worker->addToScope<JSArrayBuffer>(obj);
 	}
 
 	JSUint8Array* Worker::newUint8Array(JSArrayBuffer* abuffer, uint32_t offset, uint32_t size) {
-		// auto ab2 = Back<v8::ArrayBuffer>(abuffer);
-		// offset = Qk_Min((uint)ab2->ByteLength(), offset);
-		// if (size + offset > ab2->ByteLength()) {
-		// 	size = (uint)ab2->ByteLength() - offset;
-		// }
-		// return Cast<JSUint8Array>(v8::Uint8Array::New(ab2, offset, size));
+		DCHECK(abuffer->isArrayBuffer());
+		ENV(this);
+		auto obj = JSObjectMakeTypedArrayWithArrayBufferAndOffset(
+			ctx, kJSTypedArrayTypeUint8Array, Back<JSObjectRef>(abuffer), offset, size, OK(nullptr)
+		);
+		DCHECK(obj);
+		return worker->addToScope<JSUint8Array>(obj);
 	}
 
 	JSObject* Worker::newRangeError(cChar* errmsg, ...) {
-		// va_list arg;
-		// va_start(arg, errmsg);
-		// auto str = _Str::printfv(errmsg, arg);
-		// va_end(arg);
-		// return Cast<JSObject>(v8::Exception::RangeError(Back<v8::String>(newValue(str))));
+		ENV(this);
+		Js_Format_Str(errmsg);
+		auto val = Back(newValue(str));
+		auto obj = JSObjectCallAsConstructor(ctx, worker->_data.global_RangeError, 1, &val, OK(nullptr));
+		DCHECK(obj);
+		return worker->addToScope<JSObject>(obj);
 	}
 
 	JSObject* Worker::newReferenceError(cChar* errmsg, ...) {
-		// va_list arg;
-		// va_start(arg, errmsg);
-		// auto str = _Str::printfv(errmsg, arg);
-		// va_end(arg);
-		// return Cast<JSObject>(v8::Exception::ReferenceError(Back<v8::String>(newValue(str))));
+		ENV(this);
+		Js_Format_Str(errmsg);
+		auto val = Back(newValue(str));
+		auto obj = JSObjectCallAsConstructor(ctx, worker->_data.global_ReferenceError, 1, &val, OK(nullptr));
+		DCHECK(obj);
+		return worker->addToScope<JSObject>(obj);
 	}
 
 	JSObject* Worker::newSyntaxError(cChar* errmsg, ...) {
-		// va_list arg;
-		// va_start(arg, errmsg);
-		// auto str = _Str::printfv(errmsg, arg);
-		// va_end(arg);
-		// return Cast<JSObject>(v8::Exception::SyntaxError(Back<v8::String>(newValue(str))));
+		ENV(this);
+		Js_Format_Str(errmsg);
+		auto val = Back(newValue(str));
+		auto obj = JSObjectCallAsConstructor(ctx, worker->_data.global_SyntaxError, 1, &val, OK(nullptr));
+		DCHECK(obj);
+		return worker->addToScope<JSObject>(obj);
 	}
 
 	JSObject* Worker::newTypeError(cChar* errmsg, ...) {
-		// va_list arg;
-		// va_start(arg, errmsg);
-		// auto str = _Str::printfv(errmsg, arg);
-		// va_end(arg);
-		// return Cast<JSObject>(v8::Exception::TypeError(Back<v8::String>(newValue(str))));
+		ENV(this);
+		Js_Format_Str(errmsg);
+		auto val = Back(newValue(str));
+		auto obj = JSObjectCallAsConstructor(ctx, worker->_data.global_TypeError, 1, &val, OK(nullptr));
+		DCHECK(obj);
+		return worker->addToScope<JSObject>(obj);
 	}
 
 	JSObject* Worker::newValue(cError& err) {
-		// v8::Local<v8::Object> e =
-		// 	v8::Exception::Error(Back<v8::String>(newValue(err.message()))).As<v8::Object>();
-		// e->Set(Back(strs()->Errno()), Back(newValue(err.code())));
-		// return Cast<JSObject>(e);
+		ENV(this);
+		auto str = Back(newValue(err.message()));
+		auto obj = JSObjectCallAsConstructor(ctx, worker->_data.global_Error, 1, &str, OK(nullptr));
+		DCHECK(obj);
+		JSObjectSetProperty(ctx, obj, errno_s, JSValueMakeNumber(ctx, err.code()), 0, OK(nullptr));
+		return worker->addToScope<JSObject>(obj);
 	}
 
 	void Worker::throwError(JSValue* exception) {
-		// ISOLATE(this)->ThrowException(Back(exception));
+		WORKER(this)->throwException(Back(exception));
 	}
 
-	JSValue* Worker::runScript(JSString* source, JSString* name, JSObject* sandbox) {
-		// v8::MaybeLocal<v8::Value> r = WORKER(this)->runScript(Back<v8::String>(source),
-		// 																											Back<v8::String>(name),
-		// 																											Back<v8::Object>(sandbox));
-		// return Cast(r.FromMaybe(v8::Local<v8::Value>()));
+	JSValue* JscWorker::runScript(JSString* jsSource, cString& source, JSString* name, JSObject* sandbox) {
+		ENV(this);
+		auto url = JSValueToStringCopy(ctx, Back(name), OK(nullptr));
+		DCHECK(url);
+
+		if (sandbox) {
+			DCHECK(sandbox->isObject());
+			String sandboxExpand;
+			for (auto &k: sandbox->getPropertyKeys(this).from(Array<String>())) {
+				sandboxExpand += String::format("var %s=sandbox.%s;", *k, *k);
+			}
+			auto body = String::format("(function(sandbox){%s%s;return sandbox})",
+				*sandboxExpand, source.isEmpty() ? *jsSource->value(this): *source
+			);
+			auto script = JSStringCreateWithUTF8CString(*body);
+			auto func = JSEvaluateScript(ctx, body, nullptr, url, 1, OK(nullptr));
+			auto argv = sandbox->cast();
+			return Cast<JSFunction>(func)->call(this, 1, &argv);
+		} else {
+			JSStringRef script;
+			if (jsSource) {
+				script = JSValueToStringCopy(ctx, Back(jsSource), OK(nullptr));
+			} else {
+				DCHECK(!source.isEmpty());
+				script = JSStringCreateWithUTF8CString(*source);
+			}
+			DCHECK(script);
+			auto val = JSEvaluateScript(ctx, script, nullptr, url, 1, OK(nullptr));
+			return worker->addToScope(val);
+		}
 	}
 
 	JSValue* Worker::runScript(cString& source, cString& name, JSObject* sandbox) {
-		// return runScript(newValue(source), newValue(name), sandbox);
+		return WORKER(this)->runScript(nullptr, source, newValue(name), sandbox);
 	}
 
-	JSValue* Worker::runNativeScript(cBuffer& source, cString& name, JSObject* exports) {
-		// return WORKER(this)->runNativeScript(source, name, exports);
+	JSValue* Worker::runScript(JSString* source, JSString* name, JSObject* sandbox) {
+		return WORKER(this)->runScript(source, String(), name, sandbox);
 	}
 
 	void Worker::garbageCollection() {
+		JSGarbageCollect(JSC_CTX(this));
 	}
 
-	void runDebugger(Worker* worker, const DebugOptions &opts) {
+	void runDebugger(Worker* w, const DebugOptions &opts) {
+		// noop
 	}
 
-	void stopDebugger(Worker* worker) {
+	void stopDebugger(Worker* w) {
+		// noop
 	}
 
-	void debuggerBreakNextStatement(Worker* worker) {
+	void debuggerBreakNextStatement(Worker* w) {
+		// noop
 	}
 
-	int platformStart(int argc, Char** argv, int (*exec)(Worker *worker)) {
+	int StartPlatform(int argc, Char** argv, int (*exec)(Worker *worker)) {
 		Sp<Worker> worker = Worker::Make();
-		// v8::SealHandleScope sealhandle(ISOLATE(*worker));
-		// v8::HandleScope handle(ISOLATE(*worker));
-		int rc = exec(*worker); // exec main script
-		return rc;
+		return exec(*worker); // exec main script
 	}
 
 	Qk_Init_Func(jsc_th_key_init) {

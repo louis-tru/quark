@@ -483,7 +483,7 @@ namespace qk { namespace js {
 	struct NativeHttp {
 		static bool get_options(Worker* worker, JSValue* arg, RequestOptions& opt) {
 			Js_Handle_Scope();
-			JSObject* obj = arg->as<JSObject>();
+			JSObject* obj = arg->cast<JSObject>();
 
 			opt = {
 				String(),
@@ -511,7 +511,7 @@ namespace qk { namespace js {
 
 			value = obj->get(worker, worker->newStringOneByte(const_headers));
 			if ( !value ) return false;
-			if (!value->as<JSObject>()->toStringDict(worker).to(opt.headers)) return false;
+			if (!value->cast<JSObject>()->toStringDict(worker).to(opt.headers)) return false;
 			
 			value = obj->get(worker, worker->newStringOneByte(const_post_data));
 			if ( !value ) return false;

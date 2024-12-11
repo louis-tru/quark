@@ -85,13 +85,13 @@ namespace qk { namespace inspector {
 		}
 		const uint16_t* source = view.characters16();
 		auto buff = codec_encode(kUTF8_Encoding,
-			codec_decode_form_utf16(ArrayWeak<uint16_t>(source, view.length()).buffer())
+			codec_utf16_to_unicode(ArrayWeak<uint16_t>(source, view.length()).buffer())
 		);
 		return std::string(*buff, buff.length());
 	}
 
 	std::unique_ptr<StringBuffer> Utf8ToStringView(const std::string& message) {
-		auto utf16 = codec_encode_to_utf16(codec_decode_to_unicode(
+		auto utf16 = codec_unicode_to_utf16(codec_decode_to_unicode(
 			kUTF8_Encoding, WeakBuffer(message.c_str(), message.length()).buffer()
 		));
 		return StringBuffer::create(StringView(*utf16, utf16.length()));

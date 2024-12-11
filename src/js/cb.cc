@@ -34,7 +34,7 @@ namespace qk { namespace js {
 
 	struct Func {
 		Func(Worker* worker, JSValue* cb)
-			: val(worker, cb->as<JSFunction>()) {}
+			: val(worker, cb->cast<JSFunction>()) {}
 		Func(const Func& func) {
 			val.copy(func.val);
 		}

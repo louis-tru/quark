@@ -350,19 +350,18 @@ namespace qk {
 	template <class Char>
 	static Buffer encode_to_utf8(const Char* source, uint32_t len) {
 		Buffer data(0u, len + 8);
-		auto dest = *data;
-		auto dataLen = data.capacity() - 8, destLen = 0u;
+		auto dest = data.val();
+		auto capacity = data.capacity() - 8, destLen = 0u;
 		auto end = source + len;
 		while (source != end) {
-			if (dataLen < destLen) {
+			if (capacity < destLen) {
 				data.extend(destLen + 8);
-				dataLen = data.capacity() - 8;
-				dest = *data + destLen;
+				capacity = data.capacity() - 8;
+				dest = data.val() + destLen;
 			}
-			auto charLen = encode_unicode_to_utf8_char(*source, dest);
+			auto charLen = encode_unicode_to_utf8_char(*source++, dest);
 			dest += charLen;
 			destLen += charLen;
-			source++;
 		}
 		// *dest = '\0';
 		data.reset(destLen);
@@ -372,19 +371,18 @@ namespace qk {
 	template <class Char>
 	static Buffer encode_to_utf16(const Char* source, uint32_t len) {
 		ArrayBuffer<uint16_t> data(0u, len + 4);
-		auto dest = *data;
-		auto dataLen = data.capacity() - 4, destLen = 0u;
+		auto dest = data.val();
+		auto capacity = data.capacity() - 4, destLen = 0u;
 		auto end = source + len;
 		while (source != end) {
-			if (dataLen < destLen) {
+			if (capacity < destLen) {
 				data.extend(destLen + 4);
-				dataLen = data.capacity() - 4;
-				dest = *data + destLen;
+				capacity = data.capacity() - 4;
+				dest = data.val() + destLen;
 			}
-			auto charLen = encode_unicode_to_utf16_char(*source, dest);
+			auto charLen = encode_unicode_to_utf16_char(*source++, dest);
 			dest += charLen;
 			destLen += charLen;
-			source++;
 		}
 		*dest = '\0';
 		auto capacity = data.capacity();
@@ -392,7 +390,7 @@ namespace qk {
 	}
 
 	template <class Char>
-	static Buffer encode_to_ucs4(const Char* source, uint32_t len) {
+	static Buffer copy_to_ucs4(const Char* source, uint32_t len) {
 		const Char* end = source + len;
 		auto rev = Buffer::alloc(len * 4, len * 4 + 4);
 		auto data = reinterpret_cast<uint32_t*>(*rev);
@@ -565,38 +563,40 @@ namespace qk {
 
 	template <class Return>
 	static ArrayBuffer<Return> decode_from_utf8(cChar* source, uint32_t len) {
-		ArrayBuffer<Return> rev(0u, 1);
+		ArrayBuffer<Return> data(0u, 1);
 		auto src = reinterpret_cast<const uint8_t*>(source);
 		auto end = src + len;
 		auto destLen = 0;
-		uint32_t data;
+		uint32_t unicode;
 		while (src < end) {
-			src += codec_decode_utf8_to_unichar(src, &data);
-			(*rev)[destLen] = data;
-			if (++destLen == rev.capacity())
-				rev.extend(destLen + 1);
+			src += codec_decode_utf8_to_unichar(src, &unicode);
+			data.val()[destLen] = unicode;
+			if (++destLen == data.capacity()) {
+				data.extend(destLen + 1);
+			}
 		}
-		(*rev)[destLen] = '\0';
-		auto capacity = rev.capacity();
-		return ArrayBuffer<Return>(rev.collapse(), destLen, capacity);
+		(*data)[destLen] = '\0';
+		data.reset(destLen);
+		Qk_ReturnLocal(data);
 	}
 
 	template <class Return>
 	static ArrayBuffer<Return> decode_from_utf16(cChar* source, uint32_t len) {
-		ArrayBuffer<Return> rev(0u, 1);
+		ArrayBuffer<Return> data(0u, 1);
 		auto src = reinterpret_cast<const uint16_t*>(source);
 		auto end = reinterpret_cast<const uint16_t*>(source + len);
 		auto destLen = 0;
-		uint32_t data;
+		uint32_t unicode;
 		while (src < end) {
-			src += codec_decode_utf16_to_unichar(src, &data);
-			(*rev)[destLen] = data;
-			if (++destLen == rev.capacity())
-				rev.extend(destLen + 1);
+			src += codec_decode_utf16_to_unichar(src, &unicode);
+			data.val()[destLen] = unicode;
+			if (++destLen == data.capacity()) {
+				data.extend(destLen + 1);
+			}
 		}
-		(*rev)[destLen] = '\0';
-		auto capacity = rev.capacity();
-		return ArrayBuffer<Return>(rev.collapse(), destLen, capacity);
+		data.val()[destLen] = '\0';
+		data.reset(destLen);
+		Qk_ReturnLocal(data);
 	}
 
 	template <class Return>
@@ -631,10 +631,11 @@ namespace qk {
 			case kUTF16_Encoding:
 				return encode_to_utf16(source, len);
 			case kUCS4_Encoding:
-				return encode_to_ucs4(source, len);
-			default: Qk_ELog("%s", "Unknown encode."); break;
+				return copy_to_ucs4(source, len);
+			default:
+				Qk_ELog("%s", "Unknown encode.");
+				return Buffer();
 		}
-		return Buffer();
 	}
 
 	static Buffer encode_with_uint16(Encoding target_en, const uint16_t* source, uint32_t len) {
@@ -652,10 +653,11 @@ namespace qk {
 			case kUTF16_Encoding:
 				return encode_to_utf16(source, len);
 			case kUCS4_Encoding:
-				return encode_to_ucs4(source, len);
-			default: Qk_ELog("%s", "Unknown encode."); break;
+				return copy_to_ucs4(source, len);
+			default:
+				Qk_ELog("%s", "Unknown encode.");
+				return Buffer();
 		}
-		return Buffer();
 	}
 
 	static Buffer encode_with_uint32(Encoding target_en, const uint32_t* source, uint32_t len) {
@@ -673,10 +675,11 @@ namespace qk {
 			case kUTF16_Encoding:
 				return encode_to_utf16(source, len);
 			case kUCS4_Encoding:
-				return encode_to_ucs4(source, len);
-			default: Qk_ELog("%s", "Unknown encode."); break;
+				return copy_to_ucs4(source, len);
+			default:
+				Qk_ELog("%s", "Unknown encode.");
+				return Buffer();
 		}
-		return Buffer();
 	}
 
 	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& uincode) {
@@ -718,9 +721,10 @@ namespace qk {
 				return decode_from_utf16<char>(source, len);
 			case Encoding::kUCS4_Encoding: // 会丢失ucs1外的编码
 				return decode_from_ucs4<char>(source, len);
-			default: Qk_ELog("%s", "Unknown encode. decode_to_buffer"); break;
+			default:
+				Qk_ELog("%s", "Unknown encode. decode_to_buffer");
+				return Buffer();
 		}
-		return Buffer();
 	}
 
 	static ArrayBuffer<uint16_t> decode_to_uint16(Encoding source_en, cChar* source, uint32_t len) {
@@ -739,9 +743,10 @@ namespace qk {
 				return decode_from_utf16<uint16_t>(source, len);
 			case kUCS4_Encoding: // 会丢失ucs2外的编码
 				return decode_from_ucs4<uint16_t>(source, len);
-			default: Qk_ELog("%s", "Unknown encode. decode_to_uint16"); break;
+			default:
+				Qk_ELog("%s", "Unknown encode. decode_to_uint16");
+				return ArrayBuffer<uint16_t>();
 		}
-		return ArrayBuffer<uint16_t>();
 	}
 
 	static ArrayBuffer<uint32_t> decode_to_uint32(Encoding source_en, cChar* source, uint32_t len) {
@@ -760,9 +765,10 @@ namespace qk {
 				return decode_from_utf16<uint32_t>(source, len);
 			case kUCS4_Encoding:
 				return decode_from_ucs4<uint32_t>(source, len);
-			default: Qk_ELog("%s", "Unknown encode. decode_to_uint32"); break;
+			default:
+				Qk_ELog("%s", "Unknown encode. decode_to_uint32");
+				return ArrayBuffer<uint32_t>();
 		}
-		return ArrayBuffer<uint32_t>();
 	}
 
 	ArrayBuffer<char> codec_decode_to_ucs1(Encoding source_en, cArray<char>& source) {
@@ -781,9 +787,9 @@ namespace qk {
 		return decode_to_uint32(source_en, *source, source.length());
 	}
 
-	// utf16
+	// utils
 
-	ArrayBuffer<uint16_t> codec_encode_to_utf16(cArray<uint32_t>& source) {
+	ArrayBuffer<uint16_t> codec_unicode_to_utf16(cArray<uint32_t>& source) {
 		auto buff = encode_to_utf16(*source, source.length());
 		auto len = buff.length() >> 1;
 		auto capacity = buff.capacity() >> 1;
@@ -792,8 +798,60 @@ namespace qk {
 		);
 	}
 
-	ArrayBuffer<uint32_t> codec_decode_form_utf16(cArray<uint16_t>& source) {
+	ArrayBuffer<char> codec_unicode_to_utf8(cArray<uint32_t>& unicode) {
+		return encode_to_utf8(*source, source.length());
+	}
+
+	ArrayBuffer<uint32_t> codec_utf16_to_unicode(cArray<uint16_t>& source) {
 		return decode_from_utf16<uint32_t>(reinterpret_cast<cChar*>(*source), source.length() << 1);
+	}
+
+	ArrayBuffer<uint32_t> codec_utf8_to_unicode(cArray<char>& utf8) {
+		return decode_from_utf8<uint32_t>(*source, source.length());
+	}
+
+	ArrayBuffer<char> codec_utf16_to_utf8(cArray<uint16_t>& utf16) {
+		ArrayBuffer<char> data(0u, utf16.length() + 8);
+		auto dest = data.val();
+		auto capacity = data.capacity() - 8, destLen = 0u;
+		auto src = *source;
+		auto end = source + utf16.length();
+		uint32_t unicode;
+		while (src < end) {
+			src += codec_decode_utf16_to_unichar(src, &unicode);
+			if (capacity < destLen) {
+				data.extend(destLen + 8);
+				capacity = data.capacity() - 8;
+				dest = data.val() + destLen;
+			}
+			auto charLen = encode_unicode_to_utf8_char(unicode, dest);
+			dest += charLen;
+			destLen += charLen;
+		}
+		data.reset(destLen);
+		Qk_ReturnLocal(data);
+	}
+
+	ArrayBuffer<uint16_t> codec_utf8_to_utf16(cArray<char>& utf8) {
+		ArrayBuffer<uint16_t> data(0u, utf8.length() + 4);
+		auto dest = data.val();
+		auto capacity = data.capacity() - 4, destLen = 0u;
+		auto src = reinterpret_cast<const uint8_t*>(utf8);
+		auto end = src + len;
+		uint32_t unicode;
+		while (src < end) {
+			src += codec_decode_utf8_to_unichar(src, &unicode);
+			if (capacity < destLen) {
+				data.extend(destLen + 4);
+				capacity = data.capacity() - 4;
+				dest = data.val() + destLen;
+			}
+			auto charLen = encode_unicode_to_utf16_char(unicode, dest);
+			dest += charLen;
+			destLen += charLen;
+		}
+		data.reset(destLen);
+		Qk_ReturnLocal(data);
 	}
 
 }

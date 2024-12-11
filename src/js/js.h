@@ -137,8 +137,8 @@ namespace qk { namespace js {
 			reinterpret_cast<Persistent<JSValue>*>(this)->reset(worker, static_cast<JSValue*>(other));
 		}
 		template <class S>
-		inline void reset(Worker* worker, const Persistent<S>& other) {
-			reinterpret_cast<Persistent<JSValue>*>(this)->reset(worker, static_cast<JSValue*>(*other));
+		inline void reset(const Persistent<S>& other) {
+			reinterpret_cast<Persistent<JSValue>*>(this)->reset(other._worker, static_cast<JSValue*>(*other));
 		}
 		template<class S>
 		void copy(const Persistent<S>& from) {
@@ -163,9 +163,9 @@ namespace qk { namespace js {
 		Maybe(): _ok(false) {}
 		Maybe(const T& t): _val(t),_ok(true) {}
 		Maybe(T&& t): _val(std::move(t)), _ok(true) {}
-		T& unsafe() { return _val; }
-		bool to(T& out) { return _ok ? (out = std::move(_val), true): false; }
-		T from(const T& defaultValue) { return _ok ? std::move(_val) : defaultValue; }
+		inline operator bool() const { return _ok; }
+		inline bool to(T& out) { return _ok ? (out = std::move(_val), true): false; }
+		inline T from(const T& defaultValue) { return _ok ? std::move(_val) : defaultValue; }
 	};
 
 	class Qk_Export HandleScope: public NoCopy {
@@ -263,26 +263,29 @@ namespace qk { namespace js {
 		bool isUint8Array() const;
 		bool isBuffer() const; // IsTypedArray or IsArrayBuffer
 		bool equals(Worker *worker, JSValue* val) const;
-		bool strictEquals(JSValue* val) const;
-		bool instanceOf(Worker* worker, JSObject* constructor); // this instanceOf constructor
-		template<class T = JSValue>
-		inline T* as() {
-			return static_cast<T*>(this);
-		}
-		JSString* toString(Worker* worker) const; // to string
+		bool strictEquals(Worker *worker, JSValue* val) const;
+		bool instanceOf(Worker* worker, JSObject* constructor) const; // this instanceOf constructor
+
+		// Force convert to type xxx
+		JSString* toString(Worker* worker) const;
+		JSBoolean* toBoolean(Worker* worker) const;
 		JSNumber* toNumber(Worker* worker) const;
 		JSInt32* toInt32(Worker* worker) const;
 		JSUint32* toUint32(Worker* worker) const;
-		JSBoolean* toBoolean(Worker* worker) const;
-		String  toStringValue(Worker* worker, bool oneByte = false) const; // to utf8 or one byte string
-		String2 toStringValue2(Worker* worker) const; // to utf16 string
-		String4 toStringValue4(Worker* worker) const; // to ucs4 string
-		bool toBooleanValue(Worker* worker) const;
-		Maybe<float> toFloatValue(Worker* worker) const;
-		Maybe<double> toNumberValue(Worker* worker) const;
-		Maybe<int> toInt32Value(Worker* worker) const;
-		Maybe<uint32_t> toUint32Value(Worker* worker) const;
-		WeakBuffer toBufferValue(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
+
+		// Convert to type xxx
+		Maybe<String> asString(Worker *worker) const;
+		Maybe<bool> asBoolean(Worker* worker) const;
+		Maybe<double> asNumber(Worker* worker) const;
+		Maybe<float> asFloat32(Worker* worker) const;
+		Maybe<int32_t> asInt32(Worker* worker) const;
+		Maybe<uint32_t> asUint32(Worker* worker) const;
+		Maybe<WeakBuffer> asBuffer(Worker *worker) const;
+
+		template<class T = JSValue>
+		inline T* cast() {
+			return static_cast<T*>(this);
+		}
 	};
 
 	class Qk_Export JSString: public JSValue {
@@ -318,9 +321,19 @@ namespace qk { namespace js {
 		bool setAccessor(Worker* worker, cString& name, AccessorGetterCallback get,
 			AccessorSetterCallback set = nullptr);
 		bool defineOwnProperty(Worker *worker, JSValue *key, JSValue *value, int flags = None);
-		bool setPrototype(Worker* worker, JSObject* __proto__); // set obj.__proto__
-		Maybe<Dict<String, int>> toIntegerDict(Worker* worker);
+		bool setPrototype(Worker* worker, JSObject* proto); // set obj.__proto__
+		Maybe<Dict<String, int>>    toIntegerDict(Worker* worker);
 		Maybe<Dict<String, String>> toStringDict(Worker* worker);
+		Maybe<Array<String>> getPropertyKeys(Worker* worker);
+	};
+
+	class Qk_Export JSString: public JSValue {
+	public:
+		int length() const; // utf16 length
+		String value(Worker* worker) const; // utf8 string value
+		String2 value2(Worker* worker) const;
+		String4 value4(Worker* worker) const;
+		Buffer toBuffer(Worker* worker, Encoding en = kUTF16_Encoding) const; // encode to en
 	};
 
 	class Qk_Export JSArray: public JSObject {
@@ -343,7 +356,7 @@ namespace qk { namespace js {
 
 	class Qk_Export JSInt32: public JSNumber {
 	public:
-		int value() const;
+		int32_t value() const;
 	};
 
 	class Qk_Export JSUint32: public JSNumber {
@@ -559,14 +572,15 @@ namespace qk { namespace js {
 		JSValue*      newNull();
 		JSValue*      newUndefined();
 		JSObject*     newObject();
-		JSString*     newString(cBuffer& val);
-		JSArray*      newArray(uint32_t len = 0);
+		JSArray*      newArray();
 		JSSet*        newSet();
+		JSString*     newEmpty();
+		JSString*     newString(cBuffer& val);
 		JSString*     newStringOneByte(cString& val);
-		JSArrayBuffer* newArrayBuffer(Char* useBuffer, uint32_t len);
+		JSArrayBuffer* newArrayBuffer(char* useBuffer, uint32_t len);
 		JSArrayBuffer* newArrayBuffer(uint32_t len);
 		JSUint8Array* newUint8Array(JSString* str, Encoding en = kUTF8_Encoding); // encode to en
-		JSUint8Array* newUint8Array(int size, Char fill = 0);
+		JSUint8Array* newUint8Array(int size, char fill = 0);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff);
 		JSUint8Array* newUint8Array(JSArrayBuffer* abuff, uint32_t offset, uint32_t size);
 		JSObject*     newRangeError(cChar* errmsg, ...);
@@ -599,7 +613,7 @@ namespace qk { namespace js {
 		JSFunction* newFunction(cString& name, FunctionCallback func); // new native function
 		JSValue* runScript(cString& source, cString& name, JSObject* sandbox = 0);
 		JSValue* runScript(JSString* source, JSString* name, JSObject* sandbox = 0);
-		JSValue* runNativeScript(cBuffer& source, cString& name, JSObject* exports = 0);
+		JSValue* runNativeScript(cChar* source, int sLen, cString& name, JSObject* exports = 0);
 
 	protected:
 		Worker();
