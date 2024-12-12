@@ -119,22 +119,22 @@ namespace qk { namespace js {
 		initBase();
 
 		HandleScope handle(this);
-		_rejectionCallbackOrigin = Back<JSObjectRef>(newFunction("rejectionCallbackOrigin", [](auto args) {
+		_rejectionListener = Back<JSObjectRef>(newFunction("rejectionListener", [](auto args) {
 			DCHECK(args.length() == 2);
 			defalutPromiseRejectListener(args.worker(), args[0], args[1]);
 			return nullptr;
 		}));
-		DCHECK(_rejectionCallbackOrigin);
+		DCHECK(_rejectionListener);
 		ENV(this);
-		JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionCallbackOrigin, JsFatal());
-		JSValueProtect(_ctx, _rejectionCallbackOrigin);
+		JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionListener, JsFatal());
+		JSValueProtect(_ctx, _rejectionListener);
 	}
 
 	void JscWorker::release() {
 		Worker::release();
 		_hasTerminated = true;
 		Releasep(_base);
-		JSValueUnprotect(_ctx, _rejectionCallbackOrigin);
+		JSValueUnprotect(_ctx, _rejectionListener);
 		_ex = nullptr;
 		_data.destroy(_ctx);
 		_hasDestroy = true;
@@ -205,12 +205,12 @@ namespace qk { namespace js {
 		constexpr int32_t ValueTrue      = OtherTag | BoolTag | true;
 #else
 		enum { Int32Tag =        0xffffffff };
-    enum { BooleanTag =      0xfffffffe };
-    enum { NullTag =         0xfffffffd };
-    enum { UndefinedTag =    0xfffffffc };
-    enum { CellTag =         0xfffffffb };
-    enum { EmptyValueTag =   0xfffffffa };
-    enum { DeletedValueTag = 0xfffffff9 };
+		enum { BooleanTag =      0xfffffffe };
+		enum { NullTag =         0xfffffffd };
+		enum { UndefinedTag =    0xfffffffc };
+		enum { CellTag =         0xfffffffb };
+		enum { EmptyValueTag =   0xfffffffa };
+		enum { DeletedValueTag = 0xfffffff9 };
 		enum { LowestTag =  DeletedValueTag };
 #endif
 
@@ -1096,7 +1096,6 @@ namespace qk { namespace js {
 
 	void runDebugger(Worker* w, const DebugOptions &opts) {
 		// noop
-		// JSContextGetGlobalContext
 	}
 
 	void stopDebugger(Worker* w) {

@@ -158,7 +158,7 @@ namespace qk { namespace js {
 		JscTryCatch *_try;
 		JscHandleScope *_scope;
 		JscClass *_base;
-		JSObjectRef _rejectionCallbackOrigin;
+		JSObjectRef _rejectionListener;
 		int _callStack;
 		bool _hasTerminated, _hasDestroy;
 		friend class StackFrame;
