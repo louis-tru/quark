@@ -260,7 +260,7 @@ namespace qk { namespace js {
 				}
 				Js_Handle_Scope();
 
-				auto arg = args[0]->template as<JSObject>();
+				auto arg = args[0]->template cast<JSObject>();
 				auto names = arg->getPropertyNames(worker);
 				if (names->length()) {
 					shared_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {

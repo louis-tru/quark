@@ -36,6 +36,7 @@
 #include "./js_.h"
 #include "./macros.h"
 #include <JavaScriptCore/JavaScript.h>
+#include <JavaScriptCore/JSContextRefPrivate.h>
 
 namespace qk {
 	template<>
@@ -86,7 +87,6 @@ namespace qk { namespace js {
 	struct ContextData;
 	struct Templates;
 
-	typedef void (*MessageCallback)(Message* msg, JSValue* exception);
 	typedef Handle<OpaqueJSString> JSCStringPtr;
 	typedef Handle<OpaqueJSPropertyNameArray> JSCPropertyNameArrayPtr;
 
@@ -117,11 +117,13 @@ namespace qk { namespace js {
 	String jsToString(JSContextRef ctx, JSValueRef value) {
 		return jsToString(*JSValueToStringCopy(ctx, value, nullptr));
 	}
+	void defalutMessageListener(Worker* worker, JSValue* exception);
+	void defalutPromiseRejectListener(Worker* worker, JSValue* reason, JSValue* promise);
 
 	struct WorkerData {
 		void initialize(JSGlobalContextRef ctx);
 		void destroy(JSGlobalContextRef ctx);
-		JSValueRef Undefined, Null, True, False, EmptyString, TypedArray, WrapSandboxScriptFunc;
+		JSValueRef Undefined, Null, True, False, EmptyString, TypedArray;
 		#define _Attr_Fun(name,from) JSObjectRef from##_##name;
 		Js_Worker_Data_Each(_Attr_Fun)
 		#undef _Attr_Fun
@@ -133,10 +135,8 @@ namespace qk { namespace js {
 		inline JSGlobalContextRef jscc() { return _ctx; }
 		inline bool hasTerminated() { return _hasTerminated; }
 		inline bool hasDestroy() { return _hasDestroy; }
-		inline void addMessageListener(MessageCallback that) { _messageListener = that; }
 		JSObjectRef newErrorJsc(cChar* message);
 		void throwException(JSValueRef exception);
-		void reportException(JSValueRef exception);
 		JSValue* runScript(JSString* jsSource, cString& source, JSString* name, JSObject* sandbox);
 		template<typename T = JSValue>
 		inline T* addToScope(JSValueRef ref) {
@@ -158,7 +158,7 @@ namespace qk { namespace js {
 		JscTryCatch *_try;
 		JscHandleScope *_scope;
 		JscClass *_base;
-		MessageCallback _messageListener;
+		JSObjectRef _rejectionCallbackOrigin;
 		int _callStack;
 		bool _hasTerminated, _hasDestroy;
 		friend class StackFrame;

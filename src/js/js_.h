@@ -129,7 +129,7 @@ namespace qk { namespace js {
 	void runDebugger(Worker* worker, const DebugOptions &opts);
 	void stopDebugger(Worker* worker);
 	void debuggerBreakNextStatement(Worker* worker);
-	int  StartPlatform(int argc, Char** argv, int (*exec)(Worker *worker));
+	int  StartPlatform(int argc, Char** argv, int (*exec)(Worker*));
 	int  triggerExit(Worker* worker, int code);
 	int  triggerBeforeExit(Worker* worker, int code);
 	bool triggerUncaughtException(Worker* worker, JSValue* err);

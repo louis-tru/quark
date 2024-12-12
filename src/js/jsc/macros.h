@@ -43,6 +43,7 @@
 	F(scriptId) \
 	F(functionName) \
 	F(scriptName) \
+	F(sourceURL) \
 	F(isEval) \
 	F(isConstructor) \
 	F(isWasm) \

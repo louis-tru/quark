@@ -33,12 +33,12 @@
 namespace qk { namespace js {
 
 	struct Factorys {
-		static JSClassRef constructor;
-		static JSClassRef object;
-		static JSClassRef prototype;
-		static JSClassRef function;
-		static JSClassRef accessorGet;
-		static JSClassRef accessorGet;
+		JSClassRef constructor;
+		JSClassRef object;
+		JSClassRef prototype;
+		JSClassRef function;
+		JSClassRef accessorGet;
+		JSClassRef accessorGet;
 	} static factorys = {0};
 
 	constexpr int FunctionPrivateMark = 125894334;

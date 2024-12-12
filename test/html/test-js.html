@@ -1,0 +1,19 @@
+<script>
+
+
+	function AA () { throw new Error('ABCDEFG') }
+
+	function BB() {  try { AA()} catch(error) {  return error } }
+
+
+	var err = BB()
+
+
+	console.log(Object.getOwnPropertyDescriptors(err))
+
+	console.log(err.stack)
+
+</script>
+
+
+ABCDEFG TEST

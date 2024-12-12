@@ -529,7 +529,7 @@ namespace qk { namespace js {
 				if (args.length() > 2 && args[2]->isObject()) {
 					sandbox = args[2]->template cast<JSObject>();
 				}
-				auto rv = worker->runScript(args[0]->template as<JSString>(), name, sandbox);
+				auto rv = worker->runScript(args[0]->template cast<JSString>(), name, sandbox);
 				if (rv) {
 					Js_Return(scope.escape(rv));
 				} // else js error

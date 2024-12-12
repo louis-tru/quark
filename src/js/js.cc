@@ -442,9 +442,7 @@ namespace js {
 
 	// ---------------------------------------------------------------------------------------------
 
-	static JSValue* TriggerEventFromUtil(
-		Worker* worker, cString& name, int argc = 0, JSValue* argv[] = 0
-	) {
+	static JSValue* TriggerEventFromUtil(Worker* worker, cString& name, int argc, JSValue* argv[]) {
 		auto _util = worker->bindingModule("_util")->cast<JSObject>();
 		Qk_Assert(_util);
 

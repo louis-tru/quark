@@ -96,7 +96,7 @@ namespace qk { namespace js {
 				// line / column
 				if (value[0] == ':' && (ch = strchr(value + 1, ':'))) {
 					*ch = '\0';
-					sscanf(value + 1, "%d", &_line_number);
+					sscanf(value + 1, "%d", &_lineNumber);
 					value = ch + 1;
 					sscanf(value, "%d", &_column);
 				}
@@ -120,7 +120,7 @@ namespace qk { namespace js {
 			String script_name = jsToString(jscc(), _script_name);
 
 			stream << space << "at " << *function_name << " ("
-						<< *script_name << ":" << _line_number << ":" << _column << ")";
+						<< *script_name << ":" << _lineNumber << ":" << _column << ")";
 			if (line_feed) {
 				stream << '\n';
 			}
@@ -135,7 +135,7 @@ namespace qk { namespace js {
 		}
 
 	private:
-		int _line_number = 0;
+		int _lineNumber = 0;
 		int _column = 0;
 		int _script_id = 0;
 		JSValueRef _function_name = nullptr;
@@ -183,11 +183,9 @@ namespace qk { namespace js {
 		}
 
 		void Print(std::stringstream& stream, const std::string& space) {
-			if (_frames.length()) {
-				for (int i = 0; i < _frames.length() - 1; i++) {
-					_frames[i]->Print(stream, space, true);
-				}
-				_frames.back()->Print(stream, space, false);
+			int end = _frames.length() - 1;
+			for (int i = 0; i < _frames.length(); i++) {
+				_frames[i]->Print(stream, space, i == end);
 			}
 		}
 
@@ -202,7 +200,7 @@ namespace qk { namespace js {
 					auto jitem = JSObjectMake(ctx, 0, 0);
 					DCHECK(item);
 					JSObjectSetProperty(ctx, jitem, line_s,
-															JSValueMakeNumber(ctx, item->_line_number), 0, OK(nullptr));
+															JSValueMakeNumber(ctx, item->_lineNumber), 0, OK(nullptr));
 					JSObjectSetProperty(ctx, jitem, column_s,
 															JSValueMakeNumber(ctx, item->_column), 0, OK(nullptr));
 					JSObjectSetProperty(ctx, jitem, scriptId_s,
@@ -233,21 +231,26 @@ namespace qk { namespace js {
 	public:
 		Message(JscWorker* worker,
 						JSObjectRef exception,
-						JSValueRef message, StackTrace* stack)
+						JSValueRef message,
+						JSValueRef sourceLine,
+						JSValueRef sourceURL,
+						StackTrace* stack)
 		: JscRef(worker)
 		, _exception(exception)
 		, _message(message)
-		, _source_line(worker->_globalData.Empty)
-		, _start_position(0)
-		, _end_position(0)
-		, _line_number(0)
-		, _start_column(0)
-		, _end_column(0)
+		, _sourceLine(sourceLine ? sourceLine: worker->_globalData.Empty)
+		, _sourceURL(sourceURL ? sourceURL: worker->_globalData.Empty)
+		, _startPosition(0)
+		, _endPosition(0)
+		, _lineNumber(0)
+		, _startColumn(0)
+		, _endColumn(0)
 		, _stack_trace(stack)
 		{
 			ref(_exception);
 			ref(_message);
-			ref(_source_line);
+			ref(_sourceLine);
+			ref(_sourceURL);
 		}
 
 		~Message() {
@@ -255,7 +258,23 @@ namespace qk { namespace js {
 		}
 
 		void Print(std::stringstream& stream, const std::string& space = "    ") {
-			stream << *jsToString(_worker->jsctx(), _message);
+			auto ctx = jscc();
+
+			// Print (filename):(line number): (message).
+			stream << *jsToString(ctx, _sourceURL) << ": " << _lineNumber << *jsToString(ctx, _message) << "\n";
+
+			// Print line of source code.
+			auto sourceline = jsToString(ctx, _sourceLine);
+			stream << *sourceline << "\n";
+
+			// Print line of source code position.
+			for (int i = 0; i < _startColumn; i++) {
+				stream << (sourceline[i] == 9 ? "\t": " ");
+			}
+			for (int i = _startColumn; i < _endColumn; i++) {
+				stream << "^";
+			}
+			// Print stack.
 			if (_stack_trace->GetFrameCount()) {
 				stream << "\n";
 				_stack_trace->Print(stream, space);
@@ -274,7 +293,7 @@ namespace qk { namespace js {
 									_stack_trace->GetFrame(0)->ScriptName(): _worker->_data.Empty;
 		}
 
-		static Message* Create(JscWorker* w, JSValueRef ex_) {
+		static Sp<Message> Create(JscWorker* w, JSValueRef ex_) {
 			DCHECK(ex_);
 			ENV(w);
 			auto ex = (JSObjectRef)ex_;
@@ -282,46 +301,55 @@ namespace qk { namespace js {
 				ex = JSObjectCallAsConstructor(ctx, worker->_globalData.Error, 1, &ex, 0);
 				DCHECK(ex);
 			}
-			auto line = JSObjectGetProperty(ctx, ex, line_s, OK(nullptr));
-			auto column = JSObjectGetProperty(ctx, ex, column_s, OK(nullptr));
-			JSStringRef message_str = JSValueToStringCopy(ctx, ex, OK(nullptr));
-			JSValueRef message = JSValueMakeString(ctx, message_str);
-			JSValueRef stack = nullptr;
-			bool has_set_stack = JSObjectHasProperty(ctx, ex, _stack_s);
-			if (has_set_stack) {
-				stack = JSObjectGetProperty(ctx, ex, _stack_s, nullptr);
-			} else {
-				stack = JSObjectGetProperty(ctx, ex, stack_s, nullptr);
-			}
-			DCHECK(stack);
-			auto stack_trace = new StackTrace(worker, stack);
-			auto m = new Message(worker, ex, message, stack_trace);
-			m->_line_number = JSValueToNumber(ctx, line, OK(nullptr));
-			m->_start_column = JSValueToNumber(ctx, column, OK(nullptr));
-			m->_end_column = m->_start_column;
+			auto line = JSObjectGetProperty(ctx, ex, line_s, JsFatal(nullptr));
+			auto column = JSObjectGetProperty(ctx, ex, column_s, JsFatal(nullptr));
+			auto sourceURL = JSObjectGetProperty(ctx, ex, sourceURL_s, JsFatal(nullptr)); //
+			// column: {value: 34, writable: true, enumerable: false, configurable: true}
+			// line: {value: 3, writable: true, enumerable: false, configurable: true}
+			// message: {value: "ABCDEFG", writable: true, enumerable: false, configurable: true}
+			// stack: {value: "AA@↵BB@↵global code@", writable: true, enumerable: false, configurable: true}
 
-			if (!has_set_stack) { // no set
+			auto lineNumber = JSValueToNumber(ctx, line, JsFatal(nullptr));
+			auto startColumn = JSValueToNumber(ctx, column, JsFatal(nullptr));
+			auto message_str = JSValueToStringCopy(ctx, ex, JsFatal(nullptr));
+			auto message = JSValueMakeString(ctx, message_str);
+			auto sourceURL_IsString = JSValueIsString(ctx, sourceURL);
+
+			bool is__stack = JSObjectHasProperty(ctx, ex, _stack_s);
+			auto stack = JSObjectGetProperty(ctx, ex, is__stack ? _stack_s: stack_s, JsFatal(nullptr));
+			DCHECK(stack);
+			auto stackTrace = new StackTrace(worker, stack);
+			auto msg = new Message(worker, ex, message, nullptr,
+				sourceURL_IsString ? sourceURL: nullptr, stackTrace
+			);
+			msg->_lineNumber = lineNumber;
+			msg->_startColumn = startColumn;
+			msg->_endColumn = startColumn;
+
+			if (!is__stack) { // no set
 				JSPropertyAttributes attrs = kJSPropertyAttributeReadOnly |
 					kJSPropertyAttributeDontEnum | kJSPropertyAttributeDontDelete;
-				JSObjectSetProperty(ctx, ex, _stack_s, stack, attrs, OK(nullptr));
+				JSObjectSetProperty(ctx, ex, _stack_s, stack, attrs, JsFatal(nullptr));
 				std::stringstream stream;
-				m->Print(stream);
+				msg->Print(stream);
 				std::string r = stream.str();
 				auto newStack = JSValueMakeString(ctx, JsStringWithUTF8(r.c_str()));
-				JSObjectSetProperty(ctx, ex, stack_s, newStack, attrs, OK(nullptr));
+				JSObjectSetProperty(ctx, ex, stack_s, newStack, attrs, JsFatal(nullptr));
 			}
-			return m;
+
+			return msg;
 		}
 
 	private:
 		JSObjectRef _exception;
 		JSValueRef _message;
-		JSValueRef _source_line;
-		int _start_position;
-		int _end_position;
-		int _line_number;
-		int _start_column;
-		int _end_column;
+		JSValueRef _sourceLine;
+		JSValueRef _sourceURL;
+		int _startPosition;
+		int _endPosition;
+		int _lineNumber;
+		int _startColumn;
+		int _endColumn;
 		StackTrace* _stack_trace;
 		friend class v8::Message;
 	};
@@ -412,24 +440,32 @@ namespace qk { namespace js {
 		static_cast<JscTryCatch*>(_val)->message()->PrintLog();
 	}
 
+	void defalutMessageListener(Worker* worker, JSValue* ex) {
+		DCHECK(ex);
+		if (!triggerUncaughtException(worker, ex)) {
+			Message::Create(this, Back(ex))->PrintLog();
+			qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
+		}
+	}
+
+	void defalutPromiseRejectListener(Worker* worker, JSValue* reason, JSValue* promise) {
+		if (!reason)
+			reason = worker->newUndefined();
+		if (!triggerUnhandledRejection(this, reason, promise)) {
+			Message::Create(this, Back(reason))->PrintLog();
+			qk::thread_exit(ERR_UNHANDLED_REJECTION);
+		}
+	}
+
 	void JscWorker::throwException(JSValueRef ex) {
 		if (_try) {
 			_try->caught(ex);
 		} else if (_callStack == 0) {
 			DCHECK(_ex == nullptr);
-			reportException(ex);
+			defalutMessageListener(this, Cast(ex));
 		} else {
 			CHECK(_ex == nullptr, "Throw too many exceptions");
 			_ex = ex;
-		}
-	}
-
-	void JscWorker::reportException(JSValueRef ex) {
-		Sp<Message> msg = Message::Create(this, ex);
-		if (_worker->_messageListener) {
-			_worker->_messageListener(*msg, Cast(ex));
-		} else {
-			msg->PrintLog(); // print exception message
 		}
 	}
 

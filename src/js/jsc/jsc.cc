@@ -86,13 +86,6 @@ namespace qk { namespace js {
 		EmptyString = JSValueMakeString(ctx, JsStringWithUTF8("")); JSValueProtect(ctx, EmptyString);
 		TypedArray = JSObjectGetPrototype(global_Uint8Array); JSValueProtect(ctx, TypedArray);
 		DCHECK(JSValueIsObject(ctx, TypedArray));
-
-		JSCStringPtr sourceName = JsStringWithUTF8("source");
-		JSCStringPtr sandboxName = JsStringWithUTF8("sandbox");
-		JSCStringPtr body = JsStringWithUTF8("return arguments.callee.__native__.apply(this,arguments)");
-		JSStringRef argvNames[] = { *sourceName, *sandboxName };
-		WrapSandboxScriptFunc = JSObjectMakeFunction(ctx, nullptr, 2, argvNames, body, nullptr, 1, JsFatal());
-		JSValueProtect(ctx, WrapSandboxScriptFunc);
 	}
 
 	void WorkerData::destroy(JSGlobalContextRef ctx) {
@@ -105,7 +98,6 @@ namespace qk { namespace js {
 		JSValueUnprotect(ctx, False);
 		JSValueUnprotect(ctx, EmptyString);
 		JSValueUnprotect(ctx, TypedArray);
-		JSValueUnprotect(ctx, WrapSandboxScript);
 	}
 
 	JscWorker::JscWorker()
@@ -113,7 +105,6 @@ namespace qk { namespace js {
 		, _try(nullptr)
 		, _scope(nullptr)
 		, _base(nullptr)
-		, _messageListener(nullptr)
 		, _callStack(0)
 		, _hasTerminated(false)
 		, _hasDestroy(false)
@@ -126,12 +117,24 @@ namespace qk { namespace js {
 		_data.initialize(_ctx);
 
 		initBase();
+
+		HandleScope handle(this);
+		_rejectionCallbackOrigin = Back<JSObjectRef>(newFunction("rejectionCallbackOrigin", [](auto args) {
+			DCHECK(args.length() == 2);
+			defalutPromiseRejectListener(args.worker(), args[0], args[1]);
+			return nullptr;
+		}));
+		DCHECK(_rejectionCallbackOrigin);
+		ENV(this);
+		JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionCallbackOrigin, JsFatal());
+		JSValueProtect(_ctx, _rejectionCallbackOrigin);
 	}
 
 	void JscWorker::release() {
 		Worker::release();
 		_hasTerminated = true;
 		Releasep(_base);
+		JSValueUnprotect(_ctx, _rejectionCallbackOrigin);
 		_ex = nullptr;
 		_data.destroy(_ctx);
 		_hasDestroy = true;
@@ -1053,12 +1056,13 @@ namespace qk { namespace js {
 
 		if (sandbox) {
 			DCHECK(sandbox->isObject());
-			String sandboxExpand;
+			String sandboxExpand, sandboxRet;
 			for (auto &k: sandbox->getPropertyKeys(this).from(Array<String>())) {
-				sandboxExpand += String::format("var %s=sandbox.%s;", *k, *k);
+				sandboxExpand += String::format("var %s=__sandbox.%s;", *k, *k);
+				sandboxRet += k + ',';
 			}
-			auto body = String::format("(function(sandbox){%s%s;return sandbox})",
-				*sandboxExpand, source.isEmpty() ? *jsSource->value(this): *source
+			auto body = String::format("(function(__sandbox){%s; (function(){%s})(); return {%s}})",
+				*sandboxExpand, source.isEmpty() ? *jsSource->value(this): *source, *sandboxRet
 			);
 			auto script = JSStringCreateWithUTF8CString(*body);
 			auto func = JSEvaluateScript(ctx, body, nullptr, url, 1, OK(nullptr));
@@ -1092,6 +1096,7 @@ namespace qk { namespace js {
 
 	void runDebugger(Worker* w, const DebugOptions &opts) {
 		// noop
+		// JSContextGetGlobalContext
 	}
 
 	void stopDebugger(Worker* w) {
@@ -1102,7 +1107,7 @@ namespace qk { namespace js {
 		// noop
 	}
 
-	int StartPlatform(int argc, Char** argv, int (*exec)(Worker *worker)) {
+	int StartPlatform(int argc, Char** argv, int (*exec)(Worker*)) {
 		Sp<Worker> worker = Worker::Make();
 		return exec(*worker); // exec main script
 	}

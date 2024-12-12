@@ -38,24 +38,6 @@ namespace qk { namespace js {
 		return *value ? *value : "<string conversion failed>";
 	}
 
-	static void OnFatalError(cChar* location, cChar* message) {
-		if (location) {
-			Qk_Fatal("FATAL ERROR: %s %s\n", location, message);
-		} else {
-			Qk_Fatal("FATAL ERROR: %s\n", message);
-		}
-	}
-
-	static void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		WORKER()->uncaughtException(message, error);
-	}
-
-	static void PromiseRejectCallback(PromiseRejectMessage message) {
-		if (message.GetEvent() == v8::kPromiseRejectWithNoHandler) {
-			WORKER()->unhandledRejection(message);
-		}
-	}
-
 	WorkerImpl::WorkerImpl(): _locker(nullptr), _handle_scope(nullptr), _inspector(nullptr)
 	{
 		_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -65,11 +47,40 @@ namespace qk { namespace js {
 		_handle_scope = new HandleScopeMix(_isolate);
 		_context = v8::Context::New(_isolate);
 		_context->Enter();
-		_isolate->SetFatalErrorHandler(OnFatalError);
-		_isolate->AddMessageListener(MessageCallback);
-		_isolate->SetPromiseRejectCallback(PromiseRejectCallback);
 		_isolate->SetData(ISOLATE_INL_WORKER_DATA_INDEX, this);
 		_global.reset(this, Cast<JSObject>(_context->Global()) );
+
+		_isolate->SetFatalErrorHandler([](cChar* location, cChar* message) {
+			if (location) {
+				Qk_Fatal("FATAL ERROR: %s %s\n", location, message);
+			} else {
+				Qk_Fatal("FATAL ERROR: %s\n", message);
+			}
+		});
+
+		_isolate->AddMessageListener([](v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+			auto worker = WORKER();
+			if ( !triggerUncaughtException(worker, Cast(error)) ) {
+				worker->printException(message, error);
+				qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
+			}
+		});
+
+		_isolate->SetPromiseRejectCallback([](PromiseRejectMessage message) {
+			if (message.GetEvent() != v8::kPromiseRejectWithNoHandler)
+				return;
+			auto worker = WORKER();
+			v8::Local<v8::Promise> promise = message.GetPromise();
+			v8::Local<v8::Value> reason = message.GetValue();
+			if (reason.IsEmpty())
+				reason = v8::Undefined(_isolate);
+			if ( !triggerUnhandledRejection(this, Cast(reason), Cast(promise)) ) {
+				v8::HandleScope scope(_isolate);
+				v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
+				worker->printException(message, reason);
+				qk::thread_exit(ERR_UNHANDLED_REJECTION);
+			}
+		});
 	}
 
 	void WorkerImpl::release() {
@@ -106,71 +117,48 @@ namespace qk { namespace js {
 		v8::HandleScope handle_scope(_isolate);
 		v8::String::Utf8Value exception(_isolate, error);
 		// V8 didn't provide any extra information about this error; just
-		String msgStr = ToCstring(exception);
+		cChar* exception_string = ToCstring(exception);
 
-		if (!message.IsEmpty()) {
-			Array<String> out;
-			// Print (filename):(line number): (message).
-			v8::String::Utf8Value filename(_isolate, message->GetScriptOrigin().ResourceName());
-			v8::Local<v8::Context> context(_isolate->GetCurrentContext());
-			cChar* filename_string = ToCstring(filename);
-			int linenum = message->GetLineNumber(context).FromJust();
-			out.push(String::format("%s:%d: %s\n", filename_string, linenum, exception_string));
-			// Print line of source code.
-			v8::String::Utf8Value sourceline(_isolate, message->GetSourceLine(context).ToLocalChecked());
-			cChar* sourceline_string = ToCstring(sourceline);
-			out.push(sourceline_string); out.push('\n');
-			int start = message->GetStartColumn(context).FromJust();
-			for (int i = 0; i < start; i++) {
-				if (sourceline_string[i] == 9) { // \t
-					out.push( '\t' );
-				} else {
-					out.push( ' ' );
-				}
+		if (message.IsEmpty())
+			return Qk_ELog("%s", exception_string );
+	
+		Array<String> out;
+
+		// Print (filename):(line number): (message).
+		v8::String::Utf8Value filename(_isolate, message->GetScriptOrigin().ResourceName());
+		v8::Local<v8::Context> context(_isolate->GetCurrentContext());
+		cChar* filename_string = ToCstring(filename);
+		int linenum = message->GetLineNumber(context).FromJust();
+		out.push(String::format("%s:%d: %s\n", filename_string, linenum, exception_string));
+
+		// Print line of source code.
+		v8::String::Utf8Value sourceline(_isolate, message->GetSourceLine(context).ToLocalChecked());
+		cChar* sourceline_string = ToCstring(sourceline);
+		out.push(sourceline_string).push('\n');
+
+		// Print line of source code position.
+		int start = message->GetStartColumn(context).FromJust();
+		int end = message->GetEndColumn(context).FromJust();
+		for (int i = 0; i < start; i++) {
+			out.push(sourceline_string[i] == 9 ? '\t': ' ');
+		}
+		for (int i = start; i < end; i++) {
+			out.push('^');
+		}
+		// Print stack.
+		if (error->IsObject()) {
+			out.push('\n');
+			v8::Local<v8::Value> stack_trace_string;
+			if (error.As<v8::Object>()->Get(_context, newFromOneByte("stack"))
+					.ToLocal(&stack_trace_string) &&
+					stack_trace_string->IsString() &&
+					v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
+				v8::String::Utf8Value stack_trace(_isolate, stack_trace_string);
+				out.push(ToCstring(stack_trace)).push('\n');
 			}
-			int end = message->GetEndColumn(context).FromJust();
-			for (int i = start; i < end; i++) {
-				out.push( '^' );
-			}
-			out.push( '\n' );
-			
-			if (error->IsObject()) {
-				v8::Local<v8::Value> stack_trace_string;
-				
-				if (error.As<v8::Object>()->Get(_context, newFromOneByte("stack"))
-						.ToLocal(&stack_trace_string) &&
-						stack_trace_string->IsString() &&
-						v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
-					v8::String::Utf8Value stack_trace(_isolate, stack_trace_string);
-					cChar* stack_trace_string = ToCstring(stack_trace);
-					out.push( stack_trace_string ); out.push('\n');
-				}
-			}
-			msgStr = out.join(String());
 		}
 
-		Qk_ELog("%s", *msgStr );
-	}
-
-	void WorkerImpl::uncaughtException(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		//printException(message, error);
-		if ( !triggerUncaughtException(this, Cast(error)) ) {
-			printException( message, error);
-			qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
-		}
-	}
-
-	void WorkerImpl::unhandledRejection(PromiseRejectMessage& message) {
-		v8::Local<v8::Promise> promise = message.GetPromise();
-		v8::Local<v8::Value> reason = message.GetValue();
-		if (reason.IsEmpty())
-			reason = v8::Undefined(_isolate);
-		if ( !triggerUnhandledRejection(this, Cast(reason), Cast(promise)) ) {
-			v8::HandleScope scope(_isolate);
-			v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
-			printException(message, reason);
-			qk::thread_exit(ERR_UNHANDLED_REJECTION);
-		}
+		Qk_ELog(out.join(String()));
 	}
 
 	Worker* Worker::current() {
@@ -854,7 +842,7 @@ namespace qk { namespace js {
 		WORKER(worker)->debuggerBreakNextStatement();
 	}
 
-	int StartPlatform(int argc, Char** argv, int (*exec)(Worker *worker)) {
+	int StartPlatform(int argc, Char** argv, int (*exec)(Worker*)) {
 		auto platform = v8::platform::NewDefaultPlatform(1);
 		v8::V8::InitializePlatform(platform.get());
 		v8::V8::Initialize();

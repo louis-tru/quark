@@ -118,9 +118,6 @@ namespace qk { namespace js {
 			return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
 		}
 		void printException(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
-		void uncaughtException(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
-		void unhandledRejection(PromiseRejectMessage& message);
-
 		void runDebugger(const DebugOptions &opts);
 		void stopDebugger();
 		void debuggerBreakNextStatement();
