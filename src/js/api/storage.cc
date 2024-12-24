@@ -44,7 +44,8 @@ namespace qk { namespace js {
 						"@return {String}\n"
 					);
 				}
-				Js_Return( storage_get( args[0]->toStringValue(worker)) );
+				auto key = args[0]->toString(worker)->value(worker);
+				Js_Return( storage_get(key) );
 			});
 
 			Js_Method(set, {
@@ -55,7 +56,7 @@ namespace qk { namespace js {
 						"@param value {String}\n"
 					);
 				}
-				storage_set( args[0]->toStringValue(worker), args[1]->toStringValue(worker) );
+				storage_set( args[0]->toString(worker)->value(worker), args[1]->toString(worker)->value(worker) );
 			});
 
 			Js_Method(remove, {
@@ -65,7 +66,7 @@ namespace qk { namespace js {
 						"@param key {String}\n"
 					);
 				}
-				storage_remove( args[0]->toStringValue(worker) );
+				storage_remove( args[0]->toString(worker)->value(worker) );
 			});
 
 			Js_Method(clear, {

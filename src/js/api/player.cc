@@ -156,7 +156,7 @@ namespace qk { namespace js {
 				);
 			}
 			Js_UISelf(Player);
-			self->seek(args[0]->toUint32Value(worker).unsafe() * 1e3);
+			self->seek(args[0]->toUint32(worker)->value() * 1e3);
 		});
 
 		Js_Class_Method(switchAudio, {
@@ -167,7 +167,7 @@ namespace qk { namespace js {
 				);
 			}
 			Js_UISelf(Player);
-			self->switch_audio(args[0]->toUint32Value(worker).unsafe());
+			self->switch_audio(args[0]->toUint32(worker)->value());
 		});
 	}
 

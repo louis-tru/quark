@@ -192,21 +192,21 @@ namespace qk { namespace js {
 				if (!args.length())
 					Js_Throw("@method CStyleSheetsClass.add(cString& name)");
 				Js_Self(Type);
-				self->add(args[0]->toStringValue(worker));
+				self->add(args[0]->toString(worker)->value(worker));
 			});
 
 			Js_Class_Method(remove, {
 				if (!args.length())
 					Js_Throw("@method CStyleSheetsClass.remove(cString& name)");
 				Js_Self(Type);
-				self->remove(args[0]->toStringValue(worker));
+				self->remove(args[0]->toString(worker)->value(worker));
 			});
 
 			Js_Class_Method(toggle, {
 				if (!args.length())
 					Js_Throw("@method CStyleSheetsClass.toggle(cString& name)");
 				Js_Self(Type);
-				self->toggle(args[0]->toStringValue(worker));
+				self->toggle(args[0]->toString(worker)->value(worker));
 			});
 
 		// inline bool haveSubstyles() const;
@@ -226,7 +226,7 @@ namespace qk { namespace js {
 				if ( !val->isObject() ) {
 					Js_Throw("NativeCSS.create() Invalid style sheets object");
 				}
-				auto arr = rss->search( key->toStringValue(worker, true), true );
+				auto arr = rss->search( key->toString(worker)->value(worker), true );
 
 				if ( arr.length() ) {
 					auto props = val->cast<JSObject>();

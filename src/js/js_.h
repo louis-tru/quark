@@ -54,7 +54,7 @@ namespace qk { namespace js {
 
 	#define Js_Strings_Each(F)  \
 		F(exports)         F(constructor)    F(__proto__)\
-		F(prototype)       F(toStringStyled) F(_mix_external_data) \
+		F(prototype)       F(toStringStyled) F(window) \
 		F(type)            F(kind)           F(value) \
 		F(width)           F(height)         F(r) \
 		F(g)               F(b)              F(a) \
@@ -68,7 +68,7 @@ namespace qk { namespace js {
 		F(_change_touches) F(name)           F(pathname) \
 		F(data)            F(total)          F(complete) \
 		F(httpVersion)     F(statusCode)     F(responseHeaders) \
-		F(window) F(_log) F(_warn) F(_error) F(_clear)
+		F(_log) F(_warn) F(_error) F(_clear)
 
 	#define Js_Format_Str(msg) \
 		va_list arg; \

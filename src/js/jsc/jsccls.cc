@@ -35,10 +35,10 @@ namespace qk { namespace js {
 	struct Factorys {
 		JSClassRef constructor;
 		JSClassRef object;
-		JSClassRef prototype;
+		JSClassRef objectWithIndexed;
 		JSClassRef function;
 		JSClassRef accessorGet;
-		JSClassRef accessorGet;
+		JSClassRef accessorSet;
 	} static factorys = {0};
 
 	constexpr int FunctionPrivateMark = 125894334;
@@ -48,47 +48,50 @@ namespace qk { namespace js {
 		Func f;
 		JSCStringPtr name;
 		JscWorker *worker;
-		JscClass *sign;
+		JscClass *signature;
 		int _mark = FunctionPrivateMark;
 	};
 
-#if DEBUG
-	struct DebugPrivate {
-		MixObject* mix;
-		bool isWeak;
+	enum Flags {
+		kWeak_Flags = (1 << 0),
 	};
-#endif
 
 	void MixObject::clearWeak() {
 		Qk_Assert_Ne(_handle, nullptr);
-#if DEBUG
-		auto priv = static_cast<DebugPrivate*>(JSObjectGetPrivate(_handle));
-		Qk_Assert_Eq(priv->isWeak, true);
-		priv->isWeak = false;
-#endif
-		JSValueProtect(JSC_CTX(_class->worker()), Back<JSObjectRef>(_handle));
+		if (_flags & kWeak_Flags) {
+			_flags &= ~kWeak_Flags; // delete kWeak_Flags
+			JSValueProtect(JSC_CTX(_class->worker()), Back<JSObjectRef>(_handle));
+		}
 	}
 
 	void MixObject::setWeak() {
 		Qk_Assert_Ne(_handle, nullptr);
-#if DEBUG
-		auto priv = static_cast<DebugPrivate*>(JSObjectGetPrivate(_handle));
-		Qk_Assert_Eq(priv->isWeak, false);
-		priv->isWeak = true;
-#endif
-		JSValueUnprotect(JSC_CTX(_class->worker()), Back<JSObjectRef>(_handle));
+		if (!(_flags & kWeak_Flags)) {
+			_flags |= kWeak_Flags; // add kWeak_Flags
+			JSValueUnprotect(JSC_CTX(_class->worker()), Back<JSObjectRef>(_handle));
+		}
 	}
 
 	void MixObject::bindObject(JSObject* handle) {
 		Qk_Assert_Eq(_handle, nullptr);
 		_handle = handle;
 		auto val = Back<JSObjectRef>(_handle);
-		void* priv = this;
-#if DEBUG
-		priv = new DebugPrivate{this,false};
-#endif
-		JSObjectSetPrivate(val, priv);
+		JSObjectSetPrivate(val, this);
 		JSValueProtect(JSC_CTX(_class->worker()), val);
+	}
+
+	MixObject* MixObject::unpack(JSValue* obj) {
+		Qk_Assert_Ne(obj, nullptr);
+		auto mix = static_cast<MixObject*>(JSObjectGetPrivate(Back<JSObjectRef>(obj)));
+		return mix;
+	}
+
+	static MixObject* getMix(JSObjectRef obj) {
+		auto priv = JSObjectGetPrivate(obj);
+		if (priv && reinterpret_cast<FunctionPrivate<void*>*>(priv)->_mark != FunctionPrivateMark) {
+			return static_cast<MixObject*>(priv);
+		}
+		return nullptr;
 	}
 
 	class JscClass: public JSClass {
@@ -97,28 +100,25 @@ namespace qk { namespace js {
 
 		static void DestructorObject(JSObjectRef object) {
 			auto mix = static_cast<MixObject*>(JSObjectGetPrivate(object));
-			Qk_Assert_Ne(mix, nullptr);
-#if DEBUG
-			auto priv = reinterpret_cast<DebugPrivate*>(mix);
-			Qk_Assert_Eq(priv->isWeak, true);
-			mix = priv->mix;
-			delete priv;
-#endif
-			mix->~MixObject(); // destroy mix
-			mix->self()->destroy(); // destroy object
+			DCHECK(mix);
+			if (mix->flags() & kWeak_Flags) {
+				mix->~MixObject(); // destroy mix
+				mix->self()->destroy(); // destroy object
+			}
 		}
 
 		static void DestructorFunction(JSObjectRef object) {
-			delete static_cast<FunctionPrivate<void>*>(JSObjectGetPrivate(object));
+			delete static_cast<FunctionPrivate<void*>*>(JSObjectGetPrivate(object));
 		}
 
 		static JSObjectRef Constructor(JSContextRef ctx, JSObjectRef constructor, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
 			auto cls = static_cast<JscClass*>(JSObjectGetPrivate(constructor));
-			auto obj = JSObjectMake(ctx, objectFactory, nullptr);
+			auto indexed = cls->_indexedGet || cls->_indexedSet;
+			auto obj = JSObjectMake(ctx, indexed ? factorys.objectWithIndexed: factorys.object, nullptr);
 			JSObjectSetPrototype(ctx, obj, cls->_prototype); // set object __proto__
 
 			auto worker = WORKER(cls->worker());
-			FunctionCallbackInfoImpl args{ worker, obj, worker->_data.Undefined, argv, argc, true };
+			FunctionCallbackInfoImpl args{ worker, obj, worker->_data.Undefined, argv, int(argc), true };
 			worker->_callStack++;
 			cls->callConstructor(*reinterpret_cast<FunctionCallbackInfo*>(&args)); // class native constructor
 			worker->_callStack--;
@@ -129,15 +129,30 @@ namespace qk { namespace js {
 			return obj;
 		}
 
-		static JSClass* checkIndexedCall(JSObjectRef thisObj, JSStringRef name, bool hasGet, uint32_t &idx, JSValueRef* ex) {
-			auto mix = static_cast<MixObject*>(JSObjectGetPrivate(thisObj));
-			if (mix && reinterpret_cast<FunctionPrivate<void>*>(mix)->_mark != FunctionPrivateMark) {
-				auto cls = mix->jsclass();
+		static bool HasInstanceOf(JSContextRef ctx, JSObjectRef constructor, JSValueRef val, JSValueRef* ex) {
+			if (JSValueIsObject(ctx, val)) {
+				auto cls = static_cast<JscClass*>(JSObjectGetPrivate(constructor));
+				DCHECK(cls);
+				auto to = cls->_prototype;
+				auto obj = (JSObjectRef)val;
+				do {
+					obj = (JSObjectRef)JSObjectGetPrototype(ctx, obj);
+					if (obj == to)
+						return true;
+				} while (JSValueIsObject(ctx, obj));
+			}
+			return false;
+		}
+
+		static JscClass* checkIndexedCall(JSObjectRef thisObj, JSStringRef name, bool hasGet, uint32_t &idx, JSValueRef* ex) {
+			auto mix = getMix(thisObj);
+			if (mix) {
+				auto cls = static_cast<JscClass*>(mix->jsclass());
 				Qk_Assert_Ne(cls, nullptr);
 
-				if (hasGet ? cls->_indexedGet: cls->_indexedSet) {
+				if (hasGet ? (void*)cls->_indexedGet: (void*)cls->_indexedSet) {
 					char buffer[10];
-					auto size = JSStringGetUTF8CString(name, buffer, 10);
+					int size = JSStringGetUTF8CString(name, buffer, 10);
 					uint32_t idx;
 					if (_Str::toNumber(buffer, size, 1, &idx)) {
 						return cls;
@@ -148,6 +163,7 @@ namespace qk { namespace js {
 		}
 
 		static JSValueRef IndexedGet(JSContextRef ctx, JSObjectRef thisObj, JSStringRef name, JSValueRef* ex) {
+			//Qk_DLog("IndexedGet,%s", *jsToString(name));
 			uint32_t idx;
 			auto cls = checkIndexedCall(thisObj, name, true, idx, ex);
 			if (!cls) return nullptr;
@@ -166,6 +182,7 @@ namespace qk { namespace js {
 		}
 
 		static bool IndexedSet(JSContextRef ctx, JSObjectRef thisObj, JSStringRef name, JSValueRef value, JSValueRef* ex) {
+			//Qk_DLog("IndexedSet,%s", *jsToString(name));
 			uint32_t idx;
 			auto cls = checkIndexedCall(thisObj, name, false, idx, ex);
 			if (!cls) return false;
@@ -183,24 +200,29 @@ namespace qk { namespace js {
 			return true;
 		}
 
-		static bool checkCallSign(JSObjectRef thisObj, JSClass *sign, JSValueRef* ex) {
-			auto mix = static_cast<MixObject*>(JSObjectGetPrivate(thisObj));
-			auto worker = WORKER(mix->worker());
-			// TODO ...
-			worker->throwException(worker->newErrorJsc("Illegal call"));
+		static bool checkCallSign(JSObjectRef thisObj, JscClass *signature, JSValueRef* ex) {
+			auto mix = getMix(thisObj);
+			if (mix) {
+				auto cls = static_cast<JscClass*>(mix->jsclass());
+				DCHECK(cls);
+				if (cls->isEqual(signature))
+					return true;
+			}
+			auto worker = WORKER(signature->worker());
+			*ex = worker->newErrorJsc("Calling signature is illegal");
 			return false;
 		}
 
-		static JSValueRef Function(JSContextRef ctx, JSObjectRef func, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
-			auto func = static_cast<FunctionPrivate<FunctionCallback>*>(JSObjectGetPrivate(func));
-			if (func->sign && !checkCallSign(thisObj, func->sign, ex))
+		static JSValueRef Function(JSContextRef ctx, JSObjectRef f, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
+			auto func = static_cast<FunctionPrivate<FunctionCallback>*>(JSObjectGetPrivate(f));
+			if (func->signature && !checkCallSign(thisObj, func->signature, ex))
 				return nullptr;
 
 			JscWorker* worker = func->worker;
-			FunctionCallbackInfoImpl args{ worker, thisObj, worker->_data.Undefined, argv, argc, false };
+			FunctionCallbackInfoImpl args{ worker, thisObj, worker->_data.Undefined, argv, int(argc), false };
 
 			worker->_callStack++;
-			func->f(*_info_func(&args));
+			func->f(*reinterpret_cast<FunctionCallbackInfo*>(&args));
 			worker->_callStack--;
 			DCHECK(worker->_callStack >= 0);
 			*ex = worker->_ex; // maybe have throw error on sub call
@@ -209,16 +231,17 @@ namespace qk { namespace js {
 			return args._return;
 		}
 
-		static JSValueRef FunctionGet(JSContextRef ctx, JSObjectRef func, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
-			auto func = static_cast<FunctionPrivate<AccessorGetterCallback>*>(JSObjectGetPrivate(func));
-			if (func->sign && !checkCallSign(thisObj, func->sign, ex))
+		static JSValueRef FunctionGet(JSContextRef ctx, JSObjectRef f, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
+			auto func = static_cast<FunctionPrivate<AccessorGetterCallback>*>(JSObjectGetPrivate(f));
+			if (func->signature && !checkCallSign(thisObj, func->signature, ex)) {
+				//Qk_DLog("FunctionGet, %s", *jsToString(*func->name));
 				return nullptr;
-
+			}
 			JscWorker* worker = func->worker;
 			PropertyCallbackInfoImpl args{ worker, thisObj, worker->_data.Undefined };
 
 			worker->_callStack++;
-			func->f(Cast(JSValueMakeString(ctx, *func->name)), *_info_get(&args));
+			func->f(Cast(JSValueMakeString(ctx, *func->name)), *reinterpret_cast<PropertyCallbackInfo*>(&args));
 			worker->_callStack--;
 			DCHECK(worker->_callStack >= 0);
 			*ex = worker->_ex; // maybe have throw error on sub call
@@ -227,18 +250,19 @@ namespace qk { namespace js {
 			return args._return;
 		}
 
-		static JSValueRef FunctionSet(JSContextRef ctx, JSObjectRef func, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
-			auto func = static_cast<FunctionPrivate<AccessorSetterCallback>*>(JSObjectGetPrivate(func));
-			if (func->sign && !checkCallSign(thisObj, func->sign, ex))
+		static JSValueRef FunctionSet(JSContextRef ctx, JSObjectRef f, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
+			auto func = static_cast<FunctionPrivate<AccessorSetterCallback>*>(JSObjectGetPrivate(f));
+			if (func->signature && !checkCallSign(thisObj, func->signature, ex)) {
+				//Qk_DLog("FunctionSet, %s", *jsToString(*func->name));
 				return nullptr;
-
+			}
 			Qk_Assert_Eq(argc, 1);
 
 			JscWorker* worker = func->worker;
 			PropertySetCallbackInfoImpl args{ worker, thisObj };
 
 			worker->_callStack++;
-			func->f(Cast(JSValueMakeString(ctx, *func->name)), Cast(argv[0]), *_info_set(&args));
+			func->f(Cast(JSValueMakeString(ctx, *func->name)), Cast(argv[0]), *reinterpret_cast<PropertySetCallbackInfo*>(&args));
 			worker->_callStack--;
 			DCHECK(worker->_callStack >= 0);
 			*ex = worker->_ex; // maybe have throw error on sub call
@@ -247,10 +271,14 @@ namespace qk { namespace js {
 			return worker->_data.Undefined;
 		}
 
+		/**
+		* @Constructor
+		*/
 		JscClass(Worker* w, cString& name,
 						FunctionCallback constructor,
 						AttachCallback attach, JscClass* base, JSObjectRef baseFunc)
 			: JSClass(constructor, attach)
+			, _name(name)
 			, _base(base)
 			, _baseFunc(baseFunc)
 			, _constructor(nullptr)
@@ -259,58 +287,72 @@ namespace qk { namespace js {
 			ENV(w);
 			_worker = worker;
 
-			if (_base) {
-			} else if (_baseFunc && JSObjectIsConstructor(ctx, _baseFunc)) {
-				_base = static_cast<JscClass*>(JSObjectGetPrivate(_baseFunc));
-				if (!_base)
-					JSValueProtect(ctx, _baseFunc);
-			} {
-				_base = worker->_base;
+			if (!_base) {
+				if (_baseFunc && JSObjectIsConstructor(ctx, _baseFunc)) {
+					_base = static_cast<JscClass*>(JSObjectGetPrivate(_baseFunc));
+					if (!_base) {
+						JSValueProtect(ctx, _baseFunc);
+					}
+				} else {
+					_base = worker->_base;
+				}
 			}
 
 			_constructor = JSObjectMake(ctx, factorys.constructor, this);
-			_prototype = JSObjectGetProperty(ctx, _constructor, prototype_s, ex);
-			Qk_Assert_Eq(ex, nullptr);
+			DCHECK(JSValueIsUndefined(ctx, JSObjectGetProperty(ctx, _constructor, prototype_s, 0)));
+			_prototype = JSObjectMake(ctx, nullptr, nullptr);
+			JSObjectSetProperty(ctx, _constructor, prototype_s, _prototype, kJSPropertyAttributeDontEnum, &ex);
+			DCHECK(!ex);
+			JSObjectSetProperty(ctx, _prototype, constructor_s, _constructor, kJSPropertyAttributeDontEnum, &ex);
+			DCHECK(!ex);
 
-			auto s = JSValueMakeString(ctx, JsStringWithUTF8(*name));
-			JSObjectSetProperty(ctx, _constructor, name_s, s, ex);
-			Qk_Assert_Eq(ex, nullptr);
+			auto s = JSValueMakeString(ctx, *JsStringWithUTF8(*name));
+			JSObjectSetProperty(ctx, _constructor, name_s, s, kJSPropertyAttributeDontEnum, &ex);
+			DCHECK(!ex);
 
 			// Inherit
 			if (_base) {
 				_indexedGet = _base->_indexedGet;
-				_indexedSet = _base->_indexedSe;
+				_indexedSet = _base->_indexedSet;
+				_parents = _base->_parents;
+				_parents.add(_base);
+				DCHECK(JSValueIsObject(ctx, _base->_prototype));
 				JSObjectSetPrototype(ctx, _prototype, _base->_prototype);
 				JSObjectSetPrototype(ctx, _constructor, _base->_constructor);
 			} else if (_baseFunc) {
-				auto baseProrotype = JSObjectGetProperty(ctx, _baseFunc, prototype_s, ex);
-				Qk_Assert_Eq(ex, nullptr);
+				auto baseProrotype = JSObjectGetProperty(ctx, _baseFunc, prototype_s, &ex);
+				DCHECK(!ex);
+				DCHECK(JSValueIsObject(ctx, baseProrotype));
 				JSObjectSetPrototype(ctx, _prototype, baseProrotype);
 				JSObjectSetPrototype(ctx, _constructor, _baseFunc);
+				if ( !JsValueToStringCopy(ctx, _constructor, nullptr) ) {
+					JSObjectSetProperty(ctx, _constructor, toString_s, worker->_data.NativeFunctionToString, kJSPropertyAttributeDontEnum, JsFatal());
+				}
 			} else { // base object
-				_prototype = JSObjectMake(ctx, factorys.prototype, nullptr); // new prototype
-				JSObjectSetPrototype(ctx, _prototype, worker->_data.Object_prototype); // Inherit from Object
-				JSObjectSetProperty(ctx, _prototype, constructor_s, _constructor, ex);
-				Qk_Assert_Eq(ex, nullptr);
+				JSObjectSetPrototype(ctx, _constructor, worker->_data.global_Function_prototype); // Inherit from Function
+				JSObjectSetProperty(ctx, _constructor, toString_s, worker->_data.NativeFunctionToString, kJSPropertyAttributeDontEnum, JsFatal());
 			}
+			//Qk_DLog(jsToString(ctx, _prototype));
+			//Qk_DLog(jsToString(ctx, _constructor));
 
 			JSValueProtect(ctx, _constructor);
 		}
 
-		~JscClass() {
-			ENV(_worker);
-			DCHECK(worker->hasDestroy());
-			if (_baseFunc) {
-				JSValueUnprotect(ctx, _baseFunc);
-			}
-			JSValueUnprotect(ctx, _constructor);
+		bool isEqual(JscClass* cls) {
+			if (cls == this)
+			 	return true;
+			return _parents.has(cls);
 		}
 
 	private:
-		JscClass   *_base;
-		JSObjectRef _baseFunc, _constructor, _prototype;
+		String _name;
+		JscClass*   _base;
+		JSObjectRef _baseFunc;
+		JSObjectRef _constructor;
+		JSObjectRef _prototype;
 		IndexedAccessorGetterCallback _indexedGet;
 		IndexedAccessorSetterCallback _indexedSet;
+		Set<JscClass*> _parents;
 		friend class JSClass;
 	};
 
@@ -325,7 +367,8 @@ namespace qk { namespace js {
 	bool JSClass::hasInstance(JSValue* val) {
 		Qk_Assert_Ne(val, nullptr);
 		ENV(_worker);
-		auto ok = JSValueIsInstanceOfConstructor(ctx, val, _jscclass(this)->_constructor, OK(false));
+		auto self = _jscclass(this);
+		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(val), self->_constructor, OK(false));
 		return ok;
 	}
 
@@ -335,39 +378,45 @@ namespace qk { namespace js {
 		Qk_Assert_Ne(func, nullptr);
 		ENV(w);
 		auto s = JsStringWithUTF8(*name);
-		auto f = JSObjectMake(ctx, factorys.function, new FunctionPrivate<FunctionCallback>{func, s, worker, sign});
+		auto fp = new FunctionPrivate<FunctionCallback>{func, s, worker, static_cast<JscClass*>(sign)};
+		auto f = JSObjectMake(ctx, factorys.function, fp);
 		DCHECK(f);
-		auto ok = JSObjectSetProperty(ctx, target, JSValueMakeString(ctx, s), f, nullptr, OK(false));
-		return ok;
+		// Qk_DLog(jsToString(ctx, f));
+		JSObjectSetProperty(ctx, target, *s, f, 0, OK(false));
+		return true;
 	}
 
 	static bool setAccessorFunction(
-		Worker* w, JSObjectRef target, cString& name,
-		AccessorGetterCallback get, AccessorSetterCallback set, JSClass* sign
+		Worker* w, JSObjectRef target, cString& name, AccessorGetterCallback get, AccessorSetterCallback set, JSClass* sign
 	) {
 		Qk_Assert(get || set);
 		ENV(w);
 
+		if (!get) {
+			get = [](auto name, auto args){};
+		}
+		if (!set) {
+			set = [](auto name, auto value, auto args){};
+		}
+
 		auto info = JSObjectMake(ctx, 0, OK(false));
 		auto s = JsStringWithUTF8(*name);
 
-		if (get) {
-			auto f = new FunctionPrivate<AccessorGetterCallback>{get, s, worker, sign};
-			auto getf = JSObjectMake(ctx, factorys.accessorGet, f);
-			DCHECK(getf);
-			JSObjectSetProperty(ctx, info, get_s, getf, nullptr, OK(false));
-		}
-		if (set) {
-			auto f = new FunctionPrivate<AccessorSetterCallback>{set, s, worker, sign};
-			auto setf = JSObjectMake(ctx, factorys.accessorSet, f);
-			DCHECK(setf);
-			JSObjectSetProperty(ctx, info, set_s, setf, nullptr, OK(false));
-		}
-		//JSObjectSetProperty(ctx, info, enumerable_s, worker->_data.True, nullptr, OK(false));
-		//JSObjectSetProperty(ctx, info, configurable_s, worker->_data.True, nullptr, OK(false));
+		auto fpg = new FunctionPrivate<AccessorGetterCallback>{get, s, worker, static_cast<JscClass*>(sign)};
+		auto getf = JSObjectMake(ctx, factorys.accessorGet, fpg);
+		DCHECK(getf);
+		JSObjectSetProperty(ctx, info, get_s, getf, 0, OK(false));
 
-		JSValueRef args[3] = { target, JSValueMakeString(ctx, s), info };
-		JSObjectCallAsFunction(ctx, worker->_data.Object_defineProperty, nullptr, 3, args, OK(false));
+		auto fps = new FunctionPrivate<AccessorSetterCallback>{set, s, worker, static_cast<JscClass*>(sign)};
+		auto setf = JSObjectMake(ctx, factorys.accessorSet, fps);
+		DCHECK(setf);
+		JSObjectSetProperty(ctx, info, set_s, setf, 0, OK(false));
+
+		//JSObjectSetProperty(ctx, info, enumerable_s, worker->data().True, 0, OK(false));
+		//JSObjectSetProperty(ctx, info, configurable_s, worker->data().True, 0, OK(false));
+
+		JSValueRef args[3] = { target, JSValueMakeString(ctx, *s), info };
+		JSObjectCallAsFunction(ctx, worker->data().global_Object_defineProperty, nullptr, 3, args, OK(false));
 
 		return true;
 	}
@@ -376,12 +425,12 @@ namespace qk { namespace js {
 		return setMethodFunction(w, Back<JSObjectRef>(this), name, func, nullptr);
 	}
 
-	bool JSObject::setAccessor(Worker* w, cString& name, AccessorGetterCallback get, AccessorSetterCallback set) {
-		return setAccessorFunction(w, Back<JSObjectRef>(this), name, get, set, nullptr);
+	bool JSClass::setMethod(cString& name, FunctionCallback func) {
+		return setMethodFunction(_worker, _jscclass(this)->_prototype, name, func, this);
 	}
 
-	bool JSClass::setMethod(cString& name, FunctionCallback func) {
-		return setMethodFunction(w, _jscclass(this)->_prototype, name, func, this);
+	bool JSObject::setAccessor(Worker* w, cString& name, AccessorGetterCallback get, AccessorSetterCallback set) {
+		return setAccessorFunction(w, Back<JSObjectRef>(this), name, get, set, nullptr);
 	}
 
 	bool JSClass::setAccessor(cString& name, AccessorGetterCallback get, AccessorSetterCallback set) {
@@ -432,10 +481,12 @@ namespace qk { namespace js {
 
 	JSFunction* Worker::newFunction(cString& name, FunctionCallback func) {
 		Qk_Assert_Ne(func, nullptr);
-		auto f = JSObjectMake(JSC_CTX(this), factorys.function, func);
+		ENV(this);
+		auto f = JSObjectMake(ctx, factorys.function,
+			new FunctionPrivate<FunctionCallback>{func, JsStringWithUTF8(*name), worker, nullptr}
+		);
 		DCHECK(f);
-		worker->addToScope(f);
-		return Cast<JSFunction>(f);
+		return f ? worker->addToScope<JSFunction>(f): nullptr;
 	}
 
 	void initFactorys() {
@@ -443,17 +494,19 @@ namespace qk { namespace js {
 		JSClassDefinition def;
 
 		def = kJSClassDefinitionEmpty;
+		def.hasInstance = JscClass::HasInstanceOf;
 		def.callAsConstructor = JscClass::Constructor;
 		factorys.constructor = JSClassCreate(&def);
 
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorObject;
 		factorys.object = JSClassCreate(&def);
-
+		
 		def = kJSClassDefinitionEmpty;
+		def.finalize = JscClass::DestructorObject;
 		def.getProperty = JscClass::IndexedGet;
 		def.setProperty = JscClass::IndexedSet;
-		factorys.prototype = JSClassCreate(&def);
+		factorys.objectWithIndexed = JSClassCreate(&def);
 
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorFunction;
@@ -532,7 +585,7 @@ namespace qk { namespace js {
 	}
 
 	ReturnValue FunctionCallbackInfo::returnValue() const {
-		return reinterpret_cast<ReturnValue>(this);
+		return bitwise_cast<ReturnValue>(this);
 	}
 
 	JSObject* PropertyCallbackInfo::thisObj() const {
@@ -540,7 +593,7 @@ namespace qk { namespace js {
 	}
 
 	ReturnValue PropertyCallbackInfo::returnValue() const {
-		return reinterpret_cast<ReturnValue>(this);
+		return bitwise_cast<ReturnValue>(this);
 	}
 
 	JSObject* PropertySetCallbackInfo::thisObj() const {

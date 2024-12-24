@@ -63,7 +63,9 @@ namespace qk { namespace js {
 	inline T* Cast(v8::MaybeLocal<S> o) { return *reinterpret_cast<T**>(&o); }
 
 	template<class T = v8::Value>
-	inline v8::Local<T> Back(JSValue* o) { return *reinterpret_cast<v8::Local<T>*>(&o); }
+	inline v8::Local<T> Back(const JSValue* o) {
+		return *reinterpret_cast<const v8::Local<T>*>(&o);
+	}
 
 	class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringResource {
 		String _str;

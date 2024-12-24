@@ -62,7 +62,7 @@
 // #define TEST_FUNC_NAME test_util
 // #define TEST_FUNC_NAME test_uv
 // #define TEST_FUNC_NAME test_zlib
-////
+///
 // #define TEST_FUNC_NAME test_action
 // #define TEST_FUNC_NAME test_alsa_ff
 // #define TEST_FUNC_NAME test_blur
@@ -76,14 +76,14 @@
 // #define TEST_FUNC_NAME test_input
 // #define TEST_FUNC_NAME test_jsc
 // #define TEST_FUNC_NAME test_jsx
-//#define TEST_FUNC_NAME test_layout
+// #define TEST_FUNC_NAME test_layout
 // #define TEST_FUNC_NAME test_linux_input_2
 // #define TEST_FUNC_NAME test_linux_input
 // #define TEST_FUNC_NAME test_openurl
 // #define TEST_FUNC_NAME test_outimg
 // #define TEST_FUNC_NAME test_rrect
 // #define TEST_FUNC_NAME test_subcanvas
- #define TEST_FUNC_NAME test_testing
+#define TEST_FUNC_NAME test_testing
 // #define TEST_FUNC_NAME test_v8
 #endif
 

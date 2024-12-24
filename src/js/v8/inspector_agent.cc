@@ -253,8 +253,8 @@ namespace qk { namespace inspector {
 		void installAdditionalCommandLineAPI(Local<Context> context, Local<Object> target) override {
 			auto worker = agent_->worker();
 			auto load = worker->bindingModule("_pkg")->
-				as<js::JSObject>()->getProperty(worker, "Module")->
-				as<js::JSObject>()->getProperty(worker, "load");
+				cast<js::JSObject>()->get(worker, "Module")->
+				cast<js::JSObject>()->get(worker, "load");
 			auto func = *reinterpret_cast<v8::Local<v8::Function>*>(&load);
 			auto str = v8::String::NewFromOneByte(agent_->isolate(),
 				(const uint8_t*)"require", v8::NewStringType::kNormal).ToLocalChecked();
@@ -264,7 +264,7 @@ namespace qk { namespace inspector {
 		void FatalException(Local<Value> error, Local<v8::Message> message) {
 			Local<Context> context = agent_->firstContext();
 			Local<v8::StackTrace> stack_trace = message->GetStackTrace();
-			int script_id = message->GetScriptOrigin().ScriptID()->Value();
+			auto script_id = message->GetScriptOrigin().ScriptID()->Value();
 
 			if (!stack_trace.IsEmpty() &&
 					stack_trace->GetFrameCount() > 0 &&
@@ -285,7 +285,7 @@ namespace qk { namespace inspector {
 					message->GetLineNumber(context).FromMaybe(0),
 					message->GetStartColumn(context).FromMaybe(0),
 					inspector_->createStackTrace(stack_trace),
-					script_id);
+					int(script_id));
 		}
 
 		ChannelImpl* channel() {

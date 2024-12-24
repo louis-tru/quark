@@ -192,7 +192,7 @@ namespace qk {
 		} catch (cError& e) {
 			throw HttpError(e);
 		}
-		
+
 		return task.collapse()->id();
 	}
 

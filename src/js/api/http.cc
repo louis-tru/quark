@@ -194,7 +194,7 @@ namespace qk { namespace js {
 						"@param method {HttpMethod}\n"
 					);
 				}
-				auto arg = args[0]->toUint32Value(worker).unsafe();
+				auto arg = args[0]->toUint32(worker)->value();
 				HttpMethod method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_method(method); }, Error);
@@ -208,7 +208,7 @@ namespace qk { namespace js {
 						"@param url {String}\n"
 					);
 				}
-				String arg = args[0]->toStringValue(worker);
+				String arg = args[0]->toString(worker)->value(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_url(arg); }, Error);
 			});
@@ -220,7 +220,7 @@ namespace qk { namespace js {
 						"@param path {String}\n"
 					);
 				}
-				String arg = args[0]->toStringValue(worker);
+				String arg = args[0]->toString(worker)->value(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_save_path(arg); }, Error);
 			});
@@ -232,7 +232,7 @@ namespace qk { namespace js {
 						"@param username {String}\n"
 					);
 				}
-				String arg = args[0]->toStringValue(worker);
+				String arg = args[0]->toString(worker)->value(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_username(arg); }, Error);
 			});
@@ -244,7 +244,7 @@ namespace qk { namespace js {
 						"@param password {String}\n"
 					);
 				}
-				String arg = args[0]->toStringValue(worker);
+				String arg = args[0]->toString(worker)->value(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_password(arg); }, Error);
 			});
@@ -256,7 +256,7 @@ namespace qk { namespace js {
 						"@param disable {bool}\n"
 					);
 				}
-				bool arg = args[0]->toBooleanValue(worker);
+				bool arg = args[0]->toBoolean(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->disable_cache(arg); }, Error);
 			});
@@ -268,7 +268,7 @@ namespace qk { namespace js {
 						"@param disable {bool}\n"
 					);
 				}
-				bool arg = args[0]->toBooleanValue(worker);
+				bool arg = args[0]->toBoolean(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->disable_cookie(arg); }, Error);
 			});
@@ -280,7 +280,7 @@ namespace qk { namespace js {
 						"@param disable {bool}\n"
 					);
 				}
-				auto arg = args[0]->toBooleanValue(worker);
+				auto arg = args[0]->toBoolean(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->disable_send_cookie(arg); }, Error);
 			});
@@ -294,7 +294,7 @@ namespace qk { namespace js {
 				}
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
-					self->disable_ssl_verify(args[0]->toBooleanValue(worker));
+					self->disable_ssl_verify(args[0]->toBoolean(worker));
 				}, Error);
 			});
 
@@ -308,7 +308,7 @@ namespace qk { namespace js {
 				}
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
-					self->set_request_header( args[0]->toStringValue(worker,1), args[1]->toStringValue(worker));
+					self->set_request_header( args[0]->toString(worker)->value(worker), args[1]->toString(worker)->value(worker));
 				}, Error);
 			});
 
@@ -320,8 +320,8 @@ namespace qk { namespace js {
 						"@param value {String}\n"
 					);
 				}
-				String form_name = args[0]->toStringValue(worker);
-				String value = args[1]->toStringValue(worker);
+				String form_name = args[0]->toString(worker)->value(worker);
+				String value = args[1]->toString(worker)->value(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
 					self->set_form(form_name, value);
@@ -336,8 +336,8 @@ namespace qk { namespace js {
 						"@param local_path {String}\n"
 					);
 				}
-				String form_name = args[0]->toStringValue(worker);
-				String local_path = args[1]->toStringValue(worker);
+				String form_name = args[0]->toString(worker)->value(worker);
+				String local_path = args[1]->toString(worker)->value(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
 					self->set_upload_file(form_name, local_path);
@@ -363,7 +363,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(HttpClientRequest);
-				auto rv = self->get_response_header(args[0]->toStringValue(worker,1));
+				auto rv = self->get_response_header(args[0]->toString(worker)->value(worker));
 				Js_Return( rv );
 			});
 
@@ -382,7 +382,7 @@ namespace qk { namespace js {
 						"@param keep_alive {bool}\n"
 					);
 				}
-				bool enable = args[0]->toBooleanValue(worker);
+				bool enable = args[0]->toBoolean(worker);
 				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_keep_alive(enable); }, Error);
 			});
@@ -396,7 +396,7 @@ namespace qk { namespace js {
 				}
 				Js_Self(HttpClientRequest);
 
-				uint64_t time = args[0]->toUint32Value(worker).unsafe() * 1000;
+				uint64_t time = args[0]->toUint32(worker)->value() * 1000;
 
 				Js_Try_Catch({ self->set_timeout(time); }, Error);
 			});
@@ -406,13 +406,13 @@ namespace qk { namespace js {
 				if (args.length() == 0) {
 					Js_Try_Catch({ self->send(); }, Error);
 				} else {
+					WeakBuffer buff;
 					if (args[0]->isString()) {
 						Js_Try_Catch({
-							self->send( args[0]->toStringValue(worker).collapse() );
+							self->send( args[0]->toString(worker)->value(worker).collapse() );
 						}, Error);
 					}
-					else if ( args[0]->isBuffer() ) {
-						auto buff = args[0]->toBufferValue(worker);
+					else if ( args[0]->asBuffer(worker).to(buff) ) {
 						Js_Try_Catch({ self->send(buff.buffer().copy()); }, Error);
 					}
 					else {
@@ -500,12 +500,12 @@ namespace qk { namespace js {
 
 			value = obj->get(worker, worker->newStringOneByte(const_url));
 			if ( !value ) return false;
-			if ( value->isString() ) opt.url = value->toStringValue(worker);
+			if ( value->isString() ) opt.url = value->toString(worker)->value(worker);
 			
 			value = obj->get(worker, worker->newStringOneByte(const_method));
 			if ( !value ) return false;
 			if ( value->isUint32() ) {
-				auto arg = value->toUint32Value(worker).unsafe();
+				auto arg = value->toUint32(worker)->value();
 				opt.method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
 			}
 
@@ -516,41 +516,43 @@ namespace qk { namespace js {
 			value = obj->get(worker, worker->newStringOneByte(const_post_data));
 			if ( !value ) return false;
 			if ( value->isString() ) {
-				opt.post_data = value->toStringValue(worker).collapse();
+				opt.post_data = value->toString(worker)->value(worker).collapse();
 			}
 			else if ( value->isBuffer() ) {
-				opt.post_data = value->toBufferValue(worker).buffer().copy();
+				WeakBuffer buff;
+				value->asBuffer(worker).to(buff);
+				opt.post_data = buff.buffer().copy();
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_save));
 			if ( !value ) return false;
 			if ( value->isString() ) {
-				opt.save = value->toStringValue(worker);
+				opt.save = value->toString(worker)->value(worker);
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_upload));
 			if ( !value ) return false;
 			if ( value->isString() ) {
-				opt.upload = value->toStringValue(worker);
+				opt.upload = value->toString(worker)->value(worker);
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_timeout));
 			if ( !value ) return false;
 			if ( value->isUint32() ) {
-				opt.timeout = value->toUint32Value(worker).unsafe() * 1e3;
+				opt.timeout = value->toUint32(worker)->value() * 1e3;
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_disable_ssl_verify));
 			if ( !value ) return false;
-			opt.disable_ssl_verify = value->toBooleanValue(worker);
+			opt.disable_ssl_verify = value->toBoolean(worker);
 
 			value = obj->get(worker, worker->newStringOneByte(const_disable_cache));
 			if ( !value ) return false;
-			opt.disable_cache = value->toBooleanValue(worker);
+			opt.disable_cache = value->toBoolean(worker);
 
 			value = obj->get(worker, worker->newStringOneByte(const_disable_cache));
 			if ( !value ) return false;
-			opt.disable_cookie = value->toBooleanValue(worker);
+			opt.disable_cookie = value->toBoolean(worker);
 
 			return true;
 		}
@@ -633,7 +635,7 @@ namespace qk { namespace js {
 						"@param id {uint} abort id\n"
 					);
 				}
-				http_abort( args[0]->toUint32Value(worker).unsafe() );
+				http_abort( args[0]->toUint32(worker)->value() );
 			});
 
 			Js_Method(userAgent, {
@@ -644,7 +646,7 @@ namespace qk { namespace js {
 				if (args.length() == 0 || ! args[0]->isString()) {
 					Js_Throw("Bad argument");
 				}
-				http_set_user_agent( args[0]->toStringValue(worker) );
+				http_set_user_agent( args[0]->toString(worker)->value(worker) );
 			});
 
 			Js_Method(cachePath, {
@@ -658,7 +660,7 @@ namespace qk { namespace js {
 						"@param path {String}\n"
 					);
 				}
-				http_set_cache_path( args[0]->toStringValue(worker) );
+				http_set_cache_path( args[0]->toString(worker)->value(worker) );
 			});
 
 			Js_Method(maxConnectPoolSize, {
@@ -672,7 +674,7 @@ namespace qk { namespace js {
 						"@param size {number}\n"
 					);
 				}
-				http_set_max_connect_pool_size( args[0]->toUint32Value(worker).unsafe() );
+				http_set_max_connect_pool_size( args[0]->toUint32(worker)->value() );
 			});
 
 			Js_Method(clearCache, {

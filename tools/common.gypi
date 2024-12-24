@@ -95,6 +95,12 @@
 		'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
 		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/deps/v8/src/libv8_base.a',
 
+		'cflags': [
+			'-Wno-enum-constexpr-conversion',
+			# '-Wunused-parameter',
+			'-Werror=return-type',
+		],
+
 		# conditions
 		'conditions': [
 			# node js
@@ -168,8 +174,8 @@
 				],
 			}
 		},
-		'cflags!': ['-Werror'],
-		'cflags': [ '-Wno-enum-constexpr-conversion' ],
+		'cflags!': [ '-Werror', ], # deleting flags
+		'cflags': [ '<@(cflags)' ],
 		'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=<(std_cpp)' ],
 		'xcode_settings': {
 			# 'GCC_C_LANGUAGE_STANDARD': 'c99',
@@ -177,7 +183,7 @@
 			'CLANG_CXX_LIBRARY': 'libc++',             # c++11 libc support
 			'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',   # -fno-exceptions
 			'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
-			'OTHER_CFLAGS': [ '-Wno-enum-constexpr-conversion' ],
+			'OTHER_CFLAGS': [ '<@(cflags)' ],
 		},
 		'include_dirs': [
 			'../out',

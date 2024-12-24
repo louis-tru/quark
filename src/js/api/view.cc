@@ -82,11 +82,6 @@ namespace qk { namespace js {
 				Js_Return(self->cssclass());
 			});
 
-			Js_Class_Accessor_Get(cssclass, {
-				Js_Self(View);
-				Js_Return(self->cssclass());
-			});
-
 			Js_Class_Accessor_Get(parent, {
 				Js_Self(View);
 				Js_Return(self->parent());
@@ -141,10 +136,11 @@ namespace qk { namespace js {
 				Js_Self(View);
 				Js_Return( self->opacity() );
 			}, {
-				if (!val->isNumber())
+				float out;
+				if (!val->asFloat32(worker).to(out))
 					Js_Throw("@prop View.set_opacity {float}\n");
 				Js_Self(View);
-				self->set_opacity(val->toFloatValue(worker).unsafe());
+				self->set_opacity(out);
 			});
 
 			Js_Class_Accessor(cursor, {
@@ -161,7 +157,7 @@ namespace qk { namespace js {
 				Js_ReturnBool( self->visible() );
 			}, {
 				Js_Self(View);
-				self->set_visible(val->toBooleanValue(worker));
+				self->set_visible( val->toBoolean(worker) );
 			});
 
 			Js_Class_Accessor_Get(visibleRegion, {
@@ -174,7 +170,7 @@ namespace qk { namespace js {
 				Js_ReturnBool( self->receive() );
 			}, {
 				Js_Self(View);
-				self->set_receive(val->toBooleanValue(worker));
+				self->set_receive(val->toBoolean(worker));
 			});
 
 			Js_Class_Accessor_Get(isFocus, {

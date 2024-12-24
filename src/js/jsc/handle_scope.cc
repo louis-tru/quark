@@ -39,7 +39,7 @@ namespace qk { namespace js {
 		JscHandleScope(JscWorker *worker): _worker(worker) {
 			DCHECK(worker);
 			_prev = _worker->_scope;
-			_prev->_scope = this;
+			_worker->_scope = this;
 		}
 		~JscHandleScope() {
 			auto ctx = _worker->_ctx;
@@ -85,7 +85,7 @@ namespace qk { namespace js {
 	}
 
 	HandleScope::~HandleScope() {
-		delete reinterpret_cast<JscHandleScope*>(_val[0])->~JscHandleScope();
+		delete reinterpret_cast<JscHandleScope*>(_val[0]);
 	}
 
 	EscapableHandleScope::EscapableHandleScope(Worker* worker): HandleScope(worker) {
@@ -94,6 +94,7 @@ namespace qk { namespace js {
 	template<>
 	JSValue* EscapableHandleScope::escape(JSValue* val) {
 		reinterpret_cast<JscHandleScope*>(_val[0])->escape(Back(val));
+		return val;
 	}
 
 } }

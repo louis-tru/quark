@@ -106,10 +106,11 @@ namespace qk { namespace js {
 				Js_Return( self->atomPixel() );
 			});
 
-			Js_Class_Accessor_Get(root, {
-				Js_Self(Type);
-				Js_Return( self->root() );
-			});
+			cls->setAccessor("root",([](auto key,auto args){
+				auto worker = args.worker();
+				auto self = MixObject::mix<Type>(args.thisObj())->self();
+				args.returnValue().set(worker->newValue(self->root()));
+			}));
 
 			// Qk_DEFINE_P_GET(Application*, host); //! application host
 			// Qk_DEFINE_P_GET(Render*, render); //! render object
@@ -152,11 +153,12 @@ namespace qk { namespace js {
 				Js_Return(args.thisObj());
 			});
 
-			Js_Class_Method(activate, {
-				Js_Self(Type);
+			cls->setMethod("activate",([](auto args){
+				auto worker = args.worker();
+				auto self = MixObject::mix<Type>(args.thisObj())->self();
 				self->activate();
-				Js_Return(args.thisObj());
-			});
+				args.returnValue().set( args.thisObj() );
+			}));
 
 			Js_Class_Method(close, {
 				Js_Self(Type);
@@ -176,7 +178,7 @@ namespace qk { namespace js {
 						"@param fullscreen {bool}\n"
 					);
 				}
-				self->setFullscreen(args[0]->toBooleanValue(worker));
+				self->setFullscreen(args[0]->toBoolean(worker));
 			});
 
 			Js_Class_Method(setCursorStyle, {

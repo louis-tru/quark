@@ -34,7 +34,7 @@ namespace qk { namespace js {
 
 	bool parseEncoding(FunctionArgs args, JSValue* arg, Encoding& en) {
 		Js_Worker(args);
-		String s = arg->toStringValue(worker);
+		String s = arg->toString(worker)->value(worker);
 		en = codec_parse_encoding(s);
 		if (en == kInvalid_Encoding) {
 			Js_Throw(

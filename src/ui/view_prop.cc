@@ -88,14 +88,14 @@ namespace qk {
 			_Func(float, scrollbar_margin) \
 
 		struct TextView: View {
-			#define _Func(Type, Name) Type Name() { asTextOptions()->Name(); } \
+			#define _Func(Type, Name) Type Name() { return asTextOptions()->Name(); } \
 				void set_##Name(Type v) { asTextOptions()->set_##Name(v); }
 			_Func_TextOptions_Props(_Func)
 			#undef _Func
 			#undef _Func_TextOptions_Props
 		};
 		struct Scroll: View {
-			#define _Func(Type, Name) Type Name() { asScrollBase()->Name(); } \
+			#define _Func(Type, Name) Type Name() { return asScrollBase()->Name(); } \
 				void set_##Name(Type v) { asScrollBase()->set_##Name(v); }
 			_Func_ScrollBase_Props(_Func)
 			#undef _Func

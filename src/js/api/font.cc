@@ -80,12 +80,12 @@ namespace qk { namespace js {
 
 			Js_Class_Method(addFontFamily, {
 				WeakBuffer buff;
-				if (!args.length() || !(buff = args[0]->toBufferValue(worker)).length()) {
+				if (!args.length() || args[0]->asBuffer(worker).to(buff) ) {
 					Js_Throw("@method FontPool.addFontFamily(cBuffer& buff, cString& alias = String())");
 				}
 				Js_Self(FontPool);
 				if (args.length() > 1) {
-					self->addFontFamily(buff.buffer(), args[1]->toStringValue(worker));
+					self->addFontFamily(buff.buffer(), args[1]->toString(worker)->value(worker));
 				} else {
 					self->addFontFamily(buff.buffer());
 				}
@@ -96,7 +96,7 @@ namespace qk { namespace js {
 					Js_Throw("@method FontPool.getFamilyName(int index)");
 				}
 				Js_Self(FontPool);
-				Js_Return( self->getFamilyName(args[0]->toInt32Value(worker).unsafe()) );
+				Js_Return( self->getFamilyName(args[0]->toInt32(worker)->value()) );
 			});
 
 			Js_Method(getFontFamilys, {

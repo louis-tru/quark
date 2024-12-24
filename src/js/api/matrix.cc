@@ -73,10 +73,20 @@ namespace qk { namespace js {
 	class MixRoot: public MixViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
+#if 0
 			Js_Define_Class(Root, Matrix, {
-				// Js_NewView(Root);
 				Js_Throw("Forbidden access");
 			});
+#else
+			static_assert(sizeof(MixObject)==sizeof(MixRoot), "Derived mix class pairs cannot declare data members");
+			auto cls = worker->newClass("Root",(typeid(Root).hash_code()),([](auto args){
+				auto worker=args.worker();
+				return worker->throwError(worker->newError(("Forbidden access")));
+			}),
+			([](auto o){
+				new(o) MixRoot();
+			}), (typeid(Matrix).hash_code()));
+#endif
 			cls->exports("Root", exports);
 		}
 	};

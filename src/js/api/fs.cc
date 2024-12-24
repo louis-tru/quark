@@ -38,7 +38,7 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isString()) {
 					New<MixFileStat>(args, new FileStat());
 				} else {
-					New<MixFileStat>(args, new FileStat(args[0]->toStringValue(args.worker())));
+					New<MixFileStat>(args, new FileStat(args[0]->toString(worker)->value(worker)));
 				}
 			});
 			Js_Class_Method(isValid, {
@@ -154,7 +154,8 @@ namespace qk { namespace js {
 			size = holder.length();
 		}
 		else { // ArrayBuffer or TypedArray
-			auto weakBuffer = args[args_index++]->toBufferValue(worker);
+			WeakBuffer weakBuffer;
+			Qk_Assert_Eq(true, args[args_index++]->asBuffer(worker).to(weakBuffer));
 
 			data = const_cast<char*>(*weakBuffer);
 			size = weakBuffer.length();
@@ -166,7 +167,7 @@ namespace qk { namespace js {
 			}
 
 			if ( args.length() > args_index && args[args_index]->isInt32() ) { // size
-				int num = args[args_index++]->toInt32Value(worker).unsafe();
+				int num = args[args_index++]->toInt32(worker)->value();
 				if ( num >= 0 && num < size ) {
 					size = num;
 					if (!sync) { // async
@@ -227,7 +228,7 @@ namespace qk { namespace js {
 					);
 				}
 			}
-			String path = args[args_index++]->toStringValue(worker);
+			String path = args[args_index++]->toString(worker)->value(worker);
 			Encoding encoding = kInvalid_Encoding;
 
 			if (args.length() > args_index && args[args_index]->isString()) {
@@ -267,7 +268,7 @@ namespace qk { namespace js {
 				}
 				Buffer rv;
 				try {
-					rv = fs_reader()->read_file_sync( args[0]->toStringValue(worker) );
+					rv = fs_reader()->read_file_sync( args[0]->toString(worker)->value(worker) );
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -282,7 +283,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_reader()->exists_sync( args[0]->toStringValue(worker) ) );
+				Js_ReturnBool( fs_reader()->exists_sync( args[0]->toString(worker)->value(worker) ) );
 			});
 
 			Js_Method(isFileSync, {
@@ -293,7 +294,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_reader()->is_file_sync( args[0]->toStringValue(worker) ) );
+				Js_ReturnBool( fs_reader()->is_file_sync( args[0]->toString(worker)->value(worker) ) );
 			});
 
 			Js_Method(isDirectorySync, {
@@ -304,7 +305,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_reader()->is_directory_sync( args[0]->toStringValue(worker) ) );
+				Js_ReturnBool( fs_reader()->is_directory_sync( args[0]->toString(worker)->value(worker) ) );
 			});
 
 			Js_Method(readdirSync, {
@@ -315,7 +316,7 @@ namespace qk { namespace js {
 						"@return {Array}\n"
 					);
 				}
-				Js_Return( fs_reader()->readdir_sync( args[0]->toStringValue(worker) ) );
+				Js_Return( fs_reader()->readdir_sync( args[0]->toString(worker)->value(worker) ) );
 			});
 
 			Js_Method(abort, {
@@ -325,7 +326,7 @@ namespace qk { namespace js {
 						"@param id {uint} abort id\n"
 					);
 				}
-				fs_reader()->abort( args[0]->toUint32Value(worker).unsafe() );
+				fs_reader()->abort( args[0]->toUint32(worker)->value() );
 			});
 
 			Js_Method(clear, {
@@ -357,12 +358,12 @@ namespace qk { namespace js {
 			int args_index = 1;
 			uint32_t mode = fs_default_mode;
 			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32Value(worker).unsafe();
+				mode = args[1]->toUint32(worker)->value();
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_chmod_sync(args[0]->toStringValue(worker), mode);
+					fs_chmod_sync(args[0]->toString(worker)->value(worker), mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -371,7 +372,7 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				fs_chmod(args[0]->toStringValue(worker), mode, cb);
+				fs_chmod(args[0]->toString(worker)->value(worker), mode, cb);
 			}
 		}
 
@@ -398,12 +399,12 @@ namespace qk { namespace js {
 			int args_index = 1;
 			uint32_t mode = fs_default_mode;
 			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32Value(worker).unsafe();
+				mode = args[1]->toUint32(worker)->value();
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_chmod_recursion_sync(args[0]->toStringValue(worker), mode);
+					fs_chmod_recursion_sync(args[0]->toString(worker)->value(worker), mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -412,7 +413,7 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				Js_Return( fs_chmod_recursion(args[0]->toStringValue(worker), mode, cb) );
+				Js_Return( fs_chmod_recursion(args[0]->toString(worker)->value(worker), mode, cb) );
 			}
 		}
 
@@ -441,9 +442,9 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_chown_sync(args[0]->toStringValue(worker),
-												args[1]->toUint32Value(worker).unsafe(),
-												args[2]->toUint32Value(worker).unsafe());
+					fs_chown_sync(args[0]->toString(worker)->value(worker),
+												args[1]->toUint32(worker)->value(),
+												args[2]->toUint32(worker)->value());
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -452,9 +453,9 @@ namespace qk { namespace js {
 				if ( args.length() > 3 ) {
 					cb = get_callback_for_none(worker, args[3]);
 				}
-				fs_chown(args[0]->toStringValue(worker),
-								args[1]->toUint32Value(worker).unsafe(),
-								args[2]->toUint32Value(worker).unsafe(), cb);
+				fs_chown(args[0]->toString(worker)->value(worker),
+								args[1]->toUint32(worker)->value(),
+								args[2]->toUint32(worker)->value(), cb);
 			}
 		}
 
@@ -485,9 +486,9 @@ namespace qk { namespace js {
 			
 			if ( sync ) {
 				try {
-					fs_chown_recursion_sync(args[0]->toStringValue(worker),
-													args[1]->toUint32Value(worker).unsafe(),
-													args[2]->toUint32Value(worker).unsafe());
+					fs_chown_recursion_sync(args[0]->toString(worker)->value(worker),
+													args[1]->toUint32(worker)->value(),
+													args[2]->toUint32(worker)->value());
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -496,9 +497,9 @@ namespace qk { namespace js {
 				if ( args.length() > 3 ) {
 					cb = get_callback_for_none(worker, args[3]);
 				}
-				Js_Return( fs_chown_recursion(args[0]->toStringValue(worker),
-															args[1]->toUint32Value(worker).unsafe(),
-															args[2]->toUint32Value(worker).unsafe(), cb) );
+				Js_Return( fs_chown_recursion(args[0]->toString(worker)->value(worker),
+															args[1]->toUint32(worker)->value(),
+															args[2]->toUint32(worker)->value(), cb) );
 			}
 		}
 
@@ -524,12 +525,12 @@ namespace qk { namespace js {
 			int args_index = 1;
 			uint32_t mode = fs_default_mode;
 			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32Value(worker).unsafe();
+				mode = args[1]->toUint32(worker)->value();
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_mkdir_sync(args[0]->toStringValue(worker), mode);
+					fs_mkdir_sync(args[0]->toString(worker)->value(worker), mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -538,7 +539,7 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				fs_mkdir(args[0]->toStringValue(worker), mode, cb);
+				fs_mkdir(args[0]->toString(worker)->value(worker), mode, cb);
 			}
 		}
 
@@ -565,12 +566,12 @@ namespace qk { namespace js {
 			int args_index = 1;
 			uint32_t mode = fs_default_mode;
 			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32Value(worker).unsafe();
+				mode = args[1]->toUint32(worker)->value();
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_mkdirs_sync(args[0]->toStringValue(worker), mode);
+					fs_mkdirs_sync(args[0]->toString(worker)->value(worker), mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -579,7 +580,7 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				fs_mkdirs(args[0]->toStringValue(worker), mode, cb);
+				fs_mkdirs(args[0]->toString(worker)->value(worker), mode, cb);
 			}
 		}
 
@@ -606,8 +607,8 @@ namespace qk { namespace js {
 
 			if ( sync ) {
 				try {
-					fs_rename_sync(args[0]->toStringValue(worker),
-																	args[1]->toStringValue(worker));
+					fs_rename_sync(args[0]->toString(worker)->value(worker),
+																	args[1]->toString(worker)->value(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -616,7 +617,7 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				fs_rename(args[0]->toStringValue(worker), args[1]->toStringValue(worker), cb);
+				fs_rename(args[0]->toString(worker)->value(worker), args[1]->toString(worker)->value(worker), cb);
 			}
 		}
 
@@ -640,8 +641,8 @@ namespace qk { namespace js {
 			if ( sync ) {
 				try {
 					fs_link_sync(
-						args[0]->toStringValue(worker),
-						args[1]->toStringValue(worker)
+						args[0]->toString(worker)->value(worker),
+						args[1]->toString(worker)->value(worker)
 					);
 				} catch(cError& err) {
 					Js_Throw(err);
@@ -651,7 +652,7 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				fs_link(args[0]->toStringValue(worker), args[1]->toStringValue(worker), cb);
+				fs_link(args[0]->toString(worker)->value(worker), args[1]->toString(worker)->value(worker), cb);
 			}
 		}
 
@@ -674,7 +675,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_unlink_sync(args[0]->toStringValue(worker));
+					fs_unlink_sync(args[0]->toString(worker)->value(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -683,7 +684,7 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_none(worker, args[1]);
 				}
-				fs_unlink(args[0]->toStringValue(worker), cb);
+				fs_unlink(args[0]->toString(worker)->value(worker), cb);
 			}
 		}
 
@@ -706,7 +707,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_rmdir_sync(args[0]->toStringValue(worker));
+					fs_rmdir_sync(args[0]->toString(worker)->value(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -715,7 +716,7 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_none(worker, args[1]);
 				}
-				fs_rmdir(args[0]->toStringValue(worker), cb);
+				fs_rmdir(args[0]->toString(worker)->value(worker), cb);
 			}
 		}
 
@@ -739,7 +740,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_remove_recursion_sync(args[0]->toStringValue(worker));
+					fs_remove_recursion_sync(args[0]->toString(worker)->value(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -748,7 +749,7 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_none(worker, args[1]);
 				}
-				Js_Return( fs_remove_recursion(args[0]->toStringValue(worker), cb) );
+				Js_Return( fs_remove_recursion(args[0]->toString(worker)->value(worker), cb) );
 			}
 		}
 
@@ -774,8 +775,8 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_copy_sync(args[0]->toStringValue(worker),
-																args[1]->toStringValue(worker));
+					fs_copy_sync(args[0]->toString(worker)->value(worker),
+																args[1]->toString(worker)->value(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -784,8 +785,8 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				Js_Return( fs_copy(args[0]->toStringValue(worker),
-																		args[1]->toStringValue(worker), cb) );
+				Js_Return( fs_copy(args[0]->toString(worker)->value(worker),
+																		args[1]->toString(worker)->value(worker), cb) );
 			}
 		}
 
@@ -811,8 +812,8 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_copy_recursion_sync(args[0]->toStringValue(worker),
-																	args[1]->toStringValue(worker));
+					fs_copy_recursion_sync(args[0]->toString(worker)->value(worker),
+																	args[1]->toString(worker)->value(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -821,8 +822,8 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				Js_Return( fs_copy_recursion(args[0]->toStringValue(worker),
-																			args[1]->toStringValue(worker), cb) );
+				Js_Return( fs_copy_recursion(args[0]->toString(worker)->value(worker),
+																			args[1]->toString(worker)->value(worker), cb) );
 			}
 		}
 
@@ -846,7 +847,7 @@ namespace qk { namespace js {
 			if ( sync ) {
 				Array<Dirent> r;
 				try {
-					r = fs_readdir_sync(args[0]->toStringValue(worker));
+					r = fs_readdir_sync(args[0]->toString(worker)->value(worker));
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -856,7 +857,7 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_array_dirent(worker, args[1]);
 				}
-				fs_readdir( args[0]->toStringValue(worker), cb);
+				fs_readdir( args[0]->toString(worker)->value(worker), cb);
 			}
 		}
 
@@ -880,7 +881,7 @@ namespace qk { namespace js {
 			if ( sync ) {
 				FileStat r;
 				try {
-					r = fs_stat_sync( args[0]->toStringValue(worker) );
+					r = fs_stat_sync( args[0]->toString(worker)->value(worker) );
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -890,7 +891,7 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_file_stat(worker, args[1]);
 				}
-				fs_stat(args[0]->toStringValue(worker), cb);
+				fs_stat(args[0]->toString(worker)->value(worker), cb);
 			}
 		}
 
@@ -904,7 +905,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_exists_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_exists_sync(args[0]->toString(worker)->value(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -913,7 +914,7 @@ namespace qk { namespace js {
 						"@param [cb] {Function}\n"
 					);
 				}
-				fs_exists(args[0]->toStringValue(worker), get_callback_for_bool(worker, args[1]));
+				fs_exists(args[0]->toString(worker)->value(worker), get_callback_for_bool(worker, args[1]));
 			}
 		}
 
@@ -927,7 +928,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_is_file_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_is_file_sync(args[0]->toString(worker)->value(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -936,7 +937,7 @@ namespace qk { namespace js {
 						"@param [cb] {Function}\n"
 					);
 				}
-				fs_is_file(args[0]->toStringValue(worker), get_callback_for_bool(worker, args[1]));
+				fs_is_file(args[0]->toString(worker)->value(worker), get_callback_for_bool(worker, args[1]));
 			}
 		}
 
@@ -950,7 +951,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_is_directory_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_is_directory_sync(args[0]->toString(worker)->value(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -959,7 +960,7 @@ namespace qk { namespace js {
 						"@param [cb] {Function}\n"
 					);
 				}
-				fs_is_directory(args[0]->toStringValue(worker), get_callback_for_bool(worker, args[1]));
+				fs_is_directory(args[0]->toString(worker)->value(worker), get_callback_for_bool(worker, args[1]));
 			}
 		}
 
@@ -973,7 +974,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_readable_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_readable_sync(args[0]->toString(worker)->value(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -982,7 +983,7 @@ namespace qk { namespace js {
 						"@param cb {Function}\n"
 					);
 				}
-				fs_readable(args[0]->toStringValue(worker), get_callback_for_bool(worker, args[1]));
+				fs_readable(args[0]->toString(worker)->value(worker), get_callback_for_bool(worker, args[1]));
 			}
 		}
 
@@ -996,7 +997,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_writable_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_writable_sync(args[0]->toString(worker)->value(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -1005,7 +1006,7 @@ namespace qk { namespace js {
 						"@param cb {Function}\n"
 					);
 				}
-				fs_writable(args[0]->toStringValue(worker), get_callback_for_bool(worker, args[1]));
+				fs_writable(args[0]->toString(worker)->value(worker), get_callback_for_bool(worker, args[1]));
 			}
 		}
 
@@ -1019,7 +1020,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_ReturnBool( fs_executable_sync(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_executable_sync(args[0]->toString(worker)->value(worker)) );
 			} else {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isFunction()) {
 					Js_Throw(
@@ -1028,7 +1029,7 @@ namespace qk { namespace js {
 						"@param cb {Function}\n"
 					);
 				}
-				fs_executable(args[0]->toStringValue(worker), get_callback_for_bool(worker, args[1]));
+				fs_executable(args[0]->toString(worker)->value(worker), get_callback_for_bool(worker, args[1]));
 			}
 		}
 
@@ -1057,7 +1058,7 @@ namespace qk { namespace js {
 				}
 			}
 
-			String path = args[args_index++]->toStringValue(worker);
+			String path = args[args_index++]->toString(worker)->value(worker);
 			Encoding encoding = kInvalid_Encoding;
 
 			if (args.length() > args_index && args[args_index]->isString()) { //
@@ -1115,7 +1116,7 @@ namespace qk { namespace js {
 				}
 			}
 			
-			String path = args[args_index++]->toStringValue(worker);
+			String path = args[args_index++]->toString(worker)->value(worker);
 			Buffer holder;
 			int64_t size;
 			Callback<Buffer> cb;
@@ -1162,11 +1163,11 @@ namespace qk { namespace js {
 				}
 			}
 
-			String path = args[args_index++]->toStringValue(worker);
+			String path = args[args_index++]->toString(worker)->value(worker);
 			FileOpenFlag flag = FileOpenFlag::FOPEN_R;
 
 			if ( args.length() > args_index && args[args_index]->isUint32() ) {
-				uint32_t num = args[args_index++]->toUint32Value(worker).unsafe();
+				uint32_t num = args[args_index++]->toUint32(worker)->value();
 				flag = (FileOpenFlag)num;
 			}
 
@@ -1206,7 +1207,7 @@ namespace qk { namespace js {
 				}
 			}
 
-			int fd = args[args_index]->toInt32Value(worker).unsafe();
+			int fd = args[args_index]->toInt32(worker)->value();
 			if ( sync ) {
 				try {
 					fs_close_sync(fd);
@@ -1247,15 +1248,16 @@ namespace qk { namespace js {
 				}
 			}
 
-			int fd = args[args_index++]->toInt32Value(worker).unsafe();
-			auto weakBuffer = args[args_index++]->toBufferValue(worker);
+			int fd = args[args_index++]->toInt32(worker)->value();
+			WeakBuffer weakBuffer;
+			Qk_Assert_Eq(true, args[args_index++]->asBuffer(worker).to(weakBuffer));
 			char* data = const_cast<char*>(*weakBuffer);
 			uint32_t size = weakBuffer.length();
 			int64_t offset = -1;
 
 			// size
 			if ( args.length() > args_index && args[args_index]->isInt32() ) {
-				int num = args[args_index++]->toInt32Value(worker).unsafe();
+				int num = args[args_index++]->toInt32(worker)->value();
 				if ( num >= 0 ) {
 					size = Qk_Min(size, num);
 				}
@@ -1263,7 +1265,7 @@ namespace qk { namespace js {
 
 			// offset
 			if ( args.length() > args_index && args[args_index]->isInt32() ) {
-				offset = args[args_index++]->toInt32Value(worker).unsafe();
+				offset = args[args_index++]->toInt32(worker)->value();
 				if ( offset < 0 ) offset = -1;
 			}
 			
@@ -1338,7 +1340,7 @@ namespace qk { namespace js {
 				}
 			}
 
-			int fd = args[args_index++]->toInt32Value(worker).unsafe();
+			int fd = args[args_index++]->toInt32(worker)->value();
 			Buffer holder;
 			int64_t size;
 			int64_t offset = -1;
@@ -1349,7 +1351,7 @@ namespace qk { namespace js {
 				return;
 
 			if (args.length() > args_index && args[args_index]->isInt32()) { // offset
-				offset = args[args_index++]->toInt32Value(worker).unsafe();
+				offset = args[args_index++]->toInt32(worker)->value();
 				if ( offset < 0 )
 					offset = -1;
 			}
@@ -1436,7 +1438,7 @@ namespace qk { namespace js {
 					);
 				}
 				auto cb = get_callback_for_io_stream(worker, args[0]);
-				String path = args[1]->toStringValue(worker);
+				String path = args[1]->toString(worker)->value(worker);
 				Js_Return( fs_read_stream(path, cb) );
 			});
 
@@ -1447,7 +1449,7 @@ namespace qk { namespace js {
 						"@param id {uint}\n"
 					);
 				}
-				fs_abort( args[0]->toUint32Value(worker).unsafe() );
+				fs_abort( args[0]->toUint32(worker)->value() );
 			});
 
 			// ------------------------------------------------------------------------
@@ -1465,19 +1467,19 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Return( fs_documents() );
 				}
-				Js_Return( fs_documents( args[0]->toStringValue(worker)) );
+				Js_Return( fs_documents( args[0]->toString(worker)->value(worker)) );
 			});
 			Js_Method(temp, {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Return( fs_temp() );
 				}
-				Js_Return( fs_temp( args[0]->toStringValue(worker)) );
+				Js_Return( fs_temp( args[0]->toString(worker)->value(worker)) );
 			});
 			Js_Method(resources, {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_Return( fs_resources() );
 				}
-				Js_Return( fs_resources( args[0]->toStringValue(worker)) );
+				Js_Return( fs_resources( args[0]->toString(worker)->value(worker)) );
 			});
 			Js_Method(cwd, {
 				Js_Return( fs_cwd() );
@@ -1486,22 +1488,22 @@ namespace qk { namespace js {
 				if (args.length() == 0 || !args[0]->isString()) {
 					Js_ReturnBool( false );
 				}
-				Js_ReturnBool( fs_chdir(args[0]->toStringValue(worker)) );
+				Js_ReturnBool( fs_chdir(args[0]->toString(worker)->value(worker)) );
 			});
 			Js_Method(extname, {
 				if (args.length() == 0 || !args[0]->isString())
 					Js_Throw( "Bad argument." );
-				Js_Return( fs_extname( args[0]->toStringValue(worker)) );
+				Js_Return( fs_extname( args[0]->toString(worker)->value(worker)) );
 			});
 			Js_Method(dirname, {
 				if (args.length() == 0 || !args[0]->isString())
 					Js_Throw( "Bad argument." );
-				Js_Return( fs_dirname( args[0]->toStringValue(worker)) );
+				Js_Return( fs_dirname( args[0]->toString(worker)->value(worker)) );
 			});
 			Js_Method(basename, {
 				if (args.length() == 0 || !args[0]->isString())
 					Js_Throw( "Bad argument." );
-				Js_Return( fs_basename( args[0]->toStringValue(worker)) );
+				Js_Return( fs_basename( args[0]->toString(worker)->value(worker)) );
 			});
 		}
 	};

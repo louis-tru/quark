@@ -61,7 +61,7 @@ namespace qk { namespace js {
 				if (!args.length() || !args[0]->isString()) {
 					Js_Throw("@constructor FillImage(cString& src, Init init = {})");
 				}
-				auto src = args[0]->toStringValue(worker);
+				auto src = args[0]->toString(worker)->value(worker);
 				if (args.length() > 1) {
 					Js_Parse_Type(FillImageInit, args[1], "@constructor FillImage(src,Init init = %s)");
 					New<MixFillImage>(args, new FillImage(src, out));
@@ -120,7 +120,7 @@ namespace qk { namespace js {
 				Js_Return( worker->types()->jsvalue(self->positions()) );
 			});
 
-			Js_Class_Accessor_Get(positions, {
+			Js_Class_Accessor_Get(colors, {
 				Js_Self(FillGradientRadial);
 				Js_Return( worker->types()->jsvalue(self->colors()) );
 			});

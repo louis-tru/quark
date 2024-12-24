@@ -57,6 +57,13 @@ namespace qk { namespace js {
 		v8h->SetAlignedPointerInInternalField(0, this);
 	}
 
+	MixObject* MixObject::unpack(JSValue* obj) {
+		Qk_Assert_Ne(obj, nullptr);
+		auto v8obj = reinterpret_cast<v8::Object*>(obj);
+		Qk_Assert_Gt(v8obj->InternalFieldCount(), 0);
+		return static_cast<MixObject*>(v8obj->GetAlignedPointerFromInternalField(0));
+	}
+
 	class V8JSClass: public JSClass {
 	public:
 		V8JSClass(Worker* worker, cString& name,
@@ -278,7 +285,7 @@ namespace qk { namespace js {
 	}
 
 	JSObject* FunctionCallbackInfo::thisObj() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->thisObj());
+		return Cast<JSObject>(reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this)->This());
 	}
 
 	bool FunctionCallbackInfo::isConstructCall() const {
@@ -293,7 +300,7 @@ namespace qk { namespace js {
 	}
 
 	JSObject* PropertyCallbackInfo::thisObj() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this)->thisObj());
+		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this)->This());
 	}
 
 	ReturnValue PropertyCallbackInfo::returnValue() const {
@@ -304,7 +311,7 @@ namespace qk { namespace js {
 	}
 
 	JSObject* PropertySetCallbackInfo::thisObj() const {
-		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this)->thisObj());
+		return Cast<JSObject>(reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this)->This());
 	}
 
 	Worker* FunctionCallbackInfo::worker() const {

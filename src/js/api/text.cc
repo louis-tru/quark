@@ -60,7 +60,7 @@ namespace qk { namespace js {
 			if (!args.length()) {
 				Js_Throw("@method TextOptions.compute_layout_size(cString& value)\n");
 			}
-			auto str = args[0]->toStringValue(worker);
+			auto str = args[0]->toString(worker)->value(worker);
 			Js_Self(Text);
 			Js_Return( worker->types()->jsvalue(self->compute_layout_size(str)) );
 		});
@@ -141,7 +141,7 @@ namespace qk { namespace js {
 				Js_Return( self->value_u4() );
 			}, {
 				Js_Self(Input);
-				self->set_value_u4(val->toStringValue4(worker));
+				self->set_value_u4(val->toString(worker)->value4(worker));
 			});
 
 			Js_Class_Accessor(placeholder, {
@@ -149,7 +149,7 @@ namespace qk { namespace js {
 				Js_Return( self->placeholder_u4() );
 			}, {
 				Js_Self(Input);
-				self->set_placeholder_u4(val->toStringValue4(worker));
+				self->set_placeholder_u4(val->toString(worker)->value4(worker));
 			});
 
 			Js_Class_Accessor_Get(textLength, {

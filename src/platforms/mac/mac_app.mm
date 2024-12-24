@@ -56,5 +56,4 @@ void qk_post_messate_main(Cb cb, bool sync) {
 			core->release();
 		});
 	}
-	return 0;
 }

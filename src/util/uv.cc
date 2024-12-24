@@ -71,8 +71,7 @@ namespace qk {
 			if (sp) {
 				auto task = sp.collapse();
 				task->_loop->post(Cb([id, task](Cb::Data& e) {
-					Sp<AsyncIOTask> sp;
-					sp.uncollapse(task);
+					auto sp = Sp<AsyncIOTask>::without(task);
 					task->abort();
 				}));
 			} // if (tasks->values.get(id, out))

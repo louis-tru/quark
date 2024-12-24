@@ -161,7 +161,7 @@ namespace qk {
 			Handle<Core>::operator=(cb);
 			return *this;
 		}
-		inline Core* collapse() { return nullptr; }
+		inline Core* detach() { return nullptr; }
 	private:
 		static void* DefaultCore();
 		template<class D2, class E2> friend class Callback;

@@ -536,7 +536,7 @@ namespace qk {
 
 	X509_STORE* NewRootCertStoreFromFile(cString& ca_content) {
 		if (ca_content.isEmpty()) {
-			Qk_ELog("%s", "set_ssl_cacert() fail, ca_content is empty string"); return;
+			Qk_ELog("%s", "set_ssl_cacert() fail, ca_content is empty string"); return nullptr;
 		}
 
 		X509_STORE* store = X509_STORE_new();
@@ -548,7 +548,7 @@ namespace qk {
 
 		int r = X509_STORE_load_locations(store, ca, nullptr);
 		if (!r) {
-			Qk_ELog("%s", "set_ssl_cacert() fail"); return;
+			Qk_ELog("%s", "set_ssl_cacert() fail"); return nullptr;
 			// Qk_DLog("ssl load x509 store, %s"r);
 		}
 

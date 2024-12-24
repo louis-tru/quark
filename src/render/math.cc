@@ -916,6 +916,8 @@ namespace qk {
 		val[0] *= x;
 		val[4] *= x;
 		val[8] *= x;
+
+		return *this;
 	}
 
 	Mat4& Mat4::scale_y(float y) {
@@ -928,6 +930,8 @@ namespace qk {
 		val[1] *= y;
 		val[5] *= y;
 		val[9] *= y;
+		
+		return *this;
 	}
 
 	Mat4& Mat4::scale_z(float z) {
@@ -940,6 +944,8 @@ namespace qk {
 		val[2] *= z;
 		val[6] *= z;
 		val[10] *= z;
+		
+		return *this;
 	}
 
 	Mat4& Mat4::rotate(Vec3 v) {

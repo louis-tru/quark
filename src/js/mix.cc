@@ -82,6 +82,7 @@ namespace qk { namespace js {
 
 	MixObject::~MixObject() {
 		_handle = nullptr;
+		_class = nullptr;
 	}
 
 	void MixObject::initialize() {
@@ -93,7 +94,8 @@ namespace qk { namespace js {
 		if ( func->isFunction() ) {
 			return func->cast<JSFunction>()->call(worker(), argc, argv, recv);
 		} else {
-			worker()->throwError("Function not found, \"%s\"", *method->toStringValue(worker()));
+			auto w = worker();
+			w->throwError("Function not found, \"%s\"", *method->toString(w)->value(w));
 			return nullptr;
 		}
 	}

@@ -55,6 +55,15 @@ namespace qk {
 		inline Handle(Handle& handle) { _data = handle.move(); }
 		inline Handle(Handle&& handle) { _data = handle.move(); }
 
+		/*
+		* Directly assigning values without increasing the number of references
+		*/
+		inline static Handle without(T* data) {
+			Handle h;
+			h._data = data;
+			Qk_ReturnLocal(h);
+		}
+
 		inline ~Handle() { release(); }
 
 		inline Handle& operator=(Handle& handle) {
@@ -99,24 +108,14 @@ namespace qk {
 		inline bool is_null() const {
 			return _data == nullptr;
 		}
-		
+
 		/**
 		 * @method collapse() Unbinding data, loss of data management, and data removal
-		 *
 		 */
 		inline T* collapse() {
 			T* data = _data;
 			_data = nullptr;
 			return data;
-		}
-
-		/**
-		 * Directly assigning values without increasing the number of references
-		 * @method uncollapse()
-		 */
-		void uncollapse(T* data) {
-			release();
-			_data = data;
 		}
 
 		inline void release() {

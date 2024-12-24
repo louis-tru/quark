@@ -111,14 +111,16 @@ export default async function(win: Window) {
 	Mv(v, 'hide', [], ()=>v.visible===false);
 	Mv(v, 'show', [], ()=>v.visible===true);
 	Mv(v, 'isSelfChild', [v.first!], true);
-	Mv(v, 'hashCode', [], e=>e==v.hashCode())
+	Mv(v, 'hashCode', [], e=>e==v.hashCode());
+	//(v as any).ttt = 'ABCDEFG';
+	//console.log('(v as any).ttt----------------------', (v as any).ttt);
 	Mv(v, 'transition', [{time:1e3,opacity: 0.3}], e=>e.duration==1e3);
 
 	LOG('\nTest Box:\n')
 	const d = new Box(win);
 	// background: types.BoxFilter | null;
 	// boxShadow: types.BoxShadow | null;
-	Mv(d, 'appendTo', [root])
+	Mv(d, 'appendTo', [root]);
 	Pv(d, 'width', e=>e.kind==BoxSizeKind.Auto);
 	Pv(d, 'width', e=>e.kind==BoxSizeKind.Ratio&&e.value==1, e=>e.style.width='100%');
 	Pv(d, 'height', e=>e.kind==BoxSizeKind.Auto);

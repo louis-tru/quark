@@ -155,7 +155,6 @@ namespace qk {
 		void set_mute(bool value) override {
 			_mute = value;
 			set_volume(_volume);
-			return true;
 		}
 
 		void set_volume(float value) override {

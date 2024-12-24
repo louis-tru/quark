@@ -241,7 +241,7 @@ namespace qk { namespace js {
 	typedef void (*AccessorGetterCallback)(JSValue* name, PropertyArgs args);
 	typedef void (*AccessorSetterCallback)(JSValue* name, JSValue* value, PropertySetArgs args);
 	typedef void (*IndexedAccessorGetterCallback)(uint32_t index, PropertyArgs args);
-	typedef void (*IndexedAccessorSetterCallback)(uint32_t index, JSValue* value, PropertyArgs args);
+	typedef void (*IndexedAccessorSetterCallback)(uint32_t index, JSValue* value, PropertySetArgs args);
 	typedef void (*BindingCallback)(JSObject* exports, Worker* worker);
 	typedef void (*AttachCallback)(MixObject* mix);
 
@@ -265,35 +265,32 @@ namespace qk { namespace js {
 		bool equals(Worker *worker, JSValue* val) const;
 		bool strictEquals(Worker *worker, JSValue* val) const;
 		bool instanceOf(Worker* worker, JSObject* constructor) const; // this instanceOf constructor
-
 		// Force convert to type xxx
+		bool      toBoolean(Worker* worker) const;
 		JSString* toString(Worker* worker) const;
-		JSBoolean* toBoolean(Worker* worker) const;
 		JSNumber* toNumber(Worker* worker) const;
-		JSInt32* toInt32(Worker* worker) const;
+		JSInt32*  toInt32(Worker* worker) const;
 		JSUint32* toUint32(Worker* worker) const;
 
 		// Convert to type xxx
-		Maybe<String> asString(Worker *worker) const;
-		Maybe<bool> asBoolean(Worker* worker) const;
+		Maybe<String> asString(Worker* worker) const;
 		Maybe<double> asNumber(Worker* worker) const;
 		Maybe<float> asFloat32(Worker* worker) const;
 		Maybe<int32_t> asInt32(Worker* worker) const;
 		Maybe<uint32_t> asUint32(Worker* worker) const;
-		Maybe<WeakBuffer> asBuffer(Worker *worker) const;
-
+		Maybe<WeakBuffer> asBuffer(Worker* worker) const;
+		// Unsafe static convert
 		template<class T = JSValue>
-		inline T* cast() {
-			return static_cast<T*>(this);
-		}
+		inline T* cast() { return static_cast<T*>(this); }
 	};
 
 	class Qk_Export JSString: public JSValue {
 	public:
 		int length() const; // utf16 length
-		String value(Worker* worker, bool oneByte = false) const; // utf8 string value
-		Buffer toBuffer(Worker* worker, Encoding en) const; // encode to en
-		static JSString* Empty(Worker* worker);
+		String value(Worker* worker) const; // utf8 string value
+		String2 value2(Worker* worker) const;
+		String4 value4(Worker* worker) const;
+		Buffer toBuffer(Worker* worker, Encoding en = kUTF16_Encoding) const; // encode to en
 	};
 
 	class Qk_Export JSObject: public JSValue {
@@ -304,19 +301,22 @@ namespace qk { namespace js {
 			DontEnum = 1 << 1,
 			DontDelete = 1 << 2
 		};
-		JSValue* get(Worker* worker, JSValue* key);
-		JSValue* get(Worker* worker, uint32_t index);
+		template<class T = JSValue>
+		T* get(Worker* worker, JSValue* key);
+		template<class T = JSValue>
+		T* get(Worker* worker, uint32_t index);
+		template<class T = JSValue>
+		T* get(Worker* worker, cString& key);
 		bool set(Worker* worker, JSValue* key, JSValue* val);
 		bool set(Worker* worker, uint32_t index, JSValue* val);
+		template<class T>
+		bool setProperty(Worker* worker, cString& name, T value);
 		bool has(Worker* worker, JSValue* key);
 		bool has(Worker* worker, uint32_t index);
 		bool deleteFor(Worker* worker, JSValue* key);
 		bool deleteFor(Worker* worker, uint32_t index);
 		JSArray* getPropertyNames(Worker* worker);
-		JSValue* getProperty(Worker* worker, cString& name);
 		JSFunction* getConstructor(Worker* worker);
-		template<class T>
-		bool setProperty(Worker* worker, cString& name, T value);
 		bool setMethod(Worker* worker, cString& name, FunctionCallback func);
 		bool setAccessor(Worker* worker, cString& name, AccessorGetterCallback get,
 			AccessorSetterCallback set = nullptr);
@@ -324,16 +324,7 @@ namespace qk { namespace js {
 		bool setPrototype(Worker* worker, JSObject* proto); // set obj.__proto__
 		Maybe<Dict<String, int>>    toIntegerDict(Worker* worker);
 		Maybe<Dict<String, String>> toStringDict(Worker* worker);
-		Maybe<Array<String>> getPropertyKeys(Worker* worker);
-	};
-
-	class Qk_Export JSString: public JSValue {
-	public:
-		int length() const; // utf16 length
-		String value(Worker* worker) const; // utf8 string value
-		String2 value2(Worker* worker) const;
-		String4 value4(Worker* worker) const;
-		Buffer toBuffer(Worker* worker, Encoding en = kUTF16_Encoding) const; // encode to en
+		Maybe<Array<String>>        getPropertyKeys(Worker* worker);
 	};
 
 	class Qk_Export JSArray: public JSObject {
@@ -352,6 +343,7 @@ namespace qk { namespace js {
 	class Qk_Export JSNumber: public JSValue {
 	public:
 		double value() const;
+		float float32() const;
 	};
 
 	class Qk_Export JSInt32: public JSNumber {
@@ -380,16 +372,16 @@ namespace qk { namespace js {
 	class Qk_Export JSArrayBuffer: public JSObject {
 	public:
 		uint32_t   byteLength(Worker* worker) const;
-		Char*      data(Worker* worker);
-		WeakBuffer value(Worker* worker);
+		char*      data(Worker* worker);
+		WeakBuffer value(Worker* worker) const;
 	};
 
 	class Qk_Export JSTypedArray: public JSObject {
 	public:
 		JSArrayBuffer* buffer(Worker* worker);
-		WeakBuffer value(Worker* worker);
-		uint32_t byteLength(Worker* worker);
-		uint32_t byteOffset(Worker* worker);
+		WeakBuffer value(Worker* worker) const;
+		uint32_t byteLength(Worker* worker) const;
+		uint32_t byteOffset(Worker* worker) const;
 	};
 
 	class Qk_Export JSUint8Array: public JSTypedArray {
@@ -445,6 +437,9 @@ namespace qk { namespace js {
 		}
 		inline JSClass* jsclass() {
 			return _class;
+		}
+		inline uint32_t flags() {
+			return _flags;
 		}
 		template<class Self = Object>
 		inline Self* self() {
@@ -503,6 +498,7 @@ namespace qk { namespace js {
 
 		JSObject *_handle;
 		JSClass *_class;
+		uint32_t _flags;
 		friend class JsHeapAllocator;
 	};
 
@@ -517,26 +513,20 @@ namespace qk { namespace js {
 	class Qk_Export Worker: public Object, public SafeFlag {
 		Qk_HIDDEN_ALL_COPY(Worker);
 	public:
-		static Worker* Make();
-		static Worker* current();
-
-		static inline Worker* worker() {
-			return current();
-		}
-		template<class T>
-		static Worker* worker(T& args) {
-			return args.worker();
-		}
-		static void setModule(cString& name, BindingCallback binding, cChar* pathname);
-		JSValue* bindingModule(cString& name);
-
-		// @prop
 		Qk_DEFINE_P_GET(TypesParser*, types, Protected);
 		Qk_DEFINE_P_GET(Strings*, strs, Protected);
 		Qk_DEFINE_P_GET(JsClasses*, classes, Protected);
 		Qk_DEFINE_P_GET(ThreadID, thread_id, Protected);
 		Qk_DEFINE_P_GET(RunLoop*, loop);
 		Qk_DEFINE_A_GET(JSObject*, global);
+
+		static Worker* Make();
+		static Worker* current();
+		inline
+		static Worker* worker() { return current(); }
+		template<class T>
+		static Worker* worker(T& args) { return args.worker(); }
+		static void setModule(cString& name, BindingCallback binding, cChar* pathname);
 
 		void release() override;
 		void garbageCollection();
@@ -545,7 +535,7 @@ namespace qk { namespace js {
 		JSValue*  newValue(Object *val);
 		JSNumber* newValue(float val);
 		JSNumber* newValue(double val);
-		JSInt32*  newValue(Char val);
+		JSInt32*  newValue(char val);
 		JSUint32* newValue(uint8_t val);
 		JSInt32*  newValue(int16_t val);
 		JSUint32* newValue(uint16_t val);
@@ -614,6 +604,7 @@ namespace qk { namespace js {
 		JSValue* runScript(cString& source, cString& name, JSObject* sandbox = 0);
 		JSValue* runScript(JSString* source, JSString* name, JSObject* sandbox = 0);
 		JSValue* runNativeScript(cChar* source, int sLen, cString& name, JSObject* exports = 0);
+		JSValue* bindingModule(cString& name);
 
 	protected:
 		Worker();
@@ -628,29 +619,54 @@ namespace qk { namespace js {
 
 	// **********************************************************************
 
+	template<class T>
+	inline T* JSObject::get(Worker* worker, JSValue* key) {
+		return static_cast<T*>(get<JSValue>(worker, key));
+	}
+	template<class T>
+	inline T* JSObject::get(Worker* worker, uint32_t index) {
+		return static_cast<T*>(get<JSValue>(worker, index));
+	}
+	template<class T>
+	inline T* JSObject::get(Worker* worker, cString& key) {
+		return static_cast<T*>(get<JSValue>(worker, key));
+	}
+	template<class T>
+	inline bool JSObject::setProperty(Worker* worker, cString& key, T value) {
+		return setProperty<JSValue*>(worker, key, worker->newValue(value));
+	}
+	template<class T>
+	inline bool JSClass::setProperty(cString& name, T value) {
+		return setProperty<JSValue*>(name, _worker->newValue(value));
+	}
+	template<class T>
+	inline bool JSClass::setStaticProperty(cString& name, T value) {
+		return setStaticProperty<JSValue*>(name, _worker->newValue(value));
+	}
+
+	///
+
 	template<>
 	Qk_Export void Persistent<JSValue>::reset();
-	template<> template<>
+	template<>
+	template<>
 	Qk_Export void Persistent<JSValue>::reset(Worker* worker, JSValue* other);
-	template<> template<>
+	template<>
+	template<>
 	Qk_Export void Persistent<JSValue>::copy(const Persistent<JSValue>& that);
 	template<>
 	Qk_Export JSValue* Persistent<JSValue>::operator*() const;
 	template<>
 	Qk_Export JSValue* EscapableHandleScope::escape(JSValue* val);
 
-	template<class T>
-	bool JSObject::setProperty(Worker* worker, cString& name, T value) {
-		return set(worker, worker->newStringOneByte(name), worker->newValue(value));
-	}
-	template<class T>
-	bool JSClass::setProperty(cString& name, T value) {
-		return setProperty<JSValue*>(name, _worker->newValue(value));
-	}
-	template<class T>
-	bool JSClass::setStaticProperty(cString& name, T value) {
-		return setStaticProperty<JSValue*>(name, _worker->newValue(value));
-	}
+	template<>
+	Qk_Export JSValue* JSObject::get(Worker* worker, JSValue* key);
+	template<>
+	Qk_Export JSValue* JSObject::get(Worker* worker, uint32_t index);
+	template<>
+	Qk_Export JSValue* JSObject::get(Worker* worker, cString& key);
+	template<>
+	Qk_Export bool JSObject::setProperty(Worker* worker, cString& key, JSValue* value);
 	template<>
 	Qk_Export bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
 	template<>

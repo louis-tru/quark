@@ -215,7 +215,7 @@ namespace qk { namespace js {
 				if (!val->isUint32())
 					Js_Throw("@prop Application.maxResourceMemoryLimit = {uint32_t}");
 				Js_Self(Type);
-				self->set_maxResourceMemoryLimit(val->toUint32Value(worker).unsafe());
+				self->set_maxResourceMemoryLimit(val->toUint32(worker)->value());
 			});
 
 			Js_Class_Accessor_Get(windows, {
@@ -229,7 +229,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(clear, {
-				auto all = args.length() && args[0]->toBooleanValue(worker);
+				auto all = args.length() && args[0]->toBoolean(worker);
 				Js_Self(Type);
 				self->clear(all);
 			});
@@ -247,7 +247,7 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Self(Type);
-				self->openURL(args[0]->toStringValue(worker));
+				self->openURL(args[0]->toString(worker)->value(worker));
 			});
 
 			Js_Class_Method(sendEmail, {
@@ -263,11 +263,11 @@ namespace qk { namespace js {
 				}
 				Js_Self(Type);
 				self->sendEmail(
-					args[0]->toStringValue(worker), // recipient
-					args[1]->toStringValue(worker), // subject
-					args[2]->toStringValue(worker), // body
-					args.length() > 3 ? args[3]->toStringValue(worker): String(), // cc
-					args.length() > 4 ? args[4]->toStringValue(worker): String() // bcc
+					args[0]->toString(worker)->value(worker), // recipient
+					args[1]->toString(worker)->value(worker), // subject
+					args[2]->toString(worker)->value(worker), // body
+					args.length() > 3 ? args[3]->toString(worker)->value(worker): String(), // cc
+					args.length() > 4 ? args[4]->toString(worker)->value(worker): String() // bcc
 				);
 			});
 

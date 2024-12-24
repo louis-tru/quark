@@ -43,10 +43,10 @@ namespace js {
 
 	Maybe<WeakBuffer> JSValue::asBuffer(Worker *worker) const {
 		if (isTypedArray()) {
-			return static_cast<JSTypedArray*>(this)->value(worker);
+			return static_cast<const JSTypedArray*>(this)->value(worker);
 		}
 		else if (isArrayBuffer()) {
-			return static_cast<JSArrayBuffer*>(this)->value(worker);
+			return static_cast<const JSArrayBuffer*>(this)->value(worker);
 		}
 		return Maybe<WeakBuffer>();
 	}
@@ -78,9 +78,9 @@ namespace js {
 				JSValue* val = get(worker, key);
 				if ( !val ) return Maybe<Dict<String, int>>();
 				if ( val->isNumber() ) {
-					r.set( key->toStringValue(worker), val->toInt32Value(worker).unsafe() );
+					r.set( key->toString(worker)->value(worker), val->toInt32(worker)->value() );
 				} else {
-					r.set( key->toStringValue(worker), val->toBooleanValue(worker) );
+					r.set( key->toString(worker)->value(worker), val->toBoolean(worker) );
 				}
 			}
 		}
@@ -89,7 +89,7 @@ namespace js {
 
 	Maybe<Dict<String, String>> JSObject::toStringDict(Worker* worker) {
 		Dict<String, String> r;
-		
+
 		if ( isObject() ) {
 			auto names = getPropertyNames(worker);
 			if ( !names )
@@ -104,14 +104,20 @@ namespace js {
 				if ( !val ) {
 					return Maybe<Dict<String, String>>();
 				}
-				r.set( key->toStringValue(worker), val->toStringValue(worker) );
+				r.set( key->toString(worker)->value(worker), val->toString(worker)->value(worker) );
 			}
 		}
 		return Maybe<Dict<String, String>>(std::move(r));
 	}
 
-	JSValue* JSObject::getProperty(Worker* worker, cString& name) {
-		return get(worker, worker->newStringOneByte(name)/*One Byte ??*/);
+	template<>
+	JSValue* JSObject::get(Worker* worker, cString& key) {
+		return get(worker, worker->newValue(key));
+	}
+
+	template<>
+	bool JSObject::setProperty(Worker* worker, cString& key, JSValue* value) {
+		return set(worker, worker->newValue(key), value);
 	}
 
 	Maybe<Array<String>> JSArray::toStringArray(Worker* worker) {
@@ -121,7 +127,7 @@ namespace js {
 				auto val = get(worker, i);
 				if ( !val )
 					return Maybe<Array<String>>();
-				rv.push( val->toStringValue(worker) );
+				rv.push( val->toString(worker)->value(worker) );
 			}
 		}
 		return Maybe<Array<String>>(std::move(rv));
@@ -131,7 +137,15 @@ namespace js {
 		Array<double> rv;
 		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(); i < len; i++ ) {
-				rv.push( get(worker, i)->toNumberValue(worker).unsafe() );
+				auto val = get(worker, i);
+				if (!val) {
+					return Maybe<Array<double>>();
+				}
+				auto num = val->toNumber(worker);
+				if (!num) {
+					return Maybe<Array<double>>();
+				}
+				rv.push( num->value() );
 			}
 		}
 		return Maybe<Array<double>>(std::move(rv));
@@ -141,21 +155,21 @@ namespace js {
 		Buffer rv;
 		if ( isArray() ) {
 			for ( uint32_t i = 0, len = length(); i < len; i++ ) {
-				rv.push( get(worker, i)->toInt32Value(worker).unsafe() );
+				rv.push( get(worker, i)->toInt32(worker)->value() );
 			}
 		}
 		return Maybe<Buffer>(std::move(rv));
 	}
 
-	WeakBuffer JSArrayBuffer::value(Worker* worker) {
+	WeakBuffer JSArrayBuffer::value(Worker* worker) const {
 		int size = byteLength(worker);
-		Char* ptr = data(worker);
+		char* ptr = const_cast<JSArrayBuffer*>(this)->data(worker);
 		return WeakBuffer(ptr, size);
 	}
 
-	WeakBuffer JSTypedArray::value(Worker* worker) {
-		auto buff = buffer(worker);
-		Char* ptr = buff->data(worker);
+	WeakBuffer JSTypedArray::value(Worker* worker) const {
+		auto buff = const_cast<JSTypedArray*>(this)->buffer(worker);
+		char* ptr = buff->data(worker);
 		int offset = byteOffset(worker);
 		int len = byteLength(worker);
 		return WeakBuffer(ptr + offset, len);
@@ -200,7 +214,7 @@ namespace js {
 		if (!mod->isUndefined())
 			return mod;
 		auto exports = newObject();
-		auto name_str = name->toStringValue(this);
+		auto name_str = name->toString(this)->value(this);
 		const NativeModuleLib* lib;
 		Qk_DLog("binding: %s", *name_str);
 
@@ -276,9 +290,8 @@ namespace js {
 
 	void Worker::release() {
 		SafeFlag::~SafeFlag();
-		delete _types; _types = nullptr;
-		delete _strs; _strs = nullptr;
-		delete _classes; _classes = nullptr;
+		Releasep(_types);
+		Releasep(_strs);
 		_nativeModules.reset();
 		_global.reset();
 		_console.reset();
@@ -301,7 +314,7 @@ namespace js {
 		_global->setMethod(this, "__binding__", __binding__);
 
 		auto globalThis = newStringOneByte("globalThis");
-		if ( !_global->has(this, globalThis) ) {
+		if (!_global->has(this, globalThis)) {
 			_global->set(this, globalThis, *_global);
 		}
 		Qk_WorkerInl(this)->initGlobalAPIs();
@@ -423,10 +436,11 @@ namespace js {
 
 	JSValue* Worker::runNativeScript(cChar* source, int sLen, cString& name, JSObject* exports) {
 		EscapableHandleScope scope(this);
-		if (!exports)
+		if (!exports) {
 			exports = newObject();
-		auto srcBuf = WeakBuffer(source, sLen).buffer();
-		auto func = runScript(newString(srcBuf), newValue(name))->cast<JSFunction>();
+		}
+		auto func = runScript(newString(WeakBuffer(source, sLen).buffer()), newValue(name))->
+			cast<JSFunction>();
 		if ( func ) {
 			Qk_Assert(func->isFunction());
 			auto mod = newObject();
@@ -446,7 +460,7 @@ namespace js {
 		auto _util = worker->bindingModule("_util")->cast<JSObject>();
 		Qk_Assert(_util);
 
-		auto func = _util->getProperty(worker, String("__on").append(name).append("_native"));
+		auto func = _util->get(worker, String("__on").append(name).append("_native"));
 		if (!func->isFunction()) {
 			return nullptr;
 		}
@@ -458,7 +472,7 @@ namespace js {
 		auto argv = worker->newValue(code)->cast<JSValue>();
 		auto rc = TriggerEventFromUtil(worker, name, 1, &argv);
 		if (rc && rc->isInt32()) {
-			return rc->toInt32Value(worker).unsafe();
+			return rc->toInt32(worker)->value();
 		} else {
 			return code;
 		}
@@ -467,7 +481,7 @@ namespace js {
 	static bool TriggerException(Worker* worker, cString& name, int argc, JSValue* argv[]) {
 		Js_Handle_Scope();
 		auto rc = TriggerEventFromUtil(worker, name, argc, argv);
-		return rc && rc->toBooleanValue(worker);
+		return rc && rc->toBoolean(worker);
 	}
 
 	int triggerExit(Worker* worker, int code) {
@@ -528,7 +542,7 @@ namespace js {
 			arg[-1] = '\0';
 		}
 
-		Start(argv.length(), *argv);
+		return Start(argv.length(), *argv);
 	}
 
 	int Start(int argc, char** argv) {
@@ -574,8 +588,8 @@ namespace js {
 				auto _pkg = worker->bindingModule("_pkg");
 				Qk_Assert(_pkg && _pkg->isObject(), "Can't start worker");
 				auto r = _pkg->cast<JSObject>()->
-					getProperty(worker, "Module")->cast<JSObject>()->
-					getProperty(worker, "runMain")->cast<JSFunction>()->call(worker);
+					get<JSObject>(worker, "Module")->
+					get<JSFunction>(worker, "runMain")->call(worker);
 				if (!r) {
 					Qk_ELog("ERROR: Can't call runMain()");
 					return ERR_RUN_MAIN_EXCEPTION;

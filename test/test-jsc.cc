@@ -32,6 +32,7 @@
 #ifdef Qk_MAC
 #include "quark/util/array.h"
 #include "quark/util/loop.h"
+#include "quark/js/jsc/jsc.h"
 #include <JavaScriptCore/JavaScript.h>
 
 using namespace qk;
@@ -391,7 +392,7 @@ JSValueRef PrintCallback(JSContextRef ctx, JSObjectRef function,
 	return nullptr;
 }
 
-void test_jsc(int argc, char **argv) {
+void test_jsc() {
 	JSContextGroupRef group = JSContextGroupCreate();
 	JSGlobalContextRef ctx = JSGlobalContextCreateInGroup(group, nullptr);
 	JSGlobalContextRef ctx1 = JSGlobalContextCreateInGroup(group, nullptr);
@@ -437,6 +438,33 @@ void test_jsc(int argc, char **argv) {
 	JSValueProtect(ctx, print);
 	JSGlobalContextRelease(ctx1);
 	Qk_Log(to_string_utf8(ctx, JSObjectGetProperty(ctx, global1, print_s, 0)));
+	JSGlobalContextRelease(ctx);
+	JSContextGroupRelease(group);
+}
+
+void test_jsc1(int argc, char **argv) {
+	auto group = JSContextGroupCreate();
+	auto ctx = JSGlobalContextCreateInGroup(group, nullptr);
+	auto global = JSContextGetGlobalObject(ctx);
+
+	JSValueRef ex = nullptr;
+	auto Object = (JSObjectRef)JSObjectGetProperty(ctx, global, *JsStringWithUTF8("Object"), &ex);
+	DCHECK(!ex);
+	auto defineProperty = JSObjectGetProperty(ctx, Object, *JsStringWithUTF8("defineProperty"), &ex);
+	DCHECK(!ex);
+
+	// JSClassDefinition def = kJSClassDefinitionEmpty;
+	// def.finalize = [](JSObjectRef object) {};
+	// def.getProperty = [](JSContextRef ctx, JSObjectRef object, JSStringRef propertyName, JSValueRef* ex) {};
+	// def.setProperty = [](JSContextRef ctx, JSObjectRef object, JSStringRef propertyName, JSValueRef value, JSValueRef* ex){};
+	// JSClassCreate(&def)
+
+	auto obj = JSObjectMake(ctx, nullptr, nullptr);
+	auto desc = JSObjectMake(ctx, nullptr, nullptr);
+
+	//JSObjectSetProperty(ctx, desc, *JsStringWithUTF8("get"), )
+	//JSObjectSetProperty(ctx, obj, JsStringWithUTF8("a"), )
+
 	JSGlobalContextRelease(ctx);
 	JSContextGroupRelease(group);
 }

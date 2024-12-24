@@ -64,7 +64,7 @@
 					'jsc/handle_scope.cc',
 					'jsc/jsc.cc',
 					'jsc/jsc.h',
-					'jsc/jsccls.h',
+					'jsc/jsccls.cc',
 					'jsc/macros.h',
 				],
 			}, { # use v8

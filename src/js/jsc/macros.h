@@ -51,6 +51,10 @@
 	F(_stack) \
 	F(length) \
 	F(errno) \
+	F(message) \
+	F(toString) \
+	F(enumerable) \
+	F(configurable) \
 
 #define Js_Worker_Data_Each(F) \
 	F(Object, global) \
@@ -70,7 +74,8 @@
 	F(Date, global) \
 	F(prototype, global_Date) \
 	F(valueOf, global_Date_prototype) \
-	F(prototype, Object) \
-	F(defineProperty, Object) \
+	F(prototype, global_Object) \
+	F(defineProperty, global_Object) \
+	F(prototype, global_Function) \
 
 #endif

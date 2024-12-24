@@ -873,7 +873,7 @@ namespace qk {
 			Sp<View> next_focus;
 			Sp<KeyEvent> evt;
 			Core(EventDispatch *h, View *v, View *nf, KeyEvent *e): host(h), view(v), evt(e) {
-				next_focus.uncollapse(nf);
+				next_focus = Sp<View>::without(nf);
 			}
 			void call(Data& e) {
 				auto code = evt->keycode();

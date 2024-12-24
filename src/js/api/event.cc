@@ -61,7 +61,8 @@ namespace qk { namespace js {
 				if ( !val->isInt32() )
 					Js_Throw("Bad argument.");
 				Js_Self(Type);
-				self->return_value = val->toInt32Value(worker).unsafe();
+				auto num = val->template cast<JSInt32>()->value();
+				self->return_value = num;
 			});
 
 			cls->exports("NativeEvent", exports);

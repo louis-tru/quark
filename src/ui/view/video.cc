@@ -87,8 +87,7 @@ namespace qk {
 
 		struct Core: CallbackCore<Object> {
 			Core(Video *v, Object* d, const UIEventName& n)
-				: evt(new UIEvent(v, d)), name(n) {
-				view.uncollapse(v);
+				: view(Sp<Video>::without(v)), evt(new UIEvent(v, d)), name(n) {
 			}
 			void call(Data& e) {
 				view->trigger(name, **evt);

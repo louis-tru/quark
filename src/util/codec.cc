@@ -385,7 +385,7 @@ namespace qk {
 			destLen += charLen;
 		}
 		*dest = '\0';
-		auto capacity = data.capacity();
+		capacity = data.capacity();
 		return Buffer(reinterpret_cast<char*>(data.collapse()), destLen << 1, capacity << 1);
 	}
 
@@ -799,7 +799,7 @@ namespace qk {
 	}
 
 	ArrayBuffer<char> codec_unicode_to_utf8(cArray<uint32_t>& unicode) {
-		return encode_to_utf8(*source, source.length());
+		return encode_to_utf8(*unicode, unicode.length());
 	}
 
 	ArrayBuffer<uint32_t> codec_utf16_to_unicode(cArray<uint16_t>& source) {
@@ -807,15 +807,15 @@ namespace qk {
 	}
 
 	ArrayBuffer<uint32_t> codec_utf8_to_unicode(cArray<char>& utf8) {
-		return decode_from_utf8<uint32_t>(*source, source.length());
+		return decode_from_utf8<uint32_t>(*utf8, utf8.length());
 	}
 
 	ArrayBuffer<char> codec_utf16_to_utf8(cArray<uint16_t>& utf16) {
 		ArrayBuffer<char> data(0u, utf16.length() + 8);
 		auto dest = data.val();
 		auto capacity = data.capacity() - 8, destLen = 0u;
-		auto src = *source;
-		auto end = source + utf16.length();
+		auto src = *utf16;
+		auto end = src + utf16.length();
 		uint32_t unicode;
 		while (src < end) {
 			src += codec_decode_utf16_to_unichar(src, &unicode);
@@ -836,8 +836,8 @@ namespace qk {
 		ArrayBuffer<uint16_t> data(0u, utf8.length() + 4);
 		auto dest = data.val();
 		auto capacity = data.capacity() - 4, destLen = 0u;
-		auto src = reinterpret_cast<const uint8_t*>(utf8);
-		auto end = src + len;
+		auto src = reinterpret_cast<const uint8_t*>(*utf8);
+		auto end = src + utf8.length();
 		uint32_t unicode;
 		while (src < end) {
 			src += codec_decode_utf8_to_unichar(src, &unicode);

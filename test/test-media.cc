@@ -395,4 +395,6 @@ int test_media(int argc, char **argv) {
 	}), 2e6);
 
 	app.run();
+	
+	return 0;
 }
