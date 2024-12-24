@@ -87,13 +87,13 @@ namespace qk { namespace js {
 	void WorkerImpl::release() {
 		Releasep(_inspector);
 		Worker::release();
-		Releasep(_classes);
 		_context->Exit();
 		_context.Clear();
 		Releasep(_handle_scope);
 		_isolate->Exit();
 		Releasep(_locker);
 		_isolate->Dispose(); _isolate = nullptr;
+		Releasep(_classes);
 		Object::release();
 		Releasep(_params.array_buffer_allocator);
 	}

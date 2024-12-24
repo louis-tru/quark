@@ -399,7 +399,6 @@ namespace qk { namespace js {
 	public:
 		Qk_DEFINE_P_GET(Worker*, worker, Protected);
 		Qk_DEFINE_P_GET(uint64_t, alias, Protected);
-		virtual ~JSClass() = default;
 		void exports(cString& name, JSObject* exports);
 		bool hasInstance(JSValue* val);
 		JSFunction* getFunction(); // constructor function
@@ -415,9 +414,9 @@ namespace qk { namespace js {
 		template<class T>
 		bool setStaticProperty(cString& name, T value);
 	protected:
+		virtual void destroy() = 0;
 		void callConstructor(FunctionArgs args);
 		JSClass(FunctionCallback constructor, AttachCallback attach);
-		Persistent<JSFunction> _func; // constructor function
 		FunctionCallback _constructor;
 		AttachCallback _attachConstructor;
 		friend class JsClasses;

@@ -292,6 +292,7 @@ namespace js {
 		SafeFlag::~SafeFlag();
 		Releasep(_types);
 		Releasep(_strs);
+		_classes->destroy();
 		_nativeModules.reset();
 		_global.reset();
 		_console.reset();

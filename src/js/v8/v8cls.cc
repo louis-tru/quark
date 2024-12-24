@@ -92,8 +92,9 @@ namespace qk { namespace js {
 			_funcTemplate.Reset(ISOLATE(worker), ft);
 		}
 
-		~V8JSClass() {
+		void destroy() {
 			_baseFunc.Reset();
+			_func.Reset();
 			_funcTemplate.Reset();
 		}
 
@@ -113,6 +114,7 @@ namespace qk { namespace js {
 
 	private:
 		V8JSClass*                   _base;
+		v8::Persistent<v8::Function> _func; // constructor function
 		v8::Persistent<v8::Function> _baseFunc; // base constructor function
 		v8::Persistent<v8::FunctionTemplate> _funcTemplate; // v8 func template
 	};

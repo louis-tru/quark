@@ -344,6 +344,13 @@ namespace qk { namespace js {
 			return _parents.has(cls);
 		}
 
+		void destroy() {
+			ENV(_worker);
+			if (_baseFunc)
+				JSValueUnprotect(ctx, _baseFunc);
+			JSValueUnprotect(ctx, _constructor);
+		}
+
 	private:
 		String _name;
 		JscClass*   _base;

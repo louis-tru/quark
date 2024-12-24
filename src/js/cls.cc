@@ -38,7 +38,6 @@ namespace qk { namespace js {
 		: _alias(0), _constructor(constructor), _attachConstructor(attach) {}
 
 	void JSClass::exports(cString& name, JSObject* exports) {
-		_func.reset(); // reset func
 		exports->setProperty(_worker, name, getFunction());
 	}
 
@@ -67,8 +66,15 @@ namespace qk { namespace js {
 	}
 
 	JsClasses::~JsClasses() {
-		for ( auto i : _jsclass )
+		for ( auto i : _jsclass ) {
 			delete i.value;
+		}
+	}
+
+	void JsClasses::destroy() {
+		for ( auto i : _jsclass ) {
+			i.value->destroy();
+		}
 	}
 
 	JSClass* JsClasses::get(uint64_t alias) {
