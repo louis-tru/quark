@@ -33,10 +33,7 @@
 
 namespace qk {
 
-	struct GifSource {
-		cBuffer* buff;
-		uint32_t index;
-	};
+	struct GifSource { cBuffer* buff; uint32_t index; };
 
 	int GifInputFunc(GifFileType * gif, GifByteType* data, int size) {
 		GifSource* source = (GifSource*)gif->UserData;
@@ -46,26 +43,23 @@ namespace qk {
 	}
 
 	bool img_gif_decode(cBuffer& data, Array<Pixel> *rv) {
-		
 		GifSource source = { &data, 0 };
 		GifFileType* gif = DGifOpen(&source, GifInputFunc, NULL);
-		
-		if ( ! gif )
-			return false;
-		
+
+		if (!gif) return false;
+
 		CPointerHold<GifFileType> scope(gif, [](GifFileType* gif) {
 			DGifCloseFile(gif, NULL);
 		});
 
-		if ( DGifSlurp(gif) == GIF_ERROR )
-			return false;
+		if (DGifSlurp(gif) == GIF_ERROR) return false;
 
 		uint32_t width = gif->SWidth;
 		uint32_t height = gif->SHeight;
 		uint32_t rowbytes = width * 2;
 
 		for ( int i = 0; i < gif->ImageCount; i++ ) {
-			auto buff = Buffer::alloc(rowbytes * height); // RGBA5551
+			Buffer buff(rowbytes * height); // RGBA5551
 			memset(*buff, 0, buff.length());
 
 			SavedImage* image = gif->SavedImages + i;
@@ -84,7 +78,7 @@ namespace qk {
 					break;
 				}
 			}
-			
+
 			for ( int row = 0; row < desc->Height; row++ ) {
 				GifByteType* in = image->RasterBits + row * desc->Width;
 				uint16_t* out = (uint16_t*)(buff.val() + ((desc->Top + row) * rowbytes) + desc->Left * 2);
@@ -100,9 +94,7 @@ namespace qk {
 				}
 			}
 
-			PixelInfo info(width, height, kRGBA_5551_ColorType, kUnpremul_AlphaType);
-
-			rv->push( Pixel(info, buff) );
+			rv->push(Pixel(PixelInfo(width, height, kRGBA_5551_ColorType, kUnpremul_AlphaType), buff));
 		}
 
 		return true;

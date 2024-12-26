@@ -53,6 +53,8 @@ export default async function(win: Window) {
 	const resolve = require.resolve;
 	const root = win.root;
 
+	//root.style.backgroundColor = '#ff0';
+
 	createCss({
 		'.test': { x: 0 },
 	});
@@ -122,6 +124,8 @@ export default async function(win: Window) {
 	// boxShadow: types.BoxShadow | null;
 	Mv(d, 'appendTo', [root]);
 	Pv(d, 'width', e=>e.kind==BoxSizeKind.Auto);
+	//d.style.width='100%'
+	//console.log('d.width---', d.width.kind, d.width.value);
 	Pv(d, 'width', e=>e.kind==BoxSizeKind.Ratio&&e.value==1, e=>e.style.width='100%');
 	Pv(d, 'height', e=>e.kind==BoxSizeKind.Auto);
 	Pv(d, 'height', e=>e.kind===BoxSizeKind.Ratio&&e.value==1, e=>e.style.height='100%');
@@ -181,6 +185,7 @@ export default async function(win: Window) {
 	Pv(d, 'align', types.Align.Auto);
 	Pv(d, 'align', types.Align.Start, e=>e.style.align='start');
 	Pv(d, 'clip', false);
+	console.log('d.wrapX', d.wrapX);
 	Pv(d, 'wrapX', true);
 	Pv(d, 'wrapY', true);
 	Pv(d, 'weight', 0);
@@ -207,7 +212,7 @@ export default async function(win: Window) {
 	const img = new Image(win);
 	Mv(img, 'appendTo', [root]);
 	Pv(img, 'src', '');
-	Pv(img, 'src', resolve('./res/10440501.jpg'), e=>e.src=resolve('./res/10440501.jpg'));
+	Pv(img, 'src', resolve('./res/0.png'), e=>e.src=resolve('./res/0.png'));
 	Pv(img, 'marginLeft', 0);
 	Pv(img, 'marginRight', 0);
 	Pv(img, 'height', e=>e.kind==BoxSizeKind.Value&&e.value==200, e=>e.style.height=200);
@@ -217,6 +222,7 @@ export default async function(win: Window) {
 	Mv(sc, 'appendTo', [root])
 	Mv(sc, 'scrollTo', [types.newVec2(0,0)]);
 	Mv(sc, 'terminate', []);
+	console.log('sc.scroll', sc.scroll, sc.scroll.x, sc.scroll.y)
 	Pv(sc, 'scroll', e=>e.x==0&&e.y==0);
 	Pv(sc, 'scroll', e=>e.x==0&&e.y==0, e=>e.scroll=types.newVec2(0,0));
 	Pv(sc, 'scrollX', 0);

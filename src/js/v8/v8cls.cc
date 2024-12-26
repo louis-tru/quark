@@ -93,8 +93,8 @@ namespace qk { namespace js {
 		}
 
 		void destroy() {
+			_func.reset();
 			_baseFunc.Reset();
-			_func.Reset();
 			_funcTemplate.Reset();
 		}
 
@@ -111,33 +111,37 @@ namespace qk { namespace js {
 		bool HasBaseFunction() {
 			return !_baseFunc.IsEmpty();
 		}
+		
+		JSFunction* getFunction() {
+			if (_func.isEmpty()) { // Gen constructor
+				auto v8cls = static_cast<V8JSClass*>(this);
+				auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
+				Qk_Assert_Eq(f.IsEmpty(), false);
+				if (v8cls->HasBaseFunction()) {
+					auto str = Back(_worker->strs()->prototype());
+					auto base = v8cls->BaseFunction();
+					auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
+					auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
+					// function.__proto__ = base;
+					// f->SetPrototype(v8cls->BaseFunction());
+					// function.prototype.__proto__ = base.prototype;
+					Qk_Assert_Eq(true, proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked());
+				}
+				auto func = Cast<JSFunction>(f);
+				_func.reset(_worker, func);
+			}
+			return *_func;
+		}
 
 	private:
 		V8JSClass*                   _base;
-		v8::Persistent<v8::Function> _func; // constructor function
+		js::Persistent<JSFunction>   _func; // constructor function
 		v8::Persistent<v8::Function> _baseFunc; // base constructor function
 		v8::Persistent<v8::FunctionTemplate> _funcTemplate; // v8 func template
 	};
 
 	JSFunction* JSClass::getFunction() {
-		if (_func.isEmpty()) { // Gen constructor
-			auto v8cls = static_cast<V8JSClass*>(this);
-			auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
-			Qk_Assert_Eq(f.IsEmpty(), false);
-			if (v8cls->HasBaseFunction()) {
-				auto str = Back(_worker->strs()->prototype());
-				auto base = v8cls->BaseFunction();
-				auto proto = f->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-				auto baseProto = base->Get(CONTEXT(_worker), str).ToLocalChecked().As<v8::Object>();
-				// function.__proto__ = base;
-				// f->SetPrototype(v8cls->BaseFunction());
-				// function.prototype.__proto__ = base.prototype;
-				Qk_Assert_Eq(true, proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked());
-			}
-			auto func = Cast<JSFunction>(f);
-			_func.reset(_worker, func);
-		}
-		return *_func;
+		return static_cast<V8JSClass*>(this)->getFunction();
 	}
 
 	bool JSClass::hasInstance(JSValue* val) {

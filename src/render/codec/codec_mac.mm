@@ -58,40 +58,44 @@ namespace qk {
 
 		int width = (int)CGImageGetWidth(image);
 		int height = (int)CGImageGetHeight(image);
-		int pixel_size = width * height * 4;
+		int rowBytes = width * sizeof(uint32_t);
 
 		ColorType colorType;
-		AlphaType alphaType;
-		CGImageAlphaInfo cgAlpha;
-		QkUniqueCFRef<CGColorSpaceRef> spaceHold;
+		CGImageAlphaInfo alpha, inAlpha = CGImageGetAlphaInfo(image);
 
-		switch (CGImageGetAlphaInfo(image)) {
-			case kCGImageAlphaPremultipliedLast:
-			case kCGImageAlphaPremultipliedFirst:
-			case kCGImageAlphaLast:
-			case kCGImageAlphaFirst:
-				colorType = kRGBA_8888_ColorType;
-				alphaType = kPremul_AlphaType;
-				cgAlpha = kCGImageAlphaPremultipliedLast;
-				break;
-			default:
+		switch (inAlpha) {
+			case kCGImageAlphaNone:               /* For example, RGB. */
+			case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
+			case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
+			case kCGImageAlphaOnly:               /* No color data, alpha data only */
+				alpha = kCGImageAlphaNoneSkipLast;
 				colorType = kRGB_888X_ColorType;
-				alphaType = kUnpremul_AlphaType;
-				cgAlpha = kCGImageAlphaNoneSkipLast;
-				space = CGColorSpaceCreateDeviceRGB(); // create rgb
-				spaceHold.reset(space);
+				break;
+			case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
+			case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
+			case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
+			case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
+				alpha = kCGImageAlphaPremultipliedLast;
+				colorType = kRGBA_8888_ColorType;
 				break;
 		}
 
-		CGBitmapInfo cgInfo = kCGBitmapByteOrder32Host | cgAlpha;
-		auto pixel = Buffer::alloc(pixel_size);
+#if Qk_OSX
+		CGBitmapInfo cgInfo = kCGBitmapByteOrder32Host | alpha;
+#else
+		CGBitmapInfo cgInfo = kCGBitmapByteOrder32Big | alpha;
+#endif
+
+		Buffer pixel(rowBytes * height);
+
+		memset(*pixel, 0, pixel.length()); // reset storage
 
 		QkUniqueCFRef<CGContextRef> ctx(
-			CGBitmapContextCreate(*pixel, width, height, 8, width * 4, space, cgInfo)
+			CGBitmapContextCreate(*pixel, width, height, 8, rowBytes, space, cgInfo)
 		);
 		CGContextDrawImage(ctx.get(), CGRectMake(0, 0, width, height), image);
 
-		PixelInfo info(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType);
+		PixelInfo info(width, height, colorType, kUnpremul_AlphaType);
 		out->push(Pixel(info, pixel));
 
 		return true;
@@ -113,23 +117,24 @@ namespace qk {
 		int width = (int)CGImageGetWidth(image);
 		int height = (int)CGImageGetHeight(image);
 		ColorType colorType;
-		AlphaType alphaType;
+		CGImageAlphaInfo inAlpha = CGImageGetAlphaInfo(image);
 
-		switch (CGImageGetAlphaInfo(image)) {
-			case kCGImageAlphaPremultipliedLast:
-			case kCGImageAlphaPremultipliedFirst:
-			case kCGImageAlphaLast:
-			case kCGImageAlphaFirst:
-				colorType = kRGBA_8888_ColorType;
-				alphaType = kPremul_AlphaType;
-				break;
-			default:
+		switch (inAlpha) {
+			case kCGImageAlphaNone:               /* For example, RGB. */
+			case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
+			case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
+			case kCGImageAlphaOnly:               /* No color data, alpha data only */
 				colorType = kRGB_888X_ColorType;
-				alphaType = kUnpremul_AlphaType;
+				break;
+			case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
+			case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
+			case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
+			case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
+				colorType = kRGBA_8888_ColorType;
 				break;
 		}
 
-		*out = PixelInfo(width, height, colorType, alphaType);
+		*out = PixelInfo(width, height, colorType, kUnpremul_AlphaType);
 		return true;
 	}
 

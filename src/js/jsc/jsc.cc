@@ -44,6 +44,47 @@ namespace qk { namespace js {
 	Js_Const_Strings(_Fun)
 	#undef _Fun
 
+#if Qk_ARCH_64BIT
+		constexpr int64_t NumberTag = 0xfffe000000000000ll;
+		constexpr size_t DoubleEncodeOffsetBitOld = 48;
+		constexpr size_t DoubleEncodeOffsetBit = 49;
+		static    int64_t DoubleEncodeOffset = 1ll << DoubleEncodeOffsetBit;  // 48 or 49?
+		constexpr int32_t OtherTag       = 0x2;
+		constexpr int32_t BoolTag        = 0x4;
+		constexpr int32_t UndefinedTag   = 0x8;
+		constexpr int32_t ValueFalse     = OtherTag | BoolTag | false;
+		constexpr int32_t ValueTrue      = OtherTag | BoolTag | true;
+		constexpr int32_t ValueUndefined = OtherTag | UndefinedTag;
+		constexpr int32_t ValueNull      = OtherTag;
+		constexpr int64_t NotCellMask    = NumberTag | OtherTag;
+#else
+		enum { Int32Tag =        0xffffffff };
+		enum { BooleanTag =      0xfffffffe };
+		enum { NullTag =         0xfffffffd };
+		enum { UndefinedTag =    0xfffffffc };
+		enum { CellTag =         0xfffffffb };
+		enum { EmptyValueTag =   0xfffffffa };
+		enum { DeletedValueTag = 0xfffffff9 };
+		enum { LowestTag =  DeletedValueTag };
+#endif
+
+	enum JSType : uint8_t {
+		CellType,
+		StringTypeOld,
+		StringTypeNew,
+		APIValueWrapperTypeOld = 6,
+		APIValueWrapperTypeNew,
+		ObjectTypeOld = 22,
+		ObjectTypeNew,
+	};
+
+	static uint8_t APIValueWrapperType_JSType = APIValueWrapperTypeNew;
+	static uint8_t StringType_JSType = StringTypeNew;
+	static uint8_t ObjectType_JSType = ObjectTypeNew;
+
+	inline double asDouble(const JSValue* val);
+	inline bool   isString(const JSValue* val);
+
 	void jsFatal(JSContextRef ctx, JSValueRef ex_, cChar* msg) {
 		if (ex_) { // err
 			auto ex = (JSObjectRef)ex_;
@@ -129,6 +170,19 @@ namespace qk { namespace js {
 		_global.reset(this, Cast<JSObject>(JSContextGetGlobalObject(_ctx)));
 		_data.initialize(_ctx);
 
+		auto testNum = JSValueMakeNumber(_ctx, 0xffffffff);
+		if (asDouble(Cast(testNum)) != 0xffffffff) {
+			DoubleEncodeOffset = 1ll << DoubleEncodeOffsetBitOld;
+			Qk_Fatal_Assert(asDouble(Cast(testNum)) == 0xffffffff);
+		}
+		auto testStr = JSValueMakeString(_ctx, prototype_s);
+		if (!isString(Cast(testStr))) {
+			StringType_JSType = StringTypeOld;
+			ObjectType_JSType = ObjectTypeOld;
+			APIValueWrapperType_JSType = APIValueWrapperTypeOld;
+			Qk_Fatal_Assert(isString(Cast(testStr)));
+		}
+
 		initBase();
 
 		HandleScope handle(this);
@@ -173,13 +227,6 @@ namespace qk { namespace js {
 		return o;
 	}
 
-#if Qk_ARCH_64BIT
-	// Because some types don't require a context object on x64 os
-	JSGlobalContextRef test_type_jsc_ctx = reinterpret_cast<JSGlobalContextRef>(1);
-#else
-	#define test_type_jsc_ctx (JSC_CTX())
-#endif
-
 	struct JSCell;
 
 	struct JscValueImpl {
@@ -203,10 +250,6 @@ namespace qk { namespace js {
 		EncodedValueDescriptor u;
 	};
 
-	enum JSType : uint8_t {
-		APIValueWrapperType = 7,
-	};
-
 	struct JSCell {
 		uint32_t m_structureID;
 		uint8_t m_indexingTypeAndMisc;
@@ -217,25 +260,6 @@ namespace qk { namespace js {
 	struct JSAPIValueWrapper: JSCell {
 		JscValueImpl m_value;
 	};
-
-#if Qk_ARCH_64BIT
-		constexpr int64_t NumberTag = 0xfffe000000000000ll;
-		constexpr size_t DoubleEncodeOffsetBit = 49;
-		constexpr int64_t DoubleEncodeOffset = 1ll << DoubleEncodeOffsetBit;
-		constexpr int32_t OtherTag       = 0x2;
-		constexpr int32_t BoolTag        = 0x4;
-		constexpr int32_t ValueFalse     = OtherTag | BoolTag | false;
-		constexpr int32_t ValueTrue      = OtherTag | BoolTag | true;
-#else
-		enum { Int32Tag =        0xffffffff };
-		enum { BooleanTag =      0xfffffffe };
-		enum { NullTag =         0xfffffffd };
-		enum { UndefinedTag =    0xfffffffc };
-		enum { CellTag =         0xfffffffb };
-		enum { EmptyValueTag =   0xfffffffa };
-		enum { DeletedValueTag = 0xfffffff9 };
-		enum { LowestTag =  DeletedValueTag };
-#endif
 
 	inline double reinterpretInt64ToDouble(int64_t value) {
 		return bitwise_cast<double>(value);
@@ -261,7 +285,7 @@ namespace qk { namespace js {
 #else
 		JSCell* jsCell = bitwise_cast<JSCell*>(val);
 		JscValueImpl result;
-		if (jsCell->m_type == APIValueWrapperType)
+		if (jsCell->m_type == APIValueWrapperType_JSType)
 			result = static_cast<JSAPIValueWrapper*>(jsCell)->m_value;
 		else {
 			result.u.asBits.tag = CellTag;
@@ -273,8 +297,24 @@ namespace qk { namespace js {
 		return result;
 	}
 
+	inline bool isCell(const JSValue* val) {
+#if Qk_ARCH_64BIT
+		return !(bitwise_cast<JscValueImpl>(val).u.asInt64 & NotCellMask);
+#else
+		return toJscValueImpl(val).u.asBits.tag == CellTag;
+#endif
+	}
+
+	inline JSCell* asCell(const JSValue* val) {
+		DCHECK(isCell(val));
+#if Qk_ARCH_64BIT
+		return bitwise_cast<JscValueImpl>(val).u.ptr;
+#else
+		return reinterpret_cast<JSCell*>(toJscValueImpl(val).u.asBits.payload);
+#endif
+	}
+
 	inline bool isInt32(const JSValue* val) {
-		// Qk_DLog("%i", JSValueIsNumber(test_type_jsc_ctx, Back(val)));
 #if Qk_ARCH_64BIT
 		return (bitwise_cast<JscValueImpl>(val).u.asInt64 & NumberTag) == NumberTag;
 #else
@@ -307,6 +347,22 @@ namespace qk { namespace js {
 #endif
 	}
 
+	inline bool isUndefined(const JSValue* val) {
+#if Qk_ARCH_64BIT
+		return bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueUndefined;
+#else
+		return toJscValueImpl(val).u.asBits.tag == UndefinedTag;
+#endif
+	}
+
+	inline bool isNull(const JSValue* val) {
+#if Qk_ARCH_64BIT
+		return bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueNull;
+#else
+		return toJscValueImpl(val).u.asBits.tag == NullTag;
+#endif
+	}
+
 	inline int32_t asInt32(const JSValue* val) {
 		DCHECK(isInt32(val));
 #if Qk_ARCH_64BIT
@@ -334,26 +390,36 @@ namespace qk { namespace js {
 #endif
 	}
 
+	inline bool isString(const JSValue* val) {
+		return js::isCell(val) && js::asCell(val)->m_type == StringType_JSType;
+	}
+
+	inline bool isObject(const JSValue* val) {
+		return js::isCell(val) && js::asCell(val)->m_type >= ObjectType_JSType;
+	}
+
 	/// ----------------------
 
 	bool JSValue::isUndefined() const {
-		return JSValueIsUndefined(test_type_jsc_ctx, Back(this));
+		return js::isUndefined(this); //JSValueIsUndefined
 	}
 
 	bool JSValue::isNull() const {
-		return JSValueIsNull(test_type_jsc_ctx, Back(this));
-	}
-
-	bool JSValue::isString() const {
-		return JSValueIsString(test_type_jsc_ctx, Back(this));
+		return js::isNull(this); // JSValueIsNull
 	}
 
 	bool JSValue::isBoolean() const {
 		return js::isBoolean(this);
 	}
 
+	bool JSValue::isString() const {
+		// return JSValueIsString(JSC_CTX(), Back(this));
+		return js::isString(this);
+	}
+
 	bool JSValue::isObject() const {
-		return JSValueIsObject(test_type_jsc_ctx, Back(this));
+		//return JSValueIsObject(JSC_CTX(), Back(this));
+		return js::isObject(this);
 	}
 
 	bool JSValue::isArray() const {

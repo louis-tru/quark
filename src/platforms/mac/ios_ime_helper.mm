@@ -449,18 +449,22 @@ using namespace qk;
 
 - (CGPoint)convertPoint:(CGPoint)point fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
 	Qk_DLog("convertPoint:fromCoordinateSpace");
+	return {};
 }
 
 - (CGPoint)convertPoint:(CGPoint)point toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
 	Qk_DLog("convertPoint:toCoordinateSpace");
+	return {};
 }
 
 - (CGRect)convertRect:(CGRect)rect fromCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
 	Qk_DLog("convertRect:fromCoordinateSpace");
+	return {};
 }
 
 - (CGRect)convertRect:(CGRect)rect toCoordinateSpace:(nonnull id<UICoordinateSpace>)coordinateSpace {
 	Qk_DLog("convertRect:toCoordinateSpace");
+	return {};
 }
 
 - (void)didUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context
@@ -474,6 +478,7 @@ using namespace qk;
 
 - (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context {
 	Qk_DLog("shouldUpdateFocusInContext");
+	return NO;
 }
 
 - (void)updateFocusIfNeeded {

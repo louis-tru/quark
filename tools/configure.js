@@ -578,11 +578,10 @@ async function configure() {
 	var OS = get_OS(opts.os);
 	var PYTHON = process.env.PYTHON || 'python';
 
-	if ( os == 'ios' ) {
+	if ( OS == 'mac' ) {
 		if ( opts.use_v8 == 'auto' ) { // iOS use default javascriptcore
-			if ( arch != 'x86' && arch != 'x64' ) {
-				opts.use_v8 = 0;
-			}
+			//if (arch != 'x86' && arch != 'x64')
+			opts.use_v8 = 0;
 		}
 	}
 	var use_v8 = opts.use_v8 ? 1: OS == 'mac'? 0: 1;

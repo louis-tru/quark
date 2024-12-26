@@ -134,7 +134,7 @@ namespace qk {
 	template<typename T> class CPointerHold {
 	public:
 		typedef std::function<void(T*)> Fun;
-		CPointerHold(T* ptr, Fun fun): _fun(fun) {}
+		CPointerHold(T* ptr, Fun fun): _ptr(ptr), _fun(fun) {}
 		~CPointerHold() { _fun(_ptr); }
 		inline void collapse() { _fun = [](T*p){}; }
 		inline operator bool() const { return _ptr != nullptr; }
