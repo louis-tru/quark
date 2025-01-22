@@ -36,23 +36,23 @@ namespace qk { namespace js {
 
 	struct MixFontPool: MixObject {
 
-		static void getFontFamilysFromPool(FunctionArgs args, FontPool* pool) {
+		static void getFontFamiliesFromPool(FunctionArgs args, FontPool* pool) {
 			Js_Worker(args);
 			if (args.length()) {
-				Js_Parse_Type(String, args[0], "@method FontPool.getFontFamilys(cString& familys = %s)");
-				Js_Return( worker->types()->jsvalue(pool->getFontFamilys(out)) );
+				Js_Parse_Type(String, args[0], "@method FontPool.getFontFamilies(cString& families = %s)");
+				Js_Return( worker->types()->jsvalue(pool->getFontFamilies(out)) );
 			} else {
-				Js_Return( worker->types()->jsvalue(pool->getFontFamilys()) );
+				Js_Return( worker->types()->jsvalue(pool->getFontFamilies()) );
 			}
 		}
 
-		static void getFamilysNameFromFFID(FunctionArgs args) {
+		static void getFamiliesNameFromFFID(FunctionArgs args) {
 			Js_Worker(args);
 			if (!args.length()) {
-				Js_Throw("@method _font.getFamilysName(FFID)");
+				Js_Throw("@method _font.getFamiliesName(FFID)");
 			}
-			Js_Parse_Type(FFID, args[0], "@method _font.getFamilysName(FFID)");
-			Js_Return( out->familys().keys().join(',') );
+			Js_Parse_Type(FFID, args[0], "@method _font.getFamiliesName(FFID)");
+			Js_Return( out->families().keys().join(',') );
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -68,14 +68,14 @@ namespace qk { namespace js {
 				Js_Return(self->defaultFamilyNames());
 			});
 
-			Js_Class_Accessor_Get(defaultFontFamilys, {
+			Js_Class_Accessor_Get(defaultFontFamilies, {
 				Js_Self(FontPool);
-				Js_Return( worker->types()->jsvalue(self->defaultFontFamilys()) );
+				Js_Return( worker->types()->jsvalue(self->defaultFontFamilies()) );
 			});
 
-			Js_Class_Method(getFontFamilys, {
+			Js_Class_Method(getFontFamilies, {
 				Js_Self(FontPool);
-				getFontFamilysFromPool(args, self);
+				getFontFamiliesFromPool(args, self);
 			});
 
 			Js_Class_Method(addFontFamily, {
@@ -99,13 +99,13 @@ namespace qk { namespace js {
 				Js_Return( self->getFamilyName(args[0]->toInt32(worker)->value()) );
 			});
 
-			Js_Method(getFontFamilys, {
+			Js_Method(getFontFamilies, {
 				if ( !checkApp(worker) ) return;
-				getFontFamilysFromPool(args, shared_app()->fontPool());
+				getFontFamiliesFromPool(args, shared_app()->fontPool());
 			});
 
-			Js_Method(getFamilysName, {
-				getFamilysNameFromFFID(args);
+			Js_Method(getFamiliesName, {
+				getFamiliesNameFromFFID(args);
 			});
 
 			cls->exports("FontPool", exports);

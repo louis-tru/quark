@@ -80,7 +80,7 @@ namespace qk {
 	KeyframeAction* KeyframeAction::MakeSSTransition(
 		View *view, StyleSheets *to, uint32_t time, bool isRt
 	) {
-		Qk_Assert(time);
+		Qk_ASSERT(time);
 		auto action = new KeyframeAction(view->window());
 		// only use isRt=true, Because it is initialization and there will be no security issues
 		auto f0 = action->add_unsafe(0, EASE, isRt);

@@ -43,8 +43,8 @@ namespace qk {
 			_timer.set(timer->id, timer);
 			auto timeout = timer->timeout;
 			auto repeatTimeout = timer->repeatCount ? (timeout ? timeout: 1): 0;
-			Qk_Assert_Eq(0, uv_timer_init(_uv_loop, timer));
-			Qk_Assert_Eq(0, uv_timer_start(timer, [](uv_timer_t *h) {
+			Qk_ASSERT_EQ(0, uv_timer_init(_uv_loop, timer));
+			Qk_ASSERT_EQ(0, uv_timer_start(timer, [](uv_timer_t *h) {
 				auto timer = static_cast<timer_t*>(h);
 				auto rc = timer->cb->resolve();
 				if (rc != 0 || timer->repeatCount == 0) {
@@ -64,7 +64,7 @@ namespace qk {
 
 		void async_send() {
 			if (_uv_async)
-				Qk_Assert_Eq(0, uv_async_send(_uv_async));
+				Qk_ASSERT_EQ(0, uv_async_send(_uv_async));
 		}
 
 		void msgs_call() {
@@ -81,10 +81,10 @@ namespace qk {
 				lock.lock();
 			}
 			if (_msg.length()) {
-				Qk_Assert_Eq(0, uv_async_send(_uv_async));
+				Qk_ASSERT_EQ(0, uv_async_send(_uv_async));
 			}
 			else if (is_alive()) {
-				Qk_Assert_Eq(0, uv_timer_start(_uv_timer, [](auto h) {
+				Qk_ASSERT_EQ(0, uv_timer_start(_uv_timer, [](auto h) {
 					_inl(h->data)->msgs_call();
 				}, 5e3, 0)); // 5 second check
 			} else {
@@ -101,9 +101,9 @@ namespace qk {
 
 		void death() {
 			ScopeLock lock(*__threads_mutex);
-			Qk_Fatal_Assert(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+			Qk_ASSERT_RAW(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 			// clear(); // clear all
-			// Qk_Assert_Eq(nullptr, _uv_loop->closing_handles);
+			// Qk_ASSERT_EQ(nullptr, _uv_loop->closing_handles);
 
 			if (__first_loop == this) {
 				__first_loop = nullptr;
@@ -138,8 +138,8 @@ namespace qk {
 					}
 				}
 
-				Qk_Fatal_Assert(loop->_uv_async == nullptr);
-				Qk_Fatal_Assert(loop->_thread == nullptr);
+				Qk_ASSERT_RAW(loop->_uv_async == nullptr);
+				Qk_ASSERT_RAW(loop->_thread == nullptr);
 				loop->_thread = t;
 				loop->_tid = t->id;
 				t->loop = loop;
@@ -168,8 +168,8 @@ namespace qk {
 		if (!_thread) {
 			Qk_Warn("cannot run RunLoop::run(), _thread == nullptr"); return;
 		}
-		Qk_Assert(!_uv_async, "It is running and cannot be called repeatedly");
-		Qk_Assert(thread_self_id() == _tid, "Must run on the target thread");
+		Qk_ASSERT(!_uv_async, "It is running and cannot be called repeatedly");
+		Qk_ASSERT(thread_self_id() == _tid, "Must run on the target thread");
 
 		// init run
 		uv_async_t uv_async = {.data=this};
@@ -193,7 +193,7 @@ namespace qk {
 		if (_uv_loop->closing_handles) {
 			uv_run(_uv_loop, UV_RUN_NOWAIT); // exec uv close handles
 		}
-		Qk_Assert_Eq(nullptr, _uv_loop->closing_handles);
+		Qk_ASSERT_EQ(nullptr, _uv_loop->closing_handles);
 
 		// loop end
 		_mutex.lock();
@@ -205,8 +205,8 @@ namespace qk {
 	void RunLoop::check_t::call(Data &e) {
 		host->_check.set(id, this);
 		retain(); // retain for _check.set
-		Qk_Assert_Eq(0, uv_check_init(host->_uv_loop, &uv_check));
-		Qk_Assert_Eq(0, uv_check_start(&uv_check, [](uv_check_t *h) {
+		Qk_ASSERT_EQ(0, uv_check_init(host->_uv_loop, &uv_check));
+		Qk_ASSERT_EQ(0, uv_check_start(&uv_check, [](uv_check_t *h) {
 			auto self = (check_t*)(h->data);
 			self->cb->resolve();
 			if (self->repeatCount == 0) {
@@ -227,13 +227,13 @@ namespace qk {
 	void RunLoop::work_t::call(Data &e) {
 		host->_work.set(id, this);
 		retain(); // retain for _work.set
-		Qk_Assert_Eq(0, uv_queue_work(host->_uv_loop, &uv_req, [](uv_work_t* req) {
+		Qk_ASSERT_EQ(0, uv_queue_work(host->_uv_loop, &uv_req, [](uv_work_t* req) {
 			auto self = static_cast<work_t*>(req->data);
 			self->work->resolve(self->host);
 		}, [](uv_work_t* req, int status) {
 			auto self = static_cast<work_t*>(req->data);
 			auto host = _inl(self->host);
-			Qk_Assert_Eq(host->_tid, thread_self_id());
+			Qk_ASSERT_EQ(host->_tid, thread_self_id());
 			host->_work.erase(self->id);
 			if (UV_ECANCELED != status) // no cancel
 				self->done->resolve(host);
@@ -289,7 +289,7 @@ namespace qk {
 
 		for (auto& i: works) {
 			Qk_Warn("RunLoop::clear(), discard work %p", i.value);
-			Qk_Assert_Eq(0, uv_cancel((uv_req_t*)&i.value->uv_req));
+			Qk_ASSERT_EQ(0, uv_cancel((uv_req_t*)&i.value->uv_req));
 		}
 	}
 
@@ -302,7 +302,7 @@ namespace qk {
 		// it's best to first ensure that 'current ()' has been called`
 		if (!__first_loop) {
 			current();
-			Qk_Assert(__first_loop); // asset
+			Qk_ASSERT(__first_loop); // asset
 		}
 		return __first_loop;
 	}
@@ -406,7 +406,7 @@ namespace qk {
 			if (isNoSelfThread) _mutex.lock();
 			work_t *out;
 			if (_work.get(id, out)) {
-				Qk_Assert_Eq(0, uv_cancel((uv_req_t*)&out->uv_req));
+				Qk_ASSERT_EQ(0, uv_cancel((uv_req_t*)&out->uv_req));
 			}
 			if (isNoSelfThread) _mutex.unlock();
 		}

@@ -31,10 +31,12 @@
 #include "./typeface.h"
 #include "./style.h"
 #include "./pool.h"
+#include "./priv/util.h"
+#include "./priv/mutex.h"
 
 namespace qk {
 
-	Typeface::Typeface(FontStyle fs): _fontStyle(fs)
+	Typeface::Typeface(FontStyle fs): _fontStyle(fs), _unitsPerEm(0), _Mutex(new SharedMutex)
 	{
 		_metrics.fAscent = 0;
 	}
@@ -63,7 +65,10 @@ namespace qk {
 	}
 
 	int Typeface::getUnitsPerEm() const {
-		return onGetUPEM();
+		if (_unitsPerEm == 0)
+			_unitsPerEm = onGetUPEM();
+		Qk_ASSERT_NE(0, _unitsPerEm);
+		return _unitsPerEm;
 	}
 
 	String Typeface::getFamilyName() const {
@@ -79,7 +84,7 @@ namespace qk {
 		onCharsToGlyphs(unichar, count, glyphs);
 	}
 
-	Array<GlyphID> Typeface::unicharsToGlyphs(const Array<Unichar>& unichar) const {
+	Array<GlyphID> Typeface::unicharsToGlyphs(cArray<Unichar>& unichar) const {
 		//Qk_DLog("Typeface::unicharsToGlyphs, %s", *getFamilyName());
 		if (unichar.length() > 0) {
 			Array<GlyphID> result(unichar.length());
@@ -90,95 +95,137 @@ namespace qk {
 	}
 
 	GlyphID Typeface::unicharToGlyph(Unichar unichar) const {
-		GlyphID id;
+		GlyphID id = 0;
 		onCharsToGlyphs(&unichar, 1, &id);
 		return id;
 	}
 
 	const Path& Typeface::getPath(GlyphID glyph) {
-		auto it = _paths.find(glyph);
-		if (it != _paths.end())
-			return it->value;
-		Path path;
-		onGetPath(glyph, &path);
-		_paths.set(glyph, path.normalizedPath());
-		return _paths[glyph];
+		{
+			AutoSharedMutexShared ama(mutex());
+			auto it = _pathsCache.find(glyph);
+			if (it != _pathsCache.end())
+				return it->value;
+		}
+		{
+			AutoSharedMutexExclusive asme(mutex());
+			Path path;
+			onGetPath(glyph, &path);
+			_pathsCache.set(glyph, path.normalizedPath());
+			return _pathsCache[glyph];
+		}
 	}
 
 	const FontGlyphMetrics& Typeface::getGlyphMetrics(GlyphID glyph) {
-		auto it = _glyphs.find(glyph);
-		if (it != _glyphs.end()) {
-			return it->value;
+		{
+			AutoSharedMutexShared ama(mutex());
+			auto it = _glyphsCache.find(glyph);
+			if (it != _glyphsCache.end()) {
+				return it->value;
+			}
 		}
-		FontGlyphMetrics fontGlyph;
-		onGetGlyphMetrics(glyph, &fontGlyph);
-		_glyphs.set(glyph, fontGlyph);
-		return _glyphs[glyph];
+		{
+			AutoSharedMutexExclusive asme(mutex());
+			FontGlyphMetrics fgm;
+			onGetGlyphMetrics(glyph, &fgm);
+			return _glyphsCache.set(glyph, fgm);
+		}
+	}
+
+	Array<FontGlyphMetrics> Typeface::getGlyphsMetrics(cArray<GlyphID>& glyphs) {
+		Array<FontGlyphMetrics> result;
+		{
+			AutoSharedMutexShared ama(mutex());
+			for (auto gid: glyphs) {
+				auto it = _glyphsCache.find(gid);
+				if (it == _glyphsCache.end())
+					goto rest;
+				result.push(it->value);
+			}
+			Qk_ReturnLocal(result);
+		}
+
+	 rest:
+		AutoSharedMutexExclusive asme(mutex());
+
+		for (int i = result.length(), len = glyphs.length(); i < len; i++) {
+			auto gid = glyphs[i];
+			FontGlyphMetrics fgm;
+			if (!_glyphsCache.get(gid, fgm)) {
+				onGetGlyphMetrics(gid, &fgm);
+				_glyphsCache.set(gid, fgm);
+			}
+			result.push(fgm);
+		}
+		Qk_ReturnLocal(result);
 	}
 
 	float Typeface::getMetrics(FontMetrics* metrics, float fontSize) {
-		if (_metrics.fAscent == 0) {
-			onGetMetrics(&_metrics);
-		}
-		if (!metrics) {
-			return 0;
-		}
-		memcpy(metrics, &_metrics, sizeof(FontMetrics));
-		float scale = fontSize / 64.0;
+		if (!metrics) return 0;
 
-		if (scale != 1.0) {
-			// scale font metrics
-			metrics->fTop *= scale;
-			metrics->fAscent *= scale;
-			metrics->fDescent *= scale;
-			metrics->fBottom *= scale;
-			metrics->fLeading *= scale;
-			metrics->fAvgCharWidth *= scale;
-			metrics->fMaxCharWidth *= scale;
-			metrics->fXMin *= scale;
-			metrics->fXMax *= scale;
-			metrics->fXHeight *= scale;
-			metrics->fCapHeight *= scale;
-			metrics->fUnderlineThickness *= scale;
-			metrics->fUnderlinePosition *= scale;
-			metrics->fStrikeoutThickness *= scale;
-			metrics->fStrikeoutPosition *= scale;
-		}
+		getMetrics((FontMetricsBase*)0, 0); // init _metrics
+
+		memcpy(metrics, &_metrics, sizeof(FontMetrics));
+
+		float scale = fontSize / 64.0f;
+
+		// scale font metrics
+		metrics->fTop *= scale;
+		metrics->fAscent *= scale;
+		metrics->fDescent *= scale;
+		metrics->fBottom *= scale;
+		metrics->fLeading *= scale;
+		metrics->fAvgCharWidth *= scale;
+		metrics->fMaxCharWidth *= scale;
+		metrics->fXMin *= scale;
+		metrics->fXMax *= scale;
+		metrics->fXHeight *= scale;
+		metrics->fCapHeight *= scale;
+		metrics->fUnderlineThickness *= scale;
+		metrics->fUnderlinePosition *= scale;
+		metrics->fStrikeoutThickness *= scale;
+		metrics->fStrikeoutPosition *= scale;
+
 		return metrics->fDescent - metrics->fAscent + metrics->fLeading;
 	}
-	
-	static float getMetricsBase(FontMetrics *ref, FontMetricsBase* out, float fontSize) {
+
+	static float computeMetricsBase(FontMetrics *ref, FontMetricsBase* out, float fontSize) {
 		if (!out)
 			return 0;
-		float scale = fontSize / 64.0;
-		out->fAscent = ref->fAscent;
-		out->fDescent = ref->fDescent;
-		out->fLeading = ref->fLeading;
+		float scale = fontSize / 64.0f;
 
-		if (scale != 1.0) {
-			out->fAscent *= scale;
-			out->fDescent *= scale;
-			out->fLeading *= scale;
-		}
+		out->fAscent = ref->fAscent * scale;
+		out->fDescent = ref->fDescent * scale;
+		out->fLeading = ref->fLeading * scale;
+
 		return out->fDescent - out->fAscent + out->fLeading;
 	}
 
 	float Typeface::getMetrics(FontMetricsBase* metrics, float fontSize) {
 		if (_metrics.fAscent == 0) {
-			onGetMetrics(&_metrics);
+			AutoSharedMutexExclusive asme(mutex());
+			if (_metrics.fAscent == 0) {
+				FontMetrics metrics;
+				onGetMetrics(&metrics);
+				_metrics = metrics;
+			}
 		}
-		return getMetricsBase(&_metrics, metrics, fontSize);
-	}
-	
-	float FontPool::getMaxMetrics(FontMetricsBase* out, float fontSize) {
-		return getMetricsBase(&_MaxMetrics64, out, fontSize);
+		return computeMetricsBase(&_metrics, metrics, fontSize);
 	}
 
-	Vec2 Typeface::getImage(const Array<GlyphID>& glyphs, float fontSize,
-			cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render)
+	float FontPool::getMaxMetrics(FontMetricsBase* out, float fontSize) const {
+		return computeMetricsBase(&_MaxMetrics64, out, fontSize);
+	}
+
+	Typeface::ImageOut Typeface::getImage(cArray<GlyphID>& glyphs, float fontSize,
+			cArray<Vec2> *offset, float offsetScale, RenderBackend *render)
 	{
-		if (offset)
-			Qk_Assert(offset->length() > glyphs.length());
-		return onGetImage(glyphs, fontSize, offset, offsetScale, imgOut, render);
+		if (offset) {
+			Qk_ASSERT_EQ(offset->length(), glyphs.length() + 1);
+		}
+		if (glyphs.length() == 0) {
+			return {ImageSource::Make(Pixel(PixelInfo()), render)};
+		}
+		return onGetImage(glyphs, fontSize, offset, offsetScale, render);
 	}
 }

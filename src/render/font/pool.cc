@@ -31,14 +31,15 @@
 #include "../../util/fs.h"
 #include "../../util/hash.h"
 #include "./pool.h"
+#include "./priv/mutex.h"
 
 namespace qk {
 
 	// ---------------------- F o n t . P o o l --------------------------
 
-	FontPool::FontPool(): _tf65533GlyphID(0) {}
+	FontPool::FontPool(): _tf65533GlyphID(0), _Mutex(new SharedMutex) {}
 
-	void FontPool::init() {
+	void FontPool::initFontPool() {
 		FontStyle style; // default style
 
 		// Find english character set
@@ -58,31 +59,32 @@ namespace qk {
 		}
 		// find �(65533) character tf
 		_tf65533 = matchCharacter(String(), style, 65533);
-		Qk_Assert(_tf65533);
+		Qk_ASSERT(_tf65533);
 		Qk_DLog("FontPool::init _tf65533, %s", *_tf65533->getFamilyName());
 
 		_tf65533GlyphID = _tf65533->unicharToGlyph(65533);
-		_defaultFontFamilys = getFontFamilys(Array<String>());
+		_defaultFontFamilies = getFontFamilies(Array<String>());
 	}
 
-	FFID FontPool::getFontFamilys(cString& familys) {
-		return familys.isEmpty() ? _defaultFontFamilys: getFontFamilys(familys.split(","));
+	FFID FontPool::getFontFamilies(cString& families) {
+		return families.isEmpty() ? _defaultFontFamilies: getFontFamilies(families.split(","));
 	}
 
-	FFID FontPool::getFontFamilys(cArray<String>& familys) {
+	FFID FontPool::getFontFamilies(cArray<String>& families) {
+		AutoSharedMutexShared ama(**_Mutex);
 		Hash5381 hash;
-		for (auto& i: familys) {
+		for (auto& i: families) {
 			hash.updatestr(i.trim());
 		}
-		auto it = _fontFamilys.find(hash.hashCode());
-		if (it != _fontFamilys.end()) {
+		auto it = _fontFamilies.find(hash.hashCode());
+		if (it != _fontFamilies.end()) {
 			return *it->value;
 		}
-		return *_fontFamilys.set(hash.hashCode(), new FontFamilys(this, familys));
+		return *_fontFamilies.set(hash.hashCode(), new FontFamilies(this, families));
 	}
 
 	void FontPool::addFontFamily(cBuffer& buff, cString& alias) {
-		ScopeLock scope(_Mutex);
+		AutoSharedMutexExclusive asme(**_Mutex);
 		for (int i = 0; ;i++) {
 			auto tf = onAddFontFamily(buff, i);
 			if (!tf)
@@ -106,19 +108,19 @@ namespace qk {
 		return onGetFamilyName(index);
 	}
 
-	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) {
+	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) const {
 		if (familyName.isEmpty()) {
 			return onMatch(nullptr, style);
 		}
-		// find extend font family
+		// find extend font families
 		if (_ext.length()) {
-			ScopeLock scope(_Mutex);
+			AutoSharedMutexShared ama(**_Mutex);
 			auto it0 = _ext.find(familyName);
 			if (it0 != _ext.end()) {
 				auto it = it0->value.find(style);
 				if (it != it0->value.end())
-					return it->value.value();
-				return it0->value.begin()->value.value();
+					return const_cast<Typeface*>(it->value.value());
+				return const_cast<Typeface*>(it0->value.begin()->value.value());
 			}
 		}
 		return onMatch(familyName.c_str(), style);

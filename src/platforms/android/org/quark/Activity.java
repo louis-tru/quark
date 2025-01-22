@@ -127,7 +127,7 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 		_handler = new Handler(Looper.getMainLooper());
 		pm = (PowerManager)getSystemService(POWER_SERVICE);
 		am = (AudioManager) getSystemService(AUDIO_SERVICE);
-		API.initialize(this, new PrivateAPI(this));
+		Android.initialize(this, new PrivateAPI(this));
 		set_system_ui_flags();
 		getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
 		setRequestedOrientation(screen_orientation);
@@ -136,7 +136,7 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 
 	@Override
 	protected void onDestroy() {
-		API.uninitialize(this);
+		Android.uninitialize(this);
 		super.onDestroy();
 	}
 
@@ -192,8 +192,8 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 			}
 		}
 
-		public void keep_screen(boolean value) {
-			if (value) {
+		public void prevent_screen_sleep(boolean prevent) {
+			if (prevent) {
 				host.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 			} else {
 				host.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -230,7 +230,7 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 			}
 		}
 
-		public void request_fullscreen(boolean fullscreen) {
+		public void set_fullscreen(boolean fullscreen) {
 			if ( is_fullscreen != fullscreen ) {
 				int rawh = virtual_navigation_device ? 0 : get_status_bar_height();
 				is_fullscreen = fullscreen;
@@ -244,35 +244,35 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 			}
 		}
 
-		public int  get_orientation() {
+		public int get_orientation() {
 			int orientation = host.getWindowManager().getDefaultDisplay().getRotation();
 			switch (orientation) {
 				default:
-				case Surface.ROTATION_0: return 0; // PORTRAIT
-				case Surface.ROTATION_90: return 1; // LANDSCAPE
-				case Surface.ROTATION_180: return 2; // REVERSE_PORTRAIT
-				case Surface.ROTATION_270: return 3; // REVERSE_LANDSCAPE
+				case Surface.ROTATION_0: return 1; // PORTRAIT
+				case Surface.ROTATION_90: return 2; // LANDSCAPE
+				case Surface.ROTATION_180: return 3; // REVERSE_PORTRAIT
+				case Surface.ROTATION_270: return 4; // REVERSE_LANDSCAPE
 			}
 		}
 
 		public void set_orientation(int orientation) {
 			switch (orientation) {
-				case 0: // PORTRAIT
+				case 1: // PORTRAIT
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT; break;
-				case 1: // LANDSCAPE
+				case 2: // LANDSCAPE
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE; break;
-				case 2: // REVERSE_PORTRAIT
+				case 3: // REVERSE_PORTRAIT
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT; break;
-				case 3: // REVERSE_LANDSCAPE
+				case 4: // REVERSE_LANDSCAPE
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE; break;
 				default:
-				case 4: // USER
+				case 5: // USER
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER; break;
-				case 5: // USER_PORTRAIT
+				case 6: // USER_PORTRAIT
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT; break;
-				case 6: // USER_LANDSCAPE
+				case 7: // USER_LANDSCAPE
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE; break;
-				case 7: // USER_LOCKED
+				case 8: // USER_LOCKED
 					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED; break;
 			}
 			host.setRequestedOrientation(screen_orientation);

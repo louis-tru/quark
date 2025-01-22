@@ -5,7 +5,7 @@
 	'targets': [
 	{
 		'target_name': 'quark-js',
-		'type': 'static_library', #<(output_type)
+		'type': 'static_library',
 		'include_dirs': [
 			'../../out',
 			'../../deps/http_parser',

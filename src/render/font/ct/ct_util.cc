@@ -34,6 +34,8 @@
 #include "../sfnt/QkSFNTHeader.h"
 #include <dlfcn.h>
 
+using namespace qk;
+
 static constexpr CGBitmapInfo kBitmapInfoRGB = ((CGBitmapInfo)kCGImageAlphaNoneSkipFirst |
                                                 kCGBitmapByteOrder32Host);
 
@@ -238,7 +240,7 @@ QkCTFontSmoothBehavior QkCTFontGetSmoothBehavior() {
 		QkUniqueCFRef<CTFontDescriptorRef> desc(
 						CTFontManagerCreateFontDescriptorFromData(data.get()));
 		QkUniqueCFRef<CTFontRef> ctFont(CTFontCreateWithFontDescriptor(desc.get(), 16, nullptr));
-		Qk_Assert(ctFont);
+		Qk_ASSERT(ctFont);
 
 		CGContextSetShouldSmoothFonts(noSmoothContext.get(), false);
 		CGContextSetShouldAntialias(noSmoothContext.get(), true);
@@ -256,8 +258,8 @@ QkCTFontSmoothBehavior QkCTFontGetSmoothBehavior() {
 		CTFontDrawGlyphs(ctFont.get(), &spiderGlyph, &point, 1, smoothContext.get());
 
 		// For debugging.
-		//SkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(noSmoothContext()));
-		//SkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(smoothContext()));
+		//QkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(noSmoothContext()));
+		//QkUniqueCFRef<CGImageRef> image(CGBitmapContextCreateImage(smoothContext()));
 
 		QkCTFontSmoothBehavior smoothBehavior = QkCTFontSmoothBehavior::none;
 		for (int x = 0; x < 16; ++x) {

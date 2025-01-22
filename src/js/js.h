@@ -56,8 +56,7 @@ namespace qk { namespace js {
 			qk::js::Worker::setModule(#name, cls::binding, __FILE__); \
 		}
 	#define Js_Typeid(t) (typeid(t).hash_code())
-	#define Js_Type_Check(T, S) \
-		while (false) { *(static_cast<T* volatile*>(0)) = static_cast<S*>(0); }
+	#define Js_Type_Check(T, S) Qk_Type_Check(T, S)
 
 	// define class macro
 	#define Js_New_Class(name, alias, base, constructor) \

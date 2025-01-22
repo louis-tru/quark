@@ -30,8 +30,6 @@
 
 #import "../../ui/app.h"
 #import "../../ui/window.h"
-#import "../../ui/event.h"
-#import "../../ui/screen.h"
 #import "./mac_app.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
@@ -54,8 +52,8 @@ QkWindowDelegate* getActiveDelegate() {
 @implementation QkApplicationDelegate
 
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-		Qk_Assert(!qkappdelegate);
-		Qk_Assert(Application::shared());
+		Qk_ASSERT(!qkappdelegate);
+		Qk_ASSERT(Application::shared());
 		qkappdelegate = self;
 		_host = Application::shared();
 		_app = app;
@@ -150,40 +148,4 @@ void Application::sendEmail(cString& recipient,
 
 		[delegate presentViewController:mail animated:YES completion:nil];
 	});
-}
-
-// ***************** E v e n t . D i s p a t c h *****************
-
-void EventDispatch::setVolumeUp() {
-	// TODO ..
-}
-
-void EventDispatch::setVolumeDown() {
-	// TODO ..
-}
-
-void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
-	auto delegate = window()->impl()->delegate();
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
-	});
-}
-
-void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
-	auto delegate = window()->impl()->delegate();
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[delegate.ime set_keyboard_type:options.type];
-		[delegate.ime set_keyboard_return_type:options.return_type];
-		[delegate.ime activate: options.is_clear];
-	});
-}
-
-void EventDispatch::setImeKeyboardClose() {
-	auto delegate = window()->impl()->delegate();
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[delegate.ime deactivate];
-	});
-}
-
-void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 }

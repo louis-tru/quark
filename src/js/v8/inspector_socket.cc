@@ -180,7 +180,7 @@ namespace qk { namespace inspector {
 			}
 			frame.insert(frame.end(), extended_payload_length,
 									extended_payload_length + 8);
-			Qk_Assert_Eq(0, remaining);
+			Qk_ASSERT_EQ(0, remaining);
 		}
 		frame.insert(frame.end(), message, message + data_length);
 		return frame;
@@ -329,7 +329,7 @@ namespace qk { namespace inspector {
 			inspector->ws_state->alloc_cb(
 					reinterpret_cast<uv_handle_t*>(&inspector->tcp),
 					len, &buffer);
-			Qk_Assert(buffer.len >= len);
+			Qk_ASSERT(buffer.len >= len);
 			memcpy(buffer.base, &output[0], len);
 			invoke_read_callback(inspector, len, &buffer);
 		}
@@ -384,8 +384,8 @@ namespace qk { namespace inspector {
 
 	int inspector_read_start(InspectorSocket* inspector,
 													uv_alloc_cb alloc_cb, uv_read_cb read_cb) {
-		Qk_Assert(inspector->ws_mode);
-		Qk_Assert(!inspector->shutting_down || read_cb == nullptr);
+		Qk_ASSERT(inspector->ws_mode);
+		Qk_ASSERT(!inspector->shutting_down || read_cb == nullptr);
 		inspector->ws_state->close_sent = false;
 		inspector->ws_state->alloc_cb = alloc_cb;
 		inspector->ws_state->read_cb = read_cb;
@@ -570,7 +570,7 @@ namespace qk { namespace inspector {
 
 	static void init_handshake(InspectorSocket* socket) {
 		http_parsing_state_s* state = socket->http_parsing_state;
-		Qk_Assert_Ne(state, nullptr);
+		Qk_ASSERT_NE(state, nullptr);
 		state->current_header.clear();
 		state->ws_key.clear();
 		state->path.clear();
@@ -587,8 +587,8 @@ namespace qk { namespace inspector {
 
 	int inspector_accept(uv_stream_t* server, InspectorSocket* socket,
 											handshake_cb callback) {
-		Qk_Assert_Ne(callback, nullptr);
-		Qk_Assert_Eq(socket->http_parsing_state, nullptr);
+		Qk_ASSERT_NE(callback, nullptr);
+		Qk_ASSERT_EQ(socket->http_parsing_state, nullptr);
 
 		socket->http_parsing_state = new http_parsing_state_s();
 		uv_stream_t* tcp = reinterpret_cast<uv_stream_t*>(&socket->tcp);
@@ -623,8 +623,8 @@ namespace qk { namespace inspector {
 											inspector_cb callback) {
 		// libuv throws assertions when closing stream that's already closed - we
 		// need to do the same.
-		Qk_Assert(!uv_is_closing(reinterpret_cast<uv_handle_t*>(&inspector->tcp)));
-		Qk_Assert(!inspector->shutting_down);
+		Qk_ASSERT(!uv_is_closing(reinterpret_cast<uv_handle_t*>(&inspector->tcp)));
+		Qk_ASSERT(!inspector->shutting_down);
 		inspector->shutting_down = true;
 		inspector->ws_state->close_cb = callback;
 		if (inspector->connection_eof) {

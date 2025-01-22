@@ -156,33 +156,50 @@ namespace qk {
 		static constexpr bool isObj = sizeof(test<T>(0)) / sizeof(char) > 0;
 		static constexpr bool isRef = sizeof(test<T>(0)) / sizeof(char) == 2;
 		static constexpr bool isProtocol = sizeof(test<T>(0)) / sizeof(char) == 3;
-		template <int i> struct inl {
+		template <int i> struct __inl { // Object
 			static inline void Retain(T* obj) { qk::Retain(obj); }
 			static inline void Release(T* obj) { qk::Release(obj); }
 		};
-		template <> struct inl<0> {
+		template <> struct __inl<0> { // Other
 			static inline void Retain(T* obj) {}
 			static inline void Release(T* obj) { delete obj; }
 		};
-		template <> struct inl<3> { //protocol
+		template <> struct __inl<3> { //protocol
 			static inline void Retain(T* obj) { if (obj) qk::Retain(obj->asObject()); }
 			static inline void Release(T* obj) { if (obj) qk::Release(obj->asObject()); }
 		};
-		inline static void Retain(T* obj) { inl<type>::Retain(obj); }
-		inline static void Release(T* obj) { inl<type>::Release(obj); }
+		inline static void Retain(T* obj) { __inl<type>::Retain(obj); }
+		inline static void Release(T* obj) { __inl<type>::Release(obj); }
 		inline static void Releasep(T*& obj) { Release(obj); obj = nullptr; }
 	};
 
-	template<typename T>
-	struct ReleasePtr {
+	template <>
+	inline void object_traits<void>::Release(void* obj) {
+		::free(obj);
+	}
+
+	typedef const void cVoid;
+
+	template <typename T>
+	struct IsPointer {
+		static constexpr bool value = false;
 		inline static void Release(T& obj) {}
 	};
 
-	template<typename T>
-	struct ReleasePtr<T*> {
+	template <typename T>
+	struct IsPointer<T*> {
+		static constexpr bool value = true;
 		inline static void Release(T*& obj) {
 			object_traits<T>::Releasep(obj);
 		}
+	};
+
+	template <typename T>
+	struct Wobj: Object {
+		inline Wobj(const T &val): value(val) {}
+		inline Wobj(T &&val): value(std::move(val)) {}
+		// operator T&() { return value; }
+		T value;
 	};
 
 	/**
@@ -190,14 +207,18 @@ namespace qk {
 	*/
 	template<typename T>
 	inline void Releasep(T& obj) {
-		ReleasePtr<T>::Release(obj);
+		IsPointer<T>::Release(obj);
 	}
 
 	template<class T, typename... Args>
-	inline T* New(Args... args) { return new T(args...); }
+	inline T* New(Args... args) {
+		return new T(std::forward<Args>(args)...);
+	}
 
 	template<class T, typename... Args>
-	inline T* NewRetain(Args... args) { T* r = new T(args...); return r->retain(), r; }
+	inline T* NewRetain(Args... args) {
+		T* r = new T(std::forward<Args>(args)...); return r->retain(), r;
+	}
 
 }
 #endif

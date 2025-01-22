@@ -64,7 +64,7 @@ static QkUniqueCFRef<CFStringRef> make_CFString(const char s[]) {
 	return QkUniqueCFRef<CFStringRef>(CFStringCreateWithCString(nullptr, s, kCFStringEncodingUTF8));
 }
 
-static QkUniqueCFRef<CTFontDescriptorRef> create_descriptor(const char familyName[], const FontStyle& style) {
+static QkUniqueCFRef<CTFontDescriptorRef> create_descriptor(cChar familiesName[], const FontStyle& style) {
 	QkUniqueCFRef<CFMutableDictionaryRef> cfAttributes(
 					CFDictionaryCreateMutable(kCFAllocatorDefault, 0,
 																		&kCFTypeDictionaryKeyCallBacks,
@@ -137,8 +137,8 @@ static QkUniqueCFRef<CTFontDescriptorRef> create_descriptor(const char familyNam
 	CFDictionaryAddValue(cfAttributes.get(), kCTFontTraitsAttribute, cfTraits.get());
 
 	// CTFontFamilyName
-	if (familyName) {
-		QkUniqueCFRef<CFStringRef> cfFontName = make_CFString(familyName);
+	if (familiesName) {
+		QkUniqueCFRef<CFStringRef> cfFontName = make_CFString(familiesName);
 		if (cfFontName) {
 			CFDictionaryAddValue(cfAttributes.get(), kCTFontFamilyNameAttribute, cfFontName.get());
 		}
@@ -154,12 +154,12 @@ static Typeface* create_from_desc(CTFontDescriptorRef desc) {
 	if (!ctFont) {
 		return nullptr;
 	}
-	return new Typeface_Mac(std::move(ctFont), OpszVariation(), WeakBuffer());
+	return new Typeface_Mac(std::move(ctFont), OpszVariation(), false);
 }
 
 // -----------------------------------------------------------------------------
 
-static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(cBuffer& data) {
+static QkUniqueCFRef<CFDataRef> cfdata_from_data(cBuffer& data) {
 	void const * const addr = data.val();
 	size_t const size = data.length();
 
@@ -172,7 +172,7 @@ static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(cBuffer& data) {
 			nullptr, // void * (*allocate)(CFIndex size, CFOptionFlags hint, void *info);
 			nullptr, // void*(*reallocate)(void* ptr,CFIndex newsize,CFOptionFlags hint,void* info);
 			[](void*,void* info) -> void { // void (*deallocate)(void *ptr, void *info);
-				// Qk_Assert(info);
+				// Qk_ASSERT(info);
 				// Buffer::Alloc::free(info);
 			},
 			nullptr, // CFIndex (*preferredSize)(CFIndex size, CFOptionFlags hint, void *info);
@@ -182,13 +182,13 @@ static QkUniqueCFRef<CFDataRef> cfdata_from_skdata(cBuffer& data) {
 					kCFAllocatorDefault, (const UInt8 *)addr, size, alloc.get()));
 }
 
-static QkUniqueCFRef<CTFontRef> ctfont_from_skdata(cBuffer& data, int ttcIndex) {
+static QkUniqueCFRef<CTFontRef> ctfont_from_data(cBuffer& data, int ttcIndex) {
 	// TODO: Use CTFontManagerCreateFontDescriptorsFromData when available.
 	if (ttcIndex != 0) {
 		return nullptr;
 	}
 
-	QkUniqueCFRef<CFDataRef> cfData(cfdata_from_skdata(data));
+	QkUniqueCFRef<CFDataRef> cfData(cfdata_from_data(data));
 
 	QkUniqueCFRef<CTFontDescriptorRef> desc(CTFontManagerCreateFontDescriptorFromData(cfData.get()));
 	if (!desc) {
@@ -202,34 +202,34 @@ QkUniqueCFRef<CFArrayRef> QkCopyAvailableFontFamilyNames(CTFontCollectionRef col
 	QkUniqueCFRef<CFArrayRef> descriptors(
 			CTFontCollectionCreateMatchingFontDescriptors(collection));
 
-	// Copy the font family names of the font descriptors into a CFSet.
+	// Copy the font families names of the font descriptors into a CFSet.
 	auto addDescriptorFamilyNameToSet = [](const void* value, void* context) -> void {
 			CTFontDescriptorRef descriptor = static_cast<CTFontDescriptorRef>(value);
-			CFMutableSetRef familyNameSet = static_cast<CFMutableSetRef>(context);
-		QkUniqueCFRef<CFTypeRef> familyName(
+			CFMutableSetRef familiesNameSet = static_cast<CFMutableSetRef>(context);
+		QkUniqueCFRef<CFTypeRef> familiesName(
 					CTFontDescriptorCopyAttribute(descriptor, kCTFontFamilyNameAttribute));
-		if (familyName) {
-			CFSetAddValue(familyNameSet, familyName.get());
+		if (familiesName) {
+			CFSetAddValue(familiesNameSet, familiesName.get());
 		}
 	};
-	QkUniqueCFRef<CFMutableSetRef> familyNameSet(
+	QkUniqueCFRef<CFMutableSetRef> familiesNameSet(
 			CFSetCreateMutable(kCFAllocatorDefault, 0, &kCFTypeSetCallBacks));
 	CFArrayApplyFunction(descriptors.get(), CFRangeMake(0, CFArrayGetCount(descriptors.get())),
-											 addDescriptorFamilyNameToSet, familyNameSet.get());
+											 addDescriptorFamilyNameToSet, familiesNameSet.get());
 
-	// Get the set of family names into an array; this does not retain.
-	CFIndex count = CFSetGetCount(familyNameSet.get());
-	std::unique_ptr<const void*[]> familyNames(new const void*[count]);
-	CFSetGetValues(familyNameSet.get(), familyNames.get());
+	// Get the set of families names into an array; this does not retain.
+	CFIndex count = CFSetGetCount(familiesNameSet.get());
+	std::unique_ptr<const void*[]> familiesNames(new const void*[count]);
+	CFSetGetValues(familiesNameSet.get(), familiesNames.get());
 
-	// Sort the array of family names (to match CTFontManagerCopyAvailableFontFamilyNames).
-	std::sort(familyNames.get(), familyNames.get() + count, [](const void* a, const void* b){
+	// Sort the array of families names (to match CTFontManagerCopyAvailableFontFamilyNames).
+	std::sort(familiesNames.get(), familiesNames.get() + count, [](const void* a, const void* b){
 		return CFStringCompare((CFStringRef)a, (CFStringRef)b, 0) == kCFCompareLessThan;
 	});
 
-	// Copy family names into a CFArray; this does retain.
+	// Copy families names into a CFArray; this does retain.
 	return QkUniqueCFRef<CFArrayRef>(
-			CFArrayCreate(kCFAllocatorDefault, familyNames.get(), count, &kCFTypeArrayCallBacks));
+			CFArrayCreate(kCFAllocatorDefault, familiesNames.get(), count, &kCFTypeArrayCallBacks));
 }
 
 /** Use CTFontManagerCopyAvailableFontFamilyNames if available, simulate if not. */
@@ -255,7 +255,7 @@ class QkFontPool_Mac : public FontPool {
 	int fCount;
 
 	CFStringRef getFamilyNameAt(int index) const {
-		Qk_Assert((unsigned)index < (unsigned)fCount);
+		Qk_ASSERT((unsigned)index < (unsigned)fCount);
 		return (CFStringRef)CFArrayGetValueAtIndex(fNames.get(), index);
 	}
 
@@ -266,7 +266,7 @@ public:
 														: QkCTFontManagerCopyAvailableFontFamilyNames())
 		, fCount(fNames ? int(CFArrayGetCount(fNames.get())) : 0)
 	{
-		init();
+		initFontPool();
 	}
 
 	uint32_t onCountFamilies() const override {
@@ -281,16 +281,16 @@ public:
 		}
 	}
 
-	Typeface* onMatch(const char familyName[], FontStyle style) const override {
-		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familyName, style);
+	Typeface* onMatch(const char familiesName[], FontStyle style) const override {
+		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familiesName, style);
 		return create_from_desc(desc.get());
 	}
 
-	Typeface* onMatchCharacter(const char familyName[],
+	Typeface* onMatchCharacter(const char familiesName[],
 														FontStyle style,
 														Unichar character) const override {
-		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familyName, style);
-		QkUniqueCFRef<CTFontRef> familyFont(CTFontCreateWithFontDescriptor(desc.get(), 0, nullptr));
+		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familiesName, style);
+		QkUniqueCFRef<CTFontRef> familiesFont(CTFontCreateWithFontDescriptor(desc.get(), 0, nullptr));
 		
 		// kCFStringEncodingUTF32 is BE unless there is a BOM.
 		// Since there is no machine endian option, explicitly state machine endian.
@@ -309,19 +309,19 @@ public:
 		}
 		CFRange range = CFRangeMake(0, CFStringGetLength(string.get()));  // in UniChar units.
 		QkUniqueCFRef<CTFontRef> fallbackFont(
-						CTFontCreateForString(familyFont.get(), string.get(), range));
-		return new Typeface_Mac(std::move(fallbackFont), OpszVariation(), WeakBuffer());
+						CTFontCreateForString(familiesFont.get(), string.get(), range));
+		return new Typeface_Mac(std::move(fallbackFont), OpszVariation(), false);
 	}
 
-	Typeface* onAddFontFamily(cBuffer& data, int ttcIndex) const override {
+	Typeface* onAddFamily(cBuffer& data, int ttcIndex) const override {
 		if (ttcIndex != 0) {
 			return nullptr;
 		}
-		QkUniqueCFRef<CTFontRef> ct = ctfont_from_skdata(data, ttcIndex);
+		QkUniqueCFRef<CTFontRef> ct = ctfont_from_data(data, ttcIndex);
 		if (!ct) {
 			return nullptr;
 		}
-		return new Typeface_Mac(std::move(ct), OpszVariation(), data);
+		return new Typeface_Mac(std::move(ct), OpszVariation(), true);
 	}
 
 };

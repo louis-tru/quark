@@ -579,8 +579,7 @@ async function configure() {
 	var PYTHON = process.env.PYTHON || 'python';
 
 	if ( OS == 'mac' ) {
-		if ( opts.use_v8 == 'auto' ) { // iOS use default javascriptcore
-			//if (arch != 'x86' && arch != 'x64')
+		if ( opts.use_v8 == 'auto' ) { // all of mac use default javascriptcore
 			opts.use_v8 = 0;
 		}
 	}
@@ -680,11 +679,13 @@ async function configure() {
 		var toolchain_dir = `${__dirname}/android-toolchain/${arch}`;
 		if (!fs.existsSync(toolchain_dir)) {
 			var ndk_path = opts.ndk_path || process.env.ANDROID_NDK;
-			var toolchain_dir2 = `${ndk_path}/toolchains/llvm/prebuilt/${get_host_tag_or_die()}`;
-			// chech ndk r19
-			if ( // opts.clang && // can use clang 
-					fs.existsSync(`${toolchain_dir2}/bin/armv7a-linux-androideabi${api}-clang`) ) {
-				toolchain_dir = toolchain_dir2;
+			var toolchain_llvm = `${ndk_path}/toolchains/llvm/prebuilt/${get_host_tag_or_die()}`;
+			// check ndk r19
+			if (fs.existsSync(`${toolchain_llvm}/bin/armv7a-linux-androideabi${api}-clang`) /*&& opts.clang*/) {
+				if (!fs.existsSync(`${__dirname}/ndk`)) {
+					fs.symlinkSync(toolchain_llvm, `${__dirname}/ndk`);
+				}
+				toolchain_dir = toolchain_llvm;
 			} else {
 				if ( ndk_path && fs.existsSync(ndk_path) ) { // install tool
 					// console.log(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`)

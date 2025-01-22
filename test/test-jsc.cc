@@ -335,8 +335,8 @@ static void test_jsc_proxy(JSGlobalContextRef ctx, JSObjectRef global) {
 	JSProxy* p = reinterpret_cast<JSProxy*>(proxy);
 	
 	JSObjectCallAsFunction(ctx, revoke, proxy_warp, 0, 0, &ex);
-	Qk_Assert(ex == nullptr);
-	Qk_Assert(p->handle == Null);
+	Qk_ASSERT(ex == nullptr);
+	Qk_ASSERT(p->handle == Null);
 	
 	Qk_Log("end");
 }
@@ -410,7 +410,7 @@ void test_jsc() {
 	JSObjectSetProperty(ctx, global_wrapper, column_s, JSValueMakeNumber(ctx, 200), 0, 0);
 	JSValueRef JSObject = JSObjectGetProperty(ctx, global, Object_s, 0);
 	JSValueRef JSObject1 = JSObjectGetProperty(ctx1, global, Object_s, 0);
-	Qk_Assert(JSObject == JSObject1);
+	Qk_ASSERT(JSObject == JSObject1);
 	Qk_Log(to_string_utf8(ctx, JSObjectGetProperty(ctx, global, column_s, 0)));
 	
 	JSCStringPtr js = JSStringCreateWithUTF8CString("var a = 100; b = 200; print(a, b)");

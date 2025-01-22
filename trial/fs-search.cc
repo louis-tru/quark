@@ -102,7 +102,7 @@ namespace qk {
 			, m_zip (zip_path)
 		{
 			auto isOpen = m_zip.open();
-			Qk_Assert( isOpen, "Cannot open zip file, `%s`", *zip_path );
+			Qk_ASSERT( isOpen, "Cannot open zip file, `%s`", *zip_path );
 		}
 		~ZipInSearchPath() = default;
 		String m_zip_path;

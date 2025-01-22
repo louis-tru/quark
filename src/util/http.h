@@ -184,7 +184,7 @@ namespace qk {
 		String url() const;
 
 		/**
-		* @func send() 发送请求,如果设置data参数会覆盖之前设置的表单数据
+		* @method send() 发送请求,如果设置data参数会覆盖之前设置的表单数据
 		*/
 		void send(Buffer data = Buffer()) throw(Error);
 		void send(cString& data) throw(Error);
@@ -196,7 +196,7 @@ namespace qk {
 		void resume() override;
 
 		/**
-		* @func abort current sending request
+		* @method abort current sending request
 		*/
 		void abort();
 

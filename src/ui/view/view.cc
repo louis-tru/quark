@@ -38,7 +38,7 @@
 
 #if DEBUG
 # define _Assert_IsRt(isRt, ...) \
-	Qk_Assert(!_window->root() || (_isRt==isRt), ##__VA_ARGS__)
+	Qk_ASSERT(!_window->root() || (_isRt==isRt), ##__VA_ARGS__)
 #else
 # define _Assert_IsRt(isRt, ...)
 #endif
@@ -73,7 +73,7 @@ namespace qk {
 	void View::destroy() {
 		// The object maintained by the parent view should not be deconstructed,
 		// where the parent must be empty
-		Qk_Assert_Eq(_parent, nullptr);
+		Qk_ASSERT_EQ(_parent, nullptr);
 		auto cssclass = _cssclass.load();
 		_cssclass.store(nullptr);
 		Release(cssclass);
@@ -487,11 +487,11 @@ namespace qk {
 	}
 
 	void View::set_parent(View *parent) {
-		Qk_Fatal_Assert(_window == parent->_window, "window no match, parent->_window no equal _window");
+		Qk_ASSERT_RAW(_window == parent->_window, "window no match, parent->_window no equal _window");
 		_Parent();
 		if (parent != _parent) {
 			#define is_root (_window->root() == this)
-			Qk_Fatal_Assert(!is_root, "root view not allow set parent"); // check
+			Qk_ASSERT_RAW(!is_root, "root view not allow set parent"); // check
 			clear_link();
 			if ( !_parent ) {
 				retain(); // link to parent and retain ref
@@ -623,7 +623,7 @@ namespace qk {
 	}
 
 	View* View::init(Window* win) {
-		Qk_Assert(win);
+		Qk_ASSERT(win);
 		_window = win;
 		_accessor = prop_accessor_at_view(viewType(), kOPACITY_ViewProp);
 		return this;

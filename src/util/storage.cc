@@ -36,7 +36,7 @@
 namespace qk {
 
 	#define _db _storage_db
-	#define assert_r(c) Qk_Assert_Eq(c, BP_OK)
+	#define assert_r(c) Qk_ASSERT_EQ(c, BP_OK)
 	#define OPEN(...) ScopeLock lock(_mutex); storage_open(); if (!_db) return __VA_ARGS__
 
 	static Mutex    _mutex;

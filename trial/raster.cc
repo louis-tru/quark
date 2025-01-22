@@ -197,9 +197,9 @@ namespace qk {
 
 		while (y < e) {
 			Edge *left = _activeEdges.next;
-			Qk_Assert(left, "left Edge cannot be empty");
+			Qk_ASSERT(left, "left Edge cannot be empty");
 			Edge *right = left->next;
-			Qk_Assert(right, "right Edge cannot be empty");
+			Qk_ASSERT(right, "right Edge cannot be empty");
 
 			//if (left->x > right->x) {
 			//	cb(right->x, left->x, y, ctx);

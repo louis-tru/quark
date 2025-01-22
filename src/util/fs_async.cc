@@ -213,11 +213,11 @@ namespace qk {
 						break;
 					}
 				}
-				Qk_Assert(buffer.length() == 0);
+				Qk_ASSERT(buffer.length() == 0);
 			}
 	
 			void read_next() {
-				Qk_Assert(!_read_end);
+				Qk_ASSERT(!_read_end);
 				Buffer buff = alloc_buffer();
 				if ( buff.length() ) {
 					_reading_count++;
@@ -243,9 +243,9 @@ namespace qk {
 			}
 	
 			void copy_complete() {
-				Qk_Assert(_reading_count == 0);
-				Qk_Assert(_writeing_count == 0);
-				Qk_Assert(_read_end);
+				Qk_ASSERT(_reading_count == 0);
+				Qk_ASSERT(_writeing_count == 0);
+				Qk_ASSERT(_read_end);
 				if ( !is_abort() ) { // copy complete
 					//Qk_DLog("-----copy_complete------");
 					Handle<Task> handle(this);
@@ -255,16 +255,16 @@ namespace qk {
 			}
 	
 			virtual void trigger_file_read(File* file, Buffer &buffer, int mark) {
-				Qk_Assert( file == _source_file );
-				Qk_Assert( _reading_count > 0 );
+				Qk_ASSERT( file == _source_file );
+				Qk_ASSERT( _reading_count > 0 );
 				_reading_count--;
 				if ( buffer.length() ) {
 					_writeing_count++;
 					_target_file->write(buffer);
 					read_next();
 				} else {
-					Qk_Assert(_reading_count == 0);
-					Qk_Assert(!_read_end);
+					Qk_ASSERT(_reading_count == 0);
+					Qk_ASSERT(!_read_end);
 					_read_end = true;
 					if ( _writeing_count == 0 ) {
 						copy_complete();
@@ -273,8 +273,8 @@ namespace qk {
 			}
 
 			virtual void trigger_file_write(File* file, Buffer &buffer, int mark) {
-				Qk_Assert( file == _target_file );
-				Qk_Assert( _writeing_count > 0 );
+				Qk_ASSERT( file == _target_file );
+				Qk_ASSERT( _writeing_count > 0 );
 				_writeing_count--;
 				release_buffer(buffer);
 				if ( _read_end ) {
@@ -734,22 +734,23 @@ namespace qk {
 	uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb) {
 		class Task;
 		typedef UVRequestWrap<uv_fs_t, Task, Object, StreamResponse> FileReq;
-		
+
 		class Task: public AsyncIOTask, public Stream {
 		public:
 			String     _path;
-			int64_t      _offset;
+			int64_t    _offset;
 			int        _fd;
 			Callback<StreamResponse> _cb;
 			Buffer     _buffer;
 			bool       _pause;
 			int        _read_count;
 			FileReq*   _req;
-			int64_t      _total;
-			int64_t      _size;
+			int64_t    _total;
+			int64_t    _size;
 			
 			Task(int64_t offset, Callback<StreamResponse> cb) {
 				_offset = offset;
+				_fd = 0;
 				_cb = cb;
 				_pause = false;
 				_read_count = 0;
@@ -757,7 +758,8 @@ namespace qk {
 				_size = 0;
 			}
 
-			~Task() {}
+			~Task() {
+			}
 
 			uv_loop_t* uv_loop() {
 				return loop()->uv_loop();
@@ -778,8 +780,8 @@ namespace qk {
 				}
 			}
 
-			static void fs_close_cb(uv_fs_t* req) { // close
-				Release(FileReq::cast(req)); // release req
+			static void fs_close_cb(uv_fs_t* uv_req) { // close
+				Release(FileReq::cast(uv_req)); // release req
 			}
 
 			static void fs_read_cb(uv_fs_t* uv_req) { // read data result
@@ -788,7 +790,7 @@ namespace qk {
 				Task* ctx = req->ctx();
 
 				ctx->_read_count--;
-				Qk_Assert(ctx->_read_count == 0);
+				Qk_ASSERT(ctx->_read_count == 0);
 
 				if ( uv_req->result < 0 ) { // error
 					ctx->abort();
@@ -801,14 +803,12 @@ namespace qk {
 						}
 						ctx->_size += uv_req->result;
 						ctx->_buffer.reset((uint32_t)uv_req->result);
-						StreamResponse data(ctx->_buffer, 0, ctx->id(), ctx->_size, ctx->_total, ctx);
-						async_resolve(ctx->_cb, std::move(data));
+						ctx->_cb->resolve(StreamResponse({ctx->_size, ctx->_total, ctx->_buffer, ctx, ctx->id(), false}));
 						ctx->read_advance(req);
 					} else { // end
 						ctx->abort();
-						Buffer buff;
-						StreamResponse data(buff, 1, ctx->id(), ctx->_size, ctx->_total, ctx);
-						async_resolve(ctx->_cb, std::move(data));
+						Buffer buffer;
+						ctx->_cb->resolve(StreamResponse({ctx->_size, ctx->_total, buffer, ctx, ctx->id(), true}));
 						uv_fs_close(ctx->uv_loop(), uv_req, ctx->_fd, &fs_close_cb); // close
 					}
 				}
@@ -855,7 +855,7 @@ namespace qk {
 					req->ctx()->_fd = (int)uv_req->result;
 					uv_fs_fstat(req->ctx()->uv_loop(), uv_req, (uv_file)uv_req->result, &fs_fstat_cb);
 				} else { // open file fail
-					Handle<FileReq> handle(req);
+					Handle<FileReq> handle(req); // release req
 					req->ctx()->abort();
 					async_err_callback(req->ctx()->_cb, uv_req, *req->ctx()->_path);
 				}

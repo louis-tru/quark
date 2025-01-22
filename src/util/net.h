@@ -97,10 +97,11 @@ namespace qk {
 		void resume();
 		void write(Buffer buffer, int flag = 0);
 
+	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
-	protected:
 		Socket();
 		Inl* _inl;
+		friend class SSLSocket;
 	};
 
 	/**

@@ -32,7 +32,7 @@
 #define __quark_render_canvas__
 
 #include "../util/util.h"
-#include "./font/font.h"
+#include "./font/families.h"
 #include "./pathv_cache.h"
 #include "./pixel.h"
 #include "./paint.h"
@@ -54,11 +54,7 @@ namespace qk {
 			Sp<Typeface>    typeface;
 			Array<GlyphID>  glyphs;
 			Array<Vec2>     offset; // length = glyphs count + 1
-			struct Out {// output image cache
-				Sp<ImageSource> img;  // image
-				float fontSize; // current image cache font size
-				Vec2 bounds; // image bound cache
-			} out;
+			Typeface::ImageOut out;// output image cache
 		};
 
 		virtual int  save() = 0;

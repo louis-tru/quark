@@ -43,7 +43,7 @@ namespace qk { namespace js {
 
 	JSObject* JSClass::newInstance(uint32_t argc, JSValue* argv[]) {
 		auto f = getFunction();
-		Qk_Assert( f );
+		Qk_ASSERT( f );
 		return f->newInstance(_worker, argc, argv);
 	}
 
@@ -53,7 +53,7 @@ namespace qk { namespace js {
 		if (mix) {
 			_attachConstructor(mix);
 		} else {
-			Qk_Assert_Eq(classes->_runClass, nullptr);
+			Qk_ASSERT_EQ(classes->_runClass, nullptr);
 			classes->_runClass = this;
 			_constructor(args);
 			classes->_runClass = nullptr;

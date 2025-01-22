@@ -85,24 +85,23 @@ namespace qk {
 		} \
 		\
 		template<> \
-		Array<T, A>& Array<T, A>::push(const T& item) { \
+		T& Array<T, A>::push(const T& item) { \
 			increase_(_length + APPEND_ZERO + 1); \
-			_ptr.val[_length++] = item;\
-			return *this; \
+			_ptr.val[_length] = item;\
+			return _ptr.val[_length++]; \
 		} \
 		template<> \
-		Array<T, A>& Array<T, A>::push(T&& item) { \
+		T& Array<T, A>::push(T&& item) { \
 			increase_(_length + APPEND_ZERO + 1); \
-			_ptr.val[_length++] = item;\
-			return *this; \
+			_ptr.val[_length] = item;\
+			return _ptr.val[_length++]; \
 		} \
-		template<> Array<T, A>& Array<T, A>::pop(uint32_t count) { \
+		template<> void Array<T, A>::pop(uint32_t count) { \
 			uint32_t j = uint32_t(Qk_Max(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
 				_ptr.reduce(_length + APPEND_ZERO); \
 			} \
-			return *this; \
 		} \
 		\
 		template<> void Array<T, A>::clear() { \

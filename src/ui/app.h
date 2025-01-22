@@ -73,7 +73,7 @@ namespace qk {
 		Qk_DEFINE_P_GET(DefaultTextOptions*, defaultTextOptions); //! default font settings
 		Qk_DEFINE_P_GET(Screen*, screen); //! screen object
 		Qk_DEFINE_P_GET(RunLoop*, loop); //! main run loop
-		Qk_DEFINE_P_GET(FontPool*, fontPool); //! font and font familys manage
+		Qk_DEFINE_P_GET(FontPool*, fontPool); //! font and font families manage
 		Qk_DEFINE_P_GET(ImageSourcePool*, imgPool); //! image loader and image cache
 		Qk_DEFINE_P_GET(Window*, activeWindow); //! current active window
 		Qk_DEFINE_P_GET(RootStyleSheets*, styleSheets); //! root style sheets
@@ -172,6 +172,7 @@ namespace qk {
 		void triggerBackground(Window *win);
 		void triggerForeground(Window *win);
 		void setActiveWindow(Window *win);
+		void triggerOrientation();
 	};
 }
 #endif

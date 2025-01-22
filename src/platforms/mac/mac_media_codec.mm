@@ -111,8 +111,8 @@ namespace qk {
 			if (_session) return true;
 			if (!stream)  stream = &_stream;
 
-			Qk_Assert_Ne(0, stream->width);
-			Qk_Assert_Ne(0, stream->height);
+			Qk_ASSERT_NE(0, stream->width);
+			Qk_ASSERT_NE(0, stream->height);
 
 			CFDictionaryRef attrs = (__bridge CFDictionaryRef)[NSDictionary dictionaryWithObjectsAndKeys:
 				[NSNumber numberWithInt: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange],
@@ -186,7 +186,7 @@ namespace qk {
 			auto avf = reinterpret_cast<AVFrame*>(f + 1);
 			memset(avf, 0, sizeof(AVFrame));
 			auto buf = av_buffer_alloc(av_image_get_buffer_size(AV_PIX_FMT_NV12, w, h, 1));
-			Qk_Assert_Eq(buf->size,
+			Qk_ASSERT_EQ(buf->size,
 				av_image_fill_arrays(avf->data, avf->linesize, buf->data, AV_PIX_FMT_NV12, w, h, 1)
 			);
 			CVPixelBufferLockFlags lock;
@@ -270,7 +270,7 @@ namespace qk {
 
 				if ( data ) {
 					status = VTDecompressionSessionDecodeFrame(_session, data, flags, nil, &flagOut);
-					Qk_Assert_Ne(status, kVTInvalidSessionErr); // need reopen ?
+					Qk_ASSERT_NE(status, kVTInvalidSessionErr); // need reopen ?
 
 					if (status == noErr)
 						_pending++;
@@ -285,7 +285,7 @@ namespace qk {
 			if (!extractor || !_session) {
 				return AVERROR(EINVAL);
 			}
-			Qk_Assert_Eq(type(), extractor->type());
+			Qk_ASSERT_EQ(type(), extractor->type());
 
 			Lock lock(_mutex);
 			if (!_packet) {

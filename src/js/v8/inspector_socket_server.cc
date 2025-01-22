@@ -158,7 +158,7 @@ namespace qk { namespace inspector {
 			strm.zalloc = Z_NULL;
 			strm.zfree = Z_NULL;
 			strm.opaque = Z_NULL;
-			Qk_Assert_Eq(Z_OK, inflateInit(&strm));
+			Qk_ASSERT_EQ(Z_OK, inflateInit(&strm));
 			static const size_t kDecompressedSize =
 					PROTOCOL_JSON[0] * 0x10000u +
 					PROTOCOL_JSON[1] * 0x100u +
@@ -168,9 +168,9 @@ namespace qk { namespace inspector {
 			std::string data(kDecompressedSize, '\0');
 			strm.next_out = reinterpret_cast<Byte*>(&data[0]);
 			strm.avail_out = data.size();
-			Qk_Assert_Eq(Z_STREAM_END, inflate(&strm, Z_FINISH));
-			Qk_Assert_Eq(0, strm.avail_out);
-			Qk_Assert_Eq(Z_OK, inflateEnd(&strm));
+			Qk_ASSERT_EQ(Z_STREAM_END, inflate(&strm, Z_FINISH));
+			Qk_ASSERT_EQ(0, strm.avail_out);
+			Qk_ASSERT_EQ(Z_OK, inflateEnd(&strm));
 			SendHttpResponse(socket, data);
 		}
 
@@ -267,7 +267,7 @@ namespace qk { namespace inspector {
 		void FrontendConnected();
 		void SetDeclined() { state_ = State::kDeclined; }
 		void SetTargetId(const std::string& target_id) {
-			Qk_Assert(target_id_.empty());
+			Qk_ASSERT(target_id_.empty());
 			target_id_ = target_id;
 		}
 
@@ -416,7 +416,7 @@ namespace qk { namespace inspector {
 	}
 
 	bool InspectorSocketServer::Start() {
-		Qk_Assert_Eq(state_, ServerState::kNew);
+		Qk_ASSERT_EQ(state_, ServerState::kNew);
 		struct addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_flags = AI_NUMERICSERV;
@@ -459,7 +459,7 @@ namespace qk { namespace inspector {
 	}
 
 	void InspectorSocketServer::Stop(ServerCallback cb) {
-		Qk_Assert_Eq(state_, ServerState::kRunning);
+		Qk_ASSERT_EQ(state_, ServerState::kRunning);
 		if (closer_ == nullptr) {
 			closer_ = new Closer(this);
 		}
@@ -495,7 +495,7 @@ namespace qk { namespace inspector {
 	}
 
 	void InspectorSocketServer::ServerSocketClosed(ServerSocket* server_socket) {
-		Qk_Assert_Eq(state_, ServerState::kStopping);
+		Qk_ASSERT_EQ(state_, ServerState::kStopping);
 
 		server_sockets_.erase(std::remove(server_sockets_.begin(),
 																			server_sockets_.end(), server_socket),
@@ -527,7 +527,7 @@ namespace qk { namespace inspector {
 																server_port_(server_port) { }
 
 	void SocketSession::Close() {
-		Qk_Assert_Ne(state_, State::kClosing);
+		Qk_ASSERT_NE(state_, State::kClosing);
 		state_ = State::kClosing;
 		inspector_close(&socket_, CloseCallback);
 	}
@@ -578,12 +578,12 @@ namespace qk { namespace inspector {
 	// static
 	void SocketSession::CloseCallback(InspectorSocket* socket, int code) {
 		SocketSession* session = SocketSession::From(socket);
-		Qk_Assert_Eq(State::kClosing, session->state_);
+		Qk_ASSERT_EQ(State::kClosing, session->state_);
 		session->server_->SessionTerminated(session);
 	}
 
 	void SocketSession::FrontendConnected() {
-		Qk_Assert_Eq(State::kHttp, state_);
+		Qk_ASSERT_EQ(State::kHttp, state_);
 		state_ = State::kWebSocket;
 		inspector_read_start(&socket_, OnBufferAlloc, ReadCallback);
 	}
@@ -629,7 +629,7 @@ namespace qk { namespace inspector {
 													sockaddr* addr, uv_loop_t* loop) {
 		ServerSocket* server_socket = new ServerSocket(inspector_server);
 		uv_tcp_t* server = &server_socket->tcp_socket_;
-		Qk_Assert_Eq(0, uv_tcp_init(loop, server));
+		Qk_ASSERT_EQ(0, uv_tcp_init(loop, server));
 		int err = uv_tcp_bind(server, addr, 0);
 		if (err == 0) {
 			err = uv_listen(reinterpret_cast<uv_stream_t*>(server), 1,

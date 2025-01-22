@@ -49,12 +49,12 @@ typedef struct uv_timer_s uv_timer_t;
 typedef struct uv_check_s uv_check_t;
 
 namespace qk {
-	typedef std::thread::id         ThreadID;
-	typedef std::mutex              Mutex;
-	typedef std::recursive_mutex    RecursiveMutex;
-	typedef std::lock_guard<Mutex>  ScopeLock;
-	typedef std::unique_lock<Mutex> Lock;
-	typedef std::condition_variable Condition;
+	typedef std::thread::id               ThreadID;
+	typedef std::mutex                    Mutex;
+	typedef std::recursive_mutex          RecursiveMutex;
+	typedef std::unique_lock<Mutex>       Lock;
+	typedef std::lock_guard<Mutex>        ScopeLock;
+	typedef std::condition_variable       Condition;
 
 	template<> Qk_Export
 	uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);

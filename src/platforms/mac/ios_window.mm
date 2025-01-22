@@ -34,7 +34,7 @@ typedef UIEvent MacUIEvent;
 #import "../../ui/event.h"
 #include "../../ui/window.h"
 #include "../../ui/screen.h"
-#include "../../render/render_mac.h"
+#include "../../render/mac/mac_render.h"
 #include "./mac_app.h"
 
 using namespace qk;
@@ -153,12 +153,10 @@ QkWindowDelegate* WindowImpl::delegate() {
 	[coordinator animateAlongsideTransition:^(id context) {
 		_qkwin->render()->reload();
 
-		auto orient = shared_app()->screen()->orientation();
+		auto orient = _qkwin->host()->screen()->orientation();
 		if (orient != self.current_orientation) {
 			self.current_orientation = orient;
-			_qkwin->loop()->post(Cb([](auto& e) {
-				shared_app()->screen()->Qk_Trigger(Orientation);
-			}));
+			Inl_Application(_qkwin->host())->triggerOrientation();
 		}
 	} completion:nil];
 	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
@@ -295,6 +293,11 @@ void Window::closeImpl() {
 	//CFBridgingRelease(_impl);
 	_impl = nullptr;
 	// exit app
+}
+
+float Window::getDefaultScale() {
+	float defaultScale = UIScreen.mainScreen.scale;
+	return defaultScale;
 }
 
 void Window::pending() {

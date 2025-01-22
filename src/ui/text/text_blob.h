@@ -32,7 +32,7 @@
 #ifndef __quark_textblob__
 #define __quark_textblob__
 
-#include "../../render/font/font.h"
+#include "../../render/font/families.h"
 #include "../../render/source.h"
 #include "../../render/canvas.h"
 #include "./text_lines.h"

@@ -36,21 +36,14 @@
 #include "../macros.h"
 
 #if Qk_ANDROID
-
-#include "../object.h"
 #include <jni.h>
+#include "./string.h"
 
 namespace qk {
 
-	/**
-	* @class JNI
-	*/
 	class JNI {
 	public:
 
-		/**
-		* @class ScopeENV
-		*/
 		class ScopeENV {
 			Qk_HIDDEN_ALL_COPY(ScopeENV);
 		public:
@@ -62,12 +55,8 @@ namespace qk {
 		 private:
 			JNIEnv* _env;
 			bool    _is_attach;
-			// @end
 		};
 
-		/**
-		* @class MethodInfo
-		*/
 		class MethodInfo {
 		public:
 			MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static = false);
@@ -77,7 +66,6 @@ namespace qk {
 		private:
 			jclass      _clazz;
 			jmethodID   _method;
-			// @end
 		};
 
 		/**

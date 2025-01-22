@@ -41,7 +41,7 @@ namespace qk {
 	const int* test_big_int = (const int*)test_big_Char;
 	const bool is_bigData = *test_big_int != 1;
 
-	void _Str::strcpy(void* o_, int sizeof_o, const void* i_, int sizeof_i, uint32_t len) {
+	void _Str::strcpy(void* o_, int sizeof_o, cVoid* i_, int sizeof_i, uint32_t len) {
 		char* o = (char*)o_;
 		char* i = (char*)i_;
 		if (len && i) {
@@ -67,7 +67,7 @@ namespace qk {
 		}
 	}
 	
-	static bool _toNumber(const void* i, int len_i, int sizeof_i, const char* f, void* o) {
+	static bool _toNumber(cVoid* i, int len_i, int sizeof_i, const char* f, void* o) {
 		if (sizeof_i == 1) {
 			return sscanf( (const char*)i, f, o);
 		} else {
@@ -77,31 +77,31 @@ namespace qk {
 		}
 	}
 
-	bool _Str::toNumber(const void* i, int len, int sizeOf, int32_t* o) {
+	bool _Str::toNumber(cVoid* i, int len, int sizeOf, int32_t* o) {
 		return _toNumber(i, len, sizeOf, "%d", o);
 	}
 
-	bool _Str::toNumber(const void* i, int len, int sizeOf, uint32_t* o) {
+	bool _Str::toNumber(cVoid* i, int len, int sizeOf, uint32_t* o) {
 		return _toNumber(i, len, sizeOf, "%u", o);
 	}
 
-	bool _Str::toNumber(const void* i, int len, int sizeOf, int64_t* o) {
+	bool _Str::toNumber(cVoid* i, int len, int sizeOf, int64_t* o) {
 		return _toNumber(i, len, sizeOf, Qk_ARCH_64BIT ? "%ld": "%lld", o);
 	}
 
-	bool _Str::toNumber(const void* i, int len, int sizeOf, uint64_t* o) {
+	bool _Str::toNumber(cVoid* i, int len, int sizeOf, uint64_t* o) {
 		return _toNumber(i, len, sizeOf, Qk_ARCH_64BIT ? "%lu": "%llu", o);
 	}
 
-	bool _Str::toNumber(const void* i, int len, int sizeOf, float* o) {
+	bool _Str::toNumber(cVoid* i, int len, int sizeOf, float* o) {
 		return _toNumber(i, len, sizeOf, "%f", o);
 	}
 
-	bool _Str::toNumber(const void* i, int len, int sizeOf, double* o) {
+	bool _Str::toNumber(cVoid* i, int len, int sizeOf, double* o) {
 		return _toNumber(i, len, sizeOf, "%lf", o);
 	}
 
-	uint32_t _Str::strlen(const void* s_, int sizeOf) {
+	uint32_t _Str::strlen(cVoid* s_, int sizeOf) {
 		const char* s = (const char*)s_;
 		if (s) {
 			if (sizeOf == 1) {
@@ -118,12 +118,12 @@ namespace qk {
 		}
 	}
 
-	int _Str::memcmp(const void* s1, const void* s2, uint32_t len, int sizeOf) {
+	int _Str::memcmp(cVoid* s1, cVoid* s2, uint32_t len, int sizeOf) {
 		return ::memcmp(s1, s2, len * sizeOf);
 	}
 
 	int _Str::index_of(
-		const void* s1_, uint32_t s1_len, const void* s2_,
+		cVoid* s1_, uint32_t s1_len, cVoid* s2_,
 		uint32_t s2_len, uint32_t start, int sizeOf
 	) {
 		if (s1_len < s2_len) return -1;
@@ -144,7 +144,7 @@ namespace qk {
 	}
 
 	int _Str::last_index_of(
-		const void* s1_, uint32_t s1_len, const void* s2_,
+		cVoid* s1_, uint32_t s1_len, cVoid* s2_,
 		uint32_t s2_len, uint32_t _start, int sizeOf
 	) {
 		const char* s1 = (const char*)s1_;
@@ -179,9 +179,9 @@ namespace qk {
 	};
 
 	void* _Str::replace(
-		const void* s1_, uint32_t s1_len,
-		const void* s2_, uint32_t s2_len,
-		const void* rep_, uint32_t rep_len,
+		cVoid* s1_, uint32_t s1_len,
+		cVoid* s2_, uint32_t s2_len,
+		cVoid* rep_, uint32_t rep_len,
 		int sizeOf, uint32_t* outLen, uint32_t* capacity_out, bool all, Realloc realloc
 	) {
 		_StrTmp tmp = {nullptr,0,realloc};
@@ -302,7 +302,7 @@ namespace qk {
 	Base _Str::sPrintfv(int sizeOf, Alloc alloc, cChar* f, va_list arg) {
 		char *val;
 		int len_ = vasprintf(&val, f, arg);
-		Qk_Assert(len_ >= 0);
+		Qk_ASSERT(len_ >= 0);
 
 		uint32_t len = len_;
 		Base base{ val, len + 1, len };
@@ -390,7 +390,7 @@ namespace qk {
 		return str;
 	}
 
-	String _Str::toString(const void* ptr, uint32_t len, int sizeOf) {
+	String _Str::toString(cVoid* ptr, uint32_t len, int sizeOf) {
 		if (sizeOf == 1) { // char
 			return String((const char*)ptr, len);
 		} else if (sizeOf == 2) { // uint16_t
@@ -433,7 +433,7 @@ namespace qk {
 	}
 
 	static void ReleaseLong(Long* l, Free free) {
-		Qk_Assert(l->ref > 0);
+		Qk_ASSERT(l->ref > 0);
 		if ( --l->ref == 0) { // After entering, do not reverse
 			l->flag = 0; // destroy flag
 			free(l->val);
@@ -483,7 +483,7 @@ namespace qk {
 	}
 
 	StringBase::~StringBase() {
-		Qk_Assert(_val.s.length >= 0);
+		Qk_ASSERT(_val.s.length >= 0);
 	}
 
 	void StringBase::assign(Long::Base base, uint8_t sizeOf, Free free) {

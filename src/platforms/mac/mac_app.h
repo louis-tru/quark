@@ -32,7 +32,7 @@
 
 #ifndef __quark__mac__mac_app__
 #define __quark__mac__mac_app__
-#include "../../render/render_mac.h"
+#include "../../render/mac/mac_render.h"
 #include "../../ui/types.h"
 
 #if Qk_MAC

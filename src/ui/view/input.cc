@@ -458,7 +458,7 @@ namespace qk {
 				}
 			}
 
-			Qk_Assert(line);
+			Qk_ASSERT(line);
 
 			// find cell start_action and end_action
 			int cell_begin = -1, cell_end = -1;
@@ -517,7 +517,7 @@ namespace qk {
 				}
 				// if ( x <= offset_start )
 			}
-			Qk_Assert(_cursor <= text_length());
+			Qk_ASSERT(_cursor <= text_length());
 		end_action:
 			limit_cursor_in_marked_text();
 			reset_cursor_twinkle_task_timeout();
@@ -847,10 +847,10 @@ namespace qk {
 		TextLines::Line* line = nullptr;
 
 		if ( cursor_blob ) { // set cursor pos
-			Qk_Assert(_value_u4.length());
+			Qk_ASSERT(_value_u4.length());
 			auto len = cursor_blob->blob.offset.length();
 			auto index = _cursor - cursor_blob->index;
-			Qk_Assert(index >= 0);
+			Qk_ASSERT(index >= 0);
 			float offset = 0;
 			if (index < len) { // Index is within the offset range
 				offset = cursor_blob->blob.offset[index].x();
@@ -954,7 +954,7 @@ namespace qk {
 		if ( _editing ) {
 			int cursor = _cursor;
 			if ( !_marked_text.length() ) {
-				Qk_Assert(cursor <= _value_u4.length());
+				Qk_ASSERT(cursor <= _value_u4.length());
 				if ( count < 0 ) {
 					count = Qk_Min(cursor, -count);
 					if ( count ) {

@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./fs.h"
+#import "./fs.h"
 #if Qk_MAC
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #if Qk_iOS
-# import <UIKit/UIKit.h>
+#import <UIKit/UIKit.h>
 #else
-# import <AppKit/AppKit.h>
+#import <AppKit/AppKit.h>
 #endif
 
 namespace qk {

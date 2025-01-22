@@ -52,7 +52,7 @@ namespace qk {
 		size = powf(2, ceilf(log2f(size)));
 		ptr->val = ::realloc(ptr->val, sizeOf * size);
 		ptr->capacity = size;
-		Qk_Assert(ptr->val);
+		Qk_ASSERT(ptr->val);
 	}
 
 	void Allocator::realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
@@ -78,7 +78,7 @@ namespace qk {
 			size = Qk_Min(size, capacity);
 			ptr->val = ::realloc(ptr->val, sizeOf * size);
 			ptr->capacity = size;
-			Qk_Assert(ptr->val);
+			Qk_ASSERT(ptr->val);
 		}
 	}
 	
@@ -148,18 +148,18 @@ namespace qk {
 	// ---------------- R e f e r e n c e ----------------
 
 	Reference::~Reference() {
-		Qk_Assert( _refCount <= 0 );
+		Qk_ASSERT( _refCount <= 0 );
 	}
 
 	void Reference::retain() {
-		Qk_Assert(_refCount >= 0);
+		Qk_ASSERT(_refCount >= 0);
 		if ( _refCount++ == 0 ) {
 			object_heap_allocator->strong(this);
 		}
 	}
 
 	void Reference::release() {
-		Qk_Assert(_refCount >= 0);
+		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
 			object_heap_allocator->weak(this);
 		}

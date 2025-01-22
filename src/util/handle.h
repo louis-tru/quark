@@ -89,7 +89,7 @@ namespace qk {
 			return _data == h._data;
 		}
 
-		inline bool operator==(T* data) {
+		inline bool operator==(const T* data) {
 			return _data == data;
 		}
 
@@ -129,22 +129,20 @@ namespace qk {
 	template <class T> using Sp = Handle<T>;
 
 	/**
-	 * @class CPointerHold
+	 * @class CPointerHold C Pointer handle
 	*/
 	template<typename T> class CPointerHold {
 	public:
-		typedef std::function<void(T*)> Fun;
-		CPointerHold(T* ptr, Fun fun): _ptr(ptr), _fun(fun) {}
-		~CPointerHold() { _fun(_ptr); }
-		inline void collapse() { _fun = [](T*p){}; }
+		typedef std::function<void(T*)> Done;
+		CPointerHold(T* ptr, Done done): _ptr(ptr), _done(done) {}
+		~CPointerHold() { _done(_ptr); }
+		inline void collapse() { _done = [](T*p){}; }
 		inline operator bool() const { return _ptr != nullptr; }
 		inline T* operator->() { return _ptr; }
 		inline T* operator*() { return _ptr; }
-		inline const T* operator->() const { return _ptr; }
-		inline const T* operator*() const { return _ptr; }
 	private:
 		T  *_ptr;
-		Fun _fun;
+		Done _done;
 	};
 
 }

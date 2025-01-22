@@ -180,7 +180,7 @@ namespace qk {
 
 	void BoxFilter::set_view(View *value) {
 		if (value != _view.load()) {
-			Qk_Assert_Eq(_isIndependent, false);
+			Qk_ASSERT_EQ(_isIndependent, false);
 			_view.store(value);
 			if (!_window) // bind window
 				_window = value->window();

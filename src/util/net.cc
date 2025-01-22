@@ -88,19 +88,19 @@ namespace qk {
 			, _uv_timer(nullptr)
 			, _timeout(0)
 		{
-			Qk_Assert(loop);
+			Qk_ASSERT(loop);
 		}
 
 		~Inl() {
 			close_delete();
-			Qk_Assert(!_is_open);
-			Qk_Assert(!_retain);
+			Qk_ASSERT(!_is_open);
+			Qk_ASSERT(!_retain);
 		}
 
 		struct RetainRef {
 			RetainRef(Inl* hold, uv_loop_t* loop): hold(hold) {
-				Qk_Assert_Eq(0, uv_tcp_init(loop, &tcp));
-				Qk_Assert_Eq(0, uv_timer_init(loop, &timer));
+				Qk_ASSERT_EQ(0, uv_tcp_init(loop, &tcp));
+				Qk_ASSERT_EQ(0, uv_timer_init(loop, &timer));
 				tcp.data = this;
 				timer.data = this;
 			}
@@ -266,8 +266,8 @@ namespace qk {
 
 		// ------------------------------------------------------------------------------------------
 		void try_open() {
-			Qk_Assert(_is_opening == false);
-			Qk_Assert(_retain == nullptr);
+			Qk_ASSERT(_is_opening == false);
+			Qk_ASSERT(_retain == nullptr);
 			
 			if ( _remote_ip.isEmpty() ) {
 				sockaddr_in sockaddr;
@@ -313,11 +313,11 @@ namespace qk {
 					}
 				}
 			}
-			Qk_Assert(!_remote_ip.isEmpty());
+			Qk_ASSERT(!_remote_ip.isEmpty());
 
 			_retain = new RetainRef(this, uv_loop());
-			Qk_Assert(_uv_tcp == nullptr);
-			Qk_Assert(_uv_timer == nullptr);
+			Qk_ASSERT(_uv_tcp == nullptr);
+			Qk_ASSERT(_uv_timer == nullptr);
 			_uv_tcp = &_retain->tcp;
 			_uv_timer = &_retain->timer;
 			auto req = new SocketConReq(this);
@@ -325,8 +325,8 @@ namespace qk {
 			int r = uv_tcp_connect(req->req(), _uv_tcp, &_address, [](uv_connect_t* uv_req, int status) {
 				Handle<SocketConReq> req = SocketConReq::cast(uv_req);
 				Inl* self = req->ctx();
-				Qk_Assert(self->_is_opening);
-				Qk_Assert(!self->_is_open);
+				Qk_ASSERT(self->_is_opening);
+				Qk_ASSERT(!self->_is_open);
 
 				uv_tcp_keepalive(self->_uv_tcp, self->_enable_keep_alive, self->_keep_idle);
 				uv_tcp_nodelay(self->_uv_tcp, self->_no_delay);
@@ -415,7 +415,7 @@ namespace qk {
 		}
 
 		virtual void trigger_socket_data_char(int nread, Char* buffer) {
-			Qk_Assert( _is_open );
+			Qk_ASSERT( _is_open );
 			if ( nread < 0 ) {
 				if ( nread != UV_EOF ) { // 异常断开
 					report_uv_err(int(nread));
@@ -576,7 +576,7 @@ namespace qk {
 
 		static void ssl_write_cb(uv_write_t* req, int status) {
 			SSLSocketWriteReq* req_ = SSLSocketWriteReq::cast(req);
-			Qk_Assert(req_->data().buffers_count);
+			Qk_ASSERT(req_->data().buffers_count);
 
 			req_->data().buffers_count--;
 
@@ -614,7 +614,7 @@ namespace qk {
 
 		static int bio_write(BIO* b, cChar* in, int inl) {
 			SSL_INL* self = ((SSL_INL*)b->ptr);
-			Qk_Assert( self->_ssl_handshake );
+			Qk_ASSERT( self->_ssl_handshake );
 
 			int r;
 			Buffer buffer = WeakBuffer(in, inl)->copy();
@@ -645,7 +645,7 @@ namespace qk {
 				if ( self->_ssl_write_req ) { // send msg
 					
 					auto req = self->_ssl_write_req;
-					Qk_Assert( req->data().buffers_count < 2 );
+					Qk_ASSERT( req->data().buffers_count < 2 );
 					
 					uv_buf_t buf;
 					buf.base = *buffer;
@@ -680,7 +680,7 @@ namespace qk {
 		}
 		
 		static int bio_read(BIO *b, Char* out, int outl) {
-			Qk_Assert(out);
+			Qk_ASSERT(out);
 			SSL_INL* self = ((SSL_INL*)b->ptr);
 			
 			int ret = Qk_Min(outl, self->_bio_read_source_buffer_length);
@@ -717,13 +717,13 @@ namespace qk {
 		}
 		
 		void set_ssl_handshake_timeout() {
-			Qk_Assert(_retain);
+			Qk_ASSERT(_retain);
 			uv_timer_stop(_uv_timer);
 			uv_timer_start(_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
 		}
 		
 		virtual void trigger_socket_connect_open() {
-			Qk_Assert( !_ssl_handshake );
+			Qk_ASSERT( !_ssl_handshake );
 			set_ssl_handshake_timeout();
 			_bio_read_source_buffer_length = 0;
 			_ssl_handshake = 1;
@@ -746,7 +746,7 @@ namespace qk {
 				}
 				close_delete();
 			} else {
-				Qk_Assert( _bio_read_source_buffer_length == 0 );
+				Qk_ASSERT( _bio_read_source_buffer_length == 0 );
 
 				_bio_read_source_buffer = buffer;
 				_bio_read_source_buffer_length = nread;
@@ -773,7 +773,7 @@ namespace qk {
 						}
 					}
 				} else { // ssl handshake
-					Qk_Assert(_ssl_handshake == 1);
+					Qk_ASSERT(_ssl_handshake == 1);
 
 					int r = SSL_connect(_ssl);
 
@@ -790,7 +790,7 @@ namespace qk {
 						reset_timeout();
 						_delegate->trigger_socket_open(_host);
 						
-						Qk_Assert( _bio_read_source_buffer_length == 0 );
+						Qk_ASSERT( _bio_read_source_buffer_length == 0 );
 					}
 				}
 				
@@ -798,7 +798,7 @@ namespace qk {
 		}
 
 		virtual void write(Buffer& buffer, int flag) {
-			Qk_Assert(!_ssl_write_req);
+			Qk_ASSERT(!_ssl_write_req);
 
 			auto req = new SSLSocketWriteReq(this, 0, { buffer, flag, 0, 0 });
 			_ssl_write_req = req;

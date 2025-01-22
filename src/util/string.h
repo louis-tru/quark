@@ -206,12 +206,12 @@ namespace qk {
 		typedef StringBase::Long::Base Base;
 
 		static cChar ws[8];
-		static bool toNumber(const void* i, int iLen, int sizeOf, int32_t* o);
-		static bool toNumber(const void* i, int iLen, int sizeOf, uint32_t* o);
-		static bool toNumber(const void* i, int iLen, int sizeOf, int64_t* o);
-		static bool toNumber(const void* i, int iLen, int sizeOf, uint64_t* o);
-		static bool toNumber(const void* i, int iLen, int sizeOf, float* o);
-		static bool toNumber(const void* i, int iLen, int sizeOf, double* o);
+		static bool toNumber(cVoid* i, int iLen, int sizeOf, int32_t* o);
+		static bool toNumber(cVoid* i, int iLen, int sizeOf, uint32_t* o);
+		static bool toNumber(cVoid* i, int iLen, int sizeOf, int64_t* o);
+		static bool toNumber(cVoid* i, int iLen, int sizeOf, uint64_t* o);
+		static bool toNumber(cVoid* i, int iLen, int sizeOf, float* o);
+		static bool toNumber(cVoid* i, int iLen, int sizeOf, double* o);
 		static int  oPrinti(char* o, uint32_t oLen, int32_t i);
 		static int  oPrinti(char* o, uint32_t oLen, uint32_t i);
 		static int  oPrinti(char* o, uint32_t oLen, int64_t i);
@@ -231,7 +231,7 @@ namespace qk {
 
 		class Iterator { public: virtual bool next(String* out) = 0; };
 		static String join(cString& sp, void* data, uint32_t len, bool (*iterator)(void* data, String* out));
-		static String toString(const void* ptr, uint32_t len, int sizeOf);
+		static String toString(cVoid* ptr, uint32_t len, int sizeOf);
 		template<typename T>
 		static String toString(const T& t) {
 			return _To<T, object_traits<T>::isObj>::call(t);
@@ -249,34 +249,34 @@ namespace qk {
 			typedef T* Type;
 			static String call(const Type& t) { return String::format("[%p]", t); }
 		};
-		static void strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
+		static void strcpy(void* o, int sizeof_o, cVoid* i, int sizeof_i, uint32_t len);
 		template <typename Output, typename Input>
 		static void strcpy(Output* o, const Input* i, uint32_t len) {
 			strcpy(o, sizeof(Output), i, sizeof(Input), len);
 		}
-		static uint32_t strlen(const void* s, int sizeOf);
+		static uint32_t strlen(cVoid* s, int sizeOf);
 		template <typename T>
 		static uint32_t strlen(const T* s) {
 			return strlen(s, sizeof(T));
 		}
-		static int memcmp(const void* s1, const void* s2, uint32_t len, int sizeOf);
+		static int memcmp(cVoid* s1, cVoid* s2, uint32_t len, int sizeOf);
 		// 1 > , -1 <, 0 ==
 		template <typename T>
 		static int strcmp(const T* s1, const T* s2, uint32_t len) {
 			return _Str::memcmp(s1, s2, len + 1, sizeof(T));
 		}
 		static int32_t index_of(
-			const void* s1, uint32_t s1_len,
-			const void* s2, uint32_t s2_len, uint32_t start, int sizeOf
+			cVoid* s1, uint32_t s1_len,
+			cVoid* s2, uint32_t s2_len, uint32_t start, int sizeOf
 		);
 		static int32_t last_index_of(
-			const void* s1, uint32_t s1_len,
-			const void* s2, uint32_t s2_len, uint32_t start, int sizeOf
+			cVoid* s1, uint32_t s1_len,
+			cVoid* s2, uint32_t s2_len, uint32_t start, int sizeOf
 		);
 		static void* replace(
-			const void* s1, uint32_t s1_len,
-			const void* s2, uint32_t s2_len,
-			const void* rep, uint32_t rep_len,
+			cVoid* s1, uint32_t s1_len,
+			cVoid* s2, uint32_t s2_len,
+			cVoid* rep, uint32_t rep_len,
 			int sizeOf, uint32_t* out_len, uint32_t* capacity_out, bool all, Realloc realloc
 		);
 		static int tolower(int c);
@@ -314,7 +314,7 @@ namespace qk {
 	StringImpl<T, A>::StringImpl(const T* s, uint32_t len)
 		: StringBase(len, (Realloc)&A::realloc, sizeof(T))
 	{
-		Qk_Assert(len < 268435456); // 256 MB
+		Qk_ASSERT(len < 268435456); // 256 MB
 		_Str::strcpy(val(), s, len);
 	}
 
@@ -322,8 +322,8 @@ namespace qk {
 	StringImpl<T, A>::StringImpl(const T* a, uint32_t aLen, const T* b, uint32_t bLen)
 		: StringBase(aLen + bLen, (Realloc)&A::realloc, sizeof(T))
 	{
-		Qk_Assert(aLen < 268435456); // 256 MB
-		Qk_Assert(bLen < 268435456); // 256 MB
+		Qk_ASSERT(aLen < 268435456); // 256 MB
+		Qk_ASSERT(bLen < 268435456); // 256 MB
 		_Str::strcpy(val(),        a, aLen);
 		_Str::strcpy(val() + aLen, b, bLen);
 	}
@@ -430,7 +430,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>& StringImpl<T, A>::assign(const T* s, uint32_t len) {
-		Qk_Assert(len < 268435456); // 256 MB
+		Qk_ASSERT(len < 268435456); // 256 MB
 		_Str::strcpy((T*)realloc(len, (Realloc)&A::realloc, &A::free, sizeof(T)), s, len); // copy str
 		return *this;
 	}
@@ -490,7 +490,7 @@ namespace qk {
 		return append(&s, 1);
 	}
 
-	uint64_t hashCode(const void* data, uint32_t len);
+	uint64_t hashCode(cVoid* data, uint32_t len);
 
 	template <typename T, typename A>
 	uint64_t StringImpl<T, A>::hashCode() const {

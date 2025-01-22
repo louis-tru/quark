@@ -2,7 +2,7 @@
 	'targets':[
 	{ # quark
 		'target_name': 'quark',
-		'type': 'static_library', #<(output_type)
+		'type': 'static_library',
 		'include_dirs': [
 			'../out',
 			'../deps/freetype/include',
@@ -104,8 +104,10 @@
 			'render/codec/tga.cc',
 			'render/codec/gif.cc',
 			'render/codec/pvrtc.cc',
-			'render/font/font.h',
-			'render/font/font.cc',
+			'render/font/glyphs.h',
+			'render/font/glyphs.cc',
+			'render/font/families.h',
+			'render/font/families.cc',
 			'render/font/metrics.h',
 			'render/font/pool.h',
 			'render/font/pool.cc',
@@ -113,7 +115,12 @@
 			'render/font/style.cc',
 			'render/font/typeface.h',
 			'render/font/typeface.cc',
-			'render/font/util.h',
+			'render/font/priv/to.h',
+			'render/font/priv/util.h',
+			'render/font/priv/mutex.h',
+			'render/font/priv/mutex.cc',
+			'render/font/priv/semaphore.h',
+			'render/font/priv/semaphore.cc',
 			'render/blend.h',
 			'render/canvas.h',
 			'render/canvas.cc',
@@ -176,16 +183,18 @@
 			}],
 			['os=="android"', {
 				'sources': [
-					'platforms/linux/linux_gl.h',
-					'platforms/linux/linux_gl.cc',
 					'platforms/android/android_app.cc',
+					'platforms/android/android_ime_helper.cc',
 					'platforms/android/android_keyboard.cc',
+					'platforms/android/android_os.cc',
+					'platforms/android/android.h',
+					'platforms/android/android.cc',
+					'render/linux/linux_render.h',
+					'render/linux/linux_render.cc',
+					'render/linux/linux_vulkan.cc',
 					# 'platforms/android/org/quark/Activity.java',
-					# 'platforms/android/org/quark/API.java',
+					# 'platforms/android/org/quark/Android.java',
 					# 'platforms/android/org/quark/IMEHelper.java',
-					'platforms/android/android_api.h',
-					'platforms/android/android_api.cc',
-					'platforms/android/android_device.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -200,14 +209,13 @@
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
-					'os/os_mac.mm',
 					'platforms/mac/mac_app.h',
 					'platforms/mac/mac_app.mm',
 					'platforms/mac/mac_keyboard.mm',
+					'platforms/mac/mac_os.mm',
 					'render/codec/codec_mac.mm',
-					'render/render_mac.h',
-					'render/render_mac.mm',
-					'render/font/util_mac.h',
+					'render/mac/mac_render.h',
+					'render/mac/mac_metal.mm',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
 					'render/font/ct/ct_typeface.h',
@@ -229,7 +237,7 @@
 					'platforms/mac/ios_ime_helper.mm',
 					'platforms/mac/ios_main.mm',
 					'platforms/mac/ios_window.mm',
-					'render/render_ios.mm',
+					'render/mac/ios_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -247,7 +255,7 @@
 					'platforms/mac/osx_ime_helper.mm',
 					'platforms/mac/osx_main.mm',
 					'platforms/mac/osx_window.mm',
-					'render/render_osx.mm',
+					'render/mac/osx_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -259,7 +267,7 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/linux/linux_device.cc',
+					'platforms/linux/linux_os.cc',
 					'platforms/linux/linux_gl.h',
 					'platforms/linux/linux_gl.cc',
 					'platforms/linux/linux_app.cc',
@@ -334,7 +342,7 @@
 	},
 	{ # media
 		'target_name': 'quark-media',
-		'type': 'static_library', #<(output_type)
+		'type': 'static_library',
 		'dependencies': [
 			'quark',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
@@ -377,7 +385,7 @@
 					'platforms/linux_media_codec.cc',
 					'platforms/linux_pcm_player.cc',
 				],
-				'link_settings': { 
+				'link_settings': {
 					'libraries': [ '-lasound' ],
 				},
 			}],

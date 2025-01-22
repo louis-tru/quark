@@ -249,7 +249,7 @@ namespace qk {
 		auto &blob = pre.blobOut->push({
 			ascent, height, origin, line, pre.index_of_unichar,
 			{pre.typeface, glyphs.copy(), offset},
-		}).back();
+		});
 
 		if (frontOffset < 0) {
 			for (auto &i: blob.blob.offset) {

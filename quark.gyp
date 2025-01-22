@@ -53,22 +53,20 @@
 					'action_name': 'mk_quark_dylib',
 					'variables': {
 						'embed_bitcode%': 0,
-						'use_v8_link%': 0,
-						'lib_v8_a%': [
-							'<(output)/libv8_base.a', 
-							'<(output)/libv8_libbase.a',
-							'<(output)/libv8_libsampler.a',
-							'<(output)/libv8_builtins_setup.a',
-							'<(output)/libv8_nosnapshot.a',
-							'<(output)/libv8_libplatform.a',
-						],
+						'lib_v8_a%': [],
 						'conditions': [
 							['arch in "arm arm64" and without_embed_bitcode==0', {
 								'embed_bitcode': 1,
 							}],
-							['use_v8==0 and os=="ios"', {
-								'use_v8_link': 1,
-								'lib_v8_a': [ '<(output)/libv8-link.a' ],
+							['use_v8==1', {
+								'lib_v8_a': [
+									'<(output)/libv8_base.a', 
+									'<(output)/libv8_libbase.a',
+									'<(output)/libv8_libsampler.a',
+									'<(output)/libv8_builtins_setup.a',
+									'<(output)/libv8_nosnapshot.a',
+									'<(output)/libv8_libplatform.a',
+								],
 							}],
 						],
 					},
@@ -91,8 +89,6 @@
 					],
 					'outputs': [
 						'<(output)/libquark.dylib',
-						# '<(output)/libquark-media.dylib',
-						# '<(output)/libquark-js.dylib',
 					],
 					'action': [ 
 						'sh', '-c', 
@@ -107,10 +103,9 @@
 			}],
 			# output not mac shared library for "libquark.so"
 			['library_output=="shared_library" and OS!="mac"', {
-				'product_name': 'quark', # libquark.so
+				'product_prefix': 'quark', # libquark.so
+				'product_extension': 'so',
 				'type': 'shared_library',
-				# 'product_prefix': 'quark',
-				# 'product_extension': 'so',
 				'copies': [{
 					'destination': '<(quark_product_dir)/<(quark_product_so_subdir)',
 					'files': [

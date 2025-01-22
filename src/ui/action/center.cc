@@ -46,8 +46,8 @@ namespace qk {
 		while (it != _actions_Rt.end()) {
 			(it++)->value->stop_Rt();
 		}
-		Qk_Fatal_Assert(_CSSTransitions_Rt.length() == 0, "ActionCenter::~ActionCenter stop CSSTransitions");
-		Qk_Fatal_Assert(_actions_Rt.length() == 0, "ActionCenter::~ActionCenter stop actions first");
+		Qk_ASSERT_RAW(_CSSTransitions_Rt.length() == 0, "ActionCenter::~ActionCenter stop CSSTransitions");
+		Qk_ASSERT_RAW(_actions_Rt.length() == 0, "ActionCenter::~ActionCenter stop actions first");
 	}
 
 	void ActionCenter::addCSSTransition_Rt(View *view, CStyleSheets *css) {

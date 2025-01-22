@@ -67,7 +67,7 @@ export default async function (win: Window) {
 	Pv(app.defaultTextOptions, 'textSlant', e=>e==types.TextSlant.Italic,
 		e=>e.textSlant=types.parseTextSlant('italic'))
 
-	Pv(app.defaultTextOptions, 'textFamily', e=>!!e.familys())
+	Pv(app.defaultTextOptions, 'textFamily', e=>!!e.families())
 
 	Pv(app.defaultTextOptions, 'textShadow', e=>e.value.color.toString()=='#0000ff'&&e.value.x==10,
 		e=>e.textShadow=types.parseTextShadow('10 10 10 #00f'))

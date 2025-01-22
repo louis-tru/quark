@@ -47,9 +47,9 @@ struct CTFontVariation {
 	OpszVariation opsz;
 };
 
-QkUniqueCFRef<CTFontRef> SkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat textSize, OpszVariation opsz);
+QkUniqueCFRef<CTFontRef> QkCTFontCreateExactCopy(CTFontRef baseFont, CGFloat textSize, OpszVariation opsz);
 
-FontStyle QkCTFontDescriptorGetSkFontStyle(CTFontDescriptorRef desc, bool fromDataProvider);
+FontStyle QkCTFontDescriptorGetQkFontStyle(CTFontDescriptorRef desc, bool fromDataProvider);
 
 CGFloat QkCTFontCTWeightForCSSWeight(TextWeight fontstyleWeight);
 CGFloat QkCTFontCTWidthForCSSWidth(TextWidth fontstyleWidth);
@@ -64,15 +64,16 @@ public:
 	String onGetFamilyName() const override;
 	size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;
 	void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
-	void onGetMetrics(FontMetrics* metrics) const override;
-	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const override;
-	bool onGetPath(GlyphID glyph, Path *path) const override;
-	Vec2 onGetImage(const Array<GlyphID>& glyphs, float fontSize,
-		cArray<Vec2> *offset, float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render) override;
+	void onGetMetrics(FontMetrics* metrics) override;
+	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) override;
+	bool onGetPath(GlyphID glyph, Path *path) override;
+	ImageOut onGetImage(cArray<GlyphID>& glyphs, float fontSize,
+		cArray<Vec2> *offset, float offsetScale, RenderBackend *render) override;
 private:
 	QkUniqueCFRef<CTFontRef> ctFont(float fontSize) const;
 	QkUniqueCFRef<CGColorSpaceRef> fRGBSpace;
 	QkUniqueCFRef<CTFontRef> fFontRef;
+	QkUniqueCFRef<CGFontRef> fCGFontRef;
 	const OpszVariation fOpszVariation;
 	const bool fHasColorGlyphs;
 	const bool fIsData;

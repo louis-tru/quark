@@ -37,33 +37,26 @@ namespace qk {
 
 	class Stream {
 	public:
+		struct Response {
+			int64_t  size, total;
+			Buffer   &data;
+			Stream   *stream;
+			uint32_t id;
+			bool     end;
+		};
 		virtual void pause() = 0;
 		virtual void resume() = 0;
+		// Maybe it will be implemented later
+		//virtual void read(Buffer dest, int64_t offset = -1, Cb cb = 0, void *extra = 0);
+		//virtual uint32_t read_stream(int64_t size, int64_t offset, Callback<Response> cb);
 	};
 
-	class StreamResponse: public Object {
+	typedef Wobj<Stream::Response> StreamResponse;
+
+	class StreamSync {
 	public:
-		inline StreamResponse(Buffer &buffer, bool complete = 0
-											, uint32_t id = 0, uint64_t size = 0
-											, uint64_t total = 0, Stream* stream = nullptr)
-		: _buffer(buffer), _complete(complete)
-		, _size(size), _total(total), _id(id), _stream(stream) {
-		}
-		inline bool     complete() const { return _complete; }
-		inline int64_t  size() const { return _size; }
-		inline int64_t  total() const { return _total; }
-		inline Buffer&  buffer() { return _buffer; }
-		inline cBuffer& buffer() const { return _buffer; }
-		inline uint32_t id() const { return _id; }
-		inline Stream*  stream() const { return _stream; }
-		inline void     pause() { if ( _stream ) _stream->pause(); }
-		inline void     resume() { if ( _stream ) _stream->resume(); }
-	private:
-		Buffer    &_buffer;
-		bool      _complete;
-		int64_t   _size, _total;
-		uint32_t  _id;
-		Stream*   _stream;
+		virtual int read(void* dest, int64_t size, int64_t offset = -1) = 0;
+		virtual int write(cVoid* data, int64_t size, int64_t offset = -1) = 0;
 	};
 
 }

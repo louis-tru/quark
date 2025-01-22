@@ -30,12 +30,16 @@
 
 #include <sys/stat.h>
 #include "./fs.h"
-
 #if Qk_WIN
-	#include <io.h>
-	#include <direct.h>
+#include <io.h>
+#include <direct.h>
 #else
-	#include <unistd.h>
+#include <unistd.h>
+#endif
+
+#if Qk_LINUX
+#include <sys/utsname.h>
+#include <stdlib.h>
 #endif
 
 namespace qk {
@@ -86,25 +90,25 @@ namespace qk {
 
 	String fs_cwd() {
 #if Qk_WIN
-			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
-			_getcwd(cwd + 8, 1024);
-			String str = String(cwd).replace_all('\\', '/');
-			if (str.length() == 10)
-				str.push('/'); //
-			return str;
+		char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
+		_getcwd(cwd + 8, 1024);
+		String str = String(cwd).replace_all('\\', '/');
+		if (str.length() == 10)
+			str.push('/'); //
+		return str;
 #else
-			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/' };
-			getcwd(cwd + 7, 1024);
-			return cwd;
+		char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/' };
+		getcwd(cwd + 7, 1024);
+		return cwd;
 #endif
 	}
 
 	bool fs_chdir(cString& path) {
 		String str = fs_format("%s", path.c_str());
 #if Qk_WIN
-			return _chdir(str.substr(8).c_str()) == 0;
+		return _chdir(str.substr(8).c_str()) == 0;
 #else
-			return ::chdir(str.substr(7).c_str()) == 0;
+		return chdir(str.substr(7).c_str()) == 0;
 #endif
 	}
 
@@ -112,13 +116,13 @@ namespace qk {
 
 	bool fs_is_local_absolute(cString& path) {
 #if Qk_WIN
-			if (Chars.index_of(s[0]) != -1 && path[1] == ':') {
-				return true;
-			}
+		if (Chars.index_of(s[0]) != -1 && path[1] == ':') {
+			return true;
+		}
 #else
-			if (path[0] == '/') {
-				return true;
-			}
+		if (path[0] == '/') {
+			return true;
+		}
 #endif
 		else if ( fs_is_local_zip(path) || fs_is_local_file( path ) ) {
 			return true;
@@ -191,84 +195,83 @@ namespace qk {
 
 	String fs_format(cString& path) {
 		String s = path.copy();
-		
+
 #if Qk_WIN
-			// TODO wondows ...
-			s = path.replace_all('\\', '/');
+		// TODO wondows ...
+		s = path.replace_all('\\', '/');
+		
+		String prefix;
+		
+		if (s[0] == '/') { // absolute path
+			// add windows drive letter
+			// file:///c:/
+			prefix = cwd().substr(0, 11);
+		}
+		else if ( s.length() > 7 && is_local_zip(s) ) {
 			
-			String prefix;
-			
-			if (s[0] == '/') { // absolute path
-				// add windows drive letter
-				// file:///c:/
-				prefix = cwd().substr(0, 11);
-			}
-			else if ( s.length() > 7 && is_local_zip(s) ) {
-				
-				if (Chars.index_of(s[7]) != -1 && s[8] == ':') { // zip:///c:
-					if (s.length() < 10) {
-						return s.substr(0, 9).append('/');
-					} else if (s[9] == '/') { // zip:///c:/
-						prefix = s.substr(0, 10);
-						s = s.substr(10);
-					} else { // invalid windows path
-						prefix = "zip:///"; // unix path ?
-						s = s.substr(7);
-					}
-				} else {
+			if (Chars.index_of(s[7]) != -1 && s[8] == ':') { // zip:///c:
+				if (s.length() < 10) {
+					return s.substr(0, 9).append('/');
+				} else if (s[9] == '/') { // zip:///c:/
+					prefix = s.substr(0, 10);
+					s = s.substr(10);
+				} else { // invalid windows path
 					prefix = "zip:///"; // unix path ?
 					s = s.substr(7);
 				}
-				
-			} else if ( s.length() >= 8 && is_local_file( s ) ) { // file:///
-				
-				if (Chars.index_of(s[8]) != -1 && s[9] == ':') { // file:///c:
-					if (s.length() < 11) {
-						return s.substr(0, 10).append('/');
-					} else if (s[10] == '/') { // file:///c:/
-						prefix = s.substr(0, 11);
-						s = s.substr(11);
-					} else { // invalid windows path
-						prefix = "file:///"; // unix path ?
-						s = s.substr(8);
-					}
-				} else {
+			} else {
+				prefix = "zip:///"; // unix path ?
+				s = s.substr(7);
+			}
+			
+		} else if ( s.length() >= 8 && is_local_file( s ) ) { // file:///
+			
+			if (Chars.index_of(s[8]) != -1 && s[9] == ':') { // file:///c:
+				if (s.length() < 11) {
+					return s.substr(0, 10).append('/');
+				} else if (s[10] == '/') { // file:///c:/
+					prefix = s.substr(0, 11);
+					s = s.substr(11);
+				} else { // invalid windows path
 					prefix = "file:///"; // unix path ?
 					s = s.substr(8);
 				}
-			} else { // Relative path
-				if (s.length() >= 2 &&
-						Chars.index_of(s[0]) != -1 && s[1] == ':' &&
-						(s.length() < 3 || s[2] == '/')
-						) { // Windows absolute path
-					prefix = String("file:///").push(*s, 2).push('/');
-					s = s.substr(2);
-				}
-				else {
-					// file:///c:/
-					prefix = cwd().substr(0, 11);
-					s = cwd().substr(11).push('/').push(s);
-				}
-			}
-#else
-			String prefix = "file:///";
-			if (s[0] == '/') { // absolute path
-				//
 			} else {
-				if ( s.length() > 7 && fs_is_local_zip(s) ) {
-					prefix = "zip:///";
-					s = s.substr(7);
-				}
-				else if (s.length() >= 8 && fs_is_local_file( s ) ) {
-					s = s.substr(8);
-				} else { // Relative path
-					s = fs_cwd().substr(8).append('/').append(s);
-				}
+				prefix = "file:///"; // unix path ?
+				s = s.substr(8);
 			}
+		} else { // Relative path
+			if (s.length() >= 2 &&
+					Chars.index_of(s[0]) != -1 && s[1] == ':' &&
+					(s.length() < 3 || s[2] == '/')
+					) { // Windows absolute path
+				prefix = String("file:///").push(*s, 2).push('/');
+				s = s.substr(2);
+			}
+			else {
+				// file:///c:/
+				prefix = cwd().substr(0, 11);
+				s = cwd().substr(11).push('/').push(s);
+			}
+		}
+#else
+		String prefix = "file:///";
+		if (s[0] == '/') { // absolute path
+			//
+		} else {
+			if ( s.length() > 7 && fs_is_local_zip(s) ) {
+				prefix = "zip:///";
+				s = s.substr(7);
+			}
+			else if (s.length() >= 8 && fs_is_local_file( s ) ) {
+				s = s.substr(8);
+			} else { // Relative path
+				s = fs_cwd().substr(8).append('/').append(s);
+			}
+		}
 #endif
-		
 		s = fs_format_part_path(s);
-		
+
 		return prefix.append( s );
 	}
 
@@ -282,19 +285,19 @@ namespace qk {
 
 	int fallback_indexOf(cString& path) {
 #if Qk_WIN
-			if ( fs_is_local_zip(path) ) {
-				return 7;
-			}
-			else if ( fs_is_local_file(path) ) {
-				return 8;
-			}
+		if ( fs_is_local_zip(path) ) {
+			return 7;
+		}
+		else if ( fs_is_local_file(path) ) {
+			return 8;
+		}
 #else
-			if ( fs_is_local_zip(path) ) {
-				return 6;
-			}
-			else if ( fs_is_local_file(path) ) {
-				return 7;
-			}
+		if ( fs_is_local_zip(path) ) {
+			return 6;
+		}
+		else if ( fs_is_local_file(path) ) {
+			return 7;
+		}
 #endif
 		return 0;
 	}
@@ -307,70 +310,62 @@ namespace qk {
 		return path.c_str() + fallback_indexOf(path);
 	}
 
-}
-
 #if Qk_LINUX
-#include <sys/utsname.h>
-#include <stdlib.h>
-
-namespace qk {
-	static String executable_path, documents_path, temp_path, resources_path;
+	static String path_executable, path_documents, path_temp, path_resources;
 
 	String fs_executable() {
-		if (executable_path.is_empty()) {
+		if (path_executable.is_empty()) {
 			char dir[PATH_MAX] = { 0 };
 			int n = readlink("/proc/self/exe", dir, PATH_MAX);
-			executable_path = fs_format("%s", dir);
+			path_executable = fs_format("%s", dir);
 		}
-		return executable_path;
+		return path_executable;
 	}
 
 	String fs_documents(cString& child) {
-		if (documents_path.is_empty()) {
-			documents_path = fs_format("%s/%s", getenv("HOME"), "Documents");
-			fs_mkdir_p_sync(documents_path);
+		if (path_documents.is_empty()) {
+			path_documents = fs_format("%s/%s", getenv("HOME"), "Documents");
+			fs_mkdir_p_sync(path_documents);
 		}
 		if ( child.is_empty() )
-			return documents_path;
-		return fs_format("%s/%s", *documents_path, *child);
+			return path_documents;
+		return fs_format("%s/%s", *path_documents, *child);
 	}
 
 	String fs_temp(cString& child) {
-		if (temp_path.is_empty()) {
-			temp_path = fs_format("%s/%s", getenv("HOME"), ".cache");
-			fs_mkdir_p_sync(temp_path);
+		if (path_temp.is_empty()) {
+			path_temp = fs_format("%s/%s", getenv("HOME"), ".cache");
+			fs_mkdir_p_sync(path_temp);
 		}
 		if (child.is_empty())
-			return temp_path;
-		return fs_format("%s/%s", *temp_path, *child);
+			return path_temp;
+		return fs_format("%s/%s", *path_temp, *child);
 	}
 
 	String fs_resources(cString& child) {
-		if (resources_path.is_empty()) {
-			resources_path = fs_dirname(fs_executable());
+		if (path_resources.is_empty()) {
+			path_resources = fs_dirname(fs_executable());
 		}
 		if (child.is_empty())
-			return resources_path;
-		return fs_format("%s/%s", *resources_path, *child);
+			return path_resources;
+		return fs_format("%s/%s", *path_resources, *child);
 	}
-
-}
 #endif
+}
 
 #if Qk_ANDROID
-#include "./jni.h"
+#include "../platforms/android/android.h"
 
 extern "C" {
 
-	Qk_Export void Java_org_quark_API_setPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+	void Java_org_quark_Android_initPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
 		using namespace qk;
-		documents_path = JNI::jstring_to_string(files_dir);
-		temp_path = JNI::jstring_to_string(cache_dir);
-		resources_path = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));
-		
+		path_documents = JNI::jstring_to_string(files_dir);
+		path_temp = JNI::jstring_to_string(cache_dir);
+		path_resources = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));
 		char dir[PATH_MAX] = { 0 };
 		readlink("/proc/self/exe", dir, PATH_MAX);
-		executable_path = fs_format("%s", dir);
+		path_executable = fs_format("%s", dir);
 	}
 }
 #endif

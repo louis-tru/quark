@@ -259,3 +259,37 @@ id<QkIMEHelprt> qk_make_ime_helper(Window *win) {
 	return [[QkOsxIMEHelprt alloc] initIME:win];
 }
 
+// ***************** E v e n t . D i s p a t c h *****************
+
+void EventDispatch::setVolumeUp() {
+}
+
+void EventDispatch::setVolumeDown() {
+}
+
+void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
+}
+
+void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
+	auto delegate = window()->impl()->delegate();
+	qk_post_messate_main(Cb([options,delegate](auto e) {
+		[delegate.ime set_keyboard_type:options.type];
+		[delegate.ime set_keyboard_return_type:options.return_type];
+		[delegate.ime activate: options.clear];
+		[delegate.ime set_spot_rect:options.spot_rect];
+	}), false);
+}
+
+void EventDispatch::setImeKeyboardClose() {
+	auto delegate = window()->impl()->delegate();
+	qk_post_messate_main(Cb([delegate](auto e) {
+		[delegate.ime deactivate];
+	}), false);
+}
+
+void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
+	auto delegate = window()->impl()->delegate();
+	qk_post_messate_main(Cb([delegate,rect](auto e) {
+		[delegate.ime set_spot_rect:rect];
+	}), false);
+}

@@ -70,8 +70,8 @@ namespace qk { namespace js {
 
 	#define JsStringWithUTF8(S) JSCStringPtr::without(JSStringCreateWithUTF8CString(S))
 	#define JsFatal(...) &ex); do { qk::js::jsFatal(ctx,ex, ##__VA_ARGS__); } while (0
-	#define DCHECK Qk_Assert
-	#define CHECK  Qk_Fatal_Assert
+	#define DCHECK Qk_ASSERT
+	#define CHECK  Qk_ASSERT_RAW
 
 	#define _Fun(name) extern JSStringRef name##_s;
 	Js_Const_Strings(_Fun)

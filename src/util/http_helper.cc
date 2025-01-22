@@ -87,10 +87,8 @@ namespace qk {
 
 			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
 				if ( stream ) {
-					// TODO 现在还不支持暂停与恢复功能
-					StreamResponse data(buffer, 0, id(),
-														client->download_size(),
-														client->download_total(), nullptr /*, this*/);
+					StreamResponse data({client->download_size(),
+															client->download_total(), buffer, this, id(), false});
 					scb->resolve(&data);
 				} else {
 					if ( response_data ) {
@@ -115,11 +113,9 @@ namespace qk {
 					cb->reject(&e);
 				} else {
 					if ( stream ) {
-						// TODO 现在还不支持暂停与恢复功能
 						Buffer buffer;
-						StreamResponse data(buffer, 1, id(),
-															client->download_size(),
-															client->download_total(), nullptr /*, this*/);
+						StreamResponse data({client->download_size(),
+																client->download_total(), buffer, this, id(), true});
 						scb->resolve(&data);
 					} else {
 						ResponseData rdata;

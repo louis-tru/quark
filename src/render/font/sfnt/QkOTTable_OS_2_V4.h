@@ -8,7 +8,6 @@
 #ifndef QkOTTable_OS_2_V4_DEFINED
 #define QkOTTable_OS_2_V4_DEFINED
 
-#include "../util.h"
 #include "QkIBMFamilyClass.h"
 #include "QkPanose.h"
 

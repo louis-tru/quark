@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import utils from './util';
-import {ReadStream, AsyncTask, StreamData} from './fs';
+import {Stream, AsyncTask, StreamResponse} from './fs';
 import event, {
 	EventNoticer, NativeNotification, Notification, Event,
 } from './event';
@@ -56,7 +56,7 @@ export enum HttpReadyState {
 
 type HttpEvent<T = void> = Event<HttpClientRequest, T>
 
-declare class NativeHttpClientRequest extends Notification<HttpEvent> implements ReadStream {
+declare class NativeHttpClientRequest extends Notification<HttpEvent> implements Stream {
 	readonly uploadTotal: number; // !< Total amount of data to be uploaded to the server
 	readonly uploadSize: number; // !< The data size has been written and uploaded to the server
 	readonly downloadTotal: number; // !< Total amount of data to be downloaded
@@ -131,15 +131,15 @@ export function request(options: RequestOptions): AsyncTask<RequestResult> {
 	});
 }
 
-export function requestStream(options: RequestOptions, cb: (stream: StreamData)=>void) {
+export function requestStream(options: RequestOptions, cb: (stream: StreamResponse)=>void) {
 	return new AsyncTask<void>(function(resolve, reject): number {
-		return _http.requestStream(options, function(err?: Error, r?: StreamData) {
+		return _http.requestStream(options, function(err?: Error, r?: StreamResponse) {
 			if (err) {
 				reject(err);
 			} else {
-				var stream = r as StreamData;
+				var stream = r as StreamResponse;
 				cb(stream);
-				if (stream.complete) {
+				if (stream.end) {
 					resolve();
 				}
 			}
@@ -163,7 +163,7 @@ export function get(url: string) {
 	return request({ url });
 }
 
-export function getStream(url: string, cb: (stream: StreamData)=>void) {
+export function getStream(url: string, cb: (stream: StreamResponse)=>void) {
 	return requestStream({ url }, cb);
 }
 

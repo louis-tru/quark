@@ -91,20 +91,19 @@ namespace qk {
 		FileType type;
 	};
 
-	class Qk_Export FileSync: public Object {
+	class Qk_Export FileSync: public Object, public StreamSync {
 		Qk_HIDDEN_ALL_COPY(FileSync);
 	public:
-		FileSync(cString& path);
-		virtual ~FileSync();
-		bool is_open();
-		int  open(int flag = FOPEN_R, uint32_t mode = fs_default_mode);
-		int  close();
-		int  read(void* buffer, int64_t size, int64_t fdOffset = -1);
-		int  write(const void* buffer, int64_t size, int64_t fdOffset = -1);
-		// props
 		Qk_DEFINE_P_GET(String, path, Const);
+		FileSync(cString& path);
+		~FileSync() override;
+		bool is_open();
+		int open(int flag = FOPEN_R, uint32_t mode = fs_default_mode);
+		int close();
+		int read(void* dest, int64_t size, int64_t fdOffset = -1) override;
+		int write(cVoid* data, int64_t size, int64_t fdOffset = -1) override;
 	private:
-		int  _fd;
+		int _fd;
 	};
 
 	class Qk_Export File: public Object {
@@ -115,18 +114,18 @@ namespace qk {
 			virtual void trigger_file_open (File* file) = 0;
 			virtual void trigger_file_close(File* file) = 0;
 			virtual void trigger_file_error(File* file, cError& error) = 0;
-			virtual void trigger_file_read (File* file, Buffer& buffer, int flag) = 0;
-			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) = 0;
+			virtual void trigger_file_read (File* file, Buffer& buffer, int extra) = 0;
+			virtual void trigger_file_write(File* file, Buffer& buffer, int extra) = 0;
 		};
 		File(cString& path, RunLoop* loop = RunLoop::current());
-		virtual ~File();
+		~File() override;
 		String path() const;
 		void set_delegate(Delegate* delegate);
 		bool is_open();
 		void open(int flag = FOPEN_R, uint32_t mode = fs_default_mode);
 		void close();
-		void read (Buffer buffer, int64_t fdOffset = -1, int flag = 0);
-		void write(Buffer buffer, int64_t fdOffset = -1, int flag = 0);
+		void read (Buffer dest, int64_t fdOffset = -1, int extra = 0);
+		void write(Buffer data, int64_t fdOffset = -1, int extra = 0);
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Inl* _inl;
@@ -238,7 +237,7 @@ namespace qk {
 	Qk_Export void fs_link(cString& path, cString& newPath, Cb cb = 0);
 	Qk_Export void fs_unlink(cString& path, Cb cb = 0);
 	Qk_Export void fs_rmdir(cString& path, Cb cb = 0);
-	Qk_Export void fs_readdir(cString& path, Callback<Array<Dirent>> cb = 0);
+	Qk_Export void fs_readdir(cString& path, Callback<Array<Dirent>> cb);
 	Qk_Export void fs_stat(cString& path, Callback<FileStat> cb = 0);
 	Qk_Export void fs_exists(cString& path, Callback<Bool> cb = 0);
 	Qk_Export void fs_is_file(cString& path, Callback<Bool> cb = 0);
@@ -254,24 +253,24 @@ namespace qk {
 	Qk_Export uint32_t fs_copy(cString& source, cString& target, Cb cb = 0);
 	Qk_Export void     fs_abort(uint32_t id);
 		// read stream
-	Qk_Export uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb = 0);
+	Qk_Export uint32_t fs_read_stream(cString& path, Callback<StreamResponse> cb);
 		// read file
 	Qk_Export Buffer fs_read_file_sync(cString& path, int64_t size = -1) throw(Error);
-	Qk_Export void fs_read_file(cString& path, Callback<Buffer> cb = 0, int64_t size = -1);
+	Qk_Export void fs_read_file(cString& path, Callback<Buffer> cb, int64_t size = -1);
 		// write file
 	Qk_Export int  fs_write_file_sync(cString& path, cString& str) throw(Error);
-	Qk_Export int  fs_write_file_sync(cString& path, const void* data, int64_t size) throw(Error);
+	Qk_Export int  fs_write_file_sync(cString& path, cVoid* data, int64_t size) throw(Error);
 	Qk_Export void fs_write_file(cString& path, cString& str, Callback<Buffer> cb = 0);
 	Qk_Export void fs_write_file(cString& path, Buffer buffer, Callback<Buffer> cb = 0);
 		// open file fd
 	Qk_Export int  fs_open_sync(cString& path, int flag = FOPEN_R) throw(Error);
 	Qk_Export void fs_open(cString& path, int flag = FOPEN_R, Callback<Int32> cb = 0);
-	Qk_Export void fs_open(cString& path, Callback<Int32> cb = 0);
+	Qk_Export void fs_open(cString& path, Callback<Int32> cb);
 	Qk_Export void fs_close_sync(int fd) throw(Error);
 	Qk_Export void fs_close(int fd, Cb cb = 0);
 		// read with fd
 	Qk_Export int  fs_read_sync(int fd, void* data, int64_t size, int64_t fdOffset = -1) throw(Error);
-	Qk_Export int  fs_write_sync(int fd, const void* data, int64_t size, int64_t fdOffset = -1) throw(Error);
+	Qk_Export int  fs_write_sync(int fd, cVoid* data, int64_t size, int64_t fdOffset = -1) throw(Error);
 	Qk_Export void fs_read(int fd, Buffer buffer, Callback<Buffer> cb);
 	Qk_Export void fs_read(int fd, Buffer buffer, int64_t fdOffset = -1, Callback<Buffer> cb = 0);
 	Qk_Export void fs_write(int fd, Buffer buffer, Callback<Buffer> cb);

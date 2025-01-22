@@ -73,9 +73,9 @@ namespace qk {
 			_cb->call(evt);
 		}
 	private:
-		Cb        _cb;
-		Error*    _err;
-		Object*   _data;
+		Cb      _cb;
+		Error*  _err;
+		Object* _data;
 	};
 
 	void _async_callback_and_dealloc(Cb &cb, Error* e, Object* d, PostMessage* loop) {

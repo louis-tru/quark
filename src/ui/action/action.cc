@@ -50,11 +50,11 @@ namespace qk {
 		, _target(nullptr)
 		, _looped(0)
 	{
-		Qk_Assert(win);
+		Qk_ASSERT(win);
 	}
 
 	Action::~Action() {
-		Qk_Assert( _id == Id() );
+		Qk_ASSERT( _id == Id() );
 	}
 
 	Action* Action::tryRetain() {
@@ -69,7 +69,7 @@ namespace qk {
 	}
 
 	void Action::release_for_only_center_Rt() {
-		Qk_Assert(_refCount >= 0);
+		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
 			_window = nullptr;
 			heapAllocator()->weak(this);
@@ -175,14 +175,14 @@ namespace qk {
 	}
 
 	void ActionGroup::append(Action* child) {
-		Qk_Assert(child);
+		Qk_ASSERT(child);
 		if (child->set_parent(this) == 0) {
 			insertChild(_actions_Rt.end(), child);
 		}
 	}
 
 	void Action::before(Action *act) {
-		Qk_Assert(act);
+		Qk_ASSERT(act);
 		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			_parent->insertChild(_id, act);
@@ -190,7 +190,7 @@ namespace qk {
 	}
 
 	void Action::after(Action *act) {
-		Qk_Assert(act);
+		Qk_ASSERT(act);
 		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			auto id = _id;
@@ -208,8 +208,8 @@ namespace qk {
 	}
 
 	void Action::set_target(View *target) {
-		Qk_Assert(target);
-		Qk_Assert(target->window() == _window);
+		Qk_ASSERT(target);
+		Qk_ASSERT(target->window() == _window);
 		if (_parent)
 			return Qk_ELog("Action::set_target, cannot set non root action");
 		if (_target)
@@ -218,7 +218,7 @@ namespace qk {
 	}
 
 	void Action::del_target(View* target) {
-		Qk_Assert(target);
+		Qk_ASSERT(target);
 		if (target == _target) {
 			stop(); // stop action
 			_target = nullptr;
@@ -245,7 +245,7 @@ namespace qk {
 	}
 
 	void Action::del_parent() {
-		Qk_Assert(_parent);
+		Qk_ASSERT(_parent);
 		_parent = nullptr;
 		release(); // release for parent
 	}

@@ -122,7 +122,7 @@ namespace qk {
 		GLuint _stencilRef, _stencilRefDrop; // stencil clip state
 		float  _zDepth;
 		float  _surfaceScale, _scale;
-		float  _fullScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale
+		float  _allScale, _phy2Pixel; // surface scale * transfrom scale, _phy2Pixel = 2 / _scale
 		Vec2   _size, _surfaceSize; // canvas size and surface size
 		Mat4   _rootMatrix;
 		BlendMode _blendMode; // blend mode state

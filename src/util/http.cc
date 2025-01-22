@@ -133,15 +133,15 @@ namespace qk {
 			, _url_no_cache_arg(false), _wait_connect_id(0)
 			, _write_cache_flag(0)
 		{
-			Qk_Assert(loop);
+			Qk_ASSERT(loop);
 		}
 
 		~Inl() {
 			abort();
-			Qk_Assert(!_retain);
-			Qk_Assert(!_connect);
-			Qk_Assert(!_cache_reader);
-			Qk_Assert(!_file_writer);
+			Qk_ASSERT(!_retain);
+			Qk_ASSERT(!_connect);
+			Qk_ASSERT(!_cache_reader);
+			Qk_ASSERT(!_file_writer);
 		}
 
 		void set_delegate(HttpDelegate* delegate) {
@@ -187,7 +187,7 @@ namespace qk {
 				} else {
 					_socket = new Socket(hostname, port, loop);
 				}
-				Qk_Assert(_socket);
+				Qk_ASSERT(_socket);
 				_socket->set_delegate(this);
 				_z_strm.state = nullptr;
 
@@ -203,7 +203,7 @@ namespace qk {
 			}
 
 			~Connect() {
-				Qk_Assert( _id == ConnectID() );
+				Qk_ASSERT( _id == ConnectID() );
 				Releasep(_socket);
 				Releasep(_upload_file);
 				gzip_inflate_end();
@@ -212,8 +212,8 @@ namespace qk {
 			inline RunLoop* loop() { return _loop; }
 
 			void bind_client_and_send(Client* client) {
-				Qk_Assert(client);
-				Qk_Assert(!_client);
+				Qk_ASSERT(client);
+				Qk_ASSERT(!_client);
 
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
@@ -243,7 +243,7 @@ namespace qk {
 				if (status_code == 200) {
 					self->_client->_write_cache_flag = 2; // set write cache flag
 				}
-				Qk_Assert(status_code == parser->status_code);
+				Qk_ASSERT(status_code == parser->status_code);
 				// Qk_Log("http %d,%d", int(parser->http_major), int(parser->http_minor));
 				self->_client->_status_code = status_code;
 				self->_client->_http_response_version =
@@ -568,28 +568,28 @@ namespace qk {
 			}
 
 			virtual void trigger_file_open(File* file) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 
 			virtual void trigger_file_close(File* file) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 
 			virtual void trigger_file_error(File* file, cError& error) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 
 			virtual void trigger_file_read(File* file, Buffer& buffer, int flag) {
-				Qk_Assert( _is_multipart_form_data );
+				Qk_ASSERT( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
 				} else { // read end
-					Qk_Assert(_multipart_form_data.length());
-					Qk_Assert(_upload_file);
+					Qk_ASSERT(_multipart_form_data.length());
+					Qk_ASSERT(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
@@ -603,10 +603,10 @@ namespace qk {
 			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) {}
 
 			void send_multipart_form_data() {
-				Qk_Assert( _multipart_form_tmp_buffer.length() == BUFFER_SIZE );
+				Qk_ASSERT( _multipart_form_tmp_buffer.length() == BUFFER_SIZE );
 
 				if ( _upload_file ) { // upload file
-					Qk_Assert( _upload_file->is_open() );
+					Qk_ASSERT( _upload_file->is_open() );
 					_upload_file->read(_multipart_form_tmp_buffer);
 				}
 				else if ( _multipart_form_data.length() ) {
@@ -685,10 +685,10 @@ namespace qk {
 			}
 
 			void request(Client* cli, Cb cb) {
-				Qk_Assert(cli);
-				Qk_Assert(!cli->_uri.is_null());
-				Qk_Assert(!cli->_uri.hostname().isEmpty());
-				Qk_Assert(cli->_uri.type() == URI_HTTP || cli->_uri.type() == URI_HTTPS);
+				Qk_ASSERT(cli);
+				Qk_ASSERT(!cli->_uri.is_null());
+				Qk_ASSERT(!cli->_uri.hostname().isEmpty());
+				Qk_ASSERT(cli->_uri.type() == URI_HTTP || cli->_uri.type() == URI_HTTPS);
 	
 				uint16_t port = cli->_uri.port();
 				if (!port) {
@@ -724,7 +724,7 @@ namespace qk {
 					c->release();
 				} else {
 					if ( c->_busy ) {
-						Qk_Assert_Ne(c->_id, ConnectID());
+						Qk_ASSERT_NE(c->_id, ConnectID());
 						c->_busy = false;
 						c->_client = nullptr;
 						c->_recovery_time = time_micro();
@@ -784,7 +784,7 @@ namespace qk {
 						}
 					}
 				}
-				Qk_Assert(poolSize <= max_pool_size);
+				Qk_ASSERT(poolSize <= max_pool_size);
 
 				if (!conn) {
 					if (poolSize == max_pool_size) {
@@ -822,7 +822,7 @@ namespace qk {
 				, _client(client)
 				, _parse_header(true), _offset(0), _size(size)
 			{
-				Qk_Assert_Eq(_client->_cache_reader, nullptr);
+				Qk_ASSERT_EQ(_client->_cache_reader, nullptr);
 				_client->_cache_reader = this;
 				set_delegate(this);
 				open();
@@ -925,7 +925,7 @@ namespace qk {
 				} else {
 					// read cache
 					_read_count--;
-					Qk_Assert_Eq(_read_count, 0);
+					Qk_ASSERT_EQ(_read_count, 0);
 					
 					if ( buffer.length() ) {
 						_offset += buffer.length();
@@ -981,14 +981,14 @@ namespace qk {
 				// type = 1 only write header
 				// type = 2 write header and body
 
-				Qk_Assert_Eq(_client->_file_writer, nullptr);
+				Qk_ASSERT_EQ(_client->_file_writer, nullptr);
 				_client->_file_writer = this;
 
 				// Qk_Log("FileWriter _write_flag -- %i, %s", _write_flag, *path);
 
 				if ( _write_type ) { // verification cache is valid
 					auto headers = _client->response_header();
-					Qk_Assert(headers.length());
+					Qk_ASSERT(headers.length());
 
 					if ( headers.has("cache-control") ) {
 						auto expires = to_expires_from_cache_content(headers["cache-control"]);
@@ -1071,7 +1071,7 @@ namespace qk {
 			}
 
 			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) {
-				_write_count--; Qk_Assert(_write_count >= 0);
+				_write_count--; Qk_ASSERT(_write_count >= 0);
 				if ( flag == 0 ) {
 					_client->trigger_http_data2(buffer);
 				}
@@ -1087,7 +1087,7 @@ namespace qk {
 			virtual void trigger_file_read(File* file, Buffer& buffer, int flag) {}
 
 			void write(Buffer& buffer) {
-				Qk_Assert_Eq(_completed_end, false);
+				Qk_ASSERT_EQ(_completed_end, false);
 				if ( _file && _write_type != 1 ) {
 					if ( _file->is_open() ) {
 						if ( ++_write_count > 32 )
@@ -1127,7 +1127,7 @@ namespace qk {
 
 		void read_advance() {
 			auto r = reader();
-			Qk_Assert(r);
+			Qk_ASSERT(r);
 			if ( _pause ) {
 				r->read_pause();
 			} else {
@@ -1137,7 +1137,7 @@ namespace qk {
 
 		void read_pause() {
 			auto r = reader();
-			Qk_Assert(r);
+			Qk_ASSERT(r);
 			r->read_pause();
 		}
 
@@ -1197,8 +1197,8 @@ namespace qk {
 
 		void http_response_complete(bool fromCache) {
 			if (!fromCache) {
-				Qk_Assert(_pool);
-				Qk_Assert(_connect);
+				Qk_ASSERT(_pool);
+				Qk_ASSERT(_connect);
 				_pool->recovery(_connect, false);
 				_connect = nullptr;
 
@@ -1241,16 +1241,16 @@ namespace qk {
 		}
 
 		void send_http() {
-			Qk_Assert(_retain);
-			Qk_Assert(_pool);
-			Qk_Assert_Eq(_connect, nullptr);
+			Qk_ASSERT(_retain);
+			Qk_ASSERT(_pool);
+			Qk_ASSERT_EQ(_connect, nullptr);
 			_pool->request(this, Cb([this](Cb::Data& evt) {
 				auto c = static_cast<Connect*>(evt.data);
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
 					} else {
-						Qk_Assert_Eq(_connect, nullptr);
+						Qk_ASSERT_EQ(_connect, nullptr);
 						_connect = c;
 						_connect->bind_client_and_send(this);
 					}
@@ -1278,7 +1278,7 @@ namespace qk {
 			if ( _retain && !_retain->ending ) {
 				_retain->ending = true;
 
-				Qk_Assert(_pool);
+				Qk_ASSERT(_pool);
 				Releasep(_cache_reader);
 				Releasep(_file_writer);
 				_pool->recovery(_connect, abort); _connect = nullptr;

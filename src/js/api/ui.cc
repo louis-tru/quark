@@ -93,7 +93,7 @@ namespace qk { namespace js {
 			Js_Handle_Scope(); // Callback Scope
 			// arg event
 			auto ev = MixObject::mix(&e);
-			Qk_Assert_Ne(ev, nullptr);
+			Qk_ASSERT_NE(ev, nullptr);
 			if (cData) {
 				ev->handle()->set(worker, worker->strs()->_data(), cData->cast(worker, e.data()));
 			}

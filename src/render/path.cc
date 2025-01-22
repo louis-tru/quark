@@ -341,7 +341,7 @@ namespace qk {
 					isZero = false;
 					break;
 				case kVerb_Close: // close
-					//Qk_Assert(verb == kVerb_Close);
+					//Qk_ASSERT(verb == kVerb_Close);
 					if (!isZero) {
 						if (move != from) { // close path
 							edges.push(from);
@@ -385,7 +385,7 @@ namespace qk {
 						len++;
 						break;
 					case kVerb_Close: // close
-						// Qk_Assert(verb == kVerb_Close);
+						// Qk_ASSERT(verb == kVerb_Close);
 						if (len) {
 							// tmpV.push(tmpV[tmpV.length() - len++]);
 							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
@@ -434,7 +434,7 @@ namespace qk {
 		auto nextStage = [&]() {
 			stageIdx = (stageIdx + 1) % stageCount;
 			stage = stageP[stageIdx];
-			Qk_Assert(stage > 0, "#Path.dashPath.nextStage() assert stage > 0");
+			Qk_ASSERT(stage > 0, "#Path.dashPath.nextStage() assert stage > 0");
 			useStage = !useStage;
 		};
 

@@ -45,7 +45,7 @@ namespace qk {
 		, _host(host)
 		, _parent(nullptr)
 	{
-		Qk_Assert(host);
+		Qk_ASSERT(host);
 	}
 
 	CStyleSheetsClass::~CStyleSheetsClass() {
@@ -134,7 +134,7 @@ namespace qk {
 
 	void CStyleSheetsClass::applyFrom_Rt(CStyleSheetsClass *ssc) {
 		if (ssc) {
-			Qk_Assert(ssc->_styles_Rt.length());
+			Qk_ASSERT(ssc->_styles_Rt.length());
 			applyFrom_Rt(ssc->_parent);
 			for (auto ss: ssc->_styles_Rt) {
 				applyFindSubstyle_Rt(ss);

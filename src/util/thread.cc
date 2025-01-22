@@ -106,9 +106,9 @@ namespace qk {
 	}
 
 	static void thread_set_thread_data(Thread_INL *t) {
-		//Qk_Assert(!pthread_getspecific(__th_key));
+		//Qk_ASSERT(!pthread_getspecific(__th_key));
 		//pthread_setspecific(__th_key, t);
-		Qk_Assert(!uv_key_get(&__th_key));
+		Qk_ASSERT(!uv_key_get(&__th_key));
 		uv_key_set(&__th_key, t);
 	}
 
@@ -128,11 +128,11 @@ namespace qk {
 #if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 		pthread_set_name_np(pthread_self(), *name);
 #elif defined(__NetBSD__)
-		Qk_Assert(name.length() <= PTHREAD_MAX_NAMELEN_NP);
+		Qk_ASSERT(name.length() <= PTHREAD_MAX_NAMELEN_NP);
 		pthread_setname_np(pthread_self(), "%s", *name);
 #elif Qk_MAC
 		// Mac OS X does not expose the length limit of the name, so hardcode it.
-		Qk_Assert(name.length() <= 63);
+		Qk_ASSERT(name.length() <= 63);
 		pthread_setname_np(*name);
 #elif defined(PR_SET_NAME)
 		prctl(PR_SET_NAME,
@@ -185,7 +185,7 @@ namespace qk {
 		id = th.get_id();
 		th.detach();
 
-		Qk_Fatal_Assert(id != ThreadID(), "id != ThreadID()");
+		Qk_ASSERT_RAW(id != ThreadID(), "id != ThreadID()");
 
 		return __threads->set((t->id = id), t)->id;
 	}
@@ -305,7 +305,7 @@ namespace qk {
 		Qk_DLog("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
 		Qk_DLog("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_process_exit(0); });
-		// Qk_Fatal_Assert(pthread_key_create(&__th_key, nullptr) == 0);
-		Qk_Fatal_Assert(uv_key_create(&__th_key) == 0);
+		// Qk_ASSERT_RAW(pthread_key_create(&__th_key, nullptr) == 0);
+		Qk_ASSERT_RAW(uv_key_create(&__th_key) == 0);
 	}
 }

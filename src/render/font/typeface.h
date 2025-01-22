@@ -40,6 +40,7 @@
 
 namespace qk {
 	class RenderBackend;
+	class SharedMutex;
 
 	/**
 	 * @class Typeface
@@ -48,6 +49,13 @@ namespace qk {
 	class Qk_Export Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);
 	public:
+		struct ImageOut {
+			Sp<ImageSource> image; // The shared pointer of image 
+			float top; // Distance of baseline origin to the top side of image, positive number
+			float right; // Distance of baseline origin to the right side of image, positive number
+			float fontSize; // Font size of image
+			float needToScale; // This image needs to be scaled when used
+		};
 		Qk_DEFINE_P_GET(FontStyle, fontStyle, ProtectedConst);
 		bool isBold() const { return _fontStyle.weight() >= TextWeight::Semibold; }
 		bool isItalic() const { return _fontStyle.slant() >= TextSlant::Italic; }
@@ -60,11 +68,12 @@ namespace qk {
 		String getFamilyName() const;
 		bool getPostScriptName(String *name) const;
 		void unicharsToGlyphs(const Unichar unichar[], uint32_t count, GlyphID glyphs[]) const;
-		Array<GlyphID> unicharsToGlyphs(const Array<Unichar>& unichar) const;
+		Array<GlyphID> unicharsToGlyphs(cArray<Unichar>& unichar) const;
 		GlyphID unicharToGlyph(Unichar unichar) const;
 		// non const methods
 		const Path& getPath(GlyphID glyph); // returns the path of glyph in 64 px
 		const FontGlyphMetrics& getGlyphMetrics(GlyphID glyph); // returns the font glyph metrics in 64 px
+		Array<FontGlyphMetrics> getGlyphsMetrics(cArray<GlyphID>& glyphs); // returns the glyphs metrics
 		float getMetrics(FontMetrics *metrics, float fontSize);
 		float getMetrics(FontMetricsBase *metrics, float fontSize);
 		/**
@@ -73,11 +82,10 @@ namespace qk {
 		* @param offset {cArray<Vec2>*} offset.length = glyphs.length + 1
 		* @param offsetScale {float} offset scale
 		*/
-		Vec2 getImage(const Array<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset,
-			float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render = nullptr);
+		ImageOut getImage(cArray<GlyphID> &glyphs,
+			float fontSize, cArray<Vec2> *offset, float offsetScale, RenderBackend *render = nullptr);
 	protected:
-		Typeface(FontStyle fs);
+		Typeface(FontStyle style);
 		virtual int onCountGlyphs() const = 0;
 		virtual int onGetUPEM() const = 0;
 		virtual String onGetFamilyName() const = 0;
@@ -85,16 +93,19 @@ namespace qk {
 		virtual int onGetTableTags(FontTableTag tags[]) const = 0;
 		virtual size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const = 0;
 		virtual void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const = 0;
-		virtual void onGetMetrics(FontMetrics* metrics) const = 0;
-		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) const = 0;
-		virtual bool onGetPath(GlyphID glyph, Path *path) const = 0;
-		virtual Vec2 onGetImage(const Array<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset,
-			float offsetScale, Sp<ImageSource> *imgOut, RenderBackend *render) = 0;
+		virtual void onGetMetrics(FontMetrics* metrics) = 0;
+		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) = 0;
+		virtual bool onGetPath(GlyphID glyph, Path *path) = 0;
+		virtual ImageOut onGetImage(cArray<GlyphID> &glyphs,
+			float fontSize, cArray<Vec2> *offset, float offsetScale, RenderBackend *render) = 0;
+		SharedMutex& mutex() const { return **_Mutex; }
 	private:
+		// props field:
 		FontMetrics  _metrics;
-		Dict<GlyphID, FontGlyphMetrics> _glyphs;
-		Dict<GlyphID, Path> _paths;
+		Dict<GlyphID, FontGlyphMetrics> _glyphsCache;
+		Dict<GlyphID, Path> _pathsCache;
+		mutable int _unitsPerEm;
+		mutable Sp<SharedMutex> _Mutex;
 	};
 
 }

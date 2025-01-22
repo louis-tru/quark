@@ -38,12 +38,16 @@ namespace qk {
 
 	class EventDispatch;
 
+// Keep these codes
+// 0x01 SOH(start of headline) 标题开始
+// 0x02 STX (start of text) 正文开始
+// 0x03 ETX (end of text) 正文结束
+// 0x04 EOT (end of transmission) 传输结束
+// 0x05 ENQ (enquiry) 请求
+// 0x06 ACK (acknowledge) 收到通知
+// 0x07 BEL (bell) 响铃
 #define Qk_Keyboard_Keys(F) \
 	F(KEYCODE_UNKNOWN,          0)  \
-	F(KEYCODE_MOUSE_LEFT,       1)  \
-	F(KEYCODE_MOUSE_CENTER,     2)  \
-	F(KEYCODE_MOUSE_RIGHT,      3)  \
-	F(KEYCODE_MOUSE_WHEEL,      4)  \
 	F(KEYCODE_BACK_SPACE,       8)  /* back space */ \
 	F(KEYCODE_TAB,              9)  /* tab */ \
 	F(KEYCODE_CLEAR,            12) /* clear */ \
@@ -156,12 +160,17 @@ namespace qk {
 	F(KEYCODE_PERIOD,           190)  /* . > */ \
 	F(KEYCODE_SLASH,            191)  /* / ? */ \
 	F(KEYCODE_GRAVE,            192)  /* ` ~ */ \
+	F(KEYCODE_FUN,              209)  /* Function */ /*Maybe the platform is not implemented*/ \
 	F(KEYCODE_LEFT_BRACKET,     219)  /* [ { */ \
 	F(KEYCODE_BACK_SLASH,       220)  /* \ | */ \
 	F(KEYCODE_RIGHT_BRACKET,    221)  /* ] } */ \
 	F(KEYCODE_APOSTROPHE,       222)  /* ' " */ \
 	/* --------------------------------------------------- */ \
-	F(KEYCODE_FUN,              209)     /* Function */ \
+	F(KEYCODE_MOUSE_LEFT,       296)  \
+	F(KEYCODE_MOUSE_CENTER,     297)  \
+	F(KEYCODE_MOUSE_RIGHT,      298)  \
+	F(KEYCODE_MOUSE_WHEEL,      299)  \
+	/* --------------------------------------------------- */ \
 	F(KEYCODE_HOME,             300)     /* 按键Home */ \
 	F(KEYCODE_BACK,             301)     /* 返回键 */ \
 	F(KEYCODE_CALL,             302)     /* 拨号键 */ \

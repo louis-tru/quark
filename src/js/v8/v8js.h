@@ -45,8 +45,8 @@ namespace qk { namespace js {
 	# define ISOLATE_INL_WORKER_DATA_INDEX (0)
 	#endif
 
-	#define DCHECK Qk_Assert
-	#define CHECK  Qk_Fatal_Assert
+	#define DCHECK Qk_ASSERT
+	#define CHECK  Qk_ASSERT_RAW
 
 	#define WORKER(...) WorkerImpl::worker( __VA_ARGS__ )
 	#define ISOLATE(...) WorkerImpl::worker( __VA_ARGS__ )->_isolate

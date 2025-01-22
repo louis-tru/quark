@@ -42,9 +42,10 @@ namespace qk {
 
 	template<class D, class E = Error>
 	struct CallbackData {
-		E* error;
-		D* data;
+		E *error;
+		D *data;
 		int rc;
+		void *extra = nullptr;
 	};
 
 	template<class D, class E = Error>
@@ -54,15 +55,21 @@ namespace qk {
 		typedef CallbackData<D, E> Data;
 		inline CallbackCore() {}
 		inline int call(E* e, D* d) const {
-			Data evt = { e,d,0 };
+			Data evt = { e,d,0,0 };
 			const_cast<CallbackCore*>(this)->call(evt);
 			return evt.rc;
 		}
 		inline int resolve(D* d = nullptr) const {
-			return call(0, d);
+			return call(nullptr, d);
 		}
 		inline int reject(E* e) const {
-			return call(e, 0);
+			return call(e, nullptr);
+		}
+		inline int resolve(D &&d) const {
+			return call(nullptr, &d);
+		}
+		inline int reject(E &&e) const {
+			return call(&e, nullptr);
 		}
 		virtual void call(Data& evt) = 0;
 	};
@@ -180,6 +187,8 @@ namespace qk {
 	template<class D, class E, class D2, class E2>
 	void _async_callback(Callback<D, E> &cb, E2* e, D2* d, PostMessage* loop) {
 		if ( loop ) {
+			Qk_Type_Check(D, D2);
+			Qk_Type_Check(E, E2);
 			_async_callback_and_dealloc(*reinterpret_cast<Cb*>(&cb),
 				static_cast<Error*>(e ? new E2(std::move(*e)): nullptr),
 				static_cast<Object*>(d ? new D2(std::move(*d)): nullptr), loop

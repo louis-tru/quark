@@ -76,11 +76,11 @@ namespace qk {
 				width >>= 1; height >>= 1;
 
 				if (format == AV_PIX_FMT_YUV420P) {
-					Qk_Assert_Eq(frame->dataitems, 3);
+					Qk_ASSERT_EQ(frame->dataitems, 3);
 					pixel.push(Pixel(PixelInfo(width, height, kYUV420P_U_8_ColorType), pf->body+1));
 					pixel.push(Pixel(PixelInfo(width, height, kYUV420P_V_8_ColorType), pf->body+2));
 				} else { // yuv420sp
-					Qk_Assert_Eq(frame->dataitems, 2);
+					Qk_ASSERT_EQ(frame->dataitems, 2);
 					pixel.push(Pixel(PixelInfo(width, height, kYUV420SP_UV_88_ColorType), pf->body+1));
 				}
 			}

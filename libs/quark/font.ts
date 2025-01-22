@@ -34,10 +34,10 @@ Object.assign(exports, __binding__('_font'));
 export declare class FontPool {
 	readonly countFamilies: number;
 	readonly defaultFamilyNames: string[]
-	readonly defaultFontFamilys: types.FFID;
-	getFontFamilys(familys?: string): types.FFID;
+	readonly defaultFontFamilies: types.FFID;
+	getFontFamilies(families?: string): types.FFID;
 	addFontFamily(data: Uint8Array, alias?: string): void;
 	getFamilyName(index: number): string;
 }
-export declare function getFontFamilys(familys?: string): types.FFID;
-export declare function getFamilysName(ffid: types.FFID): string;
+export declare function getFontFamilies(families?: string): types.FFID;
+export declare function getFamiliesName(ffid: types.FFID): string;

@@ -34,7 +34,7 @@ namespace qk { namespace js {
 
 	void* JsHeapAllocator::alloc(size_t size) {
 		auto o = ::malloc(size + sizeof(MixObject));
-		Qk_Assert(o);
+		Qk_ASSERT(o);
 		::memset(o, 0, sizeof(MixObject));
 		return static_cast<MixObject*>(o) + 1;
 	}
@@ -105,11 +105,11 @@ namespace qk { namespace js {
 	}
 
 	MixObject* MixObject::newInit(FunctionArgs args) {
-		Qk_Assert_Eq(_handle, nullptr);
-		Qk_Assert_Eq(true, args.isConstructCall());
+		Qk_ASSERT_EQ(_handle, nullptr);
+		Qk_ASSERT_EQ(true, args.isConstructCall());
 		auto worker = args.worker();
 		_class = worker->classes()->_runClass;
-		Qk_Assert_Ne(_class, nullptr);
+		Qk_ASSERT_NE(_class, nullptr);
 		bindObject(args.thisObj());
 		auto obj = self();
 		if (!obj->isReference() || static_cast<Reference*>(obj)->refCount() <= 0)
@@ -126,7 +126,7 @@ namespace qk { namespace js {
 			auto cls = classes->get(classAlias);
 			if (!cls)
 				return nullptr;
-			Qk_Assert_Eq(classes->_attachObject, nullptr);
+			Qk_ASSERT_EQ(classes->_attachObject, nullptr);
 			classes->_attachObject = mix;
 			auto handle = cls->newInstance();
 			classes->_attachObject = nullptr;

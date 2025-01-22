@@ -33,13 +33,13 @@
 namespace qk { namespace js {
 
 	void MixObject::clearWeak() {
-		Qk_Assert_Ne(_handle, nullptr);
+		Qk_ASSERT_NE(_handle, nullptr);
 		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&_handle);
 		h->ClearWeak();
 	}
 
 	void MixObject::setWeak() {
-		Qk_Assert_Ne( _handle, nullptr);
+		Qk_ASSERT_NE( _handle, nullptr);
 		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&_handle);
 		//h->MarkIndependent();
 		h->SetWeak(this, [](const v8::WeakCallbackInfo<MixObject>& info) {
@@ -50,7 +50,7 @@ namespace qk { namespace js {
 	}
 
 	void MixObject::bindObject(JSObject* handle) {
-		Qk_Assert_Eq(_handle, nullptr);
+		Qk_ASSERT_EQ(_handle, nullptr);
 		auto h = reinterpret_cast<v8::PersistentBase<v8::Object>*>(&_handle);
 		auto v8h = Back<v8::Object>(handle);
 		h->Reset(ISOLATE(worker()), v8h);
@@ -58,9 +58,9 @@ namespace qk { namespace js {
 	}
 
 	MixObject* MixObject::unpack(JSValue* obj) {
-		Qk_Assert_Ne(obj, nullptr);
+		Qk_ASSERT_NE(obj, nullptr);
 		auto v8obj = reinterpret_cast<v8::Object*>(obj);
-		Qk_Assert_Gt(v8obj->InternalFieldCount(), 0);
+		Qk_ASSERT_GT(v8obj->InternalFieldCount(), 0);
 		return static_cast<MixObject*>(v8obj->GetAlignedPointerFromInternalField(0));
 	}
 
@@ -116,7 +116,7 @@ namespace qk { namespace js {
 			if (_func.isEmpty()) { // Gen constructor
 				auto v8cls = static_cast<V8JSClass*>(this);
 				auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
-				Qk_Assert_Eq(f.IsEmpty(), false);
+				Qk_ASSERT_EQ(f.IsEmpty(), false);
 				if (v8cls->HasBaseFunction()) {
 					auto str = Back(_worker->strs()->prototype());
 					auto base = v8cls->BaseFunction();
@@ -125,7 +125,7 @@ namespace qk { namespace js {
 					// function.__proto__ = base;
 					// f->SetPrototype(v8cls->BaseFunction());
 					// function.prototype.__proto__ = base.prototype;
-					Qk_Assert_Eq(true, proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked());
+					Qk_ASSERT_EQ(true, proto->SetPrototype(CONTEXT(_worker), baseProto).ToChecked());
 				}
 				auto func = Cast<JSFunction>(f);
 				_func.reset(_worker, func);

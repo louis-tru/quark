@@ -49,7 +49,6 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
-#if Qk_MAC
 		switch (type) {
 			case kAlpha_8_ColorType: return GL_ALPHA;
 			case kRGB_565_ColorType: return GL_RGB;
@@ -78,23 +77,22 @@ namespace qk {
 			case kYUV420P_U_8_ColorType: return GL_RED;
 			case kYUV420SP_UV_88_ColorType: return GL_RG;
 #if Qk_iOS // ios
-				// compressd texture
+			// compressd texture
 			case kPVRTCI_2BPP_RGB_ColorType: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
 			case kPVRTCI_2BPP_RGBA_ColorType:
 			case kPVRTCII_2BPP_ColorType: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
 			case kPVRTCI_4BPP_RGB_ColorType: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
 			case kPVRTCI_4BPP_RGBA_ColorType:
 			case kPVRTCII_4BPP_ColorType: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+#endif
+#if !Qk_OSX
 			case kETC1_ColorType:
 			case kETC2_RGB_ColorType: return GL_COMPRESSED_RGB8_ETC2;
-			case kETC2_RGB_A1_ColorType:
 			case kETC2_RGBA_ColorType: return GL_COMPRESSED_RGBA8_ETC2_EAC;
+			case kETC2_RGB_A1_ColorType: return GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
 #endif
 			default: return 0;
 		}
-#elif Qk_LINUX
-		return 0;
-#endif
 	}
 
 	GLint gl_get_texture_data_type(ColorType format) {
@@ -359,7 +357,7 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		Qk_Fatal_Assert(_glcanvas == nullptr);
+		Qk_ASSERT_RAW(_glcanvas == nullptr);
 	}
 
 	void GLRender::lock() {}
@@ -375,15 +373,15 @@ namespace qk {
 			}
 			delete[] texStat;
 		}));
-		Qk_Assert_Eq(_glcanvas->refCount(), 1);
+		Qk_ASSERT_EQ(_glcanvas->refCount(), 1);
 		_glcanvas->release(); _glcanvas = nullptr;
 		_canvas = nullptr;
 	}
 
 	void GLRender::reload() {
 		lock();
-		_surfaceSize = getSurfaceSize(&_defaultScale);
-		_delegate->onRenderBackendReload({Vec2{0,0},_surfaceSize}, _surfaceSize, _defaultScale);
+		_surfaceSize = getSurfaceSize();
+		_delegate->onRenderBackendReload({Vec2{0,0},_surfaceSize}, _surfaceSize);
 		unlock();
 	}
 
@@ -420,7 +418,7 @@ namespace qk {
 
 		ColorType type = pix->type();
 		GLint iformat = gl_get_texture_pixel_format(type);
-		Qk_Assert(iformat);
+		Qk_ASSERT(iformat);
 
 		if (!iformat)
 			return;
@@ -527,7 +525,7 @@ namespace qk {
 		auto tex = const_cast<TexStat *>(src->texture_Rt(index));
 		if (!tex) {
 			auto pixel = &src->pixels()[index];
-			Qk_Assert(slot < 8);
+			Qk_ASSERT(slot < 8);
 			GLRender::makeTexture(pixel, _texStat[slot], true);
 			tex = _texStat[slot];
 			if (!tex) {

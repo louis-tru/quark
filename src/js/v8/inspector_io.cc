@@ -63,7 +63,7 @@ namespace qk { namespace inspector {
 	// Used ver 4 - with numbers
 	std::string GenerateID() {
 		uint16_t buffer[8];
-		Qk_Assert(EntropySource(reinterpret_cast<unsigned char*>(buffer), sizeof(buffer)));
+		Qk_ASSERT(EntropySource(reinterpret_cast<unsigned char*>(buffer), sizeof(buffer)));
 
 		char uuid[256];
 		snprintf(uuid, sizeof(uuid), "%04x%04x-%04x-%04x-%04x-%04x%04x%04x",
@@ -165,10 +165,10 @@ namespace qk { namespace inspector {
 														dispatching_messages_(false), session_id_(0),
 														wait_for_connect_(wait_for_connect), port_(-1) {
 		main_thread_req_ = new AsyncAndAgent({uv_async_t(), agent});
-		Qk_Assert_Eq(0, uv_async_init(agent->event_loop(), &main_thread_req_->first,
+		Qk_ASSERT_EQ(0, uv_async_init(agent->event_loop(), &main_thread_req_->first,
 															InspectorIo::MainThreadReqAsyncCb));
 		uv_unref(reinterpret_cast<uv_handle_t*>(&main_thread_req_->first));
-		Qk_Assert_Eq(0, uv_sem_init(&thread_start_sem_, 0));
+		Qk_ASSERT_EQ(0, uv_sem_init(&thread_start_sem_, 0));
 	}
 
 	InspectorIo::~InspectorIo() {
@@ -181,8 +181,8 @@ namespace qk { namespace inspector {
 	}
 
 	bool InspectorIo::Start() {
-		Qk_Assert_Eq(state_, State::kNew);
-		Qk_Assert_Eq(0, uv_thread_create(&thread_, InspectorIo::ThreadMain, this));
+		Qk_ASSERT_EQ(state_, State::kNew);
+		Qk_ASSERT_EQ(0, uv_thread_create(&thread_, InspectorIo::ThreadMain, this));
 		uv_sem_wait(&thread_start_sem_);
 
 		if (state_ == State::kError) {
@@ -196,10 +196,10 @@ namespace qk { namespace inspector {
 	}
 
 	void InspectorIo::Stop() {
-		Qk_Assert(state_ == State::kAccepting || state_ == State::kConnected);
+		Qk_ASSERT(state_ == State::kAccepting || state_ == State::kConnected);
 		Write(TransportAction::kKill, 0, StringView());
 		int err = uv_thread_join(&thread_);
-		Qk_Assert_Eq(err, 0);
+		Qk_ASSERT_EQ(err, 0);
 		state_ = State::kShutDown;
 		DispatchMessages();
 	}
@@ -261,9 +261,9 @@ namespace qk { namespace inspector {
 	void InspectorIo::ThreadMain() {
 		uv_loop_t loop;
 		loop.data = nullptr;
-		Qk_Assert_Eq(uv_loop_init(&loop), 0);
+		Qk_ASSERT_EQ(uv_loop_init(&loop), 0);
 		thread_req_.data = nullptr;
-		Qk_Assert_Eq(uv_async_init(&loop, &thread_req_, IoThreadAsyncCb<Transport>), 0);
+		Qk_ASSERT_EQ(uv_async_init(&loop, &thread_req_, IoThreadAsyncCb<Transport>), 0);
 		auto scropt_path = agent_->options().script_path.c_str();
 		InspectorIoDelegate delegate(this,
 			scropt_path, fs_basename(scropt_path).c_str(), wait_for_connect_);
@@ -274,7 +274,7 @@ namespace qk { namespace inspector {
 		thread_req_.data = &queue_transport;
 		if (!server.Start()) {
 			state_ = State::kError;  // Safe, main thread is waiting on semaphore
-			Qk_Assert_Eq(0, CloseAsyncAndLoop(&thread_req_));
+			Qk_ASSERT_EQ(0, CloseAsyncAndLoop(&thread_req_));
 			uv_sem_post(&thread_start_sem_);
 			return;
 		}
@@ -284,7 +284,7 @@ namespace qk { namespace inspector {
 		}
 		uv_run(&loop, UV_RUN_DEFAULT);
 		thread_req_.data = nullptr;
-		Qk_Assert_Eq(uv_loop_close(&loop), 0);
+		Qk_ASSERT_EQ(uv_loop_close(&loop), 0);
 		delegate_ = nullptr;
 	}
 
@@ -310,7 +310,7 @@ namespace qk { namespace inspector {
 		if (AppendMessage(&incoming_message_queue_, action, session_id,
 											Utf8ToStringView(message))) {
 			// send async msg, call DispatchMessages()
-			Qk_Assert_Eq(0, uv_async_send(&main_thread_req_->first));
+			Qk_ASSERT_EQ(0, uv_async_send(&main_thread_req_->first));
 		}
 		NotifyMessageReceived();
 	}
@@ -352,7 +352,7 @@ namespace qk { namespace inspector {
 				StringView message = std::get<2>(task)->string();
 				switch (std::get<0>(task)) {
 				case InspectorAction::kStartSession:
-					Qk_Assert_Eq(session_delegate_, nullptr);
+					Qk_ASSERT_EQ(session_delegate_, nullptr);
 					session_id_ = std::get<1>(task);
 					state_ = State::kConnected;
 					fprintf(stderr, "Debugger attached.\n");
@@ -361,7 +361,7 @@ namespace qk { namespace inspector {
 					agent_->Connect(session_delegate_.get());
 					break;
 				case InspectorAction::kEndSession:
-					Qk_Assert_Ne(session_delegate_, nullptr);
+					Qk_ASSERT_NE(session_delegate_, nullptr);
 					if (state_ == State::kShutDown) {
 						state_ = State::kDone;
 					} else {
@@ -395,7 +395,7 @@ namespace qk { namespace inspector {
 		AppendMessage(&outgoing_message_queue_, action, session_id,
 									StringBuffer::create(inspector_message));
 		int err = uv_async_send(&thread_req_);
-		Qk_Assert_Eq(0, err);
+		Qk_ASSERT_EQ(0, err);
 	}
 
 	InspectorIoDelegate::InspectorIoDelegate(InspectorIo* io,

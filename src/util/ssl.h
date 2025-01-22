@@ -105,7 +105,7 @@ namespace qk {
 		}
 
 		static inline BIOData* FromBIO(BIO* bio) {
-			Qk_Assert_Ne(bio->ptr, nullptr);
+			Qk_ASSERT_NE(bio->ptr, nullptr);
 			return static_cast<BIOData*>(bio->ptr);
 		}
 

@@ -247,7 +247,7 @@ namespace qk {
 	class Qk_Export EventDispatch: public Object {
 	public:
 		struct KeyboardOptions {
-			bool               is_clear;
+			bool               clear;
 			KeyboardType       type;
 			KeyboardReturnType return_type;
 			Rect               spot_rect;

@@ -46,7 +46,7 @@ namespace qk {
 
 	Player::Player(MediaType type)
 		: _pts(0), _volume(1), _mute(false), _type(type), _start(0), _seeking(0), _seek(0) {
-		Qk_Assert_Ne(0, type);
+		Qk_ASSERT_NE(0, type);
 	}
 
 	Player::~Player() {

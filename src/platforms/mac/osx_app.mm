@@ -32,9 +32,6 @@
 #import <AppKit/AppKit.h>
 #import "../../util/http.h"
 #import "../../ui/app.h"
-#import "../../ui/window.h"
-#import "../../ui/event.h"
-#import "../../ui/screen.h"
 #import "./mac_app.h"
 
 using namespace qk;
@@ -50,8 +47,8 @@ QkApplicationDelegate* qkappdelegate = nil;
 @implementation QkApplicationDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
-	Qk_Assert(!qkappdelegate);
-	Qk_Assert(Application::shared());
+	Qk_ASSERT(!qkappdelegate);
+	Qk_ASSERT(Application::shared());
 	qkappdelegate = self;
 	_host = Application::shared();
 	_app = UIApplication.sharedApplication;
@@ -112,39 +109,4 @@ void Application::sendEmail(cString& recipient,
 		*recipient,*URI::encode(subject, true),*URI::encode(body, true),*cc,*bcc
 	];
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
-}
-
-// ***************** E v e n t . D i s p a t c h *****************
-
-void EventDispatch::setVolumeUp() {
-}
-
-void EventDispatch::setVolumeDown() {
-}
-
-void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
-}
-
-void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
-	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([options,delegate](auto e) {
-		[delegate.ime set_keyboard_type:options.type];
-		[delegate.ime set_keyboard_return_type:options.return_type];
-		[delegate.ime activate: options.is_clear];
-		[delegate.ime set_spot_rect:options.spot_rect];
-	}), false);
-}
-
-void EventDispatch::setImeKeyboardClose() {
-	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([delegate](auto e) {
-		[delegate.ime deactivate];
-	}), false);
-}
-
-void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
-	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([delegate,rect](auto e) {
-		[delegate.ime set_spot_rect:rect];
-	}), false);
 }

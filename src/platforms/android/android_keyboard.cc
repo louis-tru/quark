@@ -28,21 +28,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/keyboard.h"
-#include "quark/util/map.h"
+
+#import "../../ui/keyboard.h"
 #include <android/keycodes.h>
 
 namespace qk {
 
-	/**
-	* @class AndroidKeyboardAdapter
-	*/
 	class AndroidKeyboardAdapter: public KeyboardAdapter {
 		public:
 			AndroidKeyboardAdapter();
 	};
 
 	AndroidKeyboardAdapter::AndroidKeyboardAdapter() {
+		_PlatformKeyCodeToKeyCode[AKEYCODE_UNKNOWN] = KEYCODE_UNKNOWN;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_DEL] = KEYCODE_BACK_SPACE;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_TAB] = KEYCODE_TAB;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
@@ -53,23 +51,22 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CTRL_RIGHT] = KEYCODE_CTRL;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ALT_LEFT] = KEYCODE_ALT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ALT_RIGHT] = KEYCODE_ALT;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_BREAK] = KEYCODE_BREAK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CAPS_LOCK] = KEYCODE_CAPS_LOCK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ESCAPE] = KEYCODE_ESC;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_SPACE] = KEYCODE_SPACE;
-		// _PlatformKeyCodeToKeyCode[AKEYCODE_COMMAND] = KEYCODE_COMMAND; // Pending query
+		_PlatformKeyCodeToKeyCode[AKEYCODE_PAGE_UP] = KEYCODE_PAGE_UP;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_PAGE_DOWN] = KEYCODE_PAGE_DOWN;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_MOVE_END] = KEYCODE_MOVE_END;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_MOVE_HOME] = KEYCODE_MOVE_HOME;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_DPAD_LEFT] = KEYCODE_LEFT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_DPAD_UP] = KEYCODE_UP;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_DPAD_RIGHT] = KEYCODE_RIGHT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_DPAD_DOWN] = KEYCODE_DOWN;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_INSERT] = KEYCODE_INSERT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_FORWARD_DEL] = KEYCODE_DELETE;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_PAGE_UP] = KEYCODE_PAGE_UP;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_PAGE_DOWN] = KEYCODE_PAGE_DOWN;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_MOVE_END] = KEYCODE_MOVE_END;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_MOVE_HOME] = KEYCODE_MOVE_HOME;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_SCROLL_LOCK] = KEYCODE_SCROLL_LOCK;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_BREAK] = KEYCODE_BREAK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_SYSRQ] = KEYCODE_SYSRQ;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_HELP] = KEYCODE_HELP;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_0] = KEYCODE_0;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_1] = KEYCODE_1;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_2] = KEYCODE_2;
@@ -106,7 +103,10 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_X] = KEYCODE_X;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_Y] = KEYCODE_Y;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_Z] = KEYCODE_Z;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_NUM_LOCK] = KEYCODE_NUM_LOCK;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_COMMAND] = KEYCODE_COMMAND; // Pending query
+		_PlatformKeyCodeToKeyCode[AKEYCODE_MENU] = KEYCODE_MENU;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_COMMAND] = KEYCODE_COMMAND_RIGHT; // Pending query
+		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_EQUALS] = KEYCODE_NUMPAD_EQUALS;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_0] = KEYCODE_NUMPAD_0;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_1] = KEYCODE_NUMPAD_1;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_2] = KEYCODE_NUMPAD_2;
@@ -117,12 +117,12 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_7] = KEYCODE_NUMPAD_7;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_8] = KEYCODE_NUMPAD_8;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_9] = KEYCODE_NUMPAD_9;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_DIVIDE] = KEYCODE_NUMPAD_DIVIDE;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_MULTIPLY] = KEYCODE_NUMPAD_MULTIPLY;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_SUBTRACT] = KEYCODE_NUMPAD_SUBTRACT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_ADD] = KEYCODE_NUMPAD_ADD;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_DOT] = KEYCODE_NUMPAD_DOT;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_ENTER] = KEYCODE_NUMPAD_ENTER;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_SUBTRACT] = KEYCODE_NUMPAD_SUBTRACT;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_DOT] = KEYCODE_NUMPAD_DOT;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_NUMPAD_DIVIDE] = KEYCODE_NUMPAD_DIVIDE;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_F1] = KEYCODE_F1;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_F2] = KEYCODE_F2;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_F3] = KEYCODE_F3;
@@ -135,6 +135,20 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_F10] = KEYCODE_F10;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_F11] = KEYCODE_F11;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_F12] = KEYCODE_F12;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F13] = KEYCODE_F13;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F14] = KEYCODE_F14;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F15] = KEYCODE_F15;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F16] = KEYCODE_F16;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F17] = KEYCODE_F17;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F18] = KEYCODE_F18;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F19] = KEYCODE_F19;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F20] = KEYCODE_F20;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F21] = KEYCODE_F21;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F22] = KEYCODE_F22;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F23] = KEYCODE_F23;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F24] = KEYCODE_F24;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_NUM_LOCK] = KEYCODE_NUM_LOCK;
+		_PlatformKeyCodeToKeyCode[AKEYCODE_SCROLL_LOCK] = KEYCODE_SCROLL_LOCK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_SEMICOLON] = KEYCODE_SEMICOLON;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_EQUALS] = KEYCODE_EQUALS;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_MINUS] = KEYCODE_MINUS;
@@ -142,10 +156,12 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_PERIOD] = KEYCODE_PERIOD;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_SLASH] = KEYCODE_SLASH;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_GRAVE] = KEYCODE_GRAVE;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_FUN] = KEYCODE_FUN;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_LEFT_BRACKET] = KEYCODE_LEFT_BRACKET;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_BACKSLASH] = KEYCODE_BACK_SLASH;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_RIGHT_BRACKET] = KEYCODE_RIGHT_BRACKET;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_APOSTROPHE] = KEYCODE_APOSTROPHE;
+		/* --------------------------------------------------- */
 		_PlatformKeyCodeToKeyCode[AKEYCODE_HOME] = KEYCODE_HOME;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_BACK] = KEYCODE_BACK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CALL] = KEYCODE_CALL;
@@ -158,7 +174,7 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_POWER] = KEYCODE_POWER;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_CAMERA] = KEYCODE_CAMERA;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_FOCUS] = KEYCODE_FOCUS;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_MENU] = KEYCODE_MENU;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_MENU] = KEYCODE_MENU_1;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_SEARCH] = KEYCODE_SEARCH;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_MEDIA_PLAY_PAUSE] = KEYCODE_MEDIA_PLAY_PAUSE;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_MEDIA_STOP] = KEYCODE_MEDIA_STOP;
@@ -181,11 +197,9 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_BOOKMARK] = KEYCODE_BOOKMARK;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ZOOM_IN] = KEYCODE_ZOOM_IN;
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ZOOM_OUT] = KEYCODE_ZOOM_OUT;
-		_PlatformKeyCodeToKeyCode[AKEYCODE_HELP] = KEYCODE_HELP;
 	}
 
 	KeyboardAdapter* KeyboardAdapter::create(EventDispatch* host) {
 		return new AndroidKeyboardAdapter(host);
 	}
-
 }

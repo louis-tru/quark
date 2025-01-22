@@ -105,16 +105,16 @@ export declare class FileStat {
 	birthtime(): number;
 }
 
-export interface ReadStream {
+export interface Stream {
 	pause(): void;
 	resume(): void;
 };
 
-export interface StreamData {
-	data: Uint8Array;
-	complete: boolean;
+export interface StreamResponse {
 	size: number;
 	total: number;
+	data: Uint8Array;
+	end: boolean;
 }
 
 export class AsyncTask<T> extends Promise<T> {
@@ -305,15 +305,15 @@ export function copy(path: string, target: string) {
 	});
 }
 
-export function readStream(path: string, cb: (stream: StreamData)=>void): AsyncTask<void> {
+export function readStream(path: string, cb: (stream: StreamResponse)=>void): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject): number {
-		return _fs.readStream(function(err?: Error, r?: StreamData) {
+		return _fs.readStream(function(err?: Error, r?: StreamResponse) {
 			if (err) {
 				reject(err);
 			} else {
 				let stream = r!;
 				cb(stream);
-				if (stream.complete) {
+				if (stream.end) {
 					resolve();
 				}
 			}
@@ -339,7 +339,7 @@ export declare function write(fd: number, data: string, encoding?: Encoding, off
 export interface Reader {
 	readFile(path: string): AsyncTask<Uint8Array>;
 	readFile(path: string, encoding: Encoding): AsyncTask<string>;
-	readStream(path: string, cb: (stream: StreamData)=>void): AsyncTask<void>;
+	readStream(path: string, cb: (stream: StreamResponse)=>void): AsyncTask<void>;
 	readFileSync(path: string): Uint8Array;
 	readFileSync(path: string, encoding: Encoding): string;
 	existsSync(path: string): boolean;
@@ -357,15 +357,15 @@ export const reader: Reader = {
 			return _fs.reader.readFile((err?: Error, r?: any)=>err?reject(err):resolve(r), ...args);
 		});
 	},
-	readStream: function(path: string, cb: (stream: StreamData)=>void): AsyncTask<void> {
+	readStream: function(path: string, cb: (stream: StreamResponse)=>void): AsyncTask<void> {
 		return new AsyncTask<void>(function(resolve, reject): number {
-			return _fs.reader.readStream(function(err?: Error, r?: StreamData) {
+			return _fs.reader.readStream(function(err?: Error, r?: StreamResponse) {
 				if (err) {
 					reject(err);
 				} else {
 					let stream = r!;
 					cb(stream);
-					if (stream.complete) {
+					if (stream.end) {
 						resolve();
 					}
 				}

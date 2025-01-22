@@ -115,6 +115,7 @@ namespace qk {
 
 		bool          get(const Key& key, const Value* &out) const;
 		bool          get(const Key& key, Value &out) const;
+		bool          get(const Key& key, Value* &out);
 		Value&        get(const Key& key);
 		Value&        get(Key&& key);
 		Value&        set(const Key& key, const Value& value);
@@ -286,6 +287,12 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
+	bool Dict<K, V, C, A>::get(const K& k, V* &out) {
+		auto node = find_(k);
+		return node ? (out = &node->data().value, true): false;
+	}
+
+	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(const K& key) {
 		Pair* pair;
 		if (make_(key, &pair)) {
@@ -358,7 +365,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::erase(IteratorConst it) {
-		Qk_Assert(_length);
+		Qk_ASSERT(_length);
 		auto node = node_(it);
 		if (node != &_end) {
 			auto next = link_(node->_prev, node->_next);

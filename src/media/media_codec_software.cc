@@ -43,7 +43,7 @@ namespace qk {
 			, _sws(nullptr)
 			, _threads(1), _rc(AVERROR_EOF)
 		{
-			Qk_Assert(_frame);
+			Qk_ASSERT(_frame);
 		}
 
 		~SoftwareMediaCodec() override {
@@ -92,10 +92,10 @@ namespace qk {
 			if ( !avcodec_is_open(_ctx) ) {
 				if (!stream)
 					stream = &_stream;
-				Qk_Assert_Eq(stream->codec_id, _stream.codec_id);
+				Qk_ASSERT_EQ(stream->codec_id, _stream.codec_id);
 				ScopeLock lock(_mutex);
-				Qk_Assert(_ctx->codec);
-				Qk_Assert_Eq(_ctx->codec_id, stream->extra.codecpar->codec_id);
+				Qk_ASSERT(_ctx->codec);
+				Qk_ASSERT_EQ(_ctx->codec_id, stream->extra.codecpar->codec_id);
 
 				if ( _threads > 1 ) { // set threads
 					if (    (_ctx->codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
@@ -171,7 +171,7 @@ namespace qk {
 			if (!extractor || !avcodec_is_open(_ctx)) {
 				return AVERROR(EINVAL);
 			}
-			Qk_Assert_Eq(type(), extractor->type());
+			Qk_ASSERT_EQ(type(), extractor->type());
 
 			ScopeLock scope(_mutex);
 			if (!_packet) {
@@ -220,10 +220,10 @@ namespace qk {
 					memset(&dest, 0, sizeof(AVPicture));
 
 					auto buf = av_buffer_alloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, w, h, 1));
-					Qk_Assert_Eq(buf->size,
+					Qk_ASSERT_EQ(buf->size,
 						av_image_fill_arrays(dest.data, dest.linesize, buf->data, AV_PIX_FMT_YUV420P, w, h, 1)
 					);
-					Qk_Assert_Eq(h, sws_scale(_sws,
+					Qk_ASSERT_EQ(h, sws_scale(_sws,
 						_frame->data,
 						_frame->linesize,
 						0, h,
@@ -243,7 +243,7 @@ namespace qk {
 				} else { // yuv420sp
 					out.format = kYUV420SP_ColorType;
 					out.dataitems = 2;
-					Qk_Assert_Eq(_frame->format, AV_PIX_FMT_NV12);
+					Qk_ASSERT_EQ(_frame->format, AV_PIX_FMT_NV12);
 				}
 				out.pts = Int64::max(_frame->pts * unit, 0);
 				out.pkt_duration = _frame->pkt_duration * unit;
@@ -264,9 +264,9 @@ namespace qk {
 					auto sample_bytes = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
 					auto fsize = nb_samples * _frame->channels * sample_bytes;
 					auto noalloc = _frame->buf[1] && _frame->buf[1]->size >= fsize;
-					Qk_Assert_Ne(fsize, 0);
+					Qk_ASSERT_NE(fsize, 0);
 					auto buf = noalloc ? _frame->buf[1]: av_buffer_alloc(fsize);
-					Qk_Assert_Eq(nb_samples,
+					Qk_ASSERT_EQ(nb_samples,
 						swr_convert(_swr, &buf->data, nb_samples, (const uint8_t**)_frame->data, nb_samples)
 					);
 					if (!noalloc) {
@@ -277,7 +277,7 @@ namespace qk {
 					_frame->data[0] = buf->data;
 					_frame->linesize[0] = fsize;
 				}
-				Qk_Assert_Eq(_frame->format, AV_SAMPLE_FMT_S16);
+				Qk_ASSERT_EQ(_frame->format, AV_SAMPLE_FMT_S16);
 				out.dataitems = 1;
 				out.pts = Int64::max(_frame->pts * unit, 0);
 				out.pkt_duration = _frame->pkt_duration * unit;;

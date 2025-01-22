@@ -271,7 +271,7 @@ namespace js {
 			Js_All_Modules(_Fun)
 			#undef _Fun
 		}
-		Qk_Assert(NativeModulesLib);
+		Qk_ASSERT(NativeModulesLib);
 
 		// register core native module
 		if ( !NativeModulesLib->has("_pkg") ) {
@@ -303,7 +303,7 @@ namespace js {
 	}
 
 	void Worker::init() {
-		Qk_Assert(_global->isObject());
+		Qk_ASSERT(_global->isObject());
 
 		first_worker = workers_count++ ? nullptr: this;
 
@@ -443,7 +443,7 @@ namespace js {
 		auto func = runScript(newString(WeakBuffer(source, sLen).buffer()), newValue(name))->
 			cast<JSFunction>();
 		if ( func ) {
-			Qk_Assert(func->isFunction());
+			Qk_ASSERT(func->isFunction());
 			auto mod = newObject();
 			mod->set(this, strs()->exports(), exports);
 			JSValue *args[] = { exports->cast(), mod->cast(), global()->cast() };
@@ -459,7 +459,7 @@ namespace js {
 
 	static JSValue* TriggerEventFromUtil(Worker* worker, cString& name, int argc, JSValue* argv[]) {
 		auto _util = worker->bindingModule("_util")->cast<JSObject>();
-		Qk_Assert(_util);
+		Qk_ASSERT(_util);
 
 		auto func = _util->get(worker, String("__on").append(name).append("_native"));
 		if (!func->isFunction()) {
@@ -547,14 +547,14 @@ namespace js {
 	}
 
 	int Start(int argc, char** argv) {
-		Qk_Assert(!__quark_js_argv);
+		Qk_ASSERT(!__quark_js_argv);
 
 		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
 
 		::setenv("UV_THREADPOOL_SIZE", "1", 0); // set uv thread loop size as 1
 
 		// Mark the current main thread and check current thread
-		Qk_Assert_Eq(RunLoop::first(), RunLoop::current());
+		Qk_ASSERT_EQ(RunLoop::first(), RunLoop::current());
 
 		Qk_On(ProcessExit, onProcessExitHandle);
 
@@ -587,7 +587,7 @@ namespace js {
 			{ // run main
 				Js_Handle_Scope();
 				auto _pkg = worker->bindingModule("_pkg");
-				Qk_Assert(_pkg && _pkg->isObject(), "Can't start worker");
+				Qk_ASSERT(_pkg && _pkg->isObject(), "Can't start worker");
 				auto r = _pkg->cast<JSObject>()->
 					get<JSObject>(worker, "Module")->
 					get<JSFunction>(worker, "runMain")->call(worker);

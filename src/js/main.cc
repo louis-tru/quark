@@ -37,10 +37,10 @@ namespace qk { namespace js {
 	Qk_Main() {
 		String cmd;
 
-		#if Qk_ANDROID
-			cmd = API::start_cmd();
+#if Qk_ANDROID
+			cmd = Android::start_cmd();
 			if ( cmd.isEmpty() )
-		#endif
+#endif
 		{
 			auto index = fs_resources("index");
 			if (fs_reader()->exists_sync(index)) {

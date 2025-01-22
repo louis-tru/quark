@@ -295,12 +295,12 @@ namespace qk {
 			Release(c);
 		}));
 
-		Qk_Fatal_Assert(_NormalizedPathCache.length() == 0);
-		Qk_Fatal_Assert(_StrokePathCache.length() == 0);
-		Qk_Fatal_Assert(_PathTrianglesCache.length() == 0);
-		Qk_Fatal_Assert(_AAFuzzStrokeTriangleCache.length() == 0);
-		Qk_Fatal_Assert(_RectPathCache.length() == 0);
-		Qk_Fatal_Assert(_RectOutlinePathCache.length() == 0);
+		Qk_ASSERT_RAW(_NormalizedPathCache.length() == 0);
+		Qk_ASSERT_RAW(_StrokePathCache.length() == 0);
+		Qk_ASSERT_RAW(_PathTrianglesCache.length() == 0);
+		Qk_ASSERT_RAW(_AAFuzzStrokeTriangleCache.length() == 0);
+		Qk_ASSERT_RAW(_RectPathCache.length() == 0);
+		Qk_ASSERT_RAW(_RectOutlinePathCache.length() == 0);
 
 		_capacity = 0;
 	}

@@ -405,6 +405,17 @@ namespace qk {
 		return rbga;
 	}
 
+	Color Color::blendSrcOver(const Color &src) const {
+		//!< r = s + (1-sa)*d
+		auto _1sa = (255 - src.a()) / 255.0f;
+		return Color(
+			src[0] + uint8_t(_1sa * val[0]),
+			src[1] + uint8_t(_1sa * val[1]),
+			src[2] + uint8_t(_1sa * val[2]),
+			src[3] + uint8_t(_1sa * val[3])
+		);
+	}
+
 	uint32_t Color::to_uint32_abgr() const {
 		uint32_t abgr = *reinterpret_cast<const uint32_t*>(this);
 		if (!test_small.is_small_end) {

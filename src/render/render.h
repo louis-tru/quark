@@ -55,7 +55,7 @@ namespace qk {
 
 		class Delegate {
 		public:
-			virtual void onRenderBackendReload(Region region, Vec2 size, float defaultScale) = 0;
+			virtual void onRenderBackendReload(Region region, Vec2 size) = 0;
 			virtual bool onRenderBackendDisplay() = 0;
 		};
 
@@ -69,7 +69,6 @@ namespace qk {
 		virtual void    activate(bool isActive);
 		inline  Canvas* getCanvas() { return _canvas; } // default main canvas object
 		inline  Vec2    surfaceSize() { return _surfaceSize; }
-		inline  float   defaultScale() { return _defaultScale; }
 		virtual void    makeTexture(cPixel *pix, TexStat *&out, bool isMipmap) = 0;
 		virtual void    deleteTexture(TexStat *tex) = 0;
 		virtual void    makeVertexData(VertexData::ID *id) = 0;
@@ -86,14 +85,13 @@ namespace qk {
 		/**
 		 * @method getSurfaceSize() Returns surface size and default surface  scale
 		*/
-		virtual Vec2 getSurfaceSize(float *defaultScaleOut) = 0;
+		virtual Vec2 getSurfaceSize() = 0;
 
 		// define props
 		Options      _opts;
 		Canvas       *_canvas; // default canvas
 		Delegate     *_delegate;
 		Vec2         _surfaceSize; // current surface size
-		float        _defaultScale; // recommend default surface scale
 		bool         _isActive;
 	};
 

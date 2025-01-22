@@ -30,7 +30,7 @@
 
 #include "./types.h"
 #include "../../ui/view/view.h"
-#include "../../render/font/font.h"
+#include "../../render/font/families.h"
 #include "../../../out/native-inl-js.h"
 
 namespace qk { namespace js {
@@ -98,7 +98,7 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const FileStat& stat) {
 		auto func = worker->classes()->getFunction(Js_Typeid(FileStat));
-		Qk_Assert( func );
+		Qk_ASSERT( func );
 		auto r = func->newInstance(worker);
 		*MixObject::mix<FileStat>(r)->self() = stat;
 		return r;

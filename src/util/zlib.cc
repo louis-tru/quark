@@ -135,7 +135,7 @@ namespace qk {
 
 	// Override
 	int GZip::open(int flag) {
-		Qk_Assert(!_gzfp);
+		Qk_ASSERT(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
 		_gzfp = gzopen(fs_fallback_c(_path), file_flag_str(flag));
@@ -165,7 +165,7 @@ namespace qk {
 	}
 
 	// Override
-	int GZip::write(const void* buffer, int64_t size, int64_t offset) {
+	int GZip::write(cVoid* buffer, int64_t size, int64_t offset) {
 		if ( offset > -1 ) {
 			gzseek((gzFile)_gzfp, offset, SEEK_SET);
 		}

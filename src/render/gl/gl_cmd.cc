@@ -190,7 +190,7 @@ namespace qk {
 				if (i.size == 0) break;
 				auto cmd = i.val;
 				auto end = (Cmd*)(((char*)cmd) + i.size);
-				Qk_Assert(cmd->size);
+				Qk_ASSERT(cmd->size);
 
 				while (cmd < end) {
 					switch (cmd->type) {
@@ -930,8 +930,8 @@ namespace qk {
 			auto w = size.x(), h = size.y();
 			auto type = _c->_opts.colorType;
 
-			Qk_Assert(w, "Invalid viewport size width");
-			Qk_Assert(h, "Invalid viewport size height");
+			Qk_ASSERT(w, "Invalid viewport size width");
+			Qk_ASSERT(h, "Invalid viewport size height");
 
 			chSize = chSize && size == _c->_surfaceSize;
 
@@ -1125,7 +1125,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
-		cmd->fullScale = _canvas->_fullScale;
+		cmd->fullScale = _canvas->_allScale;
 		cmd->alpha = alpha;
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1140,7 +1140,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
-		cmd->fullScale = _canvas->_fullScale;
+		cmd->fullScale = _canvas->_allScale;
 		cmd->color = color;
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref

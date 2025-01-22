@@ -73,8 +73,8 @@ namespace qk {
 		Default = Normal,
 	};
 
-	class FontFamilys;
-	typedef FontFamilys* FFID;
+	class FontFamilies;
+	typedef FontFamilies* FFID;
 
 	class Qk_Export FontStyle {
 	public:

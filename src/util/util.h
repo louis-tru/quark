@@ -48,7 +48,7 @@
 namespace qk {
 
 	Qk_Export int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
-	Qk_Export int fix_random(uint32_t a, ...);
+	Qk_Export int fix_random(uint32_t a, ...); // Must end with 0
 	Qk_Export uint64_t getId();
 	Qk_Export uint32_t getId32();
 	Qk_Export int64_t  parse_time(cString& str);

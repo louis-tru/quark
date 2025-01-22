@@ -107,7 +107,7 @@ namespace qk {
 		GLuint ubo = glGetUniformBlockIndex(program, "rootMatrixBlock");
 		GLint bufferSize;
 		glGetActiveUniformBlockiv(program, ubo, GL_UNIFORM_BLOCK_DATA_SIZE, &bufferSize);
-		Qk_Assert(bufferSize == 64);
+		Qk_ASSERT(bufferSize == 64);
 #endif
 
 		// Get Uniform Location index value

@@ -277,7 +277,7 @@ using namespace qk;
 		if ( _keyboard_down_keycode == 0 ) {
 			_host->dispatch()->keyboard()->dispatch(keycode, true, true, false, 0, -1, 0); // down
 		} else {
-			//Qk_Assert_Eq(keycode, _keyboard_up_keycode);
+			//Qk_ASSERT_EQ(keycode, _keyboard_up_keycode);
 			keycode = _keyboard_down_keycode; // used keydown keycode
 		}
 		_host->dispatch()->onImeInsert([text UTF8String]);
@@ -489,4 +489,40 @@ using namespace qk;
 
 id<QkIMEHelprt> qk_make_ime_helper(Window *win) {
 	return [[QkiOSIMEHelprt alloc] initIME:win];
+}
+
+// ***************** E v e n t . D i s p a t c h *****************
+
+void EventDispatch::setVolumeUp() {
+	// TODO ..
+}
+
+void EventDispatch::setVolumeDown() {
+	// TODO ..
+}
+
+void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
+	auto delegate = window()->impl()->delegate();
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
+	});
+}
+
+void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
+	auto delegate = window()->impl()->delegate();
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[delegate.ime set_keyboard_type:options.type];
+		[delegate.ime set_keyboard_return_type:options.return_type];
+		[delegate.ime activate: options.clear];
+	});
+}
+
+void EventDispatch::setImeKeyboardClose() {
+	auto delegate = window()->impl()->delegate();
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[delegate.ime deactivate];
+	});
+}
+
+void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 }

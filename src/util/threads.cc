@@ -73,7 +73,7 @@ namespace qk {
 			{
 #if DEBUG
 				ScopeLock scope(_mutex);
-				Qk_Assert(_childs.has(id),
+				Qk_ASSERT(_childs.has(id),
 					"Only subthreads belonging to \"Threads\" can be aborted");
 #endif
 			}
@@ -90,7 +90,7 @@ namespace qk {
 				thread_resume(i.key);
 			}
 		} else {
-			Qk_Assert(_childs.has(id),
+			Qk_ASSERT(_childs.has(id),
 				"Only subthreads belonging to \"Threads\" can be resume");
 			thread_resume(id);
 		}

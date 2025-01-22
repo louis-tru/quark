@@ -107,311 +107,268 @@ enum {
 
 namespace qk {
 
-	#if DEBUG && !USE_FFMPEG_MEDIACODEC
+#if DEBUG && !USE_FFMPEG_MEDIACODEC
 
-		static AMediaExtractor* _TEST_ex = NULL;
+	static AMediaExtractor* _TEST_ex = NULL;
 
-		static void _TEST_init_AMediaExtractor(cString& path, uint32_t select_track) {
-			if (_TEST_ex == NULL) {
-				int fd = ::open(fs_fallback_c(path), 0);
-				if ( fd <= 0 ) {
-					return;
-				}
-				_TEST_ex = AMediaExtractor_new();
-				AMediaExtractor_setDataSourceFd(_TEST_ex, fd, 0, FileStat(path).size());
-				::close(fd);
+	static void _TEST_init_AMediaExtractor(cString& path, uint32_t select_track) {
+		if (_TEST_ex == NULL) {
+			int fd = ::open(fs_fallback_c(path), 0);
+			if ( fd <= 0 ) {
+				return;
 			}
-			int err = AMediaExtractor_selectTrack(_TEST_ex, select_track);
-			Qk_Assert(err == 0);
+			_TEST_ex = AMediaExtractor_new();
+			AMediaExtractor_setDataSourceFd(_TEST_ex, fd, 0, FileStat(path).size());
+			::close(fd);
 		}
-
-		static void _TEST_get_sample_data(uint8_t* out, uint32_t size, uint& sample_size) {
-			Buffer buf(size);
-			ssize_t sample_size2 = AMediaExtractor_readSampleData(_TEST_ex, (uint8_t*)*buf, size);
-
-			uint32_t j[10] = { 0 };
-			uint32_t o = 0;
-			uint8_t* cmp = (uint8_t*)*buf;
-
-			for (int i = 0; i < sample_size; i++) {
-				if (cmp[i] != out[i]) {
-					j[o] = i;
-					o++;
-				}
-			}
-			Qk_DLog("cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
-							j[0], j[1], j[2], j[3], j[4], o, sample_size, sample_size2);
-
-			memcpy(out, *buf, sample_size2);
-			AMediaExtractor_advance(_TEST_ex);
-			sample_size = sample_size2;
-		}
-
-		#else
-			#define _TEST_init_AMediaExtractor(path, select_track) (void*)(0)
-			#define _TEST_get_sample_data(out, size, sample_size) (void*)(0)
-		#endif
-
-		// @func init_ffmpeg_jni
-		static void init_ffmpeg_jni() {
-		#if USE_FFMPEG_MEDIACODEC
-			static bool has_init = false;
-			if (!has_init) {
-				has_init = true;
-				if ( fx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
-					Qk_ELog("x_jni_set_java_vm(), unsuccessful." );
-				}
-			}
-		#endif 
+		int err = AMediaExtractor_selectTrack(_TEST_ex, select_track);
+		Qk_ASSERT(err == 0);
 	}
 
-	/**
-	* @class AndroidHardwareMediaCodec
-	* */
+	static void _TEST_get_sample_data(uint8_t* out, uint32_t size, uint& sample_size) {
+		Buffer buf(size);
+		ssize_t sample_size2 = AMediaExtractor_readSampleData(_TEST_ex, (uint8_t*)*buf, size);
+
+		uint32_t j[10] = { 0 };
+		uint32_t o = 0;
+		uint8_t* cmp = (uint8_t*)*buf;
+
+		for (int i = 0; i < sample_size; i++) {
+			if (cmp[i] != out[i]) {
+				j[o] = i;
+				o++;
+			}
+		}
+		Qk_DLog("cmp: %d|%d|%d|%d|%d, cmp_s: %d, sample_size:%d|%d",
+						j[0], j[1], j[2], j[3], j[4], o, sample_size, sample_size2);
+
+		memcpy(out, *buf, sample_size2);
+		AMediaExtractor_advance(_TEST_ex);
+		sample_size = sample_size2;
+	}
+
+#else
+#define _TEST_init_AMediaExtractor(path, select_track) (void*)(0)
+#define _TEST_get_sample_data(out, size, sample_size) (void*)(0)
+#endif
+
+	// @func init_ffmpeg_jni
+	static void init_ffmpeg_jni() {
+#if USE_FFMPEG_MEDIACODEC
+		static bool has_init = false;
+		if (!has_init) {
+			has_init = true;
+			if ( fx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
+				Qk_ELog("x_jni_set_java_vm(), unsuccessful." );
+			}
+		}
+#endif
+	}
+
 	class AndroidHardwareMediaCodec: public MediaCodec {
-		public:
+	public:
+		AndroidHardwareMediaCodec(Extractor* extractor, AMediaCodec* codec, AMediaFormat* format)
+			: MediaCodec(extractor)
+			, _format(format)
+			, _codec(codec)
+			, _eof_flags(false)
+			, _video_width(0)
+			, _video_height(0)
+			, _audio_frame_size(0)
+			, _presentation_time(0)
+			, _is_open(true)
+		{
+			const TrackInfo& track = extractor->track();
 
-			/**
-			* @constructor
-			*/
-			AndroidHardwareMediaCodec(Extractor* extractor, AMediaCodec* codec, AMediaFormat* format)
-				: MediaCodec(extractor)
-				, _format(format)
-				, _codec(codec)
-				, _eof_flags(false)
-				, _video_width(0)
-				, _video_height(0)
-				, _audio_frame_size(0)
-				, _presentation_time(0)
-				, _is_open(true)
-			{
-				const TrackInfo& track = extractor->track();
+			if ( type() == MEDIA_TYPE_VIDEO ) {
+				fetch_video_color_format();
+				_video_width = track.width;
+				_video_height = track.height;
+			} else {
+				_channel_layout = track.channel_layout;
+				_channel_count  = track.channel_count;
+			}
+		}
 
-				if ( type() == MEDIA_TYPE_VIDEO ) {
-					fetch_video_color_format();
-					_video_width = track.width;
-					_video_height = track.height;
-				} else {
-					_channel_layout = track.channel_layout;
-					_channel_count  = track.channel_count;
+		virtual ~AndroidHardwareMediaCodec() {
+			AMediaCodec_delete(_codec);   _codec = nullptr;
+			AMediaFormat_delete(_format); _format = nullptr;
+		}
+
+		void fetch_video_color_format() {
+			// AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
+			int num;
+			if ( AMediaFormat_getInt32(_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, &num) ) {
+				switch (num) {
+					case 17: _color_format = VIDEO_COLOR_FORMAT_YUV411P; break;
+					case 19: _color_format = VIDEO_COLOR_FORMAT_YUV420P; break;
+					case 21: _color_format = VIDEO_COLOR_FORMAT_YUV420SP; break;
+					default: _color_format = VIDEO_COLOR_FORMAT_INVALID; break;
 				}
 			}
+		}
 
-			/**
-			* @destructor
-			*/
-			virtual ~AndroidHardwareMediaCodec() {
-				AMediaCodec_delete(_codec);   _codec = nullptr;
-				AMediaFormat_delete(_format); _format = nullptr;
+		virtual bool open() {
+			if ( !_is_open ) {
+				int result = AMediaCodec_configure(_codec, _format, nullptr, nullptr, 0);
+				if ( result == 0 && AMediaCodec_start(_codec) == 0 ) {
+					_is_open = true;
+				}
+				bool ok = flush();
 			}
+			return _is_open;
+		}
 
-			/**
-			* @func fetch_video_color_format
-			* */
-			void fetch_video_color_format() {
-				// AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
-				int num;
-				if ( AMediaFormat_getInt32(_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, &num) ) {
-					switch (num) {
-						case 17: _color_format = VIDEO_COLOR_FORMAT_YUV411P; break;
-						case 19: _color_format = VIDEO_COLOR_FORMAT_YUV420P; break;
-						case 21: _color_format = VIDEO_COLOR_FORMAT_YUV420SP; break;
-						default: _color_format = VIDEO_COLOR_FORMAT_INVALID; break;
+		virtual bool close() {
+			if ( _is_open ) {
+				bool ok = flush();
+				if ( AMediaCodec_stop(_codec) == 0 ) {
+					_is_open = false;
+				}
+			}
+			return !_is_open;
+		}
+
+		virtual bool flush() {
+			_presentation_time = 0;
+			return AMediaCodec_flush(_codec) == 0;
+		}
+
+		virtual bool advance() {
+			if ( _extractor->advance() ) {
+				_eof_flags = false;
+
+				ssize_t bufidx = AMediaCodec_dequeueInputBuffer(_codec, 0);
+				if ( bufidx >= 0 ) {
+					size_t bufsize;
+					uint8_t* buf = AMediaCodec_getInputBuffer(_codec, bufidx, &bufsize);
+					uint32_t sample_size = _extractor->deplete_sample((Char*)buf, bufsize);
+					int sample_flags = _extractor->eof_flags() ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0;
+					uint64_t sample_time = _extractor->sample_time();
+
+					if ( sample_time == 0 ) {
+						Qk_DLog("advance:0");
 					}
-				}
-			}
-
-			/**
-			* @overwrite
-			*/
-			virtual bool open() {
-				if ( !_is_open ) {
-					int result = AMediaCodec_configure(_codec, _format, nullptr, nullptr, 0);
-					if ( result == 0 && AMediaCodec_start(_codec) == 0 ) {
-						_is_open = true;
+					if (sample_flags) {
+						Qk_DLog("%s", "eos flags");
 					}
-					bool ok = flush();
-				}
-				return _is_open;
-			}
-
-			/**
-			* @overwrite
-			*/
-			virtual bool close() {
-				if ( _is_open ) {
-					bool ok = flush();
-					if ( AMediaCodec_stop(_codec) == 0 ) {
-						_is_open = false;
-					}
-				}
-				return !_is_open;
-			}
-			
-			/**
-			* @overwrite
-			*/
-			virtual bool flush() {
-				_presentation_time = 0;
-				return AMediaCodec_flush(_codec) == 0;
-			}
-
-			/**
-			* @overwrite
-			* */
-			virtual bool advance() {
-				if ( _extractor->advance() ) {
-					_eof_flags = false;
-
-					ssize_t bufidx = AMediaCodec_dequeueInputBuffer(_codec, 0);
-					if ( bufidx >= 0 ) {
-						size_t bufsize;
-						uint8_t* buf = AMediaCodec_getInputBuffer(_codec, bufidx, &bufsize);
-						uint32_t sample_size = _extractor->deplete_sample((Char*)buf, bufsize);
-						int sample_flags = _extractor->eof_flags() ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0;
-						uint64_t sample_time = _extractor->sample_time();
-
-						if ( sample_time == 0 ) {
-							Qk_DLog("advance:0");
+					if ( sample_size ) {
+						if ( type() == MEDIA_TYPE_VIDEO ) {
+							MediaCodec::convert_sample_data_to_nalu(buf, bufsize);
 						}
-						if (sample_flags) {
-							Qk_DLog("%s", "eos flags");
-						}
-						if ( sample_size ) {
-							if ( type() == MEDIA_TYPE_VIDEO ) {
-								MediaCodec::convert_sample_data_to_nalu(buf, bufsize);
+						AMediaCodec_queueInputBuffer( _codec, bufidx, 0,
+																					sample_size, sample_time, sample_flags);
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		virtual OutputBuffer output() {
+			if ( ! _eof_flags ) {
+				AMediaCodecBufferInfo info;
+				ssize_t status = AMediaCodec_dequeueOutputBuffer(_codec, &info, 0);
+
+				if ( status >= 0 ) {
+					if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
+						Qk_DLog("output EOS");
+						_eof_flags = true;
+						_delegate->media_decoder_eof(this, info.presentationTimeUs);
+					}
+					int64_t presentation = info.presentationTimeUs;
+
+					if ( presentation == 0 ) {
+						Qk_DLog("output:0");
+					}
+
+					size_t size;
+					uint8_t * buffer = AMediaCodec_getOutputBuffer(_codec, status, &size);
+
+					if ( size ) {
+						OutputBuffer out;
+						out.total = info.size;
+						out.time = presentation;
+						out.index = status;
+
+						_presentation_time = out.time;
+						if ( type() == MEDIA_TYPE_AUDIO ) {
+							if (_audio_frame_size == 0) {
+								inl_set_frame_size(info.size);
 							}
-							AMediaCodec_queueInputBuffer( _codec, bufidx, 0,
-																						sample_size, sample_time, sample_flags);
-							return true;
-						}
-					}
-				}
-				return false;
-			}
-
-			/**
-			* @overwrite
-			*/
-			virtual OutputBuffer output() {
-				if ( ! _eof_flags ) {
-					AMediaCodecBufferInfo info;
-					ssize_t status = AMediaCodec_dequeueOutputBuffer(_codec, &info, 0);
-
-					if ( status >= 0 ) {
-						if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
-							Qk_DLog("output EOS");
-							_eof_flags = true;
-							_delegate->media_decoder_eof(this, info.presentationTimeUs);
-						}
-						int64_t presentation = info.presentationTimeUs;
-
-						if ( presentation == 0 ) {
-							Qk_DLog("output:0");
-						}
-
-						size_t size;
-						uint8_t * buffer = AMediaCodec_getOutputBuffer(_codec, status, &size);
-
-						if ( size ) {
-							OutputBuffer out;
-							out.total = info.size;
-							out.time = presentation;
-							out.index = status;
-
-							_presentation_time = out.time;
-							if ( type() == MEDIA_TYPE_AUDIO ) {
-								if (_audio_frame_size == 0) {
-									inl_set_frame_size(info.size);
-								}
-								out.data[0] = buffer;
-								out.linesize[0] = info.size;
-							} else {
-								if (_color_format == VIDEO_COLOR_FORMAT_YUV420P) {
-									out.linesize[0] = _video_width * _video_height;
-									out.linesize[1] = out.linesize[0] / 4;
-									out.linesize[2] = out.linesize[1];
-									out.data[0] = buffer;                                     // y
-									out.data[1] = buffer + out.linesize[0];                   // u
-									out.data[2] = buffer + out.linesize[0] + out.linesize[1]; // v
-								} else { // YUV420SP
-									out.linesize[0] = _video_width * _video_height;
-									out.linesize[1] = out.total - out.linesize[0];
-									out.data[0] = buffer;                                     // y
-									out.data[1] = buffer + out.linesize[0];                   // uv
-								}
-								if ( out.time == Uint64::max ) { //  Unknown time frame
-									out.time = _presentation_time + _frame_interval;
-								}
-							}
-							return out;
+							out.data[0] = buffer;
+							out.linesize[0] = info.size;
 						} else {
-							AMediaCodec_releaseOutputBuffer(_codec, status, true);
+							if (_color_format == VIDEO_COLOR_FORMAT_YUV420P) {
+								out.linesize[0] = _video_width * _video_height;
+								out.linesize[1] = out.linesize[0] / 4;
+								out.linesize[2] = out.linesize[1];
+								out.data[0] = buffer;                                     // y
+								out.data[1] = buffer + out.linesize[0];                   // u
+								out.data[2] = buffer + out.linesize[0] + out.linesize[1]; // v
+							} else { // YUV420SP
+								out.linesize[0] = _video_width * _video_height;
+								out.linesize[1] = out.total - out.linesize[0];
+								out.data[0] = buffer;                                     // y
+								out.data[1] = buffer + out.linesize[0];                   // uv
+							}
+							if ( out.time == Uint64::max ) { //  Unknown time frame
+								out.time = _presentation_time + _frame_interval;
+							}
 						}
-					} else if ( status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED ) {
-						Qk_DLog("output buffers changed");
-					} else if ( status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED ) {
-						AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
-						Qk_DLog("format changed to: %s", AMediaFormat_toString(format));
-						AMediaFormat_delete(format);
-					} else if ( status == AMEDIACODEC_INFO_TRY_AGAIN_LATER ) {
-						// Qk_DLog("no output buffer right now");
+						return out;
 					} else {
-						Qk_DLog("unexpected info code: %d", status);
+						AMediaCodec_releaseOutputBuffer(_codec, status, true);
 					}
+				} else if ( status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED ) {
+					Qk_DLog("output buffers changed");
+				} else if ( status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED ) {
+					AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
+					Qk_DLog("format changed to: %s", AMediaFormat_toString(format));
+					AMediaFormat_delete(format);
+				} else if ( status == AMEDIACODEC_INFO_TRY_AGAIN_LATER ) {
+					// Qk_DLog("no output buffer right now");
+				} else {
+					Qk_DLog("unexpected info code: %d", status);
 				}
-				return OutputBuffer();
 			}
+			return OutputBuffer();
+		}
 
-			/**
-			* @overwrite
-			*/
-			virtual void release(OutputBuffer& buffer) {
-				if ( buffer.total ) {
-					AMediaCodec_releaseOutputBuffer(_codec, buffer.index, true);
-					memset(&buffer, 0, sizeof(OutputBuffer));
-				}
+		virtual void release(OutputBuffer& buffer) {
+			if ( buffer.total ) {
+				AMediaCodec_releaseOutputBuffer(_codec, buffer.index, true);
+				memset(&buffer, 0, sizeof(OutputBuffer));
 			}
+		}
 
-			void inl_set_frame_size(uint32_t size) {
-				_audio_frame_size = size;
-				// compute audio frame interval
-				const TrackInfo &track = extractor()->track();
-				uint64_t second_size = track.sample_rate * _channel_count * 2;
-				_frame_interval = uint64(_audio_frame_size) * 1000 * 1000 / second_size;
-			}
+		void inl_set_frame_size(uint32_t size) {
+			_audio_frame_size = size;
+			// compute audio frame interval
+			const TrackInfo &track = extractor()->track();
+			uint64_t second_size = track.sample_rate * _channel_count * 2;
+			_frame_interval = uint64(_audio_frame_size) * 1000 * 1000 / second_size;
+		}
 
-			/**
-			* @overwrite
-			* */
-			virtual void set_frame_size(uint32_t size) { }
+		virtual void set_frame_size(uint32_t size) { }
 
-			/**
-			* @overwrite
-			* */
-			virtual void set_threads(uint32_t value) { }
+		virtual void set_threads(uint32_t value) { }
 
-			/**
-			* @overwrite
-			* */
-			virtual void set_background_run(bool value) { }
+		virtual void set_background_run(bool value) { }
 
-			// --------------------- @overwrite end ---------------------
+		// --------------------- @overwrite end ---------------------
 
-		private:
-			AMediaFormat* _format;
-			AMediaCodec*  _codec;
-			bool          _eof_flags;
-			uint32_t          _video_width;
-			uint32_t          _video_height;
-			uint32_t          _audio_frame_size;
-			uint64_t        _presentation_time;
-			bool          _is_open;
+	private:
+		AMediaFormat* _format;
+		AMediaCodec*  _codec;
+		bool          _eof_flags;
+		uint32_t          _video_width;
+		uint32_t          _video_height;
+		uint32_t          _audio_frame_size;
+		uint64_t        _presentation_time;
+		bool          _is_open;
 	};
 
-	/**
-	* @func hardware
-	*/
 	MediaCodec* Mediacodec_hardware(MediaType type, MediaSource* source) {
 		init_ffmpeg_jni();
 		

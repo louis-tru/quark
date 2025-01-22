@@ -90,8 +90,8 @@ namespace qk {
 				_state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2: 1;
 			if (_scale != scale) {
 				_scale = scale;
-				_fullScale = _surfaceScale * scale;
-				_phy2Pixel = 2 / _fullScale;
+				_allScale = _surfaceScale * scale;
+				_phy2Pixel = 2 / _allScale;
 			}
 			_cmdPack->setMetrix();
 		}
@@ -153,7 +153,7 @@ namespace qk {
 
 		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
 			if (path.vCount) {
-				Qk_Assert(path.path.isNormalized());
+				Qk_ASSERT(path.path.isNormalized());
 				fillv(path, paint);
 				if (aa) {
 					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
@@ -163,7 +163,7 @@ namespace qk {
 		}
 
 		void fillPath(const Path &path, const Paint &paint, bool aa) {
-			Qk_Assert(path.isNormalized());
+			Qk_ASSERT(path.isNormalized());
 			auto &vertex = _cache->getPathTriangles(path);
 			if (vertex.vCount) {
 				fillv(vertex, paint);
@@ -329,7 +329,7 @@ namespace qk {
 
 		switch(paint.filter->type) {
 			case PaintFilter::kBlur_Type:
-				if (host->_fullScale * paint.filter->val0 >= 1.0) {
+				if (host->_allScale * paint.filter->val0 >= 1.0) {
 					return new GLCBlurFilter(host, paint, args...);
 				}
 				break;
@@ -346,7 +346,7 @@ namespace qk {
 		, _outAAClipTex(0), _outA(0), _outB(0)
 		, _stencilRef(127), _stencilRefDrop(127)
 		, _zDepth(0)
-		, _surfaceScale(1), _scale(1), _fullScale(1), _phy2Pixel(1)
+		, _surfaceScale(1), _scale(1), _allScale(1), _phy2Pixel(1)
 		, _rootMatrix()
 		, _blendMode(kSrcOver_BlendMode)
 		, _opts(opts)
@@ -452,7 +452,8 @@ namespace qk {
 					restore_output = true;
 					_cmdPack->outputImageEnd(*_state->output->dest, _state->output->isMipmap);
 				}
-				_state = &_stateStack.pop().back();
+				_stateStack.pop();
+				_state = &_stateStack.back();
 				count--;
 			} while (count > 0);
 
@@ -617,11 +618,10 @@ namespace qk {
 	{
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 
-		Sp<ImageSource> img;
 		auto tf = glyphs.typeface();
-		auto bound = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _fullScale, offset, _fullScale, &img, _render);
-		auto scale_1 = _this->drawTextImage(*img, bound.y(), _fullScale, origin, paint);
-		return scale_1 * bound.x();
+		auto out = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _allScale, offset, _allScale, _render);
+		auto scale = _this->drawTextImage(*out.image, out.top, _allScale, origin, paint);
+		return scale * out.right;
 	}
 
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
@@ -634,17 +634,16 @@ namespace qk {
 		if (finalFontSize == 0.0)
 			return;
 
-		if (blob->out.fontSize != finalFontSize || !blob->out.img) { // fill text bolb
+		if (blob->out.fontSize != finalFontSize || !blob->out.image) { // fill text bolb
 			auto tf = blob->typeface;
 			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
-			blob->out.bounds = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, &blob->out.img, _render);
-			Qk_Assert(blob->out.img->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
-			blob->out.fontSize = finalFontSize;
-			//Qk_DLog("GLCanvas::drawTextBlob origin, %f", origin.y());
+			blob->out = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, _render);
+			Qk_ASSERT(blob->out.image->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
+			// Qk_DLog("GLCanvas::drawTextBlob origin, %f", origin.y());
 		}
-		auto img = *blob->out.img;
+		auto img = *blob->out.image;
 		if (img->width() && img->height()) {
-			_this->drawTextImage(*blob->out.img, blob->out.bounds.y(), _fullScale * levelSize / fontSize, origin, paint);
+			_this->drawTextImage(*blob->out.image, blob->out.top, _allScale * levelSize / fontSize, origin, paint);
 		}
 	}
 
@@ -698,8 +697,8 @@ namespace qk {
 		_size = surfaceSize / scale;
 		_surfaceScale = (scale[0] + scale[1]) * 0.5;
 		_scale = _state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
-		_fullScale = _surfaceScale * _scale;
-		_phy2Pixel = 2 / _fullScale;
+		_allScale = _surfaceScale * _scale;
+		_phy2Pixel = 2 / _allScale;
 		_rootMatrix = root.transpose(); // transpose matrix
 
 		_cmdPack->setBuffers(surfaceSize, chSize, _isClipState);// set buffers

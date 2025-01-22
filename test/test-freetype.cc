@@ -158,15 +158,15 @@ void each_glyph() {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	error = FT_Set_Char_Size(face, 0, 12 * 64, 300, 300);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	error = FT_Set_Pixel_Sizes(face, 0, 12);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	FT_GlyphSlot gl = face->glyph;
 	
@@ -174,7 +174,7 @@ void each_glyph() {
 	//  error = FT_Set_Charmap(face, face->charmaps[0]);
 	//  error = FT_Set_Charmap(face, face->charmaps[1]);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	uint32_t ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 妤氬鏂囷拷A
 	
@@ -201,7 +201,7 @@ void each_glyph() {
 	
 	error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	FT_Pos x, y;
 	
@@ -219,17 +219,17 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	float font_size = 16;
 	
 	error = FT_Set_Char_Size(face, 0, font_size * 64, 72, 72);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	//  error = FT_Set_Pixel_Sizes(face, 0, 64);
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	Qk_Log("VERTICAL:%i", FT_HAS_VERTICAL(face));
 	
@@ -254,13 +254,13 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_Get_Glyph( gl, &glyph );
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	FT_BBox bbox;
 	
 	FT_Glyph_Get_CBox( glyph, FT_LOAD_NO_SCALE, &bbox );
 	
-	Qk_Assert(!error);
+	Qk_ASSERT(!error);
 	
 	if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
 		FT_Outline_Embolden(&(gl->outline), 16); //
@@ -268,7 +268,7 @@ void onload_f(Event<>& evt, void* user) {
 	
 	if (gl->format != FT_GLYPH_FORMAT_BITMAP) {
 		error = FT_Render_Glyph(gl, FT_RENDER_MODE_NORMAL);
-		Qk_Assert(!error);
+		Qk_ASSERT(!error);
 	}
 	
 	FT_Bitmap bit = gl->bitmap;

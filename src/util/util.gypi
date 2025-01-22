@@ -1,8 +1,6 @@
 {
 	'targets': [
 	{
-		# 'product_prefix': '',
-		# 'product_ext': 'so',
 		'target_name': 'quark-util',
 		'type': 'static_library',
 		'dependencies': [

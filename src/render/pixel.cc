@@ -43,8 +43,7 @@ namespace qk {
 	}
 
 	uint32_t PixelInfo::bytes() const {
-		uint32_t rowbytes = _width * Pixel::bytes_per_pixel(_type);
-		return rowbytes * _height;
+		return rowbytes() * _height;
 	}
 
 	// -------------------- P i x e l --------------------
@@ -94,14 +93,14 @@ namespace qk {
 		pixel._body = nullptr;
 	}
 
-	Pixel::Pixel(const PixelInfo& info, Buffer body): PixelInfo(info)
+	Pixel::Pixel(cPixelInfo& info, Buffer body): PixelInfo(info)
 		, _length(body.length())
 		, _val(nullptr)
 		, _body(nullptr) {
 		_val = reinterpret_cast<uint8_t*>(body.collapse());
 	}
 
-	Pixel::Pixel(const PixelInfo& info, Body *body): PixelInfo(info)
+	Pixel::Pixel(cPixelInfo& info, Body *body): PixelInfo(info)
 		, _length(body->len())
 		, _val(body->val())
 		, _body(body) {

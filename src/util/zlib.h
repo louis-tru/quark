@@ -52,11 +52,14 @@ namespace qk {
 	*
 	* @class GZip
 	*/
-	class Qk_Export GZip: public Object {
+	class Qk_Export GZip: public Object, public StreamSync {
 		Qk_HIDDEN_ALL_COPY(GZip);
 	public:
-		GZip(cString& path): _path(path), _gzfp(nullptr) { }
-		virtual ~GZip();
+		// define props
+		Qk_DEFINE_P_GET(String, path);
+		// methods
+		GZip(cString& path): _path(path), _gzfp(nullptr) {}
+		~GZip() override;
 		/**
 		* can't read and write at the same time
 		* BOTH and BOTH_NEW and BOTH_END_NEW cannot use
@@ -64,10 +67,8 @@ namespace qk {
 		int open(int flag = FOPEN_R);
 		int close();
 		bool is_open();
-		int read(void* buffer, int64_t size, int64_t offset = -1);
-		int write(const void* buffer, int64_t size, int64_t offset = -1);
-		// define props
-		Qk_DEFINE_P_GET(String, path);
+		int read(void* dest, int64_t size, int64_t offset = -1) override;
+		int write(cVoid* data, int64_t size, int64_t offset = -1) override;
 	private:
 		void*  _gzfp;
 	};

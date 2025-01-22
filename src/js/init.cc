@@ -425,7 +425,7 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			Qk_Assert(__quark_js_argv);
+			Qk_ASSERT(__quark_js_argv);
 			auto argv = worker->newArray();
 			for (uint32_t i = 0; i < __quark_js_argc; i++) {
 				argv->set(worker, i, worker->newValue(String(__quark_js_argv[i])));

@@ -57,7 +57,7 @@ namespace qk { namespace js {
 	};
 
 	void MixObject::clearWeak() {
-		Qk_Assert_Ne(_handle, nullptr);
+		Qk_ASSERT_NE(_handle, nullptr);
 		if (_flags & kWeak_Flags) {
 			_flags &= ~kWeak_Flags; // delete kWeak_Flags
 			JSValueProtect(JSC_CTX(_class->worker()), Back<JSObjectRef>(_handle));
@@ -65,7 +65,7 @@ namespace qk { namespace js {
 	}
 
 	void MixObject::setWeak() {
-		Qk_Assert_Ne(_handle, nullptr);
+		Qk_ASSERT_NE(_handle, nullptr);
 		if (!(_flags & kWeak_Flags)) {
 			_flags |= kWeak_Flags; // add kWeak_Flags
 			JSValueUnprotect(JSC_CTX(_class->worker()), Back<JSObjectRef>(_handle));
@@ -73,7 +73,7 @@ namespace qk { namespace js {
 	}
 
 	void MixObject::bindObject(JSObject* handle) {
-		Qk_Assert_Eq(_handle, nullptr);
+		Qk_ASSERT_EQ(_handle, nullptr);
 		_handle = handle;
 		auto val = Back<JSObjectRef>(_handle);
 		JSObjectSetPrivate(val, this);
@@ -81,7 +81,7 @@ namespace qk { namespace js {
 	}
 
 	MixObject* MixObject::unpack(JSValue* obj) {
-		Qk_Assert_Ne(obj, nullptr);
+		Qk_ASSERT_NE(obj, nullptr);
 		auto mix = static_cast<MixObject*>(JSObjectGetPrivate(Back<JSObjectRef>(obj)));
 		return mix;
 	}
@@ -148,7 +148,7 @@ namespace qk { namespace js {
 			auto mix = getMix(thisObj);
 			if (mix) {
 				auto cls = static_cast<JscClass*>(mix->jsclass());
-				Qk_Assert_Ne(cls, nullptr);
+				Qk_ASSERT_NE(cls, nullptr);
 
 				if (hasGet ? (void*)cls->_indexedGet: (void*)cls->_indexedSet) {
 					char buffer[10];
@@ -256,7 +256,7 @@ namespace qk { namespace js {
 				//Qk_DLog("FunctionSet, %s", *jsToString(*func->name));
 				return nullptr;
 			}
-			Qk_Assert_Eq(argc, 1);
+			Qk_ASSERT_EQ(argc, 1);
 
 			JscWorker* worker = func->worker;
 			PropertySetCallbackInfoImpl args{ worker, thisObj };
@@ -372,7 +372,7 @@ namespace qk { namespace js {
 	}
 
 	bool JSClass::hasInstance(JSValue* val) {
-		Qk_Assert_Ne(val, nullptr);
+		Qk_ASSERT_NE(val, nullptr);
 		ENV(_worker);
 		auto self = _jscclass(this);
 		auto ok = JSValueIsInstanceOfConstructor(ctx, Back(val), self->_constructor, OK(false));
@@ -382,7 +382,7 @@ namespace qk { namespace js {
 	static bool setMethodFunction(
 		Worker* w, JSObjectRef target, cString& name, FunctionCallback func, JSClass* sign
 	) {
-		Qk_Assert_Ne(func, nullptr);
+		Qk_ASSERT_NE(func, nullptr);
 		ENV(w);
 		auto s = JsStringWithUTF8(*name);
 		auto fp = new FunctionPrivate<FunctionCallback>{func, s, worker, static_cast<JscClass*>(sign)};
@@ -396,7 +396,7 @@ namespace qk { namespace js {
 	static bool setAccessorFunction(
 		Worker* w, JSObjectRef target, cString& name, AccessorGetterCallback get, AccessorSetterCallback set, JSClass* sign
 	) {
-		Qk_Assert(get || set);
+		Qk_ASSERT(get || set);
 		ENV(w);
 
 		if (!get) {
@@ -487,7 +487,7 @@ namespace qk { namespace js {
 	}
 
 	JSFunction* Worker::newFunction(cString& name, FunctionCallback func) {
-		Qk_Assert_Ne(func, nullptr);
+		Qk_ASSERT_NE(func, nullptr);
 		ENV(this);
 		auto f = JSObjectMake(ctx, factorys.function,
 			new FunctionPrivate<FunctionCallback>{func, JsStringWithUTF8(*name), worker, nullptr}
@@ -497,7 +497,7 @@ namespace qk { namespace js {
 	}
 
 	void initFactorys() {
-		Qk_Assert_Eq(factorys.constructor, nullptr);
+		Qk_ASSERT_EQ(factorys.constructor, nullptr);
 		JSClassDefinition def;
 
 		def = kJSClassDefinitionEmpty;
@@ -578,7 +578,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* FunctionCallbackInfo::operator[](int i) const {
-		Qk_Assert_Lt(i, reinterpret_cast<const FunctionCallbackInfoImpl*>(this)->argc,
+		Qk_ASSERT_LT(i, reinterpret_cast<const FunctionCallbackInfoImpl*>(this)->argc,
 			"argument index out of bounds");
 		return Cast(reinterpret_cast<const FunctionCallbackInfoImpl*>(this)->argv[i]);
 	}

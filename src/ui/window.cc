@@ -81,8 +81,8 @@ namespace qk {
 		, _fspTime(0), _surfaceRegion()
 		, _preRender(this)
 	{
-		Qk_Fatal_Assert(_host);
-		Qk_Fatal_Assert(first_loop() == current_loop(), "Must be called on the first thread loop");
+		Qk_ASSERT_RAW(_host);
+		Qk_ASSERT_RAW(first_loop() == current_loop(), "Must be called on the first thread loop");
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
@@ -118,7 +118,7 @@ namespace qk {
 	}
 
 	Window::~Window() {
-		Qk_Fatal_Assert(_render == nullptr);
+		Qk_ASSERT_RAW(_render == nullptr);
 	}
 
 	void Window::close() {
@@ -149,8 +149,9 @@ namespace qk {
 		// ------------------------
 		_host->_mutex.lock();
 		_host->_windows.erase(_id);
-		if (_host->_activeWindow == this)
-			Inl_Application(_host)->setActiveWindow(nullptr);
+		if (_host->_activeWindow == this) {
+			Inl_Application(_host)->setActiveWindow(this);
+		}
 		_host->_mutex.unlock();
 		// ------------------------
 
@@ -198,7 +199,7 @@ namespace qk {
 	}
 
 	void Window::clipRestore() {
-		Qk_Assert(_clipRegion.length() > 1);
+		Qk_ASSERT(_clipRegion.length() > 1);
 		_clipRegion.pop();
 	}
 
@@ -282,7 +283,8 @@ namespace qk {
 		_render->getCanvas()->setSurface(mat, size, _scale);
 	}
 
-	void Window::onRenderBackendReload(Region region, Vec2 size, float defaultScale) {
+	void Window::onRenderBackendReload(Region region, Vec2 size) {
+		auto defaultScale = getDefaultScale();
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DLog("Window::onDeviceReload");
 			UILock lock(this);

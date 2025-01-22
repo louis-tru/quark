@@ -37,7 +37,7 @@
 #else
 #import <UIKit/UIKit.h>
 #endif
-#include "../font/util_mac.h"
+#include "../font/priv/util.h"
 
 namespace qk {
 

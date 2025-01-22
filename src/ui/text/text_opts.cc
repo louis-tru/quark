@@ -137,7 +137,7 @@ namespace qk {
 	// -------------------------------------------------------------------------------
 
 	TextFamily TextOptions::text_family() const {
-		Qk_Assert(_secondaryProps->text_family.value);
+		Qk_ASSERT(_secondaryProps->text_family.value);
 		return _secondaryProps->text_family;
 	}
 
@@ -212,7 +212,7 @@ namespace qk {
 			if (!value.value) {
 				auto v = getViewForTextOptions();
 				if (v) {
-					value.value = v->window()->fontPool()->defaultFontFamilys();
+					value.value = v->window()->fontPool()->defaultFontFamilies();
 				}
 			}
 			// After alignment, `_text_family.value` pointers can be read and written atomically
@@ -334,7 +334,7 @@ namespace qk {
 				_opts->_secondaryProps = _inherit_opts->_secondaryProps;
 			} else {
 				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(FFID,
-					text_family, 4, (_inherit_opts->text_family().value->pool()->defaultFontFamilys()));
+					text_family, 4, (_inherit_opts->text_family().value->pool()->defaultFontFamilies()));
 				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Shadow,
 					text_shadow, 5, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
 				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Color, text_background_color, 6, Color(0, 0, 0, 0));
@@ -361,7 +361,7 @@ namespace qk {
 			opts->set_text_size({16, TextValueKind::Value});
 			opts->set_text_color({Color(0, 0, 0), TextValueKind::Value});
 			opts->set_text_line_height({0, TextValueKind::Value});
-			opts->set_text_family({pool->defaultFontFamilys(), TextValueKind::Value});
+			opts->set_text_family({pool->defaultFontFamilies(), TextValueKind::Value});
 			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::Value});
 			opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::Value});
 			opts->set_text_weight(TextWeight::Default);
@@ -393,7 +393,7 @@ namespace qk {
 				break;
 			case 4:
 				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(FFID,
-					text_family, 4, (_inherit_opts->text_family().value->pool()->defaultFontFamilys())
+					text_family, 4, (_inherit_opts->text_family().value->pool()->defaultFontFamilies())
 				);
 				break;
 			case 5:

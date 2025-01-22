@@ -47,7 +47,7 @@ namespace qk {
 	}
 
 	void StyleSheets::apply(View *view, bool isRt) const {
-		Qk_Assert(view);
+		Qk_ASSERT(view);
 		if (_props.length()) {
 			for ( auto i: _props ) {
 				i.value->apply(view, isRt);
@@ -56,7 +56,7 @@ namespace qk {
 	}
 
 	void StyleSheets::fetch(View *view, bool isRt) {
-		Qk_Assert(view);
+		Qk_ASSERT(view);
 		if (_props.length()) {
 			if (isRt) {
 				for ( auto i: _props ) {
@@ -77,7 +77,7 @@ namespace qk {
 
 	void StyleSheets::applyTransition(View* view, StyleSheets *to, float y) const {
 		if (_props.length()) {
-			Qk_Assert(_props.length() == to->_props.length());
+			Qk_ASSERT(_props.length() == to->_props.length());
 			auto a = _props.begin(), e = _props.end();
 			auto b = to->_props.begin();
 			while (a != e) {

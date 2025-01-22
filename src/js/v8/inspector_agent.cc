@@ -173,7 +173,7 @@ namespace qk { namespace inspector {
 			InspectorTimerHandle(const InspectorTimerHandle&) = delete;
 
 			~InspectorTimerHandle() {
-				Qk_Assert_Ne(timer_, nullptr);
+				Qk_ASSERT_NE(timer_, nullptr);
 				timer_->Stop();
 				timer_ = nullptr;
 			}
@@ -192,7 +192,7 @@ namespace qk { namespace inspector {
 
 		void runMessageLoopOnPause(int context_group_id) override {
 			// Run on frontend main thread 
-			Qk_Assert_Ne(channel_, nullptr);
+			Qk_ASSERT_NE(channel_, nullptr);
 			if (running_nested_loop_)
 				return;
 			terminated_ = false;
@@ -232,7 +232,7 @@ namespace qk { namespace inspector {
 		}
 
 		void connectFrontend(InspectorSessionDelegate* delegate) {
-			Qk_Assert_Eq(channel_, nullptr);
+			Qk_ASSERT_EQ(channel_, nullptr);
 			channel_ = std::unique_ptr<ChannelImpl>(new ChannelImpl(inspector_.get(), delegate));
 		}
 
@@ -242,7 +242,7 @@ namespace qk { namespace inspector {
 		}
 
 		void dispatchMessageFromFrontend(const StringView& message) {
-			Qk_Assert_Ne(channel_, nullptr);
+			Qk_ASSERT_NE(channel_, nullptr);
 			channel_->dispatchProtocolMessage(message);
 		}
 
@@ -372,12 +372,12 @@ namespace qk { namespace inspector {
 	}
 
 	void Agent::Connect(InspectorSessionDelegate* delegate) {
-		Qk_Assert_Ne(cli_, nullptr);
+		Qk_ASSERT_NE(cli_, nullptr);
 		cli_->connectFrontend(delegate);
 	}
 
 	void Agent::Disconnect() {
-		Qk_Assert_Ne(cli_, nullptr);
+		Qk_ASSERT_NE(cli_, nullptr);
 		cli_->disconnectFrontend();
 	}
 
@@ -386,7 +386,7 @@ namespace qk { namespace inspector {
 	}
 
 	void Agent::WaitForDisconnect() {
-		Qk_Assert_Ne(cli_, nullptr);
+		Qk_ASSERT_NE(cli_, nullptr);
 		cli_->contextDestroyed(firstContext());
 		if (io_ != nullptr) {
 			io_->WaitForDisconnect();
@@ -401,17 +401,17 @@ namespace qk { namespace inspector {
 	}
 
 	void Agent::Dispatch(const StringView& message) {
-		Qk_Assert_Ne(cli_, nullptr);
+		Qk_ASSERT_NE(cli_, nullptr);
 		cli_->dispatchMessageFromFrontend(message);
 	}
 
 	void Agent::RunMessageLoop() {
-		Qk_Assert_Ne(cli_, nullptr);
+		Qk_ASSERT_NE(cli_, nullptr);
 		cli_->runMessageLoopOnPause(CONTEXT_GROUP_ID);
 	}
 
 	InspectorSessionDelegate* Agent::delegate() {
-		Qk_Assert_Ne(cli_, nullptr);
+		Qk_ASSERT_NE(cli_, nullptr);
 		auto channel = cli_->channel();
 		return channel ? channel->delegate(): nullptr;
 	}
@@ -428,11 +428,11 @@ namespace qk { namespace inspector {
 		enable_async_hook_function_.Reset(isolate, enable_function);
 		disable_async_hook_function_.Reset(isolate, disable_function);
 		if (pending_enable_async_hook_) {
-			Qk_Assert(!pending_disable_async_hook_);
+			Qk_ASSERT(!pending_disable_async_hook_);
 			pending_enable_async_hook_ = false;
 			EnableAsyncHook();
 		} else if (pending_disable_async_hook_) {
-			Qk_Assert(!pending_enable_async_hook_);
+			Qk_ASSERT(!pending_enable_async_hook_);
 			pending_disable_async_hook_ = false;
 			DisableAsyncHook();
 		}
@@ -443,7 +443,7 @@ namespace qk { namespace inspector {
 			Isolate* isolate = this->isolate();
 			ToggleAsyncHook(isolate, enable_async_hook_function_.Get(isolate));
 		} else if (pending_disable_async_hook_) {
-			Qk_Assert(!pending_enable_async_hook_);
+			Qk_ASSERT(!pending_enable_async_hook_);
 			pending_disable_async_hook_ = false;
 		} else {
 			pending_enable_async_hook_ = true;
@@ -455,7 +455,7 @@ namespace qk { namespace inspector {
 			Isolate* isolate = this->isolate();
 			ToggleAsyncHook(isolate, disable_async_hook_function_.Get(isolate));
 		} else if (pending_enable_async_hook_) {
-			Qk_Assert(!pending_disable_async_hook_);
+			Qk_ASSERT(!pending_disable_async_hook_);
 			pending_enable_async_hook_ = false;
 		} else {
 			pending_disable_async_hook_ = true;
@@ -545,7 +545,7 @@ namespace qk { namespace inspector {
 	inline void CheckEntropy() {
 		for (;;) {
 			int status = RAND_status();
-			Qk_Assert(status >= 0);  // Cannot fail.
+			Qk_ASSERT(status >= 0);  // Cannot fail.
 			if (status != 0)
 				break;
 

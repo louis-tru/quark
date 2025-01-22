@@ -78,6 +78,7 @@ namespace qk {
 		static Sp<ImageSource> Make(cString& uri, RunLoop *loop = current_loop());
 		static Sp<ImageSource> Make(cPixelInfo &info, RenderBackend *render, RunLoop *loop = current_loop());
 		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderBackend *render, RunLoop *loop = current_loop());
+		static Sp<ImageSource> Make(Pixel&& pixel, RenderBackend *render, RunLoop *loop = current_loop());
 
 		/**
 		 * @destructor

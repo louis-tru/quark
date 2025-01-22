@@ -55,12 +55,12 @@ void test_http(int argc, char **argv) {
 		if ( d.error ) {
 			Qk_Log(d.error->message());
 		} else {
-			StreamResponse* data = d.data;
-			int len = data->buffer().length();
-			Qk_Log(String(data->buffer().collapse(), len));
-			Qk_Log("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
+			auto data = &d.data->value;
+			int len = data->data.length();
+			Qk_Log(String(data->data.collapse(), len));
+			Qk_Log("%llu/%llu, complete: %i", data->size, data->total, data->end);
 			
-			fs_abort(data->id());
+			fs_abort(data->id);
 		}
 	}));
 	

@@ -112,28 +112,28 @@
 // ------------------------------------------------------------------
 
 #ifdef __GNUC__
-# define Qk_Likely(expr) __builtin_expect(!!(expr), 1)
-# define Qk_UnLikely(expr) __builtin_expect(!!(expr), 0)
+# define Qk_LIKELY(expr) __builtin_expect(!!(expr), 1)
+# define Qk_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
 #else
-# define Qk_Likely(expr) expr
-# define Qk_UnLikely(expr) expr
+# define Qk_LIKELY(expr) expr
+# define Qk_UNLIKELY(expr) expr
 #endif
 
-#define Qk_Fatal_Assert(cond, ...)\
-	if(Qk_UnLikely(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define Qk_ASSERT_RAW(cond, ...)\
+	if(Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #if DEBUG
-# define Qk_Assert Qk_Fatal_Assert
-# define Qk_Assert_Op(a, op, b, ...) Qk_Fatal_Assert(((a) op (b)), ##__VA_ARGS__)
+# define Qk_ASSERT Qk_ASSERT_RAW
+# define Qk_ASSERT_OP(a, op, b, ...) Qk_ASSERT_RAW(((a) op (b)), ##__VA_ARGS__)
 #else
-# define Qk_Assert(cond, ...) ((void)(cond))
-# define Qk_Assert_Op(a, op, b, ...) ((void)((a) op (b)))
+# define Qk_ASSERT(cond, ...) ((void)(cond))
+# define Qk_ASSERT_OP(a, op, b, ...) ((void)((a) op (b)))
 #endif
-#define Qk_Assert_Eq(a, b, ...) Qk_Assert_Op((a), ==, (b), ##__VA_ARGS__)
-#define Qk_Assert_Ne(a, b, ...) Qk_Assert_Op((a), !=, (b), ##__VA_ARGS__)
-#define Qk_Assert_Ge(a, b, ...) Qk_Assert_Op((a), >=, (b), ##__VA_ARGS__)
-#define Qk_Assert_Le(a, b, ...) Qk_Assert_Op((a), <=, (b), ##__VA_ARGS__)
-#define Qk_Assert_Gt(a, b, ...) Qk_Assert_Op((a), >,  (b), ##__VA_ARGS__)
-#define Qk_Assert_Lt(a, b, ...) Qk_Assert_Op((a), <,  (b), ##__VA_ARGS__)
+#define Qk_ASSERT_EQ(a, b, ...) Qk_ASSERT_OP((a), ==, (b), ##__VA_ARGS__)
+#define Qk_ASSERT_NE(a, b, ...) Qk_ASSERT_OP((a), !=, (b), ##__VA_ARGS__)
+#define Qk_ASSERT_GE(a, b, ...) Qk_ASSERT_OP((a), >=, (b), ##__VA_ARGS__)
+#define Qk_ASSERT_LE(a, b, ...) Qk_ASSERT_OP((a), <=, (b), ##__VA_ARGS__)
+#define Qk_ASSERT_GT(a, b, ...) Qk_ASSERT_OP((a), >,  (b), ##__VA_ARGS__)
+#define Qk_ASSERT_LT(a, b, ...) Qk_ASSERT_OP((a), <,  (b), ##__VA_ARGS__)
 
 #define Qk_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
 #define Qk_DEFINE_INLINE_MEMBERS(cls, Inl) \
@@ -141,11 +141,11 @@
 		return reinterpret_cast<cls::Inl*>(self); \
 	} class cls::Inl: public cls
 
+#define Qk_Unreachable(...)   Qk_Fatal("Unreachable code, %s", ##__VA_ARGS__)
 #define Qk_Log(msg, ...)      ::qk::log_println(msg, ##__VA_ARGS__)
 #define Qk_Warn(msg, ...)     ::qk::log_println_warn(msg, ##__VA_ARGS__)
 #define Qk_ELog(msg, ...)     ::qk::log_println_error(msg, ##__VA_ARGS__)
 #define Qk_Fatal(...)         ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define Qk_Unreachable(...)   Qk_Fatal("Unreachable code, %s", ##__VA_ARGS__)
 #define Qk_Min(A, B)          ((A) < (B) ? (A) : (B))
 #define Qk_Max(A, B)          ((A) > (B) ? (A) : (B))
 // return and move local
@@ -153,11 +153,17 @@
 
 #if DEBUG
 # define Qk_DLog Qk_Log
+# define Qk_DEBUGCODE(...) __VA_ARGS__
 #else
 # define Qk_DLog(msg, ...) ((void)0)
+# define Qk_DEBUGCODE(...)
 #endif
 
+#define Qk_DEBUG DEBUG
 #define throw(...)
+
+#define Qk_Type_Check(Base, Sub) \
+	while (false) { *(static_cast<Base* volatile*>(0)) = static_cast<Sub*>(0); }
 
 // ------------------------------------------------------------------
 

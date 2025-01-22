@@ -37,7 +37,7 @@ namespace qk {
 	struct Tasks {
 		Mutex mutex;
 		Dict<uint32_t, AsyncIOTask*> task;
-		AsyncIOTask* getTask(uint32_t id) {
+		Sp<AsyncIOTask> getTask(uint32_t id) {
 			ScopeLock scope(mutex);
 			AsyncIOTask *r = nullptr;
 			task.get(id, r);
@@ -48,7 +48,7 @@ namespace qk {
 	AsyncIOTask::AsyncIOTask(RunLoop* loop)
 		: _id(getId32()), _loop(loop), _abort(false)
 	{
-		Qk_Fatal_Assert(_loop, "#AsyncIOTask#AsyncIOTask loop nullptr");
+		Qk_ASSERT_RAW(_loop, "#AsyncIOTask#AsyncIOTask loop nullptr");
 		ScopeLock scope(tasks->mutex);
 		tasks->task.set(_id, this);
 	}
@@ -67,13 +67,12 @@ namespace qk {
 
 	void AsyncIOTask::safe_abort(uint32_t id) {
 		if (id) {
-			Sp<AsyncIOTask> sp(tasks->getTask(id));
+			auto sp = tasks->getTask(id);
 			if (sp) {
-				auto task = sp.collapse();
+				auto task = sp.value();
 				task->_loop->post(Cb([id, task](Cb::Data& e) {
-					auto sp = Sp<AsyncIOTask>::without(task);
 					task->abort();
-				}));
+				}), task);
 			} // if (tasks->values.get(id, out))
 		}
 	}

@@ -120,12 +120,12 @@ namespace qk { namespace js {
 					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
 					func.val->call(worker, 1, &arg);
 				} else {
-					StreamResponse* data = static_cast<StreamResponse*>(d.data);
+					auto data = &static_cast<StreamResponse*>(d.data)->value;
 					JSObject* arg = worker->newObject();
-					arg->set(worker, worker->strs()->data(), worker->newValue(data->buffer()) );
-					arg->set(worker, worker->strs()->complete(), worker->newBool(data->complete()) );
-					arg->set(worker, worker->strs()->size(), worker->newValue(data->size()) );
-					arg->set(worker, worker->strs()->total(), worker->newValue(data->total()) );
+					arg->set(worker, worker->strs()->data(), worker->newValue(data->data) );
+					arg->set(worker, worker->strs()->end(), worker->newBool(data->end) );
+					arg->set(worker, worker->strs()->size(), worker->newValue(data->size) );
+					arg->set(worker, worker->strs()->total(), worker->newValue(data->total) );
 					JSValue* args[2] = { worker->newNull(), arg };
 					func.val->call(worker, 2, args);
 				}

@@ -49,7 +49,6 @@ namespace qk {
 		: _opts(opts)
 		, _canvas(nullptr)
 		, _delegate(nullptr)
-		, _defaultScale(1)
 		, _isActive(true)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
@@ -60,4 +59,25 @@ namespace qk {
 		_isActive = isActive;
 	}
 
+	Render* make_metal_render(Render::Options opts);
+	Render* make_vulkan_render(Render::Options opts);
+	Render* make_gl_render(Render::Options opts);
+
+	Render* Render::Make(Options opts, Delegate *delegate) {
+		Render* r = nullptr;
+
+#if Qk_ENABLE_VULKAN
+		if (!r) r = make_vulkan_render();
+#endif
+#if Qk_ENABLE_METAL
+		if (!r) r = make_metal_render();
+#endif
+#if Qk_ENABLE_GL
+		if (!r) r = make_gl_render(opts);
+#endif
+		Qk_ASSERT(r, "create render object fail");
+
+		r->_delegate = delegate;
+		return r;
+	}
 }

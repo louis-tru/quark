@@ -197,10 +197,11 @@ namespace qk {
 	private:
 		void reload(bool isRt);
 		void solveNextFrame();
-		void onRenderBackendReload(Region region, Vec2 size, float defaultScale) override;
+		void onRenderBackendReload(Region region, Vec2 size) override;
 		bool onRenderBackendDisplay() override;
 		void openImpl(Options &opts);
 		void closeImpl();
+		float getDefaultScale();
 		bool Destroy(); // destroy window and protform window
 
 		/**

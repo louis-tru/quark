@@ -99,11 +99,11 @@ namespace qk {
 			ScopeLock scope(_mutex);
 			_queue.pushBack(in);
 			len = _queue.length();
-			Qk_Assert_Le(len, _buffers.length()); // <=
+			Qk_ASSERT_LE(len, _buffers.length()); // <=
 			//Qk_DLog("callback_proc, idle:%d %p", len, in);
 			if (len == _buffers.length()) {
 				_play = false;
-				Qk_Assert_Eq(AudioQueueStop(_audio, true), noErr);
+				Qk_ASSERT_EQ(AudioQueueStop(_audio, true), noErr);
 			}
 		}
 
@@ -114,10 +114,10 @@ namespace qk {
 				_queue_num_half = ceilf(_sample_rate / (frame->nb_samples * 75.0f));
 				auto size = frame->nb_samples * _channels * 2;
 				auto num = _queue_num_half * 2 + 1;
-				Qk_Assert_Ne(0, size);
+				Qk_ASSERT_NE(0, size);
 				for (int i = 0; i < num; i++) {
 					AudioQueueBufferRef buf;
-					Qk_Assert_Eq(noErr, AudioQueueAllocateBuffer(_audio, size, &buf));
+					Qk_ASSERT_EQ(noErr, AudioQueueAllocateBuffer(_audio, size, &buf));
 					_buffers.push(buf);
 					_queue.pushBack(buf);
 				}
@@ -125,7 +125,7 @@ namespace qk {
 
 			if (_queue.length()) {
 				AudioQueueBufferRef buf = _queue.front();
-				// Qk_Assert_Le(frame->linesize[0], buf->mAudioDataBytesCapacity); // <=
+				// Qk_ASSERT_LE(frame->linesize[0], buf->mAudioDataBytesCapacity); // <=
 				buf->mAudioDataByteSize = Qk_Min(frame->linesize[0], buf->mAudioDataBytesCapacity);
 				memcpy(buf->mAudioData, frame->data[0], buf->mAudioDataByteSize);
 
@@ -134,7 +134,7 @@ namespace qk {
 					//Qk_DLog("PCM_write,  ok idle:%d %p", _queue.length(), buf);
 					if (!_play) {
 						_play = true;
-						Qk_Assert_Eq(noErr, AudioQueueStart(_audio, nullptr));
+						Qk_ASSERT_EQ(noErr, AudioQueueStart(_audio, nullptr));
 						Qk_DLog("AudioQueueStart");
 					}
 					return true;
@@ -149,7 +149,7 @@ namespace qk {
 		}
 
 		void flush() override {
-			Qk_Assert_Eq(noErr, AudioQueueReset(_audio));
+			Qk_ASSERT_EQ(noErr, AudioQueueReset(_audio));
 		}
 
 		void set_mute(bool value) override {
@@ -160,7 +160,7 @@ namespace qk {
 		void set_volume(float value) override {
 			ScopeLock scope(_mutex);
 			_volume = Float32::clamp(value, 0, 1);
-		 	Qk_Assert_Eq(noErr,
+		 	Qk_ASSERT_EQ(noErr,
 		 		AudioQueueSetParameter(_audio, kAudioQueueParam_Volume, _mute ? 0: _volume)
 			);
 		}

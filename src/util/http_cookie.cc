@@ -35,7 +35,7 @@
 namespace qk {
 
 	#define _db _http_cookie_db
-	#define assert_r(c) Qk_Assert_Eq(c, BP_OK)
+	#define assert_r(c) Qk_ASSERT_EQ(c, BP_OK)
 	#define OPEN(...) ScopeLock lock(_mutex); http_cookie_open(); if (!_db) return __VA_ARGS__
 
 	static Mutex   _mutex;
@@ -295,7 +295,7 @@ namespace qk {
 		auto key = get_indexed_key_prefix(secure, domain, path);
 		auto ok = http_cookie_fuzz_query(key, false, range);
 		if (ok)
-			Qk_Assert(http_cookie_fuzz_query(key, true, range+1));
+			Qk_ASSERT(http_cookie_fuzz_query(key, true, range+1));
 		bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 
 		if (ok) {

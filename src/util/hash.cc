@@ -35,7 +35,7 @@ namespace qk {
 	static cChar* I64BIT_TABLE =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
-	void Hash5381::update(const void* data, uint32_t len) {
+	void Hash5381::update(cVoid* data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + reinterpret_cast<const uint8_t*>(data)[len];
 	}
@@ -89,13 +89,13 @@ namespace qk {
 		return rev;
 	}
 
-	uint64_t hashCode(const void* data, uint32_t len) {
+	uint64_t hashCode(cVoid* data, uint32_t len) {
 		Hash5381 hash;
 		hash.update(data, len);
 		return hash.hashCode();
 	}
 
-	String hash(const void* data, uint32_t len) {
+	String hash(cVoid* data, uint32_t len) {
 		Hash5381 hash;
 		hash.update((cChar*)data, len);
 		return hash.digest();

@@ -133,7 +133,8 @@ namespace qk {
 		Path* normalized(Path *out, float epsilon, bool updateHash) const;
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
-		Array<float> _pts; // Vec2 {x,y}
+		// Props field:
+		Array<float> _pts;
 		Array<uint8_t> _verbs;
 		Hash5381 _hash;
 		bool _IsNormalized;

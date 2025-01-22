@@ -121,7 +121,7 @@ namespace qk {
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](auto t, auto arg) {
 			auto args = (Args*)arg;
-			Qk_Assert(__qk_run_main__, "No gui main");
+			Qk_ASSERT(__qk_run_main__, "No gui main");
 			int rc = __qk_run_main__(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DLog("Application::runMain() thread_new() Exit");
 			thread_exit(rc); // if sub thread end then exit
@@ -135,7 +135,7 @@ namespace qk {
 	}
 
 	void Application::clear(bool all) {
-		Qk_Fatal_Assert(thread_self_id() == _loop->thread_id());
+		Qk_ASSERT_RAW(thread_self_id() == _loop->thread_id());
 		for (auto i: _windows) {
 			i->render()->getCanvas()->getPathvCache()->clear(all);
 		}
@@ -214,6 +214,10 @@ namespace qk {
 		_loop->post(Cb([win](Cb::Data& d) { win->Qk_Trigger(Foreground); }, win));
 	}
 
+	void AppInl::triggerOrientation() {
+		_loop->post(Cb([](Cb::Data& d, AppInl* app) { app->screen()->Qk_Trigger(Orientation); }, this));
+	}
+
 	void AppInl::setActiveWindow(Window *win) {
 		if (!win) { // key == nullptr, auto select key window
 			if (_windows.length()) {
@@ -223,4 +227,5 @@ namespace qk {
 		}
 		_activeWindow = win;
 	}
+
 }

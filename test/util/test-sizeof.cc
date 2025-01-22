@@ -50,7 +50,7 @@ void test_sizeof(int argc, char **argv) {
 	
 	TestSizeOfPtr of = TestSizeOfPtr();
 
-	Qk_Assert(!of);
+	Qk_ASSERT(!of);
 	
 	Qk_Log("TestSizeOf: %d", sizeof(TestSizeOf));
 }

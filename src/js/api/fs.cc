@@ -155,7 +155,7 @@ namespace qk { namespace js {
 		}
 		else { // ArrayBuffer or TypedArray
 			WeakBuffer weakBuffer;
-			Qk_Assert_Eq(true, args[args_index++]->asBuffer(worker).to(weakBuffer));
+			Qk_ASSERT_EQ(true, args[args_index++]->asBuffer(worker).to(weakBuffer));
 
 			data = const_cast<char*>(*weakBuffer);
 			size = weakBuffer.length();
@@ -188,7 +188,7 @@ namespace qk { namespace js {
 			auto cbInt = get_callback_for_int(worker, args[0]);
 
 			cb = Callback<Buffer>([pv, cbInt, afterCollapse](auto &e) {
-				Qk_Assert( e.data );
+				Qk_ASSERT( e.data );
 				Sp<PersistentValue> h(pv);
 				auto len = e.data->length();
 				if (afterCollapse) {
@@ -1250,7 +1250,7 @@ namespace qk { namespace js {
 
 			int fd = args[args_index++]->toInt32(worker)->value();
 			WeakBuffer weakBuffer;
-			Qk_Assert_Eq(true, args[args_index++]->asBuffer(worker).to(weakBuffer));
+			Qk_ASSERT_EQ(true, args[args_index++]->asBuffer(worker).to(weakBuffer));
 			char* data = const_cast<char*>(*weakBuffer);
 			uint32_t size = weakBuffer.length();
 			int64_t offset = -1;
@@ -1286,7 +1286,7 @@ namespace qk { namespace js {
 				auto cbInt = get_callback_for_int(worker, args[0]);
 
 				fs_read(fd, Buffer(data, size), offset, Callback<Buffer>([pv, cbInt](auto& e) {
-					Qk_Assert(e.data);
+					Qk_ASSERT(e.data);
 					Sp<PersistentValue> h(pv);
 					auto len = e.data->length();
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,不能在这里被释放

@@ -31,7 +31,7 @@
 #ifndef __quark__font__ct_util__
 #define __quark__font__ct_util__
 
-#include "../../../util/util.h"
+#include "../priv/util.h"
 #if Qk_OSX
 # include <ApplicationServices/ApplicationServices.h>
 #endif
@@ -41,9 +41,6 @@
 # include <CoreGraphics/CoreGraphics.h>
 # include <CoreFoundation/CoreFoundation.h>
 #endif
-#include "../util_mac.h"
-
-using namespace qk;
 
 enum class QkCTFontSmoothBehavior {
 	none, // SmoothFonts produces no effect.

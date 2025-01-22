@@ -471,7 +471,7 @@ namespace qk {
 		return fs_write_file_sync(path, *str, str.length() );
 	}
 	
-	int fs_write_file_sync(cString& path, const void* buffer, int64_t size) throw(Error) {
+	int fs_write_file_sync(cString& path, cVoid* buffer, int64_t size) throw(Error) {
 		uv_fs_t req;
 		int fp = fs_open_sync(path, O_WRONLY | O_CREAT | O_TRUNC);
 		uv_buf_t buf;
@@ -515,7 +515,7 @@ namespace qk {
 		return r;
 	}
 
-	int fs_write_sync(int fd, const void* buffer, int64_t size, int64_t offset) throw(Error) {
+	int fs_write_sync(int fd, cVoid* buffer, int64_t size, int64_t offset) throw(Error) {
 		uv_fs_t req;
 		uv_buf_t buf;
 		buf.base = (Char*)buffer;

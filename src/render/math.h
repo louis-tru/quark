@@ -292,6 +292,7 @@ namespace qk {
 		uint32_t to_uint32() const; //! ignore endianness, small end data as a,b,g,r
 		uint32_t to_uint32_abgr() const; //! high => low as a,b,g,r
 		uint32_t to_uint32_rgba() const; //! high => low as r,g,b,a
+		Color blendSrcOver(const Color &src) const;
 	};
 
 	struct Qk_Export Mat: Vec<float, 6> {

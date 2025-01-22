@@ -357,7 +357,7 @@ namespace qk {
 			_cm.unlock();
 			switch_program_sure(Uint32::min(_programs.length() - 1, _program_idx), false);
 			_delegate->media_source_open(_host);
-			// Qk_Assert_Ne(_extractors.length(), 0, "No Extractors on MediaSource");
+			// Qk_ASSERT_NE(_extractors.length(), 0, "No Extractors on MediaSource");
 			if (_extractors.length())
 				read_stream(t, url);
 			_cm.lock();
@@ -386,11 +386,11 @@ namespace qk {
 				Qk_DLog("read_frame() abort break;"); break;
 			}
 			if (_pause && can_pause) {
-				Qk_Assert_Eq(0, av_read_pause(ctx));
+				Qk_ASSERT_EQ(0, av_read_pause(ctx));
 				_status = kPaused_MediaSourceStatus;
 				_cm.lock_and_wait_for();
 				_status = kPlaying_MediaSourceStatus;
-				Qk_Assert_Eq(0, av_read_play(ctx));
+				Qk_ASSERT_EQ(0, av_read_play(ctx));
 
 				if (_pause && _seek) {
 					can_pause = false;
@@ -522,7 +522,7 @@ namespace qk {
 	}
 
 	bool Inl::packet_push(AVPacket& avpkt) {
-		Qk_Assert_Ne(avpkt.size, 0, "Inl::packet_push(), avpkt.size == 0");
+		Qk_ASSERT_NE(avpkt.size, 0, "Inl::packet_push(), avpkt.size == 0");
 		auto lock = _cm.scope_lock();
 		AVStream *avstream = _fmt_ctx->streams[avpkt.stream_index];
 		Extractor *ex;
@@ -550,7 +550,7 @@ namespace qk {
 			static_cast<uint64_t>(avpkt.duration * unit),
 			avpkt.flags,
 		};
-		Qk_Assert_Ne(pkt->duration, 0);
+		Qk_ASSERT_NE(pkt->duration, 0);
 		pkt->avpkt = reinterpret_cast<AVPacket*>(pkt + 1);
 		*pkt->avpkt = avpkt; // copy
 		av_init_packet(&avpkt);

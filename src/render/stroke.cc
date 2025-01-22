@@ -54,7 +54,7 @@ namespace qk {
 			miterLimit = 1024;
 
 		err = Qk_FT_Stroker_New(&stroker);
-		Qk_Assert(err==0);
+		Qk_ASSERT(err==0);
 		Qk_FT_Stroker_Set(stroker, FT_1616(width * 0.5), ft_cap, ft_join, FT_1616(miterLimit));
 		
 		Path tmp;
@@ -62,18 +62,18 @@ namespace qk {
 
 		auto from_outline = qk_ft_outline_convert(self);
 		err = Qk_FT_Stroker_ParseOutline(stroker, from_outline);
-		Qk_Assert(err==0);
+		Qk_ASSERT(err==0);
 
 		Qk_FT_UInt anum_points, anum_contours;
 		err = Qk_FT_Stroker_GetCounts(stroker, &anum_points, &anum_contours);
-		Qk_Assert(err==0);
+		Qk_ASSERT(err==0);
 
 		auto to_outline = qk_ft_outline_create(anum_points, anum_contours);
 		Qk_FT_Stroker_Export(stroker, to_outline);
 
 		Path out;
 		err = qk_ft_path_convert(to_outline, &out);
-		Qk_Assert(err==0);
+		Qk_ASSERT(err==0);
 
 		qk_ft_outline_destroy(from_outline);
 		qk_ft_outline_destroy(to_outline);
@@ -103,7 +103,7 @@ namespace qk {
 				// ignore
 				//Qk_DLog("Close");
 			} else {
-				Qk_Assert(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
+				Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
 				left.lineTo(*pts--);
 			}
 		}

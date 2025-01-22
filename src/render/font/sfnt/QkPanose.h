@@ -8,7 +8,7 @@
 #ifndef QkPanose_DEFINED
 #define QkPanose_DEFINED
 
-#include "../util.h"
+//#include "../priv/util.h"
 
 #pragma pack(push, 1)
 

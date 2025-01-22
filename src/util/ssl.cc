@@ -208,10 +208,10 @@ namespace qk {
 					*reinterpret_cast<void**>(ptr) = nullptr;
 				break;
 			case BIO_C_SET_BUF_MEM:
-				Qk_Assert(0 && "Can't use SET_BUF_MEM_PTR with BIOData");
+				Qk_ASSERT(0 && "Can't use SET_BUF_MEM_PTR with BIOData");
 				break;
 			case BIO_C_GET_BUF_MEM_PTR:
-				Qk_Assert(0 && "Can't use GET_BUF_MEM_PTR with BIOData");
+				Qk_ASSERT(0 && "Can't use GET_BUF_MEM_PTR with BIOData");
 				ret = 0;
 				break;
 			case BIO_CTRL_GET_CLOSE:
@@ -266,7 +266,7 @@ namespace qk {
 		size_t left = size;
 
 		while (bytes_read < expected) {
-			Qk_Assert_Le(read_head_->read_pos_, read_head_->write_pos_);
+			Qk_ASSERT_LE(read_head_->read_pos_, read_head_->write_pos_);
 			size_t avail = read_head_->write_pos_ - read_head_->read_pos_;
 			if (avail > left)
 				avail = left;
@@ -283,7 +283,7 @@ namespace qk {
 
 			TryMoveReadHead();
 		}
-		Qk_Assert_Eq(expected, bytes_read);
+		Qk_ASSERT_EQ(expected, bytes_read);
 		length_ -= bytes_read;
 
 		// Free all empty buffers, but write_head's child
@@ -305,8 +305,8 @@ namespace qk {
 
 		Buffer* prev = child;
 		while (cur != read_head_) {
-			Qk_Assert_Ne(cur, write_head_);
-			Qk_Assert_Eq(cur->write_pos_, cur->read_pos_);
+			Qk_ASSERT_NE(cur, write_head_);
+			Qk_ASSERT_EQ(cur->write_pos_, cur->read_pos_);
 
 			Buffer* next = cur->next_;
 			delete cur;
@@ -323,7 +323,7 @@ namespace qk {
 		Buffer* current = read_head_;
 
 		while (bytes_read < max) {
-			Qk_Assert_Le(current->read_pos_, current->write_pos_);
+			Qk_ASSERT_LE(current->read_pos_, current->write_pos_);
 			size_t avail = current->write_pos_ - current->read_pos_;
 			if (avail > left)
 				avail = left;
@@ -350,7 +350,7 @@ namespace qk {
 				current = current->next_;
 			}
 		}
-		Qk_Assert_Eq(max, bytes_read);
+		Qk_ASSERT_EQ(max, bytes_read);
 
 		return max;
 	}
@@ -365,7 +365,7 @@ namespace qk {
 
 		while (left > 0) {
 			size_t to_write = left;
-			Qk_Assert_Le(write_head_->write_pos_, write_head_->len_);
+			Qk_ASSERT_LE(write_head_->write_pos_, write_head_->len_);
 			size_t avail = write_head_->len_ - write_head_->write_pos_;
 
 			if (to_write > avail)
@@ -381,11 +381,11 @@ namespace qk {
 			offset += to_write;
 			length_ += to_write;
 			write_head_->write_pos_ += to_write;
-			Qk_Assert_Le(write_head_->write_pos_, write_head_->len_);
+			Qk_ASSERT_LE(write_head_->write_pos_, write_head_->len_);
 
 			// Go to next buffer if there still are some bytes to write
 			if (left != 0) {
-				Qk_Assert_Eq(write_head_->write_pos_, write_head_->len_);
+				Qk_ASSERT_EQ(write_head_->write_pos_, write_head_->len_);
 				TryAllocateForWrite(left);
 				write_head_ = write_head_->next_;
 
@@ -394,7 +394,7 @@ namespace qk {
 				TryMoveReadHead();
 			}
 		}
-		Qk_Assert_Eq(left, 0);
+		Qk_ASSERT_EQ(left, 0);
 	}
 
 
@@ -414,7 +414,7 @@ namespace qk {
 	void BIOData::Commit(size_t size) {
 		write_head_->write_pos_ += size;
 		length_ += size;
-		Qk_Assert_Le(write_head_->write_pos_, write_head_->len_);
+		Qk_ASSERT_LE(write_head_->write_pos_, write_head_->len_);
 
 		// Allocate new buffer if write head is full,
 		// and there're no other place to go
@@ -459,7 +459,7 @@ namespace qk {
 			return;
 
 		while (read_head_->read_pos_ != read_head_->write_pos_) {
-			Qk_Assert(read_head_->write_pos_ > read_head_->read_pos_);
+			Qk_ASSERT(read_head_->write_pos_ > read_head_->read_pos_);
 
 			length_ -= read_head_->write_pos_ - read_head_->read_pos_;
 			read_head_->write_pos_ = 0;
@@ -468,7 +468,7 @@ namespace qk {
 			read_head_ = read_head_->next_;
 		}
 		write_head_ = read_head_;
-		Qk_Assert_Eq(length_, 0);
+		Qk_ASSERT_EQ(length_, 0);
 	}
 
 
@@ -515,7 +515,7 @@ namespace qk {
 				BIO_free(bp);
 
 				// Parse errors from the built-in roots are fatal.
-				Qk_Assert_Ne(x509, nullptr);
+				Qk_ASSERT_NE(x509, nullptr);
 
 				root_certs_vector.push(x509);
 			}

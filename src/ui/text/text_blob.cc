@@ -489,7 +489,7 @@ namespace qk {
 								break;
 							}
 						}
-						Qk_Assert(_lines->pre_width() == limitX);
+						Qk_ASSERT(_lines->pre_width() == limitX);
 					}
 				}
 

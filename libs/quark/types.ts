@@ -636,14 +636,14 @@ export class TextFamily extends TextBase<TextFamily,FFID> {
 			// let high = _[0] << 24 | _[1] << 16 | _[2] << 8 | _[3];
 			// let low = _[4] << 24 | _[5] << 16 | _[6] << 8 | _[7];
 			// return `ffid(${high},${low})`;
-			return this.familys();
+			return this.families();
 		} else {
 			return (TextBase_toString[this.kind] || TextBase_toString[3])(this.value);
 		}
 	}
-	familys(): string {
+	families(): string {
 		let isNullptr = this.value.every(e=>!e);
-		return isNullptr ? '': _font.getFamilysName(this.value);
+		return isNullptr ? '': _font.getFamiliesName(this.value);
 	}
 }
 export const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]);
@@ -1314,7 +1314,7 @@ export function parseTextFamily(val: TextFamilyIn, desc?: string) {
 		if (kind !== undefined) {
 			return newTextFamily(kind,EmptyFFID);
 		}
-		return newTextFamily(kind, _font.getFontFamilys(val));
+		return newTextFamily(kind, _font.getFontFamilies(val));
 	} else if (val instanceof TextFamily) {
 		return val;
 	}

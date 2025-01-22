@@ -34,6 +34,7 @@
 #include "./object.h"
 #include "./iterator.h"
 #include <vector>
+#include <functional>
 
 namespace qk {
 
@@ -54,6 +55,7 @@ namespace qk {
 	public:
 		typedef T Type;
 		typedef A Alloc;
+		typedef const T cT;
 		// constructors
 		Array();
 		Array(Array&& arr); // right value copy constructors
@@ -78,7 +80,7 @@ namespace qk {
 		uint32_t size() const { return _length * sizeof(T); }
 
 		/**
-		 * @method is_null() Is null data available?
+		 * @method isNull() Is null data available?
 		*/
 		bool isNull() const { return _length == 0; }
 
@@ -91,31 +93,31 @@ namespace qk {
 		Array& operator=(const Array& arr);
 
 		// get ptr
-				T& operator[](uint32_t index) {
-			Qk_Assert(index < _length, "Array Index Overflow.");
+		T& operator[](uint32_t index) {
+			Qk_ASSERT(index < _length, "Array Index Overflow.");
 			return _ptr.val[index];
 		}
-		const T& operator[](uint32_t index) const {
-			Qk_Assert(index < _length, "Array Index Overflow.");
+		cT& operator[](uint32_t index) const {
+			Qk_ASSERT(index < _length, "Array Index Overflow.");
 			return _ptr.val[index];
 		}
-					T& at(uint32_t index) { return operator[](index); }
-		const T& at(uint32_t index) const { return operator[](index); }
-					T& lastAt(uint32_t index) { return operator[](_length - index - 1); }
-		const T& lastAt(uint32_t index) const { return operator[](_length - index - 1); }
-					T* operator*()       { return _ptr.val; }
-		const T* operator*() const { return _ptr.val; }
-					T* val      ()       { return _ptr.val; }
-		const T* val      () const { return _ptr.val; }
+		T& at(uint32_t index) { return operator[](index); }
+		cT& at(uint32_t index) const { return operator[](index); }
+		T& lastAt(uint32_t index) { return operator[](_length - index - 1); }
+		cT& lastAt(uint32_t index) const { return operator[](_length - index - 1); }
+		T* operator*() { return _ptr.val; }
+		cT* operator*() const { return _ptr.val; }
+		T* val() { return _ptr.val; }
+		cT* val() const { return _ptr.val; }
 
-		Array&   push(T&& item);
-		Array&   push(const T& item);
-		Array&   pop (uint32_t count = 1);
+		T&   push(T&& item);
+		T&   push(const T& item);
+		void pop(uint32_t count = 1);
 
-		const T& front() const { return _ptr.val[0]; }
-		const T& back()  const { return _ptr.val[_length - 1]; }
-		T&       front() { return _ptr.val[0]; }
-		T&       back()  { return _ptr.val[_length - 1]; }
+		T&  front() { return _ptr.val[0]; }
+		T&  back()  { return _ptr.val[_length - 1]; }
+		cT& front() const { return _ptr.val[0]; }
+		cT& back()  const { return _ptr.val[_length - 1]; }
 
 		/**
 		 * @method write() write data items
@@ -161,6 +163,12 @@ namespace qk {
 		 * @method join() to string
 		 */
 		String join(cString& sp) const;
+
+		/**
+		 * @method map()
+		 */
+		template <typename S>
+		Array<S, A> map(const std::function<S(const T& t, uint32_t i)>&) const;
 
 		/**
 		 * @func toString() to_string
@@ -378,48 +386,62 @@ namespace qk {
 	}
 
 	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::push(const T& item) {
+	T& Array<T, A>::push(const T& item) {
 		increase_(++_length);
-		new(_ptr.val + _length - 1) T(item);
-		return *this;
+		if (IsPointer<T>::value) {
+			_ptr.val[_length-1] = item;
+			return _ptr.val[_length-1];
+		} else {
+			return *new(_ptr.val + _length-1) T(item);
+		}
 	}
 
 	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::push(T&& item) {
+	T& Array<T, A>::push(T&& item) {
 		increase_(++_length);
-		new(_ptr.val + _length - 1) T(std::move(item));
-		return *this;
+		if (IsPointer<T>::value) {
+			return (_ptr.val[_length - 1] = std::move(item));
+		} else {
+			return *new(_ptr.val + _length - 1) T(std::move(item));
+		}
 	}
 
 	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::pop(uint32_t count) {
-		int j = Qk_Max(_length - count, 0);
-		if (_length > j) {
-			do {
-				_length--;
-				reinterpret_cast<Sham*>(_ptr.val + _length)->~Sham(); // release
-			} while (_length > j);
+	void Array<T, A>::pop(uint32_t count) {
+		int newLen = Qk_Max(_length - count, 0);
+		if (_length > newLen) {
+			if (IsPointer<T>::value) {
+				_length = newLen;
+			} else {
+				do {
+					_length--;
+					reinterpret_cast<Sham*>(_ptr.val + _length)->~Sham(); // release
+				} while (_length > newLen);
+			}
 			_ptr.reduce(_length);
 		}
-		return *this;
 	}
 
 	template<typename T, typename A>
 	uint32_t Array<T, A>::write(const T* src, uint32_t size_src, int to) {
 		if (size_src) {
 			if ( to == -1 ) to = _length;
-			uint32_t old_len = _length;
 			uint32_t end = to + size_src;
+			uint32_t old_len = _length;
 			_length = Qk_Max(end, _length);
 			increase_(_length);
-			T* to_ = _ptr.val + to;
-			
-			for (int i = to; i < end; i++) {
-				if (i < old_len) {
-					reinterpret_cast<Sham*>(to_)->~Sham(); // release old object first
+
+			if (IsPointer<T>::value) {
+				memcpy((void*)(_ptr.val + to), src, size_src * sizeof(T) );
+			} else {
+				T* to_ = _ptr.val + to;
+				for (int i = to; i < end; i++) {
+					if (i < old_len) {
+						reinterpret_cast<Sham*>(to_)->~Sham(); // release old object first
+					}
+					new(to_) T(*src);
+					to_++; src++;
 				}
-				new(to_) T(*src);
-				to_++; src++;
 			}
 		}
 		return size_src;
@@ -430,12 +452,18 @@ namespace qk {
 		if (src_length) {
 			_length += src_length;
 			increase_(_length);
-			T* end = _ptr.val + _length, *to = end - src_length;
-			do {
-				new(to) T(std::move(*src)); // call move constructor
-				reinterpret_cast<Sham*>(src)->~Sham();
-				src++; to++;
-			} while (to < end);
+			if (IsPointer<T>::value) {
+				T* src = _ptr.val;
+				T* to = _ptr.val + _length - src_length; 
+				memcpy((void*)to, src, src_length * sizeof(T));
+			} else {
+				T* end = _ptr.val + _length, *to = end - src_length;
+				do {
+					new(to) T(std::move(*src)); // call move constructor
+					reinterpret_cast<Sham*>(src)->~Sham();
+					src++; to++;
+				} while (to < end);
+			}
 		}
 	}
 
@@ -472,12 +500,16 @@ namespace qk {
 	template<typename T, typename A>
 	void Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const {
 		ptr->realloc(len);
-		T* to = ptr->val, *e = to + len;
-		const T* src = _ptr.val + start;
-		do {
-			new(to) T(*src);
-			to++; src++;
-		} while(to < e);
+		if (IsPointer<T>::value) {
+			memcpy(ptr->val, _ptr.val + start, len * sizeof(T));
+		} else {
+			T* to = ptr->val, *e = to + len;
+			const T* src = _ptr.val + start;
+			do {
+				new(to) T(*src);
+				to++; src++;
+			} while(to < e);
+		}
 	}
 
 	template<typename T, typename A>
@@ -491,18 +523,26 @@ namespace qk {
 
 	template<typename T, typename A>
 	std::vector<T> Array<T, A>::vector() const {
-		std::vector<T> r;
-		for (auto& i: *this)
-			r.push_back(i);
-		Qk_ReturnLocal(r);
+		if (IsPointer<T>::value) {
+			std::vector<T> r(_length);
+			if (_length)
+				memcpy(r.data(), _ptr.val, sizeof(T) * _length);
+		} else {
+			std::vector<T> r;
+			for (auto& i: *this)
+				r.push_back(i);
+			Qk_ReturnLocal(r);
+		}
 	}
 
 	template<typename T, typename A>
 	void Array<T, A>::clear() {
 		if (_ptr.val) {
-			T *i = _ptr.val, *end = i + _length;
-			while (i < end)
-				reinterpret_cast<Sham*>(i++)->~Sham(); // release
+			if (!IsPointer<T>::value) {
+				T *i = _ptr.val, *end = i + _length;
+				while (i < end)
+					reinterpret_cast<Sham*>(i++)->~Sham(); // release
+			}
 			A::free(_ptr.val); // free
 			_length = 0;
 			_ptr.capacity = 0;
@@ -513,10 +553,12 @@ namespace qk {
 	template<typename T, typename A>
 	void Array<T, A>::reset(uint32_t length) {
 		if (length < _length) { // clear Partial data
-			T* i = _ptr.val + length;
-			T* end = i + _length;
-			while (i < end)
-				reinterpret_cast<Sham*>(i++)->~Sham(); // release
+			if (!IsPointer<T>::value) {
+				T* i = _ptr.val + length;
+				T* end = i + _length;
+				while (i < end)
+					reinterpret_cast<Sham*>(i++)->~Sham(); // release
+			}
 			_length = length;
 		} else {
 			extend(length);
@@ -527,9 +569,24 @@ namespace qk {
 	void Array<T, A>::extend(uint32_t length) {
 		if (length > _length) {
 			increase_(length);
-			new(_ptr.val + _length) T[length - _length];
+			if (!IsPointer<T>::value)
+				new(_ptr.val + _length) T[length - _length];
 			_length = length;
 		}
+	}
+
+	template<typename T, typename A>
+	template<typename S>
+	Array<S, A> Array<T, A>::map(const std::function<S(const T& t, uint32_t i)> &cb) const {
+		Array<S, A> arr;
+		if (_length) {
+			arr._ptr.increase(_length);
+			arr._length = _length;
+			for (uint32_t i = 0; i < _length; i++) {
+				new(arr._ptr.val + i) S(cb(_ptr.val[i], i));
+			}
+		}
+		Qk_ReturnLocal(arr);
 	}
 
 	template<typename T, typename A>
@@ -553,9 +610,9 @@ namespace qk {
 		template<> Qk_Export std::vector<T>  Array<T, A>::vector() const; \
 		template<> Qk_Export void            Array<T, A>::concat_(T* src, uint32_t src_length); \
 		template<> Qk_Export uint32_t        Array<T, A>::write(const T* src, uint32_t size, int to); \
-		template<> Qk_Export Array<T, A>&    Array<T, A>::push(T&& item); \
-		template<> Qk_Export Array<T, A>&    Array<T, A>::push(const T& item); \
-		template<> Qk_Export Array<T, A>&    Array<T, A>::pop(uint32_t count); \
+		template<> Qk_Export T&              Array<T, A>::push(T&& item); \
+		template<> Qk_Export T&              Array<T, A>::push(const T& item); \
+		template<> Qk_Export void            Array<T, A>::pop(uint32_t count); \
 		template<> Qk_Export void            Array<T, A>::clear(); \
 		template<> Qk_Export void            Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const \
 
@@ -575,6 +632,7 @@ namespace qk {
 
 	//#undef Qk_DEF_ARRAY_SPECIAL
 	//#undef Qk_DEF_ARRAY_SPECIAL_
+
 }
 
 #endif

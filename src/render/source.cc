@@ -89,6 +89,12 @@ namespace qk {
 		}
 		Qk_ReturnLocal(img);
 	}
+	
+	Sp<ImageSource> ImageSource::Make(Pixel&& pixel, RenderBackend *render, RunLoop *loop) {
+		Array<Pixel> pixels;
+		pixels.push(std::move(pixel));
+		return Make(std::move(pixels), render, loop);
+	}
 
 	ImageSource::~ImageSource() {
 		_Unload(true);

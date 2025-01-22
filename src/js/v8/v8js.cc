@@ -623,7 +623,7 @@ namespace qk { namespace js {
 
 	template <> template <>
 	void Persistent<JSValue>::reset(Worker* worker, JSValue* other) {
-		Qk_Assert_Ne(worker, nullptr);
+		Qk_ASSERT_NE(worker, nullptr);
 		reinterpret_cast<v8::Persistent<v8::Value>*>(this)->
 			Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
 		_worker = worker;
@@ -634,7 +634,7 @@ namespace qk { namespace js {
 		reset();
 		if (from.isEmpty())
 			return;
-		Qk_Assert_Ne(from._worker, nullptr);
+		Qk_ASSERT_NE(from._worker, nullptr);
 		typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
 		reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&from));
 		_worker = from._worker;

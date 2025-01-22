@@ -70,7 +70,7 @@ void test_gui(int argc, char **argv) {
 	auto div = r->append_new<Box>();
 	div->set_background_color(Color(255, 0, 0, 180));
 	div->set_border_radius({30});
-	div->set_margin(5);
+	div->set_margin({5});
 	div->set_margin_top(30);
 	div->set_width({256});
 	div->set_height({280});

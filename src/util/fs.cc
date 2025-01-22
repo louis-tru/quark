@@ -198,7 +198,7 @@ namespace qk {
 		return uv_fs_read(uv_default_loop(), &req, _fd, &buf, 1, offset, nullptr);
 	}
 
-	int FileSync::write(const void* buffer, int64_t size, int64_t offset) {
+	int FileSync::write(cVoid* buffer, int64_t size, int64_t offset) {
 		uv_fs_t req;
 		uv_buf_t buf;
 		buf.base = (Char*)buffer;
@@ -242,14 +242,14 @@ namespace qk {
 			, _delegate(nullptr)
 			, _host(host)
 		{
-			Qk_Assert(loop);
+			Qk_ASSERT(loop);
 		}
 
 		~Inl() override {
 			if ( _fd ) {
 				uv_fs_t req;
 				int res = uv_fs_close(_loop->uv_loop(), &req, _fd, nullptr); // sync
-				Qk_Assert( res == 0 );
+				Qk_ASSERT( res == 0 );
 			}
 			clear_writeing();
 		}
@@ -342,7 +342,7 @@ namespace qk {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			Handle<FileReq> handle(req);
-			Qk_Assert( req->ctx()->_opening );
+			Qk_ASSERT( req->ctx()->_opening );
 			req->ctx()->_opening = false;
 			if ( uv_req->result > 0 ) {
 				if ( req->ctx()->_fd ) {
@@ -398,7 +398,7 @@ namespace qk {
 			auto self = req->ctx();
 			uv_fs_req_cleanup(uv_req);
 			
-			Qk_Assert(self->_writeing.front() == req);
+			Qk_ASSERT(self->_writeing.front() == req);
 			self->_writeing.popFront();
 			self->continue_write();
 
@@ -426,7 +426,7 @@ namespace qk {
 	{}
 
 	File::~File() {
-		Qk_Assert(_inl->loop() == RunLoop::current());
+		Qk_ASSERT(_inl->loop() == RunLoop::current());
 		_inl->set_delegate(nullptr);
 		if (_inl->is_open())
 			_inl->close();

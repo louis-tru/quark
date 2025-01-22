@@ -40,12 +40,12 @@ export default async function (_: any) {
 	LOG('\nTest Font:\n')
 	Pv(f, 'countFamilies', e=>e>0)
 	Pv(f, 'defaultFamilyNames', e=>e.length>0)
-	Pv(f, 'defaultFontFamilys', e=>true)
-	Mv(f, 'getFontFamilys', ['PingFang HK'])
+	Pv(f, 'defaultFontFamilies', e=>true)
+	Mv(f, 'getFontFamilies', ['PingFang HK'])
 	Mv(f, 'addFontFamily', [fs.readFileSync(resolve('./res/font/lateef.ttf')), 'A'])
 	Mv(f, 'getFamilyName', [0])
 	//
 	const ffid =
-	Mv(font, 'getFontFamilys', ['PingFang HK'])
-	Mv(font, 'getFamilysName', [ffid])
+	Mv(font, 'getFontFamilies', ['PingFang HK'])
+	Mv(font, 'getFamiliesName', [ffid])
 }

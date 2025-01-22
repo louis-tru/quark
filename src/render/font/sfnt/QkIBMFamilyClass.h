@@ -8,7 +8,32 @@
 #ifndef QkIBMFamilyClass_DEFINED
 #define QkIBMFamilyClass_DEFINED
 
-#include "../util.h"
+//#include "../priv/util.h"
+
+
+#ifdef Qk_CPU_LENDIAN
+	#define Qk_UINT8_BITFIELD(f0, f1, f2, f3, f4, f5, f6, f7) \
+		Qk_OT_BYTE f0 : 1; \
+		Qk_OT_BYTE f1 : 1; \
+		Qk_OT_BYTE f2 : 1; \
+		Qk_OT_BYTE f3 : 1; \
+		Qk_OT_BYTE f4 : 1; \
+		Qk_OT_BYTE f5 : 1; \
+		Qk_OT_BYTE f6 : 1; \
+		Qk_OT_BYTE f7 : 1;
+#else
+	#define Qk_UINT8_BITFIELD(f0, f1, f2, f3, f4, f5, f6, f7) \
+			Qk_OT_BYTE f7 : 1; \
+			Qk_OT_BYTE f6 : 1; \
+			Qk_OT_BYTE f5 : 1; \
+			Qk_OT_BYTE f4 : 1; \
+			Qk_OT_BYTE f3 : 1; \
+			Qk_OT_BYTE f2 : 1; \
+			Qk_OT_BYTE f1 : 1; \
+			Qk_OT_BYTE f0 : 1;
+#endif
+
+#define Qk_OT_BYTE_BITFIELD Qk_UINT8_BITFIELD
 
 #pragma pack(push, 1)
 
@@ -28,7 +53,7 @@ struct QkIBMFamilyClass {
 		//11 reserved for future use
 		Symbolic = 12,
 		//13-15 reserved for future use
-	} familyClass;
+	} familiesClass;
 	union SubClass {
 		enum class OldstyleSerifs : Qk_OT_BYTE {
 			NoClassification = 0,
@@ -131,7 +156,7 @@ struct QkIBMFamilyClass {
 			//8-14 reserved for future use
 			Miscellaneous = 15,
 		} symbolic;
-	} familySubClass;
+	} familiesSubClass;
 };
 
 #pragma pack(pop)

@@ -32,7 +32,7 @@
 #import "../../ui/app.h"
 #import "../../ui/window.h"
 #import "../../ui/event.h"
-#include "../../render/render_mac.h"
+#include "../../render/mac/mac_render.h"
 #import "./mac_app.h"
 
 using namespace qk;
@@ -332,6 +332,11 @@ void Window::closeImpl() {
 	}
 	//CFBridgingRelease(_impl);
 	_impl = nullptr;
+}
+
+float Window::getDefaultScale() {
+	float defaultScale = _impl->delegate().uiwin.backingScaleFactor;
+	return defaultScale;
 }
 
 void Window::set_backgroundColor(Color val) {
