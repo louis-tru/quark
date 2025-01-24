@@ -160,7 +160,17 @@ namespace qk {
 		}
 		return -1;
 	}
-	
+
+	bool _Str::starts_with(cVoid* s1, uint32_t s1_len, cVoid* s2, uint32_t s2_len, int sizeOf) {
+		if (s1_len < s2_len) return false;
+		return _Str::memcmp(s1, s2, s2_len, sizeOf) == 0;
+	}
+
+	bool _Str::ends_with(cVoid* s1, uint32_t s1_len, cVoid* s2, uint32_t s2_len, int sizeOf) {
+		if (s1_len < s2_len) return false;
+		return _Str::memcmp(((cChar*)s1) + (s1_len - s2_len), s2, s2_len, sizeOf) == 0;
+	}
+
 	typedef _Str::Alloc Alloc;
 	typedef StringBase::Realloc Realloc;
 	typedef StringBase::Free Free;

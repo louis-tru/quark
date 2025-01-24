@@ -45,10 +45,10 @@ namespace qk {
 		T* _data;
 
 		inline T* move() {
-			return Traits::isRef ? (Traits::Retain(_data), _data) : collapse();
+			return Traits::is::ref ? (Traits::Retain(_data), _data) : collapse();
 		}
 	public:
-		typedef T                Type;
+		typedef T Type;
 
 		inline Handle(): _data(nullptr) {}
 		inline Handle(T* data): _data(data) { Traits::Retain(data); }
@@ -113,8 +113,7 @@ namespace qk {
 		 * @method collapse() Unbinding data, loss of data management, and data removal
 		 */
 		inline T* collapse() {
-			T* data = _data;
-			_data = nullptr;
+			T* data = _data; _data = nullptr;
 			return data;
 		}
 
@@ -126,7 +125,8 @@ namespace qk {
 	/**
 	 * Shared pointer
 	 */
-	template <class T> using Sp = Handle<T>;
+	template <class T, typename Traits = object_traits<T>>
+	using Sp = Handle<T, Traits>;
 
 	/**
 	 * @class CPointerHold C Pointer handle
@@ -141,9 +141,8 @@ namespace qk {
 		inline T* operator->() { return _ptr; }
 		inline T* operator*() { return _ptr; }
 	private:
-		T  *_ptr;
+		T   *_ptr;
 		Done _done;
 	};
-
 }
 #endif

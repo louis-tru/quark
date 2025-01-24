@@ -40,6 +40,10 @@ namespace qk {
 	{
 		_metrics.fAscent = 0;
 	}
+	
+	Typeface::~Typeface() {
+		Releasep(_Mutex);
+	}
 
 	int Typeface::countGlyphs() const {
 		return onCountGlyphs();

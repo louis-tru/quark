@@ -40,17 +40,15 @@
 namespace qk {
 	template<>
 	struct object_traits<OpaqueJSString> {
-		static constexpr bool isRef = true;
+		struct is { static constexpr bool ref = true; };
 		inline static void Retain(JSStringRef obj) { if (obj) JSStringRetain(obj); }
 		inline static void Release(JSStringRef obj) { if (obj) JSStringRelease(obj); }
-		inline static void Releasep(JSStringRef& obj) { Release(obj); obj = nullptr; }
 	};
 	template<>
 	struct object_traits<OpaqueJSPropertyNameArray> {
-		static constexpr bool isRef = true;
+		struct is { static constexpr bool ref = true; };
 		inline static void Retain(JSPropertyNameArrayRef obj) { if (obj) JSPropertyNameArrayRetain(obj); }
 		inline static void Release(JSPropertyNameArrayRef obj) { if (obj) JSPropertyNameArrayRelease(obj); }
-		inline static void Releasep(JSPropertyNameArrayRef& obj) { Release(obj); obj = nullptr; }
 	};
 }
 
@@ -86,7 +84,7 @@ namespace qk { namespace js {
 	class JscClass;
 
 	typedef Sp<OpaqueJSString> JSCStringPtr;
-	typedef Handle<OpaqueJSPropertyNameArray> JSCPropertyNameArrayPtr;
+	typedef Sp<OpaqueJSPropertyNameArray> JSCPropertyNameArrayPtr;
 
 	inline JSCStringPtr JsValueToStringCopy(JSContextRef ctx, JSValueRef val, JSValueRef* ex) {
 		return JSCStringPtr::without(JSValueToStringCopy(ctx,val,ex));
@@ -113,7 +111,7 @@ namespace qk { namespace js {
 		return u.to;
 	}
 
-	void initFactorys();
+	void initFactories();
 	void jsFatal(JSContextRef ctx, JSValueRef ex, cChar* msg = 0);
 	String jsToString(JSStringRef value);
 	String jsToString(JSContextRef ctx, JSValueRef value);
@@ -142,17 +140,13 @@ namespace qk { namespace js {
 		inline T* addToScope(JSValueRef ref) {
 			return reinterpret_cast<T*>(addToScope<JSValue>(ref));
 		}
-		void initBase();
 		inline static JscWorker* worker() {
 			return static_cast<JscWorker*>(Worker::current());
 		}
 		template<class Args>
-		inline static JscWorker* worker(Args args) {
-			return nullptr;
-		}
-		inline WorkerData& data() {
-			return _data;
-		}
+		inline static JscWorker* worker(Args args) { return nullptr; }
+		inline WorkerData& data() { return _data; }
+
 	private:
 		JSContextGroupRef _group;
 		JSGlobalContextRef _ctx;

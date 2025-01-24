@@ -262,7 +262,7 @@ namespace qk {
 
 	bool fs_readable_sync(cString& path) {
 		uv_fs_t req;
-		return uv_fs_access(UV_LOOP, &req, fs_fallback_c(path), W_OK, nullptr) == 0;
+		return uv_fs_access(UV_LOOP, &req, fs_fallback_c(path), R_OK, nullptr) == 0;
 	}
 
 	bool fs_writable_sync(cString& path) {

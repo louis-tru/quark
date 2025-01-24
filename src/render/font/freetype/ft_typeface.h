@@ -30,8 +30,8 @@
 
 //@private head
 
-#ifndef __quark__font__ft__ft_typeface__
-#define __quark__font__ft__ft_typeface__
+#ifndef __quark__font__freetype__ft_typeface__
+#define __quark__font__freetype__ft_typeface__
 
 #include "../priv/to.h"
 #include "../priv/fontdata.h"
@@ -133,7 +133,7 @@ protected:
 
 	bool onGetPostScriptName(String*) const override;
 	int onGetUPEM() const override;
-	void onCharsToGlyphs(const Unichar* chars, int count, GlyphID glyphs[]) const override;
+	void onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyphs[]) const override;
 	int onCountGlyphs() const override;
 	int onGetTableTags(FontTableTag tags[]) const override;
 	size_t onGetTableData(FontTableTag, size_t offset, size_t length, void* data) const override;

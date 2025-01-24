@@ -57,6 +57,7 @@ namespace qk {
 			float needToScale; // This image needs to be scaled when used
 		};
 		Qk_DEFINE_P_GET(FontStyle, fontStyle, ProtectedConst);
+		~Typeface() override;
 		bool isBold() const { return _fontStyle.weight() >= TextWeight::Semibold; }
 		bool isItalic() const { return _fontStyle.slant() >= TextSlant::Italic; }
 		int countGlyphs() const;
@@ -98,14 +99,14 @@ namespace qk {
 		virtual bool onGetPath(GlyphID glyph, Path *path) = 0;
 		virtual ImageOut onGetImage(cArray<GlyphID> &glyphs,
 			float fontSize, cArray<Vec2> *offset, float offsetScale, RenderBackend *render) = 0;
-		SharedMutex& mutex() const { return **_Mutex; }
+		SharedMutex& mutex() const { return *_Mutex; }
 	private:
 		// props field:
 		FontMetrics  _metrics;
 		Dict<GlyphID, FontGlyphMetrics> _glyphsCache;
 		Dict<GlyphID, Path> _pathsCache;
 		mutable int _unitsPerEm;
-		mutable Sp<SharedMutex> _Mutex;
+		mutable SharedMutex* _Mutex;
 	};
 
 }

@@ -78,12 +78,12 @@ namespace qk {
 	class CallbackCoreImpl: public CallbackCore<D, E> {
 	public:
 		inline CallbackCoreImpl(T* ctx): _ctx(ctx) {
-			if ( object_traits<T>::isRef ) {
+			if ( object_traits<T>::is::ref ) {
 				object_traits<T>::Retain(_ctx);
 			}
 		}
 		virtual ~CallbackCoreImpl() {
-			if ( object_traits<T>::isRef ) {
+			if ( object_traits<T>::is::ref ) {
 				object_traits<T>::Release(_ctx);
 			}
 		}

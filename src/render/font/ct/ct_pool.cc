@@ -64,7 +64,7 @@ static QkUniqueCFRef<CFStringRef> make_CFString(const char s[]) {
 	return QkUniqueCFRef<CFStringRef>(CFStringCreateWithCString(nullptr, s, kCFStringEncodingUTF8));
 }
 
-static QkUniqueCFRef<CTFontDescriptorRef> create_descriptor(cChar familiesName[], const FontStyle& style) {
+static QkUniqueCFRef<CTFontDescriptorRef> create_descriptor(const char familiesName[], const FontStyle& style) {
 	QkUniqueCFRef<CFMutableDictionaryRef> cfAttributes(
 					CFDictionaryCreateMutable(kCFAllocatorDefault, 0,
 																		&kCFTypeDictionaryKeyCallBacks,
@@ -281,14 +281,16 @@ public:
 		}
 	}
 
-	Typeface* onMatch(const char familiesName[], FontStyle style) const override {
+	Typeface* onMatchFamilyStyle(const char familiesName[], FontStyle style) const override {
 		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familiesName, style);
 		return create_from_desc(desc.get());
 	}
 
-	Typeface* onMatchCharacter(const char familiesName[],
+	Typeface* onMatchFamilyStyleCharacter(const char familiesName[],
 														FontStyle style,
-														Unichar character) const override {
+														const char* bcp47[], int bcp47Count,
+														Unichar character) const override
+	{
 		QkUniqueCFRef<CTFontDescriptorRef> desc = create_descriptor(familiesName, style);
 		QkUniqueCFRef<CTFontRef> familiesFont(CTFontCreateWithFontDescriptor(desc.get(), 0, nullptr));
 		
@@ -313,7 +315,7 @@ public:
 		return new Typeface_Mac(std::move(fallbackFont), OpszVariation(), false);
 	}
 
-	Typeface* onAddFamily(cBuffer& data, int ttcIndex) const override {
+	Typeface* onAddFontFamily(cBuffer& data, int ttcIndex) const override {
 		if (ttcIndex != 0) {
 			return nullptr;
 		}

@@ -33,7 +33,7 @@
 #ifndef __quark__font__android__android_font__
 #define __quark__font__android__android_font__
 
-#include "../ft/ft_typeface.h"
+#include "../freetype/ft_typeface.h"
 
 #include <limits>
 

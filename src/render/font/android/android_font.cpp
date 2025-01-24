@@ -254,20 +254,12 @@ protected:
 		return fFamilyNames[index];
 	}
 
-	Typeface* onMatch(cChar familiesName[], FontStyle style) const override {
+	Typeface* onMatchFamilyStyle(cChar familiesName[], FontStyle style) const override {
 		if (familiesName) {
 			auto sset = this->onMatchFamily(familiesName);
 			return sset ? sset->matchStyle(style): nullptr;
 		}
 		return fDefaultStyleSet->matchStyle(style);
-	}
-
-	Typeface* onMatchCharacter(cChar familyName[], FontStyle style, Unichar character) const {
-		return onMatchFamilyStyleCharacter(familyName, style, nullptr, 0, character);
-	}
-
-	Typeface* onAddFontFamily(cBuffer& data, int ttcIndex) const override {
-		return this->onMakeFromStreamIndex(QkStream::Make(data.copy()), ttcIndex);
 	}
 
 	QkFontStyleSet* onMatchFamily(cChar familiesName[]) const {
@@ -301,7 +293,7 @@ protected:
 
 			if (!langTag.isEmpty() &&
 				std::none_of(face->fLang.begin(), face->fLang.end(), [&](QkLanguage lang) {
-					return lang.getTag().indexOf(langTag) != -1;
+					return lang.getTag().startsWith(langTag);
 				}))
 			{
 				continue;
@@ -319,7 +311,8 @@ protected:
 	}
 
 	Typeface* onMatchFamilyStyleCharacter(cChar familiesName[], FontStyle style,
-			cChar* bcp47[], int bcp47Count, Unichar character) const {
+			cChar* bcp47[], int bcp47Count, Unichar character) const override
+	{
 		// The variant 'elegant' is 'not squashed', 'compact' is 'stays in ascent/descent'.
 		// The variant 'default' means 'compact and elegant'.
 		// As a result, it is not possible to know the variant context from the font alone.
@@ -359,6 +352,10 @@ protected:
 		return nullptr;
 	}
 
+	Typeface* onAddFontFamily(cBuffer& data, int ttcIndex) const override {
+		return this->onMakeFromStreamIndex(QkStream::Make(data.copy()), ttcIndex);
+	}
+
 	Typeface* onMakeFromStreamIndex(Sp<QkStream> stream, int ttcIndex) const {
 		bool isFixedPitch;
 		FontStyle style;
@@ -367,8 +364,8 @@ protected:
 			return nullptr;
 		}
 		auto data = new QkFontData(stream, ttcIndex, nullptr, 0);
-		auto ft = new QkTypeface_AndroidStream(data, style, isFixedPitch, name);
-		return ft;
+		auto face = new QkTypeface_AndroidStream(data, style, isFixedPitch, name);
+		return face;
 	}
 
 	Typeface* onMakeFromStreamArgs(Sp<QkStream> stream, const FontArguments& args) const {
@@ -377,7 +374,7 @@ protected:
 		FontStyle style;
 		String name;
 		Scanner::AxisDefinitions axisDefinitions;
-		if (!fScanner.scanFont(stream.get(), args.getCollectionIndex(),
+		if (!fScanner.scanFont(*stream, args.getCollectionIndex(),
 							&name, &style, &isFixedPitch, &axisDefinitions))
 		{
 			return nullptr;
@@ -389,8 +386,8 @@ protected:
 
 		auto data = new QkFontData(stream, args.getCollectionIndex(),
 											axisValues.val(), axisDefinitions.length());
-		auto ft = new QkTypeface_AndroidStream(data, style, isFixedPitch, name);
-		return ft;
+		auto face = new QkTypeface_AndroidStream(data, style, isFixedPitch, name);
+		return face;
 	}
 
 private:

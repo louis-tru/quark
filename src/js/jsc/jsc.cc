@@ -156,6 +156,9 @@ namespace qk { namespace js {
 		JSValueUnprotect(ctx, NativeFunctionToString);
 	}
 
+	void JscClassReleasep(JscClass *&cls);
+	JscClass* JscClassNew(JscWorker *w);
+
 	JscWorker::JscWorker()
 		: _ex(nullptr)
 		, _try(nullptr)
@@ -183,7 +186,7 @@ namespace qk { namespace js {
 			Qk_ASSERT_RAW(isString(Cast(testStr)));
 		}
 
-		initBase();
+		_base = JscClassNew(this);
 
 		HandleScope handle(this);
 		_rejectionListener = Back<JSObjectRef>(newFunction("rejectionListener", [](auto args) {
@@ -198,7 +201,7 @@ namespace qk { namespace js {
 
 	void JscWorker::release() {
 		Worker::release();
-		Releasep(_base);
+		JscClassReleasep(_base);
 		JSValueUnprotect(_ctx, _rejectionListener);
 		_ex = nullptr;
 		_data.destroy(_ctx);
@@ -1240,6 +1243,6 @@ namespace qk { namespace js {
 
 	Qk_Init_Func(jsc_th_key_init) {
 		uv_key_create(&th_key);
-		initFactorys();
+		initFactories();
 	};
 } }

@@ -722,8 +722,8 @@ static void append_fallback_font_families_for_locale(Array<FontFamily*>& fallbac
 		static const size_t minSize = fixedLen + 2;
 
 		if (fileName.length() < minSize ||
-			fileName.indexOf(LOCALE_FALLBACK_FONTS_PREFIX) == -1 ||
-			fileName.lastIndexOf(LOCALE_FALLBACK_FONTS_SUFFIX))
+			!fileName.startsWith(LOCALE_FALLBACK_FONTS_PREFIX) ||
+			!fileName.endsWith(LOCALE_FALLBACK_FONTS_SUFFIX))
 		{
 			continue;
 		}

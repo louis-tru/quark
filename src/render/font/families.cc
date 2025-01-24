@@ -51,7 +51,7 @@ namespace qk {
 
 	Array<Sp<Typeface>>& FontFamilies::matchs(FontStyle style) {
 		{
-			AutoSharedMutexShared ama(**_pool->_Mutex);
+			AutoSharedMutexShared ama(*_pool->_Mutex);
 			auto it = _typefaces.find(style);
 			if (it != _typefaces.end()) {
 				return it->value;
@@ -64,7 +64,7 @@ namespace qk {
 				arr.push(std::move(tf));
 		}
 		{
-			AutoSharedMutexExclusive asme(**_pool->_Mutex);
+			AutoSharedMutexExclusive asme(*_pool->_Mutex);
 			return _typefaces.set(style, std::move(arr));
 		}
 	}

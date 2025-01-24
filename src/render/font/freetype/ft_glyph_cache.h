@@ -30,8 +30,8 @@
 
 //@private head
 
-#ifndef __quark__font__ft__ft_glyph_cache__
-#define __quark__font__ft__ft_glyph_cache__
+#ifndef __quark__font__freetype__ft_glyph_cache__
+#define __quark__font__freetype__ft_glyph_cache__
 
 #include "../priv/util.h"
 

@@ -191,7 +191,7 @@ namespace qk {
 	struct PropImpl<T*>: Property {
 		PropImpl(ViewProp prop, T* value): _prop(prop), _value(value) {
 			Qk_ASSERT(_value);
-			static_assert(object_traits<T>::isObj, "Property value must be a object type");
+			static_assert(object_traits<T>::is::obj, "Property value must be a object type");
 			value->retain();
 		}
 		~PropImpl() {

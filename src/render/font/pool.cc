@@ -38,6 +38,10 @@ namespace qk {
 	// ---------------------- F o n t . P o o l --------------------------
 
 	FontPool::FontPool(): _tf65533GlyphID(0), _Mutex(new SharedMutex) {}
+	
+	FontPool::~FontPool() {
+		Releasep(_Mutex);
+	}
 
 	void FontPool::initFontPool() {
 		FontStyle style; // default style
@@ -71,7 +75,7 @@ namespace qk {
 	}
 
 	FFID FontPool::getFontFamilies(cArray<String>& families) {
-		AutoSharedMutexShared ama(**_Mutex);
+		AutoSharedMutexShared ama(*_Mutex);
 		Hash5381 hash;
 		for (auto& i: families) {
 			hash.updatestr(i.trim());
@@ -84,7 +88,7 @@ namespace qk {
 	}
 
 	void FontPool::addFontFamily(cBuffer& buff, cString& alias) {
-		AutoSharedMutexExclusive asme(**_Mutex);
+		AutoSharedMutexExclusive asme(*_Mutex);
 		for (int i = 0; ;i++) {
 			auto tf = onAddFontFamily(buff, i);
 			if (!tf)
@@ -110,11 +114,11 @@ namespace qk {
 
 	Sp<Typeface> FontPool::match(cString& familyName, FontStyle style) const {
 		if (familyName.isEmpty()) {
-			return onMatch(nullptr, style);
+			return onMatchFamilyStyle(nullptr, style);
 		}
 		// find extend font families
 		if (_ext.length()) {
-			AutoSharedMutexShared ama(**_Mutex);
+			AutoSharedMutexShared ama(*_Mutex);
 			auto it0 = _ext.find(familyName);
 			if (it0 != _ext.end()) {
 				auto it = it0->value.find(style);
@@ -123,13 +127,13 @@ namespace qk {
 				return const_cast<Typeface*>(it0->value.begin()->value.value());
 			}
 		}
-		return onMatch(familyName.c_str(), style);
+		return onMatchFamilyStyle(familyName.c_str(), style);
 	}
 
 	Sp<Typeface> FontPool::matchCharacter(cString& familyName, FontStyle style,
 																		 Unichar character) const {
 		cChar* c_familyName = familyName.isEmpty() ? nullptr: familyName.c_str();
-		return onMatchCharacter(c_familyName, style, character);
+		return onMatchFamilyStyleCharacter(c_familyName, style, nullptr, 0, character);
 	}
 
 }

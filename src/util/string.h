@@ -181,6 +181,9 @@ namespace qk {
 		// index_of
 		int indexOf(const StringImpl& s, uint32_t start = 0) const;
 		int lastIndexOf(const StringImpl& s, uint32_t start = 0x7FFFFFFF) const;
+		// startsWith
+		bool startsWith(const StringImpl& s);
+		bool endsWith(const StringImpl& s);
 		// replace
 		StringImpl replace(const StringImpl& s, const StringImpl& rep) const;
 		StringImpl replaceAll(const StringImpl& s, const StringImpl& rep) const;
@@ -234,7 +237,8 @@ namespace qk {
 		static String toString(cVoid* ptr, uint32_t len, int sizeOf);
 		template<typename T>
 		static String toString(const T& t) {
-			return _To<T, object_traits<T>::isObj>::call(t);
+			//return _To<T, object_traits<T>::isObj(object_traits<T>::type)>::call(t);
+			return String();
 		}
 		template<typename T, bool isObj> struct _To {
 			static String call(const T& t) { return String("[unknown]"); }
@@ -273,6 +277,10 @@ namespace qk {
 			cVoid* s1, uint32_t s1_len,
 			cVoid* s2, uint32_t s2_len, uint32_t start, int sizeOf
 		);
+		static bool starts_with(
+			cVoid* s1, uint32_t s1_len, cVoid* s2, uint32_t s2_len, int sizeOf);
+		static bool ends_with(
+			cVoid* s1, uint32_t s1_len, cVoid* s2, uint32_t s2_len, int sizeOf);
 		static void* replace(
 			cVoid* s1, uint32_t s1_len,
 			cVoid* s2, uint32_t s2_len,
@@ -700,6 +708,16 @@ namespace qk {
 	template <typename T, typename A>
 	int StringImpl<T, A>::lastIndexOf(const StringImpl& s, uint32_t start) const {
 		return _Str::last_index_of(c_str(), length(), s.c_str(), s.length(), start, sizeof(T));
+	}
+
+	template <typename T, typename A>
+	bool StringImpl<T, A>::startsWith(const StringImpl& s) {
+		return _Str::starts_with(c_str(), length(), s.c_str(), s.length(), sizeof(T));
+	}
+
+	template <typename T, typename A>
+	bool StringImpl<T, A>::endsWith(const StringImpl& s) {
+		return _Str::ends_with(c_str(), length(), s.c_str(), s.length(), sizeof(T));
 	}
 
 	// --------------------------------------------------------------------------------

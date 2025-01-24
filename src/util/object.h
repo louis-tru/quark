@@ -146,17 +146,22 @@ namespace qk {
 	template<typename T>
 	struct object_traits {
 		typedef char __non[0];
-		typedef char __obj[1]; typedef char __ref[2]; typedef char __pro[3];
+		typedef char __obj[1];
+		typedef char __ref[2];
+		typedef char __pro[3];
 		template<typename C> static __obj& test(typename C::__HaveObject__);
 		template<typename C> static __ref& test(typename C::__HaveReference__);
 		template<typename C> static __pro& test(typename C::__HaveProtocol__);
 		template<typename>   static __non& test(...);
-		static constexpr int  type = sizeof(test<T>(0)) / sizeof(char);
-		static constexpr bool isNon = sizeof(test<T>(0)) / sizeof(char) == 0;
-		static constexpr bool isObj = sizeof(test<T>(0)) / sizeof(char) > 0;
-		static constexpr bool isRef = sizeof(test<T>(0)) / sizeof(char) == 2;
-		static constexpr bool isProtocol = sizeof(test<T>(0)) / sizeof(char) == 3;
-		template <int i> struct __inl { // Object
+		enum Kind { kNon, kObj, kRef, kProtocol };
+		template<enum Kind k> struct __is {
+			static constexpr Kind kind = (k);
+			static constexpr bool non = (k == 0);
+			static constexpr bool obj = (k > 0);
+			static constexpr bool ref = (k == 2);
+			static constexpr bool protocol = (k == 3);
+		};
+		template <int kind> struct __inl { // Object
 			static inline void Retain(T* obj) { qk::Retain(obj); }
 			static inline void Release(T* obj) { qk::Release(obj); }
 		};
@@ -168,15 +173,27 @@ namespace qk {
 			static inline void Retain(T* obj) { if (obj) qk::Retain(obj->asObject()); }
 			static inline void Release(T* obj) { if (obj) qk::Release(obj->asObject()); }
 		};
-		inline static void Retain(T* obj) { __inl<type>::Retain(obj); }
-		inline static void Release(T* obj) { __inl<type>::Release(obj); }
-		inline static void Releasep(T*& obj) { Release(obj); obj = nullptr; }
+		typedef __is<Kind(sizeof(test<T>(0)) / sizeof(char))> is;
+		inline static void Retain(T* obj) { __inl<is::kind>::Retain(obj); }
+		inline static void Release(T* obj) { __inl<is::kind>::Release(obj); }
 	};
 
 	template <>
 	inline void object_traits<void>::Release(void* obj) {
 		::free(obj);
 	}
+
+	template<
+		typename T,
+		void (*Rel)(T*) = object_traits<T>::Release,
+		void (*Ret)(T*) = object_traits<T>::Retain,
+		typename Is = typename object_traits<T>::is
+	>
+	struct object_traits_from: object_traits<T> {
+		typedef Is is;
+		inline static void Retain(T* obj) { Ret(obj); }
+		inline static void Release(T* obj) { Rel(obj); }
+	};
 
 	typedef const void cVoid;
 
@@ -190,7 +207,7 @@ namespace qk {
 	struct IsPointer<T*> {
 		static constexpr bool value = true;
 		inline static void Release(T*& obj) {
-			object_traits<T>::Releasep(obj);
+			object_traits<T>::Release(obj); obj = nullptr;
 		}
 	};
 

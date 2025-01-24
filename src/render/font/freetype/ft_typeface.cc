@@ -849,7 +849,7 @@ int QkTypeface_FreeType::onCountGlyphs() const {
 	return fFace ? fFace->num_glyphs : 0;
 }
 
-int QkTypeface_FreeType::onGetTableTags(QkFontTableTag tags[]) const {
+int QkTypeface_FreeType::onGetTableTags(FontTableTag tags[]) const {
 	AutoFTAccess fta(this);
 	if (!fFace)
 		return 0;

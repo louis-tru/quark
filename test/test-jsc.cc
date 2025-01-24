@@ -94,7 +94,7 @@ struct JSCStringTraits: object_traits<OpaqueJSString> {
 	}
 };
 
-typedef qk::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+typedef qk::Sp<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 
 static JSValueRef ConstructorFunc(JSContextRef ctx,
 																	JSObjectRef function,

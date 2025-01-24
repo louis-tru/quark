@@ -32,14 +32,14 @@
 
 namespace qk { namespace js {
 
-	struct Factorys {
+	struct factories {
 		JSClassRef constructor;
 		JSClassRef object;
 		JSClassRef objectWithIndexed;
 		JSClassRef function;
 		JSClassRef accessorGet;
 		JSClassRef accessorSet;
-	} static factorys = {0};
+	} static factories = {0};
 
 	constexpr int FunctionPrivateMark = 125894334;
 
@@ -114,7 +114,7 @@ namespace qk { namespace js {
 		static JSObjectRef Constructor(JSContextRef ctx, JSObjectRef constructor, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
 			auto cls = static_cast<JscClass*>(JSObjectGetPrivate(constructor));
 			auto indexed = cls->_indexedGet || cls->_indexedSet;
-			auto obj = JSObjectMake(ctx, indexed ? factorys.objectWithIndexed: factorys.object, nullptr);
+			auto obj = JSObjectMake(ctx, indexed ? factories.objectWithIndexed: factories.object, nullptr);
 			JSObjectSetPrototype(ctx, obj, cls->_prototype); // set object __proto__
 
 			auto worker = WORKER(cls->worker());
@@ -271,9 +271,6 @@ namespace qk { namespace js {
 			return worker->_data.Undefined;
 		}
 
-		/**
-		* @Constructor
-		*/
 		JscClass(Worker* w, cString& name,
 						FunctionCallback constructor,
 						AttachCallback attach, JscClass* base, JSObjectRef baseFunc)
@@ -298,7 +295,7 @@ namespace qk { namespace js {
 				}
 			}
 
-			_constructor = JSObjectMake(ctx, factorys.constructor, this);
+			_constructor = JSObjectMake(ctx, factories.constructor, this);
 			DCHECK(JSValueIsUndefined(ctx, JSObjectGetProperty(ctx, _constructor, prototype_s, 0)));
 			_prototype = JSObjectMake(ctx, nullptr, nullptr);
 			JSObjectSetProperty(ctx, _constructor, prototype_s, _prototype, kJSPropertyAttributeDontEnum, &ex);
@@ -363,8 +360,12 @@ namespace qk { namespace js {
 		friend class JSClass;
 	};
 
-	void JscWorker::initBase() {
-		_base = new JscClass(this, "base", [](auto e){}, [](auto e){}, nullptr, nullptr);
+	void JscClassReleasep(JscClass *&cls) {
+		Releasep(cls);
+	}
+
+	JscClass* JscClassNew(JscWorker *worker) {
+		return new JscClass(worker, "base", [](auto e){}, [](auto e){}, nullptr, nullptr);
 	}
 
 	JSFunction* JSClass::getFunction() {
@@ -386,7 +387,7 @@ namespace qk { namespace js {
 		ENV(w);
 		auto s = JsStringWithUTF8(*name);
 		auto fp = new FunctionPrivate<FunctionCallback>{func, s, worker, static_cast<JscClass*>(sign)};
-		auto f = JSObjectMake(ctx, factorys.function, fp);
+		auto f = JSObjectMake(ctx, factories.function, fp);
 		DCHECK(f);
 		// Qk_DLog(jsToString(ctx, f));
 		JSObjectSetProperty(ctx, target, *s, f, 0, OK(false));
@@ -410,12 +411,12 @@ namespace qk { namespace js {
 		auto s = JsStringWithUTF8(*name);
 
 		auto fpg = new FunctionPrivate<AccessorGetterCallback>{get, s, worker, static_cast<JscClass*>(sign)};
-		auto getf = JSObjectMake(ctx, factorys.accessorGet, fpg);
+		auto getf = JSObjectMake(ctx, factories.accessorGet, fpg);
 		DCHECK(getf);
 		JSObjectSetProperty(ctx, info, get_s, getf, 0, OK(false));
 
 		auto fps = new FunctionPrivate<AccessorSetterCallback>{set, s, worker, static_cast<JscClass*>(sign)};
-		auto setf = JSObjectMake(ctx, factorys.accessorSet, fps);
+		auto setf = JSObjectMake(ctx, factories.accessorSet, fps);
 		DCHECK(setf);
 		JSObjectSetProperty(ctx, info, set_s, setf, 0, OK(false));
 
@@ -489,44 +490,44 @@ namespace qk { namespace js {
 	JSFunction* Worker::newFunction(cString& name, FunctionCallback func) {
 		Qk_ASSERT_NE(func, nullptr);
 		ENV(this);
-		auto f = JSObjectMake(ctx, factorys.function,
+		auto f = JSObjectMake(ctx, factories.function,
 			new FunctionPrivate<FunctionCallback>{func, JsStringWithUTF8(*name), worker, nullptr}
 		);
 		DCHECK(f);
 		return f ? worker->addToScope<JSFunction>(f): nullptr;
 	}
 
-	void initFactorys() {
-		Qk_ASSERT_EQ(factorys.constructor, nullptr);
+	void initFactories() {
+		Qk_ASSERT_EQ(factories.constructor, nullptr);
 		JSClassDefinition def;
 
 		def = kJSClassDefinitionEmpty;
 		def.hasInstance = JscClass::HasInstanceOf;
 		def.callAsConstructor = JscClass::Constructor;
-		factorys.constructor = JSClassCreate(&def);
+		factories.constructor = JSClassCreate(&def);
 
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorObject;
-		factorys.object = JSClassCreate(&def);
+		factories.object = JSClassCreate(&def);
 		
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorObject;
 		def.getProperty = JscClass::IndexedGet;
 		def.setProperty = JscClass::IndexedSet;
-		factorys.objectWithIndexed = JSClassCreate(&def);
+		factories.objectWithIndexed = JSClassCreate(&def);
 
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorFunction;
 		def.callAsFunction = JscClass::Function;
-		factorys.function = JSClassCreate(&def);
+		factories.function = JSClassCreate(&def);
 
 		def = kJSClassDefinitionEmpty;
 		def.callAsFunction = JscClass::FunctionGet;
-		factorys.accessorGet = JSClassCreate(&def);
+		factories.accessorGet = JSClassCreate(&def);
 
 		def = kJSClassDefinitionEmpty;
 		def.callAsFunction = JscClass::FunctionSet;
-		factorys.accessorSet = JSClassCreate(&def);
+		factories.accessorSet = JSClassCreate(&def);
 	}
 
 	// ------------------- F u n c t i o n . C a l l b a c k . I n f o -------------------

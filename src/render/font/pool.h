@@ -47,6 +47,7 @@ namespace qk {
 		Qk_DEFINE_P_GET(Sp<Typeface>, tf65533);
 		Qk_DEFINE_P_GET(GlyphID, tf65533GlyphID, Const);
 		// define methods
+		~FontPool() override;
 		String getFamilyName(int index) const;
 		FFID getFontFamilies(cString& families = String());
 		FFID getFontFamilies(cArray<String>& families);
@@ -59,15 +60,16 @@ namespace qk {
 		void initFontPool();
 		virtual uint32_t onCountFamilies() const = 0;
 		virtual String onGetFamilyName(int index) const = 0;
-		virtual Typeface* onMatch(cChar familyName[], FontStyle) const = 0;
-		virtual Typeface* onMatchCharacter(cChar familyName[], FontStyle, Unichar character) const = 0;
+		virtual Typeface* onMatchFamilyStyle(cChar familyName[], FontStyle) const = 0;
+		virtual Typeface* onMatchFamilyStyleCharacter(cChar familyName[], FontStyle,
+			cChar* bcp47[], int bcp47Count, Unichar character) const = 0;
 		virtual Typeface* onAddFontFamily(cBuffer& data, int ttcIndex) const = 0;
 
 		Array<String> _defaultFamilyNames; // default families names
 		Dict<String, Dict<FontStyle, Sp<Typeface>>> _ext; // familiesName => (style=>tf)
 		Dict<uint64_t, Sp<FontFamilies>> _fontFamilies;
 		mutable FontMetrics _MaxMetrics64;
-		mutable Sp<SharedMutex> _Mutex;
+		mutable SharedMutex* _Mutex;
 		friend class FontFamilies;
 	};
 

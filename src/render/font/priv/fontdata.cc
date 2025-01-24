@@ -100,7 +100,10 @@ int QkMemoryStream::read(void* dest, int64_t size, int64_t offset) {
 }
 
 QkStream* QkStream::Make(cString& path) {
-	return new QkFileStream(path);
+	Sp<QkStream> rt = new QkFileStream(path);
+	if (rt->_length != 0)
+		return rt.collapse();
+	return nullptr;
 }
 
 QkStream* QkStream::Make(Buffer buffer) {
