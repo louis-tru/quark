@@ -28,37 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/media/media_codec_inl.h"
+#include "../../media/media_inl.h"
 
 namespace qk {
 
-	/**
-	* @class UnixHardwareMediaCodec
-	* */
-	class UnixHardwareMediaCodec: public MediaCodec {
-	public:
-
-		UnixHardwareMediaCodec(Extractor* extractor)
-		: MediaCodec(extractor) {
-			// None
-		}
-
-		/**
-		* @destructor
-		*/
-		virtual ~UnixHardwareMediaCodec() {
-			// None
-		}
-
-	private:
-
-	};
-
-	/**
-	* @func hardware
-	*/
-	MediaCodec* Mediacodec_hardware(MediaType type, MediaSource* source) {
+	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {
 		return nullptr;
 	}
-
 }

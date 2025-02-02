@@ -28,22 +28,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./custom_tf.h"
+#include "./custom_typeface.h"
 #include "../../../util/fs.h"
+
+//#include <stdio.h>
+//#include <sys/stat.h>
 
 typedef QkFontPool_Custom::Families Families;
 typedef const QkTypeface_FreeType::Scanner cScanner;
 
 class DirectorySystemFontLoader : public QkFontPool_Custom::SystemFontLoader {
 public:
-	DirectorySystemFontLoader(cChar* dir) : fBaseDirectory(dir) { }
+	DirectorySystemFontLoader(cChar* dir) : fBaseDirectory(dir) {}
+	
+	static bool verifySuffix(cString& name) {
+		static Array<String> suffixs{".ttf",".ttc",".otf",".pfb"};
+		for (auto &s: suffixs) {
+			if (name.endsWith(s))
+				return true;
+		}
+		return false;
+	}
 
-	void loadSystemFonts(cScanner& scanner, Families* families) const override
-	{
-		load_directory_fonts(scanner, fBaseDirectory, ".ttf", families);
-		load_directory_fonts(scanner, fBaseDirectory, ".ttc", families);
-		load_directory_fonts(scanner, fBaseDirectory, ".otf", families);
-		load_directory_fonts(scanner, fBaseDirectory, ".pfb", families);
+	void loadSystemFonts(cScanner& scanner, Families* families) const override {
+		load_directory_fonts(scanner, fBaseDirectory, families);
 	}
 
 private:
@@ -51,32 +59,39 @@ private:
 	{
 		for (int i = 0; i < families.length(); ++i) {
 			if (families[i]->getFamilyName() == familyName) {
-				return families[i].value();
+				return families[i].get();
 			}
 		}
 		return nullptr;
 	}
 
 	static void load_directory_fonts(
-		cScanner& scanner, cString& directory, cChar* suffix, Families* families)
+		cScanner& scanner, cString& directory, Families* families)
 	{
 		for (auto &d: fs_readdir_sync(directory)) {
+			auto filename = d.pathname;
 			if (d.type == FTYPE_DIR) {
 				if (!d.name.startsWith(".")) {
-					load_directory_fonts(scanner, d.pathname, suffix, families);
+					load_directory_fonts(scanner, filename, families);
 				}
 				continue;
 			}
-			auto filename = d.pathname;
-			Sp<QkStream> stream = QkStream::Make(filename);
-			if (!stream) {
-				// QkDebugf("---- failed to open <%s>\n", filename.c_str());
+
+			if (!verifySuffix(d.name)) {
 				continue;
 			}
 
+			Sp<QkStream> stream;
+			Qk_Try(stream = QkStream::Make(fs_read_file_sync(filename))) {
+				Qk_DLog("---- failed to open <%s>\n", err.message().c_str());
+				continue;
+			}
+			Qk_ASSERT(stream);
+			//Qk_DLog("---- open <%s>\n", filename.c_str());
+
 			int numFaces;
-			if (!scanner.recognizedFont(stream.value(), &numFaces)) {
-				// QkDebugf("---- failed to open <%s> as a font\n", filename.c_str());
+			if (!scanner.recognizedFont(stream.get(), &numFaces)) {
+				// Qk_DLog("---- failed to open <%s> as a font\n", filename.c_str());
 				continue;
 			}
 
@@ -84,11 +99,10 @@ private:
 				bool isFixedPitch;
 				String realname;
 				FontStyle style = FontStyle(); // avoid uninitialized warning
-				if (!scanner.scanFont(stream.value(), faceIndex,
+				if (!scanner.scanFont(stream.get(), faceIndex,
 									&realname, &style, &isFixedPitch, nullptr))
 				{
-					// QkDebugf("---- failed to open <%s> <%d> as a font\n",
-					//          filename.c_str(), faceIndex);
+					// Qk_DLog("---- failed to open <%s> <%d> as a font\n", filename.c_str(), faceIndex);
 					continue;
 				}
 

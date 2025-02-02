@@ -69,7 +69,7 @@ namespace qk {
 		if (id) {
 			auto sp = tasks->getTask(id);
 			if (sp) {
-				auto task = sp.value();
+				auto task = sp.get();
 				task->_loop->post(Cb([id, task](Cb::Data& e) {
 					task->abort();
 				}), task);

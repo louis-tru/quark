@@ -28,32 +28,35 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../ui/app.h"
-#include "../../ui/event.h"
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+#include "../../ui/screen.h"
+#include "./linux_app.h"
 
 namespace qk {
 
-	typedef EventDispatch::KeyboardOptions KeyboardOptions;
+	typedef Screen::StatusBarStyle StatusBarStyle;
 
-	class LINUXIMEHelper {
-	public:
-		LINUXIMEHelper(App* app, qk::Window* qkwin, Window win,
-			int inputStyle = XIMPreeditPosition);
-		~LINUXIMEHelper();
-		void open(KeyboardOptions options);
-		void close();
-		void clear();
-		void set_keyboard_can_backspace(bool can_backspace, bool can_delete);
-		void set_keyboard_type(KeyboardType type);
-		void set_keyboard_return_type(KeyboardReturnType type);
-		void set_spot_location(Vec2 location);
-		void key_press(XKeyPressedEvent *event);
-		void focus_in();
-		void focus_out();
-	private:
-		class Inl; Inl* _inl;
-	};
+	float Screen::main_screen_scale() {
+		return dpiForXDisplay() / 96.0;
+	}
+
+	void Screen::prevent_screen_sleep(bool prevent) {
+	}
+
+	float Screen::status_bar_height() const {
+		return 0;
+	}
+
+	void Screen::set_visible_status_bar(bool visible) {
+	}
+
+	void Screen::set_status_bar_style(StatusBarStyle style) {
+	}
+
+	Screen::Orientation Screen::orientation() const {
+		return kInvalid;
+	}
+
+	void Screen::set_orientation(Orientation orientation) {
+	}
 
 }

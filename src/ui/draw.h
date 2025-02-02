@@ -51,7 +51,7 @@ namespace qk {
 	class Matrix;
 	class ScrollBase;
 
-	class Qk_Export UIDraw: public Object {
+	class Qk_EXPORT UIDraw: public Object {
 	public:
 		struct BoxData {
 			const RectPath *inside = nullptr;

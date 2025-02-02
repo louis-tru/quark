@@ -40,23 +40,23 @@ namespace qk {
 	/**
 	* @func compress
 	*/
-	Qk_Export Buffer zlib_compress(WeakBuffer buff, int level = -1);
+	Qk_EXPORT Buffer zlib_compress(WeakBuffer buff, int level = -1);
 	
 	/**
 	* @func uncompress
 	*/
-	Qk_Export Buffer zlib_uncompress(WeakBuffer buff);
+	Qk_EXPORT Buffer zlib_uncompress(WeakBuffer buff);
 
 	/**
 	* 提供单个gzip压缩文件的读取与写入
 	*
 	* @class GZip
 	*/
-	class Qk_Export GZip: public Object, public StreamSync {
+	class Qk_EXPORT GZip: public Object, public StreamSync {
 		Qk_HIDDEN_ALL_COPY(GZip);
 	public:
 		// define props
-		Qk_DEFINE_P_GET(String, path);
+		Qk_DEFINE_PROP_GET(String, path);
 		// methods
 		GZip(cString& path): _path(path), _gzfp(nullptr) {}
 		~GZip() override;
@@ -78,7 +78,7 @@ namespace qk {
 	*
 	* @class ZipReader
 	*/
-	class Qk_Export ZipReader: public Object {
+	class Qk_EXPORT ZipReader: public Object {
 		Qk_HIDDEN_ALL_COPY(ZipReader);
 	public:
 		
@@ -222,7 +222,7 @@ namespace qk {
 	*
 	* @class ZipWriter
 	*/
-	class Qk_Export ZipWriter: public Object {
+	class Qk_EXPORT ZipWriter: public Object {
 		Qk_HIDDEN_ALL_COPY(ZipWriter);
 	public:
 		/**

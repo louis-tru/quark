@@ -49,16 +49,16 @@ namespace qk {
 	* @class Action
 	* @note Release calls can only be made on the main thread
 	*/
-	class Qk_Export Action: public Reference {
+	class Qk_EXPORT Action: public Reference {
 		Qk_HIDDEN_ALL_COPY(Action);
 	public:
 		typedef List<Action*>::Iterator Id;
 
-		Qk_DEFINE_P_GET(Window*, window, Protected);
-		Qk_DEFINE_PROP(uint32_t, loop, Const);
-		Qk_DEFINE_P_GET(uint32_t, duration, Const);
-		Qk_DEFINE_PROP(float, speed, Const);
-		Qk_DEFINE_ACCE(bool, playing, Const);
+		Qk_DEFINE_PROP_GET(Window*, window, Protected);
+		Qk_DEFINE_PROPERTY(uint32_t, loop, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, duration, Const);
+		Qk_DEFINE_PROPERTY(float, speed, Const);
+		Qk_DEFINE_ACCESSOR(bool, playing, Const);
 
 		Action(Window *win);
 		~Action();
@@ -169,7 +169,7 @@ namespace qk {
 	/**
 	* @class ActionGroup
 	*/
-	class Qk_Export ActionGroup: public Action {
+	class Qk_EXPORT ActionGroup: public Action {
 	public:
 		ActionGroup(Window *win);
 		virtual void append(Action* child) override;
@@ -187,7 +187,7 @@ namespace qk {
 	/**
 	* @class SpawnAction
 	*/
-	class Qk_Export SpawnAction: public ActionGroup {
+	class Qk_EXPORT SpawnAction: public ActionGroup {
 	public:
 		SpawnAction(Window *win);
 	private:
@@ -202,7 +202,7 @@ namespace qk {
 	/**
 	* @class SequenceAction
 	*/
-	class Qk_Export SequenceAction: public ActionGroup {
+	class Qk_EXPORT SequenceAction: public ActionGroup {
 	public:
 		SequenceAction(Window *win);
 	private:
@@ -222,7 +222,7 @@ namespace qk {
 	class ActionCenter: public Object {
 		Qk_HIDDEN_ALL_COPY(ActionCenter)
 	public:
-		Qk_DEFINE_P_GET(Window*, window)
+		Qk_DEFINE_PROP_GET(Window*, window)
 		ActionCenter(Window *window);
 		~ActionCenter();
 	private:

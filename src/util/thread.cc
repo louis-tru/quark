@@ -47,13 +47,13 @@ namespace qk {
 	}
 
 	std::atomic_int                      __is_process_exit_atomic(0);
-	bool                                 __is_process_exit(false);
+	bool                                 __is_process_exit = false;
 	Mutex                               *__threads_mutex = nullptr;
 	static Dict<ThreadID, Thread_INL*>  *__threads = nullptr;
 	static uv_key_t                      __th_key;
 	static EventNoticer<Event<void, int>, Mutex> *__on_process_safe_exit = nullptr;
 
-	Qk_Export bool is_process_exit() {
+	Qk_EXPORT bool is_process_exit() {
 		return __is_process_exit;
 	}
 

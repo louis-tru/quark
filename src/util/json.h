@@ -45,7 +45,7 @@ namespace qk {
 	/**
 	* @class JSON
 	*/
-	class Qk_Export JSON {
+	class Qk_EXPORT JSON {
 	public:
 		struct Member;
 

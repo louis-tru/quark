@@ -112,7 +112,7 @@ QkWindowDelegate* getActiveDelegate() {
 
 // ***************** A p p l i c a t i o n *****************
 
-static NSArray<NSString*>* split_ns_array(cString& str) {
+static NSArray<NSString*>* toNSArray(cString& str) {
 	auto arr = [NSMutableArray<NSString*> new];
 	for (auto& i : str.split(','))
 		[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
@@ -131,10 +131,10 @@ void Application::sendEmail(cString& recipient,
 														cString& cc, cString& bcc, cString& body) {
 	auto delegate = getActiveDelegate();
 	if (!delegate) return;
-	id recipient_ = split_ns_array(recipient);
+	id recipient_ = toNSArray(recipient);
 	id subject_ = [NSString stringWithUTF8String:*subject];
-	id cc_ = split_ns_array(cc);
-	id bcc_ = split_ns_array(bcc);
+	id cc_ = toNSArray(cc);
+	id bcc_ = toNSArray(bcc);
 	id body_ = [NSString stringWithUTF8String:*body];
 
 	dispatch_async(dispatch_get_main_queue(), ^{

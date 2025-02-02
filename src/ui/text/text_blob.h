@@ -41,14 +41,14 @@
 namespace qk {
 	// @dev text view
 
-	Qk_Export Array<Array<Unichar>> string4_to_unichar(
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(
 		const Unichar *src, uint32_t length,
 		bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed
 	);
-	Qk_Export Array<Array<Unichar>> string4_to_unichar(
+	Qk_EXPORT Array<Array<Unichar>> string4_to_unichar(
 		cString4& str, bool is_merge_space, bool is_merge_line_feed, bool disable_line_feed
 	);
-	Qk_Export Array<Array<Unichar>> string_to_unichar(
+	Qk_EXPORT Array<Array<Unichar>> string_to_unichar(
 		cString& str, TextWhiteSpace space, bool ignore_single_white_space
 	);
 
@@ -61,15 +61,15 @@ namespace qk {
 		Canvas::TextBlob blob; // glyphs + cache
 	};
 
-	class Qk_Export TextBlobBuilder {
+	class Qk_EXPORT TextBlobBuilder {
 	public:
 		TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blobOut);
-		Qk_DEFINE_PROP(bool, disable_overflow, Const);
-		Qk_DEFINE_PROP(bool, disable_auto_wrap, Const);
-		Qk_DEFINE_P_GET(TextLines*, lines);
-		Qk_DEFINE_P_GET(TextOptions*, opts);
-		Qk_DEFINE_P_GET(Array<TextBlob>*, blobOut);
-		Qk_DEFINE_P_GET(uint32_t, index_of_unichar, Const);
+		Qk_DEFINE_PROPERTY(bool, disable_overflow, Const);
+		Qk_DEFINE_PROPERTY(bool, disable_auto_wrap, Const);
+		Qk_DEFINE_PROP_GET(TextLines*, lines);
+		Qk_DEFINE_PROP_GET(TextOptions*, opts);
+		Qk_DEFINE_PROP_GET(Array<TextBlob>*, blobOut);
+		Qk_DEFINE_PROP_GET(uint32_t, index_of_unichar, Const);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);

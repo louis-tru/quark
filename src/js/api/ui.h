@@ -65,7 +65,7 @@ namespace qk { namespace js {
 	extern uint64_t kView_Typeid;
 	extern uint64_t kWindow_Typeid;
 
-	class Qk_Export MixUIObject: public MixObject {
+	class Qk_EXPORT MixUIObject: public MixObject {
 	public:
 		virtual TextOptions* asTextOptions();
 		virtual ScrollBase*  asScrollBase();
@@ -75,7 +75,7 @@ namespace qk { namespace js {
 		virtual bool removeEventListener(cString& name, int id) override;
 	};
 
-	class Qk_Export MixViewObject: public MixUIObject {
+	class Qk_EXPORT MixViewObject: public MixUIObject {
 	public:
 		virtual NotificationBasic* asNotificationBasic() override;
 		static Window* checkNewView(FunctionArgs args);

@@ -28,15 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../device.h"
-#include <quark/util/string.h>
-#include <quark/util/array.h>
-#include <quark/util/fs.h>
-#include <quark/util/array.h>
+#include "../../os/os.h"
+#include "../../util/string.h"
 #include <unistd.h>
 
 namespace qk {
-	static struct utsname* utsn = NULL;
+	static struct utsname* utsn = nullptr;
 
 	static utsname* _device_uname() {
 		if (!utsn) {
@@ -46,32 +43,32 @@ namespace qk {
 		return utsn;
 	}
 
-	String device_version() {
+	String os_version() {
 		return _device_uname()->release;
 	}
 
-	String device_brand() {
+	String os_brand() {
 		return "Linux";
 	}
 
-	String device_model() {
+	String os_model() {
 		return _device_uname()->version;
 	}
 
-	int device_network_status() {
+	int os_network_interface() {
 		return 1;
 	}
 
-	bool device_is_ac_power() {
-		return 1;
+	bool os_is_ac_power() {
+		return true;
 	}
 
-	bool device_is_battery() {
-		return 0;
+	bool os_is_battery() {
+		return false;
 	}
 
-	float device_battery_level() {
-		return 0;
+	float os_battery_level() {
+		return false;
 	}
 
 	struct memory_info_t {
@@ -94,7 +91,7 @@ namespace qk {
 			j = s.index_of("kB", i);
 			if (j == -1) return r;
 
-			r.MemTotal = s.substring(i + 9, j).trim().to_number<uint64_t>() * 1024;
+			r.MemTotal = s.substring(i + 9, j).trim().toNumber<uint64_t>() * 1024;
 			Qk_DLog("MemTotal, %lu", r.MemTotal);
 
 			i = s.index_of("MemFree:", j);
@@ -102,7 +99,7 @@ namespace qk {
 			j = s.index_of("kB", i);
 			if (j == -1) return r;
 
-			r.MemFree = s.substring(i + 8, j).trim().to_number<uint64_t>() * 1024;
+			r.MemFree = s.substring(i + 8, j).trim().toNumber<uint64_t>() * 1024;
 			Qk_DLog("MemFree, %lu", r.MemFree);
 
 			i = s.index_of("MemAvailable:", j);
@@ -110,22 +107,22 @@ namespace qk {
 			j = s.index_of("kB", i);
 			if (j == -1) return r;
 
-			r.MemAvailable = s.substring(i + 13, j).trim().to_number<uint64_t>() * 1024;
+			r.MemAvailable = s.substring(i + 13, j).trim().toNumber<uint64_t>() * 1024;
 			Qk_DLog("MemAvailable, %lu", r.MemAvailable);
 		}
 		return r;
 	}
 
-	uint64_t device_memory() {
+	uint64_t os_memory() {
 		return device_get_memory_info().MemTotal;
 	}
 
-	uint64_t device_used_memory() {
+	uint64_t os_used_memory() {
 		memory_info_t info = device_get_memory_info();
 		return int64_t(info.MemTotal) - info.MemAvailable;
 	}
 
-	uint64_t device_available_memory() {
+	uint64_t os_available_memory() {
 		return device_get_memory_info().MemAvailable;
 	}
 }

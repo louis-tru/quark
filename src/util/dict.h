@@ -52,17 +52,17 @@ namespace qk {
 		}
 	};
 
-	template<> Qk_Export uint64_t Compare<char>::hashCode(const char& key);
-	template<> Qk_Export uint64_t Compare<uint8_t>::hashCode(const uint8_t& key);
-	template<> Qk_Export uint64_t Compare<int16_t>::hashCode(const int16_t& key);
-	template<> Qk_Export uint64_t Compare<uint16_t>::hashCode(const uint16_t& key);
-	template<> Qk_Export uint64_t Compare<int32_t>::hashCode(const int32_t& key);
-	template<> Qk_Export uint64_t Compare<uint32_t>::hashCode(const uint32_t& key);
-	template<> Qk_Export uint64_t Compare<int64_t>::hashCode(const int64_t& key);
-	template<> Qk_Export uint64_t Compare<uint64_t>::hashCode(const uint64_t& key);
-	template<> Qk_Export uint64_t Compare<float>::hashCode(const float& key);
-	template<> Qk_Export uint64_t Compare<double>::hashCode(const double& key);
-	template<> Qk_Export uint64_t Compare<bool>::hashCode(const bool& key);
+	template<> Qk_EXPORT uint64_t Compare<char>::hashCode(const char& key);
+	template<> Qk_EXPORT uint64_t Compare<uint8_t>::hashCode(const uint8_t& key);
+	template<> Qk_EXPORT uint64_t Compare<int16_t>::hashCode(const int16_t& key);
+	template<> Qk_EXPORT uint64_t Compare<uint16_t>::hashCode(const uint16_t& key);
+	template<> Qk_EXPORT uint64_t Compare<int32_t>::hashCode(const int32_t& key);
+	template<> Qk_EXPORT uint64_t Compare<uint32_t>::hashCode(const uint32_t& key);
+	template<> Qk_EXPORT uint64_t Compare<int64_t>::hashCode(const int64_t& key);
+	template<> Qk_EXPORT uint64_t Compare<uint64_t>::hashCode(const uint64_t& key);
+	template<> Qk_EXPORT uint64_t Compare<float>::hashCode(const float& key);
+	template<> Qk_EXPORT uint64_t Compare<double>::hashCode(const double& key);
+	template<> Qk_EXPORT uint64_t Compare<bool>::hashCode(const bool& key);
 
 	/**
 	 * @class Dict hash table

@@ -36,7 +36,7 @@
 
 namespace qk {
 
-	class Qk_Export FontGlyphs {
+	class Qk_EXPORT FontGlyphs {
 	public:
 		FontGlyphs(float fontSize, Typeface *ft, const GlyphID glyphs[], uint32_t count);
 		FontGlyphs(float fontSize, Typeface *ft, Array<GlyphID> &&glyphs);

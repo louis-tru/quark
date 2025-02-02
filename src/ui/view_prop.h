@@ -35,17 +35,17 @@
 #include "../render/bezier.h"
 #include "./types.h"
 
-#define Qk_DEFINE_VIEW_A_GET(...) Qk_DEFINE_A_GET(__VA_ARGS__)
-#define Qk_DEFINE_VIEW_ACCE(type,name,...) \
-	Qk_DEFINE_VIEW_A_GET(type,name,##__VA_ARGS__); void set_##name (type val,bool isRt=false);
+#define Qk_DEFINE_VIEW_ACCE_GET(...) Qk_DEFINE_ACCE_GET(__VA_ARGS__)
+#define Qk_DEFINE_VIEW_ACCESSOR(type,name,...) \
+	Qk_DEFINE_VIEW_ACCE_GET(type,name,##__VA_ARGS__); void set_##name (type val,bool isRt=false);
 
-#define Qk_DEFINE_VIEW_P_GET(...) Qk_DEFINE_P_GET(__VA_ARGS__)
-#define Qk_DEFINE_VIEW_PROP(type,name,...) \
-	Qk_DEFINE_VIEW_P_GET(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
+#define Qk_DEFINE_VIEW_PROP_GET(...) Qk_DEFINE_PROP_GET(__VA_ARGS__)
+#define Qk_DEFINE_VIEW_PROPERTY(type,name,...) \
+	Qk_DEFINE_VIEW_PROP_GET(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
 
-#define Qk_DEFINE_VIEW_P_GET_Atomic(...) Qk_DEFINE_P_GET_Atomic(__VA_ARGS__)
-#define Qk_DEFINE_VIEW_PROP_Atomic(type,name,...) \
-	Qk_DEFINE_VIEW_P_GET_Atomic(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
+#define Qk_DEFINE_VIEW_PROP_GET_Atomic(...) Qk_DEFINE_PROP_GET_Atomic(__VA_ARGS__)
+#define Qk_DEFINE_VIEW_PROPERTY_Atomic(type,name,...) \
+	Qk_DEFINE_VIEW_PROP_GET_Atomic(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
 
 namespace qk {
 	class   BoxFilter;
@@ -195,7 +195,7 @@ namespace qk {
 		void (Object::*set)();
 	};
 
-	Qk_Export PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop);
+	Qk_EXPORT PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop);
 }
 
 #endif

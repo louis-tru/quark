@@ -133,7 +133,7 @@ namespace qk {
 
 		static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
 			if ( !manager ) {
-				new manager();
+				new SharedWindowmanager();
 			}
 			Qk_ASSERT_EQ(manager->_activity, nullptr);
 			// ANativeActivity_setWindowFlags(activity, 0x00000400, 0);
@@ -430,13 +430,13 @@ namespace qk {
 
 extern "C" {
 
-	Qk_Export void Java_org_quark_Activity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
+	Qk_EXPORT void Java_org_quark_Activity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
 		// Noop
 	}
 
-	Qk_Export void ANativeActivity_onCreate(ANativeActivity* activity, 
+	Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
 																					void* savedState, size_t savedStateSize)
 	{
-		Manager::onCreate(activity, savedState, savedStateSize);
+		qk::SharedWindowmanager::onCreate(activity, savedState, savedStateSize);
 	}
 }

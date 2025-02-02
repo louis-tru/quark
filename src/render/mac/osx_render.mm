@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #define GL_SILENCE_DEPRECATION
+#define GL3_PROTOTYPES
 
 #import "./mac_render.h"
 #import "../gl/gl_render.h"

@@ -34,6 +34,10 @@
 #define __quark__font__freetype__ft_glyph_cache__
 
 #include "../priv/util.h"
+#include "../priv/to.h"
+#include "../metrics.h"
+
+using namespace qk;
 
 class QkCharToGlyphCache {
 public:

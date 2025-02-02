@@ -40,7 +40,7 @@ namespace qk {
 	class PreRender;
 	class View;
 
-	class Qk_Export TextOptions {
+	class Qk_EXPORT TextOptions {
 	public:
 		struct SecondaryProps {
 			TextFamily text_family;
@@ -54,28 +54,28 @@ namespace qk {
 			TextWordBreak  text_word_break, text_word_break_value;
 		};
 		// main props
-		Qk_DEFINE_VIEW_PROP(TextAlign,      text_align, Const);
-		Qk_DEFINE_VIEW_P_GET(TextAlign,     text_align_value, Const); // @safe Rt
-		Qk_DEFINE_VIEW_PROP(TextSize,       text_size, Const);
-		Qk_DEFINE_VIEW_PROP(TextColor,      text_color, Const);
-		Qk_DEFINE_VIEW_PROP(TextLineHeight, text_line_height, Const);
+		Qk_DEFINE_VIEW_PROPERTY(TextAlign,      text_align, Const);
+		Qk_DEFINE_VIEW_PROP_GET(TextAlign,     text_align_value, Const); // @safe Rt
+		Qk_DEFINE_VIEW_PROPERTY(TextSize,       text_size, Const);
+		Qk_DEFINE_VIEW_PROPERTY(TextColor,      text_color, Const);
+		Qk_DEFINE_VIEW_PROPERTY(TextLineHeight, text_line_height, Const);
 		// secondary props
-		Qk_DEFINE_VIEW_ACCE(TextFamily,     text_family, Const);
-		Qk_DEFINE_VIEW_ACCE(TextShadow,     text_shadow, Const);
-		Qk_DEFINE_VIEW_ACCE(TextColor,      text_background_color, Const);
-		Qk_DEFINE_VIEW_ACCE(TextWeight,     text_weight, Const);
-		Qk_DEFINE_VIEW_A_GET(TextWeight,    text_weight_value, Const);
-		Qk_DEFINE_VIEW_ACCE(TextSlant,      text_slant, Const);
-		Qk_DEFINE_VIEW_A_GET(TextSlant,     text_slant_value, Const);
-		Qk_DEFINE_VIEW_ACCE(TextDecoration, text_decoration, Const);
-		Qk_DEFINE_VIEW_A_GET(TextDecoration,text_decoration_value, Const);
-		Qk_DEFINE_VIEW_ACCE(TextOverflow,   text_overflow, Const);
-		Qk_DEFINE_VIEW_A_GET(TextOverflow,  text_overflow_value, Const);
-		Qk_DEFINE_VIEW_ACCE(TextWhiteSpace, text_white_space, Const);
-		Qk_DEFINE_VIEW_A_GET(TextWhiteSpace,text_white_space_value, Const);
-		Qk_DEFINE_VIEW_ACCE(TextWordBreak,  text_word_break, Const);
-		Qk_DEFINE_VIEW_A_GET(TextWordBreak, text_word_break_value, Const);
-		Qk_DEFINE_VIEW_A_GET(FontStyle,     font_style, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextFamily,     text_family, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextShadow,     text_shadow, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextColor,      text_background_color, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextWeight,     text_weight, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextWeight,    text_weight_value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextSlant,      text_slant, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextSlant,     text_slant_value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextDecoration, text_decoration, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextDecoration,text_decoration_value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextOverflow,   text_overflow, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextOverflow,  text_overflow_value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextWhiteSpace, text_white_space, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextWhiteSpace,text_white_space_value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextWordBreak,  text_word_break, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextWordBreak, text_word_break_value, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(FontStyle,     font_style, Const);
 
 		Vec2 compute_layout_size(cString& value);
 
@@ -108,15 +108,15 @@ namespace qk {
 		friend class DefaultTextOptions;
 	};
 
-	class Qk_Export TextConfig {
+	class Qk_EXPORT TextConfig {
 	public:
 		TextConfig(TextOptions *opts, TextConfig *inherit);
 		~TextConfig();
-		Qk_DEFINE_P_GET(TextOptions*, opts);
-		Qk_DEFINE_P_GET(TextConfig*,  inherit);
+		Qk_DEFINE_PROP_GET(TextOptions*, opts);
+		Qk_DEFINE_PROP_GET(TextConfig*,  inherit);
 	};
 
-	class Qk_Export DefaultTextOptions: public Object, public TextOptions, public TextConfig {
+	class Qk_EXPORT DefaultTextOptions: public Object, public TextOptions, public TextConfig {
 	public:
 		DefaultTextOptions(FontPool *pool);
 	private:

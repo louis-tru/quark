@@ -764,7 +764,8 @@ namespace qk {
 			_inl_view(view)->bubble_trigger(UIEvent_MouseUp, **evt);
 		}
 
-		if (code != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
+		if (code != KEYCODE_MOUSE_LEFT || !evt->is_default())
+			return;
 
 		if (down) {
 			_inl_view(view)->trigger_highlightted(
@@ -775,15 +776,6 @@ namespace qk {
 
 			if (view == *raw_down_view) {
 				_inl_view(view)->trigger_click(**NewEvent<ClickEvent>(view, x, y, ClickEvent::kMouse));
-			}
-		}
-	}
-
-	void EventDispatch::mousewhell(KeyboardKeyCode code, bool isDown, float x, float y) {
-		if (isDown) {
-			auto view = _mouse_handle->view();
-			if (view) {
-				_inl_view(view)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(view, x, y, code));
 			}
 		}
 	}
@@ -801,26 +793,36 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, const Vec2 *value) {
+	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, const Vec2 *vec) {
+		Vec2 deltaDefault;
 		switch(code) {
 			case KEYCODE_MOUSE_LEFT:
 			case KEYCODE_MOUSE_CENTER:
 			case KEYCODE_MOUSE_RIGHT: {
 				UILock lock(_window);
-				auto pos = value ? *value: _mouse_handle->position(); // get current mouse pos
+				auto pos = vec ? *vec: _mouse_handle->position(); // get current mouse pos
 				auto v = find_receive_view(pos);
 				//Qk_DLog("onMousepress code: %d, isDown: %i, v: %p", code, isDown, v);
-				if (v) {
+				if (v)
 					_pre.post(Cb([this,v,pos,code,isDown](auto& e) { mousepress(v, pos, code, isDown); }),v);
+				break;
+			}
+			case KEYCODE_MOUSE_WHEEL_UP: deltaDefault = Vec2(0, -53); goto whell;
+			case KEYCODE_MOUSE_WHEEL_DOWN: deltaDefault = Vec2(0, 53); goto whell;
+			case KEYCODE_MOUSE_WHEEL_LEFT: deltaDefault = Vec2(-53, 0); goto whell;
+			case KEYCODE_MOUSE_WHEEL_RIGHT: deltaDefault = Vec2(53, 0); whell:
+				if (isDown) {
+					auto delta = vec ? *vec: deltaDefault;
+					_pre.post(Cb([=](auto e) {
+						auto v = _mouse_handle->view();
+						if (v) {
+							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel,
+								**NewMouseEvent(v, delta.x(), delta.y(), code)
+							);
+						}
+					}));
 				}
 				break;
-			}
-			case KEYCODE_MOUSE_WHEEL: {
-				auto delta = value ? *value: Vec2();
-				_pre.post(Cb([=](auto& e) { mousewhell(code, isDown, delta.x(), delta.y()); }));
-				break;
-			}
-			default: break;
 		}
 	}
 

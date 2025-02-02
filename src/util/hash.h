@@ -36,7 +36,7 @@
 
 namespace qk {
 
-	class Qk_Export Hash5381 {
+	class Qk_EXPORT Hash5381 {
 		uint64_t _hash;
 	public:
 		inline Hash5381(): _hash(5381) {}
@@ -55,8 +55,8 @@ namespace qk {
 		String digest();
 	};
 
-	Qk_Export uint64_t hashCode(cVoid* data, uint32_t len);
-	Qk_Export String hash(cVoid* data, uint32_t len);
-	Qk_Export String hash(cString& str);
+	Qk_EXPORT uint64_t hashCode(cVoid* data, uint32_t len);
+	Qk_EXPORT String hash(cVoid* data, uint32_t len);
+	Qk_EXPORT String hash(cString& str);
 }
 #endif

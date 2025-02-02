@@ -91,15 +91,15 @@ static_assert(std::is_same<FT_Alloc_size_t, long>::value ||
 
 using QkAutoFree = Sp<void>;
 
-static void* qk_ft_alloc(FT_Memory, FT_Alloc_size_t size) {
+static void* qk_ft_alloc(FT_Memory mem, FT_Alloc_size_t size) {
 	return ::malloc(size); // qk_malloc_throw(size);
 }
 
-static void qk_ft_free(FT_Memory, void* block) {
-	::free(size); //qk_free(block);
+static void qk_ft_free(FT_Memory mem, void* block) {
+	::free(block); //qk_free(block);
 }
 
-static void* qk_ft_realloc(FT_Memory, FT_Alloc_size_t cur_size,
+static void* qk_ft_realloc(FT_Memory mem, FT_Alloc_size_t cur_size,
 										FT_Alloc_size_t new_size, void* block) {
 	return ::realloc(block, new_size); // qk_realloc_throw(block, new_size);
 }
@@ -305,11 +305,11 @@ bool Scanner::scanFont(
 		return false;
 	}
 
-	int weight = TextWeight::Regular;
-	int width = TextWidth::Normal;
-	TextSlant slant = TextSlant::Upright;
+	TextWeight weight = TextWeight::Regular;
+	TextWidth width = TextWidth::Normal;
+	TextSlant slant = TextSlant::Normal;
 	if (face->style_flags & FT_STYLE_FLAG_BOLD) {
-		weight = TextWidth::Bold;
+		weight = TextWeight::Bold;
 	}
 	if (face->style_flags & FT_STYLE_FLAG_ITALIC) {
 		slant = TextSlant::Italic;
@@ -318,8 +318,8 @@ bool Scanner::scanFont(
 	PS_FontInfoRec psFontInfo;
 	TT_OS2* os2 = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(face.get(), ft_sfnt_os2));
 	if (os2 && os2->version != 0xffff) {
-		weight = os2->usWeightClass;
-		width = os2->usWidthClass;
+		weight = TextWeight(os2->usWeightClass);
+		width = TextWidth(os2->usWidthClass);
 
 		// OS/2::fsSelection bit 9 indicates oblique.
 		if (QkToBool(os2->fsSelection & (1u << 9))) {
@@ -328,31 +328,31 @@ bool Scanner::scanFont(
 	} else if (0 == FT_Get_PS_Font_Info(face.get(), &psFontInfo) && psFontInfo.weight) {
 		static Dict<String, TextWeight> commonWeights({
 			// There are probably more common names, but these are known to exist.
-			{ "all", TextWeight::Regular }, // Multiple Masters usually default to normal.
-			{ "black", TextWeight::Black },
-			{ "bold", TextWeight::Bold },
-			{ "book", (TextWeight::Regular + TextWeight::Light)/2 },
-			{ "demi", TextWeight::Semibold },
-			{ "demibold", TextWeight::Semibold },
-			{ "extra", TextWeight::Heavy },
-			{ "extrabold", TextWeight::Heavy },
-			{ "extralight", TextWeight::Ultralight },
-			{ "hairline", TextWeight::Thin },
-			{ "heavy", TextWeight::Black },
-			{ "light", TextWeight::Light },
-			{ "medium", TextWeight::Medium },
-			{ "normal", TextWeight::Regular },
-			{ "plain", TextWeight::Regular },
-			{ "regular", TextWeight::Regular },
-			{ "roman", TextWeight::Regular },
-			{ "semibold", TextWeight::Semibold },
-			{ "standard", TextWeight::Regular },
-			{ "thin", TextWeight::Thin },
-			{ "ultra", TextWeight::Heavy },
-			{ "ultrablack", TextWeight::ExtraBlack },
-			{ "ultrabold", TextWeight::Heavy },
-			{ "ultraheavy", TextWeight::ExtraBlack },
-			{ "ultralight", TextWeight::Ultralight },
+			{ String("all"), TextWeight::Regular }, // Multiple Masters usually default to normal.
+			{ String("black"), TextWeight::Black },
+			{ String("bold"), TextWeight::Bold },
+			{ String("book"), TextWeight((int(TextWeight::Regular) + int(TextWeight::Light)) / 2) },
+			{ String("demi"), TextWeight::Semibold },
+			{ String("demibold"), TextWeight::Semibold },
+			{ String("extra"), TextWeight::Heavy },
+			{ String("extrabold"), TextWeight::Heavy },
+			{ String("extralight"), TextWeight::Ultralight },
+			{ String("hairline"), TextWeight::Thin },
+			{ String("heavy"), TextWeight::Black },
+			{ String("light"), TextWeight::Light },
+			{ String("medium"), TextWeight::Medium },
+			{ String("normal"), TextWeight::Regular },
+			{ String("plain"), TextWeight::Regular },
+			{ String("regular"), TextWeight::Regular },
+			{ String("roman"), TextWeight::Regular },
+			{ String("semibold"), TextWeight::Semibold },
+			{ String("standard"), TextWeight::Regular },
+			{ String("thin"), TextWeight::Thin },
+			{ String("ultra"), TextWeight::Heavy },
+			{ String("ultrablack"), TextWeight::ExtraBlack },
+			{ String("ultrabold"), TextWeight::Heavy },
+			{ String("ultraheavy"), TextWeight::ExtraBlack },
+			{ String("ultralight"), TextWeight::Ultralight },
 		});
 		TextWeight out;
 		if (commonWeights.get(String(psFontInfo.weight).lowerCase(), out)) {
@@ -363,7 +363,7 @@ bool Scanner::scanFont(
 	}
 
 	if (name != nullptr) {
-		name->set(face->family_name);
+		*name = face->family_name;
 	}
 	if (style != nullptr) {
 		*style = FontStyle(weight, width, slant);
@@ -372,7 +372,7 @@ bool Scanner::scanFont(
 		*isFixedPitch = FT_IS_FIXED_WIDTH(face);
 	}
 
-	if (axes != nullptr && !GetAxes(face.value(), axes)) {
+	if (axes != nullptr && !GetAxes(face.get(), axes)) {
 		return false;
 	}
 	return true;
@@ -409,7 +409,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 	const String& name,
 	const FontArguments::VariationPosition::Coordinate* current)
 {
-	for (int i = 0; i < axisDefinitions.count(); ++i) {
+	for (int i = 0; i < axisDefinitions.length(); ++i) {
 		const Scanner::AxisDefinition& axisDefinition = axisDefinitions[i];
 		const QkScalar axisMin = QkFixedToScalar(axisDefinition.fMinimum);
 		const QkScalar axisMax = QkFixedToScalar(axisDefinition.fMaximum);
@@ -419,10 +419,10 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 
 		// Then the current value.
 		if (current) {
-			for (int j = 0; j < axisDefinitions.count(); ++j) {
+			for (int j = 0; j < axisDefinitions.length(); ++j) {
 				const auto& coordinate = current[j];
 				if (axisDefinition.fTag == coordinate.axis) {
-					const QkScalar axisValue = Float32::clamp(coordinate.value, axisMin, axisMax);
+					const QkScalar axisValue = qk::Float32::clamp(coordinate.value, axisMin, axisMax);
 					axisValues[i] = QkScalarToFixed(axisValue);
 					break;
 				}
@@ -435,7 +435,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 		for (int j = position.coordinateCount; j --> 0;) {
 			const auto& coordinate = position.coordinates[j];
 			if (axisDefinition.fTag == coordinate.axis) {
-				const QkScalar axisValue = Float32::clamp(coordinate.value, axisMin, axisMax);
+				const QkScalar axisValue = qk::Float32::clamp(coordinate.value, axisMin, axisMax);
 				if (coordinate.value != axisValue) {
 					LOG_INFO("Requested font axis value out of range: "
 							 "%s '%c%c%c%c' %f; pinned to %f.\n",
@@ -459,7 +459,7 @@ bool Scanner::GetAxes(FT_Face face, AxisDefinitions* axes) {
 		for (int i = 0; i < position.coordinateCount; ++i) {
 			FontByteTag skTag = position.coordinates[i].axis;
 			bool found = false;
-			for (int j = 0; j < axisDefinitions.count(); ++j) {
+			for (int j = 0; j < axisDefinitions.length(); ++j) {
 				if (skTag == axisDefinitions[j].fTag) {
 					found = true;
 					break;
@@ -492,7 +492,7 @@ public:
 		f_t_mutex().assertHeld();
 
 		Sp<QkFontData> data = typeface->makeFontData();
-		if (nullptr == data || !data->hasStream()) {
+		if (data == nullptr || !data->hasStream()) {
 			return nullptr;
 		}
 
@@ -514,14 +514,14 @@ public:
 			FT_Face rawFace;
 			FT_Error err = FT_Open_Face(gFTLibrary->library(), &args, data->getIndex(), &rawFace);
 			if (err) {
-				Qk_TRACEFTR(err, "unable to open font '%x'", typeface->uniqueID());
+				Qk_TRACEFTR(err, "unable to open font '%x'", typeface);
 				return nullptr;
 			}
 			rec->fFace = rawFace;
 		}
 		Qk_ASSERT(rec->fFace);
 
-		rec->setupAxes(*data);
+		rec->setupAxes(**data);
 
 		// FreeType will set the charmap to the "most unicode" cmap if it exists.
 		// If there are no unicode cmaps, the charmap is set to nullptr.
@@ -530,7 +530,7 @@ public:
 		// This is the last on the fallback list at
 		// https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6cmap.html
 		if (!rec->fFace->charmap) {
-			FT_Select_Charmap(rec->fFace.value(), FT_ENCODING_MS_SYMBOL);
+			FT_Select_Charmap(rec->fFace.get(), FT_ENCODING_MS_SYMBOL);
 		}
 
 		return rec;
@@ -546,7 +546,7 @@ private:
 	FaceRec(Sp<QkStream> stream): fStream(std::move(stream)) {
 		qk_bzero(&fFTStream, sizeof(fFTStream));
 		fFTStream.size = fStream->getLength();
-		fFTStream.descriptor.pointer = fStream.value();
+		fFTStream.descriptor.pointer = fStream.get();
 		fFTStream.read  = qk_ft_stream_io;
 		fFTStream.close = qk_ft_stream_close;
 
@@ -580,12 +580,11 @@ private:
 			}
 		)
 
-		//QkAutoSTMalloc<4, FT_Fixed> coords(data.getAxisCount());
-		Array<QkFixed> coords(data.getAxisCount());
+		Array<FT_Fixed> coords(data.getAxisCount());
 		for (int i = 0; i < data.getAxisCount(); ++i) {
 			coords[i] = data.getAxis()[i];
 		}
-		if (FT_Set_Var_Design_Coordinates(fFace.get(), data.getAxisCount(), coords.get())) {
+		if (FT_Set_Var_Design_Coordinates(fFace.get(), data.getAxisCount(), coords.val())) {
 			LOG_INFO("INFO: font %s has variations, but specified variations could not be set.\n",
 					rec->fFace->family_name);
 			return;
@@ -626,7 +625,7 @@ int FaceRec::gFTCount;
 
 class AutoFTAccess {
 public:
-	AutoFTAccess(const QkTypeface_FreeType* tf) : _ft(ft) {
+	AutoFTAccess(const QkTypeface_FreeType* tf) : _ft(tf) {
 #if Qk_GLOBAL_LOCK
 		f_t_mutex().acquire();
 #else
@@ -641,7 +640,7 @@ public:
 #endif
 	}
 private:
-	QkTypeface_FreeType *_ft;
+	const QkTypeface_FreeType *_ft;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -654,11 +653,14 @@ QkTypeface_FreeType::QkTypeface_FreeType(const FontStyle& style, uint16_t flags)
 	, fFTSize(nullptr)
 	, fStrikeIndex(-1)
 {
+}
+
+void QkTypeface_FreeType::initFreeType() {
 	QkAutoMutexExclusive ac(f_t_mutex());
 	fFaceRec = FaceRec::Make(this);
 
 	// load the font file
-	if (nullptr == fFaceRec) {
+	if (fFaceRec == nullptr) {
 		LOG_INFO("Could not create FT_Face.\n");
 		return;
 	}
@@ -710,10 +712,10 @@ QkTypeface_FreeType::QkTypeface_FreeType(const FontStyle& style, uint16_t flags)
 
 	loadFlags |= FT_LOAD_COLOR;
 
-	FT_Error err = FT_New_Size(fFaceRec->fFace.value(), &fFTSize);
+	FT_Error err = FT_New_Size(fFaceRec->fFace.get(), &fFTSize);
 	if (err != 0) {
 		Qk_TRACEFTR(err, "FT_New_Size(%s) failed.", fFaceRec->fFace->family_name);
-		return nullptr;
+		return;
 	}
 
 	err = FT_Activate_Size(fFTSize);
@@ -744,7 +746,7 @@ QkTypeface_FreeType::QkTypeface_FreeType(const FontStyle& style, uint16_t flags)
 	FT_Palette_Select(fFaceRec->fFace.value(), 0, nullptr);
 #endif
 
-	fFace = fFaceRec->fFace.value();
+	fFace = fFaceRec->fFace.get();
 	fDoLinearMetrics = linearMetrics;
 	fLoadGlyphFlags = loadFlags;
 }
@@ -983,6 +985,19 @@ void emboldenIfNeeded(FT_Face face, FT_GlyphSlot glyph, GlyphID gid) {
 	}
 }
 
+bool getCBoxForLetter(char letter, FT_BBox* bbox) {
+	const FT_UInt glyph_id = FT_Get_Char_Index(fFace, letter);
+	if (!glyph_id) {
+		return false;
+	}
+	if (FT_Load_Glyph(fFace, glyph_id, fLoadGlyphFlags) != 0) {
+		return false;
+	}
+	emboldenIfNeeded(fFace, fFace->glyph, QkTo<GlyphID>(glyph_id));
+	FT_Outline_Get_CBox(&fFace->glyph->outline, bbox);
+	return true;
+}
+
 void getBBoxForCurrentGlyph(FT_BBox* bbox, bool snapToPixelBoundary) {
 
 	FT_Outline_Get_CBox(&fFace->glyph->outline, bbox);
@@ -1012,9 +1027,10 @@ void getBBoxForCurrentGlyph(FT_BBox* bbox, bool snapToPixelBoundary) {
 void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) {
 	Qk_ASSERT(glyph);
 
+#if Qk_GLOBAL_LOCK
 	AutoFTAccess fta(this);
-
-	#define Qk_zeroMetrics() qk_bzero(metrics, sizeof(*metrics))
+#endif
+	#define Qk_zeroMetrics() qk_bzero(glyph, sizeof(*glyph))
 
 	float scale;
 	if (_this->setupSize(FixedUnitsScale, &scale)) {
@@ -1025,7 +1041,7 @@ void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph)
 	FT_Error err;
 	err = FT_Load_Glyph( fFace, id, fLoadGlyphFlags | FT_LOAD_BITMAP_METRICS_ONLY );
 	if (err != 0) {
-		qk_bzero(metrics, sizeof(*metrics));
+		Qk_zeroMetrics();
 		return;
 	}
 	_this->emboldenIfNeeded(fFace, fFace->glyph, id);
@@ -1075,7 +1091,9 @@ void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph)
 void QkTypeface_FreeType::onGetMetrics(FontMetrics* metrics) {
 	Qk_ASSERT(metrics);
 
+#if Qk_GLOBAL_LOCK
 	AutoFTAccess fta(this);
+#endif
 
 	float scale;
 	if (_this->setupSize(FixedUnitsScale, &scale)) {
@@ -1083,7 +1101,7 @@ void QkTypeface_FreeType::onGetMetrics(FontMetrics* metrics) {
 		return;
 	}
 
-	FT_Face face = fFaceRec->fFace.value();
+	FT_Face face = fFaceRec->fFace.get();
 	metrics->fFlags = 0;
 
 	QkScalar upem = QkIntToScalar(QkTypeface_FreeType::GetUnitsPerEm(face)) / scale;
@@ -1139,13 +1157,13 @@ void QkTypeface_FreeType::onGetMetrics(FontMetrics* metrics) {
 		// we may be able to synthesize x_height and cap_height from outline
 		if (!x_height) {
 			FT_BBox bbox;
-			if (getCBoxForLetter('x', &bbox)) {
+			if (_this->getCBoxForLetter('x', &bbox)) {
 				x_height = QkIntToScalar(bbox.yMax) / 64.0f;
 			}
 		}
 		if (!cap_height) {
 			FT_BBox bbox;
-			if (getCBoxForLetter('H', &bbox)) {
+			if (_this->getCBoxForLetter('H', &bbox)) {
 				cap_height = QkIntToScalar(bbox.yMax) / 64.0f;
 			}
 		}
@@ -1176,7 +1194,7 @@ void QkTypeface_FreeType::onGetMetrics(FontMetrics* metrics) {
 			metrics->fFlags |= FontMetrics::kUnderlinePositionIsValid_Flag;
 		}
 	} else {
-		sk_bzero(metrics, sizeof(*metrics));
+		qk_bzero(metrics, sizeof(*metrics));
 		return;
 	}
 
@@ -1221,7 +1239,9 @@ void QkTypeface_FreeType::onGetMetrics(FontMetrics* metrics) {
 bool QkTypeface_FreeType::onGetPath(GlyphID glyphID, Path *path) {
 	Qk_ASSERT(path);
 
+#if Qk_GLOBAL_LOCK
 	AutoFTAccess fta(this);
+#endif
 
 	float scale;
 	// FT_IS_SCALABLE is documented to mean the face contains outline glyphs.
@@ -1239,7 +1259,7 @@ bool QkTypeface_FreeType::onGetPath(GlyphID glyphID, Path *path) {
 	}
 	_this->emboldenIfNeeded(fFace, fFace->glyph, glyphID);
 
-	return generateGlyphPath(path);
+	return generateFacePath(path);
 }
 
 Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, float fontSize,
@@ -1279,8 +1299,8 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 		} else {
 			right += gm.fAdvanceX * scale;
 		}
-		top = Float32::max(top, -gm.fTop);
-		bottom = Float32::max(bottom, gm.fHeight + gm.fTop);
+		top = qk::Float32::max(top, -gm.fTop);
+		bottom = qk::Float32::max(bottom, gm.fHeight + gm.fTop);
 	}
 
 	FT_Glyph_Format ft_format = fFace->glyph->format;
@@ -1300,7 +1320,7 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 			type = kRGBA_8888_ColorType; break;
 		case FT_PIXEL_MODE_LCD:
 		case FT_PIXEL_MODE_LCD_V:
-			type = kRGBA_888X_ColorType; break;
+			type = kRGB_888X_ColorType; break;
 		default:
 			Qk_ASSERT(0, "unknown pixel mode"); Return();
 		}

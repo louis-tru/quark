@@ -601,20 +601,20 @@ namespace qk {
 			_ptr.increase(capacity);
 	}
 
-	template<> Qk_Export
+	template<> Qk_EXPORT
 	void Array<char, Allocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
-		template<> Qk_Export void            Array<T, A>::reset(uint32_t capacity); \
-		template<> Qk_Export void            Array<T, A>::extend(uint32_t length); \
-		template<> Qk_Export std::vector<T>  Array<T, A>::vector() const; \
-		template<> Qk_Export void            Array<T, A>::concat_(T* src, uint32_t src_length); \
-		template<> Qk_Export uint32_t        Array<T, A>::write(const T* src, uint32_t size, int to); \
-		template<> Qk_Export T&              Array<T, A>::push(T&& item); \
-		template<> Qk_Export T&              Array<T, A>::push(const T& item); \
-		template<> Qk_Export void            Array<T, A>::pop(uint32_t count); \
-		template<> Qk_Export void            Array<T, A>::clear(); \
-		template<> Qk_Export void            Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const \
+		template<> Qk_EXPORT void            Array<T, A>::reset(uint32_t capacity); \
+		template<> Qk_EXPORT void            Array<T, A>::extend(uint32_t length); \
+		template<> Qk_EXPORT std::vector<T>  Array<T, A>::vector() const; \
+		template<> Qk_EXPORT void            Array<T, A>::concat_(T* src, uint32_t src_length); \
+		template<> Qk_EXPORT uint32_t        Array<T, A>::write(const T* src, uint32_t size, int to); \
+		template<> Qk_EXPORT T&              Array<T, A>::push(T&& item); \
+		template<> Qk_EXPORT T&              Array<T, A>::push(const T& item); \
+		template<> Qk_EXPORT void            Array<T, A>::pop(uint32_t count); \
+		template<> Qk_EXPORT void            Array<T, A>::clear(); \
+		template<> Qk_EXPORT void            Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const \
 
 	#define Qk_DEF_ARRAY_SPECIAL(T) \
 		Qk_DEF_ARRAY_SPECIAL_(T, Allocator)

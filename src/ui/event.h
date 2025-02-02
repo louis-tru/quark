@@ -108,12 +108,12 @@ namespace qk {
 		kAll_ReturnValueMask = (kDefault_ReturnValueMask | kBubble_ReturnValueMask),
 	};
 
-	class Qk_Export UIEventName {
+	class Qk_EXPORT UIEventName {
 	public:
-		Qk_DEFINE_P_GET(uint32_t, category, Const);
-		Qk_DEFINE_P_GET(uint32_t, flag, Const);
-		Qk_DEFINE_P_GET(uint32_t, hashCode, Const);
-		Qk_DEFINE_P_GET(String, toString, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, category, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, flag, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, hashCode, Const);
+		Qk_DEFINE_PROP_GET(String, toString, Const);
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
 		inline bool equals(const UIEventName& v) const { return v._hashCode == _hashCode; }
 		inline bool operator==(const UIEventName& v) const { return v._hashCode == _hashCode; }
@@ -123,10 +123,10 @@ namespace qk {
 	};
 
 	// event names string => UIEventName
-	Qk_Export extern const Dict<String, UIEventName> UIEventNames;
+	Qk_EXPORT extern const Dict<String, UIEventName> UIEventNames;
 	// define event names
 	#define _Fun(Name, C, F) \
-	Qk_Export extern const UIEventName UIEvent_##Name;
+	Qk_EXPORT extern const UIEventName UIEvent_##Name;
 	Qk_UI_Events(_Fun)
 	#undef _Fun
 
@@ -135,12 +135,12 @@ namespace qk {
 	/**
 	* @class UIEvent gui event
 	*/
-	class Qk_Export UIEvent: public Event<> {
+	class Qk_EXPORT UIEvent: public Event<> {
 		Qk_HIDDEN_ALL_COPY(UIEvent);
 	public:
 		UIEvent(View *origin, SendData data = nullptr);
-		Qk_DEFINE_P_GET(View*, origin);
-		Qk_DEFINE_P_GET(uint64_t, timestamp, Const);
+		Qk_DEFINE_PROP_GET(View*, origin);
+		Qk_DEFINE_PROP_GET(uint64_t, timestamp, Const);
 		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }
 		inline bool is_bubble() const { return return_value & kBubble_ReturnValueMask; }
 		inline void cancel_default() { return_value &= ~kDefault_ReturnValueMask; }
@@ -151,75 +151,75 @@ namespace qk {
 	/**
 	* @class ActionEvent
 	*/
-	class Qk_Export ActionEvent: public UIEvent {
+	class Qk_EXPORT ActionEvent: public UIEvent {
 	public:
 		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
-		Qk_DEFINE_P_GET(Action*, action);
-		Qk_DEFINE_P_GET(uint64_t, delay, Const);
-		Qk_DEFINE_P_GET(uint32_t, frame, Const);
-		Qk_DEFINE_P_GET(uint32_t, loop, Const);
+		Qk_DEFINE_PROP_GET(Action*, action);
+		Qk_DEFINE_PROP_GET(uint64_t, delay, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, frame, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, loop, Const);
 		void release() override;
 	};
 
 	/**
 	* @func KeyEvent keyboard event
 	*/
-	class Qk_Export KeyEvent: public UIEvent {
+	class Qk_EXPORT KeyEvent: public UIEvent {
 	public:
 		KeyEvent(View* origin, KeyboardKeyCode keycode, int keypress,
 						bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 						uint32_t repeat, int device, int source);
-		Qk_DEFINE_PROP(View*, next_focus);
-		Qk_DEFINE_PROP(KeyboardKeyCode, keycode, Const);
-		Qk_DEFINE_PROP(int, keypress, Const);
-		Qk_DEFINE_P_GET(uint32_t, repeat, Const);
-		Qk_DEFINE_P_GET(uint32_t, device, Const);
-		Qk_DEFINE_P_GET(uint32_t, source, Const);
-		Qk_DEFINE_P_GET(bool, shift, Const);
-		Qk_DEFINE_P_GET(bool, ctrl, Const);
-		Qk_DEFINE_P_GET(bool, alt, Const);
-		Qk_DEFINE_P_GET(bool, command, Const);
-		Qk_DEFINE_P_GET(bool, caps_lock, Const);
+		Qk_DEFINE_PROPERTY(View*, next_focus);
+		Qk_DEFINE_PROPERTY(KeyboardKeyCode, keycode, Const);
+		Qk_DEFINE_PROPERTY(int, keypress, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, repeat, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, device, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, source, Const);
+		Qk_DEFINE_PROP_GET(bool, shift, Const);
+		Qk_DEFINE_PROP_GET(bool, ctrl, Const);
+		Qk_DEFINE_PROP_GET(bool, alt, Const);
+		Qk_DEFINE_PROP_GET(bool, command, Const);
+		Qk_DEFINE_PROP_GET(bool, caps_lock, Const);
 		void release() override;
 	};
 
 	/**
 	* @class ClickEvent click event
 	*/
-	class Qk_Export ClickEvent: public UIEvent {
+	class Qk_EXPORT ClickEvent: public UIEvent {
 	public:
 		enum Type {
 			kTouch = 1, kKeyboard = 2, kMouse = 3
 		};
 		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
-		Qk_DEFINE_P_GET(float, x, Const);
-		Qk_DEFINE_P_GET(float, y, Const);
-		Qk_DEFINE_P_GET(uint32_t, count, Const);
-		Qk_DEFINE_P_GET(Type, type, Const);
+		Qk_DEFINE_PROP_GET(float, x, Const);
+		Qk_DEFINE_PROP_GET(float, y, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, count, Const);
+		Qk_DEFINE_PROP_GET(Type, type, Const);
 	};
 
 	/**
 	* @class UIMouseEvent mouse event
 	*/
-	class Qk_Export MouseEvent: public KeyEvent {
+	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
 		MouseEvent(View* origin, float x, float y, KeyboardKeyCode keycode, int keypress,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		Qk_DEFINE_P_GET(float, x, Const);
-		Qk_DEFINE_P_GET(float, y, Const);
+		Qk_DEFINE_PROP_GET(float, x, Const);
+		Qk_DEFINE_PROP_GET(float, y, Const);
 	};
 
 	/**
 	* @class HighlightedEvent status event
 	*/
-	class Qk_Export HighlightedEvent: public UIEvent {
+	class Qk_EXPORT HighlightedEvent: public UIEvent {
 	public:
 		enum Status {
 			kNormal = 1, kHover, kActive,
 		};
 		HighlightedEvent(View* origin, Status status);
-		Qk_DEFINE_P_GET(Status, status, Const);
+		Qk_DEFINE_PROP_GET(Status, status, Const);
 	};
 
 	typedef HighlightedEvent::Status HighlightedStatus;
@@ -227,7 +227,7 @@ namespace qk {
 	/**
 	* @class TouchEvent touch event
 	*/
-	class Qk_Export TouchEvent: public UIEvent {
+	class Qk_EXPORT TouchEvent: public UIEvent {
 	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
@@ -244,7 +244,7 @@ namespace qk {
 
 	typedef TouchEvent::TouchPoint TouchPoint;
 
-	class Qk_Export EventDispatch: public Object {
+	class Qk_EXPORT EventDispatch: public Object {
 	public:
 		struct KeyboardOptions {
 			bool               clear;
@@ -252,10 +252,10 @@ namespace qk {
 			KeyboardReturnType return_type;
 			Rect               spot_rect;
 		};
-		Qk_DEFINE_P_GET(Application*, host);
-		Qk_DEFINE_P_GET(Window*, window);
-		Qk_DEFINE_P_GET(KeyboardAdapter*, keyboard);
-		Qk_DEFINE_P_GET(View*, focusView);
+		Qk_DEFINE_PROP_GET(Application*, host);
+		Qk_DEFINE_PROP_GET(Window*, window);
+		Qk_DEFINE_PROP_GET(KeyboardAdapter*, keyboard);
+		Qk_DEFINE_PROP_GET(View*, focusView);
 
 		EventDispatch(Window* win);
 		~EventDispatch();
@@ -265,7 +265,7 @@ namespace qk {
 		void onTouchend(List<TouchPoint>&& touches);
 		void onTouchcancel(List<TouchPoint>&& touches);
 		void onMousemove(float x, float y);
-		void onMousepress(KeyboardKeyCode key, bool isDown, const Vec2 *value);
+		void onMousepress(KeyboardKeyCode key, bool isDown, const Vec2 *vec);
 		// ime
 		void onImeDelete(int count);
 		void onImeInsert(cString& text);
@@ -290,7 +290,6 @@ namespace qk {
 		void touchend(List<TouchPoint>& in, const UIEventName& type);
 		void mousemove(View* view, Vec2 pos);
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
-		void mousewhell(KeyboardKeyCode code, bool down, float x, float y);
 		View* find_receive_view_exec(View *view, Vec2 pos);
 		View* find_receive_view(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, KeyboardKeyCode keycode);

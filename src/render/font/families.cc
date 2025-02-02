@@ -105,7 +105,7 @@ namespace qk {
 				} else { // prev invalid
 					do {
 						if (!glyphs[j]) { // invalid
-							result.push(FontGlyphs(fontSize, tfs[ftIdx].value(), glyphs+i, j-i));
+							result.push(FontGlyphs(fontSize, tfs[ftIdx].get(), glyphs+i, j-i));
 							isValidPrev = true;
 							i = j++;
 							break;
@@ -118,7 +118,7 @@ namespace qk {
 				if (isValidPrev) {
 					makeNext(unichars+i, glyphs+i, j-i, ftIdx+1);
 				} else {
-					result.push(FontGlyphs(fontSize, tfs[ftIdx].value(), glyphs+i, j-i));
+					result.push(FontGlyphs(fontSize, tfs[ftIdx].get(), glyphs+i, j-i));
 				}
 			}
 		}

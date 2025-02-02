@@ -39,23 +39,23 @@
 
 namespace qk {
 
-	class Qk_Export Input: public Box
+	class Qk_EXPORT Input: public Box
 		, public TextOptions, public RenderTask, public TextInput {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 		// define props
-		Qk_DEFINE_VIEW_PROP(bool, security, Const);
-		Qk_DEFINE_VIEW_PROP(bool, readonly, Const);
-		Qk_DEFINE_VIEW_PROP(KeyboardType, type, Const);
-		Qk_DEFINE_VIEW_PROP(KeyboardReturnType, return_type, Const);
-		Qk_DEFINE_VIEW_PROP(String4, value_u4, Const);
-		Qk_DEFINE_VIEW_PROP(String4, placeholder_u4, Const);
-		Qk_DEFINE_VIEW_PROP(Color, placeholder_color, Const);
-		Qk_DEFINE_VIEW_PROP(Color, cursor_color, Const);
-		Qk_DEFINE_VIEW_PROP(uint32_t, max_length, Const);
-		Qk_DEFINE_VIEW_ACCE(String, value, Const);
-		Qk_DEFINE_VIEW_ACCE(String, placeholder, Const);
-		Qk_DEFINE_VIEW_A_GET(uint32_t, text_length, Const);
+		Qk_DEFINE_VIEW_PROPERTY(bool, security, Const);
+		Qk_DEFINE_VIEW_PROPERTY(bool, readonly, Const);
+		Qk_DEFINE_VIEW_PROPERTY(KeyboardType, type, Const);
+		Qk_DEFINE_VIEW_PROPERTY(KeyboardReturnType, return_type, Const);
+		Qk_DEFINE_VIEW_PROPERTY(String4, value_u4, Const);
+		Qk_DEFINE_VIEW_PROPERTY(String4, placeholder_u4, Const);
+		Qk_DEFINE_VIEW_PROPERTY(Color, placeholder_color, Const);
+		Qk_DEFINE_VIEW_PROPERTY(Color, cursor_color, Const);
+		Qk_DEFINE_VIEW_PROPERTY(uint32_t, max_length, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(String, value, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(String, placeholder, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(uint32_t, text_length, Const);
 
 		Input();
 		virtual bool is_multiline();

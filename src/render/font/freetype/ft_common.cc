@@ -70,27 +70,27 @@ const char* QkTraceFtrGetError(int e) {
 }
 #endif  // Qk_DEBUG
 
-static void copyFTBitmap(const FT_Bitmap& src, FT_Bitmap &dst) {
-	Qk_ASSERT_EQ(dst.width, src.width,
-		"dst.width = %d\n"
-		"src.width = %d",
-		dst.width,
-		src.width
+static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
+	Qk_ASSERT_EQ(ftdst.width, ftsrc.width,
+		"ftdst.width = %d\n"
+		"ftsrc.width = %d",
+		ftdst.width,
+		ftsrc.width
 	);
-	Qk_ASSERT_EQ(dst.rows, src.rows,
-		"dst.height = %d\n"
-		"src.rows = %d",
-		dst.rows,
-		src.rows
+	Qk_ASSERT_EQ(ftdst.rows, ftsrc.rows,
+		"ftdst.height = %d\n"
+		"ftsrc.rows = %d",
+		ftdst.rows,
+		ftsrc.rows
 	);
 
-	const uint8_t* src = src.buffer;
-	const FT_Pixel_Mode srcFormat = static_cast<FT_Pixel_Mode>(src.pixel_mode);
-	const int srcPitch = src.pitch; // FT_Bitmap::pitch is an int and allowed to be negative.
-	uint8_t* dst = dst.buffer;
-	const uint32_t dstPitch = dst->pitch;
-	const uint32_t width = src.width;
-	const uint32_t height = src.rows;
+	const uint8_t* src = ftsrc.buffer;
+	const FT_Pixel_Mode srcFormat = static_cast<FT_Pixel_Mode>(ftsrc.pixel_mode);
+	const int srcPitch = ftsrc.pitch; // FT_Bitmap::pitch is an int and allowed to be negative.
+	uint8_t* dst = ftdst.buffer;
+	const uint32_t dstPitch = ftdst.pitch;
+	const uint32_t width = ftsrc.width;
+	const uint32_t height = ftsrc.rows;
 
 	switch (srcFormat) {
 		case FT_PIXEL_MODE_GRAY: {
@@ -110,21 +110,21 @@ static void copyFTBitmap(const FT_Bitmap& src, FT_Bitmap &dst) {
 					*dst++ = *triple++;
 					*dst++ = 255;
 				}
-				src += bitmap.pitch;
+				src += srcPitch;
 			}
 		} break;
 		case FT_PIXEL_MODE_LCD_V: {
 			for (int y = height; y-- > 0;) {
 				const uint8_t* srcR = src;
-				const uint8_t* srcG = srcR + bitmap.pitch;
-				const uint8_t* srcB = srcG + bitmap.pitch;
+				const uint8_t* srcG = srcR + srcPitch;
+				const uint8_t* srcB = srcG + srcPitch;
 				for (int x = 0; x < width; x++) {
 					*(dst++) = *srcR++;
 					*(dst++) = *srcG++;
 					*(dst++) = *srcB++;
 					*dst++ = 255;
 				}
-				src += 3 * bitmap.pitch;
+				src += 3 * srcPitch;
 			}
 		} break;
 		case FT_PIXEL_MODE_MONO: {
@@ -224,6 +224,7 @@ class QkFTGeometrySink {
 		return fCurrent.x != pt->x || fCurrent.y != pt->y;
 	}
 
+public:
 	static int Move(const FT_Vector* pt, void* ctx) {
 		QkFTGeometrySink& self = *(QkFTGeometrySink*)ctx;
 		if (self.fStarted) {
@@ -264,22 +265,21 @@ class QkFTGeometrySink {
 		return 0;
 	}
 
-public:
 	QkFTGeometrySink(Path* path) : fPath{path}, fStarted{false}, fCurrent{0,0} {}
+};
 
-	static constexpr const FT_Outline_Funcs Funcs{
-		/*move_to =*/ QkFTGeometrySink::Move,
-		/*line_to =*/ QkFTGeometrySink::Line,
-		/*conic_to =*/ QkFTGeometrySink::Quad,
-		/*cubic_to =*/ QkFTGeometrySink::Cubic,
-		/*shift = */ 0,
-		/*delta =*/ 0,
-	};
+static constexpr const FT_Outline_Funcs Funcs{
+	/*move_to =*/ QkFTGeometrySink::Move,
+	/*line_to =*/ QkFTGeometrySink::Line,
+	/*conic_to =*/ QkFTGeometrySink::Quad,
+	/*cubic_to =*/ QkFTGeometrySink::Cubic,
+	/*shift = */ 0,
+	/*delta =*/ 0,
 };
 
 bool QkTypeface_FreeType::generateFacePath(Path* path) {
 	QkFTGeometrySink sink{path};
-	FT_Error err = FT_Outline_Decompose(&fFace->glyph->outline, &QkFTGeometrySink::Funcs, &sink);
+	FT_Error err = FT_Outline_Decompose(&fFace->glyph->outline, &Funcs, &sink);
 
 	if (err != 0) {
 		*path = Path();

@@ -35,7 +35,7 @@
 
 namespace qk
 {
-	class Qk_Export Layer: public Object {
+	class Qk_EXPORT Layer: public Object {
 	public:
 	private:
 	};

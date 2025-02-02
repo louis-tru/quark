@@ -43,7 +43,7 @@ namespace qk {
 	 * @class RenderBackend drawing device backend
 	 * @thread render
 	 */
-	class Qk_Export RenderBackend: public Object, public PostMessage {
+	class Qk_EXPORT RenderBackend: public Object, public PostMessage {
 	public:
 		struct Options {
 			ColorType   colorType;

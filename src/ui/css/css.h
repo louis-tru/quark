@@ -50,10 +50,10 @@ namespace qk {
 	};
 
 	// css class name
-	class Qk_Export CSSCName {
+	class Qk_EXPORT CSSCName {
 	public:
-		Qk_DEFINE_P_GET(uint64_t, hashCode, Const);
-		Qk_DEFINE_P_GET(String, name, Const);
+		Qk_DEFINE_PROP_GET(uint64_t, hashCode, Const);
+		Qk_DEFINE_PROP_GET(String, name, Const);
 		CSSCName(cString& name);
 	};
 
@@ -75,7 +75,7 @@ namespace qk {
 			Qk_View_Props(_Fun)
 		#undef _Fun
 
-		Qk_DEFINE_A_GET(cCurve&, curve, Const);
+		Qk_DEFINE_ACCE_GET(cCurve&, curve, Const);
 
 		StyleSheets();
 		~StyleSheets();
@@ -121,17 +121,17 @@ namespace qk {
 	 * 
 	 * @class CStyleSheets
 	*/
-	class Qk_Export CStyleSheets: public StyleSheets {
+	class Qk_EXPORT CStyleSheets: public StyleSheets {
 		Qk_HIDDEN_ALL_COPY(CStyleSheets);
 	public:
-		Qk_DEFINE_PROP   (uint32_t, time, Const); // css transition time
-		Qk_DEFINE_P_GET(CStyleSheets*, parent);
-		Qk_DEFINE_P_GET(CStyleSheets*, normal); // style sheets for pseudo type
-		Qk_DEFINE_P_GET(CStyleSheets*, hover);
-		Qk_DEFINE_P_GET(CStyleSheets*, active);
-		Qk_DEFINE_P_GET(CSSType, type, Const);
-		Qk_DEFINE_P_GET(bool, havePseudoType, Const); // normal | hover | active
-		Qk_DEFINE_P_GET(bool, haveSubstyles, Const);
+		Qk_DEFINE_PROPERTY   (uint32_t, time, Const); // css transition time
+		Qk_DEFINE_PROP_GET(CStyleSheets*, parent);
+		Qk_DEFINE_PROP_GET(CStyleSheets*, normal); // style sheets for pseudo type
+		Qk_DEFINE_PROP_GET(CStyleSheets*, hover);
+		Qk_DEFINE_PROP_GET(CStyleSheets*, active);
+		Qk_DEFINE_PROP_GET(CSSType, type, Const);
+		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); // normal | hover | active
+		Qk_DEFINE_PROP_GET(bool, haveSubstyles, Const);
 
 		/**
 		 * @constructor
@@ -168,7 +168,7 @@ namespace qk {
 	 * Because the style sheets in the application are shared by all windows.
 	 * @class RootStyleSheets
 	*/
-	class Qk_Export RootStyleSheets: public CStyleSheets {
+	class Qk_EXPORT RootStyleSheets: public CStyleSheets {
 	public:
 		RootStyleSheets();
 
@@ -189,14 +189,14 @@ namespace qk {
 		Array<CStyleSheets*> search(cString &exp, bool make = false);
 	};
 
-	class Qk_Export CStyleSheetsClass: public Object {
+	class Qk_EXPORT CStyleSheetsClass: public Object {
 		Qk_HIDDEN_ALL_COPY(CStyleSheetsClass);
 		CSSType _status, _setStatus; //!< @safe Rt Current pseudo type application status
 	public:
-		Qk_DEFINE_P_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
-		Qk_DEFINE_P_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
-		Qk_DEFINE_P_GET(View*, host); //!< apply style sheet target object
-		Qk_DEFINE_P_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
+		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
+		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
+		Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
+		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
 
 		CStyleSheetsClass(View *host);
 		~CStyleSheetsClass();

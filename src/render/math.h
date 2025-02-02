@@ -42,7 +42,7 @@
 
 namespace qk {
 
-	template <typename T, int LEN> struct Qk_Export Vec {
+	template <typename T, int LEN> struct Qk_EXPORT Vec {
 		T val[LEN];
 		inline Vec(): Vec(0) {}
 		inline Vec(T f) {
@@ -157,7 +157,7 @@ namespace qk {
 
 	// ------------------------------------------
 
-	struct Qk_Export Vec2: Vec<float,2> {
+	struct Qk_EXPORT Vec2: Vec<float,2> {
 		#define Qk_Default_Vec_Operator(Name,T,Len) \
 			Name(); \
 			Name(T f); \
@@ -237,7 +237,7 @@ namespace qk {
 		float angleTo(const Vec2 to) const;
 	};
 
-	struct Qk_Export Vec3: Vec<float,3> {
+	struct Qk_EXPORT Vec3: Vec<float,3> {
 		Qk_Default_Vec_Operator(Vec3,float,3);
 		Vec3(float a, float b, float c = 0.0);
 		Vec3(const Vec<float, 2> &vec2, float f = 0.0);
@@ -265,7 +265,7 @@ namespace qk {
 
 	// ------------------------------------------
 
-	struct Qk_Export Color4f: Vec<float, 4> {
+	struct Qk_EXPORT Color4f: Vec<float, 4> {
 		Color4f(): Vec<float, 4>(0, 0, 0, 1) {}
 		Color4f(float r, float g, float b)
 			: Vec<float, 4>(r, g, b, 1) {}
@@ -276,7 +276,7 @@ namespace qk {
 		Color4f to_color4f_alpha(float alpha) const;
 	};
 
-	struct Qk_Export Color: Vec<uint8_t, 4> {
+	struct Qk_EXPORT Color: Vec<uint8_t, 4> {
 		static Color from(uint32_t color); //! ignore endianness, small end data as a,b,g,r
 		static Color from_abgr(uint32_t abgr); //! high => low as a,b,g,r
 		static Color from_rgba(uint32_t rgba); //! high => low as r,g,b,a
@@ -295,7 +295,7 @@ namespace qk {
 		Color blendSrcOver(const Color &src) const;
 	};
 
-	struct Qk_Export Mat: Vec<float, 6> {
+	struct Qk_EXPORT Mat: Vec<float, 6> {
 		inline Mat(): Mat(1) {}
 		Mat(float value);
 		Mat(float m0, float m1, float m2, float m3, float m4, float m5);
@@ -322,7 +322,7 @@ namespace qk {
 		bool is_unit_matrix() const;
 	};
 
-	struct Qk_Export Mat4: Vec<float, 16> {
+	struct Qk_EXPORT Mat4: Vec<float, 16> {
 		inline Mat4(): Mat4(1) {}
 		Mat4(float value);
 		Mat4(float m0, float m1, float m2, float m3,
@@ -373,7 +373,7 @@ namespace qk {
 	Qk_DEF_ARRAY_SPECIAL(Vec3);
 	Qk_DEF_ARRAY_SPECIAL(Color);
 
-	Qk_Export float math_invSqrt(float x); // 1/sqrt(x)
-	Qk_Export float math_sqrt(float x);
+	Qk_EXPORT float math_invSqrt(float x); // 1/sqrt(x)
+	Qk_EXPORT float math_sqrt(float x);
 }
 #endif

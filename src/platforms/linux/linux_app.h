@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, blue.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of blue.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,41 +25,44 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__util__error__
-#define __quark__util__error__
+// @private head
 
-#include "./string.h"
-#include "./errno.h"
+#ifndef __quark_platforms_linux__linux_app__
+#define __quark_platforms_linux__linux_app__
 
-#if !__EXCEPTIONS
-	#error Exceptions must be turned on
-#endif
+#include <X11/Xlib.h>
+#include "../../util/macros.h"
 
-#define Qk_Throw_Errno(code) throw qk::Error(code, #code)
-#define Qk_Throw(code, ...) throw qk::Error(code, ##__VA_ARGS__)
-#define Qk_Check(cond, code, ...) if(!(cond)) throw qk::Error(code, ##__VA_ARGS__)
-#define Qk_Try(block) try { block; } catch(cError &err)
+typedef Window XWindow;
+typedef Display XDisplay;
 
 namespace qk {
+	class Window;
 
-	class Qk_EXPORT Error: public Object {
+	class LinuxIMEHelper {
 	public:
-		Error(cChar* msg, ...);
-		Error(int code, cChar* msg, ...);
-		Error(int code, cString& msg = "Unknown exception");
-		Error(const Error &err);
-		Error& operator=(const Error &e);
-		cString& message() const throw();
-		int code() const throw();
-	private:
-		int _errno;
-		String _msg;
+		static LinuxIMEHelper* Make(WindowImpl* impl,
+			int inputStyle = XIMPreeditPosition);
+		virtual ~LinuxIMEHelper() = 0;
+		virtual void key_press(XKeyPressedEvent *event) = 0;
+		virtual void focus_in() = 0;
+		virtual void focus_out() = 0;
 	};
 
-	typedef const Error cError;
+	class WindowImpl: public SafeFlag {
+	public:
+		Qk_DEFINE_PROP_GET(Window*, win, Protected);
+		Qk_DEFINE_PROP_GET(XWindow, xwin, Protected);
+		Qk_DEFINE_PROP_GET(XDisplay*, xdpy, Protected);
+		Qk_DEFINE_PROP_GET(LinuxIMEHelper*, ime, Protected);
+	};
+
+	XDisplay* openXDisplay(); // open default xdisplay
+	float dpiForXDisplay(); // get dpi for default xdisplay
+	void post_messate_main(Cb cb, bool sync = false); // sync to x11 main message loop
 }
 
 #endif

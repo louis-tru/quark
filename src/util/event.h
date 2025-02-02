@@ -81,14 +81,14 @@ namespace qk {
 		ReturnValue return_value;
 	};
 
-	class Qk_Export EventNoticerBasic {
+	class Qk_EXPORT EventNoticerBasic {
 		Qk_HIDDEN_ALL_COPY(EventNoticerBasic);
 	public:
 		typedef void (Object::*ListenerFunc)(Object& evt);
 		typedef void (*StaticListenerFunc)(Object& evt, void* data);
 		typedef std::function<void(Object&)> OnLambdaListenerFunc;
 
-		class Qk_Export Listener {
+		class Qk_EXPORT Listener {
 		public:
 			Listener(uint32_t id, bool once);
 			virtual ~Listener();
@@ -130,7 +130,7 @@ namespace qk {
 		List<Listener*> *_listener;
 	};
 
-	class Qk_Export NotificationBasic {
+	class Qk_EXPORT NotificationBasic {
 	public:
 		typedef EventNoticerBasic Basic;
 		NotificationBasic();

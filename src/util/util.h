@@ -47,16 +47,16 @@
 
 namespace qk {
 
-	Qk_Export int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
-	Qk_Export int fix_random(uint32_t a, ...); // Must end with 0
-	Qk_Export uint64_t getId();
-	Qk_Export uint32_t getId32();
-	Qk_Export int64_t  parse_time(cString& str);
-	Qk_Export String gmt_time_string(int64_t second);
-	Qk_Export int64_t time_micro();
-	Qk_Export int64_t time_second();
-	Qk_Export int64_t time_monotonic();
-	Qk_Export String platform();
-	Qk_Export String version();
+	Qk_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
+	Qk_EXPORT int fix_random(uint32_t a, ...); // Must end with 0
+	Qk_EXPORT uint64_t getId();
+	Qk_EXPORT uint32_t getId32();
+	Qk_EXPORT int64_t  parse_time(cString& str);
+	Qk_EXPORT String gmt_time_string(int64_t second);
+	Qk_EXPORT int64_t time_micro();
+	Qk_EXPORT int64_t time_second();
+	Qk_EXPORT int64_t time_monotonic();
+	Qk_EXPORT String platform();
+	Qk_EXPORT String version();
 }
 #endif

@@ -58,7 +58,7 @@ namespace qk {
 	 *
 	 * @class Application
 	*/
-	class Qk_Export Application: public Object {
+	class Qk_EXPORT Application: public Object {
 		Qk_HIDDEN_ALL_COPY(Application);
 	public:
 		// @events
@@ -69,17 +69,17 @@ namespace qk {
 		Qk_Event(Memorywarning);
 
 		// @props
-		Qk_DEFINE_P_GET(bool, isLoaded, Const);
-		Qk_DEFINE_P_GET(DefaultTextOptions*, defaultTextOptions); //! default font settings
-		Qk_DEFINE_P_GET(Screen*, screen); //! screen object
-		Qk_DEFINE_P_GET(RunLoop*, loop); //! main run loop
-		Qk_DEFINE_P_GET(FontPool*, fontPool); //! font and font families manage
-		Qk_DEFINE_P_GET(ImageSourcePool*, imgPool); //! image loader and image cache
-		Qk_DEFINE_P_GET(Window*, activeWindow); //! current active window
-		Qk_DEFINE_P_GET(RootStyleSheets*, styleSheets); //! root style sheets
+		Qk_DEFINE_PROP_GET(bool, isLoaded, Const);
+		Qk_DEFINE_PROP_GET(DefaultTextOptions*, defaultTextOptions); //! default font settings
+		Qk_DEFINE_PROP_GET(Screen*, screen); //! screen object
+		Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
+		Qk_DEFINE_PROP_GET(FontPool*, fontPool); //! font and font families manage
+		Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
+		Qk_DEFINE_PROP_GET(Window*, activeWindow); //! current active window
+		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 		//! Resource memory limit, cannot be less than 64MB, the default is 512MB.
-		Qk_DEFINE_PROP(uint64_t, maxResourceMemoryLimit, Const);
-		Qk_DEFINE_A_GET(cList<Window*>&, windows, Const); //! all window list
+		Qk_DEFINE_PROPERTY(uint64_t, maxResourceMemoryLimit, Const);
+		Qk_DEFINE_ACCE_GET(cList<Window*>&, windows, Const); //! all window list
 
 		/**
 		 * @constructor

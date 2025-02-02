@@ -91,5 +91,6 @@ namespace qk {
 	RunLoop*    current_from(RunLoop **inOut);
 	RunLoop*    backend_loop();
 	bool        has_backend_thread();
+	bool        is_process_exit();
 }
 #endif

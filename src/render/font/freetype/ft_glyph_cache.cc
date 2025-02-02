@@ -138,7 +138,7 @@ void QkCharToGlyphCache::insertCharAndGlyph(int index, Unichar unichar, GlyphID 
 	fV16.insert(fV16.begin() + index, glyph);
 
 	// if we've changed the first [1] or last [count-2] entry, recompute our slope
-	const int count = fK32.length();
+	const int count = fK32.size();
 	if (count >= kMinCountForSlope && (index == 1 || index == count - 2)) {
 		Qk_ASSERT(index >= 1 && index <= count - 2);
 		fDenom = 1.0 / ((double)fK32[count - 2] - fK32[1]);

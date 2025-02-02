@@ -28,68 +28,44 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./linux_ime_helper.h"
-#include "../../util/cb.h"
-#include "../../ui/keyboard.h"
-#include "../../ui/window.h"
+#include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <locale.h>
+#include "./linux_app.h"
+#include "../../ui/keyboard.h"
+#include "../../ui/window.h"
+#include "../../ui/event.h"
 
 namespace qk {
 
-	extern void __dispatch_x11_async(cCb& cb); // sync to x11 main message loop
-
-	class LINUXIMEHelper::Inl {
+	class LinuxIMEHelperImpl: public LinuxIMEHelper {
 	public:
 
-		static Inl* Make(App* app, qk::Window* qkwin, Window win, int inputStyle) {
-			Char *locale = setlocale(LC_CTYPE, "");
-			if (locale == NULL) {
-				Qk_ELog("Can't set locale");
-				return nullptr;
-			}
-			Qk_DLog("locale: %s", locale);
-
-			if (!XSupportsLocale()) {
-				Qk_ELog("X does not support locale");
-				return nullptr;
-			}
-
-			Char *modifiers = XSetLocaleModifiers("");
-			if (modifiers == NULL) {
-				Qk_ELog("Can't set locale modifiers");
-				return nullptr;
-			}
-			Qk_DLog("modifiers: %s", modifiers);
-
-			return new Inl(app, qkwin, win, inputStyle);
-		}
-
-		Inl(App* app, qk::Window* qkwin, Window win, int inputStyle)
-			: _app(app)
-			, _display(dpy)
-			, _window(win)
-			, _im(NULL), _ic(NULL)
+		LinuxIMEHelperImpl(WindowImpl* impl, int inputStyle)
+			: _win(impl->win())
+			, _xwin(impl->xwin())
+			, _xdpy(impl->xdpy())
+			, _im(nullptr), _ic(nullptr)
 			, _has_open(false)
 			, _input_style(inputStyle)
-			, _fontset(NULL)
+			, _fontSet(nullptr)
 		{
 			_spot_location = {1,1};
 
 			// load fontset
-			Char **missing_list = NULL;
+			char **missing_list = nullptr;
 			int missing_count = 0;
-			Char *default_string = NULL;
-			_fontset = XCreateFontSet(_display, "*,*", 
+			char *default_string = nullptr;
+			_fontSet = XCreateFontSet(_xdpy, "*,*", 
 				&missing_list, &missing_count, &default_string);
-			if (_fontset == NULL) {
+			if (_fontSet == nullptr) {
 				Qk_ELog("Can't create font set: %s", "*,*");
 			}
 		}
 
-		~Inl() {
-			if (_fontset) {
-				XFreeFontSet(_display, _fontset);
+		~LinuxIMEHelperImpl() override {
+			if (_fontSet) {
+				XFreeFontSet(_xdpy, _fontSet);
 			}
 			close();
 		}
@@ -114,7 +90,7 @@ namespace qk {
 			if (_has_open && _ic) {
 				if (!_preedit_string.is_empty()) {
 					_preedit_string = String();
-					_app->dispatch()->dispatch_ime_unmark(String());
+					_win->dispatch()->dispatch_ime_unmark(String());
 				}
 				XUnsetICFocus(_ic);
 				Xutf8ResetIC(_ic);
@@ -122,19 +98,17 @@ namespace qk {
 			}
 		}
 
-		void set_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-		}
+		void set_keyboard_can_backspace(bool can_backspace, bool can_delete) {}
 
-		void set_keyboard_type(KeyboardType type) {
-		}
+		void set_keyboard_type(KeyboardType type) {}
 
-		void set_keyboard_return_type(KeyboardReturnType type) {
-		}
+		void set_keyboard_return_type(KeyboardReturnType type) {}
 
-		void set_spot_location(Vec2 location) {
-			Qk_DLog("set_spot_location, x=%f,y=%f", location[0], location[1]);
+		void set_spot_rest(Rect rect) {
+			auto location = rect.origin;
+			Qk_DLog("set_spot_rest, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
-				Vec2 scale = _app->display_port()->scale_value();
+				Vec2 scale = _win->display_port()->scale_value();
 				_spot_location = {
 					int16(location.x() * scale.x()), int16(location.y() * scale.y())
 				};
@@ -142,25 +116,25 @@ namespace qk {
 			}
 		}
 
-		void key_press(XKeyPressedEvent *event)
+		void key_press(XKeyPressedEvent *event) override
 		{
-			if (_im == NULL)
+			if (_im == nullptr)
 				return;
 
-			Char buf[256] = { '\0', };
+			char buf[256] = { '\0', };
 			KeySym keysym = 0;
 			Status status = XLookupNone;
 
-			if (_ic == NULL) {
-				XLookupString(event, buf, sizeof(buf), &keysym, NULL);
-				status = XLookupChars;
+			if (_ic == nullptr) {
+				XLookupString(event, buf, sizeof(buf), &keysym, nullptr);
+				status = XLookupchars;
 			} else {
 				Xutf8LookupString(_ic, event, buf, 256, &keysym, &status);
 			}
 
 			Qk_DLog("onKeyPress %lu\n", keysym);
 
-			if (status == XLookupChars || 
+			if (status == XLookupchars || 
 				status == XLookupKeySym || status == XLookupBoth) {
 
 				if (keysym == XK_Return) {
@@ -184,7 +158,7 @@ namespace qk {
 				} else if (keysym == XK_End) {
 					onKeyControl(KEYCODE_MOVE_END);
 				} else {
-					if ((status == XLookupChars || status == XLookupBoth) &&
+					if ((status == XLookupchars || status == XLookupBoth) &&
 						((event->state & ControlMask) != ControlMask) &&
 						((event->state & Mod1Mask) != Mod1Mask)) 
 					{
@@ -194,42 +168,40 @@ namespace qk {
 			}
 		}
 
-		void focus_in()
+		void focus_in() override
 		{
-			if (_ic == NULL)
+			if (_ic == nullptr)
 				return;
 			XSetICFocus(_ic);
 		}
 
-		void focus_out()
+		void focus_out() override
 		{
-			if (_ic == NULL)
+			if (_ic == nullptr)
 				return;
 
-			Char* str = Xutf8ResetIC(_ic);
+			char* str = Xutf8ResetIC(_ic);
 
-			if (str != NULL) {
+			if (str != nullptr) {
 				setPreeditString(str, 0, 0);
 			}
-			setPreeditString(NULL, 0, 0);
+			setPreeditString(nullptr, 0, 0);
 
 			XUnsetICFocus(_ic);
 		}
 
-		private:
-
+	private:
 		// for XIM
 		void registerInstantiateCallback() 
 		{
-			XRegisterIMInstantiateCallback(_display, NULL, NULL, NULL,
+			XRegisterIMInstantiateCallback(_xdpy, nullptr, nullptr, nullptr,
 				IMInstantiateCallback, (XPointer)this);
 		}
 
 		// IM instantiate callback
-		static void IMInstantiateCallback(Display *display,
-							XPointer client_data, XPointer data)
+		static void IMInstantiateCallback(Display *display, XPointer client_data, XPointer data)
 		{
-			if (client_data == NULL)
+			if (client_data == nullptr)
 				return;
 			Qk_DLog("XIM is available now");
 			auto self = reinterpret_cast<Inl*>(client_data);
@@ -241,13 +213,13 @@ namespace qk {
 		{
 			Qk_DLog("xim is destroyed");
 
-			if (client_data == NULL)
+			if (client_data == nullptr)
 				return;
 
 			auto self = reinterpret_cast<Inl*>(client_data);
 
-			self->_im = NULL;
-			self->_ic = NULL;
+			self->_im = nullptr;
+			self->_ic = nullptr;
 
 			if (self->_has_open)
 				self->registerInstantiateCallback();
@@ -263,16 +235,16 @@ namespace qk {
 		{
 			Qk_DLog("preedit done");
 
-			if (user_data == NULL)
+			if (user_data == nullptr)
 				return;
 
 			auto self = reinterpret_cast<Inl*>(user_data);
-			self->setPreeditString(NULL, 0, 0);
+			self->setPreeditString(nullptr, 0, 0);
 		}
 
 		static void preeditDrawCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			if (user_data == NULL || data == NULL)
+			if (user_data == nullptr || data == nullptr)
 				return;
 
 			auto self = reinterpret_cast<Inl*>(user_data);
@@ -282,12 +254,12 @@ namespace qk {
 
 			self->setPreeditCaret(draw_data->caret);
 
-			if (draw_data->text == NULL) {
-				self->setPreeditString(NULL,
+			if (draw_data->text == nullptr) {
+				self->setPreeditString(nullptr,
 					draw_data->chg_first, draw_data->chg_length);
 			} else {
-				if (draw_data->text->encoding_is_wChar) {
-					String str = wChar_t_to_string(draw_data->text->string.wide_Char);
+				if (draw_data->text->encoding_is_wchar) {
+					String str = wchar_t_to_string(draw_data->text->string.wide_char);
 					self->setPreeditString(*str,
 							draw_data->chg_first, draw_data->chg_length);
 				} else {
@@ -299,7 +271,7 @@ namespace qk {
 
 		static void preeditCaretCallback(XIM xim, XPointer user_data, XPointer data)
 		{
-			if (user_data == NULL || data == NULL)
+			if (user_data == nullptr || data == nullptr)
 			return;
 
 			auto self = reinterpret_cast<Inl*>(user_data);
@@ -307,10 +279,10 @@ namespace qk {
 				reinterpret_cast<XIMPreeditCaretCallbackStruct*>(data);
 
 			switch (caret_data->direction) {
-				case XIMForwardChar:
+				case XIMForwardchar:
 					self->onKeyControl(KEYCODE_RIGHT);
 					break;
-				case XIMBackwardChar:
+				case XIMBackwardchar:
 					self->onKeyControl(KEYCODE_LEFT);
 					break;
 				case XIMDontChange:
@@ -347,30 +319,30 @@ namespace qk {
 		{
 			Qk_ASSERT(!_im);
 
-			_im = XOpenIM(_display, NULL, NULL, NULL);
-			if (_im  == NULL) {
+			_im = XOpenIM(_xdpy, nullptr, nullptr, nullptr);
+			if (_im  == nullptr) {
 				Qk_DLog("Can't open XIM");
 				return;
 			}
 
 			Qk_DLog("XIM is opened");
-			XUnregisterIMInstantiateCallback(_display, NULL, NULL, NULL,
+			XUnregisterIMInstantiateCallback(_xdpy, nullptr, nullptr, nullptr,
 							IMInstantiateCallback, (XPointer)this);
 
 			// register destroy callback
 			XIMCallback destroy;
 			destroy.callback = IMDestroyCallback;
 			destroy.client_data = (XPointer)this;
-			XSetIMValues(_im, XNDestroyCallback, &destroy, NULL);
+			XSetIMValues(_im, XNDestroyCallback, &destroy, nullptr);
 
 			bool useStringConversion = false;
 
-			XIMValuesList* ic_values = NULL;
+			XIMValuesList* ic_values = nullptr;
 			XGetIMValues(_im,
 				XNQueryICValuesList, &ic_values,
-				NULL);
+				nullptr);
 			
-			if (ic_values != NULL) {
+			if (ic_values != nullptr) {
 				for (int i = 0; i < ic_values->count_values; i++) {
 					Qk_DLog("%s", ic_values->supported_values[i]);
 					if (strcmp(ic_values->supported_values[i],
@@ -386,35 +358,35 @@ namespace qk {
 
 		void closeIM(void)
 		{
-			if (_im == NULL)
+			if (_im == nullptr)
 				return;
 
 			XCloseIM(_im);
-			_im = NULL;
+			_im = nullptr;
 
 			Qk_DLog("XIM is closed");
 		}
 
 		void createIC(bool useStringConversion)
 		{
-			if (_im == NULL)
+			if (_im == nullptr)
 				return;
 			
 			Qk_ASSERT(!_ic);
 
-			if ((_input_style & XIMPreeditPosition) && _fontset) {
+			if ((_input_style & XIMPreeditPosition) && _fontSet) {
 				XRectangle area = { 0,0,1,1 };
 				XVaNestedList attr = XVaCreateNestedList(0,
 								XNSpotLocation, &_spot_location,
 								XNArea, &area,
-								XNFontSet, _fontset,
-								NULL);
+								XNFontSet, _fontSet,
+								nullptr);
 
 				_ic = XCreateIC(_im,
 								XNInputStyle, XIMPreeditPosition,
-								XNClientWindow, _window,
+								XNClientWindow, _xwin,
 								XNPreeditAttributes, attr,
-								NULL);
+								nullptr);
 
 				XFree(attr);
 			} else {
@@ -443,30 +415,30 @@ namespace qk {
 								XNPreeditDoneCallback,  &preedit_done,
 								XNPreeditDrawCallback,  &preedit_draw,
 								XNPreeditCaretCallback, &preedit_caret,
-								NULL);
+								nullptr);
 
 				XVaNestedList status_attr = XVaCreateNestedList(0,
 								XNStatusStartCallback, &status_start,
 								XNStatusDoneCallback,  &status_done,
 								XNStatusDrawCallback,  &status_draw,
-								NULL);
+								nullptr);
 
 				_ic = XCreateIC(_im,
 								XNInputStyle, XIMPreeditCallbacks,
-								XNClientWindow, _window,
+								XNClientWindow, _xwin,
 								XNPreeditAttributes, preedit_attr,
 								XNStatusAttributes, status_attr,
-								NULL);
+								nullptr);
 				XFree(preedit_attr);
 				XFree(status_attr);
 			}
 
-			if (_ic != NULL) {
+			if (_ic != nullptr) {
 				if (useStringConversion) {
 					XIMCallback strconv;
 					strconv.callback    = stringConversionCallback;
 					strconv.client_data = (XPointer)this;
-					XSetICValues(_ic, XNStringConversionCallback, &strconv, NULL);
+					XSetICValues(_ic, XNStringConversionCallback, &strconv, nullptr);
 				}
 				Qk_DLog("XIC is created");
 			} else {
@@ -476,24 +448,24 @@ namespace qk {
 
 		void destroyIC()
 		{
-			if (_ic == NULL)
+			if (_ic == nullptr)
 				return;
 
-			Char* str = Xutf8ResetIC(_ic);
+			char* str = Xutf8ResetIC(_ic);
 
-			if (str != NULL) {
+			if (str != nullptr) {
 				setPreeditString(str, 0, 0);
 			}
-			setPreeditString(NULL, 0, 0);
+			setPreeditString(nullptr, 0, 0);
 
 			XDestroyIC(_ic);
-			_ic = NULL;
+			_ic = nullptr;
 			Qk_DLog("XIC is destroyed");
 		}
 
-		static String wChar_t_to_string(const wChar_t *str)
+		static String wchar_t_to_string(const wchar_t *str)
 		{
-			if (sizeof(wChar_t) == 2) {
+			if (sizeof(wchar_t) == 2) {
 				String2 ustr = (const uint16*)str;
 				return ustr.to_string();
 			} else {
@@ -505,43 +477,43 @@ namespace qk {
 		void updateSpotLocation() {
 			if (_ic) {
 				XVaNestedList attr = XVaCreateNestedList(0,
-					XNSpotLocation, &_spot_location, NULL);
-				XSetICValues(_ic, XNPreeditAttributes, attr, NULL);
+					XNSpotLocation, &_spot_location, nullptr);
+				XSetICValues(_ic, XNPreeditAttributes, attr, nullptr);
 				XFree(attr);
 			}
 		}
 
-		void insert(cChar* str)
+		void insert(cchar* str)
 		{
 			Qk_DLog("insert, %s", str);
-			_app->dispatch()->dispatch_ime_insert(str);
+			_win->dispatch()->dispatch_ime_insert(str);
 		}
 
-		void setPreeditString(cChar* str, int pos, int length)
+		void setPreeditString(cchar* str, int pos, int length)
 		{
 			Qk_DLog("setPreeditString, %s, %d, %d", str, pos, length);
-			if (str == NULL) {
-				_app->dispatch()->dispatch_ime_unmark(String());
+			if (str == nullptr) {
+				_win->dispatch()->dispatch_ime_unmark(String());
 				_preedit_string = String();
 			} else {
 				_preedit_string = str;
-				_app->dispatch()->dispatch_ime_marked(_preedit_string);
+				_win->dispatch()->dispatch_ime_marked(_preedit_string);
 			}
 		}
 
 		void onKeyReturn()
 		{
-			_app->dispatch()->dispatch_ime_insert("\n");
+			_win->dispatch()->dispatch_ime_insert("\n");
 		}
 
 		void onKeyDelete()
 		{
-			_app->dispatch()->dispatch_ime_delete(1);
+			_win->dispatch()->dispatch_ime_delete(1);
 		}
 
 		void onKeyBackspace()
 		{
-			_app->dispatch()->dispatch_ime_delete(-1);
+			_win->dispatch()->dispatch_ime_delete(-1);
 		}
 
 		void setPreeditCaret(int pos)
@@ -550,88 +522,80 @@ namespace qk {
 		}
 
 		void onKeyControl(KeyboardKeyCode name) {
-			_app->dispatch()->dispatch_ime_control(name);
+			_win->dispatch()->dispatch_ime_control(name);
 		}
 
-		App* _app;
-		Display *_display;
-		Window _window;
+		Window* _win;
+		XWindow _xwin;
+		XDisplay *_xdpy;
 		XIM _im;
 		XIC _ic;
 		String _preedit_string;
 		bool _has_open;
 		int _input_style;
 		XPoint _spot_location;
-		XFontSet _fontset;
+		XFontSet _fontSet;
 	};
 
-	LINUXIMEHelper::LINUXIMEHelper(App* app, qk::Window* dpy, Window win, int inputStyle)
-		: _inl(LINUXIMEHelperImpl::Make(app, dpy, win, inputStyle)) {
+	LinuxIMEHelper* LinuxIMEHelper::Make(WindowImpl* impl, int inputStyle) {
+		char *locale = setlocale(LC_CTYPE, "");
+		if (locale == nullptr) {
+			Qk_ELog("Can't set locale");
+			return nullptr;
+		}
+		Qk_DLog("locale: %s", locale);
+
+		if (!XSupportsLocale()) {
+			Qk_ELog("X does not support locale");
+			return nullptr;
+		}
+
+		char *modifiers = XSetLocaleModifiers("");
+		if (modifiers == nullptr) {
+			Qk_ELog("Can't set locale modifiers");
+			return nullptr;
+		}
+		Qk_DLog("modifiers: %s", modifiers);
+
+		return new LinuxIMEHelperImpl(impl, inputStyle);
 	}
 
-	LINUXIMEHelper::~LINUXIMEHelper() {
-		delete _inl;
-		_inl = nullptr;
-	}
+	// ***************** E v e n t . D i s p a t c h *****************
 
-	void LINUXIMEHelper::open(KeyboardOptions options) {
-		__dispatch_x11_async(Cb([=](Cb::Data& e){
-			_inl->set_keyboard_type(options.type);
-			_inl->set_keyboard_return_type(options.return_type);
-			_inl->set_spot_location(options.spot_location);
-			if (options.is_clear) {
-				_inl->clear();
+	void EventDispatch::setImeKeyboardOpen(KeyboardOptions opts) {
+		auto impl = window()->impl();
+		post_messate_main(Cb([impl](auto e) {
+			auto ime = static_cast<LinuxIMEHelperImpl*>(impl->ime());
+			ime->set_keyboard_type(opts.type);
+			ime->set_keyboard_return_type(opts.return_type);
+			ime->set_spot_rect(opts.spot_rect);
+			if (opts.clear) {
+				ime->clear();
 			}
-			_inl->open();
+			ime->open();
 		}));
 	}
 
-	void LINUXIMEHelper::close() {
-		__dispatch_x11_async(Cb([=](Cb::Data& e){
-			_inl->close();
+	void EventDispatch::setImeKeyboardClose() {
+		auto impl = window()->impl();
+		post_messate_main(Cb([=](auto e) {
+			static_cast<LinuxIMEHelperImpl*>(impl->ime())->close();
 		}));
 	}
 
-	void LINUXIMEHelper::clear() {
-		__dispatch_x11_async(Cb([=](Cb::Data& e){
-			_inl->clear();
+	void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
+		auto impl = window()->impl();
+		post_messate_main(Cb([impl](auto e) {
+			static_cast<LinuxIMEHelperImpl*>(impl->ime())->
+				set_keyboard_can_backspace(can_backspace, can_delete);
 		}));
 	}
 
-	void LINUXIMEHelper::set_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-		__dispatch_x11_async(Cb([=](Cb::Data& e){
-			_inl->set_keyboard_can_backspace(can_backspace, can_delete);
+	void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
+		auto impl = window()->impl();
+		post_messate_main(Cb([impl](auto e) {
+			static_cast<LinuxIMEHelperImpl*>(impl->ime())->set_spot_rect(rect);
 		}));
-	}
-
-	void LINUXIMEHelper::set_keyboard_type(KeyboardType type) {
-		__dispatch_x11_async(Cb([=](Cb::Data& e){
-			_inl->set_keyboard_type(type);
-		}));
-	}
-
-	void LINUXIMEHelper::set_keyboard_return_type(KeyboardReturnType type) {
-		__dispatch_x11_async(Cb([=](Cb::Data& e){
-			_inl->set_keyboard_return_type(type);
-		}));
-	}
-
-	void LINUXIMEHelper::set_spot_location(Vec2 location) {
-		__dispatch_x11_async(Cb([=](Cb::Data& e){
-			_inl->set_spot_location(location);
-		}));
-	}
-
-	void LINUXIMEHelper::key_press(XKeyPressedEvent *event) {
-		_inl->key_press(event);
-	}
-
-	void LINUXIMEHelper::focus_in() {
-		_inl->focus_in();
-	}
-
-	void LINUXIMEHelper::focus_out() {
-		_inl->focus_out();
 	}
 
 }

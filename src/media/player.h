@@ -37,25 +37,25 @@
 
 namespace qk {
 
-	class Qk_Export Player: public MediaSource::Delegate {
+	class Qk_EXPORT Player: public MediaSource::Delegate {
 		Qk_HIDDEN_ALL_COPY(Player);
 	public:
 		typedef MediaCodec::Frame Frame;
 		typedef MediaSource::Stream Stream;
 		typedef MediaSource::Extractor Extractor;
 		// define props
-		Qk_DEFINE_P_GET(int64_t, pts, ProtectedConst);
-		Qk_DEFINE_PROP(float, volume, Const);
-		Qk_DEFINE_PROP(bool, mute, Const);
-		Qk_DEFINE_A_GET(bool, is_pause, Const);
-		Qk_DEFINE_P_GET(MediaType, type, Const);
-		Qk_DEFINE_A_GET(uint64_t, duration, Const);
-		Qk_DEFINE_A_GET(MediaSourceStatus, status, Const);
-		Qk_DEFINE_ACCE(String, src, Const);
-		Qk_DEFINE_A_GET(MediaSource*, media_source);
-		Qk_DEFINE_A_GET(const Stream*, video, Const);
-		Qk_DEFINE_A_GET(const Stream*, audio, Const); // current audio stream
-		Qk_DEFINE_A_GET(uint32_t, audio_streams, Const); // audio stream count
+		Qk_DEFINE_PROP_GET(int64_t, pts, ProtectedConst);
+		Qk_DEFINE_PROPERTY(float, volume, Const);
+		Qk_DEFINE_PROPERTY(bool, mute, Const);
+		Qk_DEFINE_ACCE_GET(bool, is_pause, Const);
+		Qk_DEFINE_PROP_GET(MediaType, type, Const);
+		Qk_DEFINE_ACCE_GET(uint64_t, duration, Const);
+		Qk_DEFINE_ACCE_GET(MediaSourceStatus, status, Const);
+		Qk_DEFINE_ACCESSOR(String, src, Const);
+		Qk_DEFINE_ACCE_GET(MediaSource*, media_source);
+		Qk_DEFINE_ACCE_GET(const Stream*, video, Const);
+		Qk_DEFINE_ACCE_GET(const Stream*, audio, Const); // current audio stream
+		Qk_DEFINE_ACCE_GET(uint32_t, audio_streams, Const); // audio stream count
 		Player(MediaType type);
 		virtual ~Player();
 		void play();
@@ -82,7 +82,7 @@ namespace qk {
 		friend class PlayerLock;
 	};
 
-	class Qk_Export AudioPlayer
+	class Qk_EXPORT AudioPlayer
 		: public Notification<Event<>, UIEventName, Reference>, public Player
 	{
 	public:

@@ -35,6 +35,7 @@
 
 #include "./util.h"
 #include "./mutex.h"
+#include "./arguments.h"
 
 using namespace qk;
 
@@ -42,7 +43,7 @@ class QkStream {
 public:
 	virtual ~QkStream() = default;
 	virtual cVoid* getMemoryBase() { return nullptr; }
-	virtual QkStream* duplicate() const = 0
+	virtual QkStream* duplicate() const = 0;
 	virtual int read(void* dest, int64_t size, int64_t offset = -1) = 0;
 	inline size_t getLength() const { return _length; }
 	static QkStream* Make(cString& path);
@@ -80,10 +81,10 @@ public:
 			fAxis[i] = that.fAxis[i];
 		}
 	}
-	bool hasStream() const { return fStream != nullptr; }
+	bool hasStream() const { return fStream.get() != nullptr; }
 	Sp<QkStream> detachStream() { return fStream; }
-	QkStream* getStream() { return fStream.value(); }
-	QkStream const* getStream() const { return fStream.value(); }
+	QkStream* getStream() { return fStream.get(); }
+	QkStream const* getStream() const { return fStream.get(); }
 	int getIndex() const { return fIndex; }
 	int getAxisCount() const { return fAxisCount; }
 	const QkFixed* getAxis() const { return fAxis.val(); }

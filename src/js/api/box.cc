@@ -151,7 +151,7 @@ namespace qk { namespace js {
 				Js_NewView(Image);
 			});
 			Js_MixObject_Accessor(Image, String, src, src);
-			// Qk_DEFINE_ACCE(ImageSource*, source);
+			// Qk_DEFINE_ACCESSOR(ImageSource*, source);
 			cls->exports("Image", exports);
 		}
 	};

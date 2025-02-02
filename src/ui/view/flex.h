@@ -35,13 +35,13 @@
 
 namespace qk {
 
-	class Qk_Export Flex: public Box {
+	class Qk_EXPORT Flex: public Box {
 	public:
 		Flex();
 		// define props
-		Qk_DEFINE_VIEW_PROP(Direction, direction, Const); // typesetting direction
-		Qk_DEFINE_VIEW_PROP(ItemsAlign, items_align, Const); // alignment mode of the main axis
-		Qk_DEFINE_VIEW_PROP(CrossAlign, cross_align, Const); // alignment mode of the cross axis
+		Qk_DEFINE_VIEW_PROPERTY(Direction, direction, Const); // typesetting direction
+		Qk_DEFINE_VIEW_PROPERTY(ItemsAlign, items_align, Const); // alignment mode of the main axis
+		Qk_DEFINE_VIEW_PROPERTY(CrossAlign, cross_align, Const); // alignment mode of the cross axis
 		// @overwrite
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void onChildLayoutChange(View* child, uint32_t mark) override;

@@ -36,16 +36,16 @@
 namespace qk {
 	class SharedMutex;
 
-	class Qk_Export FontPool: public Object {
+	class Qk_EXPORT FontPool: public Object {
 		Qk_HIDDEN_ALL_COPY(FontPool);
 	public:
 		static FontPool* Make();
 		// define ptops
-		Qk_DEFINE_A_GET(uint32_t, countFamilies, Const);
-		Qk_DEFINE_A_GET(cArray<String>&, defaultFamilyNames, Const);
-		Qk_DEFINE_P_GET(FFID, defaultFontFamilies);
-		Qk_DEFINE_P_GET(Sp<Typeface>, tf65533);
-		Qk_DEFINE_P_GET(GlyphID, tf65533GlyphID, Const);
+		Qk_DEFINE_ACCE_GET(uint32_t, countFamilies, Const);
+		Qk_DEFINE_ACCE_GET(cArray<String>&, defaultFamilyNames, Const);
+		Qk_DEFINE_PROP_GET(FFID, defaultFontFamilies);
+		Qk_DEFINE_PROP_GET(Sp<Typeface>, tf65533);
+		Qk_DEFINE_PROP_GET(GlyphID, tf65533GlyphID, Const);
 		// define methods
 		~FontPool() override;
 		String getFamilyName(int index) const;

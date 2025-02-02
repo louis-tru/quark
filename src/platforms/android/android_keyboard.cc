@@ -29,14 +29,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#import "../../ui/keyboard.h"
+#include "../../ui/keyboard.h"
 #include <android/keycodes.h>
 
 namespace qk {
 
 	class AndroidKeyboardAdapter: public KeyboardAdapter {
-		public:
-			AndroidKeyboardAdapter();
+	public:
+		AndroidKeyboardAdapter();
 	};
 
 	AndroidKeyboardAdapter::AndroidKeyboardAdapter() {

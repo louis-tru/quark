@@ -38,9 +38,9 @@
 
 namespace qk {
 
-	class Qk_Export Text: public Box, public TextOptions {
+	class Qk_EXPORT Text: public Box, public TextOptions {
 	public:
-		Qk_DEFINE_VIEW_PROP(String, value);
+		Qk_DEFINE_VIEW_PROPERTY(String, value);
 		virtual ViewType viewType() const override;
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_reverse(uint32_t mark) override;

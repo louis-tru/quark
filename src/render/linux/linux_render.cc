@@ -34,9 +34,9 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #if Qk_ANDROID
-#include <android/native_window.h>
+# include <android/native_window.h>
 #else
-#include <X11/Xlib.h>
+# include <X11/Xlib.h>
 #endif
 
 // #if Qk_ENABLE_GL && Qk_LINUX
@@ -155,8 +155,7 @@ namespace qk {
 			, _surface(EGL_NO_SURFACE)
 			, _win(EGL_NO_NATIVE_WINDOW)
 			, _rsDelegate(nullptr)
-		{
-		}
+		{}
 
 		~LinuxGLRender() override {
 			Qk_ASSERT_RAW(_message.length() == 0);
@@ -234,7 +233,7 @@ namespace qk {
 #else
 		XWindowAttributes attrs;
 		auto dpy = XOpenDisplay(nullptr);
-		Qk_ASSERT_EQ(dpy);
+		Qk_ASSERT_NE(dpy, nullptr);
 		Qk_ASSERT_EQ(1, XGetWindowAttributes(dpy, _win, &attrs));
 		Vec2 size(attrs.width, attrs.height);
 #endif
@@ -294,6 +293,8 @@ namespace qk {
 				glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
 				glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
+				// GLuint sync = glCreateSyncTokens(1);
+				// glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 				eglSwapBuffers(_display, _surface);
 			}
 			unlock();
@@ -307,9 +308,8 @@ namespace qk {
 
 			Qk_ASSERT_RAW(surface, "Unable to create a drawing surface");
 
-			auto ok = eglMakeCurrent(_display, surface, surface, _context);
-
-			Qk_ASSERT_RAW(ok, "Unable to create a drawing surface");
+			Qk_ASSERT_RAW(eglMakeCurrent(_display, surface, surface, _context),
+				"Unable to create a drawing surface");
 
 			_surface = surface;
 			_renderThreadId = thread_self_id();

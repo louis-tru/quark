@@ -407,7 +407,9 @@ public:
 		: INHERITED(style, 0)
 		, fFamilyName(std::move(familyName))
 		, fData(std::move(data))
-	{}
+	{
+		initFreeType();
+	}
 
 	String onGetFamilyName() const override { 
 		return fFamilyName;
@@ -478,7 +480,9 @@ private:
 					FC_PROPORTIONAL != get_int(pattern, FC_SPACING, FC_PROPORTIONAL))
 		, fPattern(pattern)
 		, fSysroot(sysroot)
-	{}
+	{
+		initFreeType();
+	}
 
 	using INHERITED = Typeface_FreeType;
 };

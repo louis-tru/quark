@@ -71,7 +71,7 @@ namespace qk { namespace js {
 			});
 
 			Js_MixObject_Accessor(FillImage, String, src, src);
-			// Qk_DEFINE_VIEW_ACCE(ImageSource*, source);
+			// Qk_DEFINE_VIEW_ACCESSOR(ImageSource*, source);
 			Js_MixObject_Accessor(FillImage, FillSize, width, width);
 			Js_MixObject_Accessor(FillImage, FillSize, height, height);
 			Js_MixObject_Accessor(FillImage, FillPosition, x, x);

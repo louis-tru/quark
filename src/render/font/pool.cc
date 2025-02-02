@@ -63,10 +63,11 @@ namespace qk {
 		}
 		// find �(65533) character tf
 		_tf65533 = matchCharacter(String(), style, 65533);
-		Qk_ASSERT(_tf65533);
-		Qk_DLog("FontPool::init _tf65533, %s", *_tf65533->getFamilyName());
+		//Qk_ASSERT(_tf65533);
+		//Qk_DLog("FontPool::init _tf65533, %s", *_tf65533->getFamilyName());
 
-		_tf65533GlyphID = _tf65533->unicharToGlyph(65533);
+		if (_tf65533)
+			_tf65533GlyphID = _tf65533->unicharToGlyph(65533);
 		_defaultFontFamilies = getFontFamilies(Array<String>());
 	}
 
@@ -123,8 +124,8 @@ namespace qk {
 			if (it0 != _ext.end()) {
 				auto it = it0->value.find(style);
 				if (it != it0->value.end())
-					return const_cast<Typeface*>(it->value.value());
-				return const_cast<Typeface*>(it0->value.begin()->value.value());
+					return const_cast<Typeface*>(it->value.get());
+				return const_cast<Typeface*>(it0->value.begin()->value.get());
 			}
 		}
 		return onMatchFamilyStyle(familyName.c_str(), style);

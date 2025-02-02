@@ -181,17 +181,61 @@
 					'render/codec/webp.cc',
 				],
 			}],
+			['os=="linux" or os=="android"', {
+				'sources': [
+					'render/font/priv/arguments.h', ### priv
+					'render/font/priv/fontdata.cc',
+					'render/font/priv/fontdata.h',
+					'render/font/priv/mutex.cc',
+					'render/font/priv/mutex.h',
+					'render/font/priv/semaphore.cc',
+					'render/font/priv/semaphore.h',
+					'render/font/priv/styleset.cc',
+					'render/font/priv/styleset.h',
+					'render/font/priv/to.h',
+					'render/font/priv/util.h',
+					'render/font/freetype/ft_common.cc', ## freetype
+					'render/font/freetype/ft_glyph_cache.cc',
+					'render/font/freetype/ft_glyph_cache.h',
+					'render/font/freetype/ft_typeface.cc',
+					'render/font/freetype/ft_typeface.h',
+					# 'render/font/custom/custom_directory.cpp', ## font/custom
+					# 'render/font/custom/custom_typeface.cpp',
+					# 'render/font/custom/custom_typeface.h',
+				],
+			}],
+			['os=="linux"', {
+				'sources': [
+					'platforms/linux/linux_app.cc',
+					'platforms/linux/linux_app.h',
+					'platforms/linux/linux_ime_helper.cc',
+					'platforms/linux/linux_keyboard.cc',
+					'platforms/linux/linux_os.cc',
+					'platforms/linux/linux_screen.cc',
+					'platforms/linux/linux_window.cc',
+					'render/linux/linux_render.cc', ## render/linux
+					'render/linux/linux_render.h',
+					'render/linux/linux_vulkan.cc',
+					'render/font/freetype/ft_fontconfig.cc',
+				],
+				'link_settings': {
+					'libraries': [
+						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lXcursor', '-lasound',
+					],
+				},
+			}],
 			['os=="android"', {
 				'sources': [
 					'platforms/android/android_app.cc',
-					'platforms/android/android_ime_helper.cc',
 					'platforms/android/android_keyboard.cc',
 					'platforms/android/android_os.cc',
-					'platforms/android/android.h',
+					'platforms/android/android_screen.cc',
+					'platforms/android/android_screen.cc',
 					'platforms/android/android.cc',
-					'render/linux/linux_render.h',
-					'render/linux/linux_render.cc',
-					'render/linux/linux_vulkan.cc',
+					'platforms/android/android.h',
+					'render/font/android/android_font_parser.cpp', ## font/android
+					'render/font/android/android_font_parser.h',
+					'render/font/android/android_font.cc',
 					# 'platforms/android/org/quark/Activity.java',
 					# 'platforms/android/org/quark/Android.java',
 					# 'platforms/android/org/quark/IMEHelper.java',
@@ -265,22 +309,6 @@
 					]
 				},
 			}],
-			['os=="linux"', {
-				'sources': [
-					'platforms/linux/linux_os.cc',
-					'platforms/linux/linux_gl.h',
-					'platforms/linux/linux_gl.cc',
-					'platforms/linux/linux_app.cc',
-					'platforms/linux/linux_keyboard.cc',
-					'platforms/linux/linux_ime_helper.h',
-					'platforms/linux/linux_ime_helper.cc',
-				],
-				'link_settings': {
-					'libraries': [
-						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lasound',
-					],
-				},
-			}],
 			# conditions end
 		],
 		'actions': [
@@ -351,24 +379,24 @@
 			'../deps/libuv/include',
 		],
 		'sources': [
-			'media/player.h',
-			'media/player.cc',
 			'media/media_codec_software.cc',
 			'media/media_codec.cc',
-			'media/media.cc',
 			'media/media_inl.h',
 			'media/media_source.cc',
+			'media/media.cc',
 			'media/media.h',
 			'media/pcm_player.h',
+			'media/player.cc',
+			'media/player.h',
 			'ui/view/video.h',
 			'ui/view/video.cc',
 		],
 		'conditions': [
 			['os=="android"', {
 				'sources': [
-					'platforms/android_media_codec.cc',
-					'platforms/android_pcm_player.cc',
-					'platforms/android_pcm_audio_track.cc',
+					'platforms/android/android_media_codec.cc',
+					'platforms/android/android_pcm_audio_track.cc',
+					'platforms/android/android_pcm_player.cc',
 				],
 				'link_settings': {
 					'libraries': [ '-lOpenSLES', '-lmediandk' ],
@@ -382,8 +410,8 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/linux_media_codec.cc',
-					'platforms/linux_pcm_player.cc',
+					'platforms/linux/linux_media_codec.cc',
+					'platforms/linux/linux_pcm_player.cc',
 				],
 				'link_settings': {
 					'libraries': [ '-lasound' ],

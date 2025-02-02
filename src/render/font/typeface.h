@@ -46,7 +46,7 @@ namespace qk {
 	 * @class Typeface
 	 * @safe Rt
 	*/
-	class Qk_Export Typeface: public Reference {
+	class Qk_EXPORT Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);
 	public:
 		struct ImageOut {
@@ -56,7 +56,7 @@ namespace qk {
 			float fontSize; // Font size of image
 			float needToScale; // This image needs to be scaled when used
 		};
-		Qk_DEFINE_P_GET(FontStyle, fontStyle, ProtectedConst);
+		Qk_DEFINE_PROP_GET(FontStyle, fontStyle, ProtectedConst);
 		~Typeface() override;
 		bool isBold() const { return _fontStyle.weight() >= TextWeight::Semibold; }
 		bool isItalic() const { return _fontStyle.slant() >= TextSlant::Italic; }

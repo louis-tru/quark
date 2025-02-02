@@ -33,7 +33,7 @@
 #ifndef __quark__font__priv__to__
 #define __quark__font__priv__to__
 
-#include "../../../util/macros.h"
+#include "../../../util/object.h"
 
 #include <limits>
 #include <stdint.h>
@@ -123,7 +123,8 @@ typename std::enable_if<(std::is_integral<S>::value || std::is_enum<S>::value) &
 }
 
 template <typename D, typename S> constexpr D QkTo(S s) {
-	return Qk_ASSERT(QkTFitsIn<D>(s)), static_cast<D>(s);
+	Qk_ASSERT(QkTFitsIn<D>(s));
+	return static_cast<D>(s);
 }
 
 template <typename S> constexpr int8_t   QkToS8(S x)    { return QkTo<int8_t>(x);   }

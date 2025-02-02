@@ -39,7 +39,7 @@ namespace qk {
 
 	class Video: public Image, public Player, public PreRender::Task {
 	public:
-		Qk_DEFINE_ACCE(String, src, Const);
+		Qk_DEFINE_ACCESSOR(String, src, Const);
 		Video();
 		void onActivate() override;
 		ViewType viewType() const override;

@@ -58,7 +58,7 @@ namespace qk {
 		*
 	 * @class View
 		*/
-	class Qk_Export View: public Notification<UIEvent, UIEventName, Reference> {
+	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
 		Qk_HIDDEN_ALL_COPY(View);
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 		std::atomic<CStyleSheetsClass*> _cssclass;
@@ -99,36 +99,36 @@ namespace qk {
 		/**
 		 * @prop style sheets class object
 		*/
-		Qk_DEFINE_A_GET(CStyleSheetsClass*, cssclass);
+		Qk_DEFINE_ACCE_GET(CStyleSheetsClass*, cssclass);
 
 		/**
 		 * @prop parent view
 		*/
-		Qk_DEFINE_P_GET_Atomic(View*, parent);
-		Qk_DEFINE_P_GET_Atomic(View*, prev);
-		Qk_DEFINE_P_GET_Atomic(View*, next);
-		Qk_DEFINE_P_GET_Atomic(View*, first);
-		Qk_DEFINE_P_GET_Atomic(View*, last);
+		Qk_DEFINE_PROP_GET_Atomic(View*, parent);
+		Qk_DEFINE_PROP_GET_Atomic(View*, prev);
+		Qk_DEFINE_PROP_GET_Atomic(View*, next);
+		Qk_DEFINE_PROP_GET_Atomic(View*, first);
+		Qk_DEFINE_PROP_GET_Atomic(View*, last);
 
 		/**
 		* @prop window
 		*/
-		Qk_DEFINE_P_GET(Window*, window);
+		Qk_DEFINE_PROP_GET(Window*, window);
 
 		/**
 		 * the objects that automatically adjust view properties
 		*/
-		Qk_DEFINE_PROP(Action*, action) throw(Error);
+		Qk_DEFINE_PROPERTY(Action*, action) throw(Error);
 
 		/**
 		 * @prop props accessor
 		*/
-		Qk_DEFINE_P_GET(PropAccessor*, accessor);
+		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
 
 		/**
 		 * @prop matrix
 		*/
-		Qk_DEFINE_A_GET(Matrix*, matrix);
+		Qk_DEFINE_ACCE_GET(Matrix*, matrix);
 
 		/**
 		* @prop mark_value
@@ -138,7 +138,7 @@ namespace qk {
 		* The marked view will be updated before starting frame drawing.
 		* During operation, view local attributes may be updated frequently or the view may rarely change.
 		*/
-		Qk_DEFINE_P_GET(uint32_t, mark_value, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, mark_value, Const);
 
 		/**
 		* Next preprocessing view tag
@@ -152,7 +152,7 @@ namespace qk {
 		* @safe Rt
 		* @note Can only be used in rendering threads
 		*/
-		Qk_DEFINE_P_GET(int32_t, mark_index, Const);
+		Qk_DEFINE_PROP_GET(int32_t, mark_index, Const);
 
 		/**
 		* @prop level
@@ -162,7 +162,7 @@ namespace qk {
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
 		* 这个值受`View::_visible`影响, View::_visible=false时_level=0
 		*/
-		Qk_DEFINE_P_GET(uint32_t, level, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, level, Const);
 
 		/**
 		 *
@@ -172,39 +172,39 @@ namespace qk {
 		 * @safe Rt
 			* @note Can only be used in rendering threads
 		 */
-		Qk_DEFINE_P_GET(Vec2, position, ProtectedConst);
+		Qk_DEFINE_PROP_GET(Vec2, position, ProtectedConst);
 
 		/**
 		 *  can affect the transparency of subviews
 		 */
-		Qk_DEFINE_VIEW_PROP(float, opacity, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float, opacity, Const);
 
 		/**
 		 * @prop Cursor style
 		*/
-		Qk_DEFINE_VIEW_PROP(CursorStyle, cursor, Const);
+		Qk_DEFINE_VIEW_PROPERTY(CursorStyle, cursor, Const);
 
 		/**
 		 * Set the visibility of the view. When this value is set to 'false',
 		 * the view is invisible and does not occupy any view space
 		*/
-		Qk_DEFINE_VIEW_PROP(bool, visible, Const);
+		Qk_DEFINE_VIEW_PROPERTY(bool, visible, Const);
 
 		/**
 		 *  这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		*/
-		Qk_DEFINE_P_GET(bool, visible_region, ProtectedConst);
+		Qk_DEFINE_PROP_GET(bool, visible_region, ProtectedConst);
 
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
-		Qk_DEFINE_VIEW_PROP(bool, receive, Const);
+		Qk_DEFINE_VIEW_PROPERTY(bool, receive, Const);
 
 		/**
 		 * keyboard focus view
 		*/
-		Qk_DEFINE_ACCE(bool, is_focus, Const);
+		Qk_DEFINE_ACCESSOR(bool, is_focus, Const);
 
 		/**
 		 * @method Make(Window*, ...)

@@ -55,10 +55,10 @@ private:
 
 QkFileStream::QkFileStream(cString& path): _file(path) {
 	if (_file.open() == 0)
-		_length = fs_stat_sync(path).size;
+		_length = fs_stat_sync(path).size();
 }
 
-QkStream* QkFileStream::duplicate() {
+QkStream* QkFileStream::duplicate() const {
 	return new QkFileStream(_file.path());
 }
 
@@ -67,13 +67,13 @@ int QkFileStream::read(void* dest, int64_t size, int64_t offset) {
 }
 
 QkMemoryStream::QkMemoryStream(Buffer &buffer): _data(new Data), _offset(0) {
+	_length = buffer.length();
 	_data->buffer = std::move(buffer);
-	_length = _buffer.length();
 }
 
 QkMemoryStream::QkMemoryStream(Data *data) {
+	_length = data->buffer.length();
 	_data = data;
-	_length = _buffer.length();
 }
 
 cVoid* QkMemoryStream::getMemoryBase() {
@@ -81,7 +81,7 @@ cVoid* QkMemoryStream::getMemoryBase() {
 }
 
 QkStream* QkMemoryStream::duplicate() const {
-	return new QkMemoryStream(_data.value());
+	return new QkMemoryStream(const_cast<Data*>(_data.get()));
 }
 
 int QkMemoryStream::read(void* dest, int64_t size, int64_t offset) {
@@ -90,8 +90,8 @@ int QkMemoryStream::read(void* dest, int64_t size, int64_t offset) {
 	}
 	if (offset < _length) {
 		auto n = _length - offset - size;
-		if (i < 0)
-			size -= n;
+		if (n < 0)
+			size += n;
 		memcpy(dest, _data->buffer.val() + offset, size);
 		_offset += size;
 		return size;
@@ -107,5 +107,7 @@ QkStream* QkStream::Make(cString& path) {
 }
 
 QkStream* QkStream::Make(Buffer buffer) {
+	if (buffer.length() == 0)
+		return nullptr;
 	return new QkMemoryStream(buffer);
 }

@@ -53,7 +53,7 @@ namespace qk {
 	 * 如果当前只需要知道图像的附加信息可调用该函数,
 	 * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
 	 */
-	Qk_Export bool img_test(cBuffer& data, PixelInfo* out, ImageFormat fmt = kUnknown_ImageFormat);
+	Qk_EXPORT bool img_test(cBuffer& data, PixelInfo* out, ImageFormat fmt = kUnknown_ImageFormat);
 
 	/**
 	 * 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
@@ -61,15 +61,15 @@ namespace qk {
 	 * @arg data {cBuffer&}
 	 * @ret {Array<Pixel>}
 	 */
-	Qk_Export bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt = kUnknown_ImageFormat);
+	Qk_EXPORT bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt = kUnknown_ImageFormat);
 
 	/**
 	 * @method image_format 通过路径获取图片类型
 	 */
-	Qk_Export ImageFormat img_format_from(cString& path);
+	Qk_EXPORT ImageFormat img_format_from(cString& path);
 
 	// encode to tga data
-	Qk_Export Buffer img_tga_encode(cPixel& pixel);
+	Qk_EXPORT Buffer img_tga_encode(cPixel& pixel);
 
 }
 #endif

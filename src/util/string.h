@@ -44,7 +44,7 @@ namespace qk {
 	typedef const String2        cString2;
 	typedef const String4        cString4;
 
-	class Qk_Export StringBase {
+	class Qk_EXPORT StringBase {
 	public:
 		typedef Allocator::Prt<char> Ptr;
 		typedef void (*Realloc)(Ptr *ptr, uint32_t, uint32_t);
@@ -182,8 +182,8 @@ namespace qk {
 		int indexOf(const StringImpl& s, uint32_t start = 0) const;
 		int lastIndexOf(const StringImpl& s, uint32_t start = 0x7FFFFFFF) const;
 		// startsWith
-		bool startsWith(const StringImpl& s);
-		bool endsWith(const StringImpl& s);
+		bool startsWith(const StringImpl& s) const;
+		bool endsWith(const StringImpl& s) const;
 		// replace
 		StringImpl replace(const StringImpl& s, const StringImpl& rep) const;
 		StringImpl replaceAll(const StringImpl& s, const StringImpl& rep) const;
@@ -202,7 +202,7 @@ namespace qk {
 
 namespace qk {
 
-	class Qk_Export _Str {
+	class Qk_EXPORT _Str {
 	public:
 		typedef void* (*Alloc)(uint32_t);
 		typedef StringBase::Realloc Realloc;
@@ -397,7 +397,7 @@ namespace qk {
 		Qk_ReturnLocal(s);
 	}
 
-	template <> Qk_Export
+	template <> Qk_EXPORT
 	String StringImpl<>::format(cChar* f, ...);
 
 	// --------------------------------------------------------------------------------
@@ -527,7 +527,7 @@ namespace qk {
 		return _Str::toString(c_str(), length(), sizeof(T));
 	}
 
-	template <> Qk_Export
+	template <> Qk_EXPORT
 	String StringImpl<>::toString() const;
 
 	template <typename T, typename A>
@@ -711,12 +711,12 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	bool StringImpl<T, A>::startsWith(const StringImpl& s) {
+	bool StringImpl<T, A>::startsWith(const StringImpl& s) const {
 		return _Str::starts_with(c_str(), length(), s.c_str(), s.length(), sizeof(T));
 	}
 
 	template <typename T, typename A>
-	bool StringImpl<T, A>::endsWith(const StringImpl& s) {
+	bool StringImpl<T, A>::endsWith(const StringImpl& s) const {
 		return _Str::ends_with(c_str(), length(), s.c_str(), s.length(), sizeof(T));
 	}
 

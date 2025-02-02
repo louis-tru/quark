@@ -32,7 +32,7 @@
 #import "../../ui/app.h"
 #import "../../ui/window.h"
 #import "../../ui/event.h"
-#include "../../render/mac/mac_render.h"
+#import "../../render/mac/mac_render.h"
 #import "./mac_app.h"
 
 using namespace qk;
@@ -147,6 +147,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 		e.deltaX,e.deltaY,self.qkwin->defaultScale(),self.qkwin->scale()
 	);*/
 }
+
 - (void)viewDidAppear {
 	auto _uiwin = self.qkwin->impl()->delegate().uiwin;
 	_mouseMovedId = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
@@ -166,75 +167,93 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 		return e;
 	}];
 }
+
 -(void)viewDidDisappear {
 	[NSEvent removeMonitor:_mouseMovedId];
 	[NSEvent removeMonitor:_keyDownId];
 }
+
 - (void)mouseDown:(NSEvent *)e{
 	[self LogMouse:"mouseDown" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_LEFT, true, &pos);
 }
+
 - (void)rightMouseDown:(NSEvent *)e{
 	[self LogMouse:"rightMouseDown" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_RIGHT, true, &pos);
 }
+
 - (void)otherMouseDown:(NSEvent *)e{
 	[self LogMouse:"otherMouseDown" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_CENTER, true, &pos);
 }
+
 - (void)mouseUp:(NSEvent *)e{
 	[self LogMouse:"mouseUp" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_LEFT, false, &pos);
 }
+
 - (void)rightMouseUp:(NSEvent *)e{
 	[self LogMouse:"rightMouseUp" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_RIGHT, false, &pos);
 }
+
 - (void)otherMouseUp:(NSEvent *)e{
 	[self LogMouse:"otherMouseUp" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_CENTER, false, &pos);
 }
+
 - (void)_mouseMoved:(NSEvent *)e{
 	[self LogMouse:"mouseMoved" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
 }
+
 - (void)mouseDragged:(NSEvent *)e{
 	[self LogMouse:"mouseDragged" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
 }
+
 - (void)rightMouseDragged:(NSEvent *)e{
 	[self LogMouse:"rightMouseDragged" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
 }
+
 - (void)otherMouseDragged:(NSEvent *)e{
 	[self LogMouse:"otherMouseDragged" event:e];
 	auto pos = [self location:e];
 	_qkwin->dispatch()->onMousemove(pos.x(), pos.y());
 }
+
 - (void)scrollWheel:(NSEvent *)e{
 	Qk_DLog("scrollWheel,type:%d,modifierFlags:%d,delta:%f %f", e.type, e.modifierFlags, e.deltaX,e.deltaY);
-	auto delta = Vec2(e.deltaX,e.deltaY);
-	_qkwin->dispatch()->onMousepress(KEYCODE_MOUSE_WHEEL, true, &delta);
+	KeyboardKeyCode code = e.deltaX != 0 ?
+		e.deltaX > 0 ? KEYCODE_MOUSE_RIGHT: KEYCODE_MOUSE_LEFT:
+		e.deltaY > 0 ? KEYCODE_MOUSE_UP: KEYCODE_MOUSE_DOWN;
+	Vec2 delta(e.deltaX, e.deltaY);
+	_qkwin->dispatch()->onMousepress(code, true, &delta);
 }
+
 - (void)_keyDown:(NSEvent *)e {
 	//NSLog(@"keyDown,%@", e);
 	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
 	_qkwin->dispatch()->keyboard()->dispatch(e.keyCode, false, true, isCapsLock, e.ARepeat, -1, 0);
 }
+
 - (void)keyUp:(NSEvent *)e {
 	//NSLog(@"keyUp,%@", e);
 	BOOL isCapsLock = e.modifierFlags & NSEventModifierFlagCapsLock;
 	_qkwin->dispatch()->keyboard()->dispatch(e.keyCode, false, false, isCapsLock, 0, -1, 0);
 }
+
 - (void)_flagsChanged:(NSEvent *)e{
 	//NSLog(@"flagsChanged,%@", e);
 
@@ -373,16 +392,16 @@ void Window::setFullscreen(bool fullscreen) {
 	}), false);
 }
 
-void Window::setCursorStyle(CursorStyle cursor, bool low) {
-	static CursorStyle current_cursor_low = CursorStyle::Arrow;
-	static CursorStyle current_cursor_high = CursorStyle::Normal;
+void Window::setCursorStyle(CursorStyle cursor, bool isBase) {
+	static CursorStyle current_cursor_base = CursorStyle::Arrow;
+	static CursorStyle current_cursor_user = CursorStyle::Normal;
 
-	if (low) {
-		current_cursor_low = cursor;
+	if (isBase) {
+		current_cursor_base = cursor;
 	} else {
-		current_cursor_high = cursor;
+		current_cursor_user = cursor;
 	}
-	cursor = current_cursor_high == CursorStyle::Normal ? current_cursor_low: current_cursor_high;
+	cursor = current_cursor_user == CursorStyle::Normal ? current_cursor_base: current_cursor_user;
 
 	if (cursor == CursorStyle::None) {
 		[NSCursor hide];

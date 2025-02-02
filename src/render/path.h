@@ -45,7 +45,7 @@ namespace qk {
 		Array<Vec3> vertex; // hold pointer triangle vertex {x,y,aafuzz}
 	};
 
-	class Qk_Export Path: public Object {
+	class Qk_EXPORT Path: public Object {
 	public:
 		enum PathVerb: uint8_t {
 			kVerb_Move,  // move
@@ -146,14 +146,14 @@ namespace qk {
 	};
 
 	// Optimizing rect vertex generation algorithm
-	struct Qk_Export RectPath: Pathv {
+	struct Qk_EXPORT RectPath: Pathv {
 		Rect   rect;
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
 	};
 
 	// Optimizing rect outline vertex generation algorithm
-	struct Qk_Export RectOutlinePath {
+	struct Qk_EXPORT RectOutlinePath {
 		Pathv top,right,bottom,left;
 		static RectOutlinePath MakeRectOutline(const Rect &rect, const float border[4]);
 		static RectOutlinePath MakeRRectOutline(

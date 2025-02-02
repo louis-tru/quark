@@ -55,7 +55,7 @@ namespace qk {
 	 * Note: If `main loop` and `render loop` run in different threads,
 	 * Then any UI-API function called in the main thread must be locked.
 	 */
-	class Qk_Export UILock {
+	class Qk_EXPORT UILock {
 	public:
 		UILock(Window *win);
 		~UILock();
@@ -69,7 +69,7 @@ namespace qk {
 	/**
 	 * @class Window system window ui components
 	*/
-	class Qk_Export Window: public Reference, public RenderBackend::Delegate {
+	class Qk_EXPORT Window: public Reference, public RenderBackend::Delegate {
 		Qk_HIDDEN_ALL_COPY(Window);
 	public:
 
@@ -104,30 +104,30 @@ namespace qk {
 		* 同时只能指定一个项目,同时指定宽度与高度不生效
 		* 如果设置为非零表示锁定尺寸,不管size怎样变化对于视图这个值永远保持不变
 		*/
-		Qk_DEFINE_PROP(Vec2, size, Const); //!< current viewport size
+		Qk_DEFINE_PROPERTY(Vec2, size, Const); //!< current viewport size
 		//!< display scale, the larger the value, the smaller the size and the less content displayed
-		Qk_DEFINE_P_GET(float, scale, Const);
-		Qk_DEFINE_P_GET(float, defaultScale, Const); //!< default display scale
-		Qk_DEFINE_P_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
-		Qk_DEFINE_P_GET(uint32_t, fsp, Const); //!< current fsp
-		Qk_DEFINE_P_GET(float, atomPixel, Const); // atom pixel size
-		Qk_DEFINE_P_GET(Root*, root); //! root view
-		Qk_DEFINE_P_GET(Application*, host); //! application host
-		Qk_DEFINE_P_GET(Render*, render); //! render object
-		Qk_DEFINE_P_GET(EventDispatch*, dispatch); //! event dispatch
-		Qk_DEFINE_P_GET(RootStyleSheets*, styleSheets); //! root style sheets
-		Qk_DEFINE_PROP(Color, backgroundColor, Const); //! background color
-		Qk_DEFINE_P_GET(WindowImpl*, impl); //! window platform impl
-		Qk_DEFINE_P_GET(ActionCenter*, actionCenter); //! Action scheduling
-		Qk_DEFINE_A_GET(FontPool*, fontPool); //! Font pool
-		Qk_DEFINE_A_GET(RunLoop*, loop); //! host main loop
-		Qk_DEFINE_A_GET(View*, focusView); //! focus view
+		Qk_DEFINE_PROP_GET(float, scale, Const);
+		Qk_DEFINE_PROP_GET(float, defaultScale, Const); //!< default display scale
+		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
+		Qk_DEFINE_PROP_GET(uint32_t, fsp, Const); //!< current fsp
+		Qk_DEFINE_PROP_GET(float, atomPixel, Const); // atom pixel size
+		Qk_DEFINE_PROP_GET(Root*, root); //! root view
+		Qk_DEFINE_PROP_GET(Application*, host); //! application host
+		Qk_DEFINE_PROP_GET(Render*, render); //! render object
+		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
+		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
+		Qk_DEFINE_PROPERTY(Color, backgroundColor, Const); //! background color
+		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
+		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
+		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
+		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host main loop
+		Qk_DEFINE_ACCE_GET(View*, focusView); //! focus view
 
 		/**
 		 * @prop surfaceSize
 		 * returns surface only display region and size
 		 */
-		Qk_DEFINE_A_GET(Vec2, surfaceSize, Const);
+		Qk_DEFINE_ACCE_GET(Vec2, surfaceSize, Const);
 
 		/**
 		 * @static
@@ -192,7 +192,7 @@ namespace qk {
 		/**
 		* @method setCursorStyle
 		*/
-		void setCursorStyle(CursorStyle cursor, bool low = false);
+		void setCursorStyle(CursorStyle cursor, bool isBase = false);
 
 	private:
 		void reload(bool isRt);

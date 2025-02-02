@@ -69,45 +69,55 @@ Typeface* QkFontStyleSet::matchStyleCSS3(FontStyle pattern) {
 		bool operator <(const Score& that) { return this->score < that.score; }
 	};
 
+	int pattern_slant = int(pattern.slant());
+	int pattern_weight = int(pattern.weight());
+	int pattern_width = int(pattern.width());
+
 	Score maxScore = { 0, 0 };
 	for (int i = 0; i < count; ++i) {
 		FontStyle current;
 		this->getStyle(i, &current, nullptr);
 		Score currentScore = { 0, i };
 
+		int current_slant = int(current.slant());
+		int current_weight = int(current.weight());
+		int current_width = int(current.width());
+
 		// CSS stretch / FontStyle::Width
 		// Takes priority over everything else.
-		if (pattern.width() <= TextWidth::Normal) {
-			if (current.width() <= pattern.width()) {
-				currentScore += 10 - pattern.width() + current.width();
+		if (pattern_width <= int(TextWidth::Normal)) {
+			if (current_width <= pattern_width) {
+				currentScore += 10 - pattern_width + current_width;
 			} else {
-				currentScore += 10 - current.width();
+				currentScore += 10 - current_width;
 			}
 		} else {
-			if (current.width() > pattern.width()) {
-				currentScore += 10 + pattern.width() - current.width();
+			if (current_width > pattern_width) {
+				currentScore += 10 + pattern_width - current_width;
 			} else {
-				currentScore += current.width();
+				currentScore += current_width;
 			}
 		}
 		currentScore <<= 8;
 
 		// CSS style (normal, italic, oblique) / FontStyle::Slant (upright, italic, oblique)
 		// Takes priority over all valid weights.
-		static_assert(TextSlant::Default == 0 &&
-					TextSlant::Italic  == 1 &&
-					TextSlant::Oblique == 2,
+		static_assert(TextSlant::Default == TextSlant(1) &&
+					TextSlant::Italic  == TextSlant(2) &&
+					TextSlant::Oblique == TextSlant(3),
 					"FontStyle::Slant values not as required.");
-		Qk_ASSERT(0 <= pattern.slant() && pattern.slant() <= 2 &&
-				 0 <= current.slant() && current.slant() <= 2);
-		static const int score[3][3] = {
-			/*               Upright Italic Oblique  [current]*/
-			/*   Upright */ {   3   ,  1   ,   2   },
-			/*   Italic  */ {   1   ,  3   ,   2   },
-			/*   Oblique */ {   1   ,  2   ,   3   },
+
+		Qk_ASSERT(0 <= pattern_slant && pattern_slant <= 2 &&
+				 0 <= current_slant && current_slant <= 2);
+		static const int score[4][4] = {
+			{0,0,0,0},
+			/*                      Normal Italic Oblique  [current]*/
+			/*   Normal  */ {   0,      3   ,  1   ,   2   },
+			/*   Italic  */ {   0,      1   ,  3   ,   2   },
+			/*   Oblique */ {   0,      1   ,  2   ,   3   },
 			/* [pattern] */
 		};
-		currentScore += score[pattern.slant()][current.slant()];
+		currentScore += score[pattern_slant][current_slant];
 		currentScore <<= 8;
 
 		// Synthetics (weight, style) [no stretch synthetic?]
@@ -115,30 +125,30 @@ Typeface* QkFontStyleSet::matchStyleCSS3(FontStyle pattern) {
 		// CSS weight / FontStyle::Weight
 		// The 'closer' to the target weight, the higher the score.
 		// 1000 is the 'heaviest' recognized weight
-		if (pattern.weight() == current.weight()) {
+		if (pattern_weight == current_weight) {
 			currentScore += 1000;
 		// less than 400 prefer lighter weights
-		} else if (pattern.weight() < 400) {
-			if (current.weight() <= pattern.weight()) {
-				currentScore += 1000 - pattern.weight() + current.weight();
+		} else if (pattern_weight < 400) {
+			if (current_weight <= pattern_weight) {
+				currentScore += 1000 - pattern_weight + current_weight;
 			} else {
-				currentScore += 1000 - current.weight();
+				currentScore += 1000 - current_weight;
 			}
 		// between 400 and 500 prefer heavier up to 500, then lighter weights
-		} else if (pattern.weight() <= 500) {
-			if (current.weight() >= pattern.weight() && current.weight() <= 500) {
-				currentScore += 1000 + pattern.weight() - current.weight();
-			} else if (current.weight() <= pattern.weight()) {
-				currentScore += 500 + current.weight();
+		} else if (pattern_weight <= 500) {
+			if (current_weight >= pattern_weight && current_weight <= 500) {
+				currentScore += 1000 + pattern_weight - current_weight;
+			} else if (current_weight <= pattern_weight) {
+				currentScore += 500 + current_weight;
 			} else {
-				currentScore += 1000 - current.weight();
+				currentScore += 1000 - current_weight;
 			}
 		// greater than 500 prefer heavier weights
-		} else if (pattern.weight() > 500) {
-			if (current.weight() > pattern.weight()) {
-				currentScore += 1000 + pattern.weight() - current.weight();
+		} else if (pattern_weight > 500) {
+			if (current_weight > pattern_weight) {
+				currentScore += 1000 + pattern_weight - current_weight;
 			} else {
-				currentScore += current.weight();
+				currentScore += current_weight;
 			}
 		}
 

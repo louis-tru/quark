@@ -145,7 +145,7 @@ namespace qk {
 
 			if ( stream ) {
 				int64_t len = buffer.length();
-				reinterpret_cast<Callback<StreamResponse>*>(&cb)->value()->resolve(
+				reinterpret_cast<Callback<StreamResponse>*>(&cb)->get()->resolve(
 					StreamResponse({len, len, buffer, nullptr, 0, true}));
 			} else {
 				async_resolve(cb, std::move(buffer), loop);

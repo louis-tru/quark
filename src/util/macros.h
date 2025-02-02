@@ -120,7 +120,7 @@
 #endif
 
 #define Qk_ASSERT_RAW(cond, ...)\
-	if(Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+	if (Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #if DEBUG
 # define Qk_ASSERT Qk_ASSERT_RAW
 # define Qk_ASSERT_OP(a, op, b, ...) Qk_ASSERT_RAW(((a) op (b)), ##__VA_ARGS__)
@@ -199,22 +199,22 @@
 
 #ifdef _MSC_VER
 	#ifdef Qk_BUILDING_SHARED
-	# define Qk_Export __declspec(dllexport)
+	# define Qk_EXPORT __declspec(dllexport)
 	#elif Qk_USING_SHARED
-	# define Qk_Export __declspec(dllimport)
+	# define Qk_EXPORT __declspec(dllimport)
 	#else
-	# define Qk_Export
+	# define Qk_EXPORT
 	#endif  // Qk_BUILDING_SHARED
 #else  // _MSC_VER
 	// Setup for Linux shared library export.
 	#if __Qk_HAS_ATTRIBUTE_VISIBILITY
 	# ifdef Qk_BUILDING_SHARED
-	#  define Qk_Export __attribute__((visibility("default")))
+	#  define Qk_EXPORT __attribute__((visibility("default")))
 	# else
-	#  define Qk_Export
+	#  define Qk_EXPORT
 	# endif
 	#else
-	# define Qk_Export
+	# define Qk_EXPORT
 	#endif
 #endif // _MSC_VER
 
@@ -271,34 +271,34 @@
 	private: static void* operator new(size_t size) = delete; \
 	private: static void operator delete(void*, size_t) = delete
 
-#define __Qk_DEFINE_PROP_Const
-#define __Qk_DEFINE_PROP_ConstConst const
-#define __Qk_DEFINE_PROP_ConstProtected
-#define __Qk_DEFINE_PROP_ConstProtectedConst const
-#define __Qk_DEFINE_PROP_Modifier private
-#define __Qk_DEFINE_PROP_ModifierConst private
-#define __Qk_DEFINE_PROP_ModifierProtected protected
-#define __Qk_DEFINE_PROP_ModifierProtectedConst protected
+#define __Qk_DEFINE_PROPERTY_
+#define __Qk_DEFINE_PROPERTY_Const const
+#define __Qk_DEFINE_PROPERTY_Protected
+#define __Qk_DEFINE_PROPERTY_ProtectedConst const
+#define __Qk_DEFINE_PROPERTY_Modifier private
+#define __Qk_DEFINE_PROPERTY_ModifierConst private
+#define __Qk_DEFINE_PROPERTY_ModifierProtected protected
+#define __Qk_DEFINE_PROPERTY_ModifierProtectedConst protected
 
-#define Qk_DEFINE_A_GET(type, name, ...) public: \
-	type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__
+#define Qk_DEFINE_ACCE_GET(type, name, ...) public: \
+	type name () __Qk_DEFINE_PROPERTY_##__VA_ARGS__
 
-#define Qk_DEFINE_ACCE(type, name, ...) \
-	Qk_DEFINE_A_GET(type, name, ##__VA_ARGS__); void set_##name (type val)
+#define Qk_DEFINE_ACCESSOR(type, name, ...) \
+	Qk_DEFINE_ACCE_GET(type, name, ##__VA_ARGS__); void set_##name (type val)
 
-#define Qk_DEFINE_P_GET(type, name, ...) \
-	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: type _##name; public:\
-	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name; }
+#define Qk_DEFINE_PROP_GET(type, name, ...) \
+	__Qk_DEFINE_PROPERTY_Modifier##__VA_ARGS__: type _##name; public:\
+	inline type name () __Qk_DEFINE_PROPERTY_##__VA_ARGS__ { return _##name; }
 
-#define Qk_DEFINE_PROP(type, name, ...) \
-	Qk_DEFINE_P_GET(type, name, ##__VA_ARGS__) void set_##name (type val)
+#define Qk_DEFINE_PROPERTY(type, name, ...) \
+	Qk_DEFINE_PROP_GET(type, name, ##__VA_ARGS__) void set_##name (type val)
 
-#define Qk_DEFINE_P_GET_Atomic(type, name, ...) \
-	__Qk_DEFINE_PROP_Modifier##__VA_ARGS__: std::atomic<type> _##name; public:\
-	inline type name () __Qk_DEFINE_PROP_Const##__VA_ARGS__ { return _##name.load(); }
+#define Qk_DEFINE_PROP_GET_Atomic(type, name, ...) \
+	__Qk_DEFINE_PROPERTY_Modifier##__VA_ARGS__: std::atomic<type> _##name; public:\
+	inline type name () __Qk_DEFINE_PROPERTY_##__VA_ARGS__ { return _##name.load(); }
 
-#define Qk_DEFINE_PROP_Atomic(type, name, ...) \
-	Qk_DEFINE_P_GET_Atomic(type, name, ##__VA_ARGS__) void set_##name (type val)
+#define Qk_DEFINE_PROPERTY_Atomic(type, name, ...) \
+	Qk_DEFINE_PROP_GET_Atomic(type, name, ##__VA_ARGS__) void set_##name (type val)
 
 #define __Qk_DEFINE_CLASS(Name) class Name;
 #define __Qk_DEFINE_VISITOR_VISIT(N) virtual void visit##N(N *v) = 0;

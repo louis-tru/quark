@@ -158,7 +158,7 @@ namespace qk { namespace js {
 
 	template<class T> class Maybe {
 		T  _val;
-		Qk_DEFINE_P_GET(bool, ok);
+		Qk_DEFINE_PROP_GET(bool, ok);
 		Maybe(): _ok(false) {}
 		Maybe(const T& t): _val(t),_ok(true) {}
 		Maybe(T&& t): _val(std::move(t)), _ok(true) {}
@@ -167,7 +167,7 @@ namespace qk { namespace js {
 		inline T from(const T& defaultValue) { return _ok ? std::move(_val) : defaultValue; }
 	};
 
-	class Qk_Export HandleScope: public NoCopy {
+	class Qk_EXPORT HandleScope: public NoCopy {
 	public:
 		explicit HandleScope(Worker* worker);
 		~HandleScope();
@@ -176,7 +176,7 @@ namespace qk { namespace js {
 		void *_val[4];
 	};
 
-	class Qk_Export EscapableHandleScope: public HandleScope {
+	class Qk_EXPORT EscapableHandleScope: public HandleScope {
 	public:
 		explicit EscapableHandleScope(Worker* worker);
 		template<class T> inline T* escape(T* val) {
@@ -184,7 +184,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	class Qk_Export TryCatch: public NoCopy {
+	class Qk_EXPORT TryCatch: public NoCopy {
 	public:
 		TryCatch(Worker *worker);
 		~TryCatch();
@@ -196,7 +196,7 @@ namespace qk { namespace js {
 		void *_val;
 	};
 
-	class Qk_Export ReturnValue {
+	class Qk_EXPORT ReturnValue {
 	public:
 		void set(JSValue *value);
 		void set(bool value);
@@ -210,7 +210,7 @@ namespace qk { namespace js {
 		void *_val;
 	};
 
-	class Qk_Export FunctionCallbackInfo {
+	class Qk_EXPORT FunctionCallbackInfo {
 	public:
 		Worker* worker() const;
 		JSObject* thisObj() const;
@@ -220,14 +220,14 @@ namespace qk { namespace js {
 		bool isConstructCall() const;
 	};
 
-	class Qk_Export PropertyCallbackInfo {
+	class Qk_EXPORT PropertyCallbackInfo {
 	public:
 		Worker* worker() const;
 		JSObject* thisObj() const;
 		ReturnValue returnValue() const;
 	};
 
-	class Qk_Export PropertySetCallbackInfo {
+	class Qk_EXPORT PropertySetCallbackInfo {
 	public:
 		Worker* worker() const;
 		JSObject* thisObj() const;
@@ -244,7 +244,7 @@ namespace qk { namespace js {
 	typedef void (*BindingCallback)(JSObject* exports, Worker* worker);
 	typedef void (*AttachCallback)(MixObject* mix);
 
-	class Qk_Export JSValue {
+	class Qk_EXPORT JSValue {
 	public:
 		bool isUndefined() const;
 		bool isNull() const;
@@ -283,7 +283,7 @@ namespace qk { namespace js {
 		inline T* cast() { return static_cast<T*>(this); }
 	};
 
-	class Qk_Export JSString: public JSValue {
+	class Qk_EXPORT JSString: public JSValue {
 	public:
 		int length() const; // utf16 length
 		String value(Worker* worker) const; // utf8 string value
@@ -292,7 +292,7 @@ namespace qk { namespace js {
 		Buffer toBuffer(Worker* worker, Encoding en = kUTF16_Encoding) const; // encode to en
 	};
 
-	class Qk_Export JSObject: public JSValue {
+	class Qk_EXPORT JSObject: public JSValue {
 	public:
 		enum PropertyFlags {
 			None = 0,
@@ -326,7 +326,7 @@ namespace qk { namespace js {
 		Maybe<Array<String>>        getPropertyKeys(Worker* worker);
 	};
 
-	class Qk_Export JSArray: public JSObject {
+	class Qk_EXPORT JSArray: public JSObject {
 	public:
 		int length() const;
 		Maybe<Buffer> toBuffer(Worker* worker);
@@ -334,33 +334,33 @@ namespace qk { namespace js {
 		Maybe<Array<double>> toNumberArray(Worker* worker);
 	};
 
-	class Qk_Export JSDate: public JSObject {
+	class Qk_EXPORT JSDate: public JSObject {
 	public:
 		double valueOf() const;
 	};
 
-	class Qk_Export JSNumber: public JSValue {
+	class Qk_EXPORT JSNumber: public JSValue {
 	public:
 		double value() const;
 		float float32() const;
 	};
 
-	class Qk_Export JSInt32: public JSNumber {
+	class Qk_EXPORT JSInt32: public JSNumber {
 	public:
 		int32_t value() const;
 	};
 
-	class Qk_Export JSUint32: public JSNumber {
+	class Qk_EXPORT JSUint32: public JSNumber {
 	public:
 		uint32_t value() const;
 	};
 
-	class Qk_Export JSBoolean: public JSValue {
+	class Qk_EXPORT JSBoolean: public JSValue {
 	public:
 		bool value() const;
 	};
 
-	class Qk_Export JSFunction: public JSObject {
+	class Qk_EXPORT JSFunction: public JSObject {
 	public:
 		JSValue*  call(Worker* worker, JSValue* recv);
 		JSValue*  call(Worker* worker, int argc = 0, JSValue* argv[] = 0, JSValue* recv = 0);
@@ -368,14 +368,14 @@ namespace qk { namespace js {
 		JSObject* getFunctionPrototype(Worker* worker); // funciton.prototype
 	};
 
-	class Qk_Export JSArrayBuffer: public JSObject {
+	class Qk_EXPORT JSArrayBuffer: public JSObject {
 	public:
 		uint32_t   byteLength(Worker* worker) const;
 		char*      data(Worker* worker);
 		WeakBuffer value(Worker* worker) const;
 	};
 
-	class Qk_Export JSTypedArray: public JSObject {
+	class Qk_EXPORT JSTypedArray: public JSObject {
 	public:
 		JSArrayBuffer* buffer(Worker* worker);
 		WeakBuffer value(Worker* worker) const;
@@ -383,21 +383,21 @@ namespace qk { namespace js {
 		uint32_t byteOffset(Worker* worker) const;
 	};
 
-	class Qk_Export JSUint8Array: public JSTypedArray {
+	class Qk_EXPORT JSUint8Array: public JSTypedArray {
 	};
 
-	class Qk_Export JSSet: public JSObject {
+	class Qk_EXPORT JSSet: public JSObject {
 	public:
 		bool add(Worker* worker, JSValue* key);
 		bool has(Worker* worker, JSValue* key);
 		bool deleteFor(Worker* worker, JSValue* key);
 	};
 
-	class Qk_Export JSClass {
+	class Qk_EXPORT JSClass {
 		Qk_HIDDEN_ALL_COPY(JSClass);
 	public:
-		Qk_DEFINE_P_GET(Worker*, worker, Protected);
-		Qk_DEFINE_P_GET(uint64_t, alias, Protected);
+		Qk_DEFINE_PROP_GET(Worker*, worker, Protected);
+		Qk_DEFINE_PROP_GET(uint64_t, alias, Protected);
 		void exports(cString& name, JSObject* exports);
 		bool hasInstance(JSValue* val);
 		JSFunction* getFunction(); // constructor function
@@ -424,7 +424,7 @@ namespace qk { namespace js {
 
 	template<class T> class Mix;
 
-	class Qk_Export MixObject {
+	class Qk_EXPORT MixObject {
 		Qk_HIDDEN_ALL_COPY(MixObject);
 	public:
 		inline Worker* worker() {
@@ -508,15 +508,15 @@ namespace qk { namespace js {
 		}
 	};
 
-	class Qk_Export Worker: public Object, public SafeFlag {
+	class Qk_EXPORT Worker: public Object, public SafeFlag {
 		Qk_HIDDEN_ALL_COPY(Worker);
 	public:
-		Qk_DEFINE_P_GET(TypesParser*, types, Protected);
-		Qk_DEFINE_P_GET(Strings*, strs, Protected);
-		Qk_DEFINE_P_GET(JsClasses*, classes, Protected);
-		Qk_DEFINE_P_GET(ThreadID, thread_id, Protected);
-		Qk_DEFINE_P_GET(RunLoop*, loop);
-		Qk_DEFINE_A_GET(JSObject*, global);
+		Qk_DEFINE_PROP_GET(TypesParser*, types, Protected);
+		Qk_DEFINE_PROP_GET(Strings*, strs, Protected);
+		Qk_DEFINE_PROP_GET(JsClasses*, classes, Protected);
+		Qk_DEFINE_PROP_GET(ThreadID, thread_id, Protected);
+		Qk_DEFINE_PROP_GET(RunLoop*, loop);
+		Qk_DEFINE_ACCE_GET(JSObject*, global);
 
 		static Worker* Make();
 		static Worker* current();
@@ -612,8 +612,8 @@ namespace qk { namespace js {
 		Persistent<JSObject> _nativeModules;
 	};
 
-	Qk_Export int Start(cString &startup, cArray<String> &argv);
-	Qk_Export int Start(int argc, char** argv);
+	Qk_EXPORT int Start(cString &startup, cArray<String> &argv);
+	Qk_EXPORT int Start(int argc, char** argv);
 
 	// **********************************************************************
 
@@ -645,29 +645,29 @@ namespace qk { namespace js {
 	///
 
 	template<>
-	Qk_Export void Persistent<JSValue>::reset();
+	Qk_EXPORT void Persistent<JSValue>::reset();
 	template<>
 	template<>
-	Qk_Export void Persistent<JSValue>::reset(Worker* worker, JSValue* other);
+	Qk_EXPORT void Persistent<JSValue>::reset(Worker* worker, JSValue* other);
 	template<>
 	template<>
-	Qk_Export void Persistent<JSValue>::copy(const Persistent<JSValue>& that);
+	Qk_EXPORT void Persistent<JSValue>::copy(const Persistent<JSValue>& that);
 	template<>
-	Qk_Export JSValue* Persistent<JSValue>::operator*() const;
+	Qk_EXPORT JSValue* Persistent<JSValue>::operator*() const;
 	template<>
-	Qk_Export JSValue* EscapableHandleScope::escape(JSValue* val);
+	Qk_EXPORT JSValue* EscapableHandleScope::escape(JSValue* val);
 
 	template<>
-	Qk_Export JSValue* JSObject::get(Worker* worker, JSValue* key);
+	Qk_EXPORT JSValue* JSObject::get(Worker* worker, JSValue* key);
 	template<>
-	Qk_Export JSValue* JSObject::get(Worker* worker, uint32_t index);
+	Qk_EXPORT JSValue* JSObject::get(Worker* worker, uint32_t index);
 	template<>
-	Qk_Export JSValue* JSObject::get(Worker* worker, cString& key);
+	Qk_EXPORT JSValue* JSObject::get(Worker* worker, cString& key);
 	template<>
-	Qk_Export bool JSObject::setProperty(Worker* worker, cString& key, JSValue* value);
+	Qk_EXPORT bool JSObject::setProperty(Worker* worker, cString& key, JSValue* value);
 	template<>
-	Qk_Export bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
+	Qk_EXPORT bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
 	template<>
-	Qk_Export bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value);
+	Qk_EXPORT bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value);
 } }
 #endif

@@ -35,14 +35,14 @@
 
 namespace qk {
 
-	class Qk_Export Flow: public Flex {
+	class Qk_EXPORT Flow: public Flex {
 	public:
 		Flow();
 		// define props
 		//!< When enabled, when the spindle overflows, it will split into multiple intersecting axes
-		Qk_DEFINE_VIEW_PROP(Wrap, wrap, Const);
+		Qk_DEFINE_VIEW_PROPERTY(Wrap, wrap, Const);
 		//!< The alignment method of multiple cross axes, if there is only one cross axis, this attribute will not work
-		Qk_DEFINE_VIEW_PROP(WrapAlign, wrap_align, Const);
+		Qk_DEFINE_VIEW_PROPERTY(WrapAlign, wrap_align, Const);
 		// @overwrite
 		virtual ViewType viewType() const override;
 		virtual void layout_reverse(uint32_t mark) override;

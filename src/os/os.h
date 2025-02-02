@@ -35,20 +35,20 @@
 #include <quark/util/array.h>
 
 namespace qk {
-	Qk_Export String os_version();
-	Qk_Export String os_brand();
-	Qk_Export String os_model();
-	Qk_Export String os_info();
-	Qk_Export cArray<String>& os_languages();
-	Qk_Export bool   os_is_wifi();
-	Qk_Export bool   os_is_mobile();
-	Qk_Export int    os_network_interface();
-	Qk_Export bool   os_is_ac_power();
-	Qk_Export bool   os_is_battery();
-	Qk_Export float  os_battery_level();
-	Qk_Export uint64_t os_memory();
-	Qk_Export uint64_t os_used_memory();
-	Qk_Export uint64_t os_available_memory();
-	Qk_Export float os_cpu_usage();
+	Qk_EXPORT String os_version();
+	Qk_EXPORT String os_brand();
+	Qk_EXPORT String os_model();
+	Qk_EXPORT String os_info();
+	Qk_EXPORT cArray<String>& os_languages();
+	Qk_EXPORT bool   os_is_wifi();
+	Qk_EXPORT bool   os_is_mobile();
+	Qk_EXPORT int    os_network_interface();
+	Qk_EXPORT bool   os_is_ac_power();
+	Qk_EXPORT bool   os_is_battery();
+	Qk_EXPORT float  os_battery_level();
+	Qk_EXPORT uint64_t os_memory();
+	Qk_EXPORT uint64_t os_used_memory();
+	Qk_EXPORT uint64_t os_available_memory();
+	Qk_EXPORT float os_cpu_usage();
 }
 #endif

@@ -30,8 +30,8 @@
 
 //@private head
 
-#ifndef __quark__font__custom__custom_tf__
-#define __quark__font__custom__custom_tf__
+#ifndef __quark__font__custom__custom_typeface__
+#define __quark__font__custom__custom_typeface__
 
 #include "../freetype/ft_typeface.h"
 #include "../priv/styleset.h"
@@ -41,7 +41,7 @@
 class QkTypeface_Custom : public QkTypeface_FreeType {
 public:
 	QkTypeface_Custom(const FontStyle& style, bool isFixedPitch,
-					bool sysFont, const String familyName, int index);
+					bool sysFont, cString &familyName, int index);
 	bool isSysFont() const;
 
 protected:
@@ -64,7 +64,7 @@ public:
 protected:
 	Sp<QkFontData> onMakeFontData() const override;
 private:
-	const Sp<const QkFontData> fData;
+	const Sp<QkFontData> fData;
 	using INHERITED = QkTypeface_Custom;
 };
 
@@ -72,7 +72,7 @@ private:
 class QkTypeface_File : public QkTypeface_Custom {
 public:
 	QkTypeface_File(const FontStyle& style, bool isFixedPitch, bool sysFont,
-					const String familyName, cChar path[], int index);
+					cString &familyName, cChar path[], int index);
 protected:
 	Sp<QkFontData> onMakeFontData() const override;
 private:
@@ -96,7 +96,7 @@ public:
 	int count() override;
 	void getStyle(int index, FontStyle* style, String* name) override;
 	Typeface* createTypeface(int index) override;
-	Typeface* matchStyle(const FontStyle& pattern) override;
+	Typeface* matchStyle(FontStyle pattern) override;
 	String getFamilyName();
 
 private:

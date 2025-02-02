@@ -47,29 +47,29 @@ namespace qk {
 		kUNICODE_Encoding = kUCS4_Encoding,
 	};
 
-	Qk_Export Encoding codec_parse_encoding(cString& en);
-	Qk_Export String   codec_encoding_string(Encoding en);
-	Qk_Export uint32_t codec_decode_utf8_to_unichar(const uint8_t *str, uint32_t *out);
-	Qk_Export uint32_t codec_decode_utf16_to_unichar(const uint16_t* str, uint32_t* out);
+	Qk_EXPORT Encoding codec_parse_encoding(cString& en);
+	Qk_EXPORT String   codec_encoding_string(Encoding en);
+	Qk_EXPORT uint32_t codec_decode_utf8_to_unichar(const uint8_t *str, uint32_t *out);
+	Qk_EXPORT uint32_t codec_decode_utf16_to_unichar(const uint16_t* str, uint32_t* out);
 	// encode
-	Qk_Export ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& unicode);
-	Qk_Export ArrayBuffer<char> codec_encode(Encoding target_en, cString& unicode);
-	Qk_Export ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& unicode);
-	Qk_Export ArrayBuffer<char> codec_encode(Encoding target_en, cString2& unicode);
-	Qk_Export ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& unicode);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& unicode);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cString& unicode);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& unicode);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cString2& unicode);
+	Qk_EXPORT ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& unicode);
 	// decode
-	Qk_Export ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cArray<char>& source);
-	Qk_Export ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cString& source);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cArray<char>& source);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_decode_to_unicode(Encoding source_en, cString& source);
 	// It will lose encoding outside UCS1
-	Qk_Export ArrayBuffer<char>     codec_decode_to_ucs1(Encoding source_en, cArray<char>& source);
+	Qk_EXPORT ArrayBuffer<char>     codec_decode_to_ucs1(Encoding source_en, cArray<char>& source);
 	// It will lose encoding outside UCS2
-	Qk_Export ArrayBuffer<uint16_t> codec_decode_to_ucs2(Encoding source_en, cArray<char>& source);
+	Qk_EXPORT ArrayBuffer<uint16_t> codec_decode_to_ucs2(Encoding source_en, cArray<char>& source);
 	// utils
-	Qk_Export ArrayBuffer<uint16_t> codec_unicode_to_utf16(cArray<uint32_t>& unicode);
-	Qk_Export ArrayBuffer<char>     codec_unicode_to_utf8(cArray<uint32_t>& unicode);
-	Qk_Export ArrayBuffer<uint32_t> codec_utf16_to_unicode(cArray<uint16_t>& utf16);
-	Qk_Export ArrayBuffer<uint32_t> codec_utf8_to_unicode(cArray<char>& utf8);
-	Qk_Export ArrayBuffer<char>     codec_utf16_to_utf8(cArray<uint16_t>& utf16);
-	Qk_Export ArrayBuffer<uint16_t> codec_utf8_to_utf16(cArray<char>& utf8);
+	Qk_EXPORT ArrayBuffer<uint16_t> codec_unicode_to_utf16(cArray<uint32_t>& unicode);
+	Qk_EXPORT ArrayBuffer<char>     codec_unicode_to_utf8(cArray<uint32_t>& unicode);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_utf16_to_unicode(cArray<uint16_t>& utf16);
+	Qk_EXPORT ArrayBuffer<uint32_t> codec_utf8_to_unicode(cArray<char>& utf8);
+	Qk_EXPORT ArrayBuffer<char>     codec_utf16_to_utf8(cArray<uint16_t>& utf16);
+	Qk_EXPORT ArrayBuffer<uint16_t> codec_utf8_to_utf16(cArray<char>& utf8);
 }
 #endif

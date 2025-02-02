@@ -28,163 +28,177 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/keyboard.h"
-#include "quark/util/dict.h"
+#include "../../ui/keyboard.h"
 
 namespace qk {
 
-	/**
-	* @class UnixKeyboardAdapter
-	*/
-	class UnixKeyboardAdapter: public KeyboardAdapter {
-		public:
-			UnixKeyboardAdapter();
+	class LinuxKeyboardAdapter: public KeyboardAdapter {
+	public:
+		LinuxKeyboardAdapter();
 	};
 
-	UnixKeyboardAdapter::UnixKeyboardAdapter() {
-		_keycodes[22] = KEYCODE_BACK_SPACE;
-		_keycodes[23] = KEYCODE_TAB;
-		// _keycodes[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
-		_keycodes[36] = KEYCODE_ENTER;
-		_keycodes[50] = KEYCODE_SHIFT;
-		_keycodes[62] = KEYCODE_SHIFT;
-		_keycodes[37] = KEYCODE_CTRL;
-		_keycodes[105] = KEYCODE_CTRL;
-		_keycodes[64] = KEYCODE_ALT;
-		_keycodes[108] = KEYCODE_ALT;
-		_keycodes[66] = KEYCODE_CAPS_LOCK;
-		_keycodes[9] = KEYCODE_ESC;
-		_keycodes[65] = KEYCODE_SPACE;
-		_keycodes[133] = KEYCODE_COMMAND; // Pending query
-		_keycodes[113] = KEYCODE_LEFT;
-		_keycodes[111] = KEYCODE_UP;
-		_keycodes[114] = KEYCODE_RIGHT;
-		_keycodes[116] = KEYCODE_DOWN;
-		_keycodes[118] = KEYCODE_INSERT;
-		_keycodes[119] = KEYCODE_DELETE;
-		_keycodes[112] = KEYCODE_PAGE_UP;
-		_keycodes[117] = KEYCODE_PAGE_DOWN;
-		_keycodes[115] = KEYCODE_MOVE_END;
-		_keycodes[110] = KEYCODE_MOVE_HOME;
-		_keycodes[78] = KEYCODE_SCROLL_LOCK;
-		_keycodes[127] = KEYCODE_BREAK;
-		_keycodes[107] = KEYCODE_SYSRQ;
-		_keycodes[19] = KEYCODE_0;
-		_keycodes[10] = KEYCODE_1;
-		_keycodes[11] = KEYCODE_2;
-		_keycodes[12] = KEYCODE_3;
-		_keycodes[13] = KEYCODE_4;
-		_keycodes[14] = KEYCODE_5;
-		_keycodes[15] = KEYCODE_6;
-		_keycodes[16] = KEYCODE_7;
-		_keycodes[17] = KEYCODE_8;
-		_keycodes[18] = KEYCODE_9;
-		_keycodes[38] = KEYCODE_A;
-		_keycodes[56] = KEYCODE_B;
-		_keycodes[54] = KEYCODE_C;
-		_keycodes[40] = KEYCODE_D;
-		_keycodes[26] = KEYCODE_E;
-		_keycodes[41] = KEYCODE_F;
-		_keycodes[42] = KEYCODE_G;
-		_keycodes[43] = KEYCODE_H;
-		_keycodes[31] = KEYCODE_I;
-		_keycodes[44] = KEYCODE_J;
-		_keycodes[45] = KEYCODE_K;
-		_keycodes[46] = KEYCODE_L;
-		_keycodes[58] = KEYCODE_M;
-		_keycodes[57] = KEYCODE_N;
-		_keycodes[32] = KEYCODE_O;
-		_keycodes[33] = KEYCODE_P;
-		_keycodes[24] = KEYCODE_Q;
-		_keycodes[27] = KEYCODE_R;
-		_keycodes[39] = KEYCODE_S;
-		_keycodes[28] = KEYCODE_T;
-		_keycodes[30] = KEYCODE_U;
-		_keycodes[55] = KEYCODE_V;
-		_keycodes[25] = KEYCODE_W;
-		_keycodes[53] = KEYCODE_X;
-		_keycodes[29] = KEYCODE_Y;
-		_keycodes[52] = KEYCODE_Z;
-		_keycodes[77] = KEYCODE_NUM_LOCK;
-		_keycodes[90] = KEYCODE_NUMPAD_0;
-		_keycodes[87] = KEYCODE_NUMPAD_1;
-		_keycodes[88] = KEYCODE_NUMPAD_2;
-		_keycodes[89] = KEYCODE_NUMPAD_3;
-		_keycodes[83] = KEYCODE_NUMPAD_4;
-		_keycodes[84] = KEYCODE_NUMPAD_5;
-		_keycodes[85] = KEYCODE_NUMPAD_6;
-		_keycodes[79] = KEYCODE_NUMPAD_7;
-		_keycodes[80] = KEYCODE_NUMPAD_8;
-		_keycodes[81] = KEYCODE_NUMPAD_9;
-		_keycodes[106] = KEYCODE_NUMPAD_DIVIDE;
-		_keycodes[63] = KEYCODE_NUMPAD_MULTIPLY;
-		_keycodes[82] = KEYCODE_NUMPAD_SUBTRACT;
-		_keycodes[86] = KEYCODE_NUMPAD_ADD;
-		_keycodes[91] = KEYCODE_NUMPAD_DOT;
-		_keycodes[104] = KEYCODE_NUMPAD_ENTER;
-		_keycodes[67] = KEYCODE_F1;
-		_keycodes[68] = KEYCODE_F2;
-		_keycodes[69] = KEYCODE_F3;
-		_keycodes[70] = KEYCODE_F4;
-		_keycodes[71] = KEYCODE_F5;
-		_keycodes[72] = KEYCODE_F6;
-		_keycodes[73] = KEYCODE_F7;
-		_keycodes[74] = KEYCODE_F8;
-		_keycodes[75] = KEYCODE_F9;
-		_keycodes[76] = KEYCODE_F10;
-		_keycodes[95] = KEYCODE_F11;
-		_keycodes[96] = KEYCODE_F12;
-		_keycodes[47] = KEYCODE_SEMICOLON; // :
-		_keycodes[21] = KEYCODE_EQUALS; // =
-		_keycodes[20] = KEYCODE_MINUS; // -
-		_keycodes[59] = KEYCODE_COMMA; // ,
-		_keycodes[60] = KEYCODE_PERIOD; // .
-		_keycodes[61] = KEYCODE_SLASH;
-		_keycodes[49] = KEYCODE_GRAVE;
-		_keycodes[34] = KEYCODE_LEFT_BRACKET;
-		_keycodes[51] = KEYCODE_BACK_SLASH;
-		_keycodes[35] = KEYCODE_RIGHT_BRACKET;
-		_keycodes[48] = KEYCODE_APOSTROPHE;
-		_keycodes[180] = KEYCODE_HOME;
-		// _keycodes[0] = KEYCODE_BACK;                 /* 返回键 */
-		// _keycodes[0] = KEYCODE_CALL;                 /* 拨号键 */
-		// _keycodes[0] = KEYCODE_ENDCALL;              /* 挂机键 */
-		// _keycodes[0] = KEYCODE_STAR;                 /* * */
-		// _keycodes[0] = KEYCODE_POUND;                /* # */
-		// _keycodes[0] = KEYCODE_CENTER;               /* 导航键 确定键 */
-		_keycodes[123] = KEYCODE_VOLUME_UP;
-		_keycodes[122] = KEYCODE_VOLUME_DOWN;
-		_keycodes[124] = KEYCODE_POWER;
-		// _keycodes[0] = KEYCODE_CAMERA;               /* 拍照键 */
-		// _keycodes[0] = KEYCODE_FOCUS;                /* 拍照对焦键 */
-		_keycodes[135] = KEYCODE_MENU;
-		// _keycodes[0] = KEYCODE_SEARCH;               /* 搜索键 */
-		_keycodes[172] = KEYCODE_MEDIA_PLAY_PAUSE;
-		_keycodes[174] = KEYCODE_MEDIA_STOP;
-		_keycodes[171] = KEYCODE_MEDIA_NEXT;
-		_keycodes[173] = KEYCODE_MEDIA_PREVIOUS;
-		// _keycodes[0] = KEYCODE_MEDIA_REWIND;         /* 多媒体键 快退 */
-		// _keycodes[0] = KEYCODE_MEDIA_FAST_FORWARD;   /* 多媒体键 快进 */
-		// _keycodes[0] = KEYCODE_MUTE;                 /* 话筒静音键 */
-		// _keycodes[0] = KEYCODE_CHANNEL_UP;           /* 按键Channel up */
-		// _keycodes[0] = KEYCODE_CHANNEL_DOWN;         /* 按键Channel down */
-		// _keycodes[0] = KEYCODE_MEDIA_PLAY;           /* 多媒体键 播放 */
-		// _keycodes[0] = KEYCODE_MEDIA_PAUSE;          /* 多媒体键 暂停 */
-		// _keycodes[0] = KEYCODE_MEDIA_CLOSE;          /* 多媒体键 关闭 */
-		// _keycodes[0] = KEYCODE_MEDIA_EJECT;          /* 多媒体键 弹出 */
-		// _keycodes[0] = KEYCODE_MEDIA_RECORD;         /* 多媒体键 录音 */
-		_keycodes[121] = KEYCODE_VOLUME_MUTE;
-		_keycodes[179] = KEYCODE_MUSIC;
-		// _keycodes[0] = KEYCODE_EXPLORER;             /* 按键Explorer special function */
-		// _keycodes[0] = KEYCODE_ENVELOPE;             /* 按键Envelope special function */ 
-		_keycodes[164] = KEYCODE_BOOKMARK;              /* 按键Bookmark */
-		// _keycodes[0] = KEYCODE_ZOOM_IN;              /* 放大键 */
-		// _keycodes[0] = KEYCODE_ZOOM_OUT;             /* 缩小键 */
-		// _keycodes[0] = KEYCODE_HELP;                 /* Help */
+	LinuxKeyboardAdapter::LinuxKeyboardAdapter() {
+		_PlatformKeyCodeToKeyCode[AKEYCODE_UNKNOWN] = KEYCODE_UNKNOWN;
+		_PlatformKeyCodeToKeyCode[22] = KEYCODE_BACK_SPACE;
+		_PlatformKeyCodeToKeyCode[23] = KEYCODE_TAB;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
+		_PlatformKeyCodeToKeyCode[36] = KEYCODE_ENTER;
+		_PlatformKeyCodeToKeyCode[50] = KEYCODE_SHIFT;
+		_PlatformKeyCodeToKeyCode[62] = KEYCODE_SHIFT;
+		_PlatformKeyCodeToKeyCode[37] = KEYCODE_CTRL;
+		_PlatformKeyCodeToKeyCode[105] = KEYCODE_CTRL;
+		_PlatformKeyCodeToKeyCode[64] = KEYCODE_ALT;
+		_PlatformKeyCodeToKeyCode[108] = KEYCODE_ALT;
+		_PlatformKeyCodeToKeyCode[127] = KEYCODE_BREAK;
+		_PlatformKeyCodeToKeyCode[66] = KEYCODE_CAPS_LOCK;
+		_PlatformKeyCodeToKeyCode[9] = KEYCODE_ESC;
+		_PlatformKeyCodeToKeyCode[65] = KEYCODE_SPACE;
+		_PlatformKeyCodeToKeyCode[112] = KEYCODE_PAGE_UP;
+		_PlatformKeyCodeToKeyCode[117] = KEYCODE_PAGE_DOWN;
+		_PlatformKeyCodeToKeyCode[115] = KEYCODE_MOVE_END;
+		_PlatformKeyCodeToKeyCode[110] = KEYCODE_MOVE_HOME;
+		_PlatformKeyCodeToKeyCode[113] = KEYCODE_LEFT;
+		_PlatformKeyCodeToKeyCode[111] = KEYCODE_UP;
+		_PlatformKeyCodeToKeyCode[114] = KEYCODE_RIGHT;
+		_PlatformKeyCodeToKeyCode[116] = KEYCODE_DOWN;
+		_PlatformKeyCodeToKeyCode[118] = KEYCODE_INSERT;
+		_PlatformKeyCodeToKeyCode[119] = KEYCODE_DELETE;
+		_PlatformKeyCodeToKeyCode[107] = KEYCODE_SYSRQ;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_HELP;
+		_PlatformKeyCodeToKeyCode[19] = KEYCODE_0;
+		_PlatformKeyCodeToKeyCode[10] = KEYCODE_1;
+		_PlatformKeyCodeToKeyCode[11] = KEYCODE_2;
+		_PlatformKeyCodeToKeyCode[12] = KEYCODE_3;
+		_PlatformKeyCodeToKeyCode[13] = KEYCODE_4;
+		_PlatformKeyCodeToKeyCode[14] = KEYCODE_5;
+		_PlatformKeyCodeToKeyCode[15] = KEYCODE_6;
+		_PlatformKeyCodeToKeyCode[16] = KEYCODE_7;
+		_PlatformKeyCodeToKeyCode[17] = KEYCODE_8;
+		_PlatformKeyCodeToKeyCode[18] = KEYCODE_9;
+		_PlatformKeyCodeToKeyCode[38] = KEYCODE_A;
+		_PlatformKeyCodeToKeyCode[56] = KEYCODE_B;
+		_PlatformKeyCodeToKeyCode[54] = KEYCODE_C;
+		_PlatformKeyCodeToKeyCode[40] = KEYCODE_D;
+		_PlatformKeyCodeToKeyCode[26] = KEYCODE_E;
+		_PlatformKeyCodeToKeyCode[41] = KEYCODE_F;
+		_PlatformKeyCodeToKeyCode[42] = KEYCODE_G;
+		_PlatformKeyCodeToKeyCode[43] = KEYCODE_H;
+		_PlatformKeyCodeToKeyCode[31] = KEYCODE_I;
+		_PlatformKeyCodeToKeyCode[44] = KEYCODE_J;
+		_PlatformKeyCodeToKeyCode[45] = KEYCODE_K;
+		_PlatformKeyCodeToKeyCode[46] = KEYCODE_L;
+		_PlatformKeyCodeToKeyCode[58] = KEYCODE_M;
+		_PlatformKeyCodeToKeyCode[57] = KEYCODE_N;
+		_PlatformKeyCodeToKeyCode[32] = KEYCODE_O;
+		_PlatformKeyCodeToKeyCode[33] = KEYCODE_P;
+		_PlatformKeyCodeToKeyCode[24] = KEYCODE_Q;
+		_PlatformKeyCodeToKeyCode[27] = KEYCODE_R;
+		_PlatformKeyCodeToKeyCode[39] = KEYCODE_S;
+		_PlatformKeyCodeToKeyCode[28] = KEYCODE_T;
+		_PlatformKeyCodeToKeyCode[30] = KEYCODE_U;
+		_PlatformKeyCodeToKeyCode[55] = KEYCODE_V;
+		_PlatformKeyCodeToKeyCode[25] = KEYCODE_W;
+		_PlatformKeyCodeToKeyCode[53] = KEYCODE_X;
+		_PlatformKeyCodeToKeyCode[29] = KEYCODE_Y;
+		_PlatformKeyCodeToKeyCode[52] = KEYCODE_Z;
+		_PlatformKeyCodeToKeyCode[133] = KEYCODE_COMMAND;
+		_PlatformKeyCodeToKeyCode[135] = KEYCODE_MENU;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_COMMAND_RIGHT;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_NUMPAD_EQUALS;
+		_PlatformKeyCodeToKeyCode[90] = KEYCODE_NUMPAD_0;
+		_PlatformKeyCodeToKeyCode[87] = KEYCODE_NUMPAD_1;
+		_PlatformKeyCodeToKeyCode[88] = KEYCODE_NUMPAD_2;
+		_PlatformKeyCodeToKeyCode[89] = KEYCODE_NUMPAD_3;
+		_PlatformKeyCodeToKeyCode[83] = KEYCODE_NUMPAD_4;
+		_PlatformKeyCodeToKeyCode[84] = KEYCODE_NUMPAD_5;
+		_PlatformKeyCodeToKeyCode[85] = KEYCODE_NUMPAD_6;
+		_PlatformKeyCodeToKeyCode[79] = KEYCODE_NUMPAD_7;
+		_PlatformKeyCodeToKeyCode[80] = KEYCODE_NUMPAD_8;
+		_PlatformKeyCodeToKeyCode[81] = KEYCODE_NUMPAD_9;
+		_PlatformKeyCodeToKeyCode[63] = KEYCODE_NUMPAD_MULTIPLY;
+		_PlatformKeyCodeToKeyCode[86] = KEYCODE_NUMPAD_ADD;
+		_PlatformKeyCodeToKeyCode[104] = KEYCODE_NUMPAD_ENTER;
+		_PlatformKeyCodeToKeyCode[82] = KEYCODE_NUMPAD_SUBTRACT;
+		_PlatformKeyCodeToKeyCode[91] = KEYCODE_NUMPAD_DOT;
+		_PlatformKeyCodeToKeyCode[106] = KEYCODE_NUMPAD_DIVIDE;
+		_PlatformKeyCodeToKeyCode[67] = KEYCODE_F1;
+		_PlatformKeyCodeToKeyCode[68] = KEYCODE_F2;
+		_PlatformKeyCodeToKeyCode[69] = KEYCODE_F3;
+		_PlatformKeyCodeToKeyCode[70] = KEYCODE_F4;
+		_PlatformKeyCodeToKeyCode[71] = KEYCODE_F5;
+		_PlatformKeyCodeToKeyCode[72] = KEYCODE_F6;
+		_PlatformKeyCodeToKeyCode[73] = KEYCODE_F7;
+		_PlatformKeyCodeToKeyCode[74] = KEYCODE_F8;
+		_PlatformKeyCodeToKeyCode[75] = KEYCODE_F9;
+		_PlatformKeyCodeToKeyCode[76] = KEYCODE_F10;
+		_PlatformKeyCodeToKeyCode[95] = KEYCODE_F11;
+		_PlatformKeyCodeToKeyCode[96] = KEYCODE_F12;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F13] = KEYCODE_F13;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F14] = KEYCODE_F14;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F15] = KEYCODE_F15;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F16] = KEYCODE_F16;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F17] = KEYCODE_F17;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F18] = KEYCODE_F18;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F19] = KEYCODE_F19;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F20] = KEYCODE_F20;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F21] = KEYCODE_F21;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F22] = KEYCODE_F22;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F23] = KEYCODE_F23;
+		// _PlatformKeyCodeToKeyCode[AKEYCODE_F24] = KEYCODE_F24;
+		_PlatformKeyCodeToKeyCode[77] = KEYCODE_NUM_LOCK;
+		_PlatformKeyCodeToKeyCode[78] = KEYCODE_SCROLL_LOCK;
+		_PlatformKeyCodeToKeyCode[47] = KEYCODE_SEMICOLON;
+		_PlatformKeyCodeToKeyCode[21] = KEYCODE_EQUALS;
+		_PlatformKeyCodeToKeyCode[20] = KEYCODE_MINUS;
+		_PlatformKeyCodeToKeyCode[59] = KEYCODE_COMMA;
+		_PlatformKeyCodeToKeyCode[60] = KEYCODE_PERIOD;
+		_PlatformKeyCodeToKeyCode[61] = KEYCODE_SLASH;
+		_PlatformKeyCodeToKeyCode[49] = KEYCODE_GRAVE;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_FUN;
+		_PlatformKeyCodeToKeyCode[34] = KEYCODE_LEFT_BRACKET;
+		_PlatformKeyCodeToKeyCode[51] = KEYCODE_BACK_SLASH;
+		_PlatformKeyCodeToKeyCode[35] = KEYCODE_RIGHT_BRACKET;
+		_PlatformKeyCodeToKeyCode[48] = KEYCODE_APOSTROPHE;
+		/* --------------------------------------------------- */
+		_PlatformKeyCodeToKeyCode[180] = KEYCODE_HOME;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_BACK;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_CALL;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_ENDCALL;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_STAR;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_POUND;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_CENTER;
+		_PlatformKeyCodeToKeyCode[123] = KEYCODE_VOLUME_UP;
+		_PlatformKeyCodeToKeyCode[122] = KEYCODE_VOLUME_DOWN;
+		_PlatformKeyCodeToKeyCode[124] = KEYCODE_POWER;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_CAMERA;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_FOCUS;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MENU_1;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_SEARCH;
+		_PlatformKeyCodeToKeyCode[172] = KEYCODE_MEDIA_PLAY_PAUSE;
+		_PlatformKeyCodeToKeyCode[174] = KEYCODE_MEDIA_STOP;
+		_PlatformKeyCodeToKeyCode[171] = KEYCODE_MEDIA_NEXT;
+		_PlatformKeyCodeToKeyCode[173] = KEYCODE_MEDIA_PREVIOUS;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MEDIA_REWIND;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MEDIA_FAST_FORWARD;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MUTE;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_CHANNEL_UP;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_CHANNEL_DOWN;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MEDIA_PLAY;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MEDIA_PAUSE;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MEDIA_CLOSE;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MEDIA_EJECT;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_MEDIA_RECORD;
+		_PlatformKeyCodeToKeyCode[121] = KEYCODE_VOLUME_MUTE;
+		_PlatformKeyCodeToKeyCode[179] = KEYCODE_MUSIC;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_EXPLORER;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_ENVELOPE;
+		_PlatformKeyCodeToKeyCode[164] = KEYCODE_BOOKMARK;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_ZOOM_IN;
+		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_ZOOM_OUT;
 	}
 
 	KeyboardAdapter* KeyboardAdapter::create(host) {
-		return new UnixKeyboardAdapter();
+		return new LinuxKeyboardAdapter();
 	}
 
 }

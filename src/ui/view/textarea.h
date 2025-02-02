@@ -36,7 +36,7 @@
 
 namespace qk {
 
-	class Qk_Export Textarea: public Input, public ScrollBase {
+	class Qk_EXPORT Textarea: public Input, public ScrollBase {
 	public:
 		Textarea();
 		virtual ViewType viewType() const override;

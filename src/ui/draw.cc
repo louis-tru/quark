@@ -193,7 +193,7 @@ namespace qk {
 
 		Paint paint0;
 		ImagePaint paint;
-		paint.setImage(src.value(), {{x,y}, {w,h}});
+		paint.setImage(src.get(), {{x,y}, {w,h}});
 		paint0.image = &paint;
 		paint0.color.set_a(_opacity);
 
@@ -484,7 +484,7 @@ namespace qk {
 			paint.tileModeY = ImagePaint::kDecal_TileMode;
 			paint.filterMode = ImagePaint::kLinear_FilterMode;
 			paint.mipmapMode = ImagePaint::kNearest_MipmapMode;
-			paint.setImage(src.value(), data.inside->rect);
+			paint.setImage(src.get(), data.inside->rect);
 			_canvas->drawPathv(*data.inside, p0);
 		}
 		drawBoxBorder(v, data);

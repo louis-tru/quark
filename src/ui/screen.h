@@ -41,7 +41,7 @@ namespace qk {
 	/**
 	 * @class Screen some common method properties and events for display and screen
 	*/
-	class Qk_Export Screen: public Object {
+	class Qk_EXPORT Screen: public Object {
 		Qk_HIDDEN_ALL_COPY(Screen);
 	public:
 		enum Orientation {
@@ -57,7 +57,7 @@ namespace qk {
 		};
 
 		enum StatusBarStyle {
-			kWhite = 0,
+			kWhite,
 			kBlack,
 		};
 
@@ -66,9 +66,9 @@ namespace qk {
 		*/
 		Qk_Event(Orientation);
 
-		Qk_DEFINE_P_GET(Application*, host); // host app
-		Qk_DEFINE_ACCE(Orientation, orientation, Const); // orientation
-		Qk_DEFINE_A_GET(float, status_bar_height, Const); // status_bar_height
+		Qk_DEFINE_PROP_GET(Application*, host); // host app
+		Qk_DEFINE_ACCESSOR(Orientation, orientation, Const); // orientation
+		Qk_DEFINE_ACCE_GET(float, status_bar_height, Const); // status_bar_height
 
 		/**
 		 * @constructor

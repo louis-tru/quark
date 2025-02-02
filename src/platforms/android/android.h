@@ -29,11 +29,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_platforms_android_android__
-#define __quark_platforms_android_android__
+#ifndef __quark_platforms_android__android__
+#define __quark_platforms_android__android__
 
 #include ".././util/macros.h"
-
 #if Qk_ANDROID
 #include "../../util/jni.h"
 
@@ -56,7 +55,8 @@ namespace qk {
 		static void set_volume_up();
 		static void set_volume_down();
 		static void open_url(cString& url);
-		static void send_email(cString& recipient, cString& subject, cString& cc, cString& bcc, cString& body);
+		static void send_email(cString& recipient,
+			cString& subject, cString& cc, cString& bcc, cString& body);
 		static String start_cmd();
 		static String version();
 		static String brand();
@@ -73,7 +73,8 @@ namespace qk {
 }
 
 extern "C" {
-	Qk_Export void Java_org_quark_Android_initPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir);
+	Qk_EXPORT void Java_org_quark_Android_initPaths(JNIEnv* env,
+		jclass clazz, jstring package, jstring files_dir, jstring cache_dir);
 }
 
 #endif

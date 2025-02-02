@@ -41,7 +41,7 @@ namespace qk {
 	 * @class FontFamilies
 	 * @safe Rt
 	*/
-	class Qk_Export FontFamilies: public Object {
+	class Qk_EXPORT FontFamilies: public Object {
 	public:
 		FontFamilies(FontPool* pool, cArray<String>& families);
 		Sp<Typeface> match(FontStyle style, uint32_t index = 0);

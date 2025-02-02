@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	class Qk_Export Free: public Box {
+	class Qk_EXPORT Free: public Box {
 	public:
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual ViewType viewType() const override;

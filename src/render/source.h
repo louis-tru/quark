@@ -44,7 +44,7 @@ namespace qk {
 	/**
 	 * @class ImageSource
 	 */
-	class Qk_Export ImageSource: public Reference {
+	class Qk_EXPORT ImageSource: public Reference {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_HIDDEN_ALL_COPY(ImageSource);
 	public:
@@ -62,8 +62,8 @@ namespace qk {
 		Qk_Event(State, Event<ImageSource, State>, Mutex);
 
 		// Defines props
-		Qk_DEFINE_P_GET(String, uri, Const);
-		Qk_DEFINE_P_GET(State, state, Const);
+		Qk_DEFINE_PROP_GET(String, uri, Const);
+		Qk_DEFINE_PROP_GET(State, state, Const);
 
 		// <FlowLayout>
 		// 	<Image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
@@ -173,11 +173,11 @@ namespace qk {
 	/**
 	* @class ImageSourcePool
 	*/
-	class Qk_Export ImageSourcePool: public Object {
+	class Qk_EXPORT ImageSourcePool: public Object {
 		Qk_HIDDEN_ALL_COPY(ImageSourcePool);
 	public:
-		Qk_DEFINE_P_GET(RunLoop*, loop);
-		Qk_DEFINE_P_GET(uint32_t, capacity, Const); // Used memory size total
+		Qk_DEFINE_PROP_GET(RunLoop*, loop);
+		Qk_DEFINE_PROP_GET(uint32_t, capacity, Const); // Used memory size total
 
 		/**
 		 * @constructor
@@ -226,12 +226,12 @@ namespace qk {
 	/**
 	* @class ImageSourceHold
 	*/
-	class Qk_Export ImageSourceHold {
+	class Qk_EXPORT ImageSourceHold {
 	public:
 		ImageSourceHold();
 		~ImageSourceHold();
-		Qk_DEFINE_ACCE(String, src, Const);
-		Qk_DEFINE_ACCE(Sp<ImageSource>, source);
+		Qk_DEFINE_ACCESSOR(String, src, Const);
+		Qk_DEFINE_ACCESSOR(Sp<ImageSource>, source);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);

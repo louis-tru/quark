@@ -56,7 +56,7 @@ namespace qk {
 	typedef std::lock_guard<Mutex>        ScopeLock;
 	typedef std::condition_variable       Condition;
 
-	template<> Qk_Export
+	template<> Qk_EXPORT
 	uint64_t Compare<ThreadID>::hashCode(const ThreadID& key);
 
 	struct CondMutex {
@@ -77,26 +77,26 @@ namespace qk {
 	};
 	typedef const Thread cThread;
 
-	Qk_Export ThreadID thread_new(void exec(cThread *t, void* arg), void* arg, cString& tag = String());
-	Qk_Export ThreadID thread_new(std::function<void(cThread *t)> func, cString& tag = String());
+	Qk_EXPORT ThreadID thread_new(void exec(cThread *t, void* arg), void* arg, cString& tag = String());
+	Qk_EXPORT ThreadID thread_new(std::function<void(cThread *t)> func, cString& tag = String());
 	//!< sleep The current thread cannot be awakened
-	Qk_Export void     thread_sleep(uint64_t timeoutUs = 0);
+	Qk_EXPORT void     thread_sleep(uint64_t timeoutUs = 0);
 	//!< Pause the current operation can be awakened by 'resume()'
-	Qk_Export void     thread_pause(uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
-	Qk_Export void     thread_resume(ThreadID id, int abort = 0); //!< resume thread running and try abort
-	Qk_Export void     thread_try_abort(ThreadID id); // !< try abort thread, abort=-1
+	Qk_EXPORT void     thread_pause(uint64_t timeoutUs = 0 /*Less than 1 permanent wait*/);
+	Qk_EXPORT void     thread_resume(ThreadID id, int abort = 0); //!< resume thread running and try abort
+	Qk_EXPORT void     thread_try_abort(ThreadID id); // !< try abort thread, abort=-1
 	//!< wait for the target 'id' thread to end, param `timeoutUs` less than 1 permanent wait
-	Qk_Export void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
-	Qk_Export ThreadID thread_self_id();
-	Qk_Export cThread* thread_self(); // return the self thread object created by `thread_new`
-	Qk_Export void     thread_exit(int exit_rc); // !< try abort all thread and exit process, abort=-2
+	Qk_EXPORT void     thread_join_for(ThreadID id, uint64_t timeoutUs = 0);
+	Qk_EXPORT ThreadID thread_self_id();
+	Qk_EXPORT cThread* thread_self(); // return the self thread object created by `thread_new`
+	Qk_EXPORT void     thread_exit(int exit_rc); // !< try abort all thread and exit process, abort=-2
 
-	Qk_Export EventNoticer<Event<void, int>, Mutex>& onProcessExit();
+	Qk_EXPORT EventNoticer<Event<void, int>, Mutex>& onProcessExit();
 
 	/**
 	* @class PostMessage
 	*/
-	class Qk_Export PostMessage {
+	class Qk_EXPORT PostMessage {
 	public:
 		virtual void post_message(Cb cb) = 0;
 	};
@@ -104,7 +104,7 @@ namespace qk {
 	/**
 	* @class RunLoop
 	*/
-	class Qk_Export RunLoop: public Object, public PostMessage {
+	class Qk_EXPORT RunLoop: public Object, public PostMessage {
 		Qk_HIDDEN_ALL_COPY(RunLoop);
 	public:
 		/**

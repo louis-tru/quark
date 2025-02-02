@@ -63,6 +63,7 @@ public:
 		, fLang(lang)
 		, fVariantStyle(variantStyle)
 		, fCacheFontFiles(cacheFontFiles) {
+		initFreeType();
 	}
 
 	Sp<QkStream> makeStream() const {
@@ -95,7 +96,9 @@ public:
 							cString& familiesName)
 		: QkTypeface_Android(style, isFixedPitch, familiesName)
 		, fData(std::move(data))
-	{}
+	{
+		initFreeType();
+	}
 
 	Sp<QkFontData> onMakeFontData() const override {
 		return new QkFontData(*fData.value());

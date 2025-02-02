@@ -153,7 +153,7 @@ namespace qk {
 
 extern "C" 
 {
-	Qk_Export jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+	Qk_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 		javavm = vm;
 		return JNI_VERSION_1_6;
 	}

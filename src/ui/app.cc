@@ -39,7 +39,7 @@
 #include "./window.h"
 #include "./css/css.h"
 
-Qk_Export int (*__qk_run_main__)(int, char**) = nullptr;
+Qk_EXPORT int (*__qk_run_main__)(int, char**) = nullptr;
 
 namespace qk {
 	typedef Application::Inl AppInl;
@@ -215,7 +215,9 @@ namespace qk {
 	}
 
 	void AppInl::triggerOrientation() {
-		_loop->post(Cb([](Cb::Data& d, AppInl* app) { app->screen()->Qk_Trigger(Orientation); }, this));
+		_loop->post(Cb([](Cb::Data& d, AppInl* app) {
+			app->screen()->Qk_Trigger(Orientation);
+		}, this));
 	}
 
 	void AppInl::setActiveWindow(Window *win) {

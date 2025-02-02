@@ -153,7 +153,7 @@ namespace qk {
 	void ImageSource::_Decode(Buffer& data) {
 		struct Running: Cb::Core {
 			void call(Data& evt) override {
-				auto self = source.value();
+				auto self = source.get();
 				if (self->_state & kSTATE_LOADING) {
 					if (isComplete) { // decode image complete
 						self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
@@ -194,7 +194,7 @@ namespace qk {
 		struct Running: Cb::Core {
 			Running(ImageSource* s, Array<Pixel>& p): source(s), pixels(std::move(p)){}
 			void call(Data& evt) override {
-				auto self = source.value();
+				auto self = source.get();
 				int i = 0;
 				int len = pixels.length(), old_len = self->_tex_Rt.length();
 				Array<const TexStat*> texStat(len);
@@ -303,7 +303,7 @@ namespace qk {
 		// find image source by path
 		auto it = _sources.find(id);
 		if ( it != _sources.end() ) {
-			return it->value.source.value();
+			return it->value.source.get();
 		}
 		auto source = ImageSource::Make(_uri, _loop);
 		source->Qk_On(State, &ImageSourcePool::handleSourceState, this);
@@ -380,7 +380,7 @@ namespace qk {
 
 	void ImageSourceHold::set_source(Sp<ImageSource> source) {
 		auto oldSrc = _imageSource.load();
-		auto newSrc = source.value();
+		auto newSrc = source.get();
 		if (oldSrc != newSrc) {
 			_imageSource = newSrc;
 			if (newSrc) {

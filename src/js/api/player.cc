@@ -116,7 +116,7 @@ namespace qk { namespace js {
 
 		Js_UIObject_Accessor(Player, String, src, src);
 
-		// Qk_DEFINE_A_GET(MediaSource*, media_source);
+		// Qk_DEFINE_ACCE_GET(MediaSource*, media_source);
 
 		Js_Class_Accessor_Get(video, {
 			Js_UISelf(Player);

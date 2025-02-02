@@ -98,7 +98,7 @@ public:
 		using AxisDefinitions = Array<AxisDefinition>;
 		bool recognizedFont(QkStream* stream, int* numFonts) const;
 		bool scanFont(QkStream* stream, int ttcIndex,
-					String* name, QkFontStyle* style, bool* isFixedPitch, AxisDefinitions* axes) const;
+									String* name, FontStyle* style, bool* isFixedPitch, AxisDefinitions* axes) const;
 		static void computeAxisValues(
 			AxisDefinitions axisDefinitions,
 			const FontArguments::VariationPosition position,
@@ -110,7 +110,7 @@ public:
 	private:
 		FT_Face openFace(QkStream* stream, int ttcIndex, FT_Stream ftStream) const;
 		FT_Library fLibrary;
-		mutable Mutex fLibraryMutex;
+		mutable QkMutex fLibraryMutex;
 	};
 
 	/** Fetch units/EM from "head" table if needed (ie for bitmap fonts) */
@@ -122,7 +122,7 @@ public:
 	Sp<QkFontData> makeFontData() const;
 
 	class FaceRec;
-	inline FaceRec* getFaceRec() const { return fFaceRec.value(); }
+	inline FaceRec* getFaceRec() const { return fFaceRec.get(); }
 
 	inline SharedMutex& ft_mutex() const { return mutex(); }
 
@@ -130,7 +130,7 @@ protected:
 
 	QkTypeface_FreeType(const FontStyle& style, uint16_t flags);
 	~QkTypeface_FreeType() override;
-
+	void initFreeType();
 	bool onGetPostScriptName(String*) const override;
 	int onGetUPEM() const override;
 	void onCharsToGlyphs(const Unichar uni[], int count, GlyphID glyphs[]) const override;

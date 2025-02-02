@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./custom_tf.h"
+#include "./custom_typeface.h"
 
 #include <limits>
 #include <memory>
 
 QkTypeface_Custom::QkTypeface_Custom(const FontStyle& style, bool isFixedPitch,
-									 bool sysFont, const String familyName, int index)
+									 bool sysFont, cString &familyName, int index)
 	: INHERITED(style, isFixedPitch)
 	, fIsSysFont(sysFont), fFamilyName(familyName), fIndex(index)
 {}
@@ -52,17 +52,21 @@ QkTypeface_Stream::QkTypeface_Stream(Sp<QkFontData> fontData,
 									 const String familyName)
 	: INHERITED(style, isFixedPitch, sysFont, familyName, fontData->getIndex())
 	, fData(std::move(fontData))
-{}
+{
+	initFreeType();
+}
 
 Sp<QkFontData> QkTypeface_Stream::onMakeFontData() const {
 	return new QkFontData(**fData);
 }
 
 QkTypeface_File::QkTypeface_File(const FontStyle& style, bool isFixedPitch, bool sysFont,
-								 const String familyName, cChar path[], int index)
+								 cString &familyName, cChar path[], int index)
 	: INHERITED(style, isFixedPitch, sysFont, familyName, index)
 	, fPath(path)
-{}
+{
+	initFreeType();
+}
 
 Sp<QkFontData> QkTypeface_File::onMakeFontData() const {
 	int index = this->getIndex();
@@ -96,11 +100,11 @@ void FontStyleSet_Custom::getStyle(int index, FontStyle* style, String* name) {
 }
 
 Typeface* FontStyleSet_Custom::createTypeface(int index) {
-	Qk_ASSERT(index < fStyles.count());
-	return QkRef(fStyles[index].get());
+	Qk_ASSERT(index < fStyles.length());
+	return fStyles[index].get();
 }
 
-Typeface* FontStyleSet_Custom::matchStyle(const FontStyle& pattern) {
+Typeface* FontStyleSet_Custom::matchStyle(FontStyle pattern) {
 	return this->matchStyleCSS3(pattern);
 }
 
@@ -110,13 +114,14 @@ String FontStyleSet_Custom::getFamilyName() { return fFamilyName; }
 ///////////////////////////////////////////////////////////////////////////////
 
 QkFontPool_Custom::QkFontPool_Custom(const SystemFontLoader& loader) : fDefaultFamily(nullptr) {
-	Families families
+	Families families;
 	loader.loadSystemFonts(fScanner, &families);
 
 	for (auto &it: families) {
-		auto name = it.value()->getFamilyName();
+		auto name = it.get()->getFamilyName();
 		fFamilyNames.push(name);
 		fFamilies.set(name.lowerCase(), std::move(it));
+		// Qk_DLog("FamilyName, %s", *name);
 	}
 	Qk_ASSERT_RAW(fFamilies.length() == fFamilyNames.length(), "QkFontPool_Custom repeat set object");
 
@@ -137,8 +142,10 @@ QkFontPool_Custom::QkFontPool_Custom(const SystemFontLoader& loader) : fDefaultF
 		break;
 	}
 	if (nullptr == fDefaultFamily) {
-		fDefaultFamily = fFamilies.begin()->value.value();
+		fDefaultFamily = fFamilies.begin()->value.get();
 	}
+	
+	initFontPool();
 }
 
 uint32_t QkFontPool_Custom::onCountFamilies() const {
@@ -147,13 +154,13 @@ uint32_t QkFontPool_Custom::onCountFamilies() const {
 
 String QkFontPool_Custom::onGetFamilyName(int index) const {
 	Qk_ASSERT(index < fFamilyNames.length());
-	return fFamilyNames[index]->getFamilyName();
+	return fFamilyNames[index];
 }
 
 FontStyleSet_Custom* QkFontPool_Custom::onMatchFamily(cChar familyName[]) const {
 	const Sp<FontStyleSet_Custom> *set;
 	if (fFamilies.get(String(familyName).lowerCase(), set)) {
-		return const_cast<FontStyleSet_Custom*>(set->value());
+		return const_cast<FontStyleSet_Custom*>(set->get());
 	}
 	return nullptr;
 }
@@ -161,9 +168,9 @@ FontStyleSet_Custom* QkFontPool_Custom::onMatchFamily(cChar familyName[]) const 
 Typeface* QkFontPool_Custom::onMatchFamilyStyle(cChar familyName[], FontStyle fontStyle) const {
 	if (familyName) {
 		auto sset = this->onMatchFamily(familyName);
-		return sset ? sset->matchStyle(style): nullptr;
+		return sset ? sset->matchStyle(fontStyle): nullptr;
 	}
-	return fDefaultStyleSet->matchStyle(style);
+	return fDefaultFamily->matchStyle(fontStyle);
 }
 
 Typeface* QkFontPool_Custom::onMatchFamilyStyleCharacter(cChar familyName[], FontStyle style,
@@ -194,9 +201,9 @@ Typeface* QkFontPool_Custom::onMakeFromStreamArgs(Sp<QkStream> stream,
 
 	const FontArguments::VariationPosition position = args.getVariationDesignPosition();
 	Array<QkFixed> axisValues(axisDefinitions.length());
-	Scanner::computeAxisValues(axisDefinitions, position, axisValues, name);
+	Scanner::computeAxisValues(axisDefinitions, position, axisValues.val(), name);
 
-	auto data = std::make_unique<QkFontData>(std::move(stream), args.getCollectionIndex(),
+	auto data = new QkFontData(std::move(stream), args.getCollectionIndex(),
 											   axisValues.val(), axisDefinitions.length());
 	auto face = new QkTypeface_Stream(data, style, isFixedPitch, false, name);
 	return face;

@@ -37,27 +37,27 @@
 namespace qk {
 	class Scroll;
 
-	class Qk_Export ScrollBase {
+	class Qk_EXPORT ScrollBase {
 	public:
-		Qk_DEFINE_VIEW_PROP(bool, scrollbar, Const); // 显示scrollbar
-		Qk_DEFINE_VIEW_PROP(bool, bounce, Const); // 使用回弹力
-		Qk_DEFINE_VIEW_PROP(bool, bounce_lock, Const); // 使用回弹力锁定
-		Qk_DEFINE_VIEW_PROP(bool, momentum, Const); // 是否使用惯性
-		Qk_DEFINE_VIEW_PROP(bool, lock_direction, Const); // 锁定方向
-		Qk_DEFINE_VIEW_P_GET(bool, scrollbar_h, Const); // 是否显示水平滚动条
-		Qk_DEFINE_VIEW_P_GET(bool, scrollbar_v, Const); // 是否显示垂直滚动条
-		Qk_DEFINE_VIEW_ACCE(float, scroll_x, Const);
-		Qk_DEFINE_VIEW_ACCE(float, scroll_y, Const);
-		Qk_DEFINE_VIEW_ACCE(Vec2,  scroll, Const);
-		Qk_DEFINE_VIEW_P_GET(Vec2, scroll_size, Const);
-		Qk_DEFINE_VIEW_PROP(float, resistance, Const); // resistance default=1
-		Qk_DEFINE_VIEW_PROP(float, catch_position_x, Const); // 停止后捕获位置
-		Qk_DEFINE_VIEW_PROP(float, catch_position_y, Const);
-		Qk_DEFINE_VIEW_PROP(Color, scrollbar_color, Const);
-		Qk_DEFINE_VIEW_PROP(float, scrollbar_width, Const);
-		Qk_DEFINE_VIEW_PROP(float, scrollbar_margin, Const);
-		Qk_DEFINE_VIEW_PROP(uint64_t, scroll_duration, Const);
-		Qk_DEFINE_VIEW_ACCE(cCurve&, default_curve, Const); // default scroll curve
+		Qk_DEFINE_VIEW_PROPERTY(bool, scrollbar, Const); // 显示scrollbar
+		Qk_DEFINE_VIEW_PROPERTY(bool, bounce, Const); // 使用回弹力
+		Qk_DEFINE_VIEW_PROPERTY(bool, bounce_lock, Const); // 使用回弹力锁定
+		Qk_DEFINE_VIEW_PROPERTY(bool, momentum, Const); // 是否使用惯性
+		Qk_DEFINE_VIEW_PROPERTY(bool, lock_direction, Const); // 锁定方向
+		Qk_DEFINE_VIEW_PROP_GET(bool, scrollbar_h, Const); // 是否显示水平滚动条
+		Qk_DEFINE_VIEW_PROP_GET(bool, scrollbar_v, Const); // 是否显示垂直滚动条
+		Qk_DEFINE_VIEW_ACCESSOR(float, scroll_x, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(float, scroll_y, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Vec2,  scroll, Const);
+		Qk_DEFINE_VIEW_PROP_GET(Vec2, scroll_size, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float, resistance, Const); // resistance default=1
+		Qk_DEFINE_VIEW_PROPERTY(float, catch_position_x, Const); // 停止后捕获位置
+		Qk_DEFINE_VIEW_PROPERTY(float, catch_position_y, Const);
+		Qk_DEFINE_VIEW_PROPERTY(Color, scrollbar_color, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float, scrollbar_width, Const);
+		Qk_DEFINE_VIEW_PROPERTY(float, scrollbar_margin, Const);
+		Qk_DEFINE_VIEW_PROPERTY(uint64_t, scroll_duration, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(cCurve&, default_curve, Const); // default scroll curve
 		// define methods
 		void scrollTo(Vec2 value, uint64_t duration, cCurve& curve);
 		void scrollTo(Vec2 value, uint64_t duration) { scrollTo(value, duration, _default_curve_Mt);}
@@ -86,7 +86,7 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
-	class Qk_Export Scroll: public Box, public ScrollBase {
+	class Qk_EXPORT Scroll: public Box, public ScrollBase {
 	public:
 		Scroll();
 		virtual View* init(Window *win) override;
