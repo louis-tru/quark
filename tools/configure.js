@@ -511,20 +511,18 @@ async function install_depe(opts, variables) {
 
 	var yasm = {
 		deps: {
-			// autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
-			automake: pkgmCmds('automake'),
-			// automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
-			autoconf: pkgmCmds('autoconf'),
+			autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
+			automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
 		},
 		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
 	};
-	// dpkg.ninja = {
-	// 	deps: {
-	// 		cmake: { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ], }
-	// 	},
-	// 	pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
-	// };
-	dpkg.ninja = pkgmCmds('ninja');
+	dpkg.ninja = {
+		deps: {
+			//cmake: { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ], }
+			cmake: pkgmCmds('cmake'),
+		},
+		pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
+	};
 
 	if (host_os == 'linux') {
 		if (arch == 'x86' || arch == 'x64') {
