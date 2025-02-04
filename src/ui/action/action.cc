@@ -174,7 +174,7 @@ namespace qk {
 		}
 	}
 
-	void ActionGroup::append(Action* child) {
+	void ActionGroup::append(Action* child) throw(Error) {
 		Qk_ASSERT(child);
 		if (child->set_parent(this) == 0) {
 			insertChild(_actions_Rt.end(), child);

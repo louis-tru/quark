@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <thread>
 #include <stdlib.h>
+#include <stdio.h>
 
 int test2_thread(int argc, char *argv[]) {
 
