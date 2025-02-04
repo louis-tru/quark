@@ -509,24 +509,25 @@ async function install_depe(opts, variables) {
 		}
 	}
 
-	var yasm = {
-		deps: {
-			autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
-			automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
-		},
-		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
-	};
+	// var cmake = { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ] };
+	var cmake = pkgmCmds('cmake');
+	// var yasm = {
+	// 	deps: {
+	// 		autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
+	// 		automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
+	// 	},
+	// 	pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
+	// };
+	var yasm = pkgmCmds('yasm');
 	dpkg.ninja = {
-		deps: {
-			//cmake: { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ], }
-			cmake: pkgmCmds('cmake'),
-		},
+		deps: { cmake },
 		pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
 	};
 
 	if (host_os == 'linux') {
 		if (arch == 'x86' || arch == 'x64') {
-			yasm.deps.dtrace = pkgmCmds('systemtap-sdt-dev');
+			if (typeof yasm != 'string')
+				yasm.deps.dtrace = pkgmCmds('systemtap-sdt-dev');
 			dpkg.yasm = yasm;
 		}
 		if (os == 'linux') {
@@ -542,7 +543,7 @@ async function install_depe(opts, variables) {
 				dpkg['g++'] = pkgmCmds('g++');
 			}
 		} else if (os == 'android') {
-			// dpkg.javac = '*apt-get install default-jdk';
+			// dpkg.javac = pkgmCmds('default-jdk');
 			dpkg.javac = pkgmCmds('openjdk-8-jdk');
 		}
 	}
