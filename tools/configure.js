@@ -447,14 +447,15 @@ async function install_check(app, cmd) {
 	var cd = '';
 
 	if (pkgCmd) {
-		await exec2(`tar xfvz ${__dirname}/pkgs/${app}.tar.gz -C ${__dirname}/../out/`);
 		cd = `${__dirname}/../out/${app}`;
+		await exec2(`rm -rf ${cd}`);
+		await exec2(`tar xfz ${__dirname}/pkgs/${app}.tar.gz -C ${__dirname}/../out/`);
 	}
 
 	for (var cmd of cmds) {
-		
 		if (cmd[0] == '*') {
 			if (process.env.USER != 'root') {
+				console.log(`Please input sudo password of execing ${cmd.substr(1)}`);
 				cmd = 'sudo ' + cmd.substr(1);
 			} else {
 				cmd = cmd.substr(1);
