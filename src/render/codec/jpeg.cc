@@ -84,7 +84,7 @@ namespace qk {
 			jpeg_read_scanlines(&jpeg, &row, 1);
 		}
 
-		PixelInfo info(w, h, num == 1 ? kColor_Type_Gray_8: kColor_Type_RGB_888, kAlphaType_Opaque);
+		PixelInfo info(w, h, num == 1 ? kGray_8_ColorType: kRGB_888_ColorType, kOpaque_AlphaType);
 
 		rv->push(Pixel(info, buff));
 
@@ -122,7 +122,7 @@ namespace qk {
 		if (num != 1 && num != 3)
 			return false;
 
-		*out = PixelInfo(w, h, num == 1 ? kColor_Type_Gray_8: kColor_Type_RGB_888, kAlphaType_Opaque);
+		*out = PixelInfo(w, h, num == 1 ? kGray_8_ColorType: kRGB_888_ColorType, kOpaque_AlphaType);
 
 		return true;
 	}

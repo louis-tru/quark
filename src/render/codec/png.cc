@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./codec.h"
-#include <libpng/png.h>
+#include <png.h>
 
 namespace qk {
 
@@ -94,10 +94,10 @@ namespace qk {
 		ColorType format;
 		
 		switch (channel) {
-			case 1: format = kColor_Type_Luminance_8; break;
-			case 2: format = kColor_Type_Luminance_Alpha_88; break;
-			case 3: format = kColor_Type_RGB_888; break;
-			case 4: format = kColor_Type_RGBA_8888; break;
+			case 1: format = kLuminance_8_ColorType; break;
+			case 2: format = kLuminance_Alpha_88_ColorType; break;
+			case 3: format = kRGB_888_ColorType; break;
+			case 4: format = kRGBA_8888_ColorType; break;
 			default: // unknown error
 				return false;
 		}
@@ -111,7 +111,7 @@ namespace qk {
 		png_read_image(png, &row_pointers[0]);
 		png_read_end(png, info);
 		
-		rv->push( Pixel(PixelInfo(w, h, format, kAlphaType_Unpremul), buff) );
+		rv->push( Pixel(PixelInfo(w, h, format, kUnpremul_AlphaType), buff) );
 
 		return true;
 	}
@@ -160,14 +160,14 @@ namespace qk {
 		ColorType format;
 		
 		switch (channel) {
-			case 1: format = kColor_Type_Luminance_8; break;
-			case 2: format = kColor_Type_Luminance_Alpha_88; break;
-			case 3: format = kColor_Type_RGB_888; break;
-			case 4: format = kColor_Type_RGBA_8888; break;
+			case 1: format = kLuminance_8_ColorType; break;
+			case 2: format = kLuminance_Alpha_88_ColorType; break;
+			case 3: format = kRGB_888_ColorType; break;
+			case 4: format = kRGBA_8888_ColorType; break;
 			default: // unknown error
 				return false;
 		}
-		*out = PixelInfo(w, h, format, kAlphaType_Unpremul);
+		*out = PixelInfo(w, h, format, kUnpremul_AlphaType);
 
 		return true;
 	}

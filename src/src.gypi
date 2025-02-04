@@ -175,6 +175,7 @@
 					'deps/libpng/libpng.gyp:libpng',
 					'deps/libwebp/libwebp.gyp:libwebp',
 				],
+				'include_dirs': [ 'deps/libjpeg' ],
 				'sources': [
 					'render/codec/jpeg.cc',
 					'render/codec/png.cc',
