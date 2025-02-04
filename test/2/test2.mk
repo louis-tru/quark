@@ -60,7 +60,7 @@ CXX_SOURCES = \
 	$(SRC)/render/math.cc \
 	$(SRC)/render/path.cc \
 	$(SRC)/render/stroke.cc \
-	$(SRC)/render/ft/ft_path.cc \
+	$(SRC)/render/raster/ft_path.cc \
 
 # deps/tess
 C_SOURCES += \
@@ -71,8 +71,8 @@ C_SOURCES += \
 	$(DEPS)/libtess2/Source/priorityq.c \
 	$(DEPS)/libtess2/Source/sweep.c \
 	$(DEPS)/libtess2/Source/tess.c \
-	$(SRC)/render/ft/ft_math.c \
-	$(SRC)/render/ft/ft_stroke.c \
+	$(SRC)/render/raster/ft_math.c \
+	$(SRC)/render/raster/ft_stroke.c \
 
 # ---------------------------- Platform ----------------------------
 

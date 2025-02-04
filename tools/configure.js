@@ -478,7 +478,7 @@ async function install_depe(opts, variables) {
 	var {cross_compiling} = variables;
 	var dpkg = {};
 
-	function pkgmCmds(cmd) {
+	var pkgmCmds = (cmd)=>{
 		if (pkgm == '') {
 			if (host_os == 'linux') {
 				if (execSync(`which apt-get`).code == 0) {
@@ -497,7 +497,6 @@ async function install_depe(opts, variables) {
 		if (pkgm == '') {
 			throw new Error(`Not found pkg install command for the ${host_os}`);
 		}
-
 		if (pkgm == 'apt-get') {
 			return `*apt-get install ${cmd} -y`;
 		} else if (pkgm == 'yum') {
@@ -507,7 +506,7 @@ async function install_depe(opts, variables) {
 		} else if (pkgm == 'brew') {
 			return `brew install ${cmd}`;
 		}
-	}
+	};
 
 	// var cmake = { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ] };
 	var cmake = pkgmCmds('cmake');
