@@ -165,10 +165,6 @@ namespace qk {
 	void log_println(int32_t msg) {
 		Log::shared()->println(Log::kLog, "%d", msg );
 	}
-	
-	void log_println(uint32_t msg) {
-		Log::shared()->println(Log::kLog, "%u", msg );
-	}
 
 	void log_println(float msg) {
 		Log::shared()->println(Log::kLog, "%f", msg );
@@ -182,13 +178,21 @@ namespace qk {
 		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%ld": "%lld", msg );
 	}
 
+#if Qk_MAC || Qk_ARCH_64BIT
+	void log_println(uint32_t msg) {
+		Log::shared()->println(Log::kLog, "%u", msg );
+	}
+#endif
+
+#if Qk_MAC || !Qk_ARCH_64BIT
 	void log_println(uint64_t msg) {
 		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
 	}
+#endif
 
 	void log_println(size_t msg) {
-	 	Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
-	 }
+		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
+	}
 
 	void log_println(bool msg) {
 		Log::shared()->log( msg ? "true\n": "false\n" );
