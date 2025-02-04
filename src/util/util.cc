@@ -35,6 +35,8 @@
 #if Qk_POSIX
 # include <sys/utsname.h>
 # include <unistd.h>
+# include <time.h>
+# include <stdlib.h>
 #endif
 
 #if Qk_MAC

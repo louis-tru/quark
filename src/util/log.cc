@@ -186,9 +186,9 @@ namespace qk {
 		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
 	}
 
-	void log_println(size_t msg) {
+	/*void log_println(size_t msg) {
 		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
-	}
+	}*/
 
 	void log_println(bool msg) {
 		Log::shared()->log( msg ? "true\n": "false\n" );

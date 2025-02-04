@@ -787,8 +787,7 @@ namespace qk {
 	}
 
 	Mat4::Mat4(float value) {
-		constexpr float src = 0;
-		memset_pattern4(val, &src, 16);
+		memset(val, 0, 16 * 4);
 		val[0] = value;
 		val[5] = value;
 		val[10] = value;

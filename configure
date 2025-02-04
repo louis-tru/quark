@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+# set -e
 
 # install depes
 
@@ -17,14 +17,15 @@ else
 fi
 # PYTHON=/Library/Frameworks/Python.framework/Versions/2.7/Resources/Python.app/Contents/MacOS/Python
 
+
 if [ ! "$PYTHON" ]; then
 	echo "\nError: python 2.7 needs to be installed first\n";
-	exit -1;
+	exit 1;
 fi
 
 if [ ! "`which node`" ]; then
 	echo "\nError: nodejs needs to be installed first\n";
-	exit -1;
+	exit 2;
 fi
 
 if [ "`which tsc`" = "" ]; then

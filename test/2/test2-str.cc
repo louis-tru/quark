@@ -41,6 +41,7 @@
 #include <string.h>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 
 const char test_big_char[] = { 1, 0, 0, 0 };
 const int* test_big_int = (const int*)test_big_char;
