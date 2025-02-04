@@ -34,6 +34,7 @@
 #include "./macros.h"
 #include <utility>
 #include <atomic>
+#include <stdlib.h>
 
 namespace qk {
 	struct Allocator;
