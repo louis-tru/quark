@@ -34,6 +34,7 @@
 #include "./macros.h"
 #include <utility>
 #include <atomic>
+#include <malloc.h>
 
 namespace qk {
 	struct Allocator;
@@ -143,6 +144,19 @@ namespace qk {
 	Qk_EXPORT void Release(Object* obj);
 	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
+	template <typename T, int kind> struct object_traits_basic { // Object
+		static inline void Retain(T* obj) { qk::Retain(obj); }
+		static inline void Release(T* obj) { qk::Release(obj); }
+	};
+	template <typename T> struct object_traits_basic<T, 0> { // Other
+		static inline void Retain(T* obj) {}
+		static inline void Release(T* obj) { delete obj; }
+	};
+	template <typename T> struct object_traits_basic<T, 3> { //protocol
+		static inline void Retain(T* obj) { if (obj) qk::Retain(obj->asObject()); }
+		static inline void Release(T* obj) { if (obj) qk::Release(obj->asObject()); }
+	};
+
 	template<typename T>
 	struct object_traits {
 		typedef char __non[0];
@@ -161,21 +175,9 @@ namespace qk {
 			static constexpr bool ref = (k == 2);
 			static constexpr bool protocol = (k == 3);
 		};
-		template <int kind> struct __inl { // Object
-			static inline void Retain(T* obj) { qk::Retain(obj); }
-			static inline void Release(T* obj) { qk::Release(obj); }
-		};
-		template <> struct __inl<0> { // Other
-			static inline void Retain(T* obj) {}
-			static inline void Release(T* obj) { delete obj; }
-		};
-		template <> struct __inl<3> { //protocol
-			static inline void Retain(T* obj) { if (obj) qk::Retain(obj->asObject()); }
-			static inline void Release(T* obj) { if (obj) qk::Release(obj->asObject()); }
-		};
 		typedef __is<Kind(sizeof(test<T>(0)) / sizeof(char))> is;
-		inline static void Retain(T* obj) { __inl<is::kind>::Retain(obj); }
-		inline static void Release(T* obj) { __inl<is::kind>::Release(obj); }
+		inline static void Retain(T* obj) { object_traits_basic<T, is::kind>::Retain(obj); }
+		inline static void Release(T* obj) { object_traits_basic<T, is::kind>::Release(obj); }
 	};
 
 	template <>

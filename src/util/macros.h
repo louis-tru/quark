@@ -160,7 +160,9 @@
 #endif
 
 #define Qk_DEBUG DEBUG
+#if __cplusplus >= 201703L
 #define throw(...)
+#endif
 
 #define Qk_Type_Check(Base, Sub) \
 	while (false) { *(static_cast<Base* volatile*>(0)) = static_cast<Sub*>(0); }

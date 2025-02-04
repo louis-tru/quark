@@ -76,32 +76,40 @@ namespace qk {
 		// ------------------------------------------
 		inline Vec operator+(const Vec& b) const {
 			Vec c(*this);
-			for (int i = 0; i < LEN; i++) c.val[i] += b.val[i]; return c;
+			for (int i = 0; i < LEN; i++) c.val[i] += b.val[i];
+			return c;
 		}
 		inline Vec operator-(const Vec& b) const {
 			Vec c(*this);
-			for (int i = 0; i < LEN; i++) c.val[i] -= b.val[i]; return c;
+			for (int i = 0; i < LEN; i++) c.val[i] -= b.val[i];
+			return c;
 		}
 		inline Vec operator*(const Vec& b) const {
 			Vec c(*this);
-			for (int i = 0; i < LEN; i++) c.val[i] *= b.val[i]; return c;
+			for (int i = 0; i < LEN; i++) c.val[i] *= b.val[i];
+			return c;
 		}
 		inline Vec operator/(const Vec& b) const {
 			Vec c(*this);
-			for (int i = 0; i < LEN; i++) c.val[i] /= b.val[i]; return c;
+			for (int i = 0; i < LEN; i++) c.val[i] /= b.val[i];
+			return c;
 		}
 		// ------------------------------------------
 		inline Vec& operator+=(const Vec& b) {
-			for (int i = 0; i < LEN; i++) val[i] += b.val[i]; return *this;
+			for (int i = 0; i < LEN; i++) val[i] += b.val[i];
+			return *this;
 		}
 		inline Vec& operator-=(const Vec& b) {
-			for (int i = 0; i < LEN; i++) val[i] -= b.val[i]; return *this;
+			for (int i = 0; i < LEN; i++) val[i] -= b.val[i];
+			return *this;
 		}
 		inline Vec& operator*=(const Vec& b) {
-			for (int i = 0; i < LEN; i++) val[i] *= b.val[i]; return *this;
+			for (int i = 0; i < LEN; i++) val[i] *= b.val[i];
+			return *this;
 		}
 		inline Vec& operator/=(const Vec& b) {
-			for (int i = 0; i < LEN; i++) val[i] /= b.val[i]; return *this;
+			for (int i = 0; i < LEN; i++) val[i] /= b.val[i];
+			return *this;
 		}
 
 		// ------------------------------------------

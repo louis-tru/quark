@@ -33,6 +33,7 @@
 
 #include "./object.h"
 #include "./iterator.h"
+#include <string.h>
 #include <vector>
 #include <functional>
 
