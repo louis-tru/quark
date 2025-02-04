@@ -448,7 +448,7 @@ async function install_check(app, cmd) {
 
 	if (pkgCmd) {
 		cd = `${__dirname}/../out/${app}`;
-		await exec2(`rm -rf ${cd}`);
+		// await exec2(`rm -rf ${cd}`);
 		await exec2(`tar xfz ${__dirname}/pkgs/${app}.tar.gz -C ${__dirname}/../out/`);
 	}
 
