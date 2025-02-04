@@ -744,10 +744,11 @@ namespace qk {
 				_blob = std::move(blob);
 			}
 			else if ( value_u4.length() && _security ) { // password
-				Unichar pwd = 9679; /*●*/
+				const Unichar pwd = 9679; /*●*/
 				Array<Array<Unichar>> lines;
-				lines.push(Array<Unichar>(value_u4.length()));
-				memset_pattern4(*lines.front(), &pwd, value_u4.length() << 2);
+				for (auto &i: lines.push(Array<Unichar>(value_u4.length()))) {
+					i = pwd;
+				}
 				tbb.make(lines);
 			}
 			else {

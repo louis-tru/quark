@@ -172,7 +172,7 @@ namespace qk {
 	class Qk_EXPORT ActionGroup: public Action {
 	public:
 		ActionGroup(Window *win);
-		virtual void append(Action* child) override;
+		virtual void append(Action* child) throw(Error) override ;
 	protected:
 		virtual void insertChild(Id after, Action *child);
 		virtual void removeChild(Id id) = 0;

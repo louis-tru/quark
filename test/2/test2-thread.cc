@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <thread>
+#include <stdio.h>
 
 int test2_thread(int argc, char *argv[]) {
 
