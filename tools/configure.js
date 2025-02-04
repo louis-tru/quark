@@ -481,15 +481,15 @@ async function install_depe(opts, variables) {
 	function pkgmCmds(cmd) {
 		if (pkgm == '') {
 			if (host_os == 'linux') {
-				if (execSync(`which apt-get`) == 0) {
+				if (execSync(`which apt-get`).code == 0) {
 					pkgm = 'apt-get';
-				} else if (execSync(`which yum`) == 0) {
+				} else if (execSync(`which yum`).code == 0) {
 					pkgm = 'yum';
-				} else if (execSync(`which apk`) == 0) {
+				} else if (execSync(`which apk`).code == 0) {
 					pkgm = 'apk';
 				}
 			} else if (host_os == 'osx') {
-				if (execSync(`which brew`) == 0) {
+				if (execSync(`which brew`).code == 0) {
 					pkgm = 'brew';
 				}
 			}
@@ -512,8 +512,8 @@ async function install_depe(opts, variables) {
 	var yasm = {
 		deps: {
 			// autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
-			// automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
 			automake: pkgmCmds('automake'),
+			// automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
 			autoconf: pkgmCmds('autoconf'),
 		},
 		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
