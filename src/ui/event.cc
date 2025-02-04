@@ -823,6 +823,7 @@ namespace qk {
 					}));
 				}
 				break;
+			default: break;
 		}
 	}
 

@@ -175,10 +175,10 @@
 			}
 		},
 		'cflags!': [ '-Werror', ], # deleting flags
-		'cflags': [ '<@(cflags)', '-std=c99' ],
+		'cflags': [ '<@(cflags)', ], # '-std=c99'
 		'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=<(std_cpp)' ],
 		'xcode_settings': {
-			'GCC_C_LANGUAGE_STANDARD': 'c99',
+			#'GCC_C_LANGUAGE_STANDARD': 'c99',
 			'CLANG_CXX_LANGUAGE_STANDARD': '<(std_cpp)',# -std=c++14
 			'CLANG_CXX_LIBRARY': 'libc++',             # c++11 libc support
 			'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',   # -fno-exceptions

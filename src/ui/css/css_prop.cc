@@ -38,13 +38,13 @@ namespace qk {
 
 	template<typename T>
 	T* copy_value_ptr(T* value) {
-		Qk_Unreachable();
+		Qk_Unreachable("");
 		return nullptr;
 	}
 
 	template<typename T>
 	inline void transition_value_ptr(T *v1, T *v2, float y, ViewProp prop, View *target) {
-		Qk_Unreachable();
+		Qk_Unreachable("");
 	}
 
 	template<>

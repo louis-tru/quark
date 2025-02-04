@@ -141,7 +141,7 @@
 		return reinterpret_cast<cls::Inl*>(self); \
 	} class cls::Inl: public cls
 
-#define Qk_Unreachable(...)   Qk_Fatal("Unreachable code, %s", ##__VA_ARGS__)
+#define Qk_Unreachable(msg)   Qk_Fatal("Unreachable code, %s", msg)
 #define Qk_Log(msg, ...)      ::qk::log_println(msg, ##__VA_ARGS__)
 #define Qk_Warn(msg, ...)     ::qk::log_println_warn(msg, ##__VA_ARGS__)
 #define Qk_ELog(msg, ...)     ::qk::log_println_error(msg, ##__VA_ARGS__)
