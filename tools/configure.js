@@ -40,6 +40,7 @@ var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
 var default_arch = host_arch || 'x86';
 var android_api_level = 28; // android-9.0
+var pkgm = ''; // apt-get
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
@@ -477,49 +478,74 @@ async function install_depe(opts, variables) {
 	var {cross_compiling} = variables;
 	var dpkg = {};
 
-	var autoconf = { // 'brew install autoconf'
-		pkgCmds: [ `./configure`, `make`, `*make install` ],
-	};
-	var automake = {
-		pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ],
-		deps: { autoconf },
-	};
-	var cmake = {
-		pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ],
-	};
-	var yasm = {
-		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
-		deps: { autoconf, automake },
-	};
-	var ninja = {
-		pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
-		deps: { cmake },
-	};
+	function pkgmCmds(cmd) {
+		if (pkgm == '') {
+			if (host_os == 'linux') {
+				if (execSync(`which apt-get`) == 0) {
+					pkgm = 'apt-get';
+				} else if (execSync(`which yum`) == 0) {
+					pkgm = 'yum';
+				} else if (execSync(`which apk`) == 0) {
+					pkgm = 'apk';
+				}
+			} else if (host_os == 'osx') {
+				if (execSync(`which brew`) == 0) {
+					pkgm = 'brew';
+				}
+			}
+		}
+		if (pkgm == '') {
+			throw new Error(`Not found pkg install command for the ${host_os}`);
+		}
 
-	dpkg.ninja = ninja;
+		if (pkgm == 'apt-get') {
+			return `*apt-get install ${cmd} -y`;
+		} else if (pkgm == 'yum') {
+			return `*yum install ${cmd} -y`;
+		} else if (pkgm == 'apk') {
+			return `*apk add ${cmd}`;
+		} else if (pkgm == 'brew') {
+			return `brew install ${cmd}`;
+		}
+	}
+
+	var yasm = {
+		deps: {
+			// autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
+			// automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
+			automake: pkgmCmds('automake'),
+			autoconf: pkgmCmds('autoconf'),
+		},
+		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
+	};
+	// dpkg.ninja = {
+	// 	deps: {
+	// 		cmake: { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ], }
+	// 	},
+	// 	pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
+	// };
+	dpkg.ninja = pkgmCmds('ninja');
 
 	if (host_os == 'linux') {
 		if (arch == 'x86' || arch == 'x64') {
-			yasm.deps.dtrace = '*apt-get install systemtap-sdt-dev -y';
-			// yasm.deps.automake = '*apt-get install automake -y';
-			// yasm.deps.autoconf = '*apt-get install autoconf -y';
+			yasm.deps.dtrace = pkgmCmds('systemtap-sdt-dev');
 			dpkg.yasm = yasm;
 		}
 		if (os == 'linux') {
 			if (cross_compiling) {
 				if (arch == 'arm') {
-					dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf -y';
+					dpkg['arm-linux-gnueabihf-g++'] = pkgmCmds('g++-arm-linux-gnueabihf');
 				} else if (arch == 'arm64') {
-					dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu -y';
+					dpkg['aarch64-linux-gnu-g++'] = pkgmCmds('g++-aarch64-linux-gnu');
 				} else {
 					throw new Error(`do not support cross compiling to "${arch}"`);
 				}
 			} else { // x86 or x64
-				dpkg['g++'] = '*apt-get install g++ -y';
+				dpkg['g++'] = pkgmCmds('g++');
 			}
 		} else if (os == 'android') {
 			// dpkg.javac = '*apt-get install default-jdk';
-			dpkg.javac = '*apt-get install openjdk-8-jdk -y';
+			dpkg.javac = pkgmCmds('openjdk-8-jdk');
 		}
 	}
 	else if (host_os == 'osx') {
