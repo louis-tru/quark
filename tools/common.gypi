@@ -239,8 +239,11 @@
 					'-Wno-unused-function',
 					'-Wno-deprecated',
 					'-Wno-missing-field-initializers',
-					'-march=<(arch_name)',
 					# '-Wno-misleading-indentation',
+					'-march=<(arch_name)',
+				],
+				'cflags_cc': [
+					'-Wno-reorder',
 				],
 				'ldflags': [
 					'-pthread',
