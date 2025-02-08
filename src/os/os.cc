@@ -133,7 +133,7 @@ namespace qk {
 			Char* s = bf;
 			Char* ch;
 			while ((ch = strchr(s, '\n'))) {
-				prev_str.push(s, ch - s);
+				prev_str.append(s, ch - s);
 				cpus.push(prev_str);
 				prev_str = String();
 				size -= (ch - s + 1);
@@ -165,24 +165,24 @@ namespace qk {
 		}
 
 		auto ls = cpus[0].substr(3).trim().split(' ');
-		int total = ls[0].to_int() +
-						ls[1].to_int() +
-						ls[2].to_int() +
-						ls[3].to_int() +
-						ls[4].to_int() +
-						ls[5].to_int() + ls[6].to_int();
+		int total = ls[0].toNumber<int>() +
+						ls[1].toNumber<int>() +
+						ls[2].toNumber<int>() +
+						ls[3].toNumber<int>() +
+						ls[4].toNumber<int>() +
+						ls[5].toNumber<int>() + ls[6].toNumber<int>();
 
-		fd = FileHelper::open_sync(String::format("/proc/%d/stat", getpid()));
+		fd = fs_open_sync(String::format("/proc/%d/stat", getpid()));
 		if (fd <= 0) return 0;
 		memset(bf, 0, 512);
-		size = FileHelper::read_sync(fd, bf, 511);
+		size = fs_read_sync(fd, bf, 511);
 		ls = String(bf, size).split(' ');
-		FileHelper::close_sync(fd);
+		fs_close_sync(fd);
 		if (ls.length() < 17) return 0;
 
-		int usage = ls[13].to_int() +
-						ls[14].to_int() +
-						ls[15].to_int() + ls[16].to_int();
+		int usage = ls[13].toNumber<int>() +
+						ls[14].toNumber<int>() +
+						ls[15].toNumber<int>() + ls[16].toNumber<int>();
 
 		int priv_total = priv_cpu_total_count;
 		int priv_usage = priv_cpu_usage_count;

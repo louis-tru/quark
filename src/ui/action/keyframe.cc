@@ -291,7 +291,7 @@ namespace qk {
 	}
 
 	void KeyframeAction::seek_before_Rt(uint32_t time, Action* child) {
-		Qk_Unreachable();
+		Qk_Unreachable("");
 	}
 
 	void KeyframeAction::append(Action *child) throw(Error) {
