@@ -31,6 +31,10 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <locale.h>
+#undef Status
+#undef Bool
+#undef None
+
 #include "./linux_app.h"
 #include "../../ui/keyboard.h"
 #include "../../ui/window.h"
@@ -104,9 +108,9 @@ namespace qk {
 
 		void set_keyboard_return_type(KeyboardReturnType type) {}
 
-		void set_spot_rest(Rect rect) {
+		void set_spot_rect(Rect rect) {
 			auto location = rect.origin;
-			Qk_DLog("set_spot_rest, x=%f,y=%f", location[0], location[1]);
+			Qk_DLog("set_spot_rect, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
 				Vec2 scale = _win->display_port()->scale_value();
 				_spot_location = {
@@ -467,10 +471,10 @@ namespace qk {
 		{
 			if (sizeof(wchar_t) == 2) {
 				String2 ustr = (const uint16*)str;
-				return ustr.to_string();
+				return ustr.toString();
 			} else {
 				Ucs4String ustr = (const uint*)str;
-				return ustr.to_string();
+				return ustr.toString();
 			}
 		}
 
@@ -486,34 +490,34 @@ namespace qk {
 		void insert(cchar* str)
 		{
 			Qk_DLog("insert, %s", str);
-			_win->dispatch()->dispatch_ime_insert(str);
+			_win->dispatch()->onImeInsert(str);
 		}
 
 		void setPreeditString(cchar* str, int pos, int length)
 		{
 			Qk_DLog("setPreeditString, %s, %d, %d", str, pos, length);
 			if (str == nullptr) {
-				_win->dispatch()->dispatch_ime_unmark(String());
+				_win->dispatch()->onImeUnmark(String());
 				_preedit_string = String();
 			} else {
 				_preedit_string = str;
-				_win->dispatch()->dispatch_ime_marked(_preedit_string);
+				_win->dispatch()->onImeMarked(_preedit_string);
 			}
 		}
 
 		void onKeyReturn()
 		{
-			_win->dispatch()->dispatch_ime_insert("\n");
+			_win->dispatch()->onImeInsert("\n");
 		}
 
 		void onKeyDelete()
 		{
-			_win->dispatch()->dispatch_ime_delete(1);
+			_win->dispatch()->onImeDelete(1);
 		}
 
 		void onKeyBackspace()
 		{
-			_win->dispatch()->dispatch_ime_delete(-1);
+			_win->dispatch()->onImeDelete(-1);
 		}
 
 		void setPreeditCaret(int pos)
@@ -522,7 +526,7 @@ namespace qk {
 		}
 
 		void onKeyControl(KeyboardKeyCode name) {
-			_win->dispatch()->dispatch_ime_control(name);
+			_win->dispatch()->onImeControl(name);
 		}
 
 		Window* _win;
@@ -564,7 +568,7 @@ namespace qk {
 
 	void EventDispatch::setImeKeyboardOpen(KeyboardOptions opts) {
 		auto impl = window()->impl();
-		post_messate_main(Cb([impl](auto e) {
+		post_messate_main(Cb([impl, opts](auto e) {
 			auto ime = static_cast<LinuxIMEHelperImpl*>(impl->ime());
 			ime->set_keyboard_type(opts.type);
 			ime->set_keyboard_return_type(opts.return_type);
@@ -585,7 +589,7 @@ namespace qk {
 
 	void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
 		auto impl = window()->impl();
-		post_messate_main(Cb([impl](auto e) {
+		post_messate_main(Cb([impl, can_backspace, can_delete](auto e) {
 			static_cast<LinuxIMEHelperImpl*>(impl->ime())->
 				set_keyboard_can_backspace(can_backspace, can_delete);
 		}));
@@ -593,7 +597,7 @@ namespace qk {
 
 	void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 		auto impl = window()->impl();
-		post_messate_main(Cb([impl](auto e) {
+		post_messate_main(Cb([impl, rect](auto e) {
 			static_cast<LinuxIMEHelperImpl*>(impl->ime())->set_spot_rect(rect);
 		}));
 	}

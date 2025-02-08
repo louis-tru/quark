@@ -35,6 +35,10 @@
 #include <signal.h>
 #include <unistd.h>
 #include <alsa/asoundlib.h>
+#undef Status
+#undef Bool
+#undef None
+
 #include "./linux_app.h"
 #include "../../util/thread.h"
 #include "../../util/http.h"
@@ -44,8 +48,8 @@
 
 namespace qk
 {
-	struct Mainlooper;
-	static Mainlooper* looper = nullptr;
+	struct MainLooper;
+	static MainLooper* looper = nullptr;
 
 #if DEBUG
 	cChar* MOUSE_KEYS[] = {
@@ -59,24 +63,6 @@ namespace qk
 	};
 #endif
 
-	static WindowImpl* windowBy(XEvent& event, XWindowAttributes* attrs = nullptr) {
-		if (event.xany.window) {
-			static XWindowAttributes attrsStatic;
-			if (!attrs) {
-				attrs = &attrsStatic;
-			}
-			Qk_ASSERT_EQ(True, XGetWindowAttributes(_xdpy, event.xany.window, &attrs));
-			if (attrs.visual && attrs.visual->private_data) {
-				auto impl = reinterpret_cast<WindowImpl*>(attrs.visual->ext_data->private_data);
-				Qk_ASSERT_EQ(impl->isValid(), true);
-				if (impl->isValid()) {
-					return impl;
-				}
-			}
-		}
-		return nullptr;
-	}
-
 	struct MainLooper {
 		MainLooper(): _xdpy(nullptr) {
 			Qk_ASSERT_EQ(looper, nullptr);
@@ -86,6 +72,24 @@ namespace qk
 		~MainLooper() {
 			Qk_DLog("~MainLooper()");
 			looper = nullptr;
+		}
+
+		WindowImpl* windowBy(XEvent& event, XWindowAttributes* attrs = nullptr) {
+			if (event.xany.window) {
+				static XWindowAttributes attrsStatic;
+				if (!attrs) {
+					attrs = &attrsStatic;
+				}
+				Qk_ASSERT_EQ(True, XGetWindowAttributes(_xdpy, event.xany.window, attrs));
+				if (attrs->visual && attrs->visual->ext_data && attrs->visual->ext_data->private_data) {
+					auto impl = reinterpret_cast<WindowImpl*>(attrs->visual->ext_data->private_data);
+					Qk_ASSERT_EQ(impl->isValid(), true);
+					if (impl->isValid()) {
+						return impl;
+					}
+				}
+			}
+			return nullptr;
 		}
 
 		void runLoop() {
@@ -104,7 +108,7 @@ namespace qk
 
 				resolvedMsg();
 
-				if (XFilterEvent(&event, None))
+				if (XFilterEvent(&event, 0))
 					continue;
 
 				switch (event.type) {
@@ -211,17 +215,17 @@ namespace qk
 				case XI_TouchBegin:
 					Qk_DLog("event, XI_TouchBegin, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f",
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
-					dispatch->onTouchstart( move(touchs) );
+					dispatch->onTouchstart( std::move(touchs) );
 					break;
 				case XI_TouchEnd:
 					Qk_DLog("event, XI_TouchEnd, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f",
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
-					dispatch->onTouchend( move(touchs) );
+					dispatch->onTouchend( std::move(touchs) );
 					break;
 				case XI_TouchUpdate:
 					Qk_DLog("event, XI_TouchUpdate, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f",
 						xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
-					dispatch->onTouchmove( move(touchs) );
+					dispatch->onTouchmove( std::move(touchs) );
 					break;
 			}
 		}
@@ -234,11 +238,11 @@ namespace qk
 			XCirculateEvent event;
 			event.type = CirculateNotify;
 			event.display = _xdpy;
-			event.window = _win;
+			event.window = 0;
 			event.place = PlaceOnTop;
 			Qk_ASSERT_EQ(
-				TRUE,
-				XSendEvent(_xdpy, nullptr, false, NoEventMask, (XEvent*)&event)
+				True,
+				XSendEvent(_xdpy, 0, False, NoEventMask, (XEvent*)&event)
 			);
 		}
 
@@ -246,7 +250,7 @@ namespace qk
 			List<Cb> msg;
 			_msgMutex.lock();
 			if (msg.length())
-				msg = move(msg);
+				msg = std::move(msg);
 			_msgMutex.unlock();
 
 			if (msg.length()) {
@@ -263,11 +267,11 @@ namespace qk
 
 	// sync to x11 main message loop
 	void post_messate_main(Cb cb, bool sync) {
-		Qk_ASSERT(application);
-		return application->postMessateMain(cb);
+		Qk_ASSERT(looper);
+		looper->postMessateMain(cb, sync);
 	}
 
-	void Application::openUrl(cString& url) {
+	void Application::openURL(cString& url) {
 		if (vfork() == 0) {
 			execlp("xdg-open", "xdg-open", *url, NULL);
 		}
@@ -290,11 +294,11 @@ namespace qk
 		}
 
 		arg += "subject=";
-		arg += URI::encode(subject) + '&';
+		arg += URI::encode(subject, false) + '&';
 
 		if (!body.isEmpty()) {
 			arg += "body=";
-			arg += URI::encode(body);
+			arg += URI::encode(body, false);
 		}
 
 		// xdg-open
@@ -372,7 +376,7 @@ namespace qk
 		static Sp<Snd> _snd = nullptr;
 		if (!_snd)
 			_snd = new Snd;
-		return snd.get();
+		return _snd.get();
 	}
 
 	void EventDispatch::setVolumeUp() {

@@ -217,7 +217,7 @@ template <typename T> static inline T QkTAbs(T value) {
  *  Marks a local variable as known to be unused (to avoid warnings).
  *  Note that this does *not* prevent the local variable from being optimized away.
  */
-template<typename T> inline void Qk_ignore_unused_variable(const T&) { }
+template<typename T> inline void qk_ignore_unused_variable(const T&) { }
 
 
 template <typename R, typename... Args> struct qk_base_callable_traits {
