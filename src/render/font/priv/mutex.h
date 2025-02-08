@@ -53,7 +53,9 @@ namespace qk {
 		}
 
 		void assertHeld() Qk_ASSERT_CAPABILITY(this) {
-			Qk_ASSERT(fOwner == thread_self_id());
+			Qk_DEBUGCODE(
+				Qk_ASSERT(fOwner == thread_self_id())
+			);
 		}
 
 	private:
