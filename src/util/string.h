@@ -237,8 +237,7 @@ namespace qk {
 		static String toString(cVoid* ptr, uint32_t len, int sizeOf);
 		template<typename T>
 		static String toString(const T& t) {
-			//return _To<T, object_traits<T>::isObj(object_traits<T>::type)>::call(t);
-			return String();
+			return _To<T, object_traits<T>::is::obj>::call(t);
 		}
 		template<typename T, bool isObj> struct _To {
 			static String call(const T& t) { return String("[unknown]"); }
