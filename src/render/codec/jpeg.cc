@@ -31,6 +31,7 @@
 #include "./codec.h"
 #include <setjmp.h>
 
+#include <stdio.h>
 extern "C" {
 # include <jpeglib.h>
 }
@@ -77,7 +78,7 @@ namespace qk {
 
 		uint32_t rowbytes = w * num;
 		uint32_t count = h * rowbytes;
-		auto buff = Buffer::alloc(count);
+		Buffer buff(count);
 
 		while(jpeg.output_scanline < jpeg.output_height) {
 			JSAMPROW row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;

@@ -100,7 +100,7 @@ namespace qk {
 				MipmapMode    mipmapMode: 2;// default kNone_MipmapMode, image source mipmap mode
 				FilterMode    filterMode: 1;// default kNearest_FilterMode, image source filter mode
 				bool          _flushCanvas: 1;// default false, flush canvas and draw canvas
-				unsigned      _padding: 16;
+				unsigned short _padding: 16;
 			};
 		}; // size 32bit
 
@@ -164,7 +164,7 @@ namespace qk {
 				Join          join: 2;// default kMiter_Join;
 				BlendMode     blendMode: 6; // default kSrcOver_BlendMode
 				bool          antiAlias: 2;// default true;
-				bool          _padding: 16;
+				unsigned short _padding: 16;
 			};
 		}; // size 32bit
 

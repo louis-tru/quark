@@ -34,13 +34,14 @@
 #define __quark_platforms_linux__linux_app__
 
 #include <X11/Xlib.h>
-#include "../../util/macros.h"
+#include "../../util/cb.h"
 
 typedef Window XWindow;
 typedef Display XDisplay;
 
 namespace qk {
 	class Window;
+	class WindowImpl;
 
 	class LinuxIMEHelper {
 	public:

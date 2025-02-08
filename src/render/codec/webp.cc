@@ -37,7 +37,7 @@ namespace qk {
 		int width = 0, height = 0;
 		int ok = WebPGetInfo((uint8_t*)data.val(), data.length(), &width, &height);
 		if ( ok == VP8_STATUS_OK ) {
-			*out = PixelInfo( width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul);
+			*out = PixelInfo( width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType);
 			return true;
 		}
 		return false;
@@ -48,7 +48,7 @@ namespace qk {
 		uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.val(), data.length(), &width, &height);
 		if (buff) {
 			auto bf = Buffer::from((char*)buff, width * height * 4);
-			rv->push( Pixel( PixelInfo(width, height, kColor_Type_RGBA_8888, kAlphaType_Unpremul), bf) );
+			rv->push( Pixel( PixelInfo(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType), bf) );
 		}
 		return true;
 	}

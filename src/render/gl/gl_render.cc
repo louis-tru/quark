@@ -50,7 +50,7 @@ namespace qk {
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
 #if Qk_LINUX
-	#define GL_BGRA GL_BGRA_EXT
+	#define GL_BGRA /*GL_BGRA_EXT*/0x80E1
 #endif
 		switch (type) {
 			case kAlpha_8_ColorType: return GL_ALPHA;
