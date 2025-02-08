@@ -136,7 +136,8 @@ namespace qk { namespace js {
 		// Print line of source code.
 		v8::String::Utf8Value sourceline(_isolate, message->GetSourceLine(context).ToLocalChecked());
 		cChar* sourceline_string = ToCstring(sourceline);
-		out.push(sourceline_string).push('\n');
+		out.push(sourceline_string);
+		out.push('\n');
 
 		// Print line of source code position.
 		int start = message->GetStartColumn(context).FromJust();
@@ -156,7 +157,8 @@ namespace qk { namespace js {
 					stack_trace_string->IsString() &&
 					v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
 				v8::String::Utf8Value stack_trace(_isolate, stack_trace_string);
-				out.push(ToCstring(stack_trace)).push('\n');
+				out.push(ToCstring(stack_trace));
+				out.push('\n');
 			}
 		}
 

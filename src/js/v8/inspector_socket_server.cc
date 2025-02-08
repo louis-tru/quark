@@ -570,7 +570,7 @@ namespace qk { namespace inspector {
 			server->SessionTerminated(session);
 			return false;
 		default:
-			Qk_Unreachable();
+			Qk_Unreachable("");
 			return false;
 		}
 	}
