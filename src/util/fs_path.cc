@@ -40,6 +40,7 @@
 #if Qk_LINUX
 #include <sys/utsname.h>
 #include <stdlib.h>
+#include <limits.h>
 #endif
 
 namespace qk {
@@ -314,7 +315,7 @@ namespace qk {
 	static String path_executable, path_documents, path_temp, path_resources;
 
 	String fs_executable() {
-		if (path_executable.is_empty()) {
+		if (path_executable.isEmpty()) {
 			char dir[PATH_MAX] = { 0 };
 			int n = readlink("/proc/self/exe", dir, PATH_MAX);
 			path_executable = fs_format("%s", dir);
@@ -323,30 +324,30 @@ namespace qk {
 	}
 
 	String fs_documents(cString& child) {
-		if (path_documents.is_empty()) {
+		if (path_documents.isEmpty()) {
 			path_documents = fs_format("%s/%s", getenv("HOME"), "Documents");
-			fs_mkdir_p_sync(path_documents);
+			fs_mkdirs_sync(path_documents);
 		}
-		if ( child.is_empty() )
+		if ( child.isEmpty() )
 			return path_documents;
 		return fs_format("%s/%s", *path_documents, *child);
 	}
 
 	String fs_temp(cString& child) {
-		if (path_temp.is_empty()) {
+		if (path_temp.isEmpty()) {
 			path_temp = fs_format("%s/%s", getenv("HOME"), ".cache");
-			fs_mkdir_p_sync(path_temp);
+			fs_mkdirs_sync(path_temp);
 		}
-		if (child.is_empty())
+		if (child.isEmpty())
 			return path_temp;
 		return fs_format("%s/%s", *path_temp, *child);
 	}
 
 	String fs_resources(cString& child) {
-		if (path_resources.is_empty()) {
+		if (path_resources.isEmpty()) {
 			path_resources = fs_dirname(fs_executable());
 		}
-		if (child.is_empty())
+		if (child.isEmpty())
 			return path_resources;
 		return fs_format("%s/%s", *path_resources, *child);
 	}

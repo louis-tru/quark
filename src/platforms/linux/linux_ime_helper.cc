@@ -42,6 +42,8 @@
 
 namespace qk {
 
+	LinuxIMEHelper::~LinuxIMEHelper() {}
+
 	class LinuxIMEHelperImpl: public LinuxIMEHelper {
 	public:
 		typedef LinuxIMEHelperImpl Inl;

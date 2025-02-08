@@ -221,7 +221,7 @@
 				],
 				'link_settings': {
 					'libraries': [
-						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lXcursor', '-lasound',
+						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lXcursor', '-lasound', '-lfontconfig',
 					],
 				},
 			}],

@@ -31,6 +31,8 @@
 #include "./string.h"
 #include "./codec.h"
 #include "./handle.h"
+#include <stdio.h>
+#include <stdarg.h>
 
 namespace qk {
 	cChar _Str::ws[8] = {

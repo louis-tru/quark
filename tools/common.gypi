@@ -365,11 +365,16 @@
 			['_target_name in "libuv"', {
 				'defines': [ 'BUILDING_UV_SHARED=1' ],
 			}],
-			['_target_name in "v8_libplatform v8_libbase v8_base"', {
+			['_target_name in "v8_libplatform v8_libbase v8_base v8_base_without_compiler \
+					v8_snapshot v8_nosnapshot v8_init v8_compiler v8_initializers"', {
 				'defines': [ 
 					'BUILDING_V8_SHARED=1', 
 					'BUILDING_V8_PLATFORM_SHARED=1',
 				],
+				'conditions': [['os=="linux"', { # Fix compile error for linux
+					'cflags_cc!': [ '-std=<(std_cpp)' ],
+					'cflags_cc': [ '-std=gnu++14' ],
+				}]],
 			}],
 			['_target_name in "v8_external_snapshot"', {
 				'sources': [  'useless.c' ],

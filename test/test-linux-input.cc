@@ -213,7 +213,7 @@ int test_linux_input_2(int argc, char **argv)
 
 	int	fd = open( "/dev/input/event0", O_RDONLY );
 	if ( fd < 0 ) {
-		FX_ERR( "/dev/input/event0" );
+		Qk_ELog( "/dev/input/event0" );
 		return(-1);
 	}
 
@@ -224,7 +224,7 @@ int test_linux_input_2(int argc, char **argv)
 		ret = select( fd + 1, &rds, NULL, NULL, NULL );
 		if ( ret < 0 ) 
 		{
-			FX_ERR( "select" );
+			Qk_ELog( "select" );
 			return(-1);
 		}
 		/*能够读取到数据*/
@@ -271,7 +271,7 @@ int test_linux_input_1(int argc, char **argv)
 
 	int fd = open("/dev/input/event0", O_RDONLY);
 	if (fd < 0) {
-		FX_ERR("/dev/input/event0"); 
+		Qk_ELog("/dev/input/event0"); 
 		return -1;
 	}
 

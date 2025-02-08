@@ -291,7 +291,7 @@ namespace qk {
 
 		void setCursor(CursorStyle cursor) {
 			if (cursor == CursorStyle::None) {
-				XFixesHideCursor(_xdpy, _xwin);
+				//XFixesHideCursor(_xdpy, _xwin);
 				//XFlush(_xdpy);
 				// cChar noData[] = { 0,0,0,0,0,0,0,0 };
 				// XColor black = {0,0,0,0};

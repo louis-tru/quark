@@ -53,21 +53,20 @@ namespace qk { namespace js {
 				}
 			}
 		}
-		Array<String> argvArr;
 
 		if ( cmd.isEmpty() ) {
-			if (argc > 0) {
-				for (int i = 0; i < argc; i++)
-					argvArr.push(argv[i]);
-			}
-		} else {
+			Array<String> args;
 			for (auto& i : cmd.trim().split(' ')) {
 				auto arg = i.trim();
-				if (!arg.isEmpty()) argvArr.push(arg);
+				if (!arg.isEmpty()) args.push(arg);
 			}
+			if (args.length())
+				return js::Start("", args);
 		}
-
-		return argvArr.length() ? js::Start(argvArr): 0;
+		if (argc > 0) {
+			return js::Start(argc, argv);
+		}
+		return 0;
 	}
 
 } }
