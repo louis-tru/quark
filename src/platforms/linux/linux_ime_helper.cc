@@ -44,6 +44,7 @@ namespace qk {
 
 	class LinuxIMEHelperImpl: public LinuxIMEHelper {
 	public:
+		typedef LinuxIMEHelperImpl Inl;
 
 		LinuxIMEHelperImpl(WindowImpl* impl, int inputStyle)
 			: _win(impl->win())
@@ -92,9 +93,9 @@ namespace qk {
 		void clear() {
 			Qk_DLog("IME clear");
 			if (_has_open && _ic) {
-				if (!_preedit_string.is_empty()) {
+				if (!_preedit_string.isEmpty()) {
 					_preedit_string = String();
-					_win->dispatch()->dispatch_ime_unmark(String());
+					_win->dispatch()->onImeUnmark(String());
 				}
 				XUnsetICFocus(_ic);
 				Xutf8ResetIC(_ic);
@@ -112,9 +113,9 @@ namespace qk {
 			auto location = rect.origin;
 			Qk_DLog("set_spot_rect, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
-				Vec2 scale = _win->display_port()->scale_value();
+				float scale = _win->scale();
 				_spot_location = {
-					int16(location.x() * scale.x()), int16(location.y() * scale.y())
+					int16_t(location.x() * scale), int16_t(location.y() * scale)
 				};
 				updateSpotLocation();
 			}
@@ -127,18 +128,18 @@ namespace qk {
 
 			char buf[256] = { '\0', };
 			KeySym keysym = 0;
-			Status status = XLookupNone;
+			int status = XLookupNone;
 
 			if (_ic == nullptr) {
 				XLookupString(event, buf, sizeof(buf), &keysym, nullptr);
-				status = XLookupchars;
+				status = XLookupChars;
 			} else {
 				Xutf8LookupString(_ic, event, buf, 256, &keysym, &status);
 			}
 
 			Qk_DLog("onKeyPress %lu\n", keysym);
 
-			if (status == XLookupchars || 
+			if (status == XLookupChars || 
 				status == XLookupKeySym || status == XLookupBoth) {
 
 				if (keysym == XK_Return) {
@@ -162,7 +163,7 @@ namespace qk {
 				} else if (keysym == XK_End) {
 					onKeyControl(KEYCODE_MOVE_END);
 				} else {
-					if ((status == XLookupchars || status == XLookupBoth) &&
+					if ((status == XLookupChars || status == XLookupBoth) &&
 						((event->state & ControlMask) != ControlMask) &&
 						((event->state & Mod1Mask) != Mod1Mask)) 
 					{
@@ -283,10 +284,10 @@ namespace qk {
 				reinterpret_cast<XIMPreeditCaretCallbackStruct*>(data);
 
 			switch (caret_data->direction) {
-				case XIMForwardchar:
+				case XIMForwardChar:
 					self->onKeyControl(KEYCODE_RIGHT);
 					break;
-				case XIMBackwardchar:
+				case XIMBackwardChar:
 					self->onKeyControl(KEYCODE_LEFT);
 					break;
 				case XIMDontChange:
@@ -470,10 +471,10 @@ namespace qk {
 		static String wchar_t_to_string(const wchar_t *str)
 		{
 			if (sizeof(wchar_t) == 2) {
-				String2 ustr = (const uint16*)str;
+				String2 ustr = (const uint16_t*)str;
 				return ustr.toString();
 			} else {
-				Ucs4String ustr = (const uint*)str;
+				String4 ustr = (const uint32_t*)str;
 				return ustr.toString();
 			}
 		}
@@ -487,13 +488,13 @@ namespace qk {
 			}
 		}
 
-		void insert(cchar* str)
+		void insert(cChar* str)
 		{
 			Qk_DLog("insert, %s", str);
 			_win->dispatch()->onImeInsert(str);
 		}
 
-		void setPreeditString(cchar* str, int pos, int length)
+		void setPreeditString(cChar* str, int pos, int length)
 		{
 			Qk_DLog("setPreeditString, %s, %d, %d", str, pos, length);
 			if (str == nullptr) {

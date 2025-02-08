@@ -28,16 +28,20 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./linux_render.h"
-#include "../gl/gl_render.h"
-#include "../gl/gl_cmd.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #if Qk_ANDROID
 # include <android/native_window.h>
 #else
 # include <X11/Xlib.h>
+# undef Status
+# undef Bool
+# undef None
 #endif
+
+#include "./linux_render.h"
+#include "../gl/gl_render.h"
+#include "../gl/gl_cmd.h"
 
 // #if Qk_ENABLE_GL && Qk_LINUX
 
@@ -154,7 +158,6 @@ namespace qk {
 			, _context(ctx)
 			, _surface(EGL_NO_SURFACE)
 			, _win(EGL_NO_NATIVE_WINDOW)
-			, _rsDelegate(nullptr)
 		{}
 
 		~LinuxGLRender() override {
@@ -269,7 +272,7 @@ namespace qk {
 			// }
 #endif
 
-			return Vec2(size.width, size.height);
+			return Vec2(size.width(), size.height());
 		}
 
 		void renderDisplay() override {
@@ -352,7 +355,7 @@ namespace qk {
 
 		EGLContext ctx = eglCreateContext(display, config, nullptr, attrs);
 		if ( ctx ) {
-			r = new LinucGLRender(opts, display, config, ctx);
+			r = new LinuxGLRender(opts, display, config, ctx);
 		}
 
 		return r;

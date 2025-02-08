@@ -35,12 +35,15 @@
 #include <X11/Xatom.h>
 #include <X11/Xcursor/Xcursor.h>
 #include <X11/cursorfont.h>
-#include "./linux_app.h"
-#include "../../ui/window.h"
-#include "../../render/linux/linux_render.h"
+#include <EGL/eglplatform.h>
+#define XNone 0
+#undef Status
+#undef Bool
+#undef None
 
-#define XNone None;
-#undef None;
+#include "./linux_app.h"
+#include "../../render/linux/linux_render.h"
+#include "../../ui/window.h"
 
 namespace qk {
 	typedef const Window::Options cOptions;
@@ -59,7 +62,7 @@ namespace qk {
 		Atom touchAtom = XInternAtom(xdpy, "TOUCHSCREEN", true);
 		if (touchAtom == XNone) {
 			touchAtom = XInternAtom(xdpy, XI_TOUCHSCREEN, false);
-			if (touchAtom == XNone) return;
+			if (touchAtom == XNone) return nullptr;
 		}
 
 		int inputDeviceCount = 0;
@@ -117,7 +120,7 @@ namespace qk {
 			return XInit{
 				xdpy, openXDevice(xdpy), getXDisplayDpi(xdpy)
 			};
-		});
+		}());
 		return x;
 	}
 
@@ -196,7 +199,7 @@ namespace qk {
 				;
 			}
 
-			auto select = [](int a, int b){ return a > 0 ? a: b }
+			auto select = [](int a, int b){ return a > 0 ? a: b; };
 			auto screen = DefaultScreen(_xdpy);
 			int xdpyW = XDisplayWidth(_xdpy, screen);
 			int xdpyH = XDisplayHeight(_xdpy, screen);
@@ -269,11 +272,11 @@ namespace qk {
 		void setFullscreen(bool fullscreen) {
 			if (fullscreen) {
 				if (_xset.override_redirect == False) {
-					auto screen = DefaultScreen(_xdpy)
+					auto screen = DefaultScreen(_xdpy);
 					_xset.override_redirect = True;
 					XGetWindowAttributes(_xdpy, _xwin, &_attrs); // save attrs
 					setXwindowAttributes();
-					XMoveResizeWindow(_xdpy, _xwin, attrs.x, attrs.y,
+					XMoveResizeWindow(_xdpy, _xwin, _attrs.x, _attrs.y,
 						XDisplayWidth(_xdpy, screen), XDisplayHeight(_xdpy, screen)
 					);
 				}
@@ -360,10 +363,10 @@ namespace qk {
 	void Window::activate() {
 		auto impl = static_cast<WindowPlatform*>(_impl);
 		post_messate_main(Cb([impl](auto e) {
-			XMapWindow(impl->_xdpy, impl->_xwin);
+			XMapWindow(impl->xdpy(), impl->xwin());
 		}), false);
 	}
-
+ 
 	float Window::getDefaultScale() {
 		return static_cast<WindowPlatform*>(_impl)->_xwin_scale;
 	}

@@ -30,14 +30,16 @@
 
 #include "../../os/os.h"
 #include "../../util/string.h"
+#include "../../util/fs.h"
 #include <unistd.h>
+#include <sys/utsname.h>
 
 namespace qk {
-	static struct utsname* utsn = nullptr;
+	static utsname* utsn = nullptr;
 
 	static utsname* _device_uname() {
 		if (!utsn) {
-			utsn = new utsname();
+			utsn = new utsname;
 			uname(utsn);
 		}
 		return utsn;
@@ -80,31 +82,31 @@ namespace qk {
 	memory_info_t device_get_memory_info() {
 		memory_info_t r = {0,0,0};
 
-		String s = fs_read_file_sync("/proc/meminfo", 127).collapse_string();
+		String s = fs_read_file_sync("/proc/meminfo", 127).collapseString();
 		Qk_DLog("/proc/meminfo, %s", *s);
 
-		if (!s.is_empty()) {
+		if (!s.isEmpty()) {
 			int i, j;
 
-			i = s.index_of("MemTotal:");
+			i = s.indexOf("MemTotal:");
 			if (i == -1) return r;
-			j = s.index_of("kB", i);
+			j = s.indexOf("kB", i);
 			if (j == -1) return r;
 
 			r.MemTotal = s.substring(i + 9, j).trim().toNumber<uint64_t>() * 1024;
 			Qk_DLog("MemTotal, %lu", r.MemTotal);
 
-			i = s.index_of("MemFree:", j);
+			i = s.indexOf("MemFree:", j);
 			if (i == -1) return r;
-			j = s.index_of("kB", i);
+			j = s.indexOf("kB", i);
 			if (j == -1) return r;
 
 			r.MemFree = s.substring(i + 8, j).trim().toNumber<uint64_t>() * 1024;
 			Qk_DLog("MemFree, %lu", r.MemFree);
 
-			i = s.index_of("MemAvailable:", j);
+			i = s.indexOf("MemAvailable:", j);
 			if (i == -1) return r;
-			j = s.index_of("kB", i);
+			j = s.indexOf("kB", i);
 			if (j == -1) return r;
 
 			r.MemAvailable = s.substring(i + 13, j).trim().toNumber<uint64_t>() * 1024;
