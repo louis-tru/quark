@@ -38,7 +38,7 @@ namespace qk {
 	};
 
 	LinuxKeyboardAdapter::LinuxKeyboardAdapter() {
-		_PlatformKeyCodeToKeyCode[AKEYCODE_UNKNOWN] = KEYCODE_UNKNOWN;
+		_PlatformKeyCodeToKeyCode[0] = KEYCODE_UNKNOWN;
 		_PlatformKeyCodeToKeyCode[22] = KEYCODE_BACK_SPACE;
 		_PlatformKeyCodeToKeyCode[23] = KEYCODE_TAB;
 		// _PlatformKeyCodeToKeyCode[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
@@ -197,7 +197,7 @@ namespace qk {
 		// _PlatformKeyCodeToKeyCode[0] = KEYCODE_ZOOM_OUT;
 	}
 
-	KeyboardAdapter* KeyboardAdapter::create(host) {
+	KeyboardAdapter* KeyboardAdapter::create() {
 		return new LinuxKeyboardAdapter();
 	}
 
