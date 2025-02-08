@@ -49,6 +49,9 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
+#if Qk_LINUX
+	#define GL_BGRA GL_BGRA_EXT
+#endif
 		switch (type) {
 			case kAlpha_8_ColorType: return GL_ALPHA;
 			case kRGB_565_ColorType: return GL_RGB;
