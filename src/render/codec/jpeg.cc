@@ -77,7 +77,7 @@ namespace qk {
 
 		uint32_t rowbytes = w * num;
 		uint32_t count = h * rowbytes;
-		auto buff = Buffer::alloc(count);
+		auto buff = Buffer:(count);
 
 		while(jpeg.output_scanline < jpeg.output_height) {
 			JSAMPROW row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
