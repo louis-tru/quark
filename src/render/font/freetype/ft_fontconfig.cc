@@ -115,7 +115,12 @@ public:
 	}
 	explicit QkAutoFc(T* obj): inherited(obj) {}
 	QkAutoFc(QkAutoFc&& that): inherited(std::move(that)) {}
-	operator T*() const { return this->value(); }
+	operator T*() { return this->get(); }
+
+	QkAutoFc& operator=(T *data) {
+		inherited::operator=(data);
+		return *this;
+	}
 };
 
 typedef QkAutoFc<FcCharSet, FcCharSetCreate, FcCharSetDestroy> QkAutoFcCharSet;
@@ -213,8 +218,8 @@ static QkWeakReturn is_weak(FcPattern* pattern, const char object[], int id) {
 	FcPatternAddString(weak, object, (const FcChar8*)"nomatchstring");
 	FcPatternAddLangSet(weak, FC_LANG, weakLangSet);
 
-	FcFontSetAdd(fontSet, strong.release());
-	FcFontSetAdd(fontSet, weak.release());
+	FcFontSetAdd(fontSet, strong.collapse());
+	FcFontSetAdd(fontSet, weak.collapse());
 
 	// Add 'matchlang' to the copy of the pattern.
 	FcPatternAddLangSet(minimal, FC_LANG, weakLangSet);
@@ -258,7 +263,7 @@ static void remove_weak(FcPattern* pattern, const char object[]) {
 		if (kIsStrong_WeakReturn == result) {
 			lastStrongId = id;
 		}
-		Qk_ASSERTResult(FcPatternRemove(minimal, object, 0));
+		Qk_ASSERT(FcPatternRemove(minimal, object, 0));
 	}
 
 	// If they were all weak, then leave the pattern alone.
@@ -268,7 +273,7 @@ static void remove_weak(FcPattern* pattern, const char object[]) {
 
 	// Remove everything after the last strong.
 	for (int id = lastStrongId + 1; id < numIds; ++id) {
-		Qk_ASSERTResult(FcPatternRemove(pattern, object, lastStrongId + 1));
+		Qk_ASSERT(FcPatternRemove(pattern, object, lastStrongId + 1));
 	}
 }
 
@@ -313,32 +318,32 @@ static FontStyle Qkfontstyle_from_fcpattern(FcPattern* pattern) {
 
 	// FcWeightToOpenType was buggy until 2.12.4
 	static constexpr MapRanges weightRanges[] = {
-		{ FC_WEIGHT_THIN,       TextWeight::Thin },
-		{ FC_WEIGHT_EXTRALIGHT, TextWeight::Ultralight },
-		{ FC_WEIGHT_LIGHT,      TextWeight::Light },
+		{ FC_WEIGHT_THIN,       float(TextWeight::Thin) },
+		{ FC_WEIGHT_EXTRALIGHT, float(TextWeight::Ultralight) },
+		{ FC_WEIGHT_LIGHT,      float(TextWeight::Light) },
 		{ FC_WEIGHT_DEMILIGHT,  350 },
 		{ FC_WEIGHT_BOOK,       380 },
-		{ FC_WEIGHT_REGULAR,    TextWeight::Regular },
-		{ FC_WEIGHT_MEDIUM,     TextWeight::Medium },
-		{ FC_WEIGHT_DEMIBOLD,   TextWeight::Semibold },
-		{ FC_WEIGHT_BOLD,       TextWeight::Bold },
-		{ FC_WEIGHT_EXTRABOLD,  TextWeight::Heavy },
-		{ FC_WEIGHT_BLACK,      TextWeight::Black },
-		{ FC_WEIGHT_EXTRABLACK, TextWeight::ExtraBlack },
+		{ FC_WEIGHT_REGULAR,    float(TextWeight::Regular) },
+		{ FC_WEIGHT_MEDIUM,     float(TextWeight::Medium) },
+		{ FC_WEIGHT_DEMIBOLD,   float(TextWeight::Semibold) },
+		{ FC_WEIGHT_BOLD,       float(TextWeight::Bold) },
+		{ FC_WEIGHT_EXTRABOLD,  float(TextWeight::Heavy) },
+		{ FC_WEIGHT_BLACK,      float(TextWeight::Black) },
+		{ FC_WEIGHT_EXTRABLACK, float(TextWeight::ExtraBlack) },
 	};
 	QkScalar weight = map_ranges(get_int(pattern, FC_WEIGHT, FC_WEIGHT_REGULAR),
 								weightRanges, Qk_ARRAY_COUNT(weightRanges));
 
 	static constexpr MapRanges widthRanges[] = {
-		{ FC_WIDTH_ULTRACONDENSED, TextWidth::UltraCondensed },
-		{ FC_WIDTH_EXTRACONDENSED, TextWidth::ExtraCondensed },
-		{ FC_WIDTH_CONDENSED,      TextWidth::Condensed },
-		{ FC_WIDTH_SEMICONDENSED,  TextWidth::SemiCondensed },
-		{ FC_WIDTH_NORMAL,         TextWidth::Normal },
-		{ FC_WIDTH_SEMIEXPANDED,   TextWidth::SemiExpanded },
-		{ FC_WIDTH_EXPANDED,       TextWidth::Expanded },
-		{ FC_WIDTH_EXTRAEXPANDED,  TextWidth::ExtraExpanded },
-		{ FC_WIDTH_ULTRAEXPANDED,  TextWidth::UltraExpanded },
+		{ FC_WIDTH_ULTRACONDENSED, float(TextWidth::UltraCondensed) },
+		{ FC_WIDTH_EXTRACONDENSED, float(TextWidth::ExtraCondensed) },
+		{ FC_WIDTH_CONDENSED,      float(TextWidth::Condensed) },
+		{ FC_WIDTH_SEMICONDENSED,  float(TextWidth::SemiCondensed) },
+		{ FC_WIDTH_NORMAL,         float(TextWidth::Normal) },
+		{ FC_WIDTH_SEMIEXPANDED,   float(TextWidth::SemiExpanded) },
+		{ FC_WIDTH_EXPANDED,       float(TextWidth::Expanded) },
+		{ FC_WIDTH_EXTRAEXPANDED,  float(TextWidth::ExtraExpanded) },
+		{ FC_WIDTH_ULTRAEXPANDED,  float(TextWidth::UltraExpanded) },
 	};
 	QkScalar width = map_ranges(get_int(pattern, FC_WIDTH, FC_WIDTH_NORMAL),
 								widthRanges, Qk_ARRAY_COUNT(widthRanges));
@@ -351,7 +356,8 @@ static FontStyle Qkfontstyle_from_fcpattern(FcPattern* pattern) {
 		default: Qk_ASSERT(false); break;
 	}
 
-	return FontStyle(QkScalarRoundToInt(weight), QkScalarRoundToInt(width), slant);
+	return FontStyle(TextWeight(QkScalarRoundToInt(weight)),
+		TextWidth(QkScalarRoundToInt(width)), slant);
 }
 
 static void fcpattern_from_Qkfontstyle(FontStyle style, FcPattern* pattern) {
@@ -359,33 +365,33 @@ static void fcpattern_from_Qkfontstyle(FontStyle style, FcPattern* pattern) {
 
 	// FcWeightFromOpenType was buggy until 2.12.4
 	static constexpr MapRanges weightRanges[] = {
-		{ TextWeight::Thin,       FC_WEIGHT_THIN },
-		{ TextWeight::Ultralight, FC_WEIGHT_EXTRALIGHT },
-		{ TextWeight::Light,      FC_WEIGHT_LIGHT },
-		{ 350,                    FC_WEIGHT_DEMILIGHT },
-		{ 380,                    FC_WEIGHT_BOOK },
-		{ TextWeight::Regular,    FC_WEIGHT_REGULAR },
-		{ TextWeight::Medium,     FC_WEIGHT_MEDIUM },
-		{ TextWeight::Semibold,   FC_WEIGHT_DEMIBOLD },
-		{ TextWeight::Bold,       FC_WEIGHT_BOLD },
-		{ TextWeight::Heavy,      FC_WEIGHT_EXTRABOLD },
-		{ TextWeight::Black,      FC_WEIGHT_BLACK },
-		{ TextWeight::ExtraBlack, FC_WEIGHT_EXTRABLACK },
+		{ float(TextWeight::Thin),       FC_WEIGHT_THIN },
+		{ float(TextWeight::Ultralight), FC_WEIGHT_EXTRALIGHT },
+		{ float(TextWeight::Light),      FC_WEIGHT_LIGHT },
+		{ 350,                           FC_WEIGHT_DEMILIGHT },
+		{ 380,                           FC_WEIGHT_BOOK },
+		{ float(TextWeight::Regular),    FC_WEIGHT_REGULAR },
+		{ float(TextWeight::Medium),     FC_WEIGHT_MEDIUM },
+		{ float(TextWeight::Semibold),   FC_WEIGHT_DEMIBOLD },
+		{ float(TextWeight::Bold),       FC_WEIGHT_BOLD },
+		{ float(TextWeight::Heavy),      FC_WEIGHT_EXTRABOLD },
+		{ float(TextWeight::Black),      FC_WEIGHT_BLACK },
+		{ float(TextWeight::ExtraBlack), FC_WEIGHT_EXTRABLACK },
 	};
-	int weight = map_ranges(style.weight(), weightRanges, Qk_ARRAY_COUNT(weightRanges));
+	int weight = map_ranges(float(style.weight()), weightRanges, Qk_ARRAY_COUNT(weightRanges));
 
 	static constexpr MapRanges widthRanges[] = {
-		{ TextWidth::UltraCondensed, FC_WIDTH_ULTRACONDENSED },
-		{ TextWidth::ExtraCondensed, FC_WIDTH_EXTRACONDENSED },
-		{ TextWidth::Condensed,      FC_WIDTH_CONDENSED },
-		{ TextWidth::SemiCondensed,  FC_WIDTH_SEMICONDENSED },
-		{ TextWidth::Normal,         FC_WIDTH_NORMAL },
-		{ TextWidth::SemiExpanded,   FC_WIDTH_SEMIEXPANDED },
-		{ TextWidth::Expanded,       FC_WIDTH_EXPANDED },
-		{ TextWidth::ExtraExpanded,  FC_WIDTH_EXTRAEXPANDED },
-		{ TextWidth::UltraExpanded,  FC_WIDTH_ULTRAEXPANDED },
+		{ float(TextWidth::UltraCondensed), FC_WIDTH_ULTRACONDENSED },
+		{ float(TextWidth::ExtraCondensed), FC_WIDTH_EXTRACONDENSED },
+		{ float(TextWidth::Condensed),      FC_WIDTH_CONDENSED },
+		{ float(TextWidth::SemiCondensed),  FC_WIDTH_SEMICONDENSED },
+		{ float(TextWidth::Normal),         FC_WIDTH_NORMAL },
+		{ float(TextWidth::SemiExpanded),   FC_WIDTH_SEMIEXPANDED },
+		{ float(TextWidth::Expanded),       FC_WIDTH_EXPANDED },
+		{ float(TextWidth::ExtraExpanded),  FC_WIDTH_EXTRAEXPANDED },
+		{ float(TextWidth::UltraExpanded),  FC_WIDTH_ULTRAEXPANDED },
 	};
-	int width = map_ranges(style.width(), widthRanges, Qk_ARRAY_COUNT(widthRanges));
+	int width = map_ranges(float(style.width()), widthRanges, Qk_ARRAY_COUNT(widthRanges));
 
 	int slant = FC_SLANT_ROMAN;
 	switch (style.slant()) {
@@ -400,7 +406,7 @@ static void fcpattern_from_Qkfontstyle(FontStyle style, FcPattern* pattern) {
 	FcPatternAddInteger(pattern, FC_SLANT , slant);
 }
 
-class Typeface_stream : public Typeface_FreeType {
+class Typeface_stream : public QkTypeface_FreeType {
 public:
 	Typeface_stream(Sp<QkFontData> data,
 					String familyName, const FontStyle& style, bool fixedWidth)
@@ -416,17 +422,17 @@ public:
 	}
 
 	Sp<QkFontData> onMakeFontData() const override {
-		return new QkFontData(*fData.value());
+		return new QkFontData(*fData.get());
 	}
 
 private:
 	String fFamilyName;
-	const Sp<const QkFontData> fData;
+	const Sp<QkFontData> fData;
 
-	using INHERITED = Typeface_FreeType;
+	using INHERITED = QkTypeface_FreeType;
 };
 
-class Typeface_fontconfig : public Typeface_FreeType {
+class Typeface_fontconfig : public QkTypeface_FreeType {
 public:
 	static Sp<Typeface_fontconfig> Make(QkAutoFcPattern pattern, cString& sysroot) {
 		return new Typeface_fontconfig(pattern, sysroot);
@@ -434,11 +440,7 @@ public:
 	mutable QkAutoFcPattern fPattern;  // Mutable for passing to FontConfig API.
 	const String fSysroot;
 
-	void onGetFamilyName(String* familyName) const override {
-		*familyName = get_string(fPattern, FC_FAMILY);
-	}
-
-	String onGetFamilyName() const override { 
+	String onGetFamilyName() const override {
 		return get_string(fPattern, FC_FAMILY);
 	}
 
@@ -475,16 +477,16 @@ public:
 	}
 
 private:
-	Typeface_fontconfig(QkAutoFcPattern pattern, cString& sysroot)
+	Typeface_fontconfig(QkAutoFcPattern& pattern, cString& sysroot)
 		: INHERITED(Qkfontstyle_from_fcpattern(pattern),
 					FC_PROPORTIONAL != get_int(pattern, FC_SPACING, FC_PROPORTIONAL))
-		, fPattern(pattern)
+		, fPattern(std::move(pattern))
 		, fSysroot(sysroot)
 	{
 		initFreeType();
 	}
 
-	using INHERITED = Typeface_FreeType;
+	using INHERITED = QkTypeface_FreeType;
 };
 
 class QkFontPool_fontconfig : public FontPool {
@@ -544,16 +546,16 @@ class QkFontPool_fontconfig : public FontPool {
 			FCLocker lock;
 			for (auto& it: fTFCache) {
 				if (FcTrue == FcPatternEqual(it->fPattern, pattern)) {
-					return it.value();
+					return it.get();
 				}
 			}
 		}
-		auto face = Typeface_fontconfig::Make(pattern, fSysroot);
+		auto face = Typeface_fontconfig::Make(std::move(pattern), fSysroot);
 		if (face) {
 			// Cannot hold FCLocker in fTFCache.add; evicted typefaces may need to lock.
-			fTFCache.push(face);
+			fTFCache.push(std::move(face));
 		}
-		return face.value();
+		return face.get();
 	}
 
 public:
@@ -695,7 +697,7 @@ protected:
 			}
 			return font;
 		}());
-		return createTypefaceFromFcPattern(font);
+		return createTypefaceFromFcPattern(std::move(font));
 	}
 
 	Typeface* onMatchFamilyStyleCharacter(cChar familyName[], FontStyle style,
@@ -773,7 +775,7 @@ protected:
 
 		Array<QkFixed> axisValues(axisDefinitions.length());
 		Scanner::computeAxisValues(axisDefinitions, args.getVariationDesignPosition(),
-									axisValues, name);
+									axisValues.val(), name);
 
 		auto data = new QkFontData(stream, args.getCollectionIndex(),
 												   axisValues.val(), axisDefinitions.length());
