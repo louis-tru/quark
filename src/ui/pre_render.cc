@@ -170,7 +170,7 @@ namespace qk {
 			auto calls(std::move(_asyncCommit));
 			_asyncCommitMutex.unlock();
 			for (auto &i: calls) {
-				((void (*)(void*,AsyncCall<>::uArg))i.exec)(i.ctx, i.arg); // exec async call
+				((AsyncCall<>::Exec)i.exec)(i.self, i); // exec async call
 			}
 		}
 	}

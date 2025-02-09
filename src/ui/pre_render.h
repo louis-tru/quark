@@ -85,11 +85,13 @@ namespace qk {
 		/**
 		 * @struct AsyncCall data
 		*/
-		template<typename Ctx = void, typename Arg = uint32_t>
+		template<typename Self = void, typename Arg = uint64_t>
 		struct AsyncCall {
-			union uArg {char _[8]; Arg arg;} arg;
-			void *ctx, *exec;
-			typedef void (*Exec)(Ctx*, uArg);
+			void *exec;
+			Self *self;
+			Arg   arg;
+			inline Self* operator->() { return self; }
+			typedef void (*Exec)(Self*, AsyncCall&);
 		};
 
 		/**
@@ -99,10 +101,10 @@ namespace qk {
 		 * 
 		 * @method async_call()
 		*/
-		template<typename Ctx = View, typename Arg = uint32_t>
-		inline void async_call(typename AsyncCall<Ctx,Arg>::Exec ex, Ctx *ctx, Arg arg) {
-			static_assert(sizeof(Arg) <= sizeof(AsyncCall<>::uArg), "");
-			_asyncCall.push({*(AsyncCall<>::uArg*)&arg,ctx,(void*)ex});
+		template<typename Self = View, typename Arg = uint64_t>
+		inline void async_call(typename AsyncCall<Self,Arg>::Exec ex, Self *self, Arg arg) {
+			static_assert(sizeof(Arg) <= sizeof(uint64_t), "");
+			_asyncCall.push({(void*)ex,self,*(uint64_t*)&arg});
 		}
 
 		/**

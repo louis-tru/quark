@@ -109,6 +109,7 @@ namespace qk {
 						self = self->parent();
 					} while(self);
 				}, (View*)this, CSSType(evt.status()));
+
 			}
 		}
 
