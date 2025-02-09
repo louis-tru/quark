@@ -302,8 +302,8 @@ namespace qk {
 		__threads = new(::malloc(sizeof(Dict<ThreadID, Thread_INL*>))) Dict<ThreadID, Thread_INL*>();
 		__threads_mutex = new Mutex();
 		__on_process_safe_exit = new EventNoticer<Event<void, int>, Mutex>(nullptr);
-		Qk_DLog("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
-		Qk_DLog("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
+		//Qk_DLog("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
+		//Qk_DLog("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_process_exit(0); });
 		// Qk_ASSERT_RAW(pthread_key_create(&__th_key, nullptr) == 0);
 		Qk_ASSERT_RAW(uv_key_create(&__th_key) == 0);

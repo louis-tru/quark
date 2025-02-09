@@ -46,7 +46,7 @@ namespace qk { namespace js {
 		_TypesBase.reset(worker, exports->get<JSFunction>(worker,OneByte("Base")));
 
 		Js_Types_Each(_Fun)
-		Qk_DLog("Init types %s ok", "TypesParser");
+		//Qk_DLog("Init types %s ok", "TypesParser");
 
 		#undef OneByte
 		#undef _Fun
