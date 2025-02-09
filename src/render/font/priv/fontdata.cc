@@ -89,7 +89,7 @@ int QkMemoryStream::read(void* dest, int64_t size, int64_t offset) {
 		offset = _offset;
 	}
 	if (offset < _length) {
-		auto n = _length - offset - size;
+		int64_t n = _length - offset - size;
 		if (n < 0)
 			size += n;
 		memcpy(dest, _data->buffer.val() + offset, size);

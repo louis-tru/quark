@@ -108,6 +108,7 @@
 			['os=="linux"', {
 				'link_settings': {
 					'libraries': [
+						'-latomic',
 						'-lz',
 					]
 				},

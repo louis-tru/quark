@@ -436,7 +436,7 @@ namespace qk {
 				memcpy((void*)(_ptr.val + to), src, size_src * sizeof(T) );
 			} else {
 				T* to_ = _ptr.val + to;
-				for (int i = to; i < end; i++) {
+				for (uint32_t i = to; i < end; i++) {
 					if (i < old_len) {
 						reinterpret_cast<Sham*>(to_)->~Sham(); // release old object first
 					}
