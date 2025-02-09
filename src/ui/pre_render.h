@@ -85,9 +85,11 @@ namespace qk {
 		/**
 		 * @struct AsyncCall data
 		*/
+		template<typename Ctx = void, typename Arg = uint64_t>
 		struct AsyncCall {
-			struct Arg {char arg[8];} arg;
+			struct uArg {uint64_t _; Arg arg;} arg;
 			void *ctx, *exec;
+			typedef void (*Exec)(Ctx*, uArg);
 		};
 
 		/**
@@ -99,11 +101,9 @@ namespace qk {
 		*/
 		template<typename E, typename Arg, typename Ctx = View>
 		inline void async_call(E exec, Ctx *ctx, Arg arg) {
-			static_assert(sizeof(Arg) <= sizeof(AsyncCall::Arg), "");
-			union uArg { AsyncCall::Arg _; Arg arg; };
-			typedef void (*Exec)(Ctx*, uArg);
-			auto ex = static_cast<Exec>(exec);
-			_asyncCall.push({*(AsyncCall::Arg*)&arg,ctx,(void*)ex});
+			static_assert(sizeof(Arg) <= sizeof(AsyncCall<>::uArg), "");
+			auto ex = static_cast<typename AsyncCall<Ctx,Arg>::Exec>(exec);
+			_asyncCall.push({*(AsyncCall<>::uArg*)&arg,ctx,(void*)ex});
 		}
 
 		/**
@@ -144,8 +144,8 @@ namespace qk {
 		int32_t _mark_total;
 		List<Task*> _tasks;
 		Array<LevelMarks> _marks; // marked view layout
-		Array<AsyncCall> _asyncCall;
-		Array<AsyncCall> _asyncCommit;
+		Array<AsyncCall<>> _asyncCall;
+		Array<AsyncCall<>> _asyncCommit;
 		Mutex _asyncCommitMutex;
 		bool _is_render; // next frame render
 		friend class Application;

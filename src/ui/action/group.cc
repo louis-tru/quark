@@ -100,7 +100,8 @@ namespace qk {
 
 	void SpawnAction::removeChild(Id id) {
 		Qk_ASSERT(id != _actions_Rt.end());
-		_async_call([](auto self, auto arg) {
+		// _async_call([](auto self, auto arg) {
+		_window->preRender().async_call([](auto self, auto arg) {
 			self->_actions_Rt.erase( arg.arg );
 			(*arg.arg)->_id = nullId;
 		}, this, id);
