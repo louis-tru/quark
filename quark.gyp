@@ -43,8 +43,8 @@
 		'type': 'none',
 		'dependencies': [
 			'quark',
-			# 'quark-js',
 			'quark-media',
+			# 'quark-js',
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
@@ -123,7 +123,7 @@
 		['OS != "mac" or project=="xcode"', {
 			'includes': [ 'test/test.gypi' ],
 		}],
-		['os!="ios"', {
+		['0!=0 and os!="ios"', {
 			'targets+': [
 			{
 				'target_name': 'quarkrun',
@@ -131,8 +131,8 @@
 				'type': 'executable',
 				'dependencies': [
 					'quark',
-					# 'quark-js',
 					'quark-media',
+					'quark-js',
 				],
 				'ldflags': [ '<@(other_ldflags)' ],
 				'sources': [

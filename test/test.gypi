@@ -13,8 +13,8 @@
 		'dependencies': [
 			'quark-util',
 			'quark',
-			# 'quark-js',
 			'quark-media',
+			# 'quark-js',
 			'build_testing_ts',
 			'trial',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
