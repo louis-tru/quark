@@ -2,7 +2,7 @@
 	'includes': [
 		'src/util/util.gypi',
 		'src/src.gypi',
-		'src/js/js.gypi',
+		# 'src/js/js.gypi',
 		'trial/trial.gypi',
 		'tools/default_target.gypi',
 	],
@@ -43,7 +43,7 @@
 		'type': 'none',
 		'dependencies': [
 			'quark',
-			'quark-js',
+			# 'quark-js',
 			'quark-media',
 		],
 		'conditions': [
@@ -131,7 +131,7 @@
 				'type': 'executable',
 				'dependencies': [
 					'quark',
-					'quark-js',
+					# 'quark-js',
 					'quark-media',
 				],
 				'ldflags': [ '<@(other_ldflags)' ],
