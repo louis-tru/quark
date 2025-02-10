@@ -29,7 +29,7 @@
 					'-Wl,--no-whole-archive',
 				],
 			}],
-			['library_output=="static_library" and use_v8==1', {
+			['library_output=="static_library" and use_js==1', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive','<(output)/obj.target/libquark-js.a','-Wl,--no-whole-archive' ],
 			}],
@@ -122,7 +122,7 @@
 
 	# output executed binrary
 	'conditions': [
-		['use_v8==1', {
+		['use_js==1', {
 			'includes': ['src/js/js.gypi'],
 		}, {
 			'targets': [{
@@ -133,7 +133,7 @@
 		['OS != "mac" or project=="xcode"', {
 			'includes': [ 'test/test.gypi' ],
 		}],
-		['use_v8==1 and os!="ios"', {
+		['use_js==1 and os!="ios"', {
 			'targets+': [
 			{
 				'target_name': 'quarkrun',
