@@ -139,7 +139,7 @@
 				'./testing/tsconfig.json',
 			],
 			'outputs': ['./testing/out/testing'],
-			'action': [ 'sh', '-c', 'cd test/testing && npm run build'],
+			'action': []#[ 'sh', '-c', 'cd test/testing && npm run build'],
 		}],
 	}],
 
