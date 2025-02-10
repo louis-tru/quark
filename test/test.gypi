@@ -14,7 +14,7 @@
 			'quark-util',
 			'quark',
 			'quark-media',
-			# 'quark-js',
+			'quark-js',
 			'build_testing_ts',
 			'trial',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',

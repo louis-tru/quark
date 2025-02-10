@@ -77,6 +77,7 @@ def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
 def_opts('more-log',       0,   '--more-log print more log message [{0}]');
 def_opts(['use-gl', 'gl'], 1,   '--enable-gl,-gl use opengl backend [{0}]');
+def_opts(['use-js', 'js'], 1,   '--use-js,-js enable javascript modules [{0}]');
 
 function isMac() {
 	return get_OS(opts.os) == 'mac';
@@ -646,6 +647,7 @@ async function configure() {
 			use_v8: use_v8,
 			use_openssl: bi(!opts.without_ssl),
 			use_dtrace: bi(use_dtrace),
+			use_js: opts.use_js,
 			version_min: '',
 			source: path.resolve(__dirname, '..'),
 			output_name: '',

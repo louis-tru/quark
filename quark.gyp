@@ -2,7 +2,6 @@
 	'includes': [
 		'src/util/util.gypi',
 		'src/src.gypi',
-		# 'src/js/js.gypi',
 		'trial/trial.gypi',
 		'tools/default_target.gypi',
 	],
@@ -27,9 +26,12 @@
 					'<(output)/obj.target/libquark-util.a',
 					'<(output)/obj.target/libquark.a',
 					'<(output)/obj.target/libquark-media.a',
-					# '<(output)/obj.target/libquark-js.a',
 					'-Wl,--no-whole-archive',
 				],
+			}],
+			['library_output=="static_library" and use_v8==1', {
+				'other_ldflags+': [
+					'-Wl,--whole-archive','<(output)/obj.target/libquark-js.a','-Wl,--no-whole-archive' ],
 			}],
 		],
 	},
@@ -44,7 +46,7 @@
 		'dependencies': [
 			'quark',
 			'quark-media',
-			# 'quark-js',
+			'quark-js',
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
@@ -120,10 +122,18 @@
 
 	# output executed binrary
 	'conditions': [
+		['use_v8==1', {
+			'includes': ['src/js/js.gypi'],
+		}, {
+			'targets': [{
+				'target_name': 'quark-js',
+				'type': 'none',
+			}],
+		}],
 		['OS != "mac" or project=="xcode"', {
 			'includes': [ 'test/test.gypi' ],
 		}],
-		['0!=0 and os!="ios"', {
+		['use_v8==1 and os!="ios"', {
 			'targets+': [
 			{
 				'target_name': 'quarkrun',
