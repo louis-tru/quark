@@ -412,7 +412,7 @@ namespace qk {
 				float r0 = Float32::min(Vec2(r[i], s1).length(), rmax); // len
 				float r1 = Float32::min(Vec2(r[i], s2).length(), rmax);
 				float n = 2.0 * r1 / r0;
-				glUniform3f(sh->__, r1, n, 1.0/n);
+				glUniform3f(sh->__consts, r1, n, 1.0/n);
 				glUniform2f(sh->horn, p[0], p[1]);
 				glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
