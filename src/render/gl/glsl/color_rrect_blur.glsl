@@ -17,14 +17,14 @@ uniform lowp vec2  horn; // horn pos, left/top,right/top,right/bottom,left/botto
 uniform lowp vec4  color;
 uniform lowp float min_edge; // rect min edge size
 uniform lowp float s_inv; // 1/s, blur size reciprocal
-uniform lowp vec3  __consts; // consts
+uniform lowp vec3  consts; // consts
 
 // blur radius
-#define r1 __consts.x
+#define r1 consts.x
 // squircle exponent
-#define n __consts.y
+#define n consts.y
 // 1/n
-#define n_inv __consts.z
+#define n_inv consts.z
 
 lowp float erf(lowp float x) {
 	lowp float s = sign(x), a = abs(x);
