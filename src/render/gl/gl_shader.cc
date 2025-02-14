@@ -48,6 +48,7 @@ namespace qk {
 		if ( ok != GL_TRUE ) {
 			char log[255] = { 0 };
 			glGetShaderInfoLog(shader_handle, 254, &ok, log);
+			//Qk_ASSERT_EQ(GL_TRUE, ok);
 			Qk_Fatal("Compile shader error, %s\n\n%s\n\n////////////\n\n%s\n", name, log, *code);
 		}
 		return shader_handle;

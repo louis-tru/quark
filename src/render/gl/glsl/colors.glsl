@@ -1,12 +1,14 @@
 // Batch drawing color sets
 
+struct Option {
+	mediump int   flags; // reserve
+	mediump float depth;
+	mediump float m0,m1,m2,m3,m4,m5; // 2d mat2x3
+	mediump vec4  color; // color
+};
+
 layout (std140) uniform optsBlock {
-	struct Option {
-		mediump int   flags; // reserve
-		mediump float depth;
-		mediump float m0,m1,m2,m3,m4,m5; // 2d mat2x3
-		mediump vec4  color; // color
-	} opts[256];
+	Option opts[256];
 };
 
 #vert

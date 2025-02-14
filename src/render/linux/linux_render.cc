@@ -355,6 +355,8 @@ namespace qk {
 
 		EGLContext ctx = eglCreateContext(display, config, nullptr, attrs);
 		if ( ctx ) {
+			eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx);
+			Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
 			r = new LinuxGLRender(opts, display, config, ctx);
 		}
 
