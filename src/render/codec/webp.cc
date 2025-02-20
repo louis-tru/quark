@@ -50,7 +50,7 @@ namespace qk {
 			auto bf = Buffer::from((char*)buff, width * height * 4);
 			rv->push( Pixel( PixelInfo(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType), bf) );
 		}
-		return true;
+		return rv->length();
 	}
 
 }

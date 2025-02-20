@@ -101,8 +101,10 @@ public:
 } // namespace
 
 template<typename T, void (*D)(T*)> void FcTDestroy(T* t) {
-	FCLocker::AssertHeld();
-	D(t);
+	if (t) {
+		FCLocker::AssertHeld();
+		D(t);
+	}
 }
 
 template <typename T, T* (*C)(), void (*D)(T*)> class QkAutoFc

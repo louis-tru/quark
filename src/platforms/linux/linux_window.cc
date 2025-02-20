@@ -132,14 +132,15 @@ namespace qk {
 		return xinit().xdpyDpi;
 	}
 
+	void addImplToGlobal(XWindow xwin, WindowImpl* win);
+	void deleteImplFromGlobal(XWindow xwin);
+
 	class WindowPlatform: public WindowImpl {
 	public:
 		float _xft_dpi, _xwin_scale;
 		XSetWindowAttributes _xset;
 		XWindowAttributes _attrs;
 		XWindow _root;
-		Visual _visual;
-		XExtData _extra;
 
 		WindowPlatform(Window* win, cOptions &opts) {
 			_win = win;
@@ -147,28 +148,25 @@ namespace qk {
 			_root = XDefaultRootWindow(_xdpy);
 			_xft_dpi = dpiForXDisplay();
 			_xwin_scale = _xft_dpi / 96.0;
-			_xwin = makeXWindow(opts);
+			_xwin = newXWindow(opts);
 			_ime = LinuxIMEHelper::Make(this);
 
-			auto render = win->render();
-			render->surface()->makeSurface(_xwin);
-			render->reload();
-			// render->surface()->renderDisplay();
+			addImplToGlobal(_xwin, this);
 		}
 
 		~WindowPlatform() {
-			if (_xwin) {
-				XDestroyWindow(_xdpy, _xwin); _xwin = 0;
-			}
+			Qk_ASSERT(_xwin);
+			deleteImplFromGlobal(_xwin);
+			XDestroyWindow(_xdpy, _xwin); _xwin = 0;
 			if (_ime) {
 				delete _ime; _ime = nullptr;
 			}
 		}
 
-		XWindow makeXWindow(cOptions &opts) {
+		XWindow newXWindow(cOptions &opts) {
 			_xset.background_pixel = opts.backgroundColor.to_uint32();
-			_xset.border_pixel = 0;
 			_xset.background_pixmap = 0;
+			_xset.border_pixel = 0;
 			_xset.border_pixmap = XNone;
 			_xset.event_mask = NoEventMask;
 			_xset.do_not_propagate_mask = NoEventMask;
@@ -182,6 +180,11 @@ namespace qk {
 				| KeymapStateMask
 				| ExposureMask
 				| FocusChangeMask   // FocusIn, FocusOut
+				// | PointerMotionMask // MotionNotify
+				// | KeymapStateMask
+				// | ExposureMask
+				// | VisibilityChangeMask
+				| StructureNotifyMask
 			;
 
 			auto xdevice = xinit().xdevice;
@@ -206,22 +209,13 @@ namespace qk {
 			int width = select(opts.frame.size[0] * _xwin_scale, xdpyW / 2);
 			int height = select(opts.frame.size[1] * _xwin_scale, xdpyH / 2);
 
-			_visual = *DefaultVisual(_xdpy, 0);
-			_extra = XExtData{
-				0,
-				_visual.ext_data,
-				nullptr,
-				reinterpret_cast<char*>(this)
-			};
-			_visual.ext_data = &_extra;
-
 			auto xwin = XCreateWindow(
 				_xdpy, _root,
 				select(opts.frame.origin[0] * _xwin_scale, (xdpyW - width) / 2),
 				select(opts.frame.origin[1] * _xwin_scale, (xdpyH - height) / 2), width, height, 0,
 				DefaultDepth(_xdpy, 0),
 				InputOutput,
-				&_visual,
+				nullptr,
 				CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &_xset
 			);
 
@@ -338,6 +332,9 @@ namespace qk {
 			Qk_ASSERT_EQ(_impl, nullptr);
 			_impl = new WindowPlatform(this, opts);
 			_backgroundColor = opts.backgroundColor;
+			_render->surface()->makeSurface(_impl->xwin());
+			_render->reload();
+			_render->surface()->renderLoopRun();
 			activate();
 		}), true);
 	}
@@ -353,16 +350,16 @@ namespace qk {
 	}
 
 	void Window::set_backgroundColor(Color val) {
-		auto impl = static_cast<WindowPlatform*>(_impl);
-		post_messate_main(Cb([impl, val](auto e) {
+		post_messate_main(Cb([this, val](auto e) {
+			auto impl = static_cast<WindowPlatform*>(_impl);
 			impl->setBackgroundColor(val);
 		}), false);
 		_backgroundColor = val;
 	}
 
 	void Window::activate() {
-		auto impl = static_cast<WindowPlatform*>(_impl);
-		post_messate_main(Cb([impl](auto e) {
+		post_messate_main(Cb([this](auto e) {
+			auto impl = static_cast<WindowPlatform*>(_impl);
 			XMapWindow(impl->xdpy(), impl->xwin());
 		}), false);
 	}
@@ -375,8 +372,8 @@ namespace qk {
 	}
 
 	void Window::setFullscreen(bool fullscreen) {
-		auto impl = static_cast<WindowPlatform*>(_impl);
-		post_messate_main(Cb([impl, fullscreen](auto e) {
+		post_messate_main(Cb([this, fullscreen](auto e) {
+			auto impl = static_cast<WindowPlatform*>(_impl);
 			impl->setFullscreen(fullscreen);
 		}), false);
 	}
@@ -392,8 +389,8 @@ namespace qk {
 		}
 		cursor = current_cursor_user == CursorStyle::Normal ? current_cursor_base: current_cursor_user;
 
-		auto impl = static_cast<WindowPlatform*>(_impl);
-		post_messate_main(Cb([impl, cursor](auto e) {
+		post_messate_main(Cb([this, cursor](auto e) {
+			auto impl = static_cast<WindowPlatform*>(_impl);
 			impl->setCursor(cursor);
 		}), false);
 	}

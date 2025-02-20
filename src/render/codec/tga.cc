@@ -32,8 +32,8 @@
 
 namespace qk {
 
+	#pragma pack(push,1)
 	struct TGAHeader {
-		#pragma pack(push,1)
 		uint8_t idlength;              /* 00h Size of Image ID field */
 		uint8_t color_map_type;        /* 01h Color map type */
 		// 2-rgb
@@ -51,8 +51,8 @@ namespace qk {
 		// 16、24、32
 		uint8_t bits_per_pixel;        /* 10h Image pixel size */
 		uint8_t image_descriptor;      /* 11h Image descriptor byte */
-		#pragma pack(pop)
 	};
+	#pragma pack(pop)
 
 	typedef void (*TGAReadDataBlackFunc)(uint8_t** in, uint8_t** out, int alpha);
 	

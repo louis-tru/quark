@@ -421,7 +421,6 @@ namespace qk {
 
 		ColorType type = pix->type();
 		GLint iformat = gl_get_texture_pixel_format(type);
-		Qk_ASSERT(iformat);
 
 		if (!iformat)
 			return;

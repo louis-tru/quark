@@ -41,6 +41,8 @@ namespace qk {
 		virtual void makeSurface(EGLNativeWindowType win) = 0;
 		virtual void deleteSurface() = 0;
 		virtual void renderDisplay() = 0;
+		virtual void renderLoopRun() = 0;
+		virtual void renderLoopStop() = 0;
 	};
 }
 

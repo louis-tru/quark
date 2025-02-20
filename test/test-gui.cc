@@ -39,7 +39,7 @@ using namespace qk;
 
 void test_gui(int argc, char **argv) {
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
+	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}, .title="Test GUI"});
 	win->activate();
 	auto r = win->root();
 	//t->set_width({ 0, BoxSizeKind::Match });
@@ -47,7 +47,14 @@ void test_gui(int argc, char **argv) {
 	r->set_background_color(Color(255, 255, 255));
 
 	auto sp0 = r->append_new<Image>();
-	sp0->set_src(fs_resources("testing/res/aa.tiff")); // res://res/bb
+	// sp0->set_src(fs_resources("testing/res/aa.tiff")); // res://res/bb
+	// sp0->set_src(fs_resources("testing/res/0.jpeg"));
+	// sp0->set_src(fs_resources("testing/res/0.jpg"));
+	// sp0->set_src(fs_resources("testing/res/0.png"));
+	// sp0->set_src(fs_resources("testing/res/0.tiff"));
+	// sp0->set_src(fs_resources("testing/res/0.webp"));
+	sp0->set_src(fs_resources("testing/res/aa.webp"));
+	// sp0->set_src(fs_resources("testing/res/aa.ico"));
 	//sp0->set_width({256});
 	sp0->set_height({256});
 	sp0->set_align(Align::Start);
@@ -62,7 +69,7 @@ void test_gui(int argc, char **argv) {
 	div0->set_background_color({255,255,0,255});
 
 	auto sp = div0->append_new<Image>();
-	sp->set_src(fs_resources("testing/res/cc.pvr"));
+	// sp->set_src(fs_resources("testing/res/cc.pvr"));
 	//sp->set_width({307});
 	sp->set_height({1, BoxSizeKind::Ratio });
 
@@ -82,13 +89,13 @@ void test_gui(int argc, char **argv) {
 	div->set_align(Align::Start);
 
 	auto sp1 = div->append_new<Image>();
-	sp1->set_src(fs_resources("testing/res/aa.webp"));
+	// sp1->set_src(fs_resources("testing/res/aa.webp"));
 	sp1->set_width({256});
 	sp1->set_height({256});
 
 	// Image
 	auto img = r->append_new<Image>();
-	img->set_src(fs_resources("testing/res/cc.tga"));
+	// img->set_src(fs_resources("testing/res/cc.tga"));
 	img->set_width({320});
   // img->set_height({250});
 	img->set_opacity(0.9);

@@ -80,6 +80,7 @@ namespace qk {
 		, _fspTick(0)
 		, _fspTime(0), _surfaceRegion()
 		, _preRender(this)
+		, _impl(nullptr)
 	{
 		Qk_ASSERT_RAW(_host);
 		Qk_ASSERT_RAW(first_loop() == current_loop(), "Must be called on the first thread loop");

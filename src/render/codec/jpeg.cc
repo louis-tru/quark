@@ -43,7 +43,7 @@ namespace qk {
 	};
 
 	static void jpeg_error_output(j_common_ptr cinfo) {
-		Qk_ELog("%s", "Invalid JPEG file structure: missing SOS marker");
+		Qk_DLog("%s", "Invalid JPEG file structure: missing SOS marker");
 		JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
 		longjmp(data->jmpbuf, 1);
 	}

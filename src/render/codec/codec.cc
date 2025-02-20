@@ -69,13 +69,15 @@ namespace qk {
 			default: break;
 		}
 
-		return ok
+		if (ok
 			|| img_jpeg_test(data, out)
 			|| img_gif_test(data, out)
 			|| img_png_test(data, out)
 			|| img_webp_test(data, out)
 			|| img_tga_test(data, out)
-			|| img_pvrt_test(data, out);
+			|| img_pvrt_test(data, out)
+		) return true;
+		return false;
 #endif
 	}
 
@@ -95,13 +97,16 @@ namespace qk {
 			default: break;
 		}
 
-		return ok
-			|| img_jpeg_decode(data, out)
-			|| img_gif_decode(data, out)
-			|| img_png_decode(data, out)
-			|| img_webp_decode(data, out)
-			|| img_tga_decode(data, out)
-			|| img_pvrt_decode(data, out);
+		if (ok) return true;
+		if (img_jpeg_decode(data, out)) return true;
+		if (img_gif_decode(data, out)) return true;
+		if (img_png_decode(data, out)) return true;
+		if (img_webp_decode(data, out)) return true;
+		if (img_tga_decode(data, out)) return true;
+		if (img_pvrt_decode(data, out)) return true;
+
+		Qk_DLog("img_decode: Can't parse image data");
+		return false;
 #endif
 	}
 

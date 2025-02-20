@@ -20,11 +20,6 @@
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 			'deps/freetype/freetype.gyp:freetype',
 		],
-		'mac_bundle': 1,
-		'mac_bundle_resources': [
-			'./testing/out/testing',
-			# '../examples/out/examples',
-		],
 		'ldflags': [ '<@(other_ldflags)' ],
 		'sources': [
 			'../libs/qkmake',
@@ -96,6 +91,19 @@
 						'$(SDKROOT)/System/Library/Frameworks/JavaScriptCore.framework',
 					],
 				},
+				'mac_bundle': 1,
+				'mac_bundle_resources': [
+					'./testing/out/testing',
+					# '../examples/out/examples',
+				],
+			}, {
+				'copies': [{
+					'destination': '<(output)',
+					'files': [
+						'./testing/out/testing',
+						# '../examples/out/examples',
+					],
+				}], # copy
 			}],
 		],
 	},

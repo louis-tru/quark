@@ -35,6 +35,9 @@
 #include <signal.h>
 #include <unistd.h>
 #include <alsa/asoundlib.h>
+
+#include "../../render/linux/linux_render.h"
+
 #undef Status
 #undef Bool
 #undef None
@@ -50,6 +53,7 @@ namespace qk
 {
 	struct MainLooper;
 	static MainLooper* looper = nullptr;
+	static ThreadID main_thread_id(thread_self_id());
 
 #if DEBUG
 	cChar* MOUSE_KEYS[] = {
@@ -64,7 +68,14 @@ namespace qk
 #endif
 
 	struct MainLooper {
-		MainLooper(): _xdpy(nullptr) {
+		XDisplay *_xdpy;
+		XWindow _xwinTmp;
+		App::Inl *_app;
+		List<Cb> _msg;
+		Mutex _msgMutex;
+		Dict<XWindow, WindowImpl*> _winImpl;
+
+		MainLooper(): _xdpy(0), _xwinTmp(0) {
 			Qk_ASSERT_EQ(looper, nullptr);
 			looper = this;
 		}
@@ -74,30 +85,30 @@ namespace qk
 			looper = nullptr;
 		}
 
-		WindowImpl* windowBy(XEvent& event, XWindowAttributes* attrs = nullptr) {
-			if (event.xany.window) {
-				static XWindowAttributes attrsStatic;
-				if (!attrs) {
-					attrs = &attrsStatic;
-				}
-				Qk_ASSERT_EQ(True, XGetWindowAttributes(_xdpy, event.xany.window, attrs));
-				if (attrs->visual && attrs->visual->ext_data && attrs->visual->ext_data->private_data) {
-					auto impl = reinterpret_cast<WindowImpl*>(attrs->visual->ext_data->private_data);
-					Qk_ASSERT_EQ(impl->isValid(), true);
-					if (impl->isValid()) {
-						return impl;
-					}
-				}
-			}
-			return nullptr;
+		XWindow newXWindow() {
+			XSetWindowAttributes xset = {
+				.event_mask = NoEventMask,
+				.do_not_propagate_mask = NoEventMask,
+				.override_redirect = False,
+			};
+			auto xwin = XCreateWindow(
+				_xdpy, XDefaultRootWindow(_xdpy),
+				0, 0, 1, 1, 0, 0,
+				InputOutput,
+				nullptr,
+				0, &xset
+			);
+			Qk_ASSERT_RAW(xwin, "Cannot create XWindow");
+
+			return xwin;
 		}
 
 		void runLoop() {
 			_xdpy = openXDisplay();
+			_xwinTmp = newXWindow();
 			_app = Inl_Application(shared_app());
 			_app->triggerLoad();
 
-			bool appActive = false;
 			Atom wmProtocols    = XInternAtom(_xdpy, "WM_PROTOCOLS"    , False);
 			Atom wmDeleteWindow = XInternAtom(_xdpy, "WM_DELETE_WINDOW", False);
 
@@ -105,47 +116,36 @@ namespace qk
 			XEvent event;
 			do {
 				XNextEvent(_xdpy, &event);
-
 				resolvedMsg();
 
-				if (XFilterEvent(&event, 0))
+				if (!event.xany.window || !_winImpl.get(event.xany.window, impl)) {
 					continue;
-
+				}
 				switch (event.type) {
 					case Expose:
 						Qk_DLog("event, Expose");
-						impl = windowBy(event);
 						impl->win()->render()->reload();
 						break;
 					case MapNotify:
 						Qk_DLog("event, MapNotify, Window onForeground");
-						impl = windowBy(event);
 						_app->triggerForeground(impl->win());
-						// _render_looper->start();
+						impl->win()->render()->surface()->renderLoopRun();
 						break;
 					case UnmapNotify:
 						Qk_DLog("event, UnmapNotify, Window onBackground");
-						impl = windowBy(event);
 						_app->triggerBackground(impl->win());
-						// _render_looper->stop();
+						impl->win()->render()->surface()->renderLoopStop();
 						break;
 					case FocusIn:
 						Qk_DLog("event, FocusIn, Window onResume");
-						impl = windowBy(event);
 						impl->ime()->focus_in();
-						// _app->triggerResume();
-						// _app->triggerUnload();
-						// _app->triggerMemorywarning();
 						break;
 					case FocusOut:
 						Qk_DLog("event, FocusOut, Window onPause");
-						impl = windowBy(event);
 						impl->ime()->focus_out();
-						// _host->triggerPause();
 						break;
 					case KeyPress:
 						Qk_DLog("event, KeyDown, keycode: %ld", event.xkey.keycode);
-						impl = windowBy(event);
 						impl->ime()->key_press(&event.xkey);
 						impl->win()->dispatch()->keyboard()->dispatch(event.xkey.keycode, false, true,
 							false, false, 0, 0);
@@ -157,19 +157,16 @@ namespace qk
 						break;
 					case ButtonPress:
 						Qk_DLog("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-						impl = windowBy(event);
 						impl->win()->dispatch()->onMousepress(
 							KeyboardKeyCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), true, nullptr);
 						break;
 					case ButtonRelease:
 						Qk_DLog("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-						impl = windowBy(event);
 						impl->win()->dispatch()->onMousepress(
 							KeyboardKeyCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), false, nullptr);
 						break;
 					case MotionNotify: {
 						Qk_DLog("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
-						impl = windowBy(event);
 						impl->win()->dispatch()->onMousemove(
 							event.xmotion.x / impl->win()->scale(), event.xmotion.y / impl->win()->scale()
 						);
@@ -177,36 +174,40 @@ namespace qk
 					}
 					case ClientMessage:
 						if (event.xclient.message_type == wmProtocols && 
-							(Atom)event.xclient.data.l[0] == wmDeleteWindow) {
+							(Atom)event.xclient.data.l[0] == wmDeleteWindow) { // close
 							Qk_DLog("event, ClientMessage: Close");
-							// return;
+							impl->win()->close();
+
+							if (_winImpl.length() == 0) { // Exit process
+								XDestroyWindow(_xdpy, _xwinTmp); _xwinTmp = 0;
+								thread_exit(0);
+							}
 						}
 						break;
 					case GenericEvent:
 						/* event is a union, so cookie == &event, but this is type safe. */
 						if (XGetEventData(_xdpy, &event.xcookie)) {
-							handleGenericEvent(event);
+							handleGenericEvent(event, impl);
 							XFreeEventData(_xdpy, &event.xcookie);
 						}
 						break;
 					default:
-						Qk_DLog("event, %d", event.type);
+						Qk_DLog("event, %d, %d", event.type, time_second());
 						break;
 				}
 			} while(!is_process_exit());
 		}
 
-		void handleGenericEvent(XEvent& event) {
+		void handleGenericEvent(XEvent& event, WindowImpl* impl) {
 			XGenericEventCookie* cookie = &event.xcookie;
 			XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
-			auto win = windowBy(event)->win();
-			auto dispatch = win->dispatch();
+			auto dispatch = impl->win()->dispatch();
 
 			List<TouchEvent::TouchPoint> touchs = {{
 				xev->detail,
 				0, 0,
-				float(xev->event_x) / win->scale(),
-				float(xev->event_y) / win->scale(),
+				float(xev->event_x) / impl->win()->scale(),
+				float(xev->event_y) / impl->win()->scale(),
 				0,
 				false,
 				nullptr,
@@ -230,27 +231,28 @@ namespace qk
 			}
 		}
 
-		void postMessateMain(Cb& cb, bool sync) {
+		void addMsg(Cb& cb) {
 			_msgMutex.lock();
 			_msg.pushBack(cb);
 			_msgMutex.unlock();
 
-			XCirculateEvent event;
+			XEvent event;
 			event.type = CirculateNotify;
-			event.display = _xdpy;
-			event.window = 0;
-			event.place = PlaceOnTop;
+			event.xcirculate.display = _xdpy;
+			// event.xcirculate.window = _xwinTmp;
+			event.xcirculate.place = PlaceOnTop;
 			Qk_ASSERT_EQ(
 				True,
-				XSendEvent(_xdpy, 0, False, NoEventMask, (XEvent*)&event)
+				XSendEvent(_xdpy, _xwinTmp, False, NoEventMask, &event)
 			);
+			XFlush(_xdpy);
 		}
 
 		void resolvedMsg() {
 			List<Cb> msg;
 			_msgMutex.lock();
-			if (msg.length())
-				msg = std::move(msg);
+			if (_msg.length())
+				msg = std::move(_msg);
 			_msgMutex.unlock();
 
 			if (msg.length()) {
@@ -258,17 +260,32 @@ namespace qk
 					i->resolve();
 			}
 		}
-
-		XDisplay *_xdpy;
-		App::Inl *_app;
-		List<Cb> _msg;
-		Mutex _msgMutex;
 	};
+
+	void addImplToGlobal(XWindow xwin, WindowImpl* impl) {
+		looper->_winImpl.set(xwin, impl);
+	}
+
+	void deleteImplFromGlobal(XWindow xwin) {
+		looper->_winImpl.erase(xwin);
+	}
 
 	// sync to x11 main message loop
 	void post_messate_main(Cb cb, bool sync) {
 		Qk_ASSERT(looper);
-		looper->postMessateMain(cb, sync);
+		if (main_thread_id == thread_self_id()) {
+			cb->resolve();
+		} else if (sync) {
+			CondMutex mutex;
+			Cb cb1([&cb, &mutex](auto e) {
+				cb->resolve();
+				mutex.lock_and_notify_one();
+			});
+			looper->addMsg(cb1);
+			mutex.lock_and_wait_for(); // wait
+		} else {
+			looper->addMsg(cb);
+		}
 	}
 
 	void Application::openURL(cString& url) {

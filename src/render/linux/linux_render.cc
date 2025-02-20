@@ -157,7 +157,7 @@ namespace qk {
 			, _config(config)
 			, _context(ctx)
 			, _surface(EGL_NO_SURFACE)
-			, _win(EGL_NO_NATIVE_WINDOW)
+			, _win(EGL_NO_NATIVE_WINDOW), _isLoop(false)
 		{}
 
 		~LinuxGLRender() override {
@@ -166,6 +166,8 @@ namespace qk {
 
 		void release() override {
 			lock();
+			renderLoopStop();
+
 			if ( _display != EGL_NO_DISPLAY ) {
 				eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 				if ( _context != EGL_NO_CONTEXT ) {
@@ -209,11 +211,11 @@ namespace qk {
 		}
 
 		void lock() override {
-			_mutexMain.lock();
+			_mutex.lock();
 		}
 
 		void unlock() override {
-			_mutexMain.unlock();
+			_mutex.unlock();
 		}
 
 		void post_message(Cb cb) override {
@@ -277,6 +279,7 @@ namespace qk {
 
 		void renderDisplay() override {
 			lock();
+			makeCurrent();
 
 			if (_message.length()) { //
 				Array<Cb> msg;
@@ -311,17 +314,53 @@ namespace qk {
 
 			Qk_ASSERT_RAW(surface, "Unable to create a drawing surface");
 
-			Qk_ASSERT_RAW(eglMakeCurrent(_display, surface, surface, _context),
-				"Unable to create a drawing surface");
-
 			_surface = surface;
-			_renderThreadId = thread_self_id();
 		}
 
 		void deleteSurface() override {
 			if (_surface) {
 				eglDestroySurface(_display, _surface);
 				_surface = EGL_NO_SURFACE;
+			}
+		}
+
+		void makeCurrent() {
+			if (_renderThreadId == ThreadID()) {
+				_renderThreadId = thread_self_id();
+				if (!eglGetCurrentContext()) {
+					Qk_ASSERT_RAW(eglMakeCurrent(_display, _surface, _surface, _context),
+					"Unable to create a drawing surface");
+				}
+			}
+			Qk_ASSERT_EQ(_renderThreadId, thread_self_id());
+		}
+
+		void renderLoopRun() {
+			if (_renderThreadId != ThreadID())
+				return;
+
+			_renderThreadId = thread_new([this](cThread* t) {
+				Qk_ASSERT_RAW(eglMakeCurrent(_display, _surface, _surface, _context),
+					"Unable to create a drawing surface");
+				const int64_t intervalUs = 1e6 / 60; // 60 frames
+				while (!t->abort) {
+					auto timeUs = time_monotonic();
+					renderDisplay();
+					timeUs += intervalUs - time_monotonic();
+					if (timeUs >= 0) {
+						thread_sleep(timeUs);
+					}
+				}
+				Qk_ASSERT_RAW(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
+				_renderThreadId = ThreadID();
+			});
+		}
+
+		void renderLoopStop() {
+			if (_renderThreadId != ThreadID()) {
+				thread_try_abort(_renderThreadId);
+				thread_join_for(_renderThreadId);
+				_renderThreadId = ThreadID();
 			}
 		}
 
@@ -334,7 +373,8 @@ namespace qk {
 		Mutex _mutexMsg;
 		Array<Cb> _message;
 		ThreadID _renderThreadId;
-		RecursiveMutex _mutexMain;
+		RecursiveMutex _mutex;
+		std::atomic_bool _isLoop;
 #if Qk_ANDROID
 		Rect _virtualKeysRect;
 #endif
@@ -355,9 +395,10 @@ namespace qk {
 
 		EGLContext ctx = eglCreateContext(display, config, nullptr, attrs);
 		if ( ctx ) {
-			eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx);
+			Qk_ASSERT_RAW(eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
 			Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
 			r = new LinuxGLRender(opts, display, config, ctx);
+			Qk_ASSERT_RAW(eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
 		}
 
 		return r;
