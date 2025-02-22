@@ -39,7 +39,7 @@ using namespace qk;
 
 void test_gui(int argc, char **argv) {
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}, .title="Test GUI"});
+	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test GUI"});
 	win->activate();
 	auto r = win->root();
 	//t->set_width({ 0, BoxSizeKind::Match });

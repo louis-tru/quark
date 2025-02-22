@@ -239,6 +239,7 @@ namespace qk {
 		DragCopy,
 		ContextualMenu,
 		IbeamForVertical,
+		Cross,
 	};
 
 	// ----------------------------------------------------------------

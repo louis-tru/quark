@@ -82,6 +82,8 @@ namespace qk {
 		float fWidth, fHeight;
 		// The advance for this glyph.
 		float fAdvanceX, fAdvanceY;
+		// The ID for glyph
+		GlyphID id;
 	};
 
 	typedef const FontGlyphMetrics cFontGlyphMetrics;

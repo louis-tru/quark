@@ -537,7 +537,7 @@ namespace qk {
 		auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
 		auto twinkle = v->_editing && v->_cursor_twinkle_status;
 		auto visible = v->_blob_visible.length();
-		auto clip = v->_clip && (visible || twinkle);
+		auto clip = false;//v->_clip && (visible || twinkle); // TODO ...
 
 		if (clip) {
 			getInsideRectPath(v, data);

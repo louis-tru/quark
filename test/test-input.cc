@@ -21,18 +21,22 @@ void test_input(int argc, char **argv) {
 	box->set_margin_top(20);
 	box->set_margin_right(20);
 	box->set_margin_bottom(20);
-	box->set_background_color({200,128,128});
+	box->set_background_color({200,128,128,128});
 	box->add_event_listener(UIEvent_Click, [](auto& e) {
 		Qk_DLog("------------------ Box Click ------------------");
 	});
 
+	// input->set_cursor(CursorStyle::ClosedHand);
+	// input->set_cursor(CursorStyle::None);
 	input->set_width({ 0.5, BoxSizeKind::Ratio });
+	// input->set_width({ 300 });
 	input->set_height({ 100 });
-	input->set_background_color({255,255,255});
-	input->set_align(Align::CenterMiddle);
+	input->set_background_color({255,0,0});
+	input->set_align(Align::Center);
 	// input->set_padding_left(5);
 	// input->set_padding_right(5);
 	input->set_text_line_height({30});
+	input->set_value("ABCDEFGJ - abCcRdefgj");
 	//input->set_text_background_color({{255,128,0}});
 	//input->set_text_shadow({{1,1,1,{0,0,0}}});
 

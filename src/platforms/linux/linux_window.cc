@@ -141,6 +141,7 @@ namespace qk {
 		XSetWindowAttributes _xset;
 		XWindowAttributes _attrs;
 		XWindow _root;
+		Cursor _noneCursor;
 
 		WindowPlatform(Window* win, cOptions &opts) {
 			_win = win;
@@ -150,6 +151,7 @@ namespace qk {
 			_xwin_scale = _xft_dpi / 96.0;
 			_xwin = newXWindow(opts);
 			_ime = LinuxIMEHelper::Make(this);
+			_noneCursor = XNone;
 
 			addImplToGlobal(_xwin, this);
 		}
@@ -160,6 +162,9 @@ namespace qk {
 			XDestroyWindow(_xdpy, _xwin); _xwin = 0;
 			if (_ime) {
 				delete _ime; _ime = nullptr;
+			}
+			if (_noneCursor != XNone) {
+				XFreeCursor(_xdpy, _noneCursor);
 			}
 		}
 
@@ -173,22 +178,18 @@ namespace qk {
 			_xset.override_redirect = False;
 
 			_xset.event_mask = NoEventMask
-				| KeyPressMask
-				| KeyReleaseMask
+				| KeyPressMask      // KeyPress
+				| KeyReleaseMask    // KeyRelease
 				| EnterWindowMask   // EnterNotify
 				| LeaveWindowMask   // LeaveNotify
-				| KeymapStateMask
-				| ExposureMask
+				| KeymapStateMask   // MapNotify
+				| ExposureMask      // Expose
 				| FocusChangeMask   // FocusIn, FocusOut
-				// | PointerMotionMask // MotionNotify
-				// | KeymapStateMask
-				// | ExposureMask
-				// | VisibilityChangeMask
+				| VisibilityChangeMask
 				| StructureNotifyMask
 			;
 
-			auto xdevice = xinit().xdevice;
-			if (xdevice) {
+			if (!xinit().xdevice) { // It's not a multipoint device
 				_xset.event_mask |= NoEventMask
 					| ButtonPressMask
 					| ButtonReleaseMask
@@ -215,7 +216,7 @@ namespace qk {
 				select(opts.frame.origin[1] * _xwin_scale, (xdpyH - height) / 2), width, height, 0,
 				DefaultDepth(_xdpy, 0),
 				InputOutput,
-				nullptr,
+				DefaultVisual(_xdpy, 0),
 				CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &_xset
 			);
 
@@ -223,7 +224,7 @@ namespace qk {
 
 			Qk_ASSERT_RAW(xwin, "Cannot create XWindow");
 
-			if (xdevice) {
+			if (xinit().xdevice) { // It's a Multipoint device
 				XIEventMask eventmask;
 				uint8_t mask[3] = { 0,0,0 };
 
@@ -284,45 +285,87 @@ namespace qk {
 		}
 
 		void setCursor(CursorStyle cursor) {
+
+			auto hideCursor = [&]() {
+				if (_noneCursor == XNone) {
+					static char noData[] = { 0,0,0,0,0,0,0,0 };
+					XColor black = { .red = 0, .green = 0, .blue = 0 };
+					Pixmap bitmap = XCreateBitmapFromData(_xdpy, _xwin, noData, 1, 1);
+					_noneCursor = XCreatePixmapCursor(_xdpy, bitmap, bitmap, &black, &black, 0, 0);
+					XFreePixmap(_xdpy, bitmap);
+				}
+				XDefineCursor(_xdpy, _xwin, _noneCursor);
+			};
+
 			if (cursor == CursorStyle::None) {
-				//XFixesHideCursor(_xdpy, _xwin);
-				//XFlush(_xdpy);
-				// cChar noData[] = { 0,0,0,0,0,0,0,0 };
-				// XColor black = {0,0,0,0};
-				// Pixmap bitmapNoData = XCreateBitmapFromData(_xdpy, _xwin, noData, 1, 1);
-				// Cursor invisibleCursor = XCreatePixmapCursor(display, bitmapNoData, bitmapNoData, 
-				// 																							&black, &black, 0, 0);
-				// XDefineCursor(_xdpy, _xwin, invisibleCursor);
-				// XFreeCursor(_xdpy, invisibleCursor);
-				// XFreePixmap(_xdpy, bitmapNoData);
+				hideCursor();
 			} else if (cursor == CursorStyle::NoneUntilMouseMoves) {
-				// XFixesHideCursor(_xdpy, _xwin);
+				hideCursor();
 			} else {
+				// Ref file X11/cursorfont.h
 				Cursor c;
-				// switch (cursor) {
-				// 	case CursorStyle::Normal:
-				// 	case CursorStyle::Arrow: c = XcursorLibraryLoadCursor(dpy, "X_cursor"); break;
-				// 	case CursorStyle::Ibeam:  c = XcursorLibraryLoadCursor(dpy, "X_cursor"); [NSCursor.IBeamCursor set]; break;
-				// 	case CursorStyle::PointingHand: [NSCursor.pointingHandCursor set]; break;
-				// 	case CursorStyle::ClosedHand: [NSCursor.closedHandCursor set]; break;
-				// 	case CursorStyle::OpenHand: [NSCursor.openHandCursor set]; break;
-				// 	case CursorStyle::ResizeLeft: [NSCursor.resizeLeftCursor set]; break;
-				// 	case CursorStyle::ResizeRight: [NSCursor.resizeRightCursor set]; break;
-				// 	case CursorStyle::ResizeLeftRight: [NSCursor.resizeLeftRightCursor set]; break;
-				// 	case CursorStyle::ResizeUp: [NSCursor.resizeUpCursor set]; break;
-				// 	case CursorStyle::ResizeDown: [NSCursor.resizeDownCursor set]; break;
-				// 	case CursorStyle::ResizeUpDown: [NSCursor.resizeUpDownCursor set]; break;
-				// 	case CursorStyle::Crosshair: [NSCursor.crosshairCursor set]; break;
-				// 	case CursorStyle::DisappearingItem: [NSCursor.disappearingItemCursor set]; break;
-				// 	case CursorStyle::OperationNotAllowed: [NSCursor.operationNotAllowedCursor set]; break;
-				// 	case CursorStyle::DragLink: [NSCursor.dragLinkCursor set]; break;
-				// 	case CursorStyle::DragCopy: [NSCursor.dragCopyCursor set]; break;
-				// 	case CursorStyle::ContextualMenu: [NSCursor.contextualMenuCursor set]; break;
-				// 	case CursorStyle::IbeamForVertical: [NSCursor.IBeamCursorForVerticalLayout set]; break;
-				// 	default: break;
-				// }
-				// XDefineCursor(_xdpy, _xwin, c);
-				// XFixesShowCursor(_xdpy, _xwin);
+				switch (cursor) {
+					default:
+					case CursorStyle::Normal:
+					case CursorStyle::Arrow:
+						c = XNone;
+						break;
+					case CursorStyle::Ibeam:
+						c = XcursorLibraryLoadCursor(_xdpy, "xterm");
+						break;
+					case CursorStyle::PointingHand:
+						c = XcursorLibraryLoadCursor(_xdpy, "hand1");
+						break;
+					case CursorStyle::ClosedHand:
+						c = XcursorLibraryLoadCursor(_xdpy, "fleur");
+						break;
+					case CursorStyle::OpenHand:
+						c = XcursorLibraryLoadCursor(_xdpy, "fleur");
+						break;
+					case CursorStyle::ResizeLeft:
+						c = XcursorLibraryLoadCursor(_xdpy, "left_side");
+						break;
+					case CursorStyle::ResizeRight:
+						c = XcursorLibraryLoadCursor(_xdpy, "right_side");
+						break;
+					case CursorStyle::ResizeLeftRight:
+						c = XcursorLibraryLoadCursor(_xdpy, "sb_h_double_arrow");
+						break;
+					case CursorStyle::ResizeUp:
+						c = XcursorLibraryLoadCursor(_xdpy, "top_side");
+						break;
+					case CursorStyle::ResizeDown:
+						c = XcursorLibraryLoadCursor(_xdpy, "bottom_side");
+						break;
+					case CursorStyle::ResizeUpDown:
+						c = XcursorLibraryLoadCursor(_xdpy, "sb_v_double_arrow");
+						break;
+					case CursorStyle::Crosshair:
+						c = XcursorLibraryLoadCursor(_xdpy, "crosshair");
+						break;
+					case CursorStyle::DisappearingItem:
+						c = XcursorLibraryLoadCursor(_xdpy, "X_cursor");
+						break;
+					case CursorStyle::OperationNotAllowed:
+						c = XcursorLibraryLoadCursor(_xdpy, "X_cursor");
+						break;
+					case CursorStyle::DragLink:
+						c = XcursorLibraryLoadCursor(_xdpy, "center_ptr");
+						break;
+					case CursorStyle::DragCopy:
+						c = XcursorLibraryLoadCursor(_xdpy, "circle");
+						break;
+					case CursorStyle::ContextualMenu:
+						c = XcursorLibraryLoadCursor(_xdpy, "arrow");
+						break;
+					case CursorStyle::IbeamForVertical:
+						c = XcursorLibraryLoadCursor(_xdpy, "xterm");
+						break;
+					case CursorStyle::Cross:
+						c = XcursorLibraryLoadCursor(_xdpy, "cross");
+						break;
+				}
+				XDefineCursor(_xdpy, _xwin, c);
 			}
 		}
 	};

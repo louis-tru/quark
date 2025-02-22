@@ -1046,6 +1046,8 @@ void QkTypeface_FreeType::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph)
 	}
 	_this->emboldenIfNeeded(fFace, fFace->glyph, id);
 
+	glyph->id = id;
+
 	if (fFace->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
 		using FT_PosLimits = std::numeric_limits<FT_Pos>;
 		FT_BBox bounds = { FT_PosLimits::max(), FT_PosLimits::max(),
@@ -1288,10 +1290,10 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 
 	for (auto &gm: gms) {
 		gm.fLeft *= scale;
-		gm.fLeft += right;
 		gm.fTop *= scale;
 		gm.fWidth *= scale;
 		gm.fHeight *= scale;
+		gm.fAdvanceY = right; // As offset value x from the pixel
 
 		if (offset) {
 			gm.fTop += off->y() * offsetScale;
@@ -1304,7 +1306,7 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 	}
 
 	FT_Glyph_Format ft_format = fFace->glyph->format;
-	uint32_t width = ceilf(gms.back().fLeft + gms.back().fWidth);
+	uint32_t width = ceilf(right);
 	uint32_t height = ceilf(top + bottom);
 	ColorType type;
 
@@ -1333,6 +1335,9 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 	memset(pixel.val(), 0, pixel.length());
 
 	for (auto &gm: gms) {
+		if (FT_Load_Glyph(fFace, gm.id, fLoadGlyphFlags) != 0)
+			Return();
+		_this->emboldenIfNeeded(fFace, fFace->glyph, gm.id);
 		generateGlyphImage(gm, pixel, top);
 	}
 

@@ -548,6 +548,7 @@ class QkFontPool_fontconfig : public FontPool {
 			FCLocker lock;
 			for (auto& it: fTFCache) {
 				if (FcTrue == FcPatternEqual(it->fPattern, pattern)) {
+					pattern.release();
 					return it.get();
 				}
 			}
@@ -565,7 +566,10 @@ public:
 	explicit QkFontPool_fontconfig(FcConfig* config)
 		: fFC(config ? config : FcInitLoadConfigAndFonts())
 		, fSysroot(reinterpret_cast<const char*>(FcConfigGetSysRoot(fFC)))
-		, fFamilyNames(GetFamilyNames(fFC)) {}
+		, fFamilyNames(GetFamilyNames(fFC)) 
+	{
+		initFontPool();
+	}
 
 	~QkFontPool_fontconfig() override {
 		// Hold the lock while unrefing the config.

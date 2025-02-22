@@ -46,6 +46,16 @@ namespace qk {
 
 	class LinuxIMEHelperImpl: public LinuxIMEHelper {
 	public:
+		Window* _win;
+		XWindow _xwin;
+		XDisplay *_xdpy;
+		XIM _im;
+		XIC _ic;
+		String _preeditString;
+		bool _isOpen;
+		int _inputStyle;
+		XPoint _spotLocation;
+		XFontSet _fontSet;
 		typedef LinuxIMEHelperImpl Inl;
 
 		LinuxIMEHelperImpl(WindowImpl* impl, int inputStyle)
@@ -53,12 +63,11 @@ namespace qk {
 			, _xwin(impl->xwin())
 			, _xdpy(impl->xdpy())
 			, _im(nullptr), _ic(nullptr)
-			, _has_open(false)
-			, _input_style(inputStyle)
+			, _isOpen(false)
+			, _inputStyle(inputStyle)
+			, _spotLocation{1,1}
 			, _fontSet(nullptr)
 		{
-			_spot_location = {1,1};
-
 			// load fontset
 			char **missing_list = nullptr;
 			int missing_count = 0;
@@ -79,24 +88,24 @@ namespace qk {
 
 		void open() {
 			Qk_DLog("IME open");
-			if (!_has_open) {
-				_has_open = true;
+			if (!_isOpen) {
+				_isOpen = true;
 				registerInstantiateCallback();
 			}
 		}
 
 		void close() {
 			Qk_DLog("IME close");
-			_has_open = false;
+			_isOpen = false;
 			destroyIC();
 			closeIM();
 		}
 
 		void clear() {
 			Qk_DLog("IME clear");
-			if (_has_open && _ic) {
-				if (!_preedit_string.isEmpty()) {
-					_preedit_string = String();
+			if (_isOpen && _ic) {
+				if (!_preeditString.isEmpty()) {
+					_preeditString = String();
 					_win->dispatch()->onImeUnmark(String());
 				}
 				XUnsetICFocus(_ic);
@@ -116,8 +125,9 @@ namespace qk {
 			Qk_DLog("set_spot_rect, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
 				float scale = _win->scale();
-				_spot_location = {
-					int16_t(location.x() * scale), int16_t(location.y() * scale)
+				_spotLocation = {
+					int16_t((location.x() + rect.size.width()) * scale),
+					int16_t((location.y() + rect.size.height()) * scale)
 				};
 				updateSpotLocation();
 			}
@@ -228,7 +238,7 @@ namespace qk {
 			self->_im = nullptr;
 			self->_ic = nullptr;
 
-			if (self->_has_open)
+			if (self->_isOpen)
 				self->registerInstantiateCallback();
 		}
 
@@ -238,6 +248,7 @@ namespace qk {
 			Qk_DLog("preedit start");
 		}
 
+		////
 		static void preeditDoneCallback(XIM xim, XPointer user_data, XPointer data)
 		{
 			Qk_DLog("preedit done");
@@ -248,7 +259,7 @@ namespace qk {
 			auto self = reinterpret_cast<Inl*>(user_data);
 			self->setPreeditString(nullptr, 0, 0);
 		}
-
+		////
 		static void preeditDrawCallback(XIM xim, XPointer user_data, XPointer data)
 		{
 			if (user_data == nullptr || data == nullptr)
@@ -275,11 +286,11 @@ namespace qk {
 				}
 			}
 		}
-
+		////
 		static void preeditCaretCallback(XIM xim, XPointer user_data, XPointer data)
 		{
 			if (user_data == nullptr || data == nullptr)
-			return;
+				return;
 
 			auto self = reinterpret_cast<Inl*>(user_data);
 			XIMPreeditCaretCallbackStruct *caret_data = 
@@ -348,12 +359,13 @@ namespace qk {
 			XGetIMValues(_im,
 				XNQueryICValuesList, &ic_values,
 				nullptr);
-			
+
 			if (ic_values != nullptr) {
 				for (int i = 0; i < ic_values->count_values; i++) {
 					Qk_DLog("%s", ic_values->supported_values[i]);
 					if (strcmp(ic_values->supported_values[i],
-								XNStringConversionCallback) == 0) {
+							XNStringConversionCallback) == 0)
+					{
 						useStringConversion = true;
 						break;
 					}
@@ -378,13 +390,13 @@ namespace qk {
 		{
 			if (_im == nullptr)
 				return;
-			
+
 			Qk_ASSERT(!_ic);
 
-			if ((_input_style & XIMPreeditPosition) && _fontSet) {
+			if ((_inputStyle & XIMPreeditPosition) && _fontSet) {
 				XRectangle area = { 0,0,1,1 };
 				XVaNestedList attr = XVaCreateNestedList(0,
-								XNSpotLocation, &_spot_location,
+								XNSpotLocation, &_spotLocation,
 								XNArea, &area,
 								XNFontSet, _fontSet,
 								nullptr);
@@ -484,7 +496,7 @@ namespace qk {
 		void updateSpotLocation() {
 			if (_ic) {
 				XVaNestedList attr = XVaCreateNestedList(0,
-					XNSpotLocation, &_spot_location, nullptr);
+					XNSpotLocation, &_spotLocation, nullptr);
 				XSetICValues(_ic, XNPreeditAttributes, attr, nullptr);
 				XFree(attr);
 			}
@@ -501,10 +513,10 @@ namespace qk {
 			Qk_DLog("setPreeditString, %s, %d, %d", str, pos, length);
 			if (str == nullptr) {
 				_win->dispatch()->onImeUnmark(String());
-				_preedit_string = String();
+				_preeditString = String();
 			} else {
-				_preedit_string = str;
-				_win->dispatch()->onImeMarked(_preedit_string);
+				_preeditString = str;
+				_win->dispatch()->onImeMarked(_preeditString);
 			}
 		}
 
@@ -531,17 +543,6 @@ namespace qk {
 		void onKeyControl(KeyboardKeyCode name) {
 			_win->dispatch()->onImeControl(name);
 		}
-
-		Window* _win;
-		XWindow _xwin;
-		XDisplay *_xdpy;
-		XIM _im;
-		XIC _ic;
-		String _preedit_string;
-		bool _has_open;
-		int _input_style;
-		XPoint _spot_location;
-		XFontSet _fontSet;
 	};
 
 	LinuxIMEHelper* LinuxIMEHelper::Make(WindowImpl* impl, int inputStyle) {

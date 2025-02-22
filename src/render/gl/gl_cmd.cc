@@ -1039,7 +1039,10 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::drawColor(const VertexData &vertex, const Color4f &color, bool aafuzz) {
-		if ( vertex.vertex.length() == 0 ) { // length == 0
+#define Qk_USE_Colors (!Qk_LINUX)
+#if Qk_USE_Colors
+		if ( vertex.vertex.length() == 0 ) { // Maybe it's already cached
+#endif
 			_this->checkMetrix(); // check matrix change
 			auto cmd = new(_this->allocCmd(sizeof(ColorCmd))) ColorCmd;
 			cmd->type = kColor_CmdType;
@@ -1048,6 +1051,7 @@ namespace qk {
 			cmd->aafuzz = aafuzz;
 			cmd->aaclip = _canvas->_state->aaclip;
 			cmd->color = color;
+#if Qk_USE_Colors
 		} else {
 			// add multi color subcmd
 			auto vertexp = vertex.vertex.val();
@@ -1099,6 +1103,7 @@ namespace qk {
 				cmd->subcmd++;
 			} while(vertexLen);
 		}
+#endif
 	}
 
 	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {

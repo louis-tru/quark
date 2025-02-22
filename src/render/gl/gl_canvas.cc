@@ -46,7 +46,7 @@ namespace qk {
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
 	extern const float  aa_fuzz_width = 0.6;
-	extern const float  DepthNextUnit = 0.0000002f; // 1/5000000
+	extern const float  DepthNextUnit = 1.0f / 5000000.0f;
 
 	const GLenum DrawBuffers[]{
 		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*aaclip out*/,

@@ -102,7 +102,7 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 		}
 		break;
 		case FT_PIXEL_MODE_LCD: {
-			for (uint32_t y = height; y-- > 0;) {
+			for (int y = height; y-- > 0;) {
 				const uint8_t* triple = src;
 				for (int x = 0; x < width; x++) {
 					*dst++ = *triple++;
@@ -172,14 +172,17 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 	}
 }
 
-void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, uint32_t top) {
-	FT_Bitmap dst;
-	dst.width = ceilf(glyph.fWidth);
-	dst.rows = ceilf(glyph.fHeight);
-	dst.pitch = pixel.rowbytes();
-	dst.buffer = pixel.val();
-	dst.buffer += Int32::max(top + int32_t(glyph.fTop), 0) * dst.pitch;
-	dst.buffer += int32_t(glyph.fLeft) * Pixel::bytes_per_pixel(pixel.type());
+void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, float pixelBaseline) {
+	float offsetX = glyph.fAdvanceY; // As offset value x from the pixel
+	uint32_t pitch = pixel.rowbytes();
+	FT_Bitmap dst = {
+		.rows = ceilf(glyph.fHeight),
+		.width = ceilf(glyph.fWidth),
+		.pitch = pitch,
+		.buffer = pixel.val() +
+			int32_t(glyph.fTop + pixelBaseline) * pitch + 
+			int32_t(glyph.fLeft + offsetX) * Pixel::bytes_per_pixel(pixel.type()),
+	};
 
 	if ( fFace->glyph->format == FT_GLYPH_FORMAT_OUTLINE ) {
 		Qk_ASSERT_EQ(pixel.type(), kAlpha_8_ColorType);
@@ -188,6 +191,10 @@ void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pi
 
 		dst.pixel_mode = FT_PIXEL_MODE_GRAY;
 		dst.num_grays = 256;
+
+		FT_Outline_Translate(outline,
+			QkScalarToFDot6(-glyph.fLeft),
+			QkScalarToFDot6(ceilf(glyph.fHeight + glyph.fTop)));
 
 		FT_Outline_Get_Bitmap(fFace->glyph->library, outline, &dst);
 #ifdef Qk_SHOW_TEXT_BLIT_COVERAGE

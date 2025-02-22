@@ -118,6 +118,10 @@ namespace qk
 				XNextEvent(_xdpy, &event);
 				resolvedMsg();
 
+				if (XFilterEvent(&event, 0)) {
+					continue;
+				}
+
 				if (!event.xany.window || !_winImpl.get(event.xany.window, impl)) {
 					continue;
 				}
@@ -166,7 +170,7 @@ namespace qk
 							KeyboardKeyCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), false, nullptr);
 						break;
 					case MotionNotify: {
-						Qk_DLog("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
+						// Qk_DLog("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
 						impl->win()->dispatch()->onMousemove(
 							event.xmotion.x / impl->win()->scale(), event.xmotion.y / impl->win()->scale()
 						);

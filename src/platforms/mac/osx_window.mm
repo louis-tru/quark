@@ -428,6 +428,7 @@ void Window::setCursorStyle(CursorStyle cursor, bool isBase) {
 			case CursorStyle::DragCopy: [NSCursor.dragCopyCursor set]; break;
 			case CursorStyle::ContextualMenu: [NSCursor.contextualMenuCursor set]; break;
 			case CursorStyle::IbeamForVertical: [NSCursor.IBeamCursorForVerticalLayout set]; break;
+			case CursorStyle::Cross: [NSCursor.crosshairCursor set]; break;
 			default: break;
 		}
 		[NSCursor unhide];

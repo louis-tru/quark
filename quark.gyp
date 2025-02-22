@@ -124,13 +124,13 @@
 	'conditions': [
 		['use_js==1', {
 			'includes': ['src/js/js.gypi'],
-		}, {
+		},{
 			'targets': [{
 				'target_name': 'quark-js',
 				'type': 'none',
 			}],
 		}],
-		['OS != "mac" or project=="xcode"', {
+		['OS!="mac" or project=="xcode"', {
 			'includes': [ 'test/test.gypi' ],
 		}],
 		['use_js==1 and os!="ios"', {
