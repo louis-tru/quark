@@ -667,7 +667,7 @@ async function configure() {
 			android_abi: '',
 			xcode_version: 0,
 			llvm_version: 0,
-			gas_version: '0.0',
+			gas_version: 0.0,
 			byteorder: 'little',
 			openssl_fips: '',
 			openssl_no_asm: bi(os.match(/^(ios|android)$/) || arch.match(/arm/)),
@@ -802,7 +802,7 @@ async function configure() {
 		} else {
 			var gcc_version = execSync(`${cc_path}gcc \
 				--version| grep -i gcc | awk '{ print $3 }'`).first;
-			variables.gcc_version = gcc_version ? gcc_version.replace(/\.x/, '') : 0;
+			variables.gcc_version = gcc_version ? Number(gcc_version.replace(/\.x/, '')) : 0;
 		}
 	}
 	else if ( os == 'linux' ) {
@@ -880,7 +880,7 @@ async function configure() {
 		// gcc version
 		var gcc_version = execSync(`${variables.cc} \
 			--version| grep gcc | awk '{ print $4 }'`).first;
-		variables.gcc_version = gcc_version || 0;
+		variables.gcc_version = Number(gcc_version) || 0;
 	}
 	else if (os == 'ios' || os == 'osx') {
 
