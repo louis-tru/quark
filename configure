@@ -12,11 +12,11 @@ if [ `which python2.7` ]; then
 	PYTHON=`which python2.7`
 elif [ `which python2` ]; then
 	PYTHON=`which python2`
+elif [ `which python3` ]; then
+	PYTHON=`which python3`
 else
 	PYTHON=`which python`
 fi
-# PYTHON=/Library/Frameworks/Python.framework/Versions/2.7/Resources/Python.app/Contents/MacOS/Python
-
 
 if [ ! "$PYTHON" ]; then
 	echo "\nError: python 2.7 needs to be installed first\n";
