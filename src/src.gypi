@@ -245,7 +245,8 @@
 					'libraries': [
 						'-lGLESv3',
 						'-lEGL',
-						'-lz', '-landroid', '-llog',
+						'-lz',
+						'-landroid', '-llog',
 					],
 				},
 			}],

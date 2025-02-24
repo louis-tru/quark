@@ -97,13 +97,15 @@
 					# '../examples/out/examples',
 				],
 			}, {
-				'copies': [{
-					'destination': '<(output)',
-					'files': [
-						'./testing/out/testing',
-						# '../examples/out/examples',
-					],
-				}], # copy
+				'conditions': [['use_js==1',{
+					'copies': [{
+						'destination': '<(output)',
+						'files': [
+							'./testing/out/testing',
+							# '../examples/out/examples',
+						],
+					}], # copy
+				}]],
 			}],
 		],
 	},

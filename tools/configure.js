@@ -510,7 +510,6 @@ async function install_depe(opts, variables) {
 	};
 
 	// var cmake = { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ] };
-	var cmake = pkgmCmds('cmake');
 	// var yasm = {
 	// 	deps: {
 	// 		autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
@@ -518,6 +517,7 @@ async function install_depe(opts, variables) {
 	// 	},
 	// 	pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
 	// };
+	var cmake = pkgmCmds('cmake');
 	var yasm = pkgmCmds('yasm');
 	dpkg.ninja = {
 		deps: { cmake },
@@ -542,6 +542,7 @@ async function install_depe(opts, variables) {
 			} else { // x86 or x64
 				dpkg['g++'] = pkgmCmds('g++');
 			}
+			// TODO: Maybe also have to install libxcursor-dev and libfontconfig-dev
 		} else if (os == 'android') {
 			// dpkg.javac = pkgmCmds('default-jdk');
 			dpkg.javac = pkgmCmds('openjdk-8-jdk');
@@ -559,6 +560,16 @@ async function install_depe(opts, variables) {
 	for (var i in dpkg) {
 		await install_check(i, dpkg[i]);
 	}
+}
+
+function parseVersion(verStr) {
+	if (verStr) {
+		var mat = verStr.replace(/\.x/, '').match(/\d+(\.\d+)?/);
+		if (mat) {
+			return Number(mat[0]) || 0;
+		}
+	}
+	return 0;
 }
 
 function get_host_tag_or_die() {
@@ -798,11 +809,11 @@ async function configure() {
 		if (opts.clang) { // llvm clang
 			var llvm_version = execSync(`${cc_path}clang \
 				--version`).first.match(/LLVM (\d+\.\d+(\.\d+)?)/i);
-			variables.llvm_version = llvm_version && llvm_version[1] || 0;
+			variables.llvm_version = llvm_version && Number(llvm_version[1]) || 0;
 		} else {
 			var gcc_version = execSync(`${cc_path}gcc \
 				--version| grep -i gcc | awk '{ print $3 }'`).first;
-			variables.gcc_version = gcc_version ? Number(gcc_version.replace(/\.x/, '')) : 0;
+			variables.gcc_version = parseVersion(gcc_version);
 		}
 	}
 	else if ( os == 'linux' ) {
@@ -880,7 +891,7 @@ async function configure() {
 		// gcc version
 		var gcc_version = execSync(`${variables.cc} \
 			--version| grep gcc | awk '{ print $4 }'`).first;
-		variables.gcc_version = Number(gcc_version) || 0;
+		variables.gcc_version = parseVersion(gcc_version);
 	}
 	else if (os == 'ios' || os == 'osx') {
 
@@ -911,9 +922,8 @@ async function configure() {
 		await install_depe(opts, variables);
 
 		try {
-			variables.xcode_version = syscall('xcodebuild -version').first.match(/\d+.\d+/)[0];
-			variables.llvm_version = 
-				syscall('cc --version').first.match(/(\d+\.\d+)/i)[1];
+			variables.xcode_version = parseVersion(syscall('xcodebuild -version').first);
+			variables.llvm_version  = parseVersion(syscall('cc --version').first);
 		} catch(e) {}
 
 		if ( arch == 'arm' ) {

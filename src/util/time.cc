@@ -86,6 +86,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <string>
+#include <time.h>
 #include "./util.h"
 
 namespace qk {
@@ -342,7 +343,7 @@ namespace qk {
 		DATE_TIME
 	};
 
-	/* this is a clone of 'struct tm' but with all fields we don't need or use
+	/* this is a clone of 'struct m' but with all fields we don't need or use
 	 cut out */
 	struct my_tm {
 		int tm_sec;
@@ -353,24 +354,24 @@ namespace qk {
 		int tm_year;
 	};
 
-	/* struct tm to time since epoch in GMT time zone.
+	/* struct m to time since epoch in GMT time zone.
 	 * This is similar to the standard mktime function but for GMT only, and
 	 * doesn't suffer from the various bugs and portability problems that
 	 * some systems' implementations have.
 	 */
-	static time_t my_timegm(struct my_tm *tm)
+	static time_t my_timegm(struct my_tm *m)
 	{
 		static const int month_days_cumulative [12] =
 		{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
 		int month, year, leap_days;
 		
-		if(tm->tm_year < 70)
+		if(m->tm_year < 70)
 			/* we don't support years before 1970 as they will cause this function
 			 to return a negative value */
 			return -1;
 		
-		year = tm->tm_year + 1900;
-		month = tm->tm_mon;
+		year = m->tm_year + 1900;
+		month = m->tm_mon;
 		if(month < 0) {
 			year += (11 - month) / 12;
 			month = 11 - (11 - month) % 12;
@@ -380,13 +381,13 @@ namespace qk {
 			month = month % 12;
 		}
 		
-		leap_days = year - (tm->tm_mon <= 1);
+		leap_days = year - (m->tm_mon <= 1);
 		leap_days = ((leap_days / 4) - (leap_days / 100) + (leap_days / 400)
 								 - (1969 / 4) + (1969 / 100) - (1969 / 400));
 		
 		return ((((time_t) (year - 1970) * 365
-							+ leap_days + month_days_cumulative [month] + tm->tm_mday - 1) * 24
-						 + tm->tm_hour) * 60 + tm->tm_min) * 60 + tm->tm_sec;
+							+ leap_days + month_days_cumulative [month] + m->tm_mday - 1) * 24
+						 + m->tm_hour) * 60 + m->tm_min) * 60 + m->tm_sec;
 	}
 
 	/*
@@ -411,7 +412,7 @@ namespace qk {
 		int secnum=-1;
 		int yearnum=-1;
 		int tzoff=-1;
-		struct my_tm tm;
+		struct my_tm m;
 		enum assume dignext = DATE_MDAY;
 		cChar *indate = date; /* save the original pointer */
 		int part = 0; /* max 6 parts */
@@ -580,12 +581,12 @@ namespace qk {
 			 (hournum > 23) || (minnum > 59) || (secnum > 60))
 			return PARSEDATE_FAIL; /* clearly an illegal date */
 		
-		tm.tm_sec = secnum;
-		tm.tm_min = minnum;
-		tm.tm_hour = hournum;
-		tm.tm_mday = mdaynum;
-		tm.tm_mon = monnum;
-		tm.tm_year = yearnum - 1900;
+		m.tm_sec = secnum;
+		m.tm_min = minnum;
+		m.tm_hour = hournum;
+		m.tm_mday = mdaynum;
+		m.tm_mon = monnum;
+		m.tm_year = yearnum - 1900;
 		
 		/* my_timegm() returns a time_t. time_t is often 32 bits, even on many
 		 architectures that feature 64 bit 'long'.
@@ -594,7 +595,7 @@ namespace qk {
 		 even on some of the systems with 64 bit time_t mktime() returns -1 for
 		 dates beyond 03:14:07 UTC, January 19, 2038. (Such as AIX 5100-06)
 		 */
-		t = my_timegm(&tm);
+		t = my_timegm(&m);
 		
 		/* time zone adjust (cast t to int to compare to negative one) */
 		if(-1 != (int)t) {
@@ -632,13 +633,12 @@ namespace qk {
 
 	String gmt_time_string(int64_t second) {
 		time_t t = second;
-		struct tm tm;
-		memcpy(&tm, gmtime(&t), sizeof(struct tm));
-			
+		struct tm m;
+		memcpy(&m, gmtime(&t), sizeof(struct tm));
+
 		// "Thu, 30 Mar 2017 06:16:55 GMT"
-		
 		/*
-		struct tm{
+		struct m{
 			int tm_sec;             //取值[0,59)，非正常情况下可到达61
 			int tm_min;             //取值同上
 			int tm_hour;            //取值[0,23)
@@ -651,13 +651,13 @@ namespace qk {
 		};*/
 		
 		String r = String::format("%s, %d%d %s %d %d%d:%d%d:%d%d GMT"
-		 , wkday2[tm.tm_wday]
-		 , tm.tm_mday / 10, tm.tm_mday % 10
-		 , month[tm.tm_mon]
-		 , tm.tm_year + 1900
-		 , tm.tm_hour / 10, tm.tm_hour % 10
-		 , tm.tm_min / 10, tm.tm_min % 10
-		 , tm.tm_sec / 10, tm.tm_sec % 10
+		 , wkday2[m.tm_wday]
+		 , m.tm_mday / 10, m.tm_mday % 10
+		 , month[m.tm_mon]
+		 , m.tm_year + 1900
+		 , m.tm_hour / 10, m.tm_hour % 10
+		 , m.tm_min / 10, m.tm_min % 10
+		 , m.tm_sec / 10, m.tm_sec % 10
 		);
 		
 		return r;
