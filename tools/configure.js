@@ -967,7 +967,7 @@ async function configure() {
 		suffix += '.emulator';
 	}
 	if (opts.suffix) {
-		suffix = String(opts.suffix);
+		suffix = `${opts.suffix}.${suffix}`;
 	}
 
 	var brand = variables.brand;

@@ -33,7 +33,7 @@
 #include "./gl_cmd.h"
 
 namespace qk {
-
+	GLenum gl_CheckFramebufferStatus(GLenum target);
 	float get_level_font_size(float fontSize);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
@@ -129,7 +129,7 @@ namespace qk {
 					clip.aafuzz = path.getAAFuzzStrokeTriangle(_phy2Pixel*aa_fuzz_width);
 				}
 				if (_state->aaclip == 0) {
-					//_cmdPack->drawBuffers(2, DrawBuffers); // enable aaclip GL_COLOR_ATTACHMENT1
+					// _cmdPack->drawBuffers(2, DrawBuffers); // enable aaclip GL_COLOR_ATTACHMENT1
 				}
 				_state->aaclip++;
 			}
@@ -444,7 +444,7 @@ namespace qk {
 					if (clip.aaclip) {
 						_state->aaclip--;
 						if (_state->aaclip == 0) {
-							//_cmdPack->drawBuffers(1, DrawBuffers);
+							// _cmdPack->drawBuffers(1, DrawBuffers);
 						}
 					}
 				}
@@ -719,6 +719,8 @@ namespace qk {
 			glGenFramebuffers(1, &_fbo);
 			// Create depth buffer
 			glGenRenderbuffers(1, &_outDepth);
+			// gen aaclip buffer tex
+			// glGenTextures(1, &_outAAClipTex);
 		}
 		// Bind framebuffer future OpenGL ES framebuffer commands are directed to it.
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
@@ -726,6 +728,8 @@ namespace qk {
 		gl_set_color_renderbuffer(0, _outTex, type, size);
 		gl_set_framebuffer_renderbuffer(_outDepth, size, GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _outDepth);
+
+		Qk_DLog("setBuffers: %f, %f", w, h);
 
 		if (init) {
 			float depth = 0;
@@ -745,10 +749,7 @@ namespace qk {
 		}
 
 		glDrawBuffers(2, DrawBuffers);
-
-		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			Qk_Fatal("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-		}
+		gl_CheckFramebufferStatus(GL_FRAMEBUFFER);
 
 #if DEBUG
 		int width, height;

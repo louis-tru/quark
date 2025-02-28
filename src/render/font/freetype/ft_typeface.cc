@@ -171,6 +171,8 @@ FT_MemoryRec_ gFTMemory = { nullptr, qk_ft_alloc, qk_ft_free, qk_ft_realloc };
 
 class FreeTypeLibrary;
 static FreeTypeLibrary* gFTLibrary = nullptr;
+static FT_Int gMajor, gMinor, gPatch;
+bool   gIsFT_version_2_13 = false; // 2.13.2
 
 class FreeTypeLibrary {
 	Qk_HIDDEN_ALL_COPY(FreeTypeLibrary);
@@ -602,6 +604,11 @@ private:
 		if (0 == gFTCount) {
 			Qk_ASSERT(nullptr == gFTLibrary);
 			gFTLibrary = new FreeTypeLibrary;
+
+			FT_Library_Version(gFTLibrary->library(), &gMajor, &gMinor, &gPatch);
+			gIsFT_version_2_13 = (gMajor >= 2 && gMinor >= 13);
+
+			Qk_DLog("FT_Library_Version, v%d.%d.%d", gMajor, gMinor, gPatch);
 		}
 		++gFTCount;
 		return gFTLibrary->library();
@@ -1306,6 +1313,7 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 	}
 
 	FT_Glyph_Format ft_format = fFace->glyph->format;
+	float heightf = top + bottom;
 	uint32_t width = ceilf(right);
 	uint32_t height = ceilf(top + bottom);
 	ColorType type;

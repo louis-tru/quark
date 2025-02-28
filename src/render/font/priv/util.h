@@ -177,7 +177,7 @@ typedef int32_t             QkFixed;
 #define QkFDot6Round(x)     (((x) + 32) >> 6)
 #define QkFixedToFDot6(x)   ((x) >> 10)
 
-#define QkScalarToFDot6(x)  (QkFDot6)((x) * 64)
+#define QkScalarToFDot6(x)  ((QkFDot6)((x) * 64))
 #define QkFDot6ToScalar(x)  ((QkScalar)(x) * 0.015625f)
 #define QkFDot6ToFloat      QkFDot6ToScalar
 

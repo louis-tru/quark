@@ -331,9 +331,11 @@ namespace qk {
 #endif
 		}
 
-		void flushAAClipBuffer() {
+		void flushAAClipBuffer(bool enable) {
 			//gl_texture_barrier();
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _canvas->_outAAClipTex, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+				GL_TEXTURE_2D, enable ? _canvas->_outAAClipTex: 0, 0
+			);
 		}
 
 		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
@@ -525,7 +527,8 @@ namespace qk {
 					float color[] = {1.0f,1.0f,1.0f,1.0f};
 					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
 					// ensure clip texture clear can be executed correctly in sequence
-					self->flushAAClipBuffer();
+				} else {
+					self->flushAAClipBuffer(true);
 				}
 				if (ch)
 					_render->gl_set_blend_mode(kSrc_BlendMode);
@@ -541,7 +544,7 @@ namespace qk {
 				if (ch)
 					_render->gl_set_blend_mode(chMode); // revoke blend mode
 				// ensure aa clip can be executed correctly in sequence
-				self->flushAAClipBuffer();
+				self->flushAAClipBuffer(false);
 			};
 
 			if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
@@ -558,10 +561,11 @@ namespace qk {
 					return;
 				}
 			} else { // intersect clip
-				bool isFill = ref == 128 && !revoke;
+				bool isFill = ref == 128 && !revoke && _c->_outAAClipTex;
 				auto shader = isFill ?
 					(GLSLClipTest*)&_render->_shaders.clipTest_CLIP_FILL: &_render->_shaders.clipTest; // init fill
-				//Qk_DLog("Clip ref, %d", ref);
+				if (isFill)
+					flushAAClipBuffer(true);
 				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
 				shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
 				glUniform1f(shader->depth, depth);
@@ -569,8 +573,8 @@ namespace qk {
 
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
 					aaClip(this, depth, clip, revoke, -aa_fuzz_weight, -1);
-				} else if (isFill && _c->_outAAClipTex) {
-					flushAAClipBuffer();
+				} else if (isFill) {
+					flushAAClipBuffer(false);
 				}
 			}
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
@@ -948,10 +952,11 @@ namespace qk {
 			}
 			if (chSize || isClip) { // is clear clip buffer
 				if (_c->_outAAClipTex) { // clear aa clip tex buffer
+					flushAAClipBuffer(true);
 					float color[] = {1.0f,1.0f,1.0f,1.0f};
 					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
 					// ensure clip texture clear can be executed correctly in sequence
-					flushAAClipBuffer();
+					flushAAClipBuffer(false);
 				}
 				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 				glDisable(GL_STENCIL_TEST); // disable stencil test

@@ -32,6 +32,11 @@ void main() {
 	aaclipOut = vec4(clip * alpha, 1.0,1.0,1.0);
 	//aaclipOut = vec4(alpha, 1.0,1.0,1.0);
 #endif
+
+#ifdef Qk_LINUX
+	// TODO: Maybe have writing the fragColor error if blend mode is not the kSrcOver_BlendMode
+	fragColor = vec4(0,0,0,0);
+#endif
 }
 
 // clip_aa

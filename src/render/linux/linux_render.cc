@@ -240,6 +240,7 @@ namespace qk {
 		auto dpy = XOpenDisplay(nullptr);
 		Qk_ASSERT_NE(dpy, nullptr);
 		Qk_ASSERT_EQ(1, XGetWindowAttributes(dpy, _win, &attrs));
+		// Qk_DLog("attrs.width: %d, attrs.height: %d", attrs.width, attrs.height);
 		Vec2 size(attrs.width, attrs.height);
 #endif
 			// draw android virtual keyboard rect
@@ -294,10 +295,12 @@ namespace qk {
 				auto src = _glcanvas->surfaceSize();
 				auto dest = _surfaceSize;
 				auto filter = src == dest ? GL_NEAREST: GL_LINEAR;
+
 				// copy pixels to default color buffer
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 				glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
+
 				glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 				// GLuint sync = glCreateSyncTokens(1);
 				// glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);

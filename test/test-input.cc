@@ -10,10 +10,16 @@ using namespace qk;
 
 void test_input(int argc, char **argv) {
 	App app;
-	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Input"});
+	auto win = Window::Make({
+		.frame={{0,0}, {500,500}},
+		.title="Test Input",
+		.backgroundColor={0,0,255}
+	});
+	// win->root()->set_background_color({0,0,0,0});
+
 	auto box = win->root()->append_new<Box>();
 	auto input = box->append_new<Textarea>();
-	//auto input = box->append_new<Input>();
+	auto mat = box->append_new<Matrix>();
 
 	box->set_width({ 0, BoxSizeKind::Match });
 	box->set_height({ 0, BoxSizeKind::Match });
@@ -25,6 +31,7 @@ void test_input(int argc, char **argv) {
 	box->add_event_listener(UIEvent_Click, [](auto& e) {
 		Qk_DLog("------------------ Box Click ------------------");
 	});
+	// box->set_clip(true);
 
 	// input->set_cursor(CursorStyle::ClosedHand);
 	// input->set_cursor(CursorStyle::None);
@@ -37,8 +44,13 @@ void test_input(int argc, char **argv) {
 	// input->set_padding_right(5);
 	input->set_text_line_height({30});
 	input->set_value("ABCDEFGJ - abCcRdefgj");
-	//input->set_text_background_color({{255,128,0}});
-	//input->set_text_shadow({{1,1,1,{0,0,0}}});
+	// input->set_text_background_color({{255,128,0}});
+	// input->set_text_shadow({{1,1,1,{0,0,0}}});
+
+	mat->set_width({100});
+	mat->set_height({100});
+	mat->set_y(50);
+	mat->set_background_color({0,255,0});
 
 	app.run();
 }

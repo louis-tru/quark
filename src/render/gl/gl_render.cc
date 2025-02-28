@@ -33,8 +33,56 @@
 
 namespace qk {
 
-	String gl_MaxTextureImageUnits_GLSL_Macros;
+	String gl_Global_GLSL_Macros;
 	int    gl_MaxTextureImageUnits = 0;
+
+	void gl_CheckFramebufferStatus(GLenum target) {
+		auto status = glCheckFramebufferStatus(target);
+		const char* errorReason = "Unknown";
+		switch (glCheckFramebufferStatus(target)) {
+			case GL_FRAMEBUFFER_COMPLETE: 
+				// errorReason = "Success"; 
+				return;
+			case GL_FRAMEBUFFER_UNDEFINED: 
+				errorReason = "Framebuffer undefined"; 
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: 
+				errorReason = "Incomplete attachment"; 
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: 
+				errorReason = "No valid attachments"; 
+				break;
+#ifdef GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS
+			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+				errorReason = "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS"; 
+				break;
+#endif
+#ifdef GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: 
+				errorReason = "Draw buffer incomplete"; 
+				break;
+#endif
+#ifdef GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+				errorReason = "Read buffer incomplete"; 
+				break;
+#endif
+#ifdef GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
+			case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+				errorReason = "Layer targets incomplete"; 
+				break;
+#endif
+			case GL_FRAMEBUFFER_UNSUPPORTED: 
+				errorReason = "Unsupported format combination"; 
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: 
+				errorReason = "Mismatched multisample settings"; 
+				break;
+			default: 
+				errorReason = "Unknown error";
+		}
+		Qk_Fatal("failed to make complete framebuffer object, %s, %x", errorReason, status);
+	}
 
 	void gl_texture_barrier() {
 #if defined(GL_ARB_texture_barrier)
@@ -236,7 +284,7 @@ namespace qk {
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
 		// clip anti alias buffer
 		GLuint slot = gl_MaxTextureImageUnits - 1; // Binding go to the last channel
-#if Qk_iOS
+#if Qk_iOS || Qk_LINUX
 		ColorType type = kRGBA_8888_ColorType;
 #else
 		ColorType type = kLuminance_8_ColorType;
@@ -301,8 +349,11 @@ namespace qk {
 
 		if (!gl_MaxTextureImageUnits) {
 			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
-			gl_MaxTextureImageUnits_GLSL_Macros = 
+			gl_Global_GLSL_Macros = 
 				String::format("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS %d\n", gl_MaxTextureImageUnits);
+#if Qk_LINUX
+			gl_Global_GLSL_Macros += "#define Qk_LINUX\n";
+#endif
 		}
 
 		_extensions = (cChar*)glGetString(GL_EXTENSIONS);

@@ -169,10 +169,11 @@ namespace qk {
 		}
 
 		XWindow newXWindow(cOptions &opts) {
-			_xset.background_pixel = opts.backgroundColor.to_uint32();
-			_xset.background_pixmap = 0;
-			_xset.border_pixel = 0;
+			_xset.background_pixmap = XNone;
+			_xset.background_pixel = opts.backgroundColor.to_uint32_rgba() >> 8,
 			_xset.border_pixmap = XNone;
+			_xset.border_pixel = 0;
+			_xset.colormap = XNone;
 			_xset.event_mask = NoEventMask;
 			_xset.do_not_propagate_mask = NoEventMask;
 			_xset.override_redirect = False;
@@ -260,7 +261,7 @@ namespace qk {
 		}
 
 		void setBackgroundColor(Color val) {
-			_xset.background_pixel = val.to_uint32();
+			_xset.background_pixel = val.to_uint32_rgba() >> 8; // delete alpha quantity
 			setXwindowAttributes();
 		}
 

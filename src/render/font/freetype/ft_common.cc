@@ -33,6 +33,7 @@
 #include <utility>
 
 #include <ft2build.h>
+#include <freetype/freetype.h>
 #include FT_FREETYPE_H
 #include FT_BITMAP_H
 #ifdef FT_COLOR_H
@@ -69,6 +70,8 @@ const char* QkTraceFtrGetError(int e) {
 	}
 }
 #endif  // Qk_DEBUG
+
+extern bool gIsFT_version_2_13;
 
 static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 	Qk_ASSERT_EQ(ftdst.width, ftsrc.width,
@@ -173,18 +176,18 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 }
 
 void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, float pixelBaseline) {
-	float offsetX = glyph.fAdvanceY; // As offset value x from the pixel
 	uint32_t pitch = pixel.rowbytes();
 	FT_Bitmap dst = {
 		.rows = ceilf(glyph.fHeight),
 		.width = ceilf(glyph.fWidth),
 		.pitch = pitch,
 		.buffer = pixel.val() +
-			int32_t(glyph.fTop + pixelBaseline) * pitch + 
-			int32_t(glyph.fLeft + offsetX) * Pixel::bytes_per_pixel(pixel.type()),
+			int32_t(glyph.fTop + pixelBaseline) * pitch +
+			int32_t(glyph.fLeft + glyph.fAdvanceY/* fAdvanceY as offset value x from the pixel */) *
+			Pixel::bytes_per_pixel(pixel.type()),
 	};
 
-	if ( fFace->glyph->format == FT_GLYPH_FORMAT_OUTLINE ) {
+	if (fFace->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
 		Qk_ASSERT_EQ(pixel.type(), kAlpha_8_ColorType);
 
 		FT_Outline* outline = &fFace->glyph->outline;
@@ -192,9 +195,25 @@ void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pi
 		dst.pixel_mode = FT_PIXEL_MODE_GRAY;
 		dst.num_grays = 256;
 
+		float dy = -glyph.fTop - dst.rows;
+	
+		Qk_DLog("generateGlyphImage, pixelBaseline: %f, fTop: %f, fBottom: %f, fHeight: %f, PixH: %d, dy: %f",
+				pixelBaseline, glyph.fTop, glyph.fHeight + glyph.fTop, glyph.fHeight, pixel.height(), -dy);
+	
+		/*
+			what we really want to do for subpixel is
+					offset(dx, dy)
+					compute_bounds
+					offset(bbox & !63)
+			but that is two calls to offset, so we do the following, which
+			achieves the same thing with only one offset call.
+		*/
 		FT_Outline_Translate(outline,
-			QkScalarToFDot6(-glyph.fLeft),
-			QkScalarToFDot6(ceilf(glyph.fHeight + glyph.fTop)));
+			-(QkScalarToFDot6(glyph.fLeft)),
+			gIsFT_version_2_13 ?
+			-(QkScalarToFDot6(dy)):
+			-(QkScalarToFDot6(-glyph.fTop - glyph.fHeight) & ~63)
+		);
 
 		FT_Outline_Get_Bitmap(fFace->glyph->library, outline, &dst);
 #ifdef Qk_SHOW_TEXT_BLIT_COVERAGE

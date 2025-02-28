@@ -34,7 +34,7 @@
 
 namespace qk {
 
-	extern String gl_MaxTextureImageUnits_GLSL_Macros;
+	extern String gl_Global_GLSL_Macros;
 	extern int    gl_MaxTextureImageUnits;
 
 	static GLuint compile_shader(cChar* name, cString &code, GLenum shader_type) {
@@ -63,8 +63,8 @@ namespace qk {
 		String vertexCode("#version " Qk_GL_Version "\n#define Qk_SHADER_VERT\n");
 		String fragmentCode("#version " Qk_GL_Version "\n#define Qk_SHADER_FRAG\n");
 
-		vertexCode += gl_MaxTextureImageUnits_GLSL_Macros;
-		fragmentCode += gl_MaxTextureImageUnits_GLSL_Macros;
+		vertexCode += gl_Global_GLSL_Macros;
+		fragmentCode += gl_Global_GLSL_Macros;
 		vertexCode += macros;
 		fragmentCode += macros;
 		vertexCode += vertexShader;

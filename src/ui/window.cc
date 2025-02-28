@@ -287,7 +287,8 @@ namespace qk {
 	void Window::onRenderBackendReload(Region region, Vec2 size) {
 		auto defaultScale = getDefaultScale();
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
-			Qk_DLog("Window::onDeviceReload");
+			Qk_DLog("Window::onRenderBackendReload defaultScale:%f, w:%f, h: %f",
+				size.x(), size.y(), defaultScale);
 			UILock lock(this);
 			if ( _surfaceRegion.origin != region.origin
 				|| _surfaceRegion.end != region.end

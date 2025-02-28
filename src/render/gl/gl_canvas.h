@@ -134,6 +134,7 @@ namespace qk {
 		friend class GLCFilter;
 		friend class GLC_CmdPack;
 		friend class GLCBlurFilter;
+		friend class LinuxGLRender;
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 

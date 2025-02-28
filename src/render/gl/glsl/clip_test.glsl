@@ -10,6 +10,11 @@ void main() {
 #ifdef Qk_SHADER_IF_FLAGS_CLIP_FILL
 	aaclipOut = vec4(1.0,1.0,1.0,1.0);
 #endif
+
+#ifdef Qk_LINUX
+	// TODO: Maybe have writing the fragColor error if blend mode is not the kSrcOver_BlendMode
+	fragColor = vec4(0,0,0,0); // empty color
+#endif
 }
 
 // clip

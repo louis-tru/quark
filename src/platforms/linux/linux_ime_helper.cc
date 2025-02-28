@@ -218,6 +218,7 @@ namespace qk {
 		// IM instantiate callback
 		static void IMInstantiateCallback(Display *display, XPointer client_data, XPointer data)
 		{
+			Qk_DLog("IMInstantiateCallback");
 			if (client_data == nullptr)
 				return;
 			Qk_DLog("XIM is available now");

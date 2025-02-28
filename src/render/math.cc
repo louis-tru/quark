@@ -367,16 +367,16 @@ namespace qk {
 		struct { char is_small_end,_[3]; }; int b;
 	} constexpr test_small { .b=1 };
 
-	Color Color::from(uint32_t color) { // ignore endianness
-		return *reinterpret_cast<Color*>(&color);
-	}
-
 	uint32_t swap_bit_form_uint32_t(uint32_t i) {
 		return
 			((i >> 24)) |
 			((i >> 8)  & 0x0000ff00) |
 			((i << 8)  & 0x00ff0000) |
 			((i << 24));
+	}
+
+	Color Color::from(uint32_t color) { // ignore endianness
+		return *reinterpret_cast<Color*>(&color);
 	}
 
 	Color Color::from_rgba(uint32_t rgba) { // high => low as r,g,b,a
@@ -393,8 +393,16 @@ namespace qk {
 		return *reinterpret_cast<Color*>(&abgr);
 	}
 
-	uint32_t Color::to_uint32() const {// small end data as a,b,g,r
-		return *reinterpret_cast<const uint32_t*>(this);
+	// uint32_t Color::to_uint32() const {// small end data as a,b,g,r
+	// 	return *reinterpret_cast<const uint32_t*>(this);
+	// }
+
+	uint32_t Color::to_uint32_abgr() const {
+		uint32_t abgr = *reinterpret_cast<const uint32_t*>(this);
+		if (!test_small.is_small_end) {
+			abgr = swap_bit_form_uint32_t(abgr);
+		}
+		return abgr;
 	}
 
 	uint32_t Color::to_uint32_rgba() const {
@@ -414,14 +422,6 @@ namespace qk {
 			src[2] + uint8_t(_1sa * val[2]),
 			src[3] + uint8_t(_1sa * val[3])
 		);
-	}
-
-	uint32_t Color::to_uint32_abgr() const {
-		uint32_t abgr = *reinterpret_cast<const uint32_t*>(this);
-		if (!test_small.is_small_end) {
-			abgr = swap_bit_form_uint32_t(abgr);
-		}
-		return abgr;
 	}
 
 	Mat::Mat(float value) {

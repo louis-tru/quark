@@ -284,6 +284,7 @@ namespace qk {
 		Color4f to_color4f_alpha(float alpha) const;
 	};
 
+	// Memory sort: low => high as r,g,b,a
 	struct Qk_EXPORT Color: Vec<uint8_t, 4> {
 		static Color from(uint32_t color); //! ignore endianness, small end data as a,b,g,r
 		static Color from_abgr(uint32_t abgr); //! high => low as a,b,g,r
@@ -297,7 +298,6 @@ namespace qk {
 		bool operator!=(Color color) const;
 		Color4f  to_color4f() const;
 		Color4f  to_color4f_alpha(float alpha) const;
-		uint32_t to_uint32() const; //! ignore endianness, small end data as a,b,g,r
 		uint32_t to_uint32_abgr() const; //! high => low as a,b,g,r
 		uint32_t to_uint32_rgba() const; //! high => low as r,g,b,a
 		Color blendSrcOver(const Color &src) const;
