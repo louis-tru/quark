@@ -57,7 +57,7 @@ namespace qk {
 			kImage_CmdType,
 			kImageMask_CmdType,
 			kGradient_CmdType,
-			kColorGroup_CmdType,
+			kColors_CmdType,
 			kReadImage_CmdType,
 			kOutputImageBegin_CmdType,
 			kOutputImageEnd_CmdType,
@@ -153,7 +153,7 @@ namespace qk {
 			~ImageMaskCmd();
 		};
 
-		struct ColorGroupCmd: Cmd {
+		struct ColorsCmd: Cmd {
 			struct Option { // subcmd option
 				int          flags; // reserve
 				float        depth; // depth
@@ -227,7 +227,7 @@ namespace qk {
 		void drawBuffers(GLsizei num, const GLenum buffers[2]);
 
 	private:
-		typedef ColorGroupCmd::Option CGOpt;
+		typedef ColorsCmd::Option CGOpt;
 		template<class T> struct MemBlock {
 			T *val; uint32_t size,capacity;
 		};

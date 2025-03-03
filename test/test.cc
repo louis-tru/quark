@@ -62,8 +62,8 @@
 // #define TEST_FUNC_NAME test_util
 // #define TEST_FUNC_NAME test_uv
 // #define TEST_FUNC_NAME test_zlib
-///
-// #define TEST_FUNC_NAME test_action
+/// UI
+#define TEST_FUNC_NAME test_action
 // #define TEST_FUNC_NAME test_alsa_ff
 // #define TEST_FUNC_NAME test_blur
 // #define TEST_FUNC_NAME test_canvas
@@ -73,7 +73,7 @@
 // #define TEST_FUNC_NAME test_media
 // #define TEST_FUNC_NAME test_freetype
 // #define TEST_FUNC_NAME test_gui
-#define TEST_FUNC_NAME test_input
+// #define TEST_FUNC_NAME test_input
 // #define TEST_FUNC_NAME test_jsc
 // #define TEST_FUNC_NAME test_jsx
 // #define TEST_FUNC_NAME test_layout

@@ -33,6 +33,7 @@
 
 #include "./path.h"
 #include "../util/dict.h"
+#include "../util/cb.h"
 
 namespace qk
 {
@@ -51,7 +52,7 @@ namespace qk
 	public:
 		template<class T, int N = 1>
 		struct Wrap {
-			T              base;
+			T              base; // VertexData
 			VertexData::ID id[N];
 		};
 
@@ -155,10 +156,11 @@ namespace qk
 
 	protected:
 		void clearUnsafe(int flags);
-		void clearAll();
+		void clearAll(bool immediately);
 		void clearPart(uint32_t capacity);
 		RenderBackend *_render;
 		ClearSync     *_sync;
+		Cb            _afterClear;
 		Dict<uint64_t, Path*> _NormalizedPathCache, _StrokePathCache; // path hash => path
 		Dict<uint64_t, Wrap<VertexData>*> _PathTrianglesCache; // path hash => triangles
 		Dict<uint64_t, Wrap<VertexData>*> _AAFuzzStrokeTriangleCache; // path hash => aa fuzz stroke triangles

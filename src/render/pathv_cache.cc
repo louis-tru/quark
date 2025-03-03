@@ -33,43 +33,15 @@
 
 namespace qk {
 
-	template<>
-	void Dict<uint64_t, Path*, Compare<uint64_t>, Allocator>::
-	clear() {
-		Allocator::free(_indexed);
-		_indexed = nullptr;
-		_length = 0;
-		_capacity = 0;
-	}
-	template<>
-	void Dict<uint64_t, PathvCache::Wrap<VertexData>*, Compare<uint64_t>, Allocator>::
-	clear() {
-		Allocator::free(_indexed);
-		_indexed = nullptr;
-		_length = 0;
-		_capacity = 0;
-	}
-	template<>
-	void Dict<uint64_t, PathvCache::Wrap<RectPath>*, Compare<uint64_t>, Allocator>::
-	clear() {
-		Allocator::free(_indexed);
-		_indexed = nullptr;
-		_length = 0;
-		_capacity = 0;
-	}
-	template<>
-	void Dict<uint64_t, PathvCache::Wrap<RectOutlinePath,4>*, Compare<uint64_t>, Allocator>::
-	clear() {
-		Allocator::free(_indexed);
-		_indexed = nullptr;
-		_length = 0;
-		_capacity = 0;
+	PathvCache::PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *sync)
+		: _render(render), _sync(sync), _capacity(0), _maxCapacity(maxCapacity), _afterClear(nullptr) {
 	}
 
-	PathvCache::PathvCache(uint32_t maxCapacity, RenderBackend *render, ClearSync *sync)
-		: _render(render), _sync(sync), _capacity(0), _maxCapacity(maxCapacity) {}
 	PathvCache::~PathvCache() {
+		// First call
 		clear(true);
+		// When called a second time, the final deletion from the previous call is performed
+		// clear(true);
 	}
 
 	const Path& PathvCache::getNormalizedPath(const Path &path) {
@@ -79,6 +51,7 @@ namespace qk {
 		if (_NormalizedPathCache.get(hash, out)) return **out;
 		auto p = new Path(path.normalizedPath(1));
 		_capacity += p->ptsLen() * sizeof(Vec2);
+		Qk_ASSERT(p->isNormalized());
 		return *_NormalizedPathCache.set(hash, p);
 	}
 
@@ -241,7 +214,7 @@ namespace qk {
 					clearPart(Int32::max(_capacity * 0.5, _capacity - _maxCapacity)); // clean half
 				}
 			} else { // clear all
-				clearAll();
+				clearAll(false);
 			}
 		} else if (_capacity > _maxCapacity) { // max limit clear
 			clearPart(_capacity - _maxCapacity);
@@ -249,10 +222,10 @@ namespace qk {
 	}
 
 	void PathvCache::clearPart(uint32_t capacity) {
-		clearAll(); // TODO: Not yet realized
+		clearAll(false); // TODO: Not yet realized
 	}
 
-	void PathvCache::clearAll() {
+	void PathvCache::clearAll(bool immediately) {
 		for (auto &i: _NormalizedPathCache) {
 			Release(i.value);
 		}
@@ -269,7 +242,8 @@ namespace qk {
 		auto b = new Dict<uint64_t, Wrap<RectPath>*>(std::move(_RectPathCache));
 		auto c = new Dict<uint64_t, Wrap<RectOutlinePath,4>*>(std::move(_RectOutlinePathCache));
 
-		render->post_message(Cb([render,a0,a1,b,c](auto &e){
+		// Must be called after rendering is complete
+		Cb afterClear([render,a0,a1,b,c](auto &e) {
 			for (auto &i: *a0) {
 				render->deleteVertexData(i.value->id);
 				delete i.value;
@@ -293,7 +267,18 @@ namespace qk {
 			Release(a1);
 			Release(b);
 			Release(c);
-		}));
+		});
+
+		if (immediately) {
+			render->post_message(afterClear);
+		} else {
+			render->post_message(Cb([this,afterClear](auto e) {
+				if (_afterClear) {
+					_afterClear->resolve(); // clear prev time
+				}
+				_afterClear = afterClear;
+			}));
+		}
 
 		Qk_ASSERT_RAW(_NormalizedPathCache.length() == 0);
 		Qk_ASSERT_RAW(_StrokePathCache.length() == 0);

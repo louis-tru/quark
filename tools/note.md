@@ -8,6 +8,8 @@ echo "#include <stdio.h>" | gcc -fsyntax-only -v -xc -H -
 echo "#include <fontconfig/fontconfig.h>" | gcc -fsyntax-only -v -xc -H -
 syntax-gcc '#include <fontconfig/fontconfig.h>'
 
+valgrind --tool=memcheck --leak-check=full --show-reachable=yes --trace-children=yes    ./leak
+
 
 使用C++与opengl，如何绘制反走样的2D矢量图像，并且不使用多重采样（MSAA）与距离场（SDF），因为需要考虑性能问题。
 还有其它方法吗？比如先绘制原始图像（有锯齿的图像），然后再在上面覆盖一个模糊的图像边缘。

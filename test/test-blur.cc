@@ -22,19 +22,19 @@ public:
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 
-		i+=Qk_PI_RATIO_180;
+		i+=Qk_PI_RATIO_180*0.1;
 
 		float c = abs(sinf(i));
 		float width = 300;
 
 		Paint paint;
-		paint.color = Color4f(0, 0, 1);
-		PaintFilter filter{PaintFilter::kBlur_Type,c*200};
+		paint.color = Color4f(int(256*c)%255/255.0, 0, 1, 1);
+		PaintFilter filter{PaintFilter::kBlur_Type,c*50};
 		paint.filter = &filter;
-		paint.antiAlias = false;
+		// paint.antiAlias = false;
 		Rect rect{size/2-width*0.5,width};
 		//auto path = Path::MakeRect(rect);
-		auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f +c*50, Qk_PI + Qk_PI_2_1, true);
 
 		canvas->drawPath(path, paint);
 

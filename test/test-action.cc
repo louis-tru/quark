@@ -8,7 +8,7 @@ using namespace qk;
 
 void test_action(int argc, char **argv) {
 	App app;
-	auto div_cls = app.styleSheets()->search(".div_cls").front();
+	auto div_cls = app.styleSheets()->search(".div_cls", true).front();
 	div_cls->set_width({ 100, BoxSizeKind::Match });
 	div_cls->set_height({ 0, BoxSizeKind::Match });
 	div_cls->set_background_color({255,0,0,255});

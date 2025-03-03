@@ -52,20 +52,38 @@ namespace qk {
 
 	typedef Render::Options Options;
 
-	static EGLDisplay egl_display() {
-		static EGLDisplay display = EGL_NO_DISPLAY;
-		if ( display == EGL_NO_DISPLAY ) { // get display and init it
-#if Qk_ANDROID
-			display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-#else
-			display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	typedef std::remove_pointer_t<EGLDisplay> EGLDisplayType;
+
+	static void closeEGLDisplay(EGLDisplay dpy){ eglTerminate(dpy); }
+
+	typedef Sp<EGLDisplayType, object_traits_from<EGLDisplayType, closeEGLDisplay>> EGLDisplayAuto;
+
+#if Qk_LINUX
+	static void closeXDisplay(Display* dpy){ XCloseDisplay(dpy); }
+
+	typedef Sp<Display, object_traits_from<Display, closeXDisplay>> XDisplayAuto;
+
+	Display* openXDisplay() {
+		static XDisplayAuto xdpy([]() {
+			Qk_ASSERT(XInitThreads(), "Error: Can't init X threads");
+			auto xdpy = XOpenDisplay(nullptr);
+			Qk_ASSERT_RAW(xdpy, "Can't open display");
+			return xdpy;
+		}());
+		return xdpy.get();
+	}
 #endif
-			Qk_DLog("eglGetDisplay, %p", display);
-			Qk_ASSERT(display != EGL_NO_DISPLAY);
-			EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-			Qk_ASSERT(displayState, "Cannot initialize EGL");
+
+	static EGLDisplay egl_display() {
+		static EGLDisplayAuto display = EGL_NO_DISPLAY;
+		if (display.get() == EGL_NO_DISPLAY) { // get display and init it
+			display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+			Qk_DLog("eglGetDisplay, %p", display.get());
+			Qk_ASSERT_RAW(display.get() != EGL_NO_DISPLAY);
+			EGLBoolean displayState = eglInitialize(display.get(), nullptr, nullptr);
+			Qk_ASSERT_RAW(displayState, "Cannot initialize EGL");
 		}
-		return display;
+		return display.get();
 	}
 
 	static EGLConfig egl_config(EGLDisplay display, Options opts) {
@@ -157,47 +175,47 @@ namespace qk {
 			, _config(config)
 			, _context(ctx)
 			, _surface(EGL_NO_SURFACE)
-			, _win(EGL_NO_NATIVE_WINDOW), _isLoop(false)
+			, _win(EGL_NO_NATIVE_WINDOW)
 		{}
 
 		~LinuxGLRender() override {
-			Qk_ASSERT_RAW(_message.length() == 0);
+			Qk_ASSERT_RAW(_msg.length() == 0);
 		}
 
 		void release() override {
 			lock();
 			renderLoopStop();
-
-			if ( _display != EGL_NO_DISPLAY ) {
-				eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-				if ( _context != EGL_NO_CONTEXT ) {
-					eglDestroyContext(_display, _context);
-				}
-				if ( _surface != EGL_NO_SURFACE ) {
-					eglDestroySurface(_display, _surface);
-				}
-				eglTerminate(_display);
-			}
-
-			_display = EGL_NO_DISPLAY;
-			_context = EGL_NO_CONTEXT;
-			_surface = EGL_NO_SURFACE;
-
 			unlock();
 
 			GLRender::release(); // Destroy the pre object first
 
 			// Perform the final message task
 			_mutexMsg.lock();
-			if (_message.length()) {
+			if (_msg.length()) {
 				lock();
-				for (auto &i : _message) {
+				if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT) {
+					Qk_ASSERT_RAW(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
+				}
+				for (auto &i : _msg) {
 					i->resolve();
 				}
-				_message.clear();
+				_msg.clear();
 				unlock();
 			}
 			_mutexMsg.unlock();
+
+			if (_display != EGL_NO_DISPLAY) {
+				eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+				if (_context != EGL_NO_CONTEXT) {
+					eglDestroyContext(_display, _context);
+				}
+				if (_surface != EGL_NO_SURFACE) {
+					eglDestroySurface(_display, _surface);
+				}
+			}
+			_display = EGL_NO_DISPLAY;
+			_context = EGL_NO_CONTEXT;
+			_surface = EGL_NO_SURFACE;
 
 			Object::release(); // final destruction
 		}
@@ -225,7 +243,7 @@ namespace qk {
 				unlock();
 			} else {
 				_mutexMsg.lock();
-				_message.push(cb);
+				_msg.push(cb);
 				_mutexMsg.unlock();
 			}
 		}
@@ -237,8 +255,7 @@ namespace qk {
 			Vec2 size(ANativeWindow_getWidth(_win), ANativeWindow_getHeight(_win));
 #else
 		XWindowAttributes attrs;
-		auto dpy = XOpenDisplay(nullptr);
-		Qk_ASSERT_NE(dpy, nullptr);
+		auto dpy = openXDisplay();
 		Qk_ASSERT_EQ(1, XGetWindowAttributes(dpy, _win, &attrs));
 		// Qk_DLog("attrs.width: %d, attrs.height: %d", attrs.width, attrs.height);
 		Vec2 size(attrs.width, attrs.height);
@@ -282,10 +299,10 @@ namespace qk {
 			lock();
 			makeCurrent();
 
-			if (_message.length()) { //
+			if (_msg.length()) { //
 				Array<Cb> msg;
 				_mutexMsg.lock();
-				msg = std::move(_message);
+				msg = std::move(_msg);
 				_mutexMsg.unlock();
 				for (auto &i : msg) i->resolve();
 			}
@@ -374,10 +391,9 @@ namespace qk {
 		EGLSurface _surface;
 		EGLNativeWindowType _win;
 		Mutex _mutexMsg;
-		Array<Cb> _message;
+		Array<Cb> _msg;
 		ThreadID _renderThreadId;
 		RecursiveMutex _mutex;
-		std::atomic_bool _isLoop;
 #if Qk_ANDROID
 		Rect _virtualKeysRect;
 #endif

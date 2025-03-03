@@ -37,6 +37,7 @@
 #define Qk_CGCmd_VertexBlock_Capacity 6555
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
+#define Qk_useShaderProgram(shader, vertex) if (!useShaderProgram(shader, vertex)) return
 
 namespace qk {
 	extern const float aa_fuzz_weight;
@@ -50,6 +51,8 @@ namespace qk {
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
 	void gl_set_texture_no_repeat(GLenum wrapdir);
 	TexStat* gl_new_texture();
+
+	static Color4f emptyColor{0,0,0,0};
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -125,9 +128,9 @@ namespace qk {
 			return _lastCmd;
 		}
 
-		ColorGroupCmd* newColorGroupCmd() {
-			auto cmd = (ColorGroupCmd*)allocCmd(sizeof(ColorGroupCmd));
-			cmd->type = kColorGroup_CmdType;
+		ColorsCmd* newColorsCmd() {
+			auto cmd = (ColorsCmd*)allocCmd(sizeof(ColorsCmd));
+			cmd->type = kColors_CmdType;
 
 			auto vertexs = _vertexBlocks.current;
 			auto opts    = _optionBlocks.current;
@@ -159,9 +162,9 @@ namespace qk {
 			return cmd;
 		}
 
-		ColorGroupCmd* getMColorCmd() {
-			auto cmd = (ColorGroupCmd*)_lastCmd;
-			if (cmd->type == kColorGroup_CmdType) {
+		ColorsCmd* getMColorCmd() {
+			auto cmd = (ColorsCmd*)_lastCmd;
+			if (cmd->type == kColors_CmdType) {
 				if (_vertexBlocks.current->size != Qk_CGCmd_VertexBlock_Capacity &&
 						_optionBlocks.current->size != Qk_CGCmd_OptBlock_Capacity &&
 						cmd->subcmd != Qk_CGCmd_Option_Capacity
@@ -169,7 +172,7 @@ namespace qk {
 					return cmd;
 				}
 			}
-			return newColorGroupCmd();
+			return newColorsCmd();
 		}
 
 		void checkMetrix() {
@@ -233,6 +236,7 @@ namespace qk {
 						case kColor_CmdType: {
 							auto c = (ColorCmd*)cmd;
 							drawColorCall(c->vertex, c->color, c->aafuzz, c->aaclip, c->depth);
+							c->~ColorCmd();
 							break;
 						}
 						case kRRectBlurColor_CmdType: {
@@ -255,13 +259,14 @@ namespace qk {
 						case kGradient_CmdType: {
 							auto c = (GradientCmd*)cmd;
 							drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+							c->~GradientCmd();
 							break;
 						}
-						case kColorGroup_CmdType: {
-							auto c = (ColorGroupCmd*)cmd;
+						case kColors_CmdType: {
+							auto c = (ColorsCmd*)cmd;
 							auto s = c->aaclip ? &_render->_shaders.colors_AACLIP: &_render->_shaders.colors;
 							glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
-							glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorGroupCmd::Option) * c->subcmd, c->opts,
+							glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorsCmd::Option) * c->subcmd, c->opts,
 								GL_DYNAMIC_DRAW);
 							glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
 							glBufferData(GL_ARRAY_BUFFER, c->vCount * sizeof(Vec4), c->vertex, GL_DYNAMIC_DRAW);
@@ -338,14 +343,16 @@ namespace qk {
 			);
 		}
 
-		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
+		bool useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
 			if (_cache->makeVertexData(vertex.id)) {
 				glBindVertexArray(vertex.id->vao); // use vao
 				glUseProgram(shader->shader); // use shader program
-			} else {
+			} else if (vertex.vertex.length()) {
 				// copy vertex data to gpu and use shader
 				shader->use(vertex.vertex.size(), vertex.vertex.val());
-			}
+			} else
+				return false;
+			return true;
 		}
 
 		void setRootMatrixCall(const Mat4 &root) {
@@ -378,7 +385,7 @@ namespace qk {
 			auto s = aafuzz ? 
 				aaclip ? &_render->_shaders.color_AAFUZZ_AACLIP: &_render->_shaders.color_AAFUZZ:
 				aaclip ? &_render->_shaders.color_AACLIP: &_render->_shaders.color;
-			useShaderProgram(s, vertex);
+			Qk_useShaderProgram(s, vertex);
 			glUniform1f(s->depth, depth);
 			glUniform4fv(s->color, 1, color.val);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -449,7 +456,7 @@ namespace qk {
 				if (kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
 					auto yuv = aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
 					s = (GLSLImage*)yuv;
-					useShaderProgram(s, vertex);
+					Qk_useShaderProgram(s, vertex);
 
 					if (src->pixels()[1].type() == kYUV420P_U_8_ColorType) {
 						_render->gl_set_texture(src, 2, paint); // v
@@ -460,7 +467,7 @@ namespace qk {
 					_render->gl_set_texture(src, 1, paint); // u or uv
 				} else {
 					s = aaclip ? &_render->_shaders.image_AACLIP: &_render->_shaders.image;
-					useShaderProgram(s, vertex);
+					Qk_useShaderProgram(s, vertex);
 				}
 				glUniform1f(s->depth, depth);
 				glUniform1f(s->fullScale, fullScale);
@@ -475,7 +482,7 @@ namespace qk {
 		) {
 			if (setTextureSlot0(paint)) {
 				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
-				useShaderProgram(s, vertex);
+				Qk_useShaderProgram(s, vertex);
 				glUniform1f(s->depth, depth);
 				glUniform1f(s->fullScale, fullScale);
 				glUniform4fv(s->color, 1, color.val);
@@ -500,7 +507,7 @@ namespace qk {
 					aaclip ? &_render->_shaders.colorLinear_AACLIP: &_render->_shaders.colorLinear);
 			}
 
-			useShaderProgram(s, vertex);
+			Qk_useShaderProgram(s, vertex);
 			glUniform1f(s->depth, depth);
 			glUniform1f(s->alpha, alpha);
 			glUniform4fv(s->range, 1, paint->origin.val);
@@ -608,7 +615,7 @@ namespace qk {
 			auto end = region.end * scale;
 			clearColorCall({0,0,0,0}, {
 				{origin.x(), origin.y() + offsetY},
-				{end.x(),    end.y() + offsetY}
+				{end.x(),    end.y()    + offsetY}
 			}, false, depth);
 		}
 
@@ -647,9 +654,10 @@ namespace qk {
 			|//////////////|
 			*/
 			clearColorCall({0,0,0,0}, {
-				{bounds.origin.x() - size, bounds.origin.y() + size},
-				{bounds.end.x() + size, bounds.end.x() - size},
+				{bounds.origin.x() - size, bounds.origin.y()},
+				{bounds.end.x() + size, bounds.end.y()},
 			}, false, depth);
+			// glClearBufferfv(GL_COLOR, 0, emptyColor.val);
 
 			if (isClipState) {
 				glEnable(GL_STENCIL_TEST); // restore clip state
@@ -733,10 +741,22 @@ namespace qk {
 			float y1_ = y1 - size, y2_ = y2 + size;
 			float vertex_y[] = { x1,y1_,0, x2,y1_,0, x1,y2_,0, x2,y2_,0 };
 			float oiScale = oRw / R.x(); // oResolution / iResolution
-			float offsetY = R.y() - oRh;
-			// First clean the y-axis of buffer B
-			clearRegion({{x1, y1_-size}, {x2, y1_}}, oiScale, offsetY, depth); // clear top
-			clearRegion({{x1, y2_}, {x2, y2_+size}}, oiScale, offsetY, depth); // clear bottom
+			float offsetY = (R.y() - oRh) / _c->_surfaceScale;
+			/* First clean the y-axis of buffer B
+			|.|.|......|.|.|
+			|.|.|......|.|.|
+			|.|/|//////|/|.|
+			|.|.|......|.|.|
+			|.|.|......|.|.|
+			*/
+			// Qk_DLog("------------- oRw:%d, oRh:%d, Rw:%f, Rh:%f, offsetY:%f, oiScale:%f",
+			//	oRw, oRh, R.x(), R.y(), offsetY, oiScale);
+			//glClearBufferfv(GL_COLOR, 0, emptyColor.val);
+			y1_-=size; y2_+=size;
+			clearRegion({{x1, y1_}, {x2, y1}}, oiScale, offsetY, depth); // clear top
+			clearRegion({{x1, y2}, {x2, y2_}}, oiScale, offsetY, depth); // clear bottom
+			clearRegion({{x1-3, y1_}, {x1, y2_}}, oiScale, offsetY, depth); // clear left
+			clearRegion({{x2, y1_}, {x2+3, y2_}}, oiScale, offsetY, depth); // clear right
 			// Making blur of the x-axis direction
 			blur->use(sizeof(float) * 12, vertex_x);
 			glUniform1f(blur->depth, depth);
@@ -796,6 +816,9 @@ namespace qk {
 			float data[] = { 0,0,0, x2,0,0, 0,y2,0, x2,y2,0 };
 			auto &cp = _render->_shaders.vportCp;
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->id, 0);
+#if Qk_LINUX
+			glClearBufferfv(GL_COLOR, 0, emptyColor.val); // clear image tex
+#endif
 			glBindTexture(GL_TEXTURE_2D, _canvas->_outTex->id); // read image source
 			if (s == Vec2(w,h)) {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -843,6 +866,9 @@ namespace qk {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, iformat, type, nullptr);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->id, 0);
+#if Qk_LINUX
+			glClearBufferfv(GL_COLOR, 0, emptyColor.val); // clear image tex
+#endif
 			setTex_SourceImage_Rt(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex, isMipmap);
 		}
 

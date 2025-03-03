@@ -12,6 +12,7 @@ void main() {
 	do {
 		g = gk(x);
 		o += tex(coord, size * x/*offset distance*/) * g;
+		// o += tex(coord, vec2(0,0)/*offset distance*/) * g;
 		t += g;
 		x += detail;
 	} while(x < 0.0);

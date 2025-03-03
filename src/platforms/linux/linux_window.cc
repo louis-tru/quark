@@ -48,12 +48,8 @@
 namespace qk {
 	typedef const Window::Options cOptions;
 
-	static void closeXDisplay(XDisplay* dpy){ XCloseDisplay(dpy); }
-
-	typedef Sp<XDisplay, object_traits_from<XDisplay, closeXDisplay>> XDisplayAuto;
-
-	struct XInit {
-		XDisplayAuto xdpy;
+	struct X11 {
+		XDisplay* xdpy;
 		XDevice* xdevice;
 		float xdpyDpi;
 	};
@@ -75,6 +71,8 @@ namespace qk {
 				break;
 			}
 		}
+		XFreeDeviceList(devices);
+
 		if (!touchInfo) {
 			return nullptr;
 		}
@@ -107,29 +105,24 @@ namespace qk {
 					dpi = atof(value.addr);
 				}
 			}
+			XrmDestroyDatabase(db);
 		}
 		Qk_DLog("DPI: %f", dpi);
 		return dpi;
 	}
 
-	static XInit& xinit() {
-		static XInit x([](){
-			Qk_ASSERT(XInitThreads(), "Error: Can't init X threads");
-			auto xdpy = XOpenDisplay(nullptr);
-			Qk_ASSERT_RAW(xdpy, "Can't open display");
-			return XInit{
+	static X11& x11() {
+		static X11 x([](){
+			auto xdpy = openXDisplay();
+			return X11{
 				xdpy, openXDevice(xdpy), getXDisplayDpi(xdpy)
 			};
 		}());
 		return x;
 	}
 
-	XDisplay* openXDisplay() {
-		return xinit().xdpy.get();
-	}
-
 	float dpiForXDisplay() {
-		return xinit().xdpyDpi;
+		return x11().xdpyDpi;
 	}
 
 	void addImplToGlobal(XWindow xwin, WindowImpl* win);
@@ -190,7 +183,7 @@ namespace qk {
 				| StructureNotifyMask
 			;
 
-			if (!xinit().xdevice) { // It's not a multipoint device
+			if (!x11().xdevice) { // It's not a multipoint device
 				_xset.event_mask |= NoEventMask
 					| ButtonPressMask
 					| ButtonReleaseMask
@@ -225,7 +218,7 @@ namespace qk {
 
 			Qk_ASSERT_RAW(xwin, "Cannot create XWindow");
 
-			if (xinit().xdevice) { // It's a Multipoint device
+			if (x11().xdevice) { // It's a Multipoint device
 				XIEventMask eventmask;
 				uint8_t mask[3] = { 0,0,0 };
 

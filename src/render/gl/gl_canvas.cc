@@ -57,6 +57,12 @@ namespace qk {
 		void clear() {
 			clearUnsafe(0/*max limit clear*/);
 		}
+		void afterClear() {
+			if (_afterClear) {
+				_afterClear->resolve();
+				_afterClear.release();
+			}
+		}
 	};
 
 	class GLCFilter {
@@ -412,6 +418,7 @@ namespace qk {
 		_cmdPackFront->flush(); // commit gl cmd
 		_mutex.mutex.unlock();
 #endif
+		static_cast<GLPathvCache*>(_cache)->afterClear();
 	}
 
 	int GLCanvas::save() {
