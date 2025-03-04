@@ -63,10 +63,10 @@
 // #define TEST_FUNC_NAME test_uv
 // #define TEST_FUNC_NAME test_zlib
 /// UI
-#define TEST_FUNC_NAME test_action
+// #define TEST_FUNC_NAME test_action
 // #define TEST_FUNC_NAME test_alsa_ff
 // #define TEST_FUNC_NAME test_blur
-// #define TEST_FUNC_NAME test_canvas
+#define TEST_FUNC_NAME test_canvas
 // #define TEST_FUNC_NAME test_css
 // #define TEST_FUNC_NAME test_draw_efficiency
 // #define TEST_FUNC_NAME test_ffmpeg

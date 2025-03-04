@@ -55,11 +55,6 @@ namespace qk {
 
 	void KeyframeAction::clear() {
 		if (_frames.length()) {
-			for (auto i : _frames) {
-				i->release();
-			}
-			_frames.clear();
-
 			if (_window) { // @ Action::release_for_only_center_Rt()
 				_async_call([](auto self, auto arg) {
 					for (auto i : self->_frames_Rt)
@@ -71,6 +66,10 @@ namespace qk {
 					i->destroy(); // last call destroy
 				_frames_Rt.clear();
 			}
+			for (auto i : _frames) {
+				i->release();
+			}
+			_frames.clear();
 		}
 		if ( _duration ) {
 			setDuration( -_duration );
@@ -187,7 +186,7 @@ namespace qk {
 		time_span *= _speed;
 
 		if ( restart ) { // no start play or restart
-			_time = _frame = _looped = 0;
+			_time = _frame = _looped_Rt = 0;
 
 			if ( _frames_Rt.length() ) {
 				_time = _frame = 0;
@@ -210,7 +209,7 @@ namespace qk {
 
 		if ( f1 < _frames_Rt.length() ) {
 		advance:
-			if ( root->_id == Id() ) { // is not playing
+			if ( root->_id_Rt == Id() ) { // is not playing
 				return 0;
 			}
 			int32_t time = _time + time_span;
@@ -233,7 +232,7 @@ namespace qk {
 
 				if ( f1 < _frames_Rt.length() ) {
 					goto advance;
-				} else if (_looped < _loop) {
+				} else if (_looped_Rt < _loop) {
 					goto loop;
 				} else {
 					_frames_Rt[f0]->apply(root->_target, true); // apply last frame
@@ -246,9 +245,9 @@ namespace qk {
 				trigger_ActionKeyframe_Rt(0, f1, root); // trigger event action_key_frame
 			}
 
-		} else if ( _looped < _loop ) { // Can continue to loop
+		} else if ( _looped_Rt < _loop ) { // Can continue to loop
 		loop:
-			_looped++;
+			_looped_Rt++;
 			_frame = _time = 0;
 			trigger_ActionLoop_Rt(time_span, root);
 			trigger_ActionKeyframe_Rt(time_span, 0, root);

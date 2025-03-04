@@ -44,19 +44,19 @@ namespace qk {
 	void ActionGroup::clear() {
 		if (_actions.length()) {
 			Qk_ASSERT(_window);
-			for ( auto &i : _actions ) {
-				i.key->del_parent(); // release for main thread
-			}
-			_actions.clear();
-
 			_async_call([](auto self, auto arg) {
 				if (self->isSequence())
 					static_cast<SequenceAction*>(self)->_play_Rt = nullId;
 				for ( auto i : self->_actions_Rt ) {
-					i->_id = nullId; // clear id
+					i->_id_Rt = nullId; // clear id
 				}
 				self->_actions_Rt.clear();
 			}, this, 0);
+
+			for ( auto &i : _actions ) {
+				i.key->del_parent(); // release for main thread
+			}
+			_actions.clear();
 		}
 		if ( _duration ) {
 			ActionGroup::setDuration( _duration );
@@ -78,7 +78,7 @@ namespace qk {
 		};
 		_actions.add(child);
 		_async_call([](auto self, auto arg) {
-			arg.arg->child->_id = self->_actions_Rt.insert(arg.arg->after, arg.arg->child);
+			arg.arg->child->_id_Rt = self->_actions_Rt.insert(arg.arg->after, arg.arg->child);
 			free(arg.arg);
 		}, this, new InsertArg{after,child});
 	}
@@ -103,7 +103,7 @@ namespace qk {
 		// _async_call([](auto self, auto arg) {
 		_window->preRender().async_call([](auto self, auto arg) {
 			self->_actions_Rt.erase( arg.arg );
-			(*arg.arg)->_id = nullId;
+			(*arg.arg)->_id_Rt = nullId;
 		}, this, id);
 		auto act = *id;
 		_actions.erase( act );
@@ -118,7 +118,7 @@ namespace qk {
 			if ( self->_play_Rt == arg.arg )
 				self->_play_Rt = nullId;
 			self->_actions_Rt.erase( arg.arg );
-			(*arg.arg)->_id = nullId;
+			(*arg.arg)->_id_Rt = nullId;
 		}, this, id);
 		auto act = *id;
 		_actions.erase( act );
@@ -164,8 +164,8 @@ namespace qk {
 		for ( auto i: _actions_Rt ) {
 			uint32_t du = duration + i->_duration;
 			if ( du > time ) {
-				Qk_ASSERT(*i->_id == i);
-				_play_Rt = i->_id;
+				Qk_ASSERT(*i->_id_Rt == i);
+				_play_Rt = i->_id_Rt;
 				i->seek_time_Rt(time - duration, root);
 				return;
 			}
@@ -181,7 +181,7 @@ namespace qk {
 		time_span *= _speed; // Amplification time
 
 		if ( restart ) { // restart
-			_looped = 0;
+			_looped_Rt = 0;
 		}
 
 		uint32_t time_span_min = time_span;
@@ -192,14 +192,14 @@ namespace qk {
 		}
 
 		if ( time_span_min ) {
-			if ( _looped < _loop ) { // continue to loop
-				_looped++;
+			if ( _looped_Rt < _loop ) { // continue to loop
+				_looped_Rt++;
 				restart = true;
 				time_span = time_span_min;
 
 				trigger_ActionLoop_Rt(time_span, root);
 
-				if ( root->_id != Id() ) { // is playing
+				if ( root->_id_Rt != Id() ) { // is playing
 					goto advance;
 				}
 				return 0; // end
@@ -214,7 +214,7 @@ namespace qk {
 		time_span *= _speed; // Amplification time
 
 		if ( restart ) { // restart
-			_looped = 0;
+			_looped_Rt = 0;
 			_play_Rt = nullId;
 		}
 		if ( _play_Rt == nullId ) { // restart
@@ -237,8 +237,8 @@ namespace qk {
 					goto advance;
 				}
 			} else if ( *_play_Rt == _actions_Rt.back() ) { // last action
-				if ( _looped < _loop ) { // continue to loop
-					_looped++;
+				if ( _looped_Rt < _loop ) { // continue to loop
+					_looped_Rt++;
 					restart = true;
 
 					trigger_ActionLoop_Rt(time_span, root); // trigger event
@@ -250,7 +250,7 @@ namespace qk {
 						goto end; // No child action then end
 					}
 
-					if ( root->_id != Id() ) { // is playing
+					if ( root->_id_Rt != Id() ) { // is playing
 						goto advance;
 					}
 					return 0; // end

@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./action.h"
+#include "./keyframe.h"
 #include "../view/view.h"
 #include "../../errno.h"
 #include "../window.h"
@@ -48,13 +49,13 @@ namespace qk {
 		, _speed(1)
 		, _parent(nullptr)
 		, _target(nullptr)
-		, _looped(0)
+		, _looped_Rt(0)
 	{
 		Qk_ASSERT(win);
 	}
 
 	Action::~Action() {
-		Qk_ASSERT( _id == Id() );
+		Qk_ASSERT( _id_Rt == Id() );
 	}
 
 	Action* Action::tryRetain() {
@@ -71,28 +72,30 @@ namespace qk {
 	void Action::release_for_only_center_Rt() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
-			_window = nullptr;
-			heapAllocator()->weak(this);
+			Qk_ASSERT(dynamic_cast<KeyframeAction*>(this));
+			_window = nullptr; // as rt mark @ Action::destroy()
+			// heapAllocator()->weak(this);
+			Object::release();
 		}
 	}
 
 	void Action::destroy() {
 		_duration = 0;
 		clear();
-		if (_window) {
+		if (_window) { // it's not Rt
 			_async_call([](auto self, auto arg) {
+				self->_window = nullptr; // clear window ref
 				// To ensure safety and efficiency,
 				// it should be Completely destroyed in RT (render thread)
 				self->Object::destroy();
 			}, this, 0);
-			_window = nullptr;
 		} else {
 			Object::destroy();
 		}
 	}
 
 	bool Action::playing() const {
-		return _parent ? _parent->playing(): _id != Id();
+		return _parent ? _parent->playing(): _id_Rt != Id();
 	}
 
 	void Action::set_playing(bool val) {
@@ -128,8 +131,8 @@ namespace qk {
 		if (_parent) {
 			_parent->play();
 		} else {
-			if (_target && _id == Id()) {
-				_id = playingFlag;
+			if (_target && _id_Rt == Id()) {
+				_id_Rt = playingFlag;
 				_async_call([](auto self, auto arg) { self->play_Rt(); }, this, 0);
 			}
 		}
@@ -139,7 +142,7 @@ namespace qk {
 		if (_parent) {
 			_parent->stop();
 		} else {
-			if (_id != Id()) {
+			if (_id_Rt != Id()) {
 				_async_call([](auto self, auto arg) { self->stop_Rt(); }, this, 0);
 			}
 		}
@@ -147,19 +150,19 @@ namespace qk {
 
 	void Action::play_Rt() {
 		if (_parent == nullptr && _target) {
-			if (_id == Id() || _id == playingFlag) {
+			if (_id_Rt == Id() || _id_Rt == playingFlag) {
 				auto id = _window->actionCenter()->_actions_Rt.pushBack({this,false});
-				_id = *reinterpret_cast<Id*>(&id);
+				_id_Rt = *reinterpret_cast<Id*>(&id);
 			}
 		}
 	}
 
 	void Action::stop_Rt() {
 		if (_parent == nullptr) {
-			if (_id != Id() && _id != playingFlag) {
+			if (_id_Rt != Id() && _id_Rt != playingFlag) {
 				typedef List<ActionCenter::Action_Wrap>::Iterator Id1;
-				_window->actionCenter()->_actions_Rt.erase(*reinterpret_cast<Id1*>(&_id));
-				_id = Id();
+				_window->actionCenter()->_actions_Rt.erase(*reinterpret_cast<Id1*>(&_id_Rt));
+				_id_Rt = Id();
 			}
 		}
 	}
@@ -185,7 +188,7 @@ namespace qk {
 		Qk_ASSERT(act);
 		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
-			_parent->insertChild(_id, act);
+			_parent->insertChild(_id_Rt, act);
 		}
 	}
 
@@ -193,7 +196,7 @@ namespace qk {
 		Qk_ASSERT(act);
 		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
-			auto id = _id;
+			auto id = _id_Rt;
 			_parent->insertChild(++id, act);
 		}
 	}
@@ -204,7 +207,7 @@ namespace qk {
 			return Qk_ELog("Action::remove, illegal parent empty");
 		}
 		del_parent();
-		_parent->removeChild(_id);
+		_parent->removeChild(_id_Rt);
 	}
 
 	void Action::set_target(View *target) {
@@ -235,7 +238,7 @@ namespace qk {
 			Qk_ELog("Action::set_parent, illegal child action");
 			return ERR_ACTION_ILLEGAL_CHILD;
 		}
-		if (_id != Id()) {
+		if (_id_Rt != Id()) {
 			Qk_ELog("Action::set_parent, action playing state conflict");
 			return ERR_ACTION_PLAYING_CONFLICT;
 		}

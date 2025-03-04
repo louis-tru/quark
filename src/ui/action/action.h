@@ -155,8 +155,8 @@ namespace qk {
 		// Props
 		ActionGroup *_parent;
 		View *_target;
-		uint32_t _looped; // @safe Rt
-		Id _id; // @safe Rt action id from action center or group action
+		uint32_t _looped_Rt; // @safe Rt
+		Id _id_Rt; // @safe Rt action id from action center or group action
 
 		friend class View;
 		friend class ActionCenter;
