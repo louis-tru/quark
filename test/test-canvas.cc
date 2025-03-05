@@ -8,6 +8,7 @@
 #include <quark/util/codec.h>
 #include <quark/render/render.h>
 #include <quark/render/canvas.h>
+#include <quark/render/font/pool.h>
 
 using namespace qk;
 
@@ -27,14 +28,14 @@ public:
 		// -------- clip ------
 		canvas->save();
 		{ // clip
-			canvas->clipRect({ size*0.3*0.5, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
+			canvas->clipRect({ size*-0.35, size*0.7 }, Canvas::kIntersect_ClipOp, 1);
 		}
 
 		{ // gradient
 			Paint paint;
 			Color4f colors[] = {Color4f(1,0,1), Color4f(0,1,0), Color4f(0,0,1)};
 			float   pos[]    = {0,0.5,1};
-			Rect           rect{ size*0.2*0.5, size*0.8 };
+			Rect           rect{ size*(-0.5*0.8), size*0.8 };
 			GradientPaint  gPaint{
 				GradientPaint::kRadial_Type,rect.origin+rect.size*0.5, rect.size*0.5, 3, colors, pos
 			};
@@ -43,23 +44,25 @@ public:
 			paint.type = Paint::kGradient_Type;
 
 			canvas->save();
-			canvas->setMatrix(canvas->getMatrix() * Mat(Vec2(100,-50), Vec2(0.8, 0.8), -0.2, Vec2(0.3,0)));
+			canvas->setMatrix(canvas->getMatrix() * Mat({0,0}, {0.8, 0.8}, -0.2, {0.3,0}));
 			canvas->drawRect(rect, paint);
 			canvas->restore();
 		}
 
 		{ // Circle
 			paint.color = Color4f(0, 0, 1, 0.5);
-			canvas->drawPath(Path::MakeCircle(Vec2(300), 100), paint);
+			canvas->drawPath(Path::MakeCircle(0, 100), paint);
 			paint.color = Color4f(1, 0, 0, 0.8);
-			canvas->drawPath(Path::MakeOval({Vec2(200, 100), Vec2(100, 200)}), paint);
+			canvas->drawPath(Path::MakeOval({0, {100, 200}}), paint);
 		}
 
 		{ // -------- clip ------
-			auto clip = Path::MakeCircle(size*0.5, 100);
+			auto clip = Path::MakeCircle(0, 100);
 			auto aa = 1;
 			canvas->clipPath(clip, Canvas::kDifference_ClipOp, aa);
 		}
+
+		canvas->translate(size*-0.5);
 
 		{ // polygon
 			paint.color = Color4f(0, 0, 0, 0.8);
@@ -83,31 +86,31 @@ public:
 			canvas->drawPath(Path::MakeArc({Vec2(450, 300), Vec2(100, 200)}, Qk_PI_2, Qk_PI_2+Qk_PI, 1), paint);
 		}
 
-		canvas->restore();
-
 		{ // font text
-			// paint.color = Color4f(0,0,0);
-			// auto stype = FontStyle(TextWeight::kBold, TextWidth::kDefault, TextSlant::kNormal);
-			// auto pool = shared_app()->font_pool();
-			// auto unicode = codec_decode_to_uint32(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
-			// auto fgs = pool->getFFID()->makeFontGlyphs(unicode, stype, 64);
-			// Vec2 origin(10,60);
-			// for (auto &fg: fgs) {
-			// 	origin[0] += ceilf(canvas->drawGlyphs(fg, origin, NULL, paint)) + 10;
-			// }
+			paint.color = Color4f(255,0,255);
+			auto stype = FontStyle(TextWeight::Bold, TextWidth::Default, TextSlant::Normal);
+			auto pool = shared_app()->fontPool();
+			auto unicode = codec_decode_to_unicode(kUTF8_Encoding, "A 好 HgKr葵花pjAH");
+			auto fgs = pool->getFontFamilies()->makeFontGlyphs(unicode, stype, 64);
+			Vec2 origin(10,60);
+			for (auto &fg: fgs) {
+				origin[0] += ceilf(canvas->drawGlyphs(fg, origin, NULL, paint)) + 10;
+			}
 		}
 
 		{ // outline
-			// paint.color = Color4f(0, 0, 0);
-			// canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
-			// paint.color = Color4f(0, 1, 1);
-			// canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
-			// Qk_DLog("%d", sizeof(signed long));
-			// paint.color = Color4f(0, 0, 0);
-			// paint.style = Paint::kStroke_Style;
-			// paint.width = 4;
-			// canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
+			paint.color = Color4f(0, 0, 0);
+			canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
+			paint.color = Color4f(0, 1, 1);
+			canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
+			//Qk_DLog("%d", sizeof(signed long));
+			paint.color = Color4f(0, 0, 0);
+			paint.style = Paint::kStroke_Style;
+			paint.width = 4;
+			canvas->drawPath(Path::MakeCircle(Vec2(500,400), 100), paint);
 		}
+
+		canvas->restore();
 
 		mark(kLayout_None,true);
 	}

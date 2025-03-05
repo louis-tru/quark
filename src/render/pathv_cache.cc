@@ -39,7 +39,7 @@ namespace qk {
 
 	PathvCache::~PathvCache() {
 		// First call
-		clear(true);
+		clearAll(true);
 		// When called a second time, the final deletion from the previous call is performed
 		// clear(true);
 	}

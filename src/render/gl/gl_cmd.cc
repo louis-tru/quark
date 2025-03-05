@@ -522,11 +522,19 @@ namespace qk {
 		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth) {
 			auto _c = _canvas;
 
-			auto aaClip = [](Inl *self, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C) {
+			auto aaClip = [](Inl *self, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C, bool isFill) {
 				auto _c = self->_canvas;
 				auto _render = _c->_render;
 				auto chMode = _render->_blendMode;
 				auto ch = chMode != kSrc_BlendMode && chMode != kSrcOver_BlendMode;
+				auto &aafuzz = clip.aafuzz;
+
+				if (isFill) { // first, filling to the color vec4(1,1,1,1)
+					auto shader = &_render->_shaders.clipTest_CLIP_FILL;
+					shader->use(aafuzz.vertex.size(), aafuzz.vertex.val()); // only stencil fill test
+					glUniform1f(shader->depth, depth);
+					glDrawArrays(GL_TRIANGLES, 0, aafuzz.vCount); // draw test
+				}
 
 				if (!_c->_outAAClipTex) {
 					glGenTextures(1, &_c->_outAAClipTex); // gen aaclip buffer tex
@@ -542,12 +550,12 @@ namespace qk {
 				auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
 				float aafuzzWeight = W * 0.1f;
 				// float aafuzzWeight = W;
-				shader->use(clip.aafuzz.vertex.size(), clip.aafuzz.vertex.val());
+				shader->use(aafuzz.vertex.size(), aafuzz.vertex.val());
 				glUniform1f(shader->depth, depth);
 				glUniform1f(shader->aafuzzWeight, aafuzzWeight); // Difference: -0.09
 				glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
-				// glUniform1f(shader->aafuzzConst, C);
-				glDrawArrays(GL_TRIANGLES, 0, clip.aafuzz.vCount); // draw test
+				// glUniform1f(shader->aafuzzConst, C); // 0.0 - 1.0
+				glDrawArrays(GL_TRIANGLES, 0, aafuzz.vCount); // draw test
 				if (ch)
 					_render->gl_set_blend_mode(chMode); // revoke blend mode
 				// ensure aa clip can be executed correctly in sequence
@@ -564,7 +572,7 @@ namespace qk {
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 					glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
-					aaClip(this, depth, clip, revoke, aa_fuzz_weight, 0);
+					aaClip(this, depth, clip, revoke, aa_fuzz_weight, 0, false);
 					return;
 				}
 			} else { // intersect clip
@@ -579,7 +587,7 @@ namespace qk {
 				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
 
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
-					aaClip(this, depth, clip, revoke, -aa_fuzz_weight, -1);
+					aaClip(this, depth, clip, revoke, -aa_fuzz_weight, -1, isFill);
 				} else if (isFill) {
 					flushAAClipBuffer(false);
 				}
