@@ -54,6 +54,8 @@ namespace qk {
 
 	typedef std::remove_pointer_t<EGLDisplay> EGLDisplayType;
 
+	static ThreadID emptyThreadID;
+
 	static void closeEGLDisplay(EGLDisplay dpy){ eglTerminate(dpy); }
 
 	typedef Sp<EGLDisplayType, object_traits_from<EGLDisplayType, closeEGLDisplay>> EGLDisplayAuto;
@@ -179,7 +181,7 @@ namespace qk {
 		{}
 
 		~LinuxGLRender() override {
-			Qk_ASSERT_RAW(_msg.length() == 0);
+			Qk_ASSERT_RAW(_message.length() == 0);
 		}
 
 		void release() override {
@@ -191,15 +193,13 @@ namespace qk {
 
 			// Perform the final message task
 			_mutexMsg.lock();
-			if (_msg.length()) {
-				lock();
+			if (_message.length()) {
 				if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT) {
 					Qk_ASSERT_RAW(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
 				}
-				for (auto &i : _msg) {
+				lock();
+				for (auto &i : _message)
 					i->resolve();
-				}
-				_msg.clear();
 				unlock();
 			}
 			_mutexMsg.unlock();
@@ -241,9 +241,16 @@ namespace qk {
 				lock();
 				cb->resolve();
 				unlock();
+			} else if (_renderThreadId == emptyThreadID) { // No run
+				if (_mutexMsg.try_lock()) {
+					_message.push(cb);
+					_mutexMsg.unlock();
+				} else {
+					cb->resolve();
+				}
 			} else {
 				_mutexMsg.lock();
-				_msg.push(cb);
+				_message.push(cb);
 				_mutexMsg.unlock();
 			}
 		}
@@ -299,10 +306,9 @@ namespace qk {
 			lock();
 			makeCurrent();
 
-			if (_msg.length()) { //
-				Array<Cb> msg;
+			if (_message.length()) { //
 				_mutexMsg.lock();
-				msg = std::move(_msg);
+				auto msg(std::move(_message));
 				_mutexMsg.unlock();
 				for (auto &i : msg) i->resolve();
 			}
@@ -391,7 +397,7 @@ namespace qk {
 		EGLSurface _surface;
 		EGLNativeWindowType _win;
 		Mutex _mutexMsg;
-		Array<Cb> _msg;
+		Array<Cb> _message;
 		ThreadID _renderThreadId;
 		RecursiveMutex _mutex;
 #if Qk_ANDROID

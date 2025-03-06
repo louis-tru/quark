@@ -125,6 +125,13 @@ public:
 			lock();
 			cb->resolve();
 			unlock();
+		} else if (!_view.isRun) {
+			if (_mutexMsg.try_lock()) {
+				_message.push(cb);
+				_mutexMsg.unlock();
+			} else {
+				cb->resolve();
+			}
 		} else {
 			_mutexMsg.lock();
 			_message.push(cb);
@@ -143,9 +150,8 @@ public:
 		lock();
 
 		if (_message.length()) { //
-			Array<Cb> msg;
 			_mutexMsg.lock();
-			msg = std::move(_message);
+			auto msg(std::move(_message));
 			_mutexMsg.unlock();
 			for ( auto &i : msg ) i->resolve();
 		}

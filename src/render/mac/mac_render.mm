@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "../../util/loop.h"
-#import "./mac_app.h"
+#import "./mac_render.h"
 
 using namespace qk;
 

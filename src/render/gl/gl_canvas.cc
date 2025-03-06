@@ -514,6 +514,7 @@ namespace qk {
 	}
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
+#if Qk_MAC
 		GLenum format = gl_get_texture_pixel_format(dst->type());
 		GLenum type = gl_get_texture_data_type(dst->type());
 		if (format && dst->bytes() != dst->body().length())
@@ -533,6 +534,11 @@ namespace qk {
 		_render->unlock();
 #endif
 		return true;
+#else
+		// Disable non-macOS systems temporarily,
+		// as the GL context cannot be bing to multiple threads on Linux.
+		return false;
+#endif
 	}
 
 	void GLCanvas::clipPath(const Path& path, ClipOp op, bool antiAlias) {

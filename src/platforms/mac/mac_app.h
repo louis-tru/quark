@@ -81,7 +81,6 @@ namespace qk {
 @end
 
 id<QkIMEHelprt> qk_make_ime_helper(qk::Window *win);
-void            qk_post_messate_main(qk::Cb cb, bool sync);
 
 #endif // #if Qk_MAC
 #endif

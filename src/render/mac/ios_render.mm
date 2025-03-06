@@ -50,8 +50,6 @@ class IosGLRender;
 
 // ----------------------------------------------------------------------------------------------
 
-void qk_post_messate_main(Cb cb, bool sync);
-
 class IosGLRender final: public GLRender, public RenderSurface {
 public:
 	IosGLRender(Options opts, EAGLContext* ctx)

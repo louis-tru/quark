@@ -55,5 +55,7 @@ namespace qk {
 	};
 }
 
+void qk_post_messate_main(qk::Cb cb, bool sync);
+
 #endif
 #endif

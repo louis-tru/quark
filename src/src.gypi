@@ -256,11 +256,11 @@
 				],
 				'sources':[
 					'platforms/mac/mac_app.h',
-					'platforms/mac/mac_app.mm',
 					'platforms/mac/mac_keyboard.mm',
 					'platforms/mac/mac_os.mm',
 					'render/codec/codec_mac.mm',
 					'render/mac/mac_render.h',
+					'render/mac/mac_render.mm',
 					'render/mac/mac_metal.mm',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
