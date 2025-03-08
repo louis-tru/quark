@@ -172,17 +172,18 @@ namespace qk {
 		Qk_ASSERT(thread_self_id() == _tid, "Must run on the target thread");
 
 		// init run
-		uv_async_t uv_async = {.data=this};
 		uv_timer_t uv_timer = {.data=this};
+		uv_async_t uv_async = {.data=this};
+
+		uv_timer_init(_uv_loop, &uv_timer);
+		uv_async_init(_uv_loop, &uv_async, [](auto h) {
+			_inl(h->data)->msgs_call();
+		});
 		_mutex.lock();
 		_uv_async = &uv_async;
 		_uv_timer = &uv_timer;
 		_mutex.unlock();
 
-		uv_timer_init(_uv_loop, _uv_timer);
-		uv_async_init(_uv_loop, _uv_async, [](auto h) {
-			_inl(h->data)->msgs_call();
-		});
 		_this->async_send();
 
 		uv_run(_uv_loop, UV_RUN_DEFAULT); // run uv loop

@@ -144,7 +144,7 @@ namespace qk
 		 * @returns {bool} Returns true if data is successfully set to GPU
 		 * @thread gpu render thread
 		*/
-		bool makeVertexData(const VertexData::ID *vertexInThis);
+		bool newVertexData(const VertexData::ID *vertexInThis);
 
 		/**
 		 * @dev clear cache data

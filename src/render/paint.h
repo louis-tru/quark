@@ -180,10 +180,6 @@ namespace qk {
 	*/
 	struct TexStat {
 		uint32_t             id;
-		ImagePaint::TileMode tileModeX;
-		ImagePaint::TileMode tileModeY;
-		ImagePaint::FilterMode filterMode;
-		ImagePaint::MipmapMode mipmapMode;
 	};
 
 }

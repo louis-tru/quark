@@ -36,9 +36,10 @@
 #include "../util/event.h"
 #include "./pixel.h"
 #include "../util/loop.h"
+#include "../util/mutex.h"
 
 namespace qk {
-	class RenderBackend;
+	class RenderResource;
 	struct TexStat;
 
 	/**
@@ -59,7 +60,7 @@ namespace qk {
 		/**
 		 * @event onState
 		 */
-		Qk_Event(State, Event<ImageSource, State>, Mutex);
+		Qk_Event(State, Event<ImageSource, State>, QkMutex);
 
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri, Const);
@@ -76,9 +77,12 @@ namespace qk {
 		// 	/>
 		// </FlowLayout>
 		static Sp<ImageSource> Make(cString& uri, RunLoop *loop = current_loop());
-		static Sp<ImageSource> Make(cPixelInfo &info, RenderBackend *render, RunLoop *loop = current_loop());
-		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderBackend *render, RunLoop *loop = current_loop());
-		static Sp<ImageSource> Make(Pixel&& pixel, RenderBackend *render, RunLoop *loop = current_loop());
+		static Sp<ImageSource> Make(cPixelInfo &info, RunLoop *loop = current_loop());
+		/**
+		 * Create source and mark to gpu texture
+		*/
+		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderResource *res);
+		static Sp<ImageSource> Make(Pixel&& pixel, RenderResource *res);
 
 		/**
 		 * @destructor
@@ -101,7 +105,7 @@ namespace qk {
 		 *
 		 * @method markAsTexture()
 		 */
-		bool markAsTexture(RenderBackend *render);
+		bool markAsTexture();
 
 		/**
 		 * @method isLoaded() is ready draw image
@@ -129,9 +133,11 @@ namespace qk {
 		inline int height() const { return _info.height(); }
 
 		/**
-		 * @method pixels() Returns pixel data and info
+		 * @method pixel(index) Returns pixel data and info
 		*/
-		inline cArray<Pixel>& pixels() const { return _pixels; }
+		inline cPixel* pixel(uint32_t index) const {
+			return index < _pixels.length() ? &_pixels[index]: nullptr;
+		}
 
 		/**
 		 * @method texture_Rt(index) get  image texture with index
@@ -147,25 +153,21 @@ namespace qk {
 		inline bool isMipmap() const { return _isMipmap; }
 
 		/**
-		 * @method render() as texture for render backend
-		*/
-		inline RenderBackend* render() const { return _render; }
-
-		/**
 		 * @method count() pixels count
 		*/
 		inline uint32_t count() const { return _pixels.length(); }
 
 	private:
-		ImageSource(RenderBackend *render, RunLoop *loop);
+		ImageSource(RenderResource *res, RunLoop *loop);
 		void _Decode(Buffer& data);
-		void _Unload(bool isDestroy);
+		void _Unload(bool destroy);
 		void _ReloadTexture(Array<Pixel>& pixels);
+
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
 		Array<const TexStat*> _tex_Rt;
 		uint32_t     _loadId;
-		RenderBackend *_render; // weak ref, texture mark
+		RenderResource *_res; // weak ref, texture mark
 		RunLoop       *_loop;
 		bool          _isMipmap; // Whether generate mipmap texture
 	};
@@ -178,6 +180,7 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(RunLoop*, loop);
 		Qk_DEFINE_PROP_GET(uint32_t, capacity, Const); // Used memory size total
+		Qk_DEFINE_PROPERTY(bool, isMarkAsTexture, Const); // default as true
 
 		/**
 		 * @constructor

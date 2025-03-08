@@ -90,6 +90,9 @@
 			'ssl.h',
 			'ssl.cc',
 			'ssl_certs.h',
+			'mutex.cc',
+			'mutex.h',
+			'semaphore.cc',
 		],
 		'conditions': [
 			['os=="android"', {

@@ -28,12 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//@private head
+#ifndef __quark__util__mutex__
+#define __quark__util__mutex__
 
-#ifndef __quark__font__priv__semaphore__
-#define __quark__font__priv__semaphore__
-
-#include "../../../util/macros.h"
+#include "./loop.h"
 
 #include <algorithm>
 #include <atomic>
@@ -49,63 +47,63 @@
 #endif
 
 #define Qk_CAPABILITY(x) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(capability(x))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(capability(x))
 
 #define Qk_SCOPED_CAPABILITY \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(scoped_lockable)
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(scoped_lockable)
 
 #define Qk_GUARDED_BY(x) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(guarded_by(x))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(guarded_by(x))
 
 #define Qk_PT_GUARDED_BY(x) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(pt_guarded_by(x))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(pt_guarded_by(x))
 
 #define Qk_ACQUIRED_BEFORE(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(acquired_before(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(acquired_before(__VA_ARGS__))
 
 #define Qk_ACQUIRED_AFTER(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(acquired_after(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(acquired_after(__VA_ARGS__))
 
 #define Qk_REQUIRES(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(requires_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(requires_capability(__VA_ARGS__))
 
 #define Qk_REQUIRES_SHARED(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(requires_shared_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(requires_shared_capability(__VA_ARGS__))
 
 #define Qk_ACQUIRE(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(acquire_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(acquire_capability(__VA_ARGS__))
 
 #define Qk_ACQUIRE_SHARED(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(acquire_shared_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(acquire_shared_capability(__VA_ARGS__))
 
 // Would be Qk_RELEASE, but that is already in use as Qk_DEBUG vs. Qk_RELEASE.
 #define Qk_RELEASE_CAPABILITY(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(release_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(release_capability(__VA_ARGS__))
 
 // For symmetry with Qk_RELEASE_CAPABILITY.
 #define Qk_RELEASE_SHARED_CAPABILITY(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(release_shared_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(release_shared_capability(__VA_ARGS__))
 
 #define Qk_TRY_ACQUIRE(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(try_acquire_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(try_acquire_capability(__VA_ARGS__))
 
 #define Qk_TRY_ACQUIRE_SHARED(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(try_acquire_shared_capability(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(try_acquire_shared_capability(__VA_ARGS__))
 
 #define Qk_EXCLUDES(...) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(locks_excluded(__VA_ARGS__))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(locks_excluded(__VA_ARGS__))
 
 #define Qk_ASSERT_CAPABILITY(x) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(assert_capability(x))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(assert_capability(x))
 
 #define Qk_ASSERT_SHARED_CAPABILITY(x) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(assert_shared_capability(x))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(assert_shared_capability(x))
 
 #define Qk_RETURN_CAPABILITY(x) \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(lock_returned(x))
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(lock_returned(x))
 
 #define Qk_NO_THREAD_SAFETY_ANALYSIS \
-  Qk_THREAD_ANNOTATION_ATTRIBUTE(no_thread_safety_analysis)
+	Qk_THREAD_ANNOTATION_ATTRIBUTE(no_thread_safety_analysis)
 
 #if defined(Qk_BUILD_FOR_GOOGLE3) && !defined(Qk_BUILD_FOR_WASM_IN_GOOGLE3)
 	extern "C" {
@@ -121,7 +119,7 @@
 
 namespace qk {
 
-	class Semaphore {
+	class Qk_EXPORT Semaphore {
 	public:
 		Semaphore(int count = 0);
 
@@ -186,5 +184,126 @@ namespace qk {
 		}
 	}
 
-}
+	class Qk_CAPABILITY("mutex") QkMutex {
+	public:
+
+		void lock() Qk_ACQUIRE() {
+			fSemaphore.wait();
+			Qk_DEBUGCODE(fOwner = thread_self_id();)
+		}
+
+		void unlock() Qk_RELEASE_CAPABILITY() {
+			this->assertHeld();
+			Qk_DEBUGCODE(fOwner = ThreadID();)
+			fSemaphore.signal();
+		}
+
+		void assertHeld() Qk_ASSERT_CAPABILITY(this) {
+			Qk_DEBUGCODE(
+				Qk_ASSERT(fOwner == thread_self_id())
+			);
+		}
+
+	private:
+		Semaphore fSemaphore{1};
+		Qk_DEBUGCODE(ThreadID fOwner;)
+	};
+
+	class Qk_SCOPED_CAPABILITY AutoMutexExclusive {
+	public:
+		AutoMutexExclusive(QkMutex& mutex) Qk_ACQUIRE(mutex) : fMutex(mutex) { fMutex.lock(); }
+		~AutoMutexExclusive() Qk_RELEASE_CAPABILITY() { fMutex.unlock(); }
+
+		AutoMutexExclusive(const AutoMutexExclusive&) = delete;
+		AutoMutexExclusive(AutoMutexExclusive&&) = delete;
+
+		AutoMutexExclusive& operator=(const AutoMutexExclusive&) = delete;
+		AutoMutexExclusive& operator=(AutoMutexExclusive&&) = delete;
+
+	private:
+		QkMutex& fMutex;
+	};
+
+	// There are two shared lock implementations one debug the other is high performance. They implement
+	// an interface similar to pthread's rwlocks.
+	// This is a shared lock implementation similar to pthreads rwlocks. The high performance
+	// implementation is cribbed from Preshing's article:
+	// http://preshing.com/20150316/semaphores-are-surprisingly-versatile/
+	//
+	// This lock does not obey strict queue ordering. It will always alternate between readers and
+	// a single writer.
+	class Qk_EXPORT Qk_CAPABILITY("mutex") SharedMutex {
+	public:
+		SharedMutex();
+		~SharedMutex();
+		// Acquire lock for exclusive use.
+		void lock() Qk_ACQUIRE();
+
+		// Release lock for exclusive use.
+		void unlock() Qk_RELEASE_CAPABILITY();
+
+		// Fail if exclusive is not held.
+		void assertHeld() const Qk_ASSERT_CAPABILITY(this);
+
+		// Acquire lock for shared use.
+		void lockShared() Qk_ACQUIRE_SHARED();
+
+		// Release lock for shared use.
+		void unlockShared() Qk_RELEASE_SHARED_CAPABILITY();
+
+		// Fail if shared lock not held.
+		void assertHeldShared() const Qk_ASSERT_SHARED_CAPABILITY(this);
+
+	private:
+#if Qk_DEBUG
+		class ThreadIDSet;
+		std::unique_ptr<ThreadIDSet> fCurrentShared;
+		std::unique_ptr<ThreadIDSet> fWaitingExclusive;
+		std::unique_ptr<ThreadIDSet> fWaitingShared;
+		int fSharedQueueSelect{0};
+		mutable QkMutex fMu;
+		Semaphore fSharedQueue[2];
+		Semaphore fExclusiveQueue;
+#else
+		std::atomic<int32_t> fQueueCounts;
+		Semaphore            fSharedQueue;
+		Semaphore            fExclusiveQueue;
+#endif  // Qk_DEBUG
+	};
+
+#if !Qk_DEBUG
+	inline void SharedMutex::assertHeld() const {};
+	inline void SharedMutex::assertHeldShared() const {};
+#endif  // Qk_DEBUG
+
+	class Qk_SCOPED_CAPABILITY AutoSharedMutexExclusive {
+	public:
+		explicit AutoSharedMutexExclusive(SharedMutex& lock) Qk_ACQUIRE(lock)
+				: fLock(lock) {
+			lock.lock();
+		}
+		~AutoSharedMutexExclusive() Qk_RELEASE_CAPABILITY() { fLock.unlock(); }
+
+	private:
+		SharedMutex& fLock;
+	};
+
+	class Qk_SCOPED_CAPABILITY AutoSharedMutexShared {
+	public:
+		explicit AutoSharedMutexShared(SharedMutex& lock) Qk_ACQUIRE_SHARED(lock)
+				: fLock(lock)  {
+			lock.lockShared();
+		}
+
+		// You would think this should be Qk_RELEASE_SHARED_CAPABILITY, but Qk_SCOPED_CAPABILITY
+		// doesn't fully understand the difference between shared and exclusive.
+		// Please review https://reviews.llvm.org/D52578 for more information.
+		~AutoSharedMutexShared() Qk_RELEASE_CAPABILITY() { fLock.unlockShared(); }
+
+	private:
+		SharedMutex& fLock;
+	};
+
+} // namespace qk
+
 #endif

@@ -33,6 +33,7 @@
 #include "./pool.h"
 #include "./priv/util.h"
 #include "./priv/mutex.h"
+#include "../render.h"
 
 namespace qk {
 
@@ -228,7 +229,7 @@ namespace qk {
 			Qk_ASSERT_EQ(offset->length(), glyphs.length() + 1);
 		}
 		if (glyphs.length() == 0) {
-			return {ImageSource::Make(Pixel(PixelInfo()), render)};
+			return {ImageSource::Make(PixelInfo())};
 		}
 		return onGetImage(glyphs, fontSize, offset, offsetScale, render);
 	}

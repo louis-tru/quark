@@ -39,11 +39,17 @@ namespace qk {
 	class RenderSurface; // platform render surface
 	class Canvas;
 
+	class RenderResource: public PostMessage {
+	public:
+		virtual void newTexture(cPixel *pix, TexStat *&out, bool isMipmap) = 0;
+		virtual void deleteTexture(TexStat *tex) = 0;
+	};
+
 	/**
 	 * @class RenderBackend drawing device backend
 	 * @thread render
 	 */
-	class Qk_EXPORT RenderBackend: public Object, public PostMessage {
+	class Qk_EXPORT RenderBackend: public Object, public RenderResource {
 	public:
 		struct Options {
 			ColorType   colorType;
@@ -67,13 +73,11 @@ namespace qk {
 		const   Options& options() const { return _opts; }
 		virtual void    reload() = 0; // surface size and scale change => onRenderBackendReload()
 		virtual void    activate(bool isActive);
-		inline  Canvas* getCanvas() { return _canvas; } // default main canvas object
 		inline  Vec2    surfaceSize() { return _surfaceSize; }
-		virtual void    makeTexture(cPixel *pix, TexStat *&out, bool isMipmap) = 0;
-		virtual void    deleteTexture(TexStat *tex) = 0;
-		virtual void    makeVertexData(VertexData::ID *id) = 0;
-		virtual void    deleteVertexData(VertexData::ID *id) = 0;
+		inline  Canvas* getCanvas() { return _canvas; } // default main canvas object
 		virtual Canvas* newCanvas(Options opts) = 0; // create new sub canvas object
+		virtual void    newVertexData(VertexData::ID *id) = 0;
+		virtual void    deleteVertexData(VertexData::ID *id) = 0;
 
 		/**
 		 * @method surface() Returns render surface object for platforms
@@ -82,6 +86,7 @@ namespace qk {
 
 	protected:
 		RenderBackend(Options opts);
+
 		/**
 		 * @method getSurfaceSize() Returns surface size and default surface  scale
 		*/

@@ -65,7 +65,7 @@ public:
 	}
 
 	~OsxGLRender() override {
-		Qk_ASSERT_RAW(_message.length() == 0);
+		Qk_ASSERT_RAW(_msg.length() == 0);
 	}
 
 	void release() override {
@@ -79,12 +79,11 @@ public:
 
 		// Perform the final message task
 		_mutexMsg.lock();
-		if (_message.length()) {
+		if (_msg.length()) {
 			lock();
-			for (auto &i : _message) {
+			for (auto &i : _msg)
 				i->resolve();
-			}
-			_message.clear();
+			_msg.clear();
 			unlock();
 		}
 		_mutexMsg.unlock();
@@ -127,14 +126,14 @@ public:
 			unlock();
 		} else if (!_view.isRun) {
 			if (_mutexMsg.try_lock()) {
-				_message.push(cb);
+				_msg.push(cb);
 				_mutexMsg.unlock();
 			} else {
 				cb->resolve();
 			}
 		} else {
 			_mutexMsg.lock();
-			_message.push(cb);
+			_msg.push(cb);
 			_mutexMsg.unlock();
 		}
 	}
@@ -149,9 +148,9 @@ public:
 	void renderDisplay() {
 		lock();
 
-		if (_message.length()) { //
+		if (_msg.length()) { //
 			_mutexMsg.lock();
-			auto msg(std::move(_message));
+			auto msg(std::move(_msg));
 			_mutexMsg.unlock();
 			for ( auto &i : msg ) i->resolve();
 		}
@@ -195,7 +194,7 @@ private:
 	GLView            *_view;
 	NSOpenGLContext   *_ctx;
 	int              _lockCount;
-	Array<Cb>        _message;
+	Array<Cb>        _msg;
 	Mutex            _mutexMsg;
 };
 
@@ -278,6 +277,20 @@ static CVReturn displayLinkCallback(
 
 namespace qk {
 
+	class OsxRenderResource: public GLRenderResource {
+	public:
+		Qk_DEFINE_PROP_GET(NSOpenGLContext*, ctx);
+
+		OsxRenderResource(NSOpenGLContext* ctx): GLRenderResource(current_loop()), _ctx(ctx) {
+		}
+	};
+
+	static OsxRenderResource* g_sharedRenderResource = nullptr;
+
+	RenderResource* getSharedRenderResource() {
+		return g_sharedRenderResource;
+	}
+
 	Render* make_gl_render(Render::Options opts) {
 		//	generate the GL display mask for all displays
 		CGDirectDisplayID		dspys[10];
@@ -313,8 +326,14 @@ namespace qk {
 		//	attrs[i++] = NSOpenGLPFASamples; attrs[i++] = MSAA; // number of multisamples
 		//};
 		auto format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-		auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-		auto prevCtx = NSOpenGLContext.currentContext;
+		if (!g_sharedRenderResource) {
+			static std::once_flag flag;
+			call_once(flag, [format]() {
+				auto sharedCtx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
+				g_sharedRenderResource = new OsxRenderResource(sharedCtx);
+			});
+		}
+		auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:g_sharedRenderResource->ctx()];
 
 #if DEBUG
 		GLint stencilBits;
@@ -333,8 +352,7 @@ namespace qk {
 		CGLUnlockContext(ctx.CGLContextObj);
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
 
-		if (prevCtx)
-			[prevCtx makeCurrentContext];
+		[g_sharedRenderResource->ctx() makeCurrentContext];
 
 		return render;
 	}

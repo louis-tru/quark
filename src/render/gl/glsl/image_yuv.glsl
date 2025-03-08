@@ -12,8 +12,8 @@ uniform   lowp int       format; // 0: YUV420SP, 1: YUV420P
 void main() {
 	lowp float y = texture(image, coord_f).r;
 	lowp vec2  uv = texture(image_u, coord_f).rg;
-	lowp float u = uv.x;
-	lowp float v = mix(uv.y, texture(image_v, coord_f).r, float(format));
+	lowp float u = uv.r;
+	lowp float v = mix(uv.g, texture(image_v, coord_f).r, float(format));
 
 	fragColor = vec4(	y + 1.4075 * (v - 0.5),
 										y - 0.3455 * (u - 0.5) - 0.7169 * (v - 0.5),

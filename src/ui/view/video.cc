@@ -139,7 +139,7 @@ namespace qk {
 		_seeking = 0;
 		_pts = _fv->pts; // set current the presentation timestamp
 		set_source(ImageSource::Make(
-			MediaCodec::frameToPixel(*_fv), window()->render(), window()->loop()
+			MediaCodec::frameToPixel(*_fv), window()->render()
 		));
 		_fv.collapse();
 		return true;

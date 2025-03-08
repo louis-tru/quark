@@ -144,12 +144,12 @@ namespace qk {
 
 	SharedMutex::~SharedMutex() {  ANNOTATE_RWLOCK_DESTROY(this); }
 
-	void SharedMutex::acquire() {
+	void SharedMutex::lock() {
 		ThreadID threadID(thread_self_id());
 		int currentSharedCount;
 		int waitingExclusiveCount;
 		{
-			QkAutoMutexExclusive l(fMu);
+			AutoMutexExclusive l(fMu);
 
 			Qk_ASSERT(!fCurrentShared->find(threadID),
 					  "Thread %" PRIx64 " already has an shared lock\n", threadID);
@@ -171,14 +171,14 @@ namespace qk {
 	// Implementation Detail:
 	// The shared threads need two separate queues to keep the threads that were added after the
 	// exclusive lock separate from the threads added before.
-	void SharedMutex::release() {
+	void SharedMutex::unlock() {
 		ANNOTATE_RWLOCK_RELEASED(this, 1);
 		ThreadID threadID(thread_self_id());
 		int sharedWaitingCount;
 		int exclusiveWaitingCount;
 		int sharedQueueSelect;
 		{
-			QkAutoMutexExclusive l(fMu);
+			AutoMutexExclusive l(fMu);
 			Qk_ASSERT(0 == fCurrentShared->count());
 			Qk_ASSERT(fWaitingExclusive->tryRemove(threadID),
 				"Thread %" PRIx64 " did not have the lock held.\n", threadID);
@@ -200,17 +200,17 @@ namespace qk {
 
 	void SharedMutex::assertHeld() const {
 		ThreadID threadID(thread_self_id());
-		QkAutoMutexExclusive l(fMu);
+		AutoMutexExclusive l(fMu);
 		Qk_ASSERT(0 == fCurrentShared->count());
 		Qk_ASSERT(fWaitingExclusive->find(threadID));
 	}
 
-	void SharedMutex::acquireShared() {
+	void SharedMutex::lockShared() {
 		ThreadID threadID(thread_self_id());
 		int exclusiveWaitingCount;
 		int sharedQueueSelect;
 		{
-			QkAutoMutexExclusive l(fMu);
+			AutoMutexExclusive l(fMu);
 			exclusiveWaitingCount = fWaitingExclusive->count();
 			if (exclusiveWaitingCount > 0) {
 				Qk_ASSERT(fWaitingShared->tryAdd(threadID),
@@ -229,14 +229,14 @@ namespace qk {
 		ANNOTATE_RWLOCK_ACQUIRED(this, 0);
 	}
 
-	void SharedMutex::releaseShared() {
+	void SharedMutex::unlockShared() {
 		ANNOTATE_RWLOCK_RELEASED(this, 0);
 		ThreadID threadID(thread_self_id());
 
 		int currentSharedCount;
 		int waitingExclusiveCount;
 		{
-			QkAutoMutexExclusive l(fMu);
+			AutoMutexExclusive l(fMu);
 			Qk_ASSERT(fCurrentShared->tryRemove(threadID),
 				"Thread %" PRIx64 " does not hold a shared lock.\n", threadID);
 			currentSharedCount = fCurrentShared->count();
@@ -250,7 +250,7 @@ namespace qk {
 
 	void SharedMutex::assertHeldShared() const {
 		ThreadID threadID(thread_self_id());
-		QkAutoMutexExclusive l(fMu);
+		AutoMutexExclusive l(fMu);
 		Qk_ASSERT(fCurrentShared->find(threadID));
 	}
 
@@ -278,7 +278,8 @@ namespace qk {
 
 	SharedMutex::SharedMutex() : fQueueCounts(0) { ANNOTATE_RWLOCK_CREATE(this); }
 	SharedMutex::~SharedMutex() {  ANNOTATE_RWLOCK_DESTROY(this); }
-	void SharedMutex::acquire() {
+
+	void SharedMutex::lock() {
 		// Increment the count of exclusive queue waiters.
 		int32_t oldQueueCounts = fQueueCounts.fetch_add(1 << kWaitingExlusiveOffset,
 														std::memory_order_acquire);
@@ -291,7 +292,7 @@ namespace qk {
 		ANNOTATE_RWLOCK_ACQUIRED(this, 1);
 	}
 
-	void SharedMutex::release() {
+	void SharedMutex::unlock() {
 		ANNOTATE_RWLOCK_RELEASED(this, 1);
 
 		int32_t oldQueueCounts = fQueueCounts.load(std::memory_order_relaxed);
@@ -332,7 +333,7 @@ namespace qk {
 		}
 	}
 
-	void SharedMutex::acquireShared() {
+	void SharedMutex::lockShared() {
 		int32_t oldQueueCounts = fQueueCounts.load(std::memory_order_relaxed);
 		int32_t newQueueCounts;
 		do {
@@ -344,8 +345,8 @@ namespace qk {
 				newQueueCounts += 1 << kSharedOffset;
 			}
 		} while (!fQueueCounts.compare_exchange_strong(oldQueueCounts, newQueueCounts,
-													   std::memory_order_acquire,
-													   std::memory_order_relaxed));
+														std::memory_order_acquire,
+														std::memory_order_relaxed));
 
 		// If there are waiting exclusives, then this shared waits until after it runs.
 		if ((newQueueCounts & kWaitingExclusiveMask) > 0) {
@@ -354,7 +355,7 @@ namespace qk {
 		ANNOTATE_RWLOCK_ACQUIRED(this, 0);
 	}
 
-	void SharedMutex::releaseShared() {
+	void SharedMutex::unlockShared() {
 		ANNOTATE_RWLOCK_RELEASED(this, 0);
 
 		// Decrement the shared count.

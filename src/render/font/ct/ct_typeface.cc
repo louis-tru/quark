@@ -33,6 +33,7 @@
 #include "../../codec/codec.h"
 #include "../../../util/fs.h"
 #include "../priv/mutex.h"
+#include "../../render.h"
 
 using namespace qk;
 
@@ -708,7 +709,7 @@ Typeface::ImageOut Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	uint32_t height = ceilf(cgBound.size.height);
 
 	if (!height || !width) {
-		return { ImageSource::Make(Pixel(PixelInfo()), render) };
+		return { ImageSource::Make(PixelInfo()) };
 	}
 
 	//Qk_DLog("#Typeface_Mac::onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", cgBound.origin.y, top, height);

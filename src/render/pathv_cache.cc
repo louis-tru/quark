@@ -189,12 +189,12 @@ namespace qk {
 		}
 	}
 
-	bool PathvCache::makeVertexData(const VertexData::ID *vertexInThis) {
+	bool PathvCache::newVertexData(const VertexData::ID *vertexInThis) {
 		if (vertexInThis) {
 			if (vertexInThis->vao) {
 				return true;
 			} else if (vertexInThis->host == this) {
-				_render->makeVertexData(const_cast<VertexData::ID*>(vertexInThis));
+				_render->newVertexData(const_cast<VertexData::ID*>(vertexInThis));
 				return true;
 			}
 		}

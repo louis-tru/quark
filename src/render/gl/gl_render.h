@@ -43,18 +43,19 @@ namespace qk {
 	public:
 		virtual      ~GLRender();
 		virtual void reload() override;
-		virtual void makeTexture(cPixel *pix, TexStat *&out, bool isMipmap) override;
+		virtual Canvas* newCanvas(Options opts) override;
+		virtual void newTexture(cPixel *pix, TexStat *&out, bool isMipmap) override;
+		virtual void newVertexData(VertexData::ID *id) override;
 		virtual void deleteTexture(TexStat *tex) override;
-		virtual void makeVertexData(VertexData::ID *id) override;
 		virtual void deleteVertexData(VertexData::ID *id) override;
 		virtual void lock(); // lock render
 		virtual void unlock(); // unlock render
-		virtual Canvas* newCanvas(Options opts) override;
 		virtual void release() override;
 		// set gl state
 		void gl_set_blend_mode(BlendMode mode);
 		bool gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint);
 		void gl_set_texture_param(TexStat *tex, uint32_t slot, const ImagePaint* paint);
+		GLuint gl_get_tex_sampler(const ImagePaint* paint);
 
 	protected:
 		GLRender(Options opts);
@@ -66,9 +67,21 @@ namespace qk {
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status
 		String _extensions;
+		Dict<uint32_t, GLuint> _texSamplers; // ImagePaint => Sampler
 
 		friend class GLCanvas;
 		friend class GLC_CmdPack;
 	};
+
+	class GLRenderResource: public RenderResource {
+	public:
+		inline GLRenderResource(RunLoop *loop): _loop(loop) {}
+		void post_message(Cb cb) override;
+		void newTexture(cPixel *pix, TexStat *&out, bool isMipmap) override;
+		void deleteTexture(TexStat *tex) override;
+	private:
+		RunLoop *_loop;
+	};
+
 }
 #endif

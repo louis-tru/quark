@@ -41,7 +41,7 @@ namespace qk {
 	void  gl_set_color_renderbuffer(GLuint rbo, TexStat *rboTex, ColorType type, Vec2 size);
 	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void  gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
-	TexStat* gl_new_texture();
+	TexStat* gl_new_tex_stat();
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -228,12 +228,12 @@ namespace qk {
 		}
 
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
-			auto &pix = textImg->pixels().front();
+			auto pix = textImg->pixel(0);
 			auto scale_1 = 1.0 / scale;
 			ImagePaint p;
 			// default use baseline align
 			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
-			Vec2 dst_size(pix.width() * scale_1, pix.height() * scale_1);
+			Vec2 dst_size(pix->width() * scale_1, pix->height() * scale_1);
 
 			//auto a = _state->matrix * dst_start;
 			//auto b = _state->matrix * (dst_start + dst_size);
@@ -668,7 +668,7 @@ namespace qk {
 		};
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
 			auto img = ImageSource::Make({
-				int(Qk_Min(dest.x(),_surfaceSize.x())),int(Qk_Min(dest.y(),_surfaceSize.y())),type}, _render);
+				int(Qk_Min(dest.x(),_surfaceSize.x())),int(Qk_Min(dest.y(),_surfaceSize.y())),type});
 			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, *img, isMipmap);
 			_this->zDepthNext();
 			return img;
@@ -681,9 +681,9 @@ namespace qk {
 		if (!dest) {
 			ret = ImageSource::Make({
 				int(_surfaceSize[0]),int(_surfaceSize[1]),kRGBA_8888_ColorType
-			}, _render);
+			});
 		}
-		if (ret->markAsTexture(_render)) {
+		if (ret->markAsTexture()) {
 			_state->output = new GLC_State::Output{dest,isMipmap};
 			_cmdPack->outputImageBegin(dest, isMipmap);
 			Qk_ReturnLocal(ret);
@@ -727,7 +727,7 @@ namespace qk {
 
 		if (init) {
 			// Create a color renderbuffer of texture
-			_outTex = gl_new_texture();
+			_outTex = gl_new_tex_stat();
 			// Create the framebuffer
 			glGenFramebuffers(1, &_fbo);
 			// Create depth buffer

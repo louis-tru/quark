@@ -163,8 +163,6 @@ namespace qk {
 		auto src = fill->source();
 		if (!src || !src->load()) return;
 
-		src->markAsTexture(_render); // mark texure
-
 		auto src_w = src->width(), src_h = src->height();
 		auto cli = box->_client_size;
 		auto dw = cli.x(), dh = cli.y();
@@ -471,17 +469,17 @@ namespace qk {
 
 		auto src = v->source();
 		if (src && src->load()) {
-			src->markAsTexture(_render);
 			getInsideRectPath(v, data);
 			//auto cli = v->client_size();
 			//Qk_DLog("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());
 			Paint p0;
 			ImagePaint paint;
+			// p0.antiAlias = false;
 			p0.type = Paint::kBitmap_Type;
 			p0.image = &paint;
 			p0.color.set_a(_opacity);
-			paint.tileModeX = ImagePaint::kDecal_TileMode;
-			paint.tileModeY = ImagePaint::kDecal_TileMode;
+			//paint.tileModeX = ImagePaint::kDecal_TileMode;
+			//paint.tileModeY = ImagePaint::kDecal_TileMode;
 			paint.filterMode = ImagePaint::kLinear_FilterMode;
 			paint.mipmapMode = ImagePaint::kNearest_MipmapMode;
 			paint.setImage(src.get(), data.inside->rect);

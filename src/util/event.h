@@ -38,8 +38,8 @@
 #include <functional>
 
 #define Qk_Event(name, ...) \
-	public: inline qk::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; } \
-	private:qk::EventNoticer<__VA_ARGS__> _on##name; public:
+	private:       qk::EventNoticer<__VA_ARGS__> _on##name; \
+	public: inline qk::EventNoticer<__VA_ARGS__>& on##name () { return _on##name; }
 
 #define Qk_Init_Event(name)   _on##name(this)
 #define Qk_On(name, ...)      on##name().on( __VA_ARGS__ )

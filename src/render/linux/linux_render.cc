@@ -181,7 +181,7 @@ namespace qk {
 		{}
 
 		~LinuxGLRender() override {
-			Qk_ASSERT_RAW(_message.length() == 0);
+			Qk_ASSERT_RAW(_msg.length() == 0);
 		}
 
 		void release() override {
@@ -193,25 +193,21 @@ namespace qk {
 
 			// Perform the final message task
 			_mutexMsg.lock();
-			if (_message.length()) {
-				if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT) {
+			if (_msg.length()) {
+				if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT)
 					Qk_ASSERT_RAW(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
-				}
 				lock();
-				for (auto &i : _message)
+				for (auto &i : _msg)
 					i->resolve();
+				_msg.clear();
 				unlock();
 			}
 			_mutexMsg.unlock();
 
 			if (_display != EGL_NO_DISPLAY) {
 				eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-				if (_context != EGL_NO_CONTEXT) {
-					eglDestroyContext(_display, _context);
-				}
-				if (_surface != EGL_NO_SURFACE) {
-					eglDestroySurface(_display, _surface);
-				}
+				if (_context != EGL_NO_CONTEXT) eglDestroyContext(_display, _context);
+				if (_surface != EGL_NO_SURFACE) eglDestroySurface(_display, _surface);
 			}
 			_display = EGL_NO_DISPLAY;
 			_context = EGL_NO_CONTEXT;
@@ -243,14 +239,14 @@ namespace qk {
 				unlock();
 			} else if (_renderThreadId == emptyThreadID) { // No run
 				if (_mutexMsg.try_lock()) {
-					_message.push(cb);
+					_msg.push(cb);
 					_mutexMsg.unlock();
 				} else {
 					cb->resolve();
 				}
 			} else {
 				_mutexMsg.lock();
-				_message.push(cb);
+				_msg.push(cb);
 				_mutexMsg.unlock();
 			}
 		}
@@ -306,9 +302,9 @@ namespace qk {
 			lock();
 			makeCurrent();
 
-			if (_message.length()) { //
+			if (_msg.length()) { //
 				_mutexMsg.lock();
-				auto msg(std::move(_message));
+				auto msg(std::move(_msg));
 				_mutexMsg.unlock();
 				for (auto &i : msg) i->resolve();
 			}
@@ -325,8 +321,9 @@ namespace qk {
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
 
 				glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
-				// GLuint sync = glCreateSyncTokens(1);
-				// glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+				// GLuint fence = glCreateSyncTokens(1);
+				// glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+				// glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, TIMEOUT)
 				eglSwapBuffers(_display, _surface);
 			}
 			unlock();
@@ -397,7 +394,7 @@ namespace qk {
 		EGLSurface _surface;
 		EGLNativeWindowType _win;
 		Mutex _mutexMsg;
-		Array<Cb> _message;
+		Array<Cb> _msg;
 		ThreadID _renderThreadId;
 		RecursiveMutex _mutex;
 #if Qk_ANDROID
@@ -425,6 +422,15 @@ namespace qk {
 			r = new LinuxGLRender(opts, display, config, ctx);
 			Qk_ASSERT_RAW(eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
 		}
+
+		// // ------------------------------------
+		// EGLContext child = eglCreateContext(display, config, ctx, attrs);
+		// eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, child);
+		// GLuint a;
+		// glGenTextures(1, &a);
+		// eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr);
+		// Qk_DLog("glGenTextures------------------------------------, %d", a);
+		// // ------------------------------------
 
 		return r;
 	}

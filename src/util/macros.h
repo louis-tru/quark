@@ -247,9 +247,10 @@
 	extern __attribute__((constructor)) void fn##__(void)
 #endif
 
-#if !defined(Qk_CPU_BENDIAN) && !defined(Qk_CPU_LENDIAN)
+#if !defined(Qk_CPU_LENDIAN)
 	#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-		#define Qk_CPU_BENDIAN 1
+		#define Qk_CPU_LENDIAN 0
+		// #define Qk_CPU_BENDIAN 1
 	#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 		#define Qk_CPU_LENDIAN 1
 	#elif defined(__sparc) || defined(__sparc__) || \
@@ -260,7 +261,8 @@
 		defined(__s390__) || \
 		(defined(__sh__) && defined(__BIG_ENDIAN__)) || \
 		(defined(__ia64) && defined(__BIG_ENDIAN__))
-			#define Qk_CPU_BENDIAN 1
+			#define Qk_CPU_LENDIAN 0
+			// #define Qk_CPU_BENDIAN 1
 	#else
 		#define Qk_CPU_LENDIAN 1
 	#endif

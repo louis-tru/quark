@@ -28,7 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./semaphore.h"
+#include "./mutex.h"
+
 namespace qk {
 
 #if defined(Qk_MAC)
@@ -78,29 +79,28 @@ namespace qk {
 	};
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
 
-Semaphore::Semaphore(int count) : fCount(count), fOSSemaphore(new OSSemaphore) {
-}
-
-Semaphore::~Semaphore() {
-	delete fOSSemaphore;
-}
-
-void Semaphore::osSignal(int n) {
-	fOSSemaphore->signal(n);
-}
-
-void Semaphore::osWait() {
-	fOSSemaphore->wait();
-}
-
-bool Semaphore::try_wait() {
-	int count = fCount.load(std::memory_order_relaxed);
-	if (count > 0) {
-		return fCount.compare_exchange_weak(count, count-1, std::memory_order_acquire);
+	Semaphore::Semaphore(int count) : fCount(count), fOSSemaphore(new OSSemaphore) {
 	}
-	return false;
-}
 
+	Semaphore::~Semaphore() {
+		delete fOSSemaphore;
+	}
+
+	void Semaphore::osSignal(int n) {
+		fOSSemaphore->signal(n);
+	}
+
+	void Semaphore::osWait() {
+		fOSSemaphore->wait();
+	}
+
+	bool Semaphore::try_wait() {
+		int count = fCount.load(std::memory_order_relaxed);
+		if (count > 0) {
+			return fCount.compare_exchange_weak(count, count-1, std::memory_order_acquire);
+		}
+		return false;
+	}
 }

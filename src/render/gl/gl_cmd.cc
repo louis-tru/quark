@@ -46,11 +46,12 @@ namespace qk {
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void setTex_SourceImage_Rt(ImageSource* s, cPixelInfo &i, const TexStat *tex, bool isMipmap);
+	void setTex_SourceImage_Rt(RenderResource *res, ImageSource* s, cPixelInfo &i,
+			const TexStat *tex, bool isMipmap);
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
 	void gl_set_texture_no_repeat(GLenum wrapdir);
-	TexStat* gl_new_texture();
+	TexStat* gl_new_tex_stat();
 
 	static Color4f emptyColor{0,0,0,0};
 
@@ -344,7 +345,7 @@ namespace qk {
 		}
 
 		bool useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
-			if (_cache->makeVertexData(vertex.id)) {
+			if (_cache->newVertexData(vertex.id)) {
 				glBindVertexArray(vertex.id->vao); // use vao
 				glUseProgram(shader->shader); // use shader program
 			} else if (vertex.vertex.length()) {
@@ -448,17 +449,17 @@ namespace qk {
 		void drawImageCall(const VertexData &vertex,
 			const ImagePaint *paint, float fullScale, float alpha, bool aafuzz, bool aaclip, float depth
 		) {
+			AutoMutexExclusive ame(paint->image->onState());
 			if (setTextureSlot0(paint)) { // rgb or y
 				GLSLImage *s;
 				auto src = paint->image;
-				// auto srcIndex = paint->srcIndex;
 
 				if (kYUV420P_Y_8_ColorType == src->type()) { // yuv420p or yuv420sp
 					auto yuv = aaclip ? &_render->_shaders.imageYuv_AACLIP: &_render->_shaders.imageYuv;
 					s = (GLSLImage*)yuv;
 					Qk_useShaderProgram(s, vertex);
 
-					if (src->pixels()[1].type() == kYUV420P_U_8_ColorType) {
+					if (src->pixel(1)->type() == kYUV420P_U_8_ColorType) {
 						_render->gl_set_texture(src, 2, paint); // v
 						glUniform1i(yuv->format, 1); // yuv420p
 					} else {
@@ -480,6 +481,7 @@ namespace qk {
 		void drawImageMaskCall(const VertexData &vertex,
 			const ImagePaint *paint, float fullScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
+			AutoMutexExclusive ame(paint->image->onState());
 			if (setTextureSlot0(paint)) {
 				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
 				Qk_useShaderProgram(s, vertex);
@@ -691,6 +693,7 @@ namespace qk {
 			uint32_t oRw = R.x(), oRh = R.y();
 
 			glActiveTexture(GL_TEXTURE0);
+			glBindSampler(0, 0);
 			glBindTexture(GL_TEXTURE_2D, _c->_outA);
 
 			if (lod) { // copy image, gen mipmap texture
@@ -811,11 +814,11 @@ namespace qk {
 			auto type = gl_get_texture_data_type(img->type());
 
 			if (!tex) {
-				tex = gl_new_texture();
-			} else {
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, tex->id);
+				tex = gl_new_tex_stat();
 			}
+			glActiveTexture(GL_TEXTURE0);
+			glBindSampler(0, 0);
+			glBindTexture(GL_TEXTURE_2D, tex->id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
 
@@ -857,7 +860,7 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			setTex_SourceImage_Rt(img, img->info(), tex, isMipmap);
+			setTex_SourceImage_Rt(_render, img, img->info(), tex, isMipmap);
 		}
 
 		void outputImageBeginCall(ImageSource* img, bool isMipmap) {
@@ -866,18 +869,20 @@ namespace qk {
 			auto iformat = gl_get_texture_pixel_format(img->type());
 			auto type = gl_get_texture_data_type(img->type());
 			if (!tex) {
-				tex = gl_new_texture();
-			} else {
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, tex->id);
+				tex = gl_new_tex_stat();
 			}
+			glActiveTexture(GL_TEXTURE0);
+			glBindSampler(0, 0);
+			glBindTexture(GL_TEXTURE_2D, tex->id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, iformat, type, nullptr);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->id, 0);
 #if Qk_LINUX
 			glClearBufferfv(GL_COLOR, 0, emptyColor.val); // clear image tex
 #endif
-			setTex_SourceImage_Rt(img, {int(size[0]),int(size[1]),img->type(),img->info().alphaType()}, tex, isMipmap);
+			setTex_SourceImage_Rt(_render, img, {
+				int(size[0]),int(size[1]),img->type(),img->info().alphaType()
+			}, tex, isMipmap);
 		}
 
 		void outputImageEndCall(ImageSource* img, bool isMipmap) {
@@ -885,6 +890,7 @@ namespace qk {
 			//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_outColor);
 			if (isMipmap) {
 				glActiveTexture(GL_TEXTURE0);
+				glBindSampler(0, 0);
 				glBindTexture(GL_TEXTURE_2D, img->texture_Rt(0)->id);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -926,6 +932,7 @@ namespace qk {
 
 			if (srcC->_opts.isMipmap) { // gen mipmap texture
 				glActiveTexture(GL_TEXTURE0);
+				glBindSampler(0, 0);
 				glBindTexture(GL_TEXTURE_2D, srcC->_outTex->id);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
