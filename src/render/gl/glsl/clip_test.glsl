@@ -7,7 +7,7 @@ void main() {
 layout(location=1) out lowp vec4 aaclipOut; // output anti alias clip texture buffer
 
 void main() {
-#ifdef Qk_SHADER_IF_FLAGS_CLIP_FILL
+#ifdef Qk_SHADER_IF_FLAGS_CLEAR_AA
 	aaclipOut = vec4(1.0,1.0,1.0,1.0);
 #endif
 

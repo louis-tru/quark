@@ -55,13 +55,13 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
-		void setTex_Rt(RenderResource *res, cPixelInfo &info, const TexStat *tex, bool isMipmap);
+		void setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex, bool isMipmap);
 	};
 
-	void setTex_SourceImage_Rt(RenderResource *res,
+	void setTex_SourceImage(RenderResource *res,
 			ImageSource* img, cPixelInfo &i, const TexStat *tex, bool isMipmap)
 	{
-		static_cast<ImageSource::Inl*>(img)->setTex_Rt(res, i, tex, isMipmap);
+		static_cast<ImageSource::Inl*>(img)->setTex(res, i, tex, isMipmap);
 	}
 
 	ImageSource::ImageSource(RenderResource *res, RunLoop *loop): Qk_Init_Event(State)
@@ -272,10 +272,10 @@ namespace qk {
 		}
 	}
 
-	void ImageSource::Inl::setTex_Rt(RenderResource *res, cPixelInfo &info, const TexStat *tex, bool isMipmap) {
+	void ImageSource::Inl::setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex, bool isMipmap) {
 		AutoMutexExclusive ame(_onState);
 		if (!_res)
-			_res = getSharedRenderResource();
+			_res = res;
 		if (_tex.length()) { // replace old texture
 			auto oldTex = _tex[0];
 			if (oldTex && oldTex != tex)

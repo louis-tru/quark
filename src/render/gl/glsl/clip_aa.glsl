@@ -7,6 +7,7 @@ void main() {
 #frag
 uniform                lowp float aafuzzWeight;
 uniform                lowp float aafuzzConst;
+uniform                lowp float clearAA;
 layout(location=1) out lowp vec4  aaclipOut; // output anti alias clip texture buffer
 
 void main() {
@@ -23,7 +24,7 @@ void main() {
 	// (-10 + 1) * -0.09
 	lowp float alpha = (aafuzzConst + abs(aafuzz)) * aafuzzWeight;
 	//lowp float alpha = (1.0 - abs(aafuzz));// * (0.1) + 0.9;
-	lowp float clip = texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r;
+	lowp float clip = mix(texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r, 1.0, clearAA);
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP_REVOKE
 	aaclipOut = vec4(clip / alpha, 1.0,1.0,1.0); // aaclip revoke

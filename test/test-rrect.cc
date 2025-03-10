@@ -19,7 +19,7 @@ public:
 		canvas->save();
 		canvas->setMatrix(Mat().translate({-115, 0})); // reset mat
 
-		canvas->clearColor(Color4f(0,0,1));
+		//canvas->clearColor(Color4f(0,0,0));
 		auto size = window()->size();
 
 		Paint paint;
@@ -27,7 +27,7 @@ public:
 		paint.color = Color4f(0, 0, 0);
 		//canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
 
-		paint.color = Color4f(0, 0.5, 0.5, 0.1);
+		paint.color = Color4f(0, 0.5, 0.5, 0.4);
 		canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
 		paint.color = Color4f(1, 0, 0, 0.3);

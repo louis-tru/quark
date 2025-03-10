@@ -294,40 +294,25 @@ namespace qk
 
 	void Application::openURL(cString& url) {
 		if (vfork() == 0) {
-			execlp("xdg-open", "xdg-open", *url, NULL);
+			execlp("xdg-open", "xdg-open", *url, nullptr);
 		}
 	}
 
 	void Application::sendEmail(cString& recipient,
 			cString& subject, cString& body, cString& cc, cString& bcc)
 	{
-		String arg = "mailto:";
-
-		arg += recipient + '?';
-
-		if (!cc.isEmpty()) {
-			arg += "cc=";
-			arg += cc + '&';
-		}
-		if (!bcc.isEmpty()) {
-			arg += "bcc=";
-			arg += bcc + '&';
-		}
-
-		arg += "subject=";
-		arg += URI::encode(subject, false) + '&';
-
-		if (!body.isEmpty()) {
-			arg += "body=";
-			arg += URI::encode(body, false);
-		}
-
+		String uri(String::format("mailto:%s?cc=%s&bcc=%s&subject=%s&body=%s",
+			*recipient,
+			*URI::encode(cc,true),
+			*URI::encode(bcc,true),
+			*URI::encode(subject,true), *URI::encode(body, true)
+		));
 		// xdg-open
 		// mailto:haorooms@126.com?cc=name2@rapidtables.com&bcc=name3@rapidtables.com&
 		// subject=The%20subject%20of%20the%20email&body=The%20body%20of%20the%20email
 
 		if (vfork() == 0) {
-			execlp("xdg-open", "xdg-open", *arg, NULL);
+			execlp("xdg-open", "xdg-open", *uri, nullptr);
 		}
 	}
 

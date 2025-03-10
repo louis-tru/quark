@@ -18,7 +18,7 @@ public:
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 1);
-		Rect rect{size/2-width*0.5,width};
+		Rect rect{-width*0.5,width};
 		auto path = Path::MakeArc(rect, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 
 		canvas->save();
@@ -27,10 +27,10 @@ public:
 		canvas->restore();
 
 		ImagePaint ipaint;
-		ipaint.setImage(*img, {{0},size});
+		ipaint.setImage(*img, {size*-0.5,size});
 		paint.image = &ipaint;
 		paint.type = Paint::kBitmap_Type;
-		canvas->drawRect({{0},{width}}, paint);
+		canvas->drawRect({size*-0.5,size}, paint);
 
 		mark(kLayout_None,true);
 	}

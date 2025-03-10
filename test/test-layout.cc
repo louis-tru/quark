@@ -58,7 +58,7 @@ void layout_scroll(Window* win) {
 	//v->set_margin_top(100);
 	v->set_align(Align::Center);
 	v->set_background_color(Color(255,255,255));
-	v->set_border_radius({50});
+	v->set_border_radius({100});
 	v->set_scrollbar_width(4);
 
 	auto a = v->append_new<Box>();

@@ -77,13 +77,13 @@ class FCLocker {
 	// Assume FcGetVersion() has always been thread safe.
 	static void lock() Qk_NO_THREAD_SAFETY_ANALYSIS {
 		if (FcGetVersion() < FontConfigThreadSafeVersion) {
-			f_c_mutex().acquire();
+			f_c_mutex().lock();
 		}
 	}
 	static void unlock() Qk_NO_THREAD_SAFETY_ANALYSIS {
 		AssertHeld();
 		if (FcGetVersion() < FontConfigThreadSafeVersion) {
-			f_c_mutex().release();
+			f_c_mutex().unlock();
 		}
 	}
 

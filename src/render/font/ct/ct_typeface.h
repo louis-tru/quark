@@ -33,6 +33,7 @@
 
 #include "./ct_util.h"
 #include "../typeface.h"
+#include "../../render.h"
 
 using namespace qk;
 

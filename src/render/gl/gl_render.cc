@@ -176,7 +176,7 @@ namespace qk {
 	}
 
 	void gl_set_texture_no_repeat(GLenum wrapdir) {
-#if Qk_OSX
+#ifdef GL_CLAMP_TO_BORDER
 		glTexParameteri(GL_TEXTURE_2D, wrapdir, GL_CLAMP_TO_BORDER);
 		//constexpr float black[4] = {0,0,0,0}; // system default value the Zero
 		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
@@ -197,7 +197,7 @@ namespace qk {
 				glSamplerParameteri(sampler, wrapdir, GL_MIRRORED_REPEAT);
 				break;
 			case ImagePaint::kDecal_TileMode: // no repeat
-#if Qk_OSX
+#ifdef GL_CLAMP_TO_BORDER
 				glSamplerParameteri(sampler, wrapdir, GL_CLAMP_TO_BORDER);
 				//constexpr float black[4] = {0,0,0,0}; // system default value the Zero
 				//glSamplerParameterfv(sampler, GL_TEXTURE_BORDER_COLOR, black);

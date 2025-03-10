@@ -304,5 +304,7 @@ void test_linux_input(int argc, char **argv){
 }
 
 #else
+void test_linux_input_2(int argc, char **argv) {}
+void test_linux_input_1(int argc, char **argv) {}
 void test_linux_input(int argc, char **argv) {}
 #endif

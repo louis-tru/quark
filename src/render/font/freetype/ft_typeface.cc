@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./ft_typeface.h"
+#include "../../render.h"
 
 #include <memory>
 #include <tuple>
@@ -634,16 +635,16 @@ class AutoFTAccess {
 public:
 	AutoFTAccess(const QkTypeface_FreeType* tf) : _ft(tf) {
 #if Qk_GLOBAL_LOCK
-		f_t_mutex().acquire();
+		f_t_mutex().lock();
 #else
-		_ft->ft_mutex().acquire();
+		_ft->ft_mutex().lock();
 #endif
 	}
 	~AutoFTAccess() {
 #if Qk_GLOBAL_LOCK
-		f_t_mutex().release();
+		f_t_mutex().unlock();
 #else
-		_ft->ft_mutex().release();
+		_ft->ft_mutex().unlock();
 #endif
 	}
 private:
@@ -1281,7 +1282,7 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 #endif
 	AutoFTAccess fta(this);
 
-	#define Return() return { ImageSource::Make(Pixel(PixelInfo()), render)}
+	#define Return() return { ImageSource::Make(PixelInfo()) }
 
 	float needToScale;
 	if (_this->setupSize(fontSize, &needToScale)) {

@@ -17,7 +17,7 @@ void test_openurl(int argc, char **argv) {
 	app.Qk_On(Load, [](auto &e) {
 		auto app = static_cast<Application*>(e.sender());
 		app->openURL("https://163.com");
-		app->sendEmail("louistru@live.com", "Test", "louis.tru@gmail.com", "jfm.s@163.com", "Test Body asd https://baidu.com 枯工棋基本面");
+		app->sendEmail("louistru@live.com", "Test", "Test Body asd https://baidu.com 枯工棋基本面", "louis.tru@gmail.com", "jfm.s@163.com");
 	});
 
 	app.run();

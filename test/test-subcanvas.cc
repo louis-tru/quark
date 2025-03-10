@@ -13,7 +13,7 @@ public:
 	Sp<Canvas> _c;
 
 	TestSubcanvas(Window *win) {
-		_c = win->render()->newCanvas({.isMipmap=0});
+		_c = win->render()->newCanvas({.isMipmap=true});
 		_c->setSurface({600},2);
 	}
 
@@ -23,19 +23,22 @@ public:
 
 		Paint paint;
 		paint.color = Color4f(0, 0, 1);
-		auto path = Path::MakeArc({0,300}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
+		auto path = Path::MakeArc({1,298}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 
+		_c->clearColor({0,0,0,0});
 		_c->drawPath(path, paint);
 		_c->swapBuffer();
 
-		Rect rect{size/2-150,300};
+		Rect rect{-150,300};
 		ImagePaint ipaint;
-		paint.image = &ipaint;
-		paint.type = Paint::kBitmap_Type;
 		ipaint.tileModeX = ImagePaint::kDecal_TileMode;
 		ipaint.tileModeY = ImagePaint::kDecal_TileMode;
+		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
+		ipaint.mipmapMode = ImagePaint::kNearest_MipmapMode;
 		ipaint.setCanvas(*_c, rect);
-		canvas->drawRect(rect, paint);
+		paint.image = &ipaint;
+		paint.type = Paint::kBitmap_Type;
+		canvas->drawRect({-150,300}, paint);
 
 		mark(kLayout_None,true);
 	}

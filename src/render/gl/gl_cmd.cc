@@ -46,7 +46,7 @@ namespace qk {
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void setTex_SourceImage_Rt(RenderResource *res, ImageSource* s, cPixelInfo &i,
+	void setTex_SourceImage(RenderResource *res, ImageSource* s, cPixelInfo &i,
 			const TexStat *tex, bool isMipmap);
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
@@ -54,6 +54,18 @@ namespace qk {
 	TexStat* gl_new_tex_stat();
 
 	static Color4f emptyColor{0,0,0,0};
+
+	struct ImagePaintLock {
+		inline ImagePaintLock(const ImagePaint *p): paint(p) {
+			if (!paint->_flushCanvas)
+				paint->image->onState().QkMutex::lock();
+		}
+		inline ~ImagePaintLock() {
+			if (!paint->_flushCanvas)
+				paint->image->onState().QkMutex::unlock();
+		}
+		const ImagePaint *paint;
+	};
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
 	public:
@@ -449,7 +461,7 @@ namespace qk {
 		void drawImageCall(const VertexData &vertex,
 			const ImagePaint *paint, float fullScale, float alpha, bool aafuzz, bool aaclip, float depth
 		) {
-			AutoMutexExclusive ame(paint->image->onState());
+			ImagePaintLock lock(paint);
 			if (setTextureSlot0(paint)) { // rgb or y
 				GLSLImage *s;
 				auto src = paint->image;
@@ -481,7 +493,7 @@ namespace qk {
 		void drawImageMaskCall(const VertexData &vertex,
 			const ImagePaint *paint, float fullScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
-			AutoMutexExclusive ame(paint->image->onState());
+			ImagePaintLock lock(paint);
 			if (setTextureSlot0(paint)) {
 				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
 				Qk_useShaderProgram(s, vertex);
@@ -524,19 +536,12 @@ namespace qk {
 		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth) {
 			auto _c = _canvas;
 
-			auto aaClip = [](Inl *self, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C, bool isFill) {
+			auto aaClip = [](Inl *self, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C, bool clearAA) {
 				auto _c = self->_canvas;
 				auto _render = _c->_render;
 				auto chMode = _render->_blendMode;
 				auto ch = chMode != kSrc_BlendMode && chMode != kSrcOver_BlendMode;
 				auto &aafuzz = clip.aafuzz;
-
-				if (isFill) { // first, filling to the color vec4(1,1,1,1)
-					auto shader = &_render->_shaders.clipTest_CLIP_FILL;
-					shader->use(aafuzz.vertex.size(), aafuzz.vertex.val()); // only stencil fill test
-					glUniform1f(shader->depth, depth);
-					glDrawArrays(GL_TRIANGLES, 0, aafuzz.vCount); // draw test
-				}
 
 				if (!_c->_outAAClipTex) {
 					glGenTextures(1, &_c->_outAAClipTex); // gen aaclip buffer tex
@@ -544,19 +549,19 @@ namespace qk {
 					float color[] = {1.0f,1.0f,1.0f,1.0f};
 					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
 					// ensure clip texture clear can be executed correctly in sequence
-				} else {
+				}
+				if (!clearAA) {
 					self->flushAAClipBuffer(true);
 				}
 				if (ch)
 					_render->gl_set_blend_mode(kSrc_BlendMode);
 				auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
 				float aafuzzWeight = W * 0.1f;
-				// float aafuzzWeight = W;
 				shader->use(aafuzz.vertex.size(), aafuzz.vertex.val());
 				glUniform1f(shader->depth, depth);
 				glUniform1f(shader->aafuzzWeight, aafuzzWeight); // Difference: -0.09
 				glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
-				// glUniform1f(shader->aafuzzConst, C); // 0.0 - 1.0
+				glUniform1f(shader->clearAA, clearAA ? 1: 0);
 				glDrawArrays(GL_TRIANGLES, 0, aafuzz.vCount); // draw test
 				if (ch)
 					_render->gl_set_blend_mode(chMode); // revoke blend mode
@@ -578,10 +583,10 @@ namespace qk {
 					return;
 				}
 			} else { // intersect clip
-				bool isFill = ref == 128 && !revoke && _c->_outAAClipTex;
-				auto shader = isFill ?
-					(GLSLClipTest*)&_render->_shaders.clipTest_CLIP_FILL: &_render->_shaders.clipTest; // init fill
-				if (isFill)
+				bool clearAA = ref == 128 && !revoke && _c->_outAAClipTex;
+				auto shader = clearAA ?
+					(GLSLClipTest*)&_render->_shaders.clipTest_CLEAR_AA: &_render->_shaders.clipTest; // clear aa
+				if (clearAA)
 					flushAAClipBuffer(true);
 				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
 				shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
@@ -589,8 +594,8 @@ namespace qk {
 				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
 
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
-					aaClip(this, depth, clip, revoke, -aa_fuzz_weight, -1, isFill);
-				} else if (isFill) {
+					aaClip(this, depth, clip, revoke, -aa_fuzz_weight, -1, clearAA);
+				} else if (clearAA) {
 					flushAAClipBuffer(false);
 				}
 			}
@@ -823,6 +828,7 @@ namespace qk {
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
 
 			// if (_canvas->_outTex) {
+			Qk_ASSERT(_canvas->_outTex);
 			float x2 = canvasSize[0], y2 = canvasSize[1];
 			float data[] = { 0,0,0, x2,0,0, 0,y2,0, x2,y2,0 };
 			auto &cp = _render->_shaders.vportCp;
@@ -860,7 +866,7 @@ namespace qk {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			setTex_SourceImage_Rt(_render, img, img->info(), tex, isMipmap);
+			setTex_SourceImage(_render, img, img->info(), tex, isMipmap);
 		}
 
 		void outputImageBeginCall(ImageSource* img, bool isMipmap) {
@@ -880,7 +886,7 @@ namespace qk {
 #if Qk_LINUX
 			glClearBufferfv(GL_COLOR, 0, emptyColor.val); // clear image tex
 #endif
-			setTex_SourceImage_Rt(_render, img, {
+			setTex_SourceImage(_render, img, {
 				int(size[0]),int(size[1]),img->type(),img->info().alphaType()
 			}, tex, isMipmap);
 		}
@@ -945,8 +951,6 @@ namespace qk {
 			if (!paint->_flushCanvas || !srcC->isGpu())
 				return; // now only supported gpu
 			if (srcC->_render != _render || srcC == _canvas)
-				return;
-			if (!srcC->_outTex)
 				return;
 
 			GLC_CmdPack *srcCmd = nullptr;

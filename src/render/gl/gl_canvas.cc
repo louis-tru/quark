@@ -683,12 +683,9 @@ namespace qk {
 				int(_surfaceSize[0]),int(_surfaceSize[1]),kRGBA_8888_ColorType
 			});
 		}
-		if (ret->markAsTexture()) {
-			_state->output = new GLC_State::Output{dest,isMipmap};
-			_cmdPack->outputImageBegin(dest, isMipmap);
-			Qk_ReturnLocal(ret);
-		}
-		return nullptr;
+		_state->output = new GLC_State::Output{ret,isMipmap};
+		_cmdPack->outputImageBegin(*ret, isMipmap);
+		Qk_ReturnLocal(ret);
 	}
 
 	// --------------------------------------------------------

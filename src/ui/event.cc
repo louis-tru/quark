@@ -794,26 +794,30 @@ namespace qk {
 		}
 	}
 
-	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, const Vec2 *vec) {
+	void EventDispatch::onMousepress(KeyboardKeyCode code, bool isDown, const Vec2 *val) {
 		Vec2 deltaDefault;
 		switch(code) {
 			case KEYCODE_MOUSE_LEFT:
 			case KEYCODE_MOUSE_CENTER:
 			case KEYCODE_MOUSE_RIGHT: {
 				UILock lock(_window);
-				auto pos = vec ? *vec: _mouse_handle->position(); // get current mouse pos
+				auto pos = val ? *val: _mouse_handle->position(); // get current mouse pos
 				auto v = find_receive_view(pos);
 				//Qk_DLog("onMousepress code: %d, isDown: %i, v: %p", code, isDown, v);
 				if (v)
 					_pre.post(Cb([this,v,pos,code,isDown](auto& e) { mousepress(v, pos, code, isDown); }),v);
 				break;
 			}
-			case KEYCODE_MOUSE_WHEEL_UP: deltaDefault = Vec2(0, -53); goto whell;
-			case KEYCODE_MOUSE_WHEEL_DOWN: deltaDefault = Vec2(0, 53); goto whell;
-			case KEYCODE_MOUSE_WHEEL_LEFT: deltaDefault = Vec2(-53, 0); goto whell;
-			case KEYCODE_MOUSE_WHEEL_RIGHT: deltaDefault = Vec2(53, 0); whell:
+			case KEYCODE_MOUSE_WHEEL_UP:
+				deltaDefault = Vec2(0, 10); goto whell;
+			case KEYCODE_MOUSE_WHEEL_DOWN:
+				deltaDefault = Vec2(0, -10); goto whell;
+			case KEYCODE_MOUSE_WHEEL_LEFT:
+				deltaDefault = Vec2(10, 0); goto whell;
+			case KEYCODE_MOUSE_WHEEL_RIGHT:
+				deltaDefault = Vec2(-10, 0); whell:
 				if (isDown) {
-					auto delta = vec ? *vec: deltaDefault;
+					auto delta = val ? *val: deltaDefault;
 					_pre.post(Cb([=](auto e) {
 						auto v = _mouse_handle->view();
 						if (v) {

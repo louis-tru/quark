@@ -408,7 +408,7 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(EGLDisplay, dpy);
 		Qk_DEFINE_PROP_GET(EGLContext, ctx);
-		LinuxRenderResource(EGLDisplay, dpy, EGLContext ctx)
+		LinuxRenderResource(EGLDisplay dpy, EGLContext ctx)
 			: GLRenderResource(current_loop()), _dpy(dpy), _ctx(ctx) {
 		}
 		~LinuxRenderResource() {
@@ -427,7 +427,7 @@ namespace qk {
 		Render* r = nullptr;
 
 		EGLDisplay dpy = egl_display();
-		EGLConfig cfg = egl_config(display, opts);
+		EGLConfig cfg = egl_config(dpy, opts);
 
 		EGLint attrs[] = {
 			EGL_CONTEXT_CLIENT_VERSION, 3, // opengl es 3
@@ -449,7 +449,7 @@ namespace qk {
 
 		g_sharedRenderResource->post_message(Cb([dpy](auto e) {
 			eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, g_sharedRenderResource->ctx());
-		}))
+		}));
 
 		return r;
 	}

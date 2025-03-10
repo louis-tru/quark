@@ -105,8 +105,11 @@ void Application::sendEmail(cString& recipient,
 														 cString& subject,
 														 cString& body, cString& cc, cString& bcc)
 {
-	NSString *url = [NSString stringWithFormat:@"mailto:%s?subject=%s&body=%s&cc=%s&bcc=%s",
-		*recipient,*URI::encode(subject, true),*URI::encode(body, true),*cc,*bcc
+	NSString *url = [NSString stringWithFormat:@"mailto:%s?cc=%s&bcc=%s&subject=%s&body=%s",
+		*recipient,
+		*URI::encode(cc, true),
+		*URI::encode(bcc, true),
+		*URI::encode(subject, true), *URI::encode(body, true)
 	];
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
 }
