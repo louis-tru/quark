@@ -280,8 +280,8 @@ namespace qk {
 	class OsxRenderResource: public GLRenderResource {
 	public:
 		Qk_DEFINE_PROP_GET(NSOpenGLContext*, ctx);
-
-		OsxRenderResource(NSOpenGLContext* ctx): GLRenderResource(current_loop()), _ctx(ctx) {
+		OsxRenderResource(NSOpenGLContext* ctx)
+			: GLRenderResource(current_loop()), _ctx(ctx) {
 		}
 	};
 
@@ -329,8 +329,8 @@ namespace qk {
 		if (!g_sharedRenderResource) {
 			static std::once_flag flag;
 			call_once(flag, [format]() {
-				auto sharedCtx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-				g_sharedRenderResource = new OsxRenderResource(sharedCtx);
+				auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
+				g_sharedRenderResource = new OsxRenderResource(ctx);
 			});
 		}
 		auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:g_sharedRenderResource->ctx()];
@@ -352,7 +352,9 @@ namespace qk {
 		CGLUnlockContext(ctx.CGLContextObj);
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
 
-		[g_sharedRenderResource->ctx() makeCurrentContext];
+		g_sharedRenderResource->post_message(Cb([](auto e) {
+			[g_sharedRenderResource->ctx() makeCurrentContext];
+		}));
 
 		return render;
 	}

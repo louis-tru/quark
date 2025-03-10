@@ -140,11 +140,10 @@ namespace qk {
 		}
 
 		/**
-		 * @method texture_Rt(index) get  image texture with index
-		 * @thread render
+		 * @method texture(index) get  image texture with index
 		*/
-		inline const TexStat* texture_Rt(uint32_t index) const {
-			return index < _tex_Rt.length() ? _tex_Rt[index]: nullptr;
+		inline const TexStat* texture(uint32_t index) const {
+			return index < _tex.length() ? _tex[index]: nullptr;
 		}
 
 		/**
@@ -165,7 +164,7 @@ namespace qk {
 
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
-		Array<const TexStat*> _tex_Rt;
+		Array<const TexStat*> _tex;
 		uint32_t     _loadId;
 		RenderResource *_res; // weak ref, texture mark
 		RunLoop       *_loop;
@@ -221,7 +220,7 @@ namespace qk {
 			int64_t         time; // load time
 		};
 		Dict<uint64_t, Member> _sources;
-		Mutex _Mutex;
+		QkMutex _Mutex;
 	};
 
 	typedef ImageSourcePool ImagePool;

@@ -208,15 +208,31 @@ private:
 
 namespace qk {
 
+	static IosGLRender* g_sharedRenderResource = nullptr;
+
+	RenderResource* getSharedRenderResource() {
+		return g_sharedRenderResource;
+	}
+
 	Render* make_gl_render(Render::Options opts) {
+		Qk_ASSERT_RAW(!g_sharedRenderResource,
+			"The iOS system only allows one window and one drawing context"
+		);
+
 		auto ctx = [EAGLContext alloc];
-		if ([ctx initWithAPI:kEAGLRenderingAPIOpenGLES3]) {
+		if (![ctx initWithAPI:kEAGLRenderingAPIOpenGLES3])
+			return nullptr;
+		[EAGLContext setCurrentContext:ctx];
+		Qk_ASSERT(EAGLContext.currentContext, "Failed to set current OpenGL context");
+		ctx.multiThreaded = NO;
+
+		g_sharedRenderResource = new IosGLRender(opts, ctx);
+
+		g_sharedRenderResource->post_message(Cb([ctx](auto e) {
 			[EAGLContext setCurrentContext:ctx];
-			Qk_ASSERT(EAGLContext.currentContext, "Failed to set current OpenGL context");
-			ctx.multiThreaded = NO;
-			return new IosGLRender(opts, ctx);
-		}
-		return nullptr;
+		}));
+
+		return g_sharedRenderResource;
 	}
 }
 #endif // #if Qk_ENABLE_GL

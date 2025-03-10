@@ -35,7 +35,7 @@
 using namespace qk;
 
 #define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/quark_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/avocado_ace/ace/Makefile.dryice.js"
 
 #define error(err, ...) { Qk_ELog(err, ##__VA_ARGS__); return 1; }
 

@@ -159,7 +159,9 @@
 # define Qk_DEBUGCODE(...)
 #endif
 
-#define Qk_DEBUG DEBUG
+#ifndef Qk_DEBUG
+# define Qk_DEBUG DEBUG
+#endif
 #if __cplusplus >= 201703L
 #define throw(...)
 #endif

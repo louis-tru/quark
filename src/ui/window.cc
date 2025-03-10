@@ -84,13 +84,13 @@ namespace qk {
 	{
 		Qk_ASSERT_RAW(_host);
 		Qk_ASSERT_RAW(first_loop() == current_loop(), "Must be called on the first thread loop");
-		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
 		_uiDraw = new UIDraw(this);
 		_actionCenter = new ActionCenter(this);
 		_styleSheets = _host->styleSheets();
 		_backgroundColor = opts.backgroundColor;
+		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		{
 			ScopeLock lock(_host->_mutex);
 			_id = _host->_windows.pushBack(this);

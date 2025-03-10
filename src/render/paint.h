@@ -179,7 +179,7 @@ namespace qk {
 	 * @struct render backend pixel texture stat
 	*/
 	struct TexStat {
-		uint32_t             id;
+		uint32_t          id;
 	};
 
 }

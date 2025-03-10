@@ -404,33 +404,52 @@ namespace qk {
 
 	// ------------------------------------------
 
+	class LinuxRenderResource: public GLRenderResource {
+	public:
+		Qk_DEFINE_PROP_GET(EGLDisplay, dpy);
+		Qk_DEFINE_PROP_GET(EGLContext, ctx);
+		LinuxRenderResource(EGLDisplay, dpy, EGLContext ctx)
+			: GLRenderResource(current_loop()), _dpy(dpy), _ctx(ctx) {
+		}
+		~LinuxRenderResource() {
+			eglMakeCurrent(_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			eglDestroyContext(_dpy, _ctx);
+		}
+	};
+
+	static LinuxRenderResource* g_sharedRenderResource = nullptr;
+
+	RenderResource* getSharedRenderResource() {
+		return g_sharedRenderResource;
+	}
+
 	Render* make_gl_render(Options opts) {
 		Render* r = nullptr;
 
-		EGLDisplay display = egl_display();
-		EGLConfig config = egl_config(display, opts);
+		EGLDisplay dpy = egl_display();
+		EGLConfig cfg = egl_config(display, opts);
 
 		EGLint attrs[] = {
 			EGL_CONTEXT_CLIENT_VERSION, 3, // opengl es 3
 			EGL_NONE
 		};
 
-		EGLContext ctx = eglCreateContext(display, config, nullptr, attrs);
-		if ( ctx ) {
-			Qk_ASSERT_RAW(eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
-			Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
-			r = new LinuxGLRender(opts, display, config, ctx);
-			Qk_ASSERT_RAW(eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
+		if (!g_sharedRenderResource) {
+			g_sharedRenderResource =
+				new LinuxRenderResource(dpy, eglCreateContext(dpy, cfg, nullptr, attrs));
 		}
 
-		// // ------------------------------------
-		// EGLContext child = eglCreateContext(display, config, ctx, attrs);
-		// eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, child);
-		// GLuint a;
-		// glGenTextures(1, &a);
-		// eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr);
-		// Qk_DLog("glGenTextures------------------------------------, %d", a);
-		// // ------------------------------------
+		auto ctx = eglCreateContext(dpy, cfg, g_sharedRenderResource->ctx(), attrs);
+		if ( ctx ) {
+			Qk_ASSERT_RAW(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
+			Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
+			r = new LinuxGLRender(opts, dpy, cfg, ctx);
+			Qk_ASSERT_RAW(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
+		}
+
+		g_sharedRenderResource->post_message(Cb([dpy](auto e) {
+			eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, g_sharedRenderResource->ctx());
+		}))
 
 		return r;
 	}

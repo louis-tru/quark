@@ -51,7 +51,7 @@ namespace qk {
 			, _volume(1)
 			, _mute(false)
 		{
-#if Qk_DEBUG
+#ifdef Qk_DEBUG
 			char* PCM_PERIODS = getenv("PCM_PERIODS");
 			char* PCM_PERIOD_SIZE = getenv("PCM_PERIOD_SIZE");
 			if (PCM_PERIODS) {

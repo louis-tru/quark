@@ -255,7 +255,7 @@ namespace qk {
 		void assertHeldShared() const Qk_ASSERT_SHARED_CAPABILITY(this);
 
 	private:
-#if Qk_DEBUG
+#ifdef Qk_DEBUG
 		class ThreadIDSet;
 		std::unique_ptr<ThreadIDSet> fCurrentShared;
 		std::unique_ptr<ThreadIDSet> fWaitingExclusive;
@@ -271,7 +271,7 @@ namespace qk {
 #endif  // Qk_DEBUG
 	};
 
-#if !Qk_DEBUG
+#ifndef Qk_DEBUG
 	inline void SharedMutex::assertHeld() const {};
 	inline void SharedMutex::assertHeldShared() const {};
 #endif  // Qk_DEBUG

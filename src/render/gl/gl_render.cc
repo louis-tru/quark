@@ -586,7 +586,7 @@ namespace qk {
 	bool GLRender::gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint) {
 		src->onState().assertHeld(); // Check mutex lock
 		auto index = paint->srcIndex + slot;
-		auto tex = const_cast<TexStat *>(src->texture_Rt(index));
+		auto tex = const_cast<TexStat *>(src->texture(index));
 		if (!tex) {
 			auto pixel = src->pixel(index);
 			if (!pixel) {

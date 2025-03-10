@@ -55,7 +55,7 @@
 
 #undef FT_COLOR_H
 
-#if Qk_DEBUG
+#ifdef Qk_DEBUG
 const char* QkTraceFtrGetError(int e) {
 	switch ((FT_Error)e) {
 		#undef FTERRORS_H_

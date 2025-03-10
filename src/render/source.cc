@@ -206,21 +206,21 @@ namespace qk {
 				AutoMutexExclusive ame(source.get()->_onState);
 				auto self = source.get();
 				int i = 0;
-				int len = pixels.length(), old_len = self->_tex_Rt.length();
+				int len = pixels.length(), old_len = self->_tex.length();
 				Array<const TexStat*> texStat(len);
 
 				while (i < len) {
-					auto tex = const_cast<TexStat *>(i < old_len ? self->_tex_Rt[i]: nullptr);
+					auto tex = const_cast<TexStat *>(i < old_len ? self->_tex[i]: nullptr);
 					self->_res->newTexture(pixels.val() + i, tex, true);
 					texStat[i++] = tex;
 				}
 
 				while(i < old_len) {
-					if (self->_tex_Rt[i])
-						self->_res->deleteTexture(const_cast<TexStat *>(self->_tex_Rt[i]));
+					if (self->_tex[i])
+						self->_res->deleteTexture(const_cast<TexStat *>(self->_tex[i]));
 					i++;
 				}
-				self->_tex_Rt = std::move(texStat);
+				self->_tex = std::move(texStat);
 			}
 			Sp<ImageSource> source;
 			Array<Pixel>    pixels;
@@ -254,7 +254,7 @@ namespace qk {
 
 			if (destroy) {
 				auto res = _res;
-				auto tex = new Array<const TexStat*>(std::move(_tex_Rt));
+				auto tex = new Array<const TexStat*>(std::move(_tex));
 				_res->post_message(Cb([res,tex](auto e) { // to call from Rt
 					deleteTextures(res, *tex);
 					Release(tex);
@@ -266,8 +266,8 @@ namespace qk {
 		if (!destroy) {
 			_res->post_message(Cb([this](auto e) { // to call from Rt
 				AutoMutexExclusive ame(_onState);
-				deleteTextures(_res, _tex_Rt);
-				_tex_Rt.clear();
+				deleteTextures(_res, _tex);
+				_tex.clear();
 			}, this));
 		}
 	}
@@ -276,13 +276,13 @@ namespace qk {
 		AutoMutexExclusive ame(_onState);
 		if (!_res)
 			_res = getSharedRenderResource();
-		if (_tex_Rt.length()) { // replace old texture
-			auto oldTex = _tex_Rt[0];
+		if (_tex.length()) { // replace old texture
+			auto oldTex = _tex[0];
 			if (oldTex && oldTex != tex)
 				res->deleteTexture(const_cast<TexStat *>(oldTex));
-			_tex_Rt[0] = tex;
+			_tex[0] = tex;
 		} else {
-			_tex_Rt.push(tex);
+			_tex.push(tex);
 		}
 		_state = kSTATE_LOAD_COMPLETE; //
 		_info = info; //
@@ -292,7 +292,7 @@ namespace qk {
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------
 
 	void ImageSourcePool::handleSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		ScopeLock locl(_Mutex);
+		AutoMutexExclusive locl(_Mutex);
 		auto id = evt.sender()->uri().hashCode();
 		auto it = _sources.find(id);
 		if (it != _sources.end()) {
@@ -320,7 +320,7 @@ namespace qk {
 	}
 
 	ImageSource* ImageSourcePool::get(cString& uri) {
-		ScopeLock local(_Mutex);
+		AutoMutexExclusive local(_Mutex);
 		String _uri = fs_reader()->format(uri);
 		uint64_t id = _uri.hashCode();
 
@@ -348,7 +348,7 @@ namespace qk {
 	}
 
 	void ImageSourcePool::remove(cString& uri) {
-		ScopeLock local(_Mutex);
+		AutoMutexExclusive local(_Mutex);
 		String _uri = fs_reader()->format(uri);
 		auto it = _sources.find(_uri.hashCode());
 		if (it != _sources.end()) {
@@ -359,7 +359,7 @@ namespace qk {
 	}
 
 	void ImageSourcePool::clear(bool all) {
-		ScopeLock local(_Mutex);
+		AutoMutexExclusive local(_Mutex);
 		if (all) {
 			for (auto &i: _sources) {
 				if (i.value.source->state() & (

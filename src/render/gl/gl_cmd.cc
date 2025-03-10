@@ -788,7 +788,7 @@ namespace qk {
 			}
 
 			if (output) { // output target
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output->texture_Rt(0)->id, 0);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output->texture(0)->id, 0);
 			} else {
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_outTex->id, 0);
 				// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _c->_outColor);
@@ -807,7 +807,7 @@ namespace qk {
 		void readImageCall(const Rect &src, ImageSource* img,
 			bool isMipmap, Vec2 canvasSize, Vec2 surfaceSize, float depth
 		) {
-			auto tex = img->texture_Rt(0);
+			auto tex = img->texture(0);
 			auto o = src.origin, s = src.size;
 			auto w = img->width(), h = img->height();
 			auto iformat = gl_get_texture_pixel_format(img->type());
@@ -864,7 +864,7 @@ namespace qk {
 		}
 
 		void outputImageBeginCall(ImageSource* img, bool isMipmap) {
-			auto tex = img->texture_Rt(0);
+			auto tex = img->texture(0);
 			auto size = _canvas->_surfaceSize;
 			auto iformat = gl_get_texture_pixel_format(img->type());
 			auto type = gl_get_texture_data_type(img->type());
@@ -891,7 +891,7 @@ namespace qk {
 			if (isMipmap) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindSampler(0, 0);
-				glBindTexture(GL_TEXTURE_2D, img->texture_Rt(0)->id);
+				glBindTexture(GL_TEXTURE_2D, img->texture(0)->id);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
