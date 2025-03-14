@@ -169,9 +169,9 @@ namespace qk {
 			}
 		}
 
-		virtual uint32_t buffer_size() {
-			return _period_size;
-		}
+		// virtual uint32_t buffer_size() {
+		// 	return _period_size;
+		// }
 
 	private:
 		snd_pcm_t* _pcm;

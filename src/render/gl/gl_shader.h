@@ -54,7 +54,7 @@
 
 #if Qk_OSX
 #define Qk_GL_Version "330 core"
-#else // ios es
+#else // ios linux android using the es version
 #define Qk_GL_Version "300 es"
 #endif
 
