@@ -277,52 +277,58 @@ namespace qk {
 	Qk_EXPORT void fs_write(int fd, Buffer buffer, int64_t fdOffset = -1, Callback<Buffer> cb = 0);
 
 	/**
-	* @func extname {String} # Get the path basename
-	* @ret {String}
+	* @method extname {String} # Get the path basename
+	* @return {String}
 	*/
 	Qk_EXPORT String fs_basename(cString& path);
 	
 	/**
 	* @func extname {String} # Get the path dirname
 	* @arg path {cString&}
-	* @ret {String}
+	* @return {String}
 	*/
 	Qk_EXPORT String fs_dirname(cString& path);
 	
 	/**
 	* @func extname # Get the path extname
 	* @arg path {cString&}
-	* @ret {String}
+	* @return {String}
 	*/
 	Qk_EXPORT String fs_extname(cString& path);
-	
+
+	/**
+	* @func fs_home_dir # Get the home dir.
+	* @return {cString&} # The path that can be write/read a file in
+	*/
+	Qk_EXPORT String fs_home_dir(cChar *child = 0, ...);
+
 	/**
 	* @func executable_path # Get the executable path
-	* @ret {cString&}
+	* @return {cString&}
 	*/
 	Qk_EXPORT String fs_executable();
-	
+
 	/**
 	* @func documents_dir # Get the documents dir.
-	* @ret {cString&} # The path that can be write/read a file in
+	* @return {cString&} # The path that can be write/read a file in
 	*/
 	Qk_EXPORT String fs_documents(cString& child = String());
-	
+
 	/**
 	* @func temp_dir # Get the temp dir.
-	* @ret {cString&} # The path that can be write/read a file in
+	* @return {cString&} # The path that can be write/read a file in
 	*/
 	Qk_EXPORT String fs_temp(cString& child = String());
 	
 	/**
 	* @func resources_dir # Get the resoures dir
-	* @ret {cString&}
+	* @return {cString&}
 	*/
 	Qk_EXPORT String fs_resources(cString& child = String());
 	
 	/**
 	* @func is_absolute # Is absolute path
-	* @ret {bool}
+	* @return {bool}
 	*/
 	Qk_EXPORT bool fs_is_local_absolute(cString& path);
 	
@@ -340,7 +346,7 @@ namespace qk {
 	* @func format
 	* @arg format {cChar*}
 	* @arg [...] {cChar*}
-	* @ret {String}
+	* @return {String}
 	*/
 	Qk_EXPORT String fs_format(cChar* path, ...);
 	
@@ -361,7 +367,7 @@ namespace qk {
 	
 	/**
 	* @func cwd # Getting current working directory
-	* @ret {String}
+	* @return {String}
 	* @static
 	*/
 	Qk_EXPORT String fs_cwd();
@@ -369,7 +375,7 @@ namespace qk {
 	/**
 	* @func chdir # Setting current working directory
 	* @arg path {cString&}
-	* @ret {bool}
+	* @return {bool}
 	* @static
 	*/
 	Qk_EXPORT bool fs_chdir(cString& path);

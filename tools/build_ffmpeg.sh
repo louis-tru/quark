@@ -7,6 +7,7 @@ INSTALL_DIR=$2
 PRODUCT_PATH=$3
 AR=$4
 RANLIB=$5
+V=$6
 
 export PATH=$bin:${PATH}
 

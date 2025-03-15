@@ -356,25 +356,24 @@ namespace qk
 		}
 
 		void set_master_volume(int volume) {
-			volume = Qk_Max(0, volume);
-			volume = Qk_Min(100, volume);
+			volume = Int32::clamp(volume, 0, 100);
+			// const snd_mixer_selem_channel_id_t chs[] = {
+			// 	SND_MIXER_SCHN_FRONT_LEFT,
+			// 	SND_MIXER_SCHN_FRONT_RIGHT,
+			// 	SND_MIXER_SCHN_REAR_LEFT,
+			// 	SND_MIXER_SCHN_REAR_RIGHT,
+			// 	SND_MIXER_SCHN_FRONT_CENTER,
+			// 	SND_MIXER_SCHN_WOOFER,
+			// 	SND_MIXER_SCHN_SIDE_LEFT,
+			// 	SND_MIXER_SCHN_SIDE_RIGHT,
+			// 	SND_MIXER_SCHN_REAR_CENTER,
+			// };
+			// int len = sizeof(snd_mixer_selem_channel_id_t) / sizeof(chs);
 
-			const snd_mixer_selem_channel_id_t chs[] = {
-				SND_MIXER_SCHN_FRONT_LEFT,
-				SND_MIXER_SCHN_FRONT_RIGHT,
-				SND_MIXER_SCHN_REAR_LEFT,
-				SND_MIXER_SCHN_REAR_RIGHT,
-				SND_MIXER_SCHN_FRONT_CENTER,
-				SND_MIXER_SCHN_WOOFER,
-				SND_MIXER_SCHN_SIDE_LEFT,
-				SND_MIXER_SCHN_SIDE_RIGHT,
-				SND_MIXER_SCHN_REAR_CENTER,
-			};
-			int len = sizeof(snd_mixer_selem_channel_id_t) / sizeof(chs);
-
-			for (int i = 0; i < len; i++) {
-				snd_mixer_selem_set_playback_volume(_element, chs[i], volume);
-			}
+			// for (int i = 0; i < len; i++) {
+			// 	snd_mixer_selem_set_playback_volume(_element, chs[i], volume);
+			// }
+			snd_mixer_selem_set_playback_volume_all(_element, volume);
 		}
 	};
 

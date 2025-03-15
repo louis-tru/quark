@@ -121,7 +121,7 @@ public:
 			auto pts = _fa->pts;
 			if (pts > play) return;
 			int64_t du = play - pts;
-			if (du > _fa->pkt_duration * 2 * _pcm->delay()) { // timeout, reset start point
+			if (du > _fa->pkt_duration * 2 * _pcm->delayed()) { // timeout, reset start point
 				if (_seeking)
 					return skip_af();
 				Qk_DLog("pkt_duration, timeout %d", du);
@@ -184,7 +184,7 @@ public:
 		Qk_DLog("media_source_open");
 		UILock lock(window());
 		_video = MediaCodec::create(kVideo_MediaType, src);
-		if (!_video && (_video->set_threads(2), !_video->open())) {
+		if (!_video || (_video->set_threads(2), !_video->open())) {
 			Qk_Warn("open video codecer fail");
 			_video = nullptr;
 			src->stop();
@@ -264,7 +264,7 @@ public:
 		if (_fa->pts) {
 			if (!_start) return;
 			auto play = now - _start;
-			auto pts = _fa->pts - (_fa->pkt_duration * _pcm->delay()); // after pcm delay pts
+			auto pts = _fa->pts - (_fa->pkt_duration * _pcm->delayed()); // after pcm delay pts
 			if (pts > play) return;
 			int64_t du = play - pts;
 			if (du > _fa->pkt_duration << 1) { // decoding timeout, discard frame
@@ -286,9 +286,11 @@ public:
 		if (!_fv) {
 			_fv = _video->receive_frame();
 		}
+
 		if (!_fv) {
 			return false;
 		}
+
 		if (!_start) {
 			_start = now - (_seeking ? _seeking: _fv->pts);
 		}
@@ -369,17 +371,22 @@ int test_media(int argc, char **argv) {
 	auto f = win->root()->append_new<Free>();
 	f->set_width({ 0, BoxSizeKind::Match });
 	f->set_height({ 0, BoxSizeKind::Match });
-	auto v = f->append_new<Video>();
+	// auto v = f->append_new<Video>();
+	auto v = f->append_new<VideoPlayer>();
 	v->set_width({ 0, BoxSizeKind::Match });
 	v->set_align(Align::CenterMiddle);
 
 	//v->set_src("/Users/louis/Movies/flame-piper.2016.1080p.bluray.x264.mkv");
 	//v->set_src("/Users/louis/Movies/e7bb722c-3f66-11ee-ab2c-aad3d399777e-v8_f2_t1_maSNnEvY.mp4");
 	//v->set_src("/Users/louis/Movies/申冤人/The.Equalizer.3.2023.2160p.WEB.H265-HUZZAH[TGx]/the.equalizer.3.2023.2160p.web.h265-huzzah.mkv");
-	v->set_src("/Users/louis/Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4");
 	//v->set_src("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
 	//v->set_src("/Users/louis/Movies/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4");
 	//v->set_src("/Users/louis/Movies/巡回检察组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP03.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
+#if Qk_LINUX
+	v->set_src(fs_home_dir("Videos/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4"));
+#else
+	v->set_src(fs_home_dir("Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4"));
+#endif
 
 	//auto a = AudioPlayer::Make();
 	//a.set_src("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");

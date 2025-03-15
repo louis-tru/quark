@@ -312,7 +312,22 @@ namespace qk {
 	}
 
 #if Qk_LINUX
-	static String path_executable, path_documents, path_temp, path_resources;
+	static String path_home_dir, path_executable, path_documents, path_temp, path_resources;
+
+	String fs_home_dir(cChar *child, ...) {
+		if (path_home_dir.isEmpty()) {
+			path_home_dir = fs_format("%s", getenv("HOME"));
+		}
+		if (child) {
+			va_list arg;
+			va_start(arg, child);
+			auto str = _Str::printfv(child, arg);
+			va_end(arg);
+			return fs_format("%s/%s", path_home_dir.c_str(), str.c_str());
+		} else {
+			return path_home_dir;
+		}
+	}
 
 	String fs_executable() {
 		if (path_executable.isEmpty()) {
@@ -325,31 +340,25 @@ namespace qk {
 
 	String fs_documents(cString& child) {
 		if (path_documents.isEmpty()) {
-			path_documents = fs_format("%s/%s", getenv("HOME"), "Documents");
+			path_documents = fs_home_dir("Documents");
 			fs_mkdirs_sync(path_documents);
 		}
-		if ( child.isEmpty() )
-			return path_documents;
-		return fs_format("%s/%s", *path_documents, *child);
+		return child.isEmpty() ? path_documents: fs_format("%s/%s", *path_documents, *child);
 	}
 
 	String fs_temp(cString& child) {
 		if (path_temp.isEmpty()) {
-			path_temp = fs_format("%s/%s", getenv("HOME"), ".cache");
+			path_temp = fs_home_dir(".cache");
 			fs_mkdirs_sync(path_temp);
 		}
-		if (child.isEmpty())
-			return path_temp;
-		return fs_format("%s/%s", *path_temp, *child);
+		return child.isEmpty() ? path_temp: fs_format("%s/%s", *path_temp, *child);
 	}
 
 	String fs_resources(cString& child) {
 		if (path_resources.isEmpty()) {
 			path_resources = fs_dirname(fs_executable());
 		}
-		if (child.isEmpty())
-			return path_resources;
-		return fs_format("%s/%s", *path_resources, *child);
+		return child.isEmpty() ? path_resources: fs_format("%s/%s", *path_resources, *child);
 	}
 #endif
 }
@@ -362,6 +371,7 @@ extern "C" {
 	void Java_org_quark_Android_initPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
 		using namespace qk;
 		path_documents = JNI::jstring_to_string(files_dir);
+		path_home_dir = fs_format("%s/..", path_documents.c_str());
 		path_temp = JNI::jstring_to_string(cache_dir);
 		path_resources = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));
 		char dir[PATH_MAX] = { 0 };

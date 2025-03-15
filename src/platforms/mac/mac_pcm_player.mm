@@ -144,7 +144,7 @@ namespace qk {
 			return false;
 		}
 
-		float delay() override {
+		float delayed() override {
 			return Qk_Max(1, _queue_num_half);
 		}
 
@@ -160,8 +160,8 @@ namespace qk {
 		void set_volume(float value) override {
 			ScopeLock scope(_mutex);
 			_volume = Float32::clamp(value, 0, 1);
-		 	Qk_ASSERT_EQ(noErr,
-		 		AudioQueueSetParameter(_audio, kAudioQueueParam_Volume, _mute ? 0: _volume)
+			Qk_ASSERT_EQ(noErr,
+				AudioQueueSetParameter(_audio, kAudioQueueParam_Volume, _mute ? 0: _volume)
 			);
 		}
 

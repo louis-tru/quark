@@ -36,74 +36,20 @@
 #include "../../util/string.h"
 
 namespace qk {
-	#define DEFAULT_PCM_PERIOD_SIZE 4096
-	#define DEFAULT_PCM_PERIODS 3
 
 	class LinuxPCMPlayer: public Object, public PCMPlayer {
 	public:
-
 		LinuxPCMPlayer()
 			: _pcm(nullptr)
-			, _hw_params(nullptr), _sw_params(nullptr), _mixer(nullptr)
-			, _period_size(DEFAULT_PCM_PERIOD_SIZE)
-			, _periods(DEFAULT_PCM_PERIODS)
-			, _channel_count(0), _sample_rate(0)
-			, _volume(1)
+			, _hw_params(nullptr), _sw_params(nullptr)
+			, _period_size(0), _periods(3)
+			, _channels(0), _sample_rate(0), _channel_layout(0)
+			, _delayed(0), _volume(1)
 			, _mute(false)
 		{
-#ifdef Qk_DEBUG
-			char* PCM_PERIODS = getenv("PCM_PERIODS");
-			char* PCM_PERIOD_SIZE = getenv("PCM_PERIOD_SIZE");
-			if (PCM_PERIODS) {
-				_period_size = String(PCM_PERIODS).toNumber<uint32_t>();
-			}
-			if (PCM_PERIOD_SIZE) {
-				_periods = String(PCM_PERIOD_SIZE).toNumber<uint32_t>();
-			}
-#endif
-		}
-
-		bool init(const Stream& stream) {
-			#define CHECK() if (r < 0) return false
-
-			int r, dir = 0;
-			_channel_count = stream.channels;
-			_sample_rate = stream.sample_rate;
-
-			r = snd_pcm_open(&_pcm, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK); CHECK();
-			// hardware params
-			r = snd_pcm_hw_params_malloc(&_hw_params); CHECK();
-			r = snd_pcm_hw_params_any(_pcm, _hw_params); CHECK();
-			r = snd_pcm_hw_params_set_access(_pcm, _hw_params, SND_PCM_ACCESS_RW_INTERLEAVED); CHECK();
-			r = snd_pcm_hw_params_set_format(_pcm, _hw_params, SND_PCM_FORMAT_S16); CHECK();
-			r = snd_pcm_hw_params_set_channels(_pcm, _hw_params, _channel_count); CHECK();
-			r = snd_pcm_hw_params_set_rate_near(_pcm, _hw_params, &_sample_rate, &dir); CHECK();
-			r = snd_pcm_hw_params_set_period_size_near(_pcm, _hw_params, &_period_size, &dir); CHECK();
-			r = snd_pcm_hw_params_set_periods_near(_pcm, _hw_params, &_periods, &dir); CHECK();
-			// send params to device
-			r = snd_pcm_hw_params(_pcm, _hw_params); CHECK();
-			//
-			//software params
-			r = snd_pcm_sw_params_malloc(&_sw_params); CHECK();
-			r = snd_pcm_sw_params_current(_pcm, _sw_params); CHECK();
-			r = snd_pcm_sw_params_set_tstamp_type(_pcm, 
-				_sw_params, SND_PCM_TSTAMP_TYPE_MONOTONIC_RAW); CHECK();
-			r = snd_pcm_sw_params_set_start_threshold(_pcm, _sw_params, _period_size * 2); CHECK();
-			r = snd_pcm_sw_params_set_stop_threshold(_pcm, _sw_params, _period_size); CHECK();
-			r = snd_pcm_sw_params_set_avail_min(_pcm, _sw_params, _period_size); CHECK();
-			// send sw params
-			r = snd_pcm_sw_params( _pcm, _sw_params); CHECK();
-
-			// pcm handle prepare
-			r = snd_pcm_prepare(_pcm); CHECK();
-
-			return true;
 		}
 
 		~LinuxPCMPlayer() override {
-			if (_mixer) {
-				snd_mixer_close(_mixer); _mixer = nullptr;
-			}
 			if (_hw_params) {
 				snd_pcm_hw_params_free(_hw_params); _hw_params = nullptr;
 			}
@@ -117,40 +63,86 @@ namespace qk {
 			Qk_DLog("~LinuxPCMPlayer");
 		}
 
+		bool init(const Stream& stream) {
+			#define CHECK() if (r < 0) return false
+
+			int r, dir = 0;
+			_channels = stream.channels;
+			_sample_rate = stream.sample_rate;
+			_channel_layout = stream.channel_layout;
+			_period_size = (32.0f / 1000.0f) * _sample_rate; // 32ms
+
+			r = snd_pcm_open(&_pcm, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK); CHECK();
+			// hardware params
+			r = snd_pcm_hw_params_malloc(&_hw_params); CHECK();
+			r = snd_pcm_hw_params_any(_pcm, _hw_params); CHECK();
+			r = snd_pcm_hw_params_set_access(_pcm, _hw_params, SND_PCM_ACCESS_RW_INTERLEAVED); CHECK();
+			r = snd_pcm_hw_params_set_format(_pcm, _hw_params, SND_PCM_FORMAT_S16); CHECK();
+			r = snd_pcm_hw_params_set_channels(_pcm, _hw_params, _channels); CHECK();
+			r = snd_pcm_hw_params_set_rate_near(_pcm, _hw_params, &_sample_rate, &dir); CHECK();
+			Qk_DLog("snd_pcm_hw_params_set_rate_near,dir=%d for _sample_rate", dir);
+			r = snd_pcm_hw_params_set_periods_near(_pcm, _hw_params, &_periods, &dir); CHECK();
+			Qk_DLog("snd_pcm_hw_params_set_periods_near,dir=%d for _periods", dir);
+			r = snd_pcm_hw_params_set_period_size_near(_pcm, _hw_params, &_period_size, &dir); CHECK();
+			Qk_DLog("snd_pcm_hw_params_set_period_size_near,dir=%d for _period_size", dir);
+			// send hw params to device
+			r = snd_pcm_hw_params(_pcm, _hw_params); CHECK();
+
+			// software params
+			r = snd_pcm_sw_params_malloc(&_sw_params); CHECK();
+			r = snd_pcm_sw_params_current(_pcm, _sw_params); CHECK();
+			r = snd_pcm_sw_params_set_tstamp_type(_pcm, _sw_params, SND_PCM_TSTAMP_TYPE_MONOTONIC_RAW); CHECK();
+			r = snd_pcm_sw_params_set_start_threshold(_pcm, _sw_params, _period_size * 2); CHECK();
+			r = snd_pcm_sw_params_set_stop_threshold(_pcm, _sw_params, _period_size); CHECK();
+			r = snd_pcm_sw_params_set_avail_min(_pcm, _sw_params, _period_size); CHECK();
+			// send sw params
+			r = snd_pcm_sw_params( _pcm, _sw_params); CHECK();
+
+			// pcm handle prepare
+			r = snd_pcm_prepare(_pcm); CHECK();
+
+			#undef CHECK
+			return true;
+		}
+
 		Object* asObject() override {
 			return this;
 		}
 
 		bool write(const Frame *frame) override {
-			// int r;
-			// snd_pcm_uframes_t frames;
-			// int s16_len = buffer.length() / 2;
-			// int16_t* s16_bf = (int16_t*)*buffer;
+			int r;
+			snd_pcm_uframes_t frames; // frame count
+			uint32_t s16_len = frame->linesize[0] >> 1;
+			int16_t* s16_bf = reinterpret_cast<int16_t*>(frame->data[0]);
 
-			// if (_mute) {
-			// 	for (int i = 0; i < s16_len; i++)
-			// 		*s16_bf++ = 0;
-			// } else if (_volume < 1.0) { // set s16 pcm buffer volume
-			// 	for (int i = 0; i < s16_len; i++) {
-			// 		*s16_bf++ = (*s16_bf) * _volume;
-			// 		s16_bf++;
-			// 	}
-			// }
+			if (_delayed == 0) {
+				_delayed = float(_period_size) / frame->nb_samples;
+			}
 
-			// /* buffer.len / 16(采样位数) / 8 * 声道数 */
-			// frames = buffer.length() / (16 / 8 * _channel_count);
-			// r = snd_pcm_writei(_pcm, *buffer, frames);
-			// if (r < 0) {
-			// 	Qk_DLog("snd_pcm_writei err,%d", r);
-			// 	r = snd_pcm_recover(_pcm, r, 0);
-			// 	Qk_DLog("snd_pcm_recover ok,%d", r);
-			// 	return 0;
-			// }
+			// Qk_DLog("_delayed: %f, Frame: %d, %ld", _delayed, s16_len, time_monotonic());
+
+			if (_mute) {
+				for (int i = 0; i < s16_len; i++)
+					*s16_bf++ = 0;
+			} else if (_volume < 1.0) { // set s16 pcm buffer volume
+				for (int i = 0; i < s16_len; i++) {
+					*s16_bf++ = (*s16_bf) * _volume;
+					s16_bf++;
+				}
+			}
+
+			// frame->linesize[0] / 16(采样位数) / 8 * 声道数
+			frames = frame->linesize[0] / (16 / 8 * _channels);
+			r = snd_pcm_writei(_pcm, frame->data[0], frames);
+			if (r < 0) {
+				r = snd_pcm_recover(_pcm, r, 0);
+				return false;
+			}
 			return true;
 		}
 
-		float delay() override {
-			return 1.0f;
+		float delayed() override {
+			return _delayed;
 		}
 
 		void flush() override {
@@ -169,19 +161,17 @@ namespace qk {
 			}
 		}
 
-		// virtual uint32_t buffer_size() {
-		// 	return _period_size;
-		// }
-
 	private:
 		snd_pcm_t* _pcm;
 		snd_pcm_hw_params_t* _hw_params;
 		snd_pcm_sw_params_t* _sw_params;
-		snd_mixer_t* _mixer;
 		snd_pcm_uframes_t _period_size;
-		uint32_t _periods, _channel_count, _sample_rate;
-		float _volume;
-		bool _mute;
+		uint32_t        _periods;
+		uint32_t        _channels, _sample_rate;
+		uint64_t        _channel_layout;
+		float           _volume;
+		float           _delayed;
+		bool            _mute;
 	};
 
 	PCMPlayer* PCMPlayer::create(const Stream &stream) {

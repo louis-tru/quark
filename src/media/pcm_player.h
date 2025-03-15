@@ -86,9 +86,9 @@ namespace qk {
 		virtual void set_volume(float value) = 0;
 
 		/**
-		* @method delay() Delay from writing PCM data to hearing sound, Unit frame
+		* @method delayed() Delay from writing PCM data to hearing sound, Unit frame
 		*/
-		virtual float delay() = 0;
+		virtual float delayed() = 0;
 
 		/**
 		* @method create

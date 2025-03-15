@@ -295,6 +295,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 			--arch=${arch} \
 		`;
 		cmd += `--cc='clang -mmacosx-version-min=${variables.version_min}` +
+					// ` -Wno-incompatible-function-pointer-types` +
 					` -arch ${arch_name} ' `;
 		cmd += '--sysroot=$(xcrun --sdk macosx --show-sdk-path) ';
 	}
@@ -695,6 +696,7 @@ async function configure() {
 			want_separate_host_toolset: bi(v8_use_snapshot &&cross_compiling && !opts.without_snapshot),
 			want_separate_host_toolset_mkpeephole: bi(v8_use_snapshot && cross_compiling),
 			python: PYTHON,
+			V: opts.v,
 		},
 	};
 	

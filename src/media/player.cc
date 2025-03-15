@@ -146,7 +146,7 @@ namespace qk {
 		PlayerLock lock(this);
 		if (_type == kVideo_MediaType) {
 			_video = MediaCodec::create(kVideo_MediaType, src);
-			if (!_video && (_video->set_threads(2), !_video->open())) {
+			if (!_video || (_video->set_threads(2), !_video->open())) {
 				Qk_Warn("open video codecer fail");
 				_video = nullptr;
 				src->stop();
@@ -244,7 +244,7 @@ namespace qk {
 			if (_fa->pts) {
 				if (!_start) return;
 				auto play = now - _start;
-				auto pts = _fa->pts - (_fa->pkt_duration * _pcm->delay()); // after pcm delay pts
+				auto pts = _fa->pts - (_fa->pkt_duration * _pcm->delayed()); // after pcm delay pts
 				if (pts > play) return;
 				int64_t du = play - pts;
 				if (du > _fa->pkt_duration << 1) { // decoding timeout, discard frame
@@ -261,7 +261,7 @@ namespace qk {
 				auto pts = _fa->pts;
 				if (pts > play) return;
 				int64_t du = play - pts;
-				if (du > _fa->pkt_duration * 2 * _pcm->delay()) { // timeout, reset start point
+				if (du > _fa->pkt_duration * 2 * _pcm->delayed()) { // timeout, reset start point
 					if (_seeking)
 						return skip_frame(false);
 					Qk_DLog("pkt_duration, timeout %d", du);

@@ -39,24 +39,34 @@
 
 namespace qk {
 
+	String fs_home_dir(cChar *child, ...) {
+		static cString path(fs_format("%s", NSHomeDirectory().UTF8String));
+		if (child) {
+			va_list arg;
+			va_start(arg, child);
+			auto str = _Str::printfv(child, arg);
+			va_end(arg);
+			return fs_format("%s/%s", path.c_str(), str.c_str());
+		} else {
+			return path;
+		}
+	}
+
 	String fs_executable() {
-		static cString path( fs_format([[[NSBundle mainBundle] executablePath] UTF8String]) );
+		static cString path(fs_format(NSBundle.mainBundle.executablePath.UTF8String));
 		return path;
 	}
 
 	String fs_documents(cString& child) {
 		static String path(
 			fs_format([NSSearchPathForDirectoriesInDomains(
-				NSDocumentDirectory,
-				NSUserDomainMask,
-				YES
-			) objectAtIndex:0].UTF8String)
+				NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0].UTF8String)
 		);
 		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
 	}
 
 	String fs_temp(cString& child) {
-		static cString path( fs_format("%s", [NSTemporaryDirectory() UTF8String]) );
+		static cString path(fs_format("%s", NSTemporaryDirectory().UTF8String));
 		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
 	}
 
@@ -64,7 +74,7 @@ namespace qk {
 	 * Get the resoures dir
 	 */
 	String fs_resources(cString& child) {
-		static cString path( fs_format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
+		static cString path( fs_format("%s", NSBundle.mainBundle.resourcePath.UTF8String) );
 		return child.isEmpty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
 	}
 
