@@ -100,6 +100,10 @@ namespace qk {
 #ifndef GL_BGRA
 	#define GL_BGRA 0x80E1/*GL_BGRA_EXT*/
 #endif
+#ifndef GL_LUMINANCE
+# define GL_LUMINANCE       GL_RED
+# define GL_LUMINANCE_ALPHA GL_RG
+#endif
 		switch (type) {
 			case kAlpha_8_ColorType: return GL_ALPHA;
 			case kRGB_565_ColorType: return GL_RGB;
@@ -114,10 +118,6 @@ namespace qk {
 			case kBGR_101010X_ColorType: return GL_BGRA; // GL_BGR;
 			case kRGB_888_ColorType: return GL_RGB;
 			case kRGBA_5551_ColorType: return GL_RGBA;
-#if Qk_OSX
-# define GL_LUMINANCE       GL_RED
-# define GL_LUMINANCE_ALPHA GL_RG
-#endif
 			// TODO Grayscale images may not display properly for macos
 			case kLuminance_8_ColorType: return GL_LUMINANCE;
 			case kLuminance_Alpha_88_ColorType: return GL_LUMINANCE_ALPHA;
@@ -170,7 +170,7 @@ namespace qk {
 			case kBGR_101010X_ColorType:  return GL_UNSIGNED_INT_2_10_10_10_REV;
 			case kRGB_888_ColorType:      return GL_UNSIGNED_BYTE;
 			case kRGBA_5551_ColorType:    return GL_UNSIGNED_SHORT_1_5_5_5_REV;
-			default: return GL_UNSIGNED_BYTE;
+			default:                      return GL_UNSIGNED_BYTE;
 		}
 	}
 

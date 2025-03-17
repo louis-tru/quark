@@ -1,7 +1,7 @@
 {
-	"name": "testing",
-	"app": "Quark-UnitTesting",
-	"id": "org.quark.testing",
+	"name": "jsapi",
+	"app": "Quark-Jsapi",
+	"id": "org.quark.jsapi",
 	"main":	"test.js",
 	"types": "test",
 	"version": "1.0.0",

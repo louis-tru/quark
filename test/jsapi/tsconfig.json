@@ -5,7 +5,7 @@
 		"target": "ES2018",
 		"moduleResolution": "node",
 		"sourceMap": false,
-		"outDir": "out/testing",
+		"outDir": "out/jsapi",
 		"rootDir": ".",
 		"baseUrl": ".",
 		"declaration": false,

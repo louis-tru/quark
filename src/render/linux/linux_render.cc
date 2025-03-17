@@ -60,7 +60,7 @@ namespace qk {
 
 	typedef Sp<EGLDisplayType, object_traits_from<EGLDisplayType, closeEGLDisplay>> EGLDisplayAuto;
 
-#if Qk_LINUX
+#ifndef Qk_ANDROID
 	static void closeXDisplay(Display* dpy){ XCloseDisplay(dpy); }
 
 	typedef Sp<Display, object_traits_from<Display, closeXDisplay>> XDisplayAuto;

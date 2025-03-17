@@ -80,11 +80,7 @@ namespace qk {
 				break;
 		}
 
-#if Qk_OSX
-		CGBitmapInfo cgInfo = kCGBitmapByteOrder32Host | alpha;
-#else
 		CGBitmapInfo cgInfo = kCGBitmapByteOrder32Big | alpha;
-#endif
 
 		Buffer pixel(rowBytes * height);
 

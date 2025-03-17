@@ -71,7 +71,7 @@
 // #define TEST_FUNC_NAME test_draw_efficiency
 // #define TEST_FUNC_NAME test_ffmpeg
 // #define TEST_FUNC_NAME test_media
-#define TEST_FUNC_NAME test_freetype
+// #define TEST_FUNC_NAME test_freetype
 // #define TEST_FUNC_NAME test_gui
 // #define TEST_FUNC_NAME test_input
 // #define TEST_FUNC_NAME test_jsc
@@ -83,7 +83,7 @@
 // #define TEST_FUNC_NAME test_outimg
 // #define TEST_FUNC_NAME test_rrect
 // #define TEST_FUNC_NAME test_subcanvas
-// #define TEST_FUNC_NAME test_testing
+#define TEST_FUNC_NAME test_jsapi
 // #define TEST_FUNC_NAME test_v8
 #endif
 
