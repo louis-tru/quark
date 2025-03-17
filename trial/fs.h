@@ -102,5 +102,9 @@ namespace qk {
 		List<SearchPath*> m_search_paths; // Search path list
 	};
 
+	inline FileSearch* fs_search() {
+		return FileSearch::shared();
+	}
+
 }
 #endif

@@ -377,7 +377,7 @@ static void test_jsc_buffer(JSGlobalContextRef ctx, JSObjectRef global) {
 	};
 	auto sbf = JSObjectCallAsConstructor(ctx, SharedArrayBuffer, 1, argv, 0);
 	Qk_Log(JSObjectGetArrayBufferBytesPtr(ctx, sbf, 0));
-	Qk_Log(JSObjectGetArrayBufferByteLength(ctx, sbf, 0));
+	//Qk_Log(JSObjectGetArrayBufferByteLength(ctx, sbf, 0));
 	//
 }
 
@@ -392,7 +392,7 @@ JSValueRef PrintCallback(JSContextRef ctx, JSObjectRef function,
 	return nullptr;
 }
 
-void test_jsc() {
+void test_jsc(int argc, char **argv) {
 	JSContextGroupRef group = JSContextGroupCreate();
 	JSGlobalContextRef ctx = JSGlobalContextCreateInGroup(group, nullptr);
 	JSGlobalContextRef ctx1 = JSGlobalContextCreateInGroup(group, nullptr);
@@ -424,8 +424,7 @@ void test_jsc() {
 	auto Uint8Array_0 = JSObjectGetProperty(ctx, global, Uint8Array_s, 0);
 	auto Uint8Array_1 = JSObjectGetProperty(ctx1, global1, Uint8Array_s, 0);
 	Qk_Log(Uint8Array_0 == Uint8Array_1);
-	
-	
+
 	//
 	int o;
 	Qk_Log(sscanf( "100v.v009", "%d", &o));

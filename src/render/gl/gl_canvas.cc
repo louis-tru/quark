@@ -667,7 +667,7 @@ namespace qk {
 			Float32::min(o.y()+src.size.y(), _size.y()) - o.y()
 		};
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
-			auto img = ImageSource::Make({
+			auto img = ImageSource::Make(PixelInfo{
 				int(Qk_Min(dest.x(),_surfaceSize.x())),int(Qk_Min(dest.y(),_surfaceSize.y())),type});
 			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, *img, isMipmap);
 			_this->zDepthNext();
@@ -679,7 +679,7 @@ namespace qk {
 	Sp<ImageSource> GLCanvas::outputImage(ImageSource* dest, bool isMipmap) {
 		Sp<ImageSource> ret(dest);
 		if (!dest) {
-			ret = ImageSource::Make({
+			ret = ImageSource::Make(PixelInfo{
 				int(_surfaceSize[0]),int(_surfaceSize[1]),kRGBA_8888_ColorType
 			});
 		}

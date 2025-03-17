@@ -70,8 +70,8 @@
 // #define TEST_FUNC_NAME test_css
 // #define TEST_FUNC_NAME test_draw_efficiency
 // #define TEST_FUNC_NAME test_ffmpeg
-#define TEST_FUNC_NAME test_media
-// #define TEST_FUNC_NAME test_freetype
+// #define TEST_FUNC_NAME test_media
+#define TEST_FUNC_NAME test_freetype
 // #define TEST_FUNC_NAME test_gui
 // #define TEST_FUNC_NAME test_input
 // #define TEST_FUNC_NAME test_jsc

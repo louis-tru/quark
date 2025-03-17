@@ -719,11 +719,7 @@ Typeface::ImageOut Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	memset(*image, 0, image.length()); // reset storage
 
 	const CGImageAlphaInfo alpha = kCGImageAlphaPremultipliedLast;
-#if Qk_OSX
-	const CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Host | alpha;
-#else
 	const CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Big | alpha;
-#endif
 	QkUniqueCFRef<CGContextRef> fCG(
 		CGBitmapContextCreate(*image, width, height, 8, rowBytes, fRGBSpace.get(), bitmapInfo)
 	);

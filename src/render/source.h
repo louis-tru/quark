@@ -77,12 +77,11 @@ namespace qk {
 		// 	/>
 		// </FlowLayout>
 		static Sp<ImageSource> Make(cString& uri, RunLoop *loop = current_loop());
-		static Sp<ImageSource> Make(cPixelInfo &info, RunLoop *loop = current_loop());
 		/**
 		 * Create source and mark to gpu texture
 		*/
-		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderResource *res);
-		static Sp<ImageSource> Make(Pixel&& pixel, RenderResource *res);
+		static Sp<ImageSource> Make(Array<Pixel>&& pixels, RenderResource *res = nullptr);
+		static Sp<ImageSource> Make(Pixel&& pixel, RenderResource *res = nullptr);
 
 		/**
 		 * @destructor

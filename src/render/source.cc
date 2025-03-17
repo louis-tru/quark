@@ -78,32 +78,34 @@ namespace qk {
 		return img;
 	}
 
-	Sp<ImageSource> ImageSource::Make(cPixelInfo &info, RunLoop *loop) {
-		auto img = new ImageSource(nullptr, loop);
-		img->_info = info;
-		return img;
-	}
-
 	Sp<ImageSource> ImageSource::Make(Array<Pixel>&& pixels, RenderResource *res)
 	{
 		Sp<ImageSource> img = new ImageSource(res, nullptr);
 		if (pixels.length()) {
-			img->_state = kSTATE_LOAD_COMPLETE;
 			img->_info = pixels[0];
-			if (res) {
-				img->_pixels = copyInfo(pixels);
-				img->_ReloadTexture(pixels);
-			} else {
-				img->_pixels = std::move(pixels);
+			if (pixels[0].val()) {
+				img->_state = kSTATE_LOAD_COMPLETE;
+				if (res) {
+					img->_pixels = copyInfo(pixels);
+					img->_ReloadTexture(pixels);
+				} else {
+					img->_pixels = std::move(pixels);
+				}
 			}
 		}
 		Qk_ReturnLocal(img);
 	}
 
 	Sp<ImageSource> ImageSource::Make(Pixel&& pixel, RenderResource *res) {
-		Array<Pixel> pixels;
-		pixels.push(std::move(pixel));
-		return Make(std::move(pixels), res);
+		if (pixel.val()) {
+			Array<Pixel> pixels;
+			pixels.push(std::move(pixel));
+			return Make(std::move(pixels), res);
+		} else {
+			auto img = new ImageSource(res, nullptr);
+			img->_info = pixel;
+			return img;
+		}
 	}
 
 	ImageSource::~ImageSource() {

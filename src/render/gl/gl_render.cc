@@ -97,8 +97,8 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
-#if Qk_LINUX
-	#define GL_BGRA /*GL_BGRA_EXT*/0x80E1
+#ifndef GL_BGRA
+	#define GL_BGRA 0x80E1/*GL_BGRA_EXT*/
 #endif
 		switch (type) {
 			case kAlpha_8_ColorType: return GL_ALPHA;
@@ -147,30 +147,29 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_data_type(ColorType format) {
+#ifndef GL_UNSIGNED_SHORT_5_6_5_REV 
+# define GL_UNSIGNED_SHORT_5_6_5_REV 0x8364/*GL_UNSIGNED_SHORT_5_6_5_REV_EXT*/
+#endif
+#ifndef GL_UNSIGNED_SHORT_4_4_4_4_REV
+# define GL_UNSIGNED_SHORT_4_4_4_4_REV 0x8365/*GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT*/
+#endif
+#ifndef GL_UNSIGNED_SHORT_1_5_5_5_REV
+# define GL_UNSIGNED_SHORT_1_5_5_5_REV 0x8366/*GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT*/
+#endif
 		switch (format) {
-			case kAlpha_8_ColorType: return GL_UNSIGNED_BYTE;
-			case kRGB_565_ColorType: return GL_UNSIGNED_SHORT_5_6_5;
-			case kRGBA_4444_ColorType: return GL_UNSIGNED_SHORT_4_4_4_4;
-			case kRGB_444X_ColorType: return GL_UNSIGNED_SHORT_4_4_4_4;
-#if Qk_OSX
-			case kRGBA_8888_ColorType: return GL_UNSIGNED_INT_8_8_8_8;
-			case kRGB_888X_ColorType: return GL_UNSIGNED_INT_8_8_8_8;
-			case kBGRA_8888_ColorType: return GL_UNSIGNED_INT_8_8_8_8;
-			case kRGBA_1010102_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
-			case kBGRA_1010102_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
-			case kRGB_101010X_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
-			case kBGR_101010X_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
-#else
-			case kRGBA_8888_ColorType: return GL_UNSIGNED_BYTE;
-			case kRGB_888X_ColorType: return GL_UNSIGNED_BYTE;
-			case kBGRA_8888_ColorType: return GL_UNSIGNED_BYTE;
+			case kAlpha_8_ColorType:      return GL_UNSIGNED_BYTE;
+			case kRGB_565_ColorType:      return GL_UNSIGNED_SHORT_5_6_5_REV;
+			case kRGBA_4444_ColorType:    return GL_UNSIGNED_SHORT_4_4_4_4_REV;
+			case kRGB_444X_ColorType:     return GL_UNSIGNED_SHORT_4_4_4_4_REV;
+			case kRGBA_8888_ColorType:    return GL_UNSIGNED_BYTE;
+			case kRGB_888X_ColorType:     return GL_UNSIGNED_BYTE;
+			case kBGRA_8888_ColorType:    return GL_UNSIGNED_BYTE;
 			case kRGBA_1010102_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
 			case kBGRA_1010102_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kRGB_101010X_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kBGR_101010X_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
-#endif
-			case kRGB_888_ColorType: return GL_UNSIGNED_BYTE;
-			case kRGBA_5551_ColorType: return GL_UNSIGNED_SHORT_5_5_5_1;
+			case kRGB_101010X_ColorType:  return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kBGR_101010X_ColorType:  return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kRGB_888_ColorType:      return GL_UNSIGNED_BYTE;
+			case kRGBA_5551_ColorType:    return GL_UNSIGNED_SHORT_1_5_5_5_REV;
 			default: return GL_UNSIGNED_BYTE;
 		}
 	}

@@ -84,6 +84,8 @@ namespace qk {
 	
 	typedef Object::HeapAllocator HeapAllocator;
 
+	static HeapAllocator *object_heap_allocator = nullptr;
+
 	HeapAllocator::~HeapAllocator() {}
 
 	void* HeapAllocator::alloc(size_t size) {
@@ -100,8 +102,6 @@ namespace qk {
 	void HeapAllocator::weak(Object* obj) {
 		obj->destroy(); // The default weak will be directly destroyed
 	}
-
-	static HeapAllocator *object_heap_allocator = new HeapAllocator();
 
 	HeapAllocator* Object::heapAllocator() {
 		return object_heap_allocator;
@@ -134,6 +134,8 @@ namespace qk {
 	}
 
 	void* Object::operator new(size_t size) {
+		if (!object_heap_allocator)
+			object_heap_allocator = new HeapAllocator();
 		return object_heap_allocator->alloc(size);
 	}
 

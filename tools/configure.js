@@ -480,6 +480,7 @@ async function install_depe(opts, variables) {
 	var {cross_compiling} = variables;
 	var dpkg = {};
 
+	var pkgmErrMsg = cmd=>`Not found pkg install command "${cmd}" for the ${host_os}`;
 	var pkgmCmds = (cmd)=>{
 		if (pkgm == '') {
 			if (host_os == 'linux') {
@@ -489,15 +490,18 @@ async function install_depe(opts, variables) {
 					pkgm = 'yum';
 				} else if (execSync(`which apk`).code == 0) {
 					pkgm = 'apk';
+				} else {
+					throw new Error(pkgmErrMsg('apt-get or yum'));
 				}
 			} else if (host_os == 'osx') {
 				if (execSync(`which brew`).code == 0) {
 					pkgm = 'brew';
+				} else {
+					throw new Error(pkgmErrMsg('brew'));
 				}
+			} else {
+				throw new Error(`Not found pkg install command for the ${host_os}`);
 			}
-		}
-		if (pkgm == '') {
-			throw new Error(`Not found pkg install command for the ${host_os}`);
 		}
 		if (pkgm == 'apt-get') {
 			return `*apt-get install ${cmd} -y`;

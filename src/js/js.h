@@ -605,7 +605,7 @@ namespace qk { namespace js {
 		JSValue* bindingModule(cString& name);
 
 	protected:
-		Worker();
+		explicit Worker();
 		void init();
 		// props
 		Persistent<JSObject> _global, _console;

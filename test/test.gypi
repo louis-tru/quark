@@ -15,8 +15,8 @@
 			'quark',
 			'quark-media',
 			'quark-js',
-			'build_testing_ts',
 			'trial',
+			'build_testing_ts',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 			'deps/freetype/freetype.gyp:freetype',
 		],
@@ -53,12 +53,8 @@
 			'util/test-uv.cc',
 			'util/test-zlib.cc',
 			'util/test-atomic.cc',
-			'test-jsx.cc',
-			# 'test-v8.cc',
-			'test-jsc.cc',
-			# 'test-freetype.cc',
+			'test-freetype.cc',
 			'test-gui.cc',
-			# 'test-testing.cc',
 			'test-alsa-ff.cc',
 			'test-ffmpeg.cc',
 			'test-media.cc',
@@ -92,20 +88,29 @@
 					],
 				},
 				'mac_bundle': 1,
+			}],
+			['use_js==1', {
+				'sources': [
+					'test-jsx.cc',
+					'test-v8.cc',
+					'test-jsc.cc',
+					'test-testing.cc',
+				],
+			}],
+			['use_js==1 and OS=="mac"', {
 				'mac_bundle_resources': [
 					'./testing/out/testing',
 					# '../examples/out/examples',
 				],
-			}, {
-				'conditions': [['use_js==1',{
-					'copies': [{
-						'destination': '<(output)',
-						'files': [
-							'./testing/out/testing',
-							# '../examples/out/examples',
-						],
-					}], # copy
-				}]],
+			}],
+			['use_js==1 and OS!="mac"', {
+				'copies': [{
+					'destination': '<(output)',
+					'files': [
+						'./testing/out/testing',
+						# '../examples/out/examples',
+					],
+				}], # copy
 			}],
 		],
 	},
@@ -148,7 +153,7 @@
 				'./testing/test.tsx',
 				'./testing/tsconfig.json',
 			],
-			'outputs': ['./testing/out/testing'],
+			'outputs': [ './testing/out/testing' ],
 			'conditions': [['use_js==1',{
 				'action': [ 'sh', '-c', 'cd test/testing && npm run build'],
 			},{

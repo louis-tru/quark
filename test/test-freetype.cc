@@ -32,7 +32,7 @@
 #include <quark/util/string.h>
 #include <quark/util/dict.h>
 #include <quark/util/fs.h>
-#include <quark/os/device.h>
+#include <quark/os/os.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>
@@ -44,23 +44,18 @@
 #include <time.h>
 #include <chrono>
 
-//
-#include "quark/util/codec.h"
-// #include "quark/texture.h"
-//#include "quark/image.h"
-//#include "quark/sprite.h"
-//#include "quark/box.h"
-//#include "quark/app.h"
-//#include "quark/display.h"
-//#include "quark/root.h"
-//#include "quark/gl/gl.h"
-
-#include "quark/render/pixel.h"
+#include <quark/render/pixel.h>
+#include <quark/util/codec.h>
+#include <quark/ui/app.h>
+#include <quark/ui/window.h>
+#include <quark/ui/view/image.h>
+#include <quark/ui/view/root.h>
+#include <quark/render/canvas.h>
+#include "../trial/fs.h"
 
 using namespace qk;
 
 void each_fonts () {
-	
 	FT_Library library;
 	FT_Init_FreeType(&library);
 	FT_Face face = NULL;
@@ -82,7 +77,7 @@ void each_fonts () {
 		
 		if ( ent->type == FTYPE_FILE ) {
 			
-			error = FT_New_Face(library, *ent->pathname, 0, &face);
+			error = FT_New_Face(library, fs_fallback_c(ent->pathname), 0, &face);
 			
 			if (error) {
 				Qk_Log("error,------------------------path:%s", *ent->pathname);
@@ -115,7 +110,7 @@ void each_fonts () {
 					i++;
 					
 					if (i < face->num_faces) {
-						error = FT_New_Face(library, *ent->pathname, i, &face);
+						error = FT_New_Face(library, fs_fallback_c(ent->pathname), i, &face);
 						if (error) {
 							Qk_Log("error"); break;
 						}
@@ -141,22 +136,21 @@ void each_fonts () {
 }
 
 void each_glyph() {
-	
 	FT_Library library;
 	FT_Init_FreeType(&library);
 	FT_Face face = NULL;
 	FT_Error error;
 	
 	//
-	//  String font_path = FileSearch::share()->get_absolute_path("testing/res/font/SourceHanSansCN-Regular.otf");
-	//  String font_path = FileSearch::share()->get_absolute_path("testing/res/font/SF-UI-Display-Regular.otf");
-	String font_path = FileSearch::shared()->get_absolute_path("testing/res/font/DejaVuSerif.ttf");
-	//  String font_path = FileSearch::share()->get_absolute_path("testing/res/font/lateef.ttf");
+	//  String font_path = fs_search()->get_absolute_path("testing/res/font/SourceHanSansCN-Regular.otf");
+	//  String font_path = fs_search()->get_absolute_path("testing/res/font/SF-UI-Display-Regular.otf");
+	String font_path = fs_search()->get_absolute_path("testing/res/font/DejaVuSerif.ttf");
+	//  String font_path = fs_search()->get_absolute_path("testing/res/font/lateef.ttf");
 	//  String font_path = "/System/Library/Fonts/LanguageSupport/PingFang.ttc";
 	
 	cChar* text = "A-penType-B";
 	
-	error = FT_New_Face(library, *font_path, 0, &face);
+	error = FT_New_Face(library, fs_fallback_c(font_path), 0, &face);
 	
 	Qk_ASSERT(!error);
 	
@@ -209,113 +203,124 @@ void each_glyph() {
 	FT_Done_FreeType(library);
 }
 
-void onload_f(Event<>& evt, void* user) {
+
+class Img: public Image {
+public:
+	void draw(UIDraw *render) override {
+		auto canvas = window()->render()->getCanvas();
+		auto size = window()->size();
+		Paint paint;
+		ImagePaint ipaint;
+		Rect dest{content_size()*-0.5,content_size()};
+
+		ipaint.setImage(source().get(), dest);
+		ipaint.mipmapMode = ImagePaint::kLinear_MipmapMode;
+		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
+		paint.type = Paint::kBitmapMask_Type;
+		paint.image = &ipaint;
+		paint.color = Color4f(0,0,0,1); // black
+
+		canvas->drawRect(dest, paint);
+	}
+};
+
+void draw_char() {
 	FT_Library library;
 	FT_Init_FreeType(&library);
 	FT_Face face = NULL;
 	FT_Error error;
-	
-	String font_path = FileSearch::shared()->get_absolute_path("testing/font/SourceHanSansCN-Regular.otf");
-	
-	error = FT_New_Face(library, *font_path, 0, &face);
-	
+
+	String font_path = fs_search()->get_absolute_path("testing/res/font/SourceHanSansCN-Regular.otf");
+
+	error = FT_New_Face(library, fs_fallback_c(font_path), 0, &face);
+
 	Qk_ASSERT(!error);
-	
-	float font_size = 16;
-	
+
+	float font_size = 64;
+
 	error = FT_Set_Char_Size(face, 0, font_size * 64, 72, 72);
-	
+
 	Qk_ASSERT(!error);
-	
+
 	//  error = FT_Set_Pixel_Sizes(face, 0, 64);
-	
+
 	Qk_ASSERT(!error);
-	
+
 	Qk_Log("VERTICAL:%i", FT_HAS_VERTICAL(face));
-	
+
 	FT_GlyphSlot gl = face->glyph;
-	
+
 	FT_Glyph_Metrics& metrics = gl->metrics;
-	
+
 	uint32_t ch[6] = { 0, 26970, 23398, 25991, 65533, 'A' }; //
-	
-	FT_UInt glyph_index = FT_Get_Char_Index( face, '\t' );
-	
+
+	FT_UInt glyph_index = FT_Get_Char_Index( face, 'A' );
+
 	Qk_Log("glyph_index:%d", glyph_index);
-	
+
 	error = FT_Load_Glyph(face, glyph_index, /*FT_LOAD_NO_HINTING*/FT_LOAD_DEFAULT);
 	
 	/*    If the glyph has been loaded with @FT_LOAD_NO_SCALE, `bbox_mode'   */
 	/*    must be set to @FT_GLYPH_BBOX_UNSCALED to get unscaled font        */
 	/*    units in 26.6 pixel format.  The value @FT_GLYPH_BBOX_SUBPIXELS    */
 	/*    is another name for this constant.                                 */
-	
+
 	FT_Glyph glyph;
-	
+
 	error = FT_Get_Glyph( gl, &glyph );
-	
+
 	Qk_ASSERT(!error);
-	
+
 	FT_BBox bbox;
-	
+
 	FT_Glyph_Get_CBox( glyph, FT_LOAD_NO_SCALE, &bbox );
-	
+
 	Qk_ASSERT(!error);
-	
+
 	if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
 		FT_Outline_Embolden(&(gl->outline), 16); //
 	}
-	
+
 	if (gl->format != FT_GLYPH_FORMAT_BITMAP) {
 		error = FT_Render_Glyph(gl, FT_RENDER_MODE_NORMAL);
 		Qk_ASSERT(!error);
 	}
-	
-	FT_Bitmap bit = gl->bitmap;
-	
-	Qk_Log("width:%d, height:%d", bit.width, bit.rows);
 
-	// int width, int height, ColorType type, AlphaType alphaType = kAlphaType_Unknown
+	FT_Bitmap bit = gl->bitmap;
+
+	Qk_Log("width:%d, height:%d", bit.width, bit.rows);
 	
-	Pixel data(PixelInfo(bit.width, bit.rows, kColor_Type_Alpha_8), WeakBuffer((char*)bit.buffer, bit.width * bit.rows));
-	
-	Root* r = New<Root>();
-	
-	r->set_content_align(ContentAlign::LEFT);
-		
-	Image* img = New<Image>();
-	
-	Texture* tex = Texture::create(data);
-	
-	//  img->margin_top(50);
-	img->set_margin(50);
-	
-	img->set_width(font_size);
-	
-	//  img->width({ Box::vPERCENT, .1 });
-	
-	img->set_texture(tex);
-	
-	r->append(img);
-	
+	Buffer buffer(bit.width * bit.rows * 4);
+
+	for (int i = 0, j = 0; i < buffer.length(); i+=4, j++) {
+		*reinterpret_cast<int*>(buffer.val() + i) = (bit.buffer[j] << 24);
+	}
+	//Qk_DLog("reinterpret_cast, ------------ %d", *buffer.val());
+	Pixel data(PixelInfo(bit.width, bit.rows, kRGBA_8888_ColorType), buffer);
+	//Pixel data(PixelInfo(bit.width, bit.rows, kAlpha_8_ColorType),
+	//					 WeakBuffer((char*)bit.buffer, bit.width * bit.rows).copy());
+
+	// ----------------------------------------
+	App app;
+	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test GUI"});
+	win->activate();
+	auto r = win->root();
+	auto img = r->append_new<Img>();
+	//auto img = r->append_new<Image>();
+
+	img->set_source(ImageSource::Make(std::move(data)));
+	img->set_margin({50});
+	img->set_align(Align::Center);
+
 	FT_Done_Face(face);
 	FT_Done_FreeType(library);
-}
 
-void draw_char() {
-	Application app;
-	app.FX_ON(Load, onload_f);
-	app.run_loop();
+	app.run();
 }
 
 void test_freetype(int argc, char **argv) {
-	
-	Qk_Log(os::info());
-	
+	Qk_Log(os_info());
 	//  each_fonts();
-	
 	//  each_glyph();
-	
 	draw_char();
 }
-

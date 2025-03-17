@@ -46,8 +46,8 @@
 #elif Qk_ANDROID || Qk_LINUX
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
+# include <GLES2/gl2ext.h>
 # include <GLES3/gl3ext.h>
-# include <GLES3/gl32.h>
 #else
 # error "The operating system does not support"
 #endif
