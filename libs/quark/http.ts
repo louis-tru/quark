@@ -36,7 +36,7 @@ import event, {
 
 const _http = __binding__('_http');
 
-Object.assign(exports, _http);
+Object.assign(exports, {..._http, ...exports});
 
 export enum HttpMethod {
 	GET,

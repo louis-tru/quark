@@ -196,7 +196,7 @@ export declare function writeSync(fd: number, data: Uint8Array, size?: number /*
 export declare function writeSync(fd: number, data: string, offsetFd?: number /*= -1*/): number;
 export declare function writeSync(fd: number, data: string, encoding?: Encoding, offsetFd?: number /*= -1*/): number;
 
-Object.assign(exports, _fs);
+Object.assign(exports, {..._fs, ...exports});
 
 // async
 export function chmod(path: string, mode: number = _fs.defaultMode) {
