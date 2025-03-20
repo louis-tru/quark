@@ -101,7 +101,7 @@ namespace qk {
 			struct Core: CallbackCore<Object> {
 				Cb       cb;
 				Sp<View> view;
-				Core(Cb &cb, View *v): view(Sp<View>::without(v)), cb(cb) {
+				Core(Cb &cb, View *v): view(Sp<View>::lazy(v)), cb(cb) {
 				}
 				void call(Data& e) {
 					cb->call(e);

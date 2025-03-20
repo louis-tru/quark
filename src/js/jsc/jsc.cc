@@ -138,9 +138,19 @@ namespace qk { namespace js {
 		TypedArray = (JSObjectRef)JSObjectGetPrototype(ctx, global_Uint8Array);
 		JSValueProtect(ctx, TypedArray);
 		DCHECK(JSValueIsObject(ctx, TypedArray));
-		NativeFunctionToString = JSObjectMakeFunction(ctx, 0, 0, 0,
-			*JsStringWithUTF8("return 'function() { [native code] }'"), 0, 0, JsFatal());
-		JSValueProtect(ctx, NativeFunctionToString);
+		JSCStringPtr args[] = {JsStringWithUTF8("name"), JsStringWithUTF8("make")};
+		JSCStringPtr body = JsStringWithUTF8(
+			"return Object.defineProperties("
+				"function(...args){return make(this,...args)},"
+				"{"
+					"name: {value:name},"
+					"toString: {value:function(){return `class ${name} { [native code] }`}}"
+				"}"
+			");"
+		);
+		MakeConstructor = JSObjectMakeFunction(ctx, 0, 2,
+			reinterpret_cast<JSStringRef*>(args), body.get(), 0, 0, JsFatal());
+		JSValueProtect(ctx, MakeConstructor);
 	}
 
 	void WorkerData::destroy(JSGlobalContextRef ctx) {
@@ -153,7 +163,7 @@ namespace qk { namespace js {
 		JSValueUnprotect(ctx, False);
 		JSValueUnprotect(ctx, EmptyString);
 		JSValueUnprotect(ctx, TypedArray);
-		JSValueUnprotect(ctx, NativeFunctionToString);
+		JSValueUnprotect(ctx, MakeConstructor);
 	}
 
 	void JscClassReleasep(JscClass *&cls);

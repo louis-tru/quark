@@ -470,6 +470,7 @@ namespace qk {
 	}
 
 	uint32_t fs_chmod_recursion(cString& path, uint32_t mode, Cb cb) {
+		// Qk_DLog("fs_chmod_recursion");
 		auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](Cb::Data& evt) {
 			auto each = static_cast<AsyncEach*>(evt.data);
 			each->retain(); // chmod2 回调前都保持each不被释放

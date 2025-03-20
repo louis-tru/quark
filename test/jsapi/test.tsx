@@ -49,7 +49,7 @@ async function test_(win: Window) {
 }
 
 // import test from './test_fs'
-// import test from './test_http'
+import test from './test_http'
 // import test from './test_os'
 // import test from './test_path'
 // import test from './test_reader'
@@ -63,12 +63,21 @@ async function test_(win: Window) {
 // import test from './test_css'
 // import test from './test_event'
 // import test from './test_gui'
-import test from './test_view'
+// import test from './test_view'
 // import test from './test_window'
 
 (async function() {
-	await test(win);
+	var mod;
+	try {
+		mod = require(`./test_${util.argv[2]}`);
+	} catch(e) {}
+
+	if (mod) {
+		await mod.default(win);
+	} else {
+		await test(win);
+	}
 
 	console.log('\n------------------- Test End -------------------\n');
-	// util.exit()
+	util.exit();
 })()

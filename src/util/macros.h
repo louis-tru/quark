@@ -119,8 +119,12 @@
 # define Qk_UNLIKELY(expr) expr
 #endif
 
-#define Qk_ASSERT_RAW(cond, ...)\
+#if DEBUG
+#define Qk_ASSERT_RAW(cond, ...) \
 	if (Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#else
+#define Qk_ASSERT_RAW(cond, ...) if (Qk_UNLIKELY(!(cond))) ::qk::Fatal("", 0, "", ##__VA_ARGS__)
+#endif
 #if DEBUG
 # define Qk_ASSERT Qk_ASSERT_RAW
 # define Qk_ASSERT_OP(a, op, b, ...) Qk_ASSERT_RAW(((a) op (b)), ##__VA_ARGS__)

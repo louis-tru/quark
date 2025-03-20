@@ -66,10 +66,10 @@ void test_fs(int argc, char **argv) {
 	Qk_Log("设置工作目录,%s", *fs_cwd());
 	
 	FileSearch* search = FileSearch::shared();
-	search->add_search_path(fs_resources("testing/res/test"));
-	search->add_search_path(fs_resources("testing/res/test/test"));
-	search->add_zip_search_path(fs_resources("testing/res/test-fs.apk"), "assets");
-	search->add_zip_search_path(fs_resources("testing/res/test-fs.apk"), "assets/thk/res_r_hd");
+	search->add_search_path(fs_resources("jsapi/res/test"));
+	search->add_search_path(fs_resources("jsapi/res/test/test"));
+	search->add_zip_search_path(fs_resources("jsapi/res/test-fs.apk"), "assets");
+	search->add_zip_search_path(fs_resources("jsapi/res/test-fs.apk"), "assets/thk/res_r_hd");
 	
 	Qk_Log("length, %d", search->get_search_paths().length());
 	

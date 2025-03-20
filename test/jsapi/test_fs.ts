@@ -13,21 +13,21 @@ export default async function(_: any) {
 
 	const A = path.documents('test/a');
 	const B = path.documents('test/b');
-	const FILE = path.documents('test/a/file.txt');
+	const A_FILE = path.documents('test/a/file.txt');
 
 	fs.removeRecursionSync(A);
 	fs.removeRecursionSync(B);
 	fs.mkdirsSync(A);
-	fs.writeFileSync(FILE, 'ABCDEFG');
+	fs.writeFileSync(A_FILE, 'ABCDEFG');
 
-	let s = stat(FILE);
+	let s = stat(A_FILE);
 
 	{
 		await Mv(fs, 'chmodRecursion', [A, s.mode()+1]);
-		Mv(stat(FILE), 'mode', [], i=>i==s.mode()+1);
+		Mv(stat(A_FILE), 'mode', [], i=>i==s.mode()+1);
 
 		Mv(fs, 'chmodRecursionSync', [A, s.mode() + 2 ]);
-		Mv(stat(FILE), 'mode', [], i=>i==s.mode()+2);
+		Mv(stat(A_FILE), 'mode', [], i=>i==s.mode()+2);
 
 		await Mv(fs, 'chownRecursion', [A, s.owner(), s.group()]);
 		Mv(stat(A), 'owner', [], i=>i==s.owner());
@@ -58,10 +58,10 @@ export default async function(_: any) {
 		Mv(fs, 'existsSync', [A + '/sync/c.txt'], false);
 	}
 
-	await Mv(fs, 'copy', [FILE, A + '/cp.txt']);
+	await Mv(fs, 'copy', [A_FILE, A + '/cp.txt']);
 	Mv(fs, 'existsSync', [A + '/cp.txt'], true);
 
-	Mv(fs, 'copySync', [FILE, A + '/cp_sync.txt']);
+	Mv(fs, 'copySync', [A_FILE, A + '/cp_sync.txt']);
 	Mv(fs, 'existsSync', [A + '/cp_sync.txt'], true);
 
 	await Mv(fs, 'copyRecursion', [A, B]);
@@ -75,8 +75,8 @@ export default async function(_: any) {
 	await Mv(fs, 'readdir', [A]);
 	Mv(fs, 'readdirSync', [A]);
 
-	await Mv(fs, 'isFile', [FILE], true);
-	Mv(fs, 'isFileSync', [FILE], true);
+	await Mv(fs, 'isFile', [A_FILE], true);
+	Mv(fs, 'isFileSync', [A_FILE], true);
 	await Mv(fs, 'isDirectory', [A], true);
 	Mv(fs, 'isDirectorySync', [A], true);
 

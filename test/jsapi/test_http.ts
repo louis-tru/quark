@@ -138,7 +138,7 @@ async function test_5() {
 		method: HttpMethod.POST,
 		headers: { 'test': 'test' },
 		save: path.documents('test_request_save.html'),
-		upload: path.resources('testing/test.txt'),
+		upload: path.resources('jsapi/test.txt'),
 	}], e=>e.statusCode==200&&fs.existsSync(path.documents('test_request_save.html')))
 
 	await Mv(http, 'get', [`${tools_test_url}/out/temp/test.txt`], e=>buffer.toString(e.data)=='Test');
@@ -153,13 +153,13 @@ async function test_5() {
 	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('e=E')], d=>d.length==279);
 
 	await Mv(http, 'upload', [
-		`${tools_test_url}/Tools/upload_file`, path.resources('testing/all_we_know.mp3')], e=>e.data.length==279)
+		`${tools_test_url}/Tools/upload_file`, path.resources('jsapi/all_we_know.mp3')], e=>e.data.length==279)
 	
 	Mv(http, 'requestSync',
 		[{url:`${tools_test_url}/out/temp/all_we_know.mp3`,disableCache:true}], d=>d.length==7766770)
 
 	Mv(http, 'uploadSync', [
-		`${tools_test_url}/Tools/upload_file`, path.resources('testing/iconfont.ttf')])
+		`${tools_test_url}/Tools/upload_file`, path.resources('jsapi/iconfont.ttf')])
 
 	Mv(http, 'requestSync',
 		[{url:`${tools_test_url}/out/temp/iconfont.ttf`,disableCache:true}], d=>d.length==10616)

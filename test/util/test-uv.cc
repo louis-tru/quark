@@ -81,7 +81,7 @@ void test_uv_file() {
 	Qk_Log("test uv file:");
 	buffer.base = (char*)malloc(1024);
 	buffer.len = 1024;
-	uv_fs_open(uv_loop, &open_req, fs_fallback_c(fs_resources("testing/res/bg.svg")), O_RDONLY, 0, on_open);
+	uv_fs_open(uv_loop, &open_req, fs_fallback_c(fs_resources("jsapi/res/bg.svg")), O_RDONLY, 0, on_open);
 	
 	uv_run(uv_loop, UV_RUN_DEFAULT); // run loop
 	Qk_Log("test uv file ok");

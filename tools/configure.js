@@ -69,7 +69,6 @@ def_opts('with-intl', 0,        '--with-intl    enable intl default:[{0}]');
 def_opts('prefix', '/usr/local','--prefix       select the install prefix [{0}]');
 def_opts('no-browser-globals', 0,'--no-browser-globals do not export browser globals like setTimeout, console, etc. [{0}]' +
 																 '(This mode is not officially supported for regular applications)');
-def_opts('without-inspector', 0,'--without-inspector disable the V8 inspector protocol [{0}]');
 def_opts('without-visibility-hidden', 0, 
 																'--without-visibility-hidden without visibility hidden [{0}]');
 def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
@@ -689,7 +688,6 @@ async function configure() {
 			openssl_no_asm: bi(os.match(/^(ios|android)$/) || arch.match(/arm/)),
 			force_dynamic_crt: 0,
 			v8_enable_gdbjit: 0,
-			v8_enable_inspector: bi(use_v8 && !opts.without_inspector),
 			v8_no_strict_aliasing: 1,
 			v8_optimized_debug: 0,
 			v8_promise_internal_field_count: 1,

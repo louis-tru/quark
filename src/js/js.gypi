@@ -69,9 +69,9 @@
 				],
 			}, { # use v8
 				'dependencies': [
+					# 'tools/v8_gypfiles/d8.gyp:d8'
 					'tools/v8_gypfiles/v8.gyp:v8_maybe_snapshot',
 					'tools/v8_gypfiles/v8.gyp:v8_libplatform',
-					# 'tools/v8_gypfiles/d8.gyp:d8'
 				],
 				'sources': [
 					'v8/inspector_agent.cc',
@@ -103,7 +103,6 @@
 					],
 				}],
 			}],
-			['v8_enable_inspector==1', { 'defines': [ 'HAVE_INSPECTOR=1' ] }],
 		],
 		'actions': [
 			{

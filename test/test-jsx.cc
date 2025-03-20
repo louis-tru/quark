@@ -34,49 +34,37 @@
 
 using namespace qk;
 
-#define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/avocado_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA 1
 
 #define error(err, ...) { Qk_ELog(err, ##__VA_ARGS__); return 1; }
 
-bool transform_js(cString& src, String2 in, Buffer& out, bool jsx, bool clean_comment) {
-#if DEBUG_JSA
-	if ( jsx ) {
-		out = Codec::encoding(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
-	} else {
-		out = Codec::encoding(Encoding::utf8, javascript_transform(in, src, clean_comment));
-	}
-#else
+int transform_js(cString& src, String2 in, Buffer& out, bool jsx, bool clean_comment) {
 	try {
 		if ( jsx ) {
-			out = codec_encode(kUTF8_Encoding, javascript_transform_x(in, src, clean_comment).array().buffer());
+			out = codec_encode(kUTF8_Encoding, javascript_transform_x(in, src, clean_comment));
 		} else {
-			out = codec_encode(kUTF8_Encoding, javascript_transform(in, src, clean_comment).array().buffer());
+			out = codec_encode(kUTF8_Encoding, javascript_transform(in, src, clean_comment));
 		}
 	} catch(Error& err) {
 		error(err);
 	}
-#endif
 	return 0;
 }
 
 int test_jsx(int argc, char* argv[]) {
-
-#if DEBUG_JSA
-	String src = DEBUG_JSA_PATH;
-	String target = DEBUG_JSA_PATH"c";
-#else
-	if ( argc < 3 ) {
-		error("Bad argument.");
+	String src, target;
+	if ( DEBUG_JSA || argc < 3 ) {
+		src = fs_resources("jsapi/res/Makefile.dryice.js");
+		target = src + "c";
+	} else {
+		src = argv[1];
+		target = argv[2];
 	}
-	String src = argv[1];
-	String target = argv[2];
-#endif
-	
+
 	if ( ! fs_exists_sync(src) ) {
 		error("Bad argument. cannot find %s", *src);
 	}
-	
+
 	String extname = fs_extname(src).lowerCase();
 		
 	String2 in;
@@ -88,7 +76,7 @@ int test_jsx(int argc, char* argv[]) {
 			clean_comment = 1;
 		}
 	}
-	
+
 	in = codec_decode_to_ucs2(kUTF8_Encoding, fs_read_file_sync(src));
 	
 	int r = 0;
@@ -100,7 +88,7 @@ int test_jsx(int argc, char* argv[]) {
 	} else {
 		error("Bad argument.");
 	}
-	
+
 	if ( r == 0 ) {
 		fs_write_file_sync(target, std::move(out));
 	}

@@ -66,7 +66,7 @@ namespace qk { namespace js {
 	}} while (0
 	#define THROW_ERR(msg) worker->throwException(worker->newErrorJsc(msg))
 
-	#define JsStringWithUTF8(S) JSCStringPtr::without(JSStringCreateWithUTF8CString(S))
+	#define JsStringWithUTF8(S) JSCStringPtr::lazy(JSStringCreateWithUTF8CString(S))
 	#define JsFatal(...) &ex); do { qk::js::jsFatal(ctx,ex, ##__VA_ARGS__); } while (0
 	#define DCHECK Qk_ASSERT
 	#define CHECK  Qk_ASSERT_RAW
@@ -87,7 +87,7 @@ namespace qk { namespace js {
 	typedef Sp<OpaqueJSPropertyNameArray> JSCPropertyNameArrayPtr;
 
 	inline JSCStringPtr JsValueToStringCopy(JSContextRef ctx, JSValueRef val, JSValueRef* ex) {
-		return JSCStringPtr::without(JSValueToStringCopy(ctx,val,ex));
+		return JSCStringPtr::lazy(JSValueToStringCopy(ctx,val,ex));
 	}
 
 	template<class T = JSValue>
@@ -122,7 +122,7 @@ namespace qk { namespace js {
 		void initialize(JSGlobalContextRef ctx);
 		void destroy(JSGlobalContextRef ctx);
 		JSValueRef Undefined, Null, True, False, EmptyString;
-		JSObjectRef TypedArray, NativeFunctionToString;
+		JSObjectRef TypedArray, MakeConstructor;
 		#define _Attr_Fun(name,from) JSObjectRef from##_##name;
 		Js_Worker_Data_Each(_Attr_Fun)
 		#undef _Attr_Fun

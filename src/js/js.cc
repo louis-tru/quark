@@ -527,8 +527,8 @@ namespace js {
 		static String argv_s;
 		Array<char*> argv;
 
-		argv_s = String("quark ").append(startup);
-		Array<uint32_t> argv_idx{5,argv_s.length()};
+		argv_s = fs_executable().append(' ').append(startup);
+		Array<uint32_t> argv_idx{fs_executable().length(),argv_s.length()};
 
 		for (auto &arg: argv_in) {
 			argv_s.append(' ');

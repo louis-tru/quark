@@ -74,6 +74,7 @@ function MethodV<
 			}).catch(reject);
 		}) as any;
 	} else {
+		// console.log(`${String(name)}, r instanceof Promise-----------------`, r, self[name] + '');
 		return ok(r), r;
 	}
 }

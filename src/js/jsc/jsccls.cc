@@ -110,15 +110,18 @@ namespace qk { namespace js {
 		static void DestructorFunction(JSObjectRef object) {
 			delete static_cast<FunctionPrivate<void*>*>(JSObjectGetPrivate(object));
 		}
-
-		static JSObjectRef Constructor(JSContextRef ctx, JSObjectRef constructor, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
-			auto cls = static_cast<JscClass*>(JSObjectGetPrivate(constructor));
+		
+		static JSValueRef ConstructorFunc(JSContextRef ctx, JSObjectRef f, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
+			DCHECK(argc > 0);
+			thisObj = (JSObjectRef)argv[0];
+			DCHECK(HasInstanceOf(ctx, f, thisObj, 0));
+			auto cls = static_cast<JscClass*>(JSObjectGetPrivate(f));
 			auto indexed = cls->_indexedGet || cls->_indexedSet;
 			auto obj = JSObjectMake(ctx, indexed ? factories.objectWithIndexed: factories.object, nullptr);
-			JSObjectSetPrototype(ctx, obj, cls->_prototype); // set object __proto__
+			JSObjectSetPrototype(ctx, obj, JSObjectGetPrototype(ctx, thisObj)); // set object __proto__
 
 			auto worker = WORKER(cls->worker());
-			FunctionCallbackInfoImpl args{ worker, obj, worker->_data.Undefined, argv, int(argc), true };
+			FunctionCallbackInfoImpl args{ worker, obj, worker->_data.Undefined, argv+1, int(argc-1), true };
 			worker->_callStack++;
 			cls->callConstructor(*reinterpret_cast<FunctionCallbackInfo*>(&args)); // class native constructor
 			worker->_callStack--;
@@ -129,14 +132,14 @@ namespace qk { namespace js {
 			return obj;
 		}
 
-		static bool HasInstanceOf(JSContextRef ctx, JSObjectRef constructor, JSValueRef val, JSValueRef* ex) {
+		static bool HasInstanceOf(JSContextRef ctx, JSObjectRef fun, JSValueRef val, JSValueRef* ex) {
 			if (JSValueIsObject(ctx, val)) {
-				auto cls = static_cast<JscClass*>(JSObjectGetPrivate(constructor));
+				auto cls = static_cast<JscClass*>(JSObjectGetPrivate(fun));
 				DCHECK(cls);
 				auto to = cls->_prototype;
 				auto obj = (JSObjectRef)val;
 				do {
-					obj = (JSObjectRef)JSObjectGetPrototype(ctx, obj);
+					obj = (JSObjectRef)JSObjectGetPrototype(ctx, obj); // obj.__proto__
 					if (obj == to)
 						return true;
 				} while (JSValueIsObject(ctx, obj));
@@ -198,6 +201,10 @@ namespace qk { namespace js {
 			worker->_ex = nullptr;
 
 			return true;
+		}
+
+		static JSValueRef FunctionToString(JSContextRef ctx, JSObjectRef f, JSObjectRef thisObj, size_t argc, const JSValueRef argv[], JSValueRef* ex) {
+			return JSValueMakeString(ctx, JsStringWithUTF8("function() { [native code] }").get());
 		}
 
 		static bool checkCallSign(JSObjectRef thisObj, JscClass *signature, JSValueRef* ex) {
@@ -284,54 +291,42 @@ namespace qk { namespace js {
 			ENV(w);
 			_worker = worker;
 
+			JSValueRef args[] = {
+				JSValueMakeString(ctx, JsStringWithUTF8(name.c_str()).get()),
+				JSObjectMake(ctx, factories.constructor, this),
+			};
+			_constructor = (JSObjectRef)JSObjectCallAsFunction(ctx, worker->_data.MakeConstructor, 0, 2, args, 0);
+			DCHECK(JSValueIsObject(ctx, _constructor));
+			_prototype = (JSObjectRef)JSObjectGetProperty(ctx, _constructor, prototype_s, 0);
+			DCHECK(JSValueIsObject(ctx, _prototype));
+
 			if (!_base) {
 				if (_baseFunc && JSObjectIsConstructor(ctx, _baseFunc)) {
 					_base = static_cast<JscClass*>(JSObjectGetPrivate(_baseFunc));
-					if (!_base) {
-						JSValueProtect(ctx, _baseFunc);
-					}
-				} else {
-					_base = worker->_base;
 				}
 			}
 
-			_constructor = JSObjectMake(ctx, factories.constructor, this);
-			DCHECK(JSValueIsUndefined(ctx, JSObjectGetProperty(ctx, _constructor, prototype_s, 0)));
-			_prototype = JSObjectMake(ctx, nullptr, nullptr);
-			JSObjectSetProperty(ctx, _constructor, prototype_s, _prototype, kJSPropertyAttributeDontEnum, &ex);
-			DCHECK(!ex);
-			JSObjectSetProperty(ctx, _prototype, constructor_s, _constructor, kJSPropertyAttributeDontEnum, &ex);
-			DCHECK(!ex);
-
-			auto s = JSValueMakeString(ctx, *JsStringWithUTF8(*name));
-			JSObjectSetProperty(ctx, _constructor, name_s, s, kJSPropertyAttributeDontEnum, &ex);
-			DCHECK(!ex);
-
-			// Inherit
 			if (_base) {
 				_indexedGet = _base->_indexedGet;
 				_indexedSet = _base->_indexedSet;
 				_parents = _base->_parents;
 				_parents.add(_base);
 				DCHECK(JSValueIsObject(ctx, _base->_prototype));
-				JSObjectSetPrototype(ctx, _prototype, _base->_prototype);
-				JSObjectSetPrototype(ctx, _constructor, _base->_constructor);
+				JSObjectSetPrototype(ctx, _prototype, _base->_prototype); // set __proto__
+				JSObjectSetPrototype(ctx, _constructor, _base->_constructor); // set __proto__
 			} else if (_baseFunc) {
 				auto baseProrotype = JSObjectGetProperty(ctx, _baseFunc, prototype_s, &ex);
 				DCHECK(!ex);
 				DCHECK(JSValueIsObject(ctx, baseProrotype));
-				JSObjectSetPrototype(ctx, _prototype, baseProrotype);
-				JSObjectSetPrototype(ctx, _constructor, _baseFunc);
-				if ( !JsValueToStringCopy(ctx, _constructor, nullptr) ) {
-					JSObjectSetProperty(ctx, _constructor, toString_s, worker->_data.NativeFunctionToString, kJSPropertyAttributeDontEnum, JsFatal());
-				}
-			} else { // base object
-				JSObjectSetPrototype(ctx, _constructor, worker->_data.global_Function_prototype); // Inherit from Function
-				JSObjectSetProperty(ctx, _constructor, toString_s, worker->_data.NativeFunctionToString, kJSPropertyAttributeDontEnum, JsFatal());
+				JSObjectSetPrototype(ctx, _prototype, baseProrotype); // set __proto__
+				JSObjectSetPrototype(ctx, _constructor, _baseFunc); // set __proto__
 			}
 			//Qk_DLog(jsToString(ctx, _prototype));
 			//Qk_DLog(jsToString(ctx, _constructor));
 
+			if (_baseFunc)
+				JSValueProtect(ctx, _baseFunc);
+			JSValueProtect(ctx, _prototype);
 			JSValueProtect(ctx, _constructor);
 		}
 
@@ -345,6 +340,7 @@ namespace qk { namespace js {
 			ENV(_worker);
 			if (_baseFunc)
 				JSValueUnprotect(ctx, _baseFunc);
+			JSValueUnprotect(ctx, _prototype);
 			JSValueUnprotect(ctx, _constructor);
 		}
 
@@ -502,22 +498,26 @@ namespace qk { namespace js {
 		JSClassDefinition def;
 
 		def = kJSClassDefinitionEmpty;
-		def.hasInstance = JscClass::HasInstanceOf;
-		def.callAsConstructor = JscClass::Constructor;
+		// def.hasInstance = JscClass::HasInstanceOf;
+		def.callAsFunction = JscClass::ConstructorFunc;
 		factories.constructor = JSClassCreate(&def);
 
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorObject;
 		factories.object = JSClassCreate(&def);
-		
+
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorObject;
 		def.getProperty = JscClass::IndexedGet;
 		def.setProperty = JscClass::IndexedSet;
 		factories.objectWithIndexed = JSClassCreate(&def);
 
+		JSStaticFunction staticFunctions[2] = {
+			{"toString", JscClass::FunctionToString, kJSPropertyAttributeDontEnum},{0}
+		};
 		def = kJSClassDefinitionEmpty;
 		def.finalize = JscClass::DestructorFunction;
+		def.staticFunctions = staticFunctions;
 		def.callAsFunction = JscClass::Function;
 		factories.function = JSClassCreate(&def);
 

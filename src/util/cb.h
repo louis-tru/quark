@@ -117,8 +117,8 @@ namespace qk {
 	class LambdaCallback: public CallbackCoreImpl<T, D, E> {
 	public:
 		typedef std::function<void(CallbackData<D, E>& evt)> Func;
-		inline LambdaCallback(Func func, T* ctx = nullptr)
-			: CallbackCoreImpl<T, D, E>(ctx), _func(func) {}
+		inline LambdaCallback(Func &&func, T* ctx = nullptr)
+			: CallbackCoreImpl<T, D, E>(ctx), _func(std::move(func)) {}
 		void call(CallbackData<D, E>& evt) { _func(evt); }
 	private:
 		Func _func;
@@ -153,8 +153,8 @@ namespace qk {
 			Handle<Core>(new MemberCallback<T, D, E>(func, ctx)) {}
 
 		template<class T = Object>
-		inline Callback(Lambda<T> func, T* ctx = nullptr):
-			Handle<Core>(new LambdaCallback<T, D, E>(func, ctx)) {}
+		inline Callback(Lambda<T> &&func, T* ctx = nullptr):
+			Handle<Core>(new LambdaCallback<T, D, E>(std::move(func), ctx)) {}
 
 		inline Callback& operator=(const Callback& cb) {
 			Handle<Core>::operator=(*const_cast<Callback*>(&cb));

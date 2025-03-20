@@ -58,7 +58,7 @@ namespace qk {
 		/*
 		* Directly assigning values without increasing the number of references
 		*/
-		inline static Handle without(T* data) {
+		inline static Handle lazy(T* data) {
 			Handle h;
 			h._data = data;
 			Qk_ReturnLocal(h);

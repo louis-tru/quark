@@ -68,7 +68,6 @@
 		'v8_promise_internal_field_count%': 1,
 		'v8_enable_disassembler': 0,      # Enable disassembler
 		'v8_postmortem_support%': 0,
-		'v8_enable_inspector%': 0,
 		'icu_use_data_file_flag': 0,      # Don't use ICU data file (icudtl.dat) from V8, we use our own.
 
 		# Default ARM variable settings.

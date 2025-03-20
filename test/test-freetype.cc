@@ -68,7 +68,7 @@ void each_fonts () {
 	
 	int count = 0;
 	
-	//  String path0 = fs_format("%s/testing/res/SF-UI", *fs_resources_dir());
+	//  String path0 = fs_format("%s/jsapi/res/SF-UI", *fs_resources_dir());
 	String path0 = "/System/Library/Fonts";
 	
 	fs_each_sync(path0, Callback<Dirent>([&](Callback<Dirent>::Data& d) {
@@ -142,10 +142,10 @@ void each_glyph() {
 	FT_Error error;
 	
 	//
-	//  String font_path = fs_search()->get_absolute_path("testing/res/font/SourceHanSansCN-Regular.otf");
-	//  String font_path = fs_search()->get_absolute_path("testing/res/font/SF-UI-Display-Regular.otf");
-	String font_path = fs_search()->get_absolute_path("testing/res/font/DejaVuSerif.ttf");
-	//  String font_path = fs_search()->get_absolute_path("testing/res/font/lateef.ttf");
+	//  String font_path = fs_search()->get_absolute_path("jsapi/res/font/SourceHanSansCN-Regular.otf");
+	//  String font_path = fs_search()->get_absolute_path("jsapi/res/font/SF-UI-Display-Regular.otf");
+	String font_path = fs_search()->get_absolute_path("jsapi/res/font/DejaVuSerif.ttf");
+	//  String font_path = fs_search()->get_absolute_path("jsapi/res/font/lateef.ttf");
 	//  String font_path = "/System/Library/Fonts/LanguageSupport/PingFang.ttc";
 	
 	cChar* text = "A-penType-B";
@@ -230,7 +230,7 @@ void draw_char() {
 	FT_Face face = NULL;
 	FT_Error error;
 
-	String font_path = fs_search()->get_absolute_path("testing/res/font/SourceHanSansCN-Regular.otf");
+	String font_path = fs_search()->get_absolute_path("jsapi/res/font/SourceHanSansCN-Regular.otf");
 
 	error = FT_New_Face(library, fs_fallback_c(font_path), 0, &face);
 

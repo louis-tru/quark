@@ -96,7 +96,7 @@ Qk_Main() {
 	uint64_t st = time_micro();
 
 	TEST_FUNC_NAME(argc, argv);
-	
+
 	Qk_Log("Test eclapsed time:%dMs\n", (time_micro() - st) / 1000);
 
 	return 0;
