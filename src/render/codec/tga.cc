@@ -64,8 +64,7 @@ namespace qk {
 	 * @arg func {ReadDataBlackFunc} # 处理函数
 	 * @private
 	 */
-	void tga_parse_rgb_rle(uint8_t* in, uint8_t* out,
-											int bytes,
+	void tga_parse_rgb_rle(uint8_t* in, uint8_t* out, int bytes,
 											int pixex_size, TGAReadDataBlackFunc func, int alpha) {
 		for (int i = 0; i < pixex_size; i++) {
 			uint8_t mask = in[0];
@@ -85,6 +84,7 @@ namespace qk {
 					(func)(&in, &out, alpha);
 				}
 			}
+			
 		}
 	}
 
@@ -135,9 +135,9 @@ namespace qk {
 	void tga_read_32_data_black(uint8_t** in, uint8_t** out, int alpha) {
 		uint8_t* in_ = *in;
 		uint8_t* out_ = *out;
-		out_[2] = in_[0];
-		out_[1] = in_[1];
-		out_[0] = in_[2];
+		out_[2] = in_[0]; // b
+		out_[1] = in_[1]; // g
+		out_[0] = in_[2]; // r
 		out_[3] = alpha ? in_[3] : 255;
 		*in = in_ + 4;
 		*out = out_ + 4;
@@ -202,16 +202,15 @@ namespace qk {
 	}
 
 	bool img_tga_decode(cBuffer& data, Array<Pixel> *pixel) {
-		
 		TGAHeader* header = (TGAHeader*)*data; // 适用小端格式CPU
 		// parse image
 		int alpha = header->image_descriptor & 0x08;
 		int bytes = header->bits_per_pixel / 8; // 2、3、4
 		uint8_t code = header->data_type_code;
-		
+
 		ColorType format;
 		TGAReadDataBlackFunc func;
-		
+
 		if (bytes == 2) {
 			if (code == 2 || code == 10) { // RGB | RLE RGB
 				format = kRGBA_5551_ColorType; // RGBA5551
@@ -226,7 +225,7 @@ namespace qk {
 			format = alpha ? kRGBA_8888_ColorType: kRGB_888X_ColorType;
 			func = &tga_read_32_data_black;
 		}
-		
+
 		int width = header->width;
 		int height = header->height;
 		int pixex_size = width * height;
@@ -234,7 +233,7 @@ namespace qk {
 		Buffer out = Buffer::alloc(out_size);
 		uint8_t* out_p = (uint8_t*)out.val();
 		uint8_t* in_p = ((uint8_t*)data.val()) + sizeof(TGAHeader) + header->idlength;
-		
+
 		switch ( code ) {
 			case 2:  // RGB
 			case 10: // RLE RGB
@@ -261,7 +260,7 @@ namespace qk {
 				Qk_DLog("Parse tga image error, data type code undefined");
 				return false;
 		}
-		
+
 		// Indicates that the pixel starts from the bottom and needs to be adjusted
 		if ( ! (header->image_descriptor & 0x20) ) {
 		// BOTTOM_LEFT

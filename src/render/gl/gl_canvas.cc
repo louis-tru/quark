@@ -358,15 +358,6 @@ namespace qk {
 		, _opts(opts)
 		, _isClipState(false)
 	{
-		switch(_opts.colorType) {
-			case kBGRA_8888_ColorType:
-				_opts.colorType = kRGBA_8888_ColorType; break;
-			case kBGRA_1010102_ColorType:
-				_opts.colorType = kRGBA_1010102_ColorType; break;
-			case kBGR_101010X_ColorType:
-				_opts.colorType = kRGB_101010X_ColorType; break;
-			default: break;
-		}
 		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
 		auto capacity = opts.maxCapacityForPathvCache ?
 			opts.maxCapacityForPathvCache: 128000000/*128mb*/;
@@ -651,11 +642,11 @@ namespace qk {
 			auto tf = blob->typeface;
 			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
 			blob->out = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, _render);
-			Qk_ASSERT(blob->out.image->count(), "GLCanvas::drawTextBlob blob->out.img->count() == 0");
 			// Qk_DLog("GLCanvas::drawTextBlob origin, %f", origin.y());
 		}
 		auto img = *blob->out.image;
 		if (img->width() && img->height()) {
+			Qk_ASSERT(img->count(), "GLCanvas::drawTextBlob img->count()");
 			_this->drawTextImage(*blob->out.image, blob->out.top, _allScale * levelSize / fontSize, origin, paint);
 		}
 	}

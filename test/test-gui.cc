@@ -44,17 +44,20 @@ void test_gui(int argc, char **argv) {
 	auto r = win->root();
 	//t->set_width({ 0, BoxSizeKind::Match });
 	//t->set_height({ 0, BoxSizeKind::Match });
-	r->set_background_color(Color(255, 255, 255));
+	r->set_background_color(Color(180, 80, 0));
 
 	auto sp0 = r->append_new<Image>();
+	// sp0->set_src(fs_resources("jsapi/res/0.bmp"));
+	// sp0->set_src(fs_resources("jsapi/res/0.jpeg"));
+	// sp0->set_src(fs_resources("jsapi/res/0.jpg"));
+	sp0->set_src(fs_resources("jsapi/res/0.gif"));
+	// sp0->set_src(fs_resources("jsapi/res/0.png"));
+	// sp0->set_src(fs_resources("jsapi/res/0.tiff"));
+	// sp0->set_src(fs_resources("jsapi/res/0.webp"));
 	// sp0->set_src(fs_resources("jsapi/res/aa.tiff")); // res://res/bb
 	// sp0->set_src(fs_resources("jsapi/res/aa.webp"));
 	// sp0->set_src(fs_resources("jsapi/res/aa.ico"));
-	// sp0->set_src(fs_resources("jsapi/res/0.jpeg"));
-	// sp0->set_src(fs_resources("jsapi/res/0.jpg"));
-	// sp0->set_src(fs_resources("jsapi/res/0.png"));
-	// sp0->set_src(fs_resources("jsapi/res/0.tiff"));
-	sp0->set_src(fs_resources("jsapi/res/0.webp"));
+	// sp0->set_src(fs_resources("jsapi/res/test.png"));
 	//sp0->set_width({256});
 	sp0->set_height({256});
 	sp0->set_align(Align::Start);

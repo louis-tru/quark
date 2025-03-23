@@ -44,7 +44,7 @@ namespace qk {
 		virtual      ~GLRender();
 		virtual void reload() override;
 		virtual Canvas* newCanvas(Options opts) override;
-		virtual void newTexture(cPixel *pix, TexStat *&out, bool isMipmap) override;
+		virtual bool newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) override;
 		virtual void newVertexData(VertexData::ID *id) override;
 		virtual void deleteTexture(TexStat *tex) override;
 		virtual void deleteVertexData(VertexData::ID *id) override;
@@ -53,7 +53,7 @@ namespace qk {
 		virtual void release() override;
 		// set gl state
 		void gl_set_blend_mode(BlendMode mode);
-		bool gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint);
+		bool gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint); // temp tex
 		void gl_set_texture_param(TexStat *tex, uint32_t slot, const ImagePaint* paint);
 		GLuint gl_get_tex_sampler(const ImagePaint* paint);
 
@@ -77,7 +77,7 @@ namespace qk {
 	public:
 		inline GLRenderResource(RunLoop *loop): _loop(loop) {}
 		void post_message(Cb cb) override;
-		void newTexture(cPixel *pix, TexStat *&out, bool isMipmap) override;
+		bool newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) override;
 		void deleteTexture(TexStat *tex) override;
 	private:
 		RunLoop *_loop;

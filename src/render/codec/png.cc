@@ -101,7 +101,7 @@ namespace qk {
 			default: // unknown error
 				return false;
 		}
-		
+
 		auto buff = Buffer::alloc((uint32_t)(h * rowbytes));
 		Array<png_bytep> row_pointers((uint32_t)h);
 		

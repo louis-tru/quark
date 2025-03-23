@@ -168,8 +168,8 @@ namespace js {
 	}
 
 	WeakBuffer JSTypedArray::value(Worker* worker) const {
-		auto buff = const_cast<JSTypedArray*>(this)->buffer(worker);
-		char* ptr = buff->data(worker);
+		auto abf = const_cast<JSTypedArray*>(this)->buffer(worker);
+		char* ptr = abf->data(worker);
 		int offset = byteOffset(worker);
 		int len = byteLength(worker);
 		return WeakBuffer(ptr + offset, len);
@@ -265,6 +265,7 @@ namespace js {
 		, _strs(nullptr)
 		, _classes(nullptr)
 		, _thread_id(thread_self_id())
+		, _loop(RunLoop::current())
 	{
 		if (!NativeModulesLib) {
 			#define _Fun(N) Js_Module_##N##__();
@@ -341,7 +342,7 @@ namespace js {
 	JSObject* Worker::newError(JSObject* value) {
 		auto err = newValue(Error(""));
 		auto names = value->getPropertyNames(this);
-		for (uint32_t i = 0, j = 0; i < names->length(); i++) {
+		for (int i = 0, j = 0; i < names->length(); i++) {
 			auto key = names->get(this, i);
 			err->set(this, key, value->get(this, key));
 		}
@@ -570,12 +571,13 @@ namespace js {
 					auto kv = arg.split('=');
 					bool brk = arg.indexOf("-brk") != -1;
 					if (kv.length() == 1) {
-						runDebugger(worker, {brk,9229,"127.0.0.1",script_path});
+						runDebugger(worker, {brk, 9229, "127.0.0.1", script_path});
 					} else {
 						auto host = kv[1].split(':');
 						int port = 9229;
-						if (host.length() > 1) host[1].toNumber<int>(&port);
-						runDebugger(worker, {brk,port,host[0],script_path});
+						if (host.length() > 1)
+							host[1].toNumber<int>(&port);
+						runDebugger(worker, {brk, port, host[0], script_path});
 					}
 					break;
 				}

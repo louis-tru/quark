@@ -96,7 +96,7 @@
 						'../../out/v8_inspector_protocol_json.h',
 					],
 					'action': [
-						'python',
+						'<(python)',
 						'tools/compress_json.py',
 						'<@(_inputs)',
 						'<@(_outputs)',

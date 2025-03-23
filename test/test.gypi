@@ -89,6 +89,12 @@
 				},
 				'mac_bundle': 1,
 			}],
+			['use_js==1 and OS=="mac"', {
+				'mac_bundle_resources': [
+					'./jsapi/out/jsapi',
+					# '../examples/out/examples',
+				],
+			}],
 			['use_js==1', {
 				'sources': [
 					'test-jsx.cc',
@@ -96,14 +102,6 @@
 					'test-jsc.cc',
 					'test-jsapi.cc',
 				],
-			}],
-			['use_js==1 and OS=="mac"', {
-				'mac_bundle_resources': [
-					'./jsapi/out/jsapi',
-					# '../examples/out/examples',
-				],
-			}],
-			['use_js==1 and OS!="mac"', {
 				'copies': [{
 					'destination': '<(output)',
 					'files': [
@@ -153,7 +151,9 @@
 				'./jsapi/test.tsx',
 				'./jsapi/tsconfig.json',
 			],
-			'outputs': [ './jsapi/out/jsapi' ],
+			'outputs': [
+				'./jsapi/out/jsapi',
+			],
 			'conditions': [['use_js==1',{
 				'action': [ 'sh', '-c', 'cd test/jsapi && npm run build'],
 			},{

@@ -39,6 +39,7 @@ namespace qk { namespace js {
 		Array<String>* _rv;
 		Worker* worker;
 		Persistent<JSSet> _set;
+		WeakBuffer wbuff;
 
 		JSONStringify(Worker* worker) : _indent(0), _rv(nullptr), worker(worker) {
 			_set.reset(worker, worker->newSet());
@@ -98,6 +99,7 @@ namespace qk { namespace js {
 		}
 
 		bool stringify_buffer(WeakBuffer buf) {
+			// ->cast<JSUint8Array>()->value(worker)
 			_rv->push("<Buffer");
 			cChar* hex = "0123456789abcdef";
 			uint8_t* s = (uint8_t*)*buf;
@@ -137,8 +139,8 @@ namespace qk { namespace js {
 						return false; // error
 					_rv->push( str->toString(worker)->value(worker) );
 				}
-				else if (arg->isUint8Array()) {
-					rv = stringify_buffer(o->cast<JSUint8Array>()->value(worker));
+				else if (arg->asBuffer(worker).to(wbuff)) {
+					rv = stringify_buffer(wbuff);
 				}
 				else if ( arg->isDate() ) {
 					_rv->push( arg->toString(worker)->value(worker) );

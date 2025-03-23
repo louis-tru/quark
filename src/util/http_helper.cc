@@ -51,13 +51,13 @@ namespace qk {
 
 	typedef Callback<StreamResponse> SCb;
 
-	static uint32_t http_request(RequestOptions& options, HttpCb cb, SCb scb, bool stream) throw(HttpError) {
+	static uint32_t http_request(RequestOptions& options, HttpCb cb, SCb scb) throw(HttpError) {
 		
 		class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public Stream {
 		public:
 			HttpCb cb;
 			SCb scb;
-			bool stream, response_data;
+			bool response_data;
 			Array<String> data;
 			HttpClientRequest* client;
 
@@ -74,19 +74,19 @@ namespace qk {
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				HttpError e(error.code(),
 										error.message() + ", " + req->url(), req->status_code(), req->url());
-				stream ? cb->reject(&e): scb->reject(&e);
+				scb ? scb->reject(&e): cb->reject(&e);
 				abort(); // abort and release
 			}
 
 			virtual void trigger_http_timeout(HttpClientRequest* req) {
 				HttpError e(ERR_HTTP_REQUEST_TIMEOUT,
 										String("http request timeout") + ", " + req->url(), 0, req->url());
-				stream ? cb->reject(&e): scb->reject(&e);
+				scb ? scb->reject(&e): cb->reject(&e);
 				abort(); // abort and release
 			}
 
 			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
-				if ( stream ) {
+				if ( scb ) {
 					StreamResponse data({client->download_size(),
 															client->download_total(), buffer, this, id(), false});
 					scb->resolve(&data);
@@ -110,21 +110,19 @@ namespace qk {
 											String::format("Http status error, status code:%d, %s",
 																		req->status_code(), req->url().c_str()),
 											req->status_code(), req->url());
-					cb->reject(&e);
+					scb ? scb->reject(&e): cb->reject(&e);
+				} else if ( scb ) {
+					Buffer buffer;
+					StreamResponse data({client->download_size(),
+															client->download_total(), buffer, this, id(), true});
+					scb->resolve(&data);
 				} else {
-					if ( stream ) {
-						Buffer buffer;
-						StreamResponse data({client->download_size(),
-																client->download_total(), buffer, this, id(), true});
-						scb->resolve(&data);
-					} else {
-						ResponseData rdata;
-						rdata.data = data.join(String()).collapse();
-						rdata.http_version = client->http_response_version();
-						rdata.status_code = client->status_code();
-						rdata.response_headers = std::move( client->get_all_response_headers() );
-						cb->resolve(&rdata);
-					}
+					ResponseData rdata;
+					rdata.data = data.join(String()).collapse();
+					rdata.http_version = client->http_response_version();
+					rdata.status_code = client->status_code();
+					rdata.response_headers = std::move( client->get_all_response_headers() );
+					cb->resolve(&rdata);
 				}
 				abort(); // abort and release
 			}
@@ -169,7 +167,6 @@ namespace qk {
 
 			task->cb = cb;
 			task->scb = scb;
-			task->stream = stream;
 
 			if ( !options.upload.isEmpty() ) { // 需要上传文件
 				req->set_upload_file("file", options.upload);
@@ -196,11 +193,11 @@ namespace qk {
 	* @func request
 	*/
 	uint32_t http_request(RequestOptions& options, HttpCb cb) throw(HttpError) {
-		return http_request(options, cb, 0, false);
+		return http_request(options, cb, 0);
 	}
 
 	uint32_t http_request_stream(RequestOptions& options, Callback<StreamResponse> cb) throw(HttpError) {
-		return http_request(options, 0, cb, true);
+		return http_request(options, 0, cb);
 	}
 
 	static RequestOptions default_request_options(cString& url) {
@@ -224,7 +221,7 @@ namespace qk {
 	uint32_t http_download(cString& url, cString& save, HttpCb cb) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.save = save;
-		return http_request(options, cb, 0, false);
+		return http_request(options, cb, 0);
 	}
 
 	/**
@@ -235,7 +232,7 @@ namespace qk {
 		options.upload = file;
 		options.method = HTTP_METHOD_POST;
 		options.disable_cache = true;
-		return http_request(options, cb, 0, false);
+		return http_request(options, cb, 0);
 	}
 
 	/**
@@ -244,7 +241,7 @@ namespace qk {
 	uint32_t http_get(cString& url, HttpCb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
-		return http_request(options, cb, 0, false);
+		return http_request(options, cb, 0);
 	}
 
 	/**
@@ -253,7 +250,7 @@ namespace qk {
 	uint32_t http_get_stream(cString& url, SCb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
-		return http_request(options, 0, cb, true);
+		return http_request(options, 0, cb);
 	}
 
 	/**
@@ -263,7 +260,7 @@ namespace qk {
 		RequestOptions options = default_request_options(url);
 		options.method = HTTP_METHOD_POST;
 		options.post_data = data;
-		return http_request(options, cb, 0, false);
+		return http_request(options, cb, 0);
 	}
 
 	Buffer http_request_sync(RequestOptions& options) throw(HttpError) {

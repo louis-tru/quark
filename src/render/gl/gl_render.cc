@@ -108,14 +108,11 @@ namespace qk {
 			case kAlpha_8_ColorType: return GL_ALPHA;
 			case kRGB_565_ColorType: return GL_RGB;
 			case kRGBA_4444_ColorType: return GL_RGBA;
-			case kRGB_444X_ColorType: return GL_RGBA;//GL_RGB;
+			case kRGB_444X_ColorType: return GL_RGBA;
 			case kRGBA_8888_ColorType: return GL_RGBA;
-			case kRGB_888X_ColorType: return GL_RGBA;//GL_RGB;
-			case kBGRA_8888_ColorType: return GL_BGRA;
+			case kRGB_888X_ColorType: return GL_RGBA;
 			case kRGBA_1010102_ColorType: return GL_RGBA;
-			case kBGRA_1010102_ColorType: return GL_BGRA;
-			case kRGB_101010X_ColorType: return GL_RGBA; // GL_RGB
-			case kBGR_101010X_ColorType: return GL_BGRA; // GL_BGR;
+			case kRGB_101010X_ColorType: return GL_RGBA;
 			case kRGB_888_ColorType: return GL_RGB;
 			case kRGBA_5551_ColorType: return GL_RGBA;
 			// TODO Grayscale images may not display properly for macos
@@ -147,29 +144,20 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_data_type(ColorType format) {
-#ifndef GL_UNSIGNED_SHORT_5_6_5_REV 
-# define GL_UNSIGNED_SHORT_5_6_5_REV 0x8364/*GL_UNSIGNED_SHORT_5_6_5_REV_EXT*/
-#endif
-#ifndef GL_UNSIGNED_SHORT_4_4_4_4_REV
-# define GL_UNSIGNED_SHORT_4_4_4_4_REV 0x8365/*GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT*/
-#endif
-#ifndef GL_UNSIGNED_SHORT_1_5_5_5_REV
-# define GL_UNSIGNED_SHORT_1_5_5_5_REV 0x8366/*GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT*/
+#ifndef GL_UNSIGNED_INT_10_10_10_2
+# define GL_UNSIGNED_INT_10_10_10_2 0x8036
 #endif
 		switch (format) {
 			case kAlpha_8_ColorType:      return GL_UNSIGNED_BYTE;
-			case kRGB_565_ColorType:      return GL_UNSIGNED_SHORT_5_6_5_REV;
-			case kRGBA_4444_ColorType:    return GL_UNSIGNED_SHORT_4_4_4_4_REV;
-			case kRGB_444X_ColorType:     return GL_UNSIGNED_SHORT_4_4_4_4_REV;
+			case kRGB_565_ColorType:      return GL_UNSIGNED_SHORT_5_6_5;
+			case kRGBA_4444_ColorType:    return GL_UNSIGNED_SHORT_4_4_4_4;
+			case kRGB_444X_ColorType:     return GL_UNSIGNED_SHORT_4_4_4_4;
 			case kRGBA_8888_ColorType:    return GL_UNSIGNED_BYTE;
 			case kRGB_888X_ColorType:     return GL_UNSIGNED_BYTE;
-			case kBGRA_8888_ColorType:    return GL_UNSIGNED_BYTE;
-			case kRGBA_1010102_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kBGRA_1010102_ColorType: return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kRGB_101010X_ColorType:  return GL_UNSIGNED_INT_2_10_10_10_REV;
-			case kBGR_101010X_ColorType:  return GL_UNSIGNED_INT_2_10_10_10_REV;
+			case kRGBA_1010102_ColorType: return GL_UNSIGNED_INT_10_10_10_2;
+			case kRGB_101010X_ColorType:  return GL_UNSIGNED_INT_10_10_10_2;
 			case kRGB_888_ColorType:      return GL_UNSIGNED_BYTE;
-			case kRGBA_5551_ColorType:    return GL_UNSIGNED_SHORT_1_5_5_5_REV;
+			case kRGBA_5551_ColorType:    return GL_UNSIGNED_SHORT_5_5_5_1;
 			default:                      return GL_UNSIGNED_BYTE;
 		}
 	}
@@ -246,15 +234,15 @@ namespace qk {
 		return tex;
 	}
 
-	void gl_new_texture(cPixel *pix, TexStat *&out, bool isMipmap) {
-		if ( pix->body().length() == 0 )
-			return;
+	bool gl_new_texture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) {
+		if ( pix->length() == 0 )
+			return false;
 
 		ColorType type = pix->type();
 		GLint iformat = gl_get_texture_pixel_format(type);
 
 		if (!iformat)
-			return;
+			return false;
 
 		if (!out) {
 			out = gl_new_tex_stat();
@@ -269,27 +257,37 @@ namespace qk {
 #endif
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, Pixel::bytes_per_pixel(type));
-		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT 
+		// GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
+		// Qk_DLog("gl_new_texture(), len: %d, p: %p", pix->length(), pix);
+
 		if ( type >= kPVRTCI_2BPP_RGB_ColorType ) {
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 			// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_level - 1);
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
-														pix->width(),
-														pix->height(), 0/*border*/, pix->body().length(), *pix->body());
+			for (int i = 0; i < levels; i++) {
+				auto it = pix + i;
+				glCompressedTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
+															it->width(),
+															it->height(), 0/*border*/, it->body().length(), *it->body());
+			}
 		} else {
-			glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat,
-									pix->width(),
-									pix->height(), 0/*border*/, iformat/*format*/,
-									gl_get_texture_data_type(type)/*type*/, *pix->body());
-			if (isMipmap) {
+			for (int i = 0; i < levels; i++) {
+				auto it = pix + i;
+				glTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
+										it->width(),
+										it->height(), 0/*border*/, iformat/*format*/,
+										gl_get_texture_data_type(type)/*type*/, *it->body());
+			}
+			if (levels == 1 && genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 		}
+
+		return true;
 	}
 
 	void gl_tex_image2D_null(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
@@ -518,8 +516,8 @@ namespace qk {
 		}
 	}
 
-	void GLRender::newTexture(cPixel *pix, TexStat *&out, bool isMipmap) {
-		gl_new_texture(pix, out, isMipmap);
+	bool GLRender::newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) {
+		return gl_new_texture(pix, levels, out, genMipmap);
 	}
 
 	void GLRender::deleteTexture(TexStat *tex) {
@@ -583,20 +581,19 @@ namespace qk {
 	}
 
 	bool GLRender::gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint) {
+		Qk_ASSERT(slot < 8);
 		src->onState().assertHeld(); // Check mutex lock
 		auto index = paint->srcIndex + slot;
 		auto tex = const_cast<TexStat *>(src->texture(index));
 		if (!tex) {
 			auto pixel = src->pixel(index);
 			if (!pixel) {
-				return Qk_DLog("gl_set_texture() Fail, reason: src->pixel(index) == nullptr"), false;
+				return Qk_DLog("gl_set_texture() Fail %p, reason: src->pixel(%d) == nullptr", src, index), false;
 			}
-			Qk_ASSERT(slot < 8);
-			GLRender::newTexture(pixel, _texStat[slot], true);
+			if (!gl_new_texture(pixel, 1, _texStat[slot], true)) {
+				return Qk_DLog("gl_set_texture() Fail %p, reason: _texStat[%d] == nullptr", src, slot), false;
+			}
 			tex = _texStat[slot];
-			if (!tex) {
-				return Qk_DLog("gl_set_texture() Fail, reason: _texStat[slot] == nullptr"), false;
-			}
 		}
 		gl_set_texture_param(tex, slot, paint);
 		return true;
@@ -645,12 +642,15 @@ namespace qk {
 		_loop->post(cb);
 	}
 
-	void GLRenderResource::newTexture(cPixel *pix, TexStat *&out, bool isMipmap) {
-		gl_new_texture(pix, out, isMipmap);
+	bool GLRenderResource::newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) {
+		if (gl_new_texture(pix, levels, out, genMipmap))
+			return glFlush(), true;
+		return false;
 	}
 
 	void GLRenderResource::deleteTexture(TexStat *tex) {
 		glDeleteTextures(1, &tex->id);
+		glFlush();
 		delete tex;
 	}
 

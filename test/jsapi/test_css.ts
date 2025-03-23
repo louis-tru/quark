@@ -95,7 +95,7 @@ export default async function(_: any) {
 			textWhiteSpace: 'noWrap',
 			boxShadow: '2 2 2 #f00',
 			src: resolve('./res/cc.jpg'),
-			background: `image(${resolve('./res/bb.jpg')})`,
+			background: `image(${resolve('./res/0.jpg')})`,
 			type: 'ascii',
 			returnType: 'done',
 			readonly: true,

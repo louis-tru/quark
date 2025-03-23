@@ -53,7 +53,7 @@ export default async function(win: Window) {
 	const resolve = require.resolve;
 	const root = win.root;
 
-	//root.style.backgroundColor = '#ff0';
+	root.style.backgroundColor = '#aa0';
 
 	createCss({
 		'.test': { x: 0 },

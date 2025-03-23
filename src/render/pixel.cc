@@ -60,11 +60,8 @@ namespace qk {
 			case kRGB_444X_ColorType:  return 2;
 			case kRGBA_8888_ColorType: return 4;
 			case kRGB_888X_ColorType: return 4;
-			case kBGRA_8888_ColorType: return 4;
 			case kRGBA_1010102_ColorType: return 4;
-			case kBGRA_1010102_ColorType: return 4;
 			case kRGB_101010X_ColorType: return 4;
-			case kBGR_101010X_ColorType: return 4;
 			case kRGB_888_ColorType: return 3;
 			case kRGBA_5551_ColorType: return 2;
 			case kLuminance_8_ColorType: return 1;

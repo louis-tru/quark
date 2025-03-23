@@ -41,7 +41,7 @@ namespace qk {
 
 	class RenderResource: public PostMessage {
 	public:
-		virtual void newTexture(cPixel *pix, TexStat *&out, bool isMipmap) = 0;
+		virtual bool newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) = 0;
 		virtual void deleteTexture(TexStat *tex) = 0;
 	};
 

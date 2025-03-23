@@ -40,7 +40,7 @@ export default async function (win: Window) {
 			<matrix ref="div" align="start" width={100} height={100} backgroundColor="#f00" origin="auto">
 				<box width={50} height={50} align="center" backgroundColor="#ff0" />
 			</matrix>
-			<image ref="img" align="end" src={resolve('./res/10520101.jpg')} />
+			<image ref="img" align="end" src={resolve('./res/0.jpg')} />
 			<matrix width="50!" align="center" y={10} backgroundColor="#00f6">
 				<button ref="play" textLineHeight={30} backgroundColor="#aaa" margin={2}>Play</button>
 				<button ref="stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>Stop</button>
@@ -198,8 +198,8 @@ export default async function (win: Window) {
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
 		boxShadow: '2 2 2 #f00',
-		src: resolve('./res/bb.jpg'),
-		background: `image(${resolve('./res/bb.jpg')})`,
+		src: resolve('./res/aa.jpg'),
+		background: `image(${resolve('./res/aa.jpg')})`,
 	}])
 
 	Pv(act6, 'time', 0);

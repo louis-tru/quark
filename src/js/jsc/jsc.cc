@@ -889,7 +889,7 @@ namespace qk { namespace js {
 	}
 
 	JSArrayBuffer* JSTypedArray::buffer(Worker* w) {
-		DCHECK(isArrayBuffer());
+		DCHECK(isTypedArray());
 		ENV(w);
 		auto buff = JSObjectGetTypedArrayBuffer(ctx, Back<JSObjectRef>(this), JsFatal("JSArrayBuffer::buffer()"));
 		DCHECK(buff);
@@ -1062,10 +1062,15 @@ namespace qk { namespace js {
 
 	JSUint8Array* Worker::newValue(Buffer&& buff) {
 		ENV(this);
-		auto arr = JSObjectMakeTypedArrayWithBytesNoCopy(
-			ctx, kJSTypedArrayTypeUint8Array, *buff, buff.length(), [](void* bytes, void* data) {
-			Allocator::free(bytes);
-		}, nullptr, OK(nullptr));
+		JSObjectRef arr;
+		if (buff.length()) {
+			arr = JSObjectMakeTypedArrayWithBytesNoCopy(
+				ctx, kJSTypedArrayTypeUint8Array, *buff, buff.length(), [](void* bytes, void* data) {
+				Allocator::free(bytes);
+			}, nullptr, OK(nullptr));
+		} else {
+			arr = JSObjectMakeTypedArray(ctx, kJSTypedArrayTypeUint8Array, 0, OK(nullptr));
+		}
 		DCHECK(arr);
 		buff.collapse();
 		return worker->addToScope<JSUint8Array>(arr);

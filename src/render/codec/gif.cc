@@ -44,57 +44,71 @@ namespace qk {
 
 	bool img_gif_decode(cBuffer& data, Array<Pixel> *rv) {
 		GifSource source = { &data, 0 };
-		GifFileType* gif = DGifOpen(&source, GifInputFunc, NULL);
+		GifFileType* gif = DGifOpen(&source, GifInputFunc, nullptr);
 
 		if (!gif) return false;
 
 		CPointerHold<GifFileType> scope(gif, [](GifFileType* gif) {
-			DGifCloseFile(gif, NULL);
+			DGifCloseFile(gif, nullptr);
 		});
 
 		if (DGifSlurp(gif) == GIF_ERROR) return false;
 
+		typedef uint16_t type_t;
 		uint32_t width = gif->SWidth;
 		uint32_t height = gif->SHeight;
-		uint32_t rowbytes = width * 2;
+		uint32_t rowbytes = width * sizeof(type_t);
 
 		for ( int i = 0; i < gif->ImageCount; i++ ) {
 			Buffer buff(rowbytes * height); // RGBA5551
+			SavedImage* frame = gif->SavedImages + i;
+			GifImageDesc* desc = &frame->ImageDesc;
+			ColorMapObject* colorMap =  desc->ColorMap ? desc->ColorMap : gif->SColorMap;
+
 			memset(*buff, 0, buff.length());
 
-			SavedImage* image = gif->SavedImages + i;
-			GifImageDesc* desc = &image->ImageDesc;
-			ColorMapObject* ColorMap =  desc->ColorMap ? desc->ColorMap : gif->SColorMap;
-
-			int trans_color = -1;
-			for ( int k = 0; k < image->ExtensionBlockCount; k++ ) {
-				ExtensionBlock* block = image->ExtensionBlocks + k;
+			int transColor = -1;
+			for ( int k = 0; k < frame->ExtensionBlockCount; k++ ) {
+				ExtensionBlock* block = frame->ExtensionBlocks + k;
 				if ( block->Function == GRAPHICS_EXT_FUNC_CODE && block->ByteCount == 4) {
 					// int delay = (block->Bytes[2] << 8 | block->Bytes[1]) * 10;
 					/* Can sleep here */
 					if( (block->Bytes[0] & 1) == 1 ) {
-						trans_color = block->Bytes[3];
+						transColor = block->Bytes[3];
 					}
 					break;
 				}
 			}
 
-			for ( int row = 0; row < desc->Height; row++ ) {
-				GifByteType* in = image->RasterBits + row * desc->Width;
-				uint16_t* out = (uint16_t*)(buff.val() + ((desc->Top + row) * rowbytes) + desc->Left * 2);
-				
-				for ( int col = 0; col < desc->Width; col++ ) {
-					if ( trans_color == -1 || trans_color != in[col] ) { //
-						GifColorType* color = ColorMap->Colors + in[col];
-						*out =  ((color->Red >> 3) << 11) |
-										((color->Green >> 3) << 6) |
-										((color->Blue >> 3) << 1) | 1;
-					} // else  transparent
-					in++; out++;
+			for (int row = 0; row < desc->Height; row++) {
+				auto pix = frame->RasterBits + row * desc->Width;
+				auto end = pix + desc->Width;
+				auto out = ((type_t*)buff.val()) + (desc->Top + row) * width + desc->Left;
+				while (pix != end) {
+					if (transColor != *pix) {
+						auto color = colorMap->Colors[*pix];
+						// kRGBA_5551_ColorType
+						*out =  ((color.Red >> 3) << 11) |
+										((color.Green >> 3) << 6) |
+										((color.Blue >> 3) << 1) | 1;
+						// kRGBA_565_ColorType
+						// *out =  ((color.Red >> 3) << 11) |
+						// 				((color.Green >> 2) << 5) |
+						// 				((color.Blue >> 3) << 0);
+						// kRGBA_4444_ColorType
+						// *out =  ((color.Red >> 4) << 12) |
+						// 				((color.Green >> 4) << 8) |
+						// 				((color.Blue >> 4) << 4) | 0b1111;
+						// kRGBA_1010102_ColorType
+						// *out =  ((color.Red << 2) << 22) |
+						// 				((color.Green << 2) << 12) |
+						// 				((color.Blue << 2) << 2) | 0b11;
+					} // else transparent
+					pix++; out++;
 				}
 			}
-
-			rv->push(Pixel(PixelInfo(width, height, kRGBA_5551_ColorType, kUnpremul_AlphaType), buff));
+			PixelInfo info(width, height, kRGBA_5551_ColorType, kUnpremul_AlphaType);
+			rv->push(Pixel(info, buff));
 		}
 
 		return true;
@@ -102,14 +116,14 @@ namespace qk {
 
 	bool img_gif_test(cBuffer& data, PixelInfo *out) {
 		GifSource source = { &data, 0 };
-		GifFileType* gif = DGifOpen(&source, GifInputFunc, NULL);
+		GifFileType* gif = DGifOpen(&source, GifInputFunc, nullptr);
 		
 		if ( ! gif )
 			return false;
-		
+
 		uint32_t w = gif->SWidth;
 		uint32_t h = gif->SHeight;
-		DGifCloseFile(gif, NULL);
+		DGifCloseFile(gif, nullptr);
 
 		*out = PixelInfo(w, h, kRGBA_5551_ColorType, kUnpremul_AlphaType);
 

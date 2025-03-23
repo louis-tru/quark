@@ -88,7 +88,7 @@ namespace qk { namespace js {
 		}
 
 		typedef EventNoticerBasic Basic;
-		auto f = [this, func, cData](Event<>& e) {
+		std::function<void(Event<>&)> f = [this, func, cData](Event<>& e) {
 			auto worker = this->worker();
 			Js_Handle_Scope(); // Callback Scope
 			// arg event

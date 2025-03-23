@@ -239,7 +239,7 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const ArrayFloat& value) {
 		auto arr = worker->newArray(/*value.length()*/);
-		for (int i = 0; i < value.length(); i ++) {
+		for (uint32_t i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, worker->newValue(value[i]));
 		}
 		return arr;
@@ -251,7 +251,7 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const ArrayColor& value) {
 		auto arr = worker->newArray(/*value.length()*/);
-		for (int i = 0; i < value.length(); i ++) {
+		for (uint32_t i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, jsvalue(value[i]));
 		}
 		return arr;
@@ -259,7 +259,7 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const ArrayOrigin& value) {
 		auto arr = worker->newArray(/*value.length()*/);
-		for (int i = 0; i < value.length(); i ++) {
+		for (uint32_t i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, jsvalue(value[i]));
 		}
 		return arr;
@@ -267,7 +267,7 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const ArrayBorder& value) {
 		auto arr = worker->newArray(/*value.length()*/);
-		for (int i = 0; i < value.length(); i ++) {
+		for (uint32_t i = 0; i < value.length(); i ++) {
 			arr->set(worker, i, jsvalue(value[i]));
 		}
 		return arr;

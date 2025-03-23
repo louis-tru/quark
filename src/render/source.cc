@@ -83,13 +83,11 @@ namespace qk {
 		Sp<ImageSource> img = new ImageSource(res, nullptr);
 		if (pixels.length()) {
 			img->_info = pixels[0];
-			if (pixels[0].val()) {
+			if (pixels[0].length()) {
 				img->_state = kSTATE_LOAD_COMPLETE;
+				img->_pixels = std::move(pixels);
 				if (res) {
-					img->_pixels = copyInfo(pixels);
-					img->_ReloadTexture(pixels);
-				} else {
-					img->_pixels = std::move(pixels);
+					img->_ReloadTexture();
 				}
 			}
 		}
@@ -122,10 +120,8 @@ namespace qk {
 
 		if (_pixels.length()) {
 			AutoMutexExclusive ame(_onState); // lock, safe assign `_pixels`
-			if (_pixels.length() && _pixels.front().body().length()) {
-				Array<Pixel> pixels(std::move(_pixels));
-				_pixels = copyInfo(pixels);
-				_ReloadTexture(pixels);
+			if (_pixels.length() && _pixels.front().length()) {
+				_ReloadTexture();
 			}
 		}
 		return true;
@@ -172,10 +168,10 @@ namespace qk {
 						self->_onState.lock(); // lock, safe assign `_pixels`
 						self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
 						self->_info = pixels[0];
-						self->_pixels = self->_res ? copyInfo(pixels): std::move(pixels);
+						self->_pixels = std::move(pixels);
 						self->_onState.unlock();
 						if (self->_res) {
-							self->_ReloadTexture(pixels);
+							self->_ReloadTexture();
 						}
 					} else { // decode fail
 						self->_state = State((self->_state | kSTATE_DECODE_ERROR)  & ~kSTATE_LOADING);
@@ -199,21 +195,31 @@ namespace qk {
 		New<Running>()->run(this, data);
 	}
 
-	void ImageSource::_ReloadTexture(Array<Pixel>& pixels) {
+	void ImageSource::_ReloadTexture() {
 		// set gpu texture, Must be processed in the rendering thread
 		struct Running: Cb::Core {
-			Running(ImageSource* s, Array<Pixel>& p): source(s), pixels(std::move(p)) {
+			Running(ImageSource* s): source(s) {
 			}
 			void call(Data& evt) override {
 				AutoMutexExclusive ame(source.get()->_onState);
 				auto self = source.get();
+				auto &pixels = self->_pixels;
 				int i = 0;
+				int levels = 1;
 				int len = pixels.length(), old_len = self->_tex.length();
+				if (len > 1) {
+					if (pixels[0].width() >> 1 == pixels[1].width()) {
+						levels = len;
+						len = 1;
+					}
+				}
 				Array<const TexStat*> texStat(len);
+
+				// Qk_DLog("_ReloadTexture(), len: %d, uri: %s", pixels[0].length(), self->_uri.c_str());
 
 				while (i < len) {
 					auto tex = const_cast<TexStat *>(i < old_len ? self->_tex[i]: nullptr);
-					self->_res->newTexture(pixels.val() + i, tex, true);
+					self->_res->newTexture(pixels.val() + i, levels, tex, true);
 					texStat[i++] = tex;
 				}
 
@@ -223,11 +229,11 @@ namespace qk {
 					i++;
 				}
 				self->_tex = std::move(texStat);
+				self->_pixels = copyInfo(self->_pixels); // delete pixels data as save memory space
 			}
 			Sp<ImageSource> source;
-			Array<Pixel>    pixels;
 		};
-		_res->post_message(Cb(new Running(this, pixels)));
+		_res->post_message(Cb(new Running(this)));
 	}
 
 	void ImageSource::unload() {

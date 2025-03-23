@@ -80,7 +80,7 @@ namespace qk { namespace js {
 
 			Js_Class_Method(addFontFamily, {
 				WeakBuffer buff;
-				if (!args.length() || args[0]->asBuffer(worker).to(buff) ) {
+				if (!args.length() || !args[0]->asBuffer(worker).to(buff) ) {
 					Js_Throw("@method FontPool.addFontFamily(cBuffer& buff, cString& alias = String())");
 				}
 				Js_Self(FontPool);

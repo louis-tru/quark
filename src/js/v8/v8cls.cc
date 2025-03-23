@@ -32,18 +32,21 @@
 
 namespace qk { namespace js {
 
+	inline v8::PersistentBase<v8::Object>* Cast(JSObject *&obj) {
+		return reinterpret_cast<v8::PersistentBase<v8::Object>*>(&obj);
+	}
+
 	void MixObject::clearWeak() {
 		Qk_ASSERT_NE(_handle, nullptr);
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&_handle);
-		h->ClearWeak();
+		Cast(_handle)->ClearWeak();
 	}
 
 	void MixObject::setWeak() {
-		Qk_ASSERT_NE( _handle, nullptr);
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&_handle);
+		Qk_ASSERT_NE(_handle, nullptr);
 		//h->MarkIndependent();
-		h->SetWeak(this, [](const v8::WeakCallbackInfo<MixObject>& info) {
+		Cast(_handle)->SetWeak(this, [](const v8::WeakCallbackInfo<MixObject>& info) {
 			auto ptr = info.GetParameter();
+			Cast(ptr->_handle)->Reset();
 			ptr->~MixObject(); // destroy mix
 			ptr->self()->destroy(); // destroy object
 		}, v8::WeakCallbackType::kParameter);
@@ -51,9 +54,8 @@ namespace qk { namespace js {
 
 	void MixObject::bindObject(JSObject* handle) {
 		Qk_ASSERT_EQ(_handle, nullptr);
-		auto h = reinterpret_cast<v8::PersistentBase<v8::Object>*>(&_handle);
 		auto v8h = Back<v8::Object>(handle);
-		h->Reset(ISOLATE(worker()), v8h);
+		Cast(_handle)->Reset(ISOLATE(worker()), v8h);
 		v8h->SetAlignedPointerInInternalField(0, this);
 	}
 

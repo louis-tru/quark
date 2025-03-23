@@ -196,7 +196,7 @@ namespace qk
 						}
 						break;
 					default:
-						Qk_DLog("event, %d, %d", event.type, time_second());
+						//Qk_DLog("event, %d, %d", event.type, time_second());
 						break;
 				}
 			} while(!is_process_exit());

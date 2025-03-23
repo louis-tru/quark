@@ -40,6 +40,9 @@ using namespace qk;
 void test_jsapi(int argc, char **_) {
 	Array<String> argv;
 
+	for (int i = 1; i < argc; i++)
+		argv.push(_[i]);
+
 #if USE_INSPECT
 	argv.push("--inspect-brk=0.0.0.0:9229");
 #endif

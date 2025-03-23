@@ -349,28 +349,30 @@ namespace qk {
 			auto origin = Vec2();// Vec2{b->margin_left(),b->margin_top()};
 			auto size = b->_client_size;
 			auto color = v->scrollbar_color().to_color4f_alpha(_opacity * v->_scrollbar_opacity);
-
-			_IfBorder(b) {
-				size[0] -= (_border->width[3] + _border->width[1]); // left + right
-				size[1] -= (_border->width[0] + _border->width[2]); // top + bottom
-			}
+			auto _border = b->_border.load();
 
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar
 				float radius[] = {width,width,width,width};
-				auto &rect = _cache->getRRectPath({
-					{v->_scrollbar_position_h[0], size.y() - width - margin},
+				Rect rect = {
+					{v->_scrollbar_position_h[0], size[1] - width - margin},
 					{v->_scrollbar_position_h[1], width}
-				}, radius);
-				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
+				};
+				if (_border) {
+					rect.origin += {_border->width[3], -_border->width[0]};
+				}
+				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, kSrcOver_BlendMode);
 			}
 
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
 				float radius[] = {width,width,width,width};
-				auto &rect = _cache->getRRectPath({
-					{size.x() - width - margin, v->_scrollbar_position_v[0]},
-					{width,                     v->_scrollbar_position_v[1]}
-				}, radius);
-				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
+				Rect rect = {
+					{size[0] - width - margin, v->_scrollbar_position_v[0]},
+					{width,                    v->_scrollbar_position_v[1]}
+				};
+				if (_border) {
+					rect.origin += {-_border->width[3], _border->width[0]};
+				}
+				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, kSrcOver_BlendMode);
 			}
 		}
 	}
@@ -671,6 +673,7 @@ namespace qk {
 				_matrix = &v->mat();
 				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
 				_canvas->clearColor(v->_background_color.to_color4f());
+				// _canvas->clearColor(Color4f(1,0,0,1));
 
 				drawBoxShadow(v, data);
 				drawBoxFill(v, data);

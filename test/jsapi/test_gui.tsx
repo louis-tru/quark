@@ -30,6 +30,7 @@
 
 import { _CVD, Window, createCss, Button } from 'quark'
 import {HighlightedStatus} from 'quark/event'
+import util from 'quark/util'
 
 const resolve = require.resolve
 
@@ -54,7 +55,7 @@ export default async function test1(win: Window) {
 		'.box': { width: "20%", height: 80, align: 'start' }
 	})
 
-	// console.log(resolve('./res/bb.jpg'));
+	// console.log(resolve('./res/0.jpg'));
 	// console.log(resolve('./res/cc.jpg'));
 
 	win.render(
@@ -81,7 +82,7 @@ export default async function test1(win: Window) {
 			ref="view1"
 		>
 			<box width="match">
-				<button class="btn" backgroundColor="#f10" />
+				<button class="btn" backgroundColor="#f10" onClick={e=>util.gc()} />
 				<button class="btn" backgroundColor="#f30" />
 				<button class="btn" backgroundColor="#f50" />
 				<button class="btn" backgroundColor="#f70" />
@@ -145,7 +146,7 @@ export default async function test1(win: Window) {
 				<box class="box" backgroundColor="#f60" />
 				<box class="box" backgroundColor="#f50" />
 				<box class="box" backgroundColor="#f40" />
-				<image width="20%" height={80} src={resolve('./res/bb.jpg')} />
+				<image width="20%" height={80} src={resolve('./res/0.jpg')} />
 				<box class="box" backgroundColor="#f30" />
 				<box class="box" backgroundColor="#f20" />
 				<box class="box" backgroundColor="#f10" />

@@ -140,7 +140,7 @@ namespace qk { namespace js {
 		if ( cb && cb->isFunction() ) {
 			Func func(worker, cb);
 			typedef Callback<ResponseData> Cb;
-			
+
 			return Cb([worker, func](Cb::Data& d) {
 				Js_Handle_Scope(); // Callback Scope
 

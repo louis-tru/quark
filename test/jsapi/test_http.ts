@@ -7,7 +7,7 @@ import * as fs from 'quark/fs'
 import * as buffer from 'quark/buffer'
 import util from 'quark/util'
 
-const tools_test_url = 'http://192.168.2.169:1026'
+const tools_test_url = 'http://192.168.0.200:1026'
 
 export default async function(_: any) {
 	const cl = new HttpClientRequest()

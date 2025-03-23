@@ -159,7 +159,7 @@ namespace qk {
 		ImageSource(RenderResource *res, RunLoop *loop);
 		void _Decode(Buffer& data);
 		void _Unload(bool destroy);
-		void _ReloadTexture(Array<Pixel>& pixels);
+		void _ReloadTexture();
 
 		PixelInfo    _info;
 		Array<Pixel> _pixels;
