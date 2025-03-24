@@ -92,9 +92,9 @@ void test2 (const string& str) {
 void test_string (int argc, char **argv) {
 	
 	// utf8 / ucs2 / ucs4
-	String2 ucs2 = codec_decode_to_ucs2(kUTF8_Encoding, String("楚学文").array().buffer()); // 解码
-	String4 ucs4 = codec_decode_to_unicode(kUTF8_Encoding, String("楚学文").array().buffer());
-	String utf8_1 = codec_encode(kUTF8_Encoding, ucs2.array().buffer()); // 编码
+	String2 ucs2 = codec_decode_to_ucs2(kUTF8_Encoding, String("哎呀").array().buffer());
+	String4 ucs4 = codec_decode_to_unicode(kUTF8_Encoding, String("咔咔").array().buffer());
+	String utf8_1 = codec_encode(kUTF8_Encoding, ucs2.array().buffer());
 	String utf8_2 = codec_encode(kUTF8_Encoding, ucs4.array().buffer());
 	
 	Qk_Log(ucs2.hashCode() % 10);

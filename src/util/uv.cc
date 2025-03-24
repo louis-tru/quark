@@ -70,9 +70,12 @@ namespace qk {
 			auto sp = tasks->getTask(id);
 			if (sp) {
 				auto task = sp.get();
+				// If the current call is issued from an internal io event,
+				// it will cause problems if it is terminated directly,
+				// so it must always be called asynchronously.
 				task->_loop->post(Cb([id, task](Cb::Data& e) {
 					task->abort();
-				}), task);
+				}, task), true);
 			} // if (tasks->values.get(id, out))
 		}
 	}

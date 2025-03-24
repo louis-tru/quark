@@ -70,6 +70,10 @@
 			'test-action.cc',
 			'test-openurl.cc',
 			'test-input.cc',
+			'test-jsx.cc',
+			'test-v8.cc',
+			'test-jsc.cc',
+			'test-jsapi.cc',
 			'test.cc',
 		],
 		'conditions': [
@@ -95,13 +99,7 @@
 					# '../examples/out/examples',
 				],
 			}],
-			['use_js==1', {
-				'sources': [
-					'test-jsx.cc',
-					'test-v8.cc',
-					'test-jsc.cc',
-					'test-jsapi.cc',
-				],
+			['use_js==1 and OS!="mac"', {
 				'copies': [{
 					'destination': '<(output)',
 					'files': [

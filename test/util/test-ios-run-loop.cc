@@ -29,9 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <quark/util/macros.h>
-
-#if FX_IOS
-
+#if Qk_MAC
 #include <quark/util/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>
@@ -48,8 +46,7 @@ static void _timer(CFRunLoopTimerRef timer __unused, void *info) {
 	CFRunLoopSourceSignal(source);
 }
 
-int test_ios_run_loop(int argc, char **argv) {
-	
+void test_ios_run_loop(int argc, char **argv) {
 	CFRunLoopSourceRef source;
 	CFRunLoopSourceContext source_context;
 	CFRunLoopTimerRef timer;
@@ -71,8 +68,7 @@ int test_ios_run_loop(int argc, char **argv) {
 	
 	CFRunLoopContainsSource(CFRunLoopGetCurrent(), source, kCFRunLoopCommonModes);
 	CFRunLoopRun();
-
-	return 0;
 }
-
+#else
+void test_ios_run_loop(int argc, char **argv) {}
 #endif

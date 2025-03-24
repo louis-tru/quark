@@ -28,6 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#if !defined(USE_JS) || !defined(USE_JSC)
+void test_jsc(int argc, char **argv) {}
+#else
 #include "quark/util/macros.h"
 #ifdef Qk_MAC
 #include "quark/util/array.h"
@@ -468,6 +471,5 @@ void test_jsc1(int argc, char **argv) {
 	JSContextGroupRelease(group);
 }
 
-#else
-void test_jsc(int argc, char **argv) {}
+#endif
 #endif

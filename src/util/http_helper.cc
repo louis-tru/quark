@@ -51,13 +51,13 @@ namespace qk {
 
 	typedef Callback<StreamResponse> SCb;
 
-	static uint32_t http_request(RequestOptions& options, HttpCb cb, SCb scb) throw(HttpError) {
+	static uint32_t http_request(RequestOptions& options, HttpCb cb, SCb scb, bool isStream) throw(HttpError) {
 		
 		class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public Stream {
 		public:
 			HttpCb cb;
 			SCb scb;
-			bool response_data;
+			bool response_data, isStream;
 			Array<String> data;
 			HttpClientRequest* client;
 
@@ -74,19 +74,19 @@ namespace qk {
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				HttpError e(error.code(),
 										error.message() + ", " + req->url(), req->status_code(), req->url());
-				scb ? scb->reject(&e): cb->reject(&e);
+				isStream ? scb->reject(&e): cb->reject(&e);
 				abort(); // abort and release
 			}
 
 			virtual void trigger_http_timeout(HttpClientRequest* req) {
 				HttpError e(ERR_HTTP_REQUEST_TIMEOUT,
 										String("http request timeout") + ", " + req->url(), 0, req->url());
-				scb ? scb->reject(&e): cb->reject(&e);
+				isStream ? scb->reject(&e): cb->reject(&e);
 				abort(); // abort and release
 			}
 
 			virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
-				if ( scb ) {
+				if ( isStream ) {
 					StreamResponse data({client->download_size(),
 															client->download_total(), buffer, this, id(), false});
 					scb->resolve(&data);
@@ -110,8 +110,8 @@ namespace qk {
 											String::format("Http status error, status code:%d, %s",
 																		req->status_code(), req->url().c_str()),
 											req->status_code(), req->url());
-					scb ? scb->reject(&e): cb->reject(&e);
-				} else if ( scb ) {
+					isStream ? scb->reject(&e): cb->reject(&e);
+				} else if ( isStream ) {
 					Buffer buffer;
 					StreamResponse data({client->download_size(),
 															client->download_total(), buffer, this, id(), true});
@@ -136,9 +136,7 @@ namespace qk {
 			virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
 
 			virtual void abort() {
-				auto cli = client;
-				client = nullptr;
-				Release(cli);
+				Releasep(client);
 				AsyncIOTask::abort();
 			}
 
@@ -167,6 +165,7 @@ namespace qk {
 
 			task->cb = cb;
 			task->scb = scb;
+			task->isStream = isStream;
 
 			if ( !options.upload.isEmpty() ) { // 需要上传文件
 				req->set_upload_file("file", options.upload);
@@ -193,11 +192,11 @@ namespace qk {
 	* @func request
 	*/
 	uint32_t http_request(RequestOptions& options, HttpCb cb) throw(HttpError) {
-		return http_request(options, cb, 0);
+		return http_request(options, cb, 0, 0);
 	}
 
 	uint32_t http_request_stream(RequestOptions& options, Callback<StreamResponse> cb) throw(HttpError) {
-		return http_request(options, 0, cb);
+		return http_request(options, 0, cb, 1);
 	}
 
 	static RequestOptions default_request_options(cString& url) {
@@ -221,7 +220,7 @@ namespace qk {
 	uint32_t http_download(cString& url, cString& save, HttpCb cb) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.save = save;
-		return http_request(options, cb, 0);
+		return http_request(options, cb, 0, 0);
 	}
 
 	/**
@@ -232,7 +231,7 @@ namespace qk {
 		options.upload = file;
 		options.method = HTTP_METHOD_POST;
 		options.disable_cache = true;
-		return http_request(options, cb, 0);
+		return http_request(options, cb, 0, 0);
 	}
 
 	/**
@@ -241,7 +240,7 @@ namespace qk {
 	uint32_t http_get(cString& url, HttpCb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
-		return http_request(options, cb, 0);
+		return http_request(options, cb, 0, 0);
 	}
 
 	/**
@@ -250,7 +249,7 @@ namespace qk {
 	uint32_t http_get_stream(cString& url, SCb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
-		return http_request(options, 0, cb);
+		return http_request(options, 0, cb, 1);
 	}
 
 	/**
@@ -260,7 +259,7 @@ namespace qk {
 		RequestOptions options = default_request_options(url);
 		options.method = HTTP_METHOD_POST;
 		options.post_data = data;
-		return http_request(options, cb, 0);
+		return http_request(options, cb, 0, 0);
 	}
 
 	Buffer http_request_sync(RequestOptions& options) throw(HttpError) {

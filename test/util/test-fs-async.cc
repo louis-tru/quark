@@ -110,7 +110,7 @@ class AsyncFileWrite: public File, public File::Delegate {
 	virtual void trigger_file_read(File* file, Buffer& buffer, int mark) {}
 };
 
-void test_file_async(int argc, char **argv) {
+void test_fs_async(int argc, char **argv) {
 	New<AsyncFileWrite>(fs_documents("test2.txt"))->open(FOPEN_A);
 	RunLoop::current()->run();
 }

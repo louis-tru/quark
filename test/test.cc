@@ -31,74 +31,85 @@
 #include "quark/ui/app.h"
 #include "quark/util/loop.h"
 
-#ifndef TEST_FUNC_NAME
-////
-// #define TEST_FUNC_NAME test_atomic
-// #define TEST_FUNC_NAME test_buffer
-// #define TEST_FUNC_NAME test_event
-// #define TEST_FUNC_NAME test_fs_async
-// #define TEST_FUNC_NAME test_fs
-// #define TEST_FUNC_NAME test_fs2
-// #define TEST_FUNC_NAME test_http_cookie
-// #define TEST_FUNC_NAME test_http
-// #define TEST_FUNC_NAME test_http2
-// #define TEST_FUNC_NAME test_http3
-// #define TEST_FUNC_NAME test_https
-// #define TEST_FUNC_NAME test_ios_run_loop
-// #define TEST_FUNC_NAME test_json
-// #define TEST_FUNC_NAME test_list
-// #define TEST_FUNC_NAME test_localstorage
-// #define TEST_FUNC_NAME test_loop
-// #define TEST_FUNC_NAME test_map
-// #define TEST_FUNC_NAME test_mutex
-// #define TEST_FUNC_NAME test_net-ssl
-// #define TEST_FUNC_NAME test_net
-// #define TEST_FUNC_NAME test_number
-// #define TEST_FUNC_NAME test_os_info
-// #define TEST_FUNC_NAME test_sizeof
-// #define TEST_FUNC_NAME test_ssl
-// #define TEST_FUNC_NAME test_string
-// #define TEST_FUNC_NAME test_thread
-// #define TEST_FUNC_NAME test_util
-// #define TEST_FUNC_NAME test_uv
-// #define TEST_FUNC_NAME test_zlib
-/// UI
-// #define TEST_FUNC_NAME test_action
-// #define TEST_FUNC_NAME test_alsa_ff
-// #define TEST_FUNC_NAME test_blur
-// #define TEST_FUNC_NAME test_canvas
-// #define TEST_FUNC_NAME test_css
-// #define TEST_FUNC_NAME test_draw_efficiency
-// #define TEST_FUNC_NAME test_ffmpeg
-// #define TEST_FUNC_NAME test_media
-// #define TEST_FUNC_NAME test_freetype
-#define TEST_FUNC_NAME test_gui
-// #define TEST_FUNC_NAME test_input
-// #define TEST_FUNC_NAME test_jsc
-// #define TEST_FUNC_NAME test_jsx
-// #define TEST_FUNC_NAME test_layout
-// #define TEST_FUNC_NAME test_linux_input_2
-// #define TEST_FUNC_NAME test_linux_input
-// #define TEST_FUNC_NAME test_openurl
-// #define TEST_FUNC_NAME test_outimg
-// #define TEST_FUNC_NAME test_rrect
-// #define TEST_FUNC_NAME test_subcanvas
-// #define TEST_FUNC_NAME test_jsapi
-// #define TEST_FUNC_NAME test_v8
-#endif
+#define Func_Tables(F) \
+	F(atomic) \
+	F(buffer) \
+	F(event) \
+	F(fs_async) \
+	F(fs) \
+	F(fs2) \
+	F(http_cookie) \
+	F(http) \
+	F(http2) \
+	F(http3) \
+	F(https) \
+	F(ios_run_loop) \
+	F(json) \
+	F(list) \
+	F(localstorage) \
+	F(loop) \
+	F(map) \
+	F(mutex) \
+	F(net_ssl) \
+	F(net) \
+	F(number) \
+	F(os_info) \
+	F(sizeof) \
+	F(ssl) \
+	F(string) \
+	F(thread) \
+	F(util) \
+	F(uv) \
+	F(zlib) \
+	/* UI*/ \
+	F(action) \
+	F(alsa_ff) \
+	F(blur) \
+	F(canvas) \
+	F(css) \
+	F(draw_efficiency) \
+	F(ffmpeg) \
+	F(media) \
+	F(freetype) \
+	F(gui) \
+	F(input) \
+	F(jsc) \
+	F(jsx) \
+	F(layout) \
+	F(linux_input_2) \
+	F(linux_input) \
+	F(openurl) \
+	F(outimg) \
+	F(rrect) \
+	F(subcanvas) \
+	F(jsapi) \
+	F(v8) \
+
+#define DEFAULT_CALLS(F) \
+	F(v8) \
+
+#define _Fun(n) \
+	void test_##n(int argc, char** argv);
+Func_Tables(_Fun)
+#undef _Fun
 
 using namespace qk;
 
-void TEST_FUNC_NAME(int argc, char** argv);
-
 Qk_Main() {
-
 	uint64_t st = time_micro();
 
-	TEST_FUNC_NAME(argc, argv);
+	#define _Fun(n) else if (strcmp(argv[1], #n) == 0) { test_##n(argc, argv); }
+	#define _Fun2(n) (test_ ## n)(argc, argv);
+
+	if (argc < 2) {
+		DEFAULT_CALLS(_Fun2);
+	}
+	Func_Tables(_Fun)
+	else {
+		DEFAULT_CALLS(_Fun2);
+	}
 
 	Qk_Log("Test eclapsed time:%dMs\n", (time_micro() - st) / 1000);
-
 	return 0;
 }
 

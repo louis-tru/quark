@@ -45,9 +45,9 @@ namespace qk {
 	static Mutex mutex;
 
 	static inline DefaultCallbackCore* default_callback() {
-		if ( !default_callback ) {
+		if ( !default_callback_ ) {
 			ScopeLock scope(mutex);
-			if (!default_callback) {
+			if (!default_callback_) {
 				default_callback_ = new DefaultCallbackCore();
 			}
 		}

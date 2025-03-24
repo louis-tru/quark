@@ -17,6 +17,9 @@
 			'quark-media',
 			'build_libs_quark',
 		],
+		'direct_dependent_settings': {
+			'defines': [ 'USE_JS=1' ],
+		},
 		'sources': [
 			'cb.cc',
 			'init.cc',

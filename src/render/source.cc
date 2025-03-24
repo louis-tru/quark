@@ -207,7 +207,7 @@ namespace qk {
 				int i = 0;
 				int levels = 1;
 				int len = pixels.length(), old_len = self->_tex.length();
-				if (len > 1) {
+				if (len > 1 && self->_info.type() >= kPVRTCI_2BPP_RGB_ColorType) {
 					if (pixels[0].width() >> 1 == pixels[1].width()) {
 						levels = len;
 						len = 1;

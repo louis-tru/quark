@@ -46,7 +46,6 @@ class Test {
 	
 	dd() {
 		var color = new types.Color(100, 200, 300, 400);
-		
 		console.log(color.toString());
 		console.log(color.toHex32String());
 		console.log(color.toRGBString());
@@ -63,19 +62,16 @@ class Test {
 		console.log(toString(buff));
 		console.log(toString(buff, 'hex'));
 		console.log(toString(buff, 'base64'));
-
 		console.log(os.info());
-		// console.log(http.getSync('http://www.baidu.com/').to_string());
-		
-		// http.get('http://www.baidu.com/', function(buff) {
+
+		// console.log(toString(http.getSync('http://www.baidu.com/')));
+		// console.log(toString(http.getSync('https://fanyi.baidu.com/mtpe-individual/multimodal#/')));
 		http.get('https://fanyi.baidu.com/mtpe-individual/multimodal#/').then(e=>{
 			console.log('https://fanyi.baidu.com/mtpe-individual/multimodal#/', toString(e.data), e.data.length);
 		});
 
 		var o = { a: 1000, b: buff0, c: buff, d: buff2, e: this, u: {} as any };
-
 		o.u = o;
-
 		console.log(o);
 
 		setTimeout(function() {

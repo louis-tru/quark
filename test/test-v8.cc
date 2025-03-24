@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#if USE_JSC
+#if !defined(USE_JS) || defined(USE_JSC)
 void test_v8(int argc, char **argv) {}
 #else
 #include "quark/util/util.h"

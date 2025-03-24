@@ -37,20 +37,20 @@
 using namespace qk;
 
 void test_http(int argc, char **argv) {
-	Qk_Log(http_get_sync("http://www.163.com/"));
-	
-	String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
-	"14461-ai-de-zhui-zong-01-ji_201608180551/14461-ai-de-zhui-zong-01-ji.m3u8";
-	String m3u8_2 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
-	"14461-ai-de-zhui-zong-01-ji_201608180551/hls1600k/14461-ai-de-zhui-zong-01-ji.m3u8";
+	// Qk_Log(http_get_sync("http://www.163.com/"));
+
+	// String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
+	// "14461-ai-de-zhui-zong-01-ji_201608180551/14461-ai-de-zhui-zong-01-ji.m3u8";
+	// String m3u8_2 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
+	// "14461-ai-de-zhui-zong-01-ji_201608180551/hls1600k/14461-ai-de-zhui-zong-01-ji.m3u8";
 	String url  = "http://www.baidu.com/";
-	
-	http_download_sync("https://www.baidu.com/", fs_documents("baidu3.htm"));
-	
-	Qk_Log(fs_read_file_sync(fs_documents("baidu3.htm")));
-	
+
+	// http_download_sync("https://www.baidu.com/", fs_documents("baidu3.htm"));
+
+	// Qk_Log(fs_read_file_sync(fs_documents("baidu3.htm")));
+
 	typedef Callback<StreamResponse> Cbs;
-	
+
 	http_get_stream(url, Cbs([](Cbs::Data& d) {
 		if ( d.error ) {
 			Qk_Log(d.error->message());
@@ -59,12 +59,12 @@ void test_http(int argc, char **argv) {
 			int len = data->data.length();
 			Qk_Log(String(data->data.collapse(), len));
 			Qk_Log("%llu/%llu, complete: %i", data->size, data->total, data->end);
-			
+
 			fs_abort(data->id);
 		}
 	}));
-	
+
 	RunLoop::current()->run();
-	
+
 	Qk_Log("END");
 }

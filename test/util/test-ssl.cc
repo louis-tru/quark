@@ -46,42 +46,30 @@ using namespace qk;
 #define SHUTDOWN(fd)    { shutdown((fd),0); close((fd)); }
 #define SHUTDOWN2(fd)   { shutdown((fd),2); close((fd)); }
 
-// destination IP address
-const char* DEST_IP = "61.135.169.125";
+namespace qk {
+	X509_STORE* NewRootCertStore();
+}
 
-// destination IP port
+// destination URL address
+const char* DEST_URL = "www.baidu.com";
+// destination port
 const int DEST_PORT = 443;
 
 static SSL_CTX *sctx = nullptr;
-static X509_STORE* root_cert_store = nullptr;
-
-static void init_root_cert() {
-	root_cert_store = X509_STORE_new();
-	
-	String cacert = fs_resources("cacert.pem");
-	
-	X509_STORE_load_locations(root_cert_store, fs_fallback_c(cacert), nullptr);
-	
-}
 
 static void init_ssl() {
-	
 	static int i = 0;
-	
+
 	if ( i++ == 0 ) {
-		
 		// Initialize ssl libraries and error messages
 		SSL_load_error_strings();
 		SSL_library_init();
-		
-		init_root_cert();
-		
+
 		sctx = SSL_CTX_new(SSLv23_client_method());
-		
-		SSL_CTX_set_cert_store(sctx, root_cert_store);
-		
+
+		SSL_CTX_set_cert_store(sctx, NewRootCertStore());
+
 		SSL_CTX_set_verify(sctx, SSL_VERIFY_PEER, NULL);
-		// SSL_CTX_set_cert_verify_callback(sctx, cert_verify_callback, nullptr);
 	}
 }
 
@@ -195,7 +183,6 @@ static int SSLCertCallback(SSL* s, void* arg) {
 }
 
 void test_ssl(int argc, char **argv) {
-	
 	init_ssl();
 	
 	// request to send to the destination
@@ -203,7 +190,7 @@ void test_ssl(int argc, char **argv) {
 	"GET / HTTP/1.1\r\n"
 	"Connection: close\r\n"
 	"Host: www.baidu.com\r\n\r\n";
-	
+
 	// create a socket
 	int sockfd = socket(PF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
@@ -211,11 +198,14 @@ void test_ssl(int argc, char **argv) {
 		return;
 	}
 	
+	hostent* host = gethostbyname(DEST_URL);
+
 	// destination info
 	struct sockaddr_in dest_addr;
 	dest_addr.sin_family = AF_INET; 	    // host byte order
 	dest_addr.sin_port = htons(DEST_PORT);    // short, network port
-	dest_addr.sin_addr.s_addr = inet_addr(DEST_IP); // destination address
+	// dest_addr.sin_addr.s_addr = inet_addr(DEST_IP); // destination address
+	dest_addr.sin_addr = *((struct in_addr *)host->h_addr_list[0]);
 	memset(&(dest_addr.sin_zero), '\0', 8);         // zero out the rest of the struct
 	
 	// connect to the server

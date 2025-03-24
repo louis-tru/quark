@@ -189,7 +189,8 @@ namespace qk {
 				}
 				Qk_ASSERT(_socket);
 				_socket->set_delegate(this);
-				_z_strm.state = nullptr;
+
+				memset(&_z_strm, 0, sizeof(_z_strm));
 
 				_parser.data = this;
 				http_parser_settings_init(&_settings); // init
@@ -203,10 +204,11 @@ namespace qk {
 			}
 
 			~Connect() {
-				Qk_ASSERT( _id == ConnectID() );
+				Qk_ASSERT(_id == ConnectID());
 				Releasep(_socket);
 				Releasep(_upload_file);
 				gzip_inflate_end();
+				Qk_DLog("Connect::~Connect()");
 			}
 
 			inline RunLoop* loop() { return _loop; }
@@ -295,9 +297,9 @@ namespace qk {
 				if ( _header.has("content-encoding") ) {
 					String encoding = _header["content-encoding"];
 					if ( encoding.indexOf("gzip") != -1 ) {
-						inflateInit2(&_z_strm, 47);
+						Qk_ASSERT_EQ(0, inflateInit2(&_z_strm, 47));
 					} else if ( encoding.indexOf("deflate") != -1 ) {
-						inflateInit(&_z_strm);
+						Qk_ASSERT_EQ(0, inflateInit(&_z_strm));
 					}
 				}
 			}

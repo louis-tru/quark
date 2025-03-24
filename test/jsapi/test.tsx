@@ -56,20 +56,20 @@ async function test_(win: Window) {
 // import test from './test_storage'
 // import test from './test_types'
 // import test from './test_util'
-// import test from './test_buf'
+ import test from './test_buf'
 // import test from './test_app'
 // import test from './test_action'
 // import test from './test_font'
 // import test from './test_css'
 // import test from './test_event'
 // import test from './test_gui'
-import test from './test_view'
+// import test from './test_view'
 // import test from './test_window'
 
 (async function() {
 	var mod;
 	try {
-		mod = require(`./test_${util.argv[2]}`);
+		mod = require(`./test_${util.argv[3]}`);
 	} catch(e) {}
 
 	if (mod) {

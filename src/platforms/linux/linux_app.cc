@@ -112,6 +112,8 @@ namespace qk
 			Atom wmProtocols    = XInternAtom(_xdpy, "WM_PROTOCOLS"    , False);
 			Atom wmDeleteWindow = XInternAtom(_xdpy, "WM_DELETE_WINDOW", False);
 
+			Qk_On(ProcessExit, [this](auto e) { Cb cb; addMsg(cb); });
+
 			WindowImpl* impl;
 			XEvent event;
 			do {

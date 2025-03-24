@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	Qk_Log("START");
 	
-	write_str = fs_reader()->read_file_sync(fs_resources("quark/ctr.js"));
+	write_str = fs_reader()->read_file_sync(fs_resources("jsapi/test.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(fs_documents("test_fs2.txt"));
 
