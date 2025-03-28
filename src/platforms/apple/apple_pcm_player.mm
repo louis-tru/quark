@@ -35,18 +35,18 @@
 
 namespace qk {
 
-	class MacPCMPlayer: public Object, public PCMPlayer {
+	class ApplePCMPlayer: public Object, public PCMPlayer {
 	public:
 		Object* asObject() override { return this; }
 
-		MacPCMPlayer()
+		ApplePCMPlayer()
 			: _audio(nil)
 			, _queue_num_half(0)
 			, _volume(1), _play(false), _mute(false)
 		{
 		}
 
-		~MacPCMPlayer() {
+		~ApplePCMPlayer() {
 			{
 				ScopeLock scope(_mutex);
 				for (auto buf: _buffers)
@@ -78,7 +78,7 @@ namespace qk {
 			layout.mNumberChannelDescriptions = 0;
 
 			auto cb = [](void *ctx, AudioQueueRef audio, AudioQueueBufferRef in) {
-				static_cast<MacPCMPlayer*>(ctx)->callback_proc(in);
+				static_cast<ApplePCMPlayer*>(ctx)->callback_proc(in);
 			};
 			if (AudioQueueNewOutput(&desc, cb, this, nil, nil, 0, &_audio) != noErr) {
 				return false;
@@ -178,7 +178,7 @@ namespace qk {
 	};
 
 	PCMPlayer* PCMPlayer::create(const Stream &stream) {
-		Sp<MacPCMPlayer> pcm = new MacPCMPlayer();
+		Sp<ApplePCMPlayer> pcm = new ApplePCMPlayer();
 		if ( pcm->init(stream) ) {
 			return pcm.collapse();
 		}

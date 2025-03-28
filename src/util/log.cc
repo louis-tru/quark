@@ -178,13 +178,13 @@ namespace qk {
 		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%ld": "%lld", msg );
 	}
 
-#if Qk_MAC || Qk_ARCH_64BIT
+#if Qk_APPLE || Qk_ARCH_64BIT
 	void log_println(uint32_t msg) {
 		Log::shared()->println(Log::kLog, "%u", msg );
 	}
 #endif
 
-#if Qk_MAC || !Qk_ARCH_64BIT
+#if Qk_APPLE || !Qk_ARCH_64BIT
 	void log_println(uint64_t msg) {
 		Log::shared()->println(Log::kLog, Qk_ARCH_64BIT ? "%lu": "%llu", msg );
 	}

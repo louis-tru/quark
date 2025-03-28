@@ -5,7 +5,7 @@
 		'library_output%': 'static_library',
 		'output_type%': 'static_library',
 		'conditions': [
-			['library_output=="shared_library" and OS!="mac"',{
+			['library_output=="shared_library" and os not in "mac ios"',{
 				'output_type': 'shared_library',
 			}],
 		],

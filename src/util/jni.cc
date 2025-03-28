@@ -28,9 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#if Qk_ANDROID
-
 #include "./jni.h"
+#if Qk_ANDROID
 #include "./string.h"
 #include "./loop.h"
 

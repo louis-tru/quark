@@ -505,7 +505,7 @@ namespace qk {
 	}
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
-#if Qk_MAC
+#if Qk_APPLE
 		GLenum format = gl_get_texture_pixel_format(dst->type());
 		GLenum type = gl_get_texture_data_type(dst->type());
 		if (format && dst->bytes() != dst->body().length())

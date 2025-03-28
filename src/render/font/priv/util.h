@@ -43,7 +43,7 @@ template <typename T, T* P> struct QkFunctionWrapper {
 	}
 };
 
-#if Qk_MAC
+#if Qk_APPLE
 #include <CoreFoundation/CoreFoundation.h>
 
 template <typename CFRef> using QkUniqueCFRef =

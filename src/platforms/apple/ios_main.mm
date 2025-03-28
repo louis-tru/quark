@@ -29,18 +29,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "../../ui/app.h"
-#import "./mac_app.h"
+#import "./apple_app.h"
 
 using namespace qk;
 
 extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
 	@autoreleasepool {
 		Application::runMain(argc, argv);
-		[UIApplication sharedApplication];
-		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-		[NSApp setDelegate:[[QkApplicationDelegate alloc] init]];
-		[NSApp run];
-		Qk_DLog("[NSApp run] end");
+		UIApplicationMain(argc, argv, nil, NSStringFromClass(QkApplicationDelegate.class));
 	}
 	return 0;
 }

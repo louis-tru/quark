@@ -32,8 +32,9 @@
 #ifndef __quark_platforms_android__android__
 #define __quark_platforms_android__android__
 
-#include ".././util/macros.h"
+#include "../../util/macros.h"
 #if Qk_ANDROID
+#include "../../util/util.h"
 #include "../../util/jni.h"
 
 namespace qk {
@@ -66,9 +67,9 @@ namespace qk {
 		static bool   is_battery();
 		static float  battery_level();
 		static String language();
-		static uint64 available_memory();
-		static uint64 memory();
-		static uint64 used_memory();
+		static uint64_t available_memory();
+		static uint64_t memory();
+		static uint64_t used_memory();
 	};
 }
 

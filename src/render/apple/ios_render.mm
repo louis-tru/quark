@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./mac_render.h"
+#include "./apple_render.h"
 #import "../gl/gl_render.h"
 
 using namespace qk;

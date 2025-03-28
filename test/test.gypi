@@ -77,7 +77,7 @@
 			'test.cc',
 		],
 		'conditions': [
-			['OS=="mac"', {
+			['os in "mac ios"', {
 				'sources': [
 					'test-<(os).plist',
 					'Storyboard-<(os).storyboard',
@@ -93,13 +93,13 @@
 				},
 				'mac_bundle': 1,
 			}],
-			['use_js==1 and OS=="mac"', {
+			['use_js==1 and os in "mac ios"', {
 				'mac_bundle_resources': [
 					'./jsapi/out/jsapi',
 					# '../examples/out/examples',
 				],
 			}],
-			['use_js==1 and OS!="mac"', {
+			['use_js==1 and os not in "mac ios"', {
 				'copies': [{
 					'destination': '<(output)',
 					'files': [
@@ -171,7 +171,7 @@
 				'dependencies': [
 					'deps/zlib/minizip.gyp:minizip',
 					'deps/libtess2/libtess2.gyp:libtess2',
-					'deps/freetype2/freetype2.gyp:ft2',
+					'deps/freetype/freetype.gyp:freetype',
 					'deps/ffmpeg/ffmpeg.gyp:ffmpeg_compile',
 					'deps/libgif/libgif.gyp:libgif', 
 					'deps/libjpeg/libjpeg.gyp:libjpeg', 
@@ -181,7 +181,7 @@
 					'deps/libuv/libuv.gyp:libuv',
 					'deps/openssl/openssl.gyp:openssl',
 					'deps/http_parser/http_parser.gyp:http_parser',
-					'deps/libbptree/libbptree.gyp:libbptree',
+					'deps/bptree/bptree.gyp:bptree',
 				],
 				'sources': [ '../tools/useless.c' ],
 				'link_settings': {
@@ -206,7 +206,7 @@
 				}],
 			}],
 		}],
-		['OS=="mac"', {
+		['os in "mac ios"', {
 			'targets+': [
 				# test macos framework
 			{

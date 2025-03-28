@@ -32,7 +32,7 @@
 #define __quark__font__ct_util__
 
 #include "../priv/util.h"
-#if Qk_OSX
+#if Qk_MacOS
 # include <ApplicationServices/ApplicationServices.h>
 #endif
 #if Qk_iOS

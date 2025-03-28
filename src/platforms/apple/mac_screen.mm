@@ -28,63 +28,51 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./mac_app.h"
+#import "./apple_app.h"
 #import "../../ui/screen.h"
-#import "../../ui/app.h"
-#import "../../ui/window.h"
+#import "IOKit/pwr_mgt/IOPMLib.h"
 
 using namespace qk;
 
+typedef Screen::StatusBarStyle StatusBarStyle;
+
 extern QkApplicationDelegate *qkappdelegate;
-
-@interface QkWindowDelegate()
-- (void)set_visible_status_bar:(bool)visible;
-- (void)set_status_bar_style:(Screen::StatusBarStyle)style;
-- (void)set_orientation:(Screen::Orientation)orientation;
-@end
-
-QkWindowDelegate* getActiveDelegate();
+static IOPMAssertionID prevent_screen_sleep_assertionID = 0;
 
 float Screen::main_screen_scale() {
-	return UIScreen.mainScreen.scale;
+	return UIScreen.mainScreen.backingScaleFactor;
 }
 
 void Screen::prevent_screen_sleep(bool prevent) {
-	dispatch_async(dispatch_get_main_queue(), ^{
-		if (prevent) {
-			qkappdelegate.app.idleTimerDisabled = YES;
-		} else {
-			qkappdelegate.app.idleTimerDisabled = NO;
+	if (prevent) {
+		if (!prevent_screen_sleep_assertionID) {
+			CFStringRef reasonForActivity = CFSTR("Preventing screen sleep due to my application");
+			IOPMAssertionCreateWithName(
+				kIOPMAssertionTypeNoIdleSleep,
+				kIOPMAssertionLevelOn, reasonForActivity, &prevent_screen_sleep_assertionID
+			);
 		}
-	});
+	} else {
+		if (prevent_screen_sleep_assertionID) {
+			IOPMAssertionRelease(prevent_screen_sleep_assertionID);
+			prevent_screen_sleep_assertionID = 0;
+		}
+	}
 }
 
 float Screen::status_bar_height() const {
-	CGRect rect = qkappdelegate.app.statusBarFrame;
-	auto qkwin = qkappdelegate.host->activeWindow();
-	return Qk_Min(rect.size.height, 20) * UIScreen.mainScreen.scale / qkwin->scale();
+	return 0;
 }
 
 void Screen::set_visible_status_bar(bool visible) {
-	[getActiveDelegate() set_visible_status_bar:visible];
 }
 
 void Screen::set_status_bar_style(StatusBarStyle style) {
-	[getActiveDelegate() set_status_bar_style:style];
 }
 
 Screen::Orientation Screen::orientation() const {
-	Screen::Orientation r;
-	switch ( qkappdelegate.app.statusBarOrientation ) {
-		case UIInterfaceOrientationPortrait:           r = kPortrait; break;
-		case UIInterfaceOrientationPortraitUpsideDown: r = kReverse_Portrait; break;
-		case UIInterfaceOrientationLandscapeLeft:      r = kReverse_Landscape; break;
-		case UIInterfaceOrientationLandscapeRight:     r = kLandscape; break;
-		default:                                       r = kInvalid; break;
-	}
-	return r;
+	return kInvalid;
 }
 
-void Screen::set_orientation(Screen::Orientation orientation) {
-	[getActiveDelegate() set_orientation:orientation];
+void Screen::set_orientation(Orientation orientation) {
 }

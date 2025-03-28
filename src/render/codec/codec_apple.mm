@@ -31,7 +31,7 @@
 #import "./codec.h"
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
-#if Qk_OSX
+#if Qk_MacOS
 #import <AppKit/AppKit.h>
 #define UIImage NSImage
 #else
@@ -48,7 +48,7 @@ namespace qk {
 		UIImage* img = [[UIImage alloc] initWithData:nsData];
 		CGColorSpaceRef space;
 
-#if Qk_OSX
+#if Qk_MacOS
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 #else
 		CGImageRef image = [img CGImage];
@@ -103,7 +103,7 @@ namespace qk {
 																					length:data.length()
 																		freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsData];
-	#if Qk_OSX
+	#if Qk_MacOS
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
 	#else
 		CGImageRef image = [img CGImage];

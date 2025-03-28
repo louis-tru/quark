@@ -199,7 +199,7 @@ namespace qk {
 		_PlatformKeyCodeToKeyCode[AKEYCODE_ZOOM_OUT] = KEYCODE_ZOOM_OUT;
 	}
 
-	KeyboardAdapter* KeyboardAdapter::create(EventDispatch* host) {
-		return new AndroidKeyboardAdapter(host);
+	KeyboardAdapter* KeyboardAdapter::create() {
+		return new AndroidKeyboardAdapter();
 	}
 }

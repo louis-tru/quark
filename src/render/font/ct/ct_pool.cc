@@ -37,7 +37,7 @@
 using namespace qk;
 
 #if (Qk_iOS && defined(__IPHONE_14_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_14_0) ||  \
-	  (Qk_OSX && defined(__MAC_11_0)    && __MAC_OS_VERSION_MIN_REQUIRED    >= __MAC_11_0)
+	  (Qk_MacOS && defined(__MAC_11_0)    && __MAC_OS_VERSION_MIN_REQUIRED    >= __MAC_11_0)
 
 static uint32_t QkGetCoreTextVersion() {
 	// If compiling for iOS 14.0+ or macOS 11.0+, the CoreText version number

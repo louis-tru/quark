@@ -287,7 +287,7 @@ QkCTFontWeightMapping& QkCTFontGetNSFontWeightMapping() {
 			{ -1.00, -0.80, -0.60, -0.40, 0.00, 0.23, 0.30, 0.40, 0.56, 0.62, 1.00 };
 
 	// Declarations in <AppKit/AppKit.h> on macOS, <UIKit/UIKit.h> on iOS
-#if Qk_OSX
+#if Qk_MacOS
 #  define Qk_KIT_FONT_WEIGHT_PREFIX "NS"
 #endif
 #if Qk_iOS

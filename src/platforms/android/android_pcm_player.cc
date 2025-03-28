@@ -133,15 +133,15 @@ namespace qk {
 			}
 		}
 
-		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
-
+		bool initialize(const Stream &stream) {
 			AudioEngine* engine = AudioEngine::share();
 			if ( ! engine ) {
 				return false;
 			}
 
-			_channel_count = channel_count;
-			_sample_rate = sample_rate;
+			// stream.channel_layout
+			_channel_count = stream.channels;
+			_sample_rate = stream.sample_rate;
 			_buffer_size = min_buffer_size();
 
 			SLresult result;
@@ -253,27 +253,15 @@ namespace qk {
 			return true;
 		}
 
-		/**
-		* @overwrite
-		* */
-		virtual bool write(cBuffer& buffer) {
+		virtual bool write(const Frame *frame) {
 			SLresult result;
-			ScopeLock scope(_lock);
-			// input pcm buffer
-			result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, *buffer, buffer.length());
-			return result != SL_RESULT_BUFFER_INSUFFICIENT;
-		}
-		
-		/**
-		* @overwrite
-		*/
-		virtual float compensate() {
-			return -1.0;
+			// ScopeLock scope(_lock);
+			// // input pcm buffer
+			// result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, *buffer, buffer.length());
+			// return result != SL_RESULT_BUFFER_INSUFFICIENT;
+			return true;
 		}
 
-		/**
-		* @overwrite
-		* */
 		virtual void flush() {
 			SLresult result;
 			// lock
@@ -283,32 +271,22 @@ namespace qk {
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 		}
 
-		/**
-		* @overwrite
-		* */
-		virtual bool set_mute(bool value) {
+		virtual void set_mute(bool value) {
 			SLresult result;
 			result = (*bqPlayerVolume)->SetMute(bqPlayerVolume, value);
-			return SL_RESULT_SUCCESS == result;
+			// return SL_RESULT_SUCCESS == result;
 		}
 
-		/**
-		* @overwrite
-		* */
-		virtual bool set_volume(uint32_t value) {
+		virtual void set_volume(float value) {
 			if ( _max_volume_level ) {
 				SLresult result;
 				result = (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, value / 100 * _max_volume_level);
-				return SL_RESULT_SUCCESS == result;
+				// return SL_RESULT_SUCCESS == result;
 			}
-			return false;
 		}
 
-		/**
-		* @func buffer_size
-		* */
-		virtual uint32_t buffer_size() {
-			return _buffer_size;
+		virtual float delayed() {
+			return -1.0;
 		}
 
 		uint32_t min_buffer_size() {
@@ -343,24 +321,20 @@ namespace qk {
 
 #endif
 
-	/**
-	* @method create_android_audio_track
-	*/
-	PCMPlayer* create_android_audio_track(uint32_t channel_count, uint32_t sample_rate);
+	typedef MediaSource::Stream SStream;
 
-	/**
-	* @method create
-	*/
-	PCMPlayer* PCMPlayer::create(uint32_t channel_count, uint32_t sample_rate) {
+	PCMPlayer* create_android_audio_track(const SStream &stream);
+
+	PCMPlayer* PCMPlayer::create(const SStream &stream) {
 #if USE_ANDROID_OPENSLES_PCM_PLAYER
 		Sp<AndroidPCMOpenSLES> player = new AndroidPCMOpenSLES();
-		if ( player->initialize( channel_count, sample_rate) ) {
+		if ( player->initialize(stream) ) {
 			return player.collapse();
 		} else {
-			return create_android_audio_track(channel_count, sample_rate);
+			return create_android_audio_track(stream);
 		}
 #else
-		return create_android_audio_track(channel_count, sample_rate);
+		return create_android_audio_track(stream);
 #endif
 	}
 

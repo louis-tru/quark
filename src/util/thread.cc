@@ -130,7 +130,7 @@ namespace qk {
 #elif defined(__NetBSD__)
 		Qk_ASSERT(name.length() <= PTHREAD_MAX_NAMELEN_NP);
 		pthread_setname_np(pthread_self(), "%s", *name);
-#elif Qk_MAC
+#elif Qk_APPLE
 		// Mac OS X does not expose the length limit of the name, so hardcode it.
 		Qk_ASSERT(name.length() <= 63);
 		pthread_setname_np(*name);

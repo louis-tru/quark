@@ -31,7 +31,7 @@
 var util = require('encark').default;
 var fs = require('encark/fs');
 var path = require('path');
-var host_os = process.platform == 'darwin' ? 'osx': process.platform;
+var host_os = process.platform == 'darwin' ? 'mac': process.platform;
 var host_arch = arch_format(process.arch);
 var argument = require('encark/arguments');
 var { syscall, execSync, exec } = require('encark/syscall');
@@ -40,12 +40,11 @@ var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
 var default_arch = host_arch || 'x86';
 var android_api_level = 28; // android-9.0
-var pkgm = ''; // apt-get
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
 def_opts('debug', 0,            '--debug        enable debug status [{0}]');
-def_opts('os', host_os,         '--os=OS        system type ios/android/osx/linux/win [{0}]');
+def_opts('os', host_os,         '--os=OS        system type ios/android/mac/linux/win [{0}]');
 def_opts('arch', default_arch,  '--arch=CPU     cpu type options arm/arm64/mips/mips64/x86/x64 [{0}]');
 def_opts('library', 'static',   '--library=LIB  compile output library type static/shared [{0}]');
 def_opts('armv7', arm(),        '--armv7        enable armv7 [{0}]');
@@ -57,7 +56,7 @@ def_opts('arm-vfp', opts.arch == 'arm64' ? 'vfpv4':
 def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp,
 																'--arm-fpu=VAL  enable arm fpu [{0}]');
 def_opts(['emulator', 'em'], 0, '--emulator,-em enable the emulator [{0}]');
-def_opts('clang', isMac() ? 1 : 0, 
+def_opts('clang', isApple(opts.os) ? 1 : 0, 
 																'--clang        enable clang compiler [{0}]');
 def_opts('media', 'auto',       '--media        compile media [{0}]');
 def_opts(['ndk-path','ndk'], process.env.ANDROID_NDK || '', 
@@ -78,8 +77,8 @@ def_opts('more-log',       0,   '--more-log print more log message [{0}]');
 def_opts(['use-gl', 'gl'], 1,   '--enable-gl,-gl use opengl backend [{0}]');
 def_opts(['use-js', 'js'], 1,   '--use-js,-js enable javascript modules [{0}]');
 
-function isMac() {
-	return get_OS(opts.os) == 'mac';
+function isApple(os) {
+	return ['mac', 'ios'].indexOf(os) >= 0;
 }
 
 function arm() {
@@ -228,9 +227,9 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 			--target-os=android \
 			--arch=${arch} \
 			--sysroot=${variables.build_sysroot} \
-			--cross-prefix=${variables.cross_prefix} \
 			--enable-cross-compile \
 		`;
+			// --cross-prefix=${variables.cross_prefix} \
 			// --enable-jni \
 			// --enable-mediacodec \
 
@@ -239,7 +238,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		if ( !clang ) { // use gcc 
 			cflags += '-funswitch-loops ';
 		}
-		cflags += `-D__ANDROID_API__=${android_api_level} `;
+		// cflags += `-D__ANDROID_API__=${android_api_level} `;
 
 		cmd += `--cc='${cc} ${cflags} -march=${arch_name}' `;
 	} 
@@ -287,7 +286,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 			cmd += `--as='${as}' `;
 		}
 	} 
-	else if (os == 'osx') {
+	else if (os == 'mac') {
 		cmd = `\
 			./configure \
 			--target-os=darwin \
@@ -366,8 +365,7 @@ function GetFlavor(params = {}) {
 	var flavors = {
 		'cygwin': 'win',
 		'win32': 'win',
-		'darwin': 'osx',
-		'osx': 'osx',
+		'darwin': 'mac',
 	}
 	
 	if ('flavor' in params)
@@ -390,12 +388,11 @@ function GetFlavor(params = {}) {
 
 function is_use_dtrace() {
 	var flavor = GetFlavor({ flavor: opts.os });
-	return ['solaris', 'osx', 'linux', 'freebsd'].indexOf(flavor) > -1;
+	return ['solaris', 'mac', 'linux', 'freebsd'].indexOf(flavor) > -1;
 }
 
 function get_OS(os) {
-	var OS = ['ios', 'osx', 'tvos', 'iwatch'].indexOf(os) > -1 ? 'mac' : os
-	return OS;
+	return os;
 }
 
 async function exec2(cmd) {
@@ -423,7 +420,7 @@ async function install_check(app, cmd) {
 
 	if (host_os == 'linux') {
 		// util.assert(execSync('which apt-get').code == 0, 'No command `apt-get`');
-	} else if (host_os == 'osx') {
+	} else if (host_os == 'mac') {
 		// util.assert(execSync('which brew').code == 0, 'No command `brew`, https://brew.sh/');
 	} else {
 		throw new Error(`not support ${host_os} platform`);
@@ -478,6 +475,7 @@ async function install_depe(opts, variables) {
 	var {os,arch} = opts;
 	var {cross_compiling} = variables;
 	var dpkg = {};
+	var pkgm = ''; // apt-get
 
 	var pkgmErrMsg = cmd=>`Not found pkg install command "${cmd}" for the ${host_os}`;
 	var pkgmCmds = (cmd)=>{
@@ -492,7 +490,7 @@ async function install_depe(opts, variables) {
 				} else {
 					throw new Error(pkgmErrMsg('apt-get or yum'));
 				}
-			} else if (host_os == 'osx') {
+			} else if (host_os == 'mac') {
 				if (execSync(`which brew`).code == 0) {
 					pkgm = 'brew';
 				} else {
@@ -552,7 +550,7 @@ async function install_depe(opts, variables) {
 			dpkg.javac = pkgmCmds('openjdk-8-jdk');
 		}
 	}
-	else if (host_os == 'osx') {
+	else if (host_os == 'mac') {
 		if (arch == 'x86' || arch == 'x64') {
 			dpkg.yasm = yasm;
 		}
@@ -580,7 +578,7 @@ function get_host_tag_or_die() {
 	// Return the host tag for this platform. Die if not supported.
 	if (host_os == 'linux')
 		return 'linux-x86_64';
-	else if (host_os == 'osx')
+	else if (host_os == 'mac')
 		return 'darwin-x86_64';
 	else if (host_os == 'win32' || host_os == 'cygwin')
 		return 'windows-x86_64';
@@ -610,21 +608,21 @@ async function configure() {
 	var arch = opts.arch;
 	var suffix = arch;
 	var configuration = opts.debug ? 'Debug': 'Release';
-	var cross_compiling = arch != host_arch;
+	var cross_compiling = arch != host_arch || host_os != os;
 	var use_dtrace = is_use_dtrace();
 	/* 交叉编译时需要单独的工具集来生成v8-js快照,所以交叉编译暂时不使用v8-js快照*/
-	var v8_use_snapshot = !opts.without_snapshot && !cross_compiling && !modile;
+	var v8_use_snapshot = !modile && !opts.without_snapshot;// && !cross_compiling;
 	var shared = opts.library == 'shared' ? 'shared': '';
 	var emulator = 0;
-	var OS = get_OS(opts.os);
+	var OS = get_OS(os);
 	var PYTHON = process.env.PYTHON || 'python';
 
-	if ( OS == 'mac' ) {
+	if ( isApple(os) ) {
 		if ( opts.use_v8 == 'auto' ) { // all of mac use default javascriptcore
 			opts.use_v8 = 0;
 		}
 	}
-	var use_v8 = opts.use_v8 ? 1: OS == 'mac'? 0: 1;
+	var use_v8 = opts.use_v8 ? 1: isApple(os) ? 0: 1;
 
 	var config_gypi = {
 		target_defaults: {
@@ -634,7 +632,7 @@ async function configure() {
 			configuration,
 			asan: 0,
 			host_node: process.execPath,
-			host_os: host_os == 'osx' ? 'mac' : host_os,    // v8 host_os
+			host_os: host_os,    // v8 host_os
 			host_arch: host_arch == 'x86' ? 'ia32' : host_arch,  // v8 host_arch
 			target_arch: arch == 'x86' ? 'ia32' : arch,   // v8 target_arch
 			arch: arch,
@@ -642,7 +640,7 @@ async function configure() {
 			suffix: suffix,
 			debug: opts.debug,
 			OS: OS,
-			os: opts.os,
+			os: os,
 			brand: '',
 			more_log: opts.more_log,
 			clang: opts.clang,
@@ -655,9 +653,8 @@ async function configure() {
 			arm_vfp: opts.arm_vfp,
 			arm_fpu: opts.arm_fpu,
 			cross_compiling: bi(cross_compiling),
-			cross_prefix: '',
 			media: opts.media,
-			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
+			use_system_zlib: bi(os.match(/^(android|linux|ios|mac)$/)),
 			use_gl: opts.use_gl ? 1: 0,
 			use_v8: use_v8,
 			use_openssl: bi(!opts.without_ssl),
@@ -680,6 +677,7 @@ async function configure() {
 			build_sysroot: '/',
 			build_bin: '/usr/bin',
 			android_abi: '',
+			ndk_path: '',
 			xcode_version: 0,
 			llvm_version: 0,
 			gas_version: 0.0,
@@ -695,13 +693,12 @@ async function configure() {
 			v8_trace_maps: 0,
 			v8_use_snapshot: bi(v8_use_snapshot),
 			v8_enable_i18n_support: 0,
-			want_separate_host_toolset: bi(v8_use_snapshot &&cross_compiling && !opts.without_snapshot),
-			want_separate_host_toolset_mkpeephole: bi(v8_use_snapshot && cross_compiling),
+			want_separate_host_toolset: bi(cross_compiling),
 			python: PYTHON,
 			V: opts.v,
 		},
 	};
-	
+
 	var variables = config_gypi.variables;
 
 	if (opts.without_visibility_hidden) {
@@ -712,35 +709,23 @@ async function configure() {
 		variables.without_embed_bitcode = 1;
 	}
 
-	// ----------------------- android/linux/ios/osx ----------------------- 
+	// ----------------------- android/linux/ios/mac ----------------------- 
 
 	if ( os == 'android' ) {
-		var api = android_api_level;
-
 		// check android ndk toolchain
-		var toolchain_dir = `${__dirname}/android-toolchain/${arch}`;
-		if (!fs.existsSync(toolchain_dir)) {
-			var ndk_path = opts.ndk_path || process.env.ANDROID_NDK;
-			var toolchain_llvm = `${ndk_path}/toolchains/llvm/prebuilt/${get_host_tag_or_die()}`;
-			// check ndk r19
-			if (fs.existsSync(`${toolchain_llvm}/bin/armv7a-linux-androideabi${api}-clang`) /*&& opts.clang*/) {
-				if (!fs.existsSync(`${__dirname}/ndk`)) {
-					fs.symlinkSync(toolchain_llvm, `${__dirname}/ndk`);
-				}
-				toolchain_dir = toolchain_llvm;
-			} else {
-				if ( ndk_path && fs.existsSync(ndk_path) ) { // install tool
-					// console.log(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`)
-					syscall(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`);
-				} else {
-					// todo auto download android ndk ...
-					console.error(
-						`Please Setting environment variable ANDROID_NDK or ` + 
-						`Run "./tools/install-android-toolchain NDK-DIR" to install android toolchain! `);
-					process.exit(1);
-				}
-			}
+		var api = android_api_level;
+		var ndk_path = opts.ndk_path || process.env.ANDROID_NDK;
+		var toolchain_llvm = `${ndk_path}/toolchains/llvm/prebuilt/${get_host_tag_or_die()}`;
+		var test = `${toolchain_llvm}/bin/armv7a-linux-androideabi${api}-clang`;
+		// check ndk
+		util.assert(fs.existsSync(test), `Don't found command of ${test}`);
+		if (!fs.existsSync(`${__dirname}/ndk_llvm`)) {
+			fs.symlinkSync(toolchain_llvm, `${__dirname}/ndk_llvm`);
 		}
+		if (!fs.existsSync(`${__dirname}/ndk`)) {
+			fs.symlinkSync(ndk_path, `${__dirname}/ndk`);
+		}
+		var toolchain_dir = toolchain_llvm;
 		// todo check android sdk ...
 
 		await install_depe(opts, variables);
@@ -770,12 +755,11 @@ async function configure() {
 			tool.abi = 'armeabi-v7a';
 		}
 
-		variables.cross_prefix = cross_prefix;
 		variables.arch_name = tool.arch_name;
 		variables.android_abi = tool.abi;
-		
+		variables.ndk_path = ndk_path;
+
 		var cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
-		// var cross_path = `${toolchain_dir}/bin/${cross_prefix}`;
 
 		if (!fs.existsSync(`${cc_path}gcc`) || 
 				!execSync(`${cc_path}gcc --version| grep -i gcc`).first || opts.clang
@@ -790,7 +774,7 @@ async function configure() {
 				// cannot find gcc compiler, use clang
 				opts.clang = 1;
 				variables.clang = 1; // use clang
-				console.warn('\n ************ Only clang compiler can be used ************ ');
+				console.warn('\nOnly clang compiler can be used\n');
 			}
 		}
 
@@ -803,10 +787,15 @@ async function configure() {
 			variables.cxx = `${cc_prefix}g++`;
 			variables.ld = `${cc_prefix}g++`;
 		}
-		variables.as = `${cross_prefix}as`;
-		variables.ar = `${cross_prefix}ar`;
-		variables.ranlib = `${cross_prefix}ranlib`;
-		variables.strip = `${cross_prefix}strip`;
+
+		var as_prefix = cross_prefix;
+		if (!fs.existsSync(`${toolchain_dir}/bin/${cross_prefix}as`)) {
+			as_prefix = fs.existsSync(`${toolchain_dir}/bin/llvm-as`) ? 'llvm-': '';
+		}
+		variables.as = `${as_prefix}as`;
+		variables.ar = `${as_prefix}ar`;
+		variables.ranlib = `${as_prefix}ranlib`;
+		variables.strip = `${as_prefix}strip`;
 		variables.build_bin = `${toolchain_dir}/bin`;
 		variables.build_sysroot = `${toolchain_dir}/sysroot`;
 
@@ -897,12 +886,12 @@ async function configure() {
 			--version| grep gcc | awk '{ print $4 }'`).first;
 		variables.gcc_version = parseVersion(gcc_version);
 	}
-	else if (os == 'ios' || os == 'osx') {
+	else if (os == 'ios' || os == 'mac') {
 
 		if ( os == 'ios' ) {
-			if ( host_os != 'osx' ) {
+			if ( host_os != 'mac' ) {
 				console.error(
-					'Only in the osx os and the installation of the \
+					'Only in the mac os and the installation of the \
 					Xcode environment to compile target iOS');
 				return;
 			}
@@ -948,11 +937,11 @@ async function configure() {
 				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path').first;
 			}
 			variables.version_min = '10.0';
-		} else { // osx
+		} else { // mac
 			variables.build_sysroot = `${XCODEDIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk`;
 			variables.version_min = '10.15';
 		}
-		
+
 		variables.cc = 'clang';
 		variables.cxx = 'clang';
 		variables.ld = 'clang++';
@@ -990,14 +979,13 @@ async function configure() {
 		`BUILDTYPE=${configuration}`,
 		`V=${opts.v}`,
 		`SUFFIX=${suffix}`,
-		`SHARED=${shared}`,
-		`BRAND=${brand}`,
 		`OUTPUT=${output}`,
 		`ANDROID_API_LEVEL=${android_api_level}`,
-		`export CC:=${variables.cc}`,
-		`export CXX:=${variables.cxx}`,
-		`export LINK:=${variables.ld}`,
-		`export AR:=${variables.ar}`,
+		//`GYP_CROSSCOMPILE:=1`
+		`export CC_target:=${variables.cc}`,
+		`export CXX_target:=${variables.cxx}`,
+		`export LINK_target:=${variables.ld}`,
+		`export AR_target:=${variables.ar}`,
 		`export AS:=${variables.as}`,
 		`export STRIP:=${variables.strip}`,
 		`export RANLIB:=${variables.ranlib}`,
@@ -1008,8 +996,8 @@ async function configure() {
 
 	var java_home = process.env.JAVA7_HOME || process.env.JAVA_HOME;
 	if ( java_home ) {
-		config_mk.push(`JAVAC=${java_home}/bin/javac`);
-		config_mk.push(`JAR=${java_home}/bin/jar`);
+		config_mk.push(`export JAVAC:=${java_home}/bin/javac`);
+		config_mk.push(`export JAR:=${java_home}/bin/jar`);
 	}
 
 	{ // configure ffmpeg

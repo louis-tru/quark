@@ -28,32 +28,48 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../util/loop.h"
-#import "./mac_render.h"
+// ------------------- Metal ------------------
+#if Qk_ENABLE_METAL
+#import "./appel_render.h"
 
 using namespace qk;
 
-qk::ThreadID qk_main_thread_id(qk::thread_self_id());
+@interface MTView: UIView
+@end
 
-void qk_post_messate_main(Cb cb, bool sync) {
-	auto main = dispatch_get_main_queue();
-	if (qk_main_thread_id == thread_self_id()/*dispatch_get_current_queue()*/) {
-		cb->resolve();
-	} else if (sync) {
-		CondMutex mutex;
-		CondMutex *mutexp = &mutex;
-		auto core = cb.Handle::collapse();
-		dispatch_async(main, ^{
-			core->resolve();
-			core->release();
-			mutexp->lock_and_notify_one();
-		});
-		mutex.lock_and_wait_for(); // wait
-	} else {
-		auto core = cb.Handle::collapse();
-		dispatch_async(main, ^{
-			core->resolve();
-			core->release();
-		});
+@implementation MTView
++ (Class)layerClass {
+	if (@available(iOS 13.0, *))
+		return CAMetalLayer.class;
+	return nil;
+}
+@end
+
+namespace qk {
+
+	class AppleMetalRender: public MetalRender, public RenderSurface {
+	public:
+		AppleMetalRender(Options opts, FontPool *pool, Delegate *delegate)
+			: MetalRender(opts,pool,delegate)
+		{}
+		UIView* surfaceView() override {
+			if (_view) {
+				return _view;
+			}
+			_view = [[MTKView alloc] initWithFrame:CGRectZero device:nil];
+			_view.layer.opaque = YES;
+			return _view;
+		}
+		RenderSurface* surface() override {
+			return this;
+		}
+	};
+
+	Render* make_metal_render(Render::Options opts) {
+		Render* r = nullptr;
+			if (@available(macOS 10.11, iOS 13.0, *))
+			r = new AppleMetalRender(opts,pool,delegate);
+		return r;
 	}
 }
+#endif

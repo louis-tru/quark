@@ -116,16 +116,16 @@
 					]
 				},
 			}],
-			['OS=="mac"', {
+			['os in "mac ios"', {
 				'sources': [
-					'fs_path_mac.mm',
+					'fs_path_apple.mm',
 				],
 				'link_settings': {'libraries': [ '$(SDKROOT)/usr/lib/libz.tbd' ]},
 			}],
 			['os=="ios"', {
 				'link_settings': {'libraries': [ '$(SDKROOT)/System/Library/Frameworks/UIKit.framework' ]},
 			}],
-			['os=="osx"', {
+			['os=="mac"', {
 				'link_settings': { 'libraries': [ '$(SDKROOT)/System/Library/Frameworks/AppKit.framework' ]},
 			}],
 		],

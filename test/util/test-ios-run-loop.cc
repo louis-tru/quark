@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <quark/util/macros.h>
-#if Qk_MAC
+#if Qk_APPLE
 #include <quark/util/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>

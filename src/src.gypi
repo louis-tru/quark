@@ -7,13 +7,11 @@
 			'../out',
 			'../deps/freetype/include',
 			'../deps/libtess2/Include',
-			'../deps/tinyxml2',
 		],
 		'dependencies': [
 			'quark-util', # util
 			'deps/libtess2/libtess2.gyp:libtess2',
 			'deps/freetype/freetype.gyp:freetype',
-			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
 			'deps/libgif/libgif.gyp:libgif',
 		],
 		'direct_dependent_settings': {
@@ -154,7 +152,7 @@
 					'render/gl/gl_shader.cc',
 				],
 			}],
-			['OS=="mac" and use_gl==0', { # use metal
+			['os in "mac ios" and use_gl==0', { # use metal
 				'defines': [ 'Qk_ENABLE_METAL=1' ],
 				'sources': [
 					'render/metal/metal_canvas.h',
@@ -163,7 +161,7 @@
 					'render/metal/metal_render.mm',
 				],
 			}],
-			['OS!="mac"', { # not mac mac
+			['os not in "mac ios"', { # not mac mac
 				'dependencies': [
 					'deps/libjpeg/libjpeg.gyp:libjpeg',
 					'deps/libpng/libpng.gyp:libpng',
@@ -194,6 +192,9 @@
 					# 'render/font/custom/custom_directory.cpp', ## font/custom
 					# 'render/font/custom/custom_typeface.cpp',
 					# 'render/font/custom/custom_typeface.h',
+					'render/linux/linux_render.cc',
+					'render/linux/linux_render.h',
+					'render/linux/linux_vulkan.cc',
 				],
 			}],
 			['os=="linux"', {
@@ -205,9 +206,7 @@
 					'platforms/linux/linux_os.cc',
 					'platforms/linux/linux_screen.cc',
 					'platforms/linux/linux_window.cc',
-					'render/linux/linux_render.cc', ## render/linux
-					'render/linux/linux_render.h',
-					'render/linux/linux_vulkan.cc',
+					# render
 					'render/font/freetype/ft_fontconfig.cc',
 				],
 				'link_settings': {
@@ -217,6 +216,9 @@
 				},
 			}],
 			['os=="android"', {
+				'dependencies': [
+					'deps/libexpat/libexpat.gyp:libexpat',
+				],
 				'sources': [
 					'platforms/android/android_app.cc',
 					'platforms/android/android_keyboard.cc',
@@ -225,12 +227,16 @@
 					'platforms/android/android_screen.cc',
 					'platforms/android/android.cc',
 					'platforms/android/android.h',
-					'render/font/android/android_font_parser.cpp', ## font/android
+					# render
+					'render/font/android/android_font_parser.cpp',
 					'render/font/android/android_font_parser.h',
 					'render/font/android/android_font.cc',
-					# 'platforms/android/org/quark/Activity.java',
-					# 'platforms/android/org/quark/Android.java',
-					# 'platforms/android/org/quark/IMEHelper.java',
+					# java
+					'platforms/android/org/quark/Activity.java',
+					'platforms/android/org/quark/Android.java',
+					'platforms/android/org/quark/IMEHelper.java',
+					# android ndk sources
+					'../tools/ndk/sources/android/cpufeatures/cpu-features.c',
 				],
 				'link_settings': {
 					'libraries': [
@@ -241,18 +247,18 @@
 					],
 				},
 			}],
-			['OS=="mac"', { # mac mac, osx ios
+			['os in "mac ios"', { # mac ios
 				'dependencies': [
 					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
-					'platforms/mac/mac_app.h',
-					'platforms/mac/mac_keyboard.mm',
-					'platforms/mac/mac_os.mm',
-					'render/codec/codec_mac.mm',
-					'render/mac/mac_render.h',
-					'render/mac/mac_render.mm',
-					'render/mac/mac_metal.mm',
+					'platforms/apple/apple_app.h',
+					'platforms/apple/apple_keyboard.mm',
+					'platforms/apple/apple_os.mm',
+					'render/codec/codec_apple.mm',
+					'render/apple/apple_render.h',
+					'render/apple/apple_render.mm',
+					'render/apple/apple_metal.mm',
 					'render/font/ct/ct_pool.cc',
 					'render/font/ct/ct_typeface.cc',
 					'render/font/ct/ct_typeface.h',
@@ -269,12 +275,12 @@
 			}],
 			['os=="ios"', {
 				'sources': [
-					'platforms/mac/ios_app.mm',
-					'platforms/mac/ios_screen.mm',
-					'platforms/mac/ios_ime_helper.mm',
-					'platforms/mac/ios_main.mm',
-					'platforms/mac/ios_window.mm',
-					'render/mac/ios_render.mm',
+					'platforms/apple/ios_app.mm',
+					'platforms/apple/ios_screen.mm',
+					'platforms/apple/ios_ime_helper.mm',
+					'platforms/apple/ios_main.mm',
+					'platforms/apple/ios_window.mm',
+					'render/apple/ios_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -285,14 +291,14 @@
 					]
 				},
 			}],
-			['os=="osx"', {
+			['os=="mac"', {
 				'sources': [
-					'platforms/mac/osx_app.mm',
-					'platforms/mac/osx_screen.mm',
-					'platforms/mac/osx_ime_helper.mm',
-					'platforms/mac/osx_main.mm',
-					'platforms/mac/osx_window.mm',
-					'render/mac/osx_render.mm',
+					'platforms/apple/mac_app.mm',
+					'platforms/apple/mac_screen.mm',
+					'platforms/apple/mac_ime_helper.mm',
+					'platforms/apple/mac_main.mm',
+					'platforms/apple/mac_window.mm',
+					'render/apple/mac_render.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -395,10 +401,10 @@
 					'libraries': [ '-lOpenSLES', '-lmediandk' ],
 				},
 			}],
-			['OS=="mac"', {
+			['os in "mac ios"', {
 				'sources':[
-					'platforms/mac/mac_media_codec.mm',
-					'platforms/mac/mac_pcm_player.mm',
+					'platforms/apple/apple_media_codec.mm',
+					'platforms/apple/apple_pcm_player.mm',
 				],
 			}],
 			['os=="linux"', {

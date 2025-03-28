@@ -32,7 +32,7 @@
 void test_jsc(int argc, char **argv) {}
 #else
 #include "quark/util/macros.h"
-#ifdef Qk_MAC
+#ifdef Qk_APPLE
 #include "quark/util/array.h"
 #include "quark/util/loop.h"
 #include "quark/js/jsc/jsc.h"

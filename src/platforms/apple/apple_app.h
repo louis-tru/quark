@@ -28,51 +28,59 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./mac_app.h"
-#import "../../ui/screen.h"
-#import "IOKit/pwr_mgt/IOPMLib.h"
+// @private head
 
-using namespace qk;
+#ifndef __quark__apple__apple_app__
+#define __quark__apple__apple_app__
+#include "../../render/apple/apple_render.h"
+#include "../../ui/types.h"
 
-typedef Screen::StatusBarStyle StatusBarStyle;
-
-extern QkApplicationDelegate *qkappdelegate;
-static IOPMAssertionID prevent_screen_sleep_assertionID = 0;
-
-float Screen::main_screen_scale() {
-	return UIScreen.mainScreen.backingScaleFactor;
+#if Qk_APPLE
+@class QkWindowDelegate;
+namespace qk {
+	class Application;
+	class Window;
+	class WindowImpl {
+	public:
+		QkWindowDelegate* delegate();
+	};
 }
 
-void Screen::prevent_screen_sleep(bool prevent) {
-	if (prevent) {
-		if (!prevent_screen_sleep_assertionID) {
-			CFStringRef reasonForActivity = CFSTR("Preventing screen sleep due to my application");
-			IOPMAssertionCreateWithName(
-				kIOPMAssertionTypeNoIdleSleep,
-				kIOPMAssertionLevelOn, reasonForActivity, &prevent_screen_sleep_assertionID
-			);
-		}
-	} else {
-		if (prevent_screen_sleep_assertionID) {
-			IOPMAssertionRelease(prevent_screen_sleep_assertionID);
-			prevent_screen_sleep_assertionID = 0;
-		}
-	}
-}
+/**
+ * @protocol QkIMEHelprt
+*/
+@protocol QkIMEHelprt<NSObject>
+- (void)activate:(bool)clear;
+- (void)deactivate;
+- (void)set_keyboard_can_backspace:(bool)can_backspace
+												can_delete:(bool)can_delete;
+- (void)set_keyboard_type:(qk::KeyboardType)type;
+- (void)set_keyboard_return_type:(qk::KeyboardReturnType)type;
+- (void)set_spot_rect:(qk::Rect)rect;
+- (UIView*)view; // ime view
+@end
 
-float Screen::status_bar_height() const {
-	return 0;
-}
+/**
+ * @interface QkWindowDelegate
+*/
+@interface QkWindowDelegate: UIViewController
+#if Qk_MacOS
+<NSWindowDelegate>
+#endif
+@property (assign, nonatomic) qk::Window *qkwin;
+@property (strong, nonatomic) UIWindow   *uiwin;
+@property (strong, nonatomic) id<QkIMEHelprt> ime;
+@end
 
-void Screen::set_visible_status_bar(bool visible) {
-}
+/**
+ * @interface QkApplicationDelegate
+*/
+@interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
+@property (assign, nonatomic, readonly) qk::Application *host;
+@property (assign, nonatomic, readonly) UIApplication *app;
+@end
 
-void Screen::set_status_bar_style(StatusBarStyle style) {
-}
+id<QkIMEHelprt> qk_make_ime_helper(qk::Window *win);
 
-Screen::Orientation Screen::orientation() const {
-	return kInvalid;
-}
-
-void Screen::set_orientation(Orientation orientation) {
-}
+#endif // #if Qk_APPLE
+#endif

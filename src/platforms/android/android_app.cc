@@ -30,6 +30,7 @@
 
 #include "../../ui/event.h"
 #include "../../ui/app.h"
+#include "../../ui/window.h"
 #include "./android.h"
 
 namespace qk
@@ -72,27 +73,28 @@ namespace qk
 
 
 extern "C" {
+	using namespace qk;
 
 	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
-		shared_app()->dispatch()->dispatch_ime_delete(count);
+		shared_app()->activeWindow()->dispatch()->onImeDelete(count);
 	}
 
 	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
-		shared_app()->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
+		shared_app()->activeWindow()->dispatch()->onImeInsert(JNI::jstring_to_string(text));
 	}
 
 	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
-		shared_app()->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
+		shared_app()->activeWindow()->dispatch()->onImeMarked(JNI::jstring_to_string(text));
 	}
 
 	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
-		shared_app()->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
+		shared_app()->activeWindow()->dispatch()->onImeUnmark(JNI::jstring_to_string(text));
 	}
-	
+
 	Qk_EXPORT void Java_org_quark_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 		jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
-		shared_app()->dispatch()->keyboard_adapter()->
-			dispatch(keycode, ascii, down, repeat, device, source);
+		shared_app()->activeWindow()->dispatch()->keyboard()->
+			dispatch(keycode, ascii, down, false, repeat, device, source);
 	}
 
 }

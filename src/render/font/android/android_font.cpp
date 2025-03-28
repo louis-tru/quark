@@ -31,6 +31,7 @@
 #include "./android_font_parser.h"
 #include "../pool.h"
 #include "../priv/styleset.h"
+#include "../../../util/fs.h"
 
 #include <algorithm>
 #include <limits>
@@ -59,10 +60,11 @@ public:
 		: QkTypeface_Android(style, isFixedPitch, familiesName)
 		, fPathName(pathName)
 		, fIndex(index)
-		, fAxes(axes, axesCount)
+		, fAxes(axesCount)
 		, fLang(lang)
 		, fVariantStyle(variantStyle)
 		, fCacheFontFiles(cacheFontFiles) {
+		memcpy((void*)fAxes.val(), axes, fAxes.size());
 		initFreeType();
 	}
 
@@ -77,7 +79,7 @@ public:
 	}
 
 	Sp<QkFontData> onMakeFontData() const override {
-		return new QkFontData(this->makeStream(), fIndex, fAxes.begin(), fAxes.length());
+		return new QkFontData(this->makeStream(), fIndex, fAxes.val(), fAxes.length());
 	}
 
 	bool fCacheFontFiles;
@@ -101,10 +103,10 @@ public:
 	}
 
 	Sp<QkFontData> onMakeFontData() const override {
-		return new QkFontData(*fData.value());
+		return new QkFontData(*fData.get());
 	}
 
-	const Sp<const QkFontData> fData;
+	const Sp<QkFontData> fData;
 };
 
 class QkFontStyleSet_Android : public QkFontStyleSet {
@@ -137,7 +139,7 @@ public:
 			FontStyle style;
 			bool isFixedWidth;
 			Scanner::AxisDefinitions axisDefinitions;
-			if (!scanner.scanFont(stream.value(), ttcIndex,
+			if (!scanner.scanFont(stream.get(), ttcIndex,
 								&familiesName, &style, &isFixedWidth, &axisDefinitions))
 			{
 				Qk_DLog("Requested font file %s exists, but is not a valid font.\n",
@@ -145,7 +147,7 @@ public:
 				continue;
 			}
 
-			int weight = fontFile.fWeight != 0 ? fontFile.fWeight : style.weight();
+			TextWeight weight = fontFile.fWeight != 0 ? TextWeight(fontFile.fWeight): style.weight();
 			TextSlant slant = style.slant();
 			switch (fontFile.fStyle) {
 				case FontFileInfo::Style::kAuto: slant = style.slant(); break;
@@ -153,7 +155,7 @@ public:
 				case FontFileInfo::Style::kItalic: slant = TextSlant::Italic; break;
 				default: Qk_ASSERT(false); break;
 			}
-			style = FontStyle(TextWeight(weight), style.width(), slant);
+			style = FontStyle(weight, style.width(), slant);
 
 			uint32_t variant = families.fVariant;
 			if (kDefault_FontVariant == variant) {
@@ -169,8 +171,8 @@ public:
 
 			Array<QkFixed> axisValues(axisDefinitions.length());
 			FontArguments::VariationPosition position = {
-				*fontFile.fVariationDesignPosition.begin(),
-				 fontFile.fVariationDesignPosition.length()
+						fontFile.fVariationDesignPosition.val(),
+				int(fontFile.fVariationDesignPosition.length())
 			};
 			Scanner::computeAxisValues(axisDefinitions, position, *axisValues, familiesName);
 
@@ -202,7 +204,7 @@ public:
 		if (index < 0 || fStyles.length() <= index) {
 			return nullptr;
 		}
-		return fStyles[index].value();
+		return fStyles[index].get();
 	}
 
 	QkTypeface_AndroidSystem* matchStyle(FontStyle pattern) override {
@@ -385,7 +387,7 @@ protected:
 
 		Array<QkFixed> axisValues(axisDefinitions.length());
 		Scanner::computeAxisValues(axisDefinitions, args.getVariationDesignPosition(),
-									axisValues, name);
+									axisValues.val(), name);
 
 		auto data = new QkFontData(stream, args.getCollectionIndex(),
 											axisValues.val(), axisDefinitions.length());
@@ -407,25 +409,24 @@ private:
 			fFamilyNames.write(families.fNames.val(), families.fNames.length());
 		}
 
-		auto newSet = new QkFontStyleSet_Android(families, fScanner, isolated);
+		Sp<QkFontStyleSet_Android> newSet = new QkFontStyleSet_Android(families, fScanner, isolated);
 		if (0 == newSet->count()) {
 			return;
 		}
 
 		for (cString& name : families.fNames) {
 			Qk_ASSERT_EQ(nameToFamily->has(name), false);
-			//nameToFamily->push(NameToFamily{name, newSet.value()});
-			nameToFamily->set(name, newSet.value());
+			nameToFamily->set(name, newSet.get());
 		}
-		fStyleSets.push(newSet);
+		fStyleSets.push(std::move(newSet));
 	}
 
 	void buildNameToFamilyMap(Array<FontFamily*> families, const bool isolated) {
 		int familiesIndex = 0;
 		for (FontFamily* families : families) {
 			addFamily(*families, isolated, familiesIndex++);
-			for (const auto& [unused, fallbackFamily] : families->fallbackFamilies) {
-				addFamily(*fallbackFamily, isolated, familiesIndex++);
+			for (auto& it : families->fallbackFamilies) {
+				addFamily(*it.value.get(), isolated, familiesIndex++);
 			}
 		}
 	}
@@ -439,8 +440,8 @@ private:
 			if (fDefaultStyleSet)
 				return;
 		}
-		if (nullptr == fDefaultStyleSet) {
-			fDefaultStyleSet = fStyleSets[0];
+		if (fDefaultStyleSet == nullptr) {
+			fDefaultStyleSet = fStyleSets[0].get();
 		}
 		Qk_ASSERT(fDefaultStyleSet);
 	}

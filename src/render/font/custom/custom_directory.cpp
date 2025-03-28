@@ -122,7 +122,7 @@ private:
 };
 
 #ifndef Qk_FONT_FILE_PREFIX
-#  if defined(Qk_MAC)
+#  if defined(Qk_APPLE)
 #    define Qk_FONT_FILE_PREFIX "/System/Library/Fonts/"
 #  else
 #    define Qk_FONT_FILE_PREFIX "/usr/share/fonts/"

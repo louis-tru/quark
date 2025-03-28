@@ -31,40 +31,40 @@
 #define GL_SILENCE_DEPRECATION
 #define GL3_PROTOTYPES
 
-#import "./mac_render.h"
+#import "./apple_render.h"
 #import "../gl/gl_render.h"
 #import "../gl/gl_cmd.h"
 
 using namespace qk;
 
 // ------------------- OpenGL ------------------
-#if Qk_ENABLE_GL && Qk_OSX
+#if Qk_ENABLE_GL && Qk_MacOS
 
-class OsxGLRender;
+class MacGLRender;
 
 @interface GLView: NSOpenGLView
 {
 	CVDisplayLinkRef _displayLink;
-	OsxGLRender      *_render;
+	MacGLRender      *_render;
 }
 @property (strong, nonatomic) NSOpenGLContext *ctx;
 @property (assign, nonatomic) bool         isRun;
 @property (assign, nonatomic) qk::ThreadID renderThreadId;
-- (id)   init:(NSOpenGLContext*)ctx render:(OsxGLRender*)r;
+- (id)   init:(NSOpenGLContext*)ctx render:(MacGLRender*)r;
 - (void) stopDisplay;
 @end
 
 // ----------------------------------------------------------------------------------------------
 
-class OsxGLRender final: public GLRender, public RenderSurface {
+class MacGLRender final: public GLRender, public RenderSurface {
 public:
-	OsxGLRender(Options opts, NSOpenGLContext *ctx)
+	MacGLRender(Options opts, NSOpenGLContext *ctx)
 		: GLRender(opts), _view(nil), _ctx(ctx), _lockCount(0)
 	{
 		//CFBridgingRetain(_ctx);
 	}
 
-	~OsxGLRender() override {
+	~MacGLRender() override {
 		Qk_ASSERT_RAW(_msg.length() == 0);
 	}
 
@@ -204,7 +204,7 @@ private:
 
 //- (BOOL) isOpaque { return NO; }
 
-- (id) init:(NSOpenGLContext*)ctx render:(OsxGLRender*)r {
+- (id) init:(NSOpenGLContext*)ctx render:(MacGLRender*)r {
 	if ((self = [super initWithFrame:CGRectZero pixelFormat:nil])) {
 		self.ctx = ctx;
 		_isRun = true;
@@ -277,15 +277,15 @@ static CVReturn displayLinkCallback(
 
 namespace qk {
 
-	class OsxRenderResource: public GLRenderResource {
+	class MacRenderResource: public GLRenderResource {
 	public:
 		Qk_DEFINE_PROP_GET(NSOpenGLContext*, ctx);
-		OsxRenderResource(NSOpenGLContext* ctx)
+		MacRenderResource(NSOpenGLContext* ctx)
 			: GLRenderResource(current_loop()), _ctx(ctx) {
 		}
 	};
 
-	static OsxRenderResource* g_sharedRenderResource = nullptr;
+	static MacRenderResource* g_sharedRenderResource = nullptr;
 
 	RenderResource* getSharedRenderResource() {
 		return g_sharedRenderResource;
@@ -330,7 +330,7 @@ namespace qk {
 			static std::once_flag flag;
 			call_once(flag, [format]() {
 				auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-				g_sharedRenderResource = new OsxRenderResource(ctx);
+				g_sharedRenderResource = new MacRenderResource(ctx);
 			});
 		}
 		auto ctx = [[NSOpenGLContext alloc] initWithFormat:format shareContext:g_sharedRenderResource->ctx()];
@@ -348,7 +348,7 @@ namespace qk {
 		CGLLockContext(ctx.CGLContextObj);
 		[ctx makeCurrentContext];
 		Qk_ASSERT(NSOpenGLContext.currentContext, "Failed to set current OpenGL context");
-		auto render = new OsxGLRender(opts,ctx);
+		auto render = new MacGLRender(opts,ctx);
 		CGLUnlockContext(ctx.CGLContextObj);
 		[NSOpenGLContext clearCurrentContext]; // clear ctx
 

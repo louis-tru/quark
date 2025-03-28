@@ -39,7 +39,7 @@
 #if Qk_iOS
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
-#elif Qk_OSX
+#elif Qk_MacOS
 # define GL_SILENCE_DEPRECATION
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
@@ -52,7 +52,7 @@
 # error "The operating system does not support"
 #endif
 
-#if Qk_OSX
+#if Qk_MacOS
 #define Qk_GL_Version "330 core"
 #else // ios linux android using the es version
 #define Qk_GL_Version "300 es"

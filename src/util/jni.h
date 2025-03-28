@@ -33,8 +33,7 @@
 #ifndef __quark__util__jni__
 #define __quark__util__jni__
 
-#include "../macros.h"
-
+#include "./macros.h"
 #if Qk_ANDROID
 #include <jni.h>
 #include "./string.h"

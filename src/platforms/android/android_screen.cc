@@ -31,6 +31,7 @@
 #include "./android.h"
 #include "../../ui/screen.h"
 #include "../../ui/window.h"
+#include "../../ui/app.h"
 
 namespace qk {
 

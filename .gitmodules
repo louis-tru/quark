@@ -51,5 +51,7 @@
 	url = https://github.com/louis-tru/http_parser.git
 [submodule "deps/v8"]
 	path = deps/v8
-	# url = https://github.com/louis-tru/v8.git
 	url = https://github.com/louis-tru/v8_7x.git
+[submodule "deps/libexpat"]
+	path = deps/libexpat
+	url = https://github.com/louis-tru/libexpat.git

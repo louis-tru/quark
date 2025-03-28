@@ -33,15 +33,15 @@
 
 namespace qk {
 
-	class MacVideoCodec: public MediaCodec {
+	class AppleVideoCodec: public MediaCodec {
 	public:
-		MacVideoCodec(const Stream &stream): MediaCodec(stream)
+		AppleVideoCodec(const Stream &stream): MediaCodec(stream)
 			, _session(nil)
 			, _desc(nil)
 			, _packet(nil)
 		{}
 
-		~MacVideoCodec() {
+		~AppleVideoCodec() {
 			close();
 			if (_desc) {
 				CFRelease(_desc); _desc = nil;
@@ -128,7 +128,7 @@ namespace qk {
 			];
 
 			VTDecompressionOutputCallbackRecord cb = {
-				(VTDecompressionOutputCallback)&MacVideoCodec::decompress_frame_cb,
+				(VTDecompressionOutputCallback)&AppleVideoCodec::decompress_frame_cb,
 				this,
 			};
 			OSStatus status = VTDecompressionSessionCreate(nil, _desc, nil, attrs, &cb, &_session);
@@ -174,7 +174,7 @@ namespace qk {
 			}
 		}
 
-		static void decompress_frame_cb(MacVideoCodec* self, void* source, OSStatus status,
+		static void decompress_frame_cb(AppleVideoCodec* self, void* source, OSStatus status,
 																		VTDecodeInfoFlags flags,
 																		CVImageBufferRef buffer, CMTime pts, CMTime duration
 		) {
@@ -342,7 +342,7 @@ namespace qk {
 	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {
 		if ( ex ) {
 			if (type == kVideo_MediaType) {
-				Sp<MacVideoCodec> codec = new MacVideoCodec(ex->stream());
+				Sp<AppleVideoCodec> codec = new AppleVideoCodec(ex->stream());
 				if (codec->init()) {
 					return codec.collapse();
 				}

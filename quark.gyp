@@ -50,7 +50,7 @@
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
-			['library_output=="shared_library" and OS=="mac" and project=="make"', {
+			['library_output=="shared_library" and os in "mac ios" and project=="make"', {
 				'actions': [{
 					'action_name': 'mk_quark_dylib',
 					'variables': {
@@ -104,7 +104,7 @@
 				}]
 			}],
 			# output not mac shared library for "libquark.so"
-			['library_output=="shared_library" and OS!="mac"', {
+			['library_output=="shared_library" and os not in "mac ios"', {
 				'product_prefix': 'quark', # libquark.so
 				'product_extension': 'so',
 				'type': 'shared_library',
@@ -130,13 +130,13 @@
 				'type': 'none',
 			}],
 		}],
-		['OS!="mac" or project=="xcode"', {
+		['os not in "mac ios" or project=="xcode"', {
 			'includes': [ 'test/test.gypi' ],
 		}],
 		['use_js==1 and os!="ios"', {
 			'targets+': [
 			{
-				'target_name': 'quarkrun',
+				'target_name': 'quark-exec',
 				'product_name': 'quark', # output name quark
 				'type': 'executable',
 				'dependencies': [

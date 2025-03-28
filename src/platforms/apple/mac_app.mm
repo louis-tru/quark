@@ -32,7 +32,7 @@
 #import <AppKit/AppKit.h>
 #import "../../util/http.h"
 #import "../../ui/app.h"
-#import "./mac_app.h"
+#import "./apple_app.h"
 
 using namespace qk;
 

@@ -28,34 +28,56 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__render__mac__render_mac__
-#define __quark__render__mac__render_mac__
-#include "../../util/macros.h"
-#if Qk_MAC
-#include "../render.h"
-#if Qk_OSX
-#import <AppKit/AppKit.h>
-#define UIResponder NSResponder
-#define UIApplication NSApplication
-#define UIApplicationDelegate NSApplicationDelegate
-#define UIWindow NSWindow
-#define UIView NSView
-#define CGRect NSRect
-#define UIColor NSColor
-#define UIScreen NSScreen
-#define UIViewController NSViewController
-#else // iOS
+#import "./fs.h"
+#if Qk_APPLE
+#import <Foundation/Foundation.h>
+#if Qk_iOS
 #import <UIKit/UIKit.h>
+#else
+#import <AppKit/AppKit.h>
 #endif
 
 namespace qk {
-	class RenderSurface {
-	public:
-		virtual UIView* surfaceView() = 0;
-	};
+
+	String fs_home_dir(cChar *child, ...) {
+		static cString path(fs_format("%s", NSHomeDirectory().UTF8String));
+		if (child) {
+			va_list arg;
+			va_start(arg, child);
+			auto str = _Str::printfv(child, arg);
+			va_end(arg);
+			return fs_format("%s/%s", path.c_str(), str.c_str());
+		} else {
+			return path;
+		}
+	}
+
+	String fs_executable() {
+		static cString path(fs_format(NSBundle.mainBundle.executablePath.UTF8String));
+		return path;
+	}
+
+	String fs_documents(cString& child) {
+		static String path(
+			fs_format([NSSearchPathForDirectoriesInDomains(
+				NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0].UTF8String)
+		);
+		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());
+	}
+
+	String fs_temp(cString& child) {
+		static cString path(fs_format("%s", NSTemporaryDirectory().UTF8String));
+		return child.isEmpty() ? path: fs_format("%s/%s", path.c_str(), child.c_str());;
+	}
+
+	/**
+	 * Get the resoures dir
+	 */
+	String fs_resources(cString& child) {
+		static cString path( fs_format("%s", NSBundle.mainBundle.resourcePath.UTF8String) );
+		return child.isEmpty()? path: fs_format("%s/%s", path.c_str(), child.c_str());
+	}
+
 }
 
-void qk_post_messate_main(qk::Cb cb, bool sync);
-
-#endif
 #endif

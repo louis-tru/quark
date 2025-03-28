@@ -321,7 +321,7 @@ namespace qk {
 	template<typename T, typename A>
 	typename List<T, A>::IteratorConst
 	List<T, A>::offsetAt(IteratorConst it, int offset) const {
-		return const_cast<List*>(*this)->indexed(it, offset);
+		return const_cast<List*>(*this)->offsetAt(it, offset);
 	}
 
 	template<typename T, typename A>

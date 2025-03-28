@@ -32,7 +32,7 @@
 
 namespace qk {
 
-#if defined(Qk_MAC)
+#if defined(Qk_APPLE)
 	#include <dispatch/dispatch.h>
 
 	struct Semaphore::OSSemaphore {

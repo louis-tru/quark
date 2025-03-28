@@ -31,7 +31,7 @@
 #ifndef __quark__linux__linux_render__
 #define __quark__linux__linux_render__
 #include "../../util/macros.h"
-// #if Qk_LINUX
+#if Qk_LINUX
 #include <EGL/eglplatform.h>
 
 namespace qk {
@@ -46,5 +46,5 @@ namespace qk {
 	};
 }
 
-// #endif
+#endif
 #endif

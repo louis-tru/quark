@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #if !defined(USE_JS)
-void test_v8(int argc, char **argv) {}
+void test_jsapi(int argc, char **argv) {}
 #else
 #include "quark/js/js.h"
 #include "quark/util/fs.h"

@@ -32,12 +32,12 @@
 
 namespace qk {
 
-	class MacKeyboardAdapter: public KeyboardAdapter {
+	class AppleKeyboardAdapter: public KeyboardAdapter {
 	public:
-		MacKeyboardAdapter();
+		AppleKeyboardAdapter();
 	};
 
-	MacKeyboardAdapter::MacKeyboardAdapter() {
+	AppleKeyboardAdapter::AppleKeyboardAdapter() {
 		_PlatformKeyCodeToKeyCode[0] = KEYCODE_A;
 		_PlatformKeyCodeToKeyCode[1] = KEYCODE_S;
 		_PlatformKeyCodeToKeyCode[2] = KEYCODE_D;
@@ -161,7 +161,7 @@ namespace qk {
 	}
 
 	KeyboardAdapter* KeyboardAdapter::create() {
-		return new MacKeyboardAdapter();
+		return new AppleKeyboardAdapter();
 	}
 
 }

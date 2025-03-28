@@ -32,8 +32,8 @@
 #import "../../ui/app.h"
 #import "../../ui/window.h"
 #import "../../ui/event.h"
-#import "../../render/mac/mac_render.h"
-#import "./mac_app.h"
+#import "../../render/apple/apple_render.h"
+#import "./apple_app.h"
 
 using namespace qk;
 

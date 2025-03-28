@@ -1,9 +1,9 @@
 -include .config.mk
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
-ANDROID_JAR     = out/android.classs.quark.jar
-QKMAKE          = ./libs/qkmake
-QKMAKE_OUT      = out/qkmake
+ANDROID_JAR    := out/android.classs.quark.jar
+QKMAKE         := ./libs/qkmake
+QKMAKE_OUT     := out/qkmake
 REMOTE_COMPILE_HOST ?= 192.168.2.202
 
 ifneq ($(USER),root)

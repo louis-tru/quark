@@ -89,7 +89,7 @@ namespace qk {
 		glTextureBarrier();
 #elif defined(GL_NV_texture_barrier)
 		glTextureBarrierNV();
-#elif Qk_OSX
+#elif Qk_MacOS
 		glFlushRenderAPPLE();
 #else
 		glFlush();
@@ -133,7 +133,7 @@ namespace qk {
 			case kPVRTCI_4BPP_RGBA_ColorType:
 			case kPVRTCII_4BPP_ColorType: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
 #endif
-#if !Qk_OSX
+#if !Qk_MacOS
 			case kETC1_ColorType:
 			case kETC2_RGB_ColorType: return GL_COMPRESSED_RGB8_ETC2;
 			case kETC2_RGBA_ColorType: return GL_COMPRESSED_RGBA8_ETC2_EAC;

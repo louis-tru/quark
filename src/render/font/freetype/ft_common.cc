@@ -176,10 +176,10 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 }
 
 void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, float pixelBaseline) {
-	uint32_t pitch = pixel.rowbytes();
+	int pitch = pixel.rowbytes();
 	FT_Bitmap dst = {
-		.rows = ceilf(glyph.fHeight),
-		.width = ceilf(glyph.fWidth),
+		.rows = uint32_t(ceilf(glyph.fHeight)),
+		.width = uint32_t(ceilf(glyph.fWidth)),
 		.pitch = pitch,
 		.buffer = pixel.val() +
 			int32_t(glyph.fTop + pixelBaseline) * pitch +

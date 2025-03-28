@@ -39,7 +39,7 @@
 # include <stdlib.h>
 #endif
 
-#if Qk_MAC
+#if Qk_APPLE
 # include <mach/mach_time.h>
 # include <mach/mach.h>
 # include <mach/clock.h>
@@ -134,7 +134,7 @@ namespace qk {
 	}
 
 	String platform() {
-		#if  Qk_iOS || Qk_OSX
+		#if  Qk_iOS || Qk_MacOS
 			static String _name("darwin");
 		#elif  Qk_ANDROID
 			static String _name("android");

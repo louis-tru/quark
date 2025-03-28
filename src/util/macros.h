@@ -71,11 +71,11 @@
 #elif defined(__APPLE__)
 # include <TargetConditionals.h>
 # define Qk_BSD 1
-# define Qk_MAC TARGET_OS_MAC
-# if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+# define Qk_APPLE 1
+# if TARGET_OS_IPHONE
 #  define Qk_iOS 1
 # else
-#  define Qk_OSX 1
+#  define Qk_MacOS 1
 # endif
 #elif defined(__CYGWIN__)
 # define Qk_CYGWIN 1

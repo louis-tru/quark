@@ -28,12 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./android.h"
 #include "../../ui/app.h"
 #include "../../ui/window.h"
 #include "../../ui/screen.h"
 #include "../../ui/event.h"
 #include "../../render/linux/linux_render.h"
+#include "./android.h"
+
 #include <android/native_activity.h>
 #include <android/native_window.h>
 
@@ -42,22 +43,29 @@ namespace qk {
 	typedef TouchEvent::TouchPoint TouchPoint;
 	typedef Screen::Orientation Orientation;
 	class WindowImpl {};
-	class SharedWindowmanager;
-	static SharedWindowmanager *manager = nullptr;
+	class SharedWindowManager;
+	static SharedWindowManager *swm = nullptr;
 
 	static void dispatchEvent(AInputEvent* event);
 
-	class SharedWindowmanager: public WindowImpl {
+	class SharedWindowManager: public WindowImpl {
+		Application::Inl* _host = nullptr;
+		ANativeActivity* _activity = nullptr;
+		ANativeWindow* _window = nullptr;
+		AInputQueue* _queue = nullptr;
+		ALooper* _looper = nullptr;
+		Orientation _currentOrientation = Orientation::kInvalid;
+		friend class Window;
 	public:
+		Qk_DEFINE_PROP_GET(Rect, displayRect);
 
-		SharedWindowmanager()
-		{
-			Qk_ASSERT_EQ(manager, nullptr);
-			manager = this;
+		SharedWindowManager() {
+			Qk_ASSERT_EQ(swm, nullptr);
+			swm = this;
 			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 		}
 
-		inline void RunLoop* loop() {
+		inline RunLoop* loop() {
 			return _host->loop();
 		}
 
@@ -79,17 +87,18 @@ namespace qk {
 				win->render()->surface()->deleteSurface();
 		}
 
-		static void Window* activeWindow() {
-			return manager->_host->activeWindow();
+		static Window* activeWindow() {
+			return swm->_host->activeWindow();
 		}
 
 		static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
-			if ( queue != manager->_queue ) {
-				if ( manager->_queue ) {
-					AInputQueue_detachLooper(manager->_queue);
+			if ( queue != swm->_queue ) {
+				if ( swm->_queue ) {
+					AInputQueue_detachLooper(swm->_queue);
 				}
-				AInputQueue_attachLooper(queue, manager->_looper, ALOOPER_POLL_CALLBACK, (ALooper_callbackFunc)
-				[](int fd, int events, AInputQueue* queue) -> int {
+				AInputQueue_attachLooper(queue, swm->_looper, ALOOPER_POLL_CALLBACK,
+				(ALooper_callbackFunc)[](int fd, int events, void* q) -> int {
+					AInputQueue* queue = (AInputQueue*)q;
 					AInputEvent* event = nullptr;
 					while( AInputQueue_getEvent(queue, &event) >= 0 ) {
 						if (AInputQueue_preDispatchEvent(queue, event) == 0) {
@@ -101,26 +110,26 @@ namespace qk {
 					}
 					return 1;
 				}, queue);
-				manager->_queue = queue;
+				swm->_queue = queue;
 			}
 		}
 
 		static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
 			AInputQueue_detachLooper(queue);
-			manager->_queue = nullptr;
+			swm->_queue = nullptr;
 		}
 
 		static void onLowMemory(ANativeActivity* activity) {
 			Qk_DLog("onLowMemory");
-			manager->_host->triggerMemorywarning();
+			swm->_host->triggerMemorywarning();
 		}
 
 		static void onResume(ANativeActivity* activity) {
-			manager->_host->triggerResume();
+			swm->_host->triggerResume();
 		}
 
 		static void onPause(ANativeActivity* activity) {
-			manager->_host->triggerPause();
+			swm->_host->triggerPause();
 		}
 
 		static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
@@ -132,35 +141,35 @@ namespace qk {
 		}
 
 		static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
-			if ( !manager ) {
-				new SharedWindowmanager();
+			if ( !swm ) {
+				new SharedWindowManager();
 			}
-			Qk_ASSERT_EQ(manager->_activity, nullptr);
+			Qk_ASSERT_EQ(swm->_activity, nullptr);
 			// ANativeActivity_setWindowFlags(activity, 0x00000400, 0);
 
-			activity->callbacks->onDestroy                  = &manager::onDestroy;
-			activity->callbacks->onStart                    = &manager::onStart;
-			activity->callbacks->onResume                   = &manager::onResume;
-			activity->callbacks->onSaveInstanceState        = &manager::onSaveInstanceState;
-			activity->callbacks->onPause                    = &manager::onPause;
-			activity->callbacks->onStop                     = &manager::onStop;
-			activity->callbacks->onConfigurationChanged     = &manager::onConfigurationChanged;
-			activity->callbacks->onLowMemory                = &manager::onLowMemory;
-			activity->callbacks->onWindowFocusChanged       = &manager::onWindowFocusChanged;
-			activity->callbacks->onNativeWindowCreated      = &manager::onNativeWindowCreated;
-			activity->callbacks->onNativeWindowResized      = &manager::onNativeWindowResized;
-			activity->callbacks->onNativeWindowRedrawNeeded = &manager::onNativeWindowRedrawNeeded;
-			activity->callbacks->onNativeWindowDestroyed    = &manager::onNativeWindowDestroyed;
-			activity->callbacks->onInputQueueCreated        = &manager::onInputQueueCreated;
-			activity->callbacks->onInputQueueDestroyed      = &manager::onInputQueueDestroyed;
-			activity->callbacks->onContentRectChanged       = &manager::onContentRectChanged;
-			activity->instance = manager;
+			activity->callbacks->onDestroy                  = &SharedWindowManager::onDestroy;
+			activity->callbacks->onStart                    = &SharedWindowManager::onStart;
+			activity->callbacks->onResume                   = &SharedWindowManager::onResume;
+			activity->callbacks->onSaveInstanceState        = &SharedWindowManager::onSaveInstanceState;
+			activity->callbacks->onPause                    = &SharedWindowManager::onPause;
+			activity->callbacks->onStop                     = &SharedWindowManager::onStop;
+			activity->callbacks->onConfigurationChanged     = &SharedWindowManager::onConfigurationChanged;
+			activity->callbacks->onLowMemory                = &SharedWindowManager::onLowMemory;
+			activity->callbacks->onWindowFocusChanged       = &SharedWindowManager::onWindowFocusChanged;
+			activity->callbacks->onNativeWindowCreated      = &SharedWindowManager::onNativeWindowCreated;
+			activity->callbacks->onNativeWindowResized      = &SharedWindowManager::onNativeWindowResized;
+			activity->callbacks->onNativeWindowRedrawNeeded = &SharedWindowManager::onNativeWindowRedrawNeeded;
+			activity->callbacks->onNativeWindowDestroyed    = &SharedWindowManager::onNativeWindowDestroyed;
+			activity->callbacks->onInputQueueCreated        = &SharedWindowManager::onInputQueueCreated;
+			activity->callbacks->onInputQueueDestroyed      = &SharedWindowManager::onInputQueueDestroyed;
+			activity->callbacks->onContentRectChanged       = &SharedWindowManager::onContentRectChanged;
+			activity->instance = swm;
 
-			manager->_activity = activity;
+			swm->_activity = activity;
 		}
 
 		static void onDestroy(ANativeActivity* activity) {
-			Qk_ASSERT_NE(manager->_activity, nullptr);
+			Qk_ASSERT_NE(swm->_activity, nullptr);
 
 			activity->callbacks->onDestroy                  = nullptr;
 			activity->callbacks->onStart                    = nullptr;
@@ -179,45 +188,45 @@ namespace qk {
 			activity->callbacks->onInputQueueDestroyed      = nullptr;
 			activity->callbacks->onContentRectChanged       = nullptr;
 
-			manager->_activity = nullptr;
+			swm->_activity = nullptr;
 		}
 
 		static void onStart(ANativeActivity* activity) {
-			if ( manager->_host == nullptr ) { // start gui
+			if ( swm->_host == nullptr ) { // start gui
 				Application::runMain(0, nullptr); // run gui application
 
-				manager->_host = Inl_Application(shared_app());
+				swm->_host = Inl_Application(shared_app());
 
-				Qk_ASSERT(manager->_host);
-				Qk_ASSERT_EQ(manager->_activity, activity);
+				Qk_ASSERT(swm->_host);
+				Qk_ASSERT_EQ(swm->_activity, activity);
 
-				manager->_host->triggerLoad();
+				swm->_host->triggerLoad();
 			}
 
 			//auto awin = activeWindow();
 			//if (awin)
-			//	manager->_host->triggerForeground(awin);
+			//	swm->_host->triggerForeground(awin);
 		}
 
 		static void onStop(ANativeActivity* activity) {
 			Qk_DLog("onStop");
 			//auto awin = activeWindow();
 			//if (awin)
-			//	manager->_host->triggerBackground(awin);
+			//	swm->_host->triggerBackground(awin);
 		}
 
 		// ----------------------------------------------------------------------
 
 		static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
-			Qk_ASSERT_NE(manager->_window, nullptr);
+			Qk_ASSERT_NE(swm->_window, nullptr);
 			// ANativeWindow_setBuffersGeometry(window, 800, 480, WINDOW_FORMAT_RGBX_8888);
-			manager->_window = window;
-			manager->enterWindow(activeWindow());
+			swm->_window = window;
+			swm->enterWindow(activeWindow());
 		}
 
 		static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-			manager->_window = nullptr;
-			manager->exitWindow(activeWindow());
+			swm->_window = nullptr;
+			swm->exitWindow(activeWindow());
 		}
 
 		static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
@@ -238,7 +247,7 @@ namespace qk {
 			/*
 			* Rect选择绘制，主要因为android的虚拟导航按键，虚拟导航按键区域绘制黑色背景颜色填充
 			*/
-			manager->_rect = {
+			swm->_displayRect = {
 				Vec2(rect->left, 0),
 				Vec2(rect->right - rect->left, rect->bottom)
 			};
@@ -252,26 +261,16 @@ namespace qk {
 			}
 
 			auto ori = (Orientation)Android::get_orientation();
-			if ((ori != manager->_currentOrientation)) {
-				manager->_currentOrientation = ori;
-				manager->_host->triggerOrientation();
+			if ((ori != swm->_currentOrientation)) {
+				swm->_currentOrientation = ori;
+				swm->_host->triggerOrientation();
 			}
 		}
-
-	private:
-		Application::Inl* _host = nullptr;
-		ANativeActivity* _activity = nullptr;
-		ANativeWindow* _window = nullptr;
-		AInputQueue* _queue = nullptr;
-		ALooper* _looper = nullptr;
-		Orientation _currentOrientation = Orientation::ORIENTATION_INVALID;
-		Rect _rect;
-		friend class Window;
 	};
 
-	static bool toTouch(AInputEvent* motionEvent, int pointerIndex, TouchPoint* out) {
-		Vec2 scale = manager->activeWindow()->scale();
-		float left = manager->_rect.origin.x();
+	static bool convertToTouch(AInputEvent* motionEvent, int pointerIndex, TouchPoint* out) {
+		Vec2 scale = swm->activeWindow()->scale();
+		float left = swm->displayRect().origin.x();
 		int id = AMotionEvent_getPointerId(motionEvent, pointerIndex);
 		float x = AMotionEvent_getX(motionEvent, pointerIndex) - left;
 		float y = AMotionEvent_getY(motionEvent, pointerIndex);
@@ -290,26 +289,26 @@ namespace qk {
 		return x != h_x || y != h_y;
 	}
 
-	static List<TouchPoint> toTouchList(AInputEvent* motionEvent, bool filter) {
+	static List<TouchPoint> convertToTouchList(AInputEvent* motionEvent, bool filter) {
 		List<TouchPoint> rv;
 		TouchPoint touch;
 		int count = AMotionEvent_getPointerCount(motionEvent);
 
 		for (int i = 0; i < count; i++) {
 			if ( filter ) {
-				if ( toTouch(motionEvent, i, &touch) ) {
-					rv.push(touch);
+				if ( convertToTouch(motionEvent, i, &touch) ) {
+					rv.pushBack(touch);
 				}
 			} else {
-				toTouch(motionEvent, i, &touch);
-				rv.push(touch);
+				convertToTouch(motionEvent, i, &touch);
+				rv.pushBack(touch);
 			}
 		}
 		Qk_ReturnLocal(rv);
 	}
 
 	static void dispatchEvent(AInputEvent* event) {
-		auto awin = Manager::activeWindow();
+		auto awin = SharedWindowManager::activeWindow();
 		if (!awin) return;
 		auto dispatch = awin->dispatch();
 		int type = AInputEvent_getType(event);
@@ -334,11 +333,11 @@ namespace qk {
 			switch (action) {
 				case AKEY_EVENT_ACTION_DOWN:
 					if (code)
-						dispatch->keyboard_adapter()->dispatch(code, 0, 1, repeat, device, source);
+						dispatch->keyboard()->dispatch(code, 0, 1, false, repeat, device, source);
 					break;
 				case AKEY_EVENT_ACTION_UP:
 					if (code)
-						dispatch->keyboard_adapter()->dispatch(code, 0, 0, repeat, device, source);
+						dispatch->keyboard()->dispatch(code, 0, 0, false, repeat, device, source);
 					break;
 				case AKEY_EVENT_ACTION_MULTIPLE:
 					Qk_DLog("AKEY_EVENT_ACTION_MULTIPLE");
@@ -347,49 +346,49 @@ namespace qk {
 		}
 		else { // AINPUT_EVENT_TYPE_MOTION
 			int action = AMotionEvent_getAction(event);
-			int pointerIndex = action >> AmotionEvent_ACTION_pointerIndex_SHIFT;
+			int pointerIndex = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
 			List<TouchPoint> touchs;
 			TouchPoint touch;
 
-			switch (action & AmotionEvent_ACTION_MASK) {
-				case AmotionEvent_ACTION_DOWN:
-				case AmotionEvent_ACTION_POINTER_DOWN:
-					toTouch(event, pointerIndex, &touch);
-					touchs.push(touch);
-					dispatch->dispatch_touchstart( std::move(touchs) );
+			switch (action & AMOTION_EVENT_ACTION_MASK) {
+				case AMOTION_EVENT_ACTION_DOWN:
+				case AMOTION_EVENT_ACTION_POINTER_DOWN:
+					convertToTouch(event, pointerIndex, &touch);
+					touchs.pushBack(touch);
+					dispatch->onTouchstart( std::move(touchs) );
 					break;
-				case AmotionEvent_ACTION_UP:
-				case AmotionEvent_ACTION_POINTER_UP:
-					toTouch(event, pointerIndex, &touch);
-					touchs.push(touch);
-					dispatch->dispatch_touchend( std::move(touchs) );
+				case AMOTION_EVENT_ACTION_UP:
+				case AMOTION_EVENT_ACTION_POINTER_UP:
+					convertToTouch(event, pointerIndex, &touch);
+					touchs.pushBack(touch);
+					dispatch->onTouchend( std::move(touchs) );
 					break;
-				case AmotionEvent_ACTION_MOVE:
-					touchs = toTouchList(event, true);
+				case AMOTION_EVENT_ACTION_MOVE:
+					touchs = convertToTouchList(event, true);
 					if ( touchs.length() ) {
-						// Qk_DLog("AmotionEvent_ACTION_MOVE, %d", touchs.length());
-						dispatch->dispatch_touchmove( std::move(touchs) );
+						// Qk_DLog("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
+						dispatch->onTouchmove( std::move(touchs) );
 					}
 					break;
-				case AmotionEvent_ACTION_CANCEL:
-					dispatch->dispatch_touchcancel(toTouchList(event, false));
+				case AMOTION_EVENT_ACTION_CANCEL:
+					dispatch->onTouchcancel(convertToTouchList(event, false));
 					break;
 			}
 		}
 	}
 
 	void Window::openImpl(Options &opts) {
-		manager->post_messate_main(Cb([this](auto e) {
+		swm->post_messate_main(Cb([&](auto e) {
 			set_backgroundColor(opts.backgroundColor);
 			activate();
 		}), true);
-		_impl = manager;
+		_impl = swm;
 	}
 
 	void Window::closeImpl() {
 		if (!_host->activeWindow()) {
-			ANativeActivity_finish(manager->_activity);
+			ANativeActivity_finish(swm->_activity);
 		}
 		_impl = nullptr;
 	}
@@ -408,15 +407,15 @@ namespace qk {
 		auto awin = _host->activeWindow();
 		if (awin == this)
 			return;
-		manager->post_messate_main(Cb([awin,this](auto e) {
-			manager->exitWindow(awin);
-			manager->enterWindow(this);
+		swm->post_messate_main(Cb([awin,this](auto e) {
+			swm->exitWindow(awin);
+			swm->enterWindow(this);
 		}), true);
-		_host->setActiveWindow(this);
+		Inl_Application(_host)->setActiveWindow(this);
 	}
 
 	void Window::pending() {
-		ANativeActivity_finish(manager->_activity);
+		ANativeActivity_finish(swm->_activity);
 	}
 
 	void Window::setFullscreen(bool fullscreen) {
@@ -437,6 +436,6 @@ extern "C" {
 	Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
 																					void* savedState, size_t savedStateSize)
 	{
-		qk::SharedWindowmanager::onCreate(activity, savedState, savedStateSize);
+		qk::SharedWindowManager::onCreate(activity, savedState, savedStateSize);
 	}
 }

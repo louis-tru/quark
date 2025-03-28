@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./mac_app.h"
+#import "./apple_app.h"
 #import "../../util/util.h"
 #import "../../ui/event.h"
 #import "../../ui/app.h"
@@ -42,7 +42,7 @@ using namespace qk;
 
 static const NSRange kEmptyRange = {NSNotFound, 0};
 
-@interface QkOsxIMEHelprt: NSView<QkIMEHelprt,NSTextInputClient,NSTextInput> {
+@interface QkMacIMEHelprt: NSView<QkIMEHelprt,NSTextInputClient,NSTextInput> {
 	@private
 	Window      *_win;
 	BOOL         _isOpen;
@@ -53,7 +53,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 - (id)initIME:(Window*)win;
 @end
 
-@implementation QkOsxIMEHelprt
+@implementation QkMacIMEHelprt
 
 - (id)initIME:(Window*)win {
 	self = [super initWithFrame:CGRectZero];
@@ -256,7 +256,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 
 
 id<QkIMEHelprt> qk_make_ime_helper(Window *win) {
-	return [[QkOsxIMEHelprt alloc] initIME:win];
+	return [[QkMacIMEHelprt alloc] initIME:win];
 }
 
 // ***************** E v e n t . D i s p a t c h *****************

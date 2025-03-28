@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./mac_app.h"
+#import "./apple_app.h"
 #import "../../util/util.h"
 #import "../../ui/window.h"
 #import "../../ui/event.h"

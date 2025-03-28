@@ -37,6 +37,7 @@
 		'output%': '<(PRODUCT_DIR)',
 		'version_min%': '',
 		'android_abi%': '',
+		'ndk_path%': '',
 		'without_visibility_hidden%': 0,
 		'without_embed_bitcode%': 0,
 		'cross_compiling%': 0,
@@ -97,7 +98,7 @@
 		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/deps/v8/src/libv8_base.a',
 
 		'cflags': [
-			'-Wno-enum-constexpr-conversion',
+			# '-Wno-enum-constexpr-conversion'
 			# '-Wunused-parameter',
 			'-Werror=return-type',
 		],
@@ -115,7 +116,7 @@
 			['os not in "win android ios"', {
 				'v8_postmortem_support%': 1,
 			}],
-			['os in "ios osx"', {
+			['os in "ios mac"', {
 				'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
 				'V8_BASE': '<(PRODUCT_DIR)/libv8_base.a',
 			}],
@@ -191,6 +192,9 @@
 		],
 		'conditions': [
 			['os=="android"', {
+				'include_dirs': [
+					'<(ndk_path)/sources/android/cpufeatures',
+				],
 				'cflags': [
 					'-fPIC',
 					'-pthread',
@@ -220,7 +224,7 @@
 					'_GLIBCXX_USE_C99_MATH', 
 					'_GLIBCXX_USE_C99_MATH_TR1',
 					'_GLIBCXX_HAVE_WCSTOF',
-					'__ANDROID_API__=<(android_api_level)',
+					# '__ANDROID_API__=<(android_api_level)',
 				],
 			}],
 			['os=="linux"', {
@@ -316,7 +320,7 @@
 					],
 				},
 			}],
-			['os=="osx"', {
+			['os=="mac"', {
 				'cflags': [
 					'-mmacosx-version-min=<(version_min)',
 					'-arch <(arch_name)',
@@ -356,7 +360,7 @@
 					'VALID_ARCHS': '<(arch_name)',
 				},
 			}],
-			['OS=="mac"', {
+			['os in "mac ios"', {
 				'libraries!': ['-framework CoreFoundation', '-lz'],
 			}],
 			['more_log==1',{ 'defines': [ 'Qk_MoreLOG=1' ]}],
@@ -370,15 +374,21 @@
 				'defines': [ 'BUILDING_UV_SHARED=1' ],
 			}],
 			['_target_name in "v8_libplatform v8_libbase v8_base v8_base_without_compiler \
-					v8_snapshot v8_nosnapshot v8_init v8_compiler v8_initializers"', {
-				'defines': [ 
+					v8_snapshot v8_nosnapshot v8_init v8_compiler v8_initializers"', { # v8
+				'defines': [
 					'BUILDING_V8_SHARED=1', 
 					'BUILDING_V8_PLATFORM_SHARED=1',
 				],
-				'conditions': [['os=="linux"', { # Fix compile error for linux
-					'cflags_cc!': [ '-std=<(std_cpp)' ],
-					'cflags_cc': [ '-std=gnu++14' ],
-				}]],
+				# 'cflags': [ '-Wno-enum-constexpr-conversion' ],
+				'conditions': [[
+					'os in "linux"', { # Fix compile error for linux
+						'cflags_cc!': [ '-std=<(std_cpp)' ],
+						'cflags_cc': [ '-std=gnu++14' ],
+					}
+				]],
+			}],
+			['_target_name in "torque_base"', { # v8/torque_base
+				'cflags!': [ '-Werror=return-type' ],
 			}],
 			['_target_name in "v8_external_snapshot"', {
 				'sources': [  'useless.c' ],
@@ -400,7 +410,7 @@
 				'SDKROOT': 'iphoneos',
 			},
 		}, 
-		'os=="osx"', {
+		'os=="mac"', {
 			'xcode_settings': {
 				'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
 				'SDKROOT': 'macosx',

@@ -28,8 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./android_api.h"
-#include "../../util/jni.h"
+#include "./android.h"
 
 namespace qk {
 
@@ -237,15 +236,15 @@ namespace qk {
 		ScopeENV env;
 		return JNI::jstring_to_string((jstring)env->CallStaticObjectMethod(clazz, api->language), *env);
 	}
-	uint64 Android::available_memory() {
+	uint64_t Android::available_memory() {
 		ScopeENV env;
 		return env->CallStaticLongMethod(clazz, api->available_memory);
 	}
-	uint64 Android::memory() {
+	uint64_t Android::memory() {
 		ScopeENV env;
 		return env->CallStaticLongMethod(clazz, api->memory);
 	}
-	uint64 Android::used_memory() {
+	uint64_t Android::used_memory() {
 		ScopeENV env;
 		return env->CallStaticLongMethod(clazz, api->used_memory);
 	}

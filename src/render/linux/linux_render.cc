@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "../../util/macros.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #if Qk_ANDROID
@@ -43,7 +44,7 @@
 #include "../gl/gl_render.h"
 #include "../gl/gl_cmd.h"
 
-//#if Qk_ENABLE_GL && Qk_LINUX
+#if Qk_LINUX // && Qk_ENABLE_GL
 
 #define GL_ETC1_RGB8_OES  0x8D64
 #define EGL_NO_NATIVE_WINDOW 0
@@ -454,4 +455,4 @@ namespace qk {
 		return r;
 	}
 }
-//#endif
+#endif

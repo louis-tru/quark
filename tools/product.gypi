@@ -150,7 +150,7 @@
 				],
 				'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 			}],
-			['os=="osx"', {
+			['os=="mac"', {
 				'xcode_settings': {
 					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os)',
 					'ALWAYS_SEARCH_USER_PATHS': 'NO',
@@ -250,7 +250,7 @@
 				'SDKROOT': 'iphoneos',
 			},
 		}, 
-		'os=="osx"', {
+		'os=="mac"', {
 			'xcode_settings': {
 				'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os)',
 				'SDKROOT': 'macosx',

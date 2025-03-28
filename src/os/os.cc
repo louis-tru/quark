@@ -41,7 +41,7 @@
 #endif
 
 #if Qk_ANDROID
-# include "../platforms/android/android_api.h"
+# include "../platforms/android/android.h"
 #endif
 
 namespace qk {
@@ -73,7 +73,7 @@ namespace qk {
 	}
 #endif
 
-#if Qk_MAC
+#if Qk_APPLE
 	void os_get_languages_mac(Array<String>& langs);
 #endif
 
@@ -89,7 +89,7 @@ namespace qk {
 #if Qk_iOS
 				os_get_languages_mac(langs->langs);
 #elif Qk_ANDROID
-				langs->langs.push(API::language());
+				langs->langs.push(Android::language());
 #elif Qk_LINUX
 				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 				if ( lang ) {

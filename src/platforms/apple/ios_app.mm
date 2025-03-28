@@ -30,7 +30,7 @@
 
 #import "../../ui/app.h"
 #import "../../ui/window.h"
-#import "./mac_app.h"
+#import "./apple_app.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
 using namespace qk;

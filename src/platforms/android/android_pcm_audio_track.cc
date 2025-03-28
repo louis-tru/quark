@@ -35,6 +35,7 @@
 namespace qk {
 	typedef JNI::MethodInfo MethodInfo;
 	typedef JNI::ScopeENV   ScopeENV;
+	typedef MediaSource::Stream SStream;
 
 	enum {
 		/** Default audio channel mask */
@@ -150,11 +151,12 @@ namespace qk {
 			}
 		}
 
-		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
+		bool initialize(const Stream &stream) {
 			ScopeENV env;
 
-			_channel_count = channel_count;
-			_sample_rate = sample_rate;
+			// stream.channel_layout
+			_channel_count = stream.channels;
+			_sample_rate = stream.sample_rate;
 			_buffer_size = min_buffer_size();
 			_min_volume = env->CallStaticFloatMethod(_clazz, _getMinVolume);
 			_max_volume = env->CallStaticFloatMethod(_clazz, _getMaxVolume);
@@ -187,20 +189,18 @@ namespace qk {
 			return true;
 		}
 
-		virtual bool write(cBuffer& buffer) {
+		virtual bool write(const Frame *frame) {
 			ScopeENV env;
 			// buffer rewind
 			env->DeleteLocalRef(env->CallObjectMethod(_buffer, _buffer_rewind));
 			// copy pcm data
-			memcpy(env->GetDirectBufferAddress(_buffer), *buffer, buffer.length());
-			// write pcm data
-			int r = env->CallIntMethod(_self, _write, _buffer, buffer.length(), 1);
+			// memcpy(env->GetDirectBufferAddress(_buffer), *buffer, buffer.length());
+			// // write pcm data
+			// int r = env->CallIntMethod(_self, _write, _buffer, buffer.length(), 1);
 
-			return r == buffer.length();
-		}
+			// return r == buffer.length();
 
-		virtual float compensate() {
-			return -1.0;
+			return true;
 		}
 
 		virtual void flush() {
@@ -208,26 +208,24 @@ namespace qk {
 			env->CallVoidMethod(_self, _flush);
 		}
 
-		virtual bool set_mute(bool value) {
+		virtual void set_mute(bool value) {
 			if ( value ) {
 				JNI::ScopeENV env;
 				env->CallVoidMethod(_self, _setVolume, 0.0f);
 			} else {
 				set_volume(_volume);
 			}
-			return true;
 		}
 
-		virtual bool set_volume(uint32_t value) {
+		virtual void set_volume(float value) {
 			JNI::ScopeENV env;
 			_volume = Qk_Min(100, value);
 			jfloat f = _volume / 100.0;
 			env->CallIntMethod(_self, _setVolume, f);
-			return true;
 		}
 
-		virtual uint32_t buffer_size() {
-			return _buffer_size;
+		virtual float delayed() {
+			return -1.0;
 		}
 
 		int min_buffer_size() {
@@ -260,9 +258,9 @@ namespace qk {
 		jmethodID   _buffer_rewind;
 	};
 
-	PCMPlayer* create_android_audio_track(uint32_t channel_count, uint32_t sample_rate) {
+	PCMPlayer* create_android_audio_track(const SStream &stream) {
 		Handle<AndroidAudioTrack> player = new AndroidAudioTrack();
-		if ( player->initialize(channel_count, sample_rate) ) {
+		if ( player->initialize(stream) ) {
 			return player.collapse();
 		}
 		return nullptr;

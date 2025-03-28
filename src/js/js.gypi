@@ -52,7 +52,7 @@
 			'api/window.cc',
 		],
 		'conditions': [
-			['use_v8==0 and OS=="mac"', { # use javascriptcore
+			['use_v8==0 and os in "mac ios"', { # use javascriptcore
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/JavaScriptCore.framework',

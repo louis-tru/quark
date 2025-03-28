@@ -288,7 +288,7 @@ namespace qk {
 
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::get(const K& k, V* &out) {
-		auto node = find_(k);
+		auto node = const_cast<Node*>(find_(k));
 		return node ? (out = &node->data().value, true): false;
 	}
 

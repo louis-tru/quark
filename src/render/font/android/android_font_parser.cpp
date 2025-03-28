@@ -53,6 +53,8 @@
 #    define Qk_FONT_FILE_PREFIX "/fonts/"
 #endif
 
+#include "../../../util/fs.h"
+
 /**
  * This file contains TWO 'familieset' handlers:
  * One for JB and earlier which works with
@@ -114,7 +116,7 @@ struct FamilyData {
 		, fFilename(filename)
 		, fDepth(1)
 		, fQkip(0)
-		, fHandler(&topLevelHandler, 1)
+		, fHandler({topLevelHandler})
 	{}
 
 	XML_Parser fParser;                         // The expat parser doing the work, owned by caller
@@ -482,8 +484,8 @@ namespace jbParser {
 		/*tag*/nullptr,
 		/*chars*/[](void* data, cChar* s, int len) {
 			FamilyData* self = static_cast<FamilyData*>(data);
-			QkAutoAsciiToLC tolc(s, len);
-			self->fCurrentFamily->fNames.back().append(tolc.lc(), len);
+			String tolc(s, len);
+			self->fCurrentFamily->fNames.back().append(tolc.lowerCase());
 		}
 	};
 
