@@ -961,6 +961,18 @@
             '<(V8_ROOT)/src/base/platform/platform-posix-time.cc',
             '<(V8_ROOT)/src/base/platform/platform-posix-time.h',
           ],
+          'link_settings': {
+            'target_conditions': [
+              ['_toolset=="host"', {
+                'conditions': [['host_os=="linux"', {
+                  'libraries': [
+                    '-ldl',
+                    '-lrt'
+                  ],
+                }]]
+              }],
+            ],
+          },
           'target_conditions': [
             ['_toolset=="host"', {
               'sources': [
@@ -976,12 +988,6 @@
                   'sources': [
                     '<(V8_ROOT)/src/base/platform/platform-linux.cc',
                   ],
-                  'link_settings': {
-                    'libraries': [
-                      '-ldl',
-                      '-lrt'
-                    ],
-                  },
                 }]
               ],
             }, {
