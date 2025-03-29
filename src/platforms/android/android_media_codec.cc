@@ -370,7 +370,7 @@ namespace qk {
 // 		bool          _is_open;
 // 	};
 
-	MediaCodec* Mediacodec_hardware(MediaType type, MediaSource* source) {
+	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {
 		// init_ffmpeg_jni();
 		
 		// AndroidHardwareMediaCodec* rv = NULL;

@@ -73,7 +73,6 @@ def_opts('without-visibility-hidden', 0,
 def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
 def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
-def_opts('more-log',       0,   '--more-log print more log message [{0}]');
 def_opts(['use-gl', 'gl'], 1,   '--enable-gl,-gl use opengl backend [{0}]');
 def_opts(['use-js', 'js'], 1,   '--use-js,-js enable javascript modules [{0}]');
 
@@ -104,7 +103,6 @@ function touch_file(pathnames) {
 }
 
 function touch_files(variables) {
-	
 	touch_file([
 		'out/native-inl-js.cc',
 		'out/native-ext-js.cc',
@@ -127,7 +125,7 @@ function touch_files(variables) {
 	}
 
 	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
-		touch_file([`${variables.output}/lib.target/libquark-depes-test.so`]);
+		touch_file([`${variables.output}/lib.target/libquark_deps_test.so`]);
 	}
 }
 
@@ -210,11 +208,15 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		'--enable-demuxer=mpegts',
 		'--enable-demuxer=mpegtsraw',
 		'--enable-demuxer=mpegvideo',
+		'--enable-demuxer=rtsp',
+		'--enable-demuxer=rtp',
 		// enable protocols
 		'--enable-protocol=hls',
 		'--enable-protocol=http',
 		'--enable-protocol=file',
 		'--enable-protocol=rtmp',
+		'--enable-protocol=rtsp',
+		'--enable-protocol=rtp',
 		// '--enable-openssl',
 		// others
 		// `--extra-cflags="${path.resolve(__dirname, '../deps/openssl/openssl/include')}"`,
@@ -229,19 +231,17 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 			--sysroot=${variables.build_sysroot} \
 			--enable-cross-compile \
 		`;
-			// --cross-prefix=${variables.cross_prefix} \
 			// --enable-jni \
 			// --enable-mediacodec \
-
 		var cc = variables.cc;
+		var cflags = '';
 		var cflags = `-ffunction-sections -fdata-sections `;
 		if ( !clang ) { // use gcc 
 			cflags += '-funswitch-loops ';
 		}
-		// cflags += `-D__ANDROID_API__=${android_api_level} `;
-
 		cmd += `--cc='${cc} ${cflags} -march=${arch_name}' `;
-	} 
+		cmd += `--strip=${variables.strip} `;
+	}
 	else if ( os=='linux' ) {
 		cmd = `\
 			./configure \
@@ -301,11 +301,11 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	if ( !cmd ) {
 		return false;
 	}
-	
-	if ( opts.library == 'shared' ) {
+
+	if (opts.library == 'shared' || os == 'android') {
 		ff_opts.push('--enable-pic');
 	}
-	if ( opts.debug ) {
+	if (opts.debug) {
 		ff_opts.push('--enable-debug=2');
 	} else {
 		ff_opts.push('--disable-logging');
@@ -610,8 +610,8 @@ async function configure() {
 	var configuration = opts.debug ? 'Debug': 'Release';
 	var cross_compiling = arch != host_arch || host_os != os;
 	var use_dtrace = is_use_dtrace();
-	/* 交叉编译时需要单独的工具集来生成v8-js快照,所以交叉编译暂时不使用v8-js快照*/
-	var v8_use_snapshot = !modile && !opts.without_snapshot;// && !cross_compiling;
+	// Cross compiling is will have to snapshot?
+	var v8_use_snapshot = /*!modile &&*/ !opts.without_snapshot;
 	var shared = opts.library == 'shared' ? 'shared': '';
 	var emulator = 0;
 	var OS = get_OS(os);
@@ -642,7 +642,6 @@ async function configure() {
 			OS: OS,
 			os: os,
 			brand: '',
-			more_log: opts.more_log,
 			clang: opts.clang,
 			library: 'static_library',
 			library_output: opts.library + '_library',
@@ -788,14 +787,13 @@ async function configure() {
 			variables.ld = `${cc_prefix}g++`;
 		}
 
-		var as_prefix = cross_prefix;
 		if (!fs.existsSync(`${toolchain_dir}/bin/${cross_prefix}as`)) {
-			as_prefix = fs.existsSync(`${toolchain_dir}/bin/llvm-as`) ? 'llvm-': '';
+			cross_prefix = fs.existsSync(`${toolchain_dir}/bin/llvm-as`) ? 'llvm-': '';
 		}
-		variables.as = `${as_prefix}as`;
-		variables.ar = `${as_prefix}ar`;
-		variables.ranlib = `${as_prefix}ranlib`;
-		variables.strip = `${as_prefix}strip`;
+		variables.as = `${cross_prefix}as`;
+		variables.ar = `${cross_prefix}ar`;
+		variables.ranlib = `${cross_prefix}ranlib`;
+		variables.strip = `${cross_prefix}strip`;
 		variables.build_bin = `${toolchain_dir}/bin`;
 		variables.build_sysroot = `${toolchain_dir}/sysroot`;
 
@@ -981,7 +979,6 @@ async function configure() {
 		`SUFFIX=${suffix}`,
 		`OUTPUT=${output}`,
 		`ANDROID_API_LEVEL=${android_api_level}`,
-		//`GYP_CROSSCOMPILE:=1`
 		`export CC_target:=${variables.cc}`,
 		`export CXX_target:=${variables.cxx}`,
 		`export LINK_target:=${variables.ld}`,

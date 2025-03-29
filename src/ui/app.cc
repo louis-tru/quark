@@ -39,9 +39,10 @@
 #include "./window.h"
 #include "./css/css.h"
 
-Qk_EXPORT int (*__qk_run_main__)(int, char**) = nullptr;
-
 namespace qk {
+	int (*__qk_run_main__)(int, char**) = nullptr;
+	int (*__qk_run_main1__)(int, char**) = nullptr;
+
 	typedef Application::Inl AppInl;
 	// thread helper
 	static auto _run_main_wait = new CondMutex;
@@ -113,16 +114,19 @@ namespace qk {
 	}
 
 	void Application::setMain(int (*main)(int, char**)) {
-		__qk_run_main__ = main;
+		__qk_run_main1__ = main;
 	}
 
 	void Application::runMain(int argc, char* argv[]) {
 		struct Args { int argc; char** argv; };
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](auto t, auto arg) {
+			int rc = 0;
 			auto args = (Args*)arg;
-			Qk_ASSERT(__qk_run_main__, "No gui main");
-			int rc = __qk_run_main__(args->argc, args->argv); // Run this custom gui entry function
+			auto main = __qk_run_main1__ ? __qk_run_main1__: __qk_run_main__;
+			// Qk_ASSERT_RAW(main, "Not found the Main function, Use Qk_Main() define");
+			if (main)
+				rc = main(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DLog("Application::runMain() thread_new() Exit");
 			thread_exit(rc); // if sub thread end then exit
 			Qk_DLog("Application::runMain() thread_new() Exit ok");

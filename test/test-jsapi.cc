@@ -60,7 +60,7 @@ void test_jsapi(int argc, char **_) {
 
 extern "C" {
 #if Qk_ANDROID
-#include <quark/util/android-jni.h>
+#include <quark/platforms/android/android.h>
 	JNIEXPORT extern void
 	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
 		Qk_Log("Java_org_quark_examples_MainActivity_test");

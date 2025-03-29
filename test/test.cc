@@ -112,10 +112,3 @@ Qk_Main() {
 	Qk_Log("Test eclapsed time:%dMs\n", (time_micro() - st) / 1000);
 	return 0;
 }
-
-#if Qk_ANDROID
-int main(int argc, char *argv[]) {
-	Application::runMain(argc, argv);
-	return 0;
-}
-#endif

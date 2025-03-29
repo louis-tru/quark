@@ -97,6 +97,9 @@
 		'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
 		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/deps/v8/src/libv8_base.a',
 
+		'v8_targets': 'v8_libplatform v8_libbase v8_base v8_base_without_compiler '
+			'v8_snapshot v8_nosnapshot v8_init v8_compiler v8_initializers torque_base',
+
 		'cflags': [
 			# '-Wno-enum-constexpr-conversion'
 			# '-Wunused-parameter',
@@ -105,7 +108,6 @@
 
 		# conditions
 		'conditions': [
-			# node js
 			['os == "win"', {
 				'os_posix': 0,
 				'OBJ_DIR': '<(PRODUCT_DIR)/obj',
@@ -126,9 +128,24 @@
 				'OPENSSL_PRODUCT': 'libopenssl.a',
 			}],
 		],
-
 		##########################################################
 	},
+
+	'conditions': [
+		['os=="ios"', {
+			'xcode_settings': {
+				'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
+				'SDKROOT': 'iphoneos',
+			},
+		}, 
+		'os=="mac"', {
+			'xcode_settings': {
+				'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
+				'SDKROOT': 'macosx',
+			},
+		}],
+	],
+
 	'target_defaults': {
 		'default_configuration': 'Release',
 		'configurations': {
@@ -138,6 +155,7 @@
 				},
 				'defines': [ 'DEBUG=1', '_DEBUG' ],
 				'cflags': [ '-g', '-O0' ],
+				'cflags!': [ '-fvisibility=hidden' ],
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '0',
 					'ONLY_ACTIVE_ARCH': 'YES',      # Build Active Architecture Only
@@ -150,7 +168,7 @@
 				'defines': [ 'NDEBUG' ],
 				'cflags': [
 					'-O3', 
-					'-ffunction-sections', 
+					'-ffunction-sections',
 					'-fdata-sections', 
 					'-fvisibility=hidden',
 					'-fomit-frame-pointer',
@@ -166,12 +184,15 @@
 					# 'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',  # -fvisibility=hidden
 				},
 				'conditions': [
-					['os=="android"', { #  and clang==0
+					['os=="android"', {
 						'cflags!': [ '-O3' ], # Android uses - O3 to make the package larger 
 						'cflags': [ '-O2' ],
 					}],
 					['without_visibility_hidden==1', {
 						'cflags!': [ '-fvisibility=hidden' ],
+					}],
+					['library_output=="static_library"', {
+						'defines': [ 'Qk_BUILDING_SHARED=1' ],
 					}],
 				],
 			}
@@ -207,6 +228,12 @@
 					# '-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared, clang flag
 					'-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
 				],
+				'defines': [
+					'_GLIBCXX_USE_C99',
+					'_GLIBCXX_USE_C99_MATH',
+					'_GLIBCXX_USE_C99_MATH_TR1',
+					'_GLIBCXX_HAVE_WCSTOF',
+				],
 				'conditions': [
 					['clang==0', {
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
@@ -218,13 +245,6 @@
 						'cflags': [ '-mfpu=<(arm_vfp)', '-mfloat-abi=softfp' ],
 					}],
 					['arch=="arm"', { 'ldflags': [ '-Wl,--icf=safe' ] }], # Remove Duplicated Code
-				],
-				'defines': [
-					'_GLIBCXX_USE_C99', 
-					'_GLIBCXX_USE_C99_MATH', 
-					'_GLIBCXX_USE_C99_MATH_TR1',
-					'_GLIBCXX_HAVE_WCSTOF',
-					# '__ANDROID_API__=<(android_api_level)',
 				],
 			}],
 			['os=="linux"', {
@@ -324,7 +344,7 @@
 				'cflags': [
 					'-mmacosx-version-min=<(version_min)',
 					'-arch <(arch_name)',
-					'-isysroot <(sysroot)', 
+					'-isysroot <(sysroot)',
 				],
 				'cflags_cc': [ '-stdlib=libc++' ],
 				'ldflags': [
@@ -363,58 +383,34 @@
 			['os in "mac ios"', {
 				'libraries!': ['-framework CoreFoundation', '-lz'],
 			}],
-			['more_log==1',{ 'defines': [ 'Qk_MoreLOG=1' ]}],
 		],
 		'target_conditions': [
-			# shared all public symbol
-			['_target_name in "openssl http_parser zlib"', {
-				'cflags!': ['-fvisibility=hidden'],
-			}],
-			['_target_name in "libuv"', {
-				'defines': [ 'BUILDING_UV_SHARED=1' ],
-			}],
-			['_target_name in "v8_libplatform v8_libbase v8_base v8_base_without_compiler \
-					v8_snapshot v8_nosnapshot v8_init v8_compiler v8_initializers"', { # v8
-				'defines': [
-					'BUILDING_V8_SHARED=1', 
-					'BUILDING_V8_PLATFORM_SHARED=1',
-				],
-				# 'cflags': [ '-Wno-enum-constexpr-conversion' ],
+			['_target_name in "<(v8_targets)"', { # v8
+				'cflags!': [ '-Werror=return-type' ],
 				'conditions': [[
-					'os in "linux"', { # Fix compile error for linux
+					'os in "linux android"', { # Fix compile error for linux
 						'cflags_cc!': [ '-std=<(std_cpp)' ],
 						'cflags_cc': [ '-std=gnu++14' ],
 					}
 				]],
-			}],
-			['_target_name in "torque_base"', { # v8/torque_base
-				'cflags!': [ '-Werror=return-type' ],
+				'target_conditions': [['_toolset=="host" and OS=="ios"', {
+					'cflags!': [
+						'-miphoneos-version-min=<(version_min)', 
+						'-arch <(arch_name)'
+						'-isysroot <(sysroot)',
+					],
+					'xcode_settings': {
+						'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
+						'SDKROOT': 'macosx',
+					},
+				}]],
 			}],
 			['_target_name in "v8_external_snapshot"', {
 				'sources': [  'useless.c' ],
 			}],
-			['_target_name in "mksnapshot"', {
-				'conditions': [
-					['os=="android"', {
-						'ldflags': [ '-llog' ],
-					}]
-				]
+			['_target_name in "mksnapshot" and _toolset != "host" and OS=="android"', {
+				'ldflags': [ '-llog' ],
 			}],
 		],
 	},
-
-	'conditions': [
-		['os=="ios"', {
-			'xcode_settings': {
-				'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
-				'SDKROOT': 'iphoneos',
-			},
-		}, 
-		'os=="mac"', {
-			'xcode_settings': {
-				'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
-				'SDKROOT': 'macosx',
-			},
-		}],
-	],
 }

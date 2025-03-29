@@ -1,0 +1,16 @@
+
+LIBQUARK_1 {
+	local:
+		# hidden all ffmpeg sym
+		av*;
+		audio_*;
+		ff_*;
+		ffio_*;
+		ffurl_*;
+		url_feof;
+		swr_*;
+		swresample_*;
+		swscale_*;
+		sws_*;
+		swri_*;
+};

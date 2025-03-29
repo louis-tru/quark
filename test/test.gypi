@@ -20,7 +20,6 @@
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 			'deps/freetype/freetype.gyp:freetype',
 		],
-		'ldflags': [ '<@(other_ldflags)' ],
 		'sources': [
 			'../libs/qkmake',
 			'../libs/encark',
@@ -162,11 +161,11 @@
 
 	# tests
 	'conditions': [
-		# gen android test depes `libquark-depes-test.so`
+		# gen android test deps `libquark-deps-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets+': [
 			{
-				'target_name': 'quark-depes-test',
+				'target_name': 'quark_deps_test',
 				'type': 'shared_library',
 				'dependencies': [
 					'deps/zlib/minizip.gyp:minizip',
@@ -183,25 +182,28 @@
 					'deps/http_parser/http_parser.gyp:http_parser',
 					'deps/bptree/bptree.gyp:bptree',
 				],
-				'sources': [ '../tools/useless.c' ],
+				'sources': [
+					'../tools/useless.c',
+				],
 				'link_settings': {
 					'libraries': [ '-lz' ],
 				},
 				'ldflags': [
 					'-s',
+					'-Wl,--version-script,<(source)/tools/v_all.ver',
 					'-Wl,--whole-archive',
 					'<(output)/obj.target/ffmpeg/libffmpeg.a',
 					'-Wl,--no-whole-archive',
 				],
 			},
 			{
-				'target_name': 'quark-depes-copy',
+				'target_name': 'quark_deps_copy',
 				'type': 'none',
-				'dependencies': [ 'quark-depes-test' ],
+				'dependencies': [ 'quark_deps_test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libquark-depes-test.so',
+						'<(output)/libquark_deps_test.so',
 					],
 				}],
 			}],

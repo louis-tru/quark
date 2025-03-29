@@ -136,6 +136,15 @@ namespace qk {
 		Array& concat(Array<T, A2>&& arr);
 
 		/**
+		 * @method concat()
+		 */
+		template<typename A2>
+		Array& concat(const Array<T, A2>& arr) {
+			write(arr.val(), arr.length());
+			return *this;
+		}
+
+		/**
 		 * @method slice() weak copy array buffer
 		 */
 		ArrayWeak<T> slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;

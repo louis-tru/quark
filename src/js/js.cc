@@ -34,8 +34,12 @@
 #include "../errno.h"
 #include "../ui/app.h"
 #include <stdlib.h>
+#if Qk_ANDROID
+#include "../platforms/android/android.h"
+#endif
 
 namespace qk {
+	extern int (*__qk_run_main__)(int, char**);
 	bool is_process_exit();
 namespace js {
 	std::atomic_int workers_count(0);
@@ -524,23 +528,24 @@ namespace js {
 	int    __quark_js_argc = 0;
 	char** __quark_js_argv = nullptr;
 
-	int Start(cString &startup, cArray<String>& argv_in) {
+	int Start(cString &cmd, cArray<String>& argv_in) {
 		static String argv_s;
-		Array<char*> argv;
+		argv_s = fs_executable();
+		Array<uint32_t> argv_idx{argv_s.length()};
 
-		argv_s = fs_executable().append(' ').append(startup);
-		Array<uint32_t> argv_idx{fs_executable().length(),argv_s.length()};
-
-		for (auto &arg: argv_in) {
-			argv_s.append(' ');
-			argv_s.append(arg);
-			argv_idx.push(argv_s.length());
+		for (auto& arg : cmd.split(' ').concat(argv_in)) {
+			if (!arg.isEmpty()) {
+				argv_s.append(' ');
+				argv_s.append(arg);
+				argv_idx.push(argv_s.length());
+			}
 		}
-		Char* arg = const_cast<Char*>(*argv_s);
+		char* arg = const_cast<char*>(*argv_s);
+		Array<char*> argv;
 
 		for (auto idx: argv_idx) {
 			argv.push(arg);
-			arg = const_cast<Char*>(*argv_s + idx + 1);
+			arg = const_cast<char*>(*argv_s + idx + 1);
 			arg[-1] = '\0';
 		}
 
@@ -549,6 +554,10 @@ namespace js {
 
 	int Start(int argc, char** argv) {
 		Qk_ASSERT(!__quark_js_argv);
+
+		if (argc < 2 || strcmp(argv[1], "")) {
+			return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
+		}
 
 		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
 
@@ -623,4 +632,35 @@ namespace js {
 		return rc;
 	}
 
+	// Default main function
+	Qk_Init_Func(set_default_main) {
+		__qk_run_main__ = [](int argc, char** argv) -> int {
+			String start;
+
+#if Qk_ANDROID
+			start = JNI::jvm() ? Android::start_cmd(): String();
+			if (start.isEmpty())
+#endif
+			{
+				auto index = fs_resources("index");
+				if (fs_reader()->exists_sync(index)) {
+					for (auto s: String(fs_reader()->read_file_sync(index)).split('\n')) {
+						s = s.trim();
+						if ( s[0] != '#' ) {
+							start = s;
+							break;
+						}
+					}
+				}
+			}
+	
+			if (!start.isEmpty()) {
+				return js::Start(start);
+			} else if (argc > 0) {
+				return js::Start(argc, argv);
+			} else {
+				return 0;
+			}
+		};
+	};
 } }

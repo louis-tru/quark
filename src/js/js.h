@@ -612,7 +612,7 @@ namespace qk { namespace js {
 		Persistent<JSObject> _nativeModules;
 	};
 
-	Qk_EXPORT int Start(cString &startup, cArray<String> &argv);
+	Qk_EXPORT int Start(cString &cmd, cArray<String> &argv = {});
 	Qk_EXPORT int Start(int argc, char** argv);
 
 	// **********************************************************************

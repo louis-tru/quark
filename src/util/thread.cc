@@ -33,6 +33,10 @@
 #include <pthread.h>
 #include <dlfcn.h>
 
+#if Qk_ANDROID
+#include "../util/jni.h"
+#endif
+
 #ifndef Qk_ATEXIT_WAIT_TIMEOUT
 # define Qk_ATEXIT_WAIT_TIMEOUT 1e6 // 1s
 #endif

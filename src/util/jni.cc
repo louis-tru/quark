@@ -61,8 +61,7 @@ namespace qk {
 
 	JNI::ScopeENV::ScopeENV(): _env(NULL), _is_attach(false) {
 		Qk_ASSERT( javavm );
-		
-		if (  javavm->GetEnv((void**)&_env, JNI_VERSION_1_6) != JNI_OK ) {
+		if ( javavm->GetEnv((void**)&_env, JNI_VERSION_1_6) != JNI_OK ) {
 			jint result;
 			result = javavm->AttachCurrentThread(&_env, NULL);
 			Qk_ASSERT( result == JNI_OK );
@@ -150,8 +149,7 @@ namespace qk {
 
 }
 
-extern "C" 
-{
+extern "C" {
 	Qk_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 		javavm = vm;
 		return JNI_VERSION_1_6;

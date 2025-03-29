@@ -30,43 +30,7 @@
 
 #include "quark/ui/app.h"
 #include "quark/js/js.h"
-#include "quark/util/fs.h"
 
-namespace qk { namespace js {
-
-	Qk_Main() {
-		String cmd;
-
-#if Qk_ANDROID
-			cmd = Android::start_cmd();
-			if ( cmd.isEmpty() )
-#endif
-		{
-			auto index = fs_resources("index");
-			if (fs_reader()->exists_sync(index)) {
-				for (auto s: String(fs_reader()->read_file_sync(index)).split('\n')) {
-					s = s.trim();
-					if ( s[0] != '#' ) {
-						cmd = s;
-						break;
-					}
-				}
-			}
-		}
-
-		if ( cmd.isEmpty() ) {
-			Array<String> args;
-			for (auto& i : cmd.trim().split(' ')) {
-				auto arg = i.trim();
-				if (!arg.isEmpty()) args.push(arg);
-			}
-			if (args.length())
-				return js::Start("", args);
-		}
-		if (argc > 0) {
-			return js::Start(argc, argv);
-		}
-		return 0;
-	}
-
-} }
+Qk_Main() {
+	return qk::js::Start(argc, argv);
+}

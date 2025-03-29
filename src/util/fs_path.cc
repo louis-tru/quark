@@ -368,12 +368,12 @@ namespace qk {
 
 extern "C" {
 
-	void Java_org_quark_Android_initPaths(JNIEnv* env, jclass clazz, jstring package, jstring files_dir, jstring cache_dir) {
+	void Java_org_quark_Android_initPaths(JNIEnv* env, jclass clazz, jstring pkg, jstring files_dir, jstring cache_dir) {
 		using namespace qk;
 		path_documents = JNI::jstring_to_string(files_dir);
 		path_home_dir = fs_format("%s/..", path_documents.c_str());
 		path_temp = JNI::jstring_to_string(cache_dir);
-		path_resources = fs_format("zip://%s@/assets", JNI::jstring_to_string(package));
+		path_resources = fs_format("zip://%s@/assets", JNI::jstring_to_string(pkg).c_str());
 		char dir[PATH_MAX] = { 0 };
 		readlink("/proc/self/exe", dir, PATH_MAX);
 		path_executable = fs_format("%s", dir);

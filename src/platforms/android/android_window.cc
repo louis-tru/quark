@@ -193,6 +193,7 @@ namespace qk {
 
 		static void onStart(ANativeActivity* activity) {
 			if ( swm->_host == nullptr ) { // start gui
+
 				Application::runMain(0, nullptr); // run gui application
 
 				swm->_host = Inl_Application(shared_app());

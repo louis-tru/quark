@@ -224,7 +224,7 @@
 					'platforms/android/android_keyboard.cc',
 					'platforms/android/android_os.cc',
 					'platforms/android/android_screen.cc',
-					'platforms/android/android_screen.cc',
+					'platforms/android/android_window.cc',
 					'platforms/android/android.cc',
 					'platforms/android/android.h',
 					# render

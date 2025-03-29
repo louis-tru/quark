@@ -75,7 +75,7 @@ namespace qk {
 
 	void Log::log(cChar* log, cChar* end) {
 #if Qk_ANDROID
-			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", log.c_str(), end ? end: "");
+			__android_log_print(ANDROID_LOG_INFO, "LOG ", "%s%s", log, end ? end: "");
 #else
 			printf("%s%s", log, end ? end: "");
 #endif
@@ -83,7 +83,7 @@ namespace qk {
 
 	void Log::warn(cChar* log, cChar* end) {
 #if Qk_ANDROID
-			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", log.c_str(), end ? end: "");
+			__android_log_print(ANDROID_LOG_WARN, "WARN", "%s%s", log, end ? end: "");
 #else
 			printf("%s%s", log, end ? end: "");
 #endif
@@ -91,7 +91,7 @@ namespace qk {
 
 	void Log::error(cChar* log, cChar* end) {
 #if Qk_ANDROID
-			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", log.c_str(), end ? end: "");
+			__android_log_print(ANDROID_LOG_ERROR, "ERR ", "%s%s", log, end ? end: "");
 #else
 			fprintf(f_stderr, "%s%s", log, end ? end: "");
 #endif

@@ -110,7 +110,6 @@ namespace qk {
 		*/
 		static String jstring_to_string(jstring jstr, JNIEnv* env = NULL);
 	};
-
 }
 #endif
 #endif

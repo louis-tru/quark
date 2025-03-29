@@ -122,10 +122,12 @@ namespace qk {
 		if (c == '/' || c == '\\') {
 			len--;
 		}
-		Char p[len + 1];
+
+		Buffer buf(len);
+		char *p = buf.val();
 		memcpy(p, path2, len);
-		p[len] = '\0';
-		
+		// p[len] = '\0';
+
 		int i = len;
 		
 		for ( ; i > 0; i-- ) {

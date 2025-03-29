@@ -1,0 +1,8 @@
+
+LIBQUARK_1 {
+	local:
+		ff_h264_*;
+		ff_cos*;
+		swri_*;
+		ff_prefetch_*;
+};

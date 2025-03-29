@@ -15,23 +15,9 @@
 	'variables': {
 		'quark_product_dir%': '<(output)/../qkmake/product',
 		'quark_product_so_subdir%': '<(os)/<(arch)',
-		'other_ldflags': [],
 		'conditions': [
 			['os=="android"', {
 				'quark_product_so_subdir': '<(os)/jniLibs/<(android_abi)'
-			}],
-			['library_output=="static_library"', {
-				'other_ldflags+': [
-					'-Wl,--whole-archive',
-					'<(output)/obj.target/libquark-util.a',
-					'<(output)/obj.target/libquark.a',
-					'<(output)/obj.target/libquark-media.a',
-					'-Wl,--no-whole-archive',
-				],
-			}],
-			['use_js==1 and library_output=="static_library"', {
-				'other_ldflags+': [
-					'-Wl,--whole-archive','<(output)/obj.target/libquark-js.a','-Wl,--no-whole-archive' ],
 			}],
 		],
 	},
@@ -103,17 +89,13 @@
 					# 'process_outputs_as_sources': 1,
 				}]
 			}],
-			# output not mac shared library for "libquark.so"
 			['library_output=="shared_library" and os not in "mac ios"', {
-				'product_prefix': 'quark', # libquark.so
-				'product_extension': 'so',
 				'type': 'shared_library',
+				'ldflags': [ '-Wl,--version-script,<(source)/tools/v_small.ver' ],
 				'copies': [{
 					'destination': '<(quark_product_dir)/<(quark_product_so_subdir)',
 					'files': [
 						'<(output)/lib.target/libquark.so',
-						'<(output)/lib.target/libquark-js.so',
-						'<(output)/lib.target/libquark-media.so',
 					],
 				}], # copy libquark.so to product directory
 			}],
@@ -133,7 +115,7 @@
 		['os not in "mac ios" or project=="xcode"', {
 			'includes': [ 'test/test.gypi' ],
 		}],
-		['use_js==1 and os!="ios"', {
+		['use_js==1', {
 			'targets+': [
 			{
 				'target_name': 'quark-exec',
@@ -143,8 +125,8 @@
 					'quark',
 					'quark-media',
 					'quark-js',
+					# 'libquark'
 				],
-				'ldflags': [ '<@(other_ldflags)' ],
 				'sources': [
 					'src/js/main.cc',
 				], # sources
