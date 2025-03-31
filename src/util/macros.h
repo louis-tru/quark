@@ -205,26 +205,18 @@
 
 // ------------------------------------------------------------------
 
+#ifndef Qk_EXPORT
 #ifdef _MSC_VER
-	#ifdef Qk_BUILDING_SHARED
-	# define Qk_EXPORT __declspec(dllexport)
-	#elif Qk_USING_SHARED
-	# define Qk_EXPORT __declspec(dllimport)
-	#else
-	# define Qk_EXPORT
-	#endif  // Qk_BUILDING_SHARED
+# define Qk_EXPORT __declspec(dllexport)
 #else  // _MSC_VER
-	// Setup for Linux shared library export.
-	#if __Qk_HAS_ATTRIBUTE_VISIBILITY
-	# ifdef Qk_BUILDING_SHARED
-	#  define Qk_EXPORT __attribute__((visibility("default")))
-	# else
-	#  define Qk_EXPORT
-	# endif
-	#else
-	# define Qk_EXPORT
-	#endif
+// Setup for Linux shared library export.
+#if __Qk_HAS_ATTRIBUTE_VISIBILITY
+# define Qk_EXPORT __attribute__((visibility("default")))
+#else
+# define Qk_EXPORT
+#endif
 #endif // _MSC_VER
+#endif
 
 // A macro used to make better inlining. Don't bother for debug builds.
 //

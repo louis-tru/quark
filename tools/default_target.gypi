@@ -2,20 +2,10 @@
 	'variables': {
 		'cplusplus_exceptions%': 1,
 		'cplusplus_rtti%': 1,
-		'library_output%': 'static_library',
-		'output_type%': 'static_library',
-		'conditions': [
-			['library_output=="shared_library" and os not in "mac ios"',{
-				'output_type': 'shared_library',
-			}],
-		],
 	},
 
 	'target_defaults': {
 		'conditions': [
-			['library_output=="shared_library"', { 
-				'defines': [ 'Qk_BUILDING_SHARED' ],
-			}],
 			# c++ exceptions
 			['cplusplus_exceptions==1', {
 				'xcode_settings': {

@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+
+var { spawn } = require('encark/syscall');
+
+// g++ -o /Users/louis/Project/my/quark/out/android.arm64.Debug/bytecode_builtins_list_generator 
+// -mmacosx-version-min=10.15 -arch arm64 -target arm64-apple-darwin -isysroot 
+// /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -m64  
+// -Wl,--start-group /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/bytecode_builtins_list_generator/deps/v8/src/builtins/generate-bytecodes-builtins-list.o 
+// /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/bytecode_builtins_list_generator/deps/v8/src/interpreter/bytecode-operands.o 
+// /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/bytecode_builtins_list_generator/deps/v8/src/interpreter/bytecodes.o /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/tools/v8_gypfiles/libv8_libbase.a  
+// -Wl,--end-group
+
+// g++   \
+// -o /Users/louis/Project/my/quark/out/android.arm64.Debug/bytecode_builtins_list_generator \
+// -mmacosx-version-min=10.15 -arch arm64 -target arm64-apple-darwin \
+// -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk  \
+// /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/bytecode_builtins_list_generator/deps/v8/src/builtins/generate-bytecodes-builtins-list.o \
+// /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/bytecode_builtins_list_generator/deps/v8/src/interpreter/bytecode-operands.o \
+// /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/bytecode_builtins_list_generator/deps/v8/src/interpreter/bytecodes.o \
+// -filelist /Users/louis/Project/my/quark/out/android.arm64.Debug/obj.host/tools/v8_gypfiles/libv8_libbase.a.ar-file-list
+
+var argv = [];
+
+for (var arg of process.argv.slice(2).filter(e=>!e.match(/^-Wl,/))) {
+	if (arg.endsWith('.a'))
+		argv.push('-filelist');
+	argv.push(arg);
+}
+
+spawn('g++', argv, {stdout: process.stdout, stderr: process.stderr });

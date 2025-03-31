@@ -202,9 +202,7 @@
 				'dependencies': [ 'quark_deps_test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
-					'files': [
-						'<(output)/libquark_deps_test.so',
-					],
+					'files': [ '<(output)/obj.target/libquark_deps_test.so' ],
 				}],
 			}],
 		}],

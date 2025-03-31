@@ -7,7 +7,6 @@
 		'byteorder%': 'little',
 		'node_byteorder%': '<(byteorder)>',
 		'clang%': 0,
-		'is_clang': '<(clang)',
 		'python%': 'python',
 		'host_node%': 'node',
 		'node%': '<(host_node)',
@@ -167,7 +166,7 @@
 				},
 				'defines': [ 'NDEBUG' ],
 				'cflags': [
-					'-O3', 
+					'-Os', 
 					'-ffunction-sections',
 					'-fdata-sections', 
 					'-fvisibility=hidden',
@@ -178,21 +177,18 @@
 				],
 				'ldflags': [ '-s' ],
 				'xcode_settings': {
-					'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
+					'GCC_OPTIMIZATION_LEVEL': 's',  # -Os
 					'GCC_STRICT_ALIASING': 'YES',
 					'ONLY_ACTIVE_ARCH': 'YES',
 					# 'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',  # -fvisibility=hidden
 				},
 				'conditions': [
 					['os=="android"', {
-						'cflags!': [ '-O3' ], # Android uses - O3 to make the package larger 
+						'cflags!': [ '-Os' ], # Android uses - O3 or Os to make the package larger
 						'cflags': [ '-O2' ],
 					}],
 					['without_visibility_hidden==1', {
 						'cflags!': [ '-fvisibility=hidden' ],
-					}],
-					['library_output=="static_library"', {
-						'defines': [ 'Qk_BUILDING_SHARED=1' ],
 					}],
 				],
 			}
@@ -224,9 +220,8 @@
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 					'-pthread',
 					'-rdynamic',
-					# '-ddynamiclib', # clang flag
-					# '-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared, clang flag
-					'-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
+					# '-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
+					'-stdlib=libc++', # use libc++, clang default use libc++_shared, clang flag
 				],
 				'defines': [
 					'_GLIBCXX_USE_C99',
@@ -372,7 +367,7 @@
 					'PREBINDING': 'NO',                       # No -Wl,-prebind
 					'MACOSX_DEPLOYMENT_TARGET': '<(version_min)',  # -mmacosx-version-min=10.7
 					'USE_HEADERMAP': 'NO',
-					'AECHS': ['$(ARCHS_STANDARD)'],           # 'ARCHS': 'x86_64',
+					'ARCHS': ['$(ARCHS_STANDARD)'],           # 'ARCHS': 'x86_64',
 					'SKIP_INSTALL': 'YES',
 					'DEBUG_INFORMATION_FORMAT': 'dwarf',      # dwarf-with-dsym
 					'ENABLE_BITCODE': 'NO',
@@ -393,24 +388,39 @@
 						'cflags_cc': [ '-std=gnu++14' ],
 					}
 				]],
-				'target_conditions': [['_toolset=="host" and OS=="ios"', {
-					'cflags!': [
-						'-miphoneos-version-min=<(version_min)', 
-						'-arch <(arch_name)'
-						'-isysroot <(sysroot)',
-					],
-					'xcode_settings': {
-						'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
-						'SDKROOT': 'macosx',
-					},
-				}]],
 			}],
 			['_target_name in "v8_external_snapshot"', {
 				'sources': [  'useless.c' ],
 			}],
-			['_target_name in "mksnapshot" and _toolset != "host" and OS=="android"', {
-				'ldflags': [ '-llog' ],
-			}],
+			['_toolset=="host"', {'conditions': [
+				['os=="android"',{
+					'cflags!': [ '-O3', '-O2', '-Os' ],
+					'cflags': [ '-O0' ],
+					'ldflags!': [ '-stdlib=libc++' ]
+				}],
+				['os=="ios"',{
+					'cflags!': [
+						'-miphoneos-version-min=<(version_min)',
+						'-arch <(arch_name)',
+						'-isysroot <(sysroot)',
+					],
+					'ldflags!': [
+						'-miphoneos-version-min=<(version_min)',
+						'-arch <(arch_name)',
+					],
+					'cflags': [
+						# '-target arm64-apple-darwin', '$(xcrun --show-sdk-path)',
+					],
+					'xcode_settings!': {
+						'TARGETED_DEVICE_FAMILY': '1,2',
+						'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)',
+					},
+					'xcode_settings': {
+						'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
+						'SDKROOT': 'macosx',
+					},
+				}]
+			]}],
 		],
 	},
 }

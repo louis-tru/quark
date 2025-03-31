@@ -1251,7 +1251,13 @@ namespace qk { namespace js {
 		// noop
 	}
 
-	int StartPlatform(int argc, Char** argv, int (*exec)(Worker*)) {
+	void setFlagsFromCommandLine(const Arguments* args) {
+		if (args->options.has("help")) {
+			Qk_Log("Usage: quark [options] [ script.js ] [arguments]");
+		}
+	}
+
+	int startPlatform(int (*exec)(Worker*)) {
 		Sp<Worker> worker = Worker::Make();
 		return exec(*worker); // exec main script
 	}

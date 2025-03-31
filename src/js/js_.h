@@ -127,10 +127,17 @@ namespace qk { namespace js {
 		String host_name, script_path;
 	};
 
+	struct Arguments {
+		int    argc;
+		char** argv;
+		DictSS options;
+	} extern *arguments;
+
 	void runDebugger(Worker* worker, const DebugOptions &opts);
 	void stopDebugger(Worker* worker);
 	void debuggerBreakNextStatement(Worker* worker);
-	int  StartPlatform(int argc, Char** argv, int (*exec)(Worker*));
+	void setFlagsFromCommandLine(const Arguments* args);
+	int  startPlatform(int (*exec)(Worker*));
 	int  triggerExit(Worker* worker, int code);
 	int  triggerBeforeExit(Worker* worker, int code);
 	bool triggerUncaughtException(Worker* worker, JSValue* err);

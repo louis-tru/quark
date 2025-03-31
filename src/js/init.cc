@@ -31,8 +31,6 @@
 #include "./js_.h"
 
 namespace qk { namespace js {
-	extern int    __quark_js_argc;
-	extern char** __quark_js_argv;
 
 	struct JSONStringify {
 		uint32_t _indent;
@@ -427,13 +425,14 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			Qk_ASSERT(__quark_js_argv);
+			Qk_ASSERT(arguments);
 			auto argv = worker->newArray();
-			for (uint32_t i = 0; i < __quark_js_argc; i++) {
-				argv->set(worker, i, worker->newValue(String(__quark_js_argv[i])));
+			for (uint32_t i = 0; i < arguments->argc; i++) {
+				argv->set(worker, i, worker->newValue(String(arguments->argv[i])));
 			}
 
 			Js_Property(argv, argv);
+			Js_Property(options, worker->newValue(arguments->options));
 
 			Js_Method(version, {
 				Js_Return( qk::version() );

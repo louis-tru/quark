@@ -34,62 +34,82 @@ const _init = __binding__('_init');
 const _fs = __binding__('_fs');
 const PREFIX = 'file:///';
 let   config: Dict | null = null;
-let   debug = false;
-const options: Optopns = {};  // start options
+const options: Optopns = _init.options;  // start options
+const debug = 'inspect' in options || 'inspect_brk' in options;
+export const mainPath = options.__main__ || '';
 
-export const mainPath = function() {
-	let parseOptions = (args: string[], options: Optopns)=>{
-		for (let item of args) {
-			let mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
-			if (mat) {
-				let name = mat[1].replace(/-/gm, '_');
-				let val = mat[2] || '1';
-				let raw_val = options[name];
-				if ( raw_val ) {
-					if ( Array.isArray(raw_val) ) {
-						raw_val.push(val);
-					} else {
-						options[name] = [raw_val, val];
-					}
-				} else {
-					options[name] = val;
-				}
-			}
-		}
-	};
-	let main: string = '';
-	let args: string[] = [];
-	if (_init.argv.length > 1) {
-		main = String(_init.argv[1] || '');
-		args = _init.argv.slice(2);
-	}
-	parseOptions(args, options); // parse options
-
-	debug = 'inspect' in options ||
-					'inspect_brk' in options;
-
-	if ( 'url_arg' in options ) {
-		if (Array.isArray(options.url_arg))
-			options.url_arg = options.url_arg.join('&');
+if ('url_arg' in options) {
+	options.url_arg = options.url_arg.replace(/\s/g, '&');
+} else {
+	options.url_arg = '';
+}
+if ('no_cache' in options || debug) {
+	if (options.url_arg) {
+		options.url_arg += '&__no_cache';
 	} else {
-		options.url_arg = '';
+		options.url_arg = '__no_cache';
 	}
-	if ('no_cache' in options || debug) {
-		if (options.url_arg) {
-			options.url_arg += '&__no_cache';
-		} else {
-			options.url_arg = '__no_cache';
-		}
-	}
-	return main;
-}();
+}
+
+(function() {
+	// let putkv = (k: string, v: string)=>{
+	// 	if (options.hasOwnProperty(k)) {
+	// 		options[k] += ' ' + v;
+	// 	} else {
+	// 		options[k] = v;
+	// 	}
+	// };
+
+	// let lastKey = '';
+	// (_init.argv as string[]).forEach((e,i)=>{
+	// 	let mat = e.match(/^(-{1,2})([^=]+)(?:=(.*))?$/);
+	// 	if (mat) {
+	// 		let k = mat[2].replace(/-/gm, '_');
+	// 		let v = mat[3];
+	// 		if (!v && mat[1] == '-') {
+	// 			putkv((lastKey = k), '');
+	// 		} else {
+	// 			putkv(k, v || '');
+	// 			lastKey = '';
+	// 		}
+	// 	} else if (e) {
+	// 		if (lastKey) {
+	// 			putkv(lastKey, e);
+	// 			lastKey = '';
+	// 		} else if (options.__main__) {
+	// 			putkv('__unknown__', e);
+	// 		} else {
+	// 			options.__main__ = e;
+	// 			options.__mainIdx__ = i + 1 + '';
+	// 		}
+	// 	}
+	// });
+	// debug = 'inspect' in options ||
+	// 				'inspect_brk' in options;
+
+	// if ( 'url_arg' in options ) {
+	// 	if (Array.isArray(options.url_arg))
+	// 		options.url_arg = options.url_arg.join('&');
+	// } else {
+	// 	options.url_arg = '';
+	// }
+	// if ('no_cache' in options || debug) {
+	// 	if (options.url_arg) {
+	// 		options.url_arg += '&__no_cache';
+	// 	} else {
+	// 		options.url_arg = '__no_cache';
+	// 	}
+	// }
+	// return String(options.__main__) || '';
+}());
+
 export const executable = _fs.executable as ()=>string;
 export const documents = _fs.documents as (path?: string)=>string;
 export const temp = _fs.temp as (path?: string)=>string;
 export const resources = _fs.resources as (path?: string)=>string;
 export const cwd = _fs.cwd as ()=>string;
 export const chdir = _fs.chdir as (path: string)=>boolean;
-export type Optopns = Dict<string|string[]>;
+export type Optopns = Dict<string>;
 export const timeMonotonic = _init.timeMonotonic as ()=>number;
 
 let setTimer_ = (globalThis as any).setTimer;

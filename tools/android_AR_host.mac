@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+var fs = require('fs')
+
+var ar_file_list = process.argv.at(-1).replace(/^@/, '')
+var list = fs.readFileSync(ar_file_list, 'utf-8')
+
+fs.writeFileSync(process.argv.at(-2), list);

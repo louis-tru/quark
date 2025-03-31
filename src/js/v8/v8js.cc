@@ -845,11 +845,21 @@ namespace qk { namespace js {
 		WORKER(worker)->debuggerBreakNextStatement();
 	}
 
-	int StartPlatform(int argc, Char** argv, int (*exec)(Worker*)) {
+	void setFlagsFromCommandLine(const Arguments* args) {
+		if (args->options.has("help")) {
+			Qk_Log("Usage: quark [options] [ script.js ] [arguments]");
+			Qk_Log("       quark inspect[-brk[=127.0.0.1:9229]] [ script.js ] [arguments]");
+			Qk_Log("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ V8 Options ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+		}
+		auto argc = args->argc;
+		v8::V8::SetFlagsFromCommandLine(&argc, args->argv, true);
+	}
+
+	int startPlatform(int (*exec)(Worker*)) {
 		auto platform = v8::platform::NewDefaultPlatform(1);
 		v8::V8::InitializePlatform(platform.get());
 		v8::V8::Initialize();
-		v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
+		// v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 		int rc = 0;
 		{ //
 			Sp<Worker> worker = Worker::Make();

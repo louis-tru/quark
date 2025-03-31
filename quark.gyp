@@ -13,11 +13,11 @@
 	},
 
 	'variables': {
-		'quark_product_dir%': '<(output)/../qkmake/product',
-		'quark_product_so_subdir%': '<(os)/<(arch)',
+		'product_dir%': '<(DEPTH)/out/qkmake/product',
+		'product_so_subdir%': '<(os)/<(arch)',
 		'conditions': [
 			['os=="android"', {
-				'quark_product_so_subdir': '<(os)/jniLibs/<(android_abi)'
+				'product_so_subdir': '<(os)/jniLibs/<(android_abi)'
 			}],
 		],
 	},
@@ -28,6 +28,7 @@
 
 	'targets': [{
 		'target_name': 'libquark',
+		'product_name': 'quark',
 		'type': 'none',
 		'dependencies': [
 			'quark',
@@ -36,7 +37,7 @@
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
-			['library_output=="shared_library" and os in "mac ios" and project=="make"', {
+			['os in "mac ios" and project=="make"', {
 				'actions': [{
 					'action_name': 'mk_quark_dylib',
 					'variables': {
@@ -78,7 +79,7 @@
 					'outputs': [
 						'<(output)/libquark.dylib',
 					],
-					'action': [ 
+					'action': [
 						'sh', '-c', 
 						'tools/build_dylib.sh '
 						'<(output) <(embed_bitcode) <(use_v8_link) '
@@ -89,14 +90,12 @@
 					# 'process_outputs_as_sources': 1,
 				}]
 			}],
-			['library_output=="shared_library" and os not in "mac ios"', {
+			['os not in "mac ios"', {
 				'type': 'shared_library',
 				'ldflags': [ '-Wl,--version-script,<(source)/tools/v_small.ver' ],
 				'copies': [{
-					'destination': '<(quark_product_dir)/<(quark_product_so_subdir)',
-					'files': [
-						'<(output)/lib.target/libquark.so',
-					],
+					'destination': '<(product_dir)/<(product_so_subdir)',
+					'files': [ 'out/<(output_name)/obj.target/libquark.so' ],
 				}], # copy libquark.so to product directory
 			}],
 		], # conditions
@@ -122,11 +121,16 @@
 				'product_name': 'quark', # output name quark
 				'type': 'executable',
 				'dependencies': [
-					'quark',
-					'quark-media',
-					'quark-js',
-					# 'libquark'
+					'libquark'
 				],
+				'conditions': [['os=="android" and host_os=="mac"', {
+					# Unknown reason, Only cross-compiling on the Mac host of need use these flags
+					'ldflags': [
+						'-lGLESv3','-lEGL','-lz',
+						'-landroid','-llog','-latomic',
+						'-lm','-lOpenSLES','-lmediandk',
+					],
+				}]],
 				'sources': [
 					'src/js/main.cc',
 				], # sources

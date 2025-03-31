@@ -46,7 +46,6 @@ def_opts('v', 0,                '-v, --v        enable compile print info [{0}]'
 def_opts('debug', 0,            '--debug        enable debug status [{0}]');
 def_opts('os', host_os,         '--os=OS        system type ios/android/mac/linux/win [{0}]');
 def_opts('arch', default_arch,  '--arch=CPU     cpu type options arm/arm64/mips/mips64/x86/x64 [{0}]');
-def_opts('library', 'static',   '--library=LIB  compile output library type static/shared [{0}]');
 def_opts('armv7', arm(),        '--armv7        enable armv7 [{0}]');
 def_opts('armv7s', 0,           '--armv7s       enable armv7s form apple iphone [{0}]');
 def_opts('arm-neon', arm(),     '--arm-neon     enable arm neno [{0}]');
@@ -116,20 +115,19 @@ function touch_files(variables) {
 		fs.symlinkSync(path.resolve(`${__dirname}/../src`), path.resolve(`${__dirname}/../out/quark`));
 	}
 
-	if (variables.library_output == 'shared_library' && variables.OS != 'mac') {
+	if (['mac','ios'].indexOf(variables.os) == -1) {
 		touch_file([
-			`${variables.output}/lib.target/libquark.so`,
-			`${variables.output}/lib.target/libquark-media.so`,
-			`${variables.output}/lib.target/libquark-js.so`,
+			`${variables.output}/obj.target/libquark.so`,
 		]);
 	}
-
 	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
-		touch_file([`${variables.output}/lib.target/libquark_deps_test.so`]);
+		touch_file([
+			`${variables.output}/obj.target/libquark_deps_test.so`,
+		]);
 	}
 }
 
-function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir) {
+function configure_ffmpeg(opts, {variables}, clang, ff_install_dir) {
 	var os = opts.os;
 	var arch = opts.arch;
 	var arch_name = variables.arch_name;
@@ -302,7 +300,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		return false;
 	}
 
-	if (opts.library == 'shared' || os == 'android') {
+	if (os == 'android') {
 		ff_opts.push('--enable-pic');
 	}
 	if (opts.debug) {
@@ -311,7 +309,6 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		ff_opts.push('--disable-logging');
 		ff_opts.push('--disable-debug'); 
 		ff_opts.push('--strip');
-		// ff_opts.push('--optflags="-O3"');
 	}
 
 	cmd += ff_opts.join(' ');
@@ -352,10 +349,6 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	return true;
 }
 
-function bs(a) {
-	return a ? 'true' : 'false';
-}
-
 function bi(a) {
 	return a ? 1 : 0;
 }
@@ -367,7 +360,7 @@ function GetFlavor(params = {}) {
 		'win32': 'win',
 		'darwin': 'mac',
 	}
-	
+
 	if ('flavor' in params)
 		return params['flavor']
 	if (process.platform in flavors) 
@@ -612,7 +605,6 @@ async function configure() {
 	var use_dtrace = is_use_dtrace();
 	// Cross compiling is will have to snapshot?
 	var v8_use_snapshot = /*!modile &&*/ !opts.without_snapshot;
-	var shared = opts.library == 'shared' ? 'shared': '';
 	var emulator = 0;
 	var OS = get_OS(os);
 	var PYTHON = process.env.PYTHON || 'python';
@@ -644,7 +636,6 @@ async function configure() {
 			brand: '',
 			clang: opts.clang,
 			library: 'static_library',
-			library_output: opts.library + '_library',
 			armv7: opts.armv7,
 			armv7s: opts.armv7s,
 			arm64: bi(arch == 'arm64'),
@@ -668,10 +659,12 @@ async function configure() {
 			ld: 'g++',
 			ar: 'ar',
 			as: 'as',
-			emulator: emulator,
-			gcc_version: 0,
 			ranlib: 'ranlib',
 			strip: 'strip',
+			ld_host: 'g++',
+			ar_host: 'ar',
+			emulator: emulator,
+			gcc_version: 0,
 			android_api_level: android_api_level,
 			build_sysroot: '/',
 			build_bin: '/usr/bin',
@@ -787,6 +780,11 @@ async function configure() {
 			variables.ld = `${cc_prefix}g++`;
 		}
 
+		if (host_os == 'mac') {
+			variables.ld_host = 'android_LINK_host.mac'; // @tools
+			variables.ar_host = 'android_AR_host.mac';
+		}
+
 		if (!fs.existsSync(`${toolchain_dir}/bin/${cross_prefix}as`)) {
 			cross_prefix = fs.existsSync(`${toolchain_dir}/bin/llvm-as`) ? 'llvm-': '';
 		}
@@ -822,6 +820,7 @@ async function configure() {
 			return;
 		}
 		if ( opts.clang ) {
+			variables.clang = 0;
 			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
 
@@ -885,7 +884,6 @@ async function configure() {
 		variables.gcc_version = parseVersion(gcc_version);
 	}
 	else if (os == 'ios' || os == 'mac') {
-
 		if ( os == 'ios' ) {
 			if ( host_os != 'mac' ) {
 				console.error(
@@ -940,13 +938,11 @@ async function configure() {
 			variables.version_min = '10.15';
 		}
 
+		variables.clang = 1;
 		variables.cc = 'clang';
 		variables.cxx = 'clang';
 		variables.ld = 'clang++';
-		variables.ar = 'ar'; 
-		variables.as = 'as';
-		variables.ranlib = 'ranlib';
-		variables.strip = 'strip';
+		variables.ld_host = 'clang++';
 		variables.build_bin = `${XCODEDIR}/Toolchains/XcodeDefault.xctoolchain/usr/bin`;
 	}
 	else {
@@ -964,8 +960,6 @@ async function configure() {
 	var brand = variables.brand;
 	var output = `${os}${brand&&'-'+brand}.${suffix}.${configuration}`;
 
-	if (shared)
-		output += '.' + shared;
 	variables.output_name = output;
 	variables.output = path.resolve(`${__dirname}/../out/${output}`);
 	variables.suffix = suffix;
@@ -983,6 +977,8 @@ async function configure() {
 		`export CXX_target:=${variables.cxx}`,
 		`export LINK_target:=${variables.ld}`,
 		`export AR_target:=${variables.ar}`,
+		`export LINK_host:=${variables.ld_host}`,
+		`export AR_host:=${variables.ar_host}`,
 		`export AS:=${variables.as}`,
 		`export STRIP:=${variables.strip}`,
 		`export RANLIB:=${variables.ranlib}`,
@@ -1017,7 +1013,7 @@ async function configure() {
 		}
 
 		if ( ff_rebuild ) { // rebuild ffmpeg
-		 if ( !configure_ffmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
+		 if ( !configure_ffmpeg(opts, config_gypi, opts.clang, ff_install_dir) ) {
 			 return;
 		 }
 		}

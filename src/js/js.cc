@@ -524,10 +524,6 @@ namespace js {
 		e.return_value = rc;
 	}
 
-	// startup argv
-	int    __quark_js_argc = 0;
-	char** __quark_js_argv = nullptr;
-
 	int Start(cString &cmd, cArray<String>& argv_in) {
 		static String argv_s;
 		argv_s = fs_executable();
@@ -552,12 +548,51 @@ namespace js {
 		return Start(argv.length(), *argv);
 	}
 
-	int Start(int argc, char** argv) {
-		Qk_ASSERT(!__quark_js_argv);
+	Arguments *arguments = nullptr;
 
-		if (argc < 2 || strcmp(argv[1], "")) {
-			return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
+	int Start(int argc, char** argv) {
+		Qk_ASSERT(!arguments);
+		String lastKey;
+		Arguments args = { argc, argv };
+
+		auto putkv = [&args](cString& k, cString& v) {
+			String *old;
+			if (args.options.get(k, old)) {
+				old->append(" ").append(v);
+			} else {
+				args.options[k] = v;
+			}
+		};
+
+		for (int i = 1; i < argc; i++) {
+			String arg(argv[i]);
+			if (arg[0] == '-') {
+				auto kv = arg.split('=');
+				auto v = kv.length() > 1 ? kv[1]: String();
+				if (arg.length() > 1 && arg[1] != '-') { // -
+					lastKey = kv[0].substr(1).replaceAll('-', '_');
+					putkv(lastKey, v);
+				} else if (arg.length() > 2) { // --
+					putkv(kv[0].substr(2).replaceAll('-', '_'), v);
+					lastKey = String();
+				}
+			} else if (arg.length() > 0) {
+				if (lastKey.length()) {
+					putkv(lastKey, arg);
+					lastKey = String();
+				} else if (args.options.has("__main__")) {
+					putkv(String("__unknown__"), arg);
+				} else {
+					args.options.set("__main__", arg);
+					args.options.set("__mainIdx__", i);
+				}
+			}
 		}
+
+		setFlagsFromCommandLine(&args);
+
+		if (args.options.has("help"))
+			return 0;
 
 		Object::setHeapAllocator(new JsHeapAllocator()); // set object heap allocator
 
@@ -568,27 +603,27 @@ namespace js {
 
 		Qk_On(ProcessExit, onProcessExitHandle);
 
-		__quark_js_argc = argc;
-		__quark_js_argv = argv;
+		arguments = &args;
 
-		int rc = StartPlatform(argc, argv, [](Worker* worker) -> int {
-			// Startup debugger
-			for (int i = 2; i < __quark_js_argc; i++) {
-				String arg(__quark_js_argv[i]);
-				if (arg.indexOf("--inspect") == 0) {
-					auto script_path = fs_reader()->format(__quark_js_argv[1]);
-					auto kv = arg.split('=');
-					bool brk = arg.indexOf("-brk") != -1;
-					if (kv.length() == 1) {
-						runDebugger(worker, {brk, 9229, "127.0.0.1", script_path});
-					} else {
-						auto host = kv[1].split(':');
-						int port = 9229;
-						if (host.length() > 1)
-							host[1].toNumber<int>(&port);
-						runDebugger(worker, {brk, port, host[0], script_path});
-					}
-					break;
+		int rc = startPlatform([](Worker* worker) -> int {
+			String *inspect, *mainPath;
+			if (!arguments->options.get("__main__", mainPath)) {
+				return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
+			}
+			if (arguments->options.get("inspect", inspect) ||
+				arguments->options.get("inspect_brk", inspect)
+			) {
+				auto script_path = fs_reader()->format(*mainPath);
+				bool brk = arguments->options.has("inspect_brk");
+				// Startup debugger
+				if (inspect->length() == 0) {
+					runDebugger(worker, {brk, 9229, "127.0.0.1", script_path});
+				} else {
+					auto host = inspect->split(':');
+					int port = 9229;
+					if (host.length() > 1)
+						host[1].toNumber<int>(&port);
+					runDebugger(worker, {brk, port, host[0], script_path});
 				}
 			}
 
@@ -629,6 +664,7 @@ namespace js {
 
 		Qk_Off(ProcessExit, onProcessExitHandle);
 
+		arguments = nullptr;
 		return rc;
 	}
 

@@ -11,24 +11,24 @@ ifneq ($(USER),root)
 endif
 
 ifeq ($(HOST_OS),darwin)
-	HOST_OS := osx
+	HOST_OS := mac
 endif
 
 #######################
 
 FORWARD = make xcode msvs make-linux cmake-linux cmake build $(ANDROID_JAR) test2 clean
 
-check_osx=\
-	if [ "$(HOST_OS)" != "osx" ]; then \
+check_mac=\
+	if [ "$(HOST_OS)" != "mac" ]; then \
 		echo ;\
 		echo target \"$(1)\" can only run on MAC system.;\
 		echo ;\
 		exit 1; \
 	fi
 
-.PHONY: $(FORWARD) ios android linux osx \
+.PHONY: $(FORWARD) ios android linux mac \
 	product install install-qkmake \
-	help web doc watch all _host_linux _host_osx sync
+	help web doc watch all _host_linux _host_mac sync
 
 .SECONDEXPANSION:
 
@@ -53,62 +53,51 @@ $(FORWARD):
 # build all ios platform and output to product dir
 # It can only run in MAC system.
 ios:
-	@$(call check_osx,$@)
-	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) build # armv7 say goodbye 
-	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build # simulator
-	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
-	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy v8 debug
+	@$(call check_mac,$@)
+	@#./configure --os=ios --arch=arm  && $(MAKE) build # armv7 say goodbye
+	@./configure --os=ios --arch=arm64 && $(MAKE) build
+	@./configure --os=ios --arch=arm64 -em && $(MAKE) build # simulator for mac
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android:
-	@./configure --os=android --arch=x64   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x64   && $(MAKE) build
+	@./configure --os=android --arch=arm   && $(MAKE) build
+	@./configure --os=android --arch=arm64 && $(MAKE) build
 	@$(MAKE) $(ANDROID_JAR)
 
 linux:
-	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) build
-	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) build
-	@./configure --os=linux   --arch=x64                    && $(MAKE) build
-	@./configure --os=linux   --arch=arm                    && $(MAKE) build
+	@./configure --os=linux   --arch=x64   && $(MAKE) build
+	@./configure --os=linux   --arch=arm   && $(MAKE) build
+	@./configure --os=linux   --arch=arm64 && $(MAKE) build
 
-osx:
-	@$(call check_osx,$@)
-	@echo Unsupported
+mac:
+	@$(call check_mac,$@)
+	@./configure --os=mac --arch=x64   && $(MAKE) build
+	@./configure --os=mac --arch=arm64 && $(MAKE) build
+	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) mac
 
 # build all from current system platform
 
 all:
-	@if [ "$(HOST_OS)" = "osx" ]; then \
-		$(MAKE) _host_osx; \
+	@if [ "$(HOST_OS)" = "mac" ]; then \
+		$(MAKE) _host_mac; \
 	elif [ "$(HOST_OS)" = "linux" ]; then \
 		$(MAKE) _host_linux; \
 	else \
 		echo Unsupported current System "$(HOST_OS)"; \
 	fi
 
-# build all on osx
-_host_osx:
+# build all on mac
+_host_mac:
 	@$(MAKE) android
 	@$(MAKE) ios
 	@$(MAKE) osx
-	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86                    && $(MAKE) build
-	@./configure --os=android --arch=x64                    && $(MAKE) build
-	@./configure --os=android --arch=arm                    && $(MAKE) build
-	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
 # build all on linex os
 _host_linux:
 	@$(MAKE) android
 	@$(MAKE) linux
-	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86                    && $(MAKE) build
-	@./configure --os=android --arch=x64                    && $(MAKE) build
-	@./configure --os=android --arch=arm                    && $(MAKE) build
-	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
@@ -124,7 +113,7 @@ help:
 	@echo
 
 watch:
-	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST)
+	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST) -i .tmp
 
 sync: # init git submodule
 	@if [ ! -f test/android/app/app.iml ]; then \
