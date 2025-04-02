@@ -74,25 +74,28 @@ namespace qk {
 		struct Stream { // av stream info
 			MediaType   type;             /* type */
 			String      mime;             /* mime type */
+			String      language;         /* language */
 			int         codec_id;         /* codec id */
 			uint32_t    codec_tag;        /* codec tag */
 			int         format;           /* codec av format output */
 			int         profile;          /* profile */
 			int         level;            /* level */
-			uint32_t    width;            /* video width */
-			uint32_t    height;           /* video height */
-			String      language;         /* language */
-			uint32_t    bitrate;          /* bit rate */
-			uint32_t    sample_rate;      /* audio sample rate */
-			uint32_t    channels;         /* audio channel count */
-			uint64_t    channel_layout;   /* audio channel layout to enum AudioChannelLayoutMask */
+			int         width;            /* video width */
+			int         height;           /* video height */
+			int         bitrate;          /* bit rate */
+			int         sample_rate;      /* audio sample rate */
+			int         channels;         /* audio channel count */
+			int         channel_layout;   /* audio channel layout to enum AudioChannelLayoutMask */
+			int64_t     duration;         /* duration of the stream, in stream time base. */
 			uint32_t    avg_framerate[2]; /* video frame average framerate */
-			uint32_t    time_base[2];     // Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds)
+			uint32_t    time_base[2];     /* Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds) */
 			uint32_t    index;            /* stream index in source */
-			uint64_t    hash_code;        // key params hash code
+			uint64_t    hash_code;        /* key params hash code */
 			StreamExtra extra;
-			inline bool operator==(const Stream& s) const { return hash_code == s.hash_code; }
-			inline bool operator!=(const Stream& s)  const { return hash_code != s.hash_code; }
+			inline bool operator==(const Stream& s) const {
+				return hash_code == s.hash_code; }
+			inline bool operator!=(const Stream& s)  const {
+				return hash_code != s.hash_code; }
 		};
 
 		struct Program { // channel program info
@@ -245,6 +248,7 @@ namespace qk {
 			uint32_t  width, height; // width and height of the video frame
 			uint32_t  format; // frame output format, video to ColorType, audio default to signed 16 bits
 			~Frame();
+			static Frame* Make();
 		};
 		Qk_DEFINE_PROP_GET(MediaType, type, Const); //!< media type
 

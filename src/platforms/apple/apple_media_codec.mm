@@ -33,73 +33,30 @@
 
 namespace qk {
 
+	void deleteCMFormatDescription(CMFormatDescriptionRef ref) {
+		if (ref)
+			CFRelease(ref);
+	}
+	void retainCMFormatDescription(CMFormatDescriptionRef ref) {
+		if (ref)
+			CFRetain(ref);
+	}
+
+	typedef std::remove_pointer_t<CMFormatDescriptionRef> CMFormatDescription;
+	typedef Sp<
+		CMFormatDescription,
+		object_traits_from<CMFormatDescription, deleteCMFormatDescription, retainCMFormatDescription>
+	> CMFormatDescriptionAuto;
+
 	class AppleVideoCodec: public MediaCodec {
 	public:
 		AppleVideoCodec(const Stream &stream): MediaCodec(stream)
 			, _session(nil)
-			, _desc(nil)
 			, _packet(nil)
 		{}
 
 		~AppleVideoCodec() {
 			close();
-			if (_desc) {
-				CFRelease(_desc); _desc = nil;
-			}
-		}
-
-		bool init() {
-			CMVideoCodecType codec;
-			switch( _stream.codec_id ) {
-				case AV_CODEC_ID_H263: // h.263
-					codec = kCMVideoCodecType_H263; break;
-				case AV_CODEC_ID_H264: // h.264
-					codec = kCMVideoCodecType_H264; break;
-				case AV_CODEC_ID_HEVC: // h.265
-					codec = kCMVideoCodecType_HEVC; break;
-				case AV_CODEC_ID_MPEG1VIDEO:
-					codec = kCMVideoCodecType_MPEG1Video; break;
-				case AV_CODEC_ID_MPEG2VIDEO:
-					codec = kCMVideoCodecType_MPEG2Video; break;
-				case AV_CODEC_ID_MPEG4:
-					codec = kCMVideoCodecType_MPEG4Video; break;
-				default:
-					return false;
-			}
-			// init CMFormatDescriptionRef
-			Buffer psp, pps;
-			OSStatus status;
-			auto &extra = _stream.extra.extradata;
-
-			if ( MediaCodec::parse_avc_psp_pps(extra, psp, pps) ) {
-				uint8_t *param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
-				size_t   size[2]  = { psp.length() - 4, pps.length() - 4 };
-				status = CMVideoFormatDescriptionCreateFromH264ParameterSets(nil, 2, param, size, 4, &_desc);
-			} else {
-				NSDictionary* extensions =
-				@{
-					@"CVImageBufferChromaLocationBottomField": @"left",
-					@"CVImageBufferChromaLocationTopField": @"left",
-					@"FullRangeVideo": @NO,
-					@"CVPixelAspectRatio": @{
-						@"HorizontalSpacing": @0,
-						@"VerticalSpacing": @0,
-					},
-					@"SampleDescriptionExtensionAtoms": @{
-						@"avcC": [NSData dataWithBytes:*extra length:extra.length()],
-					},
-				};
-				status = CMVideoFormatDescriptionCreate(nil, codec,
-																								_stream.width, _stream.height,
-																								(__bridge CFDictionaryRef)extensions, &_desc);
-			}
-
-			// create decoder session
-			if ( status == noErr ) {
-				CFRetain(_desc);
-				return open();
-			}
-			return false;
 		}
 
 		bool is_open() const override {
@@ -108,11 +65,67 @@ namespace qk {
 
 		bool open(const Stream *stream = nullptr) override {
 			ScopeLock scope(_mutex);
+
 			if (_session) return true;
-			if (!stream)  stream = &_stream;
+			if (!stream) stream = &_stream;
+			if (stream->type != kVideo_MediaType) return false;
 
 			Qk_ASSERT_NE(0, stream->width);
 			Qk_ASSERT_NE(0, stream->height);
+
+			if (!_desc || *stream != _stream) {
+				CMVideoCodecType codec;
+				switch( stream->codec_id ) {
+					case AV_CODEC_ID_H263: // h.263
+						codec = kCMVideoCodecType_H263; break;
+					case AV_CODEC_ID_H264: // h.264
+						codec = kCMVideoCodecType_H264; break;
+					case AV_CODEC_ID_HEVC: // h.265
+						codec = kCMVideoCodecType_HEVC; break;
+					case AV_CODEC_ID_MPEG1VIDEO:
+						codec = kCMVideoCodecType_MPEG1Video; break;
+					case AV_CODEC_ID_MPEG2VIDEO:
+						codec = kCMVideoCodecType_MPEG2Video; break;
+					case AV_CODEC_ID_MPEG4:
+						codec = kCMVideoCodecType_MPEG4Video; break;
+					default:
+						return false;
+				}
+
+				Buffer psp, pps;
+				OSStatus status;
+				auto &extra = stream->extra.extradata;
+
+				CMFormatDescriptionRef desc;
+
+				if ( MediaCodec::parse_avc_psp_pps(extra, psp, pps) ) {
+					uint8_t *param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
+					size_t   size[2]  = { psp.length() - 4, pps.length() - 4 };
+					status = CMVideoFormatDescriptionCreateFromH264ParameterSets(nil, 2, param, size, 4, &desc);
+				} else {
+					NSDictionary* extensions =
+					@{
+						@"CVImageBufferChromaLocationBottomField": @"left",
+						@"CVImageBufferChromaLocationTopField": @"left",
+						@"FullRangeVideo": @NO,
+						@"CVPixelAspectRatio": @{
+							@"HorizontalSpacing": @0,
+							@"VerticalSpacing": @0,
+						},
+						@"SampleDescriptionExtensionAtoms": @{
+							@"avcC": [NSData dataWithBytes:*extra length:extra.length()],
+						},
+					};
+					status = CMVideoFormatDescriptionCreate(nil, codec,
+																									stream->width, stream->height,
+																									(__bridge CFDictionaryRef)extensions, &desc);
+				}
+
+				if ( status != noErr ) {
+					return false;
+				}
+				_desc = desc;
+			}
 
 			CFDictionaryRef attrs = (__bridge CFDictionaryRef)[NSDictionary dictionaryWithObjectsAndKeys:
 				[NSNumber numberWithInt: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange],
@@ -131,15 +144,16 @@ namespace qk {
 				(VTDecompressionOutputCallback)&AppleVideoCodec::decompress_frame_cb,
 				this,
 			};
-			OSStatus status = VTDecompressionSessionCreate(nil, _desc, nil, attrs, &cb, &_session);
-
-			if (status == noErr) {
-				CFRetain(_session);
-				clearData();
-				return true;
-			} else {
+			if (VTDecompressionSessionCreate(nil, _desc.get(), nil, attrs, &cb, &_session) != noErr) {
 				return false;
 			}
+
+			if (stream != &_stream) {
+				_stream = *stream;
+			}
+			CFRetain(_session);
+			clearData();
+			return true;
 		}
 
 		void clearData() {
@@ -148,8 +162,8 @@ namespace qk {
 					delete f;
 				_frames.clear();
 				_need_keyframe = true;
-				delete _packet; _packet = nil;
 				_pending = 0;
+				Releasep(_packet);
 			}
 		}
 
@@ -182,9 +196,8 @@ namespace qk {
 				return;
 			ScopeLock scope(self->_mutex); // lock scope
 			auto w = self->_stream.width, h = self->_stream.height;
-			auto f = (Frame*)::malloc(sizeof(Frame) + sizeof(AVFrame));
-			auto avf = reinterpret_cast<AVFrame*>(f + 1);
-			memset(avf, 0, sizeof(AVFrame));
+			auto f = Frame::Make();
+			auto avf = f->avframe;
 			auto buf = av_buffer_alloc(av_image_get_buffer_size(AV_PIX_FMT_NV12, w, h, 1));
 			Qk_ASSERT_EQ(buf->size,
 				av_image_fill_arrays(avf->data, avf->linesize, buf->data, AV_PIX_FMT_NV12, w, h, 1)
@@ -204,7 +217,6 @@ namespace qk {
 			avf->key_frame = 0;
 			avf->width = w;
 			avf->height = h;
-			f->avframe = avf;
 			f->data = avf->data;
 			f->linesize = reinterpret_cast<uint32_t*>(avf->linesize);
 			f->dataitems = 2;
@@ -241,9 +253,8 @@ namespace qk {
 			size_t ssize = pkt->size;
 
 			status = CMSampleBufferCreate(kCFAllocatorDefault,
-																		block, true,
-																		nil, nil,
-																		_desc, 1, 1, &info, 1, &ssize, &buf);
+																		block, true, nil, nil,
+																		_desc.get(), 1, 1, &info, 1, &ssize, &buf);
 			CFRelease(block);
 
 			return buf;
@@ -298,7 +309,7 @@ namespace qk {
 			int rc = send_packet(_packet);
 			if (rc == 0) {
 				lock.lock();
-				delete _packet; _packet = nullptr;
+				Releasep(_packet);
 			}
 			return rc;
 		}
@@ -330,8 +341,8 @@ namespace qk {
 		}
 
 	private:
+		CMFormatDescriptionAuto _desc;
 		VTDecompressionSessionRef _session;
-		CMFormatDescriptionRef _desc;
 		Mutex        _mutex;
 		Packet      *_packet;
 		List<Frame*> _frames;
@@ -343,7 +354,7 @@ namespace qk {
 		if ( ex ) {
 			if (type == kVideo_MediaType) {
 				Sp<AppleVideoCodec> codec = new AppleVideoCodec(ex->stream());
-				if (codec->init()) {
+				if (codec->open()) {
 					return codec.collapse();
 				}
 			}

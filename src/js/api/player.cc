@@ -38,30 +38,10 @@ namespace qk { namespace js {
 		if ( !str ) {
 			return worker->newNull();
 		}
-		// MediaType   type;             /* type */
-		// String      mime;             /* mime type */
-		// int         codec_id;         /* codec id */
-		// uint32_t    codec_tag;        /* codec tag */
-		// int         format;           /* codec av format output */
-		// int         profile;          /* profile */
-		// int         level;            /* level */
-		// uint32_t    width;            /* video width */
-		// uint32_t    height;           /* video height */
-		// String      language;         /* language */
-		// uint32_t    bitrate;          /* bit rate */
-		// uint32_t    sample_rate;      /* audio sample rate */
-		// uint32_t    channels;         /* audio channel count */
-		// uint64_t    channel_layout;   /* audio channel layout to enum AudioChannelLayoutMask */
-		// uint32_t    avg_framerate[2]; /* video frame average framerate */
-		// uint32_t    time_base[2];     // Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds)
-		// uint32_t    index;            /* stream index in source */
-		// uint64_t    hash_code;        // key params hash code
-		// StreamExtra extra;
-		// inline bool operator==(const Stream& s) const { return hash_code == s.hash_code; }
-		// inline bool operator!=(const Stream& s)  const { return hash_code != s.hash_code; }
 		auto rv = worker->newObject();
 		rv->set(worker, worker->newStringOneByte("type"), worker->newValue(str->type));
 		rv->set(worker, worker->newStringOneByte("mime"), worker->newValue(str->mime));
+		rv->set(worker, worker->newStringOneByte("language"), worker->newValue(str->language));
 		rv->set(worker, worker->newStringOneByte("codecId"), worker->newValue(str->codec_id));
 		rv->set(worker, worker->newStringOneByte("codecTag"), worker->newValue(str->codec_tag));
 		rv->set(worker, worker->newStringOneByte("format"), worker->newValue(str->format));
@@ -69,13 +49,13 @@ namespace qk { namespace js {
 		rv->set(worker, worker->newStringOneByte("level"), worker->newValue(str->level));
 		rv->set(worker, worker->newStringOneByte("width"), worker->newValue(str->width));
 		rv->set(worker, worker->newStringOneByte("height"), worker->newValue(str->height));
-		rv->set(worker, worker->newStringOneByte("language"), worker->newValue(str->language));
 		rv->set(worker, worker->newStringOneByte("bitrate"), worker->newValue(str->bitrate));
 		rv->set(worker, worker->newStringOneByte("sampleRate"), worker->newValue(str->sample_rate));
 		rv->set(worker, worker->newStringOneByte("channels"), worker->newValue(str->channels));
 		rv->set(worker, worker->newStringOneByte("channelLayout"), worker->newValue(str->channel_layout));
+		rv->set(worker, worker->newStringOneByte("duration"), worker->newValue(str->duration));
 		rv->set(worker, worker->newStringOneByte("avgFramerate"),
-			worker->newValue(Array<uint32_t>{ str->avg_framerate[0], str->avg_framerate[1] })
+			worker->newValue(Array<uint32_t>{ uint32_t(str->avg_framerate[0]), str->avg_framerate[1] })
 		);
 		rv->set(worker, worker->newStringOneByte("timeBase"),
 			worker->newValue(Array<uint32_t>{ str->time_base[0], str->time_base[1] })

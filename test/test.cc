@@ -86,7 +86,7 @@
 	F(v8) \
 
 #define DEFAULT_CALLS(F) \
-	F(v8) \
+	F(media) \
 
 #define _Fun(n) \
 	void test_##n(int argc, char** argv);

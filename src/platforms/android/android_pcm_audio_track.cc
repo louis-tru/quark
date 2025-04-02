@@ -70,53 +70,83 @@ namespace qk {
 		CHANNEL_OUT_TOP_BACK_RIGHT = 0x80000,
 	};
 
-	int get_channel_mask(uint32_t channel_count) {
-		int channelMask = CHANNEL_OUT_DEFAULT;
-		switch (channel_count) {
-			default:
-			case 1: // 1
-				channelMask = CHANNEL_OUT_DEFAULT/*CHANNEL_OUT_FRONT_CENTER*/; break;
-			case 2: // 2
-				channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT; break;
-			case 3: // 2.1
-				channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-								CHANNEL_OUT_LOW_FREQUENCY; break;
-			case 4: // 4
-				channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-								CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
-			case 5: // 4.1
-				channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_LOW_FREQUENCY |
-								CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
-			case 6: // 5.1
-				channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
-								CHANNEL_OUT_LOW_FREQUENCY |
-								CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_LEFT; break;
-			case 7: // 6.1
-				channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
-								CHANNEL_OUT_LOW_FREQUENCY |
-								CHANNEL_OUT_SIDE_LEFT | CHANNEL_OUT_SIDE_RIGHT |
-								CHANNEL_OUT_BACK_CENTER; break;
-			case 8: // 7.1
-				channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
-								CHANNEL_OUT_LOW_FREQUENCY |
-								CHANNEL_OUT_SIDE_LEFT | CHANNEL_OUT_SIDE_RIGHT |
-								CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
+	int get_channel_mask(uint32_t channel_count, uint32_t channel_layout) {
+		if (channel_count < 2) {
+			return CHANNEL_OUT_DEFAULT;
 		}
-		return channelMask;
+		int channels = 0;
+		int layout = 0;
+
+		if (channel_layout & kFront_Left_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_FRONT_LEFT; channels++;
+		}
+		if (channel_layout & kFront_Right_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_FRONT_RIGHT; channels++;
+		}
+		if (channel_layout & kFront_Center_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_FRONT_CENTER; channels++;
+		}
+		if (channel_layout & kLow_Frequency_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_LOW_FREQUENCY; channels++;
+		}
+		if (channel_layout & kBack_Left_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_BACK_LEFT; channels++;
+		}
+		if (channel_layout & kBack_Right_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_BACK_RIGHT; channels++;
+		}
+		if (channel_layout & kFront_Left_Of_Center_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_FRONT_LEFT_OF_CENTER; channels++;
+		}
+		if (channel_layout & kFront_Right_Of_Center_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_FRONT_RIGHT_OF_CENTER; channels++;
+		}
+		if (channel_layout & kBack_Center_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_BACK_CENTER; channels++;
+		}
+		if (channel_layout & kSide_Left_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_SIDE_LEFT; channels++;
+		}
+		if (channel_layout & kSide_Right_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_SIDE_RIGHT; channels++;
+		}
+		if (channel_layout & kTop_Center_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_TOP_CENTER; channels++;
+		}
+		if (channel_layout & kTop_Front_Left_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_TOP_FRONT_LEFT; channels++;
+		}
+		if (channel_layout & kTop_Front_Center_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_TOP_FRONT_CENTER; channels++;
+		}
+		if (channel_layout & kTop_Front_Right_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_TOP_FRONT_RIGHT; channels++;
+		}
+		if (channel_layout & kTop_Back_Left_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_TOP_BACK_LEFT; channels++;
+		}
+		if (channel_layout & kTop_Back_Center_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_TOP_BACK_CENTER; channels++;
+		}
+		if (channel_layout & kTop_Back_Right_AudioChannelLayoutMask) {
+			layout |= CHANNEL_OUT_TOP_BACK_RIGHT; channels++;
+		}
+		Qk_ASSERT_EQ(channels, channel_layout);
+
+		return layout;
 	}
 
 	class AndroidAudioTrack: public Object, public PCMPlayer {
 	public:
 
-		virtual Object* asObject() { return this; }
+		Object* asObject() override { return this; }
 
 		AndroidAudioTrack()
-			: _sample_rate(0)
-			, _channel_count(0)
-			, _buffer_size(0)
-			, _min_volume(0)
-			, _max_volume(1)
-			, _volume(70)
+			: _sampleRate(0)
+			, _channels(0), _channel_layout(0)
+			, _channelMask(0), _minBufferSize(0)
+			, _min_volume(0), _max_volume(1)
+			, _volume(1)
 			, _self(nullptr)
 			, _clazz(nullptr)
 			, _buffer(nullptr)
@@ -151,37 +181,38 @@ namespace qk {
 			}
 		}
 
-		bool initialize(const Stream &stream) {
+		bool init(const Stream &stream) {
 			ScopeENV env;
-
-			// stream.channel_layout
-			_channel_count = stream.channels;
-			_sample_rate = stream.sample_rate;
-			_buffer_size = min_buffer_size();
+			_channels = stream.channels;
+			_sampleRate = stream.sample_rate;
+			_channel_layout = 0xffffffff & stream.channel_layout;
+			_channelMask = get_channel_mask(_channels, _channel_layout);
+			_minBufferSize = env->CallStaticIntMethod(_clazz, _getMinBufferSize, _sampleRate,
+				_channelMask, 2/*ENCODIN_PCM_16BIT*/);
 			_min_volume = env->CallStaticFloatMethod(_clazz, _getMinVolume);
 			_max_volume = env->CallStaticFloatMethod(_clazz, _getMaxVolume);
 
-			if ( _buffer_size <= 0 ) {
-				_buffer_size = 4096 * _channel_count;
+			uint32_t bufferSize = _channels * _sampleRate * 2 * (32.0f / 1000.0f); // 32ms
+			if (_minBufferSize <= 0) {
+				_minBufferSize = bufferSize;
 			}
 
-			// new Audio track object
+			// new android.media.AudioTrack
 			_self = env->NewObject(_clazz, _constructor,
 															3, /* STREAM_MUSIC */
-															_sample_rate,
-															get_channel_mask(_channel_count),
+															_sampleRate,
+															_channelMask,
 															2, /* ENCODIF_PCM_16BIT */
-															_buffer_size * 2,
-															1  /* MODE_STREAM */
+															_minBufferSize * 2, // Use double size
+															1 /* MODE_STREAM */
 			);
-
-			Qk_ASSERT(_self);
+			if (!_self) return false;
 
 			_self = env->NewGlobalRef(_self);
 
-			// new buffer swap area
-			uint32_t size = Qk_Max(_buffer_size, 1024 * 32);
-			_buffer = env->NewGlobalRef(env->NewDirectByteBuffer(malloc(size), size));
+			bufferSize = Qk_Max(_minBufferSize, bufferSize);
+			_bufferHold = Buffer((char*)malloc(bufferSize), bufferSize);
+			_buffer = env->NewGlobalRef(env->NewDirectByteBuffer(_bufferHold.val(), bufferSize));
 
 			// audio track play
 			env->CallVoidMethod(_self, _play);
@@ -189,59 +220,53 @@ namespace qk {
 			return true;
 		}
 
-		virtual bool write(const Frame *frame) {
+		bool write(const Frame *frame) override {
 			ScopeENV env;
 			// buffer rewind
-			env->DeleteLocalRef(env->CallObjectMethod(_buffer, _buffer_rewind));
+			// env->DeleteLocalRef(env->CallObjectMethod(_buffer, _buffer_rewind));
+			Qk_ASSERT(_bufferHold.length() >= frame->linesize[0]);
 			// copy pcm data
-			// memcpy(env->GetDirectBufferAddress(_buffer), *buffer, buffer.length());
-			// // write pcm data
-			// int r = env->CallIntMethod(_self, _write, _buffer, buffer.length(), 1);
-
-			// return r == buffer.length();
-
+			Qk_ASSERT_EQ(env->GetDirectBufferAddress(_buffer), _bufferHold.val());
+			memcpy(_bufferHold.val(), frame->data[0], frame->linesize[0]);
+			// write pcm data
+			int r = env->CallIntMethod(_self, _write, _buffer, frame->linesize[0], 1);
 			return true;
 		}
 
-		virtual void flush() {
-			JNI::ScopeENV env;
+		void flush() override {
+			ScopeENV env;
 			env->CallVoidMethod(_self, _flush);
 		}
 
-		virtual void set_mute(bool value) {
+		void set_mute(bool value) override {
 			if ( value ) {
-				JNI::ScopeENV env;
+				ScopeENV env;
 				env->CallVoidMethod(_self, _setVolume, 0.0f);
 			} else {
 				set_volume(_volume);
 			}
 		}
 
-		virtual void set_volume(float value) {
-			JNI::ScopeENV env;
-			_volume = Qk_Min(100, value);
-			jfloat f = _volume / 100.0;
+		void set_volume(float value) override {
+			ScopeENV env;
+			_volume = Qk_Min(1.0, value);
+			jfloat f = _volume;
 			env->CallIntMethod(_self, _setVolume, f);
 		}
 
-		virtual float delayed() {
+		float delayed() override {
 			return -1.0;
 		}
 
-		int min_buffer_size() {
-			JNI::ScopeENV env;
-			int mask = get_channel_mask(Qk_Max(_channel_count, 2));
-			return env->CallStaticIntMethod(_clazz, _getMinBufferSize,
-																			_sample_rate, mask, 2/*ENCODIN_PCM_16BIT*/);
-		}
-
 	private:
-		uint32_t    _sample_rate;
-		uint32_t    _channel_count;
-		int         _buffer_size;
-		float       _min_volume;
-		float       _max_volume;
-		uint32_t    _volume;
+		uint32_t    _sampleRate;
+		uint32_t    _channels;
+		uint32_t    _channel_layout;
+		int         _channelMask;
+		int         _minBufferSize, _bufferSize;
+		float       _min_volume, _max_volume;
+		float       _volume;
+		Buffer      _bufferHold;
 		jobject     _self;
 		jclass      _clazz;
 		jobject     _buffer;
@@ -260,7 +285,7 @@ namespace qk {
 
 	PCMPlayer* create_android_audio_track(const SStream &stream) {
 		Handle<AndroidAudioTrack> player = new AndroidAudioTrack();
-		if ( player->initialize(stream) ) {
+		if ( player->init(stream) ) {
 			return player.collapse();
 		}
 		return nullptr;

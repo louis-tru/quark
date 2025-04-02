@@ -30,5 +30,5 @@ if [ ! -d $OBJS_DIR ] || [ ! -f $PRODUCT_PATH ]; then
 	done
 fi
 
-$AR    rcD $PRODUCT_PATH `find $OBJS_DIR -name *.o|xargs`
-$RANLIB -D $PRODUCT_PATH
+$AR  rc $PRODUCT_PATH `find $OBJS_DIR -name *.o|xargs`
+$RANLIB $PRODUCT_PATH

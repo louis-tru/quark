@@ -60,7 +60,7 @@ namespace qk {
 
 			if ( type == AVMEDIA_TYPE_VIDEO || type == AVMEDIA_TYPE_AUDIO ) {
 				MediaSource::Stream str;
-				str.index = uint32_t(start);
+				str.index = start;
 				str.type = (type == AVMEDIA_TYPE_VIDEO) ? kVideo_MediaType : kAudio_MediaType;
 				str.mime = String::format("%s/%s", av_get_media_type_string(type),
 																avcodec_get_name(codecpar->codec_id));
@@ -83,9 +83,10 @@ namespace qk {
 				}
 				entry = av_dict_get(stream->metadata, "variant_bitrate", nullptr, 0);
 				if ( entry ) {
-					str.bitrate = String(entry->value).toNumber<uint32_t>();
+					str.bitrate = String(entry->value).toNumber<int>();
 				}
 
+				str.duration = stream->duration;
 				str.avg_framerate[0] = stream->avg_frame_rate.num;
 				str.avg_framerate[1] = stream->avg_frame_rate.den;
 				str.time_base[0] = stream->time_base.num;
@@ -96,9 +97,11 @@ namespace qk {
 				hash.updateu32(str.format);
 				hash.updateu32(str.width);
 				hash.updateu32(str.height);
+				hash.updateu64(str.duration);
 				hash.updateu32(str.sample_rate);
 				hash.updateu32(str.channels);
 				hash.updateu64(str.channel_layout);
+				hash.update(codecpar->extradata, codecpar->extradata_size);
 
 				str.hash_code = hash.hashCode();
 

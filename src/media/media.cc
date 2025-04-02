@@ -133,6 +133,14 @@ namespace qk {
 		return pkt;
 	}
 
+	Frame* Frame::Make() {
+		auto size = sizeof(Frame) + sizeof(AVFrame);
+		auto f = (Frame*)::malloc(size);
+		memset(f, 0, size);
+		f->avframe = reinterpret_cast<AVFrame*>(f + 1);
+		return f;
+	}
+
 	Frame::~Frame() {
 		av_frame_unref(avframe);
 	}

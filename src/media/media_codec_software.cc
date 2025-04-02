@@ -38,18 +38,18 @@ namespace qk {
 			: MediaCodec(stream)
 			, _ctx(ctx)
 			, _packet(nullptr)
-			, _frame(av_frame_alloc())
+			, _avf(av_frame_alloc())
 			, _swr(nullptr)
 			, _sws(nullptr)
 			, _threads(1), _rc(AVERROR_EOF)
 		{
-			Qk_ASSERT(_frame);
+			Qk_ASSERT(_avf);
 		}
 
 		~SoftwareMediaCodec() override {
 			close();
 			avcodec_free_context(&_ctx);
-			av_frame_free(&_frame);
+			av_frame_free(&_avf);
 		}
 
 		void init_swr() {
@@ -90,8 +90,7 @@ namespace qk {
 
 		bool open(const Stream *stream) override {
 			if ( !avcodec_is_open(_ctx) ) {
-				if (!stream)
-					stream = &_stream;
+				if (!stream) stream = &_stream;
 				Qk_ASSERT_EQ(stream->codec_id, _stream.codec_id);
 				ScopeLock lock(_mutex);
 				Qk_ASSERT(_ctx->codec);
@@ -120,23 +119,23 @@ namespace qk {
 						}
 					}
 				}
-				flush2();
+				flushNoLock();
 			}
 			return avcodec_is_open(_ctx);
 		}
 
-		void flush2() {
+		void flushNoLock() {
 			if ( avcodec_is_open(_ctx) ) {
 				avcodec_flush_buffers(_ctx);
 				_rc = AVERROR_EOF;
-				delete _packet; _packet = nullptr;
+				Releasep(_packet);
 			}
 		}
 
 		void close() override {
 			if (avcodec_is_open(_ctx)) {
 				ScopeLock lock(_mutex);
-				flush2();
+				flushNoLock();
 				avcodec_close(_ctx);
 				if (_swr) {
 					swr_free(&_swr);
@@ -149,7 +148,7 @@ namespace qk {
 
 		void flush() override {
 			ScopeLock scope(_mutex);
-			flush2();
+			flushNoLock();
 		}
 
 		int send_packet(const Packet *pkt) override {
@@ -183,7 +182,7 @@ namespace qk {
 			//auto ts = time_monotonic();
 			int rc = avcodec_send_packet(_ctx, _packet->avpkt);
 			if (rc == 0) {
-				delete _packet; _packet = nullptr;
+				Releasep(_packet);
 				//Qk_DLog("avcodec_send_packet, %d", time_monotonic() - ts);
 			}
 			return rc;
@@ -198,21 +197,22 @@ namespace qk {
 				_rc = receive_frame_audio(tmp);
 			}
 			if (_rc == 0) {
-				auto f = (Frame*)::malloc(sizeof(Frame) + sizeof(AVFrame));
+				auto f = Frame::Make();
+				auto avf = f->avframe;
 				*f = tmp;
-				f->avframe = reinterpret_cast<AVFrame*>(f + 1);
-				av_frame_move_ref(f->avframe, _frame);
-				f->data = f->avframe->data;
-				f->linesize = reinterpret_cast<uint32_t*>(f->avframe->linesize);
+				av_frame_move_ref(avf, _avf);
+				f->avframe = avf;
+				f->data = avf->data;
+				f->linesize = reinterpret_cast<uint32_t*>(avf->linesize);
 				return f;
 			}
 			return nullptr;
 		}
 
 		int receive_frame_video(Frame &out) {
-			int rc = avcodec_receive_frame(_ctx, _frame);
+			int rc = avcodec_receive_frame(_ctx, _avf);
 			if (rc == 0) {
-				auto unit = 1000000.0 * _stream.time_base[0] / _stream.time_base[1];
+				auto unit = 1000000.0f * _stream.time_base[0] / _stream.time_base[1];
 				auto w = _ctx->width, h = _ctx->height;
 
 				if (_sws) {
@@ -224,29 +224,29 @@ namespace qk {
 						av_image_fill_arrays(dest.data, dest.linesize, buf->data, AV_PIX_FMT_YUV420P, w, h, 1)
 					);
 					Qk_ASSERT_EQ(h, sws_scale(_sws,
-						_frame->data,
-						_frame->linesize,
+						_avf->data,
+						_avf->linesize,
 						0, h,
 						dest.data,
 						dest.linesize
 					));
-					for (int i = 0; i < FF_ARRAY_ELEMS(_frame->buf); i++) {
-						av_buffer_unref(&_frame->buf[i]);
+					for (int i = 0; i < FF_ARRAY_ELEMS(_avf->buf); i++) {
+						av_buffer_unref(&_avf->buf[i]);
 					}
-					_frame->buf[0] = buf;
-					_frame->format = AV_PIX_FMT_YUV420P;
-					*((AVPicture*)_frame) = *((AVPicture*)&dest);
+					_avf->buf[0] = buf;
+					_avf->format = AV_PIX_FMT_YUV420P;
+					*((AVPicture*)_avf) = *((AVPicture*)&dest);
 				}
-				if (_frame->format == AV_PIX_FMT_YUV420P) { // yuv420p
+				if (_avf->format == AV_PIX_FMT_YUV420P) { // yuv420p
 					out.format = kYUV420P_ColorType;
 					out.dataitems = 3;
 				} else { // yuv420sp
 					out.format = kYUV420SP_ColorType;
 					out.dataitems = 2;
-					Qk_ASSERT_EQ(_frame->format, AV_PIX_FMT_NV12);
+					Qk_ASSERT_EQ(_avf->format, AV_PIX_FMT_NV12);
 				}
-				out.pts = Int64::max(_frame->pts * unit, 0);
-				out.pkt_duration = _frame->pkt_duration * unit;
+				out.pts = Int64::max(_avf->pts * unit, 0);
+				out.pkt_duration = _avf->pkt_duration * unit;
 				out.nb_samples = 0;
 				out.width = w;
 				out.height = h;
@@ -256,34 +256,32 @@ namespace qk {
 		}
 
 		int receive_frame_audio(Frame &out) {
-			int rc = avcodec_receive_frame(_ctx, _frame);
+			int rc = avcodec_receive_frame(_ctx, _avf);
 			if (rc == 0) {
 				auto unit = 1000000.0 * _stream.time_base[0] / _stream.time_base[1];
 				if (_swr) {
-					auto nb_samples = _frame->nb_samples;
+					auto nb_samples = _avf->nb_samples;
 					auto sample_bytes = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
-					auto fsize = nb_samples * _frame->channels * sample_bytes;
-					auto noalloc = _frame->buf[1] && _frame->buf[1]->size >= fsize;
+					auto fsize = nb_samples * _avf->channels * sample_bytes;
+					auto noalloc = _avf->buf[1] && _avf->buf[1]->size >= fsize;
 					Qk_ASSERT_NE(fsize, 0);
-					auto buf = noalloc ? _frame->buf[1]: av_buffer_alloc(fsize);
+					auto buf = noalloc ? _avf->buf[1]: av_buffer_alloc(fsize);
 					Qk_ASSERT_EQ(nb_samples,
-						swr_convert(_swr, &buf->data, nb_samples, (const uint8_t**)_frame->data, nb_samples)
+						swr_convert(_swr, &buf->data, nb_samples, (const uint8_t**)_avf->data, nb_samples)
 					);
 					if (!noalloc) {
-						av_buffer_unref(_frame->buf); // free old buf
-						_frame->buf[0] = buf;
+						av_buffer_unref(_avf->buf); // free old buf
+						_avf->buf[0] = buf;
 					}
-					_frame->format = AV_SAMPLE_FMT_S16;
-					_frame->data[0] = buf->data;
-					_frame->linesize[0] = fsize;
+					_avf->format = AV_SAMPLE_FMT_S16;
+					_avf->data[0] = buf->data;
+					_avf->linesize[0] = fsize;
 				}
-				Qk_ASSERT_EQ(_frame->format, AV_SAMPLE_FMT_S16);
+				Qk_ASSERT_EQ(_avf->format, AV_SAMPLE_FMT_S16);
 				out.dataitems = 1;
-				out.pts = Int64::max(_frame->pts * unit, 0);
-				out.pkt_duration = _frame->pkt_duration * unit;;
-				out.nb_samples = _frame->nb_samples;
-				out.width = 0;
-				out.height = 0;
+				out.pts = Int64::max(_avf->pts * unit, 0);
+				out.pkt_duration = _avf->pkt_duration * unit;;
+				out.nb_samples = _avf->nb_samples;
 				out.format = AV_SAMPLE_FMT_S16;
 			}
 			return rc;
@@ -300,7 +298,7 @@ namespace qk {
 	private:
 		AVCodecContext* _ctx;
 		Packet*         _packet; // send a packet to decoder
-		AVFrame*        _frame; // temp av frame
+		AVFrame*        _avf; // temp av frame
 		SwrContext*     _swr;
 		SwsContext*     _sws;
 		uint32_t        _threads;

@@ -40,10 +40,7 @@
 
 namespace qk {
 
-	/**
-	* @method get_channel_mask
-	* */
-	extern int get_channel_mask(uint32_t channel_count);
+	extern int get_channel_mask(uint32_t channel_count, uint32_t channel_layout);
 
 #if USE_ANDROID_OPENSLES_PCM_PLAYER
 
@@ -113,73 +110,47 @@ namespace qk {
 
 		AndroidPCMOpenSLES()
 			: _max_volume_level(100)
-			, bqPlayerObject(nullptr)
-			, bqPlayerPlay(nullptr)
-			, bqPlayerBufferQueue(nullptr)
-			, bqPlayerEffectSend(nullptr)
-			, bqPlayerVolume(nullptr)
+			, _object(nullptr)
+			, _play(nullptr)
+			, _bufferQueue(nullptr)
+			, _effectSend(nullptr)
+			, _volume(nullptr)
 			, _buffer_size(0)
 		{
 		}
 
 		virtual ~AndroidPCMOpenSLES() {
 			// destory player object
-			if (bqPlayerObject != nullptr) {
-				(*bqPlayerObject)->Destroy(bqPlayerObject);
-				bqPlayerPlay = nullptr;
-				bqPlayerBufferQueue = nullptr;
-				bqPlayerEffectSend = nullptr;
-				bqPlayerVolume = nullptr;
+			if (_object != nullptr) {
+				(*_object)->Destroy(_object);
+				_play = nullptr;
+				_bufferQueue = nullptr;
+				_effectSend = nullptr;
+				_volume = nullptr;
 			}
 		}
 
-		bool initialize(const Stream &stream) {
-			AudioEngine* engine = AudioEngine::share();
-			if ( ! engine ) {
-				return false;
-			}
+		uint32_t min_buffer_size() {
+			JNI::ScopeENV env;
+			JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
+			int r = env->CallStaticIntMethod(m.clazz(), m.method(), _sampleRate,
+										get_channel_mask(_channels, _channelMask), 2/*ENCODIF_PCM_16BIT*/);
+			return r;
+		}
 
-			// stream.channel_layout
-			_channel_count = stream.channels;
-			_sample_rate = stream.sample_rate;
-			_buffer_size = min_buffer_size();
+		bool init(const Stream &stream) {
+			auto engine = AudioEngine::share();
+			if (!engine) return false;
+
+			_sampleRate = stream.sample_rate;
+			_channels = stream.channels;
+			_channelMask = 0xffffffff & stream.channel_layout;
+			_bufferSize = min_buffer_size();
 
 			SLresult result;
-			SLuint32 channelMask;
 			SLuint32 samplesPerSec;
 
-			switch (channel_count) {
-				case 1: // 1
-					channelMask = SL_SPEAKER_FRONT_CENTER; break;
-				case 2: // 2
-					channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT; break;
-				case 3: // 2.1
-					channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT |
-												SL_SPEAKER_LOW_FREQUENCY; break;
-				case 4: // 4
-					channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT |
-												SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
-				case 5: // 4.1
-					channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_LOW_FREQUENCY |
-												SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
-				case 6: // 5.1
-					channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
-												SL_SPEAKER_LOW_FREQUENCY |
-												SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_LEFT; break;
-				case 7: // 6.1
-					channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
-												SL_SPEAKER_LOW_FREQUENCY |
-												SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT |
-												SL_SPEAKER_BACK_CENTER; break;
-				case 8: // 7.1
-					channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
-												SL_SPEAKER_LOW_FREQUENCY |
-												SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT |
-												SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
-				default: return false;
-			}
-
-			switch (sample_rate) {
+			switch (_sampleRate) {
 				case 8000 : samplesPerSec = SL_SAMPLINGRATE_8; break;
 				case 11025: samplesPerSec = SL_SAMPLINGRATE_11_025; break;
 				case 12000: samplesPerSec = SL_SAMPLINGRATE_12; break;
@@ -199,7 +170,7 @@ namespace qk {
 			SLDataLocator_AndroidSimpleBufferQueue loc_bufq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2 };
 
 			SLDataFormat_PCM format_pcm = { SL_DATAFORMAT_PCM,
-																			channel_count,
+																			_channels,
 																			samplesPerSec,
 																			SL_PCMSAMPLEFORMAT_FIXED_16,
 																			SL_PCMSAMPLEFORMAT_FIXED_16,
@@ -216,36 +187,36 @@ namespace qk {
 			const SLboolean     req[3]  = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
 
 			result = (*engine->engineEngine)->CreateAudioPlayer(engine->engineEngine,
-																													&bqPlayerObject,
+																													&_object,
 																													&audioSrc, &audioSnk, 3, ids, req);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// realize the player
-			result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
+			result = (*_object)->Realize(_object, SL_BOOLEAN_FALSE);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// get the play interface
-			result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
+			result = (*_object)->GetInterface(_object, SL_IID_PLAY, &_play);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// get the buffer queue interface
-			result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
+			result = (*_object)->GetInterface(_object, SL_IID_BUFFERQUEUE, &_bufferQueue);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// get the effect send interface
-			result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_EFFECTSEND, &bqPlayerEffectSend);
+			result = (*_object)->GetInterface(_object, SL_IID_EFFECTSEND, &_effectSend);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// get the volume interface
-			result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
+			result = (*_object)->GetInterface(_object, SL_IID_VOLUME, &_volume);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// get max volume level
-			result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &_max_volume_level);
+			result = (*_volume)->GetMaxVolumeLevel(_volume, &_max_volume_level);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			// set playing status
-			result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
+			result = (*_play)->SetPlayState(_play, SL_PLAYSTATE_PLAYING);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 
 			Qk_DLog("createAudioPlayer finish");
@@ -253,56 +224,45 @@ namespace qk {
 			return true;
 		}
 
-		virtual bool write(const Frame *frame) {
+		bool write(const Frame *frame) override {
 			SLresult result;
-			// ScopeLock scope(_lock);
-			// // input pcm buffer
-			// result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, *buffer, buffer.length());
-			// return result != SL_RESULT_BUFFER_INSUFFICIENT;
-			return true;
+			ScopeLock scope(_lock);
+			// input pcm buffer
+			result = (*_bufferQueue)->Enqueue(_bufferQueue, frame->data[0], frame->linesize[0]);
+			return result != SL_RESULT_BUFFER_INSUFFICIENT;
 		}
 
-		virtual void flush() {
+		void flush() override {
 			SLresult result;
-			// lock
 			ScopeLock scope(_lock);
-			// clear buffer
-			result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
+			result = (*_bufferQueue)->Clear(_bufferQueue);
 			Qk_ASSERT(SL_RESULT_SUCCESS == result);
 		}
 
-		virtual void set_mute(bool value) {
+		void set_mute(bool value) override {
 			SLresult result;
-			result = (*bqPlayerVolume)->SetMute(bqPlayerVolume, value);
-			// return SL_RESULT_SUCCESS == result;
+			result = (*_volume)->SetMute(_volume, value);
 		}
 
-		virtual void set_volume(float value) {
+		void set_volume(float value) override {
 			if ( _max_volume_level ) {
 				SLresult result;
-				result = (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, value / 100 * _max_volume_level);
-				// return SL_RESULT_SUCCESS == result;
+				value = Qk_Min(1.0, value);
+				result = (*_volume)->SetVolumeLevel(_volume, value * _max_volume_level);
 			}
 		}
 
-		virtual float delayed() {
+		float delayed() override {
 			return -1.0;
-		}
-
-		uint32_t min_buffer_size() {
-			JNI::ScopeENV env;
-			JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
-			int r = env->CallStaticIntMethod(m.clazz(), m.method(), _sample_rate,
-																			get_channel_mask(_channel_count), 2/*ENCODIF_PCM_16BIT*/);
-			return r;
 		}
 
 	private:
 		Mutex         _lock;
 		SLint16       _max_volume_level;
-		uint32_t      _sample_rate;
-		uint32_t      _channel_count;
-		uint32_t      _buffer_size;
+		uint32_t      _sampleRate;
+		uint32_t      _channels;
+		SLuint32      _channelMask;
+		uint32_t      _bufferSize;
 
 		// engine interfaces
 		SLObjectItf engineObject;
@@ -312,11 +272,11 @@ namespace qk {
 		SLObjectItf outputMixObject;
 
 		// buffer queue player interfaces
-		SLObjectItf bqPlayerObject;
-		SLPlayItf bqPlayerPlay;
-		SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
-		SLEffectSendItf bqPlayerEffectSend;
-		SLVolumeItf bqPlayerVolume;
+		SLObjectItf _object;
+		SLPlayItf _play;
+		SLAndroidSimpleBufferQueueItf _bufferQueue;
+		SLEffectSendItf _effectSend;
+		SLVolumeItf _volume;
 	};
 
 #endif
@@ -328,7 +288,7 @@ namespace qk {
 	PCMPlayer* PCMPlayer::create(const SStream &stream) {
 #if USE_ANDROID_OPENSLES_PCM_PLAYER
 		Sp<AndroidPCMOpenSLES> player = new AndroidPCMOpenSLES();
-		if ( player->initialize(stream) ) {
+		if ( player->init(stream) ) {
 			return player.collapse();
 		} else {
 			return create_android_audio_track(stream);

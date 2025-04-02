@@ -70,6 +70,7 @@ export enum AudioChannelLayoutMask {
 export interface Stream {
 	type: MediaType;          /* type */
 	mime: string;             /* mime type */
+	language: string;         /* language */
 	codecId: number;          /* codec id */
 	codecTag: number;         /* codec tag */
 	format: number;           /* codec av format output */
@@ -77,15 +78,15 @@ export interface Stream {
 	level: number;            /* level */
 	width: number;            /* video width */
 	height: number;           /* video height */
-	language: string;         /* language */
 	bitrate: number;          /* bit rate */
 	sampleRate: number;       /* audio sample rate */
 	channels: number;         /* audio channel count */
 	channelLayout: number;    /* audio channel layout to enum AudioChannelLayoutMask */
+	duration: number;         /* duration of the stream, in stream time base. */
 	avgFramerate: number[];   /* video frame average framerate */
-	timeBase: number[];       // Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds)
+	timeBase: number[];       /* Unit of pts,dts on Packet,Frame by Numerator/Denominator (seconds) */
 	index: number;            /* stream index in source */
-	hashCode: number;         // key params hash code
+	hashCode: number;         /* key params hash code */
 }
 
 export interface Player {

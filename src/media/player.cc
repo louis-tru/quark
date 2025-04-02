@@ -271,6 +271,7 @@ namespace qk {
 			_seeking = 0;
 		}
 
+		// Writing PCM audio data to audio device
 		if (!_pcm->write(*_fa)) {
 			Qk_DLog("PCM_write fail %ld, %ld", _fa->pts, now - _start);
 		}

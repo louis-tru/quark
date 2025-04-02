@@ -145,7 +145,7 @@ namespace qk {
 
 	MediaCodec* MediaCodec::create(MediaType type, MediaSource* source) {
 		Extractor* ex = source->extractor(type);
-		MediaCodec* rv = MediaCodec_hardware(type, ex);
+		MediaCodec* rv = nullptr;//MediaCodec_hardware(type, ex);
 		if ( !rv ) {
 			rv = MediaCodec_software(type, ex);
 		}
