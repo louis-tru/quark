@@ -234,8 +234,11 @@ function configure_ffmpeg(opts, {variables}, clang, ff_install_dir) {
 		var cc = variables.cc;
 		var cflags = '';
 		var cflags = `-ffunction-sections -fdata-sections `;
-		if ( !clang ) { // use gcc 
+		if ( !clang ) { // use gcc
 			cflags += '-funswitch-loops ';
+		} else if (arch == 'arm') { // clang and arm
+			// cflags += '-mllvm -arm-assume-gnu ';
+			cflags += '-no-integrated-as ';
 		}
 		cmd += `--cc='${cc} ${cflags} -march=${arch_name}' `;
 		cmd += `--strip=${variables.strip} `;

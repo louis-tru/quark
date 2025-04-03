@@ -261,7 +261,7 @@ namespace qk {
 				// awin->render()->surface()->renderDisplay(); // redrawing
 			}
 
-			auto ori = (Orientation)Android::get_orientation();
+			auto ori = (Orientation)Android_get_orientation();
 			if ((ori != swm->_currentOrientation)) {
 				swm->_currentOrientation = ori;
 				swm->_host->triggerOrientation();
@@ -395,7 +395,7 @@ namespace qk {
 	}
 
 	float Window::getDefaultScale() {
-		float defaultScale = Android::get_display_scale();
+		float defaultScale = Android_get_display_scale();
 		return defaultScale;
 	}
 
@@ -420,7 +420,7 @@ namespace qk {
 	}
 
 	void Window::setFullscreen(bool fullscreen) {
-		Android::set_fullscreen(fullscreen);
+		Android_set_fullscreen(fullscreen);
 	}
 
 	void Window::setCursorStyle(CursorStyle cursor, bool low) {
@@ -437,6 +437,7 @@ extern "C" {
 	Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
 																					void* savedState, size_t savedStateSize)
 	{
+		Qk_DLog("----ANativeActivity_onCreate----");
 		qk::SharedWindowManager::onCreate(activity, savedState, savedStateSize);
 	}
 }

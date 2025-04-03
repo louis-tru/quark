@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package cool.quark.test;
+package org.quark.test;
 
 import android.os.Bundle;
 import android.util.Log;
-
 import org.quark.Activity;
 
 public class MainActivity extends Activity {
 
 	static {
 		System.loadLibrary("quark");
+		Log.d("Test", "load quark.so ok");
 	}
 
 	@Override
@@ -47,9 +47,9 @@ public class MainActivity extends Activity {
 	}
 
 	protected String startCommand() {
-		//return "quark --inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
-		//return "quark --inspect-brk=0.0.0.0:9229 examples";
-		return "quark examples";
+		//return "--inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
+		//return "--inspect-brk=0.0.0.0:9229 examples";
+		return "examples";
 	}
 
 }

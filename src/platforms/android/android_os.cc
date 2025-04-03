@@ -34,43 +34,43 @@
 namespace qk {
 
 	String os_version() {
-		return Android::version();
+		return Android_version();
 	}
 
 	String os_brand() {
-		return Android::brand();
+		return Android_brand();
 	}
 
 	String os_model() {
-		return Android::model();
+		return Android_model();
 	}
 
 	int os_network_interface() {
-		return Android::network_status();
+		return Android_network_status();
 	}
 
 	bool os_is_ac_power() {
-		return Android::is_ac_power();
+		return Android_is_ac_power();
 	}
 
 	bool os_is_battery() {
-		return Android::is_battery();
+		return Android_is_battery();
 	}
 
 	float os_battery_level() {
-		return Android::battery_level();
+		return Android_battery_level();
 	}
 
 	uint64_t os_memory() {
-		return Android::memory();
+		return Android_memory();
 	}
 
 	uint64_t os_used_memory() {
-		return Android::used_memory();
+		return Android_used_memory();
 	}
 
 	uint64_t os_available_memory() {
-		return Android::available_memory();
+		return Android_available_memory();
 	}
 
 }

@@ -38,33 +38,33 @@ namespace qk
 	// ***************** A p p l i c a t i o n *****************
 
 	void Application::openURL(cString& url) {
-		Android::open_url(url);
+		Android_open_url(url);
 	}
 
 	void Application::sendEmail(cString& recipient, cString& subject, cString& cc, cString& bcc, cString& body) {
-		Android::send_email(recipient, subject, cc, bcc, body);
+		Android_send_email(recipient, subject, cc, bcc, body);
 	}
 
 	// ***************** E v e n t . D i s p a t c h *****************
 
 	void EventDispatch::setVolumeUp() {
-		Android::set_volume_up();
+		Android_set_volume_up();
 	}
 
 	void EventDispatch::setVolumeDown() {
-		Android::set_volume_down();
+		Android_set_volume_down();
 	}
 
 	void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_delete) {
-		Android::ime_keyboard_can_backspace(can_backspace, can_delete);
+		Android_ime_keyboard_can_backspace(can_backspace, can_delete);
 	}
 
 	void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
-		Android::ime_keyboard_open(options.clear, int(options.type), int(options.return_type));
+		Android_ime_keyboard_open(options.clear, int(options.type), int(options.return_type));
 	}
 
 	void EventDispatch::setImeKeyboardClose() {
-		Android::ime_keyboard_close();
+		Android_ime_keyboard_close();
 	}
 
 	void EventDispatch::setImeKeyboardSpotRect(Rect rect) {

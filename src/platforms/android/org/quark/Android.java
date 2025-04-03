@@ -51,7 +51,7 @@ public class Android {
 	private static int battery_status = BatteryManager.BATTERY_STATUS_UNKNOWN;
 	private static boolean is_ac_power_connected = false;
 	private static Activity.PrivateAPI api = null;
-	private static native void initPaths(String package, String files_dir, String cache_dir);
+	private static native void initPaths(String pkg, String files_dir, String cache_dir);
 
 	private static BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
@@ -72,7 +72,7 @@ public class Android {
 	public static void initialize(Activity act, Activity.PrivateAPI api) {
 		if ( !act.equals(activity) ) {
 			activity = act;
-			API.api = api;
+			Android.api = api;
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));

@@ -29,8 +29,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark_platforms_android__android__
-#define __quark_platforms_android__android__
+#ifndef __quark__platforms__android__android__
+#define __quark__platforms__android__android__
 
 #include "../../util/macros.h"
 #if Qk_ANDROID
@@ -38,44 +38,40 @@
 #include "../../util/jni.h"
 
 namespace qk {
-
-	class Android {
-	public:
-		static void ime_keyboard_open(bool clear, int type, int return_type);
-		static void ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
-		static void ime_keyboard_close();
-		static void prevent_screen_sleep(bool prevent);
-		static int  get_status_bar_height();
-		static void set_visible_status_bar(bool visible);
-		static void set_status_bar_style(int style);
-		static void set_fullscreen(bool fullscreen);
-		static int  get_orientation();
-		static void set_orientation(int orientation);
-		static float get_display_scale();
-		static bool is_screen_on();
-		static void set_volume_up();
-		static void set_volume_down();
-		static void open_url(cString& url);
-		static void send_email(cString& recipient,
-			cString& subject, cString& cc, cString& bcc, cString& body);
-		static String start_cmd();
-		static String version();
-		static String brand();
-		static String model();
-		static int    network_status();
-		static bool   is_ac_power();
-		static bool   is_battery();
-		static float  battery_level();
-		static String language();
-		static uint64_t available_memory();
-		static uint64_t memory();
-		static uint64_t used_memory();
-	};
+	void Android_ime_keyboard_open(bool clear, int type, int return_type);
+	void Android_ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
+	void Android_ime_keyboard_close();
+	void Android_prevent_screen_sleep(bool prevent);
+	int  Android_get_status_bar_height();
+	void Android_set_visible_status_bar(bool visible);
+	void Android_set_status_bar_style(int style);
+	void Android_set_fullscreen(bool fullscreen);
+	int  Android_get_orientation();
+	void Android_set_orientation(int orientation);
+	float Android_get_display_scale();
+	bool Android_is_screen_on();
+	void Android_set_volume_up();
+	void Android_set_volume_down();
+	void Android_open_url(cString& url);
+	void Android_send_email(cString& recipient,
+		cString& subject, cString& cc, cString& bcc, cString& body);
+	String Android_start_cmd();
+	String Android_version();
+	String Android_brand();
+	String Android_model();
+	int    Android_network_status();
+	bool   Android_is_ac_power();
+	bool   Android_is_battery();
+	float  Android_battery_level();
+	String Android_language();
+	uint64_t Android_available_memory();
+	uint64_t Android_memory();
+	uint64_t Android_used_memory();
 }
 
 extern "C" {
 	Qk_EXPORT void Java_org_quark_Android_initPaths(JNIEnv* env,
-		jclass clazz, jstring package, jstring files_dir, jstring cache_dir);
+		jclass clazz, jstring pkg, jstring files_dir, jstring cache_dir);
 }
 
 #endif

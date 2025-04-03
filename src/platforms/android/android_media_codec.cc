@@ -154,14 +154,13 @@ namespace qk {
 #define _TEST_get_sample_data(out, size, sample_size) (void*)(0)
 #endif
 
-	// @func init_ffmpeg_jni
 	static void init_ffmpeg_jni() {
 #if USE_FFMPEG_MEDIACODEC
 		static bool has_init = false;
 		if (!has_init) {
 			has_init = true;
-			if ( fx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
-				Qk_ELog("x_jni_set_java_vm(), unsuccessful." );
+			if ( av_jni_set_java_vm(JNI::jvm(), nullptr) != 0 ) {
+				Qk_ELog("av_jni_set_java_vm(), unsuccessful." );
 			}
 		}
 #endif
@@ -276,18 +275,17 @@ namespace qk {
 
 		void close() override {
 			if ( _isOpen ) {
-				Qk_ASSERT_EQ(AMediaCodec_flush(_codec.get()), 0);
+				flush();
 				Qk_ASSERT_EQ(AMediaCodec_stop(_codec.get()), 0);
 				_isOpen = false;
-				_need_keyframe = true;
-				Releasep(_packet);
 			}
 		}
 
 		void flush() override {
 			if (_isOpen) {
 				Qk_ASSERT_EQ(AMediaCodec_flush(_codec.get()), 0);
-				_need_keyframe = true;
+				if (_stream.type == kVideo_MediaType)
+					_need_keyframe = true;
 				Releasep(_packet);
 			}
 		}

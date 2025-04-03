@@ -36,33 +36,33 @@
 namespace qk {
 
 	float Screen::main_screen_scale() {
-		float scale = Android::get_display_scale();
+		float scale = Android_get_display_scale();
 		return scale;
 	}
 
 	void Screen::prevent_screen_sleep(bool prevent) {
-		Android::prevent_screen_sleep(prevent);
+		Android_prevent_screen_sleep(prevent);
 	}
 
 	float Screen::status_bar_height() const {
-		auto height = Android::get_status_bar_height();
+		auto height = Android_get_status_bar_height();
 		return height / _host->activeWindow()->scale();
 	}
 
 	void Screen::set_visible_status_bar(bool visible) {
-		Android::set_visible_status_bar(visible);
+		Android_set_visible_status_bar(visible);
 	}
 
 	void Screen::set_status_bar_style(StatusBarStyle style) {
-		Android::set_status_bar_style(style);
+		Android_set_status_bar_style(style);
 	}
 
 	Screen::Orientation Screen::orientation() const {
-		return (Orientation)Android::get_orientation();
+		return (Orientation)Android_get_orientation();
 	}
 
 	void Screen::set_orientation(Orientation orientation) {
-		Android::set_orientation(int(orientation));
+		Android_set_orientation(int(orientation));
 	}
 
 }

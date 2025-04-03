@@ -89,7 +89,7 @@ namespace qk {
 #if Qk_iOS
 				os_get_languages_mac(langs->langs);
 #elif Qk_ANDROID
-				langs->langs.push(Android::language());
+				langs->langs.push(Android_language());
 #elif Qk_LINUX
 				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 				if ( lang ) {

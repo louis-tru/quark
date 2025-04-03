@@ -674,7 +674,7 @@ namespace js {
 			String start;
 
 #if Qk_ANDROID
-			start = JNI::jvm() ? Android::start_cmd(): String();
+			start = JNI::jvm() ? Android_start_cmd(): String();
 			if (start.isEmpty())
 #endif
 			{

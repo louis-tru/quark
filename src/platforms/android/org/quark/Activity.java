@@ -158,9 +158,9 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 
 	static public class PrivateAPI {
 
-		private QuarkActivity host = null;
+		private Activity host = null;
 
-		private PrivateAPI(QuarkActivity host) {
+		private PrivateAPI(Activity host) {
 			this.host = host;
 		}
 

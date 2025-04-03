@@ -220,8 +220,8 @@
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 					'-pthread',
 					'-rdynamic',
-					# '-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
-					'-stdlib=libc++', # use libc++, clang default use libc++_shared, clang flag
+					'-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
+					# '-stdlib=libc++', # use libc++, clang default use libc++_shared, clang flag
 				],
 				'defines': [
 					'_GLIBCXX_USE_C99',

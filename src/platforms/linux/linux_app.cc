@@ -210,7 +210,7 @@ namespace qk
 			auto dispatch = impl->win()->dispatch();
 
 			List<TouchEvent::TouchPoint> touchs = {{
-				xev->detail,
+				uint32_t(xev->detail),
 				0, 0,
 				float(xev->event_x) / impl->win()->scale(),
 				float(xev->event_y) / impl->win()->scale(),
