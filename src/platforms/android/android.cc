@@ -65,10 +65,10 @@ namespace qk {
 			available_memory,
 			memory,
 			used_memory;
-		Api_INL() {
+		Api_INL(jclass clazz) {
 			ScopeENV env;
-			clazz              = JNI::find_clazz("org/quark/Android");
-			//clazz_build      = JNI::find_clazz("android.os.Build");
+			// clazz              = JNI::find_clazz("org/quark/Android");
+			// clazz_build      = JNI::find_clazz("android.os.Build");
 			version            = JNI::find_static_method(clazz, "version", "()Ljava/lang/String;");
 			brand              = JNI::find_static_method(clazz, "brand", "()Ljava/lang/String;");
 			model              = JNI::find_static_method(clazz, "model", "()Ljava/lang/String;");
@@ -100,7 +100,7 @@ namespace qk {
 			available_memory   = JNI::find_static_method(clazz, "available_memory", "()J");
 			memory             = JNI::find_static_method(clazz, "memory", "()J");
 			used_memory        = JNI::find_static_method(clazz, "used_memory", "()J");
-			clazz              = (jclass)env->NewGlobalRef(clazz);
+			this->clazz        = (jclass)env->NewGlobalRef(clazz);
 			//clazz_build      = (jclass)env->NewGlobalRef(clazzbuild);
 		}
 
@@ -111,16 +111,10 @@ namespace qk {
 		}
 	};
 
-	static Api_INL* __inl = nullptr;
+	static Api_INL* _api = nullptr;
 
-	Api_INL* _inl() {
-		if ( !__inl )
-			__inl = new Api_INL();
-		return __inl;
-	}
-
-	#define api _inl()
-	#define clazz _inl()->clazz
+	#define api _api
+	#define clazz _api->clazz
 
 	void Android_ime_keyboard_open(bool clear, int type, int return_type) {
 		ScopeENV env;
@@ -245,5 +239,17 @@ namespace qk {
 	uint64_t Android_used_memory() {
 		ScopeENV env;
 		return env->CallStaticLongMethod(clazz, api->used_memory);
+	}
+
+	void Android_fs_init_paths(jstring pkg, jstring files_dir, jstring cache_dir);
+}
+
+extern "C" {
+	void Java_org_quark_Android_initNative(JNIEnv* env, jclass cls,
+		jstring pkg, jstring files_dir, jstring cache_dir)
+	{
+		if (!qk::_api)
+			qk::_api = new qk::Api_INL(cls);
+		qk::Android_fs_init_paths(pkg, files_dir, cache_dir);
 	}
 }

@@ -180,9 +180,7 @@
 					'deps/libuv/libuv.gyp:libuv',
 					'deps/libwebp/libwebp.gyp:libwebp',
 					'deps/openssl/openssl.gyp:openssl',
-					# deps/rapidjson
 					'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
-					# 'tools/v8_gypfiles/v8.gyp:v8_maybe_snapshot',
 					'deps/zlib/minizip.gyp:minizip',
 				],
 				'sources': [
@@ -198,6 +196,12 @@
 					'<(output)/obj.target/ffmpeg/libffmpeg.a',
 					'-Wl,--no-whole-archive',
 				],
+				'conditions': [['use_js==1', {
+					'dependencies': [
+						'tools/v8_gypfiles/v8.gyp:v8_maybe_snapshot',
+						'tools/v8_gypfiles/v8.gyp:v8_libplatform',
+					],
+				}]],
 			},
 			{
 				'target_name': 'quark_deps_copy',

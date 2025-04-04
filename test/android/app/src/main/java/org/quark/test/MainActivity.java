@@ -37,13 +37,18 @@ import org.quark.Activity;
 public class MainActivity extends Activity {
 
 	static {
+		try {
+			Class.forName("org.quark.Android");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 		System.loadLibrary("quark");
 		Log.d("Test", "load quark.so ok");
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-	 super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
 	}
 
 	protected String startCommand() {

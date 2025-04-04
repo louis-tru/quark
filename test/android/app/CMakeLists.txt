@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 project("quark")
 
+include_directories(../../..)
 include_directories(../../../out)
 include_directories(../../../deps/bptree/include)
 include_directories(../../../deps/ffmpeg)
@@ -172,118 +173,102 @@ add_library(quark SHARED
 	../../../src/ui/view/button.cc
 	../../../src/ui/view/view.cc
 	../../../src/ui/view/matrix.cc
+	../../../src/ui/view/video.cc
+	# js
+	../../../src/js/cb.cc
+	../../../src/js/init.cc
+	../../../src/js/js.cc
+	../../../src/js/cls.cc
+	../../../src/js/mix.cc
+	../../../src/js/api/action.cc
+	../../../src/js/api/box.cc
+	../../../src/js/api/buffer.cc
+	../../../src/js/api/css.cc
+	../../../src/js/api/event.cc
+	../../../src/js/api/font.cc
+	../../../src/js/api/filter.cc
+	../../../src/js/api/fs.cc
+	../../../src/js/api/http.cc
+	../../../src/js/api/os.cc
+	../../../src/js/api/player.cc
+	../../../src/js/api/screen.cc
+	../../../src/js/api/scroll.cc
+	../../../src/js/api/storage.cc
+	../../../src/js/api/text.cc
+	../../../src/js/api/matrix.cc
+	../../../src/js/api/types.cc
+	../../../src/js/api/ui.cc
+	../../../src/js/api/view.cc
+	../../../src/js/api/window.cc
+	../../../src/js/v8/inspector_agent.cc
+	../../../src/js/v8/inspector_io.cc
+	../../../src/js/v8/inspector_socket_server.cc
+	../../../src/js/v8/inspector_socket.cc
+	../../../src/js/v8/v8js.cc
+	../../../src/js/v8/v8cls.cc
+	../../../out/native-inl-js.cc
+	../../../out/native-lib-js.cc
 )
 
-# add_library(quark-js SHARED
-# 	../../../out/native-inl-js.cc
-# 	../../../out/native-lib-js.cc
-# 	../../../out/native-ext-js.cc
-# 	../../../quark-js/js-cls.cc
-# 	../../../quark-js/js.cc
-# 	../../../quark-js/quarks.cc
-# 	../../../quark-js/str.cc
-# 	../../../quark-js/v8.cc
-# 	../../../quark-js/wrap.cc
-# 	../../../quark-js/node.cc
-# 	# binding quark-util
-# 	../../../quark-js/binding/cb.cc
-# 	../../../quark-js/binding/fs.cc
-# 	../../../quark-js/binding/fs-reader.cc
-# 	../../../quark-js/binding/fs-path.cc
-# 	../../../quark-js/binding/http.cc
-# 	../../../quark-js/binding/util.cc
-# 	../../../quark-js/binding/storage.cc
-# 	../../../quark-js/binding/json.cc
-# 	../../../quark-js/binding/event.cc
-# 	../../../quark-js/binding/sys.cc
-# 	../../../quark-js/binding/event.cc
-# 	../../../quark-js/binding/timer.cc
-# 	../../../quark-js/binding/console.cc
-# 	../../../quark-js/binding/buffer.cc
-# 	# binding quark-gui
-# 	../../../quark-js/binding/value.cc
-# 	../../../quark-js/binding/binding.cc
-# 	../../../quark-js/binding/action.cc
-# 	../../../quark-js/binding/action-frame.cc
-# 	../../../quark-js/binding/app.cc
-# 	../../../quark-js/binding/audio-player.cc
-# 	../../../quark-js/binding/video.cc
-# 	../../../quark-js/binding/media.cc
-# 	../../../quark-js/binding/div.cc
-# 	../../../quark-js/binding/display-port.cc
-# 	../../../quark-js/binding/indep.cc
-# 	../../../quark-js/binding/image.cc
-# 	../../../quark-js/binding/layout.cc
-# 	../../../quark-js/binding/box.cc
-# 	../../../quark-js/binding/view.cc
-# 	../../../quark-js/binding/root.cc
-# 	../../../quark-js/binding/span.cc
-# 	../../../quark-js/binding/sprite.cc
-# 	../../../quark-js/binding/hybrid.cc
-# 	../../../quark-js/binding/text-font.cc
-# 	../../../quark-js/binding/text-node.cc
-# 	../../../quark-js/binding/label.cc
-# 	../../../quark-js/binding/limit.cc
-# 	../../../quark-js/binding/panel.cc
-# 	../../../quark-js/binding/button.cc
-# 	../../../quark-js/binding/scroll.cc
-# 	../../../quark-js/binding/css.cc
-# 	../../../quark-js/binding/font.cc
-# 	../../../quark-js/binding/text.cc
-# 	../../../quark-js/binding/input.cc
-# 	../../../quark-js/binding/background.cc
-# )
+add_library(quark_trial SHARED
+	../../../trial/fs-search.cc
+	../../../trial/jsx.cc
+)
 
-# add_library(quark-trial SHARED
-# 	../../../trial/fs-search.cc
-# 	../../../trial/jsx.cc
-# )
-
-# add_library(quark-test SHARED
-# 	../../../test/test.cc
-# 	#../../../test/test-quarks.cc
-# 	../../../test/test-fs.cc
-# 	../../../test/test-fs2.cc
-# 	../../../test/test-gui.cc
-# 	../../../test/test-freetype.cc
-# 	../../../test/test-json.cc
-# 	../../../test/test-string.cc
-# 	../../../test/test-list.cc
-# 	../../../test/test-map.cc
-# 	../../../test/test-event.cc
-# 	../../../test/test-zlib.cc
-# 	../../../test/test-http.cc
-# 	../../../test/test-http2.cc
-# 	../../../test/test-http3.cc
-# 	../../../test/test-https.cc
-# 	../../../test/test-thread.cc
-# 	../../../test/test-ffmpeg.cc
-# 	../../../test/test-number.cc
-# 	../../../test/test-uv.cc
-# 	../../../test/test-net.cc
-# 	../../../test/test-fs-async.cc
-# 	../../../test/test-ssl.cc
-# 	../../../test/test-net-ssl.cc
-# 	../../../test/test-http-cookie.cc
-# 	../../../test/test-localstorage.cc
-# 	../../../test/test-buffer.cc
-# 	../../../test/test-demo.cc
-# 	../../../test/test-jsc.cc
-# 	../../../test/test-v8.cc
-# 	../../../test/test-loop.cc
-# 	../../../test/test-sys.cc
-# 	../../../test/test-mutex.cc
-# 	../../../test/test-ios-run-loop.cc
-# 	../../../test/test-benchmark.cc
-# 	../../../test/test-sizeof.cc
-# 	../../../test/test-util.cc
-# 	../../../test/test-alsa-ff.cc
-# 	../../../test/test-linux-input.cc
-# 	../../../test/test-linux-input-2.cc
-# )
+add_library(quark_test SHARED
+	../../util/test-event.cc
+	../../util/test-fs-async.cc
+	../../util/test-fs.cc
+	../../util/test-fs2.cc
+	../../util/test-buffer.cc
+	../../util/test-http-cookie.cc
+	../../util/test-http.cc
+	../../util/test-http2.cc
+	../../util/test-http3.cc
+	../../util/test-https.cc
+	../../util/test-ios-run-loop.cc
+	../../util/test-json.cc
+	../../util/test-list.cc
+	../../util/test-localstorage.cc
+	../../util/test-loop.cc
+	../../util/test-map.cc
+	../../util/test-mutex.cc
+	../../util/test-net-ssl.cc
+	../../util/test-net.cc
+	../../util/test-number.cc
+	../../util/test-os-info.cc
+	../../util/test-sizeof.cc
+	../../util/test-ssl.cc
+	../../util/test-string.cc
+	../../util/test-thread.cc
+	../../util/test-util.cc
+	../../util/test-uv.cc
+	../../util/test-zlib.cc
+	../../util/test-atomic.cc
+	../../test-freetype.cc
+	../../test-gui.cc
+	../../test-alsa-ff.cc
+	../../test-ffmpeg.cc
+	../../test-media.cc
+	../../test-layout.cc
+	../../test-canvas.cc
+	../../test-rrect.cc
+	../../test-draw-efficiency.cc
+	../../test-blur.cc
+	../../test-subcanvas.cc
+	../../test-outimg.cc
+	../../test-linux-input.cc
+	../../test-css.cc
+	../../test-action.cc
+	../../test-openurl.cc
+	../../test-input.cc
+	../../test-jsx.cc
+	../../test-v8.cc
+	../../test-jsc.cc
+	../../test-jsapi.cc
+	../../test.cc
+)
 
 target_link_libraries(quark       atomic z android log OpenSLES GLESv3 EGL mediandk quark_deps_test)
-# target_link_libraries(quark-media quark OpenSLES GLESv3 EGL mediandk quark-depes-test)
-# target_link_libraries(quark-js    quark quark-depes-test)
-# target_link_libraries(quark-trial quark quark-depes-test)
-# target_link_libraries(quark-test  quark quark-js quark-trial quark-depes-test)
+target_link_libraries(quark_trial quark quark_deps_test)
+target_link_libraries(quark_test  quark quark_trial quark_deps_test)

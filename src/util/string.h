@@ -58,7 +58,7 @@ namespace qk {
 			uint32_t capacity, length, flag;
 			std::atomic_int ref;
 		};
-		struct Short { char val[36]; char length; };
+		struct Short { char val[36]; int8_t length; };
 	protected:
 		StringBase();
 		StringBase(const StringBase& str);

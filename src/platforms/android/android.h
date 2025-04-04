@@ -69,10 +69,5 @@ namespace qk {
 	uint64_t Android_used_memory();
 }
 
-extern "C" {
-	Qk_EXPORT void Java_org_quark_Android_initPaths(JNIEnv* env,
-		jclass clazz, jstring pkg, jstring files_dir, jstring cache_dir);
-}
-
 #endif
 #endif

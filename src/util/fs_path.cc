@@ -43,6 +43,10 @@
 #include <limits.h>
 #endif
 
+#if Qk_ANDROID
+#include "../platforms/android/android.h"
+#endif
+
 namespace qk {
 
 	static String fs_split_path(cString& path, bool basename) {
@@ -361,15 +365,9 @@ namespace qk {
 		return child.isEmpty() ? path_resources: fs_format("%s/%s", *path_resources, *child);
 	}
 #endif
-}
 
 #if Qk_ANDROID
-#include "../platforms/android/android.h"
-
-extern "C" {
-
-	void Java_org_quark_Android_initPaths(JNIEnv* env, jclass clazz, jstring pkg, jstring files_dir, jstring cache_dir) {
-		using namespace qk;
+	void Android_fs_init_paths(jstring pkg, jstring files_dir, jstring cache_dir) {
 		path_documents = JNI::jstring_to_string(files_dir);
 		path_home_dir = fs_format("%s/..", path_documents.c_str());
 		path_temp = JNI::jstring_to_string(cache_dir);
@@ -378,5 +376,5 @@ extern "C" {
 		readlink("/proc/self/exe", dir, PATH_MAX);
 		path_executable = fs_format("%s", dir);
 	}
-}
 #endif
+}

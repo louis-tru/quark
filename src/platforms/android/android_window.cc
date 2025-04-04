@@ -437,7 +437,6 @@ extern "C" {
 	Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
 																					void* savedState, size_t savedStateSize)
 	{
-		Qk_DLog("----ANativeActivity_onCreate----");
 		qk::SharedWindowManager::onCreate(activity, savedState, savedStateSize);
 	}
 }

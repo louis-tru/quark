@@ -528,8 +528,9 @@ namespace js {
 		static String argv_s;
 		argv_s = fs_executable();
 		Array<uint32_t> argv_idx{argv_s.length()};
+		ArrayString args = cmd.split(' ');
 
-		for (auto& arg : cmd.split(' ').concat(argv_in)) {
+		for (auto& arg: args.concat(argv_in)) {
 			if (!arg.isEmpty()) {
 				argv_s.append(' ');
 				argv_s.append(arg);

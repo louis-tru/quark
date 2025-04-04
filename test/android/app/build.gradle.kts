@@ -19,7 +19,12 @@ android {
 		externalNativeBuild {
 			cmake {
 				cppFlags += "-std=c++14"
-				abiFilters += "arm64-v8a" //, 'x86', 'x86_64'//, 'arm64-v8a', 'armeabi-v7a'
+				abiFilters += setOf(
+					//"armeabi-v7a",
+					"arm64-v8a",
+					//"x86",
+					//"x86_64",
+				)
 				//arguments += "-DANDROID_TOOLCHAIN=gcc"
 				//arguments += "-DCMAKE_BUILD_TYPE=Debug"
 			}
@@ -57,6 +62,9 @@ android {
 			jniLibs.srcDirs(
 				"src/main/jniLibs",
 				"../../../out/jniLibs",
+			)
+			assets.srcDirs(
+				"../../jsapi/out",
 			)
 		}
 	}

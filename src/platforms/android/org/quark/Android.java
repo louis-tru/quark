@@ -51,7 +51,7 @@ public class Android {
 	private static int battery_status = BatteryManager.BATTERY_STATUS_UNKNOWN;
 	private static boolean is_ac_power_connected = false;
 	private static Activity.PrivateAPI api = null;
-	private static native void initPaths(String pkg, String files_dir, String cache_dir);
+	private static native void initNative(String pkg, String files_dir, String cache_dir);
 
 	private static BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
@@ -76,7 +76,7 @@ public class Android {
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
 			activity.registerReceiver(receiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
-			initPaths(package_code_path(), files_dir_path(), cache_dir_path());
+			initNative(package_code_path(), files_dir_path(), cache_dir_path());
 		}
 	}
 
@@ -212,7 +212,7 @@ public class Android {
 		return activity.startCommand();
 	}
 	
-	private static String version() {
+	public static String version() {
 		return Build.VERSION.RELEASE;
 	}
 
