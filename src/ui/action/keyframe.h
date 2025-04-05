@@ -81,7 +81,7 @@ namespace qk {
 		/**
 		* @method length
 		*/
-		inline uint32_t length() const {
+		inline int length() const {
 			return _frames.length();
 		}
 

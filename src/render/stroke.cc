@@ -92,7 +92,7 @@ namespace qk {
 		auto verbs = right.verbs();
 		auto pts = right.pts() + right.ptsLen() - 1;
 
-		for (int i = right.verbsLen() - 1; i >= 0; i--) {
+		for (int i = Qk_Minus(right.verbsLen(), 1); i >= 0; i--) {
 			if (verbs[i] == Path::kVerb_Cubic) {
 				left.lineTo(*pts); pts--;
 				do {

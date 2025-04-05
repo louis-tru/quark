@@ -305,10 +305,10 @@ namespace qk {
 	String JSON::to_string()   const {
 		return String(reinterpret_cast<CRValue*>(this)->GetString(), string_length());
 	}
-	uint32_t JSON::to_uint32()       const { return reinterpret_cast<CRValue*>(this)->GetUint(); }
-	uint64_t JSON::to_uint64()   const { return reinterpret_cast<CRValue*>(this)->GetUint64(); }
-	uint32_t JSON::string_length() const { return reinterpret_cast<CRValue*>(this)->GetStringLength(); }
-	uint32_t JSON::length()        const { return reinterpret_cast<CRValue*>(this)->Size(); }
+	uint32_t JSON::to_uint32() const { return reinterpret_cast<CRValue*>(this)->GetUint(); }
+	uint64_t JSON::to_uint64() const { return reinterpret_cast<CRValue*>(this)->GetUint64(); }
+	int JSON::string_length() const { return reinterpret_cast<CRValue*>(this)->GetStringLength(); }
+	int JSON::length() const { return reinterpret_cast<CRValue*>(this)->Size(); }
 
 	void JSON::clear() {
 		if (is_array()) {

@@ -31,8 +31,8 @@
 #ifndef __quark__os__os__
 #define __quark__os__os__
 
-#include <quark/util/util.h>
-#include <quark/util/array.h>
+#include <src/util/util.h>
+#include <src/util/array.h>
 
 namespace qk {
 	Qk_EXPORT String os_version();

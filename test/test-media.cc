@@ -28,18 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/util.h>
-#include <quark/util/fs.h>
-#include <quark/media/media.h>
-#include <quark/media/pcm_player.h>
-#include <quark/ui/app.h>
-#include <quark/ui/window.h>
-#include <quark/ui/view/root.h>
-#include <quark/ui/view/image.h>
-#include <quark/ui/view/video.h>
-#include <quark/ui/view/free.h>
-#include <quark/render/render.h>
-#include <quark/render/canvas.h>
+#include <src/util/util.h>
+#include <src/util/fs.h>
+#include <src/media/media.h>
+#include <src/media/pcm_player.h>
+#include <src/ui/app.h>
+#include <src/ui/window.h>
+#include <src/ui/view/root.h>
+#include <src/ui/view/image.h>
+#include <src/ui/view/video.h>
+#include <src/ui/view/free.h>
+#include <src/render/render.h>
+#include <src/render/canvas.h>
 
 using namespace qk;
 

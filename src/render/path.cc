@@ -1011,7 +1011,7 @@ namespace qk {
 				if (border[2] < 0.1 && !isRadiusZeroR) // fix aa sdf stroke error
 					path.moveTo(path2.back());
 
-				for (int i = path2.length() - 1; i >= 0; i--)
+				for (int i = Qk_Minus(path2.length(), 1); i >= 0; i--)
 					path.lineTo(path2[i]);
 
 				if (border[0] > 0.1 || isRadiusZeroL) // fix aa sdf stroke error

@@ -78,7 +78,7 @@ namespace qk {
 	void TextLines::push(TextOptions *opts) {
 		finish_line();
 
-		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, _lines.length() });
+		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, uint32_t(_lines.length()) });
 		_last = &_lines.back();
 		_pre_width = 0;
 		_preView.push(Array<View*>());

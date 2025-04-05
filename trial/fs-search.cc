@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "trial/fs.h"
-#include "quark/util/zlib.h"
-#include "quark/util/handle.h"
-#include "quark/util/error.h"
+#include "src/util/zlib.h"
+#include "src/util/handle.h"
+#include "src/util/error.h"
 
 namespace qk {
 

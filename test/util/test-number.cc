@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/util.h>
-#include <quark/util/loop.h>
-#include <quark/util/array.h>
-#include <quark/os/os.h>
+#include <src/util/util.h>
+#include <src/util/loop.h>
+#include <src/util/array.h>
+#include <src/os/os.h>
 
 using namespace qk;
 

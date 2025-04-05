@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/util.h>
-#include <quark/util/http.h>
-#include <quark/util/string.h>
-#include <quark/util/fs.h>
+#include <src/util/util.h>
+#include <src/util/http.h>
+#include <src/util/string.h>
+#include <src/util/fs.h>
 
 using namespace qk;
 

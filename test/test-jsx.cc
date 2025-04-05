@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/util/fs.h"
-#include "quark/util/codec.h"
+#include "src/util/fs.h"
+#include "src/util/codec.h"
 #include "trial/jsx.h"
 
 using namespace qk;

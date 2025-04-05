@@ -1,7 +1,7 @@
 
 #include <iostream>
-#include "quark/util/dict.h"
-#include "quark/util/string.h"
+#include "src/util/dict.h"
+#include "src/util/string.h"
 
 using namespace qk;
 

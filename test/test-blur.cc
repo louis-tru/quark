@@ -3,12 +3,12 @@
 // https://madebyevan.com/shaders/fast-rounded-rectangle-shadows/
 // https://www.shadertoy.com/view/DsdfDN
 
-#include <quark/ui/app.h>
-#include <quark/ui/window.h>
-#include <quark/ui/screen.h>
-#include <quark/ui/view/root.h>
-#include <quark/render/render.h>
-#include <quark/render/canvas.h>
+#include <src/ui/app.h>
+#include <src/ui/window.h>
+#include <src/ui/screen.h>
+#include <src/ui/view/root.h>
+#include <src/render/render.h>
+#include <src/render/canvas.h>
 
 using namespace qk;
 

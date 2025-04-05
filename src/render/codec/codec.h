@@ -31,8 +31,8 @@
 #ifndef __quark__render__codec__codec__
 #define __quark__render__codec__codec__
 
-#include "quark/util/handle.h"
-#include "quark/util/array.h"
+#include "../../util/handle.h"
+#include "../../util/array.h"
 #include "../pixel.h"
 
 namespace qk {

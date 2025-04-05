@@ -31,14 +31,14 @@
 #if !defined(USE_JS)
 void test_jsapi(int argc, char **argv) {}
 #else
-#include "quark/js/js.h"
-#include "quark/util/fs.h"
+#include "src/js/js.h"
+#include "src/util/fs.h"
 
 using namespace qk;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
-#define USE_INSPECT 0
+#define USE_INSPECT 1
 
 void test_jsapi(int argc, char **_) {
 	Array<String> argv;
@@ -59,7 +59,7 @@ void test_jsapi(int argc, char **_) {
 #endif
 
 #if Qk_ANDROID
-#include <quark/platforms/android/android.h>
+#include <src/platforms/android/android.h>
 extern "C" {
 	JNIEXPORT extern void
 	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {

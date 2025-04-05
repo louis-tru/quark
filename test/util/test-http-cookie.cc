@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/util/http.h"
-#include "quark/os/os.h"
+#include "src/util/http.h"
+#include "src/os/os.h"
 
 using namespace qk;
 

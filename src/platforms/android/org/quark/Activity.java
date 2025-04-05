@@ -146,8 +146,12 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 		Log.d(TAG, "onConfigurationChanged");
 		super.onConfigurationChanged(newConfig);
 	}
-	
-	protected String startCommand() {
+
+	public String getPathInAssets(String path) {
+		return String.format("zip://%s@/assets/%s", getPackageCodePath(), path);
+	}
+
+	protected String startupArgv() {
 		return "";
 	}
 

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/loop.h>
+#include <src/util/loop.h>
 
 using namespace qk;
 

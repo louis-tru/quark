@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/util.h>
+#include <src/util/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>

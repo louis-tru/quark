@@ -36,8 +36,8 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 //#include <libavcodec/fft.h>
 }
-#include <quark/util/util.h>
-#include <quark/util/fs.h>
+#include <src/util/util.h>
+#include <src/util/fs.h>
 
 using namespace qk;
 

@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/util.h>
-#include <quark/util/string.h>
-#include <quark/util/dict.h>
-#include <quark/util/fs.h>
-#include <quark/os/os.h>
+#include <src/util/util.h>
+#include <src/util/string.h>
+#include <src/util/dict.h>
+#include <src/util/fs.h>
+#include <src/os/os.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>
@@ -44,13 +44,13 @@
 #include <time.h>
 #include <chrono>
 
-#include <quark/render/pixel.h>
-#include <quark/util/codec.h>
-#include <quark/ui/app.h>
-#include <quark/ui/window.h>
-#include <quark/ui/view/image.h>
-#include <quark/ui/view/root.h>
-#include <quark/render/canvas.h>
+#include <src/render/pixel.h>
+#include <src/util/codec.h>
+#include <src/ui/app.h>
+#include <src/ui/window.h>
+#include <src/ui/view/image.h>
+#include <src/ui/view/root.h>
+#include <src/render/canvas.h>
 #include "../trial/fs.h"
 
 using namespace qk;

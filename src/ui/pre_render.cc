@@ -135,7 +135,7 @@ namespace qk {
 				}
 			}
 			// reverse iteration
-			for (int i = _marks.length() - 1; i >= 0; i--) {
+			for (int i = Qk_Minus(_marks.length(), 1); i >= 0; i--) {
 				auto &levelMarks = _marks[i];
 				for (auto view: levelMarks) {
 					view->layout_reverse(view->_mark_value);

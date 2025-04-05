@@ -55,7 +55,7 @@ namespace qk {
 	void Android_open_url(cString& url);
 	void Android_send_email(cString& recipient,
 		cString& subject, cString& cc, cString& bcc, cString& body);
-	String Android_start_cmd();
+	String Android_startup_argv();
 	String Android_version();
 	String Android_brand();
 	String Android_model();

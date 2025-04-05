@@ -1,18 +1,18 @@
 
-#include <quark/ui/app.h>
-#include <quark/ui/window.h>
-#include <quark/ui/view/root.h>
-#include <quark/ui/filter.h>
-#include <quark/ui/screen.h>
-#include <quark/ui/view/flow.h>
-#include <quark/ui/view/image.h>
-#include <quark/ui/view/label.h>
-#include <quark/ui/view/text.h>
-#include <quark/ui/view/input.h>
-#include <quark/ui/view/textarea.h>
-#include <quark/render/render.h>
-#include <quark/render/font/pool.h>
-#include <quark/util/fs.h>
+#include <src/ui/app.h>
+#include <src/ui/window.h>
+#include <src/ui/view/root.h>
+#include <src/ui/filter.h>
+#include <src/ui/screen.h>
+#include <src/ui/view/flow.h>
+#include <src/ui/view/image.h>
+#include <src/ui/view/label.h>
+#include <src/ui/view/text.h>
+#include <src/ui/view/input.h>
+#include <src/ui/view/textarea.h>
+#include <src/render/render.h>
+#include <src/render/font/pool.h>
+#include <src/util/fs.h>
 
 using namespace qk;
 

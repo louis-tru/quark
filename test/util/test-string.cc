@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <quark/util/string.h>
-#include <quark/util/codec.h>
+#include <src/util/string.h>
+#include <src/util/codec.h>
 
 using namespace std;
 using namespace qk;

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/fs.h>
+#include <src/util/fs.h>
 #include <trial/fs.h>
 #include <pwd.h>
 

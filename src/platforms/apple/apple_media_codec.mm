@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "quark/media/media_inl.h"
+#import "src/media/media_inl.h"
 #import <VideoToolbox/VideoToolbox.h>
 
 namespace qk {
@@ -100,7 +100,7 @@ namespace qk {
 
 				if ( MediaCodec::parse_avc_psp_pps(extra, psp, pps) ) {
 					uint8_t *param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
-					size_t   size[2]  = { psp.length() - 4, pps.length() - 4 };
+					size_t   size[2]  = { (uint32_t)psp.length() - 4, (uint32_t)pps.length() - 4 };
 					status = CMVideoFormatDescriptionCreateFromH264ParameterSets(nil, 2, param, size, 4, &desc);
 				} else {
 					NSDictionary* extensions =

@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/dict.h>
-#include <quark/util/array.h>
-#include <quark/util/list.h>
-#include <quark/util/string.h>
-#include <quark/util/event.h>
+#include <src/util/dict.h>
+#include <src/util/array.h>
+#include <src/util/list.h>
+#include <src/util/string.h>
+#include <src/util/event.h>
 
 using namespace qk;
 

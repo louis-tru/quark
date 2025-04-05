@@ -93,7 +93,7 @@ namespace qk {
 	static String get_indexed_key_prefix(bool secure, cString& domain, cString& path) {
 		String r(secure ? "1/": "0/");
 		auto arr = domain.split('.');
-		for (int i = arr.length() - 1; i > -1; i--) {
+		for (int i = Qk_Minus(arr.length(), 1); i > -1; i--) {
 			if (!arr[i].isEmpty()) {
 				r.append(arr[i]);
 				r.append('/');

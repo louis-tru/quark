@@ -76,7 +76,7 @@ namespace qk {
 		Array<float>   pos{0,0.5,1};
 		GradientPaint  gr{
 			GradientPaint::kLinear_Type, Vec2{0,0}, Vec2{1,1},
-			colors.length(), colors.val(), pos.val()
+			(uint32_t)colors.length(), colors.val(), pos.val()
 		};
 
 		paint.type = Paint::kGradient_Type;

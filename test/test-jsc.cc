@@ -31,11 +31,11 @@
 #if !defined(USE_JS) || !defined(USE_JSC)
 void test_jsc(int argc, char **argv) {}
 #else
-#include "quark/util/macros.h"
+#include "src/util/macros.h"
 #ifdef Qk_APPLE
-#include "quark/util/array.h"
-#include "quark/util/loop.h"
-#include "quark/js/jsc/jsc.h"
+#include "src/util/array.h"
+#include "src/util/loop.h"
+#include "src/js/jsc/jsc.h"
 #include <JavaScriptCore/JavaScript.h>
 
 using namespace qk;

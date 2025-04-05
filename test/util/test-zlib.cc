@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/zlib.h>
+#include <src/util/zlib.h>
 #include <zlib.h>
 #include <map>
 

@@ -34,8 +34,8 @@
 #include <iostream>
 #include <limits>
 #include <stdarg.h>
-#include <quark/util/macros.h>
-#include <quark/util/string.h>
+#include <src/util/macros.h>
+#include <src/util/string.h>
 #include <functional>
 #include <stdlib.h>
 #include <string.h>

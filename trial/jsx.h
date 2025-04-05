@@ -31,7 +31,7 @@
 #ifndef __quark__trial__jsx__
 #define __quark__trial__jsx__
 
-#include "quark/util/error.h"
+#include "src/util/error.h"
 
 namespace qk {
 	Qk_EXPORT String2 javascript_transform_x(cString2& in, cString& path, bool clean_comment) throw(Error);

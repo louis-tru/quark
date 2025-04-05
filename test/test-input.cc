@@ -1,10 +1,10 @@
-#include <quark/ui/app.h>
-#include <quark/ui/window.h>
-#include <quark/ui/view/root.h>
-#include <quark/ui/view/input.h>
-#include <quark/ui/view/textarea.h>
-#include <quark/ui/css/css.h>
-#include <quark/ui/action/keyframe.h>
+#include <src/ui/app.h>
+#include <src/ui/window.h>
+#include <src/ui/view/root.h>
+#include <src/ui/view/input.h>
+#include <src/ui/view/textarea.h>
+#include <src/ui/css/css.h>
+#include <src/ui/action/keyframe.h>
 
 using namespace qk;
 

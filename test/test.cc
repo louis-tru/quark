@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/ui/app.h"
-#include "quark/util/loop.h"
+#include "src/ui/app.h"
+#include "src/util/loop.h"
 
 #define Func_Tables(F) \
 	F(atomic) \
@@ -86,7 +86,7 @@
 	F(v8) \
 
 #define DEFAULT_CALLS(F) \
-	F(media) \
+	F(jsapi) \
 
 #define _Fun(n) \
 	void test_##n(int argc, char** argv);

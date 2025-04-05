@@ -527,7 +527,7 @@ namespace js {
 	int Start(cString &cmd, cArray<String>& argv_in) {
 		static String argv_s;
 		argv_s = fs_executable();
-		Array<uint32_t> argv_idx{argv_s.length()};
+		Array<uint32_t> argv_idx = {argv_s.length()};
 		ArrayString args = cmd.split(' ');
 
 		for (auto& arg: args.concat(argv_in)) {
@@ -675,7 +675,7 @@ namespace js {
 			String start;
 
 #if Qk_ANDROID
-			start = JNI::jvm() ? Android_start_cmd(): String();
+			start = JNI::jvm() ? Android_startup_argv(): String();
 			if (start.isEmpty())
 #endif
 			{

@@ -31,8 +31,8 @@
 #if !defined(USE_JS) || defined(USE_JSC)
 void test_v8(int argc, char **argv) {}
 #else
-#include "quark/util/util.h"
-#include "quark/util/string.h"
+#include "src/util/util.h"
+#include "src/util/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>

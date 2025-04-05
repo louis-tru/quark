@@ -219,13 +219,14 @@ namespace qk {
 		// ----------------------------------------------------------------------
 
 		static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
-			Qk_ASSERT_NE(swm->_window, nullptr);
+			Qk_ASSERT_EQ(swm->_window, nullptr);
 			// ANativeWindow_setBuffersGeometry(window, 800, 480, WINDOW_FORMAT_RGBX_8888);
 			swm->_window = window;
 			swm->enterWindow(activeWindow());
 		}
 
 		static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
+			Qk_ASSERT_EQ(swm->_window, window);
 			swm->_window = nullptr;
 			swm->exitWindow(activeWindow());
 		}

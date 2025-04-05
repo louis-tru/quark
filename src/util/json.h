@@ -147,12 +147,12 @@ namespace qk {
 		double to_double()   const;
 		String to_string()   const;
 
-		uint32_t string_length() const;
+		int string_length() const;
 		
 		/**
 		* 数组长度
 		*/
-		uint32_t length() const;
+		int length() const;
 		void pop();
 		void clear();
 		

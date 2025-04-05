@@ -762,9 +762,9 @@ namespace qk { namespace js {
 
 	JSUint8Array* Worker::newUint8Array(JSArrayBuffer* abuffer, uint32_t offset, uint32_t size) {
 		auto ab2 = Back<v8::ArrayBuffer>(abuffer);
-		offset = Qk_Min((uint)ab2->ByteLength(), offset);
+		offset = Qk_Min((uint32_t)ab2->ByteLength(), offset);
 		if (size + offset > ab2->ByteLength()) {
-			size = (uint)ab2->ByteLength() - offset;
+			size = (uint32_t)ab2->ByteLength() - offset;
 		}
 		return Cast<JSUint8Array>(v8::Uint8Array::New(ab2, offset, size));
 	}

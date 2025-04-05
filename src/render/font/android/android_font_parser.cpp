@@ -56,7 +56,7 @@
 #include "../../../util/fs.h"
 
 /**
- * This file contains TWO 'familieset' handlers:
+ * This file contains TWO 'familyset' handlers:
  * One for JB and earlier which works with
  *   /system/etc/system_fonts.xml
  *   /system/etc/fallback_fonts.xml
@@ -66,7 +66,7 @@
  * and the other for LMP and later which works with
  *   /system/etc/fonts.xml
  *
- * If the 'familieset' 'version' attribute is 21 or higher the LMP parser is used, otherwise the JB.
+ * If the 'familyset' 'version' attribute is 21 or higher the LMP parser is used, otherwise the JB.
  */
 
 struct FamilyData;
@@ -175,7 +175,8 @@ namespace lmpParser {
 					if (valueLen == 4) {
 						axisTag = QkSetFourByteTag(value[0], value[1], value[2], value[3]);
 						axisTagIsValid = true;
-						for (int j = 0; j < file.fVariationDesignPosition.length() - 1; ++j) {
+						int end = Qk_Minus(file.fVariationDesignPosition.length(), 1);
+						for (int j = 0; j < end; ++j) {
 							if (file.fVariationDesignPosition[j].axis == axisTag) {
 								axisTagIsValid = false;
 								Qk_FONTCONFIGPARSER_WARNING("'%c%c%c%c' axis specified more than once",
@@ -388,7 +389,7 @@ namespace lmpParser {
 		/*end*/nullptr,
 		/*tag*/[](FamilyData* self, cChar* tag, cChar** attributes) -> const TagHandler* {
 			size_t len = strlen(tag);
-			if (MEMEQ("families", tag, len)) {
+			if (MEMEQ("family", tag, len)) {
 				return &familiesHandler;
 			} else if (MEMEQ("alias", tag, len)) {
 				return &aliasHandler;
@@ -531,7 +532,7 @@ namespace jbParser {
 		/*end*/nullptr,
 		/*tag*/[](FamilyData* self, cChar* tag, cChar** attributes) -> const TagHandler* {
 			size_t len = strlen(tag);
-			if (MEMEQ("families", tag, len)) {
+			if (MEMEQ("family", tag, len)) {
 				return &familiesHandler;
 			}
 			return nullptr;
@@ -546,7 +547,7 @@ static const TagHandler topLevelHandler = {
 	/*end*/nullptr,
 	/*tag*/[](FamilyData* self, cChar* tag, cChar** attributes) -> const TagHandler* {
 		size_t len = strlen(tag);
-		if (MEMEQ("familieset", tag, len)) {
+		if (MEMEQ("familyset", tag, len)) {
 			// 'version' (non-negative integer) [default 0]
 			for (size_t i = 0; ATTS_NON_NULL(attributes, i); i += 2) {
 				cChar* name = attributes[i];
@@ -641,7 +642,7 @@ static int parse_config_file(cChar* filename, Array<FontFamily*>& families,
 	FileSync file(filename);
 	// Some of the files we attempt to parse (in particular, /vendor/etc/fallback_fonts.xml)
 	// are optional - failure here is okay because one of these optional files may not exist.
-	if (!file.open()) {
+	if (file.open()) {
 		Qk_DLog(Qk_FONTMGR_ANDROID_PARSER_PREFIX "'%s' could not be opened\n", filename);
 		return -1;
 	}
@@ -671,7 +672,7 @@ static int parse_config_file(cChar* filename, Array<FontFamily*>& families,
 	static const int bufferSize = 512;// QkDEBUGCODE( - 507);
 	bool done = false;
 	while (!done) {
-		void* buffer = XML_GetBuffer(*parser, bufferSize);
+		char* buffer = (char*)XML_GetBuffer(*parser, bufferSize);
 		if (!buffer) {
 			Qk_DLog(Qk_FONTMGR_ANDROID_PARSER_PREFIX "could not buffer enough to continue\n");
 			return -1;
@@ -768,7 +769,7 @@ static void mixin_vendor_fallback_font_families(Array<FontFamily*>& fallbackFont
 	// Sorting array
 	for (auto families: vendorFonts) {
 		fallbackFonts.push(families);
-		for (auto i = fallbackFonts.length() - 1; i > 0; i++) {
+		for (auto i = Qk_Minus(fallbackFonts.length(), 1); i > 0; i++) {
 			auto familiesPrev = fallbackFonts[i - 1];
 			if (families->fOrder < familiesPrev->fOrder) {
 				fallbackFonts[i] = familiesPrev; // swap

@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/util.h>
-#include <quark/util/fs.h>
-#include <quark/ui/app.h>
-#include <quark/ui/window.h>
-#include <quark/ui/view/image.h>
-#include <quark/ui/view/root.h>
+#include <src/util/util.h>
+#include <src/util/fs.h>
+#include <src/ui/app.h>
+#include <src/ui/window.h>
+#include <src/ui/view/image.h>
+#include <src/ui/view/root.h>
 
 using namespace qk;
 

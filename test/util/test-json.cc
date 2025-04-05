@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/json.h>
-#include <quark/util/string.h>
-#include <quark/util/event.h>
+#include <src/util/json.h>
+#include <src/util/string.h>
+#include <src/util/event.h>
 #include <map>
 
 using namespace qk;

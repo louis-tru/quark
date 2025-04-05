@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "quark/media/pcm_player.h"
-#import "quark/util/handle.h"
-#import "quark/util/loop.h"
+#import "src/media/pcm_player.h"
+#import "src/util/handle.h"
+#import "src/util/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
 
 namespace qk {

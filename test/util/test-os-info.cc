@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/os/os.h"
-#include "quark/util/string.h"
+#include "src/os/os.h"
+#include "src/util/string.h"
 
 using namespace qk;
 

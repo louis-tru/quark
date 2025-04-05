@@ -188,7 +188,7 @@ namespace qk { namespace js {
 		}
 
 		void Print(std::stringstream& stream, const std::string& space) {
-			int end = _frames.length() - 1;
+			auto end = Qk_Minus(_frames.length(), 1);
 			for (int i = 0; i < _frames.length(); i++) {
 				_frames[i]->Print(stream, space, i == end);
 			}

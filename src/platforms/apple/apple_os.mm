@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "../../os/os.h"
-#import <quark/util/string.h>
-#import <quark/util/handle.h>
+#import <src/util/string.h>
+#import <src/util/handle.h>
 #import <Foundation/Foundation.h>
 #if Qk_iOS
 #import <UIKit/UIKit.h>

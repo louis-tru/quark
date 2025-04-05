@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./jsx.h"
-#include "quark/util/dict.h"
-#include "quark/util/fs.h"
-#include "quark/util/codec.h"
+#include "src/util/dict.h"
+#include "src/util/fs.h"
+#include "src/util/codec.h"
 
 namespace qk {
 

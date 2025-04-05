@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <quark/util/util.h>
+#include <src/util/util.h>
 
 #if Qk_LINUX && !Qk_ANDROID
 

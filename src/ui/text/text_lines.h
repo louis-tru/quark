@@ -82,7 +82,7 @@ namespace qk {
 		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre);
 		void solve_visible_region(const Mat &mat);
 		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
-		uint32_t length() const { return _lines.length(); }
+		int length() const { return _lines.length(); }
 		float max_height() const { return _last->end_y; }
 		Line& operator[](uint32_t idx) { return _lines[idx]; }
 		Line& line(uint32_t idx) { return _lines[idx]; }

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/util/net.h"
-#include "quark/util/fs.h"
+#include "src/util/net.h"
+#include "src/util/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>

@@ -53,7 +53,7 @@ namespace qk {
 			set_volume_down,
 			open_url,
 			send_email,
-			start_cmd,
+			startup_argv,
 			version,
 			brand,
 			model,
@@ -68,7 +68,6 @@ namespace qk {
 		Api_INL(jclass clazz) {
 			ScopeENV env;
 			// clazz              = JNI::find_clazz("org/quark/Android");
-			// clazz_build      = JNI::find_clazz("android.os.Build");
 			version            = JNI::find_static_method(clazz, "version", "()Ljava/lang/String;");
 			brand              = JNI::find_static_method(clazz, "brand", "()Ljava/lang/String;");
 			model              = JNI::find_static_method(clazz, "model", "()Ljava/lang/String;");
@@ -91,7 +90,7 @@ namespace qk {
 																										"(Ljava/lang/String;Ljava/lang/String;"
 																										"Ljava/lang/String;Ljava/lang/String;"
 																										"Ljava/lang/String;)V");
-			start_cmd          = JNI::find_static_method(clazz, "start_cmd", "()Ljava/lang/String;");
+			startup_argv       = JNI::find_static_method(clazz, "startup_argv", "()Ljava/lang/String;");
 			network_status     = JNI::find_static_method(clazz, "network_status", "()I");
 			is_ac_power        = JNI::find_static_method(clazz, "is_ac_power", "()Z");
 			is_battery         = JNI::find_static_method(clazz, "is_battery", "()Z");
@@ -100,14 +99,12 @@ namespace qk {
 			available_memory   = JNI::find_static_method(clazz, "available_memory", "()J");
 			memory             = JNI::find_static_method(clazz, "memory", "()J");
 			used_memory        = JNI::find_static_method(clazz, "used_memory", "()J");
-			this->clazz        = (jclass)env->NewGlobalRef(clazz);
-			//clazz_build      = (jclass)env->NewGlobalRef(clazzbuild);
+			clazz              = (jclass)env->NewGlobalRef(clazz);
 		}
 
 		~Api_INL() {
 			ScopeENV env;
 			env->DeleteGlobalRef(clazz);
-			// env->DeleteGlobalRef(clazz_build);
 		}
 	};
 
@@ -188,9 +185,9 @@ namespace qk {
 															env->NewStringUTF(*body)
 		);
 	}
-	String Android_start_cmd() {
+	String Android_startup_argv() {
 		ScopeENV env;
-		jobject obj = env->CallStaticObjectMethod(clazz, api->start_cmd);
+		jobject obj = env->CallStaticObjectMethod(clazz, api->startup_argv);
 		return JNI::jstring_to_string((jstring)obj, *env);
 	}
 	String Android_version() {

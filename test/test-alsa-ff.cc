@@ -49,7 +49,7 @@ extern "C" {
 #include <libavutil/file.h>
 #include <libswresample/swresample.h>
 }
-#include "quark/util/util.h"
+#include "src/util/util.h"
 #include <alsa/asoundlib.h>
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000

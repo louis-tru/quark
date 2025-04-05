@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/util/net.h"
+#include "src/util/net.h"
 #include <uv.h>
 
 using namespace qk;

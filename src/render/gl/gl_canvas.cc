@@ -427,7 +427,7 @@ namespace qk {
 		if (count > 0) {
 			bool restore_output = false;
 			do {
-				for (int i = _state->clips.length() - 1; i >= 0; i--) {
+				for (int i = Qk_Minus(_state->clips.length(), 1); i >= 0; i--) {
 					auto &clip = _state->clips[i];
 					if (clip.op == kDifference_ClipOp) {
 						_stencilRefDrop++;

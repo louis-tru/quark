@@ -260,7 +260,8 @@ namespace qk {
 		Paint paint;
 		paint.color.set_a(_opacity);
 		GradientPaint g{
-			GradientPaint::kLinear_Type, pts[0], pts[1], fill->colors().length(),
+			GradientPaint::kLinear_Type, pts[0], pts[1],
+			(uint32_t)fill->colors().length(),
 			fill->colors().val(), fill->positions().val()
 		};
 		paint.gradient = &g;
@@ -278,7 +279,8 @@ namespace qk {
 		Paint paint;
 		paint.color.set_a(_opacity);
 		GradientPaint g{
-			GradientPaint::kRadial_Type, center, radius, fill->colors().length(),
+			GradientPaint::kRadial_Type, center, radius,
+			(uint32_t)fill->colors().length(),
 			fill->colors().val(), fill->positions().val()
 		};
 		paint.gradient = &g;

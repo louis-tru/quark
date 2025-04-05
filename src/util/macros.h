@@ -152,6 +152,7 @@
 #define Qk_Fatal(...)         ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define Qk_Min(A, B)          ((A) < (B) ? (A) : (B))
 #define Qk_Max(A, B)          ((A) > (B) ? (A) : (B))
+#define Qk_Minus(A, B)        (decltype(B)(A) - (B))
 // return and move local
 #define Qk_ReturnLocal(x)     return (x)
 

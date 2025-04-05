@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./os.h"
-#include <quark/util/fs.h>
-#include <quark/util/loop.h>
-#include <quark/util/dict.h>
+#include <src/util/fs.h>
+#include <src/util/loop.h>
+#include <src/util/dict.h>
 #include <string.h>
 #include <atomic>
 #include <unistd.h>

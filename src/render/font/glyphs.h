@@ -43,7 +43,7 @@ namespace qk {
 		Array<Vec2> getHorizontalOffset(Vec2 origin = 0) const;
 		inline Typeface* typeface() const { return *_typeface; }
 		inline cArray<GlyphID>& glyphs() const { return _glyphs; }
-		inline uint32_t length() const { return _glyphs.length(); }
+		inline int length() const { return _glyphs.length(); }
 		inline float fontSize() const { return _fontSize; }
 	private:
 		float _fontSize;

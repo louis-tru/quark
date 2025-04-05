@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/util/util.h"
-#include "quark/util/array.h"
+#include "src/util/util.h"
+#include "src/util/array.h"
 
 using namespace qk;
 

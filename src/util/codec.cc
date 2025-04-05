@@ -162,7 +162,7 @@ namespace qk {
 	// ===========================================
 	// 单个unicode转换到utf-8编码
 	static uint32_t encode_unicode_to_utf8_char(uint32_t unicode, char* s) {
-		uint32_t rev = 1;
+		int rev = 1;
 
 		if (unicode < 0x7F + 1) {             // 单字节编码
 			*s = unicode;

@@ -208,8 +208,8 @@ public class Android {
 		});
 	}
 
-	private static String start_cmd() {
-		return activity.startCommand();
+	private static String startup_argv() {
+		return activity.startupArgv();
 	}
 	
 	public static String version() {

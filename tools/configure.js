@@ -111,8 +111,8 @@ function touch_files(variables) {
 	]);
 
 	if (!fs.existsSync(`${__dirname}/../out/quark`)) {
-		fs.removerSync(`${__dirname}/../out/quark`);
-		fs.symlinkSync(path.resolve(`${__dirname}/../src`), path.resolve(`${__dirname}/../out/quark`));
+		//fs.removerSync(`${__dirname}/../out/quark`);
+		//fs.symlinkSync(path.resolve(`${__dirname}/../src`), path.resolve(`${__dirname}/../out/quark`));
 	}
 
 	if (['mac','ios'].indexOf(variables.os) == -1) {
