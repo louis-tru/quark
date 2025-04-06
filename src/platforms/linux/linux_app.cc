@@ -118,7 +118,7 @@ namespace qk
 			XEvent event;
 			do {
 				XNextEvent(_xdpy, &event);
-				resolvedMsg();
+				resolveMsg();
 
 				if (XFilterEvent(&event, 0)) {
 					continue;
@@ -254,16 +254,18 @@ namespace qk
 			XFlush(_xdpy);
 		}
 
-		void resolvedMsg() {
-			List<Cb> msg;
-			_msgMutex.lock();
-			if (_msg.length())
-				msg = std::move(_msg);
-			_msgMutex.unlock();
+		void resolveMsg() {
+			if (_msg.length()) {
+				List<Cb> msg;
+				_msgMutex.lock();
+				if (_msg.length()) {
+					msg = std::move(_msg);
+				}
+				_msgMutex.unlock();
 
-			if (msg.length()) {
-				for (auto& i: msg)
+				for (auto& i: msg) {
 					i->resolve();
+				}
 			}
 		}
 	};

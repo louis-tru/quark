@@ -30,7 +30,6 @@
 
 package org.quark;
 
-import android.app.KeyguardManager;
 import android.app.NativeActivity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -44,6 +43,7 @@ import android.os.PowerManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.os.Handler;
+import android.view.Choreographer;
 import android.view.Display;
 import android.view.Surface;
 import android.view.View;
@@ -52,18 +52,20 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.content.pm.ApplicationInfo;
 
-public class Activity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener {
+public class Activity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener, Choreographer.FrameCallback {
 
 	private static String TAG = "Quark";
 	private IMEHelper _ime = null;
 	private Handler _handler = null;
 	private PowerManager pm = null;
 	private AudioManager am = null;
+	private Choreographer mChoreographer;
 	private static boolean visible_status_bar = true;
 	private static int status_bar_style = 0;
 	private static boolean is_fullscreen = false;
 	private static int screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER;
 	private static boolean virtual_navigation_device;
+	private static native void onRenderDisplay();
 	private static native void onStatucBarVisibleChange();
 
 	private void set_system_ui_flags() {
@@ -132,10 +134,13 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 		getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
 		setRequestedOrientation(screen_orientation);
 		super.onCreate(savedInstanceState);
+		mChoreographer = Choreographer.getInstance();
+		mChoreographer.postFrameCallback(this); // request next frame
 	}
 
 	@Override
 	protected void onDestroy() {
+		mChoreographer.removeFrameCallback(this);
 		Android.uninitialize(this);
 		super.onDestroy();
 	}
@@ -145,6 +150,12 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 		// android:configChanges="keyboardHidden|orientation|screenSize"
 		Log.d(TAG, "onConfigurationChanged");
 		super.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	public void doFrame(long var1) {
+		onRenderDisplay();
+		mChoreographer.postFrameCallback(this);
 	}
 
 	public String getPathInAssets(String path) {

@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.tasks.getTestOnlyNativeLibs
 import org.gradle.internal.declarativedsl.parsing.main
 
 plugins {
@@ -32,6 +33,8 @@ android {
 	}
 
 	buildTypes {
+		debug {
+		}
 		release {
 			isMinifyEnabled = false
 			proguardFiles(

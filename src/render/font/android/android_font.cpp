@@ -401,21 +401,18 @@ private:
 		auto nameToFamily = &fNameToFamilyMap;
 		if (families.fIsFallbackFont) {
 			nameToFamily = &fFallbackNameToFamilyMap;
-
 			if (0 == families.fNames.length()) {
 				families.fNames.push(String::format("%.2x##fallback", familiesIndex));
 			}
-		} else {
-			fFamilyNames.write(families.fNames.val(), families.fNames.length());
 		}
 
 		Sp<QkFontStyleSet_Android> newSet = new QkFontStyleSet_Android(families, fScanner, isolated);
-		if (0 == newSet->count()) {
-			return;
-		}
+		if (0 == newSet->count()) return;
 
 		for (cString& name : families.fNames) {
-			Qk_ASSERT_EQ(nameToFamily->has(name), false);
+			if (nameToFamily->has(name)) continue;
+			if (!families.fIsFallbackFont)
+				fFamilyNames.push(name);
 			nameToFamily->set(name, newSet.get());
 		}
 		fStyleSets.push(std::move(newSet));

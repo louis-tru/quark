@@ -331,18 +331,22 @@ namespace qk {
 		}
 
 		void makeSurface(EGLNativeWindowType win) override {
-			Qk_ASSERT(!_surface);
-			_win = win;
+			if (!_surface) {
+				EGLSurface surface = eglCreateWindowSurface(_display, _config, win, nullptr);
 
-			EGLSurface surface = eglCreateWindowSurface(_display, _config, _win, nullptr);
+				Qk_ASSERT_RAW(surface, "Unable to create a drawing surface");
 
-			Qk_ASSERT_RAW(surface, "Unable to create a drawing surface");
-
-			_surface = surface;
+				_win = win;
+				_surface = surface;
+			}
 		}
 
 		void deleteSurface() override {
 			if (_surface) {
+				if (_renderThreadId == thread_self_id()) {
+					_renderThreadId = ThreadID();
+					eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr);
+				}
 				eglDestroySurface(_display, _surface);
 				_surface = EGL_NO_SURFACE;
 			}
@@ -351,10 +355,8 @@ namespace qk {
 		void makeCurrent() {
 			if (_renderThreadId == ThreadID()) {
 				_renderThreadId = thread_self_id();
-				if (!eglGetCurrentContext()) {
-					Qk_ASSERT_RAW(eglMakeCurrent(_display, _surface, _surface, _context),
+				Qk_ASSERT_RAW(eglMakeCurrent(_display, _surface, _surface, _context),
 					"Unable to create a drawing surface");
-				}
 			}
 			Qk_ASSERT_EQ(_renderThreadId, thread_self_id());
 		}

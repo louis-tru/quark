@@ -1333,6 +1333,7 @@ const parseCmdReg = [
 	/^"(([^"\\]|\\")+)"\s*(,\s*|\))/,
 	/^'(([^'\\]|\\')+)'\s*(,\s*|\))/,
 	/\s+/,
+	/^([a-z][a-z0-9\_]*)=[^=]?/i
 ];
 const parseCmdNext = {
 	'_': (str: string)=>str.match(parseCmdReg[1]),
@@ -1353,14 +1354,16 @@ function parseCmd(val: string, desc?: string) {
 			let m = (parseCmdNext[char as '"'] || parseCmdNext._)(val.substring(index));
 			if (m) {
 				let arg = m[1];
-				let idx = arg.indexOf('=');
-				if (idx > 0) {
-					let k = arg.substring(0, idx);
-					let v = arg.substring(idx + 1);
-					if (kv[k]) {
-						kv[k].push(v);
-					} else {
-						kv[k] = [v];
+				let m2 = arg.match(parseCmdReg[5]);
+				if (m2) {
+					let k = m2[1];
+					let v = arg.substring(k.length + 1);
+					if (k.match(parseCmdReg[5])) {
+						if (kv[k]) {
+							kv[k].push(v);
+						} else {
+							kv[k] = [v];
+						}
 					}
 				} else {
 					args.push(arg.split(parseCmdReg[4]));

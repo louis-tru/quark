@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
 	protected String startupArgv() {
 		//return "--inspect-brk=0.0.0.0:9229 http://192.168.0.11:1026/examples";
 		//return "--inspect-brk=0.0.0.0:9229 examples";
-		return getPathInAssets("jsapi");
+		return getPathInAssets("jsapi aa action");
 	}
 
 }

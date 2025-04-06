@@ -21,7 +21,8 @@
         android:theme="@style/Theme.Test"
         tools:targetApi="31"> -->
     <application
-        android:allowBackup="false"
+        android:testOnly="false"
+        android:allowBackup="true"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name">

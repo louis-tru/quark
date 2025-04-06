@@ -38,7 +38,7 @@ using namespace qk;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
-#define USE_INSPECT 1
+#define USE_INSPECT 0
 
 void test_jsapi(int argc, char **_) {
 	Array<String> argv;

@@ -62,6 +62,9 @@ namespace qk { namespace js {
 			auto worker = WORKER();
 			if ( !triggerUncaughtException(worker, Cast(error)) ) {
 				worker->printException(message, error);
+				if (worker->_inspector) {
+					worker->_inspector->FatalException(error, message);
+				}
 				qk::thread_exit(ERR_UNCAUGHT_EXCEPTION);
 			}
 		});
@@ -79,6 +82,9 @@ namespace qk { namespace js {
 				v8::HandleScope scope(_isolate);
 				v8::Local<v8::Message> message = v8::Exception::CreateMessage(_isolate, reason);
 				worker->printException(message, reason);
+				if (worker->_inspector) {
+					worker->_inspector->FatalException(reason, message);
+				}
 				qk::thread_exit(ERR_UNHANDLED_REJECTION);
 			}
 		});

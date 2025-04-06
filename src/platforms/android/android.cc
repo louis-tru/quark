@@ -64,7 +64,8 @@ namespace qk {
 			language,
 			available_memory,
 			memory,
-			used_memory;
+			used_memory,
+			resolve_msg_onmain;
 		Api_INL(jclass clazz) {
 			ScopeENV env;
 			// clazz              = JNI::find_clazz("org/quark/Android");
@@ -99,7 +100,8 @@ namespace qk {
 			available_memory   = JNI::find_static_method(clazz, "available_memory", "()J");
 			memory             = JNI::find_static_method(clazz, "memory", "()J");
 			used_memory        = JNI::find_static_method(clazz, "used_memory", "()J");
-			clazz              = (jclass)env->NewGlobalRef(clazz);
+			resolve_msg_onmain = JNI::find_static_method(clazz, "resolve_msg_onmain", "()V");
+			this->clazz        = (jclass)env->NewGlobalRef(clazz);
 		}
 
 		~Api_INL() {
@@ -236,6 +238,10 @@ namespace qk {
 	uint64_t Android_used_memory() {
 		ScopeENV env;
 		return env->CallStaticLongMethod(clazz, api->used_memory);
+	}
+	void Android_resolve_msg_onmain() {
+		ScopeENV env;
+		env->CallStaticVoidMethod(clazz, api->resolve_msg_onmain);
 	}
 
 	void Android_fs_init_paths(jstring pkg, jstring files_dir, jstring cache_dir);

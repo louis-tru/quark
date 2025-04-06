@@ -67,6 +67,7 @@ namespace qk {
 	uint64_t Android_available_memory();
 	uint64_t Android_memory();
 	uint64_t Android_used_memory();
+	void Android_resolve_msg_onmain();
 }
 
 #endif

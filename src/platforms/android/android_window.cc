@@ -49,15 +49,19 @@ namespace qk {
 	static void dispatchEvent(AInputEvent* event);
 
 	class SharedWindowManager: public WindowImpl {
+		friend class Window;
 		Application::Inl* _host = nullptr;
 		ANativeActivity* _activity = nullptr;
 		ANativeWindow* _window = nullptr;
 		AInputQueue* _queue = nullptr;
 		ALooper* _looper = nullptr;
 		Orientation _currentOrientation = Orientation::kInvalid;
-		friend class Window;
+		List<Cb> _msg;
+		Mutex _msgMutex;
 	public:
 		Qk_DEFINE_PROP_GET(Rect, displayRect);
+
+		const ThreadID main_thread_id = thread_self_id();
 
 		SharedWindowManager() {
 			Qk_ASSERT_EQ(swm, nullptr);
@@ -69,22 +73,49 @@ namespace qk {
 			return _host->loop();
 		}
 
-		void post_messate_main(Cb cb, bool sync) {
-			// TODO ...
+		void addMsg(Cb& cb) {
+			_msgMutex.lock();
+			_msg.pushBack(cb);
+			_msgMutex.unlock();
+			Android_resolve_msg_onmain();
 		}
 
-		void enterWindow(Window* win) {
+		void resolveMsg() {
+			if (_msg.length()) {
+				List<Cb> msg;
+				_msgMutex.lock();
+				if (_msg.length()) {
+					msg = std::move(_msg);
+				}
+				_msgMutex.unlock();
+
+				for (auto& i: msg) {
+					i->resolve();
+				}
+			}
+		}
+
+		void renderDisplay() {
+			auto win = _host->activeWindow();
+			if (_window && win) {
+				// Qk_DLog("renderDisplay()");
+				win->render()->surface()->renderDisplay(); // redrawing
+			}
+		}
+
+		void windowEnter(Window* win) {
 			if (_window && win) {
 				auto render = win->render();
 				render->surface()->makeSurface(_window);
 				render->reload();
-				// render->surface()->renderDisplay(); // redrawing
+				render->surface()->renderDisplay();
 			}
 		}
 
-		void exitWindow(Window* win) {
-			if (win)
+		void windowExit(Window* win) {
+			if (win) {
 				win->render()->surface()->deleteSurface();
+			}
 		}
 
 		static Window* activeWindow() {
@@ -170,34 +201,15 @@ namespace qk {
 
 		static void onDestroy(ANativeActivity* activity) {
 			Qk_ASSERT_NE(swm->_activity, nullptr);
-
-			activity->callbacks->onDestroy                  = nullptr;
-			activity->callbacks->onStart                    = nullptr;
-			activity->callbacks->onResume                   = nullptr;
-			activity->callbacks->onSaveInstanceState        = nullptr;
-			activity->callbacks->onPause                    = nullptr;
-			activity->callbacks->onStop                     = nullptr;
-			activity->callbacks->onConfigurationChanged     = nullptr;
-			activity->callbacks->onLowMemory                = nullptr;
-			activity->callbacks->onWindowFocusChanged       = nullptr;
-			activity->callbacks->onNativeWindowCreated      = nullptr;
-			activity->callbacks->onNativeWindowResized      = nullptr;
-			activity->callbacks->onNativeWindowRedrawNeeded = nullptr;
-			activity->callbacks->onNativeWindowDestroyed    = nullptr;
-			activity->callbacks->onInputQueueCreated        = nullptr;
-			activity->callbacks->onInputQueueDestroyed      = nullptr;
-			activity->callbacks->onContentRectChanged       = nullptr;
-
+			memset(activity->callbacks, 0, sizeof(*activity->callbacks));
 			swm->_activity = nullptr;
 		}
 
 		static void onStart(ANativeActivity* activity) {
 			if ( swm->_host == nullptr ) { // start gui
-
 				Application::runMain(0, nullptr); // run gui application
 
 				swm->_host = Inl_Application(shared_app());
-
 				Qk_ASSERT(swm->_host);
 				Qk_ASSERT_EQ(swm->_activity, activity);
 
@@ -222,13 +234,13 @@ namespace qk {
 			Qk_ASSERT_EQ(swm->_window, nullptr);
 			// ANativeWindow_setBuffersGeometry(window, 800, 480, WINDOW_FORMAT_RGBX_8888);
 			swm->_window = window;
-			swm->enterWindow(activeWindow());
+			swm->windowEnter(activeWindow());
 		}
 
 		static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
 			Qk_ASSERT_EQ(swm->_window, window);
 			swm->_window = nullptr;
-			swm->exitWindow(activeWindow());
+			swm->windowExit(activeWindow());
 		}
 
 		static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
@@ -269,6 +281,23 @@ namespace qk {
 			}
 		}
 	};
+
+	void post_messate_main(Cb cb, bool sync) {
+		Qk_ASSERT_NE(swm, nullptr);
+		if (swm->main_thread_id == thread_self_id()) {
+			cb->resolve();
+		} else if (sync) {
+			CondMutex mutex;
+			Cb cb1([&cb, &mutex](auto e) {
+				cb->resolve();
+				mutex.lock_and_notify_one();
+			});
+			swm->addMsg(cb1);
+			mutex.lock_and_wait_for(); // wait
+		} else {
+			swm->addMsg(cb);
+		}
+	}
 
 	static bool convertToTouch(AInputEvent* motionEvent, int pointerIndex, TouchPoint* out) {
 		Vec2 scale = swm->activeWindow()->scale();
@@ -381,7 +410,7 @@ namespace qk {
 	}
 
 	void Window::openImpl(Options &opts) {
-		swm->post_messate_main(Cb([&](auto e) {
+		post_messate_main(Cb([&](auto e) {
 			set_backgroundColor(opts.backgroundColor);
 			activate();
 		}), true);
@@ -409,9 +438,9 @@ namespace qk {
 		auto awin = _host->activeWindow();
 		if (awin == this)
 			return;
-		swm->post_messate_main(Cb([awin,this](auto e) {
-			swm->exitWindow(awin);
-			swm->enterWindow(this);
+		post_messate_main(Cb([awin,this](auto e) {
+			swm->windowExit(awin);
+			swm->windowEnter(this);
 		}), true);
 		Inl_Application(_host)->setActiveWindow(this);
 	}
@@ -431,12 +460,21 @@ namespace qk {
 
 extern "C" {
 
+	Qk_EXPORT void Java_org_quark_Android_onResolveMsg(JNIEnv* env, jclass clazz) {
+		Qk_ASSERT_NE(qk::swm, nullptr);
+		qk::swm->resolveMsg();
+	}
+
+	Qk_EXPORT void Java_org_quark_Activity_onRenderDisplay(JNIEnv* env, jclass clazz) {
+		Qk_ASSERT_NE(qk::swm, nullptr);
+		qk::swm->renderDisplay();
+	}
+
 	Qk_EXPORT void Java_org_quark_Activity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
 		// Noop
 	}
 
-	Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
-																					void* savedState, size_t savedStateSize)
+	Qk_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize)
 	{
 		qk::SharedWindowManager::onCreate(activity, savedState, savedStateSize);
 	}

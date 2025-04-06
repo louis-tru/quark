@@ -52,6 +52,7 @@ public class Android {
 	private static boolean is_ac_power_connected = false;
 	private static Activity.PrivateAPI api = null;
 	private static native void initNative(String pkg, String files_dir, String cache_dir);
+	private static native void onResolveMsg();
 
 	private static BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
@@ -102,19 +103,25 @@ public class Android {
 
 	private static void ime_keyboard_open(final boolean clear, final int type, final int return_type) {
 		activity.post(new Runnable() {
-			public void run() { api.ime_keyboard_open(clear, type, return_type); }
+			public void run() {
+				api.ime_keyboard_open(clear, type, return_type);
+			}
 		});
 	}
 
 	private static void ime_keyboard_can_backspace(final boolean can_backspace, final boolean can_delete) {
 		activity.post(new Runnable() {
-			public void run() { api.ime_keyboard_can_backspace(can_backspace, can_delete); }
+			public void run() {
+				api.ime_keyboard_can_backspace(can_backspace, can_delete);
+			}
 		});
 	}
 
 	private static void ime_keyboard_close() {
 		activity.post(new Runnable() {
-			public void run() { api.ime_keyboard_close(); }
+			public void run() {
+				api.ime_keyboard_close();
+			}
 		});
 	}
 
@@ -212,7 +219,7 @@ public class Android {
 		return activity.startupArgv();
 	}
 	
-	public static String version() {
+	private static String version() {
 		return Build.VERSION.RELEASE;
 	}
 
@@ -322,4 +329,9 @@ public class Android {
 		return 0;
 	}
 
+	private static void resolve_msg_onmain() {
+		activity.post(new Runnable() {
+			public void run() { onResolveMsg(); }
+		});
+	}
 }
