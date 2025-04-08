@@ -161,6 +161,8 @@ namespace qk {
 		return Application::shared();
 	}
 
+	Qk_EXPORT void post_messate_main(Cb cb, bool sync);
+
 	//@private head
 	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
 	public:

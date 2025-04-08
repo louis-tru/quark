@@ -34,12 +34,12 @@
 #include "../../ui/event.h"
 #include "../../render/linux/linux_render.h"
 #include "./android.h"
+#include "../../render/canvas.h"
 
 #include <android/native_activity.h>
 #include <android/native_window.h>
 
 namespace qk {
-
 	typedef TouchEvent::TouchPoint TouchPoint;
 	typedef Screen::Orientation Orientation;
 	class WindowImpl {};
@@ -58,8 +58,9 @@ namespace qk {
 		Orientation _currentOrientation = Orientation::kInvalid;
 		List<Cb> _msg;
 		Mutex _msgMutex;
+		Window *_active = nullptr;
 	public:
-		Qk_DEFINE_PROP_GET(Rect, displayRect);
+		Qk_DEFINE_PROP_GET(Region, displayRegion);
 
 		const ThreadID main_thread_id = thread_self_id();
 
@@ -96,30 +97,28 @@ namespace qk {
 		}
 
 		void renderDisplay() {
-			auto win = _host->activeWindow();
-			if (_window && win) {
-				// Qk_DLog("renderDisplay()");
-				win->render()->surface()->renderDisplay(); // redrawing
+			if (_window && _active) {
+				_active->render()->surface()->renderDisplay(); // redrawing
 			}
 		}
 
-		void windowEnter(Window* win) {
-			if (_window && win) {
-				auto render = win->render();
+		void windowEnter() {
+			if (_window && _active) {
+				auto render = _active->render();
 				render->surface()->makeSurface(_window);
 				render->reload();
 				render->surface()->renderDisplay();
 			}
 		}
 
-		void windowExit(Window* win) {
-			if (win) {
-				win->render()->surface()->deleteSurface();
+		void windowExit() {
+			if (_active) {
+				_active->render()->surface()->deleteSurface();
 			}
 		}
 
 		static Window* activeWindow() {
-			return swm->_host->activeWindow();
+			return swm->_active;
 		}
 
 		static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
@@ -155,20 +154,12 @@ namespace qk {
 			swm->_host->triggerMemorywarning();
 		}
 
-		static void onResume(ANativeActivity* activity) {
-			swm->_host->triggerResume();
-		}
-
-		static void onPause(ANativeActivity* activity) {
-			swm->_host->triggerPause();
+		static void onConfigurationChanged(ANativeActivity* activity) {
+			Qk_DLog("onConfigurationChanged");
 		}
 
 		static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
 			return nullptr;
-		}
-		
-		static void onConfigurationChanged(ANativeActivity* activity) {
-			Qk_DLog("onConfigurationChanged");
 		}
 
 		static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
@@ -208,24 +199,32 @@ namespace qk {
 		static void onStart(ANativeActivity* activity) {
 			if ( swm->_host == nullptr ) { // start gui
 				Application::runMain(0, nullptr); // run gui application
-
 				swm->_host = Inl_Application(shared_app());
 				Qk_ASSERT(swm->_host);
 				Qk_ASSERT_EQ(swm->_activity, activity);
-
 				swm->_host->triggerLoad();
 			}
-
-			//auto awin = activeWindow();
-			//if (awin)
-			//	swm->_host->triggerForeground(awin);
+			auto awin = activeWindow();
+			if (awin)
+				swm->_host->triggerForeground(awin);
+			Qk_DLog("triggerForeground");
 		}
 
 		static void onStop(ANativeActivity* activity) {
-			Qk_DLog("onStop");
-			//auto awin = activeWindow();
-			//if (awin)
-			//	swm->_host->triggerBackground(awin);
+			auto awin = activeWindow();
+			if (awin)
+				swm->_host->triggerBackground(awin);
+			Qk_DLog("triggerBackground");
+		}
+
+		static void onResume(ANativeActivity* activity) {
+			swm->_host->triggerResume();
+			Qk_DLog("triggerResume");
+		}
+
+		static void onPause(ANativeActivity* activity) {
+			swm->_host->triggerPause();
+			Qk_DLog("triggerPause");
 		}
 
 		// ----------------------------------------------------------------------
@@ -234,13 +233,13 @@ namespace qk {
 			Qk_ASSERT_EQ(swm->_window, nullptr);
 			// ANativeWindow_setBuffersGeometry(window, 800, 480, WINDOW_FORMAT_RGBX_8888);
 			swm->_window = window;
-			swm->windowEnter(activeWindow());
+			swm->windowEnter();
 		}
 
 		static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
 			Qk_ASSERT_EQ(swm->_window, window);
+			swm->windowExit();
 			swm->_window = nullptr;
-			swm->windowExit(activeWindow());
 		}
 
 		static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
@@ -258,20 +257,11 @@ namespace qk {
 		// ----------------------------------------------------------------------
 
 		static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
-			/*
-			* Rect选择绘制，主要因为android的虚拟导航按键，虚拟导航按键区域绘制黑色背景颜色填充
-			*/
-			swm->_displayRect = {
-				Vec2(rect->left, 0),
-				Vec2(rect->right - rect->left, rect->bottom)
-			};
+			swm->_displayRegion = {Vec2(rect->left,rect->top),Vec2(rect->right,rect->bottom)};
 
 			auto awin = activeWindow();
 			if (awin) {
 				awin->render()->reload();
-				// Note: 这里很奇怪，因为绘图表面反应迟钝，`ANativeWindow_getWidth()` 返回值可能有延时，
-				// 但调用eglSwapBuffers()会刷新绘图表面。
-				// awin->render()->surface()->renderDisplay(); // redrawing
 			}
 
 			auto ori = (Orientation)Android_get_orientation();
@@ -301,7 +291,7 @@ namespace qk {
 
 	static bool convertToTouch(AInputEvent* motionEvent, int pointerIndex, TouchPoint* out) {
 		Vec2 scale = swm->activeWindow()->scale();
-		float left = swm->displayRect().origin.x();
+		float left = swm->displayRegion().origin.x();
 		int id = AMotionEvent_getPointerId(motionEvent, pointerIndex);
 		float x = AMotionEvent_getX(motionEvent, pointerIndex) - left;
 		float y = AMotionEvent_getY(motionEvent, pointerIndex);
@@ -411,42 +401,106 @@ namespace qk {
 
 	void Window::openImpl(Options &opts) {
 		post_messate_main(Cb([&](auto e) {
+			_impl = swm;
 			set_backgroundColor(opts.backgroundColor);
 			activate();
 		}), true);
-		_impl = swm;
+	}
+
+	void Window::beforeClose() {
+		post_messate_main(Cb([this](auto e) {
+			Qk_ASSERT_NE(_impl, nullptr);
+			swm->windowExit();
+			swm->_active = nullptr;
+			_impl = nullptr;
+		}), true);
 	}
 
 	void Window::closeImpl() {
 		if (!_host->activeWindow()) {
-			ANativeActivity_finish(swm->_activity);
+			pending();
 		}
-		_impl = nullptr;
 	}
 
 	float Window::getDefaultScale() {
-		float defaultScale = Android_get_display_scale();
-		return defaultScale;
+		return Android_get_display_scale();
+	}
+
+	Region Window::getDisplayRegion(Vec2 size) {
+		auto region = swm->displayRegion();
+		auto regionNew = _opts.navigationColor.a() == 0 ? Region{0,size}: region;
+		float scale = getDefaultScale();
+
+		if (_lockSize.x() != 0) { // lock width
+			scale = (regionNew.end.x() - regionNew.origin.x()) / _lockSize.x();
+		}
+		else if (_lockSize.y() != 0) { // lock height
+			scale = (regionNew.end.y() - regionNew.origin.y()) / _lockSize.y();
+		}
+
+		// Navigation button region for Android
+		if (region.end.y() != size.y()) { // bottom
+			_navigationRect = {
+				Vec2{0,region.end.y()}/scale,
+				Vec2{size.x(), size.y()-region.end.y()}/scale
+			};
+		}
+		else if (region.origin.x() != 0) { // left
+			_navigationRect = {
+				Vec2{0,0},
+				Vec2{region.origin.x(), size.y()}/scale
+			};
+		}
+		else if (region.end.x() != size.x()) { // right
+			_navigationRect = {
+				Vec2{region.end.x(),0}/scale,
+				Vec2{size.x()-region.end.x(), size.y()}/scale
+			};
+		} else {
+			_navigationRect = {};
+		}
+
+		return regionNew;
+	}
+
+	void Window::afterDisplay() {
+		if (_opts.navigationColor.a() != 0 && !_navigationRect.size.is_zero_axis()) {
+			Paint paint;
+			paint.color = _opts.navigationColor.to_color4f();
+			paint.antiAlias = false;
+			_render->getCanvas()->drawRect(_navigationRect, paint);
+		}
 	}
 
 	void Window::set_backgroundColor(Color val) {
-		// TODO ...
-		// _backgroundColor = val;
+		// Noop action
+		_backgroundColor = val;
 	}
 
 	void Window::activate() {
 		auto awin = _host->activeWindow();
-		if (awin == this)
-			return;
-		post_messate_main(Cb([awin,this](auto e) {
-			swm->windowExit(awin);
-			swm->windowEnter(this);
-		}), true);
+		if (awin == this) return;
+
+		post_messate_main(Cb([awin](auto e) {
+			swm->windowExit();
+			swm->_active = nullptr;
+		}, awin), false);
+
+		post_messate_main(Cb([this](auto e) {
+			swm->_active = this;
+			swm->windowEnter();
+		}, this), false);
+
 		Inl_Application(_host)->setActiveWindow(this);
+		if (awin)
+			Inl_Application(_host)->triggerBackground(awin);
+		Inl_Application(_host)->triggerForeground(this);
 	}
 
 	void Window::pending() {
-		ANativeActivity_finish(swm->_activity);
+		post_messate_main(Cb([](auto e) {
+			ANativeActivity_finish(swm->_activity);
+		}), false);
 	}
 
 	void Window::setFullscreen(bool fullscreen) {

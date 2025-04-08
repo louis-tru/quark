@@ -254,7 +254,6 @@ namespace qk {
 
 		Vec2 getSurfaceSize() override {
 			if (!_win) return {};
-
 #if Qk_ANDROID
 			Vec2 size(ANativeWindow_getWidth(_win), ANativeWindow_getHeight(_win));
 #else
@@ -264,38 +263,6 @@ namespace qk {
 		// Qk_DLog("attrs.width: %d, attrs.height: %d", attrs.width, attrs.height);
 		Vec2 size(attrs.width, attrs.height);
 #endif
-			// draw android virtual keyboard rect
-#if Qk_ANDROID
-			// _virtualKeysRect = Rect();
-
-			// Vec2 scale = _host->display()->scale();
-			// Region region = _host->display()->surface_region();
-
-			// auto x3 = region.x2 - region.x;
-			// auto y3 = region.y2 - region.y;
-			// auto w = region.width - x3;
-			// auto h = region.height - y3;
-
-			// if ( w > 0 ) { // left / right
-			// 	if ( region.x == 0 ) { // right，虚拟键盘在`right`
-			// 		_virtualKeysRect = {
-			// 			Vec2(x3 / scale[0], 0),
-			// 			Vec2(w / scale[0], region.height / scale[1])
-			// 		};
-			// 	} else { // left，虚拟键盘在`left`
-			// 		_virtualKeysRect = {
-			// 			Vec2(),
-			// 			Vec2(w / scale[0], region.height / scale[1])
-			// 		};
-			// 	}
-			// } else if ( h > 0 ) { // bottom，虚拟键盘在`bottom`
-			// 	_virtualKeysRect = {
-			// 		Vec2(0, y3 / scale[0]),
-			// 		Vec2(region.width / scale[0], h / scale[1])
-			// 	};
-			// }
-#endif
-
 			return Vec2(size.width(), size.height());
 		}
 
@@ -400,9 +367,6 @@ namespace qk {
 		Array<Cb> _msg;
 		ThreadID _renderThreadId;
 		RecursiveMutex _mutex;
-#if Qk_ANDROID
-		Rect _virtualKeysRect;
-#endif
 	};
 
 	// ------------------------------------------

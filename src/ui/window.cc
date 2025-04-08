@@ -81,6 +81,7 @@ namespace qk {
 		, _fspTime(0), _surfaceRegion()
 		, _preRender(this)
 		, _impl(nullptr)
+		, _opts(opts)
 	{
 		Qk_ASSERT_RAW(_host);
 		Qk_ASSERT_RAW(first_loop() == current_loop(), "Must be called on the first thread loop");
@@ -97,6 +98,7 @@ namespace qk {
 		}
 		retain(); // strong ref count retain from application
 		_root = new Root(this); // new root
+		_root->set_background_color(_backgroundColor);
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus
@@ -134,6 +136,17 @@ namespace qk {
 		if (!_root)
 			return false;
 
+		beforeClose();
+
+		// ------------------------
+		_host->_mutex.lock();
+		_host->_windows.erase(_id);
+		if (_host->_activeWindow == this) {
+			Inl_Application(_host)->setActiveWindow(nullptr);
+		}
+		_host->_mutex.unlock();
+		// ------------------------
+
 		_root->remove_all_child(); // remove child view
 		Releasep(_root); // release root view
 		_preRender.flushAsyncCall(); // flush async call
@@ -147,13 +160,6 @@ namespace qk {
 		lock.unlock(); // Avoid deadlocks with rendering threads
 		Releasep(_render); // delete obj and stop render draw
 		lock.lock(); // relock
-		// ------------------------
-		_host->_mutex.lock();
-		_host->_windows.erase(_id);
-		if (_host->_activeWindow == this) {
-			Inl_Application(_host)->setActiveWindow(this);
-		}
-		_host->_mutex.unlock();
 		// ------------------------
 
 		closeImpl(); // close platform window
@@ -284,8 +290,9 @@ namespace qk {
 		_render->getCanvas()->setSurface(mat, size, _scale);
 	}
 
-	void Window::onRenderBackendReload(Region region, Vec2 size) {
+	void Window::onRenderBackendReload(Vec2 size) {
 		auto defaultScale = getDefaultScale();
+		auto region = getDisplayRegion(size);
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DLog("Window::onRenderBackendReload defaultScale:%f, w:%f, h: %f",
 				size.x(), size.y(), defaultScale);
@@ -325,6 +332,8 @@ namespace qk {
 		_fspTick++;
 
 		_root->draw(_uiDraw); // start drawing
+
+		afterDisplay(); // draw something for platform
 
 		solveNextFrame(); // solve frame
 

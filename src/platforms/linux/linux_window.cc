@@ -129,6 +129,7 @@ namespace qk {
 	void deleteImplFromGlobal(XWindow xwin);
 
 	class WindowPlatform: public WindowImpl {
+		#define _platform(_impl) static_cast<WindowPlatform*>(_impl)
 	public:
 		float _xft_dpi, _xwin_scale;
 		XSetWindowAttributes _xset;
@@ -151,7 +152,6 @@ namespace qk {
 
 		~WindowPlatform() {
 			Qk_ASSERT(_xwin);
-			deleteImplFromGlobal(_xwin);
 			XDestroyWindow(_xdpy, _xwin); _xwin = 0;
 			if (_ime) {
 				delete _ime; _ime = nullptr;
@@ -159,6 +159,7 @@ namespace qk {
 			if (_noneCursor != XNone) {
 				XFreeCursor(_xdpy, _noneCursor);
 			}
+			deleteImplFromGlobal(_xwin);
 		}
 
 		XWindow newXWindow(cOptions &opts) {
@@ -369,7 +370,7 @@ namespace qk {
 			Qk_ASSERT_EQ(_impl, nullptr);
 			_impl = new WindowPlatform(this, opts);
 			_backgroundColor = opts.backgroundColor;
-			_render->surface()->makeSurface(_impl->xwin());
+			_render->surface()->makeSurface((EGLNativeWindowType)_impl->xwin());
 			_render->reload();
 			_render->surface()->renderLoopRun();
 			activate();
@@ -377,32 +378,40 @@ namespace qk {
 	}
 
 	void Window::closeImpl() {
-		auto impl = static_cast<WindowPlatform*>(_impl);
-		if (impl) {
+		post_messate_main(Cb([this](auto e) {
+			Qk_ASSERT_NE(_impl, nullptr);
+			delete _platform(_impl);
 			_impl = nullptr;
-			post_messate_main(Cb([impl](auto e) {
-				delete impl;
-			}), false);
-		}
+		}));
 	}
+
+	void Window::beforeClose() {}
 
 	void Window::set_backgroundColor(Color val) {
 		post_messate_main(Cb([this, val](auto e) {
-			auto impl = static_cast<WindowPlatform*>(_impl);
-			impl->setBackgroundColor(val);
-		}), false);
+			if (!_impl) return;
+			_platform(_impl)->setBackgroundColor(val);
+		}, this), false);
 		_backgroundColor = val;
 	}
 
 	void Window::activate() {
 		post_messate_main(Cb([this](auto e) {
-			auto impl = static_cast<WindowPlatform*>(_impl);
-			XMapWindow(impl->xdpy(), impl->xwin());
-		}), false);
+			if (!_impl) return;
+			XMapWindow(_platform(_impl)->xdpy(), _platform(_impl)->xwin());
+		}, this), false);
 	}
- 
+
 	float Window::getDefaultScale() {
-		return static_cast<WindowPlatform*>(_impl)->_xwin_scale;
+		return _platform(_impl)->_xwin_scale;
+	}
+
+	Region Window::getDisplayRegion(Vec2 size) {
+		return {{0}, size};
+	}
+
+	void Window::afterDisplay() {
+		// Noop
 	}
 
 	void Window::pending() {
@@ -410,9 +419,9 @@ namespace qk {
 
 	void Window::setFullscreen(bool fullscreen) {
 		post_messate_main(Cb([this, fullscreen](auto e) {
-			auto impl = static_cast<WindowPlatform*>(_impl);
-			impl->setFullscreen(fullscreen);
-		}), false);
+			if (!_impl) return;
+			_platform(_impl)->setFullscreen(fullscreen);
+		}, this), false);
 	}
 
 	void Window::setCursorStyle(CursorStyle cursor, bool isBase) {
@@ -427,8 +436,8 @@ namespace qk {
 		cursor = current_cursor_user == CursorStyle::Normal ? current_cursor_base: current_cursor_user;
 
 		post_messate_main(Cb([this, cursor](auto e) {
-			auto impl = static_cast<WindowPlatform*>(_impl);
-			impl->setCursor(cursor);
-		}), false);
+			if (!_impl) return;
+			_platform(_impl)->setCursor(cursor);
+		}, this), false);
 	}
 }

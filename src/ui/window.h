@@ -80,6 +80,8 @@ namespace qk {
 			Rect      frame; // init window params
 			String    title; // init window title
 			Color     backgroundColor; // init window background color
+			Color     navigationColor={0,0,0,0}; // Is need draw navigation buttons for android.
+			// Not draw navigation, if settings opacity as zero
 		};
 
 		struct RegionSize/*: Region*/ {
@@ -117,6 +119,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 		Qk_DEFINE_PROPERTY(Color, backgroundColor, Const); //! background color
+		Qk_DEFINE_PROP_GET(Rect, navigationRect, Const); //! navigation rect for android
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
@@ -197,11 +200,14 @@ namespace qk {
 	private:
 		void reload(bool isRt);
 		void solveNextFrame();
-		void onRenderBackendReload(Region region, Vec2 size) override;
+		void onRenderBackendReload(Vec2 size) override;
 		bool onRenderBackendDisplay() override;
 		void openImpl(Options &opts);
 		void closeImpl();
+		void beforeClose();
 		float getDefaultScale();
+		Region getDisplayRegion(Vec2 size);
+		void afterDisplay();
 		bool Destroy(); // destroy window and protform window
 
 		/**
@@ -222,6 +228,7 @@ namespace qk {
 		List<Window*>::Iterator _id;
 		RecursiveMutex _renderMutex;
 		PreRender _preRender;
+		Options _opts;
 		friend class WindowImpl;
 		friend class UILock;
 	};

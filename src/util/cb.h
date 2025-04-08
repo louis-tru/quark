@@ -74,7 +74,7 @@ namespace qk {
 		virtual void call(Data& evt) = 0;
 	};
 
-	template<class T, class D, class E>
+	template<class T, class D = Object, class E = Error>
 	class CallbackCoreImpl: public CallbackCore<D, E> {
 	public:
 		inline CallbackCoreImpl(T* ctx): _ctx(ctx) {

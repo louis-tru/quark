@@ -86,7 +86,7 @@
 	F(v8) \
 
 #define DEFAULT_CALLS(F) \
-	F(jsapi) \
+	F(gui) \
 
 #define _Fun(n) \
 	void test_##n(int argc, char** argv);

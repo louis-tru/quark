@@ -39,6 +39,8 @@ using namespace qk;
 
 void test_gui(int argc, char **argv) {
 	App app;
+	auto win0 = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test 0", .backgroundColor={255,255,255}});
+	win0->activate();
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test GUI"});
 	win->activate();
 	auto r = win->root();
@@ -119,4 +121,5 @@ void test_gui(int argc, char **argv) {
 	img->set_align(Align::Start);
 
 	app.run();
+	Qk_DLog("Exit");
 }

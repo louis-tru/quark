@@ -44,6 +44,7 @@ export interface Options {
 	frame?: types.Rect; // init window params
 	title?: string; // init window title
 	backgroundColor?: types.Color; // init window background color
+	navigationColor?: types.Color; // Is need draw navigation buttons for android.
 };
 
 class RootViewController extends ViewController {
@@ -65,6 +66,7 @@ declare class NativeWindow extends Notification<WEvent> {
 	readonly atomPixel: number;
 	readonly root: Root;
 	readonly focusView: View;
+	readonly navigationRect: types.Rect;
 	size: types.Vec2;
 	backgroundColor: types.Color;
 	surfaceSize: types.Vec2;

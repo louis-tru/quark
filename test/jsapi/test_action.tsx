@@ -30,6 +30,7 @@
 
 import { LOG, Pv, Mv } from './tool'
 import { _CVD, Window } from 'quark'
+import {parseColor} from 'quark/types'
 import * as action from 'quark/action'
 
 const resolve = require.resolve;
@@ -50,6 +51,9 @@ export default async function (win: Window) {
 			</matrix>
 		</box>
 	)
+
+	//win.backgroundColor = parseColor('#00f');
+	//win.root.backgroundColor = parseColor('#f0f')
 
 	const ctr = win.rootCtr
 

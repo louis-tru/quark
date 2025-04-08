@@ -96,7 +96,7 @@ public:
 	}
 
 	void post_message(Cb cb) override {
-		qk_post_messate_main(cb, false);
+		post_messate_main(cb, false);
 	}
 
 	Vec2 getSurfaceSize() override {

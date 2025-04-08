@@ -41,7 +41,6 @@ using namespace qk;
 QkApplicationDelegate* qkappdelegate = nil;
 
 @interface QkApplicationDelegate()
-@property (assign, nonatomic) BOOL isPause;
 @end
 
 @implementation QkApplicationDelegate
@@ -52,20 +51,15 @@ QkApplicationDelegate* qkappdelegate = nil;
 	qkappdelegate = self;
 	_host = Application::shared();
 	_app = UIApplication.sharedApplication;
-	self.isPause = YES;
 	Inl_Application(_host)->triggerLoad();
 }
 
 - (void)applicationWillResignActive:(NSNotification*)notification {
-	if (self.isPause) return;
-	self.isPause = YES;
 	Inl_Application(_host)->triggerPause();
 	Qk_DLog("applicationWillResignActive, triggerPause");
 }
 
 - (void)applicationDidBecomeActive:(NSNotification*)notification {
-	if (!self.isPause) return;
-	self.isPause = NO;
 	Inl_Application(_host)->triggerResume();
 	Qk_DLog("applicationDidBecomeActive, triggerResume");
 }

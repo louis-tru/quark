@@ -513,6 +513,7 @@ namespace qk { namespace js {
 		auto frame = obj->get(worker, worker->newStringOneByte("frame"));
 		auto title = obj->get(worker, worker->newStringOneByte("title"));
 		auto backgroundColor = obj->get(worker, worker->newStringOneByte("backgroundColor"));
+		auto navigationColor = obj->get(worker, worker->newStringOneByte("navigationColor"));
 
 		if (!colorType->isUndefined()) {
 			Js_Parse_Type(uint32_t, colorType, "Window::Options{.colorType=%s}") false;
@@ -537,6 +538,10 @@ namespace qk { namespace js {
 		if (!backgroundColor->isUndefined()) {
 			Js_Parse_Type(Color, backgroundColor, "Window::Options{.backgroundColor=%s}") false;
 			_out.backgroundColor = out;
+		}
+		if (!navigationColor->isUndefined()) {
+			Js_Parse_Type(Color, backgroundColor, "Window::Options{.navigationColor=%s}") false;
+			_out.navigationColor = out;
 		}
 		return true;
 	}

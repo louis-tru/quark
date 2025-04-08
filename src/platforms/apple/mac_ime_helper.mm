@@ -272,7 +272,7 @@ void EventDispatch::setImeKeyboardCanBackspace(bool can_backspace, bool can_dele
 
 void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
 	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([options,delegate](auto e) {
+	post_messate_main(Cb([options,delegate](auto e) {
 		[delegate.ime set_keyboard_type:options.type];
 		[delegate.ime set_keyboard_return_type:options.return_type];
 		[delegate.ime activate: options.clear];
@@ -282,14 +282,14 @@ void EventDispatch::setImeKeyboardOpen(KeyboardOptions options) {
 
 void EventDispatch::setImeKeyboardClose() {
 	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([delegate](auto e) {
+	post_messate_main(Cb([delegate](auto e) {
 		[delegate.ime deactivate];
 	}), false);
 }
 
 void EventDispatch::setImeKeyboardSpotRect(Rect rect) {
 	auto delegate = window()->impl()->delegate();
-	qk_post_messate_main(Cb([delegate,rect](auto e) {
+	post_messate_main(Cb([delegate,rect](auto e) {
 		[delegate.ime set_spot_rect:rect];
 	}), false);
 }

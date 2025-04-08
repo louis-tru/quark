@@ -225,7 +225,7 @@ namespace qk {
 	}
 
 	void AppInl::setActiveWindow(Window *win) {
-		if (!win) { // key == nullptr, auto select key window
+		if (win == nullptr) { // key == nullptr, auto select key window
 			if (_windows.length()) {
 				_windows.front()->activate(); // select front window
 				return;

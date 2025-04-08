@@ -485,7 +485,7 @@ namespace qk {
 	void GLRender::reload() {
 		lock();
 		_surfaceSize = getSurfaceSize();
-		_delegate->onRenderBackendReload({Vec2{0,0},_surfaceSize}, _surfaceSize);
+		_delegate->onRenderBackendReload(_surfaceSize);
 		unlock();
 	}
 

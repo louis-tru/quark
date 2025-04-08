@@ -48,8 +48,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 	id _mouseMovedId;
 	id _keyDownId;
 }
-@property (assign, nonatomic) BOOL isClose;
-@property (assign, nonatomic) BOOL isBackground;
+@property (assign, atomic) BOOL isClose;
 @end
 
 @implementation QkWindowDelegate
@@ -80,7 +79,6 @@ QkWindowDelegate* WindowImpl::delegate() {
 	uiwin.title = [NSString stringWithUTF8String:opts.title.c_str()];
 	uiwin.delegate = self;
 
-	self.isBackground = NO;
 	self.isClose = NO;
 	self.qkwin = win;
 	self.uiwin = uiwin;
@@ -316,15 +314,11 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 }
 
 - (void)windowDidMiniaturize:(NSNotification*)notification {
-	if (self.isBackground) return;
-	self.isBackground = YES;
 	Inl_Application(self.qkwin->host())->triggerBackground(self.qkwin);
 	Qk_DLog("windowDidMiniaturize, triggerBackground");
 }
 
 - (void)windowDidDeminiaturize:(NSNotification*)notification {
-	if (!self.isBackground) return;
-	self.isBackground = NO;
 	Inl_Application(self.qkwin->host())->triggerForeground(self.qkwin);
 	Qk_DLog("windowDidDeminiaturize,triggerForeground");
 }
@@ -332,64 +326,75 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 @end
 
 void Window::openImpl(Options &opts) {
-	qk_post_messate_main(Cb([&opts,this](auto&e) {
-		auto del = [[QkWindowDelegate alloc] init:opts win:this render:_render];
-		CFBridgingRetain(del);
-		_impl = (__bridge WindowImpl*)del;
+	post_messate_main(Cb([&opts,this](auto e) {
+		auto impl = [[QkWindowDelegate alloc]
+								 init:opts win:this render:_render];
+		CFBridgingRetain(impl);
+		_impl = (__bridge WindowImpl*)impl;
 		set_backgroundColor(opts.backgroundColor);
 		activate();
 	}), true);
 }
 
 void Window::closeImpl() {
-	auto win = _impl->delegate();
-	if (!win.isClose) {
-		win.isClose = YES;
-		qk_post_messate_main(Cb([win](auto&e) {
-			[win.uiwin close]; // close platform window
-		}), false);
-	}
-	//CFBridgingRelease(_impl);
-	_impl = nullptr;
+	post_messate_main(Cb([this](auto e) {
+		Qk_ASSERT_NE(_impl, nullptr);
+		if (_impl && !_impl->delegate().isClose) {
+			[_impl->delegate().uiwin close]; /* close platform window */
+		}
+		CFBridgingRelease(_impl);
+		_impl = nullptr;
+	}, this), false);
 }
 
+void Window::beforeClose() {}
+
 float Window::getDefaultScale() {
-	float defaultScale = _impl->delegate().uiwin.backingScaleFactor;
-	return defaultScale;
+	return _impl->delegate().uiwin.backingScaleFactor;
+}
+
+Region Window::getDisplayRegion(Vec2 size) {
+	return {{0}, size};
+}
+
+void Window::afterDisplay() {
+	// Noop
 }
 
 void Window::set_backgroundColor(Color val) {
-	qk_post_messate_main(Cb([this,val](auto&e) {
-		Color4f color = val.to_color4f();
+	post_messate_main(Cb([this,val](auto e) {
+		if (!_impl) return;
+		auto color = val.to_color4f();
 		_impl->delegate().uiwin.backgroundColor =
 			[UIColor colorWithSRGBRed:color.r() green:color.g() blue:color.b() alpha:color.a()];
-	}), false);
+	}, this), false);
 	_backgroundColor = val;
 }
 
 void Window::activate() {
-	qk_post_messate_main(Cb([this](auto&e) {
+	post_messate_main(Cb([this](auto e) {
+		if (!_impl) return;
 		[_impl->delegate().uiwin makeKeyAndOrderFront:nil];
-	}), false);
+	}, this), false);
 	Inl_Application(_host)->setActiveWindow(this);
 }
 
 void Window::pending() {
+	// Noop
 }
 
 void Window::setFullscreen(bool fullscreen) {
-	qk_post_messate_main(Cb([this,fullscreen](auto&e) {
+	post_messate_main(Cb([this,fullscreen](auto e) {
+		if (!_impl) return;
 		auto uiwin = _impl->delegate().uiwin;
 		auto screenSize = uiwin.screen.frame.size;
 		auto size = uiwin.frame.size;
 		if (screenSize.width == size.width && screenSize.height == size.height) {
-			if (!fullscreen)
-				[uiwin toggleFullScreen:nil];
+			if (!fullscreen) [uiwin toggleFullScreen:nil];
 		} else {
-			if (fullscreen)
-				[uiwin toggleFullScreen:nil];
+			if (fullscreen) [uiwin toggleFullScreen:nil];
 		}
-	}), false);
+	}, this), false);
 }
 
 void Window::setCursorStyle(CursorStyle cursor, bool isBase) {

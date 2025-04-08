@@ -61,7 +61,7 @@ namespace qk {
 
 		class Delegate {
 		public:
-			virtual void onRenderBackendReload(Region region, Vec2 size) = 0;
+			virtual void onRenderBackendReload(Vec2 size) = 0;
 			virtual bool onRenderBackendDisplay() = 0;
 		};
 

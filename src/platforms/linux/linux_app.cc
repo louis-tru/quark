@@ -183,11 +183,6 @@ namespace qk
 							(Atom)event.xclient.data.l[0] == wmDeleteWindow) { // close
 							Qk_DLog("event, ClientMessage: Close");
 							impl->win()->close();
-
-							if (_winImpl.length() == 0) { // Exit process
-								XDestroyWindow(_xdpy, _xwinTmp); _xwinTmp = 0;
-								thread_exit(0);
-							}
 						}
 						break;
 					case GenericEvent:
@@ -276,6 +271,12 @@ namespace qk
 
 	void deleteImplFromGlobal(XWindow xwin) {
 		looper->_winImpl.erase(xwin);
+
+		if (looper->_winImpl.length() == 0) { // Exit process
+			XDestroyWindow(looper->_xdpy, looper->_xwinTmp); looper->_xwinTmp = 0;
+			thread_exit(0);
+			// RunLoop::first()->stop();
+		}
 	}
 
 	// sync to x11 main message loop

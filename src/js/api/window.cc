@@ -106,6 +106,11 @@ namespace qk { namespace js {
 				Js_Return( self->atomPixel() );
 			});
 
+			Js_Class_Accessor_Get(navigationRect, {
+				Js_Self(Type);
+				Js_Return( worker->types()->jsvalue(self->navigationRect()) );
+			});
+
 			cls->setAccessor("root",([](auto key,auto args){
 				auto worker = args.worker();
 				auto self = MixObject::mix<Type>(args.thisObj())->self();

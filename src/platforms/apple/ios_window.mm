@@ -263,45 +263,68 @@ QkWindowDelegate* WindowImpl::delegate() {
 @end
 
 void Window::openImpl(Options &opts) {
-	qk_post_messate_main(Cb([&opts,this](auto&e) {
-		auto del = [[QkWindowDelegate alloc] init:opts win:this render:_render];
-		CFBridgingRetain(del); // Retain
-		_impl = (__bridge WindowImpl*)del;
+	post_messate_main(Cb([&opts,this](auto e) {
+		auto impl = [[QkWindowDelegate alloc]
+								 init:opts win:this render:_render];
+		CFBridgingRetain(impl); // Retain
+		_impl = (__bridge WindowImpl*)impl;
 		set_backgroundColor(opts.backgroundColor);
 		activate();
 	}), true);
 }
 
+void Window::closeImpl() {
+	post_messate_main(Cb([this](auto e) {
+		Qk_ASSERT_NE(_impl, nullptr);
+		CFBridgingRelease(_impl);
+		_impl = nullptr;
+		if (!_host->activeWindow())
+			thread_exit(0); // Exit process
+	}, this), false);
+}
+
+void Window::beforeClose() {}
+
 void Window::set_backgroundColor(Color val) {
-	qk_post_messate_main(Cb([this,val](auto&e) {
-		Color4f color = val.to_color4f();
+	post_messate_main(Cb([this,val](auto e) {
+		if (!_impl) return;
+		auto color = val.to_color4f();
 		_impl->delegate().uiwin.backgroundColor = [
 			UIColor colorWithRed:color.r() green:color.g() blue:color.b() alpha:color.a()
 		];
-	}), false);
+	}, this), false);
 	_backgroundColor = val;
 }
 
 void Window::activate() {
-	qk_post_messate_main(Cb([this](auto& e) {
+	auto awin = _host->activeWindow();
+	if (awin == this) return;
+
+	post_messate_main(Cb([this](auto e) {
+		if (!_impl) return;
 		[_impl->delegate().uiwin makeKeyAndVisible];
-	}), false);
+	}, this), false);
+
 	Inl_Application(_host)->setActiveWindow(this);
+	if (awin)
+		Inl_Application(_host)->triggerBackground(awin);
+	Inl_Application(_host)->triggerForeground(this);
 }
 
-void Window::closeImpl() {
-	//CFBridgingRelease(_impl);
-	_impl = nullptr;
-	// exit app
+Region Window::getDisplayRegion(Vec2 size) {
+	return {{0}, size};
+}
+
+void Window::afterDisplay() {
+	// Noop
 }
 
 float Window::getDefaultScale() {
-	float defaultScale = UIScreen.mainScreen.scale;
-	return defaultScale;
+	return _platform(_impl)->_xwin_scale;
 }
 
 void Window::pending() {
-	// exit app
+	// Exit app
 }
 
 void Window::setFullscreen(bool fullscreen) {

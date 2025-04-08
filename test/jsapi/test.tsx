@@ -32,13 +32,6 @@ import { Application, Window, Box } from 'quark'
 import * as types from 'quark/types'
 import util from 'quark/util'
 
-const app = new Application();
-const win = new Window({
-	fps: 0x0,
-	frame: types.newRect(0,0,500,500),
-	backgroundColor: types.newColor(0,0,255,255),
-}).activate();
-
 async function test_(win: Window) {
 	const box = new Box(win);
 	box.width = types.newBoxSize(types.BoxSizeKind.Match, 0);
@@ -71,6 +64,13 @@ async function test_(win: Window) {
 	try {
 		mod = require(`./test_${util.argv[3]}`);
 	} catch(e) {}
+
+	const app = new Application();
+	const win = new Window({
+		fps: 0x0,
+		frame: types.newRect(0,0,500,500),
+		backgroundColor: types.newColor(255,0,255,255),
+	}).activate();
 
 	if (mod) {
 		await mod.default(win);

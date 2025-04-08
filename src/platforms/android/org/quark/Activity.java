@@ -35,6 +35,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -52,8 +53,11 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.content.pm.ApplicationInfo;
 
-public class Activity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener, Choreographer.FrameCallback {
+import org.quark.test.R;
 
+public class Activity extends NativeActivity implements
+	View.OnSystemUiVisibilityChangeListener, Choreographer.FrameCallback
+{
 	private static String TAG = "Quark";
 	private IMEHelper _ime = null;
 	private Handler _handler = null;
@@ -177,6 +181,10 @@ public class Activity extends NativeActivity implements View.OnSystemUiVisibilit
 
 		private PrivateAPI(Activity host) {
 			this.host = host;
+		}
+
+		public void set_backgroundColor() {
+			host.getWindow().setBackgroundDrawable(new ColorDrawable(Color.RED));
 		}
 
 		public void ime_keyboard_open(boolean clear, int type, int return_type) {
