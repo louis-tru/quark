@@ -44,6 +44,7 @@
 #include "./linux_app.h"
 #include "../../render/linux/linux_render.h"
 #include "../../ui/window.h"
+#include "../../ui/app.h"
 
 namespace qk {
 	typedef const Window::Options cOptions;
@@ -152,6 +153,7 @@ namespace qk {
 
 		~WindowPlatform() {
 			Qk_ASSERT(_xwin);
+			deleteImplFromGlobal(_xwin);
 			XDestroyWindow(_xdpy, _xwin); _xwin = 0;
 			if (_ime) {
 				delete _ime; _ime = nullptr;
@@ -159,7 +161,6 @@ namespace qk {
 			if (_noneCursor != XNone) {
 				XFreeCursor(_xdpy, _noneCursor);
 			}
-			deleteImplFromGlobal(_xwin);
 		}
 
 		XWindow newXWindow(cOptions &opts) {
@@ -382,7 +383,9 @@ namespace qk {
 			Qk_ASSERT_NE(_impl, nullptr);
 			delete _platform(_impl);
 			_impl = nullptr;
-		}));
+			if (!_host->activeWindow())
+				thread_exit(0); // Exit process
+		}, this), false);
 	}
 
 	void Window::beforeClose() {}
@@ -400,6 +403,7 @@ namespace qk {
 			if (!_impl) return;
 			XMapWindow(_platform(_impl)->xdpy(), _platform(_impl)->xwin());
 		}, this), false);
+		Inl_Application(_host)->setActiveWindow(this);
 	}
 
 	float Window::getDefaultScale() {

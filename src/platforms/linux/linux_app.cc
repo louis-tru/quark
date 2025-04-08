@@ -274,8 +274,6 @@ namespace qk
 
 		if (looper->_winImpl.length() == 0) { // Exit process
 			XDestroyWindow(looper->_xdpy, looper->_xwinTmp); looper->_xwinTmp = 0;
-			thread_exit(0);
-			// RunLoop::first()->stop();
 		}
 	}
 
