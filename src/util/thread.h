@@ -41,11 +41,15 @@ namespace qk {
 	extern Mutex          *__threads_mutex;
 	extern std::atomic_int __is_process_exit_atomic;
 
+	struct WaitSelfEnd: CondMutex {
+		bool end = false;
+	};
+
 	struct Thread_INL: Thread, CondMutex {
 		void     (*exec)(cThread *t, void *arg);
 		void      *arg;
 		RunLoop*  loop;
-		List<CondMutex*> waitSelfEnd; // external wait thread end
+		List<WaitSelfEnd*> waitSelfEnd; // external wait thread end
 	};
 
 	struct timer_t: uv_timer_t {

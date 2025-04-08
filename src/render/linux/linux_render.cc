@@ -346,7 +346,7 @@ namespace qk {
 				}
 				Qk_ASSERT_RAW(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
 				_renderThreadId = ThreadID();
-			});
+			}, "linux_render_Thread");
 		}
 
 		void renderLoopStop() {

@@ -179,6 +179,7 @@ namespace qk {
 				t->loop = nullptr;
 				Qk_DLog("Thread end ..., %s", t->name.c_str());
 				for (auto& i : t->waitSelfEnd) {
+					i->end = true;
 					i->lock_and_notify_one();
 				}
 				Qk_DLog("Thread end  ok, %s", t->name.c_str());
@@ -224,7 +225,7 @@ namespace qk {
 				t->loop->stop();
 			t->abort = abort;
 		}
-		t->cond.notify_one(); // resume sleep status
+		t->cond.notify_one(); // resume sleep status @ thread_pause()
 	}
 
 	void thread_resume(ThreadID id, int abort) {
@@ -249,12 +250,14 @@ namespace qk {
 		if ( __threads->get(id, t) ) {
 			t->mutex.lock();
 			lock.unlock();
-			CondMutex cm;
-			t->waitSelfEnd.pushBack(&cm);
+			WaitSelfEnd wait;
+			String name(t->name);
+			t->waitSelfEnd.pushBack(&wait);
 			t->mutex.unlock();
-			Qk_DLog("thread_join_for(), ..., %p, %s", id, *t->name);
-			cm.lock_and_wait_for(timeoutUs); // permanent wait
-			Qk_DLog("thread_join_for(), end, %p, %s", id, *t->name);
+			Qk_DLog("thread_join_for(), ..., %p, %s", id, name.c_str());
+			if (!wait.end)
+				wait.lock_and_wait_for(timeoutUs); // permanent wait
+			Qk_DLog("thread_join_for(), end, %p, %s", id, name.c_str());
 		}
 	}
 
