@@ -47,11 +47,20 @@ using namespace qk;
 
 namespace qk {
 
-	class AppleMetalRender: public MetalRender, public RenderSurface {
+	class AppleMetalRender: public RenderBackend, public RenderSurface {
 	public:
-		AppleMetalRender(Options opts, FontPool *pool, Delegate *delegate)
-			: MetalRender(opts,pool,delegate)
+		AppleMetalRender(Options opts)
+			: Render(opts)
 		{}
+		// void release() override;
+		// void reload() override;
+		// Canvas* newCanvas(Options opts) override;
+		// bool newTexture(cPixel *pix, int levels, TexStat *&out, bool genMipmap) override;
+		// void newVertexData(VertexData::ID *id) override
+		// void deleteTexture(TexStat *tex) override;
+		// void deleteVertexData(VertexData::ID *id) override;
+		// void post_message(Cb cb) override;
+		// Vec2 getSurfaceSize() override;
 		UIView* surfaceView() override {
 			if (_view) {
 				return _view;
@@ -67,8 +76,8 @@ namespace qk {
 
 	Render* make_metal_render(Render::Options opts) {
 		Render* r = nullptr;
-			if (@available(macOS 10.11, iOS 13.0, *))
-			r = new AppleMetalRender(opts,pool,delegate);
+			//if (@available(macOS 10.11, iOS 13.0, *))
+			//	r = new AppleMetalRender(opts);
 		return r;
 	}
 }
