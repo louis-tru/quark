@@ -331,7 +331,7 @@ namespace qk { namespace js {
 			);
 			msg->_lineNumber = lineNumber;
 			msg->_startColumn = startColumn;
-			msg->_endColumn = startColumn;
+			msg->_endColumn = startColumn+1;
 
 			if (!is__stack) { // no set
 				JSPropertyAttributes attrs = kJSPropertyAttributeReadOnly |

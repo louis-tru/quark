@@ -320,7 +320,7 @@ void Window::afterDisplay() {
 }
 
 float Window::getDefaultScale() {
-	return _platform(_impl)->_xwin_scale;
+	return UIScreen.mainScreen.scale;
 }
 
 void Window::pending() {

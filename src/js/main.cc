@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "quark/ui/app.h"
-#include "quark/js/js.h"
+#include "src/ui/app.h"
+#include "src/js/js.h"
 
 Qk_Main() {
 	return qk::js::Start(argc, argv);
