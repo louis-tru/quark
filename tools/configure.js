@@ -44,7 +44,7 @@ var android_api_level = 28; // android-9.0
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
 def_opts('debug', 0,            '--debug        enable debug status [{0}]');
-def_opts('os', host_os,         '--os=OS        system type ios/android/mac/linux/win [{0}]');
+def_opts('os', host_os,         '--os=OS        system type ios/android/mac/linux [{0}]');
 def_opts('arch', default_arch,  '--arch=CPU     cpu type options arm/arm64/mips/mips64/x86/x64 [{0}]');
 def_opts('armv7', arm(),        '--armv7        enable armv7 [{0}]');
 def_opts('armv7s', 0,           '--armv7s       enable armv7s form apple iphone [{0}]');
