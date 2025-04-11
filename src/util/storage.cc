@@ -65,17 +65,24 @@ namespace qk {
 		}
 	}
 
+	int bp_get_str(bp_db_t *tree, const bp_key_t* key, String *value) {
+		bp_key_t val;
+		int rc = bp_get(tree, key, &val);
+		if (rc == BP_OK) {
+			*value = String(val.value, (uint32_t)val.length);
+			free(val.value);
+		}
+		return rc;
+	}
+
 	// --------------------------------------------------------------------------------------
 
 	String storage_get(cString& name) {
 		String result;
 		OPEN(result);
 		bp_key_t key = { name.length(), (Char*)name.c_str() };
-		bp_key_t val;
-		if (bp_get(_db, &key, &val) == BP_OK) {
-			result = Buffer(val.value, (uint32_t)val.length).collapseString();
-		}
-		return result;
+		bp_get_str(_db, &key, &result);
+		Qk_ReturnLocal(result);
 	}
 
 	void storage_set(cString& name, cString& value) {

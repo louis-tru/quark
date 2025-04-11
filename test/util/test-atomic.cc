@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <src/util/loop.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -68,14 +69,14 @@ public:
 	mutable std::atomic<Ptr*> _ptr2;
 };
 
-void test_atomic(int argc, char **argv) {
+Qk_TEST_Func(atomic) {
 
 	std::atomic<uint32_t> a;
 	std::atomic<uint64_t> b;
 	std::atomic<void*> c;
 	std::atomic<TestAtomic0> d;
 
-	Qk_DLog("atomic_uint32_t, %d: %i, %d: %i, %d: %i, %d: %i",
+	Qk_Log("atomic_uint32_t, %d: %i, %d: %i, %d: %i, %d: %i",
 		sizeof(a), a.is_lock_free(),
 		sizeof(b), b.is_lock_free(),
 		sizeof(c), c.is_lock_free(),

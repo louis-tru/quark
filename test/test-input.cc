@@ -5,10 +5,11 @@
 #include <src/ui/view/textarea.h>
 #include <src/ui/css/css.h>
 #include <src/ui/action/keyframe.h>
+#include "./test.h"
 
 using namespace qk;
 
-void test_input(int argc, char **argv) {
+Qk_TEST_Func(input) {
 	App app;
 	auto win = Window::Make({
 		.frame={{0,0}, {500,500}},

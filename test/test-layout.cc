@@ -13,6 +13,7 @@
 #include <src/render/render.h>
 #include <src/render/font/pool.h>
 #include <src/util/fs.h>
+#include "./test.h"
 
 using namespace qk;
 
@@ -241,7 +242,7 @@ void layout(Window* win) {
 	Qk_DLog("Root size %d", sizeof(Root));
 }
 
-void test_layout(int argc, char **argv) {
+Qk_TEST_Func(layout) {
 	App app;
 	auto win = Window::Make({.msaa=1, .backgroundColor={255,255,255}});
 	//app.Qk_On(Load, [](auto e) {

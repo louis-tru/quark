@@ -119,9 +119,9 @@ QkWindowDelegate* WindowImpl::delegate() {
 // UIViewController
 // -------------------------------------------------------------------------
 
-- (void)doCommandBySelector:(SEL)selector {
-	// [super doCommandBySelector:selector];
-}
+//- (void)doCommandBySelector:(SEL)selector {
+//	[super doCommandBySelector:selector];
+//}
 
 - (BOOL) acceptsFirstResponder {
 	return YES;
@@ -298,6 +298,10 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 
 // NSWindowDelegate
 // -------------------------------------------------------------------------
+
+- (void)windowWillClose:(NSNotification *)notification {
+	//NSWindow *closingWindow = notification.object;
+}
 
 - (BOOL)windowShouldClose:(NSWindow*)sender {
 	if (!self.isClose) {

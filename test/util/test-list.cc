@@ -33,6 +33,7 @@
 #include <src/util/string.h>
 #include <map>
 #include <src/util/log.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -40,7 +41,7 @@ class Test{
 	String str;
 };
 
-void test_list(int argc, char **argv) {
+Qk_TEST_Func(list) {
 	
 	String str = "a,b,c,d,s,d,f,g,gh,t,r,w,cs,dsfsd,fsdf,dsf,sdf,sd";
 	

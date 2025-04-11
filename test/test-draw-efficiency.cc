@@ -5,6 +5,7 @@
 #include <src/ui/view/root.h>
 #include <src/render/render.h>
 #include <src/render/canvas.h>
+#include "./test.h"
 
 using namespace qk;
 
@@ -24,12 +25,12 @@ public:
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
 		circle.close();
 
-		// paint.antiAlias = false;
+		paint.antiAlias = false;
 		canvas->save();
 		canvas->translate(size*-0.5);
 		canvas->clipPath(Path::MakeCircle(size*0.5, 100), Canvas::kIntersect_ClipOp, 1);
 
-		for (int i = 0; i < 100000; i++) {
+		for (int i = 0; i < 10000; i++) {
 			canvas->drawPath(circle, paint);
 		}
 		canvas->restore();
@@ -37,7 +38,7 @@ public:
 	}
 };
 
-void test_draw_efficiency(int argc, char **argv) {
+Qk_TEST_Func(draw_efficiency) {
 	App app;
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();

@@ -32,6 +32,7 @@
 #include <src/util/http.h>
 #include <src/util/string.h>
 #include <src/util/fs.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -40,7 +41,12 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	MyClient(): HttpClientRequest( ), count(0) {
 		set_delegate(this);
 	}
-	
+
+	~MyClient() {
+		Qk_Log("~MyClient");
+		RunLoop::current()->stop();
+	}
+
 	virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 		Qk_Log("trigger_http_error, %s", *error.message());
 	}
@@ -56,7 +62,7 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	}
 	virtual void trigger_http_data(HttpClientRequest* req, Buffer &buffer) {
 		Qk_Log("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-		Qk_Log( String(buffer.val(), buffer.length()) );
+		Qk_Log("%s", *String(buffer.val(), buffer.length()) );
 	}
 	virtual void trigger_http_end(HttpClientRequest* req) {
 		Qk_Log("http_end, status: %d, %s", status_code(), url().c_str());
@@ -78,7 +84,7 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	
 };
 
-void test_http2(int argc, char **argv) {
+Qk_TEST_Func(http2) {
 	
 	MyClient* cli = new MyClient();
 	

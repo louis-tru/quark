@@ -47,25 +47,25 @@ namespace qk {
 		::free(ptr);
 	}
 
-	static void increase_(Allocator::Prt<void> *ptr, uint32_t size,uint32_t sizeOf) {
+	static void Increase(Allocator::Prt<void> *ptr, uint32_t size,uint32_t sizeOf) {
 		size = Qk_Max(Qk_Min_CAPACITY, size);
-		size = powf(2, ceilf(log2f(size)));
+		size = Uint32::max(size, powf(2, ceilf(log2f(size))));
 		ptr->val = ::realloc(ptr->val, sizeOf * size);
 		ptr->capacity = size;
 		Qk_ASSERT(ptr->val);
 	}
 
 	void Allocator::realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
-		if ( size > ptr->capacity ) {
-			increase_(ptr, size, sizeOf);
+		if (size > ptr->capacity) {
+			Increase(ptr, size, sizeOf);
 		} else {
 			reduce(ptr, size, sizeOf);
 		}
 	}
 
 	void Allocator::increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
-		if ( size > ptr->capacity ) {
-			increase_(ptr, size, sizeOf);
+		if (size > ptr->capacity) {
+			Increase(ptr, size, sizeOf);
 		}
 	}
 

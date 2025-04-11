@@ -128,14 +128,17 @@ namespace qk {
 
 		/**
 		 * 
-		 * setting main function
+		 * setting main function and it's on the sub thread calling
 		 *
 		 * @method setMain()
 		 */
 		static void setMain(int (*main)(int, char**));
 
 		/**
-		 * @method runMain(argc, argv) create sub gui thread, call by system, First thread call
+		 * Create sub gui thread call by system, and root thread call,
+		 * when creating new the Application object return
+		 * 
+		 * @method runMain(argc, argv)
 		*/
 		static void runMain(int argc, char* argv[]);
 

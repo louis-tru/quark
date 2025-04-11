@@ -3,10 +3,11 @@
 #include <src/ui/view/root.h>
 #include <src/ui/css/css.h>
 #include <src/ui/action/keyframe.h>
+#include "./test.h"
 
 using namespace qk;
 
-void test_openurl(int argc, char **argv) {
+Qk_TEST_Func(openurl) {
 	App app;
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test OpenURL"});
 	auto box = win->root()->append_new<Box>();

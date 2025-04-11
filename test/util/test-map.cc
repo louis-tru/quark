@@ -33,10 +33,11 @@
 #include <src/util/string.h>
 #include <src/util/dict.h>
 #include <map>
+#include "../test.h"
 
 using namespace qk;
 
-void test_map(int argc, char **argv) {
+Qk_TEST_Func(map) {
 	
 	std::map<int, String> m;
 	

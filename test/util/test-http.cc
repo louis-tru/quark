@@ -33,10 +33,11 @@
 #include <src/util/string.h>
 #include <src/util/fs.h>
 #include <src/util/cb.h>
+#include "../test.h"
 
 using namespace qk;
 
-void test_http(int argc, char **argv) {
+Qk_TEST_Func(http) {
 	// Qk_Log(http_get_sync("http://www.163.com/"));
 
 	// String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
@@ -59,9 +60,12 @@ void test_http(int argc, char **argv) {
 			int len = data->data.length();
 			Qk_Log(String(data->data.collapse(), len));
 			Qk_Log("%llu/%llu, complete: %i", data->size, data->total, data->end);
-
 			fs_abort(data->id);
 		}
+
+		if (d.error || d.data->value.end) {
+			current_loop()->stop();
+	 	}
 	}));
 
 	RunLoop::current()->run();

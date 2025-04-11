@@ -32,6 +32,7 @@
 #include "src/util/fs.h"
 #include "src/util/loop.h"
 #include <uv.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -153,7 +154,7 @@ void test_timer_uv() {
 	Qk_Log("test uv timer ok");
 }
 
-void test_uv(int argc, char **argv) {
+Qk_TEST_Func(uv) {
 	uv_loop = uv_loop_new();
 	test_uv_file();
 	test_uv_async_check_idle();

@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <src/util/util.h>
+#include "./test.h"
 
 #if Qk_LINUX && !Qk_ANDROID
 
@@ -204,7 +205,7 @@ int test_linux_input_3(int argc, char **argv)
 }
 
 
-int test_linux_input_2(int argc, char **argv)
+Qk_TEST_Func(linux_input_2)
 {
 	fd_set	rds;
 	int	ret;
@@ -264,7 +265,7 @@ int test_linux_input_2(int argc, char **argv)
 	return(0);
 }
 
-int test_linux_input_1(int argc, char **argv)
+Qk_TEST_Func(linux_input_1)
 {
 	struct input_absinfo absI;
 	int ret;
@@ -298,13 +299,13 @@ int test_linux_input_1(int argc, char **argv)
 	return 0;
 }
 
-void test_linux_input(int argc, char **argv){
+Qk_TEST_Func(linux_input) {
 	test_linux_input_1(argc, argv);
 	test_linux_input_2(argc, argv);
 }
 
 #else
-void test_linux_input_2(int argc, char **argv) {}
-void test_linux_input_1(int argc, char **argv) {}
-void test_linux_input(int argc, char **argv) {}
+Qk_TEST_Func(linux_input_2) {}
+Qk_TEST_Func(linux_input_1) {}
+Qk_TEST_Func(linux_input) {}
 #endif

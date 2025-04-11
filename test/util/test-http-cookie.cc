@@ -30,10 +30,11 @@
 
 #include "src/util/http.h"
 #include "src/os/os.h"
+#include "../test.h"
 
 using namespace qk;
 
-void test_http_cookie(int argc, char **argv) {
+Qk_TEST_Func(http_cookie) {
 
 	Qk_Log(http_get_cookie("quarks.cc", "test"));
 

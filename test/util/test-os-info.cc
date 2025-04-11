@@ -30,23 +30,24 @@
 
 #include "src/os/os.h"
 #include "src/util/string.h"
+#include "../test.h"
 
 using namespace qk;
 
-void test_os_info(int argc, char **argv) {
-	Qk_Log(os_info());
-	Qk_Log(os_version());
-	Qk_Log(os_brand());
-	Qk_Log(os_languages().join(','));
-	Qk_Log(os_is_wifi());
-	Qk_Log(os_is_mobile());
-	Qk_Log(os_network_interface());
-	Qk_Log(os_is_ac_power());
-	Qk_Log(os_is_battery());
-	Qk_Log(os_battery_level());
-	Qk_Log(os_memory());
-	Qk_Log(os_used_memory());
-	Qk_Log(os_available_memory());
+Qk_TEST_Func(os_info) {
+	Qk_Log("%s", *os_info());
+	Qk_Log("%s", *os_version());
+	Qk_Log("%s", *os_brand());
+	Qk_Log("%s", *os_languages().join(','));
+	Qk_Log("%i", os_is_wifi());
+	Qk_Log("%i", os_is_mobile());
+	Qk_Log("%d", os_network_interface());
+	Qk_Log("%i", os_is_ac_power());
+	Qk_Log("%i", os_is_battery());
+	Qk_Log("%f", os_battery_level());
+	Qk_Log("%llu", os_memory());
+	Qk_Log("%llu", os_used_memory());
+	Qk_Log("%llu", os_available_memory());
 }
 
 

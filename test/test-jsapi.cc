@@ -28,8 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./test.h"
+
 #if !defined(USE_JS)
-void test_jsapi(int argc, char **argv) {}
+Qk_TEST_Func(jsapi) {}
 #else
 #include "src/js/js.h"
 #include "src/util/fs.h"
@@ -40,20 +42,20 @@ using namespace qk;
 #define USE_REMOTE 0
 #define USE_INSPECT 0
 
-void test_jsapi(int argc, char **_) {
-	Array<String> argv;
+Qk_TEST_Func(jsapi) {
+	Array<String> argv_arr;
 
 	for (int i = 1; i < argc; i++)
-		argv.push(_[i]);
+		argv_arr.push(argv[i]);
 
 #if USE_INSPECT
-	argv.push("--inspect-brk=0.0.0.0:9229");
+	argv_arr.push("--inspect-brk=0.0.0.0:9229");
 #endif
 
 #if USE_REMOTE
-	js::Start("http://" IP_REMOTE ":1026/jsapi", argv);
+	js::Start("http://" IP_REMOTE ":1026/jsapi", argv_arr);
 #else
-	js::Start(fs_resources("jsapi"), argv);
+	js::Start(fs_resources("jsapi"), argv_arr);
 #endif
 }
 #endif

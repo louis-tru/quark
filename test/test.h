@@ -1,4 +1,4 @@
-/* ***** BEGIN LICENSE BLOCK *****
+	/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, blue.chu
@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <src/util/util.h>
-#include <src/util/string.h>
-#include "../test.h"
+#ifndef __qk__test__
+#define __qk__test__
 
-using namespace qk;
+typedef void (*TestAssert)(const char* tag, bool cond, const char* msg, ...);
+typedef void (*TestFunc)(int argc, char **argv, const char* func, TestAssert assert);
 
-Qk_TEST_Func(util) {
-	int64_t i = parse_time("    Sat, 27 Oct 2018 11:32:18 GMT     ");
-	Qk_Log("UTIL %lld", i);
-}
+#define Qk_TEST_Func(n) \
+	void test_##n(int argc, char **argv, const char* func, TestAssert assert)
+
+#endif

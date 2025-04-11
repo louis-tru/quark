@@ -3,10 +3,11 @@
 #include <src/ui/view/root.h>
 #include <src/ui/css/css.h>
 #include <src/ui/action/keyframe.h>
+#include "./test.h"
 
 using namespace qk;
 
-void test_action(int argc, char **argv) {
+Qk_TEST_Func(action) {
 	App app;
 	auto div_cls = app.styleSheets()->search(".div_cls", true).front();
 	div_cls->set_width({ 100, BoxSizeKind::Match });

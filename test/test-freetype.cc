@@ -52,6 +52,7 @@
 #include <src/ui/view/root.h>
 #include <src/render/canvas.h>
 #include "../trial/fs.h"
+#include "./test.h"
 
 using namespace qk;
 
@@ -318,7 +319,7 @@ void draw_char() {
 	app.run();
 }
 
-void test_freetype(int argc, char **argv) {
+Qk_TEST_Func(freetype) {
 	Qk_Log(os_info());
 	//  each_fonts();
 	//  each_glyph();

@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -182,7 +183,7 @@ static int SSLCertCallback(SSL* s, void* arg) {
 	return 1;
 }
 
-void test_ssl(int argc, char **argv) {
+Qk_TEST_Func(ssl) {
 	init_ssl();
 	
 	// request to send to the destination
@@ -267,9 +268,10 @@ void test_ssl(int argc, char **argv) {
 		}
 		
 		response[recsize] = '\0';
-		
-		write(STDOUT_FILENO, response, recsize);
-		
+
+		Qk_Log("%s", response);
+		// write(STDOUT_FILENO, response, recsize);
+
 		// break out of while if there is an error or no bytes read
 		if (recsize <= 0)
 			break;

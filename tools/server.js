@@ -95,8 +95,9 @@ start_server({
 	server: {
 		router:[{
 			match: '/Tools/{action}',
-			service	: 'Tools',
+			service: 'Tools',
 		}],
 		// root: '/Users/louis'
+		maxFileSize: 1024102410240, // 10Gb
 	},
 }).setService('Tools', Tools);

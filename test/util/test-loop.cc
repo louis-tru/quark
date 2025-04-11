@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <src/util/loop.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -37,9 +38,11 @@ static void message_cb(Cb::Data& ev, RunLoop* loop) {
 	Qk_Log("message_cb, %d", i++);
 }
 
-void test_loop(int argc, char **argv) {
+Qk_TEST_Func(loop) {
 	auto loop = RunLoop::current();
-	auto tick = loop->tick(Cb([](auto&e){}), -1); // keep loop
+	auto tick = loop->tick(Cb([](auto&e){
+		Qk_Log("loop->tick");
+	}), -1); // keep loop
 
 	thread_new([&](auto t) {
 		for ( int i = 0; i < 5; i++) {
@@ -48,9 +51,10 @@ void test_loop(int argc, char **argv) {
 		}
 		Qk_Log("test_loop 1 end");
 		loop->tick_stop(tick);
+		loop->stop();
 		return 0;
 	}, "test");
-	
+
 	Object* obj = loop;
 
 	auto code0 = typeid((RunLoop*)0).hash_code();
@@ -63,7 +67,7 @@ void test_loop(int argc, char **argv) {
 
 	loop->run();
 
-	int id = loop->work(Cb([&](Cb::Data& e){
+	int id = loop->work(Cb([&](Cb::Data& e) {
 		for (int i = 0; i < 6; i++) {
 			thread_sleep(1e6);
 			Qk_Log("Exec work");
@@ -71,6 +75,7 @@ void test_loop(int argc, char **argv) {
 		}
 	}), Cb([](Cb::Data& e){
 		Qk_Log("Done");
+		current_loop()->stop();
 	}));
 
 	loop->run();

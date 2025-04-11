@@ -28,8 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./test.h"
+
 #if !defined(USE_JS) || defined(USE_JSC)
-void test_v8(int argc, char **argv) {}
+Qk_TEST_Func(v8) {}
 #else
 #include "src/util/util.h"
 #include "src/util/string.h"
@@ -166,7 +168,7 @@ void test_template(Isolate* isolate, Local<Context> ctx) {
 	run_script(isolate, "test()", "test.js");
 }
 
-void test_v8(int argc, char **argv) {
+Qk_TEST_Func(v8) {
 	auto platform = v8::platform::NewDefaultPlatform();
 	v8::V8::InitializePlatform(platform.get());
 	v8::V8::Initialize();

@@ -77,6 +77,11 @@ QkApplicationDelegate* qkappdelegate = nil;
 	Qk_DLog("applicationWillTerminate, triggerUnload");
 }
 
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender {
+	Qk_DLog("applicationShouldTerminate");
+	return NSTerminateNow;
+}
+
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
 	Qk_DLog("applicationShouldTerminateAfterLastWindowClosed, exit application");
 	return YES;
@@ -86,6 +91,12 @@ QkApplicationDelegate* qkappdelegate = nil;
 	Qk_DLog("applicationShouldHandleReopen");
 	return YES;
 }
+
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
+	Qk_DLog("applicationSupportsSecureRestorableState");
+	return YES;
+}
+
 
 @end
 

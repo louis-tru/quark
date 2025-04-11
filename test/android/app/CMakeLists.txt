@@ -53,6 +53,7 @@ add_definitions(
 # unset(TARGET)
 
 add_definitions(-DDEBUG)
+add_definitions(-DUSE_JS)
 
 add_library(quark SHARED
 	../../../src/util/array.cc

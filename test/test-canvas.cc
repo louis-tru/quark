@@ -9,6 +9,7 @@
 #include <src/render/render.h>
 #include <src/render/canvas.h>
 #include <src/render/font/pool.h>
+#include "./test.h"
 
 using namespace qk;
 
@@ -117,7 +118,7 @@ public:
 
 };
 
-void test_canvas(int argc, char **argv) {
+Qk_TEST_Func(canvas) {
 	App app;
 	auto win = Window::Make({.fps=0x0});
 	win->activate();

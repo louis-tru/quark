@@ -31,12 +31,13 @@
 #include "src/util/fs.h"
 #include "src/util/codec.h"
 #include "trial/jsx.h"
+#include "./test.h"
 
 using namespace qk;
 
 #define DEBUG_JSA 1
 
-#define error(err, ...) { Qk_ELog(err, ##__VA_ARGS__); return 1; }
+#define error(err, ...) { Qk_ELog(err, ##__VA_ARGS__); return; }
 
 int transform_js(cString& src, String2 in, Buffer& out, bool jsx, bool clean_comment) {
 	try {
@@ -46,12 +47,13 @@ int transform_js(cString& src, String2 in, Buffer& out, bool jsx, bool clean_com
 			out = codec_encode(kUTF8_Encoding, javascript_transform(in, src, clean_comment));
 		}
 	} catch(Error& err) {
-		error(err);
+		Qk_ELog(err);
+		return 0;
 	}
 	return 0;
 }
 
-int test_jsx(int argc, char* argv[]) {
+Qk_TEST_Func(jsx) {
 	String src, target;
 	if ( DEBUG_JSA || argc < 3 ) {
 		src = fs_resources("jsapi/res/Makefile.dryice.js");
@@ -92,6 +94,4 @@ int test_jsx(int argc, char* argv[]) {
 	if ( r == 0 ) {
 		fs_write_file_sync(target, std::move(out));
 	}
-
-	return r;
 }

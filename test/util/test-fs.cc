@@ -31,24 +31,25 @@
 #include <src/util/fs.h>
 #include <trial/fs.h>
 #include <pwd.h>
+#include "../test.h"
 
 using namespace qk;
 
-void test_fs(int argc, char **argv) {
-	
+Qk_TEST_Func(fs) {
+
 	String test_str = "ABCDEFG";
-	
-	Qk_Log(test_str.lastIndexOf("G", 1));
-	
-	Qk_Log(fs_executable());
-	
-	Qk_Log(fs_cwd());
+
+	Qk_Log("%d", test_str.lastIndexOf("G", 1));
+
+	Qk_Log("%s", *fs_executable());
+
+	Qk_Log("%s", *fs_cwd());
 	
 	if(fs_chdir("/home/louis/www/jsxdev/bin/") == 0){
 		Qk_Log("修改工作路径成功");
 	}
 	
-	Qk_Log(fs_cwd());
+	Qk_Log("%s", *fs_cwd());
 	
 	String str = "/tmp/kkl/";
 	

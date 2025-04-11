@@ -30,27 +30,27 @@
 
 #include "src/util/util.h"
 #include "src/util/array.h"
+#include "../test.h"
 
 using namespace qk;
 
-void test_buffer(int argc, char **argv) {
-	
+Qk_TEST_Func(buffer) {
 	Buffer bf = Buffer::alloc(5);
-	
+
 	bf[0] = 'a';
 	bf[1] = 'b';
 	bf[2] = 'c';
 	bf[3] = 'd';
 	bf[4] = '\0';
-	
+
 	WeakBuffer bf2(bf);
-	
+
 	WeakBuffer bf3(std::move(bf2));
-	
+
 	WeakBuffer bf4;
-	
+
 	bf4 = std::move(bf2);
-	
+
 	Qk_Log("%i,%s", *bf, *bf);
 	Qk_Log("%i,%s", *bf2, *bf2);
 	Qk_Log("%i,%s", *bf3, *bf3);

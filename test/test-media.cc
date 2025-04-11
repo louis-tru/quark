@@ -40,6 +40,7 @@
 #include <src/ui/view/free.h>
 #include <src/render/render.h>
 #include <src/render/canvas.h>
+#include "./test.h"
 
 using namespace qk;
 
@@ -190,7 +191,7 @@ public:
 			src->stop();
 			return;
 		}
-		_audio = MediaCodec::create(kAudio_MediaType, src);
+		//_audio = MediaCodec::create(kAudio_MediaType, src);
 		if (_audio && _audio->open()) {
 			_pcm = PCMPlayer::create(_audio->stream());
 		}
@@ -363,7 +364,7 @@ private:
 	int64_t  _seek = 0;
 };
 
-int test_media(int argc, char **argv) {
+Qk_TEST_Func(media) {
 	App app;
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {400,400}}});
 	win->activate();
@@ -382,7 +383,9 @@ int test_media(int argc, char **argv) {
 	//v->set_src("/Users/louis/Movies/[电影天堂www.dytt89.com]多哥BD中英双字.mp4/[电影天堂www.dytt89.com]多哥BD中英双字.mp4");
 	//v->set_src("/Users/louis/Movies/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4/[www.domp4.cc]神迹.2004.HD1080p.中文字幕.mp4");
 	//v->set_src("/Users/louis/Movies/巡回检察组/巡回检察组.2020.EP01-43.HD1080P.X264.AAC.Mandarin.CHS.BDE4/巡回检察组.2020.EP03.HD1080P.X264.AAC.Mandarin.CHS.BDE4.mp4");
-#if Qk_LINUX
+#if Qk_ANDROID
+	v->set_src("/storage/emulated/0/Movies/remember.mp4");
+#elif Qk_LINUX
 	v->set_src(fs_home_dir("Videos/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4"));
 #else
 	v->set_src(fs_home_dir("Movies/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4/[电影天堂www.dytt89.com]记忆-2022_HD中英双字.mp4"));
@@ -402,6 +405,4 @@ int test_media(int argc, char **argv) {
 	}), 2e6);
 
 	app.run();
-	
-	return 0;
 }

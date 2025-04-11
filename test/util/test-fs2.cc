@@ -30,6 +30,7 @@
 
 #include <src/util/fs.h>
 #include <src/util/loop.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -80,7 +81,7 @@ class TestAsyncFile: public File, public File::Delegate {
 
 };
 
-void test_fs2(int argc, char **argv) {
+Qk_TEST_Func(fs2) {
 
 	Qk_Log("START");
 	

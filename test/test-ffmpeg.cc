@@ -28,16 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-extern "C" {
-#include <libavutil/imgutils.h>
-#include <libavutil/samplefmt.h>
-#include <libavutil/timestamp.h>
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-//#include <libavcodec/fft.h>
-}
 #include <src/util/util.h>
 #include <src/util/fs.h>
+#include "./test.h"
+
+extern "C" {
+	#include <libavutil/imgutils.h>
+	#include <libavutil/samplefmt.h>
+	#include <libavutil/timestamp.h>
+	#include <libavformat/avformat.h>
+	#include <libavcodec/avcodec.h>
+	//#include <libavcodec/fft.h>
+}
 
 using namespace qk;
 
@@ -265,10 +267,9 @@ static int get_format_from_sample_fmt(const char **fmt,
 	return -1;
 }
 
-int test_ffmpeg(int argc, char **argv)
-{
+Qk_TEST_Func(ffmpeg) {
 	int ret = 0, got_frame;
-	
+
 	src_filename = "http://111.202.85.144/vipzjhls.tc.qq.com/mp4/33/qUL265hYAO3TkQqGhBicN5IzSXXUTqcfJDetSNMwjcKaL-GFIHMCwA/TxH54-BdsMklq4rMM_ACe5essCBtzWwRGq-y6sZYTv668hrxWffpUYu5tNUb14hmK1Qk-69UPfmgErMeSNR1nRvA7xVslsXcyr1FQ0THj7YI64E1Af50Yg/d00161yroup.p201.mp4/d00161yroup.p201.mp4.av.m3u8?fn=p201&amp;bw=800&amp;st=0&amp;et=0&amp;iv=&amp;ivfn=&amp;ivfc=&amp;ivt=&amp;ivs=&amp;ivd=&amp;ivl=&amp;ftype=mp4&amp;fbw=93&amp;type=m3u8&amp;drm=0&amp;sdtfrom=v3000&amp;platform=10403&amp;appver=5.3.0.16792&amp;projection=dlna";
 	
 	String video_dst = fs_fallback_c(fs_temp("q0021regv7h.320092.ts.m3u8.video.dst"));
@@ -427,6 +428,4 @@ end:
 		fclose(audio_dst_file);
 	av_frame_free(&frame);
 	av_free(video_dst_data[0]);
-	
-	return ret < 0;
 }

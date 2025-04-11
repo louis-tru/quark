@@ -35,6 +35,7 @@
 #include <src/ui/app.h>
 #include <src/ui/window.h>
 #include <src/ui/view/root.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -84,7 +85,7 @@ public:
 	}
 };
 
-void test_https(int argc, char **argv) {
+Qk_TEST_Func(https) {
 	Qk_Log("\nHttpClientRequest:\n");
 
 	Sp<TestHttpClient> cl = new TestHttpClient();

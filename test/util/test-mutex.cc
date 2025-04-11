@@ -30,6 +30,7 @@
 
 #include <src/util/util.h>
 #include <src/util/loop.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -71,7 +72,7 @@ void test_idle()
 	Qk_Log("idle,%d", cnt);
 }
 
-void test_mutex(int argc, char **argv) {
+Qk_TEST_Func(mutex) {
 	{
 		run_flag = true;
 		std::thread thr(test_mutex0);

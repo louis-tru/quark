@@ -92,6 +92,11 @@ namespace qk {
 		ZipInSearchPath* as_zip() override {
 			return this;
 		}
+		inline bool open() {
+			if (m_zip.open())
+				return true;
+			return Qk_ELog("Cannot open zip file, `%s`", m_zip.path().c_str()), false;
+		}
 		static String formatPath(cString& path1, cString& path2) {
 			return fs_format_part_path(String(path1).append('/').append(path2));
 		}
@@ -101,8 +106,6 @@ namespace qk {
 			, m_zip_path(zip_path)
 			, m_zip (zip_path)
 		{
-			auto isOpen = m_zip.open();
-			Qk_ASSERT( isOpen, "Cannot open zip file, `%s`", *zip_path );
 		}
 		~ZipInSearchPath() = default;
 		String m_zip_path;
@@ -175,7 +178,12 @@ namespace qk {
 				}
 			}
 		}
-		m_search_paths.pushBack(new FileSearch::ZipInSearchPath(_zip_path, _path));
+		auto p = new FileSearch::ZipInSearchPath(_zip_path, _path);
+		if (p->open()) {
+			m_search_paths.pushBack(p);
+		} else {
+			delete p;
+		}
 	}
 
 	Array<String> FileSearch::get_search_paths() const {

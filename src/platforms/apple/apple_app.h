@@ -75,7 +75,12 @@ namespace qk {
 /**
  * @interface QkApplicationDelegate
 */
-@interface QkApplicationDelegate: UIResponder<UIApplicationDelegate>
+@interface QkApplicationDelegate:
+#if Qk_MacOS
+NSObject<UIApplicationDelegate>
+#else
+UIResponder<UIApplicationDelegate>
+#endif
 @property (assign, nonatomic, readonly) qk::Application *host;
 @property (assign, nonatomic, readonly) UIApplication *app;
 @end

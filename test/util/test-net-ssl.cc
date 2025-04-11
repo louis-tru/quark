@@ -30,6 +30,7 @@
 
 #include "src/util/net.h"
 #include <uv.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -40,7 +41,11 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 		open();
 		//set_timeout(2e6); // 2s
 	}
-	
+
+	~MySSLSocket() {
+		current_loop()->stop();
+	}
+
 	void send_http() {
 		
 		String header =
@@ -61,13 +66,12 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 	virtual void trigger_socket_close(Socket* stream) {
 		Qk_Log("Close Socket");
 		Release(this);
-		//RunLoop::current()->stop();
 	}
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
 		Qk_Log("Error, %d, %s", error.code(), error.message().c_str());
 	}
 	virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
-		//LOG( String(buffer.value(), buffer.length()) );
+		//Qk_Log( String(buffer.val(), buffer.length()) );
 		Qk_Log("DATA.., %d", buffer.length());
 	}
 	virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int mark) {
@@ -79,7 +83,7 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 	}
 };
 
-void test_net_ssl(int argc, char **argv) {
+Qk_TEST_Func(net_ssl) {
 	New<MySSLSocket>();
 	RunLoop::current()->run();
 }

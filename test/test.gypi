@@ -74,6 +74,7 @@
 			'test-jsc.cc',
 			'test-jsapi.cc',
 			'test.cc',
+			'test.h',
 		],
 		'conditions': [
 			['os in "mac ios"', {

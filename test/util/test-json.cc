@@ -32,10 +32,11 @@
 #include <src/util/string.h>
 #include <src/util/event.h>
 #include <map>
+#include "../test.h"
 
 using namespace qk;
 
-void test_json(int argc, char **argv) {
+Qk_TEST_Func(json) {
 	
 	String str1("100");
 	String str2 = str1;

@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./test.h"
+
 #if defined(__linux__) and !defined(__ANDROID__)
 
 extern "C" {
@@ -160,7 +162,7 @@ int init_ffmpeg_alsa(AudioState* is, char* filepath)
 	return 0;
 }
 
-int test_alsa_ff(int argc, char **argv)
+Qk_TEST_Func(alsa_ff)
 {
 	int ret;
 	FILE* fp; 
@@ -259,9 +261,7 @@ int test_alsa_ff(int argc, char **argv)
 	avformat_close_input(&is->pFormatCtx);
 	snd_pcm_close(is->pcm);
 	fclose(fp);
-
-	return 0;
 }
 #else
-int test_alsa_ff(int argc, char **argv){return 0;}
+Qk_TEST_Func(alsa_ff){}
 #endif

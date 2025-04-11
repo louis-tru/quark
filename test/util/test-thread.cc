@@ -34,6 +34,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <functional>
+#include "../test.h"
 
 using namespace qk;
 
@@ -105,7 +106,7 @@ void test_for() {
 	
 }
 
-void test_thread(int argc, char **argv) {
+Qk_TEST_Func(thread) {
 	
 	std::thread::id id = std::this_thread::get_id();
 	{

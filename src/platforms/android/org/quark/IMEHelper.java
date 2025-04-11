@@ -79,13 +79,6 @@ public class IMEHelper extends EditText {
 		}
 		// implements InputConnection
 
-		public CharSequence getTextBeforeCursor(int n, int flags) {
-			if ( _host._text.length() > 4 ) {
-				return _host._text.substring(_host._text.length() - 4, _host._text.length());
-			}
-			return _host._text;
-		}
-
 		public CharSequence getTextAfterCursor(int n, int flags) {
 			return "";
 		}
@@ -102,59 +95,12 @@ public class IMEHelper extends EditText {
 			return null;
 		}
 
-		public boolean deleteSurroundingText(int beforeLength, int afterLength) {
-			if (_host._text.length() > beforeLength) {
-				_host._text.delete(_host._text.length() - beforeLength, _host._text.length());
-			} else {
-				_host._text.delete(0, _host._text.length());
-			}
-			if ( beforeLength == 1 ) {
-				dispatchIMEDelete(-1);
-			} else {
-				dispatchIMEDelete(-beforeLength);
-			}
-			return true;
-		}
-
-		public boolean deleteSurroundingTextInCodePoints(int beforeLength, int afterLength) {
-			return true;
-		}
-
-		public boolean setComposingText(CharSequence text, int newCursorPosition) {
-			_host._marked = text;
-			dispatchIMEMarked(text.toString());
-			return true;
-		}
-
 		public boolean setComposingRegion(int start, int end) {
 			return true;
 		}
 
 		public boolean finishComposingText() {
 			 _host.finish();
-			return true;
-		}
-
-		private void ime_insert(String s) {
-			_host._text.append(s);
-			if ( _host._marked == null ) {
-				dispatchIMEInsert(s.toString());
-			} else {
-				_host._marked = null;
-				dispatchIMEUnmark(s.toString());
-			}
-		}
-
-		public boolean commitText(CharSequence text, int newCursorPosition) {
-			boolean ascii = text.length() == 1 && text.charAt(0) < 128; // ascii
-
-			if ( ascii ) { // ascii
-				dispatchKeyboardInput(text.charAt(0), true, true, 0, -1, 0);
-			}
-			ime_insert(text.toString());
-			if ( ascii ) { // ascii
-				dispatchKeyboardInput(text.charAt(0), true, false, 0, -1, 0);
-			}
 			return true;
 		}
 
@@ -175,14 +121,6 @@ public class IMEHelper extends EditText {
 			return true;
 		}
 
-		public boolean performEditorAction(int editorAction) {
-			_host._text.append("\n");
-			dispatchKeyboardInput(13, true, true, 0, -1, 0);
-			dispatchIMEInsert("\n");
-			dispatchKeyboardInput(13, true, false, 0, -1, 0);
-			return true;
-		}
-
 		public boolean performContextMenuAction(int id) {
 			return true;
 		}
@@ -195,34 +133,7 @@ public class IMEHelper extends EditText {
 			return false;
 		}
 
-		public boolean sendKeyEvent(KeyEvent event) {
-			dispatchKeyboardInput(
-							event.getKeyCode(), false,
-							event.getAction() == KeyEvent.ACTION_DOWN,
-							event.getRepeatCount(), event.getDeviceId(), event.getSource()
-			);
-
-			if ( event.getAction() == KeyEvent.ACTION_DOWN ) {
-				if ( event.getKeyCode() == KeyEvent.KEYCODE_DEL ) {
-					if (_host._text.length() > 0) {
-						_host._text.deleteCharAt(_host._text.length() - 1);
-					}
-					dispatchIMEDelete(-1);
-				} else {
-					if ( event.getKeyCode() >= KeyEvent.KEYCODE_0 && event.getKeyCode() <= KeyEvent.KEYCODE_9 ) {
-						char c = '0';
-						c += (event.getKeyCode() - KeyEvent.KEYCODE_0);
-						ime_insert(Character.toString(c));
-					} else if ( event.getKeyCode() >= KeyEvent.KEYCODE_A && event.getKeyCode() <= KeyEvent.KEYCODE_Z ) {
-						char c = 'A';
-						c += (event.getKeyCode() - KeyEvent.KEYCODE_A);
-						ime_insert(Character.toString(c));
-					} else {
-						// TODO..
-						Log.d("IMEHelper", String.format("keycode:%s", event.getKeyCode()));
-					}
-				}
-			}
+		public boolean deleteSurroundingTextInCodePoints(int beforeLength, int afterLength) {
 			return true;
 		}
 
@@ -248,6 +159,94 @@ public class IMEHelper extends EditText {
 
 		public void closeConnection() {
 			_host.finish();
+		}
+
+		public CharSequence getTextBeforeCursor(int n, int flags) {
+			if ( _host._text.length() > 4 ) {
+				return _host._text.substring(_host._text.length() - 4, _host._text.length());
+			}
+			return _host._text;
+		}
+
+		public boolean deleteSurroundingText(int beforeLength, int afterLength) {
+			if (_host._text.length() > beforeLength) {
+				_host._text.delete(_host._text.length() - beforeLength, _host._text.length());
+			} else {
+				_host._text.delete(0, _host._text.length());
+			}
+			if ( beforeLength == 1 ) {
+				dispatchIMEDelete(-1);
+			} else {
+				dispatchIMEDelete(-beforeLength);
+			}
+			return true;
+		}
+
+		public boolean setComposingText(CharSequence text, int newCursorPosition) {
+			_host._marked = text;
+			dispatchIMEMarked(text.toString());
+			return true;
+		}
+
+		public boolean performEditorAction(int editorAction) {
+			dispatchKeyboardInput(13, true, true, 0, -1, 0); // Send enter
+			_host._text.append("\n");
+			dispatchIMEInsert("\n");
+			dispatchKeyboardInput(13, true, false, 0, -1, 0);
+			return true;
+		}
+
+		private void ime_insert(String s) {
+			_host._text.append(s);
+			if ( _host._marked == null ) {
+				dispatchIMEInsert(s.toString());
+			} else {
+				_host._marked = null;
+				dispatchIMEUnmark(s.toString());
+			}
+		}
+
+		public boolean commitText(CharSequence text, int newCursorPosition) {
+			boolean ascii = text.length() == 1 && text.charAt(0) < 128; // ascii
+			if (ascii) { // ascii
+				dispatchKeyboardInput(text.charAt(0), true, true, 0, -1, 0);
+				ime_insert(text.toString());
+				dispatchKeyboardInput(text.charAt(0), true, false, 0, -1, 0);
+			} else {
+				ime_insert(text.toString());
+			}
+			return true;
+		}
+
+		public boolean sendKeyEvent(KeyEvent event) {
+			int keyCode = event.getKeyCode();
+			dispatchKeyboardInput(
+							keyCode, false,
+							event.getAction() == KeyEvent.ACTION_DOWN,
+							event.getRepeatCount(), event.getDeviceId(), event.getSource()
+			);
+
+			if ( event.getAction() == KeyEvent.ACTION_DOWN ) {
+				if ( keyCode == KeyEvent.KEYCODE_DEL ) {
+					if (_host._text.length() > 0) {
+						_host._text.deleteCharAt(_host._text.length() - 1);
+					}
+					dispatchIMEDelete(-1);
+				} else if (keyCode == KeyEvent.KEYCODE_ENTER) { // insert enter
+					ime_insert("\n");
+				} else if ( keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 ) {
+					char c = '0';
+					c += (keyCode - KeyEvent.KEYCODE_0);
+					ime_insert(Character.toString(c));
+				} else if ( keyCode >= KeyEvent.KEYCODE_A && keyCode <= KeyEvent.KEYCODE_Z ) {
+					char c = 'A';
+					c += (keyCode - KeyEvent.KEYCODE_A);
+					ime_insert(Character.toString(c));
+				}else {
+					Log.d("IMEHelper", String.format("keycode:%s", keyCode));
+				}
+			}
+			return true;
 		}
 
 	}

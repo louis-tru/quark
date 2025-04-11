@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "src/os/os.h"
+#include "../test.h"
 
 using namespace qk;
 
@@ -46,7 +47,7 @@ class TestSizeOf {
 
 typedef TestSizeOf* TestSizeOfPtr;
 
-void test_sizeof(int argc, char **argv) {
+Qk_TEST_Func(sizeof) {
 	
 	TestSizeOfPtr of = TestSizeOfPtr();
 

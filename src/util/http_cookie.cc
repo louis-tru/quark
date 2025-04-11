@@ -48,6 +48,8 @@ namespace qk {
 	static cString DOMAIN_STR("domain");
 	static cString SECURE("secure");
 
+	int bp_get_str(bp_db_t *tree, const bp_key_t* key, String *value);
+
 	static String get_db_filename() {
 		return fs_temp(".cookie.bp");
 	}
@@ -140,7 +142,7 @@ namespace qk {
 	}
 
 	static bool http_cookie_fuzz_query(cString& fuzz, bool reverse, String* keyOut) {
-		bp_value_t value;
+		bp_value_t val;
 		bp_set_compare_cb(_db, [](void* arg, const bp_key_t *a, const bp_key_t *b) {
 			int r = bp__fuzz_compare_cb(arg, a, b);
 			if (r == 0) {
@@ -154,11 +156,11 @@ namespace qk {
 		}, keyOut);
 
 		// fuzz query begin or end node
-		bp_key_t bp_key = { fuzz.length(), (Char*)*fuzz };
+		bp_key_t bp_key = { fuzz.length(), (char*)*fuzz };
 		int r = reverse ?
-			bp_get_reverse(_db, &bp_key, &value): bp_get(_db, &bp_key, &value);
+			bp_get_reverse(_db, &bp_key, &val): bp_get(_db, &bp_key, &val);
 
-		return r == BP_OK ? (free(value.value), true): false;
+		return r == BP_OK ? (free(val.value), true): false;
 	}
 
 	// ------------------------------------------------------------------------------------
@@ -175,9 +177,9 @@ namespace qk {
 			bp_key_t bp_key = { key.length(), (Char*)*key };
 			bp_key_t val;
 			bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
-
-			if (bp_get(_db, &bp_key, &val) == BP_OK) {
-				http_cookie_check_expires(Buffer(val.value, uint32_t(val.length)).collapseString(), &result);
+			String s;
+			if (bp_get_str(_db, &bp_key, &s) == BP_OK) {
+				http_cookie_check_expires(s, &result);
 			}
 			if (i == len)
 				break;

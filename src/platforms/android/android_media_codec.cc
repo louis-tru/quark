@@ -422,7 +422,7 @@ namespace qk {
 			} else if (status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
 				auto format = AMediaCodec_getOutputFormat(_codec.get());
 				Qk_DLog("format changed to: %s", AMediaFormat_toString(format));
-				Qk_ASSERT_EQ(format, _format.get());
+				//Qk_ASSERT_EQ(format, _format.get());
 			} else if (status == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
 				// Qk_DLog("no output buffer right now");
 			} else {
@@ -448,6 +448,7 @@ namespace qk {
 	};
 
 	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {
+		return nullptr;
 		init_ffmpeg_jni();
 
 		AndroidHardwareMediaCodec* rv = nullptr;

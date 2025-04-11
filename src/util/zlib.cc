@@ -483,8 +483,8 @@ namespace qk {
 		return false;
 	}
 
-	bool ZipWriter::write(WeakBuffer data) {
-		return zipWriteInFileInZip((zipFile*)_zipp, data.val(), data.length()) == 0;
+	bool ZipWriter::write(cVoid* data, uint32_t length) {
+		return zipWriteInFileInZip((zipFile*)_zipp, data, length) == 0;
 	}
 
 	bool ZipWriter::close_current_file() {

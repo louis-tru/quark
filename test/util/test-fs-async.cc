@@ -30,6 +30,7 @@
 
 #include "src/util/util.h"
 #include "src/util/fs.h"
+#include "../test.h"
 
 using namespace qk;
 
@@ -42,7 +43,7 @@ class AsyncFileRead: public File, public File::Delegate {
 	
 	virtual ~AsyncFileRead() {
 		Qk_Log("Delete");
-		fs_read_file(fs_resources("res/bg.svg"), Callback<Buffer>([](auto& evt) {
+		fs_reader()->read_file(fs_resources("jsapi/res/bg.svg"), Callback<Buffer>([](auto& evt) {
 			if ( evt.error ) {
 				Qk_Log("ERR, %s", evt.error->message().c_str());
 			} else {
@@ -110,7 +111,7 @@ class AsyncFileWrite: public File, public File::Delegate {
 	virtual void trigger_file_read(File* file, Buffer& buffer, int mark) {}
 };
 
-void test_fs_async(int argc, char **argv) {
+Qk_TEST_Func(fs_async) {
 	New<AsyncFileWrite>(fs_documents("test2.txt"))->open(FOPEN_A);
 	RunLoop::current()->run();
 }

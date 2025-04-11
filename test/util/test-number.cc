@@ -32,6 +32,7 @@
 #include <src/util/loop.h>
 #include <src/util/array.h>
 #include <src/os/os.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -229,7 +230,7 @@ uint64_t test_operation_assign() {
 	return s2 - s1;
 }
 
-void test_number(int argc, char **argv) {
+Qk_TEST_Func(number) {
 	double d = -500;
 
 	char c = d;

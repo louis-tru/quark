@@ -30,6 +30,7 @@
 
 #include "src/util/net.h"
 #include <uv.h>
+#include "../test.h"
 
 using namespace qk;
 
@@ -88,7 +89,7 @@ void echo_ipv4(hostent* host) {
 
 void test_net_parse_host(cString& host_str, int af) {
 	hostent* host = (af == -1) ? gethostbyname(*host_str) : gethostbyname2( *host_str, af );
-	
+
 	if ( host ) {
 		Qk_Log("name, %s", host->h_name);
 		if ( host->h_addrtype == AF_INET ) {
@@ -108,19 +109,22 @@ class MySocket: public Socket, public Socket::Delegate {
 		open();
 		set_timeout(2e6); // 2s
 	}
+
+	~MySocket() {
+		current_loop()->stop();
+	}
 	
 	void send_http() {
-		
 		String header =
 		"GET / HTTP/1.1\r\n"
 		"Host: www.iqiyi.com\r\n"
 		"Connection: keep-alive\r\n"
 		"Accept: */*\r\n"
 		"User-Agent: Mozilla/5.0 AppleWebKit quark Net Test\r\n\r\n";
-		
+
 		write(header.collapse());
 	}
-	
+
 	virtual void trigger_socket_open(Socket* stream) {
 		Qk_Log("Open Socket");
 		send_http();
@@ -128,7 +132,6 @@ class MySocket: public Socket, public Socket::Delegate {
 	virtual void trigger_socket_close(Socket* stream) {
 		Qk_Log("Close Socket");
 		Release(this);
-		//RunLoop::current()->stop();
 	}
 	virtual void trigger_socket_error(Socket* stream, cError& error) {
 		Qk_Log("Error, %d, %s", error.code(), error.message().c_str());
@@ -146,7 +149,7 @@ class MySocket: public Socket, public Socket::Delegate {
 	}
 };
 
-void test_net(int argc, char **argv) {
+Qk_TEST_Func(net) {
 	test_net_parse_host("v.qq.com", AF_INET);
 	test_net_parse_host("google.com", AF_INET6);
 	test_net_parse_host("google.com", -1);

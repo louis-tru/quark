@@ -33,23 +33,24 @@
 #include <src/util/list.h>
 #include <src/util/string.h>
 #include <src/util/event.h>
+#include "../test.h"
 
 using namespace qk;
 
-void test_event(int argc, char **argv) {
-	
+Qk_TEST_Func(event) {
+
 	EventNoticer<Event<void, int>> onTest;
-	
+
 	onTest.on([](Event<void, int>& evt) {
 		Qk_Log("data:%d", evt.data());
 	});
-	
+
 	onTest.on([](Event<void, int>& evt) {
 		Qk_Log("hh:%d", evt.data());
 	});
-	
+
 	Qk_Log("done");
-	
+
 	const Dict<String, String> map;
 	
 	map.begin();

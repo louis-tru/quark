@@ -2,10 +2,11 @@
 #include <src/ui/window.h>
 #include <src/ui/view/root.h>
 #include <src/ui/css/css.h>
+#include "./test.h"
 
 using namespace qk;
 
-void test_css(int argc, char **argv) {
+Qk_TEST_Func(css) {
 	App app;
 	// init css
 	//auto csss = app.styleSheets()->search(".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:active .aa.bb.cc");

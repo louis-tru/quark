@@ -31,10 +31,11 @@
 #include <src/util/zlib.h>
 #include <zlib.h>
 #include <map>
+#include "../test.h"
 
 using namespace qk;
 
-void test_zlib (int argc, char **argv) {
+Qk_TEST_Func(zlib) {
 	
 	std::map<String, int> map;
 	
@@ -81,7 +82,7 @@ void test_zlib (int argc, char **argv) {
 	
 	Qk_Log("K\n");
 	
-	GZip gzip("/tmp/test.gz");
+	GZip gzip(fs_documents("test.gz"));
 	Qk_Log(gzip.open());
 	
 	Qk_Log(gzip.write(hello, uint(len - 1)));
@@ -99,20 +100,20 @@ void test_zlib (int argc, char **argv) {
 	Qk_Log("\nTEST zip\n");
 	
 	{
-		ZipWriter writer("/tmp/test.zip");
+		ZipWriter writer(fs_documents("test.zip"));
 		writer.open();
 		Qk_Log(writer.add_file("aa.txt"));
-		Qk_Log(writer.write(WeakBuffer("aa.txt", 6)));
+		Qk_Log(writer.write(WeakBuffer("------------- aa.txt", 21).buffer()));
 		Qk_Log(writer.add_file("bb.txt"));
-		Qk_Log(writer.write(WeakBuffer("bb.txt", 6)));
+		Qk_Log(writer.write(WeakBuffer("------------- bb.txt", 21).buffer()));
 		Qk_Log(writer.add_file("cc.txt"));
-		Qk_Log(writer.write(WeakBuffer("cc.txt", 6)));
+		Qk_Log(writer.write(WeakBuffer("------------- cc.txt", 21).buffer()));
 		Qk_Log(writer.add_file("dd.txt"));
-		Qk_Log(writer.write(WeakBuffer("dd.txt", 6)));
+		Qk_Log(writer.write(WeakBuffer("------------- dd.txt", 21).buffer()));
 	}
 
 	{
-		ZipReader reader("/tmp/test.zip");
+		ZipReader reader(fs_documents("test.zip"));
 		reader.open();
 		char str2[101] = { 0 };
 		Qk_Log(reader.read(str2, 100));

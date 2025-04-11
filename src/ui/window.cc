@@ -327,7 +327,7 @@ namespace qk {
 			_fsp = _fspTick;
 			_fspTick = 0;
 			_fspTime = time;
-			//Qk_DLog("fps: %d", _fsp);
+			Qk_DLog("fps: %d", _fsp);
 		}
 		_fspTick++;
 

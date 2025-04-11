@@ -79,7 +79,7 @@ namespace qk {
 			uint16_t  fps; // init window render fsp limit
 			Rect      frame; // init window params
 			String    title; // init window title
-			Color     backgroundColor; // init window background color
+			Color     backgroundColor={255,255,255,255}; // init window background color
 			Color     navigationColor={0,0,0,0}; // Is need draw navigation buttons for android.
 			// Not draw navigation, if settings opacity as zero
 		};

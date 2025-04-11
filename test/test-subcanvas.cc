@@ -5,6 +5,7 @@
 #include <src/ui/view/root.h>
 #include <src/render/render.h>
 #include <src/render/canvas.h>
+#include "./test.h"
 
 using namespace qk;
 
@@ -44,7 +45,7 @@ public:
 	}
 };
 
-void test_subcanvas(int argc, char **argv) {
+Qk_TEST_Func(subcanvas) {
 	App app;
 	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {500,500}}});
 	win->activate();

@@ -29,10 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "src/util/storage.h"
+#include "../test.h"
 
 using namespace qk;
 
-void test_localstorage(int argc, char **argv) {
+Qk_TEST_Func(localstorage) {
 	
 	Qk_Log(storage_get("test2"));
 	

@@ -29,14 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <src/util/http.h>
+#include "../test.h"
 
 using namespace qk;
 
-void test_http3(int argc, char **argv) {
+Qk_TEST_Func(http3) {
 	// Qk_Log(http_get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
 	// Qk_Log(http_get_sync("https://fanyi.baidu.com/mtpe-individual/multimodal#/"));
 	http_get("https://fanyi.baidu.com/mtpe-individual/multimodal#/", HttpCb([](auto d) {
-		Qk_Log(d.data->data);
+		Qk_Log("Length: %d\n%s", d.data->data.length(), d.data->data.val());
+		current_loop()->stop();
 	}));
-	RunLoop::current()->run();
+	current_loop()->run();
 }

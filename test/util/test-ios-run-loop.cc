@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "../test.h"
 #include <src/util/macros.h>
 #if Qk_APPLE
 #include <src/util/util.h>
@@ -43,32 +44,30 @@ static void _perform(void *info __unused) {
 static void _timer(CFRunLoopTimerRef timer __unused, void *info) {
 	printf("hello1\n");
 	CFRunLoopSourceRef source = (CFRunLoopSourceRef)info;
-	CFRunLoopSourceSignal(source);
+	//CFRunLoopSourceSignal(source);
+	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-void test_ios_run_loop(int argc, char **argv) {
-	CFRunLoopSourceRef source;
+Qk_TEST_Func(ios_run_loop) {
 	CFRunLoopSourceContext source_context;
-	CFRunLoopTimerRef timer;
-	CFRunLoopTimerContext timer_context;
-	
 	bzero(&source_context, sizeof(source_context));
 	source_context.perform = _perform;
-	source = CFRunLoopSourceCreate(NULL, 0, &source_context);
+	CFRunLoopSourceRef source = CFRunLoopSourceCreate(NULL, 0, &source_context);
 	//
+	CFRunLoopTimerContext timer_context;
 	bzero(&timer_context, sizeof(timer_context));
 	timer_context.info = source;
-	timer = CFRunLoopTimerCreate(NULL, CFAbsoluteTimeGetCurrent(), 1, 0, 0, _timer, &timer_context);
-	
+	CFRunLoopTimerRef timer = CFRunLoopTimerCreate(NULL, CFAbsoluteTimeGetCurrent(), 1, 0, 0, _timer, &timer_context);
+
 	std::thread([&]() {
 		CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopCommonModes);
 		CFRunLoopRun();
-	}).detach();
-	
-	
-	CFRunLoopContainsSource(CFRunLoopGetCurrent(), source, kCFRunLoopCommonModes);
-	CFRunLoopRun();
+	}).join();
+
+	//CFRunLoopContainsSource(CFRunLoopGetCurrent(), source, kCFRunLoopCommonModes);
+	//CFRunLoopRun();
+	Qk_Log("test_ios_run_loop END");
 }
 #else
-void test_ios_run_loop(int argc, char **argv) {}
+Qk_TEST_Func(ios_run_loop) {}
 #endif

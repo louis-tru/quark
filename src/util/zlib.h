@@ -38,12 +38,12 @@
 namespace qk {
 
 	/**
-	* @func compress
+	* @method compress
 	*/
 	Qk_EXPORT Buffer zlib_compress(WeakBuffer buff, int level = -1);
-	
+
 	/**
-	* @func uncompress
+	* @method uncompress
 	*/
 	Qk_EXPORT Buffer zlib_uncompress(WeakBuffer buff);
 
@@ -81,137 +81,137 @@ namespace qk {
 	class Qk_EXPORT ZipReader: public Object {
 		Qk_HIDDEN_ALL_COPY(ZipReader);
 	public:
-		
+
 		ZipReader(cString& path, cString& passwd = String());
-		
+
 		/**
 		* @destructor
 		*/
 		virtual ~ZipReader();
-		
+
 		/**
-		* @func open
+		* @method open
 		*/
 		bool open();
-		
+
 		/**
-		* @func close
+		* @method close
 		*/
 		bool close();
-		
+
 		/**
-		* @func exists(path) 查找是否存在指定路径的包内文件或目录
+		* @method exists(path) 查找是否存在指定路径的包内文件或目录
 		*/
 		bool exists(cString& path) const;
-		
+
 		/**
-		* @func is_file(path) 测试是否为一个包内文件
+		* @method is_file(path) 测试是否为一个包内文件
 		*/
 		bool is_file(cString& path) const;
-		
+
 		/**
-		* @func is_directory(path) 测试是否为一个包内目录
+		* @method is_directory(path) 测试是否为一个包内目录
 		*/
 		bool is_directory(cString& path) const;
-		
+
 		/**
-		* @func readdir(path)
+		* @method readdir(path)
 		*/
 		Array<Dirent> readdir(cString& path) const;
-		
+
 		/**
-		* @func jump 读取器定位到指定路径的包内文件
+		* @method jump 读取器定位到指定路径的包内文件
 		*/
 		bool jump(cString& path);
-		
+
 		/**
-		* @func first 定位包内的第一个文件
+		* @method first 定位包内的第一个文件
 		*/
 		bool first();
-		
+
 		/**
-		* @func next 定位包内的当前文件的下一个文件
+		* @method next 定位包内的当前文件的下一个文件
 		*/
 		bool next();
-		
+
 		/**
-		* @func read 从文件流中读数据
+		* @method read 从文件流中读数据
 		*/
 		int read(void* buffer, int size);
-		
+
 		/**
-		* @func read Read the all file data and return Data
+		* @method read Read the all file data and return Data
 		*/
 		Buffer read();
-		
+
 		/**
-		* @func read Reads the specified size data
+		* @method read Reads the specified size data
 		*/
 		Buffer read(uint32_t size);
-		
+
 		/**
-		* @func current 当前文件名称
+		* @method current 当前文件名称
 		*/
 		inline String current() const {
 			return _cur_it->value.pathname;
 		}
-		
+
 		/**
-		* @func compressed_size 当前文件的压缩大小
+		* @method compressed_size 当前文件的压缩大小
 		*/
 		inline uint32_t compressed_size() const {
 			return _cur_it->value.compressed_size;
 		}
-		
+
 		/**
-		* @func uncompressed_size 当前文件的压缩前大小
+		* @method uncompressed_size 当前文件的压缩前大小
 		*/
 		inline uint32_t uncompressed_size() const {
 			return _cur_it->value.uncompressed_size;
 		}
-		
+
 		/**
-		* @func path()
+		* @method path()
 		*/
 		inline String path() const { return _path; }
 
 		/**
-		* @func compatible_path()
+		* @method compatible_path()
 		*/
 		inline String compatible_path() const { return _compatible_path; }
-		
+
 		/**
-		* @func passwd
+		* @method passwd
 		*/
 		inline String passwd() const { return _passwd; }
-		
+
 	private:
 		String _path;   // Zip file path
 		String _compatible_path; // zip:///var/data/test.zip?
 		String _passwd;
-		
+
 		struct _unz_file_pos {
 			size_t pos_in_zip_directory;   /* offset in zip file directory */
 			size_t num_of_file;            /* # of file */
 		};
-		
+
 		struct unz_entry_info {
 			_unz_file_pos  pos;
 			String  pathname;
 			uint32_t  compressed_size;
 			uint32_t  uncompressed_size;
 		};
-		
+
 		typedef Dict<String, unz_entry_info> Info;
 		typedef Dict<String, Array<Dirent>> DirInfo;
 		typedef Info::Iterator iterator;
-		
+
 		void*     _unzp;
 		bool      _is_open;
 		iterator  _cur_it;
 		Info      _file_info;
 		DirInfo   _dir_info;
-	
+
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
@@ -248,68 +248,68 @@ namespace qk {
 			OPEN_MODE_CREATE_AFTER = 1,   // 在存在文件在文件结尾创建zip包,zip包必需存在
 			OPEN_MODE_ADD_IN_ZIP = 2      // 在存在的zip包追加内容,zip包必需存在
 		};
-		
+
 		ZipWriter(cString& path, cString& passwd = String());
 
 		/**
 		* @destructor
 		*/
 		virtual ~ZipWriter();
-		
+
 		/**
-		* @func open
+		* @method open
 		*/
 		bool open(OpenMode mode = OPEN_MODE_CREATE);
-		
+
 		/**
-		* @func close
+		* @method close
 		*/
 		bool close();
-		
+
 		/**
 		* 获取压缩等级
 		* 0 - 9 个压缩等级, 数字越大需要更多处理时间
 		* -1自动,0为不压缩,1最佳速度,9最佳压缩
 		* 默认为-1
 		*
-		* @func level
+		* @method level
 		*/
 		inline int level() const { return _level; }
-		
+
 		/**
-		* @func set_level 设置压缩等级
+		* @method set_level 设置压缩等级
 		*/
 		inline void set_level(int value) { _level = value; }
-		
+
 		/**
-		* @func add_file 在zip包内创建一个新文件
+		* @method add_file 在zip包内创建一个新文件
 		*/
 		bool add_file(cString& path);
-		
+
 		/**
-		* @func write Writes a block of data to the new file
+		* @method write Writes a block of data to the new file
 		*/
-		bool write(WeakBuffer data);
-		
+		bool write(cVoid* data, uint32_t length);
+
 		/**
-		* @func write
+		* @method write
 		*/
-		template<class T> static bool write(const Array<T>& buff) {
+		template<class T> bool write(cArray<T>& buff) {
 			return write(buff.val(), buff.size());
 		}
-		
+
 		/**
-		* @func name 当前新文件名称
+		* @method name 当前新文件名称
 		*/
 		inline String name() const { return _new_name; }
-		
+
 		/**
-		* @func path
+		* @method path
 		*/
 		inline String path() const { return _path; }
-		
+
 		/**
-		* @func passwd
+		* @method passwd
 		*/
 		inline String passwd() const { return _passwd; }
 		

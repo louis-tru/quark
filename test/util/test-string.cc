@@ -34,6 +34,7 @@
 #include <string>
 #include <src/util/string.h>
 #include <src/util/codec.h>
+#include "../test.h"
 
 using namespace std;
 using namespace qk;
@@ -89,7 +90,7 @@ void test2 (const string& str) {
 
 // const static Str s = "op";
 
-void test_string (int argc, char **argv) {
+Qk_TEST_Func(string) {
 	
 	// utf8 / ucs2 / ucs4
 	String2 ucs2 = codec_decode_to_ucs2(kUTF8_Encoding, String("哎呀").array().buffer());

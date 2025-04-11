@@ -27,9 +27,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+#include "./test.h"
 
 #if !defined(USE_JS) || !defined(USE_JSC)
-void test_jsc(int argc, char **argv) {}
+Qk_TEST_Func(jsc) {}
 #else
 #include "src/util/macros.h"
 #ifdef Qk_APPLE
@@ -334,7 +335,7 @@ static void test_jsc_proxy(JSGlobalContextRef ctx, JSObjectRef global) {
 		Qk_Log(to_string_utf8(ctx, ex));
 	}
 	Qk_Log(proxy);
-	
+
 	JSProxy* p = reinterpret_cast<JSProxy*>(proxy);
 	
 	JSObjectCallAsFunction(ctx, revoke, proxy_warp, 0, 0, &ex);
@@ -395,7 +396,7 @@ JSValueRef PrintCallback(JSContextRef ctx, JSObjectRef function,
 	return nullptr;
 }
 
-void test_jsc(int argc, char **argv) {
+Qk_TEST_Func(jsc) {
 	JSContextGroupRef group = JSContextGroupCreate();
 	JSGlobalContextRef ctx = JSGlobalContextCreateInGroup(group, nullptr);
 	JSGlobalContextRef ctx1 = JSGlobalContextCreateInGroup(group, nullptr);

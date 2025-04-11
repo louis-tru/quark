@@ -9,6 +9,7 @@
 #include <src/ui/view/root.h>
 #include <src/render/render.h>
 #include <src/render/canvas.h>
+#include "./test.h"
 
 using namespace qk;
 
@@ -56,7 +57,7 @@ public:
 	}
 };
 
-void test_blur(int argc, char **argv) {
+Qk_TEST_Func(blur) {
 	App app;
 	// auto win2 = Window::Make({.frame={{0,0}, {200,200}}, .title="win2"});
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});

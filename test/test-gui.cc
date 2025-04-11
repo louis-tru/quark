@@ -34,10 +34,11 @@
 #include <src/ui/window.h>
 #include <src/ui/view/image.h>
 #include <src/ui/view/root.h>
+#include "./test.h"
 
 using namespace qk;
 
-void test_gui(int argc, char **argv) {
+Qk_TEST_Func(gui) {
 	App app;
 	auto win0 = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test 0", .backgroundColor={255,255,255}});
 	win0->activate();
