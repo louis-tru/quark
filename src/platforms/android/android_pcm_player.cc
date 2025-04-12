@@ -45,7 +45,7 @@ namespace qk {
 #if USE_ANDROID_OPENSLES_PCM_PLAYER
 
 	struct AudioEngine;
-	static AudioEngine* fx_share_engine = nullptr;
+	static AudioEngine* audio_engine = nullptr;
 
 	struct AudioEngine {
 
@@ -90,10 +90,10 @@ namespace qk {
 		}
 
 		static AudioEngine* share() {
-			if ( ! fx_share_engine ) {
-				fx_share_engine = new AudioEngine();
+			if ( ! audio_engine ) {
+				audio_engine = new AudioEngine();
 			}
-			return fx_share_engine;
+			return audio_engine;
 		}
 
 		// engine interfaces
@@ -115,12 +115,10 @@ namespace qk {
 			, _bufferQueue(nullptr)
 			, _effectSend(nullptr)
 			, _volume(nullptr)
-			, _buffer_size(0)
 		{
 		}
 
 		virtual ~AndroidPCMOpenSLES() {
-			// destory player object
 			if (_object != nullptr) {
 				(*_object)->Destroy(_object);
 				_play = nullptr;
@@ -174,7 +172,7 @@ namespace qk {
 																			samplesPerSec,
 																			SL_PCMSAMPLEFORMAT_FIXED_16,
 																			SL_PCMSAMPLEFORMAT_FIXED_16,
-																			channelMask,
+																			_channelMask,
 																			SL_BYTEORDER_LITTLEENDIAN };
 			SLDataSource audioSrc = { &loc_bufq, &format_pcm };
 

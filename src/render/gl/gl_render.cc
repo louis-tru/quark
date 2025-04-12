@@ -97,13 +97,10 @@ namespace qk {
 	}
 
 	GLint gl_get_texture_pixel_format(ColorType type) {
-#ifndef GL_BGRA
-	#define GL_BGRA 0x80E1/*GL_BGRA_EXT*/
-#endif
-#ifndef GL_LUMINANCE
-# define GL_LUMINANCE       GL_RED
-# define GL_LUMINANCE_ALPHA GL_RG
-#endif
+ #ifndef GL_LUMINANCE
+ # define GL_LUMINANCE       GL_RED
+ # define GL_LUMINANCE_ALPHA GL_RG
+ #endif
 		switch (type) {
 			case kAlpha_8_ColorType: return GL_ALPHA;
 			case kRGB_565_ColorType: return GL_RGB;
@@ -115,15 +112,19 @@ namespace qk {
 			case kRGB_101010X_ColorType: return GL_RGBA;
 			case kRGB_888_ColorType: return GL_RGB;
 			case kRGBA_5551_ColorType: return GL_RGBA;
-			// TODO Grayscale images may not display properly for macos
+			// TODO: Grayscale images may not display properly for macos
 			case kLuminance_8_ColorType: return GL_LUMINANCE;
 			case kLuminance_Alpha_88_ColorType: return GL_LUMINANCE_ALPHA;
 			// case kSDF_Float_ColorType: return GL_RGBA;
-			// case kYUV420SP_Y_8_ColorType:
+#if Qk_ANDROID
+			case kYUV420P_Y_8_ColorType: return GL_LUMINANCE;
+			case kYUV420P_U_8_ColorType: return GL_LUMINANCE;
+			case kYUV420SP_UV_88_ColorType: return GL_LUMINANCE_ALPHA;
+#else
 			case kYUV420P_Y_8_ColorType: return GL_RED;
-			// case kYUV420P_V_8_ColorType:
 			case kYUV420P_U_8_ColorType: return GL_RED;
 			case kYUV420SP_UV_88_ColorType: return GL_RG;
+#endif
 #if Qk_iOS // ios
 			// compressd texture
 			case kPVRTCI_2BPP_RGB_ColorType: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
@@ -397,7 +398,9 @@ namespace qk {
 			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_MaxTextureImageUnits);
 			gl_Global_GLSL_Macros = 
 				String::format("#define Qk_GL_MAX_TEXTURE_IMAGE_UNITS %d\n", gl_MaxTextureImageUnits);
-#if Qk_LINUX
+#if Qk_ANDROID
+			gl_Global_GLSL_Macros += "#define Qk_ANDROID\n";
+#elif Qk_LINUX
 			gl_Global_GLSL_Macros += "#define Qk_LINUX\n";
 #endif
 		}

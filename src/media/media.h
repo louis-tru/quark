@@ -283,8 +283,9 @@ namespace qk {
 		virtual bool finished() = 0;
 
 		/**
-		* @method send_packet send packet to codec
-		*/
+		 * Success return zero
+		 * @method send_packet send packet to codec
+		 */
 		virtual int send_packet(const Packet *pkt) = 0;
 
 		/**

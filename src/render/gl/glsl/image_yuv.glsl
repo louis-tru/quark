@@ -11,7 +11,11 @@ uniform   lowp int       format; // 0: YUV420SP, 1: YUV420P
 
 void main() {
 	lowp float y = texture(image, coord_f).r;
-	lowp vec2  uv = texture(image_u, coord_f).rg;
+#ifdef Qk_ANDROID
+	lowp vec2  uv = texture(image_u, coord_f).ra; // GL_LUMINANCE_ALPHA
+#else
+	lowp vec2  uv = texture(image_u, coord_f).rg; // GL_RG
+#endif
 	lowp float u = uv.r;
 	lowp float v = mix(uv.g, texture(image_v, coord_f).r, float(format));
 

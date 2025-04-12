@@ -332,6 +332,8 @@ namespace qk {
 			AVFormatContext* fmt_ctx = nullptr;
 			int r;
 
+			Qk_DLog("fs_exists_sync, %s, %i", *url, fs_exists_sync(url));
+
 			/* open input file, and allocate format context */
 			r = avformat_open_input(&fmt_ctx, *url, nullptr, nullptr);
 			if ( r < 0 ) {
@@ -378,7 +380,6 @@ namespace qk {
 		AVPacket pkt;
 		av_init_packet(&pkt);
 		int64_t st = 0;
-		Extractor *ex = nullptr;
 		int rc;
 		bool can_pause = false;
 

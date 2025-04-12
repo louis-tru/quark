@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "../../ui/app.h"
 #include "../../media/pcm_player.h"
 #include "../../util/handle.h"
 #include "./android.h"
@@ -131,7 +132,7 @@ namespace qk {
 		if (channel_layout & kTop_Back_Right_AudioChannelLayoutMask) {
 			layout |= CHANNEL_OUT_TOP_BACK_RIGHT; channels++;
 		}
-		Qk_ASSERT_EQ(channels, channel_layout);
+		Qk_ASSERT_EQ(channels, channel_count);
 
 		return layout;
 	}
@@ -179,6 +180,8 @@ namespace qk {
 			if ( _buffer ) {
 				env->DeleteGlobalRef(_buffer);
 			}
+			if (shared_app())
+				shared_app()->onResume().off(onResumeHandle_Application, this);
 		}
 
 		bool init(const Stream &stream) {
@@ -203,7 +206,7 @@ namespace qk {
 															_sampleRate,
 															_channelMask,
 															2, /* ENCODIF_PCM_16BIT */
-															_minBufferSize * 2, // Use double size
+															_minBufferSize * 2, // Do to need use double size ?
 															1 /* MODE_STREAM */
 			);
 			if (!_self) return false;
@@ -217,19 +220,30 @@ namespace qk {
 			// audio track play
 			env->CallVoidMethod(_self, _play);
 
+			if (shared_app())
+				shared_app()->onResume().on(onResumeHandle_Application, this);
+
 			return true;
+		}
+
+		static void onResumeHandle_Application(Event<> &e, AndroidAudioTrack* self) {
+			self->flush();
 		}
 
 		bool write(const Frame *frame) override {
 			ScopeENV env;
 			// buffer rewind
-			// env->DeleteLocalRef(env->CallObjectMethod(_buffer, _buffer_rewind));
+			env->DeleteLocalRef(env->CallObjectMethod(_buffer, _buffer_rewind));
 			Qk_ASSERT(_bufferHold.length() >= frame->linesize[0]);
 			// copy pcm data
 			Qk_ASSERT_EQ(env->GetDirectBufferAddress(_buffer), _bufferHold.val());
 			memcpy(_bufferHold.val(), frame->data[0], frame->linesize[0]);
 			// write pcm data
-			int r = env->CallIntMethod(_self, _write, _buffer, frame->linesize[0], 1);
+			jint r = env->CallIntMethod(_self, _write, _buffer, frame->linesize[0], 1);
+			if (r != frame->linesize[0]) {
+				Qk_DLog("env->CallVoidMethod(_self, _flush)");
+				env->CallVoidMethod(_self, _flush);
+			}
 			return true;
 		}
 

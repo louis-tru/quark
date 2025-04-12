@@ -46,44 +46,28 @@ import org.quark.Activity;
 public class MainActivity extends Activity {
 
 	static {
-		//try {
-			//Class.forName("org.quark.Android");
-		//} catch (ClassNotFoundException e) {
-		//	throw new RuntimeException(e);
-		//}
 		System.loadLibrary("quark_test");
-		Log.d("Test", "load quark.so ok");
 	}
 
 	private static final int REQUEST_CODE_STORAGE_PERMISSION = 100;
+	private static final String READ_EXTERNAL_STORAGE =
+		Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ? // Android 13+
+			Manifest.permission.READ_MEDIA_VIDEO: Manifest.permission.READ_EXTERNAL_STORAGE;
 
 	public boolean isStoragePermissionGranted() {
-		String permission;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			// Android 13+ 使用细粒度权限（示例以图片权限为例）
-			permission = Manifest.permission.READ_MEDIA_IMAGES;
-		} else {
-			permission = Manifest.permission.READ_EXTERNAL_STORAGE;
-		}
-		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+		return ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
 	}
 
 	public void requestStoragePermission() {
-		String permission;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			permission = Manifest.permission.READ_MEDIA_IMAGES;
-		} else {
-			permission = Manifest.permission.READ_EXTERNAL_STORAGE;
-		}
 		// 检查是否需要展示权限请求解释对话框
-		if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+		if (ActivityCompat.shouldShowRequestPermissionRationale(this, READ_EXTERNAL_STORAGE)) {
 			// 显示解释对话框（例如 Toast 或 AlertDialog）
 			Toast.makeText(this, "需要文件读取权限以加载本地视频", Toast.LENGTH_SHORT).show();
 		}
 		// 请求权限
 		ActivityCompat.requestPermissions(
 			this,
-			new String[]{permission},
+			new String[]{READ_EXTERNAL_STORAGE},
 			REQUEST_CODE_STORAGE_PERMISSION
 		);
 	}

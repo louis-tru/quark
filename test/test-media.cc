@@ -191,7 +191,7 @@ public:
 			src->stop();
 			return;
 		}
-		//_audio = MediaCodec::create(kAudio_MediaType, src);
+		_audio = MediaCodec::create(kAudio_MediaType, src);
 		if (_audio && _audio->open()) {
 			_pcm = PCMPlayer::create(_audio->stream());
 		}
@@ -225,9 +225,6 @@ public:
 	void media_source_advance(MediaSource* src) override {
 		if (_seek) {
 			if (src->seek(_seek)) {
-				if (_video) {
-					_video->flush();
-				}
 				if (_audio) {
 					_audio->flush();
 					_pcm->flush();
@@ -236,6 +233,7 @@ public:
 				_fv = _fa = nullptr;
 				_start = 0; // reset start point
 				_seeking = _seek;
+				_vFlush = true;
 			}
 			_seek = 0;
 		}
@@ -281,6 +279,11 @@ public:
 	bool run_task(int64_t now) override {
 		if (!_video) {
 			return false;
+		}
+
+		if (_vFlush) {
+			_video->flush();
+			_vFlush = false;
 		}
 		_video->send_packet(_src->video());
 
@@ -362,6 +365,7 @@ private:
 	int64_t  _start = 0;
 	int64_t  _seeking = 0;
 	int64_t  _seek = 0;
+	bool     _vFlush = false;
 };
 
 Qk_TEST_Func(media) {

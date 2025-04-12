@@ -34,6 +34,8 @@
 #ifndef __quark__media_inl__
 #define __quark__media_inl__
 
+#include "./media.h"
+#include "../util/thread.h"
 extern "C" {
 #include <libavutil/avutil.h>
 #include <libavutil/imgutils.h>
@@ -41,8 +43,6 @@ extern "C" {
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
 }
-#include "./media.h"
-#include "../util/thread.h"
 
 namespace qk {
 	typedef MediaSource::Program   Program;

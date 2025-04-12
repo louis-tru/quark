@@ -176,7 +176,8 @@ namespace qk {
 	public:
 		AndroidHardwareMediaCodec(const Stream &stream)
 			: MediaCodec(stream)
-			, _isOpen(false)
+			, _isOpen(false), _pending(0)
+			, _need_keyframe(true), _packet(nullptr), _colorFormat(AV_PIX_FMT_NONE)
 		{
 		}
 
@@ -236,7 +237,7 @@ namespace qk {
 				} else {
 					AMediaFormat_setInt32(_format.get(), AMEDIAFORMAT_KEY_WIDTH, stream->width);
 					AMediaFormat_setInt32(_format.get(), AMEDIAFORMAT_KEY_HEIGHT, stream->height);
-					AMediaFormat_setInt32(_format.get(), AMEDIAFORMAT_KEY_COLOR_FORMAT, 19);
+					AMediaFormat_setInt32(_format.get(), AMEDIAFORMAT_KEY_COLOR_FORMAT, 19); // yuv420p
 					Buffer csd_0, csd_1;
 					if ( MediaCodec::parse_avc_psp_pps(stream->extra.extradata, csd_0, csd_1) ) {
 						AMediaFormat_setBuffer(_format.get(), "csd-0", *csd_0, csd_0.length());
@@ -247,77 +248,96 @@ namespace qk {
 				}
 			}
 
-			if (type == kVideo_MediaType) {
-				int num;
-				if (AMediaFormat_getInt32(_format.get(), AMEDIAFORMAT_KEY_COLOR_FORMAT, &num)) {
-					switch (num) {
-						// case 17: _colorType = kYUV411P_ColorType; break;
-						case 19: _colorFormat = AV_PIX_FMT_YUV420P; break; // yuv420p
-						case 21: _colorFormat = AV_PIX_FMT_NV12; break; // yuv420sp
-						default: return false;
-					}
-				}
-			}
-
-			Qk_DLog("%s", AMediaFormat_toString(_format.get()));
+			updateFormat(_format.get());
+			if (!check())
+				return false;
 
 			if (AMediaCodec_configure(_codec.get(), _format.get(), nullptr, nullptr, 0) == 0 &&
 					AMediaCodec_start(_codec.get()) == 0
 			) {
-				if (stream != &_stream) {
+				if (stream != &_stream)
 					_stream = *stream;
-				}
 				_isOpen = true;
-				flush();
 			}
 			return _isOpen;
 		}
 
+		bool check() {
+			return _stream.type != kVideo_MediaType || _colorFormat != AV_PIX_FMT_NONE;
+		}
+
+		void updateFormat(AMediaFormat *format) {
+			Qk_DLog("AMediaFormat: %s", AMediaFormat_toString(format));
+			if (_stream.type == kVideo_MediaType) {
+				int num;
+				AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_WIDTH, &_width);
+				AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_HEIGHT, &_height);
+				AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_COLOR_FORMAT, &num);
+				switch (num) {
+					// case 17: _colorType = kYUV411P_ColorType; break;
+					case 19: _colorFormat = AV_PIX_FMT_YUV420P; break; // yuv420p
+					case 21: _colorFormat = AV_PIX_FMT_NV12; break; // yuv420sp
+					default: _colorFormat = AV_PIX_FMT_NONE; break;
+				}
+			}
+		}
+
 		void close() override {
 			if ( _isOpen ) {
-				flush();
 				Qk_ASSERT_EQ(AMediaCodec_stop(_codec.get()), 0);
+				_codec = nullptr;
 				_isOpen = false;
+				_pending = 0;
+				_need_keyframe = true;
+				Releasep(_packet);
 			}
 		}
 
 		void flush() override {
 			if (_isOpen) {
-				Qk_ASSERT_EQ(AMediaCodec_flush(_codec.get()), 0);
-				if (_stream.type == kVideo_MediaType)
+				if (_pending) {
+					// TODO: Because some devices can't be flush using the AMediaCodec_flush method,
+					//  maybe this is a bug of the Android system.
+					close();
+					open();
+				} else {
 					_need_keyframe = true;
-				Releasep(_packet);
+					Releasep(_packet);
+				}
 			}
 		}
 
 		int send_packet(const Packet *pkt) override {
-			if (!_isOpen || !pkt) {
+			if (!_isOpen || !pkt || !check()) {
 				return AVERROR(ENOMEM);
 			}
-			if ( _need_keyframe ) { // need key frame
-				if ( pkt->flags & AV_PKT_FLAG_KEY ) { // i frame
+			auto FLAG_KEY = pkt->flags & AV_PKT_FLAG_KEY;
+			if (_need_keyframe && _stream.type == kVideo_MediaType) { // need key frame
+				if ( FLAG_KEY ) { // i frame
 					_need_keyframe = false; // start
 				} else { // Discard
 					return 0;
 				}
 			}
+
 			ssize_t bufidx = AMediaCodec_dequeueInputBuffer(_codec.get(), 0);
 			if ( bufidx < 0 ) {
 				return AVERROR(EAGAIN); // Program is busy
 			}
-
-			media_status_t rc;
-			uint32_t flags = 0;//AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM;
 			size_t bufsize;
 			auto buff = AMediaCodec_getInputBuffer(_codec.get(), bufidx, &bufsize);
-			Qk_ASSERT(bufsize >= pkt->size);
+
+			if (bufsize < pkt->size) {
+				return AVERROR(EAGAIN);
+			}
 			memcpy(buff, pkt->data, pkt->size);
 
 			if (_stream.type == kVideo_MediaType) {
 				MediaCodec::convert_sample_data_to_nalu(buff, pkt->size);
 			}
 
-			rc = AMediaCodec_queueInputBuffer(_codec.get(), bufidx, 0, pkt->size, pkt->pts, flags);
+			uint32_t flags = 0;// FLAG_KEY ? 0: AMEDIACODEC_BUFFER_FLAG_PARTIAL_FRAME;
+			auto rc = AMediaCodec_queueInputBuffer(_codec.get(), bufidx, 0, pkt->size, pkt->pts, flags);
 			if (rc == AMEDIA_OK) {
 				_pending++;
 			}
@@ -344,6 +364,8 @@ namespace qk {
 		}
 
 		Frame* receive_frame() override {
+			if (!check())
+				return nullptr;
 			AMediaCodecBufferInfo info;
 			ssize_t status = AMediaCodec_dequeueOutputBuffer(_codec.get(), &info, 0);
 			Frame *f = nullptr;
@@ -388,13 +410,13 @@ namespace qk {
 						f->pkt_duration = pkt_duration;
 						f->format = AV_SAMPLE_FMT_S16;
 					} else {
-						auto w = _stream.width, h = _stream.height;
+						auto w = _width, h = _height;
 						auto buf = av_buffer_alloc(av_image_get_buffer_size(_colorFormat, w, h, 1));
 						Qk_ASSERT_EQ(buf->size,
 							av_image_fill_arrays(avf->data, avf->linesize, buf->data, _colorFormat, w, h, 1)
 						);
-						Qk_ASSERT_EQ(buf->size, size);
-						memcpy(buf->data, buffer, size);
+						Qk_ASSERT(size >= buf->size);
+						memcpy(buf->data, buffer, Qk_Min(size, buf->size));
 
 						avf->buf[0] = buf;
 						avf->format = _colorFormat;
@@ -420,11 +442,10 @@ namespace qk {
 			} else if (status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
 				Qk_DLog("output buffers changed");
 			} else if (status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
-				auto format = AMediaCodec_getOutputFormat(_codec.get());
-				Qk_DLog("format changed to: %s", AMediaFormat_toString(format));
-				//Qk_ASSERT_EQ(format, _format.get());
+				_format = AMediaCodec_getOutputFormat(_codec.get());
+				updateFormat(_format.get());
 			} else if (status == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
-				// Qk_DLog("no output buffer right now");
+				 //Qk_DLog("no output buffer right now");
 			} else {
 				Qk_DLog("unexpected info code: %d", status);
 			}
@@ -442,13 +463,13 @@ namespace qk {
 		AMediaFormatAuto _format;
 		AMediaCodecAuto _codec;
 		Packet       *_packet;
+		int           _width, _height;
 		AVPixelFormat _colorFormat;
 		int           _pending;
 		bool          _need_keyframe, _isOpen;
 	};
 
 	MediaCodec* MediaCodec_hardware(MediaType type, Extractor* ex) {
-		return nullptr;
 		init_ffmpeg_jni();
 
 		AndroidHardwareMediaCodec* rv = nullptr;
