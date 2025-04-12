@@ -194,15 +194,13 @@ namespace qk {
 			if (!stream) stream = &_stream;
 
 			cChar* mime = nullptr;
-			auto type = stream->type;
-
-			if (type == kAudio_MediaType) {
+			if (stream->type == kAudio_MediaType) {
 				if (stream->mime == "audio/aac" && stream->extra.extradata.length()) { // aac
 					mime = "audio/mp4a-latm";
 				} else {
 					return false;
 				}
-			} else if (type == kVideo_MediaType) {
+			} else if (stream->type == kVideo_MediaType) {
 				if (stream->mime == "video/avc" || stream->mime == "video/h264") { // h.264
 					mime = "video/avc";
 				} else if (stream->mime == "video/hevc" || stream->mime == "video/h265") { // h.265
@@ -227,7 +225,7 @@ namespace qk {
 				AMediaFormat_setString(_format.get(), AMEDIAFORMAT_KEY_MIME, mime);
 				AMediaFormat_setInt64(_format.get(), AMEDIAFORMAT_KEY_DURATION, stream->duration);
 
-				if (type == kAudio_MediaType) {
+				if (stream->type == kAudio_MediaType) {
 					//_TEST_init_AMediaExtractor("/sdcard/Download/av.1.0.ts", 1);
 					//format = AMediaExtractor_getTrackFormat(_TEST_ex, 1);
 					AMediaFormat_setInt32(_format.get(), AMEDIAFORMAT_KEY_SAMPLE_RATE, stream->sample_rate);
@@ -248,7 +246,7 @@ namespace qk {
 				}
 			}
 
-			updateFormat(_format.get());
+			set_colorFormat(_format.get());
 			if (!check())
 				return false;
 
@@ -266,7 +264,7 @@ namespace qk {
 			return _stream.type != kVideo_MediaType || _colorFormat != AV_PIX_FMT_NONE;
 		}
 
-		void updateFormat(AMediaFormat *format) {
+		void set_colorFormat(AMediaFormat *format) {
 			Qk_DLog("AMediaFormat: %s", AMediaFormat_toString(format));
 			if (_stream.type == kVideo_MediaType) {
 				int num;
@@ -364,7 +362,7 @@ namespace qk {
 		}
 
 		Frame* receive_frame() override {
-			if (!check())
+			if (!_isOpen || !check())
 				return nullptr;
 			AMediaCodecBufferInfo info;
 			ssize_t status = AMediaCodec_dequeueOutputBuffer(_codec.get(), &info, 0);
@@ -443,7 +441,7 @@ namespace qk {
 				Qk_DLog("output buffers changed");
 			} else if (status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
 				_format = AMediaCodec_getOutputFormat(_codec.get());
-				updateFormat(_format.get());
+				set_colorFormat(_format.get());
 			} else if (status == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
 				 //Qk_DLog("no output buffer right now");
 			} else {
