@@ -422,26 +422,26 @@ async function install_check(app, cmd) {
 		throw new Error(`not support ${host_os} platform`);
 	}
 
-	var cmds, pkgCmd = false;
+	var cmds, isBuild = false;
 
 	if (typeof cmd == 'string') {
 		cmds = [cmd];
 	} else if (Array.isArray(cmd)) {
 		cmds = cmd;
 	} else if (typeof cmd == 'object') {
-		cmds = cmd.cmds || [];
 		for (var i in cmd.deps) {
 			await install_check(i, cmd.deps[i]);
 		}
-		if (cmd.pkgCmds && cmd.pkgCmds.length) {
-			pkgCmd = true;
-			cmds = cmds.concat(cmd.pkgCmds);
+		cmds = cmd.cmds || [];
+		if (cmd.build && cmd.build.length) {
+			isBuild = true;
+			cmds = cmds.concat(cmd.build);
 		}
 	}
 
 	var cd = '';
 
-	if (pkgCmd) {
+	if (isBuild) {
 		cd = `${__dirname}/../out/${app}`;
 		// await exec2(`rm -rf ${cd}`);
 		await exec2(`tar xfz ${__dirname}/pkgs/${app}.tar.gz -C ${__dirname}/../out/`);
@@ -507,20 +507,24 @@ async function install_depe(opts, variables) {
 		}
 	};
 
-	// var cmake = { pkgCmds: [ `./configure`, `make -j2`, `*make -j1 install` ] };
+	// First check host g++ compiler
+	if (host_os == 'linux') {
+		dpkg['g++'] = pkgmCmds('g++'); // x86 or x64
+	}
+
+	// var autoconf = { build: [ `./configure`, `make`, `*make install` ] };
+	// var automake = { build: [ `./configure`, `make -j1`, `*make -j1 install` ] };
 	// var yasm = {
-	// 	deps: {
-	// 		autoconf: { pkgCmds: [ `./configure`, `make`, `*make install` ] },
-	// 		automake: { pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ] }
-	// 	},
-	// 	pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
+	//	deps: { autoconf, automake },
+	// 	build: [ './autogen.sh', 'make -j2', '*make install' ],
 	// };
-	var cmake = pkgmCmds('cmake');
 	var yasm = pkgmCmds('yasm');
-	dpkg.ninja = {
-		deps: { cmake },
-		pkgCmds: [ 'cmake .', 'make -j2', '*make install' ],
-	};
+	// var cmake = { build: [ `./configure`, `make -j2`, `*make -j1 install` ] };
+	// var cmake = pkgmCmds('cmake');
+	// dpkg.ninja = {
+	// 	deps: { cmake },
+	// 	build: [ 'cmake .', 'make -j2', '*make install' ],
+	// };
 
 	if (host_os == 'linux') {
 		if (arch == 'x86' || arch == 'x64') {
@@ -537,8 +541,6 @@ async function install_depe(opts, variables) {
 				} else {
 					throw new Error(`do not support cross compiling to "${arch}"`);
 				}
-			} else { // x86 or x64
-				dpkg['g++'] = pkgmCmds('g++');
 			}
 			// TODO: Maybe also have to install libxcursor-dev and libfontconfig-dev
 		} else if (os == 'android') {
@@ -593,14 +595,13 @@ async function configure() {
 		return;
 	}
 
-	if ( ! fs.existsSync('out') ) {
+	if (!fs.existsSync('out')) {
 		fs.mkdirSync('out');
 	}
 
 	//
 	opts.arch = arch_format(opts.arch);
 	var os = opts.os;
-	var modile = (os == 'ios' || os == 'android');
 	var arch = opts.arch;
 	var suffix = arch;
 	var configuration = opts.debug ? 'Debug': 'Release';
@@ -706,7 +707,7 @@ async function configure() {
 
 	// ----------------------- android/linux/ios/mac ----------------------- 
 
-	if ( os == 'android' ) {
+	if (os == 'android') {
 		// check android ndk toolchain
 		var api = android_api_level;
 		var ndk_path = opts.ndk_path || process.env.ANDROID_NDK;
@@ -808,8 +809,7 @@ async function configure() {
 			variables.gcc_version = parseVersion(gcc_version);
 		}
 	}
-	else if ( os == 'linux' ) {
-
+	else if (os == 'linux') {
 		if ( ['arm', 'arm64', 'x86', 'x64'].indexOf(arch) == -1 ) {
 			console.error(`do not support linux os and ${arch} cpu architectures`);
 			return;
@@ -838,7 +838,7 @@ async function configure() {
 
 		await install_depe(opts, variables);
 
-		if ( arch == 'arm' || arch == 'arm64' ) { // arm arm64
+		if (arch == 'arm' || arch == 'arm64') { // arm arm64
 			if (arch == 'arm') {
 				if (opts.armv7) {
 					suffix = 'armv7';
@@ -855,8 +855,7 @@ async function configure() {
 		}
 
 		// check compiler and set sysroot
-		if ( (host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64') ) {
-
+		if ((host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64')) {
 			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
 				var r;
 				if (arch == 'arm64') {
@@ -874,7 +873,6 @@ async function configure() {
 				util.assert(r, `"arm-linux-${e}" cross compilation was not found\n`);
 				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
 			});
-
 		} else {
 			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
 				util.assert(!execSync('which ' + e).code, `${e} compile command was not found`);
@@ -887,19 +885,19 @@ async function configure() {
 		variables.gcc_version = parseVersion(gcc_version);
 	}
 	else if (os == 'ios' || os == 'mac') {
-		if ( os == 'ios' ) {
-			if ( host_os != 'mac' ) {
+		if (os == 'ios') {
+			if (host_os != 'mac') {
 				console.error(
 					'Only in the mac os and the installation of the \
 					Xcode environment to compile target iOS');
 				return;
 			}
-			if ( ['arm', 'arm64', 'x86', 'x64'].indexOf(arch) == -1) {
+			if (['arm', 'arm64', 'x86', 'x64'].indexOf(arch) == -1) {
 				// console.error(`do not support iOS and ${arch} cpu architectures`);
 				return;
 			}
 		} else {
-			if ( ['x86', 'x64', 'arm64'].indexOf(arch) == -1) {
+			if (['x86', 'x64', 'arm64'].indexOf(arch) == -1) {
 				console.error(`do not support MacOSX and ${arch} cpu architectures`);
 				return;
 			}
@@ -918,7 +916,7 @@ async function configure() {
 			variables.llvm_version  = parseVersion(syscall('cc --version').first);
 		} catch(e) {}
 
-		if ( arch == 'arm' ) {
+		if (arch == 'arm') {
 			suffix = opts.armv7s ? 'armv7s' : 'armv7';
 			variables.arch_name = opts.armv7s ? 'armv7s' : 'armv7';
 		} else if ( arch == 'x86' ) {
@@ -927,7 +925,7 @@ async function configure() {
 			variables.arch_name = 'x86_64';
 		}
 
-		if ( os == 'ios' ) {
+		if (os == 'ios') {
 			if (arch == 'x86' || arch == 'x64' || opts.emulator) {
 				variables.emulator = 1;
 				console.log('enable emulator');
@@ -991,7 +989,7 @@ async function configure() {
 	];
 
 	var java_home = process.env.JAVA7_HOME || process.env.JAVA_HOME;
-	if ( java_home ) {
+	if (java_home) {
 		config_mk.push(`export JAVAC:=${java_home}/bin/javac`);
 		config_mk.push(`export JAR:=${java_home}/bin/jar`);
 	}
@@ -1001,29 +999,29 @@ async function configure() {
 		var ff_rebuild = false;
 		var ff_product_path = `${ff_install_dir}/libffmpeg.a`;
 
-		if ( opts.media == 'auto' ) { // auto
-			if ( !fs.existsSync(`${ff_product_path}`) &&
-					 !fs.existsSync(`${ff_install_dir}/objs`) ) {
+		if (opts.media == 'auto') { // auto
+			if (!fs.existsSync(`${ff_product_path}`) &&
+					!fs.existsSync(`${ff_install_dir}/objs`)) {
 				ff_rebuild = true;
 			} else {
 				ff_rebuild = !fs.existsSync(__dirname + '/../deps/ffmpeg/config.h')
 			}
 			variables.media = 1;
 		} else {
-			if ( opts.media ) { // Force rebuild ffmpeg
+			if (opts.media) { // Force rebuild ffmpeg
 				ff_rebuild = true;
 			}
 		}
 
-		if ( ff_rebuild ) { // rebuild ffmpeg
-		 if ( !configure_ffmpeg(opts, config_gypi, opts.clang, ff_install_dir) ) {
+		if (ff_rebuild) { // rebuild ffmpeg
+		 if (!configure_ffmpeg(opts, config_gypi, opts.clang, ff_install_dir)) {
 			 return;
 		 }
 		}
 	}
 
 	// ------------------ output config.mk, config.gypi ------------------ 
-	
+
 	var config_gypi_str = JSON.stringify(config_gypi, null, 2);
 	var config_mk_str = config_mk.join('\n') + '\n';
 

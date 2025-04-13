@@ -294,7 +294,7 @@ namespace js {
 	}
 
 	void Worker::release() {
-		SafeFlag::~SafeFlag();
+		markAsInvalid();
 		Releasep(_types);
 		Releasep(_strs);
 		_classes->destroy();

@@ -150,7 +150,7 @@ namespace qk {
 	}
 
 	TextWeight TextOptions::text_weight() const {
-		return _isInheritSecondaryProps ? TextWeight::Inherit: _secondaryProps->text_weight;
+		return _secondaryProps->text_weight;
 	}
 
 	TextWeight TextOptions::text_weight_value() const {
@@ -158,7 +158,7 @@ namespace qk {
 	}
 
 	TextSlant TextOptions::text_slant() const {
-		return _isInheritSecondaryProps ? TextSlant::Inherit: _secondaryProps->text_slant;
+		return _secondaryProps->text_slant;
 	}
 
 	TextSlant TextOptions::text_slant_value() const {
@@ -166,7 +166,7 @@ namespace qk {
 	}
 
 	TextDecoration TextOptions::text_decoration() const {
-		return _isInheritSecondaryProps ? TextDecoration::Inherit: _secondaryProps->text_decoration;
+		return _secondaryProps->text_decoration;
 	}
 
 	TextDecoration TextOptions::text_decoration_value() const {
@@ -174,7 +174,7 @@ namespace qk {
 	}
 
 	TextOverflow TextOptions::text_overflow() const {
-		return _isInheritSecondaryProps ? TextOverflow::Inherit: _secondaryProps->text_overflow;
+		return _secondaryProps->text_overflow;
 	}
 
 	TextOverflow TextOptions::text_overflow_value() const {
@@ -182,7 +182,7 @@ namespace qk {
 	}
 
 	TextWhiteSpace TextOptions::text_white_space() const {
-		return _isInheritSecondaryProps ? TextWhiteSpace::Inherit: _secondaryProps->text_white_space;
+		return _secondaryProps->text_white_space;
 	}
 
 	TextWhiteSpace TextOptions::text_white_space_value() const {
@@ -190,7 +190,7 @@ namespace qk {
 	}
 
 	TextWordBreak TextOptions::text_word_break() const {
-		return _isInheritSecondaryProps ? TextWordBreak::Inherit: _secondaryProps->text_word_break;
+		return _secondaryProps->text_word_break;
 	}
 
 	TextWordBreak TextOptions::text_word_break_value() const {
@@ -348,13 +348,13 @@ namespace qk {
 		}
 	}
 
+	TextConfig::TextConfig() {}
+
 	TextConfig::~TextConfig() {
 		_opts->_textFlags = 0; // clear flags
 	}
 
 	DefaultTextOptions::DefaultTextOptions(FontPool *pool)
-		: TextOptions()
-		, TextConfig(this, this)
 	{
 		auto setDefault = [](TextOptions *opts, FontPool *pool) {
 			opts->set_text_align(TextAlign::Default);
@@ -373,6 +373,8 @@ namespace qk {
 		};
 		setDefault(&_default, pool); // set base
 		setDefault(this, pool); // set self
+		_opts = this;
+		_inherit = this;
 	}
 
 	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t type, bool isRt) {
@@ -393,7 +395,9 @@ namespace qk {
 				break;
 			case 4:
 				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(FFID,
-					text_family, 4, (_inherit_opts->text_family().value->pool()->defaultFontFamilies())
+					text_family, 4, (
+						_inherit_opts->text_family().value->pool()->defaultFontFamilies()
+					)
 				);
 				break;
 			case 5:

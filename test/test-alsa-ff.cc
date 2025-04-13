@@ -177,7 +177,7 @@ Qk_TEST_Func(alsa_ff)
 	if ( (ret=init_ffmpeg_alsa(is, argv[1])) != 0 )
 	{
 		Qk_Log("init_ffmpeg error");
-		return -1;
+		return;
 	}
 
 	while( (av_read_frame(is->pFormatCtx, packet)>=0) )

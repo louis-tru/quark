@@ -116,7 +116,7 @@ namespace qk {
 			case kLuminance_8_ColorType: return GL_LUMINANCE;
 			case kLuminance_Alpha_88_ColorType: return GL_LUMINANCE_ALPHA;
 			// case kSDF_Float_ColorType: return GL_RGBA;
-#if Qk_ANDROID
+#if Qk_LINUX || Qk_ANDROID
 			case kYUV420P_Y_8_ColorType: return GL_LUMINANCE;
 			case kYUV420P_U_8_ColorType: return GL_LUMINANCE;
 			case kYUV420SP_UV_88_ColorType: return GL_LUMINANCE_ALPHA;

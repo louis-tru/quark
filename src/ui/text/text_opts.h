@@ -114,6 +114,9 @@ namespace qk {
 		~TextConfig();
 		Qk_DEFINE_PROP_GET(TextOptions*, opts);
 		Qk_DEFINE_PROP_GET(TextConfig*,  inherit);
+	private:
+		TextConfig();
+		friend class DefaultTextOptions;
 	};
 
 	class Qk_EXPORT DefaultTextOptions: public Object, public TextOptions, public TextConfig {

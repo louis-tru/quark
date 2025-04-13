@@ -713,7 +713,7 @@ namespace qk {
 		, _scrollbar_margin(2.0)
 		, _scroll_duration(0)
 		, _host(host)
-		, _scroll()
+		, _scroll(Vec2())
 		, _move_start_time(0)
 		, _action_id(0)
 		, _scrollbar_opacity(0)

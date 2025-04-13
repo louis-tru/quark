@@ -648,7 +648,7 @@ namespace qk {
 		set_clip(true);
 		set_receive(true);
 		set_cursor(CursorStyle::Ibeam);
-		set_text_word_break(TextWordBreak::BreakWord);
+		//set_text_word_break(TextWordBreak::BreakWord);
 		return this;
 	}
 

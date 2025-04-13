@@ -398,6 +398,10 @@
 					'cflags': [ '-O0' ],
 					'ldflags!': [ '-stdlib=libc++' ]
 				}],
+				['os=="linux"',{
+					'cflags!': [ '-march=<(arch_name)', '-m64', '-m32' ],
+					'cflags': [ '-O0' ],
+				}],
 				['os=="ios"',{
 					'cflags!': [
 						'-miphoneos-version-min=<(version_min)',

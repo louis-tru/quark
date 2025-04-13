@@ -1,4 +1,7 @@
 
+# apt install libxcursor-dev
+# apt install libfontconfig1-dev
+
 ubuntu
 ======================
 # apt install libasound2-dev
@@ -11,6 +14,7 @@ ubuntu
 	* autoconf
 
 # apt install g++
+# apt install g++-arm-linux-gnueabi
 # apt install g++-arm-linux-gnueabihf
 # apt install g++-aarch64-linux-gnu
 

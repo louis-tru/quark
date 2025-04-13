@@ -19,17 +19,18 @@ else
 fi
 
 if [ ! "$PYTHON" ]; then
-	echo "\nError: python needs to be installed first\n";
+	echo "\nError: Python needs to be installed first\n";
 	exit 1;
 fi
 
 if [ ! "`which node`" ]; then
-	echo "\nError: nodejs needs to be installed first\n";
+	echo "\nError: Nodejs needs to be installed first\n";
 	exit 2;
 fi
 
 if [ "`which tsc`" = "" ]; then
-	$SUDO npm install typescript -g;
+	echo "Run: npm install typescript@5.8.2 -g"
+	$SUDO npm install typescript@5.8.2 -g;
 fi
 
 if   [ ! -d libs/encark ] \

@@ -215,7 +215,7 @@ Qk_TEST_Func(linux_input_2)
 	int	fd = open( "/dev/input/event0", O_RDONLY );
 	if ( fd < 0 ) {
 		Qk_ELog( "/dev/input/event0" );
-		return(-1);
+		return;
 	}
 
 	while (1) {
@@ -226,7 +226,7 @@ Qk_TEST_Func(linux_input_2)
 		if ( ret < 0 ) 
 		{
 			Qk_ELog( "select" );
-			return(-1);
+			return;
 		}
 		/*能够读取到数据*/
 		else if ( FD_ISSET(fd, &rds) )
@@ -261,8 +261,6 @@ Qk_TEST_Func(linux_input_2)
 		timeS=3143,timeUS=430183,type=0,code=0,value=0    同步
 		timeS=3143,timeUS=445130,type=3,code=24,value=0   松开
 	*/
-
-	return(0);
 }
 
 Qk_TEST_Func(linux_input_1)
@@ -273,7 +271,7 @@ Qk_TEST_Func(linux_input_1)
 	int fd = open("/dev/input/event0", O_RDONLY);
 	if (fd < 0) {
 		Qk_ELog("/dev/input/event0"); 
-		return -1;
+		return;
 	}
 
 	//得到X轴的abs信息
@@ -295,13 +293,11 @@ Qk_TEST_Func(linux_input_1)
 	Qk_Log("pressure abs max=%d\n", absI.maximum);
 
 	close(fd);
-
-	return 0;
 }
 
 Qk_TEST_Func(linux_input) {
-	test_linux_input_1(argc, argv);
-	test_linux_input_2(argc, argv);
+	test_linux_input_1(argc, argv, func, assert);
+	test_linux_input_2(argc, argv, func, assert);
 }
 
 #else

@@ -134,10 +134,11 @@ namespace qk {
 
 	class SafeFlag {
 	public:
-		inline ~SafeFlag() { _flagValue = 0; }
-		inline bool isValid() { return _flagValue == 0xff00ffab; }
+		inline ~SafeFlag() { _safeFlagValue = 0; }
+		inline bool isValid() { return _safeFlagValue == 0xff00ffab; }
+		inline void markAsInvalid() { _safeFlagValue = 0; }
 	private:
-		uint32_t _flagValue = 0xff00ffab;
+		uint32_t _safeFlagValue = 0xff00ffab;
 	};
 
 	Qk_EXPORT void Retain(Object* obj);
