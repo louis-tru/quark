@@ -67,7 +67,6 @@
 
 #if defined(__ANDROID__)
 # define Qk_ANDROID 1
-# define Qk_LINUX 1
 #elif defined(__APPLE__)
 # include <TargetConditionals.h>
 # define Qk_BSD 1

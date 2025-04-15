@@ -89,44 +89,6 @@ function arch_format(arch) {
 	return arch;
 }
 
-function touch_file(pathnames) {
-	if ( !Array.isArray(pathnames)) {
-		pathnames = [ pathnames ];
-	}
-	pathnames.forEach(function(pathname) {
-		if ( !fs.existsSync(pathname) ) {
-			fs.mkdirpSync(path.dirname(pathname));
-			fs.writeFileSync(pathname, '');
-		}
-	});
-}
-
-function touch_files(variables) {
-	touch_file([
-		'out/native-inl-js.cc',
-		'out/native-ext-js.cc',
-		'out/native-lib-js.cc',
-		'out/native-font.cc',
-		'out/native-glsl.cc',
-	]);
-
-	if (!fs.existsSync(`${__dirname}/../out/quark`)) {
-		//fs.removerSync(`${__dirname}/../out/quark`);
-		//fs.symlinkSync(path.resolve(`${__dirname}/../src`), path.resolve(`${__dirname}/../out/quark`));
-	}
-
-	if (['mac','ios'].indexOf(variables.os) == -1) {
-		touch_file([
-			`${variables.output}/obj.target/libquark.so`,
-		]);
-	}
-	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
-		touch_file([
-			`${variables.output}/obj.target/libquark_deps_test.so`,
-		]);
-	}
-}
-
 function configure_ffmpeg(opts, {variables}, clang, ff_install_dir) {
 	var os = opts.os;
 	var arch = opts.arch;
@@ -718,9 +680,9 @@ async function configure() {
 		if (!fs.existsSync(`${__dirname}/ndk_llvm`)) {
 			fs.symlinkSync(toolchain_llvm, `${__dirname}/ndk_llvm`);
 		}
-		if (!fs.existsSync(`${__dirname}/ndk`)) {
-			fs.symlinkSync(ndk_path, `${__dirname}/ndk`);
-		}
+		// if (!fs.existsSync(`${__dirname}/ndk`)) {
+		// 	fs.symlinkSync(ndk_path, `${__dirname}/ndk`);
+		// }
 		var toolchain_dir = toolchain_llvm;
 		// todo check android sdk ...
 
@@ -973,6 +935,7 @@ async function configure() {
 		`V=${opts.v}`,
 		`SUFFIX=${suffix}`,
 		`OUTPUT=${output}`,
+		`NODE=${process.execPath}`,
 		`ANDROID_API_LEVEL=${android_api_level}`,
 		`export CC_target:=${variables.cc}`,
 		`export CXX_target:=${variables.cxx}`,
@@ -1038,7 +1001,7 @@ async function configure() {
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
 	fs.writeFileSync('out/config.mk', config_mk_str);
 
-	touch_files(variables);
+	require('./touch');
 }
 
 configure().then(e=>{

@@ -75,7 +75,7 @@ namespace qk {
 #if Qk_ENABLE_GL
 		if (!r) r = make_gl_render(opts);
 #endif
-		Qk_ASSERT(r, "create render object fail");
+		Qk_ASSERT_RAW(r, "Create render object fail");
 
 		r->_delegate = delegate;
 		return r;

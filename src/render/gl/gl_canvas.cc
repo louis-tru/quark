@@ -42,6 +42,7 @@ namespace qk {
 	void  gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void  gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
 	TexStat* gl_new_tex_stat();
+	void setMipmap_SourceImage(ImageSource* img, bool val);
 
 	extern const Region ZeroRegion;
 	extern const float  aa_fuzz_weight = 0.9;
@@ -49,7 +50,7 @@ namespace qk {
 	extern const float  DepthNextUnit = 1.0f / 5000000.0f;
 
 	const GLenum DrawBuffers[]{
-		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*aaclip out*/,
+		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*other out*/,
 	};
 
 	class GLPathvCache: public PathvCache {
@@ -134,9 +135,6 @@ namespace qk {
 				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
 					clip.aafuzz = path.getAAFuzzStrokeTriangle(_phy2Pixel*aa_fuzz_width);
 				}
-				if (_state->aaclip == 0) {
-					// _cmdPack->drawBuffers(2, DrawBuffers); // enable aaclip GL_COLOR_ATTACHMENT1
-				}
 				_state->aaclip++;
 			}
 
@@ -152,7 +150,7 @@ namespace qk {
 				_stencilRef++;
 			}
 
-			_cmdPack->drawClip(clip, _stencilRef, false);
+			_cmdPack->drawClip(clip, _stencilRef, _state->output.get(), false);
 			_state->clips.push(std::move(clip));
 			zDepthNext();
 		}
@@ -308,8 +306,7 @@ namespace qk {
 		}
 
 		~GLCBlurFilter() override {
-			auto output = _host->_state->output ? *_host->_state->output->dest: nullptr;
-			auto ct = _host->_cmdPack->blurFilterEnd(_bounds, _size, output);
+			auto ct = _host->_cmdPack->blurFilterEnd(_bounds, _size, _host->_state->output.get());
 			_inl(_host)->zDepthNextCount(ct);
 		}
 
@@ -425,7 +422,7 @@ namespace qk {
 		count = Uint32::min(count, _stateStack.length() - 1);
 
 		if (count > 0) {
-			bool restore_output = false;
+			bool isOutput = false;
 			do {
 				for (int i = Qk_Minus(_state->clips.length(), 1); i >= 0; i--) {
 					auto &clip = _state->clips[i];
@@ -436,19 +433,16 @@ namespace qk {
 					}
 					//_this->setMatrixAndScale(clip.matrix);
 					setMatrix(clip.matrix);
-					_cmdPack->drawClip(clip, _stencilRef, true);
+					_cmdPack->drawClip(clip, _stencilRef, _state->output.get(), true);
 					_this->zDepthNext();
 
 					if (clip.aaclip) {
 						_state->aaclip--;
-						if (_state->aaclip == 0) {
-							// _cmdPack->drawBuffers(1, DrawBuffers);
-						}
 					}
 				}
 				if (_state->output) {
-					restore_output = true;
-					_cmdPack->outputImageEnd(*_state->output->dest, _state->output->isMipmap);
+					isOutput = true;
+					_cmdPack->outputImageEnd(_state->output.get());
 				}
 				_stateStack.pop();
 				_state = &_stateStack.back();
@@ -459,8 +453,8 @@ namespace qk {
 				_isClipState = false;
 				_cmdPack->switchState(GL_STENCIL_TEST, false); // disable stencil test
 			}
-			if (restore_output && _state->output) { // restore region draw
-				_cmdPack->outputImageBegin(*_state->output->dest, _state->output->isMipmap);
+			if (isOutput && _state->output) { // restore region draw
+				_cmdPack->outputImageBegin(_state->output.get());
 			}
 			//_this->setMatrixAndScale(_state->matrix);
 			setMatrix(_state->matrix);
@@ -660,7 +654,8 @@ namespace qk {
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
 			auto img = ImageSource::Make(PixelInfo{
 				int(Qk_Min(dest.x(),_surfaceSize.x())),int(Qk_Min(dest.y(),_surfaceSize.y())),type});
-			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, *img, isMipmap);
+			setMipmap_SourceImage(img.get(), isMipmap);
+			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, *img);
 			_this->zDepthNext();
 			return img;
 		}
@@ -674,8 +669,9 @@ namespace qk {
 				int(_surfaceSize[0]),int(_surfaceSize[1]),kRGBA_8888_ColorType
 			});
 		}
-		_state->output = new GLC_State::Output{ret,isMipmap};
-		_cmdPack->outputImageBegin(*ret, isMipmap);
+		_state->output = ret;
+		setMipmap_SourceImage(ret.get(), isMipmap);
+		_cmdPack->outputImageBegin(*ret);
 		Qk_ReturnLocal(ret);
 	}
 
@@ -702,13 +698,12 @@ namespace qk {
 		_phy2Pixel = 2 / _allScale;
 		_rootMatrix = root.transpose(); // transpose matrix
 
-		_cmdPack->setBuffers(surfaceSize, chSize, _isClipState);// set buffers
+		_cmdPack->setBuffers(surfaceSize, _state->output.get(), chSize, _isClipState);// set buffers
 
 		_isClipState = false; // clear clip state
 	}
 
-	void GLCanvas::setBuffers() {
-		auto size = _surfaceSize;
+	void GLCanvas::setBuffers(Vec2 size) {
 		auto w = size.x(), h = size.y();
 		auto type = _opts.colorType;
 		auto init = !_fbo;
@@ -721,7 +716,7 @@ namespace qk {
 			// Create depth buffer
 			glGenRenderbuffers(1, &_outDepth);
 			// gen aaclip buffer tex
-			// glGenTextures(1, &_outAAClipTex);
+			// gl_set_aaclip_buffer(1, &_outAAClipTex);
 		}
 		// Bind framebuffer future OpenGL ES framebuffer commands are directed to it.
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
@@ -749,7 +744,7 @@ namespace qk {
 			gl_set_tex_renderbuffer(_outB, size);
 		}
 
-		glDrawBuffers(2, DrawBuffers);
+		glDrawBuffers(1, DrawBuffers);
 		gl_CheckFramebufferStatus(GL_FRAMEBUFFER);
 
 #if DEBUG

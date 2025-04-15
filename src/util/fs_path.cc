@@ -315,7 +315,7 @@ namespace qk {
 		return path.c_str() + fallback_indexOf(path);
 	}
 
-#if Qk_LINUX
+#if Qk_LINUX || Qk_ANDROID
 	static String path_home_dir, path_executable, path_documents, path_temp, path_resources;
 
 	String fs_home_dir(cChar *child, ...) {

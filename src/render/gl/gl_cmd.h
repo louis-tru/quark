@@ -101,6 +101,7 @@ namespace qk {
 			GLC_State::Clip clip;
 			float          depth;
 			uint32_t       ref;
+			Sp<ImageSource> recover;
 			bool           revoke;
 		};
 
@@ -115,7 +116,7 @@ namespace qk {
 			float           depth;
 			Region          bounds;
 			float           size; // blur size
-			Sp<ImageSource> output; // output dest
+			Sp<ImageSource> recover; // recover output dest
 			int             n,lod; // sampling rate and image lod
 			BlendMode       backMode;
 			bool            isClipState;
@@ -140,14 +141,14 @@ namespace qk {
 		};
 
 		struct ImageCmd: DrawCmd { //!
-			float          fullScale;
+			float          allScale;
 			float          alpha;
 			ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 			~ImageCmd();
 		};
 
 		struct ImageMaskCmd: DrawCmd { //!
-			float          fullScale;
+			float          allScale;
 			Color4f        color;
 			ImagePaint     paint;
 			~ImageMaskCmd();
@@ -173,17 +174,14 @@ namespace qk {
 			Vec2            canvasSize;
 			Vec2            surfaceSize;
 			float           depth;
-			bool            isMipmap;
 		};
 
 		struct OutputImageBeginCmd: Cmd {
 			Sp<ImageSource> img;
-			bool            isMipmap;
 		};
 
 		struct OutputImageEndCmd: Cmd {
 			Sp<ImageSource> img;
-			bool            isMipmap;
 		};
 
 		struct FlushCanvasCmd: Cmd {
@@ -196,6 +194,7 @@ namespace qk {
 
 		struct SetBuffersCmd: Cmd {
 			Vec2 size;
+			Sp<ImageSource> recover;
 			bool chSize, isClip;
 		};
 
@@ -216,14 +215,14 @@ namespace qk {
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
-		void drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke);
+		void drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke);
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);
 		void blurFilterBegin(Region bounds, float size);
-		int  blurFilterEnd(Region bounds, float size, ImageSource* output);
-		void readImage(const Rect &src, ImageSource* img, bool isMipmap);
-		void outputImageBegin(ImageSource* img, bool isMipmap);
-		void outputImageEnd(ImageSource* img, bool isMipmap);
-		void setBuffers(Vec2 size, bool chSize, bool isClip);
+		int  blurFilterEnd(Region bounds, float size, ImageSource* recover);
+		void readImage(const Rect &src, ImageSource* img);
+		void outputImageBegin(ImageSource* img);
+		void outputImageEnd(ImageSource* img);
+		void setBuffers(Vec2 size, ImageSource *recover, bool chSize, bool isClip);
 		void drawBuffers(GLsizei num, const GLenum buffers[2]);
 
 	private:

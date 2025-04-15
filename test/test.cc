@@ -1,4 +1,4 @@
-	/* ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, blue.chu
@@ -156,7 +156,7 @@ Qk_Main() {
 	#define _Fun2(n) call_test(argc, argv, #n, test_##n);
 
 	//#define TEST_DEFAULT(F) TEST_UTILS(F)
-	#define TEST_DEFAULT(F) F(media)
+	#define TEST_DEFAULT(F) F(action)
 
 	Log::set_shared(new TestLog());
 

@@ -33,7 +33,6 @@
 #include "../path.h"
 
 namespace qk {
-
 	extern String gl_Global_GLSL_Macros;
 	extern int    gl_MaxTextureImageUnits;
 
@@ -60,9 +59,11 @@ namespace qk {
 		cString& vertexShader, cString& fragmentShader,
 		const Array<GLShaderAttr> &attributes, cChar *uniforms)
 	{
-		String vertexCode("#version " Qk_GL_Version "\n#define Qk_SHADER_VERT\n");
-		String fragmentCode("#version " Qk_GL_Version "\n#define Qk_SHADER_FRAG\n");
+		String vertexCode  ("#version " Qk_GL_Version "\n");
+		String fragmentCode(vertexCode);
 
+		vertexCode += "#define Qk_SHADER_VERT\n";
+		fragmentCode += "#define Qk_SHADER_FRAG\n";
 		vertexCode += gl_Global_GLSL_Macros;
 		fragmentCode += gl_Global_GLSL_Macros;
 		vertexCode += macros;

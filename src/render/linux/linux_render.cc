@@ -44,7 +44,7 @@
 #include "../gl/gl_render.h"
 #include "../gl/gl_cmd.h"
 
-#if Qk_LINUX // && Qk_ENABLE_GL
+#if (Qk_LINUX || Qk_ANDROID) && Qk_ENABLE_GL
 
 #define GL_ETC1_RGB8_OES  0x8D64
 #define EGL_NO_NATIVE_WINDOW 0
@@ -396,14 +396,15 @@ namespace qk {
 		EGLDisplay dpy = egl_display();
 		EGLConfig cfg = egl_config(dpy, opts);
 
-		EGLint attrs[] = {
+		static EGLint attrs[] = {
 			EGL_CONTEXT_CLIENT_VERSION, 3, // opengl es 3
 			EGL_NONE
 		};
 
 		if (!g_sharedRenderResource) {
-			g_sharedRenderResource =
-				new LinuxRenderResource(dpy, eglCreateContext(dpy, cfg, nullptr, attrs));
+			auto ctx = eglCreateContext(dpy, cfg, nullptr, attrs);
+			if (!ctx) return nullptr;
+			g_sharedRenderResource = new LinuxRenderResource(dpy, ctx);
 		}
 
 		auto ctx = eglCreateContext(dpy, cfg, g_sharedRenderResource->ctx(), attrs);

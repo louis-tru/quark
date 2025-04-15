@@ -2,8 +2,8 @@ include out/config.mk
 
 ARCH          ?= x64
 SUFFIX        ?= $(ARCH)
-HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
-OS            ?= $(HOST_OS)
+NODE          ?= node
+OS            ?= $(shell uname|tr '[A-Z]' '[a-z]')
 BUILDTYPE     ?= Release
 V             ?= 0
 CXX           ?= g++
@@ -12,7 +12,7 @@ ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-28/android.jar
 ANDROID_JAR   ?= out/android.classs.quark.jar
 JAVAC         ?= javac
 JAR           ?= jar
-QKMAKE        ?= ./libs/qkmake
+QKMAKE        ?= libs/qkmake
 QKMAKE_OUT    ?= out/qkmake
 GYP           ?= $(QKMAKE)/gyp-next/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
@@ -34,30 +34,23 @@ ifeq ($(OS), android)
 	STYLE = make-linux
 endif
 
-generator=\
-	echo "{'variables':{'project':'$(1)'}}" > out/var.gypi; \
-	GYP_GENERATORS=$(1) \
-	$(GYP) -f $(1) $(2) --generator-output="out/$(1)" $(GYP_ARGS)
-
-make_compile=\
-	$(1) -C "out/$(STYLE)" -f Makefile.$(OS).$(SUFFIX) \
-	$(V_ARG) BUILDTYPE=$(BUILDTYPE) \
-	builddir="$(shell pwd)/$(LIBS_DIR)"
-
-.PHONY: $(STYLES) all build test2 clean
+.PHONY: $(STYLES) build test2 clean
 
 .SECONDEXPANSION:
 
 ###################### Build ######################
 
-all: build # compile
+#@$(call generator,$@,quark.gyp)
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(call generator,$@,quark.gyp)
+	@$(NODE) -e "require('fs').writeFileSync('out/var.gypi', '{\'variables\':{\'project\':\'$@\'}}')"
+	@$(GYP) -f $@ quark.gyp --generator-output="out/$@" $(GYP_ARGS)
+	@$(NODE) tools/touch.js
 
 build: $(STYLE) # out/$(STYLE)/Makefile.$(OS).$(SUFFIX)
-	@$(call make_compile,$(MAKE))
+	$(MAKE) -C "out/$(STYLE)" -f Makefile.$(OS).$(SUFFIX) \
+	$(V_ARG) BUILDTYPE=$(BUILDTYPE) builddir="$(shell pwd)/$(LIBS_DIR)"
 
 test2: $(GYPFILES)
 	@make -C test/2 -f test2.mk

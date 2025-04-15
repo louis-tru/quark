@@ -16,44 +16,45 @@ endif
 
 #######################
 
-FORWARD = make xcode msvs make-linux cmake-linux cmake build $(ANDROID_JAR) test2 clean
+FORWARD = build make xcode msvs make-linux cmake-linux cmake $(ANDROID_JAR) test2 clean
 
-check_mac=\
-	if [ "$(HOST_OS)" != "mac" ]; then \
+check_os=\
+	if [ "$(HOST_OS)" != "$(1)" ]; then \
 		echo ;\
-		echo target \"$(1)\" can only run on MAC system.;\
+		echo target \"$(2)\" can only run on $(1) system.;\
 		echo ;\
 		exit 1; \
 	fi
 
 .PHONY: $(FORWARD) ios android linux mac \
-	product install install-qkmake \
-	help web doc watch all _host_linux _host_mac sync
+	install-only install help web doc watch all sync
 
 .SECONDEXPANSION:
-
-# compile product quark and install
-# It can only run in MAC system.
-product:
-	@$(MAKE) ios
-	@$(MAKE) android
-	@$(NODE) ./tools/cp_qkmake.js
-
-install: product
-	@$(MAKE) install-qkmake
-
-install-qkmake:
-	@$(NODE) ./tools/cp_qkmake.js
-	@cd $(QKMAKE_OUT) && npm i -f
-	@cd $(QKMAKE_OUT) && $(SUDO) npm i -g
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
 
+# compile product quark and install
+# It can only run in MAC system.
+all:
+	@$(MAKE) ios
+	@$(MAKE) android
+	@$(MAKE) mac
+	@$(MAKE) linux
+	@$(NODE) tools/cp_qkmake.js
+
+install-only:
+	@$(NODE) tools/cp_qkmake.js
+	@cd $(QKMAKE_OUT) && npm i -f
+	@cd $(QKMAKE_OUT) && $(SUDO) npm i -g
+
+install: all
+	@$(MAKE) install-only
+
 # build all ios platform and output to product dir
 # It can only run in MAC system.
 ios:
-	@$(call check_mac,$@)
+	@$(call check_os,mac,$@)
 	@#./configure --os=ios --arch=arm  && $(MAKE) build # armv7 say goodbye
 	@./configure --os=ios --arch=arm64 && $(MAKE) build
 	@./configure --os=ios --arch=arm64 -em && $(MAKE) build # simulator for mac
@@ -66,38 +67,17 @@ android:
 	@./configure --os=android --arch=arm64 && $(MAKE) build
 	@$(MAKE) $(ANDROID_JAR)
 
-linux:
-	@./configure --os=linux   --arch=x64   && $(MAKE) build
-	@./configure --os=linux   --arch=arm   && $(MAKE) build
-	@./configure --os=linux   --arch=arm64 && $(MAKE) build
-
 mac:
-	@$(call check_mac,$@)
+	@$(call check_os,mac,$@)
 	@./configure --os=mac --arch=x64   && $(MAKE) build
 	@./configure --os=mac --arch=arm64 && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) mac
 
-# build all from current system platform
-
-all:
-	@if [ "$(HOST_OS)" = "mac" ]; then \
-		$(MAKE) _host_mac; \
-	elif [ "$(HOST_OS)" = "linux" ]; then \
-		$(MAKE) _host_linux; \
-	else \
-		echo Unsupported current System "$(HOST_OS)"; \
-	fi
-
-# build all on mac
-_host_mac:
-	@$(MAKE) android
-	@$(MAKE) ios
-	@$(MAKE) osx
-
-# build all on linex os
-_host_linux:
-	@$(MAKE) android
-	@$(MAKE) linux
+linux:
+	@$(call check_os,linux,$@)
+	@./configure --os=linux   --arch=x64   && $(MAKE) build
+	@./configure --os=linux   --arch=arm   && $(MAKE) build
+	@./configure --os=linux   --arch=arm64 && $(MAKE) build
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc

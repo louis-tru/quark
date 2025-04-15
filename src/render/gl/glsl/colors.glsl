@@ -1,5 +1,6 @@
 // Batch drawing color sets
 
+#ifndef Qk_OnlyEs2
 struct Option {
 	mediump int   flags; // reserve
 	mediump float depth;
@@ -10,6 +11,7 @@ struct Option {
 layout (std140) uniform optsBlock {
 	Option opts[256];
 };
+#endif
 
 #vert
 in           int   optidxIn; // options index form uniform optsBlock
@@ -25,10 +27,12 @@ out vec4  color;
 #define _matrix (rootMatrix * _vmatrix)
 
 void main() {
+#ifndef Qk_OnlyEs2
 	Option opt = opts[optidxIn];
 	aafuzz = aafuzzIn;
 	color = opt.color;
 	gl_Position = _matrix * vec4(vertexIn.xy, opt.depth, 1.0);
+#endif
 }
 
 #frag

@@ -116,7 +116,7 @@ namespace qk {
 		return os_network_interface() >= 3;
 	}
 
-#if Qk_LINUX
+#if Qk_LINUX || Qk_ANDROID
 
 	static std::atomic_int priv_cpu_total_count(0);
 	static std::atomic_int priv_cpu_usage_count(0);

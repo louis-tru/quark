@@ -46,14 +46,10 @@ namespace qk {
 			Canvas::ClipOp  op;
 			bool            aaclip; // is aaclip
 		};
-		struct Output {
-			Sp<ImageSource> dest; // output draw target
-			bool       isMipmap;
-		};
 		Mat         matrix;
 		uint32_t    aaclip; // Is there a aa clip area and aaclip count
 		Array<Clip> clips; // clip queue
-		Sp<Output>  output; // output dest
+		Sp<ImageSource> output; // output dest
 	};
 
 	class GLRender; // gl render backend
@@ -106,7 +102,7 @@ namespace qk {
 		virtual void unlock() override; // clear sync unlock
 
 	private:
-		virtual void setBuffers();
+		virtual void setBuffers(Vec2 size);
 		// define props
 		Array<GLC_State> _stateStack; // state
 		GLC_State    *_state; // state

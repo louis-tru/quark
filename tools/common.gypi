@@ -394,13 +394,13 @@
 			}],
 			['_toolset=="host"', {'conditions': [
 				['os=="android"',{
-					'cflags!': [ '-O3', '-O2', '-Os' ],
-					'cflags': [ '-O0' ],
+					# 'cflags!': [ '-O2', '-O3', '-Os' ],
+					# 'cflags': [ '-O0' ],
 					'ldflags!': [ '-stdlib=libc++' ]
 				}],
 				['os=="linux"',{
 					'cflags!': [ '-march=<(arch_name)', '-m64', '-m32' ],
-					'cflags': [ '-O0' ],
+					# 'cflags': [ '-O0' ],
 				}],
 				['os=="ios"',{
 					'cflags!': [

@@ -34,7 +34,7 @@ add_definitions(
 	-DHAVE_INSPECTOR=1
 	-DCHROME_PNG_WRITE_SUPPORT
 	-DPNG_USER_CONFIG
-    -DQk_ENABLE_GL
+	-DQk_ENABLE_GL
 )
 
 # set(TARGET "bplus")

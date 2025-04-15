@@ -97,7 +97,7 @@
 					'destination': '<(product_dir)/<(product_so_subdir)',
 					'files': [ 'out/<(output_name)/obj.target/libquark.so' ],
 				}], # copy libquark.so to product directory
-			}],
+			}]
 		], # conditions
 	}],
 

@@ -46,8 +46,7 @@ namespace qk {
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	GLint gl_get_texture_pixel_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
-	void setTex_SourceImage(RenderResource *res, ImageSource* s, cPixelInfo &i,
-			const TexStat *tex, bool isMipmap);
+	void setTex_SourceImage(RenderResource *res, ImageSource* s, cPixelInfo &i, const TexStat *tex);
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size);
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
 	void gl_set_texture_no_repeat(GLenum wrapdir);
@@ -226,7 +225,7 @@ namespace qk {
 						case kBlurFilterEnd_CmdType: {
 							auto c = (BlurFilterEndCmd*)cmd;
 							blurFilterEndCall(c->bounds, c->size,
-								*c->output, c->backMode, c->n, c->lod, c->isClipState, c->depth);
+								*c->recover, c->backMode, c->n, c->lod, c->isClipState, c->depth);
 							c->~BlurFilterEndCmd();
 							break;
 						}
@@ -242,7 +241,7 @@ namespace qk {
 						}
 						case kClip_CmdType: {
 							auto c = (ClipCmd*)cmd;
-							drawClipCall(c->clip, c->ref, c->revoke, c->depth);
+							drawClipCall(c->clip, c->ref, c->recover.get(), c->revoke, c->depth);
 							c->~ClipCmd();
 							break;
 						}
@@ -259,13 +258,13 @@ namespace qk {
 						}
 						case kImage_CmdType: {
 							auto c = (ImageCmd*)cmd;
-							drawImageCall(c->vertex, &c->paint, c->fullScale, c->alpha, c->aafuzz, c->aaclip, c->depth);
+							drawImageCall(c->vertex, &c->paint, c->allScale, c->alpha, c->aafuzz, c->aaclip, c->depth);
 							c->~ImageCmd();
 							break;
 						}
 						case kImageMask_CmdType: {
 							auto c = (ImageMaskCmd*)cmd;
-							drawImageMaskCall(c->vertex, &c->paint, c->fullScale, c->color, c->aafuzz, c->aaclip, c->depth);
+							drawImageMaskCall(c->vertex, &c->paint, c->allScale, c->color, c->aafuzz, c->aaclip, c->depth);
 							c->~ImageMaskCmd();
 							break;
 						}
@@ -290,19 +289,19 @@ namespace qk {
 						}
 						case kReadImage_CmdType: {
 							auto c = (ReadImageCmd*)cmd;
-							readImageCall(c->src, *c->img, c->isMipmap, c->canvasSize, c->surfaceSize, c->depth);
+							readImageCall(c->src, *c->img, c->canvasSize, c->surfaceSize, c->depth);
 							c->~ReadImageCmd();
 							break;
 						}
 						case kOutputImageBegin_CmdType: {
 							auto c = (OutputImageBeginCmd*)cmd;
-							outputImageBeginCall(*c->img, c->isMipmap);
+							outputImageBeginCall(*c->img);
 							c->~OutputImageBeginCmd();
 							break;
 						}
 						case kOutputImageEnd_CmdType: {
 							auto c = (OutputImageEndCmd*)cmd;
-							outputImageEndCall(*c->img, c->isMipmap);
+							outputImageEndCall(*c->img);
 							c->~OutputImageEndCmd();
 							break;
 						}
@@ -316,7 +315,8 @@ namespace qk {
 						}
 						case kSetBuffers_CmdType: {
 							auto c = (SetBuffersCmd*)cmd;
-							setBuffersCall(c->size, c->chSize, c->isClip);
+							setBuffersCall(c->size, c->recover.get(), c->chSize, c->isClip);
+							c->~SetBuffersCmd();
 							break;
 						}
 						case kDrawBuffers_CmdType: {
@@ -349,10 +349,12 @@ namespace qk {
 #endif
 		}
 
-		void flushAAClipBuffer(bool enable) {
-			//gl_texture_barrier();
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-				GL_TEXTURE_2D, enable ? _canvas->_outAAClipTex: 0, 0
+		void setOutputColorBuffer(bool useAAClip, ImageSource* elseOut) {
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_2D,
+				useAAClip ? _canvas->_outAAClipTex:
+				elseOut ? elseOut->texture(0)->id: _canvas->_outTex->id,
+				0
 			);
 		}
 
@@ -459,7 +461,7 @@ namespace qk {
 		}
 
 		void drawImageCall(const VertexData &vertex,
-			const ImagePaint *paint, float fullScale, float alpha, bool aafuzz, bool aaclip, float depth
+			const ImagePaint *paint, float allScale, float alpha, bool aafuzz, bool aaclip, float depth
 		) {
 			ImagePaintLock lock(paint);
 			if (setTextureSlot0(paint)) { // rgb or y
@@ -483,7 +485,7 @@ namespace qk {
 					Qk_useShaderProgram(s, vertex);
 				}
 				glUniform1f(s->depth, depth);
-				glUniform1f(s->fullScale, fullScale);
+				glUniform1f(s->allScale, allScale);
 				glUniform1f(s->alpha, alpha);
 				glUniform4fv(s->coord, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -491,14 +493,14 @@ namespace qk {
 		}
 
 		void drawImageMaskCall(const VertexData &vertex,
-			const ImagePaint *paint, float fullScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
+			const ImagePaint *paint, float allScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
 			ImagePaintLock lock(paint);
 			if (setTextureSlot0(paint)) {
 				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
 				Qk_useShaderProgram(s, vertex);
 				glUniform1f(s->depth, depth);
-				glUniform1f(s->fullScale, fullScale);
+				glUniform1f(s->allScale, allScale);
 				glUniform4fv(s->color, 1, color.val);
 				glUniform4fv(s->coord, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
@@ -533,10 +535,13 @@ namespace qk {
 			//glDrawArrays(GL_LINES, 0, vertex.length());
 		}
 
-		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, bool revoke, float depth) {
+		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke, float depth) {
 			auto _c = _canvas;
 
-			auto aaClip = [](Inl *self, float depth, const GLC_State::Clip &clip, bool revoke, float W, float C, bool clearAA) {
+			auto aaClip = [](
+				Inl *self, float depth, const GLC_State::Clip &clip,
+				ImageSource *recover, bool revoke, float W, float C, bool clearAA)
+			{
 				auto _c = self->_canvas;
 				auto _render = _c->_render;
 				auto chMode = _render->_blendMode;
@@ -546,12 +551,13 @@ namespace qk {
 				if (!_c->_outAAClipTex) {
 					glGenTextures(1, &_c->_outAAClipTex); // gen aaclip buffer tex
 					gl_set_aaclip_buffer(_c->_outAAClipTex, _c->_surfaceSize);
+					self->setOutputColorBuffer(true, nullptr);
 					float color[] = {1.0f,1.0f,1.0f,1.0f};
-					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
-					// ensure clip texture clear can be executed correctly in sequence
+					glClearBufferfv(GL_COLOR, 0, color); // clear aa clip
+					// Ensure clip texture clear can be executed correctly in sequence
 				}
-				if (!clearAA) {
-					self->flushAAClipBuffer(true);
+				else if (!clearAA) {
+					self->setOutputColorBuffer(true, nullptr);
 				}
 				if (ch)
 					_render->gl_set_blend_mode(kSrc_BlendMode);
@@ -566,7 +572,7 @@ namespace qk {
 				if (ch)
 					_render->gl_set_blend_mode(chMode); // revoke blend mode
 				// ensure aa clip can be executed correctly in sequence
-				self->flushAAClipBuffer(false);
+				self->setOutputColorBuffer(false, recover);
 			};
 
 			if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
@@ -579,7 +585,7 @@ namespace qk {
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 					glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
-					aaClip(this, depth, clip, revoke, aa_fuzz_weight, 0, false);
+					aaClip(this, depth, clip, recover, revoke, aa_fuzz_weight, 0, false);
 					return;
 				}
 			} else { // intersect clip
@@ -587,16 +593,16 @@ namespace qk {
 				auto shader = clearAA ?
 					(GLSLClipTest*)&_render->_shaders.clipTest_CLEAR_AA: &_render->_shaders.clipTest; // clear aa
 				if (clearAA)
-					flushAAClipBuffer(true);
+					setOutputColorBuffer(true, nullptr);
 				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
 				shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
 				glUniform1f(shader->depth, depth);
 				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
 
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
-					aaClip(this, depth, clip, revoke, -aa_fuzz_weight, -1, clearAA);
+					aaClip(this, depth, clip, recover, revoke, -aa_fuzz_weight, -1, clearAA);
 				} else if (clearAA) {
-					flushAAClipBuffer(false);
+					setOutputColorBuffer(false, recover);
 				}
 			}
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
@@ -688,7 +694,7 @@ namespace qk {
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
 		void blurFilterEndCall(Region bounds, float size,
-			ImageSource* output, BlendMode backMode, int n, int lod, bool isClipState, float depth)
+			ImageSource* recover, BlendMode backMode, int n, int lod, bool isClipState, float depth)
 		{
 			auto _c = _canvas;
 			float x1 = bounds.origin.x(), y1 = bounds.origin.y() + size;
@@ -719,9 +725,9 @@ namespace qk {
 				do { // copy image level
 					oRw >>= 1; oRh >>= 1;
 					glUniform1f(cp.depth, depth);
-					glUniform1f(cp.imageLod, level);
+					glUniform1f(cp.imageLod, level++);
 					glUniform2f(cp.oResolution, oRw, oRh);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_outA, ++level);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_outA, level);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					depth += DepthNextUnit;
 				} while(level < lod && oRw && oRh);
@@ -792,12 +798,11 @@ namespace qk {
 				_render->gl_set_blend_mode(backMode); // restore blend mode
 			}
 
-			if (output) { // output target
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output->texture(0)->id, 0);
-			} else {
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_outTex->id, 0);
-				// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _c->_outColor);
-			}
+			// recover output target
+			glFramebufferTexture2D(
+				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+				recover ? _c->_outTex->id: recover->texture(0)->id, 0
+			);
 
 			glBindTexture(GL_TEXTURE_2D, _c->_outB);
 
@@ -809,9 +814,7 @@ namespace qk {
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer
 		}
 
-		void readImageCall(const Rect &src, ImageSource* img,
-			bool isMipmap, Vec2 canvasSize, Vec2 surfaceSize, float depth
-		) {
+		void readImageCall(const Rect &src, ImageSource* img, Vec2 canvasSize, Vec2 surfaceSize, float depth) {
 			auto tex = img->texture(0);
 			auto o = src.origin, s = src.size;
 			auto w = img->width(), h = img->height();
@@ -862,14 +865,14 @@ namespace qk {
 			// glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
 			// }
 
-			if (isMipmap) {
+			if (img->isMipmap()) {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}
-			setTex_SourceImage(_render, img, img->info(), tex, isMipmap);
+			setTex_SourceImage(_render, img, img->info(), tex);
 		}
 
-		void outputImageBeginCall(ImageSource* img, bool isMipmap) {
+		void outputImageBeginCall(ImageSource* img) {
 			auto tex = img->texture(0);
 			auto size = _canvas->_surfaceSize;
 			auto iformat = gl_get_texture_pixel_format(img->type());
@@ -888,13 +891,13 @@ namespace qk {
 #endif
 			setTex_SourceImage(_render, img, {
 				int(size[0]),int(size[1]),img->type(),img->info().alphaType()
-			}, tex, isMipmap);
+			}, tex);
 		}
 
-		void outputImageEndCall(ImageSource* img, bool isMipmap) {
+		void outputImageEndCall(ImageSource* img) {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _canvas->_outTex->id, 0);
 			//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _canvas->_outColor);
-			if (isMipmap) {
+			if (img->isMipmap()) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindSampler(0, 0);
 				glBindTexture(GL_TEXTURE_2D, img->texture(0)->id);
@@ -974,7 +977,7 @@ namespace qk {
 #endif
 		}
 
-		void setBuffersCall(Vec2 size, bool chSize, bool isClip) {
+		void setBuffersCall(Vec2 size, ImageSource *recover, bool chSize, bool isClip) {
 			auto _c = _canvas;
 			auto w = size.x(), h = size.y();
 			auto type = _c->_opts.colorType;
@@ -985,10 +988,10 @@ namespace qk {
 			chSize = chSize && size == _c->_surfaceSize;
 
 			if (chSize) {
-				_c->setBuffers();
+				_c->setBuffers(size);
 			}
 			// update shader root matrix and clear all save state
-			if (_render->_glcanvas == _canvas) { // main canvas
+			if (_render->_glcanvas == _c) { // main canvas
 				glViewport(0, 0, size[0], size[1]);
 				// init root matrix buffer
 				setRootMatrixCall(_c->_rootMatrix);
@@ -997,11 +1000,11 @@ namespace qk {
 			}
 			if (chSize || isClip) { // is clear clip buffer
 				if (_c->_outAAClipTex) { // clear aa clip tex buffer
-					flushAAClipBuffer(true);
+					setOutputColorBuffer(true, nullptr);
 					float color[] = {1.0f,1.0f,1.0f,1.0f};
-					glClearBufferfv(GL_COLOR, 1, color); // clear GL_COLOR_ATTACHMENT1
+					glClearBufferfv(GL_COLOR, 0, color); // clear GL_COLOR_ATTACHMENT0
 					// ensure clip texture clear can be executed correctly in sequence
-					flushAAClipBuffer(false);
+					setOutputColorBuffer(false, recover);
 				}
 				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
 				glDisable(GL_STENCIL_TEST); // disable stencil test
@@ -1180,7 +1183,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
-		cmd->fullScale = _canvas->_allScale;
+		cmd->allScale = _canvas->_allScale;
 		cmd->alpha = alpha;
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1195,7 +1198,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
-		cmd->fullScale = _canvas->_allScale;
+		cmd->allScale = _canvas->_allScale;
 		cmd->color = color;
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
@@ -1223,7 +1226,7 @@ namespace qk {
 		cmd->paint.positions = positions;
 	}
 
-	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke) {
+	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke) {
 		_this->checkMetrix(); // check matrix change
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
@@ -1231,6 +1234,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->ref = ref;
 		cmd->revoke = revoke;
+		cmd->recover = recover;
 	}
 
 	void GLC_CmdPack::clearColor(const Color4f &color, const Region &region, bool full) {
@@ -1251,7 +1255,7 @@ namespace qk {
 		cmd->isClipState = _canvas->_isClipState;
 	}
 
-	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource* output) {
+	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource *recover) {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterEndCmd))) BlurFilterEndCmd;
 		cmd->type = kBlurFilterEnd_CmdType;
 		cmd->bounds = bounds;
@@ -1259,42 +1263,40 @@ namespace qk {
 		cmd->backMode = _canvas->_blendMode;
 		cmd->size = size;
 		cmd->isClipState = _canvas->_isClipState;
-		cmd->output = output;
+		cmd->recover = recover;
 		_this->getBlurSampling(size, cmd->n, cmd->lod);
 		return cmd->lod + 2;
 	}
 
-	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool isMipmap) {
+	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img) {
 		auto cmd = new(_this->allocCmd(sizeof(ReadImageCmd))) ReadImageCmd;
 		cmd->type = kReadImage_CmdType;
 		cmd->src = src;
 		cmd->img = img;
-		cmd->isMipmap = isMipmap;
 		cmd->depth = _canvas->_zDepth;
 		cmd->canvasSize = _canvas->_size;
 		cmd->surfaceSize = _canvas->_surfaceSize;
 	}
 
-	void GLC_CmdPack::outputImageBegin(ImageSource* img, bool isMipmap) {
+	void GLC_CmdPack::outputImageBegin(ImageSource* img) {
 		auto cmd = new(_this->allocCmd(sizeof(OutputImageBeginCmd))) OutputImageBeginCmd;
 		cmd->type = kOutputImageBegin_CmdType;
 		cmd->img = img;
-		cmd->isMipmap = isMipmap;
 	}
 
-	void GLC_CmdPack::outputImageEnd(ImageSource* img, bool isMipmap) {
+	void GLC_CmdPack::outputImageEnd(ImageSource* img) {
 		auto cmd = new(_this->allocCmd(sizeof(OutputImageEndCmd))) OutputImageEndCmd;
 		cmd->type = kOutputImageEnd_CmdType;
 		cmd->img = img;
-		cmd->isMipmap = isMipmap;
 	}
 
-	void GLC_CmdPack::setBuffers(Vec2 size, bool chSize, bool isClip) {
+	void GLC_CmdPack::setBuffers(Vec2 size, ImageSource *recover, bool chSize, bool isClip) {
 		auto cmd = new(_this->allocCmd(sizeof(SetBuffersCmd))) SetBuffersCmd;
 		cmd->type = kSetBuffers_CmdType;
 		cmd->size = size;
 		cmd->chSize = chSize;
 		cmd->isClip = isClip;
+		cmd->recover = recover;
 	}
 
 	void GLC_CmdPack::drawBuffers(GLsizei num, const GLenum buffers[2]) {
@@ -1308,7 +1310,7 @@ namespace qk {
 #else
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
 		: _render(render), _canvas(canvas), _cache(canvas->getPathvCache())
-		, lastCmd(nullptr), _chMatrix(true)
+		, _lastCmd(nullptr), _chMatrix(true)
 	{}
 	GLC_CmdPack::~GLC_CmdPack() {
 	}
@@ -1320,7 +1322,7 @@ namespace qk {
 	void GLC_CmdPack::setMetrix() {
 		_this->setMatrixCall(_canvas->_state->matrix);
 	}
-	void GLC_CmdPack::gl_set_blend_mode(BlendMode mode) {
+	void GLC_CmdPack::setBlendMode(BlendMode mode) {
 		_render->gl_set_blend_mode(mode);
 	}
 	void GLC_CmdPack::switchState(GLenum id, bool isEnable) {
@@ -1333,16 +1335,16 @@ namespace qk {
 		_this->drawRRectBlurColorCall(rect, radius, blur, color, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
-		_this->drawImageCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+		_this->drawImageCall(vertex, paint, _canvas->_allScale, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
-		_this->drawImageMaskCall(vertex, paint, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+		_this->drawImageMaskCall(vertex, paint, _canvas->_allScale, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
 		_this->drawGradientCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, bool revoke) {
-		_this->drawClipCall(clip, ref, revoke, _canvas->_zDepth);
+	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke) {
+		_this->drawClipCall(clip, ref, recover, revoke, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::clearColor(const Color4f &color, const Region &region, bool full) {
 		_this->clearColorCall(color, region, full, _canvas->_zDepth);
@@ -1358,18 +1360,18 @@ namespace qk {
 		);
 		return lod + 2;
 	}
-	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img, bool isMipmap) {
-		_this->readImageCall(src, img, isMipmap,
+	void GLC_CmdPack::readImage(const Rect &src, ImageSource* img) {
+		_this->readImageCall(src, img,
 			_canvas->_size, _canvas->_surfaceSize, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::outputImageBegin(ImageSource* img, bool isMipmap) {
-		_this->outputImageBeginCall(img, isMipmap);
+	void GLC_CmdPack::outputImageBegin(ImageSource* img) {
+		_this->outputImageBeginCall(img);
 	}
-	void GLC_CmdPack::outputImageEnd(ImageSource* img, bool isMipmap) {
-		_this->outputImageEndCall(img, isMipmap);
+	void GLC_CmdPack::outputImageEnd(ImageSource* img) {
+		_this->outputImageEndCall(img);
 	}
-	void GLC_CmdPack::setBuffers(Vec2 size, bool chSize, bool isClip) {
-		_this->setBuffersCall(size, chSize, isClip);
+	void GLC_CmdPack::setBuffers(Vec2 size, ImageSource *recover, bool chSize, bool isClip) {
+		_this->setBuffersCall(size, recover, chSize, isClip);
 	}
 	void GLC_CmdPack::drawBuffers(GLsizei num, const GLenum buffers[2]) {
 		_this->drawBuffersCall(num, buffers);

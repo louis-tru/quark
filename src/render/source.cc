@@ -55,13 +55,19 @@ namespace qk {
 
 	Qk_DEFINE_INLINE_MEMBERS(ImageSource, Inl) {
 	public:
-		void setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex, bool isMipmap);
+		void setMipmap(bool val) {
+			_isMipmap = val;
+		}
+		void setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex);
 	};
 
+	void setMipmap_SourceImage(ImageSource* img, bool val) {
+		static_cast<ImageSource::Inl*>(img)->setMipmap(val);
+	}
 	void setTex_SourceImage(RenderResource *res,
-			ImageSource* img, cPixelInfo &i, const TexStat *tex, bool isMipmap)
+			ImageSource* img, cPixelInfo &i, const TexStat *tex)
 	{
-		static_cast<ImageSource::Inl*>(img)->setTex(res, i, tex, isMipmap);
+		static_cast<ImageSource::Inl*>(img)->setTex(res, i, tex);
 	}
 
 	ImageSource::ImageSource(RenderResource *res, RunLoop *loop): Qk_Init_Event(State)
@@ -280,7 +286,7 @@ namespace qk {
 		}
 	}
 
-	void ImageSource::Inl::setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex, bool isMipmap) {
+	void ImageSource::Inl::setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex) {
 		AutoMutexExclusive ame(_onState);
 		if (!_res)
 			_res = res;
@@ -294,7 +300,6 @@ namespace qk {
 		}
 		_state = kSTATE_LOAD_COMPLETE; //
 		_info = info; //
-		_isMipmap = isMipmap;
 	}
 
 	// -------------------- I m a g e . S o u r c e . P o o l --------------------

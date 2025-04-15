@@ -32,7 +32,6 @@
 #include "./gl_cmd.h"
 
 namespace qk {
-
 	String gl_Global_GLSL_Macros;
 	int    gl_MaxTextureImageUnits = 0;
 
@@ -331,7 +330,7 @@ namespace qk {
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size) {
 		// clip anti alias buffer
 		GLuint slot = gl_MaxTextureImageUnits - 1; // Binding go to the last channel
-#if Qk_iOS || Qk_LINUX
+#if Qk_iOS || Qk_LINUX || Qk_ANDROID
 		ColorType type = kRGBA_8888_ColorType;
 #else
 		ColorType type = kLuminance_8_ColorType;
@@ -342,7 +341,6 @@ namespace qk {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
 	}
 
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size) {
