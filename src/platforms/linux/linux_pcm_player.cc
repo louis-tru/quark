@@ -122,10 +122,10 @@ namespace qk {
 			// Qk_DLog("_delayed: %f, Frame: %d, %ld", _delayed, s16_len, time_monotonic());
 
 			if (_mute) {
-				for (int i = 0; i < s16_len; i++)
+				for (uint32_t i = 0; i < s16_len; i++)
 					*s16_bf++ = 0;
 			} else if (_volume < 1.0) { // set s16 pcm buffer volume
-				for (int i = 0; i < s16_len; i++) {
+				for (uint32_t i = 0; i < s16_len; i++) {
 					*s16_bf++ = (*s16_bf) * _volume;
 					s16_bf++;
 				}

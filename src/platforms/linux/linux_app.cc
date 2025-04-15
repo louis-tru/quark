@@ -67,6 +67,12 @@ namespace qk
 	};
 #endif
 
+#if !Qk_ARCH_64BIT
+	template<> uint64_t Compare<XWindow>::hashCode(const XWindow& key) {
+		return key;
+	}
+#endif
+
 	struct MainLooper {
 		XDisplay *_xdpy;
 		XWindow _xwinTmp;

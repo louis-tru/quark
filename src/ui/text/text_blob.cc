@@ -431,10 +431,10 @@ namespace qk {
 
 			int overflow_val = origin + offset.back().x() - limitX;
 			if (overflow_val > 0) {
-				int len = fg.glyphs().length();
+				uint32_t len = fg.glyphs().length();
 
 				if (overflow == TextOverflow::Clip) {
-					for (int j = 0; j < len; j++) {
+					for (uint32_t j = 0; j < len; j++) {
 						float x = origin + offset[j + 1].x();
 						if (x > limitX) {
 							// discard overflow part

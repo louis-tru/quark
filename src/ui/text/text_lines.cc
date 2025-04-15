@@ -233,7 +233,7 @@ namespace qk {
 			if (blob.line == line && pre.typeface == blob.blob.typeface) {
 				blob.blob.glyphs.write(glyphs.val(), glyphs.length());
 				frontOffset += blob.blob.offset.back().x();
-				for (int i = 1; i < offset.length(); i++) {
+				for (uint32_t i = 1; i < offset.length(); i++) {
 					blob.blob.offset.push({offset[i].x() + frontOffset, offset[i].y()});
 				}
 				_last->width = blob.origin + blob.blob.offset.back().x();

@@ -55,7 +55,6 @@ install: all
 # It can only run in MAC system.
 ios:
 	@$(call check_os,mac,$@)
-	@#./configure --os=ios --arch=arm  && $(MAKE) build # armv7 say goodbye
 	@./configure --os=ios --arch=arm64 && $(MAKE) build
 	@./configure --os=ios --arch=arm64 -em && $(MAKE) build # simulator for mac
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) ios
@@ -63,7 +62,6 @@ ios:
 # build all android platform and output to product dir
 android:
 	@./configure --os=android --arch=x64   && $(MAKE) build
-	@./configure --os=android --arch=arm   && $(MAKE) build
 	@./configure --os=android --arch=arm64 && $(MAKE) build
 	@$(MAKE) $(ANDROID_JAR)
 
@@ -76,7 +74,6 @@ mac:
 linux:
 	@$(call check_os,linux,$@)
 	@./configure --os=linux   --arch=x64   && $(MAKE) build
-	@./configure --os=linux   --arch=arm   && $(MAKE) build
 	@./configure --os=linux   --arch=arm64 && $(MAKE) build
 
 doc:

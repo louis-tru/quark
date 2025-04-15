@@ -520,7 +520,7 @@ namespace qk {
 							}), view);
 						}
 					} else { // May trigger click down
-						for ( int i = 0; i < touchs.length(); i++) {
+						for ( uint32_t i = 0; i < touchs.length(); i++) {
 							auto item = touchs[i];
 							if ( item.click_in ) { // find range == true
 								origin_touche->set_is_click_down(true); // set down status

@@ -49,9 +49,12 @@ namespace qk {
 	}
 
 	CStyleSheetsClass::~CStyleSheetsClass() {
-		_host->preRender().async_call([](auto self, auto arg) {
-			self->removeCSSTransition_Rt(arg.arg);
-		}, _host->window()->actionCenter(), _host);
+		auto center = _host->window()->actionCenter();
+		if (center) {
+			_host->preRender().async_call([](auto self, auto arg) {
+				self->removeCSSTransition_Rt(arg.arg);
+			}, center, _host);
+		}
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {

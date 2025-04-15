@@ -85,7 +85,7 @@ namespace qk {
 
 	void SpawnAction::insertChild(Id after, Action *child) {
 		ActionGroup::insertChild(after, child);
-		int32_t du = child->_duration;
+		auto du = child->_duration;
 		if ( du > _duration ) {
 			Action::setDuration( du - _duration );
 		}

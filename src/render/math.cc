@@ -32,7 +32,9 @@
 #include <math.h>
 #include "./math.h"
 
-#if Qk_ARCH_ARM
+#define Qk_USE_ARM_NENO Qk_ARCH_ARM64
+
+#if Qk_USE_ARM_NENO
 #include <arm_neon.h>
 #endif
 
@@ -476,7 +478,7 @@ namespace qk {
 		[ d, e, f ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_ARCH_ARM
+#if Qk_USE_ARM_NENO
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{val[0],val[1],val[3],val[4]},
 			float32x4_t{v.val[0],v.val[1],v.val[0],v.val[1]}
@@ -527,7 +529,7 @@ namespace qk {
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_ARCH_ARM
+#if Qk_USE_ARM_NENO
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{  val[0], val[3],  val[1],  val[4]},
 			float32x4_t{v.val[0],v.val[0],v.val[1],v.val[1]}
@@ -575,7 +577,7 @@ namespace qk {
 		*/
 		float cz = cosf(z);
 		float sz = sinf(z);
-#if Qk_ARCH_ARM
+#if Qk_USE_ARM_NENO
 		float32x4_t _a = {val[0],val[1],val[3],val[4]};
 		float32x4_t p0 = vmulq_f32(_a, float32x4_t{cz,sz,cz,sz}); // *
 		float32x4_t p1 = vmulq_f32(_a,float32x4_t{sz,cz,sz,cz}); // *
@@ -670,7 +672,7 @@ namespace qk {
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_ARCH_ARM
+#if Qk_USE_ARM_NENO
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
 			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
@@ -699,7 +701,7 @@ namespace qk {
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_ARCH_ARM
+#if Qk_USE_ARM_NENO
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
 			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
@@ -732,7 +734,7 @@ namespace qk {
 		float* _v = output.val;
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_ARCH_ARM
+#if Qk_USE_ARM_NENO
 		float32x4_t p0 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[0],_a[1]},
 			float32x4_t{_b[0],_b[3],_b[1],_b[4]}

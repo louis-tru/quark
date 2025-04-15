@@ -31,6 +31,10 @@
 #ifndef __quark__util__macros__
 #define __quark__util__macros__
 
+#if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7__)
+# define Qk_ARCH_ARMV7 1
+#endif
+
 #if defined(_M_X64) || defined(__x86_64__)
 # define Qk_ARCH_X86 1
 # ifndef __native_client__
@@ -43,7 +47,7 @@
 # define Qk_ARCH_ARM 1
 # define Qk_ARCH_ARM64 1
 # define Qk_ARCH_64BIT 1
-#elif defined(__ARMEL__)
+#elif defined(__ARMEL__) || defined(Qk_ARCH_ARMV7)
 # define Qk_ARCH_ARM 1
 #elif defined(__mips64)
 # define Qk_ARCH_MIPS 1
@@ -57,10 +61,6 @@
 
 #ifndef Qk_ARCH_64BIT
 # define Qk_ARCH_64BIT 0
-#endif
-
-#if defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7__)
-# define Qk_ARCH_ARMV7 1
 #endif
 
 #define Qk_POSIX 1

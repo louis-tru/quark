@@ -418,7 +418,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	void Array<T, A>::pop(uint32_t count) {
-		int newLen = Qk_Max(_length - count, 0);
+		uint32_t newLen = Qk_Max(int(_length - count), 0);
 		if (_length > newLen) {
 			if (IsPointer<T>::value) {
 				_length = newLen;

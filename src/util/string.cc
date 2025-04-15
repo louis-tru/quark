@@ -54,12 +54,12 @@ namespace qk {
 				int min = Qk_Min(sizeof_o, sizeof_i);
 				int max = Qk_Min(sizeof_o, sizeof_i);
 				if (is_bigData) { // big data layout
-					for (int j = 0; j < len; j++) {
+					for (uint32_t j = 0; j < len; j++) {
 						::memcpy(o, i + max - min, min); // Copy low order only
 						o+=sizeof_o; i+=sizeof_i;
 					}
 				} else {
-					for (int j = 0; j < len; j++) {
+					for (uint32_t j = 0; j < len; j++) {
 						::memcpy(o, i, min); // Copy low order only
 						o+=sizeof_o; i+=sizeof_i;
 					}

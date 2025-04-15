@@ -347,10 +347,10 @@ namespace qk {
 			dest1->_colors.length(),
 			Uint32::min(_colors.length(), to1->_colors.length())
 		);
-		for (auto i = 0; i < posLen; i++) {
+		for (uint32_t i = 0; i < posLen; i++) {
 			dest1->_pos[i] = transition_value(_pos[i], to1->_pos[i], t);
 		}
-		for (auto i = 0; i < colorLen; i++) {
+		for (uint32_t i = 0; i < colorLen; i++) {
 			dest1->_colors[i] = transition_value(_colors[i], to1->_colors[i], t);
 		}
 		mark(dest1, isRt);

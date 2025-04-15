@@ -105,9 +105,9 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 		}
 		break;
 		case FT_PIXEL_MODE_LCD: {
-			for (int y = height; y-- > 0;) {
+			for (uint32_t y = height; y-- > 0;) {
 				const uint8_t* triple = src;
-				for (int x = 0; x < width; x++) {
+				for (uint32_t x = 0; x < width; x++) {
 					*dst++ = *triple++;
 					*dst++ = *triple++;
 					*dst++ = *triple++;
@@ -117,11 +117,11 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 			}
 		} break;
 		case FT_PIXEL_MODE_LCD_V: {
-			for (int y = height; y-- > 0;) {
+			for (uint32_t y = height; y-- > 0;) {
 				const uint8_t* srcR = src;
 				const uint8_t* srcG = srcR + srcPitch;
 				const uint8_t* srcB = srcG + srcPitch;
-				for (int x = 0; x < width; x++) {
+				for (uint32_t x = 0; x < width; x++) {
 					*(dst++) = *srcR++;
 					*(dst++) = *srcG++;
 					*(dst++) = *srcB++;

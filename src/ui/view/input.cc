@@ -851,7 +851,7 @@ namespace qk {
 			Qk_ASSERT(_value_u4.length());
 			auto len = cursor_blob->blob.offset.length();
 			auto index = _cursor - cursor_blob->index;
-			Qk_ASSERT(index >= 0);
+			Qk_ASSERT(int(index) >= 0);
 			float offset = 0;
 			if (index < len) { // Index is within the offset range
 				offset = cursor_blob->blob.offset[index].x();
@@ -955,7 +955,7 @@ namespace qk {
 		if ( _editing ) {
 			int cursor = _cursor;
 			if ( !_marked_text.length() ) {
-				Qk_ASSERT(cursor <= _value_u4.length());
+				Qk_ASSERT(_cursor <= _value_u4.length());
 				if ( count < 0 ) {
 					count = Qk_Min(cursor, -count);
 					if ( count ) {

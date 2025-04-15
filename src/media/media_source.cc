@@ -124,7 +124,7 @@ namespace qk {
 	static Array<Program> get_programs(AVFormatContext* fmt_ctx) {
 		Array<Program> arr_prog;
 		if (fmt_ctx->nb_programs) {
-			for (int i = 0; i < fmt_ctx->nb_programs; i++) {
+			for (uint32_t i = 0; i < fmt_ctx->nb_programs; i++) {
 				auto avp = fmt_ctx->programs[i];
 				auto prog = get_program(fmt_ctx,
 																*avp->stream_index,
@@ -289,7 +289,7 @@ namespace qk {
 		_program_idx = index;
 
 		if (_fmt_ctx) {
-			for (int i = 0; i < _fmt_ctx->nb_programs; i++) {
+			for (uint32_t i = 0; i < _fmt_ctx->nb_programs; i++) {
 				_fmt_ctx->programs[i]->discard = index == i ? AVDISCARD_NONE: AVDISCARD_ALL;
 			}
 		}
