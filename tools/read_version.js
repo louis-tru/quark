@@ -31,19 +31,19 @@
 var fs = require('encark/fs');
 
 function read_quark_version() {
-	var str = fs.readFileSync(__dirname + '/../quark/version.h').toString('utf-8');
+	var str = fs.readFileSync(__dirname + '/../src/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
 	var mat;
 
-	if ( (mat = /#define\s+NOUG_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+Qk_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MAJOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+NOUG_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+Qk_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MINOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+NOUG_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+Qk_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {

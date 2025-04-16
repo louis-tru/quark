@@ -40,52 +40,55 @@
 			['os in "mac ios" and project=="make"', {
 				'actions': [{
 					'action_name': 'mk_quark_dylib',
-					'variables': {
-						'embed_bitcode%': 0,
-						'lib_v8_a%': [],
-						'conditions': [
-							['arch in "arm arm64" and without_embed_bitcode==0', {
-								'embed_bitcode': 1,
-							}],
-							['use_v8==1', {
-								'lib_v8_a': [
-									'<(output)/libv8_base.a', 
-									'<(output)/libv8_libbase.a',
-									'<(output)/libv8_libsampler.a',
-									'<(output)/libv8_builtins_setup.a',
-									'<(output)/libv8_nosnapshot.a',
-									'<(output)/libv8_libplatform.a',
-								],
-							}],
-						],
-					},
 					'inputs': [
 						'tools/build_dylib.sh',
-						'<(output)/libuv.a',
-						'<(output)/libopenssl.a',
+						'<(output)/libbptree.a',
+						'<(output)/libfreetype.a',
+						'<(output)/libgif.a',
 						'<(output)/libhttp_parser.a',
 						'<(output)/libminizip.a',
+						'<(output)/libopenssl.a',
+						'<(output)/libquark-media.a',
+						'<(output)/libquark-util.a',
+						'<(output)/libquark.a',
 						'<(output)/libreachability.a',
 						'<(output)/libtess2.a',
-						'<(output)/libfreetype.a',
-						'<(output)/libtinyxml2.a',
+						'<(output)/libuv.a',
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
-						'<(output)/libquark-utils.a',
-						'<(output)/libquark.a',
-						'<(output)/libquark-media.a',
-						'<(output)/libquark-js.a',
-						'<@(lib_v8_a)',
 					],
 					'outputs': [
 						'<(output)/libquark.dylib',
 					],
 					'action': [
-						'sh', '-c', 
+						'sh', '-c',
 						'tools/build_dylib.sh '
-						'<(output) <(embed_bitcode) <(use_v8_link) '
+						'<(output) '
+						'<(os) '
 						'<(arch_name) '
 						'<(sysroot) '
 						'<(version_min) '
+						'<(without_embed_bitcode) '
+						'<(use_js) '
+						'<(use_v8) '
+						'<(emulator) '
+					],
+					'conditions': [
+						['use_js==1', {
+							'inputs+': [
+								'<(output)/libquark-js.a',
+							],
+						}],
+						['use_js==1 and use_v8==1', {
+							'inputs+': [
+								'<(output)/libv8_initializers.a',
+								'<(output)/libv8_libbase.a',
+								'<(output)/libv8_libplatform.a',
+								'<(output)/libv8_libsampler.a',
+								'<(output)/libv8_snapshot.a',
+								'<(output)/libv8_base_without_compiler.a',
+								'<(output)/libv8_compiler.a',
+							],
+						}],
 					],
 					# 'process_outputs_as_sources': 1,
 				}]
@@ -95,7 +98,9 @@
 				'ldflags': [ '-Wl,--version-script,<(source)/tools/v_small.ver' ],
 				'copies': [{
 					'destination': '<(product_dir)/<(product_so_subdir)',
-					'files': [ 'out/<(output_name)/obj.target/libquark.so' ],
+					'files': [
+						'out/<(output_name)/obj.target/libquark.so',
+					],
 				}], # copy libquark.so to product directory
 			}]
 		], # conditions
@@ -115,8 +120,7 @@
 			'includes': [ 'test/test.gypi' ],
 		}],
 		['use_js==1', {
-			'targets+': [
-			{
+			'targets+': [{
 				'target_name': 'quark-exec',
 				'product_name': 'quark', # output name quark
 				'type': 'executable',
@@ -134,6 +138,9 @@
 				'sources': [
 					'src/js/main.cc',
 				], # sources
+				'xcode_settings': {
+					'OTHER_LDFLAGS': ['-arch <(arch_name)'],
+				},
 			}],
 		}]
 	],

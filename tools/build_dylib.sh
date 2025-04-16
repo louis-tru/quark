@@ -3,16 +3,19 @@
 set -e
 
 out=$1
-embed_bitcode=$2
-use_v8_link=$3
-arch_name=$4
-sysroot=$5
-version_min=$6
+os=$2
+arch_name=$3
+sysroot=$4
+version_min=$5
+without_embed_bitcode=$6
+use_js=$7
+use_v8=$8
+emulator=$9
 obj=obj.target
 
 cd $out
 
-if [ "$embed_bitcode" = 1 ]; then
+if [ "$without_embed_bitcode" = "0" ]; then
 	embed_bitcode="-fembed-bitcode"
 else
 	embed_bitcode=""
@@ -26,6 +29,16 @@ link_dylib() {
 
 	find $dirs -name *.o > $name.LinkFileList
 
+	if [ $os = "mac" ]; then
+		flags="-mmacosx-version-min=$version_min"
+	elif [ $os = "ios" ]; then
+		if [ $emulator = 1 ]; then
+			flags="-mios-simulator-version-min=$version_min"
+		else
+			flags="-miphoneos-version-min=$version_min"
+		fi
+	fi
+
 	clang++ -arch $arch_name -dynamiclib \
 		-isysroot $sysroot \
 		-L$out \
@@ -35,15 +48,15 @@ link_dylib() {
 		-stdlib=libc++ \
 		-filelist $name.LinkFileList \
 		-o lib$name.dylib \
-		-single_module \
 		-install_name @rpath/$name.framework/$name \
 		-Xlinker -rpath -Xlinker @executable_path/Frameworks \
 		-Xlinker -rpath -Xlinker @loader_path/Frameworks \
-		-miphoneos-version-min=$version_min \
+		$flags \
 		$embed_bitcode \
 		-dead_strip \
 		-fobjc-arc \
-		-fobjc-link-runtime $links $frameworks
+		-fobjc-link-runtime $links $frameworks \
+		# -single_module \
 
 	strip -S lib$name.dylib
 }
@@ -51,47 +64,55 @@ link_dylib() {
 framework() {
 	name=$1
 	inc="$2"
-	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
+	node ../../tools/gen_apple_framework.js $os $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# quark
-link_dylib quark \
-	"$obj/quark-utils $obj/libuv $obj/openssl $obj/http_parser \
-			$obj/quark " \
-	"-lminizip -lbplus -lz 
-			-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
-	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
-			-framework CoreGraphics -framework QuartzCore -framework UIKit -framework MessageUI "
-framework quark no-inc # gen temp framework
+dirs="$obj/quark-util $obj/quark $obj/quark-media"
 
-# quark-media
-link_dylib quark-media \
-	"$obj/quark-media" \
-	"-liconv -lbz2 -lz -lffmpeg" \
-	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-			-framework CoreMedia -framework quark"
-framework quark-media no-inc # gen temp framework
+links="\
+	-lbptree \
+	-lfreetype -lgif \
+	-lhttp_parser -lminizip -lopenssl \
+	-lreachability -ltess2 -luv -liconv -lbz2 -lz -lffmpeg \
+"
 
-# quark-js + quark-v8
-if [ "$use_v8_link" = "1" ]; then
-	link_dylib quark-js \
-		"$obj/v8-link $obj/quark-js" \
-		"" \
-		"-framework quark -framework quark-media -framework JavaScriptCore"
-else
-	# $obj/v8_base/deps/node/deps/v8/src/api.o
-	# $obj/v8_base/deps/node/deps/v8/src/inspector
-	link_dylib quark-js \
-		"$obj/v8_base $obj/v8_libplatform $obj/quark-js" \
-		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
-				-lv8_nosnapshot -lv8_builtins_generators" \
-		"-framework quark -framework quark-media -framework JavaScriptCore"
+frameworks="\
+	-framework Foundation \
+	-framework SystemConfiguration \
+	-framework CoreGraphics \
+	-framework QuartzCore \
+	-framework AudioToolbox \
+	-framework CoreVideo \
+	-framework VideoToolbox \
+	-framework CoreMedia \
+"
+
+if [ $os = "mac" ]; then
+	frameworks="$frameworks \
+		-framework OpenGL \
+		-framework AppKit \
+		-framework IOKit \
+	"
+else # ios
+	frameworks="$frameworks \
+		-framework OpenGLES \
+		-framework UIKit \
+		-framework MessageUI \
+		-framework CoreText \
+	"
 fi
-framework quark-js no-inc # gen temp framework
 
-# quark-node
-link_dylib quark-node \
-	"$obj/node" \
-	"-lnghttp2 -lcares -lz" \
-	"-framework quark -framework quark-js"
-framework quark-node no-inc # gen temp framework
+if [ $use_js = 1 ]; then
+	if [ $use_v8 = 1 ]; then
+		rm -rf $obj/quark-js/src/js/jsc
+		links="$links -lv8_initializers -lv8_libbase -lv8_libplatform 
+			-lv8_libsampler -lv8_snapshot -lv8_base_without_compiler -lv8_compiler"
+	else
+		rm -rf $obj/quark-js/src/js/v8
+		frameworks="$frameworks -framework JavaScriptCore "
+	fi
+	dirs="$dirs $obj/quark-js "
+fi
+
+link_dylib quark "$dirs" "$links" "$frameworks"
+framework quark no-inc # gen temp framework

@@ -310,6 +310,7 @@
 					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
 					'ALWAYS_SEARCH_USER_PATHS': 'NO',
 					'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+					'OTHER_CFLAGS': ['-arch <(arch_name)'],
 					'SDKROOT': 'iphoneos',
 					'TARGETED_DEVICE_FAMILY': '1,2',
 					'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)',
@@ -358,6 +359,7 @@
 					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
 					'ALWAYS_SEARCH_USER_PATHS': 'NO',
 					'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+					'OTHER_CFLAGS': ['-arch <(arch_name)'],
 					'SDKROOT': 'macosx',
 					'GCC_CW_ASM_SYNTAX': 'NO',                # No -fasm-blocks
 					'GCC_DYNAMIC_NO_PIC': 'NO',               # No -mdynamic-no-pic
@@ -392,39 +394,44 @@
 			['_target_name in "v8_external_snapshot"', {
 				'sources': [  'useless.c' ],
 			}],
-			['_toolset=="host"', {'conditions': [
-				['os=="android"',{
-					# 'cflags!': [ '-O2', '-O3', '-Os' ],
-					# 'cflags': [ '-O0' ],
-					'ldflags!': [ '-stdlib=libc++' ]
-				}],
-				['os=="linux"',{
-					'cflags!': [ '-march=<(arch_name)', '-m64', '-m32' ],
-					# 'cflags': [ '-O0' ],
-				}],
-				['os=="ios"',{
-					'cflags!': [
-						'-miphoneos-version-min=<(version_min)',
-						'-arch <(arch_name)',
-						'-isysroot <(sysroot)',
-					],
-					'ldflags!': [
-						'-miphoneos-version-min=<(version_min)',
-						'-arch <(arch_name)',
-					],
-					'cflags': [
-						# '-target arm64-apple-darwin', '$(xcrun --show-sdk-path)',
-					],
-					'xcode_settings!': {
-						'TARGETED_DEVICE_FAMILY': '1,2',
-						'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)',
-					},
-					'xcode_settings': {
-						'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
-						'SDKROOT': 'macosx',
-					},
-				}]
-			]}],
+			['_toolset=="host"', {
+				'conditions': [
+					['os=="android"',{
+						# 'cflags!': [ '-O2', '-O3', '-Os' ],
+						# 'cflags': [ '-O0' ],
+						'ldflags!': [ '-stdlib=libc++' ]
+					}],
+					['os=="linux"',{
+						'cflags!': [ '-march=<(arch_name)', '-m64', '-m32' ],
+						# 'cflags': [ '-O0' ],
+					}],
+					['os=="ios"',{
+						'cflags!': [
+							'-miphoneos-version-min=<(version_min)',
+							'-arch <(arch_name)',
+							'-isysroot <(sysroot)',
+						],
+						'ldflags!': [
+							'-miphoneos-version-min=<(version_min)',
+							'-arch <(arch_name)',
+						],
+						'cflags': [
+							# '-target arm64-apple-darwin', '$(xcrun --show-sdk-path)',
+						],
+						'xcode_settings!': {
+							'TARGETED_DEVICE_FAMILY': '1,2',
+							'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)',
+						},
+						'xcode_settings': {
+							'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
+							'SDKROOT': 'macosx',
+						},
+					}]
+				],
+				'xcode_settings': {
+					'OTHER_CFLAGS!': ['-arch <(arch_name)'],
+				},
+			}], # ['_toolset=="host"'
 		],
 	},
 }

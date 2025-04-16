@@ -76,7 +76,7 @@ syscall(`plutil -convert binary1 ${framework_dir}/Info.plist`); // convert binar
 
 // copy header
 if (inc != 'no-inc') {
-	for (var src of (inc || source + '/quark').split(/\s+/)) {
+	for (var src of (inc || source + '/src').split(/\s+/)) {
 		copy_header(src, framework_dir + '/Headers');
 	}
 }

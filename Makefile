@@ -38,9 +38,7 @@ $(FORWARD):
 # It can only run in MAC system.
 all:
 	@$(MAKE) ios
-	@$(MAKE) android
 	@$(MAKE) mac
-	@$(MAKE) linux
 	@$(NODE) tools/cp_qkmake.js
 
 install-only:
@@ -57,24 +55,34 @@ ios:
 	@$(call check_os,mac,$@)
 	@./configure --os=ios --arch=arm64 && $(MAKE) build
 	@./configure --os=ios --arch=arm64 -em && $(MAKE) build # simulator for mac
+	@./configure --os=ios --arch=x64 -em && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android:
-	@./configure --os=android --arch=x64   && $(MAKE) build
 	@./configure --os=android --arch=arm64 && $(MAKE) build
+	@./configure --os=android --arch=x64   && $(MAKE) build
 	@$(MAKE) $(ANDROID_JAR)
 
 mac:
 	@$(call check_os,mac,$@)
-	@./configure --os=mac --arch=x64   && $(MAKE) build
-	@./configure --os=mac --arch=arm64 && $(MAKE) build
+	@./configure --os=mac --arch=arm64 -v8 && $(MAKE) build
+	@./configure --os=mac --arch=x64       && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) mac
+
+maybe_linux:
+	@$(MAKE) android
+	@$(MAKE) linux
 
 linux:
 	@$(call check_os,linux,$@)
-	@./configure --os=linux   --arch=x64   && $(MAKE) build
 	@./configure --os=linux   --arch=arm64 && $(MAKE) build
+	@#./configure --os=linux  --arch=arm && $(MAKE) build
+	@./configure --os=linux   --arch=x64   && $(MAKE) build
+
+# remote compile
+linux_remote:
+
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc

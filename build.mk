@@ -55,11 +55,11 @@ build: $(STYLE) # out/$(STYLE)/Makefile.$(OS).$(SUFFIX)
 test2: $(GYPFILES)
 	@make -C test/2 -f test2.mk
 
-$(ANDROID_JAR): android/org/quark/*.java
+$(ANDROID_JAR): src/platforms/android/org/quark/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
 	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/quark/*.java
-	@cd out/android.classs; $(JAR) cfv quark.jar .
+	@cd out/android.classs && $(JAR) cfv quark.jar .
 	@mkdir -p $(QKMAKE_OUT)/product/android/libs
 	@cp out/android.classs/quark.jar $(QKMAKE_OUT)/product/android/libs
 

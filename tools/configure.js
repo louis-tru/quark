@@ -60,6 +60,8 @@ def_opts('clang', isApple(opts.os) ? 1 : 0,
 def_opts('media', 'auto',       '--media        compile media [{0}]');
 def_opts(['ndk-path','ndk'], process.env.ANDROID_NDK || '', 
 																'--ndk-path     android NDK path [{0}]');
+def_opts(['java-home','java'], process.env.JAVA_HOME || '', 
+																	'--ndk-path   android java home compiler path [{0}]');
 def_opts(['use-v8','v8'],'auto','--use-v8,-v8   force use javascript v8 library [{0}]');
 def_opts('without-snapshot', 0, '--without-snapshot without snapshot for v8 [{0}]');
 def_opts('without-ssl', 0,      '--without-ssl  build without SSL (disables crypto, https, inspector, etc.)');
@@ -570,7 +572,7 @@ async function configure() {
 	var cross_compiling = arch != host_arch || host_os != os;
 	var use_dtrace = is_use_dtrace();
 	// Cross compiling is will have to snapshot?
-	var v8_use_snapshot = /*!modile &&*/ !opts.without_snapshot;
+	var v8_use_snapshot = !opts.without_snapshot;
 	var emulator = 0;
 	var OS = get_OS(os);
 	var PYTHON = process.env.PYTHON || 'python';
@@ -677,12 +679,12 @@ async function configure() {
 		var test = `${toolchain_llvm}/bin/armv7a-linux-androideabi${api}-clang`;
 		// check ndk
 		util.assert(fs.existsSync(test), `Don't found command of ${test}`);
-		if (!fs.existsSync(`${__dirname}/ndk_llvm`)) {
-			fs.symlinkSync(toolchain_llvm, `${__dirname}/ndk_llvm`);
-		}
-		// if (!fs.existsSync(`${__dirname}/ndk`)) {
-		// 	fs.symlinkSync(ndk_path, `${__dirname}/ndk`);
+		// if (!fs.existsSync(`${__dirname}/ndk_llvm`)) {
+		// 	fs.symlinkSync(toolchain_llvm, `${__dirname}/ndk_llvm`);
 		// }
+		if (!fs.existsSync(`${__dirname}/ndk`)) {
+			fs.symlinkSync(ndk_path, `${__dirname}/ndk`);
+		}
 		var toolchain_dir = toolchain_llvm;
 		// todo check android sdk ...
 
@@ -951,7 +953,7 @@ async function configure() {
 		`export PYTHON:=${PYTHON}`,
 	];
 
-	var java_home = process.env.JAVA7_HOME || process.env.JAVA_HOME;
+	var java_home = opts.java_home || process.env.JAVA7_HOME || process.env.JAVA_HOME;
 	if (java_home) {
 		config_mk.push(`export JAVAC:=${java_home}/bin/javac`);
 		config_mk.push(`export JAR:=${java_home}/bin/jar`);
