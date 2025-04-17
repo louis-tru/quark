@@ -51,58 +51,6 @@ if ('no_cache' in options || debug) {
 	}
 }
 
-(function() {
-	// let putkv = (k: string, v: string)=>{
-	// 	if (options.hasOwnProperty(k)) {
-	// 		options[k] += ' ' + v;
-	// 	} else {
-	// 		options[k] = v;
-	// 	}
-	// };
-
-	// let lastKey = '';
-	// (_init.argv as string[]).forEach((e,i)=>{
-	// 	let mat = e.match(/^(-{1,2})([^=]+)(?:=(.*))?$/);
-	// 	if (mat) {
-	// 		let k = mat[2].replace(/-/gm, '_');
-	// 		let v = mat[3];
-	// 		if (!v && mat[1] == '-') {
-	// 			putkv((lastKey = k), '');
-	// 		} else {
-	// 			putkv(k, v || '');
-	// 			lastKey = '';
-	// 		}
-	// 	} else if (e) {
-	// 		if (lastKey) {
-	// 			putkv(lastKey, e);
-	// 			lastKey = '';
-	// 		} else if (options.__main__) {
-	// 			putkv('__unknown__', e);
-	// 		} else {
-	// 			options.__main__ = e;
-	// 			options.__mainIdx__ = i + 1 + '';
-	// 		}
-	// 	}
-	// });
-	// debug = 'inspect' in options ||
-	// 				'inspect_brk' in options;
-
-	// if ( 'url_arg' in options ) {
-	// 	if (Array.isArray(options.url_arg))
-	// 		options.url_arg = options.url_arg.join('&');
-	// } else {
-	// 	options.url_arg = '';
-	// }
-	// if ('no_cache' in options || debug) {
-	// 	if (options.url_arg) {
-	// 		options.url_arg += '&__no_cache';
-	// 	} else {
-	// 		options.url_arg = '__no_cache';
-	// 	}
-	// }
-	// return String(options.__main__) || '';
-}());
-
 export const executable = _fs.executable as ()=>string;
 export const documents = _fs.documents as (path?: string)=>string;
 export const temp = _fs.temp as (path?: string)=>string;

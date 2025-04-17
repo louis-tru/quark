@@ -854,7 +854,8 @@ namespace qk { namespace js {
 	void setFlagsFromCommandLine(const Arguments* args) {
 		if (args->options.has("help")) {
 			Qk_Log("Usage: quark [options] [ script.js ] [arguments]");
-			Qk_Log("       quark inspect[-brk[=127.0.0.1:9229]] [ script.js ] [arguments]");
+			Qk_Log("       quark --eval|-e [ script ] [arguments]");
+			Qk_Log("       quark --inspect[-brk[=127.0.0.1:9229]] [ script.js ] [arguments]");
 			Qk_Log("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ V8 Options ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
 		}
 		auto argc = args->argc;

@@ -559,7 +559,10 @@ namespace js {
 		auto putkv = [&args](cString& k, cString& v) {
 			String *old;
 			if (args.options.get(k, old)) {
-				old->append(" ").append(v);
+				if (old->isEmpty())
+					*old = v;
+				else
+					old->append(" ").append(v);
 			} else {
 				args.options[k] = v;
 			}
@@ -571,13 +574,26 @@ namespace js {
 				auto kv = arg.split('=');
 				auto v = kv.length() > 1 ? kv[1]: String();
 				if (arg.length() > 1 && arg[1] != '-') { // -
-					lastKey = kv[0].substr(1).replaceAll('-', '_');
-					putkv(lastKey, v);
+					if (kv.length() > 1) goto val;
+					lastKey = kv[0].substr(1);
+					if (lastKey.length() > 1) {
+						putkv(lastKey, v);
+						for (auto i = 0u; i < lastKey.length(); i++) {
+							putkv(lastKey[i], String());
+						}
+						lastKey = lastKey[0];
+					} else {
+						putkv(lastKey, v);
+					}
 				} else if (arg.length() > 2) { // --
-					putkv(kv[0].substr(2).replaceAll('-', '_'), v);
-					lastKey = String();
+					lastKey = kv[0].substr(2).replaceAll('-', '_');
+					putkv(lastKey, v);
+					if (kv.length() > 1) {
+						lastKey = String();
+					}
 				}
 			} else if (arg.length() > 0) {
+				val:
 				if (lastKey.length()) {
 					putkv(lastKey, arg);
 					lastKey = String();
@@ -607,14 +623,17 @@ namespace js {
 		arguments = &args;
 
 		int rc = startPlatform([](Worker* worker) -> int {
-			String *inspect, *mainPath;
+			String *inspect, *mainPath = nullptr;
 			if (!arguments->options.get("__main__", mainPath)) {
-				return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
+				if (!arguments->options.has("e") && !arguments->options.has("eval")) {
+					return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
+				}
 			}
 			if (arguments->options.get("inspect", inspect) ||
 				arguments->options.get("inspect_brk", inspect)
 			) {
-				auto script_path = fs_reader()->format(*mainPath);
+				auto script_path = mainPath ?
+					fs_reader()->format(*mainPath): String("eval");
 				bool brk = arguments->options.has("inspect_brk");
 				// Startup debugger
 				if (inspect->length() == 0) {

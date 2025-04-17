@@ -40,7 +40,7 @@ const { readFile, readFileSync, isFileSync,
 const debug = _util.debugLog('PKG');
 const win32 = _utild.platform == 'win32';
 
-type Optopns = Dict<string|string[]>;
+type Optopns = Dict<string>;
 
 interface Cb {
 	(err?: Error): void;
@@ -596,7 +596,7 @@ export class Module implements IModule {
 		} else {
 			(this as any).id = '.';
 			require = this._makeRequire(mainModule = this);
-			if (options.inspect_brk) {
+			if ('inspect_brk' in options) {
 				_init.debuggerBreakNextStatement();
 			}
 		}
@@ -671,8 +671,17 @@ export class Module implements IModule {
 		// Load the main module--the command line argument.
 
 		let main = _util.mainPath as string;
-		if (!main)
+		if (!main) {
+			var e = options.eval || options.e;
+			if (e) {
+				let module = new Module('eval');
+				let self = module as { filename: string, dirname: string };
+				self.filename = 'eval';
+				self.dirname = '.';
+				module._compile(e)
+			}
 			return; // no main module, exit
+		}
 		main = formatPath(main); // format path
 
 		const res = _fs.resources();
