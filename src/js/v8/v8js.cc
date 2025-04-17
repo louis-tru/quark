@@ -666,22 +666,6 @@ namespace qk { namespace js {
 		return Cast<JSBoolean>(v8::Boolean::New(ISOLATE(this), data));
 	}
 
-	JSInt32* Worker::newValue(char data) {
-		return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
-	}
-
-	JSUint32* Worker::newValue(uint8_t data) {
-		return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
-	}
-
-	JSInt32* Worker::newValue(int16_t data) {
-		return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
-	}
-
-	JSUint32* Worker::newValue(uint16_t data) {
-		return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
-	}
-
 	JSInt32* Worker::newValue(int32_t data) {
 		return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 	}

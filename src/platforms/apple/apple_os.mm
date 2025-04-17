@@ -76,7 +76,7 @@ namespace qk {
 	void os_get_languages_mac(Array<String>& langs) {
 		NSArray* languages = [NSLocale preferredLanguages];
 		for ( int i = 0; i < [languages count]; i++ ) {
-			NSString* str = [languages objectAtIndex:0];
+			NSString* str = [languages objectAtIndex:i];
 			langs.push([str UTF8String]);
 		}
 	}

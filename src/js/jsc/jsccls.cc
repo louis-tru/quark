@@ -532,21 +532,37 @@ namespace qk { namespace js {
 
 	// ------------------- F u n c t i o n . C a l l b a c k . I n f o -------------------
 
+	Worker* ReturnValue::worker() {
+		return reinterpret_cast<ReturnValueImpl*>(_val)->_worker;
+	}
+
+	template<>
+	void ReturnValue::set(JSValue* value) {
+		if (value)
+			reinterpret_cast<ReturnValueImpl*>(_val)->_return = Back(value);
+		else
+			setNull();
+	}
+
+	template<>
 	void ReturnValue::set(bool value) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = value ? impl->_worker->_data.True: impl->_worker->_data.False;
 	}
 
+	template<>
 	void ReturnValue::set(double i) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = JSValueMakeNumber(JSC_CTX(impl->_worker), i);
 	}
 
+	template<>
 	void ReturnValue::set(int i) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = JSValueMakeNumber(JSC_CTX(impl->_worker), i);
 	}
 
+	template<>
 	void ReturnValue::set(uint32_t i) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = JSValueMakeNumber(JSC_CTX(impl->_worker), i);
@@ -565,13 +581,6 @@ namespace qk { namespace js {
 	void ReturnValue::setEmptyString() {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = impl->_worker->_data.EmptyString;
-	}
-
-	void ReturnValue::set(JSValue* value) {
-		if (value)
-			reinterpret_cast<ReturnValueImpl*>(_val)->_return = Back(value);
-		else
-			setNull();
 	}
 
 	int FunctionCallbackInfo::length() const {

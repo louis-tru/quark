@@ -362,7 +362,7 @@ namespace js {
 		return newNull();
 	}
 
-	JSObject* Worker::newValue(const HttpError& err) {
+	JSObject* Worker::newValue(cHttpError& err) {
 		auto rv = newValue(*static_cast<cError*>(&err));
 		if ( rv ) {
 			if (!rv->set(this, strs()->status(), newValue(err.status())))

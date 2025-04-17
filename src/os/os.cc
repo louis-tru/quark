@@ -86,7 +86,7 @@ namespace qk {
 			ScopeLock lock(mutex);
 			if (!language) {
 				auto langs = new language_t;
-#if Qk_iOS
+#if Qk_iOS || Qk_MacOS
 				os_get_languages_mac(langs->langs);
 #elif Qk_ANDROID
 				langs->langs.push(Android_language());

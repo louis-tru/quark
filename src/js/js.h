@@ -39,7 +39,7 @@
 
 namespace qk { namespace js {
 	#define Js_Worker(...)   auto worker = Worker::worker(__VA_ARGS__)
-	#define Js_Return(v)     return args.returnValue().set(worker->newValue((v)))
+	#define Js_Return(v)     return args.returnValue().set((v))
 	#define Js_ReturnBool(v) return args.returnValue().set(bool(v))
 	#define Js_Return_Null() return args.returnValue().setNull()
 	#define Js_Mix(type)     auto mix = qk::js::MixObject::mix<type>(args.thisObj())
@@ -198,11 +198,9 @@ namespace qk { namespace js {
 
 	class Qk_EXPORT ReturnValue {
 	public:
-		void set(JSValue *value);
-		void set(bool value);
-		void set(double i);
-		void set(int i);
-		void set(uint32_t i);
+		Worker* worker();
+		template<class T>
+		void set(T t);
 		void setNull();
 		void setUndefined();
 		void setEmptyString();
@@ -533,10 +531,6 @@ namespace qk { namespace js {
 		JSValue*  newValue(Object *val);
 		JSNumber* newValue(float val);
 		JSNumber* newValue(double val);
-		JSInt32*  newValue(char val);
-		JSUint32* newValue(uint8_t val);
-		JSInt32*  newValue(int16_t val);
-		JSUint32* newValue(uint16_t val);
 		JSInt32*  newValue(int32_t val);
 		JSUint32* newValue(uint32_t val);
 		JSNumber* newValue(int64_t val);
@@ -545,7 +539,7 @@ namespace qk { namespace js {
 		JSString* newValue(cString2& val);
 		JSString* newValue(cString4& val);
 		JSObject* newValue(cError& val);
-		JSObject* newValue(const HttpError& val);
+		JSObject* newValue(cHttpError& val);
 		JSArray*  newValue(cArray<String>& val);
 		JSArray*  newValue(cArray<uint32_t>& val);
 		JSObject* newValue(cDictSS& val);
@@ -669,5 +663,18 @@ namespace qk { namespace js {
 	Qk_EXPORT bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
 	template<>
 	Qk_EXPORT bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value);
+
+	template<class T>
+	inline void ReturnValue::set(T t) { set(worker()->newValue(t)); }
+	template<>
+	Qk_EXPORT void ReturnValue::set(JSValue *value);
+	template<>
+	Qk_EXPORT void ReturnValue::set(bool value);
+	template<>
+	Qk_EXPORT void ReturnValue::set(double i);
+	template<>
+	Qk_EXPORT void ReturnValue::set(int i);
+	template<>
+	Qk_EXPORT void ReturnValue::set(uint32_t i);
 } }
 #endif

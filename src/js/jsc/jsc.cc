@@ -993,31 +993,7 @@ namespace qk { namespace js {
 		return Cast<JSBoolean>(val ? worker->_data.True: worker->_data.False);
 	}
 
-	JSInt32* Worker::newValue(char val) {
-		ENV(this);
-		auto ret = JSValueMakeNumber(ctx, val);
-		return worker->addToScope<JSInt32>(ret);
-	}
-
-	JSUint32* Worker::newValue(uint8_t val) {
-		ENV(this);
-		auto ret = JSValueMakeNumber(ctx, val);
-		return worker->addToScope<JSUint32>(ret);
-	}
-
-	JSInt32* Worker::newValue(int16_t val) {
-		ENV(this);
-		auto ret = JSValueMakeNumber(ctx, val);
-		return worker->addToScope<JSInt32>(ret);
-	}
-
-	JSUint32* Worker::newValue(uint16_t val) {
-		ENV(this);
-		auto ret = JSValueMakeNumber(ctx, val);
-		return worker->addToScope<JSUint32>(ret);
-	}
-
-	JSInt32* Worker::newValue(int val) {
+	JSInt32* Worker::newValue(int32_t val) {
 		ENV(this);
 		auto ret = JSValueMakeNumber(ctx, val);
 		return worker->addToScope<JSInt32>(ret);

@@ -249,18 +249,34 @@ namespace qk { namespace js {
 
 	// ------------------- F u n c t i o n . C a l l b a c k . I n f o -------------------
 
+	Worker* ReturnValue::worker() {
+		return WORKER(*reinterpret_cast<v8::ReturnValue<v8::Value>*>(this));
+	}
+
+	template<>
+	void ReturnValue::set(JSValue* value) {
+		if (value)
+			reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
+		else
+			setNull();
+	}
+
+	template<>
 	void ReturnValue::set(bool value) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(value);
 	}
 
+	template<>
 	void ReturnValue::set(double i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
 
+	template<>
 	void ReturnValue::set(int i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
 
+	template<>
 	void ReturnValue::set(uint32_t i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
@@ -275,13 +291,6 @@ namespace qk { namespace js {
 
 	void ReturnValue::setEmptyString() {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->SetEmptyString();
-	}
-
-	void ReturnValue::set(JSValue* value) {
-		if (value)
-			reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
-		else
-			setNull();
 	}
 
 	int FunctionCallbackInfo::length() const {

@@ -216,6 +216,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(String, url, Const);
 	};
 
+	typedef const HttpError cHttpError;
+
 	Qk_EXPORT uint32_t http_request(RequestOptions& options, HttpCb cb = 0) throw(HttpError);
 	Qk_EXPORT uint32_t http_request_stream(RequestOptions& options, Callback<StreamResponse> cb = 0) throw(HttpError);
 	Qk_EXPORT uint32_t http_download(cString& url, cString& save, HttpCb cb = 0) throw(HttpError);

@@ -118,14 +118,6 @@ namespace qk { namespace js {
 		inline
 		JSValue* jsvalue(double val) { return worker->newValue(val); }
 		inline
-		JSValue* jsvalue(Char val) { return worker->newValue(val); }
-		inline
-		JSValue* jsvalue(uint8_t val) { return worker->newValue(val); }
-		inline
-		JSValue* jsvalue(int16_t val) { return worker->newValue(val); }
-		inline
-		JSValue* jsvalue(uint16_t val) { return worker->newValue(val); }
-		inline
 		JSValue* jsvalue(int64_t val) { return worker->newValue(val); }
 		inline
 		JSValue* jsvalue(uint64_t val) { return worker->newValue(val); }
