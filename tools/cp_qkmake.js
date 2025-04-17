@@ -53,28 +53,13 @@ fs.cp_sync(root + '/libs/quark/out/@types', target + '/product/@types');
 // build qkmake
 execSync(`cd ${root}/libs/qkmake && npm run build`);
 fs.cp_sync(root + '/libs/qkmake/out/qkmake', target, {ignore_hide:0,symlink: 0});
-fs.cp_sync(root + '/libs/qkmake/gyp', target + '/gyp', {ignore_hide:1,replace:0});
+fs.cp_sync(root + '/libs/qkmake/gyp-next', target + '/gyp-next', {ignore_hide:1,replace:0});
 
-fs.chmodSync(target + '/gyp/gyp', 0o755);
+fs.chmodSync(target + '/gyp-next/gyp', 0o755);
 fs.chmodSync(target + '/shell.js', 0o755);
 
-copy_header(root + '/quark', `${include}/quark`);
-copy_header(root + '/quark-js', `${include}/quark-js`);
-// copy_header(`${root}/deps/v8-link/include`, include);
-// copy_header(`${root}/deps/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
-// copy_header(`${root}/deps/node/deps/openssl/config`, `${include}/openssl`);
-// copy_header(`${root}/deps/node/deps/uv/include`, include);
-// copy_header(`${root}/deps/node/deps/zlib/zlib.h`, `${include}/zlib.h`);
-// copy_header(`${root}/deps/node/deps/zlib/zconf.h`, `${include}/zconf.h`);
-// copy_header(`${root}/deps/node/src/node_api.h`, `${include}/node_api.h`);
-// copy_header(`${root}/deps/node/src/node_api_types.h`, `${include}/node_api_types.h`);
-// copy_header(`${root}/deps/node/src/node_buffer.h`, `${include}/node_buffer.h`);
-// copy_header(`${root}/deps/node/src/node.h`, `${include}/node.h`);
-// copy_header(`${root}/deps/node/src/node_object_wrap.h`, `${include}/node_object_wrap.h`);
-// copy_header(`${root}/deps/node/src/node_version.h`, `${include}/node_version.h`);
+copy_header(root + '/src', `${include}/quark`);
 
-// fs.cp_sync(root + '/libs/quark', target + '/product/libs/quark');
+fs.cp_sync(root + '/libs/quark', target + '/product/libs/quark', {isCancel:e=>e.indexOf('quark/out')!=-1});
 fs.cp_sync(root + '/examples', target + '/product/examples');
 fs.cp_sync(root + '/tools/product.gypi', target + '/product/quark.gypi');
-// fs.cp_sync(root + '/tools/common.gypi', target + '/product/common.gypi');
-// fs.cp_sync(root + '/out/config.gypi', target + '/product/config.gypi');

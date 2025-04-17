@@ -1,6 +1,7 @@
 -include .config.mk
-HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
+HOST_OS        ?= $(shell $(NODE) -e 'console.log(process.platform)')
+HOST_ARCH      ?= $(shell $(NODE) -e 'console.log(process.arch)')
 ANDROID_JAR    := out/android.classs.quark.jar
 QKMAKE         := ./libs/qkmake
 QKMAKE_OUT     := out/qkmake
@@ -18,27 +19,33 @@ endif
 
 FORWARD = build make xcode msvs make-linux cmake-linux cmake $(ANDROID_JAR) test2 clean
 
-check_os=\
-	if [ "$(HOST_OS)" != "$(1)" ]; then \
+check=\
+	if [ "$(1)" != "$(2)" ]; then \
 		echo ;\
-		echo target \"$(2)\" can only run on $(1) system.;\
+		echo target \"$(3)\" can only build on $(2) system.;\
 		echo ;\
 		exit 1; \
 	fi
 
+remote_build=\
+	ssh $(REMOTE_COMPILE_HOST) 'bash -l -s' < tools/remote_build.sh $(1) $(V) && \
+	scp $(REMOTE_COMPILE_HOST):~/quark/out/remote_build.tgz out && \
+	cd out && \
+	tar xfvz remote_build.tgz
+
 .PHONY: $(FORWARD) ios android linux mac \
-	install-only install help web doc watch all sync
+	install-only install help web doc watch all sync r_android r_linux
 
 .SECONDEXPANSION:
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
 
-# compile product quark and install
-# It can only run in MAC system.
 all:
 	@$(MAKE) ios
 	@$(MAKE) mac
+	@if [ "$(HOST_ARCH)" = "x64" ]; then $(MAKE) android; else $(MAKE) r_android; fi
+	@if [ "$(HOST_OS)" = "linux" ]; then $(MAKE) linux; else $(MAKE) r_linux; fi
 	@$(NODE) tools/cp_qkmake.js
 
 install-only:
@@ -52,37 +59,36 @@ install: all
 # build all ios platform and output to product dir
 # It can only run in MAC system.
 ios:
-	@$(call check_os,mac,$@)
+	@$(call check,$(HOST_OS),mac,$@)
 	@./configure --os=ios --arch=arm64 && $(MAKE) build
 	@./configure --os=ios --arch=arm64 -em && $(MAKE) build # simulator for mac
 	@./configure --os=ios --arch=x64 -em && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) ios
 
-# build all android platform and output to product dir
-android:
-	@./configure --os=android --arch=arm64 && $(MAKE) build
-	@./configure --os=android --arch=x64   && $(MAKE) build
-	@$(MAKE) $(ANDROID_JAR)
-
 mac:
-	@$(call check_os,mac,$@)
+	@$(call check,$(HOST_OS),mac,$@)
 	@./configure --os=mac --arch=arm64 -v8 && $(MAKE) build
 	@./configure --os=mac --arch=x64       && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) mac
 
-maybe_linux:
-	@$(MAKE) android
-	@$(MAKE) linux
+# build all android platform and output to product dir
+android:
+	@$(call check,$(HOST_ARCH),x64,$@)
+	@./configure --os=android --arch=arm64 && $(MAKE) build
+	@./configure --os=android --arch=x64   && $(MAKE) build
+	@$(MAKE) $(ANDROID_JAR)
 
 linux:
-	@$(call check_os,linux,$@)
+	@$(call check,$(HOST_OS),linux,$@)
 	@./configure --os=linux   --arch=arm64 && $(MAKE) build
 	@#./configure --os=linux  --arch=arm && $(MAKE) build
 	@./configure --os=linux   --arch=x64   && $(MAKE) build
 
-# remote compile
-linux_remote:
+r_android:
+	$(call remote_build,android)
 
+r_linux:
+	$(call remote_build,linux)
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc

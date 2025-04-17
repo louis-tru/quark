@@ -53,8 +53,6 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.content.pm.ApplicationInfo;
 
-import org.quark.test.R;
-
 public class Activity extends NativeActivity implements
 	View.OnSystemUiVisibilityChangeListener, Choreographer.FrameCallback
 {

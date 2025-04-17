@@ -95,13 +95,9 @@
 			}],
 			['os not in "mac ios"', {
 				'type': 'shared_library',
-				'ldflags': [ '-Wl,--version-script,<(source)/tools/v_small.ver' ],
-				'copies': [{
-					'destination': '<(product_dir)/<(product_so_subdir)',
-					'files': [
-						'out/<(output_name)/obj.target/libquark.so',
-					],
-				}], # copy libquark.so to product directory
+				'ldflags': [
+					'-Wl,--version-script,<(source)/tools/v_small.ver'
+				],
 			}]
 		], # conditions
 	}],

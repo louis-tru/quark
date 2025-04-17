@@ -508,8 +508,8 @@ async function install_depe(opts, variables) {
 			}
 			// TODO: Maybe also have to install libxcursor-dev and libfontconfig-dev
 		} else if (os == 'android') {
-			// dpkg.javac = pkgmCmds('default-jdk');
-			dpkg.javac = pkgmCmds('openjdk-8-jdk');
+			// dpkg.javac = pkgmCmds('openjdk-8-jdk');
+			dpkg.javac = pkgmCmds('openjdk-17-jdk');
 		}
 	}
 	else if (host_os == 'mac') {

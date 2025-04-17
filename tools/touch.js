@@ -1,6 +1,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var variables = JSON.parse(fs.readFileSync('out/config.gypi', 'utf-8')).variables;
 
 function touch_file(pathnames) {
 	if ( !Array.isArray(pathnames)) {
@@ -14,7 +15,7 @@ function touch_file(pathnames) {
 	});
 }
 
-function touch_files(variables) {
+function touch_files() {
 	touch_file([
 		'out/native-inl-js.cc',
 		'out/native-ext-js.cc',
@@ -22,12 +23,6 @@ function touch_files(variables) {
 		'out/native-font.cc',
 		'out/native-glsl.cc',
 	]);
-
-	if (['mac','ios'].indexOf(variables.os) == -1) {
-		touch_file([
-			`${variables.output}/obj.target/libquark.so`,
-		]);
-	}
 	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
 		touch_file([
 			`${variables.output}/obj.target/libquark_deps_test.so`,
@@ -35,6 +30,4 @@ function touch_files(variables) {
 	}
 }
 
-var variables = JSON.parse(fs.readFileSync('out/config.gypi', 'utf-8')).variables;
-
-touch_files(variables);
+touch_files();

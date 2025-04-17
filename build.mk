@@ -50,7 +50,8 @@ $(STYLES): $(GYPFILES)
 
 build: $(STYLE) # out/$(STYLE)/Makefile.$(OS).$(SUFFIX)
 	$(MAKE) -C "out/$(STYLE)" -f Makefile.$(OS).$(SUFFIX) \
-	$(V_ARG) BUILDTYPE=$(BUILDTYPE) builddir="$(shell pwd)/$(LIBS_DIR)"
+		$(V_ARG) BUILDTYPE=$(BUILDTYPE) builddir="$(shell pwd)/$(LIBS_DIR)"
+	$(NODE) tools/cp_library.js
 
 test2: $(GYPFILES)
 	@make -C test/2 -f test2.mk
@@ -58,7 +59,7 @@ test2: $(GYPFILES)
 $(ANDROID_JAR): src/platforms/android/org/quark/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/quark/*.java
+	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs src/platforms/android/org/quark/*.java
 	@cd out/android.classs && $(JAR) cfv quark.jar .
 	@mkdir -p $(QKMAKE_OUT)/product/android/libs
 	@cp out/android.classs/quark.jar $(QKMAKE_OUT)/product/android/libs

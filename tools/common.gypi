@@ -220,8 +220,9 @@
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 					'-pthread',
 					'-rdynamic',
-					'-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
-					# '-stdlib=libc++', # use libc++, clang default use libc++_shared, clang flag
+					# '-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
+					'-stdlib=libc++', # use libc++, clang default use libc++_shared, clang flag
+					# '-stdlib=libstdc++'
 				],
 				'defines': [
 					'_GLIBCXX_USE_C99',
@@ -399,7 +400,7 @@
 					['os=="android"',{
 						# 'cflags!': [ '-O2', '-O3', '-Os' ],
 						# 'cflags': [ '-O0' ],
-						'ldflags!': [ '-stdlib=libc++' ]
+						'ldflags!': [ '-stdlib=libc++', '-stdlib=libstdc++' ]
 					}],
 					['os=="linux"',{
 						'cflags!': [ '-march=<(arch_name)', '-m64', '-m32' ],

@@ -29,10 +29,10 @@ link_dylib() {
 
 	find $dirs -name *.o > $name.LinkFileList
 
-	if [ $os = "mac" ]; then
+	if [ "$os" = "mac" ]; then
 		flags="-mmacosx-version-min=$version_min"
-	elif [ $os = "ios" ]; then
-		if [ $emulator = 1 ]; then
+	elif [ "$os" = "ios" ]; then
+		if [ "$emulator" = "1" ]; then
 			flags="-mios-simulator-version-min=$version_min"
 		else
 			flags="-miphoneos-version-min=$version_min"
@@ -87,7 +87,7 @@ frameworks="\
 	-framework CoreMedia \
 "
 
-if [ $os = "mac" ]; then
+if [ "$os" = "mac" ]; then
 	frameworks="$frameworks \
 		-framework OpenGL \
 		-framework AppKit \
@@ -102,8 +102,8 @@ else # ios
 	"
 fi
 
-if [ $use_js = 1 ]; then
-	if [ $use_v8 = 1 ]; then
+if [ "$use_js" = "1" ]; then
+	if [ "$use_v8" = "1" ]; then
 		rm -rf $obj/quark-js/src/js/jsc
 		links="$links -lv8_initializers -lv8_libbase -lv8_libplatform 
 			-lv8_libsampler -lv8_snapshot -lv8_base_without_compiler -lv8_compiler"

@@ -11,8 +11,7 @@ gen_framework() {
 	for i in $4; do
 		arr=$arr"out/$os."$i".Release/lib"$1".dylib "
 	done
-	node $gen $os $1 "no-cut" "$2" $out/product/$3 $arr
-	# node $gen $os $1 "no-cut" "$2" $out/product/$os/Frameworks/$3 $arr
+	node $gen $os $1 "no-cut" "$2" $out/product/$os/Frameworks/$3 $arr
 }
 
 if [ $os = "ios" ]; then
