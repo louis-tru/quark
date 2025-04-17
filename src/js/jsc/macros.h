@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark__js__jsc__macros__
 #define __quark__js__jsc__macros__
 

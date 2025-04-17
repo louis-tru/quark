@@ -1,6 +1,8 @@
 #ifndef Qk_FT_MATH_H
 #define Qk_FT_MATH_H
 
+// @private head
+
 /***************************************************************************/
 /*                                                                         */
 /*  fttrigon.h                                                             */

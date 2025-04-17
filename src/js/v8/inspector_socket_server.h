@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef SRC_INSPECTOR_SOCKET_SERVER_H_
 #define SRC_INSPECTOR_SOCKET_SERVER_H_
 

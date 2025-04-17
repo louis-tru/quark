@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark__font__ct_util__
 #define __quark__font__ct_util__
 

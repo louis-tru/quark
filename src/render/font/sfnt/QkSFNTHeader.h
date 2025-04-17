@@ -4,11 +4,10 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+// @private head
 
 #ifndef QkSFNTHeader_DEFINED
 #define QkSFNTHeader_DEFINED
-
-// #include "../priv/util.h"
 
 //All Qk_SFNT_ prefixed types should be considered as big endian.
 typedef uint16_t Qk_SFNT_USHORT;

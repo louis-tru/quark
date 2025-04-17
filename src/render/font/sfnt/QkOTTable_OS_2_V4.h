@@ -4,6 +4,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+// @private head
 
 #ifndef QkOTTable_OS_2_V4_DEFINED
 #define QkOTTable_OS_2_V4_DEFINED

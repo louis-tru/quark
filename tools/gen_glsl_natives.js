@@ -302,6 +302,7 @@ function main() {
 
 	var now = Date.now();
 	write(hpp,
+		'// @private head',
 		'#ifndef __gl_shader_natives_' + now,
 		'#define __gl_shader_natives_' + now,
 		'#include "gl_shader.h"',

@@ -4,12 +4,10 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+// @private head
 
 #ifndef QkIBMFamilyClass_DEFINED
 #define QkIBMFamilyClass_DEFINED
-
-//#include "../priv/util.h"
-
 
 #ifdef Qk_CPU_LENDIAN
 	#define Qk_UINT8_BITFIELD(f0, f1, f2, f3, f4, f5, f6, f7) \

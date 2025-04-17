@@ -39,7 +39,6 @@ namespace qk {
 
 	/**
 	 * @class FontFamilies
-	 * @safe Rt
 	*/
 	class Qk_EXPORT FontFamilies: public Object {
 	public:

@@ -1,3 +1,4 @@
+// @private head
 #ifndef __quark_render_ft_path__
 #define __quark_render_ft_path__
 extern "C" {

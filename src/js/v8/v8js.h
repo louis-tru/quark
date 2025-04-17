@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef __quark__js__v8__v8js__
 #define __quark__js__v8__v8js__
 

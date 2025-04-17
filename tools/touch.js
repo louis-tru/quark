@@ -18,10 +18,8 @@ function touch_file(pathnames) {
 function touch_files() {
 	touch_file([
 		'out/native-inl-js.cc',
-		'out/native-ext-js.cc',
 		'out/native-lib-js.cc',
 		'out/native-font.cc',
-		'out/native-glsl.cc',
 	]);
 	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
 		touch_file([

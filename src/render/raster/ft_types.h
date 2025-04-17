@@ -1,3 +1,4 @@
+// @private head
 #ifndef Qk_FT_TYPES_H
 #define Qk_FT_TYPES_H
 

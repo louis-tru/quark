@@ -43,7 +43,9 @@ function copy_header(source, target) {
 						fs.cp_sync(source1, target1);
 					}
 				} else {
-					fs.cp_sync(source1, target1);
+					if (!fs.readFileSync(source1, 'utf-8').match(/@private\s+head/)) {
+						fs.cp_sync(source1, target1);
+					}
 				}
 			}
 		}

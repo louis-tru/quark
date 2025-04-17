@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// @private head
+
 #ifndef SRC_INSPECTOR_AGENT_H_
 #define SRC_INSPECTOR_AGENT_H_
 
