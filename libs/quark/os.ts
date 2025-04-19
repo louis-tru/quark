@@ -40,6 +40,8 @@ export enum NetworkInterface {
 	k4G, // 4G
 	k5G, // 5G
 }
+export declare function arch(): string;
+export declare function name(): string;
 export declare function version(): string;
 export declare function brand(): string;
 export declare function model(): string;

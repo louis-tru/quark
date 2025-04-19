@@ -35,9 +35,9 @@
 #include <sys/utsname.h>
 
 namespace qk {
-	static utsname* utsn = nullptr;
 
 	static utsname* _device_uname() {
+		static utsname* utsn = nullptr;
 		if (!utsn) {
 			utsn = new utsname;
 			uname(utsn);
@@ -45,12 +45,23 @@ namespace qk {
 		return utsn;
 	}
 
+	String os_name() {
+		return _device_uname()->sysname;
+	}
+
 	String os_version() {
 		return _device_uname()->release;
 	}
 
 	String os_brand() {
-		return "Linux";
+		static String brand([]() {
+			String str(fs_read_file_sync("/etc/os-release", 16));
+			auto idx = str.indexOf('\n');
+			if (idx == -1)
+				return String();
+			return str.substring(6, idx - 1);
+		}());
+		return brand;
 	}
 
 	String os_model() {

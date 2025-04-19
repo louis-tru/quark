@@ -32,16 +32,15 @@
 #include "./http.h"
 #include "./fs.h"
 #include "./uv.h"
+#include "../os/os.h"
 #include "./thread.h"
 
 namespace qk {
-
 	typedef Dict<String, String> Map;
 
 	static uint32_t http_max_connect_pool_size_(5);
-	static String   http_cache_path_ = String();
-	static String   http_user_agent_ = "Mozilla/5.0 quark " Qk_VERSION " (KHTML, like Gecko)";
-	// "Mozilla/5.0 (%s/%s) quark " NOUG_VERSION " (KHTML, like Gecko)";
+	static String   http_cache_path_;
+	static String   http_user_agent_;
 
 	HttpError::HttpError(int rc, cString& msg, uint32_t status, cString& url)
 		: Error(rc, msg), _status(status), _url(url)
@@ -331,6 +330,12 @@ namespace qk {
 	}
 
 	String http_user_agent() {
+		if (http_user_agent_.isEmpty()) {
+			http_user_agent_ = String::format(
+				"Quark/" Qk_VERSION " %s/%s %s %s (%s)",
+				*os_name(), *os_version(), *os_arch(), *os_brand(), *os_model()
+			);
+		}
 		return http_user_agent_;
 	}
 

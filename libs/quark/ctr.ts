@@ -71,19 +71,19 @@ export function assertDom<T extends DOM = DOM>(
 /**
  * @method link ViewController prop
 */
-export function link(target: any, name: string) {
+export function link(target: ViewController, name: string) {
 	let linkProps = Object.getOwnPropertyDescriptor(target, '_linkProps');
 	if (linkProps) {
 		linkProps.value.push(name);
 	} else {
-		target._linkProps = [...target._linkProps,name];
+		(target as any)._linkProps = [...(target as any)._linkProps,name];
 	}
 }
 
 /**
  * @method link ViewController prop and define prop accessor
 */
-export function linkAcc(target: any, name: string) {
+export function linkAcc(target: ViewController, name: string) {
 	link(target, name);
 	Object.defineProperty(target, name, {
 		get: function() { return this[`_name`] },

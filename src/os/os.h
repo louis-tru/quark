@@ -31,10 +31,12 @@
 #ifndef __quark__os__os__
 #define __quark__os__os__
 
-#include <src/util/util.h>
-#include <src/util/array.h>
+#include "../util/util.h"
+#include "../util/array.h"
 
 namespace qk {
+	Qk_EXPORT String os_arch();
+	Qk_EXPORT String os_name();
 	Qk_EXPORT String os_version();
 	Qk_EXPORT String os_brand();
 	Qk_EXPORT String os_model();

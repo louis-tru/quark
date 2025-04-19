@@ -46,6 +46,28 @@
 
 namespace qk {
 	static Mutex mutex;
+
+	String os_arch() {
+#if Qk_ARCH_64BIT
+# ifdef Qk_ARCH_X86
+		static String arch("x64");
+# elif defined(Qk_ARCH_ARM)
+		static String arch("arm64");
+# elif defined(Qk_ARCH_MIPS)
+		static String arch("mips64");
+# endif
+#else
+# ifdef Qk_ARCH_X86
+		static String arch("x86");
+# elif defined(Qk_ARCH_ARM)
+		static String arch("arm");
+# elif defined(Qk_ARCH_MIPS)
+		static String arch("mips");
+# endif
+#endif
+		return arch;
+	}
+
 #if Qk_POSIX
 	static String* info_str = nullptr;
 	String os_info() {
@@ -54,16 +76,22 @@ namespace qk {
 			if (!info_str) {
 				auto str = new String();
 				static struct utsname uts;
-				static Char name[256];
-				gethostname(name, 255);
+				static char hostname[256];
+				gethostname(hostname, 255);
 				uname(&uts);
 				*str = String::format(
-					"host: %s\nsys: %s\nmachine: %s\n"
-					"nodename: %s\nversion: %s\nrelease: %s",
-					name,
+					"hostname: %s\n"
+					"sysname: %s\n"
+					"nodename: %s\n"
+					"release: %s\n"
+					"version: %s\n"
+					"machine: %s",
+					hostname,
 					uts.sysname,
-					uts.machine,
-					uts.nodename, uts.version, uts.release
+					uts.nodename,
+					uts.release,
+					uts.version,
+					uts.machine
 				);
 				//  getlogin(), getuid(), getgid(),
 				info_str = str;

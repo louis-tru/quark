@@ -33,6 +33,11 @@
 
 namespace qk {
 
+	String os_name() {
+		static String name("Android");
+		return name;
+	}
+
 	String os_version() {
 		return Android_version();
 	}

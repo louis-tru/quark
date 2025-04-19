@@ -35,11 +35,17 @@ namespace qk { namespace js {
 
 	struct NativeOs {
 		static void binding(JSObject* exports, Worker* worker) {
+			Js_Method(name, {
+				Js_Return( os_name() );
+			});
 			Js_Method(version, {
 				Js_Return( os_version() );
 			});
 			Js_Method(brand, {
 				Js_Return( os_brand() );
+			});
+			Js_Method(arch, {
+				Js_Return( os_arch() );
 			});
 			Js_Method(model, {
 				Js_Return( os_model() );

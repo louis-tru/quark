@@ -55,6 +55,11 @@ namespace qk {
 	}
 
 #if Qk_iOS
+	String os_name() {
+		static String name("iOS");
+		return name;
+	}
+
 	String os_version() {
 		return UIDevice.currentDevice.systemVersion.UTF8String;
 	}
@@ -63,13 +68,30 @@ namespace qk {
 		return UIDevice.currentDevice.model.UTF8String;
 	}
 #else
+
+	String os_name() {
+		static String name("MacOSX");
+		return name;
+	}
+
 	String os_version() {
-		return String();
+		static String version([](){
+			NSOperatingSystemVersion version = NSProcessInfo.processInfo.operatingSystemVersion;
+			return String::format("%ld.%ld.%ld", version.majorVersion, version.minorVersion, version.patchVersion);
+		}());
+		return version;
 	}
 
 	String os_model() {
-		static String name("MacOSX");
-		return name;
+		static String model([](){
+			size_t len = 0;
+			sysctlbyname("hw.model", NULL, &len, NULL, 0);
+			if (len == 0) return String();
+			Buffer buff((int)len);
+			sysctlbyname("hw.model", buff.val(), &len, NULL, 0);
+			return String(std::move(buff));
+		}());
+		return model;
 	}
 #endif
 
@@ -83,7 +105,7 @@ namespace qk {
 
 	int os_network_interface() {
 		Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
-		int code = [reachability currentReachabilityStatus];
+		int code = (int)[reachability currentReachabilityStatus];
 		if ( code == 1 ) { // wwan
 			return 3; // mobile network
 		}
