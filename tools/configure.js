@@ -601,7 +601,6 @@ async function configure() {
 			debug: opts.debug,
 			OS: OS,
 			os: os,
-			brand: '',
 			clang: opts.clang,
 			library: 'static_library',
 			armv7: opts.armv7,
@@ -791,15 +790,6 @@ async function configure() {
 			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
 
-		var [uname] = syscall('uname -a').stdout;
-		if (/ubuntu/i.test(uname)) {
-			variables.brand = 'ubuntu';
-		} else if (/debian/i.test(uname)) {
-			variables.brand = 'debian';
-		} else {
-			console.warn('Unknown Linux distribution');
-		}
-
 		await install_depe(opts, variables);
 
 		if (arch == 'arm' || arch == 'arm64') { // arm arm64
@@ -922,8 +912,7 @@ async function configure() {
 		suffix = `${opts.suffix}.${suffix}`;
 	}
 
-	var brand = variables.brand;
-	var output = `${os}${brand&&'-'+brand}.${suffix}.${configuration}`;
+	var output = `${os}.${suffix}.${configuration}`;
 
 	variables.output_name = output;
 	variables.output = path.resolve(`${__dirname}/../out/${output}`);

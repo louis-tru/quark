@@ -44,7 +44,7 @@ endif
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(NODE) -e "require('fs').writeFileSync('out/var.gypi', '{\'variables\':{\'project\':\'$@\'}}')"
+	@$(NODE) -e "require('fs').writeFileSync('out/var.gypi', '{\'variables\':{\'style\':\'$@\'}}')"
 	@$(GYP) -f $@ quark.gyp --generator-output="out/$@" $(GYP_ARGS)
 	@$(NODE) tools/touch.js
 

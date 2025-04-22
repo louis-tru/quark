@@ -11,7 +11,7 @@
 		'host_node%': 'node',
 		'node%': '<(host_node)',
 		'debug%': 0,
-		'project%': 'make',
+		'style%': 'make',
 		'media%': 1,
 		'use_gl%': 0,
 		'use_js%': 1,
@@ -219,7 +219,7 @@
 				'ldflags': [
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 					'-pthread',
-					'-rdynamic',
+					# '-rdynamic',
 					# '-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
 					'-stdlib=libc++', # use libc++, clang default use libc++_shared, clang flag
 					# '-stdlib=libstdc++'
@@ -268,8 +268,7 @@
 				],
 				'ldflags': [
 					'-pthread',
-					'-rdynamic',
-					'-L<(build_tools)/linux/usr/lib/<(arch_name)',
+					# '-rdynamic',
 				],
 				'conditions': [
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
@@ -323,7 +322,7 @@
 					'VALID_ARCHS': '<(arch_name)',
 					'conditions': [
 						['arch in "x86 x64" or <(emulator)', { 'SDKROOT': 'iphonesimulator' }],
-						['project=="xcode"', {
+						['style=="xcode"', {
 							# v8 setting
 							'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7]': [ '$(inherited)', 'USE_SIMULATOR', ],
 							'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7s]': [ '$(inherited)', 'USE_SIMULATOR', ],

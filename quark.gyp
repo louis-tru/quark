@@ -112,7 +112,7 @@
 				'type': 'none',
 			}],
 		}],
-		['os not in "mac ios" or project=="xcode"', {
+		['os not in "mac ios" or style=="xcode"', {
 			'includes': [ 'test/test.gypi' ],
 		}],
 		['use_js==1', {

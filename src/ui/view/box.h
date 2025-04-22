@@ -201,8 +201,8 @@ namespace qk {
 		};
 		std::atomic<BoxBorderInl*> _border; // BoxBorder, top/right/bottom/left
 		// box view attrs
-		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
-		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
+		Vec2  _layout_offset; // The starting offset relative to the parent view（include margin）
+		Vec2  _layout_size; // Size occupied by the layout（margin+border+padding+content）
 		Vec2  _vertex[4]; // box vertex
 
 		friend class UIDraw;

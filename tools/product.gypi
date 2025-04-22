@@ -1,10 +1,7 @@
 {
 	'variables': {
 		'OS%': 'mac',
-		'os%': 'ios',
-		'library%': 'static_library',
-		'clang%': 0,
-		'without_visibility_hidden%': 0,
+		'os%': 'mac',
 	},
 	'target_defaults': {
 		'default_configuration': 'Release',
@@ -15,16 +12,15 @@
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '0',
 					'ONLY_ACTIVE_ARCH': 'YES',      # Build Active Architecture Only
-					# 'GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]': [ 'USE_JSC=0' ],
 				},
 			},
 			'Release': {
 				'defines': [ 'NDEBUG' ],
 				'cflags': [
-					'-O3', 
+					'-Os', 
 					'-ffunction-sections', 
 					'-fdata-sections', 
-					# '-fvisibility=hidden',
+					'-fvisibility=hidden',
 					'-fomit-frame-pointer',
 				],
 				'cflags_cc': [
@@ -32,67 +28,56 @@
 				],
 				'ldflags': [ '-s' ],
 				'xcode_settings': {
-					'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
+					'GCC_OPTIMIZATION_LEVEL': 's',  # -Os
 					'GCC_STRICT_ALIASING': 'YES',
 					'ONLY_ACTIVE_ARCH': 'YES',
+					'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',  # -fvisibility=hidden
 				},
 				'conditions': [
-					['os=="android" and clang==0', {
-						'cflags!': [ '-O3' ],
+					['os=="android"', {
+						'cflags!': [ '-Os' ],
 						'cflags': [ '-O2' ],
-					}],
-					['without_visibility_hidden==1', {
-						'cflags!': [ '-fvisibility=hidden' ],
 					}],
 				],
 			},
 		},
-		'type': '<(library)',
+		'type': 'static_library',
 		'cflags!': ['-Werror'],
 		'xcode_settings': {
-			'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',   # -std=c++0x
+			'CLANG_CXX_LANGUAGE_STANDARD': 'c++14',   # -std=c++0x
 			'CLANG_CXX_LIBRARY': 'libc++',            # c++11 libc support
 			'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',       # -fexceptions
 			'GCC_ENABLE_CPP_RTTI': 'YES',             # -frtti / -fno-rtti
 		},
-		'cflags_cc': [ '-std=c++0x', '-fexceptions', '-frtti', ],
-		'defines': [
-			'FX_USING_SHARED=1',
-			'USING_UV_SHARED=1',
-			'USING_V8_SHARED=1',
-			'USING_V8_PLATFORM_SHARED=1',
-		],
+		'cflags_cc': [ '-std=c++14', '-fexceptions', '-frtti', ],
+		'defines': [],
 		'conditions': [
 			['os=="android"', {
+				'cflags!': [ '-Wno-old-style-declaration' ],
+				'cflags': [ '-fPIC', '-pthread' ],
 				'ldflags': [
-					'-shared',
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
-				],
-				'conditions': [
-					['clang==0', {
-						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
-					},{
-						'cflags!': [ '-Wno-old-style-declaration' ],
-						'cflags': [ '-fPIC' ],
-					}],
+					'-pthread',
+					# '-shared',
+					# '-rdynamic',
+					'-stdlib=libc++'
 				],
 				'link_settings': {
 					'libraries': [
-						'-llog', 
+						'-llog',
 						'-landroid',
 						'-lquark',
-						'-lquark-media',
-						'-lquark-js',
-						'-lquark-node',
 					],
 					'library_dirs': [
-						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
+						'<(DEPTH)/out/usr/android/jniLibs/${ANDROID_ABI}',
 					],
 				},
-				'include_dirs': [ '<(DEPTH)/out/libs/include' ],
+				'include_dirs': [ '<(DEPTH)/out/usr/include' ],
 			}],
 			['os=="linux"', {
+				# 'defines': [ '__STDC_LIMIT_MACROS' ],
 				'cflags': [
+					# '-fPIC',
 					'-Wall',
 					'-Wextra',
 					'-Wno-unused-parameter',
@@ -104,9 +89,18 @@
 					'-Wno-deprecated',
 					'-Wno-missing-field-initializers',
 				],
+				'cflags_cc': [ '-Wno-reorder' ],
 				'ldflags': [
-					'-pthread', #'-rdynamic',
+					'-pthread',
+					#'-rdynamic',
 				],
+				'link_settings': {
+					'libraries': [ '-lquark' ],
+					'library_dirs': [
+						'<(DEPTH)/out/usr/linux/${LINUX_ARCH}',
+					],
+				},
+				'include_dirs': [ '<(DEPTH)/out/usr/include' ],
 			}],
 			['os=="ios"', {
 				'xcode_settings': {
@@ -133,22 +127,16 @@
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
 					],
 				},
 				'mac_framework_dirs': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)',
 				],
 				'mac_bundle_frameworks': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
 				],
-				'include_dirs': [ '<(DEPTH)/out/libs/include' ],
+				# 'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 			}],
 			['os=="mac"', {
 				'xcode_settings': {
@@ -175,72 +163,26 @@
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 				},
 				'cflags_cc': [ '-stdlib=libc++' ], 
-				'link_settings': { 
-					'libraries': [ '$(SDKROOT)/System/Library/Frameworks/Foundation.framework' ],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+						'$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+					],
 				},
+				'mac_framework_dirs': [
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)',
+				],
+				'mac_bundle_frameworks': [
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+				],
 			}],
 		],
 	},
 
-	'_targets': [{
+	'targets': [{
 		'target_name': 'libquark',
 		'type': 'none',
-		'direct_dependent_settings': {
-			'defines': [ 
-				'FX_USING_SHARED=1',
-				'USING_UV_SHARED=1',
-				'USING_V8_SHARED=1',
-				'USING_V8_PLATFORM_SHARED=1',
-			],
-			'xcode_settings': {
-				'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-				'GCC_ENABLE_CPP_RTTI': 'YES', 
-			},
-			'cflags_cc': [ '-fexceptions', '-frtti', ], 
-		},
-		'conditions': [
-			['os=="android"', {
-				'link_settings': {
-					'libraries': [
-						'-llog', 
-						'-landroid',
-						'-lquark',
-						'-lquark-media',
-						'-lquark-js',
-						'-lquark-node',
-					],
-					'library_dirs': [
-						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
-					],
-				},
-				'direct_dependent_settings': {
-					'include_dirs': [ '<(DEPTH)/out/libs/include' ],
-				},
-			}],
-			['os=="ios"', {
-				'link_settings': {
-					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
-					],
-				},
-				'direct_dependent_settings': {
-					'mac_framework_dirs': [
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
-					],
-					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark-node.framework',
-					],
-					'include_dirs': [ '<(DEPTH)/out/libs/include' ],
-				},
-			}],
-		],
 	}],
 
 	'conditions': [

@@ -351,7 +351,7 @@ function lookupFromSearch(request: string, parent?: Module): LookupResult | null
 
 function lookup(request: string, parent?: Module): LookupResult | null {
 	// Check for node modules paths.
-	if (request.charAt(0) !== '.' || // mod or .mode or file:/// or http:/// or / or d:/
+	if (request.charAt(0) !== '.' || // mod or file:/// or http:/// or / or d:/
 			(request.length > 1 &&
 			request.charAt(1) !== '.' &&
 			request.charAt(1) !== '/' &&
@@ -359,7 +359,7 @@ function lookup(request: string, parent?: Module): LookupResult | null {
 	) {
 		if (isAbsolute(request)) { // file:/// or http:/// or / or d:/
 			return lookupFromAbsolute(request);
-		} else { // search mod or .mode
+		} else { // search mod
 			return lookupFromSearch(request, parent);
 		}
 	} else { // ./ or ..
@@ -668,8 +668,16 @@ export class Module implements IModule {
 
 	private static async runMain() {
 		delete (Module as any).runMain;
-		// Load the main module--the command line argument.
 
+		const res = _fs.resources(), cwd = _util.cwd();
+		// add cwd/resources path as global search path
+		for (let path of [res, cwd]) {
+			if (isDirectorySync(`${path}/${saerchModules}`)) {
+				globalPaths.push((new SearchPath(`${path}/${saerchModules}`).loadSync()).path);
+			}
+		}
+
+		// Load the main module--the command line argument.
 		let main = _util.mainPath as string;
 		if (!main) {
 			var e = options.eval || options.e;
@@ -684,14 +692,6 @@ export class Module implements IModule {
 		}
 		main = formatPath(main); // format path
 
-		const res = _fs.resources();
-
-		// add resources/node_modules path as global search path
-		
-		if (isDirectorySync(`${res}/${saerchModules}`)) {
-			globalPaths.push((new SearchPath(`${res}/${saerchModules}`).loadSync()).path);
-		}
-
 		if (isHttp(main)) { // this is a http startup, adding some default search paths
 			try {
 				let idx = main.indexOf('?'), search = '';
@@ -699,7 +699,7 @@ export class Module implements IModule {
 					main = main.substring(0, idx), search = main.substring(idx);
 				}
 				let json = await readJSON(set_url_args(`${main}/package.json${search}`));
-				let _res = lookup(res); // lookup local main package
+				let _res = lookup(res) || lookup(cwd); // lookup local main package
 
 				// create http main pkg and local package
 				new Package(main, json, _res?.pkg.name == json.name ? _res!.pkg: undefined);
