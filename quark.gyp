@@ -37,7 +37,7 @@
 		],
 		'conditions': [
 			# output mac shared library for "quark.framework"
-			['os in "mac ios" and project=="make"', {
+			['os in "mac ios" and style=="make"', {
 				'actions': [{
 					'action_name': 'mk_quark_dylib',
 					'inputs': [
