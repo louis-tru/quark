@@ -1,6 +1,6 @@
-[submodule "libs/encark"]
-	path = libs/encark
-	url = https://github.com/louis-tru/encark.git
+[submodule "libs/qktool"]
+	path = libs/qktool
+	url = https://github.com/louis-tru/qktool.git
 [submodule "libs/qkmake"]
 	path = libs/qkmake
 	url = https://github.com/louis-tru/qkmake.git

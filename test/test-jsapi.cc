@@ -55,7 +55,7 @@ Qk_TEST_Func(jsapi) {
 #if USE_REMOTE
 	js::Start("http://" IP_REMOTE ":1026/jsapi", argv_arr);
 #else
-	js::Start(fs_resources("jsapi"), argv_arr);
+	js::Start(fs_resources("jsapi aa gui"), argv_arr);
 #endif
 }
 #endif

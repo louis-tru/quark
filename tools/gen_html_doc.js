@@ -29,7 +29,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('encark/fs');
+var fs = require('qktool/fs');
 var path = require('path');
 var marked_html = require('qkmake/marked/html');
 var read_quark_version = require('./read_version').read_quark_version;

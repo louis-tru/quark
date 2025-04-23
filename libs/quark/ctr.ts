@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+import './_ext';
 import util from './util';
 import { Label, View, DOM } from './view';
 import { Window } from './window';

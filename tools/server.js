@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('encark/util').default;
-var fs = require('encark/fs');
-// var service = require('encark/service').default;
-var HttpService = require('encark/http_service').HttpService;
-var FileStream = require('encark/incoming_form').FileStream;
+var util = require('qktool/util').default;
+var fs = require('qktool/fs');
+// var service = require('qktool/service').default;
+var HttpService = require('qktool/http_service').HttpService;
+var FileStream = require('qktool/incoming_form').FileStream;
 var start_server = require('qkmake/server').default;
 
 // Tools service

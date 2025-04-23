@@ -127,16 +127,16 @@
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+						'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
 					],
 				},
 				'mac_framework_dirs': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)',
+					'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)',
 				],
 				'mac_bundle_frameworks': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+					'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
 				],
-				# 'include_dirs': [ '<(DEPTH)/out/libs/include' ],
+				# 'include_dirs': [ '<(DEPTH)/out/usr/include' ],
 			}],
 			['os=="mac"', {
 				'xcode_settings': {
@@ -150,7 +150,7 @@
 					'GCC_ENABLE_PASCAL_STRINGS': 'NO',        # No -mpascal-strings
 					'GCC_THREADSAFE_STATICS': 'NO',           # -fno-threadsafe-statics
 					'PREBINDING': 'NO',                       # No -Wl,-prebind
-					'MACOSX_DEPLOYMENT_TARGET': '10.8',       # -mmacosx-version-min=10.8
+					'MACOSX_DEPLOYMENT_TARGET': '10.15',       # -mmacosx-version-min=10.15
 					'USE_HEADERMAP': 'NO',
 					'ARCHS': ['$(ARCHS_STANDARD)'],           # 'ARCHS': 'x86_64',
 					'SKIP_INSTALL': 'YES',
@@ -158,7 +158,7 @@
 					'DEBUG_INFORMATION_FORMAT': 'dwarf',      # dwarf-with-dsym
 					'LD_RUNPATH_SEARCH_PATHS': [
 						'$(inherited)', 
-						'@executable_path/Frameworks'
+						'@executable_path/../Frameworks'
 					],
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 				},
@@ -167,15 +167,16 @@
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
 						'$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+						'<(DEPTH)/out/usr/mac/Frameworks/$(PLATFORM_NAME)/quark.framework',
 					],
 				},
 				'mac_framework_dirs': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)',
+					'<(DEPTH)/out/usr/mac/Frameworks/$(PLATFORM_NAME)',
 				],
 				'mac_bundle_frameworks': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+					'<(DEPTH)/out/usr/mac/Frameworks/$(PLATFORM_NAME)/quark.framework',
 				],
+				# 'include_dirs': [ '<(DEPTH)/out/usr/include' ],
 			}],
 		],
 	},

@@ -252,10 +252,10 @@ namespace qk { namespace inspector {
 
 		void installAdditionalCommandLineAPI(Local<Context> context, Local<Object> target) override {
 			auto worker = agent_->worker();
-			auto load = worker->bindingModule("_pkg")->
+			auto require = worker->bindingModule("_pkg")->
 				cast<js::JSObject>()->get(worker, "Module")->
-				cast<js::JSObject>()->get(worker, "load");
-			auto func = *reinterpret_cast<v8::Local<v8::Function>*>(&load);
+				cast<js::JSObject>()->get(worker, "require");
+			auto func = *reinterpret_cast<v8::Local<v8::Function>*>(&require);
 			auto str = v8::String::NewFromOneByte(agent_->isolate(),
 				(const uint8_t*)"require", v8::NewStringType::kNormal).ToLocalChecked();
 			target->Set(context, str, func).Check();

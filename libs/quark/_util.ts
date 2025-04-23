@@ -30,6 +30,8 @@
 
 'use strict';
 
+/// <reference path="./_ext.d.ts" />
+
 const _init = __binding__('_init');
 const _fs = __binding__('_fs');
 const PREFIX = 'file:///';

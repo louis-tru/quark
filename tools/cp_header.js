@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('encark/fs');
+var fs = require('qktool/fs');
 var path = require('path');
 
 function copy_header(source, target) {

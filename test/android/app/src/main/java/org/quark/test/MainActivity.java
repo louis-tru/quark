@@ -30,75 +30,30 @@
 
 package org.quark.test;
 
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import android.Manifest;
-import android.widget.Toast;
-
 import org.quark.Activity;
+import android.os.Bundle;
 
 public class MainActivity extends Activity {
 
+	private static final String LIBRARY = "quark";
+
 	static {
-		System.loadLibrary("quark_test");
-	}
-
-	private static final int REQUEST_CODE_STORAGE_PERMISSION = 100;
-	private static final String READ_EXTERNAL_STORAGE =
-		Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ? // Android 13+
-			Manifest.permission.READ_MEDIA_VIDEO: Manifest.permission.READ_EXTERNAL_STORAGE;
-
-	public boolean isStoragePermissionGranted() {
-		return ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-	}
-
-	public void requestStoragePermission() {
-		// 检查是否需要展示权限请求解释对话框
-		if (ActivityCompat.shouldShowRequestPermissionRationale(this, READ_EXTERNAL_STORAGE)) {
-			// 显示解释对话框（例如 Toast 或 AlertDialog）
-			Toast.makeText(this, "需要文件读取权限以加载本地视频", Toast.LENGTH_SHORT).show();
-		}
-		// 请求权限
-		ActivityCompat.requestPermissions(
-			this,
-			new String[]{READ_EXTERNAL_STORAGE},
-			REQUEST_CODE_STORAGE_PERMISSION
-		);
-	}
-
-	@Override
-	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-		if (requestCode == REQUEST_CODE_STORAGE_PERMISSION) {
-			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-				// 权限已授予，执行文件读取操作
-				// openVideoWithFFmpeg();
-			} else {
-				// 权限被拒绝，提示用户或关闭功能
-				Toast.makeText(this, "权限被拒绝，无法读取文件", Toast.LENGTH_SHORT).show();
-			}
-		}
+		System.loadLibrary(LIBRARY);
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		if (!isStoragePermissionGranted()) {
-			requestStoragePermission();
-		}
 	}
 
 	protected String startupArgv() {
-		//return "http://192.168.0.11:1026/examples --inspect-brk=0.0.0.0:9229";
-		//return ". --inspect-brk=0.0.0.0:9229";
-		return getPathInAssets("jsapi aa action");
+		//return "http://192.168.2.200:1026/ --inspect-brk=0.0.0.0:9229";
+		if (isDebugger()) {
+			String s = getPathInAssets("jsapi aa gui --inspect=0.0.0.0:9229");
+			return s;
+		} else {
+			return getPathInAssets("jsapi");
+		}
 	}
 
 }

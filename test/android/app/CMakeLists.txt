@@ -37,6 +37,9 @@ add_definitions(
 	-DQk_ENABLE_GL
 )
 
+#set(CMAKE_SHARED_LINKER_FLAGS "-stdlib=libc++")
+#set(ANDROID_STL "c++_shared")
+
 # set(TARGET "bplus")
 # set(TOOLSET "target")
 # add_library(bplus STATIC

@@ -21,13 +21,14 @@ android {
 			cmake {
 				cppFlags += "-std=c++14"
 				abiFilters += setOf(
-					//"armeabi-v7a",
-					"arm64-v8a",
-					//"x86",
 					//"x86_64",
+					"arm64-v8a",
+					//"armeabi-v7a",
+					//"x86",
 				)
 				//arguments += "-DANDROID_TOOLCHAIN=gcc"
 				//arguments += "-DCMAKE_BUILD_TYPE=Debug"
+				//arguments += "-DANDROID_STL=c++_shared"
 			}
 		}
 	}
@@ -45,12 +46,6 @@ android {
 		sourceCompatibility = JavaVersion.VERSION_11
 		targetCompatibility = JavaVersion.VERSION_11
 	}
-	externalNativeBuild {
-		cmake {
-			path = file("CMakeLists.txt")
-			version = "3.22.1"
-		}
-	}
 	buildFeatures {
 		viewBinding = true
 	}
@@ -58,12 +53,14 @@ android {
 		getByName("main") {
 			java.srcDirs(
 					"src/main/java",
-					"../../../src/platforms/android",
+					//"../../../src/platforms/android",
 			)
 			jniLibs.srcDirs(
 				"src/main/jniLibs",
-				"../../../out/jniLibs",
+				//"../../../out/jniLibs",
+				"../../../out/qkmake/product/android/jniLibs",
 			)
+
 			assets.srcDirs(
 				"../../jsapi/out",
 			)
@@ -78,4 +75,8 @@ dependencies {
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.ext.junit)
 	androidTestImplementation(libs.espresso.core)
+	implementation(fileTree(mapOf("dir" to "../../../out/qkmake/product/android/libs", "include" to listOf("*.jar"))))
 }
+
+//android.externalNativeBuild.cmake.path = file("CMakeLists.txt")
+//android.externalNativeBuild.cmake.version = "3.22.1"

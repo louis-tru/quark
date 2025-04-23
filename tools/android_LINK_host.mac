@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var { spawn } = require('encark/syscall');
+var { spawn } = require('qktool/syscall');
 
 // g++ -o /Users/louis/Project/my/quark/out/android.arm64.Debug/bytecode_builtins_list_generator 
 // -mmacosx-version-min=10.15 -arch arm64 -target arm64-apple-darwin -isysroot 

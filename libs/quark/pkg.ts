@@ -40,6 +40,8 @@ const { readFile, readFileSync, isFileSync,
 const debug = _util.debugLog('PKG');
 const win32 = _utild.platform == 'win32';
 
+/// <reference path="./_ext.d.ts" />
+
 type Optopns = Dict<string>;
 
 interface Cb {
@@ -91,7 +93,9 @@ function parseJSON(source: string, filename: string) {
 	}
 }
 
-const readText     = (path: string)=>readFile(path, 'utf8') as Promise<string>;
+const readText     = (path: string)=>new Promise<string>(function(resolve, reject) {
+	readFile((err?: Error, r?: any)=>err?reject(err):resolve(r), path, 'utf8')
+});
 const readTextSync = (path: string)=>readFileSync(path, 'utf8') as string;
 const readJSON     = async (filename: string)=>parseJSON(await readText(filename), filename);
 const readJSONSync = (filename: string)=>parseJSON(readTextSync(filename), filename);
@@ -394,7 +398,7 @@ export interface PackageJson {
 	tryLocal?: boolean; 
 	symlink?: string; // package path symlink
 	pkgzSize?: number; // pkgz file size
-	[saerchModules]?: Dict<PackageJson>;
+	modules?: Dict<Dict<PackageJson>>;
 }
 
 class SearchPath {
@@ -419,7 +423,7 @@ class SearchPath {
 	*/
 	async load(noCache?: boolean) {
 		if (this.isHttp) {
-			let path = set_url_args(`${this.path}/${saerchModules}.json`, noCache ? '__no_cache': '');
+			let path = set_url_args(`${this.path}/modules.json`, noCache ? '__no_cache': '');
 			this.loadFrom(await readJSON(path));
 		} else { // local
 			this.loadSync();
@@ -432,7 +436,7 @@ class SearchPath {
 	*/
 	loadSync() {
 		if (this.isHttp) {
-			let path = set_url_args(`${this.path}/${saerchModules}.json`); // node_modules.json
+			let path = set_url_args(`${this.path}/modules.json`); // modules.json
 			this.loadFrom(readJSONSync(path));
 		}
 		else { // local read mode
@@ -471,9 +475,11 @@ class SearchPath {
 			this._paths.set(pkgName, path);
 
 			// children search paths
-			let modules = json[saerchModules];
+			let modules = json.modules;
 			if (modules) {
-				new SearchPath(`${this.path}/${pkgName}/${saerchModules}`, modules);
+				for (let dir in modules) {
+					new SearchPath(`${this.path}/${pkgName}/${dir}`, modules[dir]);
+				}
 			}
 		}
 		searchPaths.set(this.path, this);
@@ -640,6 +646,10 @@ export class Module implements IModule {
 		self.loaded = true;
 	}
 
+	static require(request: string) {
+		return Module.load(request, mainModule);
+	}
+
 	static load(request: string, parent?: Module): any {
 		let { filename, resolve, pkg } = resolveFilename(request, parent);
 		let cachedModule = Module._cache[filename];
@@ -698,16 +708,22 @@ export class Module implements IModule {
 				if (idx != -1) {
 					main = main.substring(0, idx), search = main.substring(idx);
 				}
-				let json = await readJSON(set_url_args(`${main}/package.json${search}`));
+				let json = await readJSON(set_url_args(`${main}/package.json${search}`)) as PackageJson;
 				let _res = lookup(res) || lookup(cwd); // lookup local main package
 
 				// create http main pkg and local package
 				new Package(main, json, _res?.pkg.name == json.name ? _res!.pkg: undefined);
 
 				// add global search path
-				let modules = json[saerchModules];
-				if (modules)
-					globalPaths.unshift(new SearchPath(`${main}/${saerchModules}`, modules).path);
+				let modules = json.modules;
+				if (modules) {
+					for (let dir in modules) {
+						let search = new SearchPath(`${main}/${dir}`, modules[dir]);
+						if (dir == saerchModules) {
+							globalPaths.unshift(search.path);
+						}
+					}
+				}
 			} catch(err) {
 				print(err);
 			}

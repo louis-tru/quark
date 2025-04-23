@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('encark').default;
-var fs = require('encark/fs');
+var util = require('qktool').default;
+var fs = require('qktool/fs');
 var path = require('path');
 var host_os = process.platform == 'darwin' ? 'mac': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('encark/arguments');
-var { syscall, execSync, exec } = require('encark/syscall');
+var argument = require('qktool/arguments');
+var { syscall, execSync, exec } = require('qktool/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

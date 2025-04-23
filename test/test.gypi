@@ -22,7 +22,7 @@
 		],
 		'sources': [
 			'../libs/qkmake',
-			'../libs/encark',
+			'../libs/qktool',
 			'util/test-event.cc',
 			'util/test-fs-async.cc',
 			'util/test-fs.cc',

@@ -248,7 +248,7 @@ namespace qk {
 }
 
 extern "C" {
-	void Java_org_quark_Android_initNative(JNIEnv* env, jclass cls,
+	Qk_EXPORT void Java_org_quark_Android_initNative(JNIEnv* env, jclass cls,
 		jstring pkg, jstring files_dir, jstring cache_dir)
 	{
 		if (!qk::_api)

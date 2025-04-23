@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('encark/fs');
-var { execSync } = require('encark/syscall');
+var fs = require('qktool/fs');
+var { execSync } = require('qktool/syscall');
 var { copy_header } = require('./cp_header');
 var path = require('path');
 var read_version = require('./read_version');
@@ -57,6 +57,7 @@ fs.cp_sync(root + '/libs/qkmake/gyp-next', target + '/gyp-next', {ignore_hide:1,
 
 fs.chmodSync(target + '/gyp-next/gyp', 0o755);
 fs.chmodSync(target + '/shell.js', 0o755);
+fs.chmodSync(target + '/gyp.sh', 0o755);
 
 copy_header(root + '/src', `${include}/quark`);
 

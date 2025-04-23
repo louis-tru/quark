@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('encark/fs');
+var fs = require('qktool/fs');
 
 function read_quark_version() {
 	var str = fs.readFileSync(__dirname + '/../src/version.h').toString('utf-8');
