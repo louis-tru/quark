@@ -568,6 +568,8 @@ namespace qk { namespace js {
 
 			MixNativeObject::binding(exports, worker);
 			MixHash5381Object::binding(exports, worker);
+
+			worker->bindingModule("_types");
 		}
 	};
 

@@ -899,11 +899,11 @@ class Package {
 			let ok = (text: string)=>{
 				let json = parseJSON(text, path);
 				(self as {filesHash: Dict}).filesHash = json.filesHash || {};
+				Object.assign(self.filesHash, json.pkgzFiles);
 				self._status = PackageStatus.INSTALLED;
 				if (self._pkgzPath) {
-					for (let [file, hash] of Object.entries(json.pkgzFiles)) {
+					for (let file of Object.keys(json.pkgzFiles)) {
 						self._pkgzFiles.add(file);
-						self.filesHash[file] = hash as string;
 					}
 				}
 				cb && cb(); // ok

@@ -51,7 +51,7 @@ namespace qk { namespace js {
 				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
-					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
+					JSValue* arg = worker->newValue(*static_cast<const Err*>(d.error));
 					func.val->call(worker, 1, &arg);
 				} else {
 					Type* data = d.data;
@@ -95,7 +95,7 @@ namespace qk { namespace js {
 				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
-					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
+					JSValue* arg = worker->newValue(*static_cast<const Err*>(d.error));
 					func.val->call(worker, 1, &arg);
 				} else {
 					Buffer* bf = d.data;
@@ -117,7 +117,7 @@ namespace qk { namespace js {
 			return Cb([worker, func](Cb::Data& d) {
 				Js_Handle_Scope(); // Callback Scope
 				if ( d.error ) {
-					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
+					JSValue* arg = worker->newValue(*static_cast<const Err*>(d.error));
 					func.val->call(worker, 1, &arg);
 				} else {
 					auto data = &static_cast<StreamResponse*>(d.data)->value;
@@ -145,7 +145,7 @@ namespace qk { namespace js {
 				Js_Handle_Scope(); // Callback Scope
 
 				if ( d.error ) {
-					JSValue* arg = worker->types()->jsvalue(*static_cast<const Err*>(d.error));
+					JSValue* arg = worker->newValue(*static_cast<const Err*>(d.error));
 					func.val->call(worker, 1, &arg);
 				} else {
 					ResponseData* data = d.data;
@@ -170,7 +170,7 @@ namespace qk { namespace js {
 			return Cb([worker, func](Cb::Data& d) {
 				Js_Handle_Scope(); // Callback Scope
 				if ( d.error ) {
-					JSValue* arg = worker->types()->jsvalue(*static_cast<const Error*>(d.error));
+					JSValue* arg = worker->newValue(*static_cast<const Error*>(d.error));
 					func.val->call(worker, 1, &arg);
 				} else {
 					func.val->call(worker);

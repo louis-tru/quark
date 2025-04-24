@@ -5,6 +5,8 @@ plugins {
 	alias(libs.plugins.android.application)
 }
 
+var isCmake = true
+
 android {
 	namespace = "org.quark.test"
 	compileSdk = 35
@@ -49,20 +51,30 @@ android {
 	buildFeatures {
 		viewBinding = true
 	}
+
+	externalNativeBuild {
+		if (isCmake)
+			cmake {
+				path = file("CMakeLists.txt")
+				version = "3.22.1"
+			}
+	}
 	sourceSets {
 		getByName("main") {
 			java.srcDirs(
-					"src/main/java",
-					//"../../../src/platforms/android",
+				"src/main/java",
+				"../../../src/platforms/android",
 			)
 			jniLibs.srcDirs(
 				"src/main/jniLibs",
-				//"../../../out/jniLibs",
-				"../../../out/qkmake/product/android/jniLibs",
+				if (isCmake)
+					"../../../out/jniLibs"
+				else
+					"../../../out/qkmake/product/android/jniLibs",
 			)
-
 			assets.srcDirs(
-				"../../jsapi/out",
+				"../../jsapi/out/jsapi",
+				//"/Users/louis/Workspace/kkkk/out/small"
 			)
 		}
 	}
@@ -75,8 +87,5 @@ dependencies {
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.ext.junit)
 	androidTestImplementation(libs.espresso.core)
-	implementation(fileTree(mapOf("dir" to "../../../out/qkmake/product/android/libs", "include" to listOf("*.jar"))))
+	//implementation(fileTree(mapOf("dir" to "../../../out/qkmake/product/android/libs", "include" to listOf("*.jar"))))
 }
-
-//android.externalNativeBuild.cmake.path = file("CMakeLists.txt")
-//android.externalNativeBuild.cmake.version = "3.22.1"

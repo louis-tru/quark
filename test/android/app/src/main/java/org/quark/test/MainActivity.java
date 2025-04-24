@@ -47,12 +47,12 @@ public class MainActivity extends Activity {
 	}
 
 	protected String startupArgv() {
-		//return "http://192.168.2.200:1026/ --inspect-brk=0.0.0.0:9229";
-		if (isDebugger()) {
-			String s = getPathInAssets("jsapi aa gui --inspect=0.0.0.0:9229");
+		if (!isDebugger()) {
+			// http://192.168.2.200:1026/ --inspect=0.0.0.0:9229
+			String s = getPathInAssets(". aa gui --inspect-brk=0.0.0.0:9229");
 			return s;
 		} else {
-			return getPathInAssets("jsapi");
+			return getPathInAssets(". aa gui");
 		}
 	}
 

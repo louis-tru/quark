@@ -645,6 +645,11 @@ namespace js {
 						host[1].toNumber<int>(&port);
 					runDebugger(worker, {brk, port, host[0], script_path});
 				}
+
+#if DEBUG
+				if (brk)
+					debuggerBreakNextStatement(worker);
+#endif
 			}
 
 			int rc = 0;

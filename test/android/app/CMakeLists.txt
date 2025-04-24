@@ -215,12 +215,7 @@ add_library(quark SHARED
 	../../../out/native-lib-js.cc
 )
 
-add_library(quark_trial SHARED
-	../../../trial/fs-search.cc
-	../../../trial/jsx.cc
-)
-
-add_library(quark_test SHARED
+add_library(test SHARED
 	../../util/test-event.cc
 	../../util/test-fs-async.cc
 	../../util/test-fs.cc
@@ -274,6 +269,11 @@ add_library(quark_test SHARED
 	../../test.cc
 )
 
-target_link_libraries(quark       atomic z android log OpenSLES GLESv3 EGL mediandk quark_deps_test)
-target_link_libraries(quark_trial quark quark_deps_test)
-target_link_libraries(quark_test  quark quark_trial quark_deps_test)
+add_library(trial SHARED
+	../../../trial/fs-search.cc
+	../../../trial/jsx.cc
+)
+
+target_link_libraries(quark atomic z android log OpenSLES GLESv3 EGL mediandk quark_deps_test)
+target_link_libraries(trial quark quark_deps_test)
+target_link_libraries(test  quark trial quark_deps_test)
