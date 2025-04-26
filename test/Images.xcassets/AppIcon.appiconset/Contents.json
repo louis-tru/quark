@@ -276,10 +276,73 @@
       "scale" : "2x",
       "size" : "44x44",
       "subtype" : "42mm"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "1x",
+      "filename" : "ic_16x16.png",
+      "size" : "16x16"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "2x",
+      "filename" : "ic_16x16x2.png",
+      "size" : "16x16"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "1x",
+      "filename" : "ic_16x16x2.png",
+      "size" : "32x32"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "2x",
+      "filename" : "ic_32x32x2.png",
+      "size" : "32x32"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "1x",
+      "filename" : "ic_128x128.png",
+      "size" : "128x128"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "2x",
+      "filename" : "ic_128x128x2.png",
+      "size" : "128x128"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "1x",
+      "filename" : "ic_128x128x2.png",
+      "size" : "256x256"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "2x",
+      "filename" : "ic_256x256x2.png",
+      "size" : "256x256"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "1x",
+      "filename" : "ic_256x256x2.png",
+      "size" : "512x512"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "2x",
+      "filename" : "ic_800x800.png",
+      "size" : "512x512"
     }
   ],
   "info" : {
     "author" : "xcode",
     "version" : 1
+  },
+  "properties" : {
+    "pre-rendered" : true
   }
 }

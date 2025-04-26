@@ -282,71 +282,62 @@
 			}],
 			['os=="ios"', {
 				'cflags': [
-					'-miphoneos-version-min=<(version_min)', 
-					'-arch <(arch_name)'
-					'-isysroot <(sysroot)', 
+					'-arch <(arch_name)',
+					'-isysroot <(sysroot)',
+					'-miphoneos-version-min=<(version_min)',
 					# '-fembed-bitcode', #'-fembed-bitcode-marker',
 				],
 				'cflags_cc': [ '-stdlib=libc++' ],
-				'ldflags': [ 
-					'-miphoneos-version-min=<(version_min)',
-					'-arch <(arch_name)',
-				],
 				'link_settings': { 
 					'libraries!': [ '-lm' ],
 					'libraries': [ '$(SDKROOT)/System/Library/Frameworks/Foundation.framework' ],
 				},
 				'conditions': [
-					['arch in "arm armv7s arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
-					['without_embed_bitcode==1', { 
-						'cflags': [ 
-							#'-fembed-bitcode-marker' 
-						]
+					['without_embed_bitcode==1', {
+						# 'cflags': [ '-fembed-bitcode-marker' ]
 					}, {
 						'cflags': [ '-fembed-bitcode' ]
 					}],
+					# ['arch in "arm armv7s arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
 				],
 				'xcode_settings': {
 					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
 					'ALWAYS_SEARCH_USER_PATHS': 'NO',
 					'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-					'OTHER_CFLAGS': ['-arch <(arch_name)'],
 					'SDKROOT': 'iphoneos',
 					'TARGETED_DEVICE_FAMILY': '1,2',
-					'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)',
+					# 'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)', # use OTHER_CFLAGS
 					'USE_HEADERMAP': 'NO',
 					'ARCHS': [ '$(ARCHS_STANDARD)' ],   # 'ARCHS': [ '$(ARCHS_STANDARD_32_BIT)' ],
 					'SKIP_INSTALL': 'YES',
 					'DEBUG_INFORMATION_FORMAT': 'dwarf', # dwarf-with-dsym
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 					'VALID_ARCHS': '<(arch_name)',
+					'OTHER_CFLAGS': [ '-arch <(arch_name)' ],
 					'conditions': [
-						['arch in "x86 x64" or <(emulator)', { 'SDKROOT': 'iphonesimulator' }],
-						['style=="xcode"', {
-							# v8 setting
-							'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7]': [ '$(inherited)', 'USE_SIMULATOR', ],
-							'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7s]': [ '$(inherited)', 'USE_SIMULATOR', ],
-							'GCC_PREPROCESSOR_DEFINITIONS[arch=arm64]': [ '$(inherited)', 'USE_SIMULATOR', ],
-						}],
-						['without_embed_bitcode==0', {
-							'ENABLE_BITCODE': 'YES'
+						['<(emulator)==1', {
+							'SDKROOT': 'iphonesimulator',
+							'OTHER_CFLAGS': [ '-mios-simulator-version-min=<(version_min)' ]
 						}, {
-							'ENABLE_BITCODE': 'NO'
-						}]
+							'OTHER_CFLAGS': [ '-miphoneos-version-min=<(version_min)' ]
+						}],
+						['without_embed_bitcode==0', { 'ENABLE_BITCODE': 'YES' }, { 'ENABLE_BITCODE': 'NO' }],
+						# ['style=="xcode"', {
+						# 	# v8 setting
+						# 	'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7]': [ '$(inherited)', 'USE_SIMULATOR', ],
+						# 	'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7s]': [ '$(inherited)', 'USE_SIMULATOR', ],
+						# 	'GCC_PREPROCESSOR_DEFINITIONS[arch=arm64]': [ '$(inherited)', 'USE_SIMULATOR', ],
+						# }],
 					],
 				},
 			}],
 			['os=="mac"', {
 				'cflags': [
-					'-mmacosx-version-min=<(version_min)',
 					'-arch <(arch_name)',
 					'-isysroot <(sysroot)',
+					'-mmacosx-version-min=<(version_min)',
 				],
 				'cflags_cc': [ '-stdlib=libc++' ],
-				'ldflags': [
-					'-mmacosx-version-min=<(version_min)',
-					'-arch <(arch_name)',
-				],
 				'ldflags!': [ '-pthread', '-s' ],
 				'link_settings': { 
 					'libraries!': [ '-lm' ],
@@ -359,7 +350,6 @@
 					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
 					'ALWAYS_SEARCH_USER_PATHS': 'NO',
 					'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-					'OTHER_CFLAGS': ['-arch <(arch_name)'],
 					'SDKROOT': 'macosx',
 					'GCC_CW_ASM_SYNTAX': 'NO',                # No -fasm-blocks
 					'GCC_DYNAMIC_NO_PIC': 'NO',               # No -mdynamic-no-pic
@@ -375,6 +365,7 @@
 					'ENABLE_BITCODE': 'NO',
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 					'VALID_ARCHS': '<(arch_name)',
+					'OTHER_CFLAGS': ['-arch <(arch_name)'],
 				},
 			}],
 			['os in "mac ios"', {
@@ -397,39 +388,25 @@
 			['_toolset=="host"', {
 				'conditions': [
 					['os=="android"',{
-						# 'cflags!': [ '-O2', '-O3', '-Os' ],
-						# 'cflags': [ '-O0' ],
 						'ldflags!': [ '-stdlib=libc++', '-stdlib=libstdc++' ]
 					}],
 					['os=="linux"',{
 						'cflags!': [ '-march=<(arch_name)', '-m64', '-m32' ],
-						# 'cflags': [ '-O0' ],
 					}],
-					['os=="ios"',{
-						'cflags!': [
-							'-miphoneos-version-min=<(version_min)',
-							'-arch <(arch_name)',
-							'-isysroot <(sysroot)',
-						],
-						'ldflags!': [
-							'-miphoneos-version-min=<(version_min)',
-							'-arch <(arch_name)',
-						],
-						'cflags': [
-							# '-target arm64-apple-darwin', '$(xcrun --show-sdk-path)',
-						],
-						'xcode_settings!': {
-							'TARGETED_DEVICE_FAMILY': '1,2',
-							'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)',
-						},
-						'xcode_settings': {
-							'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
-							'SDKROOT': 'macosx',
-						},
-					}]
 				],
 				'xcode_settings': {
-					'OTHER_CFLAGS!': ['-arch <(arch_name)'],
+					'cflags!': [
+						'-arch <(arch_name)',
+						'-isysroot <(sysroot)',
+						'-miphoneos-version-min=<(version_min)', # ios
+					],
+					'OTHER_CFLAGS!': [
+						'-arch <(arch_name)', # user system default value
+						'-miphoneos-version-min=<(version_min)', # ios
+						'-mios-simulator-version-min=<(version_min)', # ios simulator
+					],
+					'SDKROOT': 'macosx',
+					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
 				},
 			}], # ['_toolset=="host"'
 		],

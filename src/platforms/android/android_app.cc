@@ -99,7 +99,7 @@ extern "C" {
 
 	Qk_EXPORT int main(int argc, char* argv[]) {
 		// TODO: Maybe it will be useful
-		Application::runMain(argc, argv);
+		Application::runMain(argc, argv, true);
 		return 0;
 	}
 }

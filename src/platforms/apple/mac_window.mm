@@ -29,9 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <AppKit/AppKit.h>
-#import "../../ui/app.h"
-#import "../../ui/window.h"
-#import "../../ui/event.h"
+#import "../../ui/ui.h"
 #import "../../render/apple/apple_render.h"
 #import "./apple_app.h"
 

@@ -64,7 +64,8 @@ install: all
 ios:
 	@$(call check,mac,$(HOST_OS),$@)
 	@./configure --os=ios --arch=arm64 && $(MAKE) build
-	@./configure --os=ios --arch=arm64 -em && $(MAKE) build # simulator for mac
+	@./configure --os=ios --arch=arm64 -v8 && $(MAKE) build
+	@./configure --os=ios --arch=arm64 -em -v8 && $(MAKE) build # simulator for mac
 	@./configure --os=ios --arch=x64 -em && $(MAKE) build
 	@./tools/gen_apple_frameworks.sh $(QKMAKE_OUT) ios
 

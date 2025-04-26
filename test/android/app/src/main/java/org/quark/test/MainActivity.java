@@ -47,10 +47,9 @@ public class MainActivity extends Activity {
 	}
 
 	protected String startupArgv() {
-		if (!isDebugger()) {
-			// http://192.168.2.200:1026/ --inspect=0.0.0.0:9229
-			String s = getPathInAssets(". aa gui --inspect-brk=0.0.0.0:9229");
-			return s;
+		if (isDebugger()) {
+			//return "http://192.168.2.200:1026/ --inspect=0.0.0.0:9229";
+			return getPathInAssets(". aa gui --inspect-brk=0.0.0.0:9229");
 		} else {
 			return getPathInAssets(". aa gui");
 		}

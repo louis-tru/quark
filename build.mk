@@ -66,4 +66,4 @@ $(ANDROID_JAR): src/platforms/android/org/quark/*.java
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv out/noproj/product/$(OS)
+	@#rm -rfv out/qkmake/product/$(OS)

@@ -127,16 +127,15 @@
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+						'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
 					],
 				},
 				'mac_framework_dirs': [
-					'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)',
+					'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
 				],
 				'mac_bundle_frameworks': [
-					'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)/quark.framework',
+					'<(DEPTH)/out/usr/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/quark.framework',
 				],
-				# 'include_dirs': [ '<(DEPTH)/out/usr/include' ],
 			}],
 			['os=="mac"', {
 				'xcode_settings': {
@@ -176,7 +175,6 @@
 				'mac_bundle_frameworks': [
 					'<(DEPTH)/out/usr/mac/Frameworks/$(PLATFORM_NAME)/quark.framework',
 				],
-				# 'include_dirs': [ '<(DEPTH)/out/usr/include' ],
 			}],
 		],
 	},

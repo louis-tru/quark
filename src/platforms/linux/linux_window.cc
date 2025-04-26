@@ -43,8 +43,7 @@
 
 #include "./linux_app.h"
 #include "../../render/linux/linux_render.h"
-#include "../../ui/window.h"
-#include "../../ui/app.h"
+#include "../../ui/ui.h"
 
 namespace qk {
 	typedef const Window::Options cOptions;

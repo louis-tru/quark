@@ -12,6 +12,7 @@ use_js=$7
 use_v8=$8
 emulator=$9
 obj=obj.target
+name=quark
 
 cd $out
 
@@ -23,9 +24,10 @@ fi
 
 link_dylib() {
 	name=$1
-	dirs=$2
-	links=$3
-	frameworks=$4
+	libname=$2
+	dirs=$3
+	links=$4
+	frameworks=$5
 
 	find $dirs -name *.o > $name.LinkFileList
 
@@ -48,7 +50,7 @@ link_dylib() {
 		-stdlib=libc++ \
 		-filelist $name.LinkFileList \
 		-o lib$name.dylib \
-		-install_name @rpath/$name.framework/$name \
+		-install_name @rpath/$libname.framework/$libname \
 		-Xlinker -rpath -Xlinker @executable_path/Frameworks \
 		-Xlinker -rpath -Xlinker @loader_path/Frameworks \
 		$flags \
@@ -104,6 +106,7 @@ fi
 
 if [ "$use_js" = "1" ]; then
 	if [ "$use_v8" = "1" ]; then
+		name=quark.v8
 		rm -rf $obj/quark-js/src/js/jsc
 		links="$links -lv8_initializers -lv8_libbase -lv8_libplatform 
 			-lv8_libsampler -lv8_snapshot -lv8_base_without_compiler -lv8_compiler"
@@ -114,5 +117,5 @@ if [ "$use_js" = "1" ]; then
 	dirs="$dirs $obj/quark-js "
 fi
 
-link_dylib quark "$dirs" "$links" "$frameworks"
-framework quark no-inc # gen temp framework
+link_dylib $name quark "$dirs" "$links" "$frameworks"
+framework $name no-inc # gen temp framework
