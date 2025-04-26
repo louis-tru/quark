@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../ui/app.h"
+#import "../../ui/ui.h"
 #import "../../ui/window.h"
 #import "./apple_app.h"
 #import <MessageUI/MFMailComposeViewController.h>
@@ -39,7 +39,7 @@ using namespace qk;
 
 QkApplicationDelegate* qkappdelegate = nil;
 
-QkWindowDelegate* getActiveDelegate() {
+QkWindowDelegate* getWindowDelegate() {
 	auto qkwin = qkappdelegate.host->activeWindow();
 	if (qkwin)
 		return qkwin->impl()->delegate();
@@ -51,29 +51,41 @@ QkWindowDelegate* getActiveDelegate() {
 
 @implementation QkApplicationDelegate
 
+	- (void) initPlatform:(AppInl*)host {
+		_host = host;
+		host->triggerLoad();
+	}
+
+	- (AppInl*) hostInl {
+		return Inl_Application(_host);
+	}
+
+	- (void) openSystemSettings {
+		NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+		if ([_app canOpenURL:url]) {
+			[_app openURL:url options:@{} completionHandler:^(BOOL ok){}];
+		}
+	}
+
 	- (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
 		Qk_ASSERT(!qkappdelegate);
-		Qk_ASSERT(Application::shared());
 		qkappdelegate = self;
-		_host = Application::shared();
 		_app = app;
-		Inl_Application(_host)->triggerLoad();
-		//[app setStatusBarStyle:UIStatusBarStyleLightContent];
-		//[app setStatusBarHidden:NO];
 		return YES;
 	}
 
 	- (void)application:(UIApplication*)app didChangeStatusBarFrame:(CGRect)frame {
-		//_host->activeWindow()->render()->reload();
 	}
 
 	- (void)applicationWillResignActive:(UIApplication*) application {
-		Inl_Application(_host)->triggerPause();
+		if (!_host) return;
+		self.hostInl->triggerPause();
 		Qk_DLog("applicationWillResignActive,triggerPause");
 	}
 
 	- (void)applicationDidBecomeActive:(UIApplication*) application {
-		Inl_Application(_host)->triggerResume();
+		if (!_host) return;
+		self.hostInl->triggerResume();
 		auto win = _host->activeWindow();
 		if (win)
 			win->render()->reload();
@@ -81,22 +93,30 @@ QkWindowDelegate* getActiveDelegate() {
 	}
 
 	- (void)applicationDidEnterBackground:(UIApplication*) application {
-		Inl_Application(_host)->triggerBackground(_host->activeWindow());
+		if (!_host) return;
+		auto win = _host->activeWindow();
+		if (win)
+			self.hostInl->triggerBackground(win);
 		Qk_DLog("applicationDidEnterBackground,triggerBackground");
 	}
 
 	- (void)applicationWillEnterForeground:(UIApplication*) application {
-		Inl_Application(_host)->triggerForeground(_host->activeWindow());
+		if (!_host) return;
+		auto win = _host->activeWindow();
+		if (win)
+			self.hostInl->triggerForeground(win);
 		Qk_DLog("applicationWillEnterForeground,triggerForeground");
 	}
 
 	- (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
-		Inl_Application(_host)->triggerMemorywarning();
+		if (!_host) return;
+		self.hostInl->triggerMemorywarning();
 		Qk_DLog("applicationDidReceiveMemoryWarning,triggerMemorywarning");
 	}
 
 	- (void)applicationWillTerminate:(UIApplication*)application {
-		Inl_Application(_host)->triggerUnload();
+		if (!_host) return;
+		self.hostInl->triggerUnload();
 		Qk_DLog("applicationWillTerminate,triggerUnload");
 	}
 
@@ -108,7 +128,6 @@ QkWindowDelegate* getActiveDelegate() {
 	}
 
 @end
-
 
 // ***************** A p p l i c a t i o n *****************
 
@@ -129,7 +148,7 @@ void Application::openURL(cString& url) {
 void Application::sendEmail(cString& recipient,
 														cString& subject,
 														cString& cc, cString& bcc, cString& body) {
-	auto delegate = getActiveDelegate();
+	auto delegate = getWindowDelegate();
 	if (!delegate) return;
 	id recipient_ = toNSArray(recipient);
 	id subject_ = [NSString stringWithUTF8String:*subject];
@@ -148,4 +167,8 @@ void Application::sendEmail(cString& recipient,
 
 		[delegate presentViewController:mail animated:YES completion:nil];
 	});
+}
+
+void AppInl::initPlatform() {
+	[qkappdelegate initPlatform: this];
 }

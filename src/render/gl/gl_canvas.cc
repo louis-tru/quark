@@ -698,8 +698,8 @@ namespace qk {
 		_phy2Pixel = 2 / _allScale;
 		_rootMatrix = root.transpose(); // transpose matrix
 
-		_cmdPack->setBuffers(surfaceSize, _state->output.get(), chSize, _isClipState);// set buffers
-
+		_cmdPack->setBuffers(surfaceSize, _state->output.get(), chSize); // set buffers
+		_zDepth = 0;
 		_isClipState = false; // clear clip state
 	}
 
@@ -716,7 +716,7 @@ namespace qk {
 			// Create depth buffer
 			glGenRenderbuffers(1, &_outDepth);
 			// gen aaclip buffer tex
-			// gl_set_aaclip_buffer(1, &_outAAClipTex);
+			// gl_set_aaclip_buffer(_outAAClipTex, size);
 		}
 		// Bind framebuffer future OpenGL ES framebuffer commands are directed to it.
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
@@ -728,10 +728,11 @@ namespace qk {
 		Qk_DLog("setBuffers: %f, %f", w, h);
 
 		if (init) {
-			float depth = 0;
+			//float depth = 0;
+			//glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 127);
+			//glClear(GL_STENCIL_BUFFER_BIT); // stencil = 127
 			Color4f color{0,0,0,0};
-			glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
-			glClear(GL_STENCIL_BUFFER_BIT); // stencil = 127
 			glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 		}
 		if (_outAAClipTex) {

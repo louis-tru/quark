@@ -315,7 +315,7 @@ namespace qk {
 						}
 						case kSetBuffers_CmdType: {
 							auto c = (SetBuffersCmd*)cmd;
-							setBuffersCall(c->size, c->recover.get(), c->chSize, c->isClip);
+							setBuffersCall(c->size, c->recover.get(), c->chSize);
 							c->~SetBuffersCmd();
 							break;
 						}
@@ -550,6 +550,7 @@ namespace qk {
 
 				if (!_c->_outAAClipTex) {
 					glGenTextures(1, &_c->_outAAClipTex); // gen aaclip buffer tex
+					//Qk_Log("--------_surfaceSize %f, %f", _c->_surfaceSize[0], _c->_surfaceSize[1]);
 					gl_set_aaclip_buffer(_c->_outAAClipTex, _c->_surfaceSize);
 					self->setOutputColorBuffer(true, nullptr);
 					float color[] = {1.0f,1.0f,1.0f,1.0f};
@@ -611,7 +612,8 @@ namespace qk {
 
 		void clearColorCall(const Color4f &color, const Region &region, bool full, float depth) {
 			if (full) {
-				glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
+				//glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
+				glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, 127); // depth, stencil = 127
 				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 				//glClearColor(color.r(), color.g(), color.b(), color.a());
 				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -977,15 +979,13 @@ namespace qk {
 #endif
 		}
 
-		void setBuffersCall(Vec2 size, ImageSource *recover, bool chSize, bool isClip) {
+		void setBuffersCall(Vec2 size, ImageSource *recover, bool chSize) {
 			auto _c = _canvas;
 			auto w = size.x(), h = size.y();
 			auto type = _c->_opts.colorType;
 
 			Qk_ASSERT(w, "Invalid viewport size width");
 			Qk_ASSERT(h, "Invalid viewport size height");
-
-			chSize = chSize && size == _c->_surfaceSize;
 
 			if (chSize) {
 				_c->setBuffers(size);
@@ -998,17 +998,15 @@ namespace qk {
 				// init matrix buffer
 				setMatrixCall(_c->_state->matrix);
 			}
-			if (chSize || isClip) { // is clear clip buffer
-				if (_c->_outAAClipTex) { // clear aa clip tex buffer
-					setOutputColorBuffer(true, nullptr);
-					float color[] = {1.0f,1.0f,1.0f,1.0f};
-					glClearBufferfv(GL_COLOR, 0, color); // clear GL_COLOR_ATTACHMENT0
-					// ensure clip texture clear can be executed correctly in sequence
-					setOutputColorBuffer(false, recover);
-				}
-				glClear(GL_STENCIL_BUFFER_BIT); // clear stencil buffer
-				glDisable(GL_STENCIL_TEST); // disable stencil test
+			if (_c->_outAAClipTex) { // clear aa clip tex buffer
+				setOutputColorBuffer(true, nullptr);
+				float color[] = {1.0f,1.0f,1.0f,1.0f};
+				glClearBufferfv(GL_COLOR, 0, color); // clear GL_COLOR_ATTACHMENT0
+				// ensure clip texture clear can be executed correctly in sequence
+				setOutputColorBuffer(false, recover);
 			}
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 127); // clear depth and stencil
+			glDisable(GL_STENCIL_TEST); // disable stencil test
 		}
 
 		void drawBuffersCall(GLsizei num, const GLenum buffers[2]) {
@@ -1206,9 +1204,9 @@ namespace qk {
 
 	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
 		_this->checkMetrix(); // check matrix change
-		auto colorsSize = sizeof(Color4f) * paint->count;
-		auto positionsSize = sizeof(float) * paint->count;
-		auto cmdSize = sizeof(GradientCmd);
+		auto colorsSize = (uint32_t)sizeof(Color4f) * paint->count;
+		auto positionsSize = (uint32_t)sizeof(float) * paint->count;
+		auto cmdSize = (uint32_t)sizeof(GradientCmd);
 		auto cmd = new(_this->allocCmd(cmdSize + colorsSize + positionsSize)) GradientCmd;
 		auto cmdp = (char*)cmd;
 		auto colors = reinterpret_cast<Color4f*>(cmdp + cmdSize);
@@ -1290,12 +1288,11 @@ namespace qk {
 		cmd->img = img;
 	}
 
-	void GLC_CmdPack::setBuffers(Vec2 size, ImageSource *recover, bool chSize, bool isClip) {
+	void GLC_CmdPack::setBuffers(Vec2 size, ImageSource *recover, bool chSize) {
 		auto cmd = new(_this->allocCmd(sizeof(SetBuffersCmd))) SetBuffersCmd;
 		cmd->type = kSetBuffers_CmdType;
 		cmd->size = size;
 		cmd->chSize = chSize;
-		cmd->isClip = isClip;
 		cmd->recover = recover;
 	}
 
@@ -1370,8 +1367,8 @@ namespace qk {
 	void GLC_CmdPack::outputImageEnd(ImageSource* img) {
 		_this->outputImageEndCall(img);
 	}
-	void GLC_CmdPack::setBuffers(Vec2 size, ImageSource *recover, bool chSize, bool isClip) {
-		_this->setBuffersCall(size, recover, chSize, isClip);
+	void GLC_CmdPack::setBuffers(Vec2 size, ImageSource *recover, bool chSize) {
+		_this->setBuffersCall(size, recover, chSize);
 	}
 	void GLC_CmdPack::drawBuffers(GLsizei num, const GLenum buffers[2]) {
 		_this->drawBuffersCall(num, buffers);

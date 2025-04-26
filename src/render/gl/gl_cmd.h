@@ -195,7 +195,7 @@ namespace qk {
 		struct SetBuffersCmd: Cmd {
 			Vec2 size;
 			Sp<ImageSource> recover;
-			bool chSize, isClip;
+			bool chSize;
 		};
 
 		struct DrawBuffersCmd: Cmd {
@@ -222,7 +222,7 @@ namespace qk {
 		void readImage(const Rect &src, ImageSource* img);
 		void outputImageBegin(ImageSource* img);
 		void outputImageEnd(ImageSource* img);
-		void setBuffers(Vec2 size, ImageSource *recover, bool chSize, bool isClip);
+		void setBuffers(Vec2 size, ImageSource *recover, bool chSize);
 		void drawBuffers(GLsizei num, const GLenum buffers[2]);
 
 	private:

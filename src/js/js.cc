@@ -646,10 +646,12 @@ namespace js {
 					runDebugger(worker, {brk, port, host[0], script_path});
 				}
 
-#if DEBUG
-				if (brk)
-					debuggerBreakNextStatement(worker);
+				if (brk) {
+#if !DEBUG
+					if (arguments->options.has("force_brk"))
 #endif
+						debuggerBreakNextStatement(worker);
+				}
 			}
 
 			int rc = 0;

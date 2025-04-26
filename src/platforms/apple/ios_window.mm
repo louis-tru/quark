@@ -30,7 +30,7 @@
 
 #import <UIKit/UIKit.h>
 typedef UIEvent MacUIEvent;
-#import "../../ui/app.h"
+#import "../../ui/ui.h"
 #import "../../ui/event.h"
 #include "../../ui/window.h"
 #include "../../ui/screen.h"
@@ -73,30 +73,30 @@ QkWindowDelegate* WindowImpl::delegate() {
 	self.uiwin.rootViewController = self;
 	self.ime = qk_make_ime_helper(win);
 
-	UIView *rootView = self.view;
+	UIView *rview = self.view;
 	UIView *view = render->surface()->surfaceView();
 
-	view.frame = rootView.bounds;
+	view.frame = rview.bounds;
 	view.translatesAutoresizingMaskIntoConstraints = NO;
 	view.contentScaleFactor = screen.scale;
 	view.multipleTouchEnabled = YES;
 	view.userInteractionEnabled = YES;
 
-	[rootView addSubview:view];
-	[rootView addSubview:self.ime.view];
-	[rootView addConstraint:[NSLayoutConstraint
+	[rview addSubview:view];
+	[rview addSubview:self.ime.view];
+	[rview addConstraint:[NSLayoutConstraint
 											constraintWithItem:view
 											attribute:NSLayoutAttributeWidth
 											relatedBy:NSLayoutRelationEqual
-											toItem:rootView
+											toItem:rview
 											attribute:NSLayoutAttributeWidth
 											multiplier:1
 											constant:0]];
-	[rootView addConstraint:[NSLayoutConstraint
+	[rview addConstraint:[NSLayoutConstraint
 											constraintWithItem:view
 											attribute:NSLayoutAttributeHeight
 											relatedBy:NSLayoutRelationEqual
-											toItem:rootView
+											toItem:rview
 											attribute:NSLayoutAttributeHeight
 											multiplier:1
 											constant:0]];
@@ -289,7 +289,7 @@ void Window::set_backgroundColor(Color val) {
 	post_messate_main(Cb([this,val](auto e) {
 		if (!_impl) return;
 		auto color = val.to_color4f();
-		_impl->delegate().uiwin.backgroundColor = [
+		_impl->delegate().view.backgroundColor = [
 			UIColor colorWithRed:color.r() green:color.g() blue:color.b() alpha:color.a()
 		];
 	}, this), false);

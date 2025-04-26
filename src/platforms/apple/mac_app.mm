@@ -31,7 +31,7 @@
 #import <MacTypes.h>
 #import <AppKit/AppKit.h>
 #import "../../util/http.h"
-#import "../../ui/app.h"
+#import "../../ui/ui.h"
 #import "./apple_app.h"
 
 using namespace qk;
@@ -45,6 +45,13 @@ QkApplicationDelegate* qkappdelegate = nil;
 
 @implementation QkApplicationDelegate
 
+	- (void) initPlatform:(AppInl*)host {
+	}
+
+	- (AppInl*) hostInl {
+		return Inl_Application(_host);
+	}
+
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
 	Qk_ASSERT(!qkappdelegate);
 	Qk_ASSERT(Application::shared());
@@ -55,12 +62,12 @@ QkApplicationDelegate* qkappdelegate = nil;
 }
 
 - (void)applicationWillResignActive:(NSNotification*)notification {
-	Inl_Application(_host)->triggerPause();
+	self.hostInl->triggerPause();
 	Qk_DLog("applicationWillResignActive, triggerPause");
 }
 
 - (void)applicationDidBecomeActive:(NSNotification*)notification {
-	Inl_Application(_host)->triggerResume();
+	self.hostInl->triggerResume();
 	Qk_DLog("applicationDidBecomeActive, triggerResume");
 }
 
@@ -73,7 +80,7 @@ QkApplicationDelegate* qkappdelegate = nil;
 }
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
-	Inl_Application(_host)->triggerUnload();
+	self.hostInl->triggerUnload();
 	Qk_DLog("applicationWillTerminate, triggerUnload");
 }
 
@@ -117,4 +124,8 @@ void Application::sendEmail(cString& recipient,
 		*URI::encode(subject, true), *URI::encode(body, true)
 	];
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
+}
+
+void AppInl::initPlatform() {
+	[qkappdelegate initPlatform: this];
 }

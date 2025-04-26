@@ -45,7 +45,7 @@ if ('url_arg' in options) {
 } else {
 	options.url_arg = '';
 }
-if ('no_cache' in options || debug) {
+if ('no_cache' in options) {
 	if (options.url_arg) {
 		options.url_arg += '&__no_cache';
 	} else {
@@ -333,6 +333,10 @@ let _exiting = false;
 
 function nextTick<A extends any[], R>(cb: (...args: A) => R, ...args: A): void {
 	_init.nextTick(function(){ cb(...args) });
+}
+
+export function sleep<T = number>(time: number, defaultValue?: T): Promise<T> {
+	return new Promise((ok, err)=>setTimeout(()=>ok((defaultValue || 0) as any), time));
 }
 
 function unrealized() {

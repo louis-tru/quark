@@ -28,13 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../ui/app.h"
-#include "../../ui/window.h"
-#include "../../ui/screen.h"
-#include "../../ui/event.h"
+#include "../../ui/ui.h"
 #include "../../render/linux/linux_render.h"
-#include "./android.h"
 #include "../../render/canvas.h"
+#include "./android.h"
 
 #include <android/native_activity.h>
 #include <android/native_window.h>
@@ -50,7 +47,7 @@ namespace qk {
 
 	class SharedWindowManager: public WindowImpl {
 		friend class Window;
-		Application::Inl* _host = nullptr;
+		AppInl* _host = nullptr;
 		ANativeActivity* _activity = nullptr;
 		ANativeWindow* _window = nullptr;
 		AInputQueue* _queue = nullptr;
@@ -68,10 +65,6 @@ namespace qk {
 			Qk_ASSERT_EQ(swm, nullptr);
 			swm = this;
 			_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-		}
-
-		inline RunLoop* loop() {
-			return _host->loop();
 		}
 
 		void addMsg(Cb& cb) {
@@ -162,9 +155,15 @@ namespace qk {
 			return nullptr;
 		}
 
+		void initPlatform_AppInl(AppInl* host) {
+			_host = host;
+			_host->triggerLoad();
+		}
+
 		static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
-			if ( !swm ) {
+			if (!swm) {
 				new SharedWindowManager();
+				Application::runMain(0, nullptr, false); // run gui application
 			}
 			Qk_ASSERT_EQ(swm->_activity, nullptr);
 			// ANativeActivity_setWindowFlags(activity, 0x00000400, 0);
@@ -197,13 +196,7 @@ namespace qk {
 		}
 
 		static void onStart(ANativeActivity* activity) {
-			if ( swm->_host == nullptr ) { // start gui
-				Application::runMain(0, nullptr); // run gui application
-				swm->_host = Inl_Application(shared_app());
-				Qk_ASSERT(swm->_host);
-				Qk_ASSERT_EQ(swm->_activity, activity);
-				swm->_host->triggerLoad();
-			}
+			Qk_ASSERT_EQ(swm->_activity, activity);
 			auto awin = activeWindow();
 			if (awin)
 				swm->_host->triggerForeground(awin);
@@ -211,6 +204,7 @@ namespace qk {
 		}
 
 		static void onStop(ANativeActivity* activity) {
+			Qk_ASSERT_EQ(swm->_activity, activity);
 			auto awin = activeWindow();
 			if (awin)
 				swm->_host->triggerBackground(awin);
@@ -218,12 +212,16 @@ namespace qk {
 		}
 
 		static void onResume(ANativeActivity* activity) {
-			swm->_host->triggerResume();
+			Qk_ASSERT_EQ(swm->_activity, activity);
+			if (swm->_host)
+				swm->_host->triggerResume();
 			Qk_DLog("triggerResume");
 		}
 
 		static void onPause(ANativeActivity* activity) {
-			swm->_host->triggerPause();
+			Qk_ASSERT_EQ(swm->_activity, activity);
+			if (swm->_host)
+				swm->_host->triggerPause();
 			Qk_DLog("triggerPause");
 		}
 
@@ -265,9 +263,10 @@ namespace qk {
 			}
 
 			auto ori = (Orientation)Android_get_orientation();
-			if ((ori != swm->_currentOrientation)) {
+			if (ori != swm->_currentOrientation) {
 				swm->_currentOrientation = ori;
-				swm->_host->triggerOrientation();
+				if (swm->_host)
+					swm->_host->triggerOrientation();
 			}
 		}
 	};
@@ -330,7 +329,8 @@ namespace qk {
 
 	static void dispatchEvent(AInputEvent* event) {
 		auto awin = SharedWindowManager::activeWindow();
-		if (!awin) return;
+		if (!awin)
+			return;
 		auto dispatch = awin->dispatch();
 		int type = AInputEvent_getType(event);
 		int device = AInputEvent_getDeviceId(event);
@@ -397,6 +397,10 @@ namespace qk {
 					break;
 			}
 		}
+	}
+
+	void AppInl::initPlatform() {
+		swm->initPlatform_AppInl(this);
 	}
 
 	void Window::openImpl(Options &opts) {

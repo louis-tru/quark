@@ -138,9 +138,9 @@ namespace qk {
 		 * Create sub gui thread call by system, and root thread call,
 		 * when creating new the Application object return
 		 * 
-		 * @method runMain(argc, argv)
+		 * @method runMain(argc, argv, waitNewApp)
 		*/
-		static void runMain(int argc, char* argv[]);
+		static void runMain(int argc, char* argv[], bool waitNewApp);
 
 		/**
 		 * @method app Get current gui application entity
@@ -165,18 +165,5 @@ namespace qk {
 	}
 
 	Qk_EXPORT void post_messate_main(Cb cb, bool sync);
-
-	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
-	public:
-		void triggerLoad();
-		void triggerUnload();
-		void triggerPause();
-		void triggerResume();
-		void triggerMemorywarning();
-		void triggerBackground(Window *win);
-		void triggerForeground(Window *win);
-		void setActiveWindow(Window *win);
-		void triggerOrientation();
-	};
 }
 #endif

@@ -34,7 +34,7 @@ const _fs = __binding__('_fs');
 const _http = __binding__('_http');
 const _util = __binding__('_util');
 const { formatPath, isAbsolute, isLocal, isLocalZip, stripShebang,
-				isHttp, assert, stripBOM, default: _utild } = _util;
+				isHttp, assert, stripBOM, default: _utild, sleep } = _util;
 const { readFile, readFileSync, isFileSync,
 				isDirectorySync, readdirSync } = _fs.reader;
 const debug = _util.debugLog('PKG');
@@ -261,8 +261,10 @@ function lookupFromAbsolute(request: string): LookupResult | null {
 		return lookupFromInternal(pkgName, relativePath);
 	}
 
+	const is_local = isLocal(request);
 	const paths = parentsPaths(request); // search paths
-	paths.pop();
+	if (is_local)
+		paths.pop();
 	/*
 		file:///a/b/c/d
 		file:///a/b/c
@@ -272,7 +274,6 @@ function lookupFromAbsolute(request: string): LookupResult | null {
 
 	if (paths.length === 0) // file:///aaa -> aaa module, file:/// -> No directory
 		return null;
-	let is_local = isLocal(request);
 
 	for (let pkgPath of paths) {
 		let pkg = packages.get(pkgPath);
@@ -676,6 +677,19 @@ export class Module implements IModule {
 		return module.exports;
 	}
 
+	private static async tryReadJSONByNet(url: string): Promise<PackageJson> {
+		try { return await readJSON(url) } catch(err) {}
+		try { await readText('https://www.gnu.org/gnu/') } catch(err: any) {}
+		let retry = 10;
+		do {
+			try { return await readJSON(url) } catch(err) {
+				if (retry-- == 0)
+					throw err;
+				await sleep(1e3);
+			}
+		} while(true);
+	}
+
 	private static async runMain() {
 		delete (Module as any).runMain;
 
@@ -708,7 +722,7 @@ export class Module implements IModule {
 				if (idx != -1) {
 					main = main.substring(0, idx), search = main.substring(idx);
 				}
-				let json = await readJSON(set_url_args(`${main}/package.json${search}`)) as PackageJson;
+				let json = await Module.tryReadJSONByNet(`${main}/package.json${search}`);
 				let _res = lookup(res) || lookup(cwd); // lookup local main package
 
 				// create http main pkg and local package
@@ -894,7 +908,7 @@ class Package {
 			// read the version information of the package resource file.
 			// if it is not in the build state, do not use cache
 			let path = prefix + '/versions.json';
-			let path_arg = set_url_args(path, self.hash || '__no_cache');
+			let path_arg = set_url_args(path, self.hash/* || '__no_cache'*/);
 
 			let ok = (text: string)=>{
 				let json = parseJSON(text, path);
@@ -921,6 +935,10 @@ class Package {
 			self._localOnly = true;
 			self._status = PackageStatus.INSTALLED;
 			return cb && cb();
+		}
+
+		if (!self.pkgzHash) { // No pkgz path
+			return this._installComplete(self.path, cb);
 		}
 
 		// if the corresponding version of the file does not exist local then

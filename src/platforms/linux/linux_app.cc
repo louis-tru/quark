@@ -45,14 +45,12 @@
 #include "./linux_app.h"
 #include "../../util/thread.h"
 #include "../../util/http.h"
-#include "../../ui/event.h"
-#include "../../ui/app.h"
-#include "../../ui/window.h"
+#include "../../ui/ui.h"
 
 namespace qk
 {
 	struct MainLooper;
-	static MainLooper* looper = nullptr;
+	static MainLooper* mainLooper = nullptr;
 	static ThreadID main_thread_id(thread_self_id());
 
 #if DEBUG
@@ -74,45 +72,19 @@ namespace qk
 #endif
 
 	struct MainLooper {
-		XDisplay *_xdpy;
-		XWindow _xwinTmp;
-		App::Inl *_app;
+		XDisplay *_xdpy = 0;
+		XWindow _xwinTmp = 0;
+		App::Inl *_app = nullptr;
 		List<Cb> _msg;
 		Mutex _msgMutex;
 		Dict<XWindow, WindowImpl*> _winImpl;
 
-		MainLooper(): _xdpy(0), _xwinTmp(0) {
-			Qk_ASSERT_EQ(looper, nullptr);
-			looper = this;
-		}
-
-		~MainLooper() {
-			Qk_DLog("~MainLooper()");
-			looper = nullptr;
-		}
-
-		XWindow newXWindow() {
-			XSetWindowAttributes xset = {
-				.event_mask = NoEventMask,
-				.do_not_propagate_mask = NoEventMask,
-				.override_redirect = False,
-			};
-			auto xwin = XCreateWindow(
-				_xdpy, XDefaultRootWindow(_xdpy),
-				0, 0, 1, 1, 0, 0,
-				InputOutput,
-				nullptr,
-				0, &xset
-			);
-			Qk_ASSERT_RAW(xwin, "Cannot create XWindow");
-
-			return xwin;
-		}
-
-		void runLoop() {
+		void run() {
+			if (!shared_app())
+				return;
+			_app = Inl_Application(shared_app());
 			_xdpy = openXDisplay();
 			_xwinTmp = newXWindow();
-			_app = Inl_Application(shared_app());
 			_app->triggerLoad();
 
 			Atom wmProtocols    = XInternAtom(_xdpy, "WM_PROTOCOLS"    , False);
@@ -205,6 +177,23 @@ namespace qk
 			} while(!is_process_exit());
 		}
 
+		XWindow newXWindow() {
+			XSetWindowAttributes xset = {
+				.event_mask = NoEventMask,
+				.do_not_propagate_mask = NoEventMask,
+				.override_redirect = False,
+			};
+			auto xwin = XCreateWindow(
+				_xdpy, XDefaultRootWindow(_xdpy),
+				0, 0, 1, 1, 0, 0,
+				InputOutput,
+				nullptr,
+				0, &xset
+			);
+			Qk_ASSERT_RAW(xwin, "Cannot create XWindow");
+			return xwin;
+		}
+
 		void handleGenericEvent(XEvent& event, WindowImpl* impl) {
 			XGenericEventCookie* cookie = &event.xcookie;
 			XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
@@ -272,14 +261,14 @@ namespace qk
 	};
 
 	void addImplToGlobal(XWindow xwin, WindowImpl* impl) {
-		looper->_winImpl.set(xwin, impl);
+		mainLooper->_winImpl.set(xwin, impl);
 	}
 
 	void deleteImplFromGlobal(XWindow xwin) {
-		looper->_winImpl.erase(xwin);
-
-		if (looper->_winImpl.length() == 0) { // Exit process
-			XDestroyWindow(looper->_xdpy, looper->_xwinTmp); looper->_xwinTmp = 0;
+		mainLooper->_winImpl.erase(xwin);
+		if (mainLooper->_winImpl.length() == 0) { // Exit process
+			XDestroyWindow(mainLooper->_xdpy, mainLooper->_xwinTmp);
+			mainLooper->_xwinTmp = 0;
 		}
 	}
 
@@ -294,10 +283,10 @@ namespace qk
 				cb->resolve();
 				mutex.lock_and_notify_one();
 			});
-			looper->addMsg(cb1);
+			mainLooper->addMsg(cb1);
 			mutex.lock_and_wait_for(); // wait
 		} else {
-			looper->addMsg(cb);
+			mainLooper->addMsg(cb);
 		}
 	}
 
@@ -323,6 +312,9 @@ namespace qk
 		if (vfork() == 0) {
 			execlp("xdg-open", "xdg-open", *uri, nullptr);
 		}
+	}
+
+	void AppInl::initPlatform() {
 	}
 
 	// ***************** E v e n t . D i s p a t c h *****************
@@ -400,17 +392,13 @@ namespace qk
 	void EventDispatch::setVolumeDown() {
 		snd()->set_master_volume(snd()->master_volume() - 1);
 	}
-
 }
 
 extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
 	using namespace qk;
-
-	MainLooper looper;
-	Application::runMain(argc, argv);
-
-	if ( shared_app() ) {
-		looper.runLoop();
-	}
+	mainLooper = New<MainLooper>();
+	Application::runMain(argc, argv, true);
+	mainLooper->run();
+	Releasep(mainLooper);
 	return 0;
 }

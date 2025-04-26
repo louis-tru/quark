@@ -97,6 +97,7 @@
 			'ui/view/view.cc',
 			'ui/view/matrix.h',
 			'ui/view/matrix.cc',
+			'ui/ui.h',
 			'render/codec/codec.h', # render
 			'render/codec/codec.cc',
 			'render/codec/tga.cc',

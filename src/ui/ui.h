@@ -28,44 +28,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./test.h"
+// @private head
 
-#if !defined(USE_JS)
-Qk_TEST_Func(jsapi) {}
-#else
-#include "src/js/js.h"
-#include "src/util/fs.h"
+#include "./app.h"
+#include "./window.h"
+#include "./screen.h"
+#include "./event.h"
 
-using namespace qk;
+#ifndef __quark__ui__
+#define __quark__ui__
 
-#define IP_REMOTE "192.168.2.200"
-#define USE_REMOTE 1
-#define USE_INSPECT 0
+namespace qk {
 
-Qk_TEST_Func(jsapi) {
-	Array<String> argv_arr;
+	Qk_DEFINE_INLINE_MEMBERS(Application, Inl) {
+	public:
+		void triggerLoad();
+		void triggerUnload();
+		void triggerPause();
+		void triggerResume();
+		void triggerMemorywarning();
+		void triggerBackground(Window *win);
+		void triggerForeground(Window *win);
+		void setActiveWindow(Window *win);
+		void triggerOrientation();
+		void initPlatform(); // call platform code
+	};
 
-	for (int i = 1; i < argc; i++)
-		argv_arr.push(argv[i]);
-
-#if USE_INSPECT
-	argv_arr.push("--inspect-brk=0.0.0.0:9229");
-#endif
-
-#if USE_REMOTE
-	js::Start("http://" IP_REMOTE ":1026/", argv_arr);
-#else
-	js::Start(fs_resources("jsapi aa gui"), argv_arr);
-#endif
+	typedef Application::Inl AppInl;
 }
 #endif
-
-#if Qk_ANDROID
-#include <src/platforms/android/android.h>
-extern "C" {
-	JNIEXPORT extern void
-	Java_org_quark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		Qk_Log("Java_org_quark_examples_MainActivity_test");
-	}
-}
-#endif
+ 

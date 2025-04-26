@@ -41,8 +41,6 @@ export function isAsync(func: any): boolean {
 	return func && func.constructor === AsyncFunctionConstructor;
 }
 
-class obj_constructor {}
-
 function clone_object(new_obj: any, obj: any): any {
 	for (let name of Object.getOwnPropertyNames(obj)) {
 		let property = Object.getOwnPropertyDescriptor(obj, name)!;
@@ -82,9 +80,7 @@ export function clone(obj: any): any {
 			case Date:
 				return new Date(obj.valueOf());
 			default:
-				obj_constructor.prototype = obj.constructor.prototype;
-				new_obj = new obj_constructor();
-				return clone_object(new_obj, obj);
+				return clone_object(Object.create(obj.constructor.prototype), obj);
 		}
 	}
 	return obj;
@@ -337,13 +333,6 @@ export function assert(condition: any, code?: number | ErrorNewArg): void {
 	} else {
 		throw Error.new(code || [-30009, 'ERR_ASSERT_ERROR']);
 	}
-}
-
-/**
- * @method sleep()
- */
-export function sleep<T = number>(time: number, defaultValue?: T): Promise<T> {
-	return new Promise((ok, err)=>setTimeout(()=>ok((defaultValue || 0) as any), time));
 }
 
 export function timeout<T>(promise: Promise<T> | T, time: number): Promise<T> {

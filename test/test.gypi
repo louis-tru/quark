@@ -80,11 +80,13 @@
 			['os in "mac ios"', {
 				'sources': [
 					'test-<(os).plist',
-					'Storyboard-<(os).storyboard',
 				],
 				'xcode_settings': {
 					# 'OTHER_LDFLAGS': '-all_load',
 					'INFOPLIST_FILE': '<(output)/../../test/test-<(os).plist',
+					'SKIP_INSTALL': 'NO',
+					'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
+					# 'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
 				},
 				'link_settings': {
 					'libraries': [
@@ -92,6 +94,11 @@
 					],
 				},
 				'mac_bundle': 1,
+				'mac_bundle_resources': [
+					'./Storyboard-<(os).storyboard',
+					'./Images.xcassets',
+					'./launch/launch.png',
+				]
 			}],
 			['use_js==1 and os in "mac ios"', {
 				'mac_bundle_resources': [

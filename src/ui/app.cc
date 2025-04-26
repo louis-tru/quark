@@ -28,22 +28,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../util/loop.h"
-#include "./screen.h"
-#include "./app.h"
+#include "./ui.h"
 #include "../render/font/pool.h"
 #include "../render/source.h"
 #include "../render/canvas.h"
 #include "./text/text_opts.h"
 #include "./event.h"
-#include "./window.h"
 #include "./css/css.h"
 
 namespace qk {
 	int (*__qk_run_main__)(int, char**) = nullptr;
 	int (*__qk_run_main1__)(int, char**) = nullptr;
 
-	typedef Application::Inl AppInl;
 	// thread helper
 	static auto _run_main_wait = new CondMutex;
 
@@ -81,6 +77,8 @@ namespace qk {
 		_styleSheets = new RootStyleSheets();
 		_run_main_wait->lock_and_notify_all(); // The external thread continues to run
 
+		Inl_Application(this)->initPlatform();
+
 		struct Tick {
 			static void cb(Cb::Data& e, Application *self) {
 				for (auto w: self->_windows)
@@ -117,7 +115,7 @@ namespace qk {
 		__qk_run_main1__ = main;
 	}
 
-	void Application::runMain(int argc, char* argv[]) {
+	void Application::runMain(int argc, char* argv[], bool waitNewApp) {
 		struct Args { int argc; char** argv; };
 		// Create a new child worker thread. This function must be called by the main entry
 		thread_new([](auto t, auto arg) {
@@ -132,9 +130,11 @@ namespace qk {
 			Qk_DLog("Application::runMain() thread_new() Exit ok");
 		}, new Args{argc, argv}, "Application::runMain");
 
-		// Block this main thread until calling new Application
-		while (!_shared) {
-			_run_main_wait->lock_and_wait_for();
+		if (waitNewApp) {
+			// Block this main thread until calling new Application
+			while (!_shared) {
+				_run_main_wait->lock_and_wait_for();
+			}
 		}
 	}
 
@@ -180,7 +180,7 @@ namespace qk {
 				app->_isLoaded = true;
 				app->Qk_Trigger(Load);
 			}
-		}, this));
+		}, this), true);
 	}
 
 	void AppInl::triggerUnload() {

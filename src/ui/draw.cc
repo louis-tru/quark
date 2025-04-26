@@ -675,7 +675,6 @@ namespace qk {
 				_matrix = &v->mat();
 				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
 				_canvas->clearColor(v->_background_color.to_color4f());
-				// _canvas->clearColor(Color4f(1,0,0,1));
 
 				drawBoxShadow(v, data);
 				drawBoxFill(v, data);

@@ -28,8 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./window.h"
-#include "./app.h"
+#include "./ui.h"
 #include "./view/root.h"
 #include "../render/render.h"
 #include "./draw.h"

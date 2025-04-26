@@ -43,7 +43,7 @@ extern QkApplicationDelegate *qkappdelegate;
 - (void)set_orientation:(Screen::Orientation)orientation;
 @end
 
-QkWindowDelegate* getActiveDelegate();
+QkWindowDelegate* getWindowDelegate();
 
 float Screen::main_screen_scale() {
 	return UIScreen.mainScreen.scale;
@@ -66,11 +66,11 @@ float Screen::status_bar_height() const {
 }
 
 void Screen::set_visible_status_bar(bool visible) {
-	[getActiveDelegate() set_visible_status_bar:visible];
+	[getWindowDelegate() set_visible_status_bar:visible];
 }
 
 void Screen::set_status_bar_style(StatusBarStyle style) {
-	[getActiveDelegate() set_status_bar_style:style];
+	[getWindowDelegate() set_status_bar_style:style];
 }
 
 Screen::Orientation Screen::orientation() const {
@@ -86,5 +86,5 @@ Screen::Orientation Screen::orientation() const {
 }
 
 void Screen::set_orientation(Screen::Orientation orientation) {
-	[getActiveDelegate() set_orientation:orientation];
+	[getWindowDelegate() set_orientation:orientation];
 }
