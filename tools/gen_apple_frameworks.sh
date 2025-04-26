@@ -19,6 +19,7 @@ if [ $os = "ios" ]; then
 	gen_framework quark  src  iphoneos/Debug          "arm64.Release/libquark.v8"
 	gen_framework quark  src  iphonesimulator/Release "arm64.emulator.Release/libquark.v8 x64.emulator.Release/libquark"
 	cd $out/product/ios/Frameworks/iphonesimulator
+	rm -rf Debug
 	ln -s Release Debug
 else
 	gen_framework quark  src  macosx                  "arm64.Release/libquark.v8 x64.Release/libquark"
