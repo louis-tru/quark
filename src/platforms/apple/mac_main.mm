@@ -37,7 +37,6 @@ extern "C" Qk_EXPORT int main(int argc, char* argv[]) {
 	@autoreleasepool {
 		Application::runMain(argc, argv, true);
 		[UIApplication sharedApplication];
-		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 		[NSApp setDelegate:[QkApplicationDelegate new]];
 		[NSApp run];
 	}

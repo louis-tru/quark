@@ -58,6 +58,8 @@ QkApplicationDelegate* qkappdelegate = nil;
 	qkappdelegate = self;
 	_host = Application::shared();
 	_app = UIApplication.sharedApplication;
+	[_app activateIgnoringOtherApps:YES];
+	[_app setActivationPolicy:NSApplicationActivationPolicyRegular];
 	Inl_Application(_host)->triggerLoad();
 }
 
