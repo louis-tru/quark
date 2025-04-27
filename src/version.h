@@ -32,7 +32,7 @@
 #define __quark__version__
 
 #define Qk_MAJOR_VERSION 1
-#define Qk_MinOR_VERSION 0
+#define Qk_MinOR_VERSION 1
 #define Qk_PATCH_VERSION 0
 #define Qk_TAG ""
 

@@ -87,6 +87,7 @@
 					'SKIP_INSTALL': 'NO',
 					'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
 					# 'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
+					'PRODUCT_BUNDLE_IDENTIFIER': 'org.quark.test1',
 				},
 				'link_settings': {
 					'libraries': [

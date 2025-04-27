@@ -633,7 +633,7 @@ declare global {
 			view: ViewJSX;
 			box: BoxJSX;
 			flex: FlexJSX;
-			flow: FlexJSX;
+			flow: FlowJSX;
 			free: FreeJSX;
 			image: ImageJSX;
 			img: ImageJSX;

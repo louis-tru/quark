@@ -43,7 +43,7 @@ namespace qk {
 	typedef StringImpl<> String;
 	typedef const String cString;
 
-	struct Allocator {
+	struct Qk_EXPORT Allocator {
 		template<typename T, typename A = Allocator>
 		struct Prt {
 			void realloc(uint32_t size) { A::realloc((Prt<void>*)this, size, sizeof(T)); }
