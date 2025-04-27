@@ -49,7 +49,6 @@ all:
 	@$(MAKE) mac
 	@$(MAKE) try_android
 	@$(MAKE) try_linux
-	@$(NODE) tools/cp_qkmake.js
 
 install-only:
 	@$(NODE) tools/cp_qkmake.js
