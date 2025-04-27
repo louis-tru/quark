@@ -31,7 +31,7 @@ local_build=\
 	$(if $(1),./configure $(1)) && $(MAKE) $(2)
 
 remote_build=\
-	./tools/remote_build.sh $(REMOTE_COMPILE_HOST) $(1) $(2) $(3)
+	./tools/remote_build.sh $(REMOTE_COMPILE_HOST) "$(1)" $(2) $(3)
 
 maybe_remote_build=\
 	$(call $(if $(1),local_build,remote_build),$(2),$(3),$(4))
@@ -91,9 +91,9 @@ linux:
 # try local and remote build
 try_android:
 	$(call maybe_remote_build,$(filter x64 arm64,$(HOST_ARCH)),\
-			"--os=android --arch=arm64",build,android/jniLibs/arm64-v8a)
+			--os=android --arch=arm64,build,android/jniLibs/arm64-v8a)
 	$(call maybe_remote_build,$(filter x64,$(HOST_ARCH)),\
-			"--os=android --arch=x64",build,android/jniLibs/x86_64/libquark.so)
+			--os=android --arch=x64,build,android/jniLibs/x86_64/libquark.so)
 	@$(MAKE) $(ANDROID_JAR)
 
 try_linux:
