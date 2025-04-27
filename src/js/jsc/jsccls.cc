@@ -536,7 +536,6 @@ namespace qk { namespace js {
 		return reinterpret_cast<ReturnValueImpl*>(_val)->_worker;
 	}
 
-	template<>
 	void ReturnValue::set(JSValue* value) {
 		if (value)
 			reinterpret_cast<ReturnValueImpl*>(_val)->_return = Back(value);
@@ -544,25 +543,26 @@ namespace qk { namespace js {
 			setNull();
 	}
 
-	template<>
 	void ReturnValue::set(bool value) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = value ? impl->_worker->_data.True: impl->_worker->_data.False;
 	}
 
-	template<>
+	void ReturnValue::set(float i) {
+		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
+		impl->_return = JSValueMakeNumber(JSC_CTX(impl->_worker), i);
+	}
+
 	void ReturnValue::set(double i) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = JSValueMakeNumber(JSC_CTX(impl->_worker), i);
 	}
 
-	template<>
-	void ReturnValue::set(int i) {
+	void ReturnValue::set(int32_t i) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = JSValueMakeNumber(JSC_CTX(impl->_worker), i);
 	}
 
-	template<>
 	void ReturnValue::set(uint32_t i) {
 		auto impl = reinterpret_cast<ReturnValueImpl*>(_val);
 		impl->_return = JSValueMakeNumber(JSC_CTX(impl->_worker), i);

@@ -230,15 +230,20 @@ namespace qk { namespace js {
 			}
 			String path = args[args_index++]->toString(worker)->value(worker);
 			Encoding encoding = kInvalid_Encoding;
+			bool isHttp = fs_is_http_file(path);
 
 			if (args.length() > args_index && args[args_index]->isString()) {
 				if ( ! parseEncoding(args, args[args_index++], encoding) ) return;
 			}
 			if ( isStream ) {
-				auto cb = get_callback_for_io_stream(worker, args[0]);
+				auto cb = isHttp ?
+					get_callback_for_io_stream_http_error(worker, args[0]):
+					get_callback_for_io_stream(worker, args[0]);
 				Js_Return( fs_reader()->read_stream( path, cb ) );
 			} else {
-				auto cb = get_callback_for_buffer(worker, args[0], encoding);
+				auto cb = isHttp ? 
+					get_callback_for_buffer_http_error(worker, args[0], encoding):
+					get_callback_for_buffer(worker, args[0], encoding);
 				Js_Return( fs_reader()->read_file( path, cb ) );
 			}
 		}
@@ -316,7 +321,9 @@ namespace qk { namespace js {
 						"@return {Array}\n"
 					);
 				}
-				Js_Return( fs_reader()->readdir_sync( args[0]->toString(worker)->value(worker) ) );
+				auto path = args[0]->toString(worker)->value(worker);
+				auto r = fs_reader()->readdir_sync(path);
+				Js_Return( worker->types()->jsvalue(r) );
 			});
 
 			Js_Method(abort, {
@@ -851,7 +858,7 @@ namespace qk { namespace js {
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
-				Js_Return( r );
+				Js_Return( worker->types()->jsvalue(r) );
 			} else {
 				Callback<qk::Array<qk::Dirent>> cb;
 				if ( args.length() > 1 ) {

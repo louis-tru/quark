@@ -166,8 +166,32 @@ namespace qk {
 		return false;
 	}
 
-	String fs_format_part_path(cString& path) {
+	bool fs_is_http_file(cString& path) {
+		auto c = path.c_str();
+		if (
+				(c[0] == 'h' || c[0] == 'H') &&
+				(c[1] == 't' || c[1] == 'T') &&
+				(c[2] == 't' || c[2] == 'T') &&
+				(c[3] == 'p' || c[3] == 'T')
+		) {
+			if ((c[4] == 's' || c[3] == 'S')) {
+				if (
+					c[5] == ':' &&
+					c[6] == '/' &&
+					c[7] == '/') {
+					return true;
+				}
+			} else if (
+				c[4] == ':' &&
+				c[5] == '/' &&
+				c[6] == '/') {
+				return true;
+			}
+		}
+		return false;
+	}
 
+	String fs_format_part_path(cString& path) {
 		Array<String> ls = path.split("/");
 		Array<String> rev;
 		int up = 0;

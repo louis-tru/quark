@@ -35,7 +35,7 @@ import android.os.Bundle;
 
 public class MainActivity extends Activity {
 
-	private static final String LIBRARY = "quark";
+	private static final String LIBRARY = "test";
 
 	static {
 		System.loadLibrary(LIBRARY);

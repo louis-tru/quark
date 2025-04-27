@@ -39,7 +39,7 @@
 
 namespace qk { namespace js {
 	#define Js_Worker(...)   auto worker = Worker::worker(__VA_ARGS__)
-	#define Js_Return(v)     return args.returnValue().set((v))
+	#define Js_Return(v)     return args.returnValue().set(worker->newValue(v))
 	#define Js_ReturnBool(v) return args.returnValue().set(bool(v))
 	#define Js_Return_Null() return args.returnValue().setNull()
 	#define Js_Mix(type)     auto mix = qk::js::MixObject::mix<type>(args.thisObj())
@@ -199,8 +199,12 @@ namespace qk { namespace js {
 	class Qk_EXPORT ReturnValue {
 	public:
 		Worker* worker();
-		template<class T>
-		void set(T t);
+		void set(bool value);
+		void set(float val);
+		void set(double i);
+		void set(int32_t i);
+		void set(uint32_t i);
+		void set(JSValue *value);
 		void setNull();
 		void setUndefined();
 		void setEmptyString();
@@ -540,15 +544,15 @@ namespace qk { namespace js {
 		JSString* newValue(cString4& val);
 		JSObject* newValue(cError& val);
 		JSObject* newValue(cHttpError& val);
-		JSArray*  newValue(cArray<String>& val);
-		JSArray*  newValue(cArray<uint32_t>& val);
 		JSObject* newValue(cDictSS& val);
 		JSUint8Array* newValue(Buffer& val);
 		JSUint8Array* newValue(Buffer&& val);
+		JSArray*  newValue(cArray<String>& val);
+		JSArray*  newValue(cArray<uint32_t>& val);
 		template <class S>
 		inline S* newValue(const Persistent<S>& val) { return *val; }
-		inline
-		JSValue* newValue(JSValue* val) { return val; }
+		inline JSValue* newValue(JSValue* val) { return val; }
+		inline JSBoolean* newValue(bool val) { return newBool(val); }
 
 		JSBoolean*    newBool(bool val);
 		JSValue*      newNull();
@@ -604,6 +608,8 @@ namespace qk { namespace js {
 		// props
 		Persistent<JSObject> _global, _console;
 		Persistent<JSObject> _nativeModules;
+	private:
+		template <class S> JSObject* newValue(cArray<S>& val); // Access Denied
 	};
 
 	Qk_EXPORT int Start(cString &cmd, cArray<String> &argv = {});
@@ -663,18 +669,5 @@ namespace qk { namespace js {
 	Qk_EXPORT bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
 	template<>
 	Qk_EXPORT bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value);
-
-	template<class T>
-	inline void ReturnValue::set(T t) { set(worker()->newValue(t)); }
-	template<>
-	Qk_EXPORT void ReturnValue::set(JSValue *value);
-	template<>
-	Qk_EXPORT void ReturnValue::set(bool value);
-	template<>
-	Qk_EXPORT void ReturnValue::set(double i);
-	template<>
-	Qk_EXPORT void ReturnValue::set(int i);
-	template<>
-	Qk_EXPORT void ReturnValue::set(uint32_t i);
 } }
 #endif

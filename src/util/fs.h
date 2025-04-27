@@ -283,67 +283,72 @@ namespace qk {
 	Qk_EXPORT String fs_basename(cString& path);
 	
 	/**
-	* @func extname {String} # Get the path dirname
+	* @method extname {String} # Get the path dirname
 	* @arg path {cString&}
 	* @return {String}
 	*/
 	Qk_EXPORT String fs_dirname(cString& path);
 	
 	/**
-	* @func extname # Get the path extname
+	* @method extname # Get the path extname
 	* @arg path {cString&}
 	* @return {String}
 	*/
 	Qk_EXPORT String fs_extname(cString& path);
 
 	/**
-	* @func fs_home_dir # Get the home dir.
+	* @method fs_home_dir # Get the home dir.
 	* @return {cString&} # The path that can be write/read a file in
 	*/
 	Qk_EXPORT String fs_home_dir(cChar *child = 0, ...);
 
 	/**
-	* @func executable_path # Get the executable path
+	* @method executable_path # Get the executable path
 	* @return {cString&}
 	*/
 	Qk_EXPORT String fs_executable();
 
 	/**
-	* @func documents_dir # Get the documents dir.
+	* @method documents_dir # Get the documents dir.
 	* @return {cString&} # The path that can be write/read a file in
 	*/
 	Qk_EXPORT String fs_documents(cString& child = String());
 
 	/**
-	* @func temp_dir # Get the temp dir.
+	* @method temp_dir # Get the temp dir.
 	* @return {cString&} # The path that can be write/read a file in
 	*/
 	Qk_EXPORT String fs_temp(cString& child = String());
 	
 	/**
-	* @func resources_dir # Get the resoures dir
+	* @method resources_dir # Get the resoures dir
 	* @return {cString&}
 	*/
 	Qk_EXPORT String fs_resources(cString& child = String());
 	
 	/**
-	* @func is_absolute # Is absolute path
+	* @method is_absolute # Is absolute path
 	* @return {bool}
 	*/
 	Qk_EXPORT bool fs_is_local_absolute(cString& path);
 	
 	/**
-	* @func is_local_zip
+	* @method is_local_zip
 	*/
 	Qk_EXPORT bool fs_is_local_zip(cString& path);
 	
 	/**
-	* @func is_local_file
+	* @method is_local_file
 	*/
 	Qk_EXPORT bool fs_is_local_file(cString& path);
-	
+
 	/**
-	* @func format
+	* @method fs_is_http_file
+	*/
+	Qk_EXPORT bool fs_is_http_file(cString& path);
+
+	/**
+	* @method format
 	* @arg format {cChar*}
 	* @arg [...] {cChar*}
 	* @return {String}
@@ -351,29 +356,29 @@ namespace qk {
 	Qk_EXPORT String fs_format(cChar* path, ...);
 	
 	/**
-	* @func format
+	* @method format
 	*/
 	Qk_EXPORT String fs_format(cString& path);
 	
 	/**
-	* @func fallback
+	* @method fallback
 	*/
 	Qk_EXPORT String fs_fallback(cString& path);
 
 	/**
-	* @func fallback_c
+	* @method fallback_c
 	*/
 	Qk_EXPORT cChar* fs_fallback_c(cString& path);
 	
 	/**
-	* @func cwd # Getting current working directory
+	* @method cwd # Getting current working directory
 	* @return {String}
 	* @static
 	*/
 	Qk_EXPORT String fs_cwd();
 	
 	/**
-	* @func chdir # Setting current working directory
+	* @method chdir # Setting current working directory
 	* @arg path {cString&}
 	* @return {bool}
 	* @static

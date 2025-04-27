@@ -34,7 +34,7 @@ const _fs = __binding__('_fs');
 const _http = __binding__('_http');
 const _util = __binding__('_util');
 const { formatPath, isAbsolute, isLocal, isLocalZip, stripShebang,
-				isHttp, assert, stripBOM, default: _utild, sleep } = _util;
+				isHttp, assert, stripBOM, default: _utild } = _util;
 const { readFile, readFileSync, isFileSync,
 				isDirectorySync, readdirSync } = _fs.reader;
 const debug = _util.debugLog('PKG');
@@ -239,16 +239,6 @@ function slicePackageName(request: string) {
 	return {pkgName,relativePath};
 }
 
-function lookupFromInternal(pkgName: string, relativePath: string): LookupResult | null {
-	let pkg = packages.get('qk://' + pkgName);
-	if (pkg) {
-		let r = { pkg, relativePath };
-		lookupCache.set(`qk://${pkgName}${relativePath && '/'+relativePath}`, r);
-		return r;
-	}
-	return null;
-}
-
 function lookupFromAbsolute(request: string): LookupResult | null {
 	request = formatPath(request); // Guarantee that 'request' is absolute.
 
@@ -258,7 +248,13 @@ function lookupFromAbsolute(request: string): LookupResult | null {
 
 	if (request.substring(0, 5) == 'qk://') {
 		const {pkgName,relativePath} = slicePackageName(request.substring(5));
-		return lookupFromInternal(pkgName, relativePath);
+		let pkg = packages.get(`qk://${pkgName}`);
+		if (pkg) {
+			let r = { pkg, relativePath };
+			lookupCache.set(`qk://${pkgName}${relativePath && '/'+relativePath}`, r);
+			return r;
+		}
+		return null;
 	}
 
 	const is_local = isLocal(request);
@@ -315,6 +311,11 @@ function lookupFromAbsolute(request: string): LookupResult | null {
 	return null;
 }
 
+function lookupFromInternal(pkgName: string, relativePath: string): LookupResult | null {
+	let pkg = packages.get(`qk://${pkgName}`);
+	return pkg ? { pkg, relativePath }: null;
+}
+
 /**
  * Code:
  * ```
@@ -323,13 +324,16 @@ function lookupFromAbsolute(request: string): LookupResult | null {
  * ```
 */
 function lookupFromSearch(request: string, parent?: Module): LookupResult | null {
+	const {pkgName,relativePath} = slicePackageName(request);
+	//let pkg = packages.get(`qk://${pkgName}`); // lookup internal pkg
+	//if (pkg) {
+		//return { pkg, relativePath };
+	//}
 	let paths = globalPaths; // search path
 	if (parent && parent.paths && parent.paths.length) {
 		paths = parent.paths.concat(paths);
 	}
 	// debug('lookupFromSearch pkg for %j in %j', request, paths);
-
-	const {pkgName,relativePath} = slicePackageName(request);
 
 	for (let path of paths) {
 		let pkg = packages.get(`${path}/${pkgName}`);
@@ -350,7 +354,6 @@ function lookupFromSearch(request: string, parent?: Module): LookupResult | null
 		if (pkg)
 			return { pkg, relativePath };
 	}
-
 	return lookupFromInternal(pkgName, relativePath);
 }
 
@@ -678,14 +681,16 @@ export class Module implements IModule {
 	}
 
 	private static async tryReadJSONByNet(url: string): Promise<PackageJson> {
-		try { return await readJSON(url) } catch(err) {}
+		try { return await readJSON(url) } catch(err: any) {
+			if (err.errno == -10001 && err.status == 404) throw err;
+		}
 		try { await readText('https://www.gnu.org/gnu/') } catch(err: any) {}
 		let retry = 10;
 		do {
 			try { return await readJSON(url) } catch(err) {
 				if (retry-- == 0)
 					throw err;
-				await sleep(1e3);
+				await _utild.sleep(1e3);
 			}
 		} while(true);
 	}
@@ -870,35 +875,31 @@ class Package {
 			return cached;
 		}
 		if (!pathname) {
-			pathname = String(self.json.main || '').replace(/^[\.\/\\]+/, ''); // clear invalid character
+			pathname = String(self.json.main||'').replace(/^[\.\/\\]+/, ''); // clear invalid character
 		}
-		let pathnames = pathname ? [pathname, pathname + '/index']: ['index'];
-		let extnames = ['', ...Object.keys(Module._extensions)];
-
-		// console.log('resolve', this, pathnames, extnames);
+		let extnames = Object.keys(Module._extensions);
+		let pathnames = pathname ? [
+			pathname,
+			...extnames.map(e=>`${pathname}${e}`),
+			...extnames.map(e=>`${pathname}/index'${e}`)
+		]: extnames.map(e=>`index${e}`);
 
 		// try using different extensions to search for and ` ${path name}/index`
-		for (let pathname of pathnames) {
-			for (let ext of extnames) {
-				let path = pathname + ext;
-				let hash = self.filesHash[path];
-				if (hash !== undefined) {
-					return self._resolveAfter(relativePath, path, hash);
-				}
+		for (let path of pathnames) {
+			let hash = self.filesHash[path];
+			if (hash !== undefined) {
+				return self._resolveAfter(relativePath, path, hash);
 			}
 		}
 		if (!this.isHttp) { // try access the local file system
-			for (let pathname of pathnames) {
-				for (let ext of extnames) {
-					let path = pathname + ext;
-					if ( isFileSync(self.path + '/' + path) ) { // find local
-						return self._resolveAfter(relativePath, path, '');
-					}
+			for (let path of pathnames) {
+				if ( isFileSync(self.path + '/' + path) ) { // find local
+					return self._resolveAfter(relativePath, path, '');
 				}
 			}
 		}
 
-		throwModuleNotFound(self.path + '/' + relativePath);
+		throwModuleNotFound(self.path + '/' + pathname);
 		throw '';
 	}
 
@@ -911,14 +912,16 @@ class Package {
 			let path_arg = set_url_args(path, self.hash/* || '__no_cache'*/);
 
 			let ok = (text: string)=>{
-				let json = parseJSON(text, path);
-				(self as {filesHash: Dict}).filesHash = json.filesHash || {};
-				Object.assign(self.filesHash, json.pkgzFiles);
+				let {filesHash={},pkgzFiles={}} = parseJSON(text, path);
+				let files = (self as {filesHash: Dict});
 				self._status = PackageStatus.INSTALLED;
 				if (self._pkgzPath) {
-					for (let file of Object.keys(json.pkgzFiles)) {
+					for (let file of Object.keys(pkgzFiles)) {
 						self._pkgzFiles.add(file);
 					}
+					files.filesHash = Object.assign(filesHash, pkgzFiles);
+				} else {
+					files.filesHash = Object.assign(pkgzFiles, filesHash);
 				}
 				cb && cb(); // ok
 			};

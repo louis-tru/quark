@@ -253,7 +253,6 @@ namespace qk { namespace js {
 		return WORKER(*reinterpret_cast<v8::ReturnValue<v8::Value>*>(this));
 	}
 
-	template<>
 	void ReturnValue::set(JSValue* value) {
 		if (value)
 			reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(Back(value));
@@ -261,22 +260,22 @@ namespace qk { namespace js {
 			setNull();
 	}
 
-	template<>
 	void ReturnValue::set(bool value) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(value);
 	}
 
-	template<>
+	void ReturnValue::set(float i) {
+		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
+	}
+
 	void ReturnValue::set(double i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
 
-	template<>
-	void ReturnValue::set(int i) {
+	void ReturnValue::set(int32_t i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}
 
-	template<>
 	void ReturnValue::set(uint32_t i) {
 		reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 	}

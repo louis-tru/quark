@@ -39,8 +39,8 @@ Qk_TEST_Func(jsapi) {}
 using namespace qk;
 
 #define IP_REMOTE "192.168.2.200"
-#define USE_REMOTE 1
-#define USE_INSPECT 0
+#define USE_REMOTE 0
+#define USE_INSPECT 1
 
 Qk_TEST_Func(jsapi) {
 	Array<String> argv_arr;
@@ -49,13 +49,14 @@ Qk_TEST_Func(jsapi) {
 		argv_arr.push(argv[i]);
 
 #if USE_INSPECT
-	argv_arr.push("--inspect-brk=0.0.0.0:9229");
+	argv_arr.push("--inspect-brk=0.0.0.0:9229 --force-brk");
 #endif
 
 #if USE_REMOTE
 	js::Start("http://" IP_REMOTE ":1026/", argv_arr);
 #else
-	js::Start(fs_resources("jsapi aa gui"), argv_arr);
+	//js::Start(fs_resources("jsapi aa gui"), argv_arr);
+	js::Start("/Users/louis/Workspace/test2/out/all", argv_arr);
 #endif
 }
 #endif

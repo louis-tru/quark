@@ -73,7 +73,7 @@ android {
 					"../../../out/qkmake/product/android/jniLibs",
 			)
 			assets.srcDirs(
-				"../../jsapi/out/jsapi",
+				"../../jsapi/out",
 				//"/Users/louis/Workspace/kkkk/out/small"
 			)
 		}

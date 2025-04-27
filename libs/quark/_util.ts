@@ -335,7 +335,7 @@ function nextTick<A extends any[], R>(cb: (...args: A) => R, ...args: A): void {
 	_init.nextTick(function(){ cb(...args) });
 }
 
-export function sleep<T = number>(time: number, defaultValue?: T): Promise<T> {
+function sleep<T = number>(time: number, defaultValue?: T): Promise<T> {
 	return new Promise((ok, err)=>setTimeout(()=>ok((defaultValue || 0) as any), time));
 }
 
@@ -370,7 +370,7 @@ export default {
 	webFlags: null,
 	argv: _init.argv as string[],
 	options,
-	nextTick, unrealized, exit,
+	nextTick, unrealized, exit, sleep,
 	gc: _init.garbageCollection as ()=>void,
 	runScript: _init.runScript as (source: string, name?: string, sandbox?: any)=>any,
 	hashCode: _init.hashCode as (obj: any)=>number,
