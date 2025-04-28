@@ -3,3 +3,5 @@ out
 .git
 project
 .vscode
+.tsconfig.json
+*.gyp

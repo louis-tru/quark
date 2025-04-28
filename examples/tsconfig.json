@@ -24,9 +24,8 @@
 		"jsxFactory": "_CVD",
 		"paths": {
 			"*": [
-				"../libs/quark/out/*",
+				"../libs/quark/out/@types/*",
 				"./node_modules/*",
-				"../node_modules/*",
 			],
 		},
 	},
