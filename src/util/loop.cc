@@ -269,27 +269,27 @@ namespace qk {
 		for (auto &i: msgs) {
 			if (i.timer) {
 				auto timer = (timer_t*)(i.timer);
-				Qk_Warn("RunLoop::clear(), discard timer %p", timer);
+				Qk_DLog("RunLoop::clear(), discard timer %p", timer);
 				delete timer;
 			} else {
-				Qk_Warn("RunLoop::clear(), discard msg cb");
+				Qk_DLog("RunLoop::clear(), discard msg cb");
 			}
 		}
 
 		for (auto &i: timers) {
 			auto timer = (timer_t*)(i.value);
 			_this->timer_stop(timer);
-			Qk_Warn("RunLoop::clear(), discard timer %p", timer);
+			Qk_DLog("RunLoop::clear(), discard timer %p", timer);
 		}
 
 		for (auto &i: checks) {
 			auto check = (check_t*)(i.value);
 			check->stop_check();
-			Qk_Warn("RunLoop::clear(), discard check %p", check);
+			Qk_DLog("RunLoop::clear(), discard check %p", check);
 		}
 
 		for (auto& i: works) {
-			Qk_Warn("RunLoop::clear(), discard work %p", i.value);
+			Qk_DLog("RunLoop::clear(), discard work %p", i.value);
 			Qk_ASSERT_EQ(0, uv_cancel((uv_req_t*)&i.value->uv_req));
 		}
 	}

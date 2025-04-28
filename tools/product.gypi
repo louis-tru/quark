@@ -77,7 +77,7 @@
 			['os=="linux"', {
 				# 'defines': [ '__STDC_LIMIT_MACROS' ],
 				'cflags': [
-					# '-fPIC',
+					'-fPIC',
 					'-Wall',
 					'-Wextra',
 					'-Wno-unused-parameter',
@@ -88,6 +88,8 @@
 					'-Wno-unused-function',
 					'-Wno-deprecated',
 					'-Wno-missing-field-initializers',
+					# '-Wno-misleading-indentation',
+					'-march=${ARCH_NAME}',
 				],
 				'cflags_cc': [ '-Wno-reorder' ],
 				'ldflags': [
@@ -97,7 +99,7 @@
 				'link_settings': {
 					'libraries': [ '-lquark' ],
 					'library_dirs': [
-						'<(DEPTH)/out/usr/linux/${LINUX_ARCH}',
+						'<(DEPTH)/out/usr/linux/${ARCH}',
 					],
 				},
 				'include_dirs': [ '<(DEPTH)/out/usr/include' ],

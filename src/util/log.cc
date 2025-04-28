@@ -291,13 +291,16 @@ namespace qk {
 		Log::shared()->fflush();
 		if (msg) {
 			Qk_STRING_FORMAT(msg, str);
-			_shared_log->error("\n\n\n");
+			_shared_log->error("\n");
 			_shared_log->error(str.c_str(), "\n");
 		}
+#if DEBUG
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		dump_backtrace();
 		_shared_log->fflush();
-
+#else
+		::exit(-1);
+#endif
 		IMMEDIATE_CRASH();
 	}
 
