@@ -38,5 +38,6 @@
 		"out",
 		".git",
 		"project",
+		".vscode"
 	]
 }
