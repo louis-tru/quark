@@ -37,6 +37,5 @@
 		"node_modules",
 		"out",
 		".git",
-		"_.js",
 	]
 }
