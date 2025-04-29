@@ -572,21 +572,19 @@ namespace js {
 			String arg(argv[i]);
 			if (arg[0] == '-') {
 				auto kv = arg.split('=');
+				auto k = kv[0].replaceAll('-', '_');
 				auto v = kv.length() > 1 ? kv[1]: String();
 				if (arg.length() > 1 && arg[1] != '-') { // -
-					if (kv.length() > 1) goto val;
-					lastKey = kv[0].substr(1);
-					if (lastKey.length() > 1) {
-						putkv(lastKey, v);
-						for (auto i = 0u; i < lastKey.length(); i++) {
+					if (kv.length() > 1)
+						goto val;
+					lastKey = k.substr(1);
+					putkv(lastKey, v);
+					if (lastKey.length() > 1 && kv.length() == 1) {
+						for (auto i = 0u; i < lastKey.length(); i++)
 							putkv(lastKey[i], String());
-						}
-						lastKey = lastKey[lastKey.length()-1];
-					} else {
-						putkv(lastKey, v);
 					}
 				} else if (arg.length() > 2) { // --
-					lastKey = kv[0].substr(2).replaceAll('-', '_');
+					lastKey = k.substr(2);
 					putkv(lastKey, v);
 					if (kv.length() > 1) {
 						lastKey = String();
