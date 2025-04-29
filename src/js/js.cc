@@ -581,7 +581,7 @@ namespace js {
 						for (auto i = 0u; i < lastKey.length(); i++) {
 							putkv(lastKey[i], String());
 						}
-						lastKey = lastKey[0];
+						lastKey = lastKey[lastKey.length()-1];
 					} else {
 						putkv(lastKey, v);
 					}
