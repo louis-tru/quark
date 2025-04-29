@@ -606,7 +606,7 @@ export class Module implements IModule {
 		} else {
 			(this as any).id = '.';
 			require = this._makeRequire(mainModule = this);
-			if ('inspect_brk' in options) {
+			if ('inspect_brk' in options || 'brk' in options) {
 				_init.debuggerBreakNextStatement();
 			}
 		}

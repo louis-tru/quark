@@ -389,9 +389,9 @@ export default {
 	delimiter: _util.delimiter,
 
 	/**
-	 * @method fallbackPath()
+	 * @method classicPath()
 	 */
-	fallbackPath: _util.fallbackPath,
+	classicPath: _util.classicPath,
 
 	/**
 	 * @method resolve(path) resolve path 

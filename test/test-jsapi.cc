@@ -49,7 +49,8 @@ Qk_TEST_Func(jsapi) {
 		argv_arr.push(argv[i]);
 
 #if USE_INSPECT
-	argv_arr.push("--inspect-brk=0.0.0.0:9229 --force-brk");
+	argv_arr.push("--inspect-brk=0.0.0.0:9229");
+	argv_arr.push("--force-brk");
 #endif
 
 #if USE_REMOTE

@@ -38,7 +38,7 @@ export default async function(_: any) {
 	Mv(path, 'documents', [])
 	Mv(path, 'temp', [])
 	Mv(path, 'resources', [])
-	Mv(path, 'fallbackPath', [path.resources()])
+	Mv(path, 'classicPath', [path.resources()])
 	Mv(path, 'cwd', [])
 	Mv(path, 'chdir', ['/'])
 	Mv(path, 'cwd', [], 'file:///')

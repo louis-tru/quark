@@ -37,7 +37,7 @@ const _fs = __binding__('_fs');
 const PREFIX = 'file:///';
 let   config: Dict | null = null;
 const options: Optopns = _init.options;  // start options
-const debug = 'inspect' in options || 'inspect_brk' in options;
+const debug = ['debug', 'inspect', 'inspect_brk'].some(e=>e in options);
 export const mainPath = options.__main__ || '';
 
 if ('url_arg' in options) {
@@ -86,7 +86,7 @@ export function setTimer<A extends any[]>(cb: (...args: A)=>void, timeout?: numb
 export const clearTimer = (globalThis as any).clearTimer as (id?: any)=>void;
 
 const win32 = {
-	fallbackPath: function(url: string) {
+	classicPath: function(url: string) {
 		return url.replace(/^file:\/\//i, '').replace(/^\/([a-z]:)?/i, '$1').replace(/\//g, '\\');
 	},
 	joinPath: function(args: any[]) {
@@ -105,7 +105,7 @@ const win32 = {
 };
 
 const posix = {
-	fallbackPath: function(url: string) {
+	classicPath: function(url: string) {
 		return url.replace(/^file:\/\//i, '');
 	},
 	joinPath: function(args: any[]) {
@@ -126,7 +126,7 @@ const posix = {
 const isWin32 = _init.platform == 'win32';
 const paths = isWin32 ? win32: posix;
 
-export const fallbackPath = paths.fallbackPath;
+export const classicPath = paths.classicPath;
 export const delimiter = paths.delimiter;
 
 /** 

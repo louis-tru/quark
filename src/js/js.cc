@@ -629,12 +629,14 @@ namespace js {
 					return Qk_ELog("No input js file"), ERR_INVALID_FILE_PATH;
 				}
 			}
-			if (arguments->options.get("inspect", inspect) ||
+			if (
+				arguments->options.get("debug", inspect) ||
+				arguments->options.get("inspect", inspect) ||
 				arguments->options.get("inspect_brk", inspect)
 			) {
 				auto script_path = mainPath ?
 					fs_reader()->format(*mainPath): String("eval");
-				bool brk = arguments->options.has("inspect_brk");
+				bool brk = arguments->options.has("inspect_brk") || arguments->options.has("brk");
 				// Startup debugger
 				if (inspect->length() == 0) {
 					runDebugger(worker, {brk, 9229, "127.0.0.1", script_path});
