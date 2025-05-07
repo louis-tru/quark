@@ -87,9 +87,9 @@ export function link(target: ViewController, name: string) {
 export function linkAcc(target: ViewController, name: string) {
 	link(target, name);
 	Object.defineProperty(target, name, {
-		get: function() { return this[`_name`] },
+		get: function() { return this[`_${name}`] },
 		set: function(val) {
-			this[`_name`] = val;
+			this[`_${name}`] = val;
 			if (this.isMounted)
 				this.update(); // update ViewController
 		}

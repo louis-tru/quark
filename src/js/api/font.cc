@@ -100,8 +100,8 @@ namespace qk { namespace js {
 			});
 
 			Js_Method(getFontFamilies, {
-				if ( !checkApp(worker) ) return;
-				getFontFamiliesFromPool(args, shared_app()->fontPool());
+				// if ( !checkApp(worker) ) return;
+				getFontFamiliesFromPool(args, shared_fontPool());
 			});
 
 			Js_Method(getFamiliesName, {

@@ -44,8 +44,8 @@ namespace qk {
 	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
-		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] = {\
-			(Func)&View::Name,(Func)&View::set_##Name};
+		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] =\
+			{(Func)&View::Name,(Func)&View::set_##Name};
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
 		prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, prop_accessors[k##Dest##_ViewType])
@@ -69,25 +69,25 @@ namespace qk {
 
 		#define _Func_TextOptions_Props(_Func) \
 			_Func(TextAlign, text_align) \
+			_Func(TextSize, text_size) \
+			_Func(TextColor, text_color) \
+			_Func(TextLineHeight, text_line_height) \
+			_Func(TextFamily, text_family) \
+			_Func(TextShadow, text_shadow) \
+			_Func(TextColor, text_background_color) \
 			_Func(TextWeight, text_weight) \
 			_Func(TextSlant, text_slant) \
 			_Func(TextDecoration, text_decoration) \
 			_Func(TextOverflow, text_overflow) \
 			_Func(TextWhiteSpace, text_white_space) \
 			_Func(TextWordBreak, text_word_break) \
-			_Func(TextSize, text_size) \
-			_Func(TextColor, text_background_color) \
-			_Func(TextColor, text_color) \
-			_Func(TextLineHeight, text_line_height) \
-			_Func(TextShadow, text_shadow) \
-			_Func(TextFamily, text_family) \
 
 		#define _Func_ScrollBase_Props(_Func) \
 			_Func(Color, scrollbar_color) \
 			_Func(float, scrollbar_width) \
 			_Func(float, scrollbar_margin) \
 
-		struct TextView: View {
+		struct Text: View {
 			#define _Func(Type, Name) Type Name() { return asTextOptions()->Name(); } \
 				void set_##Name(Type v) { asTextOptions()->set_##Name(v); }
 			_Func_TextOptions_Props(_Func)

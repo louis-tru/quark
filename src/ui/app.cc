@@ -61,7 +61,6 @@ namespace qk {
 		, _fontPool(nullptr), _imgPool(nullptr)
 		, _maxResourceMemoryLimit(512 * 1024 * 1024) // init 512MB
 		, _activeWindow(nullptr)
-		, _styleSheets(nullptr)
 		, _tick(0)
 	{
 		if (_shared)
@@ -71,10 +70,9 @@ namespace qk {
 		view_prop_acc_init();
 		_shared = this;
 		_screen = new Screen(this); // strong ref
-		_fontPool = FontPool::Make();
+		_fontPool = shared_fontPool();
 		_imgPool = new ImageSourcePool(_loop);
-		_defaultTextOptions = new DefaultTextOptions(_fontPool);
-		_styleSheets = new RootStyleSheets();
+		_defaultTextOptions = new DefaultTextOptions(FontPool::shared());
 		_run_main_wait->lock_and_notify_all(); // The external thread continues to run
 
 		Inl_Application(this)->initPlatform();
@@ -95,9 +93,8 @@ namespace qk {
 		}
 		_activeWindow =  nullptr;
 		Releasep(_defaultTextOptions);
-		Releasep(_styleSheets);
 		Releasep(_screen);
-		Releasep(_fontPool);
+		// Releasep(_fontPool);
 		Releasep(_imgPool);
 	 	_loop->tick_stop(_tick); _tick = 0;
 

@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Application, Window, createCss, mainScreenScale, Text, ViewController } from 'quark';
+import { _CVD, Application, Window, createCss, mainScreenScale, ViewController } from 'quark';
 import {reader} from 'quark/fs';
 import * as types from 'quark/types';
-const app = new Application();
 import { NavPageCollection } from 'quark/nav';
 import { NavButton, Page } from './tool';
 import examples from './examples';
 import about_vx from './about';
 
+const app = new Application();
 const px = 1 / mainScreenScale();
 const resolve = require.resolve;
 

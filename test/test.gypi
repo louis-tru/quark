@@ -1,4 +1,4 @@
-{ 
+{
 	'variables': {
 		'without_visibility_hidden%': 0,
 	},
@@ -104,7 +104,7 @@
 			['use_js==1 and os in "mac ios"', {
 				'mac_bundle_resources': [
 					'./jsapi/out/jsapi',
-					# '../examples/out/examples',
+					'../examples/out/examples',
 				],
 			}],
 			['use_js==1 and os not in "mac ios"', {
@@ -112,7 +112,7 @@
 					'destination': '<(output)',
 					'files': [
 						'./jsapi/out/jsapi',
-						# '../examples/out/examples',
+						'../examples/out/examples',
 					],
 				}], # copy
 			}],
@@ -121,55 +121,32 @@
 	{
 		'target_name': 'build_jsapi_ts',
 		'type': 'none',
-		'actions': [{
-			'action_name': 'build',
-			'inputs': [
-				'./jsapi/stress/action.tsx',
-				'./jsapi/stress/css.tsx',
-				'./jsapi/stress/event.ts',
-				'./jsapi/stress/fs.ts',
-				'./jsapi/stress/http.ts',
-				'./jsapi/stress/image.html',
-				'./jsapi/stress/image.tsx',
-				'./jsapi/stress/reader.ts',
-				'./jsapi/stress/storage.ts',
-				'./jsapi/stress/uu.tsx',
-				'./jsapi/stress/view.tsx',
-				'./jsapi/package.json',
-				'./jsapi/test_action.tsx',
-				'./jsapi/test_app.ts',
-				'./jsapi/test_buf.ts',
-				'./jsapi/test_css.ts',
-				'./jsapi/test_event.ts',
-				'./jsapi/test_font.ts',
-				'./jsapi/test_fs.ts',
-				'./jsapi/test_gui.tsx',
-				'./jsapi/test_http.ts',
-				'./jsapi/test_os.ts',
-				'./jsapi/test_path.ts',
-				'./jsapi/test_reader.ts',
-				'./jsapi/test_storage.ts',
-				'./jsapi/test_types.ts',
-				'./jsapi/test_util.ts',
-				'./jsapi/test_view.tsx',
-				'./jsapi/test_window.tsx',
-				'./jsapi/tool.ts',
-				'./jsapi/test.tsx',
-				'./jsapi/tsconfig.json',
-			],
-			'outputs': [
-				'./jsapi/out/jsapi',
-			],
-			'conditions': [['use_js==1',{
-				'action': [ 'sh', '-c', 'cd test/jsapi && npm run build'],
-			},{
-				'action': [ 'sh', '-c', ''],
-			}]],
-		}],
+		'conditions': [['use_js==1', {
+			'actions': [{
+				'action_name': 'build_jsapi',
+				'inputs': [ '<@(jsapi_in)', '<@(examples_in)' ],
+				'outputs': [
+					'./jsapi/out/files.gypi',
+					'../examples/out/files.gypi',
+				],
+				'action': [
+					'sh', '-c',
+					'cd test/jsapi && npm run build && cd ../../examples && tsc && node _'
+				],
+			}],
+		}, {
+			'actions': [],
+		}]],
 	}],
 
 	# tests
 	'conditions': [
+		['use_js==1', {
+			'includes': [
+				'./jsapi/out/files.gypi',
+				'../examples/out/files.gypi',
+			],
+		}],
 		# gen android test deps `libquark-deps-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets+': [

@@ -121,8 +121,9 @@ namespace qk {
 			return true;
 		_res = getSharedRenderResource();
 
-		if (!_res)
+		if (!_res) {
 			return false;
+		}
 
 		if (_pixels.length()) {
 			AutoMutexExclusive ame(_onState); // lock, safe assign `_pixels`
@@ -322,6 +323,7 @@ namespace qk {
 	}
 
 	ImageSourcePool::ImageSourcePool(RunLoop *loop): _loop(loop), _isMarkAsTexture(true) {
+		Qk_ASSERT_RAW(loop, "Create the ImageSourcePool fail, Haven't param RunLoop");
 	}
 
 	ImageSourcePool::~ImageSourcePool() {
@@ -414,7 +416,11 @@ namespace qk {
 
 	void ImageSourceHold::set_src(String value) {
 		auto pool = imgPool();
-		set_source(pool ? pool->get(value): *ImageSource::Make(value));
+		if (pool) {
+			set_source(pool->get(value));
+		} else {
+			set_source(*ImageSource::Make(value));
+		}
 	}
 
 	void ImageSourceHold::set_source(Sp<ImageSource> source) {

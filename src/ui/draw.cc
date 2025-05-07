@@ -161,7 +161,10 @@ namespace qk {
 
 	void UIDraw::drawBoxFillImage(Box *box, FillImage *fill, BoxData &data) {
 		auto src = fill->source();
-		if (!src || !src->load()) return;
+		if (!src || !src->load())
+			return;
+
+		src->markAsTexture();
 
 		auto src_w = src->width(), src_h = src->height();
 		auto cli = box->_client_size;

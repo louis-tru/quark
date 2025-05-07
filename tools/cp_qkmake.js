@@ -62,6 +62,10 @@ fs.chmodSync(target + '/quark', 0o755);
 
 copy_header(root + '/src', `${include}/quark`);
 
-fs.cp_sync(root + '/libs/quark', target + '/product/libs/quark', {isCancel:e=>e.indexOf('quark/out')!=-1});
-fs.cp_sync(root + '/examples', target + '/product/examples');
+function exclude(...args) {
+	return {isCancel: e=>args.some(i=>e.indexOf(i)!=-1)}
+}
+
+fs.cp_sync(root + '/libs/quark', target + '/product/libs/quark', exclude('quark/out'));
+fs.cp_sync(root + '/examples', target + '/product/examples', exclude('examples/out', '_.js'));
 fs.cp_sync(root + '/tools/product.gypi', target + '/product/quark.gypi');

@@ -44,3 +44,21 @@ copyFiles(source, out, {
 	excludeExt: new Set(['.ts','.tsx','.js']),
 	exclude: new Set(['out','_.js','tsconfig.json','ex']),
 });
+
+function getFiles(source, ext) {
+	let files = [];
+	for (let i of fs.readdirSync(source)) {
+		if ( ext.indexOf(path.extname(i)) != -1 ) {
+			files.push(i);
+		}
+	}
+	return files;
+}
+
+// gen gypi
+fs.writeFileSync(`${source}/out/files.gypi`, JSON.stringify({
+	'variables': {
+		'jsapi_in': getFiles(source, ['.ts','.tsx','.json']).map(e=>`test/jsapi/${e}`),
+		'jsapi_out': getFiles(out, ['.js','.json']).map(e=>`test/jsapi/out/jsapi/${e}`),
+	},
+}, null, 2));

@@ -243,8 +243,9 @@ function lookupFromAbsolute(request: string): LookupResult | null {
 	request = formatPath(request); // Guarantee that 'request' is absolute.
 
 	const cached = lookupCache.get(request);
-	if (cached)
+	if (cached) {
 		return cached;
+	}
 
 	if (request.substring(0, 5) == 'qk://') {
 		const {pkgName,relativePath} = slicePackageName(request.substring(5));
@@ -325,10 +326,10 @@ function lookupFromInternal(pkgName: string, relativePath: string): LookupResult
 */
 function lookupFromSearch(request: string, parent?: Module): LookupResult | null {
 	const {pkgName,relativePath} = slicePackageName(request);
-	//let pkg = packages.get(`qk://${pkgName}`); // lookup internal pkg
-	//if (pkg) {
-		//return { pkg, relativePath };
-	//}
+	let pkg = packages.get(`qk://${pkgName}`); // lookup internal pkg
+	if (pkg) {
+		return { pkg, relativePath };
+	}
 	let paths = globalPaths; // search path
 	if (parent && parent.paths && parent.paths.length) {
 		paths = parent.paths.concat(paths);
@@ -340,10 +341,11 @@ function lookupFromSearch(request: string, parent?: Module): LookupResult | null
 		if (!pkg) {
 			let searchPath = searchPaths.get(path);
 			if (!searchPath && isLocal(path)) {
-				searchPath = new SearchPath(path)
+				searchPath = new SearchPath(path);
 				try {
-					searchPath.loadSync();
-				} catch(err) {
+					if (!searchPath.isHttp && isDirectorySync(searchPath.path))
+						searchPath.loadSync();
+				} catch(err) {} finally {
 					searchPaths.set(path, searchPath); // avoid recreating next time
 				}
 			}
@@ -354,7 +356,7 @@ function lookupFromSearch(request: string, parent?: Module): LookupResult | null
 		if (pkg)
 			return { pkg, relativePath };
 	}
-	return lookupFromInternal(pkgName, relativePath);
+	return null;//lookupFromInternal(pkgName, relativePath);
 }
 
 function lookup(request: string, parent?: Module): LookupResult | null {

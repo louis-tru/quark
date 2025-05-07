@@ -88,7 +88,6 @@ namespace qk {
 		_dispatch = new EventDispatch(this);
 		_uiDraw = new UIDraw(this);
 		_actionCenter = new ActionCenter(this);
-		_styleSheets = _host->styleSheets();
 		_backgroundColor = opts.backgroundColor;
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		{

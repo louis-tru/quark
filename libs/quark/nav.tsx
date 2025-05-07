@@ -346,7 +346,7 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 		(page as any)._prevPage = prev; // private props visit
 
 		if (prev) { // set next page
-			(prev as {nextPage:NavPage}).nextPage = page; // private props visit
+			(prev as any)._nextPage = page; // private props visit
 		}
 
 		this._busy = time ? true: false;

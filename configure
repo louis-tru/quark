@@ -46,9 +46,23 @@ fi
 # build libs/quark
 if [ ! -f libs/quark/out/quark/package.json ]; then
 	cd libs/quark
-	npm i
 	npm run build
 	cd ../..
+fi
+
+# build test/jsapi
+if [ ! -f test/jsapi/out/jsapi/package.json ]; then
+	cd test/jsapi
+	npm run build
+	cd ../..
+fi
+
+# build examples
+if [ ! -f examples/out/examples/package.json ]; then
+	cd examples
+	tsc
+	node _
+	cd ..
 fi
 
 # build libs/qktool

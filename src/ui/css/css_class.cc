@@ -117,11 +117,11 @@ namespace qk {
 		if (_setStatus == _status) {
 			return false;
 		}
-		auto hash = _stylesHash_Rt.hashCode();
+		auto hash = _substylesHash_Rt.hashCode();
 		// reset env
 		_status = _setStatus;
-		_styles_Rt.clear();
-		_stylesHash_Rt = Hash5381();
+		_substyles_Rt.clear();
+		_substylesHash_Rt = Hash5381();
 		_havePseudoType = false;
 		_parent = parent;
 		_host->window()->actionCenter()->removeCSSTransition_Rt(_host);
@@ -132,18 +132,18 @@ namespace qk {
 		_firstApply = false;
 
 		// affects children CStyleSheetsClass
-		return _stylesHash_Rt.hashCode() != hash;
+		return _substylesHash_Rt.hashCode() != hash;
 	}
 
 	void CStyleSheetsClass::applyFrom_Rt(CStyleSheetsClass *ssc) {
 		if (ssc) {
-			Qk_ASSERT(ssc->_styles_Rt.length());
+			Qk_ASSERT(ssc->_substyles_Rt.length());
 			applyFrom_Rt(ssc->_parent);
-			for (auto ss: ssc->_styles_Rt) {
+			for (auto ss: ssc->_substyles_Rt) {
 				applyFindSubstyle_Rt(ss);
 			}
 		} else {
-			applyFindSubstyle_Rt(shared_app()->styleSheets()); // apply global style
+			applyFindSubstyle_Rt(RootStyleSheets::shared()); // apply global style
 		}
 	}
 
@@ -198,8 +198,8 @@ namespace qk {
 		}
 
 		if (css->_substyles.length()) {
-			_stylesHash_Rt.updateu64(uint64_t(css));
-			_styles_Rt.push(css);
+			_substylesHash_Rt.updateu64(uint64_t(css));
+			_substyles_Rt.push(css);
 		}
 
 		// apply pseudo class

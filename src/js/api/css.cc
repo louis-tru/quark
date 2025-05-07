@@ -209,7 +209,7 @@ namespace qk { namespace js {
 				self->toggle(args[0]->toString(worker)->value(worker));
 			});
 
-		// inline bool haveSubstyles() const;
+			// inline bool haveSubstyles() const;
 
 			cls->exports("CStyleSheetsClass", exports);
 		}
@@ -217,7 +217,7 @@ namespace qk { namespace js {
 
 	struct NativeCSS {
 		static void create(Worker *worker, JSArray *names, JSObject *arg) {
-			auto rss = shared_app()->styleSheets();
+			auto rss = shared_root_styleSheets();
 
 			for ( uint32_t i = 0, len = names->length(); i < len; i++ ) {
 				auto key = names->get(worker, i);
@@ -254,7 +254,7 @@ namespace qk { namespace js {
 			MixCStyleSheetsClass::binding(exports, worker);
 
 			Js_Method(create, {
-				if ( !checkApp(worker) ) return;
+				// if ( !checkApp(worker) ) return;
 				if ( args.length() < 1 || !args[0]->isObject() || args[0]->isNull() ) {
 					Js_Throw("NativeCSS.create(Object K/V) Bad argument.");
 				}
@@ -263,9 +263,13 @@ namespace qk { namespace js {
 				auto arg = args[0]->template cast<JSObject>();
 				auto names = arg->getPropertyNames(worker);
 				if (names->length()) {
-					shared_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {
+					if (shared_app()) {
+						shared_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {
+							create(worker, names, arg);
+						}));
+					} else {
 						create(worker, names, arg);
-					}));
+					}
 				}
 			});
 		}

@@ -55,6 +55,7 @@ namespace qk {
 		float getMaxMetrics(FontMetricsBase* metrics, float fontSize) const;
 		Sp<Typeface> match(cString& familyName, FontStyle style) const;
 		Sp<Typeface> matchCharacter(cString& familyName, FontStyle, Unichar character) const;
+		static FontPool* shared();
 	protected:
 		FontPool();
 		void initFontPool();
@@ -72,6 +73,10 @@ namespace qk {
 		mutable SharedMutex* _Mutex;
 		friend class FontFamilies;
 	};
+
+	inline FontPool* shared_fontPool() {
+		return FontPool::shared();
+	}
 
 }
 #endif

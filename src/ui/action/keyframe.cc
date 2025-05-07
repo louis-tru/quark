@@ -151,7 +151,7 @@ namespace qk {
 	}
 
 	Keyframe* KeyframeAction::addFrameWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) {
-		auto css = _window->styleSheets()->searchItem(cssExp, false);
+		auto css = shared_root_styleSheets()->searchItem(cssExp, false);
 		if (css) {
 			auto f = add_unsafe(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);
 			_async_call([](auto f, auto arg) {

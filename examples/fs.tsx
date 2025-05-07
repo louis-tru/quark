@@ -41,31 +41,31 @@ const filename = path.documents('test.txt');
 
 fs.mkdirsSync(path.dirname(filename));
 
-function ReadFile(e: ClickEvent) {
+function ReadFile({origin:{window}}: ClickEvent) {
 	console.log('------------', filename);
 	fs.readFile(filename).then(function(buf) {
-		alert(e.origin.window, buffer.toString(buf, 'utf8'));
+		alert(window, buffer.toString(buf, 'utf8'));
 	}).catch(err=>{
-		alert(e.origin.window, err.message + ', ' + err.code);
+		alert(window, err.message + ', ' + err.code);
 	});
 }
 
-function ReadFileSync(e: ClickEvent) {
+function ReadFileSync({origin:{window}}: ClickEvent) {
 	console.log('------------', filename);
 	try {
 		var s = fs.readFileSync(filename, 'utf8');
-		alert(e.origin.window, s);
+		alert(window, s);
 	} catch(err: any) {
-		alert(e.origin.window, err.message + ', ' + err.code);
+		alert(window, err.message + ', ' + err.code);
 	}
 }
 
-function Remove(e: ClickEvent) {
+function Remove({origin:{window}}: ClickEvent) {
 	try {
 		var a = fs.removeRecursionSync(filename);
-		alert(e.origin.window, 'Remove file OK. ' + a);
+		alert(window, 'Remove file OK. ' + a);
 	} catch (err: any) {
-		alert(e.origin.window, err.message + ', ' + err.code);
+		alert(window, err.message + ', ' + err.code);
 	}
 }
 
@@ -77,23 +77,23 @@ export default (self: Page)=>{
 	self.title = 'File System';
 	self.source = resolve(__filename);
 
-	function WriteFile(e: ClickEvent) {
+	function WriteFile({origin:{window}}: ClickEvent) {
 		console.log('------------', filename);
 		fs.writeFile(filename, self.refAs<Input>('input').value).then(function() {
-			alert(e.origin.window, 'Write file OK.');
+			alert(window, 'Write file OK.');
 		}).catch(err=>{
-			alert(e.origin.window, err.message + ', ' + err.code);
+			alert(window, err.message + ', ' + err.code);
 		});
 	}
-	
-	function WriteFileSync(e: ClickEvent) {
+
+	function WriteFileSync({origin:{window}}: ClickEvent) {
 		try {
 			var txt = self.refAs<Input>('input').value;
 			var r = fs.writeFileSync(filename, txt);
 			console.log(r);
-			alert(e.origin.window, 'Write file OK.');
+			alert(window, 'Write file OK.');
 		} catch (err: any) {
-			alert(e.origin.window, err.message + ', ' + err.code);
+			alert(window, err.message + ', ' + err.code);
 		}
 	}
 

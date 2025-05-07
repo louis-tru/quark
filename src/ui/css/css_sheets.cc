@@ -171,6 +171,19 @@ namespace qk {
 		{"normal",kNormal_CSSType},{"hover",kHover_CSSType},{"active",kActive_CSSType}
 	});
 
+	static std::mutex _rs_mutex;
+	static RootStyleSheets* _shared_root_styleSheets = nullptr;
+
+	RootStyleSheets* RootStyleSheets::shared() {
+		if (!_shared_root_styleSheets) {
+			ScopeLock scope(_rs_mutex);
+			if (!_shared_root_styleSheets) {
+				_shared_root_styleSheets = new RootStyleSheets();
+			}
+		}
+		return _shared_root_styleSheets;
+	}
+
 	RootStyleSheets::RootStyleSheets()
 		: CStyleSheets(CSSCName(String()), nullptr, kNone_CSSType)
 	{

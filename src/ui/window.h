@@ -117,7 +117,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(Render*, render); //! render object
 		Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
-		Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 		Qk_DEFINE_PROPERTY(Color, backgroundColor, Const); //! background color
 		Qk_DEFINE_PROP_GET(Rect, navigationRect, Const); //! navigation rect for android
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl

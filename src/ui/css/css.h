@@ -124,7 +124,7 @@ namespace qk {
 	class Qk_EXPORT CStyleSheets: public StyleSheets {
 		Qk_HIDDEN_ALL_COPY(CStyleSheets);
 	public:
-		Qk_DEFINE_PROPERTY   (uint32_t, time, Const); // css transition time
+		Qk_DEFINE_PROPERTY(uint32_t, time, Const); // css transition time
 		Qk_DEFINE_PROP_GET(CStyleSheets*, parent);
 		Qk_DEFINE_PROP_GET(CStyleSheets*, normal); // style sheets for pseudo type
 		Qk_DEFINE_PROP_GET(CStyleSheets*, hover);
@@ -152,8 +152,8 @@ namespace qk {
 		CStyleSheets* findAndMake(cCSSCName &name, CSSType type, bool isExtend, bool make);
 
 		typedef Dict<uint64_t, CStyleSheets*> CStyleSheetsDict;
-		CStyleSheetsDict _substyles; // css name => .self .sub { width: 100px }
-		CStyleSheetsDict _extends; // css name => .self.extend { width: 100px }
+		CStyleSheetsDict _substyles; // css name => .self .sub { width: 100 }
+		CStyleSheetsDict _extends; // css name => .self.extend { width: 200 }
 
 		friend class RootStyleSheets;
 		friend class CStyleSheetsClass;
@@ -187,6 +187,11 @@ namespace qk {
 		* @method search()
 		*/
 		Array<CStyleSheets*> search(cString &exp, bool make = false);
+		
+		/**
+		 * @method shared()
+		 */
+		static RootStyleSheets* shared();
 	};
 
 	class Qk_EXPORT CStyleSheetsClass: public Object {
@@ -211,7 +216,7 @@ namespace qk {
 		 * @safe Rt
 		*/
 		inline bool haveSubstyles() const {
-			return _nameHash_Rt.length();
+			return _substyles_Rt.length();
 		}
 
 	private:
@@ -223,11 +228,14 @@ namespace qk {
 		void applyStyle_Rt(CStyleSheets *ss);
 
 		Set<uint64_t> _nameHash_Rt; //!< class name hash
-		Array<CStyleSheets*> _styles_Rt; //!< apply to all current style sheets have substyle sheets
-		Hash5381 _stylesHash_Rt; //!< hash for apply current have substyle sheets
+		Array<CStyleSheets*> _substyles_Rt; //!< apply to all current style sheets have substyle sheets
+		Hash5381 _substylesHash_Rt; //!< hash for apply current have substyle sheets
 
 		friend class View;
 	};
 
+	inline RootStyleSheets* shared_root_styleSheets() {
+		return RootStyleSheets::shared();
+	}
 }
 #endif

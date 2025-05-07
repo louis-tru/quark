@@ -9,8 +9,8 @@ using namespace qk;
 Qk_TEST_Func(css) {
 	App app;
 	// init css
-	//auto csss = app.styleSheets()->search(".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:active .aa.bb.cc");
-	auto div_cls = app.styleSheets()->search(".div_cls", true).front();
+	//auto csss = shared_root_styleSheets()->search(".div_cls.div_cls2 .aa.bb.cc, .div_cls.div_cls2:active .aa.bb.cc");
+	auto div_cls = shared_root_styleSheets()->search(".div_cls", true).front();
 	div_cls->set_width({ 100, BoxSizeKind::Match });
 	div_cls->set_height({ 0, BoxSizeKind::Match });
 	div_cls->set_background_color({255,0,0,255});

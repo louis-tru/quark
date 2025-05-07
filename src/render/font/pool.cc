@@ -37,6 +37,19 @@ namespace qk {
 
 	// ---------------------- F o n t . P o o l --------------------------
 
+	static std::mutex _sf_mutex;
+	static FontPool* _shared_fontPool = nullptr;
+
+	FontPool* FontPool::shared() {
+		if (!_shared_fontPool) {
+			ScopeLock scope(_sf_mutex);
+			if (!_shared_fontPool) {
+				_shared_fontPool = FontPool::Make();
+			}
+		}
+		return _shared_fontPool;
+	}
+
 	FontPool::FontPool(): _tf65533GlyphID(0), _Mutex(new SharedMutex) {}
 	
 	FontPool::~FontPool() {

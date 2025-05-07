@@ -37,6 +37,7 @@
 		"out",
 		".git",
 		"project",
-		".vscode"
+		".vscode",
+		"_.js"
 	]
 }
