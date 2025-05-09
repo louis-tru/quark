@@ -57,13 +57,19 @@ namespace qk {
 		}
 	}
 
+	static uint64_t UndefinedHashCode(CSSCName("undefined").hashCode());
+
 	void CStyleSheetsClass::set(cArray<String> &name) {
 		_async_call([](auto ctx, auto val) {
 			Sp<Array<String>> valp(val.arg);
 			ctx->_nameHash_Rt.clear();
-			for ( auto &j: **valp )
-				if (!j.isEmpty())
-					ctx->_nameHash_Rt.add(CSSCName(j).hashCode());
+			for ( auto &j: **valp ) {
+				if (!j.isEmpty()) {
+					auto hash = CSSCName(j).hashCode();
+					if (hash != UndefinedHashCode) // // exclude undefined
+						ctx->_nameHash_Rt.add(hash);
+				}
+			}
 			ctx->updateClass_Rt();
 		}, this, new Array<String>(name));
 	}

@@ -251,12 +251,12 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(sendEmail, {
-				if (args.length() < 3 || !args[0]->isString() || !args[1]->isString() || !args[2]->isString()) {
+				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
 					Js_Throw(
-						"@methos Application.sendEmail(recipient,subject,body[,cc[,bcc]])\n"
+						"@methos Application.sendEmail(recipient,subject,[body[,cc[,bcc]]])\n"
 						"@param recipient {String}\n"
 						"@param subject {String}\n"
-						"@param body {String}\n"
+						"@param [body] {String}\n"
 						"@param [cc] {String}\n"
 						"@param [bcc] {String}\n"
 					);
@@ -265,7 +265,7 @@ namespace qk { namespace js {
 				self->sendEmail(
 					args[0]->toString(worker)->value(worker), // recipient
 					args[1]->toString(worker)->value(worker), // subject
-					args[2]->toString(worker)->value(worker), // body
+					args.length() > 2 ? args[2]->toString(worker)->value(worker): String(), // body
 					args.length() > 3 ? args[3]->toString(worker)->value(worker): String(), // cc
 					args.length() > 4 ? args[4]->toString(worker)->value(worker): String() // bcc
 				);

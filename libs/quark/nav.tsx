@@ -653,7 +653,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 				height="match"
 				visible={false}
 				backgroundColor={this.backgroundColor}
-				padding={this.paddingNavbar(hidden)}
+				paddingTop={this.paddingNavbar(hidden)}
 			>
 				{this.renderBody()}
 			</matrix>

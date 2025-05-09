@@ -40,6 +40,9 @@ const app = new Application();
 const px = 1 / mainScreenScale();
 const resolve = require.resolve;
 
+// register font icomoon-ultimate
+app.fontPool.addFontFamily( reader.readFileSync(resolve('./icomoon.ttf')) );
+
 createCss({
 	'.category_title': {
 		width: 'match',
@@ -84,6 +87,7 @@ createCss({
 		'width': 'match',
 		'margin': 10,
 		// 'textColor': '#000',
+		textWhiteSpace: 'preWrap'
 	},
 
 	'.codepre:normal': {
@@ -131,7 +135,7 @@ const win = new Window({
 	// title: 'Quark Examples',
 }).activate();
 
-const quark_tools = 'https://www.npmjs.com/package/noproj';
+const quark_tools = 'https://www.npmjs.com/package/qkmake';
 const quark_tools_issues_url = 'https://github.com/louis-tru/quark/issues';
 const examples_source = 'https://github.com/louis-tru/quark.git';
 const documents = 'http://quarks.cc/';
@@ -162,7 +166,7 @@ const quark_tools_vx = (self: Page)=>{
 	return (
 		<box width="match">
 			<text class="category_title">
-1. You can use nodejs <label textBackgroundColor="#ddd" value={"npm install -g noproj\n"} />.
+1. You can use nodejs <label textBackgroundColor="#ddd" value={"npm install -g qkmake\n"} />.
 2. Or get the node modules from Github.
 			</text>
 			<Button class="long_btn rm_margin_top" url={quark_tools}>Go Github</Button>
@@ -216,9 +220,6 @@ const bug_feedback_vx = (self: Page)=>{
 	)
 }
 
-// register font icomoon-ultimate
-app.fontPool.addFontFamily( reader.readFileSync(resolve('./icomoon.ttf')) );
-
 win.render(
 	<NavPageCollection ref="npc">
 		<Page title="Home" source={resolve(__filename)}>
@@ -227,10 +228,10 @@ win.render(
 				<box class="category" borderBottom={`${px} #c8c7cc`}>
 					<text class="codepre">
 						<label class="keywork" value="import"/> {"{"} <label class="identifier" value="Application" />, <label class="identifier" value="Root" /> {"}"} <label class="keywork" value="from" /> <label class="str" value="'quark'" />
-							<label class="keywork" value={'\nnew'}/> <label class="identifier" value="Application"/>()<label class="keywork" value="."/><label class="identifier" value="start"/>
-							(
-								{"<"}<label class="tag_name" value="Root" />{">"}hello world!{"</"}<label class="tag_name" value="Root" />{">"}
-							)
+							<label class="keywork" value={'\nnew'}/> <label class="identifier" value="Window"/>()<label class="keywork" value="."/><label class="identifier" value="render"/>
+							{"("}
+								{"\n    <"}<label class="tag_name" value="Root" />{">"}hello world!{"</"}<label class="tag_name" value="Root" />{">"}
+							{"\n)"}
 					</text>
 				</box>
 
@@ -253,8 +254,3 @@ win.render(
 		</Page>
 	</NavPageCollection>
 )
-
-// var lock = Number(util.options.lock);
-// if (lock) {
-// 	win.size = lock;
-// }
