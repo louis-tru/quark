@@ -429,6 +429,7 @@ namespace qk {
 				auto &line = lines->line(blob.line);
 				_canvas->drawTextBlob(&blob.blob, {line.origin + blob.origin, line.baseline}, size, paint);
 			}
+			// Qk_DLog("Color: %f, %f, %f", paint.color.r(), paint.color.g(), paint.color.b());
 		} // if (v->text_color().value.a())
 	}
 

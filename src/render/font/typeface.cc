@@ -218,8 +218,8 @@ namespace qk {
 		return computeMetricsBase(&_metrics, metrics, fontSize);
 	}
 
-	float FontPool::getMaxMetrics(FontMetricsBase* out, float fontSize) const {
-		return computeMetricsBase(&_MaxMetrics64, out, fontSize);
+	float FontPool::getUnitMetrics(FontMetricsBase* out, float fontSize) const {
+		return computeMetricsBase(&_UnitMetrics64, out, fontSize);
 	}
 
 	Typeface::ImageOut Typeface::getImage(cArray<GlyphID>& glyphs, float fontSize,

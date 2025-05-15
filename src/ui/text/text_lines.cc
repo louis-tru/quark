@@ -49,24 +49,13 @@ namespace qk {
 
 	void TextLines::clear() {
 		_lines.clear();
-		_lines.push({ 0, 0, 0, 0, 0, 0, 0, 0 });
+		_lines.push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 		_last = &_lines[0];
 		_preView.clear();
 		_preView.push(Array<View*>());
 		_max_width = 0;
 		_min_origin = Float32::limit_max;
 		_visible_region = false;
-	}
-
-	void TextLines::set_init_line_height(float fontSize, float line_height) {
-		if (fontSize) {
-			_have_init_line_height = true;
-			_init_line_height = line_height;
-			_host->window()->host()->fontPool()->getMaxMetrics(&_init_Metrics, fontSize);
-			set_line_height(&_init_Metrics, line_height);
-		} else {
-			_have_init_line_height = false;
-		}
 	}
 
 	void TextLines::lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar) {
@@ -78,7 +67,7 @@ namespace qk {
 	void TextLines::push(TextOptions *opts) {
 		finish_line();
 
-		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, uint32_t(_lines.length()) });
+		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, 0, uint32_t(_lines.length()) });
 		_last = &_lines.back();
 		_pre_width = 0;
 		_preView.push(Array<View*>());
@@ -86,14 +75,26 @@ namespace qk {
 		for (auto &blob: _preBlob) {
 			_pre_width += blob.offset.back().x() - blob.offset.front().x();
 		}
-
+		
 		if (_have_init_line_height) {
-			set_line_height(&_init_Metrics, _init_line_height);
-		} else if (opts) {
-			auto tf = opts->text_family().value->match(opts->font_style());
-			FontMetricsBase metrics;
-			tf->getMetrics(&metrics, opts->text_size().value);
-			set_line_height(&metrics, opts->text_line_height().value);
+			if (opts) {
+				auto tf = opts->text_family().value->match(opts->font_style());
+				FontMetricsBase metrics;
+				tf->getMetrics(&metrics, opts->text_size().value);
+				set_line_height(&metrics, opts->text_line_height().value);
+			}
+			else {
+				set_line_height(&_UnitMetrics, _line_height);
+			}
+		}
+	}
+
+	void TextLines::set_init_line_height(float fontSize, float line_height, bool have_init_line_height) {
+		_have_init_line_height = have_init_line_height;
+		_line_height = line_height;
+		_host->window()->host()->fontPool()->getUnitMetrics(&_UnitMetrics, fontSize);
+		if (have_init_line_height) {
+			set_line_height(&_UnitMetrics, line_height);
 		}
 	}
 
@@ -101,18 +102,21 @@ namespace qk {
 		if (top > _last->top) {
 			_last->top = top;
 			_last->baseline = top + _last->start_y;
-			_last->end_y = _last->baseline;
 		}
 		if (bottom > _last->bottom) {
 			_last->bottom = bottom;
-			_last->end_y = bottom + _last->baseline;
 		}
+		_last->end_y = _last->bottom + _last->baseline;
+		_last->line_height = _last->end_y - _last->start_y;
 	}
 
 	void TextLines::set_line_height(FontMetricsBase *metrics, float line_height) {
 		auto top = -metrics->fAscent;
 		auto bottom = metrics->fDescent + metrics->fLeading;
-		auto height = top + bottom;
+		if (_last->line_height == 0) { // first time use max metrics
+			top = Float32::max(-_UnitMetrics.fAscent, top);
+			bottom = Float32::max(bottom, _UnitMetrics.fDescent + _UnitMetrics.fLeading);
+		}
 		if (line_height != 0) { // value, not auto
 			if (line_height <= 2) { // use percentage
 				if (_limit_size.y() == 0) { // height == wrap y, no limit
@@ -120,11 +124,14 @@ namespace qk {
 				}
 				line_height *= _limit_size.y(); // use percentage
 			}
-			auto diff = (line_height - height) * 0.5f;
-			top += diff;
-			bottom += diff;
-			if (bottom < 0) {
-				top += bottom;
+			if (line_height > _last->line_height) { // reset line_Height
+				auto height = top + bottom;
+				auto diff = (line_height - height) * 0.5f;
+				top += diff;
+				bottom += diff;
+				if (bottom < 0) {
+					top += bottom;
+				}
 			}
 		} // else use default metrics value
 		set_line_height(top, bottom);

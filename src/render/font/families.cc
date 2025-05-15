@@ -37,11 +37,18 @@ namespace qk {
 	FontFamilies::FontFamilies(FontPool* pool, cArray<String>& families)
 		: _pool(pool)
 	{
+		Set<String> set;
+		auto add = [&](cString& s) {
+			if (!set.has(s)) {
+				set.add(s);
+				_families.push(s);
+			}
+		};
 		for (auto &i: families) {
-			_families.add(i.trim());
+			add(i.trim());
 		}
 		for (auto &s: pool->defaultFamilyNames()) {
-			_families.add(s);
+			add(s);
 		}
 	}
 
@@ -59,7 +66,7 @@ namespace qk {
 		}
 		Array<Sp<Typeface>> arr;
 		for (auto& it: _families) {
-			auto tf = _pool->match(it.key, style);
+			auto tf = _pool->match(it, style);
 			if (tf)
 				arr.push(std::move(tf));
 		}

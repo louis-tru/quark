@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./ct_util.h"
+#include "../../../util/codec.h"
 #include "../../../util/array.h"
 #include "../sfnt/QkOTTable_OS_2.h"
 #include "../sfnt/QkSFNTHeader.h"
@@ -423,13 +424,8 @@ QkCTFontWeightMapping& QkCTFontGetDataFontWeightMapping() {
 
 /** Assumes src and dst are not nullptr. */
 String QkStringFromCFString(CFStringRef src) {
-	// Reserve enough room for the worst-case string,
-	// plus 1 byte for the trailing null.
-	CFIndex length = CFStringGetMaximumSizeForEncoding(CFStringGetLength(src),
-																											kCFStringEncodingUTF8);
-	Buffer buf = Buffer::alloc(uint32_t(length));
-
-	CFStringGetCString(src, *buf, length, kCFStringEncodingUTF8);
-
-	return buf.collapseString();
+	CFIndex len = CFStringGetLength(src);
+	ArrayBuffer<UniChar> buff((uint32_t)len);
+	CFStringGetCharacters(src, {0, len}, *buff);
+	return codec_utf16_to_utf8(buff);
 }

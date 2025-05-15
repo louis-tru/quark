@@ -88,15 +88,17 @@ namespace qk {
 			_Func(float, scrollbar_margin) \
 
 		struct Text: View {
-			#define _Func(Type, Name) Type Name() { return asTextOptions()->Name(); } \
-				void set_##Name(Type v) { asTextOptions()->set_##Name(v); }
+			#define _Func(Type, Name) \
+				Type Name() { return asTextOptions()->Name(); } \
+				void set_##Name(Type v, bool isRt) { asTextOptions()->set_##Name(v, isRt); }
 			_Func_TextOptions_Props(_Func)
 			#undef _Func
 			#undef _Func_TextOptions_Props
 		};
 		struct Scroll: View {
-			#define _Func(Type, Name) Type Name() { return asScrollBase()->Name(); } \
-				void set_##Name(Type v) { asScrollBase()->set_##Name(v); }
+			#define _Func(Type, Name) \
+				Type Name() { return asScrollBase()->Name(); } \
+				void set_##Name(Type v, bool isRt) { asScrollBase()->set_##Name(v, isRt); }
 			_Func_ScrollBase_Props(_Func)
 			#undef _Func
 			#undef _Func_ScrollBase_Props
@@ -204,6 +206,7 @@ namespace qk {
 		Qk_Copy_Accessor(Text, Input, TEXT_ALIGN, 13);
 		Qk_Copy_Accessor(Text, Textarea, TEXT_ALIGN, 13);
 		Qk_Copy_Accessor(Text, Label, TEXT_ALIGN, 13);
+		Qk_Copy_Accessor(Text, Button, TEXT_ALIGN, 13);
 		// input/textarea
 		Qk_Set_Accessor(Input, SECURITY, security);
 		Qk_Set_Accessor(Input, READONLY, readonly);

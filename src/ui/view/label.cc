@@ -51,6 +51,14 @@ namespace qk {
 			_IfParent()
 				_parent->onChildLayoutChange(this, kChild_Layout_Text);
 			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
+		} else if (mark & kInput_Status) {
+			unmark(kInput_Status);
+			_IfParent()
+				if (_parent->viewType() == kText_ViewType) {
+					_parent->mark_layout(kInput_Status, true);
+					return;
+				}
+			text_config(shared_app()->defaultTextOptions());
 		}
 	}
 
@@ -68,6 +76,17 @@ namespace qk {
 		while(v) {
 			if (v->visible()) {
 				v->layout_text(lines, &cfg);
+			}
+			v = v->next();
+		}
+	}
+
+	void Label::text_config(TextConfig* base) {
+		TextConfig cfg(this, base);
+		auto v = first();
+		while(v) {
+			if (v->visible()) {
+				v->text_config(&cfg);
 			}
 			v = v->next();
 		}

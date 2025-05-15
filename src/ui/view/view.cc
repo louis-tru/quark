@@ -238,6 +238,9 @@ namespace qk {
 	void View::layout_text(TextLines *lines, TextConfig *cfg) {
 	}
 
+	void View::text_config(TextConfig* cfg) {
+	}
+
 	void View::onChildLayoutChange(View *child, uint32_t value) {
 		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
 			mark_layout(kLayout_Typesetting, true);

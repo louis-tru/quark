@@ -59,17 +59,20 @@ QkWindowDelegate* WindowImpl::delegate() {
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
 		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
 	UIScreen* screen = UIScreen.mainScreen;
+	CGFloat scale = screen.backingScaleFactor;
 
 	float w = opts.frame.size.x() > 0 ?
-		opts.frame.size.x(): screen.frame.size.width / 2;
+		opts.frame.size.x() / scale: screen.frame.size.width / 2;
 	float h = opts.frame.size.y() > 0 ?
-		opts.frame.size.y(): screen.frame.size.height / 2;
+		opts.frame.size.y() / scale: screen.frame.size.height / 2;
 	float x = opts.frame.origin.x() > 0 ?
-		opts.frame.origin.x(): (screen.frame.size.width - w) / 2.0;
+		opts.frame.origin.x() / scale: (screen.frame.size.width - w) / 2.0;
 	float y = opts.frame.origin.y() > 0 ?
-		opts.frame.origin.y(): (screen.frame.size.height - h) / 2.0;
+		opts.frame.origin.y() / scale: (screen.frame.size.height - h) / 2.0;
 
-	UIWindow *uiwin = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, w, h)
+	NSRect rect = NSMakeRect(x, y, w, h);
+
+	UIWindow *uiwin = [[UIWindow alloc] initWithContentRect:rect
 																						styleMask:style
 																							backing:NSBackingStoreBuffered
 																								defer:NO
@@ -86,6 +89,8 @@ QkWindowDelegate* WindowImpl::delegate() {
 	if (opts.frame.origin.x() < 0 && opts.frame.origin.y() < 0) {
 		[uiwin center];
 	}
+
+	[uiwin setFrame:rect display:NO];
 
 	UIView *rootView = self.view;
 	UIView *view = render->surface()->surfaceView();

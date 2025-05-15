@@ -501,7 +501,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	uint64_t StringImpl<T, A>::hashCode() const {
-		return qk::hashCode(c_str(), length() * sizeof(T));
+		return qk::hashCode(c_str(), size());
 	}
 
 	template <typename T, typename A>

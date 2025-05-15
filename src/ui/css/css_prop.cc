@@ -271,17 +271,17 @@ namespace qk {
 		asyncSetLarge<key>(value);
 	}
 
-	template<>
-	template<>
-	void SetProp<BoxSize>::asyncSet<kWIDTH_ViewProp>(BoxSize val) {
-		set_min_width(val);
-	}
+	// template<>
+	// template<>
+	// void SetProp<BoxSize>::asyncSet<kWIDTH_ViewProp>(BoxSize val) {
+	// 	set_min_width(val);
+	// }
 
-	template<>
-	template<>
-	void SetProp<BoxSize>::asyncSet<kHEIGHT_ViewProp>(BoxSize val) {
-		set_min_height(val);
-	}
+	// template<>
+	// template<>
+	// void SetProp<BoxSize>::asyncSet<kHEIGHT_ViewProp>(BoxSize val) {
+	// 	set_min_height(val);
+	// }
 
 	template<>
 	template<>

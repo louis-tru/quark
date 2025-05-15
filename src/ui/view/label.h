@@ -45,6 +45,7 @@ namespace qk {
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
+		virtual void text_config(TextConfig* cfg) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
 		virtual void solve_visible_region(const Mat &mat) override;

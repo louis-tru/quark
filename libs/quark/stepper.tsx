@@ -34,7 +34,7 @@ const px = 1 / mainScreenScale();
 createCss({
 	'.x_stepper': {
 		width: 45 * 2 + 3,
-		textFamily: 'icon',
+		textFamily: 'iconfont',
 		textLineHeight: 29,
 		textSize: 20,
 		textColor: '#727272',

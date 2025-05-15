@@ -49,6 +49,7 @@ createCss({
 		textLineHeight: 30,
 		textColor: '#6d6d72',
 		textSize: 14,
+		textWhiteSpace: 'pre',
 		margin: 16,
 	},
 
@@ -84,19 +85,17 @@ createCss({
 	},
 
 	'.codepre': {
-		'width': 'match',
-		'margin': 10,
-		// 'textColor': '#000',
+		width: 'match',
+		margin: 10,
 		textWhiteSpace: 'preWrap'
 	},
-
 	'.codepre:normal': {
 		textColor: '#000'
 	},
 	'.codepre:hover': {
-		textColor: '#ff0'
+		textColor: '#f0f'
 	},
-	'.codepre:down': {
+	'.codepre:active': {
 		textColor: '#f00',
 	},
 	'.codepre .tag_name': {
@@ -127,12 +126,12 @@ createCss({
 })
 
 const win = new Window({
-	frame: types.newRect(0,0,420,800),
+	title: 'Examples',
+	frame: types.newRect(0,0,750,1400),
 	// msaa: 4,
 	// matchScreen: !!util.options.match_screen,
 	// enableTouch: true,
-	// background: 0xffffff,
-	// title: 'Quark Examples',
+	backgroundColor: types.newColor(255,255,255,255),
 }).activate();
 
 const quark_tools = 'https://www.npmjs.com/package/qkmake';
@@ -166,7 +165,7 @@ const quark_tools_vx = (self: Page)=>{
 	return (
 		<box width="match">
 			<text class="category_title">
-1. You can use nodejs <label textBackgroundColor="#ddd" value={"npm install -g qkmake\n"} />.
+1. You can use nodejs <label textBackgroundColor="#ddd" value="npm install -g qkmake\n" />
 2. Or get the node modules from Github.
 			</text>
 			<Button class="long_btn rm_margin_top" url={quark_tools}>Go Github</Button>

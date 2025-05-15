@@ -52,7 +52,7 @@ namespace qk {
 		FFID getFontFamilies(cString& families = String());
 		FFID getFontFamilies(cArray<String>& families);
 		void addFontFamily(cBuffer& buff, cString& alias = String());
-		float getMaxMetrics(FontMetricsBase* metrics, float fontSize) const;
+		float getUnitMetrics(FontMetricsBase* metrics, float fontSize) const;
 		Sp<Typeface> match(cString& familyName, FontStyle style) const;
 		Sp<Typeface> matchCharacter(cString& familyName, FontStyle, Unichar character) const;
 		static FontPool* shared();
@@ -69,7 +69,7 @@ namespace qk {
 		Array<String> _defaultFamilyNames; // default families names
 		Dict<String, Dict<FontStyle, Sp<Typeface>>> _ext; // familiesName => (style=>tf)
 		Dict<uint64_t, Sp<FontFamilies>> _fontFamilies;
-		mutable FontMetrics _MaxMetrics64;
+		mutable FontMetrics _UnitMetrics64;
 		mutable SharedMutex* _Mutex;
 		friend class FontFamilies;
 	};

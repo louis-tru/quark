@@ -44,7 +44,7 @@ namespace qk {
 	class Qk_EXPORT TextLines: public Reference {
 	public:
 		struct Line {
-			float start_y, end_y, width;
+			float start_y, end_y, width, line_height;
 			float baseline, top, bottom, origin;
 			uint32_t line;
 			bool visible_region;
@@ -86,7 +86,7 @@ namespace qk {
 		float max_height() const { return _last->end_y; }
 		Line& operator[](uint32_t idx) { return _lines[idx]; }
 		Line& line(uint32_t idx) { return _lines[idx]; }
-		void set_init_line_height(float fontSize, float line_height);
+		void set_init_line_height(float fontSize, float line_height, bool have_init_line_height);
 		void add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar);
 
 	private:
@@ -98,9 +98,8 @@ namespace qk {
 		Array<Line> _lines;
 		Array<Array<View*>> _preView;
 		Array<PreTextBlob> _preBlob;
-		float _init_line_height;
-		FontMetricsBase _init_Metrics;
-
+		float _line_height;
+		FontMetricsBase _UnitMetrics;
 	};
 }
 #endif

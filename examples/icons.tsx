@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
+import { _CVD, createCss } from 'quark';
 import { Page } from './tool';
 
 const resolve = require.resolve;
@@ -1645,6 +1645,22 @@ const icon = `
 \uef49
 `;
 
+createCss({
+	'.icon_page': {
+		marginBottom:10,
+		textAlign: "center",
+		width:"25%",
+		align:"start",
+		textSize:28,
+		textFamily:"icomoon-ultimate",
+	},
+	'.icon_page .txt': {
+		textSize:16,
+		textFamily: 'default',
+		textColor: "#555",
+	}
+});
+
 export default (self: Page)=>{
 	self.title = 'Icons';
 	self.source = resolve(__filename);
@@ -1656,9 +1672,8 @@ export default (self: Page)=>{
 					var unicode = icon.charCodeAt(i);
 					if (unicode > 255) {
 						return (
-							<text key={i} marginBottom={10} textAlign="center" width="25%" align="start">
-								<label textSize={28} textFamily="icomoon-ultimate" value={icon[i]} />
-								<label textColor="#555" value={` ${unicode.toString(16)}`} />
+							<text class="icon_page" key={i} value={icon[i]}>
+								<label class="txt" value={` ${unicode.toString(16)}`} />
 							</text>
 						);
 					}

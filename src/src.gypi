@@ -316,7 +316,8 @@
 				'action_name': 'gen_font_natives',
 				'inputs': [
 					'../tools/gen_font_natives.js',
-					'../tools/DejaVuSerif.ttf',
+					# '../tools/DejaVuSerif.ttf',
+					'../tools/iconfont.ttf',
 				],
 				'outputs': [
 					'../out/native-font.h',

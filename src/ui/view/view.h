@@ -73,8 +73,9 @@ namespace qk {
 			kLayout_Typesetting       = (1 << 3), /* 布局内容偏移, 需要重新对子布局排版 */
 			kTransform_Origin         = (1 << 4),
 			kInput_Status             = (1 << 5), /* 输入状态这不包含布局的改变 */
-			kScroll                   = (1 << 6), /* scroll status change */
-			kStyle_Class              = (1 << 7), /* 变化class引起的样式变化 */
+			kText_Config              = (1 << 6), /* 文本配置变化,可能影响子视图 */
+			kScroll                   = (1 << 7), /* scroll status change */
+			kStyle_Class              = (1 << 8), /* 变化class引起的样式变化 */
 			// RECURSIVE MARKS
 			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
 			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
@@ -485,7 +486,7 @@ namespace qk {
 		 * @safe Rt
 			* @note Can only be used in rendering threads
 		 */
-		virtual void layout_text(TextLines *lines, TextConfig* textSet);
+		virtual void layout_text(TextLines *lines, TextConfig* cfg);
 
 		/**
 			* 
@@ -498,6 +499,14 @@ namespace qk {
 			* @note Can only be used in rendering threads
 			*/
 		virtual void onChildLayoutChange(View* child, uint32_t/*ChildLayoutChangeMark*/ mark);
+
+		/**
+		 * calling after text options change
+		 * 
+		 * @method text_config(cfg)
+		 * @safe Rt
+		*/
+		virtual void text_config(TextConfig* cfg);
 
 		/**
 		 * Overlap test, test whether the point on the screen overlaps with the view

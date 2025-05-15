@@ -1084,14 +1084,11 @@ namespace qk {
 				lines->push();
 				origin = 0;
 			}
-			set_layout_offset(Vec2());
-			lines->set_pre_width(_layout_size.x());
 		} else {
-			set_layout_offset(Vec2(origin, 0));
 			lines->finish_text_blob_pre();
-			lines->set_pre_width(origin + _layout_size.x());
 		}
-
+		set_layout_offset({origin, 0});
+		lines->set_pre_width(origin + _layout_size.x());
 		lines->add_view(this);
 	}
 

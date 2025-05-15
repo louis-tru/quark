@@ -32,6 +32,7 @@
 #include "../../util/hash.h"
 #include "./pool.h"
 #include "./priv/mutex.h"
+#include "../../../out/native-font.h"
 
 namespace qk {
 
@@ -69,10 +70,10 @@ namespace qk {
 		auto tf1 = matchCharacter(String(), style, 26970);
 		if (tf1) {
 			_defaultFamilyNames.push(tf1->getFamilyName());
-			tf1->getMetrics(&_MaxMetrics64, 64);
+			tf1->getMetrics(&_UnitMetrics64, 64);
 			Qk_DLog("FontPool::init _defaultFamilyNames, %s", *_defaultFamilyNames[1]);
 		} else {
-			tf->getMetrics(&_MaxMetrics64, 64);
+			tf->getMetrics(&_UnitMetrics64, 64);
 		}
 		// find �(65533) character tf
 		_tf65533 = matchCharacter(String(), style, 65533);
@@ -82,6 +83,9 @@ namespace qk {
 		if (_tf65533)
 			_tf65533GlyphID = _tf65533->unicharToGlyph(65533);
 		_defaultFontFamilies = getFontFamilies(Array<String>());
+
+		WeakBuffer buff((cChar*)native_fonts_[0].data, native_fonts_[0].count);
+		addFontFamily(buff.buffer());
 	}
 
 	FFID FontPool::getFontFamilies(cString& families) {

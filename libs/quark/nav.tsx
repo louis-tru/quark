@@ -490,7 +490,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 					>
 						<text
 							align="middle" textColor={this.backTextColor}
-							textFamily="icon" textSize={20} value="\uedc5" visible={this.backIconVisible}
+							textFamily="iconfont" textSize={20} value={"\uedc5"} visible={this.backIconVisible}
 						/>
 						<label ref="back_text" textOverflow="ellipsis" visible={this.backTextVisible} value={this._backText} />
 					</button>

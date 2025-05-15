@@ -45,12 +45,12 @@ namespace qk {
 		FontFamilies(FontPool* pool, cArray<String>& families);
 		Sp<Typeface> match(FontStyle style, uint32_t index = 0);
 		Array<FontGlyphs> makeFontGlyphs(cArray<Unichar>& unichars, FontStyle style, float fontSize);
-		inline cSet<String>& families() const { return _families; }
+		inline cArray<String>& families() const { return _families; }
 		inline FontPool* pool() { return _pool; }
 	private:
 		Array<Sp<Typeface>>& matchs(FontStyle style);
 		FontPool* _pool;
-		Set<String> _families;
+		Array<String> _families;
 		Dict<FontStyle, Array<Sp<Typeface>>> _typefaces;
 		friend class FontPool;
 	};

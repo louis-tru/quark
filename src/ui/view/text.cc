@@ -49,7 +49,7 @@ namespace qk {
 			auto size = content_size();
 			auto v = first();
 			_lines = new TextLines(this, text_align_value(), get_text_lines_limit_size(), _wrap_x);
-			_lines->set_init_line_height(text_size().value, text_line_height().value);
+			_lines->set_init_line_height(text_size().value, text_line_height().value, false);
 
 			_blob_visible.clear();
 			_blob.clear();
@@ -79,8 +79,17 @@ namespace qk {
 					_parent->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 
-			unmark(kLayout_Typesetting);
+			unmark(kLayout_Typesetting | kText_Config);
 			mark(kRecursive_Visible_Region, true); // force test region and lines region
+		}
+		else if (mark_ & kText_Config) {
+			TextConfig cfg(this, shared_app()->defaultTextOptions());
+			auto v = first();
+			while(v) {
+				v->text_config(&cfg);
+				v = v->next();
+			}
+			unmark(kText_Config);
 		}
 	}
 

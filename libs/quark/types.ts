@@ -1314,7 +1314,7 @@ export function parseTextFamily(val: TextFamilyIn, desc?: string) {
 		if (kind !== undefined) {
 			return newTextFamily(kind,EmptyFFID);
 		}
-		return newTextFamily(kind, _font.getFontFamilies(val));
+		return newTextFamily(TextValueKind.Value, _font.getFontFamilies(val));
 	} else if (val instanceof TextFamily) {
 		return val;
 	}

@@ -29,11 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { mainScreenScale, createCss, StyleSheet } from 'quark';
-import { _CVD, ViewController, VirtualDOM, assertDom, link, VDom, RenderResult } from 'quark/ctr';
+import { _CVD, ViewController, link, RenderResult } from 'quark/ctr';
 import { NavPage } from 'quark/nav';
 import {ClickEvent} from 'quark/event';
 import * as types from 'quark/types';
-
 
 const px = 1 / mainScreenScale();
 const resolve = require.resolve;
@@ -70,9 +69,24 @@ createCss({
 
 	'.next_btn': {
 		width: 'match',
+		borderRadius: 0,
+	},
+
+	'.next_btn .text': {
+		textColor: "#0079ff",
 		textLineHeight: 45,
 		textAlign: "left",
-		borderRadius: 0,
+		marginLeft: 16,
+		marginRight: 50,
+		align: "start",
+	},
+
+	'.next_btn .icon': {
+		align: "end",
+		textFamily: "icomoon-ultimate",
+		textColor: "#aaa",
+		textLineHeight: 45,
+		marginRight: 10,
 	},
 
 	'.next_btn:normal': {
@@ -81,7 +95,7 @@ createCss({
 	'.next_btn:hover': {
 		backgroundColor: '#ececec', time: 50
 	},
-	'.next_btn:down': {
+	'.next_btn:active': {
 		backgroundColor: '#E1E4E4', time: 50
 	},
 
@@ -101,18 +115,15 @@ export class NavButton extends ViewController<{style?: StyleSheet, next?: (self:
 
 	render() {
 		return (
-			<button
-				onClick={this._handleClick}
+			<box
 				class="next_btn"
-				textColor="#0079ff"
+				onClick={this._handleClick}
 				borderBottom={`${px} #c8c7cc`}
 				style={this.props.style}
 			>
-				<text marginLeft={16} marginRight={50}>{this.children}</text>
-				<matrix x={-10} align="rightMiddle">
-					<text value={'\uedbe'} textFamily="icomoon-ultimate" textColor="#aaa" />
-				</matrix>
-			</button>
+				<text class="text">{this.children}</text>
+				<text class="icon" value={'\uedbe'} />
+			</box>
 		);
 	}
 

@@ -112,7 +112,7 @@ namespace qk {
 		, _normal(nullptr), _hover(nullptr), _active(nullptr)
 		, _havePseudoType(false)
 		, _haveSubstyles(false)
-		, _type( parent && parent->_type ? parent->_type: type )
+		, _type( parent && parent->_type ? parent->_type: type ), _name(name)
 	{}
 
 	CStyleSheets::~CStyleSheets() {

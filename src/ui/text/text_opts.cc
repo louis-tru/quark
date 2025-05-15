@@ -121,7 +121,7 @@ namespace qk {
 	void TextOptions::set_text_color(TextColor value, bool isRt) {
 		if (value != _text_color) {
 			_text_color = value;
-			onTextChange(View::kLayout_None, 2, isRt);
+			onTextChange(View::kText_Config, 2, isRt);
 		}
 	}
 
@@ -225,7 +225,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_shadow) {
 			_secondaryProps->text_shadow = value;
-			onTextChange(View::kLayout_None, 5, isRt);
+			onTextChange(View::kText_Config, 5, isRt);
 		}
 	}
 
@@ -233,7 +233,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_background_color) {
 			_secondaryProps->text_background_color = value;
-			onTextChange(View::kLayout_None, 6, isRt);
+			onTextChange(View::kText_Config, 6, isRt);
 		}
 	}
 
@@ -249,7 +249,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_slant) {
 			_secondaryProps->text_slant = _secondaryProps->text_slant_value = value;
-			onTextChange(View::kLayout_None, 8, isRt);
+			onTextChange(View::kText_Config, 8, isRt);
 		}
 	}
 
@@ -257,7 +257,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_decoration) {
 			_secondaryProps->text_decoration = _secondaryProps->text_decoration_value = value;
-			onTextChange(View::kLayout_None, 9, isRt);
+			onTextChange(View::kText_Config, 9, isRt);
 		}
 	}
 

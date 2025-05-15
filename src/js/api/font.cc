@@ -52,7 +52,7 @@ namespace qk { namespace js {
 				Js_Throw("@method _font.getFamiliesName(FFID)");
 			}
 			Js_Parse_Type(FFID, args[0], "@method _font.getFamiliesName(FFID)");
-			Js_Return( out->families().keys().join(',') );
+			Js_Return( out->families().join(',') );
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {

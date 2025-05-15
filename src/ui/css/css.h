@@ -154,6 +154,7 @@ namespace qk {
 		typedef Dict<uint64_t, CStyleSheets*> CStyleSheetsDict;
 		CStyleSheetsDict _substyles; // css name => .self .sub { width: 100 }
 		CStyleSheetsDict _extends; // css name => .self.extend { width: 200 }
+		CSSCName _name;
 
 		friend class RootStyleSheets;
 		friend class CStyleSheetsClass;

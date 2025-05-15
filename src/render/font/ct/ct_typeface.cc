@@ -758,7 +758,7 @@ Typeface::ImageOut Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	//auto path = fs_documents("test.tga");
 	//auto write = fs_write_file_sync(path, *image, data.size());
 	//Qk_DLog("#Typeface_Mac#onGetImage,write:%d,%s", write, path.c_str());
-	
+
 	Pixel pixel(
 		PixelInfo(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType), image
 	);
