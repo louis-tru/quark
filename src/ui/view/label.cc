@@ -51,11 +51,11 @@ namespace qk {
 			_IfParent()
 				_parent->onChildLayoutChange(this, kChild_Layout_Text);
 			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
-		} else if (mark & kInput_Status) {
-			unmark(kInput_Status);
+		} else if (mark & kText_Options) {
+			unmark(kText_Options);
 			_IfParent()
 				if (_parent->viewType() == kText_ViewType) {
-					_parent->mark_layout(kInput_Status, true);
+					_parent->mark_layout(kText_Options, true);
 					return;
 				}
 			text_config(shared_app()->defaultTextOptions());
@@ -101,7 +101,7 @@ namespace qk {
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
-		Sp<TextLines> lines = new TextLines(this, text_align_value(), size);
+		Sp<TextLines> lines = new TextLines(this, text_align_value(), {{}, size});
 		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();

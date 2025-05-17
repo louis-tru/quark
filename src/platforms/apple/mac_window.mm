@@ -62,13 +62,13 @@ QkWindowDelegate* WindowImpl::delegate() {
 	CGFloat scale = screen.backingScaleFactor;
 
 	float w = opts.frame.size.x() > 0 ?
-		opts.frame.size.x() / scale: screen.frame.size.width / 2;
+		opts.frame.size.x(): screen.frame.size.width / 2;
 	float h = opts.frame.size.y() > 0 ?
-		opts.frame.size.y() / scale: screen.frame.size.height / 2;
+		opts.frame.size.y(): screen.frame.size.height / 2;
 	float x = opts.frame.origin.x() > 0 ?
-		opts.frame.origin.x() / scale: (screen.frame.size.width - w) / 2.0;
+		opts.frame.origin.x(): (screen.frame.size.width - w) / 2.0;
 	float y = opts.frame.origin.y() > 0 ?
-		opts.frame.origin.y() / scale: (screen.frame.size.height - h) / 2.0;
+		opts.frame.origin.y(): (screen.frame.size.height - h) / 2.0;
 
 	NSRect rect = NSMakeRect(x, y, w, h);
 

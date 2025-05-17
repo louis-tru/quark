@@ -912,7 +912,7 @@ namespace qk {
 
 	void Scroll::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			set_scroll_size_Rt(layout_typesetting_box());
+			set_scroll_size_Rt(layout_typesetting_float());
 		}
 	}
 

@@ -68,12 +68,12 @@ namespace qk {
 		enum LayoutMark: uint32_t {
 			kLayout_None              = (0),      /* 没有任何标记 */
 			kLayout_Size_Width        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
-			kLayout_Size_Height       = (1 << 1),
+			kLayout_Size_Height       = (1 << 1), /* 同上 */
 			kLayout_Child_Size        = (1 << 2), /* 子视图布局尺寸改变 */
 			kLayout_Typesetting       = (1 << 3), /* 布局内容偏移, 需要重新对子布局排版 */
-			kTransform_Origin         = (1 << 4),
+			kTransform_Origin         = (1 << 4), /* 变化 Transform Origin */
 			kInput_Status             = (1 << 5), /* 输入状态这不包含布局的改变 */
-			kText_Config              = (1 << 6), /* 文本配置变化,可能影响子视图 */
+			kText_Options             = (1 << 6), /* 文本配置变化,可能影响子视图 */
 			kScroll                   = (1 << 7), /* scroll status change */
 			kStyle_Class              = (1 << 8), /* 变化class引起的样式变化 */
 			// RECURSIVE MARKS

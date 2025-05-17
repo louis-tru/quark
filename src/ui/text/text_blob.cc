@@ -245,7 +245,7 @@ namespace qk {
 		// 	KEEP_ALL,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
 		// };
 
-		auto no_limit = _lines->limit_size().x() == 0;
+		auto no_limit = _lines->limit_range().end.x() == 0;
 
 		if (_disable_auto_wrap || no_limit || // 不使用自动wrap
 				text_white_space == TextWhiteSpace::NoWrap ||
@@ -316,7 +316,7 @@ namespace qk {
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
 
-		float limitX = _lines->limit_size().width();
+		float limitX = _lines->limit_range().end.width();
 		float origin = _lines->pre_width();
 		int   len = fg.glyphs().length();
 		int   start = 0, j = 0;
@@ -379,7 +379,7 @@ namespace qk {
 		auto  text_size = _opts->text_size().value;
 		auto  line_height = _opts->text_line_height().value;
 
-		float limitX = _lines->limit_size().width();
+		float limitX = _lines->limit_range().end.width();
 		float origin = _lines->pre_width();
 		int   len = glyphs.length();
 		int   start = 0, j = 0;
@@ -418,7 +418,7 @@ namespace qk {
 		auto origin = _lines->pre_width();
 		auto offset = fg.getHorizontalOffset();
 		auto overflow = _opts->text_overflow_value();
-		auto limitX = _lines->limit_size().width();
+		auto limitX = _lines->limit_range().end.width();
 		auto text_size = _opts->text_size().value;
 		auto line_height = _opts->text_line_height().value;
 
@@ -449,7 +449,7 @@ namespace qk {
 				} else { // ELLIPSIS or ELLIPSIS_CENTER
 
 					Array<Unichar> uinchar({46,46,46});
-					auto& ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
+					auto ellipsis = _opts->text_family().value->makeFontGlyphs(uinchar, _opts->font_style(), text_size)[0];
 					auto ellipsis_offset = ellipsis.getHorizontalOffset();
 					auto ellipsis_width = ellipsis_offset.back();
 					auto limit2 = limitX - ellipsis_width.x();
@@ -474,7 +474,6 @@ namespace qk {
 							{ellipsis.typeface(), text_size, line_height, j, _blobOut},
 							ellipsis.glyphs(), ellipsis_offset, false
 						);
-						_blobOut->back().origin = limitX - ellipsis_width.x(); // align right
 						_lines->set_pre_width(limitX);
 
 					} else { // limit2 < 0.0, only add ellipsis

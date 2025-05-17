@@ -33,17 +33,12 @@
 namespace qk { namespace js {
 
 	struct JSONStringify {
+	private:
 		uint32_t _indent;
 		Array<String>* _rv;
 		Worker* worker;
 		Persistent<JSSet> _set;
 		WeakBuffer wbuff;
-
-		JSONStringify(Worker* worker) : _indent(0), _rv(nullptr), worker(worker) {
-			_set.reset(worker, worker->newSet());
-		}
-
-		~JSONStringify() { _set.reset(); }
 
 		void push_indent() {
 			for (uint32_t i = 0; i < _indent; i++) _rv->push(' ');
@@ -63,7 +58,8 @@ namespace qk { namespace js {
 					//  _rv->push('"');
 					_rv->push(':'); _rv->push(' ');
 					bool rv = stringify( arg->get(worker, key) ); // value
-					if ( ! rv ) return false;
+					if ( ! rv )
+						return false;
 					j++;
 				}
 				_indent -= 2;
@@ -121,7 +117,7 @@ namespace qk { namespace js {
 
 			if(arg->isString()) {
 				_rv->push('"');
-				_rv->push( arg->toString(worker)->value(worker) );
+				//_rv->push( arg->toString(worker)->value(worker) );
 				_rv->push('"');
 			}
 			else if (arg->isFunction()) {
@@ -155,7 +151,7 @@ namespace qk { namespace js {
 					} else {
 						rv = stringify_object(o);
 					}
-					return _set->deleteFor(worker, o);
+					//rv = _set->deleteFor(worker, o);
 				}
 			}
 			else if(arg->isInt32()) {
@@ -184,7 +180,13 @@ namespace qk { namespace js {
 			else if(arg->isUndefined()) {
 				_rv->push("undefined");
 			}
-			return true;
+			return rv;
+		}
+
+	public:
+
+		JSONStringify(Worker* worker) : _indent(0), _rv(nullptr), worker(worker) {
+			_set.reset(worker, worker->newSet());
 		}
 
 		bool stringify_console_styled(JSValue* arg, Array<String>* out) {
@@ -195,7 +197,7 @@ namespace qk { namespace js {
 	};
 
 	struct NativeConsole {
-		static void print_to(FunctionArgs args, void(*print)(cString&)) {
+		static bool print_to(FunctionArgs args, void(*print)(cString&)) {
 			Js_Worker(args);
 			Array<String> rv;
 
@@ -203,13 +205,20 @@ namespace qk { namespace js {
 				if (i)
 					rv.push(' ');
 				if (args[i]->isObject()) {
-					if (!JSONStringify(worker).stringify_console_styled(args[i], &rv))
-						return; // error
+					if (!JSONStringify(worker).stringify_console_styled(args[i], &rv)) {
+						return false;
+					}
 				} else {
-					rv.push( args[i]->toString(worker)->value(worker) );
+					auto str = args[i]->toString(worker);
+					if (str)
+						rv.push( str->value(worker) );
+					else
+						return false;
 				}
 			}
 			print(rv.join(String()));
+
+			return true;
 		}
 
 		static void call_origin(FunctionArgs args, JSValue* name) {
@@ -230,16 +239,16 @@ namespace qk { namespace js {
 				Js_Property(_error, exports->get(worker, "error"));
 				Js_Property(_clear, exports->get(worker, "clear"));
 				Js_Method(log, {
-					print_to(args, log_println);
-					NativeConsole::call_origin(args, worker->strs()->_log());
+					if (print_to(args, log_println))
+						NativeConsole::call_origin(args, worker->strs()->_log());
 				});
 				Js_Method(warn, {
-					print_to(args, log_println_warn);
-					NativeConsole::call_origin(args, worker->strs()->_warn());
+					if (print_to(args, log_println_warn))
+						NativeConsole::call_origin(args, worker->strs()->_warn());
 				});
 				Js_Method(error, {
-					print_to(args, log_println_error);
-					NativeConsole::call_origin(args, worker->strs()->_error());
+					if (print_to(args, log_println_error))
+						NativeConsole::call_origin(args, worker->strs()->_error());
 				});
 				Js_Method(clear, {
 					log_fflush();
@@ -480,7 +489,7 @@ namespace qk { namespace js {
 				{ HandleScope scope(worker);
 					MixObject* mix = MixObject::mix(args[0]);
 					String name = args[1]->toString(worker)->value(worker);
-					String func = String("_on").append(name).append("Native").append(String(id));
+					String func = String("_on").append(name).append("_native").append(String(id));
 					bool ok = mix->addEventListener(name, func, id);
 					if (ok) {
 						mix->handle()->set(worker, worker->newStringOneByte(func), args[2]);
@@ -505,7 +514,7 @@ namespace qk { namespace js {
 					MixObject* mix = MixObject::mix(args[0]);
 					bool ok = mix->removeEventListener(name, id);
 					if ( ok ) {
-						String func = String("_on").append(name).append("Native").append(String(id));
+						String func = String("_on").append(name).append("_native").append(String(id));
 						mix->handle()->deleteFor(worker, worker->newStringOneByte(func) );
 					}
 					Js_ReturnBool(ok);

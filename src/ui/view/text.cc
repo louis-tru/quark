@@ -48,7 +48,8 @@ namespace qk {
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			auto size = content_size();
 			auto v = first();
-			_lines = new TextLines(this, text_align_value(), get_text_lines_limit_size(), _wrap_x);
+
+			_lines = new TextLines(this, text_align_value(), get_layout_content_limit_range(true), _wrap_x);
 			_lines->set_init_line_height(text_size().value, text_line_height().value, false);
 
 			_blob_visible.clear();
@@ -62,15 +63,16 @@ namespace qk {
 
 			if (v) {
 				do {
-					v->layout_text(*_lines, &cfg);
+					if (v->visible())
+						v->layout_text(*_lines, &cfg);
 					v = v->next();
 				} while(v);
 			}
 			_lines->finish();
 
 			Vec2 new_size(
-				_wrap_x ? solve_layout_content_wrap_limit_width(_lines->max_width()): size.x(),
-				_wrap_y ? solve_layout_content_wrap_limit_height(_lines->max_height()): size.y()
+				_wrap_x ? solve_layout_content_width_limit(_lines->max_width()): size.x(),
+				_wrap_y ? solve_layout_content_height_limit(_lines->max_height()): size.y()
 			);
 
 			if (new_size != size) {
@@ -79,17 +81,17 @@ namespace qk {
 					_parent->onChildLayoutChange(this, kChild_Layout_Size);
 			}
 
-			unmark(kLayout_Typesetting | kText_Config);
+			unmark(kLayout_Typesetting | kText_Options);
 			mark(kRecursive_Visible_Region, true); // force test region and lines region
 		}
-		else if (mark_ & kText_Config) {
+		else if (mark_ & kText_Options) {
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			auto v = first();
 			while(v) {
 				v->text_config(&cfg);
 				v = v->next();
 			}
-			unmark(kText_Config);
+			unmark(kText_Options);
 		}
 	}
 

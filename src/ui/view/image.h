@@ -43,8 +43,8 @@ namespace qk {
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void draw(UIDraw *render) override;
 	protected:
-		virtual float solve_layout_content_width(Size &parent_layout_size) override;
-		virtual float solve_layout_content_height(Size &parent_layout_size) override;
+		virtual float solve_layout_content_width_pre(Size &parent_layout_size) override;
+		virtual float solve_layout_content_height_pre(Size &parent_layout_size) override;
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 		virtual ImagePool* imgPool() override;
 	};

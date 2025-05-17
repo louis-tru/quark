@@ -39,9 +39,9 @@
 
 namespace qk {
 
-	TextLines::TextLines(View *host, TextAlign text_align, Vec2 limit_size, bool host_wrap_x)
+	TextLines::TextLines(View *host, TextAlign text_align, Region limit_range, bool host_wrap_x)
 		: _pre_width(0), _ignore_single_white_space(false), _have_init_line_height(false)
-		, _limit_size(limit_size), _host(host), _host_wrap_x(host_wrap_x)
+		, _limit_range(limit_range), _host(host), _host_wrap_x(host_wrap_x)
 		, _text_align(text_align), _visible_region(false)
 	{
 		clear();
@@ -119,10 +119,10 @@ namespace qk {
 		}
 		if (line_height != 0) { // value, not auto
 			if (line_height <= 2) { // use percentage
-				if (_limit_size.y() == 0) { // height == wrap y, no limit
+				if (_limit_range.end.y() == 0) { // height == wrap y, no limit
 					return set_line_height(top, bottom); // use auto
 				}
-				line_height *= _limit_size.y(); // use percentage
+				line_height *= _limit_range.end.y(); // use percentage
 			}
 			if (line_height > _last->line_height) { // reset line_Height
 				auto height = top + bottom;
@@ -164,36 +164,43 @@ namespace qk {
 		finish_text_blob_pre();
 		finish_line();
 
-		auto width = _host_wrap_x ? _max_width: _limit_size.x();
+		float host_width = _host_wrap_x ?
+			Float32::max(_max_width, _limit_range.origin.x()): _limit_range.end.x();
 
 		for (auto &line: _lines) {
 			switch(_text_align) {
 				default:
 				case TextAlign::Left: break;
-				case TextAlign::Center: line.origin = (width - line.width) / 2; break;
-				case TextAlign::Right:  line.origin = width - line.width; break;
+				case TextAlign::Center: line.origin = (host_width - line.width) / 2; break;
+				case TextAlign::Right:  line.origin = host_width - line.width; break;
 			}
 			if ( line.origin < _min_origin) {
 				_min_origin = line.origin;
 			}
 
-			auto top = line.top;
-			auto bottom = line.bottom;
+			float top = line.top;
+			float bottom = line.bottom;
 
 			for (auto view: _preView[line.line]) {
-				auto size_y = view->layout_size().layout.y();
-				auto x = _last->origin + view->layout_offset().x();
+				float size_y = view->layout_size().layout.y();
+				//auto x = _last->origin + view->layout_offset().x();
+				float x = line.origin + view->layout_offset().x();
 				float y;
 
 				switch (view->layout_align()) {
 					case Align::Top:
-						y = _last->baseline - top; break;
+						//y = _last->baseline - top; break;
+						y = line.start_y; break;
 					case Align::Middle:
-						y = _last->baseline - (size_y + top - bottom) / 2; break;
+						//y = _last->baseline - (size_y + top - bottom) / 2; break;
+						y = line.start_y + (line.line_height - size_y) * 0.5; break;
+						break;
 					case Align::Bottom:
-						y = _last->baseline - size_y + bottom; break;
+						//y = _last->baseline - size_y + bottom; break;
+						y = line.end_y - size_y; break;
 					default: // bottom and baseline align
-						y = _last->baseline - size_y; break;
+						//y = _last->baseline - size_y; break;
+						y = line.baseline - size_y; break;
 				}
 				view->set_layout_offset(Vec2(x, y));
 			}

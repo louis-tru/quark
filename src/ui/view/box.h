@@ -127,13 +127,6 @@ namespace qk {
 
 	protected:
 		/**
-			* @method solve_layout_forward(mark)
-			* @safe Rt
-			* @note Can only be used in rendering threads
-			*/
-		uint32_t solve_layout_forward(uint32_t mark);
-
-		/**
 			* @method set_content_size(content_size)
 			* @safe Rt
 			* @note Can only be used in rendering threads
@@ -141,54 +134,66 @@ namespace qk {
 		void set_content_size(Vec2 content_size);
 
 		/**
-		 * @method solve_layout_content_width()
+		 * @method solve_layout_content_width_pre()
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		virtual float solve_layout_content_width(Size &parent_layout_size);
+		virtual float solve_layout_content_width_pre(Size &parent_layout_size);
 
 		/**
-		 * @method solve_layout_content_height()
+		 * @method solve_layout_content_height_pre()
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		virtual float solve_layout_content_height(Size &parent_layout_size);
+		virtual float solve_layout_content_height_pre(Size &parent_layout_size);
 
 		/**
-		 * @method solve_wrap_content_width()
+		 * @method solve_layout_content_width_limit()
 		 * @safe Rt
 		*/
-		float solve_layout_content_wrap_limit_width(float inside_width);
+		float solve_layout_content_width_limit(float checkValue);
 
 		/**
-		 * @method solve_wrap_content_height()
+		 * @method solve_layout_content_height_limit()
 		 * @safe Rt
 		*/
-		float solve_layout_content_wrap_limit_height(float inside_height);
+		float solve_layout_content_height_limit(float checkValue);
 
 		/**
-		 * @method get_max_width_limit_value()
+		 * @method get_layout_content_min_width_limit()
 		 * @safe Rt
 		*/
-		float get_max_width_limit_value(const Size &parent_layout_size);
+		float get_layout_content_min_width_limit(const Size &parent_layout_size);
 
 		/**
-		 * @method get_max_height_limit_value()
+		 * @method get_layout_content_min_height_limit()
 		 * @safe Rt
 		*/
-		float get_max_height_limit_value(const Size &parent_layout_size);
+		float get_layout_content_min_height_limit(const Size &parent_layout_size);
 
 		/**
-		 * @method layout_typesetting_box
+		 * @method get_layout_content_max_width_limit()
 		 * @safe Rt
 		*/
-		Vec2 layout_typesetting_box();
+		float get_layout_content_max_width_limit(const Size &parent_layout_size);
 
 		/**
-		 * @method get_text_lines_limit_size()
+		 * @method get_layout_content_max_height_limit()
 		 * @safe Rt
 		*/
-		Vec2 get_text_lines_limit_size();
+		float get_layout_content_max_height_limit(const Size &parent_layout_size);
+
+		/**
+		 * @method layout_typesetting_float
+		 * @safe Rt
+		*/
+		Vec2 layout_typesetting_float();
+
+		/**
+		 * @method get_layout_content_limit_range()
+		 * @safe Rt
+		*/
+		Region get_layout_content_limit_range(bool onlyX);
 
 		// ----------------------- define private props -----------------------
 	private:

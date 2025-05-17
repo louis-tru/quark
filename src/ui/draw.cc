@@ -382,7 +382,7 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::drawTextBlob(TextOptions *v, TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) {
+	void UIDraw::drawTextBlob(TextOptions *v, Vec2 inOffset, TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) {
 		auto size = v->text_size().value;
 		auto shadow = v->text_shadow().value;
 
@@ -392,9 +392,12 @@ namespace qk {
 			for (auto i: blob_visible) {
 				auto &blob = _blob[i];
 				auto &line = lines->line(blob.line);
-				auto offset_x = blob.blob.offset.front().x();
+				auto offset_x = blob.blob.offset.front().x() + inOffset.x();
 				auto &rect = _cache->getRectPath({
-					{line.origin + blob.origin + offset_x, line.baseline - blob.ascent},
+					{
+						line.origin + blob.origin + offset_x,
+						line.baseline - blob.ascent + inOffset.y()
+					},
 					{blob.blob.offset.back().x()-offset_x, blob.height},
 				});
 				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
@@ -411,6 +414,8 @@ namespace qk {
 				filter.val0 = shadow.size;
 				paint.filter = &filter;
 			}
+			shadow.x += inOffset.x();
+			shadow.y += inOffset.y();
 			for (auto i: blob_visible) {
 				auto &blob = _blob[i];
 				auto &line = lines->line(blob.line);
@@ -427,7 +432,10 @@ namespace qk {
 			for (auto i: blob_visible) {
 				auto &blob = _blob[i];
 				auto &line = lines->line(blob.line);
-				_canvas->drawTextBlob(&blob.blob, {line.origin + blob.origin, line.baseline}, size, paint);
+				_canvas->drawTextBlob(&blob.blob, {
+					line.origin + blob.origin + inOffset.x(),
+					line.baseline + inOffset.y()
+				}, size, paint);
 			}
 			// Qk_DLog("Color: %f, %f, %f", paint.color.r(), paint.color.g(), paint.color.b());
 		} // if (v->text_color().value.a())
@@ -509,6 +517,13 @@ namespace qk {
 		drawBoxColor(v, data);
 		drawBoxFill(v, data);
 		drawBoxBorder(v, data);
+		
+		Vec2 offset(v->_padding_left, v->_padding_top);
+
+		_IfBorder(v) {
+			offset[0] += _border->width[3];
+			offset[1] += _border->width[0];
+		}
 
 		if (v->_clip) {
 			if (v->_first.load() || v->_blob_visible.length()) {
@@ -517,7 +532,7 @@ namespace qk {
 				_canvas->save();
 				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
 				if (v->_blob_visible.length()) {
-					drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
+					drawTextBlob(v, offset, *v->_lines, v->_blob, v->_blob_visible);
 				}
 				UIDraw::visitView(v);
 				_canvas->restore(); // cancel clip
@@ -525,7 +540,7 @@ namespace qk {
 			}
 		} else {
 			if (v->_blob_visible.length()) {
-				drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
+				drawTextBlob(v, offset, *v->_lines, v->_blob, v->_blob_visible);
 			}
 			UIDraw::visitView(v);
 		}
@@ -637,7 +652,7 @@ namespace qk {
 	void UIDraw::visitLabel(Label* v) {
 		if (v->_blob_visible.length()) {
 			_canvas->setTranslate(v->position());
-			drawTextBlob(v, *v->_lines, v->_blob, v->_blob_visible);
+			drawTextBlob(v, {}, *v->_lines, v->_blob, v->_blob_visible);
 		}
 		UIDraw::visitView(v);
 	}

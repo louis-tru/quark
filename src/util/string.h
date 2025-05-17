@@ -122,7 +122,7 @@ namespace qk {
 		StringImpl& operator+=(const StringImpl& s);
 		StringImpl& operator+=(const T s);
 		// append string to current this
-		StringImpl& append(const T* s, uint32_t len = 0); // operator+=
+		StringImpl& append(const T* s, int len = -1); // operator+=
 		StringImpl& append(const StringImpl& s); // operator+=
 		StringImpl& append(const T s); // operator+=
 		// collapse to array buffer
@@ -478,7 +478,9 @@ namespace qk {
 	}
 
 	template <typename T, typename A>
-	StringImpl<T, A>& StringImpl<T, A>::append(const T* s, uint32_t len) {
+	StringImpl<T, A>& StringImpl<T, A>::append(const T* s, int len) {
+		if (len == -1)
+			len = _Str::strlen(s);
 		if (len > 0) {
 			uint32_t len_raw = length();
 			auto str = (T*)realloc(len_raw + len, (Realloc)&A::realloc, &A::free, sizeof(T));

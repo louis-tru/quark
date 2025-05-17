@@ -60,7 +60,7 @@ namespace qk {
 
 	void Root::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			layout_typesetting_box();
+			layout_typesetting_float();
 		}
 		if (mark & (kLayout_Typesetting | kTransform_Origin)) {
 			solve_origin_value(); // check matrix_origin change

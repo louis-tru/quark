@@ -67,9 +67,9 @@ namespace qk {
 			_CheckParent();
 
 			float main_limit = is_horizontal ? (
-				is_wrap_main ? get_max_width_limit_value(_parent->layout_size()): cur.x()
+				is_wrap_main ? get_layout_content_max_width_limit(_parent->layout_size()): cur.x()
 			): (
-				is_wrap_main ? get_max_height_limit_value(_parent->layout_size()): cur.y()
+				is_wrap_main ? get_layout_content_max_height_limit(_parent->layout_size()): cur.y()
 			);
 			do {
 				if (v->visible()) {
@@ -105,13 +105,13 @@ namespace qk {
 
 			float main_size = is_wrap_main ? (
 				is_horizontal ?
-				solve_layout_content_wrap_limit_width(max_main): solve_layout_content_wrap_limit_height(max_main)
+				solve_layout_content_width_limit(max_main): solve_layout_content_height_limit(max_main)
 			) : (
 				is_horizontal ? cur.x(): cur.y()
 			);
 			float cross_size = is_wrap_main ? (
 				is_horizontal ?
-				solve_layout_content_wrap_limit_height(total_cross): solve_layout_content_wrap_limit_width(total_cross)
+				solve_layout_content_height_limit(total_cross): solve_layout_content_width_limit(total_cross)
 			) : (
 				is_horizontal ? cur.y(): cur.x()
 			);
@@ -161,8 +161,8 @@ namespace qk {
 			new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
 		} else {
 			new_size = Vec2{
-				wrap_x ? solve_layout_content_wrap_limit_width(0): cur.x(),
-				wrap_y ? solve_layout_content_wrap_limit_height(0): cur.y(),
+				wrap_x ? solve_layout_content_width_limit(0): cur.x(),
+				wrap_y ? solve_layout_content_height_limit(0): cur.y(),
 			};
 		} // end if (first())
 

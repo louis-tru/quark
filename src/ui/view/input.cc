@@ -688,7 +688,8 @@ namespace qk {
 
 	Vec2 Input::layout_typesetting_input_text() {
 		auto size = content_size();
-		_lines = new TextLines(this, text_align_value(), get_text_lines_limit_size(), _wrap_x);
+
+		_lines = new TextLines(this, text_align_value(), get_layout_content_limit_range(true), _wrap_x);
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;
@@ -763,8 +764,8 @@ namespace qk {
 		_lines->finish();
 
 		Vec2 new_size(
-			_wrap_x ? solve_layout_content_wrap_limit_width(_lines->max_width()): size.x(),
-			_wrap_y ? solve_layout_content_wrap_limit_height(_lines->max_height()): size.y()
+			_wrap_x ? solve_layout_content_width_limit(_lines->max_width()): size.x(),
+			_wrap_y ? solve_layout_content_height_limit(_lines->max_height()): size.y()
 		);
 
 		if (new_size != size) {

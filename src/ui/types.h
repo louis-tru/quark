@@ -102,6 +102,7 @@ namespace qk {
 		SpaceAround, // 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
 		SpaceEvenly, // 每根轴线两侧的间隔都相等,这包括边框的间距
 		Stretch, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
+		// TODO ...
 	};
 
 	// view align

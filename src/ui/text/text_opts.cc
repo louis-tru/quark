@@ -121,7 +121,7 @@ namespace qk {
 	void TextOptions::set_text_color(TextColor value, bool isRt) {
 		if (value != _text_color) {
 			_text_color = value;
-			onTextChange(View::kText_Config, 2, isRt);
+			onTextChange(View::kText_Options, 2, isRt);
 		}
 	}
 
@@ -225,7 +225,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_shadow) {
 			_secondaryProps->text_shadow = value;
-			onTextChange(View::kText_Config, 5, isRt);
+			onTextChange(View::kText_Options, 5, isRt);
 		}
 	}
 
@@ -233,7 +233,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_background_color) {
 			_secondaryProps->text_background_color = value;
-			onTextChange(View::kText_Config, 6, isRt);
+			onTextChange(View::kText_Options, 6, isRt);
 		}
 	}
 
@@ -249,7 +249,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_slant) {
 			_secondaryProps->text_slant = _secondaryProps->text_slant_value = value;
-			onTextChange(View::kText_Config, 8, isRt);
+			onTextChange(View::kText_Options, 8, isRt);
 		}
 	}
 
@@ -257,7 +257,7 @@ namespace qk {
 		initSecondaryProps();
 		if (value != _secondaryProps->text_decoration) {
 			_secondaryProps->text_decoration = _secondaryProps->text_decoration_value = value;
-			onTextChange(View::kText_Config, 9, isRt);
+			onTextChange(View::kText_Options, 9, isRt);
 		}
 	}
 
@@ -286,7 +286,7 @@ namespace qk {
 	}
 
 	Vec2 TextOptions::compute_layout_size(cString& value) {
-		TextLines lines(getViewForTextOptions(), text_align_value(), Vec2(), false);
+		TextLines lines(getViewForTextOptions(), text_align_value(), {/*no limit*/}, false);
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 		Array<TextBlob> blob;
 		TextBlobBuilder(&lines, this, &blob).make(value);

@@ -82,7 +82,7 @@ namespace qk {
 		void drawBoxBorder(Box *box, BoxData &data);
 		void drawBoxEnd(Box *box, BoxData &data);
 		void drawScrollBar(Box *box, ScrollBase *v);
-		void drawTextBlob(TextOptions *opts,
+		void drawTextBlob(TextOptions *opts, Vec2 inOffset,
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);
 		Window     *_window;

@@ -47,37 +47,37 @@ namespace qk {
 		Box::layout_forward(mark);
 	}
 
-	float Image::solve_layout_content_width(Size &pSize) {
-		auto result = Box::solve_layout_content_width(pSize);
+	float Image::solve_layout_content_width_pre(Size &pSize) {
+		auto result = Box::solve_layout_content_width_pre(pSize);
 		auto src = source(); // Rt
 
 		if (src && src->type()) {
 			if (pSize.wrap_x) { // wrap x
-				auto v = Box::solve_layout_content_height(pSize);
+				auto v = Box::solve_layout_content_height_pre(pSize);
 				result = pSize.wrap_y ? src->width():
 					v / src->height() * src->width();
 			}
 		}
 		if (pSize.wrap_x) {
-			result = solve_layout_content_wrap_limit_width(result);
+			result = solve_layout_content_width_limit(result);
 			pSize.wrap_x = false;
 		}
 		return result;
 	}
 
-	float Image::solve_layout_content_height(Size &pSize) {
-		auto result = Box::solve_layout_content_height(pSize);
+	float Image::solve_layout_content_height_pre(Size &pSize) {
+		auto result = Box::solve_layout_content_height_pre(pSize);
 		auto src = source(); // Rt
 
 		if (src && src->type()) {
 			if (pSize.wrap_y) { // wrap y
-				auto v = Box::solve_layout_content_width(pSize);
+				auto v = Box::solve_layout_content_width_pre(pSize);
 				result = pSize.wrap_x ? src->height():
 					v / src->width() * src->height();
 			}
 		}
 		if (pSize.wrap_y) {
-			result = solve_layout_content_wrap_limit_height(result);
+			result = solve_layout_content_height_limit(result);
 			pSize.wrap_y = false;
 		}
 		return result;

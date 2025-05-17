@@ -50,6 +50,7 @@ export interface Options {
 class RootViewController extends ViewController {
 	constructor(window: Window) {
 		super({}, { window, children: [], owner: null as any });
+		(this as any).dom = window.root;
 	}
 	get metaView() { return this.window.root }
 	setState() { throw Error.new('Access forbidden.') }

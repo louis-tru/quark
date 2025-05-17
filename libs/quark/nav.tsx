@@ -300,7 +300,7 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	protected render() {
 		return (
 			<free width="100%" height="100%" clip={!!this.props.clip}>
-				<free ref="page" width="100%" height="100%" />
+				<free width="100%" height="100%" ref="page" />
 				<free
 					ref="navbar"
 					width="100%"
@@ -445,7 +445,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 
 	@link hidden = false;
 	@link backIconVisible = true;
-	@link backTextVisible = false;
+	@link backTextVisible = true;
 	@link backTextColor: types.ColorStrIn = '#fff';
 	@link titleTextColor: types.ColorStrIn = '#147EFF';
 
@@ -455,6 +455,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	 * @method setBackText() set navbar back text
 	 */
 	setBackText(value: string) {
+		value = 'ABCDEFGHIJKMLN';
 		if (!this.hidden)
 			this.refAs<Label>('back_text').value = value;
 		this._backText = value;
@@ -464,8 +465,8 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	 * @method setTitleText() set navbar title text
 	 */
 	setTitleText(value: string) {
-		if (!this.hidden)
-			this.refAs<Text>('title').value = value;
+		//if (!this.hidden)
+		//	this.refAs<Text>('title').value = value;
 		this._titleText = value;
 	}
 
@@ -477,51 +478,68 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 		return (
 			this.hidden ? null:
 			<free width="100%" height="100%" align="centerBottom" visible={false}>
-				<flex width="100%" height="100%">
-					<button
-						minWidth="10%"
-						maxWidth="40%"
-						height="100%"
-						paddingLeft={5}
-						textColor={this.backTextColor}
-						textLineHeight={1} // 100%
-						textSize={16}
-						onClick={this._handleBack}
-					>
-						<text
-							align="middle" textColor={this.backTextColor}
-							textFamily="iconfont" textSize={20} value={"\uedc5"} visible={this.backIconVisible}
-						/>
-						<label ref="back_text" textOverflow="ellipsis" visible={this.backTextVisible} value={this._backText} />
-					</button>
-					<matrix ref="title_mat" weight={1} height="100%" marginLeft={5}>
-						<text
-							ref="title"
-							width="100%"
-							height="100%"
-							textColor={this.titleTextColor}
-							textLineHeight={1}
-							textSize={16}
-							textWhiteSpace="noWrap"
-							textWeight="bold"
-							textOverflow="ellipsisCenter"
-							textAlign="center"
-							value={this._titleText}
-						/>
-					</matrix>
-					<box
-						minWidth="10%"
-						maxWidth="40%"
-						height="100%"
-						marginLeft={5}
-					>{this.children}</box>
-				</flex>
 				{this.renderBody()}
 			</free>
 		);
 	}
 
-	protected renderBody() {}
+	protected renderBody() {
+		let showBack = true;//!this.page.isFirstPage;
+		return (
+			<flex width="100%" height="100%" backgroundColor="#00f">
+				<button
+					minWidth="10%"
+					maxWidth="40%"
+					height="100%"
+					paddingLeft={5}
+					textColor={this.backTextColor}
+					textLineHeight={1} // 100%
+					textSize={18}
+					onClick={this._handleBack}
+					textFamily="iconfont"
+					value={showBack && this.backIconVisible ? "\uedc5": ""}
+					backgroundColor="#f00"
+					textWhiteSpace="noWrap"
+					// weight={1}
+				>
+					<label
+						ref="back_text"
+						textFamily="default"
+						textSize={16}
+						textOverflow="ellipsis"
+						visible={showBack && this.backTextVisible}
+						value={this._backText}
+					/>
+				</button>
+				{/* <matrix ref="title_mat" weight={1} height="100%" marginLeft={5} backgroundColor="#0f0"> */}
+				<text
+					// ref="title"
+					weight={1}
+					ref="title_mat"
+					// width="100%"
+					height="100%"
+					textColor={this.titleTextColor}
+					textLineHeight={1}
+					textSize={16}
+					textWhiteSpace="noWrap"
+					textWeight="bold"
+					textOverflow="ellipsisCenter"
+					textAlign="center"
+					value={this._titleText}
+					backgroundColor="#0f0"
+				/>
+				{/* </matrix> */}
+				<box
+					minWidth="10%"
+					maxWidth="40%"
+					height="100%"
+					marginLeft={5}
+					backgroundColor="#0ff"
+					// weight={1}
+				>{this.children}</box>
+			</flex>
+		);
+	}
 
 	intoLeave(time: number) {
 		if ( this.navStatus == NavStatus.Foreground && time &&
@@ -591,6 +609,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 	get nextPage() { return this._nextPage }
 	get collection() { return this.owner as NavPageCollection }
 	get isCurrent() { return this.collection.isCurrent(this) }
+	get isFirstPage() { return this.navStack.length == 0 || this.navStack.front === this }
 
 	@link backgroundColor: types.ColorStrIn = '#fff';
 	@link
