@@ -170,7 +170,6 @@ namespace qk {
 		}
 		_CheckParent(checkValue);
 		auto pSize = _parent->layout_size();
-		auto size = pSize.content.y();
 		float limit_min = get_layout_content_min_height_limit(pSize);
 		float limit_max = get_layout_content_max_height_limit(pSize);
 
@@ -182,7 +181,7 @@ namespace qk {
 
 	float Box::get_layout_content_min_width_limit(const Size &pSize) {
 		Qk_ASSERT_NE(_max_width.kind, BoxSizeKind::None);
-		auto size = pSize.content.x();
+		float size = pSize.content.x();
 		float limit_min = 0;
 		switch(_min_width.kind) {
 			default: break; // Auto, use 0
@@ -211,7 +210,7 @@ namespace qk {
 
 	float Box::get_layout_content_min_height_limit(const Size &pSize) {
 		Qk_ASSERT_NE(_max_height.kind, BoxSizeKind::None);
-		auto size = pSize.content.x();
+		float size = pSize.content.y();
 		float limit_min = 0;
 		switch(_min_height.kind) {
 			default: break; // AUTO, use 0
@@ -240,7 +239,7 @@ namespace qk {
 
 	float Box::get_layout_content_max_width_limit(const Size &pSize) {
 		Qk_ASSERT_NE(_max_width.kind, BoxSizeKind::None);
-		auto size = pSize.content.x();
+		float size = pSize.content.x();
 		float limit_max = Float32::limit_max; // no limit
 
 		switch(_max_width.kind) {
@@ -269,7 +268,7 @@ namespace qk {
 
 	float Box::get_layout_content_max_height_limit(const Size &pSize) {
 		Qk_ASSERT_NE(_max_height.kind, BoxSizeKind::None);
-		auto size = pSize.content.y();
+		float size = pSize.content.y();
 		float limit_max = Float32::limit_max;
 
 		switch(_max_height.kind) {
@@ -1047,16 +1046,38 @@ namespace qk {
 				cur_x = solve_layout_content_width_limit(cur_x);
 			}
 
-			float offset_left = 0, offset_right = 0;
+			float left = 0, right = 0;
 			float offset_y = 0;
 			float line_width = 0, max_width = 0;
 			float line_height = 0;
+			Array<View*> centerV;
+
+			auto solveCenter = [&]() {
+				if (centerV.length()) {
+					float centerSize = (line_width - left - right);
+					float startOffset = (cur_x - centerSize) * 0.5;
+					if (left > startOffset) { // can't
+						startOffset = left;
+					} else {
+						float diff = (centerSize + startOffset) - (cur_x - right);
+						if (diff > 0) { // can't
+							startOffset -= diff;
+						}
+					}
+					for (auto v: centerV) {
+						v->set_layout_offset({startOffset, offset_y});
+						startOffset += v->layout_size().layout.x();
+					}
+					centerV.clear();
+				}
+			};
 
 			auto nextStep = [&](Vec2 size) {
 				auto new_line_width = line_width + size.x();
 				if (new_line_width > cur_x && line_width != 0) { // new line
+					solveCenter();
 					max_width = Float32::max(max_width, line_width); // select max
-					offset_left = offset_right = 0;
+					left = right = 0;
 					offset_y += line_height;
 					line_width = size.x();
 					line_height = size.y();
@@ -1071,36 +1092,30 @@ namespace qk {
 					auto size = v->layout_size().layout;
 					auto align = v->layout_align();
 					switch (align) {
+						default:
 						case Align::Start: // float start
 							nextStep(size);
-							v->set_layout_offset(Vec2(offset_left, offset_y));
-							offset_left += size.x();
+							v->set_layout_offset(Vec2(left, offset_y));
+							left += size.x();
 							break;
-						case Align::Center: // float end
-							// TODO ...
+						case Align::Center: // float center
+						case Align::CenterMiddle:
+						case Align::CenterBottom:
+							nextStep(size);
+							centerV.push(v);
 							break;
 						case Align::End: // float end
+						case Align::RightMiddle:
+						case Align::RightBottom:
 							nextStep(size);
-							v->set_layout_offset(Vec2(cur_x - offset_right - size.x(), offset_y));
-							offset_right += size.x();
-							break;
-						default: // new line
-							offset_y += line_height;
-							// offset_left = align == Align::Auto ? 0: // left
-							// 	align == Align::Center ? (cur_x - size.x()) * 0.5f: // center
-							// 	cur_x - size.x(); // right
-							offset_left = 0;
-							v->set_layout_offset({offset_left,offset_y});
-							max_width = Float32::max(max_width, offset_left + size.x());
-							offset_left = offset_right = 0;
-							line_width = line_height = 0;
-							offset_y += size.y();
+							v->set_layout_offset(Vec2(cur_x - right - size.x(), offset_y));
+							right += size.x();
 							break;
 					}
 				}
 				v = v->next();
 			} while(v);
-
+			solveCenter();
 			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
 		} else {
 			if ( _wrap_x ) { // wrap width
@@ -1239,7 +1254,6 @@ namespace qk {
 
 	void Box::set_layout_offset_free(Vec2 size) {
 		Vec2 offset;
-
 		switch(_align) {
 			case Align::Auto:
 			case Align::LeftTop: // left top
@@ -1277,7 +1291,6 @@ namespace qk {
 					(size.y() - _layout_size.y()));
 				break;
 		}
-
 		set_layout_offset(offset);
 	}
 

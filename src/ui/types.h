@@ -77,6 +77,7 @@ namespace qk {
 		SpaceBetween, // 两端对齐，项目之间的间隔都相等
 		SpaceAround, // 每个项目两侧的间隔相等，项目之间的间隔比项目边界的间隔大一倍
 		SpaceEvenly, // 每个项目两侧的间隔相等，这包括边框的间距
+		CenterPart, // 把除两端以外的所有项目尽可能的居中对齐
 	};
 
 	// 项目在交叉轴内如何对齐
@@ -101,8 +102,7 @@ namespace qk {
 		SpaceBetween, // 与交叉轴两端对齐,轴线之间的间隔平均分布
 		SpaceAround, // 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
 		SpaceEvenly, // 每根轴线两侧的间隔都相等,这包括边框的间距
-		Stretch, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
-		// TODO ...
+		Stretch, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间给每一个交叉轴项目
 	};
 
 	// view align
@@ -131,6 +131,7 @@ namespace qk {
 		Auto,    /* 包裹内容 wrap content or auto value */
 		Match,   /* 匹配父视图 match parent */
 		Value,   /* 明确值 dp */
+		// Pixel,   /* 明确值 px */
 		Ratio,   /* 百分比 value % */
 		Minus,   /* 减法(parent-value) value ! */
 	};

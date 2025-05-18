@@ -689,7 +689,7 @@ namespace qk {
 	Vec2 Input::layout_typesetting_input_text() {
 		auto size = content_size();
 
-		_lines = new TextLines(this, text_align_value(), get_layout_content_limit_range(true), _wrap_x);
+		_lines = new TextLines(this, text_align_value(), get_layout_content_limit_range(false), _wrap_x);
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 
 		FontMetricsBase metrics;

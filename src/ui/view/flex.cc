@@ -35,6 +35,36 @@
 
 namespace qk {
 
+	struct FlexItem { Vec2 size; View* view; bool canAdjustAgain; };
+
+	template<bool is_horizontal>
+	float set_center_part_space(Array<FlexItem> &items, float overflow, float main_size, float total_main, float *space_out) {
+		if (overflow > 0) {
+			if (items.length() > 2) {
+				float begin = is_horizontal ? items[0].size.x(): items[0].size.y();
+				float end = is_horizontal ? items.back().size.x(): items.back().size.y();
+				float centerSize = total_main - begin - end;
+				float startOffset = (main_size - centerSize) * 0.5;
+
+				if (begin > startOffset) { // can't
+					startOffset = begin;
+				} else {
+					float diff = (centerSize + startOffset) - (main_size - end);
+					if (diff > 0) { // can't
+						startOffset -= diff;
+					}
+					items[0].size[is_horizontal ? 0: 1] = startOffset;
+				}
+				items[items.length() - 2].size[is_horizontal ? 0: 1] += main_size - startOffset - centerSize - end;
+			} else {
+				*space_out = overflow;
+			}
+		} else {
+			return overflow * .5;
+		}
+		return 0;
+	}
+
 	float parse_align_space(ItemsAlign align, bool is_reverse, float overflow, int count, float *space_out) {
 		float offset_x = 0, space = 0;
 
@@ -92,14 +122,15 @@ namespace qk {
 		auto	wrap_x = _wrap_x,
 					wrap_y = _wrap_y;
 		Vec2	cur = content_size();
-		float offset = 0, max_cross = 0, total_main = 0;
-		uint32_t items = 0;
+		Array<FlexItem> items;
+		float max_cross = 0, total_main = 0;
 
 		auto is_wrap_cross = is_horizontal ? wrap_y: wrap_x;
 		if (!is_wrap_cross) { // no wrap cross axis
 			max_cross = is_horizontal ? cur.y(): cur.x();
 		}
-		auto v = first();
+
+		auto v = is_reverse ? last(): first();
 		while (v) {
 			if (v->visible()) {
 				auto size = v->layout_size().layout;
@@ -107,9 +138,9 @@ namespace qk {
 				if (is_wrap_cross) // wrap cross axis
 					max_cross = Qk_Max(max_cross, cross);
 				total_main += is_horizontal ? size.x(): size.y();
+				items.push({size, v, false});
 			}
-			v = v->next();
-			items++;
+			v = is_reverse ? v->prev() : v->next();
 		}
 
 		Vec2 new_size = is_horizontal ? Vec2{
@@ -122,36 +153,38 @@ namespace qk {
 			solve_layout_content_height_limit(total_main),
 		};
 
-		if (items) {
-			float space = 0;
-			float overflow = (is_horizontal ? new_size.x(): new_size.y()) - total_main;
+		if (items.length()) {
+			float offset = 0, space = 0;
+			float main_size = is_horizontal ? new_size.x(): new_size.y();
+			float overflow = main_size - total_main;
 			if (overflow != 0) {
-				offset = parse_align_space(_items_align, is_reverse, overflow, items, &space);
-			}
-			v = is_reverse ? last(): first();
-			do {
-				if (v->visible()) {
-					auto size = v->layout_size().layout;
-					auto align = v->layout_align();
-					float offset_cross = 0;
-					switch (align == Align::Auto ? _cross_align: CrossAlign(int(align) - 1)) {
-						default:
-						case CrossAlign::Start: break; // 与交叉轴内的起点对齐
-						case CrossAlign::Center: // 与交叉轴内的中点对齐
-							offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) * 0.5; break;
-						case CrossAlign::End: // 与交叉轴内的终点对齐
-							offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
-					}
-					if (is_horizontal) {
-						v->set_layout_offset(Vec2(offset, offset_cross));
-						offset += (size.x() + space);
-					} else {
-						v->set_layout_offset(Vec2(offset_cross, offset));
-						offset += (size.y() + space);
-					}
+				if (ItemsAlign::CenterPart == _items_align) {
+					offset = set_center_part_space<is_horizontal>(items, overflow, main_size, total_main, &space);
+				} else {
+					offset = parse_align_space(_items_align, is_reverse, overflow, items.length(), &space);
 				}
-				v = is_reverse ? v->prev() : v->next();
-			} while (v);
+			}
+			for (auto &i : items) {
+				auto size = i.size;
+				auto v = i.view;
+				auto align = v->layout_align();
+				float offset_cross = 0;
+				switch (align == Align::Auto ? _cross_align: CrossAlign(int(align) - 1)) {
+					default:
+					case CrossAlign::Start: break; // 与交叉轴内的起点对齐
+					case CrossAlign::Center: // 与交叉轴内的中点对齐
+						offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) * 0.5; break;
+					case CrossAlign::End: // 与交叉轴内的终点对齐
+						offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
+				}
+				if (is_horizontal) {
+					v->set_layout_offset({offset, offset_cross});
+					offset += (size.x() + space);
+				} else {
+					v->set_layout_offset({offset_cross, offset});
+					offset += (size.y() + space);
+				}
+			}
 		}
 
 		if (new_size != cur) {
@@ -173,15 +206,14 @@ namespace qk {
 
 		auto v = is_reverse ? last(): first();
 		if (v) {
-			struct Item { Vec2 size; View* view; bool canAdjustAgain; };
-			Array<Item> items;
+			Array<FlexItem> items;
 			float total_main = 0, max_cross = 0;
 			float total_weight = 0;
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout;
 					max_cross = Qk_Max(max_cross, size.y()); // solve content height
-					total_main += size.x();
+					total_main += is_horizontal ? size.x(): size.y();
 					total_weight += v->layout_weight();
 					items.push({size, v, false});
 				}
@@ -234,8 +266,13 @@ namespace qk {
 				}*/
 			}
 
-			float space = 0;
-			float offset = parse_align_space(_items_align, is_reverse, overflow, items.length(), &space);
+			float offset = 0, space = 0;
+
+			if (ItemsAlign::CenterPart == _items_align) {
+				offset = set_center_part_space<is_horizontal>(items, overflow, main_size, total_main, &space);
+			} else {
+				offset = parse_align_space(_items_align, is_reverse, overflow, items.length(), &space);
+			}
 
 			for (auto i: items) {
 				auto size = i.size;
@@ -252,10 +289,10 @@ namespace qk {
 						offset_cross = cross_size - cross; break;
 				}
 				if (is_horizontal) {
-					v->set_layout_offset(Vec2(offset, offset_cross));
+					v->set_layout_offset({offset, offset_cross});
 					offset += (size.x() + space);
 				} else {
-					v->set_layout_offset(Vec2(offset_cross, offset));
+					v->set_layout_offset({offset_cross, offset});
 					offset += (size.y() + space);
 				}
 			}

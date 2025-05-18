@@ -118,14 +118,19 @@ namespace qk {
 			bottom = Float32::max(bottom, _UnitMetrics.fDescent + _UnitMetrics.fLeading);
 		}
 		if (line_height != 0) { // value, not auto
+			auto height = top + bottom;
 			if (line_height <= 2) { // use percentage
-				if (_limit_range.end.y() == 0) { // height == wrap y, no limit
+				if (_limit_range.origin.y() > 0) {
+					line_height *= _limit_range.origin.y(); // use percentage
+					if (line_height < height) {
+						// try use to max value
+						line_height = Float32::min(line_height * _limit_range.end.y(), height);
+					}
+				} else {
 					return set_line_height(top, bottom); // use auto
 				}
-				line_height *= _limit_range.end.y(); // use percentage
 			}
 			if (line_height > _last->line_height) { // reset line_Height
-				auto height = top + bottom;
 				auto diff = (line_height - height) * 0.5f;
 				top += diff;
 				bottom += diff;
