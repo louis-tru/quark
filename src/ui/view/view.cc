@@ -191,8 +191,8 @@ namespace qk {
 		return nullptr;
 	}
 
-	float View::layout_weight() {
-		return 0;
+	Vec2 View::layout_weight() {
+		return Vec2();
 	}
 
 	Align View::layout_align() {

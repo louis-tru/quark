@@ -103,7 +103,7 @@ namespace qk {
 	F(BACKGROUND_COLOR, Color, background_color, Box) \
 	F(BACKGROUND, BoxFilterPtr, background, Box) \
 	F(BOX_SHADOW, BoxShadowPtr, box_shadow, Box) \
-	F(WEIGHT, float, weight, Box) \
+	F(WEIGHT, Vec2, weight, Box) \
 	F(DIRECTION, Direction, direction, Flex) /*flex*/\
 	F(ITEMS_ALIGN, ItemsAlign, items_align, Flex) \
 	F(CROSS_ALIGN, CrossAlign, cross_align, Flex) \

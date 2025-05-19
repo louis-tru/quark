@@ -342,7 +342,7 @@ namespace qk {
 		, _border_radius_left_top(0), _border_radius_right_top(0)
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
-		, _weight(0)
+		, _weight(0,0)
 		, _background(nullptr)
 		, _boxShadow(nullptr)
 		, _border(nullptr)
@@ -1191,7 +1191,7 @@ namespace qk {
 		};
 	}
 
-	float Box::layout_weight() {
+	Vec2 Box::layout_weight() {
 		return _weight;
 	}
 
@@ -1236,7 +1236,7 @@ namespace qk {
 		}
 	}
 
-	void Box::set_weight(float weight, bool isRt) {
+	void Box::set_weight(Vec2 weight, bool isRt) {
 		if (_weight != weight) {
 			_weight = weight;
 			preRender().async_call([](auto self, auto arg) {

@@ -102,7 +102,7 @@ export default async function(win: Window) {
 	Pv(v, 'viewType', ViewType.View);
 	Pv(v, 'style', v);
 	Pv(v, 'class', e=>e.length==0, e=>e.class=['test']);
-	Pv(v, 'layoutWeight', 0);
+	Pv(v, 'layoutWeight',  e=>e.x==0&&e.y==0);
 	Pv(v, 'layoutAlign', types.Align.Auto);
 	Pv(v, 'isClip', false);
 	Pv(v, 'center', e=>e.x==0&&e.y==0);
@@ -188,7 +188,7 @@ export default async function(win: Window) {
 	console.log('d.wrapX', d.wrapX);
 	Pv(d, 'wrapX', true);
 	Pv(d, 'wrapY', true);
-	Pv(d, 'weight', 0);
+	Pv(d, 'weight', e=>e.x==0&&e.y==0);
 
 	LOG('\nTest Flex:\n')
 	const f = new Flex(win);

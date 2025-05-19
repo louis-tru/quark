@@ -62,7 +62,7 @@ new Window({
 			<label textFamily="default" textSize={16} textOverflow="ellipsis" value="ABCDEFGHIJKMLNOPQ" />
 		</button>
 		<text
-			//weight={1}
+			weight={[0,1]}
 			height="100%"
 			//maxWidth="50%"
 			// width="100%"

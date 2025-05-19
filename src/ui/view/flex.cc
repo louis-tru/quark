@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	struct FlexItem { Vec2 size; View* view; bool canAdjustAgain; };
+	struct FlexItem { Vec2 size; Vec2 weight; View* view; };
 
 	template<bool is_horizontal>
 	float set_center_part_space(Array<FlexItem> &items, float overflow, float main_size, float total_main, float *space_out) {
@@ -138,7 +138,7 @@ namespace qk {
 				if (is_wrap_cross) // wrap cross axis
 					max_cross = Qk_Max(max_cross, cross);
 				total_main += is_horizontal ? size.x(): size.y();
-				items.push({size, v, false});
+				items.push({size, {}, v});
 			}
 			v = is_reverse ? v->prev() : v->next();
 		}
@@ -208,14 +208,15 @@ namespace qk {
 		if (v) {
 			Array<FlexItem> items;
 			float total_main = 0, max_cross = 0;
-			float total_weight = 0;
+			Vec2 total_weight;
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size().layout;
+					auto weight = v->layout_weight();
 					max_cross = Qk_Max(max_cross, size.y()); // solve content height
 					total_main += is_horizontal ? size.x(): size.y();
-					total_weight += v->layout_weight();
-					items.push({size, v, false});
+					total_weight += weight;
+					items.push({size, weight, v});
 				}
 				v = is_reverse ? v->prev() : v->next();
 			} while(v);
@@ -224,46 +225,25 @@ namespace qk {
 				cross_size = max_cross;
 			}
 			float overflow = main_size - total_main; // flex size - child total main size
+			bool grow = overflow > 0; // is grow
 
-			if (overflow != 0 && total_weight > 0) {
-				float min_total_weight = Qk_Min(total_weight, 1);
-				float C = (overflow * min_total_weight) / total_weight;
+			if ((grow && total_weight[0] > 0) || (overflow < 0 && total_weight[1] > 0)) {
+				int wIdx = grow ? 0: 1;
+				float min_total_weight = Qk_Min(total_weight[wIdx], 1);
+				float C = (overflow * min_total_weight) / total_weight[wIdx];
 				// in flex：size = size_raw + (weight / total_weight) * overflow * min(total_weight, 1)
 				total_main = 0;
-				total_weight = 0;
 				for (auto &i: items) {
-					auto weight = i.view->layout_weight();
+					auto weight = i.weight[wIdx];
 					if (weight > 0) {
 						auto ch = weight * C;
 						auto size = is_horizontal ?
 							Vec2{i.size.x()+ch, i.size.y()}: Vec2{i.size.x(), i.size.y()+ch};
 						i.size = i.view->layout_lock(size); // force lock subview layout size
-						//if (is_horizontal ? size.x() == i.size.x(): size.y() == i.size.y()) {
-						//	i.canAdjustAgain = true;
-						//	total_weight += i.view->layout_weight();
-						//}
 					}
 					total_main += (is_horizontal ? i.size.x(): i.size.y());
 				}
 				overflow = main_size - total_main;
-
-				// Adjust again
-				/*if (overflow != 0 && total_weight > 0) {
-					total_main = 0;
-					C = (overflow * min_total_weight) / total_weight;
-					for (auto &i: items) {
-						auto weight = i.view->layout_weight();
-						if (weight > 0 && i.canAdjustAgain) {
-							auto ch = weight * C;
-							auto size = is_horizontal ?
-								Vec2{i.size.x()+ch, i.size.y()}: Vec2{i.size.x(), i.size.y()+ch};
-							// force lock subview layout size again
-							i.size = i.view->layout_lock(size);
-						}
-						total_main += (is_horizontal ? i.size.x(): i.size.y());
-					}
-					overflow = main_size - total_main;
-				}*/
 			}
 
 			float offset = 0, space = 0;

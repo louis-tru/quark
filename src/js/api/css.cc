@@ -92,7 +92,7 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(Color, background_color, backgroundColor);
 			Js_StyleSheets_Accessor(BoxFilterPtr, background, background);
 			Js_StyleSheets_Accessor(BoxShadowPtr, box_shadow, boxShadow);
-			Js_StyleSheets_Accessor(float, weight, weight);
+			Js_StyleSheets_Accessor(Vec2, weight, weight);
 			Js_StyleSheets_Accessor(Direction, direction, direction);
 			Js_StyleSheets_Accessor(ItemsAlign, items_align, itemsAlign);
 			Js_StyleSheets_Accessor(CrossAlign, cross_align, crossAlign);

@@ -84,7 +84,7 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Box, Color, background_color, backgroundColor);
 			Js_MixObject_Accessor(Box, BoxFilterPtr, background, background);
 			Js_MixObject_Accessor(Box, BoxShadowPtr, box_shadow, boxShadow);
-			Js_MixObject_Accessor(Box, float, weight, weight);
+			Js_MixObject_Accessor(Box, Vec2, weight, weight);
 			// -----------------------------------------------------------------------------
 			// @safe Rt
 			Js_Class_Accessor_Get(wrapX, {

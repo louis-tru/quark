@@ -85,7 +85,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(Color,      background_color, Const); // fill background color
 		Qk_DEFINE_VIEW_ACCESSOR(BoxFilter*, background); // fill background, image|gradient, async set
 		Qk_DEFINE_VIEW_ACCESSOR(BoxShadow*, box_shadow); // box shadow, shadow, async set method
-		Qk_DEFINE_VIEW_PROPERTY(float,      weight, Const); // view weight
+		Qk_DEFINE_VIEW_PROPERTY(Vec2,       weight, Const); // view weight
 		Qk_DEFINE_VIEW_PROP_GET(Vec2,       content_size, Const); // width,height, no include padding
 		Qk_DEFINE_VIEW_PROP_GET(Vec2,       client_size, Const); // border + padding + content
 
@@ -103,7 +103,7 @@ namespace qk {
 		* meaning that if there is remaining space, neither enlarge nor narrow will occur
 		* in flex：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 		*/
-		virtual float layout_weight() override;
+		virtual Vec2 layout_weight() override;
 		virtual Align layout_align() override;
 		virtual bool is_clip() override;
 		virtual ViewType viewType() const override;

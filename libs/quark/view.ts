@@ -102,7 +102,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly window: Window;
 	readonly matrix: Matrix | null; // top matrix view
 	readonly level: number;
-	readonly layoutWeight: number;
+	readonly layoutWeight: types.Vec2;
 	readonly layoutAlign: types.Align;
 	readonly isClip: boolean;
 	readonly viewType: ViewType;
@@ -183,7 +183,7 @@ export declare class Box extends View {
 	backgroundColor: types.Color;
 	background: types.BoxFilter | null;
 	boxShadow: types.BoxShadow | null;
-	weight: number;
+	weight: types.Vec2;
 	readonly wrapX: boolean; // @safe Rt, Returns the x-axis is wrap content, use internal extrusion size
 	readonly wrapY: boolean; // @safe Rt, Returns the y-axis is wrap content, use internal extrusion size
 	readonly contentSize: types.Vec2; // @safe Rt, width,height, no include padding
@@ -516,7 +516,7 @@ declare global {
 			backgroundColor?: types.ColorIn;
 			background?: types.BoxFilterIn;
 			boxShadow?: types.BoxShadowIn;
-			weight?: number;
+			weight?: types.Vec2In;
 		}
 
 		interface FlexJSX extends BoxJSX {

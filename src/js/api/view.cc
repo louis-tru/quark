@@ -261,7 +261,7 @@ namespace qk { namespace js {
 
 			Js_Class_Accessor_Get(layoutWeight, {
 				Js_Self(View);
-				Js_Return( self->layout_weight() );
+				Js_Return( worker->types()->jsvalue( self->layout_weight()) );
 			});
 
 			Js_Class_Accessor_Get(layoutAlign, {

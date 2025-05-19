@@ -359,11 +359,11 @@ namespace qk {
 
 		/**
 			*
-			* Layout weight (such as representing the size of the layout in a flex layout)
+			* Layout weight (such as representing the size grow/shrink of the layout in a flex layout)
 			*
 			* @method layout_weight()
 			*/
-		virtual float layout_weight();
+		virtual Vec2 layout_weight();
 
 		/**
 			*
