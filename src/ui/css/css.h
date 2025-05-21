@@ -207,6 +207,8 @@ namespace qk {
 		CStyleSheetsClass(View *host);
 		~CStyleSheetsClass();
 
+		virtual void release() override;
+
 		void set(cArray<String> &name); //!< Calling in the main loop
 		void add(cString &name); //!< Calling in the main loop
 		void remove(cString &name); //!< Calling in the main loop

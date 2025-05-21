@@ -1203,10 +1203,10 @@ namespace qk {
 		if (mark & kRecursive_Transform) { // update transform matrix
 			_CheckParent();
 			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
-			Vec2 offset = _parent->layout_offset_inside() + layout_offset()
+			Vec2 point = _parent->layout_offset_inside() + layout_offset()
 				+ Vec2(_margin_left, _margin_top);
 			_position =
-				mat.mul_vec2_no_translate(offset) + _parent->position();
+				mat.mul_vec2_no_translate(point) + _parent->position();
 			solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kRecursive_Visible_Region) {
 			unmark(kRecursive_Visible_Region); // unmark

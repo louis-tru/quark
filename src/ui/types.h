@@ -77,7 +77,7 @@ namespace qk {
 		SpaceBetween, // 两端对齐，项目之间的间隔都相等
 		SpaceAround, // 每个项目两侧的间隔相等，项目之间的间隔比项目边界的间隔大一倍
 		SpaceEvenly, // 每个项目两侧的间隔相等，这包括边框的间距
-		CenterPart, // 把除两端以外的所有项目尽可能的居中对齐
+		CenterCenter, // 把除两端以外的所有项目尽可能的居中对齐
 	};
 
 	// 项目在交叉轴内如何对齐

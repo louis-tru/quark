@@ -164,20 +164,28 @@ export function transition(
 	cb?: ActionCb
 ): KeyframeAction {
 	let action = new exports.KeyframeAction(view.window) as KeyframeAction;
+	let from: Keyframe | undefined;
 
 	if (fromOrCb) {
 		if (typeof fromOrCb == 'function') {
 			cb = fromOrCb;
-			action.addFrame(0).fetch(view); // add frame 0 and fetch frame style
+			from = action.addFrame(0); // add frame 0
 		} else {
 			action.add(fromOrCb);
 		}
 	} else {
-		action.addFrame(0).fetch(view); // add frame 0
+		from = action.addFrame(0); // add frame 0
 	}
+
 	action.add(to); // add frame 1
 
-	view.action = action.play(); // start play
+	if (from) {
+		from.fetch(view); // fetch(view)
+	}
+
+	view.action = action
+
+	action.play(); // start play
 
 	if ( cb ) {
 		view.onActionKeyframe.on(function(evt) {

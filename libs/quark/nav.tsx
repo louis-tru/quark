@@ -33,7 +33,7 @@ import { List,ListIterator,ClickType } from './event';
 import { KeyboardKeyCode } from './keyboard';
 import index, {
 	_CVD,link,ViewController,View,Label,Text, RenderResult,
-	mainScreenScale,Window,VDom,assertDom,Box,VirtualDOM } from './index';
+	mainScreenScale,Window,VDom,assertDom,Box,VirtualDOM, createCss } from './index';
 import * as types from './types';
 
 const px = 1 / mainScreenScale();
@@ -430,23 +430,39 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	}
 }
 
+createCss({
+	'.x_navbar_back:normal': {
+		opacity: 1,
+		// textShadow: "0 0 0 #000"
+	},
+	'.x_navbar_back:hover': {
+		opacity: 0.8,
+		// textShadow: "0 0 4 #000"
+	},
+	'.x_navbar_back:active': {
+		opacity: 0.6,
+		// textShadow: "0 0 6 #000"
+	},
+});
+
 /**
  * @class Navbar
  */
 export class Navbar<P={},S={}> extends NavigationStatus<{
 	hidden?: boolean;
-	backIconVisible?: boolean;
-	backTextVisible?: boolean;
+	visibleBackIcon?: boolean;
+	visibleBackText?: boolean;
 	backTextColor?: types.ColorStrIn;
 	titleTextColor?: types.ColorStrIn;
+	menu?: VDom,
 }&P,S> {
 	private _backText: string = '';
 	private _titleText: string = '';
 
 	@link hidden = false;
-	@link backIconVisible = true;
-	@link backTextVisible = true;
-	@link backTextColor: types.ColorStrIn = '#fff';
+	@link visibleBackIcon = true;
+	@link visibleBackText = true;
+	@link backTextColor: types.ColorStrIn = '#000';
 	@link titleTextColor: types.ColorStrIn = '#147EFF';
 
 	get page() { return this.owner as NavPage }
@@ -455,7 +471,6 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	 * @method setBackText() set navbar back text
 	 */
 	setBackText(value: string) {
-		value = 'ABCDEFGHIJKMLN';
 		if (!this.hidden)
 			this.refAs<Label>('back_text').value = value;
 		this._backText = value;
@@ -465,8 +480,8 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	 * @method setTitleText() set navbar title text
 	 */
 	setTitleText(value: string) {
-		//if (!this.hidden)
-		//	this.refAs<Text>('title').value = value;
+		if (!this.hidden)
+			this.refAs<Text>('title').value = value;
 		this._titleText = value;
 	}
 
@@ -479,44 +494,41 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 			this.hidden ? null:
 			<free width="100%" height="100%" align="centerBottom" visible={false}>
 				{this.renderBody()}
+				{this.children}
 			</free>
 		);
 	}
 
 	protected renderBody() {
-		let showBack = true;//!this.page.isFirstPage;
+		let showBack = !this.page.isFirstPage;
 		return (
-			<flex width="100%" height="100%" backgroundColor="#00f">
+			<flex width="100%" height="100%" itemsAlign="centerCenter">
 				<button
-					minWidth="10%"
+					class="x_navbar_back"
 					maxWidth="40%"
 					height="100%"
 					paddingLeft={5}
+					paddingRight={5}
 					textColor={this.backTextColor}
 					textLineHeight={1} // 100%
-					textSize={18}
+					textSize={16}
 					onClick={this._handleBack}
 					textFamily="iconfont"
-					value={showBack && this.backIconVisible ? "\uedc5": ""}
-					backgroundColor="#f00"
+					value={showBack && this.visibleBackIcon ? "\uedc5": ""}
 					textWhiteSpace="noWrap"
-					// weight={1}
 				>
 					<label
 						ref="back_text"
 						textFamily="default"
 						textSize={16}
 						textOverflow="ellipsis"
-						visible={showBack && this.backTextVisible}
+						visible={showBack && this.visibleBackText}
 						value={this._backText}
 					/>
 				</button>
-				{/* <matrix ref="title_mat" weight={1} height="100%" marginLeft={5} backgroundColor="#0f0"> */}
 				<text
-					// ref="title"
-					weight={1}
-					ref="title_mat"
-					// width="100%"
+					ref="title"
+					weight={[0,1]}
 					height="100%"
 					textColor={this.titleTextColor}
 					textLineHeight={1}
@@ -526,25 +538,24 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 					textOverflow="ellipsisCenter"
 					textAlign="center"
 					value={this._titleText}
-					backgroundColor="#0f0"
 				/>
-				{/* </matrix> */}
 				<box
-					minWidth="10%"
 					maxWidth="40%"
 					height="100%"
-					marginLeft={5}
-					backgroundColor="#0ff"
-					// weight={1}
-				>{this.children}</box>
+					paddingLeft={5}
+				>{this.renderMenu()}</box>
 			</flex>
 		);
 	}
 
+	protected renderMenu() {
+		return this.props.menu;
+	}
+
 	intoLeave(time: number) {
-		if ( this.navStatus == NavStatus.Foreground && time &&
-			!this.hidden &&
-			this.domAs().parent!.level
+		if (this.navStatus == NavStatus.Foreground && time &&
+				!this.hidden &&
+				this.domAs().parent!.level
 		) {
 			this.domAs().transition({ opacity: 0, time }, ()=>this.destroy());
 		} else {
@@ -567,9 +578,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 		this.domAs().visible = true;
 		if ( time && !this.hidden && this.domAs().parent!.level ) {
 			if (this.navStatus == NavStatus.Init) {
-				let x = (this.domAs().parent! as Box).clientSize.x;
 				this.domAs().transition({ opacity: 1, time }, {opacity:0});
-				this.refAs('title_mat').transition({x: 0, time}, {x: x * 0.3 });
 			}
 			else { // NavStatus.Background
 				this.domAs().transition({ opacity: 1, time });
@@ -695,13 +704,14 @@ export class NavPage<P={},S={}> extends Navigation<{
 	intoLeave(time: number) {
 		this._navbarDom.intoLeave(time);
 		if ( this.navStatus == NavStatus.Foreground ) {
-			if ( time && this.domAs().parent!.level ) {
-				let x = (this.domAs().parent! as Box).clientSize.x;
-				this.domAs().style = {
+			let dom = this.domAs();
+			if ( time && dom.parent!.level ) {
+				let x = (dom.parent! as Box).clientSize.x;
+				dom.style = {
 					borderColorLeft: backgroundColorReverse(this),
 					borderWidthLeft: px,
 				};
-				this.domAs().transition({ x: x, visible: false, time }, ()=>{
+				dom.transition({ x: x, visible: false, time }, ()=>{
 					this.destroy();
 				});
 				super.intoLeave(time);
@@ -717,11 +727,12 @@ export class NavPage<P={},S={}> extends Navigation<{
 			return;
 		this._navbarDom.intoBackground(time);
 		if ( this.navStatus != NavStatus.Background ) {
-			let x = (this.domAs().parent as Box).clientSize.x || 100;
-			if ( time && this.domAs().parent!.level ) {
-				this.domAs().transition({x: x / -3, visible: false, time });
+			let dom = this.domAs();
+			let x = (dom.parent as Box).clientSize.x || 100;
+			if ( time && dom.parent!.level ) {
+				dom.transition({x: x * -0.33, visible: false, time });
 			} else {
-				this.domAs().style = { x: x / -3, visible: false };
+				dom.style = { x: x * -0.33, visible: false };
 			}
 		}
 		super.intoBackground(time);
@@ -732,28 +743,30 @@ export class NavPage<P={},S={}> extends Navigation<{
 			return;
 		this._navbarDom.intoForeground(time);
 		this._nextPage = null;
+		let dom = this.domAs();
 
 		if ( this.navStatus == NavStatus.Init ) {
-			if ( time && this.domAs().parent!.level ) {
-				let x = (this.domAs().parent! as Box).clientSize.x;
-				this.domAs().style = {
+			if ( time && dom.parent!.level ) {
+				let x = (dom.parent! as Box).clientSize.x;
+				dom.style = {
 					visible: true,
 					borderColorLeft: backgroundColorReverse(this),
 					borderWidthLeft: px,
 				};
-				this.domAs().transition({ x: 0, time: time }, {x}, ()=>{
-					this.domAs<Box>().borderWidthLeft = 0;
+				dom.transition({ x: 0, time }, {x}, ()=>{
+					dom.style.borderWidthLeft = 0;
 				});
 			} else {
-				this.domAs().style = { x: 0, borderWidthLeft: 0, visible: true };
+				dom.style = { x: 0, borderWidthLeft: 0, visible: true };
 			}
 		}
 		else if ( this.navStatus == NavStatus.Background ) {
-			if ( time && this.domAs().parent!.level ) {
-				this.domAs().visible = true;
-				this.domAs().transition({ x: 0, time });
+			if ( time && dom.parent!.level ) {
+				//let x = (dom.parent! as Box).clientSize.x;
+				dom.visible = true;
+				dom.transition({ x: 0, time }/*, { x: -x }*/);
 			} else {
-				this.domAs().style = { x: 0, visible: true };
+				dom.style = { x: 0, visible: true };
 			}
 		}
 		super.intoForeground(time);

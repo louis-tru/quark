@@ -48,12 +48,28 @@ createCss({
 		textColor: "#0079ff",
 		borderRadius: 8,
 		border: `${px} #0079ff`,
+		textAlign: 'center',
 		// border: `2 #0079ff`,
 		// backgroundColor: '#f00',
 		// borderRadius: 80,
 		// border: `40 #0079ff`,
 		// borderLeftColor: '#f00',
 		// borderRightColor: '#f00',
+		opacity: 1,
+		textShadow: '0 0 0 #0079ff',
+		//boxShadow: '0 0 0 #aaa',
+	},
+
+	'.long_btn:hover': {
+		opacity: 0.8,
+		textShadow: '0 0 4 #0079ff',
+		//boxShadow: '6 6 10 #aaa',
+	},
+
+	'.long_btn:active': {
+		opacity: 0.6,
+		textShadow: '0 0 6 #0079ff',
+		//boxShadow: '12 12 20 #aaa',
 	},
 
 	'.long_btn2': {

@@ -80,7 +80,7 @@ namespace qk {
 			unmark(kRecursive_Visible_Region); // unmark
 			solve_visible_region(_matrix.set_translate(_position));
 		}
-		_matrix.set_translate(Vec2(0)); // clear translate, use position value
+		//_matrix.set_translate(Vec2(0)); // clear translate, use position value
 	}
 
 	ViewType Root::viewType() const {

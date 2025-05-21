@@ -693,7 +693,8 @@ namespace qk { namespace js {
 			auto num = in->toNumber(worker);
 			if (!num)
 				return throw_error(worker, in, desc), false;
-			out[0] = num->float32();
+			float val = num->float32();
+			out[0] = val;
 		} else {
 			auto arr = in->cast<JSArray>();
 			out.extend(arr->length());

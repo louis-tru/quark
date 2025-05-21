@@ -38,7 +38,7 @@ namespace qk {
 	struct FlexItem { Vec2 size; Vec2 weight; View* view; };
 
 	template<bool is_horizontal>
-	float set_center_part_space(Array<FlexItem> &items, float overflow, float main_size, float total_main, float *space_out) {
+	float set_center_center_space(Array<FlexItem> &items, float overflow, float main_size, float total_main, float *space_out) {
 		if (overflow > 0) {
 			if (items.length() > 2) {
 				float begin = is_horizontal ? items[0].size.x(): items[0].size.y();
@@ -158,8 +158,8 @@ namespace qk {
 			float main_size = is_horizontal ? new_size.x(): new_size.y();
 			float overflow = main_size - total_main;
 			if (overflow != 0) {
-				if (ItemsAlign::CenterPart == _items_align) {
-					offset = set_center_part_space<is_horizontal>(items, overflow, main_size, total_main, &space);
+				if (ItemsAlign::CenterCenter == _items_align) {
+					offset = set_center_center_space<is_horizontal>(items, overflow, main_size, total_main, &space);
 				} else {
 					offset = parse_align_space(_items_align, is_reverse, overflow, items.length(), &space);
 				}
@@ -248,8 +248,8 @@ namespace qk {
 
 			float offset = 0, space = 0;
 
-			if (ItemsAlign::CenterPart == _items_align) {
-				offset = set_center_part_space<is_horizontal>(items, overflow, main_size, total_main, &space);
+			if (ItemsAlign::CenterCenter == _items_align) {
+				offset = set_center_center_space<is_horizontal>(items, overflow, main_size, total_main, &space);
 			} else {
 				offset = parse_align_space(_items_align, is_reverse, overflow, items.length(), &space);
 			}

@@ -803,7 +803,7 @@ namespace qk {
 			// recover output target
 			glFramebufferTexture2D(
 				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-				recover ? _c->_outTex->id: recover->texture(0)->id, 0
+				recover ? recover->texture(0)->id: _c->_outTex->id, 0
 			);
 
 			glBindTexture(GL_TEXTURE_2D, _c->_outB);

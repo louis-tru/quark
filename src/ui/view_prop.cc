@@ -137,11 +137,11 @@ namespace qk {
 		Qk_Set_Accessor(Box, MARGIN_RIGHT, margin_right);
 		Qk_Set_Accessor(Box, MARGIN_BOTTOM, margin_bottom);
 		Qk_Set_Accessor(Box, MARGIN_LEFT, margin_left);
-		Qk_Set_Accessor(Box, MARGIN, padding); // padding
-		Qk_Set_Accessor(Box, MARGIN_TOP, padding_top);
-		Qk_Set_Accessor(Box, MARGIN_RIGHT, padding_right);
-		Qk_Set_Accessor(Box, MARGIN_BOTTOM, padding_bottom);
-		Qk_Set_Accessor(Box, MARGIN_LEFT, padding_left);
+		Qk_Set_Accessor(Box, PADDING, padding); // padding
+		Qk_Set_Accessor(Box, PADDING_TOP, padding_top);
+		Qk_Set_Accessor(Box, PADDING_RIGHT, padding_right);
+		Qk_Set_Accessor(Box, PADDING_BOTTOM, padding_bottom);
+		Qk_Set_Accessor(Box, PADDING_LEFT, padding_left);
 		Qk_Set_Accessor(Box, BORDER_RADIUS, border_radius); // border radius
 		Qk_Set_Accessor(Box, BORDER_RADIUS_LEFT_TOP, border_radius_left_top);
 		Qk_Set_Accessor(Box, BORDER_RADIUS_RIGHT_TOP, border_radius_right_top);

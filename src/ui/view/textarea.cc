@@ -70,8 +70,8 @@ namespace qk {
 			unmark(kInput_Status);
 			solve_cursor_offset(); // text cursor status
 
-			ScrollBase::solve(mark_value());
-			Box::solve_marks(mat, mark_value());
+			ScrollBase::solve(mark);
+			Box::solve_marks(mat, mark);
 
 			if (_editing) {
 				// update system ime input position
@@ -79,7 +79,7 @@ namespace qk {
 			}
 		} else {
 			ScrollBase::solve(mark);
-			Box::solve_marks(mat, mark_value());
+			Box::solve_marks(mat, mark);
 		}
 	}
 

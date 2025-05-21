@@ -40,8 +40,8 @@ using namespace qk;
 
 #define IP_REMOTE "192.168.2.200"
 #define USE_REMOTE 0
-#define USE_INSPECT 0
-#define USE_BRK 1
+#define USE_INSPECT 1
+#define USE_BRK 0
 
 Qk_TEST_Func(jsapi) {
 	Array<String> argv_arr;

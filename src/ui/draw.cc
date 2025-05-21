@@ -663,10 +663,10 @@ namespace qk {
 		_origin -= box->_origin_value;
 		_matrix = &box->mat();
 		_canvas->setMatrix(*_matrix);
+		//_canvas->setTranslate(box->position());
+
 		// draw box
 		BoxData data;
-		_canvas->setTranslate(box->position());
-
 		drawBoxShadow(box, data);
 		drawBoxColor(box, data);
 		drawBoxFill(box, data);

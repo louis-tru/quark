@@ -918,7 +918,8 @@ namespace qk {
 
 	void Scroll::solve_marks(const Mat &mat, uint32_t mark) {
 		ScrollBase::solve(mark);
-		Box::solve_marks(mat, mark_value());
+		Box::solve_marks(mat, mark);
+		//Qk_DLog("Scroll::_position, %f, %f", _position.x(), _position.y());
 	}
 
 	ScrollBase* Scroll::asScrollBase() {

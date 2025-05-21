@@ -55,7 +55,7 @@ namespace qk {
 	}
 
 	Action::~Action() {
-		Qk_ASSERT( _id_Rt == Id() );
+		Qk_ASSERT( _id_Rt == Id() || _id_Rt == playingFlag );
 	}
 
 	Action* Action::tryRetain() {

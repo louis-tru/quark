@@ -37,6 +37,8 @@
 namespace qk {
 	#define _async_call _host->window()->preRender().async_call
 
+	static uint64_t UndefinedHashCode(CSSCName("undefined").hashCode());
+
 	CStyleSheetsClass::CStyleSheetsClass(View *host)
 		: _status(kNormal_CSSType)
 		, _setStatus(kNormal_CSSType)
@@ -49,23 +51,28 @@ namespace qk {
 	}
 
 	CStyleSheetsClass::~CStyleSheetsClass() {
+		Qk_ASSERT_EQ(_host, nullptr);
+	}
+
+	void CStyleSheetsClass::release() {
 		auto center = _host->window()->actionCenter();
 		if (center) {
 			_host->preRender().async_call([](auto self, auto arg) {
 				self->removeCSSTransition_Rt(arg.arg);
 			}, center, _host);
+			_host = nullptr;
 		}
+		Object::release();
 	}
-
-	static uint64_t UndefinedHashCode(CSSCName("undefined").hashCode());
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
 		_async_call([](auto ctx, auto val) {
 			Sp<Array<String>> valp(val.arg);
 			ctx->_nameHash_Rt.clear();
 			for ( auto &j: **valp ) {
-				if (!j.isEmpty()) {
-					auto hash = CSSCName(j).hashCode();
+				auto s = j.trim();
+				if (!s.isEmpty()) {
+					auto hash = CSSCName(s).hashCode();
 					if (hash != UndefinedHashCode) // // exclude undefined
 						ctx->_nameHash_Rt.add(hash);
 				}
@@ -80,7 +87,7 @@ namespace qk {
 				ctx->_nameHash_Rt.add(hash.arg);
 				ctx->updateClass_Rt();
 			}
-		}, this, CSSCName(name).hashCode());
+		}, this, CSSCName(name.trim()).hashCode());
 	}
 
 	void CStyleSheetsClass::remove(cString &name) {
@@ -90,7 +97,7 @@ namespace qk {
 				ctx->_nameHash_Rt.erase(it);
 				ctx->updateClass_Rt();
 			}
-		}, this, CSSCName(name).hashCode());
+		}, this, CSSCName(name.trim()).hashCode());
 	}
 
 	void CStyleSheetsClass::toggle(cString &name) {
@@ -102,7 +109,7 @@ namespace qk {
 				ctx->_nameHash_Rt.erase(it);
 			}
 			ctx->updateClass_Rt();
-		}, this, CSSCName(name).hashCode());
+		}, this, CSSCName(name.trim()).hashCode());
 	}
 
 	void CStyleSheetsClass::updateClass_Rt() {

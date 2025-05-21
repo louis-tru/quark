@@ -57,20 +57,18 @@ namespace qk {
 
 	void StyleSheets::fetch(View *view, bool isRt) {
 		Qk_ASSERT(view);
-		if (_props.length()) {
-			if (isRt) {
-				for ( auto i: _props ) {
-					i.value->fetch(view);
-				}
-			} else {
-				auto win = getWindowForAsyncSet();
-				if (win) {
-					win->preRender().async_call([](auto self, auto arg) {
-						for ( auto i: self->_props ) {
-							i.value->fetch(arg.arg);
-						}
-					}, this, view);
-				}
+		if (isRt) {
+			for ( auto i: _props ) {
+				i.value->fetch(view);
+			}
+		} else {
+			auto win = getWindowForAsyncSet();
+			if (win) {
+				win->preRender().async_call([](auto self, auto arg) {
+					for ( auto i: self->_props ) {
+						i.value->fetch(arg.arg);
+					}
+				}, this, view);
 			}
 		}
 	}
