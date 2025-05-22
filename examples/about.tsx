@@ -57,7 +57,7 @@ export default (self: Page)=>{
 
 	return (
 		<scroll width="match" height="match">
-			<text width="match" margin={10} value={code} />
+			<text width="match" margin={10} value={code} textWhiteSpace="preWrap" />
 		</scroll>
 	);
 };

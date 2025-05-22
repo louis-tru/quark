@@ -49,7 +49,7 @@ createCss({
 		textLineHeight: 30,
 		textColor: '#6d6d72',
 		textSize: 14,
-		textWhiteSpace: 'pre',
+		textWhiteSpace: 'preWrap',
 		margin: 16,
 	},
 
@@ -165,7 +165,7 @@ const quark_tools_vx = (self: Page)=>{
 	return (
 		<box width="match">
 			<text class="category_title">
-1. You can use nodejs <label textBackgroundColor="#ddd" value="npm install -g qkmake\n" />
+1. You can use nodejs <label textBackgroundColor="#ddd" value={"npm install -g qkmake\n"} />
 2. Or get the node modules from Github.
 			</text>
 			<Button class="long_btn rm_margin_top" url={quark_tools}>Go Github</Button>

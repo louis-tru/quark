@@ -122,6 +122,8 @@ createCss({
 		height:30,
 		backgroundColor:"#eee",
 		borderRadius:8,
+		paddingLeft: 4,
+		paddingRight: 4,
 	},
 
 })
