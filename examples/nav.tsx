@@ -44,9 +44,8 @@ export default (self: Page)=>{
 		self.backgroundColor = '#333';
 		self.navbar = (
 			<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
-				<matrix align="rightMiddle" x={-10}>
-					<button textFamily="icomoon-ultimate" textColor="#fff" textSize={20} value="\ued63" />
-				</matrix>
+				<button align="rightBottom" padding={10}
+					textFamily="icomoon-ultimate" textColor="#fff" textSize={20} value={"\ued63"} />
 			</Navbar>
 		)
 	}
