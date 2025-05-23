@@ -67,7 +67,7 @@ createCss({
 	'.x_switch': {
 		width: 50,
 		height: 31,
-		borderRadius: 16,
+		borderRadius: 18,
 	},
 	'.x_switch:normal': {
 		backgroundColor: '#ddd',

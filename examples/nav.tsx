@@ -32,7 +32,6 @@ import { _CVD, mainScreenScale } from 'quark';
 import { Page } from './tool';
 import { Navbar } from 'quark/nav';
 import {toolbar} from './review';
-import { ClickEvent } from 'quark/event';
 
 const px = 1 / mainScreenScale();
 const resolve = require.resolve;
@@ -44,25 +43,26 @@ export default (self: Page)=>{
 		self.backgroundColor = '#333';
 		self.navbar = (
 			<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
-				<button align="rightBottom" padding={10}
+				<button align="rightBottom" paddingRight={10} paddingBottom={5}
 					textFamily="icomoon-ultimate" textColor="#fff" textSize={20} value={"\ued63"} />
 			</Navbar>
 		)
 	}
 
-	function hide_show_navbar(e: ClickEvent) {
+	function hide_show_navbar() {
 		self.navbarHidden = !self.navbarHidden;
 	}
 
-	function nav_pop(e: ClickEvent) {
+	function nav_pop() {
 		self.collection.pop(true);
 	}
 
 	return (
-		<free width="match">
-			<button class="long_btn2" onClick={hide_show_navbar} value="Hide/Show Navbar" />
-			<button class="long_btn2" onClick={nav_pop} value="Nav pop" />
-
+		<free width="match" height="match">
+			<box width="100%">
+				<button class="long_btn2" onClick={hide_show_navbar} value="Hide/Show Navbar" />
+				<button class="long_btn2" onClick={nav_pop} value="Nav pop" />
+			</box>
 			{toolbar(self)}
 		</free>
 	)

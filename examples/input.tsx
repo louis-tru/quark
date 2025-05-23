@@ -56,6 +56,7 @@ export default (self: Page)=>{
 				backgroundColor="#eee"
 				type="phone"
 				returnType="next"
+				paddingLeft={5}
 				borderRadius={8} placeholder="Please enter.." />
 
 			<input ref="input1" margin={10}

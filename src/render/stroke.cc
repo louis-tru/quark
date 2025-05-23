@@ -34,10 +34,10 @@
 
 #if Qk_USE_FT_STROKE
 extern "C" {
-#include "./ft/ft_math.c"
-#include "./ft/ft_stroke.c"
+#include "./raster/ft_math.c"
+#include "./raster/ft_stroke.c"
 }
-#include "./ft/ft_path.cc"
+#include "./raster/ft_path.cc"
 
 namespace qk {
 
@@ -191,7 +191,7 @@ namespace qk {
 			Vec3        prev_a, prev_b;
 		} ctx = { &out.vertex,0,width,0 };
 
-		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) {
+		strokeExec(self, [](const Vec2 *prev, Vec2 from, const Vec2 *next, int idx, void *ctx) { // add
 			auto normals = from.normalline(prev, next); // normal line
 			auto _ = (Ctx*)ctx;
 
@@ -218,14 +218,14 @@ namespace qk {
 			_->prev_a = a;
 			_->prev_b = b;
 		},
-		[](bool close, int size, int subpath, void *ctx) {
+		[](bool close, int size, int subpath, void *ctx) { // before
 			auto _ = static_cast<Ctx*>(ctx);
 			auto len = _->out->length();
 			size = (close ? size: size - 1) * 6;
 			_->out->extend(len + size); // alloc memory space
 			_->ptr = _->out->val() + len;
 		},
-		[](bool close, int size, int subpath, void *ctx) {
+		[](bool close, int size, int subpath, void *ctx) { // after
 			if (close) {
 				auto _ = static_cast<Ctx*>(ctx);
 				auto b = _->ptr - (size * 6 - 6), a = b + 1;

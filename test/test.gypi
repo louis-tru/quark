@@ -16,7 +16,6 @@
 			'quark-media',
 			'quark-js',
 			'trial',
-			'build_jsapi_ts',
 			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 			'deps/freetype/freetype.gyp:freetype',
 		],
@@ -72,7 +71,7 @@
 			'test-jsx.cc',
 			'test-v8.cc',
 			'test-jsc.cc',
-			'test-jsapi.cc',
+			# 'test-jsapi.cc',
 			'test.cc',
 			'test.h',
 		],
@@ -116,27 +115,26 @@
 					],
 				}], # copy
 			}],
+			['use_js==1', {
+				'actions': [{
+					'action_name': 'build_jsapi',
+					'inputs': [ '<@(jsapi_in)', '<@(examples_in)' ],
+					'outputs': [
+						'test-jsapi.cc',
+						'./jsapi/out/files.gypi',
+						'../examples/out/files.gypi',
+					],
+					'action': [
+						'sh', '-c',
+						'cd test/jsapi && npm run build && cd ../../examples && tsc && node _'
+					],
+					'process_outputs_as_sources': 1,
+				}],
+			}, {
+				'actions': [],
+				'sources+': ['test-jsapi.cc'],
+			}]
 		],
-	},
-	{
-		'target_name': 'build_jsapi_ts',
-		'type': 'none',
-		'conditions': [['use_js==1', {
-			'actions': [{
-				'action_name': 'build_jsapi',
-				'inputs': [ '<@(jsapi_in)', '<@(examples_in)' ],
-				'outputs': [
-					'./jsapi/out/files.gypi',
-					'../examples/out/files.gypi',
-				],
-				'action': [
-					'sh', '-c',
-					'cd test/jsapi && npm run build && cd ../../examples && tsc && node _'
-				],
-			}],
-		}, {
-			'actions': [],
-		}]],
 	}],
 
 	# tests

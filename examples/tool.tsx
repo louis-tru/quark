@@ -60,18 +60,6 @@ createCss({
 		//boxShadow: '0 0 0 #aaa',
 	},
 
-	'.long_btn:hover': {
-		opacity: 0.8,
-		textShadow: '0 0 4 #0079ff',
-		//boxShadow: '6 6 10 #aaa',
-	},
-
-	'.long_btn:active': {
-		opacity: 0.6,
-		textShadow: '0 0 6 #0079ff',
-		//boxShadow: '12 12 20 #aaa',
-	},
-
 	'.long_btn2': {
 		margin: 10,
 		marginBottom: 0,
@@ -81,6 +69,21 @@ createCss({
 		textColor: "#fff",
 		borderRadius: 8,
 		border: `${px} #fff`,
+		textAlign: 'center',
+		opacity: 1,
+		textShadow: '0 0 0 #fff',
+	},
+
+	'.long_btn:hover, .long_btn2:hover': {
+		opacity: 0.8,
+		textShadow: '0 0 4 #0079ff',
+		//boxShadow: '6 6 10 #aaa',
+	},
+
+	'.long_btn:active, .long_btn2:active': {
+		opacity: 0.6,
+		textShadow: '0 0 6 #0079ff',
+		//boxShadow: '12 12 20 #aaa',
 	},
 
 	'.next_btn': {

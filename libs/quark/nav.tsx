@@ -492,7 +492,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	protected render() {
 		return (
 			this.hidden ? null:
-			<free width="100%" height="100%" align="centerBottom" visible={false}>
+			<free width="100%" height="100%" align="centerBottom">
 				{this.renderBody()}
 				{this.children}
 			</free>
@@ -607,12 +607,14 @@ export class NavPage<P={},S={}> extends Navigation<{
 	title?: string;
 	navbar?: VDom<Navbar>;
 	backgroundColor?: types.ColorStrIn;
+	includeNavbarPadding?: boolean;
 }&P,{}&S> {
 	private _title = '';
 	private _navbar: VDom<Navbar> = <Navbar /> as VDom<Navbar>;
 	private _prevPage: NavPage | null = null;
 	private _nextPage: NavPage | null = null;
 	private _navbarDom: Navbar;
+	private _includeNavbarPadding = true;
 
 	get prevPage() { return this._prevPage }
 	get nextPage() { return this._nextPage }
@@ -645,18 +647,28 @@ export class NavPage<P={},S={}> extends Navigation<{
 		this._navbar = value;
 	}
 	get navbarHidden() { return this.isMounted ? this._navbarDom.hidden: false }
-	set navbarHidden(val) { this.setNavbarHidden(val) }
-
-	setNavbarHidden(hidden: boolean) {
+	set navbarHidden(hidden) {
 		if (this.isMounted) {
 			this._navbarDom.hidden = hidden;
 			this._navbarDom.update();
-			this.domAs().style = { padding: this.paddingNavbar(hidden) };
+			this.domAs().style.paddingTop = hidden || !this._includeNavbarPadding ? 0: this.navbarHeight;
 		}
 	}
 
-	private paddingNavbar(isHidden: boolean) {
-		return isHidden ? 0: this.collection.padding + this.collection.navbarHeight;
+	@link
+	get includeNavbarPadding() {
+		return this._includeNavbarPadding;
+	}
+	set includeNavbarPadding(val: boolean) {
+		this._includeNavbarPadding = val;
+		if (this.isMounted) {
+			const hidden = !this._includeNavbarPadding || this._navbarDom.hidden;
+			this.domAs().style.paddingTop = hidden ? 0: this.navbarHeight;
+		}
+	}
+
+	get navbarHeight() {
+		return this.collection.padding + this.collection.navbarHeight;
 	}
 
 	private renderNavbar(navbar: VDom<Navbar>) {
@@ -674,14 +686,17 @@ export class NavPage<P={},S={}> extends Navigation<{
 	}
 
 	protected render() {
-		const hidden = this.collection.navbarHidden || this._navbar.props.hidden;
+		const hidden =
+			!this._includeNavbarPadding ||
+			this.collection.navbarHidden ||
+			(this._navbarDom ? this._navbarDom.hidden: this._navbar.props.hidden);
 		return (
 			<matrix
 				width="100%"
 				height="match"
 				visible={false}
 				backgroundColor={this.backgroundColor}
-				paddingTop={this.paddingNavbar(hidden)}
+				paddingTop={hidden ? 0: this.navbarHeight}
 			>
 				{this.renderBody()}
 			</matrix>

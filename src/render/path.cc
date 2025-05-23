@@ -368,13 +368,22 @@ namespace qk {
 			auto pts = (const Vec2*)*self->_pts;
 			int len = 0;
 			Array<Vec2> tmpV;
+			
+			auto closeAdd = [&]() {
+				if (len) {
+					Vec2 *point = &tmpV[tmpV.length() - len];
+					//for (int i = 0; i < len; i++) {
+					//	Qk_DLog("Vec2(%f, %f)", point[i][0], point[i][1]);
+					//}
+					tessAddContour(tess, 2, (float*)point, sizeof(Vec2), len);
+					len = 0;
+				}
+			};
 
 			for (auto verb: self->_verbs) {
 				switch(verb) {
 					case kVerb_Move:
-						if (len > 1) { // auto close
-							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
-						}
+						closeAdd(); // auto close
 						tmpV.push(*pts++); len = 1;
 						break;
 					case kVerb_Line:
@@ -386,18 +395,12 @@ namespace qk {
 						break;
 					case kVerb_Close: // close
 						// Qk_ASSERT(verb == kVerb_Close);
-						if (len) {
-							// tmpV.push(tmpV[tmpV.length() - len++]);
-							tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
-							len = 0;
-						}
+						closeAdd();
 						break;
 					default: Qk_Fatal("Path::getVertexsFromPaths");
 				}
 			}
-			if (len > 1) { // auto close
-				tessAddContour(tess, 2, (float*)&tmpV[tmpV.length() - len], sizeof(Vec2), len);
-			}
+			closeAdd(); // auto close
 		}
 
 		VertexData out{0,0};
@@ -573,16 +576,28 @@ namespace qk {
 	static int getQuadraticBezierSample(const QuadraticBezier& curve, float epsilon);
 	static int getCubicBezierSample(const CubicBezier& curve, float epsilon);
 
+	/**
+	 * The connections point between multiple different paths may not be standard, 
+	 * so grid points are used here to make points that are very close to each other become the same.
+	*/
+	static void grid_point(Vec2 &p) {
+		p[0] = roundf(p[0] * 32.0) / 32.0;
+		p[1] = roundf(p[1] * 32.0) / 32.0;
+	}
+
 	Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
 		Path &line = *out;
-		auto pts = ((const Vec2*)_pts.val());
-		bool isZeor = true;
 
-		auto add = [&](Vec2 to, PathVerb verb) {
+		auto pts = ((Vec2*)_pts.val());
+		bool isZero = true;
+		static Vec2 Zero;
+
+		auto add = [&](Vec2 &to, PathVerb verb) {
+			grid_point(to);
 			line._pts.write(to.val, 2);
 			line._verbs.push(verb);
+
 			if (updateHash)
-				//line._hash.update((uint32_t*)&to, 2);
 				line._hash.updatefv2(to.val);
 		};
 
@@ -590,15 +605,15 @@ namespace qk {
 			switch(verb) {
 				case kVerb_Move:
 					add(*pts++, kVerb_Move);
-					isZeor = false;
+					isZero = false;
 					break;
 				case kVerb_Line:
-					add(*pts++, isZeor ? (isZeor = false),kVerb_Move: kVerb_Line); // add move or line
+					add(*pts++, isZero ? (isZero = false), kVerb_Move: kVerb_Line); // add move or line
 					break;
 				case kVerb_Quad: { // quadratic bezier
-					if (isZeor)
-						add(Vec2(), kVerb_Move);
-					QuadraticBezier bezier(isZeor ? Vec2(): pts[-1], pts[0], pts[1]);
+					if (isZero)
+						add(Zero, kVerb_Move);
+					QuadraticBezier bezier(isZero ? Vec2(): pts[-1], pts[0], pts[1]);
 					pts+=2;
 					int sample = getQuadraticBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3
@@ -606,18 +621,18 @@ namespace qk {
 					line._pts.extend(line._pts.length() + sampleSize);
 					auto points = &line._pts[line._pts.length() - sampleSize];
 					bezier.sample_curve_points(sample+1, points - 2);
+					grid_point(*(Vec2*)&line._pts[line._pts.length() - 2]);
 					if (updateHash)
-						//line._hash.update((uint32_t*)points, sampleSize); // update hash
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
 					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
-					isZeor = false;
+					isZero = false;
 					break;
 				}
 				case kVerb_Cubic: { // cubic bezier
-					if (isZeor)
-						add(Vec2(), kVerb_Move);
-					CubicBezier bezier(isZeor ? Vec2(): pts[-1], pts[0], pts[1], pts[2]);
+					if (isZero)
+						add(Zero, kVerb_Move);
+					CubicBezier bezier(isZero ? Vec2(): pts[-1], pts[0], pts[1], pts[2]);
 					pts+=3;
 					int sample = getCubicBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3
@@ -625,17 +640,17 @@ namespace qk {
 					line._pts.extend(line._pts.length() + sampleSize);
 					auto points = &line._pts[line._pts.length() - sampleSize];
 					bezier.sample_curve_points(sample+1, points - 2);
+					grid_point(*(Vec2*)&line._pts[line._pts.length() - 2]);
 					if (updateHash)
-						//line._hash.update((uint32_t*)points, sampleSize); // update hash
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
 					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
-					isZeor = false;
+					isZero = false;
 					break;
 				}
 				default: // close
 					line._verbs.push(kVerb_Close);
-					isZeor = true;
+					isZero = true;
 					break;
 			}
 		}
@@ -779,7 +794,8 @@ namespace qk {
 					Vec3 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y(), 0.0);
 					Vec3 src[] = { p,p0,p };
 					out->vertex.write(src, i==0?1:3); // add triangle vertex
-					out->path.lineTo({p[0],p[1]});
+					if (i) // First point can ignore, because it is repeat
+						out->path.lineTo({p[0],p[1]});
 					angle += angleStep;
 				}
 				out->vertex.pop();
@@ -961,7 +977,7 @@ namespace qk {
 					angle += angleStep;
 				}
 			}
-		
+
 			if (isRadiusZeroR) { // radius is zero
 				if (isBorder) {
 					Vec3 src[]{v[3],v[3],lastV,v[4]}; // outside,outside,inside,inside

@@ -138,6 +138,8 @@ namespace qk {
 		Array<uint8_t> _verbs;
 		Hash5381 _hash;
 		bool _IsNormalized;
+		friend class RectPath;
+		friend class RectOutlinePath;
 	};
 
 	// combination of paths and triangle vertices
