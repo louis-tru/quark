@@ -285,6 +285,7 @@ namespace qk {
 							glBindVertexArray(s->vao);
 							glUseProgram(s->shader);
 							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
+							//glDrawArrays(GL_LINES, 0, c->vCount);
 							break;
 						}
 						case kReadImage_CmdType: {

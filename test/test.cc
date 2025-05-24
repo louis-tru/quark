@@ -156,7 +156,7 @@ Qk_Main() {
 	#define _Fun2(n) call_test(argc, argv, #n, test_##n);
 
 	// #define TEST_DEFAULT(F) TEST_UTILS(F)
-	#define TEST_DEFAULT(F) F(rrect)
+	#define TEST_DEFAULT(F) F(jsapi)
 
 	Log::set_shared(new TestLog());
 

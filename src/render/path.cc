@@ -905,6 +905,10 @@ namespace qk {
 			{o_x2-oR[2].x(),o_y2-oR[2].y()}, {o_x1+oR[3].x(),o_y2-oR[3].y()},
 		};
 		Ce[4] = Ce[0];
+		
+		static auto isEquals = [](Vec2 a, Vec2 b) {
+			return (a - b).length() < 0.01;
+		};
 
 		/* rect outline border
 			0=A,1=B,5=C
@@ -982,9 +986,13 @@ namespace qk {
 				if (isBorder) {
 					Vec3 src[]{v[3],v[3],lastV,v[4]}; // outside,outside,inside,inside
 					out->vertex.write(src, 4);
-					path2.push(v[4]);
+					if (!isEquals(path2.back(), v[4])) {
+						path2.push(v[4]);
+					}
 				}
-				path.lineTo(v[3]);
+				if (!isEquals(*path.ptsBack(), v[3])) {
+					path.lineTo(v[3]);
+				}
 			} else {
 				auto borderSum = border[2] + border[1];
 				auto sweep = borderSum == 0 ? (Qk_PI_2_1 * 0.5): border[1] / borderSum * Qk_PI_2_1;
@@ -1004,7 +1012,9 @@ namespace qk {
 							// outside,inside,inside,outside,outside,inside
 							Vec3 src[]{v0,lastV,v1,v0,v0,v1};
 							out->vertex.write(src, 6);
-							path2.push(v1);
+							if (i != 0 || !isEquals(path2.back(), v1)) {
+								path2.push(v1);
+							}
 							lastV = v1;
 							//Qk_DLog("v0: %f %f, v1: %f %f", v0[0], v0[1], v1[0], v1[1]);
 							//Qk_DLog("ro: %f %f, ri: %f %f", radius[1][0], radius[1][1], radius_i[1][0], radius_i[1][1]);
@@ -1016,13 +1026,14 @@ namespace qk {
 							out->vertex.write(src, 3);
 						}
 					}
-					path.lineTo(v0);
+					if (i != 0 || !isEquals(*path.ptsBack(), v0)) {
+						path.lineTo(v0);
+					}
 					angle += angleStep;
 				}
-
 				out->vertex.pop(2); // delete invalid vertices
 			}
-			
+
 			if (isBorder) {
 				if (border[2] < 0.1 && !isRadiusZeroR) // fix aa sdf stroke error
 					path.moveTo(path2.back());

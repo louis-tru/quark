@@ -114,7 +114,7 @@ namespace qk {
 
 	void CStyleSheetsClass::updateClass_Rt() {
 		_host->mark_layout(View::kStyle_Class, true);
-		_status = kNone_CSSType; // force apply update
+		// _status = kNone_CSSType; // force apply update
 	}
 
 	void CStyleSheetsClass::setStatus_Rt(CSSType status) {
@@ -127,9 +127,7 @@ namespace qk {
 	}
 
 	bool CStyleSheetsClass::apply_Rt(CStyleSheetsClass *parent) {
-		if (_setStatus == _status) {
-			return false;
-		}
+		// if (_setStatus == _status) return false;
 		auto hash = _substylesHash_Rt.hashCode();
 		// reset env
 		_status = _setStatus;
@@ -142,6 +140,7 @@ namespace qk {
 		if (_nameHash_Rt.length()) {
 			applyFrom_Rt(parent);
 		}
+		// _status = _setStatus; // May have been modified, reset it
 		_firstApply = false;
 
 		// affects children CStyleSheetsClass

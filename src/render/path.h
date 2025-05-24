@@ -84,6 +84,7 @@ namespace qk {
 
 		// point ptr
 		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
+		inline const Vec2* ptsBack() const { return (const Vec2*)&_pts.lastAt(1); }
 		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
 		inline uint32_t ptsLen() const { return _pts.length() >> 1; }
 		inline uint32_t verbsLen() const { return _verbs.length(); }

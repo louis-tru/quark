@@ -26,20 +26,24 @@ public:
 		Paint paint;
 		//paint.antiAlias = false;
 
-		paint.color = Color4f(0, 0, 0, 0.5);
 		//canvas->drawPath(Path::MakeRRect({ {180,150}, 200 }, {50, 80, 50, 80}), paint);
 		//canvas->drawPath(Path::MakeRRect({ {180,50}, 200 }, {100, 100, 100, 100}), paint);
 		//canvas->drawPathv(RectPath::MakeRRect({ {180,50}, 180 }, {100, 100, 100, 100}), paint);
 		float border[4] = { 20,20,20,20 };
-		RectOutlinePath outline = RectOutlinePath::MakeRRectOutline({ {180,50}, 180 }, border, {100, 100, 100, 100});
+		float radius = 100;
+		RectOutlinePath outline = RectOutlinePath::MakeRRectOutline({ {180,50}, 200 }, border, {radius, radius, radius, radius});
+		paint.color = Color4f(0, 0, 0, 0.5);
 		canvas->drawPathv(outline.left, paint);
+		paint.color = Color4f(0, 1, 0, 0.5);
 		canvas->drawPathv(outline.top, paint);
+		paint.color = Color4f(0, 0, 1, 0.5);
 		canvas->drawPathv(outline.right, paint);
+		paint.color = Color4f(1, 0, 0, 0.5);
 		canvas->drawPathv(outline.bottom, paint);
 
 		paint.color = Color4f(0, 0.5, 0.5, 0.4);
 		//canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
-		
+
 		paint.color = Color4f(1, 0, 0, 0.3);
 		//auto circle = Path::MakeCircle(size/2, 105, false);
 		auto circle = Path::MakeArc({size/2-105,210}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);

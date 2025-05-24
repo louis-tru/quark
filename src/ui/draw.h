@@ -73,12 +73,13 @@ namespace qk {
 		void getInsideRectPath(Box *box, BoxData &out);
 		void getOutsideRectPath(Box *box, BoxData &out);
 		void getRRectOutlinePath(Box *box, BoxData &out);
-		void drawBoxColor(Box *box, BoxData &data);
+		void drawBoxBasic(Box *box, BoxData &data);
 		void drawBoxFill(Box *box, BoxData &data);
 		void drawBoxFillImage(Box *box, FillImage *fill, BoxData &data);
 		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data);
 		void drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data);
 		void drawBoxShadow(Box *box, BoxData &data);
+		void drawBoxColor(Box *box, BoxData &data);
 		void drawBoxBorder(Box *box, BoxData &data);
 		void drawBoxEnd(Box *box, BoxData &data);
 		void drawScrollBar(Box *box, ScrollBase *v);

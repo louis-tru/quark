@@ -77,6 +77,7 @@ typedef uint64_t Qk_OT_LONGDATETIME;
 
 typedef float QkScalar;
 typedef int32_t QkFDot6;
+typedef int16_t QkFDot2;
 
 /** @return the number of entries in an array (not a pointer)
 */
@@ -180,6 +181,10 @@ typedef int32_t             QkFixed;
 #define QkScalarToFDot6(x)  ((QkFDot6)((x) * 64))
 #define QkFDot6ToScalar(x)  ((QkScalar)(x) * 0.015625f)
 #define QkFDot6ToFloat      QkFDot6ToScalar
+
+#define QkFDot2Floor(x)     ((x) >> 2)
+#define QkFDot2ToScalar(x)  ((QkScalar)(x) * 0.25f)
+#define QkScalarToFDot2(x)  ((QkFDot2)((x) * 4))
 
 // NOTE: QkFixedToFloat is exact. QkFloatToFixed seems to lack a rounding step. For all fixed-point
 // values, this version is as accurate as possible for (fixed -> float -> fixed). Rounding reduces

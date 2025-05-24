@@ -32,34 +32,32 @@ import {_CVD,createCss,ViewController, StyleSheet,link} from './index';
 
 createCss({
 	'.x_checkbox': {
-		width: 20,
-		height: 20,
+		width: 80,
+		height: 80,
 		backgroundColor: '#fff',
-		border: '1 #aaa',
-		borderRadius: 20,
+		border: '5 #aaa',
+		borderColorLeft: '#0079ff',
+		borderColorRight: '#0079ff',
+		borderRadius: 100,
 		opacity: 1,
-	},
-	'.x_checkbox:hover': {
-		backgroundColor: '#0079ff',
-		border: '1 #0079ff',
-		opacity: 0.7,
-	},
-	'.x_checkbox:active': {
-		backgroundColor: '#0079ff',
-		border: '1 #0079ff',
-		opacity: 0.35,
-	},
-	'.x_checkbox.on': {
-		backgroundColor: '#0079ff',
-		border: '1 #0079ff',
-	},
-	'.x_checkbox .mark': {
-		visible: false,
+		textAlign: 'center',
+		textLineHeight: 1,
 		textFamily: 'iconfont',
 		textColor: '#fff',
 		textSize: 14,
-		textLineHeight: 20,
-		opacity: 1,
+	},
+	'.x_checkbox:hover': {
+		opacity: 0.7,
+	},
+	'.x_checkbox:active': {
+		opacity: 0.35,
+	},
+	'.x_checkbox:hover, .x_checkbox:active, .x_checkbox.on': {
+		backgroundColor: '#0079ff',
+		//borderColor: '#0079ff',
+	},
+	'.x_checkbox .mark': {
+		visible: false,
 	},
 	'.x_checkbox.on .mark': {
 		visible: true,

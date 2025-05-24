@@ -42,16 +42,16 @@ createCss({
 	},
 	'.checkbox_page .item': {
 		width: 'match',
-		borderBottom: `${px} #ccc`,
+		//borderBottom: `${px} #ccc`,
 	},
 	'.checkbox_page .text': {
 		width: '100!',
 		margin: 13,
 		align: 'start',
 	},
-	'.checkbox_page .x_checkbox': {
-		align: 'start',
-	}
+	//'.checkbox_page .x_checkbox': {
+	//	align: 'start',
+	//}
 })
 
 function change_handle(value: boolean, sender: Basic) {
@@ -64,6 +64,7 @@ function change_handle(value: boolean, sender: Basic) {
 export default (self: Page)=>{
 	self.title = 'Checkbox';
 	self.source = resolve(__filename);
+	self.navbarHidden = true;
 
 	return (
 		<box width="match" class="checkbox_page">

@@ -79,6 +79,8 @@ namespace qk {
 			}
 			v = v->next();
 		}
+
+		mark(kRecursive_Transform, true); // mark recursive transform
 	}
 
 	void Label::text_config(TextConfig* base) {

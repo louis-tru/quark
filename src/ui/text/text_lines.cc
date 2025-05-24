@@ -119,12 +119,13 @@ namespace qk {
 		}
 		if (line_height != 0) { // value, not auto
 			auto height = top + bottom;
-			if (line_height <= 2) { // use percentage
+			auto rawLineHeight = line_height;
+			if (rawLineHeight <= 2) { // use percentage
 				if (_limit_range.origin.y() > 0) {
 					line_height *= _limit_range.origin.y(); // use percentage
 					if (line_height < height) {
 						// try use to max value
-						line_height = Float32::min(line_height * _limit_range.end.y(), height);
+						line_height = Float32::min(rawLineHeight * _limit_range.end.y(), height);
 					}
 				} else {
 					return set_line_height(top, bottom); // use auto

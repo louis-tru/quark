@@ -97,7 +97,6 @@ namespace qk {
 				) {
 					out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 				} else {
-
 					float lt = Qk_Min(radius[0],xy_0_5), rt = Qk_Min(radius[1],xy_0_5);
 					float rb = Qk_Min(radius[2],xy_0_5), lb = Qk_Min(radius[3],xy_0_5);
 					auto border = _border->width;
@@ -122,24 +121,79 @@ namespace qk {
 		if (!out.outline) {
 			_Border(box);
 			auto border = _border->width;
-			float borderFix[4] = {
-				Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
-				Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
-			};
-			out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_border_radius_left_top);
+			if (*reinterpret_cast<const uint64_t*>(border) != 0 ||
+					*reinterpret_cast<const uint64_t*>(border+2) != 0
+			) {
+				float borderFix[4] = {
+					Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
+					Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
+				};
+				out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_border_radius_left_top);
+			}
 		}
 	}
 
-	void UIDraw::drawBoxColor(Box *box, BoxData &data) {
-		if (!box->_background_color.a()) return;
-		getInsideRectPath(box, data);
-		_canvas->drawPathvColor(*data.inside,
-			box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
-		);
-		// Paint paint;
-		// paint.antiAlias = false;
-		// paint.color = box->_background_color.to_color4f_alpha(_opacity);
-		// _canvas->drawPathv(rect->path, paint);
+	void UIDraw::drawBoxBasic(Box *box, BoxData &data) {
+		drawBoxShadow(box, data);
+
+		if (_opacity == 1) {
+			drawBoxColor(box, data);
+			drawBoxFill(box, data);
+			drawBoxBorder(box, data);
+		} else {
+			struct PathvItems {
+				struct Item {
+					const Pathv* pathv[5]; Color color; int count = 0;
+				} indexed[5];
+				int items[5];
+				int total = 0;
+			} pathvs;
+
+			auto setDict = [](PathvItems &out, Color color, const qk::Pathv *pv) {
+				auto key = *reinterpret_cast<uint32_t*>(&color) % 5;
+				auto &it = out.indexed[key];
+				if (it.count == 0) {
+					it.color = color;
+					out.items[out.total++] = key;
+				}
+				it.pathv[it.count++] = pv;
+			};
+
+			if (box->_background_color.a()) {
+				getInsideRectPath(box, data);
+				setDict(pathvs, box->_background_color, data.inside);
+			}
+
+			_IfBorder(box) {
+				getRRectOutlinePath(box, data);
+				if (data.outline) {
+					Paint stroke;
+					stroke.style = Paint::kStroke_Style;
+					for (int i = 0; i < 4; i++) {
+						if (_border->width[i]) { // top
+							auto pv = &data.outline->top + i;
+							if (pv->vCount) {
+								setDict(pathvs, _border->color[i], pv);
+							} else { // stroke
+								stroke.color = _border->color[i].to_color4f_alpha(_opacity);
+								stroke.width = _border->width[i];
+								_canvas->drawPath(pv->path, stroke);
+							}
+						}
+					}
+				}
+			}
+
+			if (pathvs.total) {
+				for (int i = 0; i < pathvs.total; i++) {
+					auto & it = pathvs.indexed[pathvs.items[i]];
+					_canvas->drawPathvColors(it.pathv, it.count,
+						it.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+				}
+			}
+
+			drawBoxFill(box, data);
+		}
 	}
 
 	void UIDraw::drawBoxFill(Box *box, BoxData &data) {
@@ -311,22 +365,34 @@ namespace qk {
 		_canvas->restore();
 	}
 
+	void UIDraw::drawBoxColor(Box *box, BoxData &data) {
+		if (!box->_background_color.a()) return;
+		getInsideRectPath(box, data);
+		_canvas->drawPathvColor(*data.inside,
+			box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
+		);
+		// Paint paint;
+		// paint.antiAlias = false;
+		// paint.color = box->_background_color.to_color4f_alpha(_opacity);
+		// _canvas->drawPathv(rect->path, paint);
+	}
+
 	void UIDraw::drawBoxBorder(Box *box, BoxData &data) {
 		_IfNotBorder(box);
-
 		getRRectOutlinePath(box, data);
-		Paint stroke;
-		stroke.style = Paint::kStroke_Style;
-
-		for (int i = 0; i < 4; i++) {
-			if (_border->width[i] > 0) { // top
-				auto pv = &data.outline->top + i;
-				if (pv->vCount) {
-					_canvas->drawPathvColor(*pv, _border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
-				} else { // stroke
-					stroke.color = _border->color[i].to_color4f_alpha(_opacity);
-					stroke.width = _border->width[i];
-					_canvas->drawPath(pv->path, stroke);
+		if (data.outline) {
+			Paint stroke;
+			stroke.style = Paint::kStroke_Style;
+			for (int i = 0; i < 4; i++) {
+				if (_border->width[i] > 0) { // top
+					auto pv = &data.outline->top + i;
+					if (pv->vCount) {
+						_canvas->drawPathvColor(*pv, _border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+					} else { // stroke
+						stroke.color = _border->color[i].to_color4f_alpha(_opacity);
+						stroke.width = _border->width[i];
+						_canvas->drawPath(pv->path, stroke);
+					}
 				}
 			}
 		}
@@ -470,19 +536,14 @@ namespace qk {
 	void UIDraw::visitBox(Box* box) {
 		BoxData data;
 		_canvas->setTranslate(box->position());
-		drawBoxShadow(box, data);
-		drawBoxColor(box, data);
-		drawBoxFill(box, data);
-		drawBoxBorder(box, data);
+		drawBoxBasic(box, data);
 		drawBoxEnd(box, data);
 	}
 
 	void UIDraw::visitImage(Image* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		drawBoxShadow(v, data);
-		drawBoxColor(v, data);
-		drawBoxFill(v, data);
+		drawBoxBasic(v, data);
 
 		auto src = v->source();
 		if (src && src->load()) {
@@ -502,7 +563,6 @@ namespace qk {
 			paint.setImage(src.get(), data.inside->rect);
 			_canvas->drawPathv(*data.inside, p0);
 		}
-		drawBoxBorder(v, data);
 		drawBoxEnd(v, data);
 	}
 
@@ -514,10 +574,7 @@ namespace qk {
 	void UIDraw::visitText(Text* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		drawBoxShadow(v, data);
-		drawBoxColor(v, data);
-		drawBoxFill(v, data);
-		drawBoxBorder(v, data);
+		drawBoxBasic(v, data);
 		
 		Vec2 offset(v->_padding_left, v->_padding_top);
 
@@ -550,10 +607,7 @@ namespace qk {
 	void UIDraw::visitInput(Input* v) {
 		BoxData data;
 		_canvas->setTranslate(v->position());
-		drawBoxShadow(v, data);
-		drawBoxColor(v, data);
-		drawBoxFill(v, data);
-		drawBoxBorder(v, data);
+		drawBoxBasic(v, data);
 
 		auto lines = *v->_lines;
 		auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
@@ -652,30 +706,24 @@ namespace qk {
 
 	void UIDraw::visitLabel(Label* v) {
 		if (v->_blob_visible.length()) {
-			_canvas->setTranslate(v->position());
+			_canvas->setTranslate(v->position()); // set position in matrix
 			drawTextBlob(v, {}, *v->_lines, v->_blob, v->_blob_visible);
 		}
 		UIDraw::visitView(v);
 	}
 
 	void UIDraw::visitMatrix(Matrix* box) {
-		auto matrix = _matrix;
+		auto matrixPrev = _matrix;
 		auto origin = _origin;
 		_origin -= box->_origin_value;
 		_matrix = &box->mat();
 		_canvas->setMatrix(*_matrix);
 		//_canvas->setTranslate(box->position());
-
-		// draw box
 		BoxData data;
-		drawBoxShadow(box, data);
-		drawBoxColor(box, data);
-		drawBoxFill(box, data);
-		drawBoxBorder(box, data);
+		drawBoxBasic(box, data);
 		_origin = origin;
 		drawBoxEnd(box, data);
-		// draw box end
-		_matrix = matrix;
+		_matrix = matrixPrev;
 		_canvas->setMatrix(*_matrix);
 	}
 
@@ -693,11 +741,9 @@ namespace qk {
 				_fixSize = origin + origin;
 				_origin = Vec2(origin) - v->_origin_value;
 				_matrix = &v->mat();
-				_canvas->setMatrix(Mat(*_matrix).set_translate(v->position()));
+				_canvas->setMatrix(*_matrix);
 				_canvas->clearColor(v->_background_color.to_color4f());
-
-				drawBoxShadow(v, data);
-				drawBoxFill(v, data);
+				drawBoxColor(v, data);
 				drawBoxBorder(v, data);
 				_origin = origin;
 				drawBoxEnd(v, data);

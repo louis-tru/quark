@@ -556,15 +556,28 @@ namespace qk {
 	}
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
-		if (path.vCount) {
-			_this->setBlendMode(mode); // switch blend mode
-			_cmdPack->drawColor(path, color, false);
-			if (!_DeviceMsaa) { // Anti-aliasing using software
-				auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
-				_cmdPack->drawColor(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
-			}
-			_this->zDepthNext();
+		_this->setBlendMode(mode); // switch blend mode
+		_cmdPack->drawColor(path, color, false);
+		if (!_DeviceMsaa) { // Anti-aliasing using software
+			auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
+			_cmdPack->drawColor(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
 		}
+		_this->zDepthNext();
+	}
+
+	void GLCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color,BlendMode mode) {
+		_this->setBlendMode(mode); // switch blend mode
+		for (int i = 0; i < count; i++) {
+			_cmdPack->drawColor(*paths[i], color, false);
+		}
+		if (!_DeviceMsaa) { // Anti-aliasing using software
+			auto c2 = color.to_color4f_alpha(aa_fuzz_weight);
+			for (int i = 0; i < count; i++) {
+				auto &vertex = _cache->getAAFuzzStrokeTriangle(paths[i]->path, _phy2Pixel*aa_fuzz_width);
+				_cmdPack->drawColor(vertex, c2, true);
+			}
+		}
+		_this->zDepthNext();
 	}
 
 	void GLCanvas::drawRRectBlurColor(const Rect& rect,

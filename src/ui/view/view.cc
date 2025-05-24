@@ -602,12 +602,14 @@ namespace qk {
 			if (_cssclass->haveSubstyles()) {
 				ssc = _cssclass;
 			}
-			auto l = first();
-			while (l) {
-				if (l->_visible && l->_cssclass) {
-					l->applyClass_Rt(ssc);
+			if (_visible) {
+				auto l = first();
+				while (l) {
+					if (l->_cssclass) {
+						l->applyClass_Rt(ssc);
+					}
+					l = l->next();
 				}
-				l = l->next();
 			}
 		}
 		unmark(kStyle_Class);
