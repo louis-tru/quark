@@ -32,6 +32,8 @@
 #include "./gl_render.h"
 #include "./gl_cmd.h"
 
+#define isMoreSofterAA 0
+
 namespace qk {
 	GLenum gl_CheckFramebufferStatus(GLenum target);
 	float get_level_font_size(float fontSize);
@@ -45,8 +47,15 @@ namespace qk {
 	void setMipmap_SourceImage(ImageSource* img, bool val);
 
 	extern const Region ZeroRegion;
+#if isMoreSofterAA
+	// Softer:
 	extern const float  aa_fuzz_weight = 0.9;
 	extern const float  aa_fuzz_width = 0.6;
+#else
+	// More radical:
+	extern const float  aa_fuzz_weight = 1;
+	extern const float  aa_fuzz_width = 0.5;
+#endif
 	extern const float  DepthNextUnit = 1.0f / 5000000.0f;
 
 	const GLenum DrawBuffers[]{
@@ -193,12 +202,17 @@ namespace qk {
 
 		void strokePath(const Path &path, const Paint& paint, bool aa) {
 			if (aa) {
-				auto width = paint.width - _phy2Pixel * 0.45f;
+#if isMoreSofterAA
+				const float weight = 0.45f;
+#else
+				const float weight = 0.5f;
+#endif
+				auto width = paint.width - _phy2Pixel * weight;
 				if (width > 0) {
 					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, true);
 				} else {
-					width /= (_phy2Pixel * 0.65f); // range: -1 => 0
-					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.006
+					width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
+					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
 					drawAAFuzzStroke(path, paint, 0.5 / (0.5 - width), 0.5);
 					zDepthNext();
 				}

@@ -32,12 +32,10 @@ import {_CVD,createCss,ViewController, StyleSheet,link} from './index';
 
 createCss({
 	'.x_checkbox': {
-		width: 80,
-		height: 80,
-		backgroundColor: '#fff',
-		border: '5 #aaa',
-		borderColorLeft: '#0079ff',
-		borderColorRight: '#0079ff',
+		width: 20,
+		height: 20,
+		backgroundColor: '#fff0',
+		border: '2 #aaa',
 		borderRadius: 100,
 		opacity: 1,
 		textAlign: 'center',
@@ -54,7 +52,7 @@ createCss({
 	},
 	'.x_checkbox:hover, .x_checkbox:active, .x_checkbox.on': {
 		backgroundColor: '#0079ff',
-		//borderColor: '#0079ff',
+		borderColor: '#0079ff',
 	},
 	'.x_checkbox .mark': {
 		visible: false,
@@ -98,11 +96,11 @@ createCss({
 		borderRadius: 16,
 		backgroundColor: '#fff',
 		height: 27,
-		x: 2,
-		y: 2,
 	},
 	'.x_switch:normal .button': {
 		width: 27,
+		x: 2,
+		y: 2,
 		time: 200,
 	},
 	'.x_switch:active .button, \
@@ -169,10 +167,10 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 export class Switch<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
-			<button class={['x_switch',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
+			<free class={['x_switch',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
 				<free class="background" />
 				<matrix class="button" />
-			</button>
+			</free>
 		);
 	}
 }

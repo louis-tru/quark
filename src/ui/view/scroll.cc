@@ -709,7 +709,7 @@ namespace qk {
 		, _catch_position_x(1)
 		, _catch_position_y(1)
 		, _scrollbar_color(140, 140, 140, 200)
-		, _scrollbar_width(2.0)
+		, _scrollbar_width(4.0)
 		, _scrollbar_margin(2.0)
 		, _scroll_duration(0)
 		, _host(host)

@@ -585,6 +585,10 @@ namespace qk {
 		p[1] = roundf(p[1] * 32.0) / 32.0;
 	}
 
+	static bool isPointEquals(Vec2 a, Vec2 b) {
+		return (a - b).length() < 0.01;
+	}
+
 	Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
 		Path &line = *out;
 
@@ -711,7 +715,7 @@ namespace qk {
 
 		if (S_2 < 5000.0) { // circle radius < 80
 			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 3);
 			return i;
 		} else {
 			return 30;
@@ -725,7 +729,7 @@ namespace qk {
 		float S_2 = abs(radius.x() * radius.y() * radian * 0.25); // width * height
 		if (S_2 < 5000.0) { // circle radius < 80
 			constexpr float count = 30.0 / 8.408964152537145;//sqrtf(sqrtf(5000.0));
-			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 2);
+			int i = Uint32::max(sqrt_sqrtf(S_2) * count, 3);
 			return i;
 		} else {
 			return 30;
@@ -783,6 +787,10 @@ namespace qk {
 			{x2,y2-r.rightBottom.y(),0.0}, // 1
 		};
 		vertex[4] = vertex[0];
+		
+		static auto isEquals = [](Path& path, Vec3 &p) {
+			return !path.ptsLen() || isPointEquals(*path.ptsBack(), {p[0],p[1]});
+		};
 
 		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec3 *v2, float angle) {
 			if (radius[0] > 0 && radius[1] > 0) { // no zero
@@ -794,8 +802,10 @@ namespace qk {
 					Vec3 p(center.x() + cosf(angle) * radius.x(), center.y() - sinf(angle) * radius.y(), 0.0);
 					Vec3 src[] = { p,p0,p };
 					out->vertex.write(src, i==0?1:3); // add triangle vertex
-					if (i) // First point can ignore, because it is repeat
+					// First point can ignore, because it is repeat
+					if (i || !isEquals(out->path, p)) {
 						out->path.lineTo({p[0],p[1]});
+					}
 					angle += angleStep;
 				}
 				out->vertex.pop();
@@ -905,10 +915,6 @@ namespace qk {
 			{o_x2-oR[2].x(),o_y2-oR[2].y()}, {o_x1+oR[3].x(),o_y2-oR[3].y()},
 		};
 		Ce[4] = Ce[0];
-		
-		static auto isEquals = [](Vec2 a, Vec2 b) {
-			return (a - b).length() < 0.01;
-		};
 
 		/* rect outline border
 			0=A,1=B,5=C
@@ -986,11 +992,11 @@ namespace qk {
 				if (isBorder) {
 					Vec3 src[]{v[3],v[3],lastV,v[4]}; // outside,outside,inside,inside
 					out->vertex.write(src, 4);
-					if (!isEquals(path2.back(), v[4])) {
+					if (!isPointEquals(path2.back(), v[4])) {
 						path2.push(v[4]);
 					}
 				}
-				if (!isEquals(*path.ptsBack(), v[3])) {
+				if (!isPointEquals(*path.ptsBack(), v[3])) {
 					path.lineTo(v[3]);
 				}
 			} else {
@@ -1012,7 +1018,7 @@ namespace qk {
 							// outside,inside,inside,outside,outside,inside
 							Vec3 src[]{v0,lastV,v1,v0,v0,v1};
 							out->vertex.write(src, 6);
-							if (i != 0 || !isEquals(path2.back(), v1)) {
+							if (i != 0 || !isPointEquals(path2.back(), v1)) {
 								path2.push(v1);
 							}
 							lastV = v1;
@@ -1026,7 +1032,7 @@ namespace qk {
 							out->vertex.write(src, 3);
 						}
 					}
-					if (i != 0 || !isEquals(*path.ptsBack(), v0)) {
+					if (i != 0 || !isPointEquals(*path.ptsBack(), v0)) {
 						path.lineTo(v0);
 					}
 					angle += angleStep;

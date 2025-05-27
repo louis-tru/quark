@@ -59,7 +59,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
 		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
 	UIScreen* screen = UIScreen.mainScreen;
-	CGFloat scale = screen.backingScaleFactor;
+	//CGFloat scale = screen.backingScaleFactor;
 
 	float w = opts.frame.size.x() > 0 ?
 		opts.frame.size.x(): screen.frame.size.width / 2;

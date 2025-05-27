@@ -62,7 +62,7 @@ namespace qk {
 
 	Rect UIDraw::getRect(Box* box) {
 		return {
-			_origin, {box->_client_size[0]-_fixSize,box->_client_size[1]-_fixSize},
+			_origin, {box->_client_size[0]-_AAShrink,box->_client_size[1]-_AAShrink},
 		};
 	}
 
@@ -81,9 +81,13 @@ namespace qk {
 			out.inside = _cache->getRRectPathFromHash(hash.hashCode());
 			if (!out.inside) {
 				float xy_0_5    = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+				// TODO: The interior and the border cannot fit completely,
+				// causing anti-aliasing to fail at 1 to 2 pixels,
+				// so temporarily reduce the interior frame to 0.75
+				float AAShrink = _AAShrink * 0.75;
 				float borderFix[4] = {
-					Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
-					Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
+					Float32::max(0, border[0]-AAShrink), Float32::max(0, border[1]-AAShrink),
+					Float32::max(0, border[2]-AAShrink), Float32::max(0, border[3]-AAShrink),
 				};
 				rect.origin[0] += borderFix[3]; // left
 				rect.origin[1] += borderFix[0]; // top
@@ -125,8 +129,8 @@ namespace qk {
 					*reinterpret_cast<const uint64_t*>(border+2) != 0
 			) {
 				float borderFix[4] = {
-					Float32::max(0, border[0]-_fixSize), Float32::max(0, border[1]-_fixSize),
-					Float32::max(0, border[2]-_fixSize), Float32::max(0, border[3]-_fixSize),
+					Float32::max(0, border[0]-_AAShrink), Float32::max(0, border[1]-_AAShrink),
+					Float32::max(0, border[2]-_AAShrink), Float32::max(0, border[3]-_AAShrink),
 				};
 				out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_border_radius_left_top);
 			}
@@ -140,60 +144,63 @@ namespace qk {
 			drawBoxColor(box, data);
 			drawBoxFill(box, data);
 			drawBoxBorder(box, data);
-		} else {
-			struct PathvItems {
-				struct Item {
-					const Pathv* pathv[5]; Color color; int count = 0;
-				} indexed[5];
-				int items[5];
-				int total = 0;
-			} pathvs;
+			return;
+		}
 
-			auto setDict = [](PathvItems &out, Color color, const qk::Pathv *pv) {
-				auto key = *reinterpret_cast<uint32_t*>(&color) % 5;
-				auto &it = out.indexed[key];
-				if (it.count == 0) {
-					it.color = color;
-					out.items[out.total++] = key;
-				}
-				it.pathv[it.count++] = pv;
-			};
+		struct PathvItems {
+			int total = 0;
+			int items[5];
+			struct Item {
+				const Pathv* pathv[5];
+				Color color;
+				int count = 0;
+			} indexed[5];
+		} pathvs;
 
-			if (box->_background_color.a()) {
-				getInsideRectPath(box, data);
-				setDict(pathvs, box->_background_color, data.inside);
+		auto addItem = [](PathvItems &out, Color color, const qk::Pathv *pv) {
+			auto key = *reinterpret_cast<uint32_t*>(&color) % 5;
+			auto &it = out.indexed[key];
+			if (it.count == 0) {
+				it.color = color;
+				out.items[out.total++] = key;
 			}
+			it.pathv[it.count++] = pv;
+		};
 
-			_IfBorder(box) {
-				getRRectOutlinePath(box, data);
-				if (data.outline) {
-					Paint stroke;
-					stroke.style = Paint::kStroke_Style;
-					for (int i = 0; i < 4; i++) {
-						if (_border->width[i]) { // top
-							auto pv = &data.outline->top + i;
-							if (pv->vCount) {
-								setDict(pathvs, _border->color[i], pv);
-							} else { // stroke
-								stroke.color = _border->color[i].to_color4f_alpha(_opacity);
-								stroke.width = _border->width[i];
-								_canvas->drawPath(pv->path, stroke);
-							}
+		if (box->_background_color.a()) {
+			getInsideRectPath(box, data);
+			addItem(pathvs, box->_background_color, data.inside);
+		}
+
+		_IfBorder(box) {
+			getRRectOutlinePath(box, data);
+			Paint stroke;
+			stroke.style = Paint::kStroke_Style;
+			if (data.outline) {
+				for (int i = 0; i < 4; i++) {
+					if (_border->width[i]) { // top
+						auto pv = &data.outline->top + i;
+						if (pv->vCount) {
+							addItem(pathvs, _border->color[i], pv);
+						} else { // stroke
+							stroke.color = _border->color[i].to_color4f_alpha(_opacity);
+							stroke.width = _border->width[i];
+							_canvas->drawPath(pv->path, stroke);
 						}
 					}
 				}
 			}
-
-			if (pathvs.total) {
-				for (int i = 0; i < pathvs.total; i++) {
-					auto & it = pathvs.indexed[pathvs.items[i]];
-					_canvas->drawPathvColors(it.pathv, it.count,
-						it.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
-				}
-			}
-
-			drawBoxFill(box, data);
 		}
+
+		if (pathvs.total) {
+			for (int i = 0; i < pathvs.total; i++) {
+				auto & it = pathvs.indexed[pathvs.items[i]];
+				_canvas->drawPathvColors(it.pathv, it.count,
+					it.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+			}
+		}
+
+		drawBoxFill(box, data);
 	}
 
 	void UIDraw::drawBoxFill(Box *box, BoxData &data) {
@@ -366,7 +373,8 @@ namespace qk {
 	}
 
 	void UIDraw::drawBoxColor(Box *box, BoxData &data) {
-		if (!box->_background_color.a()) return;
+		if (!box->_background_color.a())
+			return;
 		getInsideRectPath(box, data);
 		_canvas->drawPathvColor(*data.inside,
 			box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
@@ -384,10 +392,10 @@ namespace qk {
 			Paint stroke;
 			stroke.style = Paint::kStroke_Style;
 			for (int i = 0; i < 4; i++) {
-				if (_border->width[i] > 0) { // top
+				if (_border->width[i]) { // top
 					auto pv = &data.outline->top + i;
 					if (pv->vCount) {
-						_canvas->drawPathvColor(*pv, _border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+					_canvas->drawPathvColor(*pv, _border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
 					} else { // stroke
 						stroke.color = _border->color[i].to_color4f_alpha(_opacity);
 						stroke.width = _border->width[i];
@@ -715,7 +723,7 @@ namespace qk {
 	void UIDraw::visitMatrix(Matrix* box) {
 		auto matrixPrev = _matrix;
 		auto origin = _origin;
-		_origin -= box->_origin_value;
+		_origin = Vec2(_AAShrink * 0.5) - box->_origin_value;
 		_matrix = &box->mat();
 		_canvas->setMatrix(*_matrix);
 		//_canvas->setTranslate(box->position());
@@ -737,8 +745,10 @@ namespace qk {
 			if (v->_visible_region && v->_opacity != 0) {
 				BoxData data;
 				// Fix rect aa stroke width
-				auto origin = 2.0f * 0.225f / _window->scale(); // fix aa stroke width
-				_fixSize = origin + origin;
+				bool isMsaa = _window->render()->options().msaaSample;
+				//auto origin = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
+				auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
+				_AAShrink = origin + origin;
 				_origin = Vec2(origin) - v->_origin_value;
 				_matrix = &v->mat();
 				_canvas->setMatrix(*_matrix);

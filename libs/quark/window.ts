@@ -39,7 +39,7 @@ type WEvent = Event<Window>;
 
 export interface Options {
 	olorType?: number; // init window color type
-	msaa?: number; // init window gpu render msaa count
+	//msaa?: number; // init window gpu render msaa count
 	fps?: number; // init window render fsp limit
 	frame?: types.Rect; // init window params
 	title?: string; // init window title

@@ -93,7 +93,7 @@ namespace qk {
 		float      _opacity;
 		uint32_t   _mark_recursive;
 		Vec2       _origin; // box origin and fix aa stroke width
-		float      _fixSize; // fix rect stroke width
+		float      _AAShrink; // fix rect stroke width for AA
 		const Mat *_matrix;
 	};
 }
