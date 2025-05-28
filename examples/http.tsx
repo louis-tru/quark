@@ -43,7 +43,7 @@ export default (self: Page)=>{
 	self.source = resolve(__filename);
 
 	function url(evt: ClickEvent) {
-		return self.refAs<Input>('input').value;
+		return self.asRef<Input>('input').value;
 	}
 
 	function Get(e: ClickEvent) {

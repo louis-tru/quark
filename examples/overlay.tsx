@@ -80,17 +80,17 @@ export default (self: Page)=>{
 	self.title = 'Overlay'
 	self.source = resolve(__filename);
 	return (
-		<free width="match" height="match">
+		<free width="match" height="match" padding={[10,0]}>
 			<box align="centerTop" width="match">
 				<button class="long_btn" onClick={show_overlay}> Show Overlay </button>
 			</box>
-			<box align="rightMiddle" width="match">
+			<box align="centerBottom" width="match">
 				<button class="long_btn" onClick={show_overlay}> Show Overlay </button>
 			</box>
-			<box align="centerBottom">
+			<box align="leftMiddle">
 				<button class="long_btn" onClick={show_overlay2}> Show Overlay </button>
 			</box>
-			<box align="leftMiddle">
+			<box align="rightMiddle">
 				<button class="long_btn" onClick={show_overlay3}> Show Overlay </button>
 			</box>
 		</free>

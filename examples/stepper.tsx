@@ -36,31 +36,31 @@ const px = 1 / mainScreenScale();
 const resolve = require.resolve;
 
 createCss({
-	'.strpper_page': {
+	'.stepper_page': {
 		width: 'match',
 	},
-	'.strpper_page .item': {
+	'.stepper_page .item': {
 		width: 'match',
 		borderBottom: `${px} #ccc`,
 	},
-	'.strpper_page .text': {
+	'.stepper_page .text': {
 		width: '140!',
 		margin: 13,
 	},
 	'.stepper_page .stepper': {
-		margin:10
+		margin: 10,
 	},
 })
 
 function handleChange(self: Page, value: number, ref: string) {
-	(self.refAs(ref) as Text).value = String(value);
+	(self.asRef(ref) as Text).value = String(value);
 }
 
 export default (self: Page)=>{
 	self.title = 'Stepper';
 	self.source = resolve(__filename);
 	return (
-		<box width="match" class="strpper_page">
+		<box width="match" class="stepper_page">
 			<box class="item">
 				<text class="text" value="10" ref="t1" />
 				<Stepper onChange={e=>handleChange(self, e, 't1')} class='stepper' initValue={10} />

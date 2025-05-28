@@ -79,7 +79,7 @@ export default (self: Page)=>{
 
 	function WriteFile({origin:{window}}: ClickEvent) {
 		console.log('------------', filename);
-		fs.writeFile(filename, self.refAs<Input>('input').value).then(function() {
+		fs.writeFile(filename, self.asRef<Input>('input').value).then(function() {
 			alert(window, 'Write file OK.');
 		}).catch(err=>{
 			alert(window, err.message + ', ' + err.code);
@@ -88,7 +88,7 @@ export default (self: Page)=>{
 
 	function WriteFileSync({origin:{window}}: ClickEvent) {
 		try {
-			var txt = self.refAs<Input>('input').value;
+			var txt = self.asRef<Input>('input').value;
 			var r = fs.writeFileSync(filename, txt);
 			console.log(r);
 			alert(window, 'Write file OK.');

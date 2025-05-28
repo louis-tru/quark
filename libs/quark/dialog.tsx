@@ -36,58 +36,56 @@ import {
 import {Navigation} from './nav';
 import {Window} from './window';
 import * as types from './types';
+import {ClickEvent} from './event';
 
 const px = 1 / mainScreenScale();
 
 createCss({
-	'.x_dialog': {
+	'.qk_dialog': {
 	},
-	'.x_dialog.main': {
-		minWidth: 380, // min width
+	'.qk_dialog.main': {
+		minWidth: 260, // min width
 		maxWidth: '40!',// max width
 		maxHeight: '40!',
 		align: 'centerMiddle',
 		backgroundColor: '#fff',
 		borderRadius: 12,
 	},
-	'.x_dialog.sheet': {
+	'.qk_dialog.sheet': {
 		width: 'match',
 		maxWidth: 'none',
 		margin: 10,
 		align: 'centerBottom',
 	},
-	'.x_dialog .title': {
+	'.qk_dialog .title': {
 		width: 'match',
-		margin: 10,
-		marginTop: 18,
-		marginBottom: 0,
+		margin: [18,10,0,10],
 		textAlign: 'center',
 		textWeight: 'bold',
 		textSize: 18,
-		// textSize: 16,
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
+		backgroundColor: '#f00',
 	},
-	'.x_dialog .content': {
+	'.qk_dialog .content': {
 		width: 'match',
-		margin: 10,
-		marginTop: 2,
-		marginBottom: 20,
+		margin: [2,10,20,10],
 		textAlign: 'center',
 		textSize: 14,
 		textColor: '#333',
+		backgroundColor: '#ff0',
 	},
-	'.x_dialog .buttons': {
+	'.qk_dialog .buttons': {
 		width: 'match',
 		borderRadiusLeftBottom: 12,
 		borderRadiusRightBottom: 12,
 	},
-	'.x_dialog.sheet .buttons': {
+	'.qk_dialog.sheet .buttons': {
 		borderRadius: 12,
 		backgroundColor: '#fff',
 		marginTop: 10,
 	},
-	'.x_dialog .button': {
+	'.qk_dialog .button': {
 		height: 43,
 		// borderTop: `${px} #9da1a0`,
 		borderColorTop: `#9da1a0`,
@@ -95,23 +93,23 @@ createCss({
 		textLineHeight: 43,
 		textColor:"#0079ff",
 	},
-	'.x_dialog.sheet .button': {
+	'.qk_dialog.sheet .button': {
 		height: 45,
 		textLineHeight: 45,
 	},
-	'.x_dialog .button.gray': {
+	'.qk_dialog .button.gray': {
 		textColor:"#000",
 	},
-	'.x_dialog .button:normal': {
+	'.qk_dialog .button:normal': {
 		backgroundColor: '#fff', time: 180
 	},
-	'.x_dialog .button:hover': {
+	'.qk_dialog .button:hover': {
 		backgroundColor: '#E1E4E455', time: 50
 	},
-	'.x_dialog .button:down': {
+	'.qk_dialog .button:down': {
 		backgroundColor: '#E1E4E4', time: 50
 	},
-	'.x_dialog .prompt': {
+	'.qk_dialog .prompt': {
 		marginTop: 10,
 		width: "match",
 		height: 30,
@@ -168,53 +166,58 @@ export class Dialog<P={},S={}> extends Navigation<{
 		this._autoClose();
 	}
 
+	private handleClick = (e: ClickEvent)=>{
+		let idx = this.asRef<View>('btns').childDoms.indexOf(e.origin);
+		this.triggerAction(idx);
+	};
+
 	protected render() {
 		return (
 			<free width="100%" height="100%" backgroundColor="#0008" receive={true} visible={false} opacity={0}>
-				<matrix ref="main" class="x_dialog main">
-					<text ref="title" class="title" value={this.title} />
+				<matrix ref="main" class="qk_dialog main">
+					{/* <text ref="title" class="title" value={this.title} /> */}
 					<text ref="con" class="content">{this.content||this.children}</text>
-					<free ref="btns" class="buttons">
+					{/* <free ref="btns" class="buttons">
 					{
 						this._buttons.map((e,i)=>(
 							<button
 								key={i}
 								class="button"
 								borderWidthTop={px}
-								onClick={e=>this.triggerAction(i)}
+								onClick={this.handleClick}
 							>{e}</button>
 						))
 					}
-					</free>
+					</free> */}
 				</matrix>
 			</free>
 		);
 	}
 
 	show() {
-		if (!this.domAs().visible) {
+		if (!this.asDom().visible) {
 			super.appendTo(this.window.root);
-			this.domAs().visible = true;
+			this.asDom().visible = true;
 			this.window.nextFrame(()=>{
 				let main = this.refs.main as Matrix;
 				let size = main.clientSize;
 				main.style.origin = [size.x / 2, size.y / 2];
 				main.scale = new types.Vec2({x:0.2, y:0.2});
 				main.transition({ scale : '1 1', time: 250 });
-				this.domAs().opacity = 0.2;
-				this.domAs().transition({ opacity : 1, time: 250 });
+				this.asDom().opacity = 0.2;
+				this.asDom().transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
 	}
 
 	close() {
-		if ( this.domAs().visible ) {
+		if ( this.asDom().visible ) {
 			let main = this.refs.main as Matrix;
 			let size = main.clientSize;
 			main.style.origin = [size.x / 2, size.y / 2];
 			main.transition({ scale : '0.2 0.2', time: 300 });
-			this.domAs().transition({ opacity : 0.05, time: 300 }, ()=>{ this.destroy() });
+			this.asDom().transition({ opacity : 0.05, time: 300 }, ()=>{ this.destroy() });
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);
@@ -232,7 +235,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	}
 
 	navigationEnter(focus: View) {
-		if ( !this.domAs().isSelfChild(focus) ) {
+		if ( !this.asDom().isSelfChild(focus) ) {
 			if ( this.length ) {
 				this.triggerAction(this.length - 1);
 			} else {
@@ -264,8 +267,8 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 				onClick={()=>this.navigationBack()} visible={false} opacity={0}
 			>
 			{content?
-				<free ref="main" class="x_dialog sheet">{content}</free>:
-				<free ref="main" class="x_dialog sheet">
+				<free ref="main" class="qk_dialog sheet">{content}</free>:
+				<free ref="main" class="qk_dialog sheet">
 					<free class="buttons" clip={true}>
 					{
 						length?
@@ -301,25 +304,25 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 	}
 
 	show() {
-		if (!this.domAs().visible) {
+		if (!this.asDom().visible) {
 			ViewController.prototype.appendTo.call(this, this.window.root);
-			this.domAs().visible = true;
+			this.asDom().visible = true;
 			this.window.nextFrame(()=>{
 				let main = this.refs.main as Matrix;
 				main.y = main.clientSize.y;
 				main.transition({ y: 0, time: 250 });
-				this.domAs().opacity = 0.3;
-				this.domAs().transition({ opacity : 1, time: 250 });
+				this.asDom().opacity = 0.3;
+				this.asDom().transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
 	}
 
 	close() {
-		if ( this.domAs().visible ) {
+		if ( this.asDom().visible ) {
 			let main = this.refs.main as Matrix;
 			main.transition({ y: main.clientSize.y, time: 250 });
-			this.domAs().transition({ opacity : 0.15, time: 250 }, ()=>{ this.destroy() });
+			this.asDom().transition({ opacity : 0.15, time: 250 }, ()=>{ this.destroy() });
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);
@@ -332,7 +335,7 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 	let message: any;
 	if (typeof msg == 'string')
 		message = {msg};
-	let { msg: _msg = '', title = '' } = message;
+	let { msg: _msg = '', title = 'AAAAABB' } = message;
 	let dag = (
 		<Dialog buttons={[Consts.Ok]} onAction={cb} title={title}>{_msg}</Dialog>
 	).newDom(window.rootCtr) as Dialog;

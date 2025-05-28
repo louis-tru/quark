@@ -43,7 +43,7 @@ export const review = ()=>(
 			const page = self as Page;
 			const source = (page.prevPage as Page).source;
 			const text = reader.readFileSync(source, 'utf8');
-			page.refAs<Text>('text').value = text;
+			page.asRef<Text>('text').value = text;
 		}}
 		navbar={
 			<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />

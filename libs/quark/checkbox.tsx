@@ -31,7 +31,7 @@
 import {_CVD,createCss,ViewController, StyleSheet,link} from './index';
 
 createCss({
-	'.x_checkbox': {
+	'.qk_checkbox': {
 		width: 20,
 		height: 20,
 		backgroundColor: '#fff0',
@@ -44,76 +44,76 @@ createCss({
 		textColor: '#fff',
 		textSize: 14,
 	},
-	'.x_checkbox:hover': {
+	'.qk_checkbox:hover': {
 		opacity: 0.7,
 	},
-	'.x_checkbox:active': {
+	'.qk_checkbox:active': {
 		opacity: 0.35,
 	},
-	'.x_checkbox:hover, .x_checkbox:active, .x_checkbox.on': {
+	'.qk_checkbox:hover, .qk_checkbox:active, .qk_checkbox.on': {
 		backgroundColor: '#0079ff',
 		borderColor: '#0079ff',
 	},
-	'.x_checkbox .mark': {
+	'.qk_checkbox .mark': {
 		visible: false,
 	},
-	'.x_checkbox.on .mark': {
+	'.qk_checkbox.on .mark': {
 		visible: true,
 	},
-	'.x_switch': {
+	'.qk_switch': {
 		width: 50,
 		height: 31,
 		borderRadius: 18,
 	},
-	'.x_switch:normal': {
+	'.qk_switch:normal': {
 		backgroundColor: '#ddd',
 		time: 300,
 	},
-	'.x_switch.on': {
+	'.qk_switch.on': {
 		backgroundColor: '#4dd865',
 		time: 300,
 	},
-	'.x_switch .background': {
+	'.qk_switch .background': {
 		backgroundColor: '#eee',
 		borderRadius: 16,
 		align: 'centerMiddle',
 	},
-	'.x_switch:normal .background': {
+	'.qk_switch:normal .background': {
 		width: 46,
 		height: 27,
 		opacity: 1,
 		time: 300,
 	},
-	'.x_switch.on .background, \
-	.x_switch:active .background, \
-	.x_switch:hover .background': {
+	'.qk_switch.on .background, \
+	.qk_switch:active .background, \
+	.qk_switch:hover .background': {
 		width: 0,
 		height: 0,
 		opacity: 0.2,
 		time: 300,
 	},
-	'.x_switch .button': {
+	'.qk_switch .button': {
 		borderRadius: 16,
 		backgroundColor: '#fff',
 		height: 27,
 	},
-	'.x_switch:normal .button': {
+	'.qk_switch:normal .button': {
 		width: 27,
 		x: 2,
 		y: 2,
 		time: 200,
 	},
-	'.x_switch:active .button, \
-	.x_switch:hover .button': {
+	'.qk_switch:active .button, \
+	.qk_switch:hover .button': {
 		width: 33,
 		time: 200,
 	},
-	'.x_switch.on .button': {
+	'.qk_switch.on .button': {
 		x: 20,
 		time: 200,
 	},
-	'.x_switch.on:active .button, \
-	.x_switch.on:hover .button': {
+	'.qk_switch.on:active .button, \
+	.qk_switch.on:hover .button': {
 		x: 14,
 		time: 200,
 	},
@@ -131,7 +131,7 @@ export class Basic<P={},S={}> extends ViewController<{
 	@link disable = false;
 
 	protected triggerMounted() {
-		this.domAs().onClick.on(()=>{
+		this.asDom().onClick.on(()=>{
 			if ( !this.disable )
 				this.selected = !this.selected;
 		}, '1');
@@ -157,7 +157,7 @@ export class Basic<P={},S={}> extends ViewController<{
 export class Checkbox<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
-			<button class={['x_checkbox',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
+			<button class={['qk_checkbox',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
 				<label class="mark" value={"\ued71"} />
 			</button>
 		)
@@ -167,7 +167,7 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 export class Switch<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
-			<free class={['x_switch',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
+			<free class={['qk_switch',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
 				<free class="background" />
 				<matrix class="button" />
 			</free>

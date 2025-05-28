@@ -101,26 +101,26 @@ export default async function (win: Window) {
 	Pv(act5, 'loop', 1e3, e=>e.loop=1e3)
 	Pv(act5, 'speed', 2, e=>e.speed=2)
 
-	Pv(ctr.refAs('div'), 'action', act5, e=>e.action=act5)
+	Pv(ctr.asRef('div'), 'action', act5, e=>e.action=act5)
 	Mv(act5, 'play', []);
 
-	Mv(ctr.refAs('play').onClick, 'on', [function() {
+	Mv(ctr.asRef('play').onClick, 'on', [function() {
 		Mv(act5, 'play', [])
 	}])
 
-	Mv(ctr.refAs('stop').onClick, 'on', [function() {
+	Mv(ctr.asRef('stop').onClick, 'on', [function() {
 		Mv(act5, 'stop', [])
 	}])
 
-	Mv(ctr.refAs('seek_play').onClick, 'on', [function() {
+	Mv(ctr.asRef('seek_play').onClick, 'on', [function() {
 		Mv(act5, 'seekPlay', [2000])
 	}])
 
-	Mv(ctr.refAs('seek_stop').onClick, 'on', [function() {
+	Mv(ctr.asRef('seek_stop').onClick, 'on', [function() {
 		Mv(act5, 'seekStop', [6000])
 	}])
 
-	Mv(ctr.refAs('clear').onClick, 'on', [function() {
+	Mv(ctr.asRef('clear').onClick, 'on', [function() {
 		Mv(act5, 'clear', [])
 	}])
 
@@ -209,7 +209,7 @@ export default async function (win: Window) {
 	Pv(act6, 'time', 0);
 	Pv(act6, 'frame', 0);
 	Pv(act6, 'length', 2);
-	Pv(ctr.refAs('img'), 'action', act6, e=>e.action=act6)
+	Pv(ctr.asRef('img'), 'action', act6, e=>e.action=act6)
 	Pv(act6, 'loop', 1e6, e=>e.loop=1e6)
 	Pv(act6, 'playing', false)
 	Mv(act6, 'play', [])

@@ -48,8 +48,9 @@ namespace qk {
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			auto size = content_size();
 			auto v = first();
+			auto range = get_layout_content_limit_range(false);
 
-			_lines = new TextLines(this, text_align_value(), get_layout_content_limit_range(false), _wrap_x);
+			_lines = new TextLines(this, text_align_value(), range, _wrap_x);
 			_lines->set_init_line_height(text_size().value, text_line_height().value, false);
 
 			_blob_visible.clear();

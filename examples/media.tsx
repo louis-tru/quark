@@ -52,7 +52,7 @@ export default (self: Page)=>{
 
 	function PlayVideo(evt: ClickEvent) {
 		StopAudio(evt);
-		var v = self.refAs<Video>('video');
+		var v = self.asRef<Video>('video');
 		v.src = src_720;
 		v.play();
 	}
@@ -67,7 +67,7 @@ export default (self: Page)=>{
 	}
 
 	function StopVideo(evt: ClickEvent) {
-		self.refAs<Video>('video').stop();
+		self.asRef<Video>('video').stop();
 	}
 
 	function StopAudio(evt: ClickEvent) {
@@ -87,7 +87,7 @@ export default (self: Page)=>{
 			audio_player.seek(10000); // 10s
 		} else {
 			//evt.sender.ownerAs().find<Video>('video').seek(100000); // 100s
-			self.refAs<Video>('video').seek(100000); // 100s
+			self.asRef<Video>('video').seek(100000); // 100s
 		}
 	}
 

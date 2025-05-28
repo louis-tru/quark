@@ -746,8 +746,8 @@ namespace qk {
 				BoxData data;
 				// Fix rect aa stroke width
 				bool isMsaa = _window->render()->options().msaaSample;
-				//auto origin = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
-				auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
+				auto origin = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
+				//auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
 				_AAShrink = origin + origin;
 				_origin = Vec2(origin) - v->_origin_value;
 				_matrix = &v->mat();

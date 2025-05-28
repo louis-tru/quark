@@ -31,10 +31,8 @@
 import { _CVD, Text, createCss, mainScreenScale } from 'quark';
 import { Switch, Basic, Checkbox } from 'quark/checkbox';
 import { Page } from './tool';
-import { Event } from 'quark/event';
 
 const resolve = require.resolve;
-const px = 1 / mainScreenScale();
 
 createCss({
 	'.checkbox_page': {
@@ -42,29 +40,25 @@ createCss({
 	},
 	'.checkbox_page .item': {
 		width: 'match',
-		//borderBottom: `${px} #ccc`,
 	},
 	'.checkbox_page .text': {
 		width: '100!',
 		margin: 13,
 		align: 'start',
 	},
-	//'.checkbox_page .x_checkbox': {
-	//	align: 'start',
-	//}
 })
 
 function change_handle(value: boolean, sender: Basic) {
 	let checkbox = sender as Switch;
 	let str = value ? 'YES' : 'NO';
 	str += checkbox.disable ? ',Disable' : '';
-	(checkbox.domAs().prev as Text).value = str;
+	(checkbox.asDom().prev as Text).value = str;
 }
 
 export default (self: Page)=>{
 	self.title = 'Checkbox';
 	self.source = resolve(__filename);
-	self.navbarHidden = true;
+	//self.navbarHidden = true;
 
 	return (
 		<box width="match" class="checkbox_page">

@@ -331,7 +331,7 @@ export class Overlay<P={},S={}> extends Navigation<{
 	afterTo(): View { throw Error.new('Access forbidden.') }
 
 	fadeOut() {
-		this.domAs().transition({ opacity: 0, time: 200 }, ()=>{
+		this.asDom().transition({ opacity: 0, time: 200 }, ()=>{
 			this.destroy();
 		});
 		this.unregisterNavigation(0);
@@ -363,7 +363,7 @@ export class Overlay<P={},S={}> extends Navigation<{
 		let _offset_x = rect.width;
 		let _offset_y = rect.height;
 
-		self.domAs().visible = true;
+		self.asDom().visible = true;
 
 		self._pos_x = _x;
 		self._pos_y = _y;
@@ -372,7 +372,7 @@ export class Overlay<P={},S={}> extends Navigation<{
 
 		this.window.nextFrame(function() {
 			self._showOverlay(_x, _y, _offset_x, _offset_y);
-			self.domAs().transition({ opacity: 1, time: 200 });
+			self.asDom().transition({ opacity: 1, time: 200 });
 		});
 		
 		self._is_activate = true;

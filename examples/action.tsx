@@ -47,8 +47,8 @@ export default (self: Page)=>{
 	}
 
 	function highlighted(evt: HighlightedEvent) {
-		var img1 = self.refAs('img1');
-		var img2 = self.refAs('img2');
+		var img1 = self.asRef('img1');
+		var img2 = self.asRef('img2');
 		var speed = 1;
 		if ( evt.status == HighlightedStatus.Active ) {
 			speed = img1 === evt.sender ? 2 : 0.5;

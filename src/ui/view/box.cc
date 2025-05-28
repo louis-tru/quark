@@ -98,7 +98,7 @@ namespace qk {
 	}
 
 	float Box::solve_layout_content_height_pre(Size &pSize) {
-		float result = _content_size.x();
+		float result = _content_size.y();
 		bool pWrap_y = pSize.wrap_y;
 
 		switch (_max_height.kind) {
@@ -923,8 +923,9 @@ namespace qk {
 						change_mark = kLayout_Size_Width;
 					}
 					_client_size[0] = _padding_left + _padding_right + val;
-					_IfBorder()
+					_IfBorder() {
 						_client_size[0] += _border->width[3] + _border->width[1]; // left + right
+					}
 
 					float x = _margin_left + _margin_right + _client_size[0];
 					if (_layout_size[0] != x) {
@@ -937,13 +938,14 @@ namespace qk {
 				{
 					auto val = solve_layout_content_height_pre(size);
 					if (val != _content_size.y() || _wrap_y != size.wrap_y) {
-						_content_size.set_y(val);
+						_content_size[1] = val;
 						_wrap_y = size.wrap_y;
 						change_mark |= kLayout_Size_Height;
 					}
 					_client_size[1] = _padding_top + _padding_bottom + val;
-					_IfBorder()
+					_IfBorder() {
 						_client_size[1] += _border->width[0] + _border->width[2]; // top + bottom
+					}
 
 					float y = _margin_top + _margin_bottom + _client_size[1];
 					if (_layout_size[1] != y) {

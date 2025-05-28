@@ -293,21 +293,21 @@ export class VirtualDOM<T extends DOM = DOM> {
 			let len = Math.max(childrenOld.length, childrenNew.length);
 	
 			if (len) {
-				let childrenDomOld: (DOM|undefined)[] = (domOld as any)._children; // View._children
-				let childrenDomNew: (DOM|undefined)[] = new Array(len);
+				let childDomsOld: (DOM|undefined)[] = (domOld as any).childDoms; // View.childDoms
+				let childDomsNew: (DOM|undefined)[] = new Array(len);
 				let prev: View | null = null;
 	
 				for (let i = 0; i < len; i++) {
 					let vdomOld = childrenOld[i], vdomNew = childrenNew[i];
 					if (vdomOld) {
-						let dom = childrenDomOld[i]!;
+						let dom = childDomsOld[i]!;
 						if (vdomNew) {
 							if (vdomOld.hash !== vdomNew.hash) {
 								dom = vdomNew.diff(owner, vdomOld, dom); // diff
 							} else {
 								childrenNew[i] = vdomOld;
 							}
-							childrenDomNew[i] = dom;
+							childDomsNew[i] = dom;
 							prev = dom.metaView;
 						} else {
 							dom.destroy(owner); // destroy DOM
@@ -319,10 +319,10 @@ export class VirtualDOM<T extends DOM = DOM> {
 						} else {
 							prev = dom.appendTo(dom.metaView);
 						}
-						childrenDomNew[i] = dom;
+						childDomsNew[i] = dom;
 					}
 				}
-				(domOld as any)._children = childrenDomNew; // View._children = childrenDomNew
+				(domOld as any).childDoms = childDomsNew; // View.childDoms = childDomsNew
 			}
 		} // if (vdomNew.domNew.isViewController)
 
@@ -386,16 +386,16 @@ export class VirtualDOM<T extends DOM = DOM> {
 			let view = new this.domC(window) as DOM as View;
 			let prev: View | null = null;
 			if (len) {
-				let childrenDom: (DOM|undefined)[] = new Array(len);
+				let childDoms: (DOM|undefined)[] = new Array(len);
 				for (let i = 0; i < len; i++) {
 					let vdom = children[i];
 					if (vdom) {
 						let dom = vdom.newDom(owner);
-						childrenDom[i] = dom;
+						childDoms[i] = dom;
 						prev = prev ? dom.afterTo(prev): dom.appendTo(view);
 					}
 				}
-				(view as any)._children = childrenDom;
+				(view as any).childDoms = childDoms;
 			}
 			setref(view, owner, props.ref || '');
 			Object.assign(view, props);
@@ -618,11 +618,11 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		}
 	}
 
-	domAs<T extends ViewController | View = View>() {
+	asDom<T extends ViewController | View = View>() {
 		return this.dom as T;
 	}
 
-	refAs<T extends ViewController | View = View>(ref: string): T {
+	asRef<T extends ViewController | View = View>(ref: string): T {
 		return this.refs[ref] as T;
 	}
 

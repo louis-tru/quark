@@ -32,32 +32,33 @@ import {_CVD, createCss, ViewController, mainScreenScale,StyleSheet} from './ind
 const px = 1 / mainScreenScale();
 
 createCss({
-	'.x_stepper': {
+	'.qk_stepper': {
 		width: 45 * 2 + 3,
-		textFamily: 'iconfont',
-		textLineHeight: 29,
-		textSize: 20,
-		textColor: '#727272',
 	},
-	'.x_stepper .minus,\
-	.x_stepper .plus': {
+	'.qk_stepper .minus,\
+	.qk_stepper .plus': {
 		width: 45,
 		height: 28,
+		textLineHeight: 1,
+		textSize: 18,
+		textFamily: 'iconfont',
+		textColor: '#727272',
 		border: `${px} #727272`,
 		borderColor: '#727272',
 		backgroundColor: '#fff',
+		textAlign: "center",
 	},
-	'.x_stepper .minus': {
+	'.qk_stepper .minus': {
 		borderRadiusLeftTop: 6,
 		borderRadiusLeftBottom: 6,
 	},
-	'.x_stepper .plus': {
+	'.qk_stepper .plus': {
 		borderWidthLeft: 0,
 		borderRadiusRightTop: 6,
 		borderRadiusRightBottom: 6,
 	},
-	'.x_stepper .minus:down,\
-	.x_stepper .plus:down': {
+	'.qk_stepper .minus:active,\
+	.qk_stepper .plus:active': {
 		backgroundColor: '#eee',
 	},
 });
@@ -96,20 +97,20 @@ export class Stepper extends ViewController<{
 		this.props.onChange?.call(null, this._value, this);
 	}
 
-	private _MinusClickHandle() {
+	private _MinusClickHandle = ()=>{
 		this.value = this._value - (this.props.step || 1);
-	}
+	};
 	
-	private _PlusClickHandle() {
+	private _PlusClickHandle = ()=>{
 		this.value = this._value + (this.props.step || 1);
-	}
+	};
 
 	render() {
 		return (
-			<box class={['x_stepper',this.props.class||'']} style={this.props.style}>
-				<button class="minus" onClick={()=>this._MinusClickHandle()} value="\ued5e"/>
-				<button class="plus" onClick={()=>this._PlusClickHandle()} value="\ued5d"/>
-			</box> 
+			<box class={['qk_stepper',this.props.class||'']} style={this.props.style}>
+				<button class="minus" onClick={this._MinusClickHandle} value={"\ued5e"}/>
+				<button class="plus" onClick={this._PlusClickHandle} value={"\ued5d"}/>
+			</box>
 		);
 	}
 }

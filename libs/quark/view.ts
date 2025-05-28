@@ -69,7 +69,7 @@ export interface DOM {
 }
 
 export declare class View extends Notification<UIEvent> implements DOM {
-	private _children: (DOM|null)[]; // View | ViewController | null, JSX system specific
+	readonly childDoms: (DOM|null)[]; // View | ViewController | null, JSX system specific
 	readonly onClick: EventNoticer<ClickEvent>;
 	readonly onBack: EventNoticer<ClickEvent>;
 	readonly onKeyDown: EventNoticer<KeyEvent>;
@@ -679,7 +679,7 @@ class _View extends NativeNotification {
 	@event readonly onActionKeyframe: EventNoticer<ActionEvent>;
 	@event readonly onActionLoop: EventNoticer<ActionEvent>;
 
-	private _children: (DOM|undefined)[]; // jsx children dom
+	readonly childDoms: (DOM|undefined)[]; // jsx children dom
 	readonly ref: string;
 	get metaView() { return this }
 	get style() { return this as StyleSheet }
@@ -723,7 +723,7 @@ class _View extends NativeNotification {
 	}
 
 	destroy(owner: ViewController): void {
-		for (let dom of this._children) {
+		for (let dom of this.childDoms) {
 			if (dom)
 				dom.destroy(owner);
 		}
@@ -802,7 +802,7 @@ class _Scroll {
 _ui.View.isViewController = false;
 _ui.View.prototype.ref = '';
 _ui.View.prototype.owner = null;
-_ui.View.prototype._children = [];
+_ui.View.prototype.childDoms = [];
 util.extendClass(_ui.View, _View);
 util.extendClass(_ui.Scroll, _Scroll);
 util.extendClass(_ui.Image, _Image);

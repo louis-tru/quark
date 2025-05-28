@@ -59,7 +59,7 @@ function prompt(e: ClickEvent) {
 function custom(e: ClickEvent) {
 	const win = e.origin.window;
 	dialog.show(
-		e.origin.window,
+		win,
 		'蓝牙已关闭',
 		'CarPlay将只能通过USB使用。您希望同时启用无线CarPlay吗？',
 		[<text textWeight="bold" value="仅USB"/>, '无线蓝牙'],

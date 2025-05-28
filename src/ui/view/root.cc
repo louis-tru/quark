@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./root.h"
+#include "./free.h"
 #include "../filter.h"
 #include "../app.h"
 #include "../window.h"
@@ -59,10 +60,9 @@ namespace qk {
 	}
 
 	void Root::layout_reverse(uint32_t mark) {
-		if (mark & kLayout_Typesetting) {
-			layout_typesetting_float();
-		}
-		if (mark & (kLayout_Typesetting | kTransform_Origin)) {
+		// Use free typesetting
+		static_cast<Free*>(static_cast<Box*>(this))->Free::layout_reverse(mark);
+		if (mark & (kTransform_Origin | kLayout_Typesetting)) {
 			solve_origin_value(); // check matrix_origin change
 		}
 	}
@@ -80,7 +80,6 @@ namespace qk {
 			unmark(kRecursive_Visible_Region); // unmark
 			solve_visible_region(_matrix.set_translate(_position));
 		}
-		//_matrix.set_translate(Vec2(0)); // clear translate, use position value
 	}
 
 	ViewType Root::viewType() const {

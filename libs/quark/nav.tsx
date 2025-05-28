@@ -431,15 +431,15 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 }
 
 createCss({
-	'.x_navbar_back:normal': {
+	'.qk_navbar_back:normal': {
 		opacity: 1,
 		// textShadow: "0 0 0 #000"
 	},
-	'.x_navbar_back:hover': {
+	'.qk_navbar_back:hover': {
 		opacity: 0.8,
 		// textShadow: "0 0 4 #000"
 	},
-	'.x_navbar_back:active': {
+	'.qk_navbar_back:active': {
 		opacity: 0.6,
 		// textShadow: "0 0 6 #000"
 	},
@@ -472,7 +472,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	 */
 	setBackText(value: string) {
 		if (!this.hidden)
-			this.refAs<Label>('back_text').value = value;
+			this.asRef<Label>('back_text').value = value;
 		this._backText = value;
 	}
 
@@ -481,7 +481,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	 */
 	setTitleText(value: string) {
 		if (!this.hidden)
-			this.refAs<Text>('title').value = value;
+			this.asRef<Text>('title').value = value;
 		this._titleText = value;
 	}
 
@@ -504,7 +504,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 		return (
 			<flex width="100%" height="100%" itemsAlign="centerCenter">
 				<button
-					class="x_navbar_back"
+					class="qk_navbar_back"
 					maxWidth="40%"
 					height="100%"
 					paddingLeft={5}
@@ -555,9 +555,9 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	intoLeave(time: number) {
 		if (this.navStatus == NavStatus.Foreground && time &&
 				!this.hidden &&
-				this.domAs().parent!.level
+				this.asDom().parent!.level
 		) {
-			this.domAs().transition({ opacity: 0, time }, ()=>this.destroy());
+			this.asDom().transition({ opacity: 0, time }, ()=>this.destroy());
 		} else {
 			this.destroy();
 		}
@@ -565,26 +565,26 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	}
 
 	intoBackground(time: number) {
-		if ( time && !this.hidden && this.domAs().parent!.level ) {
-			this.domAs().transition({ opacity: 0, visible: false, time });
+		if ( time && !this.hidden && this.asDom().parent!.level ) {
+			this.asDom().transition({ opacity: 0, visible: false, time });
 		} else {
-			this.domAs().opacity = 0;
-			this.domAs().visible = false;
+			this.asDom().opacity = 0;
+			this.asDom().visible = false;
 		}
 		super.intoBackground(time);
 	}
 
 	intoForeground(time: number) {
-		this.domAs().visible = true;
-		if ( time && !this.hidden && this.domAs().parent!.level ) {
+		this.asDom().visible = true;
+		if ( time && !this.hidden && this.asDom().parent!.level ) {
 			if (this.navStatus == NavStatus.Init) {
-				this.domAs().transition({ opacity: 1, time }, {opacity:0});
+				this.asDom().transition({ opacity: 1, time }, {opacity:0});
 			}
 			else { // NavStatus.Background
-				this.domAs().transition({ opacity: 1, time });
+				this.asDom().transition({ opacity: 1, time });
 			}
 		} else {
-			this.domAs().opacity = 1;
+			this.asDom().opacity = 1;
 		}
 		super.intoForeground(time);
 	}
@@ -595,7 +595,7 @@ function getNavbarDom(page: NavPage): Navbar {
 }
 
 function backgroundColorReverse(self: NavPage) {
-	let color = self.domAs<Box>().backgroundColor.reverse();
+	let color = self.asDom<Box>().backgroundColor.reverse();
 	color.a = 255 * 0.6;
 	return color;
 }
@@ -651,7 +651,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 		if (this.isMounted) {
 			this._navbarDom.hidden = hidden;
 			this._navbarDom.update();
-			this.domAs().style.paddingTop = hidden || !this._includeNavbarPadding ? 0: this.navbarHeight;
+			this.asDom().style.paddingTop = hidden || !this._includeNavbarPadding ? 0: this.navbarHeight;
 		}
 	}
 
@@ -663,7 +663,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 		this._includeNavbarPadding = val;
 		if (this.isMounted) {
 			const hidden = !this._includeNavbarPadding || this._navbarDom.hidden;
-			this.domAs().style.paddingTop = hidden ? 0: this.navbarHeight;
+			this.asDom().style.paddingTop = hidden ? 0: this.navbarHeight;
 		}
 	}
 
@@ -719,7 +719,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 	intoLeave(time: number) {
 		this._navbarDom.intoLeave(time);
 		if ( this.navStatus == NavStatus.Foreground ) {
-			let dom = this.domAs();
+			let dom = this.asDom();
 			if ( time && dom.parent!.level ) {
 				let x = (dom.parent! as Box).clientSize.x;
 				dom.style = {
@@ -742,7 +742,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 			return;
 		this._navbarDom.intoBackground(time);
 		if ( this.navStatus != NavStatus.Background ) {
-			let dom = this.domAs();
+			let dom = this.asDom();
 			let x = (dom.parent as Box).clientSize.x || 100;
 			if ( time && dom.parent!.level ) {
 				dom.transition({x: x * -0.33, visible: false, time });
@@ -758,7 +758,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 			return;
 		this._navbarDom.intoForeground(time);
 		this._nextPage = null;
-		let dom = this.domAs();
+		let dom = this.asDom();
 
 		if ( this.navStatus == NavStatus.Init ) {
 			if ( time && dom.parent!.level ) {

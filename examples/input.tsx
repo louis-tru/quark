@@ -39,7 +39,7 @@ export default (self: Page)=>{
 	self.source = resolve(__filename);
 
 	function start_input(e: ClickEvent) {
-		self.refAs('input1').focus();
+		self.asRef('input1').focus();
 	}
 
 	function end_input(e: ClickEvent) {
