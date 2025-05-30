@@ -66,6 +66,7 @@ createCss({
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
 		backgroundColor: '#f00',
+		align: "center"
 	},
 	'.qk_dialog .content': {
 		width: 'match',
@@ -74,6 +75,7 @@ createCss({
 		textSize: 14,
 		textColor: '#333',
 		backgroundColor: '#ff0',
+		align: "center"
 	},
 	'.qk_dialog .buttons': {
 		width: 'match',
@@ -175,7 +177,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 		return (
 			<free width="100%" height="100%" backgroundColor="#0008" receive={true} visible={false} opacity={0}>
 				<matrix ref="main" class="qk_dialog main">
-					{/* <text ref="title" class="title" value={this.title} /> */}
+					<text ref="title" class="title" value={this.title} />
 					<text ref="con" class="content">{this.content||this.children}</text>
 					{/* <free ref="btns" class="buttons">
 					{
@@ -335,7 +337,7 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 	let message: any;
 	if (typeof msg == 'string')
 		message = {msg};
-	let { msg: _msg = '', title = 'AAAAABB' } = message;
+	let { msg: _msg = '', title = 'AAAAABBCCCC' } = message;
 	let dag = (
 		<Dialog buttons={[Consts.Ok]} onAction={cb} title={title}>{_msg}</Dialog>
 	).newDom(window.rootCtr) as Dialog;
