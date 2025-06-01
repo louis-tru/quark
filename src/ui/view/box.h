@@ -42,8 +42,6 @@ namespace qk {
 	class Qk_EXPORT Box: public View {
 	public:
 		// define props
-		Qk_DEFINE_VIEW_PROP_GET(bool,       wrap_x, ProtectedConst); //!< Returns the x-axis is wrap content, use internal extrusion size
-		Qk_DEFINE_VIEW_PROP_GET(bool,       wrap_y, ProtectedConst); //!< Returns the y-axis is wrap content, use internal extrusion size
 		Qk_DEFINE_VIEW_PROPERTY(bool,       clip, Const); //!< is clip box display range
 		Qk_DEFINE_VIEW_PROPERTY(Align,      align, ProtectedConst); //!< view align
 		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
@@ -85,9 +83,10 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(Color,      background_color, Const); // fill background color
 		Qk_DEFINE_VIEW_ACCESSOR(BoxFilter*, background); // fill background, image|gradient, async set
 		Qk_DEFINE_VIEW_ACCESSOR(BoxShadow*, box_shadow); // box shadow, shadow, async set method
+		Qk_DEFINE_VIEW_ACCE_GET(Vec2,       content_size, Const);
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,       weight, Const); // view weight
-		Qk_DEFINE_VIEW_PROP_GET(Vec2,       content_size, Const); // width,height, no include padding
 		Qk_DEFINE_VIEW_PROP_GET(Vec2,       client_size, Const); // border + padding + content
+		Qk_DEFINE_VIEW_PROPERTY(Container,  container, ProtectedConst); // view container range
 
 		Box();
 		~Box();
@@ -96,7 +95,8 @@ namespace qk {
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
 		virtual Vec2 layout_offset() override;
-		virtual Size layout_size() override; // context + padding + border + margin
+		virtual Vec2 layout_size() override; // context + padding + border + margin
+		virtual const Container& layout_container() override;
 		/**
 		 * @prop layout_weight
 		* The scaling ratio of the project is defined here, which defaults to 0,
@@ -135,65 +135,46 @@ namespace qk {
 
 		/**
 		 * @method solve_layout_content_width_pre()
+		 * @Returns range
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		virtual float solve_layout_content_width_pre(Size &parent_layout_size);
+		Container::Pre solve_layout_content_width_pre(const Container &pContainer);
 
 		/**
 		 * @method solve_layout_content_height_pre()
+		 * @Returns range
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		virtual float solve_layout_content_height_pre(Size &parent_layout_size);
+		Container::Pre solve_layout_content_height_pre(const Container &pContainer);
 
 		/**
-		 * @method solve_layout_content_width_limit()
+		 * @method solve_layout_content_size_pre()
 		 * @safe Rt
-		*/
-		float solve_layout_content_width_limit(float checkValue);
+		 * @note Can only be used in rendering threads
+		 */
+		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, View *parent);
 
-		/**
-		 * @method solve_layout_content_height_limit()
-		 * @safe Rt
-		*/
-		float solve_layout_content_height_limit(float checkValue);
+		// /**
+		//  * @method solve_layout_outside_mark()
+		//  * @safe Rt
+		//  * @note Can only be used in rendering threads
+		//  */
+		// void solve_layout_outside_mark(uint32_t mark, View *_parent);
 
-		/**
-		 * @method get_layout_content_min_width_limit()
-		 * @safe Rt
-		*/
-		float get_layout_content_min_width_limit(const Size &parent_layout_size);
-
-		/**
-		 * @method get_layout_content_min_height_limit()
-		 * @safe Rt
-		*/
-		float get_layout_content_min_height_limit(const Size &parent_layout_size);
-
-		/**
-		 * @method get_layout_content_max_width_limit()
-		 * @safe Rt
-		*/
-		float get_layout_content_max_width_limit(const Size &parent_layout_size);
-
-		/**
-		 * @method get_layout_content_max_height_limit()
-		 * @safe Rt
-		*/
-		float get_layout_content_max_height_limit(const Size &parent_layout_size);
+		// /**
+		//  * @method solve_layout_forward_last()
+		//  * @safe Rt
+		//  * @note Can only be used in rendering threads
+		//  */
+		// void solve_layout_forward_last(uint32_t mark, uint32_t change_mark);
 
 		/**
 		 * @method layout_typesetting_float
 		 * @safe Rt
 		*/
 		Vec2 layout_typesetting_float();
-
-		/**
-		 * @method get_layout_content_limit_range()
-		 * @safe Rt
-		*/
-		Region get_layout_content_limit_range(bool onlyX);
 
 		// ----------------------- define private props -----------------------
 	private:

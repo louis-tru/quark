@@ -184,8 +184,6 @@ export declare class Box extends View {
 	background: types.BoxFilter | null;
 	boxShadow: types.BoxShadow | null;
 	weight: types.Vec2;
-	readonly wrapX: boolean; // @safe Rt, Returns the x-axis is wrap content, use internal extrusion size
-	readonly wrapY: boolean; // @safe Rt, Returns the y-axis is wrap content, use internal extrusion size
 	readonly contentSize: types.Vec2; // @safe Rt, width,height, no include padding
 	readonly clientSize: types.Vec2; // @safe Rt, border + padding + content
 }

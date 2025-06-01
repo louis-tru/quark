@@ -44,13 +44,13 @@ namespace qk {
 		set_receive(true);
 		set_width({0, BoxSizeKind::Match});
 		set_height({0, BoxSizeKind::Match});
-		mark_layout(View::kLayout_Size_Width | View::kLayout_Size_Height, false);
+		mark_layout(kLayout_Size_Width | kLayout_Size_Height, false);
 		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
-		mark(kRecursive_Transform, false);
+		mark(kTransform, false);
 	}
 
 	void Root::reload_Rt() {
-		mark_layout(View::kLayout_Size_Width | View::kLayout_Size_Height, true);
+		mark_layout(kLayout_Size_Width | kLayout_Size_Height, true);
 	}
 
 	void Root::layout_forward(uint32_t mark) {
@@ -61,6 +61,7 @@ namespace qk {
 
 	void Root::layout_reverse(uint32_t mark) {
 		// Use free typesetting
+		static_assert(sizeof(Box) == sizeof(Free), "");
 		static_cast<Free*>(static_cast<Box*>(this))->Free::layout_reverse(mark);
 		if (mark & (kTransform_Origin | kLayout_Typesetting)) {
 			solve_origin_value(); // check matrix_origin change
@@ -68,16 +69,16 @@ namespace qk {
 	}
 
 	void Root::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kRecursive_Transform) { // update matrix matrix
-			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+		if (mark & kTransform) { // update matrix matrix
+			unmark(kTransform | kVisible_Region); // unmark
 
 			_position = layout_offset() + Vec2(margin_left(), margin_top()) +
 				origin_value() + translate();
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());
 			solve_visible_region(_matrix);
 		}
-		else if (mark & kRecursive_Visible_Region) {
-			unmark(kRecursive_Visible_Region); // unmark
+		else if (mark & kVisible_Region) {
+			unmark(kVisible_Region); // unmark
 			solve_visible_region(_matrix.set_translate(_position));
 		}
 	}

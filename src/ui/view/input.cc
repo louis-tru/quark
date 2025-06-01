@@ -345,7 +345,7 @@ namespace qk {
 		*/
 		iVec2 is_auto_find_is_required(Vec2 point) {
 			auto pos = get_position();
-			auto size = content_size();
+			auto size = _container.content;
 
 			int x = 0, y = 0; // 0 表示没有方向,不需要自动查找
 			int edge_x1 = 10 - padding_left();
@@ -687,12 +687,10 @@ namespace qk {
 	}
 
 	Vec2 Input::layout_typesetting_input_text() {
-		auto size = content_size();
-
-		_lines = new TextLines(this, text_align_value(), get_layout_content_limit_range(false), _wrap_x);
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
-
 		FontMetricsBase metrics;
+
+		_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.wrap_x);
 
 		_lines->set_init_line_height(text_size().value, text_line_height().value, true);
 		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
@@ -763,12 +761,13 @@ namespace qk {
 
 		_lines->finish();
 
+		Vec2 cur = _container.content;
 		Vec2 new_size(
-			_wrap_x ? solve_layout_content_width_limit(_lines->max_width()): size.x(),
-			_wrap_y ? solve_layout_content_height_limit(_lines->max_height()): size.y()
+			_container.wrap_x ? _container.width_clamp(_lines->max_width()): cur.x(),
+			_container.wrap_y ? _container.height_clamp(_lines->max_height()): cur.y()
 		);
 
-		if (new_size != size) {
+		if (new_size != cur) {
 			set_content_size(new_size);
 			_IfParent()
 				_parent->onChildLayoutChange(this, kChild_Layout_Size);
@@ -777,7 +776,7 @@ namespace qk {
 		unmark(kLayout_Typesetting);
 
 		// mark input status change
-		mark(kInput_Status | kRecursive_Visible_Region, true);
+		mark(kInput_Status | kVisible_Region, true);
 		
 		// Qk_DLog("_lines->max_width(), _lines->max_height(), %f %f", _lines->max_width(), _lines->max_height());
 
@@ -825,7 +824,7 @@ namespace qk {
 	void Input::solve_cursor_offset() {
 		if ( !_editing ) {
 			if ( !is_multiline() ) // Restore normal rolling offset value
-				set_input_text_offset({0, (content_size().y() - _lines->max_height()) / 2});
+				set_input_text_offset({0, (_container.content.y() - _lines->max_height()) / 2});
 			return;
 		}
 
@@ -845,7 +844,7 @@ namespace qk {
 		// ===========================
 		// 计算光标的具体偏移位置x
 		// ===========================
-		auto cSize = content_size();
+		auto cSize = _container.content;
 		TextLines::Line* line = nullptr;
 
 		if ( cursor_blob ) { // set cursor pos

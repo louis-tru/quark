@@ -119,9 +119,9 @@ namespace qk {
 	template<bool is_horizontal>
 	void Flex::layout_typesetting_auto(bool is_reverse) {
 		// get views raw size total
-		auto	wrap_x = _wrap_x,
-					wrap_y = _wrap_y;
-		Vec2	cur = content_size();
+		auto	wrap_x = _container.wrap_x,
+					wrap_y = _container.wrap_y;
+		Vec2	cur = _container.content;
 		Array<FlexItem> items;
 		float max_cross = 0, total_main = 0;
 
@@ -133,7 +133,7 @@ namespace qk {
 		auto v = is_reverse ? last(): first();
 		while (v) {
 			if (v->visible()) {
-				auto size = v->layout_size().layout;
+				auto size = v->layout_size();
 				auto cross = is_horizontal ? size.y(): size.x();
 				if (is_wrap_cross) // wrap cross axis
 					max_cross = Qk_Max(max_cross, cross);
@@ -144,13 +144,13 @@ namespace qk {
 		}
 
 		Vec2 new_size = is_horizontal ? Vec2{
-			solve_layout_content_width_limit(total_main),
+			_container.width_clamp(total_main),
 			wrap_y ?
-			solve_layout_content_height_limit(max_cross): max_cross,
+			_container.height_clamp(max_cross): max_cross,
 		}: Vec2{
 			wrap_x ?
-			solve_layout_content_width_limit(max_cross): max_cross,
-			solve_layout_content_height_limit(total_main),
+			_container.width_clamp(max_cross): max_cross,
+			_container.height_clamp(total_main),
 		};
 
 		if (items.length()) {
@@ -197,7 +197,7 @@ namespace qk {
 	// flex typesetting of horizontal or vertical
 	template<bool is_horizontal>
 	void Flex::layout_typesetting_flex(bool is_reverse) { // flex
-		Size cur_size = layout_size();
+		auto &cur_size = layout_container();
 		Vec2 cur = cur_size.content;
 		bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
 		float main_size = is_horizontal ? cur.x(): cur.y();
@@ -211,7 +211,7 @@ namespace qk {
 			Vec2 total_weight;
 			do {
 				if (v->visible()) {
-					auto size = v->layout_size().layout;
+					auto size = v->layout_size();
 					auto weight = v->layout_weight();
 					max_cross = Qk_Max(max_cross, size.y()); // solve content height
 					total_main += is_horizontal ? size.x(): size.y();
@@ -280,8 +280,8 @@ namespace qk {
 
 		if (is_wrap_cross) {
 			cross_size = is_horizontal ?
-				solve_layout_content_height_limit(cross_size):
-				solve_layout_content_width_limit(cross_size);
+				_container.height_clamp(cross_size):
+				_container.width_clamp(cross_size);
 		}
 		if (cross_size != cross_size_old) {
 			set_content_size(is_horizontal ? Vec2{main_size, cross_size}: Vec2{cross_size, main_size});
@@ -331,7 +331,7 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
-				if (_wrap_x) {
+				if (_container.wrap_x) {
 					/*
 						|-------------....------------|
 						|          width=WRAP         |
@@ -356,7 +356,7 @@ namespace qk {
 					layout_typesetting_flex<true>(_direction == Direction::RowReverse); // flex horizontal
 				}
 			} else { // COLUMN
-				if (_wrap_y) {
+				if (_container.wrap_y) {
 					/*
 						|-----------|
 						|height=WRAP|

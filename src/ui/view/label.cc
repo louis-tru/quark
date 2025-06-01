@@ -80,7 +80,8 @@ namespace qk {
 			v = v->next();
 		}
 
-		mark(kRecursive_Transform, true); // mark recursive transform
+		// mark(kTransform, true); // mark recursive transform
+		mark(kVisible_Region, true);
 	}
 
 	void Label::text_config(TextConfig* base) {
@@ -99,7 +100,7 @@ namespace qk {
 		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
-		mark(kRecursive_Transform, true);
+		mark(kTransform, true);
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
@@ -107,7 +108,7 @@ namespace qk {
 		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
-		mark(kRecursive_Transform, true);
+		mark(kTransform, true);
 	}
 
 	void Label::solve_visible_region(const Mat &mat) {

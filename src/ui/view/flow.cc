@@ -41,9 +41,9 @@ namespace qk {
 	// content wrap typesetting of horizontal or vertical
 	template<bool is_horizontal>
 	void Flow::layout_typesetting_wrap(bool is_reverse) { // wrap Line feed
-		auto wrap_x = _wrap_x,
-				 wrap_y = _wrap_y;
-		Vec2 cur = content_size(), new_size;
+		auto wrap_x = _container.wrap_x,
+				 wrap_y = _container.wrap_y;
+		Vec2 cur = _container.content, new_size;
 		
 		auto v = first();
 		if (v) {
@@ -66,14 +66,12 @@ namespace qk {
 
 			_CheckParent();
 
-			float main_limit = is_horizontal ? (
-				is_wrap_main ? get_layout_content_max_width_limit(_parent->layout_size()): cur.x()
-			): (
-				is_wrap_main ? get_layout_content_max_height_limit(_parent->layout_size()): cur.y()
-			);
+			float main_limit = is_horizontal ?
+				(is_wrap_main ? _container.pre_width[1]: cur.x()):
+				(is_wrap_main ? _container.pre_height[1]: cur.y());
 			do {
 				if (v->visible()) {
-					auto size = v->layout_size().layout;
+					auto size = v->layout_size();
 					auto main = _total_main + (is_horizontal ? size.x(): size.y());
 					if (main > main_limit) { // Line feed
 						if (is_reverse)
@@ -105,13 +103,13 @@ namespace qk {
 
 			float main_size = is_wrap_main ? (
 				is_horizontal ?
-				solve_layout_content_width_limit(max_main): solve_layout_content_height_limit(max_main)
+				_container.width_clamp(max_main): _container.height_clamp(max_main)
 			) : (
 				is_horizontal ? cur.x(): cur.y()
 			);
-			float cross_size = is_wrap_main ? (
+			float cross_size = is_wrap_cross ? (
 				is_horizontal ?
-				solve_layout_content_height_limit(total_cross): solve_layout_content_width_limit(total_cross)
+				_container.height_clamp(total_cross): _container.width_clamp(total_cross)
 			) : (
 				is_horizontal ? cur.y(): cur.x()
 			);
@@ -161,8 +159,8 @@ namespace qk {
 			new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
 		} else {
 			new_size = Vec2{
-				wrap_x ? solve_layout_content_width_limit(0): cur.x(),
-				wrap_y ? solve_layout_content_height_limit(0): cur.y(),
+				wrap_x ? _container.width_clamp(0): cur.x(),
+				wrap_y ? _container.height_clamp(0): cur.y(),
 			};
 		} // end if (first())
 
@@ -203,7 +201,7 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
-				if (_wrap_x && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_container.wrap_x && _wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-------------....------------|
 						|          width=WRAP         |
@@ -236,7 +234,7 @@ namespace qk {
 					layout_typesetting_wrap<true>(_direction == Direction::RowReverse);
 				}
 			} else { // COLUMN
-				if (_wrap_y && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_container.wrap_y && _wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-----------|
 						|height=WRAP|

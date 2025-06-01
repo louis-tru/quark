@@ -67,19 +67,21 @@ namespace qk {
 		// Layout mark key values
 		enum LayoutMark: uint32_t {
 			kLayout_None              = (0),      /* 没有任何标记 */
-			kLayout_Size_Width        = (1 << 0), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
+			kLayout_Size_Width        = (1 << 0), /* 布局内容改变, 改变可能影响父布局 */
 			kLayout_Size_Height       = (1 << 1), /* 同上 */
-			kLayout_Child_Size        = (1 << 2), /* 子视图布局尺寸改变 */
-			kLayout_Typesetting       = (1 << 3), /* 布局内容偏移, 需要重新对子布局排版 */
-			kTransform_Origin         = (1 << 4), /* 变化 Transform Origin */
-			kInput_Status             = (1 << 5), /* 输入状态这不包含布局的改变 */
-			kText_Options             = (1 << 6), /* 文本配置变化,可能影响子视图 */
-			kScroll                   = (1 << 7), /* scroll status change */
-			kStyle_Class              = (1 << 8), /* 变化class引起的样式变化 */
-			// RECURSIVE MARKS
-			kRecursive_Transform      = (1 << 30), /* 矩阵变换 recursive mark */
-			kRecursive_Visible_Region = (1U << 31), /* 可见范围 */
-			kRecursive_Mark           = (kRecursive_Transform | kRecursive_Visible_Region),
+			kLayout_Outside_X         = (1 << 2), /* 布局尺寸外框改变, 非内容变化,边框/边距 */
+			kLayout_Outside_Y         = (1 << 3), /* 同上 */
+			kLayout_Size_ALL          = (kLayout_Size_Width | kLayout_Size_Height | kLayout_Outside_X | kLayout_Outside_Y),
+			kLayout_Child_Size        = (1 << 4), /* 子视图布局尺寸改变 */
+			kLayout_Typesetting       = (1 << 5), /* 布局内容偏移, 需要重新对子布局排版 */
+			kTransform_Origin         = (1 << 6), /* 变化 Transform Origin */
+			kInput_Status             = (1 << 7), /* 输入状态这不包含布局的改变 */
+			kText_Options             = (1 << 8), /* 文本配置变化,可能影响子视图 */
+			kScroll                   = (1 << 9), /* scroll status change */
+			kStyle_Class              = (1 << 10), /* 变化class引起的样式变化 */
+			kTransform                = (1 << 30), /* 矩阵变换 recursive mark */
+			kVisible_Region           = (1U << 31), /* 可见范围 */
+			kRecursive_Mark           = (kTransform | kVisible_Region),
 		};
 
 		// child layout change mark key values
@@ -90,11 +92,33 @@ namespace qk {
 			kChild_Layout_Weight   = (1 << 3),
 			kChild_Layout_Text     = (1 << 4),
 		};
+		
+		enum WrapState: uint8_t {
+			kNone_WrapState,
+			kWrap_WrapState,
+		};
 
-		// layout size
-		struct Size {
-			Vec2 layout, content;
-			bool wrap_x, wrap_y;
+		// container size
+		struct Container {
+			struct Pre {
+				Vec2 value;
+				WrapState wrap;
+			};
+			Vec2 content; // final content size
+			Vec2 pre_width; // 0: min, 1:max
+			Vec2 pre_height; // The y-axis content size range
+			/*
+			* The wrap equal false means indicate that the size is unknown,
+			* indicates that the size changes with the size of the sub view, and the content is wrapped
+			*/
+			WrapState wrap_x;//!< The x-axis is wrap content, use internal extrusion size
+			WrapState wrap_y; //!< The y-axis is wrap content, use internal extrusion size
+
+			bool  set_pre_width(Pre pre);
+			bool  set_pre_height(Pre pre);
+			float width_clamp(float value) const;
+			float height_clamp(float value) const;
+			Region to_range() const;
 		};
 
 		/**
@@ -398,17 +422,20 @@ namespace qk {
 
 		/**
 			*
-			* Returns the view size of view object (if is box view the: size=margin+border+padding+content)
-			*
-			* Returns the view content size of object view, 
-			* Returns false to indicate that the size is unknown,
-			* indicates that the size changes with the size of the sub view, and the content is wrapped
+			* Returns the size of view object (if is box view the: size=margin+border+padding+content)
 			*
 			* @method layout_size()
 			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		virtual Size layout_size();
+		virtual Vec2 layout_size();
+
+		/**
+		 * Returns the container size of view object, Includes size/max/min/wrap at ContainerSize
+		 * 
+		 * @method layout_container()
+		*/
+		virtual const Container& layout_container();
 
 		/**
 			* Returns internal view offset compensation of the view, which affects the sub view offset position

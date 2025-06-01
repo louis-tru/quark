@@ -44,7 +44,7 @@ createCss({
 	'.qk_dialog': {
 	},
 	'.qk_dialog.main': {
-		minWidth: 260, // min width
+		//minWidth: 260, // min width
 		maxWidth: '40!',// max width
 		maxHeight: '40!',
 		align: 'centerMiddle',
@@ -66,7 +66,7 @@ createCss({
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
 		backgroundColor: '#f00',
-		align: "center"
+		align: "centerNew"
 	},
 	'.qk_dialog .content': {
 		width: 'match',
@@ -75,7 +75,7 @@ createCss({
 		textSize: 14,
 		textColor: '#333',
 		backgroundColor: '#ff0',
-		align: "center"
+		align: "centerNew"
 	},
 	'.qk_dialog .buttons': {
 		width: 'match',

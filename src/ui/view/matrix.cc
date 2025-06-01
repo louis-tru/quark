@@ -50,7 +50,7 @@ namespace qk {
 	void Matrix::set_translate(Vec2 val, bool isRt) {
 		if (_translate != val) {
 			_translate = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -62,7 +62,7 @@ namespace qk {
 	void Matrix::set_scale(Vec2 val, bool isRt) {
 		if (_scale != val) {
 			_scale = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -74,7 +74,7 @@ namespace qk {
 	void Matrix::set_skew(Vec2 val, bool isRt) {
 		if (_skew != val) {
 			_skew = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -87,7 +87,7 @@ namespace qk {
 		val *= Qk_PI_RATIO_180;
 		if (_rotate_z != val) {
 			_rotate_z = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -148,7 +148,7 @@ namespace qk {
 	void Matrix::set_x(float val, bool isRt) {
 		if (_translate[0] != val) {
 			_translate[0] = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -161,7 +161,7 @@ namespace qk {
 	void Matrix::set_y(float val, bool isRt) {
 		if (_translate[1] != val) {
 			_translate[1] = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -174,7 +174,7 @@ namespace qk {
 	void Matrix::set_scale_x(float val, bool isRt) {
 		if (_scale[0] != val) {
 			_scale[0] = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -187,7 +187,7 @@ namespace qk {
 	void Matrix::set_scale_y(float val, bool isRt) {
 		if (_scale[1] != val) {
 			_scale[1] = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -200,7 +200,7 @@ namespace qk {
 	void Matrix::set_skew_x(float val, bool isRt) {
 		if (_skew[0] != val) {
 			_skew[0] = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -213,7 +213,7 @@ namespace qk {
 	void Matrix::set_skew_y(float val, bool isRt) {
 		if (_skew[1] != val) {
 			_skew[1] = val;
-			mark(kRecursive_Transform, isRt); // mark transform
+			mark(kTransform, isRt); // mark transform
 		}
 	}
 
@@ -243,9 +243,9 @@ namespace qk {
 	}
 
 	void Matrix::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kRecursive_Transform) { // update transform matrix
+		if (mark & kTransform) { // update transform matrix
 			_CheckParent();
-			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			unmark(kTransform | kVisible_Region); // unmark
 
 			auto v = layout_offset() + _parent->layout_offset_inside()
 				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;
@@ -253,8 +253,8 @@ namespace qk {
 			_position = Vec2(_matrix[2],_matrix[5]);
 			solve_visible_region(_matrix);
 		}
-		else if (mark & kRecursive_Visible_Region) {
-			unmark(kRecursive_Visible_Region); // unmark
+		else if (mark & kVisible_Region) {
+			unmark(kVisible_Region); // unmark
 			solve_visible_region(_matrix.set_translate(_position));
 		}
 		//_matrix.set_translate(Vec2(0)); // clear translate, use position value
@@ -300,7 +300,7 @@ namespace qk {
 		unmark(kTransform_Origin);
 
 		if (old != _origin_value) {
-			mark(kRecursive_Transform, true);
+			mark(kTransform, true);
 		}
 	}
 

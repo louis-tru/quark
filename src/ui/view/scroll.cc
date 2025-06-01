@@ -44,7 +44,7 @@ namespace qk {
 	static const Curve ease_in_out(Vec2{0.3f, 0.3f}, Vec2{0.3f, 1.0f});
 	static const Curve ease_out(Vec2{0.0f, 0.0f}, Vec2{0.58f, 1.0f});
 
-	constexpr uint32_t kScrollMark = View::kScroll | View::kRecursive_Transform;
+	constexpr uint32_t kScrollMark = View::kScroll | View::kTransform;
 
 	class ScrollBase::Task: public RenderTask {
 	public:
@@ -875,8 +875,8 @@ namespace qk {
 		_scroll_h = _scroll_max.x() < 0;
 		_scroll_v = ((!_bounce_lock && !_scroll_h) || _scroll_max.y() < 0);
 
-		_scroll_h = _scroll_h && !_host->wrap_x(); // 非wrap的size才能滚动
-		_scroll_v = _scroll_v && !_host->wrap_y();
+		_scroll_h = _scroll_h && !_host->container().wrap_x; // 非wrap的size才能滚动
+		_scroll_v = _scroll_v && !_host->container().wrap_y;
 
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);

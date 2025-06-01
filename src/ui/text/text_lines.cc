@@ -41,7 +41,8 @@ namespace qk {
 
 	TextLines::TextLines(View *host, TextAlign text_align, Region limit_range, bool host_wrap_x)
 		: _pre_width(0), _ignore_single_white_space(false), _have_init_line_height(false)
-		, _limit_range(limit_range), _host(host), _host_wrap_x(host_wrap_x)
+		, _limit_range(limit_range)
+		, _host(host), _host_wrap_x(host_wrap_x)
 		, _text_align(text_align), _visible_region(false)
 	{
 		clear();
@@ -151,7 +152,7 @@ namespace qk {
 		auto bottom = _last->bottom;
 
 		for (auto view: _preView.back()) {
-			auto height = view->layout_size().layout.height();
+			auto height = view->layout_size().height();
 			switch (view->layout_align()) {
 				case Align::Top:
 					set_line_height(top, height - bottom); break;
@@ -188,7 +189,7 @@ namespace qk {
 			float bottom = line.bottom;
 
 			for (auto view: _preView[line.line]) {
-				float size_y = view->layout_size().layout.y();
+				float size_y = view->layout_size().y();
 				//auto x = _last->origin + view->layout_offset().x();
 				float x = line.origin + view->layout_offset().x();
 				float y;

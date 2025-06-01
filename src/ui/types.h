@@ -111,6 +111,9 @@ namespace qk {
 		Start,
 		Center,
 		End,
+		StartNew, // New independent line and left align
+		CenterNew, // New independent line and center align
+		EndNew, // New independent line and right align
 		Baseline = Auto, // vertical align in text
 		Top, // Start, vertical align in text
 		Middle, // Center, vertical align in text

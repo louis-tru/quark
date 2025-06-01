@@ -172,6 +172,9 @@ export enum Align {
 	Start,
 	Center,
 	End,
+	StartNew, // New independent line and left align
+	CenterNew, // New independent line and center align
+	EndNew, // New independent line and right align
 	Baseline = Auto, // box vertical align in text
 	Top, // box vertical align in text
 	Middle, // box vertical align in text

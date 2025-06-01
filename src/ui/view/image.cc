@@ -35,52 +35,56 @@
 #include "../../errno.h"
 
 namespace qk {
+	typedef Box::Container::Pre Pre;
 
 	ViewType Image::viewType() const {
 		return kImage_ViewType;
 	}
 
-	void Image::layout_forward(uint32_t mark) {
+	uint32_t Image::solve_layout_content_size_pre(uint32_t &mark, View *_parent) {
+		uint32_t change_mark = kLayout_None;
 		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
-			mark |= (kLayout_Size_Width | kLayout_Size_Height);
-		}
-		Box::layout_forward(mark);
-	}
+			auto src = source(); // Rt
 
-	float Image::solve_layout_content_width_pre(Size &pSize) {
-		auto result = Box::solve_layout_content_width_pre(pSize);
-		auto src = source(); // Rt
+			if (src && src->type()) {
+				auto &pContainer = _parent->layout_container();
+				_container.set_pre_width(solve_layout_content_width_pre(pContainer));
+				_container.set_pre_height(solve_layout_content_height_pre(pContainer));
 
-		if (src && src->type()) {
-			if (pSize.wrap_x) { // wrap x
-				auto v = Box::solve_layout_content_height_pre(pSize);
-				result = pSize.wrap_y ? src->width():
-					v / src->height() * src->width();
+				Vec2 content;
+				if (_container.wrap_x) { // wrap x
+					if (_container.wrap_y) { // wrap y
+						content[0] = _container.width_clamp(src->width());
+						content[1] = _container.height_clamp(src->height());
+					} else { // no wrap y and rawp x
+						content[1] = _container.pre_height[0];
+						content[0] = _container.width_clamp(src->width() * content[1] / src->height());
+					}
+				} else if (_container.wrap_y) { // x is wrap and y is no wrap
+					content[0] = _container.pre_width[0];
+					content[1] = _container.height_clamp(src->height() * content[0] / src->width());
+				} else { // all of both are no wrap
+					content[0] = _container.pre_width[0];
+					content[1] = _container.pre_height[0];
+				}
+
+				if (_container.content[0] != content[0]) {
+					mark       |= kLayout_Outside_X;
+					change_mark = kLayout_Size_Width;
+				}
+				if (_container.content[1] != content[1]) {
+					mark        |= kLayout_Outside_Y;
+					change_mark |= kLayout_Size_Height;
+				}
+
+				_container.wrap_x = _container.wrap_y = kNone_WrapState;
+				_container.content = content;
+			} else {
+				return Box::solve_layout_content_size_pre(mark, _parent);
 			}
 		}
-		if (pSize.wrap_x) {
-			result = solve_layout_content_width_limit(result);
-			pSize.wrap_x = false;
-		}
-		return result;
-	}
-
-	float Image::solve_layout_content_height_pre(Size &pSize) {
-		auto result = Box::solve_layout_content_height_pre(pSize);
-		auto src = source(); // Rt
-
-		if (src && src->type()) {
-			if (pSize.wrap_y) { // wrap y
-				auto v = Box::solve_layout_content_width_pre(pSize);
-				result = pSize.wrap_x ? src->height():
-					v / src->width() * src->height();
-			}
-		}
-		if (pSize.wrap_y) {
-			result = solve_layout_content_height_limit(result);
-			pSize.wrap_y = false;
-		}
-		return result;
+	
+		return change_mark;
 	}
 
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {

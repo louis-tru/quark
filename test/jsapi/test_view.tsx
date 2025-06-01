@@ -185,9 +185,9 @@ export default async function(win: Window) {
 	Pv(d, 'align', types.Align.Auto);
 	Pv(d, 'align', types.Align.Start, e=>e.style.align='start');
 	Pv(d, 'clip', false);
-	console.log('d.wrapX', d.wrapX);
-	Pv(d, 'wrapX', true);
-	Pv(d, 'wrapY', true);
+	//console.log('d.wrapX', d.wrapX);
+	//Pv(d, 'wrapX', true);
+	//Pv(d, 'wrapY', true);
 	Pv(d, 'weight', e=>e.x==0&&e.y==0);
 
 	LOG('\nTest Flex:\n')

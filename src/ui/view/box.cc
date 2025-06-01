@@ -41,7 +41,7 @@
 namespace qk {
 
 	Box::Box()
-		: _wrap_x(true), _wrap_y(true), _clip(false)
+		: _clip(false)
 		, _align(Align::Auto)
 		, _min_width{0, BoxSizeKind::Auto}, _min_height{0, BoxSizeKind::Auto}
 		, _max_width{0, BoxSizeKind::None}, _max_height{0, BoxSizeKind::None}
@@ -53,6 +53,7 @@ namespace qk {
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
+		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kWrap_WrapState,kWrap_WrapState})
 		, _background(nullptr)
 		, _boxShadow(nullptr)
 		, _border(nullptr)
@@ -154,28 +155,28 @@ namespace qk {
 	void Box::set_margin_top(float val, bool isRt) { // margin
 		if (_margin_top != val) {
 			_margin_top = val;
-			mark_layout(kLayout_Size_Height | kRecursive_Transform, isRt);
+			mark_layout(kLayout_Outside_Y | kTransform, isRt);
 		}
 	}
 
 	void Box::set_margin_left(float val, bool isRt) {
 		if (_margin_left != val) {
 			_margin_left = val;
-			mark_layout(kLayout_Size_Width | kRecursive_Transform, isRt);
+			mark_layout(kLayout_Outside_X | kTransform, isRt);
 		}
 	}
 
 	void Box::set_margin_right(float val, bool isRt) {
 		if (_margin_right != val) {
 			_margin_right = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout(kLayout_Outside_X, isRt);
 		}
 	}
 
 	void Box::set_margin_bottom(float val, bool isRt) {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout(kLayout_Outside_Y, isRt);
 		}
 	}
 
@@ -216,28 +217,28 @@ namespace qk {
 	void Box::set_padding_top(float val, bool isRt) { // padding
 		if (_padding_top != val) {
 			_padding_top = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout(kLayout_Outside_Y, isRt);
 		}
 	}
 
 	void Box::set_padding_left(float val, bool isRt) {
 		if (_padding_left != val) {
 			_padding_left = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout(kLayout_Outside_X, isRt);
 		}
 	}
 
 	void Box::set_padding_right(float val, bool isRt) {
 		if (_padding_right != val) {
 			_padding_right = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout(kLayout_Outside_X, isRt);
 		}
 	}
 
 	void Box::set_padding_bottom(float val, bool isRt) {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout(kLayout_Outside_Y, isRt);
 		}
 	}
 
@@ -554,7 +555,7 @@ namespace qk {
 		val = Qk_Max(0, val);
 		if (_border->width[0] != val) {
 			_border->width[0] = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout(kLayout_Outside_Y, isRt);
 		}
 	}
 
@@ -563,7 +564,7 @@ namespace qk {
 		val = Qk_Max(0, val);
 		if (_border->width[1] != val) {
 			_border->width[1] = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout(kLayout_Outside_X, isRt);
 		}
 	}
 
@@ -572,7 +573,7 @@ namespace qk {
 		val = Qk_Max(0, val);
 		if (_border->width[2] != val) {
 			_border->width[2] = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout(kLayout_Outside_Y, isRt);
 		}
 	}
 
@@ -581,7 +582,7 @@ namespace qk {
 		val = Qk_Max(0, val);
 		if (_border->width[3] != val) {
 			_border->width[3] = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout(kLayout_Outside_X, isRt);
 		}
 	}
 
@@ -598,6 +599,10 @@ namespace qk {
 
 	BoxShadow* Box::box_shadow() {
 		return _boxShadow.load();
+	}
+
+	Vec2 Box::content_size() const {
+		return _container.content;
 	}
 
 	void Box::set_background(BoxFilter* val, bool isRt) {
@@ -617,7 +622,7 @@ namespace qk {
 	}
 
 	void Box::set_content_size(Vec2 content_size) {
-		_content_size = content_size;
+		_container.content = content_size;
 		_client_size = Vec2(content_size.x() + _padding_left + _padding_right,
 												content_size.y() + _padding_top + _padding_bottom);
 		_IfBorder() {
@@ -627,17 +632,19 @@ namespace qk {
 		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 												_margin_top + _margin_bottom + _client_size.y());
 
-		mark(kRecursive_Visible_Region, true);
+		mark(kVisible_Region, true);
 	}
 
 	Vec2 Box::layout_offset() {
 		return _layout_offset;
 	}
 
-	View::Size Box::layout_size() {
-		return {
-			_layout_size, _content_size, _wrap_x, _wrap_y
-		};
+	Vec2 Box::layout_size() {
+		return _layout_size;
+	}
+
+	const View::Container& Box::layout_container() {
+		return _container;
 	}
 
 	Vec2 Box::layout_weight() {
@@ -649,16 +656,16 @@ namespace qk {
 	}
 
 	void Box::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kRecursive_Transform) { // update transform matrix
+		if (mark & kTransform) { // update transform matrix
 			_CheckParent();
-			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			unmark(kTransform | kVisible_Region); // unmark
 			Vec2 point = _parent->layout_offset_inside() + layout_offset()
 				+ Vec2(_margin_left, _margin_top);
 			_position =
 				mat.mul_vec2_no_translate(point) + _parent->position();
 			solve_visible_region(Mat(mat).set_translate(_position));
-		} else if (mark & kRecursive_Visible_Region) {
-			unmark(kRecursive_Visible_Region); // unmark
+		} else if (mark & kVisible_Region) {
+			unmark(kVisible_Region); // unmark
 			solve_visible_region(Mat(mat).set_translate(_position));
 		}
 	}
@@ -698,7 +705,7 @@ namespace qk {
 
 	void Box::set_layout_offset(Vec2 val) {
 		_layout_offset = val;
-		mark(kRecursive_Transform, true); // mark recursive transform
+		mark(kTransform, true); // mark recursive transform
 	}
 
 	Vec2 Box::center() {

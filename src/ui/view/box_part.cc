@@ -39,314 +39,196 @@
 #define _IfBorder() _Border(); if (_border)
 
 namespace qk {
+	typedef Box::Container::Pre Pre;
 
-	float Box::solve_layout_content_width_pre(Size &pSize) {
-		float result = _content_size.x();
-		bool pWrap_x = pSize.wrap_x;
+	Pre Box::solve_layout_content_width_pre(const Container &pContainer) {
+		float size = pContainer.content[0];
+		float min = 0;
+		float max = Float32::limit_max;
+		auto pWrap = pContainer.wrap_y;
+		auto wrap = pWrap;
+
+		switch (_min_width.kind) {
+			default: /* None default wrap content */
+			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
+				wrap = kWrap_WrapState;
+				break;
+			case BoxSizeKind::Value: /* 明确值 value rem */
+				wrap = kNone_WrapState;
+				min = _min_width.value; // explicit value
+				break;
+			case BoxSizeKind::Match: /* 匹配父视图 match parent */
+				if (!pWrap) { // explicit value
+					min = size - _margin_left - _margin_right - _padding_left - _padding_right;
+					_IfBorder()
+						min -= (_border->width[3] + _border->width[1]); // left + right
+					min = Float32::max(min, 0);
+				}
+				break;
+			case BoxSizeKind::Ratio: /* 百分比 value % */
+				if (!pWrap) {
+					min = Float32::max(size * _min_width.value, 0);
+				}
+				break;
+			case BoxSizeKind::Minus: /* 减法(parent-value) value ! */
+				if (!pWrap) {
+					min = Float32::max(size - _min_width.value, 0);
+				}
+				break;
+		}
 
 		switch (_max_width.kind) {
 			case BoxSizeKind::None:
-				break;
+				return {{min, wrap ? max: min}, wrap};
 			case BoxSizeKind::Auto:
+				wrap = kWrap_WrapState;
+				return {{min, max}, wrap};
 			case BoxSizeKind::Value:
-				pSize.wrap_x = true;
-				return result; // return old value
+				max = _max_width.value;
+				break;
 			case BoxSizeKind::Match:
+				if (!pWrap) {
+					max = size - _margin_left - _margin_right - _padding_left - _padding_right;
+					_IfBorder()
+						max -= (_border->width[3] + _border->width[1]); // left + right
+				}
+				break;
 			case BoxSizeKind::Ratio:
+				if (!pWrap) {
+					max = size * _max_width.value;
+				}
+				break;
 			case BoxSizeKind::Minus:
-				pSize.wrap_x = true;
-				return pWrap_x ?
-					result: // return old value
-					0; // return unknown value
+				if (!pWrap) {
+					max = size - _max_width.value;
+				}
+				break;
 		}
 
-		auto val = _min_width;
-		auto size = pSize.content.x();
+		if (max > min) {
+			wrap = kWrap_WrapState;
+		} else {
+			max = min;
+			wrap = kNone_WrapState;
+		}
 
-		switch (val.kind) {
+		return {{min, max},wrap};
+	}
+
+	Pre Box::solve_layout_content_height_pre(const Container &pContainer) {
+		float size = pContainer.content[1];
+		float min = 0;
+		float max = Float32::limit_max;
+		auto pWrap = pContainer.wrap_y;
+		auto wrap = pWrap;
+
+		switch (_min_height.kind) {
 			default: /* None default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
-				pSize.wrap_x = true;
+				wrap = kWrap_WrapState;
 				break;
 			case BoxSizeKind::Value: /* 明确值 value rem */
-				pSize.wrap_x = false;
-				result = val.value; // explicit value
+				wrap = kNone_WrapState;
+				min = _min_height.value; // explicit value
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
-				if (!pWrap_x) {// explicit value
-					result = size - _margin_left - _margin_right - _padding_left - _padding_right;
+				if (!pWrap) { // explicit value
+					min = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
 					_IfBorder()
-						result -= (_border->width[3] + _border->width[1]); // left + right
-					result = Float32::max(result, 0);
+						min -= (_border->width[0] + _border->width[2]); // top + bottom
+					min = Float32::max(min, 0);
 				}
 				break;
 			case BoxSizeKind::Ratio: /* 百分比 value % */
-				if (!pWrap_x)
-					result = Float32::max(size * val.value, 0);
+				if (!pWrap) {
+					min = Float32::max(size * _min_height.value, 0);
+				}
 				break;
 			case BoxSizeKind::Minus: /* 减法(parent-value) value ! */
-				if (!pWrap_x)
-					result = Float32::max(size - val.value, 0);
+				if (!pWrap) {
+					min = Float32::max(size - _min_height.value, 0);
+				}
 				break;
 		}
-
-		return result;
-	}
-
-	float Box::solve_layout_content_height_pre(Size &pSize) {
-		float result = _content_size.y();
-		bool pWrap_y = pSize.wrap_y;
 
 		switch (_max_height.kind) {
 			case BoxSizeKind::None:
-				break;
+				return {{min, wrap ? max: min},wrap};
 			case BoxSizeKind::Auto:
+				wrap = kWrap_WrapState;
+				return {{min, max},wrap};
 			case BoxSizeKind::Value:
-				pSize.wrap_y = true;
-				return result; // return old value
-			case BoxSizeKind::Match:
-			case BoxSizeKind::Ratio:
-			case BoxSizeKind::Minus:
-				pSize.wrap_y = true;
-				return pWrap_y ?
-					result: // return old value
-					0; // return unknown value
-		}
-
-		auto val = _min_height;
-		auto size = pSize.content.y();
-
-		switch (val.kind) {
-			default: // NONE /* none default wrap content */
-			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
-				pSize.wrap_y = true;
-				break;
-			case BoxSizeKind::Value: /* 明确值 value rem */
-				pSize.wrap_y = false;
-				result = val.value; // explicit value
-				break;
-			case BoxSizeKind::Match: /* 匹配父视图 match parent */
-				if (!pWrap_y) {
-					result = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
-					_IfBorder()
-						result -= (_border->width[0] + _border->width[2]); // top + bottom
-					result = Float32::max(result, 0);
-				}
-				break;
-			case BoxSizeKind::Ratio: /* 百分比 value % */
-				if (!pWrap_y)
-					result = Float32::max(size * val.value, 0);
-				break;
-			case BoxSizeKind::Minus: /* 减法(parent-value) value ! */
-				if (!pWrap_y)
-					result = Float32::max(size - val.value, 0);
-				break;
-		}
-		return result;
-	}
-
-	float Box::solve_layout_content_width_limit(float checkValue) {
-		if (_max_width.kind == BoxSizeKind::None) { // no limit
-			return checkValue;
-		}
-		_CheckParent(checkValue);
-		auto pSize = _parent->layout_size();
-		float limit_min = get_layout_content_min_width_limit(pSize);
-		float limit_max = get_layout_content_max_width_limit(pSize);
-
-		if (limit_max <= limit_min) {
-			return limit_min; // use min
-		}
-		return Float32::clamp(checkValue, limit_min, limit_max);
-	}
-
-	float Box::solve_layout_content_height_limit(float checkValue) {
-		if (_max_height.kind == BoxSizeKind::None) { // no limit
-			return checkValue;
-		}
-		_CheckParent(checkValue);
-		auto pSize = _parent->layout_size();
-		float limit_min = get_layout_content_min_height_limit(pSize);
-		float limit_max = get_layout_content_max_height_limit(pSize);
-
-		if (limit_max <= limit_min) {
-			return limit_min; // use min
-		}
-		return Float32::clamp(checkValue, limit_min, limit_max);
-	}
-
-	float Box::get_layout_content_min_width_limit(const Size &pSize) {
-		Qk_ASSERT_NE(_max_width.kind, BoxSizeKind::None);
-		float size = pSize.content.x();
-		float limit_min = 0;
-		switch(_min_width.kind) {
-			default: break; // Auto, use 0
-			case BoxSizeKind::Value:
-				limit_min = Float32::max(_min_width.value, 0);
+				max = _max_height.value;
 				break;
 			case BoxSizeKind::Match:
-				if (!pSize.wrap_x) {
-					limit_min = size - _margin_left - _margin_right - _padding_left - _padding_right;
+				if (!pWrap) {
+					min = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
 					_IfBorder()
-						limit_min -= (_border->width[3] + _border->width[1]); // left + right
-					limit_min = Float32::max(limit_min, 0);
+						max -= (_border->width[0] + _border->width[2]); // left + right
 				}
 				break;
 			case BoxSizeKind::Ratio:
-				if (!pSize.wrap_x)
-					limit_min = Float32::max(size * _min_width.value, 0);
-				break;
-			case BoxSizeKind::Minus:
-				if (!pSize.wrap_x)
-					limit_min = Float32::max(size - _min_width.value, 0);
-				break;
-		}
-		return limit_min;
-	}
-
-	float Box::get_layout_content_min_height_limit(const Size &pSize) {
-		Qk_ASSERT_NE(_max_height.kind, BoxSizeKind::None);
-		float size = pSize.content.y();
-		float limit_min = 0;
-		switch(_min_height.kind) {
-			default: break; // AUTO, use 0
-			case BoxSizeKind::Value:
-				limit_min = Float32::max(_min_height.value, 0);
-				break;
-			case BoxSizeKind::Match:
-				if (!pSize.wrap_y) {
-					limit_min = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
-					_IfBorder()
-						limit_min -= (_border->width[0] + _border->width[2]); // top + bottom
-					limit_min = Float32::max(limit_min, 0);
+				if (!pWrap) {
+					max = size * _max_height.value;
 				}
 				break;
-			case BoxSizeKind::Ratio:
-				if (!pSize.wrap_x)
-					limit_min = Float32::max(size * _min_height.value, 0);
-				break;
 			case BoxSizeKind::Minus:
-				if (!pSize.wrap_y)
-					limit_min = Float32::max(size - _min_height.value, 0);
-				break;
-		}
-		return limit_min;
-	}
-
-	float Box::get_layout_content_max_width_limit(const Size &pSize) {
-		Qk_ASSERT_NE(_max_width.kind, BoxSizeKind::None);
-		float size = pSize.content.x();
-		float limit_max = Float32::limit_max; // no limit
-
-		switch(_max_width.kind) {
-			default: break; // Auto, use most biggest
-			case BoxSizeKind::Value:
-				limit_max = _max_width.value;
-				break;
-			case BoxSizeKind::Match:
-				if (!pSize.wrap_x) {
-					limit_max = size - _margin_left - _margin_right - _padding_left - _padding_right;
-					_IfBorder()
-						limit_max -= (_border->width[3] + _border->width[1]); // left + right
+				if (!pWrap) {
+					max = size - _max_height.value;
 				}
 				break;
-			case BoxSizeKind::Ratio:
-				if (!pSize.wrap_x)
-					limit_max = size * _max_width.value;
-				break;
-			case BoxSizeKind::Minus:
-				if (!pSize.wrap_x)
-					limit_max = size - _max_width.value;
-				break;
 		}
-		return limit_max;
+
+		if (max > min) {
+			wrap = kWrap_WrapState;
+		} else {
+			max = min;
+			wrap = kNone_WrapState;
+		}
+
+		return {{min, max},wrap};
 	}
 
-	float Box::get_layout_content_max_height_limit(const Size &pSize) {
-		Qk_ASSERT_NE(_max_height.kind, BoxSizeKind::None);
-		float size = pSize.content.y();
-		float limit_max = Float32::limit_max;
+	uint32_t Box::solve_layout_content_size_pre(uint32_t &mark, View *_parent) {
+		uint32_t change_mark = kLayout_None;
+		auto &pContainer = _parent->layout_container();
 
-		switch(_max_height.kind) {
-			default: break; // Auto, use most biggest
-			case BoxSizeKind::Value:
-				limit_max = _max_height.value;
-				break;
-			case BoxSizeKind::Match:
-				if (!pSize.wrap_y) {
-					limit_max = size - _margin_top - _margin_bottom - _padding_top - _padding_bottom;
-					_IfBorder()
-						limit_max -= (_border->width[0] + _border->width[2]); // top + bottom
+		if (mark & kLayout_Size_Width) {
+			if (_container.set_pre_width(solve_layout_content_width_pre(pContainer))) {
+				if (!_container.wrap_x) { // no wrap
+					_container.content[0] = _container.pre_width[0];
+					mark |= kLayout_Outside_X;
 				}
-				break;
-			case BoxSizeKind::Ratio:
-				if (!pSize.wrap_y)
-					limit_max = size * _max_height.value;
-				break;
-			case BoxSizeKind::Minus:
-				if (!pSize.wrap_y)
-					limit_max = size - _max_height.value;
-				break;
-		}
-		return limit_max;
-	}
-
-	Region Box::get_layout_content_limit_range(bool onlyX) {
-		float min_x = 0, max_x = 0, // Zero means no limit max
-					min_y = 0, max_y = 0;
-
-		if (_wrap_x) {
-			if (_max_width.kind != BoxSizeKind::None) { // use range limit
-				_IfParent() {
-					auto pSize = _parent->layout_size();
-					min_x = get_layout_content_min_width_limit(pSize);
-					max_x = get_layout_content_max_width_limit(pSize);
-					max_x = Qk_Max(max_x, 0.1f);
-				}
+				change_mark = kLayout_Size_Width;
 			}
-		} else { // no wrap
-			min_x = max_x = _content_size.x();
-			max_x = Qk_Max(max_x, 0.1f);
 		}
 
-		if (_wrap_y) {
-			if (!onlyX && _max_height.kind != BoxSizeKind::None) { // use range limit
-				_IfParent() {
-					auto pSize = _parent->layout_size();
-					min_y = get_layout_content_min_height_limit(pSize);
-					max_y = get_layout_content_max_height_limit(pSize);
-					max_y = Qk_Max(max_y, 0.1f);
+		if (mark & kLayout_Size_Height) {
+			if (_container.set_pre_height(solve_layout_content_height_pre(pContainer))) {
+				if (!_container.wrap_y) { // no wrap
+					_container.content[1] = _container.pre_height[0];
+					mark |= kLayout_Outside_Y;
 				}
+				change_mark |= kLayout_Size_Height;
 			}
-		} else {  // no wrap
-			min_y = max_y = _content_size.y();
-			max_y = Qk_Max(max_y, 0.1f);
 		}
 
-		return { { min_x, min_y }, { max_x, max_y } };
+		return change_mark;
 	}
 
 	void Box::layout_forward(uint32_t mark) {
-		uint32_t change_mark = kLayout_None;
-
-		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+		if (mark & (kLayout_Size_ALL | kLayout_Child_Size)) {
+			uint32_t change_mark = kLayout_None;
 			_IfParent() {
-				uint32_t child_layout_change_mark = kLayout_None;
-				auto size = _parent->layout_size();
+				change_mark = solve_layout_content_size_pre(mark, _parent);
 
-				if (mark & kLayout_Size_Width)
-				{
-					auto val = solve_layout_content_width_pre(size);
-					if (val != _content_size.x() || _wrap_x != size.wrap_x) {
-						_content_size[0] = val;
-						_wrap_x = size.wrap_x;
-						change_mark = kLayout_Size_Width;
-					}
-					_client_size[0] = _padding_left + _padding_right + val;
+				uint32_t child_layout_change_mark = kLayout_None;
+
+				if (mark & kLayout_Outside_X) {
+					_client_size[0] = _padding_left + _padding_right + _container.content[0];
 					_IfBorder() {
 						_client_size[0] += _border->width[3] + _border->width[1]; // left + right
 					}
-
 					float x = _margin_left + _margin_right + _client_size[0];
 					if (_layout_size[0] != x) {
 						_layout_size[0] = x;
@@ -354,19 +236,11 @@ namespace qk {
 					}
 				}
 
-				if (mark & kLayout_Size_Height)
-				{
-					auto val = solve_layout_content_height_pre(size);
-					if (val != _content_size.y() || _wrap_y != size.wrap_y) {
-						_content_size[1] = val;
-						_wrap_y = size.wrap_y;
-						change_mark |= kLayout_Size_Height;
-					}
-					_client_size[1] = _padding_top + _padding_bottom + val;
+				if (mark & kLayout_Outside_Y) {
+					_client_size[1] = _padding_top + _padding_bottom + _container.content[1];
 					_IfBorder() {
 						_client_size[1] += _border->width[0] + _border->width[2]; // top + bottom
 					}
-
 					float y = _margin_top + _margin_bottom + _client_size[1];
 					if (_layout_size[1] != y) {
 						_layout_size[1] = y;
@@ -374,24 +248,24 @@ namespace qk {
 					}
 				}
 
+				unmark(kLayout_Size_ALL);
 				_parent->onChildLayoutChange(this, child_layout_change_mark); // notice parent
-				unmark(kLayout_Size_Width | kLayout_Size_Height);
 			}
-		}
 
-		if (mark & kLayout_Child_Size) {
-			change_mark = kLayout_Size_Width | kLayout_Size_Height;
-			unmark(kLayout_Child_Size);
-		}
-
-		if (change_mark) {
-			auto v = first();
-			while (v) {
-				if (v->visible())
-					v->layout_forward(change_mark | v->mark_value());
-				v = v->next();
+			if (mark & kLayout_Child_Size) {
+				change_mark = kLayout_Size_Width | kLayout_Size_Height;
+				unmark(kLayout_Child_Size);
 			}
-			mark_layout(kLayout_Typesetting | kRecursive_Visible_Region, true); // layout reverse
+
+			if (change_mark) {
+				auto v = first();
+				while (v) {
+					if (v->visible())
+						v->layout_forward(change_mark | v->mark_value());
+					v = v->next();
+				}
+				mark_layout(kLayout_Typesetting | kVisible_Region, true); // layout reverse
+			}
 		}
 	}
 
@@ -413,26 +287,33 @@ namespace qk {
 		auto mbp_x = _margin_left + _margin_right + bp_x;
 		auto mbp_y = _margin_top + _margin_bottom + bp_y;
 
-		Vec2 content(
-			solve_layout_content_width_limit(Float32::max(layout_size.x() - mbp_x, 0)),
-			solve_layout_content_height_limit(Float32::max(layout_size.y() - mbp_y, 0))
-		);
+		Vec2 content(layout_size.x() - mbp_x, layout_size.y() - mbp_y);
+
+		content[0] =
+			_max_width.kind == BoxSizeKind::None ? // no limit
+			Float32::max(content[0], 0):
+			_container.width_clamp(content[0]);
+
+		content[1] =
+			_max_height.kind == BoxSizeKind::None ? // no limit
+			Float32::max(content[1], 0):
+			_container.height_clamp(content[1]);
 
 		_client_size = Vec2(bp_x + content.x(), bp_y + content.y());
 		_layout_size = Vec2(mbp_x + content.x(), mbp_y + content.y());
 
-		if (_content_size.x() != content.x() || _wrap_x) {
+		if (_container.content.x() != content.x() || _container.wrap_x) {
 			change_mark = kLayout_Size_Width;
 		}
-		if (_content_size.y() != content.y() || _wrap_y) {
+		if (_container.content.y() != content.y() || _container.wrap_y) {
 			change_mark |= kLayout_Size_Height;
 		}
 
 		// TODO: In a flex layout, only one axis needs to be forcibly locked,
 		// Locking all directions may not be the most correct way,
 		// but locking all directions here can avoid cyclic iteration and jitter of size.
-		_wrap_x = _wrap_y = false;
-		_content_size = content;
+		_container.wrap_x = _container.wrap_y = kNone_WrapState;
+		_container.content = content;
 
 		if (change_mark) {
 			auto v = first();
@@ -441,7 +322,7 @@ namespace qk {
 					v->layout_forward(change_mark | v->mark_value());
 				v = v->next();
 			}
-			mark_layout(kLayout_Typesetting | kRecursive_Visible_Region, true); // rearrange
+			mark_layout(kLayout_Typesetting | kVisible_Region, true); // rearrange
 		}
 
 		unmark(kLayout_Size_Width | kLayout_Size_Height);
@@ -451,21 +332,20 @@ namespace qk {
 
 	Vec2 Box::layout_typesetting_float() {
 		Vec2 inner_size;
-		auto cur = content_size();
-		auto cur_x = cur.x();
+		auto cur_x = _container.content[0];
 
 		auto v = first();
 		if (v) {
-			if ( _wrap_x ) { // wrap width
+			if ( _container.wrap_x ) { // wrap width
 				cur_x = 0;
 				do {
 					if (v->visible()) {
-						cur_x = Float32::max(cur_x, v->layout_size().layout.x());
+						cur_x = Float32::max(cur_x, v->layout_size().x());
 					}
 					v = v->next();
 				} while(v);
 				v = first();
-				cur_x = solve_layout_content_width_limit(cur_x);
+				cur_x = _container.width_clamp(cur_x);
 			}
 
 			float left = 0, right = 0;
@@ -488,7 +368,7 @@ namespace qk {
 					}
 					for (auto v: centerV) {
 						v->set_layout_offset({startOffset, offset_y});
-						startOffset += v->layout_size().layout.x();
+						startOffset += v->layout_size().x();
 					}
 					centerV.clear();
 				}
@@ -511,27 +391,42 @@ namespace qk {
 
 			do {
 				if (v->visible()) {
-					auto size = v->layout_size().layout;
-					auto align = v->layout_align();
-					switch (align) {
-						default:
+					auto size = v->layout_size();
+
+					switch(v->layout_align()) {
 						case Align::Start: // float start
 							nextStep(size);
 							v->set_layout_offset(Vec2(left, offset_y));
 							left += size.x();
 							break;
 						case Align::Center: // float center
-						case Align::CenterMiddle:
-						case Align::CenterBottom:
 							nextStep(size);
 							centerV.push(v);
 							break;
 						case Align::End: // float end
-						case Align::RightMiddle:
-						case Align::RightBottom:
 							nextStep(size);
 							v->set_layout_offset(Vec2(cur_x - right - size.x(), offset_y));
 							right += size.x();
+							break;
+						case Align::StartNew: // new left
+							solveCenter();
+							left = 0;
+							goto last;
+						case Align::EndNew: // new right
+							solveCenter();
+							left = cur_x - size.x();
+							goto last;
+						case Align::CenterNew: // new center
+						default:
+							solveCenter();
+							left = (cur_x - size.x()) * 0.5f;
+						last:
+							offset_y += line_height;
+							v->set_layout_offset({left,offset_y});
+							max_width = Float32::max(max_width, left + size.x());
+							left = right = 0;
+							line_width = line_height = 0;
+							offset_y += size.y();
 							break;
 					}
 				}
@@ -540,16 +435,19 @@ namespace qk {
 			solveCenter();
 			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
 		} else {
-			if ( _wrap_x ) { // wrap width
-				cur_x = solve_layout_content_width_limit(cur_x);
+			if ( _container.wrap_x ) { // wrap width
+				cur_x = _container.width_clamp(cur_x);
 			}
 		}
+
 		Vec2 new_size(
 			cur_x,
-			_wrap_y ? solve_layout_content_height_limit(inner_size.y()): cur.y()
+			_container.wrap_y ?
+				_container.height_clamp(inner_size.y()):
+				_container.content[1]
 		);
 
-		if (new_size != cur) {
+		if (new_size != _container.content) {
 			set_content_size(new_size);
 			_IfParent()
 				_parent->onChildLayoutChange(this, kChild_Layout_Size);

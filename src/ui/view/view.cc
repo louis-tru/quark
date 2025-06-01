@@ -51,6 +51,39 @@
 
 namespace qk {
 
+	typedef Box::Container Container;
+
+	bool Container::set_pre_width(Container::Pre pre) {
+		if (pre_width == pre.value)
+			return false;
+		pre_width = pre.value;
+		wrap_x = pre.wrap;
+		return true;
+	}
+
+	bool Container::set_pre_height(Container::Pre pre) {
+		if (pre_height == pre.value)
+			return false;
+		pre_height = pre.value;
+		wrap_y = pre.wrap;
+		return true;
+	}
+
+	float Container::width_clamp(float value) const {
+		return Float32::clamp(value, pre_width[0], pre_width[1]);
+	}
+
+	float Container::height_clamp(float value) const {
+		return Float32::clamp(value, pre_height[0], pre_height[1]);
+	}
+
+	Region Container::to_range() const {
+		return {
+			{pre_width[0], pre_height[0]},
+			{pre_width[1], pre_height[1]}
+		};
+	}
+
 	View::View()
 		: _cssclass(nullptr)
 		, _parent(nullptr)
@@ -68,6 +101,7 @@ namespace qk {
 		, _visible_region(false)
 		, _receive(true)
 	{
+		// Qk_DLog("Container sizeof, %d", sizeof(Container));
 	}
 
 	void View::destroy() {
@@ -150,15 +184,15 @@ namespace qk {
 	}
 
 	void View::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kRecursive_Transform) { // update transform matrix
+		if (mark & kTransform) { // update transform matrix
 			_CheckParent();
-			unmark(kRecursive_Transform | kRecursive_Visible_Region); // unmark
+			unmark(kTransform | kVisible_Region); // unmark
 			_position =
 				mat.mul_vec2_no_translate(layout_offset() + _parent->layout_offset_inside()) +
 				_parent->_position;
 			solve_visible_region(Mat(mat).set_translate(_position));
-		} else if (mark & kRecursive_Visible_Region) {
-			unmark(kRecursive_Visible_Region); // unmark
+		} else if (mark & kVisible_Region) {
+			unmark(kVisible_Region); // unmark
 			solve_visible_region(Mat(mat).set_translate(_position));
 		}
 	}
@@ -203,8 +237,16 @@ namespace qk {
 		return Vec2();
 	}
 
-	View::Size View::layout_size() {
-		return { Vec2(), Vec2(), true, true };
+	Vec2 View::layout_size() {
+		return Vec2();
+	}
+
+	static View::Container zeroContainer{
+		{}, {}, {}, View::kNone_WrapState, View::kNone_WrapState
+	};
+
+	const View::Container& View::layout_container() {
+		return zeroContainer;
 	}
 
 	Vec2 View::layout_offset_inside() {
@@ -231,7 +273,7 @@ namespace qk {
 				v->set_layout_offset_free(Vec2()); // lazy view
 				v = v->next();
 			}
-			unmark(kLayout_Typesetting | kLayout_Size_Width | kLayout_Size_Height);
+			unmark(kLayout_Typesetting);
 		}
 	}
 

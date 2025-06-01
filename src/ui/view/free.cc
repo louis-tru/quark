@@ -37,13 +37,13 @@ namespace qk {
 
 	void Free::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			auto size = content_size();
+			auto cur = _container.content;
 			Vec2 new_size(
-				solve_layout_content_width_limit(size.x()),
-				solve_layout_content_height_limit(size.y())
+				_container.width_clamp(cur.x()),
+				_container.height_clamp(cur.y())
 			);
 
-			if (size != new_size) {
+			if (cur != new_size) {
 				set_content_size(new_size);
 				_IfParent()
 					_parent->onChildLayoutChange(this, kChild_Layout_Size);

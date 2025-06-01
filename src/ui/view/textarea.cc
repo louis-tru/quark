@@ -50,7 +50,7 @@ namespace qk {
 
 	void Textarea::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kInput_Status) {
-			auto final_width = content_size().x();
+			auto final_width = _container.content[0];
 			auto max_width = _lines->max_width();
 
 			// setting default test offset
