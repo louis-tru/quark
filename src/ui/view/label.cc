@@ -39,7 +39,7 @@ namespace qk {
 
 	void Label::set_value(String val, bool isRt) {
 		_value = val;
-		mark_layout(kLayout_Size_Width | kLayout_Size_Height, isRt);
+		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, isRt);
 	}
 
 	View* Label::getViewForTextOptions() {
@@ -47,10 +47,10 @@ namespace qk {
 	}
 
 	void Label::layout_reverse(uint32_t mark) {
-		if (mark & (kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting)) {
+		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
 			_IfParent()
 				_parent->onChildLayoutChange(this, kChild_Layout_Text);
-			unmark(kLayout_Size_Width | kLayout_Size_Height | kLayout_Typesetting);
+			unmark(kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting);
 		} else if (mark & kText_Options) {
 			unmark(kText_Options);
 			_IfParent()

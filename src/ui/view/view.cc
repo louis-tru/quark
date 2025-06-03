@@ -53,6 +53,20 @@ namespace qk {
 
 	typedef Box::Container Container;
 
+	Region Container::to_range() const {
+		return {
+			{pre_width[0], pre_height[0]}, {pre_width[1], pre_height[1]}
+		};
+	}
+
+	float Container::clamp_width(float value) const {
+		return Float32::clamp(value, pre_width[0], pre_width[1]);
+	}
+
+	float Container::clamp_height(float value) const {
+		return Float32::clamp(value, pre_height[0], pre_height[1]);
+	}
+
 	bool Container::set_pre_width(Container::Pre pre) {
 		if (pre_width == pre.value)
 			return false;
@@ -67,21 +81,6 @@ namespace qk {
 		pre_height = pre.value;
 		wrap_y = pre.wrap;
 		return true;
-	}
-
-	float Container::width_clamp(float value) const {
-		return Float32::clamp(value, pre_width[0], pre_width[1]);
-	}
-
-	float Container::height_clamp(float value) const {
-		return Float32::clamp(value, pre_height[0], pre_height[1]);
-	}
-
-	Region Container::to_range() const {
-		return {
-			{pre_width[0], pre_height[0]},
-			{pre_width[1], pre_height[1]}
-		};
 	}
 
 	View::View()
@@ -558,7 +557,7 @@ namespace qk {
 					}
 					_parent->onChildLayoutChange(self, kChild_Layout_Visible); // notice new parent view
 				}
-				self->mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // mark view size, reset view size
+				self->mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true); // mark view size, reset view size
 
 				auto _cssclass = self->_cssclass.load();
 				if (_cssclass) {
@@ -589,7 +588,7 @@ namespace qk {
 			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view
 		}
 		if (visible) {
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true); // reset view size
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true); // reset view size
 			_IfCssclass() {
 				_cssclass->updateClass_Rt();
 			}

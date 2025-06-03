@@ -39,8 +39,8 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 			auto cur = _container.content;
 			Vec2 new_size(
-				_container.width_clamp(cur.x()),
-				_container.height_clamp(cur.y())
+				_container.clamp_width(cur.x()),
+				_container.clamp_height(cur.y())
 			);
 
 			if (cur != new_size) {

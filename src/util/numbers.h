@@ -51,7 +51,8 @@ namespace qk {
 		template <typename T2> inline bool operator<=(T2 v) { return value <= v.value; }
 		template <typename T2> inline bool operator>=(T2 v) { return value >= v.value; }
 		T value;
-		static const T limit_min, limit_max;
+		static const T limit_min;
+		static const T limit_max;
 
 		static inline T max(T a, T b) {
 			return a > b ? a: b;

@@ -763,8 +763,8 @@ namespace qk {
 
 		Vec2 cur = _container.content;
 		Vec2 new_size(
-			_container.wrap_x ? _container.width_clamp(_lines->max_width()): cur.x(),
-			_container.wrap_y ? _container.height_clamp(_lines->max_height()): cur.y()
+			_container.wrap_x ? _container.clamp_width(_lines->max_width()): cur.x(),
+			_container.wrap_y ? _container.clamp_height(_lines->max_height()): cur.y()
 		);
 
 		if (new_size != cur) {

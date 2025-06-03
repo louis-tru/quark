@@ -742,6 +742,10 @@ namespace qk {
 		RectPath out;
 		out.id = 0;
 		out.rect = rect;
+		out.vCount = 0;
+		if (rect.size.x() <= 0 || rect.size.y() <= 0) {
+			Qk_ReturnLocal(out);
+		}
 		float x2 = rect.origin.x() + rect.size.x();
 		float y2 = rect.origin.y() + rect.size.y();
 		// path
@@ -768,6 +772,11 @@ namespace qk {
 		RectPath out;
 		out.id = 0;
 		out.rect = rect;
+		out.vCount = 0;
+
+		if (rect.size.x() <= 0 || rect.size.y() <= 0) {
+			Qk_ReturnLocal(out);
+		}
 
 		float x1 = rect.origin.x(),      y1 = rect.origin.y();
 		float x2 = x1 + rect.size.x(),   y2 = y1 + rect.size.y();

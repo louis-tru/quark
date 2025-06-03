@@ -44,7 +44,6 @@ createCss({
 	'.checkbox_page .text': {
 		width: '100!',
 		margin: 13,
-		align: 'start',
 	},
 })
 

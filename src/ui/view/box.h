@@ -83,8 +83,8 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(Color,      background_color, Const); // fill background color
 		Qk_DEFINE_VIEW_ACCESSOR(BoxFilter*, background); // fill background, image|gradient, async set
 		Qk_DEFINE_VIEW_ACCESSOR(BoxShadow*, box_shadow); // box shadow, shadow, async set method
-		Qk_DEFINE_VIEW_ACCE_GET(Vec2,       content_size, Const);
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,       weight, Const); // view weight
+		Qk_DEFINE_VIEW_ACCE_GET(Vec2,       content_size, Const);
 		Qk_DEFINE_VIEW_PROP_GET(Vec2,       client_size, Const); // border + padding + content
 		Qk_DEFINE_VIEW_PROPERTY(Container,  container, ProtectedConst); // view container range
 
@@ -155,20 +155,6 @@ namespace qk {
 		 * @note Can only be used in rendering threads
 		 */
 		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, View *parent);
-
-		// /**
-		//  * @method solve_layout_outside_mark()
-		//  * @safe Rt
-		//  * @note Can only be used in rendering threads
-		//  */
-		// void solve_layout_outside_mark(uint32_t mark, View *_parent);
-
-		// /**
-		//  * @method solve_layout_forward_last()
-		//  * @safe Rt
-		//  * @note Can only be used in rendering threads
-		//  */
-		// void solve_layout_forward_last(uint32_t mark, uint32_t change_mark);
 
 		/**
 		 * @method layout_typesetting_float

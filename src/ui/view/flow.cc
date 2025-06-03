@@ -103,13 +103,13 @@ namespace qk {
 
 			float main_size = is_wrap_main ? (
 				is_horizontal ?
-				_container.width_clamp(max_main): _container.height_clamp(max_main)
+				_container.clamp_width(max_main): _container.clamp_height(max_main)
 			) : (
 				is_horizontal ? cur.x(): cur.y()
 			);
 			float cross_size = is_wrap_cross ? (
 				is_horizontal ?
-				_container.height_clamp(total_cross): _container.width_clamp(total_cross)
+				_container.clamp_height(total_cross): _container.clamp_width(total_cross)
 			) : (
 				is_horizontal ? cur.y(): cur.x()
 			);
@@ -159,8 +159,8 @@ namespace qk {
 			new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
 		} else {
 			new_size = Vec2{
-				wrap_x ? _container.width_clamp(0): cur.x(),
-				wrap_y ? _container.height_clamp(0): cur.y(),
+				wrap_x ? _container.clamp_width(0): cur.x(),
+				wrap_y ? _container.clamp_height(0): cur.y(),
 			};
 		} // end if (first())
 

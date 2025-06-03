@@ -43,7 +43,7 @@ namespace qk {
 
 	uint32_t Image::solve_layout_content_size_pre(uint32_t &mark, View *_parent) {
 		uint32_t change_mark = kLayout_None;
-		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height)) {
 			auto src = source(); // Rt
 
 			if (src && src->type()) {
@@ -54,27 +54,27 @@ namespace qk {
 				Vec2 content;
 				if (_container.wrap_x) { // wrap x
 					if (_container.wrap_y) { // wrap y
-						content[0] = _container.width_clamp(src->width());
-						content[1] = _container.height_clamp(src->height());
+						content[0] = _container.clamp_width(src->width());
+						content[1] = _container.clamp_height(src->height());
 					} else { // no wrap y and rawp x
 						content[1] = _container.pre_height[0];
-						content[0] = _container.width_clamp(src->width() * content[1] / src->height());
+						content[0] = _container.clamp_width(src->width() * content[1] / src->height());
 					}
 				} else if (_container.wrap_y) { // x is wrap and y is no wrap
 					content[0] = _container.pre_width[0];
-					content[1] = _container.height_clamp(src->height() * content[0] / src->width());
+					content[1] = _container.clamp_height(src->height() * content[0] / src->width());
 				} else { // all of both are no wrap
 					content[0] = _container.pre_width[0];
 					content[1] = _container.pre_height[0];
 				}
 
 				if (_container.content[0] != content[0]) {
-					mark       |= kLayout_Outside_X;
-					change_mark = kLayout_Size_Width;
+					mark       |= kLayout_Outside_Width;
+					change_mark = kLayout_Inner_Width;
 				}
 				if (_container.content[1] != content[1]) {
-					mark        |= kLayout_Outside_Y;
-					change_mark |= kLayout_Size_Height;
+					mark        |= kLayout_Outside_Height;
+					change_mark |= kLayout_Inner_Height;
 				}
 
 				_container.wrap_x = _container.wrap_y = kNone_WrapState;
@@ -89,7 +89,7 @@ namespace qk {
 
 	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
 		if (evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height, false);
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
 			Sp<UIEvent> evt = new UIEvent(this);
 			trigger(UIEvent_Load, **evt);
 		} else if (evt.data() & (ImageSource::kSTATE_LOAD_ERROR | ImageSource::kSTATE_DECODE_ERROR)) {

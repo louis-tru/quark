@@ -44,17 +44,17 @@ namespace qk {
 		set_receive(true);
 		set_width({0, BoxSizeKind::Match});
 		set_height({0, BoxSizeKind::Match});
-		mark_layout(kLayout_Size_Width | kLayout_Size_Height, false);
+		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
 		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
 		mark(kTransform, false);
 	}
 
 	void Root::reload_Rt() {
-		mark_layout(kLayout_Size_Width | kLayout_Size_Height, true);
+		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true);
 	}
 
 	void Root::layout_forward(uint32_t mark) {
-		if (mark & (kLayout_Size_Width | kLayout_Size_Height)) {
+		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height)) {
 			layout_lock(window()->size());
 		}
 	}

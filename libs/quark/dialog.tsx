@@ -44,9 +44,9 @@ createCss({
 	'.qk_dialog': {
 	},
 	'.qk_dialog.main': {
-		//minWidth: 260, // min width
+		minWidth: 160, // min width
 		maxWidth: '40!',// max width
-		maxHeight: '40!',
+		//maxHeight: '40!',
 		align: 'centerMiddle',
 		backgroundColor: '#fff',
 		borderRadius: 12,
@@ -175,7 +175,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 
 	protected render() {
 		return (
-			<free width="100%" height="100%" backgroundColor="#0008" receive={true} visible={false} opacity={0}>
+			<free width="100%" height="100%" backgroundColor="#0004" receive={true} visible={false} opacity={0}>
 				<matrix ref="main" class="qk_dialog main">
 					<text ref="title" class="title" value={this.title} />
 					<text ref="con" class="content">{this.content||this.children}</text>
@@ -203,11 +203,10 @@ export class Dialog<P={},S={}> extends Navigation<{
 			this.window.nextFrame(()=>{
 				let main = this.refs.main as Matrix;
 				let size = main.clientSize;
-				main.style.origin = [size.x / 2, size.y / 2];
 				main.scale = new types.Vec2({x:0.2, y:0.2});
-				main.transition({ scale : '1 1', time: 250 });
+				main.transition({ scale : '1 1', time: 30000 });
 				this.asDom().opacity = 0.2;
-				this.asDom().transition({ opacity : 1, time: 250 });
+				this.asDom().transition({ opacity : 1, time: 30000 });
 			});
 			this.registerNavigation(0);
 		}
@@ -217,7 +216,6 @@ export class Dialog<P={},S={}> extends Navigation<{
 		if ( this.asDom().visible ) {
 			let main = this.refs.main as Matrix;
 			let size = main.clientSize;
-			main.style.origin = [size.x / 2, size.y / 2];
 			main.transition({ scale : '0.2 0.2', time: 300 });
 			this.asDom().transition({ opacity : 0.05, time: 300 }, ()=>{ this.destroy() });
 			this.unregisterNavigation(0);
@@ -337,7 +335,7 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 	let message: any;
 	if (typeof msg == 'string')
 		message = {msg};
-	let { msg: _msg = '', title = 'AAAAABBCCCC' } = message;
+	let { msg: _msg = '', title = 'AAAAABBCCCCDDDD' } = message;
 	let dag = (
 		<Dialog buttons={[Consts.Ok]} onAction={cb} title={title}>{_msg}</Dialog>
 	).newDom(window.rootCtr) as Dialog;

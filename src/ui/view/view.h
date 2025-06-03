@@ -66,25 +66,27 @@ namespace qk {
 
 		// Layout mark key values
 		enum LayoutMark: uint32_t {
-			kLayout_None              = (0),      /* 没有任何标记 */
-			kLayout_Size_Width        = (1 << 0), /* 布局内容改变, 改变可能影响父布局 */
-			kLayout_Size_Height       = (1 << 1), /* 同上 */
-			kLayout_Outside_X         = (1 << 2), /* 布局尺寸外框改变, 非内容变化,边框/边距 */
-			kLayout_Outside_Y         = (1 << 3), /* 同上 */
-			kLayout_Size_ALL          = (kLayout_Size_Width | kLayout_Size_Height | kLayout_Outside_X | kLayout_Outside_Y),
-			kLayout_Child_Size        = (1 << 4), /* 子视图布局尺寸改变 */
-			kLayout_Typesetting       = (1 << 5), /* 布局内容偏移, 需要重新对子布局排版 */
-			kTransform_Origin         = (1 << 6), /* 变化 Transform Origin */
-			kInput_Status             = (1 << 7), /* 输入状态这不包含布局的改变 */
-			kText_Options             = (1 << 8), /* 文本配置变化,可能影响子视图 */
+			kLayout_None              = (0),      /* Not have any the mark */
+			kLayout_Inner_Width       = (1 << 0), /* The content inside the layout changes that may affect the parent layout */
+			kLayout_Inner_Height      = (1 << 1), /* Same as above */
+			kLayout_Outside_Width     = (1 << 2), /* The layout frame size border/margin changes, not the content changes */
+			kLayout_Outside_Height    = (1 << 3), /* Same as above */
+			kLayout_Size_Width        = (kLayout_Inner_Width | kLayout_Outside_Width),
+			kLayout_Size_Height       = (kLayout_Inner_Height | kLayout_Outside_Height),
+			kLayout_Size_ALL          = (kLayout_Size_Width | kLayout_Size_Height),
+			kLayout_Child_Size        = (1 << 4), /* Subview layout size change */
+			kLayout_Typesetting       = (1 << 5), /* The layout content is offset, and the sub-layout needs to be typesetting */
+			kTransform_Origin         = (1 << 6), /* Changing Transform Origin */
+			kInput_Status             = (1 << 7), /* Input state changes that don't include layout changes */
+			kText_Options             = (1 << 8), /* Text configuration changes and may affect subviews */
 			kScroll                   = (1 << 9), /* scroll status change */
-			kStyle_Class              = (1 << 10), /* 变化class引起的样式变化 */
-			kTransform                = (1 << 30), /* 矩阵变换 recursive mark */
-			kVisible_Region           = (1U << 31), /* 可见范围 */
-			kRecursive_Mark           = (kTransform | kVisible_Region),
+			kStyle_Class              = (1 << 10), /* View style changes caused by changing class */
+			kTransform                = (1 << 30), /* Matrix Transformation, recursive mark */
+			kVisible_Region           = (1U << 31), /* Visible range changes */
+			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
 		};
 
-		// child layout change mark key values
+		// Child layout change mark key values
 		enum ChildLayoutChangeMark : uint32_t {
 			kChild_Layout_Size     = (1 << 0),
 			kChild_Layout_Visible  = (1 << 1),
@@ -114,11 +116,11 @@ namespace qk {
 			WrapState wrap_x;//!< The x-axis is wrap content, use internal extrusion size
 			WrapState wrap_y; //!< The y-axis is wrap content, use internal extrusion size
 
+			Region to_range() const;
+			float clamp_width(float value) const;
+			float clamp_height(float value) const;
 			bool  set_pre_width(Pre pre);
 			bool  set_pre_height(Pre pre);
-			float width_clamp(float value) const;
-			float height_clamp(float value) const;
-			Region to_range() const;
 		};
 
 		/**

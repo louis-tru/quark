@@ -134,7 +134,7 @@ namespace qk {
 		}
 		auto src = source();
 		if (!src || !(src->state() & ImageSource::kSTATE_LOAD_COMPLETE)) {
-			mark_layout(kLayout_Size_Width | kLayout_Size_Height, true);
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true);
 		}
 		_seeking = 0;
 		_pts = _fv->pts; // set current the presentation timestamp

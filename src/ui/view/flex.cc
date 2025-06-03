@@ -144,13 +144,13 @@ namespace qk {
 		}
 
 		Vec2 new_size = is_horizontal ? Vec2{
-			_container.width_clamp(total_main),
+			_container.clamp_width(total_main),
 			wrap_y ?
-			_container.height_clamp(max_cross): max_cross,
+			_container.clamp_height(max_cross): max_cross,
 		}: Vec2{
 			wrap_x ?
-			_container.width_clamp(max_cross): max_cross,
-			_container.height_clamp(total_main),
+			_container.clamp_width(max_cross): max_cross,
+			_container.clamp_height(total_main),
 		};
 
 		if (items.length()) {
@@ -280,8 +280,8 @@ namespace qk {
 
 		if (is_wrap_cross) {
 			cross_size = is_horizontal ?
-				_container.height_clamp(cross_size):
-				_container.width_clamp(cross_size);
+				_container.clamp_height(cross_size):
+				_container.clamp_width(cross_size);
 		}
 		if (cross_size != cross_size_old) {
 			set_content_size(is_horizontal ? Vec2{main_size, cross_size}: Vec2{cross_size, main_size});
