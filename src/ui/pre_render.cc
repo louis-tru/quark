@@ -48,6 +48,7 @@ namespace qk {
 	{}
 
 	void PreRender::mark_layout(View *view, uint32_t level) {
+		Qk_ASSERT_EQ(view->_mark_index, -1);
 		Qk_ASSERT(level);
 		_marks.extend(level + 1);
 		auto& arr = _marks[level];
@@ -57,6 +58,7 @@ namespace qk {
 	}
 
 	void PreRender::unmark_layout(View *view, uint32_t level) {
+		Qk_ASSERT(view->_mark_index >= 0);
 		Qk_ASSERT(level);
 		auto& arr = _marks[level];
 		auto last = arr[arr.length() - 1];

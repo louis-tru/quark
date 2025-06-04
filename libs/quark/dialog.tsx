@@ -65,7 +65,7 @@ createCss({
 		textSize: 18,
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
-		backgroundColor: '#f00',
+		backgroundColor: '#ff0',
 		align: "centerNew"
 	},
 	'.qk_dialog .content': {
@@ -74,13 +74,14 @@ createCss({
 		textAlign: 'center',
 		textSize: 14,
 		textColor: '#333',
-		backgroundColor: '#ff0',
+		backgroundColor: '#f00',
 		align: "centerNew"
 	},
 	'.qk_dialog .buttons': {
 		width: 'match',
-		borderRadiusLeftBottom: 12,
-		borderRadiusRightBottom: 12,
+		backgroundColor: "#00f",
+		//borderRadiusLeftBottom: 12,
+		//borderRadiusRightBottom: 12,
 	},
 	'.qk_dialog.sheet .buttons': {
 		borderRadius: 12,
@@ -108,7 +109,7 @@ createCss({
 	'.qk_dialog .button:hover': {
 		backgroundColor: '#E1E4E455', time: 50
 	},
-	'.qk_dialog .button:down': {
+	'.qk_dialog .button:active': {
 		backgroundColor: '#E1E4E4', time: 50
 	},
 	'.qk_dialog .prompt': {
@@ -179,7 +180,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 				<matrix ref="main" class="qk_dialog main">
 					<text ref="title" class="title" value={this.title} />
 					<text ref="con" class="content">{this.content||this.children}</text>
-					{/* <free ref="btns" class="buttons">
+					<flex ref="btns" class="buttons">
 					{
 						this._buttons.map((e,i)=>(
 							<button
@@ -190,7 +191,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 							>{e}</button>
 						))
 					}
-					</free> */}
+					</flex>
 				</matrix>
 			</free>
 		);
@@ -204,9 +205,9 @@ export class Dialog<P={},S={}> extends Navigation<{
 				let main = this.refs.main as Matrix;
 				let size = main.clientSize;
 				main.scale = new types.Vec2({x:0.2, y:0.2});
-				main.transition({ scale : '1 1', time: 30000 });
+				main.transition({ scale : '1 1', time: 300 });
 				this.asDom().opacity = 0.2;
-				this.asDom().transition({ opacity : 1, time: 30000 });
+				this.asDom().transition({ opacity : 1, time: 300 });
 			});
 			this.registerNavigation(0);
 		}
@@ -215,9 +216,8 @@ export class Dialog<P={},S={}> extends Navigation<{
 	close() {
 		if ( this.asDom().visible ) {
 			let main = this.refs.main as Matrix;
-			let size = main.clientSize;
 			main.transition({ scale : '0.2 0.2', time: 300 });
-			this.asDom().transition({ opacity : 0.05, time: 300 }, ()=>{ this.destroy() });
+			this.asDom().transition({ opacity : 0.05, time: 300 }, ()=>this.destroy());
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);

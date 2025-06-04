@@ -241,19 +241,22 @@ namespace qk {
 
 		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
 			auto pix = textImg->pixel(0);
-			auto scale_1 = 1.0 / scale;
+			auto scale_1 = 1.0f / scale;
 			ImagePaint p;
 			// default use baseline align
-			Vec2 dst_start(origin.x(), origin.y() - imgTop * scale_1);
-			Vec2 dst_size(pix->width() * scale_1, pix->height() * scale_1);
+			Vec2 dst_start(origin.x(),
+										 origin.y() - imgTop * scale_1);
+			Vec2 dst_size(pix->width() * scale_1,
+										pix->height() * scale_1);
 
-			//auto a = _state->matrix * dst_start;
-			//auto b = _state->matrix * (dst_start + dst_size);
-			//Qk_DLog("drawTextImage, %f %f, %f %f", a.x(), a.y(), b.x(), b.y());
+			//Qk_DLog("drawTextImage0, Vec2( %f  %f), Vec2(%f %f)", dst_start.x(),
+			//	dst_start.y(), dst_size.x(), dst_size.y());
 
 			Rect rect{dst_start, dst_size};
 
 			p.setImage(textImg, rect);
+			//Qk_DLog("drawTextImage1, Vec2(%f %f), Vec2(%f %f)",
+			//				p.coord.origin.x(), p.coord.origin.y(), p.coord.end.x(), p.coord.end.y());
 			p.mipmapMode = ImagePaint::kLinear_MipmapMode;
 			p.filterMode = ImagePaint::kLinear_FilterMode;
 
@@ -652,23 +655,22 @@ namespace qk {
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
 
-		fontSize *= _scale;
-		auto levelSize = get_level_font_size(fontSize);
-		auto finalFontSize = levelSize * _surfaceScale;
+		auto genSize = get_level_font_size(_scale * fontSize) * _surfaceScale;
+		//auto genSize = fontSize * _allScale;
 
-		if (finalFontSize == 0.0)
+		if (genSize == 0.0)
 			return;
 
-		if (blob->out.fontSize != finalFontSize || !blob->out.image) { // fill text bolb
+		if (blob->out.fontSize != genSize || !blob->out.image) { // fill text bolb
 			auto tf = blob->typeface;
 			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
-			blob->out = tf->getImage(blob->glyphs, finalFontSize, offset, finalFontSize / fontSize, _render);
+			blob->out = tf->getImage(blob->glyphs, genSize, offset, genSize / fontSize, _render);
 			// Qk_DLog("GLCanvas::drawTextBlob origin, %f", origin.y());
 		}
 		auto img = *blob->out.image;
 		if (img->width() && img->height()) {
 			Qk_ASSERT(img->count(), "GLCanvas::drawTextBlob img->count()");
-			_this->drawTextImage(*blob->out.image, blob->out.top, _allScale * levelSize / fontSize, origin, paint);
+			_this->drawTextImage(*blob->out.image, blob->out.top, genSize / fontSize, origin, paint);
 		}
 	}
 

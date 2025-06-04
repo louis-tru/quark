@@ -108,4 +108,4 @@ const win = new Window({
 // )
 
 
-dialog.alert(win, 'Hello alert.')
+dialog.alert(win, 'Hello')

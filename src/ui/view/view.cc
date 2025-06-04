@@ -494,10 +494,15 @@ namespace qk {
 		if (_parent) {
 			blur();
 			clear_link();
-			_parent = nullptr;
 			preRender().async_call([](auto self, auto arg) {
-				if (self->_level) self->clear_level_Rt();
-			}, this, 0);
+				if (self->_level) {
+					if (arg.arg) { // notice parent view
+						arg.arg->onChildLayoutChange(self, kChild_Layout_Visible);
+					}
+					self->clear_level_Rt();
+				}
+			}, this, _parent.load());
+			_parent = nullptr;
 			release(); // Disconnect from parent view strong reference
 		}
 	}
