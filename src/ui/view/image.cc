@@ -41,26 +41,25 @@ namespace qk {
 		return kImage_ViewType;
 	}
 
-	uint32_t Image::solve_layout_content_size_pre(uint32_t &mark, View *_parent) {
+	uint32_t Image::solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) {
 		uint32_t change_mark = kLayout_None;
 		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height)) {
 			auto src = source(); // Rt
 
 			if (src && src->type()) {
-				auto &pContainer = _parent->layout_container();
 				_container.set_pre_width(solve_layout_content_width_pre(pContainer));
 				_container.set_pre_height(solve_layout_content_height_pre(pContainer));
 
 				Vec2 content;
-				if (_container.wrap_x) { // wrap x
-					if (_container.wrap_y) { // wrap y
+				if (_container.float_x) { // wrap x
+					if (_container.float_y) { // wrap y
 						content[0] = _container.clamp_width(src->width());
 						content[1] = _container.clamp_height(src->height());
 					} else { // no wrap y and rawp x
 						content[1] = _container.pre_height[0];
 						content[0] = _container.clamp_width(src->width() * content[1] / src->height());
 					}
-				} else if (_container.wrap_y) { // x is wrap and y is no wrap
+				} else if (_container.float_y) { // x is wrap and y is no wrap
 					content[0] = _container.pre_width[0];
 					content[1] = _container.clamp_height(src->height() * content[0] / src->width());
 				} else { // all of both are no wrap
@@ -77,10 +76,10 @@ namespace qk {
 					change_mark |= kLayout_Inner_Height;
 				}
 
-				_container.wrap_x = _container.wrap_y = kNone_WrapState;
+				_container.float_x = _container.float_y = kNone_FloatState;
 				_container.content = content;
 			} else {
-				return Box::solve_layout_content_size_pre(mark, _parent);
+				return Box::solve_layout_content_size_pre(mark, pContainer);
 			}
 		}
 	

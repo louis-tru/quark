@@ -49,7 +49,7 @@ namespace qk {
 	Pre Box::solve_layout_content_width_pre(const Container &pContainer) {
 		float size = pContainer.content[0];
 		float min = 0, max = Max_Float;
-		auto pWrap = pContainer.wrap_x;
+		auto pWrap = pContainer.float_x;
 		auto wrap = pWrap;
 
 		static auto computeMatch = [](Box* self, float pSi) {
@@ -65,10 +65,10 @@ namespace qk {
 		switch (_min_width.kind) {
 			default: /* None default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
-				wrap = kWrap_WrapState;
+				wrap = kFloat_FloatState;
 				break;
 			case BoxSizeKind::Value: /* 明确值 value rem */
-				wrap = kNone_WrapState;
+				wrap = kNone_FloatState;
 				min = max = _min_width.value; // explicit value
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
@@ -113,7 +113,7 @@ namespace qk {
 			case BoxSizeKind::None:
 				return {{min, max}, wrap};
 			case BoxSizeKind::Auto:
-				return {{min, Max_Float}, kWrap_WrapState};
+				return {{min, Max_Float}, kFloat_FloatState};
 			case BoxSizeKind::Value:
 				max = _max_width.value;
 				break;
@@ -144,13 +144,13 @@ namespace qk {
 		if (max < min) {
 			max = min;
 		}
-		return {{min, max},kWrap_WrapState};
+		return {{min, max},kFloat_FloatState};
 	}
 
 	Pre Box::solve_layout_content_height_pre(const Container &pContainer) {
 		float size = pContainer.content[1];
 		float min = 0, max = Max_Float;
-		auto pWrap = pContainer.wrap_y;
+		auto pWrap = pContainer.float_y;
 		auto wrap = pWrap;
 
 		static auto computeMatch = [](Box* self, float pSi) {
@@ -166,10 +166,10 @@ namespace qk {
 		switch (_min_height.kind) {
 			default: /* None default wrap content */
 			case BoxSizeKind::Auto: /* 包裹内容 wrap content */
-				wrap = kWrap_WrapState;
+				wrap = kFloat_FloatState;
 				break;
 			case BoxSizeKind::Value: /* 明确值 value rem */
-				wrap = kNone_WrapState;
+				wrap = kNone_FloatState;
 				min = max = _min_height.value; // explicit value
 				break;
 			case BoxSizeKind::Match: /* 匹配父视图 match parent */
@@ -214,7 +214,7 @@ namespace qk {
 			case BoxSizeKind::None:
 				return {{min, max}, wrap};
 			case BoxSizeKind::Auto:
-				return {{min, Max_Float}, kWrap_WrapState};
+				return {{min, Max_Float}, kFloat_FloatState};
 			case BoxSizeKind::Value:
 				max = _max_height.value;
 				break;
@@ -244,16 +244,15 @@ namespace qk {
 		if (max < min) {
 			max = min;
 		}
-		return {{min, max},kWrap_WrapState};
+		return {{min, max},kFloat_FloatState};
 	}
 
-	uint32_t Box::solve_layout_content_size_pre(uint32_t &mark, View *_parent) {
+	uint32_t Box::solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) {
 		uint32_t change_mark = kLayout_None;
-		auto &pContainer = _parent->layout_container();
 
 		if (mark & kLayout_Inner_Width) {
 			if (_container.set_pre_width(solve_layout_content_width_pre(pContainer))) {
-				if (!_container.wrap_x) { // no wrap
+				if (!_container.float_x) { // no wrap
 					_container.content[0] = _container.pre_width[0];
 					mark |= kLayout_Outside_Width;
 				}
@@ -263,7 +262,7 @@ namespace qk {
 
 		if (mark & kLayout_Inner_Height) {
 			if (_container.set_pre_height(solve_layout_content_height_pre(pContainer))) {
-				if (!_container.wrap_y) { // no wrap
+				if (!_container.float_y) { // no wrap
 					_container.content[1] = _container.pre_height[0];
 					mark |= kLayout_Outside_Height;
 				}
@@ -278,7 +277,7 @@ namespace qk {
 		if (mark & (kLayout_Size_ALL | kLayout_Child_Size)) {
 			uint32_t change_mark = kLayout_None;
 			_IfParent() {
-				change_mark = solve_layout_content_size_pre(mark, _parent);
+				change_mark = solve_layout_content_size_pre(mark, _parent->layout_container());
 
 				uint32_t child_layout_change_mark = kLayout_None;
 
@@ -360,17 +359,17 @@ namespace qk {
 		_client_size = Vec2(bp_x + content.x(), bp_y + content.y());
 		_layout_size = Vec2(mbp_x + content.x(), mbp_y + content.y());
 
-		if (_container.content.x() != content.x() || _container.wrap_x) {
+		if (_container.content.x() != content.x() || _container.float_x) {
 			change_mark = kLayout_Inner_Width;
 		}
-		if (_container.content.y() != content.y() || _container.wrap_y) {
+		if (_container.content.y() != content.y() || _container.float_y) {
 			change_mark |= kLayout_Inner_Height;
 		}
 
 		// TODO: In a flex layout, only one axis needs to be forcibly locked,
 		// Locking all directions may not be the most correct way,
 		// but locking all directions here can avoid cyclic iteration and jitter of size.
-		_container.wrap_x = _container.wrap_y = kNone_WrapState;
+		_container.float_x = _container.float_y = kNone_FloatState;
 		_container.content = content;
 		_container.pre_width = content[0]; // force changing state
 		_container.pre_height = content[1];
@@ -396,7 +395,7 @@ namespace qk {
 
 		auto v = first();
 		if (v) {
-			if ( _container.wrap_x ) { // wrap width
+			if ( _container.float_x ) { // float width
 				cur_x = 0;
 				do {
 					if (v->visible()) {
@@ -496,14 +495,14 @@ namespace qk {
 			solveCenter();
 			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
 		} else {
-			if ( _container.wrap_x ) { // wrap width
-				cur_x = _container.clamp_width(cur_x);
+			if ( _container.float_x ) { // float width
+				cur_x = _container.clamp_width(0);
 			}
 		}
 
 		Vec2 new_size(
 			cur_x,
-			_container.wrap_y ?
+			_container.float_y ?
 				_container.clamp_height(inner_size.y()):
 				_container.content[1]
 		);

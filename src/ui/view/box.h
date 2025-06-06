@@ -154,7 +154,7 @@ namespace qk {
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, View *parent);
+		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer);
 
 		/**
 		 * @method layout_typesetting_float

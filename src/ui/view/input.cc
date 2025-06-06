@@ -690,7 +690,7 @@ namespace qk {
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 		FontMetricsBase metrics;
 
-		_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.wrap_x);
+		_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x);
 
 		_lines->set_init_line_height(text_size().value, text_line_height().value, true);
 		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
@@ -763,8 +763,8 @@ namespace qk {
 
 		Vec2 cur = _container.content;
 		Vec2 new_size(
-			_container.wrap_x ? _container.clamp_width(_lines->max_width()): cur.x(),
-			_container.wrap_y ? _container.clamp_height(_lines->max_height()): cur.y()
+			_container.float_x ? _container.clamp_width(_lines->max_width()): cur.x(),
+			_container.float_y ? _container.clamp_height(_lines->max_height()): cur.y()
 		);
 
 		if (new_size != cur) {

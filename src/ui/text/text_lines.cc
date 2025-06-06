@@ -39,10 +39,10 @@
 
 namespace qk {
 
-	TextLines::TextLines(View *host, TextAlign text_align, Region limit_range, bool host_wrap_x)
+	TextLines::TextLines(View *host, TextAlign text_align, Region limit_range, bool host_float_x)
 		: _pre_width(0), _ignore_single_white_space(false), _have_init_line_height(false)
 		, _limit_range(limit_range)
-		, _host(host), _host_wrap_x(host_wrap_x)
+		, _host(host), _host_float_x(host_float_x)
 		, _text_align(text_align), _visible_region(false)
 	{
 		clear();
@@ -171,7 +171,7 @@ namespace qk {
 		finish_text_blob_pre();
 		finish_line();
 
-		float host_width = _host_wrap_x ?
+		float host_width = _host_float_x ?
 			Float32::max(_max_width, _limit_range.origin.x()): _limit_range.end.x();
 
 		for (auto &line: _lines) {

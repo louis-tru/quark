@@ -71,7 +71,7 @@ namespace qk {
 		if (pre_width == pre.value)
 			return false;
 		pre_width = pre.value;
-		wrap_x = pre.wrap;
+		float_x = pre.floatState;
 		return true;
 	}
 
@@ -79,7 +79,7 @@ namespace qk {
 		if (pre_height == pre.value)
 			return false;
 		pre_height = pre.value;
-		wrap_y = pre.wrap;
+		float_y = pre.floatState;
 		return true;
 	}
 
@@ -241,7 +241,7 @@ namespace qk {
 	}
 
 	static View::Container zeroContainer{
-		{}, {}, {}, View::kNone_WrapState, View::kNone_WrapState
+		{}, {}, {}, View::kNone_FloatState, View::kNone_FloatState
 	};
 
 	const View::Container& View::layout_container() {

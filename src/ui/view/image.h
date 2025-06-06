@@ -42,7 +42,7 @@ namespace qk {
 		virtual ViewType viewType() const override;
 		virtual void draw(UIDraw *render) override;
 	protected:
-		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, View *parent) override;
+		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) override;
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 		virtual ImagePool* imgPool() override;
 	};

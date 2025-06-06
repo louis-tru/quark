@@ -94,17 +94,17 @@ namespace qk {
 			kChild_Layout_Weight   = (1 << 3),
 			kChild_Layout_Text     = (1 << 4),
 		};
-		
-		enum WrapState: uint8_t {
-			kNone_WrapState,
-			kWrap_WrapState,
+
+		enum FloatState: uint8_t {
+			kNone_FloatState,
+			kFloat_FloatState,
 		};
 
 		// container size
 		struct Container {
 			struct Pre {
 				Vec2 value;
-				WrapState wrap;
+				FloatState floatState;
 			};
 			Vec2 content; // final content size
 			Vec2 pre_width; // 0: min, 1:max
@@ -113,8 +113,8 @@ namespace qk {
 			* The wrap equal false means indicate that the size is unknown,
 			* indicates that the size changes with the size of the sub view, and the content is wrapped
 			*/
-			WrapState wrap_x;//!< The x-axis is wrap content, use internal extrusion size
-			WrapState wrap_y; //!< The y-axis is wrap content, use internal extrusion size
+			FloatState float_x;//!< The x-axis is float wrap content, use internal extrusion size
+			FloatState float_y; //!< The y-axis is float wrap content, use internal extrusion size
 
 			Region to_range() const;
 			float clamp_width(float value) const;

@@ -85,7 +85,7 @@ export interface StyleSheet {
 	backgroundColor?: types.ColorIn;
 	background?: types.BoxFilterIn;
 	boxShadow?: types.BoxShadowIn;
-	weight?: number;
+	weight?: number[] | number;
 	direction?: types.DirectionIn;
 	itemsAlign?: types.ItemsAlignIn;
 	crossAlign?: types.CrossAlignIn;

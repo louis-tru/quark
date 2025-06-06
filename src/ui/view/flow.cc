@@ -41,14 +41,14 @@ namespace qk {
 	// content wrap typesetting of horizontal or vertical
 	template<bool is_horizontal>
 	void Flow::layout_typesetting_wrap(bool is_reverse) { // wrap Line feed
-		auto wrap_x = _container.wrap_x,
-				 wrap_y = _container.wrap_y;
+		auto float_x = _container.float_x,
+				 float_y = _container.float_y;
 		Vec2 cur = _container.content, new_size;
 		
 		auto v = first();
 		if (v) {
-			bool is_wrap_main = is_horizontal ? wrap_x: wrap_y;
-			bool is_wrap_cross = is_horizontal ? wrap_y: wrap_x;
+			bool is_float_main = is_horizontal ? float_x: float_y;
+			bool is_float_cross = is_horizontal ? float_y: float_x;
 			float max_main = 0;
 			float total_cross = 0;
 			bool wrap_reverse = _wrap == Wrap::WrapReverse;
@@ -67,8 +67,8 @@ namespace qk {
 			_CheckParent();
 
 			float main_limit = is_horizontal ?
-				(is_wrap_main ? _container.pre_width[1]: cur.x()):
-				(is_wrap_main ? _container.pre_height[1]: cur.y());
+				(is_float_main ? _container.pre_width[1]: cur.x()):
+				(is_float_main ? _container.pre_height[1]: cur.y());
 			do {
 				if (v->visible()) {
 					auto size = v->layout_size();
@@ -101,13 +101,13 @@ namespace qk {
 				lines.reverse();
 			}
 
-			float main_size = is_wrap_main ? (
+			float main_size = is_float_main ? (
 				is_horizontal ?
 				_container.clamp_width(max_main): _container.clamp_height(max_main)
 			) : (
 				is_horizontal ? cur.x(): cur.y()
 			);
-			float cross_size = is_wrap_cross ? (
+			float cross_size = is_float_cross ? (
 				is_horizontal ?
 				_container.clamp_height(total_cross): _container.clamp_width(total_cross)
 			) : (
@@ -117,7 +117,7 @@ namespace qk {
 			float cross_overflow_item = 0;
 			float cross_space = 0, cross_offset = 0;
 
-			if (!is_wrap_cross) {
+			if (!is_float_cross) {
 				if (WrapAlign::Stretch == _wrap_align) {
 					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
 				} else {
@@ -159,8 +159,8 @@ namespace qk {
 			new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
 		} else {
 			new_size = Vec2{
-				wrap_x ? _container.clamp_width(0): cur.x(),
-				wrap_y ? _container.clamp_height(0): cur.y(),
+				float_x ? _container.clamp_width(0): cur.x(),
+				float_y ? _container.clamp_height(0): cur.y(),
 			};
 		} // end if (first())
 
@@ -201,7 +201,7 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
-				if (_container.wrap_x && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_container.float_x && _wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-------------....------------|
 						|          width=WRAP         |
@@ -234,7 +234,7 @@ namespace qk {
 					layout_typesetting_wrap<true>(_direction == Direction::RowReverse);
 				}
 			} else { // COLUMN
-				if (_container.wrap_y && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_container.float_y && _wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-----------|
 						|height=WRAP|

@@ -53,7 +53,7 @@ namespace qk {
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
-		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kWrap_WrapState,kWrap_WrapState})
+		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kFloat_FloatState,kFloat_FloatState})
 		, _background(nullptr)
 		, _boxShadow(nullptr)
 		, _border(nullptr)

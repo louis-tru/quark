@@ -875,8 +875,8 @@ namespace qk {
 		_scroll_h = _scroll_max.x() < 0;
 		_scroll_v = ((!_bounce_lock && !_scroll_h) || _scroll_max.y() < 0);
 
-		_scroll_h = _scroll_h && !_host->container().wrap_x; // 非wrap的size才能滚动
-		_scroll_v = _scroll_v && !_host->container().wrap_y;
+		_scroll_h = _scroll_h && !_host->container().float_x; // 非wrap的size才能滚动
+		_scroll_v = _scroll_v && !_host->container().float_y;
 
 		_scrollbar_h = (_scroll_h && _scrollbar);
 		_scrollbar_v = (_scroll_v && _scrollbar && _scroll_max.y() < 0);

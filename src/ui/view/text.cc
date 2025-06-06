@@ -46,7 +46,7 @@ namespace qk {
 		if (mark_ & kLayout_Typesetting) {
 
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
-			_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.wrap_x);
+			_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x);
 			_lines->set_init_line_height(text_size().value, text_line_height().value, false);
 
 			_blob_visible.clear();
@@ -70,8 +70,8 @@ namespace qk {
 			_lines->finish();
 
 			Vec2 new_size(
-				_container.wrap_x ? _container.clamp_width(_lines->max_width()): cur.x(),
-				_container.wrap_y ? _container.clamp_height(_lines->max_height()): cur.y()
+				_container.float_x ? _container.clamp_width(_lines->max_width()): cur.x(),
+				_container.float_y ? _container.clamp_height(_lines->max_height()): cur.y()
 			);
 
 			if (new_size != cur) {

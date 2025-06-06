@@ -82,6 +82,7 @@ createCss({
 		backgroundColor: "#00f",
 		//borderRadiusLeftBottom: 12,
 		//borderRadiusRightBottom: 12,
+		align: "centerNew"
 	},
 	'.qk_dialog.sheet .buttons': {
 		borderRadius: 12,
@@ -95,6 +96,7 @@ createCss({
 		textSize: 18,
 		textLineHeight: 43,
 		textColor:"#0079ff",
+		weight: 1,
 	},
 	'.qk_dialog.sheet .button': {
 		height: 45,
@@ -205,7 +207,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 				let main = this.refs.main as Matrix;
 				let size = main.clientSize;
 				main.scale = new types.Vec2({x:0.2, y:0.2});
-				main.transition({ scale : '1 1', time: 300 });
+				main.transition({ scale : [1,1], time: 300 });
 				this.asDom().opacity = 0.2;
 				this.asDom().transition({ opacity : 1, time: 300 });
 			});
@@ -216,8 +218,8 @@ export class Dialog<P={},S={}> extends Navigation<{
 	close() {
 		if ( this.asDom().visible ) {
 			let main = this.refs.main as Matrix;
-			main.transition({ scale : '0.2 0.2', time: 300 });
-			this.asDom().transition({ opacity : 0.05, time: 300 }, ()=>this.destroy());
+			main.transition({ scale : [0.2,0.2], time: 300 });
+			this.asDom().transition({ opacity : 0, time: 300 }, ()=>this.destroy());
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);
