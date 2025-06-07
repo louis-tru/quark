@@ -103,7 +103,7 @@ namespace qk {
 		// container size
 		struct Container {
 			struct Pre {
-				Vec2 value;
+				Vec2       value;
 				FloatState floatState;
 			};
 			Vec2 content; // final content size

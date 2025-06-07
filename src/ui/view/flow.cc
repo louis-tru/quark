@@ -35,144 +35,176 @@
 #define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
 
 namespace qk {
+	struct FlexItem {
+		Vec2 size, weight;
+		View* view;
+		CrossAlign align;
+	};
+
+	struct Line {
+		float main_total, cross_max;
+		Vec2  weight_total;
+		Array<FlexItem> items;
+	};
+
+	template<bool is_horizontal>
+	float center_center_space(Array<FlexItem> &items, float overflow, float main_size, float main_total, float *space_out);
 
 	float parse_align_space(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 
 	// content wrap typesetting of horizontal or vertical
 	template<bool is_horizontal>
 	void Flow::layout_typesetting_wrap(bool is_reverse) { // wrap Line feed
-		auto float_x = _container.float_x,
-				 float_y = _container.float_y;
-		Vec2 cur = _container.content, new_size;
-		
+		Vec2 cur = _container.content;
+
+		constexpr int mainIdx = is_horizontal ? 0: 1;
+		constexpr int crossIdx = is_horizontal ? 1: 0;
+
+		auto clamp_main = [](const Container &cont, float v) {
+			return is_horizontal ? cont.clamp_width(v): cont.clamp_height(v);
+		};
+		auto clamp_cross = [](const Container &cont, float v) {
+			return is_horizontal ? cont.clamp_height(v): cont.clamp_width(v);
+		};
+
 		auto v = first();
 		if (v) {
-			bool is_float_main = is_horizontal ? float_x: float_y;
-			bool is_float_cross = is_horizontal ? float_y: float_x;
-			float max_main = 0;
-			float total_cross = 0;
-			bool wrap_reverse = _wrap == Wrap::WrapReverse;
+			bool is_float_main = is_horizontal ? _container.float_x: _container.float_y;
+			bool is_float_cross = is_horizontal ? _container.float_y: _container.float_x;
+			bool is_wrap_reverse = _wrap == Wrap::WrapReverse;
 
-			struct Line {
-				struct Item {
-					Vec2 size; View* view;
-				};
-				float total_main, max_cross;
-				Array<Item> items;
-			};
+			float main_max = 0;
+			float cross_total = 0;
+			float main_limit = is_horizontal ? _container.pre_width[1]: _container.pre_height[1];
+
 			Array<Line> lines;
-			Array<typename Line::Item> _items; // temp items
-			float _total_main = 0, _max_cross = 0;
+			Array<FlexItem> _items; // temp items
+			float _main_total = 0, _cross_max = 0;
+			Vec2  _weight_total;
 
-			_CheckParent();
+			auto pushLine = [&]() {
+				if (is_reverse)
+					_items.reverse();
+				lines.push({ _main_total, _cross_max, _weight_total, std::move(_items) });
+				main_max = Qk_Max(main_max, _main_total);
+				cross_total += _cross_max;
+			};
 
-			float main_limit = is_horizontal ?
-				(is_float_main ? _container.pre_width[1]: cur.x()):
-				(is_float_main ? _container.pre_height[1]: cur.y());
 			do {
 				if (v->visible()) {
+					auto weight = v->layout_weight();
 					auto size = v->layout_size();
-					auto main = _total_main + (is_horizontal ? size.x(): size.y());
+					auto align = v->layout_align();
+					auto main = _main_total + size[mainIdx];
 					if (main > main_limit) { // Line feed
-						if (is_reverse)
-							_items.reverse();
-						lines.push({ _total_main, _max_cross, std::move(_items) });
-						max_main = Qk_Max(max_main, _total_main);
-						total_cross += _max_cross;
-						_total_main = is_horizontal ? size.x(): size.y();
-						_max_cross = is_horizontal ? size.y(): size.x();
+						pushLine();
+						_main_total = size[mainIdx];
+						_cross_max = size[crossIdx];
+						_weight_total = weight;
 					} else {
-						_total_main = main;
-						_max_cross = Qk_Max(_max_cross, size.y());
+						_main_total = main;
+						_cross_max = Qk_Max(_cross_max, size[crossIdx]);
+						_weight_total += weight;
 					}
-					_items.push({ size, v });
+					_items.push({ size, weight, v, align == Align::Normal ? _cross_align: CrossAlign(align) });
 				}
 				v = v->next();
 			} while(v);
 
 			if (_items.length()) { // last items
-				if (is_reverse)
-					_items.reverse();
-				lines.push({ _total_main, _max_cross, std::move(_items) });
-				max_main = Qk_Max(max_main, _total_main);
-				total_cross += _max_cross;
-			}
-			if (wrap_reverse) {
-				lines.reverse();
+				pushLine();
 			}
 
-			float main_size = is_float_main ? (
-				is_horizontal ?
-				_container.clamp_width(max_main): _container.clamp_height(max_main)
-			) : (
-				is_horizontal ? cur.x(): cur.y()
-			);
-			float cross_size = is_float_cross ? (
-				is_horizontal ?
-				_container.clamp_height(total_cross): _container.clamp_width(total_cross)
-			) : (
-				is_horizontal ? cur.y(): cur.x()
-			);
-			float cross_overflow = cross_size - total_cross;
+			float main_size = is_float_main ? clamp_main(_container, main_max): cur[mainIdx];
+			float cross_size = is_float_cross ? clamp_cross(_container, cross_total): cur[crossIdx];
+			float cross_overflow = cross_size - cross_total;
 			float cross_overflow_item = 0;
 			float cross_space = 0, cross_offset = 0;
 
-			if (!is_float_cross) {
-				if (WrapAlign::Stretch == _wrap_align) {
-					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
-				} else {
-					cross_offset = parse_align_space(
-						ItemsAlign(_wrap_align), wrap_reverse, cross_overflow, lines.length(), &cross_space);
+			if (_wrap_align == WrapAlign::Stretch) {
+				if (cross_overflow > 0) {
+					cross_overflow_item = cross_overflow / lines.length();
+				} else if (is_wrap_reverse) {
+					cross_offset = cross_overflow;
 				}
+			} else {
+				cross_offset = parse_align_space(
+					ItemsAlign(_wrap_align), is_wrap_reverse, cross_overflow, lines.length(), &cross_space);
 			}
 
-			for (auto& i: lines) {
-				float cross = i.max_cross + cross_overflow_item;
-				float overflow = main_size - i.total_main;
-				float space = 0;
-				float offset = parse_align_space(_items_align, is_reverse, overflow, i.items.length(), &space);
+			if (is_wrap_reverse) {
+				lines.reverse();
+			}
 
-				for (auto j: i.items) {
-					auto s = j.size;
-					auto v = j.view;
-					auto align = v->layout_align();
+			for (auto &line: lines) {
+				float overflow = main_size - line.main_total; // flex size - child total main size
+				int wIdx = overflow > 0 ? 0: 1; // is grow or shrink
+				float cur_weight_total = line.weight_total[wIdx];
+				float min_weight_total = Qk_Min(cur_weight_total, 1);
+				float C = cur_weight_total > 0 ? (overflow * min_weight_total) / cur_weight_total: 0;
+				// Flex：mainSize = size_old + (weight / weight_total) * overflow * min(weight_total, 1)
+				float main_total = 0;
+				for (auto &it: line.items) {
+					auto adjustMain = it.weight[wIdx] * C;
+					if (it.align == CrossAlign::Both) {
+						it.size[mainIdx] += adjustMain;
+						it.size[crossIdx] = cross_size;
+						it.size = it.view->layout_lock(it.size); // force lock subview layout size
+					} else if (adjustMain) {
+						it.size[mainIdx] += adjustMain;
+						it.size = it.view->layout_lock(it.size);
+					}
+					main_total += it.size[mainIdx];
+				}
+				overflow = main_size - main_total;
+
+				float offset = 0, space = 0;
+
+				if (ItemsAlign::CenterCenter == _items_align) {
+					offset = center_center_space<is_horizontal>(line.items, overflow, main_size, main_total, &space);
+				} else {
+					offset = parse_align_space(_items_align, is_reverse, overflow, line.items.length(), &space);
+				}
+
+				float cross_item = line.cross_max + cross_overflow_item;
+				for (auto it: line.items) {
 					float cross_offset_item = cross_offset;
-					switch (align == Align::Auto ? _cross_align: CrossAlign(int(align) - 1)) {
+					switch (it.align) {
 						default:
 						case CrossAlign::Start: break; // 与交叉轴内的起点对齐
 						case CrossAlign::Center: // 与交叉轴内的中点对齐
-							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) * .5); break;
+							cross_offset_item += (cross_item - it.size[crossIdx]) * 0.5; break;
 						case CrossAlign::End: // 与交叉轴内的终点对齐
-							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
+							cross_offset_item += cross_item - it.size[crossIdx]; break;
 					}
 					if (is_horizontal) {
-						v->set_layout_offset(Vec2(offset, cross_offset_item));
-						offset += (s.x() + space);
+						it.view->set_layout_offset(Vec2(offset, cross_offset_item));
 					} else {
-						v->set_layout_offset(Vec2(cross_offset_item, offset));
-						offset += (s.y() + space);
+						it.view->set_layout_offset(Vec2(cross_offset_item, offset));
 					}
+					offset += it.size[mainIdx] + space;
 				}
-				cross_offset += (cross + cross_space);
+				cross_offset += (cross_item + cross_space);
 			}
 
-			new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
+			cur[mainIdx] = main_size;
+			cur[crossIdx] = cross_size;
 		} else {
-			new_size = Vec2{
-				float_x ? _container.clamp_width(0): cur.x(),
-				float_y ? _container.clamp_height(0): cur.y(),
-			};
-		} // end if (first())
+			if ( _container.float_x )
+				cur[0] = _container.clamp_width(0);
+			if ( _container.float_y )
+				cur[1] = _container.clamp_height(0);
+		}
 
-		if (new_size != cur) {
-			set_content_size(new_size);
+		if (cur != _container.content) {
+			set_content_size(cur);
 			_IfParent()
 				_parent->onChildLayoutChange(this, kChild_Layout_Size);
 		}
 	}
 
 	Flow::Flow()
-		: _wrap(Wrap::NoWrap)
+		: _wrap(Wrap::Wrap)
 		, _wrap_align(WrapAlign::Start)
 	{
 	}
@@ -201,43 +233,43 @@ namespace qk {
 		if (mark & kLayout_Typesetting) {
 
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
-				if (_container.float_x && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-------------....------------|
-						|          width=WRAP         |
+						|          wrap=NoWrap        |
 						|   ___ ___ ___         ___   |
 						|  | L | L | L | ----> | L |  |
 						|   --- --- ---         ---   |
 						|                             |
 						|-------------....------------|
 					*/
-					layout_typesetting_auto_impl(true, _direction == Direction::RowReverse);
+					layout_typesetting_flex<true>(_direction == Direction::RowReverse);
 				} else { // wrap, multi-line
 					/*
-						|-----------------------------|
-						|  width=Explicit,wrap=WRAP   |
+						|-------------....------------|
+						|         wrap=WRAP           |
 						|   ___ ___ ___         ___   |
 						|  | L | L | L | ----> | L |  |
 						|   --- --- ---         ---   |
 						|  | L | L | L | ----> | L |  |
 						|   --- --- ---         ---   |
-						|  | L | L | L | ----> | L |  |
-						|   --- --- ---         ---   |
-						|              |              |
-						|              |              |
+						.  | L | L | L | ----> | L |  .
+						.   --- --- ---         ---   .
+						.              |              .
+						.              |              .
 						|              v              |
 						|   ___ ___ ___         ___   |
 						|  | L | L | L |  ---> | L |  |
 						|   --- --- ---         ---   |
-						|-----------------------------|
+						|-------------....------------|
 					*/
 					layout_typesetting_wrap<true>(_direction == Direction::RowReverse);
 				}
 			} else { // COLUMN
-				if (_container.float_y && _wrap == Wrap::NoWrap) { // no wrap, single-line
+				if (_wrap == Wrap::NoWrap) { // no wrap, single-line
 					/*
 						|-----------|
-						|height=WRAP|
+						|wrap=NoWrap|
 						|    ___    |
 						|   | L |   |
 						|    ---    |
@@ -253,25 +285,25 @@ namespace qk {
 						|    ---    |
 						|-----------|
 					*/
-					layout_typesetting_auto_impl(false, _direction == Direction::ColumnReverse);
+					layout_typesetting_flex<false>(_direction == Direction::ColumnReverse);
 				} else { // wrap, multi-line
 					/*
-						|-----------------------------|
-						| height=Explicit,wrap=WRAP   |
+						|-------------....------------|
+						|          wrap=WRAP          |
 						|   ___ ___ ___         ___   |
 						|  | L | L | L |       | L |  |
 						|   --- --- ---         ---   |
 						|  | L | L | L |       | L |  |
 						|   --- --- ---         ---   |
-						|  | L | L | L | ----> | L |  |
-						|   --- --- ---         ---   |
-						|    |   |   |           |    |
-						|    |   |   |           |    |
+						.  | L | L | L | ----> | L |  .
+						.   --- --- ---         ---   .
+						.    |   |   |           |    .
+						.    |   |   |           |    .
 						|    v   v   v           v    |
 						|   ___ ___ ___         ___   |
 						|  | L | L | L |       | L |  |
 						|   --- --- ---         ---   |
-						|-----------------------------|
+						|-------------....------------|
 					*/
 					layout_typesetting_wrap<false>(_direction == Direction::ColumnReverse);
 				}

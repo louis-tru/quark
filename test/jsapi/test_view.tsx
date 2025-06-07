@@ -103,7 +103,7 @@ export default async function(win: Window) {
 	Pv(v, 'style', v);
 	Pv(v, 'class', e=>e.length==0, e=>e.class=['test']);
 	Pv(v, 'layoutWeight',  e=>e.x==0&&e.y==0);
-	Pv(v, 'layoutAlign', types.Align.Auto);
+	Pv(v, 'layoutAlign', types.Align.Normal);
 	Pv(v, 'isClip', false);
 	Pv(v, 'center', e=>e.x==0&&e.y==0);
 	Pv(v, 'metaView', v);
@@ -182,7 +182,7 @@ export default async function(win: Window) {
 	Pv(d, 'backgroundColor', e=>e.toHex32String()=='#aaaaaa44', e=>e.style.backgroundColor='#aaa4');
 	//Pv(d, 'clientSize', e=>e.x==0&&e.y==0);
 	//Pv(d, 'contentSize', e=>e.x==0&&e.y==0);
-	Pv(d, 'align', types.Align.Auto);
+	Pv(d, 'align', types.Align.Normal);
 	Pv(d, 'align', types.Align.Start, e=>e.style.align='start');
 	Pv(d, 'clip', false);
 	//console.log('d.wrapX', d.wrapX);

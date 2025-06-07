@@ -34,11 +34,14 @@
 #define _IfParent() _Parent(); if (_parent)
 
 namespace qk {
-
-	struct FlexItem { Vec2 size; Vec2 weight; View* view; };
+	struct FlexItem {
+		Vec2 size, weight;
+		View* view;
+		CrossAlign align;
+	};
 
 	template<bool is_horizontal>
-	float set_center_center_space(Array<FlexItem> &items, float overflow, float main_size, float main_total, float *space_out) {
+	float center_center_space(Array<FlexItem> &items, float overflow, float main_size, float main_total, float *space_out) {
 		if (overflow > 0) {
 			if (items.length() > 2) {
 				float begin = is_horizontal ? items[0].size.x(): items[0].size.y();
@@ -115,117 +118,43 @@ namespace qk {
 		return offset_x;
 	}
 
-	// auto typesetting of horizontal or vertical
-	template<bool is_horizontal>
-	void Flex::layout_typesetting_auto(bool is_reverse) {
-		// get views raw size total
-		auto	float_x = _container.float_x,
-					float_y = _container.float_y;
-		Vec2	cur = _container.content;
-		auto is_float_cross = is_horizontal ? float_y: float_x;
-		float cross_size_old = is_horizontal ? cur.y(): cur.x();
-		float cross_size = is_float_cross ? 0: cross_size_old;
-
-		Array<FlexItem> items;
-		float total_main = 0;
-
-		auto v = is_reverse ? last(): first();
-		while (v) {
-			if (v->visible()) {
-				auto size = v->layout_size();
-				if (is_float_cross)
-					cross_size = Float32::max(cross_size, is_horizontal ? size.y(): size.x());
-				total_main += is_horizontal ? size.x(): size.y();
-				items.push({size, {}, v});
-			}
-			v = is_reverse ? v->prev() : v->next();
-		}
-
-		Vec2 new_size = is_horizontal ? Vec2{
-			_container.clamp_width(total_main),
-			float_y ?
-			_container.clamp_height(cross_size): cross_size,
-		}: Vec2{
-			float_x ?
-			_container.clamp_width(cross_size): cross_size,
-			_container.clamp_height(total_main),
-		};
-
-		if (items.length()) {
-			float offset = 0, space = 0;
-			float main_size = is_horizontal ? new_size.x(): new_size.y();
-			float overflow = main_size - total_main;
-			if (overflow != 0) {
-				if (ItemsAlign::CenterCenter == _items_align) {
-					offset = set_center_center_space<is_horizontal>(items, overflow, main_size, total_main, &space);
-				} else {
-					offset = parse_align_space(_items_align, is_reverse, overflow, items.length(), &space);
-				}
-			}
-			for (auto &i : items) {
-				auto size = i.size;
-				auto v = i.view;
-				auto align = v->layout_align();
-				float offset_cross = 0;
-				switch (align == Align::Auto ? _cross_align: CrossAlign(int(align) - 1)) {
-					default:
-					case CrossAlign::Start: break; // 与交叉轴内的起点对齐
-					case CrossAlign::Center: // 与交叉轴内的中点对齐
-						offset_cross = (cross_size - (is_horizontal ? size.y(): size.x())) * 0.5; break;
-					case CrossAlign::End: // 与交叉轴内的终点对齐
-						offset_cross = cross_size - (is_horizontal ? size.y(): size.x()); break;
-				}
-				if (is_horizontal) {
-					v->set_layout_offset({offset, offset_cross});
-					offset += (size.x() + space);
-				} else {
-					v->set_layout_offset({offset_cross, offset});
-					offset += (size.y() + space);
-				}
-			}
-		}
-
-		if (new_size != cur) {
-			set_content_size(new_size);
-			_IfParent()
-				_parent->onChildLayoutChange(this, kChild_Layout_Size);
-		}
-	}
-
 	// flex typesetting of horizontal or vertical
 	template<bool is_horizontal>
 	void Flex::layout_typesetting_flex(bool is_reverse) { // flex
 		Vec2 cur = _container.content;
 
+		constexpr int mainIdx = is_horizontal ? 0: 1;
+		constexpr int crossIdx = is_horizontal ? 1: 0;
+
+		auto clamp_main = [](const Container &cont, float v) {
+			return is_horizontal ? cont.clamp_width(v): cont.clamp_height(v);
+		};
+		auto clamp_cross = [](const Container &cont, float v) {
+			return is_horizontal ? cont.clamp_height(v): cont.clamp_width(v);
+		};
+
 		auto v = is_reverse ? last(): first();
 		if (v) {
-			auto clamp_main = [](const Container &cont, float v) {
-				return is_horizontal ? cont.clamp_width(v): cont.clamp_height(v);
-			};
-			auto clamp_cross = [](const Container &cont, float v) {
-				return is_horizontal ? cont.clamp_height(v): cont.clamp_width(v);
-			};
-			auto get_main = [](Vec2 v){ return is_horizontal ? v.x(): v.y(); };
-			auto get_cross = [](Vec2 v){ return is_horizontal ? v.y(): v.x(); };
-
-			auto is_float_main = is_horizontal ? _container.float_x: _container.float_y;
+			bool is_float_main = is_horizontal ? _container.float_x: _container.float_y;
 			bool is_float_cross = is_horizontal ? _container.float_y: _container.float_x;
 
-			float main_size = get_main(cur);
+			float main_size = cur[mainIdx];
 			float cross_size = 0;
 
 			Array<FlexItem> items;
-			float main_total = 0;
 			Vec2  weight_total;
+			float main_total = 0;
+
 			do {
 				if (v->visible()) {
 					auto weight = v->layout_weight();
 					auto size = v->layout_size();
+					auto align = v->layout_align();
 					if (is_float_cross)
-						cross_size = Float32::max(cross_size, get_cross(size));
-					main_total += get_main(size);
+						cross_size = Float32::max(cross_size, size[crossIdx]);
+					main_total += size[mainIdx];
 					weight_total += weight;
-					items.push({size, weight, v});
+					items.push({size, weight, v, align == Align::Normal ? _cross_align: CrossAlign(align)});
 				}
 				v = is_reverse ? v->prev() : v->next();
 			} while(v);
@@ -233,67 +162,63 @@ namespace qk {
 			if (is_float_cross) {
 				cross_size = clamp_cross(_container, cross_size);
 			} else { // no wrap
-				cross_size = get_cross(cur);
+				cross_size = cur[crossIdx];
 			}
-
 			if (is_float_main) {
 				main_size = clamp_main(_container, main_total);
 			}
 			float overflow = main_size - main_total; // flex size - child total main size
-			bool grow = overflow > 0; // is grow
-
-			if ((grow && weight_total[0] > 0) || (overflow < 0 && weight_total[1] > 0)) {
-				int wIdx = grow ? 0: 1;
-				float min_weight_total = Qk_Min(weight_total[wIdx], 1);
-				float C = (overflow * min_weight_total) / weight_total[wIdx];
-				// in flex：size = size_raw + (weight / weight_total) * overflow * min(weight_total, 1)
-				main_total = 0;
-				for (auto &i: items) {
-					auto weight = i.weight[wIdx];
-					if (weight > 0) {
-						auto ch = weight * C;
-						auto size = is_horizontal ?
-							Vec2{i.size.x()+ch, i.size.y()}: Vec2{i.size.x(), i.size.y()+ch};
-						i.size = i.view->layout_lock(size); // force lock subview layout size
-					}
-					main_total += get_main(i.size);
+			int wIdx = overflow > 0 ? 0: 1; // is grow or shrink
+			float cur_weight_total = weight_total[wIdx];
+			float min_weight_total = Qk_Min(cur_weight_total, 1);
+			float C = cur_weight_total > 0 ? (overflow * min_weight_total) / cur_weight_total: 0;
+			// Flex：mainSize = size_old + (weight / weight_total) * overflow * min(weight_total, 1)
+			main_total = 0;
+			for (auto &it: items) {
+				auto adjustMain = it.weight[wIdx] * C;
+				if (it.align == CrossAlign::Both) {
+					it.size[mainIdx] += adjustMain;
+					it.size[crossIdx] = cross_size;
+					it.size = it.view->layout_lock(it.size); // force lock subview layout size
+				} else if (adjustMain) {
+					it.size[mainIdx] += adjustMain;
+					it.size = it.view->layout_lock(it.size);
 				}
-				if (is_float_main) {
-					main_size = clamp_main(_container, main_total);
-				}
-				overflow = main_size - main_total;
+				main_total += it.size[mainIdx];
 			}
+			//if (is_float_main) {
+			//	main_size = clamp_main(_container, main_total);
+			//}
+			overflow = main_size - main_total;
 
 			float offset = 0, space = 0;
 
 			if (ItemsAlign::CenterCenter == _items_align) {
-				offset = set_center_center_space<is_horizontal>(items, overflow, main_size, main_total, &space);
+				offset = center_center_space<is_horizontal>(items, overflow, main_size, main_total, &space);
 			} else {
 				offset = parse_align_space(_items_align, is_reverse, overflow, items.length(), &space);
 			}
 
-			for (auto i: items) {
-				auto size = i.size;
-				auto v = i.view;
-				auto align = v->layout_align();
-				float offset_cross = 0;
-				float cross = get_cross(size);
-				switch (align == Align::Auto ? _cross_align: CrossAlign(int(align) - 1)) {
+			for (auto &it: items) {
+				float cross_offset = 0;
+				switch (it.align) {
 					default:
 					case CrossAlign::Start: break; // 与交叉轴内的起点对齐
 					case CrossAlign::Center: // 与交叉轴内的中点对齐
-						offset_cross = (cross_size - cross) * 0.5; break;
+						cross_offset = (cross_size - it.size[crossIdx]) * 0.5; break;
 					case CrossAlign::End: // 与交叉轴内的终点对齐
-						offset_cross = cross_size - cross; break;
+						cross_offset = cross_size - it.size[crossIdx]; break;
 				}
 				if (is_horizontal) {
-					v->set_layout_offset({offset, offset_cross});
-					offset += (size.x() + space);
+					it.view->set_layout_offset({offset, cross_offset});
 				} else {
-					v->set_layout_offset({offset_cross, offset});
-					offset += (size.y() + space);
+					it.view->set_layout_offset({cross_offset, offset});
 				}
+				offset += it.size[mainIdx] + space;
 			}
+
+			cur[mainIdx] = main_size;
+			cur[crossIdx] = cross_size;
 		} else {
 			if ( _container.float_x )
 				cur[0] = _container.clamp_width(0);
@@ -305,14 +230,6 @@ namespace qk {
 			set_content_size(cur);
 			_IfParent()
 				_parent->onChildLayoutChange(this, kChild_Layout_Size);
-		}
-	}
-
-	void Flex::layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse) {
-		if (is_horizontal) {
-			layout_typesetting_auto<true>(is_reverse);
-		} else {
-			layout_typesetting_auto<false>(is_reverse);
 		}
 	}
 
@@ -351,7 +268,7 @@ namespace qk {
 			if (_direction == Direction::Row || _direction == Direction::RowReverse) { // ROW
 				/*
 					|-------------....------------|
-					|          width=FLOAT         |
+					|          width=FLOAT        |
 					|   ___ ___ ___         ___   |
 					|  | L | L | L | ----> | L |  |
 					|   --- --- ---         ---   |

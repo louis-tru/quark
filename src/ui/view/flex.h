@@ -47,11 +47,8 @@ namespace qk {
 		virtual void onChildLayoutChange(View* child, uint32_t mark) override;
 		virtual ViewType viewType() const override;
 	private:
-		template<bool is_horizontal> void layout_typesetting_auto(bool is_reverse);
 		template<bool is_horizontal> void layout_typesetting_flex(bool is_reverse);
-		void layout_typesetting_auto_impl(bool is_horizontal, bool is_reverse);
 		friend class Flow;
-		Qk_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

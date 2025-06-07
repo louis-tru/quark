@@ -229,7 +229,7 @@ namespace qk {
 	}
 
 	Align View::layout_align() {
-		return Align::Auto;
+		return Align::Normal;
 	}
 
 	Vec2 View::layout_offset() {

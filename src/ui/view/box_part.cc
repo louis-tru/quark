@@ -349,12 +349,12 @@ namespace qk {
 		content[0] =
 			_max_width.kind == BoxSizeKind::None ? // no limit
 			Float32::max(content[0], 0):
-			_container.clamp_width(content[0]);
+			_container.clamp_width(content[0]); // limit
 
 		content[1] =
 			_max_height.kind == BoxSizeKind::None ? // no limit
 			Float32::max(content[1], 0):
-			_container.clamp_height(content[1]);
+			_container.clamp_height(content[1]); // limit
 
 		_client_size = Vec2(bp_x + content.x(), bp_y + content.y());
 		_layout_size = Vec2(mbp_x + content.x(), mbp_y + content.y());
@@ -453,7 +453,7 @@ namespace qk {
 					auto size = v->layout_size();
 
 					switch(v->layout_align()) {
-						case Align::Auto:
+						case Align::Normal:
 						case Align::Start: // float start
 							nextStep(size);
 							v->set_layout_offset(Vec2(left, offset_y));
@@ -550,7 +550,7 @@ namespace qk {
 	void Box::set_layout_offset_free(Vec2 size) {
 		Vec2 offset;
 		switch(_align) {
-			case Align::Auto:
+			case Align::Normal:
 			case Align::LeftTop: // left top
 				break;
 			case Align::CenterTop: // center top

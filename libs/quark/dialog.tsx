@@ -59,6 +59,7 @@ createCss({
 	},
 	'.qk_dialog .title': {
 		width: 'match',
+		height: 10,
 		margin: [18,10,0,10],
 		textAlign: 'center',
 		textWeight: 'bold',
@@ -66,7 +67,8 @@ createCss({
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
 		backgroundColor: '#ff0',
-		align: "centerNew"
+		//align: "centerNew"
+		weight: 1,
 	},
 	'.qk_dialog .content': {
 		width: 'match',
@@ -75,14 +77,13 @@ createCss({
 		textSize: 14,
 		textColor: '#333',
 		backgroundColor: '#f00',
-		align: "centerNew"
+		//align: "centerNew"
+		weight: 1,
 	},
 	'.qk_dialog .buttons': {
 		width: 'match',
-		backgroundColor: "#00f",
-		//borderRadiusLeftBottom: 12,
-		//borderRadiusRightBottom: 12,
-		align: "centerNew"
+		//align: "centerNew"
+		weight: 1,
 	},
 	'.qk_dialog.sheet .buttons': {
 		borderRadius: 12,
@@ -91,12 +92,15 @@ createCss({
 	},
 	'.qk_dialog .button': {
 		height: 43,
-		// borderTop: `${px} #9da1a0`,
+		width: 100,
 		borderColorTop: `#9da1a0`,
 		textSize: 18,
 		textLineHeight: 43,
 		textColor:"#0079ff",
 		weight: 1,
+		textAlign: "center",
+		borderRadiusLeftBottom: 12,
+		borderRadiusRightBottom: 12,
 	},
 	'.qk_dialog.sheet .button': {
 		height: 45,
@@ -180,19 +184,21 @@ export class Dialog<P={},S={}> extends Navigation<{
 		return (
 			<free width="100%" height="100%" backgroundColor="#0004" receive={true} visible={false} opacity={0}>
 				<matrix ref="main" class="qk_dialog main">
-					<text ref="title" class="title" value={this.title} />
-					<text ref="con" class="content">{this.content||this.children}</text>
-					<flex ref="btns" class="buttons">
-					{
-						this._buttons.map((e,i)=>(
-							<button
-								key={i}
-								class="button"
-								borderWidthTop={px}
-								onClick={this.handleClick}
-							>{e}</button>
-						))
-					}
+					<flex width="match" height="match" direction="column" crossAlign="both">
+						<text ref="title" class="title" value={this.title} />
+						<text ref="con" class="content">{this.content||this.children}</text>
+						<flex ref="btns" class="buttons">
+						{
+							this._buttons.map((e,i)=>(
+								<button
+									key={i}
+									class="button"
+									borderWidthTop={px}
+									onClick={this.handleClick}
+								>{e}</button>
+							))
+						}
+						</flex>
 					</flex>
 				</matrix>
 			</free>

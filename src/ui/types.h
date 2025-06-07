@@ -46,11 +46,11 @@ namespace qk {
 	};
 
 	enum class FillPositionKind: uint8_t {
-		Value,     /* 明确值  rem */
-		Ratio,     /* 百分比  % */
 		Start,     /* 开始 start */
 		End,       /* 结束 end */
 		Center,    /* 居中 center */
+		Value,     /* 明确值  rem */
+		Ratio,     /* 百分比  % */
 	};
 
 	enum class FillSizeKind: uint8_t {
@@ -82,9 +82,10 @@ namespace qk {
 
 	// 项目在交叉轴内如何对齐
 	enum class CrossAlign: uint8_t {
-		Start, // 与交叉轴内的起点对齐
+		Start = 1, // 与交叉轴内的起点对齐
 		Center, // 与交叉轴内的中点对齐
 		End, // 与交叉轴内的终点对齐
+		Both, // 与交叉轴内的两端对齐
 	};
 
 	// 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
@@ -102,19 +103,20 @@ namespace qk {
 		SpaceBetween, // 与交叉轴两端对齐,轴线之间的间隔平均分布
 		SpaceAround, // 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
 		SpaceEvenly, // 每根轴线两侧的间隔都相等,这包括边框的间距
-		Stretch, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间给每一个交叉轴项目
+		Stretch = 7, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间给每一个交叉轴项目
 	};
 
 	// view align
 	enum class Align: uint8_t {
-		Auto,
+		Normal,
 		Start,
 		Center,
 		End,
-		StartNew, // New independent line and left align
+		Both,
+		StartNew = Both, // New independent line and left align
 		CenterNew, // New independent line and center align
 		EndNew, // New independent line and right align
-		Baseline = Auto, // vertical align in text
+		Baseline = Normal, // vertical align in text
 		Top, // Start, vertical align in text
 		Middle, // Center, vertical align in text
 		Bottom, // End, vertical align in text

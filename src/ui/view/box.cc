@@ -42,7 +42,7 @@ namespace qk {
 
 	Box::Box()
 		: _clip(false)
-		, _align(Align::Auto)
+		, _align(Align::Normal)
 		, _min_width{0, BoxSizeKind::Auto}, _min_height{0, BoxSizeKind::Auto}
 		, _max_width{0, BoxSizeKind::None}, _max_height{0, BoxSizeKind::None}
 		, _margin_top(0), _margin_right(0)

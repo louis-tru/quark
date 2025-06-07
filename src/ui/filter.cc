@@ -301,10 +301,10 @@ namespace qk {
 		switch (pos.kind) {
 			default:
 			case FillPositionKind::Start: out = 0; break;
-			case FillPositionKind::Value: out = pos.value; break;
-			case FillPositionKind::Ratio: out = pos.value * host; break;
 			case FillPositionKind::End: out = host - size; break;
 			case FillPositionKind::Center: out = (host - size) / 2; break;
+			case FillPositionKind::Value: out = pos.value; break;
+			case FillPositionKind::Ratio: out = pos.value * host; break;
 		}
 		return out;
 	}
