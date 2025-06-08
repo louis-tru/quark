@@ -8,6 +8,6 @@ void main() {
 	vec4 pos = (viewMatrix * vec4(vertexIn.xy, depth, 1.0));
 	// fix draw image tearing with round function
 	// Align the image pixels exactly onto the drawing surface
-	// gl_Position = rootMatrix * vec4(round(pos.xy * allScale) / allScale, pos.zw);
-	gl_Position = rootMatrix * vec4(pos.xy, pos.zw);
+	gl_Position = rootMatrix * vec4(round(pos.xy * allScale) / allScale, pos.zw);
+	//gl_Position = rootMatrix * vec4(pos.xy, pos.zw);
 }

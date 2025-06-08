@@ -74,6 +74,8 @@ namespace qk {
 				_container.float_y ? _container.clamp_height(_lines->max_height()): cur.y()
 			);
 
+			new_size[1] = _container.clamp_height(_lines->max_height());
+
 			if (new_size != cur) {
 				set_content_size(new_size);
 				_IfParent()

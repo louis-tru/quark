@@ -511,7 +511,7 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 	}
 }
 
-class DOMCollection implements DOM {
+export class DOMCollection implements DOM {
 	readonly collection: DOM[];
 	readonly keys: Map<string|number, [DOM,VDom]>;
 	readonly ref: string;

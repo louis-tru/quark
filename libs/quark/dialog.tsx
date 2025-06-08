@@ -46,7 +46,6 @@ createCss({
 	'.qk_dialog.main': {
 		minWidth: 160, // min width
 		maxWidth: '40!',// max width
-		//maxHeight: '40!',
 		align: 'centerMiddle',
 		backgroundColor: '#fff',
 		borderRadius: 12,
@@ -59,31 +58,28 @@ createCss({
 	},
 	'.qk_dialog .title': {
 		width: 'match',
-		height: 10,
 		margin: [18,10,0,10],
 		textAlign: 'center',
 		textWeight: 'bold',
 		textSize: 18,
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
-		backgroundColor: '#ff0',
-		//align: "centerNew"
 		weight: 1,
 	},
 	'.qk_dialog .content': {
+		weight: 1,
+		textSize: 14,
 		width: 'match',
 		margin: [2,10,20,10],
 		textAlign: 'center',
-		textSize: 14,
 		textColor: '#333',
 		backgroundColor: '#f00',
-		//align: "centerNew"
-		weight: 1,
+		textBackgroundColor: '#ff0',
 	},
 	'.qk_dialog .buttons': {
 		width: 'match',
-		//align: "centerNew"
 		weight: 1,
+		borderTop: `${px} #9da1a0`,
 	},
 	'.qk_dialog.sheet .buttons': {
 		borderRadius: 12,
@@ -93,14 +89,12 @@ createCss({
 	'.qk_dialog .button': {
 		height: 43,
 		width: 100,
-		borderColorTop: `#9da1a0`,
+		borderColor: `#9da1a0`,
 		textSize: 18,
-		textLineHeight: 43,
+		textLineHeight: 1,
 		textColor:"#0079ff",
 		weight: 1,
 		textAlign: "center",
-		borderRadiusLeftBottom: 12,
-		borderRadiusRightBottom: 12,
 	},
 	'.qk_dialog.sheet .button': {
 		height: 45,
@@ -120,6 +114,7 @@ createCss({
 	},
 	'.qk_dialog .prompt': {
 		marginTop: 10,
+		padding: [0,5],
 		width: "match",
 		height: 30,
 		backgroundColor: "#eee",
@@ -176,8 +171,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	}
 
 	private handleClick = (e: ClickEvent)=>{
-		let idx = this.asRef<View>('btns').childDoms.indexOf(e.origin);
-		this.triggerAction(idx);
+		this.triggerAction((e.sender as any as {key:number}).key);
 	};
 
 	protected render() {
@@ -185,20 +179,22 @@ export class Dialog<P={},S={}> extends Navigation<{
 			<free width="100%" height="100%" backgroundColor="#0004" receive={true} visible={false} opacity={0}>
 				<matrix ref="main" class="qk_dialog main">
 					<flex width="match" height="match" direction="column" crossAlign="both">
-						<text ref="title" class="title" value={this.title} />
+						{/* <text ref="title" class="title" value={this.title} /> */}
 						<text ref="con" class="content">{this.content||this.children}</text>
-						<flex ref="btns" class="buttons">
+						{/*<flex ref="btns" class="buttons" visible={!!this._buttons.length}>*/}
 						{
-							this._buttons.map((e,i)=>(
+							/*this._buttons.map((e,i,arr)=>(
 								<button
 									key={i}
 									class="button"
-									borderWidthTop={px}
+									borderWidthLeft={i ? px: 0}
+									borderRadiusLeftBottom={i == 0 ? 12: 0}
+									borderRadiusRightBottom={i == arr.length-1 ? 12: 0}
 									onClick={this.handleClick}
 								>{e}</button>
-							))
+							))*/
 						}
-						</flex>
+						{/*</flex>*/}
 					</flex>
 				</matrix>
 			</free>
@@ -211,7 +207,6 @@ export class Dialog<P={},S={}> extends Navigation<{
 			this.asDom().visible = true;
 			this.window.nextFrame(()=>{
 				let main = this.refs.main as Matrix;
-				let size = main.clientSize;
 				main.scale = new types.Vec2({x:0.2, y:0.2});
 				main.transition({ scale : [1,1], time: 300 });
 				this.asDom().opacity = 0.2;
@@ -343,7 +338,7 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 	let message: any;
 	if (typeof msg == 'string')
 		message = {msg};
-	let { msg: _msg = '', title = 'AAAAABBCCCCDDDD' } = message;
+	let { msg: _msg = '', title = '' } = message;
 	let dag = (
 		<Dialog buttons={[Consts.Ok]} onAction={cb} title={title}>{_msg}</Dialog>
 	).newDom(window.rootCtr) as Dialog;
@@ -375,7 +370,7 @@ export function prompt(window: Window, msg: string | {
 			onAction={e=>cb(!!e, e ? (dag.refs.input as Input).value: '')}
 		>
 			{_msg}
-			<input
+			{/* <input
 				security={security}
 				ref="input"
 				class="prompt"
@@ -383,11 +378,11 @@ export function prompt(window: Window, msg: string | {
 				value={text}
 				placeholder={placeholder}
 				onKeyEnter={()=>(dag as any).triggerAction(1)}
-			/>
+			/> */}
 		</Dialog>
 	).newDom(window.rootCtr) as Dialog;
 	dag.show();
-	(dag.refs.input as Input).focus();
+	//(dag.refs.input as Input).focus();
 	return dag;
 }
 
