@@ -371,8 +371,8 @@ namespace qk {
 		// but locking all directions here can avoid cyclic iteration and jitter of size.
 		_container.float_x = _container.float_y = kNone_FloatState;
 		_container.content = content;
-		_container.pre_width = content[0]; // force changing state
-		_container.pre_height = content[1];
+		//_container.pre_width = content[0]; // force changing state
+		//_container.pre_height = content[1];
 
 		if (change_mark) {
 			auto v = first();

@@ -55,7 +55,7 @@ namespace qk {
 		};
 		// main props
 		Qk_DEFINE_VIEW_PROPERTY(TextAlign,      text_align, Const);
-		Qk_DEFINE_VIEW_PROP_GET(TextAlign,     text_align_value, Const); // @safe Rt
+		Qk_DEFINE_VIEW_PROP_GET(TextAlign,      text_align_value, Const); // @safe Rt
 		Qk_DEFINE_VIEW_PROPERTY(TextSize,       text_size, Const);
 		Qk_DEFINE_VIEW_PROPERTY(TextColor,      text_color, Const);
 		Qk_DEFINE_VIEW_PROPERTY(TextLineHeight, text_line_height, Const);
@@ -64,18 +64,18 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(TextShadow,     text_shadow, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextColor,      text_background_color, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextWeight,     text_weight, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextWeight,    text_weight_value, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextWeight,     text_weight_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextSlant,      text_slant, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextSlant,     text_slant_value, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextSlant,      text_slant_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextDecoration, text_decoration, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextDecoration,text_decoration_value, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextDecoration, text_decoration_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextOverflow,   text_overflow, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextOverflow,  text_overflow_value, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextOverflow,   text_overflow_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextWhiteSpace, text_white_space, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextWhiteSpace,text_white_space_value, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextWhiteSpace, text_white_space_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextWordBreak,  text_word_break, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(TextWordBreak, text_word_break_value, Const);
-		Qk_DEFINE_VIEW_ACCE_GET(FontStyle,     font_style, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(TextWordBreak,  text_word_break_value, Const);
+		Qk_DEFINE_VIEW_ACCE_GET(FontStyle,      font_style, Const);
 
 		Vec2 compute_layout_size(cString& value);
 

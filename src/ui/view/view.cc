@@ -54,8 +54,25 @@ namespace qk {
 	typedef Box::Container Container;
 
 	Region Container::to_range() const {
+		Vec2 origin = content, end = content;
+		if (float_x) {
+			origin[0] = pre_width[0];
+			end[0] = pre_width[1];
+		} else {
+			//origin[0] = content[0];
+			//end[0] = content[0];
+		}
+		if (float_y) {
+			origin[1] = pre_height[0];
+			end[1] = pre_height[1];
+		} else {
+			//origin[1] = content[1];
+			//end[1] = content[1];
+		}
 		return {
-			{pre_width[0], pre_height[0]}, {pre_width[1], pre_height[1]}
+			origin,end
+			//{pre_width[0], pre_height[0]},
+			//{pre_width[1], pre_height[1]},
 		};
 	}
 

@@ -75,6 +75,7 @@ namespace qk {
 			);
 
 			new_size[1] = _container.clamp_height(_lines->max_height());
+			// new_size[1] = _lines->max_height();
 
 			if (new_size != cur) {
 				set_content_size(new_size);
