@@ -54,26 +54,16 @@ namespace qk {
 	typedef Box::Container Container;
 
 	Region Container::to_range() const {
-		Vec2 origin = content, end = content;
-		if (float_x) {
+		Vec2 origin(content), end(content);
+		if (state_x == kNone_FloatState) {
 			origin[0] = pre_width[0];
 			end[0] = pre_width[1];
-		} else {
-			//origin[0] = content[0];
-			//end[0] = content[0];
 		}
-		if (float_y) {
+		if (state_y == kNone_FloatState) {
 			origin[1] = pre_height[0];
 			end[1] = pre_height[1];
-		} else {
-			//origin[1] = content[1];
-			//end[1] = content[1];
 		}
-		return {
-			origin,end
-			//{pre_width[0], pre_height[0]},
-			//{pre_width[1], pre_height[1]},
-		};
+		return { origin,end };
 	}
 
 	float Container::clamp_width(float value) const {
@@ -88,7 +78,7 @@ namespace qk {
 		if (pre_width == pre.value)
 			return false;
 		pre_width = pre.value;
-		float_x = pre.floatState;
+		state_x = pre.state;
 		return true;
 	}
 
@@ -96,7 +86,7 @@ namespace qk {
 		if (pre_height == pre.value)
 			return false;
 		pre_height = pre.value;
-		float_y = pre.floatState;
+		state_y = pre.state;
 		return true;
 	}
 
@@ -258,7 +248,7 @@ namespace qk {
 	}
 
 	static View::Container zeroContainer{
-		{}, {}, {}, View::kNone_FloatState, View::kNone_FloatState
+		{}, {}, {}, View::kFixed_FloatState, View::kFixed_FloatState
 	};
 
 	const View::Container& View::layout_container() {

@@ -34,8 +34,6 @@
 #include "./textarea.h"
 #include "../../util/codec.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
 #define _Border() auto _border = this->_border.load()
 #define _IfBorder() _Border(); if (_border)
 
@@ -690,7 +688,7 @@ namespace qk {
 		TextConfig cfg(this, shared_app()->defaultTextOptions());
 		FontMetricsBase metrics;
 
-		_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x);
+		_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x());
 
 		_lines->set_init_line_height(text_size().value, text_line_height().value, true);
 		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
@@ -761,18 +759,11 @@ namespace qk {
 
 		_lines->finish();
 
-		Vec2 cur = _container.content;
-		Vec2 new_size(
-			_container.float_x ? _container.clamp_width(_lines->max_width()): cur.x(),
-			_container.float_y ? _container.clamp_height(_lines->max_height()): cur.y()
-		);
-
-		if (new_size != cur) {
-			set_content_size(new_size);
-			_IfParent()
-				_parent->onChildLayoutChange(this, kChild_Layout_Size);
-		}
-
+		set_content_size({
+			_container.float_x() ? _container.clamp_width(_lines->max_width()): _container.content[0],
+			_container.float_y() ? _container.clamp_height(_lines->max_height()): _container.content[1],
+		});
+		delete_lock_state();
 		unmark(kLayout_Typesetting);
 
 		// mark input status change

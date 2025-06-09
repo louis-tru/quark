@@ -32,9 +32,6 @@
 #include "../text/text_lines.h"
 #include "../app.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-
 namespace qk {
 
 	void Text::set_value(String val, bool isRt) {
@@ -46,7 +43,7 @@ namespace qk {
 		if (mark_ & kLayout_Typesetting) {
 
 			TextConfig cfg(this, shared_app()->defaultTextOptions());
-			_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x);
+			_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x());
 			_lines->set_init_line_height(text_size().value, text_line_height().value, false);
 
 			_blob_visible.clear();
@@ -58,7 +55,6 @@ namespace qk {
 
 			tbb.make(value);
 
-			auto cur = _container.content;
 			auto v = first();
 			if (v) {
 				do {
@@ -69,20 +65,11 @@ namespace qk {
 			}
 			_lines->finish();
 
-			Vec2 new_size(
-				_container.float_x ? _container.clamp_width(_lines->max_width()): cur.x(),
-				_container.float_y ? _container.clamp_height(_lines->max_height()): cur.y()
-			);
-
-			new_size[1] = _container.clamp_height(_lines->max_height());
-			// new_size[1] = _lines->max_height();
-
-			if (new_size != cur) {
-				set_content_size(new_size);
-				_IfParent()
-					_parent->onChildLayoutChange(this, kChild_Layout_Size);
-			}
-
+			set_content_size({
+				_container.float_x() ? _container.clamp_width(_lines->max_width()): _container.content[0],
+				_container.float_y() ? _container.clamp_height(_lines->max_height()): _container.content[1],
+			});
+			delete_lock_state();
 			unmark(kLayout_Typesetting | kText_Options);
 			mark(kVisible_Region, true); // force test region and lines region
 		}

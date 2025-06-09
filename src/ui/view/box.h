@@ -162,6 +162,11 @@ namespace qk {
 		*/
 		Vec2 layout_typesetting_float();
 
+		/**
+		 * @method delete_lock_state()
+		*/
+		void delete_lock_state();
+
 		// ----------------------- define private props -----------------------
 	private:
 		std::atomic<BoxFilter*> _background;

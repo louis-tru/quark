@@ -30,9 +30,6 @@
 
 #include "./flex.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-
 namespace qk {
 	struct FlexItem {
 		Vec2 size, weight;
@@ -135,8 +132,8 @@ namespace qk {
 
 		auto v = is_reverse ? last(): first();
 		if (v) {
-			bool is_float_main = is_horizontal ? _container.float_x: _container.float_y;
-			bool is_float_cross = is_horizontal ? _container.float_y: _container.float_x;
+			bool is_float_main = is_horizontal ? _container.float_x(): _container.float_y();
+			bool is_float_cross = is_horizontal ? _container.float_y(): _container.float_x();
 
 			float main_size = cur[mainIdx];
 			float cross_size = 0;
@@ -220,17 +217,13 @@ namespace qk {
 			cur[mainIdx] = main_size;
 			cur[crossIdx] = cross_size;
 		} else {
-			if ( _container.float_x )
+			if ( _container.float_x() )
 				cur[0] = _container.clamp_width(0);
-			if ( _container.float_y )
+			if ( _container.float_y() )
 				cur[1] = _container.clamp_height(0);
 		}
 
-		if (cur != _container.content) {
-			set_content_size(cur);
-			_IfParent()
-				_parent->onChildLayoutChange(this, kChild_Layout_Size);
-		}
+		set_content_size(cur);
 	}
 
 	Flex::Flex()
@@ -331,6 +324,7 @@ namespace qk {
 				layout_typesetting_flex<false>(_direction == Direction::ColumnReverse); // flex vertical
 			}
 
+			delete_lock_state();
 			unmark(kLayout_Typesetting);
 		}
 	}

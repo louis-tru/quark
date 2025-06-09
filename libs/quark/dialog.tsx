@@ -370,7 +370,7 @@ export function prompt(window: Window, msg: string | {
 			onAction={e=>cb(!!e, e ? (dag.refs.input as Input).value: '')}
 		>
 			{_msg}
-			{/* <input
+			<input
 				security={security}
 				ref="input"
 				class="prompt"
@@ -378,7 +378,7 @@ export function prompt(window: Window, msg: string | {
 				value={text}
 				placeholder={placeholder}
 				onKeyEnter={()=>(dag as any).triggerAction(1)}
-			/> */}
+			/>
 		</Dialog>
 	).newDom(window.rootCtr) as Dialog;
 	dag.show();

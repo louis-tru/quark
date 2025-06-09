@@ -30,31 +30,24 @@
 
 #include "./free.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-
 namespace qk {
 
 	void Free::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			auto cur = _container.content;
-			Vec2 new_size(
-				_container.clamp_width(cur.x()),
-				_container.clamp_height(cur.y())
+			Vec2 size(
+				_container.clamp_width(_container.content.x()),
+				_container.clamp_height(_container.content.y())
 			);
-
-			if (cur != new_size) {
-				set_content_size(new_size);
-				_IfParent()
-					_parent->onChildLayoutChange(this, kChild_Layout_Size);
-			}
 
 			auto v = first();
 			while(v) { // lazy free layout
 				if (v->visible())
-					v->set_layout_offset_free(new_size); // free layout
+					v->set_layout_offset_free(size); // free layout
 				v = v->next();
 			}
+
+			set_content_size(size);
+			delete_lock_state();
 			unmark(kLayout_Typesetting);
 		}
 	}

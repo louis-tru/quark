@@ -53,7 +53,7 @@ namespace qk {
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
-		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kFloat_FloatState,kFloat_FloatState})
+		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState})
 		, _background(nullptr)
 		, _boxShadow(nullptr)
 		, _border(nullptr)
@@ -621,10 +621,12 @@ namespace qk {
 		}
 	}
 
-	void Box::set_content_size(Vec2 content_size) {
-		_container.content = content_size;
-		_client_size = Vec2(content_size.x() + _padding_left + _padding_right,
-												content_size.y() + _padding_top + _padding_bottom);
+	void Box::set_content_size(Vec2 size) {
+		if (size == _container.content)
+			return;
+		_container.content = size;
+		_client_size = Vec2(size.x() + _padding_left + _padding_right,
+												size.y() + _padding_top + _padding_bottom);
 		_IfBorder() {
 			_client_size.val[0] += _border->width[3] + _border->width[1]; // left + right
 			_client_size.val[1] += _border->width[0] + _border->width[2]; // top + bottom
@@ -632,6 +634,9 @@ namespace qk {
 		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
 												_margin_top + _margin_bottom + _client_size.y());
 
+		_IfParent() {
+			_parent->onChildLayoutChange(this, kChild_Layout_Size);
+		}
 		mark(kVisible_Region, true);
 	}
 
