@@ -109,8 +109,7 @@ const win = new Window({
 
 
 // dialog.alert(win, 'Hello')
-dialog.prompt(win, 'Hello Prompsssssssssssssssssss. Prompsssssssssssssssssss.', (ok, text)=>{
-	//if ( ok ) {
-	//	dialog.alert(win, text);
-	//}
+dialog.prompt(win, 'Hello, Make sure please as asaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbb', (ok, text)=>{
+	if (ok)
+		dialog.alert(win, text);
 });

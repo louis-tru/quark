@@ -145,25 +145,27 @@ namespace qk {
 	}
 
 	void TextLines::finish_line() {
-		if ( _last->width > _max_width ) {
-			_max_width = _last->width;
-		}
 		auto top = _last->top;
 		auto bottom = _last->bottom;
 
 		for (auto view: _preView.back()) {
-			auto height = view->layout_size().height();
+			auto size = view->layout_size();
+			auto height = size.height();
 			switch (view->layout_align()) {
 				case Align::Top:
 					set_line_height(top, height - bottom); break;
 				case Align::Middle:
-					height = (height - top - bottom) / 2;
+					height = (height - top - bottom) * 0.5;
 					set_line_height(height + top, height + bottom); break;
 				case Align::Bottom:
 					set_line_height(height - bottom, bottom); break;
 				default: // bottom and baseline align
 					set_line_height(height, 0); break;
 			}
+			_last->width += size.width();
+		}
+		if ( _last->width > _max_width ) {
+			_max_width = _last->width;
 		}
 	}
 
@@ -178,7 +180,7 @@ namespace qk {
 			switch(_text_align) {
 				default:
 				case TextAlign::Left: break;
-				case TextAlign::Center: line.origin = (host_width - line.width) / 2; break;
+				case TextAlign::Center: line.origin = (host_width - line.width) * 0.5; break;
 				case TextAlign::Right:  line.origin = host_width - line.width; break;
 			}
 			if ( line.origin < _min_origin) {

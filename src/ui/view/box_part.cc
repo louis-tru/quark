@@ -308,7 +308,7 @@ namespace qk {
 			}
 
 			if (mark & kLayout_Child_Size) {
-				change_mark = kLayout_Inner_Width | kLayout_Inner_Height;
+				change_mark |= ((mark & kLayout_Child_Size) >> 4);
 			}
 
 			unmark(kLayout_Size_ALL | kLayout_Child_Size);
@@ -359,10 +359,10 @@ namespace qk {
 		_layout_size = Vec2(mbp_x + content.x(), mbp_y + content.y());
 
 		if (_container.content.x() != content.x() || _container.float_x()) {
-			change_mark = kLayout_Inner_Width;
+			change_mark = kLayout_Child_Width;
 		}
 		if (_container.content.y() != content.y() || _container.float_y()) {
-			change_mark |= kLayout_Inner_Height;
+			change_mark |= kLayout_Child_Height;
 		}
 
 		if (change_mark) {
@@ -373,13 +373,7 @@ namespace qk {
 			_container.state_x |= kLock_FloatState; // Add lock state
 			_container.state_y |= kLock_FloatState;
 
-			auto v = first();
-			while (v) {
-				if (v->visible())
-					v->layout_forward(change_mark | v->mark_value());
-				v = v->next();
-			}
-			mark_layout(kLayout_Typesetting | kVisible_Region, true); // rearrange
+			mark_layout(change_mark, true);
 		}
 
 		unmark(kLayout_Inner_Width | kLayout_Inner_Height);
@@ -524,8 +518,7 @@ namespace qk {
 		auto limitX = lines->limit_range().end.x();
 		auto origin = lines->pre_width();
 
-		if (limitX == 0 || // no limit width
-				text_white_space == TextWhiteSpace::NoWrap ||
+		if (text_white_space == TextWhiteSpace::NoWrap ||
 				text_white_space == TextWhiteSpace::Pre
 		) { // 不使用自动wrap
 			is_auto_wrap = false;

@@ -73,8 +73,10 @@ createCss({
 		margin: [2,10,20,10],
 		textAlign: 'center',
 		textColor: '#333',
-		backgroundColor: '#f00',
-		textBackgroundColor: '#ff0',
+		//backgroundColor: '#f00',
+		//textBackgroundColor: '#ff0',
+		textWhiteSpace: "preLine",
+		clip: true,
 	},
 	'.qk_dialog .buttons': {
 		width: 'match',
@@ -88,13 +90,17 @@ createCss({
 	},
 	'.qk_dialog .button': {
 		height: 43,
-		width: 100,
+		minWidth: 70,
+		maxWidth: 'match',
+		weight: 1,
+		padding: [0,5],
 		borderColor: `#9da1a0`,
 		textSize: 18,
 		textLineHeight: 1,
 		textColor:"#0079ff",
-		weight: 1,
 		textAlign: "center",
+		textOverflow: 'ellipsis',
+		textWhiteSpace: 'noWrap',
 	},
 	'.qk_dialog.sheet .button': {
 		height: 45,
@@ -123,7 +129,7 @@ createCss({
 });
 
 export const Consts = {
-	Ok: 'OK',
+	Ok: 'OKaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbb',
 	Cancel: 'Cancel',
 	Placeholder: 'Please enter..',
 };
@@ -179,11 +185,11 @@ export class Dialog<P={},S={}> extends Navigation<{
 			<free width="100%" height="100%" backgroundColor="#0004" receive={true} visible={false} opacity={0}>
 				<matrix ref="main" class="qk_dialog main">
 					<flex width="match" height="match" direction="column" crossAlign="both">
-						{/* <text ref="title" class="title" value={this.title} /> */}
-						<text ref="con" class="content">{this.content||this.children}</text>
-						{/*<flex ref="btns" class="buttons" visible={!!this._buttons.length}>*/}
+						<text ref="title" class="title" value={this.title} visible={true} />
+						<text ref="con" class="content" visible={true}>{this.content||this.children}</text>
+						<flex ref="btns" class="buttons" visible={!!this._buttons.length}>
 						{
-							/*this._buttons.map((e,i,arr)=>(
+							this._buttons.map((e,i,arr)=>(
 								<button
 									key={i}
 									class="button"
@@ -192,9 +198,9 @@ export class Dialog<P={},S={}> extends Navigation<{
 									borderRadiusRightBottom={i == arr.length-1 ? 12: 0}
 									onClick={this.handleClick}
 								>{e}</button>
-							))*/
+							))
 						}
-						{/*</flex>*/}
+						</flex>
 					</flex>
 				</matrix>
 			</free>
@@ -369,7 +375,7 @@ export function prompt(window: Window, msg: string | {
 			buttons={[Consts.Cancel, Consts.Ok]} 
 			onAction={e=>cb(!!e, e ? (dag.refs.input as Input).value: '')}
 		>
-			{_msg}
+			{_msg}{"\n"}
 			<input
 				security={security}
 				ref="input"
