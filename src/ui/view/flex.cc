@@ -35,6 +35,7 @@ namespace qk {
 		Vec2 size, weight;
 		View* view;
 		CrossAlign align;
+		bool alignBoth;
 	};
 
 	template<bool is_horizontal>
@@ -147,11 +148,12 @@ namespace qk {
 					auto weight = v->layout_weight();
 					auto size = v->layout_size();
 					auto align = v->layout_align();
+					auto crossAlign = align == Align::Normal ? _cross_align: CrossAlign(align);
 					if (is_float_cross)
 						cross_size = Float32::max(cross_size, size[crossIdx]);
 					main_total += size[mainIdx];
 					weight_total += weight;
-					items.push({size, weight, v, align == Align::Normal ? _cross_align: CrossAlign(align)});
+					items.push({size, weight, v, crossAlign, crossAlign == CrossAlign::Both});
 				}
 				v = is_reverse ? v->prev() : v->next();
 			} while(v);
@@ -167,26 +169,33 @@ namespace qk {
 			float overflow = main_size - main_total; // flex size - child total main size
 			int wIdx = overflow > 0 ? 0: 1; // is grow or shrink
 			float cur_weight_total = weight_total[wIdx];
-			float min_weight_total = Qk_Min(cur_weight_total, 1);
-			float C = cur_weight_total > 0 ? (overflow * min_weight_total) / cur_weight_total: 0;
-			// Flex：mainSize = size_old + (weight / weight_total) * overflow * min(weight_total, 1)
-			main_total = 0;
-			for (auto &it: items) {
-				auto adjustMain = it.weight[wIdx] * C;
-				if (it.align == CrossAlign::Both) {
-					it.size[mainIdx] += adjustMain;
-					it.size[crossIdx] = cross_size;
-					it.size = it.view->layout_lock(it.size); // force lock subview layout size
-				} else if (adjustMain) {
-					it.size[mainIdx] += adjustMain;
-					it.size = it.view->layout_lock(it.size);
+
+			do {
+				float min_weight_total = Qk_Min(cur_weight_total, 1);
+				float C = cur_weight_total > 0 ? (overflow * min_weight_total) / cur_weight_total: 0;
+				// Flex：mainSize = size_old + (weight / weight_total) * overflow * min(weight_total, 1)
+				main_total = cur_weight_total = 0;
+
+				for (auto &it: items) {
+					auto adjustMain = it.weight[wIdx] * C;
+					if (adjustMain) {
+						cur[mainIdx] = it.size[mainIdx] + adjustMain;
+						cur[crossIdx] = it.alignBoth ? cross_size: it.size[crossIdx];
+						it.size = it.view->layout_lock(cur); // force lock subview layout size
+						if (it.size[mainIdx] == cur[mainIdx]) {
+							cur_weight_total += it.weight[wIdx];
+						} else {
+							it.weight[wIdx] = 0; // mark invalid
+						}
+					} else if (it.alignBoth) {
+						it.size[crossIdx] = cross_size;
+						it.size = it.view->layout_lock(it.size);
+					}
+					it.alignBoth = false;
+					main_total += it.size[mainIdx];
 				}
-				main_total += it.size[mainIdx];
-			}
-			//if (is_float_main) {
-			//	main_size = clamp_main(_container, main_total);
-			//}
-			overflow = main_size - main_total;
+				overflow = main_size - main_total;
+			} while(overflow && cur_weight_total);
 
 			float offset = 0, space = 0;
 

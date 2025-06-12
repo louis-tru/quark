@@ -53,11 +53,12 @@ namespace qk {
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
-		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState})
+		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState,false,false})
 		, _background(nullptr)
 		, _boxShadow(nullptr)
 		, _border(nullptr)
 	{
+		//Qk_DLog("Box, %d", sizeof(Container));
 	}
 
 	Box::~Box() {

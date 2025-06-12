@@ -100,7 +100,7 @@ namespace qk {
 		enum FloatState: uint8_t {
 			kNone_FloatState  = (0),
 			kFixed_FloatState = (1 << 0),
-			kLock_FloatState  = (1 << 1),
+			kFixedByLocking_FloatState = (1 << 1), // by lock size
 		};
 
 		// container size
@@ -118,6 +118,7 @@ namespace qk {
 			*/
 			uint8_t state_x;//!< The x-axis is float wrap content, use internal extrusion size
 			uint8_t state_y; //!< The y-axis is float wrap content, use internal extrusion size
+			bool    locked_x, locked_y; //!< locked state
 
 			Region to_range() const;
 			float clamp_width(float value) const;

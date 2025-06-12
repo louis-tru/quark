@@ -49,7 +49,7 @@ namespace qk {
 	Pre Box::solve_layout_content_width_pre(const Container &pContainer) {
 		float size = pContainer.content[0];
 		float min = 0, max = Max_Float;
-		auto pFloat = pContainer.state_x == kNone_FloatState;
+		auto pFloat = pContainer.float_x();
 		auto state = pContainer.state_x;
 
 		static auto computeMatch = [](Box* self, float pSi) {
@@ -150,7 +150,7 @@ namespace qk {
 	Pre Box::solve_layout_content_height_pre(const Container &pContainer) {
 		float size = pContainer.content[1];
 		float min = 0, max = Max_Float;
-		auto pFloat = pContainer.state_y == kNone_FloatState;
+		auto pFloat = pContainer.float_y();
 		auto state = pContainer.state_y;
 
 		static auto computeMatch = [](Box* self, float pSi) {
@@ -252,7 +252,7 @@ namespace qk {
 
 		if (mark & kLayout_Inner_Width) {
 			if (_container.set_pre_width(solve_layout_content_width_pre(pContainer))) {
-				if (_container.state_x) { // no wrap
+				if (_container.state_x) { // fixed width
 					_container.content[0] = _container.pre_width[0];
 					mark |= kLayout_Outside_Width;
 				}
@@ -262,7 +262,7 @@ namespace qk {
 
 		if (mark & kLayout_Inner_Height) {
 			if (_container.set_pre_height(solve_layout_content_height_pre(pContainer))) {
-				if (_container.state_y) { // no wrap
+				if (_container.state_y) { // fixed height
 					_container.content[1] = _container.pre_height[0];
 					mark |= kLayout_Outside_Height;
 				}
@@ -370,8 +370,10 @@ namespace qk {
 			// Locking all directions may not be the most correct way,
 			// but locking all directions here can avoid cyclic iteration and jitter of size.
 			_container.content = content;
-			_container.state_x |= kLock_FloatState; // Add lock state
-			_container.state_y |= kLock_FloatState;
+			_container.locked_x = true;
+			_container.locked_y = true;
+			_container.state_x |= kFixedByLocking_FloatState; // Add lock state
+			_container.state_y |= kFixedByLocking_FloatState;
 
 			mark_layout(change_mark, true);
 		}
@@ -506,8 +508,8 @@ namespace qk {
 
 	void Box::delete_lock_state() {
 		// Delete all lock state
-		_container.state_x &= ~kLock_FloatState;
-		_container.state_y &= ~kLock_FloatState;
+		_container.state_x &= ~kFixedByLocking_FloatState;
+		_container.state_y &= ~kFixedByLocking_FloatState;
 	}
 
 	void Box::layout_text(TextLines *lines, TextConfig *cfg) {

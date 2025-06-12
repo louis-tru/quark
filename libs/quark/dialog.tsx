@@ -90,7 +90,8 @@ createCss({
 	},
 	'.qk_dialog .button': {
 		height: 43,
-		minWidth: 70,
+		//width: 200,
+		minWidth: 68,
 		maxWidth: 'match',
 		weight: 1,
 		padding: [0,5],
@@ -129,7 +130,7 @@ createCss({
 });
 
 export const Consts = {
-	Ok: 'OKaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbb',
+	Ok: 'OK',
 	Cancel: 'Cancel',
 	Placeholder: 'Please enter..',
 };

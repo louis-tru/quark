@@ -35,6 +35,7 @@ namespace qk {
 		Vec2 size, weight;
 		View* view;
 		CrossAlign align;
+		bool alignBoth;
 	};
 
 	struct Line {
@@ -92,6 +93,7 @@ namespace qk {
 					auto size = v->layout_size();
 					auto align = v->layout_align();
 					auto main = _main_total + size[mainIdx];
+					auto crossAlign = align == Align::Normal ? _cross_align: CrossAlign(align);
 					if (main > main_limit) { // Line feed
 						pushLine();
 						_main_total = size[mainIdx];
@@ -102,7 +104,7 @@ namespace qk {
 						_cross_max = Qk_Max(_cross_max, size[crossIdx]);
 						_weight_total += weight;
 					}
-					_items.push({ size, weight, v, align == Align::Normal ? _cross_align: CrossAlign(align) });
+					_items.push({ size, weight, v, crossAlign, crossAlign == CrossAlign::Both });
 				}
 				v = v->next();
 			} while(v);
@@ -133,26 +135,36 @@ namespace qk {
 			}
 
 			for (auto &line: lines) {
-				float overflow = main_size - line.main_total; // flex size - child total main size
+				float overflow = main_size - line.main_total, main_total; // flex size - child total main size
 				int wIdx = overflow > 0 ? 0: 1; // is grow or shrink
 				float cur_weight_total = line.weight_total[wIdx];
-				float min_weight_total = Qk_Min(cur_weight_total, 1);
-				float C = cur_weight_total > 0 ? (overflow * min_weight_total) / cur_weight_total: 0;
-				// Flex：mainSize = size_old + (weight / weight_total) * overflow * min(weight_total, 1)
-				float main_total = 0;
-				for (auto &it: line.items) {
-					auto adjustMain = it.weight[wIdx] * C;
-					if (it.align == CrossAlign::Both) {
-						it.size[mainIdx] += adjustMain;
-						it.size[crossIdx] = cross_size;
-						it.size = it.view->layout_lock(it.size); // force lock subview layout size
-					} else if (adjustMain) {
-						it.size[mainIdx] += adjustMain;
-						it.size = it.view->layout_lock(it.size);
+
+				do {
+					float min_weight_total = Qk_Min(cur_weight_total, 1);
+					float C = cur_weight_total > 0 ? (overflow * min_weight_total) / cur_weight_total: 0;
+					// Flex：mainSize = size_old + (weight / weight_total) * overflow * min(weight_total, 1)
+					main_total = cur_weight_total = 0;
+
+					for (auto &it: line.items) {
+						auto adjustMain = it.weight[wIdx] * C;
+						if (adjustMain) {
+							cur[mainIdx] = it.size[mainIdx] + adjustMain;
+							cur[crossIdx] = it.alignBoth ? cross_size: it.size[crossIdx];
+							it.size = it.view->layout_lock(cur); // force lock subview layout size
+							if (it.size[mainIdx] == cur[mainIdx]) {
+								cur_weight_total += it.weight[wIdx];
+							} else {
+								it.weight[wIdx] = 0;
+							}
+						} else if (it.alignBoth) {
+							it.size[crossIdx] = cross_size;
+							it.size = it.view->layout_lock(it.size);
+						}
+						it.alignBoth = false;
+						main_total += it.size[mainIdx];
 					}
-					main_total += it.size[mainIdx];
-				}
-				overflow = main_size - main_total;
+					overflow = main_size - main_total;
+				} while (overflow && cur_weight_total);
 
 				float offset = 0, space = 0;
 

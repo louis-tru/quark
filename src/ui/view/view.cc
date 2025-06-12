@@ -75,19 +75,23 @@ namespace qk {
 	}
 
 	bool Container::set_pre_width(Container::Pre pre) {
-		if (pre_width == pre.value)
-			return false;
-		pre_width = pre.value;
-		state_x = pre.state;
-		return true;
+		if (pre_width != pre.value || locked_x) {
+			pre_width = pre.value;
+			state_x = pre.state;
+			locked_x = false; // clear locked
+			return true;
+		}
+		return false;
 	}
 
 	bool Container::set_pre_height(Container::Pre pre) {
-		if (pre_height == pre.value)
-			return false;
-		pre_height = pre.value;
-		state_y = pre.state;
-		return true;
+		if (pre_height != pre.value || locked_y) {
+			pre_height = pre.value;
+			state_y = pre.state;
+			locked_y = false; // clear locked
+			return true;
+		}
+		return false;
 	}
 
 	View::View()
@@ -248,7 +252,7 @@ namespace qk {
 	}
 
 	static View::Container zeroContainer{
-		{}, {}, {}, View::kFixed_FloatState, View::kFixed_FloatState
+		{}, {}, {}, View::kFixed_FloatState, View::kFixed_FloatState, false, false
 	};
 
 	const View::Container& View::layout_container() {
