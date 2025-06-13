@@ -53,7 +53,6 @@ namespace qk {
 		, _isActive(true)
 	{
 		_opts.colorType = _opts.colorType ? _opts.colorType: kRGBA_8888_ColorType;
-		_opts.msaaSample = massSample(_opts.msaaSample);
 	}
 
 	void RenderBackend::activate(bool isActive) {
@@ -66,6 +65,8 @@ namespace qk {
 
 	Render* Render::Make(Options opts, Delegate *delegate) {
 		Render* r = nullptr;
+
+		opts.msaaSample = massSample(opts.msaaSample);
 
 #if Qk_ENABLE_VULKAN
 		if (!r) r = make_vulkan_render();
