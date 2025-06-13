@@ -1094,6 +1094,7 @@ class QkPackage extends Package {
 			'http.js',
 			'index.js',
 			'keyboard.js',
+			'media.js',
 			'nav.js',
 			'os.js',
 			'overlay.js',
@@ -1107,7 +1108,7 @@ class QkPackage extends Package {
 			'types.js',
 			'util.js',
 			'view.js',
-			'window.js'
+			'window.js',
 		]).forEach(e=>this.filesHash[e]='-');
 		this._status = PackageStatus.INSTALLED;
 	}

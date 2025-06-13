@@ -79,6 +79,8 @@ namespace qk {
 
 				_container.state_x = _container.state_y = kFixed_FloatState;
 				_container.content = content;
+				_container.pre_width = content[0];
+				_container.pre_height = content[1];
 			} else {
 				return Box::solve_layout_content_size_pre(mark, pContainer);
 			}

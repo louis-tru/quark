@@ -98,11 +98,11 @@ export default (self: Page)=>{
 			<button class="long_btn" onClick={PlayAudio}>Play Audio</button>
 			<button class="long_btn" onClick={Stop}>Stop</button>
 
-			<video 
-				ref="video" 
+			<video
+				ref="video"
 				marginTop={10}
-				borderRadius={20} 
-				// border="8 #f00" 
+				// borderRadius={20}
+				// border="8 #f00"
 				// clip={false}
 				width="match" 
 				backgroundColor="#000"

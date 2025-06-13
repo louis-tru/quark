@@ -56,8 +56,8 @@ namespace qk {
 	void Root::layout_forward(uint32_t mark) {
 		if (mark & kLayout_Size_ALL) {
 			layout_lock(window()->size());
-			_container.state_x |= kFixed_FloatState;
-			_container.state_y |= kFixed_FloatState;
+			_container.state_x = kFixed_FloatState;
+			_container.state_y = kFixed_FloatState;
 			_container.pre_width = _container.content[0];
 			_container.pre_height = _container.content[1];
 		}

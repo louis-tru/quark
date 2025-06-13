@@ -36,7 +36,7 @@ import icons from './icons';
 import action from './action';
 import fs from './fs';
 import http from './http';
-// import media from './media';
+import media from './media';
 // import zlib from './zlib';
 import storage from './storage';
 
@@ -52,7 +52,7 @@ export default (self: Page)=>{
 			<text class="category_title" value="." />
 			<box class="category">
 				<NavButton next={components}>Components</NavButton>
-				{/* <NavButton next={media}>Multi-Media</NavButton> */}
+				<NavButton next={media}>Multi-Media</NavButton>
 				<NavButton next={input}>Input</NavButton>
 				<NavButton next={icons}>Icons</NavButton>
 				<NavButton next={action}>Action</NavButton>
@@ -62,7 +62,7 @@ export default (self: Page)=>{
 			<box class="category">
 				<NavButton next={fs}>File System</NavButton>
 				<NavButton next={http}>Http</NavButton>
-				{/* <Navbutton next={zlib}>Zlib</Navbutton> */}
+				{/* <NavButton next={zlib}>Zlib</NavButton> */}
 				<NavButton next={storage}>Local Storage</NavButton>
 			</box>
 
