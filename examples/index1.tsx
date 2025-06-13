@@ -3,6 +3,7 @@ import { _CVD, Application, Window, createCss, mainScreenScale } from 'quark'
 import {reader} from 'quark/fs'
 import * as types from 'quark/types'
 import * as dialog from 'quark/dialog'
+import {Switch} from 'quark/checkbox'
 
 const px = 1 / mainScreenScale()
 const resolve = require.resolve
@@ -107,9 +108,11 @@ const win = new Window({
 // 	// </box>
 // )
 
+win.render(<Switch style={{margin:10}} initSelected={true} />);
+
 
 // dialog.alert(win, 'Hello')
-dialog.prompt(win, 'Hello, Make sure please as asaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbb', (ok, text)=>{
-	if (ok)
-		dialog.alert(win, text);
-});
+// dialog.prompt(win, 'Hello, Make sure please as asaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbb', (ok, text)=>{
+// 	if (ok)
+// 		dialog.alert(win, text);
+// });

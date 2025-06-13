@@ -37,12 +37,12 @@ createCss({
 		backgroundColor: '#fff0',
 		border: '2 #aaa',
 		borderRadius: 100,
-		opacity: 1,
 		textAlign: 'center',
 		textLineHeight: 1,
 		textFamily: 'iconfont',
 		textColor: '#fff',
 		textSize: 14,
+		opacity: 1,
 	},
 	'.qk_checkbox:hover': {
 		opacity: 0.7,
@@ -60,12 +60,13 @@ createCss({
 	'.qk_checkbox.on .mark': {
 		visible: true,
 	},
+	// switch
 	'.qk_switch': {
 		width: 50,
 		height: 31,
 		borderRadius: 18,
 	},
-	'.qk_switch:normal': {
+	'.qk_switch.off': {
 		backgroundColor: '#ddd',
 		time: 300,
 	},
@@ -73,6 +74,34 @@ createCss({
 		backgroundColor: '#4dd865',
 		time: 300,
 	},
+	// switch button
+	'.qk_switch .button': {
+		borderRadius: 16,
+		backgroundColor: '#fff',
+		height: 27,
+		y: 2,
+	},
+	'.qk_switch:normal .button': {
+		width: 27,
+		time: 200,
+	},
+	'.qk_switch:hover .button, .qk_switch:active .button': {
+		width: 33,
+		time: 200,
+	},
+	'.qk_switch.off .button': {
+		x: 2,
+		time: 200,
+	},
+	'.qk_switch.on .button': {
+		x: 20,
+		time: 200,
+	},
+	'.qk_switch.on:hover .button, .qk_switch.on:active .button': {
+		x: 14,
+		time: 200,
+	},
+	// switch background
 	'.qk_switch .background': {
 		backgroundColor: '#eee',
 		borderRadius: 16,
@@ -84,38 +113,12 @@ createCss({
 		opacity: 1,
 		time: 300,
 	},
-	'.qk_switch.on .background, \
-	.qk_switch:active .background, \
-	.qk_switch:hover .background': {
+	'.qk_switch:hover .background, .qk_switch:active .background, \
+	.qk_switch.on .background': {
 		width: 0,
 		height: 0,
-		opacity: 0.2,
+		opacity: 0,
 		time: 300,
-	},
-	'.qk_switch .button': {
-		borderRadius: 16,
-		backgroundColor: '#fff',
-		height: 27,
-	},
-	'.qk_switch:normal .button': {
-		width: 27,
-		x: 2,
-		y: 2,
-		time: 200,
-	},
-	'.qk_switch:active .button, \
-	.qk_switch:hover .button': {
-		width: 33,
-		time: 200,
-	},
-	'.qk_switch.on .button': {
-		x: 20,
-		time: 200,
-	},
-	'.qk_switch.on:active .button, \
-	.qk_switch.on:hover .button': {
-		x: 14,
-		time: 200,
 	},
 });
 
@@ -157,7 +160,7 @@ export class Basic<P={},S={}> extends ViewController<{
 export class Checkbox<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
-			<button class={['qk_checkbox',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
+			<button class={['qk_checkbox',this.props.class||'',this.selected?'on':'off']} style={this.props.style}>
 				<label class="mark" value={"\ued71"} />
 			</button>
 		)
@@ -167,7 +170,7 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 export class Switch<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
-			<free class={['qk_switch',this.props.class||'',this.selected?'on':'']} style={this.props.style}>
+			<free class={['qk_switch',this.props.class||'',this.selected?'on':'off']} style={this.props.style}>
 				<free class="background" />
 				<matrix class="button" />
 			</free>

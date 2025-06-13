@@ -39,7 +39,7 @@ const resolve = require.resolve;
 export default (self: Page)=>{
 	if (!self.isMounted) {
 		self.navbar = (
-			<Navbar fillColor="#333" backTextColor="#fff" titleTextColor="#fff" />
+			<Navbar backTextColor="#fff" titleTextColor="#fff" />
 		);
 		self.title = 'Action';
 		self.source = resolve(__filename);
@@ -64,7 +64,7 @@ export default (self: Page)=>{
 					onHighlighted={highlighted} 
 					action={{
 						keyframe:[
-							{ rotateZ: 0, time:0, curve:'linear' }, 
+							{ rotateZ: 0, time:0, curve:'linear' },
 							{ rotateZ: -360, time: 4000, curve:'linear' },
 						],
 						loop: 1e8,

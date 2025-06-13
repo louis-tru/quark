@@ -100,7 +100,7 @@ namespace qk {
 		enum FloatState: uint8_t {
 			kNone_FloatState  = (0),
 			kFixed_FloatState = (1 << 0),
-			kFixedByLocking_FloatState = (1 << 1), // by lock size
+			kFixedByLock_FloatState = (1 << 1), // by lock size
 		};
 
 		// container size

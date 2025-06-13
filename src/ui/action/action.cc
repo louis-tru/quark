@@ -131,7 +131,7 @@ namespace qk {
 		if (_parent) {
 			_parent->play();
 		} else {
-			if (_target && _id_Rt == Id()) {
+			if (/*_target && */_id_Rt == Id()) {
 				_id_Rt = playingFlag;
 				_async_call([](auto self, auto arg) { self->play_Rt(); }, this, 0);
 			}

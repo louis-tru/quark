@@ -80,7 +80,7 @@ namespace qk {
 			v = v->next();
 		}
 
-		// mark(kTransform, true); // mark recursive transform
+		//mark(kTransform, true); // mark recursive transform
 		mark(kVisible_Region, true);
 	}
 
@@ -121,6 +121,9 @@ namespace qk {
 	}
 
 	void Label::onActivate() {
+		if (level()) {
+			mark(kTransform, true); // mark recursive transform
+		}
 		_textFlags = 0xffffffff;
 	}
 

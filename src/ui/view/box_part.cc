@@ -372,8 +372,8 @@ namespace qk {
 			_container.content = content;
 			_container.locked_x = true;
 			_container.locked_y = true;
-			_container.state_x |= kFixedByLocking_FloatState; // Add lock state
-			_container.state_y |= kFixedByLocking_FloatState;
+			_container.state_x |= kFixedByLock_FloatState; // Add lock state
+			_container.state_y |= kFixedByLock_FloatState;
 
 			mark_layout(change_mark, true);
 		}
@@ -508,8 +508,8 @@ namespace qk {
 
 	void Box::delete_lock_state() {
 		// Delete all lock state
-		_container.state_x &= ~kFixedByLocking_FloatState;
-		_container.state_y &= ~kFixedByLocking_FloatState;
+		_container.state_x &= ~kFixedByLock_FloatState;
+		_container.state_y &= ~kFixedByLock_FloatState;
 	}
 
 	void Box::layout_text(TextLines *lines, TextConfig *cfg) {
