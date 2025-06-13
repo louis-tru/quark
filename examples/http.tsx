@@ -47,35 +47,39 @@ export default (self: Page)=>{
 	}
 
 	function Get(e: ClickEvent) {
+		let win = e.origin.window;
 		http.get(url(e)).then(function({ data }) {
 			var content = buffer.toString(data, 'utf8');
-			alert(e.origin.window, content.substring(0, 200).trim() + '...');
+			alert(win, content.substring(0, 200).trim() + '...');
 		}).catch(function(err) {
-			alert(e.origin.window, err.message);
+			alert(win, err.message);
 		});
 	}
 
 	function Post(e: ClickEvent) {
+		let win = e.origin.window;
 		http.post(url(e), 'post data').then(function({ data }) {
-			alert(e.origin.window, buffer.toString(data, 'utf8').substring(0, 200).trim() + '...');
+			alert(win, buffer.toString(data, 'utf8').substring(0, 200).trim() + '...');
 		}).catch(function(err) {
-			alert(e.origin.window, err.message);
+			alert(win, err.message);
 		});
 	}
 
 	function GetSync(e: ClickEvent) {
+		let win = e.origin.window;
 		try {
-			alert(e.origin.window, buffer.toString(http.getSync(url(e)), 'utf8').substring(0, 200).trim() + '...');
+			alert(win, buffer.toString(http.getSync(url(e)), 'utf8').substring(0, 200).trim() + '...');
 		} catch (err: any) {
-			alert(e.origin.window, err.message);
+			alert(win, err.message);
 		}
 	}
 
 	function PostSync(e: ClickEvent) {
+		let win = e.origin.window;
 		try {
-			alert(e.origin.window, buffer.toString(http.postSync(url(e), 'post data'), 'utf8').substring(0, 200).trim() + '...');
+			alert(win, buffer.toString(http.postSync(url(e), 'post data'), 'utf8').substring(0, 200).trim() + '...');
 		} catch (err: any) {
-			alert(e.origin.window, err.message);
+			alert(win, err.message);
 		}
 	}
 
