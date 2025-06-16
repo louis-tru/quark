@@ -133,7 +133,7 @@ export class NativeNotification<E = Event> extends Notification<E> {
 				let ok = func ? func.call(this, evt): this.triggerWithEvent(name, evt);
 				//console.log('_init.addNativeEventListener', name, ok, String(trigger));
 				return ok;
-			}, 1);
+			}, 0);
 			(this as any)[PREFIX + name] = noticer = new EventNoticer<E>(name, this as any);
 		}
 		return noticer;

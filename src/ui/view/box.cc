@@ -53,12 +53,12 @@ namespace qk {
 		, _border_radius_right_bottom(0), _border_radius_left_bottom(0)
 		, _background_color(Color::from(0))
 		, _weight(0,0)
-		, _container({{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState,false,false})
+		, _container({{},{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState,false,false})
 		, _background(nullptr)
 		, _boxShadow(nullptr)
 		, _border(nullptr)
 	{
-		//Qk_DLog("Box, %d", sizeof(Container));
+		// Qk_DLog("Box, %d", sizeof(Box));
 	}
 
 	Box::~Box() {
@@ -513,7 +513,11 @@ namespace qk {
 			if (!border) {
 				border = (BoxBorderInl*)malloc(sizeof(BoxBorderInl));
 				memset(border, 0, sizeof(BoxBorderInl));
-				_border.store(border);
+				if (_border) {
+					free(border);
+				} else {
+					_border.store(border);
+				}
 			}
 			return border;
 		}
@@ -623,22 +627,36 @@ namespace qk {
 	}
 
 	void Box::set_content_size(Vec2 size) {
-		if (size == _container.content)
-			return;
-		_container.content = size;
-		_client_size = Vec2(size.x() + _padding_left + _padding_right,
-												size.y() + _padding_top + _padding_bottom);
-		_IfBorder() {
-			_client_size.val[0] += _border->width[3] + _border->width[1]; // left + right
-			_client_size.val[1] += _border->width[0] + _border->width[2]; // top + bottom
-		}
-		_layout_size = Vec2(_margin_left + _margin_right + _client_size.x(),
-												_margin_top + _margin_bottom + _client_size.y());
+		bool change = false;
 
-		_IfParent() {
-			_parent->onChildLayoutChange(this, kChild_Layout_Size);
+		if (size[0] != _container.content[0]) {
+			change = true;
+			_container.content[0] = size[0];
+			_container.content_diff_before_locking[0] = 0;
+			_client_size[0] = size[0] + _padding_left + _padding_right;
+			_IfBorder() {
+				_client_size[0] += _border->width[3] + _border->width[1]; // left + right
+			}
+			_layout_size[0] = _margin_left + _margin_right + _client_size[0];
 		}
-		mark(kVisible_Region, true);
+
+		if (size[1] != _container.content[1]) {
+			change = true;
+			_container.content[1] = size[1];
+			_container.content_diff_before_locking[1] = 0;
+			_client_size[1] = size[1] + _padding_top + _padding_bottom;
+			_IfBorder() {
+				_client_size[1] += _border->width[0] + _border->width[2]; // top + bottom
+			}
+			_layout_size[1] = _margin_top + _margin_bottom + _client_size[1];
+		}
+
+		if (change) {
+			_IfParent() {
+				_parent->onChildLayoutChange(this, kChild_Layout_Size);
+			}
+			mark(kVisible_Region, true);
+		}
 	}
 
 	Vec2 Box::layout_offset() {
@@ -690,22 +708,34 @@ namespace qk {
 	void Box::set_align(Align align, bool isRt) {
 		if (_align != align) {
 			_align = align;
-			preRender().async_call([](auto self, auto arg) {
-				auto _parent = self->parent();
+			if (isRt) {
+				auto _parent = parent();
 				if (_parent)
-					_parent->onChildLayoutChange(self, kChild_Layout_Align);
-			}, this, 0);
+					_parent->onChildLayoutChange(this, kChild_Layout_Align);
+			} else {
+				preRender().async_call([](auto self, auto arg) {
+					auto _parent = self->parent();
+					if (_parent)
+						_parent->onChildLayoutChange(self, kChild_Layout_Align);
+				}, this, 0);
+			}
 		}
 	}
 
 	void Box::set_weight(Vec2 weight, bool isRt) {
 		if (_weight != weight) {
 			_weight = weight;
-			preRender().async_call([](auto self, auto arg) {
-				auto _parent = self->parent();
+			if (isRt) {
+				auto _parent = parent();
 				if (_parent)
-					_parent->onChildLayoutChange(self, kChild_Layout_Weight);
-			}, this, 0);
+					_parent->onChildLayoutChange(this, kChild_Layout_Weight);
+			} else {
+				preRender().async_call([](auto self, auto arg) {
+					auto _parent = self->parent();
+					if (_parent)
+						_parent->onChildLayoutChange(self, kChild_Layout_Weight);
+				}, this, 0);
+			}
 		}
 	}
 

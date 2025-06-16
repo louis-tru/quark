@@ -109,13 +109,16 @@ namespace qk {
 	// view align
 	enum class Align: uint8_t {
 		Normal,
-		Start,
-		Center,
-		End,
-		Both,
-		StartNew = Both, // New independent line and left align
-		CenterNew, // New independent line and center align
-		EndNew, // New independent line and right align
+		Start, // wrap line and left align
+		Center, // wrap line and center align
+		End, // wrap line and right align
+		Both, //
+		NewStart = Both, // New independent line and left align
+		NewCenter, // New independent line and center align
+		NewEnd, // New independent line and right align
+		FloatStart, // Try not to wrap until the maximum limit and left align
+		FloatCenter, // Try not to wrap until the maximum limit and center align
+		FloatEnd, // Try not to wrap until the maximum limit and right align
 		Baseline = Normal, // vertical align in text
 		Top, // Start, vertical align in text
 		Middle, // Center, vertical align in text

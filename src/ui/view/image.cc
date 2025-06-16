@@ -48,8 +48,8 @@ namespace qk {
 			auto src = source(); // Rt
 
 			if (src && src->type()) {
-				_container.set_pre_width(solve_layout_content_width_pre(pContainer));
-				_container.set_pre_height(solve_layout_content_height_pre(pContainer));
+				_container.set_pre_width(solve_layout_content_pre_width(pContainer));
+				_container.set_pre_height(solve_layout_content_pre_height(pContainer));
 
 				Vec2 content;
 				if (_container.float_x()) { // wrap x

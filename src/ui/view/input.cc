@@ -671,11 +671,11 @@ namespace qk {
 	}
 
 	void Input::set_value(String val, bool isRt) {
-		set_value_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
+		set_value_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)), isRt);
 	}
 
 	void Input::set_placeholder(String val, bool isRt) {
-		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)));
+		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)), isRt);
 	}
 
 	void Input::layout_reverse(uint32_t mark) {
@@ -1082,7 +1082,7 @@ namespace qk {
 	void Input::set_readonly(bool value, bool isRt) {
 		if (_readonly != value) {
 			_readonly = value;
-			if (value) {
+			if (value && !isRt) {
 				blur();
 			}
 		}
@@ -1091,12 +1091,19 @@ namespace qk {
 	void Input::set_max_length(uint32_t value, bool isRt) {
 		_max_length = value;
 		if (_max_length) { // check mx length
-			window()->preRender().async_call([](auto self, auto arg) {
-				if (self->_value_u4.length() > self->_max_length) {
-					self->_value_u4 = self->_value_u4.substr(0, self->_max_length);
-					self->mark_layout(kLayout_Typesetting, true);
+			if (isRt) {
+				if (_value_u4.length() > _max_length) {
+					_value_u4 = _value_u4.substr(0, _max_length);
+					mark_layout(kLayout_Typesetting, true);
 				}
-			}, this, 0);
+			} else {
+				window()->preRender().async_call([](auto self, auto arg) {
+					if (self->_value_u4.length() > self->_max_length) {
+						self->_value_u4 = self->_value_u4.substr(0, self->_max_length);
+						self->mark_layout(kLayout_Typesetting, true);
+					}
+				}, this, 0);
+			}
 		}
 	}
 

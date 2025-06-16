@@ -91,6 +91,10 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 		dom.appendTo(this.root);
 		return dom;
 	}
+	nextTickFrame(cb: () => void) {
+		util.nextTick(()=>this.nextFrame(cb));
+		return this;
+	}
 }
 
 util.extendClass(Window, NativeNotification);

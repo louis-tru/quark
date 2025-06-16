@@ -43,6 +43,7 @@ import {Player,MediaType,MediaSourceStatus,Stream} from './media';
 
 export enum ViewType {
 	View,
+	Label,
 	Box,
 	Flex,
 	Flow,
@@ -51,7 +52,6 @@ export enum ViewType {
 	Video,
 	Input,
 	Textarea,
-	Label,
 	Scroll,
 	Text,
 	Button,
@@ -108,6 +108,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly viewType: ViewType;
 	readonly position: types.Vec2; // @safe Rt
 	readonly layoutOffset: types.Vec2; // @safe Rt
+	readonly layoutSize: types.Vec2; // @safe Rt
 	readonly center: types.Vec2; // @safe Rt
 	readonly metaView: View;
 	readonly visibleRegion: boolean;

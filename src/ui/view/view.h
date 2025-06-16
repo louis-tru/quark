@@ -110,6 +110,7 @@ namespace qk {
 				uint8_t state; // At type of FloatState
 			};
 			Vec2 content; // final content size
+			Vec2 content_diff_before_locking; // final content size diff before locking
 			Vec2 pre_width; // 0: min, 1:max
 			Vec2 pre_height; // The y-axis content size range
 			/*
@@ -125,6 +126,7 @@ namespace qk {
 			float clamp_height(float value) const;
 			bool  set_pre_width(Pre pre);
 			bool  set_pre_height(Pre pre);
+			Vec2  layout_size_before_locking(Vec2 layout_size) const;
 			inline bool float_x() const { return state_x == kNone_FloatState; }
 			inline bool float_y() const { return state_y == kNone_FloatState; }
 		};
@@ -477,15 +479,22 @@ namespace qk {
 		virtual void set_layout_offset_free(Vec2 size);
 
 		/**
-			* 强制锁定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
+			* 强制固定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
 			* 
-			* 返回锁定后的最终尺寸.
+			* 返回固定后的最终尺寸.
 			* 
-			* @method layout_lock(layout_size)
+			* @method layout_lock_width(size)
 			* @safe Rt
 			* @note Can only be used in rendering threads
 			*/
-		virtual Vec2 layout_lock(Vec2 layout_size);
+		virtual float layout_lock_width(float size);
+
+		/*
+			* @method layout_lock_height(size)
+			* @safe Rt
+			* @note Can only be used in rendering threads
+			*/
+		virtual float layout_lock_height(float size);
 
 		/**
 			*

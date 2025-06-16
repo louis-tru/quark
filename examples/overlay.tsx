@@ -36,7 +36,8 @@ import { ClickEvent } from 'quark/event';
 const resolve = require.resolve;
 
 function show_overlay(evt: ClickEvent) {
-	Overlay.render(
+	Overlay.renderFrom(
+		evt.sender,
 		<Overlay>
 			<box>
 				<NavButton>Menu A</NavButton>
@@ -44,26 +45,26 @@ function show_overlay(evt: ClickEvent) {
 				<NavButton>Menu C</NavButton>
 				<NavButton style={{borderWidth:0}}>Menu D</NavButton>
 			</box>
-		</Overlay>,
-		evt.origin.window
-	).showOverlayFrom(evt.sender as Box);
+		</Overlay>
+	)
 }
 
 function show_overlay2(evt: ClickEvent) {
-	Overlay.render(
+	Overlay.renderFrom(
+		evt.sender,
 		<Overlay priority={Priority.Left}>
 			<box>
 				<NavButton>Hello.</NavButton>
 				<NavButton>Who are you going to?</NavButton>
 				<NavButton style={{borderWidth:0}}>Do I know you?</NavButton>
 			</box>
-		</Overlay>,
-		evt.origin.window
-	).showOverlayFrom(evt.sender as Box);
+		</Overlay>
+	);
 }
 
 function show_overlay3(evt: ClickEvent) {
-	Overlay.render(
+	Overlay.renderFrom(
+		evt.sender,
 		<Overlay priority={Priority.Left} backgroundColor="#000">
 			<box>
 				<NavButton style={{textColor:"#fff"}}>Hello.</NavButton>
@@ -71,9 +72,8 @@ function show_overlay3(evt: ClickEvent) {
 				<NavButton style={{textColor:"#fff"}}>Do I know you?</NavButton>
 				<NavButton style={{textColor:"#fff", borderWidth:0}}>What country are you from?</NavButton>
 			</box>
-		</Overlay>,
-		evt.origin.window
-	).showOverlayFrom(evt.sender as Box);
+		</Overlay>
+	);
 }
 
 export default (self: Page)=>{

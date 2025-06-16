@@ -73,6 +73,14 @@ function custom(e: ClickEvent) {
 	);
 }
 
+function sheet(e: ClickEvent) {
+	const win = e.origin.window;
+	dialog.sheetConfirm(win, [<label value='Confirm Delete' textColor="#f00" />], e=>{
+		if (e)
+			dialog.alert(win, 'Delete Ok');
+	});
+}
+
 export default (self: Page)=>{
 	self.title = 'Dialog';
 	self.source = resolve(__filename);
@@ -82,6 +90,7 @@ export default (self: Page)=>{
 			<button class="long_btn" onClick={confirm} value="Confirm" />
 			<button class="long_btn" onClick={prompt} value="Prompt" />
 			<button class="long_btn" onClick={custom} value="Custom" />
+			<button class="long_btn" onClick={sheet} value="Sheet" />
 		</box>
 	)
 }

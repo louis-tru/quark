@@ -301,6 +301,10 @@ namespace qk { namespace js {
 				Js_Self(View);
 				Js_Return( args.worker()->types()->jsvalue(self->layout_offset()) );
 			});
+			Js_Class_Accessor_Get(layoutSize, {
+				Js_Self(View);
+				Js_Return( args.worker()->types()->jsvalue(self->layout_size()) );
+			});
 			Js_Class_Accessor_Get(center, {
 				Js_Self(View);
 				Js_Return( args.worker()->types()->jsvalue(self->center()) );

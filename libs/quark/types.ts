@@ -174,9 +174,12 @@ export enum Align {
 	Center,
 	End,
 	Both,
-	StartNew = Both, // New independent line and left align
-	CenterNew, // New independent line and center align
-	EndNew, // New independent line and right align
+	NewStart = Both, // New independent line and left align
+	NewCenter, // New independent line and center align
+	NewEnd, // New independent line and right align
+	FloatStart, // Try not to wrap until the maximum limit and left align
+	FloatCenter, // Try not to wrap until the maximum limit and center align
+	FloatEnd, // Try not to wrap until the maximum limit and right align
 	Baseline = Normal, // box vertical align in text
 	Top, // box vertical align in text
 	Middle, // box vertical align in text

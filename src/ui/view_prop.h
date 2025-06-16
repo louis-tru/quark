@@ -166,7 +166,8 @@ namespace qk {
 
 	enum ViewType {
 		kView_ViewType,
-		kBox_ViewType,
+		kLabel_ViewType, // textOpts
+		kBox_ViewType,  // box
 		kFlex_ViewType, // box flex
 		kFlow_ViewType, // box flow
 		kFree_ViewType, // box
@@ -174,7 +175,6 @@ namespace qk {
 		kVideo_ViewType, // box
 		kInput_ViewType, // box textOpts input
 		kTextarea_ViewType, // box textOpts input
-		kLabel_ViewType, // textOpts
 		kScroll_ViewType, // box
 		kText_ViewType, // box textOpts
 		kButton_ViewType, // box

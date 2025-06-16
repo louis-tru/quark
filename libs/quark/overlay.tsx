@@ -28,8 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {_CVD,link,View,Box,Matrix,VDom,Window} from './index';
+import {_CVD,link,View,Box,Matrix,VDom,Window,ViewType} from './index';
 import { Navigation } from './nav';
+import { UIEvent } from './event';
 import * as types from './types';
 
 const arrowSize = { width: 30, height: 12 };
@@ -81,10 +82,10 @@ export class Overlay<P={},S={}> extends Navigation<{
 
 	private _get_left(x: number, offset_x: number) {
 		let self = this;
-		let inl = self.refs.inl as Box;
+		let main = self.refs.main as Box;
 		x -= border; // 留出10像素边距
 		let screen_width = this.window.size.x - border * 2;
-		let width = inl.clientSize.x;
+		let width = main.clientSize.x;
 
 		if (screen_width < width) {
 			return (screen_width - width) / 2 + border;
@@ -101,10 +102,10 @@ export class Overlay<P={},S={}> extends Navigation<{
 	}
 	private _get_top(y: number, offset_y: number) {
 		let self = this;
-		let inl = self.refs.inl as Box;
+		let main = self.refs.main as Box;
 		y -= border; // 留出10像素边距
 		let screen_height = this.window.size.y - border * 2;
-		let height = inl.clientSize.y;
+		let height = main.clientSize.y;
 
 		if (screen_height < height) {
 			return (screen_height - height) / 2 + border;
@@ -121,8 +122,8 @@ export class Overlay<P={},S={}> extends Navigation<{
 	}
 	private _get_arrow_top(top: number, y: number, offset_y: number) {
 		let self = this;
-		let inl = self.refs.inl as Box;
-		let height = inl.clientSize.y;
+		let main = self.refs.main as Box;
+		let height = main.clientSize.y;
 		y += offset_y / 2;
 		let min = borderArrow + arrowSize.width / 2;
 		let max = height - borderArrow - arrowSize.width / 2;
@@ -133,8 +134,8 @@ export class Overlay<P={},S={}> extends Navigation<{
 	}
 	private _get_arrow_left(left: number, x: number, offset_x: number) {
 		let self = this;
-		let inl = self.refs.inl as Box;
-		let width = inl.clientSize.x;
+		let main = self.refs.main as Box;
+		let width = main.clientSize.x;
 		x += offset_x / 2;
 		let min = borderArrow + arrowSize.width / 2;
 		let max = width - borderArrow - arrowSize.width / 2;
@@ -149,14 +150,14 @@ export class Overlay<P={},S={}> extends Navigation<{
 	 */
 	private _attempt_top(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
-		let inl = self.refs.inl as Box;
+		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
-		let height = inl.clientSize.y;
+		let height = main.clientSize.y;
 		let top = y - height - arrowSize.height;
 		if (top - border > 0 || force) {
 			let left = self._get_left(x, offset_x);
 			let arrow_left = self._get_arrow_left(left, x, offset_x) - arrowSize.width / 2;
-			inl.style = { y: top, x: left };
+			main.style = { y: top, x: left };
 			arrow.style = { 
 				align: 'leftBottom',
 				y: arrowSize.height,// + 0.5, 
@@ -173,14 +174,14 @@ export class Overlay<P={},S={}> extends Navigation<{
 	 */
 	private _attempt_right(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
-		let inl = self.refs.inl as Box;
+		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
-		let width = inl.clientSize.x;
+		let width = main.clientSize.x;
 		let left = x + offset_x + arrowSize.height;
 		if (left + width + border <= this.window.size.x || force) {
 			let top = self._get_top(y, offset_y);
 			let arrow_top = self._get_arrow_top(top, y, offset_y) - arrowSize.height / 2;
-			inl.style = { y: top, x: left };
+			main.style = { y: top, x: left };
 			arrow.style = { 
 				align: 'leftTop',
 				x: -(arrowSize.width / 2 + arrowSize.height / 2),
@@ -197,14 +198,14 @@ export class Overlay<P={},S={}> extends Navigation<{
 	 */
 	private _attempt_bottom(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
-		let inl = self.refs.inl as Box;
+		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
-		let height = inl.clientSize.y;
+		let height = main.clientSize.y;
 		let top = y + offset_y + arrowSize.height;
 		if (top + height + border <= this.window.size.y || force) {
 			let left = self._get_left(x, offset_x);
 			let arrow_left = self._get_arrow_left(left, x, offset_x) - arrowSize.width / 2;
-			inl.style = { y: top, x: left };
+			main.style = { y: top, x: left };
 			arrow.style = {
 				align: 'leftTop',
 				x: arrow_left,
@@ -221,14 +222,14 @@ export class Overlay<P={},S={}> extends Navigation<{
 	 */
 	private _attempt_left(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
-		let inl = self.refs.inl as Box;
+		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
-		let width = inl.clientSize.x;
+		let width = main.clientSize.x;
 		let left = x - width - arrowSize.height;
 		if (left - border > 0 || force) {
 			let top = self._get_top(y, offset_y);
 			let arrow_top = self._get_arrow_top(top, y, offset_y) - arrowSize.height / 2;
-			inl.style = { y: top, x: left };
+			main.style = { y: top, x: left };
 			arrow.style = {
 				align: 'rightTop',
 				x: arrowSize.width / 2 + arrowSize.height / 2,
@@ -275,8 +276,10 @@ export class Overlay<P={},S={}> extends Navigation<{
 		}
 	}
 
-	private _fadeOut = ()=>{
-		this.fadeOut();
+	private _fadeOut = (e: UIEvent)=>{
+		if (e.isDefault) {
+			this.fadeOut();
+		}
 	};
 
 	protected render() {
@@ -284,29 +287,35 @@ export class Overlay<P={},S={}> extends Navigation<{
 			<free
 				width="100%"
 				height="100%"
-				backgroundColor="#0003"
+				backgroundColor="#0001"
 				opacity={0}
 				visible={false}
 				onTouchStart={this._fadeOut}
 				onMouseDown={this._fadeOut}
 			>
-				<matrix ref="inl">
-					<matrix
-						ref="arrow"
-						width={arrowSize.width}
-						height={arrowSize.height}
-						originX={arrowSize.width/2} originY={arrowSize.height/0.5}
-					>
-						<text
-							marginTop={-10}
-							marginLeft={-3}
-							textFamily='iconfont'
-							textLineHeight={36}
-							textSize={36}
-							textColor={this.backgroundColor}
-							value="\uedcb" />
-					</matrix>
-					<free backgroundColor={this.backgroundColor} borderRadius={this.borderRadius}>{this.children}</free>
+				<matrix ref="main">
+					<free>
+						<matrix
+							ref="arrow"
+							width={arrowSize.width}
+							height={arrowSize.height}
+						>
+							<text
+								marginTop={-10}
+								marginLeft={-3}
+								textFamily='iconfont'
+								textLineHeight={36}
+								textSize={36}
+								textColor={this.backgroundColor}
+								value={"\uedcb"} />
+						</matrix>
+						<flex
+							backgroundColor={this.backgroundColor}
+							borderRadius={this.borderRadius}
+							direction="column"
+							crossAlign="both"
+						>{this.children}</flex>
+					</free>
 				</matrix>
 			</free>
 		);
@@ -314,11 +323,12 @@ export class Overlay<P={},S={}> extends Navigation<{
 
 	protected triggerMounted() {
 		this.window.onChange.on(this.destroy, this);
-		(this.refs.inl as Box).onClick.on(()=>{
-			if (this.frail) {
+		this.asRef('main').onClick.on(()=>{
+			if (this.frail)
 				this.fadeOut();
-			}
 		});
+		this.asRef('main').onTouchStart.on(e=>e.cancelDefault());
+		this.asRef('main').onMouseDown.on(e=>e.cancelDefault());
 		super.appendTo(this.window.root);
 	}
 
@@ -331,23 +341,22 @@ export class Overlay<P={},S={}> extends Navigation<{
 	afterTo(): View { throw Error.new('Access forbidden.') }
 
 	fadeOut() {
-		this.asDom().transition({ opacity: 0, time: 200 }, ()=>{
-			this.destroy();
-		});
+		this.asDom().transition({ opacity: 0, time: 200 }, ()=>this.destroy());
 		this.unregisterNavigation(0);
 	}
 
 	/**
 	 * @method showOverlayFrom(from[,offset_x[,offset_y]])  通过目标视图显示 Overlay
-	 * @param from {Box} # 参数可提供要显示的位置信息
+	 * @param from {View} # 参数可提供要显示的位置信息
 	 * @param [offset] {Object} # 显示目标位置的偏移
 	 */
-	showOverlayFrom(from: Box, offset?: types.Vec2) {
+	showOverlayFrom(from: View, offset?: types.Vec2) {
 		offset = offset || types.newVec2(0,0);
-		let {position,contentSize} = from;
+		let pos = from.position;
+		let size = from.viewType > ViewType.Label ? (from as Box).clientSize: types.newVec2(0,0);
 		let rect = types.newRect(
-			position.x    + offset.x,     position.y    + offset.y,
-			contentSize.x - offset.x * 2, contentSize.y - offset.y * 2,
+			pos.x  + offset.x,     pos.y  + offset.y,
+			size.x - offset.x * 2, size.y - offset.y * 2,
 		);
 		this.showOverlay(rect);
 	}
@@ -370,18 +379,18 @@ export class Overlay<P={},S={}> extends Navigation<{
 		self._offset_x = _offset_x;
 		self._offset_y = _offset_y;
 
-		this.window.nextFrame(function() {
+		this.window.nextTickFrame(function() {
 			self._showOverlay(_x, _y, _offset_x, _offset_y);
 			self.asDom().transition({ opacity: 1, time: 200 });
 		});
-		
+
 		self._is_activate = true;
 
 		this.registerNavigation(0);
 	}
 
 	/**
-	 * reset() 重新设置位置
+	 * reset() reset position
 	 */
 	reset() {
 		if (this._is_activate) {
@@ -406,7 +415,16 @@ export class Overlay<P={},S={}> extends Navigation<{
 	/**
 	 * @method render()
 	*/
-	static render(vdom: VDom<Overlay>, win: Window) {
+	static render(win: Window, vdom: VDom<Overlay>) {
 		return vdom.newDom(win.rootCtr);
+	}
+
+	/**
+	 * @method renderFrom()
+	*/
+	static renderFrom(from: View, vdom: VDom<Overlay>) {
+		let dom = vdom.newDom(from.window.rootCtr);
+		dom.showOverlayFrom(from);
+		return dom;
 	}
 }

@@ -34,19 +34,41 @@ namespace qk {
 
 	void Free::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			Vec2 size(
-				_container.clamp_width(_container.content.x()),
-				_container.clamp_height(_container.content.y())
-			);
-
+			auto cur = _container.content;
 			auto v = first();
-			while(v) { // lazy free layout
-				if (v->visible())
-					v->set_layout_offset_free(size); // free layout
-				v = v->next();
+			if (v) {
+				if (_container.float_x() || _container.float_y()) { // float width
+					Vec2 maxSize;
+					do {
+						if (v->visible()) {
+							auto size = v->layout_size();
+							if (size[0] > maxSize[0])
+								maxSize[0] = size[0];
+							if (size[1] > maxSize[1])
+								maxSize[1] = size[1];
+						}
+						v = v->next();
+					} while(v);
+					if (_container.float_x())
+						cur[0] = _container.clamp_width(maxSize[0]);
+					if (_container.float_y())
+						cur[1] = _container.clamp_height(maxSize[1]);
+				}
+
+				auto v = first();
+				do { // lazy free layout
+					if (v->visible())
+						v->set_layout_offset_free(cur); // free layout
+					v = v->next();
+				} while(v);
+			} else {
+				if (_container.float_x())
+					cur[0] = _container.clamp_width(0);
+				if (_container.float_y())
+					cur[1] = _container.clamp_height(0);
 			}
 
-			set_content_size(size);
+			set_content_size(cur);
 			delete_lock_state();
 			unmark(kLayout_Typesetting);
 		}

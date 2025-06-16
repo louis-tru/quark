@@ -108,7 +108,8 @@ namespace qk {
 		virtual bool is_clip() override;
 		virtual ViewType viewType() const override;
 		virtual Vec2 layout_offset_inside() override;
-		virtual Vec2 layout_lock(Vec2 layout_size) override;
+		virtual float layout_lock_width(float size) override;
+		virtual float layout_lock_height(float size) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
@@ -134,20 +135,20 @@ namespace qk {
 		void set_content_size(Vec2 content_size);
 
 		/**
-		 * @method solve_layout_content_width_pre()
+		 * @method solve_layout_content_pre_width()
 		 * @Returns range
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		Container::Pre solve_layout_content_width_pre(const Container &pContainer);
+		Container::Pre solve_layout_content_pre_width(const Container &pContainer);
 
 		/**
-		 * @method solve_layout_content_height_pre()
+		 * @method solve_layout_content_pre_height()
 		 * @Returns range
 		 * @safe Rt
 		 * @note Can only be used in rendering threads
 		 */
-		Container::Pre solve_layout_content_height_pre(const Container &pContainer);
+		Container::Pre solve_layout_content_pre_height(const Container &pContainer);
 
 		/**
 		 * @method solve_layout_content_size_pre()

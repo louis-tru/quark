@@ -1,9 +1,12 @@
 
-import { _CVD, Application, Window, createCss, mainScreenScale } from 'quark'
+import { _CVD, Application, Window, createCss, mainScreenScale, Box } from 'quark'
 import {reader} from 'quark/fs'
 import * as types from 'quark/types'
 import * as dialog from 'quark/dialog'
 import {Switch} from 'quark/checkbox'
+import { ClickEvent } from 'quark/event'
+import { Overlay, Priority } from 'quark/overlay'
+import { NavButton } from './tool';
 
 const px = 1 / mainScreenScale()
 const resolve = require.resolve
@@ -108,11 +111,27 @@ const win = new Window({
 // 	// </box>
 // )
 
-win.render(<Switch style={{margin:10}} initSelected={true} />);
+// win.render(<Switch style={{margin:10}} initSelected={true} />);
 
+function show_overlay(evt: ClickEvent) {
+	Overlay.renderFrom(
+		evt.sender,
+		<Overlay>
+			{/* <box> */}
+			<NavButton>Menu A</NavButton>
+			<NavButton>Menu B------C</NavButton>
+			<NavButton>Menu C</NavButton>
+			<NavButton style={{borderWidth:0}}>Menu D</NavButton>
+			{/* </box> */}
+		</Overlay>
+	)
+}
+
+win.render(<button class="long_btn" onClick={show_overlay}> Show Overlay </button>);
 
 // dialog.alert(win, 'Hello')
-// dialog.prompt(win, 'Hello, Make sure please as asaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbb', (ok, text)=>{
-// 	if (ok)
-// 		dialog.alert(win, text);
-// });
+dialog.prompt(win, 'Hello, Make sure please as asaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbb', (ok, text)=>{
+	if (ok)
+		dialog.alert(win, text);
+});
+// dialog.sheetConfirm(win, [<label value='Confirm Delete' textColor="#f00" />]);

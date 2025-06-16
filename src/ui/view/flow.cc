@@ -90,7 +90,7 @@ namespace qk {
 			do {
 				if (v->visible()) {
 					auto weight = v->layout_weight();
-					auto size = v->layout_size();
+					auto size = v->layout_container().layout_size_before_locking(v->layout_size());
 					auto align = v->layout_align();
 					auto main = _main_total + size[mainIdx];
 					auto crossAlign = align == Align::Normal ? _cross_align: CrossAlign(align);
@@ -148,23 +148,24 @@ namespace qk {
 					for (auto &it: line.items) {
 						auto adjustMain = it.weight[wIdx] * C;
 						if (adjustMain) {
-							cur[mainIdx] = it.size[mainIdx] + adjustMain;
-							cur[crossIdx] = it.alignBoth ? cross_size: it.size[crossIdx];
-							it.size = it.view->layout_lock(cur); // force lock subview layout size
-							if (it.size[mainIdx] == cur[mainIdx]) {
+							auto size = it.size[mainIdx] + adjustMain;
+							it.size[mainIdx] = is_horizontal ? // force lock subview layout size
+								it.view->layout_lock_width(size): it.view->layout_lock_height(size);
+							if (it.size[mainIdx] == size) {
 								cur_weight_total += it.weight[wIdx];
 							} else {
 								it.weight[wIdx] = 0;
 							}
-						} else if (it.alignBoth) {
-							it.size[crossIdx] = cross_size;
-							it.size = it.view->layout_lock(it.size);
 						}
-						it.alignBoth = false;
+						if (it.alignBoth) {
+							it.size[crossIdx] = is_horizontal ?
+								it.view->layout_lock_height(cross_size): it.view->layout_lock_width(cross_size);
+							it.alignBoth = false;
+						}
 						main_total += it.size[mainIdx];
 					}
 					overflow = main_size - main_total;
-				} while (overflow && cur_weight_total);
+				} while (overflow && cur_weight_total); //
 
 				float offset = 0, space = 0;
 

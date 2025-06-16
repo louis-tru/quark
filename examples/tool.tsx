@@ -101,11 +101,11 @@ createCss({
 	},
 
 	'.next_btn .icon': {
-		align: "end",
 		textFamily: "icomoon-ultimate",
 		textColor: "#aaa",
 		textLineHeight: 45,
 		marginRight: 10,
+		align: "floatEnd",
 	},
 
 	'.next_btn:normal': {

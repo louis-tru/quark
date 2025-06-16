@@ -46,7 +46,7 @@ namespace qk {
 
 	constexpr float Max_Float = std::numeric_limits<float>::max();
 
-	Pre Box::solve_layout_content_width_pre(const Container &pContainer) {
+	Pre Box::solve_layout_content_pre_width(const Container &pContainer) {
 		float size = pContainer.content[0];
 		float min = 0, max = Max_Float;
 		auto pFloat = pContainer.float_x();
@@ -147,7 +147,7 @@ namespace qk {
 		return {{min, max},kNone_FloatState};
 	}
 
-	Pre Box::solve_layout_content_height_pre(const Container &pContainer) {
+	Pre Box::solve_layout_content_pre_height(const Container &pContainer) {
 		float size = pContainer.content[1];
 		float min = 0, max = Max_Float;
 		auto pFloat = pContainer.float_y();
@@ -251,9 +251,10 @@ namespace qk {
 		uint32_t change_mark = kLayout_None;
 
 		if (mark & kLayout_Inner_Width) {
-			if (_container.set_pre_width(solve_layout_content_width_pre(pContainer))) {
+			if (_container.set_pre_width(solve_layout_content_pre_width(pContainer))) {
 				if (_container.state_x) { // fixed width
 					_container.content[0] = _container.pre_width[0];
+					_container.content_diff_before_locking[0] = 0;
 					mark |= kLayout_Outside_Width;
 				}
 				change_mark = kLayout_Inner_Width;
@@ -261,9 +262,10 @@ namespace qk {
 		}
 
 		if (mark & kLayout_Inner_Height) {
-			if (_container.set_pre_height(solve_layout_content_height_pre(pContainer))) {
+			if (_container.set_pre_height(solve_layout_content_pre_height(pContainer))) {
 				if (_container.state_y) { // fixed height
 					_container.content[1] = _container.pre_height[0];
+					_container.content_diff_before_locking[1] = 0;
 					mark |= kLayout_Outside_Height;
 				}
 				change_mark |= kLayout_Inner_Height;
@@ -331,56 +333,62 @@ namespace qk {
 		}
 	}
 
-	Vec2 Box::layout_lock(Vec2 layout_size) {
-		uint32_t change_mark = kLayout_None;
-
-		auto bp_x = _padding_left + _padding_right;
-		auto bp_y = _padding_top + _padding_bottom;
+	float Box::layout_lock_width(float size) {
+		float bp_x = _padding_left + _padding_right;
 		_IfBorder() {
 			bp_x += _border->width[3] + _border->width[1]; // left + right
+		}
+		float mbp_x = _margin_left + _margin_right + bp_x;
+		float content = size - mbp_x;
+
+		content =
+			_max_width.kind == BoxSizeKind::None ? // no limit
+			Float32::max(content, 0):
+			_container.clamp_width(content); // limit
+
+		_client_size[0] = bp_x + content;
+		_layout_size[0] = mbp_x + content;
+
+		if (_container.content.x() != content || (_container.float_x() && !_container.locked_x)) {
+			_container.content_diff_before_locking[0] += content - _container.content[0];
+			_container.content[0] = content;
+			_container.state_x |= kFixedByLock_FloatState; // Add lock state
+			_container.locked_x = true;
+			mark_layout(kLayout_Child_Width, true);
+		}
+
+		// unmark(kLayout_Inner_Width);
+
+		return _layout_size[0];
+	}
+
+	float Box::layout_lock_height(float size) {
+		float bp_y = _padding_top + _padding_bottom;
+		_IfBorder() {
 			bp_y += _border->width[0] + _border->width[2]; // top + bottom
 		}
-		auto mbp_x = _margin_left + _margin_right + bp_x;
-		auto mbp_y = _margin_top + _margin_bottom + bp_y;
+		float mbp_y = _margin_top + _margin_bottom + bp_y;
+		float content = size - mbp_y;
 
-		Vec2 content(layout_size.x() - mbp_x, layout_size.y() - mbp_y);
-
-		content[0] =
-			_max_width.kind == BoxSizeKind::None ? // no limit
-			Float32::max(content[0], 0):
-			_container.clamp_width(content[0]); // limit
-
-		content[1] =
+		content =
 			_max_height.kind == BoxSizeKind::None ? // no limit
-			Float32::max(content[1], 0):
-			_container.clamp_height(content[1]); // limit
+			Float32::max(content, 0):
+			_container.clamp_height(content); // limit
 
-		_client_size = Vec2(bp_x + content.x(), bp_y + content.y());
-		_layout_size = Vec2(mbp_x + content.x(), mbp_y + content.y());
+		_client_size[1] = bp_y + content;
+		_layout_size[1] = mbp_y + content;
 
-		if (_container.content.x() != content.x() || _container.float_x()) {
-			change_mark = kLayout_Child_Width;
-		}
-		if (_container.content.y() != content.y() || _container.float_y()) {
-			change_mark |= kLayout_Child_Height;
-		}
-
-		if (change_mark) {
-			// TODO: In a flex layout, only one axis needs to be forcibly locked,
-			// Locking all directions may not be the most correct way,
-			// but locking all directions here can avoid cyclic iteration and jitter of size.
-			_container.content = content;
-			_container.locked_x = true;
+		if (_container.content.y() != content || (_container.float_y() && !_container.locked_y)) {
+			_container.content_diff_before_locking[1] += content - _container.content[1];
+			_container.content[1] = content;
+			_container.state_y |= kFixedByLock_FloatState; // Add lock state
 			_container.locked_y = true;
-			_container.state_x |= kFixedByLock_FloatState; // Add lock state
-			_container.state_y |= kFixedByLock_FloatState;
-
-			mark_layout(change_mark, true);
+			mark_layout(kLayout_Child_Height, true);
 		}
 
-		unmark(kLayout_Inner_Width | kLayout_Inner_Height);
+		// unmark(kLayout_Inner_Height);
 
-		return _layout_size;
+		return _layout_size[1];
 	}
 
 	Vec2 Box::layout_typesetting_float() {
@@ -390,10 +398,19 @@ namespace qk {
 		auto v = first();
 		if (v) {
 			if ( _container.float_x() ) { // float width
+				float limitX = _container.pre_width[1];
+				float float_x = 0;
 				cur_x = 0;
 				do {
 					if (v->visible()) {
-						cur_x = Float32::max(cur_x, v->layout_size().x());
+						if (v->layout_align() > Align::NewEnd) { // float
+							auto x = v->layout_size().x();
+							auto newX = float_x + x;
+							float_x = newX > limitX ? x: newX;
+						} else { // use float
+							float_x = v->layout_size().x();
+						}
+						cur_x = Float32::max(cur_x, float_x);
 					}
 					v = v->next();
 				} while(v);
@@ -449,29 +466,31 @@ namespace qk {
 					switch(v->layout_align()) {
 						case Align::Normal:
 						case Align::Start: // float start
+						case Align::FloatStart:
 							nextStep(size);
 							v->set_layout_offset(Vec2(left, offset_y));
 							left += size.x();
 							break;
 						case Align::Center: // float center
+						case Align::FloatCenter:
 							nextStep(size);
 							centerV.push(v);
 							break;
 						case Align::End: // float end
+						case Align::FloatEnd:
 							nextStep(size);
 							v->set_layout_offset(Vec2(cur_x - right - size.x(), offset_y));
 							right += size.x();
 							break;
-						case Align::StartNew: // new left
+						case Align::NewStart: // new left
 							solveCenter();
 							left = 0;
 							goto last;
-						case Align::EndNew: // new right
+						case Align::NewEnd: // new right
 							solveCenter();
 							left = cur_x - size.x();
 							goto last;
-						case Align::CenterNew: // new center
-						default:
+						case Align::NewCenter: // new center
 							solveCenter();
 							left = (cur_x - size.x()) * 0.5f;
 						last:

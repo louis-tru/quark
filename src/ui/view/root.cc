@@ -55,11 +55,13 @@ namespace qk {
 
 	void Root::layout_forward(uint32_t mark) {
 		if (mark & kLayout_Size_ALL) {
-			layout_lock(window()->size());
+			layout_lock_width(window()->size()[0]);
+			layout_lock_height(window()->size()[1]);
 			_container.state_x = kFixed_FloatState;
 			_container.state_y = kFixed_FloatState;
 			_container.pre_width = _container.content[0];
 			_container.pre_height = _container.content[1];
+			unmark(kLayout_Inner_Width | kLayout_Inner_Height);
 		}
 		Box::layout_forward(mark_value());
 	}

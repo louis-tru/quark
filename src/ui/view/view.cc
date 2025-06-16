@@ -94,6 +94,10 @@ namespace qk {
 		return false;
 	}
 
+	Vec2 Container::layout_size_before_locking(Vec2 layout_size) const {
+		return layout_size - content_diff_before_locking;
+	}
+
 	View::View()
 		: _cssclass(nullptr)
 		, _parent(nullptr)
@@ -252,7 +256,7 @@ namespace qk {
 	}
 
 	static View::Container zeroContainer{
-		{}, {}, {}, View::kFixed_FloatState, View::kFixed_FloatState, false, false
+		{}, {}, {}, {}, View::kFixed_FloatState, View::kFixed_FloatState, false, false
 	};
 
 	const View::Container& View::layout_container() {
@@ -269,8 +273,12 @@ namespace qk {
 	void View::set_layout_offset_free(Vec2 size) {
 	}
 
-	Vec2 View::layout_lock(Vec2 layout_size) {
-		return Vec2();
+	float View::layout_lock_width(float size) {
+		return 0;
+	}
+
+	float View::layout_lock_height(float size) {
+		return 0;
 	}
 
 	void View::layout_forward(uint32_t mark) {

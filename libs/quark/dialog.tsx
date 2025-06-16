@@ -73,10 +73,9 @@ createCss({
 		margin: [2,10,20,10],
 		textAlign: 'center',
 		textColor: '#333',
-		//backgroundColor: '#f00',
-		//textBackgroundColor: '#ff0',
 		textWhiteSpace: "preLine",
 		clip: true,
+		//backgroundColor: '#f00',
 	},
 	'.qk_dialog .buttons': {
 		width: 'match',
@@ -84,13 +83,11 @@ createCss({
 		borderTop: `${px} #9da1a0`,
 	},
 	'.qk_dialog.sheet .buttons': {
-		borderRadius: 12,
-		backgroundColor: '#fff',
 		marginTop: 10,
+		borderWidthTop: 0,
 	},
 	'.qk_dialog .button': {
 		height: 43,
-		//width: 200,
 		minWidth: 68,
 		maxWidth: 'match',
 		weight: 1,
@@ -105,19 +102,20 @@ createCss({
 	},
 	'.qk_dialog.sheet .button': {
 		height: 45,
-		textLineHeight: 45,
+		width: 'match',
+		maxWidth: 'none',
 	},
 	'.qk_dialog .button.gray': {
-		textColor:"#000",
+		textColor: '#555',
 	},
 	'.qk_dialog .button:normal': {
 		backgroundColor: '#fff', time: 180
 	},
 	'.qk_dialog .button:hover': {
-		backgroundColor: '#E1E4E455', time: 50
+		backgroundColor: '#f4f4f4', time: 50
 	},
 	'.qk_dialog .button:active': {
-		backgroundColor: '#E1E4E4', time: 50
+		backgroundColor: '#E9E9E9', time: 50
 	},
 	'.qk_dialog .prompt': {
 		marginTop: 10,
@@ -177,7 +175,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 		this._autoClose();
 	}
 
-	private handleClick = (e: ClickEvent)=>{
+	protected handleClick = (e: ClickEvent)=>{
 		this.triggerAction((e.sender as any as {key:number}).key);
 	};
 
@@ -212,21 +210,15 @@ export class Dialog<P={},S={}> extends Navigation<{
 		if (!this.asDom().visible) {
 			super.appendTo(this.window.root);
 			this.asDom().visible = true;
-			this.window.nextFrame(()=>{
-				let main = this.refs.main as Matrix;
-				main.scale = new types.Vec2({x:0.2, y:0.2});
-				main.transition({ scale : [1,1], time: 300 });
-				this.asDom().opacity = 0.2;
-				this.asDom().transition({ opacity : 1, time: 300 });
-			});
+			this.asRef<Matrix>('main').transition({ scale: 1, time: 300 }, {scale : 0.2});
+			this.asDom().transition({ opacity : 1, time: 300 }, {opacity: 0.2});
 			this.registerNavigation(0);
 		}
 	}
 
 	close() {
 		if ( this.asDom().visible ) {
-			let main = this.refs.main as Matrix;
-			main.transition({ scale : [0.2,0.2], time: 300 });
+			this.asRef<Matrix>('main').transition({ scale: 0.2, time: 300 });
 			this.asDom().transition({ opacity : 0, time: 300 }, ()=>this.destroy());
 			this.unregisterNavigation(0);
 		} else {
@@ -267,47 +259,48 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 	}
 
 	render() {
-		let length = this.length;
 		let content = this.content ? this.content :
 			this.children.length ? this.children: null;
 		return (
-			<free
-				width="100%" height="100%"
-				backgroundColor="#0008"
-				onClick={()=>this.navigationBack()} visible={false} opacity={0}
+			<free width="100%" height="100%" backgroundColor="#0004" visible={false} opacity={0}
+				onClick={()=>this.navigationBack()}
 			>
 			{content?
-				<free ref="main" class="qk_dialog sheet">{content}</free>:
-				<free ref="main" class="qk_dialog sheet">
-					<free class="buttons" clip={true}>
-					{
-						length?
-						this.buttons.slice().map((e,i)=>(
+				<matrix ref="main" class="qk_dialog sheet">{content}</matrix>:
+				<matrix ref="main" class="qk_dialog sheet">
+					<box class="buttons">
+					{ this.length?
+						this.buttons.map((e,i,arr)=>(
 							<button
-								key={i}
+								key={arr.length-i}
 								class="button"
 								width="100%"
-								onClick={e=>this.triggerAction(length-i)}
+								onClick={this.handleClick}
 								borderWidthTop={i?px:0}
+								borderRadius={[i?0:12,i==arr.length-1?12:0]}
 							>{e}</button>
 						)):
 						<button
+							key={1}
 							class="button"
 							width="100%"
-							onClick={e=>this.triggerAction(1)}
+							onClick={this.handleClick}
 							value={Consts.Ok}
+							borderRadius={12}
 						/>
 					}
-					</free>
-					<free class="buttons" clip={true}>
+					</box>
+					<box class="buttons">
 						<button
+							key={0}
 							class="button gray"
 							width="100%"
-							onClick={()=>this.triggerAction(0)}
+							onClick={this.handleClick}
 							value={Consts.Cancel}
+							borderRadius={12}
 						/>
-					</free>
-				</free>
+					</box>
+				</matrix>
 			}
 			</free>
 		);
@@ -319,10 +312,8 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 			this.asDom().visible = true;
 			this.window.nextFrame(()=>{
 				let main = this.refs.main as Matrix;
-				main.y = main.clientSize.y;
-				main.transition({ y: 0, time: 250 });
-				this.asDom().opacity = 0.3;
-				this.asDom().transition({ opacity : 1, time: 250 });
+				main.transition({ y: 0, time: 300 }, {y: main.clientSize.y});
+				this.asDom().transition({ opacity: 1, time: 300 }, {opacity: 0.2});
 			});
 			this.registerNavigation(0);
 		}
@@ -331,8 +322,8 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 	close() {
 		if ( this.asDom().visible ) {
 			let main = this.refs.main as Matrix;
-			main.transition({ y: main.clientSize.y, time: 250 });
-			this.asDom().transition({ opacity : 0.15, time: 250 }, ()=>{ this.destroy() });
+			main.transition({ y: main.clientSize.y, time: 300 });
+			this.asDom().transition({ opacity : 0, time: 300 }, ()=>{ this.destroy() });
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);

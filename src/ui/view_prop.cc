@@ -109,6 +109,7 @@ namespace qk {
 		Qk_Set_Accessor(View, CURSOR, cursor);
 		Qk_Set_Accessor(View, VISIBLE, visible);
 		Qk_Set_Accessor(View, RECEIVE, receive);
+		prop_accessors[kLabel_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kBox_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kFlex_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kFlow_ViewType] = prop_accessors[kView_ViewType];
@@ -117,7 +118,6 @@ namespace qk {
 		prop_accessors[kVideo_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kInput_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kTextarea_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kLabel_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kScroll_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kText_ViewType] = prop_accessors[kView_ViewType];
 		prop_accessors[kButton_ViewType] = prop_accessors[kView_ViewType];
