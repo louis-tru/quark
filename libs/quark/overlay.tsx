@@ -314,6 +314,7 @@ export class Overlay<P={},S={}> extends Navigation<{
 							borderRadius={this.borderRadius}
 							direction="column"
 							crossAlign="both"
+							clip={this.borderRadius ? true: false}
 						>{this.children}</flex>
 					</free>
 				</matrix>
