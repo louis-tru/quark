@@ -95,13 +95,11 @@ namespace qk {
 		}
 
 		void callback_proc(AudioQueueBufferRef in) {
-			uint32_t len;
 			ScopeLock scope(_mutex);
 			_queue.pushBack(in);
-			len = _queue.length();
-			Qk_ASSERT_LE(len, _buffers.length()); // <=
+			Qk_ASSERT_LE(_queue.length(), _buffers.length()); // <=
 			//Qk_DLog("callback_proc, idle:%d %p", len, in);
-			if (len == _buffers.length()) {
+			if (_queue.length() == _buffers.length()) {
 				_play = false;
 				Qk_ASSERT_EQ(AudioQueueStop(_audio, true), noErr);
 			}
@@ -111,23 +109,29 @@ namespace qk {
 			ScopeLock scope(_mutex);
 
 			if (!_queue_num_half) {
-				_queue_num_half = ceilf(_sample_rate / (frame->nb_samples * 75.0f));
-				auto size = frame->nb_samples * _channels * 2;
-				auto num = _queue_num_half * 2 + 1;
+				_queue_num_half = 1;// ceilf(_sample_rate / (frame->nb_samples * 75.0f));
+				//auto size = frame->nb_samples * _channels * 2;
+				int size = _channels * _sample_rate * 2 * (32.0f / 1000.0f); // 32ms
 				Qk_ASSERT_NE(0, size);
+				auto num = _queue_num_half * 2 + 1;
 				for (int i = 0; i < num; i++) {
 					AudioQueueBufferRef buf;
-					Qk_ASSERT_EQ(noErr, AudioQueueAllocateBuffer(_audio, size, &buf));
+					Qk_ASSERT_EQ(noErr,
+					AudioQueueAllocateBuffer(_audio, size, &buf));
 					_buffers.push(buf);
 					_queue.pushBack(buf);
 				}
 			}
 
 			if (_queue.length()) {
-				AudioQueueBufferRef buf = _queue.front();
-				// Qk_ASSERT_LE(frame->linesize[0], buf->mAudioDataBytesCapacity); // <=
-				buf->mAudioDataByteSize = Qk_Min(frame->linesize[0], buf->mAudioDataBytesCapacity);
-				memcpy(buf->mAudioData, frame->data[0], buf->mAudioDataByteSize);
+				AudioQueueBufferRef &buf = _queue.front();
+				if (buf->mAudioDataBytesCapacity < frame->linesize[0]) {
+					AudioQueueFreeBuffer(_audio, buf);
+					Qk_ASSERT_EQ(noErr,
+					AudioQueueAllocateBuffer(_audio, frame->linesize[0], &buf));
+				}
+				buf->mAudioDataByteSize = frame->linesize[0];
+				memcpy(buf->mAudioData, frame->data[0], frame->linesize[0]);
 
 				if (AudioQueueEnqueueBuffer(_audio, buf, 0, nullptr) == noErr) {
 					_queue.popFront();

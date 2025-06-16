@@ -116,7 +116,7 @@ namespace qk {
 			int16_t* s16_bf = reinterpret_cast<int16_t*>(frame->data[0]);
 
 			if (_delayed == 0) {
-				_delayed = float(_period_size) / frame->nb_samples;
+				_delayed = 1; // float(_period_size) / frame->nb_samples;
 			}
 
 			// Qk_DLog("_delayed: %f, Frame: %d, %ld", _delayed, s16_len, time_monotonic());

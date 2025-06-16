@@ -242,10 +242,12 @@ namespace qk {
 
 		if (_type == kVideo_MediaType) {
 			if (_fa->pts) {
-				if (!_start) return;
+				if (!_start)
+					return;
 				auto play = now - _start;
 				auto pts = _fa->pts - (_fa->pkt_duration * _pcm->delayed()); // after pcm delay pts
-				if (pts > play) return;
+				if (pts > play)
+					return;
 				int64_t du = play - pts;
 				if (du > _fa->pkt_duration << 1) { // decoding timeout, discard frame
 					_fa = nullptr;
@@ -259,9 +261,10 @@ namespace qk {
 			if (_fa->pts) {
 				auto play = now - _start;
 				auto pts = _fa->pts;
-				if (pts > play) return;
+				if (pts > play)
+					return;
 				int64_t du = play - pts;
-				if (du > _fa->pkt_duration * 2 * _pcm->delayed()) { // timeout, reset start point
+				if (du > _fa->pkt_duration * _pcm->delayed() * 2) { // timeout, reset start point
 					if (_seeking)
 						return skip_frame(false);
 					Qk_DLog("pkt_duration, timeout %d", du);
