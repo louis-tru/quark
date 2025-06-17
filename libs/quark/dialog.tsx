@@ -310,7 +310,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 		if (!this.asDom().visible) {
 			ViewController.prototype.appendTo.call(this, this.window.root);
 			this.asDom().visible = true;
-			this.window.nextFrame(()=>{
+			this.window.nextTickFrame(()=>{
 				let main = this.refs.main as Matrix;
 				main.transition({ y: 0, time: 300 }, {y: main.clientSize.y});
 				this.asDom().transition({ opacity: 1, time: 300 }, {opacity: 0.2});

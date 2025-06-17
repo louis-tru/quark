@@ -48,8 +48,7 @@ class MacGLRender;
 	MacGLRender      *_render;
 }
 @property (strong, nonatomic) NSOpenGLContext *ctx;
-@property (assign, nonatomic) bool         isRun;
-@property (assign, nonatomic) qk::ThreadID renderThreadId;
+@property (assign, nonatomic) BOOL            isRun;
 - (id)   init:(NSOpenGLContext*)ctx render:(MacGLRender*)r;
 - (void) stopDisplay;
 @end
@@ -59,7 +58,7 @@ class MacGLRender;
 class MacGLRender final: public GLRender, public RenderSurface {
 public:
 	MacGLRender(Options opts, NSOpenGLContext *ctx)
-		: GLRender(opts), _view(nil), _ctx(ctx), _lockCount(0)
+		: GLRender(opts), _view(nil), _ctx(ctx)
 	{
 		//CFBridgingRetain(_ctx);
 	}
@@ -97,33 +96,25 @@ public:
 	}
 
 	bool isRenderThread() {
-		return _view && _view.renderThreadId == thread_self_id();
+		return _renderThreadId == thread_self_id();
 	}
 
 	void lock() override {
-		if (isRenderThread()) {
-			if (_lockCount++ == 0)
-				CGLLockContext(_ctx.CGLContextObj);
-		} else {
+		if (!isRenderThread()) {
 			CGLLockContext(_ctx.CGLContextObj);
 			[_ctx makeCurrentContext];
 		}
 	}
 
 	void unlock() override {
-		if (isRenderThread()) {
-			if (--_lockCount == 0)
-				CGLUnlockContext(_ctx.CGLContextObj);
-		} else {
+		if (!isRenderThread()) {
 			CGLUnlockContext(_ctx.CGLContextObj);
 		}
 	}
 
 	void post_message(Cb cb) override {
-		if (isRenderThread()) {
-			lock();
+		if (_view && isRenderThread()) {
 			cb->resolve();
-			unlock();
 		} else if (!_view.isRun) {
 			if (_mutexMsg.try_lock()) {
 				_msg.push(cb);
@@ -146,7 +137,8 @@ public:
 	}
 
 	void renderDisplay() {
-		lock();
+		CGLLockContext(_ctx.CGLContextObj);
+		_renderThreadId = thread_self_id();
 
 		if (_msg.length()) { //
 			_mutexMsg.lock();
@@ -167,7 +159,8 @@ public:
 			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
 			[_ctx flushBuffer]; // swap double buffer
 		}
-		unlock();
+		_renderThreadId = qk::ThreadID();
+		CGLUnlockContext(_ctx.CGLContextObj);
 	}
 
 	UIView* surfaceView() override {
@@ -193,33 +186,24 @@ public:
 private:
 	GLView            *_view;
 	NSOpenGLContext   *_ctx;
-	int              _lockCount;
 	Array<Cb>        _msg;
 	Mutex            _mutexMsg;
+	qk::ThreadID     _renderThreadId;
 };
 
 // ----------------------------------------------------------------------------------------------
 
 @implementation GLView
 
-//- (BOOL) isOpaque { return NO; }
-
-- (id) init:(NSOpenGLContext*)ctx render:(MacGLRender*)r {
+- (id)init:(NSOpenGLContext*)ctx render:(MacGLRender*)r {
 	if ((self = [super initWithFrame:CGRectZero pixelFormat:nil])) {
 		self.ctx = ctx;
 		_isRun = true;
 		_displayLink = nil;
 		_render = r;
-		_renderThreadId = qk::ThreadID();
 		[self setOpenGLContext:ctx];
 	}
 	return self;
-}
-
-- (void) update {
-	if (_isRun)
-		_render->reload();
-	[super update];
 }
 
 static CVReturn displayLinkCallback(
@@ -229,46 +213,46 @@ static CVReturn displayLinkCallback(
 	return kCVReturnSuccess;
 }
 
-- (void) prepareOpenGL {
-	if (_render->options().fps == 0) {
-		// Create a display link capable of being used with all active displays
-		CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
-		// Set the renderer output callback function
-		CVDisplayLinkSetOutputCallback(_displayLink, &displayLinkCallback, (__bridge void*)self);
-		// Set the display link for the current renderer
-		CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(
-			_displayLink, _ctx.CGLContextObj, _ctx.pixelFormat.CGLPixelFormatObj
-		);
-		// Activate the display link
-		CVDisplayLinkStart(_displayLink);
-	} else {
-		_renderThreadId = thread_new([](auto t, void* arg) { // fork render thread
-			auto v = (__bridge GLView*)arg;
-			while (v->_isRun) {
-				[v renderDisplay];
-			}
-		}, (__bridge void*)self, "renderDisplay");
-	}
+- (BOOL)isOpaque { return YES; }
+
+- (void)prepareOpenGL {
 	[super prepareOpenGL];
+	// Create a display link capable of being used with all active displays
+	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
+	// Set the renderer output callback function
+	CVDisplayLinkSetOutputCallback(_displayLink, &displayLinkCallback, (__bridge void*)self);
+	// Set the display link for the current renderer
+	CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(
+		_displayLink, _ctx.CGLContextObj, _ctx.pixelFormat.CGLPixelFormatObj
+	);
+	// Activate the display link
+	CVDisplayLinkStart(_displayLink);
 }
 
-- (void) renderDisplay {
+- (void)drawRect:(NSRect)dirtyRect {
 	if (_isRun) {
-		if (!NSOpenGLContext.currentContext) {
-			_renderThreadId = thread_self_id();
+		CVDisplayLinkStop(_displayLink);
+		if (NSOpenGLContext.currentContext != _ctx)
 			[_ctx makeCurrentContext];
-			Qk_ASSERT(NSOpenGLContext.currentContext);
-		}
+		_render->reload();
+		_render->renderDisplay();
+		CVDisplayLinkStart(_displayLink);
+	}
+}
+
+- (void)renderDisplay {
+	if (_isRun) {
+		if (NSOpenGLContext.currentContext != _ctx)
+			[_ctx makeCurrentContext];
 		_render->renderDisplay();
 	}
 }
 
-- (void) stopDisplay {
-	if (_render->options().fps == 0) {
-		CVDisplayLinkStop(_displayLink);
-		self.ctx = nil;
-	} else {}
+- (void)stopDisplay {
+	CVDisplayLinkStop(_displayLink);
+	_displayLink = nil;
 	_isRun = false;
+	_ctx = nil;
 }
 
 @end
