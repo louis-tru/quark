@@ -5,7 +5,7 @@ import * as types from 'quark/types'
 import * as dialog from 'quark/dialog'
 import {Switch} from 'quark/checkbox'
 import { ClickEvent } from 'quark/event'
-import { Overlay, Priority } from 'quark/overlay'
+import { Bubbles, Priority } from 'quark/bubbles'
 import { NavButton } from './tool';
 
 const px = 1 / mainScreenScale()
@@ -113,21 +113,21 @@ const win = new Window({
 
 // win.render(<Switch style={{margin:10}} initSelected={true} />);
 
-function show_overlay(evt: ClickEvent) {
-	Overlay.renderFrom(
+function show_bubbles(evt: ClickEvent) {
+	Bubbles.renderFrom(
 		evt.sender,
-		<Overlay>
+		<Bubbles>
 			{/* <box> */}
 			<NavButton>Menu A</NavButton>
 			<NavButton>Menu B------C</NavButton>
 			<NavButton>Menu C</NavButton>
 			<NavButton style={{borderWidth:0}}>Menu D</NavButton>
 			{/* </box> */}
-		</Overlay>
+		</Bubbles>
 	)
 }
 
-win.render(<button class="long_btn" onClick={show_overlay}> Show Overlay </button>);
+win.render(<button class="long_btn" onClick={show_bubbles}> Show Bubbles </button>);
 
 // dialog.alert(win, 'Hello')
 dialog.prompt(win, 'Hello, Make sure please as asaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbb', (ok, text)=>{

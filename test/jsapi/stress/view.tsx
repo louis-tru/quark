@@ -10,7 +10,6 @@ const app = new Application();
 const win = new Window({
 	title: 'tests view',
 	frame: types.newRect(0,0,500,500),
-	fps: 0x0,
 }).activate();
 
 createCss({

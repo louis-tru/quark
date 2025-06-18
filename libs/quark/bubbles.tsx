@@ -46,9 +46,9 @@ export enum Priority {
 };
 
 /**
- * @class Overlay
+ * @class Bubbles
  */
-export class Overlay<P={},S={}> extends Navigation<{
+export class Bubbles<P={},S={}> extends Navigation<{
 	frail?: boolean;
 	backgroundColor?: types.ColorStrIn;
 	priority?: Priority,
@@ -416,14 +416,14 @@ export class Overlay<P={},S={}> extends Navigation<{
 	/**
 	 * @method render()
 	*/
-	static render(win: Window, vdom: VDom<Overlay>) {
+	static render(win: Window, vdom: VDom<Bubbles>) {
 		return vdom.newDom(win.rootCtr);
 	}
 
 	/**
 	 * @method renderFrom()
 	*/
-	static renderFrom(from: View, vdom: VDom<Overlay>) {
+	static renderFrom(from: View, vdom: VDom<Bubbles>) {
 		let dom = vdom.newDom(from.window.rootCtr);
 		dom.showOverlayFrom(from);
 		return dom;

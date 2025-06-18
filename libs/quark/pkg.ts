@@ -1097,7 +1097,7 @@ class QkPackage extends Package {
 			'media.js',
 			'nav.js',
 			'os.js',
-			'overlay.js',
+			'bubbles.js',
 			'package.json',
 			'path.js',
 			'pkg.js',

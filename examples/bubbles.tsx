@@ -30,68 +30,68 @@
 
 import { _CVD, Box } from 'quark';
 import { NavButton, Page } from './tool';
-import { Overlay, Priority } from 'quark/overlay';
+import { Bubbles, Priority } from 'quark/bubbles';
 import { ClickEvent } from 'quark/event';
 
 const resolve = require.resolve;
 
-function show_overlay(evt: ClickEvent) {
-	Overlay.renderFrom(
+function show_bubbles(evt: ClickEvent) {
+	Bubbles.renderFrom(
 		evt.sender,
-		<Overlay>
+		<Bubbles>
 			<box>
 				<NavButton>Menu A</NavButton>
 				<NavButton>Menu B------C</NavButton>
 				<NavButton>Menu C</NavButton>
 				<NavButton style={{borderWidth:0}}>Menu D</NavButton>
 			</box>
-		</Overlay>
+		</Bubbles>
 	)
 }
 
-function show_overlay2(evt: ClickEvent) {
-	Overlay.renderFrom(
+function show_bubbles2(evt: ClickEvent) {
+	Bubbles.renderFrom(
 		evt.sender,
-		<Overlay priority={Priority.Left}>
+		<Bubbles priority={Priority.Left}>
 			<box>
 				<NavButton>Hello.</NavButton>
 				<NavButton>Who are you going to?</NavButton>
 				<NavButton style={{borderWidth:0}}>Do I know you?</NavButton>
 			</box>
-		</Overlay>
+		</Bubbles>
 	);
 }
 
-function show_overlay3(evt: ClickEvent) {
-	Overlay.renderFrom(
+function show_bubbles3(evt: ClickEvent) {
+	Bubbles.renderFrom(
 		evt.sender,
-		<Overlay priority={Priority.Left} backgroundColor="#000">
+		<Bubbles priority={Priority.Left} backgroundColor="#000">
 			<box>
 				<NavButton style={{textColor:"#fff"}}>Hello.</NavButton>
 				<NavButton style={{textColor:"#fff"}}>Who are you going to?</NavButton>
 				<NavButton style={{textColor:"#fff"}}>Do I know you?</NavButton>
 				<NavButton style={{textColor:"#fff", borderWidth:0}}>What country are you from?</NavButton>
 			</box>
-		</Overlay>
+		</Bubbles>
 	);
 }
 
 export default (self: Page)=>{
-	self.title = 'Overlay'
+	self.title = 'Bubbles'
 	self.source = resolve(__filename);
 	return (
 		<free width="match" height="match" padding={[10,0]}>
 			<box align="centerTop" width="match">
-				<button class="long_btn" onClick={show_overlay}> Show Overlay </button>
+				<button class="long_btn" onClick={show_bubbles}> Show Bubbles </button>
 			</box>
 			<box align="centerBottom" width="match">
-				<button class="long_btn" onClick={show_overlay}> Show Overlay </button>
+				<button class="long_btn" onClick={show_bubbles}> Show Bubbles </button>
 			</box>
 			<box align="leftMiddle">
-				<button class="long_btn" onClick={show_overlay2}> Show Overlay </button>
+				<button class="long_btn" onClick={show_bubbles2}> Show Bubbles </button>
 			</box>
 			<box align="rightMiddle">
-				<button class="long_btn" onClick={show_overlay3}> Show Overlay </button>
+				<button class="long_btn" onClick={show_bubbles3}> Show Bubbles </button>
 			</box>
 		</free>
 	)

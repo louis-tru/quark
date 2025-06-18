@@ -9,7 +9,6 @@ const app = new Application();
 const win = new Window({
 	title: 'tests action',
 	frame: types.newRect(0,0,500,500),
-	fps: 0x0,
 }).activate();
 
 const w = win.size.x, h = win.size.y;

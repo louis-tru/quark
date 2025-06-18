@@ -31,7 +31,7 @@
 import { _CVD } from 'quark';
 import { NavButton, Page } from './tool';
 import checkbox from './checkbox';
-import overlay from './overlay';
+import bubbles from './bubbles';
 import stepper from './stepper';
 import nav from './nav';
 import dialog from './dialog';
@@ -48,7 +48,7 @@ export default (self: Page)=>{
 				<NavButton next={nav}>Nav</NavButton>
 				<NavButton next={checkbox}>Checkbox</NavButton>
 				<NavButton next={stepper}>Stepper</NavButton>
-				<NavButton next={overlay}>Overlay</NavButton>
+				<NavButton next={bubbles}>Bubbles</NavButton>
 				<NavButton next={dialog}>Dialog</NavButton>
 			</box>
 		</scroll>

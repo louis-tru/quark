@@ -578,7 +578,7 @@ namespace qk { namespace js {
 		} else {
 			num = JSValueToNumber(ctx, Back(this), OK(nullptr)); // Force convert
 		}
-		if (isUint32Range(num)) {
+		if (!isUint32Range(num)) {
 			return THROW_ERR("Invalid conversion toUint32, Range overflow"), nullptr;
 		}
 		auto ret = JSValueMakeNumber(ctx, int(num));

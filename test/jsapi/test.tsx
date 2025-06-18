@@ -67,7 +67,6 @@ async function test_(win: Window) {
 
 	const app = new Application();
 	const win = new Window({
-		fps: 0x0,
 		frame: types.newRect(0,0,500,500),
 		backgroundColor: types.newColor(255,0,255,255),
 	}).activate();
