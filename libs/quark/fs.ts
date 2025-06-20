@@ -239,6 +239,37 @@ export function rmdir(path: string) {
 		_fs.rmdir(path, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+	* @method readdir
+	*
+	* 读取目录列表信息，失败抛出异常,成功返回[`Dirent`]的[`Array`]
+	*
+	* @param path {string}
+	* @return {Promise<Dirent[]>}
+	*
+	*	Example:
+	*
+	*	```js
+	*	// Prints:
+	*	// {
+	*	//   name: "cp.txt",
+	*	//   pathname: "file:///var/mobile/Containers/Data/Application/64DAC3FC-A4FD-4274-A2E7-B834EE4930B4/Documents/test/cp.txt",
+	*	//   type: 1
+	*	// }
+	*	fs.readdir(mydir, function(err, dirents) {
+	*		if (err) {
+	*			// Fail
+	*		} else {
+	*			for (var dirent of dirents) {
+	*				// TODO...
+	*				console.log(dirent);
+	*			}
+	*		}
+	*		console.log(dirent);
+	*	});
+	*	```
+*/
 export function readdir(path: string) {
 	return new Promise<Dirent[]>(function(resolve, reject) {
 		_fs.readdir(path, (err?: Error, r?: Dirent[])=>err?reject(err):resolve(r as Dirent[]));

@@ -153,11 +153,11 @@ namespace qk {
 	*/
 	class Qk_EXPORT ActionEvent: public UIEvent {
 	public:
-		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop);
+		ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t looped);
 		Qk_DEFINE_PROP_GET(Action*, action);
 		Qk_DEFINE_PROP_GET(uint64_t, delay, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, frame, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, loop, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, looped, Const);
 		void release() override;
 	};
 

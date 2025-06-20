@@ -41,25 +41,53 @@ const _ui = __binding__('_ui');
 let _current: Application | null = null;
 type AEvent = Event<Application>;
 
+/**
+ * @class NativeApplication
+*/
 declare class NativeApplication extends Notification<AEvent> {
-	readonly isLoaded: boolean; //!< after onLoad event
+	/** After onLoad event */
+	readonly isLoaded: boolean;
+	/** screen Object */
 	readonly screen: Screen;
+	/** fontPool Object */
 	readonly fontPool: FontPool;
+	/** current active window */
 	readonly activeWindow: Window | null;
+	/** default text options */
 	readonly defaultTextOptions: TextOptions;
+	/** all of windows */
 	readonly windows: Window[];
-	maxResourceMemoryLimit: number; //!< get or set max resource memory limit
-	usedResourceMemory(): number; //!< current used resource memory
-	clear(all?: boolean): void; //!< clear resource memory
+	/** get or set max resource memory limit */
+	maxResourceMemoryLimit: number;
+	/** get current used resource memory */
+	usedResourceMemory(): number;
+	/** clear resource memory */
+	clear(all?: boolean): void;
+	/** open uri For: examples openURL(`'https://baidu.com'`) */
 	openURL(url: string): void;
+	/**
+	 * By parameter open email client
+	*/
 	sendEmail(recipient: string, subject: string, body?: string, cc?: string, bcc?: string): void;
 }
 
+/**
+ * @class Application
+ * @extends NativeApplication
+*/
 export class Application extends (_ui.NativeApplication as typeof NativeApplication) {
+	/** After initialization the application call */
 	@event readonly onLoad: EventNoticer<AEvent>;
+	/** Before unload the application call */
 	@event readonly onUnload: EventNoticer<AEvent>;
+	/** When enter the background call */
 	@event readonly onPause: EventNoticer<AEvent>;
+	/** When enter the foreground call */
 	@event readonly onResume: EventNoticer<AEvent>;
+	/**
+	 * Triggered when memory is insufficient. After triggering,
+	 * it will automatically call `clear` to clean up resources and perform `js` garbage collection
+	*/
 	@event readonly onMemoryWarning: EventNoticer<AEvent>;
 	constructor() {
 		super();

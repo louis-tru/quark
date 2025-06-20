@@ -52,10 +52,13 @@ function warn(id: string, msg = '') {
 	}
 }
 
+/**
+ * @type Args = {...}
+*/
 export type Args = {
-	window: Window,
-	owner: ViewController,
-	children: (VirtualDOM | null)[],
+	window: Window, ///
+	owner: ViewController, ///
+	children: (VirtualDOM | null)[], ///
 }
 
 interface DOMConstructor<T extends DOM = DOM> {
@@ -63,6 +66,11 @@ interface DOMConstructor<T extends DOM = DOM> {
 	readonly isViewController: boolean;
 }
 
+/**
+ * @method assertDom
+ * 
+ * 检查是否合法的`VirtualDOM`类型，参数`subclass` 做为 `baseclass`类型
+*/
 export function assertDom<T extends DOM = DOM>(
 	subclass: VirtualDOM<T>, baseclass: DOMConstructor<T>, ...args: any[]
 ) {
@@ -549,30 +557,49 @@ Object.assign(DOMCollection.prototype, {ref: ''});
  * UI view controller component
  * 
  * @class ViewController
+ * @implements DOM
 */
 export class ViewController<P = {}, S = {}> implements DOM {
 	private _stateHashs = new Map<string, number>;
 	private _vdom?: VirtualDOM; // render result
 	private _rerenderCbs?: (()=>void)[]; // rerender callbacks
 	private _linkProps: string[];
+	/** [`Window`] object ref */
 	readonly window: Window;
+	/** 父控制器，当前控制器所属于 */
 	readonly owner: ViewController;
-	readonly children: (VirtualDOM | null)[]; // outer vdom children
+	/** outer vdom children */
+	readonly children: (VirtualDOM | null)[];
+	/** 当前控制器外部属性状态 */
 	readonly props: Readonly<P>;
+	/** 当前控制器状态 */
 	readonly state: Readonly<S> = {} as S;
+	/** 下属的所有引用对像 */
 	readonly refs: Readonly<Dict<ViewController | View>> = {};
+	/** 在`owner`控制器中的引用名称 */
 	readonly ref: string;
+	/** 当前控制器下的渲染DOM对像 */
 	readonly dom: DOM;
+	/** 触发Load会设置成`true` */
 	readonly isLoaded: boolean;
+	/** 触发Mounted会设置成`true` */
 	readonly isMounted: boolean;
+	/** 触发Destroy会设置成`true` */
 	readonly isDestroyd: boolean;
 
 	/**
-	 * mount point for view controller
 	 * @prop metaView
+	 * 
+	 * mount point for view controller
 	*/
 	get metaView() { return this.dom.metaView }
 
+	/**
+	 * @constructor
+	 * 
+	 * @param props {Object}
+	 * @param arg {Args}
+	*/
 	constructor(
 		props: Readonly<P & { ref?: string, key?: string|number }>,
 		{window,children,owner}: Args
@@ -583,6 +610,14 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		this.owner = owner;
 	}
 
+	/**
+	 * @method setState
+	 * 
+	 * 更新当前控制器状态，如果确实状态有改变将重新渲染控制器
+	 * 
+	 * @param newState {Object}
+	 * @param cb? {Function}
+	*/
 	setState<K extends keyof S>(newState: Pick<S, K>, cb?: ()=>void) {
 		let update = false;
 		let stateHashs = this._stateHashs;
@@ -603,6 +638,13 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		}
 	}
 
+	/**
+	 * @method update
+	 * 
+	 * 强制重新更新渲染控制器dom
+	 * 
+	 * @return {Function}
+	*/
 	update(cb?: ()=>void) {
 		if (this.isDestroyd)
 			return;
@@ -618,10 +660,24 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		}
 	}
 
+	/**
+	 * @method asDom
+	 * 
+	 * 模板方法，返回当前`dom`并做为模板`T`返回
+	 * 
+	 * @return DOM
+	*/
 	asDom<T extends ViewController | View = View>() {
 		return this.dom as T;
 	}
 
+	/**
+	 * @method asRef (ref: [`string`])
+	 * 
+	 * 模板方法，通过ref名称返回内部`DOM`引用并做为模板`T`返回
+	 * 
+	 * @return DOM
+	*/
 	asRef<T extends ViewController | View = View>(ref: string): T {
 		return this.refs[ref] as T;
 	}
@@ -630,22 +686,60 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		return 18766890;//Function.prototype.hashCode.call(this);
 	}
 
+	/**
+	 * @method triggerLoad
+	 * 
+	 * 开始第一次调用render时触发
+	*/
 	protected triggerLoad(): any {}
+
+	/**
+	 * @method triggerMounted
+	 * 
+	 * 第一次完成render调用后触发
+	*/
 	protected triggerMounted(): any {}
+
+	/**
+	 * @method triggerUpdate
+	 * 
+	 * DOM内容被更新时触发
+	*/
 	protected triggerUpdate(old: VirtualDOM, vdom: VirtualDOM): any {}
+
+	/**
+	 * @method triggerDestroy
+	 * 
+	 * 调用删除remove()后触发
+	*/
 	protected triggerDestroy(): any {}
+
+	/**
+	 * @method render
+	 * 
+	 * 渲染发生时调用返回需要渲染的对像
+	 * 
+	 * @return {RenderResult}
+	*/
 	protected render(): RenderResult {}
 
+	/**
+	 * @override
+	*/
 	appendTo(parent: View): View {
 		return this.dom.appendTo(parent);
 	}
 
+	/**
+	 * @override
+	*/
 	afterTo(prev: View): View {
 		return this.dom.afterTo(prev);
 	}
 
 	/**
 	 * Do not proactively call this method
+	 * @override
 	*/
 	destroy() {
 		if (!this.isDestroyd) {
@@ -707,7 +801,11 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 	video: view.Video,
 };
 
-// create virtual dom, jsx element
+/**
+ * @template T
+ * @method createElement(Type,props,...children)
+ * create virtual dom, jsx element
+ */
 export function createElement<T extends DOM = DOM>(
 	Type: DOMConstructor<T> | JSX.IntrinsicElementsName,
 	props: Dict | null, ...children: any[]): VirtualDOM

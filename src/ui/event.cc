@@ -154,8 +154,8 @@ namespace qk {
 		Object::release();
 	}
 
-	ActionEvent::ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t loop)
-		: UIEvent(origin), _action(action), _delay(delay), _frame(frame), _loop(loop)
+	ActionEvent::ActionEvent(Action* action, View* origin, uint64_t delay, uint32_t frame, uint32_t looped)
+		: UIEvent(origin), _action(action), _delay(delay), _frame(frame), _looped(looped)
 	{
 		action->retain();
 	}

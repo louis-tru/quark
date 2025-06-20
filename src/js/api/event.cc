@@ -129,9 +129,9 @@ namespace qk { namespace js {
 				Js_Self(ActionEvent);
 				Js_Return( self->frame() );
 			});
-			Js_Class_Accessor_Get(loop, {
+			Js_Class_Accessor_Get(looped, {
 				Js_Self(ActionEvent);
-				Js_Return( self->loop() );
+				Js_Return( self->looped() );
 			});
 			cls->exports("ActionEvent", exports);
 		}

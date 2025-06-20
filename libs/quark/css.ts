@@ -34,11 +34,17 @@ const _css = __binding__('_css');
 
 exports.CStyleSheetsClass = _css.CStyleSheetsClass;
 
+/**
+ * @type CSSNameExp
+*/
 export type CSSNameExp = `.${string}`;
 
+/**
+ * @interface StyleSheet
+*/
 export interface StyleSheet {
-	time?: number; // keyframe time or css transition time
-	curve?: types.CurveIn; // keyframe curve or css transition curve
+	time?: number; /// keyframe time or css transition time
+	curve?: types.CurveIn; /// keyframe curve or css transition curve
 	// Meta attribute
 	opacity?: number;
 	cursor?: types.CursorStyleIn;
@@ -131,12 +137,76 @@ export interface StyleSheet {
 	originY?: types.BoxOriginIn;
 }
 
+
+/**
+ * @class CStyleSheetsClass
+ * 
+ * 在视图上应用样式表名称集合
+*/
 export declare class CStyleSheetsClass {
+	/**
+	 * 设置样式集合
+	*/
 	set(name: string[] | string): void;
+	/**
+	 * 添加一个样式表类选择器名称
+	*/
 	add(name: string): void;
+	/**
+	 * 删除一个样式表类选择器名称
+	*/
 	remove(name: string): void;
+	/**
+	 * 在添加与删除之间切换
+	*/
 	toggle(name: string): void;
 }
 
+
+/**
+ * 
+ * @method createCss
+ *
+ * * `css`样式表类似于html `css`样式表，支持使用多级样式表，但只支持`class`类
+ *
+ * * 支持`3`种伪类型`normal`、`hover`、`action`
+ *
+ * 	对应[`View.onHighlighted`]事件中的 [`HighlightedStatus.Normal`] 、[`HighlightedStatus.Hover`]、[`HighlightedStatus.Active`]
+ *
+ * * 调用此方法创建样式表时，暂停所有窗口的渲染线程
+ *
+ * @param sheets {[`key`:`.${string}`]:[`StyleSheet`]}
+ * 
+ * Example:
+ * 
+ *	```ts
+ *	createCss({
+ *		'.test': {
+ *			width: '50%',
+ *			height: '50%',
+ *			backgroundColor: '#00f',
+ *		},
+ *		'.test .a': {
+ *			width: 50,
+ *			height: 50,
+ *		},
+ *		'.test .a.b': { // 这种选择器会优先级会更高
+ *			height: 60,
+ *		},
+ *		// 应用这些伪类到目标，要使用它们对目标生效，需目标视图能够接收事件
+ *		'.test:normal .a': {
+ *			backgroundColor: '#0000',
+ *			time: 1000, // 使用过渡时间
+ *		},
+ *		'.test:hover': {
+ *			backgroundColor: '#f0f',
+ *		},
+ *		'.test:hover .a': {
+ *			backgroundColor: '#f00',
+ *			time: 1000,  // 使用过渡时间
+ *		},
+ *	})
+ *	```
+ */
 export const createCss = _css.create as ((sheets: { [key: `.${string}`]: StyleSheet })=>void);
 export default createCss;

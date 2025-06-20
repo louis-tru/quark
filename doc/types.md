@@ -534,12 +534,7 @@ var cueceEaseInOut = new Curve(0.25, 0.1, 0.25, 1)
 
 [`int`]: native_types.md#int
 [`uint`]: native_types.md#uint
-[`int16`]: native_types.md#int16
-[`uint16`]: native_types.md#uint16
-[`int64`]: native_types.md#int64
-[`uint64`]: native_types.md#uint64
 [`float`]: native_types.md#float
-[`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
 [`TextAlign`]: value.md#class-textalign

@@ -37,6 +37,9 @@ import { ViewController, VirtualDOM, _CVD } from './ctr';
 const _ui = __binding__('_ui');
 type WEvent = Event<Window>;
 
+/**
+ * @interface Options
+*/
 export interface Options {
 	olorType?: number; // init window color type
 	msaa?: number; // init window gpu render msaa count
@@ -59,6 +62,10 @@ class RootViewController extends ViewController {
 	remove() { throw Error.new('Access forbidden.') }
 }
 
+/**
+ * @class NativeWindow
+ * @extends Notification
+*/
 declare class NativeWindow extends Notification<WEvent> {
 	readonly scale: number;
 	readonly defaultScale: number;
@@ -79,12 +86,49 @@ declare class NativeWindow extends Notification<WEvent> {
 	constructor(opts?: Options);
 }
 
+/**
+ * @class Window
+ * @extends NativeWindow
+*/
 export class Window extends (_ui.Window as typeof NativeWindow) {
 	@event readonly onChange: EventNoticer<WEvent>;
 	@event readonly onBackground: EventNoticer<WEvent>;
 	@event readonly onForeground: EventNoticer<WEvent>;
 	@event readonly onClose: EventNoticer<WEvent>;
 	readonly rootCtr: ViewController = new RootViewController(this);
+
+	/**
+	* @method render
+	* 通过`vdom`创建视图或视图控制器`DOM对像`
+	* 
+	* @arg `vdom` {Object} 			`VDOM`描述数据
+	* @arg `[parentView]` {[`View`]} 	传入父视图时将新创建的视图加入到它的结尾
+	* @ret {[`View`]|[`ViewController`]}
+
+	Example:
+
+	```tsx
+	import { Application, ViewController, Root, Div } from 'quark'
+	import 'quark/http'
+	class MyCtr extends ViewController {
+		triggerLoad(e) {
+			http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>(this.modle = {bf}));
+		}
+		render() {
+			return (
+				<Div width=100 height=100 backgroundColor="#f00">
+					{this.modle.bf&&this.modle.bf.toString('utf8')}
+				</Div>
+			)
+		}
+	}
+	new Application().start(
+		<Root>
+			<MyCtr message={param:10} />
+		</Root>
+	);
+	```
+	*/
 	render(vdom: VirtualDOM) {
 		let dom = vdom.newDom(this.rootCtr);
 		dom.appendTo(this.root);

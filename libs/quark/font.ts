@@ -31,13 +31,69 @@
 import * as types from './types';
 Object.assign(exports, __binding__('_font'));
 
+/**
+ * @class FontPool
+ * 
+ * 所有字体类型管理
+ * 
+ * 一个FFID表示一组字体家庭，通常在一个文本需要多个字体来表示，首先、备选、异常
+*/
 export declare class FontPool {
+	/** 当前读取的字体家族数量 */
 	readonly countFamilies: number;
+	/** 默认字体家族名称列表 */
 	readonly defaultFamilyNames: string[]
+	/** 默认字体家族名FFID */
 	readonly defaultFontFamilies: types.FFID;
+
+	/**
+	 * @method getFontFamilies
+	 * 
+	 * 通过名称获取字体FFID，多个名称使用`,`分割
+	 * 
+	 * @param families? {string}
+	 * @return {FFID}
+	 *
+	 * For examples:
+	 *	```ts
+	 *	var ffid = pool.getFontFamilies('黑体,PingFang-SC')
+	 *	console.log(getFamiliesName(ffid))
+	 *	```
+	 */
 	getFontFamilies(families?: string): types.FFID;
+
+	/**
+	 * @method addFontFamily
+	 * 添加一个外部字体数据
+	 * 
+	 * @param data {Uint8Array} 字体Buffer数据
+	 * @param alias? {string} 添加一个别名
+	*/
 	addFontFamily(data: Uint8Array, alias?: string): void;
+
+	/**
+	 * @method getFamilyName
+	 * 
+	 * 通过索引读取字体家族名称
+	 * 
+	 * @param index {uint}
+	 * @return {string}
+	*/
 	getFamilyName(index: number): string;
 }
+
+/**
+ * @method getFontFamilies
+ * 
+ * 通过名称字体家族名称获取字体家族对像FFID
+ * 
+ * @param families? {string}
+*/
 export declare function getFontFamilies(families?: string): types.FFID;
+
+/**
+ * @method getFamiliesName
+ * 
+ * 通过字体家族对像FFID获取名称
+*/
 export declare function getFamiliesName(ffid: types.FFID): string;

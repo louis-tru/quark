@@ -272,12 +272,12 @@ namespace qk {
 	}
 	
 	struct CbCore: CallbackCore<Object> {
-		CbCore(Action *a, View *v, uint32_t delay, uint32_t frame, const UIEventName &name)
+		CbCore(Action *a, View *v, uint32_t delay, uint32_t looped, uint32_t frame, const UIEventName &name)
 			: action(a->tryRetain())
 			, view(v->tryRetain())
 			, delay(delay)
 			, frame(frame)
-			, loop(a->loop())
+			, looped(looped)
 			, name(name) {}
 		~CbCore() override {
 			Release(action);
@@ -286,26 +286,26 @@ namespace qk {
 		void call(Data& e) override {
 			if (action && view) {
 				Sp<ActionEvent> h(
-					new ActionEvent(action, view, delay, frame, loop)
+					new ActionEvent(action, view, delay, frame, looped)
 				);
 				view->trigger(name, **h);
 			}
 		}
 		Action *action;
 		View   *view;
-		uint32_t delay, frame, loop;
+		uint32_t delay, frame, looped;
 		const UIEventName &name;
 	};
 
 	void Action::trigger_ActionLoop_Rt(uint32_t delay, Action* root) {
 		_window->loop()->post(Cb(new CbCore(
-			this, root->_target, delay, 0, UIEvent_ActionLoop
+			this, root->_target, delay, _looped_Rt, 0, UIEvent_ActionLoop
 		)));
 	}
 
 	void Action::trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frameIndex, Action* root) {
 		_window->loop()->post(Cb(new CbCore(
-			this, root->_target, delay, frameIndex, UIEvent_ActionKeyframe
+			this, root->_target, delay, _looped_Rt, frameIndex, UIEvent_ActionKeyframe
 		)));
 	}
 }
