@@ -257,16 +257,13 @@ export function rmdir(path: string) {
 	*	//   pathname: "file:///var/mobile/Containers/Data/Application/64DAC3FC-A4FD-4274-A2E7-B834EE4930B4/Documents/test/cp.txt",
 	*	//   type: 1
 	*	// }
-	*	fs.readdir(mydir, function(err, dirents) {
-	*		if (err) {
-	*			// Fail
-	*		} else {
-	*			for (var dirent of dirents) {
-	*				// TODO...
-	*				console.log(dirent);
-	*			}
+	*	fs.readdir(mydir).then(dirents=>{
+	*		for (var dirent of dirents) {
+	*			// TODO...
+	*			console.log(dirent);
 	*		}
-	*		console.log(dirent);
+	*	}).catch(err=>{
+	*		// Fail
 	*	});
 	*	```
 */
