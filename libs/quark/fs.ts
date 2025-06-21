@@ -33,53 +33,100 @@ import {Encoding} from './buffer';
 
 const _fs = __binding__('_fs');
 
+/**
+ * @enum FileOpenFlag
+ * 
+ * Opening file Flags
+*/
 export enum FileOpenFlag {
 	FOPEN_ACCMODE = 0o3,
+	/** 仅打开只读文件，文件必须存在 */
 	FOPEN_RDONLY = 0o0,
+	/** 仅打开只写文件，文件必须存在 */
 	FOPEN_WRONLY = 0o1,
+	/** 打开读写文件，文件必须存在 */
 	FOPEN_RDWR = 0o2,
+	/** 创建文件，如果文件不存在 */
 	FOPEN_CREAT = 0o100,
+	/** 创建文件时可执行 */
 	FOPEN_EXCL = 0o200,
+	/** No Controlling TTY */
 	FOPEN_NOCTTY = 0o400,
+	/** 清空文件内容，如果文件存在 */
 	FOPEN_TRUNC = 0o1000,
+	/** 将文件读取游标移动到结尾，如果文件存在 */
 	FOPEN_APPEND = 0o2000,
+	/** 阻塞模式, 通常使用open函数 */
 	FOPEN_NONBLOCK = 0o4000,
-	// r 打开只读文件，该文件必须存在。
+	/** r 打开只读文件，该文件必须存在。 */
 	FOPEN_R = FOPEN_RDONLY,
-	// w 打开只写文件，若文件存在则文件长度清为零，即该文件内容会消失，若文件不存在则建立该文件。
+	/** w 打开只写文件，若文件存在则文件长度清为零，即该文件内容会消失，若文件不存在则建立该文件。 */
 	FOPEN_W = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_TRUNC,
-	// a 以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，
-	//   写入的数据会被加到文件尾，即文件原先的内容会被保留。
+	/**
+	 * a 以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，
+	 *   写入的数据会被加到文件尾，即文件原先的内容会被保留。
+	 */
 	FOPEN_A = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_APPEND,
-	// r+ 打开可读写文件，该文件必须存在。
+	/** r+ 打开可读写文件，该文件必须存在。 */
 	FOPEN_RP = FOPEN_RDWR,
-	// w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。
-	//    若文件不存在则建立该文件。
+	/**
+	 * w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。
+	 *    若文件不存在则建立该文件。
+	 */
 	FOPEN_WP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_TRUNC,
-	// a+	以附加方式打开可读写的文件。若文件不存在，则会建立该文件，如果文件存在，
-	//    写入的数据会被加到文件尾后，即文件原先的内容会被保留。
+	/**
+	 * a+	以附加方式打开可读写的文件。若文件不存在，则会建立该文件，如果文件存在，
+	 *    写入的数据会被加到文件尾后，即文件原先的内容会被保留。
+	 */
 	FOPEN_AP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_APPEND,
 }
 
+/**
+ * @enum FileType
+ * 
+ * File type
+*/
 export enum FileType {
+	/** 未知类型 */
 	FTYPE_UNKNOWN,
+	/** 普通文件 (Regular File) */
 	FTYPE_FILE,
+	/** 目录 (Directory) */
 	FTYPE_DIR,
-	FTYPE_LINK, // is symlink
+	/** 符号链接文件（软链接） */
+	FTYPE_LINK,
+	/** 命名管道，一种特殊类型的文件，用于进程间通信 (IPC) */
 	FTYPE_FIFO,
+	/** 套接字 (Socket) */
 	FTYPE_SOCKET,
+	/** 无缓冲的字符设备，如：键盘鼠标(/dev/input/*)、终端 (/dev/tty*) */
 	FTYPE_CHAR,
+	/**
+	 * 提供带缓冲的、面向块（固定大小数据块）的 I/O 访问，
+	 * 如：硬盘驱动器 (/dev/sda, /dev/sda1, /dev/nvme0n1p1)
+	 */
 	FTYPE_BLOCK,
 }
 
 export declare const defaultMode: number;
 
+/**
+ * @interface Dirent
+ * 
+ * 调用 readdir/readdirSync 返回的结果
+*/
 export interface Dirent {
+	/** 文件名称 */
 	name: string;
+	/** 文件的完整路径 */
 	pathname: string;
+	/** 文件类型 */
 	type: FileType;
 }
 
+/**
+ * @class FileState
+*/
 export declare class FileStat {
 	isValid(): boolean;
 	isFile(): boolean;
