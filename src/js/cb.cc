@@ -123,7 +123,7 @@ namespace qk { namespace js {
 					auto data = &static_cast<StreamResponse*>(d.data)->value;
 					JSObject* arg = worker->newObject();
 					arg->set(worker, worker->strs()->data(), worker->newValue(data->data) );
-					arg->set(worker, worker->strs()->end(), worker->newBool(data->end) );
+					arg->set(worker, worker->strs()->ended(), worker->newBool(data->ended) );
 					arg->set(worker, worker->strs()->size(), worker->newValue(data->size) );
 					arg->set(worker, worker->strs()->total(), worker->newValue(data->total) );
 					JSValue* args[2] = { worker->newNull(), arg };

@@ -158,11 +158,11 @@ export default async function test1(win: Window) {
 	console.log('======= OK start gui =======');
 
 	win.rootCtr.asRef("view1").onActionLoop.on(e=>{
-		console.log('action loop:', e.loop, 'delay:', e.delay);
+		console.log('action loop:', e.looped, 'delay:', e.delay);
 	});
 
 	win.rootCtr.asRef("view1").onActionKeyframe.on(e=>{
-		console.log('action keyframe:', e.frame, 'loop:', e.loop, 'delay:', e.delay);
+		console.log('action keyframe:', e.frame, 'loop:', e.looped, 'delay:', e.delay);
 	})
 
 	win.root.onClick.on(e=>{

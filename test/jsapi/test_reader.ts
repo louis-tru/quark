@@ -15,7 +15,7 @@ export default async function(_: any) {
 	LOG('\nreader:\n');
 
 	await Mv(reader, 'readFile', [URL, 'utf8']);
-	await Mv(reader, 'readStream', [URL, e=>e.end]);
+	await Mv(reader, 'readStream', [URL, e=>e.ended]);
 
 	Mv(reader.readStream(FILE, e=>{}), 'abort', []);
 	Mv(reader.readStream(URL, e=>{}), 'abort', []);

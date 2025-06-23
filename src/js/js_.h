@@ -59,7 +59,7 @@ namespace qk { namespace js {
 		F(width)           F(height)         F(r) \
 		F(g)               F(b)              F(a) \
 		F(x)               F(y)              F(z) \
-		F(w)               F(end)            F(size) \
+		F(w)               F(ended)          F(size) \
 		F(toJSON)          F(status)         F(Errno) \
 		F(url)             F(id)             F(startX) \
 		F(startY)          F(force)          F(clickIn) \

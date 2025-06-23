@@ -42,7 +42,7 @@ namespace qk {
 			Buffer   &data;
 			Stream   *stream;
 			uint32_t id;
-			bool     end;
+			bool     ended;
 		};
 		virtual void pause() = 0;
 		virtual void resume() = 0;

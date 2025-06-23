@@ -108,12 +108,24 @@ export enum FileType {
 	FTYPE_BLOCK,
 }
 
+/**
+ * @field defaultMode
+ * 
+ * 创建与设置文件的默认`mode`值,这与文件的权限相关,这是一个`int`整数类型值
+*/
 export declare const defaultMode: number;
 
 /**
- * @interface Dirent
+ * @callback StreamResponseCallback(stream)void
+ * @param stream {StreamResponse}
+*/
+export type StreamResponseCallback = (stream: StreamResponse)=>void;
+
+/**
+ * @class Dirent
  * 
  * 调用 readdir/readdirSync 返回的结果
+ * 
 */
 export interface Dirent {
 	/** 文件名称 */
@@ -128,42 +140,80 @@ export interface Dirent {
  * @class FileState
 */
 export declare class FileStat {
+	/** 文件是否有效 */
 	isValid(): boolean;
+	/** 是否为普通文件 */
 	isFile(): boolean;
+	/** 是否为目录 */
 	isDir(): boolean;
+	/** 是否为符号链接 */
 	isLink(): boolean;
+	/** 是否为套接字 (Socket) */
 	isSock(): boolean;
+	/** 文件权限掩码 */
 	mode(): number;
+	/** 文件类型 */
 	type(): FileType;
+	/** 用户组ID */
 	group(): number;
+	/** 用户ID */
 	owner(): number;
+	/** 文件大小 */
 	size(): number;
+	/** 文件硬链接数量 */
 	nlink(): number;
+	/** 文件系统特定的文件“Inode”编号 */
 	ino(): number;
+	/** 用于 i/o 操作的文件系统块大小 */
 	blksize(): number;
+	/** 为此文件分配的块数 */
 	blocks(): number;
+	/** flags */
 	flags(): number;
+	/** gen */
 	gen(): number;
+	/** 包括该文件设备ID */
 	dev(): number;
+	/** 如果文件代表设备，则为数字设备标识符 */
 	rdev(): number;
+	/** 指示上次访问此文件的时间戳 */
 	atime(): number;
+	/** 指示此文件上次修改时间的时间戳 */
 	mtime(): number;
+	/** 指示文件状态上次更改的时间戳 */
 	ctime(): number;
+	/** 指示此文件创建时间的时间戳 */
 	birthtime(): number;
 }
 
+/**
+ * @class Stream
+*/
 export interface Stream {
+	/** 暂停流读取 */
 	pause(): void;
+	/** 恢复流读取 */
 	resume(): void;
 };
 
+/**
+ * @class StreamResponse
+*/
 export interface StreamResponse {
+	/** 数据大小 */
 	size: number;
+	/** 数据总大小 */
 	total: number;
+	/** 数据 */
 	data: Uint8Array;
-	end: boolean;
+	/** 是否已经结束 */
+	ended: boolean;
 }
 
+/**
+ * @class AsyncTask
+ * @extends Promise
+*/
 export class AsyncTask<T> extends Promise<T> {
 	private _resolve: any;
 	private _reject: any;
@@ -197,9 +247,17 @@ export class AsyncTask<T> extends Promise<T> {
 		this._complete = false;
 		this._id = id;
 	}
+	
+	/** 异步任务id可通过abort(id)中止运行 */
 	get id() { return this._id }
+	/** 异步任务是否完成 */
 	get complete() { return this._complete }
 
+	/**
+	 * 中止任务
+	 * @method abort(reason)
+	 * @param reason? {Error} 如果传入参数会抛出异常
+	*/
 	abort(reason?: Error): void {
 		_fs.abort(this._id);
 		if (reason) {
@@ -210,77 +268,410 @@ export class AsyncTask<T> extends Promise<T> {
 }
 
 // sync
+/**
+ * @method chmodSync(path[,mode])
+ * 
+ * 同步更改文件的权限
+ * 
+ * @param path {string}
+ * @param mode? {int}
+ * 
+ * ```ts
+ * chmodSync('my_file.txt', 0o775)
+ * ```
+*/
 export declare function chmodSync(path: string, mode?: number): void;
+
+/**
+ * @method chownSync(path,owner,group)
+ * 
+ * 同步设置文件所属用户`owner`与组`group`
+ * 
+ * @param path {string}
+ * @param owner {number}
+ * @param group {number}
+*/
 export declare function chownSync(path: string, owner: number, group: number): void;
+
+/**
+ * @method mkdirSync(path[,mode])
+ * 
+ * 同步创建目录, 如果路径已存在会抛出异常
+ * 
+ * @param path {string}
+ * @param mode? {int} **[`defaultMode`]**
+*/
 export declare function mkdirSync(path: string, mode?: number): void;
+
+/**
+ * @method mkdirsSync(path[,mode])
+ * 
+ * 同步递归创建目录，目录存在时不会抛出异常
+ * 
+ * @param path string
+ * @param mode? int **[`defaultMode`]**
+ */
 export declare function mkdirsSync(path: string, mode?: number): void;
+
+/**
+ * 同步重命名文件与目录名称
+ * 
+ * @mehod renameSync(name,newName)
+ * @param name {string}
+ * @param newName {string}
+*/
 export declare function renameSync(name: string, newName: string): void;
+
+/**
+ * 同步创建文件硬链接
+ * 
+ * @method linkSync(src,target)
+ * @param src {string} 文件原始路径
+ * @param target {string} 链接目标路径
+*/
 export declare function linkSync(src: string, target: string): void;
+
+/**
+ * 同步删除文件硬链接，如果文件只有一个链接文件将会被物理删除
+ * 
+ * @method unlinkSync(path)
+ * @param path {string}
+*/
 export declare function unlinkSync(path: string): void;
+
+/**
+ * 同步删除文件目录，文件目录必须为空
+ * 
+ * @method rmdirSync(path)
+ * @param path {string}
+*/
 export declare function rmdirSync(path: string): void;
+
+/**
+ * 同步读取文件目录文件列表
+ * 
+ * @method readdirSync(path)
+ * @param path {string}
+ * @return {Dirent[]}
+*/
 export declare function readdirSync(path: string): Dirent[];
+
+/**
+ * @method statSync(path)
+ * 
+ * 同步读取文件状态信息
+ * 
+ * @return {FileState}
+*/
 export declare function statSync(path: string): FileStat;
+
+/**
+ * 同步检查文件是否存在
+ * @method existsSync(path)
+ * @return {bool}
+*/
 export declare function existsSync(path: string): boolean;
+
+/**
+ * 同步检查是否为文件路径，如果路径不存在返回`false`
+ * @method isFileSync(path)
+ * @param path {string}
+ * @return {bool}
+*/
 export declare function isFileSync(path: string): boolean;
+
+/**
+ * 同步检查是否为目录路径，如果路径不存在返回`false`
+ * @method isDirectorySync(path)
+ * @param path {string}
+ * @return {bool}
+*/
 export declare function isDirectorySync(path: string): boolean;
+
+/**
+ * 同步检查是否为可读，如果路径不存在返回`false`
+ * @method readableSync(path)
+ * @param path {string}
+ * @return {bool}
+*/
 export declare function readableSync(path: string): boolean;
+
+/**
+ * 同步检查是否为可写，如果路径不存在返回`false`
+ * @method writableSync(path)
+ * @param path {string}
+ * @return {bool}
+*/
 export declare function writableSync(path: string): boolean;
+
+/**
+ * 同步检查是否为可执行，如果路径不存在返回`false`
+ * @method executableSync(path)
+ * @param path {string}
+ * @return {bool}
+*/
 export declare function executableSync(path: string): boolean;
+
+/**
+ * 
+ * @mehod chmodRecursionSync(path[,mode])
+ * 
+ * 同步递归设置文件的权限属性mode（TODO: 会柱塞调用线程，请谨慎使用）
+ * 
+ * @param path {string}
+ * @param mode? {int} **[`defaultMode`]**
+ * 
+ * Example:
+ * 
+ * ```ts
+ * fs.chmodRecursionSync(mypath, 0755);
+ * ```
+*/
 export declare function chmodRecursionSync(path: string, mode?: number): void;
+
+/**
+ * @method chownRecursionSync(path,owner,group)
+ * 
+ * 同步递归设置文件owner与group属性（TODO: 会柱塞调用线程，请谨慎使用）
+ * 
+ * @param path string
+ * @param owner int 操作系统用户id
+ * @param group int 操作系统组id
+ */
 export declare function chownRecursionSync(path: string, owner: number, group: number): void;
+
+/**
+ * 
+ * @method removeRecursionSync(path)
+ * 
+ * 同步递归删除目录或文件,在javascript中谨慎使用这个方法,有可能会造成线程长时间被柱塞
+ * 
+ * @param path {string}
+ */
 export declare function removeRecursionSync(path: string): void;
+
+/**
+ * @method copyRecursionSync(path,target)
+ * 
+ * 同步递归拷贝文件,在javascript中谨慎使用这个方法,有可能会造成线程长时间被柱塞
+ *
+ * @param path strings
+ * @param target string
+ * 
+ */
 export declare function copyRecursionSync(path: string, target: string): void;
+
+/**
+ * @method copySync
+ * 
+ * 同步拷贝文件（TODO: 会柱塞调用线程，请谨慎使用）
+ * 
+ * 同：拷贝文件与目录[`copyRecursionSync(path，target)`]
+ * 
+ * @param path string
+ * @param target string
+*/
 export declare function copySync(path: string, target: string): void;
+
 // read/write file sync
+/**
+ * @method writeFileSync(path,data[,size])
+ * 
+ * 同步写入数据到文件
+ * 
+ * @param path {string}
+ * @param data {Uint8Array}
+ * @param size? {uint} 不传入参数时写入全部数据
+*/
 export declare function writeFileSync(path: string, data: Uint8Array, size?: number): number;
+
+/**
+ * @method writeFileSync(path,data[,encoding])
+ * 
+ * 同步写入字符串到文件
+ * 
+ * @param path {string}
+ * @param data {string}
+ * @param encoding? {Encoding} 如果不传入默认使用`utf-8`编码字符串
+*/
 export declare function writeFileSync(path: string, data: string, encoding?: Encoding): number;
+
+/**
+ * @method readFileSync(path)
+ * 
+ * 同步读取文件
+ * 
+ * @param path {string}
+ * @return {Uint8Array}
+*/
 export declare function readFileSync(path: string): Uint8Array;
-export declare function readFileSync(path: string, encoding?: Encoding): string;
+
+/**
+ * @method readFileSync(path,encoding)
+ * 
+ * 同步读取文件为字符串
+ * 
+ * @param path {string}
+ * @param encoding {Encoding} 解码数据到字符串的编码
+ * @return {string}
+*/
+export declare function readFileSync(path: string, encoding: Encoding): string;
+
+/**
+ * @method openSync(path[,flags])
+ * 
+ * 同步方式通过路径打开文件，并返回打开的文件句柄
+ * 
+ * @param path {string}
+ * @param flags? {FileOpenFlag} 打开文件标志掩码
+ * @return {uint}
+*/
 export declare function openSync(path: string, flags?: FileOpenFlag /*= FileOpenFlag.FOPEN_R*/): number;
-export declare function closeSync(path: number): void;
+
+/**
+ * @method closeSync(fd)
+ * 
+ * 同步方式关闭文件句柄
+*/
+export declare function closeSync(fd: number): void;
+
+/**
+ * @method readSync(fd,out[,size[,offsetFd]])
+ * 
+ * 同步读取文件内容从文件句柄
+ * 
+ * @param fd {uint} 打开的文件句柄
+ * @param out {Uint8Array} 读取文件并保存到这里
+ * @param size? {int} 不传入或传入`-1`时使用`out`参数的长度
+ * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次读取后将向前进）
+ * @return {uint} 返回数据实际读取的大小
+*/
 export declare function readSync(fd: number, out: Uint8Array, size?: number /*= -1*/, offsetFd?: number /*= -1*/): number;
+
+/**
+ * @method writeSync(fd,data[,size[,offsetFd]])
+ * 
+ * 同步写入数据到文件句柄
+ * 
+ * @param fd {uint} 打开的文件句柄
+ * @param data {Uint8Array} 要写入的数据
+ * @param size? {int} 不传入或传入`-1`时写入全部数据
+ * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次写入后将向前进）
+ * @return {uint} 写入数据的实际大小
+*/
 export declare function writeSync(fd: number, data: Uint8Array, size?: number /*= -1*/, offsetFd?: number /*= -1*/): number;
+
+/**
+ * @method writeSync(fd,data[,offsetFd])
+ * 
+ * 同步写入数据到文件句柄,并且使用`utf-8`对数据进行编码
+ * 
+ * @param fd {uint} 打开的文件句柄
+ * @param data {string} 要写入的字符串
+ * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次写入后将向前进）
+ * @return {uint} 写入数据的实际大小
+*/
 export declare function writeSync(fd: number, data: string, offsetFd?: number /*= -1*/): number;
-export declare function writeSync(fd: number, data: string, encoding?: Encoding, offsetFd?: number /*= -1*/): number;
+
+/**
+ * @method writeSync(fd,data,encoding[,offsetFd])
+ * 
+ * 同步写入数据到文件句柄
+ * 
+ * @param fd {uint} 打开的文件句柄
+ * @param data {string} 要写入的数据
+ * @param encoding {Encoding} 编码类型
+ * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次写入后将向前进）
+ * @return {uint} 写入数据的实际大小
+*/
+export declare function writeSync(fd: number, data: string, encoding: Encoding, offsetFd?: number /*= -1*/): number;
 
 Object.assign(exports, {..._fs, ...exports});
 
 // async
+/**
+ * Please ref: sync method [`chmodSync(path[,mode])`]
+*/
 export function chmod(path: string, mode: number = _fs.defaultMode) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.chown(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * Please ref: sync method [`chownSync(path,owner,group)`]
+*/
 export function chown(path: string, owner: number, group: number) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.chown(path, owner, group, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * Please ref: sync method [`mkdirSync(path[,mode])`]
+*/
 export function mkdir(path: string, mode: number = _fs.defaultMode) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.mkdir(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * @method mkdirs(path[,mode])
+ * 
+ * 递归创建目录，这个方法会依次创建目录树,目录存在也不会抛出异常
+ * 
+ * Ref: sync method [`mkdirsSync(path[,mode])`]
+ * 
+ * @arg path string
+ * @arg mode? {int} **[`defaultMode`]**
+ * @return {Promise}
+ * 
+ * Example:
+ * ```ts
+ * fs.mkdirs(mypath).then(()=>{
+ * 	// Success
+ * }).catch(err=>{
+ * 	// Fail
+ * });
+ * ```
+ */
 export function mkdirs(path: string, mode: number = _fs.defaultMode) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.mkdirs(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * Please ref: sync method [`renameSync(name,newName)`]
+*/
 export function rename(name: string, newName: string) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.rename(name, newName, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * Please ref: sync method [`linkSync(src,target)`]
+*/
 export function link(src: string, target: string) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.link(src, target, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * Please ref: sync method [`unlinkSync(path)`]
+*/
 export function unlink(path: string) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.unlink(path, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * Please ref: sync method [`rmdirSync(path)`]
+*/
 export function rmdir(path: string) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.rmdir(path, (err?: Error)=>err?reject(err):resolve());
@@ -297,7 +688,7 @@ export function rmdir(path: string) {
 	*
 	*	Example:
 	*
-	*	```js
+	*	```ts
 	*	// Prints:
 	*	// {
 	*	//   name: "cp.txt",
@@ -319,68 +710,201 @@ export function readdir(path: string) {
 		_fs.readdir(path, (err?: Error, r?: Dirent[])=>err?reject(err):resolve(r as Dirent[]));
 	});
 }
+
+/**
+ * Please ref: sync method [`statSync(path)`]
+*/
 export function stat(path: string) {
 	return new Promise<FileStat>(function(resolve, reject) {
 		_fs.stat(path, (err?: Error, r?: FileStat)=>err?reject(err):resolve(r as FileStat));
 	});
 }
+
+/**
+ * Please ref: sync method [`existsSync(path)`]
+*/
 export function exists(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.exists(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
+
+/**
+ * Please ref: sync method [`isFileSync(path)`]
+*/
 export function isFile(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.isFile(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
+
+/**
+ * Please ref: sync method [`isDirectorySync(path)`]
+*/
 export function isDirectory(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.isDirectory(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
+
+/**
+ * Please ref: sync method [`readableSync(path)`]
+*/
 export function readable(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.readable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
+
+/**
+ * Please ref: sync method [`writableSync(path)`]
+*/
 export function writable(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.writable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
+
+/**
+ * Please ref: sync method [`executableSync(path)`]
+*/
 export function executable(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.executable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
+
+/**
+ * @method chmodRecursion(path[,mode])
+ * 
+ * 异步递归设置文件或目录`mode`属性
+ *
+ * @param path {string}
+ * @param mode? {int} **[`defaultMode`]**
+ * @return {AsyncTask}
+ * 
+ * Example:
+ * 
+ * ```ts
+ * // `mypath`为文件路径,可以为文件也可以为目录
+ * fs.chmodR(mypath, 0755).then(function() {
+ * 	console.log('Success');
+ * }).catch(err=>{
+ * 	console.log('Fail');
+ * });
+ * var id = fs.chmodR(mydir, 0775);
+ * fs.abort(id);
+ * ```
+ */
 export function chmodRecursion(path: string, mode: number = _fs.defaultMode) {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.chmodRecursion(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ *
+ * @method chownRecursion(path,owner,group)
+ * 
+ * 异步递归设置文件或目录`owner`与`group`属性
+ * 
+ * @param path {string}
+ * @param owner {int}
+ * @param group {int}
+ * @return {AsyncTask}
+ * 
+ * Example:
+ * 
+ * ```ts
+ * var task = chownRecursion(mypath, 501, 501);
+ * fs.abort(task.id); // force abort task
+ * ```
+ */
 export function chownRecursion(path: string, owner: number, group: number) {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.chownRecursion(path, owner, group, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * @method removeRecursion(path)
+ * 
+ * 递归删除文件与目录
+ *
+ * @param path {string}
+ * @return {AsyncTask}
+ * 
+ * Example:
+ * ```ts
+ * var task = fs.removeRecursion(mypath);
+ * task.then(()=>{
+ * 	// Success
+ * }).catch(err=>{
+ * 	// Fail
+ * });
+ * // 通过id可中止删除任务
+ * fs.abort(task.id);
+```
+*/
 export function removeRecursion(path: string) {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.removeRecursion(path, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * @method copyRecursion(path,target)
+ * 
+ * 递归拷贝文件
+ *
+ * `copyRecursion()`与`copy()`区别在于，`copy()`只能拷贝单个文件
+ *
+ * @param path string
+ * @param target string
+ * @return {AsyncTask}
+ * 
+ * Example:
+ * ```ts
+ * fs.copy(source, target).then(()=>{
+ * 	// Success
+ * }).catch(err=>{
+ * 	// Fail
+ * });
+ * ```
+ */
 export function copyRecursion(path: string, target: string) {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.copyRecursion(path, target, (err?: Error)=>err?reject(err):resolve());
 	});
 }
+
+/**
+ * @method copy(path,target)
+ * 
+ * 拷贝单个文件
+ * 
+ * Ref: [`copyRecursion(path,target)`]
+ * 
+ * @param path {string}
+ * @param target {string}
+ * @return {AsyncTask}
+*/
 export function copy(path: string, target: string) {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.copy(path, target, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 
-export function readStream(path: string, cb: (stream: StreamResponse)=>void): AsyncTask<void> {
+/**
+ * @method readStream(path,cb)
+ * 
+ * 使用异步流方式读取文件内容
+ * 
+ * @param path {string} 读取目标路径
+ * @param cb {StreamResponseCallback} 异步流回调函数
+ * @return {AsyncTask}
+*/
+export function readStream(path: string, cb: StreamResponseCallback): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject): number {
 		return _fs.readStream(function(err?: Error, r?: StreamResponse) {
 			if (err) {
@@ -388,7 +912,7 @@ export function readStream(path: string, cb: (stream: StreamResponse)=>void): As
 			} else {
 				let stream = r!;
 				cb(stream);
-				if (stream.end) {
+				if (stream.ended) {
 					resolve();
 				}
 			}
@@ -396,35 +920,194 @@ export function readStream(path: string, cb: (stream: StreamResponse)=>void): As
 	});
 }
 
+/**
+ * @method abort(id)
+ * 
+ * 通过`id`强制中止运行中的异步任务
+ * 
+ * 如果传入无意义的`id`或`id`所属的任务已经完成，不做任何处理
+ * 
+ * @param id {int}
+ * 
+ * Example:
+ * 
+ * ```ts
+ * var a = fs.chmod(mypath, 0o755);
+ * var b = fs.chown(mypath, 501, 501);
+ * var c = fs.copy(mypath, newpath);
+ * // force abort task
+ * fs.abort(a.id);
+ * fs.abort(b.id);
+ * fs.abort(c.id);
+ * ```
+*/
 export declare function abort(id: number): void;
 
 // async
+/**
+ * Please ref: sync method [`writeFileSync(path,data[,size])`]
+*/
 export declare function writeFile(path: string, data: Uint8Array, size?: number): Promise<number>;
-export declare function writeFile(path: string, data: string, encoding?: Encoding): Promise<number>;
-export declare function readFile(path: string): Promise<Uint8Array>;
-export declare function readFile(path: string, encoding?: Encoding): Promise<string>;
-export declare function open(path: string, flags?: FileOpenFlag): Promise<number>;
-export declare function close(path: number): Promise<void>;
-export declare function read(fd: number, out: Uint8Array, size?: number, offsetFd?: number): Promise<number>;
-export declare function write(fd: number, data: Uint8Array, size?: number, offsetFd?: number): Promise<number>;
-export declare function write(fd: number, data: string, offsetFd?: number): Promise<number>;
-export declare function write(fd: number, data: string, encoding?: Encoding, offsetFd?: number): Promise<number>;
 
-// reader
+/**
+ * Please ref: sync method [`writeFileSync(path,data[,encoding])`]
+*/
+export declare function writeFile(path: string, data: string, encoding?: Encoding): Promise<number>;
+
+/**
+ * Please ref: sync method [`readFileSync(path)`]
+*/
+export declare function readFile(path: string): Promise<Uint8Array>;
+
+/**
+ * Please ref: sync method [`readFileSync(path,encoding)`]
+*/
+export declare function readFile(path: string, encoding: Encoding): Promise<string>;
+
+/**
+ * Please ref: sync method [`openSync(path[,flags])`]
+*/
+export declare function open(path: string, flags?: FileOpenFlag): Promise<number>;
+
+/**
+ * Please ref: sync method [`closeSync(fd)`]
+*/
+export declare function close(path: number): Promise<void>;
+
+/**
+ * Please ref: sync method [`readSync(fd,out[,size[,offsetFd]])`]
+*/
+export declare function read(fd: number, out: Uint8Array, size?: number, offsetFd?: number): Promise<number>;
+
+/**
+ * Please ref: sync method [`writeSync(fd,data[,size[,offsetFd]])`]
+*/
+export declare function write(fd: number, data: Uint8Array, size?: number, offsetFd?: number): Promise<number>;
+
+/**
+ * Please ref: sync method [`writeSync(fd,data[,offsetFd])`]
+*/
+export declare function write(fd: number, data: string, offsetFd?: number): Promise<number>;
+
+/**
+ * Please ref: sync method [`writeSync(fd,data,encoding[,offsetFd])`]
+*/
+export declare function write(fd: number, data: string, encoding: Encoding, offsetFd?: number): Promise<number>;
+
+/**
+ * @interface Reader
+ * 
+ * 读取器，这个接口不只是处理本地路径，还可以处理网络路径、zip包内路径
+ * 如:
+ * 	file:///home/xxx/test.txt
+ * 	http://xxx.com/test.txt
+ * 	zip:///home/xxxx/aaa.zip@/test.txt
+ */
 export interface Reader {
+
+	/**
+	 * @method readFile(path)
+	 * 
+	 * 读取文件数据
+	 * 
+	 * @param path {string}
+	 * @return {AsyncTask<Uint8Array>}
+	 * 
+	 * For Example:
+	 * 
+	 * ```ts
+	 * reader.readFile('http://xxx.com/test.txt').then(()=>{
+	 * 	// Success
+	 * }).catch(err=>{
+	 * 	// Fail
+	 * })
+	 * ```
+	*/
 	readFile(path: string): AsyncTask<Uint8Array>;
+
+	/**
+	 * @method readFile(path,encoding)
+	 * 
+	 * 读取文件数据，并解码为字符串
+	 * 
+	 * @param path {string}
+	 * @param encoding {Encoding}
+	 * @return AsyncTask<string>
+	*/
 	readFile(path: string, encoding: Encoding): AsyncTask<string>;
-	readStream(path: string, cb: (stream: StreamResponse)=>void): AsyncTask<void>;
+
+	/**
+	 * @method readFile(path,encoding)
+	 * 
+	 * 以异步流方式读取文件数据
+	 * 
+	 * @param path {string}
+	 * @param cb {StreamResponseCallback}
+	 * @return AsyncTask<void>
+	*/
+	readStream(path: string, cb: StreamResponseCallback): AsyncTask<void>;
+
+	/**
+	 * Please ref: method [`Reader.readFile(path)`]
+	*/
 	readFileSync(path: string): Uint8Array;
+
+	/**
+	 * Please ref: method [`Reader.readFile(path,encoding)`]
+	*/
 	readFileSync(path: string, encoding: Encoding): string;
+
+	/**
+	 * @method existsSync(path)
+	 * 同步检查文件是否存在
+	 * 
+	 * @param path {string}
+	 * @return {bool}
+	*/
 	existsSync(path: string): boolean;
+
+	/**
+	 * @method existsSync(path)
+	 * 同步检查路径是否为文件，如果路径不存在返回 `false`
+	 * 
+	 * @param path {string}
+	 * @return {bool}
+	*/
 	isFileSync(path: string): boolean;
+
+	/**
+	 * @method existsSync(path)
+	 * 同步检查路径是否为目录，如果路径不存在返回 `false`
+	 * 
+	 * @param path {string}
+	 * @return {bool}
+	*/
 	isDirectorySync(path: string): boolean;
+
+	/**
+	 * @method readdirSync(path)
+	 * 同步读取目录文件列表
+	 * 
+	 * @param path {string}
+	 * @return {Dirent[]}
+	*/
 	readdirSync(path: string): Dirent[];
+
+	/**
+	 * @method abort(id) 通过`id`中止异步任务
+	 * @param id {uint}
+	*/
 	abort(id: number): void;
-	clear(): void; // clear cache
+
+	/**
+	 * @method clear() To clear cache of reader
+	*/
+	clear(): void;
 }
 
+/**
+ * @field reader
+*/
 export const reader: Reader = {
 	..._fs.reader,
 	readFile: function(...args: any[]) {
@@ -440,7 +1123,7 @@ export const reader: Reader = {
 				} else {
 					let stream = r!;
 					cb(stream);
-					if (stream.end) {
+					if (stream.ended) {
 						resolve();
 					}
 				}

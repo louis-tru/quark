@@ -172,8 +172,8 @@ async function test_5() {
 	await Mv(http, 'request', [{
 		url: 'https://www.baidu.com/',
 		method: HttpMethod.GET, disableSslVerify: true, disableCache: true, disableCookie: true,}], e=>e.statusCode==200)
-	await Mv(http, 'requestStream', [{ url: 'https://www.baidu.com/' }, d=>LOG('requestStream:', d.data, 'complete:', d.end)])
-	await Mv(http, 'getStream', ['https://www.baidu.com/', d=>LOG('requestStream:', d.data, 'complete:', d.end)]);
+	await Mv(http, 'requestStream', [{ url: 'https://www.baidu.com/' }, d=>LOG('requestStream:', d.data, 'complete:', d.ended)])
+	await Mv(http, 'getStream', ['https://www.baidu.com/', d=>LOG('requestStream:', d.data, 'complete:', d.ended)]);
 	Mv(http, 'requestSync', [{ url: 'https://www.baidu.com/' }])
 	await Mv(http, 'download', ['https://www.baidu.com/', path.documents('down.html')], e=>fs.existsSync(path.documents('down.html')))
 	Mv(http, 'downloadSync', ['https://www.baidu.com/', path.documents('down2.html')], e=>fs.existsSync(path.documents('down2.html')))
