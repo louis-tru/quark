@@ -109,7 +109,7 @@ export enum FileType {
 }
 
 /**
- * @field defaultMode
+ * @const defaultMode
  * 
  * 创建与设置文件的默认`mode`值,这与文件的权限相关,这是一个`int`整数类型值
 */
@@ -996,12 +996,31 @@ export declare function write(fd: number, data: string, encoding: Encoding, offs
 
 /**
  * @interface Reader
+ *
+ * 这里提供的方法可以针对不同协议的uri路径进行基本的读取操作
  * 
- * 读取器，这个接口不只是处理本地路径，还可以处理网络路径、zip包内路径
- * 如:
- * 	file:///home/xxx/test.txt
- * 	http://xxx.com/test.txt
- * 	zip:///home/xxxx/aaa.zip@/test.txt
+ * 现在支持的路径类型：
+ * 
+ * * `http://` or `https://` - 可使用同步或异步方式进行读取,但不能读取目录或测试存在, 
+ * `readdirSync()`返回空数组而`isFileSync()`永远返回`false`。
+ * 
+ * * `file://` 本地文件路径。`/var/data` or `var/data` 都可做为本地路径，并不会出错。
+ * 
+ * * `zip://`	这是`zip`包内路径的一种表示方法，`zip:///var/data/test.zip@/a.txt` 
+ * 这个路径表示`zip:///var/data/test.zip`中的`a.txt`文件。注意这个路径一定要存在于本地文件系统中
+ *
+ * 
+ * The methods provided here can perform basic read operations on URI paths of different protocols
+ *
+ * Currently supported path types:
+ *
+ * * `http://` or `https://` - can be read synchronously or asynchronously, but cannot read directories or test existence,
+ * `readdirSync()` returns an empty array and `isFileSync()` always returns `false`.
+ *
+ * * `file://` local file path. `/var/data` or `var/data` can be used as local paths without error.
+ *
+ * * `zip://` This is a way to represent the path in the `zip` package, `zip:///var/data/test.zip@/a.txt`
+ * This path represents the `a.txt` file in `zip:///var/data/test.zip`. Note that this path must exist in the local file system
  */
 export interface Reader {
 
@@ -1009,6 +1028,8 @@ export interface Reader {
 	 * @method readFile(path)
 	 * 
 	 * 读取文件数据
+	 * 
+	 * Reading file data
 	 * 
 	 * @param path {string}
 	 * @return {AsyncTask<Uint8Array>}
@@ -1030,20 +1051,36 @@ export interface Reader {
 	 * 
 	 * 读取文件数据，并解码为字符串
 	 * 
+	 * Read file data and decode it into a string
+	 * 
 	 * @param path {string}
 	 * @param encoding {Encoding}
-	 * @return AsyncTask<string>
+	 * @return {AsyncTask<string>}
 	*/
 	readFile(path: string, encoding: Encoding): AsyncTask<string>;
 
 	/**
-	 * @method readFile(path,encoding)
+	 * @method readStream(path,cb)
 	 * 
 	 * 以异步流方式读取文件数据
 	 * 
+	 * Read file data by asynchronous streaming
+	 * 
 	 * @param path {string}
 	 * @param cb {StreamResponseCallback}
-	 * @return AsyncTask<void>
+	 * @return {AsyncTask<void>}
+	 * 
+	 * Example:
+	 * 
+	 * ```ts
+	 * // async read file stream 
+	 * reader.readStream('http://www.baidu.com', function(d){}));
+	 * reader.readStream('file:///var/data/test.txt', function(d){}));
+	 * reader.readStream('zip:///var/data/test.zip@aa.txt', function(d){
+	 * 	// Success
+	 * 	console.log(d.data.length, d.ended);
+	 * });
+	 * ```
 	*/
 	readStream(path: string, cb: StreamResponseCallback): AsyncTask<void>;
 
@@ -1059,7 +1096,12 @@ export interface Reader {
 
 	/**
 	 * @method existsSync(path)
-	 * 同步检查文件是否存在
+	 * 
+	 * 同步测试文件或目录是否存在，如果文件存在会返回`false`
+	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回`false`
+	 * 
+	 * Synchronously test whether a file or directory exists. If the file exists, it will return `false`
+	 * This method cannot handle paths of the `http://` and `https://` type. If such a path is passed, it will immediately return `false`
 	 * 
 	 * @param path {string}
 	 * @return {bool}
@@ -1067,8 +1109,13 @@ export interface Reader {
 	existsSync(path: string): boolean;
 
 	/**
-	 * @method existsSync(path)
+	 * @method isFileSync(path)
+	 * 
 	 * 同步检查路径是否为文件，如果路径不存在返回 `false`
+	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回`false`
+	 * 
+	 * Synchronously check if the path is a file, and return `false` if the path does not exist
+	 * This method cannot handle `http://` and `https://` type paths, and immediately returns `false` if such a path is passed
 	 * 
 	 * @param path {string}
 	 * @return {bool}
@@ -1076,8 +1123,13 @@ export interface Reader {
 	isFileSync(path: string): boolean;
 
 	/**
-	 * @method existsSync(path)
+	 * @method isDirectorySync(path)
+	 * 
 	 * 同步检查路径是否为目录，如果路径不存在返回 `false`
+	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回`false`
+	 * 
+	 * Synchronously check if the path is a directory, and return `false` if the path does not exist
+	 * This method cannot handle `http://` and `https://` type paths, and immediately returns `false` if such a path is passed in
 	 * 
 	 * @param path {string}
 	 * @return {bool}
@@ -1086,7 +1138,14 @@ export interface Reader {
 
 	/**
 	 * @method readdirSync(path)
-	 * 同步读取目录文件列表
+	 * 
+	 * 同步读取目录文件列表,
+	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回一个空数组[`Array`],
+	 * 这个方法也不会抛出异常，如果不能读取路径，只会返回空数组[`Array`]
+	 * 
+	 * Synchronously read the directory file list,
+	 * This method cannot handle `http://` and `https://` type paths. If such a path is passed, an empty array [`Array`] will be immediately returned.
+	 * This method will not throw an exception. If the path cannot be read, it will only return an empty array [`Array`]
 	 * 
 	 * @param path {string}
 	 * @return {Dirent[]}
@@ -1106,7 +1165,7 @@ export interface Reader {
 }
 
 /**
- * @field reader
+ * @const reader
 */
 export const reader: Reader = {
 	..._fs.reader,

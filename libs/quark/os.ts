@@ -30,32 +30,133 @@
 
 const _os = __binding__('_os');
 
+/**
+ * @enum NetworkInterface
+*/
 export enum NetworkInterface {
-	kNone,
-	kETH,
-	kWifi,
-	kMobile, // mobile
-	k2G, // 2G
-	k3G, // 3G
-	k4G, // 4G
-	k5G, // 5G
+	kNone, /// None
+	kETH, /// Ethernet
+	kWifi, // Wifi
+	kMobile, /// Mobile
+	k2G, /// Mobile 2G
+	k3G, /// Mobile 3G
+	k4G, /// Mobile 4G
+	k5G, /// Mobile 5G
 }
+
+/**
+ * @method arch() Get CPU arch type
+ * @return {string}
+*/
 export declare function arch(): string;
+
+/**
+ * @method name() Get OS name, For: `Android`/`iOS`/`MacOSX`/`Linux`
+ * @return {string}
+*/
 export declare function name(): string;
+
+/**
+ * @method version() Get OS version info
+ * @return {string}
+*/
 export declare function version(): string;
+
+/**
+ * @method brand() Get the Device brand, For: Apple/Huawei
+ * @return {string}
+*/
 export declare function brand(): string;
+
+/**
+ * @method model() Get OS model, iPad‌/iPhone‌/Mac16,10
+ * @return {string}
+*/
 export declare function model(): string;
+
+/**
+ * @method info() Get OS information
+ * @return {string}
+ * 
+ * Example:
+ * 
+ * ```ts
+ * // Prints:
+ * // sysname: Louis-iPhone
+ * // sysname: Darwin
+ * // machine: iPhone7,2
+ * // nodename: Louis-iPhone
+ * // version: Darwin Kernel Version 16.6.0: Mon Apr 17 17:33:35 PDT 2017; root:xnu-3789.60.24~24/RELEASE_ARM64_T7000
+ * // release: 16.6.0
+ * console.log(os.info());
+ * ```
+*/
 export declare function info(): string;
+
+/**
+ * @method languages() Get List of OS supported languages, May value is `'en-us'`|`'zh-cn'`|`'zh-tw'`
+ * @return {string[]}
+*/
 export declare function languages(): string[];
+
+/**
+ * @method isWifi() Is it a wifi network type?
+ * @return {bool}
+*/
 export declare function isWifi(): boolean;
+
+/**
+ * @method isMobile() Is it a mobile network type?
+ * @return {bool}
+*/
 export declare function isMobile(): boolean;
+
+/**
+ * @method networkInterface() Get the network interface
+ * @return {NetworkInterface}
+*/
 export declare function networkInterface(): NetworkInterface;
+
+/**
+ * @method isAcPower() Is there an external power supply connected?
+ * @return {bool}
+*/
 export declare function isAcPower(): boolean;
+
+/**
+ * @method isBattery() Is there a battery device?
+ * @return {bool}
+*/
 export declare function isBattery(): boolean;
+
+/**
+ * @method batteryLevel() Get battery power percentage if have a battery
+ * @return {float} range 0 to 1
+*/
 export declare function batteryLevel(): number;
+
+/**
+ * @method memory() Get the memory total
+ * @return {uint}
+*/
 export declare function memory(): number;
+
+/**
+ * @method memory() Get the used memory size
+ * @return {uint}
+*/
 export declare function usedMemory(): number;
+
+/**
+ * @method memory() Get the available memory size
+ * @return {uint}
+*/
 export declare function availableMemory(): number;
+
+/**
+ * @method memory() Get CPU usage percentage
+ * @return {float}
+*/
 export declare function cpuUsage(): number;
 
 Object.assign(exports, _os);

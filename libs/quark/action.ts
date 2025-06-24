@@ -315,7 +315,7 @@ export function createAction(win: Window, arg: ActionIn, parent?: Action) {
 }
 
 /**
- * @function ActionCb (e: ActionEvent): void
+ * @methodtion ActionCb (e: ActionEvent): void
 */
 export type ActionCb = (e: ActionEvent)=>void;
 

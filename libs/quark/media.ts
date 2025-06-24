@@ -31,42 +31,81 @@
 import util from './util';
 import event, { EventNoticer, NativeNotification, Notification, Event } from './event';
 
+/**
+ * @enum MediaType
+*/
 export enum MediaType {
+	/** Video type */
 	kVideo = 1,
+	/** Audio type */
 	kAudio,
 }
 
+/**
+ * @enum MediaSourceStatus
+*/
 export enum MediaSourceStatus {
+	/** Normal status, Uninitialized */
 	kNormal = 0,
+	/** Opening status */
 	kOpening,
+	/** Playing status */
 	kPlaying,
+	/** Paused status */
 	kPaused,
+	/** Error status */
 	kError,
+	/** EOF, end status */
 	kEOF,
 };
 
+/**
+ * @enum AudioChannelLayoutMask
+*/
 export enum AudioChannelLayoutMask {
+	/** none */
 	kInvalid                = 0,
+	/** front left */
 	kFront_Left             = 0x00000001,
+	/** front right */
 	kFront_Right            = 0x00000002,
+	/** front center */
 	kFront_Center           = 0x00000004,
+	/** low frequency */
 	kLow_Frequency          = 0x00000008,
+	/** back left */
 	kBack_Left              = 0x00000010,
+	/** back right */
 	kBack_Right             = 0x00000020,
+	/** front left of center */
 	kFront_Left_Of_Center   = 0x00000040,
+	/** front right of center */
 	kFront_Right_Of_Center  = 0x00000080,
+	/** back center */
 	kBack_Center            = 0x00000100,
+	/** side left */
 	kSide_Left              = 0x00000200,
+	/** side right */
 	kSide_Right             = 0x00000400,
+	/** top center */
 	kTop_Center             = 0x00000800,
+	/** top front left */
 	kTop_Front_Left         = 0x00001000,
+	/** top front center */
 	kTop_Front_Center       = 0x00002000,
+	/** top front right */
 	kTop_Front_Right        = 0x00004000,
+	/** top back left */
 	kTop_Back_Left          = 0x00008000,
+	/** top back center */
 	kTop_Back_Center        = 0x00010000,
+	/** top back right */
 	kTop_Back_Right         = 0x00020000,
 };
 
+/**
+ * @interface Stream
+*/
 export interface Stream {
 	type: MediaType;          /* type */
 	mime: string;             /* mime type */
@@ -89,32 +128,149 @@ export interface Stream {
 	hashCode: number;         /* key params hash code */
 }
 
+/**
+ * @interface Player
+*/
 export interface Player {
+	/**
+	 * @prop pts Current the presentation timestamp
+	 * @get
+	*/
 	readonly pts: number;
+
+	/**
+	 * @prop volume get/set audio volume
+	*/
 	volume: number;
+
+	/**
+	 * @prop mute get/set audio mute
+	*/
 	mute: boolean;
+
+	/**
+	 * @attr isPause get is paused
+	 * @get
+	*/
 	readonly isPause: boolean;
+
+	/**
+	 * @attr type get media type
+	 * @get
+	*/
 	readonly type: MediaType;
+
+	/**
+	 * @attr duration media play duration
+	 * @get
+	*/
 	readonly duration: number;
+
+	/**
+	 * @attr status The playback status of the current media source
+	 * @get
+	*/
 	readonly status: MediaSourceStatus;
+
+	/**
+	 * @attr src set/get media source path
+	*/
 	src: string;
+
+	/**
+	 * @attr video The currently playing video stream
+	 * @get
+	*/
 	readonly video: Stream | null;
+
+	/**
+	 * @attr audio The currently playing audio stream
+	 * @get
+	*/
 	readonly audio: Stream | null;
+
+	/**
+	 * @attr audioStreams Get the number of audio tracks in the current media source
+	 * @get
+	*/
 	readonly audioStreams: number;
+
+	/**
+	 * @method play()
+	 * Start play media
+	*/
 	play(): void;
+
+	/**
+	 * @method pause()
+	 * Pause play media
+	*/
 	pause(): void;
+
+	/**
+	 * @method stop()
+	 * Stop play media
+	*/
 	stop(): void;
+
+	/**
+	 * @method seek(timeMs)
+	 * Jump the current media source to the specified position
+	 * 
+	 * @param timeMs {uint}
+	*/
 	seek(timeMs: number): void;
+
+	/**
+	 * @method switchAudio(index)
+	 * 
+	 * Switch the currently playing audio by track index
+	 * 
+	 * @param index {uint} The index < [`Player.audioStreams`]
+	*/
 	switchAudio(index: number): void;
 }
 
+/**
+ * @class AudioPlayer
+ * @extends Notification
+ * @implements Player
+*/
 export declare class AudioPlayer extends 
 	Notification<Event<AudioPlayer>> implements Player
 {
+	/**
+	 * @event onLoad()
+	 * 
+	 * Trigger when the media source opened and start playing
+	*/
 	readonly onLoad: EventNoticer<Event<AudioPlayer, void>>;
+
+	/**
+	 * @event onStop()
+	 * 
+	 * Trigger when stop playing
+	*/
 	readonly onStop: EventNoticer<Event<AudioPlayer, void>>;
+
+	/**
+	 * @event onError(data)
+	 * 
+	 * Trigger when an error occurs
+	 * 
+	 * @param data {Error}
+	*/
 	readonly onError: EventNoticer<Event<AudioPlayer, Error>>;
+
+	/**
+	 * @event onBuffering(data)
+	 * 
+	 * Trigger when the data needs buffering
+	 * 
+	 * @param data {float} range for 0-1
+	*/
 	readonly onBuffering: EventNoticer<Event<AudioPlayer, number>>;
+
 	readonly pts: number;
 	volume: number;
 	mute: boolean;

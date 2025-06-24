@@ -98,17 +98,17 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	readonly rootCtr: ViewController = new RootViewController(this);
 
 	/**
-	* @method render
-	* 通过`vdom`创建视图或视图控制器`DOM对像`
+	* @method render(vdom)
 	* 
-	* @arg `vdom` {Object} 			`VDOM`描述数据
-	* @arg `[parentView]` {[`View`]} 	传入父视图时将新创建的视图加入到它的结尾
-	* @ret {[`View`]|[`ViewController`]}
+	* 通过`vdom`创建视图或视图控制器`DOM`
+	* 
+	* @param vdom {VirtualDOM}
+	* @return {DOM}
 
 	Example:
 
 	```tsx
-	import { Application, ViewController, Root, Div } from 'quark'
+	import { Application, ViewController } from 'quark'
 	import 'quark/http'
 	class MyCtr extends ViewController {
 		triggerLoad(e) {
@@ -116,9 +116,9 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 		}
 		render() {
 			return (
-				<Div width=100 height=100 backgroundColor="#f00">
+				<box width=100 height=100 backgroundColor="#f00">
 					{this.modle.bf&&this.modle.bf.toString('utf8')}
-				</Div>
+				</box>
 			)
 		}
 	}
@@ -134,6 +134,10 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 		dom.appendTo(this.root);
 		return dom;
 	}
+
+	/**
+	 * @mehod nextTickFrame(cb)
+	*/
 	nextTickFrame(cb: () => void) {
 		util.nextTick(()=>this.nextFrame(cb));
 		return this;

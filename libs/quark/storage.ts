@@ -30,6 +30,23 @@
 
 const _storage = __binding__('_storage');
 
+/**
+ * 在这里设置的值，退出程序后依然存在，适合小容量数据的快速存取
+ * 
+ * The value set here will still exist after exiting the program, 
+ * which is suitable for fast access to small-capacity data.
+ * 
+ * @information
+*/
+
+/**
+ * @method get(key)
+ * 
+ * Getting a local value by key
+ * 
+ * @param key {string}
+ * @return {any}
+*/
 export function get(key: string) {
 	var rv = _storage.get(key);
 	if ( rv ) {
@@ -37,14 +54,34 @@ export function get(key: string) {
 	}
 }
 
+/**
+ * @method set(key,value)
+ * 
+ * Setting a local value by key
+ * 
+ * @param key {string}
+ * @param value {any}
+*/
 export function set(key: string, value: any) {
 	_storage.set(key, JSON.stringify(value));
 }
 
+/**
+ * @method remove(key)
+ * 
+ * Deleting a local value by key
+ * 
+ * @param key {string}
+*/
 export function remove(key: string) {
 	_storage.remove(key);
 }
 
+/**
+ * @method clear()
+ * 
+ * Deleting all of storage values
+*/
 export function clear() {
 	_storage.clear();
 }

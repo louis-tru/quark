@@ -272,6 +272,7 @@ namespace qk {
 				}
 			}
 			_seeking = 0;
+			_pts =  _fv->pts; // set current the presentation timestamp
 		}
 
 		// Writing PCM audio data to audio device

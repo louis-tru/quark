@@ -56,8 +56,8 @@ export function getId() {
 }
 
 /**
- * @method clone # 克隆一个Object对像
- * @param obj {Object} # 要复制的Object对像
+ * @method clone(obj) 克隆一个Object对像
+ * @param obj {Object} 要复制的Object对像
  * @param {Object}
  */
 export function clone(obj: any): any {
@@ -87,7 +87,7 @@ export function clone(obj: any): any {
 }
 
 /**
- * @method extend (obj, extd, top?)
+ * @method extend(obj,extd[,top])
  */
 export function extend(obj: any, extd: any, top: any = Object.prototype): any {
 	if (extd.__proto__ && extd.__proto__ !== top)
@@ -115,7 +115,7 @@ export function isNull(value: any): boolean {
 }
 
 /**
- * @method extendClass #  EXT class prototype objects
+ * @method extendClass(cls,extds[,top])  EXT class prototype objects
  */
 export function extendClass(cls: Function, extds: Function[] | Function, top = Object.prototype) {
 	for (let extd of Array.isArray(extds)? extds: [extds]) {
@@ -140,7 +140,7 @@ async function scopeLockDequeue(mutex: any): Promise<void> {
 }
 
 /**
- * @method scopeLock (mutex, cb)
+ * @method scopeLock(mutex,cb)
  */
 export function scopeLock<R>(mutex: any, cb: ()=>Promise<R>|R): Promise<R> {
 	assert(mutex, 'Bad argument');
@@ -156,9 +156,9 @@ export function scopeLock<R>(mutex: any, cb: ()=>Promise<R>|R): Promise<R> {
 }
 
 /**
- * @method get(name[,self]) # get object value by name
+ * @method get(name[,self]) get object value by name
  * @param name {String} 
- * @param [self] {Object}
+ * @param self {Object}
  * @return {Object}
  */
 export function getProp(name: string, self: any): any {
@@ -172,7 +172,7 @@ export function getProp(name: string, self: any): any {
 }
 
 /**
-* @method set(name,value[,self]) # Setting object value by name
+* @method set(name,value[,self]) Setting object value by name
 * @param name {String} 
 * @param value {Object} 
 * @param [self] {Object}
@@ -191,9 +191,9 @@ export function setProp(name: string, value: any, self: any): any {
 }
 
 /**
- * @method def(name[,self]) # Delete object value by name
+ * @method def(name[,self]) Delete object value by name
  * @param name {String} 
- * @param [self] {Object}
+ * @param self {Object}
  */
 export function removeProp(name: string, self: any): void {
 	let names = name.split('.');
@@ -204,9 +204,9 @@ export function removeProp(name: string, self: any): void {
 }
 
 /**
- * @method random # 创建随机数字
- * @param [start] {Number} # 开始位置
- * @param [end] {Number}   # 结束位置
+ * @method random([start[,end]]) 创建随机数字
+ * @param start? {Number} 开始位置
+ * @param end? {Number}   结束位置
  * @return {Number}
  */
 export function random(start: number = 0, end: number = 1E8): number {
@@ -219,9 +219,30 @@ export function random(start: number = 0, end: number = 1E8): number {
 }
 
 /**
-* @method fixRandom # 固定随机值,指定几率返回常数
-* @param args.. {Number} # 输入百分比
-* @return {Number}
+* @method fixRandom(arg[,arg1[,arg2]])
+* 
+* 固定随机值,指定几率返回常数
+* 
+* 通过概率随机获取从`0`到传入概率数量`arguments.length`的随机数
+* 传入的概率之和不能为`0`
+* 
+* @param arg  {number} 输入百分比
+* @param arg1? {number} 输入百分比
+* @param arg2? {number} 输入百分比
+* @return {int}
+* 
+* Example:
+* 
+* ```js
+* // Prints: 3 5 9
+* console.log(util.random(0, 10))
+* console.log(util.random(0, 10))
+* console.log(util.random(0, 10))
+* // Prints 0 3 2
+* console.log(util.fixRandom(10, 20, 30, 40))
+* console.log(util.fixRandom(10, 20, 30, 40))
+* console.log(util.fixRandom(10, 20, 30, 40))
+* ```
 */
 export function fixRandom(arg: number, ...args: number[]): number {
 	if (!args.length)
@@ -242,10 +263,10 @@ export function fixRandom(arg: number, ...args: number[]): number {
 }
 
 /**
-* @method filter # object filter
+* @method filter(obj,exp[,non]) object filter
 * @param obj {Object}  
-* @param exp {Object}  #   filter exp
-* @param non {Boolean} #   take non
+* @param exp {Object}    filter exp
+* @param non {Boolean}   take non
 * @return {Object}
 */
 export function filter(obj: any, exp: string[] | ((key: string, value: any)=>boolean), non: boolean = false): any {
@@ -270,10 +291,10 @@ export function filter(obj: any, exp: string[] | ((key: string, value: any)=>boo
 }
 
 /**
- * @method update # update object property value
- * @param obj {Object}      #        need to be updated for as
- * @param extd {Object}    #         update object
- * @param {Object}
+ * @method update(obj,extd) update object property value
+ * @param obj {Object}  need to be updated for as
+ * @param extd {Object} update object
+ * @return {Object}
  */
 export function update<T extends object>(obj: T, extd: any): T {
 	for (let key in extd) {
@@ -285,10 +306,10 @@ export function update<T extends object>(obj: T, extd: any): T {
 }
 
 /**
- * @method select
- * @param default {Object} 
- * @param value   {Object} 
- * @reg {Object}
+ * @method select(default,value)
+ * @param default {Object}
+ * @param value   {Object}
+ * @return {Object}
  */
 export function select<T>(default_: T, value: any): T {
 	if ( typeof default_ == typeof value ) {
@@ -299,9 +320,13 @@ export function select<T>(default_: T, value: any): T {
 }
 
 /**
- * @method equalsClass  # Whether this type of sub-types
+ * @method equalsClass(baseclass,subclass) 
+ * 
+ * Whether this type of sub-types
+ * 
  * @param baseclass {class}
  * @param subclass {class}
+ * @retrun {bool}
  */
 export function equalsClass(baseclass: any, subclass: any): boolean {
 	if (!baseclass || !subclass || !subclass.prototype)
@@ -323,7 +348,7 @@ export function equalsClass(baseclass: any, subclass: any): boolean {
 }
 
 /**
- * @method assert
+ * @method assert(condition[,code])
  */
 export function assert(condition: any, code?: number | ErrorNewArg): void {
 	if (condition)

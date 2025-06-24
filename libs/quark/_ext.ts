@@ -122,7 +122,7 @@ interface Boolean {
 
 interface DateConstructor {
 	/**
-	 * @field current timezone
+	 * @attr current timezone
 	 */
 	currentTimezone: number;
 
@@ -132,7 +132,7 @@ interface DateConstructor {
 	 * let i = '2008-02-13 01:12:13';
 	 * let date = Date.parseDate(i); //返回的新时间
 	 * </code></pre>
-	 * @func parseDate(str[,format[,timezone]])
+	 * @method parseDate(str[,format[,timezone]])
 	 * @param str {String}        要解析的字符串
 	 * @param [format] {String}   date format   default yyyyMMddhhmmssfff
 	 * @param [timezone] {Number} 要解析的时间所在时区,默认为当前时区
@@ -153,7 +153,7 @@ interface DateConstructor {
 		* format = 'mm分ss秒';
 		* str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
 		* </code></pre>
-		* @func formatTimeSpan(ts[,format])
+		* @method formatTimeSpan(ts[,format])
 		* @param ts {Number} 要格式化的时间戳
 		* @param [format]  {String} 要格式化的时间戳格式
 		* @return {String} 返回的格式化后的时间戳
@@ -166,7 +166,7 @@ interface Date {
 	hashCode(): number;
 
 	/**
-	 * @func add 给当前Date时间追加毫秒,改变时间值
+	 * @method add 给当前Date时间追加毫秒,改变时间值
 	 * @param ms {Number}  要添追加的毫秒值
 	 * @return {Date}
 	 */
@@ -185,7 +185,7 @@ interface Date {
 		* format = 'yyyy-MM-dd hh';
 		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10'
 		* </code></pre>
-		* @func date_to_string(date[,foramt])
+		* @method date_to_string(date[,foramt])
 		* @param date {Date}
 		* @param [format] {String} 要转换的字符串格式
 		* @return {String} 返回格式化后的时间字符串

@@ -201,14 +201,14 @@ export function formatPath(...args: string[]) {
 }
 
 /**
- * @method isAbsolute # 是否为绝对路径
+ * @method isAbsolute 是否为绝对路径
  */
 export function isAbsolute(path: string) {
 	return paths.isAbsolute.test(path);
 }
 
 /**
- * @method isLocal # 是否为本地路径
+ * @method isLocal 是否为本地路径
  */
 export function isLocal(path: string) {
 	return paths.isLocal.test(path);
@@ -350,7 +350,7 @@ function exit(code?: number) {
 	}
 }
 
-// set runtime event listener, 'UncaughtException'|'UnhandledRejection'|'BeforeExit'|'Exit'
+// Set runtime event listener, 'UncaughtException'|'UnhandledRejection'|'BeforeExit'|'Exit'
 export function __listener__(name: string, handle: any) {
 	if (name == 'Exit') {
 		_init[`__on${name}_native`] = function(...args: any[]) {
@@ -362,17 +362,136 @@ export function __listener__(name: string, handle: any) {
 	}
 }
 
+/**
+ * @default
+*/
 export default {
+
+	/**
+	 * @attr debug
+	 * 
+	 * It is on debug status, specify via command line parameters
+	 * 
+	 * @type {bool}
+	 * @get
+	 */
 	debug,
+
+	/**
+	 * @method version()
+	 * 
+	 * Get `quark` framework version
+	 * 
+	 * @return {string}
+	*/
 	version: _init.version as ()=>string,
+
+	/**
+	 * @attr platform
+	 * 
+	 * Get platform type
+	 * 
+	 * @type {Platform}
+	 * @get
+	*/
 	platform: _init.platform as Platform,
+
 	isQuark: true, isNode: false, isWeb: false,
 	webFlags: null,
+
+	/**
+	 * @attr argv
+	 * 
+	 * 命令行启动参数
+	 * 
+	 * Command line startup parameter
+	 * 
+	 * @type {string[]}
+	 * @get
+	*/
 	argv: _init.argv as string[],
+
+	/**
+	 * @attr options
+	 * 
+	 * 命令行启动参数解析结果
+	 * 
+	 * Command line startup parameter parsing results
+	 * 
+	 * @type {object}
+	 * @get
+	*/
 	options,
-	nextTick, unrealized, exit, sleep,
+
+	/**
+	 * @method nextTick(cb)
+	 * 
+	 * 等待消息循环下一个嘀嗒时调用回调函数
+	 * 
+	 * Wait for the next tick of the message loop to call the callback function
+	 * 
+	 * @param {Function}
+	*/
+	nextTick, unrealized, exit,
+
+	/**
+	 * @method sleep(time)
+	 * 
+	 * 异步休眠，相当于调用`setTimeout`
+	 * 
+	 * Asynchronous sleep, equivalent to calling `setTimeout`
+	 * 
+	 * @param time {uint}
+	 * @param {Promise}
+	*/
+	sleep,
+
+	/**
+	 * @method gc()
+	 * 
+	 * 手动让javascript引擎执行`GC`操作
+	 * 
+	 * Manually let the JavaScript engine perform `GC` actions
+	*/
 	gc: _init.garbageCollection as ()=>void,
+
+	/**
+	 * @method runScript(source[,name[,sandbox]])
+	 * 
+	 * 编译运行一段javascript代码并返回运行结果,可以指定一个名称与一个运行上下文对像,
+	 * 
+	 * 名称在调试代码或程序发生异常时非常有用通常为文件名,
+	 * 
+	 * 如果不传入这个沙盒`sandbox`上下文默认使用`global`对像
+	 * 
+	 * @param source {string} javascript source code
+	 * @param name {string}
+	 * @param sandbox? {object}
+	 * @return {object}
+	*/
 	runScript: _init.runScript as (source: string, name?: string, sandbox?: any)=>any,
+
+	/**
+	 * @module hashCode(obj)
+	 * 
+	 * 读取数据对像的散列值
+	 * 
+	 * Read the hash value of a data object
+	 * 
+	 * @param obj {any}
+	 * @return {int}
+	*/
 	hashCode: _init.hashCode as (obj: any)=>number,
+
+	/**
+	 * @module hash(obj)
+	 * 
+	 * 读取数据对像的散列值,并将值转换为字符串
+	 * 
+	 * Read the hash value of a data object, and convert the value to a string
+	 * 
+	 * @param obj {any}
+	 * @return {int}
+	*/
 	hash: _init.hash as (obj: any)=>string,
 };

@@ -58,6 +58,9 @@ class RuntimeEvents extends Notification {
 
 export const _runtimeEvents = new RuntimeEvents();
 
+/**
+ * @default
+*/
 export default {
 	..._util,
 	..._common,

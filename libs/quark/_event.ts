@@ -186,7 +186,9 @@ export class Event<Sender = any, SendData = any> {
 
 /**
  * @template Ctx,E
- * @function Listen = (this: Ctx, evt: E): any
+ * @callback Listen(this,evt)any
+ * @param this {Ctx}
+ * @param evt {E}
 */
 export interface Listen<E = Event, Ctx extends object = object> {
 	(this: Ctx, evt: E): any;
@@ -194,7 +196,9 @@ export interface Listen<E = Event, Ctx extends object = object> {
 
 /**
  * @template Ctx,E
- * @function Listen2 = (self: Ctx, evt: E): any
+ * @callback Listen2(self,evt)any
+ * @param this {Ctx}
+ * @param evt {E}
 */
 export interface Listen2<E = Event, Ctx extends object = object> {
 	(self: Ctx, evt: E): any;
@@ -311,7 +315,7 @@ export class EventNoticer<E = Event> {
 	/**
 	 * @template Ctx
 	 * @method on(listen[,ctxOrId[,id]]) 绑定一个事件侦听器(函数)
-	 * @param  listen    {function}   侦听函数
+	 * @param  listen    {Listen}   侦听函数
 	 * @param  ctxOrId?  {Ctx|string}    重新指定侦听函数this
 	 * @param  id?       {string}      侦听器别名,可通过id删除
 	 * @return {string} 返回传入的`id`或自动生成的`id`
@@ -340,7 +344,7 @@ export class EventNoticer<E = Event> {
 	/**
 	 * @template Ctx
 	 * @method once(listen[,ctxOrId[,id]])  绑定一个侦听器(函数),且只侦听一次就立即删除
-	 * @param listen    {function}          侦听函数
+	 * @param listen    {Listen}          侦听函数
 	 * @param ctxOrId?  {Ctx|string}        重新指定侦听函数this
 	 * @param id?       {string}            侦听器别名,可通过id删除
 	 * @return {string} 返回传入的`id`或自动生成的`id`
@@ -362,7 +366,7 @@ export class EventNoticer<E = Event> {
 	 * and "on" the same processor of the method to add the event trigger to receive two parameters
 	 * @template Ctx
 	 * @method on2
-	 * @param listen {function}              侦听函数
+	 * @param listen {Listen2}              侦听函数
 	 * @param ctxOrId? {Ctx|string}         重新指定侦听函数this
 	 * @param id? {string}            侦听器别名,可通过id删除
 	 * @return {string} 返回传入的`id`或自动生成的`id`
@@ -388,7 +392,7 @@ export class EventNoticer<E = Event> {
 	 * and "on" the same processor of the method to add the event trigger to receive two parameters
 	 * @template Ctx
 	 * @method once2
-	 * @param listen {function}      侦听函数
+	 * @param listen {Listen2}      侦听函数
 	 * @param ctxOrId? {Ctx|string} 重新指定侦听函数this
 	 * @param id? {string}        侦听器id,可通过id删除
 	 * @return {string} 返回传入的`id`或自动生成的`id`

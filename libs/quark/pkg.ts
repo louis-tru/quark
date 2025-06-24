@@ -383,28 +383,31 @@ function lookup(request: string, parent?: Module): LookupResult | null {
 	}
 }
 
+/**
+ * @interface PackageJson
+*/
 export interface PackageJson {
-	name: string;
-	main: string;
-	version: string;
-	description?: string;
-	scripts?: Dict<string>;
-	author?: Dict<string>;
-	keywords?: string[];
-	license?: string;
-	bugs?: Dict<string>;
-	homepage?: string;
-	devDependencies?: Dict<string>;
-	dependencies?: Dict<string>;
-	bin?: string;
-	hash?: string;
-	pkgzHash?: string;
-	id?: string;
-	app?: string;
-	tryLocal?: boolean; 
-	symlink?: string; // package path symlink
-	pkgzSize?: number; // pkgz file size
-	modules?: Dict<Dict<PackageJson>>;
+	name: string; ///
+	main: string; ///
+	version: string; ///
+	description?: string; ///
+	scripts?: Dict<string>; ///
+	author?: Dict<string>; ///
+	keywords?: string[]; ///
+	license?: string; ///
+	bugs?: Dict<string>; ///
+	homepage?: string; ///
+	devDependencies?: Dict<string>; ///
+	dependencies?: Dict<string>; ///
+	bin?: string; ///
+	hash?: string; ///
+	pkgzHash?: string; ///
+	id?: string; ///
+	app?: string; ///
+	tryLocal?: boolean; ///
+	symlink?: string; /// package path symlink
+	pkgzSize?: number; /// pkgz file size
+	modules?: Dict<Dict<PackageJson>>; ///
 }
 
 class SearchPath {
@@ -523,16 +526,19 @@ class SearchPath {
 
 type IModule = typeof module;
 
+/**
+ * @class Module
+*/
 export class Module implements IModule {
-	readonly id: string;
-	readonly exports: any = {};
-	readonly parent: Module | null;
-	readonly package: Package | null;
-	readonly filename: string = ''; // filename
-	readonly dirname: string = ''; // dirname
-	readonly loaded: boolean = false;
-	readonly children: Module[] = [];
-	readonly paths: string[] = []; // search paths
+	readonly id: string; ///
+	readonly exports: any = {}; ///
+	readonly parent: Module | null; ///
+	readonly package: Package | null; ///
+	readonly filename: string = ''; /// filename
+	readonly dirname: string = ''; /// dirname
+	readonly loaded: boolean = false; ///
+	readonly children: Module[] = []; ///
+	readonly paths: string[] = []; /// search paths
 
 	constructor(id: string, parent?: Module, pkg?: Package) {
 		this.id = id;
@@ -615,6 +621,14 @@ export class Module implements IModule {
 		compiledWrapper.call(this.exports, this.exports, require, this, filename, dirname);
 	}
 
+	/**
+	 * @method require(path)
+	 * 
+	 * Request module by the path
+	 * 
+	 * @param path {string}
+	 * @return {any}
+	*/
 	require(path: string): any {
 		assert(path, 'missing path');
 		assert(typeof path === 'string', 'path must be a string');
@@ -783,6 +797,9 @@ enum PackageStatus {
 	INSTALLING = 1,
 }
 
+/**
+ * @class Package
+*/
 class Package {
 	// @private
 	protected _status: PackageStatus = PackageStatus.NO_INSTALL;
@@ -792,9 +809,11 @@ class Package {
 	private   _local?: Package; // reference local package
 	private   _localOnly = false; // `this.hashs.all === this._local.hashs.all` full using local pkg
 	// @public
+	/** package json information */
 	readonly json: PackageJson;
-	readonly name: string; // package name
-	/* 
+	/** package name */
+	readonly name: string;
+	/**
 	* Did you attempt to use a local reference package when an error 
 	* occurred while downloading and installing the network package
 	*/
@@ -803,12 +822,18 @@ class Package {
 	 * package path, zip:///applications/test.apk@, qk://quark, file:///node_modules/xxxx
 	 */
 	readonly path: string;
-	readonly hash: string; // package hash
-	readonly pkgzHash: string; // pkgz hash
-	readonly filesHash: Dict<string> = {}; // version information of files in the package
-	readonly build: boolean; // is build
-	readonly isHttp: boolean; // is http path
-	get      isInternal() { return false } // is internal package
+	/** package hash */
+	readonly hash: string;
+	/** pkgz hash */
+	readonly pkgzHash: string;
+	/** version information of files in the package */
+	readonly filesHash: Dict<string> = {};
+	/** is build */
+	readonly build: boolean;
+	/** is http path */
+	readonly isHttp: boolean;
+	/** is internal package */
+	get isInternal() { return false }
 
 	constructor(path: string, json: PackageJson, local?: Package) {
 		this.json = json;
@@ -863,6 +888,13 @@ class Package {
 		return cached;
 	}
 
+	/**
+	 * @method resolve(relativePath)
+	 * 
+	 * Lookup internal module by the relative path
+	 * 
+	 * @param relativePath {string}
+	*/
 	resolve(relativePath: string): { pathname: string, resolve: string } {
 		let self = this;
 		self.installSync(); // install package
@@ -1033,6 +1065,11 @@ class Package {
 		}
 	}
 
+	/**
+	 * @method install()
+	 * 
+	 * Async install package
+	*/
 	async install() {
 		let self = this;
 		if (self._status !== PackageStatus.INSTALLED) {
@@ -1052,6 +1089,11 @@ class Package {
 		}
 	}
 
+	/**
+	 * @method installSync()
+	 * 
+	 * Sync install package
+	*/
 	installSync() {
 		let self = this;
 		if (self._status !== PackageStatus.INSTALLED) {
@@ -1141,21 +1183,46 @@ class QkPackage extends Package {
 
 new QkPackage();
 
+/**
+ * @default
+*/
 export default {
+
+	/**
+	 * @attr mainPackage
+	 * @type {Package}
+	 * @get
+	*/
 	get mainPackage() {
 		return mainModule!.package;
 	},
+
+	/**
+	 * @attr mainModule
+	 * @type {Module}
+	 * @get
+	*/
 	get mainModule() {
 		return mainModule!;
 	},
+
+	/**
+	 * @attr mainFilename
+	 * @type {string}
+	 * @get
+	*/
 	get mainFilename() {
 		return mainModule!.filename;
 	},
+
 	/**
-	 * add global search path
+	 * @method addSearchPath(path[,isFirst[,noCache]])
+	 * 
+	 * Add global search path
+	 * 
 	 * @param path {string} global search directory path
-	 * @param isFirst {boolean?} use high priority
-	 * @param noCache {boolean?} use __no_cache param load pkgs.json file
+	 * @param isFirst? {bool} use high priority
+	 * @param noCache? {bool} use __no_cache param load pkgs.json file
 	 */
 	async addSearchPath(path: string, isFirst?: boolean, noCache?: boolean) {
 		path = formatPath(path);
@@ -1165,15 +1232,18 @@ export default {
 				globalPaths.unshift(path): globalPaths.push(path);
 		}
 	},
+
+	/**
+	 * @method lookupPackage(name[,parent])
+	 * 
+	 * Lookup package by package name
+	 * 
+	 * @param name {string}
+	 * @param parent? {Module}
+	 * @return {Package|null}
+	*/
 	lookupPackage(name: string, parent?: Module): Package | null {
 		let r = lookup(name, parent);
 		return r ? r.pkg: null;
-	},
-	/**
-	 * @method installAll() install all packages
-	 * @param cb {Function?} progress change callback 0-1
-	*/
-	async installAll(cb?: (progress: number)=>void) {
-		// TODO ...
 	},
 };

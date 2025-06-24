@@ -86,7 +86,8 @@ namespace qk {
 		static String model([](){
 			size_t len = 0;
 			sysctlbyname("hw.model", NULL, &len, NULL, 0);
-			if (len == 0) return String();
+			if (len == 0)
+				return String();
 			Buffer buff((int)len);
 			sysctlbyname("hw.model", buff.val(), &len, NULL, 0);
 			return String(std::move(buff));
