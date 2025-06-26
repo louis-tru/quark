@@ -26,11 +26,11 @@ export default async function(_: any) {
 	Mv(url, 'getParam', ['a']);
 	Mv(url, 'setParam', ['a', 'A']);
 	Mv(url, 'deleteParam', ['a']);
-	Mv(url, 'clearParam', []);
+	Mv(url, 'clearParams', []);
 	Mv(url, 'getHash', ['c'], 'c');
 	Mv(url, 'setHash', ['e', 'E']);
 	Mv(url, 'getHash', ['e'], 'E');
-	Mv(url, 'clearHash', []);
+	Mv(url, 'clearHashs', []);
 	Mv(url, 'relative', ['https://quarks.cc:81/A/B/C/test.js'], '../../../home/index.html');
 
 	console.log('\nMethods:\n');
@@ -65,11 +65,11 @@ export default async function(_: any) {
 	Mv(path, 'getParam', ['a', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], '100')
 	Mv(path, 'setParam', ['a', 'A', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=A&b=test#a=200&b=300')
 	Mv(path, 'deleteParam', ['a', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?b=test#a=200&b=300')
-	Mv(path, 'clearParam', ['http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/#a=200&b=300')
+	Mv(path, 'clearParams', ['http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/#a=200&b=300')
 	Mv(path, 'getHash', ['a', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], '200')
 	Mv(path, 'setHash', ['a', 'H', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=100&b=test#a=H&b=300')
 	Mv(path, 'deleteHash', ['a', 'http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=100&b=test#b=300')
-	Mv(path, 'clearHash', ['http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=100&b=test')
+	Mv(path, 'clearHashs', ['http://quarks.cc/?a=100&b=test#a=200&b=300'], 'http://quarks.cc/?a=100&b=test')
 	Mv(path, 'relative', ['http://quarks.cc/A/B/C/test.js', 'http://quarks.cc/home'], '../../../home')
 	Mv(path, 'isAbsolute', ['http://quarks.cc/home/index.html'], true)
 	Mv(path, 'isAbsolute', ['file:///a/b/c/kk.jsx'], true)

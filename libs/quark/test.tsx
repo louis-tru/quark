@@ -24,3 +24,24 @@ new Window().activate().render(
 		<box style={{width: 'match', backgroundColor: '#0f0'}}>ABCDEFG</box>
 	</flex>
 );
+
+// import {Application,Window,ViewController} from './index'
+// import * as http from './http'
+// import * as buffer from './buffer'
+
+// class MyCtr extends ViewController<{param: number}, {data?: Uint8Array}> {
+// 	triggerLoad() {
+// 		return http.get('http://192.168.1.100:1026/README.md?param=' + this.props.param).then(e=>this.setState({data:e.data}));
+// 	}
+// 	render() {
+// 			return (
+// 					<box width={100} height={100} backgroundColor="#f00">
+// 							{this.state.data&&buffer.toString(this.state.data)}
+// 					</box>
+// 			)
+// 	}
+// }
+// new Application();
+// new Window().activate().render(
+// 	<MyCtr param={10} />
+// );

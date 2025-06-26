@@ -65,7 +65,7 @@ public class Activity extends NativeActivity implements
 	private static boolean visible_status_bar = true;
 	private static int status_bar_style = 0;
 	private static boolean is_fullscreen = false;
-	private static int screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER;
+	private static int orientation_seted = ActivityInfo.SCREEN_ORIENTATION_USER;
 	private static boolean virtual_navigation_device;
 	private static native void onRenderDisplay();
 	private static native void onStatucBarVisibleChange();
@@ -134,7 +134,7 @@ public class Activity extends NativeActivity implements
 		Android.initialize(this, new PrivateAPI(this));
 		set_system_ui_flags();
 		getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(this);
-		setRequestedOrientation(screen_orientation);
+		setRequestedOrientation(orientation_seted);
 		super.onCreate(savedInstanceState);
 		mChoreographer = Choreographer.getInstance();
 		mChoreographer.postFrameCallback(this); // request next frame
@@ -269,34 +269,31 @@ public class Activity extends NativeActivity implements
 			int orientation = host.getWindowManager().getDefaultDisplay().getRotation();
 			switch (orientation) {
 				default:
-				case Surface.ROTATION_0: return 1; // PORTRAIT
-				case Surface.ROTATION_90: return 2; // LANDSCAPE
-				case Surface.ROTATION_180: return 3; // REVERSE_PORTRAIT
-				case Surface.ROTATION_270: return 4; // REVERSE_LANDSCAPE
+				case Surface.ROTATION_0: return 1 << 0; // PORTRAIT
+				case Surface.ROTATION_90: return 1 << 1; // LANDSCAPE
+				case Surface.ROTATION_180: return 1 << 4; // REVERSE_PORTRAIT
+				case Surface.ROTATION_270: return 1 << 3; // REVERSE_LANDSCAPE
 			}
 		}
 
 		public void set_orientation(int orientation) {
-			switch (orientation) {
-				case 1: // PORTRAIT
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT; break;
-				case 2: // LANDSCAPE
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE; break;
-				case 3: // REVERSE_PORTRAIT
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT; break;
-				case 4: // REVERSE_LANDSCAPE
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE; break;
-				default:
-				case 5: // USER
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER; break;
-				case 6: // USER_PORTRAIT
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT; break;
-				case 7: // USER_LANDSCAPE
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE; break;
-				case 8: // USER_LOCKED
-					screen_orientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED; break;
+			if ((orientation & (1 << 4)) != 0) { // User_Locked
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_LOCKED;
+			} else if (orientation == (1 << 0)) { // PORTRAIT
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+			} else if (orientation == (1 << 1)) { // LANDSCAPE
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+			} else if (orientation == (1 << 2)) { // REVERSE_PORTRAIT
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+			} else if (orientation == (1 << 3)) { // REVERSE_LANDSCAPE
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+			} else if (orientation == 0b1111) { // USER
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_USER;
+			} else if (orientation == 0b0101) { // USER_PORTRAIT
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT;
+			} else if (orientation == 0b1010) { // USER_LANDSCAPE
+				orientation_seted = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE;
 			}
-			host.setRequestedOrientation(screen_orientation);
 		}
 
 		public float get_display_scale() {

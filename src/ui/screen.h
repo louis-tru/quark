@@ -45,15 +45,24 @@ namespace qk {
 		Qk_HIDDEN_ALL_COPY(Screen);
 	public:
 		enum Orientation {
+			/** Invalid, Default use the User mode */
 			kInvalid,
-			kPortrait,
-			kLandscape,
-			kReverse_Portrait,
-			kReverse_Landscape,
-			kUser,
-			kUser_Portrait,
-			kUser_Landscape,
-			kUser_Locked,
+			/** Portrait */
+			kPortrait = (1 << 0),
+			/** Landscape, Rotate 90 degrees clockwise */
+			kLandscape = (1 << 1),
+			/** Reverse Portrait, Rotate 180 degrees clockwise */
+			kReverse_Portrait = (1 << 2),
+			/** Reverse Landscape, Rotate 270 degrees clockwise */
+			kReverse_Landscape = (1 << 3),
+			/** User, Any orientation is allowed */
+			kUser = (kPortrait | kLandscape | kReverse_Portrait | kReverse_Landscape),
+			/** User Portrait, Portrait and Reverse_Portrait directions available */
+			kUser_Portrait = (kPortrait | kReverse_Portrait),
+			/** User Landscape, Landscape and Reverse_Landscape directions available */
+			kUser_Landscape = (kLandscape | kReverse_Landscape),
+			/** User Locked, Lock the application's startup state */
+			kUser_Locked = (1 << 4),
 		};
 
 		enum StatusBarStyle {

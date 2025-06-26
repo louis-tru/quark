@@ -91,10 +91,35 @@ declare class NativeWindow extends Notification<WEvent> {
  * @extends NativeWindow
 */
 export class Window extends (_ui.Window as typeof NativeWindow) {
+
+	/**
+	 * @event onChange() Trigger when to change window size
+	*/
 	@event readonly onChange: EventNoticer<WEvent>;
+
+	/**
+	 * @event onBackground
+	*/
 	@event readonly onBackground: EventNoticer<WEvent>;
+
+	/**
+	 * @event onForeground
+	*/
 	@event readonly onForeground: EventNoticer<WEvent>;
+
+	/**
+	 * @event onClose
+	*/
 	@event readonly onClose: EventNoticer<WEvent>;
+
+	/**
+	 * @attr rootCtr
+	 * 
+	 * The only root view controller in the window
+	 * 
+	 * @type {ViewController}
+	 * @get
+	*/
 	readonly rootCtr: ViewController = new RootViewController(this);
 
 	/**
@@ -104,30 +129,29 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	* 
 	* @param vdom {VirtualDOM}
 	* @return {DOM}
-
-	Example:
-
-	```tsx
-	import { Application, ViewController } from 'quark'
-	import 'quark/http'
-	class MyCtr extends ViewController {
-		triggerLoad(e) {
-			http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>(this.modle = {bf}));
-		}
-		render() {
-			return (
-				<box width=100 height=100 backgroundColor="#f00">
-					{this.modle.bf&&this.modle.bf.toString('utf8')}
-				</box>
-			)
-		}
-	}
-	new Application().start(
-		<Root>
-			<MyCtr message={param:10} />
-		</Root>
-	);
-	```
+	* 
+	* Example:
+	* ```tsx
+	* import {Application,Window,ViewController} from './index'
+	* import * as http from './http'
+	* import * as buffer from './buffer'
+	* class MyCtr extends ViewController<{param: number}, {data?: Uint8Array}> {
+	* 	triggerLoad() {
+	* 		return http.get('http://192.168.1.100:1026/README.md?param=' + this.props.param).then(e=>this.setState({data:e.data}));
+	* 	}
+	* 	render() {
+	* 		return (
+	* 			<box width={100} height={100} backgroundColor="#f00">
+	* 				{this.state.data&&buffer.toString(this.state.data)}
+	* 			</box>
+	* 		)
+	* 	}
+	* }
+	* new Application();
+	* new Window().activate().render(
+	* 	<MyCtr param={10} />
+	* );
+	* ```
 	*/
 	render(vdom: VirtualDOM) {
 		let dom = vdom.newDom(this.rootCtr);

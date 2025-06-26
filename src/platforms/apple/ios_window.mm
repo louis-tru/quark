@@ -48,8 +48,8 @@ QkWindowDelegate* WindowImpl::delegate() {
 }
 
 @interface QkWindowDelegate()
-@property (assign, nonatomic) Orientation      setting_orientation;
-@property (assign, nonatomic) Orientation      current_orientation;
+@property (assign, nonatomic) Orientation      orientation_seted;
+@property (assign, nonatomic) Orientation      orientation;
 @property (assign, nonatomic) bool             visible_status_bar;
 @property (assign, nonatomic) UIStatusBarStyle status_bar_style;
 @end
@@ -60,8 +60,8 @@ QkWindowDelegate* WindowImpl::delegate() {
 	if ( !(self = [super init]) )
 		return nil;
 
-	self.setting_orientation = Orientation::kUser;
-	self.current_orientation = Orientation::kInvalid;
+	self.orientation_seted = Orientation::kUser;
+	self.orientation = Orientation::kInvalid;
 	self.visible_status_bar = YES;
 	self.status_bar_style = UIStatusBarStyleDefault;
 
@@ -113,38 +113,39 @@ QkWindowDelegate* WindowImpl::delegate() {
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-	switch ( self.setting_orientation ) {
-		case Orientation::kPortrait:
+
+	if (self.orientation_seted & Orientation::kUser_Locked) {
+		if (self.orientation == Orientation::kPortrait) {
 			return UIInterfaceOrientationMaskPortrait;
-		case Orientation::kLandscape:
-			return UIInterfaceOrientationMaskLandscapeRight;
-		case Orientation::kReverse_Portrait:
-			return UIInterfaceOrientationMaskPortraitUpsideDown;
-		case Orientation::kReverse_Landscape:
-			return UIInterfaceOrientationMaskLandscapeLeft;
-		case Orientation::kUser: default:
-			return UIInterfaceOrientationMaskAll;
-		case Orientation::kUser_Portrait:
-			return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
-		case Orientation::kUser_Landscape:
-			return UIInterfaceOrientationMaskLandscape;
-		case Orientation::kUser_Locked: {
-			switch (self.current_orientation) {
-				default:
-				case Orientation::kInvalid:
-					return UIInterfaceOrientationMaskAll;
-				case Orientation::kPortrait:
-					return UIInterfaceOrientationMaskPortrait;
-				case Orientation::kLandscape:
-					return UIInterfaceOrientationMaskLandscapeRight;
-				case Orientation::kReverse_Portrait:
-					return UIInterfaceOrientationMaskPortraitUpsideDown;
-				case Orientation::kReverse_Landscape:
-					return UIInterfaceOrientationMaskLandscapeLeft;
-			}
 		}
+		if (self.orientation == Orientation::kLandscape) {
+			return UIInterfaceOrientationMaskLandscapeRight;
+		}
+		if (self.orientation == Orientation::kReverse_Portrait) {
+			return UIInterfaceOrientationMaskPortraitUpsideDown;
+		}
+		if (self.orientation == Orientation::kReverse_Landscape) {
+			return UIInterfaceOrientationMaskLandscapeLeft;
+		}
+		return UIInterfaceOrientationMaskAll;
 	}
-	return UIInterfaceOrientationMaskAll;
+
+	UIInterfaceOrientationMask mask = 0;
+
+	if (self.orientation_seted & Orientation::kPortrait) {
+		mask |= UIInterfaceOrientationMaskPortrait;
+	}
+	if (self.orientation_seted & Orientation::kLandscape) {
+		mask |= UIInterfaceOrientationMaskLandscape;
+	}
+	if (self.orientation_seted & Orientation::kReverse_Portrait) {
+		mask |= UIInterfaceOrientationMaskPortraitUpsideDown;
+	}
+	if (self.orientation_seted & Orientation::kReverse_Landscape) {
+		mask |= UIInterfaceOrientationMaskLandscapeLeft;
+	}
+
+	return mask;
 }
 
 - (void)viewWillTransitionToSize:(CGSize)size
@@ -154,8 +155,8 @@ QkWindowDelegate* WindowImpl::delegate() {
 		_qkwin->render()->reload();
 
 		auto orient = _qkwin->host()->screen()->orientation();
-		if (orient != self.current_orientation) {
-			self.current_orientation = orient;
+		if (self.orientation != orient) {
+			self.orientation = orient;
 			Inl_Application(_qkwin->host())->triggerOrientation();
 		}
 	} completion:nil];
@@ -217,18 +218,18 @@ QkWindowDelegate* WindowImpl::delegate() {
 // -------------------------------------------------------------------------
 
 -(void)refresh {
-	if ( _uiwin.rootViewController == self ) {
-		_uiwin.rootViewController = nil;
-		_uiwin.rootViewController = self;
-	}
+	dispatch_async(dispatch_get_main_queue(), ^{
+		if ( _uiwin.rootViewController == self ) {
+			_uiwin.rootViewController = nil;
+			_uiwin.rootViewController = self;
+		}
+	});
 }
 
 - (void)set_visible_status_bar:(bool)visible {
 	if (visible != self.visible_status_bar) {
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self refresh];
-		});
 		self.visible_status_bar = visible;
+		[self refresh];
 	}
 }
 
@@ -244,19 +245,15 @@ QkWindowDelegate* WindowImpl::delegate() {
 		}
 	}
 	if ( self.status_bar_style != barStyle ) {
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self refresh];
-		});
 		self.status_bar_style = barStyle;
+		[self refresh];
 	}
 }
 
 - (void)set_orientation:(Screen::Orientation)orientation {
-		if ( self.setting_orientation != orientation ) {
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self refresh];
-		});
-		self.setting_orientation = orientation;
+	if ( self.orientation_seted != orientation ) {
+		self.orientation_seted = orientation;
+		[self refresh];
 	}
 }
 

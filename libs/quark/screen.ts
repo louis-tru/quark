@@ -33,28 +33,94 @@ import event, { Event, EventNoticer, NativeNotification, Notification } from './
 
 const _ui = __binding__('_ui');
 
+/**
+ * @enum Orientation
+*/
 export enum Orientation {
+	/** Invalid, Default use the User mode */
 	Invalid,
-	Portrait,
-	Landscape,
-	Reverse_Portrait,
-	Reverse_Landscape,
-	User,
-	User_Portrait,
-	User_Landscape,
-	User_Locked,
+	/** Portrait */
+	Portrait = (1 << 0),
+	/** Landscape, Rotate 90 degrees clockwise */
+	Landscape = (1 << 1),
+	/** Reverse Portrait, Rotate 180 degrees clockwise */
+	Reverse_Portrait = (1 << 2),
+	/** Reverse Landscape, Rotate 270 degrees clockwise */
+	Reverse_Landscape = (1 << 3),
+	/** User, Any orientation is allowed */
+	User = (Portrait | Landscape | Reverse_Portrait | Reverse_Landscape),
+	/** User Portrait, Portrait and Reverse_Portrait directions available */
+	User_Portrait = (Portrait | Reverse_Portrait),
+	/** User Landscape, Landscape and Reverse_Landscape directions available */
+	User_Landscape = (Landscape | Reverse_Landscape),
+	/** User Locked, Lock the application's startup state */
+	User_Locked = (1 << 4),
 };
 
+/**
+ * @enum StatusBarStyle
+*/
 export enum StatusBarStyle {
-	White, Black,
+	/** White */
+	White,
+	/** Black */
+	Black,
 };
 
+/**
+ * @class Screen
+ * @extends Notification
+*/
 export declare class Screen extends Notification<Event<Screen>> {
+	/**
+	 * @event onOrientation()
+	 * 
+	 * Trigger when screen direction change
+	*/
 	readonly onOrientation: EventNoticer<Event<Screen>>;
+
+	/**
+	 * @attr orientation
+	 * 
+	 * Current screen direction
+	 * 
+	 * @type Orientation
+	 * @get
+	*/
 	readonly orientation: Orientation;
+
+	/**
+	 * @attr statusBarHeight
+	 * @type {number}
+	 * @get
+	*/
 	readonly statusBarHeight: number;
+
+	/**
+	 * @method setVisibleStatusBar(visible)
+	 * 
+	 * Setting whether visible for the status bar
+	 * 
+	 * @param visible {bool}
+	*/
 	setVisibleStatusBar(visible: boolean): void;
+
+	/**
+	 * @method setStatusBarStyle(style)
+	 * 
+	 * Setting style for the status bar
+	 * 
+	 * @param style {StatusBarStyle}
+	*/
 	setStatusBarStyle(style: StatusBarStyle): void;
+
+	/**
+	 * @method preventScreenSleep(prevent)
+	 * 
+	 * "true" means to prevent screen sleep else no prevent
+	 * 
+	 * @param prevent {bool}
+	*/
 	preventScreenSleep(prevent: boolean): void;
 }
 
