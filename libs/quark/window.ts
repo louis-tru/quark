@@ -41,12 +41,18 @@ type WEvent = Event<Window>;
  * @interface Options
 */
 export interface Options {
-	olorType?: number; // init window color type
-	msaa?: number; // init window gpu render msaa count
-	frame?: types.Rect; // init window params
-	title?: string; // init window title
-	backgroundColor?: types.Color; // init window background color
-	navigationColor?: types.Color; // Is need draw navigation buttons for android.
+	/** init window color type */
+	olorType?: number;
+	/** init window gpu render msaa count */
+	msaa?: number; 
+	/** init window params */
+	frame?: types.Rect;
+	/** init window title */
+	title?: string; 
+	/** init window background color */
+	backgroundColor?: types.Color;
+	/** Is need draw navigation buttons for android. */
+	navigationColor?: types.Color;
 };
 
 class RootViewController extends ViewController {
@@ -67,22 +73,162 @@ class RootViewController extends ViewController {
  * @extends Notification
 */
 declare class NativeWindow extends Notification<WEvent> {
+
+	/**
+	 * @attr scale
+	 * The scaling ratio of the physical pixel size of the window to the drawing size
+	 * 
+	 * @type {float}
+	 * @get
+	*/
 	readonly scale: number;
+
+	/**
+	 * @attr defaultScale
+	 * The default recommended scaling ratio between window physical pixels and drawing size
+	 * 
+	 * @type {float}
+	 * @get
+	*/
 	readonly defaultScale: number;
+
+	/**
+	 * @attr fsp
+	 * Current drawing frame rate
+	 * @type {uint}
+	 * @get
+	*/
 	readonly fsp: number;
+
+	/**
+	 * @attr atomPixel
+	 * Atom pixel size, Exp: 1 / scale
+	 * 
+	 * @type {float}
+	 * @get
+	*/
 	readonly atomPixel: number;
+
+	/**
+	 * @attr root
+	 * The only root view in the window
+	 * 
+	 * @type Root
+	 * @get
+	*/
 	readonly root: Root;
+
+	/**
+	 * @attr focusView
+	 * 
+	 * Current focus view
+	 * 
+	 * @type View
+	 * @get
+	*/
 	readonly focusView: View;
+
+	/**
+	 * @attr navigationRect
+	 * 
+	 * Navigation rect, possibly in the Android bottom navigation button area
+	 * 
+	 * @type {Rect}
+	 * @get
+	*/
 	readonly navigationRect: types.Rect;
+
+	/**
+	 * @attr szie
+	 * 
+	 * * Set the logical size of the window. When this value changes, the change event will be triggered.
+	 *
+	 * * When both width and height are set to zero, the most comfortable default display size is automatically set.
+	 *
+	 * * If the width is set to non-zero, it means the width is fixed, and the height is automatically set according to the window ratio.
+	 *
+	 * * If the height is set to non-zero, it means the height is fixed, and the width is automatically set according to the window ratio.
+	 *
+	 * @type {Vec2}
+	 * @get
+	*/
 	size: types.Vec2;
+
+	/**
+	 * @attr backgroundColor
+	 * 
+	 * The background color for the window
+	 * 
+	 * @type {Color}
+	 * @get
+	*/
 	backgroundColor: types.Color;
+
+	/**
+	 * @attr surfaceSize
+	 * 
+	 * Window physical surface pixel size
+	 * 
+	 * @type {Vec2}
+	 * @get
+	*/
 	surfaceSize: types.Vec2;
+
+	/**
+	 * @method nextFrame(cb)
+	 * 
+	 * When rendering next frame call
+	 * 
+	 * @param cb {Function}
+	 * @return {this}
+	*/
 	nextFrame(cb: ()=>void): this;
+
+	/**
+	 * @method activate
+	 * 
+	 * Activate the display window or taking the window to the foreground
+	 * 
+	 * @return {this}
+	*/
 	activate(): this;
+
+	/**
+	 * @method close()
+	 * 
+	 * To close or destroy the window
+	*/
 	close(): void;
+
+	/**
+	 * @method pending() 
+	 * 
+	 * Taking window to background and pending
+	*/
 	pending(): void;
+
+	/**
+	 * @method setFullscreen(fullscreen)
+	 * 
+	 * Setting whether the window is displayed in full screen mode
+	 * 
+	 * @param fullscreen {bool}
+	*/
 	setFullscreen(fullscreen: boolean): void;
+
+	/**
+	 * @method setCursorStyle(style)
+	 * 
+	 * Setting the mouse cursor style
+	 * 
+	 * @param style {CursorStyle}
+	*/
 	setCursorStyle(style: types.CursorStyle): void;
+
+	/**
+	 * @constructor([opts])
+	 * @param opts? {Options}
+	*/
 	constructor(opts?: Options);
 }
 
@@ -98,17 +244,17 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	@event readonly onChange: EventNoticer<WEvent>;
 
 	/**
-	 * @event onBackground
+	 * @event onBackground() Trigger when into background
 	*/
 	@event readonly onBackground: EventNoticer<WEvent>;
 
 	/**
-	 * @event onForeground
+	 * @event onForeground() Trigger when into foreground
 	*/
 	@event readonly onForeground: EventNoticer<WEvent>;
 
 	/**
-	 * @event onClose
+	 * @event onClose() Trigger when closed window
 	*/
 	@event readonly onClose: EventNoticer<WEvent>;
 
@@ -125,19 +271,21 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	/**
 	* @method render(vdom)
 	* 
-	* 通过`vdom`创建视图或视图控制器`DOM`
+	* Create a view or view controller `DOM` by `vdom`
 	* 
 	* @param vdom {VirtualDOM}
 	* @return {DOM}
 	* 
 	* Example:
 	* ```tsx
-	* import {Application,Window,ViewController} from './index'
-	* import * as http from './http'
-	* import * as buffer from './buffer'
+	* import {Application,Window,ViewController} from 'quark'
+	* import * as http from 'quark/http'
+	* import * as buffer from 'quark/buffer'
 	* class MyCtr extends ViewController<{param: number}, {data?: Uint8Array}> {
 	* 	triggerLoad() {
-	* 		return http.get('http://192.168.1.100:1026/README.md?param=' + this.props.param).then(e=>this.setState({data:e.data}));
+	* 		return http
+	* 			.get('http://192.168.1.100:1026/README.md?param=' + this.props.param)
+	* 			.then(e=>this.setState({data:e.data}));
 	* 	}
 	* 	render() {
 	* 		return (
@@ -161,6 +309,10 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 
 	/**
 	 * @mehod nextTickFrame(cb)
+	 * 
+	 * Calling nextTick on the next loop tick means the next frame of the next loop tick
+	 * 
+	 * @param cb {Function}
 	*/
 	nextTickFrame(cb: () => void) {
 		util.nextTick(()=>this.nextFrame(cb));

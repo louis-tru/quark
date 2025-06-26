@@ -100,48 +100,74 @@ function toCapitalize<T extends string>(str: T): Capitalize<T> {
 
 // -------------------------------------------------------------------------------------
 
+/**
+ * @enum Repeat
+*/
 export enum Repeat {
-	Repeat,
-	RepeatX,
-	RepeatY,
-	RepeatNo,
+	Repeat, ///
+	RepeatX, ///
+	RepeatY, ///
+	RepeatNo, ///
 };
 
+/**
+ * @enum FillPositionKind
+*/
 export enum FillPositionKind {
-	Value,     /* 明确值  rem */
-	Ratio,     /* 百分比  % */
-	Start,     /* 开始 start */
-	End,       /* 结束 end */
-	Center,    /* 居中 center */
+	Value,     /* Explicit Value */
+	Ratio,     /* Percentage value */
+	Start,     /* Starting position */
+	End,       /* Ending position */
+	Center,    /* Centered position */
 };
 
+/**
+ * @enum FillPositionKind
+*/
 export enum FillSizeKind {
-	Auto,      /* 自动值  auto */
-	Value,     /* 明确值  rem */
-	Ratio,     /* 百分比  % */
+	Auto,      /* Auto value */
+	Value,     /* Explicit Value */
+	Ratio,     /* Percentage value */
 };
+
+/**
+ * @type BoxOriginKind = FillSizeKind
+*/
 export type BoxOriginKind = FillSizeKind;
 export const BoxOriginKind = FillSizeKind;
 
+/**
+ * @enum Direction
+ * 
+ * Flex Layout direction
+*/
 export enum Direction {
-	Row,
-	RowReverse,
-	Column,
-	ColumnReverse,
+	Row, ///
+	RowReverse, ///
+	Column, ///
+	ColumnReverse, ///
 };
 
-// 项目在主轴上的对齐方式
+/**
+ * @enum ItemsAlign
+ * 
+ * 项目在主轴上的对齐方式
+ */
 export enum ItemsAlign {
-	Start, // 左对齐
-	Center, // 居中
-	End, // 右对齐
-	SpaceBetween, // 两端对齐，项目之间的间隔都相等
-	SpaceAround, // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
-	SpaceEvenly, // 每个项目两侧的间隔相等,这包括边框的间距
-	CenterCenter, // 把除两端以外的所有项目尽可能的居中对齐
+	Start, /// 左对齐
+	Center, /// 居中
+	End, /// 右对齐
+	SpaceBetween, /// 两端对齐，项目之间的间隔都相等
+	SpaceAround, /// 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
+	SpaceEvenly, /// 每个项目两侧的间隔相等,这包括边框的间距
+	CenterCenter, /// 把除两端以外的所有项目尽可能的居中对齐
 };
 
-// 项目在交叉轴内如何对齐
+/**
+ * @enum CrossAlign
+ * 
+ * 项目在交叉轴内如何对齐
+ */
 export enum CrossAlign {
 	Start = 1, // 与交叉轴内的起点对齐
 	Center, // 与交叉轴内的中点对齐
@@ -149,14 +175,22 @@ export enum CrossAlign {
 	Both, // 与交叉轴内的两端对齐
 };
 
-// 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+/**
+ * @enum Wrap
+ * 
+ * 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+ */
 export enum Wrap {
 	NoWrap, // 只有一根交叉轴线
 	Wrap, // 溢出后会有多根交叉轴线
 	WrapReverse, // 多根交叉轴线反向排列
 };
 
-// 多根交叉轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
+/**
+ * @enum WrapAlign
+ * 
+ * 多根交叉轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
+ */
 export enum WrapAlign {
 	Start, // 与交叉轴的起点对齐
 	Center, // 与交叉轴的中点对齐
@@ -167,34 +201,41 @@ export enum WrapAlign {
 	Stretch = 7, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
 };
 
-// view align
+/** 
+ * view align
+ */
 export enum Align {
-	Normal,
-	Start,
-	Center,
-	End,
-	Both,
-	NewStart = Both, // New independent line and left align
-	NewCenter, // New independent line and center align
-	NewEnd, // New independent line and right align
-	FloatStart, // Try not to wrap until the maximum limit and left align
-	FloatCenter, // Try not to wrap until the maximum limit and center align
-	FloatEnd, // Try not to wrap until the maximum limit and right align
-	Baseline = Normal, // box vertical align in text
-	Top, // box vertical align in text
-	Middle, // box vertical align in text
-	Bottom, // box vertical align in text
-	LeftTop = Start,
-	CenterTop,
-	RightTop,
-	LeftMiddle,
-	CenterMiddle,
-	RightMiddle,
-	LeftBottom,
-	CenterBottom,
-	RightBottom,
+	Normal, ///
+	Start, ///
+	Center, ///
+	End, ///
+	Both, ///
+	NewStart = Both, /// New independent line and left align
+	NewCenter, /// New independent line and center align
+	NewEnd, /// New independent line and right align
+	FloatStart, /// Try not to wrap until the maximum limit and left align
+	FloatCenter, /// Try not to wrap until the maximum limit and center align
+	FloatEnd, /// Try not to wrap until the maximum limit and right align
+	Baseline = Normal, /// box vertical align in text
+	Top, /// box vertical align in text
+	Middle, /// box vertical align in text
+	Bottom, /// box vertical align in text
+	LeftTop = Start, ///
+	CenterTop, ///
+	RightTop, ///
+	LeftMiddle, ///
+	CenterMiddle, ///
+	RightMiddle, ///
+	LeftBottom, ///
+	CenterBottom, ///
+	RightBottom, ///
 };
 
+/**
+ * @enum BoxSizeKind
+ * 
+ * The width/height value kind for the Box
+*/
 export enum BoxSizeKind {
 	None,    /* Do not use value */
 	Auto,    /* 包裹内容 wrap content */
@@ -204,44 +245,51 @@ export enum BoxSizeKind {
 	Minus,   /* 减法(parent-value) value ! */
 };
 
+/**
+ * @enum TextValueKind
+ * 
+ * Basic type for the Text attributes
+*/
 export enum TextValueKind {
-	Inherit, Default, Value,
+	Inherit, ///
+	Default, ///
+	Value, ///
 };
 
 export enum TextAlign {
-	Inherit, // inherit
+	Inherit,        /// inherit
 	Left,           /* 左对齐 */
 	Center,         /* 居中 */
 	Right,          /* 右对齐 */
-	Default = Left,
+	Default = Left, ///
 };
 
 export enum TextDecoration {
-	Inherit, // inherit
+	Inherit,        /// inherit
 	None,           /* 没有 */
 	Overline,       /* 上划线 */
-	LineThrough,   /* 中划线 */
+	LineThrough,    /* 中划线 */
 	Underline,      /* 下划线 */
-	Default = None,
+	Default = None, ///
 };
 
 export enum TextOverflow {
-	Inherit, // inherit
+	Inherit,         /// inherit
 	Normal,          /* 不做任何处理 */
 	Clip,            /* 剪切 */
 	Ellipsis,        /* 剪切并显示省略号 */
-	EllipsisCenter, /* 剪切并居中显示省略号 */
-	Default = Normal,
+	EllipsisCenter,  /* 剪切并居中显示省略号 */
+	Default = Normal,///
 };
 
 export enum TextWhiteSpace {
-	Inherit,       // inherit
+	Inherit,      /// inherit
 	Normal,       /* 合并空白序列,使用自动wrap */
 	NoWrap,       /* 合并空白序列,不使用自动wrap */
 	Pre,          /* 保留所有空白,不使用自动wrap */
 	PreWrap,      /* 保留所有空白,使用自动wrap */
 	PreLine,      /* 合并空白符序列,但保留换行符,使用自动wrap */
-	Default = Normal,
+	Default = Normal, ///
 };
 
 export enum TextWordBreak {
