@@ -59,7 +59,7 @@ $ sudo npm install -g qkmake
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
-## Create new project
+## Create new project by qkmake tool
 
 Create a new `Quark` project using the following `shell` command：
 
