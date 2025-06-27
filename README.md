@@ -10,18 +10,6 @@ quark is a cross-platform (Android/iOS/Mac/Linux) front-end development framewor
 | ![Screenshot](http://quarks.cc/img/0x0ss.jpg) | ![Screenshot](http://quarks.cc/img/0x0ss_3.jpg) | ![Screenshot](http://quarks.cc/img/0x0ss_4.jpg) |
 |--|--|--|
 
-Install qmake from npm
-===============
-
-use qkmake tools create project.
-
-first create an empty file directory, then execute in the directory
-
-`qkmake init`
-
-export ios xcode project `qkmake export ios`
-
-
 
 Build source
 ===============
@@ -40,7 +28,7 @@ Compile and install qkmake, execute `make` or `make install`, It takes a long ti
 
 This is a simple program to display Hello world on the screen
 
-```jsx
+```tsx
 import { Application, Root } from 'quark'
 new Application().start(
 	<Root>hello world!</Root>
@@ -53,7 +41,7 @@ You can get a more detailed [`Examples`]
 
 If you've never used Quark before, you can start from here and build your Quark program step by step.
 
-## Install qkmake
+## Install qkmake from npm
 
 First, you need to install the toolkit provided by `Quark`
 
