@@ -43,7 +43,7 @@ Object.assign(exports, __binding__('_action'));
 export type KeyframeIn = StyleSheet | CSSNameExp;
 
 /**
- * @type ActionIn = {Action} | {KeyframeIn}[] | {...}
+ * @type ActionIn = {Action} | {KeyframeIn[]} | {...}
 */
 export type ActionIn = Action | KeyframeIn[] | {
 	playing?: boolean; ///
@@ -75,6 +75,7 @@ export declare class Keyframe extends StyleSheet {
 
 /**
  * @class Action
+ * @abstract
  * `abstract class`
  * 
  * 动作基础类型，这是个抽象类型没有构造函数

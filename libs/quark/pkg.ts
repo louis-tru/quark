@@ -1189,27 +1189,21 @@ new QkPackage();
 export default {
 
 	/**
-	 * @attr mainPackage
-	 * @type {Package}
-	 * @get
+	 * @get mainPackage:Package
 	*/
 	get mainPackage() {
 		return mainModule!.package;
 	},
 
 	/**
-	 * @attr mainModule
-	 * @type {Module}
-	 * @get
+	 * @get mainModule:Module
 	*/
 	get mainModule() {
 		return mainModule!;
 	},
 
 	/**
-	 * @attr mainFilename
-	 * @type {string}
-	 * @get
+	 * @get mainFilename:string
 	*/
 	get mainFilename() {
 		return mainModule!.filename;

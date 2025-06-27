@@ -61,22 +61,22 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	private _offset_y = 0;
 
 	/**
-	 * @attr frail, By default clicking anywhere on the screen will disappear
+	 * @getset frail:bool By default clicking anywhere on the screen will disappear
 	 */
 	@link frail = true;
 
 	/**
-	 * @attr priority display location
+	 * @getset priority:Priority display location
 	 */
 	@link priority = Priority.Bottom;
 
 	/**
-	 * @attr backgroundColor
+	 * @getset backgroundColor:types.ColorStrIn
 	*/
 	@link backgroundColor: types.ColorStrIn = '#fff';
 
 	/**
-	 * @attr borderRadius
+	 * @getset borderRadius:number
 	*/
 	@link borderRadius = 8;
 

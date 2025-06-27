@@ -80,19 +80,14 @@ export declare class Screen extends Notification<Event<Screen>> {
 	readonly onOrientation: EventNoticer<Event<Screen>>;
 
 	/**
-	 * @attr orientation
+	 * @get orientation:Orientation
 	 * 
 	 * Current screen direction
-	 * 
-	 * @type Orientation
-	 * @get
 	*/
 	readonly orientation: Orientation;
 
 	/**
-	 * @attr statusBarHeight
-	 * @type {number}
-	 * @get
+	 * @get statusBarHeight:number
 	*/
 	readonly statusBarHeight: number;
 

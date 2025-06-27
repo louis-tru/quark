@@ -75,71 +75,56 @@ class RootViewController extends ViewController {
 declare class NativeWindow extends Notification<WEvent> {
 
 	/**
-	 * @attr scale
-	 * The scaling ratio of the physical pixel size of the window to the drawing size
+	 * @get scale:float
 	 * 
-	 * @type {float}
-	 * @get
+	 * The scaling ratio of the physical pixel size of the window to the drawing size
 	*/
 	readonly scale: number;
 
 	/**
-	 * @attr defaultScale
-	 * The default recommended scaling ratio between window physical pixels and drawing size
+	 * @get defaultScale:float
 	 * 
-	 * @type {float}
-	 * @get
+	 * The default recommended scaling ratio between window physical pixels and drawing size
 	*/
 	readonly defaultScale: number;
 
 	/**
-	 * @attr fsp
+	 * @get fsp:uint
+	 * 
 	 * Current drawing frame rate
-	 * @type {uint}
-	 * @get
 	*/
 	readonly fsp: number;
 
 	/**
-	 * @attr atomPixel
-	 * Atom pixel size, Exp: 1 / scale
+	 * @get atomPixel:float
 	 * 
-	 * @type {float}
-	 * @get
+	 * Atom pixel size, Exp: 1 / scale
 	*/
 	readonly atomPixel: number;
 
 	/**
-	 * @attr root
-	 * The only root view in the window
+	 * @get root:Root
 	 * 
-	 * @type Root
-	 * @get
+	 * The only root view in the window
 	*/
 	readonly root: Root;
 
 	/**
-	 * @attr focusView
+	 * @get focusView:View
 	 * 
 	 * Current focus view
-	 * 
-	 * @type View
-	 * @get
 	*/
 	readonly focusView: View;
 
 	/**
-	 * @attr navigationRect
+	 * @get navigationRect:Rect
 	 * 
 	 * Navigation rect, possibly in the Android bottom navigation button area
-	 * 
-	 * @type {Rect}
-	 * @get
 	*/
 	readonly navigationRect: types.Rect;
 
 	/**
-	 * @attr szie
+	 * @getset szie:Vec2
 	 * 
 	 * * Set the logical size of the window. When this value changes, the change event will be triggered.
 	 *
@@ -148,29 +133,20 @@ declare class NativeWindow extends Notification<WEvent> {
 	 * * If the width is set to non-zero, it means the width is fixed, and the height is automatically set according to the window ratio.
 	 *
 	 * * If the height is set to non-zero, it means the height is fixed, and the width is automatically set according to the window ratio.
-	 *
-	 * @type {Vec2}
-	 * @get
 	*/
 	size: types.Vec2;
 
 	/**
-	 * @attr backgroundColor
+	 * @getset backgroundColor:Color
 	 * 
 	 * The background color for the window
-	 * 
-	 * @type {Color}
-	 * @get
 	*/
 	backgroundColor: types.Color;
 
 	/**
-	 * @attr surfaceSize
+	 * @getset surfaceSize:Vec2
 	 * 
 	 * Window physical surface pixel size
-	 * 
-	 * @type {Vec2}
-	 * @get
 	*/
 	surfaceSize: types.Vec2;
 
@@ -259,12 +235,9 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	@event readonly onClose: EventNoticer<WEvent>;
 
 	/**
-	 * @attr rootCtr
+	 * @get rootCtr:ViewController
 	 * 
 	 * The only root view controller in the window
-	 * 
-	 * @type {ViewController}
-	 * @get
 	*/
 	readonly rootCtr: ViewController = new RootViewController(this);
 

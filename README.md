@@ -34,4 +34,99 @@ Build source
 
 Compile and install qkmake, execute `make` or `make install`, It takes a long time.
 
-[`Simple Examples`](https://github.com/louis-tru/quark/tree/master/docs/README.md)
+
+
+# Simple Examples
+
+This is a simple program to display Hello world on the screen
+
+```jsx
+import { Application, Root } from 'quark'
+new Application().start(
+	<Root>hello world!</Root>
+)
+```
+
+You can get a more detailed [`Examples`]
+
+# Start Usage
+
+If you've never used Quark before, you can start from here and build your Quark program step by step.
+
+## Install qkmake
+
+First, you need to install the toolkit provided by `Quark`
+
+* Install `qkmake` using nodejs `npm` 
+
+* Open `Terminal` and execute the following command：
+
+```sh
+# shell
+$ sudo npm install -g qkmake
+
+```
+	
+* Running `qkmake` requires dependency on `nodejs` and `python2.7`
+
+* And now do not support the `windows` system, you need to use it under `mac`
+
+## Create new project
+
+Create a new `Quark` project using the following `shell` command：
+
+```sh
+# shell
+$ mkdir myproj
+$ cd myproj
+$ qkmake init
+```
+
+## Build project
+
+This step compresses and packages the JavaScript code and resource files inside the project,
+If this is a new project, you can skip this step and go directly to the next step
+
+```js
+# shell
+$ qkmake build
+```
+
+## Export project
+
+This step exports [`Xcode`] or [`Android Studio`] project，because you eventually publish the program that be a `.apk` or `.ipa`
+
+```js
+# shell
+# export xcode ios project
+$ qkmake export ios
+# export android studio project
+$ qkmake export android
+```
+
+After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
+
+## Quark test http server
+
+`qkmake` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
+
+Execute the following code to start it：
+
+```js
+# shell
+$ qkmake watch
+```
+
+# Downloads
+
+* Examples demo [`Android APK`] Install package
+
+* Project [`Source code`] from `Github`
+
+
+[`Examples`]: https://github.com/louis-tru/quark/tree/master/examples
+[`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
+[`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
+[`Android APK`]: https://github.com/louis-tru/quark/releases/download/v0.1.0/examples-release.apk
+[`NPM`]: https://www.npmjs.com/package/qkmake
+[`Source code`]: https://github.com/louis-tru/quark

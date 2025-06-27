@@ -65,6 +65,9 @@ function error(value: any, desc?: string, reference?: any[], ref?: Reference, en
 	return new Error(err);
 }
 
+/**
+ * @type N = {number}
+ */
 export type N = number;
 
 interface Constructor<T> {
@@ -114,20 +117,20 @@ export enum Repeat {
  * @enum FillPositionKind
 */
 export enum FillPositionKind {
-	Value,     /* Explicit Value */
-	Ratio,     /* Percentage value */
-	Start,     /* Starting position */
-	End,       /* Ending position */
-	Center,    /* Centered position */
+	Value,     /// Explicit Value
+	Ratio,     /// Percentage value
+	Start,     /// Starting position
+	End,       /// Ending position
+	Center,    /// Centered position
 };
 
 /**
  * @enum FillPositionKind
 */
 export enum FillSizeKind {
-	Auto,      /* Auto value */
-	Value,     /* Explicit Value */
-	Ratio,     /* Percentage value */
+	Auto,      /// Auto value
+	Value,     /// Explicit Value
+	Ratio,     /// Percentage value
 };
 
 /**
@@ -181,9 +184,9 @@ export enum CrossAlign {
  * 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
  */
 export enum Wrap {
-	NoWrap, // 只有一根交叉轴线
-	Wrap, // 溢出后会有多根交叉轴线
-	WrapReverse, // 多根交叉轴线反向排列
+	NoWrap, /// 只有一根交叉轴线
+	Wrap, /// 溢出后会有多根交叉轴线
+	WrapReverse, /// 多根交叉轴线反向排列
 };
 
 /**
@@ -192,13 +195,13 @@ export enum Wrap {
  * 多根交叉轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
  */
 export enum WrapAlign {
-	Start, // 与交叉轴的起点对齐
-	Center, // 与交叉轴的中点对齐
-	End, // 与交叉轴的终点对齐
-	SpaceBetween, // 与交叉轴两端对齐,轴线之间的间隔平均分布
-	SpaceAround, // 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
-	SpaceEvenly, // 每根轴线两侧的间隔都相等,这包括边框的间距
-	Stretch = 7, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
+	Start, /// 与交叉轴的起点对齐
+	Center, /// 与交叉轴的中点对齐
+	End, /// 与交叉轴的终点对齐
+	SpaceBetween, /// 与交叉轴两端对齐,轴线之间的间隔平均分布
+	SpaceAround, /// 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
+	SpaceEvenly, /// 每根轴线两侧的间隔都相等,这包括边框的间距
+	Stretch = 7, /// 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
 };
 
 /** 
@@ -237,12 +240,12 @@ export enum Align {
  * The width/height value kind for the Box
 */
 export enum BoxSizeKind {
-	None,    /* Do not use value */
-	Auto,    /* 包裹内容 wrap content */
-	Match,   /* 匹配父视图 match parent */
-	Value,     /* 明确值  rem */
-	Ratio,   /* 百分比 value % */
-	Minus,   /* 减法(parent-value) value ! */
+	None,    /// Do not use value
+	Auto,    /// 包裹内容 wrap content
+	Match,   /// 匹配父视图 match parent
+	Value,   /// 明确值  rem
+	Ratio,   /// 百分比 value %
+	Minus,   /// 减法(parent-value) value !
 };
 
 /**
@@ -256,171 +259,210 @@ export enum TextValueKind {
 	Value, ///
 };
 
+/**
+ * @enum TextAlign
+*/
 export enum TextAlign {
 	Inherit,        /// inherit
-	Left,           /* 左对齐 */
-	Center,         /* 居中 */
-	Right,          /* 右对齐 */
+	Left,           /// 左对齐
+	Center,         /// 居中
+	Right,          /// 右对齐
 	Default = Left, ///
 };
 
+/**
+ * @enum TextDecoration
+*/
 export enum TextDecoration {
 	Inherit,        /// inherit
-	None,           /* 没有 */
-	Overline,       /* 上划线 */
-	LineThrough,    /* 中划线 */
-	Underline,      /* 下划线 */
+	None,           /// 没有
+	Overline,       /// 上划线
+	LineThrough,    /// 中划线
+	Underline,      /// 下划线
 	Default = None, ///
 };
 
+/**
+ * @enum TextOverflow
+*/
 export enum TextOverflow {
 	Inherit,         /// inherit
-	Normal,          /* 不做任何处理 */
-	Clip,            /* 剪切 */
-	Ellipsis,        /* 剪切并显示省略号 */
-	EllipsisCenter,  /* 剪切并居中显示省略号 */
+	Normal,          /// 不做任何处理
+	Clip,            /// 剪切
+	Ellipsis,        /// 剪切并显示省略号
+	EllipsisCenter,  /// 剪切并居中显示省略号
 	Default = Normal,///
 };
 
+/**
+ * @enum TextWhiteSpace
+*/
 export enum TextWhiteSpace {
 	Inherit,      /// inherit
-	Normal,       /* 合并空白序列,使用自动wrap */
-	NoWrap,       /* 合并空白序列,不使用自动wrap */
-	Pre,          /* 保留所有空白,不使用自动wrap */
-	PreWrap,      /* 保留所有空白,使用自动wrap */
-	PreLine,      /* 合并空白符序列,但保留换行符,使用自动wrap */
+	Normal,       /// 合并空白序列,使用自动wrap
+	NoWrap,       /// 合并空白序列,不使用自动wrap
+	Pre,          /// 保留所有空白,不使用自动wrap
+	PreWrap,      /// 保留所有空白,使用自动wrap
+	PreLine,      /// 合并空白符序列,但保留换行符,使用自动wrap
 	Default = Normal, ///
 };
 
+/**
+ * @enum TextWordBreak
+*/
 export enum TextWordBreak {
-	Inherit,  // inherit
-	Normal,   /* 保持单词在同一行 */
-	BreakWord,/* 保持单词在同一行,除非单词长度超过一行才截断 */
-	BreakAll, /* 以字为单位行空间不足换行 */
-	KeepAll,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
-	Default = Normal,
+	Inherit,  /// inherit
+	Normal,   /// 保持单词在同一行
+	BreakWord,/// 保持单词在同一行,除非单词长度超过一行才截断
+	BreakAll, /// 以字为单位行空间不足换行
+	KeepAll,  /// 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
+	Default = Normal, ///
 };
 
+/**
+ * @enum TextWeight
+*/
 export enum TextWeight {
-	Inherit      = 0,
-	Thin         = 100,
-	Ultralight   = 200,
-	Light        = 300,
-	Regular      = 400,
-	Medium       = 500,
-	Semibold     = 600,
-	Bold         = 700,
-	Heavy        = 800,
-	Black        = 900,
-	ExtraBlack   = 1000,
-	Default      = Regular, // default
+	Inherit      = 0,   ///
+	Thin         = 100, ///
+	Ultralight   = 200, ///
+	Light        = 300, ///
+	Regular      = 400, ///
+	Medium       = 500, ///
+	Semibold     = 600, ///
+	Bold         = 700, ///
+	Heavy        = 800, ///
+	Black        = 900, ///
+	ExtraBlack   = 1000, ///
+	Default      = Regular, /// default
 };
 
+/**
+ * @enum TextWidth
+*/
 export enum TextWidth {
-	Inherit          = 0, // inherit
-	UltraCondensed   = 1,
-	ExtraCondensed   = 2,
-	Condensed        = 3,
-	SemiCondensed    = 4,
-	Normal           = 5,
-	SemiExpanded     = 6,
-	Expanded         = 7,
-	ExtraExpanded    = 8,
-	UltraExpanded    = 9,
-	Default          = Normal,
+	Inherit          = 0, ///
+	UltraCondensed   = 1, ///
+	ExtraCondensed   = 2, ///
+	Condensed        = 3, ///
+	SemiCondensed    = 4, ///
+	Normal           = 5, ///
+	SemiExpanded     = 6, ///
+	Expanded         = 7, ///
+	ExtraExpanded    = 8, ///
+	UltraExpanded    = 9, ///
+	Default          = Normal, ///
 };
 
+/**
+ * @enum TextSlant
+*/
 export enum TextSlant {
-	Inherit, // inherit
-	Normal, // 正常
-	Italic, // 斜体
-	Oblique,  // 倾斜
-	Default = Normal,
+	Inherit, ///
+	Normal,  ///
+	Italic,  ///
+	Oblique, ///
+	Default = Normal, ///
 };
 
+/**
+ * @type TextStyle = number
+ */
 export type TextStyle = number;
 
+/**
+ * @enum KeyboardType
+*/
 export enum KeyboardType {
-	Normal,
-	Ascii,
-	Number,
-	Url,
-	NumberPad,
-	Phone,
-	NamePhone,
-	Email,
-	Decimal,
-	Search,
-	AsciiNumber,
+	Normal, ///
+	Ascii,  ///
+	Number, ///
+	Url,    ///
+	NumberPad, ///
+	Phone,  ///
+	NamePhone, ///
+	Email,  ///
+	Decimal, ///
+	Search, ///
+	AsciiNumber, ///
 };
 
+/**
+ * @enum KeyboardReturnType
+*/
 export enum KeyboardReturnType {
-	Normal,
-	Go,
-	Join,
-	Next,
-	Route,
-	Search,
-	Send,
-	Done,
-	Emergency,
-	Continue,
+	Normal, ///
+	Go, ///
+	Join, ///
+	Next, ///
+	Route, ///
+	Search, ///
+	Send, ///
+	Done, ///
+	Emergency, ///
+	Continue, ///
 };
 
+/**
+ * @enum CursorStyle
+*/
 export enum CursorStyle {
-	Normal,
-	None,
-	NoneUntilMouseMoves,
-	Arrow,
-	Ibeam,
-	PointingHand,
-	Pointer = PointingHand,
-	ClosedHand,
-	OpenHand,
-	ResizeLeft,
-	ResizeRight,
-	ResizeLeftRight,
-	ResizeUp,
-	ResizeDown,
-	ResizeUpDown,
-	Crosshair,
-	DisappearingItem,
-	OperationNotAllowed,
-	DragLink,
-	DragCopy,
-	ContextualMenu,
-	IbeamForVertical,
+	Normal, ///
+	None, ///
+	NoneUntilMouseMoves, ///
+	Arrow, ///
+	Ibeam, ///
+	PointingHand, ///
+	Pointer = PointingHand, ///
+	ClosedHand, ///
+	OpenHand, ///
+	ResizeLeft, ///
+	ResizeRight, ///
+	ResizeLeftRight, ///
+	ResizeUp, ///
+	ResizeDown, ///
+	ResizeUpDown, ///
+	Crosshair, ///
+	DisappearingItem, ///
+	OperationNotAllowed, ///
+	DragLink, ///
+	DragCopy, ///
+	ContextualMenu, ///
+	IbeamForVertical, ///
 };
 
+/**
+ * @enum FindDirection
+*/
 export enum FindDirection {
-	None,
-	Left,
-	Top,
-	Right,
-	Bottom,
+	None, ///
+	Left, ///
+	Top, ///
+	Right, ///
+	Bottom, ///
 };
 
 // -------------------------------------------------------------------------------------
 
-export type RepeatIn = Uncapitalize<keyof typeof Repeat> | Repeat;
-export type DirectionIn = Uncapitalize<keyof typeof Direction> | Direction;
-export type ItemsAlignIn = Uncapitalize<keyof typeof ItemsAlign> | ItemsAlign;
-export type CrossAlignIn = Uncapitalize<keyof typeof CrossAlign> | CrossAlign;
-export type WrapIn = Uncapitalize<keyof typeof Wrap> | Wrap;
-export type WrapAlignIn = Uncapitalize<keyof typeof WrapAlign> | WrapAlign;
-export type AlignIn = Uncapitalize<keyof typeof Align> | Align;
-export type TextAlignIn = Uncapitalize<keyof typeof TextAlign> | TextAlign;
-export type TextDecorationIn = Uncapitalize<keyof typeof TextDecoration> | TextDecoration;
-export type TextOverflowIn = Uncapitalize<keyof typeof TextOverflow> | TextOverflow;
-export type TextWhiteSpaceIn = Uncapitalize<keyof typeof TextWhiteSpace> | TextWhiteSpace;
-export type TextWordBreakIn = Uncapitalize<keyof typeof TextWordBreak> | TextWordBreak;
-export type TextWeightIn = Uncapitalize<keyof typeof TextWeight> | TextWeight;
-export type TextWidthIn = Uncapitalize<keyof typeof TextWidth> | TextWidth;
-export type TextSlantIn = Uncapitalize<keyof typeof TextSlant> | TextSlant;
-export type KeyboardTypeIn = Uncapitalize<keyof typeof KeyboardType> | KeyboardType;
-export type KeyboardReturnTypeIn = Uncapitalize<keyof typeof KeyboardReturnType> | KeyboardReturnType;
-export type CursorStyleIn = Uncapitalize<keyof typeof CursorStyle> | CursorStyle;
-export type FindDirectionIn = Uncapitalize<keyof typeof FindDirection> | FindDirection;
+export type RepeatIn = Uncapitalize<keyof typeof Repeat> | Repeat; /// :Repeat
+export type DirectionIn = Uncapitalize<keyof typeof Direction> | Direction; /// :Direction
+export type ItemsAlignIn = Uncapitalize<keyof typeof ItemsAlign> | ItemsAlign; /// :ItemsAlign
+export type CrossAlignIn = Uncapitalize<keyof typeof CrossAlign> | CrossAlign; /// :CrossAlign
+export type WrapIn = Uncapitalize<keyof typeof Wrap> | Wrap; /// :Wrap
+export type WrapAlignIn = Uncapitalize<keyof typeof WrapAlign> | WrapAlign; /// :WrapAlign
+export type AlignIn = Uncapitalize<keyof typeof Align> | Align; /// :Align
+export type TextAlignIn = Uncapitalize<keyof typeof TextAlign> | TextAlign; /// :TextAlign
+export type TextDecorationIn = Uncapitalize<keyof typeof TextDecoration> | TextDecoration; /// :TextDecoration
+export type TextOverflowIn = Uncapitalize<keyof typeof TextOverflow> | TextOverflow; /// :TextOverflow
+export type TextWhiteSpaceIn = Uncapitalize<keyof typeof TextWhiteSpace> | TextWhiteSpace; /// :TextWhiteSpace
+export type TextWordBreakIn = Uncapitalize<keyof typeof TextWordBreak> | TextWordBreak; /// :TextWordBreak
+export type TextWeightIn = Uncapitalize<keyof typeof TextWeight> | TextWeight; /// :TextWeight
+export type TextWidthIn = Uncapitalize<keyof typeof TextWidth> | TextWidth; /// :TextWidth
+export type TextSlantIn = Uncapitalize<keyof typeof TextSlant> | TextSlant; /// :TextSlant
+export type KeyboardTypeIn = Uncapitalize<keyof typeof KeyboardType> | KeyboardType; /// :KeyboardType
+export type KeyboardReturnTypeIn = Uncapitalize<keyof typeof KeyboardReturnType> | KeyboardReturnType; /// :KeyboardReturnType
+export type CursorStyleIn = Uncapitalize<keyof typeof CursorStyle> | CursorStyle; /// :CursorStyle
+export type FindDirectionIn = Uncapitalize<keyof typeof FindDirection> | FindDirection; /// :FindDirection
 
 export class Base<T> {
 	toString() { return '[types base]' }
@@ -432,73 +474,104 @@ export class Base<T> {
 	}
 }
 
+/**
+ * @class Vec2
+*/
 export class Vec2 extends Base<Vec2> {
-	x: N;
-	y: N;
+	x: N; ///
+	y: N; ///
 	toString(): `vec2(${N},${N})` { return `vec2(${this.x},${this.y})` }
 }
 initDefaults(Vec2, { x: 0, y: 0 });
+/**
+ * @type Vec2In = `'0 0'` | `'vec2(0,0)'` | :N | [0,0] | :Vec2
+*/
 export type Vec2In = `${number} ${number}` | `vec2(${N},${N})` | N | [N,N] | Vec2;
 
+/**
+ * @class Vec3
+*/
 export class Vec3 extends Base<Vec3> {
-	x: N;
-	y: N;
-	z: N;
+	x: N; ///
+	y: N; ///
+	z: N; ///
 	toString(): `vec3(${N},${N},${N})` { return `vec3(${this.x},${this.y},${this.z})` }
 }
 initDefaults(Vec3, { x: 0, y: 0, z: 0 });
+/**
+ * @type Vec3In = `'0 0 1'` | `'vec3(0,0,1)'` | :N | [0,0,1] | :Vec3
+*/
 export type Vec3In = `${number} ${number} ${number}` | `vec3(${N},${N},${N})` | N | [N,N,N] | Vec3;
 
+/**
+ * @class Vec4
+*/
 export class Vec4 extends Base<Vec4> {
-	x: N;
-	y: N;
-	z: N;
-	w: N;
+	x: N; ///
+	y: N; ///
+	z: N; ///
+	w: N; ///
 	toString(): `vec4(${N},${N},${N},${N})` {
 		return `vec4(${this.x},${this.y},${this.z},${this.w})`;
 	}
 }
 initDefaults(Vec4, { x: 0, y: 0, z: 0, w: 0 });
+/**
+ * @type Vec4In = `'0 0 1 1'` | `'vec4(0,0,1,1)'` | :N | [0,0,1,1] | :Vec4
+*/
 export type Vec4In = `${number} ${number} ${number} ${number}` |
 	`vec4(${N},${N},${N},${N})` | N | [N,N,N,N] | Vec4;
 
+/**
+ * @class Curve
+*/
 export class Curve extends Base<Curve> {
-	p1: Vec2;
-	p2: Vec2;
-	get p1x() { return this.p1.x; }
-	get p1y() { return this.p1.y; }
-	get p2x() { return this.p2.x; }
-	get p2y() { return this.p2.y; }
+	p1: Vec2; ///
+	p2: Vec2; ///
+	get p1x() { return this.p1.x; } /// :N
+	get p1y() { return this.p1.y; } /// :N
+	get p2x() { return this.p2.x; } /// :N
+	get p2y() { return this.p2.y; } /// :N
 	toString(): `curve(${N},${N},${N},${N})` {
 		return `curve(${this.p1.x},${this.p1.y},${this.p2.x},${this.p2.y})`;
 	}
 }
 initDefaults(Curve, { p1: new Vec2({x:0,y:0}), p2: new Vec2({x:1,y:1}) });
-export type CurveIn = 'linear' | 'ease' | 'easeIn' | 'easeOut' | 'easeInOut' | 
+/**
+ * @type CurveIn = `'linear'` | `'ease'` | `'easeIn'` | `'easeOut'` | `'easeInOut'` |
+ * 	`'curve(0,0,1,1)'` | [0,0,1,1] | :Curve
+*/
+export type CurveIn = 'linear' | 'ease' | 'easeIn' | 'easeOut' | 'easeInOut' |
 	`curve(${N},${N},${N},${N})` | [number,number,number,number] | Curve;
 
+/**
+ * @class Rect
+*/
 export class Rect extends Base<Rect> {
-	origin: Vec2;
-	size: Vec2;
-	get x() { return this.origin.x; }
-	get y() { return this.origin.y; }
-	get width() { return this.size.x; }
-	get height() { return this.size.y; }
+	origin: Vec2; ///
+	size: Vec2; ///
+	get x() { return this.origin.x; } /// :N
+	get y() { return this.origin.y; } /// :N
+	get width() { return this.size.x; } /// :N
+	get height() { return this.size.y; } /// :N
 	toString(): `rect(${N},${N},${N},${N})` {
 		return `rect(${this.x},${this.y},${this.width},${this.height})`;
 	}
 }
 initDefaults(Rect, { origin: new Vec2, size: new Vec2 });
-export type RectIn = `rect(${N},${N},${N},${N})` | `rect(${N},${N})` |
+export type RectIn = `rect(${N},${N},${N},${N})` | `rect(${N},${N})` | /// `rect(0,0,100,100)` | `rect(0,0)` | [0,0,100,100] | :Rect
 	[number,number,number,number] | Rect;
 
+/**
+ * @class Mat
+*/
 export class Mat extends Base<Mat> {
-	m0: N;
-	m1: N;
-	m2: N;
-	m3: N;
-	m4: N;
-	m5: N;
+	m0: N; ///
+	m1: N; ///
+	m2: N; ///
+	m3: N; ///
+	m4: N; ///
+	m5: N; ///
 	get value() {
 		return [this.m0,this.m1,this.m2,this.m3,this.m4,this.m5];
 	}
@@ -508,25 +581,28 @@ export class Mat extends Base<Mat> {
 	}
 }
 initDefaults(Mat, { m0: 1, m1: 0, m2: 0, m3: 0, m4: 1, m5: 0 });
-export type MatIn = N | Mat | ReturnType<typeof Mat.prototype.toString>;
+export type MatIn = N | Mat | ReturnType<typeof Mat.prototype.toString>; /// :N | :Mat | `mat(0,0,0,0,0,0)`
 
+/**
+ * @class Mat4
+*/
 export class Mat4 extends Base<Mat4> {
-	m0: N;
-	m1: N;
-	m2: N;
-	m3: N;
-	m4: N;
-	m5: N;
-	m6: N;
-	m7: N;
-	m8: N;
-	m9: N;
-	m10: N;
-	m11: N;
-	m12: N;
-	m13: N;
-	m14: N;
-	m15: N;
+	m0: N; ///
+	m1: N; ///
+	m2: N; ///
+	m3: N; ///
+	m4: N; ///
+	m5: N; ///
+	m6: N; ///
+	m7: N; ///
+	m8: N; ///
+	m9: N; ///
+	m10: N; ///
+	m11: N; ///
+	m12: N; ///
+	m13: N; ///
+	m14: N; ///
+	m15: N; ///
 	get value() { return [
 		this.m0,this.m1,this.m2,this.m3,this.m4,this.m5,this.m6,this.m7,
 		this.m8,this.m9,this.m10,this.m11,this.m12,this.m13,this.m14,this.m15];
@@ -546,11 +622,14 @@ initDefaults(Mat4, {
 });
 export type Mat4In = N | Mat4 | ReturnType<typeof Mat4.prototype.toString>;
 
+/**
+ * @class Color
+*/
 export class Color extends Base<Color> {
-	r: N;
-	g: N;
-	b: N;
-	a: N;
+	r: N; ///
+	g: N; ///
+	b: N; ///
+	a: N; ///
 	constructor(r: N, g: N, b: N, a: N) {
 		super();
 		this.r = r;
@@ -575,72 +654,91 @@ export class Color extends Base<Color> {
 	}
 }
 initDefaults(Color, { r: 0, g: 0, b: 0, a: 255 });
-export type ColorStrIn = `#${string}` | `rgb(${N},${N},${N})` | `rgba(${N},${N},${N},${N})`;
-export type ColorIn = ColorStrIn | N | Color;
+export type ColorStrIn = `#${string}` | `rgb(${N},${N},${N})` | `rgba(${N},${N},${N},${N})`; /// `#fff` | `rgb(0,0,0)` | `rgba(0,0,0,255)`
+export type ColorIn = ColorStrIn | N | Color; /// :ColorStrIn | :N | :Color
 
+/**
+ * @class Shadow
+*/
 export class Shadow extends Base<Shadow> {
-	x: N;
-	y: N;
-	size: N;
-	color: Color;
-	get r() { return this.color.r; }
-	get g() { return this.color.g; }
-	get b() { return this.color.b; }
-	get a() { return this.color.a; }
+	x: N; /// @getset x:N
+	y: N; /// @getset y:N
+	size: N; /// @getset size:N
+	color: Color; /// @getset coloe:Color
+	get r() { return this.color.r; } /// @get r:N
+	get g() { return this.color.g; } /// @get r:N
+	get b() { return this.color.b; } /// @get r:N
+	get a() { return this.color.a; } /// @get r:N
 	toString(): `${N} ${N} ${N} #${string}` {
 		return `${this.x} ${this.y} ${this.size} ${this.color.toString()}`
 	}
 }
 initDefaults(Shadow, { x: 0, y: 0, size: 0, color: new Color(0,0,0,255) });
-export type ShadowIn = `${N} ${N} ${N} ${ColorStrIn}` | Shadow;
+export type ShadowIn = `${N} ${N} ${N} ${ColorStrIn}` | Shadow; /// `2 2 2 rgb(100,100,100)` | :Shadow
 
+/**
+ * @class BoxBorder
+*/
 export class BoxBorder extends Base<BoxBorder> {
-	width: N;
-	color: Color;
-	get r() { return this.color.r; }
-	get g() { return this.color.g; }
-	get b() { return this.color.b; }
-	get a() { return this.color.a; }
+	width: N; ///
+	color: Color; ///
+	get r() { return this.color.r; } /// :N
+	get g() { return this.color.g; } /// :N
+	get b() { return this.color.b; } /// :N
+	get a() { return this.color.a; } /// :N
 	toString(): `${N} #${string}` {
 		return `${this.width} ${this.color.toString()}`
 	}
 }
 initDefaults(BoxBorder, { width: 0, color: new Color(0,0,0,255) });
-export type BoxBorderIn = `${N} ${ColorStrIn}` | BoxBorder;
+export type BoxBorderIn = `${N} ${ColorStrIn}` | BoxBorder; /// `"1 rgb(100,100,100)""` | :BoxBorder
 
+/**
+ * @class FillPosition
+*/
 export class FillPosition extends Base<FillPosition> {
-	value: N;
-	kind: FillPositionKind;
+	value: N; ///
+	kind: FillPositionKind; ///
 };
 initDefaults(FillPosition, { value: 0, kind: FillPositionKind.Value });
-type FillPositionKindStr = 
+type FillPositionKindStr = /// `"start"` | `"end"` | `"center"`
 	Uncapitalize<keyof RemoveField<typeof FillPositionKind, 'Value'|'Ratio'|number>>;
+/** @type FillPositionIn = :N | :FillPosition | `50%` | :FillPositionKindStr */
 export type FillPositionIn = N | FillPosition | `${number}%` | FillPositionKindStr;
 
+/**
+ * @class FillSize
+*/
 export class FillSize extends Base<FillSize> {
-	value: N;
-	kind: FillSizeKind;
+	value: N; ///
+	kind: FillSizeKind; ///
 };
 initDefaults(FillSize, { value: 0, kind: FillSizeKind.Auto });
-type FillSizeKindStr = Uncapitalize<keyof RemoveField<typeof FillSizeKind, 'Value'|'Ratio'|number>>;
-export type FillSizeIn = N | FillSize | `${number}%` | FillSizeKindStr;
+type FillSizeKindStr = Uncapitalize<keyof RemoveField<typeof FillSizeKind, 'Value'|'Ratio'|number>>; /// `"auto"`
+export type FillSizeIn = N | FillSize | `${number}%` | FillSizeKindStr; /// :N | :FillSize | `50%` | :FillSizeKindStr
 
+/**
+ * @class BoxSize
+*/
 export class BoxSize extends Base<BoxSize> {
-	value: N;
-	kind: BoxSizeKind;
+	value: N; ///
+	kind: BoxSizeKind; ///
 };
 initDefaults(BoxSize, { value: 0, kind: BoxSizeKind.Value });
-type BoxSizeKindStr = 
+type BoxSizeKindStr = /// `"auto"` | `"none"` | `"match"`
 	Uncapitalize<keyof RemoveField<typeof BoxSizeKind, 'Value'|'Ratio'|'Minus'|number>>
-export type BoxSizeIn = N | BoxSize | `${number}%` | `${number}!` | BoxSizeKindStr;
+export type BoxSizeIn = N | BoxSize | `${number}%` | `${number}!` | BoxSizeKindStr; /// :N | :BoxSize | `50%` | `100!` | :BoxSizeKindStr
 
+/**
+ * @class BoxOrigin
+*/
 export class BoxOrigin extends Base<BoxSize> {
-	value: N;
-	kind: BoxOriginKind;
+	value: N; ///
+	kind: BoxOriginKind; ///
 };
-type BoxOriginKindStr = FillSizeKindStr;
+type BoxOriginKindStr = FillSizeKindStr; /// :FillSizeKindStr
 initDefaults(BoxOrigin, { value: 0, kind: FillSizeKind.Value });
-export type BoxOriginIn = N | BoxOrigin | `${number}%` | BoxOriginKindStr;
+export type BoxOriginIn = N | BoxOrigin | `${number}%` | BoxOriginKindStr; /// :N | :BoxOrigin | `50%` | :BoxOriginKindStr
 
 const TextBase_toString = [
 	()=>'inherit',
@@ -648,44 +746,66 @@ const TextBase_toString = [
 	(v: any)=>v+'',
 	()=>'unknown',
 ];
+
+/**
+ * @template Value
+ * @class TextBase
+*/
 class TextBase<Derived,Value> extends Base<Derived> {
-	value: Value;
-	kind: TextValueKind;
+	value: Value; ///
+	kind: TextValueKind; ///
 	toString() {
 		return (TextBase_toString[this.kind] || TextBase_toString[3])(this.value);
 	}
 }
+
+/**
+ * @class TextColor
+ * @extends TextBase<Color>
+*/
 export class TextColor extends TextBase<TextColor,Color> {
-	get r() { return this.value.r; }
-	get g() { return this.value.g; }
-	get b() { return this.value.b; }
-	get a() { return this.value.a; }
+	get r() { return this.value.r; } /// :N
+	get g() { return this.value.g; } /// :N
+	get b() { return this.value.b; } /// :N
+	get a() { return this.value.a; } /// :N
 }
 initDefaults(TextColor, { value: new Color(0,0,0,255), kind: TextValueKind.Inherit });
-type TextValueKindInStr = Uncapitalize<keyof RemoveField<typeof TextValueKind, 'Value'|number>>;
-export type TextColorIn = TextValueKindInStr | ColorIn | TextColor;
+type TextValueKindInStr = Uncapitalize<keyof RemoveField<typeof TextValueKind, 'Value'|number>>; /// `"inherit"` | `"default"`
+export type TextColorIn = TextValueKindInStr | ColorIn | TextColor; /// :TextValueKindInStr | :TextColor | :ColorIn
 
+/**
+ * @class TextColor
+ * @extends TextBase<N>
+*/
 export class TextSize extends TextBase<TextSize,N> {}
 initDefaults(TextSize, { value: 0, kind: TextValueKind.Inherit });
-export type TextSizeIn = TextValueKindInStr | N | TextSize;
-export type TextLineHeightIn = TextSizeIn;
-export type TextLineHeight = TextSize;
-export const TextLineHeight = TextSize;
+export type TextSizeIn = TextValueKindInStr | N | TextSize; /// :TextValueKindInStr | :TextSize | :N
+export type TextLineHeightIn = TextSizeIn; /// :TextSizeIn
+export type TextLineHeight = TextSize; /// :TextSize
+export const TextLineHeight = TextSize; /// :TextSize
 
+/**
+ * @class TextColor
+ * @extends TextBase<Shadow>
+*/
 export class TextShadow extends TextBase<TextShadow,Shadow> {
-	get x() { return this.value.x }
-	get y() { return this.value.y }
-	get size() { return this.value.size }
-	get color() { return this.value.color }
-	get r() { return this.color.r; }
-	get g() { return this.color.g; }
-	get b() { return this.color.b; }
-	get a() { return this.color.a; }
+	get x() { return this.value.x } /// :N
+	get y() { return this.value.y } /// :N
+	get size() { return this.value.size } /// :N
+	get color() { return this.value.color } /// :Color
+	get r() { return this.color.r; } /// :N
+	get g() { return this.color.g; } /// :N
+	get b() { return this.color.b; } /// :N
+	get a() { return this.color.a; } /// :N
 }
 initDefaults(TextShadow, { value: new Shadow, kind: TextValueKind.Inherit });
-export type TextShadowIn = TextValueKindInStr | ShadowIn | TextShadow;
+export type TextShadowIn = TextValueKindInStr | ShadowIn | TextShadow; ///
 
-export type FFID = Uint8Array;
+export type FFID = Uint8Array; ///
+/**
+ * @class TextColor
+ * @extends TextBase<FFID>
+*/
 export class TextFamily extends TextBase<TextFamily,FFID> {
 	toString() {
 		if (this.kind == TextValueKind.Value) {
@@ -698,97 +818,159 @@ export class TextFamily extends TextBase<TextFamily,FFID> {
 			return (TextBase_toString[this.kind] || TextBase_toString[3])(this.value);
 		}
 	}
+	/**
+	 * @method families()
+	 * @return {string}
+	*/
 	families(): string {
 		let isNullptr = this.value.every(e=>!e);
 		return isNullptr ? '': _font.getFamiliesName(this.value);
 	}
 }
-export const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]);
+export const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]); /// :FFID
 initDefaults(TextFamily, { value: EmptyFFID, kind: TextValueKind.Inherit });
-export type TextFamilyIn = TextValueKindInStr | string | TextFamily;
+export type TextFamilyIn = TextValueKindInStr | string | TextFamily; /// :TextValueKindInStr | :string | :TextFamily
 
-
-
-export declare class BoxFilter {
-	readonly type: N;
-	next: BoxFilter | null;
+/**
+ * @class BoxFilter
+ * @class abstract
+*/
+export declare abstract class BoxFilter {
+	readonly type: N; ///
+	next: BoxFilter | null; /// :BoxFilter | :null
 }
 
 /**
-Examples:
-```
-image(res/image.png, auto 100%, x=start, y=20%, repeat)
-
-radial(#ff00ff 0%, #ff0 50%, #00f 100%)
-
-linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)
-```
-*/
+ * @type BoxFilterIn = :string | :string[] | :BoxFilter;
+ * Examples:
+ * ```
+ * image(res/image.png, auto 100%, x=start, y=20%, repeat)
+ * 
+ * radial(#ff00ff 0%, #ff0 50%, #00f 100%)
+ * 
+ * linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)
+ * ```
+ */
 export type BoxFilterIn = string | string[] | BoxFilter;
 
+/**
+ * @class FillImage
+ * @extends BoxFilter
+*/
 export declare class FillImage extends BoxFilter {
-	src: string;
-	width: FillSize;
-	height: FillSize;
-	x: FillPosition;
-	y: FillPosition;
-	repeat: Repeat;
+	src: string; ///
+	width: FillSize; ///
+	height: FillSize; ///
+	x: FillPosition; ///
+	y: FillPosition; ///
+	repeat: Repeat; ///
+	/**
+	 * @constructor(src[,init])
+	 * @param src {string}
+	 * @param init? {object}
+	*/
 	constructor(src: string, init?: {
 		width?: FillSize, height?: FillSize,
 		x?: FillPosition, y?: FillPosition, repeat?: Repeat,
 	});
 }
 
+/**
+ * @class FillGradientRadial
+ * @extends BoxFilter
+*/
 export declare class FillGradientRadial extends BoxFilter {
-	readonly positions: Array<N>;
-	readonly colors: Array<Color>;
-	constructor(pos: Array<N>, coloes: Array<Color>);
+	readonly positions: N[]; ///
+	readonly colors: Color[]; ///
+	/**
+	 * @constructor(pos,colors)
+	 * @param pos {N[]}
+	 * @param colors {Color[]}
+	*/
+	constructor(pos: N[], colors: Color[]);
 }
 
+/**
+ * @class FillGradientLinear
+ * @extends FillGradientRadial
+*/
 export declare class FillGradientLinear extends FillGradientRadial {
-	angle: N;
-	constructor(pos: Array<N>, coloes: Array<Color>, angle: N);
+	angle: N; ///
+	/**
+	 * @constructor(pos,colors,angle)
+	 * @param pos {N[]}
+	 * @param colors {Color[]}
+	 * @param angle {N}
+	*/
+	constructor(pos: N[], coloes: Color[], angle: N);
 }
 
+/**
+ * @class BoxShadow
+ * @extends BoxFilter
+*/
 export declare class BoxShadow extends BoxFilter {
-	value: Shadow;
+	value: Shadow; ///
+	/**
+	 * @constructor(value)
+	 * @param value {Shadow}
+	*/
 	constructor(value: Shadow);
 }
 
 /**
-Examples:
- ```
- 10 10 2 #ff00aa
-
- ['10 10 2 #ff00aa']
-
- 10 10 2 rgba(255,255,0,255)
- ```
+ * Examples:
+ *```
+ * 10 10 2 #ff00aa
+ * 
+ * ['10 10 2 #ff00aa']
+ * 
+ * 10 10 2 rgba(255,255,0,255)
+ *```
  */
 export type BoxShadowIn = ShadowIn | ShadowIn[] | BoxShadow;
 
 // -------------------------------------------------------------------------------------
 
+/**
+ * @method newColor(r:N,g:N,b:N,a:N)Color
+*/
 export function newColor(r: N, g: N, b: N, a: N) {
 	return newBase(Color, {r,g,b,a});
 }
 
+/**
+ * @method newVec2(x:N,y:N)Vec2
+*/
 export function newVec2(x: N, y: N) {
 	return newBase(Vec2, {x,y});
 }
 
+/**
+ * @method newVec3(x:N,y:N,z:N)Vec3
+*/
 export function newVec3(x: N, y: N, z: N) {
 	return newBase(Vec3, { x, y, z });
 }
 
+/**
+ * @method newVec4(x:N,y:N,z:N,w:N)Vec4
+*/
 export function newVec4(x: N, y: N, z: N, w: N) {
 	return newBase(Vec4, { x, y, z, w});
 }
 
+/**
+ * @method newRect(x:N,y:N,width:N,height:N)Rect
+*/
 export function newRect(x: N, y: N, width: N, height: N) {
 	return newBase(Rect, {origin: newVec2(x,y),size: newVec2(width,height)});
 }
 
+/**
+ * @method newMat(...value)Mat
+ * @param value {N[]}
+*/
 export function newMat(...value: N[]) {
 	let mat = newBase(Mat, {});
 	for (let i: 0 = 0; i < 6; i++)
@@ -796,6 +978,10 @@ export function newMat(...value: N[]) {
 	return mat;
 }
 
+/**
+ * @method newMat4(...value)Mat4
+ * @param value {N[]}
+*/
 export function newMat4(...value: N[]) {
 	let mat = newBase(Mat4, {});
 	for (let i: 0 = 0; i < 16; i++)
@@ -803,10 +989,16 @@ export function newMat4(...value: N[]) {
 	return mat;
 }
 
+/**
+ * @method newCurve(p1x:N,p1y:N,p2x:N,p2y:N)Curve
+*/
 export function newCurve(p1x: N, p1y: N, p2x: N, p2y: N) {
 	return newBase(Curve, { p1: newVec2(p1x,p1y), p2: newVec2(p2x,p2y) });
 }
 
+/**
+ * @method newShadow(x:N,y:N,size:N,r:N,g:N,b:N,a:N)Shadow
+*/
 export function newShadow(
 	x: N, y: N, size: N,
 	r: N, g: N, b: N, a: N
@@ -814,44 +1006,71 @@ export function newShadow(
 	return newBase(Shadow, {x,y,size,color: newColor(r, g, b, a)});
 }
 
+/**
+ * @method newBoxBorder(width:N,r:N,b:N,a:N)BoxBorder
+*/
 export function newBoxBorder(
 	width: N, r: N, g: N, b: N, a: N
 ) {
 	return newBase(BoxBorder, {width,color: newColor(r, g, b, a)});
 }
 
+/**
+ * @method newFillPosition(kink:FillPositionKind,value:N)FillPosition
+*/
 export function newFillPosition(kind: FillPositionKind, value: N) {
 	return newBase(FillPosition, {kind,value});
 }
 
+/**
+ * @method newFillSize(kink:FillSizeKind,value:N)FillSize
+*/
 export function newFillSize(kind: FillSizeKind, value: N) {
 	return newBase(FillSize, {kind,value});
 }
 
+/**
+ * @method newBoxOrigin(kink:BoxOriginKind,value:N)BoxOrigin
+*/
 export function newBoxOrigin(kind: BoxOriginKind, value: N) {
 	return newBase(BoxOrigin, {kind,value});
 }
 
+/**
+ * @method newBoxSize(kink:BoxSizeKind,value:N)BoxSize
+*/
 export function newBoxSize(kind: BoxSizeKind, value: N) {
 	return newBase(BoxSize, { kind, value });
 }
 
+/**
+ * @method newTextColor(kink:TextValueKind,r:N,g:N,b:N,a:N)TextColor
+*/
 export function newTextColor(kind: TextValueKind, r: N, g: N, b: N, a: N) {
 	return newBase(TextColor, { kind, value: newColor(r, g, b, a) });
 }
 
+/**
+ * @method newTextSize(kink:TextValueKind,value:N)TextSize
+*/
 export function newTextSize(kind: TextValueKind, value: N) {
 	return newBase(TextSize, { kind, value });
 }
 
-export const newTextLineHeight = newTextSize;
+export const newTextLineHeight = newTextSize; ///
 
+/**
+ * @method newTextShadow(kind:TextValueKind,offset_x:N,offset_y:N,size:N,r:N,g:N,b:N,a:N)TextShadow
+*/
 export function newTextShadow(
 	kind: TextValueKind, offset_x: N, offset_y: N, size: N, r: N, g: N, b: N, a: N
 ) {
 	return newBase(TextShadow,{kind,value: newShadow(offset_x,offset_y,size,r,g,b,a)});
 }
 
+/**
+ * @method newTextShadow(kind:TextValueKind[,ffid:Uint8Array])TextFamily
+*/
 export function newTextFamily(kind: TextValueKind, ffid: Uint8Array = EmptyFFID) {
 	return newBase(TextFamily,{kind,value:ffid});
 }

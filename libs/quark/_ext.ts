@@ -122,7 +122,7 @@ interface Boolean {
 
 interface DateConstructor {
 	/**
-	 * @attr current timezone
+	 * current timezone
 	 */
 	currentTimezone: number;
 

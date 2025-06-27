@@ -368,12 +368,9 @@ export function __listener__(name: string, handle: any) {
 export default {
 
 	/**
-	 * @attr debug
+	 * @get debug:bool
 	 * 
 	 * It is on debug status, specify via command line parameters
-	 * 
-	 * @type {bool}
-	 * @get
 	 */
 	debug,
 
@@ -387,12 +384,9 @@ export default {
 	version: _init.version as ()=>string,
 
 	/**
-	 * @attr platform
+	 * @get platform:Platform
 	 * 
 	 * Get platform type
-	 * 
-	 * @type {Platform}
-	 * @get
 	*/
 	platform: _init.platform as Platform,
 
@@ -400,26 +394,20 @@ export default {
 	webFlags: null,
 
 	/**
-	 * @attr argv
+	 * @get argv:string[]
 	 * 
 	 * 命令行启动参数
 	 * 
 	 * Command line startup parameter
-	 * 
-	 * @type {string[]}
-	 * @get
 	*/
 	argv: _init.argv as string[],
 
 	/**
-	 * @attr options
+	 * @get options:object
 	 * 
 	 * 命令行启动参数解析结果
 	 * 
 	 * Command line startup parameter parsing results
-	 * 
-	 * @type {object}
-	 * @get
 	*/
 	options,
 

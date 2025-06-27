@@ -183,13 +183,10 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr filename
+	 * @get filename:string
 	 * 
 	 * get full path name
 	 * filename: "/D:/Documents/test.js"
-	 * 
-	 * @get
-	 * @type {string}
 	 *
 	 * ```ts
 	 * // Prints: /aaa/bbbb/ccc/test.js
@@ -202,14 +199,11 @@ export class URL {
 	}
 
 	/**
-	 * @attr path /a/b/s/test.html?aaaaa=100
+	 * @get path:string /a/b/s/test.html?aaaaa=100
 	 * 
 	 * 获取路径并且包含参数部分
 	 * 
 	 * Get the path and include the parameter part
-	 * 
-	 * @get
-	 * @type {string}
 	 * 
 	 * ```ts
 	 * // Prints: /aaa/bbbb/ccc/test.js?asas=asas
@@ -223,15 +217,12 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr dirname
+	 * @get dirname:string
 	 * 
 	 * 获取目录名称
 	 * 
 	 * full path dir
 	 * dirname: "/D:/Documents"
-	 * 
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -247,16 +238,13 @@ export class URL {
 
 	/**
 	 * 
-	 * @arrt search
+	 * @get search:string
 	 * 
 	 * 获取uri查询参数
 	 * 
 	 * Get url query parameters
 	 * 
 	 * search: "?sasasas&asasasa"
-	 *
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -271,16 +259,13 @@ export class URL {
 	}
 
 	/**
-	 * @attr hash
+	 * @get hash:string
 	 * 
 	 * hash: "#sdsdsd"
 	 * 
 	 * 获取hash参数
 	 * 
 	 * Get hash parameters
-	 * 
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -296,16 +281,13 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr host
+	 * @get host:string
 	 * 
 	 * host: "quarks.cc:81"
 	 * 
 	 * 获取主机名称并返回一个带端口号的主机名称
 	 * 
 	 * Gets the host name and returns the host name with the port number
-	 * 
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -321,17 +303,13 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr hostname
+	 * @get hostname:string
 	 * 
 	 * hostname: "quarks.cc"
 	 * 
 	 * 获取主机名称,不会返回端口号
 	 * 
 	 * Gets the host name, but does not return the port number
-	 * 
-	 * @get
-	 * @type {string}
-	 * 
 	 * 
 	 * Example:
 	 * 
@@ -347,16 +325,13 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr origin
+	 * @get origin:string
 	 * 
 	 * origin: "http://quarks.cc:81"
 	 * 
 	 * Get the uri origin, protocol+host
 	 * 
 	 * 获取uri起源,protocol+host
-	 * 
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -374,14 +349,11 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr basename
+	 * @get basename:string
 	 * 
 	 * Get path base name
 	 * 
 	 * 获取基础文件名称
-	 *
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -396,14 +368,11 @@ export class URL {
 	}
 	
 	/** 
-	 * @attr extname
+	 * @get extname:string
 	 * 
 	 * Get path extname
 	 * 
 	 * 获取文件扩展名称
-	 * 
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -419,7 +388,7 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr port
+	 * @get port:string
 	 * 
 	 * port: "81"
 	 * 
@@ -429,9 +398,6 @@ export class URL {
 	 * 获取主机端口号,如果URL中没有定义端口号返回一个空字符串
 	 * 
 	 * Example:
-	 *
-	 * @get
-	 * @type {string}
 	 *
 	 * ```ts
 	 * // Prints: 81
@@ -447,7 +413,7 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr protocol
+	 * @get protocol:string
 	 * 
 	 * protocol: "http:"
 	 * 
@@ -456,9 +422,6 @@ export class URL {
 	 * Get the protocol type string of the URL
 	 * 
 	 * For examples: `'http:'`|`'https'`|`'ftp:'`
-	 * 
-	 * @get
-	 * @type {string}
 	 */
 	get protocol(): string {
 		parse_path(this);
@@ -467,13 +430,11 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr params
+	 * @getset params:string{}
 	 * 
 	 * 以对像方式返回查询参数集合，或者设置
 	 * 
 	 * Returns a collection of query parameters as an object, or set
-	 *
-	 * @type {Dict<string>}
 	 * 
 	 * Example:
 	 * 
@@ -512,14 +473,11 @@ export class URL {
 
 	/**
 	 * 
-	 * @attr hashParams
+	 * @getset hashParams:string{}
 	 * 
 	 * 以对像方式返回Hash参数集合，或者设置
 	 * 
 	 * Returns a Hash parameter set as an object, or set
-	 * 
-	 * @get
-	 * @type {Dict<string>}
 	 * 
 	 * Example:
 	 * 

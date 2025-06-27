@@ -133,65 +133,57 @@ export interface Stream {
 */
 export interface Player {
 	/**
-	 * @prop pts Current the presentation timestamp
-	 * @get
+	 * @get pts:uint Current the presentation timestamp
 	*/
 	readonly pts: number;
 
 	/**
-	 * @prop volume get/set audio volume
+	 * @getset volume:number get/set audio volume
 	*/
 	volume: number;
 
 	/**
-	 * @prop mute get/set audio mute
+	 * @getset mute:bool get/set audio mute
 	*/
 	mute: boolean;
 
 	/**
-	 * @attr isPause get is paused
-	 * @get
+	 * @get isPause:bool get is paused
 	*/
 	readonly isPause: boolean;
 
 	/**
-	 * @attr type get media type
-	 * @get
+	 * @get type:MediaType get media type
 	*/
 	readonly type: MediaType;
 
 	/**
-	 * @attr duration media play duration
-	 * @get
+	 * @get duration:uint media play duration
 	*/
 	readonly duration: number;
 
 	/**
-	 * @attr status The playback status of the current media source
-	 * @get
+	 * @get status:MediaSourceStatus The playback status of the current media source
 	*/
 	readonly status: MediaSourceStatus;
 
 	/**
-	 * @attr src set/get media source path
+	 * set/get media source path
 	*/
 	src: string;
 
 	/**
-	 * @attr video The currently playing video stream
-	 * @get
+	 * The currently playing video stream
 	*/
 	readonly video: Stream | null;
 
 	/**
-	 * @attr audio The currently playing audio stream
-	 * @get
+	 * The currently playing audio stream
 	*/
 	readonly audio: Stream | null;
 
 	/**
-	 * @attr audioStreams Get the number of audio tracks in the current media source
-	 * @get
+	 * Get the number of audio tracks in the current media source
 	*/
 	readonly audioStreams: number;
 
