@@ -31,7 +31,6 @@
 const _storage = __binding__('_storage');
 
 /**
- * 在这里设置的值，退出程序后依然存在，适合小容量数据的快速存取
  * 
  * The value set here will still exist after exiting the program, 
  * which is suitable for fast access to small-capacity data.

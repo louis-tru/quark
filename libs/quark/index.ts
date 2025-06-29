@@ -38,6 +38,9 @@ export * from './window';
 export * from './action';
 export * from './screen';
 
+/**
+ * @default
+*/
 export default {
 
 	/**

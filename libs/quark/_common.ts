@@ -35,7 +35,7 @@ let id = 10;
 let AsyncFunctionConstructor = (async function() {}).constructor;
 let scopeLockQueue = new Map();
 
-export let currentTimezone = new Date().getTimezoneOffset() / -60; // 当前时区
+export const currentTimezone = new Date().getTimezoneOffset() / -60; /// Current time zone
 
 export function isAsync(func: any): boolean {
 	return func && func.constructor === AsyncFunctionConstructor;
@@ -56,9 +56,9 @@ export function getId() {
 }
 
 /**
- * @method clone(obj) 克隆一个Object对像
- * @param obj {Object} 要复制的Object对像
- * @param {Object}
+ * @method clone(obj) Clone an Object
+ * @param obj {object} The Object to be cloned
+ * @param {object}
  */
 export function clone(obj: any): any {
 	if (obj && typeof obj == 'object') {
@@ -115,7 +115,11 @@ export function isNull(value: any): boolean {
 }
 
 /**
- * @method extendClass(cls,extds[,top])  EXT class prototype objects
+ * @method extendClass(cls,extds[,top]) EXT class prototype objects
+ * @param cls {Function}
+ * @param extds {Function[]}
+ * @param top? {object}
+ * @return {Function}
  */
 export function extendClass(cls: Function, extds: Function[] | Function, top = Object.prototype) {
 	for (let extd of Array.isArray(extds)? extds: [extds]) {
@@ -157,9 +161,9 @@ export function scopeLock<R>(mutex: any, cb: ()=>Promise<R>|R): Promise<R> {
 
 /**
  * @method get(name[,self]) get object value by name
- * @param name {String} 
- * @param self {Object}
- * @return {Object}
+ * @param name {string} 
+ * @param self {object}
+ * @return {object}
  */
 export function getProp(name: string, self: any): any {
 	let names = name.split('.');
@@ -173,10 +177,10 @@ export function getProp(name: string, self: any): any {
 
 /**
 * @method set(name,value[,self]) Setting object value by name
-* @param name {String} 
-* @param value {Object} 
-* @param [self] {Object}
-* @return {Object}
+* @param name {string} 
+* @param value {object} 
+* @param [self] {object}
+* @return {object}
 */
 export function setProp(name: string, value: any, self: any): any {
 	let names = name.split('.');
@@ -192,8 +196,8 @@ export function setProp(name: string, value: any, self: any): any {
 
 /**
  * @method def(name[,self]) Delete object value by name
- * @param name {String} 
- * @param self {Object}
+ * @param name {string} 
+ * @param self {object}
  */
 export function removeProp(name: string, self: any): void {
 	let names = name.split('.');
@@ -205,9 +209,9 @@ export function removeProp(name: string, self: any): void {
 
 /**
  * @method random([start[,end]]) 创建随机数字
- * @param start? {Number} 开始位置
- * @param end? {Number}   结束位置
- * @return {Number}
+ * @param start? {uint} 开始位置
+ * @param end? {uint}   结束位置
+ * @return {uint}
  */
 export function random(start: number = 0, end: number = 1E8): number {
 	if (start == end)
@@ -221,14 +225,15 @@ export function random(start: number = 0, end: number = 1E8): number {
 /**
 * @method fixRandom(arg[,arg1[,arg2]])
 * 
-* 固定随机值,指定几率返回常数
+* * Fixed random value, specified probability to return a constant
 * 
-* 通过概率随机获取从`0`到传入概率数量`arguments.length`的随机数
-* 传入的概率之和不能为`0`
+* * Get a random number from `0` to the passed probability number `arguments.length` by probability
 * 
-* @param arg  {number} 输入百分比
-* @param arg1? {number} 输入百分比
-* @param arg2? {number} 输入百分比
+* * The sum of the passed probabilities cannot be `zero`
+* 
+* @param arg  {number} Enter percentage
+* @param arg1? {number} Enter percentage
+* @param arg2? {number} Enter percentage
 * @return {int}
 * 
 * Example:
@@ -272,7 +277,7 @@ export function fixRandom(arg: number, ...args: number[]): number {
 export function filter(obj: any, exp: string[] | ((key: string, value: any)=>boolean), non: boolean = false): any {
 	let rev: any = {};
 	let isfn = (typeof exp == 'function');
-	
+
 	if (isfn || non) {
 		for (let key in obj) {
 			let value = obj[key];

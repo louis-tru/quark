@@ -43,6 +43,7 @@ export enum NetworkInterface {
 	k4G, /// Mobile 4G
 	k5G, /// Mobile 5G
 }
+/// @end
 
 /**
  * @method arch() Get CPU arch type

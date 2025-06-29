@@ -40,43 +40,51 @@ const _fs = __binding__('_fs');
 */
 export enum FileOpenFlag {
 	FOPEN_ACCMODE = 0o3,
-	/** 仅打开只读文件，文件必须存在 */
+	/** Open a read-only file. The file must exist. */
 	FOPEN_RDONLY = 0o0,
-	/** 仅打开只写文件，文件必须存在 */
+	/** Open a write-only file. The file must exist. */
 	FOPEN_WRONLY = 0o1,
-	/** 打开读写文件，文件必须存在 */
+	/** Open a file for reading and writing. The file must exist. */
 	FOPEN_RDWR = 0o2,
-	/** 创建文件，如果文件不存在 */
+	/** Create the file if it does not exist */
 	FOPEN_CREAT = 0o100,
-	/** 创建文件时可执行 */
+	/** Create a file as executable */
 	FOPEN_EXCL = 0o200,
 	/** No Controlling TTY */
 	FOPEN_NOCTTY = 0o400,
-	/** 清空文件内容，如果文件存在 */
+	/** Clear the file contents if the file exists */
 	FOPEN_TRUNC = 0o1000,
-	/** 将文件读取游标移动到结尾，如果文件存在 */
+	/** Move the file read cursor to the end if the file exists */
 	FOPEN_APPEND = 0o2000,
-	/** 阻塞模式, 通常使用open函数 */
+	/** Blocking mode, usually using the open function */
 	FOPEN_NONBLOCK = 0o4000,
-	/** r 打开只读文件，该文件必须存在。 */
+	/** r, open the file for reading only, the file must exist */
 	FOPEN_R = FOPEN_RDONLY,
-	/** w 打开只写文件，若文件存在则文件长度清为零，即该文件内容会消失，若文件不存在则建立该文件。 */
+	/**
+	 * w, Open a write-only file. If the file exists, the file length is cleared to zero, that is,
+	 * the file content will disappear. If the file does not exist, it will be created. */
 	FOPEN_W = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_TRUNC,
 	/**
-	 * a 以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，
-	 *   写入的数据会被加到文件尾，即文件原先的内容会被保留。
+	 * a, Open a write-only file in append mode. If the file does not exist, it will be created.
+	 * If the file exists, the written data will be added to the end of the file, that is, 
+	 * the original content of the file will be retained.
 	 */
 	FOPEN_A = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_APPEND,
-	/** r+ 打开可读写文件，该文件必须存在。 */
+	/** 
+	 * r+,
+	 * Open a file for reading and writing. The file must exist.
+	 */
 	FOPEN_RP = FOPEN_RDWR,
 	/**
-	 * w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。
-	 *    若文件不存在则建立该文件。
+	 * w+, Open the file for reading and writing. If the file exists,
+	 * the file length will be cleared to zero, that is, the file content will disappear.
+	 * If the file does not exist, it will be created.
 	 */
 	FOPEN_WP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_TRUNC,
 	/**
-	 * a+	以附加方式打开可读写的文件。若文件不存在，则会建立该文件，如果文件存在，
-	 *    写入的数据会被加到文件尾后，即文件原先的内容会被保留。
+	 * a+, Open a readable and writable file in append mode. If the file does not exist,
+	 * it will be created. If the file exists, the written data will be added to the end of the file,
+	 * that is, the original content of the file will be retained.
 	 */
 	FOPEN_AP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_APPEND,
 }
@@ -87,31 +95,35 @@ export enum FileOpenFlag {
  * File type
 */
 export enum FileType {
-	/** 未知类型 */
+	/** Unknown Type */
 	FTYPE_UNKNOWN,
-	/** 普通文件 (Regular File) */
+	/** Normal File */
 	FTYPE_FILE,
-	/** 目录 (Directory) */
+	/** Directory) */
 	FTYPE_DIR,
-	/** 符号链接文件（软链接） */
+	/** Symbolic link files（Soft Link） */
 	FTYPE_LINK,
-	/** 命名管道，一种特殊类型的文件，用于进程间通信 (IPC) */
+	/** Named pipes, a special type of file used for interprocess communication (IPC) */
 	FTYPE_FIFO,
-	/** 套接字 (Socket) */
+	/** Socket */
 	FTYPE_SOCKET,
-	/** 无缓冲的字符设备，如：键盘鼠标(/dev/input/*)、终端 (/dev/tty*) */
+	/**
+	 * Unbuffered character devices, such as keyboard and mouse (/dev/input/*), terminal (/dev/tty*)
+	 */
 	FTYPE_CHAR,
 	/**
-	 * 提供带缓冲的、面向块（固定大小数据块）的 I/O 访问，
-	 * 如：硬盘驱动器 (/dev/sda, /dev/sda1, /dev/nvme0n1p1)
+	 * Provides buffered, block-oriented (fixed-size data blocks) I/O access,
+	 * such as hard disk drives (/dev/sda, /dev/sda1, /dev/nvme0n1p1)
 	 */
 	FTYPE_BLOCK,
 }
+/// @end
 
 /**
  * @const defaultMode
  * 
- * 创建与设置文件的默认`mode`值,这与文件的权限相关,这是一个`int`整数类型值
+ * Create and set the default `mode` value of the file, 
+ * which is related to the file's permissions. This is an `int` integer type value
 */
 export declare const defaultMode: number;
 
@@ -124,15 +136,15 @@ export type StreamResponseCallback = (stream: StreamResponse)=>void;
 /**
  * @class Dirent
  * 
- * 调用 readdir/readdirSync 返回的结果
+ * The result returned by calling readdir/readdirSync
  * 
 */
 export interface Dirent {
-	/** 文件名称 */
+	/** File name */
 	name: string;
-	/** 文件的完整路径 */
+	/** The full path to the file */
 	pathname: string;
-	/** 文件类型 */
+	/** File Type */
 	type: FileType;
 }
 
@@ -140,49 +152,49 @@ export interface Dirent {
  * @class FileState
 */
 export declare class FileStat {
-	/** 文件是否有效 */
+	/** Is the file valid? */
 	isValid(): boolean;
-	/** 是否为普通文件 */
+	/** Is it a normal file? */
 	isFile(): boolean;
-	/** 是否为目录 */
+	/** Is it a directory? */
 	isDir(): boolean;
-	/** 是否为符号链接 */
+	/** Is it a symbolic link? */
 	isLink(): boolean;
-	/** 是否为套接字 (Socket) */
+	/** Is it a socket? */
 	isSock(): boolean;
-	/** 文件权限掩码 */
+	/** File permission mask */
 	mode(): number;
-	/** 文件类型 */
+	/** File type */
 	type(): FileType;
-	/** 用户组ID */
+	/** System Group ID */
 	group(): number;
-	/** 用户ID */
+	/** System User ID  */
 	owner(): number;
-	/** 文件大小 */
+	/** File size */
 	size(): number;
-	/** 文件硬链接数量 */
+	/** Number of hard links to the file */
 	nlink(): number;
-	/** 文件系统特定的文件“Inode”编号 */
+	/** The file system specific "Inode" number of the file */
 	ino(): number;
-	/** 用于 i/o 操作的文件系统块大小 */
+	/** The file system block size used for I/O operations */
 	blksize(): number;
-	/** 为此文件分配的块数 */
+	/** The number of blocks allocated for this file */
 	blocks(): number;
 	/** flags */
 	flags(): number;
 	/** gen */
 	gen(): number;
-	/** 包括该文件设备ID */
+	/** The device ID that contains the file */
 	dev(): number;
-	/** 如果文件代表设备，则为数字设备标识符 */
+	/** If the file represents a device, the numeric device identifier */
 	rdev(): number;
-	/** 指示上次访问此文件的时间戳 */
+	/** Timestamp indicating the last time this file was accessed */
 	atime(): number;
-	/** 指示此文件上次修改时间的时间戳 */
+	/** A timestamp indicating when this file was last modified */
 	mtime(): number;
-	/** 指示文件状态上次更改的时间戳 */
+	/** Timestamp indicating the last time the file's status changed */
 	ctime(): number;
-	/** 指示此文件创建时间的时间戳 */
+	/** A timestamp indicating when this file was created */
 	birthtime(): number;
 }
 
@@ -190,9 +202,9 @@ export declare class FileStat {
  * @class Stream
 */
 export interface Stream {
-	/** 暂停流读取 */
+	/** Pause stream reading */
 	pause(): void;
-	/** 恢复流读取 */
+	/** Resume stream reading */
 	resume(): void;
 };
 
@@ -200,13 +212,13 @@ export interface Stream {
  * @class StreamResponse
 */
 export interface StreamResponse {
-	/** 数据大小 */
+	/** Data size */
 	size: number;
-	/** 数据总大小 */
+	/** Total data size */
 	total: number;
-	/** 数据 */
+	/** It is Data */
 	data: Uint8Array;
-	/** 是否已经结束 */
+	/** Is it over */
 	ended: boolean;
 }
 
@@ -248,15 +260,20 @@ export class AsyncTask<T> extends Promise<T> {
 		this._id = id;
 	}
 	
-	/** 异步任务id可通过abort(id)中止运行 */
+	/**
+	 * Asynchronous I/O task id
+	 */
 	get id() { return this._id }
-	/** 异步任务是否完成 */
+
+	/**
+	 * Whether the asynchronous task is completed
+	 */
 	get complete() { return this._complete }
 
 	/**
-	 * 中止任务
+	 * Abort I/O task
 	 * @method abort(reason)
-	 * @param reason? {Error} 如果传入参数会抛出异常
+	 * @param reason? {Error} If the parameter is passed in, an exception will be thrown
 	*/
 	abort(reason?: Error): void {
 		_fs.abort(this._id);
@@ -271,7 +288,7 @@ export class AsyncTask<T> extends Promise<T> {
 /**
  * @method chmodSync(path[,mode])
  * 
- * 同步更改文件的权限
+ * Synchronously change file permissions
  * 
  * @param path {string}
  * @param mode? {int}
@@ -285,7 +302,7 @@ export declare function chmodSync(path: string, mode?: number): void;
 /**
  * @method chownSync(path,owner,group)
  * 
- * 同步设置文件所属用户`owner`与组`group`
+ * Synchronize the `owner` and `group` of the configuration file
  * 
  * @param path {string}
  * @param owner {number}
@@ -296,7 +313,7 @@ export declare function chownSync(path: string, owner: number, group: number): v
 /**
  * @method mkdirSync(path[,mode])
  * 
- * 同步创建目录, 如果路径已存在会抛出异常
+ * Create a directory synchronously. If the path already exists, an exception will be thrown.
  * 
  * @param path {string}
  * @param mode? {int} **[`defaultMode`]**
@@ -306,7 +323,8 @@ export declare function mkdirSync(path: string, mode?: number): void;
 /**
  * @method mkdirsSync(path[,mode])
  * 
- * 同步递归创建目录，目录存在时不会抛出异常
+ * Synchronously recursively create directories,
+ * and no exception is thrown if the directory exists
  * 
  * @param path string
  * @param mode? int **[`defaultMode`]**
@@ -314,7 +332,7 @@ export declare function mkdirSync(path: string, mode?: number): void;
 export declare function mkdirsSync(path: string, mode?: number): void;
 
 /**
- * 同步重命名文件与目录名称
+ * Synchronously rename files and directories
  * 
  * @mehod renameSync(name,newName)
  * @param name {string}
@@ -323,16 +341,17 @@ export declare function mkdirsSync(path: string, mode?: number): void;
 export declare function renameSync(name: string, newName: string): void;
 
 /**
- * 同步创建文件硬链接
+ * Synchronously create file hard links
  * 
  * @method linkSync(src,target)
- * @param src {string} 文件原始路径
- * @param target {string} 链接目标路径
+ * @param src {string} Original file path
+ * @param target {string} Link target path
 */
 export declare function linkSync(src: string, target: string): void;
 
 /**
- * 同步删除文件硬链接，如果文件只有一个链接文件将会被物理删除
+ * Synchronously delete the file hard link.
+ * If the file has only one link, the file will be physically deleted.
  * 
  * @method unlinkSync(path)
  * @param path {string}
@@ -340,7 +359,7 @@ export declare function linkSync(src: string, target: string): void;
 export declare function unlinkSync(path: string): void;
 
 /**
- * 同步删除文件目录，文件目录必须为空
+ * Synchronously delete the file directory, the file directory must be empty
  * 
  * @method rmdirSync(path)
  * @param path {string}
@@ -348,7 +367,7 @@ export declare function unlinkSync(path: string): void;
 export declare function rmdirSync(path: string): void;
 
 /**
- * 同步读取文件目录文件列表
+ * Synchronously read the file directory file list
  * 
  * @method readdirSync(path)
  * @param path {string}
@@ -359,21 +378,23 @@ export declare function readdirSync(path: string): Dirent[];
 /**
  * @method statSync(path)
  * 
- * 同步读取文件状态信息
+ * Synchronously read file status information
  * 
  * @return {FileState}
 */
 export declare function statSync(path: string): FileStat;
 
 /**
- * 同步检查文件是否存在
+ * Synchronously check if a file exists
+ * 
  * @method existsSync(path)
  * @return {bool}
 */
 export declare function existsSync(path: string): boolean;
 
 /**
- * 同步检查是否为文件路径，如果路径不存在返回`false`
+ * Synchronously checks if the path is a file, and returns `false` if the path does not exist
+ * 
  * @method isFileSync(path)
  * @param path {string}
  * @return {bool}
@@ -381,7 +402,8 @@ export declare function existsSync(path: string): boolean;
 export declare function isFileSync(path: string): boolean;
 
 /**
- * 同步检查是否为目录路径，如果路径不存在返回`false`
+ * Synchronously checks if the path is a directory, and returns `false` if the path does not exist
+ * 
  * @method isDirectorySync(path)
  * @param path {string}
  * @return {bool}
@@ -389,7 +411,8 @@ export declare function isFileSync(path: string): boolean;
 export declare function isDirectorySync(path: string): boolean;
 
 /**
- * 同步检查是否为可读，如果路径不存在返回`false`
+ * Synchronously checks if the path is readable, returning `false` if the path does not exist
+ * 
  * @method readableSync(path)
  * @param path {string}
  * @return {bool}
@@ -397,7 +420,8 @@ export declare function isDirectorySync(path: string): boolean;
 export declare function readableSync(path: string): boolean;
 
 /**
- * 同步检查是否为可写，如果路径不存在返回`false`
+ * Synchronously checks if the path is writable, returning `false` if the path does not exist
+ * 
  * @method writableSync(path)
  * @param path {string}
  * @return {bool}
@@ -405,7 +429,8 @@ export declare function readableSync(path: string): boolean;
 export declare function writableSync(path: string): boolean;
 
 /**
- * 同步检查是否为可执行，如果路径不存在返回`false`
+ * Synchronously checks if it is executable, returns `false` if the path does not exist
+ * 
  * @method executableSync(path)
  * @param path {string}
  * @return {bool}
@@ -416,7 +441,9 @@ export declare function executableSync(path: string): boolean;
  * 
  * @mehod chmodRecursionSync(path[,mode])
  * 
- * 同步递归设置文件的权限属性mode（TODO: 会柱塞调用线程，请谨慎使用）
+ * Synchronously recursively set the file permission attribute mode
+ * 
+ * (TODO: will block the calling thread, please use with caution)
  * 
  * @param path {string}
  * @param mode? {int} **[`defaultMode`]**
@@ -432,11 +459,13 @@ export declare function chmodRecursionSync(path: string, mode?: number): void;
 /**
  * @method chownRecursionSync(path,owner,group)
  * 
- * 同步递归设置文件owner与group属性（TODO: 会柱塞调用线程，请谨慎使用）
+ * Synchronously recursively set file `owner` and `group` attributes
+ * 
+ * (TODO: will block the calling thread, please use with caution)
  * 
  * @param path string
- * @param owner int 操作系统用户id
- * @param group int 操作系统组id
+ * @param owner int System User ID
+ * @param group int System Group ID
  */
 export declare function chownRecursionSync(path: string, owner: number, group: number): void;
 
@@ -444,7 +473,9 @@ export declare function chownRecursionSync(path: string, owner: number, group: n
  * 
  * @method removeRecursionSync(path)
  * 
- * 同步递归删除目录或文件,在javascript中谨慎使用这个方法,有可能会造成线程长时间被柱塞
+ * Synchronous recursive deletion of directories or files,
+ * 
+ * use this method with caution, it may cause the thread to be blocked for a long time
  * 
  * @param path {string}
  */
@@ -453,7 +484,9 @@ export declare function removeRecursionSync(path: string): void;
 /**
  * @method copyRecursionSync(path,target)
  * 
- * 同步递归拷贝文件,在javascript中谨慎使用这个方法,有可能会造成线程长时间被柱塞
+ * Synchronous recursive copy of files,
+ * 
+ * use this method with caution, it may cause the thread to be blocked for a long time
  *
  * @param path strings
  * @param target string
@@ -464,9 +497,9 @@ export declare function copyRecursionSync(path: string, target: string): void;
 /**
  * @method copySync
  * 
- * 同步拷贝文件（TODO: 会柱塞调用线程，请谨慎使用）
+ * Copy files synchronously (TODO: will block the calling thread, please use with caution)
  * 
- * 同：拷贝文件与目录[`copyRecursionSync(path，target)`]
+ * Same as: copy files and directories[`copyRecursionSync(path，target)`]
  * 
  * @param path string
  * @param target string
@@ -477,29 +510,29 @@ export declare function copySync(path: string, target: string): void;
 /**
  * @method writeFileSync(path,data[,size])
  * 
- * 同步写入数据到文件
+ * Synchronously write data to a file
  * 
  * @param path {string}
  * @param data {Uint8Array}
- * @param size? {uint} 不传入参数时写入全部数据
+ * @param size? {uint} Write all data when no parameters are passed
 */
 export declare function writeFileSync(path: string, data: Uint8Array, size?: number): number;
 
 /**
  * @method writeFileSync(path,data[,encoding])
  * 
- * 同步写入字符串到文件
+ * Synchronously write a string to a file
  * 
  * @param path {string}
  * @param data {string}
- * @param encoding? {Encoding} 如果不传入默认使用`utf-8`编码字符串
+ * @param encoding? {Encoding} If not passed in, the default encoding is `utf-8`
 */
 export declare function writeFileSync(path: string, data: string, encoding?: Encoding): number;
 
 /**
  * @method readFileSync(path)
  * 
- * 同步读取文件
+ * Reading files synchronously
  * 
  * @param path {string}
  * @return {Uint8Array}
@@ -509,10 +542,10 @@ export declare function readFileSync(path: string): Uint8Array;
 /**
  * @method readFileSync(path,encoding)
  * 
- * 同步读取文件为字符串
+ * Synchronously read a file as a string
  * 
  * @param path {string}
- * @param encoding {Encoding} 解码数据到字符串的编码
+ * @param encoding {Encoding} Decode data to string encoding
  * @return {string}
 */
 export declare function readFileSync(path: string, encoding: Encoding): string;
@@ -520,10 +553,10 @@ export declare function readFileSync(path: string, encoding: Encoding): string;
 /**
  * @method openSync(path[,flags])
  * 
- * 同步方式通过路径打开文件，并返回打开的文件句柄
+ * Opens a file by path synchronously and returns an open file handle
  * 
  * @param path {string}
- * @param flags? {FileOpenFlag} 打开文件标志掩码
+ * @param flags? {FileOpenFlag} Open file flags mask
  * @return {uint}
 */
 export declare function openSync(path: string, flags?: FileOpenFlag /*= FileOpenFlag.FOPEN_R*/): number;
@@ -531,58 +564,62 @@ export declare function openSync(path: string, flags?: FileOpenFlag /*= FileOpen
 /**
  * @method closeSync(fd)
  * 
- * 同步方式关闭文件句柄
+ * Close the file handle synchronously
 */
 export declare function closeSync(fd: number): void;
 
 /**
  * @method readSync(fd,out[,size[,offsetFd]])
  * 
- * 同步读取文件内容从文件句柄
+ * Synchronously read the file contents from the file handle
  * 
- * @param fd {uint} 打开的文件句柄
- * @param out {Uint8Array} 读取文件并保存到这里
- * @param size? {int} 不传入或传入`-1`时使用`out`参数的长度
- * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次读取后将向前进）
- * @return {uint} 返回数据实际读取的大小
+ * @param fd {uint} Open file handles
+ * @param out {Uint8Array} Read the file and save it here
+ * @param size? {int} If not passed or passed in `-1`, the length of the `out` parameter is used
+ * @param offsetFd? {int} If not passed or -1 is passed,
+ * 	the internal offset value of the file handle is used (it will advance after each read)
+ * @return {uint} Returns the size of the data actually read
 */
 export declare function readSync(fd: number, out: Uint8Array, size?: number /*= -1*/, offsetFd?: number /*= -1*/): number;
 
 /**
  * @method writeSync(fd,data[,size[,offsetFd]])
  * 
- * 同步写入数据到文件句柄
+ * Synchronously write data to a file handle
  * 
- * @param fd {uint} 打开的文件句柄
- * @param data {Uint8Array} 要写入的数据
- * @param size? {int} 不传入或传入`-1`时写入全部数据
- * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次写入后将向前进）
- * @return {uint} 写入数据的实际大小
+ * @param fd {uint} Open file handles
+ * @param data {Uint8Array} Data to be written
+ * @param size? {int} If not passed or `-1` is passed, all data will be written
+ * @param offsetFd? {int} If not passed or `-1` is passed, the internal offset value of 
+ * 	the file handle is used (it will advance after each write)
+ * @return {uint} The actual size of the data written
 */
 export declare function writeSync(fd: number, data: Uint8Array, size?: number /*= -1*/, offsetFd?: number /*= -1*/): number;
 
 /**
  * @method writeSync(fd,data[,offsetFd])
  * 
- * 同步写入数据到文件句柄,并且使用`utf-8`对数据进行编码
+ * Write data to the file handle synchronously and encode the data using `utf-8`
  * 
- * @param fd {uint} 打开的文件句柄
- * @param data {string} 要写入的字符串
- * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次写入后将向前进）
- * @return {uint} 写入数据的实际大小
+ * @param fd {uint} Open file handles
+ * @param data {string} The string to be written
+ * @param offsetFd? {int} If not passed or `-1` is passed, the internal offset value of 
+ * 	the file handle is used (it will advance after each write)
+ * @return {uint} The actual size of the data written
 */
 export declare function writeSync(fd: number, data: string, offsetFd?: number /*= -1*/): number;
 
 /**
  * @method writeSync(fd,data,encoding[,offsetFd])
  * 
- * 同步写入数据到文件句柄
+ * Synchronously write data to a file handle
  * 
- * @param fd {uint} 打开的文件句柄
- * @param data {string} 要写入的数据
- * @param encoding {Encoding} 编码类型
- * @param offsetFd? {int} 不传入或传入`-1`时使用文件句柄内部偏移值（每次写入后将向前进）
- * @return {uint} 写入数据的实际大小
+ * @param fd {uint} Open file handles
+ * @param data {string} Data to be written
+ * @param encoding {Encoding} Encoding Type
+ * @param offsetFd? {int} If not passed or `-1` is passed, the internal offset value of 
+ * 	the file handle is used (it will advance after each write)
+ * @return {uint} The actual size of the data written
 */
 export declare function writeSync(fd: number, data: string, encoding: Encoding, offsetFd?: number /*= -1*/): number;
 
@@ -619,7 +656,8 @@ export function mkdir(path: string, mode: number = _fs.defaultMode) {
 /**
  * @method mkdirs(path[,mode])
  * 
- * 递归创建目录，这个方法会依次创建目录树,目录存在也不会抛出异常
+ * Recursively create directories. This method will create 
+ * 	a directory tree in sequence, and will not throw an exception if the directory exists.
  * 
  * Ref: sync method [`mkdirsSync(path[,mode])`]
  * 
@@ -681,7 +719,8 @@ export function rmdir(path: string) {
 /**
 	* @method readdir
 	*
-	* 读取目录列表信息，失败抛出异常,成功返回[`Dirent`]的[`Array`]
+	* Read directory listing information. Throws an exception if failed. 
+	* 	Returns an [`Array`] of [`Dirent`] if successful.
 	*
 	* @param path {string}
 	* @return {Promise<Dirent[]>}
@@ -777,7 +816,7 @@ export function executable(path: string) {
 /**
  * @method chmodRecursion(path[,mode])
  * 
- * 异步递归设置文件或目录`mode`属性
+ * Asynchronously recursively set the `mode` attribute of a file or directory
  *
  * @param path {string}
  * @param mode? {int} **[`defaultMode`]**
@@ -786,7 +825,7 @@ export function executable(path: string) {
  * Example:
  * 
  * ```ts
- * // `mypath`为文件路径,可以为文件也可以为目录
+ * // `mypath`For the file path, it can be a file or a directory
  * fs.chmodR(mypath, 0755).then(function() {
  * 	console.log('Success');
  * }).catch(err=>{
@@ -806,7 +845,7 @@ export function chmodRecursion(path: string, mode: number = _fs.defaultMode) {
  *
  * @method chownRecursion(path,owner,group)
  * 
- * 异步递归设置文件或目录`owner`与`group`属性
+ * Asynchronously recursively set the `owner` and `group` attributes of files or directories
  * 
  * @param path {string}
  * @param owner {int}
@@ -829,7 +868,7 @@ export function chownRecursion(path: string, owner: number, group: number) {
 /**
  * @method removeRecursion(path)
  * 
- * 递归删除文件与目录
+ * Recursively delete files and directories
  *
  * @param path {string}
  * @return {AsyncTask}
@@ -842,7 +881,7 @@ export function chownRecursion(path: string, owner: number, group: number) {
  * }).catch(err=>{
  * 	// Fail
  * });
- * // 通过id可中止删除任务
+ * // The deletion task can be aborted by id
  * fs.abort(task.id);
 ```
 */
@@ -855,9 +894,9 @@ export function removeRecursion(path: string) {
 /**
  * @method copyRecursion(path,target)
  * 
- * 递归拷贝文件
+ * Recursively copy files
  *
- * `copyRecursion()`与`copy()`区别在于，`copy()`只能拷贝单个文件
+ * The difference between `copyRecursion()` and `copy()` is that `copy()` can only copy a single file
  *
  * @param path string
  * @param target string
@@ -881,7 +920,7 @@ export function copyRecursion(path: string, target: string) {
 /**
  * @method copy(path,target)
  * 
- * 拷贝单个文件
+ * Copy a single file
  * 
  * Ref: [`copyRecursion(path,target)`]
  * 
@@ -898,10 +937,10 @@ export function copy(path: string, target: string) {
 /**
  * @method readStream(path,cb)
  * 
- * 使用异步流方式读取文件内容
+ * Read file contents using asynchronous streaming
  * 
- * @param path {string} 读取目标路径
- * @param cb {StreamResponseCallback} 异步流回调函数
+ * @param path {string} Read the target path
+ * @param cb {StreamResponseCallback} Asynchronous stream callback function
  * @return {AsyncTask}
 */
 export function readStream(path: string, cb: StreamResponseCallback): AsyncTask<void> {
@@ -923,9 +962,10 @@ export function readStream(path: string, cb: StreamResponseCallback): AsyncTask<
 /**
  * @method abort(id)
  * 
- * 通过`id`强制中止运行中的异步任务
+ * Force abort a running asynchronous task by `id`
  * 
- * 如果传入无意义的`id`或`id`所属的任务已经完成，不做任何处理
+ * If a meaningless `id` is passed in or the task to which 
+ * 	the `id` belongs has been completed, no processing will be done
  * 
  * @param id {int}
  * 
@@ -996,19 +1036,6 @@ export declare function write(fd: number, data: string, encoding: Encoding, offs
 
 /**
  * @interface Reader
- *
- * 这里提供的方法可以针对不同协议的uri路径进行基本的读取操作
- * 
- * 现在支持的路径类型：
- * 
- * * `http://` or `https://` - 可使用同步或异步方式进行读取,但不能读取目录或测试存在, 
- * `readdirSync()`返回空数组而`isFileSync()`永远返回`false`。
- * 
- * * `file://` 本地文件路径。`/var/data` or `var/data` 都可做为本地路径，并不会出错。
- * 
- * * `zip://`	这是`zip`包内路径的一种表示方法，`zip:///var/data/test.zip@/a.txt` 
- * 这个路径表示`zip:///var/data/test.zip`中的`a.txt`文件。注意这个路径一定要存在于本地文件系统中
- *
  * 
  * The methods provided here can perform basic read operations on URI paths of different protocols
  *
@@ -1163,6 +1190,7 @@ export interface Reader {
 	*/
 	clear(): void;
 }
+/// @end
 
 /**
  * @const reader

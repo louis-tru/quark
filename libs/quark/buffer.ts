@@ -32,6 +32,31 @@ const _buffer = __binding__('_buffer');
 
 Object.assign(exports, _buffer);
 
+/**
+ * All encoding algorithms of string
+*/
 export type Encoding = 'binary'|'ascii'|'base64'|'hex'|'utf-8'|'utf8'|'utf-16'|'utf16'|'ucs4';
+
+/**
+ * @method fromString(str[,targetEn])
+ * 
+ * Specify the algorithm to encode the string and return the encoded data
+ * 
+ * @param str {string}
+ * @param targetEn? {Encoding}
+ * @return {Uint8Array}
+*/
 export declare function fromString(str: string, targetEn?: Encoding): Uint8Array;
+
+/**
+ * @method toString(src[,encoding[,start[,end]]])
+ * 
+ * Decode data into a string using the specified algorithm
+ * 
+ * @param src {Uint8Array}
+ * @param encoding? {Encoding}
+ * @param start? {uint}
+ * @param end? {uint}
+ * @return {string}
+*/
 export declare function toString(src: Uint8Array, encoding?: Encoding, start?: number, end?: number): string;

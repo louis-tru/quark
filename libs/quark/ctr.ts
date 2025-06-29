@@ -69,7 +69,7 @@ interface DOMConstructor<T extends DOM = DOM> {
 /**
  * @method assertDom
  * 
- * 检查是否合法的`VirtualDOM`类型，参数`subclass` 做为 `baseclass`类型
+ * Check if it is a valid `VirtualDOM` type, and the parameter `subclass` is of type `baseclass`
 */
 export function assertDom<T extends DOM = DOM>(
 	subclass: VirtualDOM<T>, baseclass: DOMConstructor<T>, ...args: any[]
@@ -566,25 +566,25 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	private _linkProps: string[];
 	/** [`Window`] object ref */
 	readonly window: Window;
-	/** 父控制器，当前控制器所属于 */
+	/** Parent controller which the current controller belongs */
 	readonly owner: ViewController;
-	/** outer vdom children */
+	/** Outer children vdom */
 	readonly children: (VirtualDOM | null)[];
-	/** 当前控制器外部属性状态 */
+	/** the ViewController external incoming attributes */
 	readonly props: Readonly<P>;
-	/** 当前控制器状态 */
+	/** View Controller States */
 	readonly state: Readonly<S> = {} as S;
-	/** 下属的所有引用对像 */
+	/** Subordinate objects referenced by the `ref` name */
 	readonly refs: Readonly<Dict<ViewController | View>> = {};
-	/** 在`owner`控制器中的引用名称 */
+	/** The Ref-Name in the `owner` controller */
 	readonly ref: string;
-	/** 当前控制器下的渲染DOM对像 */
+	/** The rendered DOM object under the current ViewController */
 	readonly dom: DOM;
-	/** 触发Load会设置成`true` */
+	/** After triggering Load, it will be set to `true` */
 	readonly isLoaded: boolean;
-	/** 触发Mounted会设置成`true` */
+	/** It will be set to `true` before triggering Mounted */
 	readonly isMounted: boolean;
-	/** 触发Destroy会设置成`true` */
+	/** It will be set to `true` before triggering Destroy */
 	readonly isDestroyd: boolean;
 
 	/**
@@ -613,7 +613,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * @method setState
 	 * 
-	 * 更新当前控制器状态，如果确实状态有改变将重新渲染控制器
+	 * Update the current ViewController state and re-render if the state does change
 	 * 
 	 * @param newState {Object}
 	 * @param cb? {Function}
@@ -641,7 +641,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * @method update
 	 * 
-	 * 强制重新更新渲染控制器dom
+	 * Force re-rendering of the ViewController
 	 * 
 	 * @return {Function}
 	*/
@@ -663,7 +663,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * @method asDom
 	 * 
-	 * 模板方法，返回当前`dom`并做为模板`T`返回
+	 * Template method, returns the current `dom` and returns it as template `T` type
 	 * 
 	 * @return DOM
 	*/
@@ -674,7 +674,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * @method asRef (ref: [`string`])
 	 * 
-	 * 模板方法，通过ref名称返回内部`DOM`引用并做为模板`T`返回
+	 * Template method, finds the subordinate `DOM` by ref name and returns it as template `T` type
 	 * 
 	 * @return DOM
 	*/
@@ -689,35 +689,35 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * @method triggerLoad
 	 * 
-	 * 开始第一次调用render时触发
+	 * Triggered before the first render call
 	*/
 	protected triggerLoad(): any {}
 
 	/**
 	 * @method triggerMounted
 	 * 
-	 * 第一次完成render调用后触发
+	 * Triggered after the first render call completed
 	*/
 	protected triggerMounted(): any {}
 
 	/**
 	 * @method triggerUpdate
 	 * 
-	 * DOM内容被更新时触发
+	 * Triggered when the DOM content is updated
 	*/
 	protected triggerUpdate(old: VirtualDOM, vdom: VirtualDOM): any {}
 
 	/**
 	 * @method triggerDestroy
 	 * 
-	 * 调用删除remove()后触发
+	 * Triggered when after calling remove()
 	*/
 	protected triggerDestroy(): any {}
 
 	/**
 	 * @method render
 	 * 
-	 * 渲染发生时调用返回需要渲染的对像
+	 * When rendering occurs, call to return the `vdom` object that needs to be rendered
 	 * 
 	 * @return {RenderResult}
 	*/
@@ -738,7 +738,8 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	/**
-	 * Do not proactively call this method
+	 * Note: Do not proactively call this method
+	 * 
 	 * @override
 	*/
 	destroy() {
@@ -804,7 +805,8 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 /**
  * @template T
  * @method createElement(Type,props,...children)
- * create virtual dom, jsx element
+ * 
+ * Create virtual dom by jsx element
  */
 export function createElement<T extends DOM = DOM>(
 	Type: DOMConstructor<T> | JSX.IntrinsicElementsName,

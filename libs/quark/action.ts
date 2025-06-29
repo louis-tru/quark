@@ -78,7 +78,7 @@ export declare class Keyframe extends StyleSheet {
  * @abstract
  * `abstract class`
  * 
- * 动作基础类型，这是个抽象类型没有构造函数
+ * Action base type, this is an abstract type without a constructor
 */
 export declare abstract class Action {
 	/** Get action playtime long */
@@ -94,43 +94,45 @@ export declare abstract class Action {
 	/** To stop action */
 	stop(): this;
 	/**
-	* 跳转到目标`time`时间，调用后会重置内部`looped`
+	* Jump to target `time`, after calling it, it will reset the internal `looped`
 	* @param `time` {uint} unit as `ms`
 	* @return `this`
 	*/
 	seek(time: number): this;
 	/**
-	* 跳转到目标`time`时间，并开始播放，调用后会重置内部`looped`
+	* Jump to the target `time` and start playing. The internal `looped` will be reset after calling
 	* @param time {uint} unit as `ms`
 	*/
 	seekPlay(time: number): this;
 	/**
-	* 跳转到目标`time`时间，并停止播放，调用后会重置`loopd`
+	* Jump to the target `time` and stop playing. The internal `looped` will be reset after calling
 	* @param time {uint} unit as `ms`
 	* @return {this}
 	*/
 	seekStop(time: number): this;
 	/**
-	 * 添加兄弟动作到自身之前，当前动作需要有父动作否则无效
+	 * Add a sibling action to the front of itself.
+	 * The current action needs to have a parent action else it will be invalid.
 	 * @param action {Action}
 	*/
 	before(action: Action): void;
 	/**
-	 * 添加兄弟动作到自身之后，当前动作需要有父动作否则无效
+	 * Add a sibling action to the back of itself.
+	 * The current action needs to have a parent action, otherwise it will be invalid.
 	 * @param action {Action}
 	*/
 	after(action: Action): void;
 	/**
-	 * 从父动作中删除自身
+	 * Deleting myself from the parent
 	*/
 	remove(): void;
 	/**
-	 * 添加子动作结尾，注意：{KeyframeAction}不能添加子动作
+	 * Add sub-actions to the end. Note: {KeyframeAction} cannot add sub-actions
 	 * @param child {Action}
 	 */
 	append(child: Action): void;
 	/**
-	 * 清空动作包括子动作或关键帧，清空动作后会立即停止动作
+	 * Clear all sub-actions or keyframes. After clearing, the action will stop immediately.
 	 */
 	clear(): void;
 	/**
@@ -181,27 +183,30 @@ export declare class KeyframeAction extends Action {
 	*
 	* @return {Keyframe}
 	*/
-	addFrame(time: number, curve?: types.CurveIn): Keyframe; // add new keyframe
+	addFrame(time: number, curve?: types.CurveIn): Keyframe;
+
 	/**
 	 * @method addFrameWithCss
 	 * 
-	 * 通过`cssExp`样式表名表达式添加关键帧，并返回关键帧
+	 * Add keyframes by the `cssExp` stylesheet name expression and return keyframes
 	 * 
 	 * @param cssExp {CSSNameExp} css exp
 	 * @param time? {uint} Keyframe time point, **Default** as zero
-	 * @param curve? {CurveIn} 不传入`curve`默认为`'ease'`
+	 * @param curve? {CurveIn} If not passed, `curve` **Default** as `'ease'`
 	 * 
 	 * @return {Keyframe}
 	*/
 	addFrameWithCss(cssExp: CSSNameExp, time?: number, curve?: types.CurveIn): Keyframe;
+
 	/**
 	 * @method add
 	 * 
-	 * 通过`cssExp`样式表名表达式或目标属性表添加关键帧，并返回关键帧
+	 * Add keyframes through `cssExp` stylesheet name expression or target property table,
+	 * and return keyframes
 	 * 
 	 * @param styleOrCssExp {KeyframeIn} style sheet or css exp
 	 * @param time? {uint} Keyframe time point, **Default** as zero
-	 * @param curve? {CurveIn} 不传入`curve`默认为`'ease'`
+	 * @param curve? {CurveIn} If not passed, `curve` **Default** as `'ease'`
 	 * 
 	 * @return {Keyframe}
 	*/
@@ -221,20 +226,22 @@ function(styleOrCssExp: KeyframeIn, ...args: any[]): Keyframe {
 /**
 * @method createAction(win,arg[,parent])
 *
-* * 通过`json`参数创建动作，如果传入的`arg`为[`Action`]跳过创建过程
+* * Create an action through the `json` parameter. If the `arg` passed in is [`Action`],
+* 
+* 	skip the creation process and return directly.
 *
-* 	如果传入父动作，创建完成追加新创建的动作到`parent`结尾
+* 	If the parent action is passed in, append the newly created action to the end of `parent` after creation.
 *
-* * 如果传入的参数是一个[`Array`]创建[`KeyframeAction`]并使用这个[`Array`]创建[`Frame`]
+* * If the passed in parameter is an [`Array`], create a [`KeyframeAction`] and use this [`Array`] to create the corresponding [`Frame`]
 *
-* * 如果传入的参数里有`seq`属性创建[`SequenceAction`]
+* * If the passed in parameter has a `seq` attribute, create a [`SequenceAction`]
 *
-* * 如果传入的参数里有`spawn`属性创建[`SpawnAction`]
+* * If the passed in parameter has a `spawn` attribute, create a [`SpawnAction`]
 *
-* * 如果传入的参数里没有`seq`也没`spawn`创建[`KeyframeAction`]，
+* * If there is no `seq` or `spawn` in the passed in parameter, create a [`KeyframeAction`]
 *
-* 	对像的内部属性`keyframe`如果为[`Array`]，那么用这个[`Array`]创建[`Frame`]
-*
+* 	If the object's internal attribute `keyframe` is [`Array`], use this [`Array`] to create a [`Frame`]
+* 
 * @param win {Window}
 * @param arg {ActionIn}
 * @param parent? {Action}
@@ -253,7 +260,7 @@ function(styleOrCssExp: KeyframeIn, ...args: any[]): Keyframe {
 * 		{ time:1000, x:100 },
 * 	]
 * });
-* // 创建SequenceAction并有两子KeyframeAction
+* // Creating `SequenceAction` and have two `KeyframeAction`
 * var act2 = createAction(win, {
 * 	loop: 999999,
 * 	seq: [
@@ -316,14 +323,17 @@ export function createAction(win: Window, arg: ActionIn, parent?: Action) {
 }
 
 /**
- * @methodtion ActionCb (e: ActionEvent): void
+ * @callback ActionCb(e)
+ * @param e {ActionEvent}
 */
 export type ActionCb = (e: ActionEvent)=>void;
 
 /**
  * @method transition(view,to[,fromOrCb[,cb]])
  *
- * * 通过样式创建视图样式过渡动作并播放这个动作，完成后回调
+ * * Create a view style transition action by the style and play this action,
+ * 
+ * 	and callback after completion
  *
  * Callback: cb()
  *
@@ -337,7 +347,7 @@ export type ActionCb = (e: ActionEvent)=>void;
  * Example:
  *
  *	```ts
- *	// 1秒后过渡完成并回调
+ *	// The transition is completed and callback is made after 1 second
  *	transition(view, {
  *		time: 1000,
  *		y: 100,
@@ -345,7 +355,7 @@ export type ActionCb = (e: ActionEvent)=>void;
  *	}, ()={
  *		console.log('view transition end');
  *	})
- *	// 延时1秒后开始播放，并使用线性过渡
+ *  // Use a linear transition
  *	transition(view, {
  *		time: 1000,
  *		curve: 'linear',

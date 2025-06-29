@@ -201,14 +201,14 @@ export function formatPath(...args: string[]) {
 }
 
 /**
- * @method isAbsolute 是否为绝对路径
+ * @method isAbsolute Is it an absolute path?
  */
 export function isAbsolute(path: string) {
 	return paths.isAbsolute.test(path);
 }
 
 /**
- * @method isLocal 是否为本地路径
+ * @method isLocal Is it a local path?
  */
 export function isLocal(path: string) {
 	return paths.isLocal.test(path);
@@ -396,8 +396,6 @@ export default {
 	/**
 	 * @get argv:string[]
 	 * 
-	 * 命令行启动参数
-	 * 
 	 * Command line startup parameter
 	*/
 	argv: _init.argv as string[],
@@ -405,16 +403,12 @@ export default {
 	/**
 	 * @get options:object
 	 * 
-	 * 命令行启动参数解析结果
-	 * 
 	 * Command line startup parameter parsing results
 	*/
 	options,
 
 	/**
 	 * @method nextTick(cb)
-	 * 
-	 * 等待消息循环下一个嘀嗒时调用回调函数
 	 * 
 	 * Wait for the next tick of the message loop to call the callback function
 	 * 
@@ -424,8 +418,6 @@ export default {
 
 	/**
 	 * @method sleep(time)
-	 * 
-	 * 异步休眠，相当于调用`setTimeout`
 	 * 
 	 * Asynchronous sleep, equivalent to calling `setTimeout`
 	 * 
@@ -437,8 +429,6 @@ export default {
 	/**
 	 * @method gc()
 	 * 
-	 * 手动让javascript引擎执行`GC`操作
-	 * 
 	 * Manually let the JavaScript engine perform `GC` actions
 	*/
 	gc: _init.garbageCollection as ()=>void,
@@ -446,12 +436,13 @@ export default {
 	/**
 	 * @method runScript(source[,name[,sandbox]])
 	 * 
-	 * 编译运行一段javascript代码并返回运行结果,可以指定一个名称与一个运行上下文对像,
-	 * 
-	 * 名称在调试代码或程序发生异常时非常有用通常为文件名,
-	 * 
-	 * 如果不传入这个沙盒`sandbox`上下文默认使用`global`对像
-	 * 
+	 * Compile and run a piece of javascript code and return the running result.
+	 * 	You can specify a name and a running context object.
+	 *
+	 * The name is very useful when debugging code or program exceptions. It is usually a file name.
+	 *
+	 * If you do not pass this sandbox `sandbox` context, the default is to use the `global` object.
+	 *
 	 * @param source {string} javascript source code
 	 * @param name {string}
 	 * @param sandbox? {object}
@@ -462,8 +453,6 @@ export default {
 	/**
 	 * @module hashCode(obj)
 	 * 
-	 * 读取数据对像的散列值
-	 * 
 	 * Read the hash value of a data object
 	 * 
 	 * @param obj {any}
@@ -473,8 +462,6 @@ export default {
 
 	/**
 	 * @module hash(obj)
-	 * 
-	 * 读取数据对像的散列值,并将值转换为字符串
 	 * 
 	 * Read the hash value of a data object, and convert the value to a string
 	 * 

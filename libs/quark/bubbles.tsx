@@ -37,16 +37,20 @@ const arrowSize = { width: 30, height: 12 };
 const borderArrow = 0;
 const border = 5;
 
+/**
+ * @enum Priority
+*/
 export enum Priority {
-	Auto,
-	Top,
-	Right,
-	Bottom,
-	Left,
+	Auto, ///
+	Top, ///
+	Right, ///
+	Bottom, ///
+	Left, ///
 };
 
 /**
  * @class Bubbles
+ * @extends Navigation
  */
 export class Bubbles<P={},S={}> extends Navigation<{
 	frail?: boolean;
@@ -54,11 +58,11 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	priority?: Priority,
 	borderRadius?: number;
 }&P,S> {
-	private _is_activate = false;
-	private _pos_x = 0;
-	private _pos_y = 0;
-	private _offset_x = 0;
-	private _offset_y = 0;
+	private _isActivate = false;
+	private _posX = 0;
+	private _posY = 0;
+	private _offsetX = 0;
+	private _offsetY = 0;
 
 	/**
 	 * @getset frail:bool By default clicking anywhere on the screen will disappear
@@ -80,10 +84,10 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	*/
 	@link borderRadius = 8;
 
-	private _get_left(x: number, offset_x: number) {
+	private getLeft(x: number, offset_x: number) {
 		let self = this;
 		let main = self.refs.main as Box;
-		x -= border; // 留出10像素边距
+		x -= border; // Keep 10px margin
 		let screen_width = this.window.size.x - border * 2;
 		let width = main.clientSize.x;
 
@@ -100,10 +104,11 @@ export class Bubbles<P={},S={}> extends Navigation<{
 			return left + border;
 		}
 	}
-	private _get_top(y: number, offset_y: number) {
+
+	private getTop(y: number, offset_y: number) {
 		let self = this;
 		let main = self.refs.main as Box;
-		y -= border; // 留出10像素边距
+		y -= border; // Keep 10px margin
 		let screen_height = this.window.size.y - border * 2;
 		let height = main.clientSize.y;
 
@@ -120,7 +125,8 @@ export class Bubbles<P={},S={}> extends Navigation<{
 			return top + border;
 		}
 	}
-	private _get_arrow_top(top: number, y: number, offset_y: number) {
+
+	private getArrowTop(top: number, y: number, offset_y: number) {
 		let self = this;
 		let main = self.refs.main as Box;
 		let height = main.clientSize.y;
@@ -132,7 +138,8 @@ export class Bubbles<P={},S={}> extends Navigation<{
 		}
 		return Math.min(Math.max(min, y - top), max);
 	}
-	private _get_arrow_left(left: number, x: number, offset_x: number) {
+
+	private getArrowLeft(left: number, x: number, offset_x: number) {
 		let self = this;
 		let main = self.refs.main as Box;
 		let width = main.clientSize.x;
@@ -146,17 +153,18 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
+	 * @private
 	 * Attempt to display at the top of the target
 	 */
-	private _attempt_top(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
+	private attemptTop(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
 		let height = main.clientSize.y;
 		let top = y - height - arrowSize.height;
 		if (top - border > 0 || force) {
-			let left = self._get_left(x, offset_x);
-			let arrow_left = self._get_arrow_left(left, x, offset_x) - arrowSize.width / 2;
+			let left = self.getLeft(x, offset_x);
+			let arrow_left = self.getArrowLeft(left, x, offset_x) - arrowSize.width / 2;
 			main.style = { y: top, x: left };
 			arrow.style = { 
 				align: 'leftBottom',
@@ -170,17 +178,18 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
+	 * @private
 	 * Attempt to display at the right of the target
 	 */
-	private _attempt_right(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
+	private attemptRight(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
 		let width = main.clientSize.x;
 		let left = x + offset_x + arrowSize.height;
 		if (left + width + border <= this.window.size.x || force) {
-			let top = self._get_top(y, offset_y);
-			let arrow_top = self._get_arrow_top(top, y, offset_y) - arrowSize.height / 2;
+			let top = self.getTop(y, offset_y);
+			let arrow_top = self.getArrowTop(top, y, offset_y) - arrowSize.height / 2;
 			main.style = { y: top, x: left };
 			arrow.style = { 
 				align: 'leftTop',
@@ -194,17 +203,18 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
+	 * @private
 	 * Attempt to display at the bottom of the target
 	 */
-	private _attempt_bottom(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
+	private attemptBottom(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
 		let height = main.clientSize.y;
 		let top = y + offset_y + arrowSize.height;
 		if (top + height + border <= this.window.size.y || force) {
-			let left = self._get_left(x, offset_x);
-			let arrow_left = self._get_arrow_left(left, x, offset_x) - arrowSize.width / 2;
+			let left = self.getLeft(x, offset_x);
+			let arrow_left = self.getArrowLeft(left, x, offset_x) - arrowSize.width / 2;
 			main.style = { y: top, x: left };
 			arrow.style = {
 				align: 'leftTop',
@@ -218,17 +228,18 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
+	 * @private
 	 * Attempt to display at the left of the target
 	 */
-	private _attempt_left(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
+	private attemptLeft(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
 		let arrow = self.refs.arrow as Matrix;
 		let width = main.clientSize.x;
 		let left = x - width - arrowSize.height;
 		if (left - border > 0 || force) {
-			let top = self._get_top(y, offset_y);
-			let arrow_top = self._get_arrow_top(top, y, offset_y) - arrowSize.height / 2;
+			let top = self.getTop(y, offset_y);
+			let arrow_top = self.getArrowTop(top, y, offset_y) - arrowSize.height / 2;
 			main.style = { y: top, x: left };
 			arrow.style = {
 				align: 'rightTop',
@@ -241,36 +252,36 @@ export class Bubbles<P={},S={}> extends Navigation<{
 		return false;
 	}
 
-	private _showOverlay(x: number, y: number, offset_x: number, offset_y: number) {
+	private _showBubbles(x: number, y: number, offset_x: number, offset_y: number) {
 		let self = this;
 		switch (self.priority) {
 			case Priority.Top:
-				self._attempt_top(x, y, offset_x, offset_y) ||
-				self._attempt_bottom(x, y, offset_x, offset_y) ||
-				self._attempt_right(x, y, offset_x, offset_y) ||
-				self._attempt_left(x, y, offset_x, offset_y) ||
-				self._attempt_top(x, y, offset_x, offset_y, true);
+				self.attemptTop(x, y, offset_x, offset_y) ||
+				self.attemptBottom(x, y, offset_x, offset_y) ||
+				self.attemptRight(x, y, offset_x, offset_y) ||
+				self.attemptLeft(x, y, offset_x, offset_y) ||
+				self.attemptTop(x, y, offset_x, offset_y, true);
 				break;
 			case Priority.Right:
-				self._attempt_right(x, y, offset_x, offset_y) ||
-				self._attempt_left(x, y, offset_x, offset_y) ||
-				self._attempt_bottom(x, y, offset_x, offset_y) ||
-				self._attempt_top(x, y, offset_x, offset_y) ||
-				self._attempt_right(x, y, offset_x, offset_y, true);
+				self.attemptRight(x, y, offset_x, offset_y) ||
+				self.attemptLeft(x, y, offset_x, offset_y) ||
+				self.attemptBottom(x, y, offset_x, offset_y) ||
+				self.attemptTop(x, y, offset_x, offset_y) ||
+				self.attemptRight(x, y, offset_x, offset_y, true);
 				break;
 			case Priority.Bottom:
-				self._attempt_bottom(x, y, offset_x, offset_y) ||
-				self._attempt_top(x, y, offset_x, offset_y) ||
-				self._attempt_right(x, y, offset_x, offset_y) ||
-				self._attempt_left(x, y, offset_x, offset_y) ||
-				self._attempt_bottom(x, y, offset_x, offset_y, true);
+				self.attemptBottom(x, y, offset_x, offset_y) ||
+				self.attemptTop(x, y, offset_x, offset_y) ||
+				self.attemptRight(x, y, offset_x, offset_y) ||
+				self.attemptLeft(x, y, offset_x, offset_y) ||
+				self.attemptBottom(x, y, offset_x, offset_y, true);
 				break;
 			case Priority.Left:
-				self._attempt_left(x, y, offset_x, offset_y) ||
-				self._attempt_right(x, y, offset_x, offset_y) ||
-				self._attempt_bottom(x, y, offset_x, offset_y) ||
-				self._attempt_top(x, y, offset_x, offset_y) ||
-				self._attempt_left(x, y, offset_x, offset_y, true);
+				self.attemptLeft(x, y, offset_x, offset_y) ||
+				self.attemptRight(x, y, offset_x, offset_y) ||
+				self.attemptBottom(x, y, offset_x, offset_y) ||
+				self.attemptTop(x, y, offset_x, offset_y) ||
+				self.attemptLeft(x, y, offset_x, offset_y, true);
 				break;
 			default: break;
 		}
@@ -347,11 +358,11 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method showOverlayFrom(from[,offset_x[,offset_y]])  通过目标视图显示 Overlay
-	 * @param from {View} # 参数可提供要显示的位置信息
-	 * @param [offset] {Object} # 显示目标位置的偏移
+	 * @method showBubblesFrom(from[,offset_x[,offset_y]]) Displaying Bubbles by Target View
+	 * @param from {View} Parameters provide the location information to be displayed
+	 * @param offset? {types.Vec2} Displays the offset of the target position
 	 */
-	showOverlayFrom(from: View, offset?: types.Vec2) {
+	showBubblesFrom(from: View, offset?: types.Vec2) {
 		offset = offset || types.newVec2(0,0);
 		let pos = from.position;
 		let size = from.viewType > ViewType.Label ? (from as Box).clientSize: types.newVec2(0,0);
@@ -359,43 +370,44 @@ export class Bubbles<P={},S={}> extends Navigation<{
 			pos.x  + offset.x,     pos.y  + offset.y,
 			size.x - offset.x * 2, size.y - offset.y * 2,
 		);
-		this.showOverlay(rect);
+		this.showBubbles(rect);
 	}
 
 	/**
-	 * showOverlay(rect) 通过rect显示
+	 * @method showBubbles(rect) Show by rect
+	 * @param rect {types.Rect}
 	 */
-	showOverlay(rect: types.Rect) {
+	showBubbles(rect: types.Rect) {
 		let self = this;
 		let size = this.window.size;
 		let _x = Math.max(0, Math.min(size.x, rect.x));
 		let _y = Math.max(0, Math.min(size.y, rect.y));
-		let _offset_x = rect.width;
-		let _offset_y = rect.height;
+		let _offsetX = rect.width;
+		let _offsetY = rect.height;
 
 		self.asDom().visible = true;
 
-		self._pos_x = _x;
-		self._pos_y = _y;
-		self._offset_x = _offset_x;
-		self._offset_y = _offset_y;
+		self._posX = _x;
+		self._posY = _y;
+		self._offsetX = _offsetX;
+		self._offsetY = _offsetY;
 
 		this.window.nextTickFrame(function() {
-			self._showOverlay(_x, _y, _offset_x, _offset_y);
+			self._showBubbles(_x, _y, _offsetX, _offsetY);
 			self.asDom().transition({ opacity: 1, time: 200 });
 		});
 
-		self._is_activate = true;
+		self._isActivate = true;
 
 		this.registerNavigation(0);
 	}
 
 	/**
-	 * reset() reset position
+	 * @method reset() reset position
 	 */
 	reset() {
-		if (this._is_activate) {
-			this._showOverlay(this._pos_x, this._pos_y, this._offset_x, this._offset_y);
+		if (this._isActivate) {
+			this._showBubbles(this._posX, this._posY, this._offsetX, this._offsetY);
 		}
 	}
 
@@ -425,7 +437,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	*/
 	static renderFrom(from: View, vdom: VDom<Bubbles>) {
 		let dom = vdom.newDom(from.window.rootCtr);
-		dom.showOverlayFrom(from);
+		dom.showBubblesFrom(from);
 		return dom;
 	}
 }

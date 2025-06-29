@@ -37,38 +37,38 @@ export * from './_event';
 export default event;
 
 /**
- * 触发点击事件的有类型或设备，如：使用触摸屏幕、鼠标
+ * The type or device that triggers the click event, such as using a touch screen or a mouse
 */
 export enum ClickType {
-	/** 触摸屏 */
+	/** touchscreen */
 	Touch = 1,
-	/** 键盘或遥控器按下回车或进入 */
+	/** Press Enter on the keyboard or press OK on the remote control */
 	Keyboard,
-	/** 鼠标 */
+	/** mouse */
 	Mouse,
 };
 
 /**
- * 事件`Highlighted`的状态类型
+ * Status type of event `Highlighted`
 */
 export enum HighlightedStatus {
-	/** 一般通常情况 */
+	/** Normal situation */
 	Normal = 1,
-	/** 当鼠标移动到视图之上或焦点切换到视图的状态 */
+	/** When the mouse moves over the view or the focus switches to the view */
 	Hover,
-	/** 当鼠标按下或者遥控器按下进入按钮的状态 */
+	/** When the mouse is pressed or the OK button is pressed on the remote control */
 	Active,
 };
 
 /**
- * 事件返回值（returnValue）对应的掩码功能
+ * Mask function corresponding to event return value (returnValue)
 */
 export enum ReturnValueMask {
-	/** 启用默认动作 */
+	/** Enable default actions */
 	Default = (1 << 0),
-	/** 启用事件冒泡 */
+	/** Enable event bubbling */
 	Bubble = (1 << 1),
-	/** 以上两个都包含 */
+	/** Both of the above include */
 	All = (Default | Bubble),
 };
 
@@ -78,20 +78,20 @@ declare class NativeEvent<Sender, Data = any> extends Event<Sender, Data> {}
  * @class UIEvent
  * @extends Event
  * 
- * UI系统事件数据对像基础类型
+ * UI system event data object basic type
 */
 export declare class UIEvent extends NativeEvent<View> {
-	/** 事件的发源地 */
+	/** Origin of the event */
 	readonly origin: View;
-	/** 事件触发的时间 */
+	/** The time when the event is triggered */
 	readonly timestamp: number; 
-	/** 获取是否启用事件默认动作 */
+	/** Gets whether the default action of an event is enabled */
 	readonly isDefault: boolean;
-	/** 获取是否启用事件冒泡 */
+	/** Gets whether event bubbling is enabled */
 	readonly isBubble: boolean;
-	/** 取消默认事件动作，如果存在默认动作 */
+	/** Cancel the default event action, if one exists */
 	cancelDefault(): void;
-	/** 取消事件冒泡，调用后事件停止向上传播 */
+	/** Cancel event bubbling. After calling this method, the event stops propagating upward */
 	cancelBubble(): void;
 }
 
@@ -100,13 +100,13 @@ export declare class UIEvent extends NativeEvent<View> {
  * @extends UIEvent
 */
 export declare class ActionEvent extends UIEvent {
-	/** 获取触发事件的动作对像 */
+	/** Get the action object that triggers the event */
 	readonly action: Action;
-	/** 事件触发时与目标时间的误差 */
+	/** The difference between the event triggering time and the target time */
 	readonly delay: number;
-	/** 关键帧索引 */
+	/** Keyframe Index */
 	readonly frame: number;
-	/** 当前循环次数 */
+	/** The current number of looped */
 	readonly looped: number;
 }
 
@@ -115,27 +115,28 @@ export declare class ActionEvent extends UIEvent {
  * @extends UIEvent
 */
 export declare class KeyEvent extends UIEvent {
-	/** 下一个可能的遥控器焦点视图 */
+	/** The next possible remote focus view */
 	nextFocus: View | null;
-	/** 键盘代码 */
+	/** Keyboard Code */
 	readonly keycode: KeyboardKeyCode;
-	/** 通过键盘代码转换的aciss代码 */
+	/** Ascii code converted from keyboard code */
 	readonly keypress: number;
-	/** 按键按下后重复触发事件的次数，直到按键被松开 */
+	/** The number of times the event is triggered repeatedly after the key is pressed
+	 * until the key is released */
 	readonly repeat: number;
-	/** 是否按下了shift键 */
+	/** Is the shift key pressed */
 	readonly shift: boolean;
-	/** 是否按下了ctrl键 */
+	/** Is the ctrl key pressed */
 	readonly ctrl: boolean;
-	/** 是否按下了alt键 */
+	/** Is the alt key pressed */
 	readonly alt: boolean;
-	/** 是否按下了command键 */
+	/** Is the command key pressed */
 	readonly command: boolean;
-	/** 是否启用了大写锁capsLock */
+	/** Is capsLock enabled */
 	readonly capsLock: boolean;
-	/** 输入设备id */
+	/** Device id */
 	readonly device: number;
-	/** 输入源id */
+	/** Source id */
 	readonly source: number;
 }
 
@@ -144,13 +145,13 @@ export declare class KeyEvent extends UIEvent {
  * @extends UIEvent
 */
 export declare class ClickEvent extends UIEvent {
-	/** 光标在窗口中的位置x */
+	/** The cursor position in the window x */
 	readonly x: number;
-	/** 光标在窗口中的位置y */
+	/** The cursor position in the window y */
 	readonly y: number;
-	/** 点击次数单击、双击 */
+	/** Number of consecutive clicks, possibly double clicks */
 	readonly count: number;
-	/** 点击触发类型 */
+	/** Click trigger type */
 	readonly type: ClickType;
 }
 
@@ -158,11 +159,12 @@ export declare class ClickEvent extends UIEvent {
  * @class HighlightedEvent
  * @extends UIEvent
  * 
- * 这个事件表示视图在触发某些事件后应该进入什么样的状态，
- * 如：当鼠标进入视图时状态为`Hover`
-*/
+ * When this event triggers, 
+ * the highlighted state that the view should enter after triggering certain events.
+ * For example: when the mouse enters the view, the state is `Hover`
+ */
 export declare class HighlightedEvent extends UIEvent {
-	/** 高亮状态类型 */
+	/** Highlight state type */
 	readonly status: HighlightedStatus;
 }
 
@@ -171,9 +173,9 @@ export declare class HighlightedEvent extends UIEvent {
  * @extends UIEvent
 */
 export declare class MouseEvent extends UIEvent {
-	/** 光标在窗口中的位置x */
+	/** The cursor position in the window x */
 	readonly x: number;
-	/** 光标在窗口中的位置y */
+	/** The cursor position in the window y */
 	readonly y: number;
 }
 
@@ -181,24 +183,26 @@ export declare class MouseEvent extends UIEvent {
  * @class TouchPoint
  * @extends UIEvent
  * 
- * 触摸事件触摸点数据
+ * Touch point data of the touch event
 */
 export interface TouchPoint {
-	/** 触点id */
+	/** Touch point id */
 	readonly id: number;
-	/** 触点最开始按下时在窗口中的位置x */
+	/** The position x of the touchpoint in the window when it is first pressed */
 	readonly startX: number;
-	/** 触点最开始按下时在窗口中的位置y */
+	/** The position y of the touchpoint in the window when it is first pressed */
 	readonly startY: number;
-	/** 触点在窗口中的位置x */
+	/** The position of the touchpoint in the window x */
 	readonly x: number;
-	/** 触点在窗口中的位置y */
+	/** The position of the touchpoint in the window y */
 	readonly y: number;
-	/** 触点按压强度,值范围[0-1] */
+	/** touchpoint pressure strength, value range [0-1] */
 	readonly force: number;
-	/** 触点是否还依然在点击范围内，如果触点刚按下时在触点内，但后面触点可能会移动出范围 */
+	/** Whether the touchpoint is still within the click range.
+	 * If the touchpoint is within the click range when it is pressed,
+	 * the touchpoint may move out of the range later. */
 	readonly clickIn: boolean;
-	/** 触点最开始的视图 */
+	/** The initial view of the touchpoint */
 	readonly view: View;
 }
 
@@ -207,7 +211,7 @@ export interface TouchPoint {
  * @extends UIEvent
 */
 export declare class TouchEvent extends UIEvent {
-	/** 触摸点集合 */
+	/** Touch point collection */
 	readonly changedTouches: TouchPoint[];
 }
 

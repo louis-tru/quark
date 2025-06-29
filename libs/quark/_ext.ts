@@ -101,19 +101,29 @@ interface Number {
 	hashCode(): number;
 
 	/**
-	* 转换为前后固定位数的字符串
-	* @param before {Number}  小数点前固定位数
-	* @param [after] {Number} 小数点后固定位数
+	* Convert to a string with a fixed number of digits before and after the decimal point
+	* @param before {Number}  Fixed number of digits before the decimal point
+	* @param [after] {Number} Fixed number of digits after the decimal point
 	*/
 	toFixedBefore(before: number, after?: number): string;
 
 	/**
-	 * 转换为前后固定位数的字符串,但不包含小数点后面为0
-	 * @param after {Number}  小数点前固定位数
-	 * @param split {Number?}  分割小数点前的字符
-	 * @param symbol {String?}  分割小数点前的字符
+	 * Fixed the number of digits before the decimal point and used symbol separation
+	 * 
+	 * @param after {number}  Fixed number of digits before the decimal point
+	 * @param split {number?}  Split unit length
+	 * @param symbol {string?}  Split characters
+	 * @return {string}
+	 * 
+	 * For examples:
+	 * 
+	 * ```ts
+	 * 
+	 * Print: 1,000,000.03
+	 * console.log((1000000.03).toFixedVariable(8,3,','))
+	 * ```
 	*/
-	toFixedVariable(this: number, after: number, split?: number, symbol?: string): string;
+	toFixedVariable(after: number, split?: number, symbol?: string): string;
 }
 
 interface Boolean {
@@ -127,22 +137,36 @@ interface DateConstructor {
 	currentTimezone: number;
 
 	/**
-	 * 解析字符串为时间
-	 * <pre><code>
-	 * let i = '2008-02-13 01:12:13';
-	 * let date = Date.parseDate(i); //返回的新时间
-	 * </code></pre>
+	 * Parse a string as a time
 	 * @method parseDate(str[,format[,timezone]])
-	 * @param str {String}        要解析的字符串
-	 * @param [format] {String}   date format   default yyyyMMddhhmmssfff
-	 * @param [timezone] {Number} 要解析的时间所在时区,默认为当前时区
-	 * @return {Date}              返回新时间
+	 * @param str       {string} The string to parse
+	 * @param format?   {string} date format default yyyyMMddhhmmssfff
+	 * @param timezone? {uint}   The time zone of the time to be parsed,
+	 * 	the default is the current time zone
+	 * @return {Date}            Retruu Date object
+	 * 
+	 * For examples:
+	 * 
+	 * ```ts
+	 * let i = '2008-02-13 01:12:13';
+	 * let date = Date.parseDate(i); // The new time returned
+	 * ```
 	 */
 	parseDate(date_str: string, format?: string, timezone?: number): Date;
 
 	/**
-		* 格式化时间戳(单位:毫秒)
-		* <pre><code>
+		* @method formatTimeSpan(ts[,format])
+		* 
+		* Formatting timestamps
+		* 
+		* @param ts {number} The timestamp to format
+		* @param format?  {string} The timestamp format to be formatted
+		* @return {string} The returned formatted timestamp
+		* 
+		* For examples:
+		* 
+		* ```ts
+		* // Format timestamp (unit: milliseconds)
 		* let time_span = 10002100;
 		* let format = 'dd hh:mm:ss';
 		* let str = Date.formatTimeSpan(time_span, format); // str = '0 2:46:42'
@@ -152,11 +176,7 @@ interface DateConstructor {
 		* str = Date.formatTimeSpan(time_span, format); // str = '2时46分42秒'
 		* format = 'mm分ss秒';
 		* str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
-		* </code></pre>
-		* @method formatTimeSpan(ts[,format])
-		* @param ts {Number} 要格式化的时间戳
-		* @param [format]  {String} 要格式化的时间戳格式
-		* @return {String} 返回的格式化后的时间戳
+		* ```
 		*/
 	formatTimeSpan(time_span: number, format?: string): string;
 
@@ -166,15 +186,21 @@ interface Date {
 	hashCode(): number;
 
 	/**
-	 * @method add 给当前Date时间追加毫秒,改变时间值
-	 * @param ms {Number}  要添追加的毫秒值
+	 * @method add(ms)  Add milliseconds to the current Date time and change the time value
+	 * @param ms {uint} The millisecond value to append
 	 * @return {Date}
 	 */
 	add(ms: number): Date;
 
 	/**
-		* 给定日期格式返回日期字符串
-		* <pre><code>
+		* @method date_to_string(date[,foramt]) Returns a date string given a date format
+		* @param date {Date}
+		* @param format? {string} The format of the string to be converted
+		* @return {string} Returns the formatted time string
+		* 
+		* For exmples:
+		* 
+		* ```ts
 		* let date = new Date();
 		* let format = 'yyyy-MM-dd hh:mm:ss.fff';
 		* let dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
@@ -184,11 +210,7 @@ interface Date {
 		* dateStr = date.toString(format); // dateStr的值为 '2008/12/10'
 		* format = 'yyyy-MM-dd hh';
 		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10'
-		* </code></pre>
-		* @method date_to_string(date[,foramt])
-		* @param date {Date}
-		* @param [format] {String} 要转换的字符串格式
-		* @return {String} 返回格式化后的时间字符串
+		* ```
 		*/
 	toString(format?: string, timezone?: number): string;
 }

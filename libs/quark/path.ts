@@ -113,8 +113,6 @@ function querystringStringify(prefix: string, params: Dict) {
  * 
  * URL Processing Tool Type
  * 
- * URL处理工具类型
- * 
  * Example:
  * 
  * ```js
@@ -146,9 +144,9 @@ export class URL {
 	private _hashParams: Dict<string>;
 
 	/**
-		* @constructor([path])
-		* @param [path] {string}
-		*/
+	 * @constructor([path])
+	 * @param [path] {string}
+	 */
 	constructor(path: string = '') {
 		if (!path && isWeb) {
 			path = location.href;
@@ -158,16 +156,11 @@ export class URL {
 
 	/**
 	 * 
-	 * @arrt href
-	 * 
-	 * 获取uri完整的href,包括参数
+	 * @get href:string
 	 * 
 	 * Get the complete URL, including parameters
 	 * 
 	 * href: "http://xxxx.xxx:81/v1.1.0/quark/path.js?sasasas&asasasa#sdsdsd"
-	 * 
-	 * @get
-	 * @type {string}
 	 * 
 	 * Example:
 	 * 
@@ -185,7 +178,8 @@ export class URL {
 	 * 
 	 * @get filename:string
 	 * 
-	 * get full path name
+	 * Get full path name
+	 * 
 	 * filename: "/D:/Documents/test.js"
 	 *
 	 * ```ts
@@ -200,8 +194,6 @@ export class URL {
 
 	/**
 	 * @get path:string /a/b/s/test.html?aaaaa=100
-	 * 
-	 * 获取路径并且包含参数部分
 	 * 
 	 * Get the path and include the parameter part
 	 * 
@@ -219,9 +211,8 @@ export class URL {
 	 * 
 	 * @get dirname:string
 	 * 
-	 * 获取目录名称
-	 * 
 	 * full path dir
+	 * 
 	 * dirname: "/D:/Documents"
 	 * 
 	 * Example:
@@ -239,8 +230,6 @@ export class URL {
 	/**
 	 * 
 	 * @get search:string
-	 * 
-	 * 获取uri查询参数
 	 * 
 	 * Get url query parameters
 	 * 
@@ -263,8 +252,6 @@ export class URL {
 	 * 
 	 * hash: "#sdsdsd"
 	 * 
-	 * 获取hash参数
-	 * 
 	 * Get hash parameters
 	 * 
 	 * Example:
@@ -285,8 +272,6 @@ export class URL {
 	 * 
 	 * host: "quarks.cc:81"
 	 * 
-	 * 获取主机名称并返回一个带端口号的主机名称
-	 * 
 	 * Gets the host name and returns the host name with the port number
 	 * 
 	 * Example:
@@ -306,8 +291,6 @@ export class URL {
 	 * @get hostname:string
 	 * 
 	 * hostname: "quarks.cc"
-	 * 
-	 * 获取主机名称,不会返回端口号
 	 * 
 	 * Gets the host name, but does not return the port number
 	 * 
@@ -331,8 +314,6 @@ export class URL {
 	 * 
 	 * Get the uri origin, protocol+host
 	 * 
-	 * 获取uri起源,protocol+host
-	 * 
 	 * Example:
 	 * 
 	 * ```ts
@@ -353,8 +334,6 @@ export class URL {
 	 * 
 	 * Get path base name
 	 * 
-	 * 获取基础文件名称
-	 * 
 	 * Example:
 	 * 
 	 * ```ts
@@ -371,8 +350,6 @@ export class URL {
 	 * @get extname:string
 	 * 
 	 * Get path extname
-	 * 
-	 * 获取文件扩展名称
 	 * 
 	 * Example:
 	 * 
@@ -395,14 +372,12 @@ export class URL {
 	 * Get the host port number.
 	 * If the port number is not defined in the URL, an empty string is returned.
 	 * 
-	 * 获取主机端口号,如果URL中没有定义端口号返回一个空字符串
-	 * 
 	 * Example:
 	 *
 	 * ```ts
 	 * // Prints: 81
 	 * console.log(new URL('http://quarks.cc:81').port);
-	 * // Prints 没有端口号会返回空字符串: ""
+	 * // Prints If there is no port number, an empty string will be returned: ""
 	 * console.log(new URL('http://quarks.cc').port);
 	 * ```
 	 */
@@ -417,8 +392,6 @@ export class URL {
 	 * 
 	 * protocol: "http:"
 	 * 
-	 * 获取URL的协议类型字符串
-	 * 
 	 * Get the protocol type string of the URL
 	 * 
 	 * For examples: `'http:'`|`'https'`|`'ftp:'`
@@ -431,8 +404,6 @@ export class URL {
 	/**
 	 * 
 	 * @getset params:string{}
-	 * 
-	 * 以对像方式返回查询参数集合，或者设置
 	 * 
 	 * Returns a collection of query parameters as an object, or set
 	 * 
@@ -475,8 +446,6 @@ export class URL {
 	 * 
 	 * @getset hashParams:string{}
 	 * 
-	 * 以对像方式返回Hash参数集合，或者设置
-	 * 
 	 * Returns a Hash parameter set as an object, or set
 	 * 
 	 * Example:
@@ -517,9 +486,7 @@ export class URL {
 	/**
 	 * @method getParam(name)
 	 * 
-	 * get path param
-	 * 
-	 * 通过名称获取uri参数值
+	 * Get path param
 	 * 
 	 * @param name {string}
 	 * @return {string}
@@ -539,8 +506,6 @@ export class URL {
 	 * 
 	 * @method setParam(name,value)
 	 * 
-	 * 设置URL查询参数键值对,并返回自己
-	 * 
 	 * Set the URL query parameter key-value pair and return self
 	 * 
 	 * @param name {string}
@@ -557,8 +522,6 @@ export class URL {
 	/**
 	 * @method deleteParam(name)
 	 * 
-	 * 通过名称删除URL查询参数
-	 * 
 	 * Remove URL query parameters by name
 	 * 
 	 * @param name {string}
@@ -572,8 +535,6 @@ export class URL {
 
 	/**
 	 * @method clearParams
-	 *
-	 * 删除URL中的所有查询参数
 	 *
 	 * Delete all of params in the URL
 	 * 
@@ -722,8 +683,6 @@ export default {
 
 	/**
 	 * @method executable()
-	 *
-	 * 获取当前应用程序的二进制执行文件路径
 	 * 
 	 * Get the binary executable file path of the current application
 	 *
@@ -742,11 +701,9 @@ export default {
 	/**
 	 * @method documents([path])
 	 * 
-	 * 获取当前应用程序的文档存储路径
-	 * 
 	 * Get the document storage path of the current application
 	 * 
-	 * @param path? {string} 追加到文档路径后面
+	 * @param path? {string} Append to the document path
 	 * Append to the document path
 	 * @return {string}
 	 * 
@@ -756,7 +713,7 @@ export default {
 	 * // Prints:
 	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents
 	 * console.log(path.documents());
-	 * // Prints 设置追加路径参数的结果:
+	 * // Prints Setting the result of appending path parameters:
 	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents/aa.jpeg
 	 * console.log(path.documents('aa.jpeg'));
 	 * ```
@@ -765,8 +722,6 @@ export default {
 
 	/**
 	 * @method temp([path])
-	 * 
-	 * 获取应用程序临时目录
 	 * 
 	 * Get the application temporary directory
 	 * 
@@ -778,8 +733,6 @@ export default {
 	/**
 	 * @method resources([path])
 	 * 
-	 * 获取应用程序资源目录
-	 * 
 	 * Get the application resource directory
 	 * 
 	 * @param path? {string}
@@ -790,8 +743,6 @@ export default {
 	/**
 	 * @method cwd()
 	 * 
-	 * 获取当前工作目录
-	 * 
 	 * Get the current working directory
 	 * 
 	 * @return {string}
@@ -800,8 +751,6 @@ export default {
 
 	/**
 	 * @method chdir(path)
-	 * 
-	 * 设置当前工作目录,成功后返回`true`
 	 * 
 	 * Set the current working directory and return `true` if successful
 	 * 
@@ -822,9 +771,7 @@ export default {
 
 	/**
 	 * @method classicPath()
-	 * 
-	 * 恢复路径到操作系统可以识别的路径,一般不需要调用该函数,除非直接调用非`Quark`提供的Native/C/C++函数
-	 * 
+	 *
 	 * Restore the path to a path that the operating system can recognize.
 	 * Generally, you do not need to call this function unless you directly call
 	 * a Native/C/C++ function that is not provided by `Quark`
@@ -843,8 +790,6 @@ export default {
 
 	/**
 	 * @method resolve(path[,partPath])
-	 * 
-	 * 格式化传入的路径为标准绝对路径
 	 * 
 	 * Format path to standard absolute path
 	 * 
@@ -868,8 +813,6 @@ export default {
 
 	/** 
 	 * @method isAbsolute(path)
-	 * 
-	 * 测试路径是否为一个绝对路径
 	 * 
 	 * Test whether it is an absolute path
 	 * 

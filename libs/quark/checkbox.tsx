@@ -122,6 +122,10 @@ createCss({
 	},
 });
 
+/**
+ * @class Basic
+ * @extends ViewController
+*/
 export class Basic<P={},S={}> extends ViewController<{
 	class?: string,
 	style?: StyleSheet,

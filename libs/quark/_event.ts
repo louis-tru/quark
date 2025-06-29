@@ -170,16 +170,18 @@ export class List<T = any> {
 // -------------------------------------------------------------------------------------------
 
 /**
- * @class Event 事件数据
+ * @class Event
+ * 
+ * The event data
 */
 export class Event<Sender = any, SendData = any> {
 	private _sender: Sender;
 	private _data: SendData;
-	/** 返回值 */
+	/** The return value */
 	returnValue: number = 0;
-	/** 数据 */
+	/** The Data */
 	get data() { return this._data; }
-	/** 发送者 */
+	/** The sender */
 	get sender() { return this._sender; }
 	constructor(data: SendData) { this._data = data; }
 }
@@ -235,7 +237,7 @@ function forwardNoticeNoticer<E>(noticer: EventNoticer<E>, evt: E) {
  * @template E
  * @class EventNoticer
  * 
- * 事件通知者,事件监听器添加、删除、触发与通知的核心
+ * Event notifier, the core of event listener adding, deleting, triggering and notification
 */
 export class EventNoticer<E = Event> {
 	private _name: string;
@@ -281,14 +283,14 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * @get name {string}  事件名称
+	 * @get name:string Event name
 	 */
 	get name(): string {
 		return this._name;
 	}
 	
 	/**
-	 * @get {object}  事件发送者
+	 * @get sender:object Event sender
 	 */
 	get sender() {
 		return this._sender;
@@ -296,16 +298,16 @@ export class EventNoticer<E = Event> {
 
 	/**
 	 * 
-	 * @get {int}  事件侦听数量
+	 * @get length:uint Number of event listeners
 	 */
 	get length () {
 		return this._length;
 	}
 	
 	/**
-	 * @constructor
-	 * @param name   {string}  事件名称
-	 * @param sender {object}  事件发起者
+	 * @constructor(name,sender)
+	 * @param name   {string}  Event name
+	 * @param sender {object}  Event sender
 	 */
 	constructor (name: string, sender: object) {
 		this._name = name;
@@ -314,11 +316,11 @@ export class EventNoticer<E = Event> {
 
 	/**
 	 * @template Ctx
-	 * @method on(listen[,ctxOrId[,id]]) 绑定一个事件侦听器(函数)
-	 * @param  listen    {Listen}   侦听函数
-	 * @param  ctxOrId?  {Ctx|string}    重新指定侦听函数this
-	 * @param  id?       {string}      侦听器别名,可通过id删除
-	 * @return {string} 返回传入的`id`或自动生成的`id`
+	 * @method on(listen[,ctxOrId[,id]]) Add an event listener (function)
+	 * @param  listen    {Listen}      Listening Function
+	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
+	 * @param  id?       {string}      Listener alias, can be deleted by id
+	 * @return {string} Returns the passed `id` or the automatically generated `id`
 	 * 
 	 * 
 	 *	Example:
@@ -329,7 +331,7 @@ export class EventNoticer<E = Event> {
 	 *	// Prints: 100
 	 *		console.log(this.a)
 	 *	}, ctx)
-	 *	// 替换监听器
+	 *	// Replace Listener
 	 *	screen.onChange.on(function(ev) {
 	 *	// Prints: replace 100
 	 *		console.log('replace', this.a)
@@ -343,11 +345,12 @@ export class EventNoticer<E = Event> {
 
 	/**
 	 * @template Ctx
-	 * @method once(listen[,ctxOrId[,id]])  绑定一个侦听器(函数),且只侦听一次就立即删除
-	 * @param listen    {Listen}          侦听函数
-	 * @param ctxOrId?  {Ctx|string}        重新指定侦听函数this
-	 * @param id?       {string}            侦听器别名,可通过id删除
-	 * @return {string} 返回传入的`id`或自动生成的`id`
+	 * @method once(listen[,ctxOrId[,id]])
+	 * Add a listener (function) and delete it immediately after listening only once
+	 * @param  listen    {Listen}      Listening Function
+	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
+	 * @param  id?       {string}      Listener alias, can be deleted by id
+	 * @return {string} Returns the passed `id` or the automatically generated `id`
 	 */
 	once<Ctx extends object>(listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		check_fun(listen);
@@ -362,14 +365,14 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * Bind an event listener (function),
+	 * Add an event listener (function),
 	 * and "on" the same processor of the method to add the event trigger to receive two parameters
 	 * @template Ctx
 	 * @method on2
-	 * @param listen {Listen2}              侦听函数
-	 * @param ctxOrId? {Ctx|string}         重新指定侦听函数this
-	 * @param id? {string}            侦听器别名,可通过id删除
-	 * @return {string} 返回传入的`id`或自动生成的`id`
+	 * @param  listen    {Listen2}     Listening Function
+	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
+	 * @param  id?       {string}      Listener alias, can be deleted by id
+	 * @return {string} Returns the passed `id` or the automatically generated `id`
 	 * 
 	 * 
 	 * Example:
@@ -388,14 +391,14 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * Bind an event listener (function), And to listen only once and immediately remove
+	 * Add an event listener (function), And to listen only once and immediately remove
 	 * and "on" the same processor of the method to add the event trigger to receive two parameters
 	 * @template Ctx
 	 * @method once2
-	 * @param listen {Listen2}      侦听函数
-	 * @param ctxOrId? {Ctx|string} 重新指定侦听函数this
-	 * @param id? {string}        侦听器id,可通过id删除
-	 * @return {string} 返回传入的`id`或自动生成的`id`
+	 * @param  listen    {Listen2}     Listening Function
+	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
+	 * @param  id?       {string}      Listener alias, can be deleted by id
+	 * @return {string} Returns the passed `id` or the automatically generated `id`
 	 */
 	once2<Ctx extends object>(listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		check_fun(listen);
@@ -425,16 +428,16 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * @method trigger(data)     通知所有观察者
-	 * @param data {object}  要发送的数据
+	 * @method trigger(data) Notify all observers
+	 * @param data {object}  Data to send
 	 */
 	trigger<T>(data: T) {
 		this.triggerWithEvent(new Event<any, T>(data) as E);
 	}
 
 	/**
-	 * @method triggerWithEvent(event) 通知所有观察者
-	 * @param event {object} 要发送的event
+	 * @method triggerWithEvent(event) Notify all observers
+	 * @param event {object} Event to sned
 	 */
 	triggerWithEvent(event: E) {
 		if ( this._length ) {
@@ -455,10 +458,12 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * @method off([listen[,ctx]])  卸载侦听器(函数)
-	 * @param listen? {object|function|object}    可以是侦听函数,id,如果不传入参数卸载所有侦听器
+	 * @method off([listen[,ctx]])  Remove listener function
+	 * @param listen? {object|function|object}
+	 * 	It can be a listener function/id alias/context.
+	 * 	If no parameter is passed, all listeners will be uninstalled.
 	 * @param ctx?  {object}   ctx
-	 * @return {int} 返回删除监听器数量
+	 * @return {int} Returns the number of deleted listeners
 	 */
 	off(listen?: string | Function | object, ctx?: object): number {
 		if ( !this._length )
@@ -554,9 +559,9 @@ const FIND_REG = new RegExp('^' + PREFIX);
  * @template E
  * @class Notification
  *
- * 这是事件`EventNoticer`的集合，事件触发与响应中心
+ * This is a collection of events `EventNoticer`, event triggering and response center
  *
- * 继承于它的派生类型可以使用`@event`关键字来声明成员事件
+ * Derived types inherited from it can use the `@event` keyword to declare member events
  *
  */
 export class Notification<E = Event> {
@@ -686,10 +691,10 @@ export class Notification<E = Event> {
 	/**
 	* @method trigger(name[,data])
 	* 
-	* 通过事件名称触发事件 --> [`EventNoticer.trigger(data)`]
+	* Trigger an event by event name --> [`EventNoticer.trigger(data)`]
 	* 
-	* @param name {string}       事件名称
-	* @param data {object}       要发送的消数据
+	* @param name {string}       Event name
+	* @param data {object}       Data to send
 	*/
 	trigger(name: string, data?: any) {
 		this.triggerWithEvent(name, new Event(data) as unknown as E);
@@ -698,10 +703,10 @@ export class Notification<E = Event> {
 	/**
 	* @method triggerWithEvent(name[,event])
 	* 
-	* 通过名称与[`Event`]触发事件 --> [`EventNoticer.triggerWithEvent(event)`]
+	* Trigger an event by name and [`Event`] --> [`EventNoticer.triggerWithEvent(event)`]
 	* 
-	* @param name {string}       事件名称
-	* @param event {Event}       Event 
+	* @param name {string}       Event name
+	* @param event {Event}       Event to send
 	*/
 	triggerWithEvent(name: string, event: E) {
 		let noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
@@ -722,21 +727,21 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @method removeEventListenerWithCtx(ctx) 卸载notification上所有与ctx相关的侦听器
+	 * @method removeEventListenerWithCtx(ctx)
 	 * 
-	 * 卸载`notification`上所有与`ctx`相关的侦听器
+	 * Delete all listeners related to `ctx` on `notification`
 	 *
-	 * 实际上遍历调用了[`EventNoticer.off(ctx)`]方法
+	 * Actually traverse and call the [`EventNoticer.off(ctx)`] method
 	 *
 	 * @param ctx {object}
 	 *
-	 * Example:
+	 * For example:
 	 *
 	 * ```ts
 	 * import event from 'quark/event';
 	 * 
 	 * class TestNotification extends Notification {
-	 * 	\@event readonly onChange; // 这里必须以on开始以;分号结束
+	 * 	\@event readonly onChange;
 	 * }
 	 *
 	 * var notification = new TestNotification();
@@ -750,7 +755,7 @@ export class Notification<E = Event> {
 	 * // responseonChange 0 200
 	 * // responseonChange 1
 	 * notification.onChange.on(function(ev) {
-	 * 	console.log('responseonChange 1')	
+	 * 	console.log('responseonChange 1')
 	 * })
 	 * notification.triggerWithEvent('change', new Event(200));
 	 *

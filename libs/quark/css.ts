@@ -35,7 +35,7 @@ const _css = __binding__('_css');
 exports.CStyleSheetsClass = _css.CStyleSheetsClass;
 
 /**
- * @type CSSNameExp
+ * @type CSSNameExp = ``.${string}``
 */
 export type CSSNameExp = `.${string}`;
 
@@ -46,134 +46,132 @@ export interface StyleSheet {
 	time?: number; /// keyframe time or css transition time
 	curve?: types.CurveIn; /// keyframe curve or css transition curve
 	// Meta attribute
-	opacity?: number;
-	cursor?: types.CursorStyleIn;
-	visible?: boolean;
-	receive?: boolean;
-	clip?: boolean;
-	align?: types.AlignIn;
-	width?: types.BoxSizeIn;
-	height?: types.BoxSizeIn;
-	minWidth?: types.BoxSizeIn;
-	minHeight?: types.BoxSizeIn;
-	maxWidth?: types.BoxSizeIn;
-	maxHeight?: types.BoxSizeIn;
-	margin?: number[] | number;
-	marginTop?: number;
-	marginRight?: number;
-	marginBottom?: number;
-	marginLeft?: number;
-	padding?: number[] | number;
-	paddingTop?: number;
-	paddingRight?: number;
-	paddingBottom?: number;
-	paddingLeft?: number;
-	borderRadius?: number[] | number;
-	borderRadiusLeftTop?: number;
-	borderRadiusRightTop?: number;
-	borderRadiusRightBottom?: number;
-	borderRadiusLeftBottom?: number;
-	border?: types.BoxBorderIn[] | types.BoxBorderIn; // border
-	borderTop?: types.BoxBorderIn;
-	borderRight?: types.BoxBorderIn;
-	borderBottom?: types.BoxBorderIn;
-	borderLeft?: types.BoxBorderIn;
-	borderWidth?: number[] | number;
-	borderColor?: types.ColorIn[] | types.ColorIn;
-	borderWidthTop?: number; // border width
-	borderWidthRight?: number;
-	borderWidthBottom?: number;
-	borderWidthLeft?: number;
-	borderColorTop?: types.ColorIn; // border color
-	borderColorRight?: types.ColorIn;
-	borderColorBottom?: types.ColorIn;
-	borderColorLeft?: types.ColorIn;
-	backgroundColor?: types.ColorIn;
-	background?: types.BoxFilterIn;
-	boxShadow?: types.BoxShadowIn;
-	weight?: number[] | number;
-	direction?: types.DirectionIn;
-	itemsAlign?: types.ItemsAlignIn;
-	crossAlign?: types.CrossAlignIn;
-	wrap?: types.WrapIn;
-	wrapAlign?: types.WrapAlignIn;
-	src?: string;
-	textAlign?: types.TextAlignIn;
-	textWeight?: types.TextWeightIn;
-	textSlant?: types.TextSlantIn;
-	textDecoration?: types.TextDecorationIn;
-	textOverflow?: types.TextOverflowIn;
-	textWhiteSpace?: types.TextWhiteSpaceIn;
-	textWordBreak?: types.TextWordBreakIn;
-	textSize?: types.TextSizeIn;
-	textBackgroundColor?: types.TextColorIn;
-	textColor?: types.TextColorIn;
-	textLineHeight?: types.TextSizeIn;
-	textShadow?: types.TextShadowIn;
-	textFamily?: types.TextFamilyIn;
-	security?: boolean;
-	readonly?: boolean;
-	type?: types.KeyboardTypeIn;
-	returnType?: types.KeyboardReturnTypeIn;
-	placeholderColor?: types.ColorIn;
-	cursorColor?: types.ColorIn;
-	maxLength?: number;
-	placeholder?: string;
-	scrollbarColor?: types.ColorIn;
-	scrollbarWidth?: number;
-	scrollbarMargin?: number;
-	translate?: types.Vec2In;
-	scale?: types.Vec2In;
-	skew?: types.Vec2In;
-	origin?: types.BoxOriginIn[] | types.BoxOriginIn
-	x?: number;
-	y?: number;
-	scaleX?: number;
-	scaleY?: number;
-	skewX?: number;
-	skewY?: number;
-	rotateZ?: number;
-	originX?: types.BoxOriginIn;
-	originY?: types.BoxOriginIn;
+	opacity?: number; ///
+	cursor?: types.CursorStyleIn; ///
+	visible?: boolean; ///
+	receive?: boolean; ///
+	clip?: boolean; ///
+	align?: types.AlignIn; ///
+	width?: types.BoxSizeIn; ///
+	height?: types.BoxSizeIn; ///
+	minWidth?: types.BoxSizeIn; ///
+	minHeight?: types.BoxSizeIn; ///
+	maxWidth?: types.BoxSizeIn; ///
+	maxHeight?: types.BoxSizeIn; ///
+	margin?: number[] | number; ///
+	marginTop?: number; ///
+	marginRight?: number; ///
+	marginBottom?: number; ///
+	marginLeft?: number; ///
+	padding?: number[] | number; ///
+	paddingTop?: number; ///
+	paddingRight?: number; ///
+	paddingBottom?: number; ///
+	paddingLeft?: number; ///
+	borderRadius?: number[] | number; ///
+	borderRadiusLeftTop?: number; ///
+	borderRadiusRightTop?: number; ///
+	borderRadiusRightBottom?: number; ///
+	borderRadiusLeftBottom?: number; ///
+	border?: types.BoxBorderIn[] | types.BoxBorderIn; /// border
+	borderTop?: types.BoxBorderIn; ///
+	borderRight?: types.BoxBorderIn; ///
+	borderBottom?: types.BoxBorderIn; ///
+	borderLeft?: types.BoxBorderIn; ///
+	borderWidth?: number[] | number; ///
+	borderColor?: types.ColorIn[] | types.ColorIn; ///
+	borderWidthTop?: number; /// border width
+	borderWidthRight?: number; ///
+	borderWidthBottom?: number; ///
+	borderWidthLeft?: number; ///
+	borderColorTop?: types.ColorIn; /// border color
+	borderColorRight?: types.ColorIn; ///
+	borderColorBottom?: types.ColorIn; ///
+	borderColorLeft?: types.ColorIn; ///
+	backgroundColor?: types.ColorIn; ///
+	background?: types.BoxFilterIn; ///
+	boxShadow?: types.BoxShadowIn; ///
+	weight?: number[] | number; ///
+	direction?: types.DirectionIn; ///
+	itemsAlign?: types.ItemsAlignIn; ///
+	crossAlign?: types.CrossAlignIn; ///
+	wrap?: types.WrapIn; ///
+	wrapAlign?: types.WrapAlignIn; ///
+	src?: string; ///
+	textAlign?: types.TextAlignIn; ///
+	textWeight?: types.TextWeightIn; ///
+	textSlant?: types.TextSlantIn; ///
+	textDecoration?: types.TextDecorationIn; ///
+	textOverflow?: types.TextOverflowIn; ///
+	textWhiteSpace?: types.TextWhiteSpaceIn; ///
+	textWordBreak?: types.TextWordBreakIn; ///
+	textSize?: types.TextSizeIn; ///
+	textBackgroundColor?: types.TextColorIn; ///
+	textColor?: types.TextColorIn; ///
+	textLineHeight?: types.TextSizeIn; ///
+	textShadow?: types.TextShadowIn; ///
+	textFamily?: types.TextFamilyIn; ///
+	security?: boolean; ///
+	readonly?: boolean; ///
+	type?: types.KeyboardTypeIn; ///
+	returnType?: types.KeyboardReturnTypeIn; ///
+	placeholderColor?: types.ColorIn; ///
+	cursorColor?: types.ColorIn; ///
+	maxLength?: number; ///
+	placeholder?: string; ///
+	scrollbarColor?: types.ColorIn; ///
+	scrollbarWidth?: number; ///
+	scrollbarMargin?: number; ///
+	translate?: types.Vec2In; ///
+	scale?: types.Vec2In; ///
+	skew?: types.Vec2In; ///
+	origin?: types.BoxOriginIn[] | types.BoxOriginIn ///
+	x?: number; ///
+	y?: number; ///
+	scaleX?: number; ///
+	scaleY?: number; ///
+	skewX?: number; ///
+	skewY?: number; ///
+	rotateZ?: number; ///
+	originX?: types.BoxOriginIn; ///
+	originY?: types.BoxOriginIn; ///
 }
-
 
 /**
  * @class CStyleSheetsClass
  * 
- * 在视图上应用样式表名称集合
+ * A collection of stylesheet names to apply to the view
 */
 export declare class CStyleSheetsClass {
 	/**
-	 * 设置样式集合
+	 * Set Style Collection
 	*/
 	set(name: string[] | string): void;
 	/**
-	 * 添加一个样式表类选择器名称
+	 * Add a stylesheet class selector name
 	*/
 	add(name: string): void;
 	/**
-	 * 删除一个样式表类选择器名称
+	 * Delete a stylesheet class selector name
 	*/
 	remove(name: string): void;
 	/**
-	 * 在添加与删除之间切换
+	 * Toggle between Add and Delete
 	*/
 	toggle(name: string): void;
 }
 
-
 /**
- * 
- * @method createCss
  *
- * * `css`样式表类似于html `css`样式表，支持使用多级样式表，但只支持`class`类
+ * @method createCss(sheets)
  *
- * * 支持`3`种伪类型`normal`、`hover`、`action`
+ * * `css` stylesheet is similar to html `css` stylesheet, supports multi-level stylesheet, but only supports `class` type
  *
- * 	对应[`View.onHighlighted`]事件中的 [`HighlightedStatus.Normal`] 、[`HighlightedStatus.Hover`]、[`HighlightedStatus.Active`]
+ * * Supports `3` pseudo-types `normal`, `hover`, `action`
  *
- * * 调用此方法创建样式表时，暂停所有窗口的渲染线程
+ * 	Corresponds to [`HighlightedStatus.Normal`], [`HighlightedStatus.Hover`], [`HighlightedStatus.Active`] in [`View.onHighlighted`] event
+ *
+ * * When calling this method to create a stylesheet, pause the rendering threads of all windows
  *
  * @param sheets {[`key`:`.${string}`]:[`StyleSheet`]}
  * 
@@ -190,20 +188,21 @@ export declare class CStyleSheetsClass {
  *			width: 50,
  *			height: 50,
  *		},
- *		'.test .a.b': { // 这种选择器会优先级会更高
+ *		'.test .a.b': { // This selector will have a higher priority
  *			height: 60,
  *		},
- *		// 应用这些伪类到目标，要使用它们对目标生效，需目标视图能够接收事件
+ *		// Apply these pseudo-classes to the target.
+ *		// To make them effective on the target, the target view must be able to receive events.
  *		'.test:normal .a': {
  *			backgroundColor: '#0000',
- *			time: 1000, // 使用过渡时间
+ *			time: 1000, // Use transition time
  *		},
  *		'.test:hover': {
  *			backgroundColor: '#f0f',
  *		},
  *		'.test:hover .a': {
  *			backgroundColor: '#f00',
- *			time: 1000,  // 使用过渡时间
+ *			time: 1000,  // Use transition time
  *		},
  *	})
  *	```

@@ -126,6 +126,9 @@ createCss({
 	},
 });
 
+/**
+ * @const Consts = {...}
+*/
 export const Consts = {
 	Ok: 'OK',
 	Cancel: 'Cancel',

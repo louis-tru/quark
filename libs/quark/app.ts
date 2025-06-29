@@ -97,6 +97,12 @@ export class Application extends (_ui.NativeApplication as typeof NativeApplicat
 
 util.extendClass(Application, NativeNotification);
 
+/**
+ * @default
+*/
 export default {
+	/**
+	 * @get current:Application
+	*/
 	get current() { return _current! },
 };

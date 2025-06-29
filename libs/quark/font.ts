@@ -34,22 +34,23 @@ Object.assign(exports, __binding__('_font'));
 /**
  * @class FontPool
  * 
- * 所有字体类型管理
+ * Manage all font types.
  * 
- * 一个FFID表示一组字体家庭，通常在一个文本需要多个字体来表示，首先、备选、异常
+ * An FFID represents a group of font families.
+ * Usually a text needs multiple fonts to represent it, first, alternative, and exception.
 */
 export declare class FontPool {
-	/** 当前读取的字体家族数量 */
+	/** The number of font families currently being read */
 	readonly countFamilies: number;
-	/** 默认字体家族名称列表 */
+	/** List of default font family names */
 	readonly defaultFamilyNames: string[]
-	/** 默认字体家族名FFID */
+	/** Default font family name FFID */
 	readonly defaultFontFamilies: types.FFID;
 
 	/**
 	 * @method getFontFamilies
 	 * 
-	 * 通过名称获取字体FFID，多个名称使用`,`分割
+	 * Get the font FFID by name. Use `,` to separate multiple names.
 	 * 
 	 * @param families? {string}
 	 * @return {FFID}
@@ -64,28 +65,30 @@ export declare class FontPool {
 
 	/**
 	 * @method addFontFamily
-	 * 添加一个外部字体数据
 	 * 
-	 * @param data {Uint8Array} 字体Buffer数据
-	 * @param alias? {string} 添加一个别名
+	 * Add an external font
+	 * 
+	 * @param data {Uint8Array} Font Buffer Data
+	 * @param alias? {string} Add an alias
 	*/
 	addFontFamily(data: Uint8Array, alias?: string): void;
 
 	/**
 	 * @method getFamilyName
 	 * 
-	 * 通过索引读取字体家族名称
+	 * Read font family name by index
 	 * 
 	 * @param index {uint}
 	 * @return {string}
 	*/
 	getFamilyName(index: number): string;
 }
+/// @end
 
 /**
  * @method getFontFamilies
  * 
- * 通过名称字体家族名称获取字体家族对像FFID
+ * Get the font family object FFID by font family name
  * 
  * @param families? {string}
 */
@@ -94,6 +97,6 @@ export declare function getFontFamilies(families?: string): types.FFID;
 /**
  * @method getFamiliesName
  * 
- * 通过字体家族对像FFID获取名称
+ * Get the name by font family FFID
 */
 export declare function getFamiliesName(ffid: types.FFID): string;
