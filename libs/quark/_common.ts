@@ -208,9 +208,9 @@ export function removeProp(name: string, self: any): void {
 }
 
 /**
- * @method random([start[,end]]) 创建随机数字
- * @param start? {uint} 开始位置
- * @param end? {uint}   结束位置
+ * @method random([start[,end]]) Creating random numbers
+ * @param start? {uint} Numbers of begin
+ * @param end? {uint}   Numbers of end
  * @return {uint}
  */
 export function random(start: number = 0, end: number = 1E8): number {

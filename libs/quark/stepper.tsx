@@ -63,6 +63,10 @@ createCss({
 	},
 });
 
+/**
+ * @class Stepper
+ * @entends ViewController
+*/
 export class Stepper extends ViewController<{
 	class?: string,
 	style?: StyleSheet,
@@ -74,6 +78,9 @@ export class Stepper extends ViewController<{
 }> {
 	private _value = this.props.initValue || 0;
 
+	/**
+	 * @getset value:number
+	*/
 	get value() {
 		return this._value;
 	}

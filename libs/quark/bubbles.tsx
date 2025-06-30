@@ -51,6 +51,8 @@ export enum Priority {
 /**
  * @class Bubbles
  * @extends Navigation
+ * 
+ * The tips bubble UI component
  */
 export class Bubbles<P={},S={}> extends Navigation<{
 	frail?: boolean;
@@ -358,11 +360,14 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method showBubblesFrom(from[,offset_x[,offset_y]]) Displaying Bubbles by Target View
+	 * @method showFrom(from[,offset_x[,offset_y]])
+	 * 
+	 * Showing Bubbles by Target View
+	 * 
 	 * @param from {View} Parameters provide the location information to be displayed
 	 * @param offset? {types.Vec2} Displays the offset of the target position
 	 */
-	showBubblesFrom(from: View, offset?: types.Vec2) {
+	showFrom(from: View, offset?: types.Vec2) {
 		offset = offset || types.newVec2(0,0);
 		let pos = from.position;
 		let size = from.viewType > ViewType.Label ? (from as Box).clientSize: types.newVec2(0,0);
@@ -370,14 +375,14 @@ export class Bubbles<P={},S={}> extends Navigation<{
 			pos.x  + offset.x,     pos.y  + offset.y,
 			size.x - offset.x * 2, size.y - offset.y * 2,
 		);
-		this.showBubbles(rect);
+		this.show(rect);
 	}
 
 	/**
-	 * @method showBubbles(rect) Show by rect
+	 * @method show(rect) Show by rect
 	 * @param rect {types.Rect}
 	 */
-	showBubbles(rect: types.Rect) {
+	show(rect: types.Rect) {
 		let self = this;
 		let size = this.window.size;
 		let _x = Math.max(0, Math.min(size.x, rect.x));
@@ -403,7 +408,9 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method reset() reset position
+	 * @method reset()
+	 * 
+	 * Reset and Reshow
 	 */
 	reset() {
 		if (this._isActivate) {
@@ -427,17 +434,25 @@ export class Bubbles<P={},S={}> extends Navigation<{
 
 	/**
 	 * @method render()
-	*/
+	 * 
+	 * Creating Bubbles through Vdom
+	 * 
+	 * @return {Bubbles}
+	 */
 	static render(win: Window, vdom: VDom<Bubbles>) {
 		return vdom.newDom(win.rootCtr);
 	}
 
 	/**
-	 * @method renderFrom()
-	*/
-	static renderFrom(from: View, vdom: VDom<Bubbles>) {
+	 * @method renderShow()
+	 * 
+	 * Create and show bubbles through Vdom
+	 * 
+	 * @return {Bubbles}
+	 */
+	static renderShow(from: View, vdom: VDom<Bubbles>) {
 		let dom = vdom.newDom(from.window.rootCtr);
-		dom.showBubblesFrom(from);
+		dom.showFrom(from);
 		return dom;
 	}
 }

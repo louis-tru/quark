@@ -36,7 +36,7 @@ import { ClickEvent } from 'quark/event';
 const resolve = require.resolve;
 
 function show_bubbles(evt: ClickEvent) {
-	Bubbles.renderFrom(
+	Bubbles.renderShow(
 		evt.sender,
 		<Bubbles>
 			<box>
@@ -50,7 +50,7 @@ function show_bubbles(evt: ClickEvent) {
 }
 
 function show_bubbles2(evt: ClickEvent) {
-	Bubbles.renderFrom(
+	Bubbles.renderShow(
 		evt.sender,
 		<Bubbles priority={Priority.Left}>
 			<box>
@@ -63,7 +63,7 @@ function show_bubbles2(evt: ClickEvent) {
 }
 
 function show_bubbles3(evt: ClickEvent) {
-	Bubbles.renderFrom(
+	Bubbles.renderShow(
 		evt.sender,
 		<Bubbles priority={Priority.Left} backgroundColor="#000">
 			<box>

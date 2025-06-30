@@ -137,6 +137,7 @@ export const Consts = {
 
 /**
  * @class Dialog
+ * @extends Navigation
  */
 export class Dialog<P={},S={}> extends Navigation<{
 	onAction?:(e:number, sender: Dialog<P,S>)=>void;
@@ -152,14 +153,20 @@ export class Dialog<P={},S={}> extends Navigation<{
 			this.close();
 	}
 
+	/**
+	 * @get length:uint buttons length
+	*/
 	get length() {
 		return this._buttons.length;
 	}
 
-	@link title = '';
-	@link content = '';
-	@link autoClose = true;
+	@link title: string = ''; ///
+	@link content: string = ''; ///
+	@link autoClose: boolean = true; ///
 
+	/**
+	 * @getset buttons:RenderData[]
+	*/
 	@link
 	get buttons() {
 		return this._buttons;
@@ -208,6 +215,9 @@ export class Dialog<P={},S={}> extends Navigation<{
 		);
 	}
 
+	/**
+	 * @method show()
+	*/
 	show() {
 		if (!this.asDom().visible) {
 			super.appendTo(this.window.root);
@@ -218,6 +228,9 @@ export class Dialog<P={},S={}> extends Navigation<{
 		}
 	}
 
+	/**
+	 * @method close()
+	*/
 	close() {
 		if ( this.asDom().visible ) {
 			this.asRef<Matrix>('main').transition({ scale: 0.2, time: 300 });
@@ -254,6 +267,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 
 /**
  * @class Sheet
+ * @extends Dialog
  */
 export class Sheet<P={},S={}> extends Dialog<P,S> {
 	protected triggerUpdate() {
@@ -334,6 +348,12 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 	}
 }
 
+/**
+ * @method alert(window,msg[,cb])
+ * @param window {Window}
+ * @param msg {string|object}
+ * @param cb? {Function}
+*/
 export function alert(window: Window, msg: string | {msg?:string, title?: string}, cb = util.noop) {
 	let message: any;
 	if (typeof msg == 'string')
@@ -346,6 +366,12 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 	return dag;
 }
 
+/**
+ * @method confirm(window,msg[,cb])
+ * @param window {Window}
+ * @param msg {string}
+ * @param cb? {Function}
+*/
 export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = util.noop) {
 	let dag = (
 		<Dialog buttons={[Consts.Cancel, Consts.Ok]} onAction={e=>cb(!!e)}>{msg}</Dialog>
@@ -354,6 +380,12 @@ export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = u
 	return dag;
 }
 
+/**
+ * @method prompt(window,msg[,cb])
+ * @param window {Window}
+ * @param msg {string|object}
+ * @param cb? {Function}
+*/
 export function prompt(window: Window, msg: string | {
 		msg?: string, text?: string, placeholder?: string, security?: boolean 
 	},
@@ -386,6 +418,14 @@ export function prompt(window: Window, msg: string | {
 	return dag;
 }
 
+/**
+ * @method show(window,title,msg[,buttons[,cb]])
+ * @param window {Window}
+ * @param title {string}
+ * @param msg {string}
+ * @param buttons? {RenderData[]}
+ * @param cb? {Function}
+*/
 export function show(window: Window, title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 	let dag = (
 		<Dialog title={title} buttons={buttons} onAction={cb}>{msg}</Dialog>
@@ -394,12 +434,23 @@ export function show(window: Window, title: string, msg: string, buttons: Render
 	return dag;
 }
 
+/**
+ * @method sheet(window,content)
+ * @param window {Window}
+ * @param content {string}
+*/
 export function sheet(window: Window, content: string) {
 	let dag = (<Sheet content={content} />).newDom(window.rootCtr) as Sheet;
 	dag.show();
 	return dag;
 }
 
+/**
+ * @method sheetConfirm(window[,buttons[,cb]])
+ * @param window {Window}
+ * @param buttons? {RenderData[]}
+ * @param cb? {Function}
+*/
 export function sheetConfirm(window: Window, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 	let dag = (
 		<Sheet buttons={buttons} onAction={cb} />
@@ -408,21 +459,45 @@ export function sheetConfirm(window: Window, buttons: RenderData[] = [Consts.Ok]
 	return dag;
 }
 
+/**
+ * @class DialogController
+ * @extends ViewController
+*/
 export class DialogController<P={},S={}> extends ViewController<P,S> {
+
+	/**
+	 * @method alertDialog(msg[,cb])
+	 */
 	alertDialog(msg: string | {msg?:string, title?: string}, cb = util.noop) {
 		return alert(this.window, msg, cb);
 	}
+
+	/**
+	 * @method promptDialog(msg[,cb])
+	 */
 	promptDialog(msg: string | { msg?: string, text?: string, placeholder?: string, security?: boolean },
 		cb: (ok: boolean, str: string)=>void = util.noop
 	) {
 		return prompt(this.window, msg, cb);
 	}
+
+	/**
+	 * @method confirmDialog(msg[,cb])
+	 */
 	confirmDialog(msg: string, cb: (ok: boolean)=>void = util.noop) {
 		return confirm(this.window, msg, cb);
 	}
+
+	/**
+	 * @method showDialog(title,msg[,buttons[,cb]])
+	 */
 	showDialog(title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 		return show(this.window, title, msg, buttons, cb);
 	}
+
+	/**
+	* @method sheetDialog(content)
+	*/
 	sheetDialog(content: string) {
 		return sheet(this.window, content);
 	}

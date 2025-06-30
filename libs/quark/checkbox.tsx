@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {_CVD,createCss,ViewController, StyleSheet,link} from './index';
+import {_CVD,createCss,ViewController,StyleSheet,link} from './index';
 
 createCss({
 	'.qk_checkbox': {
@@ -135,6 +135,9 @@ export class Basic<P={},S={}> extends ViewController<{
 }&P,S> {
 	private _selected = !!this.props.initSelected;
 
+	/**
+	 * @getset disable:bool Is it disable?
+	*/
 	@link disable = false;
 
 	protected triggerMounted() {
@@ -148,6 +151,9 @@ export class Basic<P={},S={}> extends ViewController<{
 		this.props.onChange?.call(null, value, this);
 	}
 
+	/**
+	 * @getset selected:bool Is it selected?
+	*/
 	get selected() {
 		return this._selected;
 	}
@@ -161,6 +167,12 @@ export class Basic<P={},S={}> extends ViewController<{
 	}
 }
 
+/**
+ * @class Checkbox
+ * @extends Basic
+ * 
+ * the checkbox and the radio button UI component
+*/
 export class Checkbox<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
@@ -171,6 +183,12 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 	}
 }
 
+/**
+ * @class Switch
+ * @extends Basic
+ * 
+ * The switch UI component
+*/
 export class Switch<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (

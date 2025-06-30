@@ -40,24 +40,46 @@ const px = 1 / mainScreenScale();
 const Transition_Time = 400;
 const Navigation_Stack: WeakMap<Window, List<Navigation>> = new WeakMap();
 
+/**
+ * @enum NavStatus
+*/
 export enum NavStatus {
-	Init = -1,
-	Foreground,
-	Background,
+	Init = -1, ///
+	Foreground,///
+	Background,///
 }
 
 /**
  * @class NavigationStatus
+ * @extends ViewController
+ * 
+ * Navigation component base type
  */
 class NavigationStatus<P={},S={}> extends ViewController<P,S> {
-	// 0=init or exit,1=background,2=foreground
+
+	/**
+	 * @get navStatus:NavStatus
+	 * 0=init or exit,1=background,2=foreground
+	 */
 	readonly navStatus: NavStatus = NavStatus.Init;
+
+	/**
+	 * @method intoLeave(animate) When the component leaves
+	*/
 	intoLeave(animate: number) {
 		(this as any).navStatus = NavStatus.Init;
 	}
+
+	/**
+	 * @method intoLeave(animate) When the component enters the background
+	*/
 	intoBackground(animate: number) {
 		(this as any).navStatus = NavStatus.Background;
 	}
+
+	/**
+	 * @method intoLeave(animate) When the component enters the foreground
+	*/
 	intoForeground(animate: number) {
 		(this as any).navStatus = NavStatus.Foreground;
 	}
@@ -65,6 +87,7 @@ class NavigationStatus<P={},S={}> extends ViewController<P,S> {
 
 /**
  * @class Navigation
+ * @extends NavigationStatus
  */
 export class Navigation<P={},S={}> extends NavigationStatus<{
 	onBackground?:(selnder: Navigation)=>void,
@@ -73,7 +96,12 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	private _iterator: ListIterator<Navigation> | null = null;
 	private _focusResume: View | null = null;
 
-	protected navStack = (function(window: Window) {
+	/**
+	 * @get navStack:List<Navigation>
+	 * 
+	 * The navigation stack to which the navigation component belongs
+	*/
+	protected readonly navStack = (function(window: Window) {
 		let stack = Navigation_Stack.get(window);
 		if (stack)
 			return stack;
@@ -134,8 +162,11 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	})(this.window);
 
 	/**
-	 * When initializing navigation, return a focus view
 	 * @method initFocus()
+	 * 
+	 * When initializing navigation, return a focus view
+	 * 
+	 * @return {View|null}
 	 */
 	initFocus(): View | null {
 		return null;
@@ -167,7 +198,11 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 * @method registerNavigation()
+	 * @method registerNavigation([animate])
+	 * 
+	 * Called when a navigation component is created
+	 * 
+	 * @param animate? {uint}
 	 */
 	registerNavigation(animate: number = 0) {
 		if ( !this._iterator ) { // No need to repeat it
@@ -188,7 +223,11 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 * @method unregisterNavigation(time)
+	 * @method unregisterNavigation(animate)
+	 * 
+	 * Called when a navigation component is unmounted
+	 * 
+	 * @param animate? {uint}
 	 */
 	unregisterNavigation(animate: number = 0) {
 		if ( this._iterator ) {
@@ -210,43 +249,88 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 When a navigation event occurs, the system will first send the event to the focus view,
-	If the event can be successfully transmitted to root,
-	The event will ultimately be sent to the top of the current navigation list stack
+	 * @method navigationBack()
+	 * 
+	 * * When a navigation event occurs, the system will first send the event to the focus view,
+	 * 	If the event can be successfully transmitted to root,
+	 * 	The event will ultimately be sent to the top of the current navigation list stack
+	 * 
+	 * * If false is returned here,
+	 * 	it will continue to pass to the bottom of the navigation list stack,
+	 * 	Until it returns true or reaches the bottom of the stack to exit the application
+	 * 
+	 * @return {bool}
 	*/
 	navigationBack() {
-		/*
-		If false is returned here,
-		it will continue to pass to the bottom of the navigation list stack,
-		Until it returns true or reaches the bottom of the stack to exit the application
-		*/
 		return true;
 	}
 
+	/**
+	 * @method navigationEnter(focus)
+	 * 
+	 * Called when the remote control presses OK
+	*/
 	navigationEnter(focus: View) {
 		// Rewrite this function to implement your logic
 	}
 
 	/**
-	 * When returning null, the focus will not change in any way
+	 * @method navigationTop([focus])
+	 * 
+	 * * Called when the remote control presses Up
+	 * 
+	 * * The focus will not change in any way is returning null
+	 * 
+	 * @return {View}
 	 */
 	navigationTop(focus: View | null): View | null {
 		return focus;
 	}
 
+	/**
+	 * @method navigationDown([focus])
+	 * 
+	 * * Called when the remote control presses Down
+	 * 
+	 * * The focus will not change in any way is returning null
+	 * 
+	 * @return {View}
+	 */
 	navigationDown(focus: View | null): View | null {
 		return focus;
 	}
 
+	/**
+	 * @method navigationLeft([focus])
+	 * 
+	 * * Called when the remote control presses Left
+	 * 
+	 * * The focus will not change in any way is returning null
+	 * 
+	 * @return {View}
+	 */
 	navigationLeft(focus: View | null): View | null {
 		return focus;
 	}
 
+	/**
+	 * @method navigationRight([focus])
+	 * 
+	 * * Called when the remote control presses Right
+	 * 
+	 * * The focus will not change in any way is returning null
+	 * 
+	 * @return {View}
+	 */
 	navigationRight(focus: View | null): View | null {
 		return focus;
 	}
 
-	/* When pressing the menu button, it will be called up */
+	/**
+	 * @method navigationMenu()
+	 * 
+	 * When pressing the menu button, it will be called up
+	 */
 	navigationMenu() {
 		// Rewrite this function to implement your logic
 	}
@@ -254,6 +338,7 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 
 /**
  * @class NavPageCollection
+ * @extends Navigation
  */
 export class NavPageCollection<P={},S={}> extends Navigation<{
 	enableAnimate?: boolean,
@@ -268,7 +353,7 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	private _busy = false;
 
 	/**
-	 * @prop enableAnimate
+	 * @getset enableAnimate
 	 */
 	@link     enableAnimate: boolean = true;
 	@link.acc padding = index.app.screen.statusBarHeight; // ios/android, 20;
@@ -283,7 +368,7 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method isCurrent
+	 * @method isCurrent(page)
 	*/
 	isCurrent(page: NavPage) {
 		return this._substack.back === page;
@@ -330,6 +415,11 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 		return super.triggerDestroy();
 	}
 
+	/**
+	 * @method push(arg[animate])
+	 * 
+	 * Add a navigation page to the end and display
+	*/
 	push(arg: VDom<NavPage>, animate?: boolean) {
 		if ( this._busy )
 			return;
@@ -361,6 +451,11 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 		this.triggerPush(page);
 	}
 
+	/**
+	 * @method pop([animate[,count]])
+	 * 
+	 * Remove pages from the end of the navigation
+	*/
 	pop(animate: boolean = false, count = 1) {
 		if ( this._busy )
 			return;
@@ -373,7 +468,8 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 		let time = this.enableAnimate && animate ? Transition_Time : 0;
 		let arr  = this.pages.splice(this.length - count);
 		let next = arr.pop();
-		if (!next) return;
+		if (!next)
+			return;
 
 		arr.forEach(page=>page.intoLeave(0)); // private props visit
 
@@ -447,6 +543,7 @@ createCss({
 
 /**
  * @class Navbar
+ * @extends NavigationStatus
  */
 export class Navbar<P={},S={}> extends NavigationStatus<{
 	hidden?: boolean;
@@ -459,12 +556,15 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	private _backText: string = '';
 	private _titleText: string = '';
 
-	@link hidden = false;
-	@link visibleBackIcon = true;
-	@link visibleBackText = true;
-	@link backTextColor: types.ColorStrIn = '#000';
-	@link titleTextColor: types.ColorStrIn = '#147EFF';
+	@link hidden: boolean = false; ///
+	@link visibleBackIcon: boolean = true; ///
+	@link visibleBackText: boolean = true; ///
+	@link backTextColor: types.ColorStrIn = '#000'; ///
+	@link titleTextColor: types.ColorStrIn = '#147EFF'; ///
 
+	/**
+	 * @get page:NavPage
+	*/
 	get page() { return this.owner as NavPage }
 
 	/**
@@ -602,6 +702,7 @@ function backgroundColorReverse(self: NavPage) {
 
 /**
  * @class NavPage
+ * @extends Navigation
  */
 export class NavPage<P={},S={}> extends Navigation<{
 	title?: string;
@@ -616,13 +717,21 @@ export class NavPage<P={},S={}> extends Navigation<{
 	private _navbarDom: Navbar;
 	private _includeNavbarPadding = true;
 
+	/** @get prevPage:NavPage|null */
 	get prevPage() { return this._prevPage }
+	/** @get nextPage:NavPage|null */
 	get nextPage() { return this._nextPage }
+	/** @get collection:NavPageCollection */
 	get collection() { return this.owner as NavPageCollection }
+	/** @get isCurrent:bool */
 	get isCurrent() { return this.collection.isCurrent(this) }
+	/** @get isFirstPage:bool */
 	get isFirstPage() { return this.navStack.length == 0 || this.navStack.front === this }
 
-	@link backgroundColor: types.ColorStrIn = '#fff';
+	@link backgroundColor: types.ColorStrIn = '#fff'; ///
+	/**
+	 * @getset title:string
+	*/
 	@link
 	get title() { return this._title }
 	set title(value: string) {
@@ -637,6 +746,9 @@ export class NavPage<P={},S={}> extends Navigation<{
 		}
 	}
 
+	/**
+	 * @getset navbar:VDom<Navbar>
+	*/
 	@link
 	get navbar() { return this._navbar }
 	set navbar(value) {
@@ -646,6 +758,10 @@ export class NavPage<P={},S={}> extends Navigation<{
 		}
 		this._navbar = value;
 	}
+
+	/**
+	 * @getset navbarHidden:bool
+	*/
 	get navbarHidden() { return this.isMounted ? this._navbarDom.hidden: false }
 	set navbarHidden(hidden) {
 		if (this.isMounted) {
@@ -655,6 +771,9 @@ export class NavPage<P={},S={}> extends Navigation<{
 		}
 	}
 
+	/**
+	 * @getset includeNavbarPadding:bool
+	*/
 	@link
 	get includeNavbarPadding() {
 		return this._includeNavbarPadding;
@@ -667,6 +786,9 @@ export class NavPage<P={},S={}> extends Navigation<{
 		}
 	}
 
+	/**
+	 * @get navbarHeight:number
+	*/
 	get navbarHeight() {
 		return this.collection.padding + this.collection.navbarHeight;
 	}

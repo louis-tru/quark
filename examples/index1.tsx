@@ -114,7 +114,7 @@ const win = new Window({
 // win.render(<Switch style={{margin:10}} initSelected={true} />);
 
 function show_bubbles(evt: ClickEvent) {
-	Bubbles.renderFrom(
+	Bubbles.renderShow(
 		evt.sender,
 		<Bubbles>
 			{/* <box> */}
