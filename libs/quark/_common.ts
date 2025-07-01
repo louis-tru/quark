@@ -35,7 +35,7 @@ let id = 10;
 let AsyncFunctionConstructor = (async function() {}).constructor;
 let scopeLockQueue = new Map();
 
-export const currentTimezone = new Date().getTimezoneOffset() / -60; /// Current time zone
+export const currentTimezone = new Date().getTimezoneOffset() / -60; //!< Current time zone
 
 export function isAsync(func: any): boolean {
 	return func && func.constructor === AsyncFunctionConstructor;

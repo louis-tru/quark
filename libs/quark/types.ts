@@ -107,30 +107,30 @@ function toCapitalize<T extends string>(str: T): Capitalize<T> {
  * @enum Repeat
 */
 export enum Repeat {
-	Repeat, ///
-	RepeatX, ///
-	RepeatY, ///
-	RepeatNo, ///
+	Repeat, //!<
+	RepeatX, //!<
+	RepeatY, //!<
+	RepeatNo, //!<
 };
 
 /**
  * @enum FillPositionKind
 */
 export enum FillPositionKind {
-	Value,     /// Explicit Value
-	Ratio,     /// Percentage value
-	Start,     /// Starting position
-	End,       /// Ending position
-	Center,    /// Centered position
+	Value,     //!< Explicit Value
+	Ratio,     //!< Percentage value
+	Start,     //!< Starting position
+	End,       //!< Ending position
+	Center,    //!< Centered position
 };
 
 /**
  * @enum FillPositionKind
 */
 export enum FillSizeKind {
-	Auto,      /// Auto value
-	Value,     /// Explicit Value
-	Ratio,     /// Percentage value
+	Auto,      //!< Auto value
+	Value,     //!< Explicit Value
+	Ratio,     //!< Percentage value
 };
 
 /**
@@ -145,10 +145,10 @@ export const BoxOriginKind = FillSizeKind;
  * Flex Layout direction
 */
 export enum Direction {
-	Row, ///
-	RowReverse, ///
-	Column, ///
-	ColumnReverse, ///
+	Row, //!<
+	RowReverse, //!<
+	Column, //!<
+	ColumnReverse, //!<
 };
 
 /**
@@ -157,13 +157,13 @@ export enum Direction {
  * 项目在主轴上的对齐方式
  */
 export enum ItemsAlign {
-	Start, /// 左对齐
-	Center, /// 居中
-	End, /// 右对齐
-	SpaceBetween, /// 两端对齐，项目之间的间隔都相等
-	SpaceAround, /// 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
-	SpaceEvenly, /// 每个项目两侧的间隔相等,这包括边框的间距
-	CenterCenter, /// 把除两端以外的所有项目尽可能的居中对齐
+	Start, //!< 左对齐
+	Center, //!< 居中
+	End, //!< 右对齐
+	SpaceBetween, //!< 两端对齐，项目之间的间隔都相等
+	SpaceAround, //!< 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
+	SpaceEvenly, //!< 每个项目两侧的间隔相等,这包括边框的间距
+	CenterCenter, //!< 把除两端以外的所有项目尽可能的居中对齐
 };
 
 /**
@@ -184,9 +184,9 @@ export enum CrossAlign {
  * 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
  */
 export enum Wrap {
-	NoWrap, /// 只有一根交叉轴线
-	Wrap, /// 溢出后会有多根交叉轴线
-	WrapReverse, /// 多根交叉轴线反向排列
+	NoWrap, //!< 只有一根交叉轴线
+	Wrap, //!< 溢出后会有多根交叉轴线
+	WrapReverse, //!< 多根交叉轴线反向排列
 };
 
 /**
@@ -195,43 +195,43 @@ export enum Wrap {
  * 多根交叉轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
  */
 export enum WrapAlign {
-	Start, /// 与交叉轴的起点对齐
-	Center, /// 与交叉轴的中点对齐
-	End, /// 与交叉轴的终点对齐
-	SpaceBetween, /// 与交叉轴两端对齐,轴线之间的间隔平均分布
-	SpaceAround, /// 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
-	SpaceEvenly, /// 每根轴线两侧的间隔都相等,这包括边框的间距
-	Stretch = 7, /// 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
+	Start, //!< 与交叉轴的起点对齐
+	Center, //!< 与交叉轴的中点对齐
+	End, //!< 与交叉轴的终点对齐
+	SpaceBetween, //!< 与交叉轴两端对齐,轴线之间的间隔平均分布
+	SpaceAround, //!< 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
+	SpaceEvenly, //!< 每根轴线两侧的间隔都相等,这包括边框的间距
+	Stretch = 7, //!< 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
 };
 
 /** 
  * view align
  */
 export enum Align {
-	Normal, ///
-	Start, ///
-	Center, ///
-	End, ///
-	Both, ///
-	NewStart = Both, /// New independent line and left align
-	NewCenter, /// New independent line and center align
-	NewEnd, /// New independent line and right align
-	FloatStart, /// Try not to wrap until the maximum limit and left align
-	FloatCenter, /// Try not to wrap until the maximum limit and center align
-	FloatEnd, /// Try not to wrap until the maximum limit and right align
-	Baseline = Normal, /// box vertical align in text
-	Top, /// box vertical align in text
-	Middle, /// box vertical align in text
-	Bottom, /// box vertical align in text
-	LeftTop = Start, ///
-	CenterTop, ///
-	RightTop, ///
-	LeftMiddle, ///
-	CenterMiddle, ///
-	RightMiddle, ///
-	LeftBottom, ///
-	CenterBottom, ///
-	RightBottom, ///
+	Normal, //!<
+	Start, //!<
+	Center, //!<
+	End, //!<
+	Both, //!<
+	NewStart = Both, //!< New independent line and left align
+	NewCenter, //!< New independent line and center align
+	NewEnd, //!< New independent line and right align
+	FloatStart, //!< Try not to wrap until the maximum limit and left align
+	FloatCenter, //!< Try not to wrap until the maximum limit and center align
+	FloatEnd, //!< Try not to wrap until the maximum limit and right align
+	Baseline = Normal, //!< box vertical align in text
+	Top, //!< box vertical align in text
+	Middle, //!< box vertical align in text
+	Bottom, //!< box vertical align in text
+	LeftTop = Start, //!<
+	CenterTop, //!<
+	RightTop, //!<
+	LeftMiddle, //!<
+	CenterMiddle, //!<
+	RightMiddle, //!<
+	LeftBottom, //!<
+	CenterBottom, //!<
+	RightBottom, //!<
 };
 
 /**
@@ -240,12 +240,12 @@ export enum Align {
  * The width/height value kind for the Box
 */
 export enum BoxSizeKind {
-	None,    /// Do not use value
-	Auto,    /// 包裹内容 wrap content
-	Match,   /// 匹配父视图 match parent
-	Value,   /// 明确值  rem
-	Ratio,   /// 百分比 value %
-	Minus,   /// 减法(parent-value) value !
+	None,    //!< Do not use value
+	Auto,    //!< 包裹内容 wrap content
+	Match,   //!< 匹配父视图 match parent
+	Value,   //!< 明确值  rem
+	Ratio,   //!< 百分比 value %
+	Minus,   //!< 减法(parent-value) value !
 };
 
 /**
@@ -254,115 +254,115 @@ export enum BoxSizeKind {
  * Basic type for the Text attributes
 */
 export enum TextValueKind {
-	Inherit, ///
-	Default, ///
-	Value, ///
+	Inherit, //!<
+	Default, //!<
+	Value, //!<
 };
 
 /**
  * @enum TextAlign
 */
 export enum TextAlign {
-	Inherit,        /// inherit
-	Left,           /// 左对齐
-	Center,         /// 居中
-	Right,          /// 右对齐
-	Default = Left, ///
+	Inherit,        //!< inherit
+	Left,           //!< 左对齐
+	Center,         //!< 居中
+	Right,          //!< 右对齐
+	Default = Left, //!<
 };
 
 /**
  * @enum TextDecoration
 */
 export enum TextDecoration {
-	Inherit,        /// inherit
-	None,           /// 没有
-	Overline,       /// 上划线
-	LineThrough,    /// 中划线
-	Underline,      /// 下划线
-	Default = None, ///
+	Inherit,        //!< inherit
+	None,           //!< 没有
+	Overline,       //!< 上划线
+	LineThrough,    //!< 中划线
+	Underline,      //!< 下划线
+	Default = None, //!<
 };
 
 /**
  * @enum TextOverflow
 */
 export enum TextOverflow {
-	Inherit,         /// inherit
-	Normal,          /// 不做任何处理
-	Clip,            /// 剪切
-	Ellipsis,        /// 剪切并显示省略号
-	EllipsisCenter,  /// 剪切并居中显示省略号
-	Default = Normal,///
+	Inherit,         //!< inherit
+	Normal,          //!< 不做任何处理
+	Clip,            //!< 剪切
+	Ellipsis,        //!< 剪切并显示省略号
+	EllipsisCenter,  //!< 剪切并居中显示省略号
+	Default = Normal,//!<
 };
 
 /**
  * @enum TextWhiteSpace
 */
 export enum TextWhiteSpace {
-	Inherit,      /// inherit
-	Normal,       /// 合并空白序列,使用自动wrap
-	NoWrap,       /// 合并空白序列,不使用自动wrap
-	Pre,          /// 保留所有空白,不使用自动wrap
-	PreWrap,      /// 保留所有空白,使用自动wrap
-	PreLine,      /// 合并空白符序列,但保留换行符,使用自动wrap
-	Default = Normal, ///
+	Inherit,      //!< inherit
+	Normal,       //!< 合并空白序列,使用自动wrap
+	NoWrap,       //!< 合并空白序列,不使用自动wrap
+	Pre,          //!< 保留所有空白,不使用自动wrap
+	PreWrap,      //!< 保留所有空白,使用自动wrap
+	PreLine,      //!< 合并空白符序列,但保留换行符,使用自动wrap
+	Default = Normal, //!<
 };
 
 /**
  * @enum TextWordBreak
 */
 export enum TextWordBreak {
-	Inherit,  /// inherit
-	Normal,   /// 保持单词在同一行
-	BreakWord,/// 保持单词在同一行,除非单词长度超过一行才截断
-	BreakAll, /// 以字为单位行空间不足换行
-	KeepAll,  /// 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
-	Default = Normal, ///
+	Inherit,  //!< inherit
+	Normal,   //!< 保持单词在同一行
+	BreakWord,//!< 保持单词在同一行,除非单词长度超过一行才截断
+	BreakAll, //!< 以字为单位行空间不足换行
+	KeepAll,  //!< 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
+	Default = Normal, //!<
 };
 
 /**
  * @enum TextWeight
 */
 export enum TextWeight {
-	Inherit      = 0,   ///
-	Thin         = 100, ///
-	Ultralight   = 200, ///
-	Light        = 300, ///
-	Regular      = 400, ///
-	Medium       = 500, ///
-	Semibold     = 600, ///
-	Bold         = 700, ///
-	Heavy        = 800, ///
-	Black        = 900, ///
-	ExtraBlack   = 1000, ///
-	Default      = Regular, /// default
+	Inherit      = 0,   //!<
+	Thin         = 100, //!<
+	Ultralight   = 200, //!<
+	Light        = 300, //!<
+	Regular      = 400, //!<
+	Medium       = 500, //!<
+	Semibold     = 600, //!<
+	Bold         = 700, //!<
+	Heavy        = 800, //!<
+	Black        = 900, //!<
+	ExtraBlack   = 1000, //!<
+	Default      = Regular, //!< default
 };
 
 /**
  * @enum TextWidth
 */
 export enum TextWidth {
-	Inherit          = 0, ///
-	UltraCondensed   = 1, ///
-	ExtraCondensed   = 2, ///
-	Condensed        = 3, ///
-	SemiCondensed    = 4, ///
-	Normal           = 5, ///
-	SemiExpanded     = 6, ///
-	Expanded         = 7, ///
-	ExtraExpanded    = 8, ///
-	UltraExpanded    = 9, ///
-	Default          = Normal, ///
+	Inherit          = 0, //!<
+	UltraCondensed   = 1, //!<
+	ExtraCondensed   = 2, //!<
+	Condensed        = 3, //!<
+	SemiCondensed    = 4, //!<
+	Normal           = 5, //!<
+	SemiExpanded     = 6, //!<
+	Expanded         = 7, //!<
+	ExtraExpanded    = 8, //!<
+	UltraExpanded    = 9, //!<
+	Default          = Normal, //!<
 };
 
 /**
  * @enum TextSlant
 */
 export enum TextSlant {
-	Inherit, ///
-	Normal,  ///
-	Italic,  ///
-	Oblique, ///
-	Default = Normal, ///
+	Inherit, //!<
+	Normal,  //!<
+	Italic,  //!<
+	Oblique, //!<
+	Default = Normal, //!<
 };
 
 /**
@@ -374,95 +374,95 @@ export type TextStyle = number;
  * @enum KeyboardType
 */
 export enum KeyboardType {
-	Normal, ///
-	Ascii,  ///
-	Number, ///
-	Url,    ///
-	NumberPad, ///
-	Phone,  ///
-	NamePhone, ///
-	Email,  ///
-	Decimal, ///
-	Search, ///
-	AsciiNumber, ///
+	Normal, //!<
+	Ascii,  //!<
+	Number, //!<
+	Url,    //!<
+	NumberPad, //!<
+	Phone,  //!<
+	NamePhone, //!<
+	Email,  //!<
+	Decimal, //!<
+	Search, //!<
+	AsciiNumber, //!<
 };
 
 /**
  * @enum KeyboardReturnType
 */
 export enum KeyboardReturnType {
-	Normal, ///
-	Go, ///
-	Join, ///
-	Next, ///
-	Route, ///
-	Search, ///
-	Send, ///
-	Done, ///
-	Emergency, ///
-	Continue, ///
+	Normal, //!<
+	Go, //!<
+	Join, //!<
+	Next, //!<
+	Route, //!<
+	Search, //!<
+	Send, //!<
+	Done, //!<
+	Emergency, //!<
+	Continue, //!<
 };
 
 /**
  * @enum CursorStyle
 */
 export enum CursorStyle {
-	Normal, ///
-	None, ///
-	NoneUntilMouseMoves, ///
-	Arrow, ///
-	Ibeam, ///
-	PointingHand, ///
-	Pointer = PointingHand, ///
-	ClosedHand, ///
-	OpenHand, ///
-	ResizeLeft, ///
-	ResizeRight, ///
-	ResizeLeftRight, ///
-	ResizeUp, ///
-	ResizeDown, ///
-	ResizeUpDown, ///
-	Crosshair, ///
-	DisappearingItem, ///
-	OperationNotAllowed, ///
-	DragLink, ///
-	DragCopy, ///
-	ContextualMenu, ///
-	IbeamForVertical, ///
+	Normal, //!<
+	None, //!<
+	NoneUntilMouseMoves, //!<
+	Arrow, //!<
+	Ibeam, //!<
+	PointingHand, //!<
+	Pointer = PointingHand, //!<
+	ClosedHand, //!<
+	OpenHand, //!<
+	ResizeLeft, //!<
+	ResizeRight, //!<
+	ResizeLeftRight, //!<
+	ResizeUp, //!<
+	ResizeDown, //!<
+	ResizeUpDown, //!<
+	Crosshair, //!<
+	DisappearingItem, //!<
+	OperationNotAllowed, //!<
+	DragLink, //!<
+	DragCopy, //!<
+	ContextualMenu, //!<
+	IbeamForVertical, //!<
 };
 
 /**
  * @enum FindDirection
 */
 export enum FindDirection {
-	None, ///
-	Left, ///
-	Top, ///
-	Right, ///
-	Bottom, ///
+	None, //!<
+	Left, //!<
+	Top, //!<
+	Right, //!<
+	Bottom, //!<
 };
 
 // -------------------------------------------------------------------------------------
 
-export type RepeatIn = Uncapitalize<keyof typeof Repeat> | Repeat; /// :Repeat
-export type DirectionIn = Uncapitalize<keyof typeof Direction> | Direction; /// :Direction
-export type ItemsAlignIn = Uncapitalize<keyof typeof ItemsAlign> | ItemsAlign; /// :ItemsAlign
-export type CrossAlignIn = Uncapitalize<keyof typeof CrossAlign> | CrossAlign; /// :CrossAlign
-export type WrapIn = Uncapitalize<keyof typeof Wrap> | Wrap; /// :Wrap
-export type WrapAlignIn = Uncapitalize<keyof typeof WrapAlign> | WrapAlign; /// :WrapAlign
-export type AlignIn = Uncapitalize<keyof typeof Align> | Align; /// :Align
-export type TextAlignIn = Uncapitalize<keyof typeof TextAlign> | TextAlign; /// :TextAlign
-export type TextDecorationIn = Uncapitalize<keyof typeof TextDecoration> | TextDecoration; /// :TextDecoration
-export type TextOverflowIn = Uncapitalize<keyof typeof TextOverflow> | TextOverflow; /// :TextOverflow
-export type TextWhiteSpaceIn = Uncapitalize<keyof typeof TextWhiteSpace> | TextWhiteSpace; /// :TextWhiteSpace
-export type TextWordBreakIn = Uncapitalize<keyof typeof TextWordBreak> | TextWordBreak; /// :TextWordBreak
-export type TextWeightIn = Uncapitalize<keyof typeof TextWeight> | TextWeight; /// :TextWeight
-export type TextWidthIn = Uncapitalize<keyof typeof TextWidth> | TextWidth; /// :TextWidth
-export type TextSlantIn = Uncapitalize<keyof typeof TextSlant> | TextSlant; /// :TextSlant
-export type KeyboardTypeIn = Uncapitalize<keyof typeof KeyboardType> | KeyboardType; /// :KeyboardType
-export type KeyboardReturnTypeIn = Uncapitalize<keyof typeof KeyboardReturnType> | KeyboardReturnType; /// :KeyboardReturnType
-export type CursorStyleIn = Uncapitalize<keyof typeof CursorStyle> | CursorStyle; /// :CursorStyle
-export type FindDirectionIn = Uncapitalize<keyof typeof FindDirection> | FindDirection; /// :FindDirection
+export type RepeatIn = Uncapitalize<keyof typeof Repeat> | Repeat; //!< :Repeat
+export type DirectionIn = Uncapitalize<keyof typeof Direction> | Direction; //!< :Direction
+export type ItemsAlignIn = Uncapitalize<keyof typeof ItemsAlign> | ItemsAlign; //!< :ItemsAlign
+export type CrossAlignIn = Uncapitalize<keyof typeof CrossAlign> | CrossAlign; //!< :CrossAlign
+export type WrapIn = Uncapitalize<keyof typeof Wrap> | Wrap; //!< :Wrap
+export type WrapAlignIn = Uncapitalize<keyof typeof WrapAlign> | WrapAlign; //!< :WrapAlign
+export type AlignIn = Uncapitalize<keyof typeof Align> | Align; //!< :Align
+export type TextAlignIn = Uncapitalize<keyof typeof TextAlign> | TextAlign; //!< :TextAlign
+export type TextDecorationIn = Uncapitalize<keyof typeof TextDecoration> | TextDecoration; //!< :TextDecoration
+export type TextOverflowIn = Uncapitalize<keyof typeof TextOverflow> | TextOverflow; //!< :TextOverflow
+export type TextWhiteSpaceIn = Uncapitalize<keyof typeof TextWhiteSpace> | TextWhiteSpace; //!< :TextWhiteSpace
+export type TextWordBreakIn = Uncapitalize<keyof typeof TextWordBreak> | TextWordBreak; //!< :TextWordBreak
+export type TextWeightIn = Uncapitalize<keyof typeof TextWeight> | TextWeight; //!< :TextWeight
+export type TextWidthIn = Uncapitalize<keyof typeof TextWidth> | TextWidth; //!< :TextWidth
+export type TextSlantIn = Uncapitalize<keyof typeof TextSlant> | TextSlant; //!< :TextSlant
+export type KeyboardTypeIn = Uncapitalize<keyof typeof KeyboardType> | KeyboardType; //!< :KeyboardType
+export type KeyboardReturnTypeIn = Uncapitalize<keyof typeof KeyboardReturnType> | KeyboardReturnType; //!< :KeyboardReturnType
+export type CursorStyleIn = Uncapitalize<keyof typeof CursorStyle> | CursorStyle; //!< :CursorStyle
+export type FindDirectionIn = Uncapitalize<keyof typeof FindDirection> | FindDirection; //!< :FindDirection
 
 export class Base<T> {
 	toString() { return '[types base]' }
@@ -478,8 +478,8 @@ export class Base<T> {
  * @class Vec2
 */
 export class Vec2 extends Base<Vec2> {
-	x: N; ///
-	y: N; ///
+	x: N; //!<
+	y: N; //!<
 	toString(): `vec2(${N},${N})` { return `vec2(${this.x},${this.y})` }
 }
 initDefaults(Vec2, { x: 0, y: 0 });
@@ -492,9 +492,9 @@ export type Vec2In = `${number} ${number}` | `vec2(${N},${N})` | N | [N,N] | Vec
  * @class Vec3
 */
 export class Vec3 extends Base<Vec3> {
-	x: N; ///
-	y: N; ///
-	z: N; ///
+	x: N; //!<
+	y: N; //!<
+	z: N; //!<
 	toString(): `vec3(${N},${N},${N})` { return `vec3(${this.x},${this.y},${this.z})` }
 }
 initDefaults(Vec3, { x: 0, y: 0, z: 0 });
@@ -507,10 +507,10 @@ export type Vec3In = `${number} ${number} ${number}` | `vec3(${N},${N},${N})` | 
  * @class Vec4
 */
 export class Vec4 extends Base<Vec4> {
-	x: N; ///
-	y: N; ///
-	z: N; ///
-	w: N; ///
+	x: N; //!<
+	y: N; //!<
+	z: N; //!<
+	w: N; //!<
 	toString(): `vec4(${N},${N},${N},${N})` {
 		return `vec4(${this.x},${this.y},${this.z},${this.w})`;
 	}
@@ -526,12 +526,12 @@ export type Vec4In = `${number} ${number} ${number} ${number}` |
  * @class Curve
 */
 export class Curve extends Base<Curve> {
-	p1: Vec2; ///
-	p2: Vec2; ///
-	get p1x() { return this.p1.x; } /// :N
-	get p1y() { return this.p1.y; } /// :N
-	get p2x() { return this.p2.x; } /// :N
-	get p2y() { return this.p2.y; } /// :N
+	p1: Vec2; //!<
+	p2: Vec2; //!<
+	get p1x() { return this.p1.x; } //!< :N
+	get p1y() { return this.p1.y; } //!< :N
+	get p2x() { return this.p2.x; } //!< :N
+	get p2y() { return this.p2.y; } //!< :N
 	toString(): `curve(${N},${N},${N},${N})` {
 		return `curve(${this.p1.x},${this.p1.y},${this.p2.x},${this.p2.y})`;
 	}
@@ -548,30 +548,30 @@ export type CurveIn = 'linear' | 'ease' | 'easeIn' | 'easeOut' | 'easeInOut' |
  * @class Rect
 */
 export class Rect extends Base<Rect> {
-	origin: Vec2; ///
-	size: Vec2; ///
-	get x() { return this.origin.x; } /// :N
-	get y() { return this.origin.y; } /// :N
-	get width() { return this.size.x; } /// :N
-	get height() { return this.size.y; } /// :N
+	origin: Vec2; //!<
+	size: Vec2; //!<
+	get x() { return this.origin.x; } //!< :N
+	get y() { return this.origin.y; } //!< :N
+	get width() { return this.size.x; } //!< :N
+	get height() { return this.size.y; } //!< :N
 	toString(): `rect(${N},${N},${N},${N})` {
 		return `rect(${this.x},${this.y},${this.width},${this.height})`;
 	}
 }
 initDefaults(Rect, { origin: new Vec2, size: new Vec2 });
-export type RectIn = `rect(${N},${N},${N},${N})` | `rect(${N},${N})` | /// `rect(0,0,100,100)` | `rect(0,0)` | [0,0,100,100] | :Rect
+export type RectIn = `rect(${N},${N},${N},${N})` | `rect(${N},${N})` | //!< `rect(0,0,100,100)` | `rect(0,0)` | [0,0,100,100] | :Rect
 	[number,number,number,number] | Rect;
 
 /**
  * @class Mat
 */
 export class Mat extends Base<Mat> {
-	m0: N; ///
-	m1: N; ///
-	m2: N; ///
-	m3: N; ///
-	m4: N; ///
-	m5: N; ///
+	m0: N; //!<
+	m1: N; //!<
+	m2: N; //!<
+	m3: N; //!<
+	m4: N; //!<
+	m5: N; //!<
 	get value() {
 		return [this.m0,this.m1,this.m2,this.m3,this.m4,this.m5];
 	}
@@ -581,28 +581,28 @@ export class Mat extends Base<Mat> {
 	}
 }
 initDefaults(Mat, { m0: 1, m1: 0, m2: 0, m3: 0, m4: 1, m5: 0 });
-export type MatIn = N | Mat | ReturnType<typeof Mat.prototype.toString>; /// :N | :Mat | `mat(0,0,0,0,0,0)`
+export type MatIn = N | Mat | ReturnType<typeof Mat.prototype.toString>; //!< :N | :Mat | `mat(0,0,0,0,0,0)`
 
 /**
  * @class Mat4
 */
 export class Mat4 extends Base<Mat4> {
-	m0: N; ///
-	m1: N; ///
-	m2: N; ///
-	m3: N; ///
-	m4: N; ///
-	m5: N; ///
-	m6: N; ///
-	m7: N; ///
-	m8: N; ///
-	m9: N; ///
-	m10: N; ///
-	m11: N; ///
-	m12: N; ///
-	m13: N; ///
-	m14: N; ///
-	m15: N; ///
+	m0: N; //!<
+	m1: N; //!<
+	m2: N; //!<
+	m3: N; //!<
+	m4: N; //!<
+	m5: N; //!<
+	m6: N; //!<
+	m7: N; //!<
+	m8: N; //!<
+	m9: N; //!<
+	m10: N; //!<
+	m11: N; //!<
+	m12: N; //!<
+	m13: N; //!<
+	m14: N; //!<
+	m15: N; //!<
 	get value() { return [
 		this.m0,this.m1,this.m2,this.m3,this.m4,this.m5,this.m6,this.m7,
 		this.m8,this.m9,this.m10,this.m11,this.m12,this.m13,this.m14,this.m15];
@@ -626,10 +626,10 @@ export type Mat4In = N | Mat4 | ReturnType<typeof Mat4.prototype.toString>;
  * @class Color
 */
 export class Color extends Base<Color> {
-	r: N; ///
-	g: N; ///
-	b: N; ///
-	a: N; ///
+	r: N; //!<
+	g: N; //!<
+	b: N; //!<
+	a: N; //!<
 	constructor(r: N, g: N, b: N, a: N) {
 		super();
 		this.r = r;
@@ -654,54 +654,54 @@ export class Color extends Base<Color> {
 	}
 }
 initDefaults(Color, { r: 0, g: 0, b: 0, a: 255 });
-export type ColorStrIn = `#${string}` | `rgb(${N},${N},${N})` | `rgba(${N},${N},${N},${N})`; /// `#fff` | `rgb(0,0,0)` | `rgba(0,0,0,255)`
-export type ColorIn = ColorStrIn | N | Color; /// :ColorStrIn | :N | :Color
+export type ColorStrIn = `#${string}` | `rgb(${N},${N},${N})` | `rgba(${N},${N},${N},${N})`; //!< `#fff` | `rgb(0,0,0)` | `rgba(0,0,0,255)`
+export type ColorIn = ColorStrIn | N | Color; //!< :ColorStrIn | :N | :Color
 
 /**
  * @class Shadow
 */
 export class Shadow extends Base<Shadow> {
-	x: N; /// @getset x:N
-	y: N; /// @getset y:N
-	size: N; /// @getset size:N
-	color: Color; /// @getset coloe:Color
-	get r() { return this.color.r; } /// @get r:N
-	get g() { return this.color.g; } /// @get r:N
-	get b() { return this.color.b; } /// @get r:N
-	get a() { return this.color.a; } /// @get r:N
+	x: N; //!< @getset x:N
+	y: N; //!< @getset y:N
+	size: N; //!< @getset size:N
+	color: Color; //!< @getset coloe:Color
+	get r() { return this.color.r; } //!< @get r:N
+	get g() { return this.color.g; } //!< @get r:N
+	get b() { return this.color.b; } //!< @get r:N
+	get a() { return this.color.a; } //!< @get r:N
 	toString(): `${N} ${N} ${N} #${string}` {
 		return `${this.x} ${this.y} ${this.size} ${this.color.toString()}`
 	}
 }
 initDefaults(Shadow, { x: 0, y: 0, size: 0, color: new Color(0,0,0,255) });
-export type ShadowIn = `${N} ${N} ${N} ${ColorStrIn}` | Shadow; /// `2 2 2 rgb(100,100,100)` | :Shadow
+export type ShadowIn = `${N} ${N} ${N} ${ColorStrIn}` | Shadow; //!< `2 2 2 rgb(100,100,100)` | :Shadow
 
 /**
  * @class BoxBorder
 */
 export class BoxBorder extends Base<BoxBorder> {
-	width: N; ///
-	color: Color; ///
-	get r() { return this.color.r; } /// :N
-	get g() { return this.color.g; } /// :N
-	get b() { return this.color.b; } /// :N
-	get a() { return this.color.a; } /// :N
+	width: N; //!<
+	color: Color; //!<
+	get r() { return this.color.r; } //!< :N
+	get g() { return this.color.g; } //!< :N
+	get b() { return this.color.b; } //!< :N
+	get a() { return this.color.a; } //!< :N
 	toString(): `${N} #${string}` {
 		return `${this.width} ${this.color.toString()}`
 	}
 }
 initDefaults(BoxBorder, { width: 0, color: new Color(0,0,0,255) });
-export type BoxBorderIn = `${N} ${ColorStrIn}` | BoxBorder; /// `"1 rgb(100,100,100)""` | :BoxBorder
+export type BoxBorderIn = `${N} ${ColorStrIn}` | BoxBorder; //!< `"1 rgb(100,100,100)""` | :BoxBorder
 
 /**
  * @class FillPosition
 */
 export class FillPosition extends Base<FillPosition> {
-	value: N; ///
-	kind: FillPositionKind; ///
+	value: N; //!<
+	kind: FillPositionKind; //!<
 };
 initDefaults(FillPosition, { value: 0, kind: FillPositionKind.Value });
-type FillPositionKindStr = /// `"start"` | `"end"` | `"center"`
+type FillPositionKindStr = //!< `"start"` | `"end"` | `"center"`
 	Uncapitalize<keyof RemoveField<typeof FillPositionKind, 'Value'|'Ratio'|number>>;
 /** @type FillPositionIn = :N | :FillPosition | `50%` | :FillPositionKindStr */
 export type FillPositionIn = N | FillPosition | `${number}%` | FillPositionKindStr;
@@ -710,35 +710,35 @@ export type FillPositionIn = N | FillPosition | `${number}%` | FillPositionKindS
  * @class FillSize
 */
 export class FillSize extends Base<FillSize> {
-	value: N; ///
-	kind: FillSizeKind; ///
+	value: N; //!<
+	kind: FillSizeKind; //!<
 };
 initDefaults(FillSize, { value: 0, kind: FillSizeKind.Auto });
-type FillSizeKindStr = Uncapitalize<keyof RemoveField<typeof FillSizeKind, 'Value'|'Ratio'|number>>; /// `"auto"`
-export type FillSizeIn = N | FillSize | `${number}%` | FillSizeKindStr; /// :N | :FillSize | `50%` | :FillSizeKindStr
+type FillSizeKindStr = Uncapitalize<keyof RemoveField<typeof FillSizeKind, 'Value'|'Ratio'|number>>; //!< `"auto"`
+export type FillSizeIn = N | FillSize | `${number}%` | FillSizeKindStr; //!< :N | :FillSize | `50%` | :FillSizeKindStr
 
 /**
  * @class BoxSize
 */
 export class BoxSize extends Base<BoxSize> {
-	value: N; ///
-	kind: BoxSizeKind; ///
+	value: N; //!<
+	kind: BoxSizeKind; //!<
 };
 initDefaults(BoxSize, { value: 0, kind: BoxSizeKind.Value });
-type BoxSizeKindStr = /// `"auto"` | `"none"` | `"match"`
+type BoxSizeKindStr = //!< `"auto"` | `"none"` | `"match"`
 	Uncapitalize<keyof RemoveField<typeof BoxSizeKind, 'Value'|'Ratio'|'Minus'|number>>
-export type BoxSizeIn = N | BoxSize | `${number}%` | `${number}!` | BoxSizeKindStr; /// :N | :BoxSize | `50%` | `100!` | :BoxSizeKindStr
+export type BoxSizeIn = N | BoxSize | `${number}%` | `${number}!` | BoxSizeKindStr; //!< :N | :BoxSize | `50%` | `100!` | :BoxSizeKindStr
 
 /**
  * @class BoxOrigin
 */
 export class BoxOrigin extends Base<BoxSize> {
-	value: N; ///
-	kind: BoxOriginKind; ///
+	value: N; //!<
+	kind: BoxOriginKind; //!<
 };
-type BoxOriginKindStr = FillSizeKindStr; /// :FillSizeKindStr
+type BoxOriginKindStr = FillSizeKindStr; //!< :FillSizeKindStr
 initDefaults(BoxOrigin, { value: 0, kind: FillSizeKind.Value });
-export type BoxOriginIn = N | BoxOrigin | `${number}%` | BoxOriginKindStr; /// :N | :BoxOrigin | `50%` | :BoxOriginKindStr
+export type BoxOriginIn = N | BoxOrigin | `${number}%` | BoxOriginKindStr; //!< :N | :BoxOrigin | `50%` | :BoxOriginKindStr
 
 const TextBase_toString = [
 	()=>'inherit',
@@ -752,8 +752,8 @@ const TextBase_toString = [
  * @class TextBase
 */
 class TextBase<Derived,Value> extends Base<Derived> {
-	value: Value; ///
-	kind: TextValueKind; ///
+	value: Value; //!<
+	kind: TextValueKind; //!<
 	toString() {
 		return (TextBase_toString[this.kind] || TextBase_toString[3])(this.value);
 	}
@@ -764,14 +764,14 @@ class TextBase<Derived,Value> extends Base<Derived> {
  * @extends TextBase<Color>
 */
 export class TextColor extends TextBase<TextColor,Color> {
-	get r() { return this.value.r; } /// :N
-	get g() { return this.value.g; } /// :N
-	get b() { return this.value.b; } /// :N
-	get a() { return this.value.a; } /// :N
+	get r() { return this.value.r; } //!< :N
+	get g() { return this.value.g; } //!< :N
+	get b() { return this.value.b; } //!< :N
+	get a() { return this.value.a; } //!< :N
 }
 initDefaults(TextColor, { value: new Color(0,0,0,255), kind: TextValueKind.Inherit });
-type TextValueKindInStr = Uncapitalize<keyof RemoveField<typeof TextValueKind, 'Value'|number>>; /// `"inherit"` | `"default"`
-export type TextColorIn = TextValueKindInStr | ColorIn | TextColor; /// :TextValueKindInStr | :TextColor | :ColorIn
+type TextValueKindInStr = Uncapitalize<keyof RemoveField<typeof TextValueKind, 'Value'|number>>; //!< `"inherit"` | `"default"`
+export type TextColorIn = TextValueKindInStr | ColorIn | TextColor; //!< :TextValueKindInStr | :TextColor | :ColorIn
 
 /**
  * @class TextColor
@@ -779,29 +779,29 @@ export type TextColorIn = TextValueKindInStr | ColorIn | TextColor; /// :TextVal
 */
 export class TextSize extends TextBase<TextSize,N> {}
 initDefaults(TextSize, { value: 0, kind: TextValueKind.Inherit });
-export type TextSizeIn = TextValueKindInStr | N | TextSize; /// :TextValueKindInStr | :TextSize | :N
-export type TextLineHeightIn = TextSizeIn; /// :TextSizeIn
-export type TextLineHeight = TextSize; /// :TextSize
-export const TextLineHeight = TextSize; /// :TextSize
+export type TextSizeIn = TextValueKindInStr | N | TextSize; //!< :TextValueKindInStr | :TextSize | :N
+export type TextLineHeightIn = TextSizeIn; //!< :TextSizeIn
+export type TextLineHeight = TextSize; //!< :TextSize
+export const TextLineHeight = TextSize; //!< :TextSize
 
 /**
  * @class TextColor
  * @extends TextBase<Shadow>
 */
 export class TextShadow extends TextBase<TextShadow,Shadow> {
-	get x() { return this.value.x } /// :N
-	get y() { return this.value.y } /// :N
-	get size() { return this.value.size } /// :N
-	get color() { return this.value.color } /// :Color
-	get r() { return this.color.r; } /// :N
-	get g() { return this.color.g; } /// :N
-	get b() { return this.color.b; } /// :N
-	get a() { return this.color.a; } /// :N
+	get x() { return this.value.x } //!< :N
+	get y() { return this.value.y } //!< :N
+	get size() { return this.value.size } //!< :N
+	get color() { return this.value.color } //!< :Color
+	get r() { return this.color.r; } //!< :N
+	get g() { return this.color.g; } //!< :N
+	get b() { return this.color.b; } //!< :N
+	get a() { return this.color.a; } //!< :N
 }
 initDefaults(TextShadow, { value: new Shadow, kind: TextValueKind.Inherit });
-export type TextShadowIn = TextValueKindInStr | ShadowIn | TextShadow; ///
+export type TextShadowIn = TextValueKindInStr | ShadowIn | TextShadow; //!<
 
-export type FFID = Uint8Array; ///
+export type FFID = Uint8Array; //!<
 /**
  * @class TextColor
  * @extends TextBase<FFID>
@@ -827,17 +827,17 @@ export class TextFamily extends TextBase<TextFamily,FFID> {
 		return isNullptr ? '': _font.getFamiliesName(this.value);
 	}
 }
-export const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]); /// :FFID
+export const EmptyFFID = new Uint8Array([0,0,0,0,0,0,0,0]); //!< :FFID
 initDefaults(TextFamily, { value: EmptyFFID, kind: TextValueKind.Inherit });
-export type TextFamilyIn = TextValueKindInStr | string | TextFamily; /// :TextValueKindInStr | :string | :TextFamily
+export type TextFamilyIn = TextValueKindInStr | string | TextFamily; //!< :TextValueKindInStr | :string | :TextFamily
 
 /**
  * @class BoxFilter
  * @class abstract
 */
 export declare abstract class BoxFilter {
-	readonly type: N; ///
-	next: BoxFilter | null; /// :BoxFilter | :null
+	readonly type: N; //!<
+	next: BoxFilter | null; //!< :BoxFilter | :null
 }
 
 /**
@@ -858,12 +858,12 @@ export type BoxFilterIn = string | string[] | BoxFilter;
  * @extends BoxFilter
 */
 export declare class FillImage extends BoxFilter {
-	src: string; ///
-	width: FillSize; ///
-	height: FillSize; ///
-	x: FillPosition; ///
-	y: FillPosition; ///
-	repeat: Repeat; ///
+	src: string; //!<
+	width: FillSize; //!<
+	height: FillSize; //!<
+	x: FillPosition; //!<
+	y: FillPosition; //!<
+	repeat: Repeat; //!<
 	/**
 	 * @constructor(src[,init])
 	 * @param src {string}
@@ -880,8 +880,8 @@ export declare class FillImage extends BoxFilter {
  * @extends BoxFilter
 */
 export declare class FillGradientRadial extends BoxFilter {
-	readonly positions: N[]; ///
-	readonly colors: Color[]; ///
+	readonly positions: N[]; //!<
+	readonly colors: Color[]; //!<
 	/**
 	 * @constructor(pos,colors)
 	 * @param pos {N[]}
@@ -895,7 +895,7 @@ export declare class FillGradientRadial extends BoxFilter {
  * @extends FillGradientRadial
 */
 export declare class FillGradientLinear extends FillGradientRadial {
-	angle: N; ///
+	angle: N; //!<
 	/**
 	 * @constructor(pos,colors,angle)
 	 * @param pos {N[]}
@@ -910,7 +910,7 @@ export declare class FillGradientLinear extends FillGradientRadial {
  * @extends BoxFilter
 */
 export declare class BoxShadow extends BoxFilter {
-	value: Shadow; ///
+	value: Shadow; //!<
 	/**
 	 * @constructor(value)
 	 * @param value {Shadow}
@@ -1057,7 +1057,7 @@ export function newTextSize(kind: TextValueKind, value: N) {
 	return newBase(TextSize, { kind, value });
 }
 
-export const newTextLineHeight = newTextSize; ///
+export const newTextLineHeight = newTextSize; //!<
 
 /**
  * @method newTextShadow(kind:TextValueKind,offset_x:N,offset_y:N,size:N,r:N,g:N,b:N,a:N)TextShadow

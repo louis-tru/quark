@@ -34,7 +34,7 @@
 
 const _init = __binding__('_init');
 const _fs = __binding__('_fs');
-const PREFIX = 'file:///';
+const PREFIX = 'file://!<';
 let   config: Dict | null = null;
 const options: Optopns = _init.options;  // start options
 const debug = ['debug', 'inspect', 'inspect_brk'].some(e=>e in options);
@@ -153,8 +153,8 @@ export function normalizePath(path: string, retain_up?: boolean) {
 }
 
 /**
- * file:///home/louis/test.txt
- * file:///d:/home/louis/test.txt
+ * file://!<home/louis/test.txt
+ * file://!<d:/home/louis/test.txt
  * http://google.com/test.txt
  * return format path
  */
@@ -172,7 +172,7 @@ export function formatPath(...args: string[]) {
 				prefix = PREFIX + mat[2] + '/';
 				path = path.substring(2);
 			} else {
-				prefix = PREFIX; //'file:///';
+				prefix = PREFIX; //'file://!<';
 			}
 		} else {
 			if (mat[4]) { // local file protocol
@@ -182,17 +182,17 @@ export function formatPath(...args: string[]) {
 				slash = '/';
 			}
 			// if (prefix == path.length)
-			if (prefix == path) // file:///
+			if (prefix == path) // file://!<
 				return prefix;
 			path = path.substring(prefix.length);
 		}
 	} else { // Relative path, no network protocol
 		let _cwd = cwd();
 		if (isWin32) {
-			prefix += _cwd.substring(0,10) + '/'; // 'file:///d:/';
+			prefix += _cwd.substring(0,10) + '/'; // 'file://!<d:/';
 			path = _cwd.substring(11) + '/' + path;
 		} else {
-			prefix = PREFIX; // 'file:///';
+			prefix = PREFIX; // 'file://!<';
 			path = _cwd.substring(8) + '/' + path;
 		}
 	}

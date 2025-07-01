@@ -387,27 +387,27 @@ function lookup(request: string, parent?: Module): LookupResult | null {
  * @interface PackageJson
 */
 export interface PackageJson {
-	name: string; ///
-	main: string; ///
-	version: string; ///
-	description?: string; ///
-	scripts?: Dict<string>; ///
-	author?: Dict<string>; ///
-	keywords?: string[]; ///
-	license?: string; ///
-	bugs?: Dict<string>; ///
-	homepage?: string; ///
-	devDependencies?: Dict<string>; ///
-	dependencies?: Dict<string>; ///
-	bin?: string; ///
-	hash?: string; ///
-	pkgzHash?: string; ///
-	id?: string; ///
-	app?: string; ///
-	tryLocal?: boolean; ///
-	symlink?: string; /// package path symlink
-	pkgzSize?: number; /// pkgz file size
-	modules?: Dict<Dict<PackageJson>>; ///
+	name: string; //!<
+	main: string; //!<
+	version: string; //!<
+	description?: string; //!<
+	scripts?: Dict<string>; //!<
+	author?: Dict<string>; //!<
+	keywords?: string[]; //!<
+	license?: string; //!<
+	bugs?: Dict<string>; //!<
+	homepage?: string; //!<
+	devDependencies?: Dict<string>; //!<
+	dependencies?: Dict<string>; //!<
+	bin?: string; //!<
+	hash?: string; //!<
+	pkgzHash?: string; //!<
+	id?: string; //!<
+	app?: string; //!<
+	tryLocal?: boolean; //!<
+	symlink?: string; //!< package path symlink
+	pkgzSize?: number; //!< pkgz file size
+	modules?: Dict<Dict<PackageJson>>; //!<
 }
 
 class SearchPath {
@@ -530,15 +530,15 @@ type IModule = typeof module;
  * @class Module
 */
 export class Module implements IModule {
-	readonly id: string; ///
-	readonly exports: any = {}; ///
-	readonly parent: Module | null; ///
-	readonly package: Package | null; ///
-	readonly filename: string = ''; /// filename
-	readonly dirname: string = ''; /// dirname
-	readonly loaded: boolean = false; ///
-	readonly children: Module[] = []; ///
-	readonly paths: string[] = []; /// search paths
+	readonly id: string; //!<
+	readonly exports: any = {}; //!<
+	readonly parent: Module | null; //!<
+	readonly package: Package | null; //!<
+	readonly filename: string = ''; //!< filename
+	readonly dirname: string = ''; //!< dirname
+	readonly loaded: boolean = false; //!<
+	readonly children: Module[] = []; //!<
+	readonly paths: string[] = []; //!< search paths
 
 	constructor(id: string, parent?: Module, pkg?: Package) {
 		this.id = id;

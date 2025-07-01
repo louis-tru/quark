@@ -160,9 +160,9 @@ export class Dialog<P={},S={}> extends Navigation<{
 		return this._buttons.length;
 	}
 
-	@link title: string = ''; ///
-	@link content: string = ''; ///
-	@link autoClose: boolean = true; ///
+	@link title: string = ''; //!<
+	@link content: string = ''; //!<
+	@link autoClose: boolean = true; //!<
 
 	/**
 	 * @getset buttons:RenderData[]

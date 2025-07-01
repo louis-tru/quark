@@ -43,98 +43,98 @@ export type CSSNameExp = `.${string}`;
  * @interface StyleSheet
 */
 export interface StyleSheet {
-	time?: number; /// keyframe time or css transition time
-	curve?: types.CurveIn; /// keyframe curve or css transition curve
+	time?: number; //!< keyframe time or css transition time
+	curve?: types.CurveIn; //!< keyframe curve or css transition curve
 	// Meta attribute
-	opacity?: number; ///
-	cursor?: types.CursorStyleIn; ///
-	visible?: boolean; ///
-	receive?: boolean; ///
-	clip?: boolean; ///
-	align?: types.AlignIn; ///
-	width?: types.BoxSizeIn; ///
-	height?: types.BoxSizeIn; ///
-	minWidth?: types.BoxSizeIn; ///
-	minHeight?: types.BoxSizeIn; ///
-	maxWidth?: types.BoxSizeIn; ///
-	maxHeight?: types.BoxSizeIn; ///
-	margin?: number[] | number; ///
-	marginTop?: number; ///
-	marginRight?: number; ///
-	marginBottom?: number; ///
-	marginLeft?: number; ///
-	padding?: number[] | number; ///
-	paddingTop?: number; ///
-	paddingRight?: number; ///
-	paddingBottom?: number; ///
-	paddingLeft?: number; ///
-	borderRadius?: number[] | number; ///
-	borderRadiusLeftTop?: number; ///
-	borderRadiusRightTop?: number; ///
-	borderRadiusRightBottom?: number; ///
-	borderRadiusLeftBottom?: number; ///
-	border?: types.BoxBorderIn[] | types.BoxBorderIn; /// border
-	borderTop?: types.BoxBorderIn; ///
-	borderRight?: types.BoxBorderIn; ///
-	borderBottom?: types.BoxBorderIn; ///
-	borderLeft?: types.BoxBorderIn; ///
-	borderWidth?: number[] | number; ///
-	borderColor?: types.ColorIn[] | types.ColorIn; ///
-	borderWidthTop?: number; /// border width
-	borderWidthRight?: number; ///
-	borderWidthBottom?: number; ///
-	borderWidthLeft?: number; ///
-	borderColorTop?: types.ColorIn; /// border color
-	borderColorRight?: types.ColorIn; ///
-	borderColorBottom?: types.ColorIn; ///
-	borderColorLeft?: types.ColorIn; ///
-	backgroundColor?: types.ColorIn; ///
-	background?: types.BoxFilterIn; ///
-	boxShadow?: types.BoxShadowIn; ///
-	weight?: number[] | number; ///
-	direction?: types.DirectionIn; ///
-	itemsAlign?: types.ItemsAlignIn; ///
-	crossAlign?: types.CrossAlignIn; ///
-	wrap?: types.WrapIn; ///
-	wrapAlign?: types.WrapAlignIn; ///
-	src?: string; ///
-	textAlign?: types.TextAlignIn; ///
-	textWeight?: types.TextWeightIn; ///
-	textSlant?: types.TextSlantIn; ///
-	textDecoration?: types.TextDecorationIn; ///
-	textOverflow?: types.TextOverflowIn; ///
-	textWhiteSpace?: types.TextWhiteSpaceIn; ///
-	textWordBreak?: types.TextWordBreakIn; ///
-	textSize?: types.TextSizeIn; ///
-	textBackgroundColor?: types.TextColorIn; ///
-	textColor?: types.TextColorIn; ///
-	textLineHeight?: types.TextSizeIn; ///
-	textShadow?: types.TextShadowIn; ///
-	textFamily?: types.TextFamilyIn; ///
-	security?: boolean; ///
-	readonly?: boolean; ///
-	type?: types.KeyboardTypeIn; ///
-	returnType?: types.KeyboardReturnTypeIn; ///
-	placeholderColor?: types.ColorIn; ///
-	cursorColor?: types.ColorIn; ///
-	maxLength?: number; ///
-	placeholder?: string; ///
-	scrollbarColor?: types.ColorIn; ///
-	scrollbarWidth?: number; ///
-	scrollbarMargin?: number; ///
-	translate?: types.Vec2In; ///
-	scale?: types.Vec2In; ///
-	skew?: types.Vec2In; ///
-	origin?: types.BoxOriginIn[] | types.BoxOriginIn ///
-	x?: number; ///
-	y?: number; ///
-	scaleX?: number; ///
-	scaleY?: number; ///
-	skewX?: number; ///
-	skewY?: number; ///
-	rotateZ?: number; ///
-	originX?: types.BoxOriginIn; ///
-	originY?: types.BoxOriginIn; ///
+	opacity?: number; //!<
+	cursor?: types.CursorStyleIn; //!<
+	visible?: boolean; //!<
+	receive?: boolean; //!<
+	clip?: boolean; //!<
+	align?: types.AlignIn; //!<
+	width?: types.BoxSizeIn; //!<
+	height?: types.BoxSizeIn; //!<
+	minWidth?: types.BoxSizeIn; //!<
+	minHeight?: types.BoxSizeIn; //!<
+	maxWidth?: types.BoxSizeIn; //!<
+	maxHeight?: types.BoxSizeIn; //!<
+	margin?: number[] | number; //!<
+	marginTop?: number; //!<
+	marginRight?: number; //!<
+	marginBottom?: number; //!<
+	marginLeft?: number; //!<
+	padding?: number[] | number; //!<
+	paddingTop?: number; //!<
+	paddingRight?: number; //!<
+	paddingBottom?: number; //!<
+	paddingLeft?: number; //!<
+	borderRadius?: number[] | number; //!<
+	borderRadiusLeftTop?: number; //!<
+	borderRadiusRightTop?: number; //!<
+	borderRadiusRightBottom?: number; //!<
+	borderRadiusLeftBottom?: number; //!<
+	border?: types.BoxBorderIn[] | types.BoxBorderIn; //!< border
+	borderTop?: types.BoxBorderIn; //!<
+	borderRight?: types.BoxBorderIn; //!<
+	borderBottom?: types.BoxBorderIn; //!<
+	borderLeft?: types.BoxBorderIn; //!<
+	borderWidth?: number[] | number; //!<
+	borderColor?: types.ColorIn[] | types.ColorIn; //!<
+	borderWidthTop?: number; //!< border width
+	borderWidthRight?: number; //!<
+	borderWidthBottom?: number; //!<
+	borderWidthLeft?: number; //!<
+	borderColorTop?: types.ColorIn; //!< border color
+	borderColorRight?: types.ColorIn; //!<
+	borderColorBottom?: types.ColorIn; //!<
+	borderColorLeft?: types.ColorIn; //!<
+	backgroundColor?: types.ColorIn; //!<
+	background?: types.BoxFilterIn; //!<
+	boxShadow?: types.BoxShadowIn; //!<
+	weight?: number[] | number; //!<
+	direction?: types.DirectionIn; //!<
+	itemsAlign?: types.ItemsAlignIn; //!<
+	crossAlign?: types.CrossAlignIn; //!<
+	wrap?: types.WrapIn; //!<
+	wrapAlign?: types.WrapAlignIn; //!<
+	src?: string; //!<
+	textAlign?: types.TextAlignIn; //!<
+	textWeight?: types.TextWeightIn; //!<
+	textSlant?: types.TextSlantIn; //!<
+	textDecoration?: types.TextDecorationIn; //!<
+	textOverflow?: types.TextOverflowIn; //!<
+	textWhiteSpace?: types.TextWhiteSpaceIn; //!<
+	textWordBreak?: types.TextWordBreakIn; //!<
+	textSize?: types.TextSizeIn; //!<
+	textBackgroundColor?: types.TextColorIn; //!<
+	textColor?: types.TextColorIn; //!<
+	textLineHeight?: types.TextSizeIn; //!<
+	textShadow?: types.TextShadowIn; //!<
+	textFamily?: types.TextFamilyIn; //!<
+	security?: boolean; //!<
+	readonly?: boolean; //!<
+	type?: types.KeyboardTypeIn; //!<
+	returnType?: types.KeyboardReturnTypeIn; //!<
+	placeholderColor?: types.ColorIn; //!<
+	cursorColor?: types.ColorIn; //!<
+	maxLength?: number; //!<
+	placeholder?: string; //!<
+	scrollbarColor?: types.ColorIn; //!<
+	scrollbarWidth?: number; //!<
+	scrollbarMargin?: number; //!<
+	translate?: types.Vec2In; //!<
+	scale?: types.Vec2In; //!<
+	skew?: types.Vec2In; //!<
+	origin?: types.BoxOriginIn[] | types.BoxOriginIn //!<
+	x?: number; //!<
+	y?: number; //!<
+	scaleX?: number; //!<
+	scaleY?: number; //!<
+	skewX?: number; //!<
+	skewY?: number; //!<
+	rotateZ?: number; //!<
+	originX?: types.BoxOriginIn; //!<
+	originY?: types.BoxOriginIn; //!<
 }
 
 /**

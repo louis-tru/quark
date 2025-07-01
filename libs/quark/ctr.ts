@@ -56,9 +56,9 @@ function warn(id: string, msg = '') {
  * @type Args = {...}
 */
 export type Args = {
-	window: Window, ///
-	owner: ViewController, ///
-	children: (VirtualDOM | null)[], ///
+	window: Window, //!<
+	owner: ViewController, //!<
+	children: (VirtualDOM | null)[], //!<
 }
 
 interface DOMConstructor<T extends DOM = DOM> {

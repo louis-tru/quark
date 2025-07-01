@@ -34,16 +34,16 @@ const _os = __binding__('_os');
  * @enum NetworkInterface
 */
 export enum NetworkInterface {
-	kNone, /// None
-	kETH, /// Ethernet
+	kNone, //!< None
+	kETH, //!< Ethernet
 	kWifi, // Wifi
-	kMobile, /// Mobile
-	k2G, /// Mobile 2G
-	k3G, /// Mobile 3G
-	k4G, /// Mobile 4G
-	k5G, /// Mobile 5G
+	kMobile, //!< Mobile
+	k2G, //!< Mobile 2G
+	k3G, //!< Mobile 3G
+	k4G, //!< Mobile 4G
+	k5G, //!< Mobile 5G
 }
-/// @end
+//!< @end
 
 /**
  * @method arch() Get CPU arch type

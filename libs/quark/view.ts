@@ -45,22 +45,22 @@ import {Player,MediaType,MediaSourceStatus,Stream} from './media';
  * @enum ViewType
 */
 export enum ViewType {
-	View, ///
-	Label, ///
-	Box, ///
-	Flex, ///
-	Flow, ///
-	Free, ///
-	Image, ///
-	Video, ///
-	Input, ///
-	Textarea, ///
-	Scroll, ///
-	Text, ///
-	Button, ///
-	Matrix, ///
-	Root, ///
-	Enum_Counts, ///
+	View, //!<
+	Label, //!<
+	Box, //!<
+	Flex, //!<
+	Flow, //!<
+	Free, //!<
+	Image, //!<
+	Video, //!<
+	Input, //!<
+	Textarea, //!<
+	Scroll, //!<
+	Text, //!<
+	Button, //!<
+	Matrix, //!<
+	Root, //!<
+	Enum_Counts, //!<
 }
 
 /**
@@ -87,78 +87,78 @@ export interface DOM {
 export declare class View extends Notification<UIEvent> implements DOM {
 	/** @get childDoms:(View|ViewController|null)[] JSX system specific */
 	readonly childDoms: (DOM|null)[];
-	readonly onClick: EventNoticer<ClickEvent>; ///
-	readonly onBack: EventNoticer<ClickEvent>; ///
-	readonly onKeyDown: EventNoticer<KeyEvent>; ///
-	readonly onKeyPress: EventNoticer<KeyEvent>; ///
-	readonly onKeyUp: EventNoticer<KeyEvent>; ///
-	readonly onKeyEnter: EventNoticer<KeyEvent>; ///
-	readonly onTouchStart: EventNoticer<TouchEvent>; ///
-	readonly onTouchMove: EventNoticer<TouchEvent>; ///
-	readonly onTouchEnd: EventNoticer<TouchEvent>; ///
-	readonly onTouchCancel: EventNoticer<TouchEvent>; ///
-	readonly onMouseOver: EventNoticer<MouseEvent>; ///
-	readonly onMouseOut: EventNoticer<MouseEvent>; ///
-	readonly onMouseLeave: EventNoticer<MouseEvent>; ///
-	readonly onMouseEnter: EventNoticer<MouseEvent>; ///
-	readonly onMouseMove: EventNoticer<MouseEvent>; ///
-	readonly onMouseDown: EventNoticer<MouseEvent>; ///
-	readonly onMouseUp: EventNoticer<MouseEvent>; ///
-	readonly onMouseWheel: EventNoticer<MouseEvent>; ///
-	readonly onFocus: EventNoticer<UIEvent>; ///
-	readonly onBlur: EventNoticer<UIEvent>; ///
-	readonly onHighlighted: EventNoticer<HighlightedEvent>; ///
-	readonly onActionKeyframe: EventNoticer<ActionEvent>; ///
-	readonly onActionLoop: EventNoticer<ActionEvent>; ///
-	readonly cssclass: CStyleSheetsClass; ///
-	readonly parent: View | null; /// @get parent:View|null
-	readonly prev: View | null; /// @get prev:View|null
-	readonly next: View | null; /// @get next:View|null
-	readonly first: View | null; /// @get first:View|null
-	readonly last: View | null; /// @get last:View|null
-	readonly window: Window; ///
-	readonly matrix: Matrix | null; /// top matrix view
-	readonly level: number; ///
-	readonly layoutWeight: types.Vec2; ///
-	readonly layoutAlign: types.Align; ///
-	readonly isClip: boolean; ///
-	readonly viewType: ViewType; ///
-	readonly position: types.Vec2; /// @safe Rt
-	readonly layoutOffset: types.Vec2; /// @safe Rt
-	readonly layoutSize: types.Vec2; /// @safe Rt
-	readonly center: types.Vec2; /// @safe Rt
-	readonly metaView: View; ///
-	readonly visibleRegion: boolean; ///
-	readonly ref: string; ///
-	style: StyleSheet; ///
-	action: Action | null; ///
-	class: string[]; /// settingonly method, cssclass.set()
-	opacity: number; ///
-	cursor: types.CursorStyle; ///
-	visible: boolean; ///
-	receive: boolean; ///
-	isFocus: boolean; ///
-	focus(): boolean; /// @method focus()bool
+	readonly onClick: EventNoticer<ClickEvent>; //!<
+	readonly onBack: EventNoticer<ClickEvent>; //!<
+	readonly onKeyDown: EventNoticer<KeyEvent>; //!<
+	readonly onKeyPress: EventNoticer<KeyEvent>; //!<
+	readonly onKeyUp: EventNoticer<KeyEvent>; //!<
+	readonly onKeyEnter: EventNoticer<KeyEvent>; //!<
+	readonly onTouchStart: EventNoticer<TouchEvent>; //!<
+	readonly onTouchMove: EventNoticer<TouchEvent>; //!<
+	readonly onTouchEnd: EventNoticer<TouchEvent>; //!<
+	readonly onTouchCancel: EventNoticer<TouchEvent>; //!<
+	readonly onMouseOver: EventNoticer<MouseEvent>; //!<
+	readonly onMouseOut: EventNoticer<MouseEvent>; //!<
+	readonly onMouseLeave: EventNoticer<MouseEvent>; //!<
+	readonly onMouseEnter: EventNoticer<MouseEvent>; //!<
+	readonly onMouseMove: EventNoticer<MouseEvent>; //!<
+	readonly onMouseDown: EventNoticer<MouseEvent>; //!<
+	readonly onMouseUp: EventNoticer<MouseEvent>; //!<
+	readonly onMouseWheel: EventNoticer<MouseEvent>; //!<
+	readonly onFocus: EventNoticer<UIEvent>; //!<
+	readonly onBlur: EventNoticer<UIEvent>; //!<
+	readonly onHighlighted: EventNoticer<HighlightedEvent>; //!<
+	readonly onActionKeyframe: EventNoticer<ActionEvent>; //!<
+	readonly onActionLoop: EventNoticer<ActionEvent>; //!<
+	readonly cssclass: CStyleSheetsClass; //!<
+	readonly parent: View | null; //!< @get parent:View|null
+	readonly prev: View | null; //!< @get prev:View|null
+	readonly next: View | null; //!< @get next:View|null
+	readonly first: View | null; //!< @get first:View|null
+	readonly last: View | null; //!< @get last:View|null
+	readonly window: Window; //!<
+	readonly matrix: Matrix | null; //!< top matrix view
+	readonly level: number; //!<
+	readonly layoutWeight: types.Vec2; //!<
+	readonly layoutAlign: types.Align; //!<
+	readonly isClip: boolean; //!<
+	readonly viewType: ViewType; //!<
+	readonly position: types.Vec2; //!< @safe Rt
+	readonly layoutOffset: types.Vec2; //!< @safe Rt
+	readonly layoutSize: types.Vec2; //!< @safe Rt
+	readonly center: types.Vec2; //!< @safe Rt
+	readonly metaView: View; //!<
+	readonly visibleRegion: boolean; //!<
+	readonly ref: string; //!<
+	style: StyleSheet; //!<
+	action: Action | null; //!<
+	class: string[]; //!< settingonly method, cssclass.set()
+	opacity: number; //!<
+	cursor: types.CursorStyle; //!<
+	visible: boolean; //!<
+	receive: boolean; //!<
+	isFocus: boolean; //!<
+	focus(): boolean; //!< @method focus()bool
 	blur(): boolean;
-	show(): void; /// @method show() visible = true
-	hide(): void; /// @method hide() visible = false
-	isSelfChild(child: View): boolean; /// @method isSelfChild(child:View)bool
-	before(view: View): void; ///
-	after(view: View): void; ///
-	prepend(view: View): void; ///
-	append(view: View): void; ///
-	remove(): void; ///
-	removeAllChild(): void; ///
-	overlapTest(point: types.Vec2): boolean; /// @safe Rt
-	hashCode(): number; ///
-	appendTo(parent: View): this; ///
-	afterTo(prev: View): this; ///
-	destroy(owner: ViewController): void; ///
+	show(): void; //!< @method show() visible = true
+	hide(): void; //!< @method hide() visible = false
+	isSelfChild(child: View): boolean; //!< @method isSelfChild(child:View)bool
+	before(view: View): void; //!<
+	after(view: View): void; //!<
+	prepend(view: View): void; //!<
+	append(view: View): void; //!<
+	remove(): void; //!<
+	removeAllChild(): void; //!<
+	overlapTest(point: types.Vec2): boolean; //!< @safe Rt
+	hashCode(): number; //!<
+	appendTo(parent: View): this; //!<
+	afterTo(prev: View): this; //!<
+	destroy(owner: ViewController): void; //!<
 	/**
 	 * @method transition(to:KeyframeIn[,from:KeyframeIn|ActionCb[,cb:ActionCb]])KeyframeAction
 	*/
 	transition(to: KeyframeIn, from?: KeyframeIn | ActionCb, cb?: ActionCb): KeyframeAction;
-	constructor(win: Window); /// @constructor(win:Window)
+	constructor(win: Window); //!< @constructor(win:Window)
 	static readonly isViewController: boolean;
 }
 
@@ -167,50 +167,50 @@ export declare class View extends Notification<UIEvent> implements DOM {
  * @extends View
 */
 export declare class Box extends View {
-	clip: boolean; ///
-	align: types.Align; ///
-	width: types.BoxSize; ///
-	height: types.BoxSize; ///
-	minWidth: types.BoxSize; ///
-	minHeight: types.BoxSize; ///
-	maxWidth: types.BoxSize; ///
-	maxHeight: types.BoxSize; ///
-	margin: number[]; ///
-	marginTop: number; ///
-	marginRight: number; ///
-	marginBottom: number; ///
-	marginLeft: number; ///
-	padding: number[]; ///
-	paddingTop: number; ///
-	paddingRight: number; ///
-	paddingBottom: number; ///
-	paddingLeft: number; ///
-	borderRadius: number[]; ///
-	borderRadiusLeftTop: number; ///
-	borderRadiusRightTop: number; ///
-	borderRadiusRightBottom: number; ///
-	borderRadiusLeftBottom: number; ///
-	border: types.BoxBorder[]; ///
-	borderTop: types.BoxBorder; ///
-	borderRight: types.BoxBorder; ///
-	borderBottom: types.BoxBorder; ///
-	borderLeft: types.BoxBorder; ///
-	borderWidth: number[]; ///
-	borderColor: types.Color[]; ///
-	borderWidthTop: number; ///
-	borderWidthRight: number; ///
-	borderWidthBottom: number; ///
-	borderWidthLeft: number; ///
-	borderColorTop: types.Color; ///
-	borderColorRight: types.Color; ///
-	borderColorBottom: types.Color; ///
-	borderColorLeft: types.Color; ///
-	backgroundColor: types.Color; ///
-	background: types.BoxFilter | null; ///
-	boxShadow: types.BoxShadow | null; ///
-	weight: types.Vec2; ///
-	readonly contentSize: types.Vec2; /// @safe Rt, width,height, no include padding
-	readonly clientSize: types.Vec2; /// @safe Rt, border + padding + content
+	clip: boolean; //!<
+	align: types.Align; //!<
+	width: types.BoxSize; //!<
+	height: types.BoxSize; //!<
+	minWidth: types.BoxSize; //!<
+	minHeight: types.BoxSize; //!<
+	maxWidth: types.BoxSize; //!<
+	maxHeight: types.BoxSize; //!<
+	margin: number[]; //!<
+	marginTop: number; //!<
+	marginRight: number; //!<
+	marginBottom: number; //!<
+	marginLeft: number; //!<
+	padding: number[]; //!<
+	paddingTop: number; //!<
+	paddingRight: number; //!<
+	paddingBottom: number; //!<
+	paddingLeft: number; //!<
+	borderRadius: number[]; //!<
+	borderRadiusLeftTop: number; //!<
+	borderRadiusRightTop: number; //!<
+	borderRadiusRightBottom: number; //!<
+	borderRadiusLeftBottom: number; //!<
+	border: types.BoxBorder[]; //!<
+	borderTop: types.BoxBorder; //!<
+	borderRight: types.BoxBorder; //!<
+	borderBottom: types.BoxBorder; //!<
+	borderLeft: types.BoxBorder; //!<
+	borderWidth: number[]; //!<
+	borderColor: types.Color[]; //!<
+	borderWidthTop: number; //!<
+	borderWidthRight: number; //!<
+	borderWidthBottom: number; //!<
+	borderWidthLeft: number; //!<
+	borderColorTop: types.Color; //!<
+	borderColorRight: types.Color; //!<
+	borderColorBottom: types.Color; //!<
+	borderColorLeft: types.Color; //!<
+	backgroundColor: types.Color; //!<
+	background: types.BoxFilter | null; //!<
+	boxShadow: types.BoxShadow | null; //!<
+	weight: types.Vec2; //!<
+	readonly contentSize: types.Vec2; //!< @safe Rt, width,height, no include padding
+	readonly clientSize: types.Vec2; //!< @safe Rt, border + padding + content
 }
 
 /**
@@ -218,9 +218,9 @@ export declare class Box extends View {
  * @extends Box
 */
 export declare class Flex extends Box {
-	direction: types.Direction; ///
-	itemsAlign: types.ItemsAlign; ///
-	crossAlign: types.CrossAlign; ///
+	direction: types.Direction; //!<
+	itemsAlign: types.ItemsAlign; //!<
+	crossAlign: types.CrossAlign; //!<
 }
 
 /**
@@ -228,8 +228,8 @@ export declare class Flex extends Box {
  * @extends Flex
 */
 export declare class Flow extends Flex {
-	wrap: types.Wrap; ///
-	wrapAlign: types.WrapAlign; ///
+	wrap: types.Wrap; //!<
+	wrapAlign: types.WrapAlign; //!<
 }
 
 /**
@@ -244,9 +244,9 @@ export declare class Free extends Box {
  * @extends Box
 */
 export declare class Image extends Box {
-	readonly onLoad: EventNoticer<UIEvent>; ///
-	readonly onError: EventNoticer<UIEvent>; ///
-	src: string; ///
+	readonly onLoad: EventNoticer<UIEvent>; //!<
+	readonly onError: EventNoticer<UIEvent>; //!<
+	src: string; //!<
 }
 
 /**
@@ -254,21 +254,21 @@ export declare class Image extends Box {
  * @extends Box
 */
 export declare class Matrix extends Box {
-	translate: types.Vec2; ///
-	scale: types.Vec2; ///
-	skew: types.Vec2; ///
-	rotateZ: number; ///
-	originX: types.BoxOrigin; ///
-	originY: types.BoxOrigin; ///
-	readonly originValue: types.Vec2; ///
-	x: number; ///
-	y: number; ///
-	scaleX: number; ///
-	scaleY: number; ///
-	skewX: number; ///
-	skewY: number; ///
-	origin: types.BoxOrigin[]; ///
-	readonly mat: types.Mat; ///
+	translate: types.Vec2; //!<
+	scale: types.Vec2; //!<
+	skew: types.Vec2; //!<
+	rotateZ: number; //!<
+	originX: types.BoxOrigin; //!<
+	originY: types.BoxOrigin; //!<
+	readonly originValue: types.Vec2; //!<
+	x: number; //!<
+	y: number; //!<
+	scaleX: number; //!<
+	scaleY: number; //!<
+	skewX: number; //!<
+	skewY: number; //!<
+	origin: types.BoxOrigin[]; //!<
+	readonly mat: types.Mat; //!<
 }
 
 /**
@@ -282,21 +282,21 @@ export declare class Root extends Matrix {
  * @interface TextOptions
 */
 export interface TextOptions {
-	readonly fontStyle: number; ///
-	textAlign: types.TextAlign; ///
-	textWeight: types.TextWeight; ///
-	textSlant: types.TextSlant; ///
-	textDecoration: types.TextDecoration; ///
-	textOverflow: types.TextOverflow; ///
-	textWhiteSpace: types.TextWhiteSpace; ///
-	textWordBreak: types.TextWordBreak; ///
-	textSize: types.TextSize; ///
-	textBackgroundColor: types.TextColor; ///
-	textColor: types.TextColor; ///
-	textLineHeight: types.TextSize; ///
-	textShadow: types.TextShadow; ///
-	textFamily: types.TextFamily; ///
-	computeLayoutSize(text: string): types.Vec2; ///
+	readonly fontStyle: number; //!<
+	textAlign: types.TextAlign; //!<
+	textWeight: types.TextWeight; //!<
+	textSlant: types.TextSlant; //!<
+	textDecoration: types.TextDecoration; //!<
+	textOverflow: types.TextOverflow; //!<
+	textWhiteSpace: types.TextWhiteSpace; //!<
+	textWordBreak: types.TextWordBreak; //!<
+	textSize: types.TextSize; //!<
+	textBackgroundColor: types.TextColor; //!<
+	textColor: types.TextColor; //!<
+	textLineHeight: types.TextSize; //!<
+	textShadow: types.TextShadow; //!<
+	textFamily: types.TextFamily; //!<
+	computeLayoutSize(text: string): types.Vec2; //!<
 }
 
 /**
@@ -319,7 +319,7 @@ export declare class Text extends Box implements TextOptions {
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
-	value: string; ///
+	value: string; //!<
 	computeLayoutSize(text: string): types.Vec2;
 }
 
@@ -328,7 +328,7 @@ export declare class Text extends Box implements TextOptions {
  * @extends Text
 */
 export declare class Button extends Text {
-	nextButton(dir: types.FindDirection): Button | null; ///
+	nextButton(dir: types.FindDirection): Button | null; //!<
 }
 
 /**
@@ -351,7 +351,7 @@ export declare class Label extends View implements TextOptions {
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
-	value: string; ///
+	value: string; //!<
 	computeLayoutSize(text: string): types.Vec2;
 }
 
@@ -361,7 +361,7 @@ export declare class Label extends View implements TextOptions {
  * @implements TextOptions
 */
 export declare class Input extends Box implements TextOptions {
-	readonly onChange: EventNoticer<UIEvent>; ///
+	readonly onChange: EventNoticer<UIEvent>; //!<
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
 	textWeight: types.TextWeight;
@@ -376,16 +376,16 @@ export declare class Input extends Box implements TextOptions {
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
-	security: boolean; /// input
-	readonly: boolean; ///
-	type: types.KeyboardType; ///
-	returnType: types.KeyboardReturnType; ///
-	placeholderColor: types.Color; ///
-	cursorColor: types.Color; ///
-	maxLength: number; ///
-	value: string; ///
-	placeholder: string; ///
-	readonly textLength: number; ///
+	security: boolean; //!< input
+	readonly: boolean; //!<
+	type: types.KeyboardType; //!<
+	returnType: types.KeyboardReturnType; //!<
+	placeholderColor: types.Color; //!<
+	cursorColor: types.Color; //!<
+	maxLength: number; //!<
+	value: string; //!<
+	placeholder: string; //!<
+	readonly textLength: number; //!<
 	computeLayoutSize(text: string): types.Vec2;
 }
 
@@ -393,27 +393,27 @@ export declare class Input extends Box implements TextOptions {
  * @interface ScrollBase
 */
 export interface ScrollBase {
-	scrollbar: boolean; ///
-	bounce: boolean; ///
-	bounceLock: boolean; ///
-	momentum: boolean; ///
-	lockDirection: boolean; ///
-	scrollX: number; ///
-	scrollY: number; ///
-	scroll: types.Vec2; ///
-	resistance: number; ///
-	catchPositionX: number; ///
-	catchPositionY: number; ///
-	scrollbarColor: types.Color; ///
-	scrollbarWidth: number; ///
-	scrollbarMargin: number; ///
-	scrollDuration: number; ///
-	defaultCurve: types.Curve; ///
-	readonly scrollbarH: boolean; ///
-	readonly scrollbarV: boolean; ///
-	readonly scrollSize: types.Vec2; ///
-	scrollTo(val: types.Vec2, duration?: number, curve?: types.Curve): void; ///
-	terminate(): void; ///
+	scrollbar: boolean; //!<
+	bounce: boolean; //!<
+	bounceLock: boolean; //!<
+	momentum: boolean; //!<
+	lockDirection: boolean; //!<
+	scrollX: number; //!<
+	scrollY: number; //!<
+	scroll: types.Vec2; //!<
+	resistance: number; //!<
+	catchPositionX: number; //!<
+	catchPositionY: number; //!<
+	scrollbarColor: types.Color; //!<
+	scrollbarWidth: number; //!<
+	scrollbarMargin: number; //!<
+	scrollDuration: number; //!<
+	defaultCurve: types.Curve; //!<
+	readonly scrollbarH: boolean; //!<
+	readonly scrollbarV: boolean; //!<
+	readonly scrollSize: types.Vec2; //!<
+	scrollTo(val: types.Vec2, duration?: number, curve?: types.Curve): void; //!<
+	terminate(): void; //!<
 }
 
 /**
@@ -422,7 +422,7 @@ export interface ScrollBase {
  * @implements ScrollBase
 */
 export declare class Textarea extends Input implements ScrollBase {
-	readonly onScroll: EventNoticer<UIEvent>; ///
+	readonly onScroll: EventNoticer<UIEvent>; //!<
 	scrollbar: boolean;
 	bounce: boolean;
 	bounceLock: boolean;
@@ -452,7 +452,7 @@ export declare class Textarea extends Input implements ScrollBase {
  * @implements ScrollBase
 */
 export declare class Scroll extends Box implements ScrollBase {
-	readonly onScroll: EventNoticer<UIEvent>; ///
+	readonly onScroll: EventNoticer<UIEvent>; //!<
 	scrollbar: boolean;
 	bounce: boolean;
 	bounceLock: boolean;
@@ -482,8 +482,8 @@ export declare class Scroll extends Box implements ScrollBase {
  * @implements Player
 */
 export declare class Video extends Image implements Player {
-	readonly onStop: EventNoticer<UIEvent>; ///
-	readonly onBuffering: EventNoticer<UIEvent>; ///
+	readonly onStop: EventNoticer<UIEvent>; //!<
+	readonly onBuffering: EventNoticer<UIEvent>; //!<
 	readonly pts: number;
 	volume: number;
 	mute: boolean;

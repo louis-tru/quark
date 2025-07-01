@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+import { StyleSheet, CSSNameExp } from './css';
+import * as types from './types';
 import util from './util';
 import { View } from './view';
 import { ActionEvent } from './event';
 import { Window } from './window';
-import { StyleSheet,CSSNameExp } from './css';
-import * as types from './types';
 
 Object.assign(exports, __binding__('_action'));
 
@@ -46,12 +46,12 @@ export type KeyframeIn = StyleSheet | CSSNameExp;
  * @type ActionIn = {Action} | {KeyframeIn[]} | {...}
 */
 export type ActionIn = Action | KeyframeIn[] | {
-	playing?: boolean; ///
-	loop?: number; ///
-	speed?: number; ///
-	spawn?: ActionIn[]; ///
-	seq?: ActionIn[]; ///
-	keyframe?: KeyframeIn[]; ///
+	playing?: boolean; //!<
+	loop?: number; //!<
+	speed?: number; //!<
+	spawn?: ActionIn[]; //!<
+	seq?: ActionIn[]; //!<
+	keyframe?: KeyframeIn[]; //!<
 };
 
 /**

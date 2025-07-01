@@ -44,9 +44,9 @@ const Navigation_Stack: WeakMap<Window, List<Navigation>> = new WeakMap();
  * @enum NavStatus
 */
 export enum NavStatus {
-	Init = -1, ///
-	Foreground,///
-	Background,///
+	Init = -1, //!<
+	Foreground,//!<
+	Background,//!<
 }
 
 /**
@@ -556,11 +556,11 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	private _backText: string = '';
 	private _titleText: string = '';
 
-	@link hidden: boolean = false; ///
-	@link visibleBackIcon: boolean = true; ///
-	@link visibleBackText: boolean = true; ///
-	@link backTextColor: types.ColorStrIn = '#000'; ///
-	@link titleTextColor: types.ColorStrIn = '#147EFF'; ///
+	@link hidden: boolean = false; //!<
+	@link visibleBackIcon: boolean = true; //!<
+	@link visibleBackText: boolean = true; //!<
+	@link backTextColor: types.ColorStrIn = '#000'; //!<
+	@link titleTextColor: types.ColorStrIn = '#147EFF'; //!<
 
 	/**
 	 * @get page:NavPage
@@ -728,7 +728,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 	/** @get isFirstPage:bool */
 	get isFirstPage() { return this.navStack.length == 0 || this.navStack.front === this }
 
-	@link backgroundColor: types.ColorStrIn = '#fff'; ///
+	@link backgroundColor: types.ColorStrIn = '#fff'; //!<
 	/**
 	 * @getset title:string
 	*/

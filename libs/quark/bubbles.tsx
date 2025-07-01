@@ -41,11 +41,11 @@ const border = 5;
  * @enum Priority
 */
 export enum Priority {
-	Auto, ///
-	Top, ///
-	Right, ///
-	Bottom, ///
-	Left, ///
+	Auto, //!<
+	Top, //!<
+	Right, //!<
+	Bottom, //!<
+	Left, //!<
 };
 
 /**

@@ -417,7 +417,7 @@ export interface ResponseData {
 	/** response headers */
 	responseHeaders: Dict<string>;
 }
-/// @end
+//!< @end
 
 /**
  * @method request(options)

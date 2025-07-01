@@ -83,7 +83,7 @@ export declare class FontPool {
 	*/
 	getFamilyName(index: number): string;
 }
-/// @end
+//!< @end
 
 /**
  * @method getFontFamilies

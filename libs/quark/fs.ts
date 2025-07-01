@@ -117,7 +117,7 @@ export enum FileType {
 	 */
 	FTYPE_BLOCK,
 }
-/// @end
+//!< @end
 
 /**
  * @const defaultMode
@@ -1190,7 +1190,7 @@ export interface Reader {
 	*/
 	clear(): void;
 }
-/// @end
+//!< @end
 
 /**
  * @const reader
