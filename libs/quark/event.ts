@@ -156,12 +156,12 @@ export declare class ClickEvent extends UIEvent {
 }
 
 /**
- * @class HighlightedEvent
- * @extends UIEvent
- * 
  * When this event triggers, 
  * the highlighted state that the view should enter after triggering certain events.
  * For example: when the mouse enters the view, the state is `Hover`
+ * 
+ * @class HighlightedEvent
+ * @extends UIEvent
  */
 export declare class HighlightedEvent extends UIEvent {
 	/** Highlight state type */
@@ -180,8 +180,7 @@ export declare class MouseEvent extends UIEvent {
 }
 
 /**
- * @class TouchPoint
- * @extends UIEvent
+ * @interface TouchPoint
  * 
  * Touch point data of the touch event
 */
@@ -219,7 +218,6 @@ const _init = __binding__('_init');
 const PREFIX = '_on';
 
 /**
- * @template E
  * @class NativeNotification
  * @extends Notification
  */

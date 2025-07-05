@@ -73,48 +73,33 @@ export enum StatusBarStyle {
 */
 export declare class Screen extends Notification<Event<Screen>> {
 	/**
-	 * @event onOrientation()
+	 * @event onOrientation
 	 * 
 	 * Trigger when screen direction change
 	*/
 	readonly onOrientation: EventNoticer<Event<Screen>>;
 
 	/**
-	 * @get orientation:Orientation
-	 * 
 	 * Current screen direction
 	*/
 	readonly orientation: Orientation;
 
 	/**
-	 * @get statusBarHeight:number
 	*/
 	readonly statusBarHeight: number;
 
 	/**
-	 * @method setVisibleStatusBar(visible)
-	 * 
 	 * Setting whether visible for the status bar
-	 * 
-	 * @param visible {bool}
 	*/
 	setVisibleStatusBar(visible: boolean): void;
 
 	/**
-	 * @method setStatusBarStyle(style)
-	 * 
 	 * Setting style for the status bar
-	 * 
-	 * @param style {StatusBarStyle}
 	*/
 	setStatusBarStyle(style: StatusBarStyle): void;
 
 	/**
-	 * @method preventScreenSleep(prevent)
-	 * 
 	 * "true" means to prevent screen sleep else no prevent
-	 * 
-	 * @param prevent {bool}
 	*/
 	preventScreenSleep(prevent: boolean): void;
 }

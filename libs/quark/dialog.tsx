@@ -127,12 +127,12 @@ createCss({
 });
 
 /**
- * @const Consts = {...}
+ * @const Consts:...
 */
 export const Consts = {
-	Ok: 'OK',
-	Cancel: 'Cancel',
-	Placeholder: 'Please enter..',
+	Ok: 'OK', //!<
+	Cancel: 'Cancel', //!<
+	Placeholder: 'Please enter..', //!<
 };
 
 /**
@@ -154,9 +154,9 @@ export class Dialog<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @get length:uint buttons length
+	 * buttons length
 	*/
-	get length() {
+	get length(): Uint {
 		return this._buttons.length;
 	}
 
@@ -349,10 +349,11 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 }
 
 /**
- * @method alert(window,msg[,cb])
- * @param window {Window}
- * @param msg {string|object}
- * @param cb? {Function}
+ * @method alert(window,msg,cb?)
+ * @param window:Window
+ * @param msg:string|object
+ * @param cb?:Function
+ * @return {Dialog}
 */
 export function alert(window: Window, msg: string | {msg?:string, title?: string}, cb = util.noop) {
 	let message: any;
@@ -367,10 +368,11 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 }
 
 /**
- * @method confirm(window,msg[,cb])
- * @param window {Window}
- * @param msg {string}
- * @param cb? {Function}
+ * @method confirm(window,msg,cb?)
+ * @param window:Window
+ * @param ms:string
+ * @param cb:Function
+ * @return {Dialog}
 */
 export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = util.noop) {
 	let dag = (
@@ -381,10 +383,11 @@ export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = u
 }
 
 /**
- * @method prompt(window,msg[,cb])
- * @param window {Window}
- * @param msg {string|object}
- * @param cb? {Function}
+ * @method prompt(window,msg,cb?)
+ * @param window:Window
+ * @param msg:string|object
+ * @param cb?:Function
+ * @return {Dialog}
 */
 export function prompt(window: Window, msg: string | {
 		msg?: string, text?: string, placeholder?: string, security?: boolean 
@@ -419,12 +422,13 @@ export function prompt(window: Window, msg: string | {
 }
 
 /**
- * @method show(window,title,msg[,buttons[,cb]])
- * @param window {Window}
- * @param title {string}
- * @param msg {string}
- * @param buttons? {RenderData[]}
- * @param cb? {Function}
+ * @method show(window,title,msg,buttons?,cb?)
+ * @param window:Window
+ * @param title:string
+ * @param msg:string
+ * @param buttons?:RenderData[]
+ * @param cb?:Function
+ * @return {Dialog}
 */
 export function show(window: Window, title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 	let dag = (
@@ -435,9 +439,7 @@ export function show(window: Window, title: string, msg: string, buttons: Render
 }
 
 /**
- * @method sheet(window,content)
- * @param window {Window}
- * @param content {string}
+ * @return {Sheet}
 */
 export function sheet(window: Window, content: string) {
 	let dag = (<Sheet content={content} />).newDom(window.rootCtr) as Sheet;
@@ -446,10 +448,11 @@ export function sheet(window: Window, content: string) {
 }
 
 /**
- * @method sheetConfirm(window[,buttons[,cb]])
- * @param window {Window}
- * @param buttons? {RenderData[]}
- * @param cb? {Function}
+ * @method sheetConfirm(window,buttons?,cb?)
+ * @param window:Window
+ * @param buttons?:RenderData[]
+ * @param cb?:Function
+ * @return {Sheet}
 */
 export function sheetConfirm(window: Window, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 	let dag = (
@@ -466,14 +469,14 @@ export function sheetConfirm(window: Window, buttons: RenderData[] = [Consts.Ok]
 export class DialogController<P={},S={}> extends ViewController<P,S> {
 
 	/**
-	 * @method alertDialog(msg[,cb])
+	 * @method alertDialog(msg:string:object,cb?)Dialog
 	 */
 	alertDialog(msg: string | {msg?:string, title?: string}, cb = util.noop) {
 		return alert(this.window, msg, cb);
 	}
 
 	/**
-	 * @method promptDialog(msg[,cb])
+	 * @method promptDialog(msg:string|object,cb?)Dialog
 	 */
 	promptDialog(msg: string | { msg?: string, text?: string, placeholder?: string, security?: boolean },
 		cb: (ok: boolean, str: string)=>void = util.noop
@@ -482,21 +485,21 @@ export class DialogController<P={},S={}> extends ViewController<P,S> {
 	}
 
 	/**
-	 * @method confirmDialog(msg[,cb])
+	 * @method confirmDialog(msg:string,cb?)Dialog
 	 */
 	confirmDialog(msg: string, cb: (ok: boolean)=>void = util.noop) {
 		return confirm(this.window, msg, cb);
 	}
 
 	/**
-	 * @method showDialog(title,msg[,buttons[,cb]])
+	 * @method showDialog(title:string,msg:string,buttons?:RenderData[],cb?:Function)Dialog
 	 */
 	showDialog(title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 		return show(this.window, title, msg, buttons, cb);
 	}
 
 	/**
-	* @method sheetDialog(content)
+	* @method sheetDialog(content:string)Sheet
 	*/
 	sheetDialog(content: string) {
 		return sheet(this.window, content);

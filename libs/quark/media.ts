@@ -133,34 +133,34 @@ export interface Stream {
 */
 export interface Player {
 	/**
-	 * @get pts:uint Current the presentation timestamp
+	 * Current the presentation timestamp
 	*/
-	readonly pts: number;
+	readonly pts: Uint;
 
 	/**
-	 * @getset volume:number get/set audio volume
+	 * Get/Set audio volume
 	*/
 	volume: number;
 
 	/**
-	 * @getset mute:bool get/set audio mute
+	 * Get/Set audio mute
 	*/
 	mute: boolean;
 
 	/**
-	 * @get isPause:bool get is paused
+	 * Get is paused
 	*/
 	readonly isPause: boolean;
 
 	/**
-	 * @get type:MediaType get media type
+	 * Get media type
 	*/
 	readonly type: MediaType;
 
 	/**
-	 * @get duration:uint media play duration
+	 * Media play duration
 	*/
-	readonly duration: number;
+	readonly duration: Uint;
 
 	/**
 	 * @get status:MediaSourceStatus The playback status of the current media source
@@ -185,42 +185,34 @@ export interface Player {
 	/**
 	 * Get the number of audio tracks in the current media source
 	*/
-	readonly audioStreams: number;
+	readonly audioStreams: Uint;
 
 	/**
-	 * @method play()
 	 * Start play media
 	*/
 	play(): void;
 
 	/**
-	 * @method pause()
 	 * Pause play media
 	*/
 	pause(): void;
 
 	/**
-	 * @method stop()
 	 * Stop play media
 	*/
 	stop(): void;
 
 	/**
-	 * @method seek(timeMs)
 	 * Jump the current media source to the specified position
-	 * 
-	 * @param timeMs {uint}
 	*/
-	seek(timeMs: number): void;
+	seek(timeMs: Uint): void;
 
 	/**
-	 * @method switchAudio(index)
-	 * 
 	 * Switch the currently playing audio by track index
 	 * 
-	 * @param index {uint} The index < [`Player.audioStreams`]
+	 * @param index The index < [`Player.audioStreams`]
 	*/
-	switchAudio(index: number): void;
+	switchAudio(index: Uint): void;
 }
 
 /**
@@ -232,53 +224,49 @@ export declare class AudioPlayer extends
 	Notification<Event<AudioPlayer>> implements Player
 {
 	/**
-	 * @event onLoad()
+	 * @event onLoad
 	 * 
 	 * Trigger when the media source opened and start playing
 	*/
 	readonly onLoad: EventNoticer<Event<AudioPlayer, void>>;
 
 	/**
-	 * @event onStop()
+	 * @event onStop
 	 * 
 	 * Trigger when stop playing
 	*/
 	readonly onStop: EventNoticer<Event<AudioPlayer, void>>;
 
 	/**
-	 * @event onError(data)
+	 * @event onError
 	 * 
 	 * Trigger when an error occurs
-	 * 
-	 * @param data {Error}
 	*/
 	readonly onError: EventNoticer<Event<AudioPlayer, Error>>;
 
 	/**
-	 * @event onBuffering(data)
+	 * @event onBuffering
 	 * 
-	 * Trigger when the data needs buffering
-	 * 
-	 * @param data {float} range for 0-1
+	 * Trigger when the data needs buffering, event.data range for 0-1
 	*/
 	readonly onBuffering: EventNoticer<Event<AudioPlayer, number>>;
 
-	readonly pts: number;
+	readonly pts: Uint;
 	volume: number;
 	mute: boolean;
 	readonly isPause: boolean;
 	readonly type: MediaType;
-	readonly duration: number;
+	readonly duration: Uint;
 	readonly status: MediaSourceStatus;
 	src: string;
 	readonly video: Stream | null;
 	readonly audio: Stream | null;
-	readonly audioStreams: number;
+	readonly audioStreams: Uint;
 	play(): void;
 	pause(): void;
 	stop(): void;
-	seek(timeMs: number): void;
-	switchAudio(index: number): void;
+	seek(timeMs: Uint): void;
+	switchAudio(index: Uint): void;
 }
 
 class _AudioPlayer extends NativeNotification {

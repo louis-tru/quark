@@ -113,15 +113,15 @@ function querystringStringify(prefix: string, params: Dict) {
  * 
  * URL Processing Tool Type
  * 
- * Example:
+ * @example
  * 
- * ```js
+ * ```ts
  * // cwd: file://!<var/data
  * // Prints: file://!<var/data/index.js
  * var uri = new URL('index.js');
  * console.log(uri.href);
  * // Prints: http://quarks.cc/index.html?args=0
-var uri2 = new URL('http://quarks.cc/home/../index.html?args=0')
+ * var uri2 = new URL('http://quarks.cc/home/../index.html?args=0')
  * console.log(uri2.href);
  * // Prints: 
  * // Error: Parse uri error, Illegal URL
@@ -144,8 +144,7 @@ export class URL {
 	private _hashParams: Dict<string>;
 
 	/**
-	 * @constructor([path])
-	 * @param [path] {string}
+	 * @method constructor(path?:string)
 	 */
 	constructor(path: string = '') {
 		if (!path && isWeb) {
@@ -155,14 +154,11 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get href:string
-	 * 
 	 * Get the complete URL, including parameters
 	 * 
 	 * href: "http://xxxx.xxx:81/v1.1.0/quark/path.js?sasasas&asasasa#sdsdsd"
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: http://quarks.cc/
@@ -175,12 +171,11 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get filename:string
-	 * 
 	 * Get full path name
 	 * 
 	 * filename: "/D:/Documents/test.js"
+	 * 
+	 * @example
 	 *
 	 * ```ts
 	 * // Prints: /aaa/bbbb/ccc/test.js
@@ -197,6 +192,8 @@ export class URL {
 	 * 
 	 * Get the path and include the parameter part
 	 * 
+	 * @example
+	 * 
 	 * ```ts
 	 * // Prints: /aaa/bbbb/ccc/test.js?asas=asas
 	 * console.log(new URL('http://quarks.cc/aaa/bbbb/ccc/test.js?asas=asas').path);
@@ -208,14 +205,11 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get dirname:string
-	 * 
-	 * full path dir
+	 * Full path dir
 	 * 
 	 * dirname: "/D:/Documents"
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: /aaa/bbbb/ccc
@@ -228,14 +222,11 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get search:string
-	 * 
 	 * Get url query parameters
 	 * 
 	 * search: "?sasasas&asasasa"
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: ?a=A&b=B
@@ -248,13 +239,11 @@ export class URL {
 	}
 
 	/**
-	 * @get hash:string
-	 * 
 	 * hash: "#sdsdsd"
 	 * 
 	 * Get hash parameters
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: #c=C&d=D
@@ -267,14 +256,11 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get host:string
-	 * 
 	 * host: "quarks.cc:81"
 	 * 
 	 * Gets the host name and returns the host name with the port number
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: quarks.cc:80
@@ -287,14 +273,11 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get hostname:string
-	 * 
 	 * hostname: "quarks.cc"
 	 * 
 	 * Gets the host name, but does not return the port number
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: quarks.cc
@@ -307,14 +290,11 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get origin:string
-	 * 
 	 * origin: "http://quarks.cc:81"
 	 * 
 	 * Get the uri origin, protocol+host
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: http://quarks.cc:81
@@ -329,12 +309,9 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get basename:string
-	 * 
 	 * Get path base name
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: index.html
@@ -346,12 +323,10 @@ export class URL {
 		return this._basename;
 	}
 	
-	/** 
-	 * @get extname:string
-	 * 
+	/**
 	 * Get path extname
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: .html
@@ -364,15 +339,12 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get port:string
-	 * 
 	 * port: "81"
 	 * 
 	 * Get the host port number.
 	 * If the port number is not defined in the URL, an empty string is returned.
 	 * 
-	 * Example:
+	 * @example
 	 *
 	 * ```ts
 	 * // Prints: 81
@@ -387,14 +359,7 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @get protocol:string
-	 * 
-	 * protocol: "http:"
-	 * 
-	 * Get the protocol type string of the URL
-	 * 
-	 * For examples: `'http:'`|`'https'`|`'ftp:'`
+	 * Get the protocol type string of the URL, For: `'http:'`|`'https'`|`'ftp:'`
 	 */
 	get protocol(): string {
 		parse_path(this);
@@ -402,12 +367,9 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @getset params:string{}
-	 * 
 	 * Returns a collection of query parameters as an object, or set
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints:
@@ -443,12 +405,9 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @getset hashParams:string{}
-	 * 
 	 * Returns a Hash parameter set as an object, or set
 	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints:
@@ -484,14 +443,9 @@ export class URL {
 	}
 
 	/**
-	 * @method getParam(name)
-	 * 
 	 * Get path param
 	 * 
-	 * @param name {string}
-	 * @return {string}
-	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: ok
@@ -503,44 +457,27 @@ export class URL {
 	}
 
 	/**
-	 * 
-	 * @method setParam(name,value)
-	 * 
 	 * Set the URL query parameter key-value pair and return self
-	 * 
-	 * @param name {string}
-	 * @param value {string}
-	 * @return {this} return self
-	 * 
 	 */
-	setParam(name: string, value: string): URL {
+	setParam(name: string, value: string): this {
 		this.params[name] = value || '';
 		this._search = querystringStringify('?', this._params);
 		return this;
 	}
 
 	/**
-	 * @method deleteParam(name)
-	 * 
 	 * Remove URL query parameters by name
-	 * 
-	 * @param name {string}
-	 * @return {this}
 	 */
-	deleteParam(name: string): URL {
+	deleteParam(name: string): this {
 		delete this.params[name];
 		this._search = querystringStringify('?', this._params);
 		return this;
 	}
 
 	/**
-	 * @method clearParams
-	 *
 	 * Delete all of params in the URL
-	 * 
-	 * @return {this}
 	 */
-	clearParams(): URL {
+	clearParams(): this {
 		init(this);
 		this._params = {};
 		this._search = '';
@@ -548,54 +485,34 @@ export class URL {
 	}
 
 	/**
-	 * @method getHash(name)
-	 * 
 	 * Get hash param by name
-	 * 
-	 * @param name {string}
-	 * @return {string}
 	 */
 	getHash(name: string): string {
 		return this.hashParams[name];
 	}
 
 	/**
-	 * @method setHash(name,value)
-	 * 
 	 * Set hash param by the key/value
-	 * 
-	 * @param name {string}
-	 * @param value {string}
-	 * @return {this}
 	*/
-	setHash(name: string, value: string): URL {
+	setHash(name: string, value: string): this {
 		this.hashParams[name] = value || '';
 		this._hash = querystringStringify('#', this._hashParams);
 		return this;
 	}
 
 	/**
-	 * @method deleteHash(name)
-	 * 
 	 * Delete hash param by the name
-	 * 
-	 * @param name {string}
-	 * @return {this}
 	 */
-	deleteHash(name: string): URL {
+	deleteHash(name: string): this {
 		delete this.hashParams[name];
 		this._hash = querystringStringify('#', this._hashParams);
 		return this;
 	}
 
 	/**
-	 * @method clearHashs()
-	 * 
 	 * Delete all of hash params in the URL
-	 * 
-	 * @return {this}
 	 */
-	clearHashs(): URL {
+	clearHashs(): this {
 		init(this);
 		this._hashParams = {};
 		this._hash = '';
@@ -603,14 +520,9 @@ export class URL {
 	}
 
 	/**
-	 * @method relative(fromPath)
-	 * 
 	 * Get relative path from the fromPath to self
 	 * 
-	 * @param fromPath {string}
-	 * @return {string}
-	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: ../A/B/C/test.js
@@ -647,8 +559,6 @@ export class URL {
 	}
 
 	/**
-	 * @method toJSON()
-	 * @return {string}
 	*/
 	toJSON(): string {
 		return this.href;
@@ -682,15 +592,11 @@ export default {
 	URL: URL,
 
 	/**
-	 * @method executable()
-	 * 
 	 * Get the binary executable file path of the current application
-	 *
-	 * @return {string}
+	 * @method executable()string
+	 * @example
 	 * 
-	 * Example:
-	 * 
-	 * ```js
+	 * ```ts
 	 * // Prints:
 	 * // file://!<var/containers/Bundle/Application/4F1BD659-601D-4932-8484-D0D1F978F0BE/test.app/test
 	 * console.log(path.executable());
@@ -699,17 +605,12 @@ export default {
 	executable: _util.executable,
 
 	/**
-	 * @method documents([path])
-	 * 
 	 * Get the document storage path of the current application
+	 * @method documents(path?:string)string
+	 * @param path? Append to the document path
+	 * @example
 	 * 
-	 * @param path? {string} Append to the document path
-	 * Append to the document path
-	 * @return {string}
-	 * 
-	 * Example:
-	 * 
-	 * ```js
+	 * ```ts
 	 * // Prints:
 	 * // file://!<var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents
 	 * console.log(path.documents());
@@ -721,67 +622,44 @@ export default {
 	documents: _util.documents,
 
 	/**
-	 * @method temp([path])
-	 * 
 	 * Get the application temporary directory
-	 * 
-	 * @param path? {string}
-	 * @return {string}
+	 * @method temp(path?:string)string
 	*/
 	temp: _util.temp,
 
 	/**
-	 * @method resources([path])
-	 * 
 	 * Get the application resource directory
-	 * 
-	 * @param path? {string}
-	 * @return {string}
+	 * @method resources(path?:string)string
 	*/
 	resources: _util.resources,
 
 	/**
-	 * @method cwd()
-	 * 
 	 * Get the current working directory
-	 * 
-	 * @return {string}
+	 * @method cwd()string
 	*/
 	cwd: _util.cwd,
 
 	/**
-	 * @method chdir(path)
-	 * 
 	 * Set the current working directory and return `true` if successful
-	 * 
-	 * @param path {string}
-	 * @return {bool}
+	 * @method chdir(path:string)boolean
 	*/
 	chdir: _util.chdir,
 
 	/**
-	 * @method normalizePath(path[,retain_up])
-	 * 
 	 * Format part path to normalize path
-	 * 
-	 * @return {string}
+	 * @method normalizePath(path:string,retain_up?:boolean)string
 	*/
 	normalizePath: _util.normalizePath,
 	delimiter: _util.delimiter,
 
 	/**
-	 * @method classicPath()
-	 *
 	 * Restore the path to a path that the operating system can recognize.
 	 * Generally, you do not need to call this function unless you directly call
 	 * a Native/C/C++ function that is not provided by `Quark`
+	 * @method classicPath(path:string)string
+	 * @example
 	 * 
-	 * @paran path {string}
-	 * @return {string}
-	 * 
-	 * Example:
-	 * 
-	 * ```js
+	 * ```ts
 	 * // Prints: /var/data/test.js
 	 * console.log(path.normalizePath('file://!<var/data/test.js'));
 	 * ```
@@ -789,15 +667,9 @@ export default {
 	classicPath: _util.classicPath,
 
 	/**
-	 * @method resolve(path[,partPath])
-	 * 
 	 * Format path to standard absolute path
-	 * 
-	 * @param path {string}
-	 * @param partPath? {string}
-	 * @return {strign}
-	 * 
-	 * Example:
+	 * @method resolve(path:string,partPath?string)string
+	 * @example
 	 * 
 	 * ```ts
 	 * // Prints: http://quarks.cc/A/C/test.js
@@ -811,17 +683,12 @@ export default {
 	 */
 	resolve: _util.formatPath, // func
 
-	/** 
-	 * @method isAbsolute(path)
-	 * 
+	/**
 	 * Test whether it is an absolute path
+	 * @method isAbsolute(path:string)boolean
+	 * @example
 	 * 
-	 * @param path {string}
-	 * @return {bool}
-	 * 
-	 * Example:
-	 * 
-	 * ```js
+	 * ```ts
 	 * // Prints:
 	 * // true
 	 * // true
@@ -836,125 +703,125 @@ export default {
 	/**
 	 * Get basename
 	 */
-	basename(path?: string) {
+	basename(path?: string): string {
 		return get_path(path).basename;
 	},
 
 	/**
 	 * Get dirname
 	 */
-	dirname(path?: string) {
+	dirname(path?: string): string {
 		return get_path(path).dirname;
 	},
 
 	/**
 	 * Get extname
 	 */
-	extname(path?: string) {
+	extname(path?: string): string {
 		return get_path(path).extname;
 	},
 
 	/**
 	 * Get filename
 	 */
-	filename(path?: string) {
+	filename(path?: string): string {
 		return get_path(path).filename;
 	},
 
 	/**
 	 * Get path
 	 */
-	path(path?: string) {
+	path(path?: string): string {
 		return get_path(path).path;
 	},
 
 	/** Get search */
-	search(path?: string) {
+	search(path?: string): string {
 		return get_path(path).search;
 	},
 
 	/** Get hash */
-	hash(path?: string) {
+	hash(path?: string): string {
 		return get_path(path).hash;
 	},
 
 	/** Get host */
-	host(path?: string) {
+	host(path?: string): string {
 		return get_path(path).host;
 	},
 
 	/** Get hostname */
-	hostname(path?: string) {
+	hostname(path?: string): string {
 		return get_path(path).hostname;
 	},
 
 	/** Get origin */
-	origin(path?: string) {
+	origin(path?: string): string {
 		return get_path(path).origin;
 	},
 
 	/** Get port: "81" */
-	port(path?: string) {
+	port(path?: string): string {
 		return get_path(path).port;
 	},
 	
 	/** Get protocol: "http:" */
-	protocol(path?: string) {
+	protocol(path?: string): string {
 		return get_path(path).protocol;
 	},
 
 	/** Get params */
-	params(path?: string) {
+	params(path?: string): Dict<string> {
 		return get_path(path).params;
 	},
 
 	/** Get params  */
-	hashParams(path?: string) {
+	hashParams(path?: string): Dict<string> {
 		return get_path(path).hashParams;
 	},
 
 	/** Get path param */
-	getParam(name: string, path?: string) {
+	getParam(name: string, path?: string): string {
 		return get_path(path).getParam(name);
 	},
 
 	/** Set path param */
-	setParam(name: string, value: string, path?: string) {
+	setParam(name: string, value: string, path?: string): string {
 		return get_path(path).setParam(name, value).href;
 	},
 
 	/** Delete path param */
-	deleteParam(name: string, path?: string) {
+	deleteParam(name: string, path?: string): string {
 		return get_path(path).deleteParam(name).href;
 	},
 
 	/** Delete all of hash params */
-	clearParams(path?: string) {
+	clearParams(path?: string): string {
 		return get_path(path).clearParams().href;
 	},
 
 	/** Get hash param */
-	getHash(name: string, path?: string) {
+	getHash(name: string, path?: string): string {
 		return get_path(path).getHash(name);
 	},
 
 	/** Set hash param */
-	setHash(name: string, value: string, path?: string) {
+	setHash(name: string, value: string, path?: string): string {
 		return get_path(path).setHash(name, value).href;
 	},
 
 	/** Delete hash param */
-	deleteHash(name: string, path?: string) {
+	deleteHash(name: string, path?: string): string {
 		return get_path(path).deleteHash(name).href;
 	},
 
 	/** Delete all of hash params */
-	clearHashs(path?: string) {
+	clearHashs(path?: string): string {
 		return get_path(path).clearHashs().href;
 	},
 
 	/** Get relative path */
-	relative(from: string, target?: string) {
+	relative(from: string, target?: string): string {
 		return get_path(target).relative(from);
 	},
 

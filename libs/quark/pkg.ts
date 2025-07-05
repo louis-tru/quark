@@ -171,7 +171,7 @@ function resolveFilename(request: string, parent?: Module): { filename: string, 
  * file:///d:/a/bc/d/e/f/test.txt => file://d:
  * file:///a/bc/d/e/f/test.txt => file://
 */
-function getOrigin(from: string) {
+function getOrigin(from: string): string {
 	let origin: string = '';
 
 	if (!from)
@@ -317,9 +317,8 @@ function lookupFromInternal(pkgName: string, relativePath: string): LookupResult
 	return pkg ? { pkg, relativePath }: null;
 }
 
-/**
- * Code:
- * ```
+/*
+ * ```ts
  * const test = require('test_pkg/index')
  * import * as test from 'test_pkg/index'
  * ```
@@ -622,12 +621,7 @@ export class Module implements IModule {
 	}
 
 	/**
-	 * @method require(path)
-	 * 
 	 * Request module by the path
-	 * 
-	 * @param path {string}
-	 * @return {any}
 	*/
 	require(path: string): any {
 		assert(path, 'missing path');
@@ -833,7 +827,7 @@ class Package {
 	/** is http path */
 	readonly isHttp: boolean;
 	/** is internal package */
-	get isInternal() { return false }
+	get isInternal(): boolean { return false }
 
 	constructor(path: string, json: PackageJson, local?: Package) {
 		this.json = json;
@@ -889,11 +883,9 @@ class Package {
 	}
 
 	/**
-	 * @method resolve(relativePath)
-	 * 
+	 * @method resolve(relativePath:string)any
+	 *
 	 * Lookup internal module by the relative path
-	 * 
-	 * @param relativePath {string}
 	*/
 	resolve(relativePath: string): { pathname: string, resolve: string } {
 		let self = this;
@@ -1066,11 +1058,9 @@ class Package {
 	}
 
 	/**
-	 * @method install()
-	 * 
 	 * Async install package
 	*/
-	async install() {
+	async install(): Promise<void> {
 		let self = this;
 		if (self._status !== PackageStatus.INSTALLED) {
 			if (self._local) { // install local pkg
@@ -1090,8 +1080,6 @@ class Package {
 	}
 
 	/**
-	 * @method installSync()
-	 * 
 	 * Sync install package
 	*/
 	installSync() {
@@ -1210,15 +1198,12 @@ export default {
 	},
 
 	/**
-	 * @method addSearchPath(path[,isFirst[,noCache]])
-	 * 
 	 * Add global search path
-	 * 
-	 * @param path {string} global search directory path
-	 * @param isFirst? {bool} use high priority
-	 * @param noCache? {bool} use __no_cache param load pkgs.json file
+	 * @param path global search directory path
+	 * @param isFirst? use high priority
+	 * @param noCache? use __no_cache param load pkgs.json file
 	 */
-	async addSearchPath(path: string, isFirst?: boolean, noCache?: boolean) {
+	async addSearchPath(path: string, isFirst?: boolean, noCache?: boolean): Promise<void> {
 		path = formatPath(path);
 		if ( !searchPaths.hasOwnProperty(path) ) {
 			await new SearchPath(path).load(noCache);
@@ -1228,13 +1213,7 @@ export default {
 	},
 
 	/**
-	 * @method lookupPackage(name[,parent])
-	 * 
 	 * Lookup package by package name
-	 * 
-	 * @param name {string}
-	 * @param parent? {Module}
-	 * @return {Package|null}
 	*/
 	lookupPackage(name: string, parent?: Module): Package | null {
 		let r = lookup(name, parent);

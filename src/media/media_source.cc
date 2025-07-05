@@ -454,6 +454,8 @@ namespace qk {
 			auto sleep = 1e4 - (st - st0);
 			if (sleep > 0) {
 				thread_sleep(sleep); // Sleep for up to 10 millisecond
+			} else {
+				//Qk_DLog("no thread_sleep, media source");
 			}
 		} while (true);
 

@@ -34,12 +34,10 @@ import {Encoding} from './buffer';
 const _fs = __binding__('_fs');
 
 /**
- * @enum FileOpenFlag
- * 
  * Opening file Flags
 */
 export enum FileOpenFlag {
-	FOPEN_ACCMODE = 0o3,
+	FOPEN_ACCMODE = 0o3, //!<
 	/** Open a read-only file. The file must exist. */
 	FOPEN_RDONLY = 0o0,
 	/** Open a write-only file. The file must exist. */
@@ -90,8 +88,6 @@ export enum FileOpenFlag {
 }
 
 /**
- * @enum FileType
- * 
  * File type
 */
 export enum FileType {
@@ -117,7 +113,6 @@ export enum FileType {
 	 */
 	FTYPE_BLOCK,
 }
-//!< @end
 
 /**
  * @const defaultMode
@@ -134,7 +129,7 @@ export declare const defaultMode: number;
 export type StreamResponseCallback = (stream: StreamResponse)=>void;
 
 /**
- * @class Dirent
+ * @interface Dirent
  * 
  * The result returned by calling readdir/readdirSync
  * 
@@ -149,7 +144,7 @@ export interface Dirent {
 }
 
 /**
- * @class FileState
+ * @class FileStat
 */
 export declare class FileStat {
 	/** Is the file valid? */
@@ -199,7 +194,7 @@ export declare class FileStat {
 }
 
 /**
- * @class Stream
+ * @interface Stream
 */
 export interface Stream {
 	/** Pause stream reading */
@@ -209,7 +204,7 @@ export interface Stream {
 };
 
 /**
- * @class StreamResponse
+ * @interface StreamResponse
 */
 export interface StreamResponse {
 	/** Data size */
@@ -272,8 +267,7 @@ export class AsyncTask<T> extends Promise<T> {
 
 	/**
 	 * Abort I/O task
-	 * @method abort(reason)
-	 * @param reason? {Error} If the parameter is passed in, an exception will be thrown
+	 * @param reason? If the parameter is passed in, an exception will be thrown
 	*/
 	abort(reason?: Error): void {
 		_fs.abort(this._id);
@@ -284,352 +278,240 @@ export class AsyncTask<T> extends Promise<T> {
 	}
 }
 
-// sync
 /**
- * @method chmodSync(path[,mode])
- * 
  * Synchronously change file permissions
- * 
- * @param path {string}
- * @param mode? {int}
  * 
  * ```ts
  * chmodSync('my_file.txt', 0o775)
  * ```
 */
-export declare function chmodSync(path: string, mode?: number): void;
+export declare function chmodSync(path: string, mode?: Uint): void;
 
 /**
- * @method chownSync(path,owner,group)
- * 
  * Synchronize the `owner` and `group` of the configuration file
- * 
- * @param path {string}
- * @param owner {number}
- * @param group {number}
 */
-export declare function chownSync(path: string, owner: number, group: number): void;
+export declare function chownSync(path: string, owner: Uint, group: Uint): void;
 
 /**
- * @method mkdirSync(path[,mode])
- * 
  * Create a directory synchronously. If the path already exists, an exception will be thrown.
  * 
- * @param path {string}
- * @param mode? {int} **[`defaultMode`]**
+ * @param mode? **[`defaultMode`]**
 */
-export declare function mkdirSync(path: string, mode?: number): void;
+export declare function mkdirSync(path: string, mode?: Uint): void;
 
 /**
- * @method mkdirsSync(path[,mode])
- * 
  * Synchronously recursively create directories,
  * and no exception is thrown if the directory exists
- * 
- * @param path string
- * @param mode? int **[`defaultMode`]**
+ *
+ * @param mode? **[`defaultMode`]**
  */
-export declare function mkdirsSync(path: string, mode?: number): void;
+export declare function mkdirsSync(path: string, mode?: Uint): void;
 
 /**
  * Synchronously rename files and directories
- * 
- * @mehod renameSync(name,newName)
- * @param name {string}
- * @param newName {string}
 */
 export declare function renameSync(name: string, newName: string): void;
 
 /**
  * Synchronously create file hard links
  * 
- * @method linkSync(src,target)
- * @param src {string} Original file path
- * @param target {string} Link target path
+ * @param src Original file path
+ * @param target Link target path
 */
 export declare function linkSync(src: string, target: string): void;
 
 /**
  * Synchronously delete the file hard link.
  * If the file has only one link, the file will be physically deleted.
- * 
- * @method unlinkSync(path)
- * @param path {string}
 */
 export declare function unlinkSync(path: string): void;
 
 /**
  * Synchronously delete the file directory, the file directory must be empty
- * 
- * @method rmdirSync(path)
- * @param path {string}
 */
 export declare function rmdirSync(path: string): void;
 
 /**
  * Synchronously read the file directory file list
- * 
- * @method readdirSync(path)
- * @param path {string}
- * @return {Dirent[]}
 */
 export declare function readdirSync(path: string): Dirent[];
 
 /**
- * @method statSync(path)
- * 
  * Synchronously read file status information
- * 
- * @return {FileState}
 */
 export declare function statSync(path: string): FileStat;
 
 /**
  * Synchronously check if a file exists
- * 
- * @method existsSync(path)
- * @return {bool}
 */
 export declare function existsSync(path: string): boolean;
 
 /**
  * Synchronously checks if the path is a file, and returns `false` if the path does not exist
- * 
- * @method isFileSync(path)
- * @param path {string}
- * @return {bool}
 */
 export declare function isFileSync(path: string): boolean;
 
 /**
  * Synchronously checks if the path is a directory, and returns `false` if the path does not exist
- * 
- * @method isDirectorySync(path)
- * @param path {string}
- * @return {bool}
 */
 export declare function isDirectorySync(path: string): boolean;
 
 /**
  * Synchronously checks if the path is readable, returning `false` if the path does not exist
- * 
- * @method readableSync(path)
- * @param path {string}
- * @return {bool}
 */
 export declare function readableSync(path: string): boolean;
 
 /**
  * Synchronously checks if the path is writable, returning `false` if the path does not exist
- * 
- * @method writableSync(path)
- * @param path {string}
- * @return {bool}
 */
 export declare function writableSync(path: string): boolean;
 
 /**
  * Synchronously checks if it is executable, returns `false` if the path does not exist
- * 
- * @method executableSync(path)
- * @param path {string}
- * @return {bool}
 */
 export declare function executableSync(path: string): boolean;
 
 /**
- * 
- * @mehod chmodRecursionSync(path[,mode])
- * 
+ *
  * Synchronously recursively set the file permission attribute mode
  * 
  * (TODO: will block the calling thread, please use with caution)
  * 
- * @param path {string}
- * @param mode? {int} **[`defaultMode`]**
- * 
- * Example:
+ * @param mode? **[`defaultMode`]**
+ * @example
  * 
  * ```ts
  * fs.chmodRecursionSync(mypath, 0755);
  * ```
 */
-export declare function chmodRecursionSync(path: string, mode?: number): void;
+export declare function chmodRecursionSync(path: string, mode?: Uint): void;
 
 /**
- * @method chownRecursionSync(path,owner,group)
- * 
  * Synchronously recursively set file `owner` and `group` attributes
  * 
  * (TODO: will block the calling thread, please use with caution)
- * 
- * @param path string
- * @param owner int System User ID
- * @param group int System Group ID
+ *
+ * @param owner System User ID
+ * @param group System Group ID
  */
-export declare function chownRecursionSync(path: string, owner: number, group: number): void;
+export declare function chownRecursionSync(path: string, owner: Uint, group: Uint): void;
 
 /**
- * 
- * @method removeRecursionSync(path)
- * 
  * Synchronous recursive deletion of directories or files,
  * 
  * use this method with caution, it may cause the thread to be blocked for a long time
- * 
- * @param path {string}
  */
 export declare function removeRecursionSync(path: string): void;
 
 /**
- * @method copyRecursionSync(path,target)
- * 
  * Synchronous recursive copy of files,
  * 
  * use this method with caution, it may cause the thread to be blocked for a long time
- *
- * @param path strings
- * @param target string
- * 
  */
 export declare function copyRecursionSync(path: string, target: string): void;
 
 /**
- * @method copySync
- * 
  * Copy files synchronously (TODO: will block the calling thread, please use with caution)
  * 
- * Same as: copy files and directories[`copyRecursionSync(path，target)`]
- * 
- * @param path string
- * @param target string
+ * Same as: copy files and directories[`copyRecursionSync(path,target)`]
 */
 export declare function copySync(path: string, target: string): void;
 
-// read/write file sync
 /**
- * @method writeFileSync(path,data[,size])
- * 
  * Synchronously write data to a file
- * 
- * @param path {string}
- * @param data {Uint8Array}
- * @param size? {uint} Write all data when no parameters are passed
+ *
+ * @param size? Write all data when no parameters are passed
 */
-export declare function writeFileSync(path: string, data: Uint8Array, size?: number): number;
+export declare function writeFileSync(path: string, data: Uint8Array, size?: Uint): Uint;
 
 /**
- * @method writeFileSync(path,data[,encoding])
- * 
  * Synchronously write a string to a file
- * 
- * @param path {string}
- * @param data {string}
- * @param encoding? {Encoding} If not passed in, the default encoding is `utf-8`
+ *
+ * @param encoding? If not passed in, the default encoding is `utf-8`
 */
-export declare function writeFileSync(path: string, data: string, encoding?: Encoding): number;
+export declare function writeFileSync(path: string, data: string, encoding?: Encoding): Uint;
 
 /**
- * @method readFileSync(path)
- * 
  * Reading files synchronously
- * 
- * @param path {string}
- * @return {Uint8Array}
 */
 export declare function readFileSync(path: string): Uint8Array;
 
 /**
- * @method readFileSync(path,encoding)
- * 
  * Synchronously read a file as a string
  * 
- * @param path {string}
- * @param encoding {Encoding} Decode data to string encoding
- * @return {string}
+ * @param encoding Decode data to string encoding
 */
 export declare function readFileSync(path: string, encoding: Encoding): string;
 
 /**
- * @method openSync(path[,flags])
- * 
  * Opens a file by path synchronously and returns an open file handle
  * 
- * @param path {string}
- * @param flags? {FileOpenFlag} Open file flags mask
- * @return {uint}
+ * @param flags? Open file flags mask **Default** as FileOpenFlag.FOPEN_R
 */
-export declare function openSync(path: string, flags?: FileOpenFlag /*= FileOpenFlag.FOPEN_R*/): number;
+export declare function openSync(path: string, flags?: FileOpenFlag): Uint;
 
 /**
- * @method closeSync(fd)
- * 
  * Close the file handle synchronously
 */
-export declare function closeSync(fd: number): void;
+export declare function closeSync(fd: Uint): void;
 
 /**
- * @method readSync(fd,out[,size[,offsetFd]])
- * 
  * Synchronously read the file contents from the file handle
  * 
- * @param fd {uint} Open file handles
- * @param out {Uint8Array} Read the file and save it here
- * @param size? {int} If not passed or passed in `-1`, the length of the `out` parameter is used
- * @param offsetFd? {int} If not passed or -1 is passed,
+ * @param fd Open file handles
+ * @param out Read the file and save it here
+ * @param size? If not passed or passed in `-1`, the length of the `out` parameter is used
+ * @param offsetFd? If not passed or -1 is passed,
  * 	the internal offset value of the file handle is used (it will advance after each read)
- * @return {uint} Returns the size of the data actually read
+ * @return Returns the size of the data actually read
 */
-export declare function readSync(fd: number, out: Uint8Array, size?: number /*= -1*/, offsetFd?: number /*= -1*/): number;
+export declare function readSync(fd: Uint, out: Uint8Array, size?: Int, offsetFd?: Int): Uint;
 
 /**
- * @method writeSync(fd,data[,size[,offsetFd]])
- * 
  * Synchronously write data to a file handle
  * 
- * @param fd {uint} Open file handles
- * @param data {Uint8Array} Data to be written
- * @param size? {int} If not passed or `-1` is passed, all data will be written
- * @param offsetFd? {int} If not passed or `-1` is passed, the internal offset value of 
+ * @param fd Open file handles
+ * @param data Data to be written
+ * @param size? If not passed or `-1` is passed, all data will be written
+ * @param offsetFd? If not passed or `-1` is passed, the internal offset value of 
  * 	the file handle is used (it will advance after each write)
- * @return {uint} The actual size of the data written
+ * @return The actual size of the data written
 */
-export declare function writeSync(fd: number, data: Uint8Array, size?: number /*= -1*/, offsetFd?: number /*= -1*/): number;
+export declare function writeSync(fd: Uint, data: Uint8Array, size?: Int, offsetFd?: Int): Uint;
 
 /**
- * @method writeSync(fd,data[,offsetFd])
- * 
  * Write data to the file handle synchronously and encode the data using `utf-8`
  * 
- * @param fd {uint} Open file handles
- * @param data {string} The string to be written
- * @param offsetFd? {int} If not passed or `-1` is passed, the internal offset value of 
+ * @param fd Open file handles
+ * @param data The string to be written
+ * @param offsetFd? If not passed or `-1` is passed, the internal offset value of 
  * 	the file handle is used (it will advance after each write)
- * @return {uint} The actual size of the data written
+ * @return The actual size of the data written
 */
-export declare function writeSync(fd: number, data: string, offsetFd?: number /*= -1*/): number;
+export declare function writeSync(fd: Uint, data: string, offsetFd?: Int): Uint;
 
 /**
- * @method writeSync(fd,data,encoding[,offsetFd])
- * 
  * Synchronously write data to a file handle
  * 
- * @param fd {uint} Open file handles
- * @param data {string} Data to be written
- * @param encoding {Encoding} Encoding Type
- * @param offsetFd? {int} If not passed or `-1` is passed, the internal offset value of 
+ * @param fd Open file handles
+ * @param data Data to be written
+ * @param encoding Encoding Type
+ * @param offsetFd? If not passed or `-1` is passed, the internal offset value of 
  * 	the file handle is used (it will advance after each write)
- * @return {uint} The actual size of the data written
+ * @return The actual size of the data written
 */
-export declare function writeSync(fd: number, data: string, encoding: Encoding, offsetFd?: number /*= -1*/): number;
+export declare function writeSync(fd: Uint, data: string, encoding: Encoding, offsetFd?: Int): Uint;
 
 Object.assign(exports, {..._fs, ...exports});
 
 // async
 /**
- * Please ref: sync method [`chmodSync(path[,mode])`]
+ * Please ref: sync method [`chmodSync(path,mode?)`]
+ * @method chmod(path,mode?)
+ * @param path:string
+ * @param mode?:Uint
 */
-export function chmod(path: string, mode: number = _fs.defaultMode) {
+export function chmod(path: string, mode: Uint = _fs.defaultMode) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.chown(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
@@ -638,34 +520,37 @@ export function chmod(path: string, mode: number = _fs.defaultMode) {
 /**
  * Please ref: sync method [`chownSync(path,owner,group)`]
 */
-export function chown(path: string, owner: number, group: number) {
+export function chown(path: string, owner: Uint, group: Uint) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.chown(path, owner, group, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 
 /**
- * Please ref: sync method [`mkdirSync(path[,mode])`]
+ * Please ref: sync method [`mkdirSync(path,mode?)`]
+ * @method chmod(path,mode?)
+ * @param path:string
+ * @param mode?:Uint
 */
-export function mkdir(path: string, mode: number = _fs.defaultMode) {
+export function mkdir(path: string, mode: Uint = _fs.defaultMode) {
 	return new Promise<void>(function(resolve, reject) {
 		_fs.mkdir(path, mode, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 
 /**
- * @method mkdirs(path[,mode])
+ * @method mkdirs(path,mode?)
  * 
  * Recursively create directories. This method will create 
  * 	a directory tree in sequence, and will not throw an exception if the directory exists.
  * 
  * Ref: sync method [`mkdirsSync(path[,mode])`]
  * 
- * @arg path string
- * @arg mode? {int} **[`defaultMode`]**
+ * @param path:string
+ * @param mode?:Uint **[`defaultMode`]**
  * @return {Promise}
  * 
- * Example:
+ * @example
  * ```ts
  * fs.mkdirs(mypath).then(()=>{
  * 	// Success
@@ -717,15 +602,10 @@ export function rmdir(path: string) {
 }
 
 /**
-	* @method readdir
-	*
 	* Read directory listing information. Throws an exception if failed. 
 	* 	Returns an [`Array`] of [`Dirent`] if successful.
 	*
-	* @param path {string}
-	* @return {Promise<Dirent[]>}
-	*
-	*	Example:
+	*	@example
 	*
 	*	```ts
 	*	// Prints:
@@ -744,7 +624,7 @@ export function rmdir(path: string) {
 	*	});
 	*	```
 */
-export function readdir(path: string) {
+export function readdir(path: string): Promise<Dirent[]> {
 	return new Promise<Dirent[]>(function(resolve, reject) {
 		_fs.readdir(path, (err?: Error, r?: Dirent[])=>err?reject(err):resolve(r as Dirent[]));
 	});
@@ -753,7 +633,7 @@ export function readdir(path: string) {
 /**
  * Please ref: sync method [`statSync(path)`]
 */
-export function stat(path: string) {
+export function stat(path: string): Promise<FileStat> {
 	return new Promise<FileStat>(function(resolve, reject) {
 		_fs.stat(path, (err?: Error, r?: FileStat)=>err?reject(err):resolve(r as FileStat));
 	});
@@ -762,7 +642,7 @@ export function stat(path: string) {
 /**
  * Please ref: sync method [`existsSync(path)`]
 */
-export function exists(path: string) {
+export function exists(path: string): Promise<boolean> {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.exists(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
@@ -771,7 +651,7 @@ export function exists(path: string) {
 /**
  * Please ref: sync method [`isFileSync(path)`]
 */
-export function isFile(path: string) {
+export function isFile(path: string): Promise<boolean> {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.isFile(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
@@ -780,7 +660,7 @@ export function isFile(path: string) {
 /**
  * Please ref: sync method [`isDirectorySync(path)`]
 */
-export function isDirectory(path: string) {
+export function isDirectory(path: string): Promise<boolean> {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.isDirectory(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
@@ -789,7 +669,7 @@ export function isDirectory(path: string) {
 /**
  * Please ref: sync method [`readableSync(path)`]
 */
-export function readable(path: string) {
+export function readable(path: string): Promise<boolean> {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.readable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
@@ -798,7 +678,7 @@ export function readable(path: string) {
 /**
  * Please ref: sync method [`writableSync(path)`]
 */
-export function writable(path: string) {
+export function writable(path: string): Promise<boolean> {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.writable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
@@ -807,19 +687,19 @@ export function writable(path: string) {
 /**
  * Please ref: sync method [`executableSync(path)`]
 */
-export function executable(path: string) {
+export function executable(path: string): Promise<boolean> {
 	return new Promise<boolean>(function(resolve, reject) {
 		_fs.executable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
 
 /**
- * @method chmodRecursion(path[,mode])
+ * @method chmodRecursion(path,mode?)
  * 
  * Asynchronously recursively set the `mode` attribute of a file or directory
  *
- * @param path {string}
- * @param mode? {int} **[`defaultMode`]**
+ * @param path:string
+ * @param mode?:Uint **[`defaultMode`]**
  * @return {AsyncTask}
  * 
  * Example:
@@ -842,38 +722,25 @@ export function chmodRecursion(path: string, mode: number = _fs.defaultMode) {
 }
 
 /**
- *
- * @method chownRecursion(path,owner,group)
- * 
  * Asynchronously recursively set the `owner` and `group` attributes of files or directories
  * 
- * @param path {string}
- * @param owner {int}
- * @param group {int}
- * @return {AsyncTask}
- * 
- * Example:
+ * @example
  * 
  * ```ts
  * var task = chownRecursion(mypath, 501, 501);
  * fs.abort(task.id); // force abort task
  * ```
  */
-export function chownRecursion(path: string, owner: number, group: number) {
+export function chownRecursion(path: string, owner: Uint, group: Uint): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.chownRecursion(path, owner, group, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 
 /**
- * @method removeRecursion(path)
- * 
  * Recursively delete files and directories
  *
- * @param path {string}
- * @return {AsyncTask}
- * 
- * Example:
+ * @example
  * ```ts
  * var task = fs.removeRecursion(mypath);
  * task.then(()=>{
@@ -885,24 +752,18 @@ export function chownRecursion(path: string, owner: number, group: number) {
  * fs.abort(task.id);
 ```
 */
-export function removeRecursion(path: string) {
+export function removeRecursion(path: string): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.removeRecursion(path, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 
 /**
- * @method copyRecursion(path,target)
- * 
  * Recursively copy files
  *
  * The difference between `copyRecursion()` and `copy()` is that `copy()` can only copy a single file
- *
- * @param path string
- * @param target string
- * @return {AsyncTask}
  * 
- * Example:
+ * @example
  * ```ts
  * fs.copy(source, target).then(()=>{
  * 	// Success
@@ -911,37 +772,28 @@ export function removeRecursion(path: string) {
  * });
  * ```
  */
-export function copyRecursion(path: string, target: string) {
+export function copyRecursion(path: string, target: string): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.copyRecursion(path, target, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 
 /**
- * @method copy(path,target)
- * 
  * Copy a single file
  * 
  * Ref: [`copyRecursion(path,target)`]
- * 
- * @param path {string}
- * @param target {string}
- * @return {AsyncTask}
 */
-export function copy(path: string, target: string) {
+export function copy(path: string, target: string): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject) {
 		return _fs.copy(path, target, (err?: Error)=>err?reject(err):resolve());
 	});
 }
 
 /**
- * @method readStream(path,cb)
- * 
  * Read file contents using asynchronous streaming
  * 
- * @param path {string} Read the target path
- * @param cb {StreamResponseCallback} Asynchronous stream callback function
- * @return {AsyncTask}
+ * @param path Read the target path
+ * @param cb   Asynchronous stream callback function
 */
 export function readStream(path: string, cb: StreamResponseCallback): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject): number {
@@ -960,16 +812,12 @@ export function readStream(path: string, cb: StreamResponseCallback): AsyncTask<
 }
 
 /**
- * @method abort(id)
- * 
  * Force abort a running asynchronous task by `id`
  * 
  * If a meaningless `id` is passed in or the task to which 
  * 	the `id` belongs has been completed, no processing will be done
  * 
- * @param id {int}
- * 
- * Example:
+ * @example
  * 
  * ```ts
  * var a = fs.chmod(mypath, 0o755);
@@ -981,18 +829,18 @@ export function readStream(path: string, cb: StreamResponseCallback): AsyncTask<
  * fs.abort(c.id);
  * ```
 */
-export declare function abort(id: number): void;
+export declare function abort(id: Int): void;
 
 // async
 /**
- * Please ref: sync method [`writeFileSync(path,data[,size])`]
+ * Please ref: sync method [`writeFileSync(path,data,size?)`]
 */
-export declare function writeFile(path: string, data: Uint8Array, size?: number): Promise<number>;
+export declare function writeFile(path: string, data: Uint8Array, size?: Uint): Promise<Uint>;
 
 /**
- * Please ref: sync method [`writeFileSync(path,data[,encoding])`]
+ * Please ref: sync method [`writeFileSync(path,data,encoding?)`]
 */
-export declare function writeFile(path: string, data: string, encoding?: Encoding): Promise<number>;
+export declare function writeFile(path: string, data: string, encoding?: Encoding): Promise<Uint>;
 
 /**
  * Please ref: sync method [`readFileSync(path)`]
@@ -1005,34 +853,34 @@ export declare function readFile(path: string): Promise<Uint8Array>;
 export declare function readFile(path: string, encoding: Encoding): Promise<string>;
 
 /**
- * Please ref: sync method [`openSync(path[,flags])`]
+ * Please ref: sync method [`openSync(path,flags?)`]
 */
-export declare function open(path: string, flags?: FileOpenFlag): Promise<number>;
+export declare function open(path: string, flags?: FileOpenFlag): Promise<Uint>;
 
 /**
  * Please ref: sync method [`closeSync(fd)`]
 */
-export declare function close(path: number): Promise<void>;
+export declare function close(fd: Uint): Promise<void>;
 
 /**
- * Please ref: sync method [`readSync(fd,out[,size[,offsetFd]])`]
+ * Please ref: sync method [`readSync(fd,out,size?,offsetFd?])`]
 */
-export declare function read(fd: number, out: Uint8Array, size?: number, offsetFd?: number): Promise<number>;
+export declare function read(fd: Uint, out: Uint8Array, size?: Int, offsetFd?: Int): Promise<Uint>;
 
 /**
- * Please ref: sync method [`writeSync(fd,data[,size[,offsetFd]])`]
+ * Please ref: sync method [`writeSync(fd,data,size?,offsetFd?)`]
 */
-export declare function write(fd: number, data: Uint8Array, size?: number, offsetFd?: number): Promise<number>;
+export declare function write(fd: Uint, data: Uint8Array, size?: Int, offsetFd?: Int): Promise<Uint>;
 
 /**
- * Please ref: sync method [`writeSync(fd,data[,offsetFd])`]
+ * Please ref: sync method [`writeSync(fd,data,offsetFd?)`]
 */
-export declare function write(fd: number, data: string, offsetFd?: number): Promise<number>;
+export declare function write(fd: Uint, data: string, offsetFd?: Int): Promise<Uint>;
 
 /**
- * Please ref: sync method [`writeSync(fd,data,encoding[,offsetFd])`]
+ * Please ref: sync method [`writeSync(fd,data,encoding,offsetFd?)`]
 */
-export declare function write(fd: number, data: string, encoding: Encoding, offsetFd?: number): Promise<number>;
+export declare function write(fd: Uint, data: string, encoding: Encoding, offsetFd?: Int): Promise<Uint>;
 
 /**
  * @interface Reader
@@ -1052,16 +900,9 @@ export declare function write(fd: number, data: string, encoding: Encoding, offs
 export interface Reader {
 
 	/**
-	 * @method readFile(path)
-	 * 
-	 * 读取文件数据
-	 * 
 	 * Reading file data
 	 * 
-	 * @param path {string}
-	 * @return {AsyncTask<Uint8Array>}
-	 * 
-	 * For Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * reader.readFile('http://xxx.com/test.txt').then(()=>{
@@ -1074,30 +915,14 @@ export interface Reader {
 	readFile(path: string): AsyncTask<Uint8Array>;
 
 	/**
-	 * @method readFile(path,encoding)
-	 * 
-	 * 读取文件数据，并解码为字符串
-	 * 
 	 * Read file data and decode it into a string
-	 * 
-	 * @param path {string}
-	 * @param encoding {Encoding}
-	 * @return {AsyncTask<string>}
 	*/
 	readFile(path: string, encoding: Encoding): AsyncTask<string>;
 
 	/**
-	 * @method readStream(path,cb)
-	 * 
-	 * 以异步流方式读取文件数据
-	 * 
 	 * Read file data by asynchronous streaming
 	 * 
-	 * @param path {string}
-	 * @param cb {StreamResponseCallback}
-	 * @return {AsyncTask<void>}
-	 * 
-	 * Example:
+	 * @example
 	 * 
 	 * ```ts
 	 * // async read file stream 
@@ -1122,50 +947,33 @@ export interface Reader {
 	readFileSync(path: string, encoding: Encoding): string;
 
 	/**
-	 * @method existsSync(path)
-	 * 
 	 * 同步测试文件或目录是否存在，如果文件存在会返回`false`
 	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回`false`
 	 * 
 	 * Synchronously test whether a file or directory exists. If the file exists, it will return `false`
 	 * This method cannot handle paths of the `http://` and `https://` type. If such a path is passed, it will immediately return `false`
-	 * 
-	 * @param path {string}
-	 * @return {bool}
 	*/
 	existsSync(path: string): boolean;
 
 	/**
-	 * @method isFileSync(path)
-	 * 
 	 * 同步检查路径是否为文件，如果路径不存在返回 `false`
 	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回`false`
 	 * 
 	 * Synchronously check if the path is a file, and return `false` if the path does not exist
 	 * This method cannot handle `http://` and `https://` type paths, and immediately returns `false` if such a path is passed
-	 * 
-	 * @param path {string}
-	 * @return {bool}
 	*/
 	isFileSync(path: string): boolean;
 
 	/**
-	 * @method isDirectorySync(path)
-	 * 
 	 * 同步检查路径是否为目录，如果路径不存在返回 `false`
 	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回`false`
 	 * 
 	 * Synchronously check if the path is a directory, and return `false` if the path does not exist
 	 * This method cannot handle `http://` and `https://` type paths, and immediately returns `false` if such a path is passed in
-	 * 
-	 * @param path {string}
-	 * @return {bool}
 	*/
 	isDirectorySync(path: string): boolean;
 
 	/**
-	 * @method readdirSync(path)
-	 * 
 	 * 同步读取目录文件列表,
 	 * 这个方法不能处理`http://`与`https://`类型的路径,如果传入这种路径立即返回一个空数组[`Array`],
 	 * 这个方法也不会抛出异常，如果不能读取路径，只会返回空数组[`Array`]
@@ -1173,24 +981,19 @@ export interface Reader {
 	 * Synchronously read the directory file list,
 	 * This method cannot handle `http://` and `https://` type paths. If such a path is passed, an empty array [`Array`] will be immediately returned.
 	 * This method will not throw an exception. If the path cannot be read, it will only return an empty array [`Array`]
-	 * 
-	 * @param path {string}
-	 * @return {Dirent[]}
 	*/
 	readdirSync(path: string): Dirent[];
 
 	/**
-	 * @method abort(id) 通过`id`中止异步任务
-	 * @param id {uint}
+	 * Abort an asynchronous task by its id
 	*/
-	abort(id: number): void;
+	abort(id: Uint): void;
 
 	/**
-	 * @method clear() To clear cache of reader
+	 * To clear cache of reader
 	*/
 	clear(): void;
 }
-//!< @end
 
 /**
  * @const reader

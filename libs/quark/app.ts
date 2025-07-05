@@ -101,8 +101,8 @@ util.extendClass(Application, NativeNotification);
  * @default
 */
 export default {
-	/**
-	 * @get current:Application
-	*/
-	get current() { return _current! },
+	/** */
+	get current(): Application {
+		return _current!
+	},
 };

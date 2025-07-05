@@ -48,14 +48,9 @@ export declare class FontPool {
 	readonly defaultFontFamilies: types.FFID;
 
 	/**
-	 * @method getFontFamilies
-	 * 
 	 * Get the font FFID by name. Use `,` to separate multiple names.
-	 * 
-	 * @param families? {string}
-	 * @return {FFID}
 	 *
-	 * For examples:
+	 * @example
 	 *	```ts
 	 *	var ffid = pool.getFontFamilies('黑体,PingFang-SC')
 	 *	console.log(getFamiliesName(ffid))
@@ -64,39 +59,27 @@ export declare class FontPool {
 	getFontFamilies(families?: string): types.FFID;
 
 	/**
-	 * @method addFontFamily
-	 * 
 	 * Add an external font
-	 * 
-	 * @param data {Uint8Array} Font Buffer Data
-	 * @param alias? {string} Add an alias
+	 *
+	 * @param data Font Buffer Data
+	 * @param alias? Add an alias
 	*/
 	addFontFamily(data: Uint8Array, alias?: string): void;
 
 	/**
-	 * @method getFamilyName
-	 * 
 	 * Read font family name by index
 	 * 
-	 * @param index {uint}
-	 * @return {string}
+	 * @param index
 	*/
-	getFamilyName(index: number): string;
+	getFamilyName(index: Uint): string;
 }
-//!< @end
 
 /**
- * @method getFontFamilies
- * 
  * Get the font family object FFID by font family name
- * 
- * @param families? {string}
 */
 export declare function getFontFamilies(families?: string): types.FFID;
 
 /**
- * @method getFamiliesName
- * 
  * Get the name by font family FFID
 */
 export declare function getFamiliesName(ffid: types.FFID): string;

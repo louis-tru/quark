@@ -59,27 +59,49 @@ class RuntimeEvents extends Notification {
 export const _runtimeEvents = new RuntimeEvents();
 
 /**
+ * @type ErrorReason:...
+*/
+export type ErrorReason = {
+	reason: Error; //!<
+	promise: Promise<any>; //!<
+};
+
+/**
  * @default
 */
 export default {
 	..._util,
 	..._common,
-	get id() {
+	/***/
+	get id(): Uint {
 		return _common.getId();
 	},
-	get config() {
+	/***/
+	get config(): Dict {
 		return getConfig();
 	},
-	get onBeforeExit(): EventNoticer<Event<object, number>> {
+	/**
+	 * @event onBeforeExit:EventNoticer<Event<object,Int>>
+	 */
+	get onBeforeExit(): EventNoticer<Event<object,Int>> {
 		return _runtimeEvents.getNoticer('BeforeExit');
 	},
-	get onExit(): EventNoticer<Event<object, number>> {
+	/**
+	 * @event onExit:EventNoticer<Event<object,Int>>
+	 */
+	get onExit(): EventNoticer<Event<object,Int>> {
 		return _runtimeEvents.getNoticer('BeforeExit');
 	},
-	get onUncaughtException(): EventNoticer<Event<object, Error>> {
+	/**
+	 * @event onUncaughtException:EventNoticer<Event<object,Error>>
+	 */
+	get onUncaughtException(): EventNoticer<Event<object,Error>> {
 		return _runtimeEvents.getNoticer('UncaughtException');
 	},
-	get onUnhandledRejection(): EventNoticer<Event<object, {reason: Error, promise: Promise<any>}>> {
+	/**
+	 * @event onUnhandledRejection:EventNoticer<Event<object,ErrorReason>>
+	 */
+	get onUnhandledRejection(): EventNoticer<Event<object,ErrorReason>> {
 		return _runtimeEvents.getNoticer('UnhandledRejection');
 	},
 }

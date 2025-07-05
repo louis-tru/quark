@@ -79,37 +79,62 @@ export interface DOM {
 	destroy(owner: ViewController): void;
 }
 
+type ChildDOM = DOM|null; //!<
+
 /**
  * @class View
  * @extends Notification<UIEvent>
  * @implements DOM
 */
 export declare class View extends Notification<UIEvent> implements DOM {
-	/** @get childDoms:(View|ViewController|null)[] JSX system specific */
-	readonly childDoms: (DOM|null)[];
-	readonly onClick: EventNoticer<ClickEvent>; //!<
-	readonly onBack: EventNoticer<ClickEvent>; //!<
-	readonly onKeyDown: EventNoticer<KeyEvent>; //!<
-	readonly onKeyPress: EventNoticer<KeyEvent>; //!<
-	readonly onKeyUp: EventNoticer<KeyEvent>; //!<
-	readonly onKeyEnter: EventNoticer<KeyEvent>; //!<
-	readonly onTouchStart: EventNoticer<TouchEvent>; //!<
-	readonly onTouchMove: EventNoticer<TouchEvent>; //!<
-	readonly onTouchEnd: EventNoticer<TouchEvent>; //!<
-	readonly onTouchCancel: EventNoticer<TouchEvent>; //!<
-	readonly onMouseOver: EventNoticer<MouseEvent>; //!<
-	readonly onMouseOut: EventNoticer<MouseEvent>; //!<
-	readonly onMouseLeave: EventNoticer<MouseEvent>; //!<
-	readonly onMouseEnter: EventNoticer<MouseEvent>; //!<
-	readonly onMouseMove: EventNoticer<MouseEvent>; //!<
-	readonly onMouseDown: EventNoticer<MouseEvent>; //!<
-	readonly onMouseUp: EventNoticer<MouseEvent>; //!<
-	readonly onMouseWheel: EventNoticer<MouseEvent>; //!<
-	readonly onFocus: EventNoticer<UIEvent>; //!<
-	readonly onBlur: EventNoticer<UIEvent>; //!<
-	readonly onHighlighted: EventNoticer<HighlightedEvent>; //!<
-	readonly onActionKeyframe: EventNoticer<ActionEvent>; //!<
-	readonly onActionLoop: EventNoticer<ActionEvent>; //!<
+	/** JSX system specific */
+	readonly childDoms: ChildDOM[];
+	/** @event */
+	readonly onClick: EventNoticer<ClickEvent>;
+	/** @event */
+	readonly onBack: EventNoticer<ClickEvent>;
+	/** @event */
+	readonly onKeyDown: EventNoticer<KeyEvent>;
+	/** @event */
+	readonly onKeyPress: EventNoticer<KeyEvent>;
+	/** @event */
+	readonly onKeyUp: EventNoticer<KeyEvent>;
+	/** @event */
+	readonly onKeyEnter: EventNoticer<KeyEvent>;
+	/** @event */
+	readonly onTouchStart: EventNoticer<TouchEvent>;
+	/** @event */
+	readonly onTouchMove: EventNoticer<TouchEvent>;
+	/** @event */
+	readonly onTouchEnd: EventNoticer<TouchEvent>;
+	/** @event */
+	readonly onTouchCancel: EventNoticer<TouchEvent>;
+	/** @event */
+	readonly onMouseOver: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onMouseOut: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onMouseLeave: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onMouseEnter: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onMouseMove: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onMouseDown: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onMouseUp: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onMouseWheel: EventNoticer<MouseEvent>;
+	/** @event */
+	readonly onFocus: EventNoticer<UIEvent>;
+	/** @event */
+	readonly onBlur: EventNoticer<UIEvent>;
+	/** @event */
+	readonly onHighlighted: EventNoticer<HighlightedEvent>;
+	/** @event */
+	readonly onActionKeyframe: EventNoticer<ActionEvent>;
+	/** @event */
+	readonly onActionLoop: EventNoticer<ActionEvent>;
 	readonly cssclass: CStyleSheetsClass; //!<
 	readonly parent: View | null; //!< @get parent:View|null
 	readonly prev: View | null; //!< @get prev:View|null
@@ -138,27 +163,24 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	visible: boolean; //!<
 	receive: boolean; //!<
 	isFocus: boolean; //!<
-	focus(): boolean; //!< @method focus()bool
+	focus(): boolean; //!<
 	blur(): boolean;
-	show(): void; //!< @method show() visible = true
-	hide(): void; //!< @method hide() visible = false
-	isSelfChild(child: View): boolean; //!< @method isSelfChild(child:View)bool
+	show(): void; //!< Set visible = true
+	hide(): void; //!< Set visible = false
+	isSelfChild(child: View): boolean; //!<
 	before(view: View): void; //!<
 	after(view: View): void; //!<
 	prepend(view: View): void; //!<
 	append(view: View): void; //!<
 	remove(): void; //!<
 	removeAllChild(): void; //!<
-	overlapTest(point: types.Vec2): boolean; //!< @safe Rt
-	hashCode(): number; //!<
+	overlapTest(point: types.Vec2): boolean; //!<
+	hashCode(): Int; //!<
 	appendTo(parent: View): this; //!<
 	afterTo(prev: View): this; //!<
 	destroy(owner: ViewController): void; //!<
-	/**
-	 * @method transition(to:KeyframeIn[,from:KeyframeIn|ActionCb[,cb:ActionCb]])KeyframeAction
-	*/
-	transition(to: KeyframeIn, from?: KeyframeIn | ActionCb, cb?: ActionCb): KeyframeAction;
-	constructor(win: Window); //!< @constructor(win:Window)
+	transition(to: KeyframeIn, from?: KeyframeIn | ActionCb, cb?: ActionCb): KeyframeAction; //!<
+	constructor(win: Window); //!<
 	static readonly isViewController: boolean;
 }
 
@@ -209,8 +231,8 @@ export declare class Box extends View {
 	background: types.BoxFilter | null; //!<
 	boxShadow: types.BoxShadow | null; //!<
 	weight: types.Vec2; //!<
-	readonly contentSize: types.Vec2; //!< @safe Rt, width,height, no include padding
-	readonly clientSize: types.Vec2; //!< @safe Rt, border + padding + content
+	readonly contentSize: types.Vec2; //!< width,height, no include padding
+	readonly clientSize: types.Vec2; //!< border + padding + content
 }
 
 /**
@@ -244,8 +266,10 @@ export declare class Free extends Box {
  * @extends Box
 */
 export declare class Image extends Box {
-	readonly onLoad: EventNoticer<UIEvent>; //!<
-	readonly onError: EventNoticer<UIEvent>; //!<
+	/** @event */
+	readonly onLoad: EventNoticer<UIEvent>;
+	/** @event */
+	readonly onError: EventNoticer<UIEvent>;
 	src: string; //!<
 }
 
@@ -361,7 +385,8 @@ export declare class Label extends View implements TextOptions {
  * @implements TextOptions
 */
 export declare class Input extends Box implements TextOptions {
-	readonly onChange: EventNoticer<UIEvent>; //!<
+	/** @event */
+	readonly onChange: EventNoticer<UIEvent>;
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
 	textWeight: types.TextWeight;
@@ -422,7 +447,8 @@ export interface ScrollBase {
  * @implements ScrollBase
 */
 export declare class Textarea extends Input implements ScrollBase {
-	readonly onScroll: EventNoticer<UIEvent>; //!<
+	/** @event */
+	readonly onScroll: EventNoticer<UIEvent>;
 	scrollbar: boolean;
 	bounce: boolean;
 	bounceLock: boolean;
@@ -452,7 +478,8 @@ export declare class Textarea extends Input implements ScrollBase {
  * @implements ScrollBase
 */
 export declare class Scroll extends Box implements ScrollBase {
-	readonly onScroll: EventNoticer<UIEvent>; //!<
+	/** @event */
+	readonly onScroll: EventNoticer<UIEvent>;
 	scrollbar: boolean;
 	bounce: boolean;
 	bounceLock: boolean;
@@ -482,8 +509,10 @@ export declare class Scroll extends Box implements ScrollBase {
  * @implements Player
 */
 export declare class Video extends Image implements Player {
-	readonly onStop: EventNoticer<UIEvent>; //!<
-	readonly onBuffering: EventNoticer<UIEvent>; //!<
+	/** @event */
+	readonly onStop: EventNoticer<UIEvent>;
+	/** @event */
+	readonly onBuffering: EventNoticer<UIEvent>;
 	readonly pts: number;
 	volume: number;
 	mute: boolean;

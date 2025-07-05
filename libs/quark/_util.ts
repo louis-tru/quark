@@ -132,7 +132,7 @@ export const delimiter = paths.delimiter;
 /** 
  * format part
  */
-export function normalizePath(path: string, retain_up?: boolean) {
+export function normalizePath(path: string, retain_up?: boolean): string {
 	let ls = path.split('/');
 	let rev = [];
 	let up = 0;
@@ -158,7 +158,7 @@ export function normalizePath(path: string, retain_up?: boolean) {
  * http://google.com/test.txt
  * return format path
  */
-export function formatPath(...args: string[]) {
+export function formatPath(...args: string[]): string {
 	let path = paths.joinPath(args);
 	let prefix = '';
 	// Find absolute path
@@ -201,24 +201,24 @@ export function formatPath(...args: string[]) {
 }
 
 /**
- * @method isAbsolute Is it an absolute path?
+ * Is it an absolute path?
  */
-export function isAbsolute(path: string) {
+export function isAbsolute(path: string): boolean {
 	return paths.isAbsolute.test(path);
 }
 
 /**
- * @method isLocal Is it a local path?
+ * Is it a local path?
  */
-export function isLocal(path: string) {
+export function isLocal(path: string): boolean {
 	return paths.isLocal.test(path);
 }
 
-export function isLocalZip(path: string) {
+export function isLocalZip(path: string): boolean { //!<
 	return /^zip:\/\/\//i.test(path);
 }
 
-export function isHttp(path: string) {
+export function isHttp(path: string): boolean { //!<
 	return /^(https?):\/\/[^\/]+/i.test(path);
 }
 
@@ -227,7 +227,7 @@ export function isHttp(path: string) {
  * because the buffer-to-string conversion in `fs.readFileSync()`
  * translates it to FEFF, the UTF-16 BOM.
  */
-export function stripBOM(content: string) {
+export function stripBOM(content: string): string {
 	if (content.charCodeAt(0) === 0xFEFF)
 		content = content.slice(1);
 	return content;
@@ -267,7 +267,7 @@ export function getConfig(): Dict {
 /**
  * Find end of shebang line and slice it off
  */
-export function stripShebang(content: string) {
+export function stripShebang(content: string): string {
 	// Remove shebang
 	let contLen = content.length;
 	if (contLen >= 2) {
@@ -298,6 +298,7 @@ export function stripShebang(content: string) {
 	return content;
 }
 
+/***/
 export function assert(value: any, message?: string) {
 	if (!value) {
 		throw new Error('assert fail, ' + (message || ''));
@@ -316,11 +317,12 @@ export function debugLog(TAG = 'PKG') {
 	}: function() {};
 }
 
+/***/
 export declare class Hash5381 {
-	hashCode(): number;
-	update(data: string | Uint8Array): void;
-	digest(): string;
-	clear(): void;
+	hashCode(): Int; //!<
+	update(data: string | Uint8Array): void; //!<
+	digest(): string; //!<
+	clear(): void; //!<
 }
 
 exports.Hash5381 = _init.Hash5381;
@@ -368,18 +370,16 @@ export function __listener__(name: string, handle: any) {
 export default {
 
 	/**
-	 * @get debug:bool
+	 * @get debug:boolean
 	 * 
 	 * It is on debug status, specify via command line parameters
 	 */
 	debug,
 
 	/**
-	 * @method version()
+	 * @method version()string
 	 * 
 	 * Get `quark` framework version
-	 * 
-	 * @return {string}
 	*/
 	version: _init.version as ()=>string,
 
@@ -408,21 +408,14 @@ export default {
 	options,
 
 	/**
-	 * @method nextTick(cb)
-	 * 
 	 * Wait for the next tick of the message loop to call the callback function
-	 * 
-	 * @param {Function}
+	 * @method nextTick(cb:Function)
 	*/
 	nextTick, unrealized, exit,
 
 	/**
-	 * @method sleep(time)
-	 * 
 	 * Asynchronous sleep, equivalent to calling `setTimeout`
-	 * 
-	 * @param time {uint}
-	 * @param {Promise}
+	 * @method sleep(time:Uint):Promise
 	*/
 	sleep,
 
@@ -434,7 +427,7 @@ export default {
 	gc: _init.garbageCollection as ()=>void,
 
 	/**
-	 * @method runScript(source[,name[,sandbox]])
+	 * @method runScript(source,name?,sandbox?)any
 	 * 
 	 * Compile and run a piece of javascript code and return the running result.
 	 * 	You can specify a name and a running context object.
@@ -443,30 +436,23 @@ export default {
 	 *
 	 * If you do not pass this sandbox `sandbox` context, the default is to use the `global` object.
 	 *
-	 * @param source {string} javascript source code
-	 * @param name {string}
-	 * @param sandbox? {object}
-	 * @return {object}
+	 * @param source:string javascript source code
+	 * @param name:string
+	 * @param sandbox?:object
 	*/
 	runScript: _init.runScript as (source: string, name?: string, sandbox?: any)=>any,
 
 	/**
-	 * @module hashCode(obj)
+	 * @module hashCode(obj:any)Int
 	 * 
 	 * Read the hash value of a data object
-	 * 
-	 * @param obj {any}
-	 * @return {int}
 	*/
-	hashCode: _init.hashCode as (obj: any)=>number,
+	hashCode: _init.hashCode as (obj: any)=>Int,
 
 	/**
-	 * @module hash(obj)
+	 * @module hash(obj:any)string
 	 * 
 	 * Read the hash value of a data object, and convert the value to a string
-	 * 
-	 * @param obj {any}
-	 * @return {int}
 	*/
 	hash: _init.hash as (obj: any)=>string,
 };

@@ -170,9 +170,8 @@ export class List<T = any> {
 // -------------------------------------------------------------------------------------------
 
 /**
- * @class Event
- * 
- * The event data
+ * @template Sender,SendData
+ * @class Event The event data
 */
 export class Event<Sender = any, SendData = any> {
 	private _sender: Sender;
@@ -180,27 +179,24 @@ export class Event<Sender = any, SendData = any> {
 	/** The return value */
 	returnValue: number = 0;
 	/** The Data */
-	get data() { return this._data; }
+	get data(): SendData { return this._data; }
 	/** The sender */
-	get sender() { return this._sender; }
+	get sender(): Sender { return this._sender; }
+	/** */
 	constructor(data: SendData) { this._data = data; }
 }
 
 /**
- * @template Ctx,E
- * @callback Listen(this,evt)any
- * @param this {Ctx}
- * @param evt {E}
+ * @template E,Ctx
+ * @callback Listen(this:Ctx,evt:E)any
 */
 export interface Listen<E = Event, Ctx extends object = object> {
 	(this: Ctx, evt: E): any;
 }
 
 /**
- * @template Ctx,E
- * @callback Listen2(self,evt)any
- * @param this {Ctx}
- * @param evt {E}
+ * @template E,Ctx
+ * @callback Listen2(self:Ctx,evt:E)any
 */
 export interface Listen2<E = Event, Ctx extends object = object> {
 	(self: Ctx, evt: E): any;
@@ -244,9 +240,9 @@ export class EventNoticer<E = Event> {
 	private _sender: any;
 	private _listens: List<ListenItem> | null = null;
 	private _listens_map: Map<string, ListIterator<ListenItem>> | null = null
-	private _length: number = 0
+	private _length: Uint = 0
 
-	/* @method add  Add event listen */
+	/* Add event listen */
 	private _add(origin_listen: any, listen: any, ctx: any, id?: string): string {
 		let self = this;
 
@@ -282,48 +278,42 @@ export class EventNoticer<E = Event> {
 		return id;
 	}
 
-	/**
-	 * @get name:string Event name
-	 */
+	/** Event name */
 	get name(): string {
 		return this._name;
 	}
-	
+
 	/**
-	 * @get sender:object Event sender
+	 * @get sender:any Event sender
 	 */
 	get sender() {
 		return this._sender;
 	}
 
 	/**
-	 * 
-	 * @get length:uint Number of event listeners
+	 * @get length Number of event listeners
 	 */
-	get length () {
+	get length(): Uint {
 		return this._length;
 	}
 	
 	/**
-	 * @constructor(name,sender)
-	 * @param name   {string}  Event name
-	 * @param sender {object}  Event sender
+	 * @param name   Event name
+	 * @param sender Event sender
 	 */
-	constructor (name: string, sender: object) {
+	constructor(name: string, sender: object) {
 		this._name = name;
 		this._sender = sender;
 	}
 
 	/**
-	 * @template Ctx
-	 * @method on(listen[,ctxOrId[,id]]) Add an event listener (function)
-	 * @param  listen    {Listen}      Listening Function
-	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
-	 * @param  id?       {string}      Listener alias, can be deleted by id
-	 * @return {string} Returns the passed `id` or the automatically generated `id`
+	 * Add an event listener (function)
+	 * @param  listen    Listening Function
+	 * @param  ctxOrId?  Specify the listener function this or id alias
+	 * @param  id?       Listener alias, can be deleted by id
+	 * @return Returns the passed `id` or the automatically generated `id`
 	 * 
-	 * 
-	 *	Example:
+	 * @example
 	 *
 	 *	```ts
 	 *	var ctx = { a:100 }
@@ -344,13 +334,11 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * @template Ctx
-	 * @method once(listen[,ctxOrId[,id]])
 	 * Add a listener (function) and delete it immediately after listening only once
-	 * @param  listen    {Listen}      Listening Function
-	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
-	 * @param  id?       {string}      Listener alias, can be deleted by id
-	 * @return {string} Returns the passed `id` or the automatically generated `id`
+	 * @param  listen    Listening Function
+	 * @param  ctxOrId?  Specify the listener function this or id alias
+	 * @param  id?       Listener alias, can be deleted by id
+	 * @return Returns the passed `id` or the automatically generated `id`
 	 */
 	once<Ctx extends object>(listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		check_fun(listen);
@@ -367,12 +355,10 @@ export class EventNoticer<E = Event> {
 	/**
 	 * Add an event listener (function),
 	 * and "on" the same processor of the method to add the event trigger to receive two parameters
-	 * @template Ctx
-	 * @method on2
-	 * @param  listen    {Listen2}     Listening Function
-	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
-	 * @param  id?       {string}      Listener alias, can be deleted by id
-	 * @return {string} Returns the passed `id` or the automatically generated `id`
+	 * @param  listen    Listening Function
+	 * @param  ctxOrId?  Specify the listener function this or id alias
+	 * @param  id?       Listener alias, can be deleted by id
+	 * @return Returns the passed `id` or the automatically generated `id`
 	 * 
 	 * 
 	 * Example:
@@ -393,12 +379,10 @@ export class EventNoticer<E = Event> {
 	/**
 	 * Add an event listener (function), And to listen only once and immediately remove
 	 * and "on" the same processor of the method to add the event trigger to receive two parameters
-	 * @template Ctx
-	 * @method once2
-	 * @param  listen    {Listen2}     Listening Function
-	 * @param  ctxOrId?  {Ctx|string}  Specify the listener function this or id alias
-	 * @param  id?       {string}      Listener alias, can be deleted by id
-	 * @return {string} Returns the passed `id` or the automatically generated `id`
+	 * @param  listen     Listening Function
+	 * @param  ctxOrId?   Specify the listener function this or id alias
+	 * @param  id         Listener alias, can be deleted by id
+	 * @return Returns the passed `id` or the automatically generated `id`
 	 */
 	once2<Ctx extends object>(listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		check_fun(listen);
@@ -428,16 +412,14 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * @method trigger(data) Notify all observers
-	 * @param data {object}  Data to send
+	 * Notify all observers
 	 */
 	trigger<T>(data: T) {
 		this.triggerWithEvent(new Event<any, T>(data) as E);
 	}
 
 	/**
-	 * @method triggerWithEvent(event) Notify all observers
-	 * @param event {object} Event to sned
+	 * Notify all observers
 	 */
 	triggerWithEvent(event: E) {
 		if ( this._length ) {
@@ -458,11 +440,10 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * @method off([listen[,ctx]])  Remove listener function
-	 * @param listen? {object|function|object}
+	 * Remove listener function
+	 * @param listen?
 	 * 	It can be a listener function/id alias/context.
 	 * 	If no parameter is passed, all listeners will be uninstalled.
-	 * @param ctx?  {object}   ctx
 	 * @return {int} Returns the number of deleted listeners
 	 */
 	off(listen?: string | Function | object, ctx?: object): number {
@@ -536,7 +517,7 @@ export class EventNoticer<E = Event> {
 			} else { //
 				throw new Error('Bad argument.');
 			}
-		} else { // 全部删除
+		} else { // Delete all
 			let listens = this._listens!;
 			let begin = listens.begin;
 			let end = listens.end;
@@ -579,7 +560,7 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @method hasNoticer(name)
+	 * @method hasNoticer(name)bool
 	 */
 	hasNoticer(name: string) {
 		return (PREFIX + name) in this;
@@ -587,8 +568,6 @@ export class Notification<E = Event> {
 
 	/**
 	 * @method addDefaultListener(name,listen)
-	 * @param name {string}
-	 * @param listen {Listen|null}
 	 */
 	addDefaultListener(name: string, listen: Listen<E> | null) {
 		if (listen) {
@@ -599,18 +578,9 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @template Ctx
-	 * @method addEventListener(name,listen[,ctxOrId[,id]])
-	 * 
-	 * call: [`EventNoticer.on(listen[,ctxOrId[,id]])`]
-	 * 
-	 * @param name {string}
-	 * @param listen {Listen}
-	 * @param ctxOrId? {Ctx|string}
-	 * @param id? {string}
-	 * @return {string}
+	 * call: [`EventNoticer.on(listen,ctxOrId?,id?)`]
 	 */
-	addEventListener<Ctx extends object>(name: string, listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string) {
+	addEventListener<Ctx extends object>(name: string, listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.on(listen, ctxOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
@@ -618,18 +588,9 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @template Ctx
-	 * @method addEventListenerOnce(name,listen[,ctxOrId[,id]])
-	 * 
-	 * call: [`EventNoticer.once(listen[,ctxOrId[,id]])`]
-	 * 
-	 * @param name {string}
-	 * @param listen {Listen}
-	 * @param ctxOrId? {Ctx|string}
-	 * @param id? {string}
-	 * @return {string}
+	 * call: [`EventNoticer.once(listen,ctxOrId?,id?)`]
 	 */
-	addEventListenerOnce<Ctx extends object>(name: string, listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string) {
+	addEventListenerOnce<Ctx extends object>(name: string, listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.once(listen, ctxOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
@@ -637,18 +598,9 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @template Ctx
-	 * @method addEventListener2(name,listen[,ctxOrId[,id]])
-	 * 
-	 * call: [`EventNoticer.on2(listen[,ctxOrId[,id]])`]
-	 * 
-	 * @param name {string}
-	 * @param Listen2 {Listen2}
-	 * @param ctxOrId? {Ctx|string}
-	 * @param id? {string}
-	 * @return {string}
+	 * call: [`EventNoticer.on2(listen,ctxOrId?,id?)`]
 	 */
-	addEventListener2<Ctx extends object>(name: string, listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string) {
+	addEventListener2<Ctx extends object>(name: string, listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.on2(listen, ctxOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
@@ -656,32 +608,25 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @template Ctx
-	 * @method addEventListenerOnce2(name,listen[,ctx[,id]])
-	 * 
-	 * call: [`EventNoticer.once2(listen[,ctxOrId[,id]])`]
-	 * 
-	 * @param name {string}
-	 * @param Listen2 {Listen2}
-	 * @param ctxOrId? {Ctx|string}
-	 * @param id? {string}
-	 * @return {string}
+	 * call: [`EventNoticer.once2(listen,ctxOrId?,id?)`]
 	 */
-	addEventListenerOnce2<Ctx extends object>(name: string, listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string) {
+	addEventListenerOnce2<Ctx extends object>(name: string, listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.once2(listen, ctxOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
 		return r;
 	}
 
-	addEventForward(name: string, noticer: EventNoticer<E>, id?: string) {
+	/** */
+	addEventForward(name: string, noticer: EventNoticer<E>, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.forward(noticer, id);
 		this.triggerListenerChange(name, del.length, 1);
 		return r;
 	}
 
-	addEventForwardOnce(noticer: EventNoticer<E>, id?: string) {
+	/** */
+	addEventForwardOnce(noticer: EventNoticer<E>, id?: string): string {
 		let del = this.getNoticer(noticer.name);
 		let r = del.forwardOnce(noticer, id);
 		this.triggerListenerChange(noticer.name, del.length, 1);
@@ -689,24 +634,14 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	* @method trigger(name[,data])
-	* 
 	* Trigger an event by event name --> [`EventNoticer.trigger(data)`]
-	* 
-	* @param name {string}       Event name
-	* @param data {object}       Data to send
 	*/
 	trigger(name: string, data?: any) {
 		this.triggerWithEvent(name, new Event(data) as unknown as E);
 	}
 
 	/**
-	* @method triggerWithEvent(name[,event])
-	* 
 	* Trigger an event by name and [`Event`] --> [`EventNoticer.triggerWithEvent(event)`]
-	* 
-	* @param name {string}       Event name
-	* @param event {Event}       Event to send
 	*/
 	triggerWithEvent(name: string, event: E) {
 		let noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
@@ -715,9 +650,7 @@ export class Notification<E = Event> {
 		}
 	}
 
-	/**
-	 * @method removeEventListener(name[,func[,ctx]])
-	 */
+	/** */
 	removeEventListener(name: string, listen?: string | Function | object, ctx?: object) {
 		let noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
 		if (noticer) {
@@ -727,15 +660,11 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @method removeEventListenerWithCtx(ctx)
-	 * 
 	 * Delete all listeners related to `ctx` on `notification`
 	 *
 	 * Actually traverse and call the [`EventNoticer.off(ctx)`] method
 	 *
-	 * @param ctx {object}
-	 *
-	 * For example:
+	 * @example
 	 *
 	 * ```ts
 	 * import event from 'quark/event';
@@ -774,13 +703,9 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * @method allNoticers()
-	 * 
 	 * Get all of [`EventNoticer`]
-	 *
-	 * @return {[`EventNoticer`][]}
 	 */
-	allNoticers() {
+	allNoticers(): EventNoticer<E>[] {
 		let result: EventNoticer<E>[] = [];
 		for ( let i in this ) {
 			if ( FIND_REG.test(i) ) {
@@ -793,14 +718,13 @@ export class Notification<E = Event> {
 		return result;
 	}
 
-	/**
-	 * @method triggerListenerChange
-	 */
+	/** */
 	triggerListenerChange(name: string, count: number, change: number) {}
 }
 
 /**
- * @decorator typescript decorator
+ * Typescript decorator
+ * @decorator
 */
 export function event(target: any, name: string) {
 	if (name.substring(0, 2) !== 'on') {

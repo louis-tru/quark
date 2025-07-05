@@ -49,6 +49,7 @@ export enum Priority {
 };
 
 /**
+ * @template P,S
  * @class Bubbles
  * @extends Navigation
  * 
@@ -67,7 +68,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	private _offsetY = 0;
 
 	/**
-	 * @getset frail:bool By default clicking anywhere on the screen will disappear
+	 * @getset frail:boolean By default clicking anywhere on the screen will disappear
 	 */
 	@link frail = true;
 
@@ -154,8 +155,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 		return Math.min(Math.max(min, x - left), max);
 	}
 
-	/**
-	 * @private
+	/*
 	 * Attempt to display at the top of the target
 	 */
 	private attemptTop(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
@@ -179,8 +179,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 		return false;
 	}
 
-	/**
-	 * @private
+	/*
 	 * Attempt to display at the right of the target
 	 */
 	private attemptRight(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
@@ -204,8 +203,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 		return false;
 	}
 
-	/**
-	 * @private
+	/*
 	 * Attempt to display at the bottom of the target
 	 */
 	private attemptBottom(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
@@ -229,8 +227,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 		return false;
 	}
 
-	/**
-	 * @private
+	/*
 	 * Attempt to display at the left of the target
 	 */
 	private attemptLeft(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
@@ -360,12 +357,10 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method showFrom(from[,offset_x[,offset_y]])
-	 * 
 	 * Showing Bubbles by Target View
 	 * 
-	 * @param from {View} Parameters provide the location information to be displayed
-	 * @param offset? {types.Vec2} Displays the offset of the target position
+	 * @param from    Parameters provide the location information to be displayed
+	 * @param offset? Displays the offset of the target position
 	 */
 	showFrom(from: View, offset?: types.Vec2) {
 		offset = offset || types.newVec2(0,0);
@@ -379,8 +374,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method show(rect) Show by rect
-	 * @param rect {types.Rect}
+	 * Show by rect
 	 */
 	show(rect: types.Rect) {
 		let self = this;
@@ -408,8 +402,6 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method reset()
-	 * 
 	 * Reset and Reshow
 	 */
 	reset() {
@@ -433,8 +425,6 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method render()
-	 * 
 	 * Creating Bubbles through Vdom
 	 * 
 	 * @return {Bubbles}
@@ -444,8 +434,6 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method renderShow()
-	 * 
 	 * Create and show bubbles through Vdom
 	 * 
 	 * @return {Bubbles}

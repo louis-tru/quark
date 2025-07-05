@@ -58,27 +58,26 @@ export enum NavStatus {
 class NavigationStatus<P={},S={}> extends ViewController<P,S> {
 
 	/**
-	 * @get navStatus:NavStatus
 	 * 0=init or exit,1=background,2=foreground
 	 */
 	readonly navStatus: NavStatus = NavStatus.Init;
 
 	/**
-	 * @method intoLeave(animate) When the component leaves
+	 * When the component leaves
 	*/
 	intoLeave(animate: number) {
 		(this as any).navStatus = NavStatus.Init;
 	}
 
 	/**
-	 * @method intoLeave(animate) When the component enters the background
+	 * When the component enters the background
 	*/
 	intoBackground(animate: number) {
 		(this as any).navStatus = NavStatus.Background;
 	}
 
 	/**
-	 * @method intoLeave(animate) When the component enters the foreground
+	 * When the component enters the foreground
 	*/
 	intoForeground(animate: number) {
 		(this as any).navStatus = NavStatus.Foreground;
@@ -162,11 +161,7 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	})(this.window);
 
 	/**
-	 * @method initFocus()
-	 * 
 	 * When initializing navigation, return a focus view
-	 * 
-	 * @return {View|null}
 	 */
 	initFocus(): View | null {
 		return null;
@@ -198,13 +193,11 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 * @method registerNavigation([animate])
-	 * 
 	 * Called when a navigation component is created
-	 * 
-	 * @param animate? {uint}
+	 * @method registerNavigation(animate)
+	 * @param animate?:Uint
 	 */
-	registerNavigation(animate: number = 0) {
+	registerNavigation(animate: Uint = 0) {
 		if ( !this._iterator ) { // No need to repeat it
 			this._iterator = this.navStack.pushBack(this);
 			let prev = this._iterator.prev;
@@ -223,13 +216,11 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 * @method unregisterNavigation(animate)
-	 * 
 	 * Called when a navigation component is unmounted
-	 * 
-	 * @param animate? {uint}
+	 * @method unregisterNavigation(animate)
+	 * @param animate?:Uint
 	 */
-	unregisterNavigation(animate: number = 0) {
+	unregisterNavigation(animate: Uint = 0) {
 		if ( this._iterator ) {
 			let last = this.navStack.back;
 			this.navStack.remove(this._iterator);
@@ -249,8 +240,6 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 * @method navigationBack()
-	 * 
 	 * * When a navigation event occurs, the system will first send the event to the focus view,
 	 * 	If the event can be successfully transmitted to root,
 	 * 	The event will ultimately be sent to the top of the current navigation list stack
@@ -258,16 +247,12 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	 * * If false is returned here,
 	 * 	it will continue to pass to the bottom of the navigation list stack,
 	 * 	Until it returns true or reaches the bottom of the stack to exit the application
-	 * 
-	 * @return {bool}
 	*/
-	navigationBack() {
+	navigationBack(): boolean {
 		return true;
 	}
 
 	/**
-	 * @method navigationEnter(focus)
-	 * 
 	 * Called when the remote control presses OK
 	*/
 	navigationEnter(focus: View) {
@@ -275,60 +260,42 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 * @method navigationTop([focus])
-	 * 
 	 * * Called when the remote control presses Up
 	 * 
 	 * * The focus will not change in any way is returning null
-	 * 
-	 * @return {View}
 	 */
 	navigationTop(focus: View | null): View | null {
 		return focus;
 	}
 
 	/**
-	 * @method navigationDown([focus])
-	 * 
 	 * * Called when the remote control presses Down
 	 * 
 	 * * The focus will not change in any way is returning null
-	 * 
-	 * @return {View}
 	 */
 	navigationDown(focus: View | null): View | null {
 		return focus;
 	}
 
 	/**
-	 * @method navigationLeft([focus])
-	 * 
 	 * * Called when the remote control presses Left
 	 * 
 	 * * The focus will not change in any way is returning null
-	 * 
-	 * @return {View}
 	 */
 	navigationLeft(focus: View | null): View | null {
 		return focus;
 	}
 
 	/**
-	 * @method navigationRight([focus])
-	 * 
 	 * * Called when the remote control presses Right
 	 * 
 	 * * The focus will not change in any way is returning null
-	 * 
-	 * @return {View}
 	 */
 	navigationRight(focus: View | null): View | null {
 		return focus;
 	}
 
 	/**
-	 * @method navigationMenu()
-	 * 
 	 * When pressing the menu button, it will be called up
 	 */
 	navigationMenu() {
@@ -368,9 +335,8 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method isCurrent(page)
 	*/
-	isCurrent(page: NavPage) {
+	isCurrent(page: NavPage): boolean {
 		return this._substack.back === page;
 	}
 
@@ -416,8 +382,6 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method push(arg[animate])
-	 * 
 	 * Add a navigation page to the end and display
 	*/
 	push(arg: VDom<NavPage>, animate?: boolean) {
@@ -452,7 +416,7 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @method pop([animate[,count]])
+	 * @method pop(animate?:boolean,count?:Uint)
 	 * 
 	 * Remove pages from the end of the navigation
 	*/
@@ -484,42 +448,41 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 		this.triggerPop(next);
 	}
 
-	// @overwrite
 	navigationBack(): boolean {
 		if (this._substack.length)
 			return this._substack.back!.navigationBack();
 		return false;
 	}
-	// @overwrite
+
 	navigationEnter(focus: View) {
 		if (this._substack.length)
 			this._substack.back!.navigationEnter(focus);
 	}
-	// @overwrite
+
 	navigationTop(focus: View | null) {
 		if (this._substack.length)
 			return this._substack.back!.navigationTop(focus);
 		return focus;
 	}
-	// @overwrite
+
 	navigationDown(focus: View | null) {
 		if (this._substack.length)
 			return this._substack.back!.navigationDown(focus);
 		return focus;
 	}
-	// @overwrite
+
 	navigationLeft(focus: View | null) {
 		if (this._substack.length)
 			return this._substack.back!.navigationLeft(focus);
 		return focus;
 	}
-	// @overwrite
+
 	navigationRight(focus: View | null) {
 		if (this._substack.length)
 			return this._substack.back!.navigationRight(focus);
 		return focus;
 	}
-	// @overwrite
+
 	navigationMenu() {
 		if (this._substack.length)
 			this._substack.back!.navigationMenu(); // private props visit
@@ -568,7 +531,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	get page() { return this.owner as NavPage }
 
 	/**
-	 * @method setBackText() set navbar back text
+	 * Set navbar back text
 	 */
 	setBackText(value: string) {
 		if (!this.hidden)
@@ -577,7 +540,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 	}
 
 	/**
-	 * @method setTitleText() set navbar title text
+	 * Set navbar title text
 	 */
 	setTitleText(value: string) {
 		if (!this.hidden)
@@ -723,9 +686,9 @@ export class NavPage<P={},S={}> extends Navigation<{
 	get nextPage() { return this._nextPage }
 	/** @get collection:NavPageCollection */
 	get collection() { return this.owner as NavPageCollection }
-	/** @get isCurrent:bool */
+	/** @get isCurrent:boolean */
 	get isCurrent() { return this.collection.isCurrent(this) }
-	/** @get isFirstPage:bool */
+	/** @get isFirstPage:boolean */
 	get isFirstPage() { return this.navStack.length == 0 || this.navStack.front === this }
 
 	@link backgroundColor: types.ColorStrIn = '#fff'; //!<
@@ -760,7 +723,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @getset navbarHidden:bool
+	 * @getset navbarHidden:boolean
 	*/
 	get navbarHidden() { return this.isMounted ? this._navbarDom.hidden: false }
 	set navbarHidden(hidden) {
@@ -772,7 +735,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 	}
 
 	/**
-	 * @getset includeNavbarPadding:bool
+	 * @getset includeNavbarPadding:boolean
 	*/
 	@link
 	get includeNavbarPadding() {

@@ -56,9 +56,8 @@ export function getId() {
 }
 
 /**
- * @method clone(obj) Clone an Object
- * @param obj {object} The Object to be cloned
- * @param {object}
+ * @method clone Clone an Object
+ * @param  obj   The Object to be cloned
  */
 export function clone(obj: any): any {
 	if (obj && typeof obj == 'object') {
@@ -87,7 +86,7 @@ export function clone(obj: any): any {
 }
 
 /**
- * @method extend(obj,extd[,top])
+ * @method extend(obj:any,extd:any,top?:any)any
  */
 export function extend(obj: any, extd: any, top: any = Object.prototype): any {
 	if (extd.__proto__ && extd.__proto__ !== top)
@@ -115,11 +114,9 @@ export function isNull(value: any): boolean {
 }
 
 /**
- * @method extendClass(cls,extds[,top]) EXT class prototype objects
- * @param cls {Function}
- * @param extds {Function[]}
- * @param top? {object}
- * @return {Function}
+ * EXT class prototype objects
+ * 
+ * @method extendClass(cls:Function,extds:Function[]|Function,top?:any)Function
  */
 export function extendClass(cls: Function, extds: Function[] | Function, top = Object.prototype) {
 	for (let extd of Array.isArray(extds)? extds: [extds]) {
@@ -144,7 +141,7 @@ async function scopeLockDequeue(mutex: any): Promise<void> {
 }
 
 /**
- * @method scopeLock(mutex,cb)
+ * @method scopeLock(mutex:any,cb:Function)Promise
  */
 export function scopeLock<R>(mutex: any, cb: ()=>Promise<R>|R): Promise<R> {
 	assert(mutex, 'Bad argument');
@@ -160,10 +157,7 @@ export function scopeLock<R>(mutex: any, cb: ()=>Promise<R>|R): Promise<R> {
 }
 
 /**
- * @method get(name[,self]) get object value by name
- * @param name {string} 
- * @param self {object}
- * @return {object}
+ * Get object value by name
  */
 export function getProp(name: string, self: any): any {
 	let names = name.split('.');
@@ -176,12 +170,8 @@ export function getProp(name: string, self: any): any {
 }
 
 /**
-* @method set(name,value[,self]) Setting object value by name
-* @param name {string} 
-* @param value {object} 
-* @param [self] {object}
-* @return {object}
-*/
+ * Setting object value by name
+ */
 export function setProp(name: string, value: any, self: any): any {
 	let names = name.split('.');
 	let last = names.pop()!;
@@ -195,9 +185,7 @@ export function setProp(name: string, value: any, self: any): any {
 }
 
 /**
- * @method def(name[,self]) Delete object value by name
- * @param name {string} 
- * @param self {object}
+ * Delete object value by name
  */
 export function removeProp(name: string, self: any): void {
 	let names = name.split('.');
@@ -208,12 +196,11 @@ export function removeProp(name: string, self: any): void {
 }
 
 /**
- * @method random([start[,end]]) Creating random numbers
- * @param start? {uint} Numbers of begin
- * @param end? {uint}   Numbers of end
- * @return {uint}
+ * @method random(start?,end?) Creating random numbers
+ * @param start? Numbers of begin
+ * @param end?   Numbers of end
  */
-export function random(start: number = 0, end: number = 1E8): number {
+export function random(start: Uint = 0, end: Uint = 1E8): Uint {
 	if (start == end)
 		return start;
 	let r = Math.random();
@@ -223,7 +210,7 @@ export function random(start: number = 0, end: number = 1E8): number {
 }
 
 /**
-* @method fixRandom(arg[,arg1[,arg2]])
+* @method fixRandom(arg0,...args)Uint
 * 
 * * Fixed random value, specified probability to return a constant
 * 
@@ -231,10 +218,8 @@ export function random(start: number = 0, end: number = 1E8): number {
 * 
 * * The sum of the passed probabilities cannot be `zero`
 * 
-* @param arg  {number} Enter percentage
-* @param arg1? {number} Enter percentage
-* @param arg2? {number} Enter percentage
-* @return {int}
+* @param arg0:number   Enter percentage
+* @param args:number[] Enter percentage
 * 
 * Example:
 * 
@@ -268,11 +253,10 @@ export function fixRandom(arg: number, ...args: number[]): number {
 }
 
 /**
-* @method filter(obj,exp[,non]) object filter
-* @param obj {Object}  
-* @param exp {Object}    filter exp
-* @param non {Boolean}   take non
-* @return {Object}
+* @method filter(obj,exp,non?)any Filter object attrs
+* @param obj:any
+* @param exp:string[]|Function filter exp
+* @param non?:boolean          take non
 */
 export function filter(obj: any, exp: string[] | ((key: string, value: any)=>boolean), non: boolean = false): any {
 	let rev: any = {};
@@ -296,10 +280,9 @@ export function filter(obj: any, exp: string[] | ((key: string, value: any)=>boo
 }
 
 /**
- * @method update(obj,extd) update object property value
- * @param obj {Object}  need to be updated for as
- * @param extd {Object} update object
- * @return {Object}
+ * @method update(obj,extd)any Update object property value
+ * @param obj:any  need to be updated for as
+ * @param extd:any update object
  */
 export function update<T extends object>(obj: T, extd: any): T {
 	for (let key in extd) {
@@ -311,10 +294,7 @@ export function update<T extends object>(obj: T, extd: any): T {
 }
 
 /**
- * @method select(default,value)
- * @param default {Object}
- * @param value   {Object}
- * @return {Object}
+ * @method select(default:any,value:any)any
  */
 export function select<T>(default_: T, value: any): T {
 	if ( typeof default_ == typeof value ) {
@@ -325,13 +305,9 @@ export function select<T>(default_: T, value: any): T {
 }
 
 /**
- * @method equalsClass(baseclass,subclass) 
- * 
  * Whether this type of sub-types
  * 
- * @param baseclass {class}
- * @param subclass {class}
- * @retrun {bool}
+ * @method equalsClass(baseclass:class,subclass:class)boolean
  */
 export function equalsClass(baseclass: any, subclass: any): boolean {
 	if (!baseclass || !subclass || !subclass.prototype)
@@ -353,7 +329,7 @@ export function equalsClass(baseclass: any, subclass: any): boolean {
 }
 
 /**
- * @method assert(condition[,code])
+ * @method assert(condition,code?:number|ErrorNewArg)
  */
 export function assert(condition: any, code?: number | ErrorNewArg): void {
 	if (condition)
@@ -429,7 +405,7 @@ export class PromiseNx<T extends any> extends Promise<T> {
 }
 
 /**
- * @method promise(executor)
+ * @method promise(executor:Function)Promise
  */
 export function promise<T extends any>(executor: (resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>)=>any) {
 	return new PromiseNx<T>(executor) as Promise<T>;

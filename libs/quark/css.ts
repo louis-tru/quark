@@ -35,7 +35,7 @@ const _css = __binding__('_css');
 exports.CStyleSheetsClass = _css.CStyleSheetsClass;
 
 /**
- * @type CSSNameExp = ``.${string}``
+ * @type CSSNameExp:'.className'
 */
 export type CSSNameExp = `.${string}`;
 
@@ -138,8 +138,6 @@ export interface StyleSheet {
 }
 
 /**
- * @class CStyleSheetsClass
- * 
  * A collection of stylesheet names to apply to the view
 */
 export declare class CStyleSheetsClass {
@@ -173,9 +171,9 @@ export declare class CStyleSheetsClass {
  *
  * * When calling this method to create a stylesheet, pause the rendering threads of all windows
  *
- * @param sheets {[`key`:`.${string}`]:[`StyleSheet`]}
+ * @param sheets:object
  * 
- * Example:
+ * @example
  * 
  *	```ts
  *	createCss({

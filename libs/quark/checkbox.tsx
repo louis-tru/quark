@@ -123,6 +123,7 @@ createCss({
 });
 
 /**
+ * @template P,S
  * @class Basic
  * @extends ViewController
 */
@@ -136,7 +137,7 @@ export class Basic<P={},S={}> extends ViewController<{
 	private _selected = !!this.props.initSelected;
 
 	/**
-	 * @getset disable:bool Is it disable?
+	 * @getset disable:boolean Is it disable?
 	*/
 	@link disable = false;
 
@@ -152,7 +153,7 @@ export class Basic<P={},S={}> extends ViewController<{
 	}
 
 	/**
-	 * @getset selected:bool Is it selected?
+	 * @getset selected:boolean Is it selected?
 	*/
 	get selected() {
 		return this._selected;
@@ -168,6 +169,7 @@ export class Basic<P={},S={}> extends ViewController<{
 }
 
 /**
+ * @template T,S
  * @class Checkbox
  * @extends Basic
  * 
@@ -184,6 +186,7 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 }
 
 /**
+ * @template T,S
  * @class Switch
  * @extends Basic
  * 

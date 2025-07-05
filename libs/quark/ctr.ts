@@ -209,6 +209,7 @@ function rerender(Self: ViewController) {
 }
 
 /**
+ * @template T
  * @class VirtualDOM
 */
 export class VirtualDOM<T extends DOM = DOM> {
@@ -556,6 +557,7 @@ Object.assign(DOMCollection.prototype, {ref: ''});
 /**
  * UI view controller component
  * 
+ * @template P,S
  * @class ViewController
  * @implements DOM
 */
@@ -588,15 +590,14 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	readonly isDestroyd: boolean;
 
 	/**
-	 * @prop metaView
+	 * @get metaView:View
 	 * 
 	 * mount point for view controller
 	*/
 	get metaView() { return this.dom.metaView }
 
 	/**
-	 * @constructor
-	 * 
+	 * @method constructor(props,arg)
 	 * @param props {Object}
 	 * @param arg {Args}
 	*/
@@ -611,12 +612,11 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	/**
-	 * @method setState
-	 * 
 	 * Update the current ViewController state and re-render if the state does change
-	 * 
-	 * @param newState {Object}
-	 * @param cb? {Function}
+	 * @template K
+	 * @method setState(newState,cb?)
+	 * @param newState:object
+	 * @param cb?:Function
 	*/
 	setState<K extends keyof S>(newState: Pick<S, K>, cb?: ()=>void) {
 		let update = false;
@@ -639,11 +639,9 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	/**
-	 * @method update
-	 * 
 	 * Force re-rendering of the ViewController
-	 * 
-	 * @return {Function}
+	 * @method update(cb?)
+	 * @param cb?:Function
 	*/
 	update(cb?: ()=>void) {
 		if (this.isDestroyd)
@@ -661,22 +659,18 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	/**
-	 * @method asDom
-	 * 
 	 * Template method, returns the current `dom` and returns it as template `T` type
-	 * 
-	 * @return DOM
+	 *
+	 * @return {DOM}
 	*/
 	asDom<T extends ViewController | View = View>() {
 		return this.dom as T;
 	}
 
 	/**
-	 * @method asRef (ref: [`string`])
-	 * 
 	 * Template method, finds the subordinate `DOM` by ref name and returns it as template `T` type
 	 * 
-	 * @return DOM
+	 * @return {DOM}
 	*/
 	asRef<T extends ViewController | View = View>(ref: string): T {
 		return this.refs[ref] as T;
@@ -687,39 +681,27 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	/**
-	 * @method triggerLoad
-	 * 
 	 * Triggered before the first render call
 	*/
 	protected triggerLoad(): any {}
 
 	/**
-	 * @method triggerMounted
-	 * 
 	 * Triggered after the first render call completed
 	*/
 	protected triggerMounted(): any {}
 
 	/**
-	 * @method triggerUpdate
-	 * 
 	 * Triggered when the DOM content is updated
 	*/
 	protected triggerUpdate(old: VirtualDOM, vdom: VirtualDOM): any {}
 
 	/**
-	 * @method triggerDestroy
-	 * 
 	 * Triggered when after calling remove()
 	*/
 	protected triggerDestroy(): any {}
 
 	/**
-	 * @method render
-	 * 
 	 * When rendering occurs, call to return the `vdom` object that needs to be rendered
-	 * 
-	 * @return {RenderResult}
 	*/
 	protected render(): RenderResult {}
 
@@ -803,9 +785,6 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 };
 
 /**
- * @template T
- * @method createElement(Type,props,...children)
- * 
  * Create virtual dom by jsx element
  */
 export function createElement<T extends DOM = DOM>(
@@ -818,7 +797,7 @@ export function createElement<T extends DOM = DOM>(
 	return new VirtualDOM(Type, props, children.map(_CVDD));
 }
 
-export type VDom<T extends DOM = DOM> = VirtualDOM<T>;
+export type VDom<T extends DOM = DOM> = VirtualDOM<T>; //!<
 export const VDom = VirtualDOM;
 
 export const _CVD = createElement;

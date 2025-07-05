@@ -128,7 +128,7 @@ namespace qk {
 				// decoding timeout, discard frame or reset start point
 				if (_seeking)
 					return skip_frame(true), false;
-				Qk_DLog("pkt_duration, timeout %d", du);
+				Qk_DLog("Video:pkt_duration, timeout %d", du);
 				_start = now - pts; // correct play ts
 			}
 		}

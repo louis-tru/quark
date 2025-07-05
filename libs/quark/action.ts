@@ -38,12 +38,12 @@ import { Window } from './window';
 Object.assign(exports, __binding__('_action'));
 
 /**
- * @type KeyframeIn = {StyleSheet} | {CSSNameExp}
+ * @type KeyframeIn:StyleSheet|CSSNameExp
  */ 
 export type KeyframeIn = StyleSheet | CSSNameExp;
 
 /**
- * @type ActionIn = {Action} | {KeyframeIn[]} | {...}
+ * @type ActionIn:Action|KeyframeIn[]|...
 */
 export type ActionIn = Action | KeyframeIn[] | {
 	playing?: boolean; //!<
@@ -75,10 +75,9 @@ export declare class Keyframe extends StyleSheet {
 
 /**
  * @class Action
- * @abstract
- * `abstract class`
- * 
  * Action base type, this is an abstract type without a constructor
+ * 
+ * @abstract
 */
 export declare abstract class Action {
 	/** Get action playtime long */
@@ -95,31 +94,27 @@ export declare abstract class Action {
 	stop(): this;
 	/**
 	* Jump to target `time`, after calling it, it will reset the internal `looped`
-	* @param `time` {uint} unit as `ms`
-	* @return `this`
+	* @param time unit as `ms`
 	*/
-	seek(time: number): this;
+	seek(time: Uint): this;
 	/**
 	* Jump to the target `time` and start playing. The internal `looped` will be reset after calling
-	* @param time {uint} unit as `ms`
+	* @param time unit as `ms`
 	*/
-	seekPlay(time: number): this;
+	seekPlay(time: Uint): this;
 	/**
 	* Jump to the target `time` and stop playing. The internal `looped` will be reset after calling
-	* @param time {uint} unit as `ms`
-	* @return {this}
+	* @param time unit as `ms`
 	*/
-	seekStop(time: number): this;
+	seekStop(time: Uint): this;
 	/**
 	 * Add a sibling action to the front of itself.
 	 * The current action needs to have a parent action else it will be invalid.
-	 * @param action {Action}
 	*/
 	before(action: Action): void;
 	/**
 	 * Add a sibling action to the back of itself.
 	 * The current action needs to have a parent action, otherwise it will be invalid.
-	 * @param action {Action}
 	*/
 	after(action: Action): void;
 	/**
@@ -128,17 +123,13 @@ export declare abstract class Action {
 	remove(): void;
 	/**
 	 * Add sub-actions to the end. Note: {KeyframeAction} cannot add sub-actions
-	 * @param child {Action}
 	 */
 	append(child: Action): void;
 	/**
 	 * Clear all sub-actions or keyframes. After clearing, the action will stop immediately.
 	 */
 	clear(): void;
-	/**
-	 * @constructor
-	 * @pram win {Window}
-	*/
+	/** */
 	constructor(win: Window);
 }
 
@@ -166,51 +157,39 @@ export declare class KeyframeAction extends Action {
 	/** get count of frames */
 	readonly length: number;
 	/**
-	 * @indexed
 	 * Get the {Keyframe} for index
 	*/
 	readonly [index: number]: Keyframe;
 
 	/**
-	* @method addFrame(time[,curve])
-	*
 	* By `time` and `curve` add keyframe，and return it
 	*
-	* @param time {uint} Keyframe time point
-	* @param curve? {CurveIn} No `curve` use `'ease'` as default
+	* @param time Keyframe time point
+	* @param curve?    No `curve` use `'ease'` as default
 	*
 	* Can use `'linear'`、`'ease'`、`'easeIn'`、`'easeOut'`、`'easeInOut'` as params
 	*
-	* @return {Keyframe}
 	*/
-	addFrame(time: number, curve?: types.CurveIn): Keyframe;
+	addFrame(time: Uint, curve?: types.CurveIn): Keyframe;
 
 	/**
-	 * @method addFrameWithCss
-	 * 
 	 * Add keyframes by the `cssExp` stylesheet name expression and return keyframes
 	 * 
-	 * @param cssExp {CSSNameExp} css exp
-	 * @param time? {uint} Keyframe time point, **Default** as zero
-	 * @param curve? {CurveIn} If not passed, `curve` **Default** as `'ease'`
-	 * 
-	 * @return {Keyframe}
+	 * @param cssExp    css exp
+	 * @param time?     Keyframe time point, **Default** as zero
+	 * @param curve?    If not passed, `curve` **Default** as `'ease'`
 	*/
-	addFrameWithCss(cssExp: CSSNameExp, time?: number, curve?: types.CurveIn): Keyframe;
+	addFrameWithCss(cssExp: CSSNameExp, time?: Uint, curve?: types.CurveIn): Keyframe;
 
 	/**
-	 * @method add
-	 * 
 	 * Add keyframes through `cssExp` stylesheet name expression or target property table,
 	 * and return keyframes
 	 * 
-	 * @param styleOrCssExp {KeyframeIn} style sheet or css exp
-	 * @param time? {uint} Keyframe time point, **Default** as zero
-	 * @param curve? {CurveIn} If not passed, `curve` **Default** as `'ease'`
-	 * 
-	 * @return {Keyframe}
+	 * @param styleOrCssExp style sheet or css exp
+	 * @param time?    Keyframe time point, **Default** as zero
+	 * @param curve?   If not passed, `curve` **Default** as `'ease'`
 	*/
-	add(styleOrCssExp: KeyframeIn, time?: number, curve?: types.CurveIn): Keyframe;
+	add(styleOrCssExp: KeyframeIn, time?: Uint, curve?: types.CurveIn): Keyframe;
 }
 (exports.KeyframeAction as typeof KeyframeAction).prototype.add =
 function(styleOrCssExp: KeyframeIn, ...args: any[]): Keyframe {
@@ -224,15 +203,13 @@ function(styleOrCssExp: KeyframeIn, ...args: any[]): Keyframe {
 };
 
 /**
-* @method createAction(win,arg[,parent])
-*
 * * Create an action through the `json` parameter. If the `arg` passed in is [`Action`],
 * 
 * 	skip the creation process and return directly.
 *
 * 	If the parent action is passed in, append the newly created action to the end of `parent` after creation.
 *
-* * If the passed in parameter is an [`Array`], create a [`KeyframeAction`] and use this [`Array`] to create the corresponding [`Frame`]
+* * If the passed in parameter is an [`Array`], create a [`KeyframeAction`] and use this [`Array`] to create the corresponding [`Keyframe`]
 *
 * * If the passed in parameter has a `seq` attribute, create a [`SequenceAction`]
 *
@@ -240,14 +217,9 @@ function(styleOrCssExp: KeyframeIn, ...args: any[]): Keyframe {
 *
 * * If there is no `seq` or `spawn` in the passed in parameter, create a [`KeyframeAction`]
 *
-* 	If the object's internal attribute `keyframe` is [`Array`], use this [`Array`] to create a [`Frame`]
-* 
-* @param win {Window}
-* @param arg {ActionIn}
-* @param parent? {Action}
-* @return {Action}
+* 	If the object's internal attribute `keyframe` is [`Array`], use this [`Array`] to create a [`Keyframe`]
 *
-* Example:
+* @example
 *
 * ```ts
 * var act1 = createAction(win, [
@@ -278,7 +250,7 @@ function(styleOrCssExp: KeyframeIn, ...args: any[]): Keyframe {
 * })
 * ```
 */
-export function createAction(win: Window, arg: ActionIn, parent?: Action) {
+export function createAction(win: Window, arg: ActionIn, parent?: Action): Action {
 	let action: Action;
 	if ( arg instanceof (exports.Action as typeof Action) ) {
 		action = arg;
@@ -324,27 +296,18 @@ export function createAction(win: Window, arg: ActionIn, parent?: Action) {
 
 /**
  * @callback ActionCb(e)
- * @param e {ActionEvent}
+ * @param e:ActionEvent
 */
 export type ActionCb = (e: ActionEvent)=>void;
 
 /**
- * @method transition(view,to[,fromOrCb[,cb]])
- *
  * * Create a view style transition action by the style and play this action,
  * 
  * 	and callback after completion
  *
  * Callback: cb()
  *
- *
- * @param view        {View}
- * @param to          {KeyframeIn}
- * @param fromOrCb?   {KeyframeIn|ActionCb}
- * @param cb?         {ActionCb}
- * @return {KeyframeAction}
- *
- * Example:
+ * @example
  *
  *	```ts
  *	// The transition is completed and callback is made after 1 second

@@ -43,43 +43,36 @@ export enum NetworkInterface {
 	k4G, //!< Mobile 4G
 	k5G, //!< Mobile 5G
 }
-//!< @end
 
 /**
- * @method arch() Get CPU arch type
- * @return {string}
+ * Get CPU arch type
 */
 export declare function arch(): string;
 
 /**
- * @method name() Get OS name, For: `Android`/`iOS`/`MacOSX`/`Linux`
- * @return {string}
+ * Get OS name, For: `Android`/`iOS`/`MacOSX`/`Linux`
 */
 export declare function name(): string;
 
 /**
- * @method version() Get OS version info
- * @return {string}
+ * Get OS version info
 */
 export declare function version(): string;
 
 /**
- * @method brand() Get the Device brand, For: Apple/Huawei
- * @return {string}
+ * Get the Device brand, For: Apple/Huawei
 */
 export declare function brand(): string;
 
 /**
- * @method model() Get OS model, iPad‌/iPhone‌/Mac16,10
- * @return {string}
+ * Get OS model, iPad‌/iPhone‌/Mac16,10
 */
 export declare function model(): string;
 
 /**
- * @method info() Get OS information
- * @return {string}
+ * Get OS information
  * 
- * Example:
+ * @example
  * 
  * ```ts
  * // Prints:
@@ -95,68 +88,58 @@ export declare function model(): string;
 export declare function info(): string;
 
 /**
- * @method languages() Get List of OS supported languages, May value is `'en-us'`|`'zh-cn'`|`'zh-tw'`
- * @return {string[]}
+ * Get List of OS supported languages, May value is `'en-us'`|`'zh-cn'`|`'zh-tw'`
 */
 export declare function languages(): string[];
 
 /**
- * @method isWifi() Is it a wifi network type?
- * @return {bool}
+ * Is it a wifi network type?
 */
 export declare function isWifi(): boolean;
 
 /**
- * @method isMobile() Is it a mobile network type?
- * @return {bool}
+ * Is it a mobile network type?
 */
 export declare function isMobile(): boolean;
 
 /**
- * @method networkInterface() Get the network interface
- * @return {NetworkInterface}
+ * Get the network interface
 */
 export declare function networkInterface(): NetworkInterface;
 
 /**
- * @method isAcPower() Is there an external power supply connected?
- * @return {bool}
+ * Is there an external power supply connected?
 */
 export declare function isAcPower(): boolean;
 
 /**
- * @method isBattery() Is there a battery device?
- * @return {bool}
+ * Is there a battery device?
 */
 export declare function isBattery(): boolean;
 
 /**
- * @method batteryLevel() Get battery power percentage if have a battery
- * @return {float} range 0 to 1
+ * Get battery power percentage if have a battery
+ * @return range 0 to 1
 */
 export declare function batteryLevel(): number;
 
 /**
- * @method memory() Get the memory total
- * @return {uint}
+ * Get the memory total
 */
 export declare function memory(): number;
 
 /**
- * @method memory() Get the used memory size
- * @return {uint}
+ * Get the used memory size
 */
 export declare function usedMemory(): number;
 
 /**
- * @method memory() Get the available memory size
- * @return {uint}
+ * Get the available memory size
 */
 export declare function availableMemory(): number;
 
 /**
- * @method memory() Get CPU usage percentage
- * @return {float}
+ * Get CPU usage percentage
 */
 export declare function cpuUsage(): number;
 

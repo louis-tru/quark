@@ -47,75 +47,163 @@ declare namespace qk {
 	}
 }
 
-declare var __binding__: (id: string)=>any; // binding native module
-declare var __filename: string;
-declare var __dirname: string;
-declare var require: qk.Require;
-declare var module: qk.Module;
-declare var exports: any; // Same as module.exports
+declare const __binding__: (id: string)=>any; // binding native module
+declare const __filename: string;
+declare const __dirname: string;
+declare const require: qk.Require;
+declare const module: qk.Module;
+declare const exports: any; // Same as module.exports
 
+/**
+ * @type null
+ * @global
+ * 
+ * Ref: [`null`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null)
+*/
+
+/**
+ * @global
+ * @type number:Number
+ * 
+ * Ref: [`Number`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+*/
+
+/**
+ * @global
+ * @type boolean:Boolean
+ * 
+ * Ref: [`Boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+*/
+
+/**
+ * @global
+ * @type object:Object
+ * 
+ * Ref: [`Object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+*/
+
+/**
+ * @global
+ * @type string:String
+ * 
+ * Ref: [`String`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+*/
+
+/**
+ * 32-bit signed integer, Range: -2147483648 to 2147483647
+ * @global
+*/
+type Int = number;
+
+/**
+ * 32-bit signed integer, Range: 0 to 4294967295
+ * @global
+*/
+type Uint = number;
+
+/**
+ * 32-bit floating point
+ * @global
+*/
+type Float = number;
+
+/**
+ * @global
+ * @interface Object
+ * 
+ * Ref: [`Object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+*/
 interface ObjectConstructor {
-	hashCode(obj: any): number;
+	hashCode(obj: any): Int;
 }
 
 interface Object {
-	hashCode(): number;
+	hashCode(): Int;
 }
 
-// Dictionaries
+/**
+ * @template T
+ * @interface Dict Dictionaries
+ * @global
+ */
 interface Dict<T = any> {
 	[key: string]: T;
 }
 
 type TimeoutResult = any;
 
+/**
+ * @global
+ * @interface Function
+ * 
+ * Ref: [`Function`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+*/
 interface Function {
-	hashCode(): number;
-	setTimeout(this: Function, time: number, ...argArray: any[]): TimeoutResult;
+	hashCode(): Int;
+	setTimeout(this: Function, time: Uint, ...argArray: any[]): TimeoutResult;
 }
 
 interface CallableFunction extends Function {
-	setTimeout<A extends any[], R>(this: (...args: A) => R, time: number, ...args: A): TimeoutResult;
+	setTimeout<A extends any[], R>(this: (...args: A) => R, time: Uint, ...args: A): TimeoutResult;
+}
+
+/**
+ * @global
+ * @interface Array
+ * 
+ * Ref: [`Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
+*/
+interface Array<T> {
+	hashCode(): Int;
+	deleteOf(value: T): T[];
+	indexReverse(index: Uint): T;
+	indexAt(index: Uint): T;
 }
 
 interface ArrayConstructor {
-	toArray(obj: any, index?: number, end?: number): any[];
+	toArray(obj: any, index?: Uint, end?: Uint): any[];
 }
 
-interface Array<T> {
-	hashCode(): number;
-	deleteOf(value: T): T[];
-	indexReverse(index: number): T;
-	indexAt(index: number): T;
+/**
+ * @global
+ * @interface String
+ * 
+ * Ref: [`String`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+*/
+interface String {
+	hashCode(): Int;
 }
 
 interface StringConstructor {
 	format(str: string, ...args: any[]): string;
 }
 
-interface String {
-	hashCode(): number;
-}
-
+/**
+ * @global
+ * @interface Number
+ * 
+ * Ref: [`Number`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+*/
 interface Number {
-	hashCode(): number;
+
+	hashCode(): Int;
 
 	/**
 	* Convert to a string with a fixed number of digits before and after the decimal point
-	* @param before {Number}  Fixed number of digits before the decimal point
-	* @param [after] {Number} Fixed number of digits after the decimal point
+	* 
+	* @param before Fixed number of digits before the decimal point
+	* @param after? Fixed number of digits after the decimal point
 	*/
-	toFixedBefore(before: number, after?: number): string;
+	toFixedBefore(before: Uint, after?: Uint): string;
 
 	/**
 	 * Fixed the number of digits before the decimal point and used symbol separation
 	 * 
-	 * @param after {number}  Fixed number of digits before the decimal point
-	 * @param split {number?}  Split unit length
-	 * @param symbol {string?}  Split characters
-	 * @return {string}
+	 * @param after  Fixed number of digits before the decimal point
+	 * @param split?  Split unit length
+	 * @param symbol?  Split characters
 	 * 
-	 * For examples:
+	 * @example
 	 * 
 	 * ```ts
 	 * 
@@ -123,47 +211,59 @@ interface Number {
 	 * console.log((1000000.03).toFixedVariable(8,3,','))
 	 * ```
 	*/
-	toFixedVariable(after: number, split?: number, symbol?: string): string;
+	toFixedVariable(after: Uint, split?: Uint, symbol?: string): string;
 }
 
+/**
+ * @global
+ * @interface Boolean
+ * 
+ * Ref: [`Boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+*/
 interface Boolean {
-	hashCode(): number;
+	hashCode(): Int;
 }
 
+/**
+ * @global
+ * @interface Date
+ * 
+ * Ref: [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
+*/
 interface DateConstructor {
 	/**
 	 * current timezone
+	 * @static
 	 */
-	currentTimezone: number;
+	currentTimezone: Uint;
 
 	/**
 	 * Parse a string as a time
-	 * @method parseDate(str[,format[,timezone]])
-	 * @param str       {string} The string to parse
-	 * @param format?   {string} date format default yyyyMMddhhmmssfff
-	 * @param timezone? {uint}   The time zone of the time to be parsed,
-	 * 	the default is the current time zone
-	 * @return {Date}            Retruu Date object
+	 * @param str       The string to parse
+	 * @param format?   date format default yyyyMMddhhmmssfff
+	 * @param timezone? The time zone of the time to be parsed, the default is the current time zone
+	 * @return          Retruu Date object
+	 * @static
 	 * 
-	 * For examples:
+	 * @example
 	 * 
 	 * ```ts
 	 * let i = '2008-02-13 01:12:13';
 	 * let date = Date.parseDate(i); // The new time returned
 	 * ```
 	 */
-	parseDate(date_str: string, format?: string, timezone?: number): Date;
+	parseDate(date_str: string, format?: string, timezone?: Uint): Date;
 
 	/**
-		* @method formatTimeSpan(ts[,format])
-		* 
 		* Formatting timestamps
 		* 
-		* @param ts {number} The timestamp to format
-		* @param format?  {string} The timestamp format to be formatted
-		* @return {string} The returned formatted timestamp
+		* @method formatTimeSpan(ts,format?)
+		* @param time_span The timestamp to format
+		* @param format? The timestamp format to be formatted
+		* @return The returned formatted timestamp
+		* @static
 		* 
-		* For examples:
+		* @example
 		* 
 		* ```ts
 		* // Format timestamp (unit: milliseconds)
@@ -178,27 +278,24 @@ interface DateConstructor {
 		* str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
 		* ```
 		*/
-	formatTimeSpan(time_span: number, format?: string): string;
-
+	formatTimeSpan(time_span: Uint, format?: string): string;
 }
 
 interface Date {
-	hashCode(): number;
+	hashCode(): Int;
 
 	/**
-	 * @method add(ms)  Add milliseconds to the current Date time and change the time value
-	 * @param ms {uint} The millisecond value to append
-	 * @return {Date}
+	 * Add milliseconds to the current Date time and change the time value
+	 * @param ms The millisecond value to append
 	 */
-	add(ms: number): Date;
+	add(ms: Uint): Date;
 
 	/**
-		* @method date_to_string(date[,foramt]) Returns a date string given a date format
-		* @param date {Date}
-		* @param format? {string} The format of the string to be converted
-		* @return {string} Returns the formatted time string
+		* Returns a date string given a date format
+		* @param format? The format of the string to be converted
+		* @return Returns the formatted time string
 		* 
-		* For exmples:
+		* @exmples
 		* 
 		* ```ts
 		* let date = new Date();
@@ -215,6 +312,10 @@ interface Date {
 	toString(format?: string, timezone?: number): string;
 }
 
+/**
+ * @global
+ * @interface ErrorDescribe
+*/
 interface ErrorDescribe {
 	name?: string;
 	message?: string;
@@ -225,14 +326,31 @@ interface ErrorDescribe {
 	[prop: string]: any;
 }
 
-type ErrnoCode = [number/*errno*/, string/*message*/, string?/*description*/];
+/**
+ * @global
+ * @type ErrnoCode:[number,string,string?] [errno,message,description]
+*/
+type ErrnoCode = [number, string, string?];
+
+/**
+ * @global
+*/
 type ErrorNewArg = ErrnoCode | Error | string | ErrorDescribe;
 
+/**
+ * @global
+ * @interface Error
+ * 
+ * Ref: [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+*/
 interface ErrorConstructor {
 	'new'(err: ErrorNewArg, ...child: ErrorNewArg[]): Error;
 	toJSON(err: Error): any;
 	setStackTraceJSON(enable: boolean): void;
-	/** Create .stack property on a target object */
+	/**
+	 * Create .stack property on a target object
+	 * @static
+	 */
 	captureStackTrace(targetObject: Object, constructorOpt?: Function): void;
 }
 
@@ -271,12 +389,6 @@ let _hash_code_set = new WeakSet();
 let DateToString = (Date.prototype as any).__toStrin__ || Date.prototype.toString;
 let ErrorToString = (Error.prototype as any).__toStrin__ || Error.prototype.toString;
 
-definePropertys(Date.prototype, {__toStrin__: Date.prototype.toString});
-definePropertys(Date.prototype, {__toStrin__: Error.prototype.toString});
-
-/**
- * @method ext_class #  EXT class prototype objects
- */
 function definePropertys(obj: any, extd: any): void {
 	for (let i in extd) {
 		let desc = Object.getOwnPropertyDescriptor(extd, i)!;
@@ -297,12 +409,13 @@ function indexOf(str: string, str1: string): number {
 	return index > -1 ? index : Infinity;
 }
 
-definePropertys(Object, {
-	hashCode: hashCode,
-});
+definePropertys(Date.prototype, {__toStrin__: Date.prototype.toString});
+definePropertys(Date.prototype, {__toStrin__: Error.prototype.toString});
+
+definePropertys(Object, { hashCode: hashCode });
 
 definePropertys(Object.prototype, {
-	hashCode(): number {
+	hashCode(): Int {
 		if (_hash_code_set.has(this))
 			return 0;
 		_hash_code_set.add(this);
@@ -316,8 +429,7 @@ definePropertys(Object.prototype, {
 });
 
 definePropertys(Function.prototype, {
-
-	hashCode(): number {
+	hashCode(): Int {
 		if (!this.hasOwnProperty('__hashCode')) {
 			Object.defineProperty(this, '__hashCode', {
 				enumerable: false, configurable: false, writable: false, value: _hash_code_id++
@@ -340,8 +452,7 @@ definePropertys(Array, {
 });
 
 definePropertys(Array.prototype, {
-
-	hashCode(): number {
+	hashCode(): Int {
 		if (_hash_code_set.has(this))
 			return 0;
 		_hash_code_set.add(this);
@@ -374,7 +485,7 @@ definePropertys(Array.prototype, {
 
 // ext TypedArray
 definePropertys((Uint8Array as any).prototype.__proto__, {
-	hashCode(): number {
+	hashCode(): Int {
 		let _hash = 5381;
 		let self = new Uint8Array(this.buffer, this.byteOffset, this.byteLength);
 		for (let item of self) {
@@ -406,8 +517,7 @@ definePropertys(String.prototype, {
 });
 
 definePropertys(Number.prototype, {
-
-	hashCode(): number {
+	hashCode(): Int {
 		return this;
 	},
 
@@ -450,7 +560,7 @@ definePropertys(Number.prototype, {
 });
 
 definePropertys(Boolean.prototype, {
-	hashCode(): number {
+	hashCode(): Int {
 		return this == true ? -1186256: -23547257;
 	},
 });
@@ -532,7 +642,7 @@ definePropertys(Date, {
 
 definePropertys(Date.prototype, {
 
-	hashCode(): number {
+	hashCode(): Int {
 		return this.valueOf();
 	},
 
@@ -625,7 +735,7 @@ definePropertys(Error.prototype, {
 	extend(desc: ErrorDescribe) {
 		return Object.assign(this, desc);
 	},
-	hashCode(): number {
+	hashCode(): Int {
 		let _hash = Object.prototype.hashCode.call(this);
 		_hash += (_hash << 5) + this.message.hashCode();
 		return _hash;

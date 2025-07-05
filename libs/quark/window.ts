@@ -42,9 +42,9 @@ type WEvent = Event<Window>;
 */
 export interface Options {
 	/** init window color type */
-	olorType?: number;
+	olorType?: Uint;
 	/** init window gpu render msaa count */
-	msaa?: number; 
+	msaa?: Uint; 
 	/** init window params */
 	frame?: types.Rect;
 	/** init window title */
@@ -75,57 +75,41 @@ class RootViewController extends ViewController {
 declare class NativeWindow extends Notification<WEvent> {
 
 	/**
-	 * @get scale:float
-	 * 
 	 * The scaling ratio of the physical pixel size of the window to the drawing size
 	*/
 	readonly scale: number;
 
 	/**
-	 * @get defaultScale:float
-	 * 
 	 * The default recommended scaling ratio between window physical pixels and drawing size
 	*/
 	readonly defaultScale: number;
 
 	/**
-	 * @get fsp:uint
-	 * 
 	 * Current drawing frame rate
 	*/
-	readonly fsp: number;
+	readonly fsp: Uint;
 
 	/**
-	 * @get atomPixel:float
-	 * 
 	 * Atom pixel size, Exp: 1 / scale
 	*/
 	readonly atomPixel: number;
 
 	/**
-	 * @get root:Root
-	 * 
 	 * The only root view in the window
 	*/
 	readonly root: Root;
 
 	/**
-	 * @get focusView:View
-	 * 
 	 * Current focus view
 	*/
 	readonly focusView: View;
 
 	/**
-	 * @get navigationRect:Rect
-	 * 
 	 * Navigation rect, possibly in the Android bottom navigation button area
 	*/
 	readonly navigationRect: types.Rect;
 
 	/**
-	 * @getset szie:Vec2
-	 * 
 	 * * Set the logical size of the window. When this value changes, the change event will be triggered.
 	 *
 	 * * When both width and height are set to zero, the most comfortable default display size is automatically set.
@@ -137,73 +121,47 @@ declare class NativeWindow extends Notification<WEvent> {
 	size: types.Vec2;
 
 	/**
-	 * @getset backgroundColor:Color
-	 * 
 	 * The background color for the window
 	*/
 	backgroundColor: types.Color;
 
 	/**
-	 * @getset surfaceSize:Vec2
-	 * 
 	 * Window physical surface pixel size
 	*/
 	surfaceSize: types.Vec2;
 
 	/**
-	 * @method nextFrame(cb)
-	 * 
 	 * When rendering next frame call
-	 * 
-	 * @param cb {Function}
-	 * @return {this}
+	 * @method nextFrame(cb:Function)this
 	*/
 	nextFrame(cb: ()=>void): this;
 
 	/**
-	 * @method activate
-	 * 
 	 * Activate the display window or taking the window to the foreground
-	 * 
-	 * @return {this}
 	*/
 	activate(): this;
 
 	/**
-	 * @method close()
-	 * 
 	 * To close or destroy the window
 	*/
 	close(): void;
 
 	/**
-	 * @method pending() 
-	 * 
 	 * Taking window to background and pending
 	*/
 	pending(): void;
 
 	/**
-	 * @method setFullscreen(fullscreen)
-	 * 
 	 * Setting whether the window is displayed in full screen mode
-	 * 
-	 * @param fullscreen {bool}
 	*/
 	setFullscreen(fullscreen: boolean): void;
 
 	/**
-	 * @method setCursorStyle(style)
-	 * 
 	 * Setting the mouse cursor style
-	 * 
-	 * @param style {CursorStyle}
 	*/
 	setCursorStyle(style: types.CursorStyle): void;
 
 	/**
-	 * @constructor([opts])
-	 * @param opts? {Options}
 	*/
 	constructor(opts?: Options);
 }
@@ -215,38 +173,33 @@ declare class NativeWindow extends Notification<WEvent> {
 export class Window extends (_ui.Window as typeof NativeWindow) {
 
 	/**
-	 * @event onChange() Trigger when to change window size
+	 * Trigger when to change window size
 	*/
 	@event readonly onChange: EventNoticer<WEvent>;
 
 	/**
-	 * @event onBackground() Trigger when into background
+	 * Trigger when into background
 	*/
 	@event readonly onBackground: EventNoticer<WEvent>;
 
 	/**
-	 * @event onForeground() Trigger when into foreground
+	 * Trigger when into foreground
 	*/
 	@event readonly onForeground: EventNoticer<WEvent>;
 
 	/**
-	 * @event onClose() Trigger when closed window
+	 * Trigger when closed window
 	*/
 	@event readonly onClose: EventNoticer<WEvent>;
 
 	/**
-	 * @get rootCtr:ViewController
-	 * 
 	 * The only root view controller in the window
 	*/
 	readonly rootCtr: ViewController = new RootViewController(this);
 
 	/**
-	* @method render(vdom)
-	* 
 	* Create a view or view controller `DOM` by `vdom`
 	* 
-	* @param vdom {VirtualDOM}
 	* @return {DOM}
 	* 
 	* Example:
@@ -281,11 +234,9 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	}
 
 	/**
-	 * @mehod nextTickFrame(cb)
+	 * @mehod nextTickFrame(cb:Function)this
 	 * 
 	 * Calling nextTick on the next loop tick means the next frame of the next loop tick
-	 * 
-	 * @param cb {Function}
 	*/
 	nextTickFrame(cb: () => void) {
 		util.nextTick(()=>this.nextFrame(cb));
