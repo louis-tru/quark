@@ -33,11 +33,12 @@ var path  = require('path');
 var input = process.argv[2];
 var code = fs.readFileSync(input, 'utf-8');
 var name = getBasenamePrefix(input);
+var output = `${__dirname}/../doc/${name}.md`;
 var imports = {};
 var types = {};
 var comments = [];
 var packIn = null;
-var resolved = new Set();
+var doc = [];
 
 function getBasenamePrefix(str) {
 	var basename = path.basename(str);
@@ -64,6 +65,18 @@ class Item {
 		if (key)
 			this.key = key;
 	}
+}
+
+function getTypeReadme(type) {
+	return ('`'+type+'`' || '');
+}
+
+function key(s) {
+	return `\`${s}\``;
+}
+
+function head(s) {
+	return `* \`@${s}\``;
 }
 
 function fixParams(comment, args) {
@@ -140,6 +153,7 @@ function tryMethod(comment, method, lastIndex) {
 				comment.return.type = valueMat[3];
 			}
 		}
+		comment.__main__ = method;
 	}
 
 	// Match to type: ([\w\[\]\<\>\|,\.\s]+)
@@ -177,7 +191,10 @@ function tryMethod(comment, method, lastIndex) {
 
 	let newMainItem = (kind,value,args)=>{
 		let item = new Item(kind,value,args);
-		return comment.__items__.unshift(comment[kind] = item), item;
+		comment.__items__.unshift(item)
+		comment.__main__ = item;
+		comment[kind] = item;
+		return item;
 	}
 
 	let kind = key == 'get' || key == 'set' ? key: 'method';
@@ -191,7 +208,7 @@ function tryMethod(comment, method, lastIndex) {
 
 	if (kind == 'method') {
 		let value = `${name}(${args.map(e=>e[0]).join(',')})`;
-		item = item  || newMainItem(kind,value,{name});
+		item = item || newMainItem(kind,value,{name});
 		item.name || Object.assign(item,{value,name});
 	} else {
 		item = item || comment.getset ||
@@ -257,16 +274,26 @@ function tryTypeOrGetset(comment, item/*get/set/getset*/, lastIndex) {
 
 	let kind = modifiers == '@event' ? 'event' :
 		key ? (key == 'readonly' ? 'get': key):
-		type ? 'getset': 'emunItem';
+		type ? 'getset': 'enumItem';
 	if (!item) {
 		item = new Item(kind,'',{name:name,type});
 		comment[kind] = item;
 		comment.__items__.unshift(item);
+		comment.__main__ = item;
 	} else {
 		if (!item.name)
 			item.name = name;
 		if (!item.type)
 			item.type = type;
+	}
+
+	if (comment.__packIn__) {
+		let kind = comment.__packIn__.__main__.kind;
+		if (kind == 'const' || kind == 'type' || kind == 'enum') {
+			if (!comment.__packIn__.__child__)
+				comment.__packIn__.__child__ = [];
+			comment.__packIn__.__child__.push(comment);
+		}
 	}
 
 	if (indexed) {
@@ -284,11 +311,12 @@ function tryTypeOrGetset(comment, item/*get/set/getset*/, lastIndex) {
 function tryType(comment,item,lastIndex) {
 	if (item) {
 		// Match to type: \w\[\]\<\>\|,\.
-		let valueMat = item.value.match(/(\w+)(:([\w\[\]\<\>\|,\.]+))?/);
+		let valueMat = item.value.match(/(\w+)(:([\w\[\]\<\>\|,\.\'\"　\(\)]+))?/);
 		if (valueMat[3]) {
 			item.name = valueMat[1];
 			item.type = valueMat[3];
 		}
+		comment.__main__ = item;
 	}
 
 	// Match to type: ([\w\[\]\<\>\|,\.\s]+)
@@ -302,6 +330,12 @@ function tryType(comment,item,lastIndex) {
 	if (!comment.type) {
 		comment.type = new Item(kind,'',{name,type});
 		comment.__items__.unshift(comment.type);
+		comment.__main__ = comment.type;
+	} else {
+		if (!comment.type.name)
+			comment.type.name = name;
+		if (!comment.type.type)
+			comment.type.type = type;
 	}
 
 	fixTempl(comment, templMat);
@@ -324,6 +358,10 @@ function tryPack(comment, pickItem, lastIndex) {
 		if (item)
 			item.types = item.value.split(/\s*,\s*/);
 	}
+	if (pickItem) {
+		pickItem.name = pickItem.value;
+		comment.__main__ = pickItem;
+	}
 
 	// Match to type: ([\w\[\]\<\>\|,\.\s]+)
 	let reg = /\W*(?:(export)\s+)?(?:(declare)\s+)?(?:(class|interface|enum)\s+)(\w+)\s*(\<[^\>]+\>)?(?:\s+extends\s+([\w,\s]+))?(?:\s+implements\s+([\w,\s]+))?/my;
@@ -334,8 +372,9 @@ function tryPack(comment, pickItem, lastIndex) {
 	let [,modifiers,,kind,name,templMat,extend,implements] = mat;
 
 	if (!pickItem) {
-		comment[kind] = pickItem = new Item(kind,name);
+		comment[kind] = pickItem = new Item(kind,name,{name});
 		comment.__items__.unshift(pickItem);
+		comment.__main__ = pickItem;
 	}
 
 	fixTempl(comment, templMat);
@@ -357,21 +396,22 @@ function tryPack(comment, pickItem, lastIndex) {
 
 function parseCommentA(str, index) { /** ... */
 	let len = str.length;
-	let lines = str.split('\n').map(e=>e.replace(/\s*\*?\s?/, ''));
+	let lines = str.replaceAll('\\\n', '').split('\n').map(e=>e.replace(/\s*\*?\s?/, ''));
 	let lastIndex = index + len + 4;
 
 	let items = [
 		// {kind: class|interface|enum|method|getset|type|callbackconst|param|return|example}
 	];
 	let comment = {
+		firstMsgs: [],
 		param: [],
 		__items__: items,
+		__main__: null,
 	};
-	let unknownMsgs = [];
 
 	for (let line of lines) {
 		if (line[0] == '@') {
-			let m = line.match(/^@(\w+)(\s+([^\s]+))?(\s+(.+))?/);
+			let m = line.match(/^@(\w+)(\s+([^ \t]+))?(\s+(.+))?/);
 			let kind = m[1];
 			let item = new Item(kind,m[3],{desc:m[5]});
 			if (Array.isArray(comment[kind])) {
@@ -383,7 +423,7 @@ function parseCommentA(str, index) { /** ... */
 		} else if (items.length) {
 			items.at(items.length-1).msgs.push(line);
 		} else if (line) {
-			unknownMsgs.push(line);
+			comment.firstMsgs.push(line);
 		}
 	}
 
@@ -438,6 +478,8 @@ function parseCommentA(str, index) { /** ... */
 	}
 	else if (comment.default) {
 		packIn = comment;
+		items[0].value = 'default';
+		items[0].name = 'default';
 	}
 	else if (comment.end) {
 		packIn = null;
@@ -457,10 +499,6 @@ function parseCommentA(str, index) { /** ... */
 	if (items.length == 0)
 		return;
 
-	if (unknownMsgs.length) {
-		items[0].msgs.unshift(...unknownMsgs);
-	}
-
 	return comment;
 }
 
@@ -469,9 +507,11 @@ function parseCommentB(str, index) { //!< ...
 	if (lastIndex != -1) {
 		let items = [];
 		let comment = {
+			firstMsgs: [],
 			param: [],
 			__packIn__: packIn,
 			__items__: items,
+			__main__: null,
 		};
 
 		comment = tryTypeOrGetset(comment, null, lastIndex) || tryMethod(comment, null, lastIndex);
@@ -523,6 +563,95 @@ for (let m of comments_mat) {
 		comments.push(comment);
 }
 
-console.log(imports);
-comments.forEach(e=>console.log(e.__items__));
-debugger;
+// console.log(imports);
+// comments.forEach(e=>console.log(e.__items__));
+
+fs.mkdirSync(path.dirname(output), {recursive: true});
+
+for (let comment of comments) {
+	let {disable,__items__,__packIn__,firstMsgs} = comment;
+	let pack = __packIn__ && __packIn__.__main__;
+	if (disable)
+		continue;
+	for (let it of __items__) {
+		switch (it.kind) {
+			case 'class':
+			case 'interface':
+			case 'enum':
+				doc.push(`## ${it.name}`);
+				doc.push(`### ${it.kind[0].toUpperCase() + it.kind.substring(1)}: ${it.name}`
+					, ...firstMsgs, `${it.desc}`, ...it.msgs
+				);
+				for (let ch of comment.__child__|| []) {
+					let {enumItem:it,firstMsgs} = ch;
+					ch.disable = true;
+					doc.push(`* ${key(it.name)} ${it.type ? ' = ' + key(it.type): ''} ${it.desc}`, ...firstMsgs, ...it.msgs);
+				}
+				break;
+			case 'extends':
+			case 'implements':
+				if (comment.class || comment.interface) {
+					doc.push(`${head(it.kind)} ${it.types.map(e=>getTypeReadme(e)).join(',')}`);
+				}
+				break;
+			case 'template':
+				doc.push(`${head('template')} ${it.types.map(e=>getTypeReadme(e)).join(',')}`);
+				break;
+			case 'enumItem':
+				break;
+			case 'method':
+				doc.push(`##${pack?'# '+pack.name.toLowerCase()+'.':' '}${it.value}`, ...firstMsgs);
+				doc.push(`${it.desc}`, ...it.msgs);
+				break;
+			case 'return':
+				if (comment.method) {
+					doc.push(`${head('return')} ${getTypeReadme(it.type)} ${it.desc}`, ...it.msgs);
+				}
+				break;
+			case 'get':
+			case 'set':
+			case 'event':
+				doc.push(`### ${pack.name.toLowerCase()}.${it.name}`, ...firstMsgs);
+				doc.push(`${head(it.kind)} ${key(it.name)}: ${getTypeReadme(it.type)} ${it.desc}`);
+				break;
+			case 'getset':
+				doc.push(`### ${pack.name.toLowerCase()}.${it.name}`, ...firstMsgs);
+				doc.push(`* ${key(it.name)}: ${getTypeReadme(it.type)} ${it.desc}`);
+				break;
+			case 'param':
+				doc.push(`${head('param')} ${key(it.name)}: ${getTypeReadme(it.type)} ${it.desc}`, ...it.msgs);
+				break;
+			case 'callback':
+				doc.push(`## ${it.name}`, ...firstMsgs);
+				doc.push(`${head('callback')} ${key(it.value)} ${it.desc}`, ...it.msgs);
+				break;
+			case 'type':
+				doc.push(`## ${it.name}`, ...firstMsgs);
+				doc.push(it.desc, ...it.msgs);
+				doc.push(`${head('type')} ${key(it.name)} = ${getTypeReadme(it.type)}`);
+				break;
+			case 'const':
+				doc.push(`## ${it.name}`, ...firstMsgs);
+				doc.push(it.desc, ...it.msgs);
+				doc.push(`${head('const')} ${key(it.name)}: ${getTypeReadme(it.type)}`);
+				break;
+			case 'default':
+				doc.push(`## default`, ...firstMsgs, ...it.msgs);
+				break;
+			case 'information':
+				doc.push(`# ${it.value}`, ...firstMsgs, it.desc, ...it.msgs);
+				break;
+			case 'example':
+				doc.push('', `For example:`, ...it.msgs);
+				break;
+			case 'end':
+				break;
+			default:
+				doc.push(`${head(it.kind)} ${it.value} ${it.desc}`, ...it.msgs);
+				break;
+		}
+	}
+	doc.push('');
+}
+
+fs.writeFileSync(output, doc.join('\n'));

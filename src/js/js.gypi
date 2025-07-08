@@ -111,7 +111,7 @@
 			{
 				'action_name': 'gen_inl_js_natives',
 				'inputs': [
-					'../../tools/gen-js-natives.js',
+					'../../tools/gen_js_natives.js',
 					'../../libs/quark/out/_pkg.js',
 					'../../libs/quark/out/_util.js',
 					'../../libs/quark/out/_event.js',
@@ -135,7 +135,7 @@
 			{
 				'action_name': 'gen_lib_js_natives',
 				'inputs': [
-					'../../tools/gen-js-natives.js',
+					'../../tools/gen_js_natives.js',
 					'<@(libs_quark_js_out)',
 				],
 				'outputs': [
