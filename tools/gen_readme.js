@@ -450,7 +450,7 @@ function startExec(input,output) {
 			return;
 		let [,modifiers,key,name='indexed',indexed,_t,type] = mat;
 
-		if (_t != ':')
+		if (_t && _t[0] != ':')
 			return;
 
 		if (['function','var','let'].indexOf(name) != -1)
