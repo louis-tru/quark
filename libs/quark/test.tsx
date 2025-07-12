@@ -1,5 +1,7 @@
 
-import {_CVD, Application,Window} from './index';
+import {Window} from './window';
+import {Application} from './app';
+import {_CVD} from './ctr';
 
 new Application();
 

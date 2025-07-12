@@ -101,7 +101,7 @@ util.extendClass(Application, NativeNotification);
  * @default
 */
 export default {
-	/** */
+	/***/
 	get current(): Application {
 		return _current!
 	},

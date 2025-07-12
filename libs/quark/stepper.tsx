@@ -28,7 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {_CVD, createCss, ViewController, mainScreenScale,StyleSheet} from './index';
+import {_CVD,ViewController} from './ctr';
+import {mainScreenScale} from './screen';
+import {createCss,StyleSheet} from './css';
+
 const px = 1 / mainScreenScale();
 
 createCss({

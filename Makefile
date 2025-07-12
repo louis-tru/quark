@@ -99,7 +99,7 @@ try_linux:
 	$(call maybe_remote_build,$(filter linux,$(HOST_OS)),"",linux,linux)
 
 doc:
-	@$(NODE) tools/gen_html_doc.js doc out/doc
+	@$(NODE) tools/gen_html_doc.js libs/quark out/doc
 
 web:
 	@$(NODE) --inspect=0.0.0.0:9228 tools/server.js

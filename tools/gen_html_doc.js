@@ -33,66 +33,125 @@ var fs = require('qktool/fs');
 var path = require('path');
 var marked_html = require('qkmake/marked/html');
 var read_quark_version = require('./read_version').read_quark_version;
+var gen_readme = require('./gen_readme');
 var argv = process.argv.slice(2);
 var template = null;
-var indexs = { };
+var indexeds = {};
 
 if ( argv < 2 ) {
 	throw new Error('Bad argument.');
 }
 
 var source = path.resolve(argv[0]);
-var output = path.resolve(argv[1]);
+var output_md = path.resolve(argv[1], 'md');
+var output_html = path.resolve(argv[1], 'html');
 
-if ( fs.existsSync(source + '/index.md') ) { // 存在索引
-	var md = fs.readFileSync(source + '/index.md').toString();
-	md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
+function getBasenamePrefix(str) {
+	var basename = path.basename(str);
+	var ext = path.extname(str);
+	return basename.substring(0, basename.length - ext.length);
+}
+
+function genReadme(src, target) {
+	if (!fs.existsSync(target)) {
+		fs.mkdirSync(target);
+	}
+
+	var files =
+		fs.readdirSync(source)
+		.filter(e=>(e[0]!='.'&&['.ts','.tsx'].indexOf(path.extname(e))>=0));
+
+	for (let name of files) {
+		var src2 = src + '/' + name;
+		var stat = fs.statSync(src2);
+
+		if (stat.isFile()) {
+			gen_readme.startExec(src2, `${target}/${getBasenamePrefix(name)}.md`);
+		} 
+		else if (stat.isDirectory()) {
+			genReadme(src2, target + '/' + name);
+		}
+	}
+}
+
+function getIndexCode() {
+	if (fs.existsSync(source + '/index.md')) {
+		return fs.readFileSync(source + '/index.md').toString();
+	} else {
+		var files =
+			fs.readdirSync(source)
+			.filter(e=>(['errno.ts'].indexOf(e)==-1&&['.ts','.tsx'].indexOf(path.extname(e))>=0))
+			.sort((a,b)=>a.localeCompare(b));
+		// console.log(files);
+		var lastFiles = [];
+		files = files.filter(e=>e[0]=='_'?(lastFiles.push(e),false):true)
+
+		return [
+			'# [`Quark`]',
+			'',
+			'* [`About`](README.md)',
+			'* [`Tools`](https://www.npmjs.com/package/qkmake)',
+			'* [`Examples`](https://github.com/louis-tru/quark/tree/master/examples)',
+			'',
+			'# Modules',
+			'',
+			...files.concat(lastFiles).map(e=>{
+				let name = getBasenamePrefix(e);
+				return `* [\`quark/${name}\`](${name}.md)`;
+			}),
+			'',
+			'[`Quark`]: http://quarks.cc/',
+		].join('\n');
+	}
+}
+
+function makeIndexed() {
+	var md = getIndexCode().replace(/\.(md|mdown)(\#|\))/img, '.html$2');
 	var r = marked_html.gen_html(md, '', '__placeholder_body__');
 	template = fs.readFileSync(__dirname + '/doc_template.html').toString();
 	template = template.replace('__placeholder_version__', 'v' + read_quark_version().join('.'));
 	template = template.replace('__placeholder_index__', r.html);
 }
 
-function gen(src, target) {
+function genHtml(src, target) {
 	var extname = path.extname(src).toLowerCase();
 	if ( extname == '.md' || extname == '.mdown' ) {
-		var md = fs.readFileSync(source + src).toString();
-		var save = target.substr(0, target.length - extname.length) + '.html';
+		var md = fs.readFileSync(output_md + src).toString();
+		var save = target.substring(0, target.length - extname.length) + '.html';
 		md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
-		var tmp = template.replace('__placeholder_src__', src.substr(1).replace(/.(md|mdown)/i, '.html'));
+		var tmp = template.replace('__placeholder_src__', src.substring(1).replace(/.(md|mdown)/i, '.html'));
 		tmp = tmp.replace('__placeholder_relative__', new Array(src.split('/').length - 1).join('../'));
-		var r = marked_html.gen_html(md, indexs[src] || 'Quark API Documentation', tmp);
+		var r = marked_html.gen_html(md, indexeds[src] || 'Quark API Documentation', tmp);
 		fs.writeFileSync(save, r.html);
 	}
 }
 
-function each_dir(src, target) {
-
+function eachGenHtml(src, target) {
 	if (!fs.existsSync(target)) { // 创建目录
 		fs.mkdirSync(target);
 	}
-
-	var ls = fs.readdirSync(source + src);
-	
-	for (var i = 0; i < ls.length; i++) {
-		var name = ls[i];
+	for (let name of fs.readdirSync(output_md + src)) {
 		if (name[0] != '.') {
-
 			var src2 = src + '/' + name;
 			var target2 = target + '/' + name;
-			var stat = fs.statSync(source + src2);
-			
+			var stat = fs.statSync(output_md + src2);
+
 			if (stat.isFile()) {
-				gen(src2, target2);
+				genHtml(src2, target2);
 			} 
 			else if (stat.isDirectory()) {
-				each_dir(src2, target2);
+				eachGenHtml(src2, target2);
 			}
 		}
 	}
 }
 
-fs.mkdir_p_sync(output);
-fs.cp_sync(require.resolve('qkmake') + '/../marked/assets', output + '/assets');
+fs.mkdir_p_sync(output_html);
+fs.cp_sync(require.resolve('qkmake') + '/../marked/assets', output_html + '/assets');
 
-each_dir('', output);
+genReadme(source, output_md);
+
+fs.copyFileSync(`${__dirname}/../README.md`, `${output_md}/README.md`);
+
+makeIndexed();
+eachGenHtml('', output_html);

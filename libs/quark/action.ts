@@ -301,7 +301,7 @@ export function createAction(win: Window, arg: ActionIn, parent?: Action): Actio
 export type ActionCb = (e: ActionEvent)=>void;
 
 /**
- * * Create a view style transition action by the style and play this action,
+ * Create a view style transition action by the style and play this action,
  * 
  * 	and callback after completion
  *

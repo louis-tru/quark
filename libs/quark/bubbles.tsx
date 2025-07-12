@@ -28,7 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {_CVD,link,View,Box,Matrix,VDom,Window,ViewType} from './index';
+import {View,Box,Matrix,ViewType} from './view';
+import {_CVD,link,VDom} from './ctr';
+import {Window} from './window';
 import { Navigation } from './nav';
 import { UIEvent } from './event';
 import * as types from './types';

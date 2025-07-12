@@ -28,7 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {_CVD,createCss,ViewController,StyleSheet,link} from './index';
+import {createCss,StyleSheet} from './css';
+import {_CVD,ViewController,link} from './ctr';
 
 createCss({
 	'.qk_checkbox': {

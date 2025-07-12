@@ -116,8 +116,8 @@ function querystringStringify(prefix: string, params: Dict) {
  * @example
  * 
  * ```ts
- * // cwd: file://!<var/data
- * // Prints: file://!<var/data/index.js
+ * // cwd: file:///var/data
+ * // Prints: file:///var/data/index.js
  * var uri = new URL('index.js');
  * console.log(uri.href);
  * // Prints: http://quarks.cc/index.html?args=0
@@ -300,7 +300,7 @@ export class URL {
 	 * // Prints: http://quarks.cc:81
 	 * console.log(new URL('http://quarks.cc:81/host/index.html').host);
 	 * // Prints: file://
-	 * console.log(new URL('file://!<var/data/index.html').host);
+	 * console.log(new URL('file:///var/data/index.html').host);
 	 * ```
 	 */
 	get origin(): string {
@@ -315,7 +315,7 @@ export class URL {
 	 * 
 	 * ```ts
 	 * // Prints: index.html
-	 * console.log(new URL('file://!<var/data/index.html').basename);
+	 * console.log(new URL('file:///var/data/index.html').basename);
 	 * ```
 	 */
 	get basename(): string {
@@ -330,7 +330,7 @@ export class URL {
 	 * 
 	 * ```ts
 	 * // Prints: .html
-	 * console.log(new URL('file://!<var/data/index.html').extname);
+	 * console.log(new URL('file:///var/data/index.html').extname);
 	 * ```
 	 */
 	get extname(): string {
@@ -528,8 +528,8 @@ export class URL {
 	 * // Prints: ../A/B/C/test.js
 	 * var url = new URL('http://quarks.cc/A/B/C/test.js');
 	 * console.log(url.relative('http://quarks.cc/home/'));
-	 * // Prints: file://!<var/data/A/B/C/test.js
-	 * var url2 = new URL('file://!<var/data/A/B/C/test.js');
+	 * // Prints: file:///var/data/A/B/C/test.js
+	 * var url2 = new URL('file:///var/data/A/B/C/test.js');
 	 * console.log(url2.relative('http://quarks.cc/home/'));
 	 * ```
 	 */
@@ -598,7 +598,7 @@ export default {
 	 * 
 	 * ```ts
 	 * // Prints:
-	 * // file://!<var/containers/Bundle/Application/4F1BD659-601D-4932-8484-D0D1F978F0BE/test.app/test
+	 * // file:///var/containers/Bundle/Application/4F1BD659-601D-4932-8484-D0D1F978F0BE/test.app/test
 	 * console.log(path.executable());
 	 * ```
 	*/
@@ -612,10 +612,10 @@ export default {
 	 * 
 	 * ```ts
 	 * // Prints:
-	 * // file://!<var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents
+	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents
 	 * console.log(path.documents());
 	 * // Prints Setting the result of appending path parameters:
-	 * // file://!<var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents/aa.jpeg
+	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents/aa.jpeg
 	 * console.log(path.documents('aa.jpeg'));
 	 * ```
 	*/
@@ -661,7 +661,7 @@ export default {
 	 * 
 	 * ```ts
 	 * // Prints: /var/data/test.js
-	 * console.log(path.normalizePath('file://!<var/data/test.js'));
+	 * console.log(path.normalizePath('file:///var/data/test.js'));
 	 * ```
 	 */
 	classicPath: _util.classicPath,
@@ -676,7 +676,7 @@ export default {
 	 * console.log(path.resolve('http://quarks.cc/home', "..", "A", "B", "..", "C", "test.js"));
 	 * // Prints: 
 	 * // true
-	 * // file://!<var/data/aaa/cc/ddd/kk.jpg
+	 * // file:///var/data/aaa/cc/ddd/kk.jpg
 	 * console.log(path.chdir('/var/data'));
 	 * console.log(path.resolve('aaa/bbb/../cc/.//!<ddd/kk.jpg'));
 	 * ```

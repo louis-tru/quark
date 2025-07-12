@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import util from './util';
-import {
-	_CVD,mainScreenScale,createCss,link,View,Matrix,Input,
-	ViewController, RenderData
-} from './index';
+import {View,Matrix,Input} from './view';
+import {_CVD,link,ViewController,RenderData} from './ctr';
+import {createCss} from './css';
+import {mainScreenScale} from './screen';
 import {Navigation} from './nav';
 import {Window} from './window';
 import {ClickEvent} from './event';
@@ -130,9 +130,9 @@ createCss({
  * @const Consts:...
 */
 export const Consts = {
-	Ok: 'OK', //!<
-	Cancel: 'Cancel', //!<
-	Placeholder: 'Please enter..', //!<
+	Ok: 'OK', //!< {'OK'}
+	Cancel: 'Cancel', //!< {'Cancel'}
+	Placeholder: 'Please enter..', //!< {'Please enter..'}
 };
 
 /**

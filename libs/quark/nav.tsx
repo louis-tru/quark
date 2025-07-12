@@ -31,10 +31,13 @@
 import util from './util';
 import { List,ListIterator,ClickType } from './event';
 import { KeyboardKeyCode } from './keyboard';
-import index, {
-	_CVD,link,ViewController,View,Label,Text, RenderResult,
-	mainScreenScale,Window,VDom,assertDom,Box,VirtualDOM, createCss } from './index';
+import {Window} from './window';
+import {_CVD,link,ViewController,RenderResult,VDom,assertDom,VirtualDOM} from './ctr';
+import {mainScreenScale} from './screen';
+import {View,Label,Text,Box} from './view';
 import * as types from './types';
+import app from './app';
+import {createCss} from './css';
 
 const px = 1 / mainScreenScale();
 const Transition_Time = 400;
@@ -323,7 +326,7 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 	 * @getset enableAnimate
 	 */
 	@link     enableAnimate: boolean = true;
-	@link.acc padding = index.app.screen.statusBarHeight; // ios/android, 20;
+	@link.acc padding = app.current.screen.statusBarHeight; // ios/android, 20;
 	@link.acc navbarHeight = 44;
 	@link.acc navbarHidden = false;
 

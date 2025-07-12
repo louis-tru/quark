@@ -55,38 +55,27 @@ declare const module: qk.Module;
 declare const exports: any; // Same as module.exports
 
 /**
- * @type null
- * @global
- * 
- * Ref: [`null`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null)
-*/
-
-/**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
  * @type number:Number
- * 
- * Ref: [`Number`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+ * @global
 */
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
  * @type boolean:Boolean
- * 
- * Ref: [`Boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+ * @global
 */
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
  * @type object:Object
- * 
- * Ref: [`Object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+ * @global
 */
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
  * @type string:String
- * 
- * Ref: [`String`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+ * @global
 */
 
 /**
@@ -108,10 +97,9 @@ type Uint = number;
 type Float = number;
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
  * @interface Object
- * 
- * Ref: [`Object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+ * @global
 */
 interface ObjectConstructor {
 	hashCode(obj: any): Int;
@@ -122,8 +110,8 @@ interface Object {
 }
 
 /**
- * @template T
  * @interface Dict Dictionaries
+ * @template T
  * @global
  */
 interface Dict<T = any> {
@@ -133,10 +121,9 @@ interface Dict<T = any> {
 type TimeoutResult = any;
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
  * @interface Function
- * 
- * Ref: [`Function`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+ * @global
 */
 interface Function {
 	hashCode(): Int;
@@ -148,10 +135,9 @@ interface CallableFunction extends Function {
 }
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
  * @interface Array
- * 
- * Ref: [`Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
+ * @global
 */
 interface Array<T> {
 	hashCode(): Int;
@@ -165,10 +151,9 @@ interface ArrayConstructor {
 }
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
  * @interface String
- * 
- * Ref: [`String`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+ * @global
 */
 interface String {
 	hashCode(): Int;
@@ -179,10 +164,9 @@ interface StringConstructor {
 }
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
  * @interface Number
- * 
- * Ref: [`Number`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+ * @global
 */
 interface Number {
 
@@ -206,8 +190,7 @@ interface Number {
 	 * @example
 	 * 
 	 * ```ts
-	 * 
-	 * Print: 1,000,000.03
+	 * // Print: 1,000,000.03
 	 * console.log((1000000.03).toFixedVariable(8,3,','))
 	 * ```
 	*/
@@ -215,20 +198,18 @@ interface Number {
 }
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
  * @interface Boolean
- * 
- * Ref: [`Boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+ * @global
 */
 interface Boolean {
 	hashCode(): Int;
 }
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
  * @interface Date
- * 
- * Ref: [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
+ * @global
 */
 interface DateConstructor {
 	/**
@@ -313,8 +294,8 @@ interface Date {
 }
 
 /**
- * @global
  * @interface ErrorDescribe
+ * @global
 */
 interface ErrorDescribe {
 	name?: string;
@@ -327,8 +308,9 @@ interface ErrorDescribe {
 }
 
 /**
+ * The [errno,message,description] of Array
+ * @type ErrnoCode:[number,string,string?]
  * @global
- * @type ErrnoCode:[number,string,string?] [errno,message,description]
 */
 type ErrnoCode = [number, string, string?];
 
@@ -338,10 +320,9 @@ type ErrnoCode = [number, string, string?];
 type ErrorNewArg = ErrnoCode | Error | string | ErrorDescribe;
 
 /**
- * @global
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
  * @interface Error
- * 
- * Ref: [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+ * @global
 */
 interface ErrorConstructor {
 	'new'(err: ErrorNewArg, ...child: ErrorNewArg[]): Error;
