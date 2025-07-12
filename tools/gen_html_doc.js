@@ -46,11 +46,8 @@ var source = path.resolve(argv[0]);
 var output_md = path.resolve(argv[1], 'md');
 var output_html = path.resolve(argv[1], 'html');
 
-function getBasenamePrefix(str) {
-	var basename = path.basename(str);
-	var ext = path.extname(str);
-	return basename.substring(0, basename.length - ext.length);
-}
+var getBasenamePrefix = gen_readme.getBasenamePrefix;
+var escapingFilePath = gen_readme.escapingFilePath;
 
 function genReadme(src, target) {
 	if (!fs.existsSync(target)) {
@@ -97,7 +94,7 @@ function getIndexCode() {
 			'',
 			...files.concat(lastFiles).map(e=>{
 				let name = getBasenamePrefix(e);
-				return `* [\`quark/${name}\`](${name}.md)`;
+				return `* [\`quark/${name}\`](${escapingFilePath(name)}.md)`;
 			}),
 			'',
 			'[`Quark`]: http://quarks.cc/',
@@ -133,7 +130,7 @@ function eachGenHtml(src, target) {
 	for (let name of fs.readdirSync(output_md + src)) {
 		if (name[0] != '.') {
 			var src2 = src + '/' + name;
-			var target2 = target + '/' + name;
+			var target2 = target + '/' + escapingFilePath(name);
 			var stat = fs.statSync(output_md + src2);
 
 			if (stat.isFile()) {

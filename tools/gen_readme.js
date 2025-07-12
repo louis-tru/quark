@@ -31,6 +31,24 @@
 var fs    = require('fs');
 var path  = require('path');
 
+function getBasenamePrefix(str) {
+	var basename = path.basename(str);
+	var ext = path.extname(str);
+	return basename.substring(0, basename.length - ext.length);
+}
+
+function escapingFilePath(file) {
+	return file.replace(/^_/, '$');
+}
+
+function key(s) {
+	return `\`${s}\``;
+}
+
+function head(s) {
+	return `* \`@${s}\``;
+}
+
 function startExec(input,output) {
 	var name = getBasenamePrefix(input);
 	var code = fs.readFileSync(input, 'utf-8');
@@ -82,12 +100,6 @@ function startExec(input,output) {
 		void: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void',
 		this: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this',
 	};
-
-	function getBasenamePrefix(str) {
-		var basename = path.basename(str);
-		var ext = path.extname(str);
-		return basename.substring(0, basename.length - ext.length);
-	}
 
 	class Item {
 		constructor(kind,value='',{desc='',msgs=[],...args}={}) {
@@ -215,12 +227,13 @@ function startExec(input,output) {
 					let [refName,second,...suffix] = first.split(/\s*\.\s*/);
 					let item = imports[refName];
 					if (item) {
+						let file = escapingFilePath(item.file);
 						if (item.ref == '*') {
-							refs[first] = `${item.file}.md#${(second||'').toLowerCase()}`;
+							refs[first] = `${file}.md#${(second||'').toLowerCase()}`;
 						} else if (item.ref == 'default') {
-							refs[first] = `${item.file}.md#default${second?'-'+second.toLowerCase():''}`;
+							refs[first] = `${file}.md#default${second?'-'+second.toLowerCase():''}`;
 						} else {
-							refs[first] = `${item.file}.md#${item.ref.toLowerCase()}${second?'-'+second.toLowerCase():''}`;
+							refs[first] = `${file}.md#${item.ref.toLowerCase()}${second?'-'+second.toLowerCase():''}`;
 						}
 					}
 				}
@@ -276,14 +289,6 @@ function startExec(input,output) {
 			getTypeLinkBy(types, linkStr, comment);
 		}
 		return linkStr.join('');
-	}
-
-	function key(s) {
-		return `\`${s}\``;
-	}
-
-	function head(s) {
-		return `* \`@${s}\``;
 	}
 
 	function fixParams(comment, args) {
@@ -918,12 +923,14 @@ function startExec(input,output) {
 	}
 
 	for (let [k,v] of Object.entries(refs)) {
-		doc.push(`[\`${k}\`]: ${v}`);
+		doc.push(`[\`${k}\`]: ${escapingFilePath(v)}`);
 	}
 
 	fs.writeFileSync(output, doc.join('\n'));
 }
 
+exports.getBasenamePrefix = getBasenamePrefix;
+exports.escapingFilePath = escapingFilePath;
 exports.startExec = startExec;
 
 if (require.main === module) {
