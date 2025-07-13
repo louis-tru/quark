@@ -347,6 +347,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 		}
 	}
 }
+/** @end */
 
 /**
  * @method alert(window,msg,cb?)
