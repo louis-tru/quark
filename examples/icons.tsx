@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, createCss } from 'quark';
+import { Jsx, createCss } from 'quark';
 import { Page } from './tool';
 
 const resolve = require.resolve;

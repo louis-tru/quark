@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { LOG, Mv, Pv, Mvcb } from './tool';
-import qk, { _CVD, Window } from 'quark';
+import qk, { Jsx, Window } from 'quark';
 import * as screen from 'quark/screen';
 import * as types from 'quark/types';
 

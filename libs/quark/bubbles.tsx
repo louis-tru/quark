@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import {View,Box,Matrix,ViewType} from './view';
-import {_CVD,link,VDom} from './ctr';
+import {Jsx,link,VDom} from './ctr';
 import {Window} from './window';
 import { Navigation } from './nav';
 import { UIEvent } from './event';

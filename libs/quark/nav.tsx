@@ -32,7 +32,7 @@ import util from './util';
 import { List,ListIterator,ClickType } from './event';
 import { KeyboardKeyCode } from './keyboard';
 import {Window} from './window';
-import {_CVD,link,ViewController,RenderResult,VDom,assertDom,VirtualDOM} from './ctr';
+import {Jsx,link,ViewController,RenderResult,VDom,assertDom,VirtualDOM} from './ctr';
 import {mainScreenScale} from './screen';
 import {View,Label,Text,Box} from './view';
 import * as types from './types';

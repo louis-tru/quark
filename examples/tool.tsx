@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { mainScreenScale, createCss, StyleSheet } from 'quark';
-import { _CVD, ViewController, link, RenderResult } from 'quark/ctr';
+import { Jsx, ViewController, link, RenderResult } from 'quark/ctr';
 import { NavPage } from 'quark/nav';
 import {ClickEvent} from 'quark/event';
 import * as types from 'quark/types';

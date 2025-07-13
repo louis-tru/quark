@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Application, Window, createCss, mainScreenScale, ViewController } from 'quark';
+import { Jsx, Application, Window, createCss, mainScreenScale, ViewController } from 'quark';
 import {reader} from 'quark/fs';
 import * as types from 'quark/types';
 import { NavPageCollection } from 'quark/nav';

@@ -1,5 +1,5 @@
 
-import { _CVD, Application, Window } from 'quark';
+import { Jsx, Application, Window } from 'quark';
 import * as types from 'quark/types';
 import {reader} from 'quark/fs';
 import path from 'quark/path';

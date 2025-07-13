@@ -799,6 +799,7 @@ export type VDom<T extends DOM = DOM> = VirtualDOM<T>; //!<
 export const VDom = VirtualDOM;
 
 export const _CVD = createElement;
+export const Jsx = createElement;
 export type RenderData = VirtualDOM | string; //!<
 export type RenderNode = RenderData | null | undefined | void; //!<
 export type RenderResult = RenderNode[] | RenderNode; //!<

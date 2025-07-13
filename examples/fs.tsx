@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Input } from 'quark';
+import { Jsx, Input } from 'quark';
 import * as fs from 'quark/fs';
 import path from 'quark/path';
 import { alert } from 'quark/dialog';

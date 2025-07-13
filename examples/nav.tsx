@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, mainScreenScale } from 'quark';
+import { Jsx, mainScreenScale } from 'quark';
 import { Page } from './tool';
 import { Navbar } from 'quark/nav';
 import {toolbar} from './review';

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Text, createCss, mainScreenScale } from 'quark';
+import { Jsx, Text, createCss, mainScreenScale } from 'quark';
 import { Switch, Basic, Checkbox } from 'quark/checkbox';
 import { Page } from './tool';
 

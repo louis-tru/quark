@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Box } from 'quark';
+import { Jsx } from 'quark';
 import { NavButton, Page } from './tool';
 import { Bubbles, Priority } from 'quark/bubbles';
 import { ClickEvent } from 'quark/event';

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Input } from 'quark';
+import { Jsx, Input } from 'quark';
 import util from 'quark/util';
 import * as http from 'quark/http';
 import { alert } from 'quark/dialog';

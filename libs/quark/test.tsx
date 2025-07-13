@@ -1,7 +1,7 @@
 
 import {Window} from './window';
 import {Application} from './app';
-import {_CVD} from './ctr';
+import {Jsx} from './ctr';
 
 new Application();
 

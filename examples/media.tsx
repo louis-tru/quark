@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { ViewController, _CVD, Video } from 'quark';
+import { ViewController, Jsx, Video } from 'quark';
 import { AudioPlayer } from 'quark/media';
 import { Page } from './tool';
 import { ClickEvent } from 'quark/event';

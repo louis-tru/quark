@@ -21,7 +21,7 @@
 		"experimentalDecorators": true,
 		"removeComments": true,
 		"jsx": "react",
-		"jsxFactory": "_CVD",
+		"jsxFactory": "Jsx",
 		"paths": {
 			"*": [
 				"../libs/quark/out/@types/*",

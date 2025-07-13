@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
+import { Jsx } from 'quark';
 import { HighlightedStatus, HighlightedEvent } from 'quark/event';
 import { Navbar } from 'quark/nav';
 import { Page } from './tool';

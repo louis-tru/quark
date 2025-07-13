@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {_CVD,ViewController} from './ctr';
+import {Jsx,ViewController} from './ctr';
 import {mainScreenScale} from './screen';
 import {createCss,StyleSheet} from './css';
 

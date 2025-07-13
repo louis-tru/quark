@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Window, createCss, Button } from 'quark'
+import { Jsx, Window, createCss, Button } from 'quark'
 import {HighlightedStatus} from 'quark/event'
 import util from 'quark/util'
 

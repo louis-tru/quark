@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { LOG, Pv, Mv } from './tool'
-import { _CVD, Window } from 'quark'
+import { Jsx, Window } from 'quark'
 import {parseColor} from 'quark/types'
 import * as action from 'quark/action'
 

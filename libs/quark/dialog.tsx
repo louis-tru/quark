@@ -30,7 +30,7 @@
 
 import util from './util';
 import {View,Matrix,Input} from './view';
-import {_CVD,link,ViewController,RenderData} from './ctr';
+import {Jsx,link,ViewController,RenderData} from './ctr';
 import {createCss} from './css';
 import {mainScreenScale} from './screen';
 import {Navigation} from './nav';

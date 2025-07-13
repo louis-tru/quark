@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, createCss,mainScreenScale, Text } from 'quark';
+import { Jsx, createCss,mainScreenScale, Text } from 'quark';
 import { Stepper } from 'quark/stepper';
 import { Page } from './tool';
 

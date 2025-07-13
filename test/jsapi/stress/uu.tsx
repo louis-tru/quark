@@ -2,7 +2,7 @@
 import util from 'quark/util';
 import * as os from 'quark/os';
 import quark from 'quark';
-import { _CVD, ViewController, linkAcc } from 'quark';
+import { Jsx, ViewController, linkAcc } from 'quark';
 
 let ts = 0;
 let fsp: FSP;

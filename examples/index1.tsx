@@ -1,5 +1,5 @@
 
-import { _CVD, Application, Window, createCss, mainScreenScale, Box } from 'quark'
+import { Jsx, Application, Window, createCss, mainScreenScale, Box } from 'quark'
 import {reader} from 'quark/fs'
 import * as types from 'quark/types'
 import * as dialog from 'quark/dialog'

@@ -1,5 +1,5 @@
 
-import { Application, Window, _CVD } from 'quark';
+import { Application, Window, Jsx } from 'quark';
 import * as types from 'quark/types';
 import util from 'quark/util';
 import * as uu from './uu';

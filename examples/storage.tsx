@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD, Input } from 'quark';
+import { Jsx, Input } from 'quark';
 import * as storage from 'quark/storage';
 import { alert } from 'quark/dialog';
 import { Page } from './tool';

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark';
+import { Jsx } from 'quark';
 import { Page } from './tool';
 import { ClickEvent } from 'quark/event';
 

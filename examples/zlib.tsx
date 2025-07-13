@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { _CVD } from 'quark'
+import { Jsx } from 'quark'
 import { Page } from './tool'
 
 export default (self: Page)=>{
