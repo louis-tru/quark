@@ -863,7 +863,7 @@ export declare function open(path: string, flags?: FileOpenFlag): Promise<Uint>;
 export declare function close(fd: Uint): Promise<void>;
 
 /**
- * Please ref: sync method [`readSync(fd,out,size?,offsetFd?])`]
+ * Please ref: sync method [`readSync(fd,out,size?,offsetFd?)`]
 */
 export declare function read(fd: Uint, out: Uint8Array, size?: Int, offsetFd?: Int): Promise<Uint>;
 
