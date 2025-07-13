@@ -32,7 +32,7 @@
 #define __quark__version__
 
 #define Qk_MAJOR_VERSION 1
-#define Qk_MinOR_VERSION 1
+#define Qk_MINOR_VERSION 1
 #define Qk_PATCH_VERSION 0
 #define Qk_TAG ""
 
@@ -41,7 +41,7 @@
 
 #define Qk_VERSION "v" \
 __STRINGIFY(Qk_MAJOR_VERSION) "." \
-__STRINGIFY(Qk_MinOR_VERSION) "." \
+__STRINGIFY(Qk_MINOR_VERSION) "." \
 __STRINGIFY(Qk_PATCH_VERSION) Qk_TAG
 
 #endif

@@ -559,6 +559,8 @@ async function configure() {
 		return;
 	}
 
+	require('./read_version').update_quark_version(); // update version number
+
 	if (!fs.existsSync('out')) {
 		fs.mkdirSync('out');
 	}
