@@ -25,7 +25,7 @@ Compile and install qkmake, execute `make` or `make install`, It takes a long ti
 This is a simple program to display Hello world on the screen
 
 ```tsx
-import { JSX,Application,Window } from 'quark'
+import { Jsx,Application,Window } from 'quark'
 new Application();
 new Window().activate().render(
 	<text value="Hello world" textSize={48} align="centerMiddle" />
