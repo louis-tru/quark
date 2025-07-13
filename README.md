@@ -27,7 +27,7 @@ This is a simple program to display Hello world on the screen
 ```tsx
 import { Jsx,Application,Window } from 'quark'
 new Application();
-new Window().activate().render(
+new Window().render(
 	<text value="Hello world" textSize={48} align="centerMiddle" />
 );
 ```
