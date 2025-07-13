@@ -401,7 +401,7 @@ function startExec(input,output) {
 		}
 
 		// Match to type: ([\w\[\]\<\>\|,\.\s]+)
-		let reg = /\W*(?:(export|static|protected|private|public)\s+)?(?:(async)\s+)?(?:(function|get|set)\s+)?(\w+)\s*(\<[^\>]+\>)?\s*\(([\w\[\]\<\>,\.\?:\|\s]*)\)\s*(?::\s*([\w\[\]\<\>\|,\.\s]+))?/my;
+		let reg = /\W*(?:(export|static|protected|private|public)\s+)?(?:(async|declare)\s+)?(?:(function|get|set)\s+)?(\w+)\s*(\<[^\>]+\>)?\s*\(([\w\[\]\<\>,\.\?:\|\s]*)\)\s*(?::\s*([\w\[\]\<\>\|,\.\s]+))?/my;
 		reg.lastIndex = lastIndex;
 		let mat = code.match(reg);
 		if (!mat)
