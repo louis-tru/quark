@@ -39,7 +39,9 @@ namespace qk {
 	};
 
 	template<bool is_horizontal>
-	float center_center_space(Array<FlexItem> &items, float overflow, float main_size, float main_total, float *space_out) {
+	float center_center_space(Array<FlexItem> &items, float overflow,
+		float main_size, float main_total, float *space_out) 
+	{
 		if (overflow > 0) {
 			if (items.length() > 2) {
 				float begin = is_horizontal ? items[0].size.x(): items[0].size.y();
@@ -66,7 +68,18 @@ namespace qk {
 		return 0;
 	}
 
-	float parse_align_space(ItemsAlign align, bool is_reverse, float overflow, int count, float *space_out) {
+	float center_center_space(bool is_horizontal, Array<FlexItem> &items, float overflow,
+		float main_size, float main_total, float *space_out)
+	{
+		if (is_horizontal)
+			return center_center_space<true>(items, overflow, main_size, main_total, space_out);
+		else
+			return center_center_space<false>(items, overflow, main_size, main_total, space_out);
+	}
+
+	float parse_align_space(ItemsAlign align, bool is_reverse, float overflow,
+		int count, float *space_out) 
+	{
 		float offset_x = 0, space = 0;
 
 		switch (align) {

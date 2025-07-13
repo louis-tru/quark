@@ -44,8 +44,8 @@ namespace qk {
 		Array<FlexItem> items;
 	};
 
-	template<bool is_horizontal>
-	float center_center_space(Array<FlexItem> &items, float overflow, float main_size, float main_total, float *space_out);
+	float center_center_space(bool is_horizontal, Array<FlexItem> &items, float overflow,
+		float main_size, float main_total, float *space_out);
 
 	float parse_align_space(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out);
 
@@ -170,7 +170,7 @@ namespace qk {
 				float offset = 0, space = 0;
 
 				if (ItemsAlign::CenterCenter == _items_align) {
-					offset = center_center_space<is_horizontal>(line.items, overflow, main_size, main_total, &space);
+					offset = center_center_space(is_horizontal, line.items, overflow, main_size, main_total, &space);
 				} else {
 					offset = parse_align_space(_items_align, is_reverse, overflow, line.items.length(), &space);
 				}
