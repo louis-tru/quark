@@ -329,7 +329,7 @@ exports.Hash5381 = _init.Hash5381;
 
 // ------------------------------------------------------------------------------------------------
 
-type Platform = 'darwin' | 'android' | 'linux' | 'win32';
+type Platform = 'darwin' | 'android' | 'linux' | 'win32'; //!<
 
 let _exiting = false;
 

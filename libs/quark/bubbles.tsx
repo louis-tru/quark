@@ -51,7 +51,6 @@ export enum Priority {
 };
 
 /**
- * @template P,S
  * @class Bubbles
  * @extends Navigation
  * 

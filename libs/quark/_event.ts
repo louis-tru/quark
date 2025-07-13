@@ -170,7 +170,6 @@ export class List<T = any> {
 // -------------------------------------------------------------------------------------------
 
 /**
- * @template Sender,SendData
  * @class Event The event data
 */
 export class Event<Sender = any, SendData = any> {
@@ -230,7 +229,6 @@ function forwardNoticeNoticer<E>(noticer: EventNoticer<E>, evt: E) {
 }
 
 /**
- * @template E
  * @class EventNoticer
  * 
  * Event notifier, the core of event listener adding, deleting, triggering and notification
@@ -537,7 +535,6 @@ const PREFIX = '_on';
 const FIND_REG = new RegExp('^' + PREFIX);
 
 /**
- * @template E
  * @class Notification
  *
  * This is a collection of events `EventNoticer`, event triggering and response center

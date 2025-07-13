@@ -122,43 +122,59 @@ function startExec(input,output) {
 		}
 	}
 
-	function parseTemplTypes(args) {
+	////////////// parse types //////////////
+
+	function parseTypesList(args, comment) {
+		let typesList = [];
+		do {
+			let item = {types: [], defaultTypes: []};
+			typesList.push(item);
+			parseTypes(args, item.types, comment);
+
+			reg = /\s*\=\s*(\{[^\}]*\})/y; // =default
+			reg.lastIndex = args.index;
+			mat = args.typeStr.match(reg);
+			if (mat) {
+				args.index = mat.index + mat[0].length;
+				if (mat[1]) {
+					item.defaultTypes = [{ first: mat[1], isConstObject: true }];
+				} else {
+					parseTypes(args, item.defaultTypes, comment);
+				}
+			}
+			reg = /\s*,/y;
+			reg.lastIndex = args.index;
+			mat = args.typeStr.match(reg);
+		} while(mat ? (args.index = mat.index + mat[0].length, true): false);
+		return typesList;
+	}
+
+	function parseTypesTempls(args, comment) {
 		let templates = [];
 		let reg = /\s*\</y;
 		reg.lastIndex = args.index;
 		let mat = args.typeStr.match(reg);
 		if (mat) {
 			args.index = mat.index + mat[0].length;
-			do {
-				let template = {types: [], defaultTypes: []};
-				templates.push(template);
-				parseTypes(args, template.types);
-
-				reg = /\s*\=\s*(\{[^\}]*\})/y; // =default
-				reg.lastIndex = args.index;
-				mat = args.typeStr.match(reg);
-				if (mat) {
-					args.index = mat.index + mat[0].length;
-					if (mat[1]) {
-						template.defaultTypes = [{ first: mat[1], isConstObject: true }];
-					} else {
-						parseTypes(args, template.defaultTypes);
-					}
+			templates = parseTypesList(args);
+			reg = /\s*\>/y;
+			reg.lastIndex = args.index;
+			mat = args.typeStr.match(reg);
+			if (mat) {
+				args.index = mat.index + mat[0].length
+			} else {
+				if (comment && comment.__main__) {
+					let main = comment.__main__;
+					console.warn(`Type syntax error: ${main.kind} ${main.value}, ${args.typeStr}`);
+				} else {
+					console.warn(`Type syntax error: ${args.typeStr}`);
 				}
-
-				reg = /\s*(,|\>)/y; // ,|>
-				reg.lastIndex = args.index;
-				mat = args.typeStr.match(reg);
-				if (!mat) {
-					throw new Error(`Type syntax error: ${args.typeStr}`);
-				}
-				args.index = mat.index + mat[0].length;
-			} while(mat[1] == ',');
+			}
 		}
 		return templates;
 	}
 
-	function parseTypes(args, types) {
+	function parseTypes(args, types, comment) {
 		let reg = /\s*([\w\.]+|\'[^\']+\'|\"[^\"]+\"|\[[^\]]+\]|\{[^\}]+\})\s*/y;
 		reg.lastIndex = args.index;
 		let mat = args.typeStr.match(reg);
@@ -181,7 +197,7 @@ function startExec(input,output) {
 		} else {
 			types.push({
 				first: mat[1],
-				templates: parseTemplTypes(args),
+				templates: parseTypesTempls(args, comment),
 			});
 		}
 
@@ -198,9 +214,11 @@ function startExec(input,output) {
 		mat = args.typeStr.match(reg);
 		if (mat) {
 			args.index = mat.index + mat[0].length;
-			parseTypes(args, types);
+			parseTypes(args, types, comment);
 		}
 	}
+
+	////////////// get types link //////////////
 
 	function getTypeLinkBy(types, linkStr, comment) {
 		types.forEach(({first,templates,isArray,isConstString,isConstArray,isConstObject},i)=>{
@@ -262,34 +280,47 @@ function startExec(input,output) {
 		});
 	}
 
-	function getTypeLink(typeStr, isTemplate, comment) {
+	function getTypeLink(typeStr, comment) {
 		let linkStr = [];
-		if (isTemplate) {
-			if (!typeStr.length)
-				return '';
-			let templates = parseTemplTypes({typeStr: '<' + typeStr.join(',') + '>',index:0});
-
-			linkStr.push('<');
-			templates.forEach(({types,defaultTypes},i)=>{
-				if (i) {
-					linkStr.push(',');
-				}
-				linkStr.push(key(types[0].first));
-				if (defaultTypes.length) {
-					linkStr.push('=');
-					getTypeLinkBy(defaultTypes, linkStr);
-				}
-			});
-			linkStr.push('>');
-		} else {
-			if (!typeStr)
-				return '';
-			let types = [];
-			parseTypes({typeStr,index:0}, types);
-			getTypeLinkBy(types, linkStr, comment);
-		}
+		if (!typeStr)
+			return '';
+		let types = [];
+		parseTypes({typeStr,index:0}, types, comment);
+		getTypeLinkBy(types, linkStr, comment);
 		return linkStr.join('');
 	}
+
+	function getTypeListLink(typeStr, comment) {
+		let linkStr = [];
+		if (!typeStr)
+			return '';
+		parseTypesList({typeStr,index:0}, comment).forEach(({types},i)=>{
+			if (i)
+				linkStr.push(',');
+			getTypeLinkBy(types, linkStr);
+		});
+		return linkStr.join('');
+	}
+
+	function getTemplTypeLink(typesStr) {
+		let linkStr = [];
+		if (!typesStr.length)
+			return '';
+
+		parseTypesList({ typeStr: typesStr.join(','), index:0 }).forEach(({types,defaultTypes},i)=>{
+			if (i) {
+				linkStr.push(',');
+			}
+			linkStr.push(key(types[0].first));
+			if (defaultTypes.length) {
+				linkStr.push('=');
+				getTypeLinkBy(defaultTypes, linkStr);
+			}
+		});
+		return linkStr.join('');
+	}
+
+	///////////////////////////////////////////
 
 	function fixParams(comment, args) {
 		for (let arg of args) {
@@ -308,6 +339,7 @@ function startExec(input,output) {
 
 	function fixTempl(comment, templMat) {
 		if (templMat) {
+			templMat = templMat.trim();
 			let templ = comment.template;
 			let types = templMat.substring(1, templMat.length - 1)
 				.split(',')
@@ -568,17 +600,13 @@ function startExec(input,output) {
 	// export declare class View extends Notification<UIEvent> implements DOM
 	// export enum FindDirection
 	function tryPack(comment, pickItem, lastIndex) {
-		for (let item of [comment.implements,comment.extends]) {
-			if (item)
-				item.types = item.value.split(/\s*,\s*/);
-		}
 		if (pickItem) {
 			pickItem.name = pickItem.value;
 			comment.__main__ = pickItem;
 		}
 
 		// Match to type: ([\w\[\]\<\>\|,\.\s]+)
-		let reg = /\W*(?:(export)\s+)?(?:(declare)\s+)?(?:(class|interface|enum)\s+)(\w+)\s*(\<[^\>]+\>)?(?:\s+extends\s+([\w,\s]+))?(?:\s+implements\s+([\w,\s]+))?/my;
+		let reg = /\W*(?:(export)\s+)?(?:(declare)\s+)?(?:(class|interface|enum)\s+)(\w+)(\s*\<[^\>]+\>)?(?:\s+extends\s+([\w\[\]\<\>\|,\.\s]+))?(?:\s+implements\s+([\w\[\]\<\>\|,\.\s]+))?/my;
 		reg.lastIndex = lastIndex;
 		let mat = code.match(reg);
 		if (!mat)
@@ -589,13 +617,15 @@ function startExec(input,output) {
 			comment[kind] = pickItem = new Item(kind,name,{name});
 			comment.__items__.unshift(pickItem);
 			comment.__main__ = pickItem;
+		} else if (!pickItem.name) {
+			pickItem.name = name;
 		}
 
 		fixTempl(comment, templMat);
 
 		for (let [k,v] of [['extends',extend],['implements',implements]]) {
 			if (v && !comment[k]) {
-				comment[k] = new Item(k,'',{types:v.split(/\s*,\s*/)});
+				comment[k] = new Item(k,v);
 				comment.__items__.push(comment[k]);
 			}
 		}
@@ -855,11 +885,11 @@ function startExec(input,output) {
 				case 'extends':
 				case 'implements':
 					if (comment.class || comment.interface) {
-						doc.push(`${head(it.kind)} ${it.types.map(e=>getTypeLink(e)).join(',')}`);
+						doc.push(`${head(it.kind)} ${getTypeListLink(it.value, comment)}`);
 					}
 					break;
 				case 'template':
-					doc.push(`${head('template')} ${getTypeLink(it.types,true)}`);
+					doc.push(`${head('template')} <${getTemplTypeLink(it.types)}>`);
 					break;
 				case 'enumItem':
 					break;
@@ -894,13 +924,13 @@ function startExec(input,output) {
 					doc.push(`## ${it.name}`, ...firstMsgs);
 					it.desc && doc.push(it.desc);
 					doc.push(...it.msgs);
-					doc.push(`${head('type')} ${key(it.name)} = ${getTypeLink(it.type, false, comment)}`);
+					doc.push(`${head('type')} ${key(it.name)} = ${getTypeLink(it.type, comment)}`);
 					break;
 				case 'const':
 					doc.push(`## ${it.name}`, ...firstMsgs);
 					it.desc && doc.push(it.desc);
 					doc.push(...it.msgs);
-					doc.push(`${head('const')} ${key(it.name)}: ${getTypeLink(it.type, false, comment)}`);
+					doc.push(`${head('const')} ${key(it.name)}: ${getTypeLink(it.type, comment)}`);
 					break;
 				case 'default':
 					doc.push(`## default`, ...firstMsgs, ...it.msgs);

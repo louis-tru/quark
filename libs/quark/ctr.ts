@@ -53,7 +53,7 @@ function warn(id: string, msg = '') {
 }
 
 /**
- * @type Args = {...}
+ * @type Args:...
 */
 export type Args = {
 	window: Window, //!<
@@ -556,8 +556,6 @@ Object.assign(DOMCollection.prototype, {ref: ''});
 
 /**
  * UI view controller component
- * 
- * @template P,S
  * @class ViewController
  * @implements DOM
 */

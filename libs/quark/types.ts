@@ -532,9 +532,10 @@ export type CursorStyleIn = Uncapitalize<keyof typeof CursorStyle> | CursorStyle
 */
 export type FindDirectionIn = Uncapitalize<keyof typeof FindDirection> | FindDirection;
 
+/***/
 export class Base<T> {
-	toString() { return '[types base]' }
-	toStringStyled(indent?: number) {
+	toString() { return '[types base]' } //!<
+	toStringStyled(indent?: number) { //!<
 		return (indent ? new Array(indent+1).join(' '): '') + this.toString();
 	}
 	constructor(opts?: RemoveToStringField<Partial<T>>) {
@@ -815,7 +816,6 @@ const TextBase_toString = [
 ];
 
 /**
- * @template Value
  * @class TextBase
 */
 class TextBase<Derived,Value> extends Base<Derived> {
@@ -828,7 +828,6 @@ class TextBase<Derived,Value> extends Base<Derived> {
 
 /**
  * @class TextColor
- * @extends TextBase<Color>
 */
 export class TextColor extends TextBase<TextColor,Color> {
 	get r() { return this.value.r; } //!< {N}
@@ -841,8 +840,7 @@ type TextValueKindInStr = Uncapitalize<keyof RemoveField<typeof TextValueKind, '
 export type TextColorIn = TextValueKindInStr | ColorIn | TextColor; //!<
 
 /**
- * @class TextColor
- * @extends TextBase<N>
+ * @class
 */
 export class TextSize extends TextBase<TextSize,N> {}
 initDefaults(TextSize, { value: 0, kind: TextValueKind.Inherit });
@@ -852,8 +850,7 @@ export type TextLineHeight = TextSize; //!<
 export const TextLineHeight = TextSize;
 
 /**
- * @class TextColor
- * @extends TextBase<Shadow>
+ * @class
 */
 export class TextShadow extends TextBase<TextShadow,Shadow> {
 	get x() { return this.value.x } //!< {N}
@@ -870,8 +867,7 @@ export type TextShadowIn = TextValueKindInStr | ShadowIn | TextShadow; //!<
 
 export type FFID = Uint8Array; //!<
 /**
- * @class TextColor
- * @extends TextBase<FFID>
+ * @class
 */
 export class TextFamily extends TextBase<TextFamily,FFID> {
 	toString() {
@@ -922,7 +918,6 @@ export type BoxFilterIn = string | string[] | BoxFilter;
 
 /**
  * @class FillImage
- * @extends BoxFilter
 */
 export declare class FillImage extends BoxFilter {
 	src: string; //!<
@@ -944,7 +939,6 @@ export declare class FillImage extends BoxFilter {
 
 /**
  * @class FillGradientRadial
- * @extends BoxFilter
 */
 export declare class FillGradientRadial extends BoxFilter {
 	readonly positions: N[]; //!<
@@ -963,7 +957,6 @@ export declare class FillGradientLinear extends FillGradientRadial {
 
 /**
  * @class BoxShadow
- * @extends BoxFilter
 */
 export declare class BoxShadow extends BoxFilter {
 	value: Shadow; //!<

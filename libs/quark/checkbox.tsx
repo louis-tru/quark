@@ -124,7 +124,6 @@ createCss({
 });
 
 /**
- * @template P,S
  * @class Basic
  * @extends ViewController
 */
@@ -170,7 +169,6 @@ export class Basic<P={},S={}> extends ViewController<{
 }
 
 /**
- * @template T,S
  * @class Checkbox
  * @extends Basic
  * 
@@ -187,7 +185,6 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 }
 
 /**
- * @template T,S
  * @class Switch
  * @extends Basic
  * 

@@ -111,7 +111,6 @@ interface Object {
 
 /**
  * @interface Dict Dictionaries
- * @template T
  * @global
  */
 interface Dict<T = any> {

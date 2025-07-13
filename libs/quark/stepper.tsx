@@ -68,7 +68,7 @@ createCss({
 
 /**
  * @class Stepper
- * @entends ViewController
+ * @extends ViewController
 */
 export class Stepper extends ViewController<{
 	class?: string,
