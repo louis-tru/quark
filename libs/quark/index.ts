@@ -44,13 +44,12 @@ export * from './screen';
 export default {
 
 	/**
-	 * @get app {Application} get current application object
+	 * @get app:Application get current application object
 	 */
 	get app() { return app.current },
 
 	/**
-	 * @method css(sheets)
-	 * @param sheets {Object}
+	 * @method css(sheets:Object)
 	 */
 	css: css,
 };
