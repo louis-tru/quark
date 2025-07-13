@@ -371,8 +371,8 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
 /**
  * @method confirm(window,msg,cb?)
  * @param window:Window
- * @param ms:string
- * @param cb:Function
+ * @param msg:string
+ * @param cb?:Function
  * @return {Dialog}
 */
 export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = util.noop) {
