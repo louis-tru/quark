@@ -50,7 +50,7 @@ First, you need to install the toolkit provided by `Quark`
 $ sudo npm install -g qkmake
 ```
 	
-* Running `qkmake` requires dependency on `nodejs` and `python2.7`
+* Running `qkmake` requires dependency on `nodejs` and `python`
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
