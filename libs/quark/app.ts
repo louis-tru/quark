@@ -63,7 +63,7 @@ declare class NativeApplication extends Notification<AEvent> {
 	usedResourceMemory(): number;
 	/** clear resource memory */
 	clear(all?: boolean): void;
-	/** open uri For: examples openURL(`'https://baidu.com'`) */
+	/** open uri For: examples openURL('https://baidu.com') */
 	openURL(url: string): void;
 	/**
 	 * By parameter open email client
