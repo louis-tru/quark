@@ -307,7 +307,7 @@ export function select<T>(default_: T, value: any): T {
 /**
  * Whether this type of sub-types
  * 
- * @method equalsClass(baseclass:class,subclass:class)boolean
+ * @method equalsClass(baseclass:any,subclass:any)boolean
  */
 export function equalsClass(baseclass: any, subclass: any): boolean {
 	if (!baseclass || !subclass || !subclass.prototype)

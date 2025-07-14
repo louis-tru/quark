@@ -391,7 +391,7 @@ function startExec(input,output) {
 			}
 			if (valueMat[3]) {
 				if (!comment.return) {
-					comment.return = new Item('return', '', {type:valueMat[3]});
+					comment.return = re = new Item('return', '', {type:valueMat[3]});
 					comment.__items__.push(comment.return);
 				} else if (!comment.return.type) {
 					comment.return.type = valueMat[3];
