@@ -136,11 +136,11 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** @event */
 	readonly onActionLoop: EventNoticer<ActionEvent>;
 	readonly cssclass: CStyleSheetsClass; //!<
-	readonly parent: View | null; //!< @get parent:View|null
-	readonly prev: View | null; //!< @get prev:View|null
-	readonly next: View | null; //!< @get next:View|null
-	readonly first: View | null; //!< @get first:View|null
-	readonly last: View | null; //!< @get last:View|null
+	readonly parent: View | null; //!<
+	readonly prev: View | null; //!<
+	readonly next: View | null; //!<
+	readonly first: View | null; //!<
+	readonly last: View | null; //!<
 	readonly window: Window; //!<
 	readonly matrix: Matrix | null; //!< top matrix view
 	readonly level: number; //!<
