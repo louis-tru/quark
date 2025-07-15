@@ -115,7 +115,7 @@ $ qkmake watch
 * [ScrollBase]
 * [TextOptions]
 * [View]
-	* [Box]*
+	* [Box]
 		* [Flex]
 			* [Flow]
 		* [Free]
