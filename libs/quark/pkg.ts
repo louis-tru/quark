@@ -125,7 +125,7 @@ const searchPaths: Map<string, SearchPath> = new Map(); // absolute path => Sear
 const lookupCache: Map<string, LookupResult> = new Map(); // absolute path => LookupResult
 // all packages
 const packages: Map<string, Package> = new Map();
-const options: Optopns = _utild.options;
+const options: Optopns = Object.create(_utild.options);
 let   mainModule: Module | undefined;
 
 const wrapper = [
@@ -1022,6 +1022,9 @@ class Package {
 	private _install(cb?: Cb) {
 		let self = this;
 		let path = self.path;
+		let disable_pkgz = options.disable_pkgz_startup;
+
+		options.disable_pkgz_startup = ''; // Only first once
 
 		if (self._status != PackageStatus.NO_INSTALL) {
 			return throwErr(`${path} package installing repeat call`, cb);
@@ -1036,7 +1039,6 @@ class Package {
 			return self._installFromHttp(cb);
 		}
 
-		// install local
 		/*
 		* build的pkg有两种格式
 		* 1.package根目录存在.pkgz压缩文件,文件中包含全部文件版本信息与一部分源码文件以及资源文件.
@@ -1046,7 +1048,8 @@ class Package {
 		* 比如无法android资源包中的.pkgz文件
 		* 所以android.apk中不能存在.pkgz格式文件否则将不能读取
 		*/
-		if (!isLocalZip(path) && // not a local zip protocol file
+		if (!disable_pkgz && // disable local pkgz
+			!isLocalZip(path) && // not a local zip protocol file
 			isFileSync(`${path}/${self.name}.pkgz`)
 		) { // there is a. pkgz file in the local package
 			self._pkgzPath = `zip:///${path.substring(8)}/${self.name}.pkgz@`; // file:/// => zip:///xxx/xxx.pkgz@

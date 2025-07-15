@@ -227,9 +227,10 @@ win.render(
 				<box class="category" borderBottom={`${px} #c8c7cc`}>
 					<text class="codepre">
 						<label class="keywork" value="import"/> {"{"} <label class="identifier" value="Application" />, <label class="identifier" value="Root" /> {"}"} <label class="keywork" value="from" /> <label class="str" value="'quark'" />
+							<label class="keywork" value={'\nnew'}/> <label class="identifier" value="Application"/>()
 							<label class="keywork" value={'\nnew'}/> <label class="identifier" value="Window"/>()<label class="keywork" value="."/><label class="identifier" value="render"/>
 							{"("}
-								{"\n    <"}<label class="tag_name" value="Root" />{">"}hello world!{"</"}<label class="tag_name" value="Root" />{">"}
+								{"\n    <"}<label class="tag_name" value="text" />{">"}hello world!{"</"}<label class="tag_name" value="text" />{">"}
 							{"\n)"}
 					</text>
 				</box>
