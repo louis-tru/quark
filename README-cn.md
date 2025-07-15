@@ -355,8 +355,8 @@ act2.paly();
 [Input]: https://quarks.cc/doc/view.html#class-input
 [Textarea]: https://quarks.cc/doc/view.html#class-textarea
 [Label]: https://quarks.cc/doc/view.html#class-label
-[Video]: http://langou.org/doc/media.html#class-video
-[Matrix]: http://langou.org/doc/media.html#class-matrix
+[Video]: http://quarks.cc/doc/media.html#class-video
+[Matrix]: http://quarks.cc/doc/media.html#class-matrix
 
 
 
