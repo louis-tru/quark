@@ -149,6 +149,7 @@ fs.cp_sync(require.resolve('qkmake') + '/../marked/assets', output_html + '/asse
 genReadme(source, output_md);
 
 fs.copyFileSync(`${__dirname}/../README.md`, `${output_md}/README.md`);
+fs.copyFileSync(`${__dirname}/../README-cn.md`, `${output_md}/README-cn.md`);
 
 makeIndexed();
 eachGenHtml('', output_html);

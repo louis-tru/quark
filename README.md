@@ -1,12 +1,11 @@
 Quark
 ===============
 
-Quark is a cross-platform (Android/iOS/Mac/Linux) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
+Quark is a cross-platform (`Android`/`iOS`/`Mac`/`Linux`) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
 
-* Currently supports `Android`/`iOS`/`Mac`/`Linux` systems, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 * From here, [`Go API Index`](http://quarks.cc/doc/) can go to `API Documents Index`
 
-| ![Screenshot](http://quarks.cc/img/0x0ss.jpg) | ![Screenshot](http://quarks.cc/img/0x0ss_3.jpg) | ![Screenshot](http://quarks.cc/img/0x0ss_4.jpg) |
+| ![Screenshot](http://quarks.cc/img/000.jpg) | ![Screenshot](http://quarks.cc/img/001.jpg) | ![Screenshot](http://quarks.cc/img/002.jpg) |
 |--|--|--|
 
 
@@ -70,16 +69,16 @@ $ qkmake init
 This step compresses and packages the JavaScript code and resource files inside the project,
 If this is a new project, you can skip this step and go directly to the next step
 
-```js
+```sh
 # shell
 $ qkmake build
 ```
 
 ## Export project
 
-This step exports [`Xcode`] or [`Android Studio`] project，because you eventually publish the program that be a `.apk` or `.ipa`
+This step exports [`Xcode`] or [`Android Studio`] project，because eventually publish the program that be a `.apk` or `.ipa`
 
-```js
+```sh
 # shell
 # export xcode ios project
 $ qkmake export ios
@@ -95,7 +94,7 @@ After exporting the project, next you can open it using [`Xcode`] and [`Android 
 
 Execute the following code to start it：
 
-```js
+```sh
 # shell
 $ qkmake watch
 ```
@@ -112,3 +111,24 @@ $ qkmake watch
 [`Android APK`]: https://github.com/louis-tru/quark/releases/download/v0.1.0/examples-release.apk
 [`NPM`]: https://www.npmjs.com/package/qkmake
 [`Source code`]: https://github.com/louis-tru/quark
+
+
+
+<script>
+	<!--
+	var language = (navigator.browserLanguage || navigator.language).toLowerCase();
+	var isLanguageCn = language.indexOf('cn') >= 0;
+	var isPageCn = location.href.indexOf('README-cn') >=0;
+	var isHtml = typeof src == 'string'; // html page will have a src variable
+
+	if ( isLanguageCn ) { // cn
+		if ( !isPageCn ) { // goto to cn
+			location.href = isHtml ? 'README-cn.html' : 'README-cn.md';
+		}
+	} else { // en
+		if ( isPageCn ) { // goto to en
+			location.href = isHtml ? 'README.html' : 'README.md';
+		}
+	}
+	-->
+</script>
