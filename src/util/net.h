@@ -43,80 +43,72 @@ namespace qk {
 	*/
 	class Qk_EXPORT Socket: public Object {
 		Qk_HIDDEN_ALL_COPY(Socket);
+		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 
 		class Qk_EXPORT Delegate {
 		public:
-			virtual void trigger_socket_open(Socket* socket) = 0;
-			virtual void trigger_socket_close(Socket* socket) = 0;
+			virtual void trigger_socket_opened(Socket* socket) = 0;
+			virtual void trigger_socket_closed(Socket* socket) = 0;
 			virtual void trigger_socket_error(Socket* socket, cError& error) = 0;
 			virtual void trigger_socket_data(Socket* socket, cBuffer& buffer) = 0;
-			virtual void trigger_socket_write(Socket* socket, Buffer& buffer, int flag) = 0; // write ok
+			virtual void trigger_socket_written(Socket* socket, Buffer& buffer, int flag) = 0; // write ok
 			virtual void trigger_socket_timeout(Socket* socket) = 0;
 		};
 
-		Socket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());
+		/**
+		 * @constructor(hostname,port,isSSL,loop)
+		*/
+		Socket(cString& hostname, uint16_t port, bool isSSL, RunLoop* loop = RunLoop::current());
+
+		/**
+		 * @destructor
+		*/
 		~Socket();
 
-		/**
-		* @method try open content
-		*/
-		void      open();
-
-		String    hostname() const;
-		uint16_t  port() const;
-		String    ip() const;
-		bool      ipv6() const;
+		String    hostname() const; //!<
+		uint16_t  port() const; //!<
+		String    ip() const; //!<
+		bool      ipv6() const; //!<
 
 		/**
-		* @method set_keep_alive 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
-		* @arg [enable = true] {bool}
-		* @arg [keep_idle = 0] {uint32_t} 空闲的时间(微秒),0使用系统默认值一般为7200秒 7200 * 10e6 毫秒
+		* 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
+		* @param enable?:bool
+		* @param keep_idle?:uint64_t 空闲的时间(微秒),0使用系统默认值一般为7200秒 7200 * 10e6 毫秒
 		*/
 		void set_keep_alive(bool enable = true, uint64_t keep_idle = 0);
 
 		/**
-		* @method set_no_delay 禁止Nagele算法,设置为有数据立即发送
+		* 禁止Nagele算法,设置为有数据立即发送
 		*/
 		void set_no_delay(bool no_delay = true);
 
 		/**
-		* @method set_timeout 超过指定(微妙)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
+		* 超过指定(微妙)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
 		*/
 		void set_timeout(uint64_t timeout_us);
 
 		/**
-		* @method set_delegate()
+		* set_delegate()
 		*/
 		void set_delegate(Delegate* delegate);
 
-		void close();
-		bool is_open();
-		bool is_pause();
-		void pause();
-		void resume();
-		void write(Buffer buffer, int flag = 0);
-
-	private:
-		Qk_DEFINE_INLINE_CLASS(Inl);
-		Socket();
-		Inl* _inl;
-		friend class SSLSocket;
-	};
-
-	/**
-	* @class SSLSocket
-	*/
-	class Qk_EXPORT SSLSocket: public Socket {
-	public:
-
-		SSLSocket(cString& hostname, uint16_t port, RunLoop* loop = RunLoop::current());
+		void connect(); //!<
+		void close(); //!<
+		bool is_open(); //!<
+		bool is_pause(); //!<
+		void pause(); //!<
+		void resume(); //!<
+		void write(Buffer buffer, int flag = 0); //!<
 
 		/**
-		* @method disable_ssl_verify
+		* @method disable_ssl_verify(disable)
 		*/
 		void disable_ssl_verify(bool disable);
-	};
 
+	protected:
+		Socket(Inl* inl);
+		Inl* _inl;
+	};
 }
 #endif

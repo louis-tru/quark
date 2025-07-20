@@ -284,14 +284,14 @@ namespace qk {
 	
 	/**
 	* @method extname {String} # Get the path dirname
-	* @arg path {cString&}
+	* @param path {cString&}
 	* @return {String}
 	*/
 	Qk_EXPORT String fs_dirname(cString& path);
 	
 	/**
 	* @method extname # Get the path extname
-	* @arg path {cString&}
+	* @param path {cString&}
 	* @return {String}
 	*/
 	Qk_EXPORT String fs_extname(cString& path);
@@ -349,8 +349,8 @@ namespace qk {
 
 	/**
 	* @method format
-	* @arg format {cChar*}
-	* @arg [...] {cChar*}
+	* @param format {cChar*}
+	* @param [...] {cChar*}
 	* @return {String}
 	*/
 	Qk_EXPORT String fs_format(cChar* path, ...);
@@ -379,7 +379,7 @@ namespace qk {
 	
 	/**
 	* @method chdir # Setting current working directory
-	* @arg path {cString&}
+	* @param path {cString&}
 	* @return {bool}
 	* @static
 	*/

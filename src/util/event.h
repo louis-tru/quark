@@ -141,7 +141,7 @@ namespace qk {
 		bool is_noticer_none() const;
 		/**
 		 * Listener changes will be notified to this function, such as adding and deleting event listeners
-		 * @arg name {const Type&} hash code for name
+		 * @param name {const Type&} hash code for name
 		*/
 		virtual void trigger_listener_change(uint32_t name, int count, int change);
 		// get notification message sender

@@ -65,11 +65,11 @@ namespace qk {
 
 	class Socket::Inl: public Reference, public Socket::Delegate {
 	public:
-		virtual void trigger_socket_open(Socket* stream) override {}
-		virtual void trigger_socket_close(Socket* stream) override {}
+		virtual void trigger_socket_opened(Socket* stream) override {}
+		virtual void trigger_socket_closed(Socket* stream) override {}
 		virtual void trigger_socket_error(Socket* stream, cError& error) override {}
 		virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) override {}
-		virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int flag) override {}
+		virtual void trigger_socket_written(Socket* stream, Buffer& buffer, int flag) override {}
 		virtual void trigger_socket_timeout(Socket* socket) override {}
 
 		Inl(Socket* host, RunLoop* loop) 
@@ -78,7 +78,7 @@ namespace qk {
 			, _loop(loop)
 			, _retain(nullptr)
 			, _is_open(false)
-			, _is_opening(false)
+			, _is_connecting(false)
 			, _is_pause(false)
 			, _enable_keep_alive(false)
 			, _no_delay(false)
@@ -92,7 +92,7 @@ namespace qk {
 		}
 
 		~Inl() {
-			close_delete();
+			close_and_delete();
 			Qk_ASSERT(!_is_open);
 			Qk_ASSERT(!_retain);
 		}
@@ -111,7 +111,7 @@ namespace qk {
 
 		// utils
 
-		void initialize(cString& hostname, uint16_t port) {
+		void set_hostname(cString& hostname, uint16_t port) {
 			_hostname = hostname;
 			_port = port;
 		}
@@ -165,19 +165,13 @@ namespace qk {
 			_delegate = delegate ? delegate: this;
 		}
 
-		void open() {
-			if ( _is_opening ) {
-				report_err(Error(ERR_CONNECT_ALREADY_OPEN, "Connect opening or already open"), 1);
-			} else {
-				try_open();
-			}
-		}
-
 		void close() {
 			if (_is_open) {
 				shutdown();
+			} else if (_is_connecting) {
+				_is_connecting = false;
 			} else {
-				report_not_open_connect_err(1);
+				report_not_open_connect_err(true);
 			}
 		}
 
@@ -264,9 +258,16 @@ namespace qk {
 			}
 		}
 
-		// ------------------------------------------------------------------------------------------
-		void try_open() {
-			Qk_ASSERT(_is_opening == false);
+		void connect() {
+			if ( _is_connecting ) {
+				report_err(Error(ERR_CONNECT_ALREADY_OPEN, "Connecting opening or already opened"), true);
+				return;
+			}
+			if ( _hostname.isEmpty() ) {
+				report_err(Error(ERR_CONNECTING_HOSTNAME_INVALID, "Connecting hostname invalid"), true);
+				return;
+			}
+
 			Qk_ASSERT(_retain == nullptr);
 			
 			if ( _remote_ip.isEmpty() ) {
@@ -323,34 +324,38 @@ namespace qk {
 			auto req = new SocketConReq(this);
 
 			int r = uv_tcp_connect(req->req(), _uv_tcp, &_address, [](uv_connect_t* uv_req, int status) {
-				Handle<SocketConReq> req = SocketConReq::cast(uv_req);
+				Sp<SocketConReq> req = SocketConReq::cast(uv_req);
 				Inl* self = req->ctx();
-				Qk_ASSERT(self->_is_opening);
 				Qk_ASSERT(!self->_is_open);
 
-				uv_tcp_keepalive(self->_uv_tcp, self->_enable_keep_alive, self->_keep_idle);
-				uv_tcp_nodelay(self->_uv_tcp, self->_no_delay);
-
-				if ( status ) {
-					self->_is_opening = false;
+				if (status) {
+					self->_is_connecting = false;
 					self->report_uv_err(status);
-					self->close_delete();
+					self->close_and_delete();
+				}
+				else if (self->_is_connecting == false) {
+					self->report_err(Error(ERR_CONNECTING_ALREADY_CLOSED, "Connecting already closed"));
+					self->close_and_delete();
 				} else {
+					uv_tcp_keepalive(self->_uv_tcp, self->_enable_keep_alive, self->_keep_idle);
+					uv_tcp_nodelay(self->_uv_tcp, self->_no_delay);
 					self->trigger_socket_connect_open();
 				}
 			});
 
 			if (report_uv_err(r)) {
 				Release(req);
-				close_delete();
+				close_and_delete(true);
 			} else {
-				_is_opening = true;
+				_is_connecting = true;
 			}
 		}
+		// ------------------------------------------------------------------------------------------
 
-		void close_delete() {
-			if (!_retain)
+		void close_and_delete(bool async = false) {
+			if (!_retain) {
 				return;
+			}
 			uv_close((uv_handle_t*)_uv_tcp, [](uv_handle_t* h) {
 				Sp<RetainRef> sp((RetainRef*)h->data);
 			});
@@ -359,14 +364,17 @@ namespace qk {
 			_uv_tcp = nullptr;
 			_uv_timer = nullptr;
 			_is_pause = false;
+
 			if (_is_open) {
-				_is_opening = false;
+				_is_connecting = false;
 				_is_open = false;
-				_delegate->trigger_socket_close(_host);
-			} else if (_is_opening) {
-				_is_opening = false;
-				Error err(ERR_CONNECT_UNEXPECTED_SHUTDOWN, "Connect unexpected shutdown");
-				report_err(err);
+				_delegate->trigger_socket_closed(_host);
+			} else if (_is_connecting) {
+				_is_connecting = false;
+				report_err(
+					Error(ERR_CONNECTING_UNEXPECTED_SHUTDOWN, "Connecting unexpected shutdown"),
+					async
+				);
 			}
 		}
 
@@ -376,20 +384,20 @@ namespace qk {
 				start_read(); // start receive data
 			}
 			reset_timeout();
-			_delegate->trigger_socket_open(_host);
+			_delegate->trigger_socket_opened(_host);
 		}
 
 		virtual void shutdown() {
 			auto req = new SocketShutdownReq(this);
 
 			int r = uv_shutdown(req->req(), (uv_stream_t*)_uv_tcp, [](uv_shutdown_t* uv_req, int status) {
-				Handle<SocketShutdownReq> req(SocketShutdownReq::cast(uv_req));
+				Sp<SocketShutdownReq> req(SocketShutdownReq::cast(uv_req));
 				Inl* self = req->ctx();
 				if ( status != 0 && status != UV_ECANCELED ) {
 					// close status is send error
 					self->report_uv_err(status);
 				}
-				self->close_delete();
+				self->close_and_delete();
 			});
 
 			if ( report_uv_err(r) ) {
@@ -420,7 +428,7 @@ namespace qk {
 				if ( nread != UV_EOF ) { // 异常断开
 					report_uv_err(int(nread));
 				}
-				close_delete();
+				close_and_delete();
 			} else {
 				reset_timeout();
 				WeakBuffer buff(buffer, nread);
@@ -437,13 +445,13 @@ namespace qk {
 			int r = uv_write(req->req(), (uv_stream_t*)_uv_tcp, &buf, 1,
 			[](uv_write_t* uv_req, int status) {
 				SocketWriteReq* req = SocketWriteReq::cast(uv_req);
-				Handle<SocketWriteReq> handle(req);
+				Sp<SocketWriteReq> handle(req);
 				if ( status < 0 ) {
 					req->ctx()->report_uv_err(status);
 				} else {
-					req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host,
-																											req->data().raw_buffer,
-																											req->data().flag);
+					req->ctx()->_delegate->trigger_socket_written(req->ctx()->_host,
+																												req->data().raw_buffer,
+																												req->data().flag);
 				}
 			});
 
@@ -451,7 +459,9 @@ namespace qk {
 				Release(req);
 			}
 		}
-		
+
+		virtual void disable_ssl_verify(bool disable) {}
+
 	public:
 		// ----------------------------------------------------------------------
 		Socket*     _host;
@@ -459,7 +469,7 @@ namespace qk {
 		RunLoop*    _loop;
 		RetainRef*  _retain;
 		bool        _is_open;
-		bool        _is_opening;
+		bool        _is_connecting;
 		bool        _is_pause;
 		bool        _enable_keep_alive;
 		bool        _no_delay;
@@ -561,7 +571,7 @@ namespace qk {
 			SSL_free(_ssl);
 		}
 
-		void disable_ssl_verify(bool disable) {
+		void disable_ssl_verify(bool disable) override {
 			if ( disable ) {
 				SSL_set_verify(_ssl, SSL_VERIFY_NONE, nullptr);
 			} else {
@@ -592,7 +602,7 @@ namespace qk {
 				if ( req_->data().buffers_count == 0 ) {
 					Sp<SSLSocketWriteReq> sp(req_);
 					if ( req_->data().error == 0 ) {
-						self->_delegate->trigger_socket_write(
+						self->_delegate->trigger_socket_written(
 							self->_host, req_->data().raw_buffer, req_->data().flag
 						);
 					} 
@@ -601,14 +611,14 @@ namespace qk {
 		}
 
 		static void ssl_handshake_write_cb(uv_write_t* req, int status) {
-			Handle<SocketWriteReq> req_(SocketWriteReq::cast(req));
+			Sp<SocketWriteReq> req_(SocketWriteReq::cast(req));
 			if ( status < 0 ) { // send handshake msg fail
 				req_->ctx()->close();
 			}
 		}
 
 		static void ssl_other_write_cb(uv_write_t* uv_req, int status) {
-			Handle<SocketWriteReq> req(SocketWriteReq::cast(uv_req));
+			Sp<SocketWriteReq> req(SocketWriteReq::cast(uv_req));
 			// Do nothing
 		}
 
@@ -744,7 +754,7 @@ namespace qk {
 						report_uv_err(int(nread));
 					}
 				}
-				close_delete();
+				close_and_delete();
 			} else {
 				Qk_ASSERT( _bio_read_source_buffer_length == 0 );
 
@@ -788,7 +798,7 @@ namespace qk {
 							uv_read_stop((uv_stream_t*)_uv_tcp); // pause status
 						}
 						reset_timeout();
-						_delegate->trigger_socket_open(_host);
+						_delegate->trigger_socket_opened(_host);
 						
 						Qk_ASSERT( _bio_read_source_buffer_length == 0 );
 					}
@@ -840,11 +850,14 @@ namespace qk {
 
 	// ----------------------------------------------------------------------
 
-	Socket::Socket(): _inl(nullptr) {}
+	Socket::Socket(cString& hostname, uint16_t port, bool isSSL, RunLoop* loop)
+		: _inl(isSSL ? NewRetain<SSL_INL>(socket, loop): NewRetain<Inl>(socket, loop))
+	{
+		_inl->set_hostname(hostname, port);
+	}
 
-	Socket::Socket(cString& hostname, uint16_t port, RunLoop* loop)
-	: _inl( NewRetain<Inl>(this, loop) ) {
-		_inl->initialize(hostname, port);
+	Socket::Socket(Inl* inl): _inl(inl) {
+		//
 	}
 
 	Socket::~Socket() {
@@ -854,13 +867,10 @@ namespace qk {
 		_inl->release();
 		_inl = nullptr;
 	}
-	void Socket::open() {
-		_inl->open();
-	}
 	String Socket::hostname() const {
 		return _inl->_hostname;
 	}
-	uint16_t  Socket::port() const {
+	uint16_t Socket::port() const {
 		return _inl->_port;
 	}
 	String Socket::ip() const {
@@ -880,6 +890,9 @@ namespace qk {
 	}
 	void Socket::set_delegate(Delegate* delegate) {
 		_inl->set_delegate(delegate);
+	}
+	void Socket::connect() {
+		_inl->connect();
 	}
 	void Socket::close() {
 		_inl->close();
@@ -918,13 +931,8 @@ namespace qk {
 	// TODO
 	}*/
 
-	SSLSocket::SSLSocket(cString& hostname, uint16_t port, RunLoop* loop) {
-		_inl = NewRetain<SSL_INL>(this, loop);
-		_inl->initialize(hostname, port);
-	}
-
-	void SSLSocket::disable_ssl_verify(bool disable) {
-		static_cast<SSL_INL*>(_inl)->disable_ssl_verify(disable);
+	void Socket::disable_ssl_verify(bool disable) {
+		_inl->disable_ssl_verify(disable);
 	}
 
 }

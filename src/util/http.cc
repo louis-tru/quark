@@ -182,11 +182,7 @@ namespace qk {
 				, _loop(loop)
 				, _recovery_time(0)
 			{
-				if ( _ssl ) {
-					_socket = new SSLSocket(hostname, port, loop);
-				} else {
-					_socket = new Socket(hostname, port, loop);
-				}
+				_socket = new Socket(hostname, port, _ssl, loop);
 				Qk_ASSERT(_socket);
 				_socket->set_delegate(this);
 
@@ -219,15 +215,12 @@ namespace qk {
 
 				_client = client;
 				_socket->set_timeout(_client->_timeout); // set timeout
-
-				if ( _ssl ) {
-					static_cast<SSLSocket*>(_socket)->disable_ssl_verify(_client->_disable_ssl_verify);
-				}
+				_socket->disable_ssl_verify(_client->_disable_ssl_verify);
 
 				if ( _socket->is_open() ) {
 					send_http_request(); // send request
 				} else {
-					_socket->open();
+					_socket->connect();
 				}
 			}
 
@@ -506,34 +499,37 @@ namespace qk {
 				_socket->write(header_str.join(String()).collapse()); // write header
 			}
 
-			virtual void trigger_socket_timeout(Socket* socket) {
+			virtual void trigger_socket_timeout(Socket* socket) override {
 				if ( _client ) {
 					_client->trigger_http_timeout();
 				}
 			}
 
-			virtual void trigger_socket_open(Socket* stream) {
+			virtual void trigger_socket_opened(Socket* stream) override {
 				if ( _client ) {
 					send_http_request();
 				}
 			}
 
-			virtual void trigger_socket_close(Socket* stream) {
+			virtual void trigger_socket_closed(Socket* stream) override {
 				if ( _client ) {
-					Error err(ERR_CONNECT_UNEXPECTED_SHUTDOWN, "Connect unexpected shutdown");
-					_client->report_error_and_abort(err);
+					_client->report_error_and_abort(
+						Error(ERR_CONNECTING_UNEXPECTED_SHUTDOWN, "Connecting unexpected shutdown")
+					);
 				} else {
 					_pool->recovery(this, true);
 				}
 			}
 
-			virtual void trigger_socket_error(Socket* stream, cError& error) {
+			virtual void trigger_socket_error(Socket* stream, cError& error) override {
 				if ( _client ) {
 					_client->report_error_and_abort(error);
+				} else {
+					_pool->recovery(this, true);
 				}
 			}
 
-			virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
+			virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) override {
 				if ( _client ) {
 					// avoid releasing connections during data parsing
 					Sp<Connect> sp(this); // retain Connect
@@ -541,7 +537,7 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int flag) {
+			virtual void trigger_socket_written(Socket* stream, Buffer& buffer, int flag) override {
 				if ( !_client ) return;
 				if ( _send_data ) {
 					if ( flag == 1 ) {
@@ -569,23 +565,23 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_file_open(File* file) {
+			virtual void trigger_file_open(File* file) override {
 				Qk_ASSERT( _is_multipart_form_data );
 				send_multipart_form_data();
 			}
 
-			virtual void trigger_file_close(File* file) {
+			virtual void trigger_file_close(File* file) override {
 				Qk_ASSERT( _is_multipart_form_data );
 				Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 				_client->report_error_and_abort(err);
 			}
 
-			virtual void trigger_file_error(File* file, cError& error) {
+			virtual void trigger_file_error(File* file, cError& error) override {
 				Qk_ASSERT( _is_multipart_form_data );
 				_client->report_error_and_abort(error);
 			}
 
-			virtual void trigger_file_read(File* file, Buffer& buffer, int flag) {
+			virtual void trigger_file_read(File* file, Buffer& buffer, int flag) override {
 				Qk_ASSERT( _is_multipart_form_data );
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
@@ -602,7 +598,7 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) {}
+			virtual void trigger_file_write(File* file, Buffer& buffer, int flag) override {}
 
 			void send_multipart_form_data() {
 				Qk_ASSERT( _multipart_form_tmp_buffer.length() == BUFFER_SIZE );
@@ -1283,7 +1279,8 @@ namespace qk {
 				Qk_ASSERT(_pool);
 				Releasep(_cache_reader);
 				Releasep(_file_writer);
-				_pool->recovery(_connect, abort); _connect = nullptr;
+				_pool->recovery(_connect, abort);
+				_connect = nullptr;
 				_pause = false;
 				_wait_connect_id = 0;
 

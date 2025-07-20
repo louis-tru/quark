@@ -58,7 +58,7 @@ namespace qk {
 	/**
 	 * 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
 	 * @method decode
-	 * @arg data {cBuffer&}
+	 * @param data {cBuffer&}
 	 * @ret {Array<Pixel>}
 	 */
 	Qk_EXPORT bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt = kUnknown_ImageFormat);

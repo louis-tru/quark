@@ -122,9 +122,9 @@ namespace qk {
 
 		/**
 		 * @method write() write data items
-		 * @arg src  source data items
-		 * @arg size_src {int=-1} The number of items that need to be written
-		 * @arg to {int=-1} The position where the current array starts to be written, -1 starts to write from the end
+		 * @param src  source data items
+		 * @param size_src {int=-1} The number of items that need to be written
+		 * @param to {int=-1} The position where the current array starts to be written, -1 starts to write from the end
 		 * @return {uint32_t} Returns the amount of data written
 		*/
 		uint32_t write(const T* src, uint32_t size_src, int to = -1);
@@ -225,7 +225,7 @@ namespace qk {
 
 		/**
 		 * @method release realloc auro realloc
-		 * @arg increase_ {uint32_t}
+		 * @param increase_ {uint32_t}
 		 */
 		void increase_(uint32_t capacity);
 

@@ -721,8 +721,8 @@ namespace qk {
 
 	/**
 	* @method mul # 矩阵乘法
-	* @arg b {const Mat&}
-	* @arg output {Mat&}
+	* @param b {const Mat&}
+	* @param output {Mat&}
 	*/
 	void Mat::mul(const Mat& b, Mat& output) const {
 		/*
@@ -1227,8 +1227,8 @@ namespace qk {
 
 	/**
 	 * @method mul # 矩阵乘法
-	 * @arg b {const Mat4&} b
-	 * @arg output {Mat4&} output
+	 * @param b {const Mat4&} b
+	 * @param output {Mat4&} output
 	*/
 	void Mat4::mul(const Mat4& b, Mat4& output) const {
 		/*

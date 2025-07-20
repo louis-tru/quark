@@ -58,10 +58,10 @@ namespace qk {
 	
 	/**
 	 * @func tga_parse_rgb_rle # 解析RLE RGB图
-	 * @arg data {const byte*} # 图像数据指针
-	 * @arg new_data {byte*} # 新的通胀图像数据指针
-	 * @arg pixex_size {int} # 图像像素数量
-	 * @arg func {ReadDataBlackFunc} # 处理函数
+	 * @param data {const byte*} # 图像数据指针
+	 * @param new_data {byte*} # 新的通胀图像数据指针
+	 * @param pixex_size {int} # 图像像素数量
+	 * @param func {ReadDataBlackFunc} # 处理函数
 	 * @private
 	 */
 	void tga_parse_rgb_rle(uint8_t* in, uint8_t* out, int bytes,

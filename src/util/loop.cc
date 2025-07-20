@@ -319,7 +319,7 @@ namespace qk {
 	}
 
 	void RunLoop::post_message(Cb cb) {
-		post(cb);
+		post(cb, true);
 	}
 
 	uint32_t RunLoop::timer(Cb cb, uint64_t time, int64_t repeat) {
