@@ -84,7 +84,7 @@ namespace qk { namespace js {
 		}
 		virtual void trigger_http_readystate_change(qk::HttpClientRequest* req) override {
 			if (req->ready_state() == HTTP_READY_STATE_READY) {
-				_host->self()->retain(); // TODO: js handle keep active
+				req->retain(); // TODO: js handle keep active
 			}
 			if ( !_readystate_change.isEmpty() ) {
 				HandleScope scope(worker());
@@ -130,9 +130,8 @@ namespace qk { namespace js {
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
 			auto _del = &self<Type>()->_del;
-
-			if ( id != -1 ) return 0; // 只接收id==-1的监听器
-
+			if ( id != 0 )
+				return 0; // 只接收id==0的监听器
 			if ( name == "Error" ) {
 				_del->_error = func;
 			} else if ( name == "Write" ) {
@@ -157,9 +156,8 @@ namespace qk { namespace js {
 
 		virtual bool removeEventListener(cString& name, int id) {
 			auto _del = &self<Type>()->_del;
-
-			if ( id != -1 || !_del ) return 0;
-
+			if ( id != 0 || !_del )
+				return 0;
 			if ( name == "Error" ) {
 				_del->_error = String();
 			} else if ( name == "Write" ) {

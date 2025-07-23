@@ -58,18 +58,18 @@ namespace qk {
 	};
 	typedef UVRequestWrap<uv_connect_t, Socket::Inl> SocketConReq;
 	typedef UVRequestWrap<uv_shutdown_t, Socket::Inl> SocketShutdownReq;
-	typedef UVRequestWrap<uv_write_t, Socket::Inl, SocketWriteReqData> SocketWriteReq;
-	typedef UVRequestWrap<uv_write_t, Socket::Inl, SSLSocketWriteReqData> SSLSocketWriteReq;
+	typedef UVRequestWrap<uv_write_t, Socket::Inl, SocketWriteReqData, Buffer> SocketWriteReq;
+	typedef UVRequestWrap<uv_write_t, Socket::Inl, SSLSocketWriteReqData, Buffer> SSLSocketWriteReq;
 
 	// ----------------------------------------------------------------------
 
 	class Socket::Inl: public Reference, public Socket::Delegate {
 	public:
-		virtual void trigger_socket_opened(Socket* stream) override {}
-		virtual void trigger_socket_closed(Socket* stream) override {}
+		virtual void trigger_socket_open(Socket* stream) override {}
+		virtual void trigger_socket_close(Socket* stream) override {}
 		virtual void trigger_socket_error(Socket* stream, cError& error) override {}
 		virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) override {}
-		virtual void trigger_socket_written(Socket* stream, Buffer& buffer, int flag) override {}
+		virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int flag) override {}
 		virtual void trigger_socket_timeout(Socket* socket) override {}
 
 		Inl(Socket* host, RunLoop* loop) 
@@ -135,16 +135,21 @@ namespace qk {
 			close();
 		}
 
-		int report_uv_err(int code, bool async = false) {
+		int report_uv_err(int code, bool async = false, Callback<Buffer> *cb = 0) {
 			if ( code != 0 ) {
-				report_err( Error(code, "%s, %s", uv_err_name(code), uv_strerror(code)), async);
+				Error err(code, "%s, %s", uv_err_name(code), uv_strerror(code));
+				if (cb)
+					(*cb)->reject(&err);
+				report_err(err, async);
 			}
 			return code;
 		}
 
-		void report_not_open_connect_err(bool async = false) {
-			// report_uv_err(ENOTCONN);
-			report_err(Error(ERR_NOT_OPTN_TCP_CONNECT, "not tcp connect or open connecting"), async);
+		void report_not_open_connect_err(bool async = false, Callback<Buffer> *cb = 0) {
+			Error err(ERR_NOT_OPTN_TCP_CONNECT, "not tcp connect or open connecting");
+			if (cb)
+				(*cb)->reject(&err);
+			report_err(err, async);
 		}
 
 		void reset_timeout() {
@@ -242,19 +247,20 @@ namespace qk {
 			}
 		}
 
-		void write(Buffer &buffer, int64_t size, int flag) {
-			if ( size < 0 ) {
-				size = buffer.length();
-			}
+		void write(Buffer &buffer, int size, int flag, Callback<Buffer>& cb) {
 			if ( _is_open ) {
 				if ( uv_is_writable((uv_stream_t*)_uv_tcp) ) {
+					size = size < 0 ?
+						buffer.length(): Qk_Min(size, buffer.length());
 					reset_timeout();
-					write(buffer, flag);
+					write_data(buffer, size, flag, cb);
 				} else {
-					report_err(Error(ERR_SOCKET_NOT_WRITABLE, "Socket not writable"), 1);
+					Error err(ERR_SOCKET_NOT_WRITABLE, "Socket not writable");
+					cb->reject(&err);
+					report_err(err, true);
 				}
 			} else {
-				report_not_open_connect_err(1);
+				report_not_open_connect_err(true, &cb);
 			}
 		}
 
@@ -343,7 +349,7 @@ namespace qk {
 				}
 			});
 
-			if (report_uv_err(r)) {
+			if (report_uv_err(r, true)) {
 				Release(req);
 				close_and_delete(true);
 			} else {
@@ -368,7 +374,7 @@ namespace qk {
 			if (_is_open) {
 				_is_connecting = false;
 				_is_open = false;
-				_delegate->trigger_socket_closed(_host);
+				_delegate->trigger_socket_close(_host);
 			} else if (_is_connecting) {
 				_is_connecting = false;
 				report_err(
@@ -384,7 +390,7 @@ namespace qk {
 				start_read(); // start receive data
 			}
 			reset_timeout();
-			_delegate->trigger_socket_opened(_host);
+			_delegate->trigger_socket_open(_host);
 		}
 
 		virtual void shutdown() {
@@ -436,26 +442,27 @@ namespace qk {
 			}
 		}
 
-		virtual void write(Buffer& buffer, int flag) {
-			auto req = new SocketWriteReq(this, 0, { buffer, flag });
+		virtual void write_data(Buffer& buffer, int size, int flag, Callback<Buffer>& cb) {
+			auto req = new SocketWriteReq(this, cb, { buffer, flag });
 			uv_buf_t buf;
 			buf.base = *req->data().raw_buffer;
-			buf.len = req->data().raw_buffer.length();
+			buf.len = size;//req->data().raw_buffer.length();
 
 			int r = uv_write(req->req(), (uv_stream_t*)_uv_tcp, &buf, 1,
 			[](uv_write_t* uv_req, int status) {
 				SocketWriteReq* req = SocketWriteReq::cast(uv_req);
 				Sp<SocketWriteReq> handle(req);
 				if ( status < 0 ) {
-					req->ctx()->report_uv_err(status);
+					req->ctx()->report_uv_err(status, false, &req->cb());
 				} else {
-					req->ctx()->_delegate->trigger_socket_written(req->ctx()->_host,
-																												req->data().raw_buffer,
-																												req->data().flag);
+					req->cb()->resolve(&req->data().raw_buffer);
+					req->ctx()->_delegate->trigger_socket_write(req->ctx()->_host,
+																											req->data().raw_buffer,
+																											req->data().flag);
 				}
 			});
 
-			if ( report_uv_err(r) ) {
+			if ( report_uv_err(r, true, &cb) ) {
 				Release(req);
 			}
 		}
@@ -579,31 +586,33 @@ namespace qk {
 			}
 		}
 
-		virtual void shutdown() {
+		virtual void shutdown() override {
 			SSL_shutdown(_ssl);
 			Inl::shutdown();
 		}
 
 		static void ssl_write_cb(uv_write_t* req, int status) {
 			SSLSocketWriteReq* req_ = SSLSocketWriteReq::cast(req);
-			Qk_ASSERT(req_->data().buffers_count);
+			SSLSocketWriteReqData &data = req_->data();
+			Qk_ASSERT(data.buffers_count);
 
-			req_->data().buffers_count--;
+			data.buffers_count--;
 
 			auto self = req_->ctx();
 
 			if ( status < 0 ) {
-				req_->data().error++;
-				if ( req_->data().buffers_count == 0 ) {
+				data.error++;
+				self->report_uv_err(status, false, data.error == 1 ? &req_->cb(): 0);
+
+				if (data.buffers_count == 0)
 					Release(req_);
-				}
-				self->report_uv_err(status);
 			} else {
-				if ( req_->data().buffers_count == 0 ) {
+				if (data.buffers_count == 0) {
 					Sp<SSLSocketWriteReq> sp(req_);
-					if ( req_->data().error == 0 ) {
-						self->_delegate->trigger_socket_written(
-							self->_host, req_->data().raw_buffer, req_->data().flag
+					if ( data.error == 0 ) {
+						req_->cb()->resolve(&data.raw_buffer);
+						self->_delegate->trigger_socket_write(
+							self->_host, data.raw_buffer, data.flag
 						);
 					} 
 				}
@@ -651,40 +660,40 @@ namespace qk {
 				return r;
 				
 			} else {
-				
+
 				if ( self->_ssl_write_req ) { // send msg
-					
+
 					auto req = self->_ssl_write_req;
 					Qk_ASSERT( req->data().buffers_count < 2 );
-					
+
 					uv_buf_t buf;
 					buf.base = *buffer;
 					buf.len = inl;
-					
+
 					req->data().buffers[req->data().buffers_count] = buffer;
-					
+
 					r = uv_write(req->req(), (uv_stream_t*)self->_uv_tcp, &buf, 1, &ssl_write_cb);
-					
-					if ( self->report_uv_err(r) ) {
-						// uv err
+
+					if ( self->report_uv_err(r, true, &req->cb()) ) {
+						return r; // uv err
 					} else {
 						req->data().buffers_count++;
 					}
-					
+
 				} else { // SSL_shutdown or ssl other
-					
+
 					auto req = new SocketWriteReq(self, 0, { buffer });
 					uv_buf_t buf;
 					buf.base = *req->data().raw_buffer;
 					buf.len = req->data().raw_buffer.length();
-					
+
 					r = uv_write(req->req(), (uv_stream_t*)self->_uv_tcp, &buf, 1, &ssl_other_write_cb);
-					
+
 					if ( r != 0 ) {
 						Release(req);
 					}
 				}
-				
+
 				return inl;
 			}
 		}
@@ -710,12 +719,15 @@ namespace qk {
 			return 1;
 		}
 		
-		void report_ssl_err(int code) {
+		void report_ssl_err(int code, bool async = false, Callback<Buffer> *cb = 0) {
 			_ssl_error_msg = String();
 			ERR_print_errors_cb(&receive_ssl_err, this);
-			report_err(Error(code, _ssl_error_msg));
+			Error err(code, _ssl_error_msg);
+			if (cb)
+				(*cb)->reject(&err);
+			report_err(err, async);
 		}
-		
+
 		void ssl_handshake_fail() {
 			report_err(Error(ERR_SSL_HANDSHAKE_FAIL, "ssl handshake fail"));
 			close();
@@ -732,7 +744,7 @@ namespace qk {
 			uv_timer_start(_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
 		}
 		
-		virtual void trigger_socket_connect_open() {
+		virtual void trigger_socket_connect_open() override {
 			Qk_ASSERT( !_ssl_handshake );
 			set_ssl_handshake_timeout();
 			_bio_read_source_buffer_length = 0;
@@ -744,9 +756,8 @@ namespace qk {
 			}
 		}
 
-		virtual void trigger_socket_data_char(int nread, Char* buffer) {
+		virtual void trigger_socket_data_char(int nread, Char* buffer) override {
 			if ( nread < 0 ) {
-
 				if ( _ssl_handshake == 0 ) { //
 					report_err(Error(ERR_SSL_HANDSHAKE_FAIL, "ssl handshake fail"));
 				} else {
@@ -798,8 +809,8 @@ namespace qk {
 							uv_read_stop((uv_stream_t*)_uv_tcp); // pause status
 						}
 						reset_timeout();
-						_delegate->trigger_socket_opened(_host);
-						
+						_delegate->trigger_socket_open(_host);
+
 						Qk_ASSERT( _bio_read_source_buffer_length == 0 );
 					}
 				}
@@ -807,18 +818,18 @@ namespace qk {
 			} // if ( nread < 0 ) end
 		}
 
-		virtual void write(Buffer& buffer, int flag) {
+		virtual void write_data(Buffer& buffer, int size, int flag, Callback<Buffer>& cb) override {
 			Qk_ASSERT(!_ssl_write_req);
 
-			auto req = new SSLSocketWriteReq(this, 0, { buffer, flag, 0, 0 });
+			auto req = new SSLSocketWriteReq(this, cb, { buffer, flag, 0, 0 });
 			_ssl_write_req = req;
 
-			int r = SSL_write(_ssl, req->data().raw_buffer.val(), req->data().raw_buffer.length());
-
+			int r = SSL_write(_ssl, req->data().raw_buffer.val(), size/*req->data().raw_buffer.length()*/);
+ 
 			_ssl_write_req = nullptr;
 
 			if ( r < 0 ) {
-				report_ssl_err(ERR_SSL_UNKNOWN_ERROR);
+				report_ssl_err(ERR_SSL_UNKNOWN_ERROR, true, &cb);
 			}
 			if ( req->data().buffers_count == 0 ) {
 				Release(req);
@@ -851,7 +862,7 @@ namespace qk {
 	// ----------------------------------------------------------------------
 
 	Socket::Socket(cString& hostname, uint16_t port, bool isSSL, RunLoop* loop)
-		: _inl(isSSL ? NewRetain<SSL_INL>(socket, loop): NewRetain<Inl>(socket, loop))
+		: _inl(isSSL ? NewRetain<SSL_INL>(this, loop): NewRetain<Inl>(this, loop))
 	{
 		_inl->set_hostname(hostname, port);
 	}
@@ -909,9 +920,8 @@ namespace qk {
 	void Socket::resume() {
 		_inl->resume();
 	}
-	void Socket::write(Buffer buffer, int flag) {
-		uint32_t size = buffer.length();
-		_inl->write(buffer, size, flag);
+	void Socket::write(Buffer buffer, int flag, Callback<Buffer> cb) {
+		_inl->write(buffer, -1, flag, cb);
 	}
 
 	/*

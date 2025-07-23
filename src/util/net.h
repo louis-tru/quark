@@ -48,11 +48,11 @@ namespace qk {
 
 		class Qk_EXPORT Delegate {
 		public:
-			virtual void trigger_socket_opened(Socket* socket) = 0;
-			virtual void trigger_socket_closed(Socket* socket) = 0;
+			virtual void trigger_socket_open(Socket* socket) = 0;
+			virtual void trigger_socket_close(Socket* socket) = 0;
 			virtual void trigger_socket_error(Socket* socket, cError& error) = 0;
 			virtual void trigger_socket_data(Socket* socket, cBuffer& buffer) = 0;
-			virtual void trigger_socket_written(Socket* socket, Buffer& buffer, int flag) = 0; // write ok
+			virtual void trigger_socket_write(Socket* socket, Buffer& buffer, int flag) = 0; // write ok
 			virtual void trigger_socket_timeout(Socket* socket) = 0;
 		};
 
@@ -99,14 +99,14 @@ namespace qk {
 		bool is_pause(); //!<
 		void pause(); //!<
 		void resume(); //!<
-		void write(Buffer buffer, int flag = 0); //!<
+		void write(Buffer buffer, int flag = 0, Callback<Buffer> cb = 0); //!<
 
 		/**
 		* @method disable_ssl_verify(disable)
 		*/
 		void disable_ssl_verify(bool disable);
 
-	protected:
+	private:
 		Socket(Inl* inl);
 		Inl* _inl;
 	};

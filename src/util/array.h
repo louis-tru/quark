@@ -43,6 +43,7 @@ namespace qk {
 	template<typename T = char, typename A = Allocator> class ArrayBuffer; // array no copy
 	template<typename T = char, typename A = Allocator> using cArray = const Array<T, A>;
 	template<typename T = char> class ArrayWeak;
+	template<typename T = char> using cArrayWeak = const ArrayWeak<T>;
 
 	typedef       ArrayBuffer<char>   Buffer; // Array No Copy
 	typedef const ArrayBuffer<char>   cBuffer;

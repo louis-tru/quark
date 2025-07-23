@@ -699,6 +699,10 @@ namespace qk { namespace js {
 		));
 	}
 
+	JSString* Worker::newValue(cArray<uint16_t>& val) {
+		return newValue(val.copy().collapseString());
+	}
+
 	JSUint8Array* Worker::newValue(Buffer&& buff) {
 		size_t offset = 0;
 		size_t len = buff.length();

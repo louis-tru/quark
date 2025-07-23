@@ -1129,6 +1129,7 @@ class QkPackage extends Package {
 			'keyboard.js',
 			'media.js',
 			'nav.js',
+			'net.js',
 			'os.js',
 			'bubbles.js',
 			'package.json',

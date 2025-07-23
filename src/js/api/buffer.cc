@@ -57,7 +57,8 @@ namespace qk { namespace js {
 			Encoding en = kUTF8_Encoding;
 			JSValue* r;
 			if ( args.length() > 1 ) {
-				if ( ! parseEncoding(args, args[1], en) ) return;
+				if ( ! parseEncoding(args, args[1], en) )
+					return;
 			}
 			auto buf = worker->newUint8Array(args[0]->template cast<JSString>(), en);
 			Js_Return( buf );
@@ -84,7 +85,8 @@ namespace qk { namespace js {
 			uint32_t end = len;
 
 			if (args.length() > args_index && args[args_index]->isString()) {
-				if ( ! parseEncoding(args, args[args_index], en) ) return;
+				if ( ! parseEncoding(args, args[args_index], en) )
+					return;
 				args_index++;
 			}
 			if (args.length() > args_index) {
@@ -102,24 +104,50 @@ namespace qk { namespace js {
 				Js_Return( worker->newEmpty() );
 			}
 
+			auto chAddr = data + start;
+			auto lenPart = end - start;
+
 			switch (en) {
-				case kHex_Encoding: // encode to hex or base64 string
+				case kHex_Encoding: // convert to hex or base64 string
 				case kBase64_Encoding: {
-					Buffer buff = codec_encode(
-						en, WeakBuffer(data + start, end - start).buffer()
-					);
+					Buffer buff = codec_encode(en, WeakBuffer(chAddr, lenPart).buffer());
 					Js_Return( worker->newStringOneByte(buff.collapseString()) );
 					break;
-				} default: { // encode to js uft16 string
-					auto unicode = codec_decode_to_unicode( // decode to unicode
-						en, WeakBuffer(data+start, end-start).buffer()
-					);
+				}
+				case kUTF8_Encoding: {
+					auto utf16 = codec_utf8_to_utf16(WeakBuffer(chAddr, lenPart).buffer());
+					Js_Return( worker->newValue(utf16.collapseString()) );
+					break;
+				}
+				case kBinary_Encoding: {
+					WeakBuffer binaray(chAddr, lenPart);
+					Js_Return( worker->newStringOneByte(binaray.copy().collapseString()) );
+					break;
+				}
+				case kAscii_Encoding: {
+					// decode to ucs1
+					auto ucs1 = codec_decode_to_ucs1(en, WeakBuffer(chAddr, lenPart).buffer());
+					// ucs1 to js uft16 string
+					Js_Return( worker->newStringOneByte(ucs1.collapseString()) );
+					break;
+				}
+				case kUTF16_Encoding: {
+					if (user_addr_t(chAddr) % 2 == 0) { // Already aligned
+						ArrayWeak<uint16_t> utf16(reinterpret_cast<const uint16_t*>(chAddr), lenPart>>1);
+						Js_Return( worker->newValue(utf16.buffer()) );
+						break;
+					}
+				}
+				default: { // kUCS4_Encoding
+					// decode to unicode
+					auto unicode = codec_decode_to_unicode(en, WeakBuffer(chAddr, lenPart).buffer());
+					// unicode to js uft16 string
 					Js_Return( worker->newValue(unicode.collapseString()) );
 					break;
 				}
 			}
 		}
-	
+
 		static void binding(JSObject* exports, Worker* worker) {
 
 			Js_Method(fromString, { fromString(args); });

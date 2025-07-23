@@ -30,6 +30,9 @@
 
 import utils from './util';
 import {Stream} from './fs';
+import {userAgent} from './http';
+import {fromString,toString} from './buffer';
+import {URL} from './path';
 import event, {
 	EventNoticer, NativeNotification, Notification, Event,
 } from './event';
@@ -37,58 +40,132 @@ import event, {
 const _net = __binding__('_net');
 
 type SocketEvent<T = void> = Event<Socket, T>; //!<
+type WSocketEvent<T = void> = Event<WebSocket, T>; //!<
 
 /**
- * @class Socket
+ * @class NativeSocket
 */
-export declare class Socket extends Notification<SocketEvent> implements Stream {
+declare class NativeSocket extends Notification<SocketEvent> implements Stream {
 	readonly hostname: string; //!<
 	readonly port: Uint; //!<
 	readonly ip: string; //!<
 	readonly ipv6: string; //!<
 	readonly isOpen: boolean; //!<
 	readonly isPause: boolean; //!<
-	/** @event */
-	readonly onOpened: EventNoticer<SocketEvent>;
-	/** @event */
-	readonly onClosed: EventNoticer<SocketEvent>;
-	/** @event */
-	readonly onError: EventNoticer<SocketEvent<Error>>;
-	/** @event */
-	readonly onData: EventNoticer<SocketEvent<Uint8Array>>;
-	/** @event */
-	readonly onWritten: EventNoticer<SocketEvent<Int>>;
-	/** @event */
-	readonly onTimeout: EventNoticer<SocketEvent>;
-
 	setKeepAlive(keep_alive: boolean, keep_idle?: Uint): void; //!<
 	setNoDelay(noDelay?: boolean): void; //!<
-	setTimeout(time?: Uint): void; //!<
+	setTimeout(time: Uint): void; //!<
 	connect(): void; //!<
 	close(): void; //!<
 	pause(): void; //!<
 	resume(): void; //!<
-	write(data: string | Uint8Array, flag?: Int): void; //!<
+	write(data: string | Uint8Array, flag?: Int, cb?: Function): void; //!<
 	disableSslVerify(disable?: boolean): void; //!<
-
 	constructor(hostname: string, port: Uint, isSSL?: boolean); //!<
 }
 
-Object.assign(exports, _net);
+/**
+ * @class Socket
+ * @extends NativeSocket
+*/
+export class Socket extends (_net.Socket as typeof NativeSocket) {
+	/**
+	 * Trigger when opened connection
+	*/
+	@event readonly onOpen: EventNoticer<SocketEvent>;
+	/**
+	 * Trigger when closed connection
+	*/
+	@event readonly onClose: EventNoticer<SocketEvent>;
+	/**
+	 * Trigger when an error occurs
+	*/
+	@event readonly onError: EventNoticer<SocketEvent<Error>>;
+	/**
+	 * Trigger when accept part of body data, and will be continuous
+	*/
+	@event readonly onData: EventNoticer<SocketEvent<Uint8Array>>;
+	/**
+	 * Trigger when write data to the server
+	*/
+	@event readonly onWrite: EventNoticer<SocketEvent<Int>>;
+	/**
+	 * Trigger when a timeout of connection
+	*/
+	@event readonly onTimeout: EventNoticer<SocketEvent>;
 
-class _Socket extends NativeNotification {
-	@event onOpened: EventNoticer<SocketEvent>;
-	@event onClosed: EventNoticer<SocketEvent>;
-	@event onError: EventNoticer<SocketEvent<Error>>;
-	@event onData: EventNoticer<SocketEvent<Uint8Array>>;
-	@event onWritten: EventNoticer<SocketEvent<Int>>;
-	@event onTimeout: EventNoticer<SocketEvent>;
+	/**
+	 * @method write(data,flag?)
+	*/
+	write(data: string | Uint8Array, flag?: Int): Promise<void> {
+		return new Promise((resolve,reject)=>{
+			super.write(data, flag, function(err?: Error) {
+				err ? reject(err): resolve();
+			});
+		});
+	}
 }
-utils.extendClass(_net.Socket, _Socket);
+
+utils.extendClass(Socket, NativeNotification);
+
+
+interface SendCallback {
+	(err?: Error): void;
+}
 
 /**
  * @class WebSocket
 */
-export class WebSocket extends Socket {
-	// TODO ...
+export class WebSocket extends Notification<WSocketEvent> implements Stream {
+	private _isOpen = false;
+
+	readonly url: URL; //!<
+	readonly hostname: string; //!<
+	readonly port: Uint; //!<
+	readonly isSSL: boolean; //!<
+	readonly socket: Socket; //!<
+
+	get ip() { return this.socket.ip } //!<
+	get ipv6() { return this.socket.ipv6 } //!<
+	get isOpen () { return this._isOpen } //!<
+	get isPause() { return this.socket.isPause } //!<
+
+	/**
+	 * @param url:string `wss://xxxx.xx/path`
+	*/
+	constructor(url: string) {
+		super();
+		this.url = new URL(url);
+		this.hostname = this.url.hostname;
+		this.isSSL = ['https','wss'].indexOf(this.url.protocol) != -1;
+		this.port = Number(this.url.port) || (this.isSSL ? 443: 80);
+		this.socket = new (_net.Socket as typeof Socket)(this.hostname, this.port, this.isSSL);
+	}
+	setKeepAlive(keep_alive: boolean, keep_idle: Uint = 0) {
+		this.socket.setKeepAlive(keep_alive, keep_idle);
+	}
+	setNoDelay(noDelay = true): void {
+		this.socket.setNoDelay(noDelay);
+	}
+	setTimeout(time: Uint) {
+		this.socket.setTimeout(time);
+	}
+	connect() { //!<
+		this.socket.connect();
+	}
+	close() { //!<
+		this.socket.close();
+	}
+	pause() { //!<
+		this.socket.pause();
+	}
+	resume() { //!<
+		this.socket.resume();
+	}
+	write(data: string | Uint8Array) {
+		// TODO ...
+	}
+	disableSslVerify(disable: false) {
+		this.socket.disableSslVerify(disable);
+	}
 }

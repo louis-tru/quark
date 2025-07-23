@@ -1036,6 +1036,13 @@ namespace qk { namespace js {
 		return WORKER(this)->addToScope<JSString>(obj);
 	}
 
+	JSString* Worker::newValue(cArray<uint16_t>& val) {
+		auto str = JSStringCreateWithCharacters(*val, val.length());
+		auto obj = JSValueMakeString(JSC_CTX(this), str);
+		DCHECK(obj);
+		return WORKER(this)->addToScope<JSString>(obj);
+	}
+
 	JSUint8Array* Worker::newValue(Buffer&& buff) {
 		ENV(this);
 		JSObjectRef arr;

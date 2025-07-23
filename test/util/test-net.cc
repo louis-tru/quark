@@ -104,9 +104,9 @@ void test_net_parse_host(cString& host_str, int af) {
 
 class MySocket: public Socket, public Socket::Delegate {
  public:
-	MySocket(): Socket("www.iqiyi.com", 80) {
+	MySocket(): Socket("www.iqiyi.com", 80, false) {
 		set_delegate(this);
-		open();
+		connect();
 		set_timeout(2e6); // 2s
 	}
 
@@ -125,25 +125,25 @@ class MySocket: public Socket, public Socket::Delegate {
 		write(header.collapse());
 	}
 
-	virtual void trigger_socket_open(Socket* stream) {
+	virtual void trigger_socket_open(Socket* stream) override {
 		Qk_Log("Open Socket");
 		send_http();
 	}
-	virtual void trigger_socket_close(Socket* stream) {
+	virtual void trigger_socket_close(Socket* stream) override {
 		Qk_Log("Close Socket");
 		Release(this);
 	}
-	virtual void trigger_socket_error(Socket* stream, cError& error) {
+	virtual void trigger_socket_error(Socket* stream, cError& error) override {
 		Qk_Log("Error, %d, %s", error.code(), error.message().c_str());
 	}
-	virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) {
+	virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) override {
 		// LOG( String(buffer.value(), buffer.length()) );
 		Qk_Log("DATA.., %d", buffer.length());
 	}
-	virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int mark) {
+	virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int mark) override {
 		Qk_Log("Write, OK");
 	}
-	virtual void trigger_socket_timeout(Socket* socket) {
+	virtual void trigger_socket_timeout(Socket* socket) override {
 		Qk_Log("Timeout Socket");
 		close();
 	}

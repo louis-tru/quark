@@ -32,6 +32,9 @@ const _buffer = __binding__('_buffer');
 
 Object.assign(exports, _buffer);
 
+export type Buffer = Uint8Array; //!<
+export const Buffer = Uint8Array;
+
 /**
  * All encoding algorithms of string
 */
@@ -40,9 +43,60 @@ export type Encoding = 'binary'|'ascii'|'base64'|'hex'|'utf-8'|'utf8'|'utf-16'|'
 /**
  * Specify the algorithm to encode the string and return the encoded data
 */
-export declare function fromString(str: string, targetEn?: Encoding): Uint8Array;
+export declare function fromString(str: string, targetEn?: Encoding): Buffer;
+
+/**
+ * Returns the encoded length of the string
+*/
+export declare function byteLength(str: string, targetEn?: Encoding): Uint;
 
 /**
  * Decode data into a string using the specified algorithm
 */
-export declare function toString(src: Uint8Array, encoding?: Encoding, start?: number, end?: number): string;
+export declare function toString(src: Buffer, encoding?: Encoding, start?: number, end?: number): string;
+
+/**
+ * Zero buffer
+*/
+export const Zero = alloc(0);
+
+/**
+ * Alloc new buffer
+*/
+export function alloc(size: Uint, initFill?: Uint): Buffer {
+	let buf = new Buffer(Number(size) || 0);
+	if (initFill)
+		buf.fill(Number(initFill) || 0);
+	return buf;
+}
+
+/**
+ * New buffer by array list
+*/
+export function concat(list: ArrayLike<number>[], length?: number): Buffer {
+	if (length === undefined) {
+		length = 0;
+		for (let bytes of list) {
+			if (bytes.length) {
+				length += bytes.length;
+			}
+		}
+	} else {
+		length = Number(length) || 0;
+	}
+
+	if (list.length === 0 || length === 0)
+		return Zero;
+
+	let bf = new Buffer(length);
+	let offset = 0;
+
+	for (let bytes of list) {
+		if (bytes.length) {
+			bf.set(bytes, offset);
+			offset += bytes.length;
+		}
+	}
+
+	return bf;
+}

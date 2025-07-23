@@ -41,7 +41,7 @@ using namespace qk;
 #define IP_REMOTE "192.168.2.200"
 #define USE_REMOTE 0
 #define USE_INSPECT 1
-#define USE_BRK 0
+#define USE_BRK 1
 
 Qk_TEST_Func(jsapi) {
 	Array<String> argv_arr;
@@ -61,7 +61,7 @@ Qk_TEST_Func(jsapi) {
 #if USE_REMOTE
 	js::Start("http://" IP_REMOTE ":1026/", argv_arr);
 #else
-	js::Start(fs_resources("examples aa gui"), argv_arr);
+	js::Start(fs_resources("jsapi aa net"), argv_arr);
 #endif
 }
 #endif

@@ -56,13 +56,40 @@ namespace js {
 	}
 
 	Buffer JSString::toBuffer(Worker* w, Encoding en) const {
-		if (en == Encoding::kUTF16_Encoding) {
-			auto str = value2(w);
-			auto len = str.length() << 1;
-			auto capacity = str.capacity() << 1;
-			return Buffer((char*)str.collapse().collapse(), len, capacity);
-		} else {
+		switch (en) {
+			case kHex_Encoding: // parse buffer from hex or base64 string
+			case kBase64_Encoding: {
+				// Buffer buff = codec_encode(en, WeakBuffer(chAddr, lenPart).buffer());
+				// Js_Return( worker->newStringOneByte(buff.collapseString()) );
+				// codec_decode_to_ucs1(en,)
+				break;
+			}
+			case kUTF8_Encoding: {
+				break;
+			}
+			case kUTF16_Encoding: {
+				break;
+			}
+			case kBinary_Encoding: {
+				break;
+			}
+			case kAscii_Encoding: {
+				break;
+			}
+			default: { // kUCS4_Encoding
+				break;
+			}
+		}
+		if (en == Encoding::kUTF8_Encoding) {
 			return value(w).collapse();
+		} else if (en == Encoding::kUTF16_Encoding) {
+			auto str2 = value2(w);
+			auto len = str2.length();
+			auto capacity = str2.capacity();
+			return Buffer((char*)str2.collapse().collapse(), len << 1, capacity << 1);
+		} else {
+			auto unicode = codec_utf16_to_unicode(value2(w).array().buffer());
+			return codec_encode(en, unicode);
 		}
 	}
 

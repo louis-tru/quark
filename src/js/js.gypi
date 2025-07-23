@@ -37,6 +37,7 @@
 			'api/filter.cc',
 			'api/fs.cc',
 			'api/http.cc',
+			'api/net.cc',
 			'api/os.cc',
 			'api/player.cc',
 			'api/screen.cc',

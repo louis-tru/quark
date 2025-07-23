@@ -505,13 +505,13 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_socket_opened(Socket* stream) override {
+			virtual void trigger_socket_open(Socket* stream) override {
 				if ( _client ) {
 					send_http_request();
 				}
 			}
 
-			virtual void trigger_socket_closed(Socket* stream) override {
+			virtual void trigger_socket_close(Socket* stream) override {
 				if ( _client ) {
 					_client->report_error_and_abort(
 						Error(ERR_CONNECTING_UNEXPECTED_SHUTDOWN, "Connecting unexpected shutdown")
@@ -537,7 +537,7 @@ namespace qk {
 				}
 			}
 
-			virtual void trigger_socket_written(Socket* stream, Buffer& buffer, int flag) override {
+			virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int flag) override {
 				if ( !_client ) return;
 				if ( _send_data ) {
 					if ( flag == 1 ) {

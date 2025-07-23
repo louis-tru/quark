@@ -28,62 +28,68 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "src/util/net.h"
-#include <uv.h>
-#include "../test.h"
+import { LOG, Pv, Mv, Mvcb } from './tool'
+import {Socket} from 'quark/net'
+import {Event} from 'quark/event'
+import {toString} from 'quark/buffer'
 
-using namespace qk;
+class MySocket extends Socket {
+	constructor() {
+		super("www.baidu.com", 443, true);
+		this.onOpen.on(this.trigger_socket_open, this);
+		this.onClose.on(this.trigger_socket_close, this);
+		this.onError.on(this.trigger_socket_error, this);
+		this.onData.on(this.trigger_socket_data, this);
+		this.onWrite.on(this.trigger_socket_write, this);
+		this.onTimeout.on(this.trigger_socket_timeout, this);
 
-class MySSLSocket: public Socket, public Socket::Delegate {
- public:
-	MySSLSocket(): Socket("www.baidu.com", 443, true) {
-		set_delegate(this);
-		connect();
-		//set_timeout(2e6); // 2s
+		this.connect();
 	}
 
-	~MySSLSocket() {
-		current_loop()->stop();
-	}
-
-	void send_http() {
-		
-		String header =
-		"GET / HTTP/1.1\r\n"
-		"Host: www.baidu.com\r\n"
-		"_Connection: keep-alive\r\n"
-		"Connection: close\r\n"
-		"Accept: */*\r\n"
+	send_http() {
+		var header =
+		"GET / HTTP/1.1\r\n"+
+		"Host: www.baidu.com\r\n"+
+		"_Connection: keep-alive\r\n"+
+		"Connection: close\r\n"+
+		"Accept: */*\r\n"+
 		"User-Agent: Mozilla/5.0 AppleWebKit quark Net Test\r\n\r\n";
-		
-		write(header.collapse());
-	}
-	
-	virtual void trigger_socket_open(Socket* stream) override {
-		Qk_Log("Open Socket");
-		send_http();
-	}
-	virtual void trigger_socket_close(Socket* stream) override {
-		Qk_Log("Close Socket");
-		Release(this);
-	}
-	virtual void trigger_socket_error(Socket* stream, cError& error) override {
-		Qk_Log("Error, %d, %s", error.code(), error.message().c_str());
-	}
-	virtual void trigger_socket_data(Socket* stream, cBuffer& buffer) override {
-		//Qk_Log( String(buffer.val(), buffer.length()) );
-		Qk_Log("DATA.., %d", buffer.length());
-	}
-	virtual void trigger_socket_write(Socket* stream, Buffer& buffer, int mark) override {
-		Qk_Log("Write, OK");
-	}
-	virtual void trigger_socket_timeout(Socket* socket) override {
-		Qk_Log("Timeout Socket");
-		close();
-	}
-};
 
-Qk_TEST_Func(net_ssl) {
-	New<MySSLSocket>();
-	RunLoop::current()->run();
+		this.write(header);
+	}
+
+	trigger_socket_open(e: Event<Socket>) {
+		LOG("Open Socket");
+		this.send_http();
+	}
+	trigger_socket_close(e: Event<Socket>) {
+		LOG("Close Socket");
+		// Release(this);
+	}
+	trigger_socket_error(e: Event<Socket, Error>) {
+		LOG("Error, %d, %s", e.data.errno, e.data.error.message);
+	}
+	trigger_socket_data(e: Event<Socket, Uint8Array>) {
+		LOG(toString(e.data));
+		// LOG("DATA.., %d", e.data.length);
+	}
+	trigger_socket_write(e: Event<Socket, Int>) {
+		LOG("Write, OK");
+	}
+	trigger_socket_timeout(e: Event<Socket>) {
+		LOG("Timeout Socket");
+		this.close();
+	}
+}
+
+export default async function(_: any) {
+	return new Promise<void>(function(r,j) {
+		var so = new MySocket();
+		so.onClose.on(()=>{
+			r();
+		});
+		so.onError.on(e=>{
+			j(e.data);
+		});
+	});
 }

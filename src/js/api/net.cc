@@ -35,32 +35,36 @@ namespace qk { namespace js {
 
 	struct SocketDelegate: Object, qk::Socket::Delegate {
 		MixObject* _host; // MixSocket
-		String _opened;
-		String _closed;
+		String _open;
+		String _close;
 		String _error;
 		String _data;
-		String _written;
+		String _write;
 		String _timeout;
 
 		Worker* worker() { return _host->worker(); }
 
-		virtual void trigger_socket_opened(qk::Socket* socket) override {
-			if ( !_opened.isEmpty() ) {
+		virtual void trigger_socket_open(qk::Socket* socket) override {
+			if ( !_open.isEmpty() ) {
 				HandleScope scope(worker());
-				_host->call( worker()->newStringOneByte(_error) );
+				_host->call( worker()->newStringOneByte(_open) );
 			}
 		}
-		virtual void trigger_socket_closed(qk::Socket* socket) override {
-			if ( !_closed.isEmpty() ) {
+		virtual void trigger_socket_close(qk::Socket* socket) override {
+			if ( !_close.isEmpty() ) {
 				HandleScope scope(worker());
-				_host->call( worker()->newStringOneByte(_closed) );
+				_host->call( worker()->newStringOneByte(_close) );
 			}
+			socket->release(); // TODO: js handle set weak object
 		}
 		virtual void trigger_socket_error(qk::Socket* socket, cError& error) override {
 			if ( !_error.isEmpty() ) {
 				HandleScope scope(worker());
 				JSValue* arg = worker()->newValue( error );
 				_host->call( worker()->newStringOneByte(_error), 1, &arg );
+			}
+			if (!socket->is_open()) {
+				socket->release(); // TODO: js handle set weak object
 			}
 		}
 		virtual void trigger_socket_data(qk::Socket* socket, cBuffer &buffer) override {
@@ -70,11 +74,11 @@ namespace qk { namespace js {
 				_host->call( worker()->newStringOneByte(_data), 1, &arg ); 
 			}
 		}
-		virtual void trigger_socket_written(qk::Socket* socket, Buffer& data, int flag) override {
-			if ( !_written.isEmpty() ) {
+		virtual void trigger_socket_write(qk::Socket* socket, Buffer& data, int flag) override {
+			if ( !_write.isEmpty() ) {
 				HandleScope scope(worker());
 				JSValue* arg = worker()->newValue( flag );
-				_host->call( worker()->newStringOneByte(_written), 1, &arg);
+				_host->call( worker()->newStringOneByte(_write), 1, &arg);
 			}
 		}
 		virtual void trigger_socket_timeout(qk::Socket* socket) override {
@@ -103,16 +107,16 @@ namespace qk { namespace js {
 
 		virtual bool addEventListener(cString& name, cString& func, int id) {
 			auto _del = &self<Type>()->_del;
-			if ( id != -1 )
-				return 0; // 只接收id==-1的监听器
-			if ( name == "Opened" ) {
-				_del->_opened = func;
-			} else if ( name == "Closed" ) {
-				_del->_closed = func;
+			if ( id != 0 )
+				return 0; // 只接收id==0的监听器
+			if ( name == "Open" ) {
+				_del->_open = func;
+			} else if ( name == "Close" ) {
+				_del->_close = func;
 			} else if ( name == "Error" ) {
 				_del->_error = func;
-			} else if ( name == "Written" ) {
-				_del->_written = func;
+			} else if ( name == "Write" ) {
+				_del->_write = func;
 			} else if ( name == "Data" ) {
 				_del->_data = func;
 			} else if ( name == "Timeout" ) {
@@ -125,16 +129,16 @@ namespace qk { namespace js {
 
 		virtual bool removeEventListener(cString& name, int id) {
 			auto _del = &self<Type>()->_del;
-			if ( id != -1 || !_del )
+			if ( id != 0 || !_del )
 				return 0;
-			if ( name == "Opened" ) {
-				_del->_opened = String();
-			} else if ( name == "Closed" ) {
-				_del->_closed = String();
+			if ( name == "Open" ) {
+				_del->_open = String();
+			} else if ( name == "Close" ) {
+				_del->_close = String();
 			} else if ( name == "Error" ) {
 				_del->_error = String();
-			} else if ( name == "Written" ) {
-				_del->_written = String();
+			} else if ( name == "Write" ) {
+				_del->_write = String();
 			} else if ( name == "Data" ) {
 				_del->_data = String();
 			} else if ( name == "Timeout" ) {
@@ -156,7 +160,7 @@ namespace qk { namespace js {
 					);
 				}
 				auto hostname = args[0]->toString(worker)->value(worker);
-				auto port = args[1]->cast<JSUint32>()->value();
+				auto port = args[1]->template cast<JSUint32>()->value();
 				auto isSSL = args.length() > 2 ? args[2]->toBoolean(worker): false;
 				New<MixSocket>(args, new Type(hostname, port, isSSL));
 			});
@@ -192,7 +196,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(setKeepAlive, {
-				if (args.length() == 0 || (args.length() > 1 && !args[1]->isNumber())) {
+				if (args.length() == 0/* || (args.length() > 1 && !args[1]->isNumber())*/) {
 					Js_Throw(
 						"@method setKeepAlive(keep_alive,keep_idle?)\n"
 						"@param keep_alive:bool\n"
@@ -201,9 +205,10 @@ namespace qk { namespace js {
 				}
 				Js_Self(Type);
 				bool enable = args[0]->toBoolean(worker);
-				uint64_t keep_idle = args.length() > 1 ?
-					Int64::max(0, args[1]->cast<JSNumber>()->value()) * 1e3: 0;
-				self->set_keep_alive(enable, keep_idle);
+				uint32_t keep_idle = 0;
+				if (args.length() > 1 && args[1]->asUint32(worker).to(keep_idle)) {}
+
+				self->set_keep_alive(enable, keep_idle * 1e3);
 			});
 
 			Js_Class_Method(setNoDelay, {
@@ -226,6 +231,7 @@ namespace qk { namespace js {
 
 			Js_Class_Method(connect, {
 				Js_Self(Type);
+				self->retain(); // TODO: js handle keep active
 				self->connect();
 			});
 
@@ -253,15 +259,24 @@ namespace qk { namespace js {
 						"@method write(buff,flag?)\n"
 						"@param buff:Uint8Array|string\n"
 						"@param flag?:number\n"
+						"@param cb?:Function\n"
 					);
 				}
 				Buffer buff = *wbuff ? wbuff.buffer().copy():
 					args[0]->toString(worker)->value(worker).collapse();
+
 				int flag = 0;
-				if (args.length() > 1 && args[1]->asInt32(worker).to(flag)) {}
+				Cb cb;
+
+				if (args.length() > 1) {
+					args[1]->asInt32(worker).to(flag);
+				}
+				if (args.length() > 2) {
+					cb = get_callback_for_none(worker, args[2]);
+				}
 
 				Js_Self(Type);
-				self->write(std::move(buff), flag);
+				self->write(std::move(buff), flag, *reinterpret_cast<Callback<Buffer>*>(&cb));
 			});
 
 			Js_Class_Method(disableSslVerify, {

@@ -682,24 +682,24 @@ namespace qk {
 		}
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& uincode) {
-		return encode_with_buffer(target_en, *uincode, uincode.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<char>& unicode) {
+		return encode_with_buffer(target_en, *unicode, unicode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cString& uincode) {
-		return encode_with_buffer(target_en, *uincode, uincode.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cString& unicode) {
+		return encode_with_buffer(target_en, *unicode, unicode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& uincode) {
-		return encode_with_uint16(target_en, *uincode, uincode.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint16_t>& unicode) {
+		return encode_with_uint16(target_en, *unicode, unicode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cString2& uincode) {
-		return encode_with_uint16(target_en, *uincode, uincode.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cString2& unicode) {
+		return encode_with_uint16(target_en, *unicode, unicode.length());
 	}
 
-	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& uincode) {
-		return encode_with_uint32(target_en, *uincode, uincode.length());
+	ArrayBuffer<char> codec_encode(Encoding target_en, cArray<uint32_t>& unicode) {
+		return encode_with_uint32(target_en, *unicode, unicode.length());
 	}
 
 	// decode
