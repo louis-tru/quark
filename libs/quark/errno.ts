@@ -30,8 +30,9 @@
 
 export class ErrnoList {
 	ERR_UNKNOWN_ERROR: ErrnoCode = [-10000, 'UNKNOWN_ERROR']
-	ERR_MODULE_NOT_FOUND: ErrnoCode = [-12000, 'ERR_MODULE_NOT_FOUND']
-	ERR_EXECUTE_TIMEOUT: ErrnoCode = [-12002, 'ERR_EXECUTE_TIMEOUT']
+	ERR_MODULE_NOT_FOUND: ErrnoCode = [-12000, 'ERR_MODULE_NOT_FOUND'] // e.g. quark module not found
+	ERR_EXECUTE_TIMEOUT: ErrnoCode = [-12002, 'ERR_EXECUTE_TIMEOUT'] // call timeout() execution timeout
+	ERR_NOT_OPEN_CONNECTION: ErrnoCode = [-12003, 'Not open connection'] // e.g. WebSocket not open
 }
 
 export default new ErrnoList();

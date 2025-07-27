@@ -79,7 +79,7 @@ declare const exports: any; // Same as module.exports
 */
 
 /**
- * 32-bit signed integer, Range: -2147483648 to 2147483647
+ * 32-bit integer, Range: -2147483648 to 2147483647
  * @global
 */
 type Int = number;
@@ -91,7 +91,31 @@ type Int = number;
 type Uint = number;
 
 /**
- * 32-bit floating point
+ * 16-bit signed integer, Range: 0 to 65535
+ * @global
+*/
+type Uint16 = number;
+
+/**
+ * 16-bit integer, Range: -32768 to 32767
+ * @global
+*/
+type Int16 = number;
+
+/**
+ * 8-bit signed integer, Range: 0 to 255
+ * @global
+*/
+type Uint8 = number;
+
+/**
+ * 8-bit integer, Range: -128 to 127
+ * @global
+*/
+type Int8 = number;
+
+/**
+ * 32-bit floating point， Range: -3.402823466E+38 to 3.402823466E+38
  * @global
 */
 type Float = number;

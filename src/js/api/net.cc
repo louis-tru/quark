@@ -190,6 +190,11 @@ namespace qk { namespace js {
 				Js_Return( self->is_open() );
 			});
 
+			Js_Class_Accessor_Get(isConnecting, {
+				Js_Self(Type);
+				Js_Return( self->is_connecting() );
+			});
+
 			Js_Class_Accessor_Get(isPause, {
 				Js_Self(Type);
 				Js_Return( self->is_pause() );

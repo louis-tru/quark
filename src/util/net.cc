@@ -275,7 +275,7 @@ namespace qk {
 			}
 
 			Qk_ASSERT(_retain == nullptr);
-			
+
 			if ( _remote_ip.isEmpty() ) {
 				sockaddr_in sockaddr;
 				sockaddr_in6 sockaddr6;
@@ -913,6 +913,9 @@ namespace qk {
 	}
 	bool Socket::is_pause() {
 		return _inl->is_pause();
+	}
+	bool Socket::is_connecting() {
+		return _inl->_is_connecting;
 	}
 	void Socket::pause() {
 		_inl->pause();

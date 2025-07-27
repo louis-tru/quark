@@ -96,6 +96,7 @@ namespace qk {
 		void connect(); //!<
 		void close(); //!<
 		bool is_open(); //!<
+		bool is_connecting(); //!<
 		bool is_pause(); //!<
 		void pause(); //!<
 		void resume(); //!<

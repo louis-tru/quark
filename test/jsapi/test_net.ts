@@ -40,7 +40,7 @@ class MySocket extends Socket {
 		this.onClose.on(this.trigger_socket_close, this);
 		this.onError.on(this.trigger_socket_error, this);
 		this.onData.on(this.trigger_socket_data, this);
-		this.onWrite.on(this.trigger_socket_write, this);
+		// this.onWrite.on(this.trigger_socket_write, this);
 		this.onTimeout.on(this.trigger_socket_timeout, this);
 
 		this.connect();
@@ -73,9 +73,9 @@ class MySocket extends Socket {
 		LOG(toString(e.data));
 		// LOG("DATA.., %d", e.data.length);
 	}
-	trigger_socket_write(e: Event<Socket, Int>) {
-		LOG("Write, OK");
-	}
+	// trigger_socket_write(e: Event<Socket, Int>) {
+	// 	LOG("Write, OK");
+	// }
 	trigger_socket_timeout(e: Event<Socket>) {
 		LOG("Timeout Socket");
 		this.close();

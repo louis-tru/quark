@@ -79,8 +79,11 @@ function startExec(input,output) {
 		Number: '_ext.md#number',
 		// Int: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number',
 		Int: '_ext.md#int',
-		// Uint: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number',
 		Uint: '_ext.md#uint',
+		Int8: '_ext.md#int8',
+		Uint8: '_ext.md#uint8',
+		Int16: '_ext.md#int16',
+		Uint16: '_ext.md#uint16',
 		// Float: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number',
 		Float: '_ext.md#float',
 		// Boolean: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean',
@@ -372,7 +375,7 @@ function startExec(input,output) {
 	// setState<K extends keyof S>(newState: Pick<S, K>, cb?: ()=>void);
 	// asDom<T extends ViewController | View = View>();
 	function tryMethod(comment, method, lastIndex) {
-		let re = comment.return;
+		let re = comment.return || comment.return;
 		if (re) {
 			let [,,type,desc] = `${re.value} ${re.desc}`.match(/(\{([^\}\s]+)\})?(.+)/);
 			if (!type)
@@ -401,15 +404,15 @@ function startExec(input,output) {
 		}
 
 		// Match to type: ([\w\[\]\<\>\|,\.\s]+)
-		let reg = /\W*(?:(export|static|protected|private|public)\s+)?(?:(async|declare)\s+)?(?:(function|get|set)\s+)?(\w+)\s*(\<[^\>]+\>)?\s*\(([\w\[\]\<\>,\.\?:\|\s]*)\)\s*(?::\s*([\w\[\]\<\>\|,\.\s]+))?/my;
+		let reg = /\W*(?:(export|static|protected|private|public)\s+)?(default\s+)?(?:(async|declare)\s+)?(function|get|set)?(?:\s+(\w+)\s*)?(\<[^\>]+\>)?\s*\(([\w\[\]\<\>,\.\?:\|\s]*)\)\s*(?::\s*([\w\[\]\<\>\|,\.\s]+))?/my;
 		reg.lastIndex = lastIndex;
 		let mat = code.match(reg);
 		if (!mat)
 			return;
-		let [,modifiers,asyncMat,key,name,templMat,argsMat,returnV] = mat;
+		let [,modifiers,defaultMat,asyncMat,key,name,templMat,argsMat,returnV] = mat;
 
 		if (packIn) {
-			if (modifiers == 'export' || key == 'function') {
+			if (modifiers == 'export' || key == 'function' || defaultMat) {
 				packIn = null; // cancel pack in
 				comment.__packIn__ = null;
 			}
@@ -419,6 +422,13 @@ function startExec(input,output) {
 			if (key != 'function')
 				return;
 		}
+
+		if (defaultMat) {
+			name = 'default';
+		}
+
+		if (!name)
+			return;
 
 		fixTempl(comment, templMat);
 
@@ -664,6 +674,8 @@ function startExec(input,output) {
 			if (line[0] == '@') {
 				let m = line.match(/^@(\w+)(\s+([^ \t\r]+))?(\s+(.+))?/);
 				let kind = m[1];
+				if (kind == 'returns')
+					kind = 'return';
 				let item = new Item(kind,m[3],{desc:m[5]});
 				if (Array.isArray(comment[kind])) {
 					comment[kind].push(item);

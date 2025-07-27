@@ -31,14 +31,17 @@
 import utils from './util';
 import {Stream} from './fs';
 import {userAgent} from './http';
-import {fromString,toString} from './buffer';
+import * as buffer from './buffer';
 import {URL} from './path';
 import event, {
-	EventNoticer, NativeNotification, Notification, Event,
+	EventNoticer, NativeNotification, Notification, Event
 } from './event';
+import _sha1 from './_sha1';
+import errno from './errno';
 
 const _net = __binding__('_net');
 
+type Buffer = buffer.Buffer;
 type SocketEvent<T = void> = Event<Socket, T>; //!<
 type WSocketEvent<T = void> = Event<WebSocket, T>; //!<
 
@@ -46,12 +49,13 @@ type WSocketEvent<T = void> = Event<WebSocket, T>; //!<
  * @class NativeSocket
 */
 declare class NativeSocket extends Notification<SocketEvent> implements Stream {
-	readonly hostname: string; //!<
-	readonly port: Uint; //!<
-	readonly ip: string; //!<
-	readonly ipv6: string; //!<
-	readonly isOpen: boolean; //!<
-	readonly isPause: boolean; //!<
+	readonly hostname: string; //!< Hostname of the WebSocket server
+	readonly port: Uint; //!< Port of the WebSocket server
+	readonly ip: string; //!< IP address for the remote server
+	readonly ipv6: string; //!< IPv6 address for the remote server
+	readonly isOpen: boolean; //!< true means connection is open
+	readonly isConnecting: boolean; //!< true means socket is connecting
+	readonly isPause: boolean; //!< true means socket is paused
 	setKeepAlive(keep_alive: boolean, keep_idle?: Uint): void; //!<
 	setNoDelay(noDelay?: boolean): void; //!<
 	setTimeout(time: Uint): void; //!<
@@ -59,7 +63,7 @@ declare class NativeSocket extends Notification<SocketEvent> implements Stream {
 	close(): void; //!<
 	pause(): void; //!<
 	resume(): void; //!<
-	write(data: string | Uint8Array, flag?: Int, cb?: Function): void; //!<
+	write(data: string | Uint8Array, flag?: Int, cb?: Function): void;
 	disableSslVerify(disable?: boolean): void; //!<
 	constructor(hostname: string, port: Uint, isSSL?: boolean); //!<
 }
@@ -73,33 +77,33 @@ export class Socket extends (_net.Socket as typeof NativeSocket) {
 	 * Trigger when opened connection
 	*/
 	@event readonly onOpen: EventNoticer<SocketEvent>;
+
 	/**
 	 * Trigger when closed connection
 	*/
 	@event readonly onClose: EventNoticer<SocketEvent>;
+
 	/**
 	 * Trigger when an error occurs
 	*/
 	@event readonly onError: EventNoticer<SocketEvent<Error>>;
+
 	/**
 	 * Trigger when accept part of body data, and will be continuous
 	*/
 	@event readonly onData: EventNoticer<SocketEvent<Uint8Array>>;
-	/**
-	 * Trigger when write data to the server
-	*/
-	@event readonly onWrite: EventNoticer<SocketEvent<Int>>;
+
 	/**
 	 * Trigger when a timeout of connection
 	*/
 	@event readonly onTimeout: EventNoticer<SocketEvent>;
 
 	/**
-	 * @method write(data,flag?)
+	 * @method write(data)
 	*/
-	write(data: string | Uint8Array, flag?: Int): Promise<void> {
+	write(data: string | Uint8Array): Promise<void> {
 		return new Promise((resolve,reject)=>{
-			super.write(data, flag, function(err?: Error) {
+			super.write(data, 0, function(err?: Error) {
 				err ? reject(err): resolve();
 			});
 		});
@@ -108,27 +112,558 @@ export class Socket extends (_net.Socket as typeof NativeSocket) {
 
 utils.extendClass(Socket, NativeNotification);
 
+namespace ws {
+	interface State {
+		activeFragmentedOperation: any;
+		lastFragment: boolean;
+		masked: boolean;
+		opcode: number;
+	}
 
-interface SendCallback {
-	(err?: Error): void;
+	type Finish = (mask: null | ArrayLike<number>, data: Buffer) => void;
+	type ExpectHandler = (buffer: Buffer) => void;
+	type PacketEventNotice<T = void> = EventNoticer<Event<PacketParser, T>>;
+
+	/*
+	* Unpacks a buffer to a number.
+	*/
+	function _unpack(buffer: Buffer) {
+		var n = 0;
+		for (var i = 0; i < buffer.length; i++) {
+			n = i ? (n * 256) + buffer[i]: buffer[i];
+		}
+		return n;
+	}
+
+	function _concat(buffers: Buffer[]) {
+		return buffers.length == 1 ? buffers[0]: buffer.concat(buffers);
+	}
+
+	// WebSocket Packet Parser
+	export class PacketParser {
+		private state: State = {
+			activeFragmentedOperation: null,
+			lastFragment: false,
+			masked: false,
+			opcode: 0
+		}
+		private overflow: Buffer | null = null;
+		private expectOffset = 0;
+		private expectBuffer: Buffer | null = null;
+		private expectHandler: ExpectHandler | null = null;
+		private currentMessage: Buffer[] | string | null = null;
+
+		@event readonly onClose: PacketEventNotice;
+		@event readonly onText: PacketEventNotice<string>;
+		@event readonly onData: PacketEventNotice<Buffer>;
+		@event readonly onError: PacketEventNotice<Error>;
+		@event readonly onPing: PacketEventNotice;
+		@event readonly onPong: PacketEventNotice;
+
+		private opcodeHandlers: { [opcode: string]: (data: Buffer)=>void } = {
+			'1': (data: Buffer)=>{ // text
+				this._decode(data, (mask, data)=>{
+					if (this.currentMessage) {
+						this.currentMessage += this.unmask(mask, data).toString('utf8');
+					} else {
+						this.currentMessage = this.unmask(mask, data).toString('utf8');
+					}
+					if (this.state.lastFragment) {
+						this.onText.trigger(<string>this.currentMessage);
+						this.currentMessage = null;
+					}
+					this.endPacket();
+				});
+			},
+			'2': (data: Buffer)=>{ // binary
+				this._decode(data, (mask, data)=>{
+					if (this.currentMessage) {
+						(<Buffer[]>this.currentMessage).push(this.unmask(mask, data));
+					} else {
+						this.currentMessage = [this.unmask(mask, data)];
+					}
+					if (this.state.lastFragment) {
+						this.onData.trigger(_concat(<Buffer[]>this.currentMessage));
+						this.currentMessage = null;
+					}
+					this.endPacket();
+				});
+			},
+			// 0x3 - 0x7: Retain, for non-control frame
+			'8': (data: Buffer)=>{ // close
+				this.onClose.trigger({});
+				this.reset();
+			},
+			'9': (data: Buffer)=>{ // ping
+				if (this.state.lastFragment == false) {
+					this.error('fragmented ping is not supported');
+					return;
+				}
+				this._decode(data, (mask, data)=>{
+					this.onPing.trigger(this.unmask(mask, data));
+					this.endPacket();
+				});
+			},
+			'10': (data: Buffer)=>{ // pong
+				if (this.state.lastFragment == false) {
+					this.error('fragmented pong is not supported');
+					return;
+				}
+				this._decode(data, (mask, data)=>{
+					this.onPong.trigger(this.unmask(mask, data));
+					this.endPacket();
+				});
+			},
+		};
+
+		private _expectData(length: number, finish: Finish) {
+			var self = this;
+			if (self.state.masked) {
+				self.expect('Mask', 4, function(data: Buffer) {
+					var mask = data;
+					self.expect('Data', length, function (data: Buffer) {
+						finish(mask, data);
+					});
+				});
+			}
+			else {
+				self.expect('Data', length, function(data: Buffer) {
+					finish(null, data);
+				});
+			}
+		}
+
+		private _decode(data: Buffer, finish: Finish) {
+			var self = this;
+			// decode length
+			var firstLength = data[1] & 0x7f;
+			if (firstLength < 126) {
+				self._expectData(firstLength, finish);
+			}
+			else if (firstLength == 126) {
+				self.expect('Length', 2, function (data: Buffer) {
+					self._expectData(_unpack(data), finish);
+				});
+			}
+			else if (firstLength == 127) {
+				self.expect('Length', 8, function (data: Buffer) {
+					if (_unpack(data.slice(0, 4)) != 0) {
+						self.error('packets with length spanning more than 32 bit is currently not supported');
+						return;
+					}
+					// var lengthBytes = data.slice(4); // note: cap to 32 bit length
+					self._expectData(_unpack(data.slice(4, 8)), finish);
+				});
+			}
+		}
+
+		/*
+		* WebSocket PacketParser
+		*/
+		constructor() {
+			this.expect('Opcode', 2, this.processPacket);
+		}
+
+		/*
+		* Add new data to the parser.
+		*/
+		add(data: Buffer) {
+			if (this.expectBuffer == null) {
+				this.addToOverflow(data);
+				return;
+			}
+			var toRead = Math.min(data.length, this.expectBuffer.length - this.expectOffset);
+			data.copy(this.expectBuffer, this.expectOffset, 0, toRead);
+
+			this.expectBuffer.set(data, 0)
+
+			this.expectOffset += toRead;
+			if (toRead < data.length) {
+				// at this point the overflow buffer shouldn't at all exist
+				this.overflow = buffer.alloc(data.length - toRead);
+				data.copy(this.overflow, 0, toRead, toRead + this.overflow.length);
+			}
+			if (this.expectOffset == this.expectBuffer.length) {
+				var bufferForHandler = this.expectBuffer;
+				this.expectBuffer = null;
+				this.expectOffset = 0;
+				(this.expectHandler as ExpectHandler).call(this, bufferForHandler);
+			}
+		}
+
+		/*
+		* Adds a piece of data to the overflow.
+		*/
+		private addToOverflow(data: Buffer) {
+			if (this.overflow == null) this.overflow = data;
+			else {
+				var prevOverflow = this.overflow;
+				this.overflow = buffer.alloc(this.overflow.length + data.length);
+				prevOverflow.copy(this.overflow, 0);
+				data.copy(this.overflow, prevOverflow.length);
+			}
+		}
+
+		/*
+		* Waits for a certain amount of bytes to be available, then fires a callback.
+		*/
+		private expect(what: string, length: number, handler: ExpectHandler) {
+			this.expectBuffer = buffer.alloc(length);
+			this.expectOffset = 0;
+			this.expectHandler = handler;
+			if (this.overflow != null) {
+				var toOverflow = this.overflow;
+				this.overflow = null;
+				this.add(toOverflow);
+			}
+		}
+
+		/*
+		* Start processing a new packet.
+		*/
+		private processPacket(data: Buffer) {
+			if ((data[0] & 0x70) != 0) {
+				this.error('reserved fields must be empty');
+			}
+			this.state.lastFragment = (data[0] & 0x80) == 0x80;
+			this.state.masked = (data[1] & 0x80) == 0x80;
+
+			var opcode = data[0] & 0xf;
+			if (opcode == 0) {
+				// continuation frame
+				this.state.opcode = this.state.activeFragmentedOperation;
+				if (!(this.state.opcode == 1 || this.state.opcode == 2)) {
+					this.error('continuation frame cannot follow current opcode')
+					return;
+				}
+			} else {
+				this.state.opcode = opcode;
+				if (this.state.lastFragment === false) {
+					this.state.activeFragmentedOperation = opcode;
+				}
+			}
+			var handler = this.opcodeHandlers[String(this.state.opcode)];
+			if (typeof handler == 'undefined') {
+				this.error('no handler for opcode ' + this.state.opcode);
+			} else { 
+				handler(data);
+			}
+		}
+
+		/*
+		* Endprocessing a packet.
+		*/
+		private endPacket() {
+			this.expectOffset = 0;
+			this.expectBuffer = null;
+			this.expectHandler = null;
+			if (this.state.lastFragment && this.state.opcode == this.state.activeFragmentedOperation) {
+				// end current fragmented operation
+				this.state.activeFragmentedOperation = null;
+			}
+			this.state.lastFragment = false;
+			this.state.opcode = this.state.activeFragmentedOperation != null ? 
+				this.state.activeFragmentedOperation : 0;
+			this.state.masked = false;
+			this.expect('Opcode', 2, this.processPacket);
+		}
+
+		/*
+		* Reset the parser state.
+		*/
+		private reset() {
+			this.state = {
+				activeFragmentedOperation: null,
+				lastFragment: false,
+				masked: false,
+				opcode: 0
+			};
+			this.expectOffset = 0;
+			this.expectBuffer = null;
+			this.expectHandler = null;
+			this.overflow = null;
+			this.currentMessage = null;
+		}
+
+		/*
+		* Unmask received data.
+		*/
+		private unmask(mask: ArrayLike<number> | null, buf: Buffer) {
+			if (mask != null) {
+				for (var i = 0, ll = buf.length; i < ll; i++) {
+					buf[i] ^= mask[i % 4];
+				}
+			}
+			return buf;
+		}
+
+		/**
+		 * Handles an error
+		 */
+		private error(reason: any) {
+			this.reset();
+			this.onError.trigger(Error.new(reason));
+			return this;
+		}
+	}
+
+	/*
+	* Frame server-to-client output as a text packet.
+	*/
+	export function sendDataPacket(socket: Socket, data: Uint8Array | string): Promise<void> {
+		let opcode = 0x81; // text 0x81 | buffer 0x82 | close 0x88 | ping 0x89
+
+		if (data instanceof Uint8Array) {
+			opcode = 0x82;
+			// data = buffer.from(data.buffer);
+		} else { // send json string message
+			let s = JSON.stringify(data);
+			data = buffer.fromString(s);
+		}
+
+		let dataLength = data.length;
+		let headerLength = 2;
+		let secondByte = dataLength;
+
+		/*
+			0   - 125   : 2,	opcode|len|data
+			126 - 65535 : 4,	opcode|126|len|len|data
+			65536 -     : 10,	opcode|127|len|len|len|len|len|len|len|len|data
+		*/
+		/*
+			opcode:
+			0x81: text
+			0x82: binary
+			0x88: close
+			0x89: ping
+			0x8a: pong
+		*/
+
+		if (dataLength > 65535) {
+			headerLength = 10;
+			secondByte = 127;
+		}
+		else if (dataLength > 125) {
+			headerLength = 4;
+			secondByte = 126;
+		}
+
+		let header = buffer.alloc(headerLength);
+
+		header[0] = opcode;
+		header[1] = secondByte;
+
+		switch (secondByte) {
+			case 126:
+				header[2] = dataLength >> 8;
+				header[3] = dataLength % 256;
+				break;
+			case 127:
+				let l = dataLength;
+				for (let i = 9; i > 1; i--) {
+					header[i] = l & 0xff;
+					l >>= 8;
+				}
+		}
+
+		return socket.write(buffer.concat([header, data]));
+	}
+
+	export async function sendPingPacket(socket: Socket): Promise<void> {
+		let header = buffer.alloc(3);
+		header[0] = 0x89;
+		header[1] = 1; // 1byte
+		return socket.write(header);
+	}
+
+	export async function sendPongPacket(socket: Socket): Promise<void> {
+		let header = buffer.alloc(3);
+		header[0] = 0x8a;
+		header[1] = 1; // 1byte
+		return socket.write(header);
+	}
+}
+
+/*
+ * Handshake for WebSocket
+*/
+function handshakes(self: WebSocket, key: number) {
+	var accept = self.responseHeaders['sec-websocket-accept'];
+	if (accept) {
+		let hash = _sha1(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11');
+		let skey = hash.toString('base64');
+		return skey == accept;
+	}
+	return false;
+}
+
+/*
+* Connect to WebSocket server
+*/
+function connect1(self: WebSocket) {
+	let key = Date.now();
+	let url = self.url;
+	let origin = 'localhost:' + self.port;
+
+	let headers = {
+		'GET': `${url.path} HTTP/1.1`,
+		'Host': self.hostname,
+		'Accept':  '*/*',
+		'Connection': 'Upgrade',
+		'Upgrade': 'websocket',
+		'Origin': origin,
+		'Sec-Websocket-Origin': origin,
+		'Sec-Websocket-Version': '13',
+		'Sec-Websocket-Key': key+'',
+		...self.headers,
+	};
+
+	let headerStr = Object.entries(headers).map(([k,v])=>
+		`${k.substring(0,1).toUpperCase()}${k.substring(1)}: ${v}\r\n`
+	).join('') + '\r\n';
+
+	let headerBuf: Buffer = buffer.Zero;
+	let parser: ws.PacketParser | undefined;
+
+	self.socket.onClose.off('-1');
+
+	self.socket.onData.on(e=>{
+		if (parser) {
+			parser.add(new buffer.Buffer(e.data as Uint8Array));
+			return;
+		}
+		headerBuf = buffer.concat([headerBuf, e.data]);
+		let fromIndex = 0;
+
+		for (let ch of [13,10,13,10]) { // \r\n\r\n
+			fromIndex = headerBuf.indexOf(ch, fromIndex) + 1;
+			if (fromIndex == 0)
+				return;
+		}
+
+		for (let h of headerBuf.slice(0, fromIndex - 4).toString().split('\r\n')) {
+			let [k,v] = h.split(': ');
+			self.responseHeaders[k.toLowerCase()] = v;
+		}
+
+		if (!handshakes(self, key)) {
+			self.socket.close();
+			return;
+		}
+
+		(self as any)._isOpen = true;
+		self.onOpen.trigger(void 0);
+
+		parser = new ws.PacketParser();
+		parser.onText.on(e=>{
+			self.onText.trigger(e.data);
+		});
+		parser.onData.on(e=>{
+			self.onData.trigger(e.data);
+		});
+		parser.onPing.on(e=>{
+			self.onPing.trigger(e.data);
+			self.pong();
+		});
+		parser.onPong.on(e=>{
+			self.onPong.trigger(e.data);
+		});
+		parser.onClose.on(e=>{
+			self.close();
+		});
+		parser.onError.on(e=>{
+			self.close();
+			self.onError.trigger(e.data);
+		});
+
+		parser.add(headerBuf.slice(fromIndex));
+	}, '-1');
+
+	self.socket.onError.on(e=>self.socket.close(), '-1');
+	self.socket.write(headerStr);
 }
 
 /**
+ * WebSocket client conversation.
  * @class WebSocket
+ * @extends Notification<WSocketEvent>
+ * @implements Stream
+ * @example
+ * ```ts
+ * import {WebSocket} from 'quark/net';
+ * let ws = new WebSocket('wss://example.com/path');
+ * ws.onOpen.on(()=>{
+ *   console.log('WebSocket opened');
+ *   ws.write('Hello, WebSocket!');
+ * });
+ * ws.onData.on(e=>{
+ *   console.log('Received data:', e.data);
+ * });
+ * ws.onError.on(e=>{
+ *   console.error('WebSocket error:', e.data);
+ * });
+ * ws.onClose.on(()=>{
+ *   console.log('WebSocket closed');
+ * });
+ * ws.connect();
+ * ```
 */
 export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	private _isOpen = false;
 
-	readonly url: URL; //!<
-	readonly hostname: string; //!<
-	readonly port: Uint; //!<
-	readonly isSSL: boolean; //!<
-	readonly socket: Socket; //!<
+	readonly url: URL; //!< URL of the WebSocket server
+	readonly hostname: string; //!< Hostname of the WebSocket server
+	readonly port: Uint; //!< Port number
+	readonly isSSL: boolean; //!< true means wss, false means ws
+	readonly socket: Socket; //!< Socket connection implementation
+	readonly headers: Dict<string> = { 'User-Agent': userAgent() }; //!< request headers
+	readonly responseHeaders: Dict<string> = {}; //!< Response headers
 
-	get ip() { return this.socket.ip } //!<
-	get ipv6() { return this.socket.ipv6 } //!<
-	get isOpen () { return this._isOpen } //!<
-	get isPause() { return this.socket.isPause } //!<
+	get ip(): string { return this.socket.ip } //!< ip address for the remote server
+	get ipv6(): string { return this.socket.ipv6 } //!< ipv6 address for the remote server
+	get isOpen (): boolean { return this._isOpen } //!< true means connection is open
+	get isPause(): boolean { return this.socket.isPause } //!< true means socket is paused
+	get isConnecting(): boolean { return this.socket.isConnecting } //!< true means socket is connecting
+
+	/**
+	 * Trigger when opened connection
+	*/
+	@event readonly onOpen: EventNoticer<SocketEvent>;
+
+	/**
+	 * Trigger when closed connection
+	*/
+	@event readonly onClose: EventNoticer<SocketEvent>;
+
+	/**
+	 * Trigger when an error occurs
+	*/
+	@event readonly onError: EventNoticer<SocketEvent<Error>>;
+
+	/**
+	 * Trigger when accept ping message
+	*/
+	@event readonly onPing: EventNoticer<SocketEvent>;
+
+	/**
+	 * Trigger when accept pong message
+	*/
+	@event readonly onPong: EventNoticer<SocketEvent>;
+
+	/**
+	 * Trigger when accept buffer data
+	*/
+	@event readonly onData: EventNoticer<SocketEvent<Buffer>>;
+
+	/**
+	 * Trigger when accept text data
+	*/
+	@event readonly onText: EventNoticer<SocketEvent<string>>;
+
+	/**
+	 * Trigger when a timeout of connection
+	*/
+	@event readonly onTimeout: EventNoticer<SocketEvent>;
 
 	/**
 	 * @param url:string `wss://xxxx.xx/path`
@@ -140,32 +675,126 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 		this.isSSL = ['https','wss'].indexOf(this.url.protocol) != -1;
 		this.port = Number(this.url.port) || (this.isSSL ? 443: 80);
 		this.socket = new (_net.Socket as typeof Socket)(this.hostname, this.port, this.isSSL);
+
+		this.socket.onClose.on(()=>{
+			if (this._isOpen) {
+				this._isOpen = false;
+				this.onClose.trigger(void 0);
+			}
+		});
+		this.socket.onError.forward(this.onError);
+		this.socket.onTimeout.forward(this.onTimeout);
 	}
+
+	/**
+	 * Setting keep alive for the socket connection
+	 * @param keep_alive:boolean **Default** is true, enable keep alive
+	 * @param keep_idle?:Uint **Default** is 0, the time in milliseconds to wait before sending keep alive packets
+	*/
 	setKeepAlive(keep_alive: boolean, keep_idle: Uint = 0) {
 		this.socket.setKeepAlive(keep_alive, keep_idle);
 	}
+
+	/**
+	 * Setting no delay for the socket connection
+	 * @param noDelay?:boolean **Default** is true, disable Nagle's algorithm
+	*/
 	setNoDelay(noDelay = true): void {
 		this.socket.setNoDelay(noDelay);
 	}
+
+	/**
+	 * Setting timeout time for the socket connection
+	*/
 	setTimeout(time: Uint) {
 		this.socket.setTimeout(time);
 	}
-	connect() { //!<
-		this.socket.connect();
+
+	/**
+	 * Connect to the WebSocket server
+	*/
+	connect() {
+		if (!this.socket.isConnecting) {
+			this.socket.onOpen.once(()=>connect1(this), '-1');
+			this.socket.connect();
+		}
 	}
-	close() { //!<
-		this.socket.close();
+
+	/**
+	 * Close the WebSocket connection
+	*/
+	close() {
+		if (this.socket.isConnecting) {
+			this.socket.close();
+		}
 	}
-	pause() { //!<
+
+	/**
+	 * Pause receiving data from the socket
+	*/
+	pause() {
 		this.socket.pause();
 	}
-	resume() { //!<
+
+	/**
+	 * Resuming receiving data from the socket
+	*/
+	resume() {
 		this.socket.resume();
 	}
-	write(data: string | Uint8Array) {
-		// TODO ...
+
+	/**
+	 * Sending the data message
+	*/
+	write(data: string | Uint8Array): Promise<void> {
+		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
+		return ws.sendDataPacket(this.socket, data);
 	}
-	disableSslVerify(disable: false) {
+
+	/**
+	 * alias for write
+	*/
+	send(data: string | Uint8Array): Promise<void> {
+		return this.write(data);
+	}
+
+	/**
+	 * First send the ping message to the remote client then wait for the pong message
+	 * @param timeoutMs? wait for the pong message, default not timeout
+	*/
+	async test(timeoutMs?: Uint): Promise<void> {
+		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
+		await this.ping();
+		const promise = new Promise<void>((resolve)=>{
+			this.onPong.once(()=>resolve());
+		});
+		if (timeoutMs)
+			await utils.timeout(promise, timeoutMs);
+		else
+			await promise;
+	}
+
+	/**
+	 * Sending the ping message
+	*/
+	ping(): Promise<void> {
+		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
+		return ws.sendPingPacket(this.socket);
+	}
+
+	/**
+	 * Sending the pong message
+	*/
+	pong(): Promise<void> {
+		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
+		return ws.sendPongPacket(this.socket);
+	}
+
+	/**
+	 * Setting if is disable ssl verify
+	 * @param disable True means disable ssl verify
+	*/
+	disableSslVerify(disable: boolean) {
 		this.socket.disableSslVerify(disable);
 	}
 }

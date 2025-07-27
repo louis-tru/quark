@@ -55,41 +55,34 @@ namespace js {
 		return Maybe<WeakBuffer>();
 	}
 
+	/**
+	 * Convert the JSString to a Buffer using the specified encoding.
+	*/
 	Buffer JSString::toBuffer(Worker* w, Encoding en) const {
 		switch (en) {
+			case kBinary_Encoding:
+			case kAscii_Encoding: {
+				auto ucs2 = value2(w); // as ucs2 codec
+				return codec_encode(en, ucs2);
+			}
 			case kHex_Encoding: // parse buffer from hex or base64 string
 			case kBase64_Encoding: {
-				// Buffer buff = codec_encode(en, WeakBuffer(chAddr, lenPart).buffer());
-				// Js_Return( worker->newStringOneByte(buff.collapseString()) );
-				// codec_decode_to_ucs1(en,)
-				break;
+				auto str = value(w).collapse(); // as string for hex or base64
+				return codec_decode_to_ucs1(en, str);
 			}
 			case kUTF8_Encoding: {
-				break;
+				return value(w).collapse();
 			}
 			case kUTF16_Encoding: {
-				break;
-			}
-			case kBinary_Encoding: {
-				break;
-			}
-			case kAscii_Encoding: {
-				break;
+				auto utf16 = value2(w).collapse();
+				auto len = utf16.length() << 1;
+				auto capacity = utf16.capacity() << 1;
+				return Buffer((char*)utf16.collapse(), len, capacity);
 			}
 			default: { // kUCS4_Encoding
-				break;
+				auto unicode = value4(w).collapse();
+				return codec_encode(en, unicode);
 			}
-		}
-		if (en == Encoding::kUTF8_Encoding) {
-			return value(w).collapse();
-		} else if (en == Encoding::kUTF16_Encoding) {
-			auto str2 = value2(w);
-			auto len = str2.length();
-			auto capacity = str2.capacity();
-			return Buffer((char*)str2.collapse().collapse(), len << 1, capacity << 1);
-		} else {
-			auto unicode = codec_utf16_to_unicode(value2(w).array().buffer());
-			return codec_encode(en, unicode);
 		}
 	}
 

@@ -63,7 +63,10 @@ namespace qk { namespace js {
 			auto buf = worker->newUint8Array(args[0]->template cast<JSString>(), en);
 			Js_Return( buf );
 		}
-	
+
+		/**
+		 * Convert the buffer to a string using the specified encoding.
+		*/
 		static void toString(FunctionArgs args) {
 			Js_Worker(args);
 			int args_index = 0;
@@ -108,17 +111,6 @@ namespace qk { namespace js {
 			auto lenPart = end - start;
 
 			switch (en) {
-				case kHex_Encoding: // convert to hex or base64 string
-				case kBase64_Encoding: {
-					Buffer buff = codec_encode(en, WeakBuffer(chAddr, lenPart).buffer());
-					Js_Return( worker->newStringOneByte(buff.collapseString()) );
-					break;
-				}
-				case kUTF8_Encoding: {
-					auto utf16 = codec_utf8_to_utf16(WeakBuffer(chAddr, lenPart).buffer());
-					Js_Return( worker->newValue(utf16.collapseString()) );
-					break;
-				}
 				case kBinary_Encoding: {
 					WeakBuffer binaray(chAddr, lenPart);
 					Js_Return( worker->newStringOneByte(binaray.copy().collapseString()) );
@@ -129,6 +121,17 @@ namespace qk { namespace js {
 					auto ucs1 = codec_decode_to_ucs1(en, WeakBuffer(chAddr, lenPart).buffer());
 					// ucs1 to js uft16 string
 					Js_Return( worker->newStringOneByte(ucs1.collapseString()) );
+					break;
+				}
+				case kHex_Encoding: // convert to hex or base64 string
+				case kBase64_Encoding: {
+					Buffer buff = codec_encode(en, WeakBuffer(chAddr, lenPart).buffer());
+					Js_Return( worker->newStringOneByte(buff.collapseString()) );
+					break;
+				}
+				case kUTF8_Encoding: {
+					auto utf16 = codec_utf8_to_utf16(WeakBuffer(chAddr, lenPart).buffer());
+					Js_Return( worker->newValue(utf16.collapseString()) );
 					break;
 				}
 				case kUTF16_Encoding: {
