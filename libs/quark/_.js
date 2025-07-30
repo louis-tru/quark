@@ -70,6 +70,7 @@ copyFiles(source, out, {includeExt:new Set(['.md','.json']),include:new Set(['LI
 // copy publish @types/quark
 copyFiles(out, out_types, {includeExt:new Set(['.ts','.md','.json']),include:new Set(['LICENSE'])});
 copyFiles(out, out, {includeExt:new Set(['.js']), filter:e=>(e+'').replaceAll('require("./', '__binding__("quark/')});
+// copyFiles(out, out, {includeExt:new Set(['.js']), filter:e=>('function require(name) { return __binding__(name.replace("./", "quark/")) }'+e)});
 
 // gen gypi
 fs.writeFileSync(`${source}/out/files.gypi`, JSON.stringify({

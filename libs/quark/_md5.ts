@@ -44,8 +44,6 @@ export function binl2bin(binl: ArrayLike<Uint>): buffer.Buffer
  */
 function core_md5(x: number[], len: number)
 {
-	// console.log(x, len);
-
 	/* append padding */
 	x[len >> 5] |= 0x80 << ((len) % 32);
 	x[(((len + 64) >>> 9) << 4) + 14] = len;
@@ -135,8 +133,6 @@ function core_md5(x: number[], len: number)
 		c = safe_add(c, oldc);
 		d = safe_add(d, oldd);
 	}
-
-	// console.log([a,b,c,d]);
 
 	return [a, b, c, d];
 }

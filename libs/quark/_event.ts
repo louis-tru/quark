@@ -310,9 +310,7 @@ export class EventNoticer<E = Event> {
 	 * @param  ctxOrId?  Specify the listener function this or id alias
 	 * @param  id?       Listener alias, can be deleted by id
 	 * @return Returns the passed `id` or the automatically generated `id`
-	 * 
 	 * @example
-	 *
 	 *	```ts
 	 *	var ctx = { a:100 }
 	 *	var id = screen.onChange.on(function(ev) {

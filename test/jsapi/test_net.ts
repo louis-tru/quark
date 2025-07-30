@@ -32,6 +32,7 @@ import { LOG, Pv, Mv, Mvcb } from './tool'
 import {Socket} from 'quark/net'
 import {Event} from 'quark/event'
 import {toString} from 'quark/buffer'
+// import {WebSocket} from 'quark/ws'
 
 class MySocket extends Socket {
 	constructor() {
@@ -42,7 +43,6 @@ class MySocket extends Socket {
 		this.onData.on(this.trigger_socket_data, this);
 		// this.onWrite.on(this.trigger_socket_write, this);
 		this.onTimeout.on(this.trigger_socket_timeout, this);
-
 		this.connect();
 	}
 

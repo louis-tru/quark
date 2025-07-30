@@ -5,15 +5,6 @@ code.google.com/p/crypto-js
 code.google.com/p/crypto-js/wiki/License
 */
 
-/*
- * SHA-256 implementation in JavaScript
- * Based on the FIPS 180-4 standard
- * https://csrc.nist.gov/publications/detail/fips/180/4/final
- *
- * This code is a port of the original C implementation by
- * Wei Dai, available at https://www.weidai.com/scan/misc/sha256.c
- */
-
 import * as buffer from './buffer';
 
 // Initialization round constants tables

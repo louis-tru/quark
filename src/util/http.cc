@@ -1442,32 +1442,32 @@ namespace qk {
 	}
 
 	void HttpClientRequest::disable_cache(bool disable) throw(Error) {
-		_inl->check_is_can_modify();
+		// _inl->check_is_can_modify();
 		_inl->_disable_cache = disable;
 	}
 
 	void HttpClientRequest::disable_cookie(bool disable) throw(Error) {
-		_inl->check_is_can_modify();
+		// _inl->check_is_can_modify();
 		_inl->_disable_cookie = disable;
 	}
 
 	void HttpClientRequest::disable_send_cookie(bool disable) throw(Error) {
-		_inl->check_is_can_modify();
+		// _inl->check_is_can_modify();
 		_inl->_disable_send_cookie = disable;
 	}
 
 	void HttpClientRequest::disable_ssl_verify(bool disable) throw(Error) {
-		_inl->check_is_can_modify();
+		// _inl->check_is_can_modify();
 		_inl->_disable_ssl_verify = disable;
 	}
 
 	void HttpClientRequest::set_keep_alive(bool keep_alive) throw(Error) {
-		_inl->check_is_can_modify();
+		// _inl->check_is_can_modify();
 		_inl->_keep_alive = keep_alive;
 	}
 
 	void HttpClientRequest::set_timeout(uint64_t timeout) throw(Error) {
-		_inl->check_is_can_modify();
+		// _inl->check_is_can_modify();
 		_inl->_timeout = timeout;
 	}
 

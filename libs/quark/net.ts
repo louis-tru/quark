@@ -112,6 +112,9 @@ export class Socket extends (_net.Socket as typeof NativeSocket) {
 
 utils.extendClass(Socket, NativeNotification);
 
+///////////////////////////////////////////
+// WebSocket Conversation Implementation
+
 namespace ws {
 	interface State {
 		activeFragmentedOperation: any;
@@ -406,181 +409,13 @@ namespace ws {
 			return this;
 		}
 	}
-
-	/*
-	* Frame server-to-client output as a text packet.
-	*/
-	export function sendDataPacket(socket: Socket, data: Uint8Array | string): Promise<void> {
-		let opcode = 0x81; // text 0x81 | buffer 0x82 | close 0x88 | ping 0x89
-
-		if (data instanceof Uint8Array) {
-			opcode = 0x82;
-			// data = buffer.from(data.buffer);
-		} else { // send json string message
-			let s = JSON.stringify(data);
-			data = buffer.fromString(s);
-		}
-
-		let dataLength = data.length;
-		let headerLength = 2;
-		let secondByte = dataLength;
-
-		/*
-			0   - 125   : 2,	opcode|len|data
-			126 - 65535 : 4,	opcode|126|len|len|data
-			65536 -     : 10,	opcode|127|len|len|len|len|len|len|len|len|data
-		*/
-		/*
-			opcode:
-			0x81: text
-			0x82: binary
-			0x88: close
-			0x89: ping
-			0x8a: pong
-		*/
-
-		if (dataLength > 65535) {
-			headerLength = 10;
-			secondByte = 127;
-		}
-		else if (dataLength > 125) {
-			headerLength = 4;
-			secondByte = 126;
-		}
-
-		let header = buffer.alloc(headerLength);
-
-		header[0] = opcode;
-		header[1] = secondByte;
-
-		switch (secondByte) {
-			case 126:
-				header[2] = dataLength >> 8;
-				header[3] = dataLength % 256;
-				break;
-			case 127:
-				let l = dataLength;
-				for (let i = 9; i > 1; i--) {
-					header[i] = l & 0xff;
-					l >>= 8;
-				}
-		}
-
-		return socket.write(buffer.concat([header, data]));
-	}
-
-	export async function sendPingPacket(socket: Socket): Promise<void> {
-		let header = buffer.alloc(3);
-		header[0] = 0x89;
-		header[1] = 1; // 1byte
-		return socket.write(header);
-	}
-
-	export async function sendPongPacket(socket: Socket): Promise<void> {
-		let header = buffer.alloc(3);
-		header[0] = 0x8a;
-		header[1] = 1; // 1byte
-		return socket.write(header);
-	}
 }
 
-/*
- * Handshake for WebSocket
+/**
+ * Signer interface for signing data.
 */
-function handshakes(self: WebSocket, key: number) {
-	var accept = self.responseHeaders['sec-websocket-accept'];
-	if (accept) {
-		let hash = _sha1(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11');
-		let skey = hash.toString('base64');
-		return skey == accept;
-	}
-	return false;
-}
-
-/*
-* Connect to WebSocket server
-*/
-function connect1(self: WebSocket) {
-	let key = Date.now();
-	let url = self.url;
-	let origin = 'localhost:' + self.port;
-
-	let headers = {
-		'GET': `${url.path} HTTP/1.1`,
-		'Host': self.hostname,
-		'Accept':  '*/*',
-		'Connection': 'Upgrade',
-		'Upgrade': 'websocket',
-		'Origin': origin,
-		'Sec-Websocket-Origin': origin,
-		'Sec-Websocket-Version': '13',
-		'Sec-Websocket-Key': key+'',
-		...self.headers,
-	};
-
-	let headerStr = Object.entries(headers).map(([k,v])=>
-		`${k.substring(0,1).toUpperCase()}${k.substring(1)}: ${v}\r\n`
-	).join('') + '\r\n';
-
-	let headerBuf: Buffer = buffer.Zero;
-	let parser: ws.PacketParser | undefined;
-
-	self.socket.onClose.off('-1');
-
-	self.socket.onData.on(e=>{
-		if (parser) {
-			parser.add(new buffer.Buffer(e.data as Uint8Array));
-			return;
-		}
-		headerBuf = buffer.concat([headerBuf, e.data]);
-		let fromIndex = 0;
-
-		for (let ch of [13,10,13,10]) { // \r\n\r\n
-			fromIndex = headerBuf.indexOf(ch, fromIndex) + 1;
-			if (fromIndex == 0)
-				return;
-		}
-
-		for (let h of headerBuf.slice(0, fromIndex - 4).toString().split('\r\n')) {
-			let [k,v] = h.split(': ');
-			self.responseHeaders[k.toLowerCase()] = v;
-		}
-
-		if (!handshakes(self, key)) {
-			self.socket.close();
-			return;
-		}
-
-		(self as any)._isOpen = true;
-		self.onOpen.trigger(void 0);
-
-		parser = new ws.PacketParser();
-		parser.onText.on(e=>{
-			self.onText.trigger(e.data);
-		});
-		parser.onData.on(e=>{
-			self.onData.trigger(e.data);
-		});
-		parser.onPing.on(e=>{
-			self.onPing.trigger(e.data);
-			self.pong();
-		});
-		parser.onPong.on(e=>{
-			self.onPong.trigger(e.data);
-		});
-		parser.onClose.on(e=>{
-			self.close();
-		});
-		parser.onError.on(e=>{
-			self.close();
-			self.onError.trigger(e.data);
-		});
-
-		parser.add(headerBuf.slice(fromIndex));
-	}, '-1');
-
-	self.socket.onError.on(e=>self.socket.close(), '-1');
-	self.socket.write(headerStr);
+export interface Signer {
+	sign(data: Uint8Array): Promise<Dict<string>>;
 }
 
 /**
@@ -618,6 +453,11 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	readonly socket: Socket; //!< Socket connection implementation
 	readonly headers: Dict<string> = { 'User-Agent': userAgent() }; //!< request headers
 	readonly responseHeaders: Dict<string> = {}; //!< Response headers
+
+	/**
+	 * A signer, use to sign the request
+	*/
+	signer: Signer | null = null;
 
 	get ip(): string { return this.socket.ip } //!< ip address for the remote server
 	get ipv6(): string { return this.socket.ipv6 } //!< ipv6 address for the remote server
@@ -676,20 +516,18 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 		this.port = Number(this.url.port) || (this.isSSL ? 443: 80);
 		this.socket = new (_net.Socket as typeof Socket)(this.hostname, this.port, this.isSSL);
 
-		this.socket.onClose.on(()=>{
-			if (this._isOpen) {
-				this._isOpen = false;
-				this.onClose.trigger(void 0);
-			}
-		});
-		this.socket.onError.forward(this.onError);
-		this.socket.onTimeout.forward(this.onTimeout);
+		this.socket.onClose.on(()=>
+			this._isOpen && (this._isOpen = false, this.triggerClose())
+		);
+		this.socket.onError.on(e=>this.triggerError(e.data));
+		this.socket.onTimeout.on(()=>this.triggerTimeout());
 	}
 
 	/**
 	 * Setting keep alive for the socket connection
 	 * @param keep_alive:boolean **Default** is true, enable keep alive
-	 * @param keep_idle?:Uint **Default** is 0, the time in milliseconds to wait before sending keep alive packets
+	 * @param keep_idle?:Uint **Default** is 0 means 7200 seconds,
+	 * 	the time in milliseconds to wait before sending keep alive packets
 	*/
 	setKeepAlive(keep_alive: boolean, keep_idle: Uint = 0) {
 		this.socket.setKeepAlive(keep_alive, keep_idle);
@@ -710,12 +548,109 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 		this.socket.setTimeout(time);
 	}
 
+	/*
+	* Handshake for WebSocket.
+	* subclass can override this method to implement custom handshake logic
+	*/
+	protected handshakes(key: number) {
+		var accept = this.responseHeaders['sec-websocket-accept'];
+		if (accept) {
+			let hash = _sha1(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11');
+			let skey = hash.toString('base64');
+			return skey == accept;
+		}
+		return false;
+	}
+
+	/*
+	* Connect to WebSocket server
+	*/
+	private async connect1() {
+		let self = this;
+		let key = Date.now();
+		let url = self.url;
+		let origin = 'localhost:' + self.port;
+
+		let headers = {
+			'GET': `${url.path} HTTP/1.1`,
+			'Host': self.hostname,
+			'Accept':  '*/*',
+			'Connection': 'Upgrade',
+			'Upgrade': 'websocket',
+			'Origin': origin,
+			'Sec-Websocket-Origin': origin,
+			'Sec-Websocket-Version': '13',
+			'Sec-Websocket-Key': key+'',
+			...self.headers,
+		};
+
+		if (self.signer) {
+			Object.assign(headers, await self.signer.sign(buffer.from(url.path)));
+		}
+
+		let headerStr = Object.entries(headers).map(([k,v])=>
+			`${k[0].toUpperCase()}${k.slice(1)}: ${v}\r\n`
+		).join('') + '\r\n';
+
+		let headerBuf: Buffer = buffer.Zero;
+		let parser: ws.PacketParser | undefined;
+
+		self.socket.onClose.off('-1');
+
+		self.socket.onData.on(e=>{
+			if (parser) {
+				parser.add(new buffer.Buffer(e.data as Uint8Array));
+				return;
+			}
+			headerBuf = buffer.concat([headerBuf, e.data]);
+			let fromIndex = 0;
+
+			for (let ch of [13,10,13,10]) { // \r\n\r\n
+				fromIndex = headerBuf.indexOf(ch, fromIndex) + 1;
+				if (fromIndex == 0)
+					return;
+			}
+
+			for (let h of headerBuf.slice(0, fromIndex - 4).toString().split('\r\n')) {
+				let [k,v] = h.split(': ');
+				self.responseHeaders[k.toLowerCase()] = v;
+			}
+
+			if (!self.handshakes(key)) {
+				self.safeClose();
+				return;
+			}
+
+			this._isOpen = true;
+			self.triggerOpen();
+
+			parser = new ws.PacketParser();
+			parser.onText.on(e=>self.triggerText(e.data));
+			parser.onData.on(e=>self.triggerData(e.data));
+			parser.onPing.on(e=>self.triggerPing());
+			parser.onPong.on(e=> self.triggerPong());
+			parser.onClose.on(e=>self.safeClose());
+			parser.onError.on(e=>self.onError.trigger(e.data));
+			parser.add(headerBuf.slice(fromIndex));
+		}, '-1');
+
+		self.socket.onError.on(e=>self.safeClose(), '-1');
+		self.socket.write(headerStr);
+	}
+
+	private safeClose() {
+		if (this.socket.isConnecting) {
+			this.socket.close();
+		}
+	}
+
 	/**
 	 * Connect to the WebSocket server
 	*/
 	connect() {
 		if (!this.socket.isConnecting) {
-			this.socket.onOpen.once(()=>connect1(this), '-1');
+			this.socket.onOpen.once(()=>
+				this.connect1().catch(console.error), '-1');
 			this.socket.connect();
 		}
 	}
@@ -724,9 +659,7 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	 * Close the WebSocket connection
 	*/
 	close() {
-		if (this.socket.isConnecting) {
-			this.socket.close();
-		}
+		this.safeClose();
 	}
 
 	/**
@@ -744,11 +677,66 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	}
 
 	/**
-	 * Sending the data message
+	 * Sending the data message.
+	 * Frame client-to-server output as a text packet or buffer packet.
 	*/
 	write(data: string | Uint8Array): Promise<void> {
 		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
-		return ws.sendDataPacket(this.socket, data);
+
+		let opcode = 0x81; // text 0x81 | buffer 0x82 | close 0x88 | ping 0x89
+
+		if (data instanceof Uint8Array) { // send binary message
+			opcode = 0x82;
+		} else { // send string message
+			data = buffer.fromString(data);
+		}
+
+		let dataLength = data.length;
+		let headerLength = 2;
+		let secondByte = dataLength;
+
+		/*
+			0   - 125   : 2,	opcode|len|data
+			126 - 65535 : 4,	opcode|126|len|len|data
+			65536 -     : 10,	opcode|127|len|len|len|len|len|len|len|len|data
+		*/
+		/*
+			opcode:
+			0x81: text
+			0x82: binary
+			0x88: close
+			0x89: ping
+			0x8a: pong
+		*/
+
+		if (dataLength > 65535) {
+			headerLength = 10;
+			secondByte = 127;
+		}
+		else if (dataLength > 125) {
+			headerLength = 4;
+			secondByte = 126;
+		}
+
+		let header = buffer.alloc(headerLength);
+
+		header[0] = opcode;
+		header[1] = secondByte;
+
+		switch (secondByte) {
+			case 126:
+				header[2] = dataLength >> 8;
+				header[3] = dataLength % 256;
+				break;
+			case 127:
+				let l = dataLength;
+				for (let i = 9; i > 1; i--) {
+					header[i] = l & 0xff;
+					l >>= 8;
+				}
+		}
+
+		return this.socket.write(buffer.concat([header, data]));
 	}
 
 	/**
@@ -759,11 +747,31 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	}
 
 	/**
+	 * Sending the ping message
+	*/
+	ping(): Promise<void> {
+		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
+		let header = buffer.alloc(3);
+		header[0] = 0x89;
+		header[1] = 1; // 1byte
+		return this.socket.write(header);
+	}
+
+	/*
+	 * Sending the pong message
+	*/
+	private pong() {
+		let header = buffer.alloc(3);
+		header[0] = 0x8a;
+		header[1] = 1; // 1byte
+		return this.socket.write(header);
+	}
+
+	/**
 	 * First send the ping message to the remote client then wait for the pong message
 	 * @param timeoutMs? wait for the pong message, default not timeout
 	*/
 	async test(timeoutMs?: Uint): Promise<void> {
-		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
 		await this.ping();
 		const promise = new Promise<void>((resolve)=>{
 			this.onPong.once(()=>resolve());
@@ -775,26 +783,43 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	}
 
 	/**
-	 * Sending the ping message
-	*/
-	ping(): Promise<void> {
-		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
-		return ws.sendPingPacket(this.socket);
-	}
-
-	/**
-	 * Sending the pong message
-	*/
-	pong(): Promise<void> {
-		utils.assert(this._isOpen, errno.ERR_NOT_OPEN_CONNECTION);
-		return ws.sendPongPacket(this.socket);
-	}
-
-	/**
 	 * Setting if is disable ssl verify
 	 * @param disable True means disable ssl verify
 	*/
 	disableSslVerify(disable: boolean) {
 		this.socket.disableSslVerify(disable);
+	}
+
+	protected triggerOpen() { //!<
+		this.onOpen.trigger(void 0);
+	}
+
+	protected triggerClose() { //!<
+		this.onClose.trigger(void 0);
+	}
+
+	protected triggerError(err: Error) { //!<
+		this.onError.trigger(err);
+	}
+
+	protected triggerPing() { //!<
+		this.pong().catch(console.warn);
+		this.onPing.trigger(void 0);
+	}
+
+	protected triggerPong() { //!<
+		this.onPong.trigger(void 0);
+	}
+
+	protected triggerData(data: Buffer) { //!<
+		this.onData.trigger(data);
+	}
+
+	protected triggerText(text: string) { //!<
+		this.onText.trigger(text);
+	}
+
+	protected triggerTimeout() { //!<
+		this.onTimeout.trigger(void 0);
 	}
 }
