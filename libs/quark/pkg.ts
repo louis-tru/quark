@@ -1109,7 +1109,10 @@ class Package {
 class QkPackage extends Package {
 	constructor() {
 		super('qk://quark', { name: 'quark', main: 'index.js', version: '1.0.0' });
-		(['_common.js',
+		([
+			'_bigint.js',
+			'_buffer.js',
+			'_common.js',
 			'_event.js',
 			'_ext.js',
 			'_md5.js',
@@ -1130,6 +1133,7 @@ class QkPackage extends Package {
 			'hash.js',
 			'http.js',
 			'index.js',
+			'jsonb.js',
 			'keyboard.js',
 			'media.js',
 			'nav.js',
@@ -1147,6 +1151,7 @@ class QkPackage extends Package {
 			'util.js',
 			'view.js',
 			'window.js',
+			'ws.js',
 		]).forEach(e=>this.filesHash[e]='-');
 		this._status = PackageStatus.INSTALLED;
 	}

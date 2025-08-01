@@ -62,7 +62,7 @@ async function test_(win: Window) {
 (async function() {
 	var mod;
 	try {
-		mod = require(`./test_${util.argv[3]}`);
+		mod = require(`./test_${util.argv[2]}`);
 	} catch(e) {}
 
 	const app = new Application();

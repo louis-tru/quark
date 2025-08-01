@@ -2,7 +2,7 @@
 	"compileOnSave": true,
 	"compilerOptions": {
 		"module": "commonjs",
-		"target": "ES2020",
+		"target": "ES2018",
 		"moduleResolution": "node",
 		"sourceMap": false,
 		"outDir": "out/quark",

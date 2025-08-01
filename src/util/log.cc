@@ -77,7 +77,8 @@ namespace qk {
 #if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_INFO, "Native LOG", "%s%s", log, end ? end: "");
 #else
-			printf("%s%s", log, end ? end: "");
+			::fprintf(stdout, "%s%s", log, end ? end: "");
+			::fflush(stdout);
 #endif
 	}
 
@@ -85,7 +86,8 @@ namespace qk {
 #if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_WARN, "Native WARN", "%s%s", log, end ? end: "");
 #else
-			printf("%s%s", log, end ? end: "");
+			::fprintf(stdout, "%s%s", log, end ? end: "");
+			::fflush(stdout);
 #endif
 	}
 
@@ -93,7 +95,8 @@ namespace qk {
 #if Qk_ANDROID
 			__android_log_print(ANDROID_LOG_ERROR, "Native ERR", "%s%s", log, end ? end: "");
 #else
-			fprintf(f_stderr, "%s%s", log, end ? end: "");
+			::fprintf(f_stderr, "%s%s", log, end ? end: "");
+			::fflush(f_stderr);
 #endif
 	}
 
@@ -288,7 +291,6 @@ namespace qk {
 	}
 
 	void Fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
-		Log::shared()->fflush();
 		if (msg) {
 			Qk_STRING_FORMAT(msg, str);
 			_shared_log->error("\n");
@@ -297,7 +299,6 @@ namespace qk {
 #if DEBUG
 		report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		dump_backtrace();
-		_shared_log->fflush();
 #else
 		::exit(-1);
 #endif

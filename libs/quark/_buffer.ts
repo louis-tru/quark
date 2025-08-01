@@ -30,95 +30,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // BigInt support.
-namespace _bigint {
-	export function _readBigUIntBE(self: Uint8Array, offset: number, end: number) {
-		var num = 0n;
-		while (offset < end) {
-			num <<= 8n;
-			num |= BigInt(self[offset]);
-			offset++;
-		}
-		return num;
-	}
-
-	export function _readBigUIntLE(self: Uint8Array, offset: number, end: number) {
-		var num = 0n;
-		while (offset < end) {
-			end--;
-			num <<= 8n;
-			num |= BigInt(self[end]);
-		}
-		return num;
-	}
-
-	export function _readBigInt64BE(self: Uint8Array, offset: number) {
-		const hi = 
-			(self[offset++] << 24) + // Overflow
-			self[offset++] * 2 ** 16 +
-			self[offset++] * 2 ** 8 +
-			self[offset++];
-		const lo =
-			self[offset++] * 2 ** 24 +
-			self[offset++] * 2 ** 16 +
-			self[offset++] * 2 ** 8 +
-			self[offset++];
-		return (BigInt(hi) << 32n) + BigInt(lo);
-	}
-
-	export function _readBigUInt64BE(self: Uint8Array, offset: number) {
-		const hi = 
-			self[offset++] * 2 ** 24 +
-			self[offset++] * 2 ** 16 +
-			self[offset++] * 2 ** 8 +
-			self[offset++];
-		const lo = 
-			self[offset++] * 2 ** 24 +
-			self[offset++] * 2 ** 16 +
-			self[offset++] * 2 ** 8 +
-			self[offset++];
-		return (BigInt(hi) << 32n) + BigInt(lo);
-	}
-
-	export function _writeBigIntLE(bytes: number[], bigint: bigint): number {
-		var i = 0;
-		do {
-			bytes.push(Number(bigint & 0xffn));
-			bigint >>= 8n;
-			i++;
-		} while(bigint || i < 8);
-		return i;
-	}
-
-	function writeBigU_Int64BE(buf: Uint8Array, value: bigint, offset: number, min: bigint, max: bigint) {
-		checkInt(value, min, max, buf, offset, 7);
-		let lo = Number(value & 0xffffffffn);
-		buf[offset + 7] = lo;
-		lo = lo >> 8;
-		buf[offset + 6] = lo;
-		lo = lo >> 8;
-		buf[offset + 5] = lo;
-		lo = lo >> 8;
-		buf[offset + 4] = lo;
-		let hi = Number(value >> 32n & 0xffffffffn);
-		buf[offset + 3] = hi;
-		hi = hi >> 8;
-		buf[offset + 2] = hi;
-		hi = hi >> 8;
-		buf[offset + 1] = hi;
-		hi = hi >> 8;
-		buf[offset] = hi;
-		return Number(offset) + 8;
-	}
-
-	export function _writeBigInt64BE(self: Uint8Array, value: bigint, offset: number) {
-		return writeBigU_Int64BE(
-			self, value, offset, -0x8000000000000000n, 0x7fffffffffffffffn);
-	}
-
-	export function _writeBigUInt64BE(self: Uint8Array, value: bigint, offset: number) {
-		return writeBigU_Int64BE(self, value, offset, 0n, 0xffffffffffffffffn);
-	}
-}
+import * as _bigint from './_bigint';
+_bigint._set(checkInt);
 
 function readBigUIntBE(self: Uint8Array, offset: number = 0, end: number = self.length): bigint {
 	validateNumber(offset, 'offset');
@@ -139,7 +52,6 @@ function readBigUIntLE(self: Uint8Array, offset: number = 0, end: number = self.
 function writeBigIntLE(bytes: number[], bigint: bigint): number {
 	return _bigint._writeBigIntLE(bytes, bigint);
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 
 // Temporary buffers to convert numbers.
@@ -765,7 +677,7 @@ var writeFloatBE = bigEndian ? writeFloatForwards : writeFloatBackwards;
 var writeDoubleBE = bigEndian ? writeDoubleForwards : writeDoubleBackwards;
 
 export default {
-	get isBigInt() { return !!globalThis.BigInt },
+	get BigInt() { return (globalThis as any).BigInt },
 	// read
 	readInt8, readUInt8,
 	readInt16BE, readUInt16BE,

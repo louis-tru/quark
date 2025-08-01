@@ -33,6 +33,7 @@ export class ErrnoList {
 	ERR_MODULE_NOT_FOUND: ErrnoCode = [-12000, 'ERR_MODULE_NOT_FOUND'] // e.g. quark module not found
 	ERR_EXECUTE_TIMEOUT: ErrnoCode = [-12002, 'ERR_EXECUTE_TIMEOUT'] // call timeout() execution timeout
 	ERR_NOT_OPEN_CONNECTION: ErrnoCode = [-12003, 'Not open connection'] // e.g. WebSocket not open
+	ERR_WS_HANDSHAKE_FAIL: ErrnoCode = [-12004, 'handshake failed, connection closed']
 	ERR_FORBIDDEN_ACCESS: ErrnoCode = [-30003, 'FORBIDDEN ACCESS']
 	ERR_CONNECTION_DISCONNECTION: ErrnoCode = [-30004, 'Connection disconnection']
 	ERR_METHOD_CALL_TIMEOUT: ErrnoCode = [-30006, 'method call timeout']

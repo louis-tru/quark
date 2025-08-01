@@ -29,66 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { LOG, Pv, Mv, Mvcb } from './tool'
-import {Socket} from 'quark/net'
-import {Event} from 'quark/event'
-import {toString} from 'quark/buffer'
-
-class MySocket extends Socket {
-	constructor() {
-		super("www.baidu.com", 443, true);
-		this.onOpen.on(this.trigger_socket_open, this);
-		this.onClose.on(this.trigger_socket_close, this);
-		this.onError.on(this.trigger_socket_error, this);
-		this.onData.on(this.trigger_socket_data, this);
-		// this.onWrite.on(this.trigger_socket_write, this);
-		this.onTimeout.on(this.trigger_socket_timeout, this);
-		this.connect();
-	}
-
-	send_http() {
-		var header =
-		"GET / HTTP/1.1\r\n"+
-		"Host: www.baidu.com\r\n"+
-		"_Connection: keep-alive\r\n"+
-		"Connection: close\r\n"+
-		"Accept: */*\r\n"+
-		"User-Agent: Mozilla/5.0 AppleWebKit quark Net Test\r\n\r\n";
-
-		this.write(header);
-	}
-
-	trigger_socket_open(e: Event<Socket>) {
-		LOG("Open Socket");
-		this.send_http();
-	}
-	trigger_socket_close(e: Event<Socket>) {
-		LOG("Close Socket");
-		// Release(this);
-	}
-	trigger_socket_error(e: Event<Socket, Error>) {
-		LOG("Error, %d, %s", e.data.errno, e.data.error.message);
-	}
-	trigger_socket_data(e: Event<Socket, Uint8Array>) {
-		LOG(toString(e.data));
-		// LOG("DATA.., %d", e.data.length);
-	}
-	// trigger_socket_write(e: Event<Socket, Int>) {
-	// 	LOG("Write, OK");
-	// }
-	trigger_socket_timeout(e: Event<Socket>) {
-		LOG("Timeout Socket");
-		this.close();
-	}
-}
+import {WSConversation,WSClient} from 'quark/ws'
 
 export default async function(_: any) {
-	return new Promise<void>(function(r,j) {
-		var so = new MySocket();
-		so.onClose.on(()=>{
-			r();
-		});
-		so.onError.on(e=>{
-			j(e.data);
-		});
+	let conv = new WSConversation('ws://127.0.0.1:1026');
+	let cli = new WSClient('Message', conv);
+
+	cli.addEventListener('FileChanged', (e: any)=>{
+		LOG('default listener', e.data);
 	});
 }

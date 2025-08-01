@@ -132,6 +132,7 @@ export class WSConversation extends WebSocket {
 				this._default_service = name;
 			}
 			this._clients[name] = client;
+			this.url.setParam('bind_services', Object.keys(this._clients).join(','));
 			if (this.isOpen) {
 				this.sendPacket({type:PacketType.BIND,service:name}).catch(console.error);
 			} else {
@@ -198,7 +199,7 @@ interface CallData extends Packet {
 	cancel?: boolean;
 }
 
-export const METHOD_CALL_TIMEOUT = 12e4; //!< 120s
+const METHOD_CALL_TIMEOUT = 12e4; //!< 120s
 
 /**
  * @class WSCEvent

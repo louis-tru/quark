@@ -143,7 +143,7 @@ namespace ws {
 	}
 
 	// WebSocket Packet Parser
-	export class PacketParser {
+	export class PacketParser extends Notification<PacketEventNotice> {
 		private state: State = {
 			activeFragmentedOperation: null,
 			lastFragment: false,
@@ -264,6 +264,7 @@ namespace ws {
 		* WebSocket PacketParser
 		*/
 		constructor() {
+			super();
 			this.expect('Opcode', 2, this.processPacket);
 		}
 
@@ -277,9 +278,6 @@ namespace ws {
 			}
 			var toRead = Math.min(data.length, this.expectBuffer.length - this.expectOffset);
 			data.copy(this.expectBuffer, this.expectOffset, 0, toRead);
-
-			this.expectBuffer.set(data, 0)
-
 			this.expectOffset += toRead;
 			if (toRead < data.length) {
 				// at this point the overflow buffer shouldn't at all exist
@@ -514,7 +512,7 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 		this.hostname = this.url.hostname;
 		this.isSSL = ['https','wss'].indexOf(this.url.protocol) != -1;
 		this.port = Number(this.url.port) || (this.isSSL ? 443: 80);
-		this.socket = new (_net.Socket as typeof Socket)(this.hostname, this.port, this.isSSL);
+		this.socket = new Socket(this.hostname, this.port, this.isSSL);
 
 		this.socket.onClose.on(()=>
 			this._isOpen && (this._isOpen = false, this.triggerClose())
@@ -569,33 +567,29 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 		let self = this;
 		let key = Date.now();
 		let url = self.url;
-		let origin = 'localhost:' + self.port;
+		let origin = 'localhost';// + self.port;
 
 		let headers = {
-			'GET': `${url.path} HTTP/1.1`,
+			...self.headers,
 			'Host': self.hostname,
-			'Accept':  '*/*',
 			'Connection': 'Upgrade',
 			'Upgrade': 'websocket',
 			'Origin': origin,
 			'Sec-Websocket-Origin': origin,
 			'Sec-Websocket-Version': '13',
 			'Sec-Websocket-Key': key+'',
-			...self.headers,
 		};
 
 		if (self.signer) {
 			Object.assign(headers, await self.signer.sign(buffer.from(url.path)));
 		}
 
-		let headerStr = Object.entries(headers).map(([k,v])=>
+		let headerStr = `GET ${url.path} HTTP/1.1\r\n` + Object.entries(headers).map(([k,v])=>
 			`${k[0].toUpperCase()}${k.slice(1)}: ${v}\r\n`
 		).join('') + '\r\n';
 
 		let headerBuf: Buffer = buffer.Zero;
 		let parser: ws.PacketParser | undefined;
-
-		self.socket.onClose.off('-1');
 
 		self.socket.onData.on(e=>{
 			if (parser) {
@@ -603,17 +597,24 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 				return;
 			}
 			headerBuf = buffer.concat([headerBuf, e.data]);
-			let fromIndex = 0;
 
-			for (let ch of [13,10,13,10]) { // \r\n\r\n
-				fromIndex = headerBuf.indexOf(ch, fromIndex) + 1;
-				if (fromIndex == 0)
-					return;
-			}
+			let index = headerBuf.findIndex((val,idx,buf)=>{ // find http header end for \r\n\r\n
+				if (val == 13)
+					if (buf[++idx] == 10)
+						if (buf[++idx] == 13)
+							return buf[++idx] == 10;
+				return false;
+			});
+			if (index == -1)
+				return;
 
-			for (let h of headerBuf.slice(0, fromIndex - 4).toString().split('\r\n')) {
-				let [k,v] = h.split(': ');
-				self.responseHeaders[k.toLowerCase()] = v;
+			for (let h of headerBuf.slice(0, index).toString().split('\r\n')) {
+				let idx = h.indexOf(': ');
+				if (idx != -1) {
+					let k = h.slice(0, idx);
+					let v = h.slice(idx + 2);
+					self.responseHeaders[k.toLowerCase()] = v;
+				}
 			}
 
 			if (!self.handshakes(key)) {
@@ -621,6 +622,7 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 				return;
 			}
 
+			this.socket.onClose.off('-1');
 			this._isOpen = true;
 			self.triggerOpen();
 
@@ -631,11 +633,12 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 			parser.onPong.on(e=> self.triggerPong());
 			parser.onClose.on(e=>self.safeClose());
 			parser.onError.on(e=>self.onError.trigger(e.data));
-			parser.add(headerBuf.slice(fromIndex));
+			parser.add(headerBuf.slice(index+4)); // skip \r\n\r\n
 		}, '-1');
 
-		self.socket.onError.on(e=>self.safeClose(), '-1');
-		self.socket.write(headerStr);
+		this.socket.onClose.once(()=>
+			this.triggerError(Error.new(errno.ERR_WS_HANDSHAKE_FAIL)), '-1');
+		await self.socket.write(headerStr);
 	}
 
 	private safeClose() {
@@ -649,8 +652,7 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	*/
 	connect() {
 		if (!this.socket.isConnecting) {
-			this.socket.onOpen.once(()=>
-				this.connect1().catch(console.error), '-1');
+			this.socket.onOpen.once(()=>this.connect1().catch(console.error), '-1');
 			this.socket.connect();
 		}
 	}
@@ -799,6 +801,7 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	}
 
 	protected triggerError(err: Error) { //!<
+		console.error('WebSocket', err);
 		this.onError.trigger(err);
 	}
 

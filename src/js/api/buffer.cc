@@ -98,7 +98,7 @@ namespace qk { namespace js {
 				args_index++;
 			}
 			if (args.length() > args_index) {
-				end = args[args_index]->asUint32(worker).from(0);
+				end = args[args_index]->asUint32(worker).from(end);
 				end = Qk_Min(len, end);
 				args_index++;
 			}

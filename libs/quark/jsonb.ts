@@ -66,9 +66,9 @@ const // FLAGS
 	F_INFINITY_MIN = 25,
 	F_INFINITY_MAX = 26;
 
-if (typeof BigInt == 'function') {
-	var BIGINT_MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
-	var BIGINT_MIN_SAFE_INTEGER = BigInt(Number.MIN_SAFE_INTEGER);
+if (_buffer.BigInt) {
+	var BIGINT_MIN_SAFE_INTEGER = _buffer.BigInt(Number.MIN_SAFE_INTEGER);
+	var BIGINT_MAX_SAFE_INTEGER = _buffer.BigInt(Number.MAX_SAFE_INTEGER);
 }
 
 type Out = Bytes[];
@@ -358,7 +358,7 @@ function read_buffer(bin: Binary): Buffer {
 function read_bigint(bin: Binary): bigint | number {
 	assert(bin.length > bin.index + 8);
 	let bytes = read_buffer(bin);
-	if (  _buffer.isBigInt ) {
+	if (_buffer.BigInt) {
 		return _buffer.readBigUIntBE(bytes, 0, bytes.length);
 	} else { // not support bigint
 		console.log('Not support bigint');
@@ -372,8 +372,9 @@ function read_bigint(bin: Binary): bigint | number {
 }
 
 function read_next(bin: Binary): any {
+	let flag = bin.next();
 	let offset = bin.index;
-	switch (bin.next()) {
+	switch (flag) {
 		case F_STRING:
 			return read_buffer(bin).toString('utf8');
 		case F_BUFFER:

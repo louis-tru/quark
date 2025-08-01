@@ -130,10 +130,10 @@ namespace qk {
 				_delegate->trigger_socket_error(_host, err);
 		}
 
-		void report_err_and_close(Error err, bool async = false) {
-			report_err(err, async);
-			close();
-		}
+		//void report_err_and_close(Error err, bool async = false) {
+		//	report_err(err, async);
+		//	close();
+		//}
 
 		int report_uv_err(int code, bool async = false, Callback<Buffer> *cb = 0) {
 			if ( code != 0 ) {
