@@ -523,11 +523,11 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 
 	/**
 	 * Setting keep alive for the socket connection
-	 * @param keep_alive:boolean **Default** is true, enable keep alive
+	 * @param keep_alive:boolean enable keep alive
 	 * @param keep_idle?:Uint **Default** is 0 means 7200 seconds,
 	 * 	the time in milliseconds to wait before sending keep alive packets
 	*/
-	setKeepAlive(keep_alive: boolean, keep_idle: Uint = 0) {
+	setKeepAlive(keep_alive: boolean, keep_idle?: Uint) {
 		this.socket.setKeepAlive(keep_alive, keep_idle);
 	}
 

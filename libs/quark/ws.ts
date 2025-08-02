@@ -75,6 +75,7 @@ export class WSConversation extends WebSocket {
 	private _autoReconnect: Uint = 0;
 	private _token = '';
 	private _isOpenMask = false;
+	private _checkIntervalId = 0;
 
 	/**
 	 * Session token
@@ -88,35 +89,16 @@ export class WSConversation extends WebSocket {
 	get autoReconnect(): Uint { return this._autoReconnect }
 	set autoReconnect(value: Uint) { this._autoReconnect = Number(value) || 0}
 
-	// override
-	protected triggerOpen(): void {
-		this._token = this.responseHeaders['session-token'] || '';
-		super.triggerOpen();
-	}
-
-	// override
-	protected triggerData(buf: Buffer) {
-		let json = jsonb.parse(buf);
-		let [type,service,name,data,error,cb,sender] = Array.isArray(json) ? json: [json];
-		switch (type) {
-			case PacketType.BIND:
-				break;
-			case PacketType.PING: // ping Extension protocol
-				this.triggerPing();
-				break;
-			case PacketType.PONG: // pong Extension protocol
-				this.triggerPong();
-				break;
-			default:
-				let cli = this._clients[service || this._default_service];
-				if (cli) {
-					cli.receiveMessage({type,service,name,data,error,cb,sender}).catch(console.error);
-				} else {
-					console.log('Could not find the message handler, '+
-											'discarding the message, ' + data.service);
-				}
+	// Check if it needs to reconnect
+	private _autoReconnectCheck(reason: string) {
+		if (!this.isOpen && this._isOpenMask) {
+			if (this._autoReconnect) { // keep connect
+				utils.sleep(this._autoReconnect).then(()=>{
+					console.log(`Reconnect ${reason} Clo.. ${this.url.href}`);
+					this.connect();
+				});
+			}
 		}
-		super.triggerData(buf);
 	}
 
 	/*
@@ -141,25 +123,54 @@ export class WSConversation extends WebSocket {
 		}
 	}
 
-	protected triggerError(e: Error): void {
-		super.triggerError(e);
-		this._autoReconnectCheck('Error');
+	// override
+	protected triggerData(buf: Buffer) {
+		let json = jsonb.parse(buf);
+		let [type,service,name,data,error,cb,sender] = Array.isArray(json) ? json: [json];
+		switch (type) {
+			case PacketType.BIND:
+				break;
+			case PacketType.PING: // ping Extension protocol
+				this.triggerPing();
+				break;
+			case PacketType.PONG: // pong Extension protocol
+				this.triggerPong();
+				break;
+			default:
+				let cli = this._clients[service || this._default_service];
+				if (cli) {
+					cli.receiveMessage({type,service,name,data,error,cb,sender}).catch(console.error);
+				} else {
+					console.log(`Not find the message handler,discarding the message,${data.service}`);
+				}
+		}
+		super.triggerData(buf);
+	}
+
+	// override
+	protected triggerOpen(): void {
+		let checkNum = 0;
+		this._checkIntervalId = setInterval(()=>{
+			if (checkNum++ % 4 == 0) {
+				this.ping(); // Send ping keep alive packet, interval 60s
+			}
+			for (const cli of Object.values(this._clients)) {
+				(cli as any)._checkTimeout(); // Check timeout for method calls, private method
+			}
+		}, 15e3); // 15s
+		this._token = this.responseHeaders['session-token'] || '';
+		super.triggerOpen();
 	}
 
 	protected triggerClose(): void {
+		clearInterval(this._checkIntervalId); // Clear keep alive interval
 		super.triggerClose();
 		this._autoReconnectCheck('Close');
 	}
 
-	private _autoReconnectCheck(reason: string) {
-		if (!this.isOpen && this._isOpenMask) {
-			if (this._autoReconnect) { // keep connect
-				utils.sleep(this._autoReconnect).then(()=>{
-					console.log(`Reconnect ${reason} Clo.. ${this.url.href}`);
-					this.connect();
-				});
-			}
-		}
+	protected triggerError(e: Error): void {
+		super.triggerError(e);
+		this._autoReconnectCheck('Error');
 	}
 
 	/**
@@ -227,7 +238,6 @@ export class WSClient extends Notification<WSCEvent> {
 	private _calls: Map<number, CallData> = new Map();
 	private _loaded = false;
 	private _sends: CallData[] = [];
-	private _intervalid: any;
 
 	/**
 	 * Service name on the server
@@ -256,21 +266,6 @@ export class WSClient extends Notification<WSCEvent> {
 		this.conv = conv;
 		let self = this;
 
-		conv.onOpen.on(e=>{
-			self._intervalid = setInterval(()=>self.checkTimeout(), 3e4); // 30s
-		});
-
-		conv.onClose.on(async e=>{
-			self._loaded = false;
-			let err = Error.new(errno.ERR_CONNECTION_DISCONNECTION);
-			for (let [,handle] of self._calls) {
-				handle.cancel = true;
-				handle.err(err);
-			}
-			clearInterval(self._intervalid);
-			self._sends = []; // clear calling
-		});
-
 		this.onLoad.on(async e=>{
 			utils.assert(e.data.token == this.conv.token, 'Token is required');
 			console.log('CLI Load', conv.url.href);
@@ -282,6 +277,16 @@ export class WSClient extends Notification<WSCEvent> {
 					self.sendPacket(data).catch(data.err);
 				}
 			}
+		});
+
+		conv.onClose.on(async e=>{
+			self._loaded = false;
+			let err = Error.new(errno.ERR_CONNECTION_DISCONNECTION);
+			for (let [,handle] of self._calls) {
+				handle.cancel = true;
+				handle.err(err);
+			}
+			self._sends = []; // clear calling
 		});
 
 		this.conv.bind(this);
@@ -339,19 +344,8 @@ export class WSClient extends Notification<WSCEvent> {
 		}
 	}
 
-	/**
-	 * The remote service calls a method on the client by the method name.
-	 */
-	protected callSelfMethod(method: string, data: any, sender: string) {
-		if (method in WSClient.prototype)
-			throw Error.new(errno.ERR_FORBIDDEN_ACCESS);
-		var fn = (<any>this)[method];
-		if (typeof fn != 'function')
-			throw Error.new(String.format('"{0}" no defined function', method));
-		return fn.call(this, data, sender);
-	}
-
-	private checkTimeout() {
+	// check timeout for method calls
+	protected _checkTimeout() {
 		var now = Date.now();
 		for (var [,handle] of this._calls) {
 			if (handle.timeout) {
@@ -362,6 +356,18 @@ export class WSClient extends Notification<WSCEvent> {
 				}
 			}
 		}
+	}
+
+	/**
+	 * The remote service calls a method on the client by the method name.
+	 */
+	protected callSelfMethod(method: string, data: any, sender: string) {
+		if (method in WSClient.prototype)
+			throw Error.new(errno.ERR_FORBIDDEN_ACCESS);
+		var fn = (<any>this)[method];
+		if (typeof fn != 'function')
+			throw Error.new(String.format('"{0}" no defined function', method));
+		return fn.call(this, data, sender);
 	}
 
 	private async sendPacket(data: CallData) {
