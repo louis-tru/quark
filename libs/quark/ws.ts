@@ -313,7 +313,7 @@ export class WSClient extends Notification<WSCEvent> {
 				}
 			}
 		} else {
-			let r: { data?: any, error?: Error } = {};
+			let r: Packet = {};
 			if (packet.type == PacketType.CALL) {
 				this._checkMethodName(name);
 				// if (utils.debug)
