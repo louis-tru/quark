@@ -319,7 +319,7 @@ export class WSClient extends Notification<WSCEvent> {
 				// if (utils.debug)
 					// console.log('WSClient.CALL', `${self.name}.${name}(${JSON.stringify(data,null,2)})`);
 				try {
-					r.data = await self.callSelfMethod(name, data||{}, sender||'');
+					r.data = await self.callMethod(name, data||{}, sender||'');
 				} catch(e: any) {
 					console.error('WSClient.CALL', e);
 					r.error = e;
@@ -361,7 +361,7 @@ export class WSClient extends Notification<WSCEvent> {
 	/**
 	 * The remote service calls a method on the client by the method name.
 	 */
-	protected callSelfMethod(method: string, data: any, sender: string) {
+	protected callMethod(method: string, data: any, sender: string) {
 		if (method in WSClient.prototype)
 			throw Error.new(errno.ERR_FORBIDDEN_ACCESS);
 		var fn = (<any>this)[method];
