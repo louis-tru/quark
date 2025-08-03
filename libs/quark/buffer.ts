@@ -139,7 +139,8 @@ export class Buffer extends Uint8Array {
 	 * map the buffer data into a new buffer.
 	*/
 	map(cb: (value: Uint, index: Uint, array: this) => Uint, thisArg?: any): Buffer {
-		return wrapUintArray(super.map(cb, thisArg));
+		return wrapUintArray(super.map(
+			cb as (value: Uint, index: Uint, array: Uint8Array) => Uint, thisArg));
 	}
 
 	/**
