@@ -589,10 +589,12 @@ namespace qk {
 		if (!tex) {
 			auto pixel = src->pixel(index);
 			if (!pixel) {
-				return Qk_DLog("gl_set_texture() Fail %p, reason: src->pixel(%d) == nullptr", src, index), false;
+				Qk_DLog("gl_set_texture() Fail %p, reason: src->pixel(%d) == nullptr", src, index);
+				return false;
 			}
 			if (!gl_new_texture(pixel, 1, _texStat[slot], true)) {
-				return Qk_DLog("gl_set_texture() Fail %p, reason: _texStat[%d] == nullptr", src, slot), false;
+				Qk_DLog("gl_set_texture() Fail %p, reason: _texStat[%d] == nullptr", src, slot);
+				return false;
 			}
 			tex = _texStat[slot];
 		}

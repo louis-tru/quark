@@ -120,35 +120,48 @@ namespace qk {
 		}
 
 		glUseProgram(program);
-
 		glGenVertexArrays(1, &s->vao);
 		glGenBuffers(1, &s->vbo);
 		glBindVertexArray(s->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
+		glBufferData(GL_ARRAY_BUFFER, 128, nullptr, GL_DYNAMIC_DRAW);
 
-		GLsizei stride = 0, pointer = 0;
+		GLsizei stride = 0;
+		GLsizei pointer = 0;
 
 		for (auto &i: attributes) {
 			stride += i.stride;
 		}
-
 		for (auto &i: attributes) {
 			GLuint local = *storeLocation++;
-			glVertexAttribPointer(local, i.size, i.type, GL_FALSE, stride, (const GLvoid*)pointer);
 			glEnableVertexAttribArray(local);
+			glVertexAttribPointer(local, i.size, i.type, GL_FALSE, stride, (const GLvoid*)pointer);
 			pointer += i.stride;
 		}
 		glUniform1i(glGetUniformLocation(program, "aaclip"), gl_MaxTextureImageUnits-1); // set aa texture slot
+		// validate program
+		glValidateProgram(program);
+		glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
+		// if (!status) {
+		// 	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &status);
+		// 	if (status > 0) {
+		// 		char *log = (char*)malloc(status);
+		// 		glGetProgramInfoLog(program, status, nullptr, log);
+		// 		Qk_Log("drawImageMaskCall, Shader program validation failed: %s", log);
+		// 		free(log);
+		// 	}
+		// }
+		// clean up
 		glBindVertexArray(0);
-
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		s->shader = program;
 	}
 
 	void GLSLShader::use(GLsizeiptr size, const GLvoid* data) {
+		glUseProgram(shader);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 		glBindVertexArray(vao);
-		glUseProgram(shader);
 	}
 
 }
