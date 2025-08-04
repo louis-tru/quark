@@ -57,7 +57,7 @@ namespace qk {
 		GLSLShader *s,
 		cChar *name, cChar* macros,
 		cString& vertexShader, cString& fragmentShader,
-		const Array<GLShaderAttr> &attributes, cChar *uniforms)
+		cArray<GLShaderAttr> &attributes, cChar *uniforms)
 	{
 		String vertexCode  ("#version " Qk_GL_Version "\n");
 		String fragmentCode(vertexCode);
@@ -78,10 +78,9 @@ namespace qk {
 		glAttachShader(program, fragment_handle);
 
 		GLint status; // query status
+		GLuint *storeLocation = &s->vbo + 1;
 
 		//Qk_DLog("sizeof(GLSLShader) %d,%d,%d", sizeof(GLSLShader), sizeof(GLSLColor), sizeof(GLSLImage));
-
-		GLuint *storeLocation = &s->vbo + 1;
 
 		// bind attrib Location
 		GLuint attrIdx = 0;
@@ -119,15 +118,14 @@ namespace qk {
 			}
 		}
 
-		glUseProgram(program);
-		glGenVertexArrays(1, &s->vao);
+		glGenVertexArrays(1, &s->vao); // gen vao, vbo
 		glGenBuffers(1, &s->vbo);
-		glBindVertexArray(s->vao);
+		glUseProgram(program); // use program
+		glBindVertexArray(s->vao); // bind vao, vbo
 		glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
 		glBufferData(GL_ARRAY_BUFFER, 128, nullptr, GL_DYNAMIC_DRAW);
 
-		GLsizei stride = 0;
-		GLsizei pointer = 0;
+		GLsizei stride = 0, pointer = 0;
 
 		for (auto &i: attributes) {
 			stride += i.stride;
@@ -138,19 +136,9 @@ namespace qk {
 			glVertexAttribPointer(local, i.size, i.type, GL_FALSE, stride, (const GLvoid*)pointer);
 			pointer += i.stride;
 		}
-		glUniform1i(glGetUniformLocation(program, "aaclip"), gl_MaxTextureImageUnits-1); // set aa texture slot
-		// validate program
-		glValidateProgram(program);
-		glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
-		// if (!status) {
-		// 	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &status);
-		// 	if (status > 0) {
-		// 		char *log = (char*)malloc(status);
-		// 		glGetProgramInfoLog(program, status, nullptr, log);
-		// 		Qk_Log("drawImageMaskCall, Shader program validation failed: %s", log);
-		// 		free(log);
-		// 	}
-		// }
+
+		// set aa texture slot
+		glUniform1i(glGetUniformLocation(program, "aaclip"), gl_MaxTextureImageUnits-1);
 		// clean up
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -162,6 +150,20 @@ namespace qk {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 		glBindVertexArray(vao);
+
+#if Qk_MacOS
+		if (!isValidate) {
+			isValidate = 1;
+			/*
+				TODO: Mac systems may crash if they do not call this verification
+				FALLBACK (log once): Fallback to SW vertex processing for VERT_BUF_REQ
+				FALLBACK (log once): Fallback to SW fragment processing for FRAG_BUF_REQ
+				FALLBACK (log once): Fallback to SW vertex processing, m_disable_code: 1
+				FALLBACK (log once): Fallback to SW fragment processing, m_disable_code: 10000
+			*/
+			glValidateProgram(shader); // validate shader program
+		}
+#endif
 	}
 
 }

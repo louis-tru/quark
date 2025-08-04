@@ -37,7 +37,8 @@
 #define Qk_CGCmd_VertexBlock_Capacity 6555
 #define Qk_CGCmd_OptBlock_Capacity 2048
 #define Qk_CGCmd_CmdBlock_Capacity 65536
-#define Qk_useShaderProgram(shader, vertex) if (!useShaderProgram(shader, vertex)) return
+//#define Qk_useShaderProgram(shader, vertex) if (!useShaderProgram(shader, vertex)) return
+#define Qk_useShaderProgram(shader, vertex) useShaderProgram(shader, vertex)
 
 namespace qk {
 	extern const float aa_fuzz_weight;
@@ -359,16 +360,17 @@ namespace qk {
 			);
 		}
 
-		bool useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
+		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
 			if (_cache->newVertexData(vertex.id)) {
 				glBindVertexArray(vertex.id->vao); // use vao
 				glUseProgram(shader->shader); // use shader program
-			} else if (vertex.vertex.length()) {
+			} else /*if (vertex.vertex.length())*/ {
 				// copy vertex data to gpu and use shader
+				Qk_ASSERT_EQ(vertex.vCount, vertex.vertex.size(), "useShaderProgram, vertex vCount != vertex.vertex.size()");
 				shader->use(vertex.vertex.size(), vertex.vertex.val());
-			} else
+			}/* else
 				return false;
-			return true;
+			return true;*/
 		}
 
 		void setRootMatrixCall(const Mat4 &root) {
@@ -497,63 +499,14 @@ namespace qk {
 			const ImagePaint *paint, float allScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
 			ImagePaintLock lock(paint);
-			// Qk_Log("drawImageMaskCall pixel body, %p,", paint->image->pixel(0)->body());
 			if (setTextureSlot0(paint)) {
 				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
 				Qk_useShaderProgram(s, vertex);
-
-				Qk_Log("drawImageMaskCall, %p, %d", vertex.id, vertex.vCount);
-
-				// auto s = aafuzz ?
-				// 	aaclip ? &_render->_shaders.color_AAFUZZ_AACLIP: &_render->_shaders.color_AAFUZZ:
-				// 	aaclip ? &_render->_shaders.color_AACLIP: &_render->_shaders.color;
-				//Qk_useShaderProgram(s, vertex);
-				// glUniform1f(s->depth, depth);
-				// glUniform4fv(s->color, 1, color.val);
-				// glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
-
-				// GLuint vao, vbo;
-				// glGenVertexArrays(1, &vao);
-				// glGenBuffers(1, &vbo);
-
-				// glUseProgram(s->shader);
-				// glBindVertexArray(vao);
-				// glBindBuffer(GL_ARRAY_BUFFER, vbo);
-				// glBufferData(GL_ARRAY_BUFFER, vertex.vertex.size(), vertex.vertex.val(), GL_DYNAMIC_DRAW);
-
-				// {"vertexIn",2,GL_FLOAT,sizeof(float)*2},
-				// {"aafuzzIn",1,GL_FLOAT,sizeof(float)*1},
-				Qk_Log("drawImageMaskCall, glEnableVertexAttribArray, %d, %d", s->vertexIn, s->aafuzzIn);
-				// glEnableVertexAttribArray(s->vertexIn);
-				// glVertexAttribPointer(s->vertexIn, 2, GL_FLOAT, GL_FALSE, sizeof(float)*3, (const GLvoid*)(0));
-				// glEnableVertexAttribArray(s->aafuzzIn);
-				// glVertexAttribPointer(s->aafuzzIn, 1, GL_FLOAT, GL_FALSE, sizeof(float)*3, (const GLvoid*)(sizeof(float)*2));
-
-				// GLint valid;
-				// glValidateProgram(s->shader);
-				// glGetProgramiv(s->shader, GL_VALIDATE_STATUS, &valid);
-				// if (!valid) {
-					// GLint logLength;
-					// glGetProgramiv(s->shader, GL_INFO_LOG_LENGTH, &logLength);
-					// if (logLength > 0) {
-					// 	char *log = (char*)malloc(logLength);
-					// 	glGetProgramInfoLog(s->shader, logLength, nullptr, log);
-					// 	Qk_Log("drawImageMaskCall, Shader program validation failed: %s", log);
-					// 	free(log);
-					// }
-				// }
-				Qk_Log("drawImageMaskCall 1, %p, %d, %d", vertex.id, vertex.vCount, vertex.vertex.size());
-
 				glUniform1f(s->depth, depth);
 				glUniform1f(s->allScale, allScale);
 				glUniform4fv(s->color, 1, color.val);
 				glUniform4fv(s->coord, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
-
-				Qk_Log("drawImageMaskCall 2, %p, %d", vertex.id, vertex.vCount);
-
-				// glDeleteVertexArrays(1, &vao);
-				// glDeleteBuffers(1, &vbo);
 			}
 		}
 

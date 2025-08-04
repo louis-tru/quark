@@ -369,7 +369,7 @@ namespace qk {
 		_glcanvas->retain(); // retain
 
 		// glGenFramebuffers(1, &_fbo);
-		glGenBuffers(3, &_rootMatrixBlock); // _matrixBlock, _viewMatrixBlock, _optsBlock
+		glGenBuffers(3, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
 		// _viewMatrixBlock
