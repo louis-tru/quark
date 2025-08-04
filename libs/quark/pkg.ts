@@ -125,7 +125,8 @@ const searchPaths: Map<string, SearchPath> = new Map(); // absolute path => Sear
 const lookupCache: Map<string, LookupResult> = new Map(); // absolute path => LookupResult
 // all packages
 const packages: Map<string, Package> = new Map();
-const options: Optopns = Object.create(_utild.options);
+const options: Optopns = _utild.options;
+let   pkgz_off_mask = Number(options.pkgz_off) || 0; // 1 only disable local pkgz startup
 let   mainModule: Module | undefined;
 
 const wrapper = [
@@ -601,11 +602,11 @@ export class Module implements IModule {
 	// the correct helper variables (require, module, exports) to
 	// the file.
 	// Returns exception, if any.
-	private _compile(content: string) {
-		let filename = this.filename;
+	private _compile(content: string, resolve?: string) {
+		let {filename,dirname} = this;
 		let wrapper = Module.wrap(stripShebang(content));
-		let compiledWrapper = _utild.runScript(wrapper, filename);
-		let dirname = _fs.dirname(filename);
+		let compiledWrapper = _utild.runScript(wrapper,
+			resolve ? resolve.replace(/\?.*$/, '') : filename);
 		let require: qk.Require;
 
 		if (mainModule) {
@@ -777,7 +778,7 @@ export class Module implements IModule {
 
 	static readonly _extensions: Dict<(module: Module, filename: string) => any> = {
 		'.js': function(module: Module, filename: string) {
-			module._compile(stripBOM(readTextSync(filename)));
+			module._compile(stripBOM(readTextSync(filename)), filename);
 		},
 		'.json': function(module: Module, filename: string) {
 			(module as any).exports = readJSONSync(filename);
@@ -937,7 +938,7 @@ class Package {
 			let path = prefix + '/versions.json';
 			let path_arg = set_url_args(path, self.hash/* || '__no_cache'*/);
 
-			let ok = (text: string)=>{
+			let versions_ok = (text: string)=>{
 				let {filesHash={},pkgzFiles={}} = parseJSON(text, path);
 				let files = (self as {filesHash: Dict});
 				self._status = PackageStatus.INSTALLED;
@@ -951,7 +952,8 @@ class Package {
 				}
 				cb && cb(); // ok
 			};
-			cb ? readText(path_arg).then(ok).catch(cb): ok(readTextSync(path_arg));
+			cb ? readText(path_arg).then(versions_ok).catch(cb):
+				versions_ok(readTextSync(path_arg));
 		} else {
 			self._status = PackageStatus.INSTALLED;
 			cb && cb(); // ok
@@ -1022,9 +1024,8 @@ class Package {
 	private _install(cb?: Cb) {
 		let self = this;
 		let path = self.path;
-		let disable_pkgz = options.disable_pkgz_startup;
-
-		options.disable_pkgz_startup = ''; // Only first once
+		let pkgz_off = pkgz_off_mask & 0b1; // is local pkgz startup off
+		pkgz_off_mask &= ~0b1; // delete local pkgz startup off
 
 		if (self._status != PackageStatus.NO_INSTALL) {
 			return throwErr(`${path} package installing repeat call`, cb);
@@ -1048,7 +1049,7 @@ class Package {
 		* 比如无法android资源包中的.pkgz文件
 		* 所以android.apk中不能存在.pkgz格式文件否则将不能读取
 		*/
-		if (!disable_pkgz && // disable local pkgz
+		if (!pkgz_off && // disable local pkgz
 			!isLocalZip(path) && // not a local zip protocol file
 			isFileSync(`${path}/${self.name}.pkgz`)
 		) { // there is a. pkgz file in the local package

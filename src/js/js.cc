@@ -604,11 +604,8 @@ namespace js {
 							putkv(lastKey[i], String());
 					}
 				} else if (arg.length() > 2) { // --
-					lastKey = k.substr(2);
-					putkv(lastKey, v);
-					if (kv.length() > 1) {
-						lastKey = String();
-					}
+					putkv(k.substr(2), v);
+					lastKey = String();
 				}
 			} else if (arg.length() > 0) {
 				val:
