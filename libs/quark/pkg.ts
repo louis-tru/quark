@@ -128,6 +128,7 @@ const packages: Map<string, Package> = new Map();
 const options: Optopns = _utild.options;
 let   pkgz_off_mask = Number(options.pkgz_off) || 0; // 1 only disable local pkgz startup
 let   mainModule: Module | undefined;
+let   watchModule: ((mod: Module)=>void)|undefined;
 
 const wrapper = [
 	'(function (exports, require, module, __filename, __dirname) { ', '\n})'
@@ -408,6 +409,7 @@ export interface PackageJson {
 	symlink?: string; //!< package path symlink
 	pkgzSize?: number; //!< pkgz file size
 	modules?: Dict<Dict<PackageJson>>; //!<
+	watching?: boolean; //!< having debug server of the watching mode
 }
 
 class SearchPath {
@@ -613,12 +615,18 @@ export class Module implements IModule {
 			require = this._makeRequire(mainModule);
 		} else {
 			(this as any).id = '.';
-			require = this._makeRequire(mainModule = this);
+			mainModule = this;
+			require = this._makeRequire(this);
+			if (this.package && this.package.json.watching) {
+				watchModule = __binding__('_watching').connectServer(this.package);
+			}
 			if ('inspect_brk' in options || 'brk' in options) {
 				_init.debuggerBreakNextStatement();
 			}
 		}
 		compiledWrapper.call(this.exports, this.exports, require, this, filename, dirname);
+		if (watchModule)
+			watchModule(this);
 	}
 
 	/**
@@ -1101,6 +1109,9 @@ class Package {
 		}
 	}
 }
+
+// @private
+export type _Package = Package;
 
 /**
  * qk://quark ExtendModule Internal expansion module
