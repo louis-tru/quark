@@ -31,36 +31,47 @@
 import {WSClient, WSConversation} from './ws';
 import {URL} from './path';
 import {_Package,Module} from "./pkg";
+import {EventNoticer} from "./event";
 
 let mainPkg: _Package;
 let mainPkgLocal: _Package|undefined;
 let modules: Map<string, Module> = new Map();
 
-function addFilenameMask(v: any, filename: string) {
+function markDom(v: any, filename: string) {
 	if (v) {
-		if (v.isViewController) { // ViewController
+		if (v.isViewController || v.domC) { // ViewController or VirtualDOM
 			v.__filename = filename;
-		} else if (v.domC) { // VirtualDOM
-			v.__filename = filename;
+			return true;
 		}
 	}
+	return false;
 }
 
 function watchModule(mod: Module) {
-	const pkg = mod.package
+	let pkg = mod.package;
 	if (!pkg)
 		return;
 	if (pkg !== mainPkg && pkg !== mainPkgLocal)
 		return;
-	const filename = mod.filename.substring(pkg.path.length + 1);
+	let filename = mod.filename.substring(pkg.path.length + 1);
+	let oldMod = modules.get(filename);
 
-	for (const v of Object.values<any>(mod.exports)) {
-		addFilenameMask(v, filename);
+	if (oldMod) {
+		if (oldMod !== mod)
+			throw new Error(`Module already exists: ${filename}, but different instance.`);
 	}
-	addFilenameMask(mod.exports, filename);
+	let ok = false;
 
-	modules.set(filename, mod);
+	for (let v of Object.values<any>(mod.exports)) {
+		ok = markDom(v, filename) || ok;
+	}
+	ok = markDom(mod.exports, filename) || ok;
+
+	if (ok)
+		modules.set(filename, mod);
 }
+
+export const onFileChanged = new EventNoticer('FileChanged', {});
 
 export function connectServer(pkg: _Package) {
 	if (!pkg.isHttp || !pkg.json.watching)
@@ -68,19 +79,20 @@ export function connectServer(pkg: _Package) {
 	mainPkg = pkg;
 	mainPkgLocal = (pkg as any)._local;
 
-	const url = new URL(pkg.path);
-	const cli = new WSClient('Message', new WSConversation(url.origin));
+	let url = new URL(pkg.path);
+	let cli = new WSClient('Message', new WSConversation(url.origin));
 
 	cli.conv.autoReconnect = 5e2; // 500ms
 
 	cli.addEventListener('FileChanged', e=>{
-		const data = e.data as {fileName: string, hash: string};
-
-		console.log(`File changed: ${data.fileName}, hash: ${data.hash}`);
-
-		
-
-		// TODO ...
+		let {name, hash} = e.data as {name: string, hash: string};
+		let mod = modules.get(name);
+		if (mod) {
+			let filename = `${mainPkg.path}/${name}`;
+			(mod as any).loaded = false;
+			(mod as any)._load(`${filename}?${hash}`, filename);
+			onFileChanged.trigger({name,hash});
+		}
 	});
 
 	cli.onLoad.on(()=>{
