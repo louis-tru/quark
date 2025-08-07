@@ -618,7 +618,7 @@ export class Module implements IModule {
 			mainModule = this;
 			require = this._makeRequire(this);
 			if (this.package && this.package.json.watching) {
-				watchModule = __binding__('_watching').connectServer(this.package);
+				watchModule = __binding__('quark/_watching').connectServer(this.package);
 			}
 			if ('inspect_brk' in options || 'brk' in options) {
 				_init.debuggerBreakNextStatement();
@@ -649,9 +649,9 @@ export class Module implements IModule {
 		self.dirname = _fs.dirname(filename);
 
 		if (!isHttp(filename)) { // no http
-			self.paths = parentsPaths(this.dirname).map(e=>e+'/'+saerchModules);
+			self.paths = parentsPaths(this.dirname).map(e=>`${e}/${saerchModules}`);
 		} else if (this.package) { // http
-			self.paths = [this.package.path +'/'+saerchModules];
+			self.paths = [`${this.package.path}/${saerchModules}`];
 		}
 
 		let extension = _fs.extname(filename) || '.js';
@@ -1131,6 +1131,7 @@ class QkPackage extends Package {
 			'_sha1.js',
 			'_sha256.js',
 			'_util.js',
+			'_watching.js',
 			'action.js',
 			'app.js',
 			'buffer.js',

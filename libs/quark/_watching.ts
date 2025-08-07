@@ -34,7 +34,17 @@ import {_Package,Module} from "./pkg";
 
 let mainPkg: _Package;
 let mainPkgLocal: _Package|undefined;
-let modules: Dict<Module> = {};
+let modules: Map<string, Module> = new Map();
+
+function addFilenameMask(v: any, filename: string) {
+	if (v) {
+		if (v.isViewController) { // ViewController
+			v.__filename = filename;
+		} else if (v.domC) { // VirtualDOM
+			v.__filename = filename;
+		}
+	}
+}
 
 function watchModule(mod: Module) {
 	const pkg = mod.package
@@ -44,17 +54,38 @@ function watchModule(mod: Module) {
 		return;
 	const filename = mod.filename.substring(pkg.path.length + 1);
 
-	// TODO ...
+	for (const v of Object.values<any>(mod.exports)) {
+		addFilenameMask(v, filename);
+	}
+	addFilenameMask(mod.exports, filename);
+
+	modules.set(filename, mod);
 }
 
 export function connectServer(pkg: _Package) {
 	if (!pkg.isHttp || !pkg.json.watching)
 		return;
-	const {hostname} = new URL(pkg.path);
 	mainPkg = pkg;
 	mainPkgLocal = (pkg as any)._local;
 
-	// TODO ...
+	const url = new URL(pkg.path);
+	const cli = new WSClient('Message', new WSConversation(url.origin));
+
+	cli.conv.autoReconnect = 5e2; // 500ms
+
+	cli.addEventListener('FileChanged', e=>{
+		const data = e.data as {fileName: string, hash: string};
+
+		console.log(`File changed: ${data.fileName}, hash: ${data.hash}`);
+
+		
+
+		// TODO ...
+	});
+
+	cli.onLoad.on(()=>{
+		console.log('Connected to watching server');
+	});
 
 	return watchModule;
 }
