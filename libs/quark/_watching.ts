@@ -31,15 +31,16 @@
 import {WSClient, WSConversation} from './ws';
 import {URL} from './path';
 import {_Package,Module} from "./pkg";
-import {EventNoticer} from "./event";
+import {EventNoticer,Event} from "./event";
 
+let isWatching = false;
 let mainPkg: _Package;
 let mainPkgLocal: _Package|undefined;
 let modules: Map<string, Module> = new Map();
 
 function markDom(v: any, filename: string) {
 	if (v) {
-		if (v.isViewController || v.domC) { // ViewController or VirtualDOM
+		if (v.isViewController) { // ViewController
 			v.__filename = filename;
 			return true;
 		}
@@ -65,19 +66,20 @@ function watchModule(mod: Module) {
 	for (let v of Object.values<any>(mod.exports)) {
 		ok = markDom(v, filename) || ok;
 	}
-	ok = markDom(mod.exports, filename) || ok;
 
 	if (ok)
 		modules.set(filename, mod);
 }
 
-export const onFileChanged = new EventNoticer('FileChanged', {});
+const onFileChanged = new EventNoticer<Event<{},{name:string,hash:string}>>(
+	'FileChanged', {});
 
 export function connectServer(pkg: _Package) {
 	if (!pkg.isHttp || !pkg.json.watching)
 		return;
 	mainPkg = pkg;
 	mainPkgLocal = (pkg as any)._local;
+	isWatching = true;
 
 	let url = new URL(pkg.path);
 	let cli = new WSClient('Message', new WSConversation(url.origin));
@@ -89,7 +91,7 @@ export function connectServer(pkg: _Package) {
 		let mod = modules.get(name);
 		if (mod) {
 			let filename = `${mainPkg.path}/${name}`;
-			(mod as any).loaded = false;
+			(mod as any).loaded = false; // force reload
 			(mod as any)._load(`${filename}?${hash}`, filename);
 			onFileChanged.trigger({name,hash});
 		}
@@ -100,4 +102,9 @@ export function connectServer(pkg: _Package) {
 	});
 
 	return watchModule;
+}
+
+export default {
+	onFileChanged,
+	get isWatching() { return isWatching },
 }

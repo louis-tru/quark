@@ -33,10 +33,18 @@ import util from './util';
 import { Label, View, DOM } from './view';
 import { Window } from './window';
 import * as view from './view';
+import _watching from './_watching';
+
+class InvalidSet<T> extends Set<T> {
+	add(k: T) { return this }
+	delete(k: T) { return false }
+}
 
 const assertDev = util.assert;
 const RenderQueueSet = new Set<ViewController>();
 let   RenderQueueWorking = false;
+const WatchingAllCtrForDebug = _watching.isWatching ?
+	new Set<ViewController>(): new InvalidSet<ViewController>();
 const WarnRecord = new Set();
 const WarnDefine = {
 	UndefinedDOMKey: 'DOM key no defined in DOM Collection',
@@ -52,6 +60,15 @@ function warn(id: string, msg = '') {
 	}
 }
 
+// handle file change
+_watching.onFileChanged.on(function({data:{name,hash}}) {
+	for (let ctr of WatchingAllCtrForDebug) {
+		if ((ctr as any)._watchings.has(name)) {
+			markrerender(ctr); // mark for re-render
+		}
+	}
+});
+
 /**
  * @type Args:...
 */
@@ -64,6 +81,7 @@ export type Args = {
 interface DOMConstructor<T extends DOM = DOM> {
 	new(...args: any[]): T;
 	readonly isViewController: boolean;
+	readonly __filename?: string; // debug watching filename
 }
 
 /**
@@ -166,12 +184,14 @@ function rerender(Self: ViewController) {
 	type InlCrt = {
 		_vdom?: VirtualDOM;
 		_rerenderCbs?: (()=>void)[];
+		_watchings: Set<any>;
 		isMounted: boolean;
 		isDestroyd: boolean;
 		dom: DOM;
 		render: ()=>any;
 		triggerMounted: ()=>any;
 		triggerUpdate: (vdomOld: VirtualDOM, vdomNew: VirtualDOM)=>any;
+		constructor: { __filename?: string };
 	};
 
 	let self = Self as unknown as InlCrt;
@@ -183,6 +203,7 @@ function rerender(Self: ViewController) {
 	let vdomNew = _CVDD(self.render()) || EmptyVDom;
 
 	RenderQueueSet.delete(Self); // re delete mark
+	self._watchings.clear(); // clear debug watchings
 
 	if (vdomOld) {
 		if (vdomOld.hash !== vdomNew.hash) {
@@ -193,6 +214,14 @@ function rerender(Self: ViewController) {
 	} else { // once rerender
 		self._vdom = vdomNew;
 		self.dom = vdomNew.newDom(Self);
+	}
+
+	if (_watching.isWatching) {
+		self._watchings.delete(undefined);
+		self._watchings.delete(self.constructor.__filename);
+		if (self._watchings.size) {
+			WatchingAllCtrForDebug.add(Self);
+		}
 	}
 
 	if (!self.isMounted) {
@@ -237,8 +266,9 @@ export class VirtualDOM<T extends DOM = DOM> {
 
 		if (children.length) {
 			for (let vdom of children) {
-				if (vdom)
+				if (vdom) {
 					hash += (hash << 5) + vdom.hash;
+				}
 			}
 			this.children = children;
 		}
@@ -278,14 +308,15 @@ export class VirtualDOM<T extends DOM = DOM> {
 	diff<P = {}, S = {}>(owner: ViewController<P,S>, vdomOld: VirtualDOM, domOld: DOM): T {
 		let vdomNew: VirtualDOM<T> = this;
 		if (vdomOld.domC !== vdomNew.domC) { // diff type
-			let prev = domOld.metaView; assertDev(prev);
+			let prev = domOld.metaView;
+			assertDev(prev);
 			let newDom = this.newDom(owner);
 			newDom.afterTo(prev);
 			domOld.destroy(owner);
 			return newDom;
 		}
 
-		if ( vdomNew.domC.isViewController ) {
+		if (vdomNew.domC.isViewController) {
 			let ctr = domOld as ViewController;
 			(ctr as {props:any}).props = vdomNew.props;
 			(ctr as {children:any}).children = vdomNew.children;
@@ -297,10 +328,10 @@ export class VirtualDOM<T extends DOM = DOM> {
 			// diff and set props
 			setref(domOld as View, owner, vdomNew.props.ref || '');
 			vdomNew.diffProps(domOld as T, vdomOld);
-	
+
 			let childrenOld = vdomOld.children, childrenNew = vdomNew.children;
 			let len = Math.max(childrenOld.length, childrenNew.length);
-	
+
 			if (len) {
 				let childDomsOld: (DOM|undefined)[] = (domOld as any).childDoms; // View.childDoms
 				let childDomsNew: (DOM|undefined)[] = new Array(len);
@@ -333,50 +364,22 @@ export class VirtualDOM<T extends DOM = DOM> {
 				}
 				(domOld as any).childDoms = childDomsNew; // View.childDoms = childDomsNew
 			}
-		} // if (vdomNew.domNew.isViewController)
+		} // if (vdomNew.domC.isViewController)
 
 		return domOld as T;
-	}
-
-	render<P = {}, S = {}>(owner: ViewController<P,S>, opts?: {
-		parent?: View | null,
-		replace?: { // prev replace
-			vdom?: VirtualDOM | null, // diff prev vdom
-			dom?: DOM | null // diff prev dom
-		},
-	}): T {
-		const {parent,replace} = opts||{};
-		const {vdom,dom} = replace||{};
-		let domNew: T;
-		if (vdom && dom) {
-			if (vdom.domC !== this.domC) { // diff type
-				domNew = this.newDom(owner);
-				parent && domNew.appendTo(parent);
-				dom.destroy(owner);
-			} else {
-				domNew = this.diff(owner, vdom, dom!);
-				if (parent && parent !== dom.metaView.parent) {
-					domNew.appendTo(parent);
-				}
-			}
-		} else {
-			domNew = this.newDom(owner);
-			parent && domNew.appendTo(parent);
-		}
-		return domNew;
 	}
 
 	newDom<P = {}, S = {}>(owner: ViewController<P,S>): T {
 		const window = owner.window;
 		const {hashProps,props,children} = this;
-		if (this.domC.isViewController) {
+		if (this.domC.isViewController) { // is view controller
 			let dom = new this.domC(props, { owner, window, children });
 			let newCtr = dom as DOM as ViewController;
 			let r = (newCtr as any).triggerLoad(); // trigger event Load
 			if (r instanceof Promise) {
 				r.then(()=>{
 					(newCtr as any).isLoaded = true;
-					markrerender(newCtr);
+					markrerender(newCtr); // mark rerender
 				});
 			} else {
 				(newCtr as {isLoaded:boolean}).isLoaded = true;
@@ -387,6 +390,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 				if (hashProps.has(key))
 					(newCtr as any)[key] = props[key];
 			}
+			(owner as any)._watchings.add(this.domC.__filename);
 			rerender(newCtr); // rerender
 			return dom;
 		}
@@ -411,6 +415,34 @@ export class VirtualDOM<T extends DOM = DOM> {
 			return view as DOM as T;
 		}
 	}
+
+	render<P = {}, S = {}>(owner: ViewController<P,S>, opts?: {
+		parent?: View | null,
+		replace?: { // replace
+			vdom?: VirtualDOM | null, // diff prev vdom
+			dom?: DOM | null // diff prev dom
+		},
+	}): T {
+		const {parent,replace} = opts||{};
+		const {vdom,dom} = replace||{};
+		let domNew: T;
+		if (vdom && dom) {
+			if (vdom.domC !== this.domC) { // diff type
+				domNew = this.newDom(owner);
+				parent && domNew.appendTo(parent);
+				dom.destroy(owner); // destroy old dom
+			} else {
+				domNew = this.diff(owner, vdom, dom!);
+				if (parent && parent !== dom.metaView.parent) {
+					domNew.appendTo(parent);
+				}
+			}
+		} else {
+			domNew = this.newDom(owner);
+			parent && domNew.appendTo(parent);
+		}
+		return domNew;
+	}
 }
 Object.assign(VirtualDOM.prototype, {
 	children: [], props: {}, hashProps: new Map,
@@ -420,7 +452,7 @@ const EmptyVDom = new VirtualDOM(View, null, []);
 
 class VirtualDOMText extends VirtualDOM<Label> {
 	readonly value: string;
-	static fromString(value: string): VirtualDOM {
+	static fromString(value: string): VirtualDOMText {
 		return {
 			__proto__: VirtualDOMText.prototype,
 			value,
@@ -562,8 +594,9 @@ Object.assign(DOMCollection.prototype, {ref: ''});
 export class ViewController<P = {}, S = {}> implements DOM {
 	private _stateHashs = new Map<string, number>;
 	private _vdom?: VirtualDOM; // render result
-	private _rerenderCbs?: (()=>void)[]; // rerender callbacks
 	private _linkProps: string[];
+	private _watchings: Set<any>; // watch filenames
+	private _rerenderCbs?: (()=>void)[]; // rerender callbacks
 	/** [`Window`] object ref */
 	readonly window: Window;
 	/** Parent controller which the current controller belongs */
@@ -603,6 +636,9 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		props: Readonly<P & { ref?: string, key?: string|number }>,
 		{window,children,owner}: Args
 	) {
+		if (_watching.isWatching) {
+			this._watchings = new Set();
+		}
 		this.props = props;
 		this.window = window;
 		this.children = children;
@@ -724,6 +760,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	*/
 	destroy() {
 		if (!this.isDestroyd) {
+			WatchingAllCtrForDebug.delete(this);
 			(this as any).isDestroyd = true;
 			this.triggerDestroy(); // trigger event
 			unref(this, this.owner);
@@ -737,6 +774,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 
 	static readonly isViewController: boolean = true;
 }
+
 Object.assign(ViewController.prototype, {
 	dom: { // init default dom
 		ref: '',
@@ -745,6 +783,7 @@ Object.assign(ViewController.prototype, {
 		appendTo(){ throw Error.new('Not implemented') },
 		afterTo(){ throw Error.new('Not implemented') },
 	} as DOM,
+	_watchings: new InvalidSet,
 	_linkProps: [],
 	ref: '', _vdom: undefined,
 	isLoaded: false, isMounted: false, isDestroyd: false,
