@@ -110,8 +110,3 @@ export function connectServer(pkg: _Package) {
 
 	return watchModule;
 }
-
-// export default {
-// 	onFileChanged,
-// 	get isWatching() { return isWatching },
-// }
