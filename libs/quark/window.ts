@@ -228,9 +228,7 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	* ```
 	*/
 	render(vdom: VirtualDOM) {
-		let dom = vdom.newDom(this.rootCtr);
-		dom.appendTo(this.root);
-		return dom;
+		return vdom.render(this.rootCtr, { parent: this.root });
 	}
 
 	/**

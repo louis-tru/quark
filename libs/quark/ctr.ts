@@ -33,7 +33,7 @@ import util from './util';
 import { Label, View, DOM } from './view';
 import { Window } from './window';
 import * as view from './view';
-import _watching from './_watching';
+import {onFileChanged,isWatching} from './_watching';
 
 class InvalidSet<T> extends Set<T> {
 	add(k: T) { return this }
@@ -41,9 +41,9 @@ class InvalidSet<T> extends Set<T> {
 }
 
 const assertDev = util.assert;
-const RenderQueueSet = new Set<ViewController>();
+const RenderQueue = new Map<ViewController, {missError?: boolean}>();
 let   RenderQueueWorking = false;
-const WatchingAllCtrForDebug = _watching.isWatching ?
+const WatchingAllCtrForDebug = isWatching ?
 	new Set<ViewController>(): new InvalidSet<ViewController>();
 const WarnRecord = new Set();
 const WarnDefine = {
@@ -61,10 +61,11 @@ function warn(id: string, msg = '') {
 }
 
 // handle file change
-_watching.onFileChanged.on(function({data:{name,hash}}) {
+onFileChanged.on(function({data:{name,hash}}) {
 	for (let ctr of WatchingAllCtrForDebug) {
 		if ((ctr as any)._watchings.has(name)) {
-			markrerender(ctr); // mark for re-render
+			markrerender(ctr, true); // mark for re-render
+			console.log(`File changed: ${name}, hash: ${hash}, mark rerender ctr:`, ctr.constructor.name);
 		}
 	}
 });
@@ -158,19 +159,26 @@ function setref(dom: View | ViewController, owner: ViewController, value: string
 	}
 }
 
-function markrerender<T>(ctr: ViewController<T>) {
-	const size = RenderQueueSet.size;
-	RenderQueueSet.add(ctr as ViewController);
+function markrerender<T>(ctr: ViewController<T>, missError = false) {
+	const size = RenderQueue.size;
+	RenderQueue.set(ctr, {missError});
 
-	if (size == RenderQueueSet.size)
+	if (size == RenderQueue.size)
 		return;
 
 	if (!RenderQueueWorking) {
 		RenderQueueWorking = true;
 		util.nextTick(function() {
+			let missErr;
 			try {
-				for( let item of RenderQueueSet )
-					rerender(item);
+				for(let [ctr,{missError}] of RenderQueue) {
+					missErr = missError;
+					rerender(ctr);
+				}
+			} catch(err) {
+				if (!missErr)
+					throw err;
+				console.error('RenderQueue error:', err);
 			} finally {
 				RenderQueueWorking = false;
 			}
@@ -179,7 +187,7 @@ function markrerender<T>(ctr: ViewController<T>) {
 }
 
 function rerender(Self: ViewController) {
-	RenderQueueSet.delete(Self); // delete mark
+	RenderQueue.delete(Self); // delete mark
 
 	type InlCrt = {
 		_vdom?: VirtualDOM;
@@ -202,7 +210,7 @@ function rerender(Self: ViewController) {
 	let vdomOld = self._vdom;
 	let vdomNew = _CVDD(self.render()) || EmptyVDom;
 
-	RenderQueueSet.delete(Self); // re delete mark
+	RenderQueue.delete(Self); // re delete mark
 	self._watchings.clear(); // clear debug watchings
 
 	if (vdomOld) {
@@ -216,7 +224,7 @@ function rerender(Self: ViewController) {
 		self.dom = vdomNew.newDom(Self);
 	}
 
-	if (_watching.isWatching) {
+	if (isWatching) {
 		self._watchings.delete(undefined);
 		self._watchings.delete(self.constructor.__filename);
 		if (self._watchings.size) {
@@ -636,7 +644,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		props: Readonly<P & { ref?: string, key?: string|number }>,
 		{window,children,owner}: Args
 	) {
-		if (_watching.isWatching) {
+		if (isWatching) {
 			this._watchings = new Set();
 		}
 		this.props = props;

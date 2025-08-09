@@ -33,7 +33,6 @@ import {URL} from './path';
 import {_Package,Module} from "./pkg";
 import {EventNoticer,Event} from "./event";
 
-let isWatching = false;
 let mainPkg: _Package;
 let mainPkgLocal: _Package|undefined;
 let modules: Map<string, Module> = new Map();
@@ -71,7 +70,9 @@ function watchModule(mod: Module) {
 		modules.set(filename, mod);
 }
 
-const onFileChanged = new EventNoticer<Event<{},{name:string,hash:string}>>(
+export let isWatching = false;
+
+export const onFileChanged = new EventNoticer<Event<{},{name:string,hash:string}>>(
 	'FileChanged', {});
 
 export function connectServer(pkg: _Package) {
@@ -91,8 +92,14 @@ export function connectServer(pkg: _Package) {
 		let mod = modules.get(name);
 		if (mod) {
 			let filename = `${mainPkg.path}/${name}`;
-			(mod as any).loaded = false; // force reload
-			(mod as any)._load(`${filename}?${hash}`, filename);
+			try {
+				(mod as any).loaded = false; // force reload
+				(mod as any)._load(`${filename}?${hash}`, filename);
+			} catch (error) {
+				console.error(`Error reloading module ${name}:`, error);
+				(mod as any).loaded = true; // restore to last loaded state
+				return;
+			}
 			onFileChanged.trigger({name,hash});
 		}
 	});
@@ -104,7 +111,7 @@ export function connectServer(pkg: _Package) {
 	return watchModule;
 }
 
-export default {
-	onFileChanged,
-	get isWatching() { return isWatching },
-}
+// export default {
+// 	onFileChanged,
+// 	get isWatching() { return isWatching },
+// }
