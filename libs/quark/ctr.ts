@@ -65,7 +65,7 @@ onFileChanged.on(function({data:{name,hash}}) {
 	for (let ctr of WatchingAllCtrForDebug) {
 		if ((ctr as any)._watchings.has(name)) {
 			markrerender(ctr, true); // mark for re-render
-			console.log(`File changed: ${name}, hash: ${hash}, mark rerender ctr:`, ctr.constructor.name);
+			console.log(`Re-render: The ${ctr.constructor.name} view-controller at the ${name}, hash: ${hash}`);
 		}
 	}
 });
