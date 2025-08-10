@@ -37,8 +37,11 @@ const { formatPath, isAbsolute, isLocal, isLocalZip, stripShebang,
 				isHttp, assert, stripBOM, default: _utild } = _util;
 const { readFile, readFileSync, isFileSync,
 				isDirectorySync, readdirSync } = _fs.reader;
+const _event = __binding__('_event');
 const debug = _util.debugLog('PKG');
 const win32 = _utild.platform == 'win32';
+
+import {EventNoticer,Event} from './_event';
 
 /// <reference path="./_ext.d.ts" />
 
@@ -129,6 +132,9 @@ const options: Optopns = _utild.options;
 let   pkgz_off_mask = Number(options.pkgz_off) || 0; // 1 only disable local pkgz startup
 let   mainModule: Module | undefined;
 let   watchModule: ((mod: Module)=>void)|undefined;
+let   isWatching = false; // is watch files
+const onFileChanged: EventNoticer<Event<{},{name:string,hash:string}>> =
+	new _event.EventNoticer('FileChanged', {});
 
 const wrapper = [
 	'(function (exports, require, module, __filename, __dirname) { ', '\n})'
@@ -617,8 +623,10 @@ export class Module implements IModule {
 			(this as any).id = '.';
 			mainModule = this;
 			require = this._makeRequire(this);
-			if (this.package && this.package.json.watching) {
-				watchModule = __binding__('quark/_watching').connectServer(this.package);
+			if (this.package && this.package.json.watching && 'watch' in options) {
+				watchModule = __binding__('quark/_watching')
+					.connectServer(this.package, onFileChanged);
+				isWatching = !!watchModule;
 			}
 			if ('inspect_brk' in options || 'brk' in options) {
 				_init.debuggerBreakNextStatement();
@@ -1201,6 +1209,18 @@ new QkPackage();
  * @default
 */
 export default {
+
+	/**
+	 * @event onFileChanged
+	 * 
+	 * Trigger when a typescrip or javascript file is modified.
+	*/
+	onFileChanged,
+
+	/**
+	 * @get isWatching:boolean
+	*/
+	get isWatching() { return isWatching },
 
 	/**
 	 * @get mainPackage:Package

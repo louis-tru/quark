@@ -65,7 +65,7 @@ class RootViewController extends ViewController {
 	update() { throw Error.new('Access forbidden.') }
 	appendTo(): View { throw Error.new('Access forbidden.') }
 	afterTo(): View { throw Error.new('Access forbidden.') }
-	remove() { throw Error.new('Access forbidden.') }
+	destroy() { throw Error.new('Access forbidden.') }
 }
 
 /**

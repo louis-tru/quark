@@ -33,13 +33,14 @@ import util from './util';
 import { Label, View, DOM } from './view';
 import { Window } from './window';
 import * as view from './view';
-import {onFileChanged,isWatching} from './_watching';
+import pkg from './pkg';
 
 class InvalidSet<T> extends Set<T> {
 	add(k: T) { return this }
 	delete(k: T) { return false }
 }
 
+const isWatching = pkg.isWatching;
 const assertDev = util.assert;
 const RenderQueue = new Map<ViewController, {missError?: boolean}>();
 let   RenderQueueWorking = false;
@@ -61,7 +62,7 @@ function warn(id: string, msg = '') {
 }
 
 // handle file change
-onFileChanged.on(function({data:{name,hash}}) {
+pkg.onFileChanged.on(function({data:{name,hash}}) {
 	for (let ctr of WatchingAllCtrForDebug) {
 		if ((ctr as any)._watchings.has(name)) {
 			markrerender(ctr, true); // mark for re-render
@@ -82,7 +83,7 @@ export type Args = {
 interface DOMConstructor<T extends DOM = DOM> {
 	new(...args: any[]): T;
 	readonly isViewController: boolean;
-	readonly __filename?: string; // debug watching filename
+	readonly __filename__?: string; // debug watching filename
 }
 
 /**
@@ -199,7 +200,7 @@ function rerender(Self: ViewController) {
 		render: ()=>any;
 		triggerMounted: ()=>any;
 		triggerUpdate: (vdomOld: VirtualDOM, vdomNew: VirtualDOM)=>any;
-		constructor: { __filename?: string };
+		constructor: { __filename__?: string };
 	};
 
 	let self = Self as unknown as InlCrt;
@@ -226,7 +227,7 @@ function rerender(Self: ViewController) {
 
 	if (isWatching) {
 		self._watchings.delete(undefined);
-		self._watchings.delete(self.constructor.__filename);
+		self._watchings.delete(self.constructor.__filename__);
 		if (self._watchings.size) {
 			WatchingAllCtrForDebug.add(Self);
 		}
@@ -398,7 +399,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 				if (hashProps.has(key))
 					(newCtr as any)[key] = props[key];
 			}
-			(owner as any)._watchings.add(this.domC.__filename);
+			(owner as any)._watchings.add(this.domC.__filename__);
 			rerender(newCtr); // rerender
 			return dom;
 		}

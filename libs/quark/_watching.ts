@@ -37,12 +37,11 @@ let mainPkg: _Package;
 let mainPkgLocal: _Package|undefined;
 let modules: Map<string, Module> = new Map();
 
-function markDom(v: any, filename: string) {
-	if (v) {
-		if (v.isViewController) { // ViewController
-			v.__filename = filename;
-			return true;
-		}
+function markModuleObject(v: any, filename: string) {
+	if (v !== undefined) {
+		if (v && typeof v == 'object')
+			v.__filename__ = filename;
+		return true;
 	}
 	return false;
 }
@@ -63,29 +62,26 @@ function watchModule(mod: Module) {
 	let ok = false;
 
 	for (let v of Object.values<any>(mod.exports)) {
-		ok = markDom(v, filename) || ok;
+		ok = markModuleObject(v, filename) || ok;
 	}
 
 	if (ok)
 		modules.set(filename, mod);
 }
 
-export let isWatching = false;
+type Noticer = EventNoticer<Event<{},{name:string,hash:string}>>;
 
-export const onFileChanged = new EventNoticer<Event<{},{name:string,hash:string}>>(
-	'FileChanged', {});
-
-export function connectServer(pkg: _Package) {
+// Connect to the watching server
+export function connectServer(pkg: _Package, notice: Noticer) {
 	if (!pkg.isHttp || !pkg.json.watching)
 		return;
 	mainPkg = pkg;
 	mainPkgLocal = (pkg as any)._local;
-	isWatching = true;
 
 	let url = new URL(pkg.path);
 	let cli = new WSClient('Message', new WSConversation(url.origin));
 
-	cli.conv.autoReconnect = 5e2; // 500ms
+	cli.conv.autoReconnect = 5e2; // reconnect every 500ms after disconnect
 
 	cli.addEventListener('FileChanged', e=>{
 		let {name, hash} = e.data as {name: string, hash: string};
@@ -100,7 +96,7 @@ export function connectServer(pkg: _Package) {
 				(mod as any).loaded = true; // restore to last loaded state
 				return;
 			}
-			onFileChanged.trigger({name,hash});
+			notice.trigger({name,hash});
 		}
 	});
 
