@@ -216,13 +216,13 @@ function rerender(Self: ViewController) {
 
 	if (vdomOld) {
 		if (vdomOld.hash !== vdomNew.hash) {
-			self._vdom = vdomNew; // use new vdom
 			self.dom = vdomNew.diff(Self, vdomOld, dom); // diff
+			self._vdom = vdomNew; // use new vdom
 			self.triggerUpdate(vdomOld!, vdomNew);
 		}
 	} else { // once rerender
-		self._vdom = vdomNew;
 		self.dom = vdomNew.newDom(Self);
+		self._vdom = vdomNew;
 	}
 
 	if (isWatching) {
