@@ -36,204 +36,179 @@
 
 namespace qk {
 
-	MatrixBase::MatrixBase()
-		: _translate(0), _scale(1), _skew(0), _rotate_z(0), _origin(0)
-	{
-	}
+	MatrixView::MatrixView(View* host)
+		: _translate(0), _scale(1), _skew(0), _rotate_z(0), _origin(0), _host(host)
+	{}
 
 	/**
 		* Set the matrix `translate` properties of the view object
-		*
-		* @method set_translate(val)
 		*/
-	void MatrixBase::set_translate(Vec2 val, bool isRt) {
+	void MatrixView::set_translate(Vec2 val, bool isRt) {
 		if (_translate != val) {
 			_translate = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
 		* Set the matrix `scale` properties of the view object
-		*
-		* @method set_scale(val)
 		*/
-	void MatrixBase::set_scale(Vec2 val, bool isRt) {
+	void MatrixView::set_scale(Vec2 val, bool isRt) {
 		if (_scale != val) {
 			_scale = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
 		* Set the matrix `skew` properties of the view object
-		*
-		* @method set_skew(val)
 		*/
-	void MatrixBase::set_skew(Vec2 val, bool isRt) {
+	void MatrixView::set_skew(Vec2 val, bool isRt) {
 		if (_skew != val) {
 			_skew = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
 		* Set the z-axis  matrix `rotate` properties of the view object
-		*
-		* @method set_rotate_z(val)
 		*/
-	void MatrixBase::set_rotate_z(float val, bool isRt) {
+	void MatrixView::set_rotate_z(float val, bool isRt) {
 		val *= Qk_PI_RATIO_180;
 		if (_rotate_z != val) {
 			_rotate_z = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
-	void MatrixBase::set_origin(Vec2 origin, bool isRt) {
+	/**
+	 * Returns the matrix origin of the view object
+	*/
+	void MatrixView::set_origin(Vec2 val, bool isRt) {
 		if (_origin != val) {
 			_origin = val;
-			// 	mark_layout(kTransform_Origin, isRt);
+			_host->mark(View::kTransform, isRt);
 		}
 	}
 
-	// void MatrixBase::set_origin_y(BoxOrigin val, bool isRt) {
-		// if (_origin_y != val) {
-		// 	_origin_y = val;
-		// 	mark_layout(kTransform_Origin, isRt);
-		// }
-	// }
-
 	/**
-		* 
 		* Returns x-axis matrix displacement for the view
-		*
-		* @method x()
 		*/
-	float MatrixBase::x() const { return _translate[0]; }
+	float MatrixView::x() const { return _translate[0]; }
 
 	/**
-		* 
 		* Returns y-axis matrix displacement for the view
-		*
-		* @method y()
 		*/
-	float MatrixBase::y() const { return _translate[1]; }
+	float MatrixView::y() const { return _translate[1]; }
 
 	/**
-		* 
 		* Returns x-axis matrix scaling for the view
-		*
-		* @method scale_x()
 		*/
-	float MatrixBase::scale_x() const { return _scale[0]; }
+	float MatrixView::scale_x() const { return _scale[0]; }
 
 	/**
-		* 
 		* Returns y-axis matrix scaling for the view
-		*
-		* @method scale_y()
 		*/
-	float MatrixBase::scale_y() const { return _scale[1]; }
+	float MatrixView::scale_y() const { return _scale[1]; }
 
 	/**
-		* 
 		* Returns x-axis matrix skew for the view
-		*
-		* @method skew_x()
 		*/
-	float MatrixBase::skew_x() const { return _skew[0]; }
+	float MatrixView::skew_x() const { return _skew[0]; }
 
 	/**
-		* 
 		* Returns y-axis matrix skew for the view
-		*
-		* @method skew_y()
 		*/
-	float MatrixBase::skew_y() const { return _skew[1]; }
+	float MatrixView::skew_y() const { return _skew[1]; }
 
 	/**
-		* 
-		* Setting x-axis matrix displacement for the view
-		*
-		* @method set_x(val)
+		* Returns x-axis matrix origin for the view
 		*/
-	void MatrixBase::set_x(float val, bool isRt) {
+	float MatrixView::origin_x() const { return _origin[0]; }
+
+	/**
+	 * Returns y-axis matrix origin for the view
+	 */
+	float MatrixView::origin_y() const { return _origin[1]; }
+
+	/**
+		* Setting x-axis matrix displacement for the view
+		*/
+	void MatrixView::set_x(float val, bool isRt) {
 		if (_translate[0] != val) {
 			_translate[0] = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
-		* 
 		* Setting y-axis matrix displacement for the view
-		*
-		* @method set_y(val)
 		*/
-	void MatrixBase::set_y(float val, bool isRt) {
+	void MatrixView::set_y(float val, bool isRt) {
 		if (_translate[1] != val) {
 			_translate[1] = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
-		* 
 		* Returns x-axis matrix scaling for the view
-		*
-		* @method set_scale_x(val)
 		*/
-	void MatrixBase::set_scale_x(float val, bool isRt) {
+	void MatrixView::set_scale_x(float val, bool isRt) {
 		if (_scale[0] != val) {
 			_scale[0] = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
-		* 
 		* Returns y-axis matrix scaling for the view
-		*
-		* @method set_scale_y(val)
 		*/
-	void MatrixBase::set_scale_y(float val, bool isRt) {
+	void MatrixView::set_scale_y(float val, bool isRt) {
 		if (_scale[1] != val) {
 			_scale[1] = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
-		* 
 		* Returns x-axis matrix skew for the view
-		*
-		* @method set_skew_x(val)
 		*/
-	void MatrixBase::set_skew_x(float val, bool isRt) {
+	void MatrixView::set_skew_x(float val, bool isRt) {
 		if (_skew[0] != val) {
 			_skew[0] = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
 		}
 	}
 
 	/**
-		* 
 		* Returns y-axis matrix skew for the view
-		*
-		* @method set_skew_y(val)
 		*/
-	void MatrixBase::set_skew_y(float val, bool isRt) {
+	void MatrixView::set_skew_y(float val, bool isRt) {
 		if (_skew[1] != val) {
 			_skew[1] = val;
-			mark(kTransform, isRt); // mark transform
+			_host->mark(View::kTransform, isRt); // mark transform
+		}
+	}
+
+	void MatrixView::set_origin_x(float val, bool isRt) {
+		if (_origin[0] != val) {
+			_origin[0] = val;
+			_host->mark(View::kTransform, isRt);
+		}
+	}
+
+	void MatrixView::set_origin_y(float val, bool isRt) {
+		if (_origin[1] != val) {
+			_origin[1] = val;
+			_host->mark(View::kTransform, isRt);
 		}
 	}
 
 	// ----------------------------------------------------------------------------------
 
 	Matrix::Matrix()
-		: Box(), MatrixBase()
+		: Box(), MatrixView(this)
 		, _box_origin_x{0, BoxOriginKind::Auto}
 		, _box_origin_y{0, BoxOriginKind::Auto}
 	{
@@ -254,7 +229,7 @@ namespace qk {
 	}
 
 	ArrayOrigin Matrix::box_origin() const {
-		return ArrayOrigin{_origin_x, _origin_y};
+		return ArrayOrigin{_box_origin_x, _box_origin_y};
 	}
 
 	void Matrix::set_box_origin(ArrayOrigin val, bool isRt) {
@@ -271,11 +246,19 @@ namespace qk {
 		}
 	}
 
+	MatrixView* Matrix::asMatrixView() {
+		return this;
+	}
+
+	ViewType Matrix::viewType() const {
+		return kMatrix_ViewType;
+	}
+
 	Vec2 Matrix::center() {
 		auto size = client_size();
 		Vec2 point(
-			size.x() * 0.5 - _origin_value.x(),
-			size.y() * 0.5 - _origin_value.y()
+			size.x() * 0.5 - _origin.x(),
+			size.y() * 0.5 - _origin.y()
 		);
 		return point;
 	}
@@ -286,7 +269,7 @@ namespace qk {
 			unmark(kTransform | kVisible_Region); // unmark
 
 			auto v = layout_offset() + _parent->layout_offset_inside()
-				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;
+				+ Vec2(margin_left(), margin_top()) + _origin + _translate;
 			_matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
 			solve_visible_region(_matrix);
@@ -299,7 +282,7 @@ namespace qk {
 	}
 
 	void Matrix::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {
-		Vec2 origin(-_origin_value.x(), -_origin_value.y());
+		Vec2 origin(-_origin.x(), -_origin.y());
 		Vec2 end = origin + client_size();
 		vertex[0] = mat * origin;
 		vertex[1] = mat * Vec2(end.x(), origin.y());
@@ -308,7 +291,7 @@ namespace qk {
 	}
 
 	Vec2 Matrix::layout_offset_inside() {
-		return Box::layout_offset_inside() - _origin_value;
+		return Box::layout_offset_inside() - _origin;
 	}
 
 	void Matrix::layout_reverse(uint32_t mark) {
@@ -319,35 +302,27 @@ namespace qk {
 	}
 
 	void Matrix::solve_origin_value() {
-		auto old = _origin_value;
+		auto old = _origin;
 		auto _client_size = client_size();
 
-		switch (_origin_x.kind) {
+		switch (_box_origin_x.kind) {
 			default:
-			case BoxOriginKind::Auto:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
-			case BoxOriginKind::Value: _origin_value.set_x(_origin_x.value); break;
-			case BoxOriginKind::Ratio: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
+			case BoxOriginKind::Auto:  _origin.set_x(_client_size.x() * 0.5); break; // center
+			case BoxOriginKind::Value: _origin.set_x(_box_origin_x.value); break;
+			case BoxOriginKind::Ratio: _origin.set_x(_client_size.x() * _box_origin_x.value); break;
 		}
-		switch (_origin_y.kind) {
+		switch (_box_origin_y.kind) {
 			default:
-			case BoxOriginKind::Auto:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
-			case BoxOriginKind::Value: _origin_value.set_y(_origin_y.value); break;
-			case BoxOriginKind::Ratio: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
+			case BoxOriginKind::Auto:  _origin.set_y(_client_size.y() * 0.5); break; // center
+			case BoxOriginKind::Value: _origin.set_y(_box_origin_y.value); break;
+			case BoxOriginKind::Ratio: _origin.set_y(_client_size.y() * _box_origin_y.value); break;
 		}
 
 		unmark(kTransform_Origin);
 
-		if (old != _origin_value) {
+		if (old != _origin) {
 			mark(kTransform, true);
 		}
-	}
-
-	Matrix* Matrix::asMatrix() {
-		return this;
-	}
-
-	ViewType Matrix::viewType() const {
-		return kMatrix_ViewType;
 	}
 
 }

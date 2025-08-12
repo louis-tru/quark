@@ -186,10 +186,10 @@ namespace qk {
 		return cssclass;
 	}
 
-	Matrix* View::matrix() {
+	MatrixView* View::matrix_view() {
 		auto v = this;
 		do {
-			auto t = v->asMatrix();
+			auto t = v->asMatrixView();
 			if (t)
 				return t;
 			v = v->_parent;
@@ -227,7 +227,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	Matrix* View::asMatrix() {
+	MatrixView* View::asMatrixView() {
 		return nullptr;
 	}
 
@@ -235,7 +235,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	ScrollBase* View::asScrollBase() {
+	ScrollView* View::asScrollView() {
 		return nullptr;
 	}
 

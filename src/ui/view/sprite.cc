@@ -31,5 +31,43 @@
 #include "./sprite.h"
 
 namespace qk {
-	//
+
+	Sprite::Sprite() : View(), MatrixView(this) {
+		// Initialize sprite specific properties if needed
+	}
+
+	ViewType Sprite::viewType() const {
+		return kSprite_ViewType;
+	}
+
+	MatrixView* Sprite::asMatrixView() {
+		return this;
+	}
+
+	Vec2 Sprite::layout_offset_inside() {
+		return _origin;
+	}
+
+	Vec2 Sprite::center() {
+		// return _origin;
+		return {};
+	}
+
+	void Sprite::solve_marks(const Mat &mat, uint32_t mark) {
+		if (mark & kTransform) { // update transform matrix
+			// _CheckParent();
+			unmark(kTransform | kVisible_Region); // unmark
+
+			// auto v = layout_offset() + _parent->layout_offset_inside()
+			// 	+ Vec2(margin_left(), margin_top()) + _origin + _translate;
+			// _matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
+			// _position = Vec2(_matrix[2],_matrix[5]);
+			// solve_visible_region(_matrix);
+		}
+		else if (mark & kVisible_Region) {
+			// unmark(kVisible_Region); // unmark
+			// solve_visible_region(_matrix.set_translate(_position));
+		}
+		//_matrix.set_translate(Vec2(0)); // clear translate, use position value
+	}
 }

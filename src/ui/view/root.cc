@@ -79,8 +79,7 @@ namespace qk {
 		if (mark & kTransform) { // update matrix matrix
 			unmark(kTransform | kVisible_Region); // unmark
 
-			_position = layout_offset() + Vec2(margin_left(), margin_top()) +
-				origin_value() + translate();
+			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin() + translate();
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());
 			solve_visible_region(_matrix);
 		}

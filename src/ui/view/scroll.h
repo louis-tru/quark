@@ -37,7 +37,7 @@
 namespace qk {
 	class Scroll;
 
-	class Qk_EXPORT ScrollBase {
+	class Qk_EXPORT ScrollView {
 	public:
 		Qk_DEFINE_VIEW_PROPERTY(bool, scrollbar, Const); // 显示scrollbar
 		Qk_DEFINE_VIEW_PROPERTY(bool, bounce, Const); // 使用回弹力
@@ -58,20 +58,20 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(float, scrollbar_margin, Const);
 		Qk_DEFINE_VIEW_PROPERTY(uint64_t, scroll_duration, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(cCurve&, default_curve, Const); // default scroll curve
+		Qk_DEFINE_VIEW_PROP_GET(Box*, host); //!< host box view
 		// define methods
 		void scrollTo(Vec2 value, uint64_t duration, cCurve& curve);
 		void scrollTo(Vec2 value, uint64_t duration) { scrollTo(value, duration, _default_curve_Mt);}
 		void terminate();
 	protected:
-		ScrollBase(Box *host);
-		~ScrollBase();
+		ScrollView(Box *host);
+		~ScrollView();
 		void solve(uint32_t mark); // @safe Rt
 		void set_scroll_size_Rt(Vec2 size); // @safe Rt
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
 		friend class UIDraw;
-		Box *_host;
 		List<Task*> _tasks;
 		std::atomic<Vec2> _scroll;
 		Vec2 _scroll_max;
@@ -86,12 +86,12 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
-	class Qk_EXPORT Scroll: public Box, public ScrollBase {
+	class Qk_EXPORT Scroll: public Box, public ScrollView {
 	public:
 		Scroll();
 		virtual View* init(Window *win) override;
 		virtual ViewType viewType() const override;
-		virtual ScrollBase* asScrollBase() override;
+		virtual ScrollView* asScrollView() override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;

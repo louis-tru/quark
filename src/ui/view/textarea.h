@@ -36,11 +36,11 @@
 
 namespace qk {
 
-	class Qk_EXPORT Textarea: public Input, public ScrollBase {
+	class Qk_EXPORT Textarea: public Input, public ScrollView {
 	public:
 		Textarea();
 		virtual ViewType viewType() const override;
-		virtual ScrollBase* asScrollBase() override;
+		virtual ScrollView* asScrollView() override;
 		virtual bool is_multiline() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;

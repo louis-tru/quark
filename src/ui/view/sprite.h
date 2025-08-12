@@ -31,18 +31,29 @@
 #ifndef __quark__view__sprite__
 #define __quark__view__sprite__
 
-#include "./view.h"
+#include "./matrix.h"
 
 namespace qk {
 
 	/**
 	 * @class Sprite
 	*/
-	class Qk_EXPORT Sprite : public View {
+	class Qk_EXPORT Sprite: public View, public MatrixView {
 	public:
 		Sprite();
-		~Sprite();
-	private:
+		// props
+		// Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
+		// Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
+		Qk_DEFINE_VIEW_PROPERTY(float, frame_width, Const); // The width of the sprite frame
+		Qk_DEFINE_VIEW_PROPERTY(float, frame_height, Const); // The height of the sprite frame
+
+		// --------------- o v e r w r i t e ---------------
+		virtual ViewType viewType() const override;
+		virtual MatrixView* asMatrixView() override;
+		virtual Vec2 layout_offset_inside() override;
+		virtual Vec2 center() override;
+		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void draw(UIDraw *render) override;
 	};
 }
 #endif

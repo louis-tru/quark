@@ -46,9 +46,9 @@ namespace qk {
 
 	constexpr uint32_t kScrollMark = View::kScroll | View::kTransform;
 
-	class ScrollBase::Task: public RenderTask {
+	class ScrollView::Task: public RenderTask {
 	public:
-		Task(ScrollBase* host, uint64_t duration, cCurve& curve = ease_out, ScrollBase::Task *next = 0)
+		Task(ScrollView* host, uint64_t duration, cCurve& curve = ease_out, ScrollView::Task *next = 0)
 			: m_host(host)
 			, m_start_time(0)
 			, m_duration(duration)
@@ -95,31 +95,31 @@ namespace qk {
 		}
 
 	protected:
-		ScrollBase* m_host;
+		ScrollView* m_host;
 		uint64_t m_start_time;
 		uint64_t m_duration;
 		List<Task*>::Iterator m_id2;
-		ScrollBase::Task *_next;
+		ScrollView::Task *_next;
 		bool   m_immediate_end_flag;
 		cCurve m_curve;
 		bool m_is_inl_ease_out;
 
-		friend class ScrollBase::Inl;
+		friend class ScrollView::Inl;
 	};
 
-	Qk_DEFINE_INLINE_MEMBERS(ScrollBase, Inl) {
+	Qk_DEFINE_INLINE_MEMBERS(ScrollView, Inl) {
 	public:
 		#define _this _inl(this)
-		#define _inl(self) static_cast<ScrollBase::Inl*>(static_cast<ScrollBase*>(self))
+		#define _inl(self) static_cast<ScrollView::Inl*>(static_cast<ScrollView*>(self))
 
 		struct Momentum {
 			float dist;
 			uint64_t time;
 		};
 
-		class ScrollMotionTask: public ScrollBase::Task {
+		class ScrollMotionTask: public ScrollView::Task {
 		public:
-			ScrollMotionTask(ScrollBase* host, uint64_t duration, Vec2 to, cCurve& curve = ease_out)
+			ScrollMotionTask(ScrollView* host, uint64_t duration, Vec2 to, cCurve& curve = ease_out)
 				: Task(host, duration, curve)
 				, m_from(host->_scroll)
 				, m_to(to)
@@ -144,11 +144,11 @@ namespace qk {
 			Vec2  m_to;
 		};
 
-		class ScrollBarTask: public ScrollBase::Task {
+		class ScrollBarTask: public ScrollView::Task {
 		public:
 			ScrollBarTask(
-				ScrollBase* host, uint64_t duration,
-				float from, float to, cCurve& curve = ease_out, ScrollBase::Task *next = 0
+				ScrollView* host, uint64_t duration,
+				float from, float to, cCurve& curve = ease_out, ScrollView::Task *next = 0
 			)
 				: Task(host, duration, curve, next)
 				, m_from(from)
@@ -186,7 +186,7 @@ namespace qk {
 		
 		class ScrollBarFadeInOutTask: public ScrollBarTask {
 		public:
-			ScrollBarFadeInOutTask(ScrollBase* host, uint64_t in, uint64_t fixed, uint64_t out)
+			ScrollBarFadeInOutTask(ScrollView* host, uint64_t in, uint64_t fixed, uint64_t out)
 				: ScrollBarTask(host, in, host->_scrollbar_opacity, 1, ease_out), _fixed(fixed), _out(out), _step(0)
 			{}
 			virtual void end() {
@@ -690,14 +690,14 @@ namespace qk {
 
 	};
 	
-	void ScrollBase::Task::next() {
+	void ScrollView::Task::next() {
 		if (_next) {
 			_inl(m_host)->register_task(_next);
 			_next = nullptr;
 		}
 	}
 
-	ScrollBase::ScrollBase(Box *host)
+	ScrollView::ScrollView(Box *host)
 		: _scrollbar(true)
 		, _bounce(true)
 		, _bounce_lock(true)
@@ -734,98 +734,98 @@ namespace qk {
 		host->add_event_listener(UIEvent_MouseWheel, &Inl::handle_MouseWheel, _inl(this));
 	}
 
-	ScrollBase::~ScrollBase() {
+	ScrollView::~ScrollView() {
 		_this->termination_all_task_Rt();
 	}
 
-	void ScrollBase::set_scrollbar(bool value, bool isRt) {
+	void ScrollView::set_scrollbar(bool value, bool isRt) {
 		_scrollbar = value;
 		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_resistance(float value, bool isRt) {
+	void ScrollView::set_resistance(float value, bool isRt) {
 		_resistance = Qk_Max(0.5, value);
 	}
 
-	void ScrollBase::set_bounce(bool value, bool isRt) {
+	void ScrollView::set_bounce(bool value, bool isRt) {
 		_bounce = value;
 	}
 
-	void ScrollBase::set_bounce_lock(bool value, bool isRt) {
+	void ScrollView::set_bounce_lock(bool value, bool isRt) {
 		_bounce_lock = value;
 	}
 
-	void ScrollBase::set_momentum(bool value, bool isRt) {
+	void ScrollView::set_momentum(bool value, bool isRt) {
 		_momentum = value;
 	}
 
-	void ScrollBase::set_lock_direction(bool value, bool isRt) {
+	void ScrollView::set_lock_direction(bool value, bool isRt) {
 		_lock_direction = value;
 	}
 
-	void ScrollBase::set_catch_position_x(float value, bool isRt) {
+	void ScrollView::set_catch_position_x(float value, bool isRt) {
 		_catch_position_x = value;
 	}
 
-	void ScrollBase::set_catch_position_y(float value, bool isRt) {
+	void ScrollView::set_catch_position_y(float value, bool isRt) {
 		_catch_position_y = value;
 	}
 
-	void ScrollBase::set_scrollbar_color(Color value, bool isRt) {
+	void ScrollView::set_scrollbar_color(Color value, bool isRt) {
 		_scrollbar_color = value;
 		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_scrollbar_width(float value, bool isRt) {
+	void ScrollView::set_scrollbar_width(float value, bool isRt) {
 		_scrollbar_width = Float32::max(1.0, value);
 		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_scrollbar_margin(float value, bool isRt) {
+	void ScrollView::set_scrollbar_margin(float value, bool isRt) {
 		_scrollbar_margin = Float32::max(1.0, value);
 		_host->mark(0, isRt);
 	}
 
-	void ScrollBase::set_scroll_duration(uint64_t value, bool isRt) {
+	void ScrollView::set_scroll_duration(uint64_t value, bool isRt) {
 		_scroll_duration = value;
 	}
 
-	cCurve& ScrollBase::default_curve() const {
+	cCurve& ScrollView::default_curve() const {
 		return _default_curve_Mt;
 	}
 
-	void ScrollBase::set_default_curve(cCurve& value, bool isRt) {
+	void ScrollView::set_default_curve(cCurve& value, bool isRt) {
 		_default_curve_Mt = value;
 	}
 
-	void ScrollBase::terminate() {
+	void ScrollView::terminate() {
 		_host->_async_call([](auto self, auto arg) {
 			self->termination_recovery(0);
 		}, _this, 0);
 	}
 
-	float ScrollBase::scroll_x() const {
+	float ScrollView::scroll_x() const {
 		return -_scroll.load().x();
 	}
 
-	float ScrollBase::scroll_y() const {
+	float ScrollView::scroll_y() const {
 		return -_scroll.load().y();
 	}
 
-	void ScrollBase::set_scroll_x(float value, bool isRt) {
+	void ScrollView::set_scroll_x(float value, bool isRt) {
 		set_scroll({value, -_scroll.load()[1]}, isRt);
 	}
 
-	void ScrollBase::set_scroll_y(float value, bool isRt) {
+	void ScrollView::set_scroll_y(float value, bool isRt) {
 		set_scroll({-_scroll.load()[0], value}, isRt);
 	}
 
-	Vec2 ScrollBase::scroll() const {
+	Vec2 ScrollView::scroll() const {
 		Vec2 v = _scroll;
 		return {-v[0],-v[1]};
 	}
 
-	void ScrollBase::set_scroll(Vec2 value, bool isRt) {
+	void ScrollView::set_scroll(Vec2 value, bool isRt) {
 		if (isRt) {
 			_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll({-value.x(), -value.y()}));
 		} else if (_scroll_duration) {
@@ -844,7 +844,7 @@ namespace qk {
 		}
 	}
 
-	void ScrollBase::scrollTo(Vec2 value, uint64_t duration, cCurve& curve) {
+	void ScrollView::scrollTo(Vec2 value, uint64_t duration, cCurve& curve) {
 		struct Args { Vec2 value; uint64_t duration; Curve curve; };
 		_host->_async_call([](auto self, auto val) {
 			Vec2 v = self->get_catch_valid_scroll({-val.arg->value.x(), -val.arg->value.y()});
@@ -855,7 +855,7 @@ namespace qk {
 		}, _this, new Args{value,duration,curve});
 	}
 
-	void ScrollBase::solve(uint32_t mark) {
+	void ScrollView::solve(uint32_t mark) {
 		if ( mark & View::kScroll ) {
 			if ( !_moved && !_this->is_task() ) {
 				_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll(_scroll));
@@ -864,7 +864,7 @@ namespace qk {
 		}
 	}
 
-	void ScrollBase::set_scroll_size_Rt(Vec2 size) {
+	void ScrollView::set_scroll_size_Rt(Vec2 size) {
 		if (_scroll_size != size) {
 			_scroll_size = size;
 			_this->immediate_end_all_task(); // change size immediate task
@@ -883,7 +883,7 @@ namespace qk {
 
 	// ------------------------ S c r o l l . L a y o u t --------------------------
 
-	Scroll::Scroll(): Box(), ScrollBase(this)
+	Scroll::Scroll(): Box(), ScrollView(this)
 	{
 	}
 
@@ -914,12 +914,12 @@ namespace qk {
 	}
 
 	void Scroll::solve_marks(const Mat &mat, uint32_t mark) {
-		ScrollBase::solve(mark);
+		ScrollView::solve(mark);
 		Box::solve_marks(mat, mark);
 		//Qk_DLog("Scroll::_position, %f, %f", _position.x(), _position.y());
 	}
 
-	ScrollBase* Scroll::asScrollBase() {
+	ScrollView* Scroll::asScrollView() {
 		return this;
 	}
 

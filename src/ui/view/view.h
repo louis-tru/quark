@@ -43,8 +43,8 @@ namespace qk {
 	class TextOptions;
 	class UIDraw;
 	class Window;
-	class Matrix;
-	class ScrollBase;
+	class ScrollView;
+	class MatrixView;
 	class CStyleSheetsClass;
 	class Button;
 
@@ -163,7 +163,7 @@ namespace qk {
 		/**
 		 * @prop matrix
 		*/
-		Qk_DEFINE_ACCE_GET(Matrix*, matrix);
+		Qk_DEFINE_ACCE_GET(MatrixView*, matrix_view);
 
 		/**
 		* @prop mark_value
@@ -371,9 +371,9 @@ namespace qk {
 		 * 
 		 * Returns as matrix
 		 * 
-		 * @method asMatrix()
+		 * @method asMatrixView()
 		*/
-		virtual Matrix* asMatrix();
+		virtual MatrixView* asMatrixView();
 
 		/**
 		 * 
@@ -385,11 +385,11 @@ namespace qk {
 
 		/**
 		 * 
-		 * Returns as ScrollBase
+		 * Returns as ScrollView
 		 * 
-		 * @method asScrollBase()
+		 * @method asScrollView()
 		*/
-		virtual ScrollBase* asScrollBase();
+		virtual ScrollView* asScrollView();
 
 		/**
 			*

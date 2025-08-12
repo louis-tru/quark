@@ -34,26 +34,43 @@
 #include "./box.h"
 
 namespace qk {
+	class Sprite;
 
-	class MatrixBase {
+	class Qk_EXPORT MatrixView {
 	public:
-		MatrixBase();
+		MatrixView(View* host);
 		// define props
-		Qk_DEFINE_VIEW_PROPERTY(Vec2, translate, Const); // matrix displacement for the view
-		Qk_DEFINE_VIEW_PROPERTY(Vec2, scale, Const); // Matrix scaling
-		Qk_DEFINE_VIEW_PROPERTY(Vec2, skew, Const); // Matrix skew, (radian)
+		Qk_DEFINE_VIEW_PROPERTY(Vec2,  translate, Const); // matrix displacement for the view
+		Qk_DEFINE_VIEW_PROPERTY(Vec2,  scale, Const); // Matrix scaling
+		Qk_DEFINE_VIEW_PROPERTY(Vec2,  skew, Const); // Matrix skew, (radian)
 		Qk_DEFINE_VIEW_PROPERTY(float, rotate_z, Const); // z-axis rotation of the matrix
 		// Start the matrix transform from this origin point start.
 		// with border as the starting point.
-		Qk_DEFINE_VIEW_PROPERTY(Vec2, origin, Const);
+		Qk_DEFINE_VIEW_PROPERTY(Vec2,  origin, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(float, x, Const); // x-axis matrix displacement for the view
 		Qk_DEFINE_VIEW_ACCESSOR(float, y, Const); // y-axis matrix displacement for the view
 		Qk_DEFINE_VIEW_ACCESSOR(float, scale_x, Const); // x-axis matrix scaling for the view
 		Qk_DEFINE_VIEW_ACCESSOR(float, scale_y, Const); // y-axis matrix scaling for the view
 		Qk_DEFINE_VIEW_ACCESSOR(float, skew_x, Const); // x-axis matrix skew for the view
 		Qk_DEFINE_VIEW_ACCESSOR(float, skew_y, Const); // y-axis matrix skew for the view
-		Qk_DEFINE_VIEW_ACCESSOR(float, origin_x, Const); //  x-axis transform origin
-		Qk_DEFINE_VIEW_ACCESSOR(float, origin_y, Const); //  y-axis transform origin
+		Qk_DEFINE_VIEW_ACCESSOR(float, origin_x, Const); // x-axis transform origin
+		Qk_DEFINE_VIEW_ACCESSOR(float, origin_y, Const); // y-axis transform origin
+
+		// The host view of the matrix
+		Qk_DEFINE_VIEW_PROP_GET(View*, host);
+
+		/**
+		 * Returns the final matrix of the view, parent transform * Mat
+		 * @return {Mat}
+		*/
+		const Mat& mat() const { return _matrix; }
+
+	protected:
+		Mat _matrix; // parent transform View * Mat(translate, scale, skew, rotate_z);
+
+		friend class Matrix;
+		friend class Sprite;
+		friend class UIDraw;
 	};
 
 	/**
@@ -61,7 +78,7 @@ namespace qk {
 		*
 	 * @class Matrix
 		*/
-	class Matrix: public Box, public MatrixBase{
+	class Matrix: public Box, public MatrixView {
 	public:
 		Matrix();
 		// props
@@ -69,14 +86,9 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(BoxOrigin, box_origin_y, Const); // y-axis transform box origin
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayOrigin, box_origin, Const); // x-axis and y-axis
 
-		/**
-		 * @prop mat()
-		*/
-		const Mat& mat() const { return _matrix; }
-
 		// --------------- o v e r w r i t e ---------------
 		virtual ViewType viewType() const override;
-		virtual Matrix* asMatrix() override;
+		virtual MatrixView* asMatrixView() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 center() override;
@@ -86,8 +98,6 @@ namespace qk {
 
 	protected:
 		void solve_origin_value(); // compute origint value
-		Mat _matrix; // parent transform View * Mat(translate, scale, skew, rotate_z);
-		friend class UIDraw;
 	};
 }
 #endif

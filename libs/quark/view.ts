@@ -142,7 +142,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly first: View | null; //!<
 	readonly last: View | null; //!<
 	readonly window: Window; //!<
-	readonly matrix: Matrix | null; //!< top matrix view
+	readonly matrixView: MatrixView | null; //!< top matrix view
 	readonly level: number; //!<
 	readonly layoutWeight: types.Vec2; //!<
 	readonly layoutAlign: types.Align; //!<
@@ -274,24 +274,43 @@ export declare class Image extends Box {
 }
 
 /**
- * @class Matrix
- * @extends Box
+ * @interface MatrixView
+ * @extends View
 */
-export declare class Matrix extends Box {
+export interface MatrixView extends View {
 	translate: types.Vec2; //!<
 	scale: types.Vec2; //!<
 	skew: types.Vec2; //!<
 	rotateZ: number; //!<
-	originX: types.BoxOrigin; //!<
-	originY: types.BoxOrigin; //!<
-	readonly originValue: types.Vec2; //!<
+	origin: types.Vec2; //!<
 	x: number; //!<
 	y: number; //!<
 	scaleX: number; //!<
 	scaleY: number; //!<
 	skewX: number; //!<
 	skewY: number; //!<
-	origin: types.BoxOrigin[]; //!<
+}
+
+/**
+ * @class Matrix
+ * @extends Box
+ * @implements MatrixView
+*/
+export declare class Matrix extends Box implements MatrixView {
+	translate: types.Vec2;
+	scale: types.Vec2;
+	skew: types.Vec2;
+	rotateZ: number;
+	origin: types.Vec2;
+	x: number;
+	y: number;
+	scaleX: number;
+	scaleY: number;
+	skewX: number;
+	skewY: number;
+	boxOrigin: types.BoxOrigin[]; //!<
+	boxOriginX: types.BoxOrigin; //!<
+	boxOriginY: types.BoxOrigin; //!<
 	readonly mat: types.Mat; //!<
 }
 
@@ -415,9 +434,10 @@ export declare class Input extends Box implements TextOptions {
 }
 
 /**
- * @interface ScrollBase
+ * @interface ScrollView
+ * @extends Box
 */
-export interface ScrollBase {
+export interface ScrollView extends Box {
 	scrollbar: boolean; //!<
 	bounce: boolean; //!<
 	bounceLock: boolean; //!<
@@ -444,9 +464,9 @@ export interface ScrollBase {
 /**
  * @class Textarea
  * @extends Input
- * @implements ScrollBase
+ * @implements ScrollView
 */
-export declare class Textarea extends Input implements ScrollBase {
+export declare class Textarea extends Input implements ScrollView {
 	/** @event */
 	readonly onScroll: EventNoticer<UIEvent>;
 	scrollbar: boolean;
@@ -475,9 +495,9 @@ export declare class Textarea extends Input implements ScrollBase {
 /**
  * @class Scroll
  * @extends Box
- * @implements ScrollBase
+ * @implements ScrollView
 */
-export declare class Scroll extends Box implements ScrollBase {
+export declare class Scroll extends Box implements ScrollView {
 	/** @event */
 	readonly onScroll: EventNoticer<UIEvent>;
 	scrollbar: boolean;

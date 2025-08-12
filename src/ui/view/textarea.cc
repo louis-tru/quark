@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	Textarea::Textarea(): Input(), ScrollBase(this) {
+	Textarea::Textarea(): Input(), ScrollView(this) {
 	}
 
 	bool Textarea::is_multiline() {
@@ -70,7 +70,7 @@ namespace qk {
 			unmark(kInput_Status);
 			solve_cursor_offset(); // text cursor status
 
-			ScrollBase::solve(mark);
+			ScrollView::solve(mark);
 			Box::solve_marks(mat, mark);
 
 			if (_editing) {
@@ -78,7 +78,7 @@ namespace qk {
 				window()->dispatch()->setImeKeyboardSpotRect(input_spot_rect());
 			}
 		} else {
-			ScrollBase::solve(mark);
+			ScrollView::solve(mark);
 			Box::solve_marks(mat, mark);
 		}
 	}
@@ -91,7 +91,7 @@ namespace qk {
 		set_scroll( Vec2(_input_text_offset_x - value.x(), -value.y()), true );
 	}
 
-	ScrollBase* Textarea::asScrollBase() {
+	ScrollView* Textarea::asScrollView() {
 		return this;
 	}
 

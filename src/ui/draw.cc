@@ -422,7 +422,7 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::drawScrollBar(Box *b, ScrollBase *v) {
+	void UIDraw::drawScrollBar(Box *b, ScrollView *v) {
 		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 			auto width = v->_scrollbar_width;
 			auto margin = v->_scrollbar_margin;
@@ -723,7 +723,7 @@ namespace qk {
 	void UIDraw::visitMatrix(Matrix* box) {
 		auto matrixPrev = _matrix;
 		auto origin = _origin;
-		_origin = Vec2(_AAShrink * 0.5) - box->_origin_value;
+		_origin = Vec2(_AAShrink * 0.5) - box->_origin;
 		_matrix = &box->mat();
 		_canvas->setMatrix(*_matrix);
 		//_canvas->setTranslate(box->position());
@@ -749,7 +749,7 @@ namespace qk {
 				auto origin = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
 				//auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
 				_AAShrink = origin + origin;
-				_origin = Vec2(origin) - v->_origin_value;
+				_origin = Vec2(origin) - v->_origin;
 				_matrix = &v->mat();
 				_canvas->setMatrix(*_matrix);
 				_canvas->clearColor(v->_background_color.to_color4f());

@@ -49,7 +49,7 @@ namespace qk {
 	class Label;
 	class Root;
 	class Matrix;
-	class ScrollBase;
+	class ScrollView;
 
 	class Qk_EXPORT UIDraw: public Object {
 	public:
@@ -82,7 +82,7 @@ namespace qk {
 		void drawBoxColor(Box *box, BoxData &data);
 		void drawBoxBorder(Box *box, BoxData &data);
 		void drawBoxEnd(Box *box, BoxData &data);
-		void drawScrollBar(Box *box, ScrollBase *v);
+		void drawScrollBar(Box *box, ScrollView *v);
 		void drawTextBlob(TextOptions *opts, Vec2 inOffset,
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);

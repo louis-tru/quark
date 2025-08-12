@@ -122,9 +122,10 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Class_Accessor_Get(matrix, {
+			Js_Class_Accessor_Get(matrixView, {
 				Js_Self(View);
-				Js_Return( self->matrix() );
+				auto view = self->matrix_view();
+				Js_Return( view ? view->host() : nullptr );
 			});
 
 			Js_Class_Accessor_Get(level, {
