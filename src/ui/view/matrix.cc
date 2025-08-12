@@ -36,9 +36,8 @@
 
 namespace qk {
 
-	Matrix::Matrix()
-		: _translate(0), _scale(1), _skew(0), _rotate_z(0)
-		, _origin_x{0, BoxOriginKind::Auto}, _origin_y{0, BoxOriginKind::Auto}
+	MatrixBase::MatrixBase()
+		: _translate(0), _scale(1), _skew(0), _rotate_z(0), _origin(0)
 	{
 	}
 
@@ -47,7 +46,7 @@ namespace qk {
 		*
 		* @method set_translate(val)
 		*/
-	void Matrix::set_translate(Vec2 val, bool isRt) {
+	void MatrixBase::set_translate(Vec2 val, bool isRt) {
 		if (_translate != val) {
 			_translate = val;
 			mark(kTransform, isRt); // mark transform
@@ -59,7 +58,7 @@ namespace qk {
 		*
 		* @method set_scale(val)
 		*/
-	void Matrix::set_scale(Vec2 val, bool isRt) {
+	void MatrixBase::set_scale(Vec2 val, bool isRt) {
 		if (_scale != val) {
 			_scale = val;
 			mark(kTransform, isRt); // mark transform
@@ -71,7 +70,7 @@ namespace qk {
 		*
 		* @method set_skew(val)
 		*/
-	void Matrix::set_skew(Vec2 val, bool isRt) {
+	void MatrixBase::set_skew(Vec2 val, bool isRt) {
 		if (_skew != val) {
 			_skew = val;
 			mark(kTransform, isRt); // mark transform
@@ -83,7 +82,7 @@ namespace qk {
 		*
 		* @method set_rotate_z(val)
 		*/
-	void Matrix::set_rotate_z(float val, bool isRt) {
+	void MatrixBase::set_rotate_z(float val, bool isRt) {
 		val *= Qk_PI_RATIO_180;
 		if (_rotate_z != val) {
 			_rotate_z = val;
@@ -91,13 +90,27 @@ namespace qk {
 		}
 	}
 
+	void MatrixBase::set_origin(Vec2 origin, bool isRt) {
+		if (_origin != val) {
+			_origin = val;
+			// 	mark_layout(kTransform_Origin, isRt);
+		}
+	}
+
+	// void MatrixBase::set_origin_y(BoxOrigin val, bool isRt) {
+		// if (_origin_y != val) {
+		// 	_origin_y = val;
+		// 	mark_layout(kTransform_Origin, isRt);
+		// }
+	// }
+
 	/**
 		* 
 		* Returns x-axis matrix displacement for the view
 		*
 		* @method x()
 		*/
-	float Matrix::x() const { return _translate[0]; }
+	float MatrixBase::x() const { return _translate[0]; }
 
 	/**
 		* 
@@ -105,7 +118,7 @@ namespace qk {
 		*
 		* @method y()
 		*/
-	float Matrix::y() const { return _translate[1]; }
+	float MatrixBase::y() const { return _translate[1]; }
 
 	/**
 		* 
@@ -113,7 +126,7 @@ namespace qk {
 		*
 		* @method scale_x()
 		*/
-	float Matrix::scale_x() const { return _scale[0]; }
+	float MatrixBase::scale_x() const { return _scale[0]; }
 
 	/**
 		* 
@@ -121,7 +134,7 @@ namespace qk {
 		*
 		* @method scale_y()
 		*/
-	float Matrix::scale_y() const { return _scale[1]; }
+	float MatrixBase::scale_y() const { return _scale[1]; }
 
 	/**
 		* 
@@ -129,7 +142,7 @@ namespace qk {
 		*
 		* @method skew_x()
 		*/
-	float Matrix::skew_x() const { return _skew[0]; }
+	float MatrixBase::skew_x() const { return _skew[0]; }
 
 	/**
 		* 
@@ -137,7 +150,7 @@ namespace qk {
 		*
 		* @method skew_y()
 		*/
-	float Matrix::skew_y() const { return _skew[1]; }
+	float MatrixBase::skew_y() const { return _skew[1]; }
 
 	/**
 		* 
@@ -145,7 +158,7 @@ namespace qk {
 		*
 		* @method set_x(val)
 		*/
-	void Matrix::set_x(float val, bool isRt) {
+	void MatrixBase::set_x(float val, bool isRt) {
 		if (_translate[0] != val) {
 			_translate[0] = val;
 			mark(kTransform, isRt); // mark transform
@@ -158,7 +171,7 @@ namespace qk {
 		*
 		* @method set_y(val)
 		*/
-	void Matrix::set_y(float val, bool isRt) {
+	void MatrixBase::set_y(float val, bool isRt) {
 		if (_translate[1] != val) {
 			_translate[1] = val;
 			mark(kTransform, isRt); // mark transform
@@ -171,7 +184,7 @@ namespace qk {
 		*
 		* @method set_scale_x(val)
 		*/
-	void Matrix::set_scale_x(float val, bool isRt) {
+	void MatrixBase::set_scale_x(float val, bool isRt) {
 		if (_scale[0] != val) {
 			_scale[0] = val;
 			mark(kTransform, isRt); // mark transform
@@ -184,7 +197,7 @@ namespace qk {
 		*
 		* @method set_scale_y(val)
 		*/
-	void Matrix::set_scale_y(float val, bool isRt) {
+	void MatrixBase::set_scale_y(float val, bool isRt) {
 		if (_scale[1] != val) {
 			_scale[1] = val;
 			mark(kTransform, isRt); // mark transform
@@ -197,7 +210,7 @@ namespace qk {
 		*
 		* @method set_skew_x(val)
 		*/
-	void Matrix::set_skew_x(float val, bool isRt) {
+	void MatrixBase::set_skew_x(float val, bool isRt) {
 		if (_skew[0] != val) {
 			_skew[0] = val;
 			mark(kTransform, isRt); // mark transform
@@ -210,28 +223,53 @@ namespace qk {
 		*
 		* @method set_skew_y(val)
 		*/
-	void Matrix::set_skew_y(float val, bool isRt) {
+	void MatrixBase::set_skew_y(float val, bool isRt) {
 		if (_skew[1] != val) {
 			_skew[1] = val;
 			mark(kTransform, isRt); // mark transform
 		}
 	}
 
-	void Matrix::set_origin_x(BoxOrigin val, bool isRt) {
-		if (_origin_x != val) {
-			_origin_x = val;
-			mark_layout(kTransform_Origin, isRt);
-		}
-	}
-
-	void Matrix::set_origin_y(BoxOrigin val, bool isRt) {
-		if (_origin_y != val) {
-			_origin_y = val;
-			mark_layout(kTransform_Origin, isRt);
-		}
-	}
-
 	// ----------------------------------------------------------------------------------
+
+	Matrix::Matrix()
+		: Box(), MatrixBase()
+		, _box_origin_x{0, BoxOriginKind::Auto}
+		, _box_origin_y{0, BoxOriginKind::Auto}
+	{
+	}
+
+	void Matrix::set_box_origin_x(BoxOrigin val, bool isRt) {
+		if (_box_origin_x != val) {
+			_box_origin_x = val;
+			mark_layout(kTransform_Origin, isRt);
+		}
+	}
+
+	void Matrix::set_box_origin_y(BoxOrigin val, bool isRt) {
+		if (_box_origin_y != val) {
+			_box_origin_y = val;
+			mark_layout(kTransform_Origin, isRt);
+		}
+	}
+
+	ArrayOrigin Matrix::box_origin() const {
+		return ArrayOrigin{_origin_x, _origin_y};
+	}
+
+	void Matrix::set_box_origin(ArrayOrigin val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_box_origin_x(val[0], isRt);
+				set_box_origin_y(val[0], isRt);
+				break;
+			case 2:
+				set_box_origin_x(val[0], isRt);
+				set_box_origin_y(val[1], isRt);
+				break;
+			default: break;
+		}
+	}
 
 	Vec2 Matrix::center() {
 		auto size = client_size();
@@ -310,24 +348,6 @@ namespace qk {
 
 	ViewType Matrix::viewType() const {
 		return kMatrix_ViewType;
-	}
-
-	ArrayOrigin Matrix::origin() const {
-		return ArrayOrigin{_origin_x, _origin_y};
-	}
-
-	void Matrix::set_origin(ArrayOrigin val, bool isRt) {
-		switch (val.length()) {
-			case 1:
-				set_origin_x(val[0], isRt);
-				set_origin_y(val[0], isRt);
-				break;
-			case 2:
-				set_origin_x(val[0], isRt);
-				set_origin_y(val[1], isRt);
-				break;
-			default: break;
-		}
 	}
 
 }
