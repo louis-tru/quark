@@ -90,6 +90,8 @@
 			'ui/view/root.cc',
 			'ui/view/scroll.h',
 			'ui/view/scroll.cc',
+			'ui/view/sprite.h',
+			'ui/view/sprite.cc',
 			'ui/view/text.h',
 			'ui/view/text.cc',
 			'ui/view/button.h',

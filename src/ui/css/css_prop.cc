@@ -505,15 +505,15 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<ArrayOrigin>::asyncSet<kORIGIN_ViewProp>(ArrayOrigin val) {
+	void SetProp<ArrayOrigin>::asyncSet<kBOX_ORIGIN_ViewProp>(ArrayOrigin val) {
 		switch (val.length()) {
 			case 1:
-				set_origin_x(val[0]);
-				set_origin_y(val[0]);
+				set_box_origin_x(val[0]);
+				set_box_origin_y(val[0]);
 				break;
 			case 2:
-				set_origin_x(val[0]);
-				set_origin_y(val[1]);
+				set_box_origin_x(val[0]);
+				set_box_origin_y(val[1]);
 				break;
 			default: break;
 		}

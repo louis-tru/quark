@@ -38,17 +38,18 @@
 #include "./view/image.h"
 #include "./view/scroll.h"
 #include "./view/matrix.h"
+#include "./view/sprite.h"
 
 namespace qk {
 	typedef View ViewView;
 	typedef void (Object::*Func)();
 
 	#define Qk_Set_Accessor(View, Prop, Name) \
-		prop_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] =\
+		props_accessors[k##View##_ViewType].value[k##Prop##_ViewProp] =\
 			{(Func)&View::Name,(Func)&View::set_##Name};
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
-		prop_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, prop_accessors[k##Dest##_ViewType])
+		props_accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, props_accessors[k##Dest##_ViewType])
 
 	struct PropAccessors {
 		void copy(uint32_t index, uint32_t count, PropAccessors &dest) {
@@ -60,12 +61,12 @@ namespace qk {
 		PropAccessor value[kEnum_Counts_ViewProp] = {0};
 	};
 
-	static PropAccessors *prop_accessors = nullptr;
+	static PropAccessors *props_accessors = nullptr;
 
 	void view_prop_acc_init() {
-		if (prop_accessors)
+		if (props_accessors)
 			return;
-		prop_accessors = new PropAccessors[kEnum_Counts_ViewType];
+		props_accessors = new PropAccessors[kEnum_Counts_ViewType];
 
 		#define _Func_TextOptions_Props(_Func) \
 			_Func(TextAlign, text_align) \
@@ -82,10 +83,25 @@ namespace qk {
 			_Func(TextWhiteSpace, text_white_space) \
 			_Func(TextWordBreak, text_word_break) \
 
-		#define _Func_ScrollBase_Props(_Func) \
+		#define _Func_ScrollView_Props(_Func) \
 			_Func(Color, scrollbar_color) \
 			_Func(float, scrollbar_width) \
 			_Func(float, scrollbar_margin) \
+
+		#define _Func_MatrixView_Props(_Func) \
+			_Func(Vec2, translate) \
+			_Func(Vec2, scale) \
+			_Func(Vec2, skew) \
+			_Func(Vec2, origin) \
+			_Func(float, x) \
+			_Func(float, y) \
+			_Func(float, scale_x) \
+			_Func(float, scale_y) \
+			_Func(float, skew_x) \
+			_Func(float, skew_y) \
+			_Func(float, rotate_z) \
+			_Func(float, origin_x) \
+			_Func(float, origin_y) \
 
 		struct Text: View {
 			#define _Func(Type, Name) \
@@ -95,13 +111,30 @@ namespace qk {
 			#undef _Func
 			#undef _Func_TextOptions_Props
 		};
+
 		struct Scroll: View {
 			#define _Func(Type, Name) \
-				Type Name() { return asScrollBase()->Name(); } \
-				void set_##Name(Type v, bool isRt) { asScrollBase()->set_##Name(v, isRt); }
-			_Func_ScrollBase_Props(_Func)
+				Type Name() { return asScrollView()->Name(); } \
+				void set_##Name(Type v, bool isRt) { asScrollView()->set_##Name(v, isRt); }
+			_Func_ScrollView_Props(_Func)
 			#undef _Func
-			#undef _Func_ScrollBase_Props
+			#undef _Func_ScrollView_Props
+		};
+
+		struct Matrix: qk::Matrix {
+			#define _Func(Type, Name) \
+				Type Name() { return asMatrixView()->Name(); } \
+				void set_##Name(Type v, bool isRt) { asMatrixView()->set_##Name(v, isRt); }
+			_Func_MatrixView_Props(_Func)
+			#undef _Func
+			#undef _Func_MatrixView_Props
+		};
+
+		struct Sprite: qk::Sprite {
+			BoxSize width() const { return BoxSize{qk::Sprite::width(), BoxSizeKind::Value}; }
+			void set_width(BoxSize v, bool isRt) { qk::Sprite::set_width(v.value, isRt); }
+			BoxSize height() const { return BoxSize{qk::Sprite::height(), BoxSizeKind::Value}; }
+			void set_height(BoxSize v, bool isRt) { qk::Sprite::set_height(v.value, isRt); }
 		};
 
 		// view
@@ -109,21 +142,22 @@ namespace qk {
 		Qk_Set_Accessor(View, CURSOR, cursor);
 		Qk_Set_Accessor(View, VISIBLE, visible);
 		Qk_Set_Accessor(View, RECEIVE, receive);
-		prop_accessors[kLabel_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kBox_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kFlex_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kFlow_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kFree_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kImage_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kVideo_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kInput_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kTextarea_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kScroll_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kText_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kButton_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kMatrix_ViewType] = prop_accessors[kView_ViewType];
-		prop_accessors[kRoot_ViewType] = prop_accessors[kView_ViewType];
-		// box
+		props_accessors[kLabel_ViewType] = props_accessors[kView_ViewType]; // copy view props to label
+		props_accessors[kBox_ViewType] = props_accessors[kView_ViewType]; // copy view props to box
+		props_accessors[kFlex_ViewType] = props_accessors[kView_ViewType]; // copy view props to flex
+		props_accessors[kFlow_ViewType] = props_accessors[kView_ViewType]; // copy view props to flow
+		props_accessors[kFree_ViewType] = props_accessors[kView_ViewType]; // copy view props to free
+		props_accessors[kImage_ViewType] = props_accessors[kView_ViewType]; // copy view props to image
+		props_accessors[kVideo_ViewType] = props_accessors[kView_ViewType]; // copy view props to video
+		props_accessors[kInput_ViewType] = props_accessors[kView_ViewType]; // copy view props to input
+		props_accessors[kTextarea_ViewType] = props_accessors[kView_ViewType]; // copy view props to textarea
+		props_accessors[kScroll_ViewType] = props_accessors[kView_ViewType]; // copy view props to scroll
+		props_accessors[kText_ViewType] = props_accessors[kView_ViewType]; // copy view props to text
+		props_accessors[kButton_ViewType] = props_accessors[kView_ViewType]; // copy view props to button
+		props_accessors[kMatrix_ViewType] = props_accessors[kView_ViewType]; // copy view props to matrix
+		props_accessors[kSprite_ViewType] = props_accessors[kView_ViewType]; // copy view props to sprite
+		props_accessors[kRoot_ViewType] = props_accessors[kView_ViewType]; // copy view props to root
+		// Box
 		Qk_Set_Accessor(Box, CLIP, clip);
 		Qk_Set_Accessor(Box, ALIGN, align);
 		Qk_Set_Accessor(Box, WIDTH, width);
@@ -166,29 +200,29 @@ namespace qk {
 		Qk_Set_Accessor(Box, BACKGROUND, background);
 		Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow);
 		Qk_Set_Accessor(Box, WEIGHT, weight);
-		Qk_Copy_Accessor(Box, Flex, CLIP, 42);
-		Qk_Copy_Accessor(Box, Flow, CLIP, 42);
-		Qk_Copy_Accessor(Box, Free, CLIP, 42);
-		Qk_Copy_Accessor(Box, Image, CLIP, 42);
-		Qk_Copy_Accessor(Box, Video, CLIP, 42);
-		Qk_Copy_Accessor(Box, Input, CLIP, 42);
-		Qk_Copy_Accessor(Box, Textarea, CLIP, 42);
-		Qk_Copy_Accessor(Box, Scroll, CLIP, 42);
-		Qk_Copy_Accessor(Box, Text, CLIP, 42);
-		Qk_Copy_Accessor(Box, Button, CLIP, 42);
-		Qk_Copy_Accessor(Box, Matrix, CLIP, 42);
-		Qk_Copy_Accessor(Box, Root, CLIP, 42);
-		// flex
+		Qk_Copy_Accessor(Box, Flex, CLIP, 42); // copy box props to flex
+		Qk_Copy_Accessor(Box, Flow, CLIP, 42); // copy box props to flow
+		Qk_Copy_Accessor(Box, Free, CLIP, 42); // copy box props to free
+		Qk_Copy_Accessor(Box, Image, CLIP, 42); // copy box props to image
+		Qk_Copy_Accessor(Box, Video, CLIP, 42); // copy box props to video
+		Qk_Copy_Accessor(Box, Input, CLIP, 42); // copy box props to input
+		Qk_Copy_Accessor(Box, Textarea, CLIP, 42); // copy box props to textarea
+		Qk_Copy_Accessor(Box, Scroll, CLIP, 42); // copy box props to scroll
+		Qk_Copy_Accessor(Box, Text, CLIP, 42); // copy box props to text
+		Qk_Copy_Accessor(Box, Button, CLIP, 42); // copy box props to button
+		Qk_Copy_Accessor(Box, Matrix, CLIP, 42); // copy box props to matrix
+		Qk_Copy_Accessor(Box, Root, CLIP, 42); // copy box props to root
+		// Flex
 		Qk_Set_Accessor(Flex, DIRECTION, direction);
 		Qk_Set_Accessor(Flex, ITEMS_ALIGN, items_align);
 		Qk_Set_Accessor(Flex, CROSS_ALIGN, cross_align);
-		Qk_Copy_Accessor(Flex, Flow, DIRECTION, 3);
-		// flow
+		Qk_Copy_Accessor(Flex, Flow, DIRECTION, 3); // copy flex props to flow
+		// Flow
 		Qk_Set_Accessor(Flow, WRAP, wrap);
 		Qk_Set_Accessor(Flow, WRAP_ALIGN, wrap_align);
-		// image
+		// Image
 		Qk_Set_Accessor(Image, SRC, src);
-		Qk_Copy_Accessor(Image, Video, SRC, 1);
+		Qk_Copy_Accessor(Image, Video, SRC, 1); // copy image props to video
 		// text/input/label of TextOptions
 		Qk_Set_Accessor(Text, TEXT_ALIGN, text_align);
 		Qk_Set_Accessor(Text, TEXT_WEIGHT, text_weight);
@@ -203,11 +237,11 @@ namespace qk {
 		Qk_Set_Accessor(Text, TEXT_LINE_HEIGHT, text_line_height);
 		Qk_Set_Accessor(Text, TEXT_SHADOW, text_shadow);
 		Qk_Set_Accessor(Text, TEXT_FAMILY, text_family);
-		Qk_Copy_Accessor(Text, Input, TEXT_ALIGN, 13);
-		Qk_Copy_Accessor(Text, Textarea, TEXT_ALIGN, 13);
-		Qk_Copy_Accessor(Text, Label, TEXT_ALIGN, 13);
-		Qk_Copy_Accessor(Text, Button, TEXT_ALIGN, 13);
-		// input/textarea
+		Qk_Copy_Accessor(Text, Input, TEXT_ALIGN, 13); // copy text props to input
+		Qk_Copy_Accessor(Text, Textarea, TEXT_ALIGN, 13); // copy text props to textarea
+		Qk_Copy_Accessor(Text, Label, TEXT_ALIGN, 13); // copy text props to label
+		Qk_Copy_Accessor(Text, Button, TEXT_ALIGN, 13); // copy text props to button
+		// Input/Textarea
 		Qk_Set_Accessor(Input, SECURITY, security);
 		Qk_Set_Accessor(Input, READONLY, readonly);
 		Qk_Set_Accessor(Input, KEYBOARD_TYPE, type);
@@ -216,13 +250,13 @@ namespace qk {
 		Qk_Set_Accessor(Input, CURSOR_COLOR, cursor_color);
 		Qk_Set_Accessor(Input, MAX_LENGTH, max_length);
 		Qk_Set_Accessor(Input, PLACEHOLDER, placeholder);
-		Qk_Copy_Accessor(Input, Textarea, SECURITY, 8);
-		// scroll/textarea of ScrollViewBase
+		Qk_Copy_Accessor(Input, Textarea, SECURITY, 8); // copy input props to textarea
+		// scroll/textarea of ScrollView
 		Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin);
-		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3);
-		// matrix
+		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3); // copy scroll props to textarea
+		// matrix/sprite of MatrixView
 		Qk_Set_Accessor(Matrix, TRANSLATE, translate);
 		Qk_Set_Accessor(Matrix, SCALE, scale);
 		Qk_Set_Accessor(Matrix, SKEW, skew);
@@ -236,9 +270,17 @@ namespace qk {
 		Qk_Set_Accessor(Matrix, ROTATE_Z, rotate_z);
 		Qk_Set_Accessor(Matrix, ORIGIN_X, origin_x);
 		Qk_Set_Accessor(Matrix, ORIGIN_Y, origin_y);
+		// Sprite
+		Qk_Copy_Accessor(Matrix, Sprite, TRANSLATE, 13); // copy matrix props to sprite
+		Qk_Set_Accessor(Sprite, WIDTH, width);
+		Qk_Set_Accessor(Sprite, HEIGHT, height);
+		// Matrix
+		Qk_Set_Accessor(Matrix, BOX_ORIGIN, box_origin); // matrix box origin
+		Qk_Set_Accessor(Matrix, BOX_ORIGIN_X, box_origin_x);
+		Qk_Set_Accessor(Matrix, BOX_ORIGIN_Y, box_origin_y);
 	}
 
-	PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop) {
-		return prop_accessors[type].value + prop;
+	PropAccessor* get_props_accessor(ViewType type, ViewProp prop) {
+		return props_accessors[type].value + prop;
 	}
 }

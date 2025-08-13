@@ -42,10 +42,8 @@ namespace qk {
 	public:
 		Sprite();
 		// props
-		// Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
-		// Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
-		Qk_DEFINE_VIEW_PROPERTY(float, frame_width, Const); // The width of the sprite frame
-		Qk_DEFINE_VIEW_PROPERTY(float, frame_height, Const); // The height of the sprite frame
+		Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
+		Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
 
 		// --------------- o v e r w r i t e ---------------
 		virtual ViewType viewType() const override;

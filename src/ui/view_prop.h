@@ -131,25 +131,28 @@ namespace qk {
 	F(CURSOR_COLOR, Color, cursor_color, Input) \
 	F(MAX_LENGTH, uint32_t, max_length, Input) \
 	F(PLACEHOLDER, String, placeholder, Input) /*****Large size data*****/\
-	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollBase) /*scroll/textarea of ScrollBase*/ \
-	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollBase) \
-	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollBase) \
-	F(TRANSLATE, Vec2, translate, Matrix) /*matrix*/ \
-	F(SCALE, Vec2, scale, Matrix) \
-	F(SKEW, Vec2, skew, Matrix) \
-	F(ORIGIN, ArrayOrigin, origin, Matrix) \
-	F(X, float, x, Matrix) \
-	F(Y, float, y, Matrix) \
-	F(SCALE_X, float, scale_x, Matrix) \
-	F(SCALE_Y, float, scale_y, Matrix) \
-	F(SKEW_X, float, skew_x, Matrix) \
-	F(SKEW_Y, float, skew_y, Matrix) \
-	F(ROTATE_Z, float, rotate_z, Matrix) \
-	F(ORIGIN_X, BoxOrigin, origin_x, Matrix) \
-	F(ORIGIN_Y, BoxOrigin, origin_y, Matrix) \
+	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollView) /*scroll/textarea of ScrollView*/ \
+	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollView) \
+	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollView) \
+	F(TRANSLATE, Vec2, translate, MatrixView) /*matrix/sprite of MatrixView*/ \
+	F(SCALE, Vec2, scale, MatrixView) \
+	F(SKEW, Vec2, skew, MatrixView) \
+	F(ORIGIN, Vec2, origin, MatrixView) \
+	F(X, float, x, MatrixView) \
+	F(Y, float, y, MatrixView) \
+	F(SCALE_X, float, scale_x, MatrixView) \
+	F(SCALE_Y, float, scale_y, MatrixView) \
+	F(SKEW_X, float, skew_x, MatrixView) \
+	F(SKEW_Y, float, skew_y, MatrixView) \
+	F(ROTATE_Z, float, rotate_z, MatrixView) \
+	F(ORIGIN_X, float, origin_x, MatrixView) \
+	F(ORIGIN_Y, float, origin_y, MatrixView) \
+	F(BOX_ORIGIN, ArrayOrigin, box_origin, Matrix) /*Matrix*/\
+	F(BOX_ORIGIN_X, BoxOrigin, box_origin_x, Matrix) \
+	F(BOX_ORIGIN_Y, BoxOrigin, box_origin_y, Matrix) \
 	F(CURVE, Curve, curve, CSS) /*extends*//*****Large size data*****/\
 
-	// Unsupported attributes for ScrollBase:
+	// Unsupported attributes for ScrollView:
 	// (ScrollBase, bool, scrollbar, scrollbar)
 	// (ScrollBase, bool, bounce, bounce)
 	// (ScrollBase, bool, bounce_lock, bounceLock)
@@ -196,7 +199,7 @@ namespace qk {
 		void (Object::*set)();
 	};
 
-	Qk_EXPORT PropAccessor* prop_accessor_at_view(ViewType type, ViewProp prop);
+	Qk_EXPORT PropAccessor* get_props_accessor(ViewType type, ViewProp prop);
 }
 
 #endif

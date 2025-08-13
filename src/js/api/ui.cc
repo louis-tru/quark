@@ -61,7 +61,11 @@ namespace qk { namespace js {
 		return nullptr;
 	}
 
-	ScrollBase* MixUIObject::asScrollBase() {
+	ScrollView* MixUIObject::asScrollView() {
+		return nullptr;
+	}
+
+	MatrixView* MixUIObject::asMatrixView() {
 		return nullptr;
 	}
 

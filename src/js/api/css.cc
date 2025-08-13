@@ -138,7 +138,7 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(Vec2, translate, translate);
 			Js_StyleSheets_Accessor(Vec2, scale, scale);
 			Js_StyleSheets_Accessor(Vec2, skew, skew);
-			Js_StyleSheets_Accessor(ArrayOrigin, origin, origin);
+			Js_StyleSheets_Accessor(Vec2, origin, origin);
 			Js_StyleSheets_Accessor(float, x, x);
 			Js_StyleSheets_Accessor(float, y, y);
 			Js_StyleSheets_Accessor(float, scale_x, scaleX);
@@ -146,8 +146,11 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(float, skew_x, skewX);
 			Js_StyleSheets_Accessor(float, skew_y, skewY);
 			Js_StyleSheets_Accessor(float, rotate_z, rotateZ);
-			Js_StyleSheets_Accessor(BoxOrigin, origin_x, originX);
-			Js_StyleSheets_Accessor(BoxOrigin, origin_y, originY);
+			Js_StyleSheets_Accessor(float, origin_x, originX);
+			Js_StyleSheets_Accessor(float, origin_y, originY);
+			Js_StyleSheets_Accessor(ArrayOrigin, box_origin, boxOrigin);
+			Js_StyleSheets_Accessor(BoxOrigin, box_origin_x, boxOriginX);
+			Js_StyleSheets_Accessor(BoxOrigin, box_origin_y, boxOriginY);
 
 			Js_Class_Accessor_Get(itemsCount, {
 				Js_Self(StyleSheets);

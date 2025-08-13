@@ -78,7 +78,7 @@ namespace qk {
 			kLayout_Child_Height      = (1 << 5), /* Same as above */
 			kLayout_Child_Size        = (kLayout_Child_Width | kLayout_Child_Height),
 			kLayout_Typesetting       = (1 << 6), /* The layout content is offset, and the sub-layout needs to be typesetting */
-			kTransform_Origin         = (1 << 7), /* Changing Transform Origin */
+			kTransform_Box_Origin     = (1 << 7), /* Changing Transform Box Origin */
 			kInput_Status             = (1 << 8), /* Input state changes that don't include layout changes */
 			kText_Options             = (1 << 9), /* Text configuration changes and may affect subviews */
 			kScroll                   = (1 << 10), /* scroll status change */

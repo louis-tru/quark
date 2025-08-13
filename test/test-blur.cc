@@ -63,7 +63,7 @@ Qk_TEST_Func(blur) {
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});
 	auto r = win->root();
 	auto t = r->append_new<TestBlur>();
-	r->set_origin({BoxOrigin{0,BoxOriginKind::Value}});
+	r->set_box_origin({BoxOrigin{0,BoxOriginKind::Value}});
 	r->set_background_color({255,255,255,0});
 	t->set_width({ 0, BoxSizeKind::Match });
 	t->set_height({ 0, BoxSizeKind::Match });

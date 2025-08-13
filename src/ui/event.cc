@@ -923,7 +923,7 @@ namespace qk {
 		if (!view) view = _window->root();
 		if (!view) return;
 
-		auto mat = view->matrix_view()->mat();
+		auto mat = view->matrix_view()->matrix();
 		auto point = mat.mul_vec2_no_translate(view->center()) + view->position();
 
 		_pre.post(Cb([this,view,point](auto& e) {

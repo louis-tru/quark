@@ -34,37 +34,36 @@
 
 namespace qk { namespace js {
 
+	void inheritMatrixView(JSClass* cls, Worker* worker) {
+		Js_UIObject_Accessor(MatrixView, Vec2, translate, translate);
+		Js_UIObject_Accessor(MatrixView, Vec2, scale, scale);
+		Js_UIObject_Accessor(MatrixView, Vec2, skew, skew);
+		Js_UIObject_Accessor(MatrixView, Vec2, origin, origin);
+		Js_UIObject_Accessor(MatrixView, float, x, x);
+		Js_UIObject_Accessor(MatrixView, float, y, y);
+		Js_UIObject_Accessor(MatrixView, float, scale_x, scaleX);
+		Js_UIObject_Accessor(MatrixView, float, scale_y, scaleY);
+		Js_UIObject_Accessor(MatrixView, float, skew_x, skewX);
+		Js_UIObject_Accessor(MatrixView, float, skew_y, skewY);
+		Js_UIObject_Accessor(MatrixView, float, rotate_z, rotateZ);
+
+		Js_Class_Accessor_Get(matrix, {
+			Js_UISelf(MatrixView);
+			Js_Return( worker->types()->jsvalue(self->matrix()) );
+		});
+	};
+
 	class MixMatrix: public MixViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Matrix, Box, {
 				Js_NewView(Matrix);
 			});
+			inheritMatrixView(cls, worker);
 
-			Js_MixObject_Accessor(Matrix, Vec2, translate, translate);
-			Js_MixObject_Accessor(Matrix, Vec2, scale, scale);
-			Js_MixObject_Accessor(Matrix, Vec2, skew, skew);
-			Js_MixObject_Accessor(Matrix, float, rotate_z, rotateZ);
-			Js_MixObject_Accessor(Matrix, BoxOrigin, origin_x, originX);
-			Js_MixObject_Accessor(Matrix, BoxOrigin, origin_y, originY);
-
-			Js_Class_Accessor_Get(originValue, {
-				Js_Self(Matrix);
-				Js_Return( worker->types()->jsvalue(self->origin_value()) );
-			});
-
-			Js_MixObject_Accessor(Matrix, float, x, x);
-			Js_MixObject_Accessor(Matrix, float, y, y);
-			Js_MixObject_Accessor(Matrix, float, scale_x, scaleX);
-			Js_MixObject_Accessor(Matrix, float, scale_y, scaleY);
-			Js_MixObject_Accessor(Matrix, float, skew_x, skewX);
-			Js_MixObject_Accessor(Matrix, float, skew_y, skewY);
-			Js_MixObject_Accessor(Matrix, ArrayOrigin, origin, origin);
-
-			Js_Class_Accessor_Get(mat, {
-				Js_Self(Matrix);
-				Js_Return( worker->types()->jsvalue(self->mat()) );
-			});
+			Js_MixObject_Accessor(Matrix, ArrayOrigin, box_origin, boxOrigin);
+			Js_MixObject_Accessor(Matrix, BoxOrigin, box_origin_x, boxOriginX);
+			Js_MixObject_Accessor(Matrix, BoxOrigin, box_origin_y, boxOriginY);
 
 			cls->exports("Matrix", exports);
 		}

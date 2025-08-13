@@ -41,6 +41,7 @@
 #include "./view/textarea.h"
 #include "./view/label.h"
 #include "./view/matrix.h"
+#include "./view/sprite.h"
 
 #define _Border(v) auto _border = v->_border.load()
 #define _IfBorder(v) _Border(v); if (_border)
@@ -724,7 +725,7 @@ namespace qk {
 		auto matrixPrev = _matrix;
 		auto origin = _origin;
 		_origin = Vec2(_AAShrink * 0.5) - box->_origin;
-		_matrix = &box->mat();
+		_matrix = &box->matrix();
 		_canvas->setMatrix(*_matrix);
 		//_canvas->setTranslate(box->position());
 		BoxData data;
@@ -750,7 +751,7 @@ namespace qk {
 				//auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
 				_AAShrink = origin + origin;
 				_origin = Vec2(origin) - v->_origin;
-				_matrix = &v->mat();
+				_matrix = &v->matrix();
 				_canvas->setMatrix(*_matrix);
 				_canvas->clearColor(v->_background_color.to_color4f());
 				drawBoxColor(v, data);
@@ -807,6 +808,12 @@ namespace qk {
 	void Matrix::draw(UIDraw *draw) {
 		if (_visible_region) {
 			draw->visitMatrix(this);
+		}
+	}
+
+	void Sprite::draw(UIDraw *draw) {
+		if (_visible_region) {
+			// draw->visitMatrix(this);
 		}
 	}
 

@@ -63,7 +63,7 @@ namespace qk {
 		 * Returns the final matrix of the view, parent transform * Mat
 		 * @return {Mat}
 		*/
-		const Mat& mat() const { return _matrix; }
+		const Mat& matrix() const { return _matrix; }
 
 	protected:
 		Mat _matrix; // parent transform View * Mat(translate, scale, skew, rotate_z);

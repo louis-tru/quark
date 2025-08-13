@@ -166,7 +166,7 @@ namespace qk { namespace js {
 		virtual TextOptions* asTextOptions() {
 			return self<Textarea>();
 		}
-		virtual ScrollBase* asScrollBase() {
+		virtual ScrollView* asScrollView() {
 			return self<Textarea>();
 		}
 		static void binding(JSObject* exports, Worker* worker) {
@@ -174,7 +174,7 @@ namespace qk { namespace js {
 				Js_NewView(Textarea);
 			});
 			inheritTextOptions(cls, worker);
-			inheritScrollBase(cls, worker);
+			inheritScrollView(cls, worker);
 			cls->exports("Textarea", exports);
 		}
 	};

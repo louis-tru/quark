@@ -281,7 +281,6 @@ export interface MatrixView extends View {
 	translate: types.Vec2; //!<
 	scale: types.Vec2; //!<
 	skew: types.Vec2; //!<
-	rotateZ: number; //!<
 	origin: types.Vec2; //!<
 	x: number; //!<
 	y: number; //!<
@@ -289,6 +288,10 @@ export interface MatrixView extends View {
 	scaleY: number; //!<
 	skewX: number; //!<
 	skewY: number; //!<
+	rotateZ: number; //!<
+	originX: number; //!<
+	originY: number; //!<
+	readonly matrix: types.Mat; //!<
 }
 
 /**
@@ -300,7 +303,6 @@ export declare class Matrix extends Box implements MatrixView {
 	translate: types.Vec2;
 	scale: types.Vec2;
 	skew: types.Vec2;
-	rotateZ: number;
 	origin: types.Vec2;
 	x: number;
 	y: number;
@@ -308,10 +310,13 @@ export declare class Matrix extends Box implements MatrixView {
 	scaleY: number;
 	skewX: number;
 	skewY: number;
+	rotateZ: number;
+	originX: number;
+	originY: number;
+	readonly matrix: types.Mat;
 	boxOrigin: types.BoxOrigin[]; //!<
 	boxOriginX: types.BoxOrigin; //!<
 	boxOriginY: types.BoxOrigin; //!<
-	readonly mat: types.Mat; //!<
 }
 
 /**

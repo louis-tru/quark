@@ -65,7 +65,7 @@ F(Highlighted, Highlighted, kBubble_UIEventFlags) /* normal / hover / down */ \
 /* canno bubble event */ \
 F(ActionKeyframe, Action, kNone_UIEventFlags) \
 F(ActionLoop, Action, kNone_UIEventFlags) \
-F(Scroll, Default, kNone_UIEventFlags) /*ScrollBase*/\
+F(Scroll, Default, kNone_UIEventFlags) /*ScrollView*/\
 F(Change, Default, kNone_UIEventFlags) /*Input*/ \
 F(Load, Default, kNone_UIEventFlags) /* Image */ \
 /* player */ \

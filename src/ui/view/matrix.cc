@@ -217,14 +217,14 @@ namespace qk {
 	void Matrix::set_box_origin_x(BoxOrigin val, bool isRt) {
 		if (_box_origin_x != val) {
 			_box_origin_x = val;
-			mark_layout(kTransform_Origin, isRt);
+			mark_layout(kTransform_Box_Origin, isRt);
 		}
 	}
 
 	void Matrix::set_box_origin_y(BoxOrigin val, bool isRt) {
 		if (_box_origin_y != val) {
 			_box_origin_y = val;
-			mark_layout(kTransform_Origin, isRt);
+			mark_layout(kTransform_Box_Origin, isRt);
 		}
 	}
 
@@ -296,7 +296,7 @@ namespace qk {
 
 	void Matrix::layout_reverse(uint32_t mark) {
 		Box::layout_reverse(mark);
-		if (mark & (kTransform_Origin | kLayout_Typesetting) ) {
+		if (mark & (kTransform_Box_Origin | kLayout_Typesetting) ) {
 			solve_origin_value(); // check transform_origin change
 		}
 	}
@@ -318,7 +318,7 @@ namespace qk {
 			case BoxOriginKind::Ratio: _origin.set_y(_client_size.y() * _box_origin_y.value); break;
 		}
 
-		unmark(kTransform_Origin);
+		unmark(kTransform_Box_Origin);
 
 		if (old != _origin) {
 			mark(kTransform, true);

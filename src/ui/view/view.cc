@@ -695,7 +695,7 @@ namespace qk {
 	View* View::init(Window* win) {
 		Qk_ASSERT(win);
 		_window = win;
-		_accessor = prop_accessor_at_view(viewType(), kOPACITY_ViewProp);
+		_accessor = get_props_accessor(viewType(), kOPACITY_ViewProp);
 		return this;
 	}
 

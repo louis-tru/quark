@@ -28,57 +28,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./sprite.h"
+#include "./ui.h"
+#include "../../ui/view/sprite.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
+namespace qk { namespace js {
 
-namespace qk {
-
-	Sprite::Sprite() : View(), MatrixView(this)
-		, _width(0), _height(0) {
-	}
-
-	void Sprite::set_width(float val, bool isRt) {
-		if (_width != val) {
-			_width = val;
-			mark(kLayout_None, isRt);
+	class MixSprite: public MixViewObject {
+	public:
+		virtual MatrixView* asMatrixView() {
+			return self<Sprite>();
 		}
-	}
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(Sprite, View, {
+				Js_NewView(Sprite);
+			});
+			inheritMatrixView(cls, worker);
 
-	void Sprite::set_height(float val, bool isRt) {
-		if (_height != val) {
-			_height = val;
-			mark(kLayout_None, isRt);
+			Js_MixObject_Accessor(Sprite, float, width, width);
+			Js_MixObject_Accessor(Sprite, float, height, height);
+
+			cls->exports("Sprite", exports);
 		}
-	}
+	};
 
-	ViewType Sprite::viewType() const {
-		return kSprite_ViewType;
+	void binding_sprite(JSObject* exports, Worker* worker) {
+		MixSprite::binding(exports, worker);
 	}
-
-	MatrixView* Sprite::asMatrixView() {
-		return this;
-	}
-
-	Vec2 Sprite::layout_offset_inside() {
-		return _origin;
-	}
-
-	Vec2 Sprite::center() {
-		return { _width * 0.5f - _origin.x(), _height * 0.5f - _origin.y() };
-	}
-
-	void Sprite::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kTransform) { // update transform matrix
-			_CheckParent();
-			unmark(kTransform); // unmark
-
-			auto v = layout_offset() + _parent->layout_offset_inside()
-				+ _origin + _translate;
-			_matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
-			_position = Vec2(_matrix[2],_matrix[5]);
-		}
-	}
-}
+} }

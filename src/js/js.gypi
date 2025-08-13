@@ -43,6 +43,7 @@
 			'api/screen.cc',
 			'api/scroll.cc',
 			'api/storage.cc',
+			'api/sprite.cc',
 			'api/text.cc',
 			'api/matrix.cc',
 			'api/types.h',

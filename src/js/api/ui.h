@@ -68,7 +68,8 @@ namespace qk { namespace js {
 	class Qk_EXPORT MixUIObject: public MixObject {
 	public:
 		virtual TextOptions* asTextOptions();
-		virtual ScrollBase*  asScrollBase();
+		virtual ScrollView*  asScrollView();
+		virtual MatrixView*  asMatrixView();
 		virtual Player*      asPlayer();
 		virtual NotificationBasic* asNotificationBasic();
 		virtual bool addEventListener(cString& name_, cString& func, int id) override;
@@ -84,7 +85,8 @@ namespace qk { namespace js {
 	bool checkApp(Worker *worker);
 	bool isView(Worker *worker, JSValue* value);
 	bool isWindow(Worker *worker, JSValue* value);
-	void inheritScrollBase(JSClass* cls, Worker* worker);
+	void inheritScrollView(JSClass* cls, Worker* worker);
+	void inheritMatrixView(JSClass* cls, Worker* worker);
 
 } }
 #endif

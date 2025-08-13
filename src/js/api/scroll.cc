@@ -33,41 +33,41 @@
 
 namespace qk { namespace js {
 
-	void inheritScrollBase(JSClass* cls, Worker* worker) {
-		Js_UIObject_Accessor(ScrollBase, bool, scrollbar, scrollbar);
-		Js_UIObject_Accessor(ScrollBase, bool, bounce, bounce);
-		Js_UIObject_Accessor(ScrollBase, bool, bounce_lock, bounceLock);
-		Js_UIObject_Accessor(ScrollBase, bool, momentum, momentum);
-		Js_UIObject_Accessor(ScrollBase, bool, lock_direction, lockDirection);
-		Js_UIObject_Accessor(ScrollBase, float, scroll_x, scrollX);
-		Js_UIObject_Accessor(ScrollBase, float, scroll_y, scrollY);
-		Js_UIObject_Accessor(ScrollBase, Vec2, scroll, scroll);
-		Js_UIObject_Accessor(ScrollBase, float, resistance, resistance);
-		Js_UIObject_Accessor(ScrollBase, float, catch_position_x, catchPositionX);
-		Js_UIObject_Accessor(ScrollBase, float, catch_position_y, catchPositionY);
-		Js_UIObject_Accessor(ScrollBase, Color, scrollbar_color, scrollbarColor);
-		Js_UIObject_Accessor(ScrollBase, float, scrollbar_width, scrollbarWidth);
-		Js_UIObject_Accessor(ScrollBase, float, scrollbar_margin, scrollbarMargin);
-		Js_UIObject_Accessor(ScrollBase, uint32_t, scroll_duration, scrollDuration);
-		Js_UIObject_Accessor(ScrollBase, Curve, default_curve, defaultCurve);
+	void inheritScrollView(JSClass* cls, Worker* worker) {
+		Js_UIObject_Accessor(ScrollView, bool, scrollbar, scrollbar);
+		Js_UIObject_Accessor(ScrollView, bool, bounce, bounce);
+		Js_UIObject_Accessor(ScrollView, bool, bounce_lock, bounceLock);
+		Js_UIObject_Accessor(ScrollView, bool, momentum, momentum);
+		Js_UIObject_Accessor(ScrollView, bool, lock_direction, lockDirection);
+		Js_UIObject_Accessor(ScrollView, float, scroll_x, scrollX);
+		Js_UIObject_Accessor(ScrollView, float, scroll_y, scrollY);
+		Js_UIObject_Accessor(ScrollView, Vec2, scroll, scroll);
+		Js_UIObject_Accessor(ScrollView, float, resistance, resistance);
+		Js_UIObject_Accessor(ScrollView, float, catch_position_x, catchPositionX);
+		Js_UIObject_Accessor(ScrollView, float, catch_position_y, catchPositionY);
+		Js_UIObject_Accessor(ScrollView, Color, scrollbar_color, scrollbarColor);
+		Js_UIObject_Accessor(ScrollView, float, scrollbar_width, scrollbarWidth);
+		Js_UIObject_Accessor(ScrollView, float, scrollbar_margin, scrollbarMargin);
+		Js_UIObject_Accessor(ScrollView, uint32_t, scroll_duration, scrollDuration);
+		Js_UIObject_Accessor(ScrollView, Curve, default_curve, defaultCurve);
 
 		Js_Class_Accessor_Get(scrollbarH, {
-			Js_UISelf(ScrollBase);
+			Js_UISelf(ScrollView);
 			Js_Return( worker->types()->jsvalue(self->scrollbar_h()) );
 		});
 		Js_Class_Accessor_Get(scrollbarV, {
-			Js_UISelf(ScrollBase);
+			Js_UISelf(ScrollView);
 			Js_Return( worker->types()->jsvalue(self->scrollbar_v()) );
 		});
 		Js_Class_Accessor_Get(scrollSize, {
-			Js_UISelf(ScrollBase);
+			Js_UISelf(ScrollView);
 			Js_Return( worker->types()->jsvalue(self->scroll_size()) );
 		});
 
 		Js_Class_Method(scrollTo, {
 			if (args.length() < 1) {
 				Js_Throw(
-					"@method ScrollBase.scrollTo(vec2[,uint64_t[,curve]])\n"
+					"@method ScrollView.scrollTo(vec2[,uint64_t[,curve]])\n"
 					"@param val {Vec2}\n"
 					"@param [duration] {uint64_t}\n"
 					"@param [curve] {Curve}\n"
@@ -76,16 +76,16 @@ namespace qk { namespace js {
 			Vec2 value;
 			uint64_t duration = 0;
 			{
-				Js_Parse_Type(Vec2, args[0], "@method ScrollBase.scrollTo(value = %s)");
+				Js_Parse_Type(Vec2, args[0], "@method ScrollView.scrollTo(value = %s)");
 				value = out;
 			}
 			if (args.length() > 1) {
-				Js_Parse_Type(uint32_t, args[1], "@method ScrollBase.scrollTo(value, duration = %s)");
+				Js_Parse_Type(uint32_t, args[1], "@method ScrollView.scrollTo(value, duration = %s)");
 				duration = out;
 			}
-			Js_UISelf(ScrollBase);
+			Js_UISelf(ScrollView);
 			if (args.length() > 2) {
-				Js_Parse_Type(Curve, args[2], "@method ScrollBase.scrollTo(value, duration, curve = %s)");
+				Js_Parse_Type(Curve, args[2], "@method ScrollView.scrollTo(value, duration, curve = %s)");
 				self->scrollTo(value, duration, out);
 			} else {
 				self->scrollTo(value, duration);
@@ -93,21 +93,21 @@ namespace qk { namespace js {
 		});
 
 		Js_Class_Method(terminate, {
-			Js_UISelf(ScrollBase);
+			Js_UISelf(ScrollView);
 			self->terminate();
 		});
 	}
 
 	class MixScroll: public MixViewObject {
 	public:
-		virtual ScrollBase* asScrollBase() {
+		virtual ScrollView* asScrollView() {
 			return self<Scroll>();
 		}
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Scroll, Box, {
 				Js_NewView(Scroll);
 			});
-			inheritScrollBase(cls, worker);
+			inheritScrollView(cls, worker);
 			cls->exports("Scroll", exports);
 		}
 	};
