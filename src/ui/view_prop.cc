@@ -92,7 +92,7 @@ namespace qk {
 			_Func(Vec2, translate) \
 			_Func(Vec2, scale) \
 			_Func(Vec2, skew) \
-			_Func(Vec2, origin) \
+			_Func(ArrayOrigin, origin) \
 			_Func(float, x) \
 			_Func(float, y) \
 			_Func(float, scale_x) \
@@ -100,8 +100,8 @@ namespace qk {
 			_Func(float, skew_x) \
 			_Func(float, skew_y) \
 			_Func(float, rotate_z) \
-			_Func(float, origin_x) \
-			_Func(float, origin_y) \
+			_Func(BoxOrigin, origin_x) \
+			_Func(BoxOrigin, origin_y) \
 
 		struct Text: View {
 			#define _Func(Type, Name) \
@@ -272,12 +272,9 @@ namespace qk {
 		Qk_Set_Accessor(Matrix, ORIGIN_Y, origin_y);
 		// Sprite
 		Qk_Copy_Accessor(Matrix, Sprite, TRANSLATE, 13); // copy matrix props to sprite
+		Qk_Set_Accessor(Sprite, SRC, src);
 		Qk_Set_Accessor(Sprite, WIDTH, width);
 		Qk_Set_Accessor(Sprite, HEIGHT, height);
-		// Matrix
-		Qk_Set_Accessor(Matrix, BOX_ORIGIN, box_origin); // matrix box origin
-		Qk_Set_Accessor(Matrix, BOX_ORIGIN_X, box_origin_x);
-		Qk_Set_Accessor(Matrix, BOX_ORIGIN_Y, box_origin_y);
 	}
 
 	PropAccessor* get_props_accessor(ViewType type, ViewProp prop) {

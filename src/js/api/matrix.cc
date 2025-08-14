@@ -38,7 +38,9 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(MatrixView, Vec2, translate, translate);
 		Js_UIObject_Accessor(MatrixView, Vec2, scale, scale);
 		Js_UIObject_Accessor(MatrixView, Vec2, skew, skew);
-		Js_UIObject_Accessor(MatrixView, Vec2, origin, origin);
+		Js_UIObject_Accessor(MatrixView, ArrayOrigin, origin, origin);
+		Js_UIObject_Accessor(MatrixView, BoxOrigin, origin_x, originX);
+		Js_UIObject_Accessor(MatrixView, BoxOrigin, origin_y, originY);
 		Js_UIObject_Accessor(MatrixView, float, x, x);
 		Js_UIObject_Accessor(MatrixView, float, y, y);
 		Js_UIObject_Accessor(MatrixView, float, scale_x, scaleX);
@@ -46,6 +48,11 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(MatrixView, float, skew_x, skewX);
 		Js_UIObject_Accessor(MatrixView, float, skew_y, skewY);
 		Js_UIObject_Accessor(MatrixView, float, rotate_z, rotateZ);
+
+		Js_Class_Accessor_Get(originValue, {
+			Js_UISelf(MatrixView);
+			Js_Return( worker->types()->jsvalue(self->origin_value()) );
+		});
 
 		Js_Class_Accessor_Get(matrix, {
 			Js_UISelf(MatrixView);

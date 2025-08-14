@@ -37,7 +37,11 @@
 namespace qk {
 
 	MatrixView::MatrixView(View* host)
-		: _translate(0), _scale(1), _skew(0), _rotate_z(0), _origin(0), _host(host)
+		: _translate(0), _scale(1), _skew(0)
+		, _rotate_z(0), _origin_value(0)
+		, _origin_x{0, BoxOriginKind::Auto}
+		, _origin_y{0, BoxOriginKind::Auto}
+		, _host(host)
 	{}
 
 	/**
@@ -84,10 +88,35 @@ namespace qk {
 	/**
 	 * Returns the matrix origin of the view object
 	*/
-	void MatrixView::set_origin(Vec2 val, bool isRt) {
-		if (_origin != val) {
-			_origin = val;
+	void MatrixView::set_origin_x(BoxOrigin val, bool isRt) {
+		if (_origin_x != val) {
+			_origin_x = val;
 			_host->mark(View::kTransform, isRt);
+		}
+	}
+
+	void MatrixView::set_origin_y(BoxOrigin val, bool isRt) {
+		if (_origin_y != val) {
+			_origin_y = val;
+			_host->mark(View::kTransform, isRt);
+		}
+	}
+
+	ArrayOrigin MatrixView::origin() const {
+		return ArrayOrigin{_origin_x, _origin_y};
+	}
+
+	void MatrixView::set_origin(ArrayOrigin val, bool isRt) {
+		switch (val.length()) {
+			case 1:
+				set_origin_x(val[0], isRt);
+				set_origin_y(val[0], isRt);
+				break;
+			case 2:
+				set_origin_x(val[0], isRt);
+				set_origin_y(val[1], isRt);
+				break;
+			default: break;
 		}
 	}
 
@@ -120,16 +149,6 @@ namespace qk {
 		* Returns y-axis matrix skew for the view
 		*/
 	float MatrixView::skew_y() const { return _skew[1]; }
-
-	/**
-		* Returns x-axis matrix origin for the view
-		*/
-	float MatrixView::origin_x() const { return _origin[0]; }
-
-	/**
-	 * Returns y-axis matrix origin for the view
-	 */
-	float MatrixView::origin_y() const { return _origin[1]; }
 
 	/**
 		* Setting x-axis matrix displacement for the view
@@ -191,17 +210,18 @@ namespace qk {
 		}
 	}
 
-	void MatrixView::set_origin_x(float val, bool isRt) {
-		if (_origin[0] != val) {
-			_origin[0] = val;
-			_host->mark(View::kTransform, isRt);
+	void MatrixView::solve_origin_value(Vec2 client_size) {
+		switch (_origin_x.kind) {
+			default:
+			case BoxOriginKind::Auto:  _origin_value.set_x(client_size.x() * 0.5); break; // center
+			case BoxOriginKind::Value: _origin_value.set_x(_origin_x.value); break;
+			case BoxOriginKind::Ratio: _origin_value.set_x(client_size.x() * _origin_x.value); break;
 		}
-	}
-
-	void MatrixView::set_origin_y(float val, bool isRt) {
-		if (_origin[1] != val) {
-			_origin[1] = val;
-			_host->mark(View::kTransform, isRt);
+		switch (_origin_y.kind) {
+			default:
+			case BoxOriginKind::Auto:  _origin_value.set_y(client_size.y() * 0.5); break; // center
+			case BoxOriginKind::Value: _origin_value.set_y(_origin_y.value); break;
+			case BoxOriginKind::Ratio: _origin_value.set_y(client_size.y() * _origin_y.value); break;
 		}
 	}
 
@@ -209,41 +229,7 @@ namespace qk {
 
 	Matrix::Matrix()
 		: Box(), MatrixView(this)
-		, _box_origin_x{0, BoxOriginKind::Auto}
-		, _box_origin_y{0, BoxOriginKind::Auto}
 	{
-	}
-
-	void Matrix::set_box_origin_x(BoxOrigin val, bool isRt) {
-		if (_box_origin_x != val) {
-			_box_origin_x = val;
-			mark_layout(kTransform_Box_Origin, isRt);
-		}
-	}
-
-	void Matrix::set_box_origin_y(BoxOrigin val, bool isRt) {
-		if (_box_origin_y != val) {
-			_box_origin_y = val;
-			mark_layout(kTransform_Box_Origin, isRt);
-		}
-	}
-
-	ArrayOrigin Matrix::box_origin() const {
-		return ArrayOrigin{_box_origin_x, _box_origin_y};
-	}
-
-	void Matrix::set_box_origin(ArrayOrigin val, bool isRt) {
-		switch (val.length()) {
-			case 1:
-				set_box_origin_x(val[0], isRt);
-				set_box_origin_y(val[0], isRt);
-				break;
-			case 2:
-				set_box_origin_x(val[0], isRt);
-				set_box_origin_y(val[1], isRt);
-				break;
-			default: break;
-		}
 	}
 
 	MatrixView* Matrix::asMatrixView() {
@@ -266,10 +252,10 @@ namespace qk {
 	void Matrix::solve_marks(const Mat &mat, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
 			_CheckParent();
+			solve_origin_value(client_size()); // check transform_origin change
 			unmark(kTransform | kVisible_Region); // unmark
-
 			auto v = layout_offset() + _parent->layout_offset_inside()
-				+ Vec2(margin_left(), margin_top()) + _origin + _translate;
+				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;
 			_matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
 			solve_visible_region(_matrix);
@@ -291,37 +277,21 @@ namespace qk {
 	}
 
 	Vec2 Matrix::layout_offset_inside() {
-		return Box::layout_offset_inside() - _origin;
+		return Box::layout_offset_inside() - _origin_value;
 	}
 
 	void Matrix::layout_reverse(uint32_t mark) {
 		Box::layout_reverse(mark);
-		if (mark & (kTransform_Box_Origin | kLayout_Typesetting) ) {
-			solve_origin_value(); // check transform_origin change
+		if (mark & kLayout_Typesetting) {
+			check_origin_value(); // check if have to mark transform
 		}
 	}
 
-	void Matrix::solve_origin_value() {
-		auto old = _origin;
-		auto _client_size = client_size();
-
-		switch (_box_origin_x.kind) {
-			default:
-			case BoxOriginKind::Auto:  _origin.set_x(_client_size.x() * 0.5); break; // center
-			case BoxOriginKind::Value: _origin.set_x(_box_origin_x.value); break;
-			case BoxOriginKind::Ratio: _origin.set_x(_client_size.x() * _box_origin_x.value); break;
-		}
-		switch (_box_origin_y.kind) {
-			default:
-			case BoxOriginKind::Auto:  _origin.set_y(_client_size.y() * 0.5); break; // center
-			case BoxOriginKind::Value: _origin.set_y(_box_origin_y.value); break;
-			case BoxOriginKind::Ratio: _origin.set_y(_client_size.y() * _box_origin_y.value); break;
-		}
-
-		unmark(kTransform_Box_Origin);
-
-		if (old != _origin) {
-			mark(kTransform, true);
+	void Matrix::check_origin_value() {
+		auto last = _origin_value;
+		solve_origin_value(client_size());
+		if (last != _origin_value) {
+			mark(kTransform, true); // mark transform
 		}
 	}
 

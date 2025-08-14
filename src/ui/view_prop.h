@@ -137,7 +137,7 @@ namespace qk {
 	F(TRANSLATE, Vec2, translate, MatrixView) /*matrix/sprite of MatrixView*/ \
 	F(SCALE, Vec2, scale, MatrixView) \
 	F(SKEW, Vec2, skew, MatrixView) \
-	F(ORIGIN, Vec2, origin, MatrixView) \
+	F(ORIGIN, ArrayOrigin, origin, MatrixView) /*Matrix*/\
 	F(X, float, x, MatrixView) \
 	F(Y, float, y, MatrixView) \
 	F(SCALE_X, float, scale_x, MatrixView) \
@@ -145,11 +145,8 @@ namespace qk {
 	F(SKEW_X, float, skew_x, MatrixView) \
 	F(SKEW_Y, float, skew_y, MatrixView) \
 	F(ROTATE_Z, float, rotate_z, MatrixView) \
-	F(ORIGIN_X, float, origin_x, MatrixView) \
-	F(ORIGIN_Y, float, origin_y, MatrixView) \
-	F(BOX_ORIGIN, ArrayOrigin, box_origin, Matrix) /*Matrix*/\
-	F(BOX_ORIGIN_X, BoxOrigin, box_origin_x, Matrix) \
-	F(BOX_ORIGIN_Y, BoxOrigin, box_origin_y, Matrix) \
+	F(ORIGIN_X, BoxOrigin, origin_x, MatrixView) \
+	F(ORIGIN_Y, BoxOrigin, origin_y, MatrixView) \
 	F(CURVE, Curve, curve, CSS) /*extends*//*****Large size data*****/\
 
 	// Unsupported attributes for ScrollView:

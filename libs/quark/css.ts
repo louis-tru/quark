@@ -125,9 +125,9 @@ export interface StyleSheet {
 	translate?: types.Vec2In; //!<
 	scale?: types.Vec2In; //!<
 	skew?: types.Vec2In; //!<
-	origin?: types.Vec2In; //!< transform origin
-	originX?: number; //!<
-	originY?: number; //!<
+	origin?: types.BoxOriginIn[] | types.BoxOriginIn //!<
+	originX?: types.BoxOriginIn; //!<
+	originY?: types.BoxOriginIn; //!<
 	x?: number; //!<
 	y?: number; //!<
 	scaleX?: number; //!<
@@ -135,9 +135,6 @@ export interface StyleSheet {
 	skewX?: number; //!<
 	skewY?: number; //!<
 	rotateZ?: number; //!<
-	boxOrigin?: types.BoxOriginIn[] | types.BoxOriginIn //!<
-	boxOriginX?: types.BoxOriginIn; //!<
-	boxOriginY?: types.BoxOriginIn; //!<
 }
 
 /**

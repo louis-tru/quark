@@ -70,8 +70,8 @@ namespace qk {
 		// Use free typesetting
 		static_assert(sizeof(Box) == sizeof(Free), "");
 		static_cast<Free*>(static_cast<Box*>(this))->Free::layout_reverse(mark);
-		if (mark & (kTransform_Box_Origin | kLayout_Typesetting)) {
-			solve_origin_value(); // check matrix_origin change
+		if (mark & (kTransform_Origin | kLayout_Typesetting)) {
+			check_origin_value();
 		}
 	}
 

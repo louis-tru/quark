@@ -78,11 +78,11 @@ namespace qk {
 			kLayout_Child_Height      = (1 << 5), /* Same as above */
 			kLayout_Child_Size        = (kLayout_Child_Width | kLayout_Child_Height),
 			kLayout_Typesetting       = (1 << 6), /* The layout content is offset, and the sub-layout needs to be typesetting */
-			kTransform_Box_Origin     = (1 << 7), /* Changing Transform Box Origin */
-			kInput_Status             = (1 << 8), /* Input state changes that don't include layout changes */
-			kText_Options             = (1 << 9), /* Text configuration changes and may affect subviews */
-			kScroll                   = (1 << 10), /* scroll status change */
-			kStyle_Class              = (1 << 11), /* View style changes caused by changing class */
+			kInput_Status             = (1 << 7), /* Input state changes that don't include layout changes */
+			kText_Options             = (1 << 8), /* Text configuration changes and may affect subviews */
+			kScroll                   = (1 << 9), /* scroll status change */
+			kStyle_Class              = (1 << 10), /* View style changes caused by changing class */
+			kTransform_Origin         = (1 << 29), /* Changing Transform Origin */
 			kTransform                = (1 << 30), /* Matrix Transformation, recursive mark */
 			kVisible_Region           = (1U << 31), /* Visible range changes */
 			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
@@ -226,7 +226,8 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(bool, visible, Const);
 
 		/**
-		 *  这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		 * 这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		 * This value represents whether the view is visible in the current display area, which is mostly the screen
 		*/
 		Qk_DEFINE_PROP_GET(bool, visible_region, ProtectedConst);
 

@@ -38,12 +38,14 @@ namespace qk {
 	/**
 	 * @class Sprite
 	*/
-	class Qk_EXPORT Sprite: public View, public MatrixView {
+	class Qk_EXPORT Sprite: public View, public ImageSourceHold, public MatrixView {
 	public:
 		Sprite();
 		// props
+		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const); // The source of the sprite image
 		Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
 		Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
+		Qk_DEFINE_VIEW_PROPERTY(Vec2, size, Const);
 
 		// --------------- o v e r w r i t e ---------------
 		virtual ViewType viewType() const override;
@@ -52,6 +54,9 @@ namespace qk {
 		virtual Vec2 center() override;
 		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
 		virtual void draw(UIDraw *render) override;
+	protected:
+		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
+		virtual ImagePool* imgPool() override;
 	};
 }
 #endif
