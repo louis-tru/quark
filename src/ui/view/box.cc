@@ -218,14 +218,16 @@ namespace qk {
 	void Box::set_padding_top(float val, bool isRt) { // padding
 		if (_padding_top != val) {
 			_padding_top = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			// may affect the inside content height,
+			// so mark kLayout_Inner_Height with kLayout_Outside_Width together
+			mark_layout(kLayout_Size_Height/*| kTransform*/, isRt);
 		}
 	}
 
 	void Box::set_padding_left(float val, bool isRt) {
 		if (_padding_left != val) {
 			_padding_left = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout(kLayout_Size_Width/*| kTransform*/, isRt);
 		}
 	}
 
@@ -243,12 +245,10 @@ namespace qk {
 		}
 	}
 
-	// -- border radius
-
 	ArrayFloat Box::border_radius() const {
 		return ArrayFloat{
-			_border_radius_left_top,_border_radius_right_top,
-			_border_radius_right_bottom,_border_radius_left_bottom
+			_border_radius_left_top,     _border_radius_right_top,
+			_border_radius_right_bottom, _border_radius_left_bottom
 		};
 	}
 
@@ -560,7 +560,7 @@ namespace qk {
 		val = Qk_Max(0, val);
 		if (_border->width[0] != val) {
 			_border->width[0] = val;
-			mark_layout(kLayout_Size_Height, isRt);
+			mark_layout(kLayout_Size_Height/*| kTransform*/, isRt);
 		}
 	}
 
@@ -587,7 +587,7 @@ namespace qk {
 		val = Qk_Max(0, val);
 		if (_border->width[3] != val) {
 			_border->width[3] = val;
-			mark_layout(kLayout_Size_Width, isRt);
+			mark_layout(kLayout_Size_Width/*| kTransform*/, isRt);
 		}
 	}
 
@@ -679,14 +679,14 @@ namespace qk {
 		return _align;
 	}
 
-	void Box::solve_marks(const Mat &mat, uint32_t mark) {
+	void Box::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
-			_CheckParent();
+			// _CheckParent();
 			unmark(kTransform | kVisible_Region); // unmark
-			Vec2 point = _parent->layout_offset_inside() + layout_offset()
+			Vec2 point = parent->layout_offset_inside() + layout_offset()
 				+ Vec2(_margin_left, _margin_top);
 			_position =
-				mat.mul_vec2_no_translate(point) + _parent->position();
+				mat.mul_vec2_no_translate(point) + parent->position();
 			solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark

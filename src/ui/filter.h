@@ -59,8 +59,8 @@ namespace qk {
 		// virtual void release() override;
 		virtual void destroy() override;
 		virtual Type type() const = 0;
-		virtual BoxFilter* copy(BoxFilter *dest, bool isRt) = 0; // @safe Rt
-		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t, bool isRt) = 0; // @safe Rt
+		virtual BoxFilter* copy(BoxFilter *dest, bool isRt) = 0; // @thread Rt
+		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t, bool isRt) = 0; // @thread Rt
 		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, View *view, bool isRt);
 
 		template<class T>

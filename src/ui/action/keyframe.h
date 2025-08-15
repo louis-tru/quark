@@ -59,7 +59,7 @@ namespace qk {
 		/**
 		 * @method onMake trigger new prop make
 		 * @overwrite
-		 * @safe Rt
+		 * @thread Rt
 		*/
 		void onMake(ViewProp key, Property* prop) override;
 
@@ -73,8 +73,8 @@ namespace qk {
 	class Qk_EXPORT KeyframeAction: public Action {
 	public:
 		// Props
-		Qk_DEFINE_PROP_GET(uint32_t, time, Const); //@safe Rt get, play time
-		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@safe Rt get, play frame
+		Qk_DEFINE_PROP_GET(uint32_t, time, Const); //@thread Rt get, play time
+		Qk_DEFINE_PROP_GET(uint32_t, frame, Const); //@thread Rt get, play frame
 
 		KeyframeAction(Window *win);
 
@@ -94,7 +94,7 @@ namespace qk {
 
 		/**
 		* @method has_property
-		* @safe Rt
+		* @thread Rt
 		*/
 		bool hasProperty(ViewProp name);
 

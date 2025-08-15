@@ -306,10 +306,13 @@ namespace qk {
 						child_layout_change_mark = kChild_Layout_Size;
 					}
 				}
-				_parent->onChildLayoutChange(this, child_layout_change_mark); // notice parent
+				// Notify the parent view that the subview layout has changed,
+				// maybe typesetting again and setting new layout offset.
+				_parent->onChildLayoutChange(this, child_layout_change_mark);
 			}
 
 			if (mark & kLayout_Child_Size) {
+				// it >> 4 to kLayout_Inner_Width and kLayout_Inner_Height
 				change_mark |= ((mark & kLayout_Child_Size) >> 4);
 			}
 
@@ -508,7 +511,7 @@ namespace qk {
 			solveCenter();
 			inner_size = Vec2(Float32::max(max_width, line_width), offset_y + line_height);
 		} else {
-			if ( _container.float_x() ) { // float width
+			if (_container.float_x()) { // float width
 				cur_x = _container.clamp_width(0);
 			}
 		}

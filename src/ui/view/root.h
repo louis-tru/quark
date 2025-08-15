@@ -41,11 +41,11 @@ namespace qk {
 		virtual bool can_become_focus() override;
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
-		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void draw(UIDraw *render) override;
 	private:
 		Root(Window *win);
-		void reload_Rt(); // @safe Rt
+		void reload_Rt(); // @thread Rt
 		friend class Window;
 	};
 

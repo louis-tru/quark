@@ -45,7 +45,7 @@ namespace qk {
 		set_width({0, BoxSizeKind::Match});
 		set_height({0, BoxSizeKind::Match});
 		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
-		set_background_color(Color(255, 255, 255, 255)); // 默认白色背景
+		set_background_color(Color(255, 255, 255, 255)); // default white background
 		mark(kTransform, false);
 	}
 
@@ -67,19 +67,19 @@ namespace qk {
 	}
 
 	void Root::layout_reverse(uint32_t mark) {
-		// Use free typesetting
+		// Just use free typesetting
 		static_assert(sizeof(Box) == sizeof(Free), "");
 		static_cast<Free*>(static_cast<Box*>(this))->Free::layout_reverse(mark);
-		if (mark & (kTransform_Origin | kLayout_Typesetting)) {
-			check_origin_value();
+		if (mark & kLayout_Typesetting) {
+			this->mark(kTransform, true); // mark transform
 		}
 	}
 
-	void Root::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kTransform) { // update matrix matrix
+	void Root::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
+		if (mark & kTransform) { // update transform matrix
 			unmark(kTransform | kVisible_Region); // unmark
-
-			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin() + translate();
+			solve_origin_value(client_size());
+			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value() + translate();
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());
 			solve_visible_region(_matrix);
 		}

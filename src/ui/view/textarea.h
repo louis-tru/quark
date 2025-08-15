@@ -43,7 +43,7 @@ namespace qk {
 		virtual ScrollView* asScrollView() override;
 		virtual bool is_multiline() override;
 		virtual void layout_reverse(uint32_t mark) override;
-		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 	protected:
 		virtual Vec2 input_text_offset() override;
 		virtual void set_input_text_offset(Vec2 val) override;

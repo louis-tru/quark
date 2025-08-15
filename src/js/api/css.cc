@@ -190,7 +190,7 @@ namespace qk { namespace js {
 		// Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
 		// Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
 		// Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
-		// Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
+		// Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @thread Rt apply parent ssc
 
 			static String Space(" ");
 

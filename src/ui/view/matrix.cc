@@ -210,6 +210,8 @@ namespace qk {
 		}
 	}
 
+	// solve the origin value by client size
+	// The origin value is the final value by computing the origin.
 	void MatrixView::solve_origin_value(Vec2 client_size) {
 		switch (_origin_x.kind) {
 			default:
@@ -243,20 +245,20 @@ namespace qk {
 	Vec2 Matrix::center() {
 		auto size = client_size();
 		Vec2 point(
-			size.x() * 0.5 - _origin.x(),
-			size.y() * 0.5 - _origin.y()
+			size.x() * 0.5 - _origin_value.x(),
+			size.y() * 0.5 - _origin_value.y()
 		);
 		return point;
 	}
 
-	void Matrix::solve_marks(const Mat &mat, uint32_t mark) {
+	void Matrix::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
-			_CheckParent();
+			// _CheckParent();
 			solve_origin_value(client_size()); // check transform_origin change
 			unmark(kTransform | kVisible_Region); // unmark
-			auto v = layout_offset() + _parent->layout_offset_inside()
+			auto v = layout_offset() + parent->layout_offset_inside()
 				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;
-			_matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
+			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
 			solve_visible_region(_matrix);
 		}
@@ -268,7 +270,7 @@ namespace qk {
 	}
 
 	void Matrix::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {
-		Vec2 origin(-_origin.x(), -_origin.y());
+		Vec2 origin(-_origin_value.x(), -_origin_value.y());
 		Vec2 end = origin + client_size();
 		vertex[0] = mat * origin;
 		vertex[1] = mat * Vec2(end.x(), origin.y());
@@ -283,16 +285,16 @@ namespace qk {
 	void Matrix::layout_reverse(uint32_t mark) {
 		Box::layout_reverse(mark);
 		if (mark & kLayout_Typesetting) {
-			check_origin_value(); // check if have to mark transform
+			// If the layout is typesetting,
+			// maybe size has changed there may well be a change in the origin value,
+			// mark the transform if the origin value has changed.
+			// but now not check, just force mark the kTransform temporarily.
+			this->mark(kTransform, true); // mark transform
+			// auto last = _origin_value;
+			// solve_origin_value(client_size());
+			// if (last != _origin_value) {
+			// 	mark(kTransform, true);
+			// }
 		}
 	}
-
-	void Matrix::check_origin_value() {
-		auto last = _origin_value;
-		solve_origin_value(client_size());
-		if (last != _origin_value) {
-			mark(kTransform, true); // mark transform
-		}
-	}
-
 }

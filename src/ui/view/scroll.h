@@ -66,8 +66,8 @@ namespace qk {
 	protected:
 		ScrollView(Box *host);
 		~ScrollView();
-		void solve(uint32_t mark); // @safe Rt
-		void set_scroll_size_Rt(Vec2 size); // @safe Rt
+		void solve(uint32_t mark); // @thread Rt
+		void set_scroll_size_Rt(Vec2 size); // @thread Rt
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
@@ -94,7 +94,7 @@ namespace qk {
 		virtual ScrollView* asScrollView() override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual void layout_reverse(uint32_t mark) override;
-		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void draw(UIDraw *render) override;
 	};
 

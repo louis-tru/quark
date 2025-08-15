@@ -112,7 +112,7 @@ namespace qk {
 		virtual float layout_lock_height(float size) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
-		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 center() override;
@@ -121,7 +121,7 @@ namespace qk {
 		/**
 			* client rect = border + padding + content
 			* @method solve_rect_vertex(mat, vertex)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]); // compute rect vertex
@@ -129,7 +129,7 @@ namespace qk {
 	protected:
 		/**
 			* @method set_content_size(content_size)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		void set_content_size(Vec2 content_size);
@@ -137,7 +137,7 @@ namespace qk {
 		/**
 		 * @method solve_layout_content_pre_width()
 		 * @Returns range
-		 * @safe Rt
+		 * @thread Rt
 		 * @note Can only be used in rendering threads
 		 */
 		Container::Pre solve_layout_content_pre_width(const Container &pContainer);
@@ -145,21 +145,21 @@ namespace qk {
 		/**
 		 * @method solve_layout_content_pre_height()
 		 * @Returns range
-		 * @safe Rt
+		 * @thread Rt
 		 * @note Can only be used in rendering threads
 		 */
 		Container::Pre solve_layout_content_pre_height(const Container &pContainer);
 
 		/**
 		 * @method solve_layout_content_size_pre()
-		 * @safe Rt
+		 * @thread Rt
 		 * @note Can only be used in rendering threads
 		 */
 		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer);
 
 		/**
 		 * @method layout_typesetting_float
-		 * @safe Rt
+		 * @thread Rt
 		*/
 		Vec2 layout_typesetting_float();
 

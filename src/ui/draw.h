@@ -50,6 +50,7 @@ namespace qk {
 	class Root;
 	class Matrix;
 	class ScrollView;
+	class Sprite;
 
 	class Qk_EXPORT UIDraw: public Object {
 	public:
@@ -68,6 +69,7 @@ namespace qk {
 		void visitLabel(Label* label);
 		void visitRoot(Root* root);
 		void visitMatrix(Matrix* matrix);
+		void visitSprite(Sprite* sprite);
 	private:
 		Rect getRect(Box* box);
 		void getInsideRectPath(Box *box, BoxData &out);
@@ -82,7 +84,7 @@ namespace qk {
 		void drawBoxColor(Box *box, BoxData &data);
 		void drawBoxBorder(Box *box, BoxData &data);
 		void drawBoxEnd(Box *box, BoxData &data);
-		void drawScrollBar(Box *box, ScrollView *v);
+		void drawScrollBar(ScrollView *v);
 		void drawTextBlob(TextOptions *opts, Vec2 inOffset,
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);

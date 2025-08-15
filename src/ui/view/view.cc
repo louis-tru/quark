@@ -51,7 +51,7 @@
 
 namespace qk {
 
-	typedef Box::Container Container;
+	typedef View::Container Container;
 
 	Region Container::to_range() const {
 		Vec2 origin(content), end(content);
@@ -197,13 +197,13 @@ namespace qk {
 		return nullptr;
 	}
 
-	void View::solve_marks(const Mat &mat, uint32_t mark) {
+	void View::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
-			_CheckParent();
+			// _CheckParent();
 			unmark(kTransform | kVisible_Region); // unmark
 			_position =
-				mat.mul_vec2_no_translate(layout_offset() + _parent->layout_offset_inside()) +
-				_parent->_position;
+				mat.mul_vec2_no_translate(layout_offset() + parent->layout_offset_inside()) +
+				parent->_position;
 			solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark

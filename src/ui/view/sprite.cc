@@ -40,7 +40,18 @@
 namespace qk {
 
 	Sprite::Sprite(): View(), MatrixView(this)
-		, _width(0), _height(0) {
+		, _width(0), _height(0)
+		, _frames(1), _margin(0), _fsp(24), _direction(Direction::Row)
+	{
+		_visible_region = true;
+	}
+
+	String Sprite::src() const {
+		return ImageSourceHold::src();
+	}
+
+	void Sprite::set_src(String val, bool isRt) {
+		ImageSourceHold::set_src(val);
 	}
 
 	void Sprite::set_width(float val, bool isRt) {
@@ -57,12 +68,32 @@ namespace qk {
 		}
 	}
 
-	String Sprite::src() const {
-		return ImageSourceHold::src();
+	void Sprite::set_frames(uint16_t val, bool isRt) {
+		if (_frames != val) {
+			_frames = val;
+			// mark(kLayout_None, isRt);
+		}
 	}
 
-	void Sprite::set_src(String val, bool isRt) {
-		ImageSourceHold::set_src(val);
+	void Sprite::set_margin(uint16_t val, bool isRt) {
+		if (_margin != val) {
+			_margin = val;
+			// mark(kLayout_None, isRt);
+		}
+	}
+
+	void Sprite::set_fsp(uint8_t val, bool isRt) {
+		if (_fsp != val) {
+			_fsp = val;
+			// mark(kLayout_None, isRt);
+		}
+	}
+
+	void Sprite::set_direction(Direction val, bool isRt) {
+		if (_direction != val) {
+			_direction = val;
+			// mark(kLayout_None, isRt);
+		}
 	}
 
 	ViewType Sprite::viewType() const {
@@ -81,15 +112,16 @@ namespace qk {
 		return { _width * 0.5f - _origin_value.x(), _height * 0.5f - _origin_value.y() };
 	}
 
-	void Sprite::solve_marks(const Mat &mat, uint32_t mark) {
-		if (mark & kTransform) { // update transform matrix
-			_CheckParent();
-			solve_origin_value({_width, _height}); // check transform_origin change
-			unmark(kTransform); // unmark
-			auto v = layout_offset() + _parent->layout_offset_inside()
+	void Sprite::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
+		if (mark & kTransform) { // Update transform matrix
+			// _CheckParent();
+			solve_origin_value({_width, _height}); // Check transform_origin change
+			unmark(kTransform); // Unmark
+			auto v = layout_offset() + parent->layout_offset_inside()
 				+ _origin_value + _translate;
-			_matrix = Mat(mat).set_translate(_parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
+			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
+			// solve_visible_region(_matrix);
 		}
 	}
 
@@ -107,5 +139,4 @@ namespace qk {
 	ImagePool* Sprite::imgPool() {
 		return window()->host()->imgPool();
 	}
-
 }

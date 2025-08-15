@@ -38,8 +38,6 @@ namespace qk {
 
 	class Qk_EXPORT MatrixView {
 	public:
-		MatrixView(View* host);
-		// define props
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,  translate, Const); // matrix displacement for the view
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,  scale, Const); // Matrix scaling
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,  skew, Const); // Matrix skew, (radian)
@@ -57,9 +55,11 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(float, scale_y, Const); // y-axis matrix scaling for the view
 		Qk_DEFINE_VIEW_ACCESSOR(float, skew_x, Const); // x-axis matrix skew for the view
 		Qk_DEFINE_VIEW_ACCESSOR(float, skew_y, Const); // y-axis matrix skew for the view
-
 		// The host view of the matrix
 		Qk_DEFINE_VIEW_PROP_GET(View*, host);
+
+		// Constructor
+		MatrixView(View* host);
 
 		/**
 		 * Returns the final matrix of the view, parent transform * Mat
@@ -85,17 +85,14 @@ namespace qk {
 	class Matrix: public Box, public MatrixView {
 	public:
 		Matrix();
-		// --------------- o v e r w r i t e ---------------
 		virtual ViewType viewType() const override;
 		virtual MatrixView* asMatrixView() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 center() override;
-		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
 		virtual void draw(UIDraw *render) override;
-	protected:
-		void check_origin_value();
 	};
 }
 #endif

@@ -93,6 +93,8 @@ namespace qk {
 			_Func(Vec2, scale) \
 			_Func(Vec2, skew) \
 			_Func(ArrayOrigin, origin) \
+			_Func(BoxOrigin, origin_x) \
+			_Func(BoxOrigin, origin_y) \
 			_Func(float, x) \
 			_Func(float, y) \
 			_Func(float, scale_x) \
@@ -100,8 +102,6 @@ namespace qk {
 			_Func(float, skew_x) \
 			_Func(float, skew_y) \
 			_Func(float, rotate_z) \
-			_Func(BoxOrigin, origin_x) \
-			_Func(BoxOrigin, origin_y) \
 
 		struct Text: View {
 			#define _Func(Type, Name) \
@@ -137,7 +137,7 @@ namespace qk {
 			void set_height(BoxSize v, bool isRt) { qk::Sprite::set_height(v.value, isRt); }
 		};
 
-		// view
+		// View
 		Qk_Set_Accessor(View, OPACITY, opacity);
 		Qk_Set_Accessor(View, CURSOR, cursor);
 		Qk_Set_Accessor(View, VISIBLE, visible);
@@ -223,7 +223,7 @@ namespace qk {
 		// Image
 		Qk_Set_Accessor(Image, SRC, src);
 		Qk_Copy_Accessor(Image, Video, SRC, 1); // copy image props to video
-		// text/input/label of TextOptions
+		// Text/Input/Label of TextOptions
 		Qk_Set_Accessor(Text, TEXT_ALIGN, text_align);
 		Qk_Set_Accessor(Text, TEXT_WEIGHT, text_weight);
 		Qk_Set_Accessor(Text, TEXT_SLANT, text_slant);
@@ -251,16 +251,18 @@ namespace qk {
 		Qk_Set_Accessor(Input, MAX_LENGTH, max_length);
 		Qk_Set_Accessor(Input, PLACEHOLDER, placeholder);
 		Qk_Copy_Accessor(Input, Textarea, SECURITY, 8); // copy input props to textarea
-		// scroll/textarea of ScrollView
+		// Scroll/Textarea of ScrollView
 		Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width);
 		Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin);
 		Qk_Copy_Accessor(Scroll, Textarea, SCROLLBAR_COLOR, 3); // copy scroll props to textarea
-		// matrix/sprite of MatrixView
+		// Matrix/Sprite of MatrixView
 		Qk_Set_Accessor(Matrix, TRANSLATE, translate);
 		Qk_Set_Accessor(Matrix, SCALE, scale);
 		Qk_Set_Accessor(Matrix, SKEW, skew);
 		Qk_Set_Accessor(Matrix, ORIGIN, origin);
+		Qk_Set_Accessor(Matrix, ORIGIN_X, origin_x);
+		Qk_Set_Accessor(Matrix, ORIGIN_Y, origin_y);
 		Qk_Set_Accessor(Matrix, X, x);
 		Qk_Set_Accessor(Matrix, Y, y);
 		Qk_Set_Accessor(Matrix, SCALE_X, scale_x);
@@ -268,13 +270,12 @@ namespace qk {
 		Qk_Set_Accessor(Matrix, SKEW_X, skew_x);
 		Qk_Set_Accessor(Matrix, SKEW_Y, skew_y);
 		Qk_Set_Accessor(Matrix, ROTATE_Z, rotate_z);
-		Qk_Set_Accessor(Matrix, ORIGIN_X, origin_x);
-		Qk_Set_Accessor(Matrix, ORIGIN_Y, origin_y);
 		// Sprite
 		Qk_Copy_Accessor(Matrix, Sprite, TRANSLATE, 13); // copy matrix props to sprite
 		Qk_Set_Accessor(Sprite, SRC, src);
 		Qk_Set_Accessor(Sprite, WIDTH, width);
 		Qk_Set_Accessor(Sprite, HEIGHT, height);
+		Qk_Set_Accessor(Sprite, DIRECTION, direction);
 	}
 
 	PropAccessor* get_props_accessor(ViewType type, ViewProp prop) {

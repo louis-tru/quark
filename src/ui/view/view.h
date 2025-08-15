@@ -52,7 +52,7 @@ namespace qk {
 		* View tree node base type,
 		* Provide APIs that do not use security locks on worker and rendering threads,
 		* When setting properties on the main thread and calculating view results on the rendering thread, 
-		* data that can only be accessed by the rendering thread is usually suffixed with "RT" or mark as @safe Rt
+		* data that can only be accessed by the rendering thread is usually suffixed with "RT" or mark as @thread Rt
 		*
 		* @note Release calls can only be made on the main thread
 		*
@@ -69,7 +69,7 @@ namespace qk {
 			kLayout_None              = (0),      /* Not have any the mark */
 			kLayout_Inner_Width       = (1 << 0), /* The content inside the layout changes that may affect the parent layout */
 			kLayout_Inner_Height      = (1 << 1), /* Same as above */
-			kLayout_Outside_Width     = (1 << 2), /* The layout frame size border/margin changes, not the content changes */
+			kLayout_Outside_Width     = (1 << 2), /* The layout frame size border/margin/padding changes, not the content changes */
 			kLayout_Outside_Height    = (1 << 3), /* Same as above */
 			kLayout_Size_Width        = (kLayout_Inner_Width | kLayout_Outside_Width),
 			kLayout_Size_Height       = (kLayout_Inner_Height | kLayout_Outside_Height),
@@ -82,7 +82,6 @@ namespace qk {
 			kText_Options             = (1 << 8), /* Text configuration changes and may affect subviews */
 			kScroll                   = (1 << 9), /* scroll status change */
 			kStyle_Class              = (1 << 10), /* View style changes caused by changing class */
-			kTransform_Origin         = (1 << 29), /* Changing Transform Origin */
 			kTransform                = (1 << 30), /* Matrix Transformation, recursive mark */
 			kVisible_Region           = (1U << 31), /* Visible range changes */
 			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
@@ -167,7 +166,7 @@ namespace qk {
 
 		/**
 		* @prop mark_value
-		* @safe Rt
+		* @thread Rt
 		* @note Can only be used in rendering threads
 		*
 		* The marked view will be updated before starting frame drawing.
@@ -184,14 +183,14 @@ namespace qk {
 		* This avoids accessing views that have not changed and allows them to be accessed sequentially according to the view hierarchy.
 		* 
 		* @prop mark_index
-		* @safe Rt
+		* @thread Rt
 		* @note Can only be used in rendering threads
 		*/
 		Qk_DEFINE_PROP_GET(int32_t, mark_index, Const);
 
 		/**
 		* @prop level
-		* @safe Rt
+		* @thread Rt
 		* @note Can only be used in rendering threads
 		*
 		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
@@ -204,7 +203,7 @@ namespace qk {
 		 * View at the final position on the screen (parent.matrix * (offset + offset_inside))
 		 *
 		 * @prop position
-		 * @safe Rt
+		 * @thread Rt
 			* @note Can only be used in rendering threads
 		 */
 		Qk_DEFINE_PROP_GET(Vec2, position, ProtectedConst);
@@ -426,7 +425,7 @@ namespace qk {
 			* Relative to the parent view (layout_offset) to start offset
 			* 
 			* @method layout_offset()
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual Vec2 layout_offset();
@@ -436,7 +435,7 @@ namespace qk {
 			* Returns the size of view object (if is box view the: size=margin+border+padding+content)
 			*
 			* @method layout_size()
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual Vec2 layout_size();
@@ -454,7 +453,7 @@ namespace qk {
 			* For example: when a view needs to set the scrolling property scroll of a sub view, you can set this property
 			*
 			* @method layout_offset_inside()
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual Vec2 layout_offset_inside();
@@ -464,7 +463,7 @@ namespace qk {
 			* Setting the view offset of the view object in the parent view
 			*
 			* @method set_layout_offset(val)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual void set_layout_offset(Vec2 val);
@@ -474,7 +473,7 @@ namespace qk {
 			* Setting view offset values free mode for the view object
 			*
 			* @method set_layout_offset_free(size)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual void set_layout_offset_free(Vec2 size);
@@ -485,14 +484,14 @@ namespace qk {
 			* 返回固定后的最终尺寸.
 			* 
 			* @method layout_lock_width(size)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual float layout_lock_width(float size);
 
-		/*
+		/**
 			* @method layout_lock_height(size)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual float layout_lock_height(float size);
@@ -506,7 +505,7 @@ namespace qk {
 			* 这个方法被调用时父视图尺寸一定是有效的
 			* 
 			* @method layout_forward(mark)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual void layout_forward(uint32_t/*LayoutMark*/ mark);
@@ -518,7 +517,7 @@ namespace qk {
 			* 这个方法被调用时子视图尺寸一定是明确的有效的，调用`layout_size()`返回子视图外框尺寸。
 			* 
 			* @method layout_reverse(mark)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual void layout_reverse(uint32_t/*LayoutMark*/ mark);
@@ -528,7 +527,7 @@ namespace qk {
 		 * solve text view
 		 * 
 		 * @method layout_text(lines)
-		 * @safe Rt
+		 * @thread Rt
 			* @note Can only be used in rendering threads
 		 */
 		virtual void layout_text(TextLines *lines, TextConfig* cfg);
@@ -540,7 +539,7 @@ namespace qk {
 			* This is not necessarily called by the child layout
 			*
 			* @method onChildLayoutChange(child, mark)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual void onChildLayoutChange(View* child, uint32_t/*ChildLayoutChangeMark*/ mark);
@@ -549,15 +548,15 @@ namespace qk {
 		 * calling after text options change
 		 * 
 		 * @method text_config(cfg)
-		 * @safe Rt
+		 * @thread Rt
 		*/
 		virtual void text_config(TextConfig* cfg);
 
 		/**
 		 * Overlap test, test whether the point on the screen overlaps with the view
 		 * @method overlap_test
-		 * @safe Rt
-			* @note Can only be used in rendering threads
+		 * @thread Rt
+		 * @note Can only be used in rendering threads
 		*/
 		virtual bool overlap_test(Vec2 point);
 
@@ -566,21 +565,21 @@ namespace qk {
 		 * returns view position center in the position
 		 * 
 		 * @method center()
-		 * @safe Rt
-			* @note Can only be used in rendering threads
+		 * @thread Rt
+		 * @note Can only be used in rendering threads
 		*/
 		virtual Vec2 center();
 
 		/**
 		 * @method solve_marks(mark)
-		 * @safe Rt
-			* @note Can only be used in rendering threads
+		 * @thread Rt
+		 * @note Can only be used in rendering threads
 		*/
-		virtual void solve_marks(const Mat &mat, uint32_t mark);
+		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark);
 
 		/**
 			* @method solve_visible_region()
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		virtual void solve_visible_region(const Mat &mat);
@@ -589,14 +588,14 @@ namespace qk {
 		 * notice update for set parent or level
 		 * 
 		 * @method onActivate()
-		 * @safe Rt
-			* @note Can only be used in rendering threads
+		 * @thread Rt
+		 * @note Can only be used in rendering threads
 		*/
 		virtual void onActivate();
 
 		/**
 		 * @method draw()
-		 * @safe Rt
+		 * @thread Rt
 		 * @note Can only be used in rendering threads
 		 */
 		virtual void draw(UIDraw *render);
@@ -615,7 +614,7 @@ namespace qk {
 
 		/**
 			* @method unmark(mark)
-			* @safe Rt
+			* @thread Rt
 			* @note Can only be used in rendering threads
 			*/
 		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {

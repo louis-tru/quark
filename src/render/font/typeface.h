@@ -44,7 +44,7 @@ namespace qk {
 
 	/**
 	 * @class Typeface
-	 * @safe Rt
+	 * @thread Rt
 	*/
 	class Qk_EXPORT Typeface: public Reference {
 		Qk_HIDDEN_ALL_COPY(Typeface);

@@ -423,8 +423,9 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::drawScrollBar(Box *b, ScrollView *v) {
+	void UIDraw::drawScrollBar(ScrollView *v) {
 		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
+			auto b = v->host();
 			auto width = v->_scrollbar_width;
 			auto margin = v->_scrollbar_margin;
 			auto origin = Vec2();// Vec2{b->margin_left(),b->margin_top()};
@@ -527,7 +528,7 @@ namespace qk {
 				if (v->_visible) {
 					uint32_t mark = markCurr | v->mark_value(); // inherit recursive
 					if (mark) {
-						v->solve_marks(*_matrix, mark);
+						v->solve_marks(*_matrix, view, mark);
 						_mark_recursive = mark & View::kRecursive_Mark;
 					}
 					if (v->_opacity) {
@@ -577,7 +578,7 @@ namespace qk {
 
 	void UIDraw::visitScroll(Scroll* v) {
 		UIDraw::visitBox(v);
-		drawScrollBar(v,v);
+		drawScrollBar(v);
 	}
 
 	void UIDraw::visitText(Text* v) {
@@ -709,7 +710,7 @@ namespace qk {
 		}
 
 		if ( v->is_multiline() ) {
-			drawScrollBar(v, static_cast<Textarea*>(v));
+			drawScrollBar(static_cast<Textarea*>(v));
 		}
 	}
 
@@ -724,7 +725,7 @@ namespace qk {
 	void UIDraw::visitMatrix(Matrix* box) {
 		auto matrixPrev = _matrix;
 		auto origin = _origin;
-		_origin = Vec2(_AAShrink * 0.5) - box->_origin;
+		_origin = Vec2(_AAShrink * 0.5) - box->_origin_value;
 		_matrix = &box->matrix();
 		_canvas->setMatrix(*_matrix);
 		//_canvas->setTranslate(box->position());
@@ -736,11 +737,26 @@ namespace qk {
 		_canvas->setMatrix(*_matrix);
 	}
 
+	void UIDraw::visitSprite(Sprite* v) {
+		auto matrixPrev = _matrix;
+		auto origin = _origin;
+		_origin = Vec2(_AAShrink * 0.5) - v->_origin_value;
+		_matrix = &v->matrix();
+		_canvas->setMatrix(*_matrix);
+		// BoxData data;
+		// drawBoxBasic(v, data);
+		_origin = origin;
+		// drawBoxEnd(box, data);
+		UIDraw::visitView(v);
+		_matrix = matrixPrev;
+		_canvas->setMatrix(*_matrix);
+	}
+
 	void UIDraw::visitRoot(Root* v) {
 		if (_canvas && v->_visible) {
 			uint32_t mark = v->mark_value();
 			if (mark) {
-				v->solve_marks(Mat(), mark);
+				v->solve_marks(Mat(), nullptr, mark);
 				_mark_recursive = mark & View::kRecursive_Mark;
 			}
 			if (v->_visible_region && v->_opacity != 0) {
@@ -750,7 +766,7 @@ namespace qk {
 				auto origin = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
 				//auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
 				_AAShrink = origin + origin;
-				_origin = Vec2(origin) - v->_origin;
+				_origin = Vec2(origin) - v->_origin_value;
 				_matrix = &v->matrix();
 				_canvas->setMatrix(*_matrix);
 				_canvas->clearColor(v->_background_color.to_color4f());
@@ -813,7 +829,7 @@ namespace qk {
 
 	void Sprite::draw(UIDraw *draw) {
 		if (_visible_region) {
-			// draw->visitMatrix(this);
+			draw->visitSprite(this);
 		}
 	}
 

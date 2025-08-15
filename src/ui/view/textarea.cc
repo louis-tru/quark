@@ -48,7 +48,7 @@ namespace qk {
 		}
 	}
 
-	void Textarea::solve_marks(const Mat &mat, uint32_t mark) {
+	void Textarea::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kInput_Status) {
 			auto final_width = _container.content[0];
 			auto max_width = _lines->max_width();
@@ -71,7 +71,7 @@ namespace qk {
 			solve_cursor_offset(); // text cursor status
 
 			ScrollView::solve(mark);
-			Box::solve_marks(mat, mark);
+			Box::solve_marks(mat, parent, mark);
 
 			if (_editing) {
 				// update system ime input position
@@ -79,7 +79,7 @@ namespace qk {
 			}
 		} else {
 			ScrollView::solve(mark);
-			Box::solve_marks(mat, mark);
+			Box::solve_marks(mat, parent, mark);
 		}
 	}
 

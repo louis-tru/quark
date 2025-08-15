@@ -66,9 +66,9 @@ namespace qk {
 		public:
 			virtual ~Property() = default;
 			virtual void apply(View *view, bool isRt) = 0;
-			virtual void fetch(View *view) = 0; // @safe Rt
-			virtual void transition(View *view, Property *to, float t) = 0; // @safe Rt
-			virtual Property* copy() = 0; // @safe Rt
+			virtual void fetch(View *view) = 0; // @thread Rt
+			virtual void transition(View *view, Property *to, float t) = 0; // @thread Rt
+			virtual Property* copy() = 0; // @thread Rt
 		};
 		// define props
 		#define _Fun(Enum, Type, Name, From) void set_##Name(Type value);
@@ -107,7 +107,7 @@ namespace qk {
 		virtual Window* getWindowForAsyncSet();
 
 	private:
-		void applyTransition(View* view, StyleSheets *to, float y) const; // @safe Rt
+		void applyTransition(View* view, StyleSheets *to, float y) const; // @thread Rt
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 
@@ -197,12 +197,12 @@ namespace qk {
 
 	class Qk_EXPORT CStyleSheetsClass: public Object {
 		Qk_HIDDEN_ALL_COPY(CStyleSheetsClass);
-		CSSType _status, _setStatus; //!< @safe Rt Current pseudo type application status
+		CSSType _status, _setStatus; //!< @thread Rt Current pseudo type application status
 	public:
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
 		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
 		Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
-		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @safe Rt apply parent ssc
+		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @thread Rt apply parent ssc
 
 		CStyleSheetsClass(View *host);
 		~CStyleSheetsClass();
@@ -216,7 +216,7 @@ namespace qk {
 
 		/**
 		 * @method haveSubstyles()
-		 * @safe Rt
+		 * @thread Rt
 		*/
 		inline bool haveSubstyles() const {
 			return _substyles_Rt.length();

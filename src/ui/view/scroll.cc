@@ -913,9 +913,9 @@ namespace qk {
 		}
 	}
 
-	void Scroll::solve_marks(const Mat &mat, uint32_t mark) {
+	void Scroll::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		ScrollView::solve(mark);
-		Box::solve_marks(mat, mark);
+		Box::solve_marks(mat, parent, mark);
 		//Qk_DLog("Scroll::_position, %f, %f", _position.x(), _position.y());
 	}
 

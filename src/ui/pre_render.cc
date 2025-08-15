@@ -120,21 +120,22 @@ namespace qk {
 
 	void PreRender::solveMarks() {
 		// First forward iteration
-		if (_mark_total) {
+		// for (auto &levelMarks: _marks) {
+		// 	for (auto view: levelMarks) {
+		// 		if (view->_mark_value & View::kStyle_Class) {
+		// 			view->applyClass_Rt(view->parentSsclass_Rt());
+		// 		}
+		// 	}
+		// }
+
+		do {
+			Qk_ASSERT(_mark_total > 0);
+			// forward iteration
 			for (auto &levelMarks: _marks) {
 				for (auto view: levelMarks) {
 					if (view->_mark_value & View::kStyle_Class) {
 						view->applyClass_Rt(view->parentSsclass_Rt());
 					}
-				}
-			}
-		}
-
-		while (_mark_total) {
-			Qk_ASSERT(_mark_total > 0);
-			// forward iteration
-			for (auto &levelMarks: _marks) {
-				for (auto view: levelMarks) {
 					view->layout_forward(view->_mark_value);
 				}
 			}
@@ -149,7 +150,7 @@ namespace qk {
 				}
 				levelMarks.clear();
 			}
-		}
+		} while (_mark_total); // if have new mark then continue solve
 	}
 
 	void PreRender::clearTasks() {

@@ -55,7 +55,7 @@ namespace qk {
 		};
 		// main props
 		Qk_DEFINE_VIEW_PROPERTY(TextAlign,      text_align, Const);
-		Qk_DEFINE_VIEW_PROP_GET(TextAlign,      text_align_value, Const); // @safe Rt
+		Qk_DEFINE_VIEW_PROP_GET(TextAlign,      text_align_value, Const); // @thread Rt
 		Qk_DEFINE_VIEW_PROPERTY(TextSize,       text_size, Const);
 		Qk_DEFINE_VIEW_PROPERTY(TextColor,      text_color, Const);
 		Qk_DEFINE_VIEW_PROPERTY(TextLineHeight, text_line_height, Const);
@@ -84,7 +84,7 @@ namespace qk {
 	protected:
 		/**
 		 * @method onTextChange()
-		 * @safe Mt
+		 * @thread Mt
 		 * @note Can only be used in main threads
 		*/
 		virtual void onTextChange(uint32_t mark, uint32_t type, bool isRt);

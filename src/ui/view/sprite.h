@@ -37,22 +37,32 @@ namespace qk {
 
 	/**
 	 * @class Sprite
+	 * @brief Sprite is a view that can display an image or animation.
+	 * It supports matrix transformations and can be used to create animated sprites.
+	 * It can be used in a layout like this:
+	 * @example
+	 * ```tsx
+	 * <sprite width={100} height={100} originX="auto" originY="100%">
+	 *   <sprite src="path/to/image.png" width={100} height={100} frames={10} fsp={24} direction="row" />
+	 *   <sprite src="path/to/another_image.png" width={200} height={200} frames={20} fsp={30} direction="column" />
+	 * </sprite>
+	 * ```
 	*/
 	class Qk_EXPORT Sprite: public View, public ImageSourceHold, public MatrixView {
 	public:
-		Sprite();
-		// props
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const); // The source of the sprite image
 		Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
 		Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
-		Qk_DEFINE_VIEW_PROPERTY(Vec2, size, Const);
-
-		// --------------- o v e r w r i t e ---------------
+		Qk_DEFINE_VIEW_PROPERTY(uint16_t, frames, Const); // The number of frames in the sprite animation, default 1
+		Qk_DEFINE_VIEW_PROPERTY(uint16_t, margin, Const); // The margin of the sprite frame, default 0
+		Qk_DEFINE_VIEW_PROPERTY(uint8_t, fsp, Const); // The frame per second of the sprite animation, default 24
+		Qk_DEFINE_VIEW_PROPERTY(Direction, direction, Const); // The direction of the sprite animation, default horizontal row
+		Sprite();
 		virtual ViewType viewType() const override;
 		virtual MatrixView* asMatrixView() override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual Vec2 center() override;
-		virtual void solve_marks(const Mat &mat, uint32_t mark) override;
+		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void draw(UIDraw *render) override;
 	protected:
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;

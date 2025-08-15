@@ -96,7 +96,7 @@ export default async function(win: Window) {
 	Pv(v, 'opacity', 1, e=>e.opacity=1);
 	Pv(v, 'visible', true);
 	// Pv(v, 'level', 2);
-	Pv(v, 'matrix', root);
+	Pv(v, 'matrixView', root);
 	Pv(v, 'receive', false, e=>e.receive=false);
 	Pv(v, 'isFocus', false);
 	Pv(v, 'viewType', ViewType.View);

@@ -67,20 +67,24 @@ namespace qk {
 	public:
 		typedef RenderTask Task;
 		/*
-		* @constructor
-		*/
+		 * @constructor
+		 */
 		PreRender(Window *window);
 
-		/**
-		 * NOTE only render thread call
-		 * @method mark
-		 * @safe Rt
+		void mark_layout(View *view, uint32_t depth); //!< @thread Rt only render thread call
+		void unmark_layout(View *view, uint32_t depth); //!< @thread Rt only render thread call
+		void mark_render(); //!< mark render state @thread Rt only render thread call
+
+		/** 
+		 * add pre render task, if task already in pre render then ignore add
+		 * @thread Rt only render thread call 
 		 */
-		void mark_layout(View *view, uint32_t depth);
-		void unmark_layout(View *view, uint32_t depth); // @safe Rt
-		void mark_render();  // @safe Rt mark render state
-		void addtask(Task* task);  // @safe Rt add pre render task
-		void untask(Task* task);  // @safe Rt delete pre render task
+		void addtask(Task* task);
+		/**
+		 * delete pre render task, if task not in pre render then ignore delete
+		 * @thread Rt only render thread call
+		*/
+		void untask(Task* task);
 
 		/**
 		 * @struct AsyncCall data
@@ -98,8 +102,6 @@ namespace qk {
 		 * Issue commands from the main thread and execute them in the rendering thread
 		 * 
 		 * Note that the Args parameter size cannot exceed 8 bytes
-		 * 
-		 * @method async_call()
 		*/
 		template<typename Self = View, typename Arg = uint64_t>
 		inline void async_call(typename AsyncCall<Self,Arg>::Exec ex, Self *self, Arg arg) {
@@ -109,26 +111,21 @@ namespace qk {
 
 		/**
 		 * Post message to application main loop
-		 * @safe Rt
-		 * @method post()
-		 * @param delayUs
+		 * @thread Rt
 		*/
 		void post(Cb cb, uint64_t delayUs = 0);
 
 		/**
 		 * Post message to application main loop
-		 * @safe Rt
-		 * @method post()
+		 * @thread Rt
 		 * @param view {View} safe retain view object to main loop, if retain fail then cancel call
-		 * @param delayUs
 		*/
 		bool post(Cb cb, View *view, uint64_t delayUs = 0);
 
 	private:
 		/**
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
-		 * @method solve()
-		 * @safe Rt
+		 * @thread Rt
 		 */
 		bool solve(int64_t time);
 		void solveMarks(); // solve view marks

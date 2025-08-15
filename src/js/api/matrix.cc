@@ -68,10 +68,6 @@ namespace qk { namespace js {
 			});
 			inheritMatrixView(cls, worker);
 
-			Js_MixObject_Accessor(Matrix, ArrayOrigin, box_origin, boxOrigin);
-			Js_MixObject_Accessor(Matrix, BoxOrigin, box_origin_x, boxOriginX);
-			Js_MixObject_Accessor(Matrix, BoxOrigin, box_origin_y, boxOriginY);
-
 			cls->exports("Matrix", exports);
 		}
 	};

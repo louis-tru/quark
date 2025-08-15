@@ -281,7 +281,7 @@ namespace qk { namespace js {
 			});
 
 			// -----------------------------------------------------------------------------
-			// @safe Rt
+			// @thread Rt
 			Js_Class_Method(overlapTest, {
 				if (!args.length()) {
 					Js_Throw(

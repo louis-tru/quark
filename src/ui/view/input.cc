@@ -774,19 +774,19 @@ namespace qk {
 		return Vec2(_lines->max_width(), _lines->max_height());
 	}
 
-	void Input::solve_marks(const Mat &mat, uint32_t mark) {
+	void Input::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kInput_Status) {
 			unmark(kInput_Status);
 			solve_cursor_offset(); // text cursor status
 
-			Box::solve_marks(mat, mark);
+			Box::solve_marks(mat, parent, mark);
 
 			if (_editing) {
 				// update system ime input position
 				window()->dispatch()->setImeKeyboardSpotRect(input_spot_rect());
 			}
 		} else {
-			Box::solve_marks(mat, mark);
+			Box::solve_marks(mat, parent, mark);
 		}
 	}
 
