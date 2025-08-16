@@ -37,18 +37,20 @@
 
 namespace qk {
 
-	class EmptyView: public View {
-		void layout_forward(uint32_t mark) override {}
-		void layout_reverse(uint32_t mark) override {}
-	};
-	static EmptyView emptyView;
+	PreRender::LevelMarks::LevelMarks(): Array<View*>(1) {
+		// Ensure the _mark_index is not zero, so push an empty view as a placeholder
+	}
+
+	PreRender::LevelMarks::Iterator PreRender::LevelMarks::begin() {
+		return Iterator(_ptr.val + 1); // begin from index 1
+	}
 
 	void PreRender::LevelMarks::clear() {
-		_length = 0;
+		_length = 1;
 	}
 
 	void PreRender::LevelMarks::pop(uint32_t count) {
-		Qk_ASSERT_GE(_length, count);
+		Qk_ASSERT_GT(_length, count);
 		_length -= count;
 	}
 
@@ -63,11 +65,6 @@ namespace qk {
 		Qk_ASSERT_NE(level, 0);
 		_marks.extend(level + 1);
 		auto& arr = _marks[level];
-		if (arr.length() == 0) {
-			// Ensure the _mark_index is not zero, so push an empty view as a placeholder
-			arr.push(&emptyView);
-			_mark_total++;
-		}
 		view->_mark_index = arr.length();
 		arr.push(view);
 		_mark_total++;

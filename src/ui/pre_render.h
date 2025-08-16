@@ -135,6 +135,8 @@ namespace qk {
 		void flushAsyncCall();
 
 		struct LevelMarks: Array<View*> {
+			LevelMarks();
+			Iterator begin();
 			void clear();
 			void pop(uint32_t count);
 		};

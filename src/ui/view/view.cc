@@ -282,16 +282,6 @@ namespace qk {
 	}
 
 	void View::layout_forward(uint32_t mark) {
-		// if (recursion) {
-		// 	auto v = first();
-		// 	while (v) {
-		// 		if (v->_visible) {
-		// 			v->layout_forward(v->mark_value(), true);
-		// 			v->layout_reverse(v->mark_value());
-		// 		}
-		// 		v = v->next();
-		// 	}
-		// }
 	}
 
 	void View::layout_reverse(uint32_t mark) {
@@ -330,7 +320,6 @@ namespace qk {
 			_mark_value |= mark;
 			if (_mark_index == 0) {
 				if (_level) {
-					// preRender()._is_layout = true;
 					preRender().mark_layout(this, _level); // push to pre render
 				}
 			}
@@ -339,7 +328,6 @@ namespace qk {
 				self->_mark_value |= arg.arg;
 				if (self->_mark_index == 0) {
 					if (self->_level) {
-						// self->preRender()._is_layout = true;
 						self->preRender().mark_layout(self, self->_level); // push to pre render
 					}
 				}
