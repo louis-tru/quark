@@ -140,7 +140,6 @@ namespace qk {
 				}
 			}
 		}
-		bool typesets = false;
 
 		do {
 			Qk_ASSERT(_mark_total > 0);
