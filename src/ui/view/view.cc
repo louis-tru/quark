@@ -281,7 +281,17 @@ namespace qk {
 		return 0;
 	}
 
-	void View::layout_forward(uint32_t mark) {
+	void View::layout_forward(uint32_t mark, bool recursion) {
+		if (recursion) {
+			auto v = first();
+			while (v) {
+				if (v->_visible) {
+					v->layout_forward(v->mark_value(), true);
+					v->layout_reverse(v->mark_value());
+				}
+				v = v->next();
+			}
+		}
 	}
 
 	void View::layout_reverse(uint32_t mark) {
@@ -318,19 +328,22 @@ namespace qk {
 		_Assert_IsRt(isRt, "View::mark_layout(), isRt param no match");
 		if (isRt) {
 			_mark_value |= mark;
-			if (_mark_index < 0) {
+			// if (_mark_index < 0) {
 				if (_level) {
-					preRender().mark_layout(this, _level); // push to pre render
+					preRender()._is_layout = true;
+			// 		preRender().mark_layout(this, _level); // push to pre render
 				}
-			}
+			// }
 		} else {
 			preRender().async_call([](auto self, auto arg) {
 				self->_mark_value |= arg.arg;
-				if (self->_mark_index < 0) {
+				
+				// if (self->_mark_index < 0) {
 					if (self->_level) {
-						self->preRender().mark_layout(self, self->_level); // push to pre render
+						self->preRender()._is_layout = true;
+				// 		self->preRender().mark_layout(self, self->_level); // push to pre render
 					}
-				}
+				// }
 			}, this, mark);
 		}
 	}
@@ -340,19 +353,22 @@ namespace qk {
 			_Assert_IsRt(isRt, "View::mark(), isRt param no match");
 			if (isRt) {
 				_mark_value |= mark;
-				if (_level) {
-					preRender().mark_render(); // push to pre render
-				}
+				preRender()._is_render = true;
+				// if (_level) {
+				// 	preRender().mark_render(); // push to pre render
+				// }
 			} else {
 				preRender().async_call([](auto self, auto arg) {
 					self->_mark_value |= arg.arg;
-					if (self->_level) {
-						self->preRender().mark_render(); // push to pre render
-					}
+					self->preRender()._is_render = true;
+					// if (self->_level) {
+					// 	self->preRender().mark_render(); // push to pre render
+					// }
 				}, this, mark);
 			}
 		} else {
-			preRender().mark_render();
+			// preRender().mark_render();
+			preRender()._is_render = true;
 		}
 	}
 

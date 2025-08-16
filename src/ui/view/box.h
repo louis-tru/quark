@@ -91,7 +91,7 @@ namespace qk {
 		Box();
 		~Box();
 		// --------------- o v e r w r i t e ---------------
-		virtual void layout_forward(uint32_t mark) override;
+		virtual void layout_forward(uint32_t mark, bool recursion) override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
 		virtual Vec2 layout_offset() override;

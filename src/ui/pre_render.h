@@ -145,9 +145,10 @@ namespace qk {
 		Array<AsyncCall<>> _asyncCall;
 		Array<AsyncCall<>> _asyncCommit;
 		Mutex _asyncCommitMutex;
-		bool _is_render; // next frame render
+		bool _is_layout, _is_render; // next frame render
 		friend class Application;
 		friend class Window;
+		friend class View;
 	};
 
 }

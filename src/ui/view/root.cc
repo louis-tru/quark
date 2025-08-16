@@ -53,7 +53,7 @@ namespace qk {
 		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true);
 	}
 
-	void Root::layout_forward(uint32_t mark) {
+	void Root::layout_forward(uint32_t mark, bool recursion) {
 		if (mark & kLayout_Size_ALL) {
 			layout_lock_width(window()->size()[0]);
 			layout_lock_height(window()->size()[1]);
@@ -63,7 +63,7 @@ namespace qk {
 			_container.pre_height = _container.content[1];
 			unmark(kLayout_Inner_Width | kLayout_Inner_Height);
 		}
-		Box::layout_forward(mark_value());
+		Box::layout_forward(mark_value(), recursion);
 	}
 
 	void Root::layout_reverse(uint32_t mark) {

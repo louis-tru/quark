@@ -167,7 +167,6 @@ namespace qk {
 		/**
 		* @prop mark_value
 		* @thread Rt
-		* @note Can only be used in rendering threads
 		*
 		* The marked view will be updated before starting frame drawing.
 		* During operation, view local attributes may be updated frequently or the view may rarely change.
@@ -184,17 +183,16 @@ namespace qk {
 		* 
 		* @prop mark_index
 		* @thread Rt
-		* @note Can only be used in rendering threads
 		*/
 		Qk_DEFINE_PROP_GET(int32_t, mark_index, Const);
 
 		/**
 		* @prop level
 		* @thread Rt
-		* @note Can only be used in rendering threads
 		*
-		* 布局在UI树中所处的深度，0表示还没有加入到UI视图树中
-		* 这个值受`View::_visible`影响, View::_visible=false时_level=0
+		* The depth of the layout in the UI tree, 0 indicates that it has not yet been added to the UI view tree.
+		* 
+		* This value is affected by `View::_visible`, when `View::_visible=false`, _level=0
 		*/
 		Qk_DEFINE_PROP_GET(uint32_t, level, Const);
 
@@ -204,7 +202,6 @@ namespace qk {
 		 *
 		 * @prop position
 		 * @thread Rt
-			* @note Can only be used in rendering threads
 		 */
 		Qk_DEFINE_PROP_GET(Vec2, position, ProtectedConst);
 
@@ -426,7 +423,6 @@ namespace qk {
 			* 
 			* @method layout_offset()
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual Vec2 layout_offset();
 
@@ -436,7 +432,6 @@ namespace qk {
 			*
 			* @method layout_size()
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual Vec2 layout_size();
 
@@ -454,7 +449,6 @@ namespace qk {
 			*
 			* @method layout_offset_inside()
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual Vec2 layout_offset_inside();
 
@@ -464,7 +458,6 @@ namespace qk {
 			*
 			* @method set_layout_offset(val)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual void set_layout_offset(Vec2 val);
 
@@ -474,51 +467,54 @@ namespace qk {
 			*
 			* @method set_layout_offset_free(size)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual void set_layout_offset_free(Vec2 size);
 
 		/**
 			* 强制固定布局的尺寸。在特定的布局类型中自身无法直接确定其自身尺寸，一般由父布局调用如：flex布局类型
+			* Forces the layout to have a fixed size. In certain layout types, 
+			* the layout itself cannot directly determine its own size, 
+			* and is usually called by the parent layout, such as the flex layout type.
 			* 
 			* 返回固定后的最终尺寸.
+			* Returns the final size after pinning.
 			* 
 			* @method layout_lock_width(size)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual float layout_lock_width(float size);
 
 		/**
 			* @method layout_lock_height(size)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual float layout_lock_height(float size);
 
 		/**
 			*
-			* (计算布局自身的尺寸)
+			* (计算布局自身的尺寸) 
+			* (Calculate the size of the layout itself)
 			*
 			* 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
-			* 
-			* 这个方法被调用时父视图尺寸一定是有效的
+			* Iterate the layout from the outside in. For example,
+			* some layout methods first determine the exact size of the box from the outside in.
 			* 
 			* @method layout_forward(mark)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
-		virtual void layout_forward(uint32_t/*LayoutMark*/ mark);
+		virtual void layout_forward(uint32_t/*LayoutMark*/ mark, bool recursion);
 
 		/**
-			* 
-			* 从内向外反向迭代布局，重新调整子视图偏移位置，并且如果视图为包裹尺寸时会被内部视图所挤压
+			* 从内向外反向迭代布局，重新调整子视图偏移位置，并且如果视图为包裹尺寸时会被内部视图所挤压。
+			* terate the layout from the inside out, readjust the subview offset position,
+			* and if the view is the package size, it will be squeezed by the inner view.
 			*
 			* 这个方法被调用时子视图尺寸一定是明确的有效的，调用`layout_size()`返回子视图外框尺寸。
-			* 
+			* The subview size must be clear and valid when this method is called, 
+			* and calling `layout_size()` returns the subview's outer frame size.
+			*
 			* @method layout_reverse(mark)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual void layout_reverse(uint32_t/*LayoutMark*/ mark);
 
@@ -528,7 +524,6 @@ namespace qk {
 		 * 
 		 * @method layout_text(lines)
 		 * @thread Rt
-			* @note Can only be used in rendering threads
 		 */
 		virtual void layout_text(TextLines *lines, TextConfig* cfg);
 
@@ -540,7 +535,6 @@ namespace qk {
 			*
 			* @method onChildLayoutChange(child, mark)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual void onChildLayoutChange(View* child, uint32_t/*ChildLayoutChangeMark*/ mark);
 
@@ -556,7 +550,6 @@ namespace qk {
 		 * Overlap test, test whether the point on the screen overlaps with the view
 		 * @method overlap_test
 		 * @thread Rt
-		 * @note Can only be used in rendering threads
 		*/
 		virtual bool overlap_test(Vec2 point);
 
@@ -566,21 +559,18 @@ namespace qk {
 		 * 
 		 * @method center()
 		 * @thread Rt
-		 * @note Can only be used in rendering threads
 		*/
 		virtual Vec2 center();
 
 		/**
 		 * @method solve_marks(mark)
 		 * @thread Rt
-		 * @note Can only be used in rendering threads
 		*/
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark);
 
 		/**
 			* @method solve_visible_region()
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		virtual void solve_visible_region(const Mat &mat);
 
@@ -589,33 +579,28 @@ namespace qk {
 		 * 
 		 * @method onActivate()
 		 * @thread Rt
-		 * @note Can only be used in rendering threads
 		*/
 		virtual void onActivate();
 
 		/**
 		 * @method draw()
 		 * @thread Rt
-		 * @note Can only be used in rendering threads
 		 */
 		virtual void draw(UIDraw *render);
 
 		/**
 			* @method mark(mark)
-			* @note Can only be used in rendering threads
 			*/
 		void mark(uint32_t mark, bool isRt);
 
 		/**
 			* @method mark_layout(mark)
-			* @note Can only be used in rendering threads
 			*/
 		void mark_layout(uint32_t mark, bool isRt);
 
 		/**
 			* @method unmark(mark)
 			* @thread Rt
-			* @note Can only be used in rendering threads
 			*/
 		inline void unmark(uint32_t mark = (~kLayout_None/*default unmark all*/)) {
 			_mark_value &= (~mark);
