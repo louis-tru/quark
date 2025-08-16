@@ -120,22 +120,20 @@ namespace qk {
 
 	void PreRender::solveMarks() {
 		// First forward iteration
-		// for (auto &levelMarks: _marks) {
-		// 	for (auto view: levelMarks) {
-		// 		if (view->_mark_value & View::kStyle_Class) {
-		// 			view->applyClass_Rt(view->parentSsclass_Rt());
-		// 		}
-		// 	}
-		// }
+		for (auto &levelMarks: _marks) {
+			for (auto view: levelMarks) {
+				if (view->_mark_value & View::kStyle_Class) {
+					view->applyClass_Rt(view->parentSsclass_Rt());
+				}
+			}
+		}
+		bool typesets = false;
 
 		do {
 			Qk_ASSERT(_mark_total > 0);
 			// forward iteration
 			for (auto &levelMarks: _marks) {
 				for (auto view: levelMarks) {
-					if (view->_mark_value & View::kStyle_Class) {
-						view->applyClass_Rt(view->parentSsclass_Rt());
-					}
 					view->layout_forward(view->_mark_value);
 				}
 			}
@@ -198,8 +196,6 @@ namespace qk {
 						if ( task->run_task(time) ) {
 							_is_render = true;
 						}
-					} else {
-						// Qk_DLog("time > task->task_timeout(), %ld > %ld", time, task->task_timeout());
 					}
 					i++;
 				} else {
