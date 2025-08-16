@@ -75,12 +75,12 @@ namespace qk {
 		Qk_ASSERT_NE(level, 0);
 		auto& arr = _marks[level];
 		auto last = arr[arr.length() - 1];
-		if (last != view) {
-			arr[view->_mark_index] = last;
-			last->_mark_index = view->_mark_index;
-		}
+		// if (last != view) {
+		arr[view->_mark_index] = last;
+		last->_mark_index = view->_mark_index;
+		// }
 		arr.pop(1);
-		view->_mark_index = -1;
+		view->_mark_index = 0;
 		_mark_total--;
 		_is_render = true;
 	}
