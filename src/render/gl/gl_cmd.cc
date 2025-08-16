@@ -366,7 +366,7 @@ namespace qk {
 				glUseProgram(shader->shader); // use shader program
 			} else /*if (vertex.vertex.length())*/ {
 				// copy vertex data to gpu and use shader
-				Qk_ASSERT_EQ(vertex.vCount, vertex.vertex.size(), "useShaderProgram, vertex vCount != vertex.vertex.size()");
+				Qk_ASSERT_EQ(vertex.vCount, vertex.vertex.length(), "useShaderProgram, vertex vCount != vertex.vertex.size()");
 				shader->use(vertex.vertex.size(), vertex.vertex.val());
 			}/* else
 				return false;

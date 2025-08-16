@@ -107,7 +107,7 @@ namespace qk {
 		, _action(nullptr)
 		, _accessor(nullptr)
 		, _mark_value(kLayout_None)
-		, _mark_index(-1)
+		, _mark_index(0)
 		, _level(0)
 		, _opacity(1.0)
 		, _cursor(CursorStyle::Arrow)
@@ -281,17 +281,17 @@ namespace qk {
 		return 0;
 	}
 
-	void View::layout_forward(uint32_t mark, bool recursion) {
-		if (recursion) {
-			auto v = first();
-			while (v) {
-				if (v->_visible) {
-					v->layout_forward(v->mark_value(), true);
-					v->layout_reverse(v->mark_value());
-				}
-				v = v->next();
-			}
-		}
+	void View::layout_forward(uint32_t mark) {
+		// if (recursion) {
+		// 	auto v = first();
+		// 	while (v) {
+		// 		if (v->_visible) {
+		// 			v->layout_forward(v->mark_value(), true);
+		// 			v->layout_reverse(v->mark_value());
+		// 		}
+		// 		v = v->next();
+		// 	}
+		// }
 	}
 
 	void View::layout_reverse(uint32_t mark) {
@@ -328,22 +328,21 @@ namespace qk {
 		_Assert_IsRt(isRt, "View::mark_layout(), isRt param no match");
 		if (isRt) {
 			_mark_value |= mark;
-			// if (_mark_index < 0) {
+			if (_mark_index == 0) {
 				if (_level) {
-					preRender()._is_layout = true;
-			// 		preRender().mark_layout(this, _level); // push to pre render
+					// preRender()._is_layout = true;
+					preRender().mark_layout(this, _level); // push to pre render
 				}
-			// }
+			}
 		} else {
 			preRender().async_call([](auto self, auto arg) {
 				self->_mark_value |= arg.arg;
-				
-				// if (self->_mark_index < 0) {
+				if (self->_mark_index == 0) {
 					if (self->_level) {
-						self->preRender()._is_layout = true;
-				// 		self->preRender().mark_layout(self, self->_level); // push to pre render
+						// self->preRender()._is_layout = true;
+						self->preRender().mark_layout(self, self->_level); // push to pre render
 					}
-				// }
+				}
 			}, this, mark);
 		}
 	}
@@ -353,21 +352,18 @@ namespace qk {
 			_Assert_IsRt(isRt, "View::mark(), isRt param no match");
 			if (isRt) {
 				_mark_value |= mark;
-				preRender()._is_render = true;
-				// if (_level) {
-				// 	preRender().mark_render(); // push to pre render
-				// }
+				if (_level) {
+					preRender()._is_render = true;
+				}
 			} else {
 				preRender().async_call([](auto self, auto arg) {
 					self->_mark_value |= arg.arg;
-					self->preRender()._is_render = true;
-					// if (self->_level) {
-					// 	self->preRender().mark_render(); // push to pre render
-					// }
+					if (self->_level) {
+						self->preRender()._is_render = true;
+					}
 				}, this, mark);
 			}
 		} else {
-			// preRender().mark_render();
 			preRender()._is_render = true;
 		}
 	}
@@ -638,7 +634,7 @@ namespace qk {
 	void View::set_level_Rt(uint32_t level) { // settings level
 		if (_visible) {
 			// if level > 0 then
-			if (_mark_index >= 0) {
+			if (_mark_index) {
 				preRender().unmark_layout(this, _level);
 			}
 			preRender().mark_layout(this, level);
@@ -665,7 +661,7 @@ namespace qk {
 				}
 			}, win));
 		}
-		if (_mark_index >= 0) {
+		if (_mark_index) {
 			preRender().unmark_layout(this, _level);
 		}
 		_level = 0;

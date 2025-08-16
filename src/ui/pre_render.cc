@@ -37,37 +37,52 @@
 
 namespace qk {
 
+	class EmptyView: public View {
+		void layout_forward(uint32_t mark) override {}
+		void layout_reverse(uint32_t mark) override {}
+	};
+	static EmptyView emptyView;
+
 	void PreRender::LevelMarks::clear() {
 		_length = 0;
+	}
+
+	void PreRender::LevelMarks::pop(uint32_t count) {
+		Qk_ASSERT_GE(_length, count);
+		_length -= count;
 	}
 
 	PreRender::PreRender(Window *win)
 		: _mark_total(0)
 		, _window(win)
-		, _is_layout(true)
 		, _is_render(false)
 	{}
 
 	void PreRender::mark_layout(View *view, uint32_t level) {
-		Qk_ASSERT_EQ(view->_mark_index, -1);
-		Qk_ASSERT(level);
+		Qk_ASSERT_EQ(view->_mark_index, 0);
+		Qk_ASSERT_NE(level, 0);
 		_marks.extend(level + 1);
 		auto& arr = _marks[level];
+		if (arr.length() == 0) {
+			// Ensure the _mark_index is not zero, so push an empty view as a placeholder
+			arr.push(&emptyView);
+			_mark_total++;
+		}
 		view->_mark_index = arr.length();
 		arr.push(view);
 		_mark_total++;
 	}
 
 	void PreRender::unmark_layout(View *view, uint32_t level) {
-		Qk_ASSERT(view->_mark_index >= 0);
-		Qk_ASSERT(level);
+		Qk_ASSERT_NE(view->_mark_index, 0);
+		Qk_ASSERT_NE(level, 0);
 		auto& arr = _marks[level];
 		auto last = arr[arr.length() - 1];
 		if (last != view) {
 			arr[view->_mark_index] = last;
 			last->_mark_index = view->_mark_index;
 		}
-		arr.pop();
+		arr.pop(1);
 		view->_mark_index = -1;
 		_mark_total--;
 		_is_render = true;
@@ -121,35 +136,35 @@ namespace qk {
 
 	void PreRender::solveMarks() {
 		// First forward iteration
-		// for (auto &levelMarks: _marks) {
-		// 	for (auto view: levelMarks) {
-		// 		if (view->_mark_value & View::kStyle_Class) {
-		// 			view->applyClass_Rt(view->parentSsclass_Rt());
-		// 		}
-		// 	}
-		// }
-		// bool typesets = false;
+		for (auto &levelMarks: _marks) {
+			for (auto view: levelMarks) {
+				if (view->_mark_value & View::kStyle_Class) {
+					view->applyClass_Rt(view->parentSsclass_Rt());
+				}
+			}
+		}
+		bool typesets = false;
 
-		// do {
-		// 	Qk_ASSERT(_mark_total > 0);
-		// 	// forward iteration
-		// 	for (auto &levelMarks: _marks) {
-		// 		for (auto view: levelMarks) {
-		// 			view->layout_forward(view->_mark_value);
-		// 		}
-		// 	}
-		// 	// reverse iteration
-		// 	for (int i = Qk_Minus(_marks.length(), 1); i >= 0; i--) {
-		// 		auto &levelMarks = _marks[i];
-		// 		for (auto view: levelMarks) {
-		// 			view->layout_reverse(view->_mark_value);
-		// 			// simple delete mark recursive
-		// 			view->_mark_index = -1;
-		// 			_mark_total--;
-		// 		}
-		// 		levelMarks.clear();
-		// 	}
-		// } while (_mark_total); // if have new mark then continue solve
+		do {
+			Qk_ASSERT(_mark_total > 0);
+			// forward iteration
+			for (auto &levelMarks: _marks) {
+				for (auto view: levelMarks) {
+					view->layout_forward(view->_mark_value);
+				}
+			}
+			// reverse iteration
+			for (int i = Qk_Minus(_marks.length(), 1); i >= 0; i--) {
+				auto &levelMarks = _marks[i];
+				for (auto view: levelMarks) {
+					view->layout_reverse(view->_mark_value);
+					// simple delete mark recursive
+					view->_mark_index = 0;
+					_mark_total--;
+				}
+				levelMarks.clear();
+			}
+		} while (_mark_total); // if have new mark then continue solve
 	}
 
 	void PreRender::clearTasks() {

@@ -275,8 +275,8 @@ namespace qk {
 		return change_mark;
 	}
 
-	void Box::layout_forward(uint32_t mark, bool recursion) {
-		if (mark & (kLayout_Size_ALL | kLayout_Child_Size)) {
+	void Box::layout_forward(uint32_t mark) {
+		if (mark & (kLayout_Size_ALL | kLayout_Child_Size/* | kStyle_Class*/)) {
 			uint32_t change_mark = kLayout_None;
 			_IfParent() {
 				change_mark = solve_layout_content_size_pre(mark, _parent->layout_container());
@@ -322,17 +322,13 @@ namespace qk {
 				auto v = first();
 				while (v) {
 					if (v->visible()) {
-						v->layout_forward(change_mark | v->mark_value(), recursion);
-						v->layout_reverse(v->mark_value());
+						v->layout_forward(change_mark | v->mark_value());
 					}
 					v = v->next();
 				}
 				mark_layout(kLayout_Typesetting | kVisible_Region, true); // layout reverse
-				return;
 			}
 		}
-
-		View::layout_forward(mark, recursion);
 	}
 
 	void Box::layout_reverse(uint32_t mark) {

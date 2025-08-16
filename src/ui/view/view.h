@@ -184,7 +184,7 @@ namespace qk {
 		* @prop mark_index
 		* @thread Rt
 		*/
-		Qk_DEFINE_PROP_GET(int32_t, mark_index, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, mark_index, Const);
 
 		/**
 		* @prop level
@@ -502,7 +502,7 @@ namespace qk {
 			* @method layout_forward(mark)
 			* @thread Rt
 			*/
-		virtual void layout_forward(uint32_t/*LayoutMark*/ mark, bool recursion);
+		virtual void layout_forward(uint32_t/*LayoutMark*/ mark);
 
 		/**
 			* 从内向外反向迭代布局，重新调整子视图偏移位置，并且如果视图为包裹尺寸时会被内部视图所挤压。
