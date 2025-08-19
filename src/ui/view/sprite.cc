@@ -34,9 +34,6 @@
 #include "../../errno.h"
 #include "../action/keyframe.h"
 
-#define _Parent() auto _parent = this->parent()
-#define _IfParent() _Parent(); if (_parent)
-#define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
 #define _async_call preRender().async_call
 
 namespace qk {
