@@ -41,7 +41,7 @@ namespace qk {
 
 	Sprite::Sprite(): View(), MatrixView(this)
 		, _width(0), _height(0)
-		, _frames(1), _margin(0), _fsp(24), _direction(Direction::Row)
+		, _frames(1), _frame_index(0), _margin(0), _fsp(24), _direction(Direction::Row)
 	{
 		_visible_region = true;
 	}
@@ -68,31 +68,38 @@ namespace qk {
 		}
 	}
 
-	void Sprite::set_frames(uint16_t val, bool isRt) {
-		if (_frames != val) {
-			_frames = val;
-			// mark(kLayout_None, isRt);
+	void Sprite::set_frame_index(uint16_t val, bool isRt) {
+		if (_frame_index != val) {
+			_frame_index = val;
+			mark(kLayout_None, isRt);
 		}
 	}
 
-	void Sprite::set_margin(uint16_t val, bool isRt) {
-		if (_margin != val) {
-			_margin = val;
-			// mark(kLayout_None, isRt);
+	void Sprite::set_frames(uint16_t val, bool isRt) {
+		if (_frames != val) {
+			_frames = val;
+			// mark(kChange_Action, isRt);
 		}
 	}
 
 	void Sprite::set_fsp(uint8_t val, bool isRt) {
 		if (_fsp != val) {
 			_fsp = val;
-			// mark(kLayout_None, isRt);
+			// mark(kChange_Action, isRt);
+		}
+	}
+
+	void Sprite::set_margin(uint16_t val, bool isRt) {
+		if (_margin != val) {
+			_margin = val;
+			mark(kLayout_None, isRt);
 		}
 	}
 
 	void Sprite::set_direction(Direction val, bool isRt) {
 		if (_direction != val) {
 			_direction = val;
-			// mark(kLayout_None, isRt);
+			mark(kLayout_None, isRt);
 		}
 	}
 
@@ -113,8 +120,11 @@ namespace qk {
 	}
 
 	void Sprite::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
+		if (mark & kAction_Change) {
+			// TODO ..
+			unmark(kAction_Change);
+		}
 		if (mark & kTransform) { // Update transform matrix
-			// _CheckParent();
 			solve_origin_value({_width, _height}); // Check transform_origin change
 			unmark(kTransform); // Unmark
 			auto v = layout_offset() + parent->layout_offset_inside()

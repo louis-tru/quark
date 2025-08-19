@@ -69,13 +69,13 @@ namespace qk {
 		return nullptr;
 	}
 
+	// Only allow the action center call
 	void Action::release_for_only_center_Rt() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
 			Qk_ASSERT(dynamic_cast<KeyframeAction*>(this));
 			_window = nullptr; // as rt mark @ Action::destroy()
-			// heapAllocator()->weak(this);
-			Object::release();
+			Object::release(); // actually is call the "heapAllocator()->weak(this)"
 		}
 	}
 

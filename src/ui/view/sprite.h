@@ -53,6 +53,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const); // The source of the sprite image
 		Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
 		Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
+		Qk_DEFINE_VIEW_PROPERTY(uint16_t, frame_index, Const); // The current frame of the sprite animation, default 0
 		Qk_DEFINE_VIEW_PROPERTY(uint16_t, frames, Const); // The number of frames in the sprite animation, default 1
 		Qk_DEFINE_VIEW_PROPERTY(uint16_t, margin, Const); // The margin of the sprite frame, default 0
 		Qk_DEFINE_VIEW_PROPERTY(uint8_t, fsp, Const); // The frame per second of the sprite animation, default 24

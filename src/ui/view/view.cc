@@ -379,20 +379,19 @@ namespace qk {
 	void View::set_action(Action* action) throw(Error) {
 		if (action) {
 			Qk_Check(action->window() == _window,
-				ERR_ACTION_SET_WINDOW_NO_MATCH, "View::set_action, set action window not match"
+				ERR_ACTION_SET_WINDOW_NO_MATCH, "View::set_action, Not match the window"
 			);
 		}
 		if (action != _action) {
 			if ( _action ) {
-				auto action = _action;
 				_action = nullptr;
-				action->del_target(this);
-				action->release();
+				_action->del_target(this);
+				_action->release();
 			}
 			if ( action ) {
-				_action = action;
 				action->set_target(this);
 				action->retain(); // retain from view view
+				_action = action;
 			}
 		}
 	}
