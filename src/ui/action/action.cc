@@ -40,6 +40,8 @@
 
 namespace qk {
 
+	const uint32_t kMaxUint32 = 0xffffffff;
+
 	const Action::Id playingFlag(reinterpret_cast<List<qk::Action *>::Node*>(1));
 
 	Action::Action(Window *win)
@@ -69,14 +71,25 @@ namespace qk {
 		return nullptr;
 	}
 
-	// Only allow the action center call
-	void Action::release_for_only_center_Rt() {
+	// Only allow the inner call, make sure not to access any members in non-RT threads
+	void Action::release_inner_Rt() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
 			Qk_ASSERT(dynamic_cast<KeyframeAction*>(this));
 			_window = nullptr; // as rt mark @ Action::destroy()
 			Object::release(); // actually is call the "heapAllocator()->weak(this)"
 		}
+	}
+
+	bool Action::next_loop_Rt() {
+		if (_looped_Rt < _loop) {
+			_looped_Rt++;
+			return true;
+		} else if (_loop == kMaxUint32) {
+			_looped_Rt = 0;
+			return true;
+		}
+		return false;
 	}
 
 	void Action::destroy() {
@@ -106,7 +119,7 @@ namespace qk {
 	}
 
 	void Action::set_speed(float value) {
-		_speed = Qk_Min(10, Qk_Max(value, 0.1));
+		_speed = Qk_Min(1e3, Qk_Max(value, 0.01));
 	}
 
 	void Action::set_loop(uint32_t value) {

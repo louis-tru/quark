@@ -567,6 +567,10 @@ namespace qk {
 		}
 	};
 
+	void StyleSheets::set_frame_Rt(uint32_t frame) {
+		static_cast<SetProp<uint32_t>*>(this)->set(kFRAME_ViewProp, frame);
+	}
+
 	#define _Fun(Enum, Type, Name, _) \
 	void StyleSheets::set_##Name(Type val) {\
 		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_ViewProp>(val);\

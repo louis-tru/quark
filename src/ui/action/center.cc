@@ -62,7 +62,7 @@ namespace qk {
 		if (it != _CSSTransitions_Rt.end()) {
 			for (auto act: it->value) {
 				act->stop_Rt();
-				act->release_for_only_center_Rt();
+				act->release_inner_Rt();
 			}
 			_CSSTransitions_Rt.erase(it);
 		}
@@ -72,9 +72,11 @@ namespace qk {
 		if ( _actions_Rt.length() == 0) return;
 
 		uint32_t time_span = 0;
-		if (_prevTime_Rt) {  // 0表示还没开始
+		if (_prevTime_Rt) {  // zero means not started yet
 			time_span = timeMs - _prevTime_Rt;
-			if ( time_span > 200 ) {   // 距离上一帧超过200ms重新记时(如应用程序从休眠中恢复)
+			if ( time_span > 200 ) { 
+				// Restart the timer when the time interval exceeds 200ms,
+				// for example, when the application resumes from sleep mode
 				time_span = 200;
 			}
 		}

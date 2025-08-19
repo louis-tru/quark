@@ -42,6 +42,7 @@ namespace qk {
 	{}
 
 	void Keyframe::destroy() {
+		// It is need to be two times call destroy
 		if (_host) {
 			_host = nullptr; // mark destroy
 		} else {
@@ -54,8 +55,12 @@ namespace qk {
 	{}
 
 	void KeyframeAction::clear() {
+		unsafe_clear(false);
+	}
+
+	void KeyframeAction::unsafe_clear(bool isRt) {
 		if (_frames.length()) {
-			if (_window) { // @ Action::release_for_only_center_Rt()
+			if (_window && !isRt) { // @ Action::release_inner_Rt()
 				_async_call([](auto self, auto arg) {
 					for (auto i : self->_frames_Rt)
 						i->destroy(); // last call destroy
@@ -70,10 +75,11 @@ namespace qk {
 				i->release();
 			}
 			_frames.clear();
+			if (_duration) {
+				setDuration( -_duration );
+			}
 		}
-		if ( _duration ) {
-			setDuration( -_duration );
-		}
+		Qk_ASSERT_EQ(_duration, 0);
 	}
 
 	KeyframeAction* KeyframeAction::MakeSSTransition(
@@ -82,8 +88,8 @@ namespace qk {
 		Qk_ASSERT(time);
 		auto action = new KeyframeAction(view->window());
 		// only use isRt=true, Because it is initialization and there will be no security issues
-		auto f0 = action->add_unsafe(0, EASE, isRt);
-		auto f1 = action->add_unsafe(time, to->curve(), isRt);
+		auto f0 = action->unsafe_add(0, EASE, isRt);
+		auto f1 = action->unsafe_add(time, to->curve(), isRt);
 
 		action->set_target(view);
 
@@ -110,7 +116,7 @@ namespace qk {
 		return action;
 	}
 
-	Keyframe* KeyframeAction::add_unsafe(uint32_t time, cCurve& curve, bool isRt) {
+	Keyframe* KeyframeAction::unsafe_add(uint32_t time, cCurve& curve, bool isRt) {
 		auto frame = new Keyframe(this, curve);
 		frame->_time = _frames.length() ? time: 0;
 		frame->_index = _frames.length();
@@ -147,20 +153,20 @@ namespace qk {
 	}
 
 	Keyframe* KeyframeAction::addFrame(uint32_t time, cCurve& curve) {
-		return add_unsafe(time, curve, false);
+		return unsafe_add(time, curve, false);
 	}
 
 	Keyframe* KeyframeAction::addFrameWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) {
 		auto css = shared_root_styleSheets()->searchItem(cssExp, false);
 		if (css) {
-			auto f = add_unsafe(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);
+			auto f = unsafe_add(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);
 			_async_call([](auto f, auto arg) {
 				for (auto &i: arg.arg->_props)
 					f->_props.set(i.key, i.value->copy());
 			}, f, css);
 			return f;
 		} else {
-			return add_unsafe(timeMs ? *timeMs: 0, curve ? *curve: EASE, false);
+			return unsafe_add(timeMs ? *timeMs: 0, curve ? *curve: EASE, false);
 		}
 	}
 
@@ -204,7 +210,7 @@ namespace qk {
 			}
 		}
 
-	start:
+	 start:
 		uint32_t f0 = _frame, f1 = f0 + 1;
 
 		if ( f1 < _frames_Rt.length() ) {
@@ -232,7 +238,7 @@ namespace qk {
 
 				if ( f1 < _frames_Rt.length() ) {
 					goto advance;
-				} else if (_looped_Rt < _loop) {
+				} else if (next_loop_Rt()) {
 					goto loop;
 				} else {
 					_frames_Rt[f0]->apply(root->_target, true); // apply last frame
@@ -245,16 +251,15 @@ namespace qk {
 				trigger_ActionKeyframe_Rt(0, f1, root); // trigger event action_key_frame
 			}
 
-		} else if ( _looped_Rt < _loop ) { // Can continue to loop
-		loop:
-			_looped_Rt++;
+		} else if (_frames_Rt.length() && next_loop_Rt()) { // Can continue to loop
+		 loop:
 			_frame = _time = 0;
 			trigger_ActionLoop_Rt(time_span, root);
 			trigger_ActionKeyframe_Rt(time_span, 0, root);
 			goto start;
 		}
 
-	end:
+	 end:
 		return time_span / _speed;
 	}
 

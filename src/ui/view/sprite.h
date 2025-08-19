@@ -34,6 +34,7 @@
 #include "./matrix.h"
 
 namespace qk {
+	class KeyframeAction;
 
 	/**
 	 * @class Sprite
@@ -53,21 +54,30 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const); // The source of the sprite image
 		Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
 		Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
-		Qk_DEFINE_VIEW_PROPERTY(uint16_t, frame_index, Const); // The current frame of the sprite animation, default 0
-		Qk_DEFINE_VIEW_PROPERTY(uint16_t, frames, Const); // The number of frames in the sprite animation, default 1
-		Qk_DEFINE_VIEW_PROPERTY(uint16_t, margin, Const); // The margin of the sprite frame, default 0
-		Qk_DEFINE_VIEW_PROPERTY(uint8_t, fsp, Const); // The frame per second of the sprite animation, default 24
+		Qk_DEFINE_VIEW_PROPERTY(uint32_t, frame, Const); // The current frame of the sprite animation, default 0
+		Qk_DEFINE_VIEW_PROPERTY(uint32_t, frames, Const); // The number of frames in the sprite animation, default 1
+		Qk_DEFINE_VIEW_PROPERTY(uint16_t, gap, Const); // The gap between frames in the sprite animation, default 0
 		Qk_DEFINE_VIEW_PROPERTY(Direction, direction, Const); // The direction of the sprite animation, default horizontal row
-		Sprite();
-		virtual ViewType viewType() const override;
-		virtual MatrixView* asMatrixView() override;
-		virtual Vec2 layout_offset_inside() override;
-		virtual Vec2 center() override;
-		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		virtual void draw(UIDraw *render) override;
+		Qk_DEFINE_ACCESSOR(uint8_t, fsp, Const); // The frame per second of the sprite animation, default 25
+		Qk_DEFINE_ACCESSOR(bool, playing, Const); // Whether the sprite is currently playing
+		Sprite(); // Constructor
+		void destroy() override;
+		void play(bool all = false); // Play the sprite frames, play action of view together if the all equals true
+		void stop(bool all = false); // Stop the sprite frames, stop action of view together if the all equals true
+		ViewType viewType() const override;
+		MatrixView* asMatrixView() override;
+		Vec2 layout_offset_inside() override;
+		bool overlap_test(Vec2 point) override; // Check if the point overlaps with the sprite
+		Vec2 center() override;
+		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
+		void draw(UIDraw *render) override;
 	protected:
-		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
-		virtual ImagePool* imgPool() override;
+		void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
+		ImagePool* imgPool() override;
+		View* init(Window* win) override;
+	private:
+		KeyframeAction *_keyAction; // The keyframe action for the sprite animation
+		friend class UIDraw;
 	};
 }
 #endif

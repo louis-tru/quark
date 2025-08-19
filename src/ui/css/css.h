@@ -108,12 +108,14 @@ namespace qk {
 
 	private:
 		void applyTransition(View* view, StyleSheets *to, float y) const; // @thread Rt
+		void set_frame_Rt(uint32_t frame);
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 
 		virtual void onMake(ViewProp key, Property* prop); // make new prop
 
 		friend class KeyframeAction;
+		friend class Sprite;
 	};
 
 	/**

@@ -147,6 +147,7 @@ namespace qk {
 	F(SKEW_X, float, skew_x, MatrixView) \
 	F(SKEW_Y, float, skew_y, MatrixView) \
 	F(ROTATE_Z, float, rotate_z, MatrixView) \
+	F(FRAME, uint32_t, frame, Sprite) /*Current frame index of Sprite*/\
 	F(CURVE, Curve, curve, CSS) /*extends*//*****Large size data*****/\
 
 	// Unsupported attributes for ScrollView:

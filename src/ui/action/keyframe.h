@@ -47,11 +47,11 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, time, Const);
 		Qk_DEFINE_PROP_GET(Curve, curve, Const);
 		// @overwrite
-		virtual Window* getWindowForAsyncSet() override;
+		Window* getWindowForAsyncSet() override;
 		/**
 		 * @method destroy()
 		 */
-		virtual void destroy() override;
+		void destroy() override;
 	private:
 		// @constructor
 		// @private
@@ -121,15 +121,17 @@ namespace qk {
 		);
 
 	private:
-		virtual void append(Action *child) throw(Error) override;
-		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root) override;
-		virtual void seek_time_Rt(uint32_t time, Action* root) override;
-		virtual void seek_before_Rt(uint32_t time, Action* child) override;
-		Keyframe* add_unsafe(uint32_t time, cCurve& curve, bool isRt);
+		void append(Action *child) throw(Error) override;
+		uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root) override;
+		void seek_time_Rt(uint32_t time, Action* root) override;
+		void seek_before_Rt(uint32_t time, Action* child) override;
+		Keyframe* unsafe_add(uint32_t time, cCurve& curve, bool isRt);
+		void unsafe_clear(bool isRt);
 
 		Array<Keyframe*> _frames;
 		Array<Keyframe*> _frames_Rt;
 		friend class Keyframe;
+		friend class Sprite;
 	};
 
 }

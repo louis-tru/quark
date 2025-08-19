@@ -632,15 +632,15 @@ namespace qk {
 
 			Socket* socket() { return _socket; }
 
-			virtual void read_advance() {
+			virtual void read_advance() override {
 				_socket->resume();
 			}
 
-			virtual void read_pause() {
+			virtual void read_pause() override {
 				_socket->pause();
 			}
 
-			virtual bool is_cache() {
+			virtual bool is_cache() override{
 				return false;
 			}
 

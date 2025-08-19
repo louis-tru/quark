@@ -57,10 +57,11 @@ namespace qk {
 				i.key->del_parent(); // release for main thread
 			}
 			_actions.clear();
+			if (_duration) {
+				ActionGroup::setDuration( -_duration );
+			}
 		}
-		if ( _duration ) {
-			ActionGroup::setDuration( _duration );
-		}
+		Qk_ASSERT_EQ(_duration, 0);
 	}
 
 	bool ActionGroup::isSequence() {
@@ -191,9 +192,8 @@ namespace qk {
 			time_span_min = Qk_Min(time_span_min, time);
 		}
 
-		if ( time_span_min ) {
-			if ( _looped_Rt < _loop ) { // continue to loop
-				_looped_Rt++;
+		if ( time_span_min && _actions_Rt.length() ) {
+			if (next_loop_Rt()) { // continue to loop
 				restart = true;
 				time_span = time_span_min;
 
@@ -237,8 +237,7 @@ namespace qk {
 					goto advance;
 				}
 			} else if ( *_play_Rt == _actions_Rt.back() ) { // last action
-				if ( _looped_Rt < _loop ) { // continue to loop
-					_looped_Rt++;
+				if (next_loop_Rt()) { // continue to loop
 					restart = true;
 
 					trigger_ActionLoop_Rt(time_span, root); // trigger event

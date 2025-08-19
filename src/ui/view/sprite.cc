@@ -32,18 +32,35 @@
 #include "../window.h"
 #include "../app.h"
 #include "../../errno.h"
+#include "../action/keyframe.h"
 
 #define _Parent() auto _parent = this->parent()
 #define _IfParent() _Parent(); if (_parent)
 #define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
+#define _async_call preRender().async_call
 
 namespace qk {
 
-	Sprite::Sprite(): View(), MatrixView(this)
+	Sprite::Sprite(): View(), ImageSourceHold(), MatrixView(this)
 		, _width(0), _height(0)
-		, _frames(1), _frame_index(0), _margin(0), _fsp(24), _direction(Direction::Row)
+		, _frames(1), _frame(0), _gap(0), _direction(Direction::Row)
+		, _keyAction(nullptr)
 	{
 		_visible_region = true;
+	}
+
+	View* Sprite::init(Window* win) {
+		View::init(win);
+		_keyAction = NewRetain<KeyframeAction>(win);
+		_keyAction->set_speed(25); // Default 25 frames per second
+		_keyAction->set_loop(0xffffffff); // 0xffffffff means loop forever
+		_keyAction->set_target(this);
+		return this;
+	}
+
+	void Sprite::destroy() {
+		Releasep(_keyAction); // Delete action
+		View::destroy(); // Call parent destroy
 	}
 
 	String Sprite::src() const {
@@ -57,41 +74,62 @@ namespace qk {
 	void Sprite::set_width(float val, bool isRt) {
 		if (_width != val) {
 			_width = val;
-			mark(kLayout_None, isRt);
+			mark(kTransform, isRt);
 		}
 	}
 
 	void Sprite::set_height(float val, bool isRt) {
 		if (_height != val) {
 			_height = val;
+			mark(kTransform, isRt);
+		}
+	}
+
+	void Sprite::set_frame(uint32_t val, bool isRt) {
+		if (_frame != val) {
+			_frame = val;
+			if (!isRt) { // is main thread
+				_keyAction->seek(val * 1e3); // Seek to frame in milliseconds
+			}
 			mark(kLayout_None, isRt);
 		}
 	}
 
-	void Sprite::set_frame_index(uint16_t val, bool isRt) {
-		if (_frame_index != val) {
-			_frame_index = val;
-			mark(kLayout_None, isRt);
-		}
-	}
-
-	void Sprite::set_frames(uint16_t val, bool isRt) {
+	void Sprite::set_frames(uint32_t val, bool isRt) {
+		if (isRt) // return when render thread call, not allow call in the render thread
+			return;
 		if (_frames != val) {
-			_frames = val;
-			// mark(kChange_Action, isRt);
+			_frames = Qk_Min(1, val);
+			if (_frame >= _frames) {
+				_frame = _frames - 1;
+			}
+			_async_call([](auto self, auto arg) {
+				auto action = self->_keyAction;
+				auto frames = self->_frames;
+				if (action->length() != frames + 1) {
+					action->unsafe_clear(true);
+					if (frames > 1) {
+						for (uint32_t i = 0, count = frames + 1; i < count; i++) {
+							action->unsafe_add(i * 1e3, LINEAR, true)->set_frame_Rt(i);
+						}
+					}
+				}
+			}, this, 0);
 		}
 	}
 
-	void Sprite::set_fsp(uint8_t val, bool isRt) {
-		if (_fsp != val) {
-			_fsp = val;
-			// mark(kChange_Action, isRt);
-		}
+	uint8_t Sprite::fsp() const {
+		return _keyAction->speed();
 	}
 
-	void Sprite::set_margin(uint16_t val, bool isRt) {
-		if (_margin != val) {
-			_margin = val;
+	void Sprite::set_fsp(uint8_t val) {
+		val = Qk_Min(60, val);
+		_keyAction->set_speed(val); // Use speed as fsp
+	}
+
+	void Sprite::set_gap(uint16_t val, bool isRt) {
+		if (_gap != val) {
+			_gap = val;
 			mark(kLayout_None, isRt);
 		}
 	}
@@ -101,6 +139,28 @@ namespace qk {
 			_direction = val;
 			mark(kLayout_None, isRt);
 		}
+	}
+
+	bool Sprite::playing() const {
+		return _keyAction->playing();
+	}
+
+	void Sprite::set_playing(bool val) {
+		_keyAction->set_playing(val);
+	}
+
+	void Sprite::play(bool all) {
+		if (all && action()) {
+			action()->play();
+		}
+		_keyAction->play();
+	}
+
+	void Sprite::stop(bool all) {
+		if (all && action()) {
+			action()->stop();
+		}
+		_keyAction->stop();
 	}
 
 	ViewType Sprite::viewType() const {
@@ -115,15 +175,16 @@ namespace qk {
 		return -_origin_value;
 	}
 
+	bool Sprite::overlap_test(Vec2 point) {
+		// TODO ...
+		return false;
+	}
+
 	Vec2 Sprite::center() {
 		return { _width * 0.5f - _origin_value.x(), _height * 0.5f - _origin_value.y() };
 	}
 
 	void Sprite::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
-		if (mark & kAction_Change) {
-			// TODO ..
-			unmark(kAction_Change);
-		}
 		if (mark & kTransform) { // Update transform matrix
 			solve_origin_value({_width, _height}); // Check transform_origin change
 			unmark(kTransform); // Unmark
