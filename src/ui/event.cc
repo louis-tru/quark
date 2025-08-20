@@ -631,23 +631,10 @@ namespace qk {
 // -------------------------- M o u s e --------------------------
 
 	View* EventDispatch::find_receive_view_exec(View* view, Vec2 pos) {
-		if ( view->visible() ) {
-			if ( view->visible_region() ) {
-				auto v = view->last();
-				if (v && view->is_clip() ) {
-					if (view->overlap_test(pos)) {
-						while (v) {
-							auto r = find_receive_view_exec(v, pos);
-							if (r) {
-								return r;
-							}
-							v = v->prev();
-						}
-						if (view->_receive) {
-							return view;
-						}
-					}
-				} else {
+		if ( view->visible() && view->visible_region() ) {
+			auto v = view->last();
+			if (v && view->is_clip() ) {
+				if (view->overlap_test(pos)) {
 					while (v) {
 						auto r = find_receive_view_exec(v, pos);
 						if (r) {
@@ -655,9 +642,20 @@ namespace qk {
 						}
 						v = v->prev();
 					}
-					if (view->_receive && view->overlap_test(pos)) {
+					if (view->_receive) {
 						return view;
 					}
+				}
+			} else {
+				while (v) {
+					auto r = find_receive_view_exec(v, pos);
+					if (r) {
+						return r;
+					}
+					v = v->prev();
+				}
+				if (view->_receive && view->overlap_test(pos)) {
+					return view;
 				}
 			}
 		}

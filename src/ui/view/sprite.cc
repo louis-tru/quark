@@ -42,8 +42,10 @@ namespace qk {
 		, _width(0), _height(0)
 		, _frames(1), _frame(0), _gap(0), _direction(Direction::Row)
 		, _keyAction(nullptr)
+		, _vertex_ok(false)
 	{
 		_visible_region = true;
+		set_receive(false);
 	}
 
 	View* Sprite::init(Window* win) {
@@ -171,13 +173,21 @@ namespace qk {
 		return -_origin_value;
 	}
 
-	bool Sprite::overlap_test(Vec2 point) {
-		// TODO ...
-		return false;
-	}
-
 	Vec2 Sprite::center() {
 		return { _width * 0.5f - _origin_value.x(), _height * 0.5f - _origin_value.y() };
+	}
+
+	bool Sprite::overlap_test(Vec2 point) {
+		if (!_vertex_ok) {
+			_vertex_ok = true;
+			Vec2 origin(-_origin_value.x(), -_origin_value.y());
+			Vec2 end = origin + Vec2{_width, _height};
+			_vertex[0] = _matrix * origin;
+			_vertex[1] = _matrix * Vec2(end.x(), origin.y());
+			_vertex[2] = _matrix * end;
+			_vertex[3] = _matrix * Vec2(origin.x(), end.y());
+		}
+		return overlap_test_from_convex_quadrilateral(_vertex, point);
 	}
 
 	void Sprite::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
@@ -188,7 +198,7 @@ namespace qk {
 				+ _origin_value + _translate;
 			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]);
-			// solve_visible_region(_matrix);
+			_vertex_ok = false;
 		}
 	}
 
@@ -206,4 +216,11 @@ namespace qk {
 	ImagePool* Sprite::imgPool() {
 		return window()->host()->imgPool();
 	}
+
+	void Sprite::trigger_listener_change(uint32_t name, int count, int change) {
+		if ( change > 0 ) {
+			set_receive(true);
+		}
+	}
+
 }

@@ -71,12 +71,15 @@ namespace qk {
 		Vec2 center() override;
 		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		void draw(UIDraw *render) override;
+		void trigger_listener_change(const NameType& name, int count, int change) override;
 	protected:
 		void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 		ImagePool* imgPool() override;
 		View* init(Window* win) override;
 	private:
 		KeyframeAction *_keyAction; // The keyframe action for the sprite animation
+		Vec2 _vertex[4]; // The rect vertex of the sprite
+		bool _vertex_ok; // is computed vertex
 		friend class UIDraw;
 	};
 }
