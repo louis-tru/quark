@@ -120,8 +120,7 @@ namespace qk {
 	}
 
 	void Sprite::set_fsp(uint8_t val) {
-		val = Qk_Min(60, val);
-		_keyAction->set_speed(val); // Use speed as fsp
+		_keyAction->set_speed(Qk_Min(60, val)); // Use speed as fsp
 	}
 
 	void Sprite::set_gap(uint16_t val, bool isRt) {

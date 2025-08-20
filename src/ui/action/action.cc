@@ -119,7 +119,7 @@ namespace qk {
 	}
 
 	void Action::set_speed(float value) {
-		_speed = Qk_Min(1e3, Qk_Max(value, 0.01));
+		_speed = Qk_Min(1e2, Qk_Max(value, 0.01));
 	}
 
 	void Action::set_loop(uint32_t value) {

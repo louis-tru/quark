@@ -57,7 +57,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Window*, window, Protected);
 		Qk_DEFINE_PROPERTY(uint32_t, loop, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, duration, Const); // Duration of the action in milliseconds
-		Qk_DEFINE_PROPERTY(float, speed, Const); // Range from 0.01 to 1e3
+		Qk_DEFINE_PROPERTY(float, speed, Const); // Range from 0.01 to 1e2, default 1.0
 		Qk_DEFINE_ACCESSOR(bool, playing, Const);
 
 		Action(Window *win);
