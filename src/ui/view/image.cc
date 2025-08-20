@@ -54,8 +54,8 @@ namespace qk {
 				Vec2 content;
 				if (_container.float_x()) { // wrap x
 					if (_container.float_y()) { // wrap y
-						content[0] = _container.clamp_width(src->width());
-						content[1] = _container.clamp_height(src->height());
+						content[0] = _container.clamp_width(src->width() * window()->atomPixel());
+						content[1] = _container.clamp_height(src->height() * window()->atomPixel());
 					} else { // no wrap y and rawp x
 						content[1] = _container.pre_height[0];
 						content[0] = _container.clamp_width(src->width() * content[1] / src->height());

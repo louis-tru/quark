@@ -285,7 +285,8 @@ namespace qk { namespace js {
 	void binding_box(JSObject* exports, Worker* worker);
 	void binding_text(JSObject* exports, Worker* worker);
 	void binding_scroll(JSObject* exports, Worker* worker);
-	void binding_transform(JSObject* exports, Worker* worker);
+	void binding_matrix(JSObject* exports, Worker* worker);
+	void binding_sprite(JSObject* exports, Worker* worker);
 	void binding_player(JSObject* exports, Worker* worker);
 
 	struct NativeUI {
@@ -300,7 +301,8 @@ namespace qk { namespace js {
 			binding_box(exports, worker);
 			binding_text(exports, worker);
 			binding_scroll(exports, worker);
-			binding_transform(exports, worker);
+			binding_matrix(exports, worker);
+			binding_sprite(exports, worker);
 			binding_player(exports, worker);
 		}
 	};

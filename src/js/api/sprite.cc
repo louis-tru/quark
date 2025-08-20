@@ -43,6 +43,7 @@ namespace qk { namespace js {
 				Js_NewView(Sprite);
 			});
 			inheritMatrixView(cls, worker);
+
 			Js_MixObject_Accessor(Sprite, String, src, src);
 			Js_MixObject_Accessor(Sprite, float, width, width);
 			Js_MixObject_Accessor(Sprite, float, height, height);
@@ -51,6 +52,19 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Sprite, uint32_t, gap, gap);
 			Js_MixObject_Accessor(Sprite, uint32_t, fsp, fsp);
 			Js_MixObject_Accessor(Sprite, Direction, direction, direction);
+			Js_MixObject_Accessor(Sprite, bool, playing, playing);
+
+			Js_Class_Method(play, {
+				bool all = args.length() ? args[0]->toBoolean(worker) : false;
+				Js_Self(Sprite);
+				self->play(all);
+			});
+
+			Js_Class_Method(stop, {
+				bool all = args.length() ? args[0]->toBoolean(worker) : false;
+				Js_Self(Sprite);
+				self->stop(all);
+			});
 
 			cls->exports("Sprite", exports);
 		}

@@ -47,8 +47,8 @@ namespace qk {
 
 	enum class FillPositionKind: uint8_t {
 		Start,     /* 开始 start */
-		End,       /* 结束 end */
 		Center,    /* 居中 center */
+		End,       /* 结束 end */
 		Value,     /* 明确值  rem */
 		Ratio,     /* 百分比  % */
 	};

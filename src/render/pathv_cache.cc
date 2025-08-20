@@ -62,7 +62,8 @@ namespace qk {
 		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&miterLimit;
 		hash += (hash << 5) + hash_part + ((cap << 2) | join);
 		Path *const*out;
-		if (_StrokePathCache.get(hash, out)) return **out;
+		if (_StrokePathCache.get(hash, out))
+			return **out;
 		auto stroke = path.strokePath(width,cap,join,miterLimit);
 		auto p = new Path(stroke.isNormalized() ? std::move(stroke): stroke.normalizedPath(1));
 		_capacity += p->ptsLen() * sizeof(Vec2);
@@ -72,7 +73,8 @@ namespace qk {
 	const VertexData& PathvCache::getPathTriangles(const Path &path) {
 		auto hash = path.hashCode();
 		Wrap<VertexData> *const*out;
-		if (_PathTrianglesCache.get(hash, out)) return (*out)->base;
+		if (_PathTrianglesCache.get(hash, out))
+			return (*out)->base;
 		auto gb = new Wrap<VertexData>{path.getTriangles(1),{{this,0,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->self = &gb->base;
@@ -85,7 +87,8 @@ namespace qk {
 		hash += (hash << 5) + *(int32_t*)&width;
 		//Qk_DLog("getAAFuzzTriangle, %lu", hash);
 		Wrap<VertexData> *const *out;
-		if (_AAFuzzStrokeTriangleCache.get(hash, out)) return (*out)->base;
+		if (_AAFuzzStrokeTriangleCache.get(hash, out))
+			return (*out)->base;
 		auto gb = new Wrap<VertexData>{path.getAAFuzzStrokeTriangle(width, 1),{{this,0,0,0}}};
 		gb->base.id = gb->id;
 		gb->id->self = &gb->base;
@@ -120,13 +123,15 @@ namespace qk {
 
 	const RectPath* PathvCache::getRRectPathFromHash(uint64_t hash) {
 		Wrap<RectPath> *const *out;
-		if (_RectPathCache.get(hash, out)) return &(*out)->base;
+		if (_RectPathCache.get(hash, out))
+			return &(*out)->base;
 		return nullptr;
 	}
 
 	const RectOutlinePath* PathvCache::getRRectOutlinePathFromHash(uint64_t hash) {
 		Wrap<RectOutlinePath,4> *const *out;
-		if (_RectOutlinePathCache.get(hash, out)) return &(*out)->base;
+		if (_RectOutlinePathCache.get(hash, out))
+			return &(*out)->base;
 		return nullptr;
 	}
 
@@ -134,7 +139,8 @@ namespace qk {
 		Hash5381 hash;
 		hash.updatefv4(rect.origin.val);
 		Wrap<RectPath> *const *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return (*out)->base;
+		if (_RectPathCache.get(hash.hashCode(), out))
+			return (*out)->base;
 		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 	}
 
@@ -144,7 +150,8 @@ namespace qk {
 		hash.updatefv4(radius.leftTop.val);
 		hash.updatefv4(radius.rightBottom.val);
 		Wrap<RectPath> *const *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return (*out)->base;
+		if (_RectPathCache.get(hash.hashCode(), out))
+			return (*out)->base;
 		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
 
@@ -153,7 +160,8 @@ namespace qk {
 		hash.updatefv4(rect.origin.val);
 		hash.updatefv4(radius);
 		Wrap<RectPath> *const *out;
-		if (_RectPathCache.get(hash.hashCode(), out)) return (*out)->base;
+		if (_RectPathCache.get(hash.hashCode(), out))
+			return (*out)->base;
 
 		if (*reinterpret_cast<const uint64_t*>(radius) == 0 && *reinterpret_cast<const uint64_t*>(radius+2) == 0)
 		{

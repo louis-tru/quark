@@ -93,7 +93,7 @@ namespace qk { namespace js {
 		}
 	};
 
-	void binding_transform(JSObject* exports, Worker* worker) {
+	void binding_matrix(JSObject* exports, Worker* worker) {
 		MixMatrix::binding(exports, worker);
 		MixRoot::binding(exports, worker);
 	}

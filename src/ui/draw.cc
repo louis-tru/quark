@@ -231,54 +231,56 @@ namespace qk {
 
 		auto src_w = src->width(), src_h = src->height();
 		auto cli = box->_client_size;
-		auto dw = cli.x(), dh = cli.y();
+		auto h_w = cli.x(), h_h = cli.y();
 		float w, h, x, y;
 
 		_IfBorder(box) {
-			dw -= (_border->width[3] + _border->width[1]); // left + right
-			dh -= (_border->width[0] + _border->width[2]); // top + bottom
+			h_w -= (_border->width[3] + _border->width[1]); // left + right
+			h_h -= (_border->width[0] + _border->width[2]); // top + bottom
 		}
-		if (FillImage::compute_size(fill->width(), dw, w)) { // ok x
-			if (!FillImage::compute_size(fill->height(), dh, h)) // auto y
+		if (FillImage::compute_size(fill->width(), h_w, w)) { // ok x
+			if (!FillImage::compute_size(fill->height(), h_h, h)) // auto y
 				h = w / src_w * src_h;
-		} else if (FillImage::compute_size(fill->height(), dh, h)) { // auto x, ok y
+		} else if (FillImage::compute_size(fill->height(), h_h, h)) { // auto x, ok y
 			w = h / src_h * src_w;
 		} else { // auto x,y
-			w = src_w / _window->atomPixel();
-			h = src_h / _window->atomPixel();
+			w = src_w * _window->atomPixel();
+			h = src_h * _window->atomPixel();
 		}
-		x = FillImage::compute_position(fill->x(), dw, w);
-		y = FillImage::compute_position(fill->y(), dh, h);
+		x = FillImage::compute_position(fill->x(), h_w, w) + _origin[0];
+		y = FillImage::compute_position(fill->y(), h_h, h) + _origin[1];
 
 		if (_border) {
 			x += _border->width[3]; // left
 			y += _border->width[0]; // top
 		}
 
-		Paint paint0;
-		ImagePaint paint;
-		paint.setImage(src.get(), {{x,y}, {w,h}});
-		paint0.image = &paint;
-		paint0.color.set_a(_opacity);
+		Paint paint;
+		ImagePaint img;
+		paint.type = Paint::kBitmap_Type;
+		paint.image = &img;
+		paint.color.set_a(_opacity);
 
 		switch(fill->repeat()) {
 			case Repeat::Repeat:
-				paint.tileModeX = ImagePaint::kRepeat_TileMode;
-				paint.tileModeY = ImagePaint::kRepeat_TileMode; break;
+				img.tileModeX = ImagePaint::kRepeat_TileMode;
+				img.tileModeY = ImagePaint::kRepeat_TileMode; break;
 			case Repeat::RepeatX:
-				paint.tileModeX = ImagePaint::kRepeat_TileMode;
-				paint.tileModeY = ImagePaint::kDecal_TileMode; break;
+				img.tileModeX = ImagePaint::kRepeat_TileMode;
+				img.tileModeY = ImagePaint::kDecal_TileMode; break;
 			case Repeat::RepeatY:
-				paint.tileModeX = ImagePaint::kDecal_TileMode;
-				paint.tileModeY = ImagePaint::kRepeat_TileMode; break;
+				img.tileModeX = ImagePaint::kDecal_TileMode;
+				img.tileModeY = ImagePaint::kRepeat_TileMode; break;
 			case Repeat::RepeatNo:
-				paint.tileModeX = ImagePaint::kDecal_TileMode;
-				paint.tileModeY = ImagePaint::kDecal_TileMode; break;
+				img.tileModeX = ImagePaint::kDecal_TileMode;
+				img.tileModeY = ImagePaint::kDecal_TileMode; break;
 		}
-		paint.filterMode = ImagePaint::kLinear_FilterMode;
-		paint.mipmapMode = ImagePaint::kNearest_MipmapMode;
+		img.filterMode = ImagePaint::kLinear_FilterMode;
+		img.mipmapMode = ImagePaint::kNearest_MipmapMode;
 
-		_canvas->drawPathv(*data.inside, paint0);
+		img.setImage(src.get(), {{x,y}, {w,h}});
+
+		_canvas->drawPathv(*data.inside, paint);
 	}
 
 	void UIDraw::drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data) {
@@ -558,20 +560,18 @@ namespace qk {
 		auto src = v->source();
 		if (src && src->load()) {
 			getInsideRectPath(v, data);
-			//auto cli = v->client_size();
-			//Qk_DLog("--- w %f, h %f, s: %f", cli.x(), cli.y(), cli.x()/cli.y());
-			Paint p0;
-			ImagePaint paint;
-			// p0.antiAlias = false;
-			p0.type = Paint::kBitmap_Type;
-			p0.image = &paint;
-			p0.color.set_a(_opacity);
-			//paint.tileModeX = ImagePaint::kDecal_TileMode;
-			//paint.tileModeY = ImagePaint::kDecal_TileMode;
-			paint.filterMode = ImagePaint::kLinear_FilterMode;
-			paint.mipmapMode = ImagePaint::kNearest_MipmapMode;
-			paint.setImage(src.get(), data.inside->rect);
-			_canvas->drawPathv(*data.inside, p0);
+			Paint paint;
+			ImagePaint img;
+			// paint.antiAlias = false;
+			paint.type = Paint::kBitmap_Type;
+			paint.image = &img;
+			paint.color.set_a(_opacity);
+			//img.tileModeX = ImagePaint::kDecal_TileMode;
+			//img.tileModeY = ImagePaint::kDecal_TileMode;
+			img.filterMode = ImagePaint::kLinear_FilterMode;
+			img.mipmapMode = ImagePaint::kNearest_MipmapMode;
+			img.setImage(src.get(), data.inside->rect);
+			_canvas->drawPathv(*data.inside, paint);
 		}
 		drawBoxEnd(v, data);
 	}
@@ -722,34 +722,70 @@ namespace qk {
 		UIDraw::visitView(v);
 	}
 
-	void UIDraw::visitMatrix(Matrix* box) {
-		auto matrixPrev = _matrix;
-		auto origin = _origin;
-		_origin = Vec2(_AAShrink * 0.5) - box->_origin_value;
-		_matrix = &box->matrix();
-		_canvas->setMatrix(*_matrix);
-		//_canvas->setTranslate(box->position());
-		BoxData data;
-		drawBoxBasic(box, data);
-		_origin = origin;
-		drawBoxEnd(box, data);
-		_matrix = matrixPrev;
-		_canvas->setMatrix(*_matrix);
-	}
-
-	void UIDraw::visitSprite(Sprite* v) {
-		auto matrixPrev = _matrix;
+	void UIDraw::visitMatrix(Matrix* v) {
+		auto matrix = _matrix;
 		auto origin = _origin;
 		_origin = Vec2(_AAShrink * 0.5) - v->_origin_value;
 		_matrix = &v->matrix();
 		_canvas->setMatrix(*_matrix);
-		// BoxData data;
-		// drawBoxBasic(v, data);
+		BoxData data;
+		drawBoxBasic(v, data);
 		_origin = origin;
-		// drawBoxEnd(box, data);
-		UIDraw::visitView(v);
-		_matrix = matrixPrev;
+		drawBoxEnd(v, data);
+		_matrix = matrix;
+		_canvas->setMatrix(*matrix); // restore previous matrix
+	}
+
+	void UIDraw::visitSprite(Sprite* v) {
+		auto src = v->source();
+		if (!src || !src->load())
+			return UIDraw::visitView(v);
+
+		auto matrix = _matrix;
+		auto origin = _origin;
+		_origin = Vec2(_AAShrink * 0.5) - v->_origin_value;
+		_matrix = &v->matrix();
 		_canvas->setMatrix(*_matrix);
+
+		float w = src->width(), h = src->height();
+		float x = 0, y = 0;
+		auto gap = v->_gap;
+		auto frame = v->_frame;
+
+		Qk_ASSERT_LE(frame, v->_frames);
+
+		if (v->_direction == Direction::RowReverse || v->_direction == Direction::ColumnReverse) {
+			frame = v->_frames - 1 - frame; // reverse frame
+		}
+
+		if (v->_direction == Direction::Row || v->_direction == Direction::RowReverse) {
+			w /= v->_frames; // horizontal frames
+			x = w * frame + gap; // adjust x position
+			w -= gap + gap; // adjust width
+		} else {
+			h /= v->_frames; // vertical frames
+			y = h * frame + gap;
+			h -= gap + gap;
+		}
+
+		Paint paint;
+		ImagePaint img;
+		paint.type = Paint::kBitmap_Type;
+		paint.image = &img;
+		paint.color.set_a(_opacity);
+
+		Rect dest{_origin, {v->_width, v->_height}};
+
+		img.setImage(src.get(), dest, {{x,y}, {w,h}});
+		img.filterMode = ImagePaint::kLinear_FilterMode;
+		img.mipmapMode = ImagePaint::kNearest_MipmapMode;
+
+		_canvas->drawPathv(_cache->getRectPath(dest), paint);
+
+		_origin = origin; // restore previous origin
+		UIDraw::visitView(v);
+		_matrix = matrix;
+		_canvas->setMatrix(*matrix); // restore previous matrix
 	}
 
 	void UIDraw::visitRoot(Root* v) {

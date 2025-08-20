@@ -80,7 +80,7 @@ namespace qk {
 		struct Init {
 			FillSize width, height;
 			FillPosition x, y;
-			Repeat repeat;
+			Repeat repeat=Repeat::Repeat;
 		};
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
 		Qk_DEFINE_VIEW_PROPERTY(FillSize, width, Const);
@@ -89,7 +89,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(FillPosition, y, Const);
 		Qk_DEFINE_VIEW_PROPERTY(Repeat, repeat, Const);
 
-		FillImage(cString& src, Init init = {});
+		FillImage(cString& src, Init init = {.repeat=Repeat::Repeat});
 		virtual Type type() const override;
 		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
 		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;

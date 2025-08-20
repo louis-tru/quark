@@ -319,6 +319,44 @@ export declare class Matrix extends Box implements MatrixView {
 }
 
 /**
+ * @class Sprite
+ * @extends View
+ * @implements MatrixView
+*/
+export declare class Sprite extends View implements MatrixView {
+	translate: types.Vec2;
+	scale: types.Vec2;
+	skew: types.Vec2;
+	origin: types.BoxOrigin[];
+	originX: types.BoxOrigin;
+	originY: types.BoxOrigin;
+	x: number;
+	y: number;
+	scaleX: number;
+	scaleY: number;
+	skewX: number;
+	skewY: number;
+	rotateZ: number;
+	readonly originValue: number[];
+	readonly matrix: types.Mat;
+	/** @event */
+	readonly onLoad: EventNoticer<UIEvent>;
+	/** @event */
+	readonly onError: EventNoticer<UIEvent>;
+	src: string; //!<
+	width: number; //!<
+	height: number; //!<
+	frame: Uint; //!<
+	frames: Uint; //!<
+	gap: Uint16; //!<
+	fsp: Uint8; //!<
+	direction: types.Direction; //!<
+	playing: boolean; //!<
+	play(all?: boolean): void; //!<
+	stop(all?: boolean): void; //!<
+}
+
+/**
  * @class Root
  * @extends Matrix
 */
@@ -571,6 +609,7 @@ Object.assign(exports, {
 	Text: _ui.Text,
 	Button: _ui.Button,
 	Matrix: _ui.Matrix,
+	Sprite: _ui.Sprite,
 	Root: _ui.Root,
 });
 
@@ -686,11 +725,13 @@ declare global {
 			mute?: boolean;
 		}
 
-		interface MatrixJSX extends BoxJSX {
+		interface MatrixViewJSX {
 			translate?: types.Vec2In;
 			scale?: types.Vec2In;
 			skew?: types.Vec2In;
 			origin?: types.BoxOriginIn[] | types.BoxOriginIn
+			originX?: types.BoxOriginIn;
+			originY?: types.BoxOriginIn;
 			x?: number;
 			y?: number;
 			scaleX?: number;
@@ -698,8 +739,23 @@ declare global {
 			skewX?: number;
 			skewY?: number;
 			rotateZ?: number;
-			originX?: types.BoxOriginIn;
-			originY?: types.BoxOriginIn;
+		}
+
+		interface MatrixJSX extends BoxJSX, MatrixViewJSX {
+		}
+
+		interface SpriteJSX extends ViewJSX, MatrixViewJSX {
+			onLoad?: Listen<UIEvent, Sprite> | null;
+			onError?: Listen<UIEvent, Sprite> | null;
+			src?: string;
+			width?: number;
+			height?: number;
+			frame?: Uint;
+			frames?: Uint;
+			gap?: Uint16;
+			fsp?: Uint8;
+			direction?: types.DirectionIn;
+			playing?: boolean;
 		}
 
 		interface TextOptionsJSX {
@@ -742,7 +798,7 @@ declare global {
 			value?: string;
 		}
 
-		interface ScrollBaseJSX {
+		interface ScrollViewJSX {
 			scrollbar?: boolean;
 			bounce?: boolean;
 			bounceLock?: boolean;
@@ -761,11 +817,11 @@ declare global {
 			defaultCurve?: types.CurveIn;
 		}
 
-		interface TextareaJSX extends InputJSX, ScrollBaseJSX {
+		interface TextareaJSX extends InputJSX, ScrollViewJSX {
 			onScroll?: Listen<UIEvent, Textarea> | null;
 		}
 
-		interface ScrollJSX extends BoxJSX, ScrollBaseJSX {
+		interface ScrollJSX extends BoxJSX, ScrollViewJSX {
 			onScroll?: Listen<UIEvent, Scroll> | null;
 		}
 
@@ -778,6 +834,7 @@ declare global {
 			image: ImageJSX;
 			img: ImageJSX;
 			matrix: MatrixJSX;
+			sprite: SpriteJSX;
 			text: TextJSX;
 			button: ButtonJSX;
 			label: LabelJSX;
@@ -922,6 +979,11 @@ class _Image {
 	@event readonly onError: EventNoticer<UIEvent>;
 }
 
+class _Sprite {
+	@event readonly onLoad: EventNoticer<UIEvent>;
+	@event readonly onError: EventNoticer<UIEvent>;
+}
+
 class _Video {
 	@event readonly onStop: EventNoticer<UIEvent>;
 	@event readonly onBuffering: EventNoticer<UIEvent>;
@@ -946,6 +1008,7 @@ _ui.View.prototype.childDoms = [];
 util.extendClass(_ui.View, _View);
 util.extendClass(_ui.Scroll, _Scroll);
 util.extendClass(_ui.Image, _Image);
+util.extendClass(_ui.Sprite, _Sprite);
 util.extendClass(_ui.Video, _Video);
 util.extendClass(_ui.Input, _Input);
 util.extendClass(_ui.Textarea, _Textarea);
