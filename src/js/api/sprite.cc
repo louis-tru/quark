@@ -49,6 +49,8 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Sprite, float, height, height);
 			Js_MixObject_Accessor(Sprite, uint32_t, frame, frame);
 			Js_MixObject_Accessor(Sprite, uint32_t, frames, frames);
+			Js_MixObject_Accessor(Sprite, uint32_t, item, item);
+			Js_MixObject_Accessor(Sprite, uint32_t, items, items);
 			Js_MixObject_Accessor(Sprite, uint32_t, gap, gap);
 			Js_MixObject_Accessor(Sprite, uint32_t, fsp, fsp);
 			Js_MixObject_Accessor(Sprite, Direction, direction, direction);

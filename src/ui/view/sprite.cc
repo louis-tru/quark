@@ -40,7 +40,8 @@ namespace qk {
 
 	Sprite::Sprite(): View(), ImageSourceHold(), MatrixView(this)
 		, _width(0), _height(0)
-		, _frames(1), _frame(0), _gap(0), _direction(Direction::Row)
+		, _frame(0), _frames(1), _item(0), _items(1)
+		, _gap(0), _direction(Direction::Row)
 		, _keyAction(nullptr)
 		, _vertex_ok(false)
 	{
@@ -84,7 +85,7 @@ namespace qk {
 		}
 	}
 
-	void Sprite::set_frame(uint32_t val, bool isRt) {
+	void Sprite::set_frame(uint16_t val, bool isRt) {
 		if (_frame != val) {
 			_frame = val;
 			if (!isRt) { // is main thread
@@ -94,11 +95,11 @@ namespace qk {
 		}
 	}
 
-	void Sprite::set_frames(uint32_t val, bool isRt) {
+	void Sprite::set_frames(uint16_t val, bool isRt) {
 		if (isRt) // return when render thread call, not allow call in the render thread
 			return;
 		if (_frames != val) {
-			_frames = Qk_Min(1, val);
+			_frames = Qk_Max(1, val);
 			if (_frame >= _frames) {
 				_frame = _frames - 1;
 			}
@@ -117,19 +118,33 @@ namespace qk {
 		}
 	}
 
+	void Sprite::set_item(uint16_t val, bool isRt) {
+		if (_item != val) {
+			_item = val;
+			mark(kLayout_None, isRt);
+		}
+	}
+
+	void Sprite::set_items(uint16_t val, bool isRt) {
+		if (_items != val) {
+			_items = Qk_Max(1, val);
+			mark(kLayout_None, isRt);
+		}
+	}
+
+	void Sprite::set_gap(uint8_t val, bool isRt) {
+		if (_gap != val) {
+			_gap = val;
+			mark(kLayout_None, isRt);
+		}
+	}
+
 	uint8_t Sprite::fsp() const {
 		return _keyAction->speed();
 	}
 
 	void Sprite::set_fsp(uint8_t val) {
 		_keyAction->set_speed(Qk_Min(60, val)); // Use speed as fsp
-	}
-
-	void Sprite::set_gap(uint16_t val, bool isRt) {
-		if (_gap != val) {
-			_gap = val;
-			mark(kLayout_None, isRt);
-		}
 	}
 
 	void Sprite::set_direction(Direction val, bool isRt) {

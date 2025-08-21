@@ -743,16 +743,15 @@ namespace qk {
 
 		auto matrix = _matrix;
 		auto origin = _origin;
-		_origin = Vec2(_AAShrink * 0.5) - v->_origin_value;
+		_origin = /*Vec2(_AAShrink * 0.5)*/ -v->_origin_value;
 		_matrix = &v->matrix();
 		_canvas->setMatrix(*_matrix);
 
 		float w = src->width(), h = src->height();
 		float x = 0, y = 0;
 		auto gap = v->_gap;
-		auto frame = v->_frame;
-
-		Qk_ASSERT_LE(frame, v->_frames);
+		auto frame = v->_frame % v->_frames; // current frame
+		auto item = v->_item % v->_items; // current item
 
 		if (v->_direction == Direction::RowReverse || v->_direction == Direction::ColumnReverse) {
 			frame = v->_frames - 1 - frame; // reverse frame
@@ -760,13 +759,18 @@ namespace qk {
 
 		if (v->_direction == Direction::Row || v->_direction == Direction::RowReverse) {
 			w /= v->_frames; // horizontal frames
+			h /= v->_items; // adjust height
 			x = w * frame + gap; // adjust x position
-			w -= gap + gap; // adjust width
+			y = h * item + gap; // adjust y position
 		} else {
 			h /= v->_frames; // vertical frames
+			w /= v->_items; // adjust width
 			y = h * frame + gap;
-			h -= gap + gap;
+			x = w * item + gap; // adjust x position
 		}
+
+		w -= gap + gap;
+		h -= gap + gap;
 
 		Paint paint;
 		ImagePaint img;

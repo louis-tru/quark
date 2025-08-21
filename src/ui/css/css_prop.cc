@@ -64,7 +64,8 @@ namespace qk {
 
 	template<typename T>
 	inline T transition_value(T v1, T v2, float y) {
-		return v1 - (v1 - v2) * y;
+		//Qk_DLog("transition_value, %d, %d, %f", v1, v2, y);
+		return v1 + (v2 - v1) * y;
 	}
 
 	template<>
@@ -137,7 +138,7 @@ namespace qk {
 	#define _Define_Enum_transition(Type) template<>\
 		Type transition_value(Type f1, Type f2, float t) { return t < 1.0 ? f1: f2; }
 	_Define_Enum_transition(bool)
-	_Define_Enum_transition(int)
+	//_Define_Enum_transition(int)
 	_Define_Enum_transition(Align)
 	_Define_Enum_transition(Direction)
 	_Define_Enum_transition(ItemsAlign)

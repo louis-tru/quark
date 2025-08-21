@@ -88,6 +88,20 @@ export default async function test1(win: Window) {
 				<button class="btn" backgroundColor="#f70" />
 				<button class="btn" backgroundColor="#f90" />
 				<button class="btn" backgroundColor="#f0a" />
+				<sprite
+					x={200}
+					y={100}
+					width={114*win.atomPixel}
+					height={114*win.atomPixel}
+					frames={9}
+					items={6}
+					item={1}
+					gap={1}
+					fsp={8}
+					//direction="rowReverse"
+					playing={true}
+					src={resolve('./res/sprite.png')} 
+				/>
 			</box>
 			<box backgroundColor="#0f0" width="100%" height={100} />
 			{Array.from({length:1}).map((_,j)=>

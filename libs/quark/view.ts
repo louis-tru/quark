@@ -346,9 +346,11 @@ export declare class Sprite extends View implements MatrixView {
 	src: string; //!<
 	width: number; //!<
 	height: number; //!<
-	frame: Uint; //!<
-	frames: Uint; //!<
-	gap: Uint16; //!<
+	frame: Uint16; //!<
+	frames: Uint16; //!<
+	item: Uint16; //!<
+	items: Uint16; //!<
+	gap: Uint8; //!<
 	fsp: Uint8; //!<
 	direction: types.Direction; //!<
 	playing: boolean; //!<
@@ -750,9 +752,11 @@ declare global {
 			src?: string;
 			width?: number;
 			height?: number;
-			frame?: Uint;
-			frames?: Uint;
-			gap?: Uint16;
+			frame?: Uint16;
+			frames?: Uint16;
+			item?: Uint16;
+			items?: Uint16;
+			gap?: Uint8;
 			fsp?: Uint8;
 			direction?: types.DirectionIn;
 			playing?: boolean;
