@@ -649,7 +649,8 @@ function startExec(input,output) {
 	}
 
 	function replaceLink(str) {
-		return str.replace(/(?<!\:\s+|\]\()(https?:\/\/(\w+\.\w+)[^\s\'\"\`\(\)\[\]]*)/ig, '[`$1`]($1)');
+		//return str.replace(/(?<!\:\s+|\]\()(https?:\/\/(\w+\.\w+)[^\s\'\"\`\(\)\[\]]*)/ig, '[`$1`]($1)');
+		return str;
 	}
 
 	function parseCommentA(str, index) { /** ... */

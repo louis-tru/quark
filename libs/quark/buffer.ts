@@ -163,7 +163,7 @@ export class Buffer extends Uint8Array {
 	 * writing data to self buffer.
 	*/
 	write(source: ArrayBufferView, offset?: Uint): Uint {
-		return new Buffer(source.buffer, source.byteOffset, source.byteLength).copy(this, offset);
+		return new Buffer(source.buffer as ArrayBuffer, source.byteOffset, source.byteLength).copy(this, offset);
 	}
 
 	/**
@@ -555,13 +555,13 @@ exports.from = function from(
 	}
 	else if (from instanceof TypedArrayConstructor && (from as any).buffer) { // step 1: check for TypedArray
 		let bf = from as Uint8Array;
-		return new Buffer(bf.buffer, bf.byteOffset, bf.byteLength);
+		return new Buffer(bf.buffer as ArrayBuffer, bf.byteOffset, bf.byteLength);
 	}
 	else if (from instanceof ArrayBuffer || (globalThis.SharedArrayBuffer && from instanceof SharedArrayBuffer)) {
-		return new Buffer(from, Number(arg1) || 0, Number(arg2) || from.byteLength);
+		return new Buffer(from as ArrayBuffer, Number(arg1) || 0, Number(arg2) || from.byteLength);
 	}
 	else if (from instanceof DataView) { // and like step 1 TypedArray
-		return new Buffer(from.buffer, from.byteOffset, from.byteLength);
+		return new Buffer(from.buffer as ArrayBuffer, from.byteOffset, from.byteLength);
 	}
 	else if (arg1) {
 		return wrapUintArray(Uint8Array.from(from as any, arg1 as any, arg2));
