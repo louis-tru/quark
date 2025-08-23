@@ -135,7 +135,7 @@ namespace qk { namespace js {
 					break;
 				}
 				case kUTF16_Encoding: {
-					if (user_addr_t(chAddr) % 2 == 0) { // Already aligned
+					if (/*user_addr_t*/size_t(chAddr) % 2 == 0) { // Already aligned
 						ArrayWeak<uint16_t> utf16(reinterpret_cast<const uint16_t*>(chAddr), lenPart>>1);
 						Js_Return( worker->newValue(utf16.buffer()) );
 						break;
