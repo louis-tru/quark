@@ -112,7 +112,7 @@ $ qkmake watch
 
 以下是现在提供的所有[View]与继承关系：
 
-* [ScrollBase]
+* [ScrollView]
 * [TextOptions]
 * [View]
 	* [Box]
@@ -122,8 +122,8 @@ $ qkmake watch
 		* [Image]
 			* [Video]
 		* [Input]<[TextOptions]>
-			* [Textarea]<[ScrollBase]>
-		* [Scroll]<[ScrollBase]>
+			* [Textarea]<[ScrollView]>
+		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
 		* [Matrix]
@@ -340,7 +340,7 @@ act2.paly();
 [View.transition()]: https://quarks.cc/doc/view.html#view-transition-to-from-cb-actioncb-
 
 [Notification]: https://quarks.cc/doc/_event.html#class-notification
-[ScrollBase]: https://quarks.cc/doc/view.html#scrollbase
+[ScrollView]: https://quarks.cc/doc/view.html#scrollview
 [TextOptions]: https://quarks.cc/doc/view.html#textoptions
 [View]: https://quarks.cc/doc/view.html#class-view
 [Free]: https://quarks.cc/doc/view.html#class-free
