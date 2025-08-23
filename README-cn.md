@@ -361,6 +361,7 @@ act2.paly();
 [Label]: https://quarks.cc/doc/view.html#class-label
 [Video]: http://quarks.cc/doc/media.html#class-video
 [Matrix]: http://quarks.cc/doc/media.html#class-matrix
+[Sprite]: http://quarks.cc/doc/media.html#class-sprite
 
 
 
