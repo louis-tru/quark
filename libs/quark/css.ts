@@ -158,6 +158,7 @@ export declare class CStyleSheetsClass {
 	*/
 	toggle(name: string): void;
 }
+/** @end */
 
 /**
  *

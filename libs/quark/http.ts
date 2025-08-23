@@ -341,7 +341,6 @@ export interface ResponseData {
 	/** response headers */
 	responseHeaders: Dict<string>;
 }
-//!< @end
 
 /**
  * Sending HTTP request by the options

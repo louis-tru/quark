@@ -435,7 +435,7 @@ class SearchPath {
 		}
 	}
 
-	/**
+	/*
 	 * load packages name and version and files hash
 	*/
 	async load(noCache?: boolean) {
@@ -448,7 +448,7 @@ class SearchPath {
 		return this;
 	}
 
-	/**
+	/*
 	 * async load packages name and version and files hash
 	*/
 	loadSync() {

@@ -102,6 +102,7 @@ function startExec(input,output) {
 		boolean: '_ext.md#boolean',
 		void: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void',
 		this: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this',
+		Promise: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise',
 	};
 
 	class Item {
@@ -404,7 +405,7 @@ function startExec(input,output) {
 		}
 
 		// Match to type: ([\w\[\]\<\>\|,\.\s]+)
-		let reg = /\W*(?:(export|static|protected|private|public)\s+)?(default\s+)?(?:(async|declare)\s+)?(function|get|set)?(?:\s+(\w+)\s*)?(\<[^\>]+\>)?\s*\(([\w\[\]\<\>,\.\?:\|\s]*)\)\s*(?::\s*([\w\[\]\<\>\|,\.\s]+))?/my;
+		let reg = /\W*(?:(export|static|protected|private|public)\s+)?(default\s+)?(?:(async|declare)\s+)?(?:(function|get|set)\s+)?(?:\s*(\w+)\s*)?(\<[^\>]+\>)?\s*\(([\w\[\]\<\>,\.\?:\|\s]*)\)\s*(?::\s*([\w\[\]\<\>\|,\.\s]+))?/my;
 		reg.lastIndex = lastIndex;
 		let mat = code.match(reg);
 		if (!mat)
