@@ -113,7 +113,8 @@ For detailed API documentation, please visit [View].
 
 Here are all the [View] classes currently available and their inheritance relationships:
 
-* [ScrollBase]
+* [ScrollView]
+* [MatrixView]
 * [TextOptions]
 * [View]
 	* [Box]
@@ -123,11 +124,12 @@ Here are all the [View] classes currently available and their inheritance relati
 		* [Image]
 			* [Video]
 		* [Input]<[TextOptions]>
-			* [Textarea]<[ScrollBase]>
-		* [Scroll]<[ScrollBase]>
+			* [Textarea]<[ScrollView]>
+		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
-		* [Matrix]
+		* [Matrix]<[MatrixView]>
+		* [Sprite]<[MatrixView]>
 			* [Root]
 	* [Label]
 
@@ -342,7 +344,8 @@ These two events are generated and sent by actions.
 [View.transition()]: https://quarks.cc/doc/view.html#view-transition-to-from-cb-actioncb-
 
 [Notification]: https://quarks.cc/doc/_event.html#class-notification
-[ScrollBase]: https://quarks.cc/doc/view.html#scrollbase
+[ScrollView]: https://quarks.cc/doc/view.html#scrollview
+[MatrixView]: https://quarks.cc/doc/view.html#matrixview
 [TextOptions]: https://quarks.cc/doc/view.html#textoptions
 [View]: https://quarks.cc/doc/view.html#class-view
 [Free]: https://quarks.cc/doc/view.html#class-free
