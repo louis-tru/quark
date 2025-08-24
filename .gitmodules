@@ -55,3 +55,6 @@
 [submodule "deps/libexpat"]
 	path = deps/libexpat
 	url = https://github.com/louis-tru/libexpat.git
+[submodule "deps/spine"]
+	path = deps/spine
+	url = https://github.com/louis-tru/spine_4.0.git
