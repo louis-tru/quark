@@ -39,7 +39,7 @@ let modules: Map<string, Module> = new Map();
 
 function markModuleObject(v: any, filename: string) {
 	if (v !== undefined) {
-		if (v/* && v instanceof Object*/)
+		if (v)
 			v.__filename__ = filename;
 		return true;
 	}

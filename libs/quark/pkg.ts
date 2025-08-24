@@ -723,6 +723,7 @@ export class Module implements IModule {
 	}
 
 	private static async runMain() {
+		// Instantly delete after call
 		delete (Module as any).runMain;
 
 		const res = _fs.resources(), cwd = _util.cwd();
