@@ -13,6 +13,7 @@
 			'deps/libtess2/libtess2.gyp:libtess2',
 			'deps/freetype/freetype.gyp:freetype',
 			'deps/libgif/libgif.gyp:libgif',
+			'deps/spine/spine.gyp:spine',
 		],
 		'direct_dependent_settings': {
 			'conditions': [
@@ -101,6 +102,8 @@
 			'ui/view/matrix.h',
 			'ui/view/matrix.cc',
 			'ui/ui.h',
+			'ui/view/spine.h',
+			'ui/view/spine.cc',
 			'render/codec/codec.h', # render
 			'render/codec/codec.cc',
 			'render/codec/tga.cc',

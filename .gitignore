@@ -21,4 +21,3 @@ build
 quark.*
 .kdev4/quark.kdev4 
 .config.mk
-src/ui/view/spine.*
