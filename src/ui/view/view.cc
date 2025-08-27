@@ -384,9 +384,9 @@ namespace qk {
 		}
 		if (action != _action) {
 			if ( _action ) {
-				_action = nullptr;
 				_action->del_target(this);
 				_action->release();
+				_action = nullptr;
 			}
 			if ( action ) {
 				action->set_target(this);
