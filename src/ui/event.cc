@@ -922,7 +922,11 @@ namespace qk {
 		if (!view) return;
 
 		auto mat = view->matrix_view()->matrix();
-		auto point = mat.mul_vec2_no_translate(view->center()) + view->position();
+		auto center = view->client_size() * 0.5f;
+		auto matrix = view->asMatrixView();
+		if (matrix)
+			center -= matrix->origin_value();
+		auto point = mat.mul_vec2_no_translate(center) + view->position();
 
 		_pre.post(Cb([this,view,point](auto& e) {
 			Sp<KeyEvent> evt(NewKeyEvent(view, _keyboard));

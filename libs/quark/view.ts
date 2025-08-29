@@ -46,6 +46,8 @@ import {Player,MediaType,MediaSourceStatus,Stream} from './media';
 */
 export enum ViewType {
 	View, //!<
+	Sprite, //!<
+	Spine, //!<
 	Label, //!<
 	Box, //!<
 	Flex, //!<
@@ -150,8 +152,8 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly viewType: ViewType; //!<
 	readonly position: types.Vec2; //!< @safe Rt
 	readonly layoutOffset: types.Vec2; //!< @safe Rt
-	readonly layoutSize: types.Vec2; //!< @safe Rt
-	readonly center: types.Vec2; //!< @safe Rt
+	readonly layoutSize: types.Vec2; //!< @safe Rt, For: Box = border + padding + content + margin
+	readonly clientSize: types.Vec2; //!< @safe Rt, For: Box = border + padding + content
 	readonly metaView: View; //!<
 	readonly visibleRegion: boolean; //!<
 	readonly ref: string; //!<
@@ -232,7 +234,6 @@ export declare class Box extends View {
 	boxShadow: types.BoxShadow | null; //!<
 	weight: types.Vec2; //!<
 	readonly contentSize: types.Vec2; //!< width,height, no include padding
-	readonly clientSize: types.Vec2; //!< border + padding + content
 }
 
 /**

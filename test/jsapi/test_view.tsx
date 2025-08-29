@@ -105,7 +105,7 @@ export default async function(win: Window) {
 	Pv(v, 'layoutWeight',  e=>e.x==0&&e.y==0);
 	Pv(v, 'layoutAlign', types.Align.Normal);
 	Pv(v, 'isClip', false);
-	Pv(v, 'center', e=>e.x==0&&e.y==0);
+	// Pv(v, 'clientSize', e=>e.x==0&&e.y==0);
 	Pv(v, 'metaView', v);
 	//Pv(v, 'visibleRegion', true);
 	Pv(v, 'ref', '');

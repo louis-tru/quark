@@ -116,7 +116,7 @@ namespace qk {
 	}
 
 	BoxFilter::BoxFilter()
-		: _window(nullptr), _view(nullptr), _next(nullptr), _isIndependent(false)
+		: _window(nullptr), _view(nullptr), _next(nullptr)
 	{
 	}
 
@@ -141,7 +141,7 @@ namespace qk {
 		if (right) {
 			if (left != right) {
 				auto new_left = right;
-				if (right->_isIndependent) {
+				if (right->_view.load()) { // To copy filter if view not nullptr
 					new_left = right->copy(left, isRt); // copy
 				}
 				if (new_left != left) {
@@ -180,7 +180,9 @@ namespace qk {
 
 	void BoxFilter::set_view(View *value) {
 		if (value != _view.load()) {
-			Qk_ASSERT_EQ(_isIndependent, false);
+			if (value) {
+				Qk_ASSERT_EQ(_view.load(), nullptr); // can only set view once
+			}
 			_view.store(value);
 			if (!_window) // bind window
 				_window = value->window();
@@ -188,7 +190,6 @@ namespace qk {
 			if (next)
 				next->set_view(value);
 		}
-		_isIndependent = true;
 	}
 
 	BoxFilter::Type FillImage::type() const {

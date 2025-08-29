@@ -78,7 +78,7 @@ namespace qk {
 	void Root::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
 			unmark(kTransform | kVisible_Region); // unmark
-			solve_origin_value(client_size());
+			solve_origin_value();
 			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value() + translate();
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());
 			solve_visible_region(_matrix);

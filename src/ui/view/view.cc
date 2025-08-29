@@ -211,7 +211,7 @@ namespace qk {
 		}
 	}
 
-	Vec2 View::center() {
+	Vec2 View::client_size() {
 		return Vec2();
 	}
 
@@ -384,9 +384,9 @@ namespace qk {
 		}
 		if (action != _action) {
 			if ( _action ) {
-				_action = nullptr;
 				_action->del_target(this);
 				_action->release();
+				_action = nullptr;
 			}
 			if ( action ) {
 				action->set_target(this);

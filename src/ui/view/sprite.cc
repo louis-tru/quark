@@ -38,15 +38,64 @@
 
 namespace qk {
 
-	Sprite::Sprite(): View(), ImageSourceHold(), MatrixView(this)
+	SpriteView::SpriteView(): View(), MatrixView(this)
+	{
+		_visible_region = true;
+		set_receive(false);
+	}
+
+	MatrixView* SpriteView::asMatrixView() {
+		return this;
+	}
+
+	Vec2 SpriteView::layout_offset_inside() {
+		return -_origin_value;
+	}
+
+	bool SpriteView::overlap_test(Vec2 point) {
+		if (!_vertex_ok) {
+			_vertex_ok = true;
+			Vec2 origin(-_origin_value.x(), -_origin_value.y());
+			Vec2 end = origin + client_size();
+			_vertex[0] = _matrix * origin;
+			_vertex[1] = _matrix * Vec2(end.x(), origin.y());
+			_vertex[2] = _matrix * end;
+			_vertex[3] = _matrix * Vec2(origin.x(), end.y());
+		}
+		return overlap_test_from_convex_quadrilateral(_vertex, point);
+	}
+
+	void SpriteView::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
+		if (mark & kTransform) { // Update transform matrix
+			solve_origin_value(); // Check transform_origin change
+			unmark(kTransform); // Unmark
+			auto v = layout_offset() + parent->layout_offset_inside()
+				+ _origin_value + _translate;
+			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
+			_position = Vec2(_matrix[2],_matrix[5]);
+			_vertex_ok = false;
+		}
+	}
+
+	void SpriteView::trigger_listener_change(uint32_t name, int count, int change) {
+		if ( change > 0 ) {
+			set_receive(true);
+		}
+	}
+
+	/////////////////////////////////////////////////////////////
+
+	Sprite::Sprite(): SpriteView(), ImageSourceHold()
 		, _width(0), _height(0)
 		, _frame(0), _frames(1), _item(0), _items(1)
 		, _gap(0), _direction(Direction::Row)
 		, _keyAction(nullptr)
-		, _vertex_ok(false)
 	{
-		_visible_region = true;
-		set_receive(false);
+	}
+
+	void Sprite::destroy() {
+		Releasep(_keyAction); // Delete action
+		View::destroy(); // Call parent destroy
 	}
 
 	View* Sprite::init(Window* win) {
@@ -56,11 +105,6 @@ namespace qk {
 		_keyAction->set_loop(0xffffffff); // 0xffffffff means loop forever
 		_keyAction->set_target(this);
 		return this;
-	}
-
-	void Sprite::destroy() {
-		Releasep(_keyAction); // Delete action
-		View::destroy(); // Call parent destroy
 	}
 
 	String Sprite::src() const {
@@ -180,41 +224,8 @@ namespace qk {
 		return kSprite_ViewType;
 	}
 
-	MatrixView* Sprite::asMatrixView() {
-		return this;
-	}
-
-	Vec2 Sprite::layout_offset_inside() {
-		return -_origin_value;
-	}
-
-	Vec2 Sprite::center() {
-		return { _width * 0.5f - _origin_value.x(), _height * 0.5f - _origin_value.y() };
-	}
-
-	bool Sprite::overlap_test(Vec2 point) {
-		if (!_vertex_ok) {
-			_vertex_ok = true;
-			Vec2 origin(-_origin_value.x(), -_origin_value.y());
-			Vec2 end = origin + Vec2{_width, _height};
-			_vertex[0] = _matrix * origin;
-			_vertex[1] = _matrix * Vec2(end.x(), origin.y());
-			_vertex[2] = _matrix * end;
-			_vertex[3] = _matrix * Vec2(origin.x(), end.y());
-		}
-		return overlap_test_from_convex_quadrilateral(_vertex, point);
-	}
-
-	void Sprite::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
-		if (mark & kTransform) { // Update transform matrix
-			solve_origin_value({_width, _height}); // Check transform_origin change
-			unmark(kTransform); // Unmark
-			auto v = layout_offset() + parent->layout_offset_inside()
-				+ _origin_value + _translate;
-			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
-			_position = Vec2(_matrix[2],_matrix[5]);
-			_vertex_ok = false;
-		}
+	Vec2 Sprite::client_size() {
+		return { _width, _height };
 	}
 
 	void Sprite::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
@@ -230,12 +241,6 @@ namespace qk {
 
 	ImagePool* Sprite::imgPool() {
 		return window()->host()->imgPool();
-	}
-
-	void Sprite::trigger_listener_change(uint32_t name, int count, int change) {
-		if ( change > 0 ) {
-			set_receive(true);
-		}
 	}
 
 }

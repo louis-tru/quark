@@ -340,6 +340,7 @@ void Window::openImpl(Options &opts) {
 		_impl = (__bridge WindowImpl*)impl;
 		set_backgroundColor(opts.backgroundColor);
 		activate();
+		_render->reload();
 	}), true);
 }
 
@@ -380,7 +381,8 @@ void Window::set_backgroundColor(Color val) {
 
 void Window::activate() {
 	post_messate_main(Cb([this](auto e) {
-		if (!_impl) return;
+		if (!_impl)
+			return;
 		[_impl->delegate().uiwin makeKeyAndOrderFront:nil];
 	}, this), false);
 	Inl_Application(_host)->setActiveWindow(this);

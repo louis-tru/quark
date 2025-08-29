@@ -212,7 +212,8 @@ namespace qk {
 
 	// solve the origin value by client size
 	// The origin value is the final value by computing the origin.
-	void MatrixView::solve_origin_value(Vec2 client_size) {
+	void MatrixView::solve_origin_value() {
+		auto client_size = _host->client_size();
 		switch (_origin_x.kind) {
 			default:
 			case BoxOriginKind::Auto:  _origin_value.set_x(client_size.x() * 0.5); break; // center
@@ -227,7 +228,7 @@ namespace qk {
 		}
 	}
 
-	// ----------------------------------------------------------------------------------
+	/////////////////////////////////////////////////////////////
 
 	Matrix::Matrix()
 		: Box(), MatrixView(this)
@@ -242,19 +243,10 @@ namespace qk {
 		return kMatrix_ViewType;
 	}
 
-	Vec2 Matrix::center() {
-		auto size = client_size();
-		Vec2 point(
-			size.x() * 0.5 - _origin_value.x(),
-			size.y() * 0.5 - _origin_value.y()
-		);
-		return point;
-	}
-
 	void Matrix::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
 			// _CheckParent();
-			solve_origin_value(client_size()); // check transform_origin change
+			solve_origin_value(); // check transform_origin change
 			unmark(kTransform | kVisible_Region); // unmark
 			auto v = layout_offset() + parent->layout_offset_inside()
 				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;

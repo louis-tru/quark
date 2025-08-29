@@ -42,6 +42,7 @@
 #include "./view/label.h"
 #include "./view/matrix.h"
 #include "./view/sprite.h"
+#include "./view/spine.h"
 
 #define _Border(v) auto _border = v->_border.load()
 #define _IfBorder(v) _Border(v); if (_border)
@@ -870,6 +871,12 @@ namespace qk {
 	void Sprite::draw(UIDraw *draw) {
 		if (_visible_region) {
 			draw->visitSprite(this);
+		}
+	}
+
+	void Spine::draw(UIDraw *render) {
+		if (_visible_region) {
+			// TODO ..
 		}
 	}
 

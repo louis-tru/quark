@@ -91,10 +91,6 @@ namespace qk { namespace js {
 				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->content_size()) );
 			});
-			Js_Class_Accessor_Get(clientSize, {
-				Js_Self(Box);
-				Js_Return( worker->types()->jsvalue(self->client_size()) );
-			});
 			// -----------------------------------------------------------------------------
 
 			cls->exports("Box", exports);

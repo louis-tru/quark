@@ -744,12 +744,8 @@ namespace qk {
 		mark(kTransform, true); // mark recursive transform
 	}
 
-	Vec2 Box::center() {
-		Vec2 point(
-			_client_size.x() * 0.5,
-			_client_size.y() * 0.5
-		);
-		return point;
+	Vec2 Box::client_size() {
+		return _client_size;
 	}
 
 	void Box::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {

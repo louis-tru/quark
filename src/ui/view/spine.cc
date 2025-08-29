@@ -31,13 +31,46 @@
 #include <spine/spine.h>
 #include "./spine.h"
 
+using namespace spine;
+
 namespace qk {
 
-	Spine::Spine(): View(), MatrixView(this) {
-		// TODO ...
+	Spine::Spine(): SpriteView()
+		, _atlas(nullptr)
+		, _attachmentLoader(nullptr)
+		, _skeleton(nullptr)
+		, _clipper(nullptr)
+		, _effect(nullptr)
+	{
+		_visible_region = true;
+		set_receive(false);
 	}
 
-	Spine::~Spine() {
-		// TODO ...
+	void Spine::destroy() {
+		//if (_ownsSkeletonData)
+		delete _skeleton->getData();
+		//if (_ownsSkeleton)
+		delete _skeleton;
+		//if (/*_ownsAtlas &&*/ _atlas)
+		delete _atlas;
+		if (_attachmentLoader)
+			delete _attachmentLoader;
+		delete _clipper;
+		// delete _effect;
+		View::destroy(); // Call parent destroy
 	}
+
+	void Spine::set_src(String src, bool isRt) {
+		_src = src;
+	}
+
+	ViewType Spine::viewType() const {
+		return kSpine_ViewType;
+	}
+
+	Vec2 Spine::client_size() {
+		// TODO ...
+		return Vec2();
+	}
+
 }

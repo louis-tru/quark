@@ -296,19 +296,19 @@ namespace qk { namespace js {
 			});
 			Js_Class_Accessor_Get(position, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->jsvalue(self->position()) );
+				Js_Return( worker->types()->jsvalue(self->position()) );
 			});
 			Js_Class_Accessor_Get(layoutOffset, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->jsvalue(self->layout_offset()) );
+				Js_Return( worker->types()->jsvalue(self->layout_offset()) );
 			});
 			Js_Class_Accessor_Get(layoutSize, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->jsvalue(self->layout_size()) );
+				Js_Return( worker->types()->jsvalue(self->layout_size()) );
 			});
-			Js_Class_Accessor_Get(center, {
+			Js_Class_Accessor_Get(clientSize, {
 				Js_Self(View);
-				Js_Return( args.worker()->types()->jsvalue(self->center()) );
+				Js_Return( worker->types()->jsvalue(self->client_size()) );
 			});
 			// -----------------------------------------------------------------------------
 			cls->exports("View", exports);

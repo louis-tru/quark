@@ -555,12 +555,12 @@ namespace qk {
 
 		/**
 		 * 
-		 * returns view position center in the position
+		 * Returns view client size, for: (box = content + padding + border)
 		 * 
-		 * @method center()
+		 * @method client_size()
 		 * @thread Rt
 		*/
-		virtual Vec2 center();
+		virtual Vec2 client_size();
 
 		/**
 		 * @method solve_marks(mark)

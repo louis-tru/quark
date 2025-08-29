@@ -34,7 +34,6 @@
 #include "./box.h"
 
 namespace qk {
-	class Sprite;
 
 	class Qk_EXPORT MatrixView {
 	public:
@@ -68,12 +67,12 @@ namespace qk {
 		const Mat& matrix() const { return _matrix; }
 
 	protected:
-		void solve_origin_value(Vec2 client_size); // compute origin value
+		void solve_origin_value(); // compute origin value
 
 		Mat _matrix; // parent transform View * Mat(translate, scale, skew, rotate_z);
 		// friend classes
 		friend class Matrix;
-		friend class Sprite;
+		friend class SpriteView;
 		friend class UIDraw;
 	};
 
@@ -89,7 +88,6 @@ namespace qk {
 		virtual MatrixView* asMatrixView() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
-		virtual Vec2 center() override;
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
 		virtual void draw(UIDraw *render) override;

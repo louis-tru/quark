@@ -37,6 +37,23 @@ namespace qk {
 	class KeyframeAction;
 
 	/**
+	 * @class SpriteView
+	 * @brief SpriteView is inherited from View and MatrixView.
+	*/
+	class Qk_EXPORT SpriteView: public View, public MatrixView {
+	public:
+		SpriteView();
+		MatrixView* asMatrixView() override;
+		Vec2 layout_offset_inside() override;
+		bool overlap_test(Vec2 point) override; // Check if the point overlaps with the sprite
+		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
+		void trigger_listener_change(uint32_t name, int count, int change) override;
+	private:
+		Vec2 _vertex[4]; // The rect vertex of the sprite
+		bool _vertex_ok; // is computed vertex
+	};
+
+	/**
 	 * @class Sprite
 	 * @brief Sprite is a view that can display an image or animation.
 	 * It supports matrix transformations and can be used to create animated sprites.
@@ -49,7 +66,7 @@ namespace qk {
 	 * </sprite>
 	 * ```
 	*/
-	class Qk_EXPORT Sprite: public View, public ImageSourceHold, public MatrixView {
+	class Qk_EXPORT Sprite: public SpriteView, public ImageSourceHold {
 	public:
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const); // The source of the sprite image
 		Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
@@ -67,21 +84,14 @@ namespace qk {
 		void play(bool all = false); // Play the sprite frames, play action of view together if the all equals true
 		void stop(bool all = false); // Stop the sprite frames, stop action of view together if the all equals true
 		ViewType viewType() const override;
-		MatrixView* asMatrixView() override;
-		Vec2 layout_offset_inside() override;
-		bool overlap_test(Vec2 point) override; // Check if the point overlaps with the sprite
-		Vec2 center() override;
-		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
+		Vec2 client_size() override;
 		void draw(UIDraw *render) override;
-		void trigger_listener_change(uint32_t name, int count, int change) override;
 	protected:
 		void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 		ImagePool* imgPool() override;
 		View* init(Window* win) override;
 	private:
 		KeyframeAction *_keyAction; // The keyframe action for the sprite animation
-		Vec2 _vertex[4]; // The rect vertex of the sprite
-		bool _vertex_ok; // is computed vertex
 		friend class UIDraw;
 	};
 }

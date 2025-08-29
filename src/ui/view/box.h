@@ -85,7 +85,6 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(BoxShadow*, box_shadow); // box shadow, shadow, async set method
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,       weight, Const); // view weight
 		Qk_DEFINE_VIEW_ACCE_GET(Vec2,       content_size, Const);
-		Qk_DEFINE_VIEW_PROP_GET(Vec2,       client_size, Const); // border + padding + content
 		Qk_DEFINE_VIEW_PROPERTY(Container,  container, ProtectedConst); // view container range
 
 		Box();
@@ -115,7 +114,7 @@ namespace qk {
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
-		virtual Vec2 center() override;
+		virtual Vec2 client_size() override;
 		virtual void draw(UIDraw *render) override;
 
 		/**
@@ -181,6 +180,7 @@ namespace qk {
 		// box view attrs
 		Vec2  _layout_offset; // The starting offset relative to the parent view（include margin）
 		Vec2  _layout_size; // Size occupied by the layout（margin+border+padding+content）
+		Vec2  _client_size; // Size occupied by the client area (border+padding+content)
 		Vec2  _vertex[4]; // box vertex
 
 		friend class UIDraw;

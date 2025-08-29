@@ -72,7 +72,6 @@ namespace qk {
 	private:
 		void set_view(View* value);
 		static BoxFilter* link(const std::initializer_list<BoxFilter*>& list);
-		bool  _isIndependent;
 	};
 
 	class Qk_EXPORT FillImage: public BoxFilter, public ImageSourceHold {

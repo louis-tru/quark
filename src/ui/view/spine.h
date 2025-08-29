@@ -33,7 +33,7 @@
 #ifndef __quark__view__spine__
 #define __quark__view__spine__
 
-#include "./matrix.h"
+#include "./sprite.h"
 
 namespace spine {
 	class Atlas;
@@ -45,10 +45,16 @@ namespace spine {
 
 namespace qk {
 
-	class Qk_EXPORT Spine: public View, public MatrixView {
+	class Qk_EXPORT Spine: public SpriteView {
 	public:
+		Qk_DEFINE_VIEW_PROPERTY(String, src, Const); // spine data file path
 		Spine();
-		~Spine();
+		void destroy() override;
+		//void play(bool all = false); // Play the sprite frames, play action of view together if the all equals true
+		//void stop(bool all = false); // Stop the sprite frames, stop action of view together if the all equals true
+		ViewType viewType() const override;
+		Vec2 client_size() override;
+		void draw(UIDraw *render) override;
 	private:
 		spine::Atlas *_atlas;
 		spine::AttachmentLoader *_attachmentLoader;
