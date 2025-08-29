@@ -30,6 +30,7 @@
 
 #include <spine/spine.h>
 #include "./spine.h"
+#include "../../util/fs.h"
 
 using namespace spine;
 
@@ -42,26 +43,33 @@ namespace qk {
 		, _clipper(nullptr)
 		, _effect(nullptr)
 	{
-		_visible_region = true;
-		set_receive(false);
 	}
 
 	void Spine::destroy() {
-		//if (_ownsSkeletonData)
 		delete _skeleton->getData();
-		//if (_ownsSkeleton)
 		delete _skeleton;
-		//if (/*_ownsAtlas &&*/ _atlas)
 		delete _atlas;
-		if (_attachmentLoader)
-			delete _attachmentLoader;
+		delete _attachmentLoader;
 		delete _clipper;
-		// delete _effect;
+		delete _effect;
 		View::destroy(); // Call parent destroy
 	}
 
-	void Spine::set_src(String src, bool isRt) {
-		_src = src;
+	void Spine::set_skeleton(String val, bool isRt) {
+		if (isRt)
+			return;
+		if (val != _skeleton) {
+			auto name = fs_basename(val);
+			_skeleton = val;
+		}
+	}
+
+	void Spine::set_atlas(String val, bool isRt) {
+		if (isRt)
+			return;
+		if (val != _atlas) {
+			_atlas = val;
+		}
 	}
 
 	ViewType Spine::viewType() const {

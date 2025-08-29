@@ -166,9 +166,9 @@ namespace qk {
 	// (ScrollBase, Curve, default_curve, defaultCurve)
 
 	enum ViewType {
-		kView_ViewType,
-		kSprite_ViewType,
-		kSpine_ViewType,
+		kView_ViewType, // view
+		kSprite_ViewType, // sprite
+		kSpine_ViewType, // spine
 		kLabel_ViewType, // textOpts
 		kBox_ViewType,  // box
 		kFlex_ViewType, // box flex

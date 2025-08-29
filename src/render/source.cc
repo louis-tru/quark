@@ -194,7 +194,7 @@ namespace qk {
 				data = data_;
 				source->_loop->work(Cb([this](auto e) { decode(); }), Cb(this));
 			}
-			Buffer       data;
+			Buffer data;
 			Array<Pixel> pixels;
 			Sp<ImageSource> source; // hold source
 			bool completed = false;

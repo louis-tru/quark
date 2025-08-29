@@ -47,7 +47,8 @@ namespace qk {
 
 	class Qk_EXPORT Spine: public SpriteView {
 	public:
-		Qk_DEFINE_VIEW_PROPERTY(String, src, Const); // spine data file path
+		Qk_DEFINE_VIEW_PROPERTY(String, skeleton, Const); // spine skeleton file path
+		Qk_DEFINE_VIEW_PROPERTY(String, atlas, Const); // spine atlas file path
 		Spine();
 		void destroy() override;
 		//void play(bool all = false); // Play the sprite frames, play action of view together if the all equals true
