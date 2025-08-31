@@ -139,9 +139,7 @@ namespace qk {
 		}
 	}
 
-	void Sprite::set_frames(uint16_t val, bool isRt) {
-		if (isRt) // return when render thread call, not allow call in the render thread
-			return;
+	void Sprite::set_frames(uint16_t val) {
 		if (_frames != val) {
 			_frames = Qk_Max(1, val);
 			if (_frame >= _frames) {
@@ -162,24 +160,24 @@ namespace qk {
 		}
 	}
 
-	void Sprite::set_item(uint16_t val, bool isRt) {
+	void Sprite::set_item(uint16_t val) {
 		if (_item != val) {
 			_item = val;
-			mark(kLayout_None, isRt);
+			mark(kLayout_None, false);
 		}
 	}
 
-	void Sprite::set_items(uint16_t val, bool isRt) {
+	void Sprite::set_items(uint16_t val) {
 		if (_items != val) {
 			_items = Qk_Max(1, val);
-			mark(kLayout_None, isRt);
+			mark(kLayout_None, false);
 		}
 	}
 
-	void Sprite::set_gap(uint8_t val, bool isRt) {
+	void Sprite::set_gap(uint8_t val) {
 		if (_gap != val) {
 			_gap = val;
-			mark(kLayout_None, isRt);
+			mark(kLayout_None, false);
 		}
 	}
 

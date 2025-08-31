@@ -30,45 +30,48 @@
 
 #include <spine/spine.h>
 #include "./spine.h"
-#include "../../util/fs.h"
+// #include "../../util/fs.h"
 
 using namespace spine;
 
 namespace qk {
 
-	Spine::Spine(): SpriteView()
-		, _atlas(nullptr)
-		, _attachmentLoader(nullptr)
-		, _skeleton(nullptr)
-		, _clipper(nullptr)
-		, _effect(nullptr)
-	{
-	}
+	class Spine::SkeletonWrapper {
+	public:
+		SkeletonWrapper()
+			: _atlas(nullptr)
+			, _attachmentLoader(nullptr)
+			, _skeleton(nullptr)
+			, _clipper(nullptr)
+			, _effect(nullptr)
+		{}
+		~SkeletonWrapper() {
+			delete _skeleton->getData();
+			delete _skeleton;
+			delete _atlas;
+			delete _attachmentLoader;
+			delete _clipper;
+			delete _effect;
+		}
+	private:
+		Atlas *_atlas;
+		AttachmentLoader *_attachmentLoader;
+		Skeleton *_skeleton;
+		SkeletonClipping *_clipper;
+		VertexEffect *_effect;
+	};
+
+	Spine::Spine(): SpriteView(), _wrapper(nullptr)
+	{}
 
 	void Spine::destroy() {
-		delete _skeleton->getData();
-		delete _skeleton;
-		delete _atlas;
-		delete _attachmentLoader;
-		delete _clipper;
-		delete _effect;
+		Releasep(_wrapper);
 		View::destroy(); // Call parent destroy
 	}
 
-	void Spine::set_skeleton(String val, bool isRt) {
-		if (isRt)
-			return;
-		if (val != _skeleton) {
-			auto name = fs_basename(val);
+	void Spine::set_skeleton(SkeletonData *val) {
+		if (_skeleton != val) {
 			_skeleton = val;
-		}
-	}
-
-	void Spine::set_atlas(String val, bool isRt) {
-		if (isRt)
-			return;
-		if (val != _atlas) {
-			_atlas = val;
 		}
 	}
 

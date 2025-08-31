@@ -35,33 +35,30 @@
 
 #include "./sprite.h"
 
-namespace spine {
-	class Atlas;
-	class AttachmentLoader;
-	class Skeleton;
-	class SkeletonClipping;
-	class VertexEffect;
-} // namespace spine
-
 namespace qk {
+
+	class Qk_EXPORT SkeletonData: public Reference {
+	public:
+		SkeletonData(cString &skeletonDataFile, cString &atlasFile, float scale);
+		~SkeletonData();
+	private:
+	};
 
 	class Qk_EXPORT Spine: public SpriteView {
 	public:
-		Qk_DEFINE_VIEW_PROPERTY(String, skeleton, Const); // spine skeleton file path
-		Qk_DEFINE_VIEW_PROPERTY(String, atlas, Const); // spine atlas file path
+		Qk_DEFINE_PROPERTY(SkeletonData*, skeleton_data); // spine skeleton data
 		Spine();
 		void destroy() override;
-		//void play(bool all = false); // Play the sprite frames, play action of view together if the all equals true
-		//void stop(bool all = false); // Stop the sprite frames, stop action of view together if the all equals true
+		// Play the sprite frames, play action of view together if the all equals true
+		//void play(bool all = false);
+		// Stop the sprite frames, stop action of view together if the all equals true
+		//void stop(bool all = false);
 		ViewType viewType() const override;
 		Vec2 client_size() override;
 		void draw(UIDraw *render) override;
 	private:
-		spine::Atlas *_atlas;
-		spine::AttachmentLoader *_attachmentLoader;
-		spine::Skeleton *_skeleton;
-		spine::SkeletonClipping *_clipper;
-		spine::VertexEffect *_effect;
+		Qk_DEFINE_INLINE_CLASS(SkeletonWrapper);
+		SkeletonWrapper *_wrapper;
 	};
 
 } // namespace qk

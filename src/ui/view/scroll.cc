@@ -738,36 +738,36 @@ namespace qk {
 		_this->termination_all_task_Rt();
 	}
 
-	void ScrollView::set_scrollbar(bool value, bool isRt) {
+	void ScrollView::set_scrollbar(bool value) {
 		_scrollbar = value;
-		_host->mark(0, isRt);
+		_host->mark(0, false);
 	}
 
-	void ScrollView::set_resistance(float value, bool isRt) {
+	void ScrollView::set_resistance(float value) {
 		_resistance = Qk_Max(0.5, value);
 	}
 
-	void ScrollView::set_bounce(bool value, bool isRt) {
+	void ScrollView::set_bounce(bool value) {
 		_bounce = value;
 	}
 
-	void ScrollView::set_bounce_lock(bool value, bool isRt) {
+	void ScrollView::set_bounce_lock(bool value) {
 		_bounce_lock = value;
 	}
 
-	void ScrollView::set_momentum(bool value, bool isRt) {
+	void ScrollView::set_momentum(bool value) {
 		_momentum = value;
 	}
 
-	void ScrollView::set_lock_direction(bool value, bool isRt) {
+	void ScrollView::set_lock_direction(bool value) {
 		_lock_direction = value;
 	}
 
-	void ScrollView::set_catch_position_x(float value, bool isRt) {
+	void ScrollView::set_catch_position_x(float value) {
 		_catch_position_x = value;
 	}
 
-	void ScrollView::set_catch_position_y(float value, bool isRt) {
+	void ScrollView::set_catch_position_y(float value) {
 		_catch_position_y = value;
 	}
 
@@ -786,7 +786,7 @@ namespace qk {
 		_host->mark(0, isRt);
 	}
 
-	void ScrollView::set_scroll_duration(uint64_t value, bool isRt) {
+	void ScrollView::set_scroll_duration(uint64_t value) {
 		_scroll_duration = value;
 	}
 
@@ -794,7 +794,7 @@ namespace qk {
 		return _default_curve_Mt;
 	}
 
-	void ScrollView::set_default_curve(cCurve& value, bool isRt) {
+	void ScrollView::set_default_curve(cCurve& value) {
 		_default_curve_Mt = value;
 	}
 
@@ -812,12 +812,12 @@ namespace qk {
 		return -_scroll.load().y();
 	}
 
-	void ScrollView::set_scroll_x(float value, bool isRt) {
-		set_scroll({value, -_scroll.load()[1]}, isRt);
+	void ScrollView::set_scroll_x(float value) {
+		set_scroll({value, -_scroll.load()[1]}, false);
 	}
 
-	void ScrollView::set_scroll_y(float value, bool isRt) {
-		set_scroll({-_scroll.load()[0], value}, isRt);
+	void ScrollView::set_scroll_y(float value) {
+		set_scroll({-_scroll.load()[0], value}, false);
 	}
 
 	Vec2 ScrollView::scroll() const {
