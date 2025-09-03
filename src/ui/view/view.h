@@ -41,7 +41,7 @@ namespace qk {
 	class TextLines;
 	class TextConfig;
 	class TextOptions;
-	class UIDraw;
+	class Painter;
 	class Window;
 	class ScrollView;
 	class MatrixView;
@@ -586,7 +586,7 @@ namespace qk {
 		 * @method draw()
 		 * @thread Rt
 		 */
-		virtual void draw(UIDraw *render);
+		virtual void draw(Painter *render);
 
 		/**
 			* @method mark(mark)
@@ -630,7 +630,7 @@ namespace qk {
 		void applyClass_Rt(CStyleSheetsClass* parentSsc);
 		CStyleSheetsClass* parentSsclass_Rt();
 
-		friend class UIDraw;
+		friend class Painter;
 		friend class PreRender;
 		friend class EventDispatch;
 		friend class Root;

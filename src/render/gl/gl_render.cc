@@ -529,7 +529,6 @@ namespace qk {
 	void GLRender::gl_set_blend_mode(BlendMode mode) {
 		switch (mode) {
 			case kClear_BlendMode:         //!< r = 0 + (1-sa)*d
-				// glBlendFunc (sfactor, dfactor)
 				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case kSrc_BlendMode:           //!< r = s
@@ -541,7 +540,7 @@ namespace qk {
 				break;
 			case kSrcOver_BlendMode:       //!< r = sa*s + (1-sa)*d
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				// glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case kDstOver_BlendMode:       //!< r = (1-da)*s + da*d
 				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
@@ -576,6 +575,12 @@ namespace qk {
 				break;
 			case kScreen_BlendMode:        //!< r = s + d - s*d
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+				break;
+			case kMultiply_BlendMode:      //!< r = d*s + (1-sa)*d
+				glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case kSrcOverExt_BlendMode: // r = s + (1-sa)*d
+				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 		}
 		_blendMode = mode;

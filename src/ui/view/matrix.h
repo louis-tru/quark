@@ -73,7 +73,7 @@ namespace qk {
 		// friend classes
 		friend class Matrix;
 		friend class SpriteView;
-		friend class UIDraw;
+		friend class Painter;
 	};
 
 	/**
@@ -90,7 +90,7 @@ namespace qk {
 		virtual Vec2 layout_offset_inside() override;
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
-		virtual void draw(UIDraw *render) override;
+		virtual void draw(Painter *render) override;
 	};
 }
 #endif

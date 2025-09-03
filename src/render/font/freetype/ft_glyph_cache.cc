@@ -144,7 +144,7 @@ void QkCharToGlyphCache::insertCharAndGlyph(int index, Unichar unichar, GlyphID 
 		fDenom = 1.0 / ((double)fK32[count - 2] - fK32[1]);
 	}
 
-#ifdef SK_DEBUG
+#ifdef DEBUG
 	for (int i = 1; i < fK32.size(); ++i) {
 		Qk_ASSERT(fK32[i-1] < fK32[i]);
 	}

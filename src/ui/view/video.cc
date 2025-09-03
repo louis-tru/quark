@@ -104,7 +104,7 @@ namespace qk {
 		}
 	}
 
-	bool Video::run_task(int64_t now) {
+	bool Video::run_task(int64_t now, int64_t deltaTime) {
 		if (!_video) {
 			return false;
 		}

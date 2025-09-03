@@ -47,7 +47,7 @@ namespace qk {
 		void lock() override;
 		void unlock() override;
 		void onEvent(const UIEventName& name, Object* data) override;
-		bool run_task(int64_t now) override;
+		bool run_task(int64_t now, int64_t deltaTime) override;
 	};
 }
 #endif

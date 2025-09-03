@@ -41,7 +41,7 @@
 
 namespace qk {
 	class Application;
-	class UIDraw;
+	class Painter;
 	class EventDispatch;
 	class WindowImpl; // window platform impl
 	class RenderTask;
@@ -218,11 +218,12 @@ namespace qk {
 		Window(Options &opts);
 
 		// props data
-		UIDraw        *_uiDraw;
+		Painter        *_painter;
 		Vec2           _lockSize;  //!< Lock the size of the viewport
 		List<Cb>       _nextFrame;
 		uint32_t       _fspTick;
 		int64_t        _fspTime;
+		int64_t        _beginTime, _lastTime;
 		Array<RegionSize> _clipRegion;
 		List<Window*>::Iterator _id;
 		RecursiveMutex _renderMutex;

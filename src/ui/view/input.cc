@@ -1133,7 +1133,7 @@ namespace qk {
 		_input_text_offset_y = val.y();
 	}
 
-	bool Input::run_task(int64_t time) {
+	bool Input::run_task(int64_t time, int64_t deltaTime) {
 		if ( _flag > kFlag_Find_Cursor_Disable ) {
 			if ( _flag == kFlag_Auto_Find_Cursor || _flag == kFlag_Auto_Range_Select ) {
 				_this->auto_find_cursor();

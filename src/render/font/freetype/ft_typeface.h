@@ -47,7 +47,7 @@ typedef struct FT_FaceRec_* FT_Face;
 typedef struct FT_StreamRec_* FT_Stream;
 typedef struct FT_SizeRec_* FT_Size;
 
-#ifdef Qk_DEBUG
+#ifdef DEBUG
 const char* QkTraceFtrGetError(int);
 #define Qk_TRACEFTR(ERR, MSG, ...) \
 	Qk_DLog("%s:%d:1: error: 0x%x '%s' " MSG "\n", __FILE__, __LINE__, ERR, \

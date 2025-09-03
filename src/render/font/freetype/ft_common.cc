@@ -55,7 +55,7 @@
 
 #undef FT_COLOR_H
 
-#ifdef Qk_DEBUG
+#ifdef DEBUG
 const char* QkTraceFtrGetError(int e) {
 	switch ((FT_Error)e) {
 		#undef FTERRORS_H_
@@ -69,7 +69,7 @@ const char* QkTraceFtrGetError(int e) {
 		default: return "";
 	}
 }
-#endif  // Qk_DEBUG
+#endif  // DEBUG
 
 extern bool gIsFT_version_2_13;
 

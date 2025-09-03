@@ -16,7 +16,7 @@ using namespace qk;
 class MyCanvas: public Box {
 public:
 
-	void draw(UIDraw *render) override {
+	void draw(Painter *render) override {
 		// mark_none(kLayout_None); return;
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();

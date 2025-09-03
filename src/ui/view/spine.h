@@ -35,18 +35,31 @@
 
 #include "./sprite.h"
 
+namespace spine {
+	class SkeletonData;
+	class Atlas;
+	class AtlasAttachmentLoader;
+}
+
 namespace qk {
 
 	class Qk_EXPORT SkeletonData: public Reference {
 	public:
-		SkeletonData(cString &skeletonDataFile, cString &atlasFile, float scale);
+		static Sp<SkeletonData> Make(cString &skeletonPath, cString &atlasPath = String(), float scale = 1.0f) throw(Error);
+		static Sp<SkeletonData> Make(cBuffer &skeletonBuff, cString &atlasPath, float scale = 1.0f) throw(Error);
+		static Sp<SkeletonData> Make(cBuffer &skeletonBuff, cBuffer &atlasBuff, cString &dir, float scale = 1.0f);
 		~SkeletonData();
 	private:
+		SkeletonData(spine::SkeletonData* data, spine::Atlas* atlas, spine::AtlasAttachmentLoader* loader);
+		spine::SkeletonData* _data;
+		spine::Atlas* _atlas;
+		spine::AtlasAttachmentLoader* _atlasLoader;
+		friend class Spine;
 	};
 
-	class Qk_EXPORT Spine: public SpriteView {
+	class Qk_EXPORT Spine: public SpriteView, public PreRender::Task {
 	public:
-		Qk_DEFINE_PROPERTY(SkeletonData*, skeleton_data); // spine skeleton data
+		Qk_DEFINE_ACCESSOR(SkeletonData*, skeleton); // spine skeleton data
 		Spine();
 		void destroy() override;
 		// Play the sprite frames, play action of view together if the all equals true
@@ -55,10 +68,14 @@ namespace qk {
 		//void stop(bool all = false);
 		ViewType viewType() const override;
 		Vec2 client_size() override;
-		void draw(UIDraw *render) override;
+		void draw(Painter *painter) override;
+		void onActivate() override;
+		bool run_task(int64_t time, int64_t delta) override;
 	private:
-		Qk_DEFINE_INLINE_CLASS(SkeletonWrapper);
-		SkeletonWrapper *_wrapper;
+		Qk_DEFINE_INLINE_CLASS(SkeletonWraper);
+		std::atomic<SkeletonWraper*> _wraper;
+		int _startSlotIndex;
+		int _endSlotIndex;
 	};
 
 } // namespace qk

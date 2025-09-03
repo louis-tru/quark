@@ -43,7 +43,7 @@ namespace qk {
 	public:
 		// define props
 		Qk_DEFINE_VIEW_PROPERTY(bool,       clip, Const); //!< is clip box display range
-		Qk_DEFINE_VIEW_PROPERTY(Align,      align, ProtectedConst); //!< view align
+		Qk_DEFINE_VIEW_PROPERTY(Align,      align, Const); //!< view align
 		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
 		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    height, Const); //!< min height alias
 		Qk_DEFINE_VIEW_PROPERTY(BoxSize,    min_width, Const); //!< limit min width if max width not equal none then limit min width
@@ -115,7 +115,7 @@ namespace qk {
 		virtual void solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 client_size() override;
-		virtual void draw(UIDraw *render) override;
+		virtual void draw(Painter *render) override;
 
 		/**
 			* client rect = border + padding + content
@@ -183,7 +183,7 @@ namespace qk {
 		Vec2  _client_size; // Size occupied by the client area (border+padding+content)
 		Vec2  _vertex[4]; // box vertex
 
-		friend class UIDraw;
+		friend class Painter;
 	};
 
 	/**

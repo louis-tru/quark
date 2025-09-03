@@ -76,7 +76,7 @@
 #define Qk_ACQUIRE_SHARED(...) \
 	Qk_THREAD_ANNOTATION_ATTRIBUTE(acquire_shared_capability(__VA_ARGS__))
 
-// Would be Qk_RELEASE, but that is already in use as Qk_DEBUG vs. Qk_RELEASE.
+// Would be Qk_RELEASE, but that is already in use as DEBUG vs. RELEASE.
 #define Qk_RELEASE_CAPABILITY(...) \
 	Qk_THREAD_ANNOTATION_ATTRIBUTE(release_capability(__VA_ARGS__))
 
@@ -255,7 +255,7 @@ namespace qk {
 		void assertHeldShared() const Qk_ASSERT_SHARED_CAPABILITY(this);
 
 	private:
-#ifdef Qk_DEBUG
+#ifdef DEBUG
 		class ThreadIDSet;
 		std::unique_ptr<ThreadIDSet> fCurrentShared;
 		std::unique_ptr<ThreadIDSet> fWaitingExclusive;
@@ -268,13 +268,13 @@ namespace qk {
 		std::atomic<int32_t> fQueueCounts;
 		Semaphore            fSharedQueue;
 		Semaphore            fExclusiveQueue;
-#endif  // Qk_DEBUG
+#endif  // DEBUG
 	};
 
-#ifndef Qk_DEBUG
+#ifndef DEBUG
 	inline void SharedMutex::assertHeld() const {};
 	inline void SharedMutex::assertHeldShared() const {};
-#endif  // Qk_DEBUG
+#endif  // DEBUG
 
 	class Qk_SCOPED_CAPABILITY AutoSharedMutexExclusive {
 	public:

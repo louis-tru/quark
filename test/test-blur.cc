@@ -19,7 +19,7 @@ class TestBlur: public Box {
 public:
 	float i = 0;
 
-	void draw(UIDraw *r) override {
+	void draw(Painter *r) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 

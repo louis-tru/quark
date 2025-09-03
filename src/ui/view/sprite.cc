@@ -33,6 +33,7 @@
 #include "../app.h"
 #include "../../errno.h"
 #include "../action/keyframe.h"
+#include "../painter.h"
 
 #define _async_call preRender().async_call
 
@@ -239,6 +240,62 @@ namespace qk {
 
 	ImagePool* Sprite::imgPool() {
 		return window()->host()->imgPool();
+	}
+
+	void Sprite::draw(Painter *painter) {
+		auto canvas = painter->canvas();
+		auto src = source();
+		if (!src || !src->load()) {
+			return painter->visitView(this, matrix());
+		}
+
+		auto _matrix = painter->_matrix;
+		painter->_matrix = &matrix();
+		canvas->setMatrix(matrix());
+
+		float w = src->width(), h = src->height();
+		float x = 0, y = 0;
+		auto gap = _gap;
+		auto frame = _frame % _frames; // current frame
+		auto item = _item % _items; // current item
+
+		if (_direction == Direction::RowReverse || _direction == Direction::ColumnReverse) {
+			frame = _frames - 1 - frame; // reverse frame
+		}
+
+		if (_direction == Direction::Row || _direction == Direction::RowReverse) {
+			w /= _frames; // horizontal frames
+			h /= _items; // adjust height
+			x = w * frame + gap; // adjust x position
+			y = h * item + gap; // adjust y position
+		} else {
+			h /= _frames; // vertical frames
+			w /= _items; // adjust width
+			y = h * frame + gap;
+			x = w * item + gap; // adjust x position
+		}
+
+		w -= gap + gap;
+		h -= gap + gap;
+
+		Paint paint;
+		ImagePaint img;
+		paint.antiAlias = false;
+		paint.type = Paint::kBitmap_Type;
+		paint.image = &img;
+		paint.color.set_a(painter->opacity());
+
+		Rect dest{/*Vec2(_AAShrink * 0.5)*/ -origin_value(), {_width, _height}};
+
+		img.setImage(src.get(), dest, {{x,y}, {w,h}});
+		img.filterMode = ImagePaint::kLinear_FilterMode;
+		img.mipmapMode = ImagePaint::kNearest_MipmapMode;
+
+		canvas->drawPathv(painter->cache()->getRectPath(dest), paint);
+
+		painter->visitView(this);
+		painter->_matrix = _matrix;
+		canvas->setMatrix(*_matrix); // restore previous matrix
 	}
 
 }

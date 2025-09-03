@@ -40,7 +40,7 @@ namespace qk {
 	public:
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
 		virtual ViewType viewType() const override;
-		virtual void draw(UIDraw *render) override;
+		virtual void draw(Painter *render) override;
 	protected:
 		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) override;
 		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;

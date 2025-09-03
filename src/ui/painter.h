@@ -30,8 +30,8 @@
 
 // @private head
 
-#ifndef __quark__view_draw__
-#define __quark__view_draw__
+#ifndef __quark__ui_painter__
+#define __quark__ui_painter__
 
 #include "./view/view.h"
 #include "../render/render.h"
@@ -40,41 +40,26 @@
 #include "./text/text_blob.h"
 
 namespace qk {
-	class Window;
 	class Box;
-	class Image;
-	class Scroll;
-	class Text;
-	class Input;
-	class Label;
-	class Root;
-	class Matrix;
 	class ScrollView;
-	class Sprite;
 
-	class Qk_EXPORT UIDraw: public Object {
+	class Qk_EXPORT Painter: public Object {
 	public:
+		Qk_DEFINE_PROP_GET(Canvas*, canvas);
+		Qk_DEFINE_PROP_GET(PathvCache*, cache);
+		Qk_DEFINE_PROP_GET(float, opacity);
 		struct BoxData {
 			const RectPath *inside = nullptr;
 			const RectPath *outside = nullptr;
 			const RectOutlinePath *outline = nullptr;
 		};
-		UIDraw(Window *window);
-		void visitView(View* v);
-		void visitBox(Box* box);
-		void visitText(Text* text);
-		void visitImage(Image* image);
-		void visitScroll(Scroll* scroll);
-		void visitInput(Input* input);
-		void visitLabel(Label* label);
-		void visitRoot(Root* root);
-		void visitMatrix(Matrix* matrix);
-		void visitSprite(Sprite* sprite);
-	private:
+		Painter(Window *window);
 		Rect getRect(Box* box);
 		void getInsideRectPath(Box *box, BoxData &out);
 		void getOutsideRectPath(Box *box, BoxData &out);
 		void getRRectOutlinePath(Box *box, BoxData &out);
+		void visitView(View* v);
+		void visitView(View* v, const Mat &mat);
 		void drawBoxBasic(Box *box, BoxData &data);
 		void drawBoxFill(Box *box, BoxData &data);
 		void drawBoxFillImage(Box *box, FillImage *fill, BoxData &data);
@@ -88,15 +73,17 @@ namespace qk {
 		void drawTextBlob(TextOptions *opts, Vec2 inOffset,
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);
+	private:
 		Window     *_window;
 		Render     *_render;
-		Canvas     *_canvas;
-		PathvCache *_cache;
-		float      _opacity;
 		uint32_t   _mark_recursive;
 		Vec2       _origin; // box origin and fix aa stroke width
 		float      _AAShrink; // fix rect stroke width for AA
 		const Mat *_matrix;
+		friend class Matrix;
+		friend class Sprite;
+		friend class Spine;
+		friend class Root;
 	};
 }
 #endif

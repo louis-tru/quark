@@ -276,7 +276,7 @@ public:
 		}
 		_fa = nullptr;
 	}
-	bool run_task(int64_t now) override {
+	bool run_task(int64_t now, int64_t deltaTime) override {
 		if (!_video) {
 			return false;
 		}

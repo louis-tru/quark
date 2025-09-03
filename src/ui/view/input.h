@@ -69,7 +69,7 @@ namespace qk {
 		virtual void onActivate() override;
 		virtual TextInput* asTextInput() override;
 		virtual TextOptions* asTextOptions() override;
-		virtual bool run_task(int64_t time) override;
+		virtual bool run_task(int64_t time, int64_t deltaTime) override;
 		// impl text input
 		virtual void input_delete(int count) override;
 		virtual void input_insert(cString& text) override;
@@ -82,7 +82,7 @@ namespace qk {
 		virtual KeyboardType input_keyboard_type() override;
 		virtual KeyboardReturnType input_keyboard_return_type() override;
 		virtual Object* asObject() override;
-		virtual void draw(UIDraw *render) override;
+		virtual void draw(Painter *render) override;
 	protected:
 		Vec2 layout_typesetting_input_text();
 		void solve_cursor_offset();
@@ -108,7 +108,7 @@ namespace qk {
 		Mat _mat; // position matrix
 
 		friend class Textarea;
-		friend class UIDraw;
+		friend class Painter;
 	};
 
 }

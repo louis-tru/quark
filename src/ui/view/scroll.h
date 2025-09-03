@@ -75,7 +75,7 @@ namespace qk {
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);
-		friend class UIDraw;
+		friend class Painter;
 		List<Task*> _tasks;
 		std::atomic<Vec2> _scroll;
 		Vec2 _scroll_max;
@@ -99,7 +99,7 @@ namespace qk {
 		virtual Vec2 layout_offset_inside() override;
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		virtual void draw(UIDraw *render) override;
+		virtual void draw(Painter *render) override;
 	};
 
 }

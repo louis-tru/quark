@@ -293,7 +293,7 @@ namespace qk {
 							String inl_path = fs_format_part_path( path.substr(zip.length() + fs_SEPARATOR.length()) );
 							rv = read->readdir(inl_path);
 						} catch(cError &e) {
-							Qk_Warn("Warn, %s", e.message().c_str());
+							Qk_Warn("Sync readdir zip, %s", e.message().c_str());
 						}
 					}
 					break;
@@ -402,7 +402,7 @@ namespace qk {
 		try {
 			return _core->readdir_sync(path);
 		} catch(Error& err) {
-			// Qk_ELog(err);
+			Qk_Warn("Sync readdir, %s", err.message().c_str());
 		}
 		return Array<Dirent>();
 	}

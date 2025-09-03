@@ -15,7 +15,7 @@ constexpr unsigned int u32 = 1;
 class TestRRect: public Box {
 public:
 
-	void draw(UIDraw *r) override {
+	void draw(Painter *r) override {
 		auto canvas = window()->render()->getCanvas();
 		canvas->save();
 		canvas->setMatrix(Mat().translate({-115, 0})); // reset mat

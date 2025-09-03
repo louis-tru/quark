@@ -79,7 +79,7 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 	var reg = new RegExp(
 		'^\\s*(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s+)?'+
 		'(uniform|attribute|in)\\s+((lowp|mediump|highp)\\s+)?'+
-		'(int|uint|float|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)'+
+		'(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|mat2|mat3|mat4|sampler2D)'+
 		'\\s+([a-zA-Z0-9\\_]+)\\s*(\\[\\s*(\\d+)\\s*\\])?;\\s*$'
 		,'mg'
 	);
@@ -93,15 +93,24 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 			uniforms.push(name);
 		} else if (name.substring(name.length - 2) == 'In') { // attribute | in
 			let typeSize = {
-				int: [1,'GL_INT','int'],
-				uint: [1,'GL_UNSIGNED_INT','uint32_t'],
 				float: [1,'GL_FLOAT','float'],
-				vec2: [2,'GL_FLOAT','float'],
-				vec3: [3,'GL_FLOAT','float'],
-				vec4: [4,'GL_FLOAT','float'],
-				mat2: [4,'GL_FLOAT','float'],
-				mat3: [9,'GL_FLOAT','float'],
-				mat4: [16,'GL_FLOAT','float'],
+				vec2:  [2,'GL_FLOAT','float'],
+				vec3:  [3,'GL_FLOAT','float'],
+				vec4:  [4,'GL_FLOAT','float'],
+
+				int:   [1,'GL_INT','int'],
+				ivec2: [2,'GL_INT','int32_t'],
+				ivec3: [3,'GL_INT','int32_t'],
+				ivec4: [4,'GL_INT','int32_t'],
+
+				uint:  [1,'GL_UNSIGNED_INT','uint32_t'],
+				uvec2: [2,'GL_UNSIGNED_INT','uint32_t'],
+				uvec3: [3,'GL_UNSIGNED_INT','uint32_t'],
+				uvec4: [4,'GL_UNSIGNED_INT','uint32_t'],
+
+				mat2:  [4,'GL_FLOAT','float'],
+				mat3:  [9,'GL_FLOAT','float'],
+				mat4:  [16,'GL_FLOAT','float'],
 				sampler2D: [16,'GL_INT','int'],
 			};
 			let [sizeT,glT,t] = typeSize[type];

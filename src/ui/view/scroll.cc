@@ -71,7 +71,7 @@ namespace qk {
 
 		void next();
 
-		virtual bool run_task(int64_t sys_time) {
+		virtual bool run_task(int64_t time, int64_t deltaTime) {
 			if ( m_immediate_end_flag ) { // immediate end motion
 				immediate_end();
 			} else {
@@ -212,7 +212,7 @@ namespace qk {
 			if ( !task->is_register_task() ) {
 				task->m_id2 = _tasks.pushBack(task);
 				preRender().addtask(task);
-				task->run_task(0);
+				task->run_task(0, 0);
 			}
 		}
 

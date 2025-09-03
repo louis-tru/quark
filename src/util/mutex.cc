@@ -92,7 +92,7 @@
 #endif
 
 namespace qk {
-#ifdef Qk_DEBUG
+#ifdef DEBUG
 
 	class SharedMutex::ThreadIDSet {
 	public:

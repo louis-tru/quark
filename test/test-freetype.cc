@@ -207,7 +207,7 @@ void each_glyph() {
 
 class Img: public Image {
 public:
-	void draw(UIDraw *render) override {
+	void draw(Painter *render) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 		Paint paint;

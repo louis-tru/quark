@@ -55,7 +55,7 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(int64_t, task_timeout, Const); // Unit is subtle
 		inline RenderTask(): _task_timeout(0) {}
 		virtual ~RenderTask();
-		virtual bool run_task(int64_t sys_time) = 0;
+		virtual bool run_task(int64_t time, int64_t deltaTime) = 0;
 		inline bool is_register_task() const { return _task_id != ID(); }
 		friend class PreRender;
 	};
@@ -127,7 +127,7 @@ namespace qk {
 		 * Solve the pre-rendering problem, return true if the view needs to be updated
 		 * @thread Rt
 		 */
-		bool solve(int64_t time);
+		bool solve(int64_t time, int64_t deltaTime);
 		void solveMarks(); // solve view marks
 		void clearTasks();
 		void asyncCommit(); // commit async cmd to ready, only main thread call

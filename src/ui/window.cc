@@ -31,7 +31,7 @@
 #include "./ui.h"
 #include "./view/root.h"
 #include "../render/render.h"
-#include "./draw.h"
+#include "./painter.h"
 #include "./event.h"
 #include "./text/text_opts.h"
 #include "./action/action.h"
@@ -70,14 +70,17 @@ namespace qk {
 		, Qk_Init_Event(Foreground)
 		, Qk_Init_Event(Close)
 		, _host(shared_app())
-		, _uiDraw(nullptr)
+		, _painter(nullptr)
 		, _lockSize()
 		, _size(), _scale(1)
 		, _atomPixel(1)
 		, _defaultScale(0)
 		, _fsp(0)
 		, _fspTick(0)
-		, _fspTime(0), _surfaceRegion()
+		, _fspTime(0)
+		, _beginTime(time_monotonic())
+		, _lastTime(_beginTime)
+		, _surfaceRegion()
 		, _preRender(this)
 		, _impl(nullptr)
 		, _opts(opts)
@@ -86,7 +89,7 @@ namespace qk {
 		Qk_ASSERT_RAW(first_loop() == current_loop(), "Must be called on the first thread loop");
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
-		_uiDraw = new UIDraw(this);
+		_painter = new Painter(this);
 		_actionCenter = new ActionCenter(this);
 		_backgroundColor = opts.backgroundColor;
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
@@ -151,7 +154,7 @@ namespace qk {
 		// ------------------------
 		Releasep(_actionCenter);
 		Releasep(_dispatch);
-		Releasep(_uiDraw);
+		Releasep(_painter);
 		_preRender.flushAsyncCall(); // reflush async call
 		_preRender.clearTasks(); // clear tasks
 		// ------------------------
@@ -311,25 +314,27 @@ namespace qk {
 
 	bool Window::onRenderBackendDisplay() {
 		UILock lock(this); // ui render lock
-		if (!_root) return false;
+		if (!_root)
+			return false;
+		// if pause play, it just needs to use the _lastTime and also not change the _lastTime
+		auto time = time_monotonic() - _beginTime;
+		auto deltaTime = time - _lastTime;
+		_lastTime = time;
 
-		int64_t time = time_monotonic();
-
-		if (!_preRender.solve(time)) {
+		if (!_preRender.solve(_lastTime, deltaTime)) {
 			solveNextFrame();
-			//Qk_DLog("onRenderBackendDisplay: No");
 			return false;
 		}
 
-		if (time - _fspTime > 1e6) { // 1ns * 1e6
+		if (_lastTime - _fspTime > 1e6) { // 1ns * 1e6
 			_fsp = _fspTick;
 			_fspTick = 0;
-			_fspTime = time;
+			_fspTime = _lastTime;
 			Qk_DLog("fps: %d", _fsp);
 		}
 		_fspTick++;
 
-		_root->draw(_uiDraw); // start drawing
+		_root->draw(_painter); // start drawing
 
 		afterDisplay(); // draw something for platform
 
@@ -348,7 +353,6 @@ namespace qk {
 			Qk_Log("Window swapBuffer time: %ld", ts2);
 		}
 #endif
-
 		return true;
 	}
 

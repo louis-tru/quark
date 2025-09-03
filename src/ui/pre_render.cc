@@ -195,7 +195,7 @@ namespace qk {
 		solveAsyncCall();
 	}
 
-	bool PreRender::solve(int64_t time) {
+	bool PreRender::solve(int64_t time, int64_t deltaTime) {
 		solveAsyncCall();
 		_window->actionCenter()->advance_Rt(uint32_t(time / 1000)); // advance action
 
@@ -205,7 +205,7 @@ namespace qk {
 				Task* task = *i;
 				if ( task ) {
 					if ( time > task->task_timeout() ) {
-						if ( task->run_task(time) ) {
+						if ( task->run_task(time, deltaTime) ) {
 							_is_render = true;
 						}
 					}

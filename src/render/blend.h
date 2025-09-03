@@ -35,21 +35,24 @@
 namespace qk {
 
 	enum BlendMode {
-		kClear_BlendMode,         //!< r = 0
+		kClear_BlendMode,         //!< r = (1-sa)*d
 		kSrc_BlendMode,           //!< r = s
 		kDst_BlendMode,           //!< r = d
-		kSrcOver_BlendMode,       //!< r = s + (1-sa)*d
-		kDstOver_BlendMode,       //!< r = d + (1-da)*s
-		kSrcIn_BlendMode,         //!< r = s * da
-		kDstIn_BlendMode,         //!< r = d * sa
-		kSrcOut_BlendMode,        //!< r = s * (1-da)
-		kDstOut_BlendMode,        //!< r = d * (1-sa)
-		kSrcATop_BlendMode,       //!< r = s*da + d*(1-sa)
-		kDstATop_BlendMode,       //!< r = d*sa + s*(1-da)
-		kXor_BlendMode,           //!< r = s*(1-da) + d*(1-sa)
+		kSrcOver_BlendMode,       //!< r = sa*s + (1-sa)*d
+		kDstOver_BlendMode,       //!< r = (1-da)*s + da*d
+		kSrcIn_BlendMode,         //!< r = da*s
+		kDstIn_BlendMode,         //!< r = sa*d
+		kSrcOut_BlendMode,        //!< r = (1-da)*s
+		kDstOut_BlendMode,        //!< r = (1-sa)*d
+		kSrcATop_BlendMode,       //!< r = da*s + (1-sa)*d
+		kDstATop_BlendMode,       //!< r = (1-da)*s + sa*d
+		kXor_BlendMode,           //!< r = (1-da)*s + (1-sa)*d
 		kPlus_BlendMode,          //!< r = min(s + d, 1)
 		kModulate_BlendMode,      //!< r = s*d
 		kScreen_BlendMode,        //!< r = s + d - s*d
+		kMultiply_BlendMode,      //!< r = d*s + (1-sa)*d
+		kAdditive_BlendMode,      //!< r = sa*s + d
+		kSrcOverExt_BlendMode,    // r = s + (1-sa)*d, with src premultiplied alpha
 	};
 
 }

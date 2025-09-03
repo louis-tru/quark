@@ -85,14 +85,14 @@ namespace qk {
 		void stop(bool all = false); // Stop the sprite frames, stop action of view together if the all equals true
 		ViewType viewType() const override;
 		Vec2 client_size() override;
-		void draw(UIDraw *render) override;
+		void draw(Painter *render) override;
 	protected:
 		void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
 		ImagePool* imgPool() override;
 		View* init(Window* win) override;
 	private:
 		KeyframeAction *_keyAction; // The keyframe action for the sprite animation
-		friend class UIDraw;
+		friend class Painter;
 	};
 }
 #endif

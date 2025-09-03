@@ -11,6 +11,7 @@ layout (std140) uniform viewMatrixBlock {
 };
 
 #ifdef Qk_SHADER_VERT
+// in                          vec4  color; //!< {GL_UNSIGNED_BYTE}
 /*layout(location=0)*/in    vec2  vertexIn;
 in                          float aafuzzIn; // anti alias fuzz
 out                         float aafuzz;

@@ -30,7 +30,7 @@
 
 #include "./window.h"
 #include "./filter.h"
-#include "./draw.h"
+#include "./painter.h"
 #include "./view/root.h"
 #include "./view/image.h"
 #include "./view/flex.h"
@@ -50,9 +50,9 @@
 
 namespace qk {
 
-	typedef UIDraw::BoxData BoxData;
+	typedef Painter::BoxData BoxData;
 
-	UIDraw::UIDraw(Window *window)
+	Painter::Painter(Window *window)
 		: _render(window->render()), _canvas(nullptr)
 		, _cache(nullptr)
 		, _window(window)
@@ -62,13 +62,13 @@ namespace qk {
 		_cache = _canvas->getPathvCache();
 	}
 
-	Rect UIDraw::getRect(Box* box) {
+	Rect Painter::getRect(Box* box) {
 		return {
 			_origin, {box->_client_size[0]-_AAShrink,box->_client_size[1]-_AAShrink},
 		};
 	}
 
-	void UIDraw::getInsideRectPath(Box *box, BoxData &out) {
+	void Painter::getInsideRectPath(Box *box, BoxData &out) {
 		if (out.inside)
 			return;
 		_IfBorder(box) {
@@ -118,12 +118,12 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::getOutsideRectPath(Box *box, BoxData &out) {
+	void Painter::getOutsideRectPath(Box *box, BoxData &out) {
 		if (!out.outside)
 			out.outside = &_cache->getRRectPath(getRect(box), &box->_border_radius_left_top);
 	}
 
-	void UIDraw::getRRectOutlinePath(Box *box, BoxData &out) {
+	void Painter::getRRectOutlinePath(Box *box, BoxData &out) {
 		if (!out.outline) {
 			_Border(box);
 			auto border = _border->width;
@@ -139,7 +139,7 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::drawBoxBasic(Box *box, BoxData &data) {
+	void Painter::drawBoxBasic(Box *box, BoxData &data) {
 		drawBoxShadow(box, data);
 
 		if (_opacity == 1) {
@@ -205,7 +205,7 @@ namespace qk {
 		drawBoxFill(box, data);
 	}
 
-	void UIDraw::drawBoxFill(Box *box, BoxData &data) {
+	void Painter::drawBoxFill(Box *box, BoxData &data) {
 		auto filter = box->background();
 		if (!filter) return;
 		getInsideRectPath(box, data);
@@ -223,7 +223,7 @@ namespace qk {
 		} while(filter);
 	}
 
-	void UIDraw::drawBoxFillImage(Box *box, FillImage *fill, BoxData &data) {
+	void Painter::drawBoxFillImage(Box *box, FillImage *fill, BoxData &data) {
 		auto src = fill->source();
 		if (!src || !src->load())
 			return;
@@ -284,7 +284,7 @@ namespace qk {
 		_canvas->drawPathv(*data.inside, paint);
 	}
 
-	void UIDraw::drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data) {
+	void Painter::drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data) {
 		auto &colors = fill->colors();
 		auto &pos = fill->positions();
 		auto R = fill->radian();
@@ -339,7 +339,7 @@ namespace qk {
 		_canvas->drawPathv(*data.inside, paint);
 	}
 
-	void UIDraw::drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data) {
+	void Painter::drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data) {
 		auto &colors = fill->colors();
 		auto &pos = fill->positions();
 		auto _rect_inside = data.inside->rect;
@@ -357,7 +357,7 @@ namespace qk {
 		_canvas->drawPathv(*data.inside, paint);
 	}
 
-	void UIDraw::drawBoxShadow(Box *box, BoxData &data) {
+	void Painter::drawBoxShadow(Box *box, BoxData &data) {
 		auto shadow = box->box_shadow();
 		if (!shadow) return;
 		getOutsideRectPath(box, data);
@@ -376,7 +376,7 @@ namespace qk {
 		_canvas->restore();
 	}
 
-	void UIDraw::drawBoxColor(Box *box, BoxData &data) {
+	void Painter::drawBoxColor(Box *box, BoxData &data) {
 		if (!box->_background_color.a())
 			return;
 		getInsideRectPath(box, data);
@@ -389,7 +389,7 @@ namespace qk {
 		// _canvas->drawPathv(rect->path, paint);
 	}
 
-	void UIDraw::drawBoxBorder(Box *box, BoxData &data) {
+	void Painter::drawBoxBorder(Box *box, BoxData &data) {
 		_IfNotBorder(box);
 		getRRectOutlinePath(box, data);
 		if (data.outline) {
@@ -410,23 +410,23 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::drawBoxEnd(Box *box, BoxData &data) {
+	void Painter::drawBoxEnd(Box *box, BoxData &data) {
 		if (box->_clip) {
 			if (box->_first.load()) {
 				getInsideRectPath(box, data);
 				_window->clipRegion(screen_region_from_convex_quadrilateral(box->_vertex));
 				_canvas->save();
 				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
-				UIDraw::visitView(box);
+				visitView(box);
 				_canvas->restore(); // cancel clip
 				_window->clipRestore();
 			}
 		} else {
-			UIDraw::visitView(box);
+			visitView(box);
 		}
 	}
 
-	void UIDraw::drawScrollBar(ScrollView *v) {
+	void Painter::drawScrollBar(ScrollView *v) {
 		if ( (v->_scrollbar_h || v->_scrollbar_v) && v->_scrollbar_opacity ) {
 			auto b = v->host();
 			auto width = v->_scrollbar_width;
@@ -462,7 +462,9 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::drawTextBlob(TextOptions *v, Vec2 inOffset, TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) {
+	void Painter::drawTextBlob(TextOptions *v, Vec2 inOffset,
+		TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) 
+	{
 		auto size = v->text_size().value;
 		auto shadow = v->text_shadow().value;
 
@@ -521,8 +523,8 @@ namespace qk {
 		} // if (v->text_color().value.a())
 	}
 
-	void UIDraw::visitView(View *view) {
-		// visit child
+	//////////////////////////////////////////////////////////
+	void Painter::visitView(View *view) {
 		auto v = view->_first.load();
 		if (v) {
 			auto opacity = _opacity;
@@ -534,7 +536,7 @@ namespace qk {
 						v->solve_marks(*_matrix, view, mark);
 						_mark_recursive = mark & View::kRecursive_Mark;
 					}
-					if (v->_opacity) {
+					if (v->_visible_region && v->_opacity) {
 						_opacity = opacity * v->_opacity;
 						v->draw(this);
 					}
@@ -546,90 +548,107 @@ namespace qk {
 		}
 	}
 
-	void UIDraw::visitBox(Box* box) {
-		BoxData data;
-		_canvas->setTranslate(box->position());
-		drawBoxBasic(box, data);
-		drawBoxEnd(box, data);
+	void Painter::visitView(View* v, const Mat &mat) {
+		if (v->_first.load()) {
+			auto matrix = _matrix;
+			_matrix = &mat;
+			_canvas->setMatrix(mat);
+			visitView(v);
+			_matrix = matrix;
+			_canvas->setMatrix(*matrix);
+		}
 	}
 
-	void UIDraw::visitImage(Image* v) {
-		BoxData data;
-		_canvas->setTranslate(v->position());
-		drawBoxBasic(v, data);
+	void View::draw(Painter *draw) {
+		draw->visitView(this);
+	}
 
-		auto src = v->source();
+	void Box::draw(Painter *draw) {
+		BoxData data;
+		draw->canvas()->setTranslate(position());
+		draw->drawBoxBasic(this, data);
+		draw->drawBoxEnd(this, data);
+	}
+
+	void Image::draw(Painter *draw) {
+		BoxData data;
+		draw->canvas()->setTranslate(position());
+		draw->drawBoxBasic(this, data);
+
+		auto src = source();
 		if (src && src->load()) {
-			getInsideRectPath(v, data);
+			draw->getInsideRectPath(this, data);
 			Paint paint;
 			ImagePaint img;
 			// paint.antiAlias = false;
 			paint.type = Paint::kBitmap_Type;
 			paint.image = &img;
-			paint.color.set_a(_opacity);
+			paint.color.set_a(draw->opacity());
 			//img.tileModeX = ImagePaint::kDecal_TileMode;
 			//img.tileModeY = ImagePaint::kDecal_TileMode;
 			img.filterMode = ImagePaint::kLinear_FilterMode;
 			img.mipmapMode = ImagePaint::kNearest_MipmapMode;
 			img.setImage(src.get(), data.inside->rect);
-			_canvas->drawPathv(*data.inside, paint);
+			draw->canvas()->drawPathv(*data.inside, paint);
 		}
-		drawBoxEnd(v, data);
+		draw->drawBoxEnd(this, data);
 	}
 
-	void UIDraw::visitScroll(Scroll* v) {
-		UIDraw::visitBox(v);
-		drawScrollBar(v);
+	void Scroll::draw(Painter *draw) {
+		Box::draw(draw);
+		draw->drawScrollBar(this);
 	}
 
-	void UIDraw::visitText(Text* v) {
+	void Text::draw(Painter *draw) {
 		BoxData data;
-		_canvas->setTranslate(v->position());
-		drawBoxBasic(v, data);
-		
-		Vec2 offset(v->_padding_left, v->_padding_top);
+		auto canvas = draw->canvas();
+		canvas->setTranslate(position());
+		draw->drawBoxBasic(this, data);
 
-		_IfBorder(v) {
+		Vec2 offset(padding_left(), padding_top());
+
+		_IfBorder(this) {
 			offset[0] += _border->width[3];
 			offset[1] += _border->width[0];
 		}
 
-		if (v->_clip) {
-			if (v->_first.load() || v->_blob_visible.length()) {
-				getInsideRectPath(v, data);
-				_window->clipRegion(screen_region_from_convex_quadrilateral(v->_vertex));
-				_canvas->save();
-				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
-				if (v->_blob_visible.length()) {
-					drawTextBlob(v, offset, *v->_lines, v->_blob, v->_blob_visible);
+		if (clip()) {
+			if (first() || _blob_visible.length()) {
+				draw->getInsideRectPath(this, data);
+				window()->clipRegion(screen_region_from_convex_quadrilateral(_vertex));
+				canvas->save();
+				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
+				if (_blob_visible.length()) {
+					draw->drawTextBlob(this, offset, *_lines, _blob, _blob_visible);
 				}
-				UIDraw::visitView(v);
-				_canvas->restore(); // cancel clip
-				_window->clipRestore();
+				draw->visitView(this);
+				canvas->restore(); // cancel clip
+				window()->clipRestore();
 			}
 		} else {
-			if (v->_blob_visible.length()) {
-				drawTextBlob(v, offset, *v->_lines, v->_blob, v->_blob_visible);
+			if (_blob_visible.length()) {
+				draw->drawTextBlob(this, offset, *_lines, _blob, _blob_visible);
 			}
-			UIDraw::visitView(v);
+			draw->visitView(this);
 		}
 	}
 
-	void UIDraw::visitInput(Input* v) {
+	void Input::draw(Painter *draw) {
 		BoxData data;
-		_canvas->setTranslate(v->position());
-		drawBoxBasic(v, data);
+		auto canvas = draw->canvas();
+		canvas->setTranslate(position());
+		draw->drawBoxBasic(this, data);
 
-		auto lines = *v->_lines;
-		auto offset = v->input_text_offset() + Vec2(v->_padding_left, v->_padding_top);
-		auto twinkle = v->_editing && v->_cursor_twinkle_status;
-		auto visible = v->_blob_visible.length();
-		auto clip = v->_clip && (visible || twinkle);
+		auto lines = *_lines;
+		auto offset = input_text_offset() + Vec2(padding_left(), padding_top());
+		auto twinkle = _editing && _cursor_twinkle_status;
+		auto visible = _blob_visible.length();
+		auto clip = this->clip() && (visible || twinkle);
 
 		if (clip) {
-			getInsideRectPath(v, data);
-			_canvas->save();
-			_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
+			draw->getInsideRectPath(this, data);
+			canvas->save();
+			canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
 		}
 
 		if (visible) {
@@ -639,42 +658,42 @@ namespace qk {
 				auto y = offset.y() + line.baseline - blob.ascent;
 				auto offset_x = blob.blob.offset.front().x();
 				auto width = blob.blob.offset.back().x();
-				auto &rect = _cache->getRectPath({{x + offset_x, y},{width, blob.height}});
-				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
+				auto &rect = draw->cache()->getRectPath({{x + offset_x, y},{width, blob.height}});
+				canvas->drawPathvColor(rect, color, kSrcOver_BlendMode);
 			};
-			auto size = v->text_size().value;
-			auto shadow = v->text_shadow().value;
+			auto size = text_size().value;
+			auto shadow = text_shadow().value;
 
 			// draw text background
-			if (v->text_length() && v->text_background_color().value.a()) {
-				auto color = v->text_background_color().value.to_color4f_alpha(_opacity);
-				for (auto i: v->_blob_visible)
-					draw_background(v->_blob[i], color);
+			if (text_length() && text_background_color().value.a()) {
+				auto color = text_background_color().value.to_color4f_alpha(draw->opacity());
+				for (auto i: _blob_visible)
+					draw_background(_blob[i], color);
 			}
-
+			
 			// draw text marked
-			auto begin = v->_marked_blob_begin;
-			if (begin < v->_marked_blob_end && v->_marked_color.a()) {
-				auto color = v->_marked_color.to_color4f_alpha(_opacity);
+			auto begin = _marked_blob_begin;
+			if (begin < _marked_blob_end && _marked_color.a()) {
+				auto color = _marked_color.to_color4f_alpha(draw->opacity());
 				do
-					draw_background(v->_blob[begin++], color);
-				while(begin < v->_marked_blob_end);
+					draw_background(_blob[begin++], color);
+				while(begin < _marked_blob_end);
 			}
 
 			// draw text shadow
 			if (shadow.color.a()) {
 				Paint paint;
 				PaintFilter filter;
-				paint.color = shadow.color.to_color4f_alpha(_opacity);
+				paint.color = shadow.color.to_color4f_alpha(draw->opacity());
 				if (shadow.size) {
 					filter.type = PaintFilter::kBlur_Type;
 					filter.val0 = shadow.size;
 					paint.filter = &filter;
 				}
-				for (auto i: v->_blob_visible) {
-					auto &blob = v->_blob[i];
+				for (auto i: _blob_visible) {
+					auto &blob = _blob[i];
 					auto &line = lines->line(blob.line);
-					_canvas->drawTextBlob(&blob.blob, {
+					canvas->drawTextBlob(&blob.blob, {
 						line.origin + shadow.x + offset.x() + blob.origin,
 						line.baseline + shadow.y + offset.y()
 					}, size, paint);
@@ -682,14 +701,14 @@ namespace qk {
 			}
 
 			// draw text blob
-			auto color = v->_value_u4.length() ? v->text_color().value: v->placeholder_color();
+			auto color = _value_u4.length() ? text_color().value: _placeholder_color;
 			if (color.a()) {
 				Paint paint;
-				paint.color = color.to_color4f_alpha(_opacity);
-				for (auto i: v->_blob_visible) {
-					auto &blob = v->_blob[i];
+				paint.color = color.to_color4f_alpha(draw->opacity());
+				for (auto i: _blob_visible) {
+					auto &blob = _blob[i];
 					auto &line = lines->line(blob.line);
-					_canvas->drawTextBlob(&blob.blob, {
+					canvas->drawTextBlob(&blob.blob, {
 						line.origin + blob.origin + offset.x(), line.baseline + offset.y()
 					}, size, paint);
 				}
@@ -698,189 +717,73 @@ namespace qk {
 
 		// draw cursor
 		if (twinkle) {
-			auto &line = lines->line(v->_cursor_line);
-			auto x = Float32::max(0, offset.x() + v->_cursor_x - 1.0f);
-			//auto y = offset.y() + line.baseline - v->_text_ascent;
-			auto y = offset.y() + (line.end_y + line.start_y - v->_cursor_height) * 0.5f;
-			auto &rect = _cache->getRectPath({{x, y},{2.0,v->_cursor_height}});
-			_canvas->drawPathvColor(rect, v->cursor_color().to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+			auto &line = lines->line(_cursor_line);
+			auto x = Float32::max(0, offset.x() + _cursor_x - 1.0f);
+			//auto y = offset.y() + line.baseline - _text_ascent;
+			auto y = offset.y() + (line.end_y + line.start_y - _cursor_height) * 0.5f;
+			auto &rect = draw->cache()->getRectPath({{x, y},{2.0,_cursor_height}});
+			canvas->drawPathvColor(rect, _cursor_color.to_color4f_alpha(draw->opacity()), kSrcOver_BlendMode);
 		}
 
 		if (clip) {
-			_canvas->restore(); // cancel clip
+			canvas->restore(); // cancel clip
 		}
 
-		if ( v->is_multiline() ) {
-			drawScrollBar(static_cast<Textarea*>(v));
+		if ( is_multiline() ) {
+			draw->drawScrollBar(static_cast<Textarea*>(this));
 		}
 	}
 
-	void UIDraw::visitLabel(Label* v) {
-		if (v->_blob_visible.length()) {
-			_canvas->setTranslate(v->position()); // set position in matrix
-			drawTextBlob(v, {}, *v->_lines, v->_blob, v->_blob_visible);
+	void Label::draw(Painter *draw) {
+		if (_blob_visible.length()) {
+			draw->canvas()->setTranslate(position()); // set position in matrix
+			draw->drawTextBlob(this, {}, *_lines, _blob, _blob_visible);
 		}
-		UIDraw::visitView(v);
+		draw->visitView(this);
 	}
 
-	void UIDraw::visitMatrix(Matrix* v) {
-		auto matrix = _matrix;
-		auto origin = _origin;
-		_origin = Vec2(_AAShrink * 0.5) - v->_origin_value;
-		_matrix = &v->matrix();
-		_canvas->setMatrix(*_matrix);
+	void Matrix::draw(Painter *draw) {
+		auto canvas = draw->_canvas;
+		auto matrix = draw->_matrix;
+		auto origin = draw->_origin;
+		draw->_origin = Vec2(draw->_AAShrink * 0.5) - _origin_value;
+		draw->_matrix = &this->matrix();
+		canvas->setMatrix(*draw->_matrix);
 		BoxData data;
-		drawBoxBasic(v, data);
-		_origin = origin;
-		drawBoxEnd(v, data);
-		_matrix = matrix;
-		_canvas->setMatrix(*matrix); // restore previous matrix
+		draw->drawBoxBasic(this, data);
+		draw->_origin = origin;
+		draw->drawBoxEnd(this, data);
+		draw->_matrix = matrix;
+		canvas->setMatrix(*matrix); // restore previous matrix
 	}
 
-	void UIDraw::visitSprite(Sprite* v) {
-		auto src = v->source();
-		if (!src || !src->load())
-			return UIDraw::visitView(v);
-
-		auto matrix = _matrix;
-		auto origin = _origin;
-		_origin = /*Vec2(_AAShrink * 0.5)*/ -v->_origin_value;
-		_matrix = &v->matrix();
-		_canvas->setMatrix(*_matrix);
-
-		float w = src->width(), h = src->height();
-		float x = 0, y = 0;
-		auto gap = v->_gap;
-		auto frame = v->_frame % v->_frames; // current frame
-		auto item = v->_item % v->_items; // current item
-
-		if (v->_direction == Direction::RowReverse || v->_direction == Direction::ColumnReverse) {
-			frame = v->_frames - 1 - frame; // reverse frame
-		}
-
-		if (v->_direction == Direction::Row || v->_direction == Direction::RowReverse) {
-			w /= v->_frames; // horizontal frames
-			h /= v->_items; // adjust height
-			x = w * frame + gap; // adjust x position
-			y = h * item + gap; // adjust y position
-		} else {
-			h /= v->_frames; // vertical frames
-			w /= v->_items; // adjust width
-			y = h * frame + gap;
-			x = w * item + gap; // adjust x position
-		}
-
-		w -= gap + gap;
-		h -= gap + gap;
-
-		Paint paint;
-		ImagePaint img;
-		paint.type = Paint::kBitmap_Type;
-		paint.image = &img;
-		paint.color.set_a(_opacity);
-
-		Rect dest{_origin, {v->_width, v->_height}};
-
-		img.setImage(src.get(), dest, {{x,y}, {w,h}});
-		img.filterMode = ImagePaint::kLinear_FilterMode;
-		img.mipmapMode = ImagePaint::kNearest_MipmapMode;
-
-		_canvas->drawPathv(_cache->getRectPath(dest), paint);
-
-		_origin = origin; // restore previous origin
-		UIDraw::visitView(v);
-		_matrix = matrix;
-		_canvas->setMatrix(*matrix); // restore previous matrix
-	}
-
-	void UIDraw::visitRoot(Root* v) {
-		if (_canvas && v->_visible) {
-			uint32_t mark = v->mark_value();
+	void Root::draw(Painter *draw) {
+		if (draw->_canvas && _visible) {
+			auto canvas = draw->_canvas;
+			auto mark = mark_value();
 			if (mark) {
-				v->solve_marks(Mat(), nullptr, mark);
-				_mark_recursive = mark & View::kRecursive_Mark;
+				solve_marks(Mat(), nullptr, mark);
+				draw->_mark_recursive = mark & View::kRecursive_Mark;
 			}
-			if (v->_visible_region && v->_opacity != 0) {
+			if (_visible_region && opacity() != 0) {
 				BoxData data;
 				// Fix rect aa stroke width
 				bool isMsaa = _window->render()->options().msaaSample;
 				auto origin = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
 				//auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
-				_AAShrink = origin + origin;
-				_origin = Vec2(origin) - v->_origin_value;
-				_matrix = &v->matrix();
-				_canvas->setMatrix(*_matrix);
-				_canvas->clearColor(v->_background_color.to_color4f());
-				drawBoxColor(v, data);
-				drawBoxBorder(v, data);
-				_origin = origin;
-				drawBoxEnd(v, data);
+				draw->_AAShrink = origin + origin;
+				draw->_origin = Vec2(origin) - origin_value();
+				draw->_matrix = &matrix();
+				canvas->setMatrix(matrix());
+				canvas->clearColor(background_color().to_color4f());
+				draw->drawBoxColor(this, data);
+				draw->drawBoxBorder(this, data);
+				draw->_origin = origin;
+				draw->drawBoxEnd(this, data);
 			} else {
-				_canvas->clearColor(Color4f(0,0,0,0));
+				canvas->clearColor(Color4f(0,0,0,0));
 			}
-			_mark_recursive = 0;
+			draw->_mark_recursive = 0;
 		}
-	}
-
-	void View::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitView(this);
-		}
-	}
-
-	void Box::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitBox(this);
-		}
-	}
-
-	void Image::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitImage(this);
-		}
-	}
-
-	void Scroll::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitScroll(this);
-		}
-	}
-
-	void Text::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitText(this);
-		}
-	}
-
-	void Input::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitInput(this);
-		}
-	}
-
-	void Label::draw(UIDraw *draw) {
-		draw->visitLabel(this);
-	}
-
-	void Matrix::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitMatrix(this);
-		}
-	}
-
-	void Sprite::draw(UIDraw *draw) {
-		if (_visible_region) {
-			draw->visitSprite(this);
-		}
-	}
-
-	void Spine::draw(UIDraw *render) {
-		if (_visible_region) {
-			// TODO ..
-		}
-	}
-
-	void Root::draw(UIDraw *draw) {
-		draw->visitRoot(this);
 	}
 }

@@ -182,7 +182,7 @@ template <typename T> static constexpr bool QkToBool(const T& x) {
 #define QkG32ToG16_MACRO(g)   ((unsigned)(g) >> (Qk_G32_BITS - Qk_G16_BITS))
 #define QkB32ToB16_MACRO(b)   ((unsigned)(b) >> (Qk_B32_BITS - Qk_B16_BITS))
 
-#ifdef Qk_DEBUG
+#ifdef DEBUG
 	static inline unsigned QkR32ToR16(unsigned r) {
 		QkR32Assert(r);
 		return QkR32ToR16_MACRO(r);

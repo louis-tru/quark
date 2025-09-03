@@ -18,7 +18,7 @@ public:
 		_c->setSurface({600},2);
 	}
 
-	void draw(UIDraw *vv) override {
+	void draw(Painter *vv) override {
 		auto canvas = window()->render()->getCanvas();
 		auto size = canvas->size();
 

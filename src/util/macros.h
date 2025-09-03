@@ -155,7 +155,9 @@
 // return and move local
 #define Qk_ReturnLocal(x)     return (x)
 
-#if DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
+# undef DEBUG
+# define DEBUG 1
 # define Qk_DLog Qk_Log
 # define Qk_DEBUGCODE(...) __VA_ARGS__
 #else
@@ -163,9 +165,6 @@
 # define Qk_DEBUGCODE(...)
 #endif
 
-#ifndef Qk_DEBUG
-# define Qk_DEBUG DEBUG
-#endif
 #if __cplusplus >= 201703L
 #define throw(...)
 #endif
