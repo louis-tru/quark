@@ -173,7 +173,7 @@ static QkUniqueCFRef<CFDataRef> cfdata_from_data(cBuffer& data) {
 		nullptr, // void*(*reallocate)(void* ptr,CFIndex newsize,CFOptionFlags hint,void* info);
 		[](void *ptr, void *info) -> void { // void (*deallocate)(void *ptr, void *info);
 			Qk_ASSERT(info);
-			Buffer::Alloc::free(info);
+			Allocator::Default.free(info);
 		},
 		nullptr, // CFIndex (*preferredSize)(CFIndex size, CFOptionFlags hint, void *info);
 	};

@@ -396,7 +396,7 @@ namespace qk {
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::clear() {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
-		A::free(_indexed);
+		A::Default.free(_indexed);
 		_indexed = nullptr;
 		_length = 0;
 		_capacity = 0;
@@ -449,7 +449,7 @@ namespace qk {
 	bool Dict<K, V, C, A>::make_(const K& key, Pair** data) {
 		if (!_capacity) {
 			_capacity = 4; // init 4 length capacity
-			_indexed = (Node**)A::alloc(sizeof(Node) * 4);
+			_indexed = A::Default.template alloc<Node*>(4);
 			::memset(_indexed, 0, sizeof(Node*) * 4);
 		}
 		auto hash = C::hashCode(key);
@@ -466,7 +466,7 @@ namespace qk {
 		optimize_();
 		index = hash % _capacity;
 		// insert new key
-		node = (Node*)A::alloc(sizeof(Node) + sizeof(Pair));
+		node = (Node*)A::Default.malloc(sizeof(Node) + sizeof(Pair));
 		node->hashCode = hash;
 		node->_conflict = _indexed[index];
 		link_(_end._prev, node);
@@ -488,15 +488,15 @@ namespace qk {
 			begin->_conflict = node->_conflict;
 		}
 		node->data().~Pair(); // destructor
-		A::free(node);
+		A::Default.free(node);
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::optimize_() {
 		if (_length > (_capacity >> 1)) {
-			A::free(_indexed);
+			A::Default.free(_indexed);
 			_capacity <<= 1;
-			_indexed = (Node**)A::alloc(sizeof(Node) * _capacity);
+			_indexed = A::Default.template alloc<Node*>(_capacity);
 			::memset(_indexed, 0, sizeof(Node*) * _capacity);
 			auto node = _end._next;
 			while (node != &_end) {

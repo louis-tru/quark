@@ -66,9 +66,9 @@ namespace qk {
 
 	struct Triangles {
 		/**Vertex data pointer.*/
-		V3F_T2F_C4B_C4B* verts = nullptr;
+		V3F_T2F_C4B_C4B *verts = nullptr;
 		/**Index data pointer.*/
-		uint16_t* indices = nullptr;
+		uint16_t *indices = nullptr;
 		/**The number of vertices.*/
 		uint32_t vertCount = 0;
 		/**The number of indices.*/
@@ -340,7 +340,7 @@ namespace qk {
 		}
 
 		Color ColorToColor4B(const spine::Color &color) {
-			return Color{color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f};
+			return Color(color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f);
 		}
 	}
 
@@ -372,12 +372,12 @@ namespace qk {
 		float *worldCoordPtr = worldCoords;
 		auto clipper = wraper->_clipper;
 		auto effect = wraper->_effect;
-		if (effect) {
+		if (effect)
 			effect->begin(*skeleton);
-		}
-
 		spine::Color color, darkColor;
 		AtlasRegion *region;
+
+		Array<V3F_T2F_C4B_C4B> vertices;
 
 		auto allocateTriangles = [](
 			Triangles &triangles,
@@ -429,9 +429,9 @@ namespace qk {
 				color = attachment->getColor();
 				allocateTriangles(
 					triangles, // output triangles
-					attachment->getTriangles().buffer(),
-					attachment->getUVs().buffer(),
-					worldCoordPtr,
+					attachment->getTriangles().buffer(), // index buffer
+					attachment->getUVs().buffer(), // UV buffer
+					worldCoordPtr, // world coordinates
 					attachment->getWorldVerticesLength() >> 1, // vertex count
 					attachment->getTriangles().size() // index count
 				);
@@ -466,7 +466,6 @@ namespace qk {
 					(float*)&triangles.verts[0].texCoords,
 					sizeof(V3F_T2F_C4B_C4B) / 4
 				);
-				// batch->deallocateVertices(triangles.vertCount);
 
 				if (clipper->getClippedTriangles().size() == 0) {
 					clipper->clipEnd(*slot);
@@ -512,9 +511,8 @@ namespace qk {
 		}
 		clipper->clipEnd();
 
-		if (effect) {
+		if (effect)
 			effect->end();
-		}
 		VLA_FREE(worldCoords);
 
 		auto canvas = painter->canvas();

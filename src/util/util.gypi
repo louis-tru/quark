@@ -28,6 +28,8 @@
 			'../../tools/configure.js',
 			# h
 			'../version.h',
+			'allocator.h',
+			'allocator.cc',
 			'errno.h',
 			'uv.h',
 			'fs.h',

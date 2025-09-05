@@ -769,16 +769,16 @@ namespace qk {
 				BoxData data;
 				// Fix rect aa stroke width
 				bool isMsaa = _window->render()->options().msaaSample;
-				auto origin = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
-				//auto origin = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
-				draw->_AAShrink = origin + origin;
-				draw->_origin = Vec2(origin) - origin_value();
+				auto AAShrink_half = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
+				// auto AAShrink_half = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
+				draw->_AAShrink = AAShrink_half + AAShrink_half;
+				draw->_origin = Vec2(AAShrink_half) - origin_value();
 				draw->_matrix = &matrix();
 				canvas->setMatrix(matrix());
 				canvas->clearColor(background_color().to_color4f());
 				draw->drawBoxColor(this, data);
 				draw->drawBoxBorder(this, data);
-				draw->_origin = origin;
+				draw->_origin = AAShrink_half;
 				draw->drawBoxEnd(this, data);
 			} else {
 				canvas->clearColor(Color4f(0,0,0,0));

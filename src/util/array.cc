@@ -50,7 +50,7 @@ namespace qk {
 		{ \
 			if (length > _length) {  \
 				_length = length; \
-				increase_(length + APPEND_ZERO); \
+				_ptr.extend(length + APPEND_ZERO); \
 				APPEND_CODE(_ptr,length); \
 			}\
 		}\
@@ -65,7 +65,7 @@ namespace qk {
 		template<> void Array<T, A>::concat_(T* src, uint32_t src_length) { \
 			if (src_length) {\
 				_length += src_length; \
-				increase_(_length + APPEND_ZERO); \
+				_ptr.extend(_length + APPEND_ZERO); \
 				T* src = _ptr.val; \
 				T* to = _ptr.val + _length - src_length; \
 				memcpy((void*)to, src, src_length * sizeof(T)); \
@@ -77,7 +77,7 @@ namespace qk {
 			if (size) { \
 				if ( to == -1 ) to = _length; \
 				_length = Qk_Max(to + size, _length); \
-				increase_(_length + APPEND_ZERO); \
+				_ptr.extend(_length + APPEND_ZERO); \
 				memcpy((void*)(_ptr.val + to), src, size * sizeof(T) ); \
 				APPEND_CODE(_ptr,_length); \
 			} \
@@ -86,13 +86,13 @@ namespace qk {
 		\
 		template<> \
 		T& Array<T, A>::push(const T& item) { \
-			increase_(_length + APPEND_ZERO + 1); \
+			_ptr.extend(_length + APPEND_ZERO + 1); \
 			_ptr.val[_length] = item;\
 			return _ptr.val[_length++]; \
 		} \
 		template<> \
 		T& Array<T, A>::push(T&& item) { \
-			increase_(_length + APPEND_ZERO + 1); \
+			_ptr.extend(_length + APPEND_ZERO + 1); \
 			_ptr.val[_length] = item;\
 			return _ptr.val[_length++]; \
 		} \
@@ -100,23 +100,21 @@ namespace qk {
 			uint32_t j = uint32_t(Qk_Max(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
-				_ptr.reduce(_length + APPEND_ZERO); \
+				_ptr.shrink(_length + APPEND_ZERO); \
 			} \
 		} \
 		\
 		template<> void Array<T, A>::clear() { \
 			if (_ptr.val) { \
-				A::free(_ptr.val); /* free */ \
-				_ptr.capacity = 0; \
-				_ptr.val = nullptr; \
+				_ptr.free(); \
 				_length = 0; \
 			} \
 		} \
 		\
-		template<> void Array<T, A>::copy_(Ptr* ptr, uint32_t start, uint32_t len) const { \
-			ptr->realloc(len+APPEND_ZERO);\
-			memcpy(ptr->val, _ptr.val + start, len * sizeof(T)); \
-			APPEND_CODE((*ptr),len);\
+		template<> void Array<T, A>::copy_(Ptr* dst, uint32_t start, uint32_t len) const { \
+			dst->resize(len+APPEND_ZERO); \
+			memcpy(dst->val, _ptr.val + start, len * sizeof(T)); \
+			APPEND_CODE((*dst),len);\
 		} \
 
 #define Qk_DEF_ARRAY_APPEND_CODE_NONE(ptr,len) ((void)0)

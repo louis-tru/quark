@@ -33,58 +33,10 @@
 #include "./loop.h"
 #include <math.h>
 
-#ifndef Qk_Min_CAPACITY
-# define Qk_Min_CAPACITY (4)
-#endif
-
 namespace qk {
 
-	void* Allocator::alloc(uint32_t size) {
-		return ::malloc(size);
-	}
-	
-	void Allocator::free(void* ptr) {
-		::free(ptr);
-	}
-
-	static void Increase(Allocator::Prt<void> *ptr, uint32_t size,uint32_t sizeOf) {
-		size = Qk_Max(Qk_Min_CAPACITY, size);
-		size = Uint32::max(size, powf(2, ceilf(log2f(size))));
-		ptr->val = ::realloc(ptr->val, sizeOf * size);
-		ptr->capacity = size;
-		Qk_ASSERT(ptr->val);
-	}
-
-	void Allocator::realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
-		if (size > ptr->capacity) {
-			Increase(ptr, size, sizeOf);
-		} else {
-			reduce(ptr, size, sizeOf);
-		}
-	}
-
-	void Allocator::increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
-		if (size > ptr->capacity) {
-			Increase(ptr, size, sizeOf);
-		}
-	}
-
-	void Allocator::reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf) {
-		uint32_t capacity = ptr->capacity;
-		if ( size > Qk_Min_CAPACITY && size < (capacity >> 2) ) { // > 8
-			capacity >>= 1;
-			size = powf(2, ceilf(log2f(size)));
-			size <<= 1;
-			size = Qk_Min(size, capacity);
-			ptr->val = ::realloc(ptr->val, sizeOf * size);
-			ptr->capacity = size;
-			Qk_ASSERT(ptr->val);
-		}
-	}
-	
+	// ---------------- H e a p A l l o c a t o r ----------------
 	typedef Object::HeapAllocator HeapAllocator;
-
-	static HeapAllocator *object_heap_allocator = nullptr;
 
 	HeapAllocator::~HeapAllocator() {}
 
@@ -103,13 +55,11 @@ namespace qk {
 		obj->destroy(); // The default weak will be directly destroyed
 	}
 
-	HeapAllocator* Object::heapAllocator() {
-		return object_heap_allocator;
-	}
+	static HeapAllocator *objectHeapAllocator = nullptr;
 
 	void Object::setHeapAllocator(HeapAllocator *allocator) {
-		delete object_heap_allocator;
-		object_heap_allocator = allocator;
+		delete objectHeapAllocator;
+		objectHeapAllocator = allocator;
 	}
 
 	// ---------------- O b j e c t ----------------
@@ -118,15 +68,15 @@ namespace qk {
 
 	void Object::destroy() {
 		this->~Object();
-		object_heap_allocator->free(this); // free heap memory
+		objectHeapAllocator->free(this); // free heap memory
 	}
 
 	void Object::retain() {
-		object_heap_allocator->strong(this);
+		objectHeapAllocator->strong(this);
 	}
 
 	void Object::release() {
-		object_heap_allocator->weak(this);
+		objectHeapAllocator->weak(this);
 	}
 
 	bool Object::isReference() const {
@@ -134,9 +84,9 @@ namespace qk {
 	}
 
 	void* Object::operator new(size_t size) {
-		if (!object_heap_allocator)
-			object_heap_allocator = new HeapAllocator();
-		return object_heap_allocator->alloc(size);
+		if (!objectHeapAllocator)
+			objectHeapAllocator = new HeapAllocator();
+		return objectHeapAllocator->alloc(size);
 	}
 
 	void* Object::operator new(size_t size, void* p) {
@@ -156,14 +106,14 @@ namespace qk {
 	void Reference::retain() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( _refCount++ == 0 ) {
-			object_heap_allocator->strong(this);
+			objectHeapAllocator->strong(this);
 		}
 	}
 
 	void Reference::release() {
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
-			object_heap_allocator->weak(this);
+			objectHeapAllocator->weak(this);
 		}
 	}
 

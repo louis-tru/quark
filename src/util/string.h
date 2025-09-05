@@ -46,35 +46,32 @@ namespace qk {
 
 	class Qk_EXPORT StringBase {
 	public:
-		typedef Allocator::Prt<char> Ptr;
-		typedef void (*Realloc)(Ptr *ptr, uint32_t, uint32_t);
-		typedef void (*Free)(void* ptr);
+		typedef Allocator::Ptr<char> Ptr;
 		static constexpr char MAX_SHORT_LEN = 32;
 		uint32_t size() const;
-		struct Long { // shared string
-			struct Base { Ptr ptr; uint32_t length; };
-			inline Ptr* ptr() { return reinterpret_cast<Ptr*>(this); }
-			char     *val;
-			uint32_t capacity, length, flag;
+		struct Init { Ptr ptr; uint32_t length; };
+		struct Ref: Ptr { // shared string
+			uint32_t length, flag;
 			std::atomic_int ref;
 		};
 		struct Short { char val[36]; int8_t length; };
 	protected:
 		StringBase();
 		StringBase(const StringBase& str);
-		StringBase(uint32_t len, Realloc alloc, uint8_t sizeOf);
-		StringBase(Long::Base base, uint8_t sizeOf);
+		StringBase(uint32_t len, uint8_t sizeOf);
+		StringBase(Init init, uint8_t sizeOf);
 		~StringBase();
-		void     assign(Long::Base base, uint8_t sizeOf, Free free);
-		void     assign(const StringBase& s, Free free);
-		char*    ptr();
-		cChar*   ptr() const;
+		void assign(Init init, uint8_t sizeOf);
+		void assign(const StringBase& s);
+		char* ptr();
+		cChar* ptr() const;
 		uint32_t capacity() const;
-		char*    realloc(uint32_t len, Realloc alloc, Free free, uint8_t sizeOf);
-		Buffer   collapse(Realloc alloc, Free free);
-		void     clear(Free free);
+		char* resize(uint32_t len, uint8_t sizeOf);
+		Buffer collapse();
+		void clear();
+		cAllocator* allocator() const;
 		// union storage val
-		union { struct Long* l; struct Short s; } _val;
+		union { struct Ref* r; struct Short s; } _val;
 		template<typename T, typename A> friend class StringImpl;
 	};
 
@@ -204,9 +201,7 @@ namespace qk {
 
 	class Qk_EXPORT _Str {
 	public:
-		typedef void* (*Alloc)(uint32_t);
-		typedef StringBase::Realloc Realloc;
-		typedef StringBase::Long::Base Base;
+		typedef StringBase::Init Init;
 
 		static cChar ws[8];
 		static bool toNumber(cVoid* i, int iLen, int sizeOf, int32_t* o);
@@ -222,14 +217,14 @@ namespace qk {
 		static int  oPrinti(char* o, uint32_t oLen, float i);
 		static int  oPrinti(char* o, uint32_t oLen, double i);
 		static int  oPrintf(char* o, uint32_t oLen, cChar* f, ...);
-		static Base sPrinti(int sizeOf, Alloc alloc, int32_t i); // num
-		static Base sPrinti(int sizeOf, Alloc alloc, uint32_t i);
-		static Base sPrinti(int sizeOf, Alloc alloc, int64_t i);
-		static Base sPrinti(int sizeOf, Alloc alloc, uint64_t i);
-		static Base sPrinti(int sizeOf, Alloc alloc, float i);
-		static Base sPrinti(int sizeOf, Alloc alloc, double i);
-		static Base sPrintf(int sizeOf, Alloc alloc, cChar* f, ...); // str
-		static Base sPrintfv(int sizeOf, Alloc alloc, cChar* f, va_list arg);
+		static Init sPrinti(int sizeOf, int32_t i); // num
+		static Init sPrinti(int sizeOf, uint32_t i);
+		static Init sPrinti(int sizeOf, int64_t i);
+		static Init sPrinti(int sizeOf, uint64_t i);
+		static Init sPrinti(int sizeOf, float i);
+		static Init sPrinti(int sizeOf, double i);
+		static Init sPrintf(int sizeOf, cChar* f, ...); // str
+		static Init sPrintfv(int sizeOf, cChar* f, va_list arg);
 		static String printfv(cChar* f, va_list arg);
 
 		class Iterator { public: virtual bool next(String* out) = 0; };
@@ -280,11 +275,11 @@ namespace qk {
 			cVoid* s1, uint32_t s1_len, cVoid* s2, uint32_t s2_len, int sizeOf);
 		static bool ends_with(
 			cVoid* s1, uint32_t s1_len, cVoid* s2, uint32_t s2_len, int sizeOf);
-		static void* replace(
+		static Init replace(
 			cVoid* s1, uint32_t s1_len,
 			cVoid* s2, uint32_t s2_len,
 			cVoid* rep, uint32_t rep_len,
-			int sizeOf, uint32_t* out_len, uint32_t* capacity_out, bool all, Realloc realloc
+			int sizeOf, bool all, cAllocator *allocator
 		);
 		static int tolower(int c);
 		static int toupper(int c);
@@ -302,13 +297,13 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>::StringImpl(Array<T, A>&& data)
-		: StringBase({(char*)*data, data.capacity(), data.length()}, sizeof(T)) {
+		: StringBase({*(Ptr*)&data._ptr, data.length()}, sizeof(T)) {
 		data.collapse();
 	}
 
 	template <typename T, typename A>
 	StringImpl<T, A>::StringImpl(ArrayBuffer<T, A>&& data)
-		: StringBase({(char*)*data, data.capacity(), data.length()}, sizeof(T)) {
+		: StringBase({*(Ptr*)&data._ptr, data.length()}, sizeof(T)) {
 		data.collapse();
 	}
 
@@ -319,7 +314,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>::StringImpl(const T* s, uint32_t len)
-		: StringBase(len, (Realloc)&A::realloc, sizeof(T))
+		: StringBase(len, sizeof(T))
 	{
 		Qk_ASSERT(len < 268435456); // 256 MB
 		_Str::strcpy(val(), s, len);
@@ -327,7 +322,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>::StringImpl(const T* a, uint32_t aLen, const T* b, uint32_t bLen)
-		: StringBase(aLen + bLen, (Realloc)&A::realloc, sizeof(T))
+		: StringBase(aLen + bLen, sizeof(T))
 	{
 		Qk_ASSERT(aLen < 268435456); // 256 MB
 		Qk_ASSERT(bLen < 268435456); // 256 MB
@@ -372,27 +367,27 @@ namespace qk {
 		if (sizeof(T) == 1) {
 			_val.s.length = _Str::oPrinti(ptr(), MAX_SHORT_LEN, i);
 		} else {
-			auto base = _Str::sPrinti((int)sizeof(T), &A::alloc, i);
-			if (base.ptr.val) {
-				StringBase::assign(base, sizeof(T), &A::free );
+			auto init = _Str::sPrinti((int)sizeof(T), i);
+			if (init.ptr.val) {
+				StringBase::assign(init, sizeof(T));
 			}
 		}
 	}
 
 	template <typename T, typename A>
 	StringImpl<T, A>::~StringImpl() {
-		clear(&A::free);
+		clear();
 	}
 
 	template <typename T, typename A>
 	StringImpl<T, A> StringImpl<T, A>::format(cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-		auto base = _Str::sPrintfv(sizeof(T), &A::alloc, f, arg);
+		auto base = _Str::sPrintfv(sizeof(T), f, arg);
 		va_end(arg);
 		StringImpl s;
 		if (base.ptr.val)
-			s.StringBase::assign(base, sizeof(T), &A::free);
+			s.StringBase::assign(base, sizeof(T));
 		Qk_ReturnLocal(s);
 	}
 
@@ -431,14 +426,14 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>& StringImpl<T, A>::operator=(const StringImpl& s) {
-		StringBase::assign(s, &A::free);
+		StringBase::assign(s);
 		return *this;
 	}
 
 	template <typename T, typename A>
 	StringImpl<T, A>& StringImpl<T, A>::assign(const T* s, uint32_t len) {
 		Qk_ASSERT(len < 268435456); // 256 MB
-		_Str::strcpy((T*)realloc(len, (Realloc)&A::realloc, &A::free, sizeof(T)), s, len); // copy str
+		_Str::strcpy((T*)resize(len, sizeof(T)), s, len); // copy str
 		return *this;
 	}
 
@@ -483,7 +478,7 @@ namespace qk {
 			len = _Str::strlen(s);
 		if (len > 0) {
 			uint32_t len_raw = length();
-			auto str = (T*)realloc(len_raw + len, (Realloc)&A::realloc, &A::free, sizeof(T));
+			auto str = (T*)resize(len_raw + len, sizeof(T));
 			_Str::strcpy(str + len_raw, s, len);
 		}
 		return *this;
@@ -508,7 +503,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	ArrayBuffer<T, A> StringImpl<T, A>::collapse() {
-		Buffer b = StringBase::collapse((Realloc)&A::realloc, &A::free);
+		Buffer b = StringBase::collapse();
 		uint32_t l = b.length(), c = b.capacity();
 		return ArrayBuffer<T, A>::from((T*)b.collapse(), l / sizeof(T), c / sizeof(T));
 	}
@@ -674,7 +669,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>&  StringImpl<T, A>::upperCase() {
-		T* s = (T*)realloc(length(), (Realloc)&A::realloc, &A::free, sizeof(T));
+		T* s = (T*)resize(length(), sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++) {
 			*s = _Str::toupper(*s);
 		}
@@ -683,7 +678,7 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>&  StringImpl<T, A>::lowerCase() {
-		T* s = (T*)realloc(length(), (Realloc)&A::realloc, &A::free, sizeof(T));
+		T* s = (T*)resize(length(), sizeof(T));
 		for (uint32_t i = 0, len = length(); i < len; i++, s++)
 			*s = _Str::tolower(*s);
 		return *this;
@@ -726,24 +721,23 @@ namespace qk {
 	template <typename T, typename A>
 	StringImpl<T, A> StringImpl<T, A>::replace(const StringImpl& s, const StringImpl& rep) const {
 		StringImpl r;
-		uint32_t len, capacity;
-		T* val = (T*)_Str::replace(
+		auto base = _Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
-			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, false, (Realloc)&Allocator::realloc
+			rep.c_str(), rep.length(), sizeof(T), false, allocator()
 		);
-		r.StringBase::assign({val,capacity,len}, sizeof(T), &A::free );
+		r.StringBase::assign(base, sizeof(T));
 		return r;
 	}
 
 	template <typename T, typename A>
 	StringImpl<T, A> StringImpl<T, A>::replaceAll(const StringImpl& s, const StringImpl& rep) const {
 		StringImpl r;
-		uint32_t len, capacity;
-		T* val = (T*)_Str::replace(
+		auto base = _Str::replace(
 			c_str(), length(), s.c_str(), s.length(),
-			rep.c_str(), rep.length(), sizeof(T), &len, &capacity, true, (Realloc)&Allocator::realloc
+			rep.c_str(), rep.length(), sizeof(T), true, allocator()
 		);
-		r.StringBase::assign({val,capacity,len}, sizeof(T), &A::free );
+		// TODO ...
+		r.StringBase::assign(base, sizeof(T));
 		return r;
 	}
 

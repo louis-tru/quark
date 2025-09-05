@@ -31,33 +31,15 @@
 #ifndef __quark__util__object__
 #define __quark__util__object__
 
-#include "./macros.h"
-#include <utility>
+#include "./allocator.h"
 #include <atomic>
 #include <stdlib.h>
 
 namespace qk {
-	struct Allocator;
 	template<typename T = char, typename A = Allocator>
 	class StringImpl;
 	typedef StringImpl<> String;
 	typedef const String cString;
-
-	struct Qk_EXPORT Allocator {
-		template<typename T, typename A = Allocator>
-		struct Prt {
-			void realloc(uint32_t size) { A::realloc((Prt<void>*)this, size, sizeof(T)); }
-			void increase(uint32_t size) { A::increase((Prt<void>*)this, size, sizeof(T)); }
-			void reduce(uint32_t size) { A::reduce((Prt<void>*)this, size, sizeof(T)); }
-			T       *val = nullptr;
-			uint32_t capacity = 0;
-		};
-		static void* alloc(uint32_t size);
-		static void  free(void *ptr);
-		static void  realloc(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-		static void  increase(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-		static void  reduce(Prt<void> *ptr, uint32_t size, uint32_t sizeOf);
-	};
 
 	/**
 	* @class Object
@@ -95,11 +77,10 @@ namespace qk {
 		virtual void release(); // Heap allocation weak
 		virtual bool isReference() const;
 		virtual String toString() const;
+		static void setHeapAllocator(HeapAllocator *allocator); // set global heap allocator
 		static void* operator new(size_t size);
 		static void* operator new(size_t size, void *p);
 		static void  operator delete(void *p);
-		static HeapAllocator* heapAllocator();
-		static void setHeapAllocator(HeapAllocator *allocator);
 		typedef int __HaveObject__;
 	};
 
