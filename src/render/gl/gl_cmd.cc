@@ -52,6 +52,7 @@ namespace qk {
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
 	void gl_set_texture_no_repeat(GLenum wrapdir);
 	TexStat* gl_new_tex_stat();
+	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(std::max_align_t));
 
 	static Color4f emptyColor{0,0,0,0};
 
@@ -107,9 +108,7 @@ namespace qk {
 							((OutputImageEndCmd*)cmd)->~OutputImageEndCmd();
 							break;
 						case kFlushCanvas_CmdType: {
-							auto c = ((FlushCanvasCmd*)cmd);
-							c->srcC->release();
-							delete c->srcCmd; // delete cmd pack
+							((FlushCanvasCmd*)cmd)->~FlushCanvasCmd();
 							break;
 						}
 						default: break;
@@ -124,6 +123,7 @@ namespace qk {
 		}
 
 		Cmd* allocCmd(uint32_t size) {
+			Qk_ASSERT_EQ(alignUp(size), size); // Check if it is aligned
 			auto cmds = _cmds.current;
 			auto newSize = cmds->size + size;
 			if (newSize > cmds->capacity) {
@@ -132,8 +132,9 @@ namespace qk {
 						(Cmd*)malloc(Qk_CGCmd_CmdBlock_Capacity),0,Qk_CGCmd_CmdBlock_Capacity
 					});
 				}
-				_cmds.current = cmds = _cmds.blocks.val() + _cmds.index;
+				cmds = _cmds.blocks.val() + _cmds.index;
 				newSize = size;
+				_cmds.current = cmds;
 			}
 			_lastCmd = (Cmd*)(((char*)cmds->val) + cmds->size);
 			_lastCmd->size = size;
@@ -188,14 +189,6 @@ namespace qk {
 			return newColorsCmd();
 		}
 
-		void checkMetrix() {
-			if (_chMatrix) { // check canvas matrix change state
-				auto cmd = (MatrixCmd*)allocCmd(sizeof(MatrixCmd));
-				cmd->type = kMatrix_CmdType;
-				cmd->matrix = _canvas->_state->matrix;
-				_chMatrix = false;
-			}
-		}
 #endif
 
 		void callCmds(const Mat4& root, const Mat& mat, BlendMode mode) {
@@ -269,6 +262,12 @@ namespace qk {
 							c->~ImageMaskCmd();
 							break;
 						}
+						case kTriangles_CmdType: {
+							auto c = (TrianglesCmd*)cmd;
+							drawTrianglesCall(c->triangles, &c->paint, c->aaclip, c->depth);
+							c->~TrianglesCmd();
+							break;
+						}
 						case kGradient_CmdType: {
 							auto c = (GradientCmd*)cmd;
 							drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
@@ -311,8 +310,7 @@ namespace qk {
 							auto c = (FlushCanvasCmd*)cmd;
 							flushCanvasCall(c->srcC, c->srcCmd, c->root, c->mat, c->mode, root,
 								curMat ? curMat->matrix: mat);
-							c->srcC->release();
-							delete c->srcCmd; // delete gl cmd pack
+							c->~FlushCanvasCmd();
 							break;
 						}
 						case kSetBuffers_CmdType: {
@@ -326,7 +324,8 @@ namespace qk {
 							drawBuffersCall(c->num, c->buffers);
 							break;
 						}
-						default: break;
+						default:
+							break;
 					}
 					cmd = (Cmd*)(((char*)cmd) + cmd->size); // next cmd
 				}
@@ -368,9 +367,7 @@ namespace qk {
 				// copy vertex data to gpu and use shader
 				Qk_ASSERT_EQ(vertex.vCount, vertex.vertex.length(), "useShaderProgram, vertex vCount != vertex.vertex.size()");
 				shader->use(vertex.vertex.size(), vertex.vertex.val());
-			}/* else
-				return false;
-			return true;*/
+			}
 		}
 
 		void setRootMatrixCall(const Mat4 &root) {
@@ -507,6 +504,17 @@ namespace qk {
 				glUniform4fv(s->color, 1, color.val);
 				glUniform4fv(s->coord, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
+			}
+		}
+
+		void drawTrianglesCall(const Triangles &triangles, const ImagePaint *paint, bool aaclip, float depth) {
+			ImagePaintLock lock(paint);
+			if (setTextureSlot0(paint)) {
+				auto s = aaclip ? &_render->_shaders.triangles_AACLIP: &_render->_shaders.triangles;
+				Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
+				s->use(triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), triangles.verts);
+				glUniform1f(s->depth, depth);
+				glDrawElements(GL_TRIANGLES, triangles.indexCount, GL_UNSIGNED_SHORT, triangles.indices);
 			}
 		}
 
@@ -1027,6 +1035,15 @@ namespace qk {
 		paint.image->release();
 	}
 
+	GLC_CmdPack::TrianglesCmd::~TrianglesCmd() {
+		paint.image->release();
+	}
+
+	GLC_CmdPack::FlushCanvasCmd::~FlushCanvasCmd() {
+		srcC->release();
+		delete srcCmd; // delete cmd pack
+	}
+
 #if Qk_USE_GLC_CMD_QUEUE
 
 	bool GLC_CmdPack::isHaveCmds() {
@@ -1035,7 +1052,7 @@ namespace qk {
 
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
 		: _render(render), _canvas(canvas), _cache(canvas->getPathvCache())
-		, _lastCmd(nullptr), _chMatrix(true)
+		, _lastCmd(nullptr)
 	{
 		_cmds.blocks.push({ // init, alloc 64k memory
 			(Cmd*)malloc(Qk_CGCmd_CmdBlock_Capacity),sizeof(Cmd),Qk_CGCmd_CmdBlock_Capacity // 65k
@@ -1075,8 +1092,10 @@ namespace qk {
 			_this->callCmds(_canvas->_rootMatrix, _canvas->_state->matrix, _canvas->_blendMode);
 	}
 
-	void GLC_CmdPack::setMetrix() {
-		_chMatrix = true; // mark matrix change
+	void GLC_CmdPack::setMatrix() {
+		auto cmd = (MatrixCmd*)_this->allocCmd(sizeof(MatrixCmd));
+		cmd->type = kMatrix_CmdType;
+		cmd->matrix = _canvas->_state->matrix;
 	}
 
 	void GLC_CmdPack::setBlendMode(BlendMode mode) {
@@ -1097,7 +1116,6 @@ namespace qk {
 #if Qk_USE_Colors
 		if ( vertex.vertex.length() == 0 ) { // Maybe it's already cached
 #endif
-			_this->checkMetrix(); // check matrix change
 			auto cmd = new(_this->allocCmd(sizeof(ColorCmd))) ColorCmd;
 			cmd->type = kColor_CmdType;
 			cmd->vertex = vertex;
@@ -1161,7 +1179,6 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
-		_this->checkMetrix(); // check matrix change
 		auto cmd = new(_this->allocCmd(sizeof(ColorRRectBlurCmd))) ColorRRectBlurCmd;
 		cmd->type = kRRectBlurColor_CmdType;
 		cmd->depth = _canvas->_zDepth;
@@ -1177,7 +1194,6 @@ namespace qk {
 
 	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
 		_this->flushCanvas(paint);
-		_this->checkMetrix(); // check matrix change
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
 		cmd->vertex = vertex;
@@ -1192,7 +1208,6 @@ namespace qk {
 
 	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
 		_this->flushCanvas(paint);
-		_this->checkMetrix(); // check matrix change
 		auto cmd = new(_this->allocCmd(sizeof(ImageMaskCmd))) ImageMaskCmd;
 		cmd->type = kImageMask_CmdType;
 		cmd->vertex = vertex;
@@ -1205,8 +1220,17 @@ namespace qk {
 		paint->image->retain(); // retain source image ref
 	}
 
+	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const ImagePaint *paint) {
+		auto cmd = new(_this->allocCmd(sizeof(TrianglesCmd))) TrianglesCmd;
+		cmd->type = kTriangles_CmdType;
+		cmd->triangles = triangles;
+		cmd->depth = _canvas->_zDepth;
+		cmd->paint = *paint;
+		cmd->aaclip = _canvas->_state->aaclip;
+		paint->image->retain();
+	}
+
 	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
-		_this->checkMetrix(); // check matrix change
 		auto colorsSize = (uint32_t)sizeof(Color4f) * paint->count;
 		auto positionsSize = (uint32_t)sizeof(float) * paint->count;
 		auto cmdSize = (uint32_t)sizeof(GradientCmd);
@@ -1228,7 +1252,6 @@ namespace qk {
 	}
 
 	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke) {
-		_this->checkMetrix(); // check matrix change
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
 		cmd->clip = clip; // copy clip
@@ -1310,7 +1333,7 @@ namespace qk {
 #else
 	GLC_CmdPack::GLC_CmdPack(GLRender *render, GLCanvas *canvas)
 		: _render(render), _canvas(canvas), _cache(canvas->getPathvCache())
-		, _lastCmd(nullptr), _chMatrix(true)
+		, _lastCmd(nullptr)
 	{}
 	GLC_CmdPack::~GLC_CmdPack() {
 	}
@@ -1319,7 +1342,7 @@ namespace qk {
 	}
 	void GLC_CmdPack::flush() {
 	}
-	void GLC_CmdPack::setMetrix() {
+	void GLC_CmdPack::setMatrix() {
 		_this->setMatrixCall(_canvas->_state->matrix);
 	}
 	void GLC_CmdPack::setBlendMode(BlendMode mode) {
@@ -1339,6 +1362,9 @@ namespace qk {
 	}
 	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
 		_this->drawImageMaskCall(vertex, paint, _canvas->_allScale, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+	}
+	void GLC_CmdPack::drawTriangles(const Triangles &triangles, const ImagePaint *paint) {
+		_this->drawTrianglesCall(triangles, paint, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
 		_this->drawGradientCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);

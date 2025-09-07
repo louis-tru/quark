@@ -106,14 +106,14 @@ namespace qk {
 		}
 	}
 
-	void PreRender::post(Cb cb, uint64_t delayUs) {
+	void PreRender::post_main(Cb cb, uint64_t delayUs) {
 		if (delayUs)
 			_window->loop()->timer(cb, delayUs);
 		else
 			_window->loop()->post(cb);
 	}
 
-	bool PreRender::post(Cb cb, View *v, uint64_t delayUs) {
+	bool PreRender::post_main(Cb cb, View *v, uint64_t delayUs) {
 		if (v->tryRetain()) {
 			struct Core: CallbackCore<Object> {
 				Cb       cb;
@@ -124,7 +124,7 @@ namespace qk {
 					cb->call(e);
 				}
 			};
-			post(Cb(new Core(cb,v)), delayUs);
+			post_main(Cb(new Core(cb,v)), delayUs);
 			return true;
 		} else {
 			return false;

@@ -35,7 +35,7 @@ public:
 		ipaint.tileModeX = ImagePaint::kDecal_TileMode;
 		ipaint.tileModeY = ImagePaint::kDecal_TileMode;
 		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
-		ipaint.mipmapMode = ImagePaint::kNearest_MipmapMode;
+		ipaint.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
 		ipaint.setCanvas(*_c, rect);
 		paint.image = &ipaint;
 		paint.type = Paint::kBitmap_Type;

@@ -360,6 +360,7 @@
 					'render/gl/glsl/blur7.glsl',
 					'render/gl/glsl/blur13.glsl',
 					'render/gl/glsl/blur19.glsl',
+					'render/gl/glsl/triangles.glsl',
 				],
 				'outputs': [
 					'render/gl/glsl_shaders.h',

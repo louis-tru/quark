@@ -231,7 +231,7 @@ namespace qk {
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
 	List<T, A>::insert(IteratorConst after, const T& item) {
-		auto node = (Node*)A::Default.malloc(sizeof(Node) + sizeof(T));
+		auto node = (Node*)A::shared()->malloc(sizeof(Node) + sizeof(T));
 		new(node + 1) T(item);
 		auto next = node_(after);
 		link_(next->_prev, node);
@@ -243,7 +243,7 @@ namespace qk {
 	template<typename T, typename A>
 	typename List<T, A>::Iterator
 	List<T, A>::insert(IteratorConst after, T&& item) {
-		auto node = (Node*)A::Default.malloc(sizeof(Node) + sizeof(T));
+		auto node = (Node*)A::shared()->malloc(sizeof(Node) + sizeof(T));
 		new(node + 1) T(std::move(item));
 		auto next = node_(after);
 		link_(next->_prev, node);
@@ -367,7 +367,7 @@ namespace qk {
 	template<typename T, typename A>
 	void List<T, A>::erase_(Node* node) {
 		reinterpret_cast<Sham*>(node + 1)->~Sham(); // destructor
-		A::Default.free(node);
+		A::shared()->free(node);
 	}
 
 	template<typename T, typename A>

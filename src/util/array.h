@@ -297,10 +297,10 @@ namespace qk {
 	public:
 		ArrayWeak(): _length(0) {}
 		ArrayWeak(const T* data, uint32_t length)
-			: _ptr(&Allocator::Default,const_cast<T*>(data),length), _length(length) {}
+			: _ptr(Allocator::shared(),const_cast<T*>(data),length), _length(length) {}
 		template<class A2>
 		ArrayWeak(cArray<T, A2>& arr)
-			: _ptr(&Allocator::Default,const_cast<T*>(*arr),arr.length()), _length(arr.length()) {}
+			: _ptr(Allocator::shared(),const_cast<T*>(*arr),arr.length()), _length(arr.length()) {}
 
 		operator bool() const { return _ptr.val != nullptr; }
 		const T* operator*() const { return _ptr.val; }
@@ -360,7 +360,7 @@ namespace qk {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, uint32_t capacity, T* data)
-		: _ptr(&A::Default,data,capacity), _length(length)
+		: _ptr(A::shared(),data,capacity), _length(length)
 	{}
 
 	template<typename T, typename A>

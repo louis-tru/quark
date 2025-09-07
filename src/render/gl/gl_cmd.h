@@ -40,6 +40,9 @@
 
 namespace qk {
 
+	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
+	typedef Canvas::Triangles Triangles;
+
 	class GLC_CmdPack {
 		Qk_HIDDEN_ALL_COPY(GLC_CmdPack);
 	public:
@@ -58,6 +61,7 @@ namespace qk {
 			kImageMask_CmdType,
 			kGradient_CmdType,
 			kColors_CmdType,
+			kTriangles_CmdType,
 			kReadImage_CmdType,
 			kOutputImageBegin_CmdType,
 			kOutputImageEnd_CmdType,
@@ -165,7 +169,15 @@ namespace qk {
 			Option         *opts;  // subcmd option
 			uint32_t       vCount; // vertex count
 			int            subcmd; // subcmd count
-			uint32_t       aaclip;
+			bool           aaclip;
+		};
+
+		struct TrianglesCmd: Cmd {
+			Triangles      triangles;
+			ImagePaint     paint;
+			float          depth;
+			bool           aaclip;
+			~TrianglesCmd();
 		};
 
 		struct ReadImageCmd: Cmd {
@@ -190,6 +202,7 @@ namespace qk {
 			Mat4            root;
 			Mat             mat;
 			BlendMode       mode;
+			~FlushCanvasCmd();
 		};
 
 		struct SetBuffersCmd: Cmd {
@@ -207,13 +220,14 @@ namespace qk {
 		~GLC_CmdPack();
 		bool isHaveCmds();
 		void flush();
-		void setMetrix();
+		void setMatrix();
 		void setBlendMode(BlendMode mode);
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
 		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
+		void drawTriangles(const Triangles& triangles, const ImagePaint *paint);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke);
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);
@@ -242,7 +256,6 @@ namespace qk {
 		GLRender             *_render;
 		GLCanvas             *_canvas;
 		PathvCache           *_cache;
-		bool   _chMatrix; // matrix change state
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	};

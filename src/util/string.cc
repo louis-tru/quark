@@ -182,7 +182,7 @@ namespace qk {
 		cVoid* s1_, uint32_t s1_len,
 		cVoid* s2_, uint32_t s2_len,
 		cVoid* rep_, uint32_t rep_len,
-		int sizeOf, bool all, cAllocator *allocator
+		int sizeOf, bool all, Allocator *allocator
 	) {
 		Init base = {{allocator,0,0},0};
 		uint32_t to = 0;
@@ -304,7 +304,7 @@ namespace qk {
 		Qk_ASSERT(len_ >= 0);
 
 		uint32_t len = len_;
-		Init base{ {&Allocator::Default, val, len + 1}, len };
+		Init base{ {Allocator::shared(), val, len + 1}, len };
 
 		switch (sizeOf) {
 			case 1: break;
@@ -504,8 +504,8 @@ namespace qk {
 		}
 	}
 
-	cAllocator* StringBase::allocator() const {
-		return _val.s.length < 0 ? _val.r->allocator: &Allocator::Default;
+	Allocator* StringBase::allocator() const {
+		return _val.s.length < 0 ? _val.r->allocator: Allocator::shared();
 	}
 
 	uint32_t StringBase::size() const {
@@ -547,7 +547,7 @@ namespace qk {
 		}
 		else if (len > MAX_SHORT_LEN) {
 			//auto l = NewRef(len, 0, nullptr);
-			auto l = NewRef({{&Allocator::Default,0,0},len}, 1);
+			auto l = NewRef({{Allocator::shared(),0,0},len}, 1);
 			//aalloc(l, len + sizeOf, 1);
 			l->allocator->resize((VoidPtr*)l, len + sizeOf, 1);
 			::memcpy(l->val, _val.s.val, _val.s.length); // copy string
@@ -581,7 +581,7 @@ namespace qk {
 			}
 			// collapse
 			auto len = _val.r->length;
-			Ptr ptr{&Allocator::Default,nullptr,0};
+			Ptr ptr{Allocator::shared(),nullptr,0};
 			if (_val.r->ref > 1) { //
 				// aalloc(&ptr, _val.r->capacity, 1);
 				ptr.resize(_val.r->capacity);
@@ -598,7 +598,7 @@ namespace qk {
 			if (s_len == 0) {
 				return Buffer();
 			}
-			Ptr ptr{&Allocator::Default,nullptr,0};
+			Ptr ptr{Allocator::shared(),nullptr,0};
 			// aalloc(&ptr, MAX_SHORT_LEN + 4, 1);
 			ptr.resize(MAX_SHORT_LEN + 4);
 			::memcpy(ptr.val, _val.s.val, MAX_SHORT_LEN + 4);

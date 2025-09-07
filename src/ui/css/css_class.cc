@@ -50,21 +50,6 @@ namespace qk {
 		Qk_ASSERT(host);
 	}
 
-	CStyleSheetsClass::~CStyleSheetsClass() {
-		Qk_ASSERT_EQ(_host, nullptr);
-	}
-
-	void CStyleSheetsClass::release() {
-		auto center = _host->window()->actionCenter();
-		if (center) {
-			_host->preRender().async_call([](auto self, auto arg) {
-				self->removeCSSTransition_Rt(arg.arg);
-			}, center, _host);
-			_host = nullptr;
-		}
-		Object::release();
-	}
-
 	void CStyleSheetsClass::set(cArray<String> &name) {
 		_async_call([](auto ctx, auto val) {
 			Sp<Array<String>> valp(val.arg);

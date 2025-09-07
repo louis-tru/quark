@@ -109,7 +109,7 @@ namespace qk {
 				_allScale = _surfaceScale * scale;
 				_phy2Pixel = 2 / _allScale;
 			}
-			_cmdPack->setMetrix();
+			_cmdPack->setMatrix();
 		}
 
 		void setBlendMode(BlendMode mode) {
@@ -497,12 +497,12 @@ namespace qk {
 
 	void GLCanvas::translate(Vec2 val) {
 		_state->matrix.translate(val);
-		_cmdPack->setMetrix();
+		_cmdPack->setMatrix();
 	}
 
 	void GLCanvas::setTranslate(Vec2 val) {
 		_state->matrix.set_translate(val);
-		_cmdPack->setMetrix();
+		_cmdPack->setMatrix();
 	}
 
 	void GLCanvas::scale(Vec2 val) {
@@ -512,7 +512,7 @@ namespace qk {
 
 	void GLCanvas::rotate(float z) {
 		_state->matrix.rotate(z);
-		_cmdPack->setMetrix();
+		_cmdPack->setMatrix();
 	}
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
@@ -672,6 +672,12 @@ namespace qk {
 			Qk_ASSERT(img->count(), "GLCanvas::drawTextBlob img->count()");
 			_this->drawTextImage(*blob->out.image, blob->out.top, genSize / fontSize, origin, paint);
 		}
+	}
+
+	void GLCanvas::drawTriangles(const Triangles& triangles, const ImagePaint &paint, BlendMode mode) {
+		_this->setBlendMode(mode); // switch blend mode
+		_cmdPack->drawTriangles(triangles, &paint);
+		_this->zDepthNext();
 	}
 
 	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {

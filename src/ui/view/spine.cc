@@ -32,6 +32,7 @@
 #include "../../util/fs.h"
 #include "../painter.h"
 #include "../app.h"
+#include "../window.h"
 #include <spine/spine.h>
 
 using namespace spine;
@@ -51,28 +52,123 @@ namespace qk {
 #define VLA_FREE(arr)
 #endif
 
-	static uint16_t quadTriangles[6] = {0, 1, 2, 2, 3, 0};
+	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
+	typedef Canvas::Triangles Triangles;
 
-	struct V3F_T2F_C4B_C4B {
-		/// vertices (3F)
-		Vec3     vertices;          // 12 bytes
-		// tex coords (2F)
-		Vec2     texCoords;         // 8 bytes
-		/// color (4B)
-		Color    color;             // 4 bytes
-		/// color2 (4B)
-		Color    color2;            // 4 bytes
+	class AttachmentVertices {
+	public:
+		AttachmentVertices(AtlasPage* page, uint16_t *triangles, int vertCount, int indexCount)
+			: _source(static_cast<ImageSource*>(page->getRendererObject()))
+			, _width(page->width), _height(page->height)
+			, _pma(page->pma)
+		{
+			if (_source)
+				_source->retain();
+			_triangles.verts = Allocator::shared()->alloc<V3F_T2F_C4B_C4B>(vertCount);
+			_triangles.vertCount = vertCount;
+			_triangles.indices = triangles;
+			_triangles.indexCount = indexCount;
+			_paint.image = _source;
+			_paint.filterMode = page->magFilter == TextureFilter_Linear ?
+				ImagePaint::kLinear_FilterMode: ImagePaint::kNearest_FilterMode;
+
+			switch (page->minFilter) {
+				case TextureFilter_MipMapLinearNearest:
+					_paint.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
+					break;
+				case TextureFilter_MipMapNearestLinear:
+					_paint.mipmapMode = ImagePaint::kNearestLinear_MipmapMode;
+					break;
+				case TextureFilter_MipMapLinearLinear:
+				_paint.mipmapMode = ImagePaint::kLinear_MipmapMode;
+					break;
+				default:
+					_paint.mipmapMode = ImagePaint::kNone_MipmapMode;
+					break;
+			}
+
+			switch (page->uWrap) {
+				case TextureWrap_MirroredRepeat:
+					_paint.tileModeX = ImagePaint::kMirror_TileMode;
+					break;
+				case TextureWrap_ClampToEdge:
+					_paint.tileModeX = ImagePaint::kClamp_TileMode;
+					break;
+				case TextureWrap_Repeat:
+					_paint.tileModeX = ImagePaint::kRepeat_TileMode;
+					break;
+			}
+
+			switch (page->vWrap) {
+				case TextureWrap_MirroredRepeat:
+					_paint.tileModeY = ImagePaint::kMirror_TileMode;
+					break;
+				case TextureWrap_ClampToEdge:
+					_paint.tileModeY = ImagePaint::kClamp_TileMode;
+					break;
+				case TextureWrap_Repeat:
+					_paint.tileModeY = ImagePaint::kRepeat_TileMode;
+					break;
+			}
+		}
+
+		~AttachmentVertices() {
+			Allocator::shared()->free(_triangles.verts);
+			if (_source)
+				_source->release();
+		}
+
+		Triangles _triangles;
+		ImageSource *_source;
+		ImagePaint _paint;
+		int _width, _height;
+		bool _pma;
 	};
 
-	struct Triangles {
-		/**Vertex data pointer.*/
-		V3F_T2F_C4B_C4B *verts = nullptr;
-		/**Index data pointer.*/
-		uint16_t *indices = nullptr;
-		/**The number of vertices.*/
-		uint32_t vertCount = 0;
-		/**The number of indices.*/
-		uint32_t indexCount = 0;
+	static uint16_t quadTriangles[6] = {0, 1, 2, 2, 3, 0};
+
+	class QkAtlasAttachmentLoader: public AtlasAttachmentLoader {
+	public:
+		QkAtlasAttachmentLoader(Atlas *atlas): AtlasAttachmentLoader(atlas) {}
+
+		void configureAttachment(Attachment *attachment) override {
+			if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
+				setAttachmentVertices((RegionAttachment *) attachment);
+			} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
+				setAttachmentVertices((MeshAttachment *) attachment);
+			}
+		}
+
+		static void deleteAttachmentVertices(void *vertices) {
+			delete (AttachmentVertices *) vertices;
+		}
+
+		void setAttachmentVertices(RegionAttachment *attachment) {
+			auto region = (AtlasRegion *) attachment->getRendererObject();
+			auto attachmentVertices = new AttachmentVertices(region->page, quadTriangles, 4, 6);
+			V3F_T2F_C4B_C4B *vertices = attachmentVertices->_triangles.verts;
+			for (int i = 0, ii = 0; i < 4; ++i, ii += 2) {
+				vertices[i].texCoords[0] = attachment->getUVs()[ii];
+				vertices[i].texCoords[1] = attachment->getUVs()[ii + 1];
+			}
+			attachment->setRendererObject(attachmentVertices, deleteAttachmentVertices);
+		}
+
+		void setAttachmentVertices(MeshAttachment *attachment) {
+			auto region = (AtlasRegion *) attachment->getRendererObject();
+			auto attachmentVertices = new AttachmentVertices(
+				region->page,
+				attachment->getTriangles().buffer(),
+				attachment->getWorldVerticesLength() >> 1,
+				attachment->getTriangles().size()
+			);
+			V3F_T2F_C4B_C4B *vertices = attachmentVertices->_triangles.verts;
+			for (int i = 0, ii = 0, nn = attachment->getWorldVerticesLength(); ii < nn; ++i, ii += 2) {
+				vertices[i].texCoords[0] = attachment->getUVs()[ii];
+				vertices[i].texCoords[1] = attachment->getUVs()[ii + 1];
+			}
+			attachment->setRendererObject(attachmentVertices, deleteAttachmentVertices);
+		}
 	};
 
 	class QkTextureLoader: public TextureLoader {
@@ -121,7 +217,7 @@ namespace qk {
 
 	Sp<SkeletonData> SkeletonData::Make(cBuffer &skeletonBuff, cBuffer &atlasBuff, cString &dir, float scale) {
 		Sp<Atlas> atlas = new Atlas(*atlasBuff, atlasBuff.length(), dir.c_str(), &textureLoader, true);
-		Sp<AtlasAttachmentLoader> loader = new AtlasAttachmentLoader(*atlas);
+		Sp<AtlasAttachmentLoader> loader = new QkAtlasAttachmentLoader(*atlas);
 
 		SkeletonBinary binary(*loader);
 		binary.setScale(scale);
@@ -147,13 +243,12 @@ namespace qk {
 	class Spine::SkeletonWraper: public Object {
 	public:
 		SkeletonWraper(Spine *host, SkeletonData *data)
-			: _host(host), _data(data)
-			, _skdata(data->_data), _skeleton(nullptr)
-			, _clipper(nullptr), _effect(nullptr)
-		{
-			_skeleton = new Skeleton(data->_data);
-			_clipper = new SkeletonClipping();
-		}
+			: _host(host), _wrapData(data), _data(_wrapData->_data)
+			, _skeleton(_data)
+			, _stateData(_data)
+			, _state(&_stateData)
+			, _clipper(), _effect(nullptr)
+		{}
 		~SkeletonWraper() {
 			Releasep(_skeleton);
 			Releasep(_clipper);
@@ -161,20 +256,25 @@ namespace qk {
 		}
 		void destroy() {
 			_host->preRender().async_call([](auto self, auto arg) {
-				self->Object::destroy();
+				self->Object::destroy(); // safe destroy on render thread
 			}, this, 0);
 		}
 		Spine *_host;
-		Sp<SkeletonData> _data;
-		spine::SkeletonData* _skdata;
-		spine::Skeleton *_skeleton;
-		spine::SkeletonClipping *_clipper;
+		Sp<SkeletonData> _wrapData;
+		spine::SkeletonData* _data;
+		spine::Skeleton _skeleton;
+		spine::AnimationStateData _stateData;
+		spine::AnimationState _state;
+		spine::SkeletonClipping _clipper;
 		spine::VertexEffect *_effect;
 	};
 
+	#define _IfWraper(...) if (_wraper) return __VA_ARGS__; auto self = _wraper.load()
+
 	Spine::Spine(): SpriteView()
 		, _wraper(nullptr)
-		, _startSlotIndex(0), _endSlotIndex(std::numeric_limits<int>::max())
+		, _start_slot(0), _end_slot(0xffffffffu) // all slots
+		, _speed(1.0f)
 	{}
 
 	void Spine::destroy() {
@@ -184,22 +284,146 @@ namespace qk {
 	}
 
 	void Spine::set_skeleton(SkeletonData *data) {
-		if (!_wraper || _wraper.load()->_data.get() != data) {
-			if (_wraper) {
-				Release(_wraper.load());
-				_wraper.store(nullptr);
-			}
-			if (data) {
-				_wraper.store(NewRetain<SkeletonWraper>(this, data));
-			}
+		if (_wraper) {
+			if (_wraper.load()->_wrapData == data)
+				return;
+			Release(_wraper.load());
+			_wraper.store(nullptr);
 		}
+		if (!data)
+			return;
+		auto self = NewRetain<SkeletonWraper>(this, data);
+		_wraper.store(self);
+		self->_skeleton.setToSetupPose();
+		self->_skeleton.updateWorldTransform();
+		self->_state.setRendererObject(this);
+		self->_state.setListener([](AnimationState *state, spine::EventType type, TrackEntry *entry, spine::Event *event) {
+			// ((Spine *) state->getRendererObject())->onAnimationStateEvent(entry, type, event);
+		});
+		// Pre update once
+		run_task(0, 0);
 	}
 
 	SkeletonData* Spine::skeleton() {
+		_IfWraper(nullptr);
+		return self->_wrapData.get();
+	}
+
+	void Spine::set_start_slot(uint32_t val) {
+		_start_slot = val;
+	}
+
+	void Spine::set_end_slot(uint32_t val) {
+		_end_slot = val;
+	}
+
+	void Spine::set_to_setup_pose() {
+		_IfWraper();
+		self->_skeleton.setToSetupPose();
+	}
+
+	void Spine::set_bones_to_setup_pose() {
+		_IfWraper();
+		self->_skeleton.setBonesToSetupPose();
+	}
+
+	void Spine::set_slots_to_setup_pose() {
+		_IfWraper();
+		self->_skeleton.setSlotsToSetupPose();
+	}
+
+	String Spine::skin() const {
+		_IfWraper(String());
+		auto &name = self->_skeleton.getSkin()->getName();
+		return String(name.buffer(), name.length());
+	}
+
+	void Spine::set_skin(String val) {
+		_IfWraper();
+		self->_skeleton.setSkin(val.isEmpty() ? nullptr: val.c_str());
+	}
+
+	void Spine::set_speed(float val) {
+		_speed = Qk_Min(1e2, Qk_Max(val, 0.01));
+	}
+
+	void Spine::set_attachment(cString &slotName, cString &attachmentName) {
+		_IfWraper();
+		self->_skeleton.setAttachment(slotName.c_str(),
+			attachmentName.isEmpty() ? nullptr: attachmentName.c_str()
+		);
+	}
+
+	float Spine::default_mix() const {
 		if (_wraper) {
-			return _wraper.load()->_data.get();
+			return _wraper.load()->_stateData.getDefaultMix();
 		}
-		return nullptr;
+		return 0.f;
+	}
+
+	void Spine::set_default_mix(float val) {
+		_IfWraper();
+		self->_stateData.setDefaultMix(val);
+	}
+
+	void Spine::set_mix(cString &fromAnimation, cString &toAnimation, float duration) {
+		_IfWraper();
+		self->_stateData.setMix(fromAnimation.c_str(), toAnimation.c_str(), duration);
+	}
+
+	TrackEntry* Spine::set_animation(int trackIndex, cString &name, bool loop) {
+		_IfWraper(nullptr);
+		Animation *animation = self->_data->findAnimation(name.c_str());
+		if (!animation) {
+			Qk_Log("Spine: Animation not found: %s", name.c_str());
+			return nullptr;
+		}
+		return self->_state.setAnimation(trackIndex, animation, loop);
+	}
+
+	TrackEntry *Spine::add_animation(int trackIndex, cString &name, bool loop, float delay) {
+		_IfWraper(nullptr);
+		Animation *animation = self->_data->findAnimation(name.c_str());
+		if (!animation) {
+			Qk_Log("Spine: Animation not found: %s", name.c_str());
+			return nullptr;
+		}
+		return self->_state.addAnimation(trackIndex, animation, loop, delay);
+	}
+
+	TrackEntry *Spine::set_empty_animation(int trackIndex, float mixDuration) {
+		_IfWraper(nullptr);
+		return self->_state.setEmptyAnimation(trackIndex, mixDuration);
+	}
+
+	void Spine::set_empty_animations(float mixDuration) {
+		_IfWraper();
+		self->_state.setEmptyAnimations(mixDuration);
+	}
+
+	TrackEntry *Spine::add_empty_animation(int trackIndex, float mixDuration, float delay) {
+		_IfWraper(nullptr);
+		return self->_state.addEmptyAnimation(trackIndex, mixDuration, delay);
+	}
+
+	Animation*  Spine::find_animation(cString &name) const {
+		_IfWraper(nullptr);
+		return self->_data->findAnimation(name.c_str());
+	}
+
+	TrackEntry* Spine::get_current(int trackIndex) {
+		_IfWraper(nullptr);
+		return self->_state.getCurrent(trackIndex);
+	}
+
+	void Spine::clear_tracks() {
+		_IfWraper();
+		self->_state.clearTracks();
+	}
+
+	void Spine::clear_track(int trackIndex) {
+		_IfWraper();
+		self->_state.clearTrack(trackIndex);
 	}
 
 	ViewType Spine::viewType() const {
@@ -209,10 +433,7 @@ namespace qk {
 	Vec2 Spine::client_size() {
 		auto inl = _wraper.load();
 		if (inl) {
-			return {
-				inl->_skdata->getWidth(),
-				inl->_skdata->getHeight(),
-			};
+			return { inl->_data->getWidth(), inl->_data->getHeight() };
 		}
 		return Vec2();
 	}
@@ -226,14 +447,24 @@ namespace qk {
 	}
 
 	bool Spine::run_task(int64_t time, int64_t delta) {
-		auto inl = _wraper.load();
-		if (inl) {
-			inl->_skeleton->update(delta * 0.000001f/* delta in seconds */);
-			return inl->_skeleton->getColor().a != 0;
+		auto wraper = _wraper.load();
+		if (wraper) {
+			auto deltaTime = _speed * 0.000001f * delta; /* delta in seconds */
+			wraper->_skeleton.update(deltaTime);
+
+			// if (_preUpdateListener) _preUpdateListener(this);
+			wraper->_state.update(deltaTime);
+			wraper->_state.apply(wraper->_skeleton);
+
+			wraper->_skeleton.updateWorldTransform();
+			// if (_postUpdateListener) _postUpdateListener(this);
+
+			return wraper->_skeleton.getColor().a != 0;
 		}
 		return false;
 	}
 
+	// Draw skeleton
 	namespace {
 		Rect computeBoundingRect(const float *coords, int vertexCount) {
 			Qk_ASSERT(coords);
@@ -281,51 +512,6 @@ namespace qk {
 			return false;
 		}
 
-		int computeTotalCoordCount(Skeleton &skeleton, int startSlotIndex, int endSlotIndex) {
-			int coordCount = 0;
-			for (size_t i = 0; i < skeleton.getSlots().size(); ++i) {
-				Slot &slot = *skeleton.getSlots()[i];
-				if (nothingToDraw(slot, startSlotIndex, endSlotIndex)) {
-					continue;
-				}
-				Attachment *const attachment = slot.getAttachment();
-				if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
-					coordCount += 8;
-				} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
-					MeshAttachment *const mesh = static_cast<MeshAttachment *>(attachment);
-					coordCount += mesh->getWorldVerticesLength();
-				}
-			}
-			return coordCount;
-		}
-
-		void transformWorldVertices(float *dstCoord, int coordCount,
-			Skeleton &skeleton, int startSlotIndex, int endSlotIndex)
-		{
-			float *dstPtr = dstCoord;
-			float *const dstEnd = dstCoord + coordCount;
-
-			for (size_t i = 0; i < skeleton.getSlots().size(); ++i) {
-				Slot &slot = *skeleton.getDrawOrder()[i];// match the draw order of SkeletonRenderer::Draw
-				if (nothingToDraw(slot, startSlotIndex, endSlotIndex)) {
-					continue;
-				}
-				Attachment *const attachment = slot.getAttachment();
-				if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
-					RegionAttachment *const region = static_cast<RegionAttachment *>(attachment);
-					Qk_ASSERT(dstPtr + 8 <= dstEnd);
-					region->computeWorldVertices(slot.getBone(), dstPtr, 0, 2);
-					dstPtr += 8;
-				} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
-					MeshAttachment *const mesh = static_cast<MeshAttachment *>(attachment);
-					Qk_ASSERT(dstPtr + mesh->getWorldVerticesLength() <= dstEnd);
-					mesh->computeWorldVertices(slot, 0, mesh->getWorldVerticesLength(), dstPtr, 0, 2);
-					dstPtr += mesh->getWorldVerticesLength();
-				}
-			}
-			Qk_ASSERT_EQ(dstPtr, dstEnd);
-		}
-
 		BlendMode getBlendMode(spine::BlendMode blendMode, bool premultipliedAlpha) {
 			switch (blendMode) {
 				case BlendMode_Additive:
@@ -342,106 +528,100 @@ namespace qk {
 		Color ColorToColor4B(const spine::Color &color) {
 			return Color(color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f);
 		}
-	}
+
+		void premultipliedAlpha(spine::Color &color) {
+			color.r *= color.a;
+			color.g *= color.a;
+			color.b *= color.a;
+		}
+
+		void drawTriangles(Triangles &triangles,
+			AttachmentVertices *attachment, Painter *painter, BlendMode blend
+		) {
+			Qk_ASSERT_NE(triangles.indexCount, 0);
+			Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
+			auto src = attachment->_source;
+			if (src->load()) {
+				painter->canvas()->drawTriangles(triangles, attachment->_paint, blend);
+			} else {
+				src->onState().once<Window>([](auto e, auto ctx) {
+					if (e.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
+						if (ctx->root())
+							ctx->preRender().mark_render(); // mark rerender
+					}
+				}, painter->window());
+			}
+		}
+	} // namespace {
 
 	void Spine::draw(Painter *painter) {
-		auto wraper = _wraper.load();
-		auto skeleton = wraper->_skeleton;
+		auto self = _wraper.load();
 		// Early exit if the skeleton is invisible.
-		if (skeleton->getColor().a == 0) {
+		if (!self || self->_skeleton.getColor().a == 0) {
 			return painter->visitView(this, matrix());
 		}
 
-		int coordCount = computeTotalCoordCount(*skeleton, _startSlotIndex, _endSlotIndex);
-		if (coordCount == 0) {
-			return painter->visitView(this, matrix());
-		}
-		Qk_ASSERT_EQ(coordCount % 2, 0);
-
-		VLA(float, worldCoords, coordCount);
-		transformWorldVertices(worldCoords, coordCount, *skeleton, _startSlotIndex, _endSlotIndex);
-
-#if CC_USE_CULLING
 		// Rect bb = computeBoundingRect(worldCoords, coordCount / 2);
 		// if (cullRectangle(renderer, transform, bb)) {
 		// 	VLA_FREE(worldCoords);
 		// 	return;
 		// }
-#endif
 
-		float *worldCoordPtr = worldCoords;
-		auto clipper = wraper->_clipper;
-		auto effect = wraper->_effect;
+		auto _matrix = painter->_matrix;
+		painter->_matrix = &matrix();
+		painter->canvas()->setMatrix(matrix());
+
+		auto skeleton = &self->_skeleton;
+		auto clipper = &self->_clipper;
+		auto effect = self->_effect;
 		if (effect)
 			effect->begin(*skeleton);
+
 		spine::Color color, darkColor;
-		AtlasRegion *region;
+		AttachmentVertices *attachmentV, *lastAttachmentV = nullptr;
+		BlendMode lastBlendFunc;
+		Triangles cmdTriangles;
 
-		Array<V3F_T2F_C4B_C4B> vertices;
-
-		auto allocateTriangles = [](
-			Triangles &triangles,
-			uint16_t *indices,
-			float *uvs,
-			float *worldCoord,
-			int verticesCount, int indicesCount
-		) {
-			// triangles.verts = batch->allocateVertices(attachmentVertices->_triangles.vertCount);
-			triangles.indices = indices;
-			triangles.vertCount = verticesCount;
-			triangles.indexCount = indicesCount;
-			// Copy world vertices to triangle vertices.
-			auto uvsv = (Vec2*)uvs;
-			auto verts = triangles.verts;
-			for (int i = 0; i < verticesCount; ++i, ++verts, worldCoord+=2) {
-				verts->vertices[0] = worldCoord[0];
-				verts->vertices[1] = worldCoord[1];
-				verts->texCoords = uvsv[i]; // Copy coord uvs
-			}
-		};
+		auto tmpBuff = &painter->_tempBuff; // Temp memory buffer allocation
+		auto allocator = painter->_tempAllocator;
 
 		for (int i = 0, n = skeleton->getSlots().size(); i < n; ++i) {
 			Slot *slot = skeleton->getDrawOrder()[i];
 
-			if (nothingToDraw(*slot, _startSlotIndex, _endSlotIndex)) {
+			if (nothingToDraw(*slot, _start_slot, _end_slot)) {
 				clipper->clipEnd(*slot);
 				continue;
 			}
-			Triangles triangles;
 
-			if (slot->getAttachment()->getRTTI().isExactly(RegionAttachment::rtti)) {
-				auto attachment = (RegionAttachment *) slot->getAttachment();
-				region = (AtlasRegion *) attachment->getRendererObject();
-				color = attachment->getColor();
-				allocateTriangles(
-					triangles, // output triangles
-					quadTriangles, // index buffer
-					attachment->getUVs().buffer(), // UV buffer
-					worldCoordPtr, // world coordinates
-					4, // vertex count
-					6  // index count
-				);
-				worldCoordPtr += 8;
-			}
-			else if (slot->getAttachment()->getRTTI().isExactly(MeshAttachment::rtti)) {
-				auto attachment = (MeshAttachment *) slot->getAttachment();
-				region = (AtlasRegion *) attachment->getRendererObject();
-				color = attachment->getColor();
-				allocateTriangles(
-					triangles, // output triangles
-					attachment->getTriangles().buffer(), // index buffer
-					attachment->getUVs().buffer(), // UV buffer
-					worldCoordPtr, // world coordinates
-					attachment->getWorldVerticesLength() >> 1, // vertex count
-					attachment->getTriangles().size() // index count
-				);
-				worldCoordPtr += attachment->getWorldVerticesLength();
-			}
-			else if (slot->getAttachment()->getRTTI().isExactly(ClippingAttachment::rtti)) {
-				clipper->clipStart(*slot, (ClippingAttachment *) slot->getAttachment());
+			auto attachment = slot->getAttachment();
+			if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
+				auto region = (RegionAttachment *)attachment;
+				attachmentV = (AttachmentVertices *) region->getRendererObject();
+				color = region->getColor();
+				Vec2 dstPtr[4];
+				region->computeWorldVertices(slot->getBone(), dstPtr->val, 0, 2);
+				auto verts = attachmentV->_triangles.verts;
+				for (int i = 0; i < 4; ++i, verts++) {
+					verts->vertices[0] = dstPtr[i][0];
+					verts->vertices[1] = dstPtr[i][1];
+				}
+			} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
+				auto mesh = (MeshAttachment *)attachment;
+				attachmentV = (AttachmentVertices *) mesh->getRendererObject();
+				color = mesh->getColor();
+				tmpBuff->reset(mesh->getWorldVerticesLength() * sizeof(float));
+				float *dstPtr = (float *) tmpBuff->val();
+				mesh->computeWorldVertices(*slot, 0, mesh->getWorldVerticesLength(), dstPtr, 0, 2);
+				auto verts = attachmentV->_triangles.verts;
+				auto vertCount = attachmentV->_triangles.vertCount;
+				for (int i = 0; i < vertCount; ++i, verts++, dstPtr+=2) {
+					verts->vertices[0] = dstPtr[0];
+					verts->vertices[1] = dstPtr[1];
+				}
+			} else if (attachment->getRTTI().isExactly(ClippingAttachment::rtti)) {
+				clipper->clipStart(*slot, (ClippingAttachment *) attachment);
 				continue;
-			}
-			else {
+			} else {
 				clipper->clipEnd(*slot);
 				continue;
 			}
@@ -456,13 +636,19 @@ namespace qk {
 			color.b *= skeleton->getColor().b * slot->getColor().b;
 			darkColor = slot->hasDarkColor() ? slot->getDarkColor(): spine::Color();
 
-			auto blendFunc = getBlendMode(slot->getData().getBlendMode(), region->page->pma);
+			// (r0*r1)*(a0*a1) == (r0*a0)*(r1*a1)
+			if (attachmentV->_pma) { // premultiplied alpha
+				if (slot->hasDarkColor())
+					premultipliedAlpha(darkColor);
+				premultipliedAlpha(color);
+			}
 
+			auto blendFunc = getBlendMode(slot->getData().getBlendMode(), attachmentV->_pma);
+			auto triangles = attachmentV->_triangles;
 			if (clipper->isClipping()) {
 				clipper->clipTriangles(
 					(float*)&triangles.verts[0].vertices,
-					triangles.indices,
-					triangles.indexCount,
+					triangles.indices, triangles.indexCount,
 					(float*)&triangles.verts[0].texCoords,
 					sizeof(V3F_T2F_C4B_C4B) / 4
 				);
@@ -471,12 +657,12 @@ namespace qk {
 					clipper->clipEnd(*slot);
 					continue;
 				}
+
 				triangles.vertCount = clipper->getClippedVertices().size() / 2;
 				triangles.indexCount = clipper->getClippedTriangles().size();
-				// triangles.verts = batch->allocateVertices(triangles.vertCount);
-				// triangles.indices = batch->allocateIndices(triangles.indexCount);
-				memcpy(triangles.indices, clipper->getClippedTriangles().buffer(),
-					sizeof(uint16_t) * clipper->getClippedTriangles().size());
+				triangles.indices = clipper->getClippedTriangles().buffer();
+				tmpBuff->reset(triangles.vertCount * sizeof(V3F_T2F_C4B_C4B));
+				triangles.verts = reinterpret_cast<V3F_T2F_C4B_C4B*>(tmpBuff->val());
 
 				auto verts = clipper->getClippedVertices().buffer();
 				auto uvs = clipper->getClippedUVs().buffer();
@@ -507,22 +693,49 @@ namespace qk {
 					vertex->color2 = darkColor4B;
 				}
 			}
+
+			Qk_ASSERT_EQ(triangles.indexCount % 3, 0); // must be triangles
+			// global vertices and indices buffer
+			// merge the same texture attachment to reduce drawcall
+
+			if (lastAttachmentV && lastAttachmentV->_source != attachmentV->_source ||
+					lastAttachmentV->_paint.bitfields != attachmentV->_paint.bitfields ||
+					lastBlendFunc != blendFunc
+			) {
+				drawTriangles(cmdTriangles, lastAttachmentV, painter, lastBlendFunc);
+				cmdTriangles = Triangles(); // reset
+			}
+			auto lastVertCount = cmdTriangles.vertCount;
+			auto lastIndexCount = cmdTriangles.indexCount;
+			cmdTriangles.verts = allocator[0].realloc(cmdTriangles.verts, lastVertCount + triangles.vertCount);
+			cmdTriangles.indices = allocator[1].realloc(cmdTriangles.indices, lastIndexCount + triangles.indexCount);
+			memcpy(cmdTriangles.verts + lastVertCount, triangles.verts, triangles.vertCount * sizeof(V3F_T2F_C4B_C4B));
+
+			if (lastVertCount) {
+				// The indeices is to be copied and rerejusted to the new vertices array
+				for (int i = 0, ii = lastIndexCount; i < triangles.indexCount; ++i, ++ii)
+					cmdTriangles.indices[ii] = triangles.indices[i] + lastVertCount;
+			} else {
+				memcpy(cmdTriangles.indices, triangles.indices, triangles.indexCount * sizeof(uint16_t));
+			}
+			cmdTriangles.vertCount += triangles.vertCount;
+			cmdTriangles.indexCount += triangles.indexCount;
+			lastAttachmentV = attachmentV;
+			lastBlendFunc = blendFunc;
 			clipper->clipEnd(*slot);
 		}
 		clipper->clipEnd();
 
 		if (effect)
 			effect->end();
-		VLA_FREE(worldCoords);
 
-		auto canvas = painter->canvas();
-		auto _matrix = painter->_matrix;
-		painter->_matrix = &matrix();
-		canvas->setMatrix(matrix());
-		// TODO ...
+		// commit last triangles
+		if (lastAttachmentV) {
+			drawTriangles(cmdTriangles, lastAttachmentV, painter, lastBlendFunc);
+		}
 		painter->visitView(this);
 		painter->_matrix = _matrix;
-		canvas->setMatrix(*_matrix); // restore previous matrix
+		painter->canvas()->setMatrix(*_matrix); // restore previous matrix
 	}
 
 }

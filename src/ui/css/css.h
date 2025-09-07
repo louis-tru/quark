@@ -207,9 +207,6 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @thread Rt apply parent ssc
 
 		CStyleSheetsClass(View *host);
-		~CStyleSheetsClass();
-
-		virtual void release() override;
 
 		void set(cArray<String> &name); //!< Calling in the main loop
 		void add(cString &name); //!< Calling in the main loop

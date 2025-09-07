@@ -11,13 +11,12 @@ layout (std140) uniform viewMatrixBlock {
 };
 
 #ifdef Qk_SHADER_VERT
-// in                          vec4  color; //!< {GL_UNSIGNED_BYTE}
+uniform                     float depth;
 /*layout(location=0)*/in    vec2  vertexIn;
 in                          float aafuzzIn; // anti alias fuzz
 out                         float aafuzz;
-uniform                     float depth;
 #else
+uniform                sampler2D  aaclip; // anti alias clip texture buffer
 in                     lowp float aafuzz;
-uniform  sampler2D                aaclip; // anti alias clip texture buffer
 layout(location=0) out lowp vec4  fragColor;
 #endif

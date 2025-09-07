@@ -45,6 +45,7 @@ namespace qk {
 
 	class Qk_EXPORT Painter: public Object {
 	public:
+		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(Canvas*, canvas);
 		Qk_DEFINE_PROP_GET(PathvCache*, cache);
 		Qk_DEFINE_PROP_GET(float, opacity);
@@ -74,12 +75,14 @@ namespace qk {
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);
 	private:
-		Window     *_window;
 		Render     *_render;
 		uint32_t   _mark_recursive;
 		Vec2       _origin; // box origin and fix aa stroke width
 		float      _AAShrink; // fix rect stroke width for AA
 		const Mat *_matrix;
+		Buffer     _tempBuff;
+		LinearAllocator _tempAllocator[2]; // Reset when starting every frame
+
 		friend class Matrix;
 		friend class Sprite;
 		friend class Spine;

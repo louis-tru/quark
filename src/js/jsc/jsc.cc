@@ -1049,7 +1049,7 @@ namespace qk { namespace js {
 		if (buff.length()) {
 			arr = JSObjectMakeTypedArrayWithBytesNoCopy(
 				ctx, kJSTypedArrayTypeUint8Array, *buff, buff.length(), [](void* bytes, void* data) {
-				Allocator::Default.free(bytes);
+				Allocator::shared()->free(bytes);
 			}, nullptr, OK(nullptr));
 		} else {
 			arr = JSObjectMakeTypedArray(ctx, kJSTypedArrayTypeUint8Array, 0, OK(nullptr));
@@ -1111,7 +1111,7 @@ namespace qk { namespace js {
 		ENV(this);
 		Buffer buff(len);
 		auto obj = JSObjectMakeArrayBufferWithBytesNoCopy(ctx, *buff, len, [](void* bytes, void* data){
-			Allocator::Default.free(bytes);
+			Allocator::shared()->free(bytes);
 		}, nullptr, OK(nullptr));
 		DCHECK(obj);
 		buff.collapse();

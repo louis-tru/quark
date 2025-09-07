@@ -41,6 +41,7 @@
 #endif
 
 namespace qk {
+	static Array<Window*> memberRecycle;
 
 	UILock::UILock(Window *win): _win(win), _lock(true) {
 		win->_renderMutex.lock();
@@ -118,21 +119,31 @@ namespace qk {
 	}
 
 	Window* Window::Make(Options opts) {
-		return new Window(opts);
+		if (memberRecycle.length()) {
+			auto win = memberRecycle.back();
+			memberRecycle.pop();
+			return new (win) Window(opts);
+		} else {
+			return new Window(opts);
+		}
 	}
 
-	Window::~Window() {
+	void Window::destroy() {
 		Qk_ASSERT_RAW(_render == nullptr);
+		// noop, Reserve memory to avoid accidental references to it by subsequent objects
+		// and add memory to cache for reuse
+		memberRecycle.push(this);
+		this->~Window(); // Only call destructor, do not call free memory
 	}
 
 	void Window::close() {
-		if (Destroy()) {
+		if (tryClose()) {
 			Qk_Trigger(Close);
 			release(); // release ref count from host windows
 		}
 	}
 
-	bool Window::Destroy() {
+	bool Window::tryClose() {
 		UILock lock(this); // lock ui
 		if (!_root)
 			return false;

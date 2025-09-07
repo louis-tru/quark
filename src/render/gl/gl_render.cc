@@ -211,8 +211,11 @@ namespace qk {
 			case ImagePaint::kNone_MipmapMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 				break;
-			case ImagePaint::kNearest_MipmapMode:
+			case ImagePaint::kLinearNearest_MipmapMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+				break;
+			case ImagePaint::kNearestLinear_MipmapMode:
+				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 				break;
 			case ImagePaint::kLinear_MipmapMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -438,10 +441,14 @@ namespace qk {
 		}
 		for (auto s = &_shaders.blur, e = s + 5; s < e; s++) {
 			glUseProgram(s->shader);
-			glUniform1i(s->image, 0);
+			glUniform1i(s->image, 0); // set texture slot
+		}
+		for (auto s = &_shaders.triangles, e = s + 2; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
 		}
 		glUseProgram(_shaders.vportCp.shader);
-		glUniform1i(_shaders.vportCp.image, 0);
+		glUniform1i(_shaders.vportCp.image, 0); // set texture slot
 
 		glEnable(GL_BLEND); // enable color blend
 		gl_set_blend_mode(kSrcOver_BlendMode); // set default color blend mode

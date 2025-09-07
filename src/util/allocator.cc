@@ -38,52 +38,116 @@
 namespace qk {
 	typedef Allocator::Ptr<void> VoidPtr;
 
+	/// Round up to the next power of 2
+	/// @param size Input value
+	/// @return The smallest power of 2 >= size
 	uint32_t upPow2(uint32_t size) {
-		// Round up to next power of 2
+		// e.g., 5 -> 8, 16 -> 16, 17 -> 32
 		// return powf(2, ceilf(log2f(size)));
-		return 1u << (64 - __builtin_clzll(size-1)); // 向上取最近的2的幂
+		return 1u << (64 - __builtin_clzll(size - 1)); 
 	}
 
-	static void* Allocator_malloc(uint32_t size) {
-		return ::malloc(size);
+	/**
+	 * @brief Aligns a value upwards to the nearest multiple of alignment.
+	 * @param ptr Original value
+	 * @param alignment Alignment (power of two)
+	 * @return Aligned value
+	 */
+	uint32_t alignUp(uint32_t ptr, uint32_t alignment) {
+		return (ptr + (alignment - 1)) & ~(alignment - 1);
 	}
 
-	static void* Allocator_realloc(void *ptr, uint32_t size) {
-		return ::realloc(ptr, size);
-	}
+	/**
+	 * @class AllocatorInl
+	 * @brief Default allocator implementation using system malloc/free/realloc.
+	 */
+	struct AllocatorInl: public Allocator {
+		void* _malloc(uint32_t size) {
+			return ::malloc(size);
+		}
+		void* _mrealloc(void* ptr, uint32_t size) {
+			return ::realloc(ptr, size);
+		}
+		void _free(void* ptr) {
+			::free(ptr);
+		}
+	};
 
-	static void Allocator_free(void* ptr) {
-		::free(ptr);
-	}
+	/**
+	 * @brief Constructs a default Allocator using system allocation functions.
+	 */
+	Allocator::Allocator()
+		: Allocator((void*(Allocator::*)(uint32_t))&AllocatorInl::_malloc,
+				(void* (Allocator::*)(void*, uint32_t))&AllocatorInl::_mrealloc,
+				(void (Allocator::*)(void*))&AllocatorInl::_free) {}
 
-	static void Allocator_extend(cAllocator *self, VoidPtr *ptr, uint32_t size, uint32_t sizeOf) {
+	/**
+	 * @brief Constructs an Allocator with custom allocation function pointers.
+	 * @param malloc Pointer to malloc-like function
+	 * @param realloc Pointer to realloc-like function
+	 * @param free Pointer to free-like function
+	 */
+	Allocator::Allocator(void*(Allocator::*malloc)(uint32_t size),
+			void* (Allocator::*mrealloc)(void* ptr, uint32_t size),
+			void  (Allocator::*free)(void *ptr))
+		: _malloc(malloc), _mrealloc(mrealloc), _free(free) {}
+
+	/**
+	 * @brief Extend allocated memory if size exceeds current capacity.
+	 * @param self Pointer to the allocator
+	 * @param ptr Pointer wrapper holding memory and capacity
+	 * @param size Requested element count
+	 * @param sizeOf Size of each element
+	 */
+	static void Allocator_extend(Allocator* self, VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
 		size = Qk_Max(Qk_Min_CAPACITY, size);
 		size = upPow2(size);
-		ptr->val = self->realloc(ptr->val, sizeOf * size);
+		ptr->val = self->mrealloc(ptr->val, sizeOf * size);
 		ptr->capacity = size;
 		Qk_ASSERT(ptr->val);
 	}
 
-	void Allocator::shrink(VoidPtr *ptr, uint32_t size, uint32_t sizeOf) const {
+	/**
+	 * @brief Shrinks allocated memory if usage is much smaller than capacity.
+	 * @param ptr Pointer wrapper holding memory and capacity
+	 * @param size Requested element count
+	 * @param sizeOf Size of each element
+	 */
+	void Allocator::shrink(VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
 		uint32_t capacity = ptr->capacity;
-		if ( size > Qk_Min_CAPACITY && size < (capacity >> 2) ) { // if size < 1/4
+		// Shrink if usage is less than 1/4 of current capacity
+		if (size > Qk_Min_CAPACITY && size < (capacity >> 2)) {
 			capacity >>= 1;
 			size = upPow2(size);
 			size <<= 1;
 			size = Qk_Min(size, capacity);
-			ptr->val = realloc(ptr->val, sizeOf * size);
+			ptr->val = mrealloc(ptr->val, sizeOf * size);
 			ptr->capacity = size;
 			Qk_ASSERT(ptr->val);
 		}
 	}
 
-	void Allocator::extend(VoidPtr *ptr, uint32_t size, uint32_t sizeOf) const {
+	/**
+	 * @brief Ensures capacity >= size by extending if needed.
+	 * @param ptr Pointer wrapper holding memory and capacity
+	 * @param size Requested element count
+	 * @param sizeOf Size of each element
+	 */
+	void Allocator::extend(VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
 		if (size > ptr->capacity) {
 			Allocator_extend(this, ptr, size, sizeOf);
 		}
 	}
 
-	void Allocator::resize(VoidPtr *ptr, uint32_t size, uint32_t sizeOf) const {
+	/**
+	 * @brief Adjusts capacity to fit size. 
+	 * - If size > capacity: extend
+	 * - Else: shrink if much smaller
+	 * @param ptr Pointer wrapper holding memory and capacity
+	 * @param size Requested element count
+	 * @param sizeOf Size of each element
+	 */
+	void Allocator::resize(VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
 		if (size > ptr->capacity) {
 			Allocator_extend(this, ptr, size, sizeOf);
 		} else {
@@ -91,20 +155,25 @@ namespace qk {
 		}
 	}
 
-	const Allocator Allocator::Default{
-		&Allocator_malloc,
-		&Allocator_realloc,
-		&Allocator_free,
-	};
+	Allocator Allocator::_shared;
+
+	// ============================================================================
+	// LinearAllocator Implementation
+	// ============================================================================
 
 	/**
 	 * @brief Constructs a LinearAllocator with an initial block size.
-	 * @param initialSize Size of the first memory block.
+	 * @param initialSize Size of the first memory block
 	 */
 	LinearAllocator::LinearAllocator(size_t initialSize)
-			: _head(nullptr), _current(nullptr) {
+		: Allocator((void*(Allocator::*)(uint32_t))&LinearAllocator::_malloc,
+			(void* (Allocator::*)(void*, uint32_t))&LinearAllocator::_mrealloc,
+			(void (Allocator::*)(void*))&LinearAllocator::_free)
+		, _head(nullptr), _current(nullptr), _lastPtr(nullptr) {
 		newBlock(initialSize);
 	}
+
+	constexpr size_t alignment = alignof(std::max_align_t);
 
 	/**
 	 * @brief Destructor. Frees all allocated memory blocks.
@@ -116,84 +185,107 @@ namespace qk {
 	}
 
 	/**
-	 * @brief Aligns a pointer/address up to the given alignment.
-	 * @param ptr The original address/offset.
-	 * @param alignment Alignment value (power of two).
-	 * @return The aligned address/offset.
+	 * @brief Allocate memory from the current block or new block.
+	 * @param size Requested size
+	 * @return Pointer to allocated memory
 	 */
-	inline size_t alignUp(size_t ptr, size_t alignment) {
-		return (ptr + (alignment - 1)) & ~(alignment - 1);
-	}
+	void* LinearAllocator::_malloc(uint32_t size) {
+		size = alignUp(size, alignment);
+		size_t allSize = size + alignment; // Reserve alignment space for size header
 
-	/**
-	 * @brief Allocate memory from the allocator.
-	 * @param size Number of bytes to allocate.
-	 * @param alignment Memory alignment (default: max alignment).
-	 * @return Pointer to allocated memory.
-	 *
-	 * Notes:
-	 * - Allocation is sequential within blocks.
-	 * - If the current block does not have enough space, will search next blocks.
-	 * - If no existing block fits, a new block is allocated.
-	 */
-	void* LinearAllocator::allocate(size_t size, size_t alignment) {
-		// Align the current offset within the current block
-		size_t alignedOffset = alignUp(_current->offset, alignment);
-
-		// If the current block cannot fit, find or allocate a new block
-		if (alignedOffset + size > _current->capacity) {
-				// Determine new block size (double the current or at least next power of two)
-				size_t newSize = _current->capacity * 2;
-				if (newSize < size) {
-					// Round up to next power of 2
-					newSize = upPow2(size);
-				}
-				addBlock(newSize);
-				alignedOffset = 0; // Reset offset for the new/current block
+		// If not enough space, move to or create a new block
+		if (_current->offset + allSize > _current->capacity) {
+			size_t newSize = _current->capacity * 2;
+			if (newSize < allSize) {
+				newSize = upPow2(allSize);
+			}
+			addBlock(newSize);
 		}
 
-		void* ptr = _current->data + alignedOffset;
-		_current->offset = alignedOffset + size; // Update offset
-		return ptr;
+		char* ptr = _current->data + _current->offset;
+		_current->offset += allSize;
+		*(size_t*)ptr = size;              // Store allocation size
+		_lastPtr = ptr + alignment;        // User pointer after header
+		return _lastPtr;
 	}
 
 	/**
-	 * @brief Soft reset the allocator.
+	 * @brief Reallocate a memory block.
+	 * - If ptr is null, allocate new
+	 * - If shrinking, reuse
+	 * - If last allocation, may grow in place
+	 * - Otherwise, alloc new + memcpy
 	 *
-	 * - Resets the first block's offset to zero.
-	 * - Keeps all allocated blocks for reuse.
-	 * - Subsequent allocations will reuse existing memory.
+	 * @param ptr Pointer to old memory
+	 * @param size New requested size
+	 * @return Pointer to new memory
+	 */
+	void* LinearAllocator::_mrealloc(void* ptr, uint32_t size) {
+		if (!ptr) {
+			return _malloc(size);
+		}
+
+		size_t oldSize = *((size_t*)ptr - 1);
+		if (size <= oldSize) {
+			return ptr;
+		}
+		size = alignUp(size, alignment);
+
+		if (ptr == _lastPtr) {
+			size_t diff = size - oldSize;
+			// Try in-place growth
+			if (_current->offset + diff <= _current->capacity) {
+				_current->offset += diff;
+				*(size_t*)((char*)ptr - alignment) = size; // Update stored size
+				return ptr;
+			}
+		}
+
+		void* newPtr = malloc(size);
+		::memcpy(newPtr, ptr, oldSize);
+		return newPtr;
+	}
+
+	/**
+	 * @brief Free memory (no-op).
+	 * @param ptr Unused
+	 */
+	void LinearAllocator::_free(void* ptr) {
+		// Individual free is not supported
+	}
+
+	/**
+	 * @brief Soft reset allocator.
+	 * - Resets first block offset
+	 * - Keeps all blocks
 	 */
 	void LinearAllocator::reset() {
-		if (_head) {
-			_head->offset = 0;
-			_current = _head;
-		}
+		_head->offset = 0;
+		_current = _head;
+		_lastPtr = nullptr;
 	}
 
 	/**
-	 * @brief Clear the allocator.
-	 *
-	 * - Frees all blocks except the head.
-	 * - Resets the head block offset.
+	 * @brief Clear allocator.
+	 * - Frees all blocks except head
+	 * - Resets head offset
 	 */
 	void LinearAllocator::clear() {
-		if (!_head) return;
-
-		Block* block = _head->next;
+		auto block = _head->next;
 		while (block) {
-			Block* next = block->next;
+			auto next = block->next;
 			::free(block);
 			block = next;
 		}
 		_head->next = nullptr;
 		_head->offset = 0;
 		_current = _head;
+		_lastPtr = nullptr;
 	}
 
 	/**
-	 * @brief Allocate a new block and append to the linked list.
-	 * @param blockSize Size of the new memory block.
+	 * @brief Allocate a new block and append to list.
+	 * @param blockSize Size of new block
 	 */
 	void LinearAllocator::newBlock(size_t blockSize) {
 		size_t totalSize = sizeof(Block) - 1 + blockSize;
@@ -213,12 +305,8 @@ namespace qk {
 	}
 
 	/**
-	 * @brief Find or allocate a block that can fit the requested size.
-	 *
-	 * - If there is a next block with enough capacity, reuse it.
-	 * - Otherwise, free old insufficient blocks and allocate a new block.
-	 *
-	 * @param blockSize Requested block size.
+	 * @brief Find a block with enough space, or allocate new.
+	 * @param blockSize Minimum required size
 	 */
 	void LinearAllocator::addBlock(size_t blockSize) {
 		auto block = _current->next;
@@ -230,7 +318,7 @@ namespace qk {
 				return;
 			}
 			auto next = block->next;
-			::free(block); // Free old block that cannot fit the request
+			::free(block);
 			block = next;
 		}
 		newBlock(blockSize);

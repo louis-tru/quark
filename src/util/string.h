@@ -69,7 +69,7 @@ namespace qk {
 		char* resize(uint32_t len, uint8_t sizeOf);
 		Buffer collapse();
 		void clear();
-		cAllocator* allocator() const;
+		Allocator* allocator() const;
 		// union storage val
 		union { struct Ref* r; struct Short s; } _val;
 		template<typename T, typename A> friend class StringImpl;
@@ -279,7 +279,7 @@ namespace qk {
 			cVoid* s1, uint32_t s1_len,
 			cVoid* s2, uint32_t s2_len,
 			cVoid* rep, uint32_t rep_len,
-			int sizeOf, bool all, cAllocator *allocator
+			int sizeOf, bool all, Allocator *allocator
 		);
 		static int tolower(int c);
 		static int toupper(int c);

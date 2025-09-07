@@ -277,7 +277,7 @@ namespace qk {
 				img.tileModeY = ImagePaint::kDecal_TileMode; break;
 		}
 		img.filterMode = ImagePaint::kLinear_FilterMode;
-		img.mipmapMode = ImagePaint::kNearest_MipmapMode;
+		img.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
 
 		img.setImage(src.get(), {{x,y}, {w,h}});
 
@@ -587,7 +587,7 @@ namespace qk {
 			//img.tileModeX = ImagePaint::kDecal_TileMode;
 			//img.tileModeY = ImagePaint::kDecal_TileMode;
 			img.filterMode = ImagePaint::kLinear_FilterMode;
-			img.mipmapMode = ImagePaint::kNearest_MipmapMode;
+			img.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
 			img.setImage(src.get(), data.inside->rect);
 			draw->canvas()->drawPathv(*data.inside, paint);
 		}
@@ -757,33 +757,35 @@ namespace qk {
 		canvas->setMatrix(*matrix); // restore previous matrix
 	}
 
-	void Root::draw(Painter *draw) {
-		if (draw->_canvas && _visible) {
-			auto canvas = draw->_canvas;
+	void Root::draw(Painter *painter) {
+		if (painter->_canvas && _visible) {
+			auto canvas = painter->_canvas;
 			auto mark = mark_value();
 			if (mark) {
 				solve_marks(Mat(), nullptr, mark);
-				draw->_mark_recursive = mark & View::kRecursive_Mark;
+				painter->_mark_recursive = mark & View::kRecursive_Mark;
 			}
 			if (_visible_region && opacity() != 0) {
+				painter->_tempAllocator[0].reset();
+				painter->_tempAllocator[1].reset();
 				BoxData data;
 				// Fix rect aa stroke width
 				bool isMsaa = _window->render()->options().msaaSample;
 				auto AAShrink_half = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
 				// auto AAShrink_half = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
-				draw->_AAShrink = AAShrink_half + AAShrink_half;
-				draw->_origin = Vec2(AAShrink_half) - origin_value();
-				draw->_matrix = &matrix();
+				painter->_AAShrink = AAShrink_half + AAShrink_half;
+				painter->_origin = Vec2(AAShrink_half) - origin_value();
+				painter->_matrix = &matrix();
 				canvas->setMatrix(matrix());
 				canvas->clearColor(background_color().to_color4f());
-				draw->drawBoxColor(this, data);
-				draw->drawBoxBorder(this, data);
-				draw->_origin = AAShrink_half;
-				draw->drawBoxEnd(this, data);
+				painter->drawBoxColor(this, data);
+				painter->drawBoxBorder(this, data);
+				painter->_origin = AAShrink_half;
+				painter->drawBoxEnd(this, data);
 			} else {
 				canvas->clearColor(Color4f(0,0,0,0));
 			}
-			draw->_mark_recursive = 0;
+			painter->_mark_recursive = 0;
 		}
 	}
 }

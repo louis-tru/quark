@@ -138,9 +138,9 @@ namespace qk {
 		static Window* Make(Options opts);
 
 		/**
-		 * @destructor
+		 * @method destroy() destroy window object
 		*/
-		virtual ~Window();
+		void destroy() override;
 
 		/**
 		* @method getClipRegion
@@ -207,7 +207,7 @@ namespace qk {
 		float getDefaultScale();
 		Region getDisplayRegion(Vec2 size);
 		void afterDisplay();
-		bool Destroy(); // destroy window and protform window
+		bool tryClose(); // destroy window and protform window
 
 		/**
 		 * Create an application object before creating a window

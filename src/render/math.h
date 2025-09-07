@@ -263,13 +263,13 @@ namespace qk {
 	template<typename T> struct MRegion { T origin,end;}; // region
 
 	typedef Vec<float,4>     Vec4; // typedef vec
-	typedef Vec<int,2>       iVec2;
-	typedef Vec<int,3>       iVec3;
-	typedef Vec<int,4>       iVec4;
+	typedef Vec<int,2>       IVec2;
+	typedef Vec<int,3>       IVec3;
+	typedef Vec<int,4>       IVec4;
 	typedef MRect<Vec2>      Rect; // typedef rect
 	typedef MRegion<Vec2>    Region;
-	typedef MRect<iVec2>     iRect;
-	typedef MRegion<iVec2>   iRegion;
+	typedef MRect<IVec2>     IRect;
+	typedef MRegion<IVec2>   IRegion;
 
 	// ------------------------------------------
 

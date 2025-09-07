@@ -39,43 +39,306 @@ namespace spine {
 	class SkeletonData;
 	class Atlas;
 	class AtlasAttachmentLoader;
+	class TrackEntry;
+	class Animation;
 }
 
 namespace qk {
 
+	/**
+	 * @class SkeletonData
+	 * @brief Wrapper class for Spine skeleton definition data.
+	 *
+	 * This class owns the parsed Spine skeleton and atlas data,
+	 * and manages their lifetime. It provides factory methods
+	 * for loading from file paths or memory buffers, and hides
+	 * the raw Spine runtime pointers.
+	 *
+	 * Typical usage:
+	 * @code
+	 * auto data = SkeletonData::Make("hero.skel", "hero.atlas", 1.0f);
+	 * spineView->skeleton(data);
+	 * @endcode
+	 *
+	 * @note Internally wraps Spine runtime classes:
+	 * - spine::SkeletonData
+	 * - spine::Atlas
+	 * - spine::AtlasAttachmentLoader
+	 *
+	 * Lifetime is reference-counted via Reference/Sp<T>.
+	 */
 	class Qk_EXPORT SkeletonData: public Reference {
 	public:
-		static Sp<SkeletonData> Make(cString &skeletonPath, cString &atlasPath = String(), float scale = 1.0f) throw(Error);
-		static Sp<SkeletonData> Make(cBuffer &skeletonBuff, cString &atlasPath, float scale = 1.0f) throw(Error);
-		static Sp<SkeletonData> Make(cBuffer &skeletonBuff, cBuffer &atlasBuff, cString &dir, float scale = 1.0f);
+		/**
+		 * @brief Creates SkeletonData from skeleton and atlas files.
+		 * @param skeletonPath Path to skeleton binary file.
+		 * @param atlasPath Path to atlas file. Optional, may be empty string.
+		 * @param scale Scale factor applied to skeleton (default = 1.0f).
+		 * @return may return nullptr if loading fails.
+		 */
+		static Sp<SkeletonData> Make(cString &skeletonPath,
+																	cString &atlasPath = String(),
+																	float scale = 1.0f) throw(Error);
+
+		/**
+		 * @brief Creates SkeletonData from skeleton buffer + atlas path.
+		 * @param skeletonBuff In-memory buffer containing skeleton binary.
+		 * @param atlasPath Path to atlas file.
+		 * @param scale Scale factor applied to skeleton (default = 1.0f).
+		 * @return may return nullptr if loading fails.
+		 */
+		static Sp<SkeletonData> Make(cBuffer &skeletonBuff,
+																	cString &atlasPath,
+																	float scale = 1.0f) throw(Error);
+
+		/**
+		 * @brief Creates SkeletonData from skeleton + atlas buffers.
+		 * @param skeletonBuff In-memory buffer containing skeleton binary.
+		 * @param atlasBuff In-memory buffer containing atlas data.
+		 * @param dir Directory path used to resolve texture file paths in atlas.
+		 * @param scale Scale factor applied to skeleton (default = 1.0f).
+		 * @return may return nullptr if loading fails.
+		 */
+		static Sp<SkeletonData> Make(cBuffer &skeletonBuff,
+																	cBuffer &atlasBuff,
+																	cString &dir,
+																	float scale = 1.0f);
+
+		/// @brief Destructor. Releases internal Spine objects.
 		~SkeletonData();
+
 	private:
-		SkeletonData(spine::SkeletonData* data, spine::Atlas* atlas, spine::AtlasAttachmentLoader* loader);
-		spine::SkeletonData* _data;
-		spine::Atlas* _atlas;
-		spine::AtlasAttachmentLoader* _atlasLoader;
+		/**
+		 * @brief Private constructor used by factory methods.
+		 * @param data Parsed Spine skeleton data.
+		 * @param atlas Spine atlas (texture regions).
+		 * @param loader Spine atlas attachment loader.
+		 */
+		SkeletonData(spine::SkeletonData* data,
+									spine::Atlas* atlas,
+									spine::AtlasAttachmentLoader* loader);
+
+		spine::SkeletonData* _data;               ///< Spine skeleton definition.
+		spine::Atlas* _atlas;                     ///< Spine texture atlas.
+		spine::AtlasAttachmentLoader* _atlasLoader; ///< Attachment loader bound to atlas.
+
+		/// @brief Spine class is a friend (direct access for rendering).
 		friend class Spine;
 	};
 
+	/**
+	 * @class Spine
+	 * @brief View class for rendering and controlling Spine skeleton animations.
+	 *
+	 * This class integrates Spine runtime (Skeleton, AnimationState, etc.) into the
+	 * rendering system, providing control over skeleton pose, slots, skins, animation
+	 * playback and transitions, while hiding the low-level Spine API details from the user.
+	 *
+	 * Inherits from:
+	 * - SpriteView: Base class for renderable sprite-like views.
+	 * - PreRender::Task: Enables per-frame update tasks (e.g., advancing animation state).
+	 */
 	class Qk_EXPORT Spine: public SpriteView, public PreRender::Task {
 	public:
-		Qk_DEFINE_ACCESSOR(SkeletonData*, skeleton); // spine skeleton data
+		/**
+		 * @brief Constructor. Initializes an empty Spine view.
+		 */
 		Spine();
+
+		/**
+		 * @brief Accessor for the engine's opaque SkeletonData wrapper.
+		 *
+		 * This accessor returns a pointer to the engine-level wrapper type `SkeletonData`.
+		 * The actual Spine runtime types (for example `spine::SkeletonData`, `spine::Atlas`,
+		 * etc.) are intentionally hidden inside the implementation and are NOT exposed by this API.
+		 *
+		 * @note
+		 * - `SkeletonData` is an opaque wrapper whose implementation details live in the .cpp (PIMPL).
+		 * - Callers should treat the returned pointer as the engine wrapper only and must not
+		 *   assume access to any `spine::` symbols or internals.
+		 * - Lifetime of the returned object is managed by the engine's reference/Sp<T> system.
+		 */
+		Qk_DEFINE_ACCESSOR(SkeletonData*, skeleton);
+
+		/**
+		 * @brief Starting slot index for drawing.
+		 *
+		 * - If @p startSlot is 0 and @p endSlot is 0xffffffffu, all slots are drawn.
+		 * - Useful for partial skeleton rendering (e.g., hide upper/lower body).
+		 */
+		Qk_DEFINE_PROPERTY(uint32_t, start_slot, Const);
+
+		/**
+		 * @brief Ending slot index for drawing.
+		 *
+		 * - If @p startSlot is 0 and @p endSlot is 0xffffffffu, all slots are drawn.
+		 * - Defines the slot range for rendering.
+		 */
+		Qk_DEFINE_PROPERTY(uint32_t, end_slot, Const);
+
+		/**
+		 * @brief Sets the active skin.
+		 *
+		 * The skin is used to look up attachments not found in the SkeletonData defaultSkin.
+		 * Attachments from the new skin are attached if the corresponding attachment
+		 * from the old skin was attached.
+		 *
+		 * @param skin Skin name (empty string "" = no skin).
+		 */
+		Qk_DEFINE_ACCESSOR(String, skin, Const);
+
+		/**
+		 * @brief Time scale factor for animations.
+		 *
+		 * - Normal speed = 1.0
+		 * - Slow motion < 1.0
+		 * - Fast forward > 1.0
+		 * - Valid range: [0.01, 1e2]
+		 */
+		Qk_DEFINE_PROPERTY(float, speed, Const);
+
+		/**
+		 * @brief Default mix duration (seconds) when blending between two animations.
+		 *
+		 * If no specific mix is defined via set_mix(), this duration is used as the blend time.
+		 */
+		Qk_DEFINE_ACCESSOR(float, default_mix, Const);
+
+		/**
+		 * @brief Destroys the Spine object, releasing associated resources.
+		 */
 		void destroy() override;
-		// Play the sprite frames, play action of view together if the all equals true
-		//void play(bool all = false);
-		// Stop the sprite frames, stop action of view together if the all equals true
-		//void stop(bool all = false);
+
+		/// @brief Returns the type of this view (Spine).
 		ViewType viewType() const override;
+
+		/// @brief Returns the logical client size of the view (depends on skeleton bounds).
 		Vec2 client_size() override;
+
+		/// @brief Draws the skeleton using the provided Painter.
 		void draw(Painter *painter) override;
+
+		/// @brief Called when the view is activated (e.g., the visible is changed).
 		void onActivate() override;
+
+		/**
+		 * @brief Runs the per-frame update task.
+		 * @param time Absolute time in ms.
+		 * @param delta Time since last frame in ms.
+		 * @return true if task continues, false to stop.
+		 */
 		bool run_task(int64_t time, int64_t delta) override;
+
+		/**
+		 * @brief Resets skeleton to its full setup pose (bones + slots).
+		 * Equivalent to calling both set_bones_to_setup_pose() and set_slots_to_setup_pose().
+		 */
+		void set_to_setup_pose();
+
+		/**
+		 * @brief Resets all bones to their setup pose.
+		 * Does not affect slots or attachments.
+		 */
+		void set_bones_to_setup_pose();
+
+		/**
+		 * @brief Resets all slots (attachments + draw order) to their setup pose.
+		 * Does not affect bones.
+		 */
+		void set_slots_to_setup_pose();
+
+		/**
+		 * @brief Sets an attachment for the specified slot.
+		 *
+		 * @param slotName Name of the slot.
+		 * @param attachmentName Name of the attachment (empty string "" = no attachment).
+		 */
+		void set_attachment(cString &slotName, cString &attachmentName);
+
+		/**
+		 * @brief Sets a custom mix (crossfade) duration between two animations.
+		 *
+		 * @param fromName Name of the source animation.
+		 * @param toName Name of the destination animation.
+		 * @param duration Blend duration in seconds.
+		 */
+		void set_mix(cString &fromName, cString &toName, float duration);
+
+		/**
+		 * @brief Sets an animation on a given track, replacing any current animation.
+		 *
+		 * @param trackIndex Index of the track (0 = base track).
+		 * @param name Animation name.
+		 * @param loop Whether the animation should loop.
+		 * @return A pointer to the created TrackEntry.
+		 */
+		spine::TrackEntry* set_animation(int trackIndex, cString &name, bool loop);
+
+		/**
+		 * @brief Queues an animation after the current one on the track.
+		 *
+		 * @param trackIndex Index of the track.
+		 * @param name Animation name.
+		 * @param loop Whether the animation should loop.
+		 * @param delay Delay before starting, in seconds (0 = immediately after current).
+		 * @return A pointer to the created TrackEntry.
+		 */
+		spine::TrackEntry* add_animation(int trackIndex, cString &name, bool loop, float delay = 0);
+
+		/**
+		 * @brief Sets an empty animation on a track, fading out the current animation.
+		 *
+		 * @param trackIndex Index of the track.
+		 * @param mixDuration Crossfade duration (seconds).
+		 * @return A pointer to the TrackEntry representing the empty animation.
+		 */
+		spine::TrackEntry* set_empty_animation(int trackIndex, float mixDuration);
+
+		/**
+		 * @brief Applies empty animations to all tracks, fading them out.
+		 *
+		 * @param mixDuration Crossfade duration (seconds).
+		 */
+		void set_empty_animations(float mixDuration);
+
+		/**
+		 * @brief Queues an empty animation after the current animation.
+		 *
+		 * @param trackIndex Index of the track.
+		 * @param mixDuration Crossfade duration (seconds).
+		 * @param delay Delay before starting, in seconds.
+		 * @return A pointer to the TrackEntry representing the empty animation.
+		 */
+		spine::TrackEntry* add_empty_animation(int trackIndex, float mixDuration, float delay = 0);
+
+		/**
+		 * @brief Finds an animation by name.
+		 *
+		 * @param name Animation name.
+		 * @return A pointer to the Animation, or nullptr if not found.
+		 */
+		spine::Animation* find_animation(cString &name) const;
+
+		/**
+		 * @brief Gets the currently playing animation on a track.
+		 *
+		 * @param trackIndex Index of the track (default 0).
+		 * @return The TrackEntry of the active animation, or nullptr if none.
+		 */
+		spine::TrackEntry* get_current(int trackIndex = 0);
+
+		/// @brief Clears all tracks (removes all animations).
+		void clear_tracks();
+
+		/// @brief Clears a specific track (removes animation at given index).
+		void clear_track(int trackIndex = 0);
+
 	private:
+		/// @brief Internal wrapper around Spine skeleton and runtime objects (hidden implementation).
 		Qk_DEFINE_INLINE_CLASS(SkeletonWraper);
+
+		/// @brief Thread-safe wrapper pointer (atomic for concurrent safety).
 		std::atomic<SkeletonWraper*> _wraper;
-		int _startSlotIndex;
-		int _endSlotIndex;
 	};
 
 } // namespace qk

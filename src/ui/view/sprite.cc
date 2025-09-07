@@ -289,7 +289,7 @@ namespace qk {
 
 		img.setImage(src.get(), dest, {{x,y}, {w,h}});
 		img.filterMode = ImagePaint::kLinear_FilterMode;
-		img.mipmapMode = ImagePaint::kNearest_MipmapMode;
+		img.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
 
 		canvas->drawPathv(painter->cache()->getRectPath(dest), paint);
 

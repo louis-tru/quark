@@ -124,7 +124,6 @@ namespace qk {
 
 	Qk_EXPORT void Retain(Object* obj);
 	Qk_EXPORT void Release(Object* obj);
-	Qk_EXPORT void Fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
 	template <typename T, int kind> struct object_traits_basic { // Object
 		static inline void Retain(T* obj) { qk::Retain(obj); }

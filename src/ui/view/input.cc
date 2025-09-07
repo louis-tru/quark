@@ -137,7 +137,7 @@ namespace qk {
 						self->_flag = kFlag_Normal;
 					} else {
 						if (!self->is_focus())
-							self->preRender().post(Cb([self](auto &e) { self->focus(); }), self);
+							self->preRender().post_main(Cb([self](auto &e) { self->focus(); }), self);
 						self->handle_Focus_for_render_t();
 						self->find_cursor(arg.arg);
 					}
@@ -224,7 +224,7 @@ namespace qk {
 						_flag = kFlag_Find_Cursor_Wait;
 						// 多行文本输入并且为在touch事件时为了判断是否为滚动与定位查找操作,
 						// 只有长按输入框超过1秒没有移动才表示激活光标查找
-						preRender().post(Cb([this](auto &e) { // delay call
+						preRender().post_main(Cb([this](auto &e) { // delay call
 							_async_call([](auto ctx, auto arg) {
 								if ( ctx->_flag == kFlag_Find_Cursor_Wait ) { // 如果状态没有改变继续
 									ctx->_flag = kFlag_Find_Cursor; // 激活光标定位
@@ -341,7 +341,7 @@ namespace qk {
 		/**
 		 * 当绝对座标超过输入框边界时才返回非零值
 		*/
-		iVec2 is_auto_find_is_required(Vec2 point) {
+		IVec2 is_auto_find_is_required(Vec2 point) {
 			auto pos = get_position();
 			auto size = _container.content;
 
@@ -363,7 +363,7 @@ namespace qk {
 				y = 1; // bottom
 			}
 
-			return iVec2(x, y);
+			return IVec2(x, y);
 		}
 
 		/**
@@ -605,7 +605,7 @@ namespace qk {
 		}
 
 		void trigger_Change() {
-			preRender().post(Cb([this](Cb::Data& e){
+			preRender().post_main(Cb([this](Cb::Data& e){
 				Sp<UIEvent> evt(new UIEvent(this));
 				trigger(UIEvent_Change, **evt);
 			}),this);

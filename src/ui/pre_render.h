@@ -113,14 +113,14 @@ namespace qk {
 		 * Post message to application main loop
 		 * @thread Rt
 		*/
-		void post(Cb cb, uint64_t delayUs = 0);
+		void post_main(Cb cb, uint64_t delayUs = 0);
 
 		/**
 		 * Post message to application main loop
 		 * @thread Rt
 		 * @param view {View} safe retain view object to main loop, if retain fail then cancel call
 		*/
-		bool post(Cb cb, View *view, uint64_t delayUs = 0);
+		bool post_main(Cb cb, View *view, uint64_t delayUs = 0);
 
 	private:
 		/**

@@ -309,7 +309,7 @@ pressure:%f,locationInWindow:%f %f,delta:%f %f,defaultScale:%f,scale:%f\
 - (BOOL)windowShouldClose:(NSWindow*)sender {
 	if (!self.isClose) {
 		self.isClose = YES;
-		self.qkwin->host()->loop()->post(Cb([self](auto&e){
+		self.qkwin->host()->loop()->post(Cb([self](auto e){
 			self.qkwin->close(); // close destroy window
 		}));
 	}

@@ -131,6 +131,10 @@ namespace qk {
 		preRender().async_call([](auto self, auto arg) {
 			// To ensure safety and efficiency,
 			// it should be Completely destroyed in RT (render thread)
+			auto center = self->_window->actionCenter();
+			if (center) {
+				center->removeCSSTransition_Rt(self);
+			}
 			self->_window = nullptr;
 			self->Object::destroy();
 		}, this, 0);
@@ -642,7 +646,7 @@ namespace qk {
 	void View::clear_level_Rt() { //  clear view depth
 		auto win = _window;
 		if (win->dispatch()->focusView() == this) {
-			preRender().post(Cb([this,win](auto &e) {
+			preRender().post_main(Cb([this,win](auto &e) {
 				if (win->dispatch()->focusView() == this) {
 					blur();
 				}

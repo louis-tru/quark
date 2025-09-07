@@ -57,6 +57,28 @@ namespace qk {
 			Typeface::ImageOut out;// output image cache
 		};
 
+		struct V3F_T2F_C4B_C4B {
+			/// vertices (3F)
+			Vec3     vertices;          // 12 bytes
+			// tex coords (2F)
+			Vec2     texCoords;         // 8 bytes
+			/// color (4B)
+			Color    color;             // 4 bytes
+			/// color2 (4B)
+			Color    color2;            // 4 bytes
+		};
+
+		struct Triangles {
+			/**Vertex data pointer.*/
+			V3F_T2F_C4B_C4B *verts = nullptr;
+			/**Index data pointer.*/
+			uint16_t *indices = nullptr;
+			/**The number of vertices.*/
+			uint32_t vertCount = 0;
+			/**The number of indices.*/
+			uint32_t indexCount = 0;
+		};
+
 		virtual int  save() = 0;
 		virtual void restore(uint32_t count = 1) = 0;
 		virtual int  getSaveCount() const = 0;
@@ -80,6 +102,11 @@ namespace qk {
 		virtual void drawOval(const Rect& oval, const Paint& paint);
 		virtual void drawCircle(Vec2 center, float radius, const Paint& paint);
 		virtual float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint& paint) = 0;
+
+		/**
+		 * Note: do not release triangles data until after the draw call commands is completed
+		*/
+		virtual void drawTriangles(const Triangles& triangles, const ImagePaint &paint, BlendMode mode) = 0;
 
 		/**
 		 * Optimized rounded rect blur color drawing command

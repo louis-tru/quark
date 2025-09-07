@@ -87,6 +87,7 @@ namespace qk {
 			const Path::BorderRadius &radius, const Paint& paint) override;
 		virtual float drawGlyphs(const FontGlyphs &glyphs,
 			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
+		virtual void drawTriangles(const Triangles& triangles, const ImagePaint &paint, BlendMode mode) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) override;
 		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool isMipmap) override;

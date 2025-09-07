@@ -245,6 +245,7 @@ namespace qk {
 		*/
 		void advance_Rt(uint32_t timeMs);
 
+		friend class View;
 		friend class Action;
 		friend class PreRender;
 		friend class CStyleSheetsClass;

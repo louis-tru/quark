@@ -80,8 +80,9 @@ namespace qk {
 
 		enum MipmapMode {
 			kNone_MipmapMode,      //!< ignore mipmap levels, sample from the "base"
-			kNearest_MipmapMode,   //!< sample from the nearest level
-			kLinear_MipmapMode,    //!< interpolate between the two nearest levels
+			kLinearNearest_MipmapMode, //!< Within the level use linear filtering, between the levels use linear filtering
+			kNearestLinear_MipmapMode, //!< Within the level use nearest filtering, between the levels use nearest filtering
+			kLinear_MipmapMode, //!< all of between the levels and within the level are to be used linear filtering
 		};
 
 		union {
