@@ -31,7 +31,7 @@
 #ifndef __quark_textopts__
 #define __quark_textopts__
 
-#include "../view_prop.h"
+#include "../views.h"
 
 namespace qk {
 	class FontStyle;

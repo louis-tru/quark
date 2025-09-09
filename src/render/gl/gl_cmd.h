@@ -44,7 +44,7 @@ namespace qk {
 	typedef Canvas::Triangles Triangles;
 
 	class GLC_CmdPack {
-		Qk_HIDDEN_ALL_COPY(GLC_CmdPack);
+		Qk_DISABLE_COPY(GLC_CmdPack);
 	public:
 		enum CmdType { // gl canvas cmd type
 			kEmpty_CmdType, // empty cmd

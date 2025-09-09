@@ -31,23 +31,11 @@
 #ifndef __quark__ui__view__
 #define __quark__ui__view__
 
-#include "../view_prop.h"
+#include "../views.h"
 #include "../event.h"
 #include "../pre_render.h"
 
 namespace qk {
-	class Action;
-	class TextInput;
-	class TextLines;
-	class TextConfig;
-	class TextOptions;
-	class Painter;
-	class Window;
-	class ScrollView;
-	class MatrixView;
-	class CStyleSheetsClass;
-	class Button;
-
 	/**
 		* View tree node base type,
 		* Provide APIs that do not use security locks on worker and rendering threads,
@@ -59,7 +47,7 @@ namespace qk {
 	 * @class View
 		*/
 	class Qk_EXPORT View: public Notification<UIEvent, UIEventName, Reference> {
-		Qk_HIDDEN_ALL_COPY(View);
+		Qk_DISABLE_COPY(View);
 		Qk_DEFINE_INLINE_CLASS(InlEvent);
 		std::atomic<CStyleSheetsClass*> _cssclass;
 	public:
@@ -157,7 +145,7 @@ namespace qk {
 		/**
 		 * @prop props accessor
 		*/
-		Qk_DEFINE_PROP_GET(PropAccessor*, accessor);
+		Qk_DEFINE_PROP_GET(CssPropAccessor*, accessor);
 
 		/**
 		 * @prop matrix
@@ -616,7 +604,7 @@ namespace qk {
 		 * Because view objects may be destroyed at any time on the main thread
 		 * @method tryRetain() Returns safe self hold
 		*/
-		View* tryRetain();
+		View* tryRetain_Rt();
 
 	protected:
 		View(); // @constructor

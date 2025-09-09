@@ -78,7 +78,7 @@ namespace qk {
 
 	//////
 	class Threads: public Object {
-		Qk_HIDDEN_ALL_COPY(Threads);
+		Qk_DISABLE_COPY(Threads);
 	public:
 		Threads();
 		~Threads() override;

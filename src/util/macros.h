@@ -265,10 +265,15 @@
 	#endif
 #endif
 
-#define Qk_HIDDEN_ALL_COPY(T)	\
+#define Qk_DISABLE_COPY(T)	\
 	private: T(const T& t) = delete;	\
 	private: T& operator=(const T& t) = delete;
-#define Qk_HIDDEN_HEAP_ALLOC() \
+#define Qk_DISABLE_MOVE(T)	\
+	private: T(T&& t) = delete;	\
+	private: T& operator=(T&& t) = delete;
+#define Qk_DISABLE_COPY_AND_MOVE(T) \
+	Qk_DISABLE_COPY(T) Qk_DISABLE_MOVE(T)
+#define Qk_DISABLE_HEAP_ALLOC() \
 	private: static void* operator new(size_t size) = delete; \
 	private: static void operator delete(void*, size_t) = delete
 

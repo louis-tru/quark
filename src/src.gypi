@@ -45,8 +45,7 @@
 			'ui/keyboard.h',
 			'ui/keyboard.cc',
 			'ui/types.h',
-			'ui/view_prop.h',
-			'ui/view_prop.cc',
+			'ui/views.h',
 			'ui/filter.h',
 			'ui/filter.cc',
 			'ui/layer.h',
@@ -55,8 +54,10 @@
 			'ui/painter.cc',
 			'ui/css/css.h', # css
 			'ui/css/css_sheets.cc',
+			'ui/css/css_sheets_prop.cc',
 			'ui/css/css_class.cc',
-			'ui/css/css_prop.cc',
+			'ui/css/css_props.h',
+			'ui/css/css_props.cc',
 			'ui/action/action.h', # action
 			'ui/action/action.cc',
 			'ui/action/center.cc',

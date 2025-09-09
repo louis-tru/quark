@@ -106,15 +106,12 @@ namespace qk {
 		}
 	}
 
-	void PreRender::post_main(Cb cb, uint64_t delayUs) {
-		if (delayUs)
-			_window->loop()->timer(cb, delayUs);
-		else
-			_window->loop()->post(cb);
+	void PreRender::post(Cb cb, bool toQueue) {
+		_window->loop()->post(cb);
 	}
 
-	bool PreRender::post_main(Cb cb, View *v, uint64_t delayUs) {
-		if (v->tryRetain()) {
+	bool PreRender::post(Cb cb, View *v, bool toQueue) {
+		if (v->tryRetain_Rt()) {
 			struct Core: CallbackCore<Object> {
 				Cb       cb;
 				Sp<View> view;
@@ -124,8 +121,7 @@ namespace qk {
 					cb->call(e);
 				}
 			};
-			post_main(Cb(new Core(cb,v)), delayUs);
-			return true;
+			return post(Cb(new Core(cb,v)), toQueue), true;
 		} else {
 			return false;
 		}

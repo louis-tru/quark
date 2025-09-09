@@ -38,7 +38,7 @@
 namespace qk {
 
 	class Qk_EXPORT Player: public MediaSource::Delegate {
-		Qk_HIDDEN_ALL_COPY(Player);
+		Qk_DISABLE_COPY(Player);
 	public:
 		typedef MediaCodec::Frame Frame;
 		typedef MediaSource::Stream Stream;

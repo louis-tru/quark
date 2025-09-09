@@ -28,36 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__ui__view_prop__
-#define __quark__ui__view_prop__
+#ifndef __quark__ui__css__css_props__
+#define __quark__ui__css__css_props__
 
-#include "../util/util.h"
-#include "../render/bezier.h"
-#include "./types.h"
-
-#define Qk_DEFINE_VIEW_ACCE_GET(...) Qk_DEFINE_ACCE_GET(__VA_ARGS__)
-#define Qk_DEFINE_VIEW_ACCESSOR(type,name,...) \
-	Qk_DEFINE_VIEW_ACCE_GET(type,name,##__VA_ARGS__); void set_##name (type val,bool isRt=false);
-
-#define Qk_DEFINE_VIEW_PROP_GET(...) Qk_DEFINE_PROP_GET(__VA_ARGS__)
-#define Qk_DEFINE_VIEW_PROPERTY(type,name,...) \
-	Qk_DEFINE_VIEW_PROP_GET(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
-
-#define Qk_DEFINE_VIEW_PROP_GET_Atomic(...) Qk_DEFINE_PROP_GET_Atomic(__VA_ARGS__)
-#define Qk_DEFINE_VIEW_PROPERTY_Atomic(type,name,...) \
-	Qk_DEFINE_VIEW_PROP_GET_Atomic(type,name,##__VA_ARGS__) void set_##name (type val,bool isRt=false)
+#include "../../util/util.h"
+#include "../../render/bezier.h"
+#include "../types.h"
+#include "../views.h"
 
 namespace qk {
-	class   BoxFilter;
-	class   BoxShadow;
-	typedef BoxFilter* BoxFilterPtr;
-	typedef BoxShadow* BoxShadowPtr;
-	typedef Array<float> ArrayFloat;
-	typedef Array<Color> ArrayColor;
-	typedef Array<BoxOrigin> ArrayOrigin;
-	typedef Array<BoxBorder> ArrayBorder;
 
-#define Qk_View_Props(F) \
+#define Qk_Css_Props(F) \
 	F(OPACITY, float, opacity, View) /*view*/\
 	F(CURSOR, CursorStyle, cursor, View) \
 	F(VISIBLE, bool, visible, View) \
@@ -165,40 +146,17 @@ namespace qk {
 	// (ScrollBase, uint32_t, scroll_duration, scrollDuration)
 	// (ScrollBase, Curve, default_curve, defaultCurve)
 
-	enum ViewType {
-		kView_ViewType, // view
-		kSprite_ViewType, // sprite
-		kSpine_ViewType, // spine
-		kLabel_ViewType, // textOpts
-		kBox_ViewType,  // box
-		kFlex_ViewType, // box flex
-		kFlow_ViewType, // box flow
-		kFree_ViewType, // box
-		kImage_ViewType, // box
-		kVideo_ViewType, // box
-		kInput_ViewType, // box textOpts input
-		kTextarea_ViewType, // box textOpts input
-		kScroll_ViewType, // box
-		kText_ViewType, // box textOpts
-		kButton_ViewType, // box
-		kMatrix_ViewType, // box
-		kRoot_ViewType, // box
-		kEnum_Counts_ViewType,
-	};
-
-	enum ViewProp {
-		#define _Fun(Enum, Type, Name, From) k##Enum##_ViewProp,
-			Qk_View_Props(_Fun)
-			kEnum_Counts_ViewProp,
+	enum CssProp {
+		#define _Fun(Enum, Type, Name, From) k##Enum##_CssProp,
+		Qk_Css_Props(_Fun)
+		kEnum_Counts_CssProp,
 		#undef _Fun
 	};
 
-	struct PropAccessor {
+	struct CssPropAccessor {
 		void (Object::*get)();
 		void (Object::*set)();
 	};
-
-	Qk_EXPORT PropAccessor* get_props_accessor(ViewType type, ViewProp prop);
 }
 
 #endif

@@ -339,6 +339,10 @@ namespace qk { namespace js {
 		return worker->newValue(value);
 	}
 
+	JSValue* TypesParser::jsvalue(const SkeletonDataPtr& value) {
+		return worker->newValue(value);
+	}
+
 	JSValue* TypesParser::jsvalue(const Direction& value) {
 		return worker->newValue((uint32_t)value);
 	}
@@ -845,6 +849,12 @@ namespace qk { namespace js {
 	bool TypesParser::parse(JSValue* in, BoxShadowPtr& out, cChar* desc) {
 		js_parse(BoxShadowPtr, {
 			out = MixObject::mix<BoxShadow>(obj)->self();
+		});
+	}
+
+	bool TypesParser::parse(JSValue* in, SkeletonDataPtr& out, cChar* desc) {
+		js_parse(SkeletonDataPtr, {
+			out = MixObject::mix<SkeletonData>(obj)->self();
 		});
 	}
 

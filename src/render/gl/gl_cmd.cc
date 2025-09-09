@@ -59,11 +59,11 @@ namespace qk {
 	struct ImagePaintLock {
 		inline ImagePaintLock(const ImagePaint *p): paint(p) {
 			if (!paint->_flushCanvas)
-				paint->image->onState().QkMutex::lock();
+				paint->image->onState().lockShared();
 		}
 		inline ~ImagePaintLock() {
 			if (!paint->_flushCanvas)
-				paint->image->onState().QkMutex::unlock();
+				paint->image->onState().unlockShared();
 		}
 		const ImagePaint *paint;
 	};

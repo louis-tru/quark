@@ -62,6 +62,9 @@ namespace qk { namespace js {
 
 	class MixMatrix: public MixViewObject {
 	public:
+		virtual MatrixView* asMatrixView() {
+			return self<Matrix>();
+		}
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Matrix, Box, {
 				Js_NewView(Matrix);
@@ -74,6 +77,9 @@ namespace qk { namespace js {
 
 	class MixRoot: public MixViewObject {
 	public:
+		virtual MatrixView* asMatrixView() {
+			return self<Root>();
+		}
 		static void binding(JSObject* exports, Worker* worker) {
 #if 0
 			Js_Define_Class(Root, Matrix, {

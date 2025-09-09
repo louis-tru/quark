@@ -50,7 +50,7 @@ namespace qk {
 
 	template<class D, class E = Error>
 	class CallbackCore: public Reference {
-		Qk_HIDDEN_ALL_COPY(CallbackCore);
+		Qk_DISABLE_COPY(CallbackCore);
 	public:
 		typedef CallbackData<D, E> Data;
 		inline CallbackCore() {}

@@ -85,20 +85,13 @@ namespace qk {
 			preRender().untask(this);
 		}
 
-		struct Core: CallbackCore<Object> {
-			Core(Video *v, Object* d, const UIEventName& n)
-				: view(Sp<Video>::lazy(v)), evt(new UIEvent(v, d)), name(n) {
-			}
-			void call(Data& e) {
-				view->trigger(name, **evt);
-			}
-			Sp<Video> view;
-			Sp<UIEvent> evt;
-			UIEventName name;
-		};
-
-		if (tryRetain()) {
-			window()->loop()->post(Cb(new Core(this, data, name)), true);
+		// trigger event in main thread
+		if (!tryRetain_Rt()) {
+			window()->loop()->post(Cb([this,name,data](auto e) {
+				Sp<UIEvent> evt(new UIEvent(this, data));
+				trigger(name, **evt);
+				release(); // It must be release here @ if (tryRetain_Rt()) 
+			}), true);
 		} else {
 			Release(data);
 		}

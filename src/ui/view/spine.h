@@ -36,11 +36,10 @@
 #include "./sprite.h"
 
 namespace spine {
-	class SkeletonData;
 	class Atlas;
-	class AtlasAttachmentLoader;
+	class SkeletonData;
 	class TrackEntry;
-	class Animation;
+	class EventData;
 }
 
 namespace qk {
@@ -108,6 +107,7 @@ namespace qk {
 		~SkeletonData();
 
 	private:
+		class QkAtlasAttachmentLoader;
 		/**
 		 * @brief Private constructor used by factory methods.
 		 * @param data Parsed Spine skeleton data.
@@ -116,14 +116,109 @@ namespace qk {
 		 */
 		SkeletonData(spine::SkeletonData* data,
 									spine::Atlas* atlas,
-									spine::AtlasAttachmentLoader* loader);
+									QkAtlasAttachmentLoader* loader);
+
+		static SkeletonData* _Make(cBuffer &skeleton, cBuffer &atlas, cString &dir, float scale);
 
 		spine::SkeletonData* _data;               ///< Spine skeleton definition.
 		spine::Atlas* _atlas;                     ///< Spine texture atlas.
-		spine::AtlasAttachmentLoader* _atlasLoader; ///< Attachment loader bound to atlas.
+		QkAtlasAttachmentLoader* _atlasLoader; ///< Attachment loader bound to atlas.
 
 		/// @brief Spine class is a friend (direct access for rendering).
 		friend class Spine;
+	};
+
+	typedef SkeletonData* SkeletonDataPtr;
+
+	/**
+	 * @class SpineEvent
+	 * @brief Base class for all Spine animation events, wrapping Spine runtime EventType.
+	 *
+	 * During animation playback, Spine runtime triggers different types of events,
+	 * such as when an animation starts, ends, completes, is interrupted, disposed,
+	 * or when a custom event is fired. This class provides a unified wrapper for
+	 * those events so they can be dispatched through the engine's UIEvent system.
+	 *
+	 * Type enum maps to spine::EventType:
+	 * - kStart_Type       : Triggered when an animation starts (EventType_Start).
+	 * - kInterrupt_Type   : Triggered when an animation is interrupted by another (EventType_Interrupt).
+	 * - kEnd_Type         : Triggered when the animation reaches its end position (EventType_End).
+	 * - kComplete_Type    : Triggered when the animation completes a loop (EventType_Complete).
+	 * - kDispose_Type     : Triggered when the TrackEntry is released by Spine runtime (EventType_Dispose).
+	 * - kEvent_Type       : Triggered when a custom Spine event (Event) is fired (EventType_Event).
+	 * - kKeyEvent_Type    : Alias of kEvent_Type, used for semantic clarity when dealing with keyframe events.
+	 *
+	 * Usage:
+	 * - Listen for animation state changes (start/end/complete, etc.) to drive UI or game logic.
+	 * - Listen for custom Spine events (keyframe events) to trigger sounds, effects, or gameplay actions.
+	 */
+	class Qk_EXPORT SpineEvent: public UIEvent {
+	public:
+		enum Type {
+			kStart_Type,      ///< Animation started
+			kInterrupt_Type,  ///< Animation interrupted
+			kEnd_Type,        ///< Animation reached its end
+			kComplete_Type,   ///< Animation completed one loop
+			kDispose_Type,    ///< Animation (TrackEntry) disposed
+			kEvent_Type,      ///< Custom Spine event
+			kKeyEvent_Type = kEvent_Type, ///< Alias for custom keyframe events
+		};
+
+		/// Constructor
+		/// @param type   The event type
+		/// @param origin The originating View (usually the Spine animation view)
+		SpineEvent(Type type, View* origin);
+
+		Qk_DEFINE_PROP_GET(Type, type, Const); ///< The event type
+	};
+
+	/**
+	 * @class SpineKeyEvent
+	 * @brief Wrapper for Spine custom keyframe events (Event).
+	 *
+	 * In the Spine editor, designers can add custom Events to the timeline.
+	 * These events are triggered at specific times during animation playback.
+	 * SpineKeyEvent encapsulates those runtime events and dispatches them
+	 * through the engine's UIEvent system.
+	 *
+	 * Exposed data:
+	 * - static_data : Static description of the event (EventData), includes name and default values.
+	 * - time        : The time (in seconds) in the animation when the event was triggered.
+	 * - int_value   : Integer payload value.
+	 * - float_value : Floating-point payload value.
+	 * - string_value: String payload value.
+	 * - volume      : Volume (commonly used for audio events).
+	 * - balance     : Audio balance (commonly used for audio events).
+	 *
+	 * Usage:
+	 * - Trigger gameplay logic, sound effects, or particle effects at specific animation keyframes.
+	 * - Provide a data bridge between Spine editor events and runtime game logic.
+	 */
+	class Qk_EXPORT SpineKeyEvent: public SpineEvent {
+	public:
+		typedef const spine::EventData cEventData;
+
+		/// Constructor
+		/// @param origin      The originating View (Spine animation view)
+		/// @param staticData  Static event description (EventData)
+		/// @param time        Trigger time (in seconds)
+		/// @param intValue    Integer value
+		/// @param floatValue  Float value
+		/// @param stringValue String value
+		/// @param volume      Audio volume
+		/// @param balance     Audio balance
+		SpineKeyEvent(View* origin,
+			cEventData* staticData, float time, int intValue,
+			float floatValue, cString& stringValue, float volume, float balance
+		);
+
+		Qk_DEFINE_PROP_GET(cEventData*, static_data, Const); ///< Static event description
+		Qk_DEFINE_PROP_GET(float, time, Const);              ///< Trigger time (seconds)
+		Qk_DEFINE_PROP_GET(int, int_value, Const);           ///< Integer payload
+		Qk_DEFINE_PROP_GET(float, float_value, Const);       ///< Float payload
+		Qk_DEFINE_PROP_GET(String, string_value, Const);     ///< String payload
+		Qk_DEFINE_PROP_GET(float, volume, Const);            ///< Volume
+		Qk_DEFINE_PROP_GET(float, balance, Const);           ///< Audio balance
 	};
 
 	/**
@@ -202,7 +297,7 @@ namespace qk {
 		 *
 		 * If no specific mix is defined via set_mix(), this duration is used as the blend time.
 		 */
-		Qk_DEFINE_ACCESSOR(float, default_mix, Const);
+		Qk_DEFINE_PROPERTY(float, default_mix, Const);
 
 		/**
 		 * @brief Destroys the Spine object, releasing associated resources.
@@ -272,7 +367,7 @@ namespace qk {
 		 * @param loop Whether the animation should loop.
 		 * @return A pointer to the created TrackEntry.
 		 */
-		spine::TrackEntry* set_animation(int trackIndex, cString &name, bool loop);
+		spine::TrackEntry* set_animation(uint32_t trackIndex, cString &name, bool loop);
 
 		/**
 		 * @brief Queues an animation after the current one on the track.
@@ -283,7 +378,7 @@ namespace qk {
 		 * @param delay Delay before starting, in seconds (0 = immediately after current).
 		 * @return A pointer to the created TrackEntry.
 		 */
-		spine::TrackEntry* add_animation(int trackIndex, cString &name, bool loop, float delay = 0);
+		spine::TrackEntry* add_animation(uint32_t trackIndex, cString &name, bool loop, float delay = 0);
 
 		/**
 		 * @brief Sets an empty animation on a track, fading out the current animation.
@@ -292,7 +387,7 @@ namespace qk {
 		 * @param mixDuration Crossfade duration (seconds).
 		 * @return A pointer to the TrackEntry representing the empty animation.
 		 */
-		spine::TrackEntry* set_empty_animation(int trackIndex, float mixDuration);
+		spine::TrackEntry* set_empty_animation(uint32_t trackIndex, float mixDuration);
 
 		/**
 		 * @brief Applies empty animations to all tracks, fading them out.
@@ -309,15 +404,7 @@ namespace qk {
 		 * @param delay Delay before starting, in seconds.
 		 * @return A pointer to the TrackEntry representing the empty animation.
 		 */
-		spine::TrackEntry* add_empty_animation(int trackIndex, float mixDuration, float delay = 0);
-
-		/**
-		 * @brief Finds an animation by name.
-		 *
-		 * @param name Animation name.
-		 * @return A pointer to the Animation, or nullptr if not found.
-		 */
-		spine::Animation* find_animation(cString &name) const;
+		spine::TrackEntry* add_empty_animation(uint32_t trackIndex, float mixDuration, float delay = 0);
 
 		/**
 		 * @brief Gets the currently playing animation on a track.
@@ -325,20 +412,23 @@ namespace qk {
 		 * @param trackIndex Index of the track (default 0).
 		 * @return The TrackEntry of the active animation, or nullptr if none.
 		 */
-		spine::TrackEntry* get_current(int trackIndex = 0);
+		spine::TrackEntry* get_current(uint32_t trackIndex = 0);
 
 		/// @brief Clears all tracks (removes all animations).
 		void clear_tracks();
 
 		/// @brief Clears a specific track (removes animation at given index).
-		void clear_track(int trackIndex = 0);
+		void clear_track(uint32_t trackIndex = 0);
 
 	private:
+		Qk_DEFINE_INLINE_CLASS(SpineOther);
 		/// @brief Internal wrapper around Spine skeleton and runtime objects (hidden implementation).
-		Qk_DEFINE_INLINE_CLASS(SkeletonWraper);
+		Qk_DEFINE_INLINE_CLASS(SkeletonWrapper);
 
+		Sp<SpineOther> _other; // fixed storage for other properties
 		/// @brief Thread-safe wrapper pointer (atomic for concurrent safety).
-		std::atomic<SkeletonWraper*> _wraper;
+		SkeletonWrapper* _skel;
+		float _deltaTime; // time accumulator for animation updates
 	};
 
 } // namespace qk

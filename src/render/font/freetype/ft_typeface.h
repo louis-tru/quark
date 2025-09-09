@@ -84,7 +84,7 @@ public:
 	 *  name and style from a stream, using FreeType's API.
 	 */
 	class Scanner {
-		Qk_HIDDEN_ALL_COPY(Scanner);
+		Qk_DISABLE_COPY(Scanner);
 	public:
 		Scanner();
 		~Scanner();

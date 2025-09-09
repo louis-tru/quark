@@ -60,7 +60,7 @@ namespace qk {
 		Qk_ASSERT( _id_Rt == Id() || _id_Rt == playingFlag );
 	}
 
-	Action* Action::tryRetain() {
+	Action* Action::tryRetain_Rt() {
 		if (_refCount > 0) {
 			if (_refCount++ > 0) {
 				return this;
@@ -283,42 +283,35 @@ namespace qk {
 			Action::setDuration(diff);
 		}
 	}
-	
+
 	struct CbCore: CallbackCore<Object> {
-		CbCore(Action *a, View *v, uint32_t delay, uint32_t looped, uint32_t frame, const UIEventName &name)
-			: action(a->tryRetain())
-			, view(v->tryRetain())
-			, delay(delay)
-			, frame(frame)
-			, looped(looped)
-			, name(name) {}
-		~CbCore() override {
-			Release(action);
-			Release(view);
-		}
-		void call(Data& e) override {
+		CbCore(Action *a, View *v, uint32_t delay, uint32_t looped, uint32_t frame, cUIEventName &name)
+			: action(Sp<Action>::lazy(a->tryRetain_Rt()))
+			, view(Sp<View>::lazy(v->tryRetain_Rt()))
+			, delay(delay), frame(frame), looped(looped)
+			, name(name)
+		{}
+		void call(Data& e) {
 			if (action && view) {
-				Sp<ActionEvent> h(
-					new ActionEvent(action, view, delay, frame, looped)
-				);
+				Sp<ActionEvent> h(new ActionEvent(*action, *view, delay, frame, looped));
 				view->trigger(name, **h);
 			}
 		}
-		Action *action;
-		View   *view;
+		Sp<Action> action;
+		Sp<View>   view;
 		uint32_t delay, frame, looped;
-		const UIEventName &name;
+		cUIEventName &name;
 	};
 
 	void Action::trigger_ActionLoop_Rt(uint32_t delay, Action* root) {
-		_window->loop()->post(Cb(new CbCore(
+		_window->preRender().post(Cb(new CbCore(
 			this, root->_target, delay, _looped_Rt, 0, UIEvent_ActionLoop
-		)));
+		)), true);
 	}
 
 	void Action::trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frameIndex, Action* root) {
-		_window->loop()->post(Cb(new CbCore(
+		_window->preRender().post(Cb(new CbCore(
 			this, root->_target, delay, _looped_Rt, frameIndex, UIEvent_ActionKeyframe
-		)));
+		)), true);
 	}
 }

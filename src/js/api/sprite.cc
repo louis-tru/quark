@@ -35,6 +35,7 @@ namespace qk { namespace js {
 
 	class MixSprite: public MixViewObject {
 	public:
+		typedef Sprite Type;
 		virtual MatrixView* asMatrixView() {
 			return self<Sprite>();
 		}
@@ -44,27 +45,27 @@ namespace qk { namespace js {
 			});
 			inheritMatrixView(cls, worker);
 
-			Js_MixObject_Accessor(Sprite, String, src, src);
-			Js_MixObject_Accessor(Sprite, float, width, width);
-			Js_MixObject_Accessor(Sprite, float, height, height);
-			Js_MixObject_Accessor(Sprite, uint32_t, frame, frame);
-			Js_MixObject_Accessor(Sprite, uint32_t, frames, frames);
-			Js_MixObject_Accessor(Sprite, uint32_t, item, item);
-			Js_MixObject_Accessor(Sprite, uint32_t, items, items);
-			Js_MixObject_Accessor(Sprite, uint32_t, gap, gap);
-			Js_MixObject_Accessor(Sprite, uint32_t, fsp, fsp);
-			Js_MixObject_Accessor(Sprite, Direction, direction, direction);
-			Js_MixObject_Accessor(Sprite, bool, playing, playing);
+			Js_MixObject_Accessor(Type, String, src, src);
+			Js_MixObject_Accessor(Type, float, width, width);
+			Js_MixObject_Accessor(Type, float, height, height);
+			Js_MixObject_Accessor(Type, uint32_t, frame, frame);
+			Js_MixObject_Accessor(Type, uint32_t, frames, frames);
+			Js_MixObject_Accessor(Type, uint32_t, item, item);
+			Js_MixObject_Accessor(Type, uint32_t, items, items);
+			Js_MixObject_Accessor(Type, uint32_t, gap, gap);
+			Js_MixObject_Accessor(Type, uint32_t, fsp, fsp);
+			Js_MixObject_Accessor(Type, Direction, direction, direction);
+			Js_MixObject_Accessor(Type, bool, playing, playing);
 
 			Js_Class_Method(play, {
 				bool all = args.length() ? args[0]->toBoolean(worker) : false;
-				Js_Self(Sprite);
+				Js_Self(Type);
 				self->play(all);
 			});
 
 			Js_Class_Method(stop, {
 				bool all = args.length() ? args[0]->toBoolean(worker) : false;
-				Js_Self(Sprite);
+				Js_Self(Type);
 				self->stop(all);
 			});
 

@@ -176,7 +176,7 @@ static FT_Int gMajor, gMinor, gPatch;
 bool   gIsFT_version_2_13 = false; // 2.13.2
 
 class FreeTypeLibrary {
-	Qk_HIDDEN_ALL_COPY(FreeTypeLibrary);
+	Qk_DISABLE_COPY(FreeTypeLibrary);
 public:
 	FreeTypeLibrary() : fLibrary(nullptr) {
 		if (FT_New_Library(&gFTMemory, &fLibrary)) {

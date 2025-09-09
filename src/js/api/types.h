@@ -38,11 +38,13 @@
 #include "../../ui/filter.h"
 #include "../../ui/window.h"
 #include "../../ui/event.h"
-#include "../../ui/view_prop.h"
+#include "../../ui/views.h"
+#include "../../ui/view/spine.h"
 #include "../../render/bezier.h"
 #include "../../util/fs.h"
 
-namespace qk { namespace js {
+namespace qk { 
+	namespace js {
 
 	#define Js_Parse_Type(Name, value, desc) \
 		Name out; \
@@ -108,6 +110,7 @@ namespace qk { namespace js {
 		F(CursorStyle) \
 		F(FindDirection) \
 		F(FFID) \
+		F(SkeletonDataPtr) \
 
 	class Qk_EXPORT TypesParser {
 	public:

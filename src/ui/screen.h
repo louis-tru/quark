@@ -42,7 +42,7 @@ namespace qk {
 	 * @class Screen some common method properties and events for display and screen
 	*/
 	class Qk_EXPORT Screen: public Object {
-		Qk_HIDDEN_ALL_COPY(Screen);
+		Qk_DISABLE_COPY(Screen);
 	public:
 		enum Orientation {
 			/** Invalid, Default use the User mode */

@@ -16,6 +16,7 @@
 			'quark',
 			'quark-media',
 			'build_libs_quark',
+			'deps/spine/spine.gyp:spine',
 		],
 		'direct_dependent_settings': {
 			'defines': [ 'USE_JS=1' ],
@@ -44,6 +45,7 @@
 			'api/scroll.cc',
 			'api/storage.cc',
 			'api/sprite.cc',
+			'api/spine.cc',
 			'api/text.cc',
 			'api/matrix.cc',
 			'api/types.h',

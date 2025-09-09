@@ -38,7 +38,7 @@ namespace qk { namespace js {
 		: _alias(0), _constructor(constructor), _attachConstructor(attach) {}
 
 	void JSClass::exports(cString& name, JSObject* exports) {
-		exports->setProperty(_worker, name, getFunction());
+		exports->setFor(_worker, name, getFunction());
 	}
 
 	JSObject* JSClass::newInstance(uint32_t argc, JSValue* argv[]) {

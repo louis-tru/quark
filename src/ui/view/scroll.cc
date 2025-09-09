@@ -388,7 +388,7 @@ namespace qk {
 				set_v_scrollbar_pos();
 				_host->mark(kScrollMark, true); // mark
 
-				_host->preRender().post_main(Cb([this, scroll](auto& e) {
+				_host->preRender().post(Cb([this, scroll](auto& e) {
 					Sp<UIEvent> evt = new UIEvent(_host);
 					_host->trigger(UIEvent_Scroll, **evt);
 				}), _host);

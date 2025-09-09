@@ -66,7 +66,7 @@ namespace qk {
 	};
 
 	class AsyncIOTask: public Reference {
-		Qk_HIDDEN_ALL_COPY(AsyncIOTask);
+		Qk_DISABLE_COPY(AsyncIOTask);
 	public:
 		AsyncIOTask(RunLoop* loop = RunLoop::current());
 		virtual ~AsyncIOTask();

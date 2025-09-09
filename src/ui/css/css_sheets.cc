@@ -89,7 +89,7 @@ namespace qk {
 		return nullptr;
 	}
 
-	void StyleSheets::onMake(ViewProp key, Property* prop) {
+	void StyleSheets::onMake(CssProp key, Property* prop) {
 		// NOOP
 	}
 
@@ -97,7 +97,7 @@ namespace qk {
 		return _props.length();
 	}
 
-	bool StyleSheets::hasProperty(ViewProp name) const {
+	bool StyleSheets::hasProperty(CssProp name) const {
 		return _props.count(name);
 	}
 

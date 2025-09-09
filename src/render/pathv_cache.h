@@ -48,7 +48,7 @@ namespace qk
 
 	// paths and gpu vertices data caching
 	class Qk_EXPORT PathvCache: public Object {
-		Qk_HIDDEN_ALL_COPY(PathvCache);
+		Qk_DISABLE_COPY(PathvCache);
 	public:
 		template<class T, int N = 1>
 		struct Wrap {

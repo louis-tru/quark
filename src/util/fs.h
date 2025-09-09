@@ -92,7 +92,7 @@ namespace qk {
 	};
 
 	class Qk_EXPORT FileSync: public Object, public StreamSync {
-		Qk_HIDDEN_ALL_COPY(FileSync);
+		Qk_DISABLE_COPY(FileSync);
 	public:
 		Qk_DEFINE_PROP_GET(String, path, Const);
 		FileSync(cString& path);
@@ -107,7 +107,7 @@ namespace qk {
 	};
 
 	class Qk_EXPORT File: public Object {
-		Qk_HIDDEN_ALL_COPY(File);
+		Qk_DISABLE_COPY(File);
 	public:
 		class Qk_EXPORT Delegate {
 		public:
@@ -165,7 +165,7 @@ namespace qk {
 	};
 
 	class Qk_EXPORT FileReader: public Object {
-		Qk_HIDDEN_ALL_COPY(FileReader);
+		Qk_DISABLE_COPY(FileReader);
 	public:
 		FileReader();
 		FileReader(FileReader&& reader);

@@ -75,7 +75,7 @@ namespace qk { namespace js {
 	#define Js_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
 	#define Js_Accessor_Get(name,get)        exports->getAccessor(worker,#name,_Js_Get(get))
 	#define Js_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(set))
-	#define Js_Property(name, value)         exports->setProperty(worker,#name,value)
+	#define Js_Property(name, value)         exports->setFor(worker,#name,value)
 	// class
 	#define Js_Class_Accessor(name,get,set)  cls->setAccessor(#name,_Js_Get(get),_Js_Set(set))
 	#define Js_Class_Accessor_Get(name,get)  cls->setAccessor(#name,_Js_Get(get))
@@ -86,7 +86,7 @@ namespace qk { namespace js {
 	#define Js_Class_Indexed_Set(set)        cls->setIndexedAccessor(0,_Js_Set(set))
 	#define Js_Class_Property(name,value)    cls->setProperty(#name,value)
 	#define Js_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
-	#define Js_Class_Static_Method(name,value) cls->setStaticMethod(#name,_Js_Fun(func))
+	#define Js_Class_Static_Method(name,func) cls->setStaticMethod(#name,_Js_Fun(func))
 
 	// -------------------------------------------------------------------
 
@@ -109,8 +109,8 @@ namespace qk { namespace js {
 	class NoCopy {
 	public:
 		inline NoCopy() {}
-		Qk_HIDDEN_ALL_COPY(NoCopy);
-		Qk_HIDDEN_HEAP_ALLOC();
+		Qk_DISABLE_COPY(NoCopy);
+		Qk_DISABLE_HEAP_ALLOC();
 	};
 
 	template<class T> class Persistent: public NoCopy {
@@ -279,6 +279,7 @@ namespace qk { namespace js {
 		Maybe<float> asFloat32(Worker* worker) const;
 		Maybe<int32_t> asInt32(Worker* worker) const;
 		Maybe<uint32_t> asUint32(Worker* worker) const;
+		Maybe<bool> asBoolean(Worker* worker) const;
 		Maybe<WeakBuffer> asBuffer(Worker* worker) const;
 		// Unsafe static convert
 		template<class T = JSValue>
@@ -311,7 +312,7 @@ namespace qk { namespace js {
 		bool set(Worker* worker, JSValue* key, JSValue* val);
 		bool set(Worker* worker, uint32_t index, JSValue* val);
 		template<class T>
-		bool setProperty(Worker* worker, cString& name, T value);
+		bool setFor(Worker* worker, cString& name, T value);
 		bool has(Worker* worker, JSValue* key);
 		bool has(Worker* worker, uint32_t index);
 		bool deleteFor(Worker* worker, JSValue* key);
@@ -396,7 +397,7 @@ namespace qk { namespace js {
 	};
 
 	class Qk_EXPORT JSClass {
-		Qk_HIDDEN_ALL_COPY(JSClass);
+		Qk_DISABLE_COPY(JSClass);
 	public:
 		Qk_DEFINE_PROP_GET(Worker*, worker, Protected);
 		Qk_DEFINE_PROP_GET(uint64_t, alias, Protected);
@@ -427,7 +428,7 @@ namespace qk { namespace js {
 	template<class T> class Mix;
 
 	class Qk_EXPORT MixObject {
-		Qk_HIDDEN_ALL_COPY(MixObject);
+		Qk_DISABLE_COPY(MixObject);
 	public:
 		inline Worker* worker() {
 			return _class->worker();
@@ -511,7 +512,7 @@ namespace qk { namespace js {
 	};
 
 	class Qk_EXPORT Worker: public Object, public SafeFlag {
-		Qk_HIDDEN_ALL_COPY(Worker);
+		Qk_DISABLE_COPY(Worker);
 	public:
 		Qk_DEFINE_PROP_GET(TypesParser*, types, Protected);
 		Qk_DEFINE_PROP_GET(Strings*, strs, Protected);
@@ -631,8 +632,8 @@ namespace qk { namespace js {
 		return static_cast<T*>(get<JSValue>(worker, key));
 	}
 	template<class T>
-	inline bool JSObject::setProperty(Worker* worker, cString& key, T value) {
-		return setProperty<JSValue*>(worker, key, worker->newValue(value));
+	inline bool JSObject::setFor(Worker* worker, cString& key, T value) {
+		return setFor<JSValue*>(worker, key, worker->newValue(value));
 	}
 	template<class T>
 	inline bool JSClass::setProperty(cString& name, T value) {
@@ -665,7 +666,7 @@ namespace qk { namespace js {
 	template<>
 	Qk_EXPORT JSValue* JSObject::get(Worker* worker, cString& key);
 	template<>
-	Qk_EXPORT bool JSObject::setProperty(Worker* worker, cString& key, JSValue* value);
+	Qk_EXPORT bool JSObject::setFor(Worker* worker, cString& key, JSValue* value);
 	template<>
 	Qk_EXPORT bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
 	template<>

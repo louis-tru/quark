@@ -72,6 +72,19 @@ export enum ReturnValueMask {
 	All = (Default | Bubble),
 };
 
+/**
+ * Spine animation event types
+*/
+export enum SpineEventType {
+	kStart_Type,      //!< Animation started
+	kInterrupt_Type,  //!< Animation interrupted
+	kEnd_Type,        //!< Animation reached its end
+	kComplete_Type,   //!< Animation completed one loop
+	kDispose_Type,    //!< Animation (TrackEntry) disposed
+	kEvent_Type,      //!< Custom Spine event
+	kKeyEvent_Type = kEvent_Type, //!< Alias for custom keyframe events
+};
+
 declare class NativeEvent<Sender, Data = any> extends Event<Sender, Data> {}
 
 /**
@@ -212,6 +225,64 @@ export interface TouchPoint {
 export declare class TouchEvent extends UIEvent {
 	/** Touch point collection */
 	readonly changedTouches: TouchPoint[];
+}
+
+/**
+ * @class SpineEvent
+ * @extends UIEvent
+ * 
+ * Spine animation event
+*/
+export declare class SpineEvent extends UIEvent {
+	/** The event type */
+	readonly type: SpineEventType;
+}
+
+/**
+ * @interface SpineEventData
+ * 
+ * Spine animation event description data
+*/
+export interface SpineEventData {
+	/** The event name */
+	readonly name: string;
+	/** The event time (seconds) */
+	readonly time: number;
+	/** The event integer payload */
+	readonly intValue: number;
+	/** The event float payload */
+	readonly floatValue: number;
+	/** The event string payload */
+	readonly stringValue: string;
+	/** The event audio path */
+	readonly audioPath: string;
+	/** The event volume */
+	readonly volume: number;
+	/** The event audio balance */
+	readonly balance: number;
+}
+
+/**
+ * @class SpineKeyEvent
+ * @extends SpineEvent
+ * 
+ * Spine animation key event
+*/
+export declare class SpineKeyEvent extends SpineEvent {
+	/** Static event description */
+	readonly staticData: SpineEventData;
+	/** Trigger time (seconds) */
+	readonly time: number;
+	/** Integer payload */
+	readonly intValue: number;
+	/** Float payload */
+	readonly floatValue: number;
+	/** String payload */
+	readonly stringValue: string;
+	/** Volume */
+	readonly volume: number;
+	/** Audio balance */
+	readonly balance: number;
 }
 
 const _init = __binding__('_init');

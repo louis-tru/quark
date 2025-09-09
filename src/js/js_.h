@@ -69,7 +69,7 @@ namespace qk { namespace js {
 		F(_change_touches) F(name)           F(pathname) \
 		F(data)            F(total)          F(complete) \
 		F(httpVersion)     F(statusCode)     F(responseHeaders) \
-		F(_log) F(_warn) F(_error) F(_clear)
+		F(_log) F(_warn) F(_error) F(_clear) F(_staticData)
 
 	#define Js_Format_Str(msg) \
 		va_list arg; \

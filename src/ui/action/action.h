@@ -50,7 +50,7 @@ namespace qk {
 	* @note Release calls can only be made on the main thread
 	*/
 	class Qk_EXPORT Action: public Reference {
-		Qk_HIDDEN_ALL_COPY(Action);
+		Qk_DISABLE_COPY(Action);
 	public:
 		typedef List<Action*>::Iterator Id;
 
@@ -133,7 +133,7 @@ namespace qk {
 		 * Because action objects may be destroyed at any time on the main thread
 		 * @method tryRetain() Returns safe self hold
 		*/
-		Action* tryRetain();
+		Action* tryRetain_Rt();
 
 	private:
 		void set_target(View* t);
@@ -222,7 +222,7 @@ namespace qk {
 	* @class ActionCenter
 	*/
 	class ActionCenter: public Object {
-		Qk_HIDDEN_ALL_COPY(ActionCenter)
+		Qk_DISABLE_COPY(ActionCenter)
 	public:
 		Qk_DEFINE_PROP_GET(Window*, window)
 		ActionCenter(Window *window);

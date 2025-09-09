@@ -186,7 +186,6 @@ namespace qk {
 
 	class Qk_CAPABILITY("mutex") QkMutex {
 	public:
-
 		void lock() Qk_ACQUIRE() {
 			fSemaphore.wait();
 			Qk_DEBUGCODE(fOwner = thread_self_id();)
@@ -207,21 +206,6 @@ namespace qk {
 	private:
 		Semaphore fSemaphore{1};
 		Qk_DEBUGCODE(ThreadID fOwner;)
-	};
-
-	class Qk_SCOPED_CAPABILITY AutoMutexExclusive {
-	public:
-		AutoMutexExclusive(QkMutex& mutex) Qk_ACQUIRE(mutex) : fMutex(mutex) { fMutex.lock(); }
-		~AutoMutexExclusive() Qk_RELEASE_CAPABILITY() { fMutex.unlock(); }
-
-		AutoMutexExclusive(const AutoMutexExclusive&) = delete;
-		AutoMutexExclusive(AutoMutexExclusive&&) = delete;
-
-		AutoMutexExclusive& operator=(const AutoMutexExclusive&) = delete;
-		AutoMutexExclusive& operator=(AutoMutexExclusive&&) = delete;
-
-	private:
-		QkMutex& fMutex;
 	};
 
 	// There are two shared lock implementations one debug the other is high performance. They implement
@@ -276,30 +260,32 @@ namespace qk {
 	inline void SharedMutex::assertHeldShared() const {};
 #endif  // DEBUG
 
-	class Qk_SCOPED_CAPABILITY AutoSharedMutexExclusive {
+	class Qk_SCOPED_CAPABILITY AutoMutexExclusive {
+		Qk_DISABLE_COPY_AND_MOVE(AutoMutexExclusive);
 	public:
-		explicit AutoSharedMutexExclusive(SharedMutex& lock) Qk_ACQUIRE(lock)
-				: fLock(lock) {
-			lock.lock();
-		}
-		~AutoSharedMutexExclusive() Qk_RELEASE_CAPABILITY() { fLock.unlock(); }
+		AutoMutexExclusive(QkMutex& mutex) Qk_ACQUIRE(mutex) : fMutex(mutex) { fMutex.lock(); }
+		~AutoMutexExclusive() Qk_RELEASE_CAPABILITY() { fMutex.unlock(); }
+	private:
+		QkMutex& fMutex;
+	};
 
+	class Qk_SCOPED_CAPABILITY AutoSharedMutexExclusive {
+		Qk_DISABLE_COPY_AND_MOVE(AutoSharedMutexExclusive);
+	public:
+		AutoSharedMutexExclusive(SharedMutex& lock) Qk_ACQUIRE(lock): fLock(lock) { lock.lock(); }
+		~AutoSharedMutexExclusive() Qk_RELEASE_CAPABILITY() { fLock.unlock(); }
 	private:
 		SharedMutex& fLock;
 	};
 
 	class Qk_SCOPED_CAPABILITY AutoSharedMutexShared {
+		Qk_DISABLE_COPY_AND_MOVE(AutoSharedMutexShared);
 	public:
-		explicit AutoSharedMutexShared(SharedMutex& lock) Qk_ACQUIRE_SHARED(lock)
-				: fLock(lock)  {
-			lock.lockShared();
-		}
-
+		AutoSharedMutexShared(SharedMutex& lock) Qk_ACQUIRE_SHARED(lock): fLock(lock) { lock.lockShared(); }
 		// You would think this should be Qk_RELEASE_SHARED_CAPABILITY, but Qk_SCOPED_CAPABILITY
 		// doesn't fully understand the difference between shared and exclusive.
 		// Please review https://reviews.llvm.org/D52578 for more information.
 		~AutoSharedMutexShared() Qk_RELEASE_CAPABILITY() { fLock.unlockShared(); }
-
 	private:
 		SharedMutex& fLock;
 	};

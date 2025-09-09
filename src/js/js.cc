@@ -140,7 +140,7 @@ namespace js {
 	}
 
 	template<>
-	bool JSObject::setProperty(Worker* worker, cString& key, JSValue* value) {
+	bool JSObject::setFor(Worker* worker, cString& key, JSValue* value) {
 		return set(worker, worker->newValue(key), value);
 	}
 
@@ -336,7 +336,7 @@ namespace js {
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);
 		_classes = new JsClasses(this);
-		_global->setProperty(this, "global", *_global);
+		_global->setFor(this, "global", *_global);
 		_global->setMethod(this, "__binding__", __binding__);
 
 		auto globalThis = newStringOneByte("globalThis");

@@ -31,7 +31,7 @@
 #ifndef __quark__filter__
 #define __quark__filter__
 
-#include "./view_prop.h"
+#include "./views.h"
 #include "../render/source.h"
 #include "../util/handle.h"
 #include "../util/array.h"
@@ -44,7 +44,7 @@ namespace qk {
 	* @class Box Filter, Single linked list struct
 	*/
 	class Qk_EXPORT BoxFilter: public Reference {
-		Qk_HIDDEN_ALL_COPY(BoxFilter);
+		Qk_DISABLE_COPY(BoxFilter);
 	public:
 		enum Type {
 			kImage,

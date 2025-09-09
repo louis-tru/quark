@@ -47,7 +47,7 @@ namespace qk {
 	 * @thread Rt
 	*/
 	class Qk_EXPORT Typeface: public Reference {
-		Qk_HIDDEN_ALL_COPY(Typeface);
+		Qk_DISABLE_COPY(Typeface);
 	public:
 		struct ImageOut {
 			Sp<ImageSource> image; // The shared pointer of image 

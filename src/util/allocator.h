@@ -48,7 +48,7 @@ namespace qk {
 	 * with support for allocator-aware smart pointers (`Ptr`).
 	 */
 	class Qk_EXPORT Allocator {
-		Qk_HIDDEN_ALL_COPY(Allocator); ///< Disable copy and assignment
+		Qk_DISABLE_COPY(Allocator); ///< Disable copy and assignment
 	public:
 		/**
 		 * @struct Ptr

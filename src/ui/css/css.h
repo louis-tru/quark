@@ -34,7 +34,7 @@
 #include "../../util/util.h"
 #include "../../util/dict.h"
 #include "../filter.h"
-#include "../view_prop.h"
+#include "./css_props.h"
 
 namespace qk {
 	class View;
@@ -60,7 +60,7 @@ namespace qk {
 	typedef const CSSCName cCSSCName;
 
 	class StyleSheets: public Object {
-		Qk_HIDDEN_ALL_COPY(StyleSheets);
+		Qk_DISABLE_COPY(StyleSheets);
 	public:
 		class Property {
 		public:
@@ -72,7 +72,7 @@ namespace qk {
 		};
 		// define props
 		#define _Fun(Enum, Type, Name, From) void set_##Name(Type value);
-			Qk_View_Props(_Fun)
+			Qk_Css_Props(_Fun)
 		#undef _Fun
 
 		Qk_DEFINE_ACCE_GET(cCurve&, curve, Const);
@@ -88,7 +88,7 @@ namespace qk {
 		/**
 		 * @method has_property
 		*/
-		bool hasProperty(ViewProp key) const;
+		bool hasProperty(CssProp key) const;
 
 		/**
 		* @method apply style to view
@@ -112,7 +112,7 @@ namespace qk {
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 
-		virtual void onMake(ViewProp key, Property* prop); // make new prop
+		virtual void onMake(CssProp key, Property* prop); // make new prop
 
 		friend class KeyframeAction;
 		friend class Sprite;
@@ -124,7 +124,7 @@ namespace qk {
 	 * @class CStyleSheets
 	*/
 	class Qk_EXPORT CStyleSheets: public StyleSheets {
-		Qk_HIDDEN_ALL_COPY(CStyleSheets);
+		Qk_DISABLE_COPY(CStyleSheets);
 	public:
 		Qk_DEFINE_PROPERTY(uint32_t, time, Const); // css transition time
 		Qk_DEFINE_PROP_GET(CStyleSheets*, parent);
@@ -198,7 +198,7 @@ namespace qk {
 	};
 
 	class Qk_EXPORT CStyleSheetsClass: public Object {
-		Qk_HIDDEN_ALL_COPY(CStyleSheetsClass);
+		Qk_DISABLE_COPY(CStyleSheetsClass);
 		CSSType _status, _setStatus; //!< @thread Rt Current pseudo type application status
 	public:
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types

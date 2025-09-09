@@ -80,7 +80,7 @@ namespace qk { namespace inspector {
 
 	// HTTP Mixper around a uv_tcp_t
 	class InspectorSocket {
-		Qk_HIDDEN_ALL_COPY(InspectorSocket);
+		Qk_DISABLE_COPY(InspectorSocket);
 	public:
 		InspectorSocket() : data(nullptr), http_parsing_state(nullptr),
 												ws_state(nullptr), buffer(0), ws_mode(false),

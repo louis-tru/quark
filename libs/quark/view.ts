@@ -359,6 +359,42 @@ export declare class Sprite extends View implements MatrixView {
 	stop(all?: boolean): void; //!<
 }
 
+export declare class Spine extends View implements MatrixView {
+	translate: types.Vec2;
+	scale: types.Vec2;
+	skew: types.Vec2;
+	origin: types.BoxOrigin[];
+	originX: types.BoxOrigin;
+	originY: types.BoxOrigin;
+	x: number;
+	y: number;
+	scaleX: number;
+	scaleY: number;
+	skewX: number;
+	skewY: number;
+	rotateZ: number;
+	readonly originValue: number[];
+	readonly matrix: types.Mat;
+	skeleton: types.SkeletonData | null; //!<
+	startSlot: Uint; //!<
+	endSlot: Uint; //!<
+	skin: string; //!<
+	speed: Float; //!<
+	defaultMix: Float; //!<
+	setToSetupPose(): void; //!<
+	setBonesToSetupPose(): void; //!<
+	setSlotsToSetupPose(): void; //!<
+	setAttachment(slotName: string, attachmentName: string): void; //!<
+	setMix(fromName: string, toName: string, duration: Float): void; //!<
+	setAnimation(trackIndex: Uint, name: string, loop: boolean): void; //!<
+	addAnimation(trackIndex: Uint, name: string, loop: boolean, delay?: Float): void; //!<
+	setEmptyAnimation(trackIndex: Uint, mixDuration: Float): void; //!<
+	setEmptyAnimations(mixDuration: Float): void; //!<
+	addEmptyAnimation(trackIndex: Uint, mixDuration: Float, delay?: Float): void; //!<
+	clearTracks(): void; //!<
+	clearTrack(trackIndex?: Uint): void; //!<
+}
+
 /**
  * @class Root
  * @extends Matrix

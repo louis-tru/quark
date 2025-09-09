@@ -521,7 +521,7 @@ namespace qk { namespace js {
 
 	bool JSValue::toBoolean(Worker* w) const {
 		if (js::isBoolean(this))
-			return asBoolean(this);
+			return js::asBoolean(this);
 		ENV(w);
 		auto ret = JSValueToBoolean(ctx, Back(this)); // Force convert
 		return ret;
@@ -641,6 +641,12 @@ namespace qk { namespace js {
 			}
 		}
 		return Maybe<uint32_t>();
+	}
+
+	Maybe<bool> JSValue::asBoolean(Worker* w) const {
+		if (js::isBoolean(this))
+			return Maybe<bool>(js::asBoolean(this));
+		return Maybe<bool>();
 	}
 
 	template<>

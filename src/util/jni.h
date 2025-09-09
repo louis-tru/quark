@@ -44,7 +44,7 @@ namespace qk {
 	public:
 
 		class ScopeENV {
-			Qk_HIDDEN_ALL_COPY(ScopeENV);
+			Qk_DISABLE_COPY(ScopeENV);
 		public:
 			ScopeENV();
 			~ScopeENV();

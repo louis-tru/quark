@@ -111,16 +111,18 @@ namespace qk {
 
 		/**
 		 * Post message to application main loop
+		 * @param cb {Cb} callback to be executed in the main loop
+		 * @param toQueue {bool} whether to add the callback to the queue
 		 * @thread Rt
 		*/
-		void post_main(Cb cb, uint64_t delayUs = 0);
+		void post(Cb cb, bool toQueue = false);
 
 		/**
 		 * Post message to application main loop
 		 * @thread Rt
 		 * @param view {View} safe retain view object to main loop, if retain fail then cancel call
 		*/
-		bool post_main(Cb cb, View *view, uint64_t delayUs = 0);
+		bool post(Cb cb, View *view, bool toQueue = false);
 
 	private:
 		/**

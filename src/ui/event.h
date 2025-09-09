@@ -37,41 +37,7 @@
 #include "./math.h"
 #include "./types.h"
 #include "./text/text_input.h"
-
-// all ui events / Name, Flag
-#define Qk_UI_Events(F) \
-/* can bubble event */ \
-F(Click, Click, kBubble_UIEventFlags) \
-F(Back, Click, kBubble_UIEventFlags) \
-F(KeyDown, Keyboard, kBubble_UIEventFlags) \
-F(KeyPress, Keyboard, kBubble_UIEventFlags) \
-F(KeyUp, Keyboard, kBubble_UIEventFlags) \
-F(KeyEnter, Keyboard, kBubble_UIEventFlags) \
-F(TouchStart, Touch, kBubble_UIEventFlags) \
-F(TouchMove, Touch, kBubble_UIEventFlags) \
-F(TouchEnd, Touch, kBubble_UIEventFlags) \
-F(TouchCancel, Touch, kBubble_UIEventFlags) \
-F(MouseOver, Mouse, kBubble_UIEventFlags) \
-F(MouseOut, Mouse, kBubble_UIEventFlags) \
-F(MouseLeave, Mouse, kBubble_UIEventFlags) \
-F(MouseEnter, Mouse, kBubble_UIEventFlags) \
-F(MouseMove, Mouse, kBubble_UIEventFlags) \
-F(MouseDown, Mouse, kBubble_UIEventFlags) \
-F(MouseUp, Mouse, kBubble_UIEventFlags) \
-F(MouseWheel, Mouse, kBubble_UIEventFlags) \
-F(Focus, Default, kBubble_UIEventFlags) \
-F(Blur, Default, kBubble_UIEventFlags) \
-F(Highlighted, Highlighted, kBubble_UIEventFlags) /* normal / hover / down */ \
-/* canno bubble event */ \
-F(ActionKeyframe, Action, kNone_UIEventFlags) \
-F(ActionLoop, Action, kNone_UIEventFlags) \
-F(Scroll, Default, kNone_UIEventFlags) /*ScrollView*/\
-F(Change, Default, kNone_UIEventFlags) /*Input*/ \
-F(Load, Default, kNone_UIEventFlags) /* Image */ \
-/* player */ \
-F(Error, Player, kError_UIEventFlags) \
-F(Stop, Player, kNone_UIEventFlags) \
-F(Buffering, Player, kFloat32_UIEventFlags) \
+#include "./events.h"
 
 namespace qk {
 	class Application;
@@ -79,6 +45,8 @@ namespace qk {
 	class Action;
 	class TextInput;
 	class Window;
+	class UIEventName;
+	typedef const UIEventName cUIEventName;
 
 	enum {
 		kDefault_UIEventCategory,
@@ -89,6 +57,7 @@ namespace qk {
 		kAction_UIEventCategory,
 		kHighlighted_UIEventCategory,
 		kPlayer_UIEventCategory,
+		kSpine_UIEventCategory,
 	};
 
 	// event flags / cast
@@ -97,8 +66,8 @@ namespace qk {
 		kError_UIEventFlags,   // type Error
 		kFloat32_UIEventFlags, // type Float
 		kUint64_UIEventFlags,  // type Uint64
-		kTypesMask_UIEventFlags = (255), // Event::data(), types flag
-		kBubble_UIEventFlags = (1 << 8), // bubble, other flag
+		kTypesMask_UIEventFlags = (255), // Event::data(), data types
+		kBubble_UIEventFlags = (1 << 8), // is bubble
 	};
 
 	// event returl value mask
@@ -115,28 +84,28 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint32_t, hashCode, Const);
 		Qk_DEFINE_PROP_GET(String, toString, Const);
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
-		inline bool equals(const UIEventName& v) const { return v._hashCode == _hashCode; }
-		inline bool operator==(const UIEventName& v) const { return v._hashCode == _hashCode; }
-		inline bool operator!=(const UIEventName& v) const { return v._hashCode != _hashCode; }
-		inline bool operator>(const UIEventName& v) const { return _hashCode > v._hashCode; }
-		inline bool operator<(const UIEventName& v) const { return _hashCode < v._hashCode; }
+		inline bool equals(cUIEventName& v) const { return v._hashCode == _hashCode; }
+		inline bool operator==(cUIEventName& v) const { return v._hashCode == _hashCode; }
+		inline bool operator!=(cUIEventName& v) const { return v._hashCode != _hashCode; }
+		inline bool operator>(cUIEventName& v) const { return _hashCode > v._hashCode; }
+		inline bool operator<(cUIEventName& v) const { return _hashCode < v._hashCode; }
 	};
 
 	// event names string => UIEventName
 	Qk_EXPORT extern const Dict<String, UIEventName> UIEventNames;
-	// define event names
-	#define _Fun(Name, C, F) \
-	Qk_EXPORT extern const UIEventName UIEvent_##Name;
-	Qk_UI_Events(_Fun)
-	#undef _Fun
 
+	// define event names
+#define _Fun(Name, C, F) \
+	Qk_EXPORT extern cUIEventName UIEvent_##Name;
+	Qk_UI_Events(_Fun)
+#undef _Fun
 	// -----------------------------------
 
 	/**
 	* @class UIEvent gui event
 	*/
 	class Qk_EXPORT UIEvent: public Event<> {
-		Qk_HIDDEN_ALL_COPY(UIEvent);
+		Qk_DISABLE_COPY(UIEvent);
 	public:
 		UIEvent(View *origin, SendData data = nullptr);
 		Qk_DEFINE_PROP_GET(View*, origin);
@@ -287,11 +256,11 @@ namespace qk {
 		void touchstartErase(View *view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);
 		void touchmove(List<TouchPoint>& in);
-		void touchend(List<TouchPoint>& in, const UIEventName& type);
+		void touchend(List<TouchPoint>& in, cUIEventName& type);
 		void mousemove(View* view, Vec2 pos);
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
 		View* find_receive_view_exec(View *view, Vec2 pos);
-		View* find_receive_view(Vec2 pos);
+		View* find_receive_view_and_retain(Vec2 pos);
 		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, KeyboardKeyCode keycode);
 		Sp<View> safe_focus_view();
 

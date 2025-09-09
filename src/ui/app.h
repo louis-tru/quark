@@ -59,7 +59,7 @@ namespace qk {
 	 * @class Application
 	*/
 	class Qk_EXPORT Application: public Object {
-		Qk_HIDDEN_ALL_COPY(Application);
+		Qk_DISABLE_COPY(Application);
 	public:
 		// @events
 		Qk_Event(Load);

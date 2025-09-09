@@ -174,7 +174,7 @@ namespace qk {
 		return _host ? _host->_window: nullptr;
 	}
 
-	void Keyframe::onMake(ViewProp key, Property* prop) {
+	void Keyframe::onMake(CssProp key, Property* prop) {
 		if (_host) {
 			for (auto i: _host->_frames_Rt) {
 				if (i != this) {
@@ -184,7 +184,7 @@ namespace qk {
 		}
 	}
 
-	bool KeyframeAction::hasProperty(ViewProp name) {
+	bool KeyframeAction::hasProperty(CssProp name) {
 		return _frames_Rt.length() && _frames_Rt.front()->hasProperty(name);
 	}
 

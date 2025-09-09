@@ -41,7 +41,7 @@ namespace qk {
 	*/
 	template<class T, typename Traits = object_traits<T>> class Handle {
 		//! Copy constructor is not permitted.
-		Qk_HIDDEN_ALL_COPY(Handle);
+		Qk_DISABLE_COPY(Handle);
 		T* _data;
 
 		inline T* move() {

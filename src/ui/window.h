@@ -70,7 +70,7 @@ namespace qk {
 	 * @class Window system window ui components
 	*/
 	class Qk_EXPORT Window: public Reference, public RenderBackend::Delegate {
-		Qk_HIDDEN_ALL_COPY(Window);
+		Qk_DISABLE_COPY(Window);
 	public:
 
 		struct Options {

@@ -37,7 +37,7 @@ namespace qk {
 	class SharedMutex;
 
 	class Qk_EXPORT FontPool: public Object {
-		Qk_HIDDEN_ALL_COPY(FontPool);
+		Qk_DISABLE_COPY(FontPool);
 	public:
 		static FontPool* Make();
 		// define ptops

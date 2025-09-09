@@ -42,7 +42,7 @@ namespace qk {
 	* @calss Socket
 	*/
 	class Qk_EXPORT Socket: public Object {
-		Qk_HIDDEN_ALL_COPY(Socket);
+		Qk_DISABLE_COPY(Socket);
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 

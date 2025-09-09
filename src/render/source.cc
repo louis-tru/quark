@@ -124,12 +124,8 @@ namespace qk {
 		if (!_res) {
 			return false;
 		}
-
 		if (_pixels.length()) {
-			AutoMutexExclusive ame(_onState); // lock, safe assign `_pixels`
-			if (_pixels.length() && _pixels.front().length()) {
-				_ReloadTexture();
-			}
+			_ReloadTexture();
 		}
 		return true;
 	}
@@ -208,9 +204,11 @@ namespace qk {
 			Running(ImageSource* s): source(s) {
 			}
 			void call(Data& evt) override {
-				AutoMutexExclusive ame(source.get()->_onState);
+				AutoSharedMutexExclusive ame(source.get()->_onState);
 				auto self = source.get();
 				auto &pixels = self->_pixels;
+				if (!pixels.length() || !pixels[0].length())
+					return;
 				int i = 0;
 				int levels = 1;
 				int len = pixels.length(), old_len = self->_tex.length();
@@ -254,7 +252,7 @@ namespace qk {
 
 	void ImageSource::_Unload(bool destroy) {
 		{
-			AutoMutexExclusive ame(_onState); // lock, safe assign `_pixels`
+			AutoSharedMutexExclusive ame(_onState); // lock, safe assign `_pixels`
 
 			_state = State( _state & ~(kSTATE_LOADING | kSTATE_LOAD_COMPLETE) );
 			_pixels.clear();
@@ -280,7 +278,7 @@ namespace qk {
 		// avoiding deadlock
 		if (!destroy) {
 			_res->post_message(Cb([this](auto e) { // to call from Rt
-				AutoMutexExclusive ame(_onState);
+				AutoSharedMutexExclusive ame(_onState);
 				deleteTextures(_res, _tex);
 				_tex.clear();
 			}, this));
@@ -288,7 +286,7 @@ namespace qk {
 	}
 
 	void ImageSource::Inl::setTex(RenderResource *res, cPixelInfo &info, const TexStat *tex) {
-		AutoMutexExclusive ame(_onState);
+		AutoSharedMutexExclusive ame(_onState);
 		if (!_res)
 			_res = res;
 		if (_tex.length()) { // replace old texture

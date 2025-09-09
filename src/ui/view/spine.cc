@@ -37,6 +37,10 @@
 
 using namespace spine;
 
+SpineExtension *spine::getDefaultExtension() {
+	return new DefaultSpineExtension();
+}
+
 namespace qk {
 
 // C Variable length array
@@ -54,6 +58,19 @@ namespace qk {
 
 	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
 	typedef Canvas::Triangles Triangles;
+	typedef SpineEvent::Type SEType;
+	class AttachmentVertices;
+
+	namespace {
+		Rect computeBoundingRect(const float *coords, int vertexCount);
+		bool slotIsOutRange(Slot &slot, int startSlotIndex, int endSlotIndex);
+		bool nothingToDraw(Slot &slot, int startSlotIndex, int endSlotIndex);
+		BlendMode getBlendMode(spine::BlendMode blendMode, bool premultipliedAlpha);
+		Color ColorToColor4B(const spine::Color &color);
+		void premultipliedAlpha(spine::Color &color);
+		void drawTriangles(Triangles &triangles,
+			AttachmentVertices *attachment, Painter *painter, BlendMode blend);
+	}
 
 	class AttachmentVertices {
 	public:
@@ -127,7 +144,7 @@ namespace qk {
 
 	static uint16_t quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 
-	class QkAtlasAttachmentLoader: public AtlasAttachmentLoader {
+	class SkeletonData::QkAtlasAttachmentLoader: public AtlasAttachmentLoader {
 	public:
 		QkAtlasAttachmentLoader(Atlas *atlas): AtlasAttachmentLoader(atlas) {}
 
@@ -188,10 +205,11 @@ namespace qk {
 
 	static QkTextureLoader textureLoader;
 
+	static Dict<String, Sp<SkeletonData>> _skeletonCache;
+
 	Sp<SkeletonData> SkeletonData::Make(cString &skeletonPath, cString &atlasPath, float scale) throw(Error) {
 		if (skeletonPath.isEmpty())
 			return nullptr;
-		auto sk_buff = fs_reader()->read_file_sync(skeletonPath);
 		auto atlasP(atlasPath);
 		if (atlasP.isEmpty()) {
 			auto dir = fs_dirname(skeletonPath);
@@ -206,22 +224,42 @@ namespace qk {
 				return nullptr;
 			}
 		}
+		auto key = fs_format("%s|%s|%f", *skeletonPath, *atlasP, scale);
+		Sp<qk::SkeletonData> *out;
+		if (_skeletonCache.get(key, out))
+			return *out;
+		auto sk_buff = fs_reader()->read_file_sync(skeletonPath);
 		auto atlas_buff = fs_reader()->read_file_sync(atlasP);
-		return Make(sk_buff, atlas_buff, fs_dirname(atlasP), scale);
+		return _skeletonCache.set(key, _Make(sk_buff, atlas_buff, fs_dirname(atlasP), scale));
 	}
 
 	Sp<SkeletonData> SkeletonData::Make(cBuffer &skeletonBuff, cString &atlasPath, float scale) throw(Error) {
+		auto key0 = hash(skeletonBuff.val(), skeletonBuff.length());
+		auto key = fs_format("%s|%s|%f", *key0, *atlasPath, scale);
+		Sp<qk::SkeletonData> *out;
+		if (_skeletonCache.get(key, out))
+			return *out;
 		auto atlas_buff = fs_reader()->read_file_sync(atlasPath);
-		return Make(skeletonBuff, atlas_buff, fs_dirname(atlasPath), scale);
+		return _skeletonCache.set(key, _Make(skeletonBuff, atlas_buff, fs_dirname(atlasPath), scale));
 	}
 
-	Sp<SkeletonData> SkeletonData::Make(cBuffer &skeletonBuff, cBuffer &atlasBuff, cString &dir, float scale) {
-		Sp<Atlas> atlas = new Atlas(*atlasBuff, atlasBuff.length(), dir.c_str(), &textureLoader, true);
-		Sp<AtlasAttachmentLoader> loader = new QkAtlasAttachmentLoader(*atlas);
+	Sp<SkeletonData> SkeletonData::Make(cBuffer &skeleton, cBuffer &atlasBuf, cString &dir, float scale) {
+		auto key0 = hash(skeleton.val(), skeleton.length());
+		auto key1 = hash(atlasBuf.val(), atlasBuf.length());
+		auto key = fs_format("%s|%s|%s|%f", *key0, *key1, *dir, scale);
+		Sp<qk::SkeletonData> *out;
+		if (_skeletonCache.get(key, out))
+			return *out;
+		return _skeletonCache.set(key, _Make(skeleton, atlasBuf, dir, scale));
+	}
+
+	SkeletonData* SkeletonData::_Make(cBuffer &skeleton, cBuffer &atlasBuf, cString &dir, float scale) {
+		Sp<Atlas> atlas = new Atlas(*atlasBuf, atlasBuf.length(), dir.c_str(), &textureLoader, true);
+		Sp<QkAtlasAttachmentLoader> loader = new QkAtlasAttachmentLoader(*atlas);
 
 		SkeletonBinary binary(*loader);
 		binary.setScale(scale);
-		auto data = binary.readSkeletonData((const unsigned char*)skeletonBuff.val(), skeletonBuff.length());
+		auto data = binary.readSkeletonData((const unsigned char*)skeleton.val(), skeleton.length());
 
 		Qk_ASSERT(data, (!binary.getError().isEmpty() ? binary.getError().buffer() : "Error reading skeleton data."));
 
@@ -230,7 +268,7 @@ namespace qk {
 		return new SkeletonData(data, atlas.collapse(), loader.collapse());
 	}
 
-	SkeletonData::SkeletonData(spine::SkeletonData* data, Atlas* atlas, AtlasAttachmentLoader* loader)
+	SkeletonData::SkeletonData(spine::SkeletonData* data, Atlas* atlas, QkAtlasAttachmentLoader* loader)
 		: _data(data), _atlas(atlas), _atlasLoader(loader) {
 	}
 
@@ -240,73 +278,146 @@ namespace qk {
 		Releasep(_atlasLoader);
 	}
 
-	class Spine::SkeletonWraper: public Object {
-	public:
-		SkeletonWraper(Spine *host, SkeletonData *data)
+	SpineEvent::SpineEvent(SEType type, View* origin): UIEvent(origin), _type(type) {}
+
+	SpineKeyEvent::SpineKeyEvent(View* origin,
+		cEventData* staticData, float time, int intValue,
+		float floatValue, cString& stringValue, float volume, float balance)
+		: SpineEvent(SEType::kKeyEvent_Type, origin)
+		, _static_data(staticData), _time(time), _int_value(intValue)
+		, _float_value(floatValue), _string_value(stringValue)
+		, _volume(volume), _balance(balance)
+	{}
+
+	struct Spine::SkeletonWrapper: public Object {
+		SkeletonWrapper(Spine *host, SkeletonData *data)
 			: _host(host), _wrapData(data), _data(_wrapData->_data)
 			, _skeleton(_data)
 			, _stateData(_data)
 			, _state(&_stateData)
-			, _clipper(), _effect(nullptr)
 		{}
-		~SkeletonWraper() {
+		~SkeletonWrapper() {
 			Releasep(_skeleton);
-			Releasep(_clipper);
-			Releasep(_effect);
 		}
 		void destroy() {
 			_host->preRender().async_call([](auto self, auto arg) {
 				self->Object::destroy(); // safe destroy on render thread
 			}, this, 0);
 		}
+		void update(float deltaTime) {
+			// update skeleton and animation state
+			_skeleton.update(deltaTime);
+			_state.update(deltaTime);
+			_state.apply(_skeleton);
+			_skeleton.updateWorldTransform();
+		}
 		Spine *_host;
 		Sp<SkeletonData> _wrapData;
 		spine::SkeletonData* _data;
-		spine::Skeleton _skeleton;
-		spine::AnimationStateData _stateData;
-		spine::AnimationState _state;
-		spine::SkeletonClipping _clipper;
-		spine::VertexEffect *_effect;
+		Skeleton _skeleton;
+		AnimationStateData _stateData;
+		AnimationState _state;
+		friend class Spine;
 	};
 
-	#define _IfWraper(...) if (_wraper) return __VA_ARGS__; auto self = _wraper.load()
+	struct Spine::SpineOther {
+		SpineOther():_clipper(), _effect(nullptr) {}
+		~SpineOther() {
+			Releasep(_effect);
+		}
+		SkeletonClipping _clipper;
+		VertexEffect *_effect;
+		QkMutex _mutex; // protects _self and SkeletonSelf members
+		friend class Spine;
+	};
+
+	#define _IfSkel(...) if (_skel) return __VA_ARGS__; auto skel = _skel/*.load()*/
+	#define _IfAutoMutex(...) _IfSkel(__VA_ARGS__); AutoMutexExclusive ame(_other->_mutex);
 
 	Spine::Spine(): SpriteView()
-		, _wraper(nullptr)
+		, _other(new SpineOther()), _skel(nullptr)
 		, _start_slot(0), _end_slot(0xffffffffu) // all slots
-		, _speed(1.0f)
+		, _speed(1.0f), _default_mix(0), _deltaTime(0)
 	{}
 
 	void Spine::destroy() {
-		Release(_wraper.load());
-		_wraper.store(nullptr);
+		Releasep(_skel);
 		View::destroy(); // Call parent destroy
 	}
 
+	void safe_trigger_event_Rt(View *v, UIEvent *e, cUIEventName& name) {
+		struct Core: CallbackCore<Object> {
+			Core(View *v, UIEvent *e, cUIEventName& n)
+				: view(Sp<View>::lazy(v)), evt(e), name(n) {
+			}
+			void call(Data& e) {
+				view->trigger(name, **evt);
+			}
+			Sp<View> view;
+			Sp<UIEvent> evt;
+			UIEventName name;
+		};
+		if (v->tryRetain_Rt()) {
+			v->preRender().post(Cb(new Core(v, e, name)));
+		} else {
+			Release(e);
+		}
+	}
+
 	void Spine::set_skeleton(SkeletonData *data) {
-		if (_wraper) {
-			if (_wraper.load()->_wrapData == data)
+		AutoMutexExclusive(_other->_mutex);
+		if (_skel) {
+			if (_skel->_wrapData == data)
 				return;
-			Release(_wraper.load());
-			_wraper.store(nullptr);
+			Releasep(_skel);
 		}
 		if (!data)
 			return;
-		auto self = NewRetain<SkeletonWraper>(this, data);
-		_wraper.store(self);
-		self->_skeleton.setToSetupPose();
-		self->_skeleton.updateWorldTransform();
-		self->_state.setRendererObject(this);
-		self->_state.setListener([](AnimationState *state, spine::EventType type, TrackEntry *entry, spine::Event *event) {
-			// ((Spine *) state->getRendererObject())->onAnimationStateEvent(entry, type, event);
+		_skel = NewRetain<SkeletonWrapper>(this, data);
+		_skel->_stateData.setDefaultMix(_default_mix);
+		_skel->_skeleton.setToSetupPose();
+		_skel->_skeleton.updateWorldTransform();
+		_skel->_state.setRendererObject(this);
+		_skel->_state.setListener([](AnimationState *state, spine::EventType type, TrackEntry *entry, spine::Event *e) {
+			auto self = ((Spine*)state->getRendererObject());
+			switch (type) {
+				case EventType_Start:
+					safe_trigger_event_Rt(self, new SpineEvent(SEType::kStart_Type, self), UIEvent_SpineStart);
+					break;
+				case EventType_Interrupt:
+					safe_trigger_event_Rt(self, new SpineEvent(SEType::kInterrupt_Type, self), UIEvent_SpineInterrupt);
+					break;
+				case EventType_End:
+					safe_trigger_event_Rt(self, new SpineEvent(SEType::kEnd_Type, self), UIEvent_SpineEnd);
+					break;
+				case EventType_Dispose:
+					safe_trigger_event_Rt(self, new SpineEvent(SEType::kDispose_Type, self), UIEvent_SpineDispose);
+					break;
+				case EventType_Complete:
+					safe_trigger_event_Rt(self, new SpineEvent(SEType::kComplete_Type, self), UIEvent_SpineComplete);
+					break;
+				case EventType_Event: {
+					// TODO maybe the "e->getData()" is unsafe by
+					// SkeletonData::Make(cBuffer &skeletonBuff, cBuffer &atlasBuff, cString &dir, float scale) created
+					auto evt = new SpineKeyEvent(self,
+						&e->getData(),
+						e->getTime(),
+						e->getIntValue(),
+						e->getFloatValue(),
+						String(e->getStringValue().buffer(), e->getStringValue().length()),
+						e->getVolume(),
+						e->getBalance());
+					safe_trigger_event_Rt(self, evt, UIEvent_SpineEvent);
+					break;
+				}
+			}
 		});
-		// Pre update once
-		run_task(0, 0);
+		_skel->update(0); // Pre update once
 	}
 
 	SkeletonData* Spine::skeleton() {
-		_IfWraper(nullptr);
-		return self->_wrapData.get();
+		_IfSkel(nullptr);
+		return skel->_wrapData.get();
 	}
 
 	void Spine::set_start_slot(uint32_t val) {
@@ -318,112 +429,99 @@ namespace qk {
 	}
 
 	void Spine::set_to_setup_pose() {
-		_IfWraper();
-		self->_skeleton.setToSetupPose();
+		_IfAutoMutex();
+		skel->_skeleton.setToSetupPose();
 	}
 
 	void Spine::set_bones_to_setup_pose() {
-		_IfWraper();
-		self->_skeleton.setBonesToSetupPose();
+		_IfAutoMutex();
+		skel->_skeleton.setBonesToSetupPose();
 	}
 
 	void Spine::set_slots_to_setup_pose() {
-		_IfWraper();
-		self->_skeleton.setSlotsToSetupPose();
+		_IfAutoMutex();
+		skel->_skeleton.setSlotsToSetupPose();
 	}
 
 	String Spine::skin() const {
-		_IfWraper(String());
-		auto &name = self->_skeleton.getSkin()->getName();
+		_IfSkel(String());
+		auto &name = skel->_skeleton.getSkin()->getName();
 		return String(name.buffer(), name.length());
 	}
 
 	void Spine::set_skin(String val) {
-		_IfWraper();
-		self->_skeleton.setSkin(val.isEmpty() ? nullptr: val.c_str());
+		_IfAutoMutex();
+		skel->_skeleton.setSkin(val.isEmpty() ? nullptr: val.c_str());
 	}
 
 	void Spine::set_speed(float val) {
 		_speed = Qk_Min(1e2, Qk_Max(val, 0.01));
 	}
 
-	void Spine::set_attachment(cString &slotName, cString &attachmentName) {
-		_IfWraper();
-		self->_skeleton.setAttachment(slotName.c_str(),
-			attachmentName.isEmpty() ? nullptr: attachmentName.c_str()
-		);
-	}
-
-	float Spine::default_mix() const {
-		if (_wraper) {
-			return _wraper.load()->_stateData.getDefaultMix();
-		}
-		return 0.f;
+	void Spine::set_attachment(cString &slotName, cString &name) {
+		_IfAutoMutex();
+		skel->_skeleton.setAttachment(slotName.c_str(), name.isEmpty() ? nullptr: name.c_str());
 	}
 
 	void Spine::set_default_mix(float val) {
-		_IfWraper();
-		self->_stateData.setDefaultMix(val);
+		_default_mix = val;
+		_IfSkel();
+		skel->_stateData.setDefaultMix(val);
 	}
 
 	void Spine::set_mix(cString &fromAnimation, cString &toAnimation, float duration) {
-		_IfWraper();
-		self->_stateData.setMix(fromAnimation.c_str(), toAnimation.c_str(), duration);
+		_IfAutoMutex();
+		skel->_stateData.setMix(fromAnimation.c_str(), toAnimation.c_str(), duration);
 	}
 
-	TrackEntry* Spine::set_animation(int trackIndex, cString &name, bool loop) {
-		_IfWraper(nullptr);
-		Animation *animation = self->_data->findAnimation(name.c_str());
+	TrackEntry* Spine::set_animation(uint32_t trackIndex, cString &name, bool loop) {
+		_IfAutoMutex(nullptr);
+		Animation *animation = skel->_data->findAnimation(name.c_str());
 		if (!animation) {
 			Qk_Log("Spine: Animation not found: %s", name.c_str());
 			return nullptr;
 		}
-		return self->_state.setAnimation(trackIndex, animation, loop);
+		return skel->_state.setAnimation(trackIndex, animation, loop);
 	}
 
-	TrackEntry *Spine::add_animation(int trackIndex, cString &name, bool loop, float delay) {
-		_IfWraper(nullptr);
-		Animation *animation = self->_data->findAnimation(name.c_str());
+	TrackEntry *Spine::add_animation(uint32_t trackIndex, cString &name, bool loop, float delay) {
+		_IfAutoMutex(nullptr);
+		Animation *animation = skel->_data->findAnimation(name.c_str());
 		if (!animation) {
 			Qk_Log("Spine: Animation not found: %s", name.c_str());
 			return nullptr;
 		}
-		return self->_state.addAnimation(trackIndex, animation, loop, delay);
+		return skel->_state.addAnimation(trackIndex, animation, loop, delay);
 	}
 
-	TrackEntry *Spine::set_empty_animation(int trackIndex, float mixDuration) {
-		_IfWraper(nullptr);
-		return self->_state.setEmptyAnimation(trackIndex, mixDuration);
+	TrackEntry *Spine::set_empty_animation(uint32_t trackIndex, float mixDuration) {
+		_IfAutoMutex(nullptr);
+		return skel->_state.setEmptyAnimation(trackIndex, mixDuration);
 	}
 
 	void Spine::set_empty_animations(float mixDuration) {
-		_IfWraper();
-		self->_state.setEmptyAnimations(mixDuration);
+		_IfAutoMutex();
+		skel->_state.setEmptyAnimations(mixDuration);
 	}
 
-	TrackEntry *Spine::add_empty_animation(int trackIndex, float mixDuration, float delay) {
-		_IfWraper(nullptr);
-		return self->_state.addEmptyAnimation(trackIndex, mixDuration, delay);
+	TrackEntry *Spine::add_empty_animation(uint32_t trackIndex, float mixDuration, float delay) {
+		_IfAutoMutex(nullptr);
+		return skel->_state.addEmptyAnimation(trackIndex, mixDuration, delay);
 	}
 
-	Animation*  Spine::find_animation(cString &name) const {
-		_IfWraper(nullptr);
-		return self->_data->findAnimation(name.c_str());
-	}
-
-	TrackEntry* Spine::get_current(int trackIndex) {
-		_IfWraper(nullptr);
-		return self->_state.getCurrent(trackIndex);
+	TrackEntry* Spine::get_current(uint32_t trackIndex) {
+		_IfSkel(nullptr);
+		return skel->_state.getCurrent(trackIndex);
 	}
 
 	void Spine::clear_tracks() {
-		_IfWraper();
-		self->_state.clearTracks();
+		_IfAutoMutex();
+		skel->_state.clearTracks();
 	}
 
-	void Spine::clear_track(int trackIndex) {
-		_IfWraper();
-		self->_state.clearTrack(trackIndex);
+	void Spine::clear_track(uint32_t trackIndex) {
+		_IfAutoMutex();
+		skel->_state.clearTrack(trackIndex);
 	}
 
 	ViewType Spine::viewType() const {
@@ -431,9 +529,8 @@ namespace qk {
 	}
 
 	Vec2 Spine::client_size() {
-		auto inl = _wraper.load();
-		if (inl) {
-			return { inl->_data->getWidth(), inl->_data->getHeight() };
+		if (_skel) {
+			return { _skel->_data->getWidth(), _skel->_data->getHeight() };
 		}
 		return Vec2();
 	}
@@ -447,133 +544,30 @@ namespace qk {
 	}
 
 	bool Spine::run_task(int64_t time, int64_t delta) {
-		auto wraper = _wraper.load();
-		if (wraper) {
-			auto deltaTime = _speed * 0.000001f * delta; /* delta in seconds */
-			wraper->_skeleton.update(deltaTime);
-
-			// if (_preUpdateListener) _preUpdateListener(this);
-			wraper->_state.update(deltaTime);
-			wraper->_state.apply(wraper->_skeleton);
-
-			wraper->_skeleton.updateWorldTransform();
-			// if (_postUpdateListener) _postUpdateListener(this);
-
-			return wraper->_skeleton.getColor().a != 0;
-		}
-		return false;
+		_IfSkel(false);
+		_deltaTime = _speed * 0.000001f * delta; /* delta in seconds */
+		return skel->_skeleton.getColor().a != 0;
 	}
 
-	// Draw skeleton
-	namespace {
-		Rect computeBoundingRect(const float *coords, int vertexCount) {
-			Qk_ASSERT(coords);
-			Qk_ASSERT(vertexCount > 0);
-			const float *v = coords;
-			float minX = v[0];
-			float minY = v[1];
-			float maxX = minX;
-			float maxY = minY;
-			for (int i = 1; i < vertexCount; ++i) {
-				v += 2;
-				float x = v[0];
-				float y = v[1];
-				minX = std::min(minX, x);
-				minY = std::min(minY, y);
-				maxX = std::max(maxX, x);
-				maxY = std::max(maxY, y);
-			}
-			return {{minX, minY}, {maxX - minX, maxY - minY}};
-		}
-
-		bool slotIsOutRange(Slot &slot, int startSlotIndex, int endSlotIndex) {
-			const int index = slot.getData().getIndex();
-			return startSlotIndex > index || endSlotIndex < index;
-		}
-
-		bool nothingToDraw(Slot &slot, int startSlotIndex, int endSlotIndex) {
-			Attachment *attachment = slot.getAttachment();
-			if (!attachment ||
-				slotIsOutRange(slot, startSlotIndex, endSlotIndex) ||
-				!slot.getBone().isActive())
-				return true;
-			const auto &attachmentRTTI = attachment->getRTTI();
-			if (attachmentRTTI.isExactly(ClippingAttachment::rtti))
-				return false;
-			if (slot.getColor().a == 0)
-				return true;
-			if (attachmentRTTI.isExactly(RegionAttachment::rtti)) {
-				if (static_cast<RegionAttachment *>(attachment)->getColor().a == 0)
-					return true;
-			} else if (attachmentRTTI.isExactly(MeshAttachment::rtti)) {
-				if (static_cast<MeshAttachment *>(attachment)->getColor().a == 0)
-					return true;
-			}
-			return false;
-		}
-
-		BlendMode getBlendMode(spine::BlendMode blendMode, bool premultipliedAlpha) {
-			switch (blendMode) {
-				case BlendMode_Additive:
-					return premultipliedAlpha ? kPlus_BlendMode: kAdditive_BlendMode;
-				case BlendMode_Multiply:
-					return kMultiply_BlendMode;
-				case BlendMode_Screen:
-					return kScreen_BlendMode;
-				default:
-					return premultipliedAlpha ? kSrcOverExt_BlendMode: kSrcOver_BlendMode;
-			}
-		}
-
-		Color ColorToColor4B(const spine::Color &color) {
-			return Color(color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f);
-		}
-
-		void premultipliedAlpha(spine::Color &color) {
-			color.r *= color.a;
-			color.g *= color.a;
-			color.b *= color.a;
-		}
-
-		void drawTriangles(Triangles &triangles,
-			AttachmentVertices *attachment, Painter *painter, BlendMode blend
-		) {
-			Qk_ASSERT_NE(triangles.indexCount, 0);
-			Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
-			auto src = attachment->_source;
-			if (src->load()) {
-				painter->canvas()->drawTriangles(triangles, attachment->_paint, blend);
-			} else {
-				src->onState().once<Window>([](auto e, auto ctx) {
-					if (e.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
-						if (ctx->root())
-							ctx->preRender().mark_render(); // mark rerender
-					}
-				}, painter->window());
-			}
-		}
-	} // namespace {
-
 	void Spine::draw(Painter *painter) {
-		auto self = _wraper.load();
+		_other->_mutex.lock();
 		// Early exit if the skeleton is invisible.
-		if (!self || self->_skeleton.getColor().a == 0) {
+		if (!_skel || _skel->_skeleton.getColor().a == 0){
+			_other->_mutex.unlock();
 			return painter->visitView(this, matrix());
 		}
-
-		// Rect bb = computeBoundingRect(worldCoords, coordCount / 2);
-		// if (cullRectangle(renderer, transform, bb)) {
-		// 	VLA_FREE(worldCoords);
-		// 	return;
-		// }
+		if (_deltaTime) {
+			_skel->update(_deltaTime); // update skeleton and animation state
+			_deltaTime = 0;
+		}
 
 		auto _matrix = painter->_matrix;
 		painter->_matrix = &matrix();
 		painter->canvas()->setMatrix(matrix());
 
-		auto skeleton = &self->_skeleton;
-		auto clipper = &self->_clipper;
-		auto effect = self->_effect;
+		auto skeleton = &_skel->_skeleton;
+		auto clipper = &_other->_clipper;
+		auto effect = _other->_effect;
 		if (effect)
 			effect->begin(*skeleton);
 
@@ -729,6 +723,8 @@ namespace qk {
 		if (effect)
 			effect->end();
 
+		_other->_mutex.unlock();
+
 		// commit last triangles
 		if (lastAttachmentV) {
 			drawTriangles(cmdTriangles, lastAttachmentV, painter, lastBlendFunc);
@@ -738,4 +734,92 @@ namespace qk {
 		painter->canvas()->setMatrix(*_matrix); // restore previous matrix
 	}
 
+	namespace {
+		Rect computeBoundingRect(const float *coords, int vertexCount) {
+			Qk_ASSERT(coords);
+			Qk_ASSERT(vertexCount > 0);
+			const float *v = coords;
+			float minX = v[0];
+			float minY = v[1];
+			float maxX = minX;
+			float maxY = minY;
+			for (int i = 1; i < vertexCount; ++i) {
+				v += 2;
+				float x = v[0];
+				float y = v[1];
+				minX = std::min(minX, x);
+				minY = std::min(minY, y);
+				maxX = std::max(maxX, x);
+				maxY = std::max(maxY, y);
+			}
+			return {{minX, minY}, {maxX - minX, maxY - minY}};
+		}
+
+		bool slotIsOutRange(Slot &slot, int startSlotIndex, int endSlotIndex) {
+			const int index = slot.getData().getIndex();
+			return startSlotIndex > index || endSlotIndex < index;
+		}
+
+		bool nothingToDraw(Slot &slot, int startSlotIndex, int endSlotIndex) {
+			Attachment *attachment = slot.getAttachment();
+			if (!attachment ||
+				slotIsOutRange(slot, startSlotIndex, endSlotIndex) ||
+				!slot.getBone().isActive())
+				return true;
+			const auto &attachmentRTTI = attachment->getRTTI();
+			if (attachmentRTTI.isExactly(ClippingAttachment::rtti))
+				return false;
+			if (slot.getColor().a == 0)
+				return true;
+			if (attachmentRTTI.isExactly(RegionAttachment::rtti)) {
+				if (static_cast<RegionAttachment *>(attachment)->getColor().a == 0)
+					return true;
+			} else if (attachmentRTTI.isExactly(MeshAttachment::rtti)) {
+				if (static_cast<MeshAttachment *>(attachment)->getColor().a == 0)
+					return true;
+			}
+			return false;
+		}
+
+		BlendMode getBlendMode(spine::BlendMode blendMode, bool premultipliedAlpha) {
+			switch (blendMode) {
+				case BlendMode_Additive:
+					return premultipliedAlpha ? kPlus_BlendMode: kAdditive_BlendMode;
+				case BlendMode_Multiply:
+					return kMultiply_BlendMode;
+				case BlendMode_Screen:
+					return kScreen_BlendMode;
+				default:
+					return premultipliedAlpha ? kSrcOverExt_BlendMode: kSrcOver_BlendMode;
+			}
+		}
+
+		Color ColorToColor4B(const spine::Color &color) {
+			return Color(color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f);
+		}
+
+		void premultipliedAlpha(spine::Color &color) {
+			color.r *= color.a;
+			color.g *= color.a;
+			color.b *= color.a;
+		}
+
+		void drawTriangles(Triangles &triangles,
+			AttachmentVertices *attachment, Painter *painter, BlendMode blend
+		) {
+			Qk_ASSERT_NE(triangles.indexCount, 0);
+			Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
+			auto src = attachment->_source;
+			if (src->load()) {
+				painter->canvas()->drawTriangles(triangles, attachment->_paint, blend);
+			} else {
+				src->onState().once<Window>([](auto e, auto ctx) {
+					if (e.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
+						if (ctx->root())
+							ctx->preRender().mark_render(); // mark rerender
+					}
+				}, painter->window());
+			}
+		}
+	} // namespace {
 }

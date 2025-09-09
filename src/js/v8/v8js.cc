@@ -343,6 +343,14 @@ namespace qk { namespace js {
 		}
 	}
 
+	Maybe<uint32_t> JSValue::asUint32(Worker* worker) const {
+		if (isBoolean()) {
+			return static_cast<const JSBoolean*>(this)->value();
+		} else {
+			return Maybe<uint32_t>();
+		}
+	}
+
 	template<>
 	JSValue* JSObject::get(Worker* worker, JSValue* key) {
 		DCHECK(isObject());
@@ -361,7 +369,7 @@ namespace qk { namespace js {
 			Set(CONTEXT(worker), Back(key), Back(val)).FromMaybe(false);
 	}
 
-	bool JSObject::set(Worker* worker, uint32_t index, JSValue* val) {
+	bool JSObject::setFor(Worker* worker, uint32_t index, JSValue* val) {
 		DCHECK(isObject());
 		return Back<v8::Object>(this)->
 			Set(CONTEXT(worker), index, Back(val)).FromMaybe(false);

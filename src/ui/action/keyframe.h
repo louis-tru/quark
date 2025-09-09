@@ -32,7 +32,7 @@
 #define __quark__action__keyframe__
 
 #include "./action.h"
-#include "../view_prop.h"
+#include "../views.h"
 #include "../css/css.h"
 #include "../../render/bezier.h"
 
@@ -61,7 +61,7 @@ namespace qk {
 		 * @overwrite
 		 * @thread Rt
 		*/
-		void onMake(ViewProp key, Property* prop) override;
+		void onMake(CssProp key, Property* prop) override;
 
 		KeyframeAction* _host;
 		friend class KeyframeAction;
@@ -96,7 +96,7 @@ namespace qk {
 		* @method has_property
 		* @thread Rt
 		*/
-		bool hasProperty(ViewProp name);
+		bool hasProperty(CssProp name);
 
 		/**
 		* @method addFrame() add new frame to end

@@ -82,7 +82,7 @@ namespace qk {
 	};
 
 	class Qk_EXPORT EventNoticerBasic {
-		Qk_HIDDEN_ALL_COPY(EventNoticerBasic);
+		Qk_DISABLE_COPY(EventNoticerBasic);
 	public:
 		typedef void (Object::*ListenerFunc)(Object& evt);
 		typedef void (*StaticListenerFunc)(Object& evt, void* data);
@@ -285,7 +285,7 @@ namespace qk {
 
 	template<class Event = Event<>, class Name  = String, class Base = Object>
 	class Notification: public Base, public NotificationBasic {
-		Qk_HIDDEN_ALL_COPY(Notification);
+		Qk_DISABLE_COPY(Notification);
 	public:
 		typedef Event               EventType;
 		typedef Name                NameType;

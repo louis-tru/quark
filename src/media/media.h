@@ -58,7 +58,7 @@ namespace qk {
 	class MediaCodec;
 
 	class Qk_EXPORT MediaSource: public Object {
-		Qk_HIDDEN_ALL_COPY(MediaSource);
+		Qk_DISABLE_COPY(MediaSource);
 		Qk_DEFINE_INLINE_CLASS(Inl);
 	public:
 
@@ -119,7 +119,7 @@ namespace qk {
 		};
 
 		class Qk_EXPORT Extractor: public Object {
-			Qk_HIDDEN_ALL_COPY(Extractor);
+			Qk_DISABLE_COPY(Extractor);
 		public:
 			Qk_DEFINE_PROP_GET(MediaSource*, host);
 			Qk_DEFINE_PROP_GET(MediaType, type, Const);
@@ -231,7 +231,7 @@ namespace qk {
 	};
 
 	class Qk_EXPORT MediaCodec: public Object {
-		Qk_HIDDEN_ALL_COPY(MediaCodec);
+		Qk_DISABLE_COPY(MediaCodec);
 	public:
 		typedef MediaSource::Extractor Extractor;
 		typedef MediaSource::Packet Packet;

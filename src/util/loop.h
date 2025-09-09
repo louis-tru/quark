@@ -105,7 +105,7 @@ namespace qk {
 	* @class RunLoop
 	*/
 	class Qk_EXPORT RunLoop: public Object, public PostMessage {
-		Qk_HIDDEN_ALL_COPY(RunLoop);
+		Qk_DISABLE_COPY(RunLoop);
 	public:
 		/**
 		 * @class PostSyncData

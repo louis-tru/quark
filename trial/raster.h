@@ -39,7 +39,7 @@
 namespace qk {
 
 	class Qk_EXPORT XLineScaner: public Object {
-		Qk_HIDDEN_ALL_COPY(XLineScaner);
+		Qk_DISABLE_COPY(XLineScaner);
 	public:
 		typedef void (*ScanCb)(int32_t left, int32_t right, int32_t y, void* ctx);
 		XLineScaner(const Path& path, Rect clip, float scale = 1.0, bool is_convex_polygon = false);

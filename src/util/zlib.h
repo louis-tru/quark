@@ -53,7 +53,7 @@ namespace qk {
 	* @class GZip
 	*/
 	class Qk_EXPORT GZip: public Object, public StreamSync {
-		Qk_HIDDEN_ALL_COPY(GZip);
+		Qk_DISABLE_COPY(GZip);
 	public:
 		// define props
 		Qk_DEFINE_PROP_GET(String, path);
@@ -79,7 +79,7 @@ namespace qk {
 	* @class ZipReader
 	*/
 	class Qk_EXPORT ZipReader: public Object {
-		Qk_HIDDEN_ALL_COPY(ZipReader);
+		Qk_DISABLE_COPY(ZipReader);
 	public:
 
 		ZipReader(cString& path, cString& passwd = String());
@@ -223,7 +223,7 @@ namespace qk {
 	* @class ZipWriter
 	*/
 	class Qk_EXPORT ZipWriter: public Object {
-		Qk_HIDDEN_ALL_COPY(ZipWriter);
+		Qk_DISABLE_COPY(ZipWriter);
 	public:
 		/**
 		*

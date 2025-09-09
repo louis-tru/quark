@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./view_prop.h"
-#include "./view/view.h"
-#include "./view/box.h"
-#include "./view/flex.h"
-#include "./view/flow.h"
-#include "./view/text.h"
-#include "./view/input.h"
-#include "./view/image.h"
-#include "./view/scroll.h"
-#include "./view/matrix.h"
-#include "./view/sprite.h"
+#include "./css_props.h"
+#include "../view/view.h"
+#include "../view/box.h"
+#include "../view/flex.h"
+#include "../view/flow.h"
+#include "../view/text.h"
+#include "../view/input.h"
+#include "../view/image.h"
+#include "../view/scroll.h"
+#include "../view/matrix.h"
+#include "../view/sprite.h"
 
 namespace qk {
 	typedef void (Object::*Func)();
@@ -46,12 +46,12 @@ namespace qk {
 	#define __Qk_Modifier_ const
 	#define __Qk_Modifier_NoConst
 	#define Qk_Set_Accessor(View, Prop, Name, Type, ...) \
-		accessors[k##View##_ViewType].value[k##Prop##_ViewProp] =\
+		accessors[k##View##_ViewType].value[k##Prop##_CssProp] =\
 			{(Func)static_cast<Type (View::*)()__Qk_Modifier_##__VA_ARGS__>(&View::Name),\
 				(Func)static_cast<void (View::*)(Type,bool)>(&View::set_##Name)};
 
 	#define Qk_Copy_Accessor(From, Dest, Index, Count) \
-		accessors[k##From##_ViewType].copy(k##Index##_ViewProp, Count, accessors[k##Dest##_ViewType])
+		accessors[k##From##_ViewType].copy(k##Index##_CssProp, Count, accessors[k##Dest##_ViewType])
 
 	struct Accessors {
 		void copy(uint32_t index, uint32_t count, Accessors &dest) {
@@ -60,7 +60,7 @@ namespace qk {
 				dest.value[index] = value[index];
 			} while (++index < end);
 		}
-		PropAccessor value[kEnum_Counts_ViewProp] = {0};
+		CssPropAccessor value[kEnum_Counts_CssProp] = {0};
 	};
 
 	static Accessors *accessors = nullptr;
@@ -158,6 +158,7 @@ namespace qk {
 		accessors[kButton_ViewType] = accessors[kView_ViewType]; // copy view props to button
 		accessors[kMatrix_ViewType] = accessors[kView_ViewType]; // copy view props to matrix
 		accessors[kSprite_ViewType] = accessors[kView_ViewType]; // copy view props to sprite
+		accessors[kSpine_ViewType] = accessors[kView_ViewType]; // copy view props to spine
 		accessors[kRoot_ViewType] = accessors[kView_ViewType]; // copy view props to root
 		// Box
 		Qk_Set_Accessor(Box, CLIP, clip, bool);
@@ -272,8 +273,10 @@ namespace qk {
 		Qk_Set_Accessor(Matrix, SKEW_X, skew_x, float);
 		Qk_Set_Accessor(Matrix, SKEW_Y, skew_y, float);
 		Qk_Set_Accessor(Matrix, ROTATE_Z, rotate_z, float);
-		// Sprite
 		Qk_Copy_Accessor(Matrix, Sprite, TRANSLATE, 13); // copy matrix props to sprite
+		Qk_Copy_Accessor(Matrix, Spine, TRANSLATE, 13); // copy matrix props to spine
+		Qk_Copy_Accessor(Matrix, Root, TRANSLATE, 13); // copy matrix props to root
+		// Sprite
 		Qk_Set_Accessor(Sprite, SRC, src, String);
 		Qk_Set_Accessor(Sprite, WIDTH, width, BoxSize);
 		Qk_Set_Accessor(Sprite, HEIGHT, height, BoxSize);
@@ -281,7 +284,7 @@ namespace qk {
 		Qk_Set_Accessor(Sprite, DIRECTION, direction, Direction);
 	}
 
-	PropAccessor* get_props_accessor(ViewType type, ViewProp prop) {
+	CssPropAccessor* get_props_accessor(ViewType type, CssProp prop) {
 		return accessors[type].value + prop;
 	}
 }

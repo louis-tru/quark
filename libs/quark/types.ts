@@ -975,6 +975,23 @@ export declare class BoxShadow extends BoxFilter {
  */
 export type BoxShadowIn = ShadowIn | ShadowIn[] | BoxShadow;
 
+/**
+ * @class SkeletonData
+*/
+export declare abstract class SkeletonData {
+	static Make(skeletonPath: string, atlasPath: string, scale?: Float): SkeletonData; //!<
+	static Make(skeleton: Uint8Array, atlasPath: string, scale?: Float): SkeletonData; //!<
+	static Make(skeleton: Uint8Array, atlas: Uint8Array, dir: string, scale?: Float): SkeletonData; //!<
+}
+
+/**
+ * @example
+ * ```
+ * skeleton(res/alien/image.skel, res/alien/image.atlas, scale=1)
+ * ```
+ */
+export type SkeletonDataIn = `skeleton(${string})` | SkeletonData;
+
 // -------------------------------------------------------------------------------------
 
 /**
@@ -1789,6 +1806,23 @@ export function parseBoxShadow(val: BoxShadowIn, desc?: string): BoxShadow { ///
 	}
 }
 
+const parseSkeletonDataRef = [
+	'skeleton(res/alien/image.skel, res/alien/image.atlas, scale=1)'
+];
+export function parseSkeletonData(val: SkeletonDataIn, desc?: string): SkeletonData { ///!<
+	const SkeletonData_ = exports.SkeletonData as typeof SkeletonData;
+	if (val instanceof SkeletonData_) {
+		return val;
+	} else if (typeof val === 'string') {
+		let cmd = parseCmd(val);
+		if (cmd && cmd.val == 'skeleton') {
+			let {args:[a,b],kv:{scale}} = cmd;
+			return SkeletonData.Make(a[0], b[0], scale ? scale[0]: 1);
+		}
+	}
+	throw error(val, desc, parseSkeletonDataRef);
+}
+
 /**
  * @type parseBoxFilterPtr:parseBoxFilter
 */
@@ -1798,3 +1832,8 @@ export const parseBoxFilterPtr = parseBoxFilter;
  * @type parseBoxShadowPtr:parseBoxShadow
 */
 export const parseBoxShadowPtr = parseBoxShadow;
+
+/**
+ * @type parseSkeletonDataPtr:parseSkeletonData
+*/
+export const parseSkeletonDataPtr = parseSkeletonData;

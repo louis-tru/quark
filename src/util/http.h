@@ -139,7 +139,7 @@ namespace qk {
 	* @class HttpClientRequest
 	*/
 	class Qk_EXPORT HttpClientRequest: public Object, public Stream {
-		Qk_HIDDEN_ALL_COPY(HttpClientRequest);
+		Qk_DISABLE_COPY(HttpClientRequest);
 	public:
 		class Delegate {
 		public:

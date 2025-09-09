@@ -39,7 +39,7 @@ namespace qk {
 	* @class FileSearch # Resources files search
 	*/
 	class Qk_EXPORT FileSearch: public Object {
-		Qk_HIDDEN_ALL_COPY(FileSearch);
+		Qk_DISABLE_COPY(FileSearch);
 	public:
 		FileSearch();
 		~FileSearch();

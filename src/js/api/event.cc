@@ -33,7 +33,9 @@
 #include "../../ui/action/action.h"
 #include "../../ui/view/view.h"
 #include "../../ui/event.h"
+#include "../../ui/view/spine.h"
 #include "../../../out/native-inl-js.h"
+#include <spine/EventData.h>
 
 namespace qk { namespace js {
 	typedef Event<> NativeEvent;
@@ -71,7 +73,6 @@ namespace qk { namespace js {
 
 	struct MixUIEvent: MixObject {
 		typedef UIEvent Type;
-
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(UIEvent, NativeEvent, {
 				Js_Throw("Access forbidden.");
@@ -112,7 +113,6 @@ namespace qk { namespace js {
 	};
 
 	struct MixActionEvent: MixObject {
-		typedef ActionEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ActionEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
@@ -198,7 +198,6 @@ namespace qk { namespace js {
 	};
 
 	struct MixClickEvent: MixObject {
-		typedef ClickEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ClickEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
@@ -276,6 +275,77 @@ namespace qk { namespace js {
 		}
 	};
 
+	struct MixSpineEvent: MixObject {
+		typedef SpineEvent Type;
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(SpineEvent, UIEvent, {
+				Js_Throw("Access forbidden.");
+			});
+			Js_Class_Accessor_Get(type, {
+				Js_Self(Type);
+				Js_Return( self->type() );
+			});
+			cls->exports("SpineEvent", exports);
+		}
+	};
+
+	struct MixSpineKeyEvent: MixObject {
+		typedef SpineKeyEvent Type;
+		static void binding(JSObject* exports, Worker* worker) {
+
+			Js_Define_Class(SpineKeyEvent, SpineEvent, {
+				Js_Throw("Access forbidden.");
+			});
+			Js_Class_Accessor_Get(staticData, {
+				Js_Mix(Type);
+				auto self = mix->self();
+				auto _staticData = worker->strs()->_staticData();
+				auto data = mix->handle()->template get<JSObject>(worker, _staticData);
+				if (data->isUndefined()) {
+					auto sData = self->static_data();
+					if (!sData)
+						Js_Return_Null();
+					Js_Handle_Scope();
+					data = worker->newObject();
+					data->setFor(worker, "name", String(sData->getName().buffer()));
+					data->setFor(worker, "intValue", sData->getIntValue());
+					data->setFor(worker, "floatValue", sData->getFloatValue());
+					data->setFor(worker, "stringValue", String(sData->getStringValue().buffer()));
+					data->setFor(worker, "audioPath", String(sData->getAudioPath().buffer()));
+					data->setFor(worker, "volume", sData->getVolume());
+					data->setFor(worker, "balance", sData->getBalance());
+					mix->handle()->set(worker, _staticData, data);
+				}
+				Js_Return(data);
+			});
+			Js_Class_Accessor_Get(time, {
+				Js_Self(Type);
+				Js_Return( self->time() );
+			});
+			Js_Class_Accessor_Get(intValue, {
+				Js_Self(Type);
+				Js_Return( self->int_value() );
+			});
+			Js_Class_Accessor_Get(float_value, {
+				Js_Self(Type);
+				Js_Return( self->float_value() );
+			});
+			Js_Class_Accessor_Get(string_value, {
+				Js_Self(Type);
+				Js_Return( self->string_value() );
+			});
+			Js_Class_Accessor_Get(volume, {
+				Js_Self(Type);
+				Js_Return( self->volume() );
+			});
+			Js_Class_Accessor_Get(balance, {
+				Js_Self(Type);
+				Js_Return( self->balance() );
+			});
+			cls->exports("SpineKeyEvent", exports);
+		}
+	};
+
 	struct MixEvent {
 		static void binding(JSObject* exports, Worker* worker) {
 			worker->runNativeScript((Char*)
@@ -289,6 +359,8 @@ namespace qk { namespace js {
 			MixMouseEvent::binding(exports, worker);
 			MixTouchEvent::binding(exports, worker);
 			MixHighlightedEvent::binding(exports, worker);
+			MixSpineEvent::binding(exports, worker);
+			MixSpineKeyEvent::binding(exports, worker);
 		}
 	};
 

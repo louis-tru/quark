@@ -43,7 +43,7 @@ namespace qk {
 	}
 
 	template<typename T>
-	inline void transition_value_ptr(T *v1, T *v2, float y, ViewProp prop, View *target) {
+	inline void transition_value_ptr(T *v1, T *v2, float y, CssProp prop, View *target) {
 		Qk_Unreachable("");
 	}
 
@@ -53,7 +53,7 @@ namespace qk {
 	}
 
 	template<>
-	void transition_value_ptr(BoxFilter *v1, BoxFilter *v2, float y, ViewProp prop, View *target) {
+	void transition_value_ptr(BoxFilter *v1, BoxFilter *v2, float y, CssProp prop, View *target) {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
@@ -163,7 +163,7 @@ namespace qk {
 
 	template<typename T>
 	struct PropImpl: Property {
-		inline PropImpl(ViewProp prop, T value): _prop(prop), _value(value) {}
+		inline PropImpl(CssProp prop, T value): _prop(prop), _value(value) {}
 		void apply(View *view, bool isRt) override {
 			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
 			if (set)
@@ -183,14 +183,14 @@ namespace qk {
 		Property* copy() override {
 			return new PropImpl<T>(_prop, _value);
 		}
-		ViewProp _prop;
+		CssProp _prop;
 		T        _value;
 	};
 
 	// @template Object or BoxFilter
 	template<typename T>
 	struct PropImpl<T*>: Property {
-		PropImpl(ViewProp prop, T* value): _prop(prop), _value(value) {
+		PropImpl(CssProp prop, T* value): _prop(prop), _value(value) {
 			Qk_ASSERT(_value);
 			static_assert(object_traits<T>::is::obj, "Property value must be a object type");
 			value->retain();
@@ -219,7 +219,7 @@ namespace qk {
 		Property* copy() override {
 			return new PropImpl(_prop, copy_value_ptr(static_cast<BoxFilter*>(_value)));
 		}
-		ViewProp _prop;
+		CssProp _prop;
 		T       *_value;
 	};
 
@@ -227,7 +227,7 @@ namespace qk {
 
 	template<typename T>
 	struct SetProp: StyleSheets {
-		void set(ViewProp key, T value) {
+		void set(CssProp key, T value) {
 			Property *prop;
 			if (_props.get(key, prop)) {
 				static_cast<PropImpl<T>*>(prop)->_value = value;
@@ -235,7 +235,7 @@ namespace qk {
 				onMake(key, _props.set(key, new PropImpl<T>(key, value)));
 			}
 		}
-		template<ViewProp key>
+		template<CssProp key>
 		void asyncSet(T value) {
 			auto win = getWindowForAsyncSet();
 			if (win) {
@@ -246,7 +246,7 @@ namespace qk {
 				set(key, value);
 			}
 		}
-		template<ViewProp key>
+		template<CssProp key>
 		void asyncSetLarge(T &value) {
 			auto win = getWindowForAsyncSet();
 			if (win) {
@@ -261,32 +261,32 @@ namespace qk {
 	};
 
 	template<>
-	template<ViewProp key>
+	template<CssProp key>
 	void SetProp<String>::asyncSet(String value) {
 		asyncSetLarge<key>(value);
 	}
 
 	template<>
-	template<ViewProp key>
+	template<CssProp key>
 	void SetProp<Curve>::asyncSet(Curve value) {
 		asyncSetLarge<key>(value);
 	}
 
 	// template<>
 	// template<>
-	// void SetProp<BoxSize>::asyncSet<kWIDTH_ViewProp>(BoxSize val) {
+	// void SetProp<BoxSize>::asyncSet<kWIDTH_CssProp>(BoxSize val) {
 	// 	set_min_width(val);
 	// }
 
 	// template<>
 	// template<>
-	// void SetProp<BoxSize>::asyncSet<kHEIGHT_ViewProp>(BoxSize val) {
+	// void SetProp<BoxSize>::asyncSet<kHEIGHT_CssProp>(BoxSize val) {
 	// 	set_min_height(val);
 	// }
 
 	template<>
 	template<>
-	void SetProp<ArrayFloat>::asyncSet<kMARGIN_ViewProp>(ArrayFloat val) {
+	void SetProp<ArrayFloat>::asyncSet<kMARGIN_CssProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
 				set_margin_left(val[0]);
@@ -318,7 +318,7 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<ArrayFloat>::asyncSet<kPADDING_ViewProp>(ArrayFloat val) {
+	void SetProp<ArrayFloat>::asyncSet<kPADDING_CssProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
 				set_padding_left(val[0]);
@@ -350,7 +350,7 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<ArrayFloat>::asyncSet<kBORDER_RADIUS_ViewProp>(ArrayFloat val) {
+	void SetProp<ArrayFloat>::asyncSet<kBORDER_RADIUS_CssProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
 				set_border_radius_left_top(val[0]);
@@ -382,7 +382,7 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<ArrayBorder>::asyncSet<kBORDER_ViewProp>(ArrayBorder val) {
+	void SetProp<ArrayBorder>::asyncSet<kBORDER_CssProp>(ArrayBorder val) {
 		switch (val.length()) {
 			case 1:
 				set_border_top(val[0]);
@@ -414,35 +414,35 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_TOP_ViewProp>(BoxBorder val) {
+	void SetProp<BoxBorder>::asyncSet<kBORDER_TOP_CssProp>(BoxBorder val) {
 		set_border_width_top(val.width);
 		set_border_color_top(val.color);
 	}
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_RIGHT_ViewProp>(BoxBorder val) {
+	void SetProp<BoxBorder>::asyncSet<kBORDER_RIGHT_CssProp>(BoxBorder val) {
 		set_border_width_right(val.width);
 		set_border_color_right(val.color);
 	}
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_BOTTOM_ViewProp>(BoxBorder val) {
+	void SetProp<BoxBorder>::asyncSet<kBORDER_BOTTOM_CssProp>(BoxBorder val) {
 		set_border_width_bottom(val.width);
 		set_border_color_bottom(val.color);
 	}
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_LEFT_ViewProp>(BoxBorder val) {
+	void SetProp<BoxBorder>::asyncSet<kBORDER_LEFT_CssProp>(BoxBorder val) {
 		set_border_width_left(val.width);
 		set_border_color_left(val.color);
 	}
 
 	template<>
 	template<>
-	void SetProp<ArrayFloat>::asyncSet<kBORDER_WIDTH_ViewProp>(ArrayFloat val) {
+	void SetProp<ArrayFloat>::asyncSet<kBORDER_WIDTH_CssProp>(ArrayFloat val) {
 		switch (val.length()) {
 			case 1:
 				set_border_width_top(val[0]);
@@ -474,7 +474,7 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<ArrayColor>::asyncSet<kBORDER_COLOR_ViewProp>(ArrayColor val) {
+	void SetProp<ArrayColor>::asyncSet<kBORDER_COLOR_CssProp>(ArrayColor val) {
 		switch (val.length()) {
 			case 1:
 				set_border_color_top(val[0]);
@@ -506,7 +506,7 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<ArrayOrigin>::asyncSet<kORIGIN_ViewProp>(ArrayOrigin val) {
+	void SetProp<ArrayOrigin>::asyncSet<kORIGIN_CssProp>(ArrayOrigin val) {
 		switch (val.length()) {
 			case 1:
 				set_origin_x(val[0]);
@@ -521,20 +521,20 @@ namespace qk {
 	}
 
 	template<>
-	template<ViewProp key>
+	template<CssProp key>
 	void SetProp<TextShadow>::asyncSet(TextShadow value) {
 		asyncSetLarge<key>(value);
 	}
 
 	template<>
-	template<ViewProp key>
+	template<CssProp key>
 	void SetProp<TextFamily>::asyncSet(TextFamily value) {
 		asyncSetLarge<key>(value);
 	}
 
 	template<>
 	struct SetProp<BoxFilter*>: StyleSheets {
-		void set(ViewProp key, BoxFilter* value, bool isRt) {
+		void set(CssProp key, BoxFilter* value, bool isRt) {
 			Property *prop;
 			if (_props.get(key, prop)) {
 				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
@@ -546,7 +546,7 @@ namespace qk {
 			}
 			value->release(); // @asyncSet, release the object after calling
 		}
-		template<ViewProp key>
+		template<CssProp key>
 		void asyncSet(BoxFilter* value) {
 			value->retain(); // retain the object before calling
 			auto win = getWindowForAsyncSet();
@@ -562,26 +562,26 @@ namespace qk {
 
 	template<typename T>
 	struct SetProp<T*>: StyleSheets {
-		template<ViewProp key>
+		template<CssProp key>
 		inline void asyncSet(T* val) {
 			static_cast<SetProp<BoxFilter*>*>(static_cast<StyleSheets*>(this))->asyncSet<key>(val);
 		}
 	};
 
 	void StyleSheets::set_frame_Rt(uint32_t frame) {
-		static_cast<SetProp<uint32_t>*>(this)->set(kFRAME_ViewProp, frame);
+		static_cast<SetProp<uint32_t>*>(this)->set(kFRAME_CssProp, frame);
 	}
 
 	#define _Fun(Enum, Type, Name, _) \
 	void StyleSheets::set_##Name(Type val) {\
-		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_ViewProp>(val);\
+		static_cast<SetProp<Type>*>(this)->asyncSet<k##Enum##_CssProp>(val);\
 	}
-	Qk_View_Props(_Fun)
+	Qk_Css_Props(_Fun)
 	#undef _Fun
 
 	cCurve& StyleSheets::curve() const {
 		Property* prop = nullptr;
-		if (_props.get(kCURVE_ViewProp, prop)) {
+		if (_props.get(kCURVE_CssProp, prop)) {
 			return static_cast<PropImpl<Curve>*>(prop)->_value;
 		} else {
 			return EASE;

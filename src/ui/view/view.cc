@@ -35,6 +35,7 @@
 #include "../css/css.h"
 #include "../action/action.h"
 #include "../../errno.h"
+#include "../css/css_props.h"
 
 #if DEBUG
 # define _Assert_IsRt(isRt, ...) \
@@ -50,6 +51,8 @@
 #define _CheckParent(defaultValue) _Parent(); if (!_parent) return defaultValue
 
 namespace qk {
+
+	CssPropAccessor* get_props_accessor(ViewType type, CssProp prop);
 
 	typedef View::Container Container;
 
@@ -140,7 +143,7 @@ namespace qk {
 		}, this, 0);
 	}
 
-	View* View::tryRetain() {
+	View* View::tryRetain_Rt() {
 		if (_refCount > 0) {
 			if (_refCount++ > 0) {
 				return this;
@@ -646,11 +649,10 @@ namespace qk {
 	void View::clear_level_Rt() { //  clear view depth
 		auto win = _window;
 		if (win->dispatch()->focusView() == this) {
-			preRender().post_main(Cb([this,win](auto &e) {
-				if (win->dispatch()->focusView() == this) {
+			preRender().post(Cb([this,win](auto e) {
+				if (win->dispatch()->focusView() == this)
 					blur();
-				}
-			}, win));
+			}),this);
 		}
 		if (_mark_index) {
 			preRender().unmark_layout(this, _level);
@@ -698,7 +700,7 @@ namespace qk {
 	View* View::init(Window* win) {
 		Qk_ASSERT(win);
 		_window = win;
-		_accessor = get_props_accessor(viewType(), kOPACITY_ViewProp);
+		_accessor = get_props_accessor(viewType(), kOPACITY_CssProp);
 		return this;
 	}
 
