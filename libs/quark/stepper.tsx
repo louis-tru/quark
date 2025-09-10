@@ -30,7 +30,7 @@
 
 import {Jsx,ViewController} from './ctr';
 import {mainScreenScale} from './screen';
-import {createCss,StyleSheet} from './css';
+import {createCss,StyleSheets} from './css';
 
 const px = 1 / mainScreenScale();
 
@@ -72,7 +72,7 @@ createCss({
 */
 export class Stepper extends ViewController<{
 	class?: string,
-	style?: StyleSheet,
+	style?: StyleSheets,
 	min?: number,
 	max?: number,
 	step?: number,

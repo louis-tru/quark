@@ -126,7 +126,7 @@ namespace qk {
 	class Qk_EXPORT CStyleSheets: public StyleSheets {
 		Qk_DISABLE_COPY(CStyleSheets);
 	public:
-		Qk_DEFINE_PROPERTY(uint32_t, time, Const); // css transition time
+		Qk_DEFINE_PROPERTY(uint32_t, time, Const); // css transition time span
 		Qk_DEFINE_PROP_GET(CStyleSheets*, parent);
 		Qk_DEFINE_PROP_GET(CStyleSheets*, normal); // style sheets for pseudo type
 		Qk_DEFINE_PROP_GET(CStyleSheets*, hover);

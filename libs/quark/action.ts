@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import { StyleSheet, CSSNameExp } from './css';
+import { StyleSheets, CSSNameExp } from './css';
 import * as types from './types';
 import util from './util';
 import { View } from './view';
@@ -38,9 +38,9 @@ import { Window } from './window';
 Object.assign(exports, __binding__('_action'));
 
 /**
- * @type KeyframeIn:StyleSheet|CSSNameExp
+ * @type KeyframeIn:StyleSheets|CSSNameExp
  */ 
-export type KeyframeIn = StyleSheet | CSSNameExp;
+export type KeyframeIn = StyleSheets | CSSNameExp;
 
 /**
  * @type ActionIn:Action|KeyframeIn[]|...
@@ -56,9 +56,9 @@ export type ActionIn = Action | KeyframeIn[] | {
 
 /**
  * @class Keyframe
- * @extends StyleSheet
+ * @extends StyleSheets
 */
-export declare class Keyframe extends StyleSheet {
+export declare class Keyframe extends StyleSheets {
 	/** Get Keyframe index in the keyframe action */
 	readonly index: number;
 	/** Get Keyframe time poing */

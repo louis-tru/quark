@@ -40,9 +40,9 @@ exports.CStyleSheetsClass = _css.CStyleSheetsClass;
 export type CSSNameExp = `.${string}`;
 
 /**
- * @interface StyleSheet
+ * @class StyleSheets
 */
-export interface StyleSheet {
+export declare abstract class StyleSheets {
 	time?: number; //!< keyframe time or css transition time
 	curve?: types.CurveIn; //!< keyframe curve or css transition curve
 	// Meta attribute
@@ -206,5 +206,5 @@ export declare class CStyleSheetsClass {
  *	})
  *	```
  */
-export const createCss = _css.create as ((sheets: { [key: `.${string}`]: StyleSheet })=>void);
+export const createCss = _css.create as ((sheets: { [key: `.${string}`]: StyleSheets })=>void);
 export default createCss;

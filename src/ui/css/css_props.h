@@ -129,22 +129,7 @@ namespace qk {
 	F(SKEW_Y, float, skew_y, MatrixView) \
 	F(ROTATE_Z, float, rotate_z, MatrixView) \
 	F(FRAME, uint32_t, frame, Sprite) /*Current frame index of Sprite*/\
-	F(CURVE, Curve, curve, CSS) /*extends*//*****Large size data*****/\
-
-	// Unsupported attributes for ScrollView:
-	// (ScrollBase, bool, scrollbar, scrollbar)
-	// (ScrollBase, bool, bounce, bounce)
-	// (ScrollBase, bool, bounce_lock, bounceLock)
-	// (ScrollBase, bool, momentum, momentum)
-	// (ScrollBase, bool, lock_direction, lockDirection)
-	// (ScrollBase, float, scroll_x, scrollX)
-	// (ScrollBase, float, scroll_y, scrollY)
-	// (ScrollBase, Vec2, scroll, scroll)
-	// (ScrollBase, float, resistance, resistance)
-	// (ScrollBase, float, catch_position_x, catchPositionX)
-	// (ScrollBase, float, catch_position_y, catchPositionY)
-	// (ScrollBase, uint32_t, scroll_duration, scrollDuration)
-	// (ScrollBase, Curve, default_curve, defaultCurve)
+	F(CURVE, Curve, curve, CSS) /* extends */\
 
 	enum CssProp {
 		#define _Fun(Enum, Type, Name, From) k##Enum##_CssProp,

@@ -824,9 +824,8 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 	view: view.View, box: view.Box,
 	flex: view.Flex, flow: view.Flow,
 	free: view.Free, image: view.Image, img: view.Image,
-	matrix: view.Matrix, sprite: view.Sprite,
-	text: view.Text,
-	button: view.Button, label: view.Label,
+	matrix: view.Matrix, sprite: view.Sprite, spine: view.Spine,
+	text: view.Text, button: view.Button, label: view.Label,
 	input: view.Input, textarea: view.Textarea, scroll: view.Scroll,
 	video: view.Video,
 };

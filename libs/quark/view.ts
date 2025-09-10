@@ -34,7 +34,7 @@ import event, {
 	UIEvent, HighlightedEvent, KeyEvent,
 	ClickEvent, TouchEvent, MouseEvent, ActionEvent } from './event';
 import * as types from './types';
-import { StyleSheet, CStyleSheetsClass } from './css';
+import { StyleSheets, CStyleSheetsClass } from './css';
 import { Window } from './window';
 import { Action, KeyframeAction,createAction,KeyframeIn,ActionCb } from './action';
 import * as action from './action';
@@ -157,7 +157,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly metaView: View; //!<
 	readonly visibleRegion: boolean; //!<
 	readonly ref: string; //!<
-	style: StyleSheet; //!<
+	style: StyleSheets; //!<
 	action: Action | null; //!<
 	class: string[]; //!< settingonly method, cssclass.set()
 	opacity: number; //!<
@@ -682,7 +682,7 @@ declare global {
 			onActionLoop?: Listen<ActionEvent, View> | null;
 			ref?: string;
 			key?: string|number;
-			style?: StyleSheet;
+			style?: StyleSheets;
 			action?: action.ActionIn | null;
 			class?: string | string[];
 			opacity?: number;
@@ -760,7 +760,7 @@ declare global {
 		interface VideoJSX extends ImageJSX {
 			onStop?: Listen<UIEvent, Image> | null;
 			onLoading?: Listen<UIEvent, Image> | null;
-			volume?: number;
+			volume?: Float;
 			mute?: boolean;
 		}
 
@@ -771,13 +771,13 @@ declare global {
 			origin?: types.BoxOriginIn[] | types.BoxOriginIn
 			originX?: types.BoxOriginIn;
 			originY?: types.BoxOriginIn;
-			x?: number;
-			y?: number;
-			scaleX?: number;
-			scaleY?: number;
-			skewX?: number;
-			skewY?: number;
-			rotateZ?: number;
+			x?: Float;
+			y?: Float;
+			scaleX?: Float;
+			scaleY?: Float;
+			skewX?: Float;
+			skewY?: Float;
+			rotateZ?: Float;
 		}
 
 		interface MatrixJSX extends BoxJSX, MatrixViewJSX {
@@ -787,8 +787,8 @@ declare global {
 			onLoad?: Listen<UIEvent, Sprite> | null;
 			onError?: Listen<UIEvent, Sprite> | null;
 			src?: string;
-			width?: number;
-			height?: number;
+			width?: Float;
+			height?: Float;
 			frame?: Uint16;
 			frames?: Uint16;
 			item?: Uint16;
@@ -797,6 +797,15 @@ declare global {
 			fsp?: Uint8;
 			direction?: types.DirectionIn;
 			playing?: boolean;
+		}
+
+		interface SpineJSX extends ViewJSX, MatrixViewJSX {
+			skeleton?: types.SkeletonDataIn;
+			startSlot?: Uint;
+			endSlot?: Uint;
+			skin?: string;
+			speed?: Float;
+			defaultMix?: Float;
 		}
 
 		interface TextOptionsJSX {
@@ -876,6 +885,7 @@ declare global {
 			img: ImageJSX;
 			matrix: MatrixJSX;
 			sprite: SpriteJSX;
+			spine: SpineJSX;
 			text: TextJSX;
 			button: ButtonJSX;
 			label: LabelJSX;
@@ -920,7 +930,7 @@ class _View extends NativeNotification {
 	readonly childDoms: (DOM|undefined)[]; // jsx children dom
 	readonly ref: string;
 	get metaView() { return this }
-	get style() { return this as StyleSheet }
+	get style() { return this as StyleSheets }
 	set style(value) { Object.assign(this, value) }
 	get class() { return [] }
 	set class(value: string[]) {

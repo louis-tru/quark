@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {createCss,StyleSheet} from './css';
+import {createCss,StyleSheets} from './css';
 import {Jsx,ViewController,link} from './ctr';
 
 createCss({
@@ -129,7 +129,7 @@ createCss({
 */
 export class Basic<P={},S={}> extends ViewController<{
 	class?: string,
-	style?: StyleSheet,
+	style?: StyleSheets,
 	disable?: boolean,
 	initSelected?: boolean,
 	onChange?:(value:boolean, sender: Basic)=>void,

@@ -227,7 +227,8 @@ namespace qk { namespace js {
 
 				if (args.length() > 1) {
 					Js_Parse_Type(uint32_t, args[1], "@method KeyframeAction.addFrameWithCss() timeMs = %s");
-					time = out; time_p = &time;
+					time = out;
+					time_p = &time;
 				}
 				if (args.length() > 2) {
 					Js_Parse_Type(Curve, args[2], "@method KeyframeAction.addFrameWithCss() curve = %s");
@@ -243,7 +244,9 @@ namespace qk { namespace js {
 
 	struct MixKeyframe: MixObject {
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Keyframe, StyleSheets, { Js_Throw("Access forbidden."); });
+			Js_Define_Class(Keyframe, StyleSheets, {
+				Js_Throw("Access forbidden.");
+			});
 
 			Js_Class_Accessor_Get(index, {
 				Js_Self(Keyframe);

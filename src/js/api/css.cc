@@ -40,26 +40,16 @@
 	})
 
 namespace qk { namespace js {
-	typedef qk::Wrap Wrap;
 
 	struct MixStyleSheets: MixObject {
 		typedef StyleSheets Type;
 
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(StyleSheets, 0, { Js_Throw("Access forbidden."); });
+			Js_Define_Class(StyleSheets, 0, {
+				Js_Throw("Access forbidden.");
+			});
 
 			Js_StyleSheets_Accessor(float, opacity, opacity);
-
-			// cls->setAccessor("opacity",0,([](auto key,auto val,auto args){
-			// 	auto worker=args.worker();
-			// {
-			// 	float out;
-			// 	if ( !worker->types()->parse(val, out, "@prop StyleSheets.""opacity"" = %s"))
-			// 		return;
-			// 	auto self = qk::js::MixObject::mix<Type>(args.thisObj())->self();
-			// 	self->set_opacity(out);
-			// }}));
-
 			Js_StyleSheets_Accessor(CursorStyle, cursor, cursor);
 			Js_StyleSheets_Accessor(bool, visible, visible);
 			Js_StyleSheets_Accessor(bool, receive, receive);
@@ -175,7 +165,9 @@ namespace qk { namespace js {
 	struct MixCStyleSheets: MixObject {
 		typedef CStyleSheets Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(CStyleSheets, StyleSheets, { Js_Throw("Access forbidden."); });
+			Js_Define_Class(CStyleSheets, StyleSheets, {
+				Js_Throw("Access forbidden.");
+			});
 			Js_StyleSheets_Accessor(uint32_t, time, time);
 			Js_StyleSheets_Accessor(Curve, curve, curve);
 		}
