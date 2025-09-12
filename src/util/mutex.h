@@ -31,11 +31,12 @@
 #ifndef __quark__util__mutex__
 #define __quark__util__mutex__
 
-#include "./loop.h"
+#include "./log.h"
 
 #include <algorithm>
 #include <atomic>
 #include <mutex>
+#include <thread>
 
 // The bulk of this code is cribbed from:
 // http://clang.llvm.org/docs/ThreadSafetyAnalysis.html
@@ -188,24 +189,24 @@ namespace qk {
 	public:
 		void lock() Qk_ACQUIRE() {
 			fSemaphore.wait();
-			Qk_DEBUGCODE(fOwner = thread_self_id();)
+			Qk_DEBUGCODE(fOwner = std::this_thread::get_id();)
 		}
 
 		void unlock() Qk_RELEASE_CAPABILITY() {
 			this->assertHeld();
-			Qk_DEBUGCODE(fOwner = ThreadID();)
+			Qk_DEBUGCODE(fOwner = std::this_thread::get_id();)
 			fSemaphore.signal();
 		}
 
 		void assertHeld() Qk_ASSERT_CAPABILITY(this) {
 			Qk_DEBUGCODE(
-				Qk_ASSERT(fOwner == thread_self_id())
+				Qk_ASSERT(fOwner == std::this_thread::get_id())
 			);
 		}
 
 	private:
 		Semaphore fSemaphore{1};
-		Qk_DEBUGCODE(ThreadID fOwner;)
+		Qk_DEBUGCODE(std::thread::id fOwner;)
 	};
 
 	// There are two shared lock implementations one debug the other is high performance. They implement

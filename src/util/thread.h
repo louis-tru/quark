@@ -37,7 +37,7 @@
 #include <uv.h>
 
 namespace qk {
-	extern RunLoop        *__first_loop;
+	extern RunLoop        *__work_loop;
 	extern Mutex          *__threads_mutex;
 	extern std::atomic_int __is_process_exit_atomic;
 

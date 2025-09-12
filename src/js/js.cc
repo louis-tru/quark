@@ -531,9 +531,9 @@ namespace js {
 
 	static void onProcessExitHandle(Event<void, int>& e, void* ctx) {
 		int rc = e.data();
-		if (RunLoop::first()->runing()) {
+		if (RunLoop::work()->runing()) {
 			typedef Callback<RunLoop::PostSyncData> Cb;
-			RunLoop::first()->post_sync(Cb([&](Cb::Data& e) {
+			RunLoop::work()->post_sync(Cb([&](Cb::Data& e) {
 				auto worker = Worker::worker();
 				Qk_DLog("onProcessSafeHandle");
 				if (worker)
@@ -631,7 +631,7 @@ namespace js {
 		::setenv("UV_THREADPOOL_SIZE", "1", 0); // set uv thread loop size as 1
 
 		// Mark the current main thread and check current thread
-		Qk_ASSERT_EQ(RunLoop::first(), RunLoop::current());
+		Qk_ASSERT(RunLoop::is_work());
 
 		Qk_On(ProcessExit, onProcessExitHandle);
 

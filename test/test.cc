@@ -146,6 +146,8 @@ void call_test(int argc, char** argv, const char* funcName, TestFunc func) {
 	F(subcanvas) \
 	F(jsapi) \
 	F(v8) \
+	F(spine) \
+	F(matrix) \
 
 #define _Fun(n) Qk_TEST_Func(n);
 TEST_All(_Fun)
@@ -155,8 +157,9 @@ Qk_Main() {
 	#define _Fun(n) else if (strcmp(argv[1], #n) == 0) { call_test(argc, argv, #n, test_##n); }
 	#define _Fun2(n) call_test(argc, argv, #n, test_##n);
 
-	// #define TEST_DEFAULT(F) TEST_UTILS(F)
-	#define TEST_DEFAULT(F) F(jsapi)
+	// #define TEST_DEFAULT(F) TEST_UTILS(F) // test all of utils
+	// #define TEST_DEFAULT(F) TEST_All(F) // test all of tests
+	#define TEST_DEFAULT(F) F(jsapi) // Only test jsapi
 
 	Log::set_shared(new TestLog());
 

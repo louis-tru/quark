@@ -152,7 +152,6 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-
 			Js_Method(fromString, { fromString(args); });
 			Js_Method(toString, { toString(args); });
 		}

@@ -37,9 +37,9 @@ namespace qk {
 	typedef Basic::ListenerFunc ListenerFunc;
 	typedef Basic::StaticListenerFunc StaticListenerFunc;
 	typedef Basic::OnLambdaListenerFunc OnLambdaListenerFunc;
-	
-	Listener::Listener(uint32_t id, bool once)
-		: _id(id), _once(once) {}
+
+	Listener::Listener(uint32_t id)
+		: _id(id) {}
 	Listener::~Listener() {}
 	
 	// hash code
@@ -72,12 +72,12 @@ namespace qk {
 	// On
 	class OnListener: public Listener {
 	public:
-		OnListener(ListenerFunc listener, void* ctx, bool once)
-			: Listener(ev_hash_code(listener, ctx), once), _listener(listener), _ctx(ctx) {}
-		virtual void call(Object& evt) override {
+		OnListener(ListenerFunc listener, void* ctx)
+			: Listener(ev_hash_code(listener, ctx)), _listener(listener), _ctx(ctx) {}
+		void call(Object& evt) override {
 			(((Object*)_ctx)->*_listener)(evt);
 		}
-		virtual bool match(ListenerFunc l, void* ctx) override {
+		bool match(ListenerFunc l, void* ctx) override {
 			if (l && l != _listener)
 				return false;
 			if (ctx && ctx != _ctx)
@@ -92,13 +92,12 @@ namespace qk {
 	// STATIC
 	class OnStaticListener: public Listener {
 	public:
-		OnStaticListener(StaticListenerFunc listener, void* ctx, bool once)
-			: Listener(ev_hash_code(listener, ctx),once)
-			, _listener(listener), _ctx(ctx) {}
-		virtual void call(Object& evt) override {
+		OnStaticListener(StaticListenerFunc listener, void* ctx)
+			: Listener(ev_hash_code(listener, ctx)), _listener(listener), _ctx(ctx) {}
+		void call(Object& evt) override {
 			_listener(evt, _ctx);
 		}
-		virtual bool match(StaticListenerFunc l, void* ctx) override {
+		bool match(StaticListenerFunc l, void* ctx) override {
 			if (l && l != _listener)
 				return false;
 			if (ctx && ctx != _ctx)
@@ -113,24 +112,30 @@ namespace qk {
 	// Function
 	class OnLambdaFunctionListener: public Listener {
 	public:
-		OnLambdaFunctionListener(OnLambdaListenerFunc& listener, uint32_t id, bool once)
-			: Listener(id,once), _listener(std::move(listener)) {}
-		virtual void call(Object& evt) override {
+		OnLambdaFunctionListener(OnLambdaListenerFunc& listener, uint32_t id)
+			: Listener(id ? id : qk::hashCode(&listener, 0) % Uint32::limit_max)
+			, _listener(std::move(listener)) {
+		}
+		void call(Object& evt) override {
 			_listener(evt);
 		}
 	protected:
 		OnLambdaListenerFunc _listener;
 	};
 
+	struct _Evt: public Object {
+		uint32_t return_value, _flags; void *_sender, *_data;
+	};
+	static_assert(sizeof(_Evt) == sizeof(Event<>), "");
+
 	// SHELL
 	class OnShellListener: public Listener {
 	public:
 		static void set_event(Object& event, void *sender) {
-			struct Ev: public Object { void *_sender; };
-			reinterpret_cast<Ev*>(&event)->_sender = sender;
+			reinterpret_cast<_Evt*>(&event)->_sender = sender;
 		}
-		inline OnShellListener(void* host_sender, Basic* shell, bool once)
-			: Listener(ev_hash_code(shell),once), _host_sender(host_sender), _shell(shell) {}
+		inline OnShellListener(void* host_sender, Basic* shell)
+			: Listener(ev_hash_code(shell)), _host_sender(host_sender), _shell(shell) {}
 		virtual void call(Object& evt) {
 			_shell->trigger_event(evt);
 			set_event(evt, _host_sender);
@@ -143,17 +148,17 @@ namespace qk {
 	// -------------------------- EventNoticerBasic --------------------------
 
 	// make listener
-	Listener* Basic::MakeListener(ListenerFunc listener, void* ctx, bool once) {
-		return new OnListener(listener,ctx,once);
+	Listener* Basic::MakeListener(ListenerFunc listener, void* ctx) {
+		return new OnListener(listener,ctx);
 	}
-	Listener* Basic::MakeStaticListener(StaticListenerFunc listener, void* ctx, bool once) {
-		return new OnStaticListener(listener,ctx,once);
+	Listener* Basic::MakeStaticListener(StaticListenerFunc listener, void* ctx) {
+		return new OnStaticListener(listener,ctx);
 	}
-	Listener* Basic::MakeLambdaListener(OnLambdaListenerFunc& listener, uint32_t id, bool once) {
-		return new OnLambdaFunctionListener(listener,id,once);
+	Listener* Basic::MakeLambdaListener(OnLambdaListenerFunc& listener, uint32_t id) {
+		return new OnLambdaFunctionListener(listener,id);
 	}
-	Listener* Basic::MakeShellListener(void *host_sender, Basic* shell, bool once) {
-		return new OnShellListener(host_sender,shell,once);
+	Listener* Basic::MakeShellListener(void *host_sender, Basic* shell) {
+		return new OnShellListener(host_sender,shell);
 	}
 
 	Basic::EventNoticerBasic(void *sender)
@@ -174,48 +179,53 @@ namespace qk {
 	void Basic::off_for_id(uint32_t id) {
 		if (_listener) {
 			lock();
-			auto l = _listener;
-			for ( auto &i : *l ) {
-				if ( i && i->id() == id ) {
-					delete i; i = nullptr;
-				}
+			auto it = _listener->find(id);
+			if (it != _listener->end()) {
+				delete it->value;
+				it->value = nullptr; // temp delete
 			}
 			unlock();
 		}
 	}
 	
-	void Basic::off_listener( ListenerFunc listener, void* ctx) {
+	void Basic::off_listener(ListenerFunc listener, void* ctx) {
 		if (_listener) {
+			if (listener && ctx)
+				return off_for_id(ev_hash_code(listener, ctx));
 			lock();
 			auto l = _listener;
-			for ( auto &i : *l ) {
-				if( i && i->match(listener, ctx) ) {
-					delete i; i = nullptr;
+			for (auto &it : *l) {
+				if (it.value && it.value->match(listener, ctx)) {
+					delete it.value;
+					it.value = nullptr; // temp delete
 					break;
 				}
 			}
 			unlock();
 		}
 	}
-	
+
+	void Basic::off_static(StaticListenerFunc listener, void* ctx) {
+		if (_listener) {
+			if (listener && ctx)
+				return off_for_id(ev_hash_code(listener, ctx));
+			lock();
+			auto l = _listener;
+			for (auto &it : *l) {
+				if( it.value && it.value->match(listener, ctx) ) {
+					delete it.value;
+					it.value = nullptr; // temp delete
+					break;
+				}
+			}
+			unlock();
+		}
+	}
+
 	void Basic::off_listener(ListenerFunc l) {
 		off_listener(l, nullptr);
 	}
-	
-	void Basic::off_static( StaticListenerFunc listener, void* ctx) {
-		if (_listener) {
-			lock();
-			auto l = _listener;
-			for ( auto &i : *l ) {
-				if( i && i->match(listener, ctx) ) {
-					delete i; i = nullptr;
-					break;
-				}
-			}
-			unlock();
-		}
-	}
-	
+
 	void Basic::off_static(StaticListenerFunc l) {
 		off_static(l, nullptr);
 	}
@@ -235,16 +245,17 @@ namespace qk {
 			if (l->length()) {
 				OnShellListener::set_event(event, _sender);
 				for (auto i = l->begin(); i != l->end(); ) {
-					auto j = i++;
-					auto listener = *j;
-					if ( listener ) {
-						listener->call(event);
-						if (listener->once()) {
-							delete listener;
-							l->erase(j);
+					auto it = i++;
+					if (it->value) {
+						it->value->call(event);
+						auto evt = (_Evt*)&event;
+						if (evt->_flags & (1u << (31))) { // check off mark
+							evt->_flags &= ~(1u << (31)); // Clear off mark
+							delete it->value;
+							l->erase(it); // delete listener if _fargs marked off
 						}
 					} else {
-						l->erase(j);
+						l->erase(it);
 					}
 				}
 			}
@@ -255,8 +266,9 @@ namespace qk {
 	void Basic::off2(bool destroy) {
 		if (_listener) {
 			lock();
-			for ( auto &i : *_listener ) {
-				delete i; i = nullptr;
+			for (auto &it : *_listener) {
+				delete it.value;
+				it.value = nullptr; // temp delete
 			}
 			if (destroy) {
 				Releasep(_listener);
@@ -268,11 +280,16 @@ namespace qk {
 	void Basic::add_listener(Listener *l) {
 		lock();
 		if (!_listener)
-			_listener = new List<Listener*>;
-		_listener->pushBack(l);
+			_listener = new Dict<uint32_t, Listener*>;
+		auto &l_ = _listener->get(l->id()); // replace if exists
+		if (l_) { // exists
+			delete l;
+		} else {
+			l_ = l;
+		}
 		unlock();
 	}
-	
+
 	void Basic::lock() {}
 	void Basic::unlock() {}
 

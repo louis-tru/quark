@@ -217,7 +217,7 @@ namespace qk {
 
 			// Qk_DLog("_xset.background_pixel, %d", _xset.background_pixel);
 
-			Qk_ASSERT_RAW(xwin, "Cannot create XWindow");
+			Qk_CHECK(xwin, "Cannot create XWindow");
 
 			if (x11().xdevice) { // It's a Multipoint device
 				XIEventMask eventmask;

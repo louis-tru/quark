@@ -43,7 +43,7 @@ namespace qk {
 		virtual void draw(Painter *render) override;
 	protected:
 		virtual uint32_t solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) override;
-		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
+		virtual void onSourceState(ImageSource::State state) override;
 		virtual ImagePool* imgPool() override;
 	};
 }

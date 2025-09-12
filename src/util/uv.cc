@@ -48,7 +48,7 @@ namespace qk {
 	AsyncIOTask::AsyncIOTask(RunLoop* loop)
 		: _id(getId32()), _loop(loop), _abort(false)
 	{
-		Qk_ASSERT_RAW(_loop, "#AsyncIOTask#AsyncIOTask loop nullptr");
+		Qk_CHECK(_loop, "#AsyncIOTask#AsyncIOTask loop nullptr");
 		ScopeLock scope(tasks->mutex);
 		tasks->task.set(_id, this);
 	}

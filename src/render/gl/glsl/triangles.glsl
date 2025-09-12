@@ -8,8 +8,8 @@ out vec4     color;
 out vec4     color2;
 
 void main() {
-	gl_Position = matrix * vec4(vertexIn.xy, depth, 1.0);
-	// aafuzz = aafuzzIn;
+	gl_Position = matrix * vec4(vertexIn.xy, aafuzzIn + depth, 1.0);
+	// gl_Position.y *= -1.0; // Flip Y axis for GLSL
 	texCoords = texCoordsIn;
 	color = colorIn;
 	color2 = color2In;

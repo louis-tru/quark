@@ -35,6 +35,7 @@
 namespace qk { namespace js {
 
 	struct MixFontPool: MixObject {
+		typedef FontPool Type;
 
 		static void getFontFamiliesFromPool(FunctionArgs args, FontPool* pool) {
 			Js_Worker(args);
@@ -56,25 +57,23 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(FontPool, 0, { Js_Throw("Access forbidden."); });
+			Js_Define_Class(FontPool, 0, {
+				Js_Throw("Access forbidden.");
+			});
 
 			Js_Class_Accessor_Get(countFamilies, {
-				Js_Self(FontPool);
 				Js_Return(self->countFamilies());
 			});
 
 			Js_Class_Accessor_Get(defaultFamilyNames, {
-				Js_Self(FontPool);
 				Js_Return(self->defaultFamilyNames());
 			});
 
 			Js_Class_Accessor_Get(defaultFontFamilies, {
-				Js_Self(FontPool);
 				Js_Return( worker->types()->jsvalue(self->defaultFontFamilies()) );
 			});
 
 			Js_Class_Method(getFontFamilies, {
-				Js_Self(FontPool);
 				getFontFamiliesFromPool(args, self);
 			});
 
@@ -83,7 +82,6 @@ namespace qk { namespace js {
 				if (!args.length() || !args[0]->asBuffer(worker).to(buff) ) {
 					Js_Throw("@method FontPool.addFontFamily(cBuffer& buff, cString& alias = String())");
 				}
-				Js_Self(FontPool);
 				if (args.length() > 1) {
 					self->addFontFamily(buff.buffer(), args[1]->toString(worker)->value(worker));
 				} else {
@@ -95,7 +93,6 @@ namespace qk { namespace js {
 				if (!args.length() || !args[0]->isUint32()) {
 					Js_Throw("@method FontPool.getFamilyName(int index)");
 				}
-				Js_Self(FontPool);
 				Js_Return( self->getFamilyName(args[0]->toInt32(worker)->value()) );
 			});
 

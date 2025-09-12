@@ -85,9 +85,9 @@ namespace qk {
 		};
 
 		enum FloatState: uint8_t {
-			kNone_FloatState  = (0),
-			kFixed_FloatState = (1 << 0),
-			kFixedByLock_FloatState = (1 << 1), // by lock size
+			kNone_FloatState  = (0), // is float wrap content
+			kFixed_FloatState = (1 << 0), // fixed size
+			kFixedByLock_FloatState = (1 << 1), // by lock size and fixed size
 		};
 
 		// container size
@@ -199,6 +199,11 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(float, opacity, Const);
 
 		/**
+		 * can affect the blend color of subviews
+		*/
+		Qk_DEFINE_VIEW_PROPERTY(Color, color, Const);
+
+		/**
 		 * @prop Cursor style
 		*/
 		Qk_DEFINE_VIEW_PROPERTY(CursorStyle, cursor, Const);
@@ -214,6 +219,11 @@ namespace qk {
 		 * This value represents whether the view is visible in the current display area, which is mostly the screen
 		*/
 		Qk_DEFINE_PROP_GET(bool, visible_region, ProtectedConst);
+
+		/**
+		 * Enable testing of visible areas, false means no testing and always rendering
+		*/
+		Qk_DEFINE_PROPERTY(bool, test_visible_region, ProtectedConst);
 
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
@@ -607,6 +617,11 @@ namespace qk {
 		View* tryRetain_Rt();
 
 	protected:
+		/**
+		 * Compute the view is visible in the screen or the clipped region
+		*/
+		bool is_visible_region(const Mat &mat, Vec2 bounds[4]);
+
 		View(); // @constructor
 		virtual View* init(Window* win);
 	private:

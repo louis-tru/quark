@@ -215,7 +215,7 @@ namespace qk {
 	}
 
 	Render* make_gl_render(Render::Options opts) {
-		Qk_ASSERT_RAW(!g_sharedRenderResource,
+		Qk_CHECK(!g_sharedRenderResource,
 			"The iOS system only allows one window and one drawing context"
 		);
 

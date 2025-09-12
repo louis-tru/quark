@@ -62,6 +62,19 @@ namespace qk {
 		_cache = _canvas->getPathvCache();
 	}
 
+	void Painter::set_matrix(const Mat* mat) {
+		_matrix = mat;
+		_canvas->setMatrix(*mat);
+	}
+
+	void Painter::set_origin(Vec2 origin) {
+		_origin = Vec2(_AAShrink * 0.5) - origin;
+	}
+
+	void Painter::set_origin_restore(Vec2 restore) {
+		_origin = restore;
+	}
+
 	Rect Painter::getRect(Box* box) {
 		return {
 			_origin, {box->_client_size[0]-_AAShrink,box->_client_size[1]-_AAShrink},
@@ -136,6 +149,39 @@ namespace qk {
 				};
 				out.outline = &_cache->getRRectOutlinePath(getRect(box), borderFix, &box->_border_radius_left_top);
 			}
+		}
+	}
+
+	void Painter::visitView(View *view) {
+		auto v = view->_first.load();
+		if (v) {
+			auto lastOpacity = _opacity;
+			auto lastMarkRecursive = _mark_recursive;
+			do {
+				if (v->_visible) {
+					uint32_t mark = lastMarkRecursive | v->mark_value(); // inherit recursive
+					if (mark) {
+						v->solve_marks(*_matrix, view, mark);
+						_mark_recursive = mark & View::kRecursive_Mark;
+					}
+					if (v->_visible_region && v->_opacity) {
+						_opacity = lastOpacity * v->_opacity;
+						v->draw(this);
+					}
+				}
+				v = v->_next.load();
+			} while(v);
+			_opacity = lastOpacity;
+			_mark_recursive = lastMarkRecursive;
+		}
+	}
+
+	void Painter::visitView(View* v, cMat* mat) {
+		if (v->_first.load()) {
+			auto lastMatrix = _matrix;
+			set_matrix(mat);
+			visitView(v);
+			set_matrix(lastMatrix);
 		}
 	}
 
@@ -414,7 +460,7 @@ namespace qk {
 		if (box->_clip) {
 			if (box->_first.load()) {
 				getInsideRectPath(box, data);
-				_window->clipRegion(screen_region_from_convex_quadrilateral(box->_vertex));
+				_window->clipRegion(screen_region_from_convex_quadrilateral(box->_bounds));
 				_canvas->save();
 				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
 				visitView(box);
@@ -524,41 +570,6 @@ namespace qk {
 	}
 
 	//////////////////////////////////////////////////////////
-	void Painter::visitView(View *view) {
-		auto v = view->_first.load();
-		if (v) {
-			auto opacity = _opacity;
-			auto markCurr = _mark_recursive;
-			do {
-				if (v->_visible) {
-					uint32_t mark = markCurr | v->mark_value(); // inherit recursive
-					if (mark) {
-						v->solve_marks(*_matrix, view, mark);
-						_mark_recursive = mark & View::kRecursive_Mark;
-					}
-					if (v->_visible_region && v->_opacity) {
-						_opacity = opacity * v->_opacity;
-						v->draw(this);
-					}
-				}
-				v = v->_next.load();
-			} while(v);
-			_opacity = opacity;
-			_mark_recursive = markCurr;
-		}
-	}
-
-	void Painter::visitView(View* v, const Mat &mat) {
-		if (v->_first.load()) {
-			auto matrix = _matrix;
-			_matrix = &mat;
-			_canvas->setMatrix(mat);
-			visitView(v);
-			_matrix = matrix;
-			_canvas->setMatrix(*matrix);
-		}
-	}
-
 	void View::draw(Painter *draw) {
 		draw->visitView(this);
 	}
@@ -615,7 +626,7 @@ namespace qk {
 		if (clip()) {
 			if (first() || _blob_visible.length()) {
 				draw->getInsideRectPath(this, data);
-				window()->clipRegion(screen_region_from_convex_quadrilateral(_vertex));
+				window()->clipRegion(screen_region_from_convex_quadrilateral(_bounds));
 				canvas->save();
 				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
 				if (_blob_visible.length()) {
@@ -742,19 +753,16 @@ namespace qk {
 		draw->visitView(this);
 	}
 
-	void Matrix::draw(Painter *draw) {
-		auto canvas = draw->_canvas;
-		auto matrix = draw->_matrix;
-		auto origin = draw->_origin;
-		draw->_origin = Vec2(draw->_AAShrink * 0.5) - _origin_value;
-		draw->_matrix = &this->matrix();
-		canvas->setMatrix(*draw->_matrix);
+	void Matrix::draw(Painter *painter) {
 		BoxData data;
-		draw->drawBoxBasic(this, data);
-		draw->_origin = origin;
-		draw->drawBoxEnd(this, data);
-		draw->_matrix = matrix;
-		canvas->setMatrix(*matrix); // restore previous matrix
+		auto lastMatrix = painter->matrix();
+		auto lastOrigin = painter->origin();
+		painter->set_origin(_origin_value);
+		painter->set_matrix(&matrix());
+		painter->drawBoxBasic(this, data);
+		painter->set_origin_restore(lastOrigin); // restore previous origin
+		painter->drawBoxEnd(this, data);
+		painter->set_matrix(lastMatrix); // restore previous matrix
 	}
 
 	void Root::draw(Painter *painter) {
@@ -774,13 +782,12 @@ namespace qk {
 				auto AAShrink_half = isMsaa ? 0: 0.45f / _window->scale(); // fix aa stroke width
 				// auto AAShrink_half = isMsaa ? 0: 0.5f / _window->scale(); // fix aa stroke width
 				painter->_AAShrink = AAShrink_half + AAShrink_half;
-				painter->_origin = Vec2(AAShrink_half) - origin_value();
-				painter->_matrix = &matrix();
-				canvas->setMatrix(matrix());
+				painter->set_origin(origin_value());
+				painter->set_matrix(&matrix());
 				canvas->clearColor(background_color().to_color4f());
 				painter->drawBoxColor(this, data);
 				painter->drawBoxBorder(this, data);
-				painter->_origin = AAShrink_half;
+				painter->set_origin({}); // reset origin
 				painter->drawBoxEnd(this, data);
 			} else {
 				canvas->clearColor(Color4f(0,0,0,0));

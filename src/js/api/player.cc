@@ -66,6 +66,8 @@ namespace qk { namespace js {
 	}
 
 	void inheritPlayer(JSClass* cls, Worker* worker) {
+		typedef Object Type;
+
 		Js_Class_Accessor_Get(pts, {
 			Js_UISelf(Player);
 			Js_Return(worker->types()->jsvalue(self->pts()));

@@ -92,7 +92,7 @@ namespace qk { namespace js {
 	}
 
 	void JsClasses::add(uint64_t alias, JSClass *cls) throw(Error) {
-		Qk_Check( !_jsclass.has(alias), "Set native Constructors Alias repeat");
+		Qk_IfThrow( !_jsclass.has(alias), "Set native Constructors Alias repeat");
 		cls->_alias = alias;
 		_jsclass.set(alias, cls);
 	}

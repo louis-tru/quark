@@ -76,38 +76,31 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Accessor(size, {
-				Js_Self(Type);
 				Js_Return( worker->types()->jsvalue(self->size()) );
 			}, {
 				Js_Parse_Type(Vec2, val, "@prop Window.size = %s");
-				Js_Self(Type);
 				self->set_size(out);
 			});
 
 			Js_Class_Accessor_Get(scale, {
-				Js_Self(Type);
 				Js_Return( self->scale() );
 			});
 
 			Js_Class_Accessor_Get(defaultScale, {
-				Js_Self(Type);
 				Js_Return( self->defaultScale() );
 			});
 
 			// Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
 
 			Js_Class_Accessor_Get(fsp, {
-				Js_Self(Type);
 				Js_Return( self->fsp() );
 			});
 
 			Js_Class_Accessor_Get(atomPixel, {
-				Js_Self(Type);
 				Js_Return( self->atomPixel() );
 			});
 
 			Js_Class_Accessor_Get(navigationRect, {
-				Js_Self(Type);
 				Js_Return( worker->types()->jsvalue(self->navigationRect()) );
 			});
 
@@ -123,11 +116,9 @@ namespace qk { namespace js {
 			// Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 
 			Js_Class_Accessor(backgroundColor, {
-				Js_Self(Type);
 				Js_Return( worker->types()->jsvalue(self->backgroundColor()) );
 			}, {
 				Js_Parse_Type(Color, val, "@prop Window.backgroundColor = %s");
-				Js_Self(Type);
 				self->set_backgroundColor(out);
 			});
 
@@ -137,12 +128,10 @@ namespace qk { namespace js {
 			// Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host main loop
 
 			Js_Class_Accessor_Get(focusView, {
-				Js_Self(Type);
 				Js_Return( self->focusView() );
 			});
 
 			Js_Class_Accessor_Get(surfaceSize, {
-				Js_Self(Type);
 				Js_Return( worker->types()->jsvalue(self->surfaceSize()) );
 			});
 
@@ -153,7 +142,6 @@ namespace qk { namespace js {
 						"@param cb {Function}\n"
 					);
 				}
-				Js_Self(Type);
 				self->nextFrame(get_callback_for_none(worker, args[0]));
 				Js_Return(args.thisObj());
 			});
@@ -166,17 +154,14 @@ namespace qk { namespace js {
 			}));
 
 			Js_Class_Method(close, {
-				Js_Self(Type);
 				self->close();
 			});
 
 			Js_Class_Method(pending, {
-				Js_Self(Type);
 				self->pending();
 			});
 
 			Js_Class_Method(setFullscreen, {
-				Js_Self(Type);
 				if (!args.length()) {
 					Js_Throw(
 						"@method Window.setFullscreen(fullscreen)\n"
@@ -187,7 +172,6 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(setCursorStyle, {
-				Js_Self(Type);
 				if (!args.length()) {
 					Js_Throw(
 						"@method Window.setCursorStyle(cursor)\n"

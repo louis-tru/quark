@@ -128,10 +128,12 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 			let arrN = arr ? Number(arr): 1;
 			let size = sizeT*arrN;
 			let glTMap = mat[9];
+			let normalized = 'GL_FALSE';
 
 			if (glTMap && glTMap != glT) {
 				glT = glTMap;
 				t = glTypeMapCpp[glT];
+				normalized = 'GL_TRUE';
 			}
 			attributes.push({
 				name,
@@ -139,6 +141,7 @@ function find_uniforms_attributes(code, uniforms, uniform_blocks, attributes) {
 				type: glT,
 				stride: `sizeof(${t})*${size}`,
 				arr: arrN>1,
+				normalized,
 			});
 		}
 
@@ -189,6 +192,7 @@ function resolve_code_ast_from_codestr(name, dirname, codestr, isVert, isFrag, h
 		// 	GLint size;
 		// 	GLenum type;
 		//  GLsizei stride;
+		//  GLboolean normalized;
 		// };
 	];
 	let if_flags = [];
@@ -292,7 +296,7 @@ function resolve_glsl(name, input, hpp, cpp) {
 		`	gl_compile_link_shader(this, name,macros,`,
 		`	${vert_ast.call},${frag_ast.call},`,
 		'	{',
-			attributes.map(e=>`		{"${e.name}",${e.size},${e.type},${e.stride}},`),
+			attributes.map(e=>`		{"${e.name}",${e.size},${e.type},${e.stride},${e.normalized}},`),
 		'	},',
 		`	"${uniforms.join(',')}");`,
 		'}'

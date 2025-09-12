@@ -35,6 +35,8 @@
 namespace qk { namespace js {
 
 	void inheritMatrixView(JSClass* cls, Worker* worker) {
+		typedef Object Type;
+
 		Js_UIObject_Accessor(MatrixView, Vec2, translate, translate);
 		Js_UIObject_Accessor(MatrixView, Vec2, scale, scale);
 		Js_UIObject_Accessor(MatrixView, Vec2, skew, skew);

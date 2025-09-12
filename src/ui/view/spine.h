@@ -101,7 +101,7 @@ namespace qk {
 		static Sp<SkeletonData> Make(cBuffer &skeletonBuff,
 																	cBuffer &atlasBuff,
 																	cString &dir,
-																	float scale = 1.0f);
+																	float scale = 1.0f) throw(Error);
 
 		/// @brief Destructor. Releases internal Spine objects.
 		~SkeletonData();
@@ -118,7 +118,8 @@ namespace qk {
 									spine::Atlas* atlas,
 									QkAtlasAttachmentLoader* loader);
 
-		static SkeletonData* _Make(cBuffer &skeleton, cBuffer &atlas, cString &dir, float scale);
+		static SkeletonData* _Make(cBuffer &skeleton,
+			cBuffer &atlas, cString &dir, float scale, bool json) throw(Error);
 
 		spine::SkeletonData* _data;               ///< Spine skeleton definition.
 		spine::Atlas* _atlas;                     ///< Spine texture atlas.
@@ -165,11 +166,17 @@ namespace qk {
 		};
 
 		/// Constructor
-		/// @param type   The event type
 		/// @param origin The originating View (usually the Spine animation view)
-		SpineEvent(Type type, View* origin);
+		/// @param type   The event type
+		/// @param trackIndex The animation track index
+		/// @param animationName The name of the animation
+		/// @param trackTime The current time (in seconds) of the track
+		SpineEvent(View* origin, Type type, int trackIndex, cString& animationName, float trackTime);
 
 		Qk_DEFINE_PROP_GET(Type, type, Const); ///< The event type
+		Qk_DEFINE_PROP_GET(int, trackIndex, Const); ///< The animation track index
+		Qk_DEFINE_PROP_GET(String, animationName, Const); ///< The animation name
+		Qk_DEFINE_PROP_GET(float, trackTime, Const); ///< The current time of the track
 	};
 
 	/**
@@ -200,6 +207,9 @@ namespace qk {
 
 		/// Constructor
 		/// @param origin      The originating View (Spine animation view)
+		/// @param trackIndex  The animation track index
+		/// @param animationName The name of the animation
+		/// @param trackTime   The current time (in seconds) of the track
 		/// @param staticData  Static event description (EventData)
 		/// @param time        Trigger time (in seconds)
 		/// @param intValue    Integer value
@@ -207,9 +217,10 @@ namespace qk {
 		/// @param stringValue String value
 		/// @param volume      Audio volume
 		/// @param balance     Audio balance
-		SpineKeyEvent(View* origin,
-			cEventData* staticData, float time, int intValue,
-			float floatValue, cString& stringValue, float volume, float balance
+		SpineKeyEvent(View* origin
+			, int trackIndex, cString& animationName, float trackTime
+			, cEventData* staticData, float time, int intValue
+			, float floatValue, cString& stringValue, float volume, float balance
 		);
 
 		Qk_DEFINE_PROP_GET(cEventData*, static_data, Const); ///< Static event description
@@ -254,22 +265,6 @@ namespace qk {
 		 * - Lifetime of the returned object is managed by the engine's reference/Sp<T> system.
 		 */
 		Qk_DEFINE_ACCESSOR(SkeletonData*, skeleton);
-
-		/**
-		 * @brief Starting slot index for drawing.
-		 *
-		 * - If @p startSlot is 0 and @p endSlot is 0xffffffffu, all slots are drawn.
-		 * - Useful for partial skeleton rendering (e.g., hide upper/lower body).
-		 */
-		Qk_DEFINE_PROPERTY(uint32_t, start_slot, Const);
-
-		/**
-		 * @brief Ending slot index for drawing.
-		 *
-		 * - If @p startSlot is 0 and @p endSlot is 0xffffffffu, all slots are drawn.
-		 * - Defines the slot range for rendering.
-		 */
-		Qk_DEFINE_PROPERTY(uint32_t, end_slot, Const);
 
 		/**
 		 * @brief Sets the active skin.
@@ -420,6 +415,9 @@ namespace qk {
 		/// @brief Clears a specific track (removes animation at given index).
 		void clear_track(uint32_t trackIndex = 0);
 
+		/// @override
+		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
+
 	private:
 		Qk_DEFINE_INLINE_CLASS(SpineOther);
 		/// @brief Internal wrapper around Spine skeleton and runtime objects (hidden implementation).
@@ -427,8 +425,9 @@ namespace qk {
 
 		Sp<SpineOther> _other; // fixed storage for other properties
 		/// @brief Thread-safe wrapper pointer (atomic for concurrent safety).
-		SkeletonWrapper* _skel;
-		float _deltaTime; // time accumulator for animation updates
+		std::atomic<SkeletonWrapper*> _skel;
+		Vec2 _skel_origin, _skel_size; // cached skeleton origin and size
+		bool _firstDraw;
 	};
 
 } // namespace qk

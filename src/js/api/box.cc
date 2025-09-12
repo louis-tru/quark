@@ -40,6 +40,7 @@ namespace qk { namespace js {
 
 	class MixBox: public MixViewObject {
 	public:
+		typedef Box Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Box, View, { Js_NewView(Box); });
 
@@ -88,7 +89,6 @@ namespace qk { namespace js {
 			// -----------------------------------------------------------------------------
 			// @thread Rt
 			Js_Class_Accessor_Get(contentSize, {
-				Js_Self(Box);
 				Js_Return( worker->types()->jsvalue(self->content_size()) );
 			});
 			// -----------------------------------------------------------------------------
@@ -99,6 +99,7 @@ namespace qk { namespace js {
 
 	class MixFlex: public MixViewObject {
 	public:
+		typedef Flex Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Flex, Box, {
 				Js_NewView(Flex);
@@ -112,6 +113,7 @@ namespace qk { namespace js {
 
 	class MixFlow: public MixViewObject {
 	public:
+		typedef Flow Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Flow, Flex, {
 				Js_NewView(Flow);
@@ -134,6 +136,7 @@ namespace qk { namespace js {
 
 	class MixImage: public MixViewObject {
 	public:
+		typedef Image Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Image, Box, {
 				Js_NewView(Image);

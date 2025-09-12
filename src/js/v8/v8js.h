@@ -48,7 +48,7 @@ namespace qk { namespace js {
 	#endif
 
 	#define DCHECK Qk_ASSERT
-	#define CHECK  Qk_ASSERT_RAW
+	#define CHECK  Qk_CHECK
 
 	#define WORKER(...) WorkerImpl::worker( __VA_ARGS__ )
 	#define ISOLATE(...) WorkerImpl::worker( __VA_ARGS__ )->_isolate

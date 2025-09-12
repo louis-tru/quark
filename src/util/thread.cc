@@ -190,7 +190,7 @@ namespace qk {
 		id = th.get_id();
 		th.detach();
 
-		Qk_ASSERT_RAW(id != ThreadID(), "id != ThreadID()");
+		Qk_CHECK(id != ThreadID(), "id != ThreadID()");
 
 		return __threads->set((t->id = id), t)->id;
 	}
@@ -312,7 +312,7 @@ namespace qk {
 		//Qk_DLog("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
 		//Qk_DLog("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_process_exit(0); });
-		// Qk_ASSERT_RAW(pthread_key_create(&__th_key, nullptr) == 0);
-		Qk_ASSERT_RAW(uv_key_create(&__th_key) == 0);
+		// Qk_CHECK(pthread_key_create(&__th_key, nullptr) == 0);
+		Qk_CHECK(uv_key_create(&__th_key) == 0);
 	}
 }

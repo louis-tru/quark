@@ -93,6 +93,14 @@ namespace qk {
 			return _data == data;
 		}
 
+		inline bool operator!=(const Handle& h) {
+			return _data != h._data;
+		}
+
+		inline bool operator!=(const T* data) {
+			return _data != data;
+		}
+
 		inline operator bool() const { return _data != nullptr; }
 		inline T* operator->() { return _data; }
 		inline T* operator*() { return _data; }

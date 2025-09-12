@@ -66,6 +66,7 @@ namespace qk {
 		GLint size;
 		GLenum type;
 		GLsizei stride;
+		GLboolean normalized;
 	};
 
 	struct GLSLShader {

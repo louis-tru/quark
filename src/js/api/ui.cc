@@ -108,7 +108,7 @@ namespace qk { namespace js {
 		};
 
 		notific->add_event_listener(
-			key->hashCode(), Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&f), id, false)
+			key->hashCode(), Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&f), id)
 		);
 
 		return true;
@@ -181,24 +181,20 @@ namespace qk { namespace js {
 			Js_Define_Class(NativeApplication, 0, { NewApp(args); });
 
 			Js_Class_Accessor_Get(isLoaded, {
-				Js_Self(Type);
 				Js_ReturnBool( self->isLoaded() );
 			});
 
 			Js_Class_Accessor_Get(defaultTextOptions, {
-				Js_Self(Type);
 				Js_Return( self->defaultTextOptions() );
 			});
 
 			Js_Class_Accessor_Get(screen, {
-				Js_Self(Type);
 				Js_Return( self->screen() );
 			});
 
 			// Qk_DEFINE_PROP_GET(RunLoop*, loop); //! main run loop
 
 			Js_Class_Accessor_Get(fontPool, {
-				Js_Self(Type);
 				auto val = MixObject::mix(self->fontPool(), Js_Typeid(FontPool))->handle();
 				Js_Return( val );
 			});
@@ -206,19 +202,16 @@ namespace qk { namespace js {
 			// Qk_DEFINE_PROP_GET(ImageSourcePool*, imgPool); //! image loader and image cache
 
 			Js_Class_Accessor_Get(activeWindow, {
-				Js_Self(Type);
 				Js_Return( self->activeWindow() );
 			});
 
 			// Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 
 			Js_Class_Accessor(maxResourceMemoryLimit, {
-				Js_Self(Type);
 				Js_Return( self->maxResourceMemoryLimit() );
 			}, {
 				if (!val->isUint32())
 					Js_Throw("@prop Application.maxResourceMemoryLimit = {uint32_t}");
-				Js_Self(Type);
 				self->set_maxResourceMemoryLimit(val->toUint32(worker)->value());
 			});
 
@@ -227,19 +220,17 @@ namespace qk { namespace js {
 				uint32_t i = 0;
 				auto arr = worker->newArray();
 				for (auto it: self->windows()) {
-					arr->set(worker, i++, mix<Window>(it)->handle());
+					arr->set(worker, i++, MixObject::mix<Window>(it)->handle());
 				}
 				Js_Return(arr);
 			});
 
 			Js_Class_Method(clear, {
 				auto all = args.length() && args[0]->toBoolean(worker);
-				Js_Self(Type);
 				self->clear(all);
 			});
 
 			Js_Class_Method(usedResourceMemory, {
-				Js_Self(Type);
 				Js_Return(self->usedResourceMemory());
 			});
 
@@ -250,7 +241,6 @@ namespace qk { namespace js {
 						"@param url {String}\n"
 					);
 				}
-				Js_Self(Type);
 				self->openURL(args[0]->toString(worker)->value(worker));
 			});
 
@@ -265,7 +255,6 @@ namespace qk { namespace js {
 						"@param [bcc] {String}\n"
 					);
 				}
-				Js_Self(Type);
 				self->sendEmail(
 					args[0]->toString(worker)->value(worker), // recipient
 					args[1]->toString(worker)->value(worker), // subject

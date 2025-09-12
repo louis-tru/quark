@@ -68,11 +68,13 @@ namespace qk {
 
 	protected:
 		void solve_origin_value(); // compute origin value
+		void solve_bounds(const Mat &mat, Vec2 boundsOut[4]); // compute bounds
 
 		Mat _matrix; // parent transform View * Mat(translate, scale, skew, rotate_z);
 		// friend classes
 		friend class Matrix;
 		friend class SpriteView;
+		friend class Spine;
 		friend class Painter;
 	};
 
@@ -89,7 +91,8 @@ namespace qk {
 		virtual void layout_reverse(uint32_t mark) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]) override; // compute rect vertex
+		// virtual void solve_bounds(const Mat &mat, Vec2 boundsOut[4]) override; // compute bounds
+		virtual void solve_visible_region(const Mat &mat) override; // compute visible region
 		virtual void draw(Painter *render) override;
 	};
 }

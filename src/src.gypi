@@ -104,7 +104,10 @@
 			'ui/view/matrix.cc',
 			'ui/ui.h',
 			'ui/view/spine.h',
-			'ui/view/spine.cc',
+			'ui/view/spine.inl',
+			'ui/view/spine_render.cc',
+			'ui/view/spine_animation.cc',
+			'ui/view/spine_data.cc',
 			'render/codec/codec.h', # render
 			'render/codec/codec.cc',
 			'render/codec/tga.cc',

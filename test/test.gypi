@@ -71,7 +71,8 @@
 			'test-jsx.cc',
 			'test-v8.cc',
 			'test-jsc.cc',
-			# 'test-jsapi.cc',
+			'test-spine.cc',
+			'test-matrix.cc',
 			'test.cc',
 			'test.h',
 		],
@@ -98,24 +99,25 @@
 					'./Storyboard-<(os).storyboard',
 					'./Images.xcassets',
 					'./launch/launch.png',
-				]
-			}],
-			['use_js==1 and os in "mac ios"', {
-				'mac_bundle_resources': [
-					'./jsapi/out/jsapi',
-					'../examples/out/examples',
 				],
 			}],
-			['use_js==1 and os not in "mac ios"', {
-				'copies': [{
-					'destination': '<(output)',
-					'files': [
-						'./jsapi/out/jsapi',
-						'../examples/out/examples',
-					],
-				}], # copy
-			}],
-			['use_js==1', {
+			['use_js==1', { # use jsapi
+				'conditions': [
+					['os in "mac ios"', { # mac ios
+						'mac_bundle_resources': [
+							'./jsapi/out/jsapi',
+							'../examples/out/examples',
+						],
+					}, { # android linux
+						'copies': [{
+							'destination': '<(output)',
+							'files': [
+								'./jsapi/out/jsapi',
+								'../examples/out/examples',
+							],
+						}], # copy
+					}],
+				],
 				'actions': [{
 					'action_name': 'build_jsapi',
 					'inputs': [ '<@(jsapi_in)', '<@(examples_in)' ],
@@ -126,14 +128,17 @@
 					],
 					'action': [
 						'sh', '-c',
-						'cd test/jsapi && npm run build && cd ../../examples && tsc && node _'
+						'cd test/jsapi && '
+						'npm run build && '
+						'cd ../../examples && '
+						'tsc && node _'
 					],
 					'process_outputs_as_sources': 1,
 				}],
-			}, {
+			}, { # no jsapi
 				'actions': [],
 				'sources+': ['test-jsapi.cc'],
-			}]
+			}], # ['use_js==1'
 		],
 	}],
 
@@ -198,8 +203,7 @@
 			}],
 		}],
 		['os in "mac ios"', {
-			'targets+': [
-				# test macos framework
+			'targets+': [ # test macos framework
 			{
 				'target_name': 'QuarkTest',
 				'type': 'shared_library',

@@ -322,8 +322,10 @@ namespace qk {
 		return shared_app() ? shared_app()->imgPool(): nullptr;
 	}
 
-	void FillImage::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
+	void FillImage::onSourceState(ImageSource::State state) {
+		if (state == ImageSource::kSTATE_NONE) {
+			mark(this, false);
+		} else if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
 			mark(this, false);
 		}
 	}

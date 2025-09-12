@@ -38,9 +38,8 @@
 	#error Exceptions must be turned on
 #endif
 
-#define Qk_Throw_Errno(code) throw qk::Error(code, #code)
+#define Qk_IfThrow(cond, code, ...) if(!(cond)) throw qk::Error(code, ##__VA_ARGS__)
 #define Qk_Throw(code, ...) throw qk::Error(code, ##__VA_ARGS__)
-#define Qk_Check(cond, code, ...) if(!(cond)) throw qk::Error(code, ##__VA_ARGS__)
 #define Qk_Try(block) try { block; } catch(cError &err)
 
 namespace qk {

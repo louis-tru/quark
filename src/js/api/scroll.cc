@@ -34,6 +34,8 @@
 namespace qk { namespace js {
 
 	void inheritScrollView(JSClass* cls, Worker* worker) {
+		typedef Object Type;
+
 		Js_UIObject_Accessor(ScrollView, bool, scrollbar, scrollbar);
 		Js_UIObject_Accessor(ScrollView, bool, bounce, bounce);
 		Js_UIObject_Accessor(ScrollView, bool, bounce_lock, bounceLock);

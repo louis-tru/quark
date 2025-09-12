@@ -321,7 +321,7 @@ namespace qk {
 	}
 
 	ImageSourcePool::ImageSourcePool(RunLoop *loop): _loop(loop), _isMarkAsTexture(true) {
-		Qk_ASSERT_RAW(loop, "Create the ImageSourcePool fail, Haven't param RunLoop");
+		Qk_CHECK(loop, "Create the ImageSourcePool fail, Haven't param RunLoop");
 	}
 
 	ImageSourcePool::~ImageSourcePool() {
@@ -434,15 +434,16 @@ namespace qk {
 				oldSrc->Qk_Off(State, &ImageSourceHold::handleSourceState, this);
 				oldSrc->release();
 			}
+			onSourceState(ImageSource::kSTATE_NONE);
 		}
 	}
 
 	void ImageSourceHold::handleSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		onSourceState(evt);
+		onSourceState(evt.data());
 	}
 
-	void ImageSourceHold::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {}
+	void ImageSourceHold::onSourceState(ImageSource::State state) {
+		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {}
 	}
 
 	ImagePool* ImageSourceHold::imgPool() {

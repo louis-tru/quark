@@ -43,7 +43,7 @@ namespace qk { namespace js {
 	#define Js_ReturnBool(v) return args.returnValue().set(bool(v))
 	#define Js_Return_Null() return args.returnValue().setNull()
 	#define Js_Mix(type)     auto mix = qk::js::MixObject::mix<type>(args.thisObj())
-	#define Js_Self(type)    auto self = qk::js::MixObject::mix<type>(args.thisObj())->self()
+	#define Js_Self(type)    Js_Mix(type);auto self = mix->self()
 	#define Js_Handle_Scope() qk::js::HandleScope scope(worker)
 
 	#define Js_Throw_Error(Error, err, ...) \
@@ -65,28 +65,28 @@ namespace qk { namespace js {
 		auto cls = worker->newClass(#name,alias,constructor,([](auto o){new(o) Mix##name();}),base)
 
 	#define Js_Define_Class(name, base, constructor) \
-		Js_New_Class(name,Js_Typeid(name),Js_Typeid(base),_Js_Fun(constructor))
+		Js_New_Class(name,Js_Typeid(name),Js_Typeid(base),_Js_Fun(,constructor))
 
-	#define _Js_Fun(f)([](auto args){auto worker=args.worker();f})
-	#define _Js_Get(f)([](auto key,auto args){auto worker=args.worker();f})
-	#define _Js_Set(f)([](auto key,auto val,auto args){auto worker=args.worker();f})
+	#define _Js_Fun(a,b)([](auto args){auto worker=args.worker();a;b})
+	#define _Js_Get(a,b)([](auto key,auto args){auto worker=args.worker();a;b})
+	#define _Js_Set(a,b)([](auto key,auto val,auto args){auto worker=args.worker();a;b})
 	// object
-	#define Js_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(func))
-	#define Js_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(get),_Js_Set(set))
-	#define Js_Accessor_Get(name,get)        exports->getAccessor(worker,#name,_Js_Get(get))
-	#define Js_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(set))
-	#define Js_Property(name, value)         exports->setFor(worker,#name,value)
+	#define Js_Method(name,func)             exports->setMethod(worker,#name,_Js_Fun(,func))
+	#define Js_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(,get),_Js_Set(,set))
+	#define Js_Accessor_Get(name,get)        exports->getAccessor(worker,#name,_Js_Get(,get))
+	#define Js_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(,set))
+	#define Js_Property(name,value)          exports->setFor(worker,#name,value)
 	// class
-	#define Js_Class_Accessor(name,get,set)  cls->setAccessor(#name,_Js_Get(get),_Js_Set(set))
-	#define Js_Class_Accessor_Get(name,get)  cls->setAccessor(#name,_Js_Get(get))
-	#define Js_Class_Accessor_Set(name,set)  cls->setAccessor(#name,0,_Js_Set(set))
-	#define Js_Class_Method(name,func)       cls->setMethod(#name,_Js_Fun(func))
-	#define Js_Class_Indexed(get,set)        cls->setIndexedAccessor(_Js_Get(get),_Js_Set(set))
-	#define Js_Class_Indexed_Get(get)        cls->setIndexedAccessor(_Js_Get(get),0)
-	#define Js_Class_Indexed_Set(set)        cls->setIndexedAccessor(0,_Js_Set(set))
+	#define Js_Class_Accessor(name,get,set)  cls->setAccessor(#name,_Js_Get(Js_Self(Type),get),_Js_Set(Js_Self(Type),set))
+	#define Js_Class_Accessor_Get(name,get)  cls->setAccessor(#name,_Js_Get(Js_Self(Type),get),0)
+	#define Js_Class_Accessor_Set(name,set)  cls->setAccessor(#name,0,_Js_Set(Js_Self(Type),set))
+	#define Js_Class_Method(name,func)       cls->setMethod(#name,_Js_Fun(Js_Self(Type),func))
+	#define Js_Class_Indexed(get,set)        cls->setIndexedAccessor(_Js_Get(Js_Self(Type),get),_Js_Set(Js_Self(Type),set))
+	#define Js_Class_Indexed_Get(get)        cls->setIndexedAccessor(_Js_Get(Js_Self(Type),get),0)
+	#define Js_Class_Indexed_Set(set)        cls->setIndexedAccessor(0,_Js_Set(Js_Self(Type),set))
 	#define Js_Class_Property(name,value)    cls->setProperty(#name,value)
 	#define Js_Class_Static_Property(name,value) cls->setStaticProperty(#name,value)
-	#define Js_Class_Static_Method(name,func) cls->setStaticMethod(#name,_Js_Fun(func))
+	#define Js_Class_Static_Method(name,func) cls->setStaticMethod(#name,_Js_Fun(,func))
 
 	// -------------------------------------------------------------------
 

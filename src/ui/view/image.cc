@@ -46,55 +46,61 @@ namespace qk {
 		
 		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height)) {
 			auto src = source(); // Rt
-
-			if (src && src->type()) {
-				_container.set_pre_width(solve_layout_content_pre_width(pContainer));
-				_container.set_pre_height(solve_layout_content_pre_height(pContainer));
-
-				Vec2 content;
-				if (_container.float_x()) { // wrap x
-					if (_container.float_y()) { // wrap y
-						content[0] = _container.clamp_width(src->width() * window()->atomPixel());
-						content[1] = _container.clamp_height(src->height() * window()->atomPixel());
-					} else { // no wrap y and rawp x
-						content[1] = _container.pre_height[0];
-						content[0] = _container.clamp_width(src->width() * content[1] / src->height());
-					}
-				} else if (_container.float_y()) { // x is wrap and y is no wrap
-					content[0] = _container.pre_width[0];
-					content[1] = _container.clamp_height(src->height() * content[0] / src->width());
-				} else { // all of both are no wrap
-					content[0] = _container.pre_width[0];
-					content[1] = _container.pre_height[0];
-				}
-
-				if (_container.content[0] != content[0]) {
-					mark       |= kLayout_Outside_Width;
-					change_mark = kLayout_Inner_Width;
-				}
-				if (_container.content[1] != content[1]) {
-					mark        |= kLayout_Outside_Height;
-					change_mark |= kLayout_Inner_Height;
-				}
-
-				_container.state_x = _container.state_y = kFixed_FloatState;
-				_container.content = content;
-				_container.pre_width = content[0];
-				_container.pre_height = content[1];
+			int w,h;
+			if (src) {
+				w = Qk_Max(1,src->width());
+				h = Qk_Max(1,src->height());
 			} else {
-				return Box::solve_layout_content_size_pre(mark, pContainer);
+				w = h = 1;
 			}
+			_container.set_pre_width(solve_layout_content_pre_width(pContainer));
+			_container.set_pre_height(solve_layout_content_pre_height(pContainer));
+
+			Vec2 content;
+			if (_container.float_x()) { // wrap x
+				if (_container.float_y()) { // wrap y
+					content[0] = _container.clamp_width(w * window()->atomPixel());
+					content[1] = _container.clamp_height(h * window()->atomPixel());
+				} else { // no wrap y and rawp x
+					content[1] = _container.pre_height[0];
+					content[0] = _container.clamp_width(w * content[1] / h);
+				}
+			} else if (_container.float_y()) { // x is wrap and y is no wrap
+				content[0] = _container.pre_width[0];
+				content[1] = _container.clamp_height(h * content[0] / w);
+			} else { // all of both are no wrap
+				content[0] = _container.pre_width[0];
+				content[1] = _container.pre_height[0];
+			}
+
+			if (_container.content[0] != content[0]) {
+				mark       |= kLayout_Outside_Width;
+				change_mark = kLayout_Inner_Width;
+			}
+			if (_container.content[1] != content[1]) {
+				mark        |= kLayout_Outside_Height;
+				change_mark |= kLayout_Inner_Height;
+			}
+
+			_container.state_x = _container.state_y = kFixed_FloatState;
+			_container.content = content;
+			_container.pre_width = content[0];
+			_container.pre_height = content[1];
 		}
 	
 		return change_mark;
 	}
 
-	void Image::onSourceState(Event<ImageSource, ImageSource::State>& evt) {
-		if (evt.data() & ImageSource::kSTATE_LOAD_COMPLETE) {
+	void Image::onSourceState(ImageSource::State state) {
+		if (state == ImageSource::kSTATE_NONE) {
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
+		}
+		else if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
 			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
 			Sp<UIEvent> evt = new UIEvent(this);
 			trigger(UIEvent_Load, **evt);
-		} else if (evt.data() & (ImageSource::kSTATE_LOAD_ERROR | ImageSource::kSTATE_DECODE_ERROR)) {
+		}
+		else if (state & (ImageSource::kSTATE_LOAD_ERROR | ImageSource::kSTATE_DECODE_ERROR)) {
 			Sp<UIEvent> evt = new UIEvent(this, new Error(ERR_IMAGE_LOAD_ERROR, "ERR_IMAGE_LOAD_ERROR"));
 			trigger(UIEvent_Error, **evt);
 		}

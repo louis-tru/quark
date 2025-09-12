@@ -49,6 +49,7 @@ namespace qk { namespace js {
 	}
 
 	struct MixAction: MixObject {
+		typedef Action Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Action, 0, { Js_Throw("Access forbidden."); });
 
@@ -65,13 +66,11 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Action, bool, playing, playing);
 
 			Js_Class_Method(play, {
-				Js_Self(Action);
 				self->play();
 				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(stop, {
-				Js_Self(Action);
 				self->stop();
 				Js_Return(args.thisObj());
 			});
@@ -79,7 +78,6 @@ namespace qk { namespace js {
 			Js_Class_Method(seek, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek(uint32_t timeMs)");
-				Js_Self(Action);
 				self->seek(args[0]->toUint32(worker)->value());
 				Js_Return(args.thisObj());
 			});
@@ -87,7 +85,6 @@ namespace qk { namespace js {
 			Js_Class_Method(seekPlay, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek_play(uint32_t timeMs)");
-				Js_Self(Action);
 				self->seek_play(args[0]->toUint32(worker)->value());
 				Js_Return(args.thisObj());
 			});
@@ -95,7 +92,6 @@ namespace qk { namespace js {
 			Js_Class_Method(seekStop, {
 				if (!args.length() || !args[0]->isUint32())
 					Js_Throw("@method Action.seek_stop(uint32_t timeMs)");
-				Js_Self(Action);
 				self->seek_stop(args[0]->toUint32(worker)->value());
 				Js_Return(args.thisObj());
 			});
@@ -103,33 +99,28 @@ namespace qk { namespace js {
 			Js_Class_Method(before, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.before(Action *act)");
-				Js_Self(Action);
-				self->before(mix<Action>(args[0])->self());
+				self->before(MixObject::mix<Action>(args[0])->self());
 			});
 
 			Js_Class_Method(after, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.after(Action *act)");
-				Js_Self(Action);
-				self->after(mix<Action>(args[0])->self());
+				self->after(MixObject::mix<Action>(args[0])->self());
 			});
 
 			Js_Class_Method(remove, {
-				Js_Self(Action);
 				self->remove();
 			});
 
 			Js_Class_Method(append, {
 				if (!args.length() || !worker->instanceOf(args[0], kAction_Typeid))
 					Js_Throw("@method Action.append(Action *child)");
-				Js_Self(Action);
 				Js_Try_Catch({
-					self->append(mix<Action>(args[0])->self());
+					self->append(MixObject::mix<Action>(args[0])->self());
 				}, Error);
 			});
 
 			Js_Class_Method(clear, {
-				Js_Self(Action);
 				self->clear();
 			});
 
@@ -185,11 +176,10 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Indexed_Get({
-				Js_Self(Type);
 				if (key >= self->length()) {
 					Js_Throw("@method KeyframeAction[](uint32_t index) Frame array index overflow.");
 				}
-				auto wobj = mix<Keyframe>(self->operator[](key), kKeyframe_Typeid);
+				auto wobj = MixObject::mix<Keyframe>(self->operator[](key), kKeyframe_Typeid);
 				Js_Return( wobj->handle() );
 			});
 
@@ -208,7 +198,6 @@ namespace qk { namespace js {
 					Js_Parse_Type(Curve, args[1], "@method KeyframeAction.addFrame() curve = %s");
 					curve = out;
 				}
-				Js_Self(Type);
 				Js_Return( self->addFrame(timeMs, curve) );
 			});
 
@@ -234,7 +223,6 @@ namespace qk { namespace js {
 					Js_Parse_Type(Curve, args[2], "@method KeyframeAction.addFrameWithCss() curve = %s");
 					curve = out; curve_p = &curve;
 				}
-				Js_Self(Type);
 				Js_Return( self->addFrameWithCss(cssExp, time_p, curve_p) );
 			});
 
@@ -243,23 +231,21 @@ namespace qk { namespace js {
 	};
 
 	struct MixKeyframe: MixObject {
+		typedef Keyframe Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Keyframe, StyleSheets, {
 				Js_Throw("Access forbidden.");
 			});
 
 			Js_Class_Accessor_Get(index, {
-				Js_Self(Keyframe);
 				Js_Return(self->index());
 			});
 
 			Js_Class_Accessor_Get(time, {
-				Js_Self(Keyframe);
 				Js_Return(self->time());
 			});
 
 			Js_Class_Accessor_Get(curve, {
-				Js_Self(Keyframe);
 				Js_Return( worker->types()->jsvalue(self->curve()) );
 			});
 

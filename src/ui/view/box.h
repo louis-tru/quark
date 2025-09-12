@@ -117,14 +117,6 @@ namespace qk {
 		virtual Vec2 client_size() override;
 		virtual void draw(Painter *render) override;
 
-		/**
-			* client rect = border + padding + content
-			* @method solve_rect_vertex(mat, vertex)
-			* @thread Rt
-			* @note Can only be used in rendering threads
-			*/
-		virtual void solve_rect_vertex(const Mat &mat, Vec2 vertexOut[4]); // compute rect vertex
-
 	protected:
 		/**
 			* @method set_content_size(content_size)
@@ -181,7 +173,7 @@ namespace qk {
 		Vec2  _layout_offset; // The starting offset relative to the parent view（include margin）
 		Vec2  _layout_size; // Size occupied by the layout（margin+border+padding+content）
 		Vec2  _client_size; // Size occupied by the client area (border+padding+content)
-		Vec2  _vertex[4]; // box vertex
+		Vec2  _bounds[4]; // The bounds of the box for world coords, maybe not a rectangle
 
 		friend class Painter;
 	};

@@ -34,28 +34,24 @@
 namespace qk { namespace js {
 
 	struct MixBoxFilter: MixObject {
+		typedef BoxFilter Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(BoxFilter, 0, { Js_Throw("Forbidden access abstract"); });
+			Js_Define_Class(BoxFilter, 0, {
+				Js_Throw("Forbidden access abstract");
+			});
 
 			Js_Class_Accessor_Get(type, {
-				Js_Self(BoxFilter);
 				Js_Return(self->type());
 			});
 
-			Js_Class_Accessor(next, {
-				Js_Self(BoxFilter);
-				Js_Return(self->next());
-			}, {
-				Js_Parse_Type(BoxFilterPtr, val, "@prop BoxFilter.next = %s");
-				Js_Self(BoxFilter);
-				self->set_next(out);
-			});
+			Js_MixObject_Accessor(BoxFilter, BoxFilterPtr, next, next);
 
 			cls->exports("BoxFilter", exports);
 		}
 	};
 
 	struct MixFillImage: MixObject {
+		typedef FillImage Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FillImage, BoxFilter, {
 				if (!args.length() || !args[0]->isString()) {
@@ -83,6 +79,8 @@ namespace qk { namespace js {
 	};
 
 	struct MixFillGradientRadial: MixObject {
+		typedef FillGradientRadial Type;
+
 		static bool parse(
 			FunctionArgs args, Array<float> *pos, Array<Color4f> *colors, cChar* msg, cChar* msg2
 		) {
@@ -116,12 +114,10 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Accessor_Get(positions, {
-				Js_Self(FillGradientRadial);
 				Js_Return( worker->types()->jsvalue(self->positions()) );
 			});
 
 			Js_Class_Accessor_Get(colors, {
-				Js_Self(FillGradientRadial);
 				Js_Return( worker->types()->jsvalue(self->colors()) );
 			});
 		
@@ -130,6 +126,7 @@ namespace qk { namespace js {
 	};
 
 	struct MixFillGradientLinear: MixObject {
+		typedef FillGradientLinear Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FillGradientLinear, FillGradientRadial, {
 				ArrayFloat pos;
@@ -153,6 +150,7 @@ namespace qk { namespace js {
 	};
 
 	struct MixBoxShadow: MixObject {
+		typedef BoxShadow Type;
 		static void NewBoxShadow(Worker *worker, FunctionArgs args) {
 			if (!args.length()) {
 				Js_Throw("@constructor BoxShadow(Shadow value)");

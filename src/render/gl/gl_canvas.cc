@@ -56,7 +56,7 @@ namespace qk {
 	extern const float  aa_fuzz_weight = 1;
 	extern const float  aa_fuzz_width = 0.5;
 #endif
-	extern const float  DepthNextUnit = 1.0f / 5000000.0f;
+	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
 
 	const GLenum DrawBuffers[]{
 		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*other out*/,
@@ -88,11 +88,11 @@ namespace qk {
 		#define _inl(self) static_cast<GLCanvas::Inl*>(self)
 
 		inline void zDepthNext() {
-			_zDepth += DepthNextUnit;
+			_zDepth += zDepthNextUnit;
 		}
 
 		inline void zDepthNextCount(uint32_t count) {
-			_zDepth += (DepthNextUnit * count);
+			_zDepth += (zDepthNextUnit * count);
 		}
 
 		void setMatrixAndScale(const Mat& mat) {
@@ -677,7 +677,11 @@ namespace qk {
 	void GLCanvas::drawTriangles(const Triangles& triangles, const ImagePaint &paint, BlendMode mode) {
 		_this->setBlendMode(mode); // switch blend mode
 		_cmdPack->drawTriangles(triangles, &paint);
-		_this->zDepthNext();
+		if (triangles.zDepthTotal) {
+			_zDepth += triangles.zDepthTotal;
+		} else {
+			_this->zDepthNext();
+		}
 	}
 
 	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {

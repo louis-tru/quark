@@ -86,18 +86,15 @@ namespace qk {
 		, _impl(nullptr)
 		, _opts(opts)
 	{
-		Qk_ASSERT_RAW(_host);
-		Qk_ASSERT_RAW(first_loop() == current_loop(), "Must be called on the first thread loop");
+		Qk_CHECK(_host);
+		check_is_work_loop();
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
 		_painter = new Painter(this);
 		_actionCenter = new ActionCenter(this);
 		_backgroundColor = opts.backgroundColor;
 		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
-		{
-			ScopeLock lock(_host->_mutex);
-			_id = _host->_windows.pushBack(this);
-		}
+		_id = _host->_windows.pushBack(this);
 		retain(); // strong ref count retain from application
 		_root = new Root(this); // new root
 		_root->set_background_color(_backgroundColor);
@@ -129,7 +126,7 @@ namespace qk {
 	}
 
 	void Window::destroy() {
-		Qk_ASSERT_RAW(_render == nullptr);
+		Qk_CHECK(_render == nullptr);
 		// noop, Reserve memory to avoid accidental references to it by subsequent objects
 		// and add memory to cache for reuse
 		memberRecycle.push(this);
@@ -144,6 +141,7 @@ namespace qk {
 	}
 
 	bool Window::tryClose() {
+		check_is_work_loop();
 		UILock lock(this); // lock ui
 		if (!_root)
 			return false;
@@ -151,12 +149,10 @@ namespace qk {
 		beforeClose();
 
 		// ------------------------
-		_host->_mutex.lock();
 		_host->_windows.erase(_id);
 		if (_host->_activeWindow == this) {
 			Inl_Application(_host)->setActiveWindow(nullptr);
 		}
-		_host->_mutex.unlock();
 		// ------------------------
 
 		_root->remove_all_child(); // remove child view

@@ -31,7 +31,7 @@
 #include "./thread.h"
 
 namespace qk {
-	RunLoop        *__first_loop = nullptr;
+	RunLoop        *__work_loop = nullptr;
 	Array<RunLoop*> __loops;
 
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
@@ -101,12 +101,12 @@ namespace qk {
 
 		void death() {
 			ScopeLock lock(*__threads_mutex);
-			Qk_ASSERT_RAW(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+			Qk_CHECK(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 			// clear(); // clear all
 			// Qk_ASSERT_EQ(nullptr, _uv_loop->closing_handles);
 
-			if (__first_loop == this) {
-				__first_loop = nullptr;
+			if (__work_loop == this) {
+				__work_loop = nullptr;
 			}
 			_thread = nullptr;
 			_tid = ThreadID();
@@ -133,19 +133,19 @@ namespace qk {
 					}
 					if (!loop) {
 						__loops.push((
-							loop = new RunLoop(__first_loop ? uv_loop_new(): uv_default_loop())
+							loop = new RunLoop(__work_loop ? uv_loop_new(): uv_default_loop())
 						));
 					}
 				}
 
-				Qk_ASSERT_RAW(loop->_uv_async == nullptr);
-				Qk_ASSERT_RAW(loop->_thread == nullptr);
+				Qk_CHECK(loop->_uv_async == nullptr);
+				Qk_CHECK(loop->_thread == nullptr);
 				loop->_thread = t;
 				loop->_tid = t->id;
 				t->loop = loop;
 
-				if (!__first_loop) {
-					__first_loop = loop;
+				if (!__work_loop) {
+					__work_loop = loop;
 				}
 			}
 			return loop;
@@ -298,14 +298,22 @@ namespace qk {
 		return Inl::current_from(nullptr);
 	}
 
-	RunLoop* RunLoop::first() {
+	RunLoop* RunLoop::work() {
 		// NOTE: Be careful of thread safety,
 		// it's best to first ensure that 'current ()' has been called`
-		if (!__first_loop) {
+		if (!__work_loop) {
 			current();
-			Qk_ASSERT(__first_loop); // asset
+			Qk_ASSERT(__work_loop); // asset
 		}
-		return __first_loop;
+		return __work_loop;
+	}
+
+	bool RunLoop::is_work() {
+		return __work_loop && __work_loop->_tid == thread_self_id();
+	}
+
+	void check_is_work_loop() {
+		Qk_CHECK(RunLoop::is_work(), "Must be called on the work thread loop");
 	}
 
 	bool RunLoop::runing() const {

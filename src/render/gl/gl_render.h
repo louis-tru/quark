@@ -63,6 +63,7 @@ namespace qk {
 		TexStat **_texStat; // temp tbo
 		GLuint _rootMatrixBlock,_viewMatrixBlock; // ubo, matrixBlock => root view matrix
 		GLuint _optsBlock; // ubo, generic optsBlock
+		GLuint _ebo; // temp ebo
 		GLCanvas* _glcanvas; // main canvas
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status

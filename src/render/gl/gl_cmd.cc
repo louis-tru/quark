@@ -42,7 +42,7 @@
 
 namespace qk {
 	extern const float aa_fuzz_weight;
-	extern const float DepthNextUnit;
+	extern const float zDepthNextUnit;
 	void  gl_texture_barrier();
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	GLint gl_get_texture_pixel_format(ColorType type);
@@ -97,6 +97,9 @@ namespace qk {
 							break;
 						case kReadImage_CmdType:
 							((ReadImageCmd*)cmd)->~ReadImageCmd();
+							break;
+						case kTriangles_CmdType:
+							((TrianglesCmd*)cmd)->~TrianglesCmd();
 							break;
 						case kBlurFilterEnd_CmdType:
 							((BlurFilterEndCmd*)cmd)->~BlurFilterEndCmd();
@@ -514,7 +517,9 @@ namespace qk {
 				Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
 				s->use(triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), triangles.verts);
 				glUniform1f(s->depth, depth);
-				glDrawElements(GL_TRIANGLES, triangles.indexCount, GL_UNSIGNED_SHORT, triangles.indices);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * triangles.indexCount, triangles.indices, GL_DYNAMIC_DRAW);
+				glDrawElements(GL_TRIANGLES, triangles.indexCount, GL_UNSIGNED_SHORT, 0);
 			}
 		}
 
@@ -742,7 +747,7 @@ namespace qk {
 					glUniform2f(cp.oResolution, oRw, oRh);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _c->_outA, level);
 					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-					depth += DepthNextUnit;
+					depth += zDepthNextUnit;
 				} while(level < lod && oRw && oRh);
 			}
 
@@ -821,7 +826,7 @@ namespace qk {
 
 			// Making blur of the y-axis direction
 			blur->use(sizeof(float) * 12, vertex_y);
-			glUniform1f(blur->depth, depth + DepthNextUnit);
+			glUniform1f(blur->depth, depth + zDepthNextUnit);
 			glUniform2f(blur->oResolution, R.x(), R.y());
 			glUniform2f(blur->size, 0, fullsize / R.y()); // vertical blur
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // draw blur to main render buffer

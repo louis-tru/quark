@@ -119,14 +119,14 @@
 #endif
 
 #if DEBUG
-#define Qk_ASSERT_RAW(cond, ...) \
+#define Qk_CHECK(cond, ...) \
 	if (Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
-#define Qk_ASSERT_RAW(cond, ...) if (Qk_UNLIKELY(!(cond))) ::qk::Fatal("", 0, "", ##__VA_ARGS__)
+#define Qk_CHECK(cond, ...) if (Qk_UNLIKELY(!(cond))) ::qk::Fatal("", 0, "", ##__VA_ARGS__)
 #endif
 #if DEBUG
-# define Qk_ASSERT Qk_ASSERT_RAW
-# define Qk_ASSERT_OP(a, op, b, ...) Qk_ASSERT_RAW(((a) op (b)), ##__VA_ARGS__)
+# define Qk_ASSERT Qk_CHECK
+# define Qk_ASSERT_OP(a, op, b, ...) Qk_CHECK(((a) op (b)), ##__VA_ARGS__)
 #else
 # define Qk_ASSERT(cond, ...) ((void)(cond))
 # define Qk_ASSERT_OP(a, op, b, ...) ((void)((a) op (b)))

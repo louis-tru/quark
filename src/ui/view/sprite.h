@@ -45,12 +45,16 @@ namespace qk {
 		SpriteView();
 		MatrixView* asMatrixView() override;
 		Vec2 layout_offset_inside() override;
-		bool overlap_test(Vec2 point) override; // Check if the point overlaps with the sprite
 		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
+		void solve_visible_region(const Mat &mat) override;
+		bool overlap_test(Vec2 point) override; // Check if the point overlaps with the sprite
 		void trigger_listener_change(uint32_t name, int count, int change) override;
+		void layout_reverse(uint32_t mark) override;
 	private:
-		Vec2 _vertex[4]; // The rect vertex of the sprite
-		bool _vertex_ok; // is computed vertex
+		void solve_origin_value(Vec2 client, Vec2 from); // compute origin value from parameter
+		Vec2 _bounds[4]; // The bounds of the sprite for world coords
+		bool _boundsOk; // is computed bounds
+		friend class Spine;
 	};
 
 	/**
@@ -87,7 +91,7 @@ namespace qk {
 		Vec2 client_size() override;
 		void draw(Painter *render) override;
 	protected:
-		void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
+		void onSourceState(ImageSource::State state) override;
 		ImagePool* imgPool() override;
 		View* init(Window* win) override;
 	private:

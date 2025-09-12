@@ -36,12 +36,6 @@
 
 namespace qk { namespace js {
 
-	/*void MixViewObject::initialize() {
-		handle()->defineOwnProperty(worker(), worker()->strs()->window(),
-			mix<Window>(self<View>()->window())->handle(), JSObject::ReadOnly | JSObject::DontDelete
-		);
-	}*/
-
 	NotificationBasic* MixViewObject::asNotificationBasic() {
 		return static_cast<View*>(self());
 	}
@@ -60,6 +54,7 @@ namespace qk { namespace js {
 
 	class MixView: public MixViewObject {
 	public:
+		typedef View Type;
 
 		static void getWindow(Worker *worker, PropertyArgs args) {
 			Js_Self(View);
@@ -78,114 +73,93 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Accessor_Get(cssclass, {
-				Js_Self(View);
 				Js_Return(self->cssclass());
 			});
 
 			Js_Class_Accessor_Get(parent, {
-				Js_Self(View);
 				Js_Return(self->parent());
 			});
 
 			Js_Class_Accessor_Get(prev, {
-				Js_Self(View);
 				Js_Return( self->prev() );
 			});
 
 			Js_Class_Accessor_Get(next, {
-				Js_Self(View);
 				Js_Return( self->next() );
 			});
 
 			Js_Class_Accessor_Get(first, {
-				Js_Self(View);
 				Js_Return( self->first() );
 			});
 
 			Js_Class_Accessor_Get(last, {
-				Js_Self(View);
 				Js_Return( self->last() );
 			});
 
 			Js_Class_Accessor(action_, {
-				Js_Self(View);
 				Js_Return( self->action() );
 			}, {
 				if (val->isNull()) {
-					Js_Self(View);
 					self->set_action(nullptr);
 				} else {
 					if (!worker->template instanceOf<Action>(val))
 						Js_Throw("@prop set_action {Action}\n");
-					Js_Self(View);
-					self->set_action(mix<Action>(val)->self());
+					self->set_action(MixObject::mix<Action>(val)->self());
 				}
 			});
 
 			Js_Class_Accessor_Get(matrixView, {
-				Js_Self(View);
 				auto view = self->matrix_view();
 				Js_Return( view ? view->host() : nullptr );
 			});
 
 			Js_Class_Accessor_Get(level, {
-				Js_Self(View);
 				Js_Return( self->level() );
 			});
 
 			Js_Class_Accessor(opacity, {
-				Js_Self(View);
 				Js_Return( self->opacity() );
 			}, {
 				float out;
 				if (!val->asFloat32(worker).to(out))
 					Js_Throw("@prop View.set_opacity {float}\n");
-				Js_Self(View);
 				self->set_opacity(out);
 			});
 
 			Js_Class_Accessor(cursor, {
-				Js_Self(View);
 				Js_Return( uint32_t(self->cursor()) );
 			}, {
 				Js_Parse_Type(CursorStyle, val, "@prop View.set_cursor = %s");
-				Js_Self(View);
 				self->set_cursor(out);
 			});
 
 			Js_Class_Accessor(visible, {
-				Js_Self(View);
 				Js_ReturnBool( self->visible() );
 			}, {
-				Js_Self(View);
 				self->set_visible( val->toBoolean(worker) );
 			});
 
 			Js_Class_Accessor_Get(visibleRegion, {
-				Js_Self(View);
 				Js_ReturnBool( self->visible_region() );
 			});
 
+			Js_MixObject_Accessor(View, bool, test_visible_region, testVisibleRegion);
+
 			Js_Class_Accessor(receive, {
-				Js_Self(View);
 				Js_ReturnBool( self->receive() );
 			}, {
-				Js_Self(View);
 				self->set_receive(val->toBoolean(worker));
 			});
 
 			Js_Class_Accessor_Get(isFocus, {
-				Js_Self(View);
 				Js_ReturnBool( self->is_focus() );
 			});
 
 			Js_Class_Method(focus, {
-				Js_Self(View);
 				Js_ReturnBool( self->focus() );
 			});
 
 			Js_Class_Method(blur, {
-				Js_Self(View);
 				Js_ReturnBool( self->blur() );
 			});
 
@@ -197,8 +171,7 @@ namespace qk { namespace js {
 						"@return {bool}\n"
 					);
 				}
-				Js_Self(View);
-				auto v = mix<View>(args[0])->self();
+				auto v = MixObject::mix<View>(args[0])->self();
 				Js_ReturnBool( self->is_self_child(v) );
 			});
 
@@ -209,8 +182,7 @@ namespace qk { namespace js {
 						"@param prev {View}\n"
 					);
 				}
-				Js_Self(View);
-				auto v = mix<View>(args[0])->self();
+				auto v = MixObject::mix<View>(args[0])->self();
 				Js_Try_Catch({ self->before(v); }, Error);
 			});
 
@@ -221,8 +193,7 @@ namespace qk { namespace js {
 						"@param next {View}\n"
 					);
 				}
-				Js_Self(View);
-				auto v = mix<View>(args[0])->self();
+				auto v = MixObject::mix<View>(args[0])->self();
 				Js_Try_Catch({ self->after(v); }, Error);
 			});
 
@@ -233,8 +204,7 @@ namespace qk { namespace js {
 						"@param child {View}\n"
 					);
 				}
-				Js_Self(View);
-				auto v = mix<View>(args[0])->self();
+				auto v = MixObject::mix<View>(args[0])->self();
 				Js_Try_Catch({ self->prepend(v); }, Error);
 			});
 
@@ -245,38 +215,31 @@ namespace qk { namespace js {
 						"@param child {View}\n"
 					);
 				}
-				Js_Self(View);
-				auto v = mix<View>(args[0])->self();
+				auto v = MixObject::mix<View>(args[0])->self();
 				Js_Try_Catch({ self->append(v); }, Error);
 			});
 
 			Js_Class_Method(remove, {
-				Js_Self(View);
 				self->remove();
 			});
 
 			Js_Class_Method(removeAllChild, {
-				Js_Self(View);
 				self->remove_all_child();
 			});
 
 			Js_Class_Accessor_Get(layoutWeight, {
-				Js_Self(View);
 				Js_Return( worker->types()->jsvalue( self->layout_weight()) );
 			});
 
 			Js_Class_Accessor_Get(layoutAlign, {
-				Js_Self(View);
 				Js_Return( uint32_t(self->layout_align()) );
 			});
 
 			Js_Class_Accessor_Get(isClip, {
-				Js_Self(View);
 				Js_ReturnBool( self->is_clip());
 			});
 
 			Js_Class_Accessor_Get(viewType, {
-				Js_Self(View);
 				Js_Return( self->viewType() );
 			});
 
@@ -291,23 +254,18 @@ namespace qk { namespace js {
 					);
 				}
 				Js_Parse_Type(Vec2, args[0], "@method View.overlapTest(point = %s)");
-				Js_Self(View);
 				Js_ReturnBool(self->overlap_test(out));
 			});
 			Js_Class_Accessor_Get(position, {
-				Js_Self(View);
 				Js_Return( worker->types()->jsvalue(self->position()) );
 			});
 			Js_Class_Accessor_Get(layoutOffset, {
-				Js_Self(View);
 				Js_Return( worker->types()->jsvalue(self->layout_offset()) );
 			});
 			Js_Class_Accessor_Get(layoutSize, {
-				Js_Self(View);
 				Js_Return( worker->types()->jsvalue(self->layout_size()) );
 			});
 			Js_Class_Accessor_Get(clientSize, {
-				Js_Self(View);
 				Js_Return( worker->types()->jsvalue(self->client_size()) );
 			});
 			// -----------------------------------------------------------------------------

@@ -16,4 +16,5 @@ void main() {
 #else
 	fragColor.a *= aaa;
 #endif
+	//fragColor.a += 0.3;
 }

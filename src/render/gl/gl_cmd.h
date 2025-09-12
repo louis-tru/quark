@@ -40,8 +40,16 @@
 
 namespace qk {
 
+	#define assert_alignup(T) \
+		static_assert(isAlignUp(sizeof(T)), #T " size must be align up")
+
 	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
 	typedef Canvas::Triangles Triangles;
+
+	constexpr bool isAlignUp(uint32_t ptr) {
+		constexpr auto alignment = alignof(std::max_align_t);
+		return ((ptr + (alignment - 1)) & ~(alignment - 1)) == ptr;
+	}
 
 	class GLC_CmdPack {
 		Qk_DISABLE_COPY(GLC_CmdPack);
@@ -87,6 +95,7 @@ namespace qk {
 
 		struct BlendCmd: Cmd {
 			BlendMode      mode;
+			float          _; // make 8 byte align
 		};
 
 		struct SwitchCmd: Cmd {
@@ -114,6 +123,7 @@ namespace qk {
 			Region          bounds;
 			float           size; // blur size
 			bool            isClipState;
+			float           _; // make 8 byte align
 		};
 
 		struct BlurFilterEndCmd: Cmd {
@@ -137,6 +147,7 @@ namespace qk {
 			Color4f    color;
 			float      blur;
 			bool       aaclip;
+			float      _; // make 8 byte align
 		};
 
 		struct GradientCmd: DrawCmd { //!
@@ -214,7 +225,29 @@ namespace qk {
 		struct DrawBuffersCmd: Cmd {
 			GLsizei num;
 			GLenum  buffers[2];
+			float   _; // make 8 byte align
 		};
+
+		assert_alignup(MatrixCmd);
+		assert_alignup(BlendCmd);
+		assert_alignup(SwitchCmd);
+		assert_alignup(ClearCmd);
+		assert_alignup(ClipCmd);
+		assert_alignup(BlurFilterBeginCmd);
+		assert_alignup(BlurFilterEndCmd);
+		assert_alignup(ColorCmd);
+		assert_alignup(ColorRRectBlurCmd);
+		assert_alignup(GradientCmd);
+		assert_alignup(ImageCmd);
+		assert_alignup(ImageMaskCmd);
+		assert_alignup(ColorsCmd);
+		assert_alignup(TrianglesCmd);
+		assert_alignup(ReadImageCmd);
+		assert_alignup(OutputImageBeginCmd);
+		assert_alignup(OutputImageEndCmd);
+		assert_alignup(FlushCanvasCmd);
+		assert_alignup(SetBuffersCmd);
+		assert_alignup(DrawBuffersCmd);
 
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();

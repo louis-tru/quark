@@ -213,19 +213,28 @@ namespace qk {
 	// solve the origin value by client size
 	// The origin value is the final value by computing the origin.
 	void MatrixView::solve_origin_value() {
-		auto client_size = _host->client_size();
+		auto _client_size = _host->client_size();
 		switch (_origin_x.kind) {
 			default:
-			case BoxOriginKind::Auto:  _origin_value.set_x(client_size.x() * 0.5); break; // center
+			case BoxOriginKind::Auto:  _origin_value.set_x(_client_size.x() * 0.5); break; // center
 			case BoxOriginKind::Value: _origin_value.set_x(_origin_x.value); break;
-			case BoxOriginKind::Ratio: _origin_value.set_x(client_size.x() * _origin_x.value); break;
+			case BoxOriginKind::Ratio: _origin_value.set_x(_client_size.x() * _origin_x.value); break;
 		}
 		switch (_origin_y.kind) {
 			default:
-			case BoxOriginKind::Auto:  _origin_value.set_y(client_size.y() * 0.5); break; // center
+			case BoxOriginKind::Auto:  _origin_value.set_y(_client_size.y() * 0.5); break; // center
 			case BoxOriginKind::Value: _origin_value.set_y(_origin_y.value); break;
-			case BoxOriginKind::Ratio: _origin_value.set_y(client_size.y() * _origin_y.value); break;
+			case BoxOriginKind::Ratio: _origin_value.set_y(_client_size.y() * _origin_y.value); break;
 		}
+	}
+
+	void MatrixView::solve_bounds(const Mat &mat, Vec2 boundsOut[4]) {
+		Vec2 origin(-_origin_value.x(), -_origin_value.y());
+		Vec2 end = origin + _host->client_size();
+		boundsOut[0] = mat * origin;
+		boundsOut[1] = mat * Vec2(end.x(), origin.y());
+		boundsOut[2] = mat * end;
+		boundsOut[3] = mat * Vec2(origin.x(), end.y());
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -245,29 +254,22 @@ namespace qk {
 
 	void Matrix::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
-			// _CheckParent();
 			solve_origin_value(); // check transform_origin change
 			unmark(kTransform | kVisible_Region); // unmark
-			auto v = layout_offset() + parent->layout_offset_inside()
-				+ Vec2(margin_left(), margin_top()) + _origin_value + _translate;
+			auto v = parent->layout_offset_inside() + layout_offset()
+				+ Vec2(margin_left(), margin_top()) + _translate + _origin_value;
 			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
-			_position = Vec2(_matrix[2],_matrix[5]);
+			_position = Vec2(_matrix[2],_matrix[5]); // the origin world coords
 			solve_visible_region(_matrix);
-		}
-		else if (mark & kVisible_Region) {
+		} else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark
 			solve_visible_region(_matrix.set_translate(_position));
 		}
-		//_matrix.set_translate(Vec2(0)); // clear translate, use position value
 	}
 
-	void Matrix::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {
-		Vec2 origin(-_origin_value.x(), -_origin_value.y());
-		Vec2 end = origin + client_size();
-		vertex[0] = mat * origin;
-		vertex[1] = mat * Vec2(end.x(), origin.y());
-		vertex[2] = mat * end;
-		vertex[3] = mat * Vec2(origin.x(), end.y());
+	void Matrix::solve_visible_region(const Mat &mat) {
+		solve_bounds(mat, _bounds);
+		_visible_region = test_visible_region() ? is_visible_region(mat, _bounds): true;
 	}
 
 	Vec2 Matrix::layout_offset_inside() {

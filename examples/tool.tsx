@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { mainScreenScale, createCss, StyleSheet } from 'quark';
+import { mainScreenScale, createCss, StyleSheets } from 'quark';
 import { Jsx, ViewController, link, RenderResult } from 'quark/ctr';
 import { NavPage } from 'quark/nav';
 import {ClickEvent} from 'quark/event';
@@ -131,7 +131,7 @@ createCss({
 
 })
 
-export class NavButton extends ViewController<{style?: StyleSheet, next?: (self: Page)=>RenderResult}> {
+export class NavButton extends ViewController<{style?: StyleSheets, next?: (self: Page)=>RenderResult}> {
 	@link next?: (self: Page)=>RenderResult;
 
 	render() {

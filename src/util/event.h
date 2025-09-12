@@ -43,7 +43,6 @@
 
 #define Qk_Init_Event(name)   _on##name(this)
 #define Qk_On(name, ...)      on##name().on( __VA_ARGS__ )
-#define Qk_Once(name, ...)    on##name().once( __VA_ARGS__ )
 #define Qk_Off(name, ...)     on##name().off( __VA_ARGS__ )
 #define Qk_Trigger(name, ...) on##name().trigger( __VA_ARGS__ )
 
@@ -53,32 +52,33 @@ namespace qk {
 		inline void lock() {}
 		inline void unlock() {}
 	};
-	template<class Sender = Object, class SendData = Object*, typename RC = int> class Event;
+	template<class Sender = Object, class SendData = Object*> class Event;
 	template<class Event = Event<>, class Lock = _Lock> class EventNoticer;
 
-	template<class T_Sender, class T_SendData, typename T_RC>
+	template<class T_Sender, class T_SendData>
 	class Event: public Object {
 	public:
 		typedef T_SendData       SendData;
 		typedef T_Sender         Sender;
-		typedef T_RC             ReturnValue;
 		typedef const SendData   cSendData;
-
 		/**
 		 * @param data Hold data when it's a pointer
 		*/
-		Event(SendData data = SendData(), const ReturnValue& rc = ReturnValue())
-			: _sender(nullptr), _data(std::move(data)), return_value(rc) {}
+		Event(SendData data = SendData(), uint32_t rc = 0)
+			: _sender(nullptr), _data(std::move(data)), return_value(rc), _flags(0) {}
 		~Event() {
 			Releasep(_data); // Release when data is a pointer
 		}
 		inline Sender* sender() const { return _sender; }
 		inline cSendData& data() const { return _data; }
+		// Off current call listener
+		inline void off() { _flags |= 1u << (31); /* Mark as offed */ }
+		uint32_t return_value; ///< Return value, you can use it to store some data
+	private:
+		uint32_t _flags; ///< Reserved flags
 	protected:
 		Sender   *_sender;
 		SendData  _data;
-	public:
-		ReturnValue return_value;
 	};
 
 	class Qk_EXPORT EventNoticerBasic {
@@ -90,23 +90,21 @@ namespace qk {
 
 		class Qk_EXPORT Listener {
 		public:
-			Listener(uint32_t id, bool once);
+			Listener(uint32_t id);
 			virtual ~Listener();
 			inline uint32_t id() const { return _id; }
-			inline bool once() const { return _once; }
 			virtual void call(Object& evt) = 0;
 			virtual bool match(ListenerFunc l, void* ctx);
 			virtual bool match(StaticListenerFunc l, void* ctx);
 		protected:
 			uint32_t  _id;
-			bool      _once;
 		};
 
 		// make listener
-		static Listener* MakeListener(ListenerFunc l, void* ctx, bool once);
-		static Listener* MakeStaticListener(StaticListenerFunc l, void* ctx, bool once);
-		static Listener* MakeLambdaListener(OnLambdaListenerFunc& l, uint32_t id, bool once);
-		static Listener* MakeShellListener(void *host_sender, EventNoticerBasic* shell, bool once);
+		static Listener* MakeListener(ListenerFunc l, void* ctx);
+		static Listener* MakeStaticListener(StaticListenerFunc l, void* ctx);
+		static Listener* MakeLambdaListener(OnLambdaListenerFunc& l, uint32_t id);
+		static Listener* MakeShellListener(void *host_sender, EventNoticerBasic* shell);
 
 		EventNoticerBasic(void *sender);
 		virtual ~EventNoticerBasic();
@@ -127,7 +125,7 @@ namespace qk {
 	protected:
 		void off2(bool destroy);
 		void            *_sender;
-		List<Listener*> *_listener;
+		Dict<uint32_t, Listener*> *_listener;
 	};
 
 	class Qk_EXPORT NotificationBasic {
@@ -173,7 +171,6 @@ namespace qk {
 		typedef typename Event::SendData        SendData;
 		typedef typename Event::cSendData       cSendData;
 		typedef typename Event::Sender          Sender;
-		typedef typename Event::ReturnValue     ReturnValue;
 		
 		EventNoticer(Sender *sender = nullptr)
 			: EventNoticerBasic(sender) {}
@@ -182,38 +179,20 @@ namespace qk {
 
 		template<class Ctx>
 		void on(void (Ctx::*listener)(Event&), Ctx* ctx) {
-			add_listener(MakeListener((ListenerFunc)listener, ctx, false));
-		}
-
-		template<class Ctx>
-		void once(void (Ctx::*listener)(Event&), Ctx* ctx) {
-			add_listener(MakeListener((ListenerFunc)listener, ctx, true));
+			add_listener(MakeListener((ListenerFunc)listener, ctx));
 		}
 
 		template <class Ctx>
 		void on( void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
-			add_listener(MakeStaticListener((StaticListenerFunc)listener, ctx, false));
-		}
-
-		template <class Ctx>
-		void once( void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
-			add_listener(MakeStaticListener((StaticListenerFunc)listener, ctx, true));
+			add_listener(MakeStaticListener((StaticListenerFunc)listener, ctx));
 		}
 
 		void on( std::function<void(Event&)> listener, uint32_t id = 0) {
-			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), id, false));
-		}
-
-		void once( std::function<void(Event&)> listener, uint32_t id = 0) {
-			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), id, true));
+			add_listener(MakeLambdaListener(*(OnLambdaListenerFunc*)(&listener), id));
 		}
 
 		void on(EventNoticer *shell) {
 			add_listener(MakeShellListener(_sender, shell, false));
-		}
-
-		void once(EventNoticer *shell) {
-			add_listener(MakeShellListener(_sender, shell, true));
 		}
 
 		template<class Ctx>
@@ -316,40 +295,22 @@ namespace qk {
 
 		template<class Ctx>
 		void add_event_listener(const Name& name, void (Ctx::*listener)(Event&), Ctx* ctx) {
-			add_event_listener(name, Basic::MakeListener((Basic::ListenerFunc)listener, ctx, false));
-		}
-
-		template<class Ctx>
-		void add_event_listener_once(const Name& name, void (Ctx::*listener)(Event&), Ctx* ctx) {
-			add_event_listener(name, Basic::MakeListener((Basic::ListenerFunc)listener, ctx, true));
+			add_event_listener(name, Basic::MakeListener((Basic::ListenerFunc)listener, ctx));
 		}
 		
 		template<class Ctx>
 		void add_event_listener(const Name& name, void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
-			add_event_listener(name, Basic::MakeStaticListener((Basic::StaticListenerFunc)listener, ctx, false));
-		}
-		
-		template<class Ctx>
-		void add_event_listener_once(const Name& name, void (*listener)(Event&, Ctx*), Ctx* ctx = nullptr) {
-			add_event_listener(name, Basic::MakeStaticListener((Basic::StaticListenerFunc)listener, ctx, true));
+			add_event_listener(name, Basic::MakeStaticListener((Basic::StaticListenerFunc)listener, ctx));
 		}
 		
 		void add_event_listener( const Name& name, std::function<void(Event&)> listener, uint32_t id = 0) {
-			add_event_listener(name, Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&listener), id, false));
-		}
-		
-		void add_event_listener_once( const Name& name, std::function<void(Event&)> listener, uint32_t id = 0) {
-			add_event_listener(name, Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&listener), id, true));
-		}
-		
-		void add_event_listener(const Name& name, Noticer* shell) {
-			add_event_listener(name, Basic::MakeShellListener(this, shell, false));
+			add_event_listener(name, Basic::MakeLambdaListener(*(Basic::OnLambdaListenerFunc*)(&listener), id));
 		}
 
-		void add_event_listener_once(const Name& name, Noticer* shell) {
-			add_event_listener(name, Basic::MakeShellListener(this, shell, true));
+		void add_event_listener(const Name& name, Noticer* shell) {
+			add_event_listener(name, Basic::MakeShellListener(this, shell));
 		}
-		
+
 		template<class Ctx>
 		void remove_event_listener(const Name& name, void (Ctx::*listener)(Event&)) {
 			remove_event_listener(name.hashCode(), (Basic::ListenerFunc)listener);

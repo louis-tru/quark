@@ -77,6 +77,8 @@ namespace qk {
 			uint32_t vertCount = 0;
 			/**The number of indices.*/
 			uint32_t indexCount = 0;
+			/* z depth total */
+			float zDepthTotal = 0;
 		};
 
 		virtual int  save() = 0;

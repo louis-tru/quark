@@ -666,9 +666,9 @@ namespace qk {
 
 	Vec2 Mat::operator*(const Vec2& b) const {
 		/*
-		[ a, b, c ]   [ a ]
-		[ d, e, f ] * [ b ]
-		[ 0, 0, 1 ]   [ 1 ]
+		[ a, b, c ]   [ 1, 0, a ]
+		[ d, e, f ] * [ 0, 1, b ]
+		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
@@ -695,9 +695,9 @@ namespace qk {
 
 	Vec2 Mat::mul_vec2_no_translate(const Vec2& b) const {
 		/*
-		[ a, b, c ]   [ a ]
-		[ d, e, f ] * [ b ]
-		[ 0, 0, 1 ]   [ 1 ]
+		[ a, b, 0 ]   [ 1, 0, a ]
+		[ d, e, 0 ] * [ 0, 1, b ]
+		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
@@ -713,8 +713,8 @@ namespace qk {
 		return Vec2(p8[0],p8[1]);
 #else
 		return Vec2(
-			_a[0] * _b[0] + _a[1] * _b[1],
-			_a[3] * _b[0] + _a[4] * _b[1]
+			_a[0] * _b[0] + _a[1] * _b[1]/* + _a[2]*/,
+			_a[3] * _b[0] + _a[4] * _b[1]/* + _a[5]*/
 		);
 #endif
 	}
@@ -1210,10 +1210,10 @@ namespace qk {
 
 	Vec4 Mat4::operator*(const Vec4& b) const {
 		/*
-		[ a, b, c, d ]   [ a ]
-		[ e, f, g, h ]   [ b ]
-		[ i, j, k, l ] * [ c ]
-		[ 0, 0, 0, 1 ]   [ 1 ]
+		[ a, b, c, d ]   [ 1, 0, 0, a ]
+		[ e, f, g, h ]   [ 0, 1, 0, b ]
+		[ i, j, k, l ] * [ 0, 0, 1, c ]
+		[ 0, 0, 0, 1 ]   [ 0, 0, 0, d ]
 		*/
 		const float* _a = val;
 		const float* _b = b.val;

@@ -64,7 +64,7 @@ public:
 	}
 
 	~MacGLRender() override {
-		Qk_ASSERT_RAW(_msg.length() == 0);
+		Qk_CHECK(_msg.length() == 0);
 	}
 
 	void release() override {

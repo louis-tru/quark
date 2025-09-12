@@ -38,6 +38,7 @@
 namespace qk { namespace js {
 
 	void inheritTextOptions(JSClass* cls, Worker* worker) {
+		typedef Object Type;
 		Js_Class_Accessor_Get(fontStyle, {
 			Js_UISelf(TextOptions);
 			Js_Return( worker->types()->jsvalue(self->font_style()) );
@@ -68,6 +69,7 @@ namespace qk { namespace js {
 
 	class MixText: public MixViewObject {
 	public:
+		typedef Text Type;
 		virtual TextOptions* asTextOptions() {
 			return self<Text>();
 		}
@@ -83,6 +85,7 @@ namespace qk { namespace js {
 
 	class MixButton: public MixViewObject {
 	public:
+		typedef Button Type;
 		virtual TextOptions* asTextOptions() {
 			return self<Button>();
 		}
@@ -95,7 +98,6 @@ namespace qk { namespace js {
 					Js_Throw("@method next_button(FindDirection dir)\n");
 				}
 				Js_Parse_Type(FindDirection, args[0], "@method next_button(dir = %s)");
-				Js_Self(Button);
 				Js_Return( self->next_button(out) );
 			});
 			cls->exports("Button", exports);
@@ -104,6 +106,7 @@ namespace qk { namespace js {
 
 	class MixLabel: public MixViewObject {
 	public:
+		typedef Label Type;
 		virtual TextOptions* asTextOptions() {
 			return self<Label>();
 		}
@@ -119,6 +122,7 @@ namespace qk { namespace js {
 
 	class MixInput: public MixViewObject {
 	public:
+		typedef Input Type;
 		virtual TextOptions* asTextOptions() {
 			return self<Input>();
 		}
@@ -137,23 +141,18 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Input, uint32_t, max_length, maxLength);
 
 			Js_Class_Accessor(value, {
-				Js_Self(Input);
 				Js_Return( self->value_u4() );
 			}, {
-				Js_Self(Input);
 				self->set_value_u4(val->toString(worker)->value4(worker));
 			});
 
 			Js_Class_Accessor(placeholder, {
-				Js_Self(Input);
 				Js_Return( self->placeholder_u4() );
 			}, {
-				Js_Self(Input);
 				self->set_placeholder_u4(val->toString(worker)->value4(worker));
 			});
 
 			Js_Class_Accessor_Get(textLength, {
-				Js_Self(Input);
 				Js_Return( worker->types()->jsvalue(self->text_length()) );
 			});
 

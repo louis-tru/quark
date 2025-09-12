@@ -61,16 +61,13 @@ namespace qk { namespace js {
 			// Qk_DEFINE_PROP_GET(Application*, host); // host app
 
 			Js_Class_Accessor(orientation, {
-				Js_Self(Type);
 				Js_Return( self->orientation() );
 			}, {
 				Js_Parse_Type(uint32_t, val, "@prop Screen.orientation = %s");
-				Js_Self(Type);
 				self->set_orientation(Screen::Orientation(out));
 			});
 
 			Js_Class_Accessor_Get(statusBarHeight, {
-				Js_Self(Type);
 				Js_Return( self->status_bar_height() );
 			});
 
@@ -79,7 +76,6 @@ namespace qk { namespace js {
 					Js_Throw("@method Screen.setVisibleStatusBar(visible), Parameter cannot be empty");
 				}
 				Js_Parse_Type(bool, args[0], "@method Screen.setVisibleStatusBar(visible = %s)");
-				Js_Self(Type);
 				self->set_visible_status_bar(out);
 			});
 
@@ -88,7 +84,6 @@ namespace qk { namespace js {
 					Js_Throw("@method Screen.setStatusBarStyle(style), Parameter cannot be empty");
 				}
 				Js_Parse_Type(uint32_t, args[0], "@method Screen.setStatusBarStyle(style = %s)");
-				Js_Self(Type);
 				self->set_status_bar_style(Screen::StatusBarStyle(out));
 			});
 
@@ -97,7 +92,6 @@ namespace qk { namespace js {
 					Js_Throw("@method Screen.preventScreenSleep(prevent), Parameter cannot be empty");
 				}
 				Js_Parse_Type(bool, args[0], "@method Screen.preventScreenSleep(prevent = %s)");
-				Js_Self(Type);
 				self->prevent_screen_sleep(out);
 			});
 

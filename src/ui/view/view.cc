@@ -43,7 +43,7 @@
 #else
 # define _Assert_IsRt(isRt, ...)
 #endif
-#define _isRt (RunLoop::first()->thread_id() != thread_self_id())
+#define _isRt (!RunLoop::is_work())
 #define _Cssclass() auto _cssclass = this->_cssclass.load()
 #define _IfCssclass() _Cssclass(); if (_cssclass)
 #define _Parent() auto _parent = this->parent()
@@ -116,6 +116,7 @@ namespace qk {
 		, _cursor(CursorStyle::Arrow)
 		, _visible(true)
 		, _visible_region(false)
+		, _test_visible_region(true)
 		, _receive(true)
 	{
 		// Qk_DLog("Container sizeof, %d", sizeof(Container));
@@ -144,11 +145,11 @@ namespace qk {
 	}
 
 	View* View::tryRetain_Rt() {
-		if (_refCount > 0) {
-			if (_refCount++ > 0) {
+		if (_refCount.load(std::memory_order_acquire) > 0) {
+			if (_refCount.fetch_add(1, std::memory_order_acq_rel) > 0) { // _refCount++ > 0
 				return this;
 			} else {
-				_refCount--; // Revoke self increase, Maybe not safe
+				_refCount.fetch_sub(1, std::memory_order_release); // Revoke self increase, Maybe not safe
 			}
 		}
 		return nullptr;
@@ -206,7 +207,6 @@ namespace qk {
 
 	void View::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
-			// _CheckParent();
 			unmark(kTransform | kVisible_Region); // unmark
 			_position =
 				mat.mul_vec2_no_translate(layout_offset() + parent->layout_offset_inside()) +
@@ -224,6 +224,40 @@ namespace qk {
 
 	void View::solve_visible_region(const Mat &mat) {
 		_visible_region = true;
+	}
+
+	void View::set_test_visible_region(bool val) {
+		if (val != _test_visible_region) {
+			_test_visible_region = val;
+			mark(kVisible_Region, false);
+		}
+	}
+
+	bool View::is_visible_region(const Mat &mat, Vec2 bounds[4]) {
+		/*
+		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
+		* 这种模糊测试在大多数时候都是正确有效的。
+		*/
+		auto& clip = _window->getClipRegion();
+		auto  re   = screen_region_from_convex_quadrilateral(bounds);
+
+		if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.origin.y(), re.origin.y() )
+					<= re.end.y() - re.origin.y() + clip.size.y() &&
+				Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.origin.x(), re.origin.x() )
+					<= re.end.x() - re.origin.x() + clip.size.x()
+				) {
+			//_visible_region = !_client_size.is_zero_axis();
+			return true;
+		} else {
+
+#if 0
+			Qk_DLog("visible_region-x: %f<=%f", Qk_Max( clip.y2, re.end.y() ) - Qk_Min( clip.y, re.origin.y() ),
+																				re.end.y() - re.origin.y() + clip.height);
+			Qk_DLog("visible_region-y: %f<=%f", Qk_Max( clip.x2, re.end.x() ) - Qk_Min( clip.x, re.origin.x() ),
+																				re.end.x() - re.origin.x() + clip.width);
+#endif
+			return false;
+		}
 	}
 
 	bool View::overlap_test(Vec2 point) {
@@ -289,6 +323,10 @@ namespace qk {
 	}
 
 	void View::layout_forward(uint32_t mark) {
+		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height)) {
+			// Noop
+			unmark(kLayout_Inner_Width | kLayout_Inner_Height);
+		}
 	}
 
 	void View::layout_reverse(uint32_t mark) {
@@ -385,7 +423,7 @@ namespace qk {
 
 	void View::set_action(Action* action) throw(Error) {
 		if (action) {
-			Qk_Check(action->window() == _window,
+			Qk_IfThrow(action->window() == _window,
 				ERR_ACTION_SET_WINDOW_NO_MATCH, "View::set_action, Not match the window"
 			);
 		}
@@ -561,11 +599,11 @@ namespace qk {
 	}
 
 	void View::set_parent(View *parent) {
-		Qk_ASSERT_RAW(_window == parent->_window, "window no match, parent->_window no equal _window");
+		Qk_CHECK(_window == parent->_window, "window no match, parent->_window no equal _window");
 		_Parent();
 		if (parent != _parent) {
 			#define is_root (_window->root() == this)
-			Qk_ASSERT_RAW(!is_root, "root view not allow set parent"); // check
+			Qk_CHECK(!is_root, "root view not allow set parent"); // check
 			clear_link();
 			if ( !_parent ) {
 				retain(); // link to parent and retain ref

@@ -203,11 +203,16 @@ namespace qk {
 		static RunLoop* current();
 
 		/**
-		 * Returns the process first main run loop
+		 * Returns the process first quark run loop
 		 *
 		 * @note Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
 		*/
-		static RunLoop* first();
+		static RunLoop* work();
+
+		/**
+		 * Return if current is the work run loop of the process
+		 */
+		static bool is_work();
 
 		/**
 		* @method clear(), immediately stop all timer and msg,
@@ -245,8 +250,10 @@ namespace qk {
 		return RunLoop::current();
 	}
 
-	inline RunLoop* first_loop() {
-		return RunLoop::first();
+	inline RunLoop* work_loop() {
+		return RunLoop::work();
 	}
+
+	Qk_EXPORT void check_is_work_loop();
 }
 #endif

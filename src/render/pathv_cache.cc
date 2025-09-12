@@ -288,12 +288,12 @@ namespace qk {
 			}));
 		}
 
-		Qk_ASSERT_RAW(_NormalizedPathCache.length() == 0);
-		Qk_ASSERT_RAW(_StrokePathCache.length() == 0);
-		Qk_ASSERT_RAW(_PathTrianglesCache.length() == 0);
-		Qk_ASSERT_RAW(_AAFuzzStrokeTriangleCache.length() == 0);
-		Qk_ASSERT_RAW(_RectPathCache.length() == 0);
-		Qk_ASSERT_RAW(_RectOutlinePathCache.length() == 0);
+		Qk_CHECK(_NormalizedPathCache.length() == 0);
+		Qk_CHECK(_StrokePathCache.length() == 0);
+		Qk_CHECK(_PathTrianglesCache.length() == 0);
+		Qk_CHECK(_AAFuzzStrokeTriangleCache.length() == 0);
+		Qk_CHECK(_RectPathCache.length() == 0);
+		Qk_CHECK(_RectOutlinePathCache.length() == 0);
 
 		_capacity = 0;
 	}

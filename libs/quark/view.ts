@@ -376,8 +376,6 @@ export declare class Spine extends View implements MatrixView {
 	readonly originValue: number[];
 	readonly matrix: types.Mat;
 	skeleton: types.SkeletonData | null; //!<
-	startSlot: Uint; //!<
-	endSlot: Uint; //!<
 	skin: string; //!<
 	speed: Float; //!<
 	defaultMix: Float; //!<
@@ -801,8 +799,6 @@ declare global {
 
 		interface SpineJSX extends ViewJSX, MatrixViewJSX {
 			skeleton?: types.SkeletonDataIn;
-			startSlot?: Uint;
-			endSlot?: Uint;
 			skin?: string;
 			speed?: Float;
 			defaultMix?: Float;

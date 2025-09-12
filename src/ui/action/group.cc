@@ -35,7 +35,7 @@
 
 namespace qk {
 
-	const Action::Id nullId;
+	#define nullId Action::Id()
 
 	ActionGroup::ActionGroup(Window *win): Action(win){}
 	SpawnAction::SpawnAction(Window *win): ActionGroup(win){}

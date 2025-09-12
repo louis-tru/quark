@@ -133,7 +133,7 @@ namespace qk {
 		for (auto &i: attributes) {
 			GLuint local = *storeLocation++;
 			glEnableVertexAttribArray(local);
-			glVertexAttribPointer(local, i.size, i.type, GL_FALSE, stride, (const GLvoid*)pointer);
+			glVertexAttribPointer(local, i.size, i.type, i.normalized, stride, (const GLvoid*)pointer);
 			pointer += i.stride;
 		}
 

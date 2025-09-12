@@ -42,25 +42,29 @@
 namespace qk {
 	class Box;
 	class ScrollView;
+	typedef const Mat cMat;
 
 	class Qk_EXPORT Painter: public Object {
 	public:
-		Qk_DEFINE_PROP_GET(Window*, window);
-		Qk_DEFINE_PROP_GET(Canvas*, canvas);
-		Qk_DEFINE_PROP_GET(PathvCache*, cache);
-		Qk_DEFINE_PROP_GET(float, opacity);
 		struct BoxData {
 			const RectPath *inside = nullptr;
 			const RectPath *outside = nullptr;
 			const RectOutlinePath *outline = nullptr;
 		};
+		Qk_DEFINE_PROP_GET(Window*, window);
+		Qk_DEFINE_PROP_GET(Canvas*, canvas);
+		Qk_DEFINE_PROP_GET(PathvCache*, cache);
+		Qk_DEFINE_PROPERTY(cMat*, matrix); // current matrix
+		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin and fix aa stroke width
+		Qk_DEFINE_PROP_GET(float, opacity); // current opacity
 		Painter(Window *window);
+		void set_origin_restore(Vec2 v); // restore last origin
 		Rect getRect(Box* box);
 		void getInsideRectPath(Box *box, BoxData &out);
 		void getOutsideRectPath(Box *box, BoxData &out);
 		void getRRectOutlinePath(Box *box, BoxData &out);
 		void visitView(View* v);
-		void visitView(View* v, const Mat &mat);
+		void visitView(View* v, cMat *mat);
 		void drawBoxBasic(Box *box, BoxData &data);
 		void drawBoxFill(Box *box, BoxData &data);
 		void drawBoxFillImage(Box *box, FillImage *fill, BoxData &data);
@@ -77,14 +81,10 @@ namespace qk {
 	private:
 		Render     *_render;
 		uint32_t   _mark_recursive;
-		Vec2       _origin; // box origin and fix aa stroke width
 		float      _AAShrink; // fix rect stroke width for AA
-		const Mat *_matrix;
 		Buffer     _tempBuff;
 		LinearAllocator _tempAllocator[2]; // Reset when starting every frame
 
-		friend class Matrix;
-		friend class Sprite;
 		friend class Spine;
 		friend class Root;
 	};

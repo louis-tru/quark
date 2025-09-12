@@ -96,7 +96,7 @@ namespace qk {
 		static float compute_position(FillPosition pos, float host, float size);
 	private:
 		ImagePool* imgPool() override;
-		void onSourceState(Event<ImageSource, ImageSource::State>& evt) override;
+		void onSourceState(ImageSource::State state) override;
 	};
 
 	class Qk_EXPORT FillGradientRadial: public BoxFilter {

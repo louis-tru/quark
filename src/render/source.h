@@ -235,7 +235,7 @@ namespace qk {
 		Qk_DEFINE_ACCESSOR(Sp<ImageSource>, source);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
-		virtual void onSourceState(Event<ImageSource, ImageSource::State>& evt);
+		virtual void onSourceState(ImageSource::State evt);
 		virtual ImagePool* imgPool();
 		std::atomic<ImageSource*> _imageSource;
 	};

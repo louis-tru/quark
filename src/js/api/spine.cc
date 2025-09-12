@@ -96,21 +96,19 @@ namespace qk { namespace js {
 			inheritMatrixView(cls, worker);
 
 			Js_MixObject_Accessor(Type, SkeletonDataPtr, skeleton, skeleton);
-			Js_MixObject_Accessor(Type, uint32_t, start_slot, startSlot);
-			Js_MixObject_Accessor(Type, uint32_t, end_slot, endSlot);
 			Js_MixObject_Accessor(Type, String, skin, skin);
 			Js_MixObject_Accessor(Type, float, speed, speed);
 			Js_MixObject_Accessor(Type, float, default_mix, defaultMix);
+
 			Js_Class_Method(setToSetupPose, {
-				Js_Self(Type);
 				self->set_to_setup_pose();
 			});
+
 			Js_Class_Method(setBonesToSetupPose, {
-				Js_Self(Type);
 				self->set_bones_to_setup_pose();
 			});
+
 			Js_Class_Method(setSlotsToSetupPose, {
-				Js_Self(Type);
 				self->set_slots_to_setup_pose();
 			});
 
@@ -147,7 +145,6 @@ namespace qk { namespace js {
 						"@param duration:Float\n"
 					);
 				}
-				Js_Self(Type);
 				self->set_mix(fromName, toName, duration);
 			});
 
@@ -167,7 +164,6 @@ namespace qk { namespace js {
 						"@param loop:boolean\n"
 					);
 				}
-				Js_Self(Type);
 				self->set_animation(trackIndex, name, loop);
 			});
 
@@ -191,7 +187,6 @@ namespace qk { namespace js {
 				}
 				if (args.length() > 3)
 					args[3]->asFloat32(worker).to(delay);
-				Js_Self(Type);
 				self->add_animation(trackIndex, name, loop, delay);
 			});
 
@@ -208,7 +203,6 @@ namespace qk { namespace js {
 						"@param mixDuration:Float\n"
 					);
 				}
-				Js_Self(Type);
 				self->set_empty_animation(trackIndex, mixDuration);
 			});
 
@@ -222,7 +216,6 @@ namespace qk { namespace js {
 						"@param mixDuration:Float\n"
 					);
 				}
-				Js_Self(Type);
 				self->set_empty_animations(mixDuration);
 			});
 
@@ -243,14 +236,12 @@ namespace qk { namespace js {
 				}
 				if (args.length() > 2)
 					args[2]->asFloat32(worker).to(delay);
-				Js_Self(Type);
 				self->add_empty_animation(trackIndex, mixDuration, delay);
 			});
 
 			// spine::TrackEntry* get_current(int trackIndex = 0);
 
 			Js_Class_Method(clearTracks, {
-				Js_Self(Type);
 				self->clear_tracks();
 			});
 			Js_Class_Method(clearTrack, {
@@ -258,7 +249,6 @@ namespace qk { namespace js {
 				if (args.length()) {
 					args[0]->asUint32(worker).to(trackIndex);
 				}
-				Js_Self(Type);
 				self->clear_track(trackIndex);
 			});
 

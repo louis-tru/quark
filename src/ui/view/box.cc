@@ -681,17 +681,24 @@ namespace qk {
 
 	void Box::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
-			// _CheckParent();
 			unmark(kTransform | kVisible_Region); // unmark
-			Vec2 point = parent->layout_offset_inside() + layout_offset()
-				+ Vec2(_margin_left, _margin_top);
+			auto v = parent->layout_offset_inside() + layout_offset() + Vec2(_margin_left, _margin_top);
 			_position =
-				mat.mul_vec2_no_translate(point) + parent->position();
+				mat.mul_vec2_no_translate(v) + parent->position(); // the left-top world coords
 			solve_visible_region(Mat(mat).set_translate(_position));
 		} else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark
 			solve_visible_region(Mat(mat).set_translate(_position));
 		}
+	}
+
+	void Box::solve_visible_region(const Mat &mat) {
+		Vec2 size = _client_size;
+		_bounds[0] = Vec2{mat[2], mat[5]}; // left,top
+		_bounds[1] = mat * Vec2(size.x(), 0); // right,top
+		_bounds[2] = mat * size; // right,bottom
+		_bounds[3] = mat * Vec2(0, size.y()); // left,bottom
+		_visible_region = test_visible_region() ? is_visible_region(mat, _bounds): true;
 	}
 
 	Vec2 Box::layout_offset_inside() {
@@ -748,44 +755,8 @@ namespace qk {
 		return _client_size;
 	}
 
-	void Box::solve_rect_vertex(const Mat &mat, Vec2 vertex[4]) {
-		Vec2 end = _client_size;
-		vertex[0] = Vec2{mat[2], mat[5]}; // left,top
-		vertex[1] = mat * Vec2(end.x(), 0); // right,top
-		vertex[2] = mat * end; // right,bottom
-		vertex[3] = mat * Vec2(0, end.y()); // left,bottom
-	}
-
-	void Box::solve_visible_region(const Mat &mat) {
-		solve_rect_vertex(mat, _vertex);
-		/*
-		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
-		* 这种模糊测试在大多数时候都是正确有效的。
-		*/
-		auto& clip = window()->getClipRegion();
-		auto  re   = screen_region_from_convex_quadrilateral(_vertex);
-
-		if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.origin.y(), re.origin.y() )
-					<= re.end.y() - re.origin.y() + clip.size.y() &&
-				Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.origin.x(), re.origin.x() )
-					<= re.end.x() - re.origin.x() + clip.size.x()
-				) {
-			//_visible_region = !_client_size.is_zero_axis();
-			_visible_region = true;
-		} else {
-
-#if 0
-			Qk_DLog("visible_region-x: %f<=%f", Qk_Max( clip.y2, re.end.y() ) - Qk_Min( clip.y, re.origin.y() ),
-																				re.end.y() - re.origin.y() + clip.height);
-			Qk_DLog("visible_region-y: %f<=%f", Qk_Max( clip.x2, re.end.x() ) - Qk_Min( clip.x, re.origin.x() ),
-																				re.end.x() - re.origin.x() + clip.width);
-#endif
-			_visible_region = false;
-		}
-	}
-
 	bool Box::overlap_test(Vec2 point) {
-		return overlap_test_from_convex_quadrilateral(_vertex, point);
+		return overlap_test_from_convex_quadrilateral(_bounds, point);
 	}
 
 	bool overlap_test_from_convex_quadrilateral(Vec2* quadrilateral_vertex, Vec2 point) {

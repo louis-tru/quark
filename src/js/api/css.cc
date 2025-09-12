@@ -35,7 +35,6 @@
 #define Js_StyleSheets_Accessor(T, Prop, Name) \
 	Js_Class_Accessor_Set(Name, { \
 		Js_Parse_Type(T, val, "@prop StyleSheets."#Name" = %s"); \
-		Js_Self(Type); \
 		self->set_##Prop(out); \
 	})
 
@@ -140,7 +139,6 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(float, rotate_z, rotateZ);
 
 			Js_Class_Accessor_Get(itemsCount, {
-				Js_Self(StyleSheets);
 				Js_Return( self->itemsCount() );
 			});
 
@@ -149,15 +147,13 @@ namespace qk { namespace js {
 			Js_Class_Method(apply, {
 				if (!args.length() || !Js_IsView(args[0]))
 					Js_Throw("@method StyleSheets.apply(view) Bad argument.");
-				Js_Self(StyleSheets);
-				self->apply(mix<View>(args[0])->self(), false);
+				self->apply(MixObject::mix<View>(args[0])->self(), false);
 			});
 
 			Js_Class_Method(fetch, {
 				if (!args.length() || !Js_IsView(args[0]))
 					Js_Throw("@method StyleSheets.fetch(view) Bad argument.");
-				Js_Self(StyleSheets);
-				self->fetch(mix<View>(args[0])->self(), false);
+				self->fetch(MixObject::mix<View>(args[0])->self(), false);
 			});
 		}
 	};
@@ -189,7 +185,6 @@ namespace qk { namespace js {
 			Js_Class_Method(set, {
 				if (!args.length())
 					Js_Throw("@method CStyleSheetsClass.set(cArray<String> &name)");
-				Js_Self(Type);
 				String cls;
 				if (args[0]->asString(worker).to(cls)) {
 					self->set(cls.split(Space));
@@ -202,21 +197,18 @@ namespace qk { namespace js {
 			Js_Class_Method(add, {
 				if (!args.length())
 					Js_Throw("@method CStyleSheetsClass.add(cString& name)");
-				Js_Self(Type);
 				self->add(args[0]->toString(worker)->value(worker));
 			});
 
 			Js_Class_Method(remove, {
 				if (!args.length())
 					Js_Throw("@method CStyleSheetsClass.remove(cString& name)");
-				Js_Self(Type);
 				self->remove(args[0]->toString(worker)->value(worker));
 			});
 
 			Js_Class_Method(toggle, {
 				if (!args.length())
 					Js_Throw("@method CStyleSheetsClass.toggle(cString& name)");
-				Js_Self(Type);
 				self->toggle(args[0]->toString(worker)->value(worker));
 			});
 

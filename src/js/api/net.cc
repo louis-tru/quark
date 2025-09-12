@@ -166,37 +166,30 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Accessor_Get(hostname, {
-				Js_Self(Type);
 				Js_Return( self->hostname() );
 			});
 
 			Js_Class_Accessor_Get(port, {
-				Js_Self(Type);
 				Js_Return( self->port() );
 			});
 
 			Js_Class_Accessor_Get(ip, {
-				Js_Self(Type);
 				Js_Return( self->ip() );
 			});
 
 			Js_Class_Accessor_Get(ipv6, {
-				Js_Self(Type);
 				Js_Return( self->ipv6() );
 			});
 
 			Js_Class_Accessor_Get(isOpen, {
-				Js_Self(Type);
 				Js_Return( self->is_open() );
 			});
 
 			Js_Class_Accessor_Get(isConnecting, {
-				Js_Self(Type);
 				Js_Return( self->is_connecting() );
 			});
 
 			Js_Class_Accessor_Get(isPause, {
-				Js_Self(Type);
 				Js_Return( self->is_pause() );
 			});
 
@@ -208,7 +201,6 @@ namespace qk { namespace js {
 						"@param keep_idle?:Uint\n"
 					);
 				}
-				Js_Self(Type);
 				bool enable = args[0]->toBoolean(worker);
 				uint32_t keep_idle = 0;
 				if (args.length() > 1 && args[1]->asUint32(worker).to(keep_idle)) {}
@@ -217,7 +209,6 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(setNoDelay, {
-				Js_Self(Type);
 				bool no_delay = args.length() == 0 ? true: args[0]->toBoolean(worker);
 				self->set_no_delay(no_delay);
 			});
@@ -229,29 +220,24 @@ namespace qk { namespace js {
 						"@param time:Uint\n"
 					);
 				}
-				Js_Self(Type);
 				uint64_t time = args[0]->toUint32(worker)->value() * 1000;
 				self->set_timeout(time);
 			});
 
 			Js_Class_Method(connect, {
-				Js_Self(Type);
 				self->retain(); // TODO: js handle keep active
 				self->connect();
 			});
 
 			Js_Class_Method(close, {
-				Js_Self(Type);
 				self->close();
 			});
 
 			Js_Class_Method(pause, {
-				Js_Self(Type);
 				self->pause();
 			});
 
 			Js_Class_Method(resume, {
-				Js_Self(Type);
 				self->resume();
 			});
 
@@ -280,7 +266,6 @@ namespace qk { namespace js {
 					cb = get_callback_for_none(worker, args[2]);
 				}
 
-				Js_Self(Type);
 				self->write(std::move(buff), flag, *reinterpret_cast<Callback<Buffer>*>(&cb));
 			});
 
@@ -292,7 +277,6 @@ namespace qk { namespace js {
 					);
 				}
 				bool val = args[0]->toBoolean(worker);
-				Js_Self(Type);
 				self->disable_ssl_verify(val);
 			});
 

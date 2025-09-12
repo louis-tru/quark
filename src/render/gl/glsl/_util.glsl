@@ -13,7 +13,7 @@ layout (std140) uniform viewMatrixBlock {
 #ifdef Qk_SHADER_VERT
 uniform                     float depth;
 /*layout(location=0)*/in    vec2  vertexIn;
-in                          float aafuzzIn; // anti alias fuzz
+in                          float aafuzzIn; // anti alias fuzz or z depth plus
 out                         float aafuzz;
 #else
 uniform                sampler2D  aaclip; // anti alias clip texture buffer

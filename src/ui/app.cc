@@ -48,14 +48,14 @@ namespace qk {
 	// global shared gui application 
 	Application* Application::_shared = nullptr;
 
-	Application::Application(RunLoop *loop)
+	Application::Application()
 		: Qk_Init_Event(Load)
 		, Qk_Init_Event(Unload)
 		, Qk_Init_Event(Pause)
 		, Qk_Init_Event(Resume)
 		, Qk_Init_Event(Memorywarning)
 		, _isLoaded(false)
-		, _loop(loop)
+		, _loop(work_loop())
 		, _screen(nullptr)
 		, _defaultTextOptions(nullptr)
 		, _fontPool(nullptr), _imgPool(nullptr)
@@ -63,10 +63,8 @@ namespace qk {
 		, _activeWindow(nullptr)
 		, _tick(0)
 	{
-		if (_shared)
-			Qk_Fatal("At the same time can only run a Application entity");
-		if (!_loop)
-			Qk_Fatal("The current thread does not have a RunLoop");
+		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
+		check_is_work_loop();
 		view_prop_acc_init();
 		_shared = this;
 		_screen = new Screen(this); // strong ref
@@ -87,19 +85,17 @@ namespace qk {
 	}
 
 	Application::~Application() {
-		_mutex.lock();
+		check_is_work_loop();
 		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
 			(*(i++))->close(); // destroy
 		}
 		_activeWindow =  nullptr;
 		Releasep(_defaultTextOptions);
 		Releasep(_screen);
-		// Releasep(_fontPool);
 		Releasep(_imgPool);
-	 	_loop->tick_stop(_tick); _tick = 0;
-
+	 	_loop->tick_stop(_tick);
+		_tick = 0;
 		_shared = nullptr;
-		_mutex.unlock();
 	}
 
 	void Application::run() {
@@ -119,7 +115,7 @@ namespace qk {
 			int rc = 0;
 			auto args = (Args*)arg;
 			auto main = __qk_run_main1__ ? __qk_run_main1__: __qk_run_main__;
-			// Qk_ASSERT_RAW(main, "Not found the Main function, Use Qk_Main() define");
+			// Qk_CHECK(main, "Not found the Main function, Use Qk_Main() define");
 			if (main)
 				rc = main(args->argc, args->argv); // Run this custom gui entry function
 			Qk_DLog("Application::runMain() thread_new() Exit");
@@ -136,7 +132,7 @@ namespace qk {
 	}
 
 	void Application::clear(bool all) {
-		Qk_ASSERT_RAW(thread_self_id() == _loop->thread_id());
+		check_is_work_loop();
 		for (auto i: _windows) {
 			i->render()->getCanvas()->getPathvCache()->clear(all);
 		}
@@ -162,9 +158,13 @@ namespace qk {
 	void Application::lockAllRenderThreads(Cb cb) {
 		ScopeLock lock(_mutex);
 		Array<UILock*> locks;
-		for (auto w: _windows) locks.push(new UILock(w));
+		for (auto w: _windows) {
+			locks.push(new UILock(w));
+		}
 		cb->resolve();
-		for (auto lock: locks) delete lock;
+		for (auto lock: locks) {
+			delete lock;
+		}
 	}
 
 	// ------------------- A p p l i c a t i o n :: I n l -------------------

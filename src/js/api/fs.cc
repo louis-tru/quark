@@ -33,6 +33,7 @@
 namespace qk { namespace js {
 
 	struct MixFileStat: MixObject {
+		typedef FileStat Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FileStat, 0, {
 				if (args.length() == 0 || !args[0]->isString()) {
@@ -42,91 +43,69 @@ namespace qk { namespace js {
 				}
 			});
 			Js_Class_Method(isValid, {
-				Js_Self(FileStat);
 				Js_ReturnBool( self->is_valid() );
 			});
 			Js_Class_Method(isFile, {
-				Js_Self(FileStat);
 				Js_ReturnBool( self->is_file() );
 			});
 			Js_Class_Method(isDir, {
-				Js_Self(FileStat);
 				Js_ReturnBool( self->is_dir() );
 			});
 			Js_Class_Method(isLink, {
-				Js_Self(FileStat);
 				Js_ReturnBool( self->is_link() );
 			});
 			Js_Class_Method(isSock, {
-				Js_Self(FileStat);
 				Js_ReturnBool( self->is_sock() );
 			});
 			Js_Class_Method(mode, {
-				Js_Self(FileStat);
 				Js_Return( self->mode() );
 			});
 			Js_Class_Method(type, {
-				Js_Self(FileStat);
 				Js_Return( self->type() );
 			});
 			Js_Class_Method(group, {
-				Js_Self(FileStat);
 				Js_Return( self->group() );
 			});
 			Js_Class_Method(owner, {
-				Js_Self(FileStat);
 				Js_Return( self->owner() );
 			});
 			Js_Class_Method(size, {
-				Js_Self(FileStat);
 				Js_Return( self->size() );
 			});
 			Js_Class_Method(nlink, {
-				Js_Self(FileStat);
 				Js_Return( self->nlink() );
 			});
 			Js_Class_Method(ino, {
-				Js_Self(FileStat);
 				Js_Return( self->ino() );
 			});
 			Js_Class_Method(blksize, {
-				Js_Self(FileStat);
 				Js_Return( self->blksize() );
 			});
 			Js_Class_Method(blocks, {
-				Js_Self(FileStat);
 				Js_Return( self->blocks() );
 			});
 			Js_Class_Method(flags, {
-				Js_Self(FileStat);
 				Js_Return( self->flags() );
 			});
 			Js_Class_Method(gen, {
-				Js_Self(FileStat);
 				Js_Return( self->gen() );
 			});
 			Js_Class_Method(dev, {
-				Js_Self(FileStat);
 				Js_Return( self->dev() );
 			});
 			Js_Class_Method(rdev, {
-				Js_Self(FileStat);
 				Js_Return( self->rdev() );
 			});
 			Js_Class_Method(atime, {
-				Js_Self(FileStat);
 				Js_Return( self->atime() / 1000 );
 			});
 			Js_Class_Method(mtime, {
-				Js_Self(FileStat);
 				Js_Return( self->mtime() / 1000 );
 			});
 			Js_Class_Method(ctime, {
-				Js_Self(FileStat);
 				Js_Return( self->ctime() / 1000 );
 			});
 			Js_Class_Method(birthtime, {
-				Js_Self(FileStat);
 				Js_Return( self->birthtime() / 1000 );
 			});
 			cls->exports("FileStat", exports);

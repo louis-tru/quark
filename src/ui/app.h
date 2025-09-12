@@ -83,7 +83,7 @@ namespace qk {
 		/**
 		 * @constructor
 		*/
-		Application(RunLoop *loop = RunLoop::current());
+		Application();
 
 		/**
 		 * @method ~Application()
@@ -163,6 +163,6 @@ namespace qk {
 		return Application::shared();
 	}
 
-	Qk_EXPORT void post_messate_main(Cb cb, bool sync);
+	Qk_EXPORT void post_message_main(Cb cb, bool sync);
 }
 #endif

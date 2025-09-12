@@ -32,45 +32,49 @@
 
 namespace qk {
 
-	void Free::layout_reverse(uint32_t mark) {
-		if (mark & kLayout_Typesetting) {
-			auto cur = _container.content;
-			auto v = first();
-			if (v) {
-				if (_container.float_x() || _container.float_y()) { // float width
-					Vec2 maxSize;
-					do {
-						if (v->visible()) {
-							auto size = v->layout_size();
-							if (size[0] > maxSize[0])
-								maxSize[0] = size[0];
-							if (size[1] > maxSize[1])
-								maxSize[1] = size[1];
-						}
-						v = v->next();
-					} while(v);
-					if (_container.float_x())
-						cur[0] = _container.clamp_width(maxSize[0]);
-					if (_container.float_y())
-						cur[1] = _container.clamp_height(maxSize[1]);
-				}
-
-				auto v = first();
-				do { // lazy free layout
-					if (v->visible())
-						v->set_layout_offset_free(cur); // free layout
+	Vec2 free_typesetting(View* view, View::Container &container) {
+		auto cur = container.content;
+		auto v = view->first();
+		if (v) {
+			if (container.float_x() || container.float_y()) { // float width
+				Vec2 maxSize;
+				do {
+					if (v->visible()) {
+						auto size = v->layout_size();
+						if (size[0] > maxSize[0])
+							maxSize[0] = size[0];
+						if (size[1] > maxSize[1])
+							maxSize[1] = size[1];
+					}
 					v = v->next();
 				} while(v);
-			} else {
-				if (_container.float_x())
-					cur[0] = _container.clamp_width(0);
-				if (_container.float_y())
-					cur[1] = _container.clamp_height(0);
+				if (container.float_x())
+					cur[0] = container.clamp_width(maxSize[0]);
+				if (container.float_y())
+					cur[1] = container.clamp_height(maxSize[1]);
 			}
 
+			auto v = view->first();
+			do { // lazy free layout
+				if (v->visible())
+					v->set_layout_offset_free(cur); // free layout
+				v = v->next();
+			} while(v);
+		} else {
+			if (container.float_x())
+				cur[0] = container.clamp_width(0);
+			if (container.float_y())
+				cur[1] = container.clamp_height(0);
+		}
+		view->unmark(View::kLayout_Typesetting);
+		return cur;
+	}
+
+	void Free::layout_reverse(uint32_t mark) {
+		if (mark & kLayout_Typesetting) {
+			auto cur = free_typesetting(this, _container);
 			set_content_size(cur);
 			delete_lock_state();
-			unmark(kLayout_Typesetting);
 		}
 	}
 

@@ -190,7 +190,7 @@ namespace qk
 				nullptr,
 				0, &xset
 			);
-			Qk_ASSERT_RAW(xwin, "Cannot create XWindow");
+			Qk_CHECK(xwin, "Cannot create XWindow");
 			return xwin;
 		}
 

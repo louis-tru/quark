@@ -372,7 +372,7 @@ namespace qk {
 		_glcanvas->retain(); // retain
 
 		// glGenFramebuffers(1, &_fbo);
-		glGenBuffers(3, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock
+		glGenBuffers(4, &_rootMatrixBlock); // _rootMatrixBlock, _viewMatrixBlock, _optsBlock, _ebo
 		glBindBuffer(GL_UNIFORM_BUFFER, _rootMatrixBlock);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, _rootMatrixBlock);
 		// _viewMatrixBlock
@@ -465,14 +465,14 @@ namespace qk {
 	}
 
 	GLRender::~GLRender() {
-		Qk_ASSERT_RAW(_glcanvas == nullptr);
+		Qk_CHECK(_glcanvas == nullptr);
 	}
 
 	void GLRender::lock() {}
 	void GLRender::unlock() {}
 
 	void GLRender::release() {
-		GLuint ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock};
+		GLuint ubo[] = {_rootMatrixBlock,_viewMatrixBlock,_optsBlock,_ebo};
 		auto texStat = _texStat;
 		auto texSamplers = std::move(_texSamplers);
 		post_message(Cb([ubo,texStat,texSamplers](auto &e) {
@@ -483,7 +483,7 @@ namespace qk {
 				glDeleteSamplers(1, &i.value);
 			}
 			delete[] texStat;
-			glDeleteBuffers(3, ubo);
+			glDeleteBuffers(4, ubo);
 		}));
 		Qk_ASSERT_EQ(_glcanvas->refCount(), 1);
 		_glcanvas->release(); _glcanvas = nullptr;

@@ -123,7 +123,7 @@ QkFontPool_Custom::QkFontPool_Custom(const SystemFontLoader& loader) : fDefaultF
 		fFamilies.set(name.lowerCase(), std::move(it));
 		// Qk_DLog("FamilyName, %s", *name);
 	}
-	Qk_ASSERT_RAW(fFamilies.length() == fFamilyNames.length(), "QkFontPool_Custom repeat set object");
+	Qk_CHECK(fFamilies.length() == fFamilyNames.length(), "QkFontPool_Custom repeat set object");
 
 	// Try to pick a default font.
 	static cChar* defaultNames[] = {

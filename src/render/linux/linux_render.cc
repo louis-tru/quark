@@ -70,7 +70,7 @@ namespace qk {
 		static XDisplayAuto xdpy([]() {
 			Qk_ASSERT(XInitThreads(), "Error: Can't init X threads");
 			auto xdpy = XOpenDisplay(nullptr);
-			Qk_ASSERT_RAW(xdpy, "Can't open display");
+			Qk_CHECK(xdpy, "Can't open display");
 			return xdpy;
 		}());
 		return xdpy.get();
@@ -82,9 +82,9 @@ namespace qk {
 		if (display.get() == EGL_NO_DISPLAY) { // get display and init it
 			display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 			Qk_DLog("eglGetDisplay, %p", display.get());
-			Qk_ASSERT_RAW(display.get() != EGL_NO_DISPLAY);
+			Qk_CHECK(display.get() != EGL_NO_DISPLAY);
 			EGLBoolean displayState = eglInitialize(display.get(), nullptr, nullptr);
-			Qk_ASSERT_RAW(displayState, "Cannot initialize EGL");
+			Qk_CHECK(displayState, "Cannot initialize EGL");
 		}
 		return display.get();
 	}
@@ -122,7 +122,7 @@ namespace qk {
 
 			eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
 
-			Qk_ASSERT_RAW(numConfigs > 0, "We can't have EGLConfig array with zero size!");
+			Qk_CHECK(numConfigs > 0, "We can't have EGLConfig array with zero size!");
 		}
 
 		Qk_DLog("numConfigs,%d", numConfigs);
@@ -134,7 +134,7 @@ namespace qk {
 		chooseConfigState = eglChooseConfig(display, attribs, 
 																				*supportedConfigs, numConfigs, &numConfigs);
 		Qk_ASSERT(chooseConfigState);
-		Qk_ASSERT_RAW(numConfigs > 0, "Value of `numConfigs` must be positive");
+		Qk_CHECK(numConfigs > 0, "Value of `numConfigs` must be positive");
 
 		EGLint configIndex = 0;
 		while (configIndex < numConfigs) {
@@ -182,7 +182,7 @@ namespace qk {
 		{}
 
 		~LinuxGLRender() override {
-			Qk_ASSERT_RAW(_msg.length() == 0);
+			Qk_CHECK(_msg.length() == 0);
 		}
 
 		void release() override {
@@ -196,7 +196,7 @@ namespace qk {
 			_mutexMsg.lock();
 			if (_msg.length()) {
 				if (_display != EGL_NO_DISPLAY && _context != EGL_NO_CONTEXT)
-					Qk_ASSERT_RAW(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
+					Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, _context));
 				lock();
 				for (auto &i : _msg)
 					i->resolve();
@@ -301,7 +301,7 @@ namespace qk {
 			if (!_surface) {
 				EGLSurface surface = eglCreateWindowSurface(_display, _config, win, nullptr);
 
-				Qk_ASSERT_RAW(surface, "Unable to create a drawing surface");
+				Qk_CHECK(surface, "Unable to create a drawing surface");
 
 				_win = win;
 				_surface = surface;
@@ -322,7 +322,7 @@ namespace qk {
 		void makeCurrent() {
 			if (_renderThreadId == ThreadID()) {
 				_renderThreadId = thread_self_id();
-				Qk_ASSERT_RAW(eglMakeCurrent(_display, _surface, _surface, _context),
+				Qk_CHECK(eglMakeCurrent(_display, _surface, _surface, _context),
 					"Unable to create a drawing surface");
 			}
 			Qk_ASSERT_EQ(_renderThreadId, thread_self_id());
@@ -333,7 +333,7 @@ namespace qk {
 				return;
 
 			_renderThreadId = thread_new([this](cThread* t) {
-				Qk_ASSERT_RAW(eglMakeCurrent(_display, _surface, _surface, _context),
+				Qk_CHECK(eglMakeCurrent(_display, _surface, _surface, _context),
 					"Unable to create a drawing surface");
 				const int64_t intervalUs = 1e6 / 60; // 60 frames
 				while (!t->abort) {
@@ -344,7 +344,7 @@ namespace qk {
 						thread_sleep(timeUs);
 					}
 				}
-				Qk_ASSERT_RAW(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
+				Qk_CHECK(eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
 				_renderThreadId = ThreadID();
 			}, "linux_render_Thread");
 		}
@@ -409,10 +409,10 @@ namespace qk {
 
 		auto ctx = eglCreateContext(dpy, cfg, g_sharedRenderResource->ctx(), attrs);
 		if ( ctx ) {
-			Qk_ASSERT_RAW(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
+			Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx));
 			Qk_ASSERT_EQ(eglGetCurrentContext(), ctx, "eglGetCurrentContext()");
 			r = new LinuxGLRender(opts, dpy, cfg, ctx);
-			Qk_ASSERT_RAW(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
+			Qk_CHECK(eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, nullptr));
 		}
 
 		g_sharedRenderResource->post_message(Cb([dpy](auto e) {

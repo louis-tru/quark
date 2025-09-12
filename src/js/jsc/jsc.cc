@@ -186,14 +186,14 @@ namespace qk { namespace js {
 		auto testNum = JSValueMakeNumber(_ctx, 0xffffffff);
 		if (asDouble(Cast(testNum)) != 0xffffffff) {
 			DoubleEncodeOffset = 1ll << DoubleEncodeOffsetBitOld;
-			Qk_ASSERT_RAW(asDouble(Cast(testNum)) == 0xffffffff);
+			Qk_CHECK(asDouble(Cast(testNum)) == 0xffffffff);
 		}
 		auto testStr = JSValueMakeString(_ctx, prototype_s);
 		if (!isString(Cast(testStr))) {
 			StringType_JSType = StringTypeOld;
 			ObjectType_JSType = ObjectTypeOld;
 			APIValueWrapperType_JSType = APIValueWrapperTypeOld;
-			Qk_ASSERT_RAW(isString(Cast(testStr)));
+			Qk_CHECK(isString(Cast(testStr)));
 		}
 
 		_base = JscClassNew(this);

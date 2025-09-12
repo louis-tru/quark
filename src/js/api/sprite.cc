@@ -59,13 +59,11 @@ namespace qk { namespace js {
 
 			Js_Class_Method(play, {
 				bool all = args.length() ? args[0]->toBoolean(worker) : false;
-				Js_Self(Type);
 				self->play(all);
 			});
 
 			Js_Class_Method(stop, {
 				bool all = args.length() ? args[0]->toBoolean(worker) : false;
-				Js_Self(Type);
 				self->stop(all);
 			});
 

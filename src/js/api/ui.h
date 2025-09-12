@@ -38,29 +38,34 @@
 
 namespace qk { namespace js {
 
-	#define Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Self_Fun) \
+	#define Js_MixObject_Accessor_Base(Type,T,Prop,Name,Ext) \
 		Js_Class_Accessor(Name, {\
-			Self_Fun(Obj); \
+			Ext; \
 			args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
 		}, { \
-			Js_Parse_Type(T, val, "@prop Obj."#Name" = %s"); \
-			Self_Fun(Obj); \
+			Js_Parse_Type(T, val, "@prop "#Type"."#Name" = %s"); \
+			Ext; \
 			self->set_##Prop(out); \
 		})
 
-	#define Js_MixObject_Accessor(Obj, T, Prop, Name) \
-		Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Js_Self)
+	#define Js_MixObject_Accessor(Type,T,Prop,Name) Js_MixObject_Accessor_Base(Type,T,Prop,Name,)
 
-	#define Js_UISelf(Obj) \
-		auto self = qk::js::MixObject::mixObject<MixUIObject>(args.thisObj())->as##Obj()
-	#define Js_UIObject_Accessor(Obj, T, Prop, Name) \
-		Js_MixObject_Accessor_Base(Obj, T, Prop, Name, Js_UISelf)
+	#define Js_UISelf(Type) \
+		static_assert_mix<MixUIObject>(); \
+		auto self = static_cast<MixUIObject*>((MixObject*)mix)->as##Type()
+	#define Js_UIObject_Accessor(Type,T,Prop,Name) \
+		Js_MixObject_Accessor_Base(Type,T,Prop,Name,Js_UISelf(Type))
 
 	#define Js_IsView(v) isView(worker,v)
 	#define Js_IsWindow(v) isWindow(worker,v)
 	#define Js_NewView(Type, ...) \
 		auto win = checkNewView(args); \
 		if (win) New<Mix##Type>(args, View::Make<Type>(win))
+
+	template<class T = MixObject>
+	static inline void static_assert_mix() {
+		Js_Type_Check(MixObject, T);
+	}
 
 	extern uint64_t kView_Typeid;
 	extern uint64_t kWindow_Typeid;

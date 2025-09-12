@@ -307,7 +307,7 @@ namespace qk { namespace js {
 					repeat = args[2]->cast<JSNumber>()->value();
 				}
 			}
-			auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), timeout, repeat);
+			auto id = work_loop()->timer(get_callback_for_none(worker, args[0]), timeout, repeat);
 			Js_Return(id);
 		}
 
@@ -319,7 +319,7 @@ namespace qk { namespace js {
 					"@param id {Number}\n", name
 				);
 			}
-			first_loop()->timer_stop(id);
+			work_loop()->timer_stop(id);
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -340,7 +340,7 @@ namespace qk { namespace js {
 						"@return {Number}\n"
 					);
 				}
-				auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), 0, 0);
+				auto id = work_loop()->timer(get_callback_for_none(worker, args[0]), 0, 0);
 				Js_Return(id);
 			});
 			Js_Method(clearTimer, {
@@ -371,13 +371,13 @@ namespace qk { namespace js {
 	};
 
 	struct MixHash5381Object: MixObject {
+		typedef Hash5381Object Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Hash5381Object, 0, {
 				New<MixHash5381Object>(args, new Hash5381Object());
 			});
 
 			Js_Class_Method(hashCode, {
-				Js_Self(Hash5381Object);
 				Js_Return( self->hash.hashCode() );
 			});
 
@@ -387,7 +387,6 @@ namespace qk { namespace js {
 				) {
 					Js_Throw("@method Hash5381.update(string|Buffer), Bad argument");
 				}
-				Js_Self(Hash5381Object);
 				if ( args[0]->isString() ) { // string
 					String2 str = args[0]->toString(worker)->value2(worker);
 					self->hash.update(*str, str.length());
@@ -400,12 +399,10 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(digest, {
-				Js_Self(Hash5381Object);
 				Js_Return( self->hash.digest() );
 			});
 
 			Js_Class_Method(clear, {
-				Js_Self(Hash5381Object);
 				self->hash = Hash5381();
 			});
 
@@ -471,7 +468,7 @@ namespace qk { namespace js {
 			Js_Method(nextTick, {
 				if (!args.length() || !args[0]->isFunction())
 					Js_Throw("@method nextTick(cb,...args), cb must be a function");
-				first_loop()->tick(get_callback_for_none(worker, args[0]));
+				work_loop()->tick(get_callback_for_none(worker, args[0]));
 			});
 
 			Js_Method(addNativeEventListener, {

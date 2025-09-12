@@ -194,7 +194,6 @@ namespace qk { namespace js {
 				}
 				auto arg = args[0]->toUint32(worker)->value();
 				HttpMethod method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_method(method); }, Error);
 			});
 			
@@ -207,7 +206,6 @@ namespace qk { namespace js {
 					);
 				}
 				String arg = args[0]->toString(worker)->value(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_url(arg); }, Error);
 			});
 
@@ -219,7 +217,6 @@ namespace qk { namespace js {
 					);
 				}
 				String arg = args[0]->toString(worker)->value(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_save_path(arg); }, Error);
 			});
 
@@ -231,7 +228,6 @@ namespace qk { namespace js {
 					);
 				}
 				String arg = args[0]->toString(worker)->value(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_username(arg); }, Error);
 			});
 
@@ -243,7 +239,6 @@ namespace qk { namespace js {
 					);
 				}
 				String arg = args[0]->toString(worker)->value(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_password(arg); }, Error);
 			});
 
@@ -255,7 +250,6 @@ namespace qk { namespace js {
 					);
 				}
 				bool arg = args[0]->toBoolean(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->disable_cache(arg); }, Error);
 			});
 
@@ -267,7 +261,6 @@ namespace qk { namespace js {
 					);
 				}
 				bool arg = args[0]->toBoolean(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->disable_cookie(arg); }, Error);
 			});
 
@@ -279,7 +272,6 @@ namespace qk { namespace js {
 					);
 				}
 				auto arg = args[0]->toBoolean(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->disable_send_cookie(arg); }, Error);
 			});
 
@@ -290,7 +282,6 @@ namespace qk { namespace js {
 						"@param disable {bool}\n"
 					);
 				}
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
 					self->disable_ssl_verify(args[0]->toBoolean(worker));
 				}, Error);
@@ -304,7 +295,6 @@ namespace qk { namespace js {
 						"@param value {String}\n"
 					);
 				}
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
 					self->set_request_header( args[0]->toString(worker)->value(worker), args[1]->toString(worker)->value(worker));
 				}, Error);
@@ -320,7 +310,6 @@ namespace qk { namespace js {
 				}
 				String form_name = args[0]->toString(worker)->value(worker);
 				String value = args[1]->toString(worker)->value(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
 					self->set_form(form_name, value);
 				}, Error);
@@ -336,19 +325,16 @@ namespace qk { namespace js {
 				}
 				String form_name = args[0]->toString(worker)->value(worker);
 				String local_path = args[1]->toString(worker)->value(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({
 					self->set_upload_file(form_name, local_path);
 				}, Error);
 			});
 
 			Js_Class_Method(clearRequestHeader, {
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->clear_request_header(); }, Error);
 			});
 
 			Js_Class_Method(clearFormData, {
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->clear_form_data(); }, Error);
 			});
 
@@ -360,7 +346,6 @@ namespace qk { namespace js {
 						"@return {String}\n"
 					);
 				}
-				Js_Self(HttpClientRequest);
 				auto rv = self->get_response_header(args[0]->toString(worker)->value(worker));
 				Js_Return( rv );
 			});
@@ -368,7 +353,6 @@ namespace qk { namespace js {
 			typedef cDict<String, String> cDictSS;
 
 			Js_Class_Method(getAllResponseHeaders, {
-				Js_Self(HttpClientRequest);
 				cDictSS &rv = self->get_all_response_headers();
 				Js_Return( rv );
 			});
@@ -381,7 +365,6 @@ namespace qk { namespace js {
 					);
 				}
 				bool enable = args[0]->toBoolean(worker);
-				Js_Self(HttpClientRequest);
 				Js_Try_Catch({ self->set_keep_alive(enable); }, Error);
 			});
 
@@ -392,15 +375,12 @@ namespace qk { namespace js {
 						"@param time {uint} ms\n"
 					);
 				}
-				Js_Self(HttpClientRequest);
-
 				uint64_t time = args[0]->toUint32(worker)->value() * 1000;
 
 				Js_Try_Catch({ self->set_timeout(time); }, Error);
 			});
 
 			Js_Class_Method(send, {
-				Js_Self(HttpClientRequest);
 				if (args.length() == 0) {
 					Js_Try_Catch({ self->send(); }, Error);
 				} else {
@@ -420,57 +400,46 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(pause, {
-				Js_Self(HttpClientRequest);
 				self->pause();
 			});
 
 			Js_Class_Method(resume, {
-				Js_Self(HttpClientRequest);
 				self->resume();
 			});
 
 			Js_Class_Method(abort, {
-				Js_Self(HttpClientRequest);
 				self->abort();
 			});
 
 			Js_Class_Accessor_Get(uploadTotal, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->upload_total() );
 			});
 
 			Js_Class_Accessor_Get(uploadSize, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->upload_size() );
 			});
 
 			Js_Class_Accessor_Get(downloadTotal, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->download_total() );
 			});
 
 			Js_Class_Accessor_Get(downloadSize, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->download_size() );
 			});
 
 			Js_Class_Accessor_Get(readyState, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->ready_state() );
 			});
 
 			Js_Class_Accessor_Get(statusCode, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->status_code() );
 			});
 
 			Js_Class_Accessor_Get(httpResponseVersion, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->http_response_version() );
 			});
 
 			Js_Class_Accessor_Get(url, {
-				Js_Self(HttpClientRequest);
 				Js_Return( self->url() );
 			});
 

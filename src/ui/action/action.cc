@@ -57,6 +57,7 @@ namespace qk {
 	}
 
 	Action::~Action() {
+		Qk_ASSERT( _target == nullptr );
 		Qk_ASSERT( _id_Rt == Id() || _id_Rt == playingFlag );
 	}
 
@@ -199,7 +200,7 @@ namespace qk {
 
 	void Action::before(Action *act) {
 		Qk_ASSERT(act);
-		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
+		Qk_IfThrow(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			_parent->insertChild(_id_Rt, act);
 		}
@@ -207,7 +208,7 @@ namespace qk {
 
 	void Action::after(Action *act) {
 		Qk_ASSERT(act);
-		Qk_Check(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
+		Qk_IfThrow(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			auto id = _id_Rt;
 			_parent->insertChild(++id, act);

@@ -181,10 +181,16 @@ namespace qk {
 	private:
 		static Allocator _shared; ///< Default global allocator.
 
+		friend class Allocator* shared_allocator();
+
 		void* (Allocator::*_malloc)(uint32_t size); ///< malloc function pointer
 		void* (Allocator::*_mrealloc)(void* ptr, uint32_t size); ///< realloc function pointer
 		void  (Allocator::*_free)(void *ptr); ///< free function pointer
 	};
+
+	inline Allocator* shared_allocator() {
+		return &Allocator::_shared;
+	}
 
 	/**
 	 * @class LinearAllocator

@@ -47,22 +47,19 @@ namespace qk { namespace js {
 			auto Event = exports->get(worker, worker->newStringOneByte("Event"))
 				->cast<JSFunction>();
 
-			Js_New_Class(NativeEvent, Js_Typeid(NativeEvent), Event, _Js_Fun({
+			Js_New_Class(NativeEvent, Js_Typeid(NativeEvent), Event, _Js_Fun(,{
 				Js_Throw("Access forbidden.");
 			}));
 
 			Js_Class_Accessor_Get(sender, {
-				Js_Self(Type);
 				Js_Return(self->sender());
 			});
 
 			Js_Class_Accessor(returnValue, {
-				Js_Self(Type);
 				Js_Return( self->return_value );
 			}, {
 				if ( !val->isInt32() )
 					Js_Throw("Bad argument.");
-				Js_Self(Type);
 				auto num = val->template cast<JSInt32>()->value();
 				self->return_value = num;
 			});
@@ -79,32 +76,26 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Accessor_Get(origin, {
-				Js_Self(Type);
 				Js_Return(self->origin());
 			});
 
 			Js_Class_Accessor_Get(timestamp, {
-				Js_Self(Type);
 				Js_Return( self->timestamp() );
 			});
 
 			Js_Class_Accessor_Get(isDefault, {
-				Js_Self(Type);
 				Js_ReturnBool( self->is_default() );
 			});
 
 			Js_Class_Accessor_Get(isBubble, {
-				Js_Self(Type);
 				Js_ReturnBool( self->is_bubble() );
 			});
 
 			Js_Class_Method(cancelDefault, {
-				Js_Self(Type);
 				self->cancel_default();
 			});
 
 			Js_Class_Method(cancelBubble, {
-				Js_Self(Type);
 				self->cancel_bubble();
 			});
 
@@ -113,24 +104,21 @@ namespace qk { namespace js {
 	};
 
 	struct MixActionEvent: MixObject {
+		typedef ActionEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ActionEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
 			Js_Class_Accessor_Get(action, {
-				Js_Self(ActionEvent);
 				Js_Return( self->action() );
 			});
 			Js_Class_Accessor_Get(delay, {
-				Js_Self(ActionEvent);
 				Js_Return( self->delay() / 1000 );
 			});
 			Js_Class_Accessor_Get(frame, {
-				Js_Self(ActionEvent);
 				Js_Return( self->frame() );
 			});
 			Js_Class_Accessor_Get(looped, {
-				Js_Self(ActionEvent);
 				Js_Return( self->looped() );
 			});
 			cls->exports("ActionEvent", exports);
@@ -145,49 +133,38 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Accessor_Get(keycode, {
-				Js_Self(Type);
 				Js_Return( self->keycode() );
 			});
 			Js_Class_Accessor_Get(repeat, {
-				Js_Self(Type);
 				Js_Return( self->repeat() );
 			});
 			Js_Class_Accessor_Get(shift, {
-				Js_Self(Type);
 				Js_ReturnBool( self->shift() );
 			});
 			Js_Class_Accessor_Get(ctrl, {
-				Js_Self(Type);
 				Js_ReturnBool( self->ctrl() );
 			});
 			Js_Class_Accessor_Get(alt, {
-				Js_Self(Type);
 				Js_ReturnBool( self->alt() );
 			});
 			Js_Class_Accessor_Get(command, {
-				Js_Self(Type);
 				Js_ReturnBool( self->command() );
 			});
 			Js_Class_Accessor_Get(capsLock, {
-				Js_Self(Type);
 				Js_ReturnBool( self->caps_lock() );
 			});
 			Js_Class_Accessor_Get(device, {
-				Js_Self(Type);
 				Js_Return( self->device() );
 			});
 			Js_Class_Accessor_Get(source, {
-				Js_Self(Type);
 				Js_Return( self->source() );
 			});
 			Js_Class_Accessor(nextFocus, {
-				Js_Self(Type);
 				Js_Return( self->next_focus() );
 			}, {
-				Js_Self(Type);
 				View* view = nullptr;
 				if ( Js_IsView(val) ) {
-					view = mix<View>(val)->self();
+					view = MixObject::mix<View>(val)->self();
 				} else if ( !val->isNull() ) {
 					Js_Throw("Bad argument.");
 				}
@@ -198,24 +175,21 @@ namespace qk { namespace js {
 	};
 
 	struct MixClickEvent: MixObject {
+		typedef ClickEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(ClickEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
 			Js_Class_Accessor_Get(x, {
-				Js_Self(ClickEvent);
 				Js_Return( self->x() );
 			});
 			Js_Class_Accessor_Get(y, {
-				Js_Self(ClickEvent);
 				Js_Return( self->y() );
 			});
 			Js_Class_Accessor_Get(count, {
-				Js_Self(ClickEvent);
 				Js_Return( self->count() );
 			});
 			Js_Class_Accessor_Get(type, {
-				Js_Self(ClickEvent);
 				Js_Return( int(self->type()) );
 			});
 			cls->exports("ClickEvent", exports);
@@ -223,12 +197,12 @@ namespace qk { namespace js {
 	};
 
 	struct MixHighlightedEvent: MixObject {
+		typedef HighlightedEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(HighlightedEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
 			Js_Class_Accessor_Get(status, {
-				Js_Self(HighlightedEvent);
 				Js_Return(self->status());
 			});
 			cls->exports("HighlightedEvent", exports);
@@ -242,11 +216,9 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 			Js_Class_Accessor_Get(x, {
-				Js_Self(MouseEvent);
 				Js_Return( self->x() );
 			});
 			Js_Class_Accessor_Get(y, {
-				Js_Self(MouseEvent);
 				Js_Return( self->y() );
 			});
 			cls->exports("MouseEvent", exports);
@@ -254,14 +226,13 @@ namespace qk { namespace js {
 	};
 
 	struct MixTouchEvent: MixObject {
+		typedef TouchEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(TouchEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
 
 			Js_Class_Accessor_Get(changedTouches, {
-				Js_Mix(TouchEvent);
-
 				auto r = mix->handle()->get(worker, worker->strs()->_change_touches());
 				if (!r) return; // js error
 				if (!r->isArray()) {
@@ -282,8 +253,16 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 			Js_Class_Accessor_Get(type, {
-				Js_Self(Type);
-				Js_Return( self->type() );
+				Js_Return(self->type());
+			});
+			Js_Class_Accessor_Get(trackIndex, {
+				Js_Return(self->trackIndex());
+			});
+			Js_Class_Accessor_Get(animationName, {
+				Js_Return(self->animationName());
+			});
+			Js_Class_Accessor_Get(trackTime, {
+				Js_Return(self->trackTime());
 			});
 			cls->exports("SpineEvent", exports);
 		}
@@ -297,8 +276,6 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 			Js_Class_Accessor_Get(staticData, {
-				Js_Mix(Type);
-				auto self = mix->self();
 				auto _staticData = worker->strs()->_staticData();
 				auto data = mix->handle()->template get<JSObject>(worker, _staticData);
 				if (data->isUndefined()) {
@@ -319,27 +296,21 @@ namespace qk { namespace js {
 				Js_Return(data);
 			});
 			Js_Class_Accessor_Get(time, {
-				Js_Self(Type);
 				Js_Return( self->time() );
 			});
 			Js_Class_Accessor_Get(intValue, {
-				Js_Self(Type);
 				Js_Return( self->int_value() );
 			});
 			Js_Class_Accessor_Get(float_value, {
-				Js_Self(Type);
 				Js_Return( self->float_value() );
 			});
 			Js_Class_Accessor_Get(string_value, {
-				Js_Self(Type);
 				Js_Return( self->string_value() );
 			});
 			Js_Class_Accessor_Get(volume, {
-				Js_Self(Type);
 				Js_Return( self->volume() );
 			});
 			Js_Class_Accessor_Get(balance, {
-				Js_Self(Type);
 				Js_Return( self->balance() );
 			});
 			cls->exports("SpineKeyEvent", exports);

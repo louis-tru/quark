@@ -16,7 +16,7 @@ const win = new Window({
 
 const w = win.size.x;
 const h = win.size.y;
-const csss: Dict<css.StyleSheet> = {
+const csss: Dict<css.StyleSheets> = {
 	'.top': {
 		backgroundColor: '#000',
 	},

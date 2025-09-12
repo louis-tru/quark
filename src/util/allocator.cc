@@ -54,6 +54,7 @@ namespace qk {
 	 * @return Aligned value
 	 */
 	uint32_t alignUp(uint32_t ptr, uint32_t alignment) {
+		// constexpr auto a = alignof(size_t) * 8 - 1;
 		return (ptr + (alignment - 1)) & ~(alignment - 1);
 	}
 

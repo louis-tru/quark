@@ -113,7 +113,7 @@ template <typename T, T* (*C)(), void (*D)(T*)> class QkAutoFc
 public:
 	QkAutoFc(): inherited(C()) {
 		T* obj = this->operator T*();
-		Qk_ASSERT_RAW(nullptr != obj);
+		Qk_CHECK(nullptr != obj);
 	}
 	explicit QkAutoFc(T* obj): inherited(obj) {}
 	QkAutoFc(QkAutoFc&& that): inherited(std::move(that)) {}
@@ -699,7 +699,7 @@ protected:
 			FcResult result;
 			QkAutoFcPattern font(FcFontMatch(fFC, pattern, &result));
 			if (!font || !FontAccessible(font) || !FontFamilyNameMatches(font, matchPattern)) {
-				Qk_ASSERT_RAW(0, "onMatchFamilyStyle, can't match");
+				Qk_CHECK(0, "onMatchFamilyStyle, can't match");
 			}
 			return font;
 		}());
@@ -740,7 +740,7 @@ protected:
 			FcResult result;
 			QkAutoFcPattern font(FcFontMatch(fFC, pattern, &result));
 			if (!font || !FontAccessible(font) || !FontContainsCharacter(font, character)) {
-				Qk_ASSERT_RAW(0, "onMatchFamilyStyleCharacter, can't match");
+				Qk_CHECK(0, "onMatchFamilyStyleCharacter, can't match");
 			}
 			return font;
 		}());
