@@ -166,25 +166,25 @@ namespace qk {
 	// ------------------------------------------
 
 	struct Qk_EXPORT Vec2: Vec<float,2> {
-		#define Qk_Default_Vec_Operator(Name,T,Len) \
-			Name(); \
-			Name(T f); \
-			Name  operator+(const Vec<T,Len>& b) const; \
-			Name  operator-(const Vec<T,Len>& b) const; \
-			Name  operator*(const Vec<T,Len>& b) const; \
-			Name  operator/(const Vec<T,Len>& b) const; \
-			Name  operator-() const; \
-			Name  operator+(T b) const; \
-			Name  operator-(T b) const; \
-			Name  operator*(T b) const; \
-			Name  operator/(T b) const; \
-			Name& operator+=(const Vec<T,Len>& b); \
-			Name& operator-=(const Vec<T,Len>& b); \
-			Name& operator*=(const Vec<T,Len>& b); \
-			Name& operator*=(T b); \
-			Name& operator/=(const Vec<T,Len>& b);\
-			bool  operator==(const Vec<T,Len>& b) const; \
-			bool  operator!=(const Vec<T,Len>& b) const
+	#define Qk_Default_Vec_Operator(Name,T,Len) \
+		Name(); \
+		Name(T f); \
+		Name  operator+(const Vec<T,Len>& b) const; \
+		Name  operator-(const Vec<T,Len>& b) const; \
+		Name  operator*(const Vec<T,Len>& b) const; \
+		Name  operator/(const Vec<T,Len>& b) const; \
+		Name  operator-() const; \
+		Name  operator+(T b) const; \
+		Name  operator-(T b) const; \
+		Name  operator*(T b) const; \
+		Name  operator/(T b) const; \
+		Name& operator+=(const Vec<T,Len>& b); \
+		Name& operator-=(const Vec<T,Len>& b); \
+		Name& operator*=(const Vec<T,Len>& b); \
+		Name& operator*=(T b); \
+		Name& operator/=(const Vec<T,Len>& b);\
+		bool  operator==(const Vec<T,Len>& b) const; \
+		bool  operator!=(const Vec<T,Len>& b) const
 
 		Qk_Default_Vec_Operator(Vec2,float,2);
 
@@ -255,8 +255,6 @@ namespace qk {
 		Vec3  det(const Vec<float,3>& b) const;
 	};
 
-	#undef Qk_Default_Vec_Operator
-
 	// ------------------------------------------
 
 	template<typename T> struct MRect { T origin,size; }; // rect
@@ -271,6 +269,11 @@ namespace qk {
 	typedef MRect<IVec2>     IRect;
 	typedef MRegion<IVec2>   IRegion;
 
+	template<>
+	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const;
+	template<>
+	Vec<float,4>& Vec<float,4>::operator*=(const Vec<float,4> &v);
+
 	// ------------------------------------------
 
 	struct Qk_EXPORT Color4f: Vec<float, 4> {
@@ -281,14 +284,14 @@ namespace qk {
 			: Vec<float, 4>(r, g, b, a) {}
 		bool operator==(const Color4f& color) const;
 		bool operator!=(const Color4f& color) const;
-		Color4f to_color4f_alpha(float alpha) const;
+		Color4f mul_alpha_only(float alpha) const;
 	};
 
 	// Memory sort: low => high as r,g,b,a
 	struct Qk_EXPORT Color: Vec<uint8_t, 4> {
-		static Color from(uint32_t color); //! ignore endianness, small end data as a,b,g,r
-		static Color from_abgr(uint32_t abgr); //! high => low as a,b,g,r
-		static Color from_rgba(uint32_t rgba); //! high => low as r,g,b,a
+		static Color from(uint32_t color); //!< ignore endianness, small end data as a,b,g,r
+		static Color from_abgr(uint32_t abgr); //!< high => low as a,b,g,r
+		static Color from_rgba(uint32_t rgba); //!< high => low as r,g,b,a
 		Color(): Vec<uint8_t, 4>(0, 0, 0, 255) {}
 		Color(uint8_t r, uint8_t g, uint8_t b)
 			: Vec<uint8_t, 4>(r, g, b, 255) {}
@@ -296,10 +299,13 @@ namespace qk {
 			: Vec<uint8_t, 4>(r, g, b, a) {}
 		bool operator==(Color color) const;
 		bool operator!=(Color color) const;
+		float    to_float_alpha() const;
+		Color4f  mul_alpha_only(float alpha) const;
+		Color4f  mul_rgb_only(Color4f color) const;
+		Color4f  mul_color4f(Color4f color) const;
 		Color4f  to_color4f() const;
-		Color4f  to_color4f_alpha(float alpha) const;
-		uint32_t to_uint32_abgr() const; //! high => low as a,b,g,r
-		uint32_t to_uint32_rgba() const; //! high => low as r,g,b,a
+		uint32_t to_uint32_abgr() const; //!< high => low as a,b,g,r
+		uint32_t to_uint32_rgba() const; //!< high => low as r,g,b,a
 		Color blendSrcOver(const Color &src) const;
 	};
 
@@ -376,6 +382,8 @@ namespace qk {
 		 */
 		static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 	};
+
+	#undef Qk_Default_Vec_Operator
 
 	Qk_DEF_ARRAY_SPECIAL(Vec2);
 	Qk_DEF_ARRAY_SPECIAL(Vec3);

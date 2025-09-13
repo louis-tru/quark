@@ -73,6 +73,8 @@ Qk_TEST_Func(matrix) {
 		b0->set_height({150});
 		b0->set_margin_top(50);
 		b0->set_margin_left(50);
+		b0->set_color({0,0,255,128});
+		b0->set_cascade_color(CascadeColor::Both);
 	}
 	{
 		m1->set_background_color(Color(0,0,255));
@@ -101,16 +103,18 @@ Qk_TEST_Func(matrix) {
 		sp0->set_playing(true);
 	}
 	{
-		auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.5f);
+		//auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.5f);
+		auto data = SkeletonData::Make(fs_resources("jsapi/res/coin/coin-pro.skel"), "", 0.5f);
 		sp1->set_skeleton(data.get());
 		sp1->set_skin("default");
 		//sp1->set_animation(0, "death", true);
 		//sp1->set_animation(0, "hit", true);
 		sp1->set_animation(0, "jump", true);
 		//sp1->set_animation(0, "run", true);
+		sp1->set_animation(1, "animation", true);
 		//sp1->set_origin({{0.5,BoxOriginKind::Ratio},{0.5,BoxOriginKind::Ratio}});
 		//sp1->set_origin({{100},{100}});
-		
+
 		auto act = new KeyframeAction(w);
 		act->set_loop(0xffffffff);
 		auto k0 = act->addFrame(0);

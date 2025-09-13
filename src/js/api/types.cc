@@ -476,6 +476,10 @@ namespace qk { namespace js {
 		return worker->newValue((uint32_t)value);
 	}
 
+	JSValue* TypesParser::jsvalue(const CascadeColor& value) {
+		return worker->newValue((uint32_t)value);
+	}
+
 	JSValue* TypesParser::jsvalue(const FFID& val) {
 		cChar* addr = reinterpret_cast<cChar*>(&val);
 		Buffer buffer(sizeof(FFID));
@@ -1030,6 +1034,12 @@ namespace qk { namespace js {
 	bool TypesParser::parse(JSValue* in, FindDirection& out, cChar* desc) {
 		js_parse(FindDirection, {
 			out = (FindDirection)obj->toUint32(worker)->value();
+		});
+	}
+
+	bool TypesParser::parse(JSValue* in, CascadeColor& out, cChar* desc) {
+		js_parse(CascadeColor, {
+			out = (CascadeColor)obj->toUint32(worker)->value();
 		});
 	}
 

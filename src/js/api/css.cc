@@ -48,8 +48,10 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 
-			Js_StyleSheets_Accessor(float, opacity, opacity);
+			Js_StyleSheets_Accessor(Color, color, color);
+			Js_StyleSheets_Accessor(CascadeColor, cascade_color, cascadeColor);
 			Js_StyleSheets_Accessor(CursorStyle, cursor, cursor);
+			Js_StyleSheets_Accessor(float, opacity, opacity);
 			Js_StyleSheets_Accessor(bool, visible, visible);
 			Js_StyleSheets_Accessor(bool, receive, receive);
 			Js_StyleSheets_Accessor(bool, clip, clip);

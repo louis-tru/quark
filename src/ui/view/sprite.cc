@@ -320,7 +320,8 @@ namespace qk {
 		paint.antiAlias = false;
 		paint.type = Paint::kBitmap_Type;
 		paint.image = &img;
-		paint.color.set_a(painter->opacity());
+		//paint.color.set_a(painter->opacity());
+		paint.color *= painter->color();
 
 		Rect dest{/*Vec2(_AAShrink * 0.5)*/ -origin_value(), {_width, _height}};
 

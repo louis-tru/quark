@@ -56,7 +56,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(PathvCache*, cache);
 		Qk_DEFINE_PROPERTY(cMat*, matrix); // current matrix
 		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin and fix aa stroke width
-		Qk_DEFINE_PROP_GET(float, opacity); // current opacity
+		Qk_DEFINE_PROP_GET(Color4f, color); // current color
 		Painter(Window *window);
 		void set_origin_restore(Vec2 v); // restore last origin
 		Rect getRect(Box* box);
@@ -79,6 +79,8 @@ namespace qk {
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);
 	private:
+		template<CascadeColor parentCascadeColor>
+		void visitView_(View *view, View *v);
 		Render     *_render;
 		uint32_t   _mark_recursive;
 		float      _AAShrink; // fix rect stroke width for AA

@@ -47,6 +47,10 @@ namespace qk {
 	typedef SpineEvent::Type SEType;
 	class AttachmentVertices;
 
+	struct TrianglesExt: Triangles {
+		BlendMode blendMode;
+	};
+
 	struct Spine::SkeletonWrapper: public Object {
 		Spine *_host;
 		Sp<SkeletonData> _wrapData;
@@ -75,6 +79,7 @@ namespace qk {
 		ImageSource *_source;
 		ImagePaint _paint;
 		uint32_t _width, _height;
+		uint64_t _hashCode;
 		bool _pma;
 	};
 

@@ -46,8 +46,10 @@ export declare abstract class StyleSheets {
 	time?: number; //!< keyframe time or css transition time
 	curve?: types.CurveIn; //!< keyframe curve or css transition curve
 	// Meta attribute
-	opacity?: number; //!<
+	color?: types.ColorIn; //!< view color
+	cascadeColor?: types.CascadeColorIn; //!< cascade color
 	cursor?: types.CursorStyleIn; //!<
+	opacity?: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
 	visible?: boolean; //!<
 	receive?: boolean; //!<
 	clip?: boolean; //!<

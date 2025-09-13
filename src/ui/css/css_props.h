@@ -39,8 +39,10 @@
 namespace qk {
 
 #define Qk_Css_Props(F) \
-	F(OPACITY, float, opacity, View) /*view*/\
+	F(COLOR, Color, color, View) /*view*/\
+	F(CASCADE_COLOR, CascadeColor, cascade_color, View) \
 	F(CURSOR, CursorStyle, cursor, View) \
+	F(OPACITY, float, opacity, View) \
 	F(VISIBLE, bool, visible, View) \
 	F(RECEIVE, bool, receive, View) \
 	F(CLIP, bool, clip, Box) /* box */ \

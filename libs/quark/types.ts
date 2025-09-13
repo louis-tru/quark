@@ -442,6 +442,17 @@ export enum FindDirection {
 	Bottom, //!<
 };
 
+/**
+ * Color changes will affect sub views
+ */
+export enum CascadeColor {
+	None, // No change
+	Alpha, // Only change Alpha for sub views
+	Color, // Only change RGB for sub views
+	Rgb = Color, // alias of Color
+	Both, // Change RGB and Alpha for sub views
+};
+
 // -------------------------------------------------------------------------------------
 
 /**
@@ -531,6 +542,11 @@ export type CursorStyleIn = Uncapitalize<keyof typeof CursorStyle> | CursorStyle
  * @type FindDirectionIn:"none"|"left"|"top"|"right"|"bottom"|FindDirection
 */
 export type FindDirectionIn = Uncapitalize<keyof typeof FindDirection> | FindDirection;
+
+/**
+ * @type CascadeColorIn:"none"|"alpha"|"color"|"both"|CascadeColor
+*/
+export type CascadeColorIn = Uncapitalize<keyof typeof CascadeColor> | CascadeColor;
 
 /***/
 export class Base<T> {
@@ -694,10 +710,13 @@ export type Mat4In = N | Mat4 | ReturnType<typeof Mat4.prototype.toString>;
  * @class Color
 */
 export class Color extends Base<Color> {
-	r: N; //!<
-	g: N; //!<
-	b: N; //!<
-	a: N; //!<
+	r: N; //!< red 0 ~ 255
+	g: N; //!< green 0 ~ 255
+	b: N; //!< blue 0 ~ 255
+	a: N; //!< alpha 0 ~ 255
+	get alpha() { //!< {N} alpha 0.0 ~ 1.0
+		return this.a / 255;
+	}
 	constructor(r: N, g: N, b: N, a: N) {
 		super();
 		this.r = r;
@@ -712,7 +731,7 @@ export class Color extends Base<Color> {
 		return `rgb(${this.r},${this.g},${this.b})`;
 	}
 	toRGBAString(): `rgba(${N},${N},${N},${N})` {
-		return `rgba(${this.r},${this.g},${this.b},${this.a})`;
+		return `rgba(${this.r},${this.g},${this.b},${this.a/255})`;
 	}
 	toString(): `#${string}` {
 		return `#${hexStr(this.r)}${hexStr(this.g)}${hexStr(this.b)}`;
@@ -722,7 +741,7 @@ export class Color extends Base<Color> {
 	}
 }
 initDefaults(Color, { r: 0, g: 0, b: 0, a: 255 });
-export type ColorStrIn = `#${string}` | `rgb(${N},${N},${N})` | `rgba(${N},${N},${N},${N})`; //!< {'#fff'|'rgb(0,0,0)'|'rgba(0,0,0,255)'}
+export type ColorStrIn = `#${string}` | `rgb(${N},${N},${N})` | `rgba(${N},${N},${N},${N})`; //!< {'#fff'|'rgb(0,0,0)'|'rgba(0,0,0,1)'}
 export type ColorIn = ColorStrIn | N | Color; //!<
 
 /**
@@ -970,7 +989,7 @@ export declare class BoxShadow extends BoxFilter {
  * 
  * ['10 10 2 #ff00aa']
  * 
- * 10 10 2 rgba(255,255,0,255)
+ * 10 10 2 rgba(255,255,0,1)
  *```
  */
 export type BoxShadowIn = ShadowIn | ShadowIn[] | BoxShadow;
@@ -1240,6 +1259,12 @@ export function parseFindDirection(val: FindDirectionIn, desc?: string): FindDir
 		FindDirection[toCapitalize(val)] || 0 : val in FindDirection ? val: 0;
 }
 
+export function parseCascadeColor(val: CascadeColorIn, desc?: string): CascadeColor { //!<
+	if (typeof val === 'string')
+		val = CascadeColor[toCapitalize(val)];
+	return val in CascadeColor ? val: CascadeColor.Alpha;
+}
+
 const vec2Reg = [
 	/^\s*(-?(?:\d+)?\.?\d+)\s+(-?(?:\d+)?\.?\d+)\s*$/,
 	/^\s*vec2\(\s*(-?(?:\d+)?\.?\d+)\s*,\s*(-?(?:\d+)?\.?\d+)\s*\)\s*$/,
@@ -1397,7 +1422,7 @@ function parseColorNumber(val: number) {
 	return newColor(val >> 24 & 255, // r
 	val >> 16 & 255, // g
 	val >> 8 & 255, // b
-	val >> 0 & 255); // a	
+	val >> 0 & 255); // a
 }
 export function parseColor(val: ColorIn, desc?: string, ref?: Reference): Color { //!<
 	if (typeof val === 'string') {
@@ -1428,7 +1453,7 @@ export function parseColor(val: ColorIn, desc?: string, ref?: Reference): Color 
 			if (m[1] == 'a') { // rgba
 				if (m[5]) { // a
 					return newColor(
-						parseInt(m[2]) % 256, parseInt(m[3]) % 256, parseInt(m[4]) % 256, parseInt(m[6]) % 256
+						parseInt(m[2]) % 256, parseInt(m[3]) % 256, parseInt(m[4]) % 256, Math.min(parseInt(m[6]) * 255, 255)
 					);
 				}
 			} else { // rgb
@@ -1447,7 +1472,7 @@ export function parseColor(val: ColorIn, desc?: string, ref?: Reference): Color 
 		return val;
 	}
 	throw error(val, desc, [
-		'rgba(255,255,255,255)', 'rgb(255,255,255)', '#ff0', '#ff00', '#ff00ff', '#ff00ffff'
+		'rgba(255,255,255,1)', 'rgb(255,255,255)', '#ff0', '#ff00', '#ff00ff', '#ff00ffff'
 	], ref);
 }
 
@@ -1462,14 +1487,14 @@ export function parseShadow(val: ShadowIn, desc?: string, ref?: Reference): Shad
 				y: parseFloat(m[2]),
 				size: parseFloat(m[3]),
 				color: parseColor(val.substring(m[0].length + 1) as ColorStrIn, desc, r=>{
-					return ref ? ref(['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,255)']): r;
+					return ref ? ref(['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)']): r;
 				}),
 			});
 		}
 	} else if (val instanceof Shadow) {
 		return val;
 	}
-	throw error(val, desc, ['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,255)'], ref);
+	throw error(val, desc, ['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)'], ref);
 }
 
 const BoxBorderReg = /^\s*(-?(?:\d+)?\.?\d+)/;
@@ -1481,13 +1506,13 @@ export function parseBoxBorder(val: BoxBorderIn, desc?: string): BoxBorder { //!
 			return new BoxBorder({
 				width: parseFloat(m[1]),
 				color: parseColor(val.substring(m[0].length + 1) as ColorStrIn, desc,
-					r=>['10 #ff00aa', '10 rgba(255,255,0,255)']),
+					r=>['10 #ff00aa', '10 rgba(255,255,0,1)']),
 			});
 		}
 	} else if (val instanceof BoxShadow) {
 		return val;
 	}
-	throw error(val, desc, ['10 #ff00aa', '10 rgba(255,255,0,255)']);
+	throw error(val, desc, ['10 #ff00aa', '10 rgba(255,255,0,1)']);
 }
 
 export function parseFillPosition(val: FillPositionIn, desc?: string): FillPosition { //!<
@@ -1602,7 +1627,7 @@ export function parseTextColor(val: TextColorIn, desc?: string): TextColor { //!
 		return val;
 	}
 	throw error(val, desc, ['inherit', 'default',
-		'rgba(255,255,255,255)', 'rgb(255,255,255)', '#ff0', '#ff00', '#ff00ff', '#ff00ffff'
+		'rgba(255,255,255,1)', 'rgb(255,255,255)', '#ff0', '#ff00', '#ff00ff', '#ff00ffff'
 	]);
 }
 
@@ -1646,7 +1671,7 @@ export function parseTextShadow(val: TextShadowIn, desc?: string): TextShadow { 
 	} else if (val instanceof TextShadow) {
 		return val;
 	}
-	throw error(val, desc, ['inherit', 'default', '10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,255)']);
+	throw error(val, desc, ['inherit', 'default', '10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)']);
 }
 
 export function parseTextFamily(val: TextFamilyIn, desc?: string): TextFamily { ///!<
@@ -1789,7 +1814,7 @@ export function parseBoxFilter(val: BoxFilterIn, desc?: string): BoxFilter { ///
 }
 
 const parseBoxShadowRef = [
-	'10 10 2 #ff00aa', ['10 10 2 #ff00aa'], '10 10 2 rgba(255,255,0,255)'
+	'10 10 2 #ff00aa', ['10 10 2 #ff00aa'], '10 10 2 rgba(255,255,0,1)'
 ];
 export function parseBoxShadow(val: BoxShadowIn, desc?: string): BoxShadow { ///!<
 	const BoxShadow_ = exports.BoxShadow as typeof BoxShadow;

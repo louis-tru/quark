@@ -267,7 +267,7 @@ namespace qk {
 						}
 						case kTriangles_CmdType: {
 							auto c = (TrianglesCmd*)cmd;
-							drawTrianglesCall(c->triangles, &c->paint, c->aaclip, c->depth);
+							drawTrianglesCall(c->triangles, &c->paint, c->color, c->aaclip, c->depth);
 							c->~TrianglesCmd();
 							break;
 						}
@@ -510,13 +510,16 @@ namespace qk {
 			}
 		}
 
-		void drawTrianglesCall(const Triangles &triangles, const ImagePaint *paint, bool aaclip, float depth) {
+		void drawTrianglesCall(const Triangles &triangles, const ImagePaint *paint, const Color4f &color, bool aaclip, float depth) {
 			ImagePaintLock lock(paint);
 			if (setTextureSlot0(paint)) {
-				auto s = aaclip ? &_render->_shaders.triangles_AACLIP: &_render->_shaders.triangles;
+				auto s = triangles.isDarkColor ?
+					aaclip ? &_render->_shaders.triangles_DARK_COLOR_AACLIP: &_render->_shaders.triangles_DARK_COLOR:
+					aaclip ? &_render->_shaders.triangles_AACLIP: &_render->_shaders.triangles;
 				Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
 				s->use(triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), triangles.verts);
 				glUniform1f(s->depth, depth);
+				glUniform4fv(s->color, 1, color.val);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * triangles.indexCount, triangles.indices, GL_DYNAMIC_DRAW);
 				glDrawElements(GL_TRIANGLES, triangles.indexCount, GL_UNSIGNED_SHORT, 0);
@@ -1225,12 +1228,14 @@ namespace qk {
 		paint->image->retain(); // retain source image ref
 	}
 
-	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const ImagePaint *paint) {
+	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const ImagePaint *paint, const Color4f &color) {
+		_this->flushCanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(TrianglesCmd))) TrianglesCmd;
 		cmd->type = kTriangles_CmdType;
 		cmd->triangles = triangles;
 		cmd->depth = _canvas->_zDepth;
 		cmd->paint = *paint;
+		cmd->color = color;
 		cmd->aaclip = _canvas->_state->aaclip;
 		paint->image->retain();
 	}
@@ -1368,8 +1373,8 @@ namespace qk {
 	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
 		_this->drawImageMaskCall(vertex, paint, _canvas->_allScale, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawTriangles(const Triangles &triangles, const ImagePaint *paint) {
-		_this->drawTrianglesCall(triangles, paint, _canvas->_state->aaclip, _canvas->_zDepth);
+	void GLC_CmdPack::drawTriangles(const Triangles &triangles, const ImagePaint *paint, const Color4f &color) {
+		_this->drawTrianglesCall(triangles, paint, color, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
 		_this->drawGradientCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);

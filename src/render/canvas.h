@@ -63,9 +63,9 @@ namespace qk {
 			// tex coords (2F)
 			Vec2     texCoords;         // 8 bytes
 			/// color (4B)
-			Color    color;             // 4 bytes
+			Color    lightColor;        // 4 bytes
 			/// color2 (4B)
-			Color    color2;            // 4 bytes
+			Color    darkColor;         // 4 bytes
 		};
 
 		struct Triangles {
@@ -79,6 +79,8 @@ namespace qk {
 			uint32_t indexCount = 0;
 			/* z depth total */
 			float zDepthTotal = 0;
+			/* is use dark color */
+			bool  isDarkColor = false;
 		};
 
 		virtual int  save() = 0;
@@ -108,7 +110,7 @@ namespace qk {
 		/**
 		 * Note: do not release triangles data until after the draw call commands is completed
 		*/
-		virtual void drawTriangles(const Triangles& triangles, const ImagePaint &paint, BlendMode mode) = 0;
+		virtual void drawTriangles(const Triangles& triangles, const Paint& paint) = 0;
 
 		/**
 		 * Optimized rounded rect blur color drawing command

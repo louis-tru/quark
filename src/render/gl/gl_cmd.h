@@ -187,6 +187,7 @@ namespace qk {
 			Triangles      triangles;
 			ImagePaint     paint;
 			float          depth;
+			Color4f        color;
 			bool           aaclip;
 			~TrianglesCmd();
 		};
@@ -260,7 +261,7 @@ namespace qk {
 		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
 		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
-		void drawTriangles(const Triangles& triangles, const ImagePaint *paint);
+		void drawTriangles(const Triangles& triangles, const ImagePaint *paint, const Color4f &color);
 		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke);
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);

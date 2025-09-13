@@ -229,13 +229,13 @@ namespace qk {
 			// Qk_DLog("%p", &vertex);
 			switch (paint.type) {
 				case Paint::kColor_Type:
-					_cmdPack->drawColor(vertex, paint.color.to_color4f_alpha(aaFuzzWeight), true); break;
+					_cmdPack->drawColor(vertex, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
 				case Paint::kGradient_Type:
 					_cmdPack->drawGradient(vertex, paint.gradient, aaFuzzWeight * paint.color.a(), true); break;
 				case Paint::kBitmap_Type:
 					_cmdPack->drawImage(vertex, paint.image, aaFuzzWeight * paint.color.a(), true); break;
 				case Paint::kBitmapMask_Type:
-					_cmdPack->drawImageMask(vertex, paint.image, paint.color.to_color4f_alpha(aaFuzzWeight), true); break;
+					_cmdPack->drawImageMask(vertex, paint.image, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
 			}
 		}
 
@@ -577,7 +577,7 @@ namespace qk {
 		_cmdPack->drawColor(path, color, false);
 		if (!_DeviceMsaa) { // Anti-aliasing using software
 			auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
-			_cmdPack->drawColor(vertex, color.to_color4f_alpha(aa_fuzz_weight), true);
+			_cmdPack->drawColor(vertex, color.mul_alpha_only(aa_fuzz_weight), true);
 		}
 		_this->zDepthNext();
 	}
@@ -588,7 +588,7 @@ namespace qk {
 			_cmdPack->drawColor(*paths[i], color, false);
 		}
 		if (!_DeviceMsaa) { // Anti-aliasing using software
-			auto c2 = color.to_color4f_alpha(aa_fuzz_weight);
+			auto c2 = color.mul_alpha_only(aa_fuzz_weight);
 			for (int i = 0; i < count; i++) {
 				auto &vertex = _cache->getAAFuzzStrokeTriangle(paths[i]->path, _phy2Pixel*aa_fuzz_width);
 				_cmdPack->drawColor(vertex, c2, true);
@@ -674,9 +674,9 @@ namespace qk {
 		}
 	}
 
-	void GLCanvas::drawTriangles(const Triangles& triangles, const ImagePaint &paint, BlendMode mode) {
-		_this->setBlendMode(mode); // switch blend mode
-		_cmdPack->drawTriangles(triangles, &paint);
+	void GLCanvas::drawTriangles(const Triangles& triangles, const Paint &paint) {
+		_this->setBlendMode(paint.blendMode); // switch blend mode
+		_cmdPack->drawTriangles(triangles, paint.image, paint.color);
 		if (triangles.zDepthTotal) {
 			_zDepth += triangles.zDepthTotal;
 		} else {

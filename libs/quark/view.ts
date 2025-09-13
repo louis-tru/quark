@@ -160,8 +160,10 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	style: StyleSheets; //!<
 	action: Action | null; //!<
 	class: string[]; //!< settingonly method, cssclass.set()
-	opacity: number; //!<
+	color: types.Color; //!<
+	cascadeColor: types.CascadeColor; //!<
 	cursor: types.CursorStyle; //!<
+	opacity: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
 	visible: boolean; //!<
 	receive: boolean; //!<
 	isFocus: boolean; //!<
@@ -683,8 +685,10 @@ declare global {
 			style?: StyleSheets;
 			action?: action.ActionIn | null;
 			class?: string | string[];
-			opacity?: number;
+			color?: types.ColorIn;
+			cascadeColor?: types.CascadeColorIn;
 			cursor?: types.CursorStyleIn;
+			opacity?: Float;
 			visible?: boolean;
 			receive?: boolean;
 			isFocus?: boolean;

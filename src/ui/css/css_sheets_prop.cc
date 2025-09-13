@@ -139,6 +139,7 @@ namespace qk {
 		Type transition_value(Type f1, Type f2, float t) { return t < 1.0 ? f1: f2; }
 	_Define_Enum_transition(bool)
 	//_Define_Enum_transition(int)
+	_Define_Enum_transition(CascadeColor)
 	_Define_Enum_transition(Align)
 	_Define_Enum_transition(Direction)
 	_Define_Enum_transition(ItemsAlign)

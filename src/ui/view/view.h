@@ -194,14 +194,21 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Vec2, position, ProtectedConst);
 
 		/**
-		 *  can affect the transparency of subviews
-		 */
-		Qk_DEFINE_VIEW_PROPERTY(float, opacity, Const);
+		 * color.a alias opacity = color.a / 255.0
+		*/
+		Qk_DEFINE_VIEW_ACCESSOR(float, opacity, Const);
 
 		/**
-		 * can affect the blend color of subviews
+		 * Can affect the blend color of subviews
 		*/
 		Qk_DEFINE_VIEW_PROPERTY(Color, color, Const);
+
+		/**
+		 * Is inherit color from parent view,
+		 * if true the final color = parent.final color * self.color.
+		 * ** default is CascadeColor::Alpha
+		*/
+		Qk_DEFINE_VIEW_PROPERTY(CascadeColor, cascade_color, Const);
 
 		/**
 		 * @prop Cursor style
@@ -215,15 +222,15 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(bool, visible, Const);
 
 		/**
+		 * Enable testing of visible areas, false means no testing and always rendering
+		*/
+		Qk_DEFINE_PROPERTY(bool, test_visible_region, ProtectedConst);
+
+		/**
 		 * 这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		 * This value represents whether the view is visible in the current display area, which is mostly the screen
 		*/
 		Qk_DEFINE_PROP_GET(bool, visible_region, ProtectedConst);
-
-		/**
-		 * Enable testing of visible areas, false means no testing and always rendering
-		*/
-		Qk_DEFINE_PROPERTY(bool, test_visible_region, ProtectedConst);
 
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,

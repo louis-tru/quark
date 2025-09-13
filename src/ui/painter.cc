@@ -56,7 +56,7 @@ namespace qk {
 		: _render(window->render()), _canvas(nullptr)
 		, _cache(nullptr)
 		, _window(window)
-		, _opacity(1), _mark_recursive(0), _matrix(nullptr)
+		, _color(1,1,1,1), _mark_recursive(0), _matrix(nullptr)
 	{
 		_canvas = _render->getCanvas();
 		_cache = _canvas->getPathvCache();
@@ -152,32 +152,55 @@ namespace qk {
 		}
 	}
 
-	void Painter::visitView(View *view) {
-		auto v = view->_first.load();
-		if (v) {
-			auto lastOpacity = _opacity;
-			auto lastMarkRecursive = _mark_recursive;
-			do {
-				if (v->_visible) {
-					uint32_t mark = lastMarkRecursive | v->mark_value(); // inherit recursive
-					if (mark) {
-						v->solve_marks(*_matrix, view, mark);
-						_mark_recursive = mark & View::kRecursive_Mark;
-					}
-					if (v->_visible_region && v->_opacity) {
-						_opacity = lastOpacity * v->_opacity;
-						v->draw(this);
-					}
+	template<CascadeColor parentCascadeColor>
+	inline void Painter::visitView_(View *view, View *v) {
+		auto lastColor = _color;
+		auto lastMarkRecursive = _mark_recursive;
+		do {
+			if (v->_visible) {
+				uint32_t mark = lastMarkRecursive | v->mark_value(); // inherit recursive
+				if (mark) {
+					v->solve_marks(*_matrix, view, mark);
+					_mark_recursive = mark & View::kRecursive_Mark;
 				}
-				v = v->_next.load();
-			} while(v);
-			_opacity = lastOpacity;
-			_mark_recursive = lastMarkRecursive;
+				if (v->_visible_region && v->_color.a()) {
+					switch (parentCascadeColor) {
+						case CascadeColor::None:
+							_color = v->_color.to_color4f(); break;
+						case CascadeColor::Alpha:
+							_color = v->_color.mul_alpha_only(lastColor.a()); break;
+						case CascadeColor::Color:
+							_color = v->_color.mul_rgb_only(lastColor); break;
+						case CascadeColor::Both:
+							_color = v->_color.mul_color4f(lastColor); break;
+					}
+					v->draw(this);
+				}
+			}
+			v = v->_next.load(std::memory_order_acquire);
+		} while(v);
+		_color = lastColor;
+		_mark_recursive = lastMarkRecursive;
+	}
+
+	void Painter::visitView(View *view) {
+		auto v = view->_first.load(std::memory_order_acquire);
+		if (v) {
+			switch (view->_cascade_color) {
+				case CascadeColor::None:
+					visitView_<CascadeColor::None>(view, v); break;
+				case CascadeColor::Alpha:
+					visitView_<CascadeColor::Alpha>(view, v); break;
+				case CascadeColor::Color:
+					visitView_<CascadeColor::Color>(view, v); break;
+				case CascadeColor::Both:
+					visitView_<CascadeColor::Both>(view, v); break;
+			}
 		}
 	}
 
 	void Painter::visitView(View* v, cMat* mat) {
-		if (v->_first.load()) {
+		if (v->_first.load(std::memory_order_relaxed)) {
 			auto lastMatrix = _matrix;
 			set_matrix(mat);
 			visitView(v);
@@ -188,7 +211,7 @@ namespace qk {
 	void Painter::drawBoxBasic(Box *box, BoxData &data) {
 		drawBoxShadow(box, data);
 
-		if (_opacity == 1) {
+		if (_color.a() == 1.0f) {
 			drawBoxColor(box, data);
 			drawBoxFill(box, data);
 			drawBoxBorder(box, data);
@@ -231,7 +254,7 @@ namespace qk {
 						if (pv->vCount) {
 							addItem(pathvs, _border->color[i], pv);
 						} else { // stroke
-							stroke.color = _border->color[i].to_color4f_alpha(_opacity);
+							stroke.color = _border->color[i].mul_color4f(_color);
 							stroke.width = _border->width[i];
 							_canvas->drawPath(pv->path, stroke);
 						}
@@ -244,7 +267,7 @@ namespace qk {
 			for (int i = 0; i < pathvs.total; i++) {
 				auto & it = pathvs.indexed[pathvs.items[i]];
 				_canvas->drawPathvColors(it.pathv, it.count,
-					it.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+					it.color.mul_color4f(_color), kSrcOver_BlendMode);
 			}
 		}
 
@@ -306,7 +329,7 @@ namespace qk {
 		ImagePaint img;
 		paint.type = Paint::kBitmap_Type;
 		paint.image = &img;
-		paint.color.set_a(_opacity);
+		paint.color = _color;
 
 		switch(fill->repeat()) {
 			case Repeat::Repeat:
@@ -373,7 +396,7 @@ namespace qk {
 			pts[1] = t;
 		}
 		Paint paint;
-		paint.color.set_a(_opacity);
+		paint.color = _color;
 		GradientPaint g{
 			GradientPaint::kLinear_Type, pts[0], pts[1],
 			(uint32_t)fill->colors().length(),
@@ -392,7 +415,7 @@ namespace qk {
 		Vec2 radius{_rect_inside.size.x() * 0.5f, _rect_inside.size.y() * 0.5f};
 		Vec2 center = _rect_inside.origin + radius;
 		Paint paint;
-		paint.color.set_a(_opacity);
+		paint.color = _color;
 		GradientPaint g{
 			GradientPaint::kRadial_Type, center, radius,
 			(uint32_t)fill->colors().length(),
@@ -416,7 +439,7 @@ namespace qk {
 			auto &o = data.outside->rect.origin;
 			_canvas->drawRRectBlurColor({
 				{o.x()+s.x, o.y()+s.y}, data.outside->rect.size,
-			},&box->_border_radius_left_top, s.size, s.color.to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+			},&box->_border_radius_left_top, s.size, s.color.mul_color4f(_color), kSrcOver_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 		_canvas->restore();
@@ -427,7 +450,7 @@ namespace qk {
 			return;
 		getInsideRectPath(box, data);
 		_canvas->drawPathvColor(*data.inside,
-			box->_background_color.to_color4f_alpha(_opacity), kSrcOver_BlendMode
+			box->_background_color.mul_color4f(_color), kSrcOver_BlendMode
 		);
 		// Paint paint;
 		// paint.antiAlias = false;
@@ -445,9 +468,9 @@ namespace qk {
 				if (_border->width[i]) { // top
 					auto pv = &data.outline->top + i;
 					if (pv->vCount) {
-					_canvas->drawPathvColor(*pv, _border->color[i].to_color4f_alpha(_opacity), kSrcOver_BlendMode);
+					_canvas->drawPathvColor(*pv, _border->color[i].mul_color4f(_color), kSrcOver_BlendMode);
 					} else { // stroke
-						stroke.color = _border->color[i].to_color4f_alpha(_opacity);
+						stroke.color = _border->color[i].mul_color4f(_color);
 						stroke.width = _border->width[i];
 						_canvas->drawPath(pv->path, stroke);
 					}
@@ -479,7 +502,8 @@ namespace qk {
 			auto margin = v->_scrollbar_margin;
 			auto origin = Vec2();// Vec2{b->margin_left(),b->margin_top()};
 			auto size = b->_client_size;
-			auto color = v->scrollbar_color().to_color4f_alpha(_opacity * v->_scrollbar_opacity);
+			auto color = v->scrollbar_color().mul_color4f(_color);
+			color[3] *= v->_scrollbar_opacity;
 			auto _border = b->_border.load();
 
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar
@@ -516,7 +540,7 @@ namespace qk {
 
 		// draw text  background
 		if (v->text_background_color().value.a()) {
-			auto color = v->text_background_color().value.to_color4f_alpha(_opacity);
+			auto color = v->text_background_color().value.mul_color4f(_color);
 			for (auto i: blob_visible) {
 				auto &blob = _blob[i];
 				auto &line = lines->line(blob.line);
@@ -536,7 +560,7 @@ namespace qk {
 		if (shadow.color.a()) {
 			Paint paint;
 			PaintFilter filter;
-			paint.color = shadow.color.to_color4f_alpha(_opacity);
+			paint.color = shadow.color.mul_color4f(_color);
 			if (shadow.size) {
 				filter.type = PaintFilter::kBlur_Type;
 				filter.val0 = shadow.size;
@@ -556,7 +580,7 @@ namespace qk {
 		// draw text blob
 		if (v->text_color().value.a()) {
 			Paint paint;
-			paint.color = v->text_color().value.to_color4f_alpha(_opacity);
+			paint.color = v->text_color().value.mul_color4f(_color);
 			for (auto i: blob_visible) {
 				auto &blob = _blob[i];
 				auto &line = lines->line(blob.line);
@@ -594,7 +618,7 @@ namespace qk {
 			// paint.antiAlias = false;
 			paint.type = Paint::kBitmap_Type;
 			paint.image = &img;
-			paint.color.set_a(draw->opacity());
+			paint.color = draw->color();
 			//img.tileModeX = ImagePaint::kDecal_TileMode;
 			//img.tileModeY = ImagePaint::kDecal_TileMode;
 			img.filterMode = ImagePaint::kLinear_FilterMode;
@@ -677,7 +701,7 @@ namespace qk {
 
 			// draw text background
 			if (text_length() && text_background_color().value.a()) {
-				auto color = text_background_color().value.to_color4f_alpha(draw->opacity());
+				auto color = text_background_color().value.mul_color4f(draw->color());
 				for (auto i: _blob_visible)
 					draw_background(_blob[i], color);
 			}
@@ -685,7 +709,7 @@ namespace qk {
 			// draw text marked
 			auto begin = _marked_blob_begin;
 			if (begin < _marked_blob_end && _marked_color.a()) {
-				auto color = _marked_color.to_color4f_alpha(draw->opacity());
+				auto color = _marked_color.mul_color4f(draw->color());
 				do
 					draw_background(_blob[begin++], color);
 				while(begin < _marked_blob_end);
@@ -695,7 +719,7 @@ namespace qk {
 			if (shadow.color.a()) {
 				Paint paint;
 				PaintFilter filter;
-				paint.color = shadow.color.to_color4f_alpha(draw->opacity());
+				paint.color = shadow.color.mul_color4f(draw->color());
 				if (shadow.size) {
 					filter.type = PaintFilter::kBlur_Type;
 					filter.val0 = shadow.size;
@@ -715,7 +739,7 @@ namespace qk {
 			auto color = _value_u4.length() ? text_color().value: _placeholder_color;
 			if (color.a()) {
 				Paint paint;
-				paint.color = color.to_color4f_alpha(draw->opacity());
+				paint.color = color.mul_color4f(draw->color());
 				for (auto i: _blob_visible) {
 					auto &blob = _blob[i];
 					auto &line = lines->line(blob.line);
@@ -733,7 +757,7 @@ namespace qk {
 			//auto y = offset.y() + line.baseline - _text_ascent;
 			auto y = offset.y() + (line.end_y + line.start_y - _cursor_height) * 0.5f;
 			auto &rect = draw->cache()->getRectPath({{x, y},{2.0,_cursor_height}});
-			canvas->drawPathvColor(rect, _cursor_color.to_color4f_alpha(draw->opacity()), kSrcOver_BlendMode);
+			canvas->drawPathvColor(rect, _cursor_color.mul_color4f(draw->color()), kSrcOver_BlendMode);
 		}
 
 		if (clip) {
@@ -773,7 +797,7 @@ namespace qk {
 				solve_marks(Mat(), nullptr, mark);
 				painter->_mark_recursive = mark & View::kRecursive_Mark;
 			}
-			if (_visible_region && opacity() != 0) {
+			if (_visible_region && color().a() != 0) {
 				painter->_tempAllocator[0].reset();
 				painter->_tempAllocator[1].reset();
 				BoxData data;

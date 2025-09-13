@@ -32,9 +32,8 @@
 #include <math.h>
 #include "./math.h"
 
-#define Qk_USE_ARM_NENO Qk_ARCH_ARM64
-
-#if Qk_USE_ARM_NENO
+#define Qk_USE_ARM_NEON Qk_ARCH_ARM64
+#if Qk_USE_ARM_NEON
 #include <arm_neon.h>
 #endif
 
@@ -334,8 +333,33 @@ namespace qk {
 		return ! operator==(color);
 	}
 
-	Color4f Color4f::to_color4f_alpha(float alpha) const {
+	Color4f Color4f::mul_alpha_only(float alpha) const {
 		return Color4f(r(), g(), b(), a() * alpha);
+	}
+
+	template<>
+	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const {
+#if Qk_USE_ARM_NEON
+		float32x4_t rgba = vmulq_f32(
+			float32x4_t{val[0], val[1], val[2], val[3]},
+			//            *         *       *       *
+			float32x4_t{v.val[0],v.val[1],v.val[2],v.val[3]}
+		);
+		return Vec<float,4>{rgba[0], rgba[1], rgba[2], rgba[3]};
+#else
+		return Vec<float,4>(
+			val[0] * v.val[0],
+			val[1] * v.val[1],
+			val[2] * v.val[2],
+			val[3] * v.val[3]
+		);
+#endif
+	}
+
+	template<>
+	Vec<float,4>& Vec<float,4>::operator*=(const Vec<float,4> &v) {
+		*this = operator*(v);
+		return *this;
 	}
 
 	bool Color::operator==(Color color) const {
@@ -346,23 +370,102 @@ namespace qk {
 		return *reinterpret_cast<const int*>(&color) != *reinterpret_cast<const int*>(this);
 	}
 
+	constexpr float color_to_colorf_indexed[] = {
+		0.0f, 0.003921569f, 0.007843137f, 0.011764706f, 0.015686275f, 0.019607843f, 0.023529412f, 0.02745098f,
+		0.03137255f, 0.03529412f, 0.039215688f, 0.043137256f, 0.047058824f, 0.050980393f, 0.05490196f, 0.05882353f,
+		0.0627451f, 0.06666667f, 0.07058824f, 0.07450981f, 0.078431375f, 0.08235294f, 0.08627451f, 0.09019608f,
+		0.09411765f, 0.09803922f, 0.101960786f, 0.105882354f, 0.10980392f, 0.11372549f, 0.11764706f, 0.12156863f,
+		0.1254902f, 0.12941177f, 0.13333334f, 0.13725491f, 0.14117648f, 0.14509805f, 0.14901961f, 0.15294118f,
+		0.15686275f, 0.16078432f, 0.16470589f, 0.16862746f, 0.17254902f, 0.17647059f, 0.18039216f, 0.18431373f,
+		0.1882353f, 0.19215687f, 0.19607843f, 0.2f, 0.20392157f, 0.20784314f, 0.21176471f, 0.21568628f,
+		0.21960784f, 0.22352941f, 0.22745098f, 0.23137255f, 0.23529412f, 0.23921569f, 0.24313726f, 0.24705882f, 0.2509804f,
+		0.25490198f, 0.25882354f, 0.2627451f, 0.26666668f, 0.27058825f, 0.27450982f, 0.2784314f, 0.28235295f,
+		0.28627452f, 0.2901961f, 0.29411766f, 0.29803923f, 0.3019608f, 0.30588236f, 0.30980393f, 0.3137255f,
+		0.31764707f, 0.32156864f, 0.3254902f, 0.32941177f, 0.33333334f, 0.3372549f, 0.34117648f, 0.34509805f,
+		0.34901962f, 0.3529412f, 0.35686275f, 0.36078432f, 0.3647059f, 0.36862746f, 0.37254903f, 0.3764706f,
+		0.38039216f, 0.38431373f, 0.3882353f, 0.39215687f, 0.39607844f, 0.4f, 0.40392157f, 0.40784314f,
+		0.4117647f, 0.41568628f, 0.41960785f, 0.42352942f, 0.42745098f, 0.43137255f, 0.43529412f, 0.4392157f, 0.44313726f, 0.44705883f,
+		0.4509804f, 0.45490196f, 0.45882353f, 0.4627451f, 0.46666667f, 0.47058824f, 0.47450981f, 0.47843137f,
+		0.48235294f, 0.4862745f, 0.49019608f, 0.49411765f, 0.49803922f, 0.5019608f, 0.5058824f, 0.50980395f, 0.5137255f,
+		0.5176471f, 0.52156866f, 0.5254902f, 0.5294118f, 0.53333336f, 0.5372549f, 0.5411765f, 0.54509807f,
+		0.54901963f, 0.5529412f, 0.5568628f, 0.56078434f, 0.5647059f, 0.5686275f, 0.57254905f, 0.5764706f,
+		0.5803922f, 0.58431375f, 0.5882353f, 0.5921569f, 0.59607846f, 0.604f, 0.6039216f, 0.60784316f,
+		0.6117647f, 0.6156863f, 0.61960787f, 0.62352943f, 0.627451f, 0.6313726f, 0.63529414f, 0.6392157f, 0.6431373f, 0.64705884f,
+		0.6509804f, 0.654902f, 0.65882355f, 0.6627451f, 0.6666667f, 0.67058825f, 0.6745098f, 0.6784314f,
+		0.68235296f, 0.68627452f, 0.6901961f, 0.69411767f, 0.69803923f, 0.7019608f, 0.7058824f, 0.70980394f, 0.7137255f, 0.7176471f,
+		0.72156864f, 0.7254902f, 0.7294118f, 0.73333335f, 0.7372549f, 0.7411765f, 0.74509805f,
+		0.7490196f, 0.7529412f, 0.75686276f, 0.7607843f, 0.7647059f, 0.76862746f, 0.772549f, 0.7764706f,
+		0.78039217f, 0.78431374f, 0.7882353f, 0.7921569f, 0.79607844f, 0.8f, 0.8039216f, 0.80784315f, 0.8117647f,
+		0.8156863f, 0.81960785f, 0.8235294f, 0.827451f, 0.83137256f, 0.8352941f, 0.8392157f, 0.84313726f, 0.84705883f,
+		0.8509804f, 0.854902f, 0.85882354f, 0.8627451f, 0.8666667f, 0.87058824f, 0.8745098f, 0.8784314f,
+		0.88235295f, 0.8862745f, 0.8901961f, 0.89411765f, 0.8980392f, 0.9019608f, 0.90588236f, 0.9098039f, 0.9137255f, 0.91764706f,
+		0.92156863f, 0.9254902f, 0.92941177f, 0.93333334f, 0.9372549f, 0.9411765f, 0.94509804f, 0.9490196f,
+		0.9529412f, 0.95686275f, 0.9607843f, 0.9647059f, 0.96862745f, 0.972549f, 0.9764706f, 0.98039216f,
+		0.9843137f, 0.9882353f, 0.99215686f, 0.99607843f, 1.0f
+	};
+
+	static_assert(sizeof(color_to_colorf_indexed)/sizeof(color_to_colorf_indexed[0]) == 256, "");
+
+	float Color::to_float_alpha() const {
+		return color_to_colorf_indexed[val[3]];
+	}
+
 	Color4f Color::to_color4f() const {
-		// create indexed table
-		constexpr float scale = 1 / 255.0f;
-		return Color4f(r() * scale,
-									 g() * scale,
-									 b() * scale,
-									 a() * scale
+		return Color4f(color_to_colorf_indexed[val[0]],
+									color_to_colorf_indexed[val[1]],
+									color_to_colorf_indexed[val[2]],
+									color_to_colorf_indexed[val[3]]
 								);
 	}
 
-	Color4f Color::to_color4f_alpha(float alpha) const {
-		constexpr float scale = 1 / 255.0f;
-		return Color4f(r() * scale,
-									 g() * scale,
-									 b() * scale,
-									 a() * scale * alpha
+	Color4f Color::mul_alpha_only(float alpha) const {
+		return Color4f(color_to_colorf_indexed[val[0]],
+									color_to_colorf_indexed[val[1]],
+									color_to_colorf_indexed[val[2]],
+									color_to_colorf_indexed[val[3]] * alpha
 								);
+	}
+
+	Color4f Color::mul_rgb_only(Color4f color) const {
+#if Qk_USE_ARM_NEON
+		float32x4_t rgba = vmulq_f32(
+			float32x4_t{
+				color_to_colorf_indexed[val[0]], // * color.r(),
+				color_to_colorf_indexed[val[1]], // * color.g(),
+				color_to_colorf_indexed[val[2]], // * color.b(),
+				color_to_colorf_indexed[val[3]]  // * color.a()
+			},
+			float32x4_t{color.val[0], color.val[1], color.val[2], 1.0f}
+		);
+		return Color4f{rgba[0], rgba[1], rgba[2], rgba[3]};
+#else
+		return Color4f(color_to_colorf_indexed[val[0]] * color.val[0],
+									color_to_colorf_indexed[val[1]] * color.val[1],
+									color_to_colorf_indexed[val[2]] * color.val[2],
+									color_to_colorf_indexed[val[3]]
+								);
+#endif
+	}
+
+	Color4f Color::mul_color4f(Color4f color) const {
+#if Qk_USE_ARM_NEON
+		float32x4_t rgba = vmulq_f32(
+			float32x4_t{
+				color_to_colorf_indexed[val[0]], // * color.r(),
+				color_to_colorf_indexed[val[1]], // * color.g(),
+				color_to_colorf_indexed[val[2]], // * color.b(),
+				color_to_colorf_indexed[val[3]]  // * color.a()
+			},
+			float32x4_t{color.val[0], color.val[1], color.val[2], color.val[3]}
+		);
+		return Color4f{rgba[0], rgba[1], rgba[2], rgba[3]};
+#else
+		return Color4f(color_to_colorf_indexed[val[0]] * color.val[0],
+									color_to_colorf_indexed[val[1]] * color.val[1],
+									color_to_colorf_indexed[val[2]] * color.val[2],
+									color_to_colorf_indexed[val[3]] * color.val[3]
+								);
+#endif
 	}
 
 	union {
@@ -394,10 +497,6 @@ namespace qk {
 		}
 		return *reinterpret_cast<Color*>(&abgr);
 	}
-
-	// uint32_t Color::to_uint32() const {// small end data as a,b,g,r
-	// 	return *reinterpret_cast<const uint32_t*>(this);
-	// }
 
 	uint32_t Color::to_uint32_abgr() const {
 		uint32_t abgr = *reinterpret_cast<const uint32_t*>(this);
@@ -478,10 +577,11 @@ namespace qk {
 		[ d, e, f ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_USE_ARM_NENO
+#if Qk_USE_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
-			float32x4_t{val[0],val[1],val[3],val[4]},
-			float32x4_t{v.val[0],v.val[1],v.val[0],v.val[1]}
+			float32x4_t{val[0]  , val[1]  , val[3]  , val[4]},
+			//            *         *        *         *
+			float32x4_t{v.val[0], v.val[1], v.val[0], v.val[1]}
 		); // *
 		float32x2_t p4 = vadd_f32(
 			vadd_f32(
@@ -529,7 +629,7 @@ namespace qk {
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_USE_ARM_NENO
+#if Qk_USE_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{  val[0], val[3],  val[1],  val[4]},
 			float32x4_t{v.val[0],v.val[0],v.val[1],v.val[1]}
@@ -577,7 +677,7 @@ namespace qk {
 		*/
 		float cz = cosf(z);
 		float sz = sinf(z);
-#if Qk_USE_ARM_NENO
+#if Qk_USE_ARM_NEON
 		float32x4_t _a = {val[0],val[1],val[3],val[4]};
 		float32x4_t p0 = vmulq_f32(_a, float32x4_t{cz,sz,cz,sz}); // *
 		float32x4_t p1 = vmulq_f32(_a,float32x4_t{sz,cz,sz,cz}); // *
@@ -672,7 +772,7 @@ namespace qk {
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_USE_ARM_NENO
+#if Qk_USE_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
 			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
@@ -701,7 +801,7 @@ namespace qk {
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_USE_ARM_NENO
+#if Qk_USE_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
 			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
@@ -734,7 +834,7 @@ namespace qk {
 		float* _v = output.val;
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_USE_ARM_NENO
+#if Qk_USE_ARM_NEON
 		float32x4_t p0 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[0],_a[1]},
 			float32x4_t{_b[0],_b[3],_b[1],_b[4]}

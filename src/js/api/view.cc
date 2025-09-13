@@ -117,14 +117,8 @@ namespace qk { namespace js {
 				Js_Return( self->level() );
 			});
 
-			Js_Class_Accessor(opacity, {
-				Js_Return( self->opacity() );
-			}, {
-				float out;
-				if (!val->asFloat32(worker).to(out))
-					Js_Throw("@prop View.set_opacity {float}\n");
-				self->set_opacity(out);
-			});
+			Js_MixObject_Accessor(View, Color, color, color);
+			Js_MixObject_Accessor(View, CascadeColor, cascade_color, cascadeColor);
 
 			Js_Class_Accessor(cursor, {
 				Js_Return( uint32_t(self->cursor()) );
@@ -132,6 +126,8 @@ namespace qk { namespace js {
 				Js_Parse_Type(CursorStyle, val, "@prop View.set_cursor = %s");
 				self->set_cursor(out);
 			});
+
+			Js_MixObject_Accessor(View, float, opacity, opacity);
 
 			Js_Class_Accessor(visible, {
 				Js_ReturnBool( self->visible() );

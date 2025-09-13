@@ -140,8 +140,10 @@ namespace qk {
 		};
 
 		// View
-		Qk_Set_Accessor(View, OPACITY, opacity, float);
+		Qk_Set_Accessor(View, COLOR, color, Color);
+		Qk_Set_Accessor(View, CASCADE_COLOR, cascade_color, CascadeColor);
 		Qk_Set_Accessor(View, CURSOR, cursor, CursorStyle);
+		Qk_Set_Accessor(View, OPACITY, opacity, float);
 		Qk_Set_Accessor(View, VISIBLE, visible, bool);
 		Qk_Set_Accessor(View, RECEIVE, receive, bool);
 		accessors[kLabel_ViewType] = accessors[kView_ViewType]; // copy view props to label

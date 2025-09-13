@@ -112,14 +112,15 @@ namespace qk {
 		, _mark_value(kLayout_None)
 		, _mark_index(0)
 		, _level(0)
-		, _opacity(1.0)
+		, _color(255,255,255,255) // white
 		, _cursor(CursorStyle::Arrow)
+		, _cascade_color(CascadeColor::Alpha)
 		, _visible(true)
-		, _visible_region(false)
 		, _test_visible_region(true)
+		, _visible_region(false)
 		, _receive(true)
 	{
-		// Qk_DLog("Container sizeof, %d", sizeof(Container));
+		Qk_DLog("View sizeof, %d", sizeof(View));
 	}
 
 	void View::destroy() {
@@ -176,10 +177,28 @@ namespace qk {
 		}
 	}
 
+	float View::opacity() const {
+		return _color.to_float_alpha();
+	}
+
 	void View::set_opacity(float val, bool isRt) {
-		val = Float32::clamp(val, 0, 1);
-		if (_opacity != val) {
-			_opacity = val;
+		uint8_t alpha8 = val * 255;
+		if (_color.a() != alpha8) {
+			_color.set_a(alpha8);
+			mark(0, isRt); // mark render
+		}
+	}
+
+	void View::set_color(Color val, bool isRt) {
+		if (_color != val) {
+			_color = val;
+			mark(0, isRt); // mark render
+		}
+	}
+
+	void View::set_cascade_color(CascadeColor val, bool isRt) {
+		if (_cascade_color != val) {
+			_cascade_color = val;
 			mark(0, isRt); // mark render
 		}
 	}
@@ -738,7 +757,7 @@ namespace qk {
 	View* View::init(Window* win) {
 		Qk_ASSERT(win);
 		_window = win;
-		_accessor = get_props_accessor(viewType(), kOPACITY_CssProp);
+		_accessor = get_props_accessor(viewType(), kCOLOR_CssProp);
 		return this;
 	}
 

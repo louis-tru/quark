@@ -189,11 +189,11 @@ namespace qk {
 		auto _button_Hover = searchItem(".qk_button:hover", true);
 		auto _button_Active = searchItem(".qk_button:active", true);
 		_button_Normal->set_time(180);
-		_button_Normal->set_opacity(1);
+		_button_Normal->set_color({255,255,255,255});
 		_button_Hover->set_time(80);
-		_button_Hover->set_opacity(0.7);
+		_button_Hover->set_color({255,255,255,uint8_t(255*0.7)});
 		_button_Active->set_time(50);
-		_button_Active->set_opacity(0.35);
+		_button_Active->set_color({255,255,255,uint8_t(255*0.35)});
 	}
 
 	CStyleSheets* RootStyleSheets::searchItem(cString &exp, bool make) {

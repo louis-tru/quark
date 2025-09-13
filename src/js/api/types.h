@@ -109,6 +109,7 @@ namespace qk {
 		F(KeyboardReturnType) \
 		F(CursorStyle) \
 		F(FindDirection) \
+		F(CascadeColor) \
 		F(FFID) \
 		F(SkeletonDataPtr) \
 

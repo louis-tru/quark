@@ -40,6 +40,60 @@ namespace qk {
 	static QkTextureLoader *textureLoader = new QkTextureLoader();
 	static Dict<String, Sp<SkeletonData>> _skeletonCache;
 
+	void QkTextureLoader::load(AtlasPage &page, const spine::String &path) {
+		auto source = shared_app()->imgPool()->get(path.buffer());
+		Qk_ASSERT(source, "Invalid image");
+		Qk_ASSERT_NE(page.width, 0, "Invalid image width");
+		Qk_ASSERT_NE(page.height, 0, "Invalid image height");
+		source->retain();
+		page.setRendererObject(source);
+	}
+
+	void QkTextureLoader::unload(void *source) {
+		((ImageSource *) source)->release();
+	}
+
+	void SkeletonData::QkAtlasAttachmentLoader::configureAttachment(Attachment *attachment) {
+		if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
+			setAttachmentVertices((RegionAttachment *) attachment);
+		} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
+			setAttachmentVertices((MeshAttachment *) attachment);
+		}
+	}
+
+	void SkeletonData::QkAtlasAttachmentLoader::deleteAttachmentVertices(void *vertices) {
+		delete (AttachmentVertices *) vertices;
+	}
+
+	static uint16_t quadTriangles[6] = {0, 1, 2, 2, 3, 0};
+
+	void SkeletonData::QkAtlasAttachmentLoader::setAttachmentVertices(RegionAttachment *attachment) {
+		auto region = (AtlasRegion *) attachment->getRendererObject();
+		auto attachmentVertices = new AttachmentVertices(region->page, quadTriangles, 4, 6);
+		V3F_T2F_C4B_C4B *vertices = attachmentVertices->_triangles.verts;
+		for (int i = 0, ii = 0; i < 4; ++i, ii += 2) {
+			vertices[i].texCoords[0] = attachment->getUVs()[ii];
+			vertices[i].texCoords[1] = attachment->getUVs()[ii + 1];
+		}
+		attachment->setRendererObject(attachmentVertices, deleteAttachmentVertices);
+	}
+
+	void SkeletonData::QkAtlasAttachmentLoader::setAttachmentVertices(MeshAttachment *attachment) {
+		auto region = (AtlasRegion *) attachment->getRendererObject();
+		auto attachmentVertices = new AttachmentVertices(
+			region->page,
+			attachment->getTriangles().buffer(),
+			attachment->getWorldVerticesLength() >> 1,
+			attachment->getTriangles().size()
+		);
+		V3F_T2F_C4B_C4B *vertices = attachmentVertices->_triangles.verts;
+		for (int i = 0, ii = 0, nn = attachment->getWorldVerticesLength(); ii < nn; ++i, ii += 2) {
+			vertices[i].texCoords[0] = attachment->getUVs()[ii];
+			vertices[i].texCoords[1] = attachment->getUVs()[ii + 1];
+		}
+		attachment->setRendererObject(attachmentVertices, deleteAttachmentVertices);
+	}
+
 	static String get_atlas_path(cString &path, bool json) {
 		String atlasP;
 		atlasP = path.replace(json ? "-ess.json": "-ess.skel", ".atlas");

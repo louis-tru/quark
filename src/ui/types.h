@@ -264,6 +264,17 @@ namespace qk {
 
 	// ----------------------------------------------------------------
 
+	/**
+	 * Color changes will affect sub views
+	 */
+	enum class CascadeColor: uint8_t {
+		None, // No change
+		Alpha, // Only change Alpha for sub views
+		Color, // Only change RGB for sub views
+		Rgb = Color, // alias of Color
+		Both, // Change RGB and Alpha for sub views
+	};
+
 	// box border value
 	struct BoxBorder {
 		float width;

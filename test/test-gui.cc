@@ -104,7 +104,7 @@ Qk_TEST_Func(gui) {
 	img->set_src(fs_resources("jsapi/res/cc.tga"));
 	img->set_width({320});
   // img->set_height({250});
-	img->set_opacity(0.9);
+	img->set_color({255,255,255,uint8_t(255*0.9)});
 	// img->set_border_radius({60});
 	img->set_border_radius_right_top(40);
 	img->set_border_radius_left_bottom(40);

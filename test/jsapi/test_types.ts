@@ -80,7 +80,7 @@ export default async function(_: any) {
 	Mv(v, 'parseRect', [`rect(0,0,1,1)`], e=>e.x==0&&e.y==0&&e.width==1&&e.height==1)
 	Mv(v, 'parseMat', ['mat(1,0,0,0,1,0)'],e=>e.toString()=='mat(1,0,0,0,1,0)')
 	Mv(v, 'parseMat4', ['mat4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'],e=>e.toString()=='mat4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)')
-	Mv(v, 'parseColor', ['rgba(0,0,100,255)'],e=>e.toString()=='#000064');
+	Mv(v, 'parseColor', ['rgba(0,0,100,1)'],e=>e.toString()=='#000064');
 	Mv(v, 'parseShadow', ['10 10 5 #f00'],e=>e.toString()=='10 10 5 #ff0000')
 	Mv(v, 'parseBoxBorder', [`1 #f00`], e=>e.toString()=='1 #ff0000')
 	Mv(v, 'parseFillPosition', ['start'], e=>e.kind==v.FillPositionKind.Start)
@@ -96,5 +96,5 @@ export default async function(_: any) {
 	Mv(v, 'parseBoxFilter', ['image(res/image.png, auto 100%, x=start, y=20%, repeat)'])
 	Mv(v, 'parseBoxFilter', ['radial(#ff00ff 0%, #ff0 50%, #00f 100%)'])
 	Mv(v, 'parseBoxFilter', ['linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)'])
-	Mv(v, 'parseBoxShadow', [`10 10 2 rgba(255,255,0,255)`])
+	Mv(v, 'parseBoxShadow', [`10 10 2 rgba(255,255,0,1)`])
 }

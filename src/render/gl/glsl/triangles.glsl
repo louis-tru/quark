@@ -1,30 +1,41 @@
 #vert
-in  vec2     texCoordsIn;     // 8 bytes
-in  vec4     colorIn;         //!< {GL_UNSIGNED_BYTE} 4 bytes
-in  vec4     color2In;        //!< {GL_UNSIGNED_BYTE} 4 bytes
+uniform vec4     color;
 
-out vec2     texCoords;
-out vec4     color;
-out vec4     color2;
+in      vec2     texCoordsIn;     // 8 bytes
+in      vec4     lightColorIn;    //!< {GL_UNSIGNED_BYTE} 4 bytes, RGBA
+in      vec4     darkColorIn;     //!< {GL_UNSIGNED_BYTE} 4 bytes, RGBA
+
+out     vec2     texCoords;
+out     vec4     light;
+out     vec4     dark;
 
 void main() {
 	gl_Position = matrix * vec4(vertexIn.xy, aafuzzIn + depth, 1.0);
 	// gl_Position.y *= -1.0; // Flip Y axis for GLSL
 	texCoords = texCoordsIn;
-	color = colorIn;
-	color2 = color2In;
+	light = lightColorIn * color;
+	dark = darkColorIn;
 }
 
 #frag
-uniform   sampler2D      image;
-in        lowp vec2      texCoords;
-in        lowp vec4      color;
-in        lowp vec4      color2;
+uniform sampler2D      image;
+in      lowp vec2      texCoords;
+in      lowp vec4      light;
+in      lowp vec4      dark;
 
 void main() {
-	// Spine 的 two color tint，一般是颜色 * tex 的混合
-	// 这里可以用 vColor 作为乘色，用 vColor2 作为加色 (Spine 的标准做法)
-	fragColor = texture(image, texCoords) * color + color2;
+	lowp vec4 tex = texture(image, texCoords);
+
+#ifdef Qk_SHADER_IF_FLAGS_DARK_COLOR
+	// if not premultiplied alpha, (1.0 - tex.rgb) is dark color of tex
+	// if premultiplied alpha, (tex.a - tex.rgb) is dark color of tex
+	// but we always use (1.0 - tex.rgb) here, do simple processing.
+	// so the dark color will be a bit different when using premultiplied alpha
+	// because the dark color is usually very small, the difference is not easy to see
+	fragColor = light * tex + dark * vec4(1.0 - tex.rgb, tex.a);
+#else
+	fragColor = light * tex;
+#endif
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
