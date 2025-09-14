@@ -1416,7 +1416,7 @@ export function parseMat4(val: Mat4In, desc?: string): Mat4 { //!<
 // export type ColorIn = ColorStrIn | N | Color;
 const ColorReg = [
 	/^#([0-9a-f]{3}([0-9a-f])?([0-9a-f]{2})?([0-9a-f]{2})?)$/i,
-	/^\s*rgb(a)?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(\s*,\s*(\d{1,3}))?\s*\)\s*$/,
+	/^\s*rgb(a)?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(\s*,\s*(0?\.\d+|1))?\s*\)\s*$/,
 ];
 function parseColorNumber(val: number) {
 	return newColor(val >> 24 & 255, // r
@@ -1453,7 +1453,7 @@ export function parseColor(val: ColorIn, desc?: string, ref?: Reference): Color 
 			if (m[1] == 'a') { // rgba
 				if (m[5]) { // a
 					return newColor(
-						parseInt(m[2]) % 256, parseInt(m[3]) % 256, parseInt(m[4]) % 256, Math.min(parseInt(m[6]) * 255, 255)
+						parseInt(m[2]) % 256, parseInt(m[3]) % 256, parseInt(m[4]) % 256, parseFloat(m[6]) * 255
 					);
 				}
 			} else { // rgb

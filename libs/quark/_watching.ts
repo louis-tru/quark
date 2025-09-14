@@ -91,8 +91,9 @@ export function connectServer(pkg: _Package, notice: Noticer) {
 			try {
 				(mod as any).loaded = false; // force reload
 				(mod as any)._load(`${filename}?${hash}`, filename);
-			} catch (error) {
-				console.error(`Error reloading module ${name}:`, error);
+			} catch (error: any) {
+				console.error(`Error reloading module ${name}:`, error, '\n');
+				console.error(error.stack);
 				(mod as any).loaded = true; // restore to last loaded state
 				return;
 			}

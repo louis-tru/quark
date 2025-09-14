@@ -43,7 +43,7 @@ using namespace qk;
 
 Qk_TEST_Func(little_border) {
 	App app;
-	auto w = Window::Make({.fps=0x0, .frame={{0,0}, {600,600}}, .title="Test Spine",.msaa=1});
+	auto w = Window::Make({.fps=0x0, .frame={{0,0}, {600,600}}, .title="Test Little Border",.msaa=1});
 	auto r = w->root();
 	auto m0 = r->append_new<Matrix>();
 
@@ -64,7 +64,7 @@ Qk_TEST_Func(little_border) {
 		k1->set_rotate_z(360);
 		//k1->set_scale(0.3);
 		m0->set_action(act);
-		//act->play();
+		act->play();
 	}
 	{ // border test
 		auto b0 = m0->append_new<Box>();

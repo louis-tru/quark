@@ -75,7 +75,7 @@ links="\
 	-lbptree \
 	-lfreetype -lgif \
 	-lhttp_parser -lminizip -lopenssl \
-	-lreachability -ltess2 -luv -liconv -lbz2 -lz -lffmpeg \
+	-lreachability -ltess2 -luv -liconv -lbz2 -lz -lffmpeg -lspine \
 "
 
 frameworks="\

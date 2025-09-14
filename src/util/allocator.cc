@@ -174,7 +174,7 @@ namespace qk {
 		newBlock(initialSize);
 	}
 
-	constexpr size_t alignment = alignof(std::max_align_t);
+	constexpr size_t alignment = alignof(void*);
 
 	/**
 	 * @brief Destructor. Frees all allocated memory blocks.

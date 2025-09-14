@@ -47,7 +47,7 @@ namespace qk {
 	typedef Canvas::Triangles Triangles;
 
 	constexpr bool isAlignUp(uint32_t ptr) {
-		constexpr auto alignment = alignof(std::max_align_t);
+		constexpr auto alignment = alignof(void*);
 		return ((ptr + (alignment - 1)) & ~(alignment - 1)) == ptr;
 	}
 
@@ -89,28 +89,27 @@ namespace qk {
 			bool           aafuzz,aaclip;
 		};
 
-		struct MatrixCmd: Cmd {
+		struct alignas(void*) MatrixCmd: Cmd {
 			Mat            matrix;
 		};
 
-		struct BlendCmd: Cmd {
+		struct alignas(void*) BlendCmd: Cmd {
 			BlendMode      mode;
-			float          _; // make 8 byte align
 		};
 
-		struct SwitchCmd: Cmd {
+		struct alignas(void*) SwitchCmd: Cmd {
 			GLenum         id;
 			bool           isEnable;
 		};
 
-		struct ClearCmd: Cmd {
+		struct alignas(void*) ClearCmd: Cmd {
 			float          depth;
 			Color4f        color;
 			Region         region;
 			bool           fullClear;
 		};
 
-		struct ClipCmd: Cmd { //!
+		struct alignas(void*) ClipCmd: Cmd { //!
 			GLC_State::Clip clip;
 			float          depth;
 			uint32_t       ref;
@@ -118,15 +117,14 @@ namespace qk {
 			bool           revoke;
 		};
 
-		struct BlurFilterBeginCmd: Cmd {
+		struct alignas(void*) BlurFilterBeginCmd: Cmd {
 			float           depth;
 			Region          bounds;
 			float           size; // blur size
 			bool            isClipState;
-			float           _; // make 8 byte align
 		};
 
-		struct BlurFilterEndCmd: Cmd {
+		struct alignas(void*) BlurFilterEndCmd: Cmd {
 			float           depth;
 			Region          bounds;
 			float           size; // blur size
@@ -136,40 +134,39 @@ namespace qk {
 			bool            isClipState;
 		};
 
-		struct ColorCmd: DrawCmd { //!
+		struct alignas(void*) ColorCmd: DrawCmd { //!
 			Color4f    color;
 		};
 
-		struct ColorRRectBlurCmd: Cmd { //!
+		struct alignas(void*) ColorRRectBlurCmd: Cmd { //!
 			float      depth;
 			Rect       rect;
 			float      radius[4];
 			Color4f    color;
 			float      blur;
 			bool       aaclip;
-			float      _; // make 8 byte align
 		};
 
-		struct GradientCmd: DrawCmd { //!
+		struct alignas(void*) GradientCmd: DrawCmd { //!
 			Color4f        color;
 			GradientPaint  paint;
 		};
 
-		struct ImageCmd: DrawCmd { //!
+		struct alignas(void*) ImageCmd: DrawCmd { //!
 			float          allScale;
 			Color4f        color;
 			ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 			~ImageCmd();
 		};
 
-		struct ImageMaskCmd: DrawCmd { //!
+		struct alignas(void*) ImageMaskCmd: DrawCmd { //!
 			float          allScale;
 			Color4f        color;
 			ImagePaint     paint;
 			~ImageMaskCmd();
 		};
 
-		struct ColorsCmd: Cmd {
+		struct alignas(void*) ColorsCmd: Cmd {
 			struct Option { // subcmd option
 				int          flags; // reserve
 				float        depth; // depth
@@ -183,7 +180,7 @@ namespace qk {
 			bool           aaclip;
 		};
 
-		struct TrianglesCmd: Cmd {
+		struct alignas(void*) TrianglesCmd: Cmd {
 			Triangles      triangles;
 			ImagePaint     paint;
 			float          depth;
@@ -192,7 +189,7 @@ namespace qk {
 			~TrianglesCmd();
 		};
 
-		struct ReadImageCmd: Cmd {
+		struct alignas(void*) ReadImageCmd: Cmd {
 			Rect            src;
 			Sp<ImageSource> img;
 			Vec2            canvasSize;
@@ -200,15 +197,15 @@ namespace qk {
 			float           depth;
 		};
 
-		struct OutputImageBeginCmd: Cmd {
+		struct alignas(void*) OutputImageBeginCmd: Cmd {
 			Sp<ImageSource> img;
 		};
 
-		struct OutputImageEndCmd: Cmd {
+		struct alignas(void*) OutputImageEndCmd: Cmd {
 			Sp<ImageSource> img;
 		};
 
-		struct FlushCanvasCmd: Cmd {
+		struct alignas(void*) FlushCanvasCmd: Cmd {
 			GLCanvas        *srcC;
 			GLC_CmdPack     *srcCmd;
 			Mat4            root;
@@ -217,16 +214,15 @@ namespace qk {
 			~FlushCanvasCmd();
 		};
 
-		struct SetBuffersCmd: Cmd {
+		struct alignas(void*) SetBuffersCmd: Cmd {
 			Vec2 size;
 			Sp<ImageSource> recover;
 			bool chSize;
 		};
 
-		struct DrawBuffersCmd: Cmd {
+		struct alignas(void*) DrawBuffersCmd: Cmd {
 			GLsizei num;
 			GLenum  buffers[2];
-			float   _; // make 8 byte align
 		};
 
 		assert_alignup(MatrixCmd);
@@ -234,21 +230,21 @@ namespace qk {
 		assert_alignup(SwitchCmd);
 		assert_alignup(ClearCmd);
 		assert_alignup(ClipCmd);
-		assert_alignup(BlurFilterBeginCmd);
-		assert_alignup(BlurFilterEndCmd);
-		assert_alignup(ColorCmd);
-		assert_alignup(ColorRRectBlurCmd);
+		assert_alignup(BlurFilterBeginCmd); //
+		assert_alignup(BlurFilterEndCmd); //
+		assert_alignup(ColorCmd); // 
+		assert_alignup(ColorRRectBlurCmd); // 
 		assert_alignup(GradientCmd);
 		assert_alignup(ImageCmd);
 		assert_alignup(ImageMaskCmd);
-		assert_alignup(ColorsCmd);
+		assert_alignup(ColorsCmd); // 
 		assert_alignup(TrianglesCmd);
-		assert_alignup(ReadImageCmd);
+		assert_alignup(ReadImageCmd); //
 		assert_alignup(OutputImageBeginCmd);
 		assert_alignup(OutputImageEndCmd);
-		assert_alignup(FlushCanvasCmd);
+		assert_alignup(FlushCanvasCmd); //
 		assert_alignup(SetBuffersCmd);
-		assert_alignup(DrawBuffersCmd);
+		assert_alignup(DrawBuffersCmd); //
 
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();

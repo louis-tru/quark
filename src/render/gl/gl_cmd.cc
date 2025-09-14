@@ -52,7 +52,7 @@ namespace qk {
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size);
 	void gl_set_texture_no_repeat(GLenum wrapdir);
 	TexStat* gl_new_tex_stat();
-	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(std::max_align_t));
+	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 
 	static Color4f emptyColor{0,0,0,0};
 

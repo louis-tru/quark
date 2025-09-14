@@ -54,6 +54,7 @@
 						'<(output)/libreachability.a',
 						'<(output)/libtess2.a',
 						'<(output)/libuv.a',
+						'<(output)/libspine.a',
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
 					],
 					'outputs': [
