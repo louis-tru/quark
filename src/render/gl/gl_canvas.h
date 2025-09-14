@@ -78,8 +78,8 @@ namespace qk {
 		virtual void drawColor(const Color4f& color, BlendMode mode) override;
 		virtual void drawPath(const Path& path, const Paint& paint) override;
 		virtual void drawPathv(const Pathv& path, const Paint& paint) override;
-		virtual void drawPathvColor(const Pathv &path, const Color4f &color, BlendMode mode) override;
-		virtual void drawPathvColors(const Pathv* path[], int count, const Color4f &color, BlendMode mode) override;
+		virtual void drawPathvColor(const Pathv &path, const Color4f &color, BlendMode mode, bool antiAlias) override;
+		virtual void drawPathvColors(const Pathv* path[], int count, const Color4f &color, BlendMode mode, bool antiAlias) override;
 		virtual void drawRRectBlurColor(const Rect& rect,
 			const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
 		virtual void drawRect(const Rect& rect, const Paint& paint) override;

@@ -72,7 +72,7 @@
 			'test-v8.cc',
 			'test-jsc.cc',
 			'test-spine.cc',
-			'test-matrix.cc',
+			'test-little_border.cc',
 			'test.cc',
 			'test.h',
 		],

@@ -32,7 +32,7 @@
 #include "./gl_render.h"
 #include "./gl_cmd.h"
 
-#define isMoreSofterAA 0
+#define isMoreSofterAA 1 // 1 is softer aa, 0 is more radical aa
 
 namespace qk {
 	GLenum gl_CheckFramebufferStatus(GLenum target);
@@ -49,11 +49,13 @@ namespace qk {
 	extern const Region ZeroRegion;
 #if isMoreSofterAA
 	// Softer:
-	extern const float  aa_fuzz_weight = 0.9;
-	extern const float  aa_fuzz_width = 0.6;
+	//extern const float  aa_fuzz_weight = 0.9; // softer
+	//extern const float  aa_fuzz_width = 0.6;
+	extern const float  aa_fuzz_weight = 0.9; // medium
+	extern const float  aa_fuzz_width = 0.55;
 #else
 	// More radical:
-	extern const float  aa_fuzz_weight = 1;
+	extern const float  aa_fuzz_weight = 1; // more radical, hard
 	extern const float  aa_fuzz_width = 0.5;
 #endif
 	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
@@ -96,14 +98,8 @@ namespace qk {
 		}
 
 		void setMatrixAndScale(const Mat& mat) {
-			union {
-				struct { float a,b,c,d; } f;
-				struct { uint64_t a,b; } u;
-			} constexpr const _ = {.f={1,0,0,1}};
-			auto ch = *((uint64_t*)(_state->matrix.val)) != _.u.a ||
-								*((uint64_t*)(_state->matrix.val+3)) != _.u.b;
-			auto scale = ch ? 
-				_state->matrix.mul_vec2_no_translate(1).length() / Qk_SQRT_2: 1;
+			auto scale = mat.is_translation_matrix() ? 1:
+				mat.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
 			if (_scale != scale) {
 				_scale = scale;
 				_allScale = _surfaceScale * scale;
@@ -192,9 +188,9 @@ namespace qk {
 				case Paint::kColor_Type:
 					_cmdPack->drawColor(vertex, paint.color, false); break;
 				case Paint::kGradient_Type:
-					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.a(), false); break;
+					_cmdPack->drawGradient(vertex, paint.gradient, paint.color, false); break;
 				case Paint::kBitmap_Type:
-					_cmdPack->drawImage(vertex, paint.image, paint.color.a(), false); break;
+					_cmdPack->drawImage(vertex, paint.image, paint.color, false); break;
 				case Paint::kBitmapMask_Type:
 					_cmdPack->drawImageMask(vertex, paint.image, paint.color, false); break;
 			}
@@ -231,9 +227,9 @@ namespace qk {
 				case Paint::kColor_Type:
 					_cmdPack->drawColor(vertex, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
 				case Paint::kGradient_Type:
-					_cmdPack->drawGradient(vertex, paint.gradient, aaFuzzWeight * paint.color.a(), true); break;
+					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
 				case Paint::kBitmap_Type:
-					_cmdPack->drawImage(vertex, paint.image, aaFuzzWeight * paint.color.a(), true); break;
+					_cmdPack->drawImage(vertex, paint.image, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
 				case Paint::kBitmapMask_Type:
 					_cmdPack->drawImageMask(vertex, paint.image, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
 			}
@@ -305,7 +301,7 @@ namespace qk {
 		GLCBlurFilter(GLCanvas *host, const Paint &paint, const Rect *rect)
 			: _host(host), _size(paint.filter->val0), _bounds{rect->origin,rect->origin+rect->size}
 		{
-			if (!host->_state->matrix.is_unit_matrix()) { // Not unit matrix
+			if (!host->_state->matrix.is_identity_matrix()) { // Not unit matrix
 				auto &mat = host->_state->matrix;
 				if (mat[0] != 1 || mat[4] != 1) { // rotate or skew
 					Vec2 pts[] = {
@@ -448,7 +444,6 @@ namespace qk {
 					} else {
 						_stencilRef--;
 					}
-					//_this->setMatrixAndScale(clip.matrix);
 					setMatrix(clip.matrix);
 					_cmdPack->drawClip(clip, _stencilRef, _state->output.get(), true);
 					_this->zDepthNext();
@@ -473,7 +468,6 @@ namespace qk {
 			if (isOutput && _state->output) { // restore region draw
 				_cmdPack->outputImageBegin(_state->output.get());
 			}
-			//_this->setMatrixAndScale(_state->matrix);
 			setMatrix(_state->matrix);
 		}
 	}
@@ -572,22 +566,22 @@ namespace qk {
 		}
 	}
 
-	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
+	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		_this->setBlendMode(mode); // switch blend mode
 		_cmdPack->drawColor(path, color, false);
-		if (!_DeviceMsaa) { // Anti-aliasing using software
+		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
 			_cmdPack->drawColor(vertex, color.mul_alpha_only(aa_fuzz_weight), true);
 		}
 		_this->zDepthNext();
 	}
 
-	void GLCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color,BlendMode mode) {
+	void GLCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color,BlendMode mode, bool antiAlias) {
 		_this->setBlendMode(mode); // switch blend mode
 		for (int i = 0; i < count; i++) {
 			_cmdPack->drawColor(*paths[i], color, false);
 		}
-		if (!_DeviceMsaa) { // Anti-aliasing using software
+		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			auto c2 = color.mul_alpha_only(aa_fuzz_weight);
 			for (int i = 0; i < count; i++) {
 				auto &vertex = _cache->getAAFuzzStrokeTriangle(paths[i]->path, _phy2Pixel*aa_fuzz_width);

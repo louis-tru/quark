@@ -255,7 +255,7 @@ namespace qk {
 						}
 						case kImage_CmdType: {
 							auto c = (ImageCmd*)cmd;
-							drawImageCall(c->vertex, &c->paint, c->allScale, c->alpha, c->aafuzz, c->aaclip, c->depth);
+							drawImageCall(c->vertex, &c->paint, c->allScale, c->color, c->aafuzz, c->aaclip, c->depth);
 							c->~ImageCmd();
 							break;
 						}
@@ -273,7 +273,7 @@ namespace qk {
 						}
 						case kGradient_CmdType: {
 							auto c = (GradientCmd*)cmd;
-							drawGradientCall(c->vertex, &c->paint, c->alpha, c->aafuzz, c->aaclip, c->depth);
+							drawGradientCall(c->vertex, &c->paint, c->color, c->aafuzz, c->aaclip, c->depth);
 							c->~GradientCmd();
 							break;
 						}
@@ -464,7 +464,7 @@ namespace qk {
 		}
 
 		void drawImageCall(const VertexData &vertex,
-			const ImagePaint *paint, float allScale, float alpha, bool aafuzz, bool aaclip, float depth
+			const ImagePaint *paint, float allScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
 			ImagePaintLock lock(paint);
 			if (setTextureSlot0(paint)) { // rgb or y
@@ -489,8 +489,8 @@ namespace qk {
 				}
 				glUniform1f(s->depth, depth);
 				glUniform1f(s->allScale, allScale);
-				glUniform1f(s->alpha, alpha);
-				glUniform4fv(s->coord, 1, paint->coord.origin.val);
+				glUniform4fv(s->color, 1, color.val);
+				glUniform4fv(s->texCoords, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -505,7 +505,7 @@ namespace qk {
 				glUniform1f(s->depth, depth);
 				glUniform1f(s->allScale, allScale);
 				glUniform4fv(s->color, 1, color.val);
-				glUniform4fv(s->coord, 1, paint->coord.origin.val);
+				glUniform4fv(s->texCoords, 1, paint->coord.origin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -527,7 +527,7 @@ namespace qk {
 		}
 
 		void drawGradientCall(const VertexData &vertex, 
-			const GradientPaint *paint, float alpha, bool aafuzz, bool aaclip, float depth
+			const GradientPaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
 			GLSLColorRadial *s;
 			auto count = paint->count;
@@ -544,7 +544,7 @@ namespace qk {
 
 			Qk_useShaderProgram(s, vertex);
 			glUniform1f(s->depth, depth);
-			glUniform1f(s->alpha, alpha);
+			glUniform4fv(s->color, 1, color.val);
 			glUniform4fv(s->range, 1, paint->origin.val);
 			glUniform1i(s->count, count);
 			glUniform4fv(s->colors, count, (const GLfloat*)paint->colors);
@@ -1200,7 +1200,7 @@ namespace qk {
 		cmd->aaclip = _canvas->_state->aaclip;
 	}
 
-	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
+	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, const Color4f& color, bool aafuzz) {
 		_this->flushCanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
@@ -1209,7 +1209,7 @@ namespace qk {
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
 		cmd->allScale = _canvas->_allScale;
-		cmd->alpha = alpha;
+		cmd->color = color;
 		cmd->paint = *paint;
 		paint->image->retain(); // retain source image ref
 	}
@@ -1240,11 +1240,11 @@ namespace qk {
 		paint->image->retain();
 	}
 
-	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
+	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, const Color4f &color, bool aafuzz) {
 		auto colorsSize = (uint32_t)sizeof(Color4f) * paint->count;
 		auto positionsSize = (uint32_t)sizeof(float) * paint->count;
 		auto cmdSize = (uint32_t)sizeof(GradientCmd);
-		auto cmd = new(_this->allocCmd(cmdSize + colorsSize + positionsSize)) GradientCmd;
+		auto cmd = new(_this->allocCmd(alignUp(cmdSize + colorsSize + positionsSize))) GradientCmd;
 		auto cmdp = (char*)cmd;
 		auto colors = reinterpret_cast<Color4f*>(cmdp + cmdSize);
 		auto positions = reinterpret_cast<float*>(cmdp + cmdSize + colorsSize);
@@ -1255,7 +1255,7 @@ namespace qk {
 		cmd->depth = _canvas->_zDepth;
 		cmd->aafuzz = aafuzz;
 		cmd->aaclip = _canvas->_state->aaclip;
-		cmd->alpha = alpha;
+		cmd->color = color;
 		cmd->paint = *paint;
 		cmd->paint.colors = colors;
 		cmd->paint.positions = positions;
@@ -1367,8 +1367,8 @@ namespace qk {
 	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		_this->drawRRectBlurColorCall(rect, radius, blur, color, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz) {
-		_this->drawImageCall(vertex, paint, _canvas->_allScale, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
+		_this->drawImageCall(vertex, paint, _canvas->_allScale, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
 		_this->drawImageMaskCall(vertex, paint, _canvas->_allScale, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
@@ -1376,8 +1376,8 @@ namespace qk {
 	void GLC_CmdPack::drawTriangles(const Triangles &triangles, const ImagePaint *paint, const Color4f &color) {
 		_this->drawTrianglesCall(triangles, paint, color, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz) {
-		_this->drawGradientCall(vertex, paint, alpha, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, const Color4f &color, bool aafuzz) {
+		_this->drawGradientCall(vertex, paint, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke) {
 		_this->drawClipCall(clip, ref, recover, revoke, _canvas->_zDepth);

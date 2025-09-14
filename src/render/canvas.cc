@@ -36,12 +36,13 @@ namespace qk {
 		clipPath(Path::MakeRect(rect), op, antiAlias);
 	}
 
-	void Canvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode) {
+	void Canvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		Paint paint;
 		//paint.type = Paint::kColor_Type;
 		//paint.style = Paint::kFill_Style;
 		paint.color = color;//.to_color4f_alpha(alpha);
 		paint.blendMode = mode;
+		paint.antiAlias = antiAlias;
 		drawPathv(path, paint);
 	}
 

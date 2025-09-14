@@ -147,7 +147,7 @@ void call_test(int argc, char** argv, const char* funcName, TestFunc func) {
 	F(jsapi) \
 	F(v8) \
 	F(spine) \
-	F(matrix) \
+	F(little_border) \
 
 #define _Fun(n) Qk_TEST_Func(n);
 TEST_All(_Fun)

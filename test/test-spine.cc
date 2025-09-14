@@ -32,27 +32,121 @@
 #include <src/util/fs.h>
 #include <src/ui/app.h>
 #include <src/ui/window.h>
+#include <src/ui/view/matrix.h>
 #include <src/ui/view/spine.h>
 #include <src/ui/view/root.h>
+#include <src/ui/view/label.h>
+#include <src/ui/action/keyframe.h>
 #include "./test.h"
 
 using namespace qk;
 
 Qk_TEST_Func(spine) {
 	App app;
-	auto win = Window::Make({.fps=0x0, .frame={{0,0}, {700,700}}, .title="Test Spine"});
-	auto r = win->root();
+	auto w = Window::Make({.fps=0x0, .frame={{0,0}, {800,800}}, .title="Test Spine",.msaa=1});
+	auto r = w->root();
 	r->set_background_color(Color(180, 80, 0));
 
-	auto sp = r->append_new<Spine>();
-	auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.25f);
+	auto m0 = r->append_new<Matrix>();
 
-	sp->set_skeleton(data.get());
-	sp->set_skin("default");
-	sp->set_animation(0, "death", true);
-	//sp->set_animation(0, "hit", true);
-	//sp->set_animation(0, "jump", true);
-	//sp->set_animation(0, "run", true);
+	{ // matrix
+		m0->set_background_color({230,230,230});
+		m0->set_width({301});
+		m0->set_height({301});
+		m0->set_translate({200,200});
+		//m0->set_rotate_z(1);
+		//m0->set_scale(0.5);
+		auto act = new KeyframeAction(w);
+		act->set_loop(0xffffffff);
+		auto k0 = act->addFrame(0);
+		k0->set_rotate_z(0);
+		auto k1 = act->addFrame(5e4, LINEAR);
+		k1->set_rotate_z(360);
+		m0->set_action(act);
+		act->play();
+	}
+	{ // box / spine
+		auto b0 = m0->append_new<Box>();
+		b0->set_background_color({255,255,0});
+		b0->set_width({150});
+		b0->set_height({150});
+		b0->set_margin_top(80);
+		b0->set_margin_left(80);
+		b0->set_color({0,255,255,128});
+		b0->set_cascade_color(CascadeColor::Both);
+
+		auto sp1 = b0->append_new<Spine>();
+		//auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.5f);
+		auto data = SkeletonData::Make(fs_resources("jsapi/res/coin/coin-pro.skel"), "", 0.5f);
+		sp1->set_skeleton(data.get());
+		sp1->set_skin("default");
+		//sp1->set_animation(0, "death", true);
+		//sp1->set_animation(0, "hit", true);
+		sp1->set_animation(0, "jump", true);
+		//sp1->set_animation(0, "run", true);
+		sp1->set_animation(1, "animation", true);
+		//sp1->set_origin({{0.5,BoxOriginKind::Ratio},{0.5,BoxOriginKind::Ratio}});
+		// sp1->set_origin({{80},{80}});
+
+		auto act = new KeyframeAction(w);
+		act->set_loop(0xffffffff);
+		auto k0 = act->addFrame(0);
+		k0->set_rotate_z(0);
+		auto k1 = act->addFrame(5e3, LINEAR);
+		k1->set_rotate_z(360);
+		sp1->set_action(act);
+		// act->play();
+
+		b0 = sp1->append_new<Box>();
+		b0->set_background_color({255,0,255,128});
+		b0->set_width({50});
+		b0->set_height({50});
+		b0->set_align(Align::LeftTop);
+		b0 = sp1->append_new<Box>();
+		b0->set_background_color({255,0,255,128});
+		b0->set_width({50});
+		b0->set_height({50});
+		b0->set_align(Align::RightTop);
+		b0 = sp1->append_new<Box>();
+		b0->set_background_color({255,0,255,128});
+		b0->set_width({50});
+		b0->set_height({50});
+		b0->set_align(Align::LeftBottom);
+		b0 = sp1->append_new<Box>();
+		b0->set_background_color({255,0,255,128});
+		b0->set_width({50});
+		b0->set_height({50});
+		b0->set_align(Align::RightBottom);
+	}
+	{ // sprite
+		auto m1 = m0->append_new<Matrix>();
+		auto sp0 = m1->append_new<Sprite>();
+		m1->set_background_color({0,0,255});
+		m1->set_width({100});
+		m1->set_height({100});
+		m1->set_color({0,0,255,128});
+		m1->set_cascade_color(CascadeColor::Both);
+		// m1->set_rotate_z(30);
+		m1->set_translate({250,0});
+		auto act = new KeyframeAction(w);
+		act->set_loop(0xffffffff);
+		auto k0 = act->addFrame(0);
+		k0->set_rotate_z(0);
+		auto k1 = act->addFrame(3e3, LINEAR);
+		k1->set_rotate_z(360);
+		m1->set_action(act);
+		act->play();
+
+		sp0->set_src(fs_resources("jsapi/res/sprite.png"));
+		sp0->set_width(114 * w->atomPixel());
+		sp0->set_height(114 * w->atomPixel());
+		sp0->set_frames(9);
+		sp0->set_items(6);
+		sp0->set_item(1);
+		sp0->set_gap(1);
+		sp0->set_fsp(8);
+		sp0->set_playing(true);
+	}
 
 	app.run();
 }

@@ -333,7 +333,8 @@ namespace qk {
 		Vec2 operator*(const Vec2& b) const;
 		Vec2 mul_vec2_no_translate(const Vec2& b) const;
 		void mul(const Mat& b, Mat& output) const;
-		bool is_unit_matrix() const;
+		bool is_identity_matrix() const;
+		bool is_translation_matrix() const;
 	};
 
 	struct Qk_EXPORT Mat4: Vec<float, 16> {

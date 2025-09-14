@@ -3,18 +3,18 @@
 
 #frag
 uniform   sampler2D    image;
-in        lowp vec2    coord_f;
-uniform   lowp float   alpha;
+uniform   lowp vec4    color;
+in        lowp vec2    coords;
 
 void main() {
-	fragColor = texture(image, coord_f);
+	fragColor = texture(image, coords) * color;
 
-	lowp float aaa = alpha * (1.0 - abs(aafuzz)); // aaalpha
+	lowp float aa = 1.0 - abs(aafuzz); // aalpha
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP
-	fragColor.a *= aaa * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+	fragColor.a *= aa * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 #else
-	fragColor.a *= aaa;
+	fragColor.a *= aa;
 #endif
 	//fragColor.a += 0.3;
 }

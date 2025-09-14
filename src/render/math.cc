@@ -884,8 +884,18 @@ namespace qk {
 
 	static const Mat UnitMatrix;
 
-	bool Mat::is_unit_matrix() const {
+	bool Mat::is_identity_matrix() const {
 		return operator==(UnitMatrix);
+	}
+
+	bool Mat::is_translation_matrix() const {
+		union {
+			struct { float a,b,c,d; } f;
+			struct { uint64_t a,b; } u;
+		} constexpr const _ = {.f={1,0,0,1}};
+		auto ok = *((uint64_t*)(val)) == _.u.a &&
+							*((uint64_t*)(val+3)) == _.u.b;
+		return ok;
 	}
 
 	Mat4::Mat4(float value) {

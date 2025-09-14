@@ -320,14 +320,13 @@ namespace qk {
 		paint.antiAlias = false;
 		paint.type = Paint::kBitmap_Type;
 		paint.image = &img;
-		//paint.color.set_a(painter->opacity());
-		paint.color *= painter->color();
+		paint.color = painter->color();
 
 		Rect dest{/*Vec2(_AAShrink * 0.5)*/ -origin_value(), {_width, _height}};
 
 		img.setImage(src.get(), dest, {{x,y}, {w,h}});
-		img.filterMode = ImagePaint::kLinear_FilterMode;
-		img.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
+		img.filterMode = default_FilterMode;
+		img.mipmapMode = default_MipmapMode;
 
 		painter->canvas()->drawPathv(painter->cache()->getRectPath(dest), paint);
 		painter->visitView(this);

@@ -536,7 +536,7 @@ namespace qk {
 	}
 
 	Region Path::getBounds(const Mat* mat) const {
-		mat = mat && !mat->is_unit_matrix() ? mat: nullptr;
+		mat = mat && !mat->is_identity_matrix() ? mat: nullptr;
 		return getBoundsFromPoints((const Vec2*)*_pts, ptsLen(), mat);
 	}
 

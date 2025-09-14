@@ -151,13 +151,13 @@ namespace qk {
 		};
 
 		struct GradientCmd: DrawCmd { //!
-			float          alpha;
+			Color4f        color;
 			GradientPaint  paint;
 		};
 
 		struct ImageCmd: DrawCmd { //!
 			float          allScale;
-			float          alpha;
+			Color4f        color;
 			ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 			~ImageCmd();
 		};
@@ -259,10 +259,10 @@ namespace qk {
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
 		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
-		void drawImage(const VertexData &vertex, const ImagePaint *paint, float alpha, bool aafuzz);
+		void drawImage(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
 		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
 		void drawTriangles(const Triangles& triangles, const ImagePaint *paint, const Color4f &color);
-		void drawGradient(const VertexData &vertex, const GradientPaint *paint, float alpha, bool aafuzz);
+		void drawGradient(const VertexData &vertex, const GradientPaint *paint, const Color4f &color, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke);
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);
 		void blurFilterBegin(Region bounds, float size);

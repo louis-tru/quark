@@ -44,22 +44,30 @@ namespace qk {
 	class ScrollView;
 	typedef const Mat cMat;
 
+	constexpr ImagePaint::FilterMode default_FilterMode = ImagePaint::kLinear_FilterMode;
+	constexpr ImagePaint::MipmapMode default_MipmapMode = ImagePaint::kLinear_MipmapMode;
+
 	class Qk_EXPORT Painter: public Object {
 	public:
 		struct BoxData {
 			const RectPath *inside = nullptr;
 			const RectPath *outside = nullptr;
 			const RectOutlinePath *outline = nullptr;
+			bool isRadius = false;
+			bool antiAlias = false; // is need anti alias
 		};
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(Canvas*, canvas);
 		Qk_DEFINE_PROP_GET(PathvCache*, cache);
 		Qk_DEFINE_PROPERTY(cMat*, matrix); // current matrix
-		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin and fix aa stroke width
+		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin
+		Qk_DEFINE_PROPERTY(Vec2, originAA);  // box origin and fix aa stroke width
 		Qk_DEFINE_PROP_GET(Color4f, color); // current color
+		Qk_DEFINE_PROP_GET(bool, is_translation_matrix); // is translation matrix
+		Qk_DEFINE_PROP_GET(bool, isMsaa); // is MSAA
 		Painter(Window *window);
-		void set_origin_restore(Vec2 v); // restore last origin
-		Rect getRect(Box* box);
+		void set_origin_reverse(Vec2 origin);
+		Rect getRect(Box* box, BoxData &data);
 		void getInsideRectPath(Box *box, BoxData &out);
 		void getOutsideRectPath(Box *box, BoxData &out);
 		void getRRectOutlinePath(Box *box, BoxData &out);
@@ -83,7 +91,7 @@ namespace qk {
 		void visitView_(View *view, View *v);
 		Render     *_render;
 		uint32_t   _mark_recursive;
-		float      _AAShrink; // fix rect stroke width for AA
+		float      _AAShrink,_AAShrinkBorder; // fix rect stroke width for AA
 		Buffer     _tempBuff;
 		LinearAllocator _tempAllocator[2]; // Reset when starting every frame
 

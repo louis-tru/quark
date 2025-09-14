@@ -138,6 +138,13 @@ namespace qk
 		const RectOutlinePath& getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]);
 
 		/**
+		 * @dev get rect outline path cache and limit radius size
+		 * @param rect {Rect} outside border rect
+		 * @param border {float[4]} inside border width top,right,bottom,left
+		*/
+		const RectOutlinePath& getRectOutlinePath(const Rect &rect, const float border[4]);
+
+		/**
 		 * Setting and use gpu vertex data
 		 * @dev If the incoming data belongs to the self updated data to the GPU, and update the id
 		 * @note that this function can only be called on the rendering thread

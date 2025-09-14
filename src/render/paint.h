@@ -79,10 +79,12 @@ namespace qk {
 		};
 
 		enum MipmapMode {
-			kNone_MipmapMode,      //!< ignore mipmap levels, sample from the "base"
-			kLinearNearest_MipmapMode, //!< Within the level use linear filtering, between the levels use linear filtering
-			kNearestLinear_MipmapMode, //!< Within the level use nearest filtering, between the levels use nearest filtering
-			kLinear_MipmapMode, //!< all of between the levels and within the level are to be used linear filtering
+			kNone_MipmapMode,      //!< Nearest point sampling + recently mipmap layer (fast speed, but strong aliasing).
+			kLinearNearest_MipmapMode, //!< Linear sampling + nearest mipmap layer (with smoother transitions).
+			kNearestLinear_MipmapMode, //!< Take the nearest point samples from two adjacent mipmap layers and mix them linearly.
+			kLinear_MipmapMode, //!< Linear interpolation is performed in two adjacent mipmap layers,
+				// followed by linear mixing between layers (commonly known as trilinear filtering,
+				// which performs the best but consumes the most performance).
 		};
 
 		union {
