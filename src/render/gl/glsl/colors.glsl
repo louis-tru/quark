@@ -41,14 +41,11 @@ void main() {
 in lowp vec4 color;
 
 void main() {
-	// fuzz value range: 1 => 0, alpha range: 0 => 1
-	lowp float aaalpha = 1.0 - abs(aafuzz);
 	fragColor = color;
+	// fuzz value range: 1 => 0, alpha range: 0 => 1
+	fragColor.a *= 1.0 - abs(aafuzz);
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP
-	fragColor.a *= aaalpha * smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
-	//fragColor.a *= aaalpha * texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r;
-#else
-	fragColor.a *= aaalpha;
+	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 #endif
 }

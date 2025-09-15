@@ -74,6 +74,7 @@ namespace qk {
 
 	// Only allow the inner call, make sure not to access any members in non-RT threads
 	void Action::release_inner_Rt() {
+		_target = nullptr; // @KeyframeAction::MakeSSTransition() need clear target
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
 			Qk_ASSERT(dynamic_cast<KeyframeAction*>(this));
@@ -96,6 +97,7 @@ namespace qk {
 	void Action::destroy() {
 		_duration = 0;
 		clear();
+		Qk_ASSERT_EQ(_target, nullptr);
 		if (_window) { // it's not Rt
 			_async_call([](auto self, auto arg) {
 				self->_window = nullptr; // clear window ref

@@ -54,6 +54,8 @@ Qk_TEST_Func(spine) {
 		m0->set_width({301});
 		m0->set_height({301});
 		m0->set_translate({200,200});
+		m0->set_clip(true);
+		m0->set_border_radius({20});
 		//m0->set_rotate_z(1);
 		//m0->set_scale(0.5);
 		auto act = new KeyframeAction(w);

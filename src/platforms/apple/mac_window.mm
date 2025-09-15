@@ -51,6 +51,16 @@ QkWindowDelegate* WindowImpl::delegate() {
 
 @implementation QkWindowDelegate
 
++ (NSScreen *)screenUnderMouse {
+	NSPoint mouseLocation = [NSEvent mouseLocation];
+	for (NSScreen *screen in [NSScreen screens]) {
+		if (NSPointInRect(mouseLocation, [screen frame])) {
+			return screen;
+		}
+	}
+	return [NSScreen mainScreen];
+}
+
 - (id) init:(Window::Options&)opts win:(Window*)win render:(Render*)render {
 	if ( !(self = [super init]) )
 		return nil;
@@ -58,19 +68,16 @@ QkWindowDelegate* WindowImpl::delegate() {
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
 		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-	UIScreen* screen = UIScreen.mainScreen;
+	//UIScreen* screen = UIScreen.mainScreen;
+	NSScreen *screen = QkWindowDelegate.screenUnderMouse;
+	NSRect screenFrame = screen.visibleFrame;
 	//CGFloat scale = screen.backingScaleFactor;
 
-	float w = opts.frame.size.x() > 0 ?
-		opts.frame.size.x(): screen.frame.size.width / 2;
-	float h = opts.frame.size.y() > 0 ?
-		opts.frame.size.y(): screen.frame.size.height / 2;
-	float x = opts.frame.origin.x() > 0 ?
-		opts.frame.origin.x(): (screen.frame.size.width - w) / 2.0;
-	float y = opts.frame.origin.y() > 0 ?
-		opts.frame.origin.y(): (screen.frame.size.height - h) / 2.0;
-
-	NSRect rect = NSMakeRect(x, y, w, h);
+	auto frame = opts.frame;
+	float w = frame.size.x() > 0 ? frame.size.x(): screenFrame.size.width / 2;
+	float h = frame.size.y() > 0 ? frame.size.y(): screenFrame.size.height / 2;
+	NSRect rect = NSMakeRect(NSMidX(screenFrame) - w / 2,
+													 NSMidY(screenFrame) - h / 2, w, h);
 
 	UIWindow *uiwin = [[UIWindow alloc] initWithContentRect:rect
 																						styleMask:style

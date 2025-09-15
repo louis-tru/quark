@@ -28,6 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * This file implements a lightweight Virtual DOM and Component (ViewController) system,
+ * conceptually similar to React. Core features include:
+ * - VirtualDOM: represents virtual nodes, supports diffing
+ * - ViewController: component-like abstraction with state, props, lifecycle, and render logic
+ * - DOMCollection: represents a list of children nodes (e.g., from JSX arrays)
+ * - Render Queue: batches re-render requests to avoid redundant renders
+ */
+
 import './_ext';
 import util from './util';
 import { Label, View, DOM } from './view';
@@ -35,6 +44,10 @@ import { Window } from './window';
 import * as view from './view';
 import pkg from './pkg';
 
+/**
+ * A special Set implementation that ignores all operations.
+ * Used as a no-op placeholder when file-watching is disabled (non-dev mode).
+ */
 class InvalidSet<T> extends Set<T> {
 	add(k: T) { return this }
 	delete(k: T) { return false }
@@ -42,13 +55,27 @@ class InvalidSet<T> extends Set<T> {
 
 const isWatching = pkg.isWatching;
 const assertDev = util.assert;
+
+/**
+ * Render Queue:
+ * Holds ViewControllers that are scheduled for re-render.
+ * Key: controller, Value: {missError} whether to suppress re-throwing errors.
+ */
 const RenderQueue = new Map<ViewController, {missError?: boolean}>();
 let   RenderQueueWorking = false;
+
+/**
+ * Debug-only: tracks all controllers with active file-watch subscriptions.
+ */
 const WatchingAllCtrForDebug = isWatching ?
 	new Set<ViewController>(): new InvalidSet<ViewController>();
+
+/**
+ * Warning system: prevents duplicate warning logs.
+ */
 const WarnRecord = new Set();
 const WarnDefine = {
-	UndefinedDOMKey: 'DOM key no defined in DOM Collection',
+	UndefinedDOMKey: 'DOM key not defined in DOM Collection',
 } as Dict<string>;
 
 function warn(id: string, msg = '') {
@@ -61,36 +88,44 @@ function warn(id: string, msg = '') {
 	}
 }
 
-// handle file change
+/**
+ * File watcher (hot reload support).
+ * When a file changes, any watching controllers are re-rendered.
+ */
 pkg.onFileChanged.on(function({data:{name,hash}}) {
 	for (let ctr of WatchingAllCtrForDebug) {
 		if ((ctr as any)._watchings.has(name)) {
-			markrerender(ctr, true); // mark for re-render
-			console.log(`Re-render: The ${ctr.constructor.name} view-controller at the ${name}, hash: ${hash}`);
+			markrerender(ctr, true); // schedule re-render
+			console.log(`Re-render: ${ctr.constructor.name} view-controller from ${name}, hash: ${hash}`);
 		}
 	}
 });
 
+// -----------------------------
+// Virtual DOM Helpers
+// -----------------------------
+
 /**
- * @type Args:...
-*/
+ * Arguments used to construct a VirtualDOM instance.
+ */
 export type Args = {
-	window: Window, //!<
-	owner: ViewController, //!<
-	children: (VirtualDOM | null)[], //!<
+	window: Window,     //!< bound window instance
+	owner: ViewController, //!< parent controller
+	children: (VirtualDOM | null)[], //!< child virtual nodes
 }
 
+/**
+ * Constructor type for DOM elements.
+ */
 interface DOMConstructor<T extends DOM = DOM> {
 	new(...args: any[]): T;
 	readonly isViewController: boolean;
-	readonly __filename__?: string; // debug watching filename
+	readonly __filename__?: string; // debugging support
 }
 
 /**
- * @method assertDom
- * 
- * Check if it is a valid `VirtualDOM` type, and the parameter `subclass` is of type `baseclass`
-*/
+ * Assert that a VirtualDOM belongs to a specific DOM subclass.
+ */
 export function assertDom<T extends DOM = DOM>(
 	subclass: VirtualDOM<T>, baseclass: DOMConstructor<T>, ...args: any[]
 ) {
@@ -98,8 +133,13 @@ export function assertDom<T extends DOM = DOM>(
 }
 
 /**
- * @method link ViewController prop
-*/
+ * Decorator to link an external prop to a class field.
+ * 
+ * - Copies the value from `props` into the class property when initializing/updating.
+ * - **One-way binding only:** changes to props propagate into the class field,
+ *   but class field changes do not propagate back to props.
+ * - Useful for simplifying access: instead of `this.props.foo`, you can use `this.foo`.
+ */
 export function link(target: ViewController, name: string) {
 	let linkProps = Object.getOwnPropertyDescriptor(target, '_linkProps');
 	if (linkProps) {
@@ -110,8 +150,12 @@ export function link(target: ViewController, name: string) {
 }
 
 /**
- * @method link ViewController prop and define prop accessor
-*/
+ * Decorator to link an external prop with getter/setter accessors.
+ * 
+ * - Also a **one-way binding** from props to the class field.
+ * - Provides an accessor so that if the field is reassigned inside the class,
+ *   it triggers `update()` automatically (but does not affect props).
+ */
 export function linkAcc(target: ViewController, name: string) {
 	link(target, name);
 	Object.defineProperty(target, name, {
@@ -119,25 +163,32 @@ export function linkAcc(target: ViewController, name: string) {
 		set: function(val) {
 			this[`_${name}`] = val;
 			if (this.isMounted)
-				this.update(); // update ViewController
+				this.update();
 		}
 	})
 }
 
 link.acc = linkAcc;
 
+/**
+ * Get the VirtualDOM key. Falls back to auto-index if not defined.
+ * Warns if no key is provided in a DOM collection.
+ */
 function getkey(vdom: VirtualDOM, autoKey: number): string|number {
 	let key: string;
 	let key_ = vdom.props.key;
 	if (key_ !== undefined) {
 		key = key_;
 	} else {
-		key = String(autoKey); // auto number key
+		key = String(autoKey);
 		warn('UndefinedDOMKey');
 	}
 	return key;
 }
 
+/**
+ * Remove a ref reference from a controller.
+ */
 function unref<T>(dom: DOM, owner: ViewController<T>) {
 	let ref = dom.ref;
 	if (ref) {
@@ -147,6 +198,9 @@ function unref<T>(dom: DOM, owner: ViewController<T>) {
 	}
 }
 
+/**
+ * Set or update a ref reference.
+ */
 function setref(dom: View | ViewController, owner: ViewController, value: string) {
 	let ref = dom.ref;
 	if (ref !== value) {
@@ -160,12 +214,20 @@ function setref(dom: View | ViewController, owner: ViewController, value: string
 	}
 }
 
+// -----------------------------
+// Render Queue Scheduling
+// -----------------------------
+
+/**
+ * Mark a controller for re-render.
+ * Added to the queue and processed on nextTick.
+ */
 function markrerender<T>(ctr: ViewController<T>, missError = false) {
 	const size = RenderQueue.size;
 	RenderQueue.set(ctr, {missError});
 
 	if (size == RenderQueue.size)
-		return;
+		return; // already present
 
 	if (!RenderQueueWorking) {
 		RenderQueueWorking = true;
@@ -187,8 +249,14 @@ function markrerender<T>(ctr: ViewController<T>, missError = false) {
 	}
 }
 
+/**
+ * Performs actual re-rendering of a ViewController.
+ * - Runs diff algorithm between old and new VirtualDOM.
+ * - Triggers lifecycle hooks.
+ * - Updates references.
+ */
 function rerender(Self: ViewController) {
-	RenderQueue.delete(Self); // delete mark
+	RenderQueue.delete(Self);
 
 	type InlCrt = {
 		_vdom?: VirtualDOM;
@@ -211,16 +279,17 @@ function rerender(Self: ViewController) {
 	let vdomOld = self._vdom;
 	let vdomNew = _CVDD(self.render()) || EmptyVDom;
 
-	RenderQueue.delete(Self); // re delete mark
-	self._watchings.clear(); // clear debug watchings
+	RenderQueue.delete(Self);
+	self._watchings.clear();
 
 	if (vdomOld) {
 		if (vdomOld.hash !== vdomNew.hash) {
-			self.dom = vdomNew.diff(Self, vdomOld, dom); // diff
-			self._vdom = vdomNew; // use new vdom
+			self.dom = vdomNew.diff(Self, vdomOld, dom);
+			self._vdom = vdomNew;
 			self.triggerUpdate(vdomOld!, vdomNew);
 		}
-	} else { // once rerender
+	} else {
+		// initial render
 		self.dom = vdomNew.newDom(Self);
 		self._vdom = vdomNew;
 	}
@@ -246,7 +315,17 @@ function rerender(Self: ViewController) {
 	}
 }
 
+// -----------------------------
+// VirtualDOM Implementation
+// -----------------------------
+// (Next sections: VirtualDOM, VirtualDOMText, VirtualDOMCollection, ViewController)
+// will receive the same level of detailed English doc comments.
+// -----------------------------
+
 /**
+ * Represents a Virtual DOM node.
+ * Can be a View, ViewController, or other custom DOM elements.
+ * 
  * @template T
  * @class VirtualDOM
 */
@@ -258,6 +337,11 @@ export class VirtualDOM<T extends DOM = DOM> {
 	readonly hashProps: Map<string, number>; // prop => hanshCode
 	readonly hash: number;
 
+	/**
+	 * @param domC DOM constructor type
+	 * @param props Dictionary of properties/attributes
+	 * @param children Array of child VirtualDOM nodes
+	 */
 	constructor(domC: DOMConstructor<T>, props: Dict | null, children: (VirtualDOM | null)[]) {
 		let hashProp = 5381;
 		if (props) {
@@ -286,10 +370,20 @@ export class VirtualDOM<T extends DOM = DOM> {
 		this.hashProp = hashProp;
 	}
 
+	/**
+	 * Get hash for a specific property.
+	 * @param prop Property name
+	 * @return hash value
+	 */
 	getPropHash(prop: string): number | undefined {
 		return this.hashProps.get(prop);
 	}
 
+	/**
+	 * Diff props against old VirtualDOM and update the real DOM as needed.
+	 * @param dom Real DOM instance
+	 * @param vdomOld Previous VirtualDOM
+	 */
 	diffProps(dom: T, vdomOld: VirtualDOM) {
 		if (this.hashProp !== vdomOld.hashProp) {
 			let props = this.props;
@@ -301,6 +395,12 @@ export class VirtualDOM<T extends DOM = DOM> {
 		}
 	}
 
+	/**
+	 * Diff a subset of props.
+	 * @param dom Real DOM instance
+	 * @param vdomOld Previous VirtualDOM
+	 * @param keys Array of prop names to diff
+	 */
 	private diffPropsFor(dom: T, vdomOld: VirtualDOM, keys: string[]) {
 		if (keys.length) {
 			if (this.hashProp !== vdomOld.hashProp) {
@@ -314,6 +414,13 @@ export class VirtualDOM<T extends DOM = DOM> {
 		}
 	}
 
+	/**
+	 * Diff this VirtualDOM with a previous one and update the real DOM.
+	 * @param owner Owning ViewController
+	 * @param vdomOld Previous VirtualDOM
+	 * @param domOld Previous real DOM
+	 * @return Updated DOM
+	 */
 	diff<P = {}, S = {}>(owner: ViewController<P,S>, vdomOld: VirtualDOM, domOld: DOM): T {
 		let vdomNew: VirtualDOM<T> = this;
 		if (vdomOld.domC !== vdomNew.domC) { // diff type
@@ -378,6 +485,11 @@ export class VirtualDOM<T extends DOM = DOM> {
 		return domOld as T;
 	}
 
+	/**
+	 * Creates a new real DOM instance from this VirtualDOM.
+	 * @param owner Owning ViewController
+	 * @return New DOM instance
+	 */
 	newDom<P = {}, S = {}>(owner: ViewController<P,S>): T {
 		const window = owner.window;
 		const {hashProps,props,children} = this;
@@ -425,6 +537,12 @@ export class VirtualDOM<T extends DOM = DOM> {
 		}
 	}
 
+	/**
+	 * Renders the VirtualDOM, optionally diffing against previous DOM.
+	 * @param owner Owning ViewController
+	 * @param opts Optional render options
+	 * @return The rendered DOM
+	 */
 	render<P = {}, S = {}>(owner: ViewController<P,S>, opts?: {
 		parent?: View | null,
 		replace?: { // replace
@@ -457,10 +575,19 @@ Object.assign(VirtualDOM.prototype, {
 	children: [], props: {}, hashProps: new Map,
 });
 
+/* Empty VirtualDOM singleton */
 const EmptyVDom = new VirtualDOM(View, null, []);
 
+/**
+ * Lightweight VirtualDOM representing text nodes.
+ */
 class VirtualDOMText extends VirtualDOM<Label> {
-	readonly value: string;
+	readonly value: string; //!< Text content
+
+	/**
+	 * Creates a VirtualDOMText from a string.
+	 * @param value Text string
+	 */
 	static fromString(value: string): VirtualDOMText {
 		return {
 			__proto__: VirtualDOMText.prototype,
@@ -486,8 +613,12 @@ util.extend(VirtualDOMText.prototype, {
 	domC: Label, get hashProp() {return this.hash},
 });
 
+/**
+ * Represents a collection of VirtualDOM nodes.
+ * Handles keyed diffing and ensures no duplicate keys.
+ */
 class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
-	collection: VirtualDOM[];
+	collection: VirtualDOM[]; //!< Array of child VirtualDOMs
 
 	constructor(collection: (VirtualDOM | null)[]) {
 		super(DOMCollection, null, []);
@@ -508,6 +639,11 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 		this.collection = _collection;
 	}
 
+	/**
+	 * Diff and apply collection props to DOMCollection.
+	 * @param dom DOMCollection instance
+	 * @param vdomOld Previous VirtualDOM
+	 */
 	diffProps(dom: DOMCollection, vdomOld: VirtualDOM) {
 		let {keys:keysOld,owner} = dom;
 		let collection: DOM[] = new Array(this.collection.length);
@@ -546,6 +682,11 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 		}
 	}
 
+	/**
+	 * Create a new DOMCollection from this VirtualDOMCollection.
+	 * @param owner Owning ViewController
+	 * @return New DOMCollection
+	 */
 	newDom<P = {}, S = {}>(owner: ViewController<P, S>): DOMCollection {
 		let dom = new DOMCollection(owner);
 		let {collection,keys} = dom;
@@ -561,11 +702,15 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 	}
 }
 
+/**
+ * Collection of real DOM elements corresponding to VirtualDOMCollection.
+ */
 export class DOMCollection implements DOM {
-	readonly collection: DOM[];
-	readonly keys: Map<string|number, [DOM,VDom]>;
-	readonly ref: string;
-	readonly owner: ViewController;
+	readonly collection: DOM[]; //!< Child DOM elements
+	readonly keys: Map<string|number, [DOM,VDom]>; //!< Keyed mapping
+	readonly ref: string;       //!< Ref name in parent
+	readonly owner: ViewController; //!< Owning ViewController
+
 	get metaView() {
 		return this.collection.indexReverse(0).metaView;
 	}
@@ -596,21 +741,23 @@ export class DOMCollection implements DOM {
 Object.assign(DOMCollection.prototype, {ref: ''});
 
 /**
- * UI view controller component
+ * UI view controller component.
+ * Base class for all ViewControllers.
+ * Handles state, props, children, refs, lifecycle hooks, and rendering.
  * @class ViewController
  * @implements DOM
 */
 export class ViewController<P = {}, S = {}> implements DOM {
-	private _stateHashs = new Map<string, number>;
-	private _vdom?: VirtualDOM; // render result
-	private _linkProps: string[];
-	private _watchings: Set<any>; // watch filenames
-	private _rerenderCbs?: (()=>void)[]; // rerender callbacks
-	/** [`Window`] object ref */
+	private _stateHashs = new Map<string, number>; // Tracks previous state hashes
+	private _vdom?: VirtualDOM;                    // Last rendered VirtualDOM
+	private _linkProps: string[];                  // Linked prop names
+	private _watchings: Set<any>;                  // Files watched (for hot reload)
+	private _rerenderCbs?: (()=>void)[];           // Pending rerender callbacks
+	/** Associated Window [`Window`] object ref */
 	readonly window: Window;
 	/** Parent controller which the current controller belongs */
 	readonly owner: ViewController;
-	/** Outer children vdom */
+	// /** External children vdom */
 	readonly children: (VirtualDOM | null)[];
 	/** the ViewController external incoming attributes */
 	readonly props: Readonly<P>;
@@ -632,14 +779,15 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * @get metaView:View
 	 * 
-	 * mount point for view controller
+	 * Returns the mount point for view controller
 	*/
 	get metaView() { return this.dom.metaView }
 
 	/**
+	 * Constructs a ViewController.
 	 * @method constructor(props,arg)
-	 * @param props {Object}
-	 * @param arg {Args}
+	 * @param props:object External props
+	 * @param arg:Args Additional args (window, owner, children)
 	*/
 	constructor(
 		props: Readonly<P & { ref?: string, key?: string|number }>,
@@ -658,8 +806,8 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	 * Update the current ViewController state and re-render if the state does change
 	 * @template K
 	 * @method setState(newState,cb?)
-	 * @param newState:object
-	 * @param cb?:Function
+	 * @param newState:object Partial state
+	 * @param cb?:Function Optional callback after state applied
 	*/
 	setState<K extends keyof S>(newState: Pick<S, K>, cb?: ()=>void) {
 		let update = false;
@@ -684,7 +832,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * Force re-rendering of the ViewController
 	 * @method update(cb?)
-	 * @param cb?:Function
+	 * @param cb?:Function Optional callback after update
 	*/
 	update(cb?: ()=>void) {
 		if (this.isDestroyd)
@@ -756,6 +904,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	/**
+	 * Append the rendered DOM to a parent view.
 	 * @override
 	*/
 	afterTo(prev: View): View {
@@ -763,8 +912,8 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	}
 
 	/**
+	 * Insert the rendered DOM after a previous view.
 	 * Note: Do not proactively call this method
-	 * 
 	 * @override
 	*/
 	destroy() {
@@ -784,6 +933,8 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	static readonly isViewController: boolean = true;
 }
 
+// --- Additional helpers, JSX, element creation, etc. ---
+
 Object.assign(ViewController.prototype, {
 	dom: { // init default dom
 		ref: '',
@@ -800,7 +951,11 @@ Object.assign(ViewController.prototype, {
 
 export default ViewController;
 
-// create virtual dom dynamic
+/*
+ * Create virtual dom dynamic.
+ * Convert a value to VirtualDOM
+ * @param value:any, VirtualDOM, or array
+ */
 function _CVDD(value: any): VirtualDOM | null {
 	if (value instanceof VirtualDOM) {
 		return value
@@ -831,7 +986,8 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 };
 
 /**
- * Create virtual dom by jsx element
+ * Creates a virtual DOM element from JSX syntax
+ * @return {VirtualDOM} A VirtualDOM instance
  */
 export function createElement<T extends DOM = DOM>(
 	Type: DOMConstructor<T> | JSX.IntrinsicElementsName,

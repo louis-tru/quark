@@ -84,9 +84,10 @@ export default async function test1(win: Window) {
 			<box width="match">
 				<button class="btn" backgroundColor="#f10" onClick={()=>util.gc()} />
 				<matrix class="btn" backgroundColor="#f30" background={`image(${resolve('./res/0.jpg')}, 100 100, x=30, y=50, repeatY)`} />
-				<button class="btn" backgroundColor="#f50" />
+				<button class="btn" backgroundColor="#f50" background={`image(${resolve('./res/0.jpg')}, 100 100, x=30, y=50, repeatY)`} />
 				<button class="btn" backgroundColor="#f70" />
 				<button class="btn" backgroundColor="#f90" />
+				<button class="btn" backgroundColor="#f0a" />
 				<button class="btn" backgroundColor="#f0a" />
 				<sprite
 					x={200}

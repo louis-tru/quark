@@ -493,10 +493,10 @@ namespace qk {
 		_canvas->drawPathvColor(*data.inside,
 			box->_background_color.mul_color4f(_color), kSrcOver_BlendMode, data.antiAlias
 		);
-		// Paint paint;
-		// paint.antiAlias = false;
-		// paint.color = box->_background_color.to_color4f_alpha(_opacity);
-		// _canvas->drawPathv(rect->path, paint);
+		//Paint paint;
+		//paint.antiAlias = true;
+		//paint.color = box->_background_color.mul_color4f(_color);
+		//_canvas->drawPathv(*data.inside, paint);
 	}
 
 	void Painter::drawBoxBorder(Box *box, BoxData &data) {

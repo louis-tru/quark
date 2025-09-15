@@ -631,7 +631,7 @@ namespace js {
 		::setenv("UV_THREADPOOL_SIZE", "1", 0); // set uv thread loop size as 1
 
 		// Mark the current main thread and check current thread
-		Qk_ASSERT(RunLoop::is_work());
+		Qk_ASSERT_EQ(RunLoop::current(), RunLoop::work());
 
 		Qk_On(ProcessExit, onProcessExitHandle);
 
