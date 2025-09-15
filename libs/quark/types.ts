@@ -108,9 +108,9 @@ function toCapitalize<T extends string>(str: T): Capitalize<T> {
 */
 export enum Repeat {
 	Repeat, //!<
-	RepeatX, //!<
-	RepeatY, //!<
-	RepeatNo, //!<
+	RepeatX, //!< only repeat x
+	RepeatY, //!< only repeat y
+	NoRepeat, //!<
 };
 
 /**
@@ -456,7 +456,7 @@ export enum CascadeColor {
 // -------------------------------------------------------------------------------------
 
 /**
- * @type RepeatIn:"repeat"|"repeatX"|"repeatY"|"repeatNo"|Repeat
+ * @type RepeatIn:"repeat"|"repeatX"|"repeatY"|"noRepeat"|Repeat
 */
 export type RepeatIn = Uncapitalize<keyof typeof Repeat> | Repeat;
 /**

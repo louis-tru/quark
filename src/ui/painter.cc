@@ -379,7 +379,7 @@ namespace qk {
 			case Repeat::RepeatY:
 				img.tileModeX = ImagePaint::kDecal_TileMode;
 				img.tileModeY = ImagePaint::kRepeat_TileMode; break;
-			case Repeat::RepeatNo:
+			case Repeat::NoRepeat:
 				img.tileModeX = ImagePaint::kDecal_TileMode;
 				img.tileModeY = ImagePaint::kDecal_TileMode; break;
 		}

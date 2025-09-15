@@ -333,9 +333,9 @@ export class VirtualDOM<T extends DOM = DOM> {
 	readonly domC: DOMConstructor<T>;
 	readonly children: (VirtualDOM | null)[];
 	readonly props: Readonly<Dict>;
-	readonly hashProp: number;
+	readonly hash: number; // root hash
+	readonly hashProp: number; // props hash
 	readonly hashProps: Map<string, number>; // prop => hanshCode
-	readonly hash: number;
 
 	/**
 	 * @param domC DOM constructor type
@@ -366,8 +366,8 @@ export class VirtualDOM<T extends DOM = DOM> {
 			this.children = children;
 		}
 		this.domC = domC;
-		this.hash = hash;
 		this.hashProp = hashProp;
+		this.hash = hash;
 	}
 
 	/**
@@ -920,7 +920,8 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		if (!this.isDestroyd) {
 			WatchingAllCtrForDebug.delete(this);
 			(this as any).isDestroyd = true;
-			this.triggerDestroy(); // trigger event
+			if (this.isMounted)
+				this.triggerDestroy(); // trigger event
 			unref(this, this.owner);
 			this.dom.destroy(this);
 		}
@@ -938,10 +939,10 @@ export class ViewController<P = {}, S = {}> implements DOM {
 Object.assign(ViewController.prototype, {
 	dom: { // init default dom
 		ref: '',
-		get metaView(): View { throw Error.new('Not implemented') },
-		destroy() { throw Error.new('Not implemented') },
-		appendTo(){ throw Error.new('Not implemented') },
-		afterTo(){ throw Error.new('Not implemented') },
+		get metaView(): View { throw Error.new('Not implemented dom not initialized') },
+		destroy() { },
+		appendTo(){ throw Error.new('Not implemented dom not initialized') },
+		afterTo(){ throw Error.new('Not implemented dom not initialized') },
 	} as DOM,
 	_watchings: new InvalidSet,
 	_linkProps: [],

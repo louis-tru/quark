@@ -40,9 +40,9 @@ namespace qk {
 
 	enum class Repeat: uint8_t {
 		Repeat,
-		RepeatX,
-		RepeatY,
-		RepeatNo,
+		RepeatX, // only repeat x
+		RepeatY, // only repeat y
+		NoRepeat,
 	};
 
 	enum class FillPositionKind: uint8_t {
