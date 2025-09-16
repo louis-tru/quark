@@ -354,6 +354,8 @@ namespace qk {
 		auto src_w = src->width(), src_h = src->height();
 		auto cli = box->_client_size;
 		auto h_w = cli.x(), h_h = cli.y();
+		// auto h_w = data.inside->rect.size[0],
+		// 		 h_h = data.inside->rect.size[1];
 		float w, h, x, y;
 
 		_IfBorder(box) {
@@ -369,8 +371,8 @@ namespace qk {
 			w = src_w * _window->atomPixel();
 			h = src_h * _window->atomPixel();
 		}
-		x = FillImage::compute_position(fill->x(), h_w, w) + _originAA[0];
-		y = FillImage::compute_position(fill->y(), h_h, h) + _originAA[1];
+		x = FillImage::compute_position(fill->x(), h_w, w) + _origin[0]; // _originAA[0]
+		y = FillImage::compute_position(fill->y(), h_h, h) + _origin[1]; // _originAA[1]
 
 		if (_border) {
 			x += _border->width[3]; // left
