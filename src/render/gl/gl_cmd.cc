@@ -632,7 +632,7 @@ namespace qk {
 		void clearColorCall(const Color4f &color, const Region &region, bool full, float depth) {
 			if (full) {
 				//glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
-				glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, 127); // depth, stencil = 127
+				glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, 127); // depth=0, stencil = 127
 				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 				//glClearColor(color.r(), color.g(), color.b(), color.a());
 				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -279,11 +279,11 @@ function rerender(Self: ViewController) {
 	let vdomOld = self._vdom;
 	let vdomNew = _CVDD(self.render()) || EmptyVDom;
 
-	RenderQueue.delete(Self);
-	self._watchings.clear();
+	RenderQueue.delete(Self); // remove from queue again
 
 	if (vdomOld) {
 		if (vdomOld.hash !== vdomNew.hash) {
+			self._watchings.clear();
 			self.dom = vdomNew.diff(Self, vdomOld, dom);
 			self._vdom = vdomNew;
 			self.triggerUpdate(vdomOld!, vdomNew);

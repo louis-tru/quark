@@ -164,11 +164,13 @@ public:
 	}
 
 	UIView* surfaceView() override {
-		if (_view) return _view;
-		// new view
+		if (_view)
+			return _view;
 		_view = [[GLView alloc] init:_ctx render:this];
 		_view.wantsBestResolutionOpenGLSurface = YES; // Enable retina-support
 		_view.wantsLayer = YES; // Enable layer-backed drawing of view
+		_view.layer.opaque = NO;
+		_view.layer.backgroundColor = CGColorCreateGenericRGB(0, 0, 0, 0);
 
 		// [_ctx makeCurrentContext];
 		// _ctx.view = _view;
@@ -213,7 +215,7 @@ static CVReturn displayLinkCallback(
 	return kCVReturnSuccess;
 }
 
-- (BOOL)isOpaque { return YES; }
+- (BOOL)isOpaque { return NO; }
 
 - (void)prepareOpenGL {
 	[super prepareOpenGL];
@@ -292,11 +294,11 @@ namespace qk {
 
 		attrs[i++] = NSOpenGLPFAAccelerated; // Choose a hardware accelerated renderer
 		attrs[i++] = NSOpenGLPFAClosestPolicy;
-		// attrs[i++] = NSOpenGLPFADoubleBuffer; // use double buffering
+		//attrs[i++] = NSOpenGLPFADoubleBuffer; // use double buffering
 		attrs[i++] = NSOpenGLPFAOpenGLProfile; // OpenGL version
 		attrs[i++] = NSOpenGLProfileVersion3_2Core; // OpenGL3.2
-		//attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24u; // color buffer bits
-		//attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8u; // alpha buffer size
+		attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24u; // color buffer bits
+		attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8u; // alpha buffer size
 		//attrs[i++] = NSOpenGLPFAStencilSize; attrs[i++] = 8u; // Stencil buffer bit depth
 		attrs[i++] = NSOpenGLPFANoRecovery; // Disable all failover systems
 		attrs[i++] = NSOpenGLPFAScreenMask; attrs[i++] = glDisplayMask; // display

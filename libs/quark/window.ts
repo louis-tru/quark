@@ -131,7 +131,8 @@ declare class NativeWindow extends Notification<WEvent> {
 	surfaceSize: types.Vec2;
 
 	/**
-	 * When rendering next frame call
+	 * When rendering next frame call,
+	 * if a frame render is not complete, it will be wait for complete.
 	 * @method nextFrame(cb:Function)this
 	*/
 	nextFrame(cb: ()=>void): this;
@@ -234,7 +235,12 @@ export class Window extends (_ui.Window as typeof NativeWindow) {
 	/**
 	 * @mehod nextTickFrame(cb:Function)this
 	 * 
-	 * Calling nextTick on the next loop tick means the next frame of the next loop tick
+	 * Calling nextTick on the next loop tick means the next frame of the next loop tick.
+	 *
+	 * If any view attribute previously set needs to obtain the layout result, 
+	 * it needs to be called back by NextTickFrame, because any layout instructions are sent to 
+	 * the rendering core thread through NextTick and then returned to 
+	 * the working thread through NextFrame. Therefore, the result obtained before this is incorrect.
 	*/
 	nextTickFrame(cb: () => void) {
 		util.nextTick(()=>this.nextFrame(cb));

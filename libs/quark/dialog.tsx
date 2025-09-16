@@ -42,20 +42,20 @@ const px = 1 / mainScreenScale();
 createCss({
 	'.qk_dialog': {
 	},
-	'.qk_dialog.main': {
+	'.qk_dialog.qk_main': {
 		minWidth: 160, // min width
 		maxWidth: '40!',// max width
 		align: 'centerMiddle',
 		backgroundColor: '#fff',
 		borderRadius: 12,
 	},
-	'.qk_dialog.sheet': {
+	'.qk_dialog.qk_sheet': {
 		width: 'match',
 		maxWidth: 'none',
 		margin: 10,
 		align: 'centerBottom',
 	},
-	'.qk_dialog .title': {
+	'.qk_dialog .qk_title': {
 		width: 'match',
 		margin: [18,10,0,10],
 		textAlign: 'center',
@@ -65,7 +65,7 @@ createCss({
 		textWhiteSpace: 'noWrap',
 		weight: 1,
 	},
-	'.qk_dialog .content': {
+	'.qk_dialog .qk_content': {
 		weight: 1,
 		textSize: 14,
 		width: 'match',
@@ -76,16 +76,16 @@ createCss({
 		clip: true,
 		//backgroundColor: '#f00',
 	},
-	'.qk_dialog .buttons': {
+	'.qk_dialog .qk_buttons': {
 		width: 'match',
 		weight: 1,
 		borderTop: `${px} #9da1a0`,
 	},
-	'.qk_dialog.sheet .buttons': {
+	'.qk_dialog.qk_sheet .qk_buttons': {
 		marginTop: 10,
 		borderWidthTop: 0,
 	},
-	'.qk_dialog .button': {
+	'.qk_dialog .qk_button': {
 		height: 43,
 		minWidth: 68,
 		maxWidth: 'match',
@@ -99,24 +99,24 @@ createCss({
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'noWrap',
 	},
-	'.qk_dialog.sheet .button': {
+	'.qk_dialog.sheet .qk_button': {
 		height: 45,
 		width: 'match',
 		maxWidth: 'none',
 	},
-	'.qk_dialog .button.gray': {
+	'.qk_dialog .qk_button.qk_gray': {
 		textColor: '#555',
 	},
-	'.qk_dialog .button:normal': {
+	'.qk_dialog .qk_button:normal': {
 		backgroundColor: '#fff', time: 180
 	},
-	'.qk_dialog .button:hover': {
+	'.qk_dialog .qk_button:hover': {
 		backgroundColor: '#f4f4f4', time: 50
 	},
-	'.qk_dialog .button:active': {
+	'.qk_dialog .qk_button:active': {
 		backgroundColor: '#E9E9E9', time: 50
 	},
-	'.qk_dialog .prompt': {
+	'.qk_dialog .qk_prompt': {
 		marginTop: 10,
 		padding: [0,5],
 		width: "match",
@@ -191,16 +191,16 @@ export class Dialog<P={},S={}> extends Navigation<{
 	protected render() {
 		return (
 			<free width="100%" height="100%" backgroundColor="#0004" receive={true} visible={false} opacity={0}>
-				<matrix ref="main" class="qk_dialog main">
+				<matrix ref="main" class="qk_dialog qk_main">
 					<flex width="match" height="match" direction="column" crossAlign="both">
-						<text ref="title" class="title" value={this.title} visible={true} />
-						<text ref="con" class="content" visible={true}>{this.content||this.children}</text>
-						<flex ref="btns" class="buttons" visible={!!this._buttons.length}>
+						<text ref="title" class="qk_title" value={this.title} visible={true} />
+						<text ref="con" class="qk_content" visible={true}>{this.content||this.children}</text>
+						<flex ref="btns" class="qk_buttons" visible={!!this._buttons.length}>
 						{
 							this._buttons.map((e,i,arr)=>(
 								<button
 									key={i}
-									class="button"
+									class="qk_button"
 									borderWidthLeft={i ? px: 0}
 									borderRadiusLeftBottom={i == 0 ? 12: 0}
 									borderRadiusRightBottom={i == arr.length-1 ? 12: 0}
@@ -282,14 +282,14 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 				onClick={()=>this.navigationBack()}
 			>
 			{content?
-				<matrix ref="main" class="qk_dialog sheet">{content}</matrix>:
-				<matrix ref="main" class="qk_dialog sheet">
-					<box class="buttons">
+				<matrix ref="main" class="qk_dialog qk_sheet">{content}</matrix>:
+				<matrix ref="main" class="qk_dialog qk_sheet">
+					<box class="qk_buttons">
 					{ this.length?
 						this.buttons.map((e,i,arr)=>(
 							<button
 								key={arr.length-i}
-								class="button"
+								class="qk_button"
 								width="100%"
 								onClick={this.handleClick}
 								borderWidthTop={i?px:0}
@@ -298,7 +298,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 						)):
 						<button
 							key={1}
-							class="button"
+							class="qk_button"
 							width="100%"
 							onClick={this.handleClick}
 							value={Consts.Ok}
@@ -306,10 +306,10 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 						/>
 					}
 					</box>
-					<box class="buttons">
+					<box class="qk_buttons">
 						<button
 							key={0}
-							class="button gray"
+							class="qk_button gray"
 							width="100%"
 							onClick={this.handleClick}
 							value={Consts.Cancel}
@@ -409,7 +409,7 @@ export function prompt(window: Window, msg: string | {
 			<input
 				security={security}
 				ref="input"
-				class="prompt"
+				class="qk_prompt"
 				returnType="done"
 				value={text}
 				placeholder={placeholder}

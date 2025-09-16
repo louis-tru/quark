@@ -55,10 +55,10 @@ createCss({
 		backgroundColor: '#0079ff',
 		borderColor: '#0079ff',
 	},
-	'.qk_checkbox .mark': {
+	'.qk_checkbox .qk_mark': {
 		visible: false,
 	},
-	'.qk_checkbox.on .mark': {
+	'.qk_checkbox.on .qk_mark': {
 		visible: true,
 	},
 	// switch
@@ -76,46 +76,46 @@ createCss({
 		time: 300,
 	},
 	// switch button
-	'.qk_switch .button': {
+	'.qk_switch .qk_button': {
 		borderRadius: 16,
 		backgroundColor: '#fff',
 		height: 27,
 		y: 2,
 	},
-	'.qk_switch:normal .button': {
+	'.qk_switch:normal .qk_button': {
 		width: 27,
 		time: 200,
 	},
-	'.qk_switch:hover .button, .qk_switch:active .button': {
+	'.qk_switch:hover .qk_button, .qk_switch:active .qk_button': {
 		width: 33,
 		time: 200,
 	},
-	'.qk_switch.off .button': {
+	'.qk_switch.off .qk_button': {
 		x: 2,
 		time: 200,
 	},
-	'.qk_switch.on .button': {
+	'.qk_switch.on .qk_button': {
 		x: 20,
 		time: 200,
 	},
-	'.qk_switch.on:hover .button, .qk_switch.on:active .button': {
+	'.qk_switch.on:hover .qk_button, .qk_switch.on:active .qk_button': {
 		x: 14,
 		time: 200,
 	},
 	// switch background
-	'.qk_switch .background': {
+	'.qk_switch .qk_background': {
 		backgroundColor: '#eee',
 		borderRadius: 16,
 		align: 'centerMiddle',
 	},
-	'.qk_switch:normal .background': {
+	'.qk_switch:normal .qk_background': {
 		width: 46,
 		height: 27,
 		opacity: 1,
 		time: 300,
 	},
-	'.qk_switch:hover .background, .qk_switch:active .background, \
-	.qk_switch.on .background': {
+	'.qk_switch:hover .qk_background, .qk_switch:active .qk_background, \
+	.qk_switch.on .qk_background': {
 		width: 0,
 		height: 0,
 		opacity: 0,
@@ -178,7 +178,7 @@ export class Checkbox<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
 			<button class={['qk_checkbox',this.props.class||'',this.selected?'on':'off']} style={this.props.style}>
-				<label class="mark" value={"\ued71"} />
+				<label class="qk_mark" value={"\ued71"} />
 			</button>
 		)
 	}
@@ -194,8 +194,8 @@ export class Switch<P={},S={}> extends Basic<P,S> {
 	protected render() {
 		return (
 			<free class={['qk_switch',this.props.class||'',this.selected?'on':'off']} style={this.props.style}>
-				<free class="background" />
-				<matrix class="button" />
+				<free class="qk_background" />
+				<matrix class="qk_button" />
 			</free>
 		);
 	}

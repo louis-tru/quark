@@ -37,10 +37,23 @@ let mainPkg: _Package;
 let mainPkgLocal: _Package|undefined;
 let modules: Map<string, Module> = new Map();
 
+const ObjectDefineProperty = Object.defineProperty;
+
+// Hook Object.defineProperty to make re-define possible
+function newObjectDefinePropertyHook(obj: any, p: string, attributes: any) {
+	if (obj.__esModule && p == 'default') {
+		attributes.configurable = true; // make configurable for re-define
+		attributes.set = function() {}; // disable set
+	}
+	return ObjectDefineProperty(obj, p, attributes);
+}
+
 function markModuleObject(v: any, filename: string) {
 	if (v !== undefined) {
-		if (v)
-			v.__filename__ = filename;
+		if (v) {
+			if (!v.__filename__) // only mark once
+				v.__filename__ = filename;
+		}
 		return true;
 	}
 	return false;
@@ -78,6 +91,9 @@ export function connectServer(pkg: _Package, notice: Noticer) {
 	mainPkg = pkg;
 	mainPkgLocal = (pkg as any)._local;
 
+	// hook Object.defineProperty to make re-define possible
+	(Object as any).defineProperty = newObjectDefinePropertyHook;
+
 	let url = new URL(pkg.path);
 	let cli = new WSClient('Message', new WSConversation(url.origin));
 
@@ -92,8 +108,7 @@ export function connectServer(pkg: _Package, notice: Noticer) {
 				(mod as any).loaded = false; // force reload
 				(mod as any)._load(`${filename}?${hash}`, filename);
 			} catch (error: any) {
-				console.error(`Error reloading module ${name}:`, error, '\n');
-				console.error(error.stack);
+				console.error(`Error reloading module ${name}:`, error.message, '\n\n' + error.stack);
 				(mod as any).loaded = true; // restore to last loaded state
 				return;
 			}

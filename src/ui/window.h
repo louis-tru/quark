@@ -79,7 +79,7 @@ namespace qk {
 			uint16_t  fps; // init window render fsp limit
 			Rect      frame; // init window params
 			String    title; // init window title
-			Color     backgroundColor={255,255,255,255}; // init window background color
+			Color     backgroundColor={0,0,0,0}; // init window background color
 			Color     navigationColor={0,0,0,0}; // Is need draw navigation buttons for android.
 			// Not draw navigation, if settings opacity as zero
 		};
@@ -107,12 +107,15 @@ namespace qk {
 		* * 如果高度设为非`0`表示固定高度,宽度按照窗口比例自动设置
 		*/
 		Qk_DEFINE_PROPERTY(Vec2, size, Const); //!< current viewport size
-		//!< display scale, the larger the value, the smaller the size and the less content displayed
+		/**
+		 * display scale, the larger the value, the smaller the size and the less content displayed
+		 * current logical display scale equals surfaceSize / size, default equals defaultScale
+		 */
 		Qk_DEFINE_PROP_GET(float, scale, Const);
 		Qk_DEFINE_PROP_GET(float, defaultScale, Const); //!< default display scale
 		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
 		Qk_DEFINE_PROP_GET(uint32_t, fsp, Const); //!< current fsp
-		Qk_DEFINE_PROP_GET(float, atomPixel, Const); // atom pixel size
+		Qk_DEFINE_PROP_GET(float, atomPixel, Const); // atom pixel size, equals 1.0 / scale
 		Qk_DEFINE_PROP_GET(Root*, root); //! root view
 		Qk_DEFINE_PROP_GET(Application*, host); //! application host
 		Qk_DEFINE_PROP_GET(Render*, render); //! render object

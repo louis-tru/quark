@@ -65,13 +65,13 @@ QkWindowDelegate* WindowImpl::delegate() {
 	if ( !(self = [super init]) )
 		return nil;
 
-	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
-		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+	NSWindowStyleMask style =
+		//NSWindowStyleMaskBorderless |
+		NSWindowStyleMaskBorderless | NSWindowStyleMaskTitled |
+		NSWindowStyleMaskClosable |
 		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-	//UIScreen* screen = UIScreen.mainScreen;
 	NSScreen *screen = QkWindowDelegate.screenUnderMouse;
 	NSRect screenFrame = screen.visibleFrame;
-	//CGFloat scale = screen.backingScaleFactor;
 
 	auto frame = opts.frame;
 	float w = frame.size.x() > 0 ? frame.size.x(): screenFrame.size.width / 2;
@@ -84,8 +84,17 @@ QkWindowDelegate* WindowImpl::delegate() {
 																							backing:NSBackingStoreBuffered
 																								defer:NO
 																								screen:screen];
+	auto color = opts.backgroundColor.to_color4f();
+
 	uiwin.title = [NSString stringWithUTF8String:opts.title.c_str()];
 	uiwin.delegate = self;
+	uiwin.opaque = NO;
+	//uiwin.backgroundColor = [NSColor clearColor];
+	uiwin.backgroundColor = [UIColor colorWithSRGBRed:color[0]
+																							green:color[1]
+																							 blue:color[2]
+																							alpha:color[3]
+	];
 
 	self.isClose = NO;
 	self.qkwin = win;
@@ -93,10 +102,7 @@ QkWindowDelegate* WindowImpl::delegate() {
 	self.uiwin.contentViewController = self;
 	self.ime = qk_make_ime_helper(win);
 
-	if (opts.frame.origin.x() < 0 && opts.frame.origin.y() < 0) {
-		[uiwin center];
-	}
-
+	//[uiwin center];
 	[uiwin setFrame:rect display:NO];
 
 	UIView *rootView = self.view;
@@ -345,7 +351,7 @@ void Window::openImpl(Options &opts) {
 								 init:opts win:this render:_render];
 		CFBridgingRetain(impl);
 		_impl = (__bridge WindowImpl*)impl;
-		set_backgroundColor(opts.backgroundColor);
+		// set_backgroundColor(opts.backgroundColor);
 		activate();
 		_render->reload();
 	}), true);
@@ -378,7 +384,8 @@ void Window::afterDisplay() {
 
 void Window::set_backgroundColor(Color val) {
 	post_messate_main(Cb([this,val](auto e) {
-		if (!_impl) return;
+		if (!_impl)
+			return;
 		auto color = val.to_color4f();
 		_impl->delegate().uiwin.backgroundColor =
 			[UIColor colorWithSRGBRed:color.r() green:color.g() blue:color.b() alpha:color.a()];

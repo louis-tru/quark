@@ -97,7 +97,6 @@ namespace qk {
 		_id = _host->_windows.pushBack(this);
 		retain(); // strong ref count retain from application
 		_root = new Root(this); // new root
-		_root->set_background_color(_backgroundColor);
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus

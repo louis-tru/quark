@@ -38,8 +38,8 @@ createCss({
 	'.qk_stepper': {
 		width: 45 * 2 + 3,
 	},
-	'.qk_stepper .minus,\
-	.qk_stepper .plus': {
+	'.qk_stepper .qk_minus,\
+	.qk_stepper .qk_plus': {
 		width: 45,
 		height: 28,
 		textLineHeight: 1,
@@ -51,17 +51,17 @@ createCss({
 		backgroundColor: '#fff',
 		textAlign: "center",
 	},
-	'.qk_stepper .minus': {
+	'.qk_stepper .qk_minus': {
 		borderRadiusLeftTop: 6,
 		borderRadiusLeftBottom: 6,
 	},
-	'.qk_stepper .plus': {
+	'.qk_stepper .qk_plus': {
 		borderWidthLeft: 0,
 		borderRadiusRightTop: 6,
 		borderRadiusRightBottom: 6,
 	},
-	'.qk_stepper .minus:active,\
-	.qk_stepper .plus:active': {
+	'.qk_stepper .qk_minus:active,\
+	.qk_stepper .qk_plus:active': {
 		backgroundColor: '#eee',
 	},
 });
@@ -118,8 +118,8 @@ export class Stepper extends ViewController<{
 	render() {
 		return (
 			<box class={['qk_stepper',this.props.class||'']} style={this.props.style}>
-				<button class="minus" onClick={this._MinusClickHandle} value={"\ued5e"}/>
-				<button class="plus" onClick={this._PlusClickHandle} value={"\ued5d"}/>
+				<button class="qk_minus" onClick={this._MinusClickHandle} value={"\ued5e"}/>
+				<button class="qk_plus" onClick={this._PlusClickHandle} value={"\ued5d"}/>
 			</box>
 		);
 	}

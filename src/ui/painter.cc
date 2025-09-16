@@ -864,10 +864,11 @@ namespace qk {
 				auto AAShrinkBorder_half = painter->_isMsaa ? 0: 0.02f / _window->scale(); // plus 0.02 to avoid aa gap
 				painter->_AAShrink = AAShrink;
 				painter->_AAShrinkBorder = AAShrink + AAShrinkBorder_half + AAShrinkBorder_half;
+				painter->_color = color().to_color4f();
 				painter->set_origin(origin_value());
 				painter->set_matrix(&matrix());
-				canvas->clearColor(background_color().to_color4f());
-				painter->drawBoxColor(this, data);
+				canvas->clearColor(background_color().mul_color4f(painter->_color));
+				painter->drawBoxFill(this, data);
 				painter->drawBoxBorder(this, data);
 				painter->set_origin({}); // reset origin
 				painter->drawBoxEnd(this, data);

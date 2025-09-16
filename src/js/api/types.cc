@@ -513,7 +513,7 @@ namespace qk { namespace js {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
-		_out = {.backgroundColor=Color(255,255,255)};
+		_out = {.backgroundColor=Color(0,0,0,0)};
 		auto obj = in->cast<JSObject>();
 		auto colorType = obj->get(worker, worker->newStringOneByte("colorType"));
 		auto msaa = obj->get(worker, worker->newStringOneByte("msaa"));
