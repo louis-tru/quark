@@ -155,7 +155,7 @@ namespace qk {
 		return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, radius));
 	}
 
-	static bool is_not_Zero(const float radius[4]) {
+	inline static bool is_not_Zero(const float radius[4]) {
 		return *reinterpret_cast<const uint64_t*>(radius) != 0 ||
 			*reinterpret_cast<const uint64_t*>(radius+2) != 0;
 	}
@@ -170,14 +170,24 @@ namespace qk {
 
 		if (is_not_Zero(radius)) {
 			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
-			Path::BorderRadius Br{
+			Path::BorderRadius br{
 				Qk_Min(radius[0], xy_0_5), Qk_Min(radius[1], xy_0_5),
 				Qk_Min(radius[2], xy_0_5), Qk_Min(radius[3], xy_0_5),
 			};
-			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
+			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, br));
 		} else {
 			return setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 		}
+	}
+
+	const RectOutlinePath& PathvCache::getRectOutlinePath(const Rect &rect, const float border[4]) {
+		Hash5381 hash;
+		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(border);
+		Wrap<RectOutlinePath,4> *const *out;
+		if (_RectOutlinePathCache.get(hash.hashCode(), out))
+			return (*out)->base;
+		return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
 	}
 
 	const RectOutlinePath& PathvCache::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
@@ -191,24 +201,14 @@ namespace qk {
 
 		if (is_not_Zero(radius)) {
 			float xy_0_5 = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
-			Path::BorderRadius Br{
+			Path::BorderRadius br{
 				{Qk_Min(radius[0],xy_0_5)}, {Qk_Min(radius[1],xy_0_5)},
 				{Qk_Min(radius[2],xy_0_5)}, {Qk_Min(radius[3],xy_0_5)},
 			};
-			return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, Br));
+			return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRRectOutline(rect, border, br));
 		} else {
 			return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
 		}
-	}
-
-	const RectOutlinePath& PathvCache::getRectOutlinePath(const Rect &rect, const float border[4]) {
-		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
-		hash.updatefv4(border);
-		Wrap<RectOutlinePath,4> *const *out;
-		if (_RectOutlinePathCache.get(hash.hashCode(), out))
-			return (*out)->base;
-		return setRRectOutlinePathFromHash(hash.hashCode(), RectOutlinePath::MakeRectOutline(rect, border));
 	}
 
 	bool PathvCache::newVertexData(const VertexData::ID *vertexInThis) {

@@ -53,8 +53,9 @@ namespace qk {
 			const RectPath *inside = nullptr;
 			const RectPath *outside = nullptr;
 			const RectOutlinePath *outline = nullptr;
-			bool isRadius = false;
-			bool antiAlias = false; // is need anti alias
+			bool isInit = false; // is init
+			bool isRadius; // is radius rect
+			bool antiAlias; // is need anti alias
 		};
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(Canvas*, canvas);

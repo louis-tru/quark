@@ -80,17 +80,18 @@ namespace qk {
 		_originAA = Vec2(_AAShrink * 0.5) + origin;
 	}
 
-	static bool is_not_Zero(const float radius[4]) {
+	inline static bool is_not_Zero(const float radius[4]) {
 		return *reinterpret_cast<const uint64_t*>(radius) != 0 ||
 			*reinterpret_cast<const uint64_t*>(radius+2) != 0;
 	}
 
 	Rect Painter::getRect(Box* box, BoxData &data) {
-		if (data.antiAlias == false) {
+		if (!data.isInit) {
 			auto radius = &box->_border_radius_left_top;
 			data.isRadius = is_not_Zero(radius);
 			data.antiAlias = data.isRadius || !_is_translation_matrix;
 			//data.antiAlias = false; // disable antiAlias for rect
+			data.isInit = true;
 		}
 		return data.antiAlias ? Rect{
 			_originAA, {box->_client_size[0]-_AAShrink,box->_client_size[1]-_AAShrink},
@@ -128,16 +129,14 @@ namespace qk {
 					rect.size  [0] -= borderFix[3] + borderFix[1]; // left + right
 					rect.size  [1] -= borderFix[0] + borderFix[2]; // top + bottom
 
-					//Qk_DLog("getInsideRectPath have border");
 					if (out.isRadius) {
 						float leftTop = Qk_Min(radius[0],radiusLimit), rightTop = Qk_Min(radius[1],radiusLimit);
 						float rightBottom = Qk_Min(radius[2],radiusLimit), leftBottom = Qk_Min(radius[3],radiusLimit);
-						auto border = _border->width;
-						Path::BorderRadius Br{
+						Path::BorderRadius br{
 							{leftTop-border[3], leftTop-border[0]}, {rightTop-border[1], leftTop-border[0]},
 							{rightBottom-border[1], rightBottom-border[2]}, {leftBottom-border[3], rightBottom-border[2]},
 						};
-						out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, Br));
+						out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, br));
 					} else {
 						out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 					}
@@ -170,16 +169,32 @@ namespace qk {
 	void Painter::getRRectOutlinePath(Box *box, BoxData &out) {
 		if (!out.outline) {
 			_Border(box);
-			auto rect = getRect(box, out);
-			auto border = _border->width;
 			// if border is zero, outline is null
-			if (is_not_Zero(border)) { // border is not zero
+			if (is_not_Zero(_border->width)) {
+				auto rect = getRect(box, out);
+				auto border = _border->width;
+				auto radius = &box->_border_radius_left_top;
 				if (out.isRadius) { // radius is not zero
-					float borderFix[4] = {
-						Float32::max(0, border[0]-_AAShrinkBorder), Float32::max(0, border[1]-_AAShrinkBorder),
-						Float32::max(0, border[2]-_AAShrinkBorder), Float32::max(0, border[3]-_AAShrinkBorder),
-					};
-					out.outline = &_cache->getRRectOutlinePath(rect, borderFix, &box->_border_radius_left_top);
+					Hash5381 hash;
+					hash.updatefv4(rect.origin.val);
+					hash.updatefv4(border);
+					hash.updatefv4(radius);
+
+					out.outline = _cache->getRRectOutlinePathFromHash(hash.hashCode());
+					if (!out.outline) {
+						float radiusLimit = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
+						float AAShrink = _AAShrinkBorder;
+						float borderFix[4] = {
+							Float32::max(0, border[0]-AAShrink), Float32::max(0, border[1]-AAShrink),
+							Float32::max(0, border[2]-AAShrink), Float32::max(0, border[3]-AAShrink),
+						};
+						Path::BorderRadius br{
+							{Qk_Min(radius[0],radiusLimit)}, {Qk_Min(radius[1],radiusLimit)},
+							{Qk_Min(radius[2],radiusLimit)}, {Qk_Min(radius[3],radiusLimit)},
+						};
+						out.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
+								RectOutlinePath::MakeRRectOutline(rect, borderFix, br));
+					}
 				} else {
 					out.outline = &_cache->getRectOutlinePath(rect, border);
 				}
@@ -526,7 +541,7 @@ namespace qk {
 				getInsideRectPath(box, data);
 				_window->clipRegion(screen_region_from_convex_quadrilateral(box->_bounds));
 				_canvas->save();
-				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
+				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, data.antiAlias); // clip
 				visitView(box);
 				_canvas->restore(); // cancel clip
 				_window->clipRestore();
@@ -693,7 +708,7 @@ namespace qk {
 				draw->getInsideRectPath(this, data);
 				window()->clipRegion(screen_region_from_convex_quadrilateral(_bounds));
 				canvas->save();
-				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
+				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, data.antiAlias); // clip
 				if (_blob_visible.length()) {
 					draw->drawTextBlob(this, offset, *_lines, _blob, _blob_visible);
 				}
@@ -724,7 +739,7 @@ namespace qk {
 		if (clip) {
 			draw->getInsideRectPath(this, data);
 			canvas->save();
-			canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, true); // clip
+			canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, data.antiAlias); // clip
 		}
 
 		if (visible) {

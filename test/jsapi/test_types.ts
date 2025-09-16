@@ -54,7 +54,7 @@ export default async function(_: any) {
 	Mv(v, 'newTextFamily', [v.TextValueKind.Inherit, v.EmptyFFID])
 
 	LOG('\nTEST Parse Function:\n')
-	Mv(v, 'parseRepeat', ['repeatNo'], v.Repeat.RepeatNo)
+	Mv(v, 'parseRepeat', ['noRepeat'], v.Repeat.NoRepeat)
 	Mv(v, 'parseDirection', ['row'], v.Direction.Row)
 	Mv(v, 'parseItemsAlign', ['center'], v.ItemsAlign.Center)
 	Mv(v, 'parseCrossAlign', ['start'], v.CrossAlign.Start)
