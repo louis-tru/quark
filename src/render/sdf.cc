@@ -100,17 +100,18 @@ namespace qk {
 	//   Background pixels (0) are initialized with INF
 	//   Feature pixels (255) are initialized with 0
 	//   Gray pixels are approximated using half distance
-	Array<int> compute_unsigned_distance(const uint8_t *bin, int w, int h) {
+	Array<int> compute_unsigned_distance(const uint8_t *bin, int w, int h, int stride) {
 		auto size = w * h;
 		Array<int> d_fore(size);
-		for (int i = 0; i < size; ++i) {
-			if (bin[i] == 0) {
+		for (int i = 0; i < size; i++) {
+			if (bin[0] == 0) {
 				d_fore[i] = INF;
-			} else if (bin[i] == 255) {
+			} else if (bin[0] == 255) {
 				d_fore[i] = 0;
 			} else {
-				d_fore[i] = (255 - bin[i]) >> 1; // approximate mid-gray
+				d_fore[i] = (255 - bin[0]) >> 1; // approximate mid-gray
 			}
+			bin += stride;
 		}
 		chamfer_8ssetd(w, h, d_fore);
 		Qk_ReturnLocal(d_fore);
@@ -131,22 +132,24 @@ namespace qk {
 	//     Gray pixels -> approximate mid-distance
 	//   Perform chamfer transform on both arrays
 	//   Final internal distance = ORTH - background distance
-	Array<int> compute_signed_distance(const uint8_t *bin, int w, int h) {
+	Array<int> compute_signed_distance(const uint8_t *bin, int w, int h, int stride) {
 		auto size = w * h;
 		Array<int> d_fore(size), d_back(size);
+		const uint8_t *src = bin;
 
 		// Initialize distance arrays
 		for (int i = 0; i < size; ++i) {
-			if (bin[i] == 0) {
+			if (src[0] == 0) {
 				d_fore[i] = INF;
 				d_back[i] = 0;
-			} else if (bin[i] == 255) {
+			} else if (src[0] == 255) {
 				d_fore[i] = 0;
 				d_back[i] = INF;
 			} else {
-				d_back[i] = bin[i] >> 1;
+				d_back[i] = src[0] >> 1;
 				d_fore[i] = 128 - d_back[i];
 			}
+			src += stride;
 		}
 
 		// Forward and backward Chamfer transform
@@ -165,9 +168,9 @@ namespace qk {
 	// =============================
 	// General distance interface
 	// =============================
-	Array<int> compute_distance(const uint8_t *bin, int w, int h, bool is_signed) {
-			return is_signed ? compute_signed_distance(bin, w, h)
-												: compute_unsigned_distance(bin, w, h);
+	Array<int> compute_distance(const uint8_t *bin, int w, int h, int stride, bool is_signed) {
+		return is_signed ? compute_signed_distance(bin, w, h, stride)
+											: compute_unsigned_distance(bin, w, h, stride);
 	}
 
 	// =============================
@@ -179,10 +182,10 @@ namespace qk {
 	//
 	// Normalization:
 	//   Multiply each integer distance by 1/128 to map Chamfer units to float
-	Pixel compute_distance_f32(const uint8_t *bin, int w, int h, bool is_signed) {
+	Pixel compute_distance_f32(const uint8_t *bin, int w, int h, int stride, bool is_signed) {
 		Array<float> f32(w * h);
 		auto f32p = f32.val();
-		for (auto i: compute_distance(bin, w, h, is_signed)) {
+		for (auto i: compute_distance(bin, w, h, stride, is_signed)) {
 			*(f32p++) = i * (1.0f / 128.0f);
 		}
 		return Pixel({

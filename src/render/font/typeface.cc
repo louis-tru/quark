@@ -249,14 +249,12 @@ namespace qk {
 
 		switch(out.image->type()) {
 			case kAlpha_8_ColorType:
-				out.image = ImageSource::Make(compute_distance_f32(out.image->pixel(0)->val(), w, h, is_signed), render);
+				out.image = ImageSource::Make(compute_distance_f32(
+						out.image->pixel(0)->val(), w, h, 1, is_signed), render);
 				break;
 			case kRGBA_8888_ColorType: {
-				Buffer buf(w*h);
-				auto col = (Color*)out.image->pixel(0)->val();
-				for (int i = 0; i < w*h; i++)
-					buf[i] = col[i].a(); // copy alpha channel
-				out.image = ImageSource::Make(compute_distance_f32((uint8_t*)buf.val(), w, h, is_signed), render);
+				auto val = out.image->pixel(0)->val();
+				out.image = ImageSource::Make(compute_distance_f32(val + 3, w, h, 4, is_signed), render);
 				break;
 			}
 			default: break;

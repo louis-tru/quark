@@ -146,7 +146,7 @@ protected:
 	virtual Sp<QkFontData> onMakeFontData() const = 0;
 
 private:
-	void generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, FT_Pixel_Mode mode, Vec2 imgBaseline);
+	void generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, uint8_t ft_pixel_mode, Vec2 imgBaseline);
 	bool generateFacePath(Path* path);
 
 	uint16_t          fFlags;

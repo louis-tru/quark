@@ -44,6 +44,7 @@ namespace qk {
 	 *                  where 0 = background, 255 = feature (gray values allowed)
 	 * @param w         Width of the image
 	 * @param h         Height of the image
+	 * @param stride    Stride (bytes per pixel) of the input image
 	 * @param is_signed If true, compute signed distance field:
 	 *                    positive outside feature, negative inside
 	 *                  If false, compute unsigned distance field
@@ -51,7 +52,7 @@ namespace qk {
 	 * @return Array<int> containing integer distance values (Chamfer units)
 	 *         ORTH = 128, DIAG = 181
 	 */
-	Qk_EXPORT Array<int> compute_distance(const uint8_t *bin, int w, int h, bool is_signed = false);
+	Qk_EXPORT Array<int> compute_distance(const uint8_t *bin, int w, int h, int stride, bool is_signed = false);
 
 	/**
 	 * Compute normalized float SDF (signed or unsigned)
@@ -61,6 +62,7 @@ namespace qk {
 	 * @param bin       Pointer to input binary image (uint8_t)
 	 * @param w         Width of the image
 	 * @param h         Height of the image
+	 * @param stride    Stride (bytes per pixel) of the input image
 	 * @param is_signed If true, output signed float SDF in [-1,1]
 	 *                  If false, output unsigned float SDF in [0,1]
 	 *                  Default: false
@@ -73,7 +75,7 @@ namespace qk {
 	 *   Each integer Chamfer distance is multiplied by 1/128 to normalize.
 	 *   Suitable for direct rendering or shader usage.
 	 */
-	Qk_EXPORT Pixel compute_distance_f32(const uint8_t *bin, int w, int h, bool is_signed = false);
+	Qk_EXPORT Pixel compute_distance_f32(const uint8_t *bin, int w, int h, int stride, bool is_signed = false);
 
 } // namespace qk
 

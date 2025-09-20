@@ -36,6 +36,7 @@
 #include "./util.h"
 #include "./mutex.h"
 #include "./arguments.h"
+#include "../../../util/handle.h"
 
 using namespace qk;
 

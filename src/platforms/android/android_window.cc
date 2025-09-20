@@ -470,7 +470,7 @@ namespace qk {
 	void Window::afterDisplay() {
 		if (_opts.navigationColor.a() != 0 && !_navigationRect.size.is_zero_axis()) {
 			Paint paint;
-			paint.color = _opts.navigationColor.to_color4f();
+			paint.fill.color = _opts.navigationColor.to_color4f();
 			paint.antiAlias = false;
 			_render->getCanvas()->drawRect(_navigationRect, paint);
 		}

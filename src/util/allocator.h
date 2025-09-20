@@ -30,6 +30,8 @@
 
 #include "./macros.h"
 #include <utility>
+#include <stdint.h>
+#include <stddef.h>
 
 #ifndef __quark__util__allocator__
 #define __quark__util__allocator__
