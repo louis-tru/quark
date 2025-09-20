@@ -44,7 +44,6 @@ namespace qk {
 	F(CURSOR, CursorStyle, cursor, View) \
 	F(OPACITY, float, opacity, View) \
 	F(VISIBLE, bool, visible, View) \
-	F(RECEIVE, bool, receive, View) \
 	F(CLIP, bool, clip, Box) /* box */ \
 	F(ALIGN, Align, align, Box) \
 	F(WIDTH, BoxSize, width, Box) \
@@ -71,10 +70,10 @@ namespace qk {
 	F(BORDER, ArrayBorder, border, Box) /*border*/\
 	F(BORDER_WIDTH, ArrayFloat, border_width, Box) \
 	F(BORDER_COLOR, ArrayColor, border_color, Box) \
-	F(BORDER_TOP, BoxBorder, border_top, Box) \
-	F(BORDER_RIGHT, BoxBorder, border_right, Box) \
-	F(BORDER_BOTTOM, BoxBorder, border_bottom, Box) \
-	F(BORDER_LEFT, BoxBorder, border_left, Box) \
+	F(BORDER_TOP, Border, border_top, Box) \
+	F(BORDER_RIGHT, Border, border_right, Box) \
+	F(BORDER_BOTTOM, Border, border_bottom, Box) \
+	F(BORDER_LEFT, Border, border_left, Box) \
 	F(BORDER_COLOR_TOP, Color, border_color_top, Box) \
 	F(BORDER_COLOR_RIGHT, Color, border_color_right, Box) \
 	F(BORDER_COLOR_BOTTOM, Color, border_color_bottom, Box) \
@@ -102,6 +101,7 @@ namespace qk {
 	F(TEXT_WORD_BREAK, TextWordBreak, text_word_break, TextOptions) \
 	F(TEXT_SIZE, TextSize, text_size, TextOptions) \
 	F(TEXT_BACKGROUND_COLOR, TextColor, text_background_color, TextOptions) \
+	F(TEXT_STROKE, TextStroke, text_stroke, TextOptions) \
 	F(TEXT_COLOR, TextColor, text_color, TextOptions) \
 	F(TEXT_LINE_HEIGHT, TextLineHeight, text_line_height, TextOptions) \
 	F(TEXT_SHADOW, TextShadow, text_shadow, TextOptions) /*****Large size data*****/\

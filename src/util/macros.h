@@ -103,7 +103,7 @@
 #elif defined(__native_client__)
 # undef Qk_POSIX
 # define Qk_NACL 1
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(_WIN64)
 # undef Qk_POSIX
 # define Qk_WIN 1
 #endif

@@ -40,9 +40,6 @@
 
 namespace qk {
 
-	#define assert_alignup(T) \
-		static_assert(isAlignUp(sizeof(T)), #T " size must be align up")
-
 	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
 	typedef Canvas::Triangles Triangles;
 
@@ -67,6 +64,7 @@ namespace qk {
 			kRRectBlurColor_CmdType,
 			kImage_CmdType,
 			kImageMask_CmdType,
+			kSDFImageMask_CmdType,
 			kGradient_CmdType,
 			kColors_CmdType,
 			kTriangles_CmdType,
@@ -149,21 +147,26 @@ namespace qk {
 
 		struct alignas(void*) GradientCmd: DrawCmd { //!
 			Color4f        color;
-			GradientPaint  paint;
+			PaintGradient  paint;
 		};
 
 		struct alignas(void*) ImageCmd: DrawCmd { //!
 			float          allScale;
 			Color4f        color;
-			ImagePaint     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
+			PaintImage     paint; // rgb or y, u of yuv420p or uv of yuv420sp, v of yuv420p
 			~ImageCmd();
 		};
 
 		struct alignas(void*) ImageMaskCmd: DrawCmd { //!
 			float          allScale;
 			Color4f        color;
-			ImagePaint     paint;
+			PaintImage     paint;
 			~ImageMaskCmd();
+		};
+
+		struct alignas(void*) SDFImageMaskCmd: ImageMaskCmd { //!
+			Color4f        strokeColor;
+			float          strokeWidth;
 		};
 
 		struct alignas(void*) ColorsCmd: Cmd {
@@ -182,7 +185,7 @@ namespace qk {
 
 		struct alignas(void*) TrianglesCmd: Cmd {
 			Triangles      triangles;
-			ImagePaint     paint;
+			PaintImage     paint;
 			float          depth;
 			Color4f        color;
 			bool           aaclip;
@@ -225,27 +228,6 @@ namespace qk {
 			GLenum  buffers[2];
 		};
 
-		assert_alignup(MatrixCmd);
-		assert_alignup(BlendCmd);
-		assert_alignup(SwitchCmd);
-		assert_alignup(ClearCmd);
-		assert_alignup(ClipCmd);
-		assert_alignup(BlurFilterBeginCmd); //
-		assert_alignup(BlurFilterEndCmd); //
-		assert_alignup(ColorCmd); // 
-		assert_alignup(ColorRRectBlurCmd); // 
-		assert_alignup(GradientCmd);
-		assert_alignup(ImageCmd);
-		assert_alignup(ImageMaskCmd);
-		assert_alignup(ColorsCmd); // 
-		assert_alignup(TrianglesCmd);
-		assert_alignup(ReadImageCmd); //
-		assert_alignup(OutputImageBeginCmd);
-		assert_alignup(OutputImageEndCmd);
-		assert_alignup(FlushCanvasCmd); //
-		assert_alignup(SetBuffersCmd);
-		assert_alignup(DrawBuffersCmd); //
-
 		GLC_CmdPack(GLRender *render, GLCanvas *canvas);
 		~GLC_CmdPack();
 		bool isHaveCmds();
@@ -255,10 +237,12 @@ namespace qk {
 		void switchState(GLenum id, bool isEnable); // call glEnable or glDisable
 		void drawColor(const VertexData &vertex, const Color4f &color, bool aafuzz); // add cmd
 		void drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color);
-		void drawImage(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
-		void drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz);
-		void drawTriangles(const Triangles& triangles, const ImagePaint *paint, const Color4f &color);
-		void drawGradient(const VertexData &vertex, const GradientPaint *paint, const Color4f &color, bool aafuzz);
+		void drawImage(const VertexData &vertex, const PaintImage *paint, const Color4f &color, bool aafuzz);
+		void drawImageMask(const VertexData &vertex, const PaintImage *paint, const Color4f &color, bool aafuzz);
+		void drawSDFImageMask(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
+				const Color4f &strokeColor, float stroke, bool aafuzz);
+		void drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color);
+		void drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke);
 		void clearColor(const Color4f &color, const Region &region, bool fullClear);
 		void blurFilterBegin(Region bounds, float size);
@@ -268,7 +252,6 @@ namespace qk {
 		void outputImageEnd(ImageSource* img);
 		void setBuffers(Vec2 size, ImageSource *recover, bool chSize);
 		void drawBuffers(GLsizei num, const GLenum buffers[2]);
-
 	private:
 		typedef ColorsCmd::Option CGOpt;
 		template<class T> struct MemBlock {

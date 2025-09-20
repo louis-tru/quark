@@ -211,15 +211,14 @@ public:
 		auto canvas = window()->render()->getCanvas();
 		auto size = window()->size();
 		Paint paint;
-		ImagePaint ipaint;
+		PaintImage ipaint;
 		Rect dest{content_size()*-0.5,content_size()};
 
 		ipaint.setImage(source().get(), dest);
-		ipaint.mipmapMode = ImagePaint::kLinear_MipmapMode;
-		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
-		paint.type = Paint::kBitmapMask_Type;
-		paint.image = &ipaint;
-		paint.color = Color4f(0,0,0,1); // black
+		ipaint.mipmapMode = PaintImage::kLinear_MipmapMode;
+		ipaint.filterMode = PaintImage::kLinear_FilterMode;
+		paint.mask = &ipaint;
+		paint.fill.color = Color4f(0,0,0,1); // black
 
 		canvas->drawRect(dest, paint);
 	}

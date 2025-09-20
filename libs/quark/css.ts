@@ -50,9 +50,8 @@ export declare abstract class StyleSheets {
 	cascadeColor?: types.CascadeColorIn; //!< cascade color
 	cursor?: types.CursorStyleIn; //!<
 	opacity?: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
-	visible?: boolean; //!<
-	receive?: boolean; //!<
-	clip?: boolean; //!<
+	visible?: boolean; //!< view visible
+	clip?: boolean; //!< view clip children
 	align?: types.AlignIn; //!<
 	width?: types.BoxSizeIn; //!<
 	height?: types.BoxSizeIn; //!<
@@ -75,11 +74,11 @@ export declare abstract class StyleSheets {
 	borderRadiusRightTop?: number; //!<
 	borderRadiusRightBottom?: number; //!<
 	borderRadiusLeftBottom?: number; //!<
-	border?: types.BoxBorderIn[] | types.BoxBorderIn; //!< border
-	borderTop?: types.BoxBorderIn; //!<
-	borderRight?: types.BoxBorderIn; //!<
-	borderBottom?: types.BoxBorderIn; //!<
-	borderLeft?: types.BoxBorderIn; //!<
+	border?: types.BorderIn[] | types.BorderIn; //!< border
+	borderTop?: types.BorderIn; //!<
+	borderRight?: types.BorderIn; //!<
+	borderBottom?: types.BorderIn; //!<
+	borderLeft?: types.BorderIn; //!<
 	borderWidth?: number[] | number; //!<
 	borderColor?: types.ColorIn[] | types.ColorIn; //!<
 	borderWidthTop?: number; //!< border width
@@ -109,6 +108,7 @@ export declare abstract class StyleSheets {
 	textWordBreak?: types.TextWordBreakIn; //!<
 	textSize?: types.TextSizeIn; //!<
 	textBackgroundColor?: types.TextColorIn; //!<
+	textStroke?: types.TextStrokeIn; //!<
 	textColor?: types.TextColorIn; //!<
 	textLineHeight?: types.TextSizeIn; //!<
 	textShadow?: types.TextShadowIn; //!<

@@ -7,7 +7,6 @@ void main() {
 #frag
 uniform  lowp float aafuzzWeight;
 uniform  lowp float aafuzzConst;
-uniform  lowp float clearAA;
 
 void main() {
 	//
@@ -21,13 +20,18 @@ void main() {
 	// C'   = C + C1/W
 	// F = C'.W + Fuzz.W
 	// (-10 + 1) * -0.09
-	lowp float alpha = (aafuzzConst + abs(aafuzz)) * aafuzzWeight;
-	lowp float clip = mix(texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r, 1.0, clearAA);
+	lowp float src = (aafuzzConst + abs(aafuzz)) * aafuzzWeight;
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP_REVOKE
-	fragColor = vec4(clip / alpha, 1.0,1.0,1.0); // aaclip revoke
+	// aaclip revoke = dst/src, because src don't > 1.0 so use 1/src-1
+	// modify gl blend mode to: src * dst + dst.
+	// dst/src = dst(1/src)
+	//				 = dst(1/src-1) + dst
+	fragColor = vec4((1.0-src)/src, 1.0, 1.0, 1.0);
 #else
-	fragColor = vec4(clip * alpha, 1.0,1.0,1.0);
+	// aaclip = dst*src
+	// modify gl blend mode to: src * dst
+	fragColor = vec4(src, 1.0, 1.0, 1.0);
 #endif
 }
 

@@ -68,10 +68,10 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Box, float, border_radius_right_bottom, borderRadiusRightBottom);
 			Js_MixObject_Accessor(Box, float, border_radius_left_bottom, borderRadiusLeftBottom);
 			Js_MixObject_Accessor(Box, ArrayBorder, border, border); // border width
-			Js_MixObject_Accessor(Box, BoxBorder, border_top, borderTop);
-			Js_MixObject_Accessor(Box, BoxBorder, border_right, borderRight);
-			Js_MixObject_Accessor(Box, BoxBorder, border_bottom, borderBottom);
-			Js_MixObject_Accessor(Box, BoxBorder, border_left, borderLeft);
+			Js_MixObject_Accessor(Box, Border, border_top, borderTop);
+			Js_MixObject_Accessor(Box, Border, border_right, borderRight);
+			Js_MixObject_Accessor(Box, Border, border_bottom, borderBottom);
+			Js_MixObject_Accessor(Box, Border, border_left, borderLeft);
 			Js_MixObject_Accessor(Box, ArrayFloat, border_width, borderWidth);
 			Js_MixObject_Accessor(Box, ArrayColor, border_color, borderColor);
 			Js_MixObject_Accessor(Box, float, border_width_top, borderWidthTop); // border width

@@ -104,11 +104,11 @@ export default async function test1(win: Window) {
 					src={resolve('./res/sprite.png')} 
 				/>
 			</box>
-			<box backgroundColor="#0f09" width="100%" height={100} />
+			<box backgroundColor="#0f0f" width="100%" height={100} />
 			{Array.from({length:1}).map((_,j)=>
 				<box key={j} width="100%">
 					<text align="start" backgroundColor="#f70" width={100} height={100}>
-						<label textAlign="left" textBackgroundColor="#ff0" value="hello!哈哈 " />
+						<label textAlign="left" textBackgroundColor="#ff0" value="hello!哈哈 " textColor="#fff" textStroke="1 #000b" />
 						<label textAlign="center" textBackgroundColor="#f0f" value={`hello!\n`} textWhiteSpace="preLine" />
 						<label textAlign="right" textBackgroundColor="#0ff">hello</label>
 					</text>

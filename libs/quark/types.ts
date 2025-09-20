@@ -98,7 +98,11 @@ function hexStr(num: N) {
 }
 
 function toCapitalize<T extends string>(str: T): Capitalize<T> {
-	return str[0].toUpperCase() + str.substring(1) as Capitalize<T>;
+	if (str.charCodeAt(0) > 96) { // a-z
+		return str[0].toUpperCase() + str.substring(1) as Capitalize<T>;
+	} else {
+		return '' as Capitalize<T>;
+	}
 }
 
 // -------------------------------------------------------------------------------------
@@ -764,9 +768,9 @@ initDefaults(Shadow, { x: 0, y: 0, size: 0, color: new Color(0,0,0,255) });
 export type ShadowIn = `${N} ${N} ${N} ${ColorStrIn}` | Shadow; //!< {'2　2　2　rgb(100,100,100)'|Shadow}
 
 /**
- * @class BoxBorder
+ * @class Border
 */
-export class BoxBorder extends Base<BoxBorder> {
+export class Border extends Base<Border> {
 	width: N; //!<
 	color: Color; //!<
 	get r() { return this.color.r; } //!< {N}
@@ -777,8 +781,8 @@ export class BoxBorder extends Base<BoxBorder> {
 		return `${this.width} ${this.color.toString()}`
 	}
 }
-initDefaults(BoxBorder, { width: 0, color: new Color(0,0,0,255) });
-export type BoxBorderIn = `${N} ${ColorStrIn}` | BoxBorder; //!< {'1　rgb(100,100,100)'|BoxBorder}
+initDefaults(Border, { width: 0, color: new Color(0,0,0,255) });
+export type BorderIn = `${N} ${ColorStrIn}` | Border; //!< {'1　rgb(100,100,100)'|Border}
 
 /**
  * @class FillPosition
@@ -883,6 +887,20 @@ export class TextShadow extends TextBase<TextShadow,Shadow> {
 }
 initDefaults(TextShadow, { value: new Shadow, kind: TextValueKind.Inherit });
 export type TextShadowIn = TextValueKindInStr | ShadowIn | TextShadow; //!<
+
+/**
+ * @class
+*/
+export class TextStroke extends TextBase<TextStroke,Border> {
+	get width() { return this.value.width } //!< {N}
+	get color() { return this.value.color } //!< {Color}
+	get r() { return this.color.r; } //!< {N}
+	get g() { return this.color.g; } //!< {N}
+	get b() { return this.color.b; } //!< {N}
+	get a() { return this.color.a; } //!< {N}
+}
+initDefaults(TextStroke, { value: new Border, kind: TextValueKind.Inherit });
+export type TextStrokeIn = TextValueKindInStr | BorderIn | TextStroke; //!<
 
 export type FFID = Uint8Array; //!<
 /**
@@ -1088,12 +1106,12 @@ export function newShadow(
 }
 
 /**
- * @method newBoxBorder(width:N,r:N,b:N,a:N)BoxBorder
+ * @method newBorder(width:N,r:N,b:N,a:N)Border
 */
-export function newBoxBorder(
+export function newBorder(
 	width: N, r: N, g: N, b: N, a: N
 ) {
-	return newBase(BoxBorder, {width,color: newColor(r, g, b, a)});
+	return newBase(Border, {width,color: newColor(r, g, b, a)});
 }
 
 /**
@@ -1150,6 +1168,15 @@ export function newTextShadow(
 	kind: TextValueKind, offset_x: N, offset_y: N, size: N, r: N, g: N, b: N, a: N
 ) {
 	return newBase(TextShadow,{kind,value: newShadow(offset_x,offset_y,size,r,g,b,a)});
+}
+
+/**
+ * @method newTextStroke(kind:TextValueKind,width:N,r:N,g:N,b:N,a:N)TextStroke
+*/
+export function newTextStroke(
+	kind: TextValueKind, width: N, r: N, g: N, b: N, a: N
+) {
+	return newBase(TextStroke,{kind,value: newBorder(width,r,g,b,a)});
 }
 
 /**
@@ -1487,7 +1514,7 @@ export function parseShadow(val: ShadowIn, desc?: string, ref?: Reference): Shad
 				y: parseFloat(m[2]),
 				size: parseFloat(m[3]),
 				color: parseColor(val.substring(m[0].length + 1) as ColorStrIn, desc, r=>{
-					return ref ? ref(['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)']): r;
+					return (ref||(r=>r))(['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)']);
 				}),
 			});
 		}
@@ -1497,16 +1524,17 @@ export function parseShadow(val: ShadowIn, desc?: string, ref?: Reference): Shad
 	throw error(val, desc, ['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)'], ref);
 }
 
-const BoxBorderReg = /^\s*(-?(?:\d+)?\.?\d+)/;
-export function parseBoxBorder(val: BoxBorderIn, desc?: string): BoxBorder { //!<
+const BorderReg = /^\s*(-?(?:\d+)?\.?\d+)/;
+export function parseBorder(val: BorderIn, desc?: string, ref?: Reference): Border { //!<
 	if (typeof val === 'string') {
 		// 10 #ff00aa
-		let m = val.match(BoxBorderReg);
+		let m = val.match(BorderReg);
 		if (m) {
-			return new BoxBorder({
+			return new Border({
 				width: parseFloat(m[1]),
-				color: parseColor(val.substring(m[0].length + 1) as ColorStrIn, desc,
-					r=>['10 #ff00aa', '10 rgba(255,255,0,1)']),
+				color: parseColor(val.substring(m[0].length + 1) as ColorStrIn, desc, r=>{
+					return (ref||(r=>r))(['10 #ff00aa', '10 rgba(255,255,0,1)']);
+				}),
 			});
 		}
 	} else if (val instanceof BoxShadow) {
@@ -1657,7 +1685,7 @@ export function parseTextShadow(val: TextShadowIn, desc?: string): TextShadow { 
 	if (typeof val === 'string') {
 		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
 		if (kind !== undefined) {
-			return newTextShadow(kind,0,0,0,0,0,0,255);
+			return newTextShadow(kind,0,0,0,0,0,0,0);
 		}
 		return new TextShadow({
 			kind: TextValueKind.Value,
@@ -1672,6 +1700,27 @@ export function parseTextShadow(val: TextShadowIn, desc?: string): TextShadow { 
 		return val;
 	}
 	throw error(val, desc, ['inherit', 'default', '10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,1)']);
+}
+
+export function parseTextStroke(val: TextStrokeIn, desc?: string): TextStroke { //!<
+	if (typeof val === 'string') {
+		let kind = TextValueKind[toCapitalize(val as TextValueKindInStr)];
+		if (kind !== undefined) {
+			return newTextStroke(kind,0,0,0,0,0);
+		}
+		return new TextStroke({
+			kind: TextValueKind.Value,
+			value: parseBorder(val as BorderIn, desc, ref=>['inherit', 'default', ...ref]),
+		});
+	} else if (val instanceof Border) {
+		return new TextStroke({
+			kind: TextValueKind.Value,
+			value: val,
+		});
+	} else if (val instanceof TextStroke) {
+		return val;
+	}
+	throw error(val, desc, ['inherit', 'default', '1 #ff00aa', '2 rgba(255,255,0,1)']);
 }
 
 export function parseTextFamily(val: TextFamilyIn, desc?: string): TextFamily { ///!<
@@ -1746,7 +1795,7 @@ function parseCmd(val: string, desc?: string) {
 function getColorsPos(args: string[][], desc?: string) {
 	let pos = [] as number[];
 	let colors = [] as Color[];
-	args.slice(1).map(([c,p])=>{
+	args.map(([c,p])=>{
 		colors.push(parseColor(c as ColorStrIn, desc, ()=>parseBoxFilterReference));
 		pos.push(p ? (Number(p.substring(0, p.length - 1)) || 0) * 0.01: 0);
 	});

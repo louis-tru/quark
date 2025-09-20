@@ -83,12 +83,10 @@ namespace qk {
 		virtual void drawRRectBlurColor(const Rect& rect,
 			const float radius[4], float blur, const Color4f &color, BlendMode mode) override;
 		virtual void drawRect(const Rect& rect, const Paint& paint) override;
-		virtual void drawRRect(const Rect& rect,
-			const Path::BorderRadius &radius, const Paint& paint) override;
-		virtual float drawGlyphs(const FontGlyphs &glyphs,
-			Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
-		virtual void drawTriangles(const Triangles& triangles, const Paint &paint) override;
+		virtual void drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) override;
+		virtual float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
+		virtual void drawTriangles(const Triangles& triangles, const Paint &paint) override;
 		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) override;
 		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool isMipmap) override;
 		virtual void swapBuffer() override; // swap gl double cmd pkg
@@ -102,7 +100,7 @@ namespace qk {
 		inline Vec2 surfaceSize() { return _surfaceSize; }
 		virtual void lock() override; // clear sync lock
 		virtual void unlock() override; // clear sync unlock
-
+		void vportFullCopy(GLuint dstFBO);
 	private:
 		virtual void setBuffers(Vec2 size);
 		// define props

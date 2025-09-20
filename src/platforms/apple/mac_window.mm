@@ -89,12 +89,12 @@ QkWindowDelegate* WindowImpl::delegate() {
 	uiwin.title = [NSString stringWithUTF8String:opts.title.c_str()];
 	uiwin.delegate = self;
 	uiwin.opaque = NO;
-	//uiwin.backgroundColor = [NSColor clearColor];
-	uiwin.backgroundColor = [UIColor colorWithSRGBRed:color[0]
+	uiwin.backgroundColor = [NSColor clearColor];
+	/*uiwin.backgroundColor = [UIColor colorWithSRGBRed:color[0]
 																							green:color[1]
 																							 blue:color[2]
 																							alpha:color[3]
-	];
+	];*/
 
 	self.isClose = NO;
 	self.qkwin = win;

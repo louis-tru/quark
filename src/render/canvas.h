@@ -54,7 +54,7 @@ namespace qk {
 			Sp<Typeface>    typeface;
 			Array<GlyphID>  glyphs;
 			Array<Vec2>     offset; // length = glyphs count + 1
-			Typeface::ImageOut out;// output image cache
+			Typeface::TextImage img;// output image cache
 		};
 
 		struct V3F_T2F_C4B_C4B {

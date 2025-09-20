@@ -95,35 +95,25 @@ namespace qk {
 #endif
 	}
 
-	GLint gl_get_texture_pixel_format(ColorType type) {
- #ifndef GL_LUMINANCE
- # define GL_LUMINANCE       GL_RED
- # define GL_LUMINANCE_ALPHA GL_RG
- #endif
+	GLint gl_get_texture_internalformat(ColorType type) {
 		switch (type) {
-			case kAlpha_8_ColorType: return GL_ALPHA;
-			case kRGB_565_ColorType: return GL_RGB;
-			case kRGBA_4444_ColorType: return GL_RGBA;
-			case kRGB_444X_ColorType: return GL_RGBA;
-			case kRGBA_8888_ColorType: return GL_RGBA;
-			case kRGB_888X_ColorType: return GL_RGBA;
-			case kRGBA_1010102_ColorType: return GL_RGBA;
-			case kRGB_101010X_ColorType: return GL_RGBA;
-			case kRGB_888_ColorType: return GL_RGB;
-			case kRGBA_5551_ColorType: return GL_RGBA;
-			// TODO: Grayscale images may not display properly for macos
-			case kLuminance_8_ColorType: return GL_LUMINANCE;
-			case kLuminance_Alpha_88_ColorType: return GL_LUMINANCE_ALPHA;
-			// case kSDF_Float_ColorType: return GL_RGBA;
-#if Qk_LINUX || Qk_ANDROID
-			case kYUV420P_Y_8_ColorType: return GL_LUMINANCE;
-			case kYUV420P_U_8_ColorType: return GL_LUMINANCE;
-			case kYUV420SP_UV_88_ColorType: return GL_LUMINANCE_ALPHA;
-#else
-			case kYUV420P_Y_8_ColorType: return GL_RED;
-			case kYUV420P_U_8_ColorType: return GL_RED;
-			case kYUV420SP_UV_88_ColorType: return GL_RG;
-#endif
+			case kAlpha_8_ColorType: return GL_R8;
+			case kRGB_565_ColorType: return GL_RGB565;
+			case kRGBA_4444_ColorType: return GL_RGBA4;
+			case kRGB_444X_ColorType: return GL_RGBA4;
+			case kRGBA_8888_ColorType: return GL_RGBA8;
+			case kRGB_888X_ColorType: return GL_RGBA8;
+			case kRGBA_1010102_ColorType: return GL_RGB10_A2;
+			case kRGB_101010X_ColorType: return GL_RGB10_A2;
+			case kRGB_888_ColorType: return GL_RGB8;
+			case kRGBA_5551_ColorType: return GL_RGB5_A1;
+			case kLuminance_8_ColorType: return GL_R8;
+			case kLuminance_Alpha_88_ColorType: return GL_RG8;
+			case kSDF_F32_ColorType: return GL_R32F;
+			case kSDF_Unsigned_F32_ColorType: return GL_R32F;
+			case kYUV420P_Y_8_ColorType: return GL_R8;
+			case kYUV420P_U_8_ColorType: return GL_R8;
+			case kYUV420SP_UV_88_ColorType: return GL_RG8;
 #if Qk_iOS // ios
 			// compressd texture
 			case kPVRTCI_2BPP_RGB_ColorType: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
@@ -143,6 +133,29 @@ namespace qk {
 		}
 	}
 
+	GLint gl_get_texture_format(ColorType type) {
+		switch (type) {
+			case kAlpha_8_ColorType: return GL_RED;
+			case kRGB_565_ColorType: return GL_RGB;
+			case kRGBA_4444_ColorType: return GL_RGBA;
+			case kRGB_444X_ColorType: return GL_RGBA;
+			case kRGBA_8888_ColorType: return GL_RGBA;
+			case kRGB_888X_ColorType: return GL_RGBA;
+			case kRGBA_1010102_ColorType: return GL_RGBA;
+			case kRGB_101010X_ColorType: return GL_RGBA;
+			case kRGB_888_ColorType: return GL_RGB;
+			case kRGBA_5551_ColorType: return GL_RGBA;
+			case kLuminance_8_ColorType: return GL_RED;
+			case kLuminance_Alpha_88_ColorType: return GL_RG;
+			case kSDF_F32_ColorType: return GL_RED;
+			case kSDF_Unsigned_F32_ColorType: return GL_RED;
+			case kYUV420P_Y_8_ColorType: return GL_RED;
+			case kYUV420P_U_8_ColorType: return GL_RED;
+			case kYUV420SP_UV_88_ColorType: return GL_RG;
+			default: return 0;
+		}
+	}
+
 	GLint gl_get_texture_data_type(ColorType format) {
 #ifndef GL_UNSIGNED_INT_10_10_10_2
 # define GL_UNSIGNED_INT_10_10_10_2 0x8036
@@ -158,6 +171,8 @@ namespace qk {
 			case kRGB_101010X_ColorType:  return GL_UNSIGNED_INT_10_10_10_2;
 			case kRGB_888_ColorType:      return GL_UNSIGNED_BYTE;
 			case kRGBA_5551_ColorType:    return GL_UNSIGNED_SHORT_5_5_5_1;
+			case kSDF_F32_ColorType:      return GL_FLOAT;
+			case kSDF_Unsigned_F32_ColorType: return GL_FLOAT;
 			default:                      return GL_UNSIGNED_BYTE;
 		}
 	}
@@ -172,18 +187,18 @@ namespace qk {
 #endif
 	}
 
-	void gl_set_sampler_wrap(GLuint sampler, GLenum wrapdir, ImagePaint::TileMode param) {
+	void gl_set_sampler_wrap(GLuint sampler, GLenum wrapdir, PaintImage::TileMode param) {
 		switch (param) {
-			case ImagePaint::kClamp_TileMode: // border repeat
+			case PaintImage::kClamp_TileMode: // border repeat
 				glSamplerParameteri(sampler, wrapdir, GL_CLAMP_TO_EDGE);
 				break;
-			case ImagePaint::kRepeat_TileMode: // repeat
+			case PaintImage::kRepeat_TileMode: // repeat
 				glSamplerParameteri(sampler, wrapdir, GL_REPEAT);
 				break;
-			case ImagePaint::kMirror_TileMode: // mirror repeat
+			case PaintImage::kMirror_TileMode: // mirror repeat
 				glSamplerParameteri(sampler, wrapdir, GL_MIRRORED_REPEAT);
 				break;
-			case ImagePaint::kDecal_TileMode: // no repeat
+			case PaintImage::kDecal_TileMode: // no repeat
 #ifdef GL_CLAMP_TO_BORDER
 				glSamplerParameteri(sampler, wrapdir, GL_CLAMP_TO_BORDER);
 				//constexpr float black[4] = {0,0,0,0}; // system default value the Zero
@@ -195,29 +210,29 @@ namespace qk {
 		}
 	}
 
-	void gl_set_sampler_mag_filter(GLuint sampler, ImagePaint::FilterMode filter) {
+	void gl_set_sampler_mag_filter(GLuint sampler, PaintImage::FilterMode filter) {
 		switch (filter) {
-			case ImagePaint::kNearest_FilterMode:
+			case PaintImage::kNearest_FilterMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				break;
-			case ImagePaint::kLinear_FilterMode:
+			case PaintImage::kLinear_FilterMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				break;
 		}
 	}
 
-	void gl_set_sampler_min_filter(GLuint sampler, ImagePaint::MipmapMode filter) {
+	void gl_set_sampler_min_filter(GLuint sampler, PaintImage::MipmapMode filter) {
 		switch (filter) {
-			case ImagePaint::kNone_MipmapMode:
+			case PaintImage::kNone_MipmapMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 				break;
-			case ImagePaint::kLinearNearest_MipmapMode:
+			case PaintImage::kLinearNearest_MipmapMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 				break;
-			case ImagePaint::kNearestLinear_MipmapMode:
+			case PaintImage::kNearestLinear_MipmapMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 				break;
-			case ImagePaint::kLinear_MipmapMode:
+			case PaintImage::kLinear_MipmapMode:
 				glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				break;
 		}
@@ -242,8 +257,7 @@ namespace qk {
 			return false;
 
 		ColorType type = pix->type();
-		GLint iformat = gl_get_texture_pixel_format(type);
-
+		GLint iformat = gl_get_texture_internalformat(type);
 		if (!iformat)
 			return false;
 
@@ -275,15 +289,16 @@ namespace qk {
 				auto it = pix + i;
 				glCompressedTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
 															it->width(),
-															it->height(), 0/*border*/, it->body().length(), *it->body());
+															it->height(), 0/*border*/, it->body().length(), it->val());
 			}
 		} else {
+			GLint format = gl_get_texture_format(type);
+			GLint dtype = gl_get_texture_data_type(type);
 			for (int i = 0; i < levels; i++) {
 				auto it = pix + i;
 				glTexImage2D(GL_TEXTURE_2D, i/*level*/, iformat,
 										it->width(),
-										it->height(), 0/*border*/, iformat/*format*/,
-										gl_get_texture_data_type(type)/*type*/, *it->body());
+										it->height(), 0/*border*/, format, dtype, it->val());
 			}
 			if (levels == 1 && genMipmap) {
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -293,13 +308,16 @@ namespace qk {
 		return true;
 	}
 
-	void gl_tex_image2D_null(GLuint tex, Vec2 size, GLint iformat, GLenum type, GLuint slot) {
+	void gl_tex_image2D_null(GLuint tex, Vec2 size, ColorType type, GLuint slot) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glBindSampler(slot, 0);
 		// glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readBuffer);
 		// glTexStorage2D(GL_TEXTURE_2D, 1, iformat, size[0], size[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, iformat, type, nullptr);
+		GLint iformat = gl_get_texture_internalformat(type);
+		GLint format = gl_get_texture_format(type);
+		GLenum dtype = gl_get_texture_data_type(type);
+		glTexImage2D(GL_TEXTURE_2D, 0/*level*/, iformat, size[0], size[1], 0, format, dtype, nullptr);
 	}
 
 	void gl_set_framebuffer_renderbuffer(GLuint buff, Vec2 size, GLenum iformat, GLenum attachment) {
@@ -312,21 +330,13 @@ namespace qk {
 	void gl_set_color_renderbuffer(GLuint rbo, TexStat *rboTex, ColorType type, Vec2 size) {
 		if (rboTex) {
 			// use texture render buffer
-			gl_tex_image2D_null(rboTex->id, size, gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), 0);
+			gl_tex_image2D_null(rboTex->id, size, type, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rboTex->id, 0);
 			//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, rboTex->id, 0);
 		} else {
-			GLenum ifo;
-			switch (type) {
-				case kRGB_565_ColorType: ifo = GL_RGB565; break;
-				case kRGBA_8888_ColorType: ifo = GL_RGBA8; break;
-				case kRGB_888X_ColorType: ifo = GL_RGBA8; break;
-				case kRGBA_1010102_ColorType: ifo = GL_RGB10_A2; break;
-				case kRGB_101010X_ColorType: ifo = GL_RGB10_A2; break;
-				default: ifo = GL_RGBA8; break;
-			}
-			gl_set_framebuffer_renderbuffer(rbo, size, ifo, GL_COLOR_ATTACHMENT0);
+			GLenum iformat = gl_get_texture_internalformat(type);
+			gl_set_framebuffer_renderbuffer(rbo, size, iformat, GL_COLOR_ATTACHMENT0);
 		}
 	}
 
@@ -338,19 +348,14 @@ namespace qk {
 #else
 		ColorType type = kLuminance_8_ColorType;
 #endif
-		gl_tex_image2D_null(tex, size,
-			gl_get_texture_pixel_format(type), gl_get_texture_data_type(type), slot
-		);
+		gl_tex_image2D_null(tex, size, type, slot);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	}
 
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size) {
-		gl_tex_image2D_null(tex, size,
-			gl_get_texture_pixel_format(kRGBA_8888_ColorType),
-			gl_get_texture_data_type(kRGBA_8888_ColorType), 0
-		);
+		gl_tex_image2D_null(tex, size, kRGBA_8888_ColorType, 0);
 		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_S);
 		gl_set_texture_no_repeat(GL_TEXTURE_WRAP_T);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -425,15 +430,19 @@ namespace qk {
 		for (auto s = &_shaders.colors, e = s + 2; s < e; s++) {
 			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
 		}
-		for (auto s = &_shaders.image, e = s + 4; s < e; s++) {
+		for (auto s = &_shaders.image, e = s + 2; s < e; s++) {
 			glUseProgram(s->shader);
 			glUniform1i(s->image, 0); // set texture slot
 		}
-		for (auto s = &_shaders.imageMask, e = s + 4; s < e; s++) {
+		for (auto s = &_shaders.imageMask, e = s + 2; s < e; s++) {
 			glUseProgram(s->shader);
 			glUniform1i(s->image, 0); // set texture slot
 		}
-		for (auto s = &_shaders.imageYuv, e = s + 4; s < e; s++) {
+		for (auto s = &_shaders.imageSdfMask, e = s + 2; s < e; s++) {
+			glUseProgram(s->shader);
+			glUniform1i(s->image, 0); // set texture slot
+		}
+		for (auto s = &_shaders.imageYuv, e = s + 2; s < e; s++) {
 			glUseProgram(s->shader);
 			glUniform1i(s->image, 0); // set texture slot
 			glUniform1i(s->image_u, 1);
@@ -443,13 +452,18 @@ namespace qk {
 			glUseProgram(s->shader);
 			glUniform1i(s->image, 0); // set texture slot
 		}
-		for (auto s = &_shaders.triangles, e = s + 2; s < e; s++) {
+		for (auto s = &_shaders.triangles, e = s + 4; s < e; s++) {
 			glUseProgram(s->shader);
 			glUniform1i(s->image, 0); // set texture slot
 		}
+		// set viewport shader
 		glUseProgram(_shaders.vportCp.shader);
 		glUniform1i(_shaders.vportCp.image, 0); // set texture slot
+		// set viewport full shader
+		glUseProgram(_shaders.vportFullCp.shader);
+		glUniform1i(_shaders.vportFullCp.image, 0); // set texture slot
 
+		glUseProgram(0);
 		glEnable(GL_BLEND); // enable color blend
 		gl_set_blend_mode(kSrcOver_BlendMode); // set default color blend mode
 		// enable and disable test function
@@ -596,7 +610,7 @@ namespace qk {
 		_blendMode = mode;
 	}
 
-	bool GLRender::gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint) {
+	bool GLRender::gl_set_texture(ImageSource *src, int slot, const PaintImage *paint) {
 		Qk_ASSERT(slot < 8);
 		src->onState().assertHeldShared(); // Check mutex lock
 		auto index = paint->srcIndex + slot;
@@ -617,13 +631,13 @@ namespace qk {
 		return true;
 	}
 
-	void GLRender::gl_set_texture_param(TexStat *tex, uint32_t slot, const ImagePaint* paint) {
+	void GLRender::gl_set_texture_param(TexStat *tex, uint32_t slot, const PaintImage* paint) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, tex->id);
 		glBindSampler(slot, gl_get_tex_sampler(paint));
 	}
 
-	GLuint GLRender::gl_get_tex_sampler(const ImagePaint* paint) {
+	GLuint GLRender::gl_get_tex_sampler(const PaintImage* paint) {
 		constexpr uint32_t bitfields = (
 			// 0 | // src index default zero
 			(0b11 << 8)  | // 2 bits

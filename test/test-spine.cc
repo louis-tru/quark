@@ -36,6 +36,7 @@
 #include <src/ui/view/spine.h>
 #include <src/ui/view/root.h>
 #include <src/ui/view/label.h>
+#include <src/ui/view/text.h>
 #include <src/ui/action/keyframe.h>
 #include "./test.h"
 
@@ -65,7 +66,7 @@ Qk_TEST_Func(spine) {
 		auto k1 = act->addFrame(5e4, LINEAR);
 		k1->set_rotate_z(360);
 		m0->set_action(act);
-		act->play();
+		//act->play();
 	}
 	{ // box / spine
 		auto b0 = m0->append_new<Box>();
@@ -74,8 +75,10 @@ Qk_TEST_Func(spine) {
 		b0->set_height({150});
 		b0->set_margin_top(80);
 		b0->set_margin_left(80);
-		b0->set_color({0,255,255,128});
+		b0->set_border_radius({20});
+		//b0->set_color({0,255,255,128});
 		b0->set_cascade_color(CascadeColor::Both);
+		//b0->set_clip(true);
 
 		auto sp1 = b0->append_new<Spine>();
 		//auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.5f);
@@ -126,10 +129,10 @@ Qk_TEST_Func(spine) {
 		m1->set_background_color({0,0,255});
 		m1->set_width({100});
 		m1->set_height({100});
-		m1->set_color({0,0,255,128});
+		//m1->set_color({0,0,255,128});
 		m1->set_cascade_color(CascadeColor::Both);
 		// m1->set_rotate_z(30);
-		m1->set_translate({250,0});
+		//m1->set_translate({0,-10});
 		auto act = new KeyframeAction(w);
 		act->set_loop(0xffffffff);
 		auto k0 = act->addFrame(0);
@@ -137,7 +140,7 @@ Qk_TEST_Func(spine) {
 		auto k1 = act->addFrame(3e3, LINEAR);
 		k1->set_rotate_z(360);
 		m1->set_action(act);
-		act->play();
+		// act->play();
 
 		sp0->set_src(fs_resources("jsapi/res/sprite.png"));
 		sp0->set_width(114 * w->atomPixel());
@@ -148,6 +151,14 @@ Qk_TEST_Func(spine) {
 		sp0->set_gap(1);
 		sp0->set_fsp(8);
 		sp0->set_playing(true);
+	}
+	{
+		auto t0 = m0->append_new<Text>();
+		t0->set_value("CTFont"); // DrawGlyphs
+		t0->set_text_size({24});
+		t0->set_text_stroke({1, {0,0,255}});
+		//t0->set_text_shadow({2,2,3,{0,0,0,255}});
+		//t0->set_text_background_color({{0,255,255,128}});
 	}
 
 	app.run();

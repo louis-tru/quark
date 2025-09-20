@@ -166,6 +166,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	opacity: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
 	visible: boolean; //!<
 	receive: boolean; //!<
+	aa: boolean; //!< anti alias
 	isFocus: boolean; //!<
 	focus(): boolean; //!<
 	blur(): boolean;
@@ -216,11 +217,11 @@ export declare class Box extends View {
 	borderRadiusRightTop: number; //!<
 	borderRadiusRightBottom: number; //!<
 	borderRadiusLeftBottom: number; //!<
-	border: types.BoxBorder[]; //!<
-	borderTop: types.BoxBorder; //!<
-	borderRight: types.BoxBorder; //!<
-	borderBottom: types.BoxBorder; //!<
-	borderLeft: types.BoxBorder; //!<
+	border: types.Border[]; //!<
+	borderTop: types.Border; //!<
+	borderRight: types.Border; //!<
+	borderBottom: types.Border; //!<
+	borderLeft: types.Border; //!<
 	borderWidth: number[]; //!<
 	borderColor: types.Color[]; //!<
 	borderWidthTop: number; //!<
@@ -357,8 +358,8 @@ export declare class Sprite extends View implements MatrixView {
 	fsp: Uint8; //!<
 	direction: types.Direction; //!<
 	playing: boolean; //!<
-	play(all?: boolean): void; //!<
-	stop(all?: boolean): void; //!<
+	play(): void; //!<
+	stop(): void; //!<
 }
 
 export declare class Spine extends View implements MatrixView {
@@ -416,6 +417,7 @@ export interface TextOptions {
 	textWordBreak: types.TextWordBreak; //!<
 	textSize: types.TextSize; //!<
 	textBackgroundColor: types.TextColor; //!<
+	textStroke: types.TextStroke; //!<
 	textColor: types.TextColor; //!<
 	textLineHeight: types.TextSize; //!<
 	textShadow: types.TextShadow; //!<
@@ -439,6 +441,7 @@ export declare class Text extends Box implements TextOptions {
 	textWordBreak: types.TextWordBreak;
 	textSize: types.TextSize;
 	textBackgroundColor: types.TextColor;
+	textStroke: types.TextStroke;
 	textColor: types.TextColor;
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
@@ -471,6 +474,7 @@ export declare class Label extends View implements TextOptions {
 	textWordBreak: types.TextWordBreak;
 	textSize: types.TextSize;
 	textBackgroundColor: types.TextColor;
+	textStroke: types.TextStroke;
 	textColor: types.TextColor;
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
@@ -501,6 +505,7 @@ export declare class Input extends Box implements TextOptions {
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
+	textStroke: types.TextStroke;
 	security: boolean; //!< input
 	readonly: boolean; //!<
 	type: types.KeyboardType; //!<
@@ -691,6 +696,7 @@ declare global {
 			opacity?: Float;
 			visible?: boolean;
 			receive?: boolean;
+			aa?: boolean;
 			isFocus?: boolean;
 		}
 
@@ -718,11 +724,11 @@ declare global {
 			borderRadiusRightTop?: number;
 			borderRadiusRightBottom?: number;
 			borderRadiusLeftBottom?: number;
-			border?: types.BoxBorderIn[] | types.BoxBorderIn; // border
-			borderTop?: types.BoxBorderIn;
-			borderRight?: types.BoxBorderIn;
-			borderBottom?: types.BoxBorderIn;
-			borderLeft?: types.BoxBorderIn;
+			border?: types.BorderIn[] | types.BorderIn; // border
+			borderTop?: types.BorderIn;
+			borderRight?: types.BorderIn;
+			borderBottom?: types.BorderIn;
+			borderLeft?: types.BorderIn;
 			borderWidth?: number[] | number;
 			borderColor?: types.ColorIn[] | types.ColorIn;
 			borderWidthTop?: number; // border width
@@ -822,6 +828,7 @@ declare global {
 			textLineHeight?: types.TextSizeIn;
 			textShadow?: types.TextShadowIn;
 			textFamily?: types.TextFamilyIn;
+			textStroke?: types.TextStrokeIn;
 		}
 
 		interface TextJSX extends BoxJSX, TextOptionsJSX {

@@ -144,6 +144,8 @@
 			'render/math.cc',
 			'render/source.h',
 			'render/source.cc',
+			'render/sdf.h',
+			'render/sdf.cc',
 			'os/os.h', # os
 			'os/os.cc',
 			'errno.h',
@@ -357,6 +359,7 @@
 					'render/gl/glsl/color_rrect_blur.glsl',
 					'render/gl/glsl/image.glsl',
 					'render/gl/glsl/image_mask.glsl',
+					'render/gl/glsl/image_sdf_mask.glsl',
 					'render/gl/glsl/image_yuv.glsl',
 					'render/gl/glsl/vport_cp.glsl',
 					'render/gl/glsl/blur.glsl',
@@ -365,6 +368,7 @@
 					'render/gl/glsl/blur13.glsl',
 					'render/gl/glsl/blur19.glsl',
 					'render/gl/glsl/triangles.glsl',
+					'render/gl/glsl/vport_full_cp.glsl',
 				],
 				'outputs': [
 					'render/gl/glsl_shaders.h',

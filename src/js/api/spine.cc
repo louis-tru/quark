@@ -80,8 +80,13 @@ namespace qk { namespace js {
 				auto mixObj = mix<Type>(obj.get(), kSkeletonData_Typeid);
 				Js_Return(mixObj->handle());
 			});
+			cls->exports("SkeletonData", exports);
 		};
 	};
+
+	void binding_skeletonData(JSObject* exports, Worker* worker) {
+		MixSkeletonData::binding(exports, worker);
+	}
 
 	class MixSpine: public MixViewObject {
 	public:
@@ -167,7 +172,7 @@ namespace qk { namespace js {
 				self->set_animation(trackIndex, name, loop);
 			});
 
-			Js_Class_Method(setEmptyAnimation, {
+			Js_Class_Method(addAnimation, {
 				uint32_t trackIndex;
 				String name;
 				bool loop;
@@ -244,6 +249,7 @@ namespace qk { namespace js {
 			Js_Class_Method(clearTracks, {
 				self->clear_tracks();
 			});
+
 			Js_Class_Method(clearTrack, {
 				uint32_t trackIndex = 0;
 				if (args.length()) {

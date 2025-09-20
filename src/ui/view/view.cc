@@ -119,8 +119,9 @@ namespace qk {
 		, _test_visible_region(true)
 		, _visible_region(false)
 		, _receive(true)
+		, _aa(true)
 	{
-		Qk_DLog("View sizeof, %d", sizeof(View));
+		// Qk_DLog("View sizeof, %d", sizeof(View));
 	}
 
 	void View::destroy() {
@@ -156,8 +157,12 @@ namespace qk {
 		return nullptr;
 	}
 
-	void View::set_receive(bool val, bool isRt) {
+	void View::set_receive(bool val) {
 		_receive = val;
+	}
+
+	void View::set_aa(bool val) {
+		_aa = val;
 	}
 
 	void View::set_cursor(CursorStyle val, bool isRt) {

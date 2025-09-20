@@ -45,7 +45,8 @@ namespace qk {
 		struct SecondaryProps {
 			TextFamily text_family;
 			TextShadow text_shadow;
-			TextColor text_background_color;
+			TextColor  text_background_color;
+			TextStroke text_stroke;
 			TextWeight text_weight, text_weight_value;
 			TextSlant  text_slant, text_slant_value;
 			TextDecoration text_decoration, text_decoration_value;
@@ -63,6 +64,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(TextFamily,     text_family, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextShadow,     text_shadow, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextColor,      text_background_color, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(TextStroke,     text_stroke, Const); // border
 		Qk_DEFINE_VIEW_ACCESSOR(TextWeight,     text_weight, Const);
 		Qk_DEFINE_VIEW_ACCE_GET(TextWeight,     text_weight_value, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(TextSlant,      text_slant, Const);
@@ -87,7 +89,7 @@ namespace qk {
 		 * @thread Mt
 		 * @note Can only be used in main threads
 		*/
-		virtual void onTextChange(uint32_t mark, uint32_t type, bool isRt);
+		virtual void onTextChange(uint32_t mark, uint32_t prop, bool isRt);
 
 		/**
 		* @method getViewForTextOptions
@@ -100,8 +102,8 @@ namespace qk {
 		void initSecondaryProps();
 
 		// fields
-		bool             _isInheritSecondaryProps;
-		uint32_t         _textFlags;
+		bool             _isHoldSecondaryProps;
+		uint32_t         _textFlags; // text props change flags
 		SecondaryProps  *_secondaryProps;
 
 		friend class TextConfig;

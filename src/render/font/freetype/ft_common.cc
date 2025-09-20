@@ -175,15 +175,16 @@ static void copyFTBitmap(const FT_Bitmap& ftsrc, FT_Bitmap &ftdst) {
 	}
 }
 
-void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, float pixelBaseline) {
+void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, FT_Pixel_Mode mode, Vec2 imgBaseline) {
 	int pitch = pixel.rowbytes();
 	FT_Bitmap dst = {
 		.rows = uint32_t(ceilf(glyph.fHeight)),
 		.width = uint32_t(ceilf(glyph.fWidth)),
 		.pitch = pitch,
 		.buffer = pixel.val() +
-			int32_t(glyph.fTop + pixelBaseline) * pitch +
-			int32_t(glyph.fLeft + glyph.fAdvanceY/* fAdvanceY as offset value x from the pixel */) *
+			int32_t(glyph.fTop + imgBaseline.y()) * pitch +
+			/* fAdvanceY as offset value x from the pixel */
+			int32_t(glyph.fLeft + imgBaseline.x() + glyph.fAdvanceY) *
 			Pixel::bytes_per_pixel(pixel.type()),
 	};
 
@@ -192,7 +193,7 @@ void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pi
 
 		FT_Outline* outline = &fFace->glyph->outline;
 
-		dst.pixel_mode = FT_PIXEL_MODE_GRAY;
+		dst.pixel_mode = mode;
 		dst.num_grays = 256;
 
 		float dy = -glyph.fTop - dst.rows;

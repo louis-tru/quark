@@ -34,7 +34,7 @@
 
 namespace qk {
 
-	void ImagePaint_setImage(ImagePaint *paint, const Rect &dest, const Rect &src, Vec2 srcSize) {
+	void PaintImage_setImage(PaintImage *paint, const Rect &dest, const Rect &src, Vec2 srcSize) {
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
 		paint->coord = {
 			Vec2(
@@ -45,23 +45,23 @@ namespace qk {
 		};
 	}
 
-	void ImagePaint::setCanvas(Canvas *canvas, const Rect &dest, const Rect &src) {
+	void PaintImage::setCanvas(Canvas *canvas, const Rect &dest, const Rect &src) {
 		this->canvas = canvas;
 		_flushCanvas = true;
-		ImagePaint_setImage(this, dest, src, canvas->size());
+		PaintImage_setImage(this, dest, src, canvas->size());
 	}
 
-	void ImagePaint::setCanvas(Canvas *canvas, const Rect &dest) {
+	void PaintImage::setCanvas(Canvas *canvas, const Rect &dest) {
 		setCanvas(canvas, dest, { 0, canvas->size() });
 	}
 
-	void ImagePaint::setImage(ImageSource *image, const Rect& dest, const Rect& src) {
+	void PaintImage::setImage(ImageSource *image, const Rect& dest, const Rect& src) {
 		this->image = image;
 		_flushCanvas = false;
-		ImagePaint_setImage(this, dest, src, Vec2(image->width(), image->height()));
+		PaintImage_setImage(this, dest, src, Vec2(image->width(), image->height()));
 	}
 
-	void ImagePaint::setImage(ImageSource *image, const Rect &dest) {
+	void PaintImage::setImage(ImageSource *image, const Rect &dest) {
 		setImage(image, dest, { 0, Vec2(image->width(), image->height()) });
 	}
 
@@ -69,18 +69,15 @@ namespace qk {
 
 	void paint_test() {
 		Paint paint;
-		paint.style = Paint::kFill_Style;
-		paint.antiAlias = true;
-
 		Array<Color4f> colors{Color4f(0,0,0),Color4f(1,1,1)};
 		Array<float>   pos{0,0.5,1};
-		GradientPaint  gr{
-			GradientPaint::kLinear_Type, Vec2{0,0}, Vec2{1,1},
+		PaintGradient  gr{
+			PaintGradient::kLinear_Type, Vec2{0,0}, Vec2{1,1},
 			(uint32_t)colors.length(), colors.val(), pos.val()
 		};
 
-		paint.type = Paint::kGradient_Type;
-		paint.gradient = &gr;
+		paint.antiAlias = true;
+		paint.fill.gradient = &gr;
 	}
 
 }

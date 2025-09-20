@@ -300,7 +300,7 @@ namespace qk { namespace js {
 		return _newShadow->call(worker, 7, args);
 	}
 
-	JSValue* TypesParser::jsvalue(const BoxBorder& value) {
+	JSValue* TypesParser::jsvalue(const Border& value) {
 		JSValue* args[] = {
 			worker->newValue(value.width),
 			worker->newValue(value.color.r()),
@@ -308,7 +308,7 @@ namespace qk { namespace js {
 			worker->newValue(value.color.b()),
 			worker->newValue(value.color.a()),
 		};
-		return _newBoxBorder->call(worker, 5, args);
+		return _newBorder->call(worker, 5, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const FillPosition& val) {
@@ -436,6 +436,18 @@ namespace qk { namespace js {
 		return _newTextShadow->call(worker, 8, args);
 	}
 
+	JSValue* TypesParser::jsvalue(const TextStroke& value) {
+		JSValue* args[] = {
+			worker->newValue((uint32_t)value.kind),
+			worker->newValue(value.value.width),
+			worker->newValue(value.value.color.r()),
+			worker->newValue(value.value.color.g()),
+			worker->newValue(value.value.color.b()),
+			worker->newValue(value.value.color.a()),
+		};
+		return _newTextStroke->call(worker, 6, args);
+	}
+
 	JSValue* TypesParser::jsvalue(const TextFamily& value) {
 		JSValue* args[] = {
 			worker->newValue((uint32_t)value.kind),
@@ -506,14 +518,17 @@ namespace qk { namespace js {
 
 	template<typename T>
 	T TypesParser::kind(JSObject* obj) {
-		return (T)obj->get(worker, worker->strs()->kind())->toUint32(worker)->value();
+		auto kind = obj->get(worker, worker->strs()->kind());
+		//auto str = kind->toString(worker);
+		//Qk_DLog("TypesParser::kind, %s", str->value(worker).c_str());
+		return (T)kind->toUint32(worker)->value();
 	}
 
 	bool TypesParser::parse(JSValue* in, WindowOptions& _out, cChar* desc) {
 		if (!in->isObject()) {
 			return throw_error(worker, in, desc), false;
 		}
-		_out = {.backgroundColor=Color(0,0,0,0)};
+		_out = {.backgroundColor=Color(255,255,255)};
 		auto obj = in->cast<JSObject>();
 		auto colorType = obj->get(worker, worker->newStringOneByte("colorType"));
 		auto msaa = obj->get(worker, worker->newStringOneByte("msaa"));
@@ -814,8 +829,8 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, BoxBorder& out, cChar* desc) {
-		js_parse(BoxBorder, {
+	bool TypesParser::parse(JSValue* in, Border& out, cChar* desc) {
+		js_parse(Border, {
 			out.width = obj->get(worker, worker->strs()->width())->cast<JSNumber>()->float32();
 			out.color.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
 			out.color.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
@@ -977,6 +992,17 @@ namespace qk { namespace js {
 		});
 	}
 
+	bool TypesParser::parse(JSValue* in, TextStroke& out, cChar* desc) {
+		js_parse(TextStroke, {
+			out.kind = kind<TextValueKind>(obj);
+			out.value.width = obj->get(worker, worker->strs()->width())->cast<JSNumber>()->float32();
+			out.value.color.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
+			out.value.color.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
+			out.value.color.set_b(obj->get(worker, worker->strs()->b())->toUint32(worker)->value());
+			out.value.color.set_a(obj->get(worker, worker->strs()->a())->toUint32(worker)->value());
+		});
+	}
+
 	bool TypesParser::parse(JSValue* in, TextFamily& out, cChar* desc) {
 		js_parse(TextFamily, {
 			out.kind = kind<TextValueKind>(obj);
@@ -1053,6 +1079,7 @@ namespace qk { namespace js {
 	}
 
 	void binding_filter(JSObject* exports, Worker* worker);
+	void binding_skeletonData(JSObject* exports, Worker* worker);
 
 	class NativeTypes: public Worker {
 	public:
@@ -1074,6 +1101,7 @@ namespace qk { namespace js {
 			static_cast<NativeTypes*>(worker)->setTypesParser(new TypesParser(worker, exports));
 
 			binding_filter(exports, worker);
+			binding_skeletonData(exports, worker);
 		}
 	};
 

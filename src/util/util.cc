@@ -32,6 +32,10 @@
 #include "../version.h"
 #include <vector>
 
+#if Qk_WIN
+# include <windows.h>
+#endif
+
 #if Qk_POSIX
 # include <sys/utsname.h>
 # include <unistd.h>
@@ -73,7 +77,6 @@ int clock_gettime2(clockid_t id, struct timespec *tspec) {
 	tspec->tv_nsec = mts.tv_nsec;
 	return retval;
 }
-
 #endif
 
 namespace qk {
@@ -160,12 +163,33 @@ namespace qk {
 	}
 
 	int64_t time_monotonic() {
+#if Qk_WIN // Windows
+		static LARGE_INTEGER freq;
+		static int init = 0;
+		if (!init) {
+				QueryPerformanceFrequency(&freq);
+				init = 1;
+		}
+		LARGE_INTEGER counter;
+		QueryPerformanceCounter(&counter);
+		return (int64_t)(counter.QuadPart * 1000 / freq.QuadPart);
+
+#elif defined(Qk_APPLE) // Apple
+		static mach_timebase_info_data_t info;
+		if (info.denom == 0) {
+				mach_timebase_info(&info);
+		}
+		int64_t t = mach_absolute_time();
+		int64_t ns = t * info.numer / info.denom;
+		return ns / 1e3;
+
+#else // Linux / Unix
 		// (uint64_t (*)(void)) dlsym(RTLD_DEFAULT, "mach_continuous_time");
 		// uv_hrtime()
 		// clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
-		timespec now;
-		int rc = clock_gettime(CLOCK_MONOTONIC, &now);
-		int64_t r = now.tv_sec * 1000000 + now.tv_nsec / 1000;
-		return r;
+		struct timespec ts;
+		clock_gettime(CLOCK_MONOTONIC, &ts);
+		return (int64_t)ts.tv_sec * 1e6 + ts.tv_nsec / 1e3;
+#endif
 	}
 }

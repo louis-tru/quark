@@ -76,6 +76,10 @@ QkWindowDelegate* WindowImpl::delegate() {
 	UIView *rview = self.view;
 	UIView *view = render->surface()->surfaceView();
 
+	// rview.backgroundColor = [
+	// 	UIColor colorWithRed:color.r() green:color.g() blue:color.b() alpha:color.a()
+	// ];
+
 	view.frame = rview.bounds;
 	view.translatesAutoresizingMaskIntoConstraints = NO;
 	view.contentScaleFactor = screen.scale;
@@ -265,7 +269,7 @@ void Window::openImpl(Options &opts) {
 								 init:opts win:this render:_render];
 		CFBridgingRetain(impl); // Retain
 		_impl = (__bridge WindowImpl*)impl;
-		set_backgroundColor(opts.backgroundColor);
+		// set_backgroundColor(opts.backgroundColor);
 		activate();
 	}), true);
 }

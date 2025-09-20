@@ -23,7 +23,7 @@ public:
 		auto size = canvas->size();
 
 		Paint paint;
-		paint.color = Color4f(0, 0, 1);
+		paint.fill.color = Color4f(0, 0, 1);
 		auto path = Path::MakeArc({1,298}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 
 		_c->clearColor({0,0,0,0});
@@ -31,14 +31,13 @@ public:
 		_c->swapBuffer();
 
 		Rect rect{-150,300};
-		ImagePaint ipaint;
-		ipaint.tileModeX = ImagePaint::kDecal_TileMode;
-		ipaint.tileModeY = ImagePaint::kDecal_TileMode;
-		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
-		ipaint.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
+		PaintImage ipaint;
+		ipaint.tileModeX = PaintImage::kDecal_TileMode;
+		ipaint.tileModeY = PaintImage::kDecal_TileMode;
+		ipaint.filterMode = PaintImage::kLinear_FilterMode;
+		ipaint.mipmapMode = PaintImage::kLinearNearest_MipmapMode;
 		ipaint.setCanvas(*_c, rect);
-		paint.image = &ipaint;
-		paint.type = Paint::kBitmap_Type;
+		paint.fill.image = &ipaint;
 		canvas->drawRect({-150,300}, paint);
 
 		mark(kLayout_None,true);

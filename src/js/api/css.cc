@@ -53,7 +53,6 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(CursorStyle, cursor, cursor);
 			Js_StyleSheets_Accessor(float, opacity, opacity);
 			Js_StyleSheets_Accessor(bool, visible, visible);
-			Js_StyleSheets_Accessor(bool, receive, receive);
 			Js_StyleSheets_Accessor(bool, clip, clip);
 			Js_StyleSheets_Accessor(Align, align, align);
 			Js_StyleSheets_Accessor(BoxSize, width, width);
@@ -78,10 +77,10 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(float, border_radius_right_bottom, borderRadiusRightBottom);
 			Js_StyleSheets_Accessor(float, border_radius_left_bottom, borderRadiusLeftBottom);
 			Js_StyleSheets_Accessor(ArrayBorder, border, border); // border width
-			Js_StyleSheets_Accessor(BoxBorder, border_top, borderTop);
-			Js_StyleSheets_Accessor(BoxBorder, border_right, borderRight);
-			Js_StyleSheets_Accessor(BoxBorder, border_bottom, borderBottom);
-			Js_StyleSheets_Accessor(BoxBorder, border_left, borderLeft);
+			Js_StyleSheets_Accessor(Border, border_top, borderTop);
+			Js_StyleSheets_Accessor(Border, border_right, borderRight);
+			Js_StyleSheets_Accessor(Border, border_bottom, borderBottom);
+			Js_StyleSheets_Accessor(Border, border_left, borderLeft);
 			Js_StyleSheets_Accessor(ArrayFloat, border_width, borderWidth);
 			Js_StyleSheets_Accessor(ArrayColor, border_color, borderColor);
 			Js_StyleSheets_Accessor(float, border_width_top, borderWidthTop); // border width
@@ -111,6 +110,7 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(TextWordBreak, text_word_break, textWordBreak);
 			Js_StyleSheets_Accessor(TextSize, text_size, textSize);
 			Js_StyleSheets_Accessor(TextColor, text_background_color, textBackgroundColor);
+			Js_StyleSheets_Accessor(TextStroke, text_stroke, textStroke);
 			Js_StyleSheets_Accessor(TextColor, text_color, textColor);
 			Js_StyleSheets_Accessor(TextSize, text_line_height, textLineHeight);
 			Js_StyleSheets_Accessor(TextShadow, text_shadow, textShadow);

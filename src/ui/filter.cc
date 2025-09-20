@@ -166,7 +166,7 @@ namespace qk {
 	}
 
 	void BoxFilter::set_next(BoxFilter *next, bool isRt) {
-		if (check_loop_ref(this, next)) {
+		if (!check_loop_ref(this, next)) {
 			set_next_no_check(next, isRt);
 		}
 	}

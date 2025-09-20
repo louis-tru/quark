@@ -962,7 +962,7 @@ FT_Error setupSize(float fontSize, float *scaleOut) {
 			return err;
 		}
 
-		*scaleOut = fontSize / fFace->size->metrics.y_ppem;
+		*scaleOut = fFace->size->metrics.y_ppem / fontSize;
 	}
 
 	return 0;
@@ -1272,8 +1272,8 @@ bool QkTypeface_FreeType::onGetPath(GlyphID glyphID, Path *path) {
 	return generateFacePath(path);
 }
 
-Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, float fontSize,
-	cArray<Vec2> *offset, float offsetScale, RenderBackend *render)
+Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, float fontSize,
+	cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render)
 {
 	Array<FontGlyphMetrics> gms = getGlyphsMetrics(glyphs);
 
@@ -1289,24 +1289,24 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 		Return();
 	}
 
-	offsetScale /= needToScale;
-
 	const Vec2* off = offset ? offset->val(): nullptr;
-	const float scale = fontSize / needToScale / FixedUnitsScale;
+	const float scale = fontSize * needToScale / FixedUnitsScale;
 	float top = 0, bottom = 0;
-	float right = off ? off->x() * offsetScale: 0;
+	float right = offset ? off->x() * needToScale: 0;
 
 	for (auto &gm: gms) {
 		gm.fLeft *= scale;
 		gm.fTop *= scale;
 		gm.fWidth *= scale;
 		gm.fHeight *= scale;
-		gm.fAdvanceY = right; // As offset value x from the pixel
-
 		if (offset) {
-			gm.fTop += off->y() * offsetScale;
-			right = (++off)->x() * offsetScale;
+			gm.fTop += off->y() * needToScale;
+			// Note: Not very useful at the moment, used as offset value x from the pixel
+			gm.fAdvanceY = (off++)->x() * needToScale;
+			right = fmax(right,  gm.fAdvanceX * scale + gm.fAdvanceY);
 		} else {
+			// Note: Used as offset value x from the pixel
+			gm.fAdvanceY = right;
 			right += gm.fAdvanceX * scale;
 		}
 		top = qk::Float32::max(top, -gm.fTop);
@@ -1314,48 +1314,51 @@ Typeface::ImageOut QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, floa
 	}
 
 	FT_Glyph_Format ft_format = fFace->glyph->format;
-	float heightf = top + bottom;
-	uint32_t width = ceilf(right);
-	uint32_t height = ceilf(top + bottom);
-	ColorType type;
+	uint32_t w = ceilf(right);
+	uint32_t h = ceilf(top + bottom);
+	int paddInt = Qk_Min(h, w) * padding;
+	w += paddInt * 2;
+	h += paddInt * 2;
+	top += paddInt;
 
+	ColorType type;
 	if (ft_format == FT_GLYPH_FORMAT_OUTLINE) {
 		type = kAlpha_8_ColorType;
 	}
 	else if ( ft_format == FT_GLYPH_FORMAT_BITMAP) {
-		switch(static_cast<FT_Pixel_Mode>(fFace->glyph->bitmap.pixel_mode)) {
+		switch (fFace->glyph->bitmap.pixel_mode) {
 		case FT_PIXEL_MODE_MONO:
-		case FT_PIXEL_MODE_GRAY:
-			type = kAlpha_8_ColorType; break;
-		case FT_PIXEL_MODE_BGRA:
-			type = kRGBA_8888_ColorType; break;
+		case FT_PIXEL_MODE_GRAY: type = kAlpha_8_ColorType; break;
+		case FT_PIXEL_MODE_BGRA: type = kRGBA_8888_ColorType; break;
 		case FT_PIXEL_MODE_LCD:
-		case FT_PIXEL_MODE_LCD_V:
-			type = kRGB_888X_ColorType; break;
-		default:
-			Qk_ASSERT(0, "unknown pixel mode"); Return();
+		case FT_PIXEL_MODE_LCD_V: type = kRGB_888X_ColorType; break;
+		default: Qk_ASSERT(0, "Unknown pixel mode"); Return();
 		}
 	} else {
-		Qk_ASSERT(0, "unknown glyph format"); Return();
+		Qk_ASSERT(0, "Unknown glyph format"); Return();
 	}
 
-	PixelInfo info(width, height, type);
+	PixelInfo info(w, h, type);
 	Pixel pixel(info, Buffer(info.bytes()));
 	memset(pixel.val(), 0, pixel.length());
+
+	FT_Pixel_Mode mode = antiAlias ? FT_PIXEL_MODE_GRAY: FT_PIXEL_MODE_MONO;
+	Vec2 imgBaseline{float(padding), top};
 
 	for (auto &gm: gms) {
 		if (FT_Load_Glyph(fFace, gm.id, fLoadGlyphFlags) != 0)
 			Return();
 		_this->emboldenIfNeeded(fFace, fFace->glyph, gm.id);
-		generateGlyphImage(gm, pixel, top);
+		generateGlyphImage(gm, pixel, mode, imgBaseline);
 	}
 
 	return {
 		.image = ImageSource::Make(std::move(pixel), render),
+		.left = float(paddInt),
 		.top = top,
-		.right = right,
+		.width = right,
 		.fontSize = fontSize,
-		.needToScale = needToScale,
+		.scale = needToScale,
 	};
 }
 

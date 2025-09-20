@@ -55,7 +55,7 @@ namespace qk {
 		, _weight(0,0)
 		, _container({{},{},{0,Float32::limit_max},{0,Float32::limit_max},kNone_FloatState,kNone_FloatState,false,false})
 		, _background(nullptr)
-		, _boxShadow(nullptr)
+		, _box_shadow(nullptr)
 		, _border(nullptr)
 	{
 		// Qk_DLog("Box, %d", sizeof(Box));
@@ -63,7 +63,7 @@ namespace qk {
 
 	Box::~Box() {
 		Release(_background.load());
-		Release(_boxShadow.load());
+		Release(_box_shadow.load());
 		free(_border.load());
 	}
 
@@ -310,7 +310,7 @@ namespace qk {
 		}
 	}
 
-	static BoxBorder  default_border{0,Color::from(0)};
+	static Border     default_border{0,Color::from(0)};
 	static ArrayColor default_border_color{Color::from(0),Color::from(0),Color::from(0),Color::from(0)};
 	static ArrayFloat default_border_width(4);
 
@@ -352,42 +352,42 @@ namespace qk {
 		}
 	}
 
-	BoxBorder Box::border_top() const {
+	Border Box::border_top() const {
 		_Border();
-		return _border ? BoxBorder{_border->width[0],_border->color[0]}: default_border;
+		return _border ? Border{_border->width[0],_border->color[0]}: default_border;
 	}
 
-	BoxBorder Box::border_right() const {
+	Border Box::border_right() const {
 		_Border();
-		return _border ? BoxBorder{_border->width[1],_border->color[1]}: default_border;
+		return _border ? Border{_border->width[1],_border->color[1]}: default_border;
 	}
 
-	BoxBorder Box::border_bottom() const {
+	Border Box::border_bottom() const {
 		_Border();
-		return _border ? BoxBorder{_border->width[2],_border->color[2]}: default_border;
+		return _border ? Border{_border->width[2],_border->color[2]}: default_border;
 	}
 
-	BoxBorder Box::border_left() const {
+	Border Box::border_left() const {
 		_Border();
-		return _border ? BoxBorder{_border->width[3],_border->color[3]}: default_border;
+		return _border ? Border{_border->width[3],_border->color[3]}: default_border;
 	}
 
-	void Box::set_border_top(BoxBorder border, bool isRt) {
+	void Box::set_border_top(Border border, bool isRt) {
 		set_border_width_top(border.width, isRt);
 		set_border_color_top(border.color, isRt);
 	}
 
-	void Box::set_border_right(BoxBorder border, bool isRt) {
+	void Box::set_border_right(Border border, bool isRt) {
 		set_border_width_right(border.width, isRt);
 		set_border_color_right(border.color, isRt);
 	}
 
-	void Box::set_border_bottom(BoxBorder border, bool isRt) {
+	void Box::set_border_bottom(Border border, bool isRt) {
 		set_border_width_bottom(border.width, isRt);
 		set_border_color_bottom(border.color, isRt);
 	}
 
-	void Box::set_border_left(BoxBorder border, bool isRt) {
+	void Box::set_border_left(Border border, bool isRt) {
 		set_border_width_left(border.width, isRt);
 		set_border_color_left(border.color, isRt);
 	}
@@ -508,11 +508,11 @@ namespace qk {
 
 	struct SetBorder: public Box {
 		#define _BorderAlloc() auto _border = static_cast<SetBorder*>(this)->alloc()
-		BoxBorderInl* alloc() {
+		BorderInl* alloc() {
 			auto border = _border.load();
 			if (!border) {
-				border = (BoxBorderInl*)malloc(sizeof(BoxBorderInl));
-				memset(border, 0, sizeof(BoxBorderInl));
+				border = (BorderInl*)malloc(sizeof(BorderInl));
+				memset(border, 0, sizeof(BorderInl));
 				if (_border) {
 					free(border);
 				} else {
@@ -598,14 +598,6 @@ namespace qk {
 		}
 	}
 
-	BoxFilter* Box::background() {
-		return _background.load();
-	}
-
-	BoxShadow* Box::box_shadow() {
-		return _boxShadow.load();
-	}
-
 	Vec2 Box::content_size() const {
 		return _container.content;
 	}
@@ -619,10 +611,10 @@ namespace qk {
 	}
 
 	void Box::set_box_shadow(BoxShadow* val, bool isRt) {
-		auto filter = _boxShadow.load();
+		auto filter = _box_shadow.load();
 		auto newFilter = static_cast<BoxShadow*>(BoxFilter::assign(filter, val, this, isRt));
 		if (filter != newFilter) {
-			_boxShadow.store(newFilter);
+			_box_shadow.store(newFilter);
 		}
 	}
 

@@ -77,7 +77,7 @@ namespace qk {
 		~AttachmentVertices();
 		Triangles _triangles;
 		ImageSource *_source;
-		ImagePaint _paint;
+		PaintImage _paint;
 		uint32_t _width, _height;
 		uint64_t _hashCode;
 		bool _pma;

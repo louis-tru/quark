@@ -29,7 +29,7 @@ public:
 		float width = 300;
 
 		Paint paint;
-		paint.color = Color4f(int(256*c)%255/255.0, 0, 1, 1);
+		paint.fill.color = Color4f(int(256*c)%255/255.0, 0, 1, 1);
 		PaintFilter filter{PaintFilter::kBlur_Type,c*50};
 		paint.filter = &filter;
 		// paint.antiAlias = false;
@@ -40,17 +40,15 @@ public:
 		canvas->drawPath(path, paint);
 
 		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, false);
-		paint.color = Color4f(1, 0, 0, 1);
+		paint.fill.color = Color4f(1, 0, 0, 1);
 		paint.filter = nullptr;
-		ImagePaint ipaint;
-		ipaint.tileModeX = ImagePaint::kMirror_TileMode;
-		ipaint.tileModeY = ImagePaint::kRepeat_TileMode;
-		ipaint.mipmapMode = ImagePaint::kLinear_MipmapMode;
-		ipaint.filterMode = ImagePaint::kLinear_FilterMode;
+		PaintImage ipaint;
+		ipaint.tileModeX = PaintImage::kMirror_TileMode;
+		ipaint.tileModeY = PaintImage::kRepeat_TileMode;
+		ipaint.mipmapMode = PaintImage::kLinear_MipmapMode;
+		ipaint.filterMode = PaintImage::kLinear_FilterMode;
 		ipaint.setImage(*img, {{0},{width*0.5f}});
-		paint.image = &ipaint;
-		paint.type = Paint::kBitmapMask_Type;
-		//paint.type = Paint::kBitmap_Type;
+		paint.mask = &ipaint;
 		canvas->drawRect({{0},{width}}, paint);
 
 		mark(kLayout_None,true);

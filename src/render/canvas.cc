@@ -38,9 +38,7 @@ namespace qk {
 
 	void Canvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
 		Paint paint;
-		//paint.type = Paint::kColor_Type;
-		//paint.style = Paint::kFill_Style;
-		paint.color = color;//.to_color4f_alpha(alpha);
+		paint.fill.color = color;
 		paint.blendMode = mode;
 		paint.antiAlias = antiAlias;
 		drawPathv(path, paint);
@@ -77,6 +75,15 @@ namespace qk {
 	float get_level_font_size(float fontSize) {
 		if (fontSize <= 0) {
 			return 0;
+		}
+		if (fontSize <= 4) {
+			return 4;
+		}
+		if (fontSize <= 6) {
+			return 6;
+		}
+		if (fontSize <= 8) {
+			return 6;
 		}
 		if (fontSize <= 10) {
 			return 10;

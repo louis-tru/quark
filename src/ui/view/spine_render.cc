@@ -47,45 +47,45 @@ namespace qk {
 		_triangles.indexCount = indexCount;
 		_paint.image = _source;
 		_paint.filterMode = page->magFilter == TextureFilter_Linear ?
-			ImagePaint::kLinear_FilterMode: ImagePaint::kNearest_FilterMode;
+			PaintImage::kLinear_FilterMode: PaintImage::kNearest_FilterMode;
 
 		switch (page->minFilter) {
 			case TextureFilter_MipMapLinearNearest:
-				_paint.mipmapMode = ImagePaint::kLinearNearest_MipmapMode;
+				_paint.mipmapMode = PaintImage::kLinearNearest_MipmapMode;
 				break;
 			case TextureFilter_MipMapNearestLinear:
-				_paint.mipmapMode = ImagePaint::kNearestLinear_MipmapMode;
+				_paint.mipmapMode = PaintImage::kNearestLinear_MipmapMode;
 				break;
 			case TextureFilter_Linear:
 			case TextureFilter_MipMapLinearLinear:
-				_paint.mipmapMode = ImagePaint::kLinear_MipmapMode;
+				_paint.mipmapMode = PaintImage::kLinear_MipmapMode;
 				break;
 			default:
-				_paint.mipmapMode = ImagePaint::kNone_MipmapMode;
+				_paint.mipmapMode = PaintImage::kNone_MipmapMode;
 				break;
 		}
 
 		switch (page->uWrap) {
 			case TextureWrap_MirroredRepeat:
-				_paint.tileModeX = ImagePaint::kMirror_TileMode;
+				_paint.tileModeX = PaintImage::kMirror_TileMode;
 				break;
 			case TextureWrap_ClampToEdge:
-				_paint.tileModeX = ImagePaint::kClamp_TileMode;
+				_paint.tileModeX = PaintImage::kClamp_TileMode;
 				break;
 			case TextureWrap_Repeat:
-				_paint.tileModeX = ImagePaint::kRepeat_TileMode;
+				_paint.tileModeX = PaintImage::kRepeat_TileMode;
 				break;
 		}
 
 		switch (page->vWrap) {
 			case TextureWrap_MirroredRepeat:
-				_paint.tileModeY = ImagePaint::kMirror_TileMode;
+				_paint.tileModeY = PaintImage::kMirror_TileMode;
 				break;
 			case TextureWrap_ClampToEdge:
-				_paint.tileModeY = ImagePaint::kClamp_TileMode;
+				_paint.tileModeY = PaintImage::kClamp_TileMode;
 				break;
 			case TextureWrap_Repeat:
-				_paint.tileModeY = ImagePaint::kRepeat_TileMode;
+				_paint.tileModeY = PaintImage::kRepeat_TileMode;
 				break;
 		}
 
@@ -151,8 +151,8 @@ namespace qk {
 		auto src = attachment->_source;
 		if (src->load()) {
 			Paint paint;
-			paint.color = Color4f(1,1,1,1); // white
-			paint.image = &attachment->_paint;
+			paint.fill.color = Color4f(1,1,1,1); // white
+			paint.fill.image = &attachment->_paint;
 			paint.blendMode = triangles.blendMode;
 			painter->canvas()->drawTriangles(triangles, paint);
 		} else {

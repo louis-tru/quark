@@ -32,19 +32,19 @@ public:
 		float border[4] = { 20,20,20,20 };
 		float radius = 100;
 		RectOutlinePath outline = RectOutlinePath::MakeRRectOutline({ {180,50}, 200 }, border, {radius, radius, radius, radius});
-		paint.color = Color4f(0, 0, 0, 0.5);
+		paint.fill.color = Color4f(0, 0, 0, 0.5);
 		canvas->drawPathv(outline.left, paint);
-		paint.color = Color4f(0, 1, 0, 0.5);
+		paint.fill.color = Color4f(0, 1, 0, 0.5);
 		canvas->drawPathv(outline.top, paint);
-		paint.color = Color4f(0, 0, 1, 0.5);
+		paint.fill.color = Color4f(0, 0, 1, 0.5);
 		canvas->drawPathv(outline.right, paint);
-		paint.color = Color4f(1, 0, 0, 0.5);
+		paint.fill.color = Color4f(1, 0, 0, 0.5);
 		canvas->drawPathv(outline.bottom, paint);
 
-		paint.color = Color4f(0, 0.5, 0.5, 0.4);
+		paint.fill.color = Color4f(0, 0.5, 0.5, 0.4);
 		//canvas->drawPath(Path::MakeRRectOutline({ {400,100}, 200 }, { {440,140}, 120 }, {50, 80, 50, 80}), paint);
 
-		paint.color = Color4f(1, 0, 0, 0.3);
+		paint.fill.color = Color4f(1, 0, 0, 0.3);
 		//auto circle = Path::MakeCircle(size/2, 105, false);
 		auto circle = Path::MakeArc({size/2-105,210}, Qk_PI_2_1 * 0.5f, Qk_PI + Qk_PI_2_1, true);
 		//auto circle = Path::MakeArc({{500-50,400-50},{100,100}}, 0, -Qk_PI, 0, 0);
@@ -69,13 +69,14 @@ public:
 		//auto stroke = z.strokePath(10, Paint::kRound_Cap, Paint::kRound_Join);
 		//canvas->drawPath(stroke, paint);
 		paint.style = Paint::kStroke_Style;
-		paint.width = 10;
+		paint.stroke.color = Color4f(1, 0, 0, 0.3);
+		paint.strokeWidth = 10;
 		//paint.cap = Paint::kRound_Cap;
 		//paint.join = Paint::kRound_Join;
 		// canvas->drawPath(z, paint);
 
 		paint.style = Paint::kFill_Style;
-		paint.color = Color4f(0, 0, 0);
+		paint.fill.color = Color4f(0, 0, 0);
 		//paint.width = 1;
 		//paint.style = Paint::kStroke_Style;
 		//canvas->drawPath(dash, paint);
@@ -83,7 +84,7 @@ public:
 		// canvas->drawPath(circle, paint);
 
 		// paint.antiAlias = false;
-		paint.color = Color4f(0.5,0.5,0.5,0.5);
+		paint.fill.color = Color4f(0.5,0.5,0.5,0.5);
 		// circle = Path::MakeRect({size/2-105,210});
 
 		//canvas->drawPath(circle, paint);

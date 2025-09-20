@@ -34,6 +34,7 @@
 #include "./priv/util.h"
 #include "./priv/mutex.h"
 #include "../render.h"
+#include "../sdf.h"
 
 namespace qk {
 
@@ -222,15 +223,45 @@ namespace qk {
 		return computeMetricsBase(&_UnitMetrics64, out, fontSize);
 	}
 
-	Typeface::ImageOut Typeface::getImage(cArray<GlyphID>& glyphs, float fontSize,
-			cArray<Vec2> *offset, float offsetScale, RenderBackend *render)
+	Typeface::TextImage Typeface::getImage(cArray<GlyphID>& glyphs, float fontSize,
+			cArray<Vec2> *offset, RenderBackend *render)
 	{
 		if (offset) {
-			Qk_ASSERT_EQ(offset->length(), glyphs.length() + 1);
+			Qk_ASSERT_GE(offset->length(), glyphs.length());
 		}
 		if (glyphs.length() == 0) {
 			return {ImageSource::Make(PixelInfo())};
 		}
-		return onGetImage(glyphs, fontSize, offset, offsetScale, render);
+		return onGetImage(glyphs, fontSize, offset, 0.1, true, render);
 	}
+
+	Typeface::TextImage Typeface::getSDFImage(cArray<GlyphID> &glyphs,
+		float fontSize, cArray<Vec2> *offset, bool is_signed, RenderBackend *render) {
+		if (offset) {
+			Qk_ASSERT_GE(offset->length(), glyphs.length());
+		}
+		if (glyphs.length() == 0) {
+			return {ImageSource::Make(PixelInfo())};
+		}
+		auto out = onGetImage(glyphs, fontSize, offset, 0.2, true, nullptr);
+		auto w = out.image->width();
+		auto h = out.image->height();
+
+		switch(out.image->type()) {
+			case kAlpha_8_ColorType:
+				out.image = ImageSource::Make(compute_distance_f32(out.image->pixel(0)->val(), w, h, is_signed), render);
+				break;
+			case kRGBA_8888_ColorType: {
+				Buffer buf(w*h);
+				auto col = (Color*)out.image->pixel(0)->val();
+				for (int i = 0; i < w*h; i++)
+					buf[i] = col[i].a(); // copy alpha channel
+				out.image = ImageSource::Make(compute_distance_f32((uint8_t*)buf.val(), w, h, is_signed), render);
+				break;
+			}
+			default: break;
+		}
+		Qk_ReturnLocal(out);
+	}
+
 }

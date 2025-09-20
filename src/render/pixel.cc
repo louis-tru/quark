@@ -66,7 +66,8 @@ namespace qk {
 			case kRGBA_5551_ColorType: return 2;
 			case kLuminance_8_ColorType: return 1;
 			case kLuminance_Alpha_88_ColorType: return 2;
-			case kSDF_Float_ColorType: return 4;
+			case kSDF_F32_ColorType: return 4;
+			case kSDF_Unsigned_F32_ColorType: return 4;
 			case kYUV420P_Y_8_ColorType: return 1; // kColor_Type_YUV420SP_Y_8
 			case kYUV420P_U_8_ColorType: return 1;
 			case kYUV420SP_UV_88_ColorType: return 2;

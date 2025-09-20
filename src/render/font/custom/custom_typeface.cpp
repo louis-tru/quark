@@ -35,7 +35,7 @@
 
 QkTypeface_Custom::QkTypeface_Custom(const FontStyle& style, bool isFixedPitch,
 									 bool sysFont, cString &familyName, int index)
-	: INHERITED(style, isFixedPitch)
+	: INHERITED(style, 0)
 	, fIsSysFont(sysFont), fFamilyName(familyName), fIndex(index)
 {}
 
@@ -50,7 +50,7 @@ int QkTypeface_Custom::getIndex() const { return fIndex; }
 QkTypeface_Stream::QkTypeface_Stream(Sp<QkFontData> fontData,
 									 const FontStyle& style, bool isFixedPitch, bool sysFont,
 									 const String familyName)
-	: INHERITED(style, isFixedPitch, sysFont, familyName, fontData->getIndex())
+	: INHERITED(style, 0, sysFont, familyName, fontData->getIndex())
 	, fData(std::move(fontData))
 {
 	initFreeType();
@@ -62,7 +62,7 @@ Sp<QkFontData> QkTypeface_Stream::onMakeFontData() const {
 
 QkTypeface_File::QkTypeface_File(const FontStyle& style, bool isFixedPitch, bool sysFont,
 								 cString &familyName, cChar path[], int index)
-	: INHERITED(style, isFixedPitch, sysFont, familyName, index)
+	: INHERITED(style, 0, sysFont, familyName, index)
 	, fPath(path)
 {
 	initFreeType();

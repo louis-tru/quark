@@ -85,8 +85,8 @@ namespace qk {
 		Qk_DEFINE_ACCESSOR     (bool, playing, Const); // Whether the sprite is currently playing
 		Sprite(); // Constructor
 		void destroy() override;
-		void play(bool all = false); // Play the sprite frames, play action of view together if the all equals true
-		void stop(bool all = false); // Stop the sprite frames, stop action of view together if the all equals true
+		void play(); // Play the sprite frames
+		void stop(); // Stop the sprite frames
 		ViewType viewType() const override;
 		Vec2 client_size() override;
 		void draw(Painter *render) override;

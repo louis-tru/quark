@@ -117,6 +117,23 @@ namespace qk {
 	}
 
 	template<>
+	Border transition_value(Border v1, Border v2, float y) {
+		return {
+			transition_value(v1.width, v2.width, y),
+			transition_value(v1.color, v2.color, y),
+		};
+	}
+
+	template<>
+	TextStroke transition_value(TextStroke v1, TextStroke v2, float y) {
+		if ( v1.kind == TextValueKind::Value && v2.kind == TextValueKind::Value ) {
+			return { transition_value(v1.value, v2.value, y), TextValueKind::Value };
+		} else {
+			return  y < 1.0 ? v1 : v2;
+		}
+	}
+
+	template<>
 	Shadow transition_value(Shadow v1, Shadow v2, float y) {
 		return {
 			v1.x - (v1.x - v2.x) * y,
@@ -273,18 +290,6 @@ namespace qk {
 		asyncSetLarge<key>(value);
 	}
 
-	// template<>
-	// template<>
-	// void SetProp<BoxSize>::asyncSet<kWIDTH_CssProp>(BoxSize val) {
-	// 	set_min_width(val);
-	// }
-
-	// template<>
-	// template<>
-	// void SetProp<BoxSize>::asyncSet<kHEIGHT_CssProp>(BoxSize val) {
-	// 	set_min_height(val);
-	// }
-
 	template<>
 	template<>
 	void SetProp<ArrayFloat>::asyncSet<kMARGIN_CssProp>(ArrayFloat val) {
@@ -415,28 +420,28 @@ namespace qk {
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_TOP_CssProp>(BoxBorder val) {
+	void SetProp<Border>::asyncSet<kBORDER_TOP_CssProp>(Border val) {
 		set_border_width_top(val.width);
 		set_border_color_top(val.color);
 	}
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_RIGHT_CssProp>(BoxBorder val) {
+	void SetProp<Border>::asyncSet<kBORDER_RIGHT_CssProp>(Border val) {
 		set_border_width_right(val.width);
 		set_border_color_right(val.color);
 	}
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_BOTTOM_CssProp>(BoxBorder val) {
+	void SetProp<Border>::asyncSet<kBORDER_BOTTOM_CssProp>(Border val) {
 		set_border_width_bottom(val.width);
 		set_border_color_bottom(val.color);
 	}
 
 	template<>
 	template<>
-	void SetProp<BoxBorder>::asyncSet<kBORDER_LEFT_CssProp>(BoxBorder val) {
+	void SetProp<Border>::asyncSet<kBORDER_LEFT_CssProp>(Border val) {
 		set_border_width_left(val.width);
 		set_border_color_left(val.color);
 	}
@@ -519,6 +524,13 @@ namespace qk {
 				break;
 			default: break;
 		}
+	}
+
+
+	template<>
+	template<CssProp key>
+	void SetProp<TextStroke>::asyncSet(TextStroke value) {
+		asyncSetLarge<key>(value);
 	}
 
 	template<>

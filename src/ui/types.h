@@ -275,10 +275,16 @@ namespace qk {
 		Both, // Change RGB and Alpha for sub views
 	};
 
-	// box border value
-	struct BoxBorder {
+	// border value
+	struct Border {
 		float width;
 		Color color;
+		inline bool operator==(const Border& val) const {
+			return val.width == width && val.color == color;
+		}
+		inline bool operator!=(const Border& val) const {
+			return !operator==(val);
+		}
 	};
 
 	struct Shadow {
@@ -319,6 +325,6 @@ namespace qk {
 	typedef TextSize              TextLineHeight;
 	typedef WrapTextValue<Shadow> TextShadow;
 	typedef WrapTextValue<FFID>   TextFamily;
-
+	typedef WrapTextValue<Border> TextStroke;
 }
 #endif

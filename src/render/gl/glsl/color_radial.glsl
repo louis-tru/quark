@@ -1,5 +1,6 @@
 #vert
 out       vec2      position;
+
 void main() {
 	aafuzz = aafuzzIn;
 	position = vertexIn.xy;
@@ -9,30 +10,30 @@ void main() {
 #frag
 uniform lowp vec4   range;/*center/radius for circle*/
 uniform lowp int    count;
-uniform lowp float  color;
+uniform lowp vec4  color;
 uniform lowp vec4   colors[256];/*max 256 color points*/
 uniform lowp float  positions[256];
 in      lowp vec2   position;
 
 void main() {
-	lowp float indexed = length((position-range.xy)/range.zw);
+	lowp float weight = length((position-range.xy)/range.zw); // 0 - 1
 #ifdef Qk_SHADER_IF_FLAGS_COUNT2
-	lowp float w = (indexed - positions[0]) / (positions[1] - positions[0]);
+	lowp float w = (weight - positions[0]) / (positions[1] - positions[0]);
 	fragColor = mix(colors[0], colors[1], w);
 #else
 	lowp int s = 0;
 	lowp int e = count-1;
 	while (s+1 < e) {/*dichotomy search color value*/
 		lowp int idx = (e - s) / 2 + s;
-		if (indexed > positions[idx]) {
+		if (weight > positions[idx]) {
 			s = idx;
-		} else if (indexed < positions[idx]) {
+		} else if (weight < positions[idx]) {
 			e = idx;
 		} else { 
 			s = idx; e = idx+1; break;
 		}
 	}
-	lowp float w = (indexed - positions[s]) / (positions[e] - positions[s]);
+	lowp float w = (weight - positions[s]) / (positions[e] - positions[s]);
 	fragColor = mix(colors[s], colors[e], w);
 #endif
 	fragColor *= color;

@@ -145,7 +145,7 @@ namespace qk {
 	SharedMutex::~SharedMutex() {  ANNOTATE_RWLOCK_DESTROY(this); }
 
 	void SharedMutex::lock() {
-		std::thread::id threadID(std::this_thread::get_id());
+		std::thread::id threadID(thread_self_id());
 		int currentSharedCount;
 		int waitingExclusiveCount;
 		{
@@ -173,7 +173,7 @@ namespace qk {
 	// exclusive lock separate from the threads added before.
 	void SharedMutex::unlock() {
 		ANNOTATE_RWLOCK_RELEASED(this, 1);
-		std::thread::id threadID(std::this_thread::get_id());
+		std::thread::id threadID(thread_self_id());
 		int sharedWaitingCount;
 		int exclusiveWaitingCount;
 		int sharedQueueSelect;
@@ -199,14 +199,14 @@ namespace qk {
 	}
 
 	void SharedMutex::assertHeld() const {
-		std::thread::id threadID(std::this_thread::get_id());
+		std::thread::id threadID(thread_self_id());
 		AutoMutexExclusive l(fMu);
 		Qk_ASSERT(0 == fCurrentShared->count());
 		Qk_ASSERT(fWaitingExclusive->find(threadID));
 	}
 
 	void SharedMutex::lockShared() {
-		std::thread::id threadID(std::this_thread::get_id());
+		std::thread::id threadID(thread_self_id());
 		int exclusiveWaitingCount;
 		int sharedQueueSelect;
 		{
@@ -231,7 +231,7 @@ namespace qk {
 
 	void SharedMutex::unlockShared() {
 		ANNOTATE_RWLOCK_RELEASED(this, 0);
-		std::thread::id threadID(std::this_thread::get_id());
+		std::thread::id threadID(thread_self_id());
 
 		int currentSharedCount;
 		int waitingExclusiveCount;
@@ -249,7 +249,7 @@ namespace qk {
 	}
 
 	void SharedMutex::assertHeldShared() const {
-		std::thread::id threadID(std::this_thread::get_id());
+		std::thread::id threadID(thread_self_id());
 		AutoMutexExclusive l(fMu);
 		Qk_ASSERT(fCurrentShared->find(threadID));
 	}

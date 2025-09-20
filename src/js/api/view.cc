@@ -119,33 +119,17 @@ namespace qk { namespace js {
 
 			Js_MixObject_Accessor(View, Color, color, color);
 			Js_MixObject_Accessor(View, CascadeColor, cascade_color, cascadeColor);
-
-			Js_Class_Accessor(cursor, {
-				Js_Return( uint32_t(self->cursor()) );
-			}, {
-				Js_Parse_Type(CursorStyle, val, "@prop View.set_cursor = %s");
-				self->set_cursor(out);
-			});
-
+			Js_MixObject_Accessor(View, CursorStyle, cursor, cursor);
 			Js_MixObject_Accessor(View, float, opacity, opacity);
-
-			Js_Class_Accessor(visible, {
-				Js_ReturnBool( self->visible() );
-			}, {
-				self->set_visible( val->toBoolean(worker) );
-			});
+			Js_MixObject_Accessor(View, bool, visible, visible);
+			Js_MixObject_Accessor(View, bool, test_visible_region, testVisibleRegion);
 
 			Js_Class_Accessor_Get(visibleRegion, {
 				Js_ReturnBool( self->visible_region() );
 			});
 
-			Js_MixObject_Accessor(View, bool, test_visible_region, testVisibleRegion);
-
-			Js_Class_Accessor(receive, {
-				Js_ReturnBool( self->receive() );
-			}, {
-				self->set_receive(val->toBoolean(worker));
-			});
+			Js_MixObject_Accessor(View, bool, receive, receive);
+			Js_MixObject_Accessor(View, bool, aa, aa);
 
 			Js_Class_Accessor_Get(isFocus, {
 				Js_ReturnBool( self->is_focus() );

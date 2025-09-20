@@ -37,7 +37,7 @@
 namespace qk {
 	GLenum gl_CheckFramebufferStatus(GLenum target);
 	float get_level_font_size(float fontSize);
-	GLint gl_get_texture_pixel_format(ColorType type);
+	GLint gl_get_texture_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
 	void  gl_set_color_renderbuffer(GLuint rbo, TexStat *rboTex, ColorType type, Vec2 size);
@@ -59,6 +59,8 @@ namespace qk {
 	extern const float  aa_fuzz_width = 0.5;
 #endif
 	extern const float  zDepthNextUnit = 1.0f / 5000000.0f;
+
+	typedef Typeface::TextImage TextImage;
 
 	const GLenum DrawBuffers[]{
 		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*other out*/,
@@ -160,39 +162,29 @@ namespace qk {
 			zDepthNext();
 		}
 
-		void fillPathv(const Pathv &path, const Paint &paint, bool aa) {
-			if (path.vCount) {
-				Qk_ASSERT(path.path.isNormalized());
-				fillv(path, paint);
-				if (aa) {
-					drawAAFuzzStroke(path.path, paint, aa_fuzz_weight, aa_fuzz_width);
-				}
-				zDepthNext();
-			}
-		}
-
-		void fillPath(const Path &path, const Paint &paint, bool aa) {
+		void fillPath(const Path &path, const Paint &paint, const PaintStyle &style, bool aa) {
 			Qk_ASSERT(path.isNormalized());
 			auto &vertex = _cache->getPathTriangles(path);
 			if (vertex.vCount) {
-				fillv(vertex, paint);
+				fillv(vertex, paint, style);
 				if (aa) {
-					drawAAFuzzStroke(path, paint, aa_fuzz_weight, aa_fuzz_width);
+					drawAAFuzzStroke(path, paint, style, aa_fuzz_weight, aa_fuzz_width);
 				}
 			}
 			zDepthNext();
 		}
 
-		void fillv(const VertexData &vertex, const Paint &paint) {
-			switch (paint.type) {
-				case Paint::kColor_Type:
-					_cmdPack->drawColor(vertex, paint.color, false); break;
-				case Paint::kGradient_Type:
-					_cmdPack->drawGradient(vertex, paint.gradient, paint.color, false); break;
-				case Paint::kBitmap_Type:
-					_cmdPack->drawImage(vertex, paint.image, paint.color, false); break;
-				case Paint::kBitmapMask_Type:
-					_cmdPack->drawImageMask(vertex, paint.image, paint.color, false); break;
+		void fillv(const VertexData &vertex, const Paint &paint, const PaintStyle &style) {
+			if (style.image) {
+				_cmdPack->drawImage(vertex, style.image, style.color, false);
+			} else if (style.gradient) {
+				_cmdPack->drawGradient(vertex, style.gradient, style.color, false);
+			} else {
+				if (paint.mask) {
+					_cmdPack->drawImageMask(vertex, paint.mask, style.color, false);
+				} else {
+					_cmdPack->drawColor(vertex, style.color, false);
+				}
 			}
 		}
 
@@ -203,92 +195,40 @@ namespace qk {
 #else
 				const float weight = 0.5f;
 #endif
-				auto width = paint.width - _phy2Pixel * weight;
+				auto width = paint.strokeWidth - _phy2Pixel * weight;
 				if (width > 0) {
-					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, true);
+					fillPath(_cache->getStrokePath(path, width, paint.cap, paint.join,0), paint, paint.stroke, true);
 				} else {
 					width /= (_phy2Pixel * 1.0f - weight); // range: -1 => 0
 					width = powf(width*10, 3) * 0.005; // (width*10)^3 * 0.005
-					drawAAFuzzStroke(path, paint, 0.5 / (0.5 - width), 0.5);
+					drawAAFuzzStroke(path, paint, paint.stroke, 0.5 / (0.5 - width), 0.5);
 					zDepthNext();
 				}
 			} else {
-				fillPath(_cache->getStrokePath(path, paint.width, paint.cap, paint.join,0), paint, false);
+				fillPath(_cache->getStrokePath(path, paint.strokeWidth, paint.cap, paint.join,0), paint, paint.stroke, false);
 			}
 		}
 
-		void drawAAFuzzStroke(const Path& path, const Paint& paint, float aaFuzzWeight, float aaFuzzWidth) {
+		void drawAAFuzzStroke(const Path& path, const Paint &paint, const PaintStyle& style, float aaFuzzWeight, float aaFuzzWidth) {
 			//Path newPath(path); newPath.transfrom(Mat(1,0,170,0,1,0));
 			//auto &vertex = _render->getAAFuzzStrokeTriangle(newPath, _Scale);
 			// _phy2Pixel*0.6=1.2/_Scale, 2.4px
 			auto &vertex = _cache->getAAFuzzStrokeTriangle(path, _phy2Pixel*aaFuzzWidth);
-			// Qk_DLog("%p", &vertex);
-			switch (paint.type) {
-				case Paint::kColor_Type:
-					_cmdPack->drawColor(vertex, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
-				case Paint::kGradient_Type:
-					_cmdPack->drawGradient(vertex, paint.gradient, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
-				case Paint::kBitmap_Type:
-					_cmdPack->drawImage(vertex, paint.image, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
-				case Paint::kBitmapMask_Type:
-					_cmdPack->drawImageMask(vertex, paint.image, paint.color.mul_alpha_only(aaFuzzWeight), true); break;
-			}
-		}
-
-		float drawTextImage(ImageSource *textImg, float imgTop, float scale, Vec2 origin, const Paint &paint) {
-			auto pix = textImg->pixel(0);
-			auto scale_1 = 1.0f / scale;
-			ImagePaint p;
-			// default use baseline align
-			Vec2 dst_start(origin.x(),
-										 origin.y() - imgTop * scale_1);
-			Vec2 dst_size(pix->width() * scale_1,
-										pix->height() * scale_1);
-
-			//Qk_DLog("drawTextImage0, Vec2( %f  %f), Vec2(%f %f)", dst_start.x(),
-			//	dst_start.y(), dst_size.x(), dst_size.y());
-
-			Rect rect{dst_start, dst_size};
-
-			p.setImage(textImg, rect);
-			//Qk_DLog("drawTextImage1, Vec2(%f %f), Vec2(%f %f)",
-			//				p.coord.origin.x(), p.coord.origin.y(), p.coord.end.x(), p.coord.end.y());
-			p.mipmapMode = ImagePaint::kLinear_MipmapMode;
-			p.filterMode = ImagePaint::kLinear_FilterMode;
-
-			Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &rect);
-
-			Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
-			Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
-			Vec2 right_bottom(dst_start + dst_size); // right bottom
-			VertexData vertex{0,6,{
-				dst_start,
-				top_right, left_bottom, // triangle 0 |/
-				top_right,
-				right_bottom, left_bottom, // triangle 1 /|
-			}};
-			// auto &vertex = _cache->getRectPath({dst_start,dst_size});
-
-			_cmdPack->drawImageMask(vertex, &p, paint.color, false);
-			zDepthNext();
-
-			return scale_1;
-		}
-
-		void drawPathvInl(const Pathv& path, const Paint& paint) {
-			bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
-			// gen stroke path and fill path and polygons
-			switch (paint.style) {
-				case Paint::kFill_Style:
-					_this->fillPathv(path, paint, aa); break;
-				case Paint::kStrokeAndFill_Style:
-					_this->fillPathv(path, paint, aa);
-				case Paint::kStroke_Style: {
-					_this->strokePath(path.path, paint, aa); break;
+			if (style.image) {
+				_cmdPack->drawImage(vertex, style.image, style.color.mul_alpha_only(aaFuzzWeight), true);
+			} else if (style.gradient) {
+				_cmdPack->drawGradient(vertex, style.gradient, style.color.mul_alpha_only(aaFuzzWeight), true);
+			} else {
+				if (paint.mask) {
+					_cmdPack->drawImageMask(vertex, paint.mask, style.color.mul_alpha_only(aaFuzzWeight), true);
+				} else {
+					_cmdPack->drawColor(vertex, style.color.mul_alpha_only(aaFuzzWeight), true);
 				}
 			}
 		}
 
+		float drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint);
+		void drawPathvImpl(const Pathv& path, const Paint& paint);
 	};
 
 	class GLCBlurFilter: public GLCFilter {
@@ -511,7 +451,7 @@ namespace qk {
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
 #if Qk_APPLE
-		GLenum format = gl_get_texture_pixel_format(dst->type());
+		GLenum format = gl_get_texture_format(dst->type());
 		GLenum type = gl_get_texture_data_type(dst->type());
 		if (format && dst->bytes() != dst->body().length())
 			return false;
@@ -576,7 +516,9 @@ namespace qk {
 		_this->zDepthNext();
 	}
 
-	void GLCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color,BlendMode mode, bool antiAlias) {
+	void GLCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color, 
+		BlendMode mode, bool antiAlias) 
+	{
 		_this->setBlendMode(mode); // switch blend mode
 		for (int i = 0; i < count; i++) {
 			_cmdPack->drawColor(*paths[i], color, false);
@@ -601,76 +543,142 @@ namespace qk {
 		}
 	}
 
-	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
-		auto &path = _cache->getRectPath(rect);
-		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path.rect);
-		_this->drawPathvInl(path, paint);
-	}
-
-	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
-		auto &path = _cache->getRRectPath(rect,radius);
-		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path.rect);
-		_this->drawPathvInl(path, paint);
-	}
-
-	void GLCanvas::drawPathv(const Pathv& path, const Paint& paint) {
-		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path.path);
-		_this->drawPathvInl(path, paint);
-	}
-
 	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
-		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
 		auto &path = _cache->getNormalizedPath(path_);
-
+		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
 		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path);
 
 		// gen stroke path and fill path and polygons
 		switch (paint.style) {
 			case Paint::kFill_Style:
-				_this->fillPath(path, paint, aa); break;
+				_this->fillPath(path, paint, paint.fill, aa); break;
 			case Paint::kStrokeAndFill_Style:
-				_this->fillPath(path, paint, aa);
-			case Paint::kStroke_Style: {
+				_this->fillPath(path, paint, paint.fill, aa);
+			case Paint::kStroke_Style:
 				_this->strokePath(path, paint, aa); break;
-			}
 		}
 	}
 
-	float GLCanvas::drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, cArray<Vec2> *offset, const Paint &paint)
-	{
-		_this->setBlendMode(paint.blendMode); // switch blend mode
+	void GLCanvas::Inl::drawPathvImpl(const Pathv& path, const Paint& paint) {
+		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
+		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path.path);
 
+		auto fillPathv = [](Inl* self, const Pathv &path, const Paint &paint, bool aa) {
+			if (path.vCount) {
+				Qk_ASSERT(path.path.isNormalized());
+				self->fillv(path, paint, paint.fill);
+				if (aa) {
+					self->drawAAFuzzStroke(path.path, paint, paint.fill, aa_fuzz_weight, aa_fuzz_width);
+				}
+				self->zDepthNext();
+			}
+		};
+		// gen stroke path and fill path and polygons
+		switch (paint.style) {
+			case Paint::kFill_Style:
+				fillPathv(this, path, paint, aa); break;
+			case Paint::kStrokeAndFill_Style:
+				fillPathv(this, path, paint, aa);
+			case Paint::kStroke_Style:
+				_this->strokePath(path.path, paint, aa); break;
+		}
+	}
+
+	void GLCanvas::drawRect(const Rect& rect, const Paint& paint) {
+		_this->drawPathvImpl(_cache->getRectPath(rect), paint);
+	}
+
+	void GLCanvas::drawRRect(const Rect& rect, const Path::BorderRadius &radius, const Paint& paint) {
+		_this->drawPathvImpl(_cache->getRRectPath(rect,radius), paint);
+	}
+
+	void GLCanvas::drawPathv(const Pathv& path, const Paint& paint) {
+		_this->drawPathvImpl(path, paint);
+	}
+
+	float GLCanvas::Inl::drawTextImage(TextImage &img, float scale, Vec2 origin, const Paint &paint) {
+		auto pix = img.image->pixel(0);
+		auto scale_1 = 1.0f / scale;
+		PaintImage p;
+		// Default use baseline align
+		Vec2 dst_start(origin.x() - img.left * scale_1, origin.y() - img.top * scale_1);
+		Vec2 dst_size(pix->width() * scale_1, pix->height() * scale_1);
+		Rect rect{dst_start, dst_size};
+
+		p.setImage(*img.image, rect);
+		p.mipmapMode = PaintImage::kLinear_MipmapMode;
+		p.filterMode = PaintImage::kLinear_FilterMode;
+
+		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &rect);
+
+		Vec2 top_right(dst_start.x() + dst_size.x(), dst_start.y()); // top right
+		Vec2 left_bottom(dst_start.x(), dst_start.y() + dst_size.y()); // left bottom
+		Vec2 right_bottom(dst_start + dst_size); // right bottom
+		VertexData vertex{0,6,{
+			dst_start,
+			top_right, left_bottom, // triangle 0 |/
+			top_right,
+			right_bottom, left_bottom, // triangle 1 /|
+		}};
+
+		if (img.image->type() == kSDF_Unsigned_F32_ColorType) { // SDF text
+			_cmdPack->drawSDFImageMask(vertex, &p, paint.fill.color,
+					paint.stroke.color, paint.strokeWidth * scale, false);
+		} else {
+			_cmdPack->drawImageMask(vertex, &p, paint.fill.color, false);
+		}
+
+		zDepthNext();
+		return scale_1;
+	}
+
+	float GLCanvas::
+	drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, cArray<Vec2> *offsetIn, const Paint &paint)
+	{
+		Array<Vec2> offset, *offsetP = nullptr;
+		if (offsetIn) {
+			offset = *offsetIn;
+			offsetP = &offset;
+			for (auto &o: offset) o *= _allScale;
+		}
+		auto isSDF = paint.style != Paint::kFill_Style;
 		auto tf = glyphs.typeface();
-		auto out = tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _allScale, offset, _allScale, _render);
-		auto scale = _this->drawTextImage(*out.image, out.top, _allScale, origin, paint);
-		return scale * out.right;
+		auto img = isSDF ?
+			tf->getSDFImage(glyphs.glyphs(), glyphs.fontSize() * _allScale, offsetP, false, _render):
+			tf->getImage(glyphs.glyphs(), glyphs.fontSize() * _allScale, offsetP, _render);
+		auto scale = _this->drawTextImage(img, _allScale, origin, paint);
+		return scale * img.width;
 	}
 
 	void GLCanvas::drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) {
-		_this->setBlendMode(paint.blendMode); // switch blend mode
-
-		auto genSize = get_level_font_size(_scale * fontSize) * _surfaceScale;
-		//auto genSize = fontSize * _allScale;
-
-		if (genSize == 0.0)
+		auto fixedFSize = get_level_font_size(_scale * fontSize) * _surfaceScale;
+		if (fixedFSize == 0.0)
 			return;
+		auto scale = fixedFSize / fontSize;
+		auto isSDF = paint.style != Paint::kFill_Style;
 
-		if (blob->out.fontSize != genSize || !blob->out.image) { // fill text bolb
-			auto tf = blob->typeface;
-			Array<Vec2> *offset = blob->offset.length() > blob->glyphs.length() ? &blob->offset: NULL;
-			blob->out = tf->getImage(blob->glyphs, genSize, offset, genSize / fontSize, _render);
-			// Qk_DLog("GLCanvas::drawTextBlob origin, %f", origin.y());
+		if (blob->img.fontSize != fixedFSize || !blob->img.image ||
+			(isSDF ? blob->img.image->type() != kSDF_Unsigned_F32_ColorType: false)
+		) { // fill text bolb
+			Array<Vec2> offset;
+			if (blob->offset.length() >= blob->glyphs.length()) {
+				offset = blob->offset;
+				for (auto &o: offset) o *= scale;
+			}
+			blob->img = isSDF ?
+				blob->typeface->getSDFImage(blob->glyphs, fixedFSize, &offset, false, _render):
+				blob->typeface->getImage(blob->glyphs, fixedFSize, &offset, _render);
 		}
-		auto img = *blob->out.image;
+		auto img = blob->img.image.get();
 		if (img->width() && img->height()) {
 			Qk_ASSERT(img->count(), "GLCanvas::drawTextBlob img->count()");
-			_this->drawTextImage(*blob->out.image, blob->out.top, genSize / fontSize, origin, paint);
+			_this->drawTextImage(blob->img, scale, origin, paint);
 		}
 	}
 
 	void GLCanvas::drawTriangles(const Triangles& triangles, const Paint &paint) {
 		_this->setBlendMode(paint.blendMode); // switch blend mode
-		_cmdPack->drawTriangles(triangles, paint.image, paint.color);
+		_cmdPack->drawTriangles(triangles, paint.fill.image, paint.fill.color);
 		if (triangles.zDepthTotal) {
 			_zDepth += triangles.zDepthTotal;
 		} else {
@@ -788,6 +796,25 @@ namespace qk {
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 		Qk_DLog("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 #endif
+	}
+
+	void GLCanvas::vportFullCopy(GLuint dstFBO) {
+		auto dest = _render->_surfaceSize;
+		auto chVport = _surfaceSize != dest;
+		GLint filter = chVport ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_NEAREST;
+		if (chVport)
+			glViewport(0, 0, dest.x(), dest.y());
+		glDisable(GL_BLEND);
+		glBindFramebuffer(GL_FRAMEBUFFER, dstFBO);
+		glUseProgram(_render->_shaders.vportFullCp.shader);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, _outTex->id);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindFramebuffer(GL_FRAMEBUFFER, _fbo); // recover fbo
+		glEnable(GL_BLEND);
+		if (chVport)
+			glViewport(0, 0, _surfaceSize.x(), _surfaceSize.y());
 	}
 
 	Vec2 GLCanvas::size() {

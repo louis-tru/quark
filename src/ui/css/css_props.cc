@@ -78,6 +78,7 @@ namespace qk {
 			_Func(TextFamily, text_family) \
 			_Func(TextShadow, text_shadow) \
 			_Func(TextColor, text_background_color) \
+			_Func(TextStroke, text_stroke) \
 			_Func(TextWeight, text_weight) \
 			_Func(TextSlant, text_slant) \
 			_Func(TextDecoration, text_decoration) \
@@ -145,7 +146,6 @@ namespace qk {
 		Qk_Set_Accessor(View, CURSOR, cursor, CursorStyle);
 		Qk_Set_Accessor(View, OPACITY, opacity, float);
 		Qk_Set_Accessor(View, VISIBLE, visible, bool);
-		Qk_Set_Accessor(View, RECEIVE, receive, bool);
 		accessors[kLabel_ViewType] = accessors[kView_ViewType]; // copy view props to label
 		accessors[kBox_ViewType] = accessors[kView_ViewType]; // copy view props to box
 		accessors[kFlex_ViewType] = accessors[kView_ViewType]; // copy view props to flex
@@ -189,10 +189,10 @@ namespace qk {
 		Qk_Set_Accessor(Box, BORDER, border, ArrayBorder); // border
 		Qk_Set_Accessor(Box, BORDER_WIDTH, border_width, ArrayFloat);
 		Qk_Set_Accessor(Box, BORDER_COLOR, border_color, ArrayColor);
-		Qk_Set_Accessor(Box, BORDER_TOP, border_top, BoxBorder);
-		Qk_Set_Accessor(Box, BORDER_RIGHT, border_right, BoxBorder);
-		Qk_Set_Accessor(Box, BORDER_BOTTOM, border_bottom, BoxBorder);
-		Qk_Set_Accessor(Box, BORDER_LEFT, border_left, BoxBorder);
+		Qk_Set_Accessor(Box, BORDER_TOP, border_top, Border);
+		Qk_Set_Accessor(Box, BORDER_RIGHT, border_right, Border);
+		Qk_Set_Accessor(Box, BORDER_BOTTOM, border_bottom, Border);
+		Qk_Set_Accessor(Box, BORDER_LEFT, border_left, Border);
 		Qk_Set_Accessor(Box, BORDER_WIDTH_TOP, border_width_top, float); // border width
 		Qk_Set_Accessor(Box, BORDER_WIDTH_RIGHT, border_width_right, float);
 		Qk_Set_Accessor(Box, BORDER_WIDTH_BOTTOM, border_width_bottom, float);
@@ -238,14 +238,15 @@ namespace qk {
 		Qk_Set_Accessor(Text, TEXT_WORD_BREAK, text_word_break, TextWordBreak);
 		Qk_Set_Accessor(Text, TEXT_SIZE, text_size, TextSize);
 		Qk_Set_Accessor(Text, TEXT_BACKGROUND_COLOR, text_background_color, TextColor);
+		Qk_Set_Accessor(Text, TEXT_STROKE, text_stroke, TextStroke);
 		Qk_Set_Accessor(Text, TEXT_COLOR, text_color, TextColor);
 		Qk_Set_Accessor(Text, TEXT_LINE_HEIGHT, text_line_height, TextLineHeight);
 		Qk_Set_Accessor(Text, TEXT_SHADOW, text_shadow, TextShadow);
 		Qk_Set_Accessor(Text, TEXT_FAMILY, text_family, TextFamily);
-		Qk_Copy_Accessor(Text, Input, TEXT_ALIGN, 13); // copy text props to input
-		Qk_Copy_Accessor(Text, Textarea, TEXT_ALIGN, 13); // copy text props to textarea
-		Qk_Copy_Accessor(Text, Label, TEXT_ALIGN, 13); // copy text props to label
-		Qk_Copy_Accessor(Text, Button, TEXT_ALIGN, 13); // copy text props to button
+		Qk_Copy_Accessor(Text, Input, TEXT_ALIGN, 14); // copy text props to input
+		Qk_Copy_Accessor(Text, Textarea, TEXT_ALIGN, 14); // copy text props to textarea
+		Qk_Copy_Accessor(Text, Label, TEXT_ALIGN, 14); // copy text props to label
+		Qk_Copy_Accessor(Text, Button, TEXT_ALIGN, 14); // copy text props to button
 		// Input/Textarea
 		Qk_Set_Accessor(Input, SECURITY, security, bool);
 		Qk_Set_Accessor(Input, READONLY, readonly, bool);

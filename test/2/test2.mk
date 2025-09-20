@@ -17,18 +17,23 @@ LINK       ?= g++
 NAME       ?= test2
 TARGET     ?= $(OUT)/$(NAME)
 TEST       ?= sys
+DEBUG      ?= 1
 
 ifeq ($(OS),Darwin)
-	OS = osx
+	OS = mac
 endif
 
 # --------------------------------------------------------------------
 
 # android
 # -ffunction-sections -fdata-sections 
-
+CFLAGS		 = -Wall
+ifeq ($(DEBUG),1)
+	CFLAGS   += -O0 '-DDEBUG' '-D_DEBUG' -g
+else
+	CFLAGS   += -O2 '-DNDEBUG' 
+endif
 INCLUDES	 = -I. -I$(BASE) -I$(BASE)/out -I$(DEPS)/libtess2/Include
-CFLAGS		 = -Wall -g -O0 '-DDEBUG' '-D_DEBUG'
 # CXXFLAGS 	 = -std=c++0x -fexceptions -frtti
 CXXFLAGS 	 = -std=c++14 -fexceptions -frtti
 LINKFLAGS_START =
@@ -46,6 +51,7 @@ CXX_SOURCES = \
 	test2-arr.cc \
 	test2-cls.cc \
 	test2-try.cc \
+	test2-edt.cc \
 	$(SRC)/util/log.cc \
 	$(SRC)/util/array.cc \
 	$(SRC)/util/string.cc \
@@ -56,6 +62,7 @@ CXX_SOURCES = \
 	$(SRC)/util/dict.cc \
 	$(SRC)/util/util.cc \
 	$(SRC)/util/numbers.cc \
+	$(SRC)/util/allocator.cc \
 	$(SRC)/render/bezier.cc \
 	$(SRC)/render/math.cc \
 	$(SRC)/render/path.cc \
@@ -87,7 +94,7 @@ ifeq ($(OS),Linux)
 									test2-xopen.cc
 endif
 
-ifeq ($(OS),osx)
+ifeq ($(OS),mac)
 	SYSROOT = $(shell xcrun --show-sdk-path)
 	CFLAGS += -arch $(ARCH) -isysroot $(SYSROOT)
 	LINKFLAGS += -arch $(ARCH) \
@@ -120,6 +127,7 @@ build: cfg
 cfg:
 	@if [ ! -f $(BASE)/out/test2_cfg.h ] || [ "`grep test2_$(TEST) $(BASE)/out/test2_cfg.h`" == "" ]; then \
 		echo '#define TEST_FUNC_NAME test2_$(TEST)' > $(BASE)/out/test2_cfg.h; \
+		echo '#define DEBUG $(DEBUG)' >> $(BASE)/out/test2_cfg.h; \
 	fi
 
 $(BASE)/out/test2.cc: test2.cc $(BASE)/out/test2_cfg.h

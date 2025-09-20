@@ -53,9 +53,9 @@ namespace qk {
 		virtual void release() override;
 		// set gl state
 		void gl_set_blend_mode(BlendMode mode);
-		bool gl_set_texture(ImageSource *src, int slot, const ImagePaint *paint); // temp tex
-		void gl_set_texture_param(TexStat *tex, uint32_t slot, const ImagePaint* paint);
-		GLuint gl_get_tex_sampler(const ImagePaint* paint);
+		bool gl_set_texture(ImageSource *src, int slot, const PaintImage *paint); // temp tex
+		void gl_set_texture_param(TexStat *tex, uint32_t slot, const PaintImage* paint);
+		GLuint gl_get_tex_sampler(const PaintImage* paint);
 
 	protected:
 		GLRender(Options opts);
@@ -68,7 +68,7 @@ namespace qk {
 		GLSLShaders _shaders; // glsl shaders
 		BlendMode _blendMode; // last setting status
 		String _extensions;
-		Dict<uint32_t, GLuint> _texSamplers; // ImagePaint => Sampler
+		Dict<uint32_t, GLuint> _texSamplers; // PaintImage => Sampler
 
 		friend class GLCanvas;
 		friend class GLC_CmdPack;

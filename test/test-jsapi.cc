@@ -39,8 +39,8 @@ Qk_TEST_Func(jsapi) {}
 using namespace qk;
 
 #define IP_REMOTE "192.168.2.200"
-#define USE_REMOTE 0
-#define USE_INSPECT 0
+#define USE_REMOTE 1
+#define USE_DEBUG 1
 #define USE_BRK 1
 
 Qk_TEST_Func(jsapi) {
@@ -49,8 +49,9 @@ Qk_TEST_Func(jsapi) {
 	for (int i = 1; i < argc; i++)
 		argv_arr.push(argv[i]);
 
-#if USE_INSPECT
-	argv_arr.push("--inspect=0.0.0.0:9229");
+#if USE_DEBUG
+	argv_arr.push("--debug");
+	argv_arr.push("--watch");
 #endif
 
 #if USE_BRK

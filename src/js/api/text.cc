@@ -52,6 +52,7 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(TextOptions, TextWordBreak, text_word_break, textWordBreak);
 		Js_UIObject_Accessor(TextOptions, TextSize, text_size, textSize);
 		Js_UIObject_Accessor(TextOptions, TextColor, text_background_color, textBackgroundColor);
+		Js_UIObject_Accessor(TextOptions, TextStroke, text_stroke, textStroke);
 		Js_UIObject_Accessor(TextOptions, TextColor, text_color, textColor);
 		Js_UIObject_Accessor(TextOptions, TextSize, text_line_height, textLineHeight);
 		Js_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);

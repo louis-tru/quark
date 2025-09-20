@@ -11,11 +11,7 @@ in        lowp vec2      coords;
 
 void main() {
 	lowp float y = texture(image, coords).r;
-#if defined(Qk_LINUX) || defined(Qk_ANDROID)
-	lowp vec2  uv = texture(image_u, coords).ra; // GL_LUMINANCE_ALPHA
-#else
 	lowp vec2  uv = texture(image_u, coords).rg; // GL_RG
-#endif
 	lowp float u = uv.r;
 	lowp float v = mix(uv.g, texture(image_v, coords).r, float(format));
 

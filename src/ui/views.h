@@ -65,7 +65,7 @@ namespace qk {
 	typedef Array<float> ArrayFloat;
 	typedef Array<Color> ArrayColor;
 	typedef Array<BoxOrigin> ArrayOrigin;
-	typedef Array<BoxBorder> ArrayBorder;
+	typedef Array<Border> ArrayBorder;
 
 	enum ViewType {
 		kView_ViewType, // view

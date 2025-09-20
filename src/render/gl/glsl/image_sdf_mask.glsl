@@ -4,14 +4,16 @@
 #frag
 uniform   sampler2D       image;
 uniform   lowp  vec4      color;
-uniform   lowp int        alphaIndex;
+uniform   lowp  vec4      strokeColor;
+uniform   lowp  float     strokeWidth;
 in        lowp  vec2      coords;
 
 void main() {
-	fragColor = color;
+	lowp float dist = texture(image, coords).r;
+	lowp float stroke = strokeWidth;
+	lowp float alpha = smoothstep(1.2 + stroke, stroke, dist);
 
-	lowp float alpha = texture(image, coords)[alphaIndex];
-
+	fragColor = mix(color, strokeColor, dist);
 	fragColor.a *= alpha * (1.0 - abs(aafuzz));
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP

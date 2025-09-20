@@ -59,7 +59,8 @@ namespace qk {
 		kGray_8_ColorType,
 		kLuminance_8_ColorType = kGray_8_ColorType,
 		kLuminance_Alpha_88_ColorType,
-		kSDF_Float_ColorType, //! signed distance function
+		kSDF_F32_ColorType, //! signed distance function
+		kSDF_Unsigned_F32_ColorType, //! unsigned distance function, inner is 0, outside is positive
 		kYUV420P_Y_8_ColorType,  // YUV420P
 		kYUV420SP_Y_8_ColorType = kYUV420P_Y_8_ColorType, // YUV420SP
 		kYUV420P_U_8_ColorType,
@@ -141,6 +142,8 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(uint8_t*, val);
 		Qk_DEFINE_PROP_GET(uint32_t, length, Const);
 		Qk_DEFINE_ACCE_GET(WeakBuffer, body, Const);
+
+		inline const uint8_t* val() const { return _val; }
 
 		Pixel();
 		Pixel(cPixel& data); // copy

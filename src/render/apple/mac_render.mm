@@ -148,16 +148,10 @@ public:
 		}
 
 		if (_delegate->onRenderBackendDisplay()) {
-			_glcanvas->flushBuffer(); // commit gl canvas cmd
-			auto src = _glcanvas->surfaceSize();
-			auto dest = _surfaceSize;
-			auto filter = src == dest ? GL_NEAREST: GL_LINEAR;
-			// copy pixels to default color buffer
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-			glBlitFramebuffer(0, 0, src[0], src[1], 0, 0, dest[0], dest[1], GL_COLOR_BUFFER_BIT, filter);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glcanvas->fbo()); // bind frame buffer for main canvas
+			_glcanvas->flushBuffer(); // commit gl canvas cmds
+			_glcanvas->vportFullCopy(0); // copy pixels to default color buffer
 			glFlush(); // flush gl buffer, glFinish, glFenceSync, glWaitSync
-			[_ctx flushBuffer]; // swap double buffer
+			// [_ctx flushBuffer]; // swap double buffer
 		}
 		_renderThreadId = qk::ThreadID();
 		CGLUnlockContext(_ctx.CGLContextObj);
@@ -172,16 +166,10 @@ public:
 		_view.layer.opaque = NO;
 		_view.layer.backgroundColor = CGColorCreateGenericRGB(0, 0, 0, 0);
 
-		// [_ctx makeCurrentContext];
-		// _ctx.view = _view;
-		// [_ctx setFullScreen];
-
 		GLint swapInterval = 1; // enable vsync
 		[_ctx setValues:&swapInterval forParameter:NSOpenGLContextParameterSwapInterval];//NSOpenGLCPSwapInterval
-
 		GLint sampleCount; // read msaa cnt
 		[_ctx.pixelFormat getValues:&sampleCount forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
-
 		return _view;
 	}
 

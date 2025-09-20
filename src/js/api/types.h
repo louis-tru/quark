@@ -78,7 +78,7 @@ namespace qk {
 		F(String) \
 		F(Curve) \
 		F(Shadow) \
-		F(BoxBorder) \
+		F(Border) \
 		F(FillPosition) \
 		F(FillSize) \
 		F(Repeat) \
@@ -112,6 +112,7 @@ namespace qk {
 		F(CascadeColor) \
 		F(FFID) \
 		F(SkeletonDataPtr) \
+		F(TextStroke) \
 
 	class Qk_EXPORT TypesParser {
 	public:

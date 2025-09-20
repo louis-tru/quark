@@ -49,7 +49,7 @@ namespace qk {
 		float val1; //!< motion blur direction
 	};
 
-	struct GradientPaint {
+	struct PaintGradient {
 		enum Type {
 			kLinear_Type,  //!< linear gradient type
 			kRadial_Type,  //!< radial gradient type
@@ -61,7 +61,7 @@ namespace qk {
 		const float    *positions;
 	};
 
-	struct ImagePaint {
+	struct PaintImage {
 		enum TileMode {
 			//!< Replicate the edge color if the shader draws outside of its original bounds.
 			kClamp_TileMode,
@@ -124,14 +124,13 @@ namespace qk {
 		Region            coord; // bitmap uv coord
 	};
 
-	struct Paint {
-		enum Type {
-			kColor_Type,          //!< set to color paint type
-			kGradient_Type,       //!< set to gradient paint type
-			kBitmap_Type,         //!< set to bitmap image paint type
-			kBitmapMask_Type,     //!< set to bitmap image mask paint type
-		};
+	struct PaintStyle {
+		Color4f        color; // color
+		PaintImage*    image = nullptr; // image source, weak ref
+		PaintGradient* gradient = nullptr; // gradient color, weak ref
+	};
 
+	struct Paint {
 		enum Style {
 			kFill_Style,          //!< set to fill geometry
 			kStroke_Style,        //!< set to stroke geometry
@@ -150,39 +149,23 @@ namespace qk {
 			kBevel_Join,          //!< connects outside edges
 		};
 
-		union {
-			uint32_t        bitfields = (
-				(kColor_Type << 0) | // 2 bits
-				(kFill_Style << 2) | // 2 bits
-				(kButt_Cap << 4) | // 2 bits
-				(kMiter_Join << 6) | // 2 bits
-				(kSrcOver_BlendMode << 8) | // 6 bits
-				(1 << 14) | // 2 bits, default antiAlias = true
-				0
-			);
-			struct {
-				Type          type: 2;// default kColor_Type;
-				Style         style : 2;// default kFill_Style;
-				Cap           cap: 2;// default kButt_Cap;
-				Join          join: 2;// default kMiter_Join;
-				BlendMode     blendMode: 6; // default kSrcOver_BlendMode
-				bool          antiAlias: 2;// default true;
-				unsigned short _padding: 16;
-			};
-		}; // size 32bit
-
-		float             width; // stroke width
-		Color4f           color; // color
-		ImagePaint        *image; // image source, weak ref
-		GradientPaint     *gradient; // gradient color, weak ref
-		PaintFilter       *filter = nullptr; // filter
+		PaintStyle    fill; // fill paint style
+		PaintStyle    stroke; // stroke paint style
+		BlendMode     blendMode = kSrcOver_BlendMode; // blend mode
+		Style         style = kFill_Style; // paint style
+		Cap           cap = kButt_Cap; // stroke cap
+		Join          join = kMiter_Join; // stroke join
+		bool          antiAlias = true; // is anti aliasing
+		float         strokeWidth = 1.0f; // stroke width
+		PaintFilter*  filter = nullptr; // filter, weak ref
+		PaintImage*   mask = nullptr; // mask image, weak ref
 	};
 
 	/**
 	 * @struct render backend pixel texture stat
 	*/
 	struct TexStat {
-		uint32_t          id;
+		uint32_t id;
 	};
 
 }

@@ -45,7 +45,8 @@ namespace qk {
 	extern const float zDepthNextUnit;
 	void  gl_texture_barrier();
 	void  gl_set_framebuffer_renderbuffer(GLuint b, Vec2 s, GLenum f, GLenum at);
-	GLint gl_get_texture_pixel_format(ColorType type);
+	GLint gl_get_texture_internalformat(ColorType type);
+	GLint gl_get_texture_format(ColorType type);
 	GLint gl_get_texture_data_type(ColorType format);
 	void setTex_SourceImage(RenderResource *res, ImageSource* s, cPixelInfo &i, const TexStat *tex);
 	void gl_set_aaclip_buffer(GLuint tex, Vec2 size);
@@ -56,16 +57,16 @@ namespace qk {
 
 	static Color4f emptyColor{0,0,0,0};
 
-	struct ImagePaintLock {
-		inline ImagePaintLock(const ImagePaint *p): paint(p) {
+	struct PaintImageLock {
+		inline PaintImageLock(const PaintImage *p): paint(p) {
 			if (!paint->_flushCanvas)
 				paint->image->onState().lockShared();
 		}
-		inline ~ImagePaintLock() {
+		inline ~PaintImageLock() {
 			if (!paint->_flushCanvas)
 				paint->image->onState().unlockShared();
 		}
-		const ImagePaint *paint;
+		const PaintImage *paint;
 	};
 
 	Qk_DEFINE_INLINE_MEMBERS(GLC_CmdPack, Inl) {
@@ -94,6 +95,9 @@ namespace qk {
 							break;
 						case kImageMask_CmdType:
 							((ImageMaskCmd*)cmd)->~ImageMaskCmd();
+							break;
+						case kSDFImageMask_CmdType:
+							((SDFImageMaskCmd*)cmd)->~SDFImageMaskCmd();
 							break;
 						case kReadImage_CmdType:
 							((ReadImageCmd*)cmd)->~ReadImageCmd();
@@ -265,6 +269,13 @@ namespace qk {
 							c->~ImageMaskCmd();
 							break;
 						}
+						case kSDFImageMask_CmdType: {
+							auto c = (SDFImageMaskCmd*)cmd;
+							drawSDFImageMaskCall(c->vertex, &c->paint, c->color, c->strokeColor,
+									c->strokeWidth, c->aafuzz, c->aaclip, c->depth);
+							c->~SDFImageMaskCmd();
+							break;
+						}
 						case kTriangles_CmdType: {
 							auto c = (TrianglesCmd*)cmd;
 							drawTrianglesCall(c->triangles, &c->paint, c->color, c->aaclip, c->depth);
@@ -288,7 +299,6 @@ namespace qk {
 							glBindVertexArray(s->vao);
 							glUseProgram(s->shader);
 							glDrawArrays(GL_TRIANGLES, 0, c->vCount);
-							//glDrawArrays(GL_LINES, 0, c->vCount);
 							break;
 						}
 						case kReadImage_CmdType: {
@@ -446,7 +456,7 @@ namespace qk {
 			}
 		}
 
-		bool setTextureSlot0(const ImagePaint *paint) {
+		bool setTextureSlot0(const PaintImage *paint) {
 			if (paint->_flushCanvas) { // flush canvas to current canvas
 				auto srcC = static_cast<GLCanvas*>(paint->canvas);
 				if (srcC != _canvas && srcC->isGpu()) { // now only supported gpu
@@ -464,9 +474,9 @@ namespace qk {
 		}
 
 		void drawImageCall(const VertexData &vertex,
-			const ImagePaint *paint, float allScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
+			const PaintImage *paint, float allScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
-			ImagePaintLock lock(paint);
+			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) { // rgb or y
 				GLSLImage *s;
 				auto src = paint->image;
@@ -496,13 +506,16 @@ namespace qk {
 		}
 
 		void drawImageMaskCall(const VertexData &vertex,
-			const ImagePaint *paint, float allScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
+			const PaintImage *paint, float allScale, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
-			ImagePaintLock lock(paint);
+			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) {
+				auto type = paint->image->type();
 				auto s = aaclip ? &_render->_shaders.imageMask_AACLIP: &_render->_shaders.imageMask;
 				Qk_useShaderProgram(s, vertex);
 				glUniform1f(s->depth, depth);
+				glUniform1i(s->alphaIndex, type == kAlpha_8_ColorType ? 0 :
+						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
 				glUniform1f(s->allScale, allScale);
 				glUniform4fv(s->color, 1, color.val);
 				glUniform4fv(s->texCoords, 1, paint->coord.origin.val);
@@ -510,8 +523,24 @@ namespace qk {
 			}
 		}
 
-		void drawTrianglesCall(const Triangles &triangles, const ImagePaint *paint, const Color4f &color, bool aaclip, float depth) {
-			ImagePaintLock lock(paint);
+		void drawSDFImageMaskCall(const VertexData &vertex,
+				const PaintImage *paint, const Color4f &color, const Color4f &strokeColor,
+				float stroke, bool aafuzz, bool aaclip, float depth) {
+			PaintImageLock lock(paint);
+			if (setTextureSlot0(paint)) {
+				auto s = aaclip ? &_render->_shaders.imageSdfMask_AACLIP: &_render->_shaders.imageSdfMask;
+				Qk_useShaderProgram(s, vertex);
+				glUniform1f(s->depth, depth);
+				glUniform4fv(s->color, 1, color.val);
+				glUniform4fv(s->strokeColor, 1, stroke <= 0 ? color.val: strokeColor.val);
+				glUniform1f(s->strokeWidth, stroke);
+				glUniform4fv(s->texCoords, 1, paint->coord.origin.val);
+				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
+			}
+		}
+
+		void drawTrianglesCall(const Triangles &triangles, const PaintImage *paint, const Color4f &color, bool aaclip, float depth) {
+			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) {
 				auto s = triangles.isDarkColor ?
 					aaclip ? &_render->_shaders.triangles_DARK_COLOR_AACLIP: &_render->_shaders.triangles_DARK_COLOR:
@@ -527,12 +556,12 @@ namespace qk {
 		}
 
 		void drawGradientCall(const VertexData &vertex, 
-			const GradientPaint *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
+			const PaintGradient *paint, const Color4f &color, bool aafuzz, bool aaclip, float depth
 		) {
 			GLSLColorRadial *s;
 			auto count = paint->count;
 
-			if (paint->type == GradientPaint::kRadial_Type) {
+			if (paint->type == PaintGradient::kRadial_Type) {
 				s = count == 2 ?
 					aaclip ? &_render->_shaders.colorRadial_COUNT2_AACLIP: &_render->_shaders.colorRadial_COUNT2:
 					aaclip ? &_render->_shaders.colorRadial_AACLIP: &_render->_shaders.colorRadial;
@@ -554,79 +583,74 @@ namespace qk {
 			//glDrawArrays(GL_LINES, 0, vertex.length());
 		}
 
-		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke, float depth) {
+
+		void aaClipExec(float depth, const VertexData &vertex, ImageSource *recover,
+			bool revoke, float W, float C, bool clearAA) 
+		{
 			auto _c = _canvas;
+			auto _render = _c->_render;
+			auto chMode = _render->_blendMode;
+			// auto &aafuzz = clip.aafuzz;
+			if (!_c->_outAAClipTex) {
+				glGenTextures(1, &_c->_outAAClipTex); // gen aaclip buffer tex
+				gl_set_aaclip_buffer(_c->_outAAClipTex, _c->_surfaceSize);
+				setOutputColorBuffer(true, nullptr);
+				float color[] = {1.0f,1.0f,1.0f,1.0f};
+				glClearBufferfv(GL_COLOR, 0, color); // clear aa clip
+			}
+			setOutputColorBuffer(true, nullptr);
+			if (clearAA) {
+				glBlendFunc(GL_ONE, GL_ZERO); // src
+			} else if (revoke) {
+				glBlendFunc(GL_DST_COLOR, GL_ONE); // src * dst + dst
+			} else {
+				glBlendFunc(GL_DST_COLOR, GL_ZERO); // src * dst
+			}
+			auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
+			float aafuzzWeight = W * 0.1f;
+			shader->use(vertex.vertex.size(), vertex.vertex.val());
+			glUniform1f(shader->depth, depth);
+			glUniform1f(shader->aafuzzWeight, aafuzzWeight); // Difference: -0.09
+			glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
+			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount); // draw test
+			_render->gl_set_blend_mode(chMode); // revoke blend mode
+			setOutputColorBuffer(false, recover);
+		}
 
-			auto aaClip = [](
-				Inl *self, float depth, const GLC_State::Clip &clip,
-				ImageSource *recover, bool revoke, float W, float C, bool clearAA)
-			{
-				auto _c = self->_canvas;
-				auto _render = _c->_render;
-				auto chMode = _render->_blendMode;
-				auto ch = chMode != kSrc_BlendMode && chMode != kSrcOver_BlendMode;
-				auto &aafuzz = clip.aafuzz;
+		void clipExec(float depth, const VertexData &vertex, bool clearAA) {
+			auto shader = &_render->_shaders.clipTest;
+			if (clearAA && _canvas->_outAAClipTex) {
+				shader = &_render->_shaders.clipTest_CLEAR_AA;
+				setOutputColorBuffer(true, nullptr);
+			}
+			shader->use(vertex.vertex.size(), vertex.vertex.val()); // only stencil fill test
+			glUniform1f(shader->depth, depth);
+			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount); // draw test
+		}
 
-				if (!_c->_outAAClipTex) {
-					glGenTextures(1, &_c->_outAAClipTex); // gen aaclip buffer tex
-					//Qk_Log("--------_surfaceSize %f, %f", _c->_surfaceSize[0], _c->_surfaceSize[1]);
-					gl_set_aaclip_buffer(_c->_outAAClipTex, _c->_surfaceSize);
-					self->setOutputColorBuffer(true, nullptr);
-					float color[] = {1.0f,1.0f,1.0f,1.0f};
-					glClearBufferfv(GL_COLOR, 0, color); // clear aa clip
-					// Ensure clip texture clear can be executed correctly in sequence
-				}
-				else if (!clearAA) {
-					self->setOutputColorBuffer(true, nullptr);
-				}
-				if (ch)
-					_render->gl_set_blend_mode(kSrc_BlendMode);
-				auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
-				float aafuzzWeight = W * 0.1f;
-				shader->use(aafuzz.vertex.size(), aafuzz.vertex.val());
-				glUniform1f(shader->depth, depth);
-				glUniform1f(shader->aafuzzWeight, aafuzzWeight); // Difference: -0.09
-				glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
-				glUniform1f(shader->clearAA, clearAA ? 1: 0);
-				glDrawArrays(GL_TRIANGLES, 0, aafuzz.vCount); // draw test
-				if (ch)
-					_render->gl_set_blend_mode(chMode); // revoke blend mode
-				// ensure aa clip can be executed correctly in sequence
-				self->setOutputColorBuffer(false, recover);
-			};
-
+		void drawClipCall(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke, float depth) {
 			if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
 				glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 				glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, revoke ? GL_INCR: GL_DECR/*zpass*/); // test success op
-				_render->_shaders.clipTest.use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
-				glUniform1f(_render->_shaders.clipTest.depth, depth);
-				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
-
+				clipExec(depth, clip.vertex, false);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+				glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
-					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
-					glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
-					aaClip(this, depth, clip, recover, revoke, aa_fuzz_weight, 0, false);
-					return;
+					aaClipExec(depth, clip.aafuzz, recover, revoke, aa_fuzz_weight, 0, false);
 				}
 			} else { // intersect clip
-				bool clearAA = ref == 128 && !revoke && _c->_outAAClipTex;
-				auto shader = clearAA ?
-					(GLSLClipTest*)&_render->_shaders.clipTest_CLEAR_AA: &_render->_shaders.clipTest; // clear aa
-				if (clearAA)
-					setOutputColorBuffer(true, nullptr);
 				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
-				shader->use(clip.vertex.vertex.size(), clip.vertex.vertex.val()); // only stencil fill test
-				glUniform1f(shader->depth, depth);
-				glDrawArrays(GL_TRIANGLES, 0, clip.vertex.vCount); // draw test
-
-				if (clip.aafuzz.vCount) { // draw anti alias alpha
-					aaClip(this, depth, clip, recover, revoke, -aa_fuzz_weight, -1, clearAA);
-				} else if (clearAA) {
-					setOutputColorBuffer(false, recover);
+				if (clip.aafuzz.vCount) {
+					bool clear = ref == 128 && !revoke;
+					if (clip.vertex.vCount)
+						clipExec(depth, clip.vertex, clear);
+					aaClipExec(depth, clip.aafuzz, recover, revoke, -aa_fuzz_weight, -1, clear);
+				} else {
+					clipExec(depth, clip.vertex, false);
 				}
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
+				glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
 			}
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
-			glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
 		}
 
 		void clearColorCall(const Color4f &color, const Region &region, bool full, float depth) {
@@ -839,7 +863,8 @@ namespace qk {
 			auto tex = img->texture(0);
 			auto o = src.origin, s = src.size;
 			auto w = img->width(), h = img->height();
-			auto iformat = gl_get_texture_pixel_format(img->type());
+			auto iformat = gl_get_texture_internalformat(img->type());
+			auto format = gl_get_texture_format(img->type());
 			auto type = gl_get_texture_data_type(img->type());
 
 			if (!tex) {
@@ -849,7 +874,7 @@ namespace qk {
 			glBindSampler(0, 0);
 			glBindTexture(GL_TEXTURE_2D, tex->id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, iformat, type, nullptr);
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, nullptr);
 
 			// if (_canvas->_outTex) {
 			Qk_ASSERT(_canvas->_outTex);
@@ -896,7 +921,8 @@ namespace qk {
 		void outputImageBeginCall(ImageSource* img) {
 			auto tex = img->texture(0);
 			auto size = _canvas->_surfaceSize;
-			auto iformat = gl_get_texture_pixel_format(img->type());
+			auto iformat = gl_get_texture_internalformat(img->type());
+			auto format = gl_get_texture_format(img->type());
 			auto type = gl_get_texture_data_type(img->type());
 			if (!tex) {
 				tex = gl_new_tex_stat();
@@ -905,7 +931,7 @@ namespace qk {
 			glBindSampler(0, 0);
 			glBindTexture(GL_TEXTURE_2D, tex->id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, iformat, type, nullptr);
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, format, type, nullptr);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->id, 0);
 #if Qk_LINUX
 			glClearBufferfv(GL_COLOR, 0, emptyColor.val); // clear image tex
@@ -969,7 +995,7 @@ namespace qk {
 			}
 		}
 
-		void flushCanvas(const ImagePaint *paint) {
+		void flushCanvas(const PaintImage *paint) {
 #if Qk_USE_GLC_CMD_QUEUE
 			auto srcC = static_cast<GLCanvas*>(paint->canvas);
 			if (!paint->_flushCanvas || !srcC->isGpu())
@@ -1200,7 +1226,7 @@ namespace qk {
 		cmd->aaclip = _canvas->_state->aaclip;
 	}
 
-	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, const Color4f& color, bool aafuzz) {
+	void GLC_CmdPack::drawImage(const VertexData &vertex, const PaintImage *paint, const Color4f& color, bool aafuzz) {
 		_this->flushCanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(ImageCmd))) ImageCmd;
 		cmd->type = kImage_CmdType;
@@ -1214,7 +1240,7 @@ namespace qk {
 		paint->image->retain(); // retain source image ref
 	}
 
-	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
+	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const PaintImage *paint, const Color4f &color, bool aafuzz) {
 		_this->flushCanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(ImageMaskCmd))) ImageMaskCmd;
 		cmd->type = kImageMask_CmdType;
@@ -1228,7 +1254,23 @@ namespace qk {
 		paint->image->retain(); // retain source image ref
 	}
 
-	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const ImagePaint *paint, const Color4f &color) {
+	void GLC_CmdPack::drawSDFImageMask(const VertexData &vertex, const PaintImage *paint,
+		const Color4f &color, const Color4f &strokeColor, float stroke, bool aafuzz) {
+		auto cmd = new(_this->allocCmd(sizeof(SDFImageMaskCmd))) SDFImageMaskCmd;
+		cmd->type = kSDFImageMask_CmdType;
+		cmd->vertex = vertex;
+		cmd->depth = _canvas->_zDepth;
+		cmd->aafuzz = aafuzz;
+		cmd->aaclip = _canvas->_state->aaclip;
+		cmd->allScale = _canvas->_allScale;
+		cmd->color = color;
+		cmd->paint = *paint;
+		cmd->strokeColor = strokeColor;
+		cmd->strokeWidth = stroke;
+		paint->image->retain();
+	}
+
+	void GLC_CmdPack::drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color) {
 		_this->flushCanvas(paint);
 		auto cmd = new(_this->allocCmd(sizeof(TrianglesCmd))) TrianglesCmd;
 		cmd->type = kTriangles_CmdType;
@@ -1240,7 +1282,7 @@ namespace qk {
 		paint->image->retain();
 	}
 
-	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, const Color4f &color, bool aafuzz) {
+	void GLC_CmdPack::drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color, bool aafuzz) {
 		auto colorsSize = (uint32_t)sizeof(Color4f) * paint->count;
 		auto positionsSize = (uint32_t)sizeof(float) * paint->count;
 		auto cmdSize = (uint32_t)sizeof(GradientCmd);
@@ -1264,7 +1306,11 @@ namespace qk {
 	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke) {
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
-		cmd->clip = clip; // copy clip
+		cmd->clip = { .op=clip.op };
+		cmd->clip.aafuzz.vCount = clip.vertex.vCount + clip.aafuzz.vCount;
+		cmd->clip.aafuzz.vertex.extend(cmd->clip.aafuzz.vCount);
+		cmd->clip.aafuzz.vertex.write(clip.vertex.vertex.val(), clip.vertex.vCount, 0);
+		cmd->clip.aafuzz.vertex.write(clip.aafuzz.vertex.val(), clip.aafuzz.vCount, clip.vertex.vCount);
 		cmd->depth = _canvas->_zDepth;
 		cmd->ref = ref;
 		cmd->revoke = revoke;
@@ -1367,16 +1413,22 @@ namespace qk {
 	void GLC_CmdPack::drawRRectBlurColor(const Rect& rect, const float *radius, float blur, const Color4f &color) {
 		_this->drawRRectBlurColorCall(rect, radius, blur, color, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawImage(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
+	void GLC_CmdPack::drawImage(const VertexData &vertex, const PaintImage *paint, const Color4f &color, bool aafuzz) {
 		_this->drawImageCall(vertex, paint, _canvas->_allScale, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const ImagePaint *paint, const Color4f &color, bool aafuzz) {
+	void GLC_CmdPack::drawImageMask(const VertexData &vertex, const PaintImage *paint, const Color4f &color, bool aafuzz) {
 		_this->drawImageMaskCall(vertex, paint, _canvas->_allScale, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawTriangles(const Triangles &triangles, const ImagePaint *paint, const Color4f &color) {
+
+	void GLC_CmdPack::drawSDFImageMask(const VertexData &vertex, const PaintImage *paint, const Color4f &color,
+		const Color4f &strokeColor, float stroke, bool aafuzz) {
+		_this->drawSDFImageMaskCall(vertex, paint, color, strokeColor, stroke, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
+	}
+
+	void GLC_CmdPack::drawTriangles(const Triangles &triangles, const PaintImage *paint, const Color4f &color) {
 		_this->drawTrianglesCall(triangles, paint, color, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
-	void GLC_CmdPack::drawGradient(const VertexData &vertex, const GradientPaint *paint, const Color4f &color, bool aafuzz) {
+	void GLC_CmdPack::drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color, bool aafuzz) {
 		_this->drawGradientCall(vertex, paint, color, aafuzz, _canvas->_state->aaclip, _canvas->_zDepth);
 	}
 	void GLC_CmdPack::drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke) {

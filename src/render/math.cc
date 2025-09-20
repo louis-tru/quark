@@ -370,7 +370,7 @@ namespace qk {
 		return *reinterpret_cast<const int*>(&color) != *reinterpret_cast<const int*>(this);
 	}
 
-	constexpr float color_to_colorf_indexed[] = {
+	constexpr float indexed_color_to_colorf[] = {
 		0.0f, 0.003921569f, 0.007843137f, 0.011764706f, 0.015686275f, 0.019607843f, 0.023529412f, 0.02745098f,
 		0.03137255f, 0.03529412f, 0.039215688f, 0.043137256f, 0.047058824f, 0.050980393f, 0.05490196f, 0.05882353f,
 		0.0627451f, 0.06666667f, 0.07058824f, 0.07450981f, 0.078431375f, 0.08235294f, 0.08627451f, 0.09019608f,
@@ -404,25 +404,25 @@ namespace qk {
 		0.9843137f, 0.9882353f, 0.99215686f, 0.99607843f, 1.0f
 	};
 
-	static_assert(sizeof(color_to_colorf_indexed)/sizeof(color_to_colorf_indexed[0]) == 256, "");
+	static_assert(sizeof(indexed_color_to_colorf)/sizeof(indexed_color_to_colorf[0]) == 256, "");
 
 	float Color::to_float_alpha() const {
-		return color_to_colorf_indexed[val[3]];
+		return indexed_color_to_colorf[val[3]];
 	}
 
 	Color4f Color::to_color4f() const {
-		return Color4f(color_to_colorf_indexed[val[0]],
-									color_to_colorf_indexed[val[1]],
-									color_to_colorf_indexed[val[2]],
-									color_to_colorf_indexed[val[3]]
+		return Color4f(indexed_color_to_colorf[val[0]],
+									indexed_color_to_colorf[val[1]],
+									indexed_color_to_colorf[val[2]],
+									indexed_color_to_colorf[val[3]]
 								);
 	}
 
 	Color4f Color::mul_alpha_only(float alpha) const {
-		return Color4f(color_to_colorf_indexed[val[0]],
-									color_to_colorf_indexed[val[1]],
-									color_to_colorf_indexed[val[2]],
-									color_to_colorf_indexed[val[3]] * alpha
+		return Color4f(indexed_color_to_colorf[val[0]],
+									indexed_color_to_colorf[val[1]],
+									indexed_color_to_colorf[val[2]],
+									indexed_color_to_colorf[val[3]] * alpha
 								);
 	}
 
@@ -430,19 +430,19 @@ namespace qk {
 #if Qk_USE_ARM_NEON
 		float32x4_t rgba = vmulq_f32(
 			float32x4_t{
-				color_to_colorf_indexed[val[0]], // * color.r(),
-				color_to_colorf_indexed[val[1]], // * color.g(),
-				color_to_colorf_indexed[val[2]], // * color.b(),
-				color_to_colorf_indexed[val[3]]  // * color.a()
+				indexed_color_to_colorf[val[0]], // * color.r(),
+				indexed_color_to_colorf[val[1]], // * color.g(),
+				indexed_color_to_colorf[val[2]], // * color.b(),
+				indexed_color_to_colorf[val[3]]  // * color.a()
 			},
 			float32x4_t{color.val[0], color.val[1], color.val[2], 1.0f}
 		);
 		return Color4f{rgba[0], rgba[1], rgba[2], rgba[3]};
 #else
-		return Color4f(color_to_colorf_indexed[val[0]] * color.val[0],
-									color_to_colorf_indexed[val[1]] * color.val[1],
-									color_to_colorf_indexed[val[2]] * color.val[2],
-									color_to_colorf_indexed[val[3]]
+		return Color4f(indexed_color_to_colorf[val[0]] * color.val[0],
+									indexed_color_to_colorf[val[1]] * color.val[1],
+									indexed_color_to_colorf[val[2]] * color.val[2],
+									indexed_color_to_colorf[val[3]]
 								);
 #endif
 	}
@@ -451,19 +451,19 @@ namespace qk {
 #if Qk_USE_ARM_NEON
 		float32x4_t rgba = vmulq_f32(
 			float32x4_t{
-				color_to_colorf_indexed[val[0]], // * color.r(),
-				color_to_colorf_indexed[val[1]], // * color.g(),
-				color_to_colorf_indexed[val[2]], // * color.b(),
-				color_to_colorf_indexed[val[3]]  // * color.a()
+				indexed_color_to_colorf[val[0]], // * color.r(),
+				indexed_color_to_colorf[val[1]], // * color.g(),
+				indexed_color_to_colorf[val[2]], // * color.b(),
+				indexed_color_to_colorf[val[3]]  // * color.a()
 			},
 			float32x4_t{color.val[0], color.val[1], color.val[2], color.val[3]}
 		);
 		return Color4f{rgba[0], rgba[1], rgba[2], rgba[3]};
 #else
-		return Color4f(color_to_colorf_indexed[val[0]] * color.val[0],
-									color_to_colorf_indexed[val[1]] * color.val[1],
-									color_to_colorf_indexed[val[2]] * color.val[2],
-									color_to_colorf_indexed[val[3]] * color.val[3]
+		return Color4f(indexed_color_to_colorf[val[0]] * color.val[0],
+									indexed_color_to_colorf[val[1]] * color.val[1],
+									indexed_color_to_colorf[val[2]] * color.val[2],
+									indexed_color_to_colorf[val[3]] * color.val[3]
 								);
 #endif
 	}

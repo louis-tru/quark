@@ -655,8 +655,8 @@ void Typeface_Mac::onGetGlyphMetrics(GlyphID id, FontGlyphMetrics* glyph) {
 	//Qk_DLog("#Typeface_Mac::onGetGlyphMetrics,%f", cgBounds.origin.x);
 }
 
-Typeface::ImageOut Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
-	float fontSize, cArray<Vec2> *offset, float offsetScale, RenderBackend *render)
+Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
+	float fontSize, cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render)
 {
 	if (!fRGBSpace) {
 		//It doesn't appear to matter what color space is specified.
@@ -669,59 +669,63 @@ Typeface::ImageOut Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	CTFontRef fontRef = font.get();
 
 	const CGGlyph* cgGlyph = (const CGGlyph*) glyphs.val();
-
 	Array<CGPoint> drawPoints(glyphs.length());
 	Array<CGRect>  cgBounds(glyphs.length());
-	Array<CGSize>  cgAdvance;
+	Array<CGSize>  cgAdvance(glyphs.length());
 
-	if (!offset) {
-		cgAdvance = Array<CGSize>(glyphs.length());
-		CTFontGetAdvancesForGlyphs(
-			fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgAdvance, glyphs.length());
-	}
+	CTFontGetAdvancesForGlyphs(fontRef,
+			kCTFontOrientationHorizontal, cgGlyph, *cgAdvance, glyphs.length());
+	CGRect cgBound = CTFontGetBoundingRectsForGlyphs(fontRef,
+			kCTFontOrientationHorizontal, cgGlyph, *cgBounds, glyphs.length());
 
-	CGRect cgBound = CTFontGetBoundingRectsForGlyphs(
-		fontRef, kCTFontOrientationHorizontal, cgGlyph, *cgBounds, glyphs.length()
-	);
 	cgBound.origin.y = roundf(cgBound.origin.y);
 	cgBound.size.height = ceilf(cgBound.size.height);
 
-	float right = 0;// AHgj
-	float top = cgBound.size.height + cgBound.origin.y;
+	float top = 0, right = 0;
+	float offsetY = 0;
 
-	for (int i = 0; i < glyphs.length(); i++) {
-		drawPoints[i].x = right;
-		drawPoints[i].y = -cgBound.origin.y;
-
-		if (offset) {
-			drawPoints[i].y -= offset->at(i).y() * offsetScale;
-			right = offset->at(i+1).x() * offsetScale;
-		} else {
-			right += cgAdvance[i].width;
+	if (offset) {
+		for (auto i: *offset) {
+			if (i.y() > 0)
+				offsetY = Qk_Max(offsetY, i.y());
 		}
-		//Qk_DLog("#Typeface_Mac::onGetImage,bounds, left:%f, top:%f, width:%f, height:%f | advanceX:%f",
-		//	cgBounds[i].origin.x, cgBounds[i].origin.y,
-		//	cgBounds[i].size.width, cgBounds[i].size.height, cgAdvance[i].width);
 	}
 
-	uint32_t width = ceilf(right + cgBounds.back().origin.x/* ITALIC compensate */);
-	uint32_t height = ceilf(cgBound.size.height);
+	for (int i = 0; i < glyphs.length(); i++) {
+		drawPoints[i].y = -cgBound.origin.y;
+		if (offset) {
+			top = Qk_Max(-offset->at(i).y(), top);
+			drawPoints[i].y -= (offset->at(i).y() - offsetY/* Keep it always less than or equal to 0 */);
+			drawPoints[i].x = offset->at(i).x();
+			right = fmax(right, drawPoints[i].x + cgAdvance[i].width);
+		} else {
+			drawPoints[i].x = right;
+			right += cgAdvance[i].width;
+		}
+	}
 
-	if (!height || !width) {
+	uint32_t h = ceilf(cgBound.size.height + offsetY + top);
+	uint32_t w = ceilf(right + cgBounds.back().origin.x/* ITALIC compensate */);
+	int paddInt = Qk_Min(h, w) * padding;
+	w += paddInt * 2;
+	h += paddInt * 2;
+	top += cgBound.size.height + cgBound.origin.y + paddInt;
+
+	if (!h || !w) {
 		return { ImageSource::Make(Pixel(PixelInfo())) };
 	}
 
-	//Qk_DLog("#Typeface_Mac::onGetImage,bounds[i].origin.y=%f,top=%f,height=%d", cgBound.origin.y, top, height);
-
-	int rowBytes = width * sizeof(uint32_t);
-	Buffer image(rowBytes * height);
+	int rowBytes = w * sizeof(uint32_t);
+	Buffer image(rowBytes * h);
 
 	memset(*image, 0, image.length()); // reset storage
 
-	const CGImageAlphaInfo alpha = kCGImageAlphaPremultipliedLast;
-	const CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Big | alpha;
+	CGImageAlphaInfo alpha = kCGImageAlphaPremultipliedLast;
+	CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Big | alpha;
 	QkUniqueCFRef<CGContextRef> fCG(
-		CGBitmapContextCreate(*image, width, height, 8, rowBytes, fRGBSpace.get(), bitmapInfo)
+		CGBitmapContextCreate(
+			image.val() + paddInt * rowBytes + paddInt * sizeof(uint32_t),
+			w, h - paddInt * 2, 8, rowBytes, fRGBSpace.get(), bitmapInfo)
 	);
 
 	// Qkia handles quantization and subpixel positioning,
@@ -740,33 +744,17 @@ Typeface::ImageOut Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 	// Draw black on white to create mask. (Special path exists to speed this up in CG.)
 	CGContextSetGrayFillColor(fCG.get(), 0.0f, 1.0f);
 
-	CGContextSetShouldAntialias(fCG.get(), true);
+	CGContextSetShouldAntialias(fCG.get(), antiAlias);
+	// CGContextSetAllowsFontSmoothing(fCG.get(), true);
 	CGContextSetShouldSmoothFonts(fCG.get(), false);
 
 	CTFontDrawGlyphs(fontRef, cgGlyph, *drawPoints, glyphs.length(), fCG.get());
 
-	/*auto data = Buffer::alloc(width * height);
-	auto src = image.val() + 3;
-	auto dst = data.val(), end = dst + data.length();
-
-	while (dst < end) {
-		*dst = *src;
-		dst++; src += 4;
-	}*/
-
-	//auto data = img_tga_encode(pixs[0]);
-	//auto path = fs_documents("test.tga");
-	//auto write = fs_write_file_sync(path, *image, data.size());
-	//Qk_DLog("#Typeface_Mac#onGetImage,write:%d,%s", write, path.c_str());
-
-	Pixel pixel(
-		PixelInfo(width, height, kRGBA_8888_ColorType, kUnpremul_AlphaType), image
-	);
+	Pixel pixel(PixelInfo(w, h, kRGBA_8888_ColorType, kUnpremul_AlphaType), image);
 
 	return {
 		ImageSource::Make(std::move(pixel), render),
-		top,
-		right,
+		float(paddInt),top,right,
 		fontSize,
 		1.0f,
 	};

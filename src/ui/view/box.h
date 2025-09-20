@@ -66,10 +66,10 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(float,      border_radius_right_bottom, Const);
 		Qk_DEFINE_VIEW_PROPERTY(float,      border_radius_left_bottom, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayBorder,border, Const); // border
-		Qk_DEFINE_VIEW_ACCESSOR(BoxBorder,  border_top, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(BoxBorder,  border_right, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(BoxBorder,  border_bottom, Const);
-		Qk_DEFINE_VIEW_ACCESSOR(BoxBorder,  border_left, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Border,     border_top, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Border,     border_right, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Border,     border_bottom, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(Border,     border_left, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayFloat, border_width, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(ArrayColor, border_color, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(float,      border_width_top, Const); // border_width
@@ -81,11 +81,11 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_color_bottom, Const);
 		Qk_DEFINE_VIEW_ACCESSOR(Color,      border_color_left, Const);
 		Qk_DEFINE_VIEW_PROPERTY(Color,      background_color, Const); // fill background color
-		Qk_DEFINE_VIEW_ACCESSOR(BoxFilter*, background); // fill background, image|gradient, async set
-		Qk_DEFINE_VIEW_ACCESSOR(BoxShadow*, box_shadow); // box shadow, shadow, async set method
 		Qk_DEFINE_VIEW_PROPERTY(Vec2,       weight, Const); // view weight
 		Qk_DEFINE_VIEW_ACCE_GET(Vec2,       content_size, Const);
 		Qk_DEFINE_VIEW_PROPERTY(Container,  container, ProtectedConst); // view container range
+		Qk_DEFINE_VIEW_PROPERTY_Atomic(BoxFilter*, background); // fill background, image|gradient, async set
+		Qk_DEFINE_VIEW_PROPERTY_Atomic(BoxShadow*, box_shadow); // box shadow, shadow, async set method
 
 		Box();
 		~Box();
@@ -159,16 +159,12 @@ namespace qk {
 		*/
 		void delete_lock_state();
 
-		// ----------------------- define private props -----------------------
-	private:
-		std::atomic<BoxFilter*> _background;
-		std::atomic<BoxShadow*> _boxShadow;
 	protected:
-		struct BoxBorderInl { // box border value
+		struct BorderInl { // box border value
 			float width[4];
 			Color color[4]; // top/right/bottom/left
 		};
-		std::atomic<BoxBorderInl*> _border; // BoxBorder, top/right/bottom/left
+		std::atomic<BorderInl*> _border; // Border, top/right/bottom/left
 		// box view attrs
 		Vec2  _layout_offset; // The starting offset relative to the parent view（include margin）
 		Vec2  _layout_size; // Size occupied by the layout（margin+border+padding+content）

@@ -58,13 +58,11 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Type, bool, playing, playing);
 
 			Js_Class_Method(play, {
-				bool all = args.length() ? args[0]->toBoolean(worker) : false;
-				self->play(all);
+				self->play();
 			});
 
 			Js_Class_Method(stop, {
-				bool all = args.length() ? args[0]->toBoolean(worker) : false;
-				self->stop(all);
+				self->stop();
 			});
 
 			cls->exports("Sprite", exports);

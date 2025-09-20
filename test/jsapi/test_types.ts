@@ -42,7 +42,7 @@ export default async function(_: any) {
 	Mv(v, 'newMat4', [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1])
 	Mv(v, 'newCurve', [0,0,1,1])
 	Mv(v, 'newShadow', [1,1,1,255,255,255,255])
-	Mv(v, 'newBoxBorder', [1,1,1,1,1])
+	Mv(v, 'newBorder', [1,1,1,1,1])
 	Mv(v, 'newFillPosition', [v.FillPositionKind.Center, 1])
 	Mv(v, 'newFillSize', [v.FillSizeKind.Auto, 0])
 	Mv(v, 'newBoxOrigin', [v.BoxOriginKind.Ratio, 0])
@@ -82,7 +82,7 @@ export default async function(_: any) {
 	Mv(v, 'parseMat4', ['mat4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'],e=>e.toString()=='mat4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)')
 	Mv(v, 'parseColor', ['rgba(0,0,100,1)'],e=>e.toString()=='#000064');
 	Mv(v, 'parseShadow', ['10 10 5 #f00'],e=>e.toString()=='10 10 5 #ff0000')
-	Mv(v, 'parseBoxBorder', [`1 #f00`], e=>e.toString()=='1 #ff0000')
+	Mv(v, 'parseBorder', [`1 #f00`], e=>e.toString()=='1 #ff0000')
 	Mv(v, 'parseFillPosition', ['start'], e=>e.kind==v.FillPositionKind.Start)
 	Mv(v, 'parseFillSize', ['20%'], e=>e.kind==v.FillSizeKind.Ratio&&e.value==0.2)
 	Mv(v, 'parseBoxOrigin', ['30%'], e=>e.kind==v.BoxOriginKind.Ratio&&e.value==0.3)

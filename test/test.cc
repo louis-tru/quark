@@ -159,7 +159,7 @@ Qk_Main() {
 
 	// #define TEST_DEFAULT(F) TEST_UTILS(F) // test all of utils
 	// #define TEST_DEFAULT(F) TEST_All(F) // test all of tests
-	#define TEST_DEFAULT(F) F(jsapi) // Only test jsapi
+	#define TEST_DEFAULT(F) F(spine) // Only test jsapi
 
 	Log::set_shared(new TestLog());
 

@@ -241,17 +241,11 @@ namespace qk {
 		_keyAction->set_playing(val);
 	}
 
-	void Sprite::play(bool all) {
-		if (all && action()) {
-			action()->play();
-		}
+	void Sprite::play() {
 		_keyAction->play();
 	}
 
-	void Sprite::stop(bool all) {
-		if (all && action()) {
-			action()->stop();
-		}
+	void Sprite::stop() {
 		_keyAction->stop();
 	}
 
@@ -316,19 +310,23 @@ namespace qk {
 		h -= gap + gap;
 
 		Paint paint;
-		ImagePaint img;
-		paint.antiAlias = false;
-		paint.type = Paint::kBitmap_Type;
-		paint.image = &img;
-		paint.color = painter->color();
+		PaintImage img;
+		paint.antiAlias = aa();
+		paint.fill.image = &img;
+		paint.fill.color = painter->color();
 
-		Rect dest{/*Vec2(_AAShrink * 0.5)*/ -origin_value(), {_width, _height}};
+		auto aaShrink = aa() ? painter->AAShrink() : 0;
+		Rect rect{-origin_value(), {_width, _height}};
+		Rect rectAA{
+			Vec2(aaShrink * 0.5)-origin_value(),
+			{_width-aaShrink, _height-aaShrink},
+		};
 
-		img.setImage(src.get(), dest, {{x,y}, {w,h}});
+		img.setImage(src.get(), rect, {{x,y}, {w,h}});
 		img.filterMode = default_FilterMode;
 		img.mipmapMode = default_MipmapMode;
 
-		painter->canvas()->drawPathv(painter->cache()->getRectPath(dest), paint);
+		painter->canvas()->drawPathv(painter->cache()->getRectPath(rectAA), paint);
 		painter->visitView(this);
 		painter->set_matrix(lastMatrix); // restore previous matrix
 	}

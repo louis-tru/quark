@@ -140,13 +140,13 @@ protected:
 	void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) override;
 	void onGetMetrics(FontMetrics* metrics) override;
 	bool onGetPath(GlyphID glyph, Path *path) override;
-	ImageOut onGetImage(cArray<GlyphID>& glyphs, float fontSize,
-		cArray<Vec2> *offset, float offsetScale, RenderBackend *render) override;
+	TextImage onGetImage(cArray<GlyphID>& glyphs, float fontSize,
+		cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render) override;
 
 	virtual Sp<QkFontData> onMakeFontData() const = 0;
 
 private:
-	void generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, float pixelBaseline);
+	void generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pixel, FT_Pixel_Mode mode, Vec2 imgBaseline);
 	bool generateFacePath(Path* path);
 
 	uint16_t          fFlags;

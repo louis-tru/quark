@@ -49,12 +49,12 @@ namespace qk {
 	class Qk_EXPORT Typeface: public Reference {
 		Qk_DISABLE_COPY(Typeface);
 	public:
-		struct ImageOut {
-			Sp<ImageSource> image; // The shared pointer of image 
-			float top; // Distance of baseline origin to the top side of image, positive number
-			float right; // Distance of baseline origin to the right side of image, positive number
+		struct TextImage {
+			Sp<ImageSource> image; // The shared pointer of image
+			float left,top; // Distance of baseline origin to the left/top side of image, positive number
+			float width; // Distance of baseline origin to the right side of layout
 			float fontSize; // Font size of image
-			float needToScale; // This image needs to be scaled when used
+			float scale; // scale = current image fontSize / fontSize
 		};
 		Qk_DEFINE_PROP_GET(FontStyle, fontStyle, ProtectedConst);
 		~Typeface() override;
@@ -80,11 +80,20 @@ namespace qk {
 		/**
 		* get image source object from out param and return top to baseline value for image text
 		* @method getImage
-		* @param offset {cArray<Vec2>*} offset.length = glyphs.length + 1
+		* @param offset {cArray<Vec2>*} layout offset, offset.length = glyphs.length + 1
 		* @param offsetScale {float} offset scale
 		*/
-		ImageOut getImage(cArray<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset, float offsetScale, RenderBackend *render = nullptr);
+		TextImage getImage(cArray<GlyphID> &glyphs,
+			float fontSize, cArray<Vec2> *offset, RenderBackend *render = nullptr);
+
+		/**
+		 * get sdf image source object from out param and return top to baseline value for image text
+		 * @method getSDFImage
+		 * @param offset {cArray<Vec2>*} layout offset, offset.length = glyphs.length + 1
+		 * @param offsetScale {float} offset scale
+		*/
+		TextImage getSDFImage(cArray<GlyphID> &glyphs,
+			float fontSize, cArray<Vec2> *offset, bool is_signed, RenderBackend *render = nullptr);
 	protected:
 		Typeface(FontStyle style);
 		virtual int onCountGlyphs() const = 0;
@@ -97,8 +106,8 @@ namespace qk {
 		virtual void onGetMetrics(FontMetrics* metrics) = 0;
 		virtual void onGetGlyphMetrics(GlyphID glyph, FontGlyphMetrics* metrics) = 0;
 		virtual bool onGetPath(GlyphID glyph, Path *path) = 0;
-		virtual ImageOut onGetImage(cArray<GlyphID> &glyphs,
-			float fontSize, cArray<Vec2> *offset, float offsetScale, RenderBackend *render) = 0;
+		virtual TextImage onGetImage(cArray<GlyphID> &glyphs,
+			float fontSize, cArray<Vec2> *offset, float padding, bool antiAlias, RenderBackend *render) = 0;
 		SharedMutex& mutex() const { return *_Mutex; }
 	private:
 		// props field:

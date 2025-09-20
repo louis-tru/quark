@@ -44,8 +44,8 @@ namespace qk {
 	class ScrollView;
 	typedef const Mat cMat;
 
-	constexpr ImagePaint::FilterMode default_FilterMode = ImagePaint::kLinear_FilterMode;
-	constexpr ImagePaint::MipmapMode default_MipmapMode = ImagePaint::kLinear_MipmapMode;
+	constexpr PaintImage::FilterMode default_FilterMode = PaintImage::kLinear_FilterMode;
+	constexpr PaintImage::MipmapMode default_MipmapMode = PaintImage::kLinear_MipmapMode;
 
 	class Qk_EXPORT Painter: public Object {
 	public:
@@ -53,9 +53,6 @@ namespace qk {
 			const RectPath *inside = nullptr;
 			const RectPath *outside = nullptr;
 			const RectOutlinePath *outline = nullptr;
-			bool isInit = false; // is init
-			bool isRadius; // is radius rect
-			bool antiAlias; // is need anti alias
 		};
 		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET(Canvas*, canvas);
@@ -64,25 +61,26 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(Vec2, origin);  // box origin
 		Qk_DEFINE_PROPERTY(Vec2, originAA);  // box origin and fix aa stroke width
 		Qk_DEFINE_PROP_GET(Color4f, color); // current color
-		Qk_DEFINE_PROP_GET(bool, is_translation_matrix); // is translation matrix
+		Qk_DEFINE_PROP_GET(float, AAShrink); // anti alias shrink, fix rect stroke width for AA
+		Qk_DEFINE_PROP_GET(float, AAShrinkBorder); // anti alias shrink border
 		Qk_DEFINE_PROP_GET(bool, isMsaa); // is MSAA
 		Painter(Window *window);
 		void set_origin_reverse(Vec2 origin);
-		Rect getRect(Box* box, BoxData &data);
-		void getInsideRectPath(Box *box, BoxData &out);
-		void getOutsideRectPath(Box *box, BoxData &out);
-		void getRRectOutlinePath(Box *box, BoxData &out);
+		Rect getRect(Box* v);
+		void getInsideRectPath(Box *v, BoxData &out);
+		void getOutsideRectPath(Box *v, BoxData &out);
+		void getRRectOutlinePath(Box *v, BoxData &out);
 		void visitView(View* v);
 		void visitView(View* v, cMat *mat);
-		void drawBoxBasic(Box *box, BoxData &data);
-		void drawBoxFill(Box *box, BoxData &data);
-		void drawBoxFillImage(Box *box, FillImage *fill, BoxData &data);
-		void drawBoxFillLinear(Box *box, FillGradientLinear *fill, BoxData &data);
-		void drawBoxFillRadial(Box *box, FillGradientRadial *fill, BoxData &data);
-		void drawBoxShadow(Box *box, BoxData &data);
-		void drawBoxColor(Box *box, BoxData &data);
-		void drawBoxBorder(Box *box, BoxData &data);
-		void drawBoxEnd(Box *box, BoxData &data);
+		void drawBoxBasic(Box *v, BoxData &data);
+		void drawBoxFill(Box *v, BoxData &data);
+		void drawBoxFillImage(Box *v, FillImage *fill, BoxData &data);
+		void drawBoxFillLinear(Box *v, FillGradientLinear *fill, BoxData &data);
+		void drawBoxFillRadial(Box *v, FillGradientRadial *fill, BoxData &data);
+		void drawBoxShadow(Box *v, BoxData &data);
+		void drawBoxColor(Box *v, BoxData &data);
+		void drawBoxBorder(Box *v, BoxData &data);
+		void drawBoxEnd(Box *v, BoxData &data);
 		void drawScrollBar(ScrollView *v);
 		void drawTextBlob(TextOptions *opts, Vec2 inOffset,
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
@@ -92,7 +90,6 @@ namespace qk {
 		void visitView_(View *view, View *v);
 		Render     *_render;
 		uint32_t   _mark_recursive;
-		float      _AAShrink,_AAShrinkBorder; // fix rect stroke width for AA
 		Buffer     _tempBuff;
 		LinearAllocator _tempAllocator[2]; // Reset when starting every frame
 
