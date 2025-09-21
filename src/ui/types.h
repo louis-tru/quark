@@ -43,6 +43,9 @@ namespace qk {
 		RepeatX, // only repeat x
 		RepeatY, // only repeat y
 		NoRepeat,
+		MirrorRepeat, // mirror repeat
+		MirrorRepeatX, // only mirror repeat x
+		MirrorRepeatY, // only mirror repeat y
 	};
 
 	enum class FillPositionKind: uint8_t {

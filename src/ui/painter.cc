@@ -285,7 +285,8 @@ namespace qk {
 		if (v->background()) {
 			drawBoxColor(v, data);
 			drawBoxFill(v, data);
-		} else if (v->_background_color.a()) {
+		}
+		else if (v->_background_color.a()) {
 			getInsideRectPath(v, data);
 			addBatch(pathvs, v->_background_color, data.inside);
 		}
@@ -383,8 +384,8 @@ namespace qk {
 			w = src_w * _window->atomPixel();
 			h = src_h * _window->atomPixel();
 		}
-		x = FillImage::compute_position(fill->x(), h_w, w) + _origin[0]; // _originAA[0]
-		y = FillImage::compute_position(fill->y(), h_h, h) + _origin[1]; // _originAA[1]
+		x = FillImage::compute_position(fill->x(), h_w, w) + _origin[0];
+		y = FillImage::compute_position(fill->y(), h_h, h) + _origin[1];
 
 		if (_border) {
 			x += _border->width[3]; // left
@@ -397,27 +398,83 @@ namespace qk {
 		paint.fill.color = _color;
 		paint.antiAlias = v->_aa;
 
+		auto inside = data.inside;
+		auto rect = inside->rect;
+
+		auto clip = [](Painter *self, Box *v, Vec2 a, Vec2 &b) {
+			auto a0 = a.x(), a1 = a.x() + a.y();
+			if (a.y() < 0)
+				std::swap(a0, a1);
+			if (v->_aa) {
+				a0 += self->_AAShrink * 0.5f;
+				a1 -= self->_AAShrink;
+			}
+			// clip rect
+			auto max = std::min(a1, b.x() + b.y());
+			auto min = std::max(a0, b.x());
+			if (min < max) { // ok
+				b = {min, max - min};
+				return false; // not failed
+			} else {
+				return true; // failed
+			}
+		};
+
 		switch(fill->repeat()) {
 			case Repeat::Repeat:
 				img.tileModeX = PaintImage::kRepeat_TileMode;
 				img.tileModeY = PaintImage::kRepeat_TileMode; break;
+			case Repeat::MirrorRepeat:
+				img.tileModeX = PaintImage::kMirror_TileMode;
+				img.tileModeY = PaintImage::kMirror_TileMode; break;
+			case Repeat::MirrorRepeatX:
+				img.tileModeX = PaintImage::kMirror_TileMode;
+				img.tileModeY = PaintImage::kDecal_TileMode; goto try_clipY;
+			case Repeat::MirrorRepeatY:
+				img.tileModeX = PaintImage::kDecal_TileMode;
+				img.tileModeY = PaintImage::kMirror_TileMode; goto try_clipX;
 			case Repeat::RepeatX:
 				img.tileModeX = PaintImage::kRepeat_TileMode;
-				img.tileModeY = PaintImage::kDecal_TileMode; break;
+				img.tileModeY = PaintImage::kDecal_TileMode;
+			try_clipY:
+				if (!is_not_Zero(&v->_border_radius_left_top)) {
+					Vec2 out{rect.origin.y(), rect.size.y()};
+					if (clip(this, v, {y,h}, out)) // clip y
+						return;
+					inside = &_cache->getRectPath({{rect.origin.x(), out.x()}, {rect.size.x(), out.y()}});
+				}
+				break;
 			case Repeat::RepeatY:
 				img.tileModeX = PaintImage::kDecal_TileMode;
-				img.tileModeY = PaintImage::kRepeat_TileMode; break;
+				img.tileModeY = PaintImage::kRepeat_TileMode;
+			try_clipX:
+				if (!is_not_Zero(&v->_border_radius_left_top)) {
+					Vec2 out{rect.origin.x(), rect.size.x()};
+					if (clip(this, v, {y,h}, out)) // clip x
+						return;
+					inside = &_cache->getRectPath({{out.x(), rect.origin.y()}, {out.y(), rect.size.y()}});
+				}
+				break;
 			case Repeat::NoRepeat:
 				img.tileModeX = PaintImage::kDecal_TileMode;
-				img.tileModeY = PaintImage::kDecal_TileMode; break;
+				img.tileModeY = PaintImage::kDecal_TileMode;
+				if (!is_not_Zero(&v->_border_radius_left_top)) {
+					Vec2 outX{rect.origin.x(), rect.size.x()};
+					Vec2 outY{rect.origin.y(), rect.size.y()};
+					if (clip(this, v, {x,w}, outX) || clip(this, v, {y,h}, outY))
+						return;
+					inside = &_cache->getRectPath({{outX.x(), outY.x()}, {outX.y(), outY.y()}});
+				}
+				break;
 		}
+
 		img.filterMode = default_FilterMode;
 		img.mipmapMode = default_MipmapMode;
 		// img.filterMode = PaintImage::kNearest_FilterMode;
 		// img.mipmapMode = PaintImage::kNone_MipmapMode;
 		img.setImage(src.get(), {{x,y}, {w,h}});
 
-		_canvas->drawPathv(*data.inside, paint);
+		_canvas->drawPathv(*inside, paint);
 	}
 
 	void Painter::drawBoxFillLinear(Box *v, FillGradientLinear *fill, BoxData &data) {
@@ -450,8 +507,6 @@ namespace qk {
 		float p1y = -p0y;
 		float centerX = _rect_inside.origin.x() + b;
 		float centerY = _rect_inside.origin.y() + a;
-
-		//Qk_DLog("%f, %f, %d", R * Qk_180_RATIO_PI, gradient->angle(), quadrant);
 
 		Vec2 pts[2] = {
 			{p0x + centerX, p0y + centerY}, // origin

@@ -510,7 +510,7 @@ namespace qk { namespace js {
 		} else {\
 			val = _parse##Type->call(worker, 1, &in);\
 		}\
-		if ( !val ) return throw_error(worker, in, desc), false;\
+		if ( !val ) return /*throw_error(worker, in, desc),*/ false;\
 		obj = val->cast<JSObject>();\
 		block \
 		return true;\
@@ -861,7 +861,7 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, BoxFilterPtr& out, cChar* desc) {
 		js_parse(BoxFilterPtr, {
-			out = MixObject::mix<BoxFilter>(obj)->self();
+		 	out = MixObject::mix<BoxFilter>(obj)->self();
 		});
 	}
 

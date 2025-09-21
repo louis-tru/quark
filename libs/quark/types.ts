@@ -111,10 +111,13 @@ function toCapitalize<T extends string>(str: T): Capitalize<T> {
  * @enum Repeat
 */
 export enum Repeat {
-	Repeat, //!<
-	RepeatX, //!< only repeat x
-	RepeatY, //!< only repeat y
-	NoRepeat, //!<
+	Repeat,
+	RepeatX, // only repeat x
+	RepeatY, // only repeat y
+	NoRepeat,
+	MirrorRepeat, // mirror repeat
+	MirrorRepeatX, // only mirror repeat x
+	MirrorRepeatY, // only mirror repeat y
 };
 
 /**
@@ -460,7 +463,7 @@ export enum CascadeColor {
 // -------------------------------------------------------------------------------------
 
 /**
- * @type RepeatIn:"repeat"|"repeatX"|"repeatY"|"noRepeat"|Repeat
+ * @type RepeatIn:"repeat"|"repeatX"|"repeatY"|"noRepeat"|"mirrorRepeat"|"mirrorRepeatX"|"mirrorRepeatY"|Repeat
 */
 export type RepeatIn = Uncapitalize<keyof typeof Repeat> | Repeat;
 /**
@@ -940,6 +943,8 @@ export declare abstract class BoxFilter {
 	next: BoxFilter | null; //!<
 }
 
+type BoxFilterInStr = `image(${string})`|`radial(${string})`|`linear(${string})`;
+
 /**
  * @type BoxFilterIn:string|string[]|BoxFilter
  * @example
@@ -951,7 +956,7 @@ export declare abstract class BoxFilter {
  * linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)
  * ```
  */
-export type BoxFilterIn = string | string[] | BoxFilter;
+export type BoxFilterIn = BoxFilterInStr | BoxFilterInStr[] | BoxFilter;
 
 /**
  * @class FillImage
