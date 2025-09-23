@@ -37,12 +37,13 @@ namespace qk {
 
 	class Root: public Matrix {
 	public:
-		virtual ViewType viewType() const override;
-		virtual bool can_become_focus() override;
-		virtual void layout_forward(uint32_t mark) override;
-		virtual void layout_reverse(uint32_t mark) override;
-		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		virtual void draw(Painter *render) override;
+		ViewType viewType() const override;
+		bool can_become_focus() override;
+		void layout_forward(uint32_t mark) override;
+		void layout_reverse(uint32_t mark) override;
+		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
+		void draw(Painter *render) override;
+		void applyClassAll(); // apply class for all subviews
 	private:
 		Root(Window *win);
 		void reload_Rt(); // @thread Rt

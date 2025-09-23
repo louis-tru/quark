@@ -175,6 +175,7 @@ export declare class CStyleSheetsClass {
  * * When calling this method to create a stylesheet, pause the rendering threads of all windows
  *
  * @param sheets:object
+ * @param apply?:boolean Apply the created stylesheet to all views, **default false**
  * 
  * @example
  * 
@@ -208,5 +209,5 @@ export declare class CStyleSheetsClass {
  *	})
  *	```
  */
-export const createCss = _css.create as ((sheets: { [key: `.${string}`]: StyleSheets })=>void);
+export const createCss = _css.create as ((sheets: { [key: `.${string}`]: StyleSheets }, apply?: boolean)=>void);
 export default createCss;

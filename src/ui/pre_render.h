@@ -28,8 +28,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// @private
-
 #ifndef __quark__task__
 #define __quark__task__
 
@@ -110,17 +108,17 @@ namespace qk {
 		}
 
 		/**
-		 * Post message to application main loop
-		 * @param cb {Cb} callback to be executed in the main loop
+		 * Post message to application work loop
+		 * @param cb {Cb} callback to be executed in the work loop
 		 * @param toQueue {bool} whether to add the callback to the queue
-		 * @thread Rt
+		 * @thread Rt/Wt
 		*/
 		void post(Cb cb, bool toQueue = false);
 
 		/**
-		 * Post message to application main loop
-		 * @thread Rt
-		 * @param view {View} safe retain view object to main loop, if retain fail then cancel call
+		 * Post message to application work loop
+		 * @thread Rt/Wt
+		 * @param view {View} safe retain view object to work loop, if retain fail then cancel call
 		*/
 		bool post(Cb cb, View *view, bool toQueue = false);
 

@@ -955,6 +955,8 @@ class _View extends NativeNotification {
 			(this as any).action_ = null;
 	}
 
+	set key(val: any) { /* ignore */ }
+
 	show() {
 		(this as unknown as View).visible = true;
 	}

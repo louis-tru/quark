@@ -47,29 +47,29 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(int64_t, pts, ProtectedConst);
 		Qk_DEFINE_PROPERTY(float, volume, Const);
 		Qk_DEFINE_PROPERTY(bool, mute, Const);
-		Qk_DEFINE_ACCE_GET(bool, is_pause, Const);
-		Qk_DEFINE_PROP_GET(MediaType, type, Const);
-		Qk_DEFINE_ACCE_GET(uint64_t, duration, Const);
-		Qk_DEFINE_ACCE_GET(MediaSourceStatus, status, Const);
-		Qk_DEFINE_ACCESSOR(String, src, Const);
-		Qk_DEFINE_ACCE_GET(MediaSource*, media_source);
-		Qk_DEFINE_ACCE_GET(const Stream*, video, Const);
-		Qk_DEFINE_ACCE_GET(const Stream*, audio, Const); // current audio stream
-		Qk_DEFINE_ACCE_GET(uint32_t, audio_streams, Const); // audio stream count
+		Qk_DEFINE_ACCE_GET(bool, is_pause, Const); // please call in work thread
+		Qk_DEFINE_PROP_GET(MediaType, type, Const); 
+		Qk_DEFINE_ACCE_GET(uint64_t, duration, Const); // please call in work thread
+		Qk_DEFINE_ACCE_GET(MediaSourceStatus, status, Const); // please call in work thread
+		Qk_DEFINE_ACCESSOR(String, src, Const); // please call in work thread
+		Qk_DEFINE_ACCE_GET(MediaSource*, media_source); // please call in work thread
+		Qk_DEFINE_ACCE_GET(const Stream*, video, Const); // please call in work thread
+		Qk_DEFINE_ACCE_GET(const Stream*, audio, Const); // please call in work thread
+		Qk_DEFINE_ACCE_GET(uint32_t, audio_streams, Const); // please call in work thread
 		Player(MediaType type);
 		virtual ~Player();
-		void play();
-		void pause();
+		void play(); // please call in work thread
+		void pause(); // please call in work thread
 		void stop();
-		void seek(uint64_t timeUs);
-		void switch_audio(uint32_t index);
+		void seek(uint64_t timeUs); //
+		void switch_audio(uint32_t index); // please call in work thread
 		void media_source_open(MediaSource* src) override;
 		void media_source_eof(MediaSource* src) override;
 		void media_source_error(MediaSource* src, cError& err) override;
 		void media_source_switch(MediaSource* src, Extractor *ex) override;
 		void media_source_advance(MediaSource* src) override;
 	protected:
-		void skip_frame(bool video);
+		void skip_frame_unsafe(bool video); // please lock mutex before call
 		virtual void lock();
 		virtual void unlock();
 		virtual void onEvent(const UIEventName& name, Object* data) = 0;
@@ -79,6 +79,7 @@ namespace qk {
 		Sp<PCMPlayer>  _pcm;
 		Sp<Frame> _fa, _fv;
 		int64_t _start, _seeking, _seek;
+		Mutex _mutex;
 		friend class PlayerLock;
 	};
 

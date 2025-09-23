@@ -80,6 +80,11 @@ namespace qk { namespace js {
 				auto mixObj = mix<Type>(obj.get(), kSkeletonData_Typeid);
 				Js_Return(mixObj->handle());
 			});
+
+			Js_Class_Method(hashCode, {
+				args.returnValue().set(uint32_t(size_t(self)));
+			});
+
 			cls->exports("SkeletonData", exports);
 		};
 	};

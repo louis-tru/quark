@@ -81,7 +81,7 @@ namespace qk {
 			FillPosition x, y;
 			Repeat repeat=Repeat::Repeat;
 		};
-		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
+		Qk_DEFINE_VIEW_PROPERTY(String, src, Const);
 		Qk_DEFINE_VIEW_PROPERTY(FillSize, width, Const);
 		Qk_DEFINE_VIEW_PROPERTY(FillSize, height, Const);
 		Qk_DEFINE_VIEW_PROPERTY(FillPosition, x, Const);
@@ -95,7 +95,6 @@ namespace qk {
 		static bool compute_size(FillSize size, float host, float& out);
 		static float compute_position(FillPosition pos, float host, float size);
 	private:
-		ImagePool* imgPool() override;
 		void onSourceState(ImageSource::State state) override;
 	};
 

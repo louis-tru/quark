@@ -86,7 +86,7 @@ namespace qk {
 	protected:
 		/**
 		 * @method onTextChange()
-		 * @thread Mt
+		 * @thread Wt
 		 * @note Can only be used in main threads
 		*/
 		virtual void onTextChange(uint32_t mark, uint32_t prop, bool isRt);

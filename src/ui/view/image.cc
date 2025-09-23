@@ -41,6 +41,16 @@ namespace qk {
 		return kImage_ViewType;
 	}
 
+	String Image::src() const {
+		return ImageSourceHold::src();
+	}
+
+	void Image::set_src(String val, bool isRt) {
+		if (ImageSourceHold::set_src(val)) {
+			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, isRt);
+		}
+	}
+
 	uint32_t Image::solve_layout_content_size_pre(uint32_t &mark, const Container &pContainer) {
 		uint32_t change_mark = kLayout_None;
 		
@@ -92,10 +102,7 @@ namespace qk {
 	}
 
 	void Image::onSourceState(ImageSource::State state) {
-		if (state == ImageSource::kSTATE_NONE) {
-			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
-		}
-		else if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
+		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
 			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
 			Sp<UIEvent> evt = new UIEvent(this);
 			trigger(UIEvent_Load, **evt);
@@ -108,13 +115,5 @@ namespace qk {
 
 	ImagePool* Image::imgPool() {
 		return window()->host()->imgPool();
-	}
-
-	String Image::src() const {
-		return ImageSourceHold::src();
-	}
-
-	void Image::set_src(String val, bool isRt) {
-		ImageSourceHold::set_src(val);
 	}
 }

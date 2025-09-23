@@ -642,7 +642,8 @@ namespace qk {
 		void set_visible_Rt(bool visible);
 		void set_level_Rt(uint32_t level); // settings depth
 		void clear_level_Rt(); //  clear view depth rt
-		void applyClass_Rt(CStyleSheetsClass* parentSsc);
+		void applyClass_Rt(CStyleSheetsClass* parentSsc); // apply class for self
+		void applyClassAll_Rt(CStyleSheetsClass* parentSsc); // apply class for all subviews
 		CStyleSheetsClass* parentSsclass_Rt();
 
 		friend class Painter;

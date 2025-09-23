@@ -241,7 +241,7 @@ namespace qk {
 		void onImeMarked(cString& text);
 		void onImeUnmark(cString& text);
 		void onImeControl(KeyboardKeyCode code);
-		// keyboard main loop call
+		// keyboard work loop call
 		void onKeyboardDown();
 		void onKeyboardUp();
 		// setting state

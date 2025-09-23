@@ -743,6 +743,7 @@ namespace qk {
 		out.id = 0;
 		out.rect = rect;
 		out.vCount = 0;
+		out.rrectMask = 0;
 		if (rect.size.x() <= 0 || rect.size.y() <= 0) {
 			Qk_ReturnLocal(out);
 		}
@@ -773,6 +774,7 @@ namespace qk {
 		out.id = 0;
 		out.rect = rect;
 		out.vCount = 0;
+		out.rrectMask = 0;
 
 		if (rect.size.x() <= 0 || rect.size.y() <= 0) {
 			Qk_ReturnLocal(out);
@@ -801,7 +803,7 @@ namespace qk {
 			return !path.ptsLen() || isPointEquals(*path.ptsBack(), {p[0],p[1]});
 		};
 
-		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec3 *v2, float angle) {
+		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec3 *v2, float angle, int mask) {
 			if (radius[0] > 0 && radius[1] > 0) { // no zero
 				center = center * radius + v;
 				int   sample = getRadianSample(radius, Qk_PI_2_1); // |0|1| = sample = 3
@@ -818,16 +820,17 @@ namespace qk {
 					angle += angleStep;
 				}
 				out->vertex.pop();
+				out->rrectMask |= mask;
 			} else {
 				v2[1] = {v,0.0}; // fix next border vertex
 				out->path.lineTo(v);
 			}
 		};
 
-		build(&out, {1    }, r.leftTop,     {x1,y1}, vertex + 0, Qk_PI_2_1); // top
-		build(&out, {1, -1}, r.leftBottom,  {x1,y2}, vertex + 1, Qk_PI); // left
-		build(&out, {-1   }, r.rightBottom, {x2,y2}, vertex + 2, -Qk_PI_2_1); // bottom
-		build(&out, {-1, 1}, r.rightTop,    {x2,y1}, vertex + 3, 0); // right
+		build(&out, {1    }, r.leftTop,     {x1,y1}, vertex + 0, Qk_PI_2_1, 1); // top
+		build(&out, {1, -1}, r.leftBottom,  {x1,y2}, vertex + 1, Qk_PI, 1 << 3); // left
+		build(&out, {-1   }, r.rightBottom, {x2,y2}, vertex + 2, -Qk_PI_2_1, 1 << 2); // bottom
+		build(&out, {-1, 1}, r.rightTop,    {x2,y1}, vertex + 3, 0, 1 << 1); // right
 		vertex[5] = vertex[2];
 
 		out.vertex.write(vertex, 6); // inl quadrilateral

@@ -747,6 +747,22 @@ namespace qk {
 		unmark(kStyle_Class);
 	}
 
+	void View::applyClassAll_Rt(CStyleSheetsClass *ssc) {
+		_Cssclass();
+		if (_cssclass) { // Impact sub view
+			_cssclass->apply_Rt(ssc);
+			if (_cssclass->haveSubstyles()) {
+				ssc = _cssclass;
+			}
+		}
+		auto l = first();
+		while (l) {
+			l->applyClassAll_Rt(ssc);
+			l = l->next();
+		}
+		unmark(kStyle_Class);
+	}
+
 	CStyleSheetsClass* View::parentSsclass_Rt() {
 		_Parent();
 		while (_parent) {

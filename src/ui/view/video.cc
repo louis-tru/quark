@@ -35,17 +35,6 @@
 
 namespace qk {
 
-	struct VLock {
-		VLock(Video* h, bool isLock): _win(h->window()), _lock(!isLock) {
-			static_assert(sizeof(VLock) == sizeof(UILock), "assert sizeof(VLock) == sizeof(UILock)");
-			isLock ?
-				reinterpret_cast<UILock*>(this)->lock():
-				reinterpret_cast<UILock*>(this)->unlock();
-		}
-		Window *_win;
-		bool _lock;
-	};
-
 	Video::Video(): Player(kVideo_MediaType) {
 	}
 
@@ -53,16 +42,22 @@ namespace qk {
 		return Player::src();
 	}
 
-	void Video::set_src(String value) {
-		Player::set_src(value);
+	void Video::set_src(String value, bool isRt) {
+		if (isRt) {
+			preRender().post(Cb([this, value](auto e) {
+				Player::set_src(value);
+			}), this);
+		} else {
+			Player::set_src(value);
+		}
 	}
 
 	void Video::lock() {
-		VLock lock(this, true);
+		_mutex.lock();
 	}
 
 	void Video::unlock() {
-		VLock unlock(this, false);
+		_mutex.unlock();
 	}
 
 	void Video::onActivate() {
@@ -98,6 +93,7 @@ namespace qk {
 	}
 
 	bool Video::run_task(int64_t now, int64_t deltaTime) {
+		ScopeLock lock(_mutex);
 		if (!_video) {
 			return false;
 		}
@@ -120,7 +116,7 @@ namespace qk {
 			if (du > _fv->pkt_duration << 1) {
 				// decoding timeout, discard frame or reset start point
 				if (_seeking)
-					return skip_frame(true), false;
+					return skip_frame_unsafe(true), false;
 				Qk_DLog("Video:pkt_duration, timeout %d", du);
 				_start = now - pts; // correct play ts
 			}
@@ -136,6 +132,10 @@ namespace qk {
 		));
 		_fv.collapse();
 		return true;
+	}
+
+	void Video::onSourceState(ImageSource::State state) {
+		// Noop
 	}
 
 }

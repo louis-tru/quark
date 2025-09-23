@@ -717,7 +717,7 @@ namespace qk {
 		, _move_start_time(0)
 		, _action_id(0)
 		, _scrollbar_opacity(0)
-		, _default_curve_Mt(ease_out)
+		, _default_curve_Wt(ease_out)
 		, _moved(false)
 		, _scroll_h(false), _scroll_v(false)
 		, _lock_h(false), _lock_v(false)
@@ -791,11 +791,11 @@ namespace qk {
 	}
 
 	cCurve& ScrollView::default_curve() const {
-		return _default_curve_Mt;
+		return _default_curve_Wt;
 	}
 
 	void ScrollView::set_default_curve(cCurve& value) {
-		_default_curve_Mt = value;
+		_default_curve_Wt = value;
 	}
 
 	void ScrollView::terminate() {
@@ -829,7 +829,7 @@ namespace qk {
 		if (isRt) {
 			_this->set_scroll_and_trigger_event(_this->get_catch_valid_scroll({-value.x(), -value.y()}));
 		} else if (_scroll_duration) {
-			scrollTo(value, _scroll_duration, _default_curve_Mt);
+			scrollTo(value, _scroll_duration, _default_curve_Wt);
 		} else {
 			value = _this->get_valid_scroll(-value[0], -value[1]);
 			if (value != _scroll) {

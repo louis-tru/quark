@@ -150,7 +150,8 @@ namespace qk {
 
 	// Optimizing rect vertex generation algorithm
 	struct Qk_EXPORT RectPath: Pathv {
-		Rect   rect;
+		Rect    rect;
+		int     rrectMask; // border radius mask
 		static RectPath MakeRect(const Rect& rect);
 		static RectPath MakeRRect(const Rect& rect, const Path::BorderRadius &radius);
 	};

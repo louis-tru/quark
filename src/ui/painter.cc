@@ -437,7 +437,7 @@ namespace qk {
 				img.tileModeX = PaintImage::kRepeat_TileMode;
 				img.tileModeY = PaintImage::kDecal_TileMode;
 			try_clipY:
-				if (!is_not_Zero(&v->_border_radius_left_top)) {
+				if (!inside->rrectMask) { // no need clip if rrectMask
 					Vec2 out{rect.origin.y(), rect.size.y()};
 					if (clip(this, v, {y,h}, out)) // clip y
 						return;
@@ -448,7 +448,7 @@ namespace qk {
 				img.tileModeX = PaintImage::kDecal_TileMode;
 				img.tileModeY = PaintImage::kRepeat_TileMode;
 			try_clipX:
-				if (!is_not_Zero(&v->_border_radius_left_top)) {
+				if (!inside->rrectMask) {
 					Vec2 out{rect.origin.x(), rect.size.x()};
 					if (clip(this, v, {y,h}, out)) // clip x
 						return;
@@ -458,7 +458,7 @@ namespace qk {
 			case Repeat::NoRepeat:
 				img.tileModeX = PaintImage::kDecal_TileMode;
 				img.tileModeY = PaintImage::kDecal_TileMode;
-				if (!is_not_Zero(&v->_border_radius_left_top)) {
+				if (!inside->rrectMask) {
 					Vec2 outX{rect.origin.x(), rect.size.x()};
 					Vec2 outY{rect.origin.y(), rect.size.y()};
 					if (clip(this, v, {x,w}, outX) || clip(this, v, {y,h}, outY))

@@ -1174,6 +1174,7 @@ class QkPackage extends Package {
 			'view.js',
 			'window.js',
 			'ws.js',
+			'state.js',
 		]).forEach(e=>this.filesHash[e]='-');
 		this._status = PackageStatus.INSTALLED;
 	}

@@ -118,7 +118,7 @@ namespace qk {
 				Core(Cb &cb, View *v): view(Sp<View>::lazy(v)), cb(cb) {
 				}
 				void call(Data& e) {
-					cb->call(e);
+					cb->resolve(view.get());
 				}
 			};
 			return post(Cb(new Core(cb,v)), toQueue), true;

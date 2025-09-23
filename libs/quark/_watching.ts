@@ -50,7 +50,7 @@ function newObjectDefinePropertyHook(obj: any, p: string, attributes: any) {
 
 function markModuleObject(v: any, filename: string) {
 	if (v !== undefined) {
-		if (v) {
+		if (v instanceof Object) {
 			if (!v.__filename__) // only mark once
 				v.__filename__ = filename;
 		}

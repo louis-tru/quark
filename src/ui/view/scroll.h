@@ -65,7 +65,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Box*, host); //!< host box view
 		// define methods
 		void scrollTo(Vec2 value, uint64_t duration, cCurve& curve);
-		void scrollTo(Vec2 value, uint64_t duration) { scrollTo(value, duration, _default_curve_Mt);}
+		void scrollTo(Vec2 value, uint64_t duration) { scrollTo(value, duration, _default_curve_Wt);}
 		void terminate();
 	protected:
 		ScrollView(Box *host);
@@ -83,7 +83,7 @@ namespace qk {
 		Vec2 _scrollbar_position_h, _scrollbar_position_v;
 		uint64_t _move_start_time;
 		uint32_t _action_id;
-		Curve _default_curve_Mt; // default curve
+		Curve _default_curve_Wt; // default curve
 		float _scrollbar_opacity;
 		bool _moved;               // 受外力移动中
 		bool _scroll_h, _scroll_v; // 是否已激活水平与垂直滚动

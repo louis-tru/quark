@@ -39,6 +39,7 @@
 #include "../view/scroll.h"
 #include "../view/matrix.h"
 #include "../view/sprite.h"
+#include "../view/video.h"
 
 namespace qk {
 	typedef void (Object::*Func)();
@@ -227,7 +228,8 @@ namespace qk {
 		Qk_Set_Accessor(Flow, WRAP_ALIGN, wrap_align, WrapAlign);
 		// Image
 		Qk_Set_Accessor(Image, SRC, src, String);
-		Qk_Copy_Accessor(Image, Video, SRC, 1); // copy image props to video
+		// Video
+		Qk_Set_Accessor(Video, SRC, src, String);
 		// Text/Input/Label of TextOptions
 		Qk_Set_Accessor(Text, TEXT_ALIGN, text_align, TextAlign);
 		Qk_Set_Accessor(Text, TEXT_WEIGHT, text_weight, TextWeight);

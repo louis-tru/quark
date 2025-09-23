@@ -276,7 +276,7 @@ namespace qk {
 			Vec2{_size.x(), _size.y()},
 		};
 
-		loop()->post(Cb([this](Cb::Data& e) { // main loop call
+		loop()->post(Cb([this](Cb::Data& e) { // work loop call
 			Qk_Trigger(Change); // trigger window change
 		}));
 

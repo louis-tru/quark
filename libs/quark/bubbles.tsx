@@ -344,9 +344,9 @@ export class Bubbles<P={},S={}> extends Navigation<{
 		super.appendTo(this.window.root);
 	}
 
-	protected triggerDestroy(): void {
+	protected triggerUnload(): void {
 		this.window.onChange.off(this);
-		super.triggerDestroy();
+		super.triggerUnload();
 	}
 
 	appendTo(): View { throw Error.new('Access forbidden.') }

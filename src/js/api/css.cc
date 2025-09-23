@@ -31,6 +31,8 @@
 #include "./ui.h"
 #include "../../ui/css/css.h"
 #include "../../ui/app.h"
+#include "../../ui/window.h"
+#include "../../ui/view/root.h"
 
 #define Js_StyleSheets_Accessor(T, Prop, Name) \
 	Js_Class_Accessor_Set(Name, { \
@@ -223,8 +225,9 @@ namespace qk { namespace js {
 	struct NativeCSS {
 		static void create(Worker *worker, JSArray *names, JSObject *arg) {
 			auto rss = shared_root_styleSheets();
+			auto len = names->length();
 
-			for ( uint32_t i = 0, len = names->length(); i < len; i++ ) {
+			for ( uint32_t i = 0; i < len; i++ ) {
 				auto key = names->get(worker, i);
 				auto val = arg->get(worker, key);
 				if ( !val ) return; // js error
@@ -259,19 +262,25 @@ namespace qk { namespace js {
 			MixCStyleSheetsClass::binding(exports, worker);
 
 			Js_Method(create, {
-				// if ( !checkApp(worker) ) return;
 				if ( args.length() < 1 || !args[0]->isObject() || args[0]->isNull() ) {
-					Js_Throw("NativeCSS.create(Object K/V) Bad argument.");
+					Js_Throw("NativeCSS.create(Object K/V,<bool apply>) Bad argument.");
 				}
 				Js_Handle_Scope();
 
 				auto arg = args[0]->template cast<JSObject>();
 				auto names = arg->getPropertyNames(worker);
+				auto apply = args.length() > 1 ? args[1]->toBoolean(worker): false;
+
 				if (names->length()) {
 					if (shared_app()) {
 						shared_app()->lockAllRenderThreads(Cb([worker,names,arg](auto& e) {
 							create(worker, names, arg);
 						}));
+						if (apply) {
+							for (auto w: shared_app()->windows()) {
+								w->root()->applyClassAll();
+							}
+						}
 					} else {
 						create(worker, names, arg);
 					}

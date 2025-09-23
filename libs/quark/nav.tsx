@@ -188,7 +188,7 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 		this.props.onForeground?.call(null, this);
 	}
 
-	protected triggerDestroy() {
+	protected triggerUnload() {
 		if ( this._iterator ) { // force delete global nav stack
 			this.navStack.remove(this._iterator);
 			this._iterator = null;
@@ -378,10 +378,10 @@ export class NavPageCollection<P={},S={}> extends Navigation<{
 		return super.triggerMounted();
 	}
 
-	protected triggerDestroy() {
+	protected triggerUnload() {
 		for (let e of this.pages)
 			e.destroy();
-		return super.triggerDestroy();
+		return super.triggerUnload();
 	}
 
 	/**
@@ -799,9 +799,9 @@ export class NavPage<P={},S={}> extends Navigation<{
 		this.renderNavbar(this._navbar);
 	}
 
-	protected triggerDestroy() {
+	protected triggerUnload() {
 		this._navbarDom?.destroy();
-		return super.triggerDestroy();
+		return super.triggerUnload();
 	}
 
 	intoLeave(time: number) {

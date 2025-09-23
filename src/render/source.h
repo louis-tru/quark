@@ -210,6 +210,11 @@ namespace qk {
 			*/
 		void clear(bool all = false);
 
+		/**
+		 * @method shared() get shared image source pool
+		*/
+		static ImageSourcePool* shared();
+
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 
@@ -231,14 +236,20 @@ namespace qk {
 	public:
 		ImageSourceHold();
 		~ImageSourceHold();
-		Qk_DEFINE_ACCESSOR(String, src, Const);
-		Qk_DEFINE_ACCESSOR(Sp<ImageSource>, source);
+		String src() const;
+		bool set_src(String val);
+		Sp<ImageSource> source();
+		bool set_source(Sp<ImageSource> val);
 	private:
 		void handleSourceState(Event<ImageSource, ImageSource::State>& evt);
 		virtual void onSourceState(ImageSource::State evt);
 		virtual ImagePool* imgPool();
 		std::atomic<ImageSource*> _imageSource;
 	};
+
+	inline ImagePool* shared_imgPool() {
+		return ImageSourcePool::shared();
+	}
 
 }
 #endif

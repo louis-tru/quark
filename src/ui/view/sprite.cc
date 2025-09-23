@@ -142,14 +142,6 @@ namespace qk {
 		return this;
 	}
 
-	String Sprite::src() const {
-		return ImageSourceHold::src();
-	}
-
-	void Sprite::set_src(String val, bool isRt) {
-		ImageSourceHold::set_src(val);
-	}
-
 	void Sprite::set_width(float val, bool isRt) {
 		if (_width != val) {
 			_width = val;
@@ -233,6 +225,16 @@ namespace qk {
 		}
 	}
 
+	String Sprite::src() const {
+		return ImageSourceHold::src();
+	}
+
+	void Sprite::set_src(String val, bool isRt) {
+		if (ImageSourceHold::set_src(val)) {
+			mark(kLayout_None, isRt); // mark re-render
+		}
+	}
+
 	bool Sprite::playing() const {
 		return _keyAction->playing();
 	}
@@ -258,10 +260,7 @@ namespace qk {
 	}
 
 	void Sprite::onSourceState(ImageSource::State state) {
-		if (state == ImageSource::kSTATE_NONE) {
-			mark(kLayout_None, false); // mark re-render
-		}
-		else if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
+		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
 			mark(kLayout_None, false); // mark re-render
 			Sp<UIEvent> evt = new UIEvent(this);
 			trigger(UIEvent_Load, **evt);

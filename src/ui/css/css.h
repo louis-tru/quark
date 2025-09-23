@@ -208,10 +208,10 @@ namespace qk {
 
 		CStyleSheetsClass(View *host);
 
-		void set(cArray<String> &name); //!< Calling in the main loop
-		void add(cString &name); //!< Calling in the main loop
-		void remove(cString &name); //!< Calling in the main loop
-		void toggle(cString &name); //!< Calling in the main loop
+		void set(cArray<String> &name); //!< Calling in the work loop
+		void add(cString &name); //!< Calling in the work loop
+		void remove(cString &name); //!< Calling in the work loop
+		void toggle(cString &name); //!< Calling in the work loop
 
 		/**
 		 * @method haveSubstyles()

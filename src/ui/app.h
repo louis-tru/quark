@@ -53,8 +53,8 @@ namespace qk {
 	/**
 	 *
 	 * About events in UI:
-	 * All events in the UI are triggered in the `main loop`, and are not thread-safe,
-	 * So adding event listeners must also be in the `main loop`.
+	 * All events in the UI are triggered in the `work loop`, and are not thread-safe,
+	 * So adding event listeners must also be in the `work loop`.
 	 *
 	 * @class Application
 	*/

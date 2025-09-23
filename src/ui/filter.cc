@@ -219,9 +219,15 @@ namespace qk {
 		}
 	}
 
+	void FillImage::set_src(String val, bool isRt) {
+		if (ImageSourceHold::set_src(val)) {
+			mark(this, isRt);
+		}
+	}
+
 	BoxFilter* FillImage::copy(BoxFilter* dest, bool isRt) {
 		auto dest1 = (dest && dest->type() == kImage) ?
-				static_cast<FillImage*>(dest) : new FillImage(String());
+				static_cast<FillImage*>(dest) : new FillImage(String(), {/*.repeat=Repeat::Repeat*/});
 		dest1->_repeat = _repeat;
 		dest1->_x = _x;
 		dest1->_y = _y;
@@ -235,7 +241,7 @@ namespace qk {
 	BoxFilter* FillImage::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		if (to && to->type() == kImage) {
 			if (!dest || dest->type() != kImage) {
-				dest = new FillImage(String());
+				dest = new FillImage(String(), {});
 			}
 			auto dest1 = static_cast<FillImage*>(dest);
 			auto to1 = static_cast<FillImage*>(to);
@@ -310,22 +316,8 @@ namespace qk {
 		return out;
 	}
 
-	String FillImage::src() const {
-		return ImageSourceHold::src();
-	}
-
-	void FillImage::set_src(String src, bool isRt) {
-		ImageSourceHold::set_src(src);
-	}
-
-	ImagePool* FillImage::imgPool() {
-		return shared_app() ? shared_app()->imgPool(): nullptr;
-	}
-
 	void FillImage::onSourceState(ImageSource::State state) {
-		if (state == ImageSource::kSTATE_NONE) {
-			mark(this, false);
-		} else if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
+		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
 			mark(this, false);
 		}
 	}

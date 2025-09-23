@@ -69,7 +69,7 @@ namespace qk {
 		_shared = this;
 		_screen = new Screen(this); // strong ref
 		_fontPool = shared_fontPool();
-		_imgPool = new ImageSourcePool(_loop);
+		_imgPool = shared_imgPool();
 		_defaultTextOptions = new DefaultTextOptions(FontPool::shared());
 		_run_main_wait->lock_and_notify_all(); // The external thread continues to run
 
@@ -92,7 +92,7 @@ namespace qk {
 		_activeWindow =  nullptr;
 		Releasep(_defaultTextOptions);
 		Releasep(_screen);
-		Releasep(_imgPool);
+		_imgPool->clear(true);
 	 	_loop->tick_stop(_tick);
 		_tick = 0;
 		_shared = nullptr;

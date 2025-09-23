@@ -52,7 +52,7 @@ namespace qk {
 	class FontPool;
 
 	/**
-	 * Note: If `main loop` and `render loop` run in different threads,
+	 * Note: If `work loop` and `render loop` run in different threads,
 	 * Then any UI-API function called in the main thread must be locked.
 	 */
 	class Qk_EXPORT UILock {
@@ -125,7 +125,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
-		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host main loop
+		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host work loop
 		Qk_DEFINE_ACCE_GET(View*, focusView); //! focus view
 
 		/**

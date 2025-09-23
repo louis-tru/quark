@@ -390,6 +390,19 @@ namespace qk {
 		}
 	}
 
+	static std::mutex _si_mutex;
+	static ImagePool* _shared_imagePool = nullptr;
+
+	ImagePool* ImageSourcePool::shared() {
+		if (!_shared_imagePool) {
+			ScopeLock scope(_si_mutex);
+			if (!_shared_imagePool) {
+				_shared_imagePool = new ImagePool(work_loop());
+			}
+		}
+		return _shared_imagePool;
+	}
+
 	// -------------------- I m a g e . S o u r c e . H o l d e r --------------------
 
 	ImageSourceHold::ImageSourceHold(): _imageSource(nullptr) {
@@ -412,16 +425,16 @@ namespace qk {
 		return _imageSource.load();
 	}
 
-	void ImageSourceHold::set_src(String value) {
+	bool ImageSourceHold::set_src(String value) {
 		auto pool = imgPool();
 		if (pool) {
-			set_source(pool->get(value));
+			return set_source(pool->get(value));
 		} else {
-			set_source(*ImageSource::Make(value));
+			return set_source(*ImageSource::Make(value));
 		}
 	}
 
-	void ImageSourceHold::set_source(Sp<ImageSource> source) {
+	bool ImageSourceHold::set_source(Sp<ImageSource> source) {
 		auto oldSrc = _imageSource.load();
 		auto newSrc = source.get();
 		if (oldSrc != newSrc) {
@@ -434,8 +447,9 @@ namespace qk {
 				oldSrc->Qk_Off(State, &ImageSourceHold::handleSourceState, this);
 				oldSrc->release();
 			}
-			onSourceState(ImageSource::kSTATE_NONE);
+			return true;
 		}
+		return false;
 	}
 
 	void ImageSourceHold::handleSourceState(Event<ImageSource, ImageSource::State>& evt) {
@@ -447,7 +461,7 @@ namespace qk {
 	}
 
 	ImagePool* ImageSourceHold::imgPool() {
-		return nullptr;
+		return shared_imgPool();
 	}
 
 }

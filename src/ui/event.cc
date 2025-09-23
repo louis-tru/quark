@@ -262,7 +262,7 @@ namespace qk {
 		inline Vec2 position() { return _position; }
 		inline View* click_down_view() { return _click_view; }
 		inline void set_position(Vec2 value) { _position = value; }
-		void set_click_down_view_Mt(View* view) {
+		void set_click_down_view_Wt(View* view) {
 			Release(_click_view);
 			if (view) {
 				view->retain();
@@ -270,7 +270,7 @@ namespace qk {
 			}
 			_click_view = view;
 		}
-		void set_view_Mt(View* view) {
+		void set_view_Wt(View* view) {
 			Release(_view);
 			Retain(view);
 			_view = view;
@@ -675,7 +675,7 @@ namespace qk {
 					_inl_view(view)->trigger_highlightted( // emit style status event
 						**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover));
 				}
-				_mouse_handle->set_click_down_view_Mt(nullptr);
+				_mouse_handle->set_click_down_view_Wt(nullptr);
 			}
 		}
 
@@ -684,7 +684,7 @@ namespace qk {
 		View* old = _mouse_handle->view();
 
 		if (old != view) {
-			_mouse_handle->set_view_Mt(view);
+			_mouse_handle->set_view_Wt(view);
 
 			if (old) {
 				auto evt = NewMouseEvent(old, x, y, KEYCODE_UNKNOWN);
@@ -737,11 +737,11 @@ namespace qk {
 		Sp<View> raw_down_view = _mouse_handle->click_down_view();
 
 		if (down) {
-			_mouse_handle->set_click_down_view_Mt(view);
+			_mouse_handle->set_click_down_view_Wt(view);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseDown, **evt);
 			_window->setCursorStyle(view->cursor(), true);
 		} else {
-			_mouse_handle->set_click_down_view_Mt(nullptr);
+			_mouse_handle->set_click_down_view_Wt(nullptr);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseUp, **evt);
 		}
 

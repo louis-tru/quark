@@ -39,7 +39,7 @@ namespace qk {
 
 	class Video: public Image, public Player, public PreRender::Task {
 	public:
-		Qk_DEFINE_ACCESSOR(String, src, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
 		Video();
 		void onActivate() override;
 		ViewType viewType() const override;
@@ -48,6 +48,7 @@ namespace qk {
 		void unlock() override;
 		void onEvent(const UIEventName& name, Object* data) override;
 		bool run_task(int64_t now, int64_t deltaTime) override;
+		void onSourceState(ImageSource::State state);
 	};
 }
 #endif

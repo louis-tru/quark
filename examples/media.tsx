@@ -42,7 +42,7 @@ const resolve = require.resolve;
 var audio_player: AudioPlayer | null = null;
 
 class Destroy extends ViewController {
-	protected triggerDestroy() {
+	protected triggerUnload() {
 		if (audio_player)
 			audio_player.stop();
 	}

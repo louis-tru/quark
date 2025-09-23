@@ -294,6 +294,9 @@ function rerender(Self: ViewController) {
 		self._vdom = vdomNew;
 	}
 
+	if (self.isDestroyd) // check again
+		return;
+
 	if (isWatching) {
 		self._watchings.delete(undefined);
 		self._watchings.delete(self.constructor.__filename__);
@@ -887,9 +890,9 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	protected triggerUpdate(old: VirtualDOM, vdom: VirtualDOM): any {}
 
 	/**
-	 * Triggered when after calling remove()
+	 * Triggered when after calling destroy()
 	*/
-	protected triggerDestroy(): any {}
+	protected triggerUnload(): any {}
 
 	/**
 	 * When rendering occurs, call to return the `vdom` object that needs to be rendered
@@ -920,8 +923,8 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		if (!this.isDestroyd) {
 			WatchingAllCtrForDebug.delete(this);
 			(this as any).isDestroyd = true;
-			if (this.isMounted)
-				this.triggerDestroy(); // trigger event
+			if (this.isLoaded)
+				this.triggerUnload(); // trigger unload event
 			unref(this, this.owner);
 			this.dom.destroy(this);
 		}

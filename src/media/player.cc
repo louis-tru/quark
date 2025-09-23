@@ -50,6 +50,7 @@ namespace qk {
 	}
 
 	Player::~Player() {
+		PlayerLock lock(this);
 		_msrc = nullptr;
 	}
 
@@ -69,74 +70,75 @@ namespace qk {
 		}
 	}
 
-	bool Player::is_pause() const {
+	bool Player::is_pause() const { // please call in work thread
 		return _msrc ? _msrc->is_pause(): false;
 	}
 
-	uint64_t Player::duration() const {
+	uint64_t Player::duration() const { // please call in work thread
 		return _msrc ? _msrc->duration(): 0;
 	}
 
-	MediaSourceStatus Player::status() const {
+	MediaSourceStatus Player::status() const { // please call in work thread
 		return _msrc ? _msrc->status(): kNormal_MediaSourceStatus;
 	}
 
-	MediaSource* Player::media_source() {
+	MediaSource* Player::media_source() { // please call in work thread
 		return *_msrc;
 	}
 
-	const Player::Stream* Player::video() const {
+	const Player::Stream* Player::video() const { // please call in work thread
 		return _msrc && const_cast<MediaSource*>(*_msrc)->video() ?
 			&const_cast<MediaSource*>(*_msrc)->video()->stream(): nullptr;
 	}
 
-	const Player::Stream* Player::audio() const {
+	const Player::Stream* Player::audio() const { // please call in work thread
 		return _msrc && const_cast<MediaSource*>(*_msrc)->audio() ?
 			&const_cast<MediaSource*>(*_msrc)->audio()->stream(): nullptr;
 	}
 
-	uint32_t Player::audio_streams() const {
+	uint32_t Player::audio_streams() const { // please call in work thread
 		return _msrc && const_cast<MediaSource*>(*_msrc)->audio() ?
 			const_cast<MediaSource*>(*_msrc)->audio()->streams().length(): 0;
 	}
 
-	String Player::src() const {
+	String Player::src() const { // please call in work thread
 		return _msrc ? _msrc->uri().href() : String();
 	}
 
-	void Player::set_src(String value) {
+	void Player::set_src(String value) { // please call in work thread
 		stop();
+		PlayerLock lock(this);
 		_msrc = new MediaSource(value);
 		_msrc->set_delegate(this);
 	}
 
-	void Player::play() {
+	void Player::play() { // please call in work thread
 		if (_msrc)
 			_msrc->play();
 	}
 
-	void Player::pause() {
+	void Player::pause() { // please call in work thread
 		if (_msrc)
 			_msrc->pause();
 	}
 
-	void Player::stop() {
-		if (!(_video || _audio)) return;
+	void Player::stop() { // please call in work thread
 		PlayerLock lock(this);
-		if (!(_video || _audio)) return;
-		if (_msrc)
-			_msrc->stop();
-		_video = nullptr;
-		_audio = nullptr;
-		_pcm = nullptr;
-		onEvent(UIEvent_Stop, nullptr);
+		if (_video || _audio) {
+			if (_msrc)
+				_msrc->stop();
+			_video = nullptr;
+			_audio = nullptr;
+			_pcm = nullptr;
+			onEvent(UIEvent_Stop, nullptr);
+		}
 	}
 
 	void Player::seek(uint64_t timeUs) {
 		_seek = Qk_Max(timeUs, 1);
 	}
 
-	void Player::switch_audio(uint32_t index) {
+	void Player::switch_audio(uint32_t index) { // please call in work thread
 		if (_msrc->audio())
 			_msrc->audio()->switch_stream(index);
 	}
@@ -265,8 +267,10 @@ namespace qk {
 					return;
 				int64_t du = play - pts;
 				if (du > _fa->pkt_duration * _pcm->delayed() * 2) { // timeout, reset start point
-					if (_seeking)
-						return skip_frame(false);
+					if (_seeking) {
+						PlayerLock lock(this);
+						return skip_frame_unsafe(false);
+					}
 					Qk_DLog("pkt_duration, timeout %d", du);
 					_start = now - pts; // correct play ts
 				}
@@ -282,7 +286,7 @@ namespace qk {
 		_fa = nullptr;
 	}
 
-	void Player::skip_frame(bool video) {
+	void Player::skip_frame_unsafe(bool video) {
 		auto &f = video ? _fv: _fa;
 		auto codec = video ? *_video: *_audio;
 		auto ex = video ? _msrc->video(): _msrc->audio();
@@ -295,9 +299,11 @@ namespace qk {
 	}
 
 	void Player::lock() {
+		_mutex.lock();
 	}
 
 	void Player::unlock() {
+		_mutex.unlock();
 	}
 
 	// ------------------------ AudioPlayer ------------------------
