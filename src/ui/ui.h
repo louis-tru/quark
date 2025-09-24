@@ -52,6 +52,8 @@ namespace qk {
 		void setActiveWindow(Window *win);
 		void triggerOrientation();
 		void initPlatform(); // call platform code
+		void add_delay_task(Cb cb); // add delay task
+		void resolve_delay_tasks(bool all); // resolve delay tasks
 	};
 
 	typedef Application::Inl AppInl;

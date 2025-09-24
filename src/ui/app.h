@@ -151,6 +151,7 @@ namespace qk {
 		List<Window*>  _windows; // window list
 		Mutex          _mutex;
 		uint32_t       _tick; // tick check id
+		List<Pair<Cb, int>> _delayTasks; // delay tasks
 
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		friend class UILock;

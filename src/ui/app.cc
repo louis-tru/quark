@@ -75,10 +75,15 @@ namespace qk {
 
 		Inl_Application(this)->initPlatform();
 
+		static uint32_t ticks = 0;
 		struct Tick {
 			static void cb(Cb::Data& e, Application *self) {
 				for (auto w: self->_windows)
 					w->preRender().asyncCommit();
+				// execute delayed tasks every 5 ticks
+				if (++ticks % 5 == 0) {
+					Inl_Application(self)->resolve_delay_tasks(false);
+				}
 			}
 		};
 		_tick = _loop->tick(Cb(&Tick::cb, this), -1);
@@ -90,6 +95,7 @@ namespace qk {
 			(*(i++))->close(); // destroy
 		}
 		_activeWindow =  nullptr;
+		Inl_Application(this)->resolve_delay_tasks(true);
 		Releasep(_defaultTextOptions);
 		Releasep(_screen);
 		_imgPool->clear(true);
@@ -231,4 +237,34 @@ namespace qk {
 		_activeWindow = win;
 	}
 
+	void AppInl::add_delay_task(Cb cb) {
+		_mutex.lock();
+		_delayTasks.pushBack({cb,2});
+		_mutex.unlock();
+	}
+
+	void AppInl::resolve_delay_tasks(bool all) {
+		if (_delayTasks.length() == 0)
+			return;
+		_mutex.lock();
+		auto tasks = std::move(_delayTasks);
+		_mutex.unlock();
+		if (all) {
+			for (auto t: tasks)
+				t.first->resolve();
+			return;
+		}
+		for (auto begin = tasks.begin(); begin != tasks.end();) {
+			auto t = begin++;
+			if (--t->second == 0) {
+				t->first->resolve();
+				tasks.erase(t);
+			}
+		}
+		if (tasks.length()) {
+			_mutex.lock();
+			_delayTasks.splice(_delayTasks.begin(), tasks); // put back
+			_mutex.unlock();
+		}
+	}
 }

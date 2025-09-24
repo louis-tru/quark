@@ -51,7 +51,6 @@ namespace qk {
 			kGradientLinear, kGradientRadial,
 			kShadow, kBlur, kBackdropBlur,
 		};
-		Qk_DEFINE_PROP_GET(Window*, window);
 		Qk_DEFINE_PROP_GET_Atomic(View*, view);
 		Qk_DEFINE_VIEW_PROPERTY_Atomic(BoxFilter*, next); // async set next
 
@@ -63,6 +62,8 @@ namespace qk {
 		virtual BoxFilter* transition(BoxFilter *dest, BoxFilter *to, float t, bool isRt) = 0; // @thread Rt
 		static  BoxFilter* assign(BoxFilter *left, BoxFilter *right, View *view, bool isRt);
 
+		inline void mark_public() { _is_public = true; }
+
 		template<class T>
 		inline static T* Link(const std::initializer_list<T*>& list) {
 			static_cast<T*>(link(*reinterpret_cast<std::initializer_list<BoxFilter*>*>(&list)));
@@ -70,6 +71,7 @@ namespace qk {
 	protected:
 		void set_next_no_check(BoxFilter *next, bool isRt);
 	private:
+		bool _is_public; // is public use
 		void set_view(View* value);
 		static BoxFilter* link(const std::initializer_list<BoxFilter*>& list);
 	};

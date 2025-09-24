@@ -102,8 +102,8 @@ namespace qk {
 		void death() {
 			ScopeLock lock(*__threads_mutex);
 			Qk_CHECK(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
-			// clear(); // clear all
-			// Qk_ASSERT_EQ(nullptr, _uv_loop->closing_handles);
+			clear(); // clear all
+			Qk_ASSERT_EQ(nullptr, _uv_loop->closing_handles);
 
 			if (__work_loop == this) {
 				__work_loop = nullptr;

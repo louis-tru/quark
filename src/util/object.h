@@ -113,6 +113,13 @@ namespace qk {
 		typedef void* __HaveProtocol__;
 	};
 
+	// std::tuple / std::pair
+	// template<typename... T> struct Tuple {};
+	template<typename F, typename S> struct Pair {
+		F first;
+		S second;
+	};
+
 	class SafeFlag {
 	public:
 		inline ~SafeFlag() { _safeFlagValue = 0; }

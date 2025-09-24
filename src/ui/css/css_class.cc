@@ -51,6 +51,7 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
+		Qk_DLog("set class: %s", name.join(" ").c_str());
 		_async_call([](auto ctx, auto val) {
 			Sp<Array<String>> valp(val.arg);
 			ctx->_nameHash_Rt.clear();

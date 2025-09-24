@@ -860,6 +860,8 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, BoxFilterPtr& out, cChar* desc) {
+		if (in->isNull())
+			return out = nullptr, true;
 		js_parse(BoxFilterPtr, {
 		 	out = MixObject::mix<BoxFilter>(obj)->self();
 		});
@@ -872,6 +874,8 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, SkeletonDataPtr& out, cChar* desc) {
+		if (in->isNull())
+			return out = nullptr, true;
 		js_parse(SkeletonDataPtr, {
 			out = MixObject::mix<SkeletonData>(obj)->self();
 		});

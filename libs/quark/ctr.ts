@@ -283,7 +283,6 @@ function rerender(Self: ViewController) {
 
 	if (vdomOld) {
 		if (vdomOld.hash !== vdomNew.hash) {
-			self._watchings.clear();
 			self.dom = vdomNew.diff(Self, vdomOld, dom);
 			self._vdom = vdomNew;
 			self.triggerUpdate(vdomOld!, vdomNew);
@@ -427,6 +426,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 	diff<P = {}, S = {}>(owner: ViewController<P,S>, vdomOld: VirtualDOM, domOld: DOM): T {
 		let vdomNew: VirtualDOM<T> = this;
 		if (vdomOld.domC !== vdomNew.domC) { // diff type
+			(owner as any)._watchings.delete(vdomOld.domC.__filename__);
 			let prev = domOld.metaView;
 			assertDev(prev);
 			let newDom = this.newDom(owner);
@@ -476,7 +476,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 						if (prev) {
 							prev = dom.afterTo(prev);
 						} else {
-							prev = dom.appendTo(dom.metaView);
+							prev = dom.appendTo(domOld as View);
 						}
 						childDomsNew[i] = dom;
 					}

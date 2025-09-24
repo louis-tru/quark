@@ -956,7 +956,7 @@ type BoxFilterInStr = `image(${string})`|`radial(${string})`|`linear(${string})`
  * linear(90, #ff00ff 0%, #ff0 50%, #00f 100%)
  * ```
  */
-export type BoxFilterIn = BoxFilterInStr | BoxFilterInStr[] | BoxFilter;
+export type BoxFilterIn = BoxFilterInStr | BoxFilterInStr[] | BoxFilter | null;
 
 /**
  * @class FillImage
@@ -1032,7 +1032,7 @@ export declare abstract class SkeletonData {
  * skeleton(res/alien/image.skel, res/alien/image.atlas, scale=1)
  * ```
  */
-export type SkeletonDataIn = `skeleton(${string})` | SkeletonData;
+export type SkeletonDataIn = `skeleton(${string})` | SkeletonData | null;
 
 // -------------------------------------------------------------------------------------
 
@@ -1856,15 +1856,18 @@ function linkFilter<T extends BoxFilter>(val: any, filters: T[], desc?: string, 
 	throw error(val, desc, [], ref);
 }
 
-export function parseBoxFilter(val: BoxFilterIn, desc?: string): BoxFilter { ///!<
+export function parseBoxFilter(val: BoxFilterIn, desc?: string): BoxFilter | null { ///!<
 	const BoxFilter_ = exports.BoxFilter as typeof BoxFilter;
 	if (val instanceof BoxFilter_) {
 		return val;
 	} else if (Array.isArray(val)) {
-		return linkFilter(val, val.map(e=>parseBoxFilterItem(e)), desc, ()=>parseBoxFilterReference);
-	} else {
+		val = val.filter(e=>e);
+		if (val.length)
+			return linkFilter(val, val.map(e=>parseBoxFilterItem(e)), desc, ()=>parseBoxFilterReference);
+	} else if (val) {
 		return parseBoxFilterItem(val, desc);
 	}
+	return null;
 }
 
 const parseBoxShadowRef = [
@@ -1888,7 +1891,7 @@ export function parseBoxShadow(val: BoxShadowIn, desc?: string): BoxShadow { ///
 const parseSkeletonDataRef = [
 	'skeleton(res/alien/image.skel, res/alien/image.atlas, scale=1)'
 ];
-export function parseSkeletonData(val: SkeletonDataIn, desc?: string): SkeletonData { ///!<
+export function parseSkeletonData(val: SkeletonDataIn, desc?: string): SkeletonData | null { ///!<
 	const SkeletonData_ = exports.SkeletonData as typeof SkeletonData;
 	if (val instanceof SkeletonData_) {
 		return val;
@@ -1898,6 +1901,8 @@ export function parseSkeletonData(val: SkeletonDataIn, desc?: string): SkeletonD
 			let {args:[a,b],kv:{scale}} = cmd;
 			return SkeletonData.Make(a[0], b[0], scale ? scale[0]: 1);
 		}
+	} else if (!val) {
+		return null;
 	}
 	throw error(val, desc, parseSkeletonDataRef);
 }

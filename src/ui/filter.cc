@@ -34,6 +34,7 @@
 #include "./window.h"
 #include "../render/source.h"
 #include "../render/render.h"
+#include "./ui.h"
 #include <math.h>
 
 #define _async_call _window->preRender().async_call
@@ -116,7 +117,7 @@ namespace qk {
 	}
 
 	BoxFilter::BoxFilter()
-		: _window(nullptr), _view(nullptr), _next(nullptr)
+		: _view(nullptr), _next(nullptr), _is_public(false)
 	{
 	}
 
@@ -125,34 +126,34 @@ namespace qk {
 		if (next) {
 			next->release();
 		}
-		if (_window && _window->loop()->thread_id() == thread_self_id()) { // is main thread
-			_async_call([](auto self, auto arg) {
+		auto app = shared_app();
+		if (app) {
+			Inl_Application(app)->add_delay_task(Cb([](auto e, Object *ctx) {
 				// To ensure safety and efficiency,
 				// it should be Completely destroyed in RT (render thread)
-				self->Object::destroy();
-			}, this, 0);
-			_window = nullptr;
+				static_cast<BoxFilter*>(ctx)->Object::destroy();
+			}, (Object*)this/* Avoid being re quoted */));
 		} else {
 			Object::destroy();
 		}
 	}
 
 	BoxFilter* BoxFilter::assign(BoxFilter *left, BoxFilter *right, View *view, bool isRt) {
+		if (left == right)
+			return left;
 		if (right) {
-			if (left != right) {
-				auto new_left = right;
-				if (right->_view.load()) { // To copy filter if view not nullptr
-					new_left = right->copy(left, isRt); // copy
+			auto new_left = right;
+			if (right->_view.load()) { // To copy filter if view not nullptr
+				new_left = right->copy(left, isRt); // copy
+			}
+			if (new_left != left) {
+				if (left) {
+					left->set_view(nullptr); // clear view
+					left->release();
 				}
-				if (new_left != left) {
-					if (left) {
-						left->set_view(nullptr); // clear view
-						left->release();
-					}
-					left = new_left;
-					left->retain();
-					left->set_view(view);
-				}
+				left = new_left;
+				left->retain();
+				left->set_view(view);
 			}
 		} else if (left) { // right nullptr
 			left->set_view(nullptr); // clear view
@@ -179,13 +180,11 @@ namespace qk {
 	}
 
 	void BoxFilter::set_view(View *value) {
-		if (value != _view.load()) {
+		if (!_is_public && value != _view.load()) { // public filter can not set view
 			if (value) {
 				Qk_ASSERT_EQ(_view.load(), nullptr); // can only set view once
 			}
 			_view.store(value);
-			if (!_window) // bind window
-				_window = value->window();
 			auto next = _next.load();
 			if (next)
 				next->set_view(value);
@@ -318,7 +317,14 @@ namespace qk {
 
 	void FillImage::onSourceState(ImageSource::State state) {
 		if (state & ImageSource::kSTATE_LOAD_COMPLETE) {
-			mark(this, false);
+			if (view()) {
+				mark(this, false);
+			} else if (shared_app()) {
+				// notice all windows render
+				for (auto w: shared_app()->windows()) {
+					w->preRender().mark_render();
+				}
+			}
 		}
 	}
 

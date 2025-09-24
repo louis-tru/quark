@@ -622,8 +622,19 @@ namespace qk {
 		}
 	}
 
+	static bool check_loop_ref(View *self, View *parent) {
+		while (parent) {
+			if (self == parent) {
+				return true;
+			}
+			parent = parent->parent();
+		}
+		return false;
+	}
+
 	void View::set_parent(View *parent) {
 		Qk_CHECK(_window == parent->_window, "window no match, parent->_window no equal _window");
+		Qk_CHECK(!check_loop_ref(this, parent), "View::set_parent(parent), loop ref error");
 		_Parent();
 		if (parent != _parent) {
 			#define is_root (_window->root() == this)

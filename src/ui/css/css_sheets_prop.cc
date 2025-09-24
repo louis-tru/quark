@@ -49,7 +49,7 @@ namespace qk {
 
 	template<>
 	BoxFilter* copy_value_ptr(BoxFilter* value) {
-		return value->copy(nullptr, true);
+		return value ? value->copy(nullptr, true): nullptr;
 	}
 
 	template<>
@@ -57,7 +57,7 @@ namespace qk {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
-			auto v_new = v1->transition(v, v2, y, true);
+			auto v_new = v1 && v2 ? v1->transition(v, v2, y, true): y < 1.0 ? v1: v2;
 			(target->*(void (View::*)(BoxFilter*,bool))acc->set)(v_new,true);
 		}
 	}
@@ -209,12 +209,11 @@ namespace qk {
 	template<typename T>
 	struct PropImpl<T*>: Property {
 		PropImpl(CssProp prop, T* value): _prop(prop), _value(value) {
-			Qk_ASSERT(_value);
 			static_assert(object_traits<T>::is::obj, "Property value must be a object type");
-			value->retain();
+			Retain(value);
 		}
 		~PropImpl() {
-			_value->release();
+			Release(_value);
 		}
 		void apply(View *view, bool isRt) override {
 			auto set = (void (View::*)(T*,bool))(view->accessor() + _prop)->set;
@@ -552,20 +551,21 @@ namespace qk {
 			if (_props.get(key, prop)) {
 				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
 				p->_value = BoxFilter::assign(p->_value, value, nullptr, isRt);
-			} else {
-				auto filter = BoxFilter::assign(nullptr, value, nullptr, isRt);
+			} else if (value) {
+				auto filter = BoxFilter::assign(nullptr, value, nullptr, isRt); // copy filter
+				filter->mark_public();
 				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key, filter)));
 				filter->release(); // @BoxFilter::assign
 			}
-			value->release(); // @asyncSet, release the object after calling
 		}
 		template<CssProp key>
 		void asyncSet(BoxFilter* value) {
-			value->retain(); // retain the object before calling
 			auto win = getWindowForAsyncSet();
 			if (win) {
+				Retain(value); // retain the object before calling
 				win->preRender().async_call([](auto self, auto arg) {
 					self->set(key, arg.arg, true);
+					Release(arg.arg);
 				}, this, value);
 			} else {
 				set(key, value, false);
