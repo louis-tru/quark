@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../version.h"
-#include "./http.h"
-#include "./fs.h"
-#include "./uv.h"
-#include "../os/os.h"
-#include "./thread.h"
+#include "../../version.h"
+#include "../http.h"
+#include "../fs.h"
+#include "../uv.h"
+#include "../../os/os.h"
+#include "../thread.h"
 
 namespace qk {
 	typedef Dict<String, String> Map;
@@ -176,7 +176,7 @@ namespace qk {
 			}
 
 			for ( auto& i : options.headers ) {
-				req->set_request_header(i.key, i.value);
+				req->set_request_header(i.first, i.second);
 			}
 
 			req->send(options.post_data);

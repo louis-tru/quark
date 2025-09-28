@@ -54,7 +54,7 @@ namespace qk {
 			}, this, 0);
 
 			for ( auto &i : _actions ) {
-				i.key->del_parent(); // release for main thread
+				i.first->del_parent(); // release for main thread
 			}
 			_actions.clear();
 			if (_duration) {

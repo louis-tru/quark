@@ -99,8 +99,8 @@ namespace qk {
 				auto f0 = self->_frames_Rt[0];
 				auto f1 = self->_frames_Rt[1];
 				for (auto &i: to->_props) { // copy prop
-					f0->_props.set(i.key, i.value->copy())->fetch(v);
-					f1->_props.set(i.key, i.value->copy());
+					f0->_props.set(i.first, i.second->copy())->fetch(v);
+					f1->_props.set(i.first, i.second->copy());
 				}
 			}
 		};
@@ -136,7 +136,7 @@ namespace qk {
 			static void call(KeyframeAction *self, Keyframe *frame) {
 				if (self->_frames_Rt.length()) {
 					for (auto i: self->_frames_Rt.back()->_props) // copy prop
-						frame->_props.set(i.key, i.value->copy());
+						frame->_props.set(i.first, i.second->copy());
 				}
 				self->_frames_Rt.push(frame);
 			}
@@ -162,7 +162,7 @@ namespace qk {
 			auto f = unsafe_add(timeMs ? *timeMs: css->time(), curve ? *curve: css->curve(), false);
 			_async_call([](auto f, auto arg) {
 				for (auto &i: arg.arg->_props)
-					f->_props.set(i.key, i.value->copy());
+					f->_props.set(i.first, i.second->copy());
 			}, f, css);
 			return f;
 		} else {
@@ -267,7 +267,7 @@ namespace qk {
 		if ( _frames_Rt.length() ) {
 			Keyframe* frame0 = nullptr;
 
-			for ( auto& f: _frames_Rt ) {
+			for ( auto f: _frames_Rt ) {
 				if ( time < f->time() )
 					break;
 				frame0 = f;

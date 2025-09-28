@@ -72,7 +72,7 @@ namespace qk {
 		inline Sender* sender() const { return _sender; }
 		inline cSendData& data() const { return _data; }
 		// Off current call listener
-		inline void off() { _flags |= 1u << (31); /* Mark as offed */ }
+		inline void off() { _flags = 1u; /* Mark as offed */ }
 		uint32_t return_value; ///< Return value, you can use it to store some data
 	private:
 		uint32_t _flags; ///< Reserved flags

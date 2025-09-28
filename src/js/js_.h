@@ -62,8 +62,8 @@ namespace qk { namespace js {
 		F(x)               F(y)              F(z) \
 		F(w)               F(ended)          F(size) \
 		F(toJSON)          F(status)         F(Errno) \
-		F(url)             F(id)             F(startX) \
-		F(startY)          F(force)          F(clickIn) \
+		F(url)             F(id)             F(startLocation) \
+		F(location)        F(force)          F(clickIn) \
 		F(view)            F(_data)          F(p1x) \
 		F(p1y)             F(p2x)            F(p2y) \
 		F(_change_touches) F(name)           F(pathname) \

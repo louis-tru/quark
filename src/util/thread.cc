@@ -279,9 +279,9 @@ namespace qk {
 			ScopeLock scope(*__threads_mutex);
 			Qk_DLog("threads count, %d", __threads->length());
 			for ( auto& i : *__threads ) {
-				Qk_DLog("thread_process_exit(), tag, %p, %s", i.value->id, *i.value->name);
-				thread_resume_(i.value, -2); // resume sleep status and abort
-				threads_id.push(i.value->id);
+				Qk_DLog("thread_process_exit(), tag, %p, %s", i.second->id, *i.second->name);
+				thread_resume_(i.second, -2); // resume sleep status and abort
+				threads_id.push(i.second->id);
 			}
 		}
 		for ( auto& i: threads_id ) {

@@ -279,7 +279,7 @@ namespace qk {
 	void SpawnAction::setDuration(int32_t diff) {
 		int32_t new_duration = 0;
 		for ( auto &i : _actions ) {
-			new_duration = Qk_Max(i.key->_duration, new_duration);
+			new_duration = Qk_Max(i.first->_duration, new_duration);
 		}
 		diff = new_duration - _duration;
 		if ( diff ) {

@@ -201,13 +201,6 @@ export interface Listen2<E = Event, Ctx extends object = object> {
 	(self: Ctx, evt: E): any;
 }
 
-interface ListenItem {
-	origin: any,
-	listen: Function | null,
-	ctx: any,
-	id: string,
-}
-
 function check_noticer(noticer: any) {
 	if ( !(noticer as EventNoticer) )
 		throw new Error('Event listener function type is incorrect ');
@@ -228,6 +221,13 @@ function forwardNoticeNoticer<E>(noticer: EventNoticer<E>, evt: E) {
 	}
 }
 
+interface ListenItem {
+	origin: any,
+	listen: Function | null,
+	ctx: any,
+	id: string,
+}
+
 /**
  * @class EventNoticer
  * 
@@ -236,8 +236,8 @@ function forwardNoticeNoticer<E>(noticer: EventNoticer<E>, evt: E) {
 export class EventNoticer<E = Event> {
 	private _name: string;
 	private _sender: any;
-	private _listens: List<ListenItem> | null = null;
-	private _listens_map: Map<string, ListIterator<ListenItem>> | null = null
+	private _listens?: List<ListenItem>;
+	private _listens_map?: Map<string, ListIterator<ListenItem>>;
 	private _length: Uint = 0
 
 	/* Add event listen */
@@ -330,25 +330,6 @@ export class EventNoticer<E = Event> {
 	}
 
 	/**
-	 * Add a listener (function) and delete it immediately after listening only once
-	 * @param  listen    Listening Function
-	 * @param  ctxOrId?  Specify the listener function this or id alias
-	 * @param  id?       Listener alias, can be deleted by id
-	 * @return Returns the passed `id` or the automatically generated `id`
-	 */
-	once<Ctx extends object>(listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
-		check_fun(listen);
-		let self = this;
-		let _id = this._add(listen, {
-			call: function (ctx: Ctx, evt: E) {
-				self.off(_id);
-				listen.call(ctx, evt);
-			}
-		}, ctxOrId, id);
-		return _id;
-	}
-
-	/**
 	 * Add an event listener (function),
 	 * and "on" the same processor of the method to add the event trigger to receive two parameters
 	 * @param  listen    Listening Function
@@ -372,39 +353,33 @@ export class EventNoticer<E = Event> {
 		return this._add(listen, { call: listen }, ctxOrId, id);
 	}
 
-	/**
-	 * Add an event listener (function), And to listen only once and immediately remove
-	 * and "on" the same processor of the method to add the event trigger to receive two parameters
-	 * @param  listen     Listening Function
-	 * @param  ctxOrId?   Specify the listener function this or id alias
-	 * @param  id         Listener alias, can be deleted by id
-	 * @return Returns the passed `id` or the automatically generated `id`
-	 */
-	once2<Ctx extends object>(listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
-		check_fun(listen);
-		let self = this;
-		let _id = this._add(listen, {
-			call: function (ctx: Ctx, evt: E) {
-				self.off(_id);
-				listen(ctx, evt);
-			}
-		}, ctxOrId, id);
-		return _id;
-	}
-
+	/** Forward the event to another noticer */ 
 	forward(noticer: EventNoticer<E>, id?: string): string {
 		check_noticer(noticer);
 		return this._add(noticer, { call: forwardNoticeNoticer }, noticer, id);
 	}
 
-	forwardOnce(noticer: EventNoticer<E>, id?: string): string {
-		check_noticer(noticer);
-		let self = this;
-		let _id = this._add(noticer, function(evt: E) {
-			self.off(_id);
-			forwardNoticeNoticer(noticer, evt);
-		}, noticer, id);
-		return _id;
+	/**
+	 * Set the lifespan of the listener function with the specified `id`
+	 * @param id Listener id
+	 * @param lifespan Lifespan, the number of times the listener is valid, default is 1
+	 */
+	setLifespan(id: string, lifespan: Uint = 1) {
+		if (this._length) {
+			let item = this._listens_map!.get(id);
+			if (item) {
+				let last = item.value.listen;
+				if (last) {
+					lifespan = Math.max(1, Number(lifespan) || 1);
+					item.value.listen = (ctx: any, evt: any)=>{
+						if (--lifespan <= 0) {
+							this.off(id);
+						}
+						last.call(ctx, evt);
+					};
+				}
+			}
+		}
 	}
 
 	/**
@@ -417,16 +392,15 @@ export class EventNoticer<E = Event> {
 	/**
 	 * Notify all observers
 	 */
-	triggerWithEvent(event: E) {
+	triggerWithEvent(e: E) {
 		if ( this._length ) {
-			(event as any)._sender = this._sender;
+			(e as any)._sender = this._sender;
 			let listens = this._listens!;
-			let begin = listens.begin;
-			let end = listens.end;
-			while ( begin !== end ) {
+			let begin = listens.begin, end = listens.end;
+			while (begin !== end) {
 				let value = begin.value;
-				if ( value.listen ) {
-					value.listen.call(value.ctx, event);
+				if (value.listen) {
+					value.listen.call(value.ctx, e);
 					begin = begin.next;
 				} else {
 					begin = listens.remove(begin);
@@ -446,77 +420,9 @@ export class EventNoticer<E = Event> {
 		if ( !this._length )
 			return 0;
 		let r = 0;
-		if (listen) {
-			if ( typeof listen == 'string' ) { // by id delete 
-				let name = String(listen);
-				let listens_map = this._listens_map!;
-				let item = listens_map.get(name);
-				if ( item ) {
-					this._length--;
-					listens_map.delete(name);
-					item.value.listen = null; // clear
-					r++;
-				}
-			} else if ( listen instanceof Function ) { // 要卸载是一个函数
-				let listens = this._listens!;
-				let listens_map = this._listens_map!;
-				let begin = listens.begin;
-				let end = listens.end;
-				if (ctx) { // 需比较范围
-					while ( begin !== end ) {
-						let value = begin.value;
-						if ( value.listen ) {
-							if ( value.origin === listen && value.ctx === ctx ) {
-								this._length--;
-								listens_map.delete(value.id);
-								begin.value.listen = null;
-								r++;
-								break;
-							}
-						}
-						begin = begin.next;
-					}
-				} else { // 与这个函数有关系的
-					let listens_map = this._listens_map!;
-					while ( begin !== end ) {
-						let value = begin.value;
-						if ( value.listen ) {
-							if ( value.origin === listen ) {
-								this._length--;
-								listens_map.delete(value.id);
-								begin.value.listen = null;
-								r++;
-								break; // clear
-							}
-						}
-						begin = begin.next;
-					}
-				}
-			} else if ( listen instanceof Object ) { // by id ctx
-				let listens = this._listens!;
-				let listens_map = this._listens_map!;
-				let begin = listens.begin;
-				let end = listens.end;
-				// 要卸载这个范围上相关的侦听器,包括`EventNoticer`代理
-				while ( begin !== end ) {
-					let value = begin.value;
-					if ( value.listen ) {
-						if ( value.ctx === listen ) {
-							this._length--;
-							listens_map.delete(value.id);
-							begin.value.listen = null; // break; // clear
-							r++;
-						}
-					}
-					begin = begin.next;
-				}
-			} else { //
-				throw new Error('Bad argument.');
-			}
-		} else { // Delete all
+		if ( !listen ) { // Delete all
 			let listens = this._listens!;
-			let begin = listens.begin;
-			let end = listens.end;
+			let begin = listens.begin, end = listens.end;
 			while ( begin !== end ) {
 				begin.value.listen = null; // clear
 				begin = begin.next;
@@ -524,6 +430,56 @@ export class EventNoticer<E = Event> {
 			}
 			this._length = 0;
 			this._listens_map = new Map<string, ListIterator<ListenItem>>();
+		}
+		else if ( typeof listen == 'string' ) { // by id delete 
+			let id = String(listen);
+			let listens_map = this._listens_map!;
+			let item = listens_map.get(id);
+			if ( item ) {
+				this._length--;
+				listens_map.delete(id);
+				item.value.listen = null; // clear
+				r++;
+			}
+		}
+		else if ( listen instanceof Function ) { // 卸载一个监听函数
+			let listens = this._listens!;
+			let listens_map = this._listens_map!;
+			let begin = listens.begin, end = listens.end;
+			while ( begin !== end ) {
+				let value = begin.value;
+				if ( value.listen ) {
+					if ( value.origin === listen && ctx ? value.ctx === ctx: true ) {
+						this._length--;
+						listens_map.delete(value.id);
+						begin.value.listen = null;
+						r++;
+						break;
+					}
+				}
+				begin = begin.next;
+			}
+		}
+		else if ( listen instanceof Object ) { // by id ctx
+			let listens = this._listens!;
+			let listens_map = this._listens_map!;
+			let begin = listens.begin;
+			let end = listens.end;
+			// 要卸载这个范围上相关的侦听器,包括`EventNoticer`代理
+			while ( begin !== end ) {
+				let value = begin.value;
+				if ( value.listen ) {
+					if ( value.ctx === listen ) {
+						this._length--;
+						listens_map.delete(value.id);
+						begin.value.listen = null; // break; // clear
+						r++;
+					}
+				}
+				begin = begin.next;
+			}
+		} else { //
+			throw new Error('Bad argument.');
 		}
 		return r;
 	}
@@ -583,16 +539,6 @@ export class Notification<E = Event> {
 	}
 
 	/**
-	 * call: [`EventNoticer.once(listen,ctxOrId?,id?)`]
-	 */
-	addEventListenerOnce<Ctx extends object>(name: string, listen: Listen<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
-		let del = this.getNoticer(name);
-		let r = del.once(listen, ctxOrId, id);
-		this.triggerListenerChange(name, del.length, 1);
-		return r;
-	}
-
-	/**
 	 * call: [`EventNoticer.on2(listen,ctxOrId?,id?)`]
 	 */
 	addEventListener2<Ctx extends object>(name: string, listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
@@ -602,17 +548,9 @@ export class Notification<E = Event> {
 		return r;
 	}
 
-	/**
-	 * call: [`EventNoticer.once2(listen,ctxOrId?,id?)`]
-	 */
-	addEventListenerOnce2<Ctx extends object>(name: string, listen: Listen2<E, Ctx>, ctxOrId?: Ctx | string, id?: string): string {
-		let del = this.getNoticer(name);
-		let r = del.once2(listen, ctxOrId, id);
-		this.triggerListenerChange(name, del.length, 1);
-		return r;
-	}
-
-	/** */
+	/** 
+	 * call: [`EventNoticer.forward(noticer,id?)`]
+	*/
 	addEventForward(name: string, noticer: EventNoticer<E>, id?: string): string {
 		let del = this.getNoticer(name);
 		let r = del.forward(noticer, id);
@@ -620,12 +558,13 @@ export class Notification<E = Event> {
 		return r;
 	}
 
-	/** */
-	addEventForwardOnce(noticer: EventNoticer<E>, id?: string): string {
-		let del = this.getNoticer(noticer.name);
-		let r = del.forwardOnce(noticer, id);
-		this.triggerListenerChange(noticer.name, del.length, 1);
-		return r;
+	/**
+	 * call: [`EventNoticer.setLifespan(id,lifespan)`]
+	 */
+	setEventListenerLifespan(name: string, id: string, lifespan: Uint = 1) {
+		let noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
+		if (noticer)
+			noticer.setLifespan(id, lifespan);
 	}
 
 	/**

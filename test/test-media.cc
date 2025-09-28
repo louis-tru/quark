@@ -406,7 +406,7 @@ Qk_TEST_Func(media) {
 
 	app.loop()->timer(Cb([v](auto e){
 		//v->seek(1e6*9);
-	}), 2e6);
+	}), 2e3);
 
 	app.run();
 }

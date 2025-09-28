@@ -201,8 +201,8 @@ namespace qk {
 		void abort();
 
 	private:
-		Qk_DEFINE_INLINE_CLASS(Inl);
-		Inl* _inl;
+		Qk_DEFINE_INLINE_CLASS(Impl);
+		Impl* _impl;
 	};
 
 	/**

@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./error.h"
-#include "./fs.h"
-#include "./uv.h"
+#include "../error.h"
+#include "../fs.h"
+#include "../uv.h"
 #include <list>
 
 namespace qk {

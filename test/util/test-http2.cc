@@ -56,7 +56,7 @@ class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 	virtual void trigger_http_header(HttpClientRequest* req) {
 		Qk_Log("Header: %d", status_code());
 		for ( auto& i : get_all_response_headers() ) {
-			Qk_Log("  %s: %s", i.key.c_str(), i.value.c_str());
+			Qk_Log("  %s: %s", i.first.c_str(), i.second.c_str());
 		}
 		Qk_Log("");
 	}

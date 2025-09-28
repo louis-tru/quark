@@ -147,7 +147,7 @@ namespace qk {
 
 			_loadId = fs_reader()->read_file(_uri, Callback<Buffer>([this](auto e) { // read data
 				if (_state & kSTATE_LOADING) {
-					if (e.error) {
+					if (e.error || e.data->length() == 0) {
 						_state = State((_state | kSTATE_LOAD_ERROR) & ~kSTATE_LOADING);
 						Qk_DLog("ImageSource::load() kSTATE_LOAD_ERROR, %s", e.error->message().c_str());
 						Qk_Trigger(State, _state);
@@ -310,11 +310,11 @@ namespace qk {
 		if (it != _sources.end()) {
 			if (evt.data() == ImageSource::kSTATE_LOAD_COMPLETE) {
 				auto info = evt.sender()->info();
-				int ch = int(info.bytes()) - int(it->value.bytes);
+				int ch = int(info.bytes()) - int(it->second.bytes);
 				if (ch != 0) {
 					_capacity += ch; // change
-					it->value.bytes = info.bytes();
-					it->value.time = time_micro();
+					it->second.bytes = info.bytes();
+					it->second.time = time_micro();
 				}
 			}
 		}
@@ -327,7 +327,7 @@ namespace qk {
 	ImageSourcePool::~ImageSourcePool() {
 		_Mutex.lock();
 		for (auto& it: _sources) {
-			it.value.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
+			it.second.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
 		}
 		_Mutex.unlock();
 	}
@@ -340,7 +340,7 @@ namespace qk {
 		// find image source by path
 		auto it = _sources.find(id);
 		if ( it != _sources.end() ) {
-			return it->value.source.get();
+			return it->second.source.get();
 		}
 		auto source = ImageSource::Make(_uri, _loop);
 		if (_isMarkAsTexture)
@@ -365,9 +365,9 @@ namespace qk {
 		String _uri = fs_reader()->format(uri);
 		auto it = _sources.find(_uri.hashCode());
 		if (it != _sources.end()) {
-			it->value.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
+			it->second.source->Qk_Off(State, &ImageSourcePool::handleSourceState, this);
 			_sources.erase(it);
-			_capacity -= it->value.bytes;
+			_capacity -= it->second.bytes;
 		}
 	}
 
@@ -375,14 +375,14 @@ namespace qk {
 		AutoMutexExclusive local(_Mutex);
 		if (all) {
 			for (auto &i: _sources) {
-				if (i.value.source->state() & (
+				if (i.second.source->state() & (
 						ImageSource::kSTATE_LOADING | ImageSource::kSTATE_LOAD_COMPLETE
 					)
 				) {
-					i.value.source->unload();
-					_capacity -= i.value.bytes;
-					i.value.bytes = 0;
-					i.value.time = 0;
+					i.second.source->unload();
+					_capacity -= i.second.bytes;
+					i.second.bytes = 0;
+					i.second.time = 0;
 				}
 			}
 		} else {

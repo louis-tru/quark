@@ -109,8 +109,8 @@ namespace qk {
 			case kRGBA_5551_ColorType: return GL_RGB5_A1;
 			case kLuminance_8_ColorType: return GL_R8;
 			case kLuminance_Alpha_88_ColorType: return GL_RG8;
-			case kSDF_F32_ColorType: return GL_R32F;
-			case kSDF_Unsigned_F32_ColorType: return GL_R32F;
+			case kSDF_F32_ColorType: return GL_R16F;
+			case kSDF_Unsigned_F32_ColorType: return GL_R16F;
 			case kYUV420P_Y_8_ColorType: return GL_R8;
 			case kYUV420P_U_8_ColorType: return GL_R8;
 			case kYUV420SP_UV_88_ColorType: return GL_RG8;
@@ -494,7 +494,7 @@ namespace qk {
 				if (texStat[i]) glDeleteTextures(1, &texStat[i]->id);
 			}
 			for (auto &i: texSamplers) {
-				glDeleteSamplers(1, &i.value);
+				glDeleteSamplers(1, &i.second);
 			}
 			delete[] texStat;
 			glDeleteBuffers(4, ubo);

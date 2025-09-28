@@ -181,8 +181,8 @@ namespace qk {
 			lock();
 			auto it = _listener->find(id);
 			if (it != _listener->end()) {
-				delete it->value;
-				it->value = nullptr; // temp delete
+				delete it->second;
+				it->second = nullptr; // temp delete
 			}
 			unlock();
 		}
@@ -195,9 +195,9 @@ namespace qk {
 			lock();
 			auto l = _listener;
 			for (auto &it : *l) {
-				if (it.value && it.value->match(listener, ctx)) {
-					delete it.value;
-					it.value = nullptr; // temp delete
+				if (it.second && it.second->match(listener, ctx)) {
+					delete it.second;
+					it.second = nullptr; // temp delete
 					break;
 				}
 			}
@@ -212,9 +212,9 @@ namespace qk {
 			lock();
 			auto l = _listener;
 			for (auto &it : *l) {
-				if( it.value && it.value->match(listener, ctx) ) {
-					delete it.value;
-					it.value = nullptr; // temp delete
+				if( it.second && it.second->match(listener, ctx) ) {
+					delete it.second;
+					it.second = nullptr; // temp delete
 					break;
 				}
 			}
@@ -246,12 +246,12 @@ namespace qk {
 				OnShellListener::set_event(event, _sender);
 				for (auto i = l->begin(); i != l->end(); ) {
 					auto it = i++;
-					if (it->value) {
-						it->value->call(event);
+					if (it->second) {
+						it->second->call(event);
 						auto evt = (_Evt*)&event;
-						if (evt->_flags & (1u << (31))) { // check off mark
-							evt->_flags &= ~(1u << (31)); // Clear off mark
-							delete it->value;
+						if (evt->_flags) { // check off mark
+							evt->_flags = 0; // Clear off mark
+							delete it->second;
 							l->erase(it); // delete listener if _fargs marked off
 						}
 					} else {
@@ -267,8 +267,8 @@ namespace qk {
 		if (_listener) {
 			lock();
 			for (auto &it : *_listener) {
-				delete it.value;
-				it.value = nullptr; // temp delete
+				delete it.second;
+				it.second = nullptr; // temp delete
 			}
 			if (destroy) {
 				Releasep(_listener);
@@ -300,7 +300,7 @@ namespace qk {
 	NotificationBasic::~NotificationBasic() {
 		if ( _noticers ) {
 			for (auto& i: *_noticers)
-				delete i.value;
+				delete i.second;
 			Releasep(_noticers);
 		}
 	}
@@ -389,18 +389,18 @@ namespace qk {
 	
 	void NotificationBasic::remove_event_listener_for_ctx(void* ctx) {
 		if (_noticers) {
-			for ( auto& i : *_noticers ) {
-				i.value->off_for_ctx(ctx);
-				trigger_listener_change(i.key, i.value->count(), -1);
+			for ( auto i : *_noticers ) {
+				i.second->off_for_ctx(ctx);
+				trigger_listener_change(i.first, i.second->count(), -1);
 			}
 		}
 	}
 
 	void NotificationBasic::remove_event_listener_for_id(uint32_t id) {
 		if (_noticers) {
-			for ( auto& i : *_noticers ) {
-				i.value->off_for_id(id);
-				trigger_listener_change(i.key, i.value->count(), -1);
+			for ( auto i : *_noticers ) {
+				i.second->off_for_id(id);
+				trigger_listener_change(i.first, i.second->count(), -1);
 			}
 		}
 	}
@@ -417,7 +417,7 @@ namespace qk {
 				return nullptr;
 			return _noticers->set(name, new Basic(event_noticer_sender()));
 		} else {
-			return it->value;
+			return it->second;
 		}
 	}
 
@@ -432,8 +432,8 @@ namespace qk {
 	void NotificationBasic::remove_event_listener() {
 		if (_noticers) {
 			for ( auto i : *_noticers ) {
-				i.value->off_all();
-				trigger_listener_change(i.key, i.value->count(), -1);
+				i.second->off_all();
+				trigger_listener_change(i.first, i.second->count(), -1);
 			}
 		}
 	}

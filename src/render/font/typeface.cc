@@ -111,7 +111,7 @@ namespace qk {
 			AutoSharedMutexShared ama(mutex());
 			auto it = _pathsCache.find(glyph);
 			if (it != _pathsCache.end())
-				return it->value;
+				return it->second;
 		}
 		{
 			AutoSharedMutexExclusive asme(mutex());
@@ -127,7 +127,7 @@ namespace qk {
 			AutoSharedMutexShared ama(mutex());
 			auto it = _glyphsCache.find(glyph);
 			if (it != _glyphsCache.end()) {
-				return it->value;
+				return it->second;
 			}
 		}
 		{
@@ -146,7 +146,7 @@ namespace qk {
 				auto it = _glyphsCache.find(gid);
 				if (it == _glyphsCache.end())
 					goto rest;
-				result.push(it->value);
+				result.push(it->second);
 			}
 			Qk_ReturnLocal(result);
 		}

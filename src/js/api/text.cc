@@ -98,7 +98,7 @@ namespace qk { namespace js {
 				if (!args.length()) {
 					Js_Throw("@method next_button(FindDirection dir)\n");
 				}
-				Js_Parse_Type(FindDirection, args[0], "@method next_button(dir = %s)");
+				Js_Parse_Type(Direction, args[0], "@method next_button(dir = %s)");
 				Js_Return( self->next_button(out) );
 			});
 			cls->exports("Button", exports);

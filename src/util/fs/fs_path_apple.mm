@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "./fs.h"
+#import "../fs.h"
 #if Qk_APPLE
 #import <Foundation/Foundation.h>
 #if Qk_iOS

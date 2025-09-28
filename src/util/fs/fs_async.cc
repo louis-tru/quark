@@ -28,17 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./error.h"
-#include "./fs.h"
-#include "./http.h"
-
+#include "../error.h"
+#include "../fs.h"
+#include "../http.h"
+#include "../uv.h"
 #if Qk_WIN
-	#include <io.h>
-	#include <direct.h>
+#include <io.h>
+#include <direct.h>
 #else
-	#include <unistd.h>
+#include <unistd.h>
 #endif
-#include "./uv.h"
 
 #define LOOP RunLoop::current()
 #define LOOP2 auto loop = LOOP

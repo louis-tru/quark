@@ -47,6 +47,7 @@
 # include <mach/mach_time.h>
 # include <mach/mach.h>
 # include <mach/clock.h>
+# include <dlfcn.h>
 
 # define clock_gettime clock_gettime2
 
@@ -56,27 +57,37 @@ static clock_serv_t get_clock_port(clock_id_t clock_id) {
 	return clock_r;
 }
 
-static clock_serv_t clock_realtime = get_clock_port(REALTIME_CLOCK);
-static mach_port_t clock_monotonic = get_clock_port(SYSTEM_CLOCK);
-
 int clock_gettime2(clockid_t id, struct timespec *tspec) {
-	mach_timespec_t mts;
-	int retval = 0;
-	switch (id) {
-		case CLOCK_MONOTONIC:
-			retval = clock_get_time(clock_monotonic, &mts);
-			break;
-		case CLOCK_REALTIME:
-			retval = clock_get_time(clock_realtime, &mts);
-			break;
-		default:
-			/* only CLOCK_MONOTOIC and CLOCK_REALTIME clocks supported */
-			return -1;
+	typedef int (*clock_gettime_fn)(clockid_t, struct timespec*);
+	static clock_gettime_fn real_clock_gettime = NULL;
+	if (!real_clock_gettime) {
+		real_clock_gettime = (clock_gettime_fn)dlsym(RTLD_DEFAULT, "clock_gettime");
 	}
-	tspec->tv_sec = mts.tv_sec;
-	tspec->tv_nsec = mts.tv_nsec;
-	return retval;
+
+	if (real_clock_gettime) {
+		return real_clock_gettime(id, tspec);
+	} else {
+		static clock_serv_t clock_realtime = get_clock_port(REALTIME_CLOCK);
+		static clock_serv_t clock_monotonic = get_clock_port(SYSTEM_CLOCK);
+		mach_timespec_t mts;
+		int retval = 0;
+		switch (id) {
+			case CLOCK_MONOTONIC:
+				retval = clock_get_time(clock_monotonic, &mts);
+				break;
+			case CLOCK_REALTIME:
+				retval = clock_get_time(clock_realtime, &mts);
+				break;
+			default:
+				/* only CLOCK_MONOTOIC and CLOCK_REALTIME clocks supported */
+				return -1;
+		}
+		tspec->tv_sec = mts.tv_sec;
+		tspec->tv_nsec = mts.tv_nsec;
+		return retval;
+	}
 }
+
 #endif
 
 namespace qk {
@@ -156,10 +167,20 @@ namespace qk {
 	}
 
 	int64_t time_micro() {
+#if Qk_WIN // Windows
+		FILETIME ft;
+		GetSystemTimeAsFileTime(&ft);
+		int64_t t = ((int64_t)ft.dwHighDateTime << 32) | ft.dwLowDateTime;
+		// Windows epoch is 1601-01-01, Unix epoch is 1970-01-01
+		return (t - 116444736000000000LL) / 10; // to microseconds
+#else // Linux / Unix
 		timespec now;
 		int rc = clock_gettime(CLOCK_REALTIME, &now);
-		int64_t r = now.tv_sec * 1000000 + now.tv_nsec / 1000;
+		if (rc != 0)
+			return -1;
+		int64_t r = int64_t(now.tv_sec) * 1000000 + now.tv_nsec / 1000;
 		return r;
+#endif
 	}
 
 	int64_t time_monotonic() {
@@ -167,26 +188,21 @@ namespace qk {
 		static LARGE_INTEGER freq;
 		static int init = 0;
 		if (!init) {
-				QueryPerformanceFrequency(&freq);
-				init = 1;
+			QueryPerformanceFrequency(&freq);
+			init = 1;
 		}
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter(&counter);
 		return (int64_t)(counter.QuadPart * 1000 / freq.QuadPart);
-
 #elif defined(Qk_APPLE) // Apple
 		static mach_timebase_info_data_t info;
 		if (info.denom == 0) {
-				mach_timebase_info(&info);
+			mach_timebase_info(&info);
 		}
 		int64_t t = mach_absolute_time();
 		int64_t ns = t * info.numer / info.denom;
 		return ns / 1e3;
-
 #else // Linux / Unix
-		// (uint64_t (*)(void)) dlsym(RTLD_DEFAULT, "mach_continuous_time");
-		// uv_hrtime()
-		// clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
 		struct timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		return (int64_t)ts.tv_sec * 1e6 + ts.tv_nsec / 1e3;

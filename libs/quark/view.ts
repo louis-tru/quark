@@ -32,8 +32,12 @@ import util from './util';
 import event, {
 	Listen, NativeNotification, Notification, EventNoticer,
 	UIEvent, HighlightedEvent, KeyEvent,
-	ClickEvent, TouchEvent, MouseEvent, ActionEvent } from './event';
+	ClickEvent, TouchEvent, MouseEvent, ActionEvent, GestureEvent,
+	GestureTouchPoint,
+	GestureStage, GestureType,
+	TouchPoint,} from './event';
 import * as types from './types';
+import {RemoveReadonly} from './types';
 import { StyleSheets, CStyleSheetsClass } from './css';
 import { Window } from './window';
 import { Action, KeyframeAction,createAction,KeyframeIn,ActionCb } from './action';
@@ -137,6 +141,20 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly onActionKeyframe: EventNoticer<ActionEvent>;
 	/** @event */
 	readonly onActionLoop: EventNoticer<ActionEvent>;
+	/** @event */
+	readonly onGesture: EventNoticer<GestureEvent>;
+	/** @event */
+	readonly onPanGesture: EventNoticer<GestureEvent>;
+	/** @event */
+	readonly onSwipeGesture: EventNoticer<GestureEvent>;
+	/** @event */
+	readonly onPinchGesture: EventNoticer<GestureEvent>;
+	/** @event */
+	readonly onRotateGesture: EventNoticer<GestureEvent>;
+	/** @event */
+	readonly onThreeFingerGesture: EventNoticer<GestureEvent>;
+	/** @event */
+	readonly onFourFingerGesture: EventNoticer<GestureEvent>;
 	readonly cssclass: CStyleSheetsClass; //!<
 	readonly parent: View | null; //!<
 	readonly prev: View | null; //!<
@@ -455,7 +473,7 @@ export declare class Text extends Box implements TextOptions {
  * @extends Text
 */
 export declare class Button extends Text {
-	nextButton(dir: types.FindDirection): Button | null; //!<
+	nextButton(dir: types.Direction): Button | null; //!<
 }
 
 /**
@@ -909,7 +927,228 @@ declare global {
 // extend view impl
 // ----------------------------------------------------------------------------
 
-class _View extends NativeNotification {
+const NN_getNoticer = NativeNotification.prototype.getNoticer;
+
+const FingerCounts = {
+	[GestureType.Pan]: 1,
+	[GestureType.Pinch]: 2,
+	[GestureType.Rotate]: 2,
+	[GestureType.ThreeFinger]: 3,
+	[GestureType.FourFinger]: 4,
+};
+
+interface GestureEventInl extends RemoveReadonly<GestureEvent> {
+	_update(timestamp: Uint, stage: GestureStage): void;
+}
+
+class GestureManager {
+	private _view: View;
+	private _gesture?: EventNoticer<GestureEvent>;
+	private _swipe?: EventNoticer<GestureEvent>;
+	private _noticers: Map<GestureType, EventNoticer<GestureEvent>> = new Map();
+	private _sorts: {type: GestureType, evt?: GestureEventInl}[] = []; // sorted gesture types
+	private _eventsFlow: (GestureEventInl|null)[] = []; // gesture events context
+	private _touches: Map<Uint, [GestureTouchPoint, GestureEventInl]> = new Map(); // touch.id=>gt,Event
+	constructor(view: View) {
+		this._view = view;
+		this._view.onTouchStart.on(this._handleTouchStart, this, '-1');
+		this._view.onTouchMove.on(this._handleTouchMove, this, '-1');
+		this._view.onTouchEnd.on(this._handleTouchEnd, this, '-1');
+		this._view.onTouchCancel.on(this._handleTouchCancel, this, '-1');
+	}
+
+	private getNewEventId() {
+		for (let i = 0; i < this._eventsFlow.length; i++) {
+			if (!this._eventsFlow[i])
+				return i;
+		}
+		return this._eventsFlow.length;
+	}
+
+	private _dispatchStart(evt: GestureEventInl, touchs: TouchPoint[], timestamp: Uint, rejectDiscard: boolean) {
+		let i = 0;
+		do {
+			const touch = touchs[i];
+			util.assert(!this._touches.has(touch.id), 'Gesture point already exists');
+
+			if (evt.sealed) {
+				touchs.splice(0, touchs.length); // discard all points
+				return; // event sealed, next event
+			}
+			if (evt.length >= evt.expectedFingerCount) {
+				return; // next event
+			}
+
+			const gt = new GestureTouchPoint(touch);
+			evt.touchs.push(gt);
+			evt._update(timestamp, GestureStage.Start);
+
+			if (this._gesture) {
+				this._gesture.trigger(evt);
+			}
+
+			if (evt.rejected) { // reject by touch point
+				evt.rejected = false; // clear flag
+				if (rejectDiscard) { // discard point
+					touchs.splice(i, 1); // remove point
+				} else {
+					evt.touchs.pop();
+					i++;
+				}
+				continue; // next point
+			}
+
+			if (evt.isDefault) {
+				let mask = 0; // mask is 0: none, 2: pan, 4: pinch, 8: rotate
+				for (const sort of this._sorts) {
+					// Distribute routing event flow
+					if (!sort.evt) { // not bind event
+						const noticer = this._noticers.get(sort.type)!;
+						const fingerCount = FingerCounts[sort.type as 2|3|4|5|6] || 1; // need points
+						mask |= (1 << sort.type); // mark occupy event
+						evt.expectedFingerCount = fingerCount;
+						if (evt.length == fingerCount) {
+							sort.evt = evt;
+							noticer.trigger(evt);
+						}
+						break; // Exclusive event context
+					}
+				} // for sorts
+
+				if (!mask) {
+					evt.seal(); // No need for more events flow, seal event
+				}
+			} // isDefault
+
+			evt.isDefault = true; // clear flag
+
+			this._touches.set(touch.id, [gt, evt]); // accept point
+			touchs.splice(i, 1); // remove point
+		} while (i < touchs.length);
+	}
+
+	private _handleTouchStart(event: TouchEvent) {
+		const timestamp = event.timestamp;
+		const touchs = event.changedTouches.slice();
+		for (const evt of this._eventsFlow) { // old event flow
+			if (evt) {
+				if (!touchs.length)
+					return;
+				this._dispatchStart(evt, touchs, timestamp, false);
+			}
+		}
+
+		// New event flow
+		while (!touchs.length) {
+			const id = this.getNewEventId();
+			const evt = new GestureEvent(id, timestamp) as RemoveReadonly<GestureEvent>;
+			this._dispatchStart(evt as GestureEventInl, touchs, timestamp, true);
+			if (evt.length) {
+				this._eventsFlow.push(evt as GestureEventInl); // add to event flow
+			}
+		}
+	}
+
+	private _handleTouchMove(event: TouchEvent) {
+		const timestamp = event.timestamp;
+		const changedEvents = new Set<GestureEventInl>(); // changed events
+
+		for (const touch of event.changedTouches) { // find touch point
+			const rec = this._touches.get(touch.id);
+			if (rec) {
+				const [pt, evt] = rec;
+				changedEvents.add(evt); // mark event
+				(pt as RemoveReadonly<typeof pt>).touch = touch; // update touch point
+			}
+		}
+
+		for (const evt of changedEvents) {
+			evt._update(timestamp, GestureStage.Change); // update event
+
+			if (this._gesture) {
+				this._gesture.trigger(evt);
+			}
+			if (evt.isDefault) {
+				for (const sort of this._sorts) {
+					const noticer = this._noticers.get(sort.type)!;
+					if (sort.evt === evt) {
+						noticer.trigger(evt);
+						break; // Exclusive event context
+					}
+				}
+			}
+
+			evt.isDefault = false; // clear flag
+		}
+	}
+
+	private _handleTouchEndOrCancel(event: TouchEvent, stage: GestureStage) {
+		const timestamp = event.timestamp;
+		const changedEvents = new Set<GestureEventInl>(); // changed events
+
+		for (const touch of event.changedTouches) { // find touch point
+			const rec = this._touches.get(touch.id);
+			if (rec) {
+				const [pt, evt] = rec;
+				changedEvents.add(evt); // mark event
+				evt.touchs.deleteOf(pt); // remove point from event
+				this._touches.delete(touch.id); // remove point from manager
+			}
+		}
+
+		for (const evt of changedEvents) {
+			evt._update(timestamp, stage); // Update event state
+
+			if (evt.length == 0) {
+				this._eventsFlow[evt.id] = null; // clear event flow
+			}
+
+			if (this._gesture) {
+				this._gesture.trigger(evt);
+			}
+			if (evt.isDefault) {
+				for (const sort of this._sorts) {
+					const noticer = this._noticers.get(sort.type)!;
+					if (sort.evt === evt) {
+						noticer.trigger(evt);
+						sort.evt = undefined; // clear event context
+						break; // Exclusive event context
+					}
+				}
+				if (evt.length == 0 && stage == GestureStage.End) {
+					if (this._swipe && evt.isSwipeTriggered()) {
+						this._swipe.trigger(evt);
+					}
+				}
+			}
+
+			evt.isDefault = false; // clear flag
+		}
+	}
+
+	private _handleTouchEnd(event: TouchEvent) {
+		this._handleTouchEndOrCancel(event, GestureStage.End);
+	}
+
+	private _handleTouchCancel(event: TouchEvent) {
+		this._handleTouchEndOrCancel(event, GestureStage.Cancel);
+	}
+
+	addGesture(type: GestureType, noticer: EventNoticer<GestureEvent>) {
+		if (type > GestureType.Gesture) {
+			if (type == GestureType.Swipe) {
+				this._swipe = noticer;
+			} else {
+				this._noticers.set(type, noticer);
+				this._sorts.push({type});
+			}
+		} else {
+			this._gesture = noticer;
+		}
+	}
+}
+
+class _View extends NativeNotification<UIEvent> {
 	@event readonly onClick: EventNoticer<ClickEvent>;
 	@event readonly onBack: EventNoticer<ClickEvent>;
 	@event readonly onKeyDown: EventNoticer<KeyEvent>;
@@ -933,6 +1172,33 @@ class _View extends NativeNotification {
 	@event readonly onHighlighted: EventNoticer<HighlightedEvent>;
 	@event readonly onActionKeyframe: EventNoticer<ActionEvent>;
 	@event readonly onActionLoop: EventNoticer<ActionEvent>;
+	@event readonly onGesture: EventNoticer<GestureEvent>; // base gesture events
+	@event readonly onPanGesture: EventNoticer<GestureEvent>; // 1 finger gesture
+	@event readonly onSwipeGesture: EventNoticer<GestureEvent>; // 1 finger gesture
+	@event readonly onPinchGesture: EventNoticer<GestureEvent>; // 2 finger gesture
+	@event readonly onRotateGesture: EventNoticer<GestureEvent>; // 2 finger gesture
+	@event readonly onThreeFingerGesture: EventNoticer<GestureEvent>; // 3 finger gesture
+	@event readonly onFourFingerGesture: EventNoticer<GestureEvent>; // 4 finger gesture
+
+	private _gestureManager?: GestureManager; // gesture manager
+
+	getNoticer(name: string): EventNoticer<UIEvent> {
+		const onName = '_on' + name;
+		const noticer = (this as any)[onName] as EventNoticer<UIEvent>;
+		if (!noticer) {
+			if (name in GestureType) {
+				if (!this._gestureManager)
+					this._gestureManager = new GestureManager(this as any);
+				const noticer = new EventNoticer<GestureEvent>(name, this);
+				(this as any)[onName] = noticer;
+				this._gestureManager.addGesture(GestureType[name as keyof typeof GestureType], noticer);
+				return noticer;
+			} else {
+				return NN_getNoticer.call(this, name);
+			}
+		}
+		return noticer;
+	}
 
 	readonly childDoms: (DOM|undefined)[]; // jsx children dom
 	readonly ref: string;

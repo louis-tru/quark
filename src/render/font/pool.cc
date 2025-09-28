@@ -100,7 +100,7 @@ namespace qk {
 		}
 		auto it = _fontFamilies.find(hash.hashCode());
 		if (it != _fontFamilies.end()) {
-			return *it->value;
+			return *it->second;
 		}
 		return *_fontFamilies.set(hash.hashCode(), new FontFamilies(this, families));
 	}
@@ -139,10 +139,10 @@ namespace qk {
 			AutoSharedMutexShared ama(*_Mutex);
 			auto it0 = _ext.find(familyName);
 			if (it0 != _ext.end()) {
-				auto it = it0->value.find(style);
-				if (it != it0->value.end())
-					return const_cast<Typeface*>(it->value.get());
-				return const_cast<Typeface*>(it0->value.begin()->value.get());
+				auto it = it0->second.find(style);
+				if (it != it0->second.end())
+					return const_cast<Typeface*>(it->second.get());
+				return const_cast<Typeface*>(it0->second.begin()->second.get());
 			}
 		}
 		return onMatchFamilyStyle(familyName.c_str(), style);

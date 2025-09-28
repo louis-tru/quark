@@ -207,7 +207,7 @@ namespace qk {
 		
 		bool _go_to_cur_pos() {
 			if ( _unzp ) {
-				unz_entry_info& info = _cur_it->value;
+				unz_entry_info& info = _cur_it->second;
 				unz_file_pos pos = { info.pos.pos_in_zip_directory, info.pos.num_of_file };
 				int code = unzGoToFilePos((unzFile)_unzp, &pos);
 				return code == UNZ_OK;
@@ -232,7 +232,7 @@ namespace qk {
 					add_dir_info_item(dirname, FTYPE_DIR);
 					_dir_info[dirname].push(Dirent{basename, compatible_path, type});
 				} else {
-					it->value.push(Dirent{basename, compatible_path, type});
+					it->second.push(Dirent{basename, compatible_path, type});
 				}
 			}
 		}
@@ -312,7 +312,7 @@ namespace qk {
 		if ( _unzp ) {
 			if ( !_inl_reader(this)->_close_current_file() ) {
 				Qk_ELog("Cannot close file reader internal documents, %s, %s",
-							 _path.c_str(), _cur_it->value.pathname.c_str());
+							 _path.c_str(), _cur_it->second.pathname.c_str());
 			}
 			if ( unzClose((unzFile)_unzp) == UNZ_OK ) {
 				_unzp = nullptr;
@@ -346,7 +346,7 @@ namespace qk {
 		if ( it == _dir_info.end() ) {
 			return Array<Dirent>();
 		} else {
-			return it->value;
+			return it->second;
 		}
 	}
 

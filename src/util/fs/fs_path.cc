@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <sys/stat.h>
-#include "./fs.h"
+#include "../fs.h"
 #if Qk_WIN
 #include <io.h>
 #include <direct.h>
@@ -44,7 +44,7 @@
 #endif
 
 #if Qk_ANDROID
-#include "../platforms/android/android.h"
+#include "../../platforms/android/android.h"
 #endif
 
 namespace qk {

@@ -300,7 +300,7 @@ namespace qk { namespace js {
 
 			uint64_t timeout = 0;
 			if (args.length() > 1 && args[1]->isNumber()) {
-				timeout = Float64::max(args[1]->cast<JSNumber>()->value(), 0) * 1e3;
+				timeout = Float64::max(args[1]->cast<JSNumber>()->value(), 0);
 			}
 			if (repeatArg) {
 				if (args.length() > 2 && args[2]->isNumber()) {

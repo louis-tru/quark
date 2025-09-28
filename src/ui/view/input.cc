@@ -80,39 +80,39 @@ namespace qk {
 		// ============================================================================
 		void handle_Touchstart(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
-			Vec2 args(e->changed_touches()[0].x, e->changed_touches()[0].y);
-			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, true); }, this, args);
+			auto arg = e->changed_touches()[0].location;
+			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, true); }, this, arg);
 		}
 
 		void handle_Touchmove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<TouchEvent*>(&evt);
-			Vec2 arg(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			auto arg = e->changed_touches()[0].location;
 			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Touchend(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
-			Vec2 arg(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			auto arg = e->changed_touches()[0].location;
 			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Mousedown(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
-			Vec2 arg(e->x(), e->y());
+			auto arg = e->location();
 			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, false); }, this, arg);
 		}
 
 		void handle_Mousemove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<MouseEvent*>(&evt);
-			Vec2 arg(e->x(), e->y());
+			auto arg = e->location();
 			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Mouseup(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
-			Vec2 arg(e->x(), e->y());
+			auto arg = e->location();
 			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
@@ -142,7 +142,7 @@ namespace qk {
 						self->find_cursor(arg.arg);
 					}
 				}
-			}, this, Vec2(e->x(), e->y()));
+			}, this, e->location());
 		}
 
 		void handle_Keydown(UIEvent& evt) {
@@ -234,7 +234,7 @@ namespace qk {
 								}
 							}, this, 0);
 							release(); // it must be release here @ if ( !tryRetain_Rt() )
-						}), 1e6);
+						}), 1e3); // 1 second
 					} else { // 立即激活
 						_flag = kFlag_Find_Cursor;
 						find_cursor(_point);

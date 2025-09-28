@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./fs.h"
-#include "./zlib.h"
-#include "./handle.h"
-#include "./error.h"
-#include "./http.h"
-#include "./uv.h"
-#include "./dict.h"
+#include "../fs.h"
+#include "../zlib.h"
+#include "../handle.h"
+#include "../error.h"
+#include "../http.h"
+#include "../uv.h"
+#include "../dict.h"
 
 namespace qk {
 
@@ -97,7 +97,7 @@ namespace qk {
 		~Core() {
 			ScopeLock lock(zip_mutex_);
 			for (auto i: zips_ ) {
-				Release(i.value);
+				Release(i.second);
 			}
 		}
 
@@ -349,7 +349,7 @@ namespace qk {
 		void clear() {
 			ScopeLock lock(zip_mutex_);
 			for ( auto& i: zips_ ) {
-				Release(i.value);
+				Release(i.second);
 			}
 			zips_.clear();
 		}
@@ -438,5 +438,4 @@ namespace qk {
 	FileReader* fs_reader() {
 		return FileReader::shared();
 	}
-
 }

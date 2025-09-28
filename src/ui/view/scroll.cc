@@ -224,14 +224,14 @@ namespace qk {
 		}
 
 		void termination_all_task_Rt() {
-			for ( auto &i : _tasks ) {
+			for ( auto i : _tasks ) {
 				delete i;
 			}
 			_tasks.clear();
 		}
 
 		void immediate_end_all_task() {
-			for ( auto &i : _tasks ) {
+			for ( auto i : _tasks ) {
 				i->immediate_end_flag();
 			}
 		}
@@ -607,7 +607,7 @@ namespace qk {
 				Sp<TouchEvent::TouchPoint> handle(arg.arg);
 				if ( !ctx->_action_id ) {
 					ctx->_action_id = arg.arg->id;
-					ctx->move_start(Vec2( arg.arg->x, arg.arg->y ));
+					ctx->move_start(arg.arg->location);
 				}
 			}, this, args);
 		}
@@ -621,7 +621,8 @@ namespace qk {
 					if ( ctx->_action_id ) {
 						for ( auto &i : *arg.arg ) {
 							if (i.id == ctx->_action_id) {
-								ctx->move(Vec2( i.x, i.y )); break;
+								ctx->move(i.location);
+								break;
 							}
 						}
 					}
@@ -636,7 +637,7 @@ namespace qk {
 				if ( ctx->_action_id ) {
 					for ( auto &i: *arg.arg ) {
 						if (i.id == ctx->_action_id) {
-							ctx->move_end(Vec2( i.x, i.y ));
+							ctx->move_end(i.location);
 							ctx->_action_id = 0;
 							break;
 						}
@@ -652,7 +653,7 @@ namespace qk {
 					ctx->_action_id = 1;
 					ctx->move_start(arg.arg);
 				}
-			}, this, Vec2( evt->x(), evt->y() ));
+			}, this, evt->location());
 		}
 
 		void handle_MouseMove(UIEvent& e) {
@@ -662,7 +663,7 @@ namespace qk {
 					if ( ctx->_action_id ) {
 						ctx->move(arg.arg);
 					}
-				}, this, Vec2( evt->x(), evt->y() ));
+				}, this, evt->location());
 			}
 		}
 
@@ -673,7 +674,7 @@ namespace qk {
 					ctx->move_end(arg.arg);
 					ctx->_action_id = 0;
 				}
-			}, this, Vec2( evt->x(), evt->y() ));
+			}, this, evt->location());
 		}
 
 		void handle_MouseWheel(UIEvent& e) {
@@ -685,7 +686,7 @@ namespace qk {
 					self->scroll_to_valid_scroll(v, 0);
 					self->register_task(new ScrollBarFadeInOutTask(self, 5e4, 1e6, 3e5));
 				}
-			}, this, Vec2(evt.x(), evt.y()));
+			}, this, evt.location());
 		}
 
 	};

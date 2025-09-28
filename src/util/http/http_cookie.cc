@@ -29,11 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <bplus.h>
-#include "./http.h"
-#include "./fs.h"
+#include "../http.h"
+#include "../fs.h"
 
 namespace qk {
-
 	#define _db _http_cookie_db
 	#define assert_r(c) Qk_ASSERT_EQ(c, BP_OK)
 	#define OPEN(...) ScopeLock lock(_mutex); http_cookie_open(); if (!_db) return __VA_ARGS__
@@ -246,7 +245,7 @@ namespace qk {
 		if (all.length()) {
 			Array<String> arr;
 			for (auto& i : all)
-				arr.push( String(i.key).append('=').append(i.value) );
+				arr.push( String(i.first).append('=').append(i.second) );
 			result = arr.join("; ");
 		}
 		return result;

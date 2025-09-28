@@ -153,21 +153,21 @@ namespace qk {
 		* @method current 当前文件名称
 		*/
 		inline String current() const {
-			return _cur_it->value.pathname;
+			return _cur_it->second.pathname;
 		}
 
 		/**
 		* @method compressed_size 当前文件的压缩大小
 		*/
 		inline uint32_t compressed_size() const {
-			return _cur_it->value.compressed_size;
+			return _cur_it->second.compressed_size;
 		}
 
 		/**
 		* @method uncompressed_size 当前文件的压缩前大小
 		*/
 		inline uint32_t uncompressed_size() const {
-			return _cur_it->value.uncompressed_size;
+			return _cur_it->second.uncompressed_size;
 		}
 
 		/**

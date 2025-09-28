@@ -43,6 +43,7 @@ import { Label, View, DOM } from './view';
 import { Window } from './window';
 import * as view from './view';
 import pkg from './pkg';
+import {RemoveReadonly} from './types';
 
 /**
  * A special Set implementation that ignores all operations.
@@ -177,7 +178,7 @@ link.acc = linkAcc;
 function getkey(vdom: VirtualDOM, autoKey: number): string|number {
 	let key: string;
 	let key_ = vdom.props.key;
-	if (key_ !== undefined) {
+	if (key_ !== void 0) {
 		key = key_;
 	} else {
 		key = String(autoKey);
@@ -210,7 +211,7 @@ function setref(dom: View | ViewController, owner: ViewController, value: string
 		}
 		if (value)
 			refs[value] = dom;
-		(dom as any).ref = value;
+		(dom as RemoveReadonly<DOM>).ref = value;
 	}
 }
 
@@ -452,8 +453,8 @@ export class VirtualDOM<T extends DOM = DOM> {
 			let len = Math.max(childrenOld.length, childrenNew.length);
 
 			if (len) {
-				let childDomsOld: (DOM|undefined)[] = (domOld as any).childDoms; // View.childDoms
-				let childDomsNew: (DOM|undefined)[] = new Array(len);
+				let childDomsOld: (DOM|null)[] = (domOld as View).childDoms; // View.childDoms
+				let childDomsNew: (DOM|null)[] = new Array(len);
 				let prev: View | null = null;
 	
 				for (let i = 0; i < len; i++) {
@@ -481,7 +482,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 						childDomsNew[i] = dom;
 					}
 				}
-				(domOld as any).childDoms = childDomsNew; // View.childDoms = childDomsNew
+				(domOld as RemoveReadonly<View>).childDoms = childDomsNew;
 			}
 		} // if (vdomNew.domC.isViewController)
 
@@ -502,7 +503,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 			let r = (newCtr as any).triggerLoad(); // trigger event Load
 			if (r instanceof Promise) {
 				r.then(()=>{
-					(newCtr as any).isLoaded = true;
+					(newCtr as RemoveReadonly<ViewController>).isLoaded = true;
 					markrerender(newCtr); // mark rerender
 				});
 			} else {
@@ -523,7 +524,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 			let view = new this.domC(window) as DOM as View;
 			let prev: View | null = null;
 			if (len) {
-				let childDoms: (DOM|undefined)[] = new Array(len);
+				let childDoms: (DOM|null)[] = new Array(len);
 				for (let i = 0; i < len; i++) {
 					let vdom = children[i];
 					if (vdom) {
@@ -532,7 +533,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 						prev = prev ? dom.afterTo(prev): dom.appendTo(view);
 					}
 				}
-				(view as any).childDoms = childDoms;
+				(view as RemoveReadonly<View>).childDoms = childDoms;
 			}
 			setref(view, owner, props.ref || '');
 			Object.assign(view, props);
@@ -677,8 +678,8 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 			collection[i] = dom;
 			keys.set(key, [dom, vdom]);
 		});
-		(dom as any).keys = keys;
-		(dom as any).collection = collection;
+		(dom as RemoveReadonly<DOMCollection>).keys = keys;
+		(dom as RemoveReadonly<DOMCollection>).collection = collection;
 
 		for (let [_,[dom]] of keysOld) {
 			dom.destroy(owner);
@@ -922,7 +923,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	destroy() {
 		if (!this.isDestroyd) {
 			WatchingAllCtrForDebug.delete(this);
-			(this as any).isDestroyd = true;
+			(this as RemoveReadonly<ViewController>).isDestroyd = true;
 			if (this.isLoaded)
 				this.triggerUnload(); // trigger unload event
 			unref(this, this.owner);

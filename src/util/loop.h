@@ -144,9 +144,10 @@ namespace qk {
 
 		/**
 		 * @method timer() start timer and return handle id
+		 * @param time time unit is millisecond
 		 * @param repeat repeat < 0 the always repeating
 		*/
-		uint32_t timer(Cb cb, uint64_t timeUs, int64_t repeat = 0);
+		uint32_t timer(Cb cb, uint64_t timeMs, int64_t repeat = 0);
 
 		/**
 		 * @method timer_stop timer stop 

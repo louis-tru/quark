@@ -82,6 +82,7 @@ namespace qk {
 					w->preRender().asyncCommit();
 				// execute delayed tasks every 5 ticks
 				if (++ticks % 5 == 0) {
+					ticks = 0;
 					Inl_Application(self)->resolve_delay_tasks(false);
 				}
 			}
@@ -238,17 +239,17 @@ namespace qk {
 	}
 
 	void AppInl::add_delay_task(Cb cb) {
-		_mutex.lock();
+		_delayTasksMutex.lock();
 		_delayTasks.pushBack({cb,2});
-		_mutex.unlock();
+		_delayTasksMutex.unlock();
 	}
 
 	void AppInl::resolve_delay_tasks(bool all) {
 		if (_delayTasks.length() == 0)
 			return;
-		_mutex.lock();
+		_delayTasksMutex.lock();
 		auto tasks = std::move(_delayTasks);
-		_mutex.unlock();
+		_delayTasksMutex.unlock();
 		if (all) {
 			for (auto t: tasks)
 				t.first->resolve();
@@ -262,9 +263,9 @@ namespace qk {
 			}
 		}
 		if (tasks.length()) {
-			_mutex.lock();
+			_delayTasksMutex.lock();
 			_delayTasks.splice(_delayTasks.begin(), tasks); // put back
-			_mutex.unlock();
+			_delayTasksMutex.unlock();
 		}
 	}
 }

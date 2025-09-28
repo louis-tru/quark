@@ -63,10 +63,10 @@ namespace qk {
 				childs = std::move(_childs);
 			}
 			for (auto& i : childs) {
-				thread_try_abort(i.key);
+				thread_try_abort(i.first);
 			}
 			for (auto& i : childs) {
-				thread_join_for(i.key);
+				thread_join_for(i.first);
 			}
 			Qk_DLog("Threads::abort() ok, count: %d", childs.length());
 		} else {
@@ -87,7 +87,7 @@ namespace qk {
 		ScopeLock scope(_mutex);
 		if ( id == ThreadID() ) {
 			for (auto& i : _childs) {
-				thread_resume(i.key);
+				thread_resume(i.first);
 			}
 		} else {
 			Qk_ASSERT(_childs.has(id),
@@ -111,7 +111,7 @@ namespace qk {
 				self->cond.notify_all(); // call wait ok
 			}
 		 run:
-			loop->timer(Cb([](auto&e){}), 5e6); // 5s
+			loop->timer(Cb([](auto&e){}), 5e3); // 5s
 			loop->run();
 			int wait = 100; // wait 10s
 			while (wait-- && t->abort == 0) {

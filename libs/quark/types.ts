@@ -74,17 +74,26 @@ interface Constructor<T> {
 	new(...args: any[]): T;
 }
 
-type RemoveField<Type, S> = {
-	[Property in keyof Type as Exclude<Property, S>]: Type[Property]
-};
+export type RemoveField<T, S> = {
+	[K in keyof T as Exclude<K, S>]: T[K]
+}
 
-type RemoveToStringField<Type> = RemoveField<Type, 'toString'>;
+export type RemoveReadonly<T> = {
+	-readonly [P in keyof T]: T[P];
+}
 
-export function initDefaults<T>(cls: Constructor<T>, ext: RemoveToStringField<Partial<T>>) {
+// export type RemoveToStringField<Type> = RemoveField<Type, 'toString'>;
+
+export type OnlyDataFields<T> = {
+	// [K in keyof T as T[K] extends (...args: any[]) => any ? never : K]: T[K]
+	[K in keyof T as NonNullable<T[K]> extends Function ? never : K]: T[K]
+}
+
+export function initDefaults<T>(cls: Constructor<T>, ext: OnlyDataFields<Partial<T>>) {
 	Object.assign(cls.prototype, ext);
 }
 
-function newBase<T>(cls: Constructor<T>, ext: RemoveToStringField<Partial<T>>) {
+function newBase<T>(cls: Constructor<T>, ext: OnlyDataFields<Partial<T>>) {
 	(ext as any).__proto__ = cls.prototype
 	return ext as T;
 }
@@ -152,10 +161,15 @@ export const BoxOriginKind = FillSizeKind;
  * Flex Layout direction
 */
 export enum Direction {
+	None, //!<
 	Row, //!<
 	RowReverse, //!<
 	Column, //!<
 	ColumnReverse, //!<
+	Left = Row, //!<
+	Right = RowReverse, //!<
+	Top = Column, //!<
+	Bottom = ColumnReverse, //!<
 };
 
 /**
@@ -439,17 +453,6 @@ export enum CursorStyle {
 };
 
 /**
- * @enum FindDirection
-*/
-export enum FindDirection {
-	None, //!<
-	Left, //!<
-	Top, //!<
-	Right, //!<
-	Bottom, //!<
-};
-
-/**
  * Color changes will affect sub views
  */
 export enum CascadeColor {
@@ -545,10 +548,6 @@ export type KeyboardReturnTypeIn = Uncapitalize<keyof typeof KeyboardReturnType>
 "dragCopy"|"contextualMenu"|"ibeamForVertical"|CursorStyle
 */
 export type CursorStyleIn = Uncapitalize<keyof typeof CursorStyle> | CursorStyle;
-/**
- * @type FindDirectionIn:"none"|"left"|"top"|"right"|"bottom"|FindDirection
-*/
-export type FindDirectionIn = Uncapitalize<keyof typeof FindDirection> | FindDirection;
 
 /**
  * @type CascadeColorIn:"none"|"alpha"|"color"|"both"|CascadeColor
@@ -561,19 +560,159 @@ export class Base<T> {
 	toStringStyled(indent?: number) { //!<
 		return (indent ? new Array(indent+1).join(' '): '') + this.toString();
 	}
-	constructor(opts?: RemoveToStringField<Partial<T>>) {
+	constructor(opts?: OnlyDataFields<Partial<T>>) {
 		Object.assign(this, opts)
 	}
 }
 
+export const PI2 = Math.PI * 2; // 360deg
+export const PIHalf = Math.PI * 0.5; // 90deg
+export const PIHalfHalf = Math.PI * 0.25; // 45deg
+export const PIDegree = PI2 / 360; // 1deg
+
 /**
- * @class Vec2
+ * @class Vec2 2D vector
 */
 export class Vec2 extends Base<Vec2> {
-	x: N; //!<
-	y: N; //!<
+	/**
+	 * x component
+	*/
+	x: N;
+
+	/**
+	 * y component
+	*/
+	y: N;
+
+	/**
+	 * Get string value
+	*/
 	toString(): `vec2(${N},${N})` { return `vec2(${this.x},${this.y})` }
+
+	/**
+	 * Check two vectors are equal
+	*/
+	equal(b: Vec2): boolean {
+		return this.x === b.x && this.y === b.y;
+	}
+
+	/**
+	 * Add two vectors
+	*/
+	add(b: Vec2): Vec2 {
+		return newBase(Vec2, { x: this.x + b.x, y: this.y + b.y });
+	}
+
+	/**
+	 * Subtract two vectors
+	*/
+	sub(b: Vec2): Vec2 {
+		return newBase(Vec2, { x: this.x - b.x, y: this.y - b.y });
+	}
+
+	/**
+	 * Multiply vector by a scalar
+	 */
+	mul(b: N): Vec2 {
+		return newBase(Vec2, { x: this.x * b, y: this.y * b });
+	}
+
+	/**
+	 * Divide vector by a scalar
+	 */
+	div(b: N): Vec2 {
+		return newBase(Vec2, { x: this.x / b, y: this.y / b });
+	}
+
+	/**
+	 * Get the angle of the point in radians
+	 * @return angle in radians
+	*/
+	angle(): N {
+		return Math.atan2(this.y, this.x);
+	}
+
+	/**
+	 * Get the angle of the point in degrees
+	 */
+	angleInDegrees(): N {
+		return this.angle() / PIDegree;
+	}
+
+	/**
+	 * Get the angle to another point in radians
+	 * @param p The other point
+	 * @return angle in radians
+	*/
+	angleTo(p: Vec2): N {
+		return Math.atan2(p.y - this.y, p.x - this.x);
+	}
+
+	/**
+	 * Dot product of two vectors
+	*/
+	dot(): N {
+		return this.x * this.x + this.y * this.y;
+	}
+
+	/**
+	 * Get the length of the vector
+	*/
+	length(): N {
+		return Math.sqrt(this.x * this.x + this.y * this.y);
+	}
+
+	/**
+	 * Get the normalized vector
+	*/
+	normalize(): Vec2 {
+		let len = this.length();
+		if (len === 0)
+			return newBase(Vec2, { x: 0, y: 0 });
+		return newBase(Vec2, { x: this.x / len, y: this.y / len });
+	}
+
+	/** 
+	 * Get the direction of the vector
+	 * @return The direction
+	 */
+	direction(): Direction {
+		if (this.x === 0 && this.y === 0)
+			return Direction.None;
+		let angle = this.angle();
+		angle = (angle + PIHalfHalf) % (PI2);
+		if (angle < 0) angle += PI2;
+		return [Direction.Right, Direction.Top,
+			Direction.Left, Direction.Bottom][Math.floor(angle / PIHalf)];
+	}
+
+	/**
+	 * Get the midpoint between two vectors
+	*/
+	mid(b: Vec2): Vec2 {
+		return newBase(Vec2, { x: (this.x + b.x) * 0.5, y: (this.y + b.y) * 0.5 });
+	}
+
+	/**
+	 * Get the midpoint of multiple vectors
+	 * @static
+	 * @param vec The vectors array
+	 * @returns The midpoint vector
+	 */
+	static mid(vec: Vec2[]): Vec2 {
+		if (vec.length === 0)
+			return newBase(Vec2, { x: 0, y: 0 });
+		let x = 0;
+		let y = 0;
+		let n = vec.length;
+		for (let i = 0; i < n; i++) {
+			x += vec[i].x;
+			y += vec[i].y;
+		}
+		return newBase(Vec2, { x: x / n, y: y / n });
+	}
 }
+
 initDefaults(Vec2, { x: 0, y: 0 });
 /**
  * @type Vec2In:'0　0'|'vec2(0,0)'|N|[0,0]|Vec2
@@ -1284,11 +1423,6 @@ export function parseKeyboardReturnType(val: KeyboardReturnTypeIn, desc?: string
 export function parseCursorStyle(val: CursorStyleIn, desc?: string): CursorStyle { //!<
 	return typeof val === 'string' ?
 		CursorStyle[toCapitalize(val)] || 0 : val in CursorStyle ? val: 0;
-}
-
-export function parseFindDirection(val: FindDirectionIn, desc?: string): FindDirection { //!<
-	return typeof val === 'string' ?
-		FindDirection[toCapitalize(val)] || 0 : val in FindDirection ? val: 0;
 }
 
 export function parseCascadeColor(val: CascadeColorIn, desc?: string): CascadeColor { //!<

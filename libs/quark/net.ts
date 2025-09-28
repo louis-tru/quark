@@ -636,8 +636,8 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 			parser.add(headerBuf.slice(index+4)); // skip \r\n\r\n
 		}, '-1');
 
-		this.socket.onClose.once(()=>
-			this.triggerError(Error.new(errno.ERR_WS_HANDSHAKE_FAIL)), '-1');
+		this.socket.onClose.on(()=>this.triggerError(Error.new(errno.ERR_WS_HANDSHAKE_FAIL)), '-1');
+		this.socket.onClose.setLifespan('-1');
 		await self.socket.write(headerStr);
 	}
 
@@ -652,7 +652,8 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	*/
 	connect() {
 		if (!this.socket.isConnecting) {
-			this.socket.onOpen.once(()=>this.connect1().catch(console.error), '-1');
+			this.socket.onOpen.on(()=>this.connect1().catch(console.error), '-1');
+			this.socket.onOpen.setLifespan('-1');
 			this.socket.connect();
 		}
 	}
@@ -776,7 +777,7 @@ export class WebSocket extends Notification<WSocketEvent> implements Stream {
 	async test(timeoutMs?: Uint): Promise<void> {
 		await this.ping();
 		const promise = new Promise<void>((resolve)=>{
-			this.onPong.once(()=>resolve());
+			this.onPong.setLifespan(this.onPong.on(()=>resolve()));
 		});
 		if (timeoutMs)
 			await utils.timeout(promise, timeoutMs);

@@ -43,14 +43,14 @@ namespace qk {
 
 	StyleSheets::~StyleSheets() {
 		for (auto i: _props)
-			delete i.value;
+			delete i.second;
 	}
 
 	void StyleSheets::apply(View *view, bool isRt) const {
 		Qk_ASSERT(view);
 		if (_props.length()) {
 			for ( auto i: _props ) {
-				i.value->apply(view, isRt);
+				i.second->apply(view, isRt);
 			}
 		}
 	}
@@ -59,14 +59,14 @@ namespace qk {
 		Qk_ASSERT(view);
 		if (isRt) {
 			for ( auto i: _props ) {
-				i.value->fetch(view);
+				i.second->fetch(view);
 			}
 		} else {
 			auto win = getWindowForAsyncSet();
 			if (win) {
 				win->preRender().async_call([](auto self, auto arg) {
 					for ( auto i: self->_props ) {
-						i.value->fetch(arg.arg);
+						i.second->fetch(arg.arg);
 					}
 				}, this, view);
 			}
@@ -79,7 +79,7 @@ namespace qk {
 			auto a = _props.begin(), e = _props.end();
 			auto b = to->_props.begin();
 			while (a != e) {
-				a->value->transition(view, b->value, y);
+				a->second->transition(view, b->second, y);
 				a++; b++;
 			}
 		}
@@ -115,9 +115,9 @@ namespace qk {
 
 	CStyleSheets::~CStyleSheets() {
 		for ( auto i : _substyles )
-			Release(i.value);
+			Release(i.second);
 		for ( auto i : _extends )
-			Release(i.value);
+			Release(i.second);
 		Releasep(_normal);
 		Releasep(_hover);
 		Releasep(_active);
@@ -129,7 +129,7 @@ namespace qk {
 
 	cCStyleSheets* CStyleSheets::find(cCSSCName &name) const {
 		auto i = _substyles.find(name.hashCode());
-		return i == _substyles.end() ? nullptr : i->value;
+		return i == _substyles.end() ? nullptr : i->second;
 	}
 
 	CStyleSheets* CStyleSheets::findAndMake(cCSSCName &name, CSSType type, bool isExtend, bool make) {
@@ -206,7 +206,7 @@ namespace qk {
 			if ( e.isEmpty() ) continue;
 			if ( e[0] != '.' ) Qk_InvalidCss(exp);
 
-			for ( auto n: e.split('.') ) { // .div_cls.div_cls2
+			for ( auto &n: e.split('.') ) { // .div_cls.div_cls2
 				if ( n.isEmpty() ) continue;
 				auto type = kNone_CSSType;
 				auto k = n.split(':'); // .div_cls:hover

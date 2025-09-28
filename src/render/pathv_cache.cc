@@ -249,12 +249,12 @@ namespace qk {
 
 	void PathvCache::clearAll(bool immediately) {
 		for (auto &i: _NormalizedPathCache) {
-			Release(i.value);
+			Release(i.second);
 		}
 		_NormalizedPathCache.clear();
 
 		for (auto &i: _StrokePathCache) {
-			Release(i.value);
+			Release(i.second);
 		}
 		_StrokePathCache.clear();
 
@@ -267,23 +267,23 @@ namespace qk {
 		// Must be called after rendering is complete
 		Cb afterClear([render,a0,a1,b,c](auto &e) {
 			for (auto &i: *a0) {
-				render->deleteVertexData(i.value->id);
-				delete i.value;
+				render->deleteVertexData(i.second->id);
+				delete i.second;
 			}
 			for (auto &i: *a1) {
-				render->deleteVertexData(i.value->id);
-				delete i.value;
+				render->deleteVertexData(i.second->id);
+				delete i.second;
 			}
 			for (auto &i: *b) {
-				render->deleteVertexData(i.value->id);
-				delete i.value;
+				render->deleteVertexData(i.second->id);
+				delete i.second;
 			}
 			for (auto &i: *c) {
-				render->deleteVertexData(i.value->id);
-				render->deleteVertexData(i.value->id+1);
-				render->deleteVertexData(i.value->id+2);
-				render->deleteVertexData(i.value->id+3);
-				delete i.value;
+				render->deleteVertexData(i.second->id);
+				render->deleteVertexData(i.second->id+1);
+				render->deleteVertexData(i.second->id+2);
+				render->deleteVertexData(i.second->id+3);
+				delete i.second;
 			}
 			Release(a0);
 			Release(a1);

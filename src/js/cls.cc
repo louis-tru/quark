@@ -67,13 +67,13 @@ namespace qk { namespace js {
 
 	JsClasses::~JsClasses() {
 		for ( auto i : _jsclass ) {
-			delete i.value;
+			delete i.second;
 		}
 	}
 
 	void JsClasses::destroy() {
 		for ( auto i : _jsclass ) {
-			i.value->destroy();
+			i.second->destroy();
 		}
 	}
 

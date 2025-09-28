@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	Button* Button::next_button(FindDirection dir) {
+	Button* Button::next_button(Direction dir) {
 		return nullptr;
 	}
 

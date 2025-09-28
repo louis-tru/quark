@@ -64,6 +64,13 @@ namespace qk {
 	template<> Qk_EXPORT uint64_t Compare<double>::hashCode(const double& key);
 	template<> Qk_EXPORT uint64_t Compare<bool>::hashCode(const bool& key);
 
+	// std::tuple / std::pair
+	// template<typename... T> struct Tuple {};
+	template<typename F, typename S> struct Pair {
+		F first;
+		S second;
+	};
+
 	/**
 	 * @class Dict hash table
 	 */
@@ -73,13 +80,10 @@ namespace qk {
 	>
 	class Dict: public Object {
 	public:
-		struct Pair {
-			Key   key;
-			Value value;
-		};
+		typedef Pair<Key, Value> Pair;
 
 		struct Node {
-			typedef Dict::Pair Data;
+			typedef Pair Data;
 			typedef const Data cData;
 			inline Node* prev() const { return _prev; }
 			inline Node* next() const { return _next; }
@@ -185,7 +189,7 @@ namespace qk {
 		init_();
 		if (list.size()) {
 			for (auto& i: list)
-				set(std::move(i.key), std::move(i.value));
+				set(std::move(i.first), std::move(i.second));
 		}
 	}
 
@@ -199,7 +203,7 @@ namespace qk {
 		clear();
 		if (dict._length) {
 			for (auto& i: dict)
-				set(i.key, i.value);
+				set(i.first, i.second);
 		}
 		return *this;
 	}
@@ -262,7 +266,7 @@ namespace qk {
 	Array<K> Dict<K, V, C, A>::keys() const {
 		Array<K> ls;
 		for (auto& i: *this)
-			ls.push(i.key);
+			ls.push(i.first);
 		Qk_ReturnLocal(ls);
 	}
 
@@ -270,91 +274,91 @@ namespace qk {
 	Array<V> Dict<K, V, C, A>::values() const {
 		Array<V> ls;
 		for (auto& i: *this)
-			ls.push(i.value);
+			ls.push(i.second);
 		Qk_ReturnLocal(ls);
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::get(const K& k, const V* &out) const {
 		auto node = find_(k);
-		return node ? (out = &node->data().value, true): false;
+		return node ? (out = &node->data().second, true): false;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::get(const K& k, V &out) const {
 		auto node = find_(k);
-		return node ? (out = node->data().value, true): false;
+		return node ? (out = node->data().second, true): false;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::get(const K& k, V* &out) {
 		auto node = const_cast<Node*>(find_(k));
-		return node ? (out = &node->data().value, true): false;
+		return node ? (out = &node->data().second, true): false;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(const K& key) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->key) K(key);
-			new(&pair->value) V();
+			new(&pair->first) K(key);
+			new(&pair->second) V();
 		}
-		return pair->value;
+		return pair->second;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::get(K&& key) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->key) K(std::move(key));
-			new(&pair->value) V();
+			new(&pair->first) K(std::move(key));
+			new(&pair->second) V();
 		}
-		return pair->value;
+		return pair->second;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, const V& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->key) K(key); new(&pair->value) V(value);
+			new(&pair->first) K(key); new(&pair->second) V(value);
 		} else {
-			pair->value = value;
+			pair->second = value;
 		}
-		return pair->value;
+		return pair->second;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(const K& key, V&& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->key) K(key);
-			new(&pair->value) V(std::move(value));
+			new(&pair->first) K(key);
+			new(&pair->second) V(std::move(value));
 		} else {
-			pair->value = std::move(value);
+			pair->second = std::move(value);
 		}
-		return pair->value;
+		return pair->second;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, const V& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->key) K(std::move(key)); new(&pair->value) V(value);
+			new(&pair->first) K(std::move(key)); new(&pair->second) V(value);
 		} else {
-			pair->value = value;
+			pair->second = value;
 		}
-		return pair->value;
+		return pair->second;
 	}
 
 	template<typename K, typename V, typename C, typename A>
 	V& Dict<K, V, C, A>::set(K&& key, V&& value) {
 		Pair* pair;
 		if (make_(key, &pair)) {
-			new(&pair->key) K(std::move(key)); new(&pair->value) V(std::move(value));
+			new(&pair->first) K(std::move(key)); new(&pair->second) V(std::move(value));
 		} else {
-			pair->value = std::move(value);
+			pair->second = std::move(value);
 		}
-		return pair->value;
+		return pair->second;
 	}
 
 	template<typename K, typename V, typename C, typename A>

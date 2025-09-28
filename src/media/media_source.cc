@@ -162,7 +162,7 @@ namespace qk {
 		thread_abort(); // abort thread
 		auto lock = _cm.scope_lock();
 		for (auto& i : _extractors ) {
-			i.value->release();
+			i.second->release();
 		}
 		_video_ex = _audio_ex = nullptr;
 	}
@@ -219,7 +219,7 @@ namespace qk {
 		auto lock = _cm.scope_lock();
 		auto it = _extractors.find(type);
 		if (it != _extractors.end()) {
-			auto ex = it->value;
+			auto ex = it->second;
 			if (ex == _video_ex) {
 				_video_ex = nullptr;
 			} else if (ex == _audio_ex) {
@@ -237,13 +237,13 @@ namespace qk {
 		_status = kNormal_MediaSourceStatus;
 
 		for (auto i : _extractors) {
-			i.value->flush();
+			i.second->flush();
 		}
 	}
 
 	bool Inl::advance_eof() {
 		for (auto i : _extractors) {
-			if (i.value->_pkt != i.value->_packets.end())
+			if (i.second->_pkt != i.second->_packets.end())
 				return false;
 		}
 		return true;
@@ -272,7 +272,7 @@ namespace qk {
 		}
 
 		for ( auto i: _extractors ) {
-			auto ex = i.value;
+			auto ex = i.second;
 			Array<Stream> streams;
 
 			for (auto &s: _programs[index].streams) {
@@ -406,7 +406,7 @@ namespace qk {
 				if (_seek < _duration) {
 					_cm.lock();
 					for (auto i : _extractors)
-						i.value->flush();
+						i.second->flush();
 					_cm.unlock();
 
 					auto idx = _video_ex ? _video_ex->stream().index:
@@ -465,7 +465,7 @@ namespace qk {
 	void Inl::flush() {
 		auto lock = _cm.scope_lock();
 		for (auto i: _extractors) {
-			auto ex = i.value;
+			auto ex = i.second;
 			if (ex->_pkt != ex->_packets.end()) {
 				auto pts = (*ex->_pkt)->pts;
 				if (pts) {
@@ -475,7 +475,7 @@ namespace qk {
 			}
 		}
 		for (auto i: _extractors) {
-			i.value->flush();
+			i.second->flush();
 		}
 	}
 
@@ -486,9 +486,9 @@ namespace qk {
 				return false;
 			}
 			for (auto i: _extractors) {
-				if (!seek_ex(timeUs, i.value)) {
+				if (!seek_ex(timeUs, i.second)) {
 					for (auto i: _extractors) {
-						i.value->flush();
+						i.second->flush();
 					}
 					_seek = Qk_Max(1, timeUs); // seek core
 					_cm.cond.notify_one(); // thread resume

@@ -47,7 +47,7 @@ namespace qk {
 			{ "ucs4", kUCS4_Encoding },
 		});
 		auto i = encodings_dict.find(encoding.toLowerCase());
-		return i == encodings_dict.end() ? Encoding::kInvalid_Encoding : i->value;
+		return i == encodings_dict.end() ? Encoding::kInvalid_Encoding : i->second;
 	}
 
 	String codec_encoding_string(Encoding encoding) {
@@ -64,7 +64,7 @@ namespace qk {
 			{ kUCS4_Encoding, "ucs4" },
 		});
 		auto i = strs.find((uint32_t)encoding);
-		return i == strs.end() ? invalid: i->value;
+		return i == strs.end() ? invalid: i->second;
 	}
 
 	// --------------------- U T F 8 ---------------------

@@ -28,13 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./net.h"
-#include "./http.h"
-#include "./fs.h"
-#include "../version.h"
-#include <http_parser.h>
-#include <zlib.h>
-#include <uv.h>
+#include "../http.h"
+#include "../uv.h"
 
 namespace qk {
 
@@ -202,8 +197,7 @@ namespace qk {
 		return 1;
 	}
 
-	String inl__uri_encode(cString& url, bool component, bool secondary) {
-		
+	String uri_encode(cString& url, bool component, bool secondary) {
 		uint8_t ch = 0;
 		int len = url.length();
 		cChar* src = *url;
@@ -243,7 +237,7 @@ namespace qk {
 	}
 
 	String URI::encode(cString &url, bool component) {
-		return inl__uri_encode(url, component, false);
+		return uri_encode(url, component, false);
 	}
 
 	String URI::decode(cString& url) {

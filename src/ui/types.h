@@ -64,12 +64,17 @@ namespace qk {
 
 	// ---------------- F l e x . F l o w ----------------
 
-	// view direction
+	// View direction
 	enum class Direction: uint8_t {
+		None,
 		Row,
 		RowReverse,
 		Column,
 		ColumnReverse,
+		Left = Row,
+		Right = RowReverse,
+		Top = Column,
+		Bottom = ColumnReverse,
 	};
 
 	// 项目在主轴上的对齐方式
@@ -85,10 +90,10 @@ namespace qk {
 
 	// 项目在交叉轴内如何对齐
 	enum class CrossAlign: uint8_t {
-		Start = 1, // 与交叉轴内的起点对齐
-		Center, // 与交叉轴内的中点对齐
-		End, // 与交叉轴内的终点对齐
-		Both, // 与交叉轴内的两端对齐
+		Start = 1, // 与交叉轴内的起点对齐 @Align.Start
+		Center, // 与交叉轴内的中点对齐 @Align.Center
+		End, // 与交叉轴内的终点对齐 @Align.End
+		Both, // 与交叉轴内的两端对齐 @Align.Both
 	};
 
 	// 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
@@ -253,16 +258,6 @@ namespace qk {
 		ContextualMenu,
 		IbeamForVertical,
 		Cross,
-	};
-
-	// ----------------------------------------------------------------
-
-	enum class FindDirection: uint8_t {
-		None,
-		Left,
-		Top,
-		Right,
-		Bottom,
 	};
 
 	// ----------------------------------------------------------------

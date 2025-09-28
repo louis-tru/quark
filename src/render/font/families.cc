@@ -61,7 +61,7 @@ namespace qk {
 			AutoSharedMutexShared ama(*_pool->_Mutex);
 			auto it = _typefaces.find(style);
 			if (it != _typefaces.end()) {
-				return it->value;
+				return it->second;
 			}
 		}
 		Array<Sp<Typeface>> arr;

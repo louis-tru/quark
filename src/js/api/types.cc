@@ -117,15 +117,12 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const TouchPoint& val) {
 		auto rv = worker->newObject();
-		auto view = MixObject::mix(val.view);
 		rv->set(worker,worker->strs()->id(), worker->newValue(val.id));
-		rv->set(worker,worker->strs()->startX(), worker->newValue(val.start_x));
-		rv->set(worker,worker->strs()->startY(), worker->newValue(val.start_y));
-		rv->set(worker,worker->strs()->x(), worker->newValue(val.x));
-		rv->set(worker,worker->strs()->y(), worker->newValue(val.y));
+		rv->set(worker,worker->strs()->startLocation(), jsvalue(val.start_location));
+		rv->set(worker,worker->strs()->location(), jsvalue(val.location));
 		rv->set(worker,worker->strs()->force(), worker->newValue(val.force));
 		rv->set(worker,worker->strs()->clickIn(), worker->newBool(val.click_in));
-		rv->set(worker,worker->strs()->view(), view->handle());
+		rv->set(worker,worker->strs()->view(), MixObject::mix(val.view)->handle());
 		return rv;
 	}
 
@@ -481,10 +478,6 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const CursorStyle& value) {
-		return worker->newValue((uint32_t)value);
-	}
-
-	JSValue* TypesParser::jsvalue(const FindDirection& value) {
 		return worker->newValue((uint32_t)value);
 	}
 
@@ -1058,12 +1051,6 @@ namespace qk { namespace js {
 	bool TypesParser::parse(JSValue* in, CursorStyle& out, cChar* desc) {
 		js_parse(CursorStyle, {
 			out = (CursorStyle)obj->toUint32(worker)->value();
-		});
-	}
-
-	bool TypesParser::parse(JSValue* in, FindDirection& out, cChar* desc) {
-		js_parse(FindDirection, {
-			out = (FindDirection)obj->toUint32(worker)->value();
 		});
 	}
 

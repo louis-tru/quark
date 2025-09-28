@@ -63,8 +63,7 @@ namespace qk { namespace js {
 				auto num = val->template cast<JSInt32>()->value();
 				self->return_value = num;
 			});
-
-			cls->exports("NativeEvent", exports);
+			// cls->exports("NativeEvent", exports);
 		}
 	};
 
@@ -74,13 +73,12 @@ namespace qk { namespace js {
 			Js_Define_Class(UIEvent, NativeEvent, {
 				Js_Throw("Access forbidden.");
 			});
+			Js_Class_Accessor_Get(timestamp, {
+				Js_Return( self->timestamp() );
+			});
 
 			Js_Class_Accessor_Get(origin, {
 				Js_Return(self->origin());
-			});
-
-			Js_Class_Accessor_Get(timestamp, {
-				Js_Return( self->timestamp() );
 			});
 
 			Js_Class_Accessor_Get(isDefault, {
@@ -180,11 +178,8 @@ namespace qk { namespace js {
 			Js_Define_Class(ClickEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Class_Accessor_Get(x, {
-				Js_Return( self->x() );
-			});
-			Js_Class_Accessor_Get(y, {
-				Js_Return( self->y() );
+			Js_Class_Accessor_Get(location, {
+				Js_Return( worker->types()->jsvalue(self->location()) );
 			});
 			Js_Class_Accessor_Get(count, {
 				Js_Return( self->count() );
@@ -215,11 +210,8 @@ namespace qk { namespace js {
 			Js_Define_Class(MouseEvent, KeyEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Class_Accessor_Get(x, {
-				Js_Return( self->x() );
-			});
-			Js_Class_Accessor_Get(y, {
-				Js_Return( self->y() );
+			Js_Class_Accessor_Get(location, {
+				Js_Return( worker->types()->jsvalue(self->location()) );
 			});
 			cls->exports("MouseEvent", exports);
 		}

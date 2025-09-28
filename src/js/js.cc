@@ -397,7 +397,7 @@ namespace js {
 		auto rev = newObject();
 		{ HandleScope scope(this);
 			for (auto& i : data)
-				rev->set(this, newStringOneByte(i.key), newValue(i.value));
+				rev->set(this, newStringOneByte(i.first), newValue(i.second));
 		}
 		return rev;
 	}

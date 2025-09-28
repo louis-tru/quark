@@ -28,10 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./error.h"
-#include "./fs.h"
+#include "../error.h"
+#include "../fs.h"
 #include <uv.h>
-
 #if Qk_WIN
 #include <io.h>
 #include <direct.h>

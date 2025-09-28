@@ -103,8 +103,10 @@ namespace qk {
 			ScopeLock lock(*__threads_mutex);
 			Qk_CHECK(_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 			clear(); // clear all
-			Qk_ASSERT_EQ(nullptr, _uv_loop->closing_handles);
 
+			if (_uv_loop->closing_handles) {
+				Qk_DLog("The handle is still being closed and will be closed on the next run of the loop");
+			}
 			if (__work_loop == this) {
 				__work_loop = nullptr;
 			}
@@ -277,20 +279,20 @@ namespace qk {
 		}
 
 		for (auto &i: timers) {
-			auto timer = (timer_t*)(i.value);
+			auto timer = (timer_t*)(i.second);
 			_this->timer_stop(timer);
 			Qk_DLog("RunLoop::clear(), discard timer %p", timer);
 		}
 
 		for (auto &i: checks) {
-			auto check = (check_t*)(i.value);
+			auto check = (check_t*)(i.second);
 			check->stop_check();
 			Qk_DLog("RunLoop::clear(), discard check %p", check);
 		}
 
 		for (auto& i: works) {
-			Qk_DLog("RunLoop::clear(), discard work %p", i.value);
-			Qk_ASSERT_EQ(0, uv_cancel((uv_req_t*)&i.value->uv_req));
+			Qk_DLog("RunLoop::clear(), discard work %p", i.second);
+			Qk_ASSERT_EQ(0, uv_cancel((uv_req_t*)&i.second->uv_req));
 		}
 	}
 
@@ -330,10 +332,10 @@ namespace qk {
 		post(cb, true);
 	}
 
-	uint32_t RunLoop::timer(Cb cb, uint64_t time, int64_t repeat) {
+	uint32_t RunLoop::timer(Cb cb, uint64_t timeMs, int64_t repeat) {
 		auto timer = new timer_t;
 		timer->timer_cb = nullptr;
-		timer->timeout = time / 1000;
+		timer->timeout = timeMs;
 		timer->data = this;
 		timer->id = getId32();
 		timer->repeatCount = repeat;

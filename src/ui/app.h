@@ -149,7 +149,7 @@ namespace qk {
 	private:
 		static Application *_shared;   //! current shared application
 		List<Window*>  _windows; // window list
-		Mutex          _mutex;
+		Mutex          _mutex, _delayTasksMutex;
 		uint32_t       _tick; // tick check id
 		List<Pair<Cb, int>> _delayTasks; // delay tasks
 

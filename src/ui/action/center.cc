@@ -40,7 +40,7 @@ namespace qk {
 	ActionCenter::~ActionCenter() {
 		auto it0 = _CSSTransitions_Rt.begin();
 		while (it0 != _CSSTransitions_Rt.end()) {
-			removeCSSTransition_Rt(reinterpret_cast<View*>((it0++)->key));
+			removeCSSTransition_Rt(reinterpret_cast<View*>((it0++)->first));
 		}
 		auto it = _actions_Rt.begin();
 		while (it != _actions_Rt.end()) {
@@ -60,7 +60,7 @@ namespace qk {
 	void ActionCenter::removeCSSTransition_Rt(View *view) {
 		auto it = _CSSTransitions_Rt.find(uint64_t(view));
 		if (it != _CSSTransitions_Rt.end()) {
-			for (auto act: it->value) {
+			for (auto act: it->second) {
 				act->stop_Rt();
 				act->release_inner_Rt();
 			}

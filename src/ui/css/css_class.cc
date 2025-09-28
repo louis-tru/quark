@@ -51,7 +51,7 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
-		Qk_DLog("set class: %s", name.join(" ").c_str());
+		// Qk_DLog("set class: %s", name.join(" ").c_str());
 		_async_call([](auto ctx, auto val) {
 			Sp<Array<String>> valp(val.arg);
 			ctx->_nameHash_Rt.clear();
@@ -148,7 +148,7 @@ namespace qk {
 	void CStyleSheetsClass::applyFindSubstyle_Rt(CStyleSheets *ss) {
 		for (auto &n: _nameHash_Rt) {
 			qk::CStyleSheets *sss;
-			if (ss->_substyles.get(n.key, sss)) {
+			if (ss->_substyles.get(n.first, sss)) {
 				applyStyle_Rt(sss);
 			}
 		}
@@ -216,8 +216,8 @@ namespace qk {
 
 		if (css->_extends.length()) { // apply extend
 			for (auto &i: css->_extends) { // test right extend
-				if (_nameHash_Rt.has(i.key)) { // test ok
-					applyStyle_Rt(i.value);
+				if (_nameHash_Rt.has(i.first)) { // test ok
+					applyStyle_Rt(i.second);
 				}
 			}
 		}

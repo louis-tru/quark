@@ -106,7 +106,7 @@ Qk_TEST_Func(map) {
 	int j = 0;
 	
 	for (; i != end; i++) {
-		Qk_Log(i->value);
+		Qk_Log(i->second);
 		Qk_Log(j);
 		j++;
 	}
@@ -114,14 +114,14 @@ Qk_TEST_Func(map) {
 	Dict<String, String> map2(std::move(map));
 	
 	for ( i = map.begin(); i != end; i++) {
-		Qk_Log(i->value);
+		Qk_Log(i->second);
 	}
 	
 	i = map2.begin();
 	end = map2.end();
 	
 	for ( ; i != end; i++) {
-		Qk_Log(i->value);
+		Qk_Log(i->second);
 	}
 	
 	map2 = map;

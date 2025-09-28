@@ -551,6 +551,8 @@ namespace qk {
 			if (_props.get(key, prop)) {
 				auto p = static_cast<PropImpl<BoxFilter*>*>(prop);
 				p->_value = BoxFilter::assign(p->_value, value, nullptr, isRt);
+				if (value)
+					p->_value->mark_public();
 			} else if (value) {
 				auto filter = BoxFilter::assign(nullptr, value, nullptr, isRt); // copy filter
 				filter->mark_public();

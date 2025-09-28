@@ -109,7 +109,7 @@ namespace qk {
 	public:
 		UIEvent(View *origin, SendData data = nullptr);
 		Qk_DEFINE_PROP_GET(View*, origin);
-		Qk_DEFINE_PROP_GET(uint64_t, timestamp, Const);
+		Qk_DEFINE_PROP_GET(int64_t, timestamp, Const); // Unit milliseconds
 		inline bool is_default() const { return return_value & kDefault_ReturnValueMask; }
 		inline bool is_bubble() const { return return_value & kBubble_ReturnValueMask; }
 		inline void cancel_default() { return_value &= ~kDefault_ReturnValueMask; }
@@ -160,9 +160,8 @@ namespace qk {
 		enum Type {
 			kTouch = 1, kKeyboard = 2, kMouse = 3
 		};
-		ClickEvent(View* origin, float x, float y, Type type, uint32_t count = 1);
-		Qk_DEFINE_PROP_GET(float, x, Const);
-		Qk_DEFINE_PROP_GET(float, y, Const);
+		ClickEvent(View* origin, Vec2 location, Type type, uint32_t count = 1);
+		Qk_DEFINE_PROP_GET(Vec2, location, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, count, Const);
 		Qk_DEFINE_PROP_GET(Type, type, Const);
 	};
@@ -172,11 +171,10 @@ namespace qk {
 	*/
 	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
-		MouseEvent(View* origin, float x, float y, KeyboardKeyCode keycode, int keypress,
+		MouseEvent(View* origin, Vec2 location, KeyboardKeyCode keycode, int keypress,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		Qk_DEFINE_PROP_GET(float, x, Const);
-		Qk_DEFINE_PROP_GET(float, y, Const);
+		Qk_DEFINE_PROP_GET(Vec2, location, Const);
 	};
 
 	/**
@@ -200,13 +198,17 @@ namespace qk {
 	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
-			float    start_x, start_y;
-			float    x, y, force;
-			bool     click_in;
-			View   *view;
+			Vec2    start_location; // start location
+			Vec2    location; 	// current location
+			float   force; // touch force
+			bool    click_in; // Click on the valid range
+			View   *view; // init view when touchstart
 		};
 		TouchEvent(View* origin, Array<TouchPoint>& touches);
-		cArray<TouchPoint>& changed_touches() const { return _change_touches; }
+		cArray<TouchPoint>& changed_touches() const {
+			return _change_touches;
+		}
+		void release() override;
 	private:
 		Array<TouchPoint> _change_touches;
 	};
@@ -256,12 +258,12 @@ namespace qk {
 		void touchstartErase(View *view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);
 		void touchmove(List<TouchPoint>& in);
-		void touchend(List<TouchPoint>& in, cUIEventName& type);
+		void touchend(List<TouchPoint>& in, bool isCancel);
 		void mousemove(View* view, Vec2 pos);
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
 		View* find_receive_view_exec(View *view, Vec2 pos);
 		View* find_receive_view_and_retain(Vec2 pos);
-		Sp<MouseEvent> NewMouseEvent(View *view, float x, float y, KeyboardKeyCode keycode);
+		Sp<MouseEvent> NewMouseEvent(View *view, Vec2 location, KeyboardKeyCode keycode);
 		Sp<View> safe_focus_view();
 
 		class OriginTouche;
