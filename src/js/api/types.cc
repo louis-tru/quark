@@ -121,7 +121,7 @@ namespace qk { namespace js {
 		rv->set(worker,worker->strs()->startLocation(), jsvalue(val.start_location));
 		rv->set(worker,worker->strs()->location(), jsvalue(val.location));
 		rv->set(worker,worker->strs()->force(), worker->newValue(val.force));
-		rv->set(worker,worker->strs()->clickIn(), worker->newBool(val.click_in));
+		// rv->set(worker,worker->strs()->clickIn(), worker->newBool(val.click_in));
 		rv->set(worker,worker->strs()->view(), MixObject::mix(val.view)->handle());
 		return rv;
 	}

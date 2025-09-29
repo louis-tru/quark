@@ -105,12 +105,12 @@ export enum GestureStage {
 */
 export enum GestureType {
 	Gesture, // Base
-	Swipe, // Swipe, Flick, 1 finger gesture
-	Pan, // Pan, Drag, 1 finger gesture
-	Pinch, // Pinch, Zoom, 2 finger gesture
-	Rotate, // Rotate, Twist 2 finger gesture
-	ThreeFinger, // 3 finger gesture
-	FourFinger, // 4 finger gesture
+	SwipeGesture, // Swipe, Flick, 1 finger gesture
+	PanGesture, // Pan, Drag, 1 finger gesture
+	PinchGesture, // Pinch, Zoom, 2 finger gesture
+	RotateGesture, // Rotate, Twist 2 finger gesture
+	ThreeFingerGesture, // 3 finger gesture
+	FourFingerGesture, // 4 finger gesture
 }
 
 /**
@@ -228,10 +228,6 @@ export interface TouchPoint {
 	readonly location: Vec2;
 	/** touchpoint pressure strength, value range [0-1] */
 	readonly force: number;
-	/** Whether the touchpoint is still within the click range.
-	 * If the touchpoint is within the click range when it is pressed,
-	 * the touchpoint may move out of the range later. */
-	readonly clickIn: boolean;
 	/** The initial view of the touchpoint */
 	readonly view: View;
 }
@@ -256,7 +252,6 @@ export class GestureTouchPoint implements TouchPoint {
 	get location() { return this.touch.location; }
 	get startLocation() { return this.touch.startLocation; }
 	get force() { return this.touch.force; }
-	get clickIn() { return this.touch.clickIn; }
 	get view() { return this.touch.view; }
 
 	/**
@@ -314,7 +309,7 @@ export class GestureTouchPoint implements TouchPoint {
 */
 export class GestureEvent extends Event<View> implements UIEvent {
 	// implement UIEvent
-	get origin(): View { return this.sender; }
+	readonly origin: View;
 	readonly timestamp: Int;
 	readonly isDefault: boolean = true;
 	readonly isBubble: boolean = false; // Never bubble
@@ -325,7 +320,7 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	readonly rejected: boolean = false;
 	/* Expected number of touch points for the gesture event */
 	private _expectedFingerCount = 1; // expected finger count
-	private _swipeDistance = 50; // swipe trigger distance in points, pt
+	private _swipeDistance = 50; // swipe trigger distance in points, pt = px * window.defaultScale
 	private _swipeVelocity = 500; // swipe trigger velocity in points per second, pt/s
 
 	/** Get or set the expected number of touch points for the gesture event */
@@ -352,13 +347,13 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	readonly stage: GestureStage = GestureStage.Start;
 	/** The gesture initial distance */
 	readonly initDistance: Vec2 = newVec2(0, 0);
-	/** The gesture initial speed, in pt per second */
+	/** The gesture initial speed, in dp per second */
 	readonly initVelocity: Vec2 = newVec2(0, 0);
 	/** The gesture movement distance */
 	readonly distance: Vec2 = newVec2(0, 0);
-	/** The gesture speed, in pt per second */
+	/** The gesture speed, in dp per second */
 	readonly velocity: Vec2 = newVec2(0, 0);
-	/** The gesture speed in the last frame, in pt per second */
+	/** The gesture speed in the last frame, in dp per second */
 	readonly lastVelocity: Vec2 = newVec2(0, 0);
 	/** The gesture touch points */
 	readonly touchs: GestureTouchPoint[] = [];
@@ -373,14 +368,14 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	get length() { return this.touchs.length; }
 
 	/**
-	 * Get the initial oblique velocity of the gesture, in pt per second
+	 * Get the initial oblique velocity of the gesture, in dp per second
 	*/
 	get initObliqueVelocity(): number {
 		return GestureEvent.computeObliqueVelocity(this.initVelocity, this.initDistance);
 	}
 
 	/**
-	 * Get the oblique velocity of the gesture, in pt per second
+	 * Get the oblique velocity of the gesture, in dp per second
 	*/
 	get obliqueVelocity(): number {
 		return GestureEvent.computeObliqueVelocity(this.velocity, this.distance);
@@ -390,8 +385,9 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	 * @param id The gesture context number id
 	 * @param timestamp The gesture start timestamp, in milliseconds
 	*/
-	constructor(id: number, timestamp: Int) {
+	constructor(origin: View, id: number, timestamp: Int) {
 		super(void 0);
+		this.origin = origin;
 		this.id = id;
 		this.startTimestamp = this.timestamp = timestamp;
 	}
@@ -451,10 +447,11 @@ export class GestureEvent extends Event<View> implements UIEvent {
 			const ptScale = this.origin.window.scale / this.origin.window.defaultScale;
 			if (this.initObliqueVelocity * ptScale >= this._swipeVelocity &&
 					this.initDistance.length() * ptScale >= this._swipeDistance) {
-				const angle = this.initDistance.angle() % PIHalf; // [0, PIHalf)
-				if (angle > PIHalfHalf && angle < 3 * PIHalfHalf) {
+				let angle = (this.initDistance.angle() + PIHalfHalf) % PIHalf; // [0, PIHalf)
+				if (angle < 0)
+					angle += PIHalf;
+				if (angle > PIHalf * 0.2 && angle < 0.8 * PIHalf)
 					return true;
-				}
 			}
 		}
 		return false;
@@ -499,11 +496,10 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	}
 
 	/**
-	 * Get the angle of the first two touch points in radians
-	 * (the angle of the line between the first two points and the x-axis)
-	 * If there are less than two touch points, 0 is returned
+	 * Get the relative rotation angle (radians or degree) between two touch points.
+	 * Positive = counter-clockwise, Negative = clockwise.
 	*/
-	angle(): number {
+	rotation(isDegree: boolean): number {
 		if (this.length < 2)
 			return 0;
 		const start = this.touchs[0].startLocation.angleTo(this.touchs[1].startLocation);
@@ -514,25 +510,7 @@ export class GestureEvent extends Event<View> implements UIEvent {
 			delta -= 2 * Math.PI;
 		else if (delta < -Math.PI)
 			delta += 2 * Math.PI;
-		return delta;
-	}
-
-	/**
-	 * Get the angle of the first two touch points in degrees
-	 * If there are less than two touch points, 0 is returned
-	*/
-	angleInDegrees(): number {
-		return this.angle() / PIDegree;
-	}
-
-	/**
-	 * Get the direction of the first two touch points
-	 * If there are less than two touch points, Direction.None is returned
-	*/
-	direction(): Direction {
-		if (this.length < 2)
-			return Direction.None;
-		return this.touchs[1].location.sub(this.touchs[0].location).direction();
+		return isDegree ? delta / PIDegree: delta;
 	}
 
 	/**
@@ -545,6 +523,15 @@ export class GestureEvent extends Event<View> implements UIEvent {
 		const start = this.touchs[1].startLocation.sub(this.touchs[0].startLocation);
 		const end = this.touchs[1].location.sub(this.touchs[0].location);
 		return end.length() / start.length();
+	}
+
+	/**
+	 * Get the distance vector between two touch points
+	*/
+	distanceOfTwoFinger(): Vec2 {
+		if (this.length < 2)
+			return newVec2(0, 0);
+		return this.touchs[1].location.sub(this.touchs[0].location);
 	}
 }
 

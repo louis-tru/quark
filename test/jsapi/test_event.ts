@@ -10,20 +10,15 @@ export default async function (_: any) {
 	Mv(onTest, 'on', [function(e) {
 		LOG("handle on")
 		LOG('data', e.data)
-	}])
+	}, 'once'])
 
-	Mv(onTest, 'once', [function(e) {
-		LOG("handle once")
-	}])
+	Mv(onTest, 'setLifespan', ['once', 1]) // lifespan 1
 
 	Mv(onTest, 'on2', [function(that, e) {
 		LOG("handle on2")
-	}])
+	}, 'once2'])
 
-	Mv(onTest, 'once2', [function(that, e) {
-		LOG("handle once2")
-		e.returnValue = 1
-	}])
+	Mv(onTest, 'setLifespan', ['once2', 1]) // lifespan 1
 
 	Pv(onTest, 'name', 'Test')
 	Pv(onTest, 'length', 4)

@@ -17,9 +17,10 @@ for (var i = 0; i < 1000000; i++) {
 uu.log(2);
 
 for (var i = 1000000; i < 2000000; i++) {
-	onTest.once(function() {
+	onTest.on(function() {
 		// noop
 	}, String(i));
+	onTest.setLifespan(String(i), 1);
 }
 
 uu.log(3);

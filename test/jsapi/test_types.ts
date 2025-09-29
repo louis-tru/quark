@@ -72,7 +72,6 @@ export default async function(_: any) {
 	Mv(v, 'parseKeyboardType', ['numberPad'], v.KeyboardType.NumberPad)
 	Mv(v, 'parseKeyboardReturnType', ['join'], v.KeyboardReturnType.Join)
 	Mv(v, 'parseCursorStyle', ['ibeam'], v.CursorStyle.Ibeam)
-	Mv(v, 'parseFindDirection', ['right'], v.FindDirection.Right)
 	Mv(v, 'parseVec2', [`1 1`], e=>e.x==1&&e.y==1)
 	Mv(v, 'parseVec3', [`1 1 1`], e=>e.x==1&&e.y==1&&e.z==1)
 	Mv(v, 'parseVec4', [`1 1 1 1`], e=>e.x==1&&e.y==1&&e.z==1&&e.w==1)

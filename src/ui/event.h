@@ -198,10 +198,10 @@ namespace qk {
 	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
-			Vec2    start_location; // start location
-			Vec2    location; 	// current location
-			float   force; // touch force
-			bool    click_in; // Click on the valid range
+			Vec2   start_location; // start location
+			Vec2   location; 	// current location
+			float  force; // touch force
+			bool   click_valid; // is valid for click
 			View   *view; // init view when touchstart
 		};
 		TouchEvent(View* origin, Array<TouchPoint>& touches);

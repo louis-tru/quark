@@ -144,12 +144,14 @@ namespace qk {
 
 	enum class BoxSizeKind: uint8_t {
 		None,    /* Do not use value */
-		Auto,    /* 包裹内容 wrap content or auto value */
-		Match,   /* 匹配父视图 match parent */
-		Value,   /* 明确值 dp */
-		// Pixel,   /* 明确值 px */
-		Ratio,   /* 百分比 value % */
-		Minus,   /* 减法(parent-value) value ! */
+		Auto,    /* wrap content or auto value */
+		Match,   /* match parent */
+		Value,   /* Density-independent Pixel, dp = px * window.scale */
+		Dp = Value,/* dp, alias of Value */
+		// Pt,    /* pt, Points, pt = px * window.defaultScale */
+		// Px,   /* px, Pixel */
+		Ratio,   /* value % */
+		Minus,   /* (parent-value) value ! */
 	};
 	typedef FillSizeKind BoxOriginKind;
 

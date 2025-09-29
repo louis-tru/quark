@@ -193,9 +193,11 @@ QkWindowDelegate* WindowImpl::delegate() {
 		// CGFloat angle = touch.altitudeAngle;
 		// CGFloat max_force = touch.maximumPossibleForce;
 		rv.pushBack({
-			uint32_t((size_t)touch % Uint32::limit_max), {0, 0},
+			uint32_t((size_t)touch % Uint32::limit_max),
+			{0, 0},
 			Vec2(point.x * scale_x, point.y * scale_y),
-			float(touch.force), false,
+			float(touch.force),
+			false,
 			nullptr,
 		});
 	}

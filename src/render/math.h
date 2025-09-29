@@ -196,6 +196,11 @@ namespace qk {
 		float length() const;
 
 		/**
+		 * @method lengthSq() returns vector length squared
+		*/
+		float lengthSq() const;
+
+		/**
 		 * @method dot() returns vector inner product
 		*/
 		float dot(const Vec<float,2> b) const;

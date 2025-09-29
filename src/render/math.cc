@@ -173,6 +173,10 @@ namespace qk {
 			return sqrtf( val[0] * val[0] + val[1] * val[1] );
 	}
 
+	float Vec2::lengthSq() const {
+		return val[0] * val[0] + val[1] * val[1];
+	}
+
 	Vec2 Vec2::rotate90z() const {
 		return Vec2{val[1], -val[0]};
 	}

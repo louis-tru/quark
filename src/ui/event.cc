@@ -209,48 +209,32 @@ namespace qk {
 		UIEvent::release();
 	}
 
-	/**
-	 * @class EventDispatch::OriginTouche
-	 */
 	class EventDispatch::OriginTouche {
 	public:
 		~OriginTouche() {
-			_view->release(); // it must release here
+			_origin->release(); // it must release here
 		}
-		static Vec2 position(View* view) {
-			return view->position();
+		View* origin() { return _origin; }
+		// bool is_click_valid() { return _is_click_valid; }
+		// void set_click_invalid() { _is_click_valid = false; }
+		Dict<uint32_t, TouchPoint>& values() { return _touches; }
+		TouchPoint& operator[](uint32_t id) { return _touches[id]; }
+		uint32_t count() { return _touches.length(); }
+		bool has(uint32_t id) { return _touches.has(id); }
+		void del(uint32_t id) { _touches.erase(id); }
+		int click_valid_count() const { return _click_valid_count; }
+		void set_click_valid_count(int delta) { _click_valid_count += delta;
+			Qk_ASSERT(_click_valid_count >= 0);
 		}
-		inline View* view() { return _view; }
-		inline Vec2 view_start_position() { return _start_position; }
-		inline bool is_click_invalid() { return _is_click_invalid; }
-		inline bool is_click_down() { return _is_click_down; }
-		inline void set_click_invalid() {
-			_is_click_invalid = true;
-			_is_click_down = false;
-		}
-		inline void set_is_click_down(bool value) {
-			if ( !_is_click_invalid )
-				_is_click_down = value;
-		}
-		inline Dict<uint32_t, TouchPoint>& values() { return _touches; }
-		inline TouchPoint& operator[](uint32_t id) { return _touches[id]; }
-		inline uint32_t count() { return _touches.length(); }
-		inline bool has(uint32_t id) { return _touches.has(id); }
-		inline void del(uint32_t id) { _touches.erase(id); }
 		static OriginTouche* Make(View* view) {
 			return view->tryRetain_Rt() ? new OriginTouche(view): nullptr;
 		}
 	private:
-		OriginTouche(View* view)
-			: _view(view)
-			, _start_position(position(view))
-			, _is_click_invalid(false), _is_click_down(false)
-		{}
-		View* _view;
+		OriginTouche(View* origin)
+			: _origin(origin), _click_valid_count(0) {}
+		View* _origin;
 		Dict<uint32_t, TouchPoint> _touches;
-		Vec2  _start_position;
-		bool  _is_click_invalid;
-		bool  _is_click_down;
+		int _click_valid_count; // click valid count
 	};
 
 	/**
@@ -272,7 +256,7 @@ namespace qk {
 			Release(_click_view);
 			if (view) {
 				view->retain();
-				_start_position = OriginTouche::position(view);
+				_start_position = view->position();
 			}
 			_click_view = view;
 		}
@@ -363,12 +347,12 @@ namespace qk {
 		if ( view->_receive && in.length() ) {
 			Array<TouchPoint> change_touches;
 
-			for ( auto i = in.begin(), e = in.end(); i != e; ) {
-				if ( view->overlap_test(i->location) ) {
+			for (auto i = in.begin(), e = in.end(); i != e;) {
+				if (view->overlap_test(i->location)) { // hit test
 					TouchPoint& touch = *i;
 					touch.start_location = touch.location;
-					touch.click_in = true;
 					touch.view = view;
+					touch.click_valid = true; // is valid for click
 
 					OriginTouche *out = nullptr;
 					if ( !_origin_touches.get(view, out) ) {
@@ -378,7 +362,7 @@ namespace qk {
 						}
 					}
 					if (out) {
-						out->operator[](touch.id) = touch;
+						(*out)[touch.id] = touch;
 						change_touches.push(touch);
 						in.erase(i++);
 					} else {
@@ -390,15 +374,14 @@ namespace qk {
 			}
 
 			if ( change_touches.length() ) { // notice
-				auto clickDownNo = !_origin_touches[view]->is_click_down();
-				if (clickDownNo) { // trigger click down
-					_origin_touches[view]->set_is_click_down(true);
-				}
+				auto origin = _origin_touches[view];
+				auto highlighted = origin->click_valid_count() == 0; // is need highlight
+				origin->set_click_valid_count(change_touches.length());
 				// post main thread
-				_loop->post(Cb([view, clickDownNo, change_touches](auto& e) {
+				_loop->post(Cb([view, highlighted, change_touches](auto& e) {
 					auto evt = NewEvent<TouchEvent>(view, change_touches);
 					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
-					if ( clickDownNo ) {
+					if (highlighted) {
 						auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 						_inl_view(view)->trigger_highlightted(**evt); // emit event
 					}
@@ -444,81 +427,39 @@ namespace qk {
 	}
 
 	void EventDispatch::touchmove(List<TouchPoint>& in) {
-		Dict<View*, Array<TouchPoint>> change_touches;
+		Dict<View*, Array<TouchPoint>> change_touches_for_view;
 
-		for ( auto& in_touch : in ) {
-			for ( auto touches : _origin_touches ) {
-				if ( touches.second->has(in_touch.id) ) {
-					TouchPoint& touch = (*touches.second)[in_touch.id];
+		for (auto& in_touch : in) {
+			for ( auto origin : _origin_touches ) {
+				if ( origin.second->has(in_touch.id) ) {
+					auto& touch = (*origin.second)[in_touch.id];
 					touch.location = in_touch.location;
 					touch.force = in_touch.force;
-					if ( !touches.second->is_click_invalid() ) {
-						touch.click_in = touch.view->overlap_test(touch.location);
+					if (touch.click_valid) {
+						float d = (touch.start_location - touch.location).lengthSq() *
+								_window->scale() / _window->defaultScale();
+						if (d > 4) { // 2^2 pt range
+							touch.click_valid = false; // set invalid
+							origin.second->set_click_valid_count(-1); // decrease count
+							if (origin.second->click_valid_count() == 0) {
+								_loop->post(Cb([view = touch.view](auto &e){ // emit style status event
+									auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
+									_inl_view(view)->trigger_highlightted(**evt);
+								}), touch.view);
+							}
+						}
 					}
-					change_touches[touch.view].push(touch);
+					change_touches_for_view[touch.view].push(touch);
 					break;
 				}
 			}
 		}
 
-		for ( auto &i : change_touches ) {
-			auto& touchs = i.second;
-			View* view = touchs[0].view;
-
-			_loop->post(Cb([view, touchs](auto &e) {// emit event
-				_inl_view(view)->bubble_trigger(UIEvent_TouchMove, **NewEvent<TouchEvent>(view, touchs));
-			}), view);
-
-			OriginTouche* origin_touche = _origin_touches[view];
-
-			if ( !origin_touche->is_click_invalid() ) { // no invalid
-				Vec2 position = OriginTouche::position(view);
-				Vec2 start_position = origin_touche->view_start_position();
-
-				float d = powf((position.x() - start_position.x()), 2) +
-									powf((position.y() - start_position.y()), 2);
-
-				// 视图位置移动超过4平方距离取消点击状态
-				if ( d > 4 ) { // trigger invalid status
-					if ( origin_touche->is_click_down() ) { // trigger style up
-						_loop->post(Cb([view](auto &e){ // emit style status event
-							auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-							_inl_view(view)->trigger_highlightted(**evt);
-						}), view);
-					}
-					origin_touche->set_click_invalid();
-				}
-				else { // no invalid
-					if ( origin_touche->is_click_down() ) { // May trigger click up
-						bool trigger_event = true;
-						for ( auto &t : origin_touche->values() ) {
-							if (t.second.click_in) {
-								trigger_event = false;
-								break;
-							}
-						}
-						if ( trigger_event ) {
-							origin_touche->set_is_click_down(false); // set up status
-							_loop->post(Cb([view](auto &e) { // emit style status event
-								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-								_inl_view(view)->trigger_highlightted(**evt);
-							}), view);
-						}
-					} else { // May trigger click down
-						for ( uint32_t i = 0; i < touchs.length(); i++) {
-							auto item = touchs[i];
-							if ( item.click_in ) { // find range == true
-								origin_touche->set_is_click_down(true); // set down status
-								_loop->post(Cb([view](auto &e) { // emit style down event
-									auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
-									_inl_view(view)->trigger_highlightted(**evt);
-								}), view);
-								break;
-							}
-						}
-					}
-				} // no invalid end
-			} // if end
+		for (auto pair: change_touches_for_view) {
+			_loop->post(Cb([pair](auto e) {// emit event
+				_inl_view(pair.first)->bubble_trigger(UIEvent_TouchMove,
+						**NewEvent<TouchEvent>(pair.first, pair.second));
+			}), pair.first);
 		} // each end
 	}
 
@@ -526,13 +467,15 @@ namespace qk {
 		Dict<View*, Array<TouchPoint>> change_touches;
 
 		for ( auto& in_touch : in ) {
-			for ( auto& item : _origin_touches ) {
-				if ( item.second->has(in_touch.id) ) {
-					TouchPoint& touch = (*item.second)[in_touch.id];
+			for ( auto& origin : _origin_touches ) {
+				if ( origin.second->has(in_touch.id) ) {
+					TouchPoint& touch = (*origin.second)[in_touch.id];
 					touch.location = in_touch.location;
 					touch.force = in_touch.force;
+					if (touch.click_valid)
+						origin.second->set_click_valid_count(-1);
 					change_touches[touch.view].push(touch);
-					item.second->del(touch.id); // del touch point
+					origin.second->del(touch.id); // del touch point
 					break;
 				}
 			}
@@ -542,54 +485,55 @@ namespace qk {
 			auto& touchs = i.second;
 			View* view = touchs[0].view;
 			auto origin_touche = _origin_touches[view];
-			auto is_touches_zero = origin_touche->count() == 0;
+			auto is_end = origin_touche->count() == 0;
+			auto is_click = origin_touche->click_valid_count() == 0;
 
 			struct Core: CallbackCore<Object> {
 				View *view;
 				bool is_cancel;
 				Array<TouchPoint> touchs;
 				OriginTouche *origin_touche;
-				bool is_touches_zero;
-				Core(View* v, bool isCancel, Array<TouchPoint> &to, OriginTouche* ot,bool is_t)
+				bool is_end, is_click;
+				Core(View* v, bool isCancel, Array<TouchPoint> &to, OriginTouche* ot,
+						bool is_end, bool is_click)
 					: view(v), is_cancel(isCancel), touchs(std::move(to))
-					, origin_touche(ot), is_touches_zero(is_t) {}
+					, origin_touche(ot), is_end(is_end), is_click(is_click) {}
 				~Core() {
-					if (is_touches_zero)
+					if (is_end)
 						delete origin_touche;
 				}
 				void call(Data& d) {
-					bool is_click_down = is_touches_zero && origin_touche->is_click_down();
 					auto evt0 = NewEvent<TouchEvent>(view, touchs);
 					// emit touch end event
 					_inl_view(view)->bubble_trigger(is_cancel ? UIEvent_TouchCancel: UIEvent_TouchEnd, **evt0);
 
-					if ( is_click_down ) { // trigger click
-						for ( auto& item : touchs ) {
-							if ( item.click_in ) { // find range == true
+					if (is_click) { // trigger click
+						for (auto& touch : touchs) {
+							if (touch.click_valid) {
 								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-								_inl_view(view)->trigger_highlightted(**evt);
-
-								if ( evt0->is_default() && !is_cancel && view->_level ) {
-									auto evt = NewEvent<ClickEvent>(view, item.location, ClickEvent::kTouch);
+								_inl_view(view)->trigger_highlightted(**evt); // emit style status event
+								if (evt0->is_default() && !is_cancel && view->_level) {
+									auto evt = NewEvent<ClickEvent>(view, touch.location, ClickEvent::kTouch);
 									_inl_view(view)->trigger_click(**evt); // emit click event
 								}
 								break;
 							}
 						}
-					}
+					} // if (is_click) {
 				}
 			};
 
-			if (is_touches_zero) {
+			if (is_end) {
 				_origin_touches.erase(view); // del
 			}
-			_loop->post(Cb(new Core(view, isCancel, touchs, origin_touche, is_touches_zero)), view);
+			_loop->post(Cb(new Core(view, isCancel, touchs, origin_touche, is_end, is_click)), view);
 		}
 	}
 
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
+		auto id = list.front().id;
 		auto loc = list.front().location;
-		Qk_DLog("onTouchstart x: %f, y: %f", loc.x(), loc.y());
+		Qk_DLog("onTouchstart id: %d, x: %f, y: %f, c: %d", id, loc.x(), loc.y(), list.length());
 		UILock lock(_window);
 		auto r = _window->root();
 		if (r) {
@@ -598,15 +542,16 @@ namespace qk {
 	}
 
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
+		auto id = list.front().id;
 		auto loc = list.front().location;
-		Qk_DLog("onTouchmove x: %f, y: %f", loc.x(), loc.y());
+		Qk_DLog("onTouchmove id: %d, x: %f, y: %f, c: %d", id, loc.x(), loc.y(), list.length());
 		UILock lock(_window);
 		touchmove(list);
 	}
 
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
 		auto loc = list.front().location;
-		Qk_DLog("onTouchend x: %f, y: %f", loc.x(), loc.y());
+		Qk_DLog("onTouchend x: %f, y: %f, c: %d", loc.x(), loc.y(), list.length());
 		UILock lock(_window);
 		touchend(list, false);
 	}
@@ -674,12 +619,11 @@ namespace qk {
 	void EventDispatch::mousemove(View *view, Vec2 pos) {
 		View* d_view = _mouse_handle->click_down_view();
 		if ( d_view ) { // no invalid
-			Vec2 position = OriginTouche::position(d_view);
+			Vec2 position = d_view->position();
 			Vec2 start_position = _mouse_handle->view_start_position();
-			float d = sqrtf(powf((position.x() - start_position.x()), 2) +
-											powf((position.y() - start_position.y()), 2));
-			// 视图位置移动超过2取消点击状态
-			if ( d > 2 ) { // trigger invalid status
+			float d = (start_position - position).lengthSq() * _window->scale() / _window->defaultScale();
+			// 视图位置移动超过4平方距离取消点击状态
+			if ( d > 4 ) { // trigger invalid status
 				if (view == d_view) {
 					_inl_view(view)->trigger_highlightted( // emit style status event
 						**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover));

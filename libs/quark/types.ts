@@ -645,13 +645,14 @@ export class Vec2 extends Base<Vec2> {
 	 * @return angle in radians
 	*/
 	angleTo(p: Vec2): N {
-		return Math.atan2(p.y - this.y, p.x - this.x);
+		return newVec2(p.y - this.y, p.x - this.x).angle();
 	}
 
 	/**
-	 * Dot product of two vectors
-	*/
-	dot(): N {
+	 * Returns vector length squared
+	 * @return The length squared
+	 */
+	lengthSq(): N {
 		return this.x * this.x + this.y * this.y;
 	}
 
@@ -668,29 +669,31 @@ export class Vec2 extends Base<Vec2> {
 	normalize(): Vec2 {
 		let len = this.length();
 		if (len === 0)
-			return newBase(Vec2, { x: 0, y: 0 });
-		return newBase(Vec2, { x: this.x / len, y: this.y / len });
+			return newVec2(0, 0);
+		return newVec2(this.x / len, this.y / len);
 	}
 
 	/** 
 	 * Get the direction of the vector
-	 * @return The direction
+	 * @return Return to clockwise direction
 	 */
 	direction(): Direction {
 		if (this.x === 0 && this.y === 0)
 			return Direction.None;
 		let angle = this.angle();
-		angle = (angle + PIHalfHalf) % (PI2);
-		if (angle < 0) angle += PI2;
-		return [Direction.Right, Direction.Top,
-			Direction.Left, Direction.Bottom][Math.floor(angle / PIHalf)];
+		angle = (angle + PIHalfHalf) % PI2;
+		if (angle < 0)
+			angle += PI2;
+		// Return to clockwise direction
+		return [Direction.Right, Direction.Bottom,
+			Direction.Left, Direction.Top][Math.floor(angle / PIHalf)];
 	}
 
 	/**
 	 * Get the midpoint between two vectors
 	*/
 	mid(b: Vec2): Vec2 {
-		return newBase(Vec2, { x: (this.x + b.x) * 0.5, y: (this.y + b.y) * 0.5 });
+		return newVec2((this.x + b.x) * 0.5, (this.y + b.y) * 0.5);
 	}
 
 	/**
@@ -701,7 +704,7 @@ export class Vec2 extends Base<Vec2> {
 	 */
 	static mid(vec: Vec2[]): Vec2 {
 		if (vec.length === 0)
-			return newBase(Vec2, { x: 0, y: 0 });
+			return newVec2(0, 0);
 		let x = 0;
 		let y = 0;
 		let n = vec.length;
@@ -709,7 +712,15 @@ export class Vec2 extends Base<Vec2> {
 			x += vec[i].x;
 			y += vec[i].y;
 		}
-		return newBase(Vec2, { x: x / n, y: y / n });
+		return newVec2(x / n, y / n);
+	}
+
+	static new(x: N, y: N) {
+		return newVec2(x, y);
+	}
+
+	static zero() {
+		return newVec2(0, 0);
 	}
 }
 

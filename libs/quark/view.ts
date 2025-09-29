@@ -930,11 +930,11 @@ declare global {
 const NN_getNoticer = NativeNotification.prototype.getNoticer;
 
 const FingerCounts = {
-	[GestureType.Pan]: 1,
-	[GestureType.Pinch]: 2,
-	[GestureType.Rotate]: 2,
-	[GestureType.ThreeFinger]: 3,
-	[GestureType.FourFinger]: 4,
+	[GestureType.PanGesture]: 1,
+	[GestureType.PinchGesture]: 2,
+	[GestureType.RotateGesture]: 2,
+	[GestureType.ThreeFingerGesture]: 3,
+	[GestureType.FourFingerGesture]: 4,
 };
 
 interface GestureEventInl extends RemoveReadonly<GestureEvent> {
@@ -984,7 +984,7 @@ class GestureManager {
 			evt._update(timestamp, GestureStage.Start);
 
 			if (this._gesture) {
-				this._gesture.trigger(evt);
+				this._gesture.triggerWithEvent(evt as any);
 			}
 
 			if (evt.rejected) { // reject by touch point
@@ -1009,7 +1009,7 @@ class GestureManager {
 						evt.expectedFingerCount = fingerCount;
 						if (evt.length == fingerCount) {
 							sort.evt = evt;
-							noticer.trigger(evt);
+							noticer.triggerWithEvent(evt as any);
 						}
 						break; // Exclusive event context
 					}
@@ -1039,12 +1039,12 @@ class GestureManager {
 		}
 
 		// New event flow
-		while (!touchs.length) {
+		while (touchs.length) {
 			const id = this.getNewEventId();
-			const evt = new GestureEvent(id, timestamp) as RemoveReadonly<GestureEvent>;
+			const evt = new GestureEvent(this._view, id, timestamp) as RemoveReadonly<GestureEvent>;
 			this._dispatchStart(evt as GestureEventInl, touchs, timestamp, true);
 			if (evt.length) {
-				this._eventsFlow.push(evt as GestureEventInl); // add to event flow
+				this._eventsFlow[evt.id] = evt as GestureEventInl; // add to event flow
 			}
 		}
 	}
@@ -1066,19 +1066,19 @@ class GestureManager {
 			evt._update(timestamp, GestureStage.Change); // update event
 
 			if (this._gesture) {
-				this._gesture.trigger(evt);
+				this._gesture.triggerWithEvent(evt as any);
 			}
 			if (evt.isDefault) {
 				for (const sort of this._sorts) {
 					const noticer = this._noticers.get(sort.type)!;
 					if (sort.evt === evt) {
-						noticer.trigger(evt);
+						noticer.triggerWithEvent(evt as any);
 						break; // Exclusive event context
 					}
 				}
 			}
 
-			evt.isDefault = false; // clear flag
+			evt.isDefault = true; // clear flag
 		}
 	}
 
@@ -1104,25 +1104,25 @@ class GestureManager {
 			}
 
 			if (this._gesture) {
-				this._gesture.trigger(evt);
+				this._gesture.triggerWithEvent(evt as any);
 			}
 			if (evt.isDefault) {
 				for (const sort of this._sorts) {
 					const noticer = this._noticers.get(sort.type)!;
 					if (sort.evt === evt) {
-						noticer.trigger(evt);
-						sort.evt = undefined; // clear event context
+						noticer.triggerWithEvent(evt as any);
+						sort.evt = void 0; // clear event context
 						break; // Exclusive event context
 					}
 				}
 				if (evt.length == 0 && stage == GestureStage.End) {
 					if (this._swipe && evt.isSwipeTriggered()) {
-						this._swipe.trigger(evt);
+						this._swipe.triggerWithEvent(evt as any);
 					}
 				}
 			}
 
-			evt.isDefault = false; // clear flag
+			evt.isDefault = true; // clear flag
 		}
 	}
 
@@ -1136,7 +1136,7 @@ class GestureManager {
 
 	addGesture(type: GestureType, noticer: EventNoticer<GestureEvent>) {
 		if (type > GestureType.Gesture) {
-			if (type == GestureType.Swipe) {
+			if (type == GestureType.SwipeGesture) {
 				this._swipe = noticer;
 			} else {
 				this._noticers.set(type, noticer);

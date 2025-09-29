@@ -178,7 +178,7 @@ namespace qk {
 		int rc = clock_gettime(CLOCK_REALTIME, &now);
 		if (rc != 0)
 			return -1;
-		int64_t r = int64_t(now.tv_sec) * 1000000 + now.tv_nsec / 1000;
+		int64_t r = int64_t(now.tv_sec) * 1e6 + now.tv_nsec / 1000;
 		return r;
 #endif
 	}
@@ -205,7 +205,7 @@ namespace qk {
 #else // Linux / Unix
 		struct timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
-		return (int64_t)ts.tv_sec * 1e6 + ts.tv_nsec / 1e3;
+		return int64_t(ts.tv_sec) * 1e6 + ts.tv_nsec / 1e3;
 #endif
 	}
 }

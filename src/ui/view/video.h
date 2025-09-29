@@ -48,7 +48,7 @@ namespace qk {
 		void unlock() override;
 		void onEvent(const UIEventName& name, Object* data) override;
 		bool run_task(int64_t now, int64_t deltaTime) override;
-		void onSourceState(ImageSource::State state);
+		void onSourceState(ImageSource::State state) override;
 	};
 }
 #endif
