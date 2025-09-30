@@ -40,7 +40,7 @@ using namespace qk;
 
 #define IP_REMOTE "192.168.2.200"
 #define USE_REMOTE 1
-#define USE_DEBUG 1
+#define USE_DEBUG 0
 #define USE_BRK 1
 
 Qk_TEST_Func(jsapi) {
@@ -56,7 +56,7 @@ Qk_TEST_Func(jsapi) {
 
 #if USE_BRK
 	argv_arr.push("--brk");
-	argv_arr.push("--force-brk");
+	argv_arr.push("--inner-brk");
 #endif
 
 #if USE_REMOTE

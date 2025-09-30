@@ -249,8 +249,8 @@ export declare class TouchEvent extends UIEvent {
 */
 export class GestureTouchPoint implements TouchPoint {
 	get id() { return this.touch.id; }
-	get location() { return this.touch.location; }
 	get startLocation() { return this.touch.startLocation; }
+	get location() { return this.touch.location; }
 	get force() { return this.touch.force; }
 	get view() { return this.touch.view; }
 
@@ -279,27 +279,17 @@ export class GestureTouchPoint implements TouchPoint {
 	get distance() {
 		return this.touch.location.sub(this.touch.startLocation);
 	}
+}
 
-	/**
-	 * The absolute value of the gesture movement distance
-	*/
-	get obliqueDistance() {
-		return this.distance.length();
-	}
-
-	/**
-	 * The gesture rotation angle in single point mode, in radians
-	*/
-	get angle() {
-		return this.distance.angle();
-	}
-
-	/** 
-	 * Get the gesture direction 
-	 * */
-	get direction() {
-		return this.distance.direction();
-	}
+/*
+ * Compute the oblique velocity by velocity vector and distance vector
+ * Vo = (V . D) / |D|
+*/
+export function obliqueVelocity(velocity: Vec2, distance: Vec2): number {
+	const len = distance.length();
+	if (len === 0)
+		return 0;
+	return (velocity.x * distance.x + velocity.y * distance.y) / len;
 }
 
 /**
@@ -322,6 +312,7 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	private _expectedFingerCount = 1; // expected finger count
 	private _swipeDistance = 50; // swipe trigger distance in points, pt = px * window.defaultScale
 	private _swipeVelocity = 500; // swipe trigger velocity in points per second, pt/s
+	private _lasetVelocityWeight = 0.85; // last velocity smoothing weight
 
 	/** Get or set the expected number of touch points for the gesture event */
 	get expectedFingerCount() { return this._expectedFingerCount; }
@@ -334,10 +325,15 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	set swipeVelocity(v: number) { this._swipeVelocity = Math.max(50, Number(v) || 0); }
 
 	/* initial velocity calculation time window, ms */
-	private _initTimestamp = 250;
+	private _initTimestamp = 200;
 	/** Get or set the initial velocity calculation time window, in milliseconds */
 	get initTimestamp() { return this._initTimestamp; }
 	set initTimestamp(v: number) { this._initTimestamp = Math.max(50, Number(v) || 0); }
+	/** Get or set the last velocity smoothing weight, value range [0, 0.95], default is 0.85 */
+	get lastVelocityWeight() { return this._lasetVelocityWeight; }
+	set lastVelocityWeight(v: number) {
+		this._lasetVelocityWeight = Math.min(0.95, Math.max(0, Number(v) || 0));
+	}
 
 	/** The gesture context number id */
 	readonly id: number;
@@ -368,20 +364,6 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	get length() { return this.touchs.length; }
 
 	/**
-	 * Get the initial oblique velocity of the gesture, in dp per second
-	*/
-	get initObliqueVelocity(): number {
-		return GestureEvent.computeObliqueVelocity(this.initVelocity, this.initDistance);
-	}
-
-	/**
-	 * Get the oblique velocity of the gesture, in dp per second
-	*/
-	get obliqueVelocity(): number {
-		return GestureEvent.computeObliqueVelocity(this.velocity, this.distance);
-	}
-
-	/**
 	 * @param id The gesture context number id
 	 * @param timestamp The gesture start timestamp, in milliseconds
 	*/
@@ -393,16 +375,16 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	}
 
 	/* Update the last velocity with smoothing */
-	private updateLastVelocity(deltaPos: Vec2, deltaTime: number, windowMs: number = 100 /*80–120*/) {
+	private updateLastVelocity(deltaPos: Vec2, deltaTime: number) {
 		if (deltaTime <= 0)
 			return this.lastVelocity;
 		// Current instantaneous speed
-		const instant = deltaPos.div(deltaTime);
-		// Smoothing factor α
-		const alpha = deltaTime / (deltaTime + windowMs);
+		const instant = deltaPos.mul(1e3 / deltaTime);
+		// Smoothing processing
+		const weight = this._lasetVelocityWeight;
 		return newVec2(
-			(1 - alpha) * this.lastVelocity.x + alpha * instant.x,
-			(1 - alpha) * this.lastVelocity.y + alpha * instant.y);
+			(this.lastVelocity.x * weight) + instant.x * (1 - weight),
+			(this.lastVelocity.y * weight) + instant.y * (1 - weight));
 	}
 
 	/* Update the gesture state */
@@ -413,9 +395,11 @@ export class GestureEvent extends Event<View> implements UIEvent {
 			self.timestamp = timestamp;
 			return;
 		}
+		// Update last velocity
 		const distance =  this.location().sub(this.startLocation());
 		self.lastVelocity = this.updateLastVelocity(
 				distance.sub(this.distance), timestamp - this.timestamp);
+
 		let timeDiff = timestamp - this.startTimestamp;
 		self.timestamp = timestamp;
 		self.distance = distance;
@@ -426,33 +410,25 @@ export class GestureEvent extends Event<View> implements UIEvent {
 		}
 	}
 
-	/** Whether the gesture can be triggered */
-	isSwipePossible(): boolean {
+	/** Whether the gesture is in the initial stage */
+	isInitialStage(): boolean {
 		return this.timestamp - this.startTimestamp < this._initTimestamp;
-	}
-
-	/**
-	 * Compute the oblique velocity by velocity vector and distance vector
-	*/
-	static computeObliqueVelocity(velocity: Vec2, distance: Vec2): number {
-		const len = distance.length();
-		if (len === 0)
-			return 0;
-		return (velocity.x * distance.x + velocity.y * distance.y) / len;
 	}
 
 	/** Whether the gesture has been triggered */
 	isSwipeTriggered(): boolean {
-		if (this.isSwipePossible()) {
-			const ptScale = this.origin.window.scale / this.origin.window.defaultScale;
-			if (this.initObliqueVelocity * ptScale >= this._swipeVelocity &&
-					this.initDistance.length() * ptScale >= this._swipeDistance) {
-				let angle = (this.initDistance.angle() + PIHalfHalf) % PIHalf; // [0, PIHalf)
-				if (angle < 0)
-					angle += PIHalf;
-				if (angle > PIHalf * 0.2 && angle < 0.8 * PIHalf)
-					return true;
+		const isInit = this.isInitialStage();
+		const velocity = isInit ? this.initVelocity : this.lastVelocity;
+		const distance = isInit ? this.initDistance : this.distance;
+		const ptScale = this.origin.window.scale / this.origin.window.defaultScale;
+		if (velocity.length() * ptScale >= this._swipeVelocity &&
+				distance.length() * ptScale >= this._swipeDistance) {
+			const direction = distance.direction(0.6);
+			if (!isInit) {
+				if (direction != this.initDistance.direction())
+					return false; // direction changed
 			}
+			return direction != Direction.None;
 		}
 		return false;
 	}

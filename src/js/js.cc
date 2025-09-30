@@ -651,7 +651,7 @@ namespace js {
 			) {
 				auto script_path = mainPath ?
 					fs_reader()->format(*mainPath): String("eval");
-				bool brk = arguments->options.has("inspect_brk") || arguments->options.has("brk");
+				bool brk = arguments->options.has("brk") || arguments->options.has("inspect_brk");
 				// Startup debugger
 				if (inspect->length() == 0) {
 					runDebugger(worker, {brk, 9229, "127.0.0.1", script_path});
@@ -665,7 +665,7 @@ namespace js {
 
 				if (brk) {
 #if !DEBUG
-					if (arguments->options.has("force_brk"))
+					if (arguments->options.has("inner_brk"))
 #endif
 						debuggerBreakNextStatement(worker);
 				}

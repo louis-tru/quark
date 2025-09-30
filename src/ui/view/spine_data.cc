@@ -111,45 +111,45 @@ namespace qk {
 		return atlasP;
 	}
 
-	Sp<SkeletonData> SkeletonData::Make(cString &skeletonPath, cString &atlasPath, float scale) throw(Error)
+	Sp<SkeletonData> SkeletonData::Make(cString &skelPath, cString &atlasPath, float scale) throw(Error)
 	{
-		Qk_IfThrow(!skeletonPath.isEmpty(), ERR_SPINE_SKELETON_PATH_CANNOT_EMPTY, "skeleton path cannot empty");
-		auto json = skeletonPath.lastIndexOf("-ess.json") != -1;
-		auto atlasP = atlasPath.isEmpty() ? get_atlas_path(skeletonPath, json) : atlasPath;
+		Qk_IfThrow(!skelPath.isEmpty(), ERR_SPINE_SKELETON_PATH_CANNOT_EMPTY, "skeleton path cannot empty");
+		auto json = skelPath.lastIndexOf("-ess.json") != -1;
+		auto atlasP = atlasPath.isEmpty() ? get_atlas_path(skelPath, json) : atlasPath;
 		Qk_IfThrow(!atlasP.isEmpty(), ERR_SPINE_ATLAS_PATH_CANNOT_EMPTY, "atlas path cannot empty");
-		auto key = fs_format("%s|%s|%f", *skeletonPath, *atlasP, scale);
+		auto key = fs_format("%s|%s|%f", *skelPath, *atlasP, scale);
 		Sp<qk::SkeletonData> *out;
 		if (_skeletonCache.get(key, out))
 			return *out;
-		auto sk_buff = fs_reader()->read_file_sync(skeletonPath);
+		auto sk_buff = fs_reader()->read_file_sync(skelPath);
 		auto atlas_buff = fs_reader()->read_file_sync(atlasP);
-		return _skeletonCache.set(key, _Make(sk_buff, atlas_buff, fs_dirname(skeletonPath), scale, json));
+		return _skeletonCache.set(key, _Make(sk_buff, atlas_buff, fs_dirname(skelPath), scale, json));
 	}
 
-	Sp<SkeletonData> SkeletonData::Make(cBuffer &skeletonBuff,cString &atlasPath, float scale) throw(Error)
+	Sp<SkeletonData> SkeletonData::Make(cBuffer &skelBuff,cString &atlasPath, float scale) throw(Error)
 	{
-		auto key0 = hash(skeletonBuff.val(), skeletonBuff.length());
+		auto key0 = hash(skelBuff.val(), skelBuff.length());
 		auto key = fs_format("%s|%s|%f", *key0, *atlasPath, scale);
 		Sp<qk::SkeletonData> *out;
 		if (_skeletonCache.get(key, out))
 			return *out;
 		auto atlas_buff = fs_reader()->read_file_sync(atlasPath);
-		return _skeletonCache.set(key, _Make(skeletonBuff, atlas_buff, fs_dirname(atlasPath), scale, false));
+		return _skeletonCache.set(key, _Make(skelBuff, atlas_buff, fs_dirname(atlasPath), scale, false));
 	}
 
-	Sp<SkeletonData> SkeletonData::Make(cBuffer &skeleton,
+	Sp<SkeletonData> SkeletonData::Make(cBuffer &skel,
 		cBuffer &atlasBuf, cString &dir, float scale) throw(Error)
 	{
-		auto key0 = hash(skeleton.val(), skeleton.length());
+		auto key0 = hash(skel.val(), skel.length());
 		auto key1 = hash(atlasBuf.val(), atlasBuf.length());
 		auto key = fs_format("%s|%s|%s|%f", *key0, *key1, *dir, scale);
 		Sp<qk::SkeletonData> *out;
 		if (_skeletonCache.get(key, out))
 			return *out;
-		return _skeletonCache.set(key, _Make(skeleton, atlasBuf, dir, scale, false));
+		return _skeletonCache.set(key, _Make(skel, atlasBuf, dir, scale, false));
 	}
 
-	SkeletonData* SkeletonData::_Make(cBuffer &skeleton,
+	SkeletonData* SkeletonData::_Make(cBuffer &skel,
 		cBuffer &atlasBuf, cString &dir, float scale, bool json) throw(Error)
 	{
 		Sp<Atlas> atlas = new Atlas(*atlasBuf, atlasBuf.length(), dir.c_str(), textureLoader, true);
@@ -159,12 +159,12 @@ namespace qk {
 		if (json) {
 			SkeletonJson reader(*loader);
 			reader.setScale(scale);
-			data = reader.readSkeletonData(skeleton.val());
+			data = reader.readSkeletonData(skel.val());
 			err = reader.getError().buffer();
 		} else {
 			SkeletonBinary reader(*loader);
 			reader.setScale(scale);
-			data = reader.readSkeletonData((const uint8_t*)skeleton.val(), skeleton.length());
+			data = reader.readSkeletonData((const uint8_t*)skel.val(), skel.length());
 			err = reader.getError().buffer();
 		}
 		Qk_IfThrow(data, ERR_SPINE_LOAD_SKELETON_DATA_FAIL, (err.isEmpty() ? "Error reading skeleton data.": err));

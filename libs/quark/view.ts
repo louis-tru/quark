@@ -396,17 +396,18 @@ export declare class Spine extends View implements MatrixView {
 	rotateZ: number;
 	readonly originValue: number[];
 	readonly matrix: types.Mat;
-	skeleton: types.SkeletonData | null; //!<
+	skel: types.SkeletonData | null; //!<
 	skin: string; //!<
 	speed: Float; //!<
 	defaultMix: Float; //!<
+	animation: string //!< Get/Set current animation name for track 0 (base track).
 	setToSetupPose(): void; //!<
 	setBonesToSetupPose(): void; //!<
 	setSlotsToSetupPose(): void; //!<
 	setAttachment(slotName: string, attachmentName: string): void; //!<
 	setMix(fromName: string, toName: string, duration: Float): void; //!<
-	setAnimation(trackIndex: Uint, name: string, loop: boolean): void; //!<
-	addAnimation(trackIndex: Uint, name: string, loop: boolean, delay?: Float): void; //!<
+	setAnimation(trackIndex: Uint, name: string, loop?: boolean): void; //!<
+	addAnimation(trackIndex: Uint, name: string, loop?: boolean, delay?: Float): void; //!<
 	setEmptyAnimation(trackIndex: Uint, mixDuration: Float): void; //!<
 	setEmptyAnimations(mixDuration: Float): void; //!<
 	addEmptyAnimation(trackIndex: Uint, mixDuration: Float, delay?: Float): void; //!<
@@ -672,6 +673,7 @@ Object.assign(exports, {
 	Button: _ui.Button,
 	Matrix: _ui.Matrix,
 	Sprite: _ui.Sprite,
+	Spine: _ui.Spine,
 	Root: _ui.Root,
 });
 
@@ -826,10 +828,11 @@ declare global {
 		}
 
 		interface SpineJSX extends ViewJSX, MatrixViewJSX {
-			skeleton?: types.SkeletonDataIn;
+			skel?: types.SkeletonDataIn;
 			skin?: string;
 			speed?: Float;
 			defaultMix?: Float;
+			animation?: string;
 		}
 
 		interface TextOptionsJSX {

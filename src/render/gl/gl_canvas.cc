@@ -807,6 +807,7 @@ namespace qk {
 		glDisable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, dstFBO);
 		glUseProgram(_render->_shaders.vportFullCp.shader);
+		glBindVertexArray(_render->_shaders.vportFullCp.vao);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, _outTex->id);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);

@@ -16,4 +16,5 @@ in      lowp vec2 coords;
 
 void main() {
 	fragColor = texture(image, coords);
+	//fragColor = vec4(1.0,0.0,0.0,1.0);
 }

@@ -675,15 +675,22 @@ export class Vec2 extends Base<Vec2> {
 
 	/** 
 	 * Get the direction of the vector
+	 * @param accuracy The accuracy of angle, the smaller the more accurate, default is 1
 	 * @return Return to clockwise direction
 	 */
-	direction(): Direction {
+	direction(accuracy: number = 1): Direction {
 		if (this.x === 0 && this.y === 0)
 			return Direction.None;
 		let angle = this.angle();
 		angle = (angle + PIHalfHalf) % PI2;
 		if (angle < 0)
 			angle += PI2;
+		if (accuracy < 1) { // filter angle accuracy
+			const threshold = (1 - accuracy) * 0.5; // 0 ~ 0.5
+			const normalizedAngle = angle % PIHalf / PIHalf - threshold; // -threshold ~ 1-threshold
+			if (normalizedAngle < 0 || normalizedAngle > accuracy)
+				return Direction.None;
+		}
 		// Return to clockwise direction
 		return [Direction.Right, Direction.Bottom,
 			Direction.Left, Direction.Top][Math.floor(angle / PIHalf)];
@@ -1171,18 +1178,18 @@ export type BoxShadowIn = ShadowIn | ShadowIn[] | BoxShadow;
  * @class SkeletonData
 */
 export declare abstract class SkeletonData {
-	static Make(skeletonPath: string, atlasPath: string, scale?: Float): SkeletonData; //!<
-	static Make(skeleton: Uint8Array, atlasPath: string, scale?: Float): SkeletonData; //!<
-	static Make(skeleton: Uint8Array, atlas: Uint8Array, dir: string, scale?: Float): SkeletonData; //!<
+	static Make(skelPath: string, atlasPath?: string, scale?: Float): SkeletonData; //!<
+	static Make(skel: Uint8Array, atlasPath: string, scale?: Float): SkeletonData; //!<
+	static Make(skel: Uint8Array, atlas: Uint8Array, dir: string, scale?: Float): SkeletonData; //!<
 }
 
 /**
  * @example
  * ```
- * skeleton(res/alien/image.skel, res/alien/image.atlas, scale=1)
+ * skel(res/alien/image.skel, res/alien/image.atlas, scale=1)
  * ```
  */
-export type SkeletonDataIn = `skeleton(${string})` | SkeletonData | null;
+export type SkeletonDataIn = `skel(${string})` | SkeletonData | null;
 
 // -------------------------------------------------------------------------------------
 
@@ -2034,7 +2041,7 @@ export function parseBoxShadow(val: BoxShadowIn, desc?: string): BoxShadow { ///
 }
 
 const parseSkeletonDataRef = [
-	'skeleton(res/alien/image.skel, res/alien/image.atlas, scale=1)'
+	'skel(res/alien/image.skel, res/alien/image.atlas, scale=1)'
 ];
 export function parseSkeletonData(val: SkeletonDataIn, desc?: string): SkeletonData | null { ///!<
 	const SkeletonData_ = exports.SkeletonData as typeof SkeletonData;
@@ -2042,9 +2049,9 @@ export function parseSkeletonData(val: SkeletonDataIn, desc?: string): SkeletonD
 		return val;
 	} else if (typeof val === 'string') {
 		let cmd = parseCmd(val);
-		if (cmd && cmd.val == 'skeleton') {
+		if (cmd && cmd.val == 'skel') {
 			let {args:[a,b],kv:{scale}} = cmd;
-			return SkeletonData.Make(a[0], b[0], scale ? scale[0]: 1);
+			return SkeletonData_.Make(a[0], b ? b[0]: '', scale ? scale[0]: 1);
 		}
 	} else if (!val) {
 		return null;

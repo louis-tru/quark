@@ -42,38 +42,42 @@ namespace qk { namespace js {
 				Js_Throw("Access forbidden.");
 			});
 			Js_Class_Static_Method(Make, {
-				String skeletonPath;
+				String skelPath;
 				String atlasPath;
 				String dir;
-				WeakBuffer skeletonBuf;
+				WeakBuffer skelBuf;
 				WeakBuffer atlasBuf;
 				float scale = 1.0;
-				if (args.length() < 2 ||
-					!(args[0]->asString(worker).to(skeletonPath) || args[0]->asBuffer(worker).to(skeletonBuf)) ||
-					!(args[1]->asString(worker).to(atlasPath) || args[1]->asBuffer(worker).to(atlasBuf))
+				if (args.length() < 1 ||
+					!(args[0]->asString(worker).to(skelPath) || args[0]->asBuffer(worker).to(skelBuf))
 				) {
 					err:
 					Js_Throw(
-						"@static SkeletonData.Make(skeletonPath,atlasPath,scale?)\n"
-						"@param skeletonPath:string|Buffer\n"
-						"@param atlasPath:string|Buffer\n"
+						"@static SkeletonData.Make(skelPath,atlasPath,scale?)\n"
+						"@param skelPath:string|Buffer\n"
+						"@param atlasPath?:string|Buffer\n"
 						"@param dir?:string\n"
 						"@param scale?:Float **default** 1.0\n"
 					);
 				}
 				Sp<Type> obj;
+
+				if (args.length() > 1 &&
+					!(args[1]->asString(worker).to(atlasPath) || args[1]->asBuffer(worker).to(atlasBuf))) {
+					goto err;
+				}
 				if (args.length() > 2) {
 					args[2]->asFloat32(worker).to(scale) ||
 					args[2]->asString(worker).to(dir);
 				}
-				if (skeletonPath.length()) {
-					obj = Type::Make(skeletonPath, atlasPath);
+				if (skelPath.length()) {
+					obj = Type::Make(skelPath, atlasPath);
 				} else if (atlasPath.length()) {
-					obj = Type::Make(skeletonBuf.buffer(), atlasPath);
+					obj = Type::Make(skelBuf.buffer(), atlasPath);
 				} else {
 					if (args.length() > 3)
 						args[3]->asFloat32(worker).to(scale);
-					obj = Type::Make(skeletonBuf.buffer(), atlasBuf.buffer(), dir, scale);
+					obj = Type::Make(skelBuf.buffer(), atlasBuf.buffer(), dir, scale);
 				}
 				if (!obj)
 					Js_Return_Null();
@@ -105,10 +109,11 @@ namespace qk { namespace js {
 			});
 			inheritMatrixView(cls, worker);
 
-			Js_MixObject_Accessor(Type, SkeletonDataPtr, skeleton, skeleton);
+			Js_MixObject_Accessor(Type, SkeletonDataPtr, skel, skel);
 			Js_MixObject_Accessor(Type, String, skin, skin);
 			Js_MixObject_Accessor(Type, float, speed, speed);
 			Js_MixObject_Accessor(Type, float, default_mix, defaultMix);
+			Js_MixObject_Accessor(Type, String, animation, animation);
 
 			Js_Class_Method(setToSetupPose, {
 				self->set_to_setup_pose();
@@ -161,40 +166,42 @@ namespace qk { namespace js {
 			Js_Class_Method(setAnimation, {
 				uint32_t trackIndex;
 				String name;
-				bool loop;
-				if (args.length() < 3 ||
+				bool loop = false;
+				if (args.length() < 2 ||
 						!args[0]->asUint32(worker).to(trackIndex) ||
-						!args[1]->asString(worker).to(name) ||
-						!args[2]->asBoolean(worker).to(loop)
+						!args[1]->asString(worker).to(name) 
 				) {
 					Js_Throw(
 						"@method Spine.setAnimation(trackIndex,name,loop)\n"
 						"@param trackIndex:Uint\n"
 						"@param name:String\n"
-						"@param loop:boolean\n"
+						"@param loop?:boolean\n"
 					);
 				}
+				if (args.length() > 2)
+					args[2]->asBoolean(worker).to(loop);
 				self->set_animation(trackIndex, name, loop);
 			});
 
 			Js_Class_Method(addAnimation, {
 				uint32_t trackIndex;
 				String name;
-				bool loop;
+				bool loop = false;
 				float delay = 0;
 				if (args.length() < 3 ||
 						!args[0]->asUint32(worker).to(trackIndex) ||
-						!args[1]->asString(worker).to(name) ||
-						!args[2]->asBoolean(worker).to(loop)
+						!args[1]->asString(worker).to(name) 
 				) {
 					Js_Throw(
 						"@method Spine.addAnimation(trackIndex,name,loop,delay?)\n"
 						"@param trackIndex:Uint\n"
 						"@param name:String\n"
-						"@param loop:boolean\n"
+						"@param loop?:boolean\n"
 						"@param delay?:Float\n"
 					);
 				}
+				if (args.length() > 2)
+					args[2]->asBoolean(worker).to(loop);
 				if (args.length() > 3)
 					args[3]->asFloat32(worker).to(delay);
 				self->add_animation(trackIndex, name, loop, delay);

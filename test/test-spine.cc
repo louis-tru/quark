@@ -82,7 +82,8 @@ Qk_TEST_Func(spine) {
 
 		auto sp1 = b0->append_new<Spine>();
 		//auto data = SkeletonData::Make(fs_resources("jsapi/res/skel/alien-ess.skel"), "", 0.5f);
-		auto data = SkeletonData::Make(fs_resources("jsapi/res/coin/coin-pro.skel"), "", 0.5f);
+		//auto data = SkeletonData::Make(fs_resources("jsapi/res/coin/coin-pro.skel"), "", 0.5f);
+		auto data = SkeletonData::Make(fs_resources("jsapi/res/loading/loading.skel"), "", 0.5f);
 		sp1->set_skeleton(data.get());
 		sp1->set_skin("default");
 		//sp1->set_animation(0, "death", true);
@@ -92,6 +93,7 @@ Qk_TEST_Func(spine) {
 		sp1->set_animation(1, "animation", true);
 		//sp1->set_origin({{0.5,BoxOriginKind::Ratio},{0.5,BoxOriginKind::Ratio}});
 		// sp1->set_origin({{80},{80}});
+		sp1->set_animation(2, "open", true);
 
 		auto act = new KeyframeAction(w);
 		act->set_loop(0xffffffff);

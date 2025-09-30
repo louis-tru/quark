@@ -70,35 +70,35 @@ namespace qk {
 	public:
 		/**
 		 * @brief Creates SkeletonData from skeleton and atlas files.
-		 * @param skeletonPath Path to skeleton binary file.
+		 * @param skelPath Path to skeleton binary file.
 		 * @param atlasPath Path to atlas file. Optional, may be empty string.
 		 * @param scale Scale factor applied to skeleton (default = 1.0f).
 		 * @return may return nullptr if loading fails.
 		 */
-		static Sp<SkeletonData> Make(cString &skeletonPath,
+		static Sp<SkeletonData> Make(cString &skelPath,
 																	cString &atlasPath = String(),
 																	float scale = 1.0f) throw(Error);
 
 		/**
 		 * @brief Creates SkeletonData from skeleton buffer + atlas path.
-		 * @param skeletonBuff In-memory buffer containing skeleton binary.
+		 * @param skelBuff In-memory buffer containing skeleton binary.
 		 * @param atlasPath Path to atlas file.
 		 * @param scale Scale factor applied to skeleton (default = 1.0f).
 		 * @return may return nullptr if loading fails.
 		 */
-		static Sp<SkeletonData> Make(cBuffer &skeletonBuff,
+		static Sp<SkeletonData> Make(cBuffer &skelBuff,
 																	cString &atlasPath,
 																	float scale = 1.0f) throw(Error);
 
 		/**
 		 * @brief Creates SkeletonData from skeleton + atlas buffers.
-		 * @param skeletonBuff In-memory buffer containing skeleton binary.
+		 * @param skelBuff In-memory buffer containing skeleton binary.
 		 * @param atlasBuff In-memory buffer containing atlas data.
 		 * @param dir Directory path used to resolve texture file paths in atlas.
 		 * @param scale Scale factor applied to skeleton (default = 1.0f).
 		 * @return may return nullptr if loading fails.
 		 */
-		static Sp<SkeletonData> Make(cBuffer &skeletonBuff,
+		static Sp<SkeletonData> Make(cBuffer &skelBuff,
 																	cBuffer &atlasBuff,
 																	cString &dir,
 																	float scale = 1.0f) throw(Error);
@@ -118,7 +118,7 @@ namespace qk {
 									spine::Atlas* atlas,
 									QkAtlasAttachmentLoader* loader);
 
-		static SkeletonData* _Make(cBuffer &skeleton,
+		static SkeletonData* _Make(cBuffer &skel,
 			cBuffer &atlas, cString &dir, float scale, bool json) throw(Error);
 
 		spine::SkeletonData* _data;               ///< Spine skeleton definition.
@@ -264,7 +264,7 @@ namespace qk {
 		 *   assume access to any `spine::` symbols or internals.
 		 * - Lifetime of the returned object is managed by the engine's reference/Sp<T> system.
 		 */
-		Qk_DEFINE_ACCESSOR(SkeletonData*, skeleton);
+		Qk_DEFINE_ACCESSOR(SkeletonData*, skel);
 
 		/**
 		 * @brief Sets the active skin.
@@ -293,6 +293,12 @@ namespace qk {
 		 * If no specific mix is defined via set_mix(), this duration is used as the blend time.
 		 */
 		Qk_DEFINE_PROPERTY(float, default_mix, Const);
+
+		/**
+		 * @brief Current animation name for track 0 (base track).
+		 *  Set track 0 animation name and loop
+		*/
+		Qk_DEFINE_ACCESSOR(String, animation, Const);
 
 		/**
 		 * @brief Destroys the Spine object, releasing associated resources.
@@ -362,7 +368,7 @@ namespace qk {
 		 * @param loop Whether the animation should loop.
 		 * @return A pointer to the created TrackEntry.
 		 */
-		spine::TrackEntry* set_animation(uint32_t trackIndex, cString &name, bool loop);
+		spine::TrackEntry* set_animation(uint32_t trackIndex, cString &name, bool loop = false);
 
 		/**
 		 * @brief Queues an animation after the current one on the track.
@@ -373,7 +379,7 @@ namespace qk {
 		 * @param delay Delay before starting, in seconds (0 = immediately after current).
 		 * @return A pointer to the created TrackEntry.
 		 */
-		spine::TrackEntry* add_animation(uint32_t trackIndex, cString &name, bool loop, float delay = 0);
+		spine::TrackEntry* add_animation(uint32_t trackIndex, cString &name, bool loop = false, float delay = 0);
 
 		/**
 		 * @brief Sets an empty animation on a track, fading out the current animation.
@@ -423,7 +429,7 @@ namespace qk {
 		/// @brief Internal wrapper around Spine skeleton and runtime objects (hidden implementation).
 		Qk_DEFINE_INLINE_CLASS(SkeletonWrapper);
 
-		Sp<SpineOther> _other; // fixed storage for other properties
+		mutable Sp<SpineOther> _other; // fixed storage for other properties
 		/// @brief Thread-safe wrapper pointer (atomic for concurrent safety).
 		std::atomic<SkeletonWrapper*> _skel;
 		Vec2 _skel_origin, _skel_size; // cached skeleton origin and size

@@ -119,7 +119,7 @@ interface LookupResult {
 	pkg: Package;
 	relativePath: string;
 }
-const saerchModules = 'node_modules'; // search modules directory, using `node_maodules`
+const searchModules = 'node_modules'; // search modules directory, using `node_maodules`
 // global search paths list
 const globalPaths: string[] = []; // /node_modules, /test/node_modules
 // /node_modules => SearchPath or /test/node_modules => SearchPath
@@ -229,7 +229,7 @@ function parentsPaths(from: string, prefix?: string): string[] {
 
 	for (let s of from.split('/').slice(1)) {
 		prefix += '/' + s;
-		if (s != saerchModules) {
+		if (s != searchModules) {
 			paths.push(prefix);
 		}
 	}
@@ -657,9 +657,9 @@ export class Module implements IModule {
 		self.dirname = _fs.dirname(filename);
 
 		if (!isHttp(filename)) { // no http
-			self.paths = parentsPaths(this.dirname).map(e=>`${e}/${saerchModules}`);
+			self.paths = parentsPaths(this.dirname).map(e=>`${e}/${searchModules}`);
 		} else if (this.package) { // http
-			self.paths = [`${this.package.path}/${saerchModules}`];
+			self.paths = [`${this.package.path}/${searchModules}`];
 		}
 
 		let extension = _fs.extname(filename) || '.js';
@@ -729,8 +729,8 @@ export class Module implements IModule {
 		const res = _fs.resources(), cwd = _util.cwd();
 		// add cwd/resources path as global search path
 		for (let path of [res, cwd]) {
-			if (isDirectorySync(`${path}/${saerchModules}`)) {
-				globalPaths.push((new SearchPath(`${path}/${saerchModules}`).loadSync()).path);
+			if (isDirectorySync(`${path}/${searchModules}`)) {
+				globalPaths.push((new SearchPath(`${path}/${searchModules}`).loadSync()).path);
 			}
 		}
 
@@ -766,7 +766,7 @@ export class Module implements IModule {
 				if (modules) {
 					for (let dir in modules) {
 						let search = new SearchPath(`${main}/${dir}`, modules[dir]);
-						if (dir == saerchModules) {
+						if (dir == searchModules) {
 							globalPaths.unshift(search.path);
 						}
 					}

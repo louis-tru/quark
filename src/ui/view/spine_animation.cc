@@ -36,6 +36,7 @@
 namespace qk {
 	static void safe_trigger_event_Rt(View *v, UIEvent *e, cUIEventName& name);
 	static void stateListener(AnimationState *state, spine::EventType type, TrackEntry *entry, spine::Event *e);
+	static String CastStr(const spine::String &str);
 
 	SpineEvent::SpineEvent(View* origin, Type type, int trackIndex, cString& animationName, float trackTime)
 		: UIEvent(origin), _type(type), _trackIndex(trackIndex), _animationName(animationName), _trackTime(trackTime) {}
@@ -82,7 +83,7 @@ namespace qk {
 		View::destroy(); // Call parent destroy
 	}
 
-	SkeletonData* Spine::skeleton() {
+	SkeletonData* Spine::skel() {
 		_IfSkel(nullptr);
 		return skel->_wrapData.get();
 	}
@@ -105,7 +106,7 @@ namespace qk {
 	String Spine::skin() const {
 		_IfSkel(String());
 		auto &name = skel->_skeleton.getSkin()->getName();
-		return String(name.buffer(), (uint32_t)name.length());
+		return CastStr(name);
 	}
 
 	void Spine::set_skin(String val) {
@@ -115,6 +116,17 @@ namespace qk {
 
 	void Spine::set_speed(float val) {
 		_speed = Qk_Min(1e2, Qk_Max(val, 0.01));
+	}
+
+	String Spine::animation() const {
+		_IfAutoMutex(String());
+		auto track = skel->_state.getCurrent(0);
+		auto animation = track ? track->getAnimation() : nullptr;
+		return animation ? CastStr(animation->getName()) : String();
+	}
+
+	void Spine::set_animation(String name) {
+		set_animation(0, name, true);
 	}
 
 	void Spine::set_attachment(cString &slotName, cString &name) {
@@ -191,7 +203,7 @@ namespace qk {
 		return _skel_size;
 	}
 
-	void Spine::set_skeleton(SkeletonData *data) {
+	void Spine::set_skel(SkeletonData *data) {
 		auto lastSkel = _skel.load(std::memory_order_acquire);
 		if ((lastSkel ? lastSkel->_wrapData.get(): nullptr) != data) {
 			SkeletonWrapper *skel = nullptr; // new skeleton
@@ -269,7 +281,7 @@ namespace qk {
 	static void stateListener(AnimationState *state, spine::EventType type, TrackEntry *entry, spine::Event *e) {
 		auto self = ((Spine*)state->getRendererObject());
 		auto trackIndex = entry->getTrackIndex();
-		String animationName = entry->getAnimation()->getName().buffer();
+		String animationName = CastStr(entry->getAnimation()->getName());
 		auto trackTime = entry->getTrackTime();
 		switch (type) {
 			case EventType_Start:
@@ -298,7 +310,7 @@ namespace qk {
 					e->getTime(),
 					e->getIntValue(),
 					e->getFloatValue(),
-					String(e->getStringValue().buffer(), uint32_t(e->getStringValue().length())),
+					CastStr(e->getStringValue()),
 					e->getVolume(),
 					e->getBalance()
 				);
@@ -306,5 +318,9 @@ namespace qk {
 				break;
 			}
 		}
+	}
+
+	String CastStr(const spine::String &str) {
+		return String(str.buffer(), (uint32_t)str.length());
 	}
 }
