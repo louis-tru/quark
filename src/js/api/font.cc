@@ -90,10 +90,11 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(getFamilyName, {
-				if (!args.length() || !args[0]->isUint32()) {
+				int idx;
+				if (!args.length() || !args[0]->asInt32(worker).to(idx)) {
 					Js_Throw("@method FontPool.getFamilyName(int index)");
 				}
-				Js_Return( self->getFamilyName(args[0]->toInt32(worker)->value()) );
+				Js_Return( self->getFamilyName(idx) );
 			});
 
 			Js_Method(getFontFamilies, {

@@ -353,7 +353,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	afterTo(): View { throw Error.new('Access forbidden.') }
 
 	fadeOut() {
-		this.asDom().transition({ opacity: 0, time: 200 }, ()=>this.destroy());
+		this.asDom().transition({ opacity: 0, time: 200 }).then(()=>this.destroy());
 		this.unregisterNavigation(0);
 	}
 

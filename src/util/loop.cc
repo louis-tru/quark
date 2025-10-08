@@ -206,7 +206,7 @@ namespace qk {
 	}
 
 	void RunLoop::check_t::call(Data &e) {
-		host->_check.set(id, this);
+		host->_check.set(id, this); // hold on _check.set
 		retain(); // retain for _check.set
 		Qk_ASSERT_EQ(0, uv_check_init(host->_uv_loop, &uv_check));
 		Qk_ASSERT_EQ(0, uv_check_start(&uv_check, [](uv_check_t *h) {
@@ -224,7 +224,7 @@ namespace qk {
 		uv_close((uv_handle_t*)&uv_check, [](uv_handle_t* h) {
 			static_cast<check_t*>(h->data)->release(); // release for hold on _check.set
 		});
-		host->_check.erase(id);
+		host->_check.erase(id); // release hold for _check.set
 	}
 
 	void RunLoop::work_t::call(Data &e) {
@@ -376,10 +376,10 @@ namespace qk {
 		check->uv_check.data = check;
 
 		if (isSelfThread) {
-			check->resolve();
+			check->resolve(); // start check
 		} else {
 			Cb cb1(check);
-			_this->post(cb1);
+			_this->post(cb1); // first post to self thread
 		}
 		return check->id;
 	}

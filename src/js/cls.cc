@@ -62,16 +62,9 @@ namespace qk { namespace js {
 
 	JsClasses::JsClasses(Worker* worker)
 		: _worker(worker), _attachObject(nullptr), _runClass(nullptr)
-	{
-	}
+	{}
 
 	JsClasses::~JsClasses() {
-		for ( auto i : _jsclass ) {
-			delete i.second;
-		}
-	}
-
-	void JsClasses::destroy() {
 		for ( auto i : _jsclass ) {
 			i.second->destroy();
 		}

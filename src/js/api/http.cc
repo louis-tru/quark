@@ -186,13 +186,13 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(setMethod, {
-				if (args.length() < 1 || !args[0]->isUint32()) {
+				int arg;
+				if (args.length() < 1 || !args[0]->asInt32(worker).to(arg)) {
 					Js_Throw(
 						"@method setMethod(method)\n"
 						"@param method {HttpMethod}\n"
 					);
 				}
-				auto arg = args[0]->toUint32(worker)->value();
 				HttpMethod method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
 				Js_Try_Catch({ self->set_method(method); }, Error);
 			});
@@ -471,9 +471,9 @@ namespace qk { namespace js {
 			
 			value = obj->get(worker, worker->newStringOneByte(const_method));
 			if ( !value ) return false;
-			if ( value->isUint32() ) {
-				auto arg = value->toUint32(worker)->value();
-				opt.method = arg > 4 ? HTTP_METHOD_GET: (HttpMethod)arg;
+			int32_t method;
+			if ( value->asInt32(worker).to(method) ) {
+				opt.method = method > 4 ? HTTP_METHOD_GET: (HttpMethod)method;
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_headers));
@@ -505,8 +505,9 @@ namespace qk { namespace js {
 
 			value = obj->get(worker, worker->newStringOneByte(const_timeout));
 			if ( !value ) return false;
-			if ( value->isUint32() ) {
-				opt.timeout = value->toUint32(worker)->value() * 1e3;
+			uint32_t timeout;
+			if ( value->asUint32(worker).to(timeout) ) {
+				opt.timeout = timeout * 1e3;
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_disable_ssl_verify));
@@ -596,13 +597,14 @@ namespace qk { namespace js {
 			});
 
 			Js_Method(abort, {
-				if ( args.length() == 0 || !args[0]->isUint32() ) {
+				int id;
+				if ( args.length() == 0 || !args[0]->asInt32(worker).to(id) ) {
 					Js_Throw(
 						"@method abort(id)\n"
 						"@param id {uint} abort id\n"
 					);
 				}
-				http_abort( args[0]->toUint32(worker)->value() );
+				http_abort(id);
 			});
 
 			Js_Method(userAgent, {
@@ -635,13 +637,14 @@ namespace qk { namespace js {
 			});
 
 			Js_Method(setMaxConnectPoolSize, {
-				if (args.length() == 0 || !args[0]->isUint32()) {
+				uint32_t size;
+				if (args.length() == 0 || !args[0]->asUint32(worker).to(size)) {
 					Js_Throw(
 						"@method setMaxConnectPoolSize(size)\n"
 						"@param size {number}\n"
 					);
 				}
-				http_set_max_connect_pool_size( args[0]->toUint32(worker)->value() );
+				http_set_max_connect_pool_size(size);
 			});
 
 			Js_Method(clearCache, {

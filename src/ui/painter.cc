@@ -891,7 +891,9 @@ namespace qk {
 		painter->set_origin(_origin_value);
 		painter->set_matrix(&matrix());
 		painter->drawBoxBasic(this, data);
-		painter->set_origin_reverse(lastOrigin); // restore previous origin
+		if (clip()) // if clipped, get inside rect path
+			painter->getInsideRectPath(this, data);
+		painter->set_origin_reverse(lastOrigin); // reset origin
 		painter->drawBoxEnd(this, data);
 		painter->set_matrix(lastMatrix); // restore previous matrix
 	}
@@ -922,7 +924,7 @@ namespace qk {
 				painter->drawBoxFill(this, data);
 				painter->drawBoxBorder(this, data);
 				painter->set_origin({}); // reset origin
-				painter->drawBoxEnd(this, data);
+				painter->visitView(this);
 			} else {
 				canvas->clearColor(Color4f(0,0,0,0));
 			}

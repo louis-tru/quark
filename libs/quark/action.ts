@@ -295,17 +295,20 @@ export function createAction(win: Window, arg: ActionIn, parent?: Action): Actio
 }
 
 /**
- * @callback ActionCb(e)
- * @param e:ActionEvent
+ * @interface TransitionResult
+ * @extends Promise<ActionEvent>
 */
-export type ActionCb = (e: ActionEvent)=>void;
+export interface TransitionResult extends Promise<ActionEvent> {
+	/**
+	 * The action instance of this transition
+	*/
+	readonly action: KeyframeAction;
+}
 
 /**
- * Create a view style transition action by the style and play this action,
+ * Create a view style transition action by the style and play this action
  * 
- * 	and callback after completion
- *
- * Callback: cb()
+ * @return {TransitionResult} Promise object, when the transition is completed, the promise is resolved.
  *
  * @example
  *
@@ -315,61 +318,58 @@ export type ActionCb = (e: ActionEvent)=>void;
  *		time: 1000,
  *		y: 100,
  *		x: 100,
- *	}, ()={
- *		console.log('view transition end');
- *	})
- *  // Use a linear transition
+ *	}).then((evt)=>{
+ *		console.log('transition end');
+ *	});
+ *
+ *	// Use an ease-in-out transition
  *	transition(view, {
  *		time: 1000,
  *		curve: 'linear',
  *		y: 100,
  *		x: 100,
- *	}, 1000)
+ *	})
  *	```
  */
 export function transition(
 	view: View,
 	to: KeyframeIn,
-	fromOrCb?: KeyframeIn | ActionCb,
-	cb?: ActionCb
-): KeyframeAction {
+	from?: KeyframeIn
+): TransitionResult {
 	let action = new exports.KeyframeAction(view.window) as KeyframeAction;
-	let from: Keyframe | undefined;
-
-	if (fromOrCb) {
-		if (typeof fromOrCb == 'function') {
-			cb = fromOrCb;
-			from = action.addFrame(0); // add frame 0
-		} else {
-			action.add(fromOrCb);
-		}
-	} else {
-		from = action.addFrame(0); // add frame 0
-	}
-
-	action.add(to); // add frame 1
+	let keyFrom: Keyframe | undefined;
 
 	if (from) {
-		from.fetch(view); // fetch(view)
+		action.add(from);
+	} else {
+		keyFrom = action.addFrame(0); // add frame 0
+	}
+	action.add(to); // add frame 1
+
+	if (keyFrom) {
+		keyFrom.fetch(view); // fetch(view)
 	}
 
 	view.action = action
 
 	action.play(); // start play
 
-	if ( cb ) {
+	const id = String(util.getId());
+	const result = new Promise<ActionEvent>((cb, errCb)=>{
 		view.onActionKeyframe.on(function(evt) {
-			//console.log('onActionKeyframe');
 			if ( evt.action === action ) {
-				if (evt.frame != 1)
-					return;
+				if (evt.frame !== 1) return;
 				cb(evt); // end
+			} else {
+				errCb(new Error('Bad action instance.'));
 			}
-			view.onActionKeyframe.off('transition-1');
-		}, 'transition-1');
-	}
+			view.onActionKeyframe.off(id);
+		}, id);
+	}) as TransitionResult;
 
-	return action;
+	(result as types.RemoveReadonly<typeof result>).action = action;
+
+	return result;
 }
 
 export default createAction;

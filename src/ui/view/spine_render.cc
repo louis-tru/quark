@@ -32,10 +32,10 @@
 
 namespace qk {
 
-	AttachmentVertices::AttachmentVertices(
+	AttachmentEx::AttachmentEx(
 		AtlasPage* page, uint16_t *triangles, uint32_t vertCount, uint32_t indexCount
 	)
-		: _source(static_cast<ImageSource*>(page->getRendererObject()))
+		: _source(static_cast<ImageSource*>(page->texture))
 		, _width(page->width), _height(page->height)
 		, _pma(page->pma)
 	{
@@ -90,12 +90,12 @@ namespace qk {
 		}
 
 		Hash5381 hash;
-		hash.updateu64(*(size_t*)_source);
+		hash.updateu64(uintptr_t(_source));
 		hash.updateu32(_paint.bitfields);
 		_hashCode = hash.hashCode();
 	}
 
-	AttachmentVertices::~AttachmentVertices() {
+	AttachmentEx::~AttachmentEx() {
 		shared_allocator()->free(_triangles.verts);
 		if (_source)
 			_source->release();
@@ -132,6 +132,7 @@ namespace qk {
 				return kScreen_BlendMode;
 			default:
 				return premultipliedAlpha ? kSrcOverExt_BlendMode: kSrcOver_BlendMode;
+				//return kSrcOver_BlendMode;
 		}
 	}
 
@@ -145,14 +146,14 @@ namespace qk {
 		color.b *= color.a;
 	}
 
-	static void drawTriangles(Painter *painter, TrianglesExt &triangles, AttachmentVertices *attachment) {
+	static void drawTriangles(Painter *painter, TrianglesEx &triangles, AttachmentEx *ex) {
 		Qk_ASSERT_NE(triangles.indexCount, 0);
 		Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
-		auto src = attachment->_source;
+		auto src = ex->_source;
 		if (src->load()) {
 			Paint paint;
 			paint.fill.color = Color4f(1,1,1,1); // white
-			paint.fill.image = &attachment->_paint;
+			paint.fill.image = &ex->_paint;
 			paint.blendMode = triangles.blendMode;
 			painter->canvas()->drawTriangles(triangles, paint);
 		} else {
@@ -170,13 +171,13 @@ namespace qk {
 
 	static void tryDrawLastTriangles(
 		Painter *painter,
-		TrianglesExt &triangles,
-		AttachmentVertices *lastAttachment, AttachmentVertices *attachment, Slot *slot
+		TrianglesEx &triangles,
+		AttachmentEx *lastEx, AttachmentEx *ex, Slot *slot
 	) {
-		auto blendMode = getBlendMode(slot, attachment->_pma);
-		if (lastAttachment) {
-			if (lastAttachment->_hashCode != attachment->_hashCode || triangles.blendMode != blendMode) {
-				drawTriangles(painter, triangles, lastAttachment);
+		auto blendMode = getBlendMode(slot, ex->_pma);
+		if (lastEx) {
+			if (lastEx->_hashCode != ex->_hashCode || triangles.blendMode != blendMode) {
+				drawTriangles(painter, triangles, lastEx);
 				triangles = {}; // reset
 			}
 		}
@@ -191,7 +192,7 @@ namespace qk {
 		if (!skel || skel->_skeleton.getColor().a == 0) {
 			return painter->visitView(this, &matrix());
 		}
-		_other->_mutex.lock();
+		_mutex.lock();
 
 		auto lastMatrix = painter->matrix();
 		auto mat = matrix();
@@ -200,17 +201,13 @@ namespace qk {
 		painter->set_matrix(&mat);
 
 		auto skeleton = &skel->_skeleton;
-		auto clipper = &_other->_clipper;
-		auto effect = _other->_effect;
-		if (effect)
-			effect->begin(*skeleton);
-
+		auto clipper = _clipper.get();
 		// spine global color
 		auto color = painter->color() *
 			reinterpret_cast<Color4f&>(skeleton->getColor().r);
 		spine::Color light, dark;
-		AttachmentVertices *attachmentV, *lastAttachmentV = nullptr;
-		TrianglesExt cmdTriangles;
+		AttachmentEx *ex, *lastEx = nullptr;
+		TrianglesEx cmdTriangles;
 
 		auto tmpBuff = &painter->_tempBuff; // Temp memory buffer allocation
 		auto allocator = painter->_tempAllocator;
@@ -225,27 +222,27 @@ namespace qk {
 
 			auto attachment = slot->getAttachment();
 			if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
-				auto region = (RegionAttachment *)attachment;
-				attachmentV = (AttachmentVertices *) region->getRendererObject();
+				auto region = static_cast<RegionAttachmentEx*>(attachment);
+				ex = region->ex;
 				light = region->getColor();
-				tryDrawLastTriangles(painter, cmdTriangles, lastAttachmentV, attachmentV, slot);
+				tryDrawLastTriangles(painter, cmdTriangles, lastEx, ex, slot);
 				auto z = cmdTriangles.zDepthTotal;
 				Vec3 dstPtr[4] = {{0,0,z}, {0,0,z}, {0,0,z}, {0,0,z}};
-				region->computeWorldVertices(slot->getBone(), dstPtr->val, 0, 3);
-				auto verts = attachmentV->_triangles.verts;
+				region->computeWorldVertices(*slot, dstPtr->val, 0, 3);
+				auto verts = ex->_triangles.verts;
 				for (int i = 0; i < 4; ++i, verts++) {
 					verts->vertices = dstPtr[i];
 				}
 			} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
-				auto mesh = (MeshAttachment *)attachment;
-				attachmentV = (AttachmentVertices *) mesh->getRendererObject();
+				auto mesh = static_cast<MeshAttachmentEx*>(attachment);
+				ex = mesh->ex;
 				light = mesh->getColor();
-				tryDrawLastTriangles(painter, cmdTriangles, lastAttachmentV, attachmentV, slot);
+				tryDrawLastTriangles(painter, cmdTriangles, lastEx, ex, slot);
 				tmpBuff->reset((uint32_t)mesh->getWorldVerticesLength() * sizeof(float));
 				float *dstPtr = (float *) tmpBuff->val();
 				mesh->computeWorldVertices(*slot, 0, mesh->getWorldVerticesLength(), dstPtr, 0, 2);
-				auto verts = attachmentV->_triangles.verts;
-				auto vertCount = attachmentV->_triangles.vertCount;
+				auto verts = ex->_triangles.verts;
+				auto vertCount = ex->_triangles.vertCount;
 				for (int i = 0; i < vertCount; ++i, verts++, dstPtr+=2) {
 					verts->vertices[0] = dstPtr[0];
 					verts->vertices[1] = dstPtr[1];
@@ -272,13 +269,13 @@ namespace qk {
 			} else {
 				dark = spine::Color();
 			}
-			if (attachmentV->_pma) { // premultiplied alpha
+			if (ex->_pma) { // premultiplied alpha
 				if (slot->hasDarkColor())
 					premultipliedAlpha(dark);
 				premultipliedAlpha(light);
 			}
 
-			auto triangles = attachmentV->_triangles;
+			auto triangles = ex->_triangles;
 			if (clipper->isClipping()) {
 				clipper->clipTriangles(
 					(float*)&triangles.verts[0].vertices,
@@ -311,22 +308,11 @@ namespace qk {
 			}
 
 			auto vertex = triangles.verts;
-			if (effect) {
-				for (int v = 0; v < triangles.vertCount; ++v, ++vertex) {
-					auto lightCopy = light;
-					auto darkCopy = dark;
-					effect->transform(vertex->vertices[0], vertex->vertices[1],
-						vertex->texCoords[0], vertex->texCoords[1], lightCopy, darkCopy);
-					vertex->lightColor = colorToColor4B(lightCopy);
-					vertex->darkColor = colorToColor4B(darkCopy);
-				}
-			} else {
-				auto light4B = colorToColor4B(light);
-				auto dark4B = colorToColor4B(dark);
-				for (int v = 0; v < triangles.vertCount; ++v, ++vertex) {
-					vertex->lightColor = light4B;
-					vertex->darkColor = dark4B;
-				}
+			auto light4B = colorToColor4B(light);
+			auto dark4B = colorToColor4B(dark);
+			for (int v = 0; v < triangles.vertCount; ++v, ++vertex) {
+				vertex->lightColor = light4B;
+				vertex->darkColor = dark4B;
 			}
 
 			Qk_ASSERT_EQ(triangles.indexCount % 3, 0); // must be triangles
@@ -348,20 +334,16 @@ namespace qk {
 			}
 			cmdTriangles.vertCount += triangles.vertCount;
 			cmdTriangles.indexCount += triangles.indexCount;
-			lastAttachmentV = attachmentV;
+			lastEx = ex;
 			clipper->clipEnd(*slot);
 			cmdTriangles.zDepthTotal += zDepthNextUnit;
 		}
 		clipper->clipEnd();
-
-		if (effect)
-			effect->end();
-
-		_other->_mutex.unlock();
+		_mutex.unlock();
 
 		// commit last triangles
-		if (lastAttachmentV) {
-			drawTriangles(painter, cmdTriangles, lastAttachmentV);
+		if (lastEx) {
+			drawTriangles(painter, cmdTriangles, lastEx);
 		}
 		painter->set_matrix(&matrix());
 		painter->visitView(this);

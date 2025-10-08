@@ -809,11 +809,11 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * Update the current ViewController state and re-render if the state does change
 	 * @template K
-	 * @method setState(newState,cb?)
-	 * @param newState:object Partial state
-	 * @param cb?:Function Optional callback after state applied
+	 * @method setState(newState)
+	 * @param newState:object Partial state to update
+	 * @return Promise<void> resolves after re-render completes
 	*/
-	setState<K extends keyof S>(newState: Pick<S, K>, cb?: ()=>void) {
+	setState<K extends keyof S>(newState: Pick<S, K>) {
 		let update = false;
 		let stateHashs = this._stateHashs;
 		let state = this.state as S;
@@ -827,30 +827,30 @@ export class ViewController<P = {}, S = {}> implements DOM {
 			}
 		}
 		if (update) {
-			this.update(cb);
-		} else if (cb) {
-			cb();
+			return this.update();
+		} else {
+			return Promise.resolve();
 		}
 	}
 
 	/**
 	 * Force re-rendering of the ViewController
-	 * @method update(cb?)
-	 * @param cb?:Function Optional callback after update
+	 * @method update()
+	 * @return Promise<void> resolves after re-render completes
 	*/
-	update(cb?: ()=>void) {
+	async update() {
 		if (this.isDestroyd)
-			return;
-		if (cb) {
+			return Promise.resolve();
+		return new Promise<void>(cb=>{
 			if (this._rerenderCbs) {
 				this._rerenderCbs.push(cb);
 			} else {
 				this._rerenderCbs = [cb];
 			}
-		}
-		if (this.isMounted) {
-			markrerender(this);
-		}
+			if (this.isMounted) {
+				markrerender(this);
+			}
+		});
 	}
 
 	/**

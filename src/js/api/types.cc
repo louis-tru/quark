@@ -1026,12 +1026,13 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, FontStyle& out, cChar* desc) {
-		if (!in->isUint32()) {
+		int value;
+		if (!in->asInt32(worker).to(value)) {
 			return throw_error(worker, in, desc), false;
 		}
 		struct Out {
-			uint32_t value;
-		} out_ = { in->toUint32(worker)->value() };
+			int value;
+		} out_ = { value };
 		out = *reinterpret_cast<FontStyle*>(&out_);
 		return true;
 	}

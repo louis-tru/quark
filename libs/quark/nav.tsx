@@ -623,7 +623,7 @@ export class Navbar<P={},S={}> extends NavigationStatus<{
 				!this.hidden &&
 				this.asDom().parent!.level
 		) {
-			this.asDom().transition({ opacity: 0, time }, ()=>this.destroy());
+			this.asDom().transition({ opacity: 0, time }).then(()=>this.destroy());
 		} else {
 			this.destroy();
 		}
@@ -814,7 +814,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 					borderColorLeft: backgroundColorReverse(this),
 					borderWidthLeft: px,
 				};
-				dom.transition({ x: x, visible: false, time }, ()=>{
+				dom.transition({ x: x, visible: false, time }).then(()=>{
 					this.destroy();
 				});
 				super.intoLeave(time);
@@ -856,7 +856,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 					borderColorLeft: backgroundColorReverse(this),
 					borderWidthLeft: px,
 				};
-				dom.transition({ x: 0, time }, {x}, ()=>{
+				dom.transition({ x: 0, time }, {x}).then(()=>{
 					dom.style.borderWidthLeft = 0;
 				});
 			} else {

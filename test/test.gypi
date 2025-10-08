@@ -83,11 +83,13 @@
 				],
 				'xcode_settings': {
 					# 'OTHER_LDFLAGS': '-all_load',
+					# 'OTHER_LDFLAGS': '-static-libstdc++ -static-libgcc',
 					'INFOPLIST_FILE': '<(output)/../../test/test-<(os).plist',
 					'SKIP_INSTALL': 'NO',
 					'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
 					# 'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
 					'PRODUCT_BUNDLE_IDENTIFIER': 'org.quark.test1',
+					'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)',
 				},
 				'link_settings': {
 					'libraries': [

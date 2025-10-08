@@ -40,6 +40,7 @@ namespace spine {
 	class SkeletonData;
 	class TrackEntry;
 	class EventData;
+	class SkeletonClipping;
 }
 
 namespace qk {
@@ -425,11 +426,11 @@ namespace qk {
 		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 
 	private:
-		Qk_DEFINE_INLINE_CLASS(SpineOther);
 		/// @brief Internal wrapper around Spine skeleton and runtime objects (hidden implementation).
 		Qk_DEFINE_INLINE_CLASS(SkeletonWrapper);
 
-		mutable Sp<SpineOther> _other; // fixed storage for other properties
+		mutable QkMutex _mutex; // protects _self and SkeletonSelf members
+		Sp<spine::SkeletonClipping> _clipper; // clipping helper
 		/// @brief Thread-safe wrapper pointer (atomic for concurrent safety).
 		std::atomic<SkeletonWrapper*> _skel;
 		Vec2 _skel_origin, _skel_size; // cached skeleton origin and size

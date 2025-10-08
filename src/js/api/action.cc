@@ -76,23 +76,26 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(seek, {
-				if (!args.length() || !args[0]->isUint32())
+				uint32_t time;
+				if (!args.length() || !args[0]->asUint32(worker).to(time))
 					Js_Throw("@method Action.seek(uint32_t timeMs)");
-				self->seek(args[0]->toUint32(worker)->value());
+				self->seek(time);
 				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(seekPlay, {
-				if (!args.length() || !args[0]->isUint32())
+				uint32_t time;
+				if (!args.length() || !args[0]->asUint32(worker).to(time))
 					Js_Throw("@method Action.seek_play(uint32_t timeMs)");
-				self->seek_play(args[0]->toUint32(worker)->value());
+				self->seek_play(time);
 				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(seekStop, {
-				if (!args.length() || !args[0]->isUint32())
+				uint32_t time;
+				if (!args.length() || !args[0]->asUint32(worker).to(time))
 					Js_Throw("@method Action.seek_stop(uint32_t timeMs)");
-				self->seek_stop(args[0]->toUint32(worker)->value());
+				self->seek_stop(time);
 				Js_Return(args.thisObj());
 			});
 
@@ -186,13 +189,13 @@ namespace qk { namespace js {
 			// bool hasProperty(ViewProp name);
 
 			Js_Class_Method(addFrame, {
-				if (!args.length() || !args[0]->isUint32()) {
+				uint32_t timeMs;
+				if (!args.length() || !args[0]->asUint32(worker).to(timeMs)) {
 					Js_Throw("\
 						Param timeMs cannot be empty \n\
 						@method KeyframeAction.addFrame(uint32_t timeMs, cCurve& curve = EASE) \n\
 					");
 				}
-				auto timeMs = args[0]->toUint32(worker)->value();
 				auto curve = EASE;
 				if (args.length() > 1 && !args[1]->isUndefined()) {
 					Js_Parse_Type(Curve, args[1], "@method KeyframeAction.addFrame() curve = %s");

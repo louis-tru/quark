@@ -30,8 +30,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // BigInt support.
-import * as _bigint from './_bigint';
-_bigint._set(checkInt);
+let _bigint: any;
+if ((globalThis as any).BigInt) {
+	_bigint = __binding__('quark/_bigint');
+	_bigint._set(checkInt);
+}
 
 function readBigUIntBE(self: Uint8Array, offset: number = 0, end: number = self.length): bigint {
 	validateNumber(offset, 'offset');
@@ -279,9 +282,8 @@ function readBigInt64BE(self: Uint8Array, offset: number = 0): bigint {
 	if (first === undefined || last === undefined)
 		boundsError(offset, self.length - 8);
 
-	if (_bigint) {
+	if (_bigint)
 		return <bigint>_bigint._readBigInt64BE(self, offset);
-	}
 	throw new Error('Not support bigint');
 }
 
@@ -292,9 +294,8 @@ function readBigUInt64BE(self: Uint8Array, offset: number = 0): bigint {
 	if (first === undefined || last === undefined)
 		boundsError(offset, self.length - 8);
 
-	if (_bigint) {
+	if (_bigint)
 		return <bigint>_bigint._readBigUInt64BE(self, offset)
-	}
 	throw new Error('Not support bigint');
 }
 
@@ -565,15 +566,21 @@ function writeInt48BE(self: Uint8Array, value: number, offset: number = 0) {
 }
 
 function writeUInt48BE(self: Uint8Array, value: number, offset: number = 0) {
-	return writeU_Int48BE(self, value, offset, 0, 0xffffffffffffff);
+	return writeU_Int48BE(self, value, offset, 0, 0xffffffffffff);
 }
 
 function writeBigInt64BE(self: Uint8Array, value: bigint, offset: number = 0) {
-	return _bigint._writeBigInt64BE(self, value, offset);
+	if (_bigint)
+		return _bigint._writeBigInt64BE(self, value, offset);
+	else
+		throw new Error('Not support bigint');
 }
 
 function writeBigUInt64BE(self: Uint8Array, value: bigint, offset: number = 0) {
-	return _bigint._writeBigUInt64BE(self, value, offset);
+	if (_bigint)
+		return _bigint._writeBigUInt64BE(self, value, offset);
+	else
+		throw new Error('Not support bigint');
 }
 
 function writeIntBE(self: Uint8Array, value: number, offset: number = 0, byteLength = 4) {
@@ -597,7 +604,7 @@ function writeIntBE(self: Uint8Array, value: number, offset: number = 0, byteLen
 
 function writeUIntBE(self: Uint8Array, value: number, offset: number = 0, byteLength = 4) {
 	if (byteLength === 6)
-		return writeU_Int48BE(self, value, offset, 0, 0xffffffffffffff);
+		return writeU_Int48BE(self, value, offset, 0, 0xffffffffffff);
 	if (byteLength === 5)
 		return writeU_Int40BE(self, value, offset, 0, 0xffffffffff);
 	if (byteLength === 3)

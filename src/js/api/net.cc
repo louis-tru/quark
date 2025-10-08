@@ -151,7 +151,9 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Socket, 0, {
-				if (args.length() < 1 || !args[0]->isString() || !args[1]->isUint32()) {
+				String hostname;
+				uint32_t port;
+				if (args.length() < 2 || !args[0]->asString(worker).to(hostname) || !args[1]->asUint32(worker).to(port)) {
 					Js_Throw(
 						"@constructor SocketConnect(hostname,port,isSSL?)\n"
 						"@param hostname:string\n"
@@ -159,8 +161,6 @@ namespace qk { namespace js {
 						"@param isSSL?:boolean\n"
 					);
 				}
-				auto hostname = args[0]->toString(worker)->value(worker);
-				auto port = args[1]->template cast<JSUint32>()->value();
 				auto isSSL = args.length() > 2 ? args[2]->toBoolean(worker): false;
 				New<MixSocket>(args, new Type(hostname, port, isSSL));
 			});

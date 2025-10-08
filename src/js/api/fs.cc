@@ -306,13 +306,14 @@ namespace qk { namespace js {
 			});
 
 			Js_Method(abort, {
-				if ( args.length() == 0 || ! args[0]->isUint32() ) {
+				int32_t id;
+				if ( args.length() == 0 || ! args[0]->asInt32(worker).to(id) ) {
 					Js_Throw(
 						"@method reader.abort(id)\n"
-						"@param id:Uint abort id\n"
+						"@param id:Int abort id\n"
 					);
 				}
-				fs_reader()->abort( args[0]->toUint32(worker)->value() );
+				fs_reader()->abort( id );
 			});
 
 			Js_Method(clear, {
@@ -324,7 +325,8 @@ namespace qk { namespace js {
 	struct NativeFs {
 		static void chmod(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 1 || ! args[0]->isString()) {
+			String path;
+			if (args.length() < 1 || ! args[0]->asString(worker).to(path)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method chmodSync(path[,mode])\n"
@@ -341,14 +343,13 @@ namespace qk { namespace js {
 				}
 			}
 			int args_index = 1;
-			uint32_t mode = fs_default_mode;
-			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32(worker)->value();
+			int32_t mode = fs_default_mode;
+			if (args.length() > 1 && args[1]->asInt32(worker).to(mode)) {
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_chmod_sync(args[0]->toString(worker)->value(worker), mode);
+					fs_chmod_sync(path, mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -357,13 +358,14 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				fs_chmod(args[0]->toString(worker)->value(worker), mode, cb);
+				fs_chmod(path, mode, cb);
 			}
 		}
 
 		static void chmod_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 1 || ! args[0]->isString()) {
+			String path;
+			if (args.length() < 1 || ! args[0]->asString(worker).to(path)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method chmodRecursionSync(path,mode?)\n"
@@ -382,14 +384,13 @@ namespace qk { namespace js {
 				}
 			}
 			int args_index = 1;
-			uint32_t mode = fs_default_mode;
-			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32(worker)->value();
+			int32_t mode = fs_default_mode;
+			if (args.length() > 1 && args[1]->asInt32(worker).to(mode)) {
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_chmod_recursion_sync(args[0]->toString(worker)->value(worker), mode);
+					fs_chmod_recursion_sync(path, mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -398,38 +399,38 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				Js_Return( fs_chmod_recursion(args[0]->toString(worker)->value(worker), mode, cb) );
+				Js_Return( fs_chmod_recursion(path, mode, cb) );
 			}
 		}
 
 		static void chown(FunctionArgs args, bool sync) {
 			Js_Worker(args);
+			String path;
+			int32_t owner; int32_t group;
 			if (args.length() < 3 ||
-					!args[0]->isString() ||
-					!args[1]->isUint32() || !args[2]->isUint32() ) {
+					!args[0]->asString(worker).to(path) ||
+					!args[1]->asInt32(worker).to(owner) || !args[2]->asInt32(worker).to(group) ) {
 				if ( sync ) {
 					Js_Throw(
 						"@method chownSync(path,owner,group)\n"
 						"@param path:string\n"
-						"@param owner:Uint\n"
-						"@param group:Uint\n"
+						"@param owner:Int\n"
+						"@param group:Int\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
 						"@method chown(path,owner,group,cb?)\n"
 						"@param path:string\n"
-						"@param owner:Uint\n"
-						"@param group:Uint\n"
+						"@param owner:Int\n"
+						"@param group:Int\n"
 						"@param cb?:Function\n"
 					);
 				}
 			}
 			if ( sync ) {
 				try {
-					fs_chown_sync(args[0]->toString(worker)->value(worker),
-												args[1]->toUint32(worker)->value(),
-												args[2]->toUint32(worker)->value());
+					fs_chown_sync(path, owner, group);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -438,42 +439,40 @@ namespace qk { namespace js {
 				if ( args.length() > 3 ) {
 					cb = get_callback_for_none(worker, args[3]);
 				}
-				fs_chown(args[0]->toString(worker)->value(worker),
-								args[1]->toUint32(worker)->value(),
-								args[2]->toUint32(worker)->value(), cb);
+				fs_chown(path, owner, group, cb);
 			}
 		}
 
 		static void chown_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if ( args.length() < 3 ||
-					!args[0]->isString() ||
-					!args[1]->isUint32() || !args[2]->isUint32() ) {
+			String path;
+			int32_t owner; int32_t group;
+			if (args.length() < 3 ||
+					!args[0]->asString(worker).to(path) ||
+					!args[1]->asInt32(worker).to(owner) || !args[2]->asInt32(worker).to(group) ) {
 				if ( sync ) {
 					Js_Throw(
 						"@method chownRecursionSync(path,owner,group)\n"
 						"@param path:string\n"
-						"@param owner:Uint\n"
-						"@param group:Uint\n"
+						"@param owner:Int\n"
+						"@param group:Int\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
 						"@method chownRecursion(path,owner,group,cb?)\n"
 						"@param path:string\n"
-						"@param owner:Uint\n"
-						"@param group:Uint\n"
+						"@param owner:Int\n"
+						"@param group:Int\n"
 						"@param cb?:Function\n"
-						"@return {Uint} return id\n"
+						"@return {Int} return id\n"
 					);
 				}
 			}
 			
 			if ( sync ) {
 				try {
-					fs_chown_recursion_sync(args[0]->toString(worker)->value(worker),
-													args[1]->toUint32(worker)->value(),
-													args[2]->toUint32(worker)->value());
+					fs_chown_recursion_sync(path, owner, group);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -482,40 +481,38 @@ namespace qk { namespace js {
 				if ( args.length() > 3 ) {
 					cb = get_callback_for_none(worker, args[3]);
 				}
-				Js_Return( fs_chown_recursion(args[0]->toString(worker)->value(worker),
-															args[1]->toUint32(worker)->value(),
-															args[2]->toUint32(worker)->value(), cb) );
+				Js_Return( fs_chown_recursion(path, owner, group, cb) );
 			}
 		}
 
 		static void mkdir(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isString()) {
+			String path;
+			if (args.length() < 1 || !args[0]->asString(worker).to(path)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method mkdirSync(path,mode?)\n"
 						"@param path:string\n"
-						"@param mode?:Uint\n"
+						"@param mode?:Int\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
 						"@method mkdir(path,mode?,cb?)\n"
 						"@param path:string\n"
-						"@param mode?:Uint\n"
+						"@param mode?:Int\n"
 						"@param cb?:Function\n"
 					);
 				}
 			}
 			int args_index = 1;
-			uint32_t mode = fs_default_mode;
-			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32(worker)->value();
+			int32_t mode = fs_default_mode;
+			if (args.length() > 1 && args[1]->asInt32(worker).to(mode)) {
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_mkdir_sync(args[0]->toString(worker)->value(worker), mode);
+					fs_mkdir_sync(path, mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -524,39 +521,39 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				fs_mkdir(args[0]->toString(worker)->value(worker), mode, cb);
+				fs_mkdir(path, mode, cb);
 			}
 		}
 
 		static void mkdirs(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 1 || ! args[0]->isString()) {
+			String path;
+			if (args.length() < 1 || !args[0]->asString(worker).to(path)) {
 				if ( sync ){
 					Js_Throw(
 						"@method mkdirsSync(path,mode?)\n"
 						"@param path:string\n"
-						"@param mode?:Uint\n"
+						"@param mode?:Int\n"
 						"@return {void}\n"
 					);
 				} else {
 					Js_Throw(
 						"@method mkdirs(path,mode?,cb?)\n"
 						"@param path:string\n"
-						"@param mode?:Uint\n"
+						"@param mode?:Int\n"
 						"@param cb?:Function\n"
-						"@return {Uint} return id\n"
+						"@return {Int} return id\n"
 					);
 				}
 			}
 			int args_index = 1;
-			uint32_t mode = fs_default_mode;
-			if (args.length() > 1 && args[1]->isUint32()) {
-				mode = args[1]->toUint32(worker)->value();
+			int32_t mode = fs_default_mode;
+			if (args.length() > 1 && args[1]->asInt32(worker).to(mode)) {
 				args_index++;
 			}
 			if ( sync ) {
 				try {
-					fs_mkdirs_sync(args[0]->toString(worker)->value(worker), mode);
+					fs_mkdirs_sync(path, mode);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -565,14 +562,15 @@ namespace qk { namespace js {
 				if ( args.length() > args_index ) {
 					cb = get_callback_for_none(worker, args[args_index]);
 				}
-				fs_mkdirs(args[0]->toString(worker)->value(worker), mode, cb);
+				fs_mkdirs(path, mode, cb);
 			}
 		}
 
 		static void rename(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-
-			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
+			String name;
+			String new_name;
+			if (args.length() < 2 || !args[0]->asString(worker).to(name) || !args[1]->asString(worker).to(new_name)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method renameSync(name,new_name)\n"
@@ -592,8 +590,7 @@ namespace qk { namespace js {
 
 			if ( sync ) {
 				try {
-					fs_rename_sync(args[0]->toString(worker)->value(worker),
-																	args[1]->toString(worker)->value(worker));
+					fs_rename_sync(name, new_name);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -602,13 +599,15 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				fs_rename(args[0]->toString(worker)->value(worker), args[1]->toString(worker)->value(worker), cb);
+				fs_rename(name, new_name, cb);
 			}
 		}
 
 		static void link(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
+			String path;
+			String new_path;
+			if (args.length() < 2 || !args[0]->asString(worker).to(path) || !args[1]->asString(worker).to(new_path)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method linkSync(path,newPath)\n"
@@ -626,8 +625,8 @@ namespace qk { namespace js {
 			if ( sync ) {
 				try {
 					fs_link_sync(
-						args[0]->toString(worker)->value(worker),
-						args[1]->toString(worker)->value(worker)
+						path,
+						new_path
 					);
 				} catch(cError& err) {
 					Js_Throw(err);
@@ -637,13 +636,14 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				fs_link(args[0]->toString(worker)->value(worker), args[1]->toString(worker)->value(worker), cb);
+				fs_link(path, new_path, cb);
 			}
 		}
 
 		static void unlink(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isString()) {
+			String path;
+			if (args.length() < 1 || !args[0]->asString(worker).to(path)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method unlinkSync(path)\n"
@@ -660,7 +660,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_unlink_sync(args[0]->toString(worker)->value(worker));
+					fs_unlink_sync(path);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -669,13 +669,14 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_none(worker, args[1]);
 				}
-				fs_unlink(args[0]->toString(worker)->value(worker), cb);
+				fs_unlink(path, cb);
 			}
 		}
 
 		static void rmdir(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isString()) {
+			String path;
+			if (args.length() < 1 || !args[0]->asString(worker).to(path)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method rmdirSync(path)\n"
@@ -692,7 +693,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_rmdir_sync(args[0]->toString(worker)->value(worker));
+					fs_rmdir_sync(path);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -701,13 +702,14 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_none(worker, args[1]);
 				}
-				fs_rmdir(args[0]->toString(worker)->value(worker), cb);
+				fs_rmdir(path, cb);
 			}
 		}
 
 		static void remove_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 1 || !args[0]->isString()) {
+			String path;
+			if (args.length() < 1 || !args[0]->asString(worker).to(path)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method removeRecursionSync(path)\n"
@@ -725,7 +727,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_remove_recursion_sync(args[0]->toString(worker)->value(worker));
+					fs_remove_recursion_sync(path);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -734,13 +736,15 @@ namespace qk { namespace js {
 				if ( args.length() > 1 ) {
 					cb = get_callback_for_none(worker, args[1]);
 				}
-				Js_Return( fs_remove_recursion(args[0]->toString(worker)->value(worker), cb) );
+				Js_Return( fs_remove_recursion(path, cb) );
 			}
 		}
 
 		static void copy(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
+			String path;
+			String target;
+			if (args.length() < 2 || !args[0]->asString(worker).to(path) || !args[1]->asString(worker).to(target)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method copySync(path,target)\n"
@@ -760,8 +764,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_copy_sync(args[0]->toString(worker)->value(worker),
-																args[1]->toString(worker)->value(worker));
+					fs_copy_sync(path, target);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -770,14 +773,15 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				Js_Return( fs_copy(args[0]->toString(worker)->value(worker),
-																		args[1]->toString(worker)->value(worker), cb) );
+				Js_Return( fs_copy(path, target, cb) );
 			}
 		}
 
 		static void copy_recursion(FunctionArgs args, bool sync) {
 			Js_Worker(args);
-			if (args.length() < 2 || !args[0]->isString() || !args[1]->isString()) {
+			String path;
+			String target;
+			if (args.length() < 2 || !args[0]->asString(worker).to(path) || !args[1]->asString(worker).to(target)) {
 				if ( sync ) {
 					Js_Throw(
 						"@method copyRecursionSync(path,target)\n"
@@ -797,8 +801,7 @@ namespace qk { namespace js {
 			}
 			if ( sync ) {
 				try {
-					fs_copy_recursion_sync(args[0]->toString(worker)->value(worker),
-																	args[1]->toString(worker)->value(worker));
+					fs_copy_recursion_sync(path, target);
 				} catch(cError& err) {
 					Js_Throw(err);
 				}
@@ -807,8 +810,7 @@ namespace qk { namespace js {
 				if ( args.length() > 2 ) {
 					cb = get_callback_for_none(worker, args[2]);
 				}
-				Js_Return( fs_copy_recursion(args[0]->toString(worker)->value(worker),
-																			args[1]->toString(worker)->value(worker), cb) );
+				Js_Return( fs_copy_recursion(path, target, cb) );
 			}
 		}
 
@@ -1151,9 +1153,8 @@ namespace qk { namespace js {
 			String path = args[args_index++]->toString(worker)->value(worker);
 			FileOpenFlag flag = FileOpenFlag::FOPEN_R;
 
-			if ( args.length() > args_index && args[args_index]->isUint32() ) {
-				uint32_t num = args[args_index++]->toUint32(worker)->value();
-				flag = (FileOpenFlag)num;
+			if ( args.length() > args_index && args[args_index]->asInt32(worker).to((int32_t&)flag) ) {
+				args_index++;
 			}
 
 			if ( sync ) {
@@ -1428,13 +1429,14 @@ namespace qk { namespace js {
 			});
 
 			Js_Method(abort, {
-				if (args.length() < 1 || ! args[0]->isUint32()) {
+				int32_t id;
+				if (args.length() < 1 || ! args[0]->asInt32(worker).to(id)) {
 					Js_Throw(
 						"@method abort(id) abort async io\n"
 						"@param id:Uint\n"
 					);
 				}
-				fs_abort( args[0]->toUint32(worker)->value() );
+				fs_abort(id);
 			});
 
 			// ------------------------------------------------------------------------

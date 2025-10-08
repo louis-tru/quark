@@ -131,25 +131,27 @@ namespace qk { namespace js {
 		});
 
 		Js_Class_Method(seek, {
-			if (args.length() < 1 || args[0]->isUint32()) {
+			uint32_t time;
+			if (args.length() < 1 || !args[0]->asUint32(worker).to(time)) {
 				Js_Throw(
 					"@method Player.seek(timeMs)\n"
 					"@param timeMs {uint32_t}\n"
 				);
 			}
 			Js_UISelf(Player);
-			self->seek(args[0]->toUint32(worker)->value() * 1e3);
+			self->seek(time * 1e3);
 		});
 
 		Js_Class_Method(switchAudio, {
-			if (args.length() < 1 || args[0]->isUint32()) {
+			uint32_t index;
+			if (args.length() < 1 || !args[0]->asUint32(worker).to(index)) {
 				Js_Throw(
 					"@method Player.switch_audio(index)\n"
 					"@param index {uint32_t}\n"
 				);
 			}
 			Js_UISelf(Player);
-			self->switch_audio(args[0]->toUint32(worker)->value());
+			self->switch_audio(index);
 		});
 	}
 

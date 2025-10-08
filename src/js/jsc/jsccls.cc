@@ -336,7 +336,7 @@ namespace qk { namespace js {
 			return _parents.has(cls);
 		}
 
-		void destroy() {
+		void destroy() override {
 			ENV(_worker);
 			if (_baseFunc)
 				JSValueUnprotect(ctx, _baseFunc);

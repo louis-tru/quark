@@ -46,52 +46,72 @@ namespace qk {
 		Qk_ASSERT_NE(page.width, 0, "Invalid image width");
 		Qk_ASSERT_NE(page.height, 0, "Invalid image height");
 		source->retain();
-		page.setRendererObject(source);
+		page.texture = source;
 	}
 
-	void QkTextureLoader::unload(void *source) {
-		((ImageSource *) source)->release();
+	void QkTextureLoader::unload(void *texture) {
+		((ImageSource *) texture)->release();
+	}
+
+	template<class T>
+	T* SkeletonData::QkAtlasAttachmentLoader::newAttachmentEx(Skin &skin,
+		cSPString &name, cSPString &path, Sequence *sequence) {
+		auto attachment = new T(name);
+		if (sequence) {
+			if (!loadSequence(_atlas, path, sequence)) return nullptr;
+		} else {
+			AtlasRegion *region = findRegion(path);
+			if (!region) return nullptr;
+			attachment->setRegion(region);
+		}
+		return attachment;
+	}
+
+	RegionAttachment *SkeletonData::QkAtlasAttachmentLoader::newRegionAttachment(Skin &skin,
+		cSPString &name, cSPString &path, Sequence *sequence) {
+		return newAttachmentEx<RegionAttachmentEx>(skin, name, path, sequence);
+	}
+
+	MeshAttachment *SkeletonData::QkAtlasAttachmentLoader::newMeshAttachment(Skin &skin,
+		cSPString &name, cSPString &path, Sequence *sequence) {
+		return newAttachmentEx<MeshAttachmentEx>(skin, name, path, sequence);
 	}
 
 	void SkeletonData::QkAtlasAttachmentLoader::configureAttachment(Attachment *attachment) {
 		if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
-			setAttachmentVertices((RegionAttachment *) attachment);
+			setAttachmentEx(static_cast<RegionAttachmentEx *>(attachment));
 		} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
-			setAttachmentVertices((MeshAttachment *) attachment);
+			setAttachmentEx(static_cast<MeshAttachmentEx *>(attachment));
 		}
-	}
-
-	void SkeletonData::QkAtlasAttachmentLoader::deleteAttachmentVertices(void *vertices) {
-		delete (AttachmentVertices *) vertices;
 	}
 
 	static uint16_t quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 
-	void SkeletonData::QkAtlasAttachmentLoader::setAttachmentVertices(RegionAttachment *attachment) {
-		auto region = (AtlasRegion *) attachment->getRendererObject();
-		auto attachmentVertices = new AttachmentVertices(region->page, quadTriangles, 4, 6);
-		V3F_T2F_C4B_C4B *vertices = attachmentVertices->_triangles.verts;
+	void SkeletonData::QkAtlasAttachmentLoader::setAttachmentEx(RegionAttachmentEx *attachment) {
+		auto region = static_cast<AtlasRegion*>(attachment->getRegion());
+		auto ex = new AttachmentEx(region->page, quadTriangles, 4, 6);
+		V3F_T2F_C4B_C4B *vertices = ex->_triangles.verts;
 		for (int i = 0, ii = 0; i < 4; ++i, ii += 2) {
 			vertices[i].texCoords[0] = attachment->getUVs()[ii];
 			vertices[i].texCoords[1] = attachment->getUVs()[ii + 1];
 		}
-		attachment->setRendererObject(attachmentVertices, deleteAttachmentVertices);
+		attachment->ex = ex;
 	}
 
-	void SkeletonData::QkAtlasAttachmentLoader::setAttachmentVertices(MeshAttachment *attachment) {
-		auto region = (AtlasRegion *) attachment->getRendererObject();
-		auto attachmentVertices = new AttachmentVertices(
+	void SkeletonData::QkAtlasAttachmentLoader::setAttachmentEx(MeshAttachmentEx *attachment) {
+		auto region = static_cast<AtlasRegion*>(attachment->getRegion());
+		auto ex = new AttachmentEx(
 			region->page,
 			attachment->getTriangles().buffer(),
-			attachment->getWorldVerticesLength() >> 1,
-			attachment->getTriangles().size()
+			uint32_t(attachment->getWorldVerticesLength() >> 1),
+			uint32_t(attachment->getTriangles().size())
 		);
-		V3F_T2F_C4B_C4B *vertices = attachmentVertices->_triangles.verts;
-		for (int i = 0, ii = 0, nn = attachment->getWorldVerticesLength(); ii < nn; ++i, ii += 2) {
+		V3F_T2F_C4B_C4B *vertices = ex->_triangles.verts;
+		for (size_t i = 0, ii = 0, nn = attachment->getWorldVerticesLength(); ii < nn; ++i, ii += 2) {
 			vertices[i].texCoords[0] = attachment->getUVs()[ii];
 			vertices[i].texCoords[1] = attachment->getUVs()[ii + 1];
 		}
-		attachment->setRendererObject(attachmentVertices, deleteAttachmentVertices);
+		attachment->ex = ex;
 	}
 
 	static String get_atlas_path(cString &path, bool json) {
@@ -111,10 +131,12 @@ namespace qk {
 		return atlasP;
 	}
 
+	/////////////// SkeletonData ///////////////
+
 	Sp<SkeletonData> SkeletonData::Make(cString &skelPath, cString &atlasPath, float scale) throw(Error)
 	{
 		Qk_IfThrow(!skelPath.isEmpty(), ERR_SPINE_SKELETON_PATH_CANNOT_EMPTY, "skeleton path cannot empty");
-		auto json = skelPath.lastIndexOf("-ess.json") != -1;
+		auto json = skelPath.lastIndexOf(".json") != -1;
 		auto atlasP = atlasPath.isEmpty() ? get_atlas_path(skelPath, json) : atlasPath;
 		Qk_IfThrow(!atlasP.isEmpty(), ERR_SPINE_ATLAS_PATH_CANNOT_EMPTY, "atlas path cannot empty");
 		auto key = fs_format("%s|%s|%f", *skelPath, *atlasP, scale);

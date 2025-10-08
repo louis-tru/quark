@@ -44,21 +44,25 @@ namespace qk { namespace js {
 	template<class Type, class Err = Error>
 	Callback<Type> get_callback_for_type(Worker* worker, JSValue* cb) {
 		if ( cb && cb->isFunction() ) {
-			Func func(worker, cb);
 			typedef Callback<Type> Cb;
 
-			return Cb([worker, func](typename Cb::Data& d) {
-				Js_Handle_Scope(); // Callback Scope
-
-				if ( d.error ) {
-					JSValue* arg = worker->newValue(*static_cast<const Err*>(d.error));
-					func.val->call(worker, 1, &arg);
-				} else {
-					Type* data = d.data;
-					JSValue* args[2] = { worker->newNull(), worker->types()->jsvalue(*data) };
-					func.val->call(worker, 2, args);
+			struct CbCore : public Cb::Core {
+				Persistent<JSFunction> func;
+				CbCore(Worker* worker, JSValue* cb): func(worker, cb) {}
+				void call(typename Cb::Data& d) override {
+					auto worker = func.worker();
+					Js_Handle_Scope(); // Callback Scope
+					if ( d.error ) {
+						JSValue* arg = worker->newValue(*static_cast<const Err*>(d.error));
+						func->call(worker, 1, &arg);
+					} else {
+						Type* data = d.data;
+						JSValue* args[2] = { worker->newNull(), worker->types()->jsvalue(*data) };
+						func->call(worker, 2, args);
+					}
 				}
-			});
+			};
+			return Cb(new CbCore(worker, cb));
 		} else {
 			return 0;
 		}
@@ -165,17 +169,21 @@ namespace qk { namespace js {
 
 	Cb get_callback_for_none(Worker* worker, JSValue* cb) {
 		if ( cb && cb->isFunction() ) {
-			Func func(worker, cb);
-
-			return Cb([worker, func](Cb::Data& d) {
-				Js_Handle_Scope(); // Callback Scope
-				if ( d.error ) {
-					JSValue* arg = worker->newValue(*static_cast<const Error*>(d.error));
-					func.val->call(worker, 1, &arg);
-				} else {
-					func.val->call(worker);
+			struct CbCore : public Cb::Core {
+				Persistent<JSFunction> func;
+				CbCore(Worker* worker, JSValue* cb): func(worker, cb) {}
+				void call(typename Cb::Data& d) override {
+					auto worker = func.worker();
+					Js_Handle_Scope(); // Callback Scope
+					if ( d.error ) {
+						JSValue* arg = worker->newValue(*static_cast<const Error*>(d.error));
+						func->call(worker, 1, &arg);
+					} else {
+						func->call(worker, 0, nullptr);
+					}
 				}
-			});
+			};
+			return Cb(new CbCore(worker, cb));
 		} else {
 			return 0;
 		}

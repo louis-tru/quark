@@ -234,7 +234,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	close() {
 		if ( this.asDom().visible ) {
 			this.asRef<Matrix>('main').transition({ scale: 0.2, time: 300 });
-			this.asDom().transition({ opacity : 0, time: 300 }, ()=>this.destroy());
+			this.asDom().transition({ opacity : 0, time: 300 }).then(()=>this.destroy());
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);
@@ -339,7 +339,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 		if ( this.asDom().visible ) {
 			let main = this.refs.main as Matrix;
 			main.transition({ y: main.clientSize.y, time: 300 });
-			this.asDom().transition({ opacity : 0, time: 300 }, ()=>{ this.destroy() });
+			this.asDom().transition({ opacity : 0, time: 300 }).then(()=>{ this.destroy() });
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);

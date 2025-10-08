@@ -31,7 +31,7 @@
 #include "./spine.inl"
 
 #define _IfSkel(...)  auto skel = _skel.load(std::memory_order_acquire); if (!skel) return __VA_ARGS__
-#define _IfAutoMutex(...) _IfSkel(__VA_ARGS__); AutoMutexExclusive ame(_other->_mutex);
+#define _IfAutoMutex(...) _IfSkel(__VA_ARGS__); AutoMutexExclusive ame(_mutex);
 
 namespace qk {
 	static void safe_trigger_event_Rt(View *v, UIEvent *e, cUIEventName& name);
@@ -69,11 +69,11 @@ namespace qk {
 		_skeleton.update(deltaTime);
 		_state.update(deltaTime);
 		_state.apply(_skeleton);
-		_skeleton.updateWorldTransform();
+		_skeleton.updateWorldTransform(Physics_Update);
 	}
 
 	Spine::Spine(): SpriteView()
-		, _other(new SpineOther()), _skel(nullptr)
+		, _clipper(new SkeletonClipping()), _skel(nullptr)
 		, _speed(1.0f), _default_mix(0), _firstDraw(true)
 	{}
 
@@ -212,7 +212,7 @@ namespace qk {
 				skel = New<SkeletonWrapper>(this, data);
 				skel->_stateData.setDefaultMix(_default_mix);
 				skel->_skeleton.setToSetupPose();
-				skel->_skeleton.updateWorldTransform(); // @setToSetupPose()
+				skel->_skeleton.updateWorldTransform(Physics_Update); // @setToSetupPose()
 				skel->_state.setRendererObject(this);
 				skel->_state.setListener(stateListener);
 				skel->_skeleton.getBounds(_skel_origin[0], _skel_origin[1],
@@ -223,7 +223,7 @@ namespace qk {
 			} else {
 				_skel_origin = _skel_size = {};
 			}
-			AutoMutexExclusive ame(_other->_mutex);
+			AutoMutexExclusive ame(_mutex);
 			_skel = skel;
 			_firstDraw = true;
 			Release(lastSkel);

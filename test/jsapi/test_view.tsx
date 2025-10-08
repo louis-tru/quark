@@ -116,7 +116,7 @@ export default async function(win: Window) {
 	Mv(v, 'hashCode', [], e=>e==v.hashCode());
 	//(v as any).ttt = 'ABCDEFG';
 	//console.log('(v as any).ttt----------------------', (v as any).ttt);
-	Mv(v, 'transition', [{time:1e3,opacity: 0.3}], e=>e.duration==1e3);
+	Mv(v, 'transition', [{time:1e3,opacity: 0.3}], e=>e.action.duration==1e3);
 
 	LOG('\nTest Box:\n')
 	const d = new Box(win);

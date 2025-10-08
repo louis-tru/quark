@@ -40,14 +40,18 @@
 
 using namespace spine;
 
+namespace spine {
+	bool loadSequence(Atlas *atlas, const String &basePath, Sequence *sequence);
+}
+
 namespace qk {
 	extern const float zDepthNextUnit;
 	typedef Canvas::V3F_T2F_C4B_C4B V3F_T2F_C4B_C4B;
 	typedef Canvas::Triangles Triangles;
 	typedef SpineEvent::Type SEType;
-	class AttachmentVertices;
+	typedef const spine::String cSPString;
 
-	struct TrianglesExt: Triangles {
+	struct TrianglesEx: Triangles {
 		BlendMode blendMode;
 	};
 
@@ -63,18 +67,11 @@ namespace qk {
 		void update(float deltaTime);
 	};
 
-	struct Spine::SpineOther {
-		SkeletonClipping _clipper;
-		Sp<VertexEffect> _effect;
-		QkMutex _mutex; // protects _self and SkeletonSelf members
-		SpineOther(): _clipper(), _effect(nullptr) {}
-	};
-
-	class AttachmentVertices {
+	class AttachmentEx {
 	public:
-		AttachmentVertices(AtlasPage* page, uint16_t *triangles,
+		AttachmentEx(AtlasPage* page, uint16_t *triangles,
 			uint32_t vertCount, uint32_t indexCount);
-		~AttachmentVertices();
+		~AttachmentEx();
 		Triangles _triangles;
 		ImageSource *_source;
 		PaintImage _paint;
@@ -83,19 +80,37 @@ namespace qk {
 		bool _pma;
 	};
 
+	template<class T>
+	class AttachmentWrap: public T {
+	public:
+		AttachmentWrap(cSPString &name): T(name), ex(nullptr) {}
+		~AttachmentWrap() {
+			Releasep(ex);
+		}
+		AttachmentEx *ex;
+	};
+
+	typedef AttachmentWrap<RegionAttachment> RegionAttachmentEx;
+	typedef AttachmentWrap<MeshAttachment> MeshAttachmentEx;
+
 	class QkTextureLoader: public TextureLoader {
 	public:
-		void load(AtlasPage &page, const spine::String &path) override;
+		void load(AtlasPage &page, cSPString &path) override;
 		void unload(void *source) override;
 	};
 
 	class SkeletonData::QkAtlasAttachmentLoader: public AtlasAttachmentLoader {
 	public:
-		QkAtlasAttachmentLoader(Atlas *atlas): AtlasAttachmentLoader(atlas) {}
+		QkAtlasAttachmentLoader(Atlas *atlas): AtlasAttachmentLoader(atlas), _atlas(atlas) {}
 		void configureAttachment(Attachment *attachment) override;
-		static void deleteAttachmentVertices(void *vertices);
-		void setAttachmentVertices(RegionAttachment *attachment);
-		void setAttachmentVertices(MeshAttachment *attachment);
+		RegionAttachment *newRegionAttachment(Skin &skin, cSPString &name, cSPString &path, Sequence *sequence) override;
+		MeshAttachment *newMeshAttachment(Skin &skin, cSPString &name, cSPString &path, Sequence *sequence) override;
+		void setAttachmentEx(RegionAttachmentEx *attachment);
+		void setAttachmentEx(MeshAttachmentEx *attachment);
+	private:
+		template<class T>
+		T* newAttachmentEx(Skin &skin, cSPString &name, cSPString &path, Sequence *sequence);
+		Atlas *_atlas;
 	};
 
 }

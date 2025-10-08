@@ -210,9 +210,10 @@ namespace qk { namespace js {
 			Js_Class_Accessor(maxResourceMemoryLimit, {
 				Js_Return( self->maxResourceMemoryLimit() );
 			}, {
-				if (!val->isUint32())
+				uint32_t limit;
+				if (!val->asUint32(worker).to(limit))
 					Js_Throw("@prop Application.maxResourceMemoryLimit = {uint32_t}");
-				self->set_maxResourceMemoryLimit(val->toUint32(worker)->value());
+				self->set_maxResourceMemoryLimit(limit);
 			});
 
 			Js_Class_Accessor_Get(windows, {

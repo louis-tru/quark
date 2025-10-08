@@ -313,20 +313,6 @@ namespace js {
 		}
 	}
 
-	void Worker::release() {
-		markAsInvalid();
-		Releasep(_types);
-		Releasep(_strs);
-		_classes->destroy();
-		_nativeModules.reset();
-		_global.reset();
-		_console.reset();
-
-		if (first_worker == this)
-			first_worker = nullptr;
-		workers_count--;
-	}
-
 	void Worker::init() {
 		Qk_ASSERT(_global->isObject());
 
@@ -344,6 +330,20 @@ namespace js {
 			_global->set(this, globalThis, *_global);
 		}
 		Qk_WorkerInl(this)->initGlobalAPIs();
+	}
+
+	void Worker::release() {
+		markAsInvalid();
+		Releasep(_types);
+		Releasep(_strs);
+		Releasep(_classes);
+		_nativeModules.reset();
+		_global.reset();
+		_console.reset();
+
+		if (first_worker == this)
+			first_worker = nullptr;
+		workers_count--;
 	}
 
 	JSObject* Worker::global() {

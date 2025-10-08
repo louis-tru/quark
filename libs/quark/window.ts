@@ -61,8 +61,8 @@ class RootViewController extends ViewController {
 		(this as any).dom = window.root;
 	}
 	get metaView() { return this.window.root }
-	setState() { throw Error.new('Access forbidden.') }
-	update() { throw Error.new('Access forbidden.') }
+	async setState() { throw Error.new('Access forbidden.') }
+	async update() { throw Error.new('Access forbidden.') }
 	appendTo(): View { throw Error.new('Access forbidden.') }
 	afterTo(): View { throw Error.new('Access forbidden.') }
 	destroy() { throw Error.new('Access forbidden.') }

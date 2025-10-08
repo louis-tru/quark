@@ -306,7 +306,6 @@
 					'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
 					'SDKROOT': 'iphoneos',
 					'TARGETED_DEVICE_FAMILY': '1,2',
-					# 'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)', # use OTHER_CFLAGS
 					'USE_HEADERMAP': 'NO',
 					'ARCHS': [ '$(ARCHS_STANDARD)' ],   # 'ARCHS': [ '$(ARCHS_STANDARD_32_BIT)' ],
 					'SKIP_INSTALL': 'YES',
@@ -319,15 +318,16 @@
 							'SDKROOT': 'iphonesimulator',
 							'OTHER_CFLAGS': [ '-mios-simulator-version-min=<(version_min)' ]
 						}, {
-							'OTHER_CFLAGS': [ '-miphoneos-version-min=<(version_min)' ]
+							'OTHER_CFLAGS': [ '-miphoneos-version-min=<(version_min)' ],
 						}],
 						['without_embed_bitcode==0', { 'ENABLE_BITCODE': 'YES' }, { 'ENABLE_BITCODE': 'NO' }],
-						# ['style=="xcode"', {
-						# 	# v8 setting
-						# 	'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7]': [ '$(inherited)', 'USE_SIMULATOR', ],
-						# 	'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7s]': [ '$(inherited)', 'USE_SIMULATOR', ],
-						# 	'GCC_PREPROCESSOR_DEFINITIONS[arch=arm64]': [ '$(inherited)', 'USE_SIMULATOR', ],
-						# }],
+						['style=="xcode"', {
+							'IPHONEOS_DEPLOYMENT_TARGET': '<(version_min)', # use OTHER_CFLAGS
+							# v8 setting
+							# 'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7]': [ '$(inherited)', 'USE_SIMULATOR', ],
+							# 'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7s]': [ '$(inherited)', 'USE_SIMULATOR', ],
+							# 'GCC_PREPROCESSOR_DEFINITIONS[arch=arm64]': [ '$(inherited)', 'USE_SIMULATOR', ],
+						}],
 					],
 				},
 			}],
@@ -395,6 +395,8 @@
 					}],
 				],
 				'xcode_settings': {
+					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
+					'SDKROOT': 'macosx',
 					'cflags!': [
 						'-arch <(arch_name)',
 						'-isysroot <(sysroot)',
@@ -405,8 +407,6 @@
 						'-miphoneos-version-min=<(version_min)', # ios
 						'-mios-simulator-version-min=<(version_min)', # ios simulator
 					],
-					'SDKROOT': 'macosx',
-					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).host.<(suffix)',
 				},
 			}], # ['_toolset=="host"'
 		],

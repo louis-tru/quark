@@ -114,7 +114,7 @@ namespace qk {
 		, _level(0)
 		, _color(255,255,255,255) // white
 		, _cursor(CursorStyle::Arrow)
-		, _cascade_color(CascadeColor::Alpha)
+		, _cascade_color(CascadeColor::Both)
 		, _visible(true)
 		, _test_visible_region(true)
 		, _visible_region(false)

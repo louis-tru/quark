@@ -79,6 +79,7 @@ function setImmediate<A extends any[]>(cb: (...args: A)=>void, ...args: A): any 
 globalThis.setTimeout = setTimeout as any;
 globalThis.setInterval = setInterval as any;
 globalThis.setImmediate = setImmediate as any;
+globalThis.queueMicrotask = _init.nextTick;
 
 export function setTimer<A extends any[]>(cb: (...args: A)=>void, timeout?: number, repeat?: number, ...args: A): any {
 	return setTimer_(args.length ? ()=>cb(...args): cb, timeout, repeat);

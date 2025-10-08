@@ -28,12 +28,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-let checkInt = null;
+const Zero = BigInt(0);
+const Eight = BigInt(8);
+const ThirtyTwo = BigInt(32);
+const Uint8Max = BigInt(0xff);
+const Uint32Max = BigInt(0xffffffff);
+const Int64Min = BigInt('-9223372036854775808'); // -0x8000000000000000n
+const Int64Max = BigInt('9223372036854775807'); // 0x7fffffffffffffffn
+const Uint64Max = BigInt('18446744073709551615'); // 0xffffffffffffffffn
 
 function _readBigUIntBE(self, offset, end) {
-	let num = 0n;
+	let num = Zero;
 	while (offset < end) {
-		num <<= 8n;
+		num <<= Eight;
 		num |= BigInt(self[offset]);
 		offset++;
 	}
@@ -41,10 +48,10 @@ function _readBigUIntBE(self, offset, end) {
 }
 
 function _readBigUIntLE(self, offset, end) {
-	let num = 0n;
+	let num = Zero;
 	while (offset < end) {
 		end--;
-		num <<= 8n;
+		num <<= Eight;
 		num |= BigInt(self[end]);
 	}
 	return num;
@@ -61,7 +68,7 @@ function _readBigInt64BE(self, offset) {
 		self[offset++] * 2 ** 16 +
 		self[offset++] * 2 ** 8 +
 		self[offset++];
-	return (BigInt(hi) << 32n) + BigInt(lo);
+	return (BigInt(hi) << ThirtyTwo) + BigInt(lo);
 }
 
 function _readBigUInt64BE(self, offset) {
@@ -75,14 +82,14 @@ function _readBigUInt64BE(self, offset) {
 		self[offset++] * 2 ** 16 +
 		self[offset++] * 2 ** 8 +
 		self[offset++];
-	return (BigInt(hi) << 32n) + BigInt(lo);
+	return (BigInt(hi) << ThirtyTwo) + BigInt(lo);
 }
 
 function _writeBigIntLE(bytes, bigint) {
 	let i = 0;
 	do {
-		bytes.push(Number(bigint & 0xffn));
-		bigint >>= 8n;
+		bytes.push(Number(bigint & Uint8Max));
+		bigint >>= Eight;
 		i++;
 	} while(bigint || i < 8);
 	return i;
@@ -91,7 +98,7 @@ function _writeBigIntLE(bytes, bigint) {
 function writeBigU_Int64BE(buf, value, offset, min, max) {
 	checkInt(value, min, max, buf, offset, 7);
 
-	let lo = Number(value & 0xffffffffn);
+	let lo = Number(value & Uint32Max);
 	buf[offset + 7] = lo;
 	lo = lo >> 8;
 	buf[offset + 6] = lo;
@@ -99,7 +106,7 @@ function writeBigU_Int64BE(buf, value, offset, min, max) {
 	buf[offset + 5] = lo;
 	lo = lo >> 8;
 	buf[offset + 4] = lo;
-	let hi = Number(value >> 32n & 0xffffffffn);
+	let hi = Number(value >> ThirtyTwo & Uint32Max);
 	buf[offset + 3] = hi;
 	hi = hi >> 8;
 	buf[offset + 2] = hi;
@@ -112,13 +119,14 @@ function writeBigU_Int64BE(buf, value, offset, min, max) {
 
 function _writeBigInt64BE(self, value, offset = 0) {
 	return writeBigU_Int64BE(
-		self, value, offset, -0x8000000000000000n, 0x7fffffffffffffffn);
+		self, value, offset, Int64Min, Int64Max);
 }
 
 function _writeBigUInt64BE(self, value, offset = 0) {
-	return writeBigU_Int64BE(self, value, offset, 0n, 0xffffffffffffffffn);
+	return writeBigU_Int64BE(self, value, offset, Zero, Uint64Max);
 }
 
+let checkInt = null;
 module.exports = {
 	_set(_checkInt) { checkInt = _checkInt },
 	_readBigUIntBE,

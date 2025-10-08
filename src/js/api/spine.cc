@@ -188,7 +188,7 @@ namespace qk { namespace js {
 				String name;
 				bool loop = false;
 				float delay = 0;
-				if (args.length() < 3 ||
+				if (args.length() < 2 ||
 						!args[0]->asUint32(worker).to(trackIndex) ||
 						!args[1]->asString(worker).to(name) 
 				) {

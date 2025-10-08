@@ -40,7 +40,7 @@ import * as types from './types';
 import {RemoveReadonly} from './types';
 import { StyleSheets, CStyleSheetsClass } from './css';
 import { Window } from './window';
-import { Action, KeyframeAction,createAction,KeyframeIn,ActionCb } from './action';
+import { Action, createAction,KeyframeIn,TransitionResult } from './action';
 import * as action from './action';
 import {ViewController} from './ctr';
 import {Player,MediaType,MediaSourceStatus,Stream} from './media';
@@ -202,7 +202,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	appendTo(parent: View): this; //!<
 	afterTo(prev: View): this; //!<
 	destroy(owner: ViewController): void; //!<
-	transition(to: KeyframeIn, from?: KeyframeIn | ActionCb, cb?: ActionCb): KeyframeAction; //!<
+	transition(to: KeyframeIn, from?: KeyframeIn): TransitionResult; //!<
 	constructor(win: Window); //!<
 	static readonly isViewController: boolean;
 }
@@ -1262,8 +1262,8 @@ class _View extends NativeNotification<UIEvent> {
 		(this as unknown as View).remove(); // remove from parent view
 	}
 
-	transition(to: KeyframeIn, from?: KeyframeIn | ActionCb, cb?: ActionCb) { // transition animate
-		return action.transition(this as unknown as View, to, from, cb);
+	transition(to: KeyframeIn, from?: KeyframeIn) { // transition animate
+		return action.transition(this as unknown as View, to, from);
 	}
 
 	toStringStyled(indent?: number) {

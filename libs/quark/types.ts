@@ -1444,9 +1444,11 @@ export function parseCursorStyle(val: CursorStyleIn, desc?: string): CursorStyle
 }
 
 export function parseCascadeColor(val: CascadeColorIn, desc?: string): CascadeColor { //!<
-	if (typeof val === 'string')
-		val = CascadeColor[toCapitalize(val)];
-	return val in CascadeColor ? val: CascadeColor.Alpha;
+	// if (typeof val === 'string')
+	// 	val = CascadeColor[toCapitalize(val)];
+	// return val in CascadeColor ? val: CascadeColor.Alpha;
+	return typeof val === 'string' ?
+		CascadeColor[toCapitalize(val)] || 0 : val in CascadeColor ? val: 0;
 }
 
 const vec2Reg = [

@@ -94,7 +94,7 @@ namespace qk { namespace js {
 			_funcTemplate.Reset(ISOLATE(worker), ft);
 		}
 
-		void destroy() {
+		void destroy() override {
 			_func.reset();
 			_baseFunc.Reset();
 			_funcTemplate.Reset();

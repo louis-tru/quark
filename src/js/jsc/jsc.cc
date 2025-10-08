@@ -32,9 +32,9 @@
 #include <uv.h>
 #include <limits>
 
-extern "C" {
-	void JSGlobalContextSetUnhandledRejectionCallback(JSGlobalContextRef ctx, JSObjectRef func, JSValueRef* ex);// JSC_API_AVAILABLE(macos(10.15.4), ios(13.4));
-}
+// extern "C" {
+// 	void JSGlobalContextSetUnhandledRejectionCallback(JSGlobalContextRef ctx, JSObjectRef func, JSValueRef* ex);// JSC_API_AVAILABLE(macos(10.15.4), ios(13.4));
+// }
 
 namespace qk { namespace js {
 	static uv_key_t th_key;
@@ -45,9 +45,10 @@ namespace qk { namespace js {
 	#undef _Fun
 
 #if Qk_ARCH_64BIT
-		constexpr int64_t NumberTag = 0xfffe000000000000ll;
-		constexpr size_t DoubleEncodeOffsetBitOld = 48;
-		constexpr size_t DoubleEncodeOffsetBit = 49;
+		constexpr int64_t NumberTagOld = 0xffff000000000000ll; // 0xffff... for old jsc
+		static    int64_t NumberTag = 0xfffe000000000000ll; // 0xfffe... for new jsc
+		constexpr size_t  DoubleEncodeOffsetBitOld = 48;
+		constexpr size_t  DoubleEncodeOffsetBit = 49;
 		static    int64_t DoubleEncodeOffset = 1ll << DoubleEncodeOffsetBit;  // 48 or 49?
 		constexpr int32_t OtherTag       = 0x2;
 		constexpr int32_t BoolTag        = 0x4;
@@ -56,7 +57,7 @@ namespace qk { namespace js {
 		constexpr int32_t ValueTrue      = OtherTag | BoolTag | true;
 		constexpr int32_t ValueUndefined = OtherTag | UndefinedTag;
 		constexpr int32_t ValueNull      = OtherTag;
-		constexpr int64_t NotCellMask    = NumberTag | OtherTag;
+		static    int64_t NotCellMask    = NumberTag | OtherTag;
 #else
 		enum { Int32Tag =        0xffffffff };
 		enum { BooleanTag =      0xfffffffe };
@@ -184,7 +185,9 @@ namespace qk { namespace js {
 		_data.initialize(_ctx);
 
 		auto testNum = JSValueMakeNumber(_ctx, 0xffffffff);
-		if (asDouble(Cast(testNum)) != 0xffffffff) {
+		if (asDouble(Cast(testNum)) != 0xffffffff) { // is old jsc
+			NumberTag = NumberTagOld;
+			NotCellMask = NumberTag | OtherTag;
 			DoubleEncodeOffset = 1ll << DoubleEncodeOffsetBitOld;
 			Qk_CHECK(asDouble(Cast(testNum)) == 0xffffffff);
 		}
@@ -205,7 +208,36 @@ namespace qk { namespace js {
 		}));
 		DCHECK(_rejectionListener);
 		ENV(this);
-		JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionListener, JsFatal());
+		// JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionListener, JsFatal());
+		_global->defineOwnProperty(this, newStringOneByte("_rejectionListener"),
+			Cast(_rejectionListener), JSObject::DontEnum | JSObject::ReadOnly | JSObject::DontDelete);
+		// override Promise class, make unhandled rejection can be catched
+		auto script = JsStringWithUTF8(
+			"(function() {"
+			"const _rejectionListener = globalThis._rejectionListener;"
+			"const NativePromise = globalThis.Promise;"
+			"class Promise extends NativePromise {"
+				"constructor(executor) {"
+					"super((resolve, reject)=>{"
+						"executor(resolve, (reason)=>{"
+							"queueMicrotask(()=>{ if (!this._handled) _rejectionListener(this,reason) });"
+							"reject(reason);"
+						"});"
+					"});"
+				"}"
+				"then(onfulfilled, onrejected) {"
+					"this._handled = this._handled || onrejected instanceof Function;"
+					"return super.then(onfulfilled, onrejected);"
+				"}"
+				"catch(onrejected) {"
+					"this._handled = this._handled || onrejected instanceof Function;"
+					"return super.catch(onrejected);"
+				"}"
+			"}"
+			"globalThis.Promise = Promise;"
+			"})();"
+		);
+		JSEvaluateScript(_ctx, *script, nullptr, nullptr, 0, JsFatal());
 		JSValueProtect(_ctx, _rejectionListener);
 	}
 
@@ -305,8 +337,6 @@ namespace qk { namespace js {
 			result.u.asBits.payload = reinterpret_cast<int32_t>(jsCell);
 		}
 #endif
-		//if (result.isCell())
-		//		RELEASE_ASSERT(result.asCell()->methodTable(getVM(globalObject)));
 		return result;
 	}
 
@@ -335,53 +365,21 @@ namespace qk { namespace js {
 #endif
 	}
 
-	inline bool isDouble(const JSValue* val) {
-#if Qk_ARCH_64BIT
-		auto mask = bitwise_cast<JscValueImpl>(val).u.asInt64 & NumberTag;
-		return mask && mask != NumberTag;
-#else
-		return toJscValueImpl(val).u.asBits.tag < LowestTag;
-#endif
-	}
-
-	inline bool isNumber(const JSValue* val) {
-#if Qk_ARCH_64BIT
-		return bitwise_cast<JscValueImpl>(val).u.asInt64 & NumberTag;
-#else
-		return js::isInt32(val) || isDouble(val);
-#endif
-	}
-
-	inline bool isBoolean(const JSValue* val) {
-#if Qk_ARCH_64BIT
-		return (bitwise_cast<JscValueImpl>(val).u.asInt64 & ~1) == ValueFalse;
-#else
-		return toJscValueImpl(val).u.asBits.tag == BooleanTag;
-#endif
-	}
-
-	inline bool isUndefined(const JSValue* val) {
-#if Qk_ARCH_64BIT
-		return bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueUndefined;
-#else
-		return toJscValueImpl(val).u.asBits.tag == UndefinedTag;
-#endif
-	}
-
-	inline bool isNull(const JSValue* val) {
-#if Qk_ARCH_64BIT
-		return bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueNull;
-#else
-		return toJscValueImpl(val).u.asBits.tag == NullTag;
-#endif
-	}
-
 	inline int32_t asInt32(const JSValue* val) {
 		DCHECK(isInt32(val));
 #if Qk_ARCH_64BIT
 		return bitwise_cast<JscValueImpl>(val).u.asInt64;
 #else
 		return toJscValueImpl(val).u.asBits.payload;
+#endif
+	}
+
+	inline bool isDouble(const JSValue* val) {
+#if Qk_ARCH_64BIT
+		auto mask = bitwise_cast<JscValueImpl>(val).u.asInt64 & NumberTag;
+		return mask && mask != NumberTag;
+#else
+		return toJscValueImpl(val).u.asBits.tag < LowestTag;
 #endif
 	}
 
@@ -394,31 +392,70 @@ namespace qk { namespace js {
 #endif
 	}
 
-	inline bool asBoolean(const JSValue* val) {
-		DCHECK(isBoolean(val));
+	inline bool isNumber(const JSValue* val) {
+		// return JSValueIsNumber(JSC_CTX(), Back(val));
 #if Qk_ARCH_64BIT
-		return  bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueTrue;
+		return bitwise_cast<JscValueImpl>(val).u.asInt64 & NumberTag;
 #else
-		return toJscValueImpl(val).u.asBits.payload;
+		return js::isInt32(val) || isDouble(val);
 #endif
 	}
 
+	// ---------------------------------------------
+
+	inline bool isUndefined(const JSValue* val) {
+		return JSValueIsUndefined(JSC_CTX(), Back(val));
+// #if Qk_ARCH_64BIT
+// 		return bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueUndefined;
+// #else
+// 		return toJscValueImpl(val).u.asBits.tag == UndefinedTag;
+// #endif
+	}
+
+	inline bool isNull(const JSValue* val) {
+		return JSValueIsNull(JSC_CTX(), Back(val));
+// #if Qk_ARCH_64BIT
+// 		return bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueNull;
+// #else
+// 		return toJscValueImpl(val).u.asBits.tag == NullTag;
+// #endif
+	}
+
+	inline bool isBoolean(const JSValue* val) {
+		return JSValueIsBoolean(JSC_CTX(), Back(val));
+// #elif Qk_ARCH_64BIT
+// 		return (bitwise_cast<JscValueImpl>(val).u.asInt64 & ~1) == ValueFalse;
+// #else
+// 		return toJscValueImpl(val).u.asBits.tag == BooleanTag;
+// #endif
+	}
+
+	inline bool asBoolean(const JSValue* val) {
+		DCHECK(isBoolean(val));
+		return JSValueToBoolean(JSC_CTX(), Back(val));
+// #if Qk_ARCH_64BIT
+// 		return bitwise_cast<JscValueImpl>(val).u.asInt64 == ValueTrue;
+// #else
+// 		return toJscValueImpl(val).u.asBits.payload;
+// #endif
+	}
+
 	inline bool isString(const JSValue* val) {
-		return js::isCell(val) && js::asCell(val)->m_type == StringType_JSType;
+		return JSValueIsString(JSC_CTX(), Back(val));
+		// return js::isCell(val) && js::asCell(val)->m_type == StringType_JSType;
 	}
 
 	inline bool isObject(const JSValue* val) {
-		return js::isCell(val) && js::asCell(val)->m_type >= ObjectType_JSType;
+		return JSValueIsObject(JSC_CTX(), Back(val));
+		// return js::isCell(val) && js::asCell(val)->m_type >= ObjectType_JSType;
 	}
 
-	/// ----------------------
-
 	bool JSValue::isUndefined() const {
-		return js::isUndefined(this); //JSValueIsUndefined
+		return js::isUndefined(this);
 	}
 
 	bool JSValue::isNull() const {
-		return js::isNull(this); // JSValueIsNull
+		return js::isNull(this);
 	}
 
 	bool JSValue::isBoolean() const {
@@ -426,12 +463,10 @@ namespace qk { namespace js {
 	}
 
 	bool JSValue::isString() const {
-		// return JSValueIsString(JSC_CTX(), Back(this));
 		return js::isString(this);
 	}
 
 	bool JSValue::isObject() const {
-		//return JSValueIsObject(JSC_CTX(), Back(this));
 		return js::isObject(this);
 	}
 

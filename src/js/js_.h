@@ -105,7 +105,6 @@ namespace qk { namespace js {
 		JSClass* get(uint64_t alias);
 		JSFunction* getFunction(uint64_t alias);
 		bool instanceOf(JSValue* val, uint64_t alias);
-		void destroy();
 	private:
 		Worker *_worker;
 		MixObject *_attachObject;
