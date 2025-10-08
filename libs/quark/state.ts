@@ -94,9 +94,9 @@ export function getState<T = any>(name: string) {
  * @param state     Key-value pairs to update.
  * @param self      The GlobalState instance that initiated the update (optional).
  *                  Used to avoid notifying itself twice and to update its local state at the end.
- * @return Promise<void> resolves after all updates and callbacks are done.
+ * @return {Promise<void>} resolves after all updates and callbacks are done.
  */
-export async function setState<S = {}>(state: S, self?: GlobalState) {
+export function setState<S = {}>(state: S, self?: GlobalState) {
 	if (!state)
 		return Promise.resolve();
 
@@ -138,7 +138,9 @@ export async function setState<S = {}>(state: S, self?: GlobalState) {
 
 	// Update the calling controller itself
 	if (self) {
-		await ViewController.prototype.setState.call(self, state); // call parent
+		return ViewController.prototype.setState.call(self, state); // call parent
+	} else {
+		return Promise.resolve();
 	}
 }
 

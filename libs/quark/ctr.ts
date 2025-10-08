@@ -811,7 +811,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	 * @template K
 	 * @method setState(newState)
 	 * @param newState:object Partial state to update
-	 * @return Promise<void> resolves after re-render completes
+	 * @return {Promise<void>} resolves after re-render completes
 	*/
 	setState<K extends keyof S>(newState: Pick<S, K>) {
 		let update = false;
@@ -836,9 +836,9 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	/**
 	 * Force re-rendering of the ViewController
 	 * @method update()
-	 * @return Promise<void> resolves after re-render completes
+	 * @return {Promise<void>} resolves after re-render completes
 	*/
-	async update() {
+	update() {
 		if (this.isDestroyd)
 			return Promise.resolve();
 		return new Promise<void>(cb=>{
