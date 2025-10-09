@@ -117,6 +117,8 @@ Here are all the [View] classes currently available and their inheritance relati
 * [MatrixView]
 * [TextOptions]
 * [View]
+	* [Sprite]<[MatrixView]>
+	* [Spine]<[MatrixView]>
 	* [Box]
 		* [Flex]
 			* [Flow]
@@ -128,7 +130,6 @@ Here are all the [View] classes currently available and their inheritance relati
 		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
-		* [Sprite]<[MatrixView]>
 		* [Matrix]<[MatrixView]>
 			* [Root]
 	* [Label]
@@ -364,6 +365,7 @@ These two events are generated and sent by actions.
 [Video]: http://quarks.cc/doc/media.html#class-video
 [Matrix]: http://quarks.cc/doc/media.html#class-matrix
 [Sprite]: http://quarks.cc/doc/media.html#class-sprite
+[Spine]: http://quarks.cc/doc/media.html#class-spine
 
 
 <script>

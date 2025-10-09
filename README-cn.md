@@ -116,6 +116,8 @@ $ qkmake watch
 * [MatrixView]
 * [TextOptions]
 * [View]
+	* [Sprite]<[MatrixView]>
+	* [Spine]<[MatrixView]>
 	* [Box]
 		* [Flex]
 			* [Flow]
@@ -127,7 +129,6 @@ $ qkmake watch
 		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
-		* [Sprite]<[MatrixView]>
 		* [Matrix]<[MatrixView]>
 			* [Root]
 	* [Label]
@@ -362,7 +363,7 @@ act2.paly();
 [Video]: http://quarks.cc/doc/media.html#class-video
 [Matrix]: http://quarks.cc/doc/media.html#class-matrix
 [Sprite]: http://quarks.cc/doc/media.html#class-sprite
-
+[Spine]: http://quarks.cc/doc/media.html#class-spine
 
 
 <script>
