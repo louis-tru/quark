@@ -678,10 +678,9 @@ namespace js {
 				Js_Handle_Scope();
 				auto _pkg = worker->bindingModule("_pkg");
 				Qk_ASSERT(_pkg && _pkg->isObject(), "Can't start worker");
-				auto r = _pkg->cast<JSObject>()->
-					get<JSObject>(worker, "Module")->
-					get<JSFunction>(worker, "runMain")->call(worker);
-				if (!r) {
+				auto fn = _pkg->cast<JSObject>()->
+					get<JSObject>(worker, "Module")->get<JSFunction>(worker, "runMain");
+				if (!fn->call(worker)) {
 					Qk_ELog("ERROR: Can't call runMain()");
 					return ERR_RUN_MAIN_EXCEPTION;
 				}

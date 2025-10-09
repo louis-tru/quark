@@ -1140,6 +1140,7 @@ class QkPackage extends Package {
 			'_sha1.js',
 			'_sha256.js',
 			'_util.js',
+			'_decorators.js',
 			'_watching.js',
 			'action.js',
 			'app.js',

@@ -32,14 +32,9 @@ import {List} from './_event';
 import errno from './errno';
 
 let id = 10;
-let AsyncFunctionConstructor = (async function() {}).constructor;
 let scopeLockQueue = new Map();
 
 export const currentTimezone = new Date().getTimezoneOffset() / -60; //!< Current time zone
-
-export function isAsync(func: any): boolean {
-	return func && func.constructor === AsyncFunctionConstructor;
-}
 
 function clone_object(new_obj: any, obj: any): any {
 	for (let name of Object.getOwnPropertyNames(obj)) {

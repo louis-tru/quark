@@ -10,7 +10,7 @@
 		"url": "http://quarks.cc/"
 	},
 	"scripts": {
-		"build": "tsc && node _.js && tsc --removeComments false --emitDeclarationOnly --outDir out/@types/quark"
+		"build": "tsc -removeComments false -emitDeclarationOnly && qktsc -declaration false && node _.js"
 	},
 	"keywords": [
 		"jsx",

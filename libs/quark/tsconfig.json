@@ -1,6 +1,7 @@
 {
 	"compileOnSave": true,
 	"compilerOptions": {
+		"noEmitHelpers": true,
 		"module": "commonjs",
 		"target": "ES2018",
 		"moduleResolution": "node",

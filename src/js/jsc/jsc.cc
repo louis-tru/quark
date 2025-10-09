@@ -32,9 +32,9 @@
 #include <uv.h>
 #include <limits>
 
-// extern "C" {
-// 	void JSGlobalContextSetUnhandledRejectionCallback(JSGlobalContextRef ctx, JSObjectRef func, JSValueRef* ex);// JSC_API_AVAILABLE(macos(10.15.4), ios(13.4));
-// }
+extern "C" {
+	// void JSGlobalContextSetUnhandledRejectionCallback(JSGlobalContextRef ctx, JSObjectRef func, JSValueRef* ex);
+}
 
 namespace qk { namespace js {
 	static uv_key_t th_key;
@@ -208,7 +208,7 @@ namespace qk { namespace js {
 		}));
 		DCHECK(_rejectionListener);
 		ENV(this);
-		// JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionListener, JsFatal());
+		//JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionListener, JsFatal());
 		_global->defineOwnProperty(this, newStringOneByte("_rejectionListener"),
 			Cast(_rejectionListener), JSObject::DontEnum | JSObject::ReadOnly | JSObject::DontDelete);
 		// override Promise class, make unhandled rejection can be catched

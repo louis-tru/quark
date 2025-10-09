@@ -43,6 +43,31 @@ if   [ ! -d libs/qktool ] \
 	git submodule update --init --recursive
 fi
 
+# build libs/qktool
+if [ ! -f libs/qktool/out/qktool/package.json ]; then
+	cd libs/qktool
+	npm i
+	npm run build
+	cd ../..
+fi
+
+# build libs/qkmake
+if [ ! -f libs/qkmake/out/qkmake/.build ]; then
+	cd libs/qkmake
+	npm i
+	rm -rf node_modules/qktool
+	cd node_modules
+	ln -s ../../qktool/out/qktool
+	cd ..
+	npm run build
+	cd ../..
+	echo '' > libs/qkmake/out/qkmake/.build
+fi
+
+if [ "`which qktsc`" = "" ]; then
+	make install-only
+fi
+
 # build libs/quark
 if [ ! -f libs/quark/out/quark/package.json ]; then
 	cd libs/quark
@@ -63,27 +88,6 @@ if [ ! -f examples/out/examples/package.json ]; then
 	tsc
 	node _
 	cd ..
-fi
-
-# build libs/qktool
-if [ ! -f libs/qktool/out/qktool/package.json ]; then
-	cd libs/qktool
-	npm i
-	npm run build
-	cd ../..
-fi
-
-# build libs/qkmake
-if [ ! -f libs/qkmake/out/qkmake/.build ]; then
-	cd libs/qkmake
-	npm i
-	rm -rf node_modules/qktool
-	cd node_modules
-	ln -s ../../qktool/out/qktool
-	cd ..
-	npm run build
-	cd ../..
-	echo '' > libs/qkmake/out/qkmake/.build
 fi
 
 if   [ ! -d tools/node_modules/qktool ] \

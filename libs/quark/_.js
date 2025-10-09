@@ -34,23 +34,28 @@ function copyFiles(source, target, opts) {
 		let buf = fs.readFileSync(source);
 		mkdirp(path.dirname(target));
 		fs.writeFileSync(target, opts.filter ? opts.filter(buf): buf);
-	} else if ( stat.isDirectory() ) {
-		let {include,exclude,includeExt,excludeExt} = opts;
+	}
+	else if ( stat.isDirectory() ) {
+		let {include,includeExt,exclude,excludeExt} = opts;
 		for (let i of fs.readdirSync(source)) {
 			let ext = path.extname(i);
 			if (include) {
 				if (!include.has(i)) {
 					if (includeExt) {
-						if (!includeExt.has(ext)) continue;
+						if (!includeExt.has(ext)) 
+							continue;
 					} else {
 						continue;
 					}
 				}
 			} else if (includeExt) {
-				if (!includeExt.has(ext)) continue;
+				if (!includeExt.has(ext))
+					continue;
 			}
-			if (exclude && exclude.has(i)) continue;
-			if (excludeExt && excludeExt.has(ext)) continue;
+			if (exclude && exclude.has(i))
+				continue;
+			if (excludeExt && excludeExt.has(ext))
+				continue;
 			copyFiles(source + '/' + i, target + '/' + i, opts);
 		}
 	}
@@ -68,8 +73,9 @@ function getFiles(source, ext) {
 
 copyFiles(source, out, {includeExt:new Set(['.md','.json']),include:new Set(['LICENSE']),exclude:new Set(['out','tsconfig.json'])});
 // copy publish @types/quark
-copyFiles(out, out_types, {includeExt:new Set(['.ts','.md','.json']),include:new Set(['LICENSE'])});
-copyFiles(out, out, {includeExt:new Set(['.js']), filter:e=>(e+'').replaceAll('require("./', '__binding__("quark/')});
+copyFiles(out, out_types, {includeExt:new Set(['.ts','.md','.json']), include:new Set(['LICENSE'])});
+copyFiles(out0, out0, {includeExt:new Set(['.js']), filter:e=>(e+'').replace(/require\("(\.|quark)\//gm, '__binding__("quark/')});
+copyFiles(out, out, {includeExt:new Set(['.js']), filter:e=>(e+'').replace(/require\("(\.|quark)\//gm, '__binding__("quark/')});
 // copyFiles(out, out, {includeExt:new Set(['.js']), filter:e=>('function require(name) { return __binding__(name.replace("./", "quark/")) }'+e)});
 
 // gen gypi
