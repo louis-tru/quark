@@ -128,8 +128,8 @@ Here are all the [View] classes currently available and their inheritance relati
 		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
-		* [Matrix]<[MatrixView]>
 		* [Sprite]<[MatrixView]>
+		* [Matrix]<[MatrixView]>
 			* [Root]
 	* [Label]
 

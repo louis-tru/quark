@@ -127,8 +127,8 @@ $ qkmake watch
 		* [Scroll]<[ScrollView]>
 		* [Text]<[TextOptions]>
 			* [Button]
-		* [Matrix]<[MatrixView]>
 		* [Sprite]<[MatrixView]>
+		* [Matrix]<[MatrixView]>
 			* [Root]
 	* [Label]
 
