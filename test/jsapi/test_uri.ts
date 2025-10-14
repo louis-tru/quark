@@ -1,5 +1,5 @@
 
-import path, {URL} from 'quark/path'
+import path, {URL} from 'quark/uri'
 import { Pv, Mv } from './tool'
 
 export default async function(_: any) {

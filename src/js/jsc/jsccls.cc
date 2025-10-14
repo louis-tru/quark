@@ -156,7 +156,6 @@ namespace qk { namespace js {
 				if (hasGet ? (void*)cls->_indexedGet: (void*)cls->_indexedSet) {
 					char buffer[10];
 					int size = JSStringGetUTF8CString(name, buffer, 10);
-					uint32_t idx;
 					if (_Str::toNumber(buffer, size, 1, &idx)) {
 						return cls;
 					}

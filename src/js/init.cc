@@ -382,20 +382,36 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(update, {
-				if (  args.length() < 1 ||
-						!(args[0]->isString() || args[0]->isBuffer())
-				) {
+				if (args.length() < 1) {
 					Js_Throw("@method Hash5381.update(string|Buffer), Bad argument");
 				}
-				if ( args[0]->isString() ) { // string
-					String2 str = args[0]->toString(worker)->value2(worker);
-					self->hash.update(*str, str.length());
+				WeakBuffer buff;
+				if (args[0]->asBuffer(worker).to(buff)) { // string
+					self->hash.update(buff.val(), buff.length());
 				}
 				else { // Buffer
-					WeakBuffer buff;
-					args[0]->asBuffer(worker).to(buff);
-					self->hash.update(*buff, buff.length());
+					String2 str = args[0]->toString(worker)->value2(worker);
+					self->hash.updateu16v(str.c_str(), str.length());
 				}
+			});
+
+			Js_Class_Method(updatefv2, {
+				float v[2];
+				if ( args.length() < 2 ||
+						!args[0]->asFloat32(worker).to(v[0]) || !args[1]->asFloat32(worker).to(v[1])
+				) {
+					Js_Throw("@method Hash5381.updatefv2(f1,f2), Bad argument");
+				}
+				self->hash.updatefv2(v);
+			});
+
+			Js_Class_Method(equals, {
+				if ( args.length() < 1 || !worker->instanceOf(args[0], Js_Typeid(Hash5381Object))) {
+					Js_Throw("@method Hash5381.equal(other), Bad argument");
+				}
+				auto other = MixObject::mix<Hash5381Object>(args[0])->self();
+				auto equal = self->hash.hashCode() == other->hash.hashCode();
+				Js_ReturnBool(equal);
 			});
 
 			Js_Class_Method(digest, {
@@ -426,7 +442,7 @@ namespace qk { namespace js {
 		static Hash5381 get_hashCode(Worker *worker, FunctionArgs args) {
 			Hash5381 hash;
 			String2 str = args[0]->toString(worker)->value2(worker);
-			hash.update(*str, str.length());
+			hash.updateu16v(str.c_str(), str.length());
 			return hash;
 		}
 

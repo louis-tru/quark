@@ -28,801 +28,234 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import * as _util from './_util';
+import {Vec2,Rect,Vec3,Mat,Region,BorderRadius} from './types';
 
-const isWeb = _util.default.isWeb;
-
-function init(self: any) {
-	if (self._is_init) return;
-	self._is_init = true;
-
-	let value = self._value;
-	let val = '';
-	let i = value.indexOf('?');
-
-	if (i != -1) {
-		val = value.substr(0, i);
-		let search = self._search = value.substr(i);
-		i = search.indexOf('#');
-		if (i != -1) {
-			self._search = search.substr(0, i);
-			self._hash = search.substr(i);
-		}
-	} else {
-		i = value.indexOf('#');
-		if (i != -1) {
-			val = value.substr(0, i);
-			self._hash = value.substr(i);
-		} else {
-			val = value;
-		}
-	}
-	self._value = _util.formatPath(val);
-}
-
-function parse_path(self: any) {
-	if (self._is_parse) return;
-	self._is_parse = true;
-	init(self);
-
-	let mat = self._value.match(/^(([a-z]+:)\/\/)?(([^\/:]+)(?::(\d+))?)?(\/.*)?/);
-	if (mat) {
-		self._protocol = mat[2] || '';
-		self._origin = mat[1] || ''; // file://
-
-		if ( mat[3] ) { // http:// or ftp:// or lib://
-			self._origin += mat[3]; // http://quarks.cc
-			self._hostname = mat[4];
-			self._port = mat[5] || '';
-		}
-
-		let path = self._filename = mat[6] || '/';
-		let i = path.lastIndexOf('/');
-		if (i > 0) {
-			self._dirname = path.substr(0, i);
-		} else {
-			self._dirname = '/';
-		}
-	} else {
-		throw new Error(`Parse url error, Illegal URL ${self._value}`);
-	}
-}
-
-function parse_basename(self: any) {
-	if (self._basename != -1) return;
-	init(self);
-	let mat = self._value.match(/([^\/\\]+)?(\.[^\/\\\.]+)$|[^\/\\]+$/);
-	if (mat) {
-		self._basename = mat[0];
-		self._extname = mat[2] || '';
-	} else {
-		self._extname = self._basename = '';
-	}
-}
-
-function querystringStringify(prefix: string, params: Dict) {
-	let rev = [];
-	for (let i in params) {
-		rev.push(i + '=' + encodeURIComponent(params[i]));
-	}
-	return rev.length ? prefix + rev.join('&') : '';
-}
+const _path = __binding__('_path');
+Object.assign(exports, _path);
 
 /**
- * @class URL
- * 
- * URL Processing Tool Type
- * 
- * @example
- * 
- * ```ts
- * // cwd: file:///var/data
- * // Prints: file:///var/data/index.js
- * var uri = new URL('index.js');
- * console.log(uri.href);
- * // Prints: http://quarks.cc/index.html?args=0
- * var uri2 = new URL('http://quarks.cc/home/../index.html?args=0')
- * console.log(uri2.href);
- * // Prints: 
- * // Error: Parse uri error, Illegal URL
- * new URL('http://quarks.cc:').href
- * ```
- */
-export class URL {
-	private _value: string;
-	private _origin: string;
-	private _filename: string;
-	private _dirname: string;
-	private _basename: string;
-	private _extname: string;
-	private _search: string;
-	private _hash: string;
-	private _hostname: string;
-	private _port: string;
-	private _protocol: string;
-	private _params: Dict<string>;
-	private _hashParams: Dict<string>;
-
-	/**
-	 * @method constructor(path?:string)
-	 */
-	constructor(path: string = '') {
-		if (!path && isWeb) {
-			path = location.href;
-		}
-		this._value = path;
-	}
-
-	/**
-	 * Get the complete URL, including parameters
-	 * 
-	 * href: "http://xxxx.xxx:81/v1.1.0/quark/path.js?sasasas&asasasa#sdsdsd"
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: http://quarks.cc/
-	 * console.log(new URL('http://quarks.cc/').href);
-	 * ```
-	 */
-	get href(): string {
-		parse_path(this);
-		return this._origin + this._filename + this._search + this._hash;
-	}
-
-	/**
-	 * Get full path name
-	 * 
-	 * filename: "/D:/Documents/test.js"
-	 * 
-	 * @example
-	 *
-	 * ```ts
-	 * // Prints: /aaa/bbbb/ccc/test.js
-	 * console.log(new URL('http://quarks.cc/aaa/bbbb/ccc/test.js').filename);
-	 * ```
-	*/
-	get filename(): string {
-		parse_path(this);
-		return this._filename;
-	}
-
-	/**
-	 * @get path:string /a/b/s/test.html?aaaaa=100
-	 * 
-	 * Get the path and include the parameter part
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: /aaa/bbbb/ccc/test.js?asas=asas
-	 * console.log(new URL('http://quarks.cc/aaa/bbbb/ccc/test.js?asas=asas').path);
-	 * ```
-	 */
-	get path(): string {
-		parse_path(this);
-		return this._filename + this._search;
-	}
-
-	/**
-	 * Full path dir
-	 * 
-	 * dirname: "/D:/Documents"
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: /aaa/bbbb/ccc
-	 * console.log(new URL('http://quarks.cc/aaa/bbbb/ccc/test.js').dirname);
-	 * ```
-	 */
-	get dirname(): string {
-		parse_path(this);
-		return this._dirname;
-	}
-
-	/**
-	 * Get url query parameters
-	 * 
-	 * search: "?sasasas&asasasa"
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: ?a=A&b=B
-	 * console.log(new URL('http://quarks.cc/?a=A&b=B').search);
-	 * ```
-	*/
-	get search(): string {
-		init(this);
-		return this._search;
-	}
-
-	/**
-	 * hash: "#sdsdsd"
-	 * 
-	 * Get hash parameters
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: #c=C&d=D
-	 * console.log(new URL('http://quarks.cc/?a=A&b=B#c=C&d=D').hash);
-	 * ```
-	 */
-	get hash(): string {
-		init(this);
-		return this._hash;
-	}
-
-	/**
-	 * host: "quarks.cc:81"
-	 * 
-	 * Gets the host name and returns the host name with the port number
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: quarks.cc:80
-	 * console.log(new URL('http://quarks.cc:81/').host);
-	 * ```
-	 */
-	get host(): string {
-		parse_path(this);
-		return this._hostname + (this._port ? ':' + this._port : '');
-	}
-
-	/**
-	 * hostname: "quarks.cc"
-	 * 
-	 * Gets the host name, but does not return the port number
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: quarks.cc
-	 * console.log(new URL('http://quarks.cc:81/').host);
-	 * ```
-	 */
-	get hostname(): string {
-		parse_path(this);
-		return this._hostname;
-	}
-
-	/**
-	 * origin: "http://quarks.cc:81"
-	 * 
-	 * Get the uri origin, protocol+host
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: http://quarks.cc:81
-	 * console.log(new URL('http://quarks.cc:81/host/index.html').host);
-	 * // Prints: file://
-	 * console.log(new URL('file:///var/data/index.html').host);
-	 * ```
-	 */
-	get origin(): string {
-		parse_path(this);
-		return this._origin;
-	}
-
-	/**
-	 * Get path base name
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: index.html
-	 * console.log(new URL('file:///var/data/index.html').basename);
-	 * ```
-	 */
-	get basename(): string {
-		parse_basename(this);
-		return this._basename;
-	}
-	
-	/**
-	 * Get path extname
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: .html
-	 * console.log(new URL('file:///var/data/index.html').extname);
-	 * ```
-	 */
-	get extname(): string {
-		parse_basename(this);
-		return this._extname;
-	}
-
-	/**
-	 * port: "81"
-	 * 
-	 * Get the host port number.
-	 * If the port number is not defined in the URL, an empty string is returned.
-	 * 
-	 * @example
-	 *
-	 * ```ts
-	 * // Prints: 81
-	 * console.log(new URL('http://quarks.cc:81').port);
-	 * // Prints If there is no port number, an empty string will be returned: ""
-	 * console.log(new URL('http://quarks.cc').port);
-	 * ```
-	 */
-	get port(): string {
-		parse_path(this);
-		return this._port;
-	}
-
-	/**
-	 * Get the protocol type string of the URL, For: `'http:'`|`'https'`|`'ftp:'`
-	 */
-	get protocol(): string {
-		parse_path(this);
-		return this._protocol;
-	}
-
-	/**
-	 * Returns a collection of query parameters as an object, or set
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints:
-	 * // {
-	 * //   a: "100",
-	 * //   b: "test"
-	 * // }
-	 * console.log(new URL('http://quarks.cc/?a=100&b=test').params);
-	 * ```
-	*/
-	get params(): Dict<string> {
-		if (this._params)
-			return this._params;
-		init(this);
-		this._params = {};
-		if (this._search[0] != '?') {
-			return this._params;
-		}
-
-		let ls = this._search.substring(1).split('&');
-
-		for (let i = 0; i < ls.length; i++) {
-			let o = ls[i].split('=');
-			this._params[ o[0] ] = decodeURIComponent(o[1] || '');
-		}
-		return this._params;
-	}
-
-	set params(value: Dict<string>) {
-		init(this);
-		this._params = {...value};
-		this._search = querystringStringify('?', this._params);
-	}
-
-	/**
-	 * Returns a Hash parameter set as an object, or set
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints:
-	 * // {
-	 * //   a: "200",
-	 * //   b: "300"
-	 * // }
-	 * console.log(new URL('http://quarks.cc/#a=200&b=300').hashParams);
-	 * ```
-	*/
-	get hashParams(): Dict<string> {
-		if (this._hashParams)
-			return this._hashParams;
-		init(this);
-		this._hashParams = {};
-		if (this._hash[0] != '#') {
-			return this._hashParams;
-		}
-
-		let ls = this._hash.substring(1).split('&');
-
-		for (let i = 0; i < ls.length; i++) {
-			let o = ls[i].split('=');
-			this._hashParams[ o[0] ] = decodeURIComponent(o[1] || '');
-		}
-		return this._hashParams;
-	}
-
-	set hashParams(value: Dict<string>) {
-		init(this);
-		this._hashParams = {...value};
-		this._hash = querystringStringify('#', this._hashParams);
-	}
-
-	/**
-	 * Get path param
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: ok
-	 * console.log(new URL('http://quarks.cc/?args=ok').getParam('args'));
-	 * ```
-	 */
-	getParam(name: string): string {
-		return this.params[name];
-	}
-
-	/**
-	 * Set the URL query parameter key-value pair and return self
-	 */
-	setParam(name: string, value: string): this {
-		this.params[name] = value || '';
-		this._search = querystringStringify('?', this._params);
-		return this;
-	}
-
-	/**
-	 * Remove URL query parameters by name
-	 */
-	deleteParam(name: string): this {
-		delete this.params[name];
-		this._search = querystringStringify('?', this._params);
-		return this;
-	}
-
-	/**
-	 * Delete all of params in the URL
-	 */
-	clearParams(): this {
-		init(this);
-		this._params = {};
-		this._search = '';
-		return this;
-	}
-
-	/**
-	 * Get hash param by name
-	 */
-	getHash(name: string): string {
-		return this.hashParams[name];
-	}
-
-	/**
-	 * Set hash param by the key/value
-	*/
-	setHash(name: string, value: string): this {
-		this.hashParams[name] = value || '';
-		this._hash = querystringStringify('#', this._hashParams);
-		return this;
-	}
-
-	/**
-	 * Delete hash param by the name
-	 */
-	deleteHash(name: string): this {
-		delete this.hashParams[name];
-		this._hash = querystringStringify('#', this._hashParams);
-		return this;
-	}
-
-	/**
-	 * Delete all of hash params in the URL
-	 */
-	clearHashs(): this {
-		init(this);
-		this._hashParams = {};
-		this._hash = '';
-		return this;
-	}
-
-	/**
-	 * Get relative path from the fromPath to self
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: ../A/B/C/test.js
-	 * var url = new URL('http://quarks.cc/A/B/C/test.js');
-	 * console.log(url.relative('http://quarks.cc/home/'));
-	 * // Prints: file:///var/data/A/B/C/test.js
-	 * var url2 = new URL('file:///var/data/A/B/C/test.js');
-	 * console.log(url2.relative('http://quarks.cc/home/'));
-	 * ```
-	 */
-	relative(fromPath: string): string {
-		let from = new URL(fromPath);
-		if ( this.origin != from.origin ) {
-			return this._origin + this._filename;
-		}
-
-		let fr: string[] = from._filename == '/' ? [] : from._filename.split('/').slice(0,-1);
-		let to: string[] = this._filename == '/' ? [] : this._filename.split('/'); // to
-		let len = Math.max(fr.length, to.length);
-
-		for (let i = 1; i < len; i++) {
-			if (fr[i] != to[i]) {
-				len = fr.length - i;
-				if (len > 0) {
-					fr = [];
-					for (let j = 0; j < len; j++)
-						fr.push('..');
-					return fr.join('/') + (i < to.length ? '/'+to.slice(i).join('/'): '');
-				}
-				return to.slice(i).join('/');
-			}
-		}
-		return '.';
-	}
-
-	/**
-	*/
-	toJSON(): string {
-		return this.href;
-	}
-}
-
-(URL as any).prototype._is_split = false;
-(URL as any).prototype._is_parse = false;
-(URL as any).prototype._value = '';
-(URL as any).prototype._hostname = '';
-(URL as any).prototype._port = '';
-(URL as any).prototype._protocol = '';
-(URL as any).prototype._search = '';
-(URL as any).prototype._hash = '';
-(URL as any).prototype._origin = '';
-(URL as any).prototype._filename = '';
-(URL as any).prototype._dirname = '';
-(URL as any).prototype._basename = -1;
-(URL as any).prototype._extname = -1;
-(URL as any).prototype._params = null;
-(URL as any).prototype._hashParams = null;
-
-function get_path(path?: string): URL {
-	return new URL(path);
-}
-
-/**
- * @default
+ * Path verb types
 */
-export default {
-	URL: URL,
+export enum PathVerb {
+	kMove,  //!< move
+	kLine,  //!< straight line
+	kQuad,  //!< quadratic bezier
+	kCubic, //!< cubic bezier
+	kClose, //!< close
+}
+
+/**
+ * Line cap style
+*/
+export enum Cap {   //!< point style
+	kButt,            //!< no stroke extension
+	kRound,           //!< adds circle
+	kSquare,          //!< adds square
+}
+
+/** Line join style */
+export enum Join {      //!< stroke style
+	kMiter,          //!< extends to miter limit
+	kRound,          //!< adds circle
+	kBevel,          //!< connects outside edges
+}
+
+/**
+ * Create an oval (ellipse) path.
+ * @param rect The bounding rectangle of the oval.
+ * @param ccw Whether to draw counter-clockwise (CCW).
+ * @returns A new path representing the oval.
+ */
+export declare function oval(rect: Rect, ccw: boolean): Path;
+
+/**
+ * Create an arc path.
+ * @param rect The bounding rectangle of the arc.
+ * @param startAngle Start angle in radians.
+ * @param sweepAngle Sweep angle in radians (positive = clockwise, negative = counter-clockwise).
+ * @param useCenter Whether to connect the center point to form a pie shape.
+ * @param close Whether to close the path. Default is false.
+ * @returns A new path representing the arc.
+ */
+export declare function arc(rect: Rect, startAngle: number, sweepAngle: number, useCenter: boolean, close?: boolean): Path;
+
+/**
+ * Create a rectangular path.
+ * @param rect The rectangle bounds.
+ * @param ccw Whether to draw counter-clockwise (default: false).
+ * @returns A new path representing the rectangle.
+ */
+export declare function rect(rect: Rect, ccw?: boolean): Path;
+
+/**
+ * Create a circular path.
+ * @param center Center of the circle.
+ * @param radius Radius of the circle.
+ * @param ccw Whether to draw counter-clockwise.
+ * @returns A new path representing the circle.
+ */
+export declare function circle(center: Vec2, radius: number, ccw?: boolean): Path;
+
+/**
+ * Create a rounded rectangle path.
+ * @param rect The rectangle bounds.
+ * @param radius Corner radius values (can define per-corner radii).
+ * @returns A new path representing the rounded rectangle.
+ */
+export declare function rrect(rect: Rect, radius: BorderRadius): Path;
+
+/**
+ * Create an outline path between two rounded rectangles (outer and inner).
+ * @param outside Outer rectangle.
+ * @param inside Inner rectangle.
+ * @param radius Corner radius values.
+ * @returns A new path representing the rounded rectangle outline.
+ */
+export declare function rrectOutline(outside: Rect, inside: Rect, radius: BorderRadius): Path;
+
+/**
+ * Compute the bounding region from a set of points.
+ * Does NOT check if the matrix is an identity matrix.
+ * @param pts The point array.
+ * @param ptsLen Number of points.
+ * @param matrix Optional transform matrix.
+ * @returns The computed region bounds.
+ */
+export declare function getBoundsFromPoints(pts: Vec2[], ptsLen: number, matrix?: Mat): Region;
+
+/**
+ * Represents a geometric path consisting of lines, curves, and shapes.
+ */
+export declare class Path {
+	/** Number of points in this path. */
+	readonly ptsLen: Uint;
+
+	/** Number of verbs (path commands) in this path. */
+	readonly verbsLen: Uint;
+
+	/** Whether the path is normalized (curves converted to line segments). */
+	readonly isNormalized: boolean;
 
 	/**
-	 * Get the binary executable file path of the current application
-	 * @method executable()string
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints:
-	 * // file:///var/containers/Bundle/Application/4F1BD659-601D-4932-8484-D0D1F978F0BE/test.app/test
-	 * console.log(path.executable());
-	 * ```
-	*/
-	executable: _util.executable,
-
-	/**
-	 * Get the document storage path of the current application
-	 * @method documents(path?:string)string
-	 * @param path? Append to the document path
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints:
-	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents
-	 * console.log(path.documents());
-	 * // Prints Setting the result of appending path parameters:
-	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents/aa.jpeg
-	 * console.log(path.documents('aa.jpeg'));
-	 * ```
-	*/
-	documents: _util.documents,
-
-	/**
-	 * Get the application temporary directory
-	 * @method temp(path?:string)string
-	*/
-	temp: _util.temp,
-
-	/**
-	 * Get the application resource directory
-	 * @method resources(path?:string)string
-	*/
-	resources: _util.resources,
-
-	/**
-	 * Get the current working directory
-	 * @method cwd()string
-	*/
-	cwd: _util.cwd,
-
-	/**
-	 * Set the current working directory and return `true` if successful
-	 * @method chdir(path:string)boolean
-	*/
-	chdir: _util.chdir,
-
-	/**
-	 * Format part path to normalize path
-	 * @method normalizePath(path:string,retain_up?:boolean)string
-	*/
-	normalizePath: _util.normalizePath,
-	delimiter: _util.delimiter,
-
-	/**
-	 * Restore the path to a path that the operating system can recognize.
-	 * Generally, you do not need to call this function unless you directly call
-	 * a Native/C/C++ function that is not provided by `Quark`
-	 * @method classicPath(path:string)string
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: /var/data/test.js
-	 * console.log(path.normalizePath('file:///var/data/test.js'));
-	 * ```
+	 * Construct a new path.
+	 * @param move Optional initial move-to point.
 	 */
-	classicPath: _util.classicPath,
+	constructor(move?: Vec2);
+
+	/** Move the current point without drawing a line. */
+	moveTo(to: Vec2): void;
+
+	/** Draw a straight line from the current point to the specified point. */
+	lineTo(to: Vec2): void;
+
+	/** Draw a quadratic Bézier curve. */
+	quadTo(control: Vec2, to: Vec2): void;
+
+	/** Draw a cubic Bézier curve. */
+	cubicTo(control1: Vec2, control2: Vec2, to: Vec2): void;
+
+	/** Add an oval (ellipse) to the path. */
+	ovalTo(rect: Rect, ccw?: boolean): void;
+
+	/** Add a rectangle to the path. */
+	rectTo(rect: Rect, ccw?: boolean): void;
 
 	/**
-	 * Format path to standard absolute path
-	 * @method resolve(path:string,partPath?string)string
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints: http://quarks.cc/A/C/test.js
-	 * console.log(path.resolve('http://quarks.cc/home', "..", "A", "B", "..", "C", "test.js"));
-	 * // Prints: 
-	 * // true
-	 * // file:///var/data/aaa/cc/ddd/kk.jpg
-	 * console.log(path.chdir('/var/data'));
-	 * console.log(path.resolve('aaa/bbb/../cc/.//!<ddd/kk.jpg'));
-	 * ```
+	 * Add an arc defined by a bounding rectangle.
+	 * @param rect Bounding rectangle.
+	 * @param startAngle Start angle in radians.
+	 * @param sweepAngle Sweep angle in radians.
+	 * @param useCenter Whether to connect to the center point.
 	 */
-	resolve: _util.formatPath, // func
+	arcTo(rect: Rect, startAngle: number, sweepAngle: number, useCenter: boolean): void;
 
 	/**
-	 * Test whether it is an absolute path
-	 * @method isAbsolute(path:string)boolean
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints:
-	 * // true
-	 * // true
-	 * // false
-	 * console.log(path.isAbsolute('/var/kk'));
-	 * console.log(path.isAbsolute('http://quarks.cc/'));
-	 * console.log(path.isAbsolute('index.jsx'));
-	 * ```
+	 * Add an arc defined by center and radius.
+	 * @param center Center of the arc.
+	 * @param radius Radius or ellipse radii (Vec2 for elliptical arcs).
+	 * @param startAngle Start angle in radians.
+	 * @param sweepAngle Sweep angle in radians.
+	 * @param useCenter Whether to connect to the center point.
 	 */
-	isAbsolute: _util.isAbsolute, // func
+	arc(center: Vec2, radius: Vec2, startAngle: number, sweepAngle: number, useCenter: boolean): void;
+
+	/** Close the current contour (connect last point to first point). */
+	close(): void;
+
+	/** Append another path to the end of this one. */
+	concat(path: Path): void;
+
+	/** Get the point at the specified index. */
+	ptsAt(index: Uint): Vec2;
+
+	/** Get the verb (command) at the specified index. */
+	verbsAt(index: Uint): PathVerb;
 
 	/**
-	 * Get basename
+	 * Convert curves into line segments and return all edge points.
+	 * @param epsilon Approximation tolerance (smaller = higher precision, default = 1.0).
+	 * @returns An array of Vec2 representing the edges.
 	 */
-	basename(path?: string): string {
-		return get_path(path).basename;
-	},
+	getEdgeLines(epsilon?: number): Vec2[];
 
 	/**
-	 * Get dirname
+	 * Triangulate the filled region of the path.
+	 * @param epsilon Approximation tolerance (default = 1.0).
+	 * @returns An array of Vec3 vertices (each triple = one triangle).
 	 */
-	dirname(path?: string): string {
-		return get_path(path).dirname;
-	},
+	getTriangles(epsilon?: number): Vec3[];
 
 	/**
-	 * Get extname
+	 * Generate anti-aliased fuzzy stroke triangles.
+	 * @param width Stroke width.
+	 * @param epsilon Approximation tolerance (default = 1.0).
+	 * @returns Array of Vec3 triangles for fuzzy stroke rendering.
 	 */
-	extname(path?: string): string {
-		return get_path(path).extname;
-	},
+	getAAFuzzStrokeTriangle(width: number, epsilon?: number): Vec3[];
 
 	/**
-	 * Get filename
+	 * Convert the path into a dashed path.
+	 * @param stage An array of segment lengths (e.g. [dash, gap, dash, gap, ...]).
+	 *              Each value represents a **distance along the path** in the same coordinate units.
+	 *              Even indices (0, 2, 4, …) are drawn segments; odd indices are skipped segments.
+	 * @param offset Optional phase offset along the path (default = 0).
+	 * @returns A new path containing the dashed version.
 	 */
-	filename(path?: string): string {
-		return get_path(path).filename;
-	},
+	dashPath(stage: number[], offset?: number): Path;
 
 	/**
-	 * Get path
+	 * Generate a stroke path from the current shape.
+	 * @param width Stroke width.
+	 * @param cap Line cap style (butt, round, square).
+	 * @param join Line join style (miter, round, bevel).
+	 * @param miterLimit Maximum miter ratio.
+	 * @returns A new path representing the stroked outline.
 	 */
-	path(path?: string): string {
-		return get_path(path).path;
-	},
+	strokePath(width: number, cap?: Cap, join?: Join, miterLimit?: number): Path;
 
-	/** Get search */
-	search(path?: string): string {
-		return get_path(path).search;
-	},
+	/**
+	 * Normalize the path (convert curves to linear segments).
+	 * @param epsilon Approximation tolerance (default = 1.0).
+	 * @returns A new normalized path.
+	 */
+	normalizedPath(epsilon?: number): Path;
 
-	/** Get hash */
-	hash(path?: string): string {
-		return get_path(path).hash;
-	},
+	/**
+	 * Apply a transformation matrix to the path.
+	 * @param matrix Transformation matrix.
+	 */
+	transform(matrix: Mat): void;
 
-	/** Get host */
-	host(path?: string): string {
-		return get_path(path).host;
-	},
+	/**
+	 * Scale the path by a given factor.
+	 * @param scale Scale vector (x, y).
+	 */
+	scale(scale: Vec2): void;
 
-	/** Get hostname */
-	hostname(path?: string): string {
-		return get_path(path).hostname;
-	},
-
-	/** Get origin */
-	origin(path?: string): string {
-		return get_path(path).origin;
-	},
-
-	/** Get port: "81" */
-	port(path?: string): string {
-		return get_path(path).port;
-	},
-	
-	/** Get protocol: "http:" */
-	protocol(path?: string): string {
-		return get_path(path).protocol;
-	},
-
-	/** Get params */
-	params(path?: string): Dict<string> {
-		return get_path(path).params;
-	},
-
-	/** Get params  */
-	hashParams(path?: string): Dict<string> {
-		return get_path(path).hashParams;
-	},
-
-	/** Get path param */
-	getParam(name: string, path?: string): string {
-		return get_path(path).getParam(name);
-	},
-
-	/** Set path param */
-	setParam(name: string, value: string, path?: string): string {
-		return get_path(path).setParam(name, value).href;
-	},
-
-	/** Delete path param */
-	deleteParam(name: string, path?: string): string {
-		return get_path(path).deleteParam(name).href;
-	},
-
-	/** Delete all of hash params */
-	clearParams(path?: string): string {
-		return get_path(path).clearParams().href;
-	},
-
-	/** Get hash param */
-	getHash(name: string, path?: string): string {
-		return get_path(path).getHash(name);
-	},
-
-	/** Set hash param */
-	setHash(name: string, value: string, path?: string): string {
-		return get_path(path).setHash(name, value).href;
-	},
-
-	/** Delete hash param */
-	deleteHash(name: string, path?: string): string {
-		return get_path(path).deleteHash(name).href;
-	},
-
-	/** Delete all of hash params */
-	clearHashs(path?: string): string {
-		return get_path(path).clearHashs().href;
-	},
-
-	/** Get relative path */
-	relative(from: string, target?: string): string {
-		return get_path(target).relative(from);
-	},
-
+	/**
+	 * Get the path's bounding box.
+	 * @param matrix Optional transform matrix (fast path if identity).
+	 * @returns The bounding region.
+	 */
+	getBounds(matrix?: Mat): Region;
 }

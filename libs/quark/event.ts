@@ -31,7 +31,7 @@
 import {Event,EventNoticer,Notification,event} from './_event';
 import {Action} from './action';
 import {View} from './view';
-import {RemoveReadonly,Vec2,newVec2,PIHalf,PIHalfHalf,Direction,PIDegree} from './types';
+import {RemoveReadonly,Vec2,newVec2,Direction,PIDegree} from './types';
 import {KeyboardKeyCode} from './keyboard';
 
 export * from './_event';

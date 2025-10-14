@@ -46,10 +46,11 @@ namespace qk { namespace js {
 		_TypesBase.reset(worker, exports->get<JSFunction>(worker,OneByte("Base")));
 
 		Js_Types_Each(_Fun)
-		//Qk_DLog("Init types %s ok", "TypesParser");
 
 		#undef OneByte
 		#undef _Fun
+
+		strs = worker->strs();
 	}
 
 	bool TypesParser::isTypesBase(JSObject* arg) {
@@ -79,9 +80,9 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const Dirent& dir) {
 		auto rev = worker->newObject();
-		rev->set(worker, worker->strs()->name(), jsvalue(dir.name));
-		rev->set(worker, worker->strs()->pathname(), jsvalue(dir.pathname));
-		rev->set(worker, worker->strs()->type(), jsvalue(dir.type));
+		rev->set(worker, strs->name(), jsvalue(dir.name));
+		rev->set(worker, strs->pathname(), jsvalue(dir.pathname));
+		rev->set(worker, strs->type(), jsvalue(dir.type));
 		return rev;
 	}
 
@@ -117,16 +118,16 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const TouchPoint& val) {
 		auto rv = worker->newObject();
-		rv->set(worker,worker->strs()->id(), worker->newValue(val.id));
-		rv->set(worker,worker->strs()->startLocation(), jsvalue(val.start_location));
-		rv->set(worker,worker->strs()->location(), jsvalue(val.location));
-		rv->set(worker,worker->strs()->force(), worker->newValue(val.force));
-		// rv->set(worker,worker->strs()->clickIn(), worker->newBool(val.click_in));
-		rv->set(worker,worker->strs()->view(), MixObject::mix(val.view)->handle());
+		rv->set(worker,strs->id(), worker->newValue(val.id));
+		rv->set(worker,strs->startLocation(), jsvalue(val.start_location));
+		rv->set(worker,strs->location(), jsvalue(val.location));
+		rv->set(worker,strs->force(), worker->newValue(val.force));
+		// rv->set(worker,strs->clickIn(), worker->newBool(val.click_in));
+		rv->set(worker,strs->view(), MixObject::mix(val.view)->handle());
 		return rv;
 	}
 
-	JSValue* TypesParser::jsvalue(const Array<TouchPoint>& val) {
+	JSValue* TypesParser::jsvalue(cArray<TouchPoint>& val) {
 		auto arr = worker->newArray();
 		int j = 0;
 		for ( auto& i : val ) {
@@ -136,6 +137,11 @@ namespace qk { namespace js {
 	}
 
 	// --------------------------------------------------------------------------------------------
+
+	template<class T>
+	JSValue* TypesParser::jsValue(T val) {
+		return worker->newValue(val);
+	}
 
 	JSValue* TypesParser::jsvalue(const bool& value) {
 		return worker->newBool(value);
@@ -155,91 +161,119 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const Color& value) {
 		JSValue* args[] = {
-			worker->newValue(value.r()),
-			worker->newValue(value.g()),
-			worker->newValue(value.b()),
-			worker->newValue(value.a()),
+			jsValue(value.r()),
+			jsValue(value.g()),
+			jsValue(value.b()),
+			jsValue(value.a()),
 		};
 		return _newColor->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Vec2& value) {
 		JSValue* args[] = {
-			worker->newValue(value.x()),
-			worker->newValue(value.y()),
+			jsValue(value.x()),
+			jsValue(value.y()),
 		};
 		return _newVec2->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Vec3& value) {
 		JSValue* args[] = {
-			worker->newValue(value.x()),
-			worker->newValue(value.y()),
-			worker->newValue(value.z()),
+			jsValue(value.x()),
+			jsValue(value.y()),
+			jsValue(value.z()),
 		};
 		return _newVec3->call(worker, 3, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Vec4& value) {
 		JSValue* args[] = {
-			worker->newValue(value.x()),
-			worker->newValue(value.y()),
-			worker->newValue(value.z()),
-			worker->newValue(value.w()),
+			jsValue(value.x()),
+			jsValue(value.y()),
+			jsValue(value.z()),
+			jsValue(value.w()),
 		};
 		return _newVec4->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Rect& value) {
 		JSValue* args[] = {
-			worker->newValue(value.origin.x()),
-			worker->newValue(value.origin.y()),
-			worker->newValue(value.size.width()),
-			worker->newValue(value.size.height()),
+			jsValue(value.origin.x()),
+			jsValue(value.origin.y()),
+			jsValue(value.size.width()),
+			jsValue(value.size.height()),
 		};
 		return _newRect->call(worker, 4, args);
 	}
 
+	JSValue* TypesParser::jsvalue(const Region& value) {
+		JSValue* args[] = {
+			jsValue(value.origin.x()),
+			jsValue(value.origin.y()),
+			jsValue(value.end.x()),
+			jsValue(value.end.y()),
+		};
+		return _newRegion->call(worker, 4, args);
+	}
+
 	JSValue* TypesParser::jsvalue(const Mat& value) {
 		JSValue* args[] = {
-			worker->newValue(value[0]),
-			worker->newValue(value[1]),
-			worker->newValue(value[2]),
-			worker->newValue(value[3]),
-			worker->newValue(value[4]),
-			worker->newValue(value[5]),
+			jsValue(value[0]),
+			jsValue(value[1]),
+			jsValue(value[2]),
+			jsValue(value[3]),
+			jsValue(value[4]),
+			jsValue(value[5]),
 		};
 		return _newMat->call(worker, 6, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Mat4& value) {
 		JSValue* args[] = {
-			worker->newValue(value[0]),
-			worker->newValue(value[1]),
-			worker->newValue(value[2]),
-			worker->newValue(value[3]),
-			worker->newValue(value[4]),
-			worker->newValue(value[5]),
-			worker->newValue(value[6]),
-			worker->newValue(value[7]),
-			worker->newValue(value[8]),
-			worker->newValue(value[9]),
-			worker->newValue(value[10]),
-			worker->newValue(value[11]),
-			worker->newValue(value[12]),
-			worker->newValue(value[13]),
-			worker->newValue(value[14]),
-			worker->newValue(value[15]),
+			jsValue(value[0]),
+			jsValue(value[1]),
+			jsValue(value[2]),
+			jsValue(value[3]),
+			jsValue(value[4]),
+			jsValue(value[5]),
+			jsValue(value[6]),
+			jsValue(value[7]),
+			jsValue(value[8]),
+			jsValue(value[9]),
+			jsValue(value[10]),
+			jsValue(value[11]),
+			jsValue(value[12]),
+			jsValue(value[13]),
+			jsValue(value[14]),
+			jsValue(value[15]),
 		};
 		return _newMat4->call(worker, 16, args);
 	}
 
-	JSValue* TypesParser::jsvalue(const ArrayFloat& value) {
-		auto arr = worker->newArray(/*value.length()*/);
-		for (uint32_t i = 0; i < value.length(); i ++) {
-			arr->set(worker, i, worker->newValue(value[i]));
+	JSValue* TypesParser::jsvalue(const BorderRadius& value) {
+		JSValue* args[] = {
+			jsValue(value.leftTop[0]),
+			jsValue(value.leftTop[1]),
+			jsValue(value.rightTop[0]),
+			jsValue(value.rightTop[1]),
+			jsValue(value.rightBottom[0]),
+			jsValue(value.rightBottom[1]),
+			jsValue(value.leftBottom[0]),
+			jsValue(value.leftBottom[1]),
+		};
+		return _newBorderRadius->call(worker, 8, args);
+	}
+
+	template<class T> JSValue* TypesParser::jsvalueArray(const T& val) {
+		auto arr = worker->newArray();
+		for (uint32_t i = 0; i < val.length(); i ++) {
+			arr->set(worker, i, jsvalue(val[i]));
 		}
 		return arr;
+	}
+
+	JSValue* TypesParser::jsvalue(const ArrayFloat& value) {
+		return jsvalueArray(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayString& value) {
@@ -247,27 +281,23 @@ namespace qk { namespace js {
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayColor& value) {
-		auto arr = worker->newArray(/*value.length()*/);
-		for (uint32_t i = 0; i < value.length(); i ++) {
-			arr->set(worker, i, jsvalue(value[i]));
-		}
-		return arr;
+		return jsvalueArray(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayOrigin& value) {
-		auto arr = worker->newArray(/*value.length()*/);
-		for (uint32_t i = 0; i < value.length(); i ++) {
-			arr->set(worker, i, jsvalue(value[i]));
-		}
-		return arr;
+		return jsvalueArray(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const ArrayBorder& value) {
-		auto arr = worker->newArray(/*value.length()*/);
-		for (uint32_t i = 0; i < value.length(); i ++) {
-			arr->set(worker, i, jsvalue(value[i]));
-		}
-		return arr;
+		return jsvalueArray(value);
+	}
+
+	JSValue* TypesParser::jsvalue(const ArrayVec2& value) {
+		return jsvalueArray(value);
+	}
+
+	JSValue* TypesParser::jsvalue(const ArrayVec3& value) {
+		return jsvalueArray(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const String& value) {
@@ -276,213 +306,213 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(cCurve& value) {
 		JSValue* args[] = {
-			worker->newValue(value.p1().x()),
-			worker->newValue(value.p1().y()),
-			worker->newValue(value.p2().x()),
-			worker->newValue(value.p2().y()),
+			jsValue(value.p1().x()),
+			jsValue(value.p1().y()),
+			jsValue(value.p2().x()),
+			jsValue(value.p2().y()),
 		};
 		return _newCurve->call(worker, 4, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Shadow& value) {
 		JSValue* args[] = {
-			worker->newValue(value.x),
-			worker->newValue(value.y),
-			worker->newValue(value.size),
-			worker->newValue(value.color.r()),
-			worker->newValue(value.color.g()),
-			worker->newValue(value.color.b()),
-			worker->newValue(value.color.a()),
+			jsValue(value.x),
+			jsValue(value.y),
+			jsValue(value.size),
+			jsValue(value.color.r()),
+			jsValue(value.color.g()),
+			jsValue(value.color.b()),
+			jsValue(value.color.a()),
 		};
 		return _newShadow->call(worker, 7, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Border& value) {
 		JSValue* args[] = {
-			worker->newValue(value.width),
-			worker->newValue(value.color.r()),
-			worker->newValue(value.color.g()),
-			worker->newValue(value.color.b()),
-			worker->newValue(value.color.a()),
+			jsValue(value.width),
+			jsValue(value.color.r()),
+			jsValue(value.color.g()),
+			jsValue(value.color.b()),
+			jsValue(value.color.a()),
 		};
 		return _newBorder->call(worker, 5, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const FillPosition& val) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)val.kind),
-			worker->newValue(val.value),
+			jsValue((uint32_t)val.kind),
+			jsValue(val.value),
 		};
 		return _newFillPosition->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const FillSize& val) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)val.kind),
-			worker->newValue(val.value),
+			jsValue((uint32_t)val.kind),
+			jsValue(val.value),
 		};
 		return _newFillSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Repeat& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxFilterPtr& value) {
-		return worker->newValue(value);
+		return jsValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxShadowPtr& value) {
-		return worker->newValue(value);
+		return jsValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const SkeletonDataPtr& value) {
-		return worker->newValue(value);
+		return jsValue(value);
 	}
 
 	JSValue* TypesParser::jsvalue(const Direction& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const ItemsAlign& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const CrossAlign& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const Wrap& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const WrapAlign& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const Align& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxSize& value) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)value.kind),
-			worker->newValue(value.value),
+			jsValue((uint32_t)value.kind),
+			jsValue(value.value),
 		};
 		return _newBoxSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const BoxOrigin& value) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)value.kind),
-			worker->newValue(value.value),
+			jsValue((uint32_t)value.kind),
+			jsValue(value.value),
 		};
 		return _newBoxOrigin->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextAlign& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextDecoration& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextOverflow& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWhiteSpace& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWordBreak& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextColor& value) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)value.kind),
-			worker->newValue(value.value.r()),
-			worker->newValue(value.value.g()),
-			worker->newValue(value.value.b()),
-			worker->newValue(value.value.a()),
+			jsValue((uint32_t)value.kind),
+			jsValue(value.value.r()),
+			jsValue(value.value.g()),
+			jsValue(value.value.b()),
+			jsValue(value.value.a()),
 		};
 		return _newTextColor->call(worker, 5, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextSize& value) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)value.kind),
-			worker->newValue(value.value),
+			jsValue((uint32_t)value.kind),
+			jsValue(value.value),
 		};
 		return _newTextSize->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextShadow& value) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)value.kind),
-			worker->newValue(value.value.x),
-			worker->newValue(value.value.y),
-			worker->newValue(value.value.size),
-			worker->newValue(value.value.color.r()),
-			worker->newValue(value.value.color.g()),
-			worker->newValue(value.value.color.b()),
-			worker->newValue(value.value.color.a()),
+			jsValue((uint32_t)value.kind),
+			jsValue(value.value.x),
+			jsValue(value.value.y),
+			jsValue(value.value.size),
+			jsValue(value.value.color.r()),
+			jsValue(value.value.color.g()),
+			jsValue(value.value.color.b()),
+			jsValue(value.value.color.a()),
 		};
 		return _newTextShadow->call(worker, 8, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextStroke& value) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)value.kind),
-			worker->newValue(value.value.width),
-			worker->newValue(value.value.color.r()),
-			worker->newValue(value.value.color.g()),
-			worker->newValue(value.value.color.b()),
-			worker->newValue(value.value.color.a()),
+			jsValue((uint32_t)value.kind),
+			jsValue(value.value.width),
+			jsValue(value.value.color.r()),
+			jsValue(value.value.color.g()),
+			jsValue(value.value.color.b()),
+			jsValue(value.value.color.a()),
 		};
 		return _newTextStroke->call(worker, 6, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextFamily& value) {
 		JSValue* args[] = {
-			worker->newValue((uint32_t)value.kind),
+			jsValue((uint32_t)value.kind),
 			jsvalue(value.value),
 		};
 		return _newTextFamily->call(worker, 2, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWeight& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextWidth& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const TextSlant& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const FontStyle& value) {
-		return worker->newValue(value.value());
+		return jsValue(value.value());
 	}
 
 	JSValue* TypesParser::jsvalue(const KeyboardType& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const KeyboardReturnType& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const CursorStyle& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const CascadeColor& value) {
-		return worker->newValue((uint32_t)value);
+		return jsValue((uint32_t)value);
 	}
 
 	JSValue* TypesParser::jsvalue(const FFID& val) {
@@ -490,6 +520,10 @@ namespace qk { namespace js {
 		Buffer buffer(sizeof(FFID));
 		buffer.write(addr, sizeof(FFID), 0);
 		return worker->newValue(buffer);
+	}
+
+	JSValue* TypesParser::jsvalue(const PathPtr& val) {
+		return MixObject::mix(val)->handle(); // copy the value
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -511,9 +545,7 @@ namespace qk { namespace js {
 
 	template<typename T>
 	T TypesParser::kind(JSObject* obj) {
-		auto kind = obj->get(worker, worker->strs()->kind());
-		//auto str = kind->toString(worker);
-		//Qk_DLog("TypesParser::kind, %s", str->value(worker).c_str());
+		auto kind = obj->get(worker, strs->kind());
 		return (T)kind->toUint32(worker)->value();
 	}
 
@@ -596,8 +628,6 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	// --------------------------------------------------------------------------------------------
-
 	bool TypesParser::parse(JSValue* in, bool& out, cChar* desc) {
 		out = in->toBoolean(worker);
 		return true;
@@ -629,77 +659,108 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, Color& out, cChar* desc) {
 		js_parse(Color, {
-			out.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
-			out.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
-			out.set_b(obj->get(worker, worker->strs()->b())->toUint32(worker)->value());
-			out.set_a(obj->get(worker, worker->strs()->a())->toUint32(worker)->value());
+			// TODO: need to check type
+			out[0] = obj->get<JSInt32>(worker, strs->r())->value();
+			out[1] = obj->get<JSInt32>(worker, strs->g())->value();
+			out[2] = obj->get<JSInt32>(worker, strs->b())->value();
+			out[3] = obj->get<JSInt32>(worker, strs->a())->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Vec2& out, cChar* desc) {
 		js_parse(Vec2, {
-			out.set_x(obj->get(worker, worker->strs()->x())->cast<JSNumber>()->float32());
-			out.set_y(obj->get(worker, worker->strs()->y())->cast<JSNumber>()->float32());
+			// TODO: need to check type
+			out[0] = obj->get<JSNumber>(worker, strs->x())->float32();
+			out[1] = obj->get<JSNumber>(worker, strs->y())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Vec3& out, cChar* desc) {
 		js_parse(Vec3, {
-			out.set_x(obj->get(worker, worker->strs()->x())->cast<JSNumber>()->float32());
-			out.set_y(obj->get(worker, worker->strs()->y())->cast<JSNumber>()->float32());
-			out.set_z(obj->get(worker, worker->strs()->z())->cast<JSNumber>()->float32());
+			// TODO: need to check type
+			out[0] = obj->get<JSNumber>(worker, strs->x())->float32();
+			out[1] = obj->get<JSNumber>(worker, strs->y())->float32();
+			out[2] = obj->get<JSNumber>(worker, strs->z())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Vec4& out, cChar* desc) {
 		js_parse(Vec4, {
-			out.set_x(obj->get(worker, worker->strs()->x())->cast<JSNumber>()->float32());
-			out.set_y(obj->get(worker, worker->strs()->y())->cast<JSNumber>()->float32());
-			out.set_z(obj->get(worker, worker->strs()->z())->cast<JSNumber>()->float32());
-			out.set_w(obj->get(worker, worker->strs()->w())->cast<JSNumber>()->float32());
+			// TODO: need to check type
+			out[0] = obj->get<JSNumber>(worker, strs->x())->float32();
+			out[1] = obj->get<JSNumber>(worker, strs->y())->float32();
+			out[2] = obj->get<JSNumber>(worker, strs->z())->float32();
+			out[3] = obj->get<JSNumber>(worker, strs->w())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Rect& out, cChar* desc) {
 		js_parse(Rect, {
-			out.origin.set_x(obj->get(worker, worker->strs()->x())->cast<JSNumber>()->float32());
-			out.origin.set_y(obj->get(worker, worker->strs()->y())->cast<JSNumber>()->float32());
-			out.size.set_width(obj->get(worker, worker->strs()->width())->cast<JSNumber>()->float32());
-			out.size.set_height(obj->get(worker, worker->strs()->height())->cast<JSNumber>()->float32());
+			// TODO: need to check type
+			out.origin[0] = obj->get<JSNumber>(worker, strs->x())->float32();
+			out.origin[1] = obj->get<JSNumber>(worker, strs->y())->float32();
+			out.size[0] = obj->get<JSNumber>(worker, strs->width())->float32();
+			out.size[1] = obj->get<JSNumber>(worker, strs->height())->float32();
+		});
+	}
+
+	bool TypesParser::parse(JSValue* in, Region& out, cChar* desc) {
+		js_parse(Region, {
+			// TODO: need to check type
+			out.origin[0] = obj->get<JSNumber>(worker, strs->p0())->float32();
+			out.origin[1] = obj->get<JSNumber>(worker, strs->p1())->float32();
+			out.end[0] = obj->get<JSNumber>(worker, strs->p2())->float32();
+			out.end[1] = obj->get<JSNumber>(worker, strs->p3())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Mat& out, cChar* desc) {
 		js_parse(Mat, {
-			auto mat = obj->get(worker, worker->strs()->value())->cast<JSArray>();
-			out[0] = mat->get(worker, 0u)->cast<JSNumber>()->float32();
-			out[1] = mat->get(worker, 1)->cast<JSNumber>()->float32();
-			out[2] = mat->get(worker, 2)->cast<JSNumber>()->float32();
-			out[3] = mat->get(worker, 3)->cast<JSNumber>()->float32();
-			out[4] = mat->get(worker, 4)->cast<JSNumber>()->float32();
-			out[5] = mat->get(worker, 5)->cast<JSNumber>()->float32();
+			// TODO: need to check type
+			auto mat = obj->get<JSArray>(worker, strs->value());
+			out[0] = mat->get<JSNumber>(worker, 0u)->float32();
+			out[1] = mat->get<JSNumber>(worker, 1)->float32();
+			out[2] = mat->get<JSNumber>(worker, 2)->float32();
+			out[3] = mat->get<JSNumber>(worker, 3)->float32();
+			out[4] = mat->get<JSNumber>(worker, 4)->float32();
+			out[5] = mat->get<JSNumber>(worker, 5)->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Mat4& out, cChar* desc) {
 		js_parse(Mat4, {
-			auto mat = obj->get(worker, worker->strs()->value())->cast<JSArray>();
-			out[0] = mat->get(worker, 0u)->cast<JSNumber>()->float32();
-			out[1] = mat->get(worker, 1)->cast<JSNumber>()->float32();
-			out[2] = mat->get(worker, 2)->cast<JSNumber>()->float32();
-			out[3] = mat->get(worker, 3)->cast<JSNumber>()->float32();
-			out[4] = mat->get(worker, 4)->cast<JSNumber>()->float32();
-			out[5] = mat->get(worker, 5)->cast<JSNumber>()->float32();
-			out[6] = mat->get(worker, 6)->cast<JSNumber>()->float32();
-			out[7] = mat->get(worker, 7)->cast<JSNumber>()->float32();
-			out[8] = mat->get(worker, 8)->cast<JSNumber>()->float32();
-			out[9] = mat->get(worker, 9)->cast<JSNumber>()->float32();
-			out[10] = mat->get(worker, 10)->cast<JSNumber>()->float32();
-			out[11] = mat->get(worker, 11)->cast<JSNumber>()->float32();
-			out[12] = mat->get(worker, 12)->cast<JSNumber>()->float32();
-			out[13] = mat->get(worker, 13)->cast<JSNumber>()->float32();
-			out[14] = mat->get(worker, 14)->cast<JSNumber>()->float32();
-			out[15] = mat->get(worker, 15)->cast<JSNumber>()->float32();
+			// TODO: need to check type
+			auto mat = obj->get<JSArray>(worker, strs->value());
+			out[0] = mat->get<JSNumber>(worker, 0u)->float32();
+			out[1] = mat->get<JSNumber>(worker, 1)->float32();
+			out[2] = mat->get<JSNumber>(worker, 2)->float32();
+			out[3] = mat->get<JSNumber>(worker, 3)->float32();
+			out[4] = mat->get<JSNumber>(worker, 4)->float32();
+			out[5] = mat->get<JSNumber>(worker, 5)->float32();
+			out[6] = mat->get<JSNumber>(worker, 6)->float32();
+			out[7] = mat->get<JSNumber>(worker, 7)->float32();
+			out[8] = mat->get<JSNumber>(worker, 8)->float32();
+			out[9] = mat->get<JSNumber>(worker, 9)->float32();
+			out[10] = mat->get<JSNumber>(worker, 10)->float32();
+			out[11] = mat->get<JSNumber>(worker, 11)->float32();
+			out[12] = mat->get<JSNumber>(worker, 12)->float32();
+			out[13] = mat->get<JSNumber>(worker, 13)->float32();
+			out[14] = mat->get<JSNumber>(worker, 14)->float32();
+			out[15] = mat->get<JSNumber>(worker, 15)->float32();
+		});
+	}
+
+	bool TypesParser::parse(JSValue* in, BorderRadius& out, cChar* desc) {
+		js_parse(Region, {
+			// TODO: need to check type
+			out.leftTop[0] = obj->get<JSNumber>(worker, strs->p0())->float32();
+			out.leftTop[1] = obj->get<JSNumber>(worker, strs->p1())->float32();
+			out.rightTop[0] = obj->get<JSNumber>(worker, strs->p2())->float32();
+			out.rightTop[1] = obj->get<JSNumber>(worker, strs->p3())->float32();
+			out.rightBottom[0] = obj->get<JSNumber>(worker, strs->p4())->float32();
+			out.rightBottom[1] = obj->get<JSNumber>(worker, strs->p5())->float32();
+			out.leftBottom[0] = obj->get<JSNumber>(worker, strs->p6())->float32();
+			out.leftBottom[1] = obj->get<JSNumber>(worker, strs->p7())->float32();
 		});
 	}
 
@@ -707,8 +768,7 @@ namespace qk { namespace js {
 		if (!in->isArray()) {
 			out.extend(1);
 			auto num = in->toNumber(worker);
-			if (!num)
-				return throw_error(worker, in, desc), false;
+			if (!num) return throw_error(worker, in, desc), false;
 			float val = num->float32();
 			out[0] = val;
 		} else {
@@ -716,8 +776,7 @@ namespace qk { namespace js {
 			out.extend(arr->length());
 			for (uint32_t i = 0; i < out.length(); i++) {
 				auto num = arr->get(worker, i)->toNumber(worker);
-				if (!num)
-					return throw_error(worker, in, desc), false;
+				if (!num) return throw_error(worker, in, desc), false;
 				out[i] = num->float32();
 			}
 		}
@@ -736,7 +795,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	bool TypesParser::parse(JSValue* in, ArrayColor& out, cChar* desc) {
+	template<class T> bool TypesParser::parseArray(JSValue* in, T& out, cChar* desc) {
 		if (!in->isArray()) {
 			out.extend(1);
 			return parse(in, out[0], desc);
@@ -748,34 +807,26 @@ namespace qk { namespace js {
 				return false;
 		}
 		return true;
+	}
+
+	bool TypesParser::parse(JSValue* in, ArrayColor& out, cChar* desc) {
+		return parseArray(in, out, desc);
 	}
 
 	bool TypesParser::parse(JSValue* in, ArrayOrigin& out, cChar* desc) {
-		if (!in->isArray()) {
-			out.extend(1);
-			return parse(in, out[0], desc);
-		}
-		auto arr = in->cast<JSArray>();
-		out.extend(arr->length());
-		for (uint32_t i = 0; i < out.length(); i++) {
-			if (!parse(arr->get(worker, i), out[i], desc))
-				return false;
-		}
-		return true;
+		return parseArray(in, out, desc);
 	}
 
 	bool TypesParser::parse(JSValue* in, ArrayBorder& out, cChar* desc) {
-		if (!in->isArray()) {
-			out.extend(1);
-			return parse(in, out[0], desc);
-		}
-		auto arr = in->cast<JSArray>();
-		out.extend(arr->length());
-		for (uint32_t i = 0; i < out.length(); i++) {
-			if (!parse(arr->get(worker, i), out[i], desc))
-				return false;
-		}
-		return true;
+		return parseArray(in, out, desc);
+	}
+
+	bool TypesParser::parse(JSValue* in, ArrayVec2& out, cChar* desc) {
+		return parseArray(in, out, desc);
+	}
+
+	bool TypesParser::parse(JSValue* in, ArrayVec3& out, cChar* desc) {
+		return parseArray(in, out, desc);
 	}
 
 	bool TypesParser::parse(JSValue* in, String& out, cChar* desc) {
@@ -797,14 +848,15 @@ namespace qk { namespace js {
 			return true;
 		}
 		js_parse(Curve, {
+			// TODO: need to check type
 			out = Curve(
 				Vec2{
-					obj->get(worker, worker->strs()->p1x())->cast<JSNumber>()->float32(),
-					obj->get(worker, worker->strs()->p1y())->cast<JSNumber>()->float32()
+					obj->get(worker, strs->p1x())->cast<JSNumber>()->float32(),
+					obj->get(worker, strs->p1y())->cast<JSNumber>()->float32()
 				},
 				Vec2{
-					obj->get(worker, worker->strs()->p2x())->cast<JSNumber>()->float32(),
-					obj->get(worker, worker->strs()->p2y())->cast<JSNumber>()->float32()
+					obj->get(worker, strs->p2x())->cast<JSNumber>()->float32(),
+					obj->get(worker, strs->p2y())->cast<JSNumber>()->float32()
 				}
 			);
 		});
@@ -812,155 +864,175 @@ namespace qk { namespace js {
 
 	bool TypesParser::parse(JSValue* in, Shadow& out, cChar* desc) {
 		js_parse(Shadow, {
-			out.x = obj->get(worker, worker->strs()->x())->cast<JSNumber>()->float32();
-			out.y = obj->get(worker, worker->strs()->y())->cast<JSNumber>()->float32();
-			out.size = obj->get(worker, worker->strs()->size())->cast<JSNumber>()->float32();
-			out.color.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
-			out.color.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
-			out.color.set_b(obj->get(worker, worker->strs()->b())->toUint32(worker)->value());
-			out.color.set_a(obj->get(worker, worker->strs()->a())->toUint32(worker)->value());
+			// TODO: need to check type
+			out.x = obj->get<JSNumber>(worker, strs->x())->float32();
+			out.y = obj->get<JSNumber>(worker, strs->y())->float32();
+			out.size = obj->get<JSNumber>(worker, strs->size())->float32();
+			out.color[0] = obj->get<JSInt32>(worker, strs->r())->value();
+			out.color[1] = obj->get<JSInt32>(worker, strs->g())->value();
+			out.color[2] = obj->get<JSInt32>(worker, strs->b())->value();
+			out.color[3] = obj->get<JSInt32>(worker, strs->a())->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Border& out, cChar* desc) {
 		js_parse(Border, {
-			out.width = obj->get(worker, worker->strs()->width())->cast<JSNumber>()->float32();
-			out.color.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
-			out.color.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
-			out.color.set_b(obj->get(worker, worker->strs()->b())->toUint32(worker)->value());
-			out.color.set_a(obj->get(worker, worker->strs()->a())->toUint32(worker)->value());
+			// TODO: need to check type
+			out.width = obj->get<JSNumber>(worker, strs->width())->float32();
+			out.color[0] = obj->get<JSInt32>(worker, strs->r())->value();
+			out.color[1] = obj->get<JSInt32>(worker, strs->g())->value();
+			out.color[2] = obj->get<JSInt32>(worker, strs->b())->value();
+			out.color[3] = obj->get<JSInt32>(worker, strs->a())->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, FillPosition& out, cChar* desc) {
 		js_parse(FillPosition, {
+			// TODO: need to check type
 			out.kind = kind<FillPositionKind>(obj);
-			out.value = obj->get(worker, worker->strs()->value())->cast<JSNumber>()->float32();
+			out.value = obj->get<JSNumber>(worker, strs->value())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, FillSize& out, cChar* desc) {
 		js_parse(FillSize, {
+			// TODO: need to check type
 			out.kind = kind<FillSizeKind>(obj);
-			out.value = obj->get(worker, worker->strs()->value())->cast<JSNumber>()->float32();
+			out.value = obj->get<JSNumber>(worker, strs->value())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Repeat& out, cChar* desc) {
 		js_parse(Repeat, {
+			// TODO: need to check type
 			out = (Repeat)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, BoxFilterPtr& out, cChar* desc) {
-		if (in->isNull())
-			return out = nullptr, true;
+		if (in->isNull()) return out = nullptr, true;
 		js_parse(BoxFilterPtr, {
+			// TODO: need to check type
 		 	out = MixObject::mix<BoxFilter>(obj)->self();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, BoxShadowPtr& out, cChar* desc) {
 		js_parse(BoxShadowPtr, {
+			// TODO: need to check type
 			out = MixObject::mix<BoxShadow>(obj)->self();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, SkeletonDataPtr& out, cChar* desc) {
-		if (in->isNull())
-			return out = nullptr, true;
+		if (in->isNull()) return out = nullptr, true;
 		js_parse(SkeletonDataPtr, {
+			// TODO: need to check type
 			out = MixObject::mix<SkeletonData>(obj)->self();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Direction& out, cChar* desc) {
 		js_parse(Direction, {
+			// TODO: need to check type
 			out = (Direction)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, ItemsAlign& out, cChar* desc) {
 		js_parse(ItemsAlign, {
+			// TODO: need to check type
 			out = (ItemsAlign)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, CrossAlign& out, cChar* desc) {
 		js_parse(CrossAlign, {
+			// TODO: need to check type
 			out = (CrossAlign)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Wrap& out, cChar* desc) {
 		js_parse(Wrap, {
+			// TODO: need to check type
 			out = (Wrap)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, WrapAlign& out, cChar* desc) {
 		js_parse(WrapAlign, {
+			// TODO: need to check type
 			out = (WrapAlign)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Align& out, cChar* desc) {
 		js_parse(Align, {
+			// TODO: need to check type
 			out = (Align)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, BoxSize& out, cChar* desc) {
 		js_parse(BoxSize, {
+			// TODO: need to check type
 			out.kind = kind<BoxSizeKind>(obj);
-			out.value = obj->get(worker, worker->strs()->value())->cast<JSNumber>()->float32();
+			out.value = obj->get<JSNumber>(worker, strs->value())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, BoxOrigin& out, cChar* desc) {
 		js_parse(BoxOrigin, {
+			// TODO: need to check type
 			out.kind = kind<BoxOriginKind>(obj);
-			out.value = obj->get(worker, worker->strs()->value())->cast<JSNumber>()->float32();
+			out.value = obj->get<JSNumber>(worker, strs->value())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextAlign& out, cChar* desc) {
 		js_parse(TextAlign, {
+			// TODO: need to check type
 			out = (TextAlign)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextDecoration& out, cChar* desc) {
 		js_parse(TextDecoration, {
+			// TODO: need to check type
 			out = (TextDecoration)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextOverflow& out, cChar* desc) {
 		js_parse(TextOverflow, {
+			// TODO: need to check type
 			out = (TextOverflow)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextWhiteSpace& out, cChar* desc) {
 		js_parse(TextWhiteSpace, {
+			// TODO: need to check type
 			out = (TextWhiteSpace)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextWordBreak& out, cChar* desc) {
 		js_parse(TextWordBreak, {
+			// TODO: need to check type
 			out = (TextWordBreak)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextColor& out, cChar* desc) {
 		js_parse(TextColor, {
+			// TODO: need to check type
 			out.kind = kind<TextValueKind>(obj);
-			out.value.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
-			out.value.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
-			out.value.set_b(obj->get(worker, worker->strs()->b())->toUint32(worker)->value());
-			out.value.set_a(obj->get(worker, worker->strs()->a())->toUint32(worker)->value());
+			out.value[0] = obj->get<JSInt32>(worker, strs->r())->value();
+			out.value[1] = obj->get<JSInt32>(worker, strs->g())->value();
+			out.value[2] = obj->get<JSInt32>(worker, strs->b())->value();
+			out.value[3] = obj->get<JSInt32>(worker, strs->a())->value();
 		});
 	}
 
@@ -971,56 +1043,63 @@ namespace qk { namespace js {
 			return true;
 		}
 		js_parse(TextSize, {
+			// TODO: need to check type
 			out.kind = kind<TextValueKind>(obj);
-			out.value = obj->get(worker, worker->strs()->value())->cast<JSNumber>()->float32();
+			out.value = obj->get(worker, strs->value())->cast<JSNumber>()->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextShadow& out, cChar* desc) {
 		js_parse(TextShadow, {
+			// TODO: need to check type
 			out.kind = kind<TextValueKind>(obj);
-			out.value.x = obj->get(worker, worker->strs()->x())->cast<JSNumber>()->float32();
-			out.value.y = obj->get(worker, worker->strs()->y())->cast<JSNumber>()->float32();
-			out.value.size = obj->get(worker, worker->strs()->size())->cast<JSNumber>()->float32();
-			out.value.color.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
-			out.value.color.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
-			out.value.color.set_b(obj->get(worker, worker->strs()->b())->toUint32(worker)->value());
-			out.value.color.set_a(obj->get(worker, worker->strs()->a())->toUint32(worker)->value());
+			out.value.x = obj->get<JSNumber>(worker, strs->x())->float32();
+			out.value.y = obj->get<JSNumber>(worker, strs->y())->float32();
+			out.value.size = obj->get<JSNumber>(worker, strs->size())->float32();
+			out.value.color[0] = obj->get<JSInt32>(worker, strs->r())->value();
+			out.value.color[1] = obj->get<JSInt32>(worker, strs->g())->value();
+			out.value.color[2] = obj->get<JSInt32>(worker, strs->b())->value();
+			out.value.color[3] = obj->get<JSInt32>(worker, strs->a())->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextStroke& out, cChar* desc) {
 		js_parse(TextStroke, {
+			// TODO: need to check type
 			out.kind = kind<TextValueKind>(obj);
-			out.value.width = obj->get(worker, worker->strs()->width())->cast<JSNumber>()->float32();
-			out.value.color.set_r(obj->get(worker, worker->strs()->r())->toUint32(worker)->value());
-			out.value.color.set_g(obj->get(worker, worker->strs()->g())->toUint32(worker)->value());
-			out.value.color.set_b(obj->get(worker, worker->strs()->b())->toUint32(worker)->value());
-			out.value.color.set_a(obj->get(worker, worker->strs()->a())->toUint32(worker)->value());
+			out.value.width = obj->get<JSNumber>(worker, strs->width())->float32();
+			out.value.color[0] = obj->get<JSInt32>(worker, strs->r())->value();
+			out.value.color[1] = obj->get<JSInt32>(worker, strs->g())->value();
+			out.value.color[2] = obj->get<JSInt32>(worker, strs->b())->value();
+			out.value.color[3] = obj->get<JSInt32>(worker, strs->a())->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextFamily& out, cChar* desc) {
 		js_parse(TextFamily, {
+			// TODO: need to check type
 			out.kind = kind<TextValueKind>(obj);
-			return parse(obj->get(worker, worker->strs()->value()), out.value, desc);
+			return parse(obj->get(worker, strs->value()), out.value, desc);
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextWeight& out, cChar* desc) {
 		js_parse(TextWeight, {
+			// TODO: need to check type
 			out = (TextWeight)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextWidth& out, cChar* desc) {
 		js_parse(TextWidth, {
+			// TODO: need to check type
 			out = (TextWidth)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, TextSlant& out, cChar* desc) {
 		js_parse(TextSlant, {
+			// TODO: need to check type
 			out = (TextSlant)obj->toUint32(worker)->value();
 		});
 	}
@@ -1030,33 +1109,35 @@ namespace qk { namespace js {
 		if (!in->asInt32(worker).to(value)) {
 			return throw_error(worker, in, desc), false;
 		}
-		struct Out {
-			int value;
-		} out_ = { value };
+		struct Out { int value; } out_ = { value };
 		out = *reinterpret_cast<FontStyle*>(&out_);
 		return true;
 	}
 
 	bool TypesParser::parse(JSValue* in, KeyboardType& out, cChar* desc) {
 		js_parse(KeyboardType, {
+			// TODO: need to check type
 			out = (KeyboardType)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, KeyboardReturnType& out, cChar* desc) {
 		js_parse(KeyboardReturnType, {
+			// TODO: need to check type
 			out = (KeyboardReturnType)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, CursorStyle& out, cChar* desc) {
 		js_parse(CursorStyle, {
+			// TODO: need to check type
 			out = (CursorStyle)obj->toUint32(worker)->value();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, CascadeColor& out, cChar* desc) {
 		js_parse(CascadeColor, {
+			// TODO: need to check type
 			out = (CascadeColor)obj->toUint32(worker)->value();
 		});
 	}
@@ -1067,6 +1148,11 @@ namespace qk { namespace js {
 			return throw_error(worker, in, desc), false;
 		}
 		out = *reinterpret_cast<const FFID*>( buff.val() );
+		return true;
+	}
+
+	bool TypesParser::parse(JSValue* in, PathPtr& out, cChar* desc) {
+		out = MixObject::mix<Path>(in)->self();
 		return true;
 	}
 

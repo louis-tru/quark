@@ -49,6 +49,8 @@ namespace qk { namespace js {
 	#define Js_Throw_Error(Error, err, ...) \
 		return worker->throwError(worker->new##Error((err), ##__VA_ARGS__))
 	#define Js_Throw(err, ...) Js_Throw_Error(Error, err, ##__VA_ARGS__)
+	#define Js_Check(cond, desc, ...) \
+		if (Qk_UNLIKELY(!(cond))) Js_Throw(desc, ##__VA_ARGS__)
 	#define Js_Try_Catch(block, Error) try block catch(const Error& e) { Js_Throw(e); }
 
 	#define Js_Module(name, cls) \

@@ -2,7 +2,7 @@
 import { Jsx, Application, Window } from 'quark';
 import * as types from 'quark/types';
 import {reader} from 'quark/fs';
-import path from 'quark/path';
+import uri from 'quark/uri';
 
 new Application();
 new Window({
@@ -13,7 +13,7 @@ new Window({
 	{
 		reader.readdirSync(__dirname + '/img2')
 		.concat(reader.readdirSync(__dirname + '/img'))
-		.filter(e=>path.extname(e.name).match(/\.(gif|jpeg|jpg|png|webp)$/i)).map((e,j)=>
+		.filter(e=>uri.extname(e.name).match(/\.(gif|jpeg|jpg|png|webp)$/i)).map((e,j)=>
 			(<image key={j} borderBottom="5 #fff" width="100%" src={e.pathname} />)
 		)
 	}

@@ -48,11 +48,11 @@ namespace qk {
 	class Qk_EXPORT Path: public Object {
 	public:
 		enum PathVerb: uint8_t {
-			kVerb_Move,  // move
-			kVerb_Line,  // straight line
-			kVerb_Quad,  // quadratic bezier
-			kVerb_Cubic, // Cubic bezier
-			kVerb_Close, // close
+			kMove_Verb,  // move
+			kLine_Verb,  // straight line
+			kQuad_Verb,  // quadratic bezier
+			kCubic_Verb, // Cubic bezier
+			kClose_Verb, // close
 		};
 		struct BorderRadius {
 			Vec2 leftTop,     rightTop;
@@ -62,7 +62,7 @@ namespace qk {
 		typedef Paint::Cap  Cap;
 		static Path MakeOval(const Rect& rect, bool ccw = false);
 		static Path MakeArc (const Rect& rect, float startAngle,
-													float sweepAngle, bool useCenter, bool close = true);
+													float sweepAngle, bool useCenter = false, bool close = true);
 		static Path MakeRect(const Rect& rect, bool ccw = false);
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
 		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
@@ -77,8 +77,11 @@ namespace qk {
 		void cubicTo(Vec2 control1, Vec2 control2, Vec2 to);
 		void ovalTo(const Rect& rect, bool ccw = false);
 		void rectTo(const Rect& rect, bool ccw = false);
-		void arcTo (const Rect& rect, float startAngle, float sweepAngle, bool useCenter);
-		void arcTo (Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter);
+		/**
+		 * Call arc(rect.origin + rect.size * 0.5, rect.size * 0.5, startAngle, sweepAngle, useCenter)
+		*/
+		void arcTo(const Rect& rect, float startAngle, float sweepAngle, bool useCenter = false);
+		void arc(Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter = false);
 		void close(); // close line
 		void concat(const Path& path);
 
@@ -88,8 +91,8 @@ namespace qk {
 		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
 		inline uint32_t ptsLen() const { return _pts.length() >> 1; }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
-		inline bool isNormalized() const { return _IsNormalized; }
 		inline uint64_t hashCode() const { return _hash.hashCode(); }
+		inline bool isNormalized() const { return _IsNormalized; }
 
 		// convert func
 		/**
@@ -121,9 +124,9 @@ namespace qk {
 
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
 		Path normalizedPath(float epsilon = 1.0) const; // normal
-		// matrix transfrom
-		void transfrom(const Mat& matrix);
-		// scale transfrom
+		// matrix transform
+		void transform(const Mat& matrix);
+		// scale transform
 		void scale(Vec2 scale);
 
 		// get path region bounds, first check if the matrix is a unit matrix

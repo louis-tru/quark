@@ -2,7 +2,7 @@
 import { LOG, Pv, Mv, Mvp, Ca } from './tool'
 import {HttpClientRequest,HttpMethod, HttpReadyState} from 'quark/http'
 import * as http from 'quark/http'
-import path from 'quark/path'
+import uri from 'quark/uri'
 import * as fs from 'quark/fs'
 import * as buffer from 'quark/buffer'
 import util from 'quark/util'
@@ -20,7 +20,7 @@ export default async function(_: any) {
 function test_cl(cl: HttpClientRequest, cb: any) {
 	LOG('\nHttpClientRequest:\n')
 
-	let save = path.documents('baidu.html');
+	let save = uri.documents('baidu.html');
 
 	cl.onError.on(function(ev) {
 		LOG('http onerror:', ev.data.message) 
@@ -109,8 +109,8 @@ function test_download(cl: HttpClientRequest, cb: any) {
 }
 
 function test_upload(cl: HttpClientRequest, cb: any) {
-	var file = path.documents('test_upload.txt');
-	var file2 = path.documents('test_upload2.txt');
+	var file = uri.documents('test_upload.txt');
+	var file2 = uri.documents('test_upload2.txt');
 
 	LOG('\nTest Upload File:\n')
 
@@ -137,9 +137,9 @@ async function test_5() {
 		url: `${tools_test_url}/Tools/upload_file`,
 		method: HttpMethod.POST,
 		headers: { 'test': 'test' },
-		save: path.documents('test_request_save.html'),
-		upload: path.resources('jsapi/test.txt'),
-	}], e=>e.statusCode==200&&fs.existsSync(path.documents('test_request_save.html')))
+		save: uri.documents('test_request_save.html'),
+		upload: uri.resources('jsapi/test.txt'),
+	}], e=>e.statusCode==200&&fs.existsSync(uri.documents('test_request_save.html')))
 
 	await Mv(http, 'get', [`${tools_test_url}/out/temp/test.txt`], e=>buffer.toString(e.data)=='Test');
 	Mv(http, 'getSync', [`${tools_test_url}/out/temp/test.txt`], e=>buffer.toString(e)=='Test');
@@ -153,13 +153,13 @@ async function test_5() {
 	Mv(http, 'postSync', [`${tools_test_url}/Tools/upload_file`, buffer.fromString('e=E')], d=>d.length==279);
 
 	await Mv(http, 'upload', [
-		`${tools_test_url}/Tools/upload_file`, path.resources('jsapi/all_we_know.mp3')], e=>e.data.length==279)
+		`${tools_test_url}/Tools/upload_file`, uri.resources('jsapi/all_we_know.mp3')], e=>e.data.length==279)
 	
 	Mv(http, 'requestSync',
 		[{url:`${tools_test_url}/out/temp/all_we_know.mp3`,disableCache:true}], d=>d.length==7766770)
 
 	Mv(http, 'uploadSync', [
-		`${tools_test_url}/Tools/upload_file`, path.resources('jsapi/iconfont.ttf')])
+		`${tools_test_url}/Tools/upload_file`, uri.resources('jsapi/iconfont.ttf')])
 
 	Mv(http, 'requestSync',
 		[{url:`${tools_test_url}/out/temp/iconfont.ttf`,disableCache:true}], d=>d.length==10616)
@@ -175,8 +175,8 @@ async function test_5() {
 	await Mv(http, 'requestStream', [{ url: 'https://www.baidu.com/' }, d=>LOG('requestStream:', d.data, 'complete:', d.ended)])
 	await Mv(http, 'getStream', ['https://www.baidu.com/', d=>LOG('requestStream:', d.data, 'complete:', d.ended)]);
 	Mv(http, 'requestSync', [{ url: 'https://www.baidu.com/' }])
-	await Mv(http, 'download', ['https://www.baidu.com/', path.documents('down.html')], e=>fs.existsSync(path.documents('down.html')))
-	Mv(http, 'downloadSync', ['https://www.baidu.com/', path.documents('down2.html')], e=>fs.existsSync(path.documents('down2.html')))
+	await Mv(http, 'download', ['https://www.baidu.com/', uri.documents('down.html')], e=>fs.existsSync(uri.documents('down.html')))
+	Mv(http, 'downloadSync', ['https://www.baidu.com/', uri.documents('down2.html')], e=>fs.existsSync(uri.documents('down2.html')))
 
 	Mvp(http, 'userAgent', [])
 	Mv(http, 'setUserAgent', [http.userAgent() + ',Test'])

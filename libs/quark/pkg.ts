@@ -1164,7 +1164,7 @@ class QkPackage extends Package {
 			'os.js',
 			'bubbles.js',
 			'package.json',
-			'path.js',
+			'uri.js',
 			'pkg.js',
 			'screen.js',
 			'stepper.js',
@@ -1176,6 +1176,7 @@ class QkPackage extends Package {
 			'window.js',
 			'ws.js',
 			'state.js',
+			'path.js',
 		]).forEach(e=>this.filesHash[e]='-');
 		this._status = PackageStatus.INSTALLED;
 	}

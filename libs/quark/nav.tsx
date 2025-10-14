@@ -661,7 +661,7 @@ function getNavbarDom(page: NavPage): Navbar {
 }
 
 function backgroundColorReverse(self: NavPage) {
-	let color = self.asDom<Box>().backgroundColor.reverse();
+	let color = self.asDom<Box>().backgroundColor.reverse() as types.RemoveReadonly<types.Color>;
 	color.a = 255 * 0.6;
 	return color;
 }

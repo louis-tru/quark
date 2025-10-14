@@ -32,7 +32,7 @@ import utils from './util';
 import {Stream} from './fs';
 import {userAgent} from './http';
 import * as buffer from './buffer';
-import {URL} from './path';
+import {URL} from './uri';
 import event, {
 	EventNoticer, NativeNotification, Notification, Event
 } from './event';

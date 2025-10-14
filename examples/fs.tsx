@@ -30,16 +30,16 @@
 
 import { Jsx, Input } from 'quark';
 import * as fs from 'quark/fs';
-import path from 'quark/path';
+import uri from 'quark/uri';
 import { alert } from 'quark/dialog';
 import { Page } from './tool';
 import { ClickEvent, KeyEvent } from 'quark/event';
 import * as buffer from 'quark/buffer';
 
 const resolve = require.resolve;
-const filename = path.documents('test.txt');
+const filename = uri.documents('test.txt');
 
-fs.mkdirsSync(path.dirname(filename));
+fs.mkdirsSync(uri.dirname(filename));
 
 function ReadFile({origin:{window}}: ClickEvent) {
 	console.log('------------', filename);

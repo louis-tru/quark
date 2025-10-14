@@ -1,11 +1,11 @@
 
 import { LOG, Mv } from './tool'
 import * as fs from 'quark/fs';
-import path from 'quark/path';
+import uri from 'quark/uri';
 
 export default async function(_: any) {
 	const reader = fs.reader;
-	const DIR = path.documents('test');
+	const DIR = uri.documents('test');
 	const FILE = DIR + '/test_file.txt';
 	const URL = 'https://github.com/';
 	

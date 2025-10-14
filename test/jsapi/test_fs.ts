@@ -1,7 +1,7 @@
 
 import { LOG, Mv } from './tool'
 import * as fs from 'quark/fs'
-import path from 'quark/path';
+import uri from 'quark/uri';
 import util from 'quark/util'
 
 function stat(path: string) {
@@ -11,9 +11,9 @@ function stat(path: string) {
 export default async function(_: any) {
 	LOG('\nFileHelper:\n');
 
-	const A = path.documents('test/a');
-	const B = path.documents('test/b');
-	const A_FILE = path.documents('test/a/file.txt');
+	const A = uri.documents('test/a');
+	const B = uri.documents('test/b');
+	const A_FILE = uri.documents('test/a/file.txt');
 
 	fs.removeRecursionSync(A);
 	fs.removeRecursionSync(B);

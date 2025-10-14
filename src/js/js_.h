@@ -51,7 +51,7 @@ namespace qk { namespace js {
 		F(_css)     F(_event)    F(_font)\
 		F(_fs)      F(_http)     F(_os)\
 		F(_storage) F(_types)    F(_ui)\
-		F(_net) \
+		F(_net)     F(_path)\
 
 	#define Js_Strings_Each(F)  \
 		F(exports)         F(constructor)    F(__proto__)\
@@ -69,7 +69,8 @@ namespace qk { namespace js {
 		F(_change_touches) F(name)           F(pathname) \
 		F(data)            F(total)          F(complete) \
 		F(httpVersion)     F(statusCode)     F(responseHeaders) \
-		F(_log) F(_warn) F(_error) F(_clear) F(_staticData)
+		F(_log) F(_warn) F(_error) F(_clear) F(_staticData) \
+		F(p0) F(p1) F(p2) F(p3) F(p4) F(p5) F(p6) F(p7) \
 
 	#define Js_Format_Str(msg) \
 		va_list arg; \

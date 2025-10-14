@@ -46,17 +46,22 @@
 namespace qk { 
 	namespace js {
 
-	#define Js_Parse_Type(Name, value, desc) \
-		Name out; \
-		if ( !worker->types()->parse(value, out, desc)) return
+	#define Js_Parse_Type(Name, value, desc, ...) \
+		Name out##__VA_ARGS__; \
+		if ( !worker->types()->parse(value, out##__VA_ARGS__, desc)) return
 
-	#define Js_Throw_Types(value, msg, ...)\
-		worker->types()->throwError(t, msg, ##__VA_ARGS__)
+	#define Js_Parse_Args(Name, argIdx, desc, ...) \
+		Name arg##argIdx __VA_ARGS__; \
+		if ( !worker->types()->parseArgs(args, argIdx, arg##argIdx, desc, sizeof(#__VA_ARGS__) > 1)) return
 
 	typedef Window::Options WindowOptions;
 	typedef FillImage::Init FillImageInit;
 	typedef TouchEvent::TouchPoint TouchPoint;
 	typedef Array<String> ArrayString;
+	typedef Path* PathPtr;
+	typedef Array<Vec2> ArrayVec2;
+	typedef Array<Vec3> ArrayVec3;
+	typedef Path::BorderRadius BorderRadius;
 
 	#define Js_Types_Each(F) \
 		F(bool) \
@@ -68,13 +73,17 @@ namespace qk {
 		F(Vec3) \
 		F(Vec4) \
 		F(Rect) \
+		F(Region) \
 		F(Mat) \
 		F(Mat4) \
+		F(BorderRadius) \
 		F(ArrayFloat) \
 		F(ArrayString) \
 		F(ArrayColor) \
 		F(ArrayOrigin) \
 		F(ArrayBorder) \
+		F(ArrayVec2) \
+		F(ArrayVec3) \
 		F(String) \
 		F(Curve) \
 		F(Shadow) \
@@ -112,6 +121,7 @@ namespace qk {
 		F(FFID) \
 		F(SkeletonDataPtr) \
 		F(TextStroke) \
+		F(PathPtr) \
 
 	class Qk_EXPORT TypesParser {
 	public:
@@ -172,13 +182,23 @@ namespace qk {
 		JSValue* jsvalue(const TouchPoint& val);
 		JSValue* jsvalue(const Array<TouchPoint>& val);
 
-		bool     parse(JSValue* in, WindowOptions& out, cChar* desc);
-		bool     parse(JSValue* in, FillImageInit& out, cChar* desc);
+		bool parse(JSValue* in, WindowOptions& out, cChar* desc);
+		bool parse(JSValue* in, FillImageInit& out, cChar* desc);
+
+		template<typename T>
+		bool parseArgs(FunctionArgs args, int argIdx, T& out, cChar* desc, bool optional = false) {
+			if (argIdx >= args.length()) {
+				if (optional) return true;
+				Js_Throw(desc), false;
+			}
+			return parse(args[argIdx], out, desc);
+		}
 
 	#define _Def_Fun(Name) \
 		JSValue* jsvalue(const Name& value); \
 		bool parse(JSValue* in, Name& out, cChar* err_msg = 0);
 		Js_Types_Each(_Def_Fun);
+	#undef _Def_Fun
 	private:
 		template<typename T> T kind(JSObject* obj);
 		Worker *worker;
@@ -187,8 +207,11 @@ namespace qk {
 		Persistent<JSFunction> _new##Name;
 		Persistent<JSFunction> _TypesBase;
 		Js_Types_Each(_Def_attr)
-	#undef _Def_Fun
 	#undef _Def_attr
+		Strings* strs;
+		template<class T> JSValue* jsValue(T val);
+		template<class T> JSValue* jsvalueArray(const T& arr);
+		template<class T> bool parseArray(JSValue* in, T& out, cChar* desc);
 	};
 
 	struct JsConverter { // convert data to js value

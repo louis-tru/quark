@@ -322,6 +322,8 @@ export function debugLog(TAG = 'PKG') {
 export declare class Hash5381 {
 	hashCode(): Int; //!<
 	update(data: string | Uint8Array): void; //!<
+	updatefv2(f1: number, f2: number): void; //!<
+	equals(other: Hash5381): boolean; //!<
 	digest(): string; //!<
 	clear(): void; //!<
 }

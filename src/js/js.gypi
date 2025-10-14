@@ -54,6 +54,7 @@
 			'api/ui.h',
 			'api/view.cc',
 			'api/window.cc',
+			'api/path.cc',
 		],
 		'conditions': [
 			['use_v8==0 and os in "mac ios"', { # use javascriptcore

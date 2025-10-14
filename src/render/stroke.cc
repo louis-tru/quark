@@ -93,17 +93,17 @@ namespace qk {
 		auto pts = right.pts() + right.ptsLen() - 1;
 
 		for (int i = Qk_Minus(right.verbsLen(), 1); i >= 0; i--) {
-			if (verbs[i] == Path::kVerb_Cubic) {
+			if (verbs[i] == Path::kCubic_Verb) {
 				left.lineTo(*pts); pts--;
 				do {
 					left.cubicTo(pts[0], pts[-1], pts[-2]); pts-=3;
 					i--;
-				} while(verbs[i] == Path::kVerb_Cubic);
-			} else if (verbs[i] == Path::kVerb_Close) {
+				} while(verbs[i] == Path::kCubic_Verb);
+			} else if (verbs[i] == Path::kClose_Verb) {
 				// ignore
 				//Qk_DLog("Close");
 			} else {
-				Qk_ASSERT(verbs[i] == Path::kVerb_Line || verbs[i] == Path::kVerb_Move);
+				Qk_ASSERT(verbs[i] == Path::kLine_Verb || verbs[i] == Path::kMove_Verb);
 				left.lineTo(*pts--);
 			}
 		}
@@ -151,18 +151,18 @@ namespace qk {
 
 		for (int i = 0, l = self->verbsLen(); i < l; i++) {
 			switch(verbs[i]) {
-				case Path::kVerb_Line:
+				case Path::kLine_Verb:
 					if (size != 0) {
 						if (pts1[size-1] != *pts0++) // exclude duplicates
 							pts1[size++] = pts0[-1];
 						break;
 					}
-				case Path::kVerb_Move:
+				case Path::kMove_Verb:
 					addSubpath(pts1, size, closeAll);
 					pts1[0] = *pts0++;
 					size = 1;
 					break;
-				case Path::kVerb_Close: // close
+				case Path::kClose_Verb: // close
 					addSubpath(pts1, size, true);
 					size = 0;
 					break;
@@ -330,7 +330,7 @@ namespace qk {
 						auto aLen = angleLen - Qk_PI_2_1;
 						if (aLen > 0.075f) { // > 0.075 radian
 							normals *= len;
-							left .arcTo(from, width, Qk_PI_2-angle+aLen, -aLen*2, false);
+							left .arc(from, width, Qk_PI_2-angle+aLen, -aLen*2, false);
 							right.lineTo(from - normals);
 							return;
 						} // else goto kMiter_Join:
@@ -339,7 +339,7 @@ namespace qk {
 						if (aLen > 0.075f) { // > 0.075f radian
 							normals *= len;
 							left .lineTo(from + normals);
-							right.arcTo(from, width, Qk_PI-angle-aLen, aLen*2, false);
+							right.arc(from, width, Qk_PI-angle-aLen, aLen*2, false);
 							return;
 						} // else goto kMiter_Join:
 					}

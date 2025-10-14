@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import {WSClient, WSConversation} from './ws';
-import {URL} from './path';
+import {URL} from './uri';
 import {_Package,Module} from "./pkg";
 import {EventNoticer,Event} from "./event";
 

@@ -72,7 +72,7 @@ namespace qk {
 				path.arcTo({origin+s*dir, s}, startAngle, sweepAngle, false);
 			} else {
 				auto len = path.verbsLen();
-				if (len && path.verbs()[len] != Path::kVerb_Close) {
+				if (len && path.verbs()[len] != Path::kClose_Verb) {
 					path.lineTo(origin);
 				} else {
 					path.moveTo(origin);
@@ -145,7 +145,7 @@ namespace qk {
 	void Path::moveTo(Vec2 to) {
 		// _pts.push(to.x()); _pts.push(to.y());
 		_pts.write(to.val, 2);
-		_verbs.push(kVerb_Move);
+		_verbs.push(kMove_Verb);
 		_hash.updatefv2(to.val);
 	}
 
@@ -153,14 +153,14 @@ namespace qk {
 		//if (_pts.length() && *(uint64_t*)&_pts.lastIndexAt(1) == *(uint64_t*)to.val)
 		//	return;
 		_pts.write(to.val, 2);
-		_verbs.push(kVerb_Line);
+		_verbs.push(kLine_Verb);
 		_hash.updatefv2(to.val);
 	}
 
 	void Path::quadTo(Vec2 control, Vec2 to) {
 		_pts.write(control.val, 2);
 		_pts.write(to.val, 2);
-		_verbs.push(kVerb_Quad);
+		_verbs.push(kQuad_Verb);
 		_IsNormalized = false;
 		// _hash.update((&_pts.back()) - 4, sizeof(float) * 4);
 		//_hash.update((uint32_t*)(&_pts.back()) - 4, 4);
@@ -175,7 +175,7 @@ namespace qk {
 		_pts.write(control1.val, 2);
 		_pts.write(control2.val, 2);
 		_pts.write(to.val, 2);
-		_verbs.push(kVerb_Cubic);
+		_verbs.push(kCubic_Verb);
 		_IsNormalized = false;
 		// _hash.update((uint32_t*)(&_pts.back()) - 6, 6);
 		_hash.updatefv2(control1.val);
@@ -226,7 +226,7 @@ namespace qk {
 		lineTo(r.origin); // top left, origin point
 	}
 
-	void Path::arcTo(Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter) {
+	void Path::arc(Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter) {
 		float cx = center.x();
 		float cy = center.y();
 
@@ -285,12 +285,12 @@ namespace qk {
 
 	void Path::arcTo(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 		auto radius = r.size * 0.5;
-		arcTo(r.origin+radius, radius, startAngle, sweepAngle, useCenter);
+		arc(r.origin+radius, radius, startAngle, sweepAngle, useCenter);
 	}
 
 	void Path::quadTo2(float *p) {
 		_pts.write(p, 4);
-		_verbs.push(kVerb_Quad);
+		_verbs.push(kQuad_Verb);
 		_IsNormalized = false;
 		// _hash.updateu32v((uint32_t*)p, 4);
 		// _hash.updateu32v((uint32_t*)p, 4);
@@ -300,7 +300,7 @@ namespace qk {
 
 	void Path::cubicTo2(float *p) {
 		_pts.write(p, 6);
-		_verbs.push(kVerb_Cubic);
+		_verbs.push(kCubic_Verb);
 		_IsNormalized = false;
 		//_hash.update((uint32_t*)p, 6);
 		_hash.updatefv2(p);
@@ -309,7 +309,7 @@ namespace qk {
 	}
 
 	void Path::close() {
-		_verbs.push(kVerb_Close);
+		_verbs.push(kClose_Verb);
 	}
 
 	void Path::concat(const Path& path) {
@@ -329,19 +329,19 @@ namespace qk {
 
 		for (auto verb: self->_verbs) {
 			switch(verb) {
-				case kVerb_Line:
+				case kLine_Verb:
 					if (!isZero) {
 						edges.push(from);
 						from = *pts++;
 						edges.push(from); // edge 0
 						break;
 					}
-				case kVerb_Move:
+				case kMove_Verb:
 					move = from = *pts++;
 					isZero = false;
 					break;
-				case kVerb_Close: // close
-					//Qk_ASSERT(verb == kVerb_Close);
+				case kClose_Verb: // close
+					//Qk_ASSERT(verb == kClose_Verb);
 					if (!isZero) {
 						if (move != from) { // close path
 							edges.push(from);
@@ -382,18 +382,18 @@ namespace qk {
 
 			for (auto verb: self->_verbs) {
 				switch(verb) {
-					case kVerb_Move:
+					case kMove_Verb:
 						closeAdd(); // auto close
 						tmpV.push(*pts++); len = 1;
 						break;
-					case kVerb_Line:
+					case kLine_Verb:
 						//if (len == 0) {
 						//	tmpV.push(Vec2(0)); len=1; // use Vec2(0,0) start point
 						//}
 						tmpV.push(*pts++);
 						len++;
 						break;
-					case kVerb_Close: // close
+					case kClose_Verb: // close
 						// Qk_ASSERT(verb == kVerb_Close);
 						closeAdd();
 						break;
@@ -481,17 +481,17 @@ namespace qk {
 
 		for (auto verb: self->_verbs) {
 			switch (verb) {
-				case kVerb_Line:
+				case kLine_Verb:
 					if (!isZero) {
 						lineTo(from, *pts);
 						from = *pts++;
 						break;
 					}
-				case kVerb_Move:
+				case kMove_Verb:
 					move = from = *pts++;
 					isZero = false;
 					break;
-				case kVerb_Close:
+				case kClose_Verb:
 					if (!isZero) {
 						lineTo(from, move);
 						isZero = true;
@@ -516,7 +516,7 @@ namespace qk {
 		Qk_ReturnLocal(line);
 	}
 
-	void Path::transfrom(const Mat& matrix) {
+	void Path::transform(const Mat& matrix) {
 		float* pts = *_pts;
 		float* e = pts + _pts.length();
 		while (pts < e) {
@@ -607,16 +607,16 @@ namespace qk {
 
 		for (auto verb: _verbs) {
 			switch(verb) {
-				case kVerb_Move:
-					add(*pts++, kVerb_Move);
+				case kMove_Verb:
+					add(*pts++, kMove_Verb);
 					isZero = false;
 					break;
-				case kVerb_Line:
-					add(*pts++, isZero ? (isZero = false), kVerb_Move: kVerb_Line); // add move or line
+				case kLine_Verb:
+					add(*pts++, isZero ? (isZero = false), kMove_Verb: kLine_Verb); // add move or line
 					break;
-				case kVerb_Quad: { // quadratic bezier
+				case kQuad_Verb: { // quadratic bezier
 					if (isZero)
-						add(Zero, kVerb_Move);
+						add(Zero, kMove_Verb);
 					QuadraticBezier bezier(isZero ? Vec2(): pts[-1], pts[0], pts[1]);
 					pts+=2;
 					int sample = getQuadraticBezierSample(bezier, epsilon) - 1;
@@ -629,13 +629,13 @@ namespace qk {
 					if (updateHash)
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
-					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
+					memset(line._verbs.val() + (line._verbs.length() - sample), kLine_Verb, sample);
 					isZero = false;
 					break;
 				}
-				case kVerb_Cubic: { // cubic bezier
+				case kCubic_Verb: { // cubic bezier
 					if (isZero)
-						add(Zero, kVerb_Move);
+						add(Zero, kMove_Verb);
 					CubicBezier bezier(isZero ? Vec2(): pts[-1], pts[0], pts[1], pts[2]);
 					pts+=3;
 					int sample = getCubicBezierSample(bezier, epsilon) - 1;
@@ -648,12 +648,12 @@ namespace qk {
 					if (updateHash)
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
-					memset(line._verbs.val() + (line._verbs.length() - sample), kVerb_Line, sample);
+					memset(line._verbs.val() + (line._verbs.length() - sample), kLine_Verb, sample);
 					isZero = false;
 					break;
 				}
 				default: // close
-					line._verbs.push(kVerb_Close);
+					line._verbs.push(kClose_Verb);
 					isZero = true;
 					break;
 			}

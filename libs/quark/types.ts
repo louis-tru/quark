@@ -94,7 +94,7 @@ export function initDefaults<T>(cls: Constructor<T>, ext: OnlyDataFields<Partial
 }
 
 function newBase<T>(cls: Constructor<T>, ext: OnlyDataFields<Partial<T>>) {
-	(ext as any).__proto__ = cls.prototype
+	(ext as any).__proto__ = cls.prototype;
 	return ext as T;
 }
 
@@ -577,17 +577,22 @@ export class Vec2 extends Base<Vec2> {
 	/**
 	 * x component
 	*/
-	x: N;
+	readonly x: N;
 
 	/**
 	 * y component
 	*/
-	y: N;
+	readonly y: N;
 
 	/**
 	 * Get string value
 	*/
 	toString(): `vec2(${N},${N})` { return `vec2(${this.x},${this.y})` }
+
+	/** Check vector is zero */
+	isZero() {
+		return this.x === 0 && this.y === 0;
+	}
 
 	/**
 	 * Check two vectors are equal
@@ -625,6 +630,65 @@ export class Vec2 extends Base<Vec2> {
 	}
 
 	/**
+	 * Get the length of the vector
+	*/
+	length(): N {
+		return Math.sqrt(this.x * this.x + this.y * this.y);
+	}
+
+	/**
+	 * Returns vector length squared
+	 * @return The length squared
+	 */
+	lengthSq(): N {
+		return this.x * this.x + this.y * this.y;
+	}
+
+	/**
+	 * Get the dot product of two vectors
+	*/
+	dot(b: Vec2): N {
+		return this.x * b.x + this.y * b.y;
+	}
+
+	/**
+	 * Get the normalized vector
+	*/
+	normalized(): Vec2 {
+		let len = this.length();
+		if (len === 0)
+			return newVec2(0, 0);
+		let invLen = 1 / len; // optimize to avoid division
+		return newVec2(this.x * invLen, this.y * invLen);
+	}
+
+	/**
+	 * Rotate the vector by 90 degrees clockwise
+	 */
+	rotate90z() {
+		return newVec2(this.y, -this.x);
+	}
+
+	/**
+	 * Rotate the vector by 270 degrees clockwise (90 degrees counterclockwise)
+	 */
+	rotate270z() { // ccw rotate 90
+		return newVec2(-this.y, this.x);
+	}
+
+	/**
+	 * Default to use Cartesian coordinate system
+	 * Returns zero when the previous is on the same side and on the same line as the next.
+	 * Clockwise direction inward, screen coordinates outward
+	 */
+	normalline(prev: Vec2, next: Vec2) {
+		let toNext   = newVec2(next.x - this.x, next.y - this.y).normalized().rotate90z();
+		let fromPrev = newVec2(this.x - prev.x, this.y - prev.y).normalized().rotate90z();
+		// Returns zero when the previous is on the same side and on the same line as the next
+		return toNext.add(fromPrev).normalized();
+	}
+
+	/**
 	 * Get the angle of the point in radians
 	 * @return angle in radians
 	*/
@@ -646,31 +710,6 @@ export class Vec2 extends Base<Vec2> {
 	*/
 	angleTo(p: Vec2): N {
 		return newVec2(p.y - this.y, p.x - this.x).angle();
-	}
-
-	/**
-	 * Returns vector length squared
-	 * @return The length squared
-	 */
-	lengthSq(): N {
-		return this.x * this.x + this.y * this.y;
-	}
-
-	/**
-	 * Get the length of the vector
-	*/
-	length(): N {
-		return Math.sqrt(this.x * this.x + this.y * this.y);
-	}
-
-	/**
-	 * Get the normalized vector
-	*/
-	normalize(): Vec2 {
-		let len = this.length();
-		if (len === 0)
-			return newVec2(0, 0);
-		return newVec2(this.x / len, this.y / len);
 	}
 
 	/** 
@@ -706,8 +745,8 @@ export class Vec2 extends Base<Vec2> {
 	/**
 	 * Get the midpoint of multiple vectors
 	 * @static
-	 * @param vec The vectors array
-	 * @returns The midpoint vector
+	 * @param vec:Vec2[] The vectors array
+	 * @returns {Vec2} The midpoint vector
 	 */
 	static mid(vec: Vec2[]): Vec2 {
 		if (vec.length === 0)
@@ -722,10 +761,18 @@ export class Vec2 extends Base<Vec2> {
 		return newVec2(x / n, y / n);
 	}
 
+	/**
+	 * @static
+	 * Create a new Vec2 instance
+	*/
 	static new(x: N, y: N) {
 		return newVec2(x, y);
 	}
 
+	/**
+	 * @static
+	 * Create a zero vector
+	*/
 	static zero() {
 		return newVec2(0, 0);
 	}
@@ -741,9 +788,9 @@ export type Vec2In = `${number} ${number}` | `vec2(${N},${N})` | N | [N,N] | Vec
  * @class Vec3
 */
 export class Vec3 extends Base<Vec3> {
-	x: N; //!<
-	y: N; //!<
-	z: N; //!<
+	readonly x: N; //!<
+	readonly y: N; //!<
+	readonly z: N; //!<
 	toString(): `vec3(${N},${N},${N})` { return `vec3(${this.x},${this.y},${this.z})` }
 }
 initDefaults(Vec3, { x: 0, y: 0, z: 0 });
@@ -756,10 +803,10 @@ export type Vec3In = `${number} ${number} ${number}` | `vec3(${N},${N},${N})` | 
  * @class Vec4
 */
 export class Vec4 extends Base<Vec4> {
-	x: N; //!<
-	y: N; //!<
-	z: N; //!<
-	w: N; //!<
+	readonly x: N; //!<
+	readonly y: N; //!<
+	readonly z: N; //!<
+	readonly w: N; //!<
 	toString(): `vec4(${N},${N},${N},${N})` {
 		return `vec4(${this.x},${this.y},${this.z},${this.w})`;
 	}
@@ -775,8 +822,8 @@ export type Vec4In = `${number} ${number} ${number} ${number}` |
  * @class Curve
 */
 export class Curve extends Base<Curve> {
-	p1: Vec2; //!<
-	p2: Vec2; //!<
+	readonly p1: Vec2; //!<
+	readonly p2: Vec2; //!<
 	get p1x() { return this.p1.x; } //!< {N}
 	get p1y() { return this.p1.y; } //!< {N}
 	get p2x() { return this.p2.x; } //!< {N}
@@ -796,8 +843,8 @@ export type CurveIn = 'linear' | 'ease' | 'easeIn' | 'easeOut' | 'easeInOut' |
  * @class Rect
 */
 export class Rect extends Base<Rect> {
-	origin: Vec2; //!<
-	size: Vec2; //!<
+	readonly origin: Vec2; //!<
+	readonly size: Vec2; //!<
 	get x() { return this.origin.x; } //!< {N}
 	get y() { return this.origin.y; } //!< {N}
 	get width() { return this.size.x; } //!< {N}
@@ -811,15 +858,54 @@ export type RectIn = `rect(${N},${N},${N},${N})` | `rect(${N},${N})` | //!< {'re
 	[number,number,number,number] | Rect;
 
 /**
+ * @class Region
+*/
+export class Region extends Base<Region> {
+	readonly origin: Vec2; //!< top-left corner
+	readonly end: Vec2; //!< bottom-right corner
+	get p0() { return this.origin.x; }
+	get p1() { return this.origin.y; }
+	get p2() { return this.end.x; }
+	get p3() { return this.end.y; }
+	toString(): `region(${N},${N},${N},${N})` {
+		return `region(${this.p0},${this.p1},${this.p2},${this.p3})`;
+	}
+}
+initDefaults(Region, { origin: new Vec2, end: new Vec2 });
+export type RegionIn = Region;
+
+/**
+ * @class BorderRadius
+*/
+export class BorderRadius extends Base<BorderRadius> {
+	readonly leftTop: Vec2 //!<
+	readonly rightTop: Vec2 //!<
+	readonly rightBottom: Vec2; //!<
+	readonly leftBottom: Vec2; //!<
+	get p0() { return this.leftTop.x; }
+	get p1() { return this.leftTop.y; }
+	get p2() { return this.rightTop.x; }
+	get p3() { return this.rightTop.y; }
+	get p4() { return this.rightBottom.x; }
+	get p5() { return this.rightBottom.y; }
+	get p6() { return this.leftBottom.x; }
+	get p7() { return this.leftBottom.y; }
+}
+initDefaults(BorderRadius, {
+	leftTop: new Vec2, rightTop: new Vec2, rightBottom: new Vec2, leftBottom: new Vec2
+});
+export type BorderRadiusIn = BorderRadius;
+
+/**
  * @class Mat
 */
 export class Mat extends Base<Mat> {
-	m0: N; //!<
-	m1: N; //!<
-	m2: N; //!<
-	m3: N; //!<
-	m4: N; //!<
-	m5: N; //!<
+	readonly m0: N; //!<
+	readonly m1: N; //!<
+	readonly m2: N; //!<
+	readonly m3: N; //!<
+	readonly m4: N; //!<
+	readonly m5: N; //!<
 	get value() {
 		return [this.m0,this.m1,this.m2,this.m3,this.m4,this.m5];
 	}
@@ -835,22 +921,22 @@ export type MatIn = N | Mat | ReturnType<typeof Mat.prototype.toString>; //!< {N
  * @class Mat4
 */
 export class Mat4 extends Base<Mat4> {
-	m0: N; //!<
-	m1: N; //!<
-	m2: N; //!<
-	m3: N; //!<
-	m4: N; //!<
-	m5: N; //!<
-	m6: N; //!<
-	m7: N; //!<
-	m8: N; //!<
-	m9: N; //!<
-	m10: N; //!<
-	m11: N; //!<
-	m12: N; //!<
-	m13: N; //!<
-	m14: N; //!<
-	m15: N; //!<
+	readonly m0: N; //!<
+	readonly m1: N; //!<
+	readonly m2: N; //!<
+	readonly m3: N; //!<
+	readonly m4: N; //!<
+	readonly m5: N; //!<
+	readonly m6: N; //!<
+	readonly m7: N; //!<
+	readonly m8: N; //!<
+	readonly m9: N; //!<
+	readonly m10: N; //!<
+	readonly m11: N; //!<
+	readonly m12: N; //!<
+	readonly m13: N; //!<
+	readonly m14: N; //!<
+	readonly m15: N; //!<
 	get value() { return [
 		this.m0,this.m1,this.m2,this.m3,this.m4,this.m5,this.m6,this.m7,
 		this.m8,this.m9,this.m10,this.m11,this.m12,this.m13,this.m14,this.m15];
@@ -874,10 +960,10 @@ export type Mat4In = N | Mat4 | ReturnType<typeof Mat4.prototype.toString>;
  * @class Color
 */
 export class Color extends Base<Color> {
-	r: N; //!< red 0 ~ 255
-	g: N; //!< green 0 ~ 255
-	b: N; //!< blue 0 ~ 255
-	a: N; //!< alpha 0 ~ 255
+	readonly r: N; //!< red 0 ~ 255
+	readonly g: N; //!< green 0 ~ 255
+	readonly b: N; //!< blue 0 ~ 255
+	readonly a: N; //!< alpha 0 ~ 255
 	get alpha() { //!< {N} alpha 0.0 ~ 1.0
 		return this.a / 255;
 	}
@@ -912,10 +998,10 @@ export type ColorIn = ColorStrIn | N | Color; //!<
  * @class Shadow
 */
 export class Shadow extends Base<Shadow> {
-	x: N; //!< {N}
-	y: N; //!< {N}
-	size: N; //!< {N}
-	color: Color; //!< {Color}
+	readonly x: N; //!< {N}
+	readonly y: N; //!< {N}
+	readonly size: N; //!< {N}
+	readonly color: Color; //!< {Color}
 	get r() { return this.color.r; } //!< {N}
 	get g() { return this.color.g; } //!< {N}
 	get b() { return this.color.b; } //!< {N}
@@ -931,8 +1017,8 @@ export type ShadowIn = `${N} ${N} ${N} ${ColorStrIn}` | Shadow; //!< {'2　2　2
  * @class Border
 */
 export class Border extends Base<Border> {
-	width: N; //!<
-	color: Color; //!<
+	readonly width: N; //!<
+	readonly color: Color; //!<
 	get r() { return this.color.r; } //!< {N}
 	get g() { return this.color.g; } //!< {N}
 	get b() { return this.color.b; } //!< {N}
@@ -948,8 +1034,8 @@ export type BorderIn = `${N} ${ColorStrIn}` | Border; //!< {'1　rgb(100,100,100
  * @class FillPosition
 */
 export class FillPosition extends Base<FillPosition> {
-	value: N; //!<
-	kind: FillPositionKind; //!<
+	readonly value: N; //!<
+	readonly kind: FillPositionKind; //!<
 };
 initDefaults(FillPosition, { value: 0, kind: FillPositionKind.Value });
 type FillPositionKindStr = //!< {'start'|'end'|'center'}
@@ -961,8 +1047,8 @@ export type FillPositionIn = N | FillPosition | `${number}%` | FillPositionKindS
  * @class FillSize
 */
 export class FillSize extends Base<FillSize> {
-	value: N; //!<
-	kind: FillSizeKind; //!<
+	readonly value: N; //!<
+	readonly kind: FillSizeKind; //!<
 };
 initDefaults(FillSize, { value: 0, kind: FillSizeKind.Auto });
 type FillSizeKindStr = Uncapitalize<keyof RemoveField<typeof FillSizeKind, 'Value'|'Ratio'|number>>; //!< {'auto'}
@@ -972,8 +1058,8 @@ export type FillSizeIn = N | FillSize | `${number}%` | FillSizeKindStr; //!< {N|
  * @class BoxSize
 */
 export class BoxSize extends Base<BoxSize> {
-	value: N; //!<
-	kind: BoxSizeKind; //!<
+	readonly value: N; //!<
+	readonly kind: BoxSizeKind; //!<
 };
 initDefaults(BoxSize, { value: 0, kind: BoxSizeKind.Value });
 type BoxSizeKindStr = //!< {'auto'|'none'|'match'}
@@ -984,8 +1070,8 @@ export type BoxSizeIn = N | BoxSize | `${number}%` | `${number}!` | BoxSizeKindS
  * @class BoxOrigin
 */
 export class BoxOrigin extends Base<BoxSize> {
-	value: N; //!<
-	kind: BoxOriginKind; //!<
+	readonly value: N; //!<
+	readonly kind: BoxOriginKind; //!<
 };
 type BoxOriginKindStr = FillSizeKindStr; //!<
 initDefaults(BoxOrigin, { value: 0, kind: FillSizeKind.Value });
@@ -1002,8 +1088,8 @@ const TextBase_toString = [
  * @class TextBase
 */
 class TextBase<Derived,Value> extends Base<Derived> {
-	value: Value; //!<
-	kind: TextValueKind; //!<
+	readonly value: Value; //!<
+	readonly kind: TextValueKind; //!<
 	toString() {
 		return (TextBase_toString[this.kind] || TextBase_toString[3])(this.value);
 	}
@@ -1119,12 +1205,12 @@ export type BoxFilterIn = BoxFilterInStr | BoxFilterInStr[] | BoxFilter | null;
  * @class FillImage
 */
 export declare class FillImage extends BoxFilter {
-	src: string; //!<
-	width: FillSize; //!<
-	height: FillSize; //!<
-	x: FillPosition; //!<
-	y: FillPosition; //!<
-	repeat: Repeat; //!<
+	readonly src: string; //!<
+	readonly width: FillSize; //!<
+	readonly height: FillSize; //!<
+	readonly x: FillPosition; //!<
+	readonly y: FillPosition; //!<
+	readonly repeat: Repeat; //!<
 	/**
 	 * @method constructor(src,init?)
 	 * @param src:string
@@ -1150,7 +1236,7 @@ export declare class FillGradientRadial extends BoxFilter {
  * @extends FillGradientRadial
 */
 export declare class FillGradientLinear extends FillGradientRadial {
-	angle: N; //!<
+	readonly angle: N; //!<
 	constructor(pos: N[], coloes: Color[], angle: N); //!<
 }
 
@@ -1158,7 +1244,7 @@ export declare class FillGradientLinear extends FillGradientRadial {
  * @class BoxShadow
 */
 export declare class BoxShadow extends BoxFilter {
-	value: Shadow; //!<
+	readonly value: Shadow; //!<
 	constructor(value: Shadow); //!<
 }
 
@@ -1229,13 +1315,37 @@ export function newRect(x: N, y: N, width: N, height: N) {
 }
 
 /**
+ * @method newRect(x:N,y:N,width:N,height:N)Region
+*/
+export function newRegion(x: N, y: N, x1: N, y1: N) {
+	return newBase(Region, {origin: newVec2(x,y), end: newVec2(x1,y1)});
+}
+
+/**
+ * @method newBorderRadius(p0:N,p1:N,p2:N,p3:N,p4:N,p5:N,p6:N,p7:N)BorderRadius
+*/
+export function newBorderRadius(
+	p0: N, p1: N,
+	p2: N,p3: N,
+	p4: N, p5: N,
+	p6: N,p7: N
+) {
+	return newBase(BorderRadius, {
+		leftTop: newVec2(p0, p1),
+		rightTop: newVec2(p2, p3),
+		rightBottom: newVec2(p4, p5),
+		leftBottom: newVec2(p6, p7)
+	});
+}
+
+/**
  * @method newMat(...value)Mat
  * @param value:N[]
 */
 export function newMat(...value: N[]) {
 	let mat = newBase(Mat, {});
 	for (let i: 0 = 0; i < 6; i++)
-		mat[`m${i}`] = value[i];
+		(mat as RemoveReadonly<Mat>)[`m${i}`] = value[i];
 	return mat;
 }
 
@@ -1246,7 +1356,7 @@ export function newMat(...value: N[]) {
 export function newMat4(...value: N[]) {
 	let mat = newBase(Mat4, {});
 	for (let i: 0 = 0; i < 16; i++)
-		mat[`m${i}`] = value[i];
+		(mat as RemoveReadonly<Mat4>)[`m${i}`] = value[i];
 	return mat;
 }
 
@@ -1554,6 +1664,20 @@ export function parseRect(val: RectIn, desc?: string): Rect { //!<
 		return val;
 	}
 	throw error(val, desc, ['rect(0,0,-100,200)', '0 0 -100 200']);
+}
+
+export function parseRegion(val: RegionIn, desc?: string): Region { //!<
+	if (val instanceof Region) {
+		return val;
+	}
+	throw error(val, desc);
+}
+
+export function parseBorderRadius(val: BorderRadiusIn, desc?: string): BorderRadius { //!<
+	if (val instanceof BorderRadius) {
+		return val;
+	}
+	throw error(val, desc);
 }
 
 const matReg = new RegExp(`^\s*mat\\(\s*${new Array(6).join(
