@@ -208,12 +208,12 @@ namespace qk {
 		 *
 		 * @note Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
 		*/
-		static RunLoop* work();
+		static RunLoop* first();
 
 		/**
-		 * Return if current is the work run loop of the process
+		 * Return if current is the first run loop of the process
 		 */
-		static bool is_work();
+		static bool is_first();
 
 		/**
 		* @method clear(), immediately stop all timer and msg,
@@ -251,10 +251,10 @@ namespace qk {
 		return RunLoop::current();
 	}
 
-	inline RunLoop* work_loop() {
-		return RunLoop::work();
+	inline RunLoop* first_loop() {
+		return RunLoop::first();
 	}
 
-	Qk_EXPORT void check_is_work_loop();
+	Qk_EXPORT void check_is_first_loop();
 }
 #endif

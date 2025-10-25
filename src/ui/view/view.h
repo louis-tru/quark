@@ -108,7 +108,7 @@ namespace qk {
 			uint8_t state_y; //!< The y-axis is float wrap content, use internal extrusion size
 			bool    locked_x, locked_y; //!< locked state
 
-			Region to_range() const;
+			Range to_range() const;
 			float clamp_width(float value) const;
 			float clamp_height(float value) const;
 			bool  set_pre_width(Pre pre);
@@ -150,7 +150,7 @@ namespace qk {
 		/**
 		 * @prop matrix
 		*/
-		Qk_DEFINE_ACCE_GET(MatrixView*, matrix_view);
+		Qk_DEFINE_ACCE_GET(MorphView*, morph_view);
 
 		/**
 		* @prop mark_value
@@ -222,15 +222,10 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(bool, visible, Const);
 
 		/**
-		 * Enable testing of visible areas, false means no testing and always rendering
-		*/
-		Qk_DEFINE_PROPERTY(bool, test_visible_region, ProtectedConst);
-
-		/**
 		 * 这个值与`visible`不相关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		 * This value represents whether the view is visible in the current display area, which is mostly the screen
 		*/
-		Qk_DEFINE_PROP_GET(bool, visible_region, ProtectedConst);
+		Qk_DEFINE_PROP_GET(bool, visible_area, ProtectedConst);
 
 		/**
 		 * Do views need to receive or handle system event throws? In most cases,
@@ -378,9 +373,19 @@ namespace qk {
 		 * 
 		 * Returns as matrix
 		 * 
-		 * @method asMatrixView()
+		 * @method asMorphView()
 		*/
-		virtual MatrixView* asMatrixView();
+		virtual MorphView* asMorphView();
+
+		/**
+		 * Returns as entity
+		*/
+		virtual Entity* asEntity();
+
+		/**
+		 * Returns as agent
+		*/
+		virtual Agent* asAgent();
 
 		/**
 		 * 
@@ -565,12 +570,19 @@ namespace qk {
 
 		/**
 		 * 
-		 * Returns view client size, for: (box = content + padding + border)
+		 * Returns view client rect, for: (box = content + padding + border)
 		 * 
 		 * @method client_size()
 		 * @thread Rt
 		*/
 		virtual Vec2 client_size();
+
+		/**
+		 * Returns the client region of the view, which includes content, padding, and border.
+		 * @method client_region()
+		 * @thread Rt
+		*/
+		virtual Region client_region();
 
 		/**
 		 * @method solve_marks(mark)
@@ -579,10 +591,10 @@ namespace qk {
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark);
 
 		/**
-			* @method solve_visible_region()
+			* @method solve_visible_area()
 			* @thread Rt
 			*/
-		virtual void solve_visible_region(const Mat &mat);
+		virtual void solve_visible_area(const Mat &mat);
 
 		/**
 		 * notice update for set parent or level
@@ -626,25 +638,25 @@ namespace qk {
 		 * Because view objects may be destroyed at any time on the main thread
 		 * @method tryRetain() Returns safe self hold
 		*/
-		View* tryRetain_Rt();
+		View* tryRetain_rt();
 
 	protected:
 		/**
 		 * Compute the view is visible in the screen or the clipped region
 		*/
-		bool is_visible_region(const Mat &mat, Vec2 bounds[4]);
+		bool compute_visible_area(const Mat &mat, Vec2 bounds[4]);
 
 		View(); // @constructor
 		virtual View* init(Window* win);
 	private:
 		void set_parent(View *parent); // setting parent view
 		void clear_link(); // Cleaning up associated view information
-		void set_visible_Rt(bool visible);
-		void set_level_Rt(uint32_t level); // settings depth
-		void clear_level_Rt(); //  clear view depth rt
-		void applyClass_Rt(CStyleSheetsClass* parentSsc); // apply class for self
-		void applyClassAll_Rt(CStyleSheetsClass* parentSsc); // apply class for all subviews
-		CStyleSheetsClass* parentSsclass_Rt();
+		void set_visible_rt(bool visible);
+		void set_level_rt(uint32_t level); // settings depth
+		void clear_level_rt(); //  clear view depth rt
+		void applyClass_rt(CStyleSheetsClass* parentSsc); // apply class for self
+		void applyClassAll_rt(CStyleSheetsClass* parentSsc); // apply class for all subviews
+		CStyleSheetsClass* parentSsclass_rt();
 
 		friend class Painter;
 		friend class PreRender;

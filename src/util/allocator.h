@@ -61,16 +61,17 @@ namespace qk {
 		 *
 		 * @tparam T Value type.
 		 * @tparam A Allocator type (default: Allocator).
+		 * @tparam Extra Type for extra data (default: uint32_t).
 		 */
-		template<typename T, typename A = Allocator>
+		template<typename T, typename A = Allocator, typename Extra = uint32_t>
 		struct Ptr {
 			/// Default constructor using the shared global allocator.
-			Ptr(): allocator(Allocator::shared()), val(nullptr), capacity(0) {
+			Ptr(): allocator(Allocator::shared()), val(nullptr), capacity(0), extra{} {
 				Qk_ASSERT(allocator);
 			}
 
 			/// Construct with explicit allocator, pointer, and capacity.
-			Ptr(A* a, T* v, uint32_t c): allocator(a), val(v), capacity(c) {
+			Ptr(A* a, T* v, uint32_t c, Extra e = {}): allocator(a), val(v), capacity(c), extra(e) {
 				Qk_ASSERT(allocator);
 			}
 
@@ -89,6 +90,7 @@ namespace qk {
 			A       *allocator; ///< Allocator instance.
 			T       *val;       ///< Allocated pointer.
 			uint32_t capacity;  ///< Number of elements allocated.
+			Extra    extra;     ///< Extra data (optional).
 		};
 
 		/**

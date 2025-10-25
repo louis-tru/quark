@@ -185,7 +185,7 @@ export declare class KeyEvent extends UIEvent {
 */
 export declare class ClickEvent extends UIEvent {
 	/** The cursor position in the window */
-	readonly location: Vec2;
+	readonly position: Vec2;
 	/** Number of consecutive clicks, possibly double clicks */
 	readonly count: number;
 	/** Click trigger type */
@@ -211,7 +211,7 @@ export declare class HighlightedEvent extends UIEvent {
 */
 export declare class MouseEvent extends UIEvent {
 	/** The cursor position in the window */
-	readonly location: Vec2;
+	readonly position: Vec2;
 }
 
 /**
@@ -223,9 +223,9 @@ export interface TouchPoint {
 	/** Touch point id */
 	readonly id: number;
 	/** The position x/y of the touchpoint in the window when it is first pressed */
-	readonly startLocation: Vec2;
+	readonly startPosition: Vec2;
 	/** The position of the touchpoint in the window */
-	readonly location: Vec2;
+	readonly position: Vec2;
 	/** touchpoint pressure strength, value range [0-1] */
 	readonly force: number;
 	/** The initial view of the touchpoint */
@@ -249,8 +249,8 @@ export declare class TouchEvent extends UIEvent {
 */
 export class GestureTouchPoint implements TouchPoint {
 	get id() { return this.touch.id; }
-	get startLocation() { return this.touch.startLocation; }
-	get location() { return this.touch.location; }
+	get startPosition() { return this.touch.startPosition; }
+	get position() { return this.touch.position; }
 	get force() { return this.touch.force; }
 	get view() { return this.touch.view; }
 
@@ -267,17 +267,17 @@ export class GestureTouchPoint implements TouchPoint {
 	}
 
 	/**
-	 * start and current location mid point
+	 * start and current position mid point
 	*/
 	get center() {
-		return this.touch.startLocation.mid(this.touch.location); // mid point
+		return this.touch.startPosition.mid(this.touch.position); // mid point
 	}
 
 	/**
 	 * The gesture movement distance, for example, the distance moved by a finger
 	*/
 	get distance() {
-		return this.touch.location.sub(this.touch.startLocation);
+		return this.touch.position.sub(this.touch.startPosition);
 	}
 }
 
@@ -396,7 +396,7 @@ export class GestureEvent extends Event<View> implements UIEvent {
 			return;
 		}
 		// Update last velocity
-		const distance =  this.location().sub(this.startLocation());
+		const distance =  this.position().sub(this.startPosition());
 		self.lastVelocity = this.updateLastVelocity(
 				distance.sub(this.distance), timestamp - this.timestamp);
 
@@ -451,24 +451,24 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	}
 
 	/**
-	 * Get the mid point of all touch points' start location
+	 * Get the mid point of all touch points' start position
 	 */
-	startLocation(): Vec2 {
-		return Vec2.mid(this.touchs.map(v=>v.startLocation));
+	startPosition(): Vec2 {
+		return Vec2.mid(this.touchs.map(v=>v.startPosition));
 	}
 
 	/**
-	 * Get the mid point of all touch points' current location
+	 * Get the mid point of all touch points' current position
 	*/
-	location(): Vec2 {
-		return Vec2.mid(this.touchs.map(v=>v.location));
+	position(): Vec2 {
+		return Vec2.mid(this.touchs.map(v=>v.position));
 	}
 
 	/**
-	 * Get the mid point of all touch points' start location and current location
+	 * Get the mid point of all touch points' start position and current position
 	*/
 	center(): Vec2 {
-		return this.startLocation().mid(this.location());
+		return this.startPosition().mid(this.position());
 	}
 
 	/**
@@ -478,8 +478,8 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	rotation(isDegree: boolean): number {
 		if (this.length < 2)
 			return 0;
-		const start = this.touchs[0].startLocation.angleTo(this.touchs[1].startLocation);
-		const end = this.touchs[0].location.angleTo(this.touchs[1].location);
+		const start = this.touchs[0].startPosition.angleTo(this.touchs[1].startPosition);
+		const end = this.touchs[0].position.angleTo(this.touchs[1].position);
 		let delta = end - start;
 		// Normalize to [-π, π]
 		if (delta > Math.PI)
@@ -496,8 +496,8 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	scale(): number {
 		if (this.length  < 2)
 			return 1;
-		const start = this.touchs[1].startLocation.sub(this.touchs[0].startLocation);
-		const end = this.touchs[1].location.sub(this.touchs[0].location);
+		const start = this.touchs[1].startPosition.sub(this.touchs[0].startPosition);
+		const end = this.touchs[1].position.sub(this.touchs[0].position);
 		return end.length() / start.length();
 	}
 
@@ -507,7 +507,7 @@ export class GestureEvent extends Event<View> implements UIEvent {
 	distanceOfTwoFinger(): Vec2 {
 		if (this.length < 2)
 			return newVec2(0, 0);
-		return this.touchs[1].location.sub(this.touchs[0].location);
+		return this.touchs[1].position.sub(this.touchs[0].position);
 	}
 }
 

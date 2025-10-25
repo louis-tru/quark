@@ -73,6 +73,7 @@ namespace qk {
 		F(Vec3) \
 		F(Vec4) \
 		F(Rect) \
+		F(Range) \
 		F(Region) \
 		F(Mat) \
 		F(Mat4) \
@@ -153,6 +154,8 @@ namespace qk {
 		inline S* jsvalue(const Persistent<S>& value) { return *value; }
 		inline
 		JSValue* jsvalue(JSValue* val) { return val; }
+		inline
+		JSValue* jsvalue(Object *val) { return worker->newValue(val); }
 		inline
 		JSValue* jsvalue(const Bool& v) { return worker->newBool(v.value); }
 		inline

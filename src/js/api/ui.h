@@ -39,22 +39,23 @@
 namespace qk { namespace js {
 
 	#define Js_MixObject_Accessor_Base(Type,T,Prop,Name,Ext) \
-		Js_Class_Accessor(Name, {\
-			Ext; \
-			args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
-		}, { \
-			Js_Parse_Type(T, val, "@prop "#Type"."#Name" = %s"); \
-			Ext; \
-			self->set_##Prop(out); \
-		})
-
-	#define Js_MixObject_Accessor(Type,T,Prop,Name) Js_MixObject_Accessor_Base(Type,T,Prop,Name,)
-
+	Js_Class_Accessor(Name, {\
+		Ext; args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
+	}, { \
+		Js_Parse_Type(T, val, "@prop "#Type"."#Name" = %s"); Ext; self->set_##Prop(out); \
+	})
+	#define Js_MixObject_Acce_Get_Base(Type,T,Prop,Name,Ext) \
+	Js_Class_Accessor_Get(Name, {\
+		Ext; args.returnValue().set( worker->types()->jsvalue(self->Prop()) ); \
+	})
 	#define Js_UISelf(Type) \
 		static_assert_mix<MixUIObject>(); \
 		auto self = static_cast<MixUIObject*>((MixObject*)mix)->as##Type()
-	#define Js_UIObject_Accessor(Type,T,Prop,Name) \
-		Js_MixObject_Accessor_Base(Type,T,Prop,Name,Js_UISelf(Type))
+
+	#define Js_MixObject_Accessor(Type,T,Prop,Name) Js_MixObject_Accessor_Base(Type,T,Prop,Name,)
+	#define Js_MixObject_Acce_Get(Type,T,Prop,Name) Js_MixObject_Acce_Get_Base(Type,T,Prop,Name,)
+	#define Js_UIObject_Accessor(Type,T,Prop,Name) Js_MixObject_Accessor_Base(Type,T,Prop,Name,Js_UISelf(Type))
+	#define Js_UIObject_Acce_Get(Type,T,Prop,Name) Js_MixObject_Acce_Get_Base(Type,T,Prop,Name,Js_UISelf(Type))
 
 	#define Js_IsView(v) isView(worker,v)
 	#define Js_IsWindow(v) isWindow(worker,v)
@@ -74,7 +75,7 @@ namespace qk { namespace js {
 	public:
 		virtual TextOptions* asTextOptions();
 		virtual ScrollView*  asScrollView();
-		virtual MatrixView*  asMatrixView();
+		virtual MorphView*   asMorphView();
 		virtual Player*      asPlayer();
 		virtual NotificationBasic* asNotificationBasic();
 		virtual bool addEventListener(cString& name_, cString& func, int id) override;
@@ -91,7 +92,7 @@ namespace qk { namespace js {
 	bool isView(Worker *worker, JSValue* value);
 	bool isWindow(Worker *worker, JSValue* value);
 	void inheritScrollView(JSClass* cls, Worker* worker);
-	void inheritMatrixView(JSClass* cls, Worker* worker);
+	void inheritMorphView(JSClass* cls, Worker* worker);
 
 } }
 #endif

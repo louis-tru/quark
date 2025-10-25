@@ -290,7 +290,7 @@ namespace qk {
 
 	static bool convertToTouch(AInputEvent* motionEvent, int pointerIndex, TouchPoint* out) {
 		Vec2 scale = swm->activeWindow()->scale();
-		float left = swm->displayRegion().origin.x();
+		float left = swm->displayRegion().begin.x();
 		int id = AMotionEvent_getPointerId(motionEvent, pointerIndex);
 		float x = AMotionEvent_getX(motionEvent, pointerIndex) - left;
 		float y = AMotionEvent_getY(motionEvent, pointerIndex);
@@ -299,9 +299,9 @@ namespace qk {
 		float h_y = AMotionEvent_getHistoricalY(motionEvent, pointerIndex, 0);
 		*out = {
 			uint32_t(id + 20170820),
-			0, 0,
-			x / scale.x(),
-			y / scale.y(),
+			{0, 0},
+			{x / scale.x(),
+			y / scale.y()},
 			pressure,
 			false,
 			nullptr,
@@ -436,10 +436,10 @@ namespace qk {
 		float scale = getDefaultScale();
 
 		if (_lockSize.x() != 0) { // lock width
-			scale = (regionNew.end.x() - regionNew.origin.x()) / _lockSize.x();
+			scale = (regionNew.end.x() - regionNew.begin.x()) / _lockSize.x();
 		}
 		else if (_lockSize.y() != 0) { // lock height
-			scale = (regionNew.end.y() - regionNew.origin.y()) / _lockSize.y();
+			scale = (regionNew.end.y() - regionNew.begin.y()) / _lockSize.y();
 		}
 
 		// Navigation button region for Android
@@ -449,10 +449,10 @@ namespace qk {
 				Vec2{size.x(), size.y()-region.end.y()}/scale
 			};
 		}
-		else if (region.origin.x() != 0) { // left
+		else if (region.begin.x() != 0) { // left
 			_navigationRect = {
 				Vec2{0,0},
-				Vec2{region.origin.x(), size.y()}/scale
+				Vec2{region.begin.x(), size.y()}/scale
 			};
 		}
 		else if (region.end.x() != size.x()) { // right

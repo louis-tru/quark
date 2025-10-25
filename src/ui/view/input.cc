@@ -33,6 +33,7 @@
 #include "../window.h"
 #include "./textarea.h"
 #include "../../util/codec.h"
+#include "../geometry.h"
 
 #define _Border() auto _border = this->_border.load()
 #define _IfBorder() _Border(); if (_border)
@@ -80,39 +81,39 @@ namespace qk {
 		// ============================================================================
 		void handle_Touchstart(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
-			auto arg = e->changed_touches()[0].location;
+			auto arg = e->changed_touches()[0].position;
 			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, true); }, this, arg);
 		}
 
 		void handle_Touchmove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<TouchEvent*>(&evt);
-			auto arg = e->changed_touches()[0].location;
+			auto arg = e->changed_touches()[0].position;
 			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Touchend(UIEvent& evt) {
 			auto e = static_cast<TouchEvent*>(&evt);
-			auto arg = e->changed_touches()[0].location;
+			auto arg = e->changed_touches()[0].position;
 			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Mousedown(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
-			auto arg = e->location();
+			auto arg = e->position();
 			_async_call([](auto ctx, auto arg) { ctx->start_action(arg.arg, false); }, this, arg);
 		}
 
 		void handle_Mousemove(UIEvent& evt) {
 			prevent_default(evt);
 			auto e = static_cast<MouseEvent*>(&evt);
-			auto arg = e->location();
+			auto arg = e->position();
 			_async_call([](auto ctx, auto arg) { ctx->move_action(arg.arg); }, this, arg);
 		}
 
 		void handle_Mouseup(UIEvent& evt) {
 			auto e = static_cast<MouseEvent*>(&evt);
-			auto arg = e->location();
+			auto arg = e->position();
 			_async_call([](auto ctx, auto arg) { ctx->end_action(arg.arg); }, this, arg);
 		}
 
@@ -142,7 +143,7 @@ namespace qk {
 						self->find_cursor(arg.arg);
 					}
 				}
-			}, this, e->location());
+			}, this, e->position());
 		}
 
 		void handle_Keydown(UIEvent& evt) {
@@ -224,7 +225,7 @@ namespace qk {
 						_flag = kFlag_Find_Cursor_Wait;
 						// 多行文本输入并且为在touch事件时为了判断是否为滚动与定位查找操作,
 						// 只有长按输入框超过1秒没有移动才表示激活光标查找
-						if ( !tryRetain_Rt() )
+						if ( !tryRetain_rt() )
 							return;
 						window()->loop()->timer(Cb([this](auto &e) { // delay call
 							_async_call([](auto ctx, auto arg) {
@@ -233,7 +234,7 @@ namespace qk {
 									ctx->find_cursor(ctx->_point);
 								}
 							}, this, 0);
-							release(); // it must be release here @ if ( !tryRetain_Rt() )
+							release(); // it must be release here @ if ( !tryRetain_rt() )
 						}), 1e3); // 1 second
 					} else { // 立即激活
 						_flag = kFlag_Find_Cursor;
@@ -702,7 +703,7 @@ namespace qk {
 		_blob_visible.clear();
 		_blob.clear();
 
-		String4 value_u4(_value_u4); // safe hold
+		String4 value_u4(_value_u4); // safe hold ?? TODO: safe ?? Testing required
 		String4 placeholder_u4(_placeholder_u4);
 		String4 &str = value_u4.length() ? value_u4: placeholder_u4;
 
@@ -793,14 +794,14 @@ namespace qk {
 		}
 	}
 
-	void Input::solve_visible_region(const Mat &mat) {
-		Box::solve_visible_region(mat);
-		if (_visible_region) {
+	void Input::solve_visible_area(const Mat &mat) {
+		Box::solve_visible_area(mat);
+		if (_visible_area) {
 			_mat = mat;
 			if (_lines) {
-				window()->clipRegion(screen_region_from_convex_quadrilateral(_bounds));
-				_lines->solve_visible_region(mat);
-				_lines->solve_visible_region_blob(&_blob, &_blob_visible);
+				window()->clipRange(region_aabb_from_convex_quadrilateral(_boxBounds));
+				_lines->solve_visible_area(mat);
+				_lines->solve_visible_area_blob(&_blob, &_blob_visible);
 				window()->clipRestore();
 			}
 		}

@@ -46,6 +46,8 @@ namespace qk {
 
 	constexpr float Max_Float = std::numeric_limits<float>::max();
 
+	Vec2 free_typesetting(View* view, View::Container &container);
+
 	Pre Box::solve_layout_content_pre_width(const Container &pContainer) {
 		float size = pContainer.content[0];
 		float min = 0, max = Max_Float;
@@ -333,7 +335,12 @@ namespace qk {
 
 	void Box::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			layout_typesetting_float();
+			if (_free) {
+				set_content_size(free_typesetting(this, _container));
+				delete_lock_state();
+			} else {
+				layout_typesetting_float();
+			}
 		}
 	}
 

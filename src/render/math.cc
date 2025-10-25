@@ -157,11 +157,22 @@ namespace qk {
 	}
 
 	float Vec2::dot(const Vec<float,2> b) const {
+// #if Qk_USE_ARM_NEON
+// 		float32x2_t va = vld1_f32(val);   // a0, a1
+// 		float32x2_t vb = vld1_f32(b.val);     // b0, b1
+// 		float32x2_t r = vmul_f32(va, vb); // r0 = a0*b0, r1 = a1*b1
+// 		float32x2_t sum = vpadd_f32(r, r); // sum0 = r0 + r1
+// 		return vget_lane_f32(sum, 0); // 结果 = a0*b0 + a1*b1
+// #else
 		return val[0] * b.val[0] + val[1] * b.val[1];
+// #endif
 	}
 
-	Vec3 Vec2::det(const Vec<float,2> b,const Vec<float,2> c) const {
-		return Vec3(val[0], b.val[0], c.val[0]).det(Vec3(val[1], b.val[1], c.val[1]));
+	/**
+	 * @method det() returns scalar outer product
+	*/
+	float Vec2::det(const Vec<float,2> b) const {
+		return val[0] * b.val[1] - val[1] * b.val[0];
 	}
 
 	float Vec2::length() const {
@@ -185,6 +196,15 @@ namespace qk {
 		return Vec2{-val[1], val[0]};
 	}
 
+	Vec2 Vec2::rotate(float radians) const {
+		float c = cosf(radians);
+		float s = sinf(radians);
+		return Vec2{
+			val[0] * c - val[1] * s,
+			val[0] * s + val[1] * c
+		};
+	}
+
 	Vec2 Vec2::normalized() const {
 		if (val[0] == 0.0f) {
 			if (val[1] == 0.0f) {
@@ -198,8 +218,8 @@ namespace qk {
 				val[0] < 0.0f ? -1.0f: 1.0f, 0.0f
 			};
 		}
-		float len = sqrtf(val[0] * val[0] + val[1] * val[1]);
-		return { val[0] / len, val[1] / len };
+		float len = 1 / sqrtf(val[0] * val[0] + val[1] * val[1]);
+		return { val[0] * len, val[1] * len };
 	}
 
 	Vec2 Vec2::normalline(const Vec2 *prev, const Vec2 *next) const {
@@ -902,6 +922,29 @@ namespace qk {
 		return ok;
 	}
 
+	Mat Mat::inverse() const {
+		/*
+		[ a, b, c ]
+		[ d, e, f ]
+		[ 0, 0, 1 ]
+		*/
+		const float* _a = val;
+		float det = _a[0] * _a[4] - _a[1] * _a[3];
+		if (det == 0.0f) {
+			return UnitMatrix;
+		}
+		det = 1.0f / det;
+		Mat output;
+		float* _v = output.val;
+		_v[0] =  _a[4] * det;
+		_v[1] = -_a[1] * det;
+		_v[2] = (_a[1] * _a[5] - _a[4] * _a[2]) * det;
+		_v[3] = -_a[3] * det;
+		_v[4] =  _a[0] * det;
+		_v[5] = (_a[3] * _a[2] - _a[0] * _a[5]) * det;
+		return output;
+	}
+
 	Mat4::Mat4(float value) {
 		memset(val, 0, 16 * 4);
 		val[0] = value;
@@ -1440,5 +1483,4 @@ namespace qk {
 
 		return matrix;
 	}
-
 }

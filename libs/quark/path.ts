@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {Vec2,Rect,Vec3,Mat,Region,BorderRadius} from './types';
+import {Vec2,Rect,Vec3,Mat,Range,BorderRadius} from './types';
 
 const _path = __binding__('_path');
 Object.assign(exports, _path);
@@ -121,7 +121,7 @@ export declare function rrectOutline(outside: Rect, inside: Rect, radius: Border
  * @param matrix Optional transform matrix.
  * @returns The computed region bounds.
  */
-export declare function getBoundsFromPoints(pts: Vec2[], ptsLen: number, matrix?: Mat): Region;
+export declare function getBoundsFromPoints(pts: Vec2[], ptsLen: number, matrix?: Mat): Range;
 
 /**
  * Represents a geometric path consisting of lines, curves, and shapes.
@@ -257,5 +257,5 @@ export declare class Path {
 	 * @param matrix Optional transform matrix (fast path if identity).
 	 * @returns The bounding region.
 	 */
-	getBounds(matrix?: Mat): Region;
+	getBounds(matrix?: Mat): Range;
 }

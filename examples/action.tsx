@@ -59,8 +59,8 @@ export default (self: Page)=>{
 
 	return (
 		<free width="match" height="match">
-			<matrix width={600} align="centerMiddle" y={-15} opacity={0.5}>
-				<matrix
+			<morph width={600} align="centerMiddle" y={-15} opacity={0.5}>
+				<morph
 					onHighlighted={highlighted} 
 					action={{
 						keyframe:[
@@ -76,8 +76,8 @@ export default (self: Page)=>{
 					ref="img1"
 				>
 					<image src={resolve('./gear0.png')} width={600} />
-				</matrix>
-				<matrix
+				</morph>
+				<morph
 					onHighlighted={highlighted}
 					action={{
 						keyframe: [
@@ -92,8 +92,8 @@ export default (self: Page)=>{
 					ref="img2"
 				>
 					<image src={resolve('./gear1.png')} width={361} />
-				</matrix>
-			</matrix>
+				</morph>
+			</morph>
 
 			{toolbar(self)}
 		</free>

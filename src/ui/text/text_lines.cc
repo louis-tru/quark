@@ -36,14 +36,15 @@
 #include "./text_opts.h"
 #include "./text_blob.h"
 #include "../view/box.h"
+#include "../geometry.h"
 
 namespace qk {
 
-	TextLines::TextLines(View *host, TextAlign text_align, Region limit_range, bool host_float_x)
+	TextLines::TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x)
 		: _pre_width(0), _ignore_single_white_space(false), _have_init_line_height(false)
 		, _limit_range(limit_range)
 		, _host(host), _host_float_x(host_float_x)
-		, _text_align(text_align), _visible_region(false)
+		, _text_align(text_align), _visible_area(false)
 	{
 		clear();
 	}
@@ -56,7 +57,7 @@ namespace qk {
 		_preView.push(Array<View*>());
 		_max_width = 0;
 		_min_origin = Float32::limit_max;
-		_visible_region = false;
+		_visible_area = false;
 	}
 
 	void TextLines::lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar) {
@@ -122,8 +123,8 @@ namespace qk {
 			auto height = top + bottom;
 			auto rawLineHeight = line_height;
 			if (rawLineHeight <= 2) { // use percentage
-				if (_limit_range.origin.y() > 0) {
-					line_height *= _limit_range.origin.y(); // use percentage
+				if (_limit_range.begin.y() > 0) {
+					line_height *= _limit_range.begin.y(); // use percentage
 					if (line_height < height) {
 						// try use to max value
 						line_height = Float32::min(rawLineHeight * _limit_range.end.y(), height);
@@ -174,7 +175,7 @@ namespace qk {
 		finish_line();
 
 		float host_width = _host_float_x ?
-			Float32::max(_max_width, _limit_range.origin.x()): _limit_range.end.x();
+			Float32::max(_max_width, _limit_range.begin.x()): _limit_range.end.x();
 
 		for (auto &line: _lines) {
 			switch(_text_align) {
@@ -301,9 +302,9 @@ namespace qk {
 		}
 	}
 
-	void TextLines::solve_visible_region(const Mat &mat) {
+	void TextLines::solve_visible_area(const Mat &mat) {
 		// solve lines visible region
-		auto& clip = _host->window()->getClipRegion();
+		auto& clip = _host->window()->getClipRange();
 		auto  offset_in = _host->layout_offset_inside();
 		auto  x1 = _min_origin + offset_in.x();
 		auto  x2 = x1 + _max_width;
@@ -316,32 +317,32 @@ namespace qk {
 		
 		bool is_all_false = false;
 
-		_visible_region = false;
+		_visible_area = false;
 
 		// TODO
 		// Use optimization algorithm using dichotomy
 
 		for (auto &line: _lines) {
 			if (is_all_false) {
-				line.visible_region = false;
+				line.visible_area = false;
 				continue;
 			}
 			auto y2 = line.end_y + y;
 			vertex[3] = mat * Vec2(x1, y2);
 			vertex[2] = mat * Vec2(x2, y2);
 
-			auto re = screen_region_from_convex_quadrilateral(vertex);
+			auto re = region_aabb_from_convex_quadrilateral(vertex);
 
-			if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.origin.y(), re.origin.y() )
-						<= re.end.y() - re.origin.y() + clip.size.y() &&
-					Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.origin.x(), re.origin.x() )
-						<= re.end.x() - re.origin.x() + clip.size.x()
+			if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.begin.y(), re.begin.y() )
+						<= re.end.y() - re.begin.y() + clip.size.y() &&
+					Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.begin.x(), re.begin.x() )
+						<= re.end.x() - re.begin.x() + clip.size.x()
 			) {
-				_visible_region = true;
-				line.visible_region = true;
+				_visible_area = true;
+				line.visible_area = true;
 			} else {
-				if (_visible_region) is_all_false = true;
-				line.visible_region = false;
+				if (_visible_area) is_all_false = true;
+				line.visible_area = false;
 			}
 			vertex[0] = vertex[3];
 			vertex[1] = vertex[2];
@@ -349,16 +350,16 @@ namespace qk {
 
 	}
 
-	void TextLines::solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
-		//Qk_DLog("TextLines::solve_visible_region_blob");
+	void TextLines::solve_visible_area_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
+		//Qk_DLog("TextLines::solve_visible_area_blob");
 
 		blob_visible->clear();
 
-		if (!visible_region()) {
+		if (!visible_area()) {
 			return;
 		}
 
-		auto& clip = _host->window()->getClipRegion();
+		auto& clip = _host->window()->getClipRange();
 		bool is_break = false;
 
 		for (int i = 0, len = blob->length(); i < len; i++) {
@@ -366,7 +367,7 @@ namespace qk {
 			if (item.blob.glyphs.length() == 0)
 				continue;
 			auto &line = this->line(item.line);
-			if (line.visible_region) {
+			if (line.visible_area) {
 				is_break = true;
 				blob_visible->push(i);
 			} else {
@@ -374,7 +375,7 @@ namespace qk {
 					break;
 			}
 			//Qk_DLog("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
-			//	item.origin, item.line, item.blob.glyphs.length(), line.visible_region);
+			//	item.origin, item.line, item.blob.glyphs.length(), line.visible_area);
 		}
 	}
 

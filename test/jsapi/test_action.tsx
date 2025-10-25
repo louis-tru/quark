@@ -38,17 +38,17 @@ const resolve = require.resolve;
 export default async function (win: Window) {
 	win.render(
 		<box width="match">
-			<matrix ref="div" align="start" width={100} height={100} backgroundColor="#f00" origin="auto">
+			<morph ref="div" align="start" width={100} height={100} backgroundColor="#f00" origin="auto">
 				<box width={50} height={50} align="center" backgroundColor="#ff0" />
-			</matrix>
+			</morph>
 			<image ref="img" align="end" src={resolve('./res/0.jpg')} />
-			<matrix width="50!" align="center" y={10} backgroundColor="#00f6">
+			<morph width="50!" align="center" y={10} backgroundColor="#00f6">
 				<button ref="play" textLineHeight={30} backgroundColor="#aaa" margin={2}>Play</button>
 				<button ref="stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>Stop</button>
 				<button ref="seek_play" textLineHeight={30} backgroundColor="#aaa" margin={2}>Seek Play</button>
 				<button ref="seek_stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>Seek Stop</button>
 				<button ref="clear" textLineHeight={30} backgroundColor="#aaa" margin={2}>Clear</button>
-			</matrix>
+			</morph>
 		</box>
 	)
 

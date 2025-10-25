@@ -84,9 +84,9 @@ namespace qk {
 			// Not draw navigation, if settings opacity as zero
 		};
 
-		struct RegionSize/*: Region*/ {
-			Vec2 origin,end;
-			Vec2 size; // full surface
+		struct RangeSize {
+			Vec2 begin,end;
+			Vec2 size; // full surface when as SurfaceRegion
 		};
 
 		/**
@@ -113,7 +113,7 @@ namespace qk {
 		 */
 		Qk_DEFINE_PROP_GET(float, scale, Const);
 		Qk_DEFINE_PROP_GET(float, defaultScale, Const); //!< default display scale
-		Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
+		Qk_DEFINE_PROP_GET(RangeSize, surfaceDisplayRange, Const); //!< Select the area on the drawing surface
 		Qk_DEFINE_PROP_GET(uint32_t, fsp, Const); //!< current fsp
 		Qk_DEFINE_PROP_GET(float, atomPixel, Const); // atom pixel size, equals 1.0 / scale
 		Qk_DEFINE_PROP_GET(Root*, root); //! root view
@@ -124,6 +124,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Rect, navigationRect, Const); //! navigation rect for android
 		Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 		Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
+		Qk_DEFINE_PROPERTY(bool, debugMode, Const); //! debug mode
 		Qk_DEFINE_ACCE_GET(FontPool*, fontPool); //! Font pool
 		Qk_DEFINE_ACCE_GET(RunLoop*, loop); //! host work loop
 		Qk_DEFINE_ACCE_GET(View*, focusView); //! focus view
@@ -146,16 +147,16 @@ namespace qk {
 		void destroy() override;
 
 		/**
-		* @method getClipRegion
+		* @method getClipRange
 		*/
-		const RegionSize& getClipRegion() const {
-			return _clipRegion.back();
+		const RangeSize& getClipRange() const {
+			return _clipRange.back();
 		}
 
 		/**
-		* @method clipRegion
+		* @method clipRange
 		*/
-		void clipRegion(Region value);
+		void clipRange(Range value);
 
 		/**
 		 * @method clipRestore()
@@ -208,7 +209,7 @@ namespace qk {
 		void closeImpl();
 		void beforeClose();
 		float getDefaultScale();
-		Region getDisplayRegion(Vec2 size);
+		Range getDisplayRange(Vec2 size); // get surface display range
 		void afterDisplay();
 		bool tryClose(); // destroy window and protform window
 
@@ -227,7 +228,7 @@ namespace qk {
 		uint32_t       _fspTick;
 		int64_t        _fspTime;
 		int64_t        _beginTime, _lastTime;
-		Array<RegionSize> _clipRegion;
+		Array<RangeSize> _clipRange;
 		List<Window*>::Iterator _id;
 		RecursiveMutex _renderMutex;
 		PreRender _preRender;

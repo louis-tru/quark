@@ -34,71 +34,63 @@
 
 namespace qk {
 
-	ActionCenter::ActionCenter(Window* window): _window(window), _prevTime_Rt(0) 
+	ActionCenter::ActionCenter(Window* window): _window(window)
 	{}
 
 	ActionCenter::~ActionCenter() {
-		auto it0 = _CSSTransitions_Rt.begin();
-		while (it0 != _CSSTransitions_Rt.end()) {
-			removeCSSTransition_Rt(reinterpret_cast<View*>((it0++)->first));
+		auto it0 = _CSSTransitions_rt.begin();
+		while (it0 != _CSSTransitions_rt.end()) {
+			removeCSSTransition_rt(reinterpret_cast<View*>((it0++)->first));
 		}
-		auto it = _actions_Rt.begin();
-		while (it != _actions_Rt.end()) {
-			(it++)->value->stop_Rt();
+		auto it = _actions_rt.begin();
+		while (it != _actions_rt.end()) {
+			(it++)->value->stop_rt();
 		}
-		Qk_CHECK(_CSSTransitions_Rt.length() == 0, "ActionCenter::~ActionCenter stop CSSTransitions");
-		Qk_CHECK(_actions_Rt.length() == 0, "ActionCenter::~ActionCenter stop actions first");
+		Qk_CHECK(_CSSTransitions_rt.length() == 0, "ActionCenter::~ActionCenter stop CSSTransitions");
+		Qk_CHECK(_actions_rt.length() == 0, "ActionCenter::~ActionCenter stop actions first");
 	}
 
-	void ActionCenter::addCSSTransition_Rt(View *view, CStyleSheets *css) {
+	void ActionCenter::addCSSTransition_rt(View *view, CStyleSheets *css) {
 		auto action = KeyframeAction::MakeSSTransition(view, css, css->time(), true);
 		action->retain(); // retain for center
-		action->play_Rt();
-		_CSSTransitions_Rt.get(uint64_t(view)).push(action);
+		action->play_rt();
+		_CSSTransitions_rt.get(uint64_t(view)).push(action);
 	}
 
-	void ActionCenter::removeCSSTransition_Rt(View *view) {
-		auto it = _CSSTransitions_Rt.find(uint64_t(view));
-		if (it != _CSSTransitions_Rt.end()) {
+	void ActionCenter::removeCSSTransition_rt(View *view) {
+		auto it = _CSSTransitions_rt.find(uint64_t(view));
+		if (it != _CSSTransitions_rt.end()) {
 			for (auto act: it->second) {
-				act->stop_Rt();
-				act->release_inner_Rt();
+				act->stop_rt();
+				act->release_inner_rt();
 			}
-			_CSSTransitions_Rt.erase(it);
+			_CSSTransitions_rt.erase(it);
 		}
 	}
 
-	void ActionCenter::advance_Rt(uint32_t timeMs) {
-		if ( _actions_Rt.length() == 0) return;
+	void ActionCenter::advance_rt(int64_t deltaTime) {
+		if ( _actions_rt.length() == 0)
+			return;
 
-		uint32_t time_span = 0;
-		if (_prevTime_Rt) {  // zero means not started yet
-			time_span = timeMs - _prevTime_Rt;
-			if ( time_span > 200 ) { 
-				// Restart the timer when the time interval exceeds 200ms,
-				// for example, when the application resumes from sleep mode
-				time_span = 200;
-			}
-		}
-		auto i = _actions_Rt.begin(), end = _actions_Rt.end();
+		auto deltaMs = uint32_t(deltaTime * 0.001f); // delta in milliseconds
+		auto i = _actions_rt.begin(), end = _actions_rt.end();
 
 		while ( i != end ) {
 			auto j = i++;
 			auto &act = *j;
 			if (act.value->_target) {
 				if (act._runAdvance) {
-					if ( act.value->advance_Rt(time_span, false, act.value) ) {
-						act.value->stop_Rt(); // stop action
+					if ( act.value->advance_rt(deltaMs, false, act.value) ) {
+						act.value->stop_rt(); // stop action
 					}
 				} else {
-					act.value->advance_Rt(0, false, act.value);
+					act.value->advance_rt(0, false, act.value);
 					act._runAdvance = true;
 				}
 			} else {
-				act.value->stop_Rt(); // stop action
+				act.value->stop_rt(); // stop action
 			}
 		}
-		_prevTime_Rt = timeMs;
 	}
 
 }

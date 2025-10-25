@@ -102,10 +102,10 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 	auto uiwin = _win->impl()->delegate().uiwin;
 	auto offset = [uiwin convertRectToScreen:NSZeroRect].origin;
 	//Qk_NSLog(@"set_ime_keyboard_spot_location %f,%f,%f,%f", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-	auto origin = rect.origin;
+	auto begin = rect.begin;
 	auto win_h = uiwin.frame.size.height;
-	auto x = origin.x() + offset.x;
-	auto y = win_h - origin.y() + offset.y - rect.size.y() - 30;
+	auto x = begin.x() + offset.x;
+	auto y = win_h - begin.y() + offset.y - rect.size.y() - 30;
 	_spot_rect = CGRectMake(x, y, rect.size.x(), rect.size.y());
 }
 

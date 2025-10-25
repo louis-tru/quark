@@ -11,9 +11,9 @@ class FSP extends ViewController {
 	@linkAcc value = '';
 	render() {
 		return (
-			<matrix align="leftBottom" x={5} y={-5}>
+			<morph align="leftBottom" x={5} y={-5}>
 				<text textColor="#f00" value={this.value} />
-			</matrix>
+			</morph>
 		);
 	}
 	up_fsp() {

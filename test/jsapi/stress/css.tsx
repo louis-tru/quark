@@ -42,7 +42,7 @@ win.render(
 	<box width="match" height="match" class="top">
 	{
 		Array.from({length:test_count}, (_, i)=>{
-			return <matrix key={i} class={'css_' + i} />;
+			return <morph key={i} class={'css_' + i} />;
 		})
 	}
 	</box>

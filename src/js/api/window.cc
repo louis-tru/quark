@@ -75,12 +75,7 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Class_Accessor(size, {
-				Js_Return( worker->types()->jsvalue(self->size()) );
-			}, {
-				Js_Parse_Type(Vec2, val, "@prop Window.size = %s");
-				self->set_size(out);
-			});
+			Js_MixObject_Accessor(Window, Vec2, size, size);
 
 			Js_Class_Accessor_Get(scale, {
 				Js_Return( self->scale() );
@@ -90,7 +85,7 @@ namespace qk { namespace js {
 				Js_Return( self->defaultScale() );
 			});
 
-			// Qk_DEFINE_PROP_GET(RegionSize, surfaceRegion, Const); //!< Select the area on the drawing surface
+			// Qk_DEFINE_PROP_GET(RegionSize, surfaceDisplayRange, Const); //!< Select the area on the drawing surface
 
 			Js_Class_Accessor_Get(fsp, {
 				Js_Return( self->fsp() );
@@ -104,23 +99,16 @@ namespace qk { namespace js {
 				Js_Return( worker->types()->jsvalue(self->navigationRect()) );
 			});
 
-			cls->setAccessor("root",([](auto key,auto args){
-				auto worker = args.worker();
-				auto self = MixObject::mix<Type>(args.thisObj())->self();
-				args.returnValue().set(worker->newValue(self->root()));
-			}));
+			Js_Class_Accessor_Get(root, {
+				Js_Return( worker->newValue(self->root()) );
+			});
 
 			// Qk_DEFINE_PROP_GET(Application*, host); //! application host
 			// Qk_DEFINE_PROP_GET(Render*, render); //! render object
 			// Qk_DEFINE_PROP_GET(EventDispatch*, dispatch); //! event dispatch
 			// Qk_DEFINE_PROP_GET(RootStyleSheets*, styleSheets); //! root style sheets
 
-			Js_Class_Accessor(backgroundColor, {
-				Js_Return( worker->types()->jsvalue(self->backgroundColor()) );
-			}, {
-				Js_Parse_Type(Color, val, "@prop Window.backgroundColor = %s");
-				self->set_backgroundColor(out);
-			});
+			Js_MixObject_Accessor(Window, Color, backgroundColor, backgroundColor);
 
 			// Qk_DEFINE_PROP_GET(WindowImpl*, impl); //! window platform impl
 			// Qk_DEFINE_PROP_GET(ActionCenter*, actionCenter); //! Action scheduling
@@ -135,6 +123,8 @@ namespace qk { namespace js {
 				Js_Return( worker->types()->jsvalue(self->surfaceSize()) );
 			});
 
+			Js_MixObject_Accessor(Window, bool, debugMode, debugMode);
+
 			Js_Class_Method(nextFrame, {
 				if (!args.length() || !args[0]->isFunction()) {
 					Js_Throw(
@@ -146,12 +136,10 @@ namespace qk { namespace js {
 				Js_Return(args.thisObj());
 			});
 
-			cls->setMethod("activate",([](auto args){
-				auto worker = args.worker();
-				auto self = MixObject::mix<Type>(args.thisObj())->self();
+			Js_Class_Method(activate, {
 				self->activate();
-				args.returnValue().set( args.thisObj() );
-			}));
+				Js_Return(args.thisObj());
+			});
 
 			Js_Class_Method(close, {
 				self->close();

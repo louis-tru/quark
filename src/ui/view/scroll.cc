@@ -223,7 +223,7 @@ namespace qk {
 			}
 		}
 
-		void termination_all_task_Rt() {
+		void termination_all_task_rt() {
 			for ( auto i : _tasks ) {
 				delete i;
 			}
@@ -396,7 +396,7 @@ namespace qk {
 		}
 
 		void scroll_to_valid_scroll(Vec2 valid_scroll, uint64_t duration, cCurve& curve = ease_out) {
-			termination_all_task_Rt();
+			termination_all_task_rt();
 			if ( duration ) {
 				motion_start(valid_scroll, duration, curve);
 			} else {
@@ -405,7 +405,7 @@ namespace qk {
 		}
 
 		void termination_recovery(uint64_t duration, cCurve& curve = ease_out) {
-			termination_all_task_Rt();
+			termination_all_task_rt();
 
 			Vec2 scroll = get_catch_valid_scroll(_scroll);
 			if ( scroll == _scroll ) {
@@ -436,7 +436,7 @@ namespace qk {
 		}
 
 		void move_start(Vec2 point) {
-			termination_all_task_Rt();
+			termination_all_task_rt();
 			_moved = false;
 			_move_dist = Vec2();
 			_move_point = point;
@@ -554,7 +554,7 @@ namespace qk {
 					}
 				}
 
-				Vec2 Catch = get_catch_value(); // Capture location
+				Vec2 Catch = get_catch_value(); // Capture position
 
 				float mod_x = int(roundf(new_x)) % uint32_t(Catch.x());
 				float mod_y = int(roundf(new_y)) % uint32_t(Catch.y());
@@ -607,7 +607,7 @@ namespace qk {
 				Sp<TouchEvent::TouchPoint> handle(arg.arg);
 				if ( !ctx->_action_id ) {
 					ctx->_action_id = arg.arg->id;
-					ctx->move_start(arg.arg->location);
+					ctx->move_start(arg.arg->position);
 				}
 			}, this, args);
 		}
@@ -621,7 +621,7 @@ namespace qk {
 					if ( ctx->_action_id ) {
 						for ( auto &i : *arg.arg ) {
 							if (i.id == ctx->_action_id) {
-								ctx->move(i.location);
+								ctx->move(i.position);
 								break;
 							}
 						}
@@ -637,7 +637,7 @@ namespace qk {
 				if ( ctx->_action_id ) {
 					for ( auto &i: *arg.arg ) {
 						if (i.id == ctx->_action_id) {
-							ctx->move_end(i.location);
+							ctx->move_end(i.position);
 							ctx->_action_id = 0;
 							break;
 						}
@@ -653,7 +653,7 @@ namespace qk {
 					ctx->_action_id = 1;
 					ctx->move_start(arg.arg);
 				}
-			}, this, evt->location());
+			}, this, evt->position());
 		}
 
 		void handle_MouseMove(UIEvent& e) {
@@ -663,7 +663,7 @@ namespace qk {
 					if ( ctx->_action_id ) {
 						ctx->move(arg.arg);
 					}
-				}, this, evt->location());
+				}, this, evt->position());
 			}
 		}
 
@@ -674,7 +674,7 @@ namespace qk {
 					ctx->move_end(arg.arg);
 					ctx->_action_id = 0;
 				}
-			}, this, evt->location());
+			}, this, evt->position());
 		}
 
 		void handle_MouseWheel(UIEvent& e) {
@@ -686,7 +686,7 @@ namespace qk {
 					self->scroll_to_valid_scroll(v, 0);
 					self->register_task(new ScrollBarFadeInOutTask(self, 5e4, 1e6, 3e5));
 				}
-			}, this, evt.location());
+			}, this, evt.position());
 		}
 
 	};
@@ -736,7 +736,7 @@ namespace qk {
 	}
 
 	ScrollView::~ScrollView() {
-		_this->termination_all_task_Rt();
+		_this->termination_all_task_rt();
 	}
 
 	void ScrollView::set_scrollbar(bool value) {
@@ -865,7 +865,7 @@ namespace qk {
 		}
 	}
 
-	void ScrollView::set_scroll_size_Rt(Vec2 size) {
+	void ScrollView::set_scroll_size_rt(Vec2 size) {
 		if (_scroll_size != size) {
 			_scroll_size = size;
 			_this->immediate_end_all_task(); // change size immediate task
@@ -910,7 +910,7 @@ namespace qk {
 
 	void Scroll::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			set_scroll_size_Rt(layout_typesetting_float());
+			set_scroll_size_rt(layout_typesetting_float());
 		}
 	}
 

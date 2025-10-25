@@ -81,11 +81,11 @@ namespace qk {
 		}
 
 		// trigger event in main thread
-		if (!tryRetain_Rt()) {
+		if (!tryRetain_rt()) {
 			window()->loop()->post(Cb([this,name,data](auto e) {
 				Sp<UIEvent> evt(new UIEvent(this, data));
 				trigger(name, **evt);
-				release(); // It must be release here @ if (tryRetain_Rt()) 
+				release(); // It must be release here @ if (tryRetain_rt()) 
 			}), true);
 		} else {
 			Release(data);

@@ -31,31 +31,10 @@
 #ifndef __quark__view__sprite__
 #define __quark__view__sprite__
 
-#include "./matrix.h"
+#include "./entity.h"
 
 namespace qk {
 	class KeyframeAction;
-
-	/**
-	 * @class SpriteView
-	 * @brief SpriteView is inherited from View and MatrixView.
-	*/
-	class Qk_EXPORT SpriteView: public View, public MatrixView {
-	public:
-		SpriteView();
-		MatrixView* asMatrixView() override;
-		Vec2 layout_offset_inside() override;
-		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		void solve_visible_region(const Mat &mat) override;
-		bool overlap_test(Vec2 point) override; // Check if the point overlaps with the sprite
-		void trigger_listener_change(uint32_t name, int count, int change) override;
-		void layout_reverse(uint32_t mark) override;
-	private:
-		void solve_origin_value(Vec2 client, Vec2 from); // compute origin value from parameter
-		Vec2 _bounds[4]; // The bounds of the sprite for world coords
-		bool _boundsOk; // is computed bounds
-		friend class Spine;
-	};
 
 	/**
 	 * @class Sprite
@@ -70,7 +49,7 @@ namespace qk {
 	 * </sprite>
 	 * ```
 	*/
-	class Qk_EXPORT Sprite: public SpriteView, public ImageSourceHold {
+	class Qk_EXPORT Sprite: public Agent, public ImageSourceHold {
 	public:
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const); // The source of the sprite image
 		Qk_DEFINE_VIEW_PROPERTY(float, width, Const); // The width of the sprite frame
@@ -89,6 +68,7 @@ namespace qk {
 		void stop(); // Stop the sprite frames
 		ViewType viewType() const override;
 		Vec2 client_size() override;
+		Region client_region() override;
 		void draw(Painter *render) override;
 	protected:
 		void onSourceState(ImageSource::State state) override;

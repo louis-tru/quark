@@ -133,35 +133,35 @@ namespace qk {
 		typedef EventNoticerBasic Basic;
 		NotificationBasic();
 		virtual ~NotificationBasic();
-		Basic* get_noticer(uint32_t name, bool no_null = 0);
-		bool has_noticer(uint32_t name) const;
-		bool has_listener(uint32_t name) const;
+		Basic* get_noticer(uint64_t name, bool no_null = 0);
+		bool has_noticer(uint64_t name) const;
+		bool has_listener(uint64_t name) const;
 		bool is_noticer_none() const;
 		/**
 		 * Listener changes will be notified to this function, such as adding and deleting event listeners
 		 * @param name {const Type&} hash code for name
 		*/
-		virtual void trigger_listener_change(uint32_t name, int count, int change);
+		virtual void trigger_listener_change(uint64_t name, int count, int change);
 		// get notification message sender
 		virtual void* event_noticer_sender();
 		//!< add event listener
-		void add_event_listener(uint32_t name, Basic::Listener *l);
+		void add_event_listener(uint64_t name, Basic::Listener *l);
 		//!< remove event listener
-		void remove_event_listener(uint32_t name, void (Object::*listener)(Object&));
-		void remove_event_listener(uint32_t name, void (Object::*listener)(Object&), void *ctx);
-		void remove_event_listener_static(uint32_t name, void (*listener)(Object&, void*));
-		void remove_event_listener_static(uint32_t name, void (*listener)(Object&, void*), void* ctx);
-		void remove_event_listener_for_id(uint32_t name, uint32_t id);
-		void remove_event_listener_shell(uint32_t name, Basic *shell);
+		void remove_event_listener(uint64_t name, void (Object::*listener)(Object&));
+		void remove_event_listener(uint64_t name, void (Object::*listener)(Object&), void *ctx);
+		void remove_event_listener_static(uint64_t name, void (*listener)(Object&, void*));
+		void remove_event_listener_static(uint64_t name, void (*listener)(Object&, void*), void* ctx);
+		void remove_event_listener_for_id(uint64_t name, uint32_t id);
+		void remove_event_listener_shell(uint64_t name, Basic *shell);
 		void remove_event_listener_for_ctx(void* ctx);
-		void remove_event_listener_for_id(uint32_t id);
+		void remove_event_listener_for_id(uint64_t id);
 	protected:
 		// Uninstall all listening functions on the specified event name
-		void remove_event_listener_for_name(uint32_t name);
+		void remove_event_listener_for_name(uint64_t name);
 		// Uninstall all listening functions
 		void remove_event_listener();
 
-		Dict<uint32_t, Basic*>* _noticers;
+		Dict<uint64_t, Basic*>* _noticers;
 	};
 
 	template<class Event, class Lock>

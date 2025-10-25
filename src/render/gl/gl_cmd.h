@@ -103,7 +103,7 @@ namespace qk {
 		struct alignas(void*) ClearCmd: Cmd {
 			float          depth;
 			Color4f        color;
-			Region         region;
+			Range          range;
 			bool           fullClear;
 		};
 
@@ -117,14 +117,14 @@ namespace qk {
 
 		struct alignas(void*) BlurFilterBeginCmd: Cmd {
 			float           depth;
-			Region          bounds;
+			Range           bounds;
 			float           size; // blur size
 			bool            isClipState;
 		};
 
 		struct alignas(void*) BlurFilterEndCmd: Cmd {
 			float           depth;
-			Region          bounds;
+			Range           bounds;
 			float           size; // blur size
 			Sp<ImageSource> recover; // recover output dest
 			int             n,lod; // sampling rate and image lod
@@ -244,9 +244,9 @@ namespace qk {
 		void drawTriangles(const Triangles& triangles, const PaintImage *paint, const Color4f &color);
 		void drawGradient(const VertexData &vertex, const PaintGradient *paint, const Color4f &color, bool aafuzz);
 		void drawClip(const GLC_State::Clip &clip, uint32_t ref, ImageSource *recover, bool revoke);
-		void clearColor(const Color4f &color, const Region &region, bool fullClear);
-		void blurFilterBegin(Region bounds, float size);
-		int  blurFilterEnd(Region bounds, float size, ImageSource* recover);
+		void clearColor(const Color4f &color, const Range &range, bool fullClear);
+		void blurFilterBegin(Range bounds, float size);
+		int  blurFilterEnd(Range bounds, float size, ImageSource* recover);
 		void readImage(const Rect &src, ImageSource* img);
 		void outputImageBegin(ImageSource* img);
 		void outputImageEnd(ImageSource* img);

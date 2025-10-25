@@ -38,8 +38,8 @@ namespace qk {
 		Vec2 scale(dest.size.x() / src.size.x(), dest.size.y() / src.size.y());
 		paint->coord = {
 			Vec2(
-				src.origin.x() * scale.x() - dest.origin.x(),
-				src.origin.y() * scale.y() - dest.origin.y()
+				src.begin.x() * scale.x() - dest.begin.x(),
+				src.begin.y() * scale.y() - dest.begin.y()
 			),
 			Vec2(scale.x() * srcSize[0], scale.y() * srcSize[1]), // shader tex scale
 		};

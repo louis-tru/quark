@@ -46,12 +46,12 @@ namespace qk {
 	}
 
 	void PreRender::LevelMarks::clear() {
-		_length = 1;
+		_ptr.extra = 1;
 	}
 
 	void PreRender::LevelMarks::pop(uint32_t count) {
-		Qk_ASSERT_GT(_length, count);
-		_length -= count;
+		Qk_ASSERT_GT(_ptr.extra, count);
+		_ptr.extra -= count;
 	}
 
 	PreRender::PreRender(Window *win)
@@ -111,7 +111,7 @@ namespace qk {
 	}
 
 	bool PreRender::post(Cb cb, View *v, bool toQueue) {
-		if (v->tryRetain_Rt()) {
+		if (v->tryRetain_rt()) {
 			struct Core: CallbackCore<Object> {
 				Cb       cb;
 				Sp<View> view;
@@ -132,7 +132,7 @@ namespace qk {
 		for (auto &levelMarks: _marks) {
 			for (auto view: levelMarks) {
 				if (view->_mark_value & View::kStyle_Class) {
-					view->applyClass_Rt(view->parentSsclass_Rt());
+					view->applyClass_rt(view->parentSsclass_rt());
 				}
 			}
 		}
@@ -193,7 +193,7 @@ namespace qk {
 
 	bool PreRender::solve(int64_t time, int64_t deltaTime) {
 		solveAsyncCall();
-		_window->actionCenter()->advance_Rt(uint32_t(time / 1000)); // advance action
+		_window->actionCenter()->advance_rt(deltaTime); // advance action
 
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();
@@ -207,7 +207,7 @@ namespace qk {
 					}
 					i++;
 				} else {
-					_tasks.erase(i++);
+					_tasks.erase(i++); // remove null task
 				}
 			}
 		}

@@ -35,11 +35,6 @@
 #include "../../render/bezier.h"
 
 namespace qk {
-	class Scroll;
-
-	// Qk_Set_Accessor(Scroll, SCROLLBAR_COLOR, scrollbar_color, Color);
-	// Qk_Set_Accessor(Scroll, SCROLLBAR_WIDTH, scrollbar_width, float);
-	// Qk_Set_Accessor(Scroll, SCROLLBAR_MARGIN, scrollbar_margin, float);
 
 	class Qk_EXPORT ScrollView {
 	public:
@@ -71,7 +66,7 @@ namespace qk {
 		ScrollView(Box *host);
 		~ScrollView();
 		void solve(uint32_t mark); // @thread Rt
-		void set_scroll_size_Rt(Vec2 size); // @thread Rt
+		void set_scroll_size_rt(Vec2 size); // @thread Rt
 	private:
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DEFINE_INLINE_CLASS(Task);

@@ -237,7 +237,7 @@ namespace qk {
 						}
 						case kClear_CmdType: {
 							auto c = (ClearCmd*)cmd;
-							clearColorCall(c->color, c->region, c->fullClear, c->depth);
+							clearColorCall(c->color, c->range, c->fullClear, c->depth);
 							break;
 						}
 						case kClip_CmdType: {
@@ -429,7 +429,7 @@ namespace qk {
 			float min_edge = Qk_Min(rect.size[0],rect.size[1]); // min w or h
 			float rmax = 0.5 * min_edge; // max r
 			Vec2 size = rect.size * 0.5;
-			Vec2 c = rect.origin + size; // rect center
+			Vec2 c = rect.begin + size; // rect center
 			float w = size[0] + s, h = size[1] + s;
 			float x1 = c[0] - w, x2 = c[0] + w;
 			float y1 = c[1] - h, y2 = c[1] + h;
@@ -500,7 +500,7 @@ namespace qk {
 				glUniform1f(s->depth, depth);
 				glUniform1f(s->allScale, allScale);
 				glUniform4fv(s->color, 1, color.val);
-				glUniform4fv(s->texCoords, 1, paint->coord.origin.val);
+				glUniform4fv(s->texCoords, 1, paint->coord.begin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -518,7 +518,7 @@ namespace qk {
 						type == kLuminance_Alpha_88_ColorType ? 1 : 3); // alpha index
 				glUniform1f(s->allScale, allScale);
 				glUniform4fv(s->color, 1, color.val);
-				glUniform4fv(s->texCoords, 1, paint->coord.origin.val);
+				glUniform4fv(s->texCoords, 1, paint->coord.begin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -534,7 +534,7 @@ namespace qk {
 				glUniform4fv(s->color, 1, color.val);
 				glUniform4fv(s->strokeColor, 1, stroke <= 0 ? color.val: strokeColor.val);
 				glUniform1f(s->strokeWidth, stroke);
-				glUniform4fv(s->texCoords, 1, paint->coord.origin.val);
+				glUniform4fv(s->texCoords, 1, paint->coord.begin.val);
 				glDrawArrays(GL_TRIANGLES, 0, vertex.vCount);
 			}
 		}
@@ -653,7 +653,7 @@ namespace qk {
 			}
 		}
 
-		void clearColorCall(const Color4f &color, const Region &region, bool full, float depth) {
+		void clearColorCall(const Color4f &color, const Range &region, bool full, float depth) {
 			if (full) {
 				//glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
 				glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, 127); // depth=0, stencil = 127
@@ -661,7 +661,7 @@ namespace qk {
 				//glClearColor(color.r(), color.g(), color.b(), color.a());
 				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			} else {
-				float x1 = region.origin.x(), y1 = region.origin.y();
+				float x1 = region.begin.x(), y1 = region.begin.y();
 				float x2 = region.end.x(), y2 = region.end.y();
 				float data[] = {
 					x1,y1,0,/*left top*/
@@ -676,8 +676,8 @@ namespace qk {
 			}
 		}
 
-		void clearRegion(const Region &region, float scale, float offsetY, float depth) {
-			auto origin = region.origin * scale;
+		void clearRegion(const Range &region, float scale, float offsetY, float depth) {
+			auto origin = region.begin * scale;
 			auto end = region.end * scale;
 			clearColorCall({0,0,0,0}, {
 				{origin.x(), origin.y() + offsetY},
@@ -694,7 +694,7 @@ namespace qk {
 			// Qk_DLog("getBlurSampling %d, lod: %d", n, lod);
 		}
 
-		void blurFilterBeginCall(Region bounds, float size, bool isClipState, float depth) {
+		void blurFilterBeginCall(Range bounds, float size, bool isClipState, float depth) {
 			if (!_canvas->_outA) {
 				glGenTextures(1, &_canvas->_outA); // ready the blur buffer
 				gl_set_tex_renderbuffer(_canvas->_outA, _canvas->_surfaceSize);
@@ -720,7 +720,7 @@ namespace qk {
 			|//////////////|
 			*/
 			clearColorCall({0,0,0,0}, {
-				{bounds.origin.x() - size, bounds.origin.y()},
+				{bounds.begin.x() - size, bounds.begin.y()},
 				{bounds.end.x() + size, bounds.end.y()},
 			}, false, depth);
 			// glClearBufferfv(GL_COLOR, 0, emptyColor.val);
@@ -738,11 +738,11 @@ namespace qk {
 		 *   https://elynxsdk.free.fr/ext-docs/Blur/Fast_box_blur.pdf
 		 *   https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
 		 */
-		void blurFilterEndCall(Region bounds, float size,
+		void blurFilterEndCall(Range bounds, float size,
 			ImageSource* recover, BlendMode backMode, int n, int lod, bool isClipState, float depth)
 		{
 			auto _c = _canvas;
-			float x1 = bounds.origin.x(), y1 = bounds.origin.y() + size;
+			float x1 = bounds.begin.x(), y1 = bounds.begin.y() + size;
 			float x2 = bounds.end.x(), y2 = bounds.end.y() - size;
 			auto fullsize = size * _c->_surfaceScale;
 			Vec2 R = _c->_surfaceSize;
@@ -861,7 +861,7 @@ namespace qk {
 
 		void readImageCall(const Rect &src, ImageSource* img, Vec2 canvasSize, Vec2 surfaceSize, float depth) {
 			auto tex = img->texture(0);
-			auto o = src.origin, s = src.size;
+			auto o = src.begin, s = src.size;
 			auto w = img->width(), h = img->height();
 			auto iformat = gl_get_texture_internalformat(img->type());
 			auto format = gl_get_texture_format(img->type());
@@ -1317,16 +1317,16 @@ namespace qk {
 		cmd->recover = recover;
 	}
 
-	void GLC_CmdPack::clearColor(const Color4f &color, const Region &region, bool full) {
+	void GLC_CmdPack::clearColor(const Color4f &color, const Range &region, bool full) {
 		auto cmd = new(_this->allocCmd(sizeof(ClearCmd))) ClearCmd;
 		cmd->type = kClear_CmdType;
 		cmd->color = color;
-		cmd->region = region;
+		cmd->range = region;
 		cmd->depth = _canvas->_zDepth;
 		cmd->fullClear = full;
 	}
 
-	void GLC_CmdPack::blurFilterBegin(Region bounds, float size) {
+	void GLC_CmdPack::blurFilterBegin(Range bounds, float size) {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterBeginCmd))) BlurFilterBeginCmd;
 		cmd->type = kBlurFilterBegin_CmdType;
 		cmd->bounds = bounds;
@@ -1335,7 +1335,7 @@ namespace qk {
 		cmd->isClipState = _canvas->_isClipState;
 	}
 
-	int GLC_CmdPack::blurFilterEnd(Region bounds, float size, ImageSource *recover) {
+	int GLC_CmdPack::blurFilterEnd(Range bounds, float size, ImageSource *recover) {
 		auto cmd = new(_this->allocCmd(sizeof(BlurFilterEndCmd))) BlurFilterEndCmd;
 		cmd->type = kBlurFilterEnd_CmdType;
 		cmd->bounds = bounds;

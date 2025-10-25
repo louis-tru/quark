@@ -184,7 +184,7 @@ namespace qk {
 		cVoid* rep_, uint32_t rep_len,
 		int sizeOf, bool all, Allocator *allocator
 	) {
-		Init base = {{allocator,0,0},0};
+		Init base = {{allocator,nullptr,0,0}};
 		uint32_t to = 0;
 		uint32_t from = 0;
 		int32_t  find, before_len;
@@ -226,7 +226,7 @@ namespace qk {
 		to += before_len;
 
 		::memset(base.ptr.val + to * sizeOf, 0, sizeOf);
-		base.length = to;
+		base.ptr.extra = to;
 
 		return base;
 	}
@@ -304,19 +304,19 @@ namespace qk {
 		Qk_ASSERT(len_ >= 0);
 
 		uint32_t len = len_;
-		Init base{ {Allocator::shared(), val, len + 1}, len };
+		Init base{ {Allocator::shared(), val, len + 1, len} };
 
 		switch (sizeOf) {
 			case 1: break;
 			case 2: {
 				auto b = codec_decode_to_ucs2(kUTF8_Encoding, Buffer::from(val, len));
-				base = { *(Ptr*)&b._ptr, b.length() };
+				base = { *(Ptr*)&b._ptr };
 				b.collapse();
 				break;
 			}
 			case 4: {
 				auto b = codec_decode_to_unicode(kUTF8_Encoding, Buffer::from(val, len));
-				base = { *(Ptr*)&b._ptr, b.length() };
+				base = { *(Ptr*)&b._ptr };
 				b.collapse();
 				break;
 			}
@@ -329,7 +329,7 @@ namespace qk {
 	String _Str::printfv(cChar* f, va_list arg) {
 		auto base = _Str::sPrintfv(1, f, arg);
 		if (base.ptr.val) {
-			return Buffer::from((char*)base.ptr.val, base.length, base.ptr.capacity).collapseString();
+			return Buffer::from((char*)base.ptr.val, base.ptr.extra, base.ptr.capacity).collapseString();
 		}
 		return String();
 	}
@@ -417,7 +417,7 @@ namespace qk {
 		l->allocator = init.ptr.allocator;
 		l->val = init.ptr.val;
 		l->capacity = init.ptr.capacity * sizeOf;
-		l->length = init.length * sizeOf;
+		l->extra = init.ptr.extra * sizeOf;
 		l->ref = 1;
 		l->flag = 127645561;
 		return l;
@@ -509,7 +509,7 @@ namespace qk {
 	}
 
 	uint32_t StringBase::size() const {
-		return _val.s.length < 0 ? _val.r->length: _val.s.length;
+		return _val.s.length < 0 ? _val.r->extra: _val.s.length;
 	}
 
 	uint32_t StringBase::capacity() const {
@@ -534,20 +534,20 @@ namespace qk {
 				// TODO 需要从共享核心中分离出来, 多个线程同时使用一个Ref可能的安全问题
 				auto old = _val.r;
 				//_val.r = NewRef(len, 0, nullptr);
-				_val.r = NewRef({{_val.r->allocator,0,0},len}, 1);
+				_val.r = NewRef({{_val.r->allocator,0,0,len}}, 1);
 				// aalloc(_val.r, len + sizeOf, 1);
 				_val.r->allocator->resize((VoidPtr*)_val.r, len + sizeOf, 1);
-				::memcpy(_val.r->val, old->val, Qk_Min(len, old->length));
+				::memcpy(_val.r->val, old->val, Qk_Min(len, old->extra));
 				ReleaseRef(old); // release old
 			} else {
-				_val.r->length = len;
+				_val.r->extra = len;
 				// aalloc(_val.l, len + sizeOf, 1);
 				_val.r->allocator->resize((VoidPtr*)_val.r, len + sizeOf, 1);
 			}
 		}
 		else if (len > MAX_SHORT_LEN) {
 			//auto l = NewRef(len, 0, nullptr);
-			auto l = NewRef({{Allocator::shared(),0,0},len}, 1);
+			auto l = NewRef({{Allocator::shared(),0,0,len}}, 1);
 			//aalloc(l, len + sizeOf, 1);
 			l->allocator->resize((VoidPtr*)l, len + sizeOf, 1);
 			::memcpy(l->val, _val.s.val, _val.s.length); // copy string
@@ -576,12 +576,11 @@ namespace qk {
 		auto s_len = _val.s.length;
 		if (s_len < 0) {
 			// long string
-			if (_val.r->length == 0) {
+			if (_val.r->extra == 0) {
 				return Buffer();
 			}
 			// collapse
-			auto len = _val.r->length;
-			Ptr ptr{Allocator::shared(),nullptr,0};
+			Ptr ptr{Allocator::shared(),nullptr,0,_val.r->extra};
 			if (_val.r->ref > 1) { //
 				// aalloc(&ptr, _val.r->capacity, 1);
 				ptr.resize(_val.r->capacity);
@@ -592,13 +591,13 @@ namespace qk {
 				::free(_val.r); // full delete memory
 			}
 			_val.s = {{0},0}; // use empty string
-			return Buffer(len, ptr);
+			return Buffer(ptr);
 		} else {
 			// short string
 			if (s_len == 0) {
 				return Buffer();
 			}
-			Ptr ptr{Allocator::shared(),nullptr,0};
+			Ptr ptr{Allocator::shared(),nullptr,0,0};
 			// aalloc(&ptr, MAX_SHORT_LEN + 4, 1);
 			ptr.resize(MAX_SHORT_LEN + 4);
 			::memcpy(ptr.val, _val.s.val, MAX_SHORT_LEN + 4);

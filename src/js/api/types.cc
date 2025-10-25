@@ -119,8 +119,8 @@ namespace qk { namespace js {
 	JSValue* TypesParser::jsvalue(const TouchPoint& val) {
 		auto rv = worker->newObject();
 		rv->set(worker,strs->id(), worker->newValue(val.id));
-		rv->set(worker,strs->startLocation(), jsvalue(val.start_location));
-		rv->set(worker,strs->location(), jsvalue(val.location));
+		rv->set(worker,strs->startPosition(), jsvalue(val.start_position));
+		rv->set(worker,strs->position(), jsvalue(val.position));
 		rv->set(worker,strs->force(), worker->newValue(val.force));
 		// rv->set(worker,strs->clickIn(), worker->newBool(val.click_in));
 		rv->set(worker,strs->view(), MixObject::mix(val.view)->handle());
@@ -198,22 +198,34 @@ namespace qk { namespace js {
 
 	JSValue* TypesParser::jsvalue(const Rect& value) {
 		JSValue* args[] = {
-			jsValue(value.origin.x()),
-			jsValue(value.origin.y()),
+			jsValue(value.begin.x()),
+			jsValue(value.begin.y()),
 			jsValue(value.size.width()),
 			jsValue(value.size.height()),
 		};
 		return _newRect->call(worker, 4, args);
 	}
 
-	JSValue* TypesParser::jsvalue(const Region& value) {
+	JSValue* TypesParser::jsvalue(const Range& value) {
 		JSValue* args[] = {
-			jsValue(value.origin.x()),
-			jsValue(value.origin.y()),
+			jsValue(value.begin.x()),
+			jsValue(value.begin.y()),
 			jsValue(value.end.x()),
 			jsValue(value.end.y()),
 		};
-		return _newRegion->call(worker, 4, args);
+		return _newRange->call(worker, 4, args);
+	}
+
+	JSValue* TypesParser::jsvalue(const Region& value) {
+		JSValue* args[] = {
+			jsValue(value.begin.x()),
+			jsValue(value.begin.y()),
+			jsValue(value.end.x()),
+			jsValue(value.end.y()),
+			jsValue(value.origin.x()),
+			jsValue(value.origin.y()),
+		};
+		return _newRegion->call(worker, 6, args);
 	}
 
 	JSValue* TypesParser::jsvalue(const Mat& value) {
@@ -697,20 +709,32 @@ namespace qk { namespace js {
 	bool TypesParser::parse(JSValue* in, Rect& out, cChar* desc) {
 		js_parse(Rect, {
 			// TODO: need to check type
-			out.origin[0] = obj->get<JSNumber>(worker, strs->x())->float32();
-			out.origin[1] = obj->get<JSNumber>(worker, strs->y())->float32();
+			out.begin[0] = obj->get<JSNumber>(worker, strs->x())->float32();
+			out.begin[1] = obj->get<JSNumber>(worker, strs->y())->float32();
 			out.size[0] = obj->get<JSNumber>(worker, strs->width())->float32();
 			out.size[1] = obj->get<JSNumber>(worker, strs->height())->float32();
+		});
+	}
+
+	bool TypesParser::parse(JSValue* in, Range& out, cChar* desc) {
+		js_parse(Range, {
+			// TODO: need to check type
+			out.begin[0] = obj->get<JSNumber>(worker, strs->p0())->float32();
+			out.begin[1] = obj->get<JSNumber>(worker, strs->p1())->float32();
+			out.end[0] = obj->get<JSNumber>(worker, strs->p2())->float32();
+			out.end[1] = obj->get<JSNumber>(worker, strs->p3())->float32();
 		});
 	}
 
 	bool TypesParser::parse(JSValue* in, Region& out, cChar* desc) {
 		js_parse(Region, {
 			// TODO: need to check type
-			out.origin[0] = obj->get<JSNumber>(worker, strs->p0())->float32();
-			out.origin[1] = obj->get<JSNumber>(worker, strs->p1())->float32();
+			out.begin[0] = obj->get<JSNumber>(worker, strs->p0())->float32();
+			out.begin[1] = obj->get<JSNumber>(worker, strs->p1())->float32();
 			out.end[0] = obj->get<JSNumber>(worker, strs->p2())->float32();
 			out.end[1] = obj->get<JSNumber>(worker, strs->p3())->float32();
+			out.origin[0] = obj->get<JSNumber>(worker, strs->p4())->float32();
+			out.origin[1] = obj->get<JSNumber>(worker, strs->p5())->float32();
 		});
 	}
 
@@ -751,7 +775,7 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, BorderRadius& out, cChar* desc) {
-		js_parse(Region, {
+		js_parse(BorderRadius, {
 			// TODO: need to check type
 			out.leftTop[0] = obj->get<JSNumber>(worker, strs->p0())->float32();
 			out.leftTop[1] = obj->get<JSNumber>(worker, strs->p1())->float32();

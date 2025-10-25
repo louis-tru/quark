@@ -39,10 +39,7 @@ namespace qk { namespace js {
 
 	void inheritTextOptions(JSClass* cls, Worker* worker) {
 		typedef Object Type;
-		Js_Class_Accessor_Get(fontStyle, {
-			Js_UISelf(TextOptions);
-			Js_Return( worker->types()->jsvalue(self->font_style()) );
-		});
+		Js_UIObject_Acce_Get(TextOptions, FontStyle, font_style, fontStyle);
 		Js_UIObject_Accessor(TextOptions, TextAlign, text_align, textAlign);
 		Js_UIObject_Accessor(TextOptions, TextWeight, text_weight, textWeight);
 		Js_UIObject_Accessor(TextOptions, TextSlant, text_slant, textSlant);
@@ -57,7 +54,6 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(TextOptions, TextSize, text_line_height, textLineHeight);
 		Js_UIObject_Accessor(TextOptions, TextShadow, text_shadow, textShadow);
 		Js_UIObject_Accessor(TextOptions, TextFamily, text_family, textFamily);
-
 		Js_Class_Method(computeLayoutSize, {
 			if (!args.length()) {
 				Js_Throw("@method TextOptions.compute_layout_size(cString& value)\n");
@@ -71,13 +67,9 @@ namespace qk { namespace js {
 	class MixText: public MixViewObject {
 	public:
 		typedef Text Type;
-		virtual TextOptions* asTextOptions() {
-			return self<Text>();
-		}
+		virtual TextOptions* asTextOptions() { return self<Text>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Text, Box, {
-				Js_NewView(Text);
-			});
+			Js_Define_Class(Text, Box, { Js_NewView(Text); });
 			inheritTextOptions(cls, worker);
 			Js_MixObject_Accessor(Text, String, value, value);
 			cls->exports("Text", exports);
@@ -87,13 +79,9 @@ namespace qk { namespace js {
 	class MixButton: public MixViewObject {
 	public:
 		typedef Button Type;
-		virtual TextOptions* asTextOptions() {
-			return self<Button>();
-		}
+		virtual TextOptions* asTextOptions() { return self<Button>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Button, Text, {
-				Js_NewView(Button);
-			});
+			Js_Define_Class(Button, Text, { Js_NewView(Button); });
 			Js_Class_Method(nextButton, {
 				if (!args.length()) {
 					Js_Throw("@method next_button(FindDirection dir)\n");
@@ -108,13 +96,9 @@ namespace qk { namespace js {
 	class MixLabel: public MixViewObject {
 	public:
 		typedef Label Type;
-		virtual TextOptions* asTextOptions() {
-			return self<Label>();
-		}
+		virtual TextOptions* asTextOptions() { return self<Label>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Label, View, {
-				Js_NewView(Label);
-			});
+			Js_Define_Class(Label, View, { Js_NewView(Label); });
 			inheritTextOptions(cls, worker);
 			Js_MixObject_Accessor(Label, String, value, value);
 			cls->exports("Label", exports);
@@ -124,15 +108,10 @@ namespace qk { namespace js {
 	class MixInput: public MixViewObject {
 	public:
 		typedef Input Type;
-		virtual TextOptions* asTextOptions() {
-			return self<Input>();
-		}
+		virtual TextOptions* asTextOptions() { return self<Input>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Input, Box, {
-				Js_NewView(Input);
-			});
+			Js_Define_Class(Input, Box, { Js_NewView(Input); });
 			inheritTextOptions(cls, worker);
-
 			Js_MixObject_Accessor(Input, bool, security, security);
 			Js_MixObject_Accessor(Input, bool, readonly, readonly);
 			Js_MixObject_Accessor(Input, KeyboardType, type, type);
@@ -140,6 +119,7 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Input, Color, placeholder_color, placeholderColor);
 			Js_MixObject_Accessor(Input, Color, cursor_color, cursorColor);
 			Js_MixObject_Accessor(Input, uint32_t, max_length, maxLength);
+			Js_MixObject_Acce_Get(Input, uint32_t, text_length, textLength);
 
 			Js_Class_Accessor(value, {
 				Js_Return( self->value_u4() );
@@ -153,26 +133,16 @@ namespace qk { namespace js {
 				self->set_placeholder_u4(val->toString(worker)->value4(worker));
 			});
 
-			Js_Class_Accessor_Get(textLength, {
-				Js_Return( worker->types()->jsvalue(self->text_length()) );
-			});
-
 			cls->exports("Input", exports);
 		}
 	};
 
 	class MixTextarea: public MixViewObject {
 	public:
-		virtual TextOptions* asTextOptions() {
-			return self<Textarea>();
-		}
-		virtual ScrollView* asScrollView() {
-			return self<Textarea>();
-		}
+		virtual TextOptions* asTextOptions() { return self<Textarea>(); }
+		virtual ScrollView* asScrollView() { return self<Textarea>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Textarea, Input, {
-				Js_NewView(Textarea);
-			});
+			Js_Define_Class(Textarea, Input, { Js_NewView(Textarea); });
 			inheritTextOptions(cls, worker);
 			inheritScrollView(cls, worker);
 			cls->exports("Textarea", exports);
@@ -181,13 +151,9 @@ namespace qk { namespace js {
 
 	class MixDefaultTextOptions: public MixUIObject {
 	public:
-		virtual TextOptions* asTextOptions() {
-			return self<DefaultTextOptions>();
-		}
+		virtual TextOptions* asTextOptions() { return self<DefaultTextOptions>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(DefaultTextOptions, 0, {
-				Js_Throw("Access forbidden.");
-			});
+			Js_Define_Class(DefaultTextOptions, 0, { Js_Throw("Access forbidden."); });
 			inheritTextOptions(cls, worker);
 		}
 	};

@@ -38,7 +38,7 @@ public:
 			float   pos[]    = {0,0.5,1};
 			Rect           rect{ size*(-0.5*0.8), size*0.8 };
 			PaintGradient  gPaint{
-				PaintGradient::kRadial_Type,rect.origin+rect.size*0.5, rect.size*0.5, 3, colors, pos
+				PaintGradient::kRadial_Type,rect.begin+rect.size*0.5, rect.size*0.5, 3, colors, pos
 			};
 			// paint.antiAlias = false;
 			paint.fill.gradient = &gPaint;

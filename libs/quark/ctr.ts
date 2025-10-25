@@ -96,7 +96,7 @@ function warn(id: string, msg = '') {
 pkg.onFileChanged.on(function({data:{name,hash}}) {
 	for (let ctr of WatchingAllCtrForDebug) {
 		if ((ctr as any)._watchings.has(name)) {
-			markrerender(ctr, true); // schedule re-render
+			_markrerender(ctr, true); // schedule re-render
 			console.log(`Re-render: ${ctr.constructor.name} view-controller from ${name}, hash: ${hash}`);
 		}
 	}
@@ -223,7 +223,7 @@ function setref(dom: View | ViewController, owner: ViewController, value: string
  * Mark a controller for re-render.
  * Added to the queue and processed on nextTick.
  */
-function markrerender<T>(ctr: ViewController<T>, missError = false) {
+function _markrerender<T>(ctr: ViewController<T>, missError = false) {
 	const size = RenderQueue.size;
 	RenderQueue.set(ctr, {missError});
 
@@ -237,7 +237,7 @@ function markrerender<T>(ctr: ViewController<T>, missError = false) {
 			try {
 				for(let [ctr,{missError}] of RenderQueue) {
 					missErr = missError;
-					rerender(ctr);
+					_rerender(ctr);
 				}
 			} catch(err) {
 				if (!missErr)
@@ -256,7 +256,7 @@ function markrerender<T>(ctr: ViewController<T>, missError = false) {
  * - Triggers lifecycle hooks.
  * - Updates references.
  */
-function rerender(Self: ViewController) {
+function _rerender(Self: ViewController) {
 	RenderQueue.delete(Self);
 
 	type InlCrt = {
@@ -443,7 +443,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 			setref(ctr, owner, vdomNew.props.ref || '');
 			// link props
 			vdomNew.diffPropsFor(domOld as T, vdomOld, (ctr as any)._linkProps);
-			rerender(ctr); // rerender
+			_rerender(ctr); // rerender
 		} else {
 			// diff and set props
 			setref(domOld as View, owner, vdomNew.props.ref || '');
@@ -501,13 +501,14 @@ export class VirtualDOM<T extends DOM = DOM> {
 			let dom = new this.domC(props, { owner, window, children });
 			let newCtr = dom as DOM as ViewController;
 			let r = (newCtr as any).triggerLoad(); // trigger event Load
-			if (r instanceof Promise) {
+			if (r instanceof Promise) { // async load
 				r.then(()=>{
 					(newCtr as RemoveReadonly<ViewController>).isLoaded = true;
-					markrerender(newCtr); // mark rerender
+					if (newCtr.isMounted)
+						_markrerender(newCtr); // mark rerender
 				});
 			} else {
-				(newCtr as {isLoaded:boolean}).isLoaded = true;
+				(newCtr as RemoveReadonly<ViewController>).isLoaded = true;
 			}
 			setref(newCtr, owner, props.ref || '');
 			// link props
@@ -516,7 +517,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 					(newCtr as any)[key] = props[key];
 			}
 			(owner as any)._watchings.add(this.domC.__filename__);
-			rerender(newCtr); // rerender
+			_rerender(newCtr); // rerender
 			return dom;
 		}
 		else { // view
@@ -635,7 +636,7 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 			}
 		}
 		if (!_collection.length) {
-			let first = new VirtualDOM(View, null, []);
+			let first = new VirtualDOM(View, {key: ''}, []);
 			hash += (hash << 5) + first.hash;
 			_collection.push(first);
 		}
@@ -848,7 +849,7 @@ export class ViewController<P = {}, S = {}> implements DOM {
 				this._rerenderCbs = [cb];
 			}
 			if (this.isMounted) {
-				markrerender(this);
+				_markrerender(this);
 			}
 		});
 	}
@@ -931,6 +932,20 @@ export class ViewController<P = {}, S = {}> implements DOM {
 		}
 	}
 
+	private static _loadOnly(newCtr: ViewController) {
+		let r = newCtr.triggerLoad(); // trigger event Load
+		if (r instanceof Promise) { // async load
+			r.then(()=>{
+				(newCtr as RemoveReadonly<ViewController>).isLoaded = true;
+				if (newCtr.isMounted)
+					_markrerender(newCtr); // mark rerender
+			});
+		} else {
+			(newCtr as RemoveReadonly<ViewController>).isLoaded = true;
+		}
+		_rerender(newCtr); // rerender
+	}
+
 	static hashCode() {
 		return Function.prototype.hashCode.call(this);
 	}
@@ -984,10 +999,10 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 	view: view.View, box: view.Box,
 	flex: view.Flex, flow: view.Flow,
 	free: view.Free, image: view.Image, img: view.Image,
-	matrix: view.Matrix, sprite: view.Sprite, spine: view.Spine,
+	morph: view.Morph, sprite: view.Sprite, spine: view.Spine,
 	text: view.Text, button: view.Button, label: view.Label,
 	input: view.Input, textarea: view.Textarea, scroll: view.Scroll,
-	video: view.Video,
+	video: view.Video, entity: view.Entity,
 };
 
 /**

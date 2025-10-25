@@ -84,7 +84,7 @@ namespace qk {
 		Vec2 b = br.rightTop;
 		Vec2 c = br.rightBottom;
 		Vec2 d = br.leftBottom;
-		Vec2 origin = outside.origin;
+		Vec2 origin = outside.begin;
 		Vec2 end = origin + outside.size;
 
 		// cw
@@ -98,7 +98,7 @@ namespace qk {
 		if (!inside)
 			return;
 
-		Vec2 inside_origin = inside->origin;
+		Vec2 inside_origin = inside->begin;
 		Vec2 inside_end = inside_origin + inside->size;
 
 		float top    = inside_origin.y() - origin.y();
@@ -189,7 +189,7 @@ namespace qk {
 		if (r.size.is_zero()) return;
 
 		float w = r.size.x(), h = r.size.y();
-		float x = r.origin.x(), y = r.origin.y();
+		float x = r.begin.x(), y = r.begin.y();
 		float x2 = x + w * 0.5, y2 = y + h * 0.5;
 		float x3 = x + w, y3 = y + h;
 		float cx = w * 0.5 * magicCircle, cy = h * 0.5 * magicCircle;
@@ -211,19 +211,19 @@ namespace qk {
 	void Path::rectTo(const Rect& r, bool ccw) {
 		if (r.size.is_zero()) return;
 
-		lineTo(r.origin);
-		float x2 = r.origin.x() + r.size.x();
-		float y2 = r.origin.y() + r.size.y();
+		lineTo(r.begin);
+		float x2 = r.begin.x() + r.size.x();
+		float y2 = r.begin.y() + r.size.y();
 		if (ccw) {
-			lineTo(Vec2(r.origin.x(), y2)); // bottom left
+			lineTo(Vec2(r.begin.x(), y2)); // bottom left
 			lineTo(Vec2(x2, y2)); // bottom right
-			lineTo(Vec2(x2, r.origin.y())); // top right
+			lineTo(Vec2(x2, r.begin.y())); // top right
 		} else {
-			lineTo(Vec2(x2, r.origin.y())); // top right
+			lineTo(Vec2(x2, r.begin.y())); // top right
 			lineTo(Vec2(x2, y2)); // bottom right
-			lineTo(Vec2(r.origin.x(), y2)); // bottom left
+			lineTo(Vec2(r.begin.x(), y2)); // bottom left
 		}
-		lineTo(r.origin); // top left, origin point
+		lineTo(r.begin); // top left, origin point
 	}
 
 	void Path::arc(Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter) {
@@ -285,7 +285,7 @@ namespace qk {
 
 	void Path::arcTo(const Rect& r, float startAngle, float sweepAngle, bool useCenter) {
 		auto radius = r.size * 0.5;
-		arc(r.origin+radius, radius, startAngle, sweepAngle, useCenter);
+		arc(r.begin+radius, radius, startAngle, sweepAngle, useCenter);
 	}
 
 	void Path::quadTo2(float *p) {
@@ -535,13 +535,13 @@ namespace qk {
 		}
 	}
 
-	Region Path::getBounds(const Mat* mat) const {
+	Range Path::getBounds(const Mat* mat) const {
 		mat = mat && !mat->is_identity_matrix() ? mat: nullptr;
 		return getBoundsFromPoints((const Vec2*)*_pts, ptsLen(), mat);
 	}
 
 	// get rect bounds from pts
-	Region Path::getBoundsFromPoints(const Vec2 *pts, uint32_t ptsLen, const Mat* mat) {
+	Range Path::getBoundsFromPoints(const Vec2 *pts, uint32_t ptsLen, const Mat* mat) {
 		const Vec2* e = pts + ptsLen;
 		float top = Float32::limit_max,
 					right = Float32::limit_min,
@@ -747,24 +747,24 @@ namespace qk {
 		if (rect.size.x() <= 0 || rect.size.y() <= 0) {
 			Qk_ReturnLocal(out);
 		}
-		float x2 = rect.origin.x() + rect.size.x();
-		float y2 = rect.origin.y() + rect.size.y();
+		float x2 = rect.begin.x() + rect.size.x();
+		float y2 = rect.begin.y() + rect.size.y();
 		// path
-		out.path.moveTo(rect.origin);
-		out.path.lineTo(Vec2(x2, rect.origin.y())); // top right
+		out.path.moveTo(rect.begin);
+		out.path.lineTo(Vec2(x2, rect.begin.y())); // top right
 		out.path.lineTo(Vec2(x2, y2)); // bottom right
-		out.path.lineTo(Vec2(rect.origin.x(), y2)); // bottom left
+		out.path.lineTo(Vec2(rect.begin.x(), y2)); // bottom left
 		out.path.close(); // top left, origin point
 		out.vCount = 6;
 		out.vertex.extend(6);
 		auto vertex = out.vertex.val();
 
-		vertex[0] = {rect.origin, 0.0};
-		vertex[1] = {x2, rect.origin.y(), 0.0};
+		vertex[0] = {rect.begin, 0.0};
+		vertex[1] = {x2, rect.begin.y(), 0.0};
 		vertex[2] = {x2, y2, 0.0};
 		vertex[3] = {x2, y2, 0.0};
-		vertex[4] = {rect.origin.x(), y2, 0.0};
-		vertex[5] = {rect.origin, 0.0};
+		vertex[4] = {rect.begin.x(), y2, 0.0};
+		vertex[5] = {rect.begin, 0.0};
 
 		Qk_ReturnLocal(out);
 	}
@@ -780,8 +780,8 @@ namespace qk {
 			Qk_ReturnLocal(out);
 		}
 
-		float x1 = rect.origin.x(),      y1 = rect.origin.y();
-		float x2 = x1 + rect.size.x(),   y2 = y1 + rect.size.y();
+		float x1 = rect.begin.x(),      y1 = rect.begin.y();
+		float x2 = x1 + rect.size.x(),  y2 = y1 + rect.size.y();
 
 		/* vertex approximate location
 		 ____________0__
@@ -847,7 +847,7 @@ namespace qk {
 		outline.bottom.id = 0;
 		outline.left.id = 0;
 
-		float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
+		float o_x1 = rect.begin.x(),       o_y1 = rect.begin.y();
 		float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
 		float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
 		float i_x2 = o_x2 - border[1],     i_y2 = o_y2 - border[2];
@@ -895,7 +895,7 @@ namespace qk {
 		outline.bottom.id = 0;
 		outline.left.id = 0;
 
-		float o_x1 = rect.origin.x(),      o_y1 = rect.origin.y();
+		float o_x1 = rect.begin.x(),       o_y1 = rect.begin.y();
 		float i_x1 = o_x1 + border[3],     i_y1 = o_y1 + border[0];
 		float o_x2 = o_x1 + rect.size.x(), o_y2 = o_y1 + rect.size.y();
 		float i_x2 = o_x2 - border[1],     i_y2 = o_y2 - border[2];

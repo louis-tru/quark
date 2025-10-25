@@ -32,7 +32,7 @@
 #include <src/util/fs.h>
 #include <src/ui/app.h>
 #include <src/ui/window.h>
-#include <src/ui/view/matrix.h>
+#include <src/ui/view/morph.h>
 #include <src/ui/view/spine.h>
 #include <src/ui/view/root.h>
 #include <src/ui/view/label.h>
@@ -45,7 +45,7 @@ Qk_TEST_Func(little_border) {
 	App app;
 	auto w = Window::Make({.msaa=1, .fps=0x0, .frame={{0,0}, {600,600}}, .title="Test Little Border"});
 	auto r = w->root();
-	auto m0 = r->append_new<Matrix>();
+	auto m0 = r->append_new<Morph>();
 
 	{
 		m0->set_background_color({230,230,230});

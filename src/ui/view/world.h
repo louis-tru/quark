@@ -28,26 +28,47 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __quark__view__root__
-#define __quark__view__root__
+#ifndef __quark__view__world__
+#define __quark__view__world__
 
 #include "./morph.h"
+#include "./entity.h"
 
 namespace qk {
 
-	class Root: public Morph {
+	/**
+	 * @class World
+	 * @brief A 2D basic world view container.
+	*/
+	class Qk_EXPORT World: public Morph, public PreRender::Task {
 	public:
+		/** is active update world physics simulation, default is false */
+		Qk_DEFINE_PROPERTY(bool, playing, Const);
+	 	/** The number of sub-steps for each update, default is 1, suggested value is 1~5 */
+		Qk_DEFINE_PROPERTY(int, subSteps, Const);
+		/** time scale factor, default is 1.0f, range [0.0, 10.0] */
+		Qk_DEFINE_PROPERTY(float, timeScale, Const);
+		/** prediction time for avoidance, default is 0.1 second, range [0.05, 2.0] */
+		Qk_DEFINE_PROPERTY(float, predictionTime, Const);
+		/** max avoidance force factor, default is 0.8 units, range [0.0, 1.0] */
+		Qk_DEFINE_PROPERTY(float, avoidanceFactor, Const);
+		/** buffer distance for discovery threshold, default is 5.0f, range [0.0, 100.0] */
+		Qk_DEFINE_PROPERTY(float, discoveryThresholdBuffer, Const);
+
+		World();
 		ViewType viewType() const override;
-		bool can_become_focus() override;
-		void layout_forward(uint32_t mark) override;
-		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		void draw(Painter *render) override;
-		void applyClassAll(); // apply class for all subviews
+		void onActivate() override;
+		void onChildLayoutChange(View* child, uint32_t mark) override;
+		bool run_task(int64_t time, int64_t delta) override;
 	private:
-		Root(Window *win);
-		void reload_rt(); // @thread Rt
-		friend class Window;
+		void handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv, float bufferSq);
+		Vec2 computeAvoidanceForAgent(Agent* agent, cArray<Entity*>& obs, Circle circ, Array<Vec2>& pts, Vec2 dirToTarget);
+		float updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float deltaTime);
+		void updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs, float deltaTime, bool &update);
+		void updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float deltaTime, bool &update);
 	};
 
-}
-#endif
+} // namespace qk
+
+
+#endif // __quark__view__world__

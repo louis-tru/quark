@@ -108,9 +108,12 @@ namespace qk {
 		Value&        operator[](const Key& key);
 		Value&        operator[](Key&& key);
 
-		IteratorConst find(const Key& key) const;
 		Iterator      find(const Key& key);
+		IteratorConst find(const Key& key) const;
+		Iterator      findFor(uint64_t hashCode);
+		IteratorConst findFor(uint64_t hashCode) const;
 
+		bool          hasFor(uint64_t hashCode) const;
 		bool          has(const Key& key) const;
 		uint32_t      count(const Key& key) const;
 
@@ -149,6 +152,7 @@ namespace qk {
 		void optimize_();
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
+		const Node* findFor_(uint64_t hashCode, const Node* end) const;
 		const Node* find_(const Key& key, const Node* end = nullptr) const;
 
 		Node**    _indexed;
@@ -229,17 +233,29 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	const typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::find_(const K& key, const Node* end) const {
-		if (_length) {
-			auto hash = C::hashCode(key);
-			auto node = _indexed[hash % _capacity];
-			while (node) {
-				if (node->hashCode == hash)
-					return node;
-				node = node->_conflict;
-			}
+	const typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::findFor_(uint64_t hash, const Node* end) const {
+		auto node = _indexed[hash % _capacity];
+		while (node) {
+			if (node->hashCode == hash)
+				return node;
+			node = node->_conflict;
 		}
 		return end;
+	}
+
+	template<typename K, typename V, typename C, typename A>
+	const typename Dict<K, V, C, A>::Node* Dict<K, V, C, A>::find_(const K& key, const Node* end) const {
+		return _length ? findFor_(C::hashCode(key), end) : end;
+	}
+
+	template<typename K, typename V, typename C, typename A>
+	bool Dict<K, V, C, A>::hasFor(uint64_t hashCode) const {
+		return _length ? findFor_(hashCode, nullptr) != nullptr : false;
+	}
+
+	template<typename K, typename V, typename C, typename A>
+	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::find(const K& key) {
+		return Iterator(const_cast<Node*>(find_(key, &_end)));
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -248,8 +264,13 @@ namespace qk {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::find(const K& key) {
-		return Iterator(const_cast<Node*>(find_(key, &_end)));
+	typename Dict<K, V, C, A>::Iterator Dict<K, V, C, A>::findFor(uint64_t hash) {
+		return Iterator(const_cast<Node*>(findFor_(hash, &_end)));
+	}
+
+	template<typename K, typename V, typename C, typename A>
+	typename Dict<K, V, C, A>::IteratorConst Dict<K, V, C, A>::findFor(uint64_t hash) const {
+		return IteratorConst(findFor_(hash, &_end));
 	}
 
 	template<typename K, typename V, typename C, typename A>

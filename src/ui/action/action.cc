@@ -51,17 +51,17 @@ namespace qk {
 		, _speed(1)
 		, _parent(nullptr)
 		, _target(nullptr)
-		, _looped_Rt(0)
+		, _looped_rt(0)
 	{
 		Qk_ASSERT(win);
 	}
 
 	Action::~Action() {
 		Qk_ASSERT( _target == nullptr );
-		Qk_ASSERT( _id_Rt == Id() || _id_Rt == playingFlag );
+		Qk_ASSERT( _id_rt == Id() || _id_rt == playingFlag );
 	}
 
-	Action* Action::tryRetain_Rt() {
+	Action* Action::tryRetain_rt() {
 		if (_refCount > 0) {
 			if (_refCount++ > 0) {
 				return this;
@@ -73,7 +73,7 @@ namespace qk {
 	}
 
 	// Only allow the inner call, make sure not to access any members in non-RT threads
-	void Action::release_inner_Rt() {
+	void Action::release_inner_rt() {
 		_target = nullptr; // @KeyframeAction::MakeSSTransition() need clear target
 		Qk_ASSERT(_refCount >= 0);
 		if ( --_refCount <= 0 ) {
@@ -83,12 +83,12 @@ namespace qk {
 		}
 	}
 
-	bool Action::next_loop_Rt() {
-		if (_looped_Rt < _loop) {
-			_looped_Rt++;
+	bool Action::next_loop_rt() {
+		if (_looped_rt < _loop) {
+			_looped_rt++;
 			return true;
 		} else if (_loop == kMaxUint32) {
-			_looped_Rt = 0;
+			_looped_rt = 0;
 			return true;
 		}
 		return false;
@@ -111,7 +111,7 @@ namespace qk {
 	}
 
 	bool Action::playing() const {
-		return _parent ? _parent->playing(): _id_Rt != Id();
+		return _parent ? _parent->playing(): _id_rt != Id();
 	}
 
 	void Action::set_playing(bool val) {
@@ -140,16 +140,16 @@ namespace qk {
 	}
 
 	void Action::seek(uint32_t time) {
-		_async_call([](auto self, auto arg) { self->seek_Rt(arg.arg); }, this, time);
+		_async_call([](auto self, auto arg) { self->seek_rt(arg.arg); }, this, time);
 	}
 
 	void Action::play() {
 		if (_parent) {
 			_parent->play();
 		} else {
-			if (/*_target && */_id_Rt == Id()) {
-				_id_Rt = playingFlag;
-				_async_call([](auto self, auto arg) { self->play_Rt(); }, this, 0);
+			if (/*_target && */_id_rt == Id()) {
+				_id_rt = playingFlag;
+				_async_call([](auto self, auto arg) { self->play_rt(); }, this, 0);
 			}
 		}
 	}
@@ -158,45 +158,45 @@ namespace qk {
 		if (_parent) {
 			_parent->stop();
 		} else {
-			if (_id_Rt != Id()) {
-				_async_call([](auto self, auto arg) { self->stop_Rt(); }, this, 0);
+			if (_id_rt != Id()) {
+				_async_call([](auto self, auto arg) { self->stop_rt(); }, this, 0);
 			}
 		}
 	}
 
-	void Action::play_Rt() {
+	void Action::play_rt() {
 		if (_parent == nullptr && _target) {
-			if (_id_Rt == Id() || _id_Rt == playingFlag) {
-				auto id = _window->actionCenter()->_actions_Rt.pushBack({this,false});
-				_id_Rt = *reinterpret_cast<Id*>(&id);
+			if (_id_rt == Id() || _id_rt == playingFlag) {
+				auto id = _window->actionCenter()->_actions_rt.pushBack({this,false});
+				_id_rt = *reinterpret_cast<Id*>(&id);
 			}
 		}
 	}
 
-	void Action::stop_Rt() {
+	void Action::stop_rt() {
 		if (_parent == nullptr) {
-			if (_id_Rt != Id() && _id_Rt != playingFlag) {
+			if (_id_rt != Id() && _id_rt != playingFlag) {
 				typedef List<ActionCenter::Action_Wrap>::Iterator Id1;
-				_window->actionCenter()->_actions_Rt.erase(*reinterpret_cast<Id1*>(&_id_Rt));
-				_id_Rt = Id();
+				_window->actionCenter()->_actions_rt.erase(*reinterpret_cast<Id1*>(&_id_rt));
+				_id_rt = Id();
 			}
 		}
 	}
 
-	void Action::seek_Rt(uint32_t time) {
+	void Action::seek_rt(uint32_t time) {
 		time = Qk_Min(time, _duration);
 		auto parent = dynamic_cast<ActionGroup*>(_parent); // safe use parent ptr
 		if (parent) {
-			parent->seek_before_Rt(time, this);
+			parent->seek_before_rt(time, this);
 		} else {
-			seek_time_Rt(time, this);
+			seek_time_rt(time, this);
 		}
 	}
 
 	void ActionGroup::append(Action* child) throw(Error) {
 		Qk_ASSERT(child);
 		if (child->set_parent(this) == 0) {
-			insertChild(_actions_Rt.end(), child);
+			insertChild(_actions_rt.end(), child);
 		}
 	}
 
@@ -204,7 +204,7 @@ namespace qk {
 		Qk_ASSERT(act);
 		Qk_IfThrow(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
-			_parent->insertChild(_id_Rt, act);
+			_parent->insertChild(_id_rt, act);
 		}
 	}
 
@@ -212,7 +212,7 @@ namespace qk {
 		Qk_ASSERT(act);
 		Qk_IfThrow(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
-			auto id = _id_Rt;
+			auto id = _id_rt;
 			_parent->insertChild(++id, act);
 		}
 	}
@@ -223,7 +223,7 @@ namespace qk {
 			return Qk_ELog("Action::remove, illegal parent empty");
 		}
 		del_parent();
-		_parent->removeChild(_id_Rt);
+		_parent->removeChild(_id_rt);
 	}
 
 	void Action::set_target(View *target) {
@@ -246,7 +246,7 @@ namespace qk {
 
 	int Action::set_parent(ActionGroup *parent) {
 		if (parent->_window != _window) {
-			Qk_ELog("Action::set_parent_Rt, set action window not match");
+			Qk_ELog("Action::set_parent_rt, set action window not match");
 			return ERR_ACTION_SET_WINDOW_NO_MATCH;
 		}
 		// Qk_Check(!_parent, ERR_ACTION_ILLEGAL_CHILD, "illegal child action");
@@ -254,7 +254,7 @@ namespace qk {
 			Qk_ELog("Action::set_parent, illegal child action");
 			return ERR_ACTION_ILLEGAL_CHILD;
 		}
-		if (_id_Rt != Id()) {
+		if (_id_rt != Id()) {
 			Qk_ELog("Action::set_parent, action playing state conflict");
 			return ERR_ACTION_PLAYING_CONFLICT;
 		}
@@ -289,8 +289,8 @@ namespace qk {
 
 	struct CbCore: CallbackCore<Object> {
 		CbCore(Action *a, View *v, uint32_t delay, uint32_t looped, uint32_t frame, cUIEventName &name)
-			: action(Sp<Action>::lazy(a->tryRetain_Rt()))
-			, view(Sp<View>::lazy(v->tryRetain_Rt()))
+			: action(Sp<Action>::lazy(a->tryRetain_rt()))
+			, view(Sp<View>::lazy(v->tryRetain_rt()))
 			, delay(delay), frame(frame), looped(looped)
 			, name(name)
 		{}
@@ -306,15 +306,15 @@ namespace qk {
 		cUIEventName &name;
 	};
 
-	void Action::trigger_ActionLoop_Rt(uint32_t delay, Action* root) {
+	void Action::trigger_ActionLoop_rt(uint32_t delay, Action* root) {
 		_window->preRender().post(Cb(new CbCore(
-			this, root->_target, delay, _looped_Rt, 0, UIEvent_ActionLoop
+			this, root->_target, delay, _looped_rt, 0, UIEvent_ActionLoop
 		)), true);
 	}
 
-	void Action::trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frameIndex, Action* root) {
+	void Action::trigger_ActionKeyframe_rt(uint32_t delay, uint32_t frameIndex, Action* root) {
 		_window->preRender().post(Cb(new CbCore(
-			this, root->_target, delay, _looped_Rt, frameIndex, UIEvent_ActionKeyframe
+			this, root->_target, delay, _looped_rt, frameIndex, UIEvent_ActionKeyframe
 		)), true);
 	}
 }

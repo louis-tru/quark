@@ -54,12 +54,14 @@ namespace qk {
 	class Painter;
 	class Window;
 	class ScrollView;
-	class MatrixView;
+	class MorphView;
 	class CStyleSheetsClass;
 	class Button;
 	class CssPropAccessor;
 	class BoxFilter;
 	class BoxShadow;
+	class Entity;
+	class Agent;
 	typedef BoxFilter* BoxFilterPtr;
 	typedef BoxShadow* BoxShadowPtr;
 	typedef Array<float> ArrayFloat;
@@ -69,6 +71,7 @@ namespace qk {
 
 	enum ViewType {
 		kView_ViewType, // view
+		kEntity_ViewType, // entity
 		kSprite_ViewType, // sprite
 		kSpine_ViewType, // spine
 		kLabel_ViewType, // textOpts
@@ -83,7 +86,8 @@ namespace qk {
 		kScroll_ViewType, // box
 		kText_ViewType, // box textOpts
 		kButton_ViewType, // box
-		kMatrix_ViewType, // box
+		kMorph_ViewType, // box
+		kWorld_ViewType, // box
 		kRoot_ViewType, // box
 		kEnum_Counts_ViewType,
 	};

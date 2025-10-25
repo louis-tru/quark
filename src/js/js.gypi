@@ -47,7 +47,7 @@
 			'api/sprite.cc',
 			'api/spine.cc',
 			'api/text.cc',
-			'api/matrix.cc',
+			'api/morph.cc',
 			'api/types.h',
 			'api/types.cc',
 			'api/ui.cc',

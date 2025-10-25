@@ -43,6 +43,7 @@ namespace qk {
 	public:
 		// define props
 		Qk_DEFINE_VIEW_PROPERTY(bool,       clip, Const); //!< is clip box display range
+		Qk_DEFINE_VIEW_PROPERTY(bool,       free, Const); //!< is free layout, default false
 		Qk_DEFINE_VIEW_PROPERTY(Align,      align, Const); //!< view align
 		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    width, Const); //!< min width alias, if max width equal none then only use min width and not use limit width
 		Qk_DEFINE_VIEW_ACCESSOR(BoxSize,    height, Const); //!< min height alias
@@ -112,9 +113,10 @@ namespace qk {
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		virtual void solve_visible_region(const Mat &mat) override; // compute visible region
+		virtual void solve_visible_area(const Mat &mat) override; // compute visible region
 		virtual bool overlap_test(Vec2 point) override;
 		virtual Vec2 client_size() override;
+		virtual Region client_region() override;
 		virtual void draw(Painter *render) override;
 
 	protected:
@@ -169,20 +171,10 @@ namespace qk {
 		Vec2  _layout_offset; // The starting offset relative to the parent view（include margin）
 		Vec2  _layout_size; // Size occupied by the layout（margin+border+padding+content）
 		Vec2  _client_size; // Size occupied by the client area (border+padding+content)
-		Vec2  _bounds[4]; // The bounds of the box for world coords, maybe not a rectangle
+		Vec2  _boxBounds[4]; // The bounds of the box for world coords, maybe not a rectangle
 
 		friend class Painter;
 	};
-
-	/**
-	* @method overlap_test_from_convex_quadrilateral
-	*/
-	Qk_EXPORT bool overlap_test_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4], Vec2 point);
-	
-	/**
-	 * @method screen_region_from_convex_quadrilateral
-	*/
-	Qk_EXPORT Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
 
 }
 #endif

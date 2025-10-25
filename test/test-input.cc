@@ -20,7 +20,7 @@ Qk_TEST_Func(input) {
 
 	auto box = win->root()->append_new<Box>();
 	auto input = box->append_new<Textarea>();
-	auto mat = box->append_new<Matrix>();
+	auto mat = box->append_new<Morph>();
 
 	box->set_width({ 0, BoxSizeKind::Match });
 	box->set_height({ 0, BoxSizeKind::Match });

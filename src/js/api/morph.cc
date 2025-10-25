@@ -29,64 +29,46 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./ui.h"
-#include "../../ui/view/matrix.h"
+#include "../../ui/view/morph.h"
 #include "../../ui/view/root.h"
 
 namespace qk { namespace js {
 
-	void inheritMatrixView(JSClass* cls, Worker* worker) {
+	void inheritMorphView(JSClass* cls, Worker* worker) {
 		typedef Object Type;
-
-		Js_UIObject_Accessor(MatrixView, Vec2, translate, translate);
-		Js_UIObject_Accessor(MatrixView, Vec2, scale, scale);
-		Js_UIObject_Accessor(MatrixView, Vec2, skew, skew);
-		Js_UIObject_Accessor(MatrixView, ArrayOrigin, origin, origin);
-		Js_UIObject_Accessor(MatrixView, BoxOrigin, origin_x, originX);
-		Js_UIObject_Accessor(MatrixView, BoxOrigin, origin_y, originY);
-		Js_UIObject_Accessor(MatrixView, float, x, x);
-		Js_UIObject_Accessor(MatrixView, float, y, y);
-		Js_UIObject_Accessor(MatrixView, float, scale_x, scaleX);
-		Js_UIObject_Accessor(MatrixView, float, scale_y, scaleY);
-		Js_UIObject_Accessor(MatrixView, float, skew_x, skewX);
-		Js_UIObject_Accessor(MatrixView, float, skew_y, skewY);
-		Js_UIObject_Accessor(MatrixView, float, rotate_z, rotateZ);
-
-		Js_Class_Accessor_Get(originValue, {
-			Js_UISelf(MatrixView);
-			Js_Return( worker->types()->jsvalue(self->origin_value()) );
-		});
-
-		Js_Class_Accessor_Get(matrix, {
-			Js_UISelf(MatrixView);
-			Js_Return( worker->types()->jsvalue(self->matrix()) );
-		});
+		Js_UIObject_Accessor(MorphView, Vec2, translate, translate);
+		Js_UIObject_Accessor(MorphView, Vec2, scale, scale);
+		Js_UIObject_Accessor(MorphView, Vec2, skew, skew);
+		Js_UIObject_Accessor(MorphView, ArrayOrigin, origin, origin);
+		Js_UIObject_Accessor(MorphView, BoxOrigin, origin_x, originX);
+		Js_UIObject_Accessor(MorphView, BoxOrigin, origin_y, originY);
+		Js_UIObject_Accessor(MorphView, float, x, x);
+		Js_UIObject_Accessor(MorphView, float, y, y);
+		Js_UIObject_Accessor(MorphView, float, scale_x, scaleX);
+		Js_UIObject_Accessor(MorphView, float, scale_y, scaleY);
+		Js_UIObject_Accessor(MorphView, float, skew_x, skewX);
+		Js_UIObject_Accessor(MorphView, float, skew_y, skewY);
+		Js_UIObject_Accessor(MorphView, float, rotate_z, rotateZ);
+		Js_UIObject_Acce_Get(MorphView, Vec2, origin_value, originValue);
+		Js_UIObject_Acce_Get(MorphView, Mat, matrix, matrix);
 	};
 
-	class MixMatrix: public MixViewObject {
+	class MixMorph: public MixViewObject {
 	public:
-		virtual MatrixView* asMatrixView() {
-			return self<Matrix>();
-		}
+		virtual MorphView* asMorphView() { return self<Morph>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Matrix, Box, {
-				Js_NewView(Matrix);
-			});
-			inheritMatrixView(cls, worker);
-
-			cls->exports("Matrix", exports);
+			Js_Define_Class(Morph, Box, { Js_NewView(Morph); });
+			inheritMorphView(cls, worker);
+			cls->exports("Morph", exports);
 		}
 	};
 
 	class MixRoot: public MixViewObject {
 	public:
-		virtual MatrixView* asMatrixView() {
-			return self<Root>();
-		}
+		virtual MorphView* asMorphView() { return self<Root>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-#if 0
-			Js_Define_Class(Root, Matrix, {
-				Js_Throw("Forbidden access");
-			});
+#if 1
+			Js_Define_Class(Root, Morph, { Js_Throw("Forbidden access"); });
 #else
 			static_assert(sizeof(MixObject)==sizeof(MixRoot), "Derived mix class pairs cannot declare data members");
 			auto cls = worker->newClass("Root",(typeid(Root).hash_code()),([](auto args){
@@ -95,14 +77,14 @@ namespace qk { namespace js {
 			}),
 			([](auto o){
 				new(o) MixRoot();
-			}), (typeid(Matrix).hash_code()));
+			}), (typeid(Morph).hash_code()));
 #endif
 			cls->exports("Root", exports);
 		}
 	};
 
 	void binding_matrix(JSObject* exports, Worker* worker) {
-		MixMatrix::binding(exports, worker);
+		MixMorph::binding(exports, worker);
 		MixRoot::binding(exports, worker);
 	}
 } }

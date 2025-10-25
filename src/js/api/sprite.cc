@@ -30,46 +30,124 @@
 
 #include "./ui.h"
 #include "../../ui/view/sprite.h"
+#include "../../ui/view/world.h"
 
 namespace qk { namespace js {
+	const uint64_t kAgent_Typeid(Js_Typeid(Agent));
+
+	class MixEntity: public MixViewObject {
+	public:
+		typedef Entity Type;
+		virtual MorphView* asMorphView() { return self<Entity>(); }
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(Entity, View, { Js_NewView(Entity); });
+			inheritMorphView(cls, worker);
+			// Js_MixObject_Accessor(Entity, Entity::Bounds, bounds, bounds);
+			cls->exports("Entity", exports);
+		}
+	};
+
+	class MixAgent: public MixViewObject {
+	public:
+		typedef Agent Type;
+		virtual MorphView* asMorphView() { return self<Agent>(); }
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(Agent, Entity, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Accessor(Agent, bool, active, active);
+			Js_MixObject_Acce_Get(Agent, bool, following, following);
+			Js_MixObject_Acce_Get(Agent, bool, isWaypoints, isWaypoints);
+			Js_MixObject_Acce_Get(Agent, Vec2, target, target);
+			Js_MixObject_Acce_Get(Agent, Vec2, velocity, velocity);
+			Js_MixObject_Accessor(Agent, float, velocityMax, velocityMax);
+			Js_MixObject_Acce_Get(Agent, uint32_t, currentWaypoint, currentWaypoint);
+			Js_MixObject_Accessor(Agent, ArrayFloat, discoveryDistancesSq, discoveryDistancesSq);
+			Js_MixObject_Accessor(Agent, float, safetyBuffer, safetyBuffer);
+
+			Js_Class_Accessor(followTarget, { Js_Return( self->followTarget() ); }, {
+				if (worker->instanceOf(val, kAgent_Typeid))
+					Js_Throw("Agent.followTarget:Agent");
+				self->set_followTarget(MixObject::mix<Agent>(val)->self());
+			});
+
+			Js_MixObject_Accessor(Agent, Vec2, followDistanceRange, followDistanceRange);
+
+			Js_Class_Method(setDiscoveryDistances, {
+				Js_Parse_Args(ArrayFloat, 0, "Agent.setDiscoveryDistances(val:Float[])void");
+				self->setDiscoveryDistances(arg0);
+			});
+
+			Js_Class_Method(moveTo, {
+				Js_Parse_Args(Vec2, 0, "Agent.moveTo(target:Vec2,immediately?:bool)void");
+				Js_Parse_Args(bool, 1, "Agent.moveTo(target:Vec2,immediately?:bool)void", (false));
+				self->moveTo(arg0, arg1);
+			});
+
+			Js_Class_Method(setWaypoints, {
+				Js_Parse_Args(PathPtr, 0, "Agent.setWaypoints(waypoints:Path,immediately?:bool)void");
+				Js_Parse_Args(bool, 1, "Agent.setWaypoints(waypoints:Path,immediately?:bool)void", (false));
+				self->setWaypoints(*arg0, arg1);
+			});
+
+			Js_Class_Method(setWaypoints, {
+				Js_Parse_Args(ArrayVec2, 0, "Agent.setWaypoints(waypoints:Vec2[],immediately?:bool)void");
+				Js_Parse_Args(bool, 1, "Agent.setWaypoints(waypoints:Vec2[],immediately?:bool)void", (false));
+				self->setWaypoints(arg0, arg1);
+			});
+
+			Js_Class_Method(returnToWaypoints, {
+				Js_Parse_Args(bool, 0, "Agent.returnToWaypoints(immediately?:bool)void", (false));
+				self->returnToWaypoints(arg0);
+			});
+
+			Js_Class_Method(stop, { self->stop(); });
+
+			cls->exports("Agent", exports);
+		}
+	};
+
+	class MixWorld: public MixViewObject {
+	public:
+		typedef World Type;
+		virtual MorphView* asMorphView() { return self<World>(); }
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(World, Morph, { Js_NewView(World); });
+			Js_MixObject_Accessor(World, bool, playing, playing);
+			Js_MixObject_Accessor(World, int, subSteps, subSteps);
+			Js_MixObject_Accessor(World, float, timeScale, timeScale);
+			Js_MixObject_Accessor(World, float, predictionTime, predictionTime);
+			Js_MixObject_Accessor(World, float, avoidanceFactor, avoidanceFactor);
+			Js_MixObject_Accessor(World, float, discoveryThresholdBuffer, discoveryThresholdBuffer);
+			cls->exports("World", exports);
+		}
+	};
 
 	class MixSprite: public MixViewObject {
 	public:
 		typedef Sprite Type;
-		virtual MatrixView* asMatrixView() {
-			return self<Sprite>();
-		}
+		virtual MorphView* asMorphView() { return self<Sprite>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Sprite, View, {
-				Js_NewView(Sprite);
-			});
-			inheritMatrixView(cls, worker);
-
-			Js_MixObject_Accessor(Type, String, src, src);
-			Js_MixObject_Accessor(Type, float, width, width);
-			Js_MixObject_Accessor(Type, float, height, height);
-			Js_MixObject_Accessor(Type, uint32_t, frame, frame);
-			Js_MixObject_Accessor(Type, uint32_t, frames, frames);
-			Js_MixObject_Accessor(Type, uint32_t, item, item);
-			Js_MixObject_Accessor(Type, uint32_t, items, items);
-			Js_MixObject_Accessor(Type, uint32_t, gap, gap);
-			Js_MixObject_Accessor(Type, uint32_t, fsp, fsp);
-			Js_MixObject_Accessor(Type, Direction, direction, direction);
-			Js_MixObject_Accessor(Type, bool, playing, playing);
-
-			Js_Class_Method(play, {
-				self->play();
-			});
-
-			Js_Class_Method(stop, {
-				self->stop();
-			});
-
+			Js_Define_Class(Sprite, Agent, { Js_NewView(Sprite); });
+			Js_MixObject_Accessor(Sprite, String, src, src);
+			Js_MixObject_Accessor(Sprite, float, width, width);
+			Js_MixObject_Accessor(Sprite, float, height, height);
+			Js_MixObject_Accessor(Sprite, uint32_t, frame, frame);
+			Js_MixObject_Accessor(Sprite, uint32_t, frames, frames);
+			Js_MixObject_Accessor(Sprite, uint32_t, item, item);
+			Js_MixObject_Accessor(Sprite, uint32_t, items, items);
+			Js_MixObject_Accessor(Sprite, uint32_t, gap, gap);
+			Js_MixObject_Accessor(Sprite, uint32_t, fsp, fsp);
+			Js_MixObject_Accessor(Sprite, Direction, direction, direction);
+			Js_MixObject_Accessor(Sprite, bool, playing, playing);
+			Js_Class_Method(play, { self->play(); });
+			Js_Class_Method(stop, { self->stop(); });
 			cls->exports("Sprite", exports);
 		}
 	};
 
 	void binding_sprite(JSObject* exports, Worker* worker) {
+		MixEntity::binding(exports, worker);
+		MixAgent::binding(exports, worker);
 		MixSprite::binding(exports, worker);
+		MixWorld::binding(exports, worker);
 	}
 } }

@@ -79,21 +79,22 @@ namespace qk {
 		, _fsp(0)
 		, _fspTick(0)
 		, _fspTime(0)
-		, _beginTime(time_monotonic())
-		, _lastTime(_beginTime)
-		, _surfaceRegion()
+		, _beginTime(0)
+		, _lastTime(0)
+		, _surfaceDisplayRange()
 		, _preRender(this)
 		, _impl(nullptr)
 		, _opts(opts)
+		, _debugMode(false)
 	{
 		Qk_CHECK(_host);
-		check_is_work_loop();
+		check_is_first_loop();
 		_render = Render::Make({ opts.colorType, opts.msaa, opts.fps }, this);
 		_dispatch = new EventDispatch(this);
 		_painter = new Painter(this);
 		_actionCenter = new ActionCenter(this);
 		_backgroundColor = opts.backgroundColor;
-		_clipRegion.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
+		_clipRange.push({ Vec2{0,0},Vec2{0,0},Vec2{0,0} });
 		_id = _host->_windows.pushBack(this);
 		retain(); // strong ref count retain from application
 		_root = new Root(this); // new root
@@ -141,7 +142,7 @@ namespace qk {
 	}
 
 	bool Window::tryClose() {
-		check_is_work_loop();
+		check_is_first_loop();
 		UILock lock(this); // lock ui
 		if (!_root)
 			return false;
@@ -175,47 +176,47 @@ namespace qk {
 	}
 
 	Vec2 Window::surfaceSize() const {
-		return _surfaceRegion.end - _surfaceRegion.origin;
+		return _surfaceDisplayRange.end - _surfaceDisplayRange.begin;
 	}
 
-	void Window::clipRegion(Region clip) {
-		RegionSize re = {
-			Vec2{clip.origin.x(), clip.origin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}
+	void Window::clipRange(Range clip) {
+		RangeSize re = {
+			Vec2{clip.begin.x(), clip.begin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}
 		};
-		RegionSize dre = _clipRegion.back();
+		RangeSize dre = _clipRange.back();
 
 		// Compute an intersection area
 		float x, x2, y, y2;
 
 		y = dre.end.y() > re.end.y() ? re.end.y() : dre.end.y(); // choose a small
-		y2 = dre.origin.y() > re.origin.y() ? dre.origin.y() : re.origin.y(); // choose a large
+		y2 = dre.begin.y() > re.begin.y() ? dre.begin.y() : re.begin.y(); // choose a large
 		x = dre.end.x() > re.end.x() ? re.end.x() : dre.end.x(); // choose a small
-		x2 = dre.origin.x() > re.origin.x() ? dre.origin.x() : re.origin.x(); // choose a large
+		x2 = dre.begin.x() > re.begin.x() ? dre.begin.x() : re.begin.x(); // choose a large
 
 		if ( x > x2 ) {
-			re.origin.set_x(x2);
+			re.begin.set_x(x2);
 			re.end.set_x(x);
 		} else {
-			re.origin.set_x(x);
+			re.begin.set_x(x);
 			re.end.set_x(x2);
 		}
 
 		if ( y > y2 ) {
-			re.origin.set_y(y2);
+			re.begin.set_y(y2);
 			re.end.set_y(y);
 		} else {
-			re.origin.set_y(y);
+			re.begin.set_y(y);
 			re.end.set_y(y2);
 		}
 
-		re.size = Vec2(re.end.x() - re.origin.x(), re.end.y() - re.origin.y());
+		re.size = Vec2(re.end.x() - re.begin.x(), re.end.y() - re.begin.y());
 
-		_clipRegion.push(re);
+		_clipRange.push(re);
 	}
 
 	void Window::clipRestore() {
-		Qk_ASSERT(_clipRegion.length() > 1);
-		_clipRegion.pop();
+		Qk_ASSERT(_clipRange.length() > 1);
+		_clipRange.pop();
 	}
 
 	void Window::nextFrame(cCb& cb) {
@@ -248,6 +249,10 @@ namespace qk {
 		}
 	}
 
+	void Window::set_debugMode(bool v) {
+		_debugMode = v;
+	}
+
 	void Window::reload(bool isRt) { // Lock before calling
 		Vec2 size = surfaceSize();
 		float width = size.x();
@@ -270,7 +275,7 @@ namespace qk {
 		_atomPixel = 1.0f / _scale;
 
 		// set default draw region
-		_clipRegion.front() = {
+		_clipRange.front() = {
 			Vec2{0, 0},
 			Vec2{_size.x(), _size.y()},
 			Vec2{_size.x(), _size.y()},
@@ -280,16 +285,16 @@ namespace qk {
 			Qk_Trigger(Change); // trigger window change
 		}));
 
-		auto region = _surfaceRegion;
-		Vec2 start = Vec2(-region.origin.x() / _scale, -region.origin.y() / _scale);
+		auto region = _surfaceDisplayRange;
+		Vec2 start = Vec2(-region.begin.x() / _scale, -region.begin.y() / _scale);
 		Vec2 end   = Vec2(region.size.x() / _scale + start.x(), region.size.y() / _scale + start.y());
 		auto mat = Mat4::ortho(start.x(), end.x(), start.y(), end.y(), -1.0f, 1.0f);
 
 		if (isRt) {
-			_root->reload_Rt();
+			_root->reload_rt();
 		} else {
 			_preRender.async_call([](auto self, auto arg) {
-				self->_root->reload_Rt();
+				self->_root->reload_rt();
 			}, this, 0);
 		}
 
@@ -300,21 +305,21 @@ namespace qk {
 
 	void Window::onRenderBackendReload(Vec2 size) {
 		auto defaultScale = getDefaultScale();
-		auto region = getDisplayRegion(size);
+		auto range = getDisplayRange(size);
 		if (size.x() != 0 && size.y() != 0 && defaultScale != 0) {
 			Qk_DLog("Window::onRenderBackendReload defaultScale:%f, w:%f, h: %f",
 				size.x(), size.y(), defaultScale);
 			UILock lock(this);
-			if ( _surfaceRegion.origin != region.origin
-				|| _surfaceRegion.end != region.end
-				|| _surfaceRegion.size != size
+			if ( _surfaceDisplayRange.begin != range.begin
+				|| _surfaceDisplayRange.end != range.end
+				|| _surfaceDisplayRange.size != size
 				|| _defaultScale != defaultScale
 			) {
-				_surfaceRegion = { region.origin, region.end, size };
+				_surfaceDisplayRange = { range.begin, range.end, size };
 				_defaultScale = defaultScale;
 				reload(true);
 			} else {
-				_root->reload_Rt();
+				_root->reload_rt();
 			}
 		}
 	}
@@ -323,12 +328,24 @@ namespace qk {
 		UILock lock(this); // ui render lock
 		if (!_root)
 			return false;
+
+		if (!_beginTime)
+			_beginTime = time_monotonic();
 		// if pause play, it just needs to use the _lastTime and also not change the _lastTime
 		auto time = time_monotonic() - _beginTime;
 		auto deltaTime = time - _lastTime;
+
+		if ( deltaTime > 2e5 ) { // 200ms
+			// Restart the timer when the time interval exceeds 200ms,
+			// for example, when the application resumes from sleep mode
+			int64_t diff = deltaTime - 2e5;
+			time -= diff; // Adjust the current time
+			_beginTime += diff; // Restart the timer
+			deltaTime = 2e5;
+		}
 		_lastTime = time;
 
-		if (!_preRender.solve(_lastTime, deltaTime)) {
+		if (!_preRender.solve(time, deltaTime)) {
 			solveNextFrame();
 			return false;
 		}

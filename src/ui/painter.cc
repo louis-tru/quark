@@ -40,9 +40,10 @@
 #include "./view/input.h"
 #include "./view/textarea.h"
 #include "./view/label.h"
-#include "./view/matrix.h"
+#include "./view/morph.h"
 #include "./view/sprite.h"
 #include "./view/spine.h"
+#include "./geometry.h"
 
 #define _Border(v) auto _border = v->_border.load()
 #define _IfBorder(v) _Border(v); if (_border)
@@ -99,7 +100,7 @@ namespace qk {
 		_IfBorder(box) {
 			auto border = _border->width;
 			Hash5381 hash;
-			hash.updatefv4(rect.origin.val);
+			hash.updatefv4(rect.begin.val);
 			hash.updatefv4(radius);
 			hash.updatefv4(border);
 
@@ -121,8 +122,8 @@ namespace qk {
 				borderFixStore[3] = Float32::max(0, border[3]-AAShrink);
 				borderFix = borderFixStore;
 			}
-			rect.origin[0] += borderFix[3]; // left
-			rect.origin[1] += borderFix[0]; // top
+			rect.begin[0] += borderFix[3]; // left
+			rect.begin[1] += borderFix[0]; // top
 			rect.size  [0] -= borderFix[3] + borderFix[1]; // left + right
 			rect.size  [1] -= borderFix[0] + borderFix[2]; // top + bottom
 
@@ -166,7 +167,7 @@ namespace qk {
 				auto radius = &v->_border_radius_left_top;
 
 				Hash5381 hash;
-				hash.updatefv4(rect.origin.val);
+				hash.updatefv4(rect.begin.val);
 				hash.updatefv4(border);
 				hash.updatefv4(radius);
 
@@ -211,7 +212,7 @@ namespace qk {
 					v->solve_marks(*_matrix, view, mark);
 					_mark_recursive = mark & View::kRecursive_Mark;
 				}
-				if (v->_visible_region && v->_color.a()) {
+				if (v->_visible_area && v->_color.a()) {
 					switch (parentCascadeColor) {
 						case CascadeColor::None:
 							_color = v->_color.to_color4f(); break;
@@ -438,10 +439,10 @@ namespace qk {
 				img.tileModeY = PaintImage::kDecal_TileMode;
 			try_clipY:
 				if (!inside->rrectMask) { // no need clip if rrectMask
-					Vec2 out{rect.origin.y(), rect.size.y()};
+					Vec2 out{rect.begin.y(), rect.size.y()};
 					if (clip(this, v, {y,h}, out)) // clip y
 						return;
-					inside = &_cache->getRectPath({{rect.origin.x(), out.x()}, {rect.size.x(), out.y()}});
+					inside = &_cache->getRectPath({{rect.begin.x(), out.x()}, {rect.size.x(), out.y()}});
 				}
 				break;
 			case Repeat::RepeatY:
@@ -449,18 +450,18 @@ namespace qk {
 				img.tileModeY = PaintImage::kRepeat_TileMode;
 			try_clipX:
 				if (!inside->rrectMask) {
-					Vec2 out{rect.origin.x(), rect.size.x()};
+					Vec2 out{rect.begin.x(), rect.size.x()};
 					if (clip(this, v, {y,h}, out)) // clip x
 						return;
-					inside = &_cache->getRectPath({{out.x(), rect.origin.y()}, {out.y(), rect.size.y()}});
+					inside = &_cache->getRectPath({{out.x(), rect.begin.y()}, {out.y(), rect.size.y()}});
 				}
 				break;
 			case Repeat::NoRepeat:
 				img.tileModeX = PaintImage::kDecal_TileMode;
 				img.tileModeY = PaintImage::kDecal_TileMode;
 				if (!inside->rrectMask) {
-					Vec2 outX{rect.origin.x(), rect.size.x()};
-					Vec2 outY{rect.origin.y(), rect.size.y()};
+					Vec2 outX{rect.begin.x(), rect.size.x()};
+					Vec2 outY{rect.begin.y(), rect.size.y()};
 					if (clip(this, v, {x,w}, outX) || clip(this, v, {y,h}, outY))
 						return;
 					inside = &_cache->getRectPath({{outX.x(), outY.x()}, {outX.y(), outY.y()}});
@@ -505,8 +506,8 @@ namespace qk {
 		float p0y = sinf(R) * d;
 		float p1x = -p0x;
 		float p1y = -p0y;
-		float centerX = _rect_inside.origin.x() + b;
-		float centerY = _rect_inside.origin.y() + a;
+		float centerX = _rect_inside.begin.x() + b;
+		float centerY = _rect_inside.begin.y() + a;
 
 		Vec2 pts[2] = {
 			{p0x + centerX, p0y + centerY}, // origin
@@ -535,7 +536,7 @@ namespace qk {
 		auto &pos = fill->positions();
 		auto _rect_inside = data.inside->rect;
 		Vec2 radius{_rect_inside.size.x() * 0.5f, _rect_inside.size.y() * 0.5f};
-		Vec2 center = _rect_inside.origin + radius;
+		Vec2 center = _rect_inside.begin + radius;
 		PaintGradient g{
 			PaintGradient::kRadial_Type, center, radius,
 			fill->colors().length(),
@@ -559,7 +560,7 @@ namespace qk {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
 			auto s = shadow->value();
-			auto &o = data.outside->rect.origin;
+			auto &o = data.outside->rect.begin;
 			_canvas->drawRRectBlurColor({
 				{o.x()+s.x, o.y()+s.y}, data.outside->rect.size,
 			},&v->_border_radius_left_top, s.size, s.color.mul_color4f(_color), kSrcOver_BlendMode);
@@ -585,7 +586,7 @@ namespace qk {
 		if (v->_clip) {
 			if (v->_first.load()) {
 				getInsideRectPath(v, data);
-				_window->clipRegion(screen_region_from_convex_quadrilateral(v->_bounds));
+				_window->clipRange(region_aabb_from_convex_quadrilateral(v->_boxBounds));
 				_canvas->save();
 				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
 				visitView(v);
@@ -615,7 +616,7 @@ namespace qk {
 					{v->_scrollbar_position_h[1], width}
 				};
 				if (_border) {
-					rect.origin += {_border->width[3], -_border->width[0]};
+					rect.begin += {_border->width[3], -_border->width[0]};
 				}
 				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, kSrcOver_BlendMode, true);
 			}
@@ -627,7 +628,7 @@ namespace qk {
 					{width,                    v->_scrollbar_position_v[1]}
 				};
 				if (_border) {
-					rect.origin += {-_border->width[3], _border->width[0]};
+					rect.begin += {-_border->width[3], _border->width[0]};
 				}
 				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, kSrcOver_BlendMode, true);
 			}
@@ -757,7 +758,7 @@ namespace qk {
 		if (clip()) {
 			if (first() || _blob_visible.length()) {
 				draw->getInsideRectPath(this, data);
-				window()->clipRegion(screen_region_from_convex_quadrilateral(_bounds));
+				window()->clipRange(region_aabb_from_convex_quadrilateral(_boxBounds));
 				canvas->save();
 				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, aa()); // clip
 				if (_blob_visible.length()) {
@@ -884,7 +885,7 @@ namespace qk {
 		draw->visitView(this);
 	}
 
-	void Matrix::draw(Painter *painter) {
+	void Morph::draw(Painter *painter) {
 		BoxData data;
 		auto lastMatrix = painter->matrix();
 		auto lastOrigin = painter->origin();
@@ -906,7 +907,7 @@ namespace qk {
 				solve_marks(Mat(), nullptr, mark);
 				painter->_mark_recursive = mark & View::kRecursive_Mark;
 			}
-			if (_visible_region && color().a() != 0) {
+			if (_visible_area && color().a() != 0) {
 				painter->_tempAllocator[0].reset();
 				painter->_tempAllocator[1].reset();
 				BoxData data;

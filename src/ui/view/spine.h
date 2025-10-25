@@ -242,10 +242,10 @@ namespace qk {
 	 * playback and transitions, while hiding the low-level Spine API details from the user.
 	 *
 	 * Inherits from:
-	 * - SpriteView: Base class for renderable sprite-like views.
+	 * - Agent: Enables entity behavior (position, velocity, etc.).
 	 * - PreRender::Task: Enables per-frame update tasks (e.g., advancing animation state).
 	 */
-	class Qk_EXPORT Spine: public SpriteView, public PreRender::Task {
+	class Qk_EXPORT Spine: public Agent, public PreRender::Task {
 	public:
 		/**
 		 * @brief Constructor. Initializes an empty Spine view.
@@ -309,8 +309,11 @@ namespace qk {
 		/// @brief Returns the type of this view (Spine).
 		ViewType viewType() const override;
 
-		/// @brief Returns the logical client size of the view (depends on skeleton bounds).
+		/// @brief Returns the logical client rect of the view (depends on skeleton bounds).
 		Vec2 client_size() override;
+
+		/// @brief Returns the logical client region of the view.
+		Region client_region() override;
 
 		/// @brief Draws the skeleton using the provided Painter.
 		void draw(Painter *painter) override;

@@ -174,9 +174,7 @@ namespace qk { namespace js {
 			return self<Video>();
 		}
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Video, Image, {
-				Js_NewView(Video);
-			});
+			Js_Define_Class(Video, Image, { Js_NewView(Video); });
 			inheritPlayer(cls, worker);
 			cls->exports("Video", exports);
 		}

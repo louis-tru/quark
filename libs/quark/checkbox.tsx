@@ -195,7 +195,7 @@ export class Switch<P={},S={}> extends Basic<P,S> {
 		return (
 			<free class={['qk_switch',this.props.class||'',this.selected?'on':'off']} style={this.props.style}>
 				<free class="qk_background" />
-				<matrix class="qk_button" />
+				<morph class="qk_button" />
 			</free>
 		);
 	}

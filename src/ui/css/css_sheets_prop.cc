@@ -583,7 +583,7 @@ namespace qk {
 		}
 	};
 
-	void StyleSheets::set_frame_Rt(uint32_t frame) {
+	void StyleSheets::set_frame_rt(uint32_t frame) {
 		static_cast<SetProp<uint32_t>*>(this)->set(kFRAME_CssProp, frame);
 	}
 

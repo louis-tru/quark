@@ -261,12 +261,15 @@ export enum Align {
  * The width/height value kind for the Box
 */
 export enum BoxSizeKind {
-	None,    //!< Do not use value
-	Auto,    //!< 包裹内容 wrap content
-	Match,   //!< 匹配父视图 match parent
-	Value,   //!< 明确值  rem
-	Ratio,   //!< 百分比 value %
-	Minus,   //!< 减法(parent-value) value !
+	None,    /* Do not use value */
+	Auto,    /* wrap content or auto value */
+	Match,   /* match parent */
+	Value,   /* Density-independent Pixel, dp = px * window.scale */
+	Dp = Value,/* dp, alias of Value */
+	// Pt,    /* pt, Points, pt = px * window.defaultScale */
+	// Px,   /* px, Pixel */
+	Ratio,   /* value % */
+	Minus,   /* (parent-value) value ! */
 };
 
 /**
@@ -652,6 +655,13 @@ export class Vec2 extends Base<Vec2> {
 	}
 
 	/**
+	 * returns scalar outer product
+	*/
+	det(b: Vec2) {
+		return this.x * b.y - this.y * b.x;
+	}
+
+	/**
 	 * Get the normalized vector
 	*/
 	normalized(): Vec2 {
@@ -710,6 +720,27 @@ export class Vec2 extends Base<Vec2> {
 	*/
 	angleTo(p: Vec2): N {
 		return newVec2(p.y - this.y, p.x - this.x).angle();
+	}
+
+	/**
+	 * Rotate the vector by radians
+	 * @param radians The angle in radians
+	 * @return The rotated vector
+	*/
+	rotate(radians: N): Vec2 {
+		const c = Math.cos(radians);
+		const s = Math.sin(radians);
+		return newVec2(
+			this.x * c - this.y * s,
+			this.x * s + this.y * c
+		);
+	}
+
+	/**
+	 * Reverse the y axis of the vector
+	*/
+	reverseY(): Vec2 {
+		return newVec2(this.x, -this.y);
 	}
 
 	/** 
@@ -843,35 +874,49 @@ export type CurveIn = 'linear' | 'ease' | 'easeIn' | 'easeOut' | 'easeInOut' |
  * @class Rect
 */
 export class Rect extends Base<Rect> {
-	readonly origin: Vec2; //!<
+	readonly begin: Vec2; //!<
 	readonly size: Vec2; //!<
-	get x() { return this.origin.x; } //!< {N}
-	get y() { return this.origin.y; } //!< {N}
+	get x() { return this.begin.x; } //!< {N}
+	get y() { return this.begin.y; } //!< {N}
 	get width() { return this.size.x; } //!< {N}
 	get height() { return this.size.y; } //!< {N}
 	toString(): `rect(${N},${N},${N},${N})` {
 		return `rect(${this.x},${this.y},${this.width},${this.height})`;
 	}
 }
-initDefaults(Rect, { origin: new Vec2, size: new Vec2 });
+initDefaults(Rect, { begin: new Vec2, size: new Vec2 });
 export type RectIn = `rect(${N},${N},${N},${N})` | `rect(${N},${N})` | //!< {'rect(0,0,100,100)'|'rect(0,0)'|[0,0,100,100]|Rect}
 	[number,number,number,number] | Rect;
+
+/**
+ * @class Range
+*/
+export class Range extends Base<Range> {
+	readonly begin: Vec2; //!< top-left corner
+	readonly end: Vec2; //!< bottom-right corner
+	get p0() { return this.begin.x; }
+	get p1() { return this.begin.y; }
+	get p2() { return this.end.x; }
+	get p3() { return this.end.y; }
+}
+initDefaults(Range, { begin: new Vec2, end: new Vec2 });
+export type RangeIn = Range;
 
 /**
  * @class Region
 */
 export class Region extends Base<Region> {
-	readonly origin: Vec2; //!< top-left corner
+	readonly begin: Vec2; //!< top-left corner
 	readonly end: Vec2; //!< bottom-right corner
-	get p0() { return this.origin.x; }
-	get p1() { return this.origin.y; }
+	readonly origin: Vec2; //!< origin point
+	get p0() { return this.begin.x; }
+	get p1() { return this.begin.y; }
 	get p2() { return this.end.x; }
 	get p3() { return this.end.y; }
-	toString(): `region(${N},${N},${N},${N})` {
-		return `region(${this.p0},${this.p1},${this.p2},${this.p3})`;
-	}
+	get p4() { return this.origin.x; }
+	get p5() { return this.origin.y; }
 }
-initDefaults(Region, { origin: new Vec2, end: new Vec2 });
+initDefaults(Region, { begin: new Vec2, end: new Vec2, origin: new Vec2 });
 export type RegionIn = Region;
 
 /**
@@ -1311,14 +1356,21 @@ export function newVec4(x: N, y: N, z: N, w: N) {
  * @method newRect(x:N,y:N,width:N,height:N)Rect
 */
 export function newRect(x: N, y: N, width: N, height: N) {
-	return newBase(Rect, {origin: newVec2(x,y),size: newVec2(width,height)});
+	return newBase(Rect, {begin: newVec2(x,y),size: newVec2(width,height)});
 }
 
 /**
- * @method newRect(x:N,y:N,width:N,height:N)Region
+ * @method newRange(x:N,y:N,width:N,height:N)Range
 */
-export function newRegion(x: N, y: N, x1: N, y1: N) {
-	return newBase(Region, {origin: newVec2(x,y), end: newVec2(x1,y1)});
+export function newRange(x: N, y: N, x1: N, y1: N) {
+	return newBase(Range, {begin: newVec2(x,y), end: newVec2(x1,y1)});
+}
+
+/**
+ * @method newRegion(x:N,y:N,width:N,height:N)Region
+*/
+export function newRegion(x: N, y: N, x1: N, y1: N, ox: N = 0, oy: N = 0) {
+	return newBase(Region, {begin: newVec2(x,y), end: newVec2(x1,y1), origin: newVec2(ox,oy)});
 }
 
 /**
@@ -1664,6 +1716,13 @@ export function parseRect(val: RectIn, desc?: string): Rect { //!<
 		return val;
 	}
 	throw error(val, desc, ['rect(0,0,-100,200)', '0 0 -100 200']);
+}
+
+export function parseRange(val: RangeIn, desc?: string): Range { //!<
+	if (val instanceof Range) {
+		return val;
+	}
+	throw error(val, desc);
 }
 
 export function parseRegion(val: RegionIn, desc?: string): Region { //!<

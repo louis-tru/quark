@@ -44,7 +44,7 @@ namespace qk {
 
 	void Textarea::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			set_scroll_size_Rt(layout_typesetting_input_text());
+			set_scroll_size_rt(layout_typesetting_input_text());
 		}
 	}
 

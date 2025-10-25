@@ -121,7 +121,7 @@ namespace qk {
 			ImageSource     *image; // image source, weak ref
 			Canvas          *canvas; // flush canvas, weak ref
 		};
-		Region            coord; // bitmap uv coord
+		Range            coord; // bitmap uv coord
 	};
 
 	struct PaintStyle {

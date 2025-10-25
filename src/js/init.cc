@@ -307,7 +307,7 @@ namespace qk { namespace js {
 					repeat = args[2]->cast<JSNumber>()->value();
 				}
 			}
-			auto id = work_loop()->timer(get_callback_for_none(worker, args[0]), timeout, repeat);
+			auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), timeout, repeat);
 			Js_Return(id);
 		}
 
@@ -319,7 +319,7 @@ namespace qk { namespace js {
 					"@param id {Number}\n", name
 				);
 			}
-			work_loop()->timer_stop(id);
+			first_loop()->timer_stop(id);
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -340,7 +340,7 @@ namespace qk { namespace js {
 						"@return {Number}\n"
 					);
 				}
-				auto id = work_loop()->timer(get_callback_for_none(worker, args[0]), 0, 0);
+				auto id = first_loop()->timer(get_callback_for_none(worker, args[0]), 0, 0);
 				Js_Return(id);
 			});
 			Js_Method(clearTimer, {
@@ -484,7 +484,7 @@ namespace qk { namespace js {
 			Js_Method(nextTick, {
 				if (!args.length() || !args[0]->isFunction())
 					Js_Throw("@method nextTick(cb,...args), cb must be a function");
-				work_loop()->tick(get_callback_for_none(worker, args[0]));
+				first_loop()->tick(get_callback_for_none(worker, args[0]));
 			});
 
 			Js_Method(addNativeEventListener, {

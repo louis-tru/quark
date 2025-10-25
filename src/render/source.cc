@@ -397,7 +397,7 @@ namespace qk {
 		if (!_shared_imagePool) {
 			ScopeLock scope(_si_mutex);
 			if (!_shared_imagePool) {
-				_shared_imagePool = new ImagePool(work_loop());
+				_shared_imagePool = new ImagePool(first_loop());
 			}
 		}
 		return _shared_imagePool;

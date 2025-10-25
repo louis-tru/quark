@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {View,Box,Matrix,ViewType} from './view';
+import {View,Box,Morph,ViewType} from './view';
 import {Jsx,link,VDom} from './ctr';
 import {Window} from './window';
 import { Navigation } from './nav';
@@ -162,7 +162,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	private attemptTop(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
-		let arrow = self.refs.arrow as Matrix;
+		let arrow = self.refs.arrow as Morph;
 		let height = main.clientSize.y;
 		let top = y - height - arrowSize.height;
 		if (top - border > 0 || force) {
@@ -186,7 +186,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	private attemptRight(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
-		let arrow = self.refs.arrow as Matrix;
+		let arrow = self.refs.arrow as Morph;
 		let width = main.clientSize.x;
 		let left = x + offset_x + arrowSize.height;
 		if (left + width + border <= this.window.size.x || force) {
@@ -210,7 +210,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	private attemptBottom(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
-		let arrow = self.refs.arrow as Matrix;
+		let arrow = self.refs.arrow as Morph;
 		let height = main.clientSize.y;
 		let top = y + offset_y + arrowSize.height;
 		if (top + height + border <= this.window.size.y || force) {
@@ -234,7 +234,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	private attemptLeft(x: number, y: number, offset_x: number, offset_y: number, force?: boolean) {
 		let self = this;
 		let main = self.refs.main as Box;
-		let arrow = self.refs.arrow as Matrix;
+		let arrow = self.refs.arrow as Morph;
 		let width = main.clientSize.x;
 		let left = x - width - arrowSize.height;
 		if (left - border > 0 || force) {
@@ -304,9 +304,9 @@ export class Bubbles<P={},S={}> extends Navigation<{
 				onTouchStart={this._fadeOut}
 				onMouseDown={this._fadeOut}
 			>
-				<matrix ref="main">
+				<morph ref="main">
 					<free>
-						<matrix
+						<morph
 							ref="arrow"
 							width={arrowSize.width}
 							height={arrowSize.height}
@@ -319,7 +319,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 								textSize={36}
 								textColor={this.backgroundColor}
 								value={"\uedcb"} />
-						</matrix>
+						</morph>
 						<flex
 							backgroundColor={this.backgroundColor}
 							borderRadius={this.borderRadius}
@@ -328,7 +328,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 							clip={this.borderRadius ? true: false}
 						>{this.children}</flex>
 					</free>
-				</matrix>
+				</morph>
 			</free>
 		);
 	}

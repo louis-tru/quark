@@ -65,7 +65,7 @@ namespace qk { namespace js {
 		return nullptr;
 	}
 
-	MatrixView* MixUIObject::asMatrixView() {
+	MorphView* MixUIObject::asMorphView() {
 		return nullptr;
 	}
 

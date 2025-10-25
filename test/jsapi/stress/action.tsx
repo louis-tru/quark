@@ -24,7 +24,7 @@ win.render(
 			let x = random(0, w + s) - s2;
 			let y = random(0, h + s) - s2;
 			return (
-				<matrix
+				<morph
 					key={i}
 					originX={s2}
 					originY={s2}

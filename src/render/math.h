@@ -206,9 +206,9 @@ namespace qk {
 		float dot(const Vec<float,2> b) const;
 
 		/**
-		 * @method det() returns vector outer product
+		 * @method det() returns scalar outer product
 		*/
-		Vec3 det(const Vec<float,2> b, const Vec<float,2> c) const;
+		float det(const Vec<float,2> b) const;
 
 		/**
 		 * @method dot() returns normalized vector
@@ -224,6 +224,11 @@ namespace qk {
 		 * @method rotate270z() ccw rotate 90
 		 */
 		Vec2  rotate270z() const;
+
+		/**
+		 * @method rotate(radians) Default to use Cartesian coordinate system
+		 */
+		Vec2  rotate(float radians) const;
 
 		/**
 		 * Default to use Cartesian coordinate system
@@ -262,17 +267,18 @@ namespace qk {
 
 	// ------------------------------------------
 
-	template<typename T> struct MRect { T origin,size; }; // rect
-	template<typename T> struct MRegion { T origin,end;}; // region
+	template<typename T> struct MRect { T begin,size; }; // rect
+	template<typename T> struct MRange { T begin,end;}; // range
+	template<typename T> struct MRegion { T begin,end,origin;}; // region
 
 	typedef Vec<float,4>     Vec4; // typedef vec
+	typedef MRect<Vec2>      Rect; // typedef rect
+	typedef MRange<Vec2>     Range; // typedef range
+	typedef MRegion<Vec2>    Region; // typedef region
 	typedef Vec<int,2>       IVec2;
 	typedef Vec<int,3>       IVec3;
 	typedef Vec<int,4>       IVec4;
-	typedef MRect<Vec2>      Rect; // typedef rect
-	typedef MRegion<Vec2>    Region;
 	typedef MRect<IVec2>     IRect;
-	typedef MRegion<IVec2>   IRegion;
 
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const;
@@ -340,6 +346,7 @@ namespace qk {
 		void mul(const Mat& b, Mat& output) const;
 		bool is_identity_matrix() const;
 		bool is_translation_matrix() const;
+		Mat inverse() const; // return inverse matrix
 	};
 
 	struct Qk_EXPORT Mat4: Vec<float, 16> {
@@ -390,12 +397,12 @@ namespace qk {
 	};
 
 	#undef Qk_Default_Vec_Operator
-
 	Qk_DEF_ARRAY_SPECIAL(Vec2);
 	Qk_DEF_ARRAY_SPECIAL(Vec3);
 	Qk_DEF_ARRAY_SPECIAL(Color);
 
 	Qk_EXPORT float math_invSqrt(float x); // 1/sqrt(x)
 	Qk_EXPORT float math_sqrt(float x);
+
 }
 #endif

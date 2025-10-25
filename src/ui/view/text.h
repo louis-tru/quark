@@ -44,7 +44,7 @@ namespace qk {
 		virtual ViewType viewType() const override;
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_reverse(uint32_t mark) override;
-		virtual void solve_visible_region(const Mat &mat) override;
+		virtual void solve_visible_area(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(Painter *render) override;
 	protected:

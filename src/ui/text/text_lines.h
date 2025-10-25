@@ -47,7 +47,7 @@ namespace qk {
 			float start_y, end_y, width, line_height;
 			float baseline, top, bottom, origin;
 			uint32_t line;
-			bool visible_region;
+			bool visible_area;
 		};
 
 		struct PreTextBlob {
@@ -63,25 +63,25 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(float, pre_width, Const);
 		Qk_DEFINE_PROPERTY(bool, ignore_single_white_space, Const);
 		Qk_DEFINE_PROP_GET(bool, have_init_line_height, Const);
-		Qk_DEFINE_PROP_GET(bool, visible_region, Const);
+		Qk_DEFINE_PROP_GET(bool, visible_area, Const);
 		Qk_DEFINE_PROP_GET(bool, host_float_x, Const);
 		Qk_DEFINE_PROP_GET(TextAlign, text_align, Const);
-		Qk_DEFINE_PROP_GET(Region, limit_range, Const);
+		Qk_DEFINE_PROP_GET(Range, limit_range, Const);
 		Qk_DEFINE_PROP_GET(Line*, last);
 		Qk_DEFINE_PROP_GET(View*, host);
 		Qk_DEFINE_PROP_GET(float, max_width, Const);
 		Qk_DEFINE_PROP_GET(float, min_origin, Const);
 
 		// defines methods
-		TextLines(View *host, TextAlign text_align, Region limit_range, bool host_float_x = true);
+		TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x = true);
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all
 		void finish_text_blob_pre();
 		void add_view(View* view);
 		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre);
-		void solve_visible_region(const Mat &mat);
-		void solve_visible_region_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
+		void solve_visible_area(const Mat &mat);
+		void solve_visible_area_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
 		int length() const { return _lines.length(); }
 		float max_height() const { return _last->end_y; }
 		Line& operator[](uint32_t idx) { return _lines[idx]; }

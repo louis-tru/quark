@@ -35,7 +35,6 @@ namespace qk { namespace js {
 
 	void inheritScrollView(JSClass* cls, Worker* worker) {
 		typedef Object Type;
-
 		Js_UIObject_Accessor(ScrollView, bool, scrollbar, scrollbar);
 		Js_UIObject_Accessor(ScrollView, bool, bounce, bounce);
 		Js_UIObject_Accessor(ScrollView, bool, bounce_lock, bounceLock);
@@ -52,19 +51,9 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(ScrollView, float, scrollbar_margin, scrollbarMargin);
 		Js_UIObject_Accessor(ScrollView, uint32_t, scroll_duration, scrollDuration);
 		Js_UIObject_Accessor(ScrollView, Curve, default_curve, defaultCurve);
-
-		Js_Class_Accessor_Get(scrollbarH, {
-			Js_UISelf(ScrollView);
-			Js_Return( worker->types()->jsvalue(self->scrollbar_h()) );
-		});
-		Js_Class_Accessor_Get(scrollbarV, {
-			Js_UISelf(ScrollView);
-			Js_Return( worker->types()->jsvalue(self->scrollbar_v()) );
-		});
-		Js_Class_Accessor_Get(scrollSize, {
-			Js_UISelf(ScrollView);
-			Js_Return( worker->types()->jsvalue(self->scroll_size()) );
-		});
+		Js_UIObject_Acce_Get(ScrollView, bool, scrollbar_h, scrollbarH);
+		Js_UIObject_Acce_Get(ScrollView, bool, scrollbar_v, scrollbarV);
+		Js_UIObject_Acce_Get(ScrollView, Vec2, scroll_size, scrollSize);
 
 		Js_Class_Method(scrollTo, {
 			if (args.length() < 1) {
@@ -102,13 +91,9 @@ namespace qk { namespace js {
 
 	class MixScroll: public MixViewObject {
 	public:
-		virtual ScrollView* asScrollView() {
-			return self<Scroll>();
-		}
+		virtual ScrollView* asScrollView() { return self<Scroll>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Scroll, Box, {
-				Js_NewView(Scroll);
-			});
+			Js_Define_Class(Scroll, Box, { Js_NewView(Scroll); });
 			inheritScrollView(cls, worker);
 			cls->exports("Scroll", exports);
 		}

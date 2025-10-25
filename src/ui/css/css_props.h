@@ -45,6 +45,7 @@ namespace qk {
 	F(OPACITY, float, opacity, View) \
 	F(VISIBLE, bool, visible, View) \
 	F(CLIP, bool, clip, Box) /* box */ \
+	F(FREE, bool, free, Box) \
 	F(ALIGN, Align, align, Box) \
 	F(WIDTH, BoxSize, width, Box) \
 	F(HEIGHT, BoxSize, height, Box) \
@@ -117,19 +118,19 @@ namespace qk {
 	F(SCROLLBAR_COLOR, Color, scrollbar_color, ScrollView) /*scroll/textarea of ScrollView*/ \
 	F(SCROLLBAR_WIDTH, float, scrollbar_width, ScrollView) \
 	F(SCROLLBAR_MARGIN, float, scrollbar_margin, ScrollView) \
-	F(TRANSLATE, Vec2, translate, MatrixView) /*matrix/sprite of MatrixView*/ \
-	F(SCALE, Vec2, scale, MatrixView) \
-	F(SKEW, Vec2, skew, MatrixView) \
-	F(ORIGIN, ArrayOrigin, origin, MatrixView) /*Matrix*/\
-	F(ORIGIN_X, BoxOrigin, origin_x, MatrixView) \
-	F(ORIGIN_Y, BoxOrigin, origin_y, MatrixView) \
-	F(X, float, x, MatrixView) \
-	F(Y, float, y, MatrixView) \
-	F(SCALE_X, float, scale_x, MatrixView) \
-	F(SCALE_Y, float, scale_y, MatrixView) \
-	F(SKEW_X, float, skew_x, MatrixView) \
-	F(SKEW_Y, float, skew_y, MatrixView) \
-	F(ROTATE_Z, float, rotate_z, MatrixView) \
+	F(TRANSLATE, Vec2, translate, MorphView) /*matrix/sprite of MorphView*/ \
+	F(SCALE, Vec2, scale, MorphView) \
+	F(SKEW, Vec2, skew, MorphView) \
+	F(ORIGIN, ArrayOrigin, origin, MorphView) /*Morph*/\
+	F(ORIGIN_X, BoxOrigin, origin_x, MorphView) \
+	F(ORIGIN_Y, BoxOrigin, origin_y, MorphView) \
+	F(X, float, x, MorphView) \
+	F(Y, float, y, MorphView) \
+	F(SCALE_X, float, scale_x, MorphView) \
+	F(SCALE_Y, float, scale_y, MorphView) \
+	F(SKEW_X, float, skew_x, MorphView) \
+	F(SKEW_Y, float, skew_y, MorphView) \
+	F(ROTATE_Z, float, rotate_z, MorphView) \
 	F(FRAME, uint32_t, frame, Sprite) /*Current frame index of Sprite*/\
 	F(CURVE, Curve, curve, CSS) /* extends */\
 

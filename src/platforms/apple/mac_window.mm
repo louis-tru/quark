@@ -374,7 +374,7 @@ float Window::getDefaultScale() {
 	return _impl->delegate().uiwin.backingScaleFactor;
 }
 
-Region Window::getDisplayRegion(Vec2 size) {
+Range Window::getDisplayRange(Vec2 size) {
 	return {{0}, size};
 }
 

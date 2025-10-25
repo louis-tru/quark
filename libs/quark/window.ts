@@ -131,6 +131,12 @@ declare class NativeWindow extends Notification<WEvent> {
 	surfaceSize: types.Vec2;
 
 	/**
+	 * Get or set whether to enable the debug mode,
+	 * In debug mode, the view boundary and layout boundary will be drawn
+	*/
+	debugMode: boolean;
+
+	/**
 	 * When rendering next frame call,
 	 * if a frame render is not complete, it will be wait for complete.
 	 * @method nextFrame(cb:Function)this

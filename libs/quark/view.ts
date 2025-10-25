@@ -37,7 +37,7 @@ import event, {
 	GestureStage, GestureType,
 	TouchPoint,} from './event';
 import * as types from './types';
-import {RemoveReadonly} from './types';
+import {RemoveReadonly, Vec2, Vec2In} from './types';
 import { StyleSheets, CStyleSheetsClass } from './css';
 import { Window } from './window';
 import { Action, createAction,KeyframeIn,TransitionResult } from './action';
@@ -64,7 +64,7 @@ export enum ViewType {
 	Scroll, //!<
 	Text, //!<
 	Button, //!<
-	Matrix, //!<
+	Morph, //!<
 	Root, //!<
 	Enum_Counts, //!<
 }
@@ -162,18 +162,19 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly first: View | null; //!<
 	readonly last: View | null; //!<
 	readonly window: Window; //!<
-	readonly matrixView: MatrixView | null; //!< top matrix view
+	readonly morphView: MorphView | null; //!< top morph view
 	readonly level: number; //!<
-	readonly layoutWeight: types.Vec2; //!<
+	readonly layoutWeight: Vec2; //!<
 	readonly layoutAlign: types.Align; //!<
 	readonly isClip: boolean; //!<
 	readonly viewType: ViewType; //!<
-	readonly position: types.Vec2; //!< @safe Rt
-	readonly layoutOffset: types.Vec2; //!< @safe Rt
-	readonly layoutSize: types.Vec2; //!< @safe Rt, For: Box = border + padding + content + margin
-	readonly clientSize: types.Vec2; //!< @safe Rt, For: Box = border + padding + content
+	readonly position: Vec2; //!< @safe Rt
+	readonly layoutOffset: Vec2; //!< @safe Rt
+	readonly layoutSize: Vec2; //!< @safe Rt, For: Box = border + padding + content + margin
+	readonly clientSize: Vec2; //!< @safe Rt, For: Box = {offset, border + padding + content}
+	readonly clientRegion: types.Region; //!< @safe Rt
 	readonly metaView: View; //!<
-	readonly visibleRegion: boolean; //!<
+	readonly visibleArea: boolean; //!<
 	readonly ref: string; //!<
 	style: StyleSheets; //!<
 	action: Action | null; //!<
@@ -197,12 +198,14 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	append(view: View): void; //!<
 	remove(): void; //!<
 	removeAllChild(): void; //!<
-	overlapTest(point: types.Vec2): boolean; //!<
+	overlapTest(point: Vec2): boolean; //!<
 	hashCode(): Int; //!<
 	appendTo(parent: View): this; //!<
 	afterTo(prev: View): this; //!<
 	destroy(owner: ViewController): void; //!<
 	transition(to: KeyframeIn, from?: KeyframeIn): TransitionResult; //!<
+	asMorphView(): MorphView | null; //!<
+	asEntity(): Entity | null; //!<
 	constructor(win: Window); //!<
 	static readonly isViewController: boolean;
 }
@@ -213,6 +216,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 */
 export declare class Box extends View {
 	clip: boolean; //!<
+	free: boolean; //!<
 	align: types.Align; //!<
 	width: types.BoxSize; //!<
 	height: types.BoxSize; //!<
@@ -253,8 +257,8 @@ export declare class Box extends View {
 	backgroundColor: types.Color; //!<
 	background: types.BoxFilter | null; //!<
 	boxShadow: types.BoxShadow | null; //!<
-	weight: types.Vec2; //!<
-	readonly contentSize: types.Vec2; //!< width,height, no include padding
+	weight: Vec2; //!<
+	readonly contentSize: Vec2; //!< width,height, no include padding
 }
 
 /**
@@ -296,13 +300,13 @@ export declare class Image extends Box {
 }
 
 /**
- * @interface MatrixView
+ * @interface MorphView
  * @extends View
 */
-export interface MatrixView extends View {
-	translate: types.Vec2; //!<
-	scale: types.Vec2; //!<
-	skew: types.Vec2; //!<
+export interface MorphView extends View {
+	translate: Vec2; //!<
+	scale: Vec2; //!<
+	skew: Vec2; //!<
 	origin: types.BoxOrigin[]; //!<
 	originX: types.BoxOrigin; //!<
 	originY: types.BoxOrigin; //!<
@@ -318,14 +322,14 @@ export interface MatrixView extends View {
 }
 
 /**
- * @class Matrix
+ * @class Morph
  * @extends Box
- * @implements MatrixView
+ * @implements MorphView
 */
-export declare class Matrix extends Box implements MatrixView {
-	translate: types.Vec2;
-	scale: types.Vec2;
-	skew: types.Vec2;
+export declare class Morph extends Box implements MorphView {
+	translate: Vec2;
+	scale: Vec2;
+	skew: Vec2;
 	origin: types.BoxOrigin[];
 	originX: types.BoxOrigin;
 	originY: types.BoxOrigin;
@@ -340,15 +344,10 @@ export declare class Matrix extends Box implements MatrixView {
 	readonly matrix: types.Mat;
 }
 
-/**
- * @class Sprite
- * @extends View
- * @implements MatrixView
-*/
-export declare class Sprite extends View implements MatrixView {
-	translate: types.Vec2;
-	scale: types.Vec2;
-	skew: types.Vec2;
+export declare class Entity extends View implements MorphView {
+	translate: Vec2;
+	scale: Vec2;
+	skew: Vec2;
 	origin: types.BoxOrigin[];
 	originX: types.BoxOrigin;
 	originY: types.BoxOrigin;
@@ -361,6 +360,14 @@ export declare class Sprite extends View implements MatrixView {
 	rotateZ: number;
 	readonly originValue: number[];
 	readonly matrix: types.Mat;
+	// bounds: types.EntityBounds; //!<
+}
+
+/**
+ * @class Sprite
+ * @extends Entity
+*/
+export declare class Sprite extends Entity {
 	/** @event */
 	readonly onLoad: EventNoticer<UIEvent>;
 	/** @event */
@@ -380,22 +387,11 @@ export declare class Sprite extends View implements MatrixView {
 	stop(): void; //!<
 }
 
-export declare class Spine extends View implements MatrixView {
-	translate: types.Vec2;
-	scale: types.Vec2;
-	skew: types.Vec2;
-	origin: types.BoxOrigin[];
-	originX: types.BoxOrigin;
-	originY: types.BoxOrigin;
-	x: number;
-	y: number;
-	scaleX: number;
-	scaleY: number;
-	skewX: number;
-	skewY: number;
-	rotateZ: number;
-	readonly originValue: number[];
-	readonly matrix: types.Mat;
+/**
+ * @class Spine
+ * @extends Entity
+ */
+export declare class Spine extends Entity {
 	skel: types.SkeletonData | null; //!<
 	skin: string; //!<
 	speed: Float; //!<
@@ -417,9 +413,9 @@ export declare class Spine extends View implements MatrixView {
 
 /**
  * @class Root
- * @extends Matrix
+ * @extends Morph
 */
-export declare class Root extends Matrix {
+export declare class Root extends Morph {
 }
 
 /**
@@ -441,7 +437,7 @@ export interface TextOptions {
 	textLineHeight: types.TextSize; //!<
 	textShadow: types.TextShadow; //!<
 	textFamily: types.TextFamily; //!<
-	computeLayoutSize(text: string): types.Vec2; //!<
+	computeLayoutSize(text: string): Vec2; //!<
 }
 
 /**
@@ -466,7 +462,7 @@ export declare class Text extends Box implements TextOptions {
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
 	value: string; //!<
-	computeLayoutSize(text: string): types.Vec2;
+	computeLayoutSize(text: string): Vec2;
 }
 
 /**
@@ -499,7 +495,7 @@ export declare class Label extends View implements TextOptions {
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
 	value: string; //!<
-	computeLayoutSize(text: string): types.Vec2;
+	computeLayoutSize(text: string): Vec2;
 }
 
 /**
@@ -535,7 +531,7 @@ export declare class Input extends Box implements TextOptions {
 	value: string; //!<
 	placeholder: string; //!<
 	readonly textLength: number; //!<
-	computeLayoutSize(text: string): types.Vec2;
+	computeLayoutSize(text: string): Vec2;
 }
 
 /**
@@ -550,7 +546,7 @@ export interface ScrollView extends Box {
 	lockDirection: boolean; //!<
 	scrollX: number; //!<
 	scrollY: number; //!<
-	scroll: types.Vec2; //!<
+	scroll: Vec2; //!<
 	resistance: number; //!<
 	catchPositionX: number; //!<
 	catchPositionY: number; //!<
@@ -561,8 +557,8 @@ export interface ScrollView extends Box {
 	defaultCurve: types.Curve; //!<
 	readonly scrollbarH: boolean; //!<
 	readonly scrollbarV: boolean; //!<
-	readonly scrollSize: types.Vec2; //!<
-	scrollTo(val: types.Vec2, duration?: number, curve?: types.Curve): void; //!<
+	readonly scrollSize: Vec2; //!<
+	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void; //!<
 	terminate(): void; //!<
 }
 
@@ -581,7 +577,7 @@ export declare class Textarea extends Input implements ScrollView {
 	lockDirection: boolean;
 	scrollX: number;
 	scrollY: number;
-	scroll: types.Vec2;
+	scroll: Vec2;
 	resistance: number;
 	catchPositionX: number;
 	catchPositionY: number;
@@ -592,8 +588,8 @@ export declare class Textarea extends Input implements ScrollView {
 	defaultCurve: types.Curve;
 	readonly scrollbarH: boolean;
 	readonly scrollbarV: boolean;
-	readonly scrollSize: types.Vec2;
-	scrollTo(val: types.Vec2, duration?: number, curve?: types.Curve): void;
+	readonly scrollSize: Vec2;
+	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void;
 	terminate(): void;
 }
 
@@ -612,7 +608,7 @@ export declare class Scroll extends Box implements ScrollView {
 	lockDirection: boolean;
 	scrollX: number;
 	scrollY: number;
-	scroll: types.Vec2;
+	scroll: Vec2;
 	resistance: number;
 	catchPositionX: number;
 	catchPositionY: number;
@@ -623,8 +619,8 @@ export declare class Scroll extends Box implements ScrollView {
 	defaultCurve: types.Curve;
 	readonly scrollbarH: boolean;
 	readonly scrollbarV: boolean;
-	readonly scrollSize: types.Vec2;
-	scrollTo(val: types.Vec2, duration?: number, curve?: types.Curve): void;
+	readonly scrollSize: Vec2;
+	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void;
 	terminate(): void;
 }
 
@@ -655,6 +651,37 @@ export declare class Video extends Image implements Player {
 	switchAudio(index: number): void;
 }
 
+/**
+ * test overlap point in convex quadrilateral
+*/
+export declare function testOverlapFromConvexQuadrilateral(quadrilateral: Vec2[], point: Vec2): boolean;
+
+/**
+ * Represents the minimum translation vector required to separate two overlapping convex shapes.
+*/
+export interface MinimumTranslationVector {
+	axis: Vec2;
+	overlap: Float;
+};
+
+/**
+ * alias MinimumTranslationVector
+*/
+export type MTV = MinimumTranslationVector;
+
+/**
+ * Test overlap from convex polygons with SAT algorithm and get minimum translation vector.
+ * @param poly1 The vertices of the first convex polygon.
+ * @param poly2 The vertices of the second convex polygon.
+ * @param origin1 The origin point of the first polygon for projection offset.
+ * @param origin2 The origin point of the second polygon for projection offset.
+ * @param outMTV? Optional output parameter to receive the minimum translation vector to separate the polygons.
+ * @param computeMTV? Optional flag to compute the minimum translation vector even when the polygons are separated.
+ * @returns Returns true if the polygons overlap, false otherwise.
+*/
+export declare function testOverlapFromConvexPolygons(poly1: Vec2[], poly2: Vec2[],
+												origin1: Vec2, origin2: Vec2, outMTV?: Partial<MTV>, computeMTV?: boolean): boolean;
+
 const _ui = __binding__('_ui');
 
 Object.assign(exports, {
@@ -671,10 +698,13 @@ Object.assign(exports, {
 	Scroll: _ui.Scroll,
 	Text: _ui.Text,
 	Button: _ui.Button,
-	Matrix: _ui.Matrix,
+	Morph: _ui.Morph,
+	Entity: _ui.Entity,
 	Sprite: _ui.Sprite,
 	Spine: _ui.Spine,
 	Root: _ui.Root,
+	testOverlapFromConvexQuadrilateral: _ui.testOverlapFromConvexQuadrilateral,
+	testOverlapFromConvexPolygons: _ui.testOverlapFromConvexPolygons,
 });
 
 // JSX IntrinsicElements
@@ -722,6 +752,7 @@ declare global {
 
 		interface BoxJSX extends ViewJSX {
 			clip?: boolean;
+			free?: boolean;
 			align?: types.AlignIn;
 			width?: types.BoxSizeIn;
 			height?: types.BoxSizeIn;
@@ -762,7 +793,7 @@ declare global {
 			backgroundColor?: types.ColorIn;
 			background?: types.BoxFilterIn;
 			boxShadow?: types.BoxShadowIn;
-			weight?: types.Vec2In;
+			weight?: Vec2In;
 		}
 
 		interface FlexJSX extends BoxJSX {
@@ -792,10 +823,10 @@ declare global {
 			mute?: boolean;
 		}
 
-		interface MatrixViewJSX {
-			translate?: types.Vec2In;
-			scale?: types.Vec2In;
-			skew?: types.Vec2In;
+		interface MorphViewJSX {
+			translate?: Vec2In;
+			scale?: Vec2In;
+			skew?: Vec2In;
 			origin?: types.BoxOriginIn[] | types.BoxOriginIn
 			originX?: types.BoxOriginIn;
 			originY?: types.BoxOriginIn;
@@ -808,10 +839,14 @@ declare global {
 			rotateZ?: Float;
 		}
 
-		interface MatrixJSX extends BoxJSX, MatrixViewJSX {
+		interface MorphJSX extends BoxJSX, MorphViewJSX {
 		}
 
-		interface SpriteJSX extends ViewJSX, MatrixViewJSX {
+		interface EntityJSX extends ViewJSX, MorphViewJSX {
+			// bounds?: types.EntityBoundsIn;
+		}
+
+		interface SpriteJSX extends EntityJSX {
 			onLoad?: Listen<UIEvent, Sprite> | null;
 			onError?: Listen<UIEvent, Sprite> | null;
 			src?: string;
@@ -827,7 +862,7 @@ declare global {
 			playing?: boolean;
 		}
 
-		interface SpineJSX extends ViewJSX, MatrixViewJSX {
+		interface SpineJSX extends EntityJSX {
 			skel?: types.SkeletonDataIn;
 			skin?: string;
 			speed?: Float;
@@ -884,7 +919,7 @@ declare global {
 			lockDirection?: boolean;
 			scrollX?: number;
 			scrollY?: number;
-			scroll?: types.Vec2In;
+			scroll?: Vec2In;
 			resistance?: number;
 			catchPositionX?: number;
 			catchPositionY?: number;
@@ -911,7 +946,8 @@ declare global {
 			free: FreeJSX;
 			image: ImageJSX;
 			img: ImageJSX;
-			matrix: MatrixJSX;
+			morph: MorphJSX;
+			entity: EntityJSX;
 			sprite: SpriteJSX;
 			spine: SpineJSX;
 			text: TextJSX;
@@ -1253,6 +1289,7 @@ class _View extends NativeNotification<UIEvent> {
 			if (dom)
 				dom.destroy(owner);
 		}
+		(this as any).childDoms = []; // clear child doms
 		let ref = this.ref;
 		if (ref) {
 			if (owner.refs[ref] === this as unknown as View) {

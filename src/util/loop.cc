@@ -31,7 +31,7 @@
 #include "./thread.h"
 
 namespace qk {
-	RunLoop        *__work_loop = nullptr;
+	RunLoop        *__first_loop = nullptr;
 	Array<RunLoop*> __loops;
 
 	Qk_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
@@ -107,8 +107,8 @@ namespace qk {
 			if (_uv_loop->closing_handles) {
 				Qk_DLog("The handle is still being closed and will be closed on the next run of the loop");
 			}
-			if (__work_loop == this) {
-				__work_loop = nullptr;
+			if (__first_loop == this) {
+				__first_loop = nullptr;
 			}
 			_thread = nullptr;
 			_tid = ThreadID();
@@ -135,7 +135,7 @@ namespace qk {
 					}
 					if (!loop) {
 						__loops.push((
-							loop = new RunLoop(__work_loop ? uv_loop_new(): uv_default_loop())
+							loop = new RunLoop(__first_loop ? uv_loop_new(): uv_default_loop())
 						));
 					}
 				}
@@ -146,8 +146,8 @@ namespace qk {
 				loop->_tid = t->id;
 				t->loop = loop;
 
-				if (!__work_loop) {
-					__work_loop = loop;
+				if (!__first_loop) {
+					__first_loop = loop;
 				}
 			}
 			return loop;
@@ -300,22 +300,22 @@ namespace qk {
 		return Inl::current_from(nullptr);
 	}
 
-	RunLoop* RunLoop::work() {
+	RunLoop* RunLoop::first() {
 		// NOTE: Be careful of thread safety,
 		// it's best to first ensure that 'current ()' has been called`
-		if (!__work_loop) {
+		if (!__first_loop) {
 			current();
-			Qk_ASSERT(__work_loop); // asset
+			Qk_ASSERT(__first_loop); // asset
 		}
-		return __work_loop;
+		return __first_loop;
 	}
 
-	bool RunLoop::is_work() {
-		return __work_loop && __work_loop->_tid == thread_self_id();
+	bool RunLoop::is_first() {
+		return __first_loop && __first_loop->_tid == thread_self_id();
 	}
 
-	void check_is_work_loop() {
-		Qk_CHECK(RunLoop::is_work(), "Must be called on the work thread loop");
+	void check_is_first_loop() {
+		Qk_CHECK(RunLoop::is_first(), "Must be called on the first thread loop");
 	}
 
 	bool RunLoop::runing() const {

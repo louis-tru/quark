@@ -187,6 +187,8 @@ namespace qk {
 	//////////////////////////////////////////////////////////////////////////////
 
 	void Spine::draw(Painter *painter) {
+		debugDraw(painter); // draw debug bounds
+
 		auto skel = _skel.load(std::memory_order_acquire);
 		// Early exit if the skeleton is invisible.
 		if (!skel || skel->_skeleton.getColor().a == 0) {

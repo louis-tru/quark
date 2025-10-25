@@ -32,7 +32,8 @@
 #include "../../ui/window.h"
 #include "../../ui/action/action.h"
 #include "../../ui/css/css.h"
-#include "../../ui/view/matrix.h"
+#include "../../ui/view/morph.h"
+#include "../../ui/geometry.h"
 
 namespace qk { namespace js {
 
@@ -108,8 +109,8 @@ namespace qk { namespace js {
 				}
 			});
 
-			Js_Class_Accessor_Get(matrixView, {
-				auto view = self->matrix_view();
+			Js_Class_Accessor_Get(morphView, {
+				auto view = self->morph_view();
 				Js_Return( view ? view->host() : nullptr );
 			});
 
@@ -122,10 +123,9 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(View, CursorStyle, cursor, cursor);
 			Js_MixObject_Accessor(View, float, opacity, opacity);
 			Js_MixObject_Accessor(View, bool, visible, visible);
-			Js_MixObject_Accessor(View, bool, test_visible_region, testVisibleRegion);
 
-			Js_Class_Accessor_Get(visibleRegion, {
-				Js_ReturnBool( self->visible_region() );
+			Js_Class_Accessor_Get(visibleArea, {
+				Js_ReturnBool( self->visible_area() );
 			});
 
 			Js_MixObject_Accessor(View, bool, receive, receive);
@@ -133,6 +133,15 @@ namespace qk { namespace js {
 
 			Js_Class_Accessor_Get(isFocus, {
 				Js_ReturnBool( self->is_focus() );
+			});
+
+			Js_Class_Method(asMorphView, {
+				auto view = self->asMorphView();
+				Js_Return( view ? view->host() : nullptr );
+			});
+
+			Js_Class_Method(asEntity, {
+				Js_Return( self->asEntity() );
 			});
 
 			Js_Class_Method(focus, {
@@ -248,8 +257,44 @@ namespace qk { namespace js {
 			Js_Class_Accessor_Get(clientSize, {
 				Js_Return( worker->types()->jsvalue(self->client_size()) );
 			});
+			Js_Class_Accessor_Get(clientRegion, {
+				Js_Return( worker->types()->jsvalue(self->client_region()) );
+			});
 			// -----------------------------------------------------------------------------
 			cls->exports("View", exports);
+
+			Js_Method(testOverlapFromConvexQuadrilateral, {
+				Js_Parse_Args(ArrayVec2, 0, "testOverlapFromConvexQuadrilateral(quadrilateral,point)bool");
+				Js_Parse_Args(Vec2, 1, "testOverlapFromConvexQuadrilateral(quadrilateral,point)bool");
+				if (arg0.length() < 4) {
+					Js_Throw("quadrilateral length must be 4");
+				}
+				Js_Return( test_overlap_from_convex_quadrilateral(arg0.val(), arg1) );
+			});
+
+			Js_Method(testOverlapFromConvexPolygons, {
+				cChar *msg = "testOverlapFromConvexPolygons(poly1,poly2,origin1,origin2,outMTV?,computeMTV?)bool";
+				Js_Parse_Args(ArrayVec2, 0, msg);
+				Js_Parse_Args(ArrayVec2, 1, msg);
+				Js_Parse_Args(Vec2, 2, msg);
+				Js_Parse_Args(Vec2, 3, msg);
+				// Js_Parse_Args(Vec2, 4, msg, ({}));
+				Js_Parse_Args(bool, 5, msg, (false));
+
+				MTV mtv;
+				auto result = test_overlap_from_convex_polygons(arg0, arg1, arg2, arg3, &mtv, arg5);
+
+				if (args.length() > 4 && args[4]->isObject()) {
+					// 有 outMTV 参数时，设置 outMTV 的值
+					auto out = args[4]->template cast<JSObject>();
+					if (
+						!out->set(worker, worker->strs()->axis(), worker->types()->jsvalue(mtv.axis)) ||
+						!out->set(worker, worker->strs()->overlap(), worker->types()->jsvalue(mtv.overlap))
+					)
+						return; // 设置失败则直接返回
+				}
+				Js_Return( result );
+			});
 		}
 	};
 

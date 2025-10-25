@@ -62,15 +62,15 @@ namespace qk { namespace js {
 		F(x)               F(y)              F(z) \
 		F(w)               F(ended)          F(size) \
 		F(toJSON)          F(status)         F(Errno) \
-		F(url)             F(id)             F(startLocation) \
-		F(location)        F(force)          F(clickIn) \
+		F(url)             F(id)             F(startPosition) \
+		F(position)        F(force)          F(clickIn) \
 		F(view)            F(_data)          F(p1x) \
 		F(p1y)             F(p2x)            F(p2y) \
 		F(_change_touches) F(name)           F(pathname) \
 		F(data)            F(total)          F(complete) \
 		F(httpVersion)     F(statusCode)     F(responseHeaders) \
 		F(_log) F(_warn) F(_error) F(_clear) F(_staticData) \
-		F(p0) F(p1) F(p2) F(p3) F(p4) F(p5) F(p6) F(p7) \
+		F(p0) F(p1) F(p2) F(p3) F(p4) F(p5) F(p6) F(p7) F(axis) F(overlap) \
 
 	#define Js_Format_Str(msg) \
 		va_list arg; \

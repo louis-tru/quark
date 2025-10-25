@@ -108,7 +108,7 @@ namespace qk {
 
 	private:
 		void applyTransition(View* view, StyleSheets *to, float y) const; // @thread Rt
-		void set_frame_Rt(uint32_t frame);
+		void set_frame_rt(uint32_t frame);
 	protected:
 		Dict<uint32_t, Property*> _props; // ViewProp => Property*
 
@@ -218,20 +218,20 @@ namespace qk {
 		 * @thread Rt
 		*/
 		inline bool haveSubstyles() const {
-			return _substyles_Rt.length();
+			return _substyles_rt.length();
 		}
 
 	private:
-		void updateClass_Rt();
-		void setStatus_Rt(CSSType status);
-		bool apply_Rt(CStyleSheetsClass *parent); // Return whether it affects sub styles
-		void applyFrom_Rt(CStyleSheetsClass *ssc);
-		void applyFindSubstyle_Rt(CStyleSheets *ss);
-		void applyStyle_Rt(CStyleSheets *ss);
+		void updateClass_rt();
+		void setStatus_rt(CSSType status);
+		bool apply_rt(CStyleSheetsClass *parent); // Return whether it affects sub styles
+		void applyFrom_rt(CStyleSheetsClass *ssc);
+		void applyFindSubstyle_rt(CStyleSheets *ss);
+		void applyStyle_rt(CStyleSheets *ss);
 
-		Set<uint64_t> _nameHash_Rt; //!< class name hash
-		Array<CStyleSheets*> _substyles_Rt; //!< apply to all current style sheets have substyle sheets
-		Hash5381 _substylesHash_Rt; //!< hash for apply current have substyle sheets
+		Set<uint64_t> _nameHash_rt; //!< class name hash
+		Array<CStyleSheets*> _substyles_rt; //!< apply to all current style sheets have substyle sheets
+		Hash5381 _substylesHash_rt; //!< hash for apply current have substyle sheets
 
 		friend class View;
 	};

@@ -133,32 +133,32 @@ namespace qk {
 		 * Because action objects may be destroyed at any time on the main thread
 		 * @method tryRetain() Returns safe self hold
 		*/
-		Action* tryRetain_Rt();
+		Action* tryRetain_rt();
 
 	private:
 		void set_target(View* t);
 		void del_target(View* t);
 		int  set_parent(ActionGroup* parent);
 		void del_parent();
-		void play_Rt(); // Rt
-		void stop_Rt();
-		void seek_Rt(uint32_t time);
-		void trigger_ActionLoop_Rt(uint32_t delay, Action* root);
-		void trigger_ActionKeyframe_Rt(uint32_t delay, uint32_t frame_index, Action* root);
+		void play_rt(); // Rt
+		void stop_rt();
+		void seek_rt(uint32_t time);
+		void trigger_ActionLoop_rt(uint32_t delay, Action* root);
+		void trigger_ActionKeyframe_rt(uint32_t delay, uint32_t frame_index, Action* root);
 		// Only allow the inner call, make sure not to access any members in non-RT threads.
-		void release_inner_Rt(); // Only release keyframe action.
-		bool next_loop_Rt();
+		void release_inner_rt(); // Only release keyframe action.
+		bool next_loop_rt();
 	protected:
-		virtual uint32_t advance_Rt(uint32_t time_span, bool restart, Action *root) = 0;
-		virtual void seek_time_Rt(uint32_t time, Action *root) = 0;
-		virtual void seek_before_Rt(uint32_t time, Action *child) = 0;
+		virtual uint32_t advance_rt(uint32_t deltaTime, bool restart, Action *root) = 0;
+		virtual void seek_time_rt(uint32_t time, Action *root) = 0;
+		virtual void seek_before_rt(uint32_t time, Action *child) = 0;
 		virtual void setDuration(int32_t diff);
 
 		// Props
 		ActionGroup *_parent;
 		View *_target;
-		uint32_t _looped_Rt; // @thread Rt
-		Id _id_Rt; // @thread Rt action id from action center or group action
+		uint32_t _looped_rt; // @thread Rt
+		Id _id_rt; // @thread Rt action id from action center or group action
 
 		friend class View;
 		friend class ActionCenter;
@@ -182,7 +182,7 @@ namespace qk {
 		virtual void clear() override;
 		virtual bool isSequence();
 		Set<Action*> _actions;
-		List<Action*> _actions_Rt;
+		List<Action*> _actions_rt;
 		friend class Action;
 	};
 
@@ -193,9 +193,9 @@ namespace qk {
 	public:
 		SpawnAction(Window *win);
 	private:
-		uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root) override;
-		void seek_time_Rt(uint32_t time, Action* root) override;
-		void seek_before_Rt(uint32_t time, Action* child) override;
+		uint32_t advance_rt(uint32_t deltaTime, bool restart, Action* root) override;
+		void seek_time_rt(uint32_t time, Action* root) override;
+		void seek_before_rt(uint32_t time, Action* child) override;
 		void insertChild(Id after, Action *child) override;
 		void removeChild(Id id) override;
 		void setDuration(int32_t diff) override;
@@ -209,12 +209,12 @@ namespace qk {
 		SequenceAction(Window *win);
 	private:
 		bool isSequence() override;
-		uint32_t advance_Rt(uint32_t time_span, bool restart, Action* root) override;
-		void seek_time_Rt(uint32_t time, Action* root) override;
-		void seek_before_Rt(uint32_t time, Action* child) override;
+		uint32_t advance_rt(uint32_t deltaTime, bool restart, Action* root) override;
+		void seek_time_rt(uint32_t time, Action* root) override;
+		void seek_before_rt(uint32_t time, Action* child) override;
 		void insertChild(Id after, Action *child) override;
 		void removeChild(Id id) override;
-		Id _play_Rt;
+		Id _play_rt;
 		friend class ActionGroup;
 	};
 
@@ -228,22 +228,21 @@ namespace qk {
 		ActionCenter(Window *window);
 		~ActionCenter();
 	private:
-		void addCSSTransition_Rt(View *view, CStyleSheets *css);
-		void removeCSSTransition_Rt(View *view);
+		void addCSSTransition_rt(View *view, CStyleSheets *css);
+		void removeCSSTransition_rt(View *view);
 
 		struct Action_Wrap {
 			Action* value;
 			bool _runAdvance;
 		};
-		uint32_t _prevTime_Rt;
-		List<Action_Wrap> _actions_Rt;
-		Dict<uint64_t, Array<Action*>> _CSSTransitions_Rt;
+		List<Action_Wrap> _actions_rt;
+		Dict<uint64_t, Array<Action*>> _CSSTransitions_rt;
 
 		/**
-		* @method advance_Rt() Action scheduling forward frame
+		* @method advance_rt() Action scheduling forward frame
 		* @thread render
 		*/
-		void advance_Rt(uint32_t timeMs);
+		void advance_rt(int64_t deltaTime);
 
 		friend class View;
 		friend class Action;

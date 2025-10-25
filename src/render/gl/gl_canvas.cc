@@ -46,7 +46,7 @@ namespace qk {
 	TexStat* gl_new_tex_stat();
 	void setMipmap_SourceImage(ImageSource* img, bool val);
 
-	extern const Region ZeroRegion;
+	extern const Range ZeroRange;
 #if isMoreSofterAA
 	// Softer:
 	//extern const float  aa_fuzz_weight = 0.9; // softer
@@ -239,19 +239,19 @@ namespace qk {
 			begin();
 		}
 		GLCBlurFilter(GLCanvas *host, const Paint &paint, const Rect *rect)
-			: _host(host), _size(paint.filter->val0), _bounds{rect->origin,rect->origin+rect->size}
+			: _host(host), _size(paint.filter->val0), _bounds{rect->begin,rect->begin+rect->size}
 		{
 			if (!host->_state->matrix.is_identity_matrix()) { // Not unit matrix
 				auto &mat = host->_state->matrix;
 				if (mat[0] != 1 || mat[4] != 1) { // rotate or skew
 					Vec2 pts[] = {
-						_bounds.origin, {_bounds.end.x(),_bounds.origin.y()},
-						{_bounds.end.x(),_bounds.end.y()}, {_bounds.origin.x(),_bounds.end.y()}
+						_bounds.begin, {_bounds.end.x(),_bounds.begin.y()},
+						{_bounds.end.x(),_bounds.end.y()}, {_bounds.begin.x(),_bounds.end.y()}
 					};
 					_bounds = Path::getBoundsFromPoints(pts, 4, &host->_state->matrix);
 				} else {
 					Vec2 translate(mat[2],mat[5]); // translate
-					_bounds.origin += translate;
+					_bounds.begin += translate;
 					_bounds.end += translate;
 				}
 			}
@@ -266,13 +266,13 @@ namespace qk {
 	private:
 		void begin() {
 			_size *= _host->_scale;
-			_bounds = {_bounds.origin - _size, _bounds.end + _size};
+			_bounds = {_bounds.begin - _size, _bounds.end + _size};
 			_host->_cmdPack->blurFilterBegin(_bounds, _size);
 			_inl(_host)->zDepthNext();
 		}
 		GLCanvas *_host;
 		float  _size; // blur size
-		Region _bounds; // bounds for draw path
+		Range _bounds; // bounds for draw path
 	};
 
 	template<typename... Args>
@@ -687,7 +687,7 @@ namespace qk {
 	}
 
 	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {
-		auto o = src.origin;
+		auto o = src.begin;
 		auto s = Vec2{
 			Float32::min(o.x()+src.size.x(), _size.x()) - o.x(),
 			Float32::min(o.y()+src.size.y(), _size.y()) - o.y()

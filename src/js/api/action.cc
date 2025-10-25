@@ -33,9 +33,8 @@
 #include "../../ui/action/keyframe.h"
 
 namespace qk { namespace js {
-
-	uint64_t kAction_Typeid(Js_Typeid(Action));
-	uint64_t kKeyframe_Typeid(Js_Typeid(Keyframe));
+	const uint64_t kAction_Typeid(Js_Typeid(Action));
+	const uint64_t kKeyframe_Typeid(Js_Typeid(Keyframe));
 
 	static Window* NewActionCheck(FunctionArgs args, cChar *name) {
 		Js_Worker(args);

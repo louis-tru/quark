@@ -130,9 +130,9 @@ namespace qk {
 		void scale(Vec2 scale);
 
 		// get path region bounds, first check if the matrix is a unit matrix
-		Region getBounds(const Mat* matrix = nullptr) const;
+		Range getBounds(const Mat* matrix = nullptr) const;
 		// get region bounds from pts, do not check unit matrix
-		static Region getBoundsFromPoints(const Vec2 pts[], uint32_t ptsLen, const Mat* matrix = nullptr);
+		static Range getBoundsFromPoints(const Vec2 pts[], uint32_t ptsLen, const Mat* matrix = nullptr);
 	private:
 		Path* normalized(Path *out, float epsilon, bool updateHash) const;
 		void quadTo2(float *p);

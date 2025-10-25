@@ -100,32 +100,18 @@ namespace qk { namespace js {
 	class MixSpine: public MixViewObject {
 	public:
 		typedef Spine Type;
-		virtual MatrixView* asMatrixView() {
-			return self<Spine>();
-		}
+		virtual MorphView* asMorphView() { return self<Spine>(); }
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Spine, View, {
-				Js_NewView(Spine);
-			});
-			inheritMatrixView(cls, worker);
+			Js_Define_Class(Spine, Agent, { Js_NewView(Spine); });
+			Js_MixObject_Accessor(Spine, SkeletonDataPtr, skel, skel);
+			Js_MixObject_Accessor(Spine, String, skin, skin);
+			Js_MixObject_Accessor(Spine, float, speed, speed);
+			Js_MixObject_Accessor(Spine, float, default_mix, defaultMix);
+			Js_MixObject_Accessor(Spine, String, animation, animation);
 
-			Js_MixObject_Accessor(Type, SkeletonDataPtr, skel, skel);
-			Js_MixObject_Accessor(Type, String, skin, skin);
-			Js_MixObject_Accessor(Type, float, speed, speed);
-			Js_MixObject_Accessor(Type, float, default_mix, defaultMix);
-			Js_MixObject_Accessor(Type, String, animation, animation);
-
-			Js_Class_Method(setToSetupPose, {
-				self->set_to_setup_pose();
-			});
-
-			Js_Class_Method(setBonesToSetupPose, {
-				self->set_bones_to_setup_pose();
-			});
-
-			Js_Class_Method(setSlotsToSetupPose, {
-				self->set_slots_to_setup_pose();
-			});
+			Js_Class_Method(setToSetupPose, { self->set_to_setup_pose(); });
+			Js_Class_Method(setBonesToSetupPose, { self->set_bones_to_setup_pose(); });
+			Js_Class_Method(setSlotsToSetupPose, { self->set_slots_to_setup_pose(); });
 
 			Js_Class_Method(setAttachment, {
 				String slotName;
@@ -134,11 +120,7 @@ namespace qk { namespace js {
 						!args[0]->asString(worker).to(slotName) ||
 						!args[1]->asString(worker).to(attachmentName)
 				) {
-					Js_Throw(
-						"@method Spine.setAttachment(slotName,attachmentName)\n"
-						"@param slotName:string\n"
-						"@param attachmentName:string\n"
-					);
+					Js_Throw("Spine.setAttachment(slotName:string,attachmentName:string)void");
 				}
 				Js_Self(Type);
 				self->set_attachment(slotName, attachmentName);
@@ -153,12 +135,7 @@ namespace qk { namespace js {
 						!args[1]->asString(worker).to(toName) ||
 						!args[2]->asFloat32(worker).to(duration)
 				) {
-					Js_Throw(
-						"@method Spine.setMix(fromName,toName,duration)\n"
-						"@param fromName:string\n"
-						"@param toName:string\n"
-						"@param duration:Float\n"
-					);
+					Js_Throw("Spine.setMix(fromName:string,toName:string,duration:Float)void");
 				}
 				self->set_mix(fromName, toName, duration);
 			});
@@ -258,9 +235,7 @@ namespace qk { namespace js {
 
 			// spine::TrackEntry* get_current(int trackIndex = 0);
 
-			Js_Class_Method(clearTracks, {
-				self->clear_tracks();
-			});
+			Js_Class_Method(clearTracks, { self->clear_tracks(); });
 
 			Js_Class_Method(clearTrack, {
 				uint32_t trackIndex = 0;

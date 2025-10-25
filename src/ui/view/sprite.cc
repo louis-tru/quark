@@ -29,102 +29,24 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./sprite.h"
+#include "../../errno.h"
 #include "../window.h"
 #include "../app.h"
-#include "../../errno.h"
 #include "../action/keyframe.h"
 #include "../painter.h"
+#include "../geometry.h"
 
 #define _async_call preRender().async_call
 
 namespace qk {
 
-	Vec2 free_typesetting(View* view, View::Container &container);
-
-	SpriteView::SpriteView(): View(), MatrixView(this), _boundsOk(false) {
-		_test_visible_region = false;
-		set_receive(false);
-	}
-
-	MatrixView* SpriteView::asMatrixView() {
-		return this;
-	}
-
-	Vec2 SpriteView::layout_offset_inside() {
-		return -_origin_value;
-	}
-
-	// solve the origin value by client size
-	// The origin value is the final value by computing the origin.
-	void SpriteView::solve_origin_value(Vec2 client, Vec2 from) {
-		switch (_origin_x.kind) {
-			default:
-			case BoxOriginKind::Auto:  _origin_value.set_x(0); break; // use skeleton origin
-			case BoxOriginKind::Value: _origin_value.set_x(_origin_x.value); break;
-			case BoxOriginKind::Ratio: _origin_value.set_x(client.x() * _origin_x.value); break;
-		}
-		switch (_origin_y.kind) {
-			default:
-			case BoxOriginKind::Auto:  _origin_value.set_y(0); break;
-			case BoxOriginKind::Value: _origin_value.set_y(_origin_y.value); break;
-			case BoxOriginKind::Ratio: _origin_value.set_y(client.y() * _origin_y.value); break;
-		}
-		_origin_value += from;
-	}
-
-	bool SpriteView::overlap_test(Vec2 point) {
-		if (!_boundsOk) {
-			_boundsOk = true;
-			solve_bounds(_matrix, _bounds);
-		}
-		return overlap_test_from_convex_quadrilateral(_bounds, point);
-	}
-
-	void SpriteView::solve_visible_region(const Mat &mat) {
-		if (test_visible_region()) {
-			solve_bounds(mat, _bounds);
-			_boundsOk = true;
-			_visible_region = is_visible_region(mat, _bounds);
-		} else {
-			_boundsOk = false;
-			_visible_region = true;
-		}
-	}
-
-	void SpriteView::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
-		if (mark & (kTransform | kVisible_Region)) { // Update transform matrix
-			solve_origin_value(client_size(), client_size() * 0.5f); // Check transform_origin change
-			unmark(kTransform | kVisible_Region); // Unmark
-			auto v = parent->layout_offset_inside() + layout_offset() + _translate;
-			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
-			_position = Vec2(_matrix[2],_matrix[5]); // the origin world coords
-			solve_visible_region(_matrix);
-		}
-	}
-
-	void SpriteView::trigger_listener_change(uint32_t name, int count, int change) {
-		if ( change > 0 ) {
-			set_receive(true);
-		}
-	}
-
-	void SpriteView::layout_reverse(uint32_t mark) {
-		if (mark & kLayout_Typesetting) {
-			Container c{
-				client_size(), {}, {}, {}, kFixed_FloatState, kFixed_FloatState, false, false
-			};
-			free_typesetting(this, c);
-		}
-	}
-
-	/////////////////////////////////////////////////////////////
-
-	Sprite::Sprite(): SpriteView(), ImageSourceHold()
+	Sprite::Sprite(): Agent(), ImageSourceHold()
 		, _width(0), _height(0)
 		, _frame(0), _frames(1), _item(0), _items(1)
 		, _gap(0), _direction(Direction::Row)
 		, _keyAction(nullptr)
 	{
+		// sizeof(Sprite); // ensure complete type
 	}
 
 	void Sprite::destroy() {
@@ -181,7 +103,7 @@ namespace qk {
 					action->unsafe_clear(true);
 					if (frames > 1) {
 						for (uint32_t i = 0, count = frames + 1; i < count; i++) {
-							action->unsafe_add(i * 1e3, LINEAR, true)->set_frame_Rt(i);
+							action->unsafe_add(i * 1e3, LINEAR, true)->set_frame_rt(i);
 						}
 					}
 				}
@@ -256,7 +178,12 @@ namespace qk {
 	}
 
 	Vec2 Sprite::client_size() {
-		return { _width, _height };
+		return {_width, _height};
+	}
+
+	Region Sprite::client_region() {
+		auto begin = -_origin_value;
+		return { begin, begin + Vec2{_width, _height}, _translate };
 	}
 
 	void Sprite::onSourceState(ImageSource::State state) {
@@ -276,10 +203,13 @@ namespace qk {
 	}
 
 	void Sprite::draw(Painter *painter) {
+		debugDraw(painter); // draw debug bounds
+
 		auto src = source();
 		if (!src || !src->load()) {
 			return painter->visitView(this, &matrix());
 		}
+
 		auto lastMatrix = painter->matrix();
 		painter->set_matrix(&matrix());
 

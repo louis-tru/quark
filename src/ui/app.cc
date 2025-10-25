@@ -55,7 +55,7 @@ namespace qk {
 		, Qk_Init_Event(Resume)
 		, Qk_Init_Event(Memorywarning)
 		, _isLoaded(false)
-		, _loop(work_loop())
+		, _loop(first_loop())
 		, _screen(nullptr)
 		, _defaultTextOptions(nullptr)
 		, _fontPool(nullptr), _imgPool(nullptr)
@@ -64,7 +64,7 @@ namespace qk {
 		, _tick(0)
 	{
 		Qk_CHECK(!_shared, "At the same time can only run a Application entity");
-		check_is_work_loop();
+		check_is_first_loop();
 		view_prop_acc_init();
 		_shared = this;
 		_screen = new Screen(this); // strong ref
@@ -91,7 +91,7 @@ namespace qk {
 	}
 
 	Application::~Application() {
-		check_is_work_loop();
+		check_is_first_loop();
 		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
 			(*(i++))->close(); // destroy
 		}
@@ -139,7 +139,7 @@ namespace qk {
 	}
 
 	void Application::clear(bool all) {
-		check_is_work_loop();
+		check_is_first_loop();
 		for (auto i: _windows) {
 			i->render()->getCanvas()->getPathvCache()->clear(all);
 		}

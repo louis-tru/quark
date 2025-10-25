@@ -108,16 +108,38 @@ namespace qk {
 		}
 
 		/**
+		 * Safely release object in render thread and set nullptr
+		 * @param obj {T*} object pointer to be released
+		 * @thread First, Called in the first thread
+		*/
+		template<typename T>
+		inline void safeReleasep(T *&obj) {
+			async_call<T>([](auto obj, auto arg) { Release(obj); }, obj, 0);
+			obj = nullptr;
+		}
+
+		/**
+		 * Safely release atomic object in render thread and set nullptr
+		 * @param obj {std::atomic<T*>} atomic object pointer to be released
+		 * @thread First, Called in the first thread
+		*/
+		template<typename T>
+		inline void safeReleasep(std::atomic<T*> &obj) {
+			auto v = obj.exchange(nullptr);
+			async_call<T>([](auto obj, auto arg) { Release(obj); }, v, 0);
+		}
+
+		/**
 		 * Post message to application work loop
 		 * @param cb {Cb} callback to be executed in the work loop
 		 * @param toQueue {bool} whether to add the callback to the queue
-		 * @thread Rt/Wt
+		 * @thread Rt/Ft
 		*/
 		void post(Cb cb, bool toQueue = false);
 
 		/**
 		 * Post message to application work loop
-		 * @thread Rt/Wt
+		 * @thread Rt/Ft
 		 * @param view {View} safe retain view object to work loop, if retain fail then cancel call
 		*/
 		bool post(Cb cb, View *view, bool toQueue = false);

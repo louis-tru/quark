@@ -38,8 +38,8 @@ namespace qk {
 	#define Qk_DEF_ARRAY_SPECIAL_IMPLEMENTATION_(T,A,APPEND_ZERO,APPEND_CODE) \
 		\
 		template<> void Array<T, A>::reset(uint32_t length) { \
-			if (length < _length) { /* clear Partial data */ \
-				_length = length;\
+			if (length < _ptr.extra) { /* clear Partial data */ \
+				_ptr.extra = length;\
 				APPEND_CODE(_ptr,length); \
 			} else { \
 				extend(length); \
@@ -48,66 +48,66 @@ namespace qk {
 		\
 		template<> void Array<T, A>::extend(uint32_t length) \
 		{ \
-			if (length > _length) {  \
-				_length = length; \
+			if (length > _ptr.extra) {  \
+				_ptr.extra = length; \
 				_ptr.extend(length + APPEND_ZERO); \
 				APPEND_CODE(_ptr,length); \
 			}\
 		}\
 		\
 		template<> std::vector<T> Array<T, A>::vector() const { \
-			std::vector<T> r(_length); \
-			if (_length) \
-				memcpy(r.data(), _ptr.val, sizeof(T) * _length); \
+			std::vector<T> r(_ptr.extra); \
+			if (_ptr.extra) \
+				memcpy(r.data(), _ptr.val, sizeof(T) * _ptr.extra); \
 			Qk_ReturnLocal(r); \
 		} \
 		\
 		template<> void Array<T, A>::concat_(T* src, uint32_t src_length) { \
 			if (src_length) {\
-				_length += src_length; \
-				_ptr.extend(_length + APPEND_ZERO); \
+				_ptr.extra += src_length; \
+				_ptr.extend(_ptr.extra + APPEND_ZERO); \
 				T* src = _ptr.val; \
-				T* to = _ptr.val + _length - src_length; \
+				T* to = _ptr.val + _ptr.extra - src_length; \
 				memcpy((void*)to, src, src_length * sizeof(T)); \
-				APPEND_CODE(_ptr,_length); \
+				APPEND_CODE(_ptr,_ptr.extra); \
 			} \
 		} \
 		\
 		template<> uint32_t Array<T, A>::write(const T* src, uint32_t size, int to) { \
 			if (size) { \
-				if ( to == -1 ) to = _length; \
-				_length = Qk_Max(to + size, _length); \
-				_ptr.extend(_length + APPEND_ZERO); \
+				if ( to == -1 ) to = _ptr.extra; \
+				_ptr.extra = Qk_Max(to + size, _ptr.extra); \
+				_ptr.extend(_ptr.extra + APPEND_ZERO); \
 				memcpy((void*)(_ptr.val + to), src, size * sizeof(T) ); \
-				APPEND_CODE(_ptr,_length); \
+				APPEND_CODE(_ptr,_ptr.extra); \
 			} \
 			return size; \
 		} \
 		\
 		template<> \
 		T& Array<T, A>::push(const T& item) { \
-			_ptr.extend(_length + APPEND_ZERO + 1); \
-			_ptr.val[_length] = item;\
-			return _ptr.val[_length++]; \
+			_ptr.extend(_ptr.extra + APPEND_ZERO + 1); \
+			_ptr.val[_ptr.extra] = item;\
+			return _ptr.val[_ptr.extra++]; \
 		} \
 		template<> \
 		T& Array<T, A>::push(T&& item) { \
-			_ptr.extend(_length + APPEND_ZERO + 1); \
-			_ptr.val[_length] = item;\
-			return _ptr.val[_length++]; \
+			_ptr.extend(_ptr.extra + APPEND_ZERO + 1); \
+			_ptr.val[_ptr.extra] = item;\
+			return _ptr.val[_ptr.extra++]; \
 		} \
 		template<> void Array<T, A>::pop(uint32_t count) { \
-			uint32_t j = uint32_t(Qk_Max(_length - count, 0)); \
-			if (_length > j) {  \
-				_length = j;  \
-				_ptr.shrink(_length + APPEND_ZERO); \
+			uint32_t j = uint32_t(Qk_Max(_ptr.extra - count, 0)); \
+			if (_ptr.extra > j) {  \
+				_ptr.extra = j;  \
+				_ptr.shrink(_ptr.extra + APPEND_ZERO); \
 			} \
 		} \
 		\
 		template<> void Array<T, A>::clear() { \
 			if (_ptr.val) { \
 				_ptr.free(); \
-				_length = 0; \
+				_ptr.extra = 0; \
 			} \
 		} \
 		\

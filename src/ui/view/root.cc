@@ -42,6 +42,7 @@ namespace qk {
 		init(win);
 		_level = 1;
 		set_receive(true);
+		set_free(true); // free layout
 		set_width({0, BoxSizeKind::Match});
 		set_height({0, BoxSizeKind::Match});
 		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, false);
@@ -49,7 +50,7 @@ namespace qk {
 		mark(kTransform, false);
 	}
 
-	void Root::reload_Rt() {
+	void Root::reload_rt() {
 		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true);
 	}
 
@@ -66,26 +67,17 @@ namespace qk {
 		Box::layout_forward(mark_value());
 	}
 
-	void Root::layout_reverse(uint32_t mark) {
-		// Just use free typesetting
-		static_assert(sizeof(Box) == sizeof(Free), "");
-		static_cast<Free*>(static_cast<Box*>(this))->Free::layout_reverse(mark);
-		if (mark & kLayout_Typesetting) {
-			this->mark(kTransform, true); // mark transform
-		}
-	}
-
 	void Root::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
 			unmark(kTransform | kVisible_Region); // unmark
 			solve_origin_value();
-			_position = layout_offset() + Vec2(margin_left(), margin_top()) + origin_value() + translate();
+			_position = Vec2(margin_left(), margin_top()) + origin_value() + translate();
 			_matrix = Mat(_position, scale(), -rotate_z(), skew());
-			solve_visible_region(_matrix);
+			solve_visible_area(_matrix);
 		}
 		else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark
-			solve_visible_region(_matrix.set_translate(_position));
+			solve_visible_area(_matrix.set_translate(_position));
 		}
 	}
 
@@ -99,7 +91,7 @@ namespace qk {
 
 	void Root::applyClassAll() {
 		preRender().async_call([](auto self, auto arg) {
-			self->applyClassAll_Rt(nullptr);
+			self->applyClassAll_rt(nullptr);
 		}, this, 0);
 	}
 

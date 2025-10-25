@@ -39,7 +39,7 @@ import {
 	Flex,
 	Flow,
 	Free,
-	Matrix,
+	Morph,
 	Image,
 	Scroll,
 	Label,
@@ -96,7 +96,7 @@ export default async function(win: Window) {
 	Pv(v, 'opacity', 1, e=>e.opacity=1);
 	Pv(v, 'visible', true);
 	// Pv(v, 'level', 2);
-	Pv(v, 'matrixView', root);
+	Pv(v, 'morphView', root);
 	Pv(v, 'receive', false, e=>e.receive=false);
 	Pv(v, 'isFocus', false);
 	Pv(v, 'viewType', ViewType.View);
@@ -285,7 +285,7 @@ export default async function(win: Window) {
 	Pv(i1, 'security', false)
 
 	LOG('\nTest Matrix:\n')
-	const m = new Matrix(win)
+	const m = new Morph(win)
 	Pv(m, 'x', 0)
 	Pv(m, 'y', 140, e=>e.y=140)
 	Pv(m, 'scaleX', 1)

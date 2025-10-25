@@ -31,6 +31,7 @@
 #include "./box.h"
 #include "../app.h"
 #include "../window.h"
+#include "../geometry.h"
 
 #define _Parent() auto _parent = this->parent()
 #define _IfParent() _Parent(); if (_parent)
@@ -42,6 +43,7 @@ namespace qk {
 
 	Box::Box()
 		: _clip(false)
+		, _free(false)
 		, _align(Align::Normal)
 		, _min_width{0, BoxSizeKind::Auto}, _min_height{0, BoxSizeKind::Auto}
 		, _max_width{0, BoxSizeKind::None}, _max_height{0, BoxSizeKind::None}
@@ -62,9 +64,16 @@ namespace qk {
 	}
 
 	Box::~Box() {
-		Release(_background.load());
-		Release(_box_shadow.load());
-		free(_border.load());
+		Releasep(_background);
+		Releasep(_box_shadow);
+		::free(_border.load());
+	}
+
+	void Box::set_free(bool val, bool isRt) {
+		if (_free != val) {
+			_free = val;
+			mark_layout(kLayout_Typesetting, isRt);
+		}
 	}
 
 	// is clip box display range
@@ -514,7 +523,7 @@ namespace qk {
 				border = (BorderInl*)malloc(sizeof(BorderInl));
 				memset(border, 0, sizeof(BorderInl));
 				if (_border) {
-					free(border);
+					::free(border);
 				} else {
 					_border.store(border);
 				}
@@ -677,20 +686,20 @@ namespace qk {
 			auto v = parent->layout_offset_inside() + layout_offset() + Vec2(_margin_left, _margin_top);
 			_position =
 				mat.mul_vec2_no_translate(v) + parent->position(); // the left-top world coords
-			solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_area(Mat(mat).set_translate(_position));
 		} else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark
-			solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_area(Mat(mat).set_translate(_position));
 		}
 	}
 
-	void Box::solve_visible_region(const Mat &mat) {
+	void Box::solve_visible_area(const Mat &mat) {
 		Vec2 size = _client_size;
-		_bounds[0] = Vec2{mat[2], mat[5]}; // left,top
-		_bounds[1] = mat * Vec2(size.x(), 0); // right,top
-		_bounds[2] = mat * size; // right,bottom
-		_bounds[3] = mat * Vec2(0, size.y()); // left,bottom
-		_visible_region = test_visible_region() ? is_visible_region(mat, _bounds): true;
+		_boxBounds[0] = Vec2{mat[2], mat[5]}; // left,top
+		_boxBounds[1] = mat * Vec2(size.x(), 0); // right,top
+		_boxBounds[2] = mat * size; // right,bottom
+		_boxBounds[3] = mat * Vec2(0, size.y()); // left,bottom
+		_visible_area = compute_visible_area(mat, _boxBounds);
 	}
 
 	Vec2 Box::layout_offset_inside() {
@@ -747,93 +756,12 @@ namespace qk {
 		return _client_size;
 	}
 
+	Region Box::client_region() {
+		return Region{0, _client_size, _layout_offset};
+	}
+
 	bool Box::overlap_test(Vec2 point) {
-		return overlap_test_from_convex_quadrilateral(_bounds, point);
-	}
-
-	bool overlap_test_from_convex_quadrilateral(Vec2* quadrilateral_vertex, Vec2 point) {
-		/*
-		* 直线方程：(x-x1)(y2-y1)-(y-y1)(x2-x1)=0
-		* 平面座标系中凸四边形内任一点是否存在：
-		* [(x-x1)(y2-y1)-(y-y1)(x2-x1)][(x-x4)(y3-y4)-(y-y4)(x3-x4)] < 0  and
-		* [(x-x2)(y3-y2)-(y-y2)(x3-x2)][(x-x1)(y4-y1)-(y-y1)(x4-x1)] < 0
-		*/
-
-		float x = point.x();
-		float y = point.y();
-
-		#define x1 quadrilateral_vertex[0].x()
-		#define y1 quadrilateral_vertex[0].y()
-		#define x2 quadrilateral_vertex[1].x()
-		#define y2 quadrilateral_vertex[1].y()
-		#define x3 quadrilateral_vertex[2].x()
-		#define y3 quadrilateral_vertex[2].y()
-		#define x4 quadrilateral_vertex[3].x()
-		#define y4 quadrilateral_vertex[3].y()
-
-		if (((x-x1)*(y2-y1)-(y-y1)*(x2-x1))*((x-x4)*(y3-y4)-(y-y4)*(x3-x4)) < 0 &&
-				((x-x2)*(y3-y2)-(y-y2)*(x3-x2))*((x-x1)*(y4-y1)-(y-y1)*(x4-x1)) < 0
-		) {
-			return true;
-		}
-
-		#undef x1
-		#undef y1
-		#undef x2
-		#undef y2
-		#undef x3
-		#undef y3
-		#undef x4
-		#undef y4
-
-		return false;
-	}
-
-	Region screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex) {
-		#define A quadrilateral_vertex[0]
-		#define B quadrilateral_vertex[1]
-		#define C quadrilateral_vertex[2]
-		#define D quadrilateral_vertex[3]
-
-		Vec2 min, max;//, size;
-
-		float w1 = fabs(A.x() - C.x());
-		float w2 = fabs(B.x() - D.x());
-
-		if (w1 > w2) {
-			if ( A.x() > C.x() ) {
-				max.set_x( A.x() ); min.set_x( C.x() );
-			} else {
-				max.set_x( C.x() ); min.set_x( A.x() );
-			}
-			if ( B.y() > D.y() ) {
-				max.set_y( B.y() ); min.set_y( D.y() );
-			} else {
-				max.set_y( D.y() ); min.set_y( B.y() );
-			}
-			//size = Vec2(w1, max.y() - min.y());
-		} else {
-			if ( B.x() > D.x() ) {
-				max.set_x( B.x() ); min.set_x( D.x() );
-			} else {
-				max.set_x( D.x() ); min.set_x( B.x() );
-			}
-			if ( A.y() > C.y() ) {
-				max.set_y( A.y() ); min.set_y( C.y() );
-			} else {
-				max.set_y( C.y() ); min.set_y( A.y() );
-			}
-			//size = Vec2(w2, max.y() - min.y());
-		}
-
-		#undef A
-		#undef B
-		#undef C
-		#undef D
-
-		return {
-			min, max
-		};
+		return test_overlap_from_convex_quadrilateral(_boxBounds, point);
 	}
 
 	bool Box::is_clip() {

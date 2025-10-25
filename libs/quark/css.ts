@@ -52,6 +52,7 @@ export declare abstract class StyleSheets {
 	opacity?: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
 	visible?: boolean; //!< view visible
 	clip?: boolean; //!< view clip children
+	free?: boolean; //!< view free layout
 	align?: types.AlignIn; //!<
 	width?: types.BoxSizeIn; //!<
 	height?: types.BoxSizeIn; //!<

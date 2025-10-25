@@ -49,9 +49,9 @@ namespace qk {
 		typedef Allocator::Ptr<char> Ptr;
 		static constexpr char MAX_SHORT_LEN = 32;
 		uint32_t size() const;
-		struct Init { Ptr ptr; uint32_t length; };
+		struct Init { Ptr ptr; };
 		struct Ref: Ptr { // shared string
-			uint32_t length, flag;
+			uint32_t flag;
 			std::atomic_int ref;
 		};
 		struct Short { char val[36]; int8_t length; };
@@ -297,13 +297,13 @@ namespace qk {
 
 	template <typename T, typename A>
 	StringImpl<T, A>::StringImpl(Array<T, A>&& data)
-		: StringBase({*(Ptr*)&data._ptr, data.length()}, sizeof(T)) {
+		: StringBase({*(Ptr*)&data._ptr}, sizeof(T)) {
 		data.collapse();
 	}
 
 	template <typename T, typename A>
 	StringImpl<T, A>::StringImpl(ArrayBuffer<T, A>&& data)
-		: StringBase({*(Ptr*)&data._ptr, data.length()}, sizeof(T)) {
+		: StringBase({*(Ptr*)&data._ptr}, sizeof(T)) {
 		data.collapse();
 	}
 

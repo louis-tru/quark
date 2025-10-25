@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import util from './util';
-import {View,Matrix,Input} from './view';
+import {View,Morph,Input} from './view';
 import {Jsx,link,ViewController,RenderData} from './ctr';
 import {createCss} from './css';
 import {mainScreenScale} from './screen';
@@ -191,7 +191,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	protected render() {
 		return (
 			<free width="100%" height="100%" backgroundColor="#0004" receive={true} visible={false} opacity={0}>
-				<matrix ref="main" class="qk_dialog qk_main">
+				<morph ref="main" class="qk_dialog qk_main">
 					<flex width="match" height="match" direction="column" crossAlign="both">
 						<text ref="title" class="qk_title" value={this.title} visible={true} />
 						<text ref="con" class="qk_content" visible={true}>{this.content||this.children}</text>
@@ -210,7 +210,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 						}
 						</flex>
 					</flex>
-				</matrix>
+				</morph>
 			</free>
 		);
 	}
@@ -222,7 +222,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 		if (!this.asDom().visible) {
 			super.appendTo(this.window.root);
 			this.asDom().visible = true;
-			this.asRef<Matrix>('main').transition({ scale: 1, time: 300 }, {scale : 0.2});
+			this.asRef<Morph>('main').transition({ scale: 1, time: 300 }, {scale : 0.2});
 			this.asDom().transition({ opacity : 1, time: 300 }, {opacity: 0.2});
 			this.registerNavigation(0);
 		}
@@ -233,7 +233,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	*/
 	close() {
 		if ( this.asDom().visible ) {
-			this.asRef<Matrix>('main').transition({ scale: 0.2, time: 300 });
+			this.asRef<Morph>('main').transition({ scale: 0.2, time: 300 });
 			this.asDom().transition({ opacity : 0, time: 300 }).then(()=>this.destroy());
 			this.unregisterNavigation(0);
 		} else {
@@ -282,8 +282,8 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 				onClick={()=>this.navigationBack()}
 			>
 			{content?
-				<matrix ref="main" class="qk_dialog qk_sheet">{content}</matrix>:
-				<matrix ref="main" class="qk_dialog qk_sheet">
+				<morph ref="main" class="qk_dialog qk_sheet">{content}</morph>:
+				<morph ref="main" class="qk_dialog qk_sheet">
 					<box class="qk_buttons">
 					{ this.length?
 						this.buttons.map((e,i,arr)=>(
@@ -316,7 +316,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 							borderRadius={12}
 						/>
 					</box>
-				</matrix>
+				</morph>
 			}
 			</free>
 		);
@@ -327,7 +327,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 			ViewController.prototype.appendTo.call(this, this.window.root);
 			this.asDom().visible = true;
 			this.window.nextTickFrame(()=>{
-				let main = this.refs.main as Matrix;
+				let main = this.refs.main as Morph;
 				main.transition({ y: 0, time: 300 }, {y: main.clientSize.y});
 				this.asDom().transition({ opacity: 1, time: 300 }, {opacity: 0.2});
 			});
@@ -337,7 +337,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 
 	close() {
 		if ( this.asDom().visible ) {
-			let main = this.refs.main as Matrix;
+			let main = this.refs.main as Morph;
 			main.transition({ y: main.clientSize.y, time: 300 });
 			this.asDom().transition({ opacity : 0, time: 300 }).then(()=>{ this.destroy() });
 			this.unregisterNavigation(0);

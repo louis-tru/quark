@@ -43,8 +43,8 @@ namespace qk { namespace js {
 		typedef Box Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Box, View, { Js_NewView(Box); });
-
 			Js_MixObject_Accessor(Box, bool, clip, clip);
+			Js_MixObject_Accessor(Box, bool, free, free);
 			Js_MixObject_Accessor(Box, Align, align, align);
 			Js_MixObject_Accessor(Box, BoxSize, width, width);
 			Js_MixObject_Accessor(Box, BoxSize, height, height);
@@ -86,13 +86,7 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Box, BoxFilterPtr, background, background);
 			Js_MixObject_Accessor(Box, BoxShadowPtr, box_shadow, boxShadow);
 			Js_MixObject_Accessor(Box, Vec2, weight, weight);
-			// -----------------------------------------------------------------------------
-			// @thread Rt
-			Js_Class_Accessor_Get(contentSize, {
-				Js_Return( worker->types()->jsvalue(self->content_size()) );
-			});
-			// -----------------------------------------------------------------------------
-
+			Js_MixObject_Acce_Get(Box, Vec2, content_size, contentSize);
 			cls->exports("Box", exports);
 		}
 	};
@@ -101,9 +95,7 @@ namespace qk { namespace js {
 	public:
 		typedef Flex Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Flex, Box, {
-				Js_NewView(Flex);
-			});
+			Js_Define_Class(Flex, Box, { Js_NewView(Flex); });
 			Js_MixObject_Accessor(Flex, Direction, direction, direction);
 			Js_MixObject_Accessor(Flex, ItemsAlign, items_align, itemsAlign);
 			Js_MixObject_Accessor(Flex, CrossAlign, cross_align, crossAlign);
@@ -115,9 +107,7 @@ namespace qk { namespace js {
 	public:
 		typedef Flow Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Flow, Flex, {
-				Js_NewView(Flow);
-			});
+			Js_Define_Class(Flow, Flex, { Js_NewView(Flow); });
 			Js_MixObject_Accessor(Flow, Wrap, wrap, wrap);
 			Js_MixObject_Accessor(Flow, WrapAlign, wrap_align, wrapAlign);
 			cls->exports("Flow", exports);
@@ -127,9 +117,7 @@ namespace qk { namespace js {
 	class MixFree: public MixViewObject {
 	public:
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Free, Box, {
-				Js_NewView(Free);
-			});
+			Js_Define_Class(Free, Box, { Js_NewView(Free); });
 			cls->exports("Free", exports);
 		}
 	};
@@ -138,9 +126,7 @@ namespace qk { namespace js {
 	public:
 		typedef Image Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Image, Box, {
-				Js_NewView(Image);
-			});
+			Js_Define_Class(Image, Box, { Js_NewView(Image); });
 			Js_MixObject_Accessor(Image, String, src, src);
 			// Qk_DEFINE_ACCESSOR(ImageSource*, source);
 			cls->exports("Image", exports);

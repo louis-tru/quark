@@ -72,5 +72,10 @@ F(SpineEnd, Spine, kNone_UIEventFlags) \
 F(SpineDispose, Spine, kNone_UIEventFlags) \
 F(SpineComplete, Spine, kNone_UIEventFlags) \
 F(SpineEvent, Spine, kNone_UIEventFlags) \
+/* Agent */ \
+F(ReachWaypoint, Agent, kUint64_UIEventFlags) \
+F(ArriveDestination, Agent, kNone_UIEventFlags) \
+F(DiscoveryAgent, Agent, kNone_UIEventFlags) \
+F(FollowStateChange, Agent, kNone_UIEventFlags) \
 
 #endif

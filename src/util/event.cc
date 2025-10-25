@@ -305,13 +305,13 @@ namespace qk {
 		}
 	}
 
-	bool NotificationBasic::has_noticer(uint32_t name) const {
+	bool NotificationBasic::has_noticer(uint64_t name) const {
 		if ( _noticers )
 			return _noticers->has(name);
 		return false;
 	}
 
-	bool NotificationBasic::has_listener(uint32_t name) const {
+	bool NotificationBasic::has_listener(uint64_t name) const {
 		if ( _noticers) {
 			Basic* basic;
 			if (_noticers->get(name, basic)) {
@@ -329,9 +329,9 @@ namespace qk {
 		return this;
 	}
 
-	void NotificationBasic::trigger_listener_change(uint32_t name, int count, int change) {}
+	void NotificationBasic::trigger_listener_change(uint64_t name, int count, int change) {}
 	
-	void NotificationBasic::add_event_listener(uint32_t name, Basic::Listener *l) {
+	void NotificationBasic::add_event_listener(uint64_t name, Basic::Listener *l) {
 		auto del = get_noticer(name, true);
 		del->add_listener(l);
 		trigger_listener_change(name, del->count(), 1);
@@ -339,7 +339,7 @@ namespace qk {
 
 	// remove event listener
 
-	void NotificationBasic::remove_event_listener(uint32_t name, void (Object::*listener)(Object&)) {
+	void NotificationBasic::remove_event_listener(uint64_t name, void (Object::*listener)(Object&)) {
 		auto del = get_noticer(name);
 		if (del) {
 			del->off_listener(listener);
@@ -347,7 +347,7 @@ namespace qk {
 		}
 	}
 	
-	void NotificationBasic::remove_event_listener(uint32_t name, void (Object::*listener)(Object&), void *ctx) {
+	void NotificationBasic::remove_event_listener(uint64_t name, void (Object::*listener)(Object&), void *ctx) {
 		auto del = get_noticer(name);
 		if (del) {
 			del->off_listener(listener, ctx);
@@ -355,7 +355,7 @@ namespace qk {
 		}
 	}
 	
-	void NotificationBasic::remove_event_listener_static(uint32_t name, void (*listener)(Object&, void*)) {
+	void NotificationBasic::remove_event_listener_static(uint64_t name, void (*listener)(Object&, void*)) {
 		auto del = get_noticer(name);
 		if (del) {
 			del->off_static(listener);
@@ -363,7 +363,7 @@ namespace qk {
 		}
 	}
 
-	void NotificationBasic::remove_event_listener_static(uint32_t name, void (*listener)(Object&, void*), void* ctx) {
+	void NotificationBasic::remove_event_listener_static(uint64_t name, void (*listener)(Object&, void*), void* ctx) {
 		auto del = get_noticer(name);
 		if (del) {
 			del->off_static(listener, ctx);
@@ -371,7 +371,7 @@ namespace qk {
 		}
 	}
 	
-	void NotificationBasic::remove_event_listener_for_id(uint32_t name, uint32_t id) {
+	void NotificationBasic::remove_event_listener_for_id(uint64_t name, uint32_t id) {
 		auto del = get_noticer(name);
 		if (del) {
 			del->off_for_id(id);
@@ -379,7 +379,7 @@ namespace qk {
 		}
 	}
 	
-	void NotificationBasic::remove_event_listener_shell(uint32_t name, Basic *shell) {
+	void NotificationBasic::remove_event_listener_shell(uint64_t name, Basic *shell) {
 		auto del = get_noticer(name);
 		if (del) {
 			del->off_shell(shell);
@@ -396,7 +396,7 @@ namespace qk {
 		}
 	}
 
-	void NotificationBasic::remove_event_listener_for_id(uint32_t id) {
+	void NotificationBasic::remove_event_listener_for_id(uint64_t id) {
 		if (_noticers) {
 			for ( auto i : *_noticers ) {
 				i.second->off_for_id(id);
@@ -405,11 +405,11 @@ namespace qk {
 		}
 	}
 	
-	Basic* NotificationBasic::get_noticer(uint32_t name, bool no_null) {
+	Basic* NotificationBasic::get_noticer(uint64_t name, bool no_null) {
 		if ( _noticers == nullptr ) {
 			if (!no_null)
 				return nullptr;
-			_noticers = new Dict<uint32_t, Basic*>();
+			_noticers = new Dict<uint64_t, Basic*>();
 		}
 		auto it = _noticers->find(name);
 		if (it == _noticers->end()) {
@@ -421,7 +421,7 @@ namespace qk {
 		}
 	}
 
-	void NotificationBasic::remove_event_listener_for_name(uint32_t name) {
+	void NotificationBasic::remove_event_listener_for_name(uint64_t name) {
 		auto del = get_noticer(name);
 		if (del) {
 			del->off_all();

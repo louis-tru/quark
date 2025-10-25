@@ -178,8 +178,8 @@ namespace qk { namespace js {
 			Js_Define_Class(ClickEvent, UIEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Class_Accessor_Get(location, {
-				Js_Return( worker->types()->jsvalue(self->location()) );
+			Js_Class_Accessor_Get(position, {
+				Js_Return( worker->types()->jsvalue(self->position()) );
 			});
 			Js_Class_Accessor_Get(count, {
 				Js_Return( self->count() );
@@ -210,8 +210,8 @@ namespace qk { namespace js {
 			Js_Define_Class(MouseEvent, KeyEvent, {
 				Js_Throw("Access forbidden.");
 			});
-			Js_Class_Accessor_Get(location, {
-				Js_Return( worker->types()->jsvalue(self->location()) );
+			Js_Class_Accessor_Get(position, {
+				Js_Return( worker->types()->jsvalue(self->position()) );
 			});
 			cls->exports("MouseEvent", exports);
 		}

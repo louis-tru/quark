@@ -32,7 +32,7 @@
 #include <src/util/fs.h>
 #include <src/ui/app.h>
 #include <src/ui/window.h>
-#include <src/ui/view/matrix.h>
+#include <src/ui/view/morph.h>
 #include <src/ui/view/spine.h>
 #include <src/ui/view/root.h>
 #include <src/ui/view/label.h>
@@ -48,7 +48,7 @@ Qk_TEST_Func(spine) {
 	auto r = w->root();
 	r->set_background_color(Color(180, 80, 0));
 
-	auto m0 = r->append_new<Matrix>();
+	auto m0 = r->append_new<Morph>();
 
 	{ // matrix
 		m0->set_background_color({230,0,0});
@@ -127,7 +127,7 @@ Qk_TEST_Func(spine) {
 		b0->set_align(Align::RightBottom);
 	}
 	if (1) { // sprite
-		auto m1 = m0->append_new<Matrix>();
+		auto m1 = m0->append_new<Morph>();
 		auto sp0 = m1->append_new<Sprite>();
 		m1->set_background_color({0,0,255});
 		m1->set_width({100});

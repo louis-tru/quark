@@ -42,6 +42,7 @@
 namespace qk {
 	class Application;
 	class View;
+	class Agent;
 	class Action;
 	class TextInput;
 	class Window;
@@ -50,14 +51,15 @@ namespace qk {
 
 	enum {
 		kDefault_UIEventCategory,
-		kKeyboard_UIEventCategory,
 		kClick_UIEventCategory,
 		kTouch_UIEventCategory,
 		kMouse_UIEventCategory,
-		kAction_UIEventCategory,
 		kHighlighted_UIEventCategory,
+		kKeyboard_UIEventCategory,
+		kAction_UIEventCategory,
 		kPlayer_UIEventCategory,
 		kSpine_UIEventCategory,
+		kAgent_UIEventCategory,
 	};
 
 	// event flags / cast
@@ -81,8 +83,8 @@ namespace qk {
 	public:
 		Qk_DEFINE_PROP_GET(uint32_t, category, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, flag, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, hashCode, Const);
-		Qk_DEFINE_PROP_GET(String, toString, Const);
+		Qk_DEFINE_PROP_GET(uint64_t, hashCode, Const);
+		Qk_DEFINE_PROP_GET(String, string, Const);
 		UIEventName(cString& name, uint32_t category, uint32_t flag);
 		inline bool equals(cUIEventName& v) const { return v._hashCode == _hashCode; }
 		inline bool operator==(cUIEventName& v) const { return v._hashCode == _hashCode; }
@@ -158,10 +160,10 @@ namespace qk {
 	class Qk_EXPORT ClickEvent: public UIEvent {
 	public:
 		enum Type {
-			kTouch = 1, kKeyboard = 2, kMouse = 3
+			kTouch = 1, kKeyboard, kMouse
 		};
-		ClickEvent(View* origin, Vec2 location, Type type, uint32_t count = 1);
-		Qk_DEFINE_PROP_GET(Vec2, location, Const);
+		ClickEvent(View* origin, Vec2 position, Type type, uint32_t count = 1);
+		Qk_DEFINE_PROP_GET(Vec2, position, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, count, Const);
 		Qk_DEFINE_PROP_GET(Type, type, Const);
 	};
@@ -171,10 +173,10 @@ namespace qk {
 	*/
 	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
-		MouseEvent(View* origin, Vec2 location, KeyboardKeyCode keycode, int keypress,
+		MouseEvent(View* origin, Vec2 position, KeyboardKeyCode keycode, int keypress,
 											bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											uint32_t repeat = 0, int device = 0, int source = 0);
-		Qk_DEFINE_PROP_GET(Vec2, location, Const);
+		Qk_DEFINE_PROP_GET(Vec2, position, Const);
 	};
 
 	/**
@@ -198,8 +200,8 @@ namespace qk {
 	public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
-			Vec2   start_location; // start location
-			Vec2   location; 	// current location
+			Vec2   start_position; // start position
+			Vec2   position; // current position
 			float  force; // touch force
 			bool   click_valid; // is valid for click
 			View   *view; // init view when touchstart
@@ -214,6 +216,38 @@ namespace qk {
 	};
 
 	typedef TouchEvent::TouchPoint TouchPoint;
+
+	/**
+	 * @class ArrivePositionEvent arrive position event
+	*/
+	class Qk_EXPORT ArrivePositionEvent: public UIEvent {
+	public:
+		ArrivePositionEvent(View *origin, Vec2 position, Vec2 nextLocation, uint32_t waypoint_index);
+		Qk_DEFINE_PROP_GET(Vec2, position, Const);
+		Qk_DEFINE_PROP_GET(Vec2, nextLocation, Const); // vector to next waypoint
+		Qk_DEFINE_PROP_GET(uint32_t, waypointIndex, Const);
+	};
+
+	/**
+	 * @class DiscoveryAgentEvent discovery agent event
+	 */
+	class Qk_EXPORT DiscoveryAgentEvent: public UIEvent {
+	public:
+		DiscoveryAgentEvent(View *origin, Agent* agent, Vec2 location, uint32_t id, int level, bool entering);
+		Qk_DEFINE_PROP_GET(Agent*, agent); // other agent
+		Qk_DEFINE_PROP_GET(Vec2, location, Const); // to agent location
+		Qk_DEFINE_PROP_GET(uint32_t, agentId, Const); // usually use agent's pointer address low 32 bits
+		Qk_DEFINE_PROP_GET(int, level, Const); // discovery level, -1 means lost all levels
+		Qk_DEFINE_PROP_GET(bool, entering, Const); // is leaving or entering
+		void release() override;
+	};
+
+	class Qk_EXPORT FollowTargetEvent: public UIEvent {
+	public:
+		enum State { kStart = 1, kStop, kCancel };
+		FollowTargetEvent(View *origin, State state);
+		Qk_DEFINE_PROP_GET(State, state, Const);
+	};
 
 	class Qk_EXPORT EventDispatch: public Object {
 	public:
@@ -263,7 +297,7 @@ namespace qk {
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
 		View* find_receive_view_exec(View *view, Vec2 pos);
 		View* find_receive_view_and_retain(Vec2 pos);
-		Sp<MouseEvent> NewMouseEvent(View *view, Vec2 location, KeyboardKeyCode keycode);
+		Sp<MouseEvent> NewMouseEvent(View *view, Vec2 pos, KeyboardKeyCode keycode);
 		Sp<View> safe_focus_view();
 
 		class OriginTouche;

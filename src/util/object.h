@@ -40,6 +40,7 @@ namespace qk {
 	class StringImpl;
 	typedef StringImpl<> String;
 	typedef const String cString;
+	typedef const void cVoid;
 
 	/**
 	* @class Object
@@ -107,6 +108,21 @@ namespace qk {
 		std::atomic_int _refCount;
 	};
 
+	/**
+	 * @struct Wobj
+	 * @brief Wrapper object for value types.
+	 *
+	 * A simple Object subclass that holds a value of type T.
+	 *
+	 * @tparam T Value type.
+	 */
+	template <typename T> struct Wobj: Object {
+		inline Wobj(const T &val): value(val) {}
+		inline Wobj(T &&val): value(std::move(val)) {}
+		// operator T&() { return value; }
+		T value;
+	};
+
 	class Protocol {
 	public:
 		virtual Object* asObject() = 0;
@@ -138,8 +154,7 @@ namespace qk {
 		static inline void Release(T* obj) { if (obj) qk::Release(obj->asObject()); }
 	};
 
-	template<typename T>
-	struct object_traits {
+	template<typename T> struct object_traits {
 		typedef char __non[0];
 		typedef char __obj[1];
 		typedef char __ref[2];
@@ -178,28 +193,16 @@ namespace qk {
 		inline static void Release(T* obj) { Rel(obj); }
 	};
 
-	typedef const void cVoid;
-
-	template <typename T>
-	struct IsPointer {
+	template <typename T> struct IsPointer {
 		static constexpr bool value = false;
 		inline static void Release(T& obj) {}
 	};
 
-	template <typename T>
-	struct IsPointer<T*> {
+	template <typename T> struct IsPointer<T*> {
 		static constexpr bool value = true;
 		inline static void Release(T*& obj) {
 			object_traits<T>::Release(obj); obj = nullptr;
 		}
-	};
-
-	template <typename T>
-	struct Wobj: Object {
-		inline Wobj(const T &val): value(val) {}
-		inline Wobj(T &&val): value(std::move(val)) {}
-		// operator T&() { return value; }
-		T value;
 	};
 
 	/**
@@ -208,6 +211,12 @@ namespace qk {
 	template<typename T>
 	inline void Releasep(T& obj) {
 		IsPointer<T>::Release(obj);
+	}
+
+	template<typename T>
+	inline void Releasep(std::atomic<T*>& obj) {
+		auto v = obj.exchange(nullptr);
+		IsPointer<T*>::Release(v);
 	}
 
 	template<class T, typename... Args>

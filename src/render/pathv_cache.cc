@@ -137,7 +137,7 @@ namespace qk {
 
 	const RectPath& PathvCache::getRectPath(const Rect &rect) {
 		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(rect.begin.val);
 		Wrap<RectPath> *const *out;
 		if (_RectPathCache.get(hash.hashCode(), out))
 			return (*out)->base;
@@ -146,7 +146,7 @@ namespace qk {
 
 	const RectPath& PathvCache::getRRectPath(const Rect &rect, const Path::BorderRadius &radius) {
 		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(rect.begin.val);
 		hash.updatefv4(radius.leftTop.val);
 		hash.updatefv4(radius.rightBottom.val);
 		Wrap<RectPath> *const *out;
@@ -162,7 +162,7 @@ namespace qk {
 
 	const RectPath& PathvCache::getRRectPath(const Rect &rect, const float radius[4]) {
 		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(rect.begin.val);
 		hash.updatefv4(radius);
 		Wrap<RectPath> *const *out;
 		if (_RectPathCache.get(hash.hashCode(), out))
@@ -182,7 +182,7 @@ namespace qk {
 
 	const RectOutlinePath& PathvCache::getRectOutlinePath(const Rect &rect, const float border[4]) {
 		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(rect.begin.val);
 		hash.updatefv4(border);
 		Wrap<RectOutlinePath,4> *const *out;
 		if (_RectOutlinePathCache.get(hash.hashCode(), out))
@@ -192,7 +192,7 @@ namespace qk {
 
 	const RectOutlinePath& PathvCache::getRRectOutlinePath(const Rect &rect, const float border[4], const float radius[4]) {
 		Hash5381 hash;
-		hash.updatefv4(rect.origin.val);
+		hash.updatefv4(rect.begin.val);
 		hash.updatefv4(border);
 		hash.updatefv4(radius);
 		Wrap<RectOutlinePath,4> *const *out;

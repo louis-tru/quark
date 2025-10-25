@@ -72,8 +72,7 @@ namespace qk {
 
 	void Free::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			auto cur = free_typesetting(this, _container);
-			set_content_size(cur);
+			set_content_size(free_typesetting(this, _container));
 			delete_lock_state();
 		}
 	}

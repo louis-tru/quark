@@ -36,6 +36,7 @@
 #include "../action/action.h"
 #include "../../errno.h"
 #include "../css/css_props.h"
+#include "../geometry.h"
 
 #if DEBUG
 # define _Assert_IsRt(isRt, ...) \
@@ -43,7 +44,7 @@
 #else
 # define _Assert_IsRt(isRt, ...)
 #endif
-#define _isRt (!RunLoop::is_work())
+#define _isRt (!RunLoop::is_first())
 #define _Cssclass() auto _cssclass = this->_cssclass.load()
 #define _IfCssclass() _Cssclass(); if (_cssclass)
 #define _Parent() auto _parent = this->parent()
@@ -56,7 +57,7 @@ namespace qk {
 
 	typedef View::Container Container;
 
-	Region Container::to_range() const {
+Range Container::to_range() const {
 		Vec2 origin(content), end(content);
 		if (state_x == kNone_FloatState) {
 			origin[0] = pre_width[0];
@@ -116,8 +117,7 @@ namespace qk {
 		, _cursor(CursorStyle::Arrow)
 		, _cascade_color(CascadeColor::Both)
 		, _visible(true)
-		, _test_visible_region(true)
-		, _visible_region(false)
+		, _visible_area(false)
 		, _receive(true)
 		, _aa(true)
 	{
@@ -128,9 +128,7 @@ namespace qk {
 		// The object maintained by the parent view should not be deconstructed,
 		// where the parent must be empty
 		Qk_ASSERT_EQ(_parent, nullptr);
-		auto cssclass = _cssclass.load();
-		_cssclass.store(nullptr);
-		Release(cssclass);
+		Releasep(_cssclass);
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
 
@@ -139,14 +137,14 @@ namespace qk {
 			// it should be Completely destroyed in RT (render thread)
 			auto center = self->_window->actionCenter();
 			if (center) {
-				center->removeCSSTransition_Rt(self);
+				center->removeCSSTransition_rt(self);
 			}
 			self->_window = nullptr;
 			self->Object::destroy();
 		}, this, 0);
 	}
 
-	View* View::tryRetain_Rt() {
+	View* View::tryRetain_rt() {
 		if (_refCount.load(std::memory_order_acquire) > 0) {
 			if (_refCount.fetch_add(1, std::memory_order_acq_rel) > 0) { // _refCount++ > 0
 				return this;
@@ -173,10 +171,10 @@ namespace qk {
 		if (_visible != val) {
 			_visible = val;
 			if (isRt) {
-				set_visible_Rt(val);
+				set_visible_rt(val);
 			} else {
 				preRender().async_call([](auto self, auto arg) {
-					self->set_visible_Rt(arg.arg);
+					self->set_visible_rt(arg.arg);
 				}, this, val);
 			}
 		}
@@ -218,10 +216,10 @@ namespace qk {
 		return cssclass;
 	}
 
-	MatrixView* View::matrix_view() {
+	MorphView* View::morph_view() {
 		auto v = this;
 		do {
-			auto t = v->asMatrixView();
+			auto t = v->asMorphView();
 			if (t)
 				return t;
 			v = v->_parent;
@@ -235,49 +233,46 @@ namespace qk {
 			_position =
 				mat.mul_vec2_no_translate(layout_offset() + parent->layout_offset_inside()) +
 				parent->_position;
-			solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_area(Mat(mat).set_translate(_position));
 		} else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark
-			solve_visible_region(Mat(mat).set_translate(_position));
+			solve_visible_area(Mat(mat).set_translate(_position));
 		}
 	}
 
 	Vec2 View::client_size() {
-		return Vec2();
+		return {};
 	}
 
-	void View::solve_visible_region(const Mat &mat) {
-		_visible_region = true;
+	Region View::client_region() {
+		return {};
 	}
 
-	void View::set_test_visible_region(bool val) {
-		if (val != _test_visible_region) {
-			_test_visible_region = val;
-			mark(kVisible_Region, false);
-		}
+	void View::solve_visible_area(const Mat &mat) {
+		_visible_area = true; // Always visible
 	}
 
-	bool View::is_visible_region(const Mat &mat, Vec2 bounds[4]) {
+	bool View::compute_visible_area(const Mat &mat, Vec2 bounds[4]) {
 		/*
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
-		auto& clip = _window->getClipRegion();
-		auto  re   = screen_region_from_convex_quadrilateral(bounds);
+		auto& clip = _window->getClipRange();
+		auto  re   = region_aabb_from_convex_quadrilateral(bounds);
 
-		if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.origin.y(), re.origin.y() )
-					<= re.end.y() - re.origin.y() + clip.size.y() &&
-				Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.origin.x(), re.origin.x() )
-					<= re.end.x() - re.origin.x() + clip.size.x()
+		if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.begin.y(), re.begin.y() )
+					<= re.end.y() - re.begin.y() + clip.size.y() &&
+				Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.begin.x(), re.begin.x() )
+					<= re.end.x() - re.begin.x() + clip.size.x()
 				) {
-			//_visible_region = !_client_size.is_zero_axis();
+			//_visible_area = !_client_size.is_zero_axis();
 			return true;
 		} else {
 
 #if 0
-			Qk_DLog("visible_region-x: %f<=%f", Qk_Max( clip.y2, re.end.y() ) - Qk_Min( clip.y, re.origin.y() ),
+			Qk_DLog("visible_area-x: %f<=%f", Qk_Max( clip.y2, re.end.y() ) - Qk_Min( clip.y, re.origin.y() ),
 																				re.end.y() - re.origin.y() + clip.height);
-			Qk_DLog("visible_region-y: %f<=%f", Qk_Max( clip.x2, re.end.x() ) - Qk_Min( clip.x, re.origin.x() ),
+			Qk_DLog("visible_area-y: %f<=%f", Qk_Max( clip.x2, re.end.x() ) - Qk_Min( clip.x, re.origin.x() ),
 																				re.end.x() - re.origin.x() + clip.width);
 #endif
 			return false;
@@ -292,7 +287,15 @@ namespace qk {
 		return nullptr;
 	}
 
-	MatrixView* View::asMatrixView() {
+	MorphView* View::asMorphView() {
+		return nullptr;
+	}
+
+	Entity* View::asEntity() {
+		return nullptr;
+	}
+
+	Agent* View::asAgent() {
 		return nullptr;
 	}
 
@@ -370,8 +373,8 @@ namespace qk {
 	void View::text_config(TextConfig* cfg) {
 	}
 
-	void View::onChildLayoutChange(View *child, uint32_t value) {
-		if (value & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
+	void View::onChildLayoutChange(View *child, uint32_t mark) {
+		if (mark & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
 			mark_layout(kLayout_Typesetting, true);
 		}
 	}
@@ -586,7 +589,7 @@ namespace qk {
 					if (arg.arg) { // notice parent view
 						arg.arg->onChildLayoutChange(self, kChild_Layout_Visible);
 					}
-					self->clear_level_Rt();
+					self->clear_level_rt();
 				}
 			}, this, _parent.load());
 			_parent = nullptr;
@@ -653,10 +656,10 @@ namespace qk {
 					auto level = _parent->_level;
 					if (self->_visible && level) {
 						if (self->_level != ++level)
-							self->set_level_Rt(level);
+							self->set_level_rt(level);
 					} else {
 						if (self->_level)
-							self->clear_level_Rt();
+							self->clear_level_rt();
 					}
 					_parent->onChildLayoutChange(self, kChild_Layout_Visible); // notice new parent view
 				}
@@ -664,7 +667,7 @@ namespace qk {
 
 				auto _cssclass = self->_cssclass.load();
 				if (_cssclass) {
-					_cssclass->updateClass_Rt();
+					_cssclass->updateClass_rt();
 				}
 				self->onActivate();
 			}, this, _parent);
@@ -674,7 +677,7 @@ namespace qk {
 
 	// --------------------------------------------------------------------------------------
 
-	void View::set_visible_Rt(bool visible) {
+	void View::set_visible_rt(bool visible) {
 		#define _Is_root(self) (self->_window->root() == self)
 		_Parent();
 		auto level = _parent && _parent->_level ?
@@ -682,10 +685,10 @@ namespace qk {
 
 		if (visible && level) {
 			if (_level != level)
-				set_level_Rt(level);
+				set_level_rt(level);
 		} else { // set level = 0
 			if (_level)
-				clear_level_Rt();
+				clear_level_rt();
 		}
 		if (_parent) {
 			_parent->onChildLayoutChange(this, kChild_Layout_Visible); // mark parent view
@@ -693,12 +696,12 @@ namespace qk {
 		if (visible) {
 			mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, true); // reset view size
 			_IfCssclass() {
-				_cssclass->updateClass_Rt();
+				_cssclass->updateClass_rt();
 			}
 		}
 	}
 
-	void View::set_level_Rt(uint32_t level) { // settings level
+	void View::set_level_rt(uint32_t level) { // settings level
 		if (_visible) {
 			// if level > 0 then
 			if (_mark_index) {
@@ -710,16 +713,16 @@ namespace qk {
 
 			auto v = first();
 			while ( v ) {
-				v->set_level_Rt(level);
+				v->set_level_rt(level);
 				v = v->next();
 			}
 		} else {
 			if ( _level )
-				clear_level_Rt();
+				clear_level_rt();
 		}
 	}
 
-	void View::clear_level_Rt() { //  clear view depth
+	void View::clear_level_rt() { //  clear view depth
 		auto win = _window;
 		if (win->dispatch()->focusView() == this) {
 			preRender().post(Cb([this,win](auto e) {
@@ -734,14 +737,14 @@ namespace qk {
 		onActivate();
 		auto v = first();
 		while ( v ) {
-			v->clear_level_Rt();
+			v->clear_level_rt();
 			v = v->next();
 		}
 	}
 
-	void View::applyClass_Rt(CStyleSheetsClass *ssc) {
+	void View::applyClass_rt(CStyleSheetsClass *ssc) {
 		_Cssclass();
-		if (_cssclass->apply_Rt(ssc)) { // Impact sub view
+		if (_cssclass->apply_rt(ssc)) { // Impact sub view
 			if (_cssclass->haveSubstyles()) {
 				ssc = _cssclass;
 			}
@@ -749,7 +752,7 @@ namespace qk {
 				auto l = first();
 				while (l) {
 					if (l->_cssclass) {
-						l->applyClass_Rt(ssc);
+						l->applyClass_rt(ssc);
 					}
 					l = l->next();
 				}
@@ -758,23 +761,23 @@ namespace qk {
 		unmark(kStyle_Class);
 	}
 
-	void View::applyClassAll_Rt(CStyleSheetsClass *ssc) {
+	void View::applyClassAll_rt(CStyleSheetsClass *ssc) {
 		_Cssclass();
 		if (_cssclass) { // Impact sub view
-			_cssclass->apply_Rt(ssc);
+			_cssclass->apply_rt(ssc);
 			if (_cssclass->haveSubstyles()) {
 				ssc = _cssclass;
 			}
 		}
 		auto l = first();
 		while (l) {
-			l->applyClassAll_Rt(ssc);
+			l->applyClassAll_rt(ssc);
 			l = l->next();
 		}
 		unmark(kStyle_Class);
 	}
 
-	CStyleSheetsClass* View::parentSsclass_Rt() {
+	CStyleSheetsClass* View::parentSsclass_rt() {
 		_Parent();
 		while (_parent) {
 			auto ss = _parent->_cssclass.load();

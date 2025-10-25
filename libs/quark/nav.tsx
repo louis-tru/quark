@@ -779,7 +779,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 			this.collection.navbarHidden ||
 			(this._navbarDom ? this._navbarDom.hidden: this._navbar.props.hidden);
 		return (
-			<matrix
+			<morph
 				width="100%"
 				height="match"
 				visible={false}
@@ -787,7 +787,7 @@ export class NavPage<P={},S={}> extends Navigation<{
 				paddingTop={hidden ? 0: this.navbarHeight}
 			>
 				{this.renderBody()}
-			</matrix>
+			</morph>
 		);
 	}
 

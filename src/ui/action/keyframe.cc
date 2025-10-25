@@ -60,16 +60,16 @@ namespace qk {
 
 	void KeyframeAction::unsafe_clear(bool isRt) {
 		if (_frames.length()) {
-			if (_window && !isRt) { // @ Action::release_inner_Rt()
+			if (_window && !isRt) { // @ Action::release_inner_rt()
 				_async_call([](auto self, auto arg) {
-					for (auto i : self->_frames_Rt)
+					for (auto i : self->_frames_rt)
 						i->destroy(); // last call destroy
-					self->_frames_Rt.clear();
+					self->_frames_rt.clear();
 				}, this, 0);
 			} else {
-				for (auto i : _frames_Rt)
+				for (auto i : _frames_rt)
 					i->destroy(); // last call destroy
-				_frames_Rt.clear();
+				_frames_rt.clear();
 			}
 			for (auto i : _frames) {
 				i->release();
@@ -93,11 +93,11 @@ namespace qk {
 
 		action->set_target(view);
 
-		struct SetFrames_Rt {
+		struct SetFrames_rt {
 			static void call(KeyframeAction *self, StyleSheets *to) {
 				auto v = self->_target;
-				auto f0 = self->_frames_Rt[0];
-				auto f1 = self->_frames_Rt[1];
+				auto f0 = self->_frames_rt[0];
+				auto f1 = self->_frames_rt[1];
 				for (auto &i: to->_props) { // copy prop
 					f0->_props.set(i.first, i.second->copy())->fetch(v);
 					f1->_props.set(i.first, i.second->copy());
@@ -106,10 +106,10 @@ namespace qk {
 		};
 
 		if (isRt) {
-			SetFrames_Rt::call(action, to);
+			SetFrames_rt::call(action, to);
 		} else {
 			view->preRender().async_call([](auto self, auto arg) {
-				SetFrames_Rt::call(self, arg.arg);
+				SetFrames_rt::call(self, arg.arg);
 			}, action, to);
 		}
 
@@ -132,20 +132,20 @@ namespace qk {
 		}
 		_frames.push(frame);
 
-		struct SetFrames_Rt {
+		struct SetFrames_rt {
 			static void call(KeyframeAction *self, Keyframe *frame) {
-				if (self->_frames_Rt.length()) {
-					for (auto i: self->_frames_Rt.back()->_props) // copy prop
+				if (self->_frames_rt.length()) {
+					for (auto i: self->_frames_rt.back()->_props) // copy prop
 						frame->_props.set(i.first, i.second->copy());
 				}
-				self->_frames_Rt.push(frame);
+				self->_frames_rt.push(frame);
 			}
 		};
 		if (isRt) {
-			SetFrames_Rt::call(this, frame);
+			SetFrames_rt::call(this, frame);
 		} else {
 			_async_call([](auto self, auto arg) {
-				SetFrames_Rt::call(self, arg.arg);
+				SetFrames_rt::call(self, arg.arg);
 			}, this, frame);
 		}
 
@@ -176,7 +176,7 @@ namespace qk {
 
 	void Keyframe::onMake(CssProp key, Property* prop) {
 		if (_host) {
-			for (auto i: _host->_frames_Rt) {
+			for (auto i: _host->_frames_rt) {
 				if (i != this) {
 					i->_props.set(key, prop->copy());
 				}
@@ -185,89 +185,89 @@ namespace qk {
 	}
 
 	bool KeyframeAction::hasProperty(CssProp name) {
-		return _frames_Rt.length() && _frames_Rt.front()->hasProperty(name);
+		return _frames_rt.length() && _frames_rt.front()->hasProperty(name);
 	}
 
-	uint32_t KeyframeAction::advance_Rt(uint32_t time_span, bool restart, Action* root) {
-		time_span *= _speed;
+	uint32_t KeyframeAction::advance_rt(uint32_t deltaTime, bool restart, Action* root) {
+		deltaTime *= _speed;
 
 		if ( restart ) { // no start play or restart
-			_time = _frame = _looped_Rt = 0;
+			_time = _frame = _looped_rt = 0;
 
-			if ( _frames_Rt.length() ) {
+			if ( _frames_rt.length() ) {
 				_time = _frame = 0;
-				_frames_Rt[0]->apply(root->_target, true);
-				trigger_ActionKeyframe_Rt(time_span, 0, root);
+				_frames_rt[0]->apply(root->_target, true);
+				trigger_ActionKeyframe_rt(deltaTime, 0, root);
 
-				if ( time_span == 0 ) {
+				if ( deltaTime == 0 ) {
 					return 0;
 				}
-				if ( _frames_Rt.length() == 1 ) {
-					return time_span / _speed;
+				if ( _frames_rt.length() == 1 ) {
+					return deltaTime / _speed;
 				}
 			} else {
-				return time_span / _speed;
+				return deltaTime / _speed;
 			}
 		}
 
 	 start:
 		uint32_t f0 = _frame, f1 = f0 + 1;
 
-		if ( f1 < _frames_Rt.length() ) {
+		if ( f1 < _frames_rt.length() ) {
 		advance:
-			if ( root->_id_Rt == Id() ) { // is not playing
+			if ( root->_id_rt == Id() ) { // is not playing
 				return 0;
 			}
-			int32_t time = _time + time_span;
-			int32_t time1 = _frames_Rt[f0]->time();
-			int32_t time2 = _frames_Rt[f1]->time();
+			int32_t time = _time + deltaTime;
+			int32_t time1 = _frames_rt[f0]->time();
+			int32_t time2 = _frames_rt[f1]->time();
 			int32_t t = time - time2;
 
 			if ( t < 0 ) {
-				time_span = 0;
+				deltaTime = 0;
 				_time = time;
 				float x = (time - time1) / float(time2 - time1);
-				float y = _frames_Rt[f1]->_curve.solve_y(x, 0.001);
-				_frames_Rt[f0]->applyTransition(root->_target, _frames_Rt[f1], y);
+				float y = _frames_rt[f1]->_curve.solve_y(x, 0.001);
+				_frames_rt[f0]->applyTransition(root->_target, _frames_rt[f1], y);
 			} else if ( t > 0 ) {
-				time_span = t;
+				deltaTime = t;
 				_frame = f1;
 				_time = time2;
-				trigger_ActionKeyframe_Rt(t, f1, root); // trigger event action_key_frame
+				trigger_ActionKeyframe_rt(t, f1, root); // trigger event action_key_frame
 				f0 = f1; f1++;
 
-				if ( f1 < _frames_Rt.length() ) {
+				if ( f1 < _frames_rt.length() ) {
 					goto advance;
-				} else if (next_loop_Rt()) {
+				} else if (next_loop_rt()) {
 					goto loop;
 				} else {
-					_frames_Rt[f0]->apply(root->_target, true); // apply last frame
+					_frames_rt[f0]->apply(root->_target, true); // apply last frame
 				}
 			} else { // t == 0
-				time_span = 0;
+				deltaTime = 0;
 				_time = time;
 				_frame = f1;
-				_frames_Rt[f1]->apply(root->_target, true);
-				trigger_ActionKeyframe_Rt(0, f1, root); // trigger event action_key_frame
+				_frames_rt[f1]->apply(root->_target, true);
+				trigger_ActionKeyframe_rt(0, f1, root); // trigger event action_key_frame
 			}
 
-		} else if (_frames_Rt.length() && next_loop_Rt()) { // Can continue to loop
+		} else if (_frames_rt.length() && next_loop_rt()) { // Can continue to loop
 		 loop:
 			_frame = _time = 0;
-			trigger_ActionLoop_Rt(time_span, root);
-			trigger_ActionKeyframe_Rt(time_span, 0, root);
+			trigger_ActionLoop_rt(deltaTime, root);
+			trigger_ActionKeyframe_rt(deltaTime, 0, root);
 			goto start;
 		}
 
 	 end:
-		return time_span / _speed;
+		return deltaTime / _speed;
 	}
 
-	void KeyframeAction::seek_time_Rt(uint32_t time, Action* root) {
-		if ( _frames_Rt.length() ) {
+	void KeyframeAction::seek_time_rt(uint32_t time, Action* root) {
+		if ( _frames_rt.length() ) {
 			Keyframe* frame0 = nullptr;
 
-			for ( auto f: _frames_Rt ) {
+			for ( auto f: _frames_rt ) {
 				if ( time < f->time() )
 					break;
 				frame0 = f;
@@ -277,8 +277,8 @@ namespace qk {
 
 			uint32_t f0 = _frame, f1 = f0 + 1;
 
-			if ( f1 < _frames_Rt.length() ) {
-				auto frame1 = _frames_Rt[f1];
+			if ( f1 < _frames_rt.length() ) {
+				auto frame1 = _frames_rt[f1];
 				int32_t t0 = frame0->time();
 				int32_t t1 = frame1->time();
 				float x = (_time - t0) / float(t1 - t0);
@@ -289,12 +289,12 @@ namespace qk {
 			}
 
 			if ( _time == frame0->time() ) {
-				trigger_ActionKeyframe_Rt(0, _frame, root);
+				trigger_ActionKeyframe_rt(0, _frame, root);
 			}
 		}
 	}
 
-	void KeyframeAction::seek_before_Rt(uint32_t time, Action* child) {
+	void KeyframeAction::seek_before_rt(uint32_t time, Action* child) {
 		Qk_Unreachable("");
 	}
 
