@@ -45,7 +45,7 @@ namespace qk {
 		Array<Vec3> vertex; // hold pointer triangle vertex {x,y,aafuzz or <z>}
 	};
 
-	class Qk_EXPORT Path: public Object {
+	class Qk_EXPORT Path: public Reference {
 	public:
 		enum PathVerb: uint8_t {
 			kMove_Verb,  // move
@@ -67,8 +67,12 @@ namespace qk {
 		static Path MakeCircle(Vec2 center, float radius, bool ccw = false);
 		static Path MakeRRect(const Rect& rect, const BorderRadius &radius);
 		static Path MakeRRectOutline(const Rect &outside, const Rect &inside, const BorderRadius &radius);
+
 		Path();
 		Path(Vec2 move);
+		Path(const Path& path); // copy constructor
+
+		Path& operator=(const Path& path);
 
 		// add path points
 		void moveTo(Vec2 to);
@@ -85,11 +89,12 @@ namespace qk {
 		void close(); // close line
 		void concat(const Path& path);
 
-		// point ptr
-		inline const Vec2* pts() const { return (const Vec2*)*_pts; }
-		inline const Vec2* ptsBack() const { return (const Vec2*)&_pts.lastAt(1); }
-		inline const PathVerb* verbs() const { return (const PathVerb*)*_verbs; }
-		inline uint32_t ptsLen() const { return _pts.length() >> 1; }
+		// point ptr access
+		inline Vec2 atPt(uint32_t index) const { return _pts[index]; }
+		inline PathVerb atVerb(uint32_t index) const { return (PathVerb)_verbs[index]; }
+		inline cArray<Vec2>& pts() const { return _pts; }
+		inline cArray<PathVerb>& verbs() const { return (const PathVerb&)_verbs; }
+		inline uint32_t ptsLen() const { return _pts.length(); }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline uint64_t hashCode() const { return _hash.hashCode(); }
 		inline bool isNormalized() const { return _IsNormalized; }
@@ -123,11 +128,19 @@ namespace qk {
 			Cap cap = Cap::kButt_Cap, Join join = Join::kMiter_Join, float miterLimit = 0) const;
 
 		// normalized path, transform kVerb_Quad and kVerb_Cubic spline to kVerb_Line
-		Path normalizedPath(float epsilon = 1.0) const; // normal
+		Path& normalizedPath(float epsilon = 1.0); // normal
 		// matrix transform
 		void transform(const Mat& matrix);
 		// scale transform
 		void scale(Vec2 scale);
+
+		/**
+		 * seal path, after sealed, path data can not be modified
+		*/
+		void seal();
+
+		/** is sealed */
+		bool isSealed() const { return _sealed; }
 
 		// get path region bounds, first check if the matrix is a unit matrix
 		Range getBounds(const Mat* matrix = nullptr) const;
@@ -138,10 +151,10 @@ namespace qk {
 		void quadTo2(float *p);
 		void cubicTo2(float *p);
 		// Props field:
-		Array<float> _pts;
+		Array<Vec2> _pts;
 		Array<uint8_t> _verbs;
 		Hash5381 _hash;
-		bool _IsNormalized;
+		bool _IsNormalized, _sealed;
 		friend class RectPath;
 		friend class RectOutlinePath;
 	};

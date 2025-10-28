@@ -40,47 +40,104 @@ namespace qk {
 
 	/**
 	 * @class Entity
-	 * @brief Entity is inherited from View and MorphView.
-	 * 2d entity in the world, supports matrix transformation and bounding box calculation.
-	 * Entities can participate in hit testing and rendering.
-	*/
+	 * @brief Base class for all 2D world entities.
+	 * 
+	 * `Entity` is derived from both `View` and `MorphView`.  
+	 * It represents a drawable and interactive 2D object in the world.  
+	 * 
+	 * Features:
+	 * - Supports matrix-based spatial transformations.
+	 * - Maintains its own geometric bounds (circle, line segment, or polygon).
+	 * - Can participate in rendering and hit testing.
+	 * - Provides automatic visible area and layout resolution.
+	 */
 	class Qk_EXPORT Entity: public View, public MorphView {
 	public:
-		enum BoundsType { kDefault, kLineSegment, kCircle, kPolygon };
-		struct Bounds {
-			BoundsType type;
-			union { float radius, halfThickness; }; // for circle or line segment
-			Qk_DEFINE_PROP_GET_Atomic(cArray<Vec2>*, pts, Const); // polygon or line segment pts
-			Bounds();
-			Bounds(float radius); // for circle
-			Bounds(cArray<Vec2>& pts, float halfThickness = 0.0f); // for polygon or line segment
-			Bounds(const Bounds& bounds);
-			~Bounds();
-			friend class Entity;
+		enum BoundsType { 
+			kDefault,      ///< Default bounds (usually rectangular or automatic)
+			kLineSegment,  ///< Represented as a line segment (with half thickness)
+			kCircle,       ///< Represented as a circle
+			kPolygon       ///< Represented as a polygon
 		};
-		/** The bounds of the entity */
-		Qk_DEFINE_PROPERTY(Bounds, bounds, Const);
+
+		/**
+		 * @struct Bounds
+		 * @brief Stores geometric boundary data of an entity.
+		 */
+		struct Bounds {
+			BoundsType type; ///< The type of boundary used for hit testing.
+			union { 
+				float radius;        ///< Used if type == kCircle
+				float halfThickness; ///< Used if type == kLineSegment
+			};
+			std::atomic<Path*> pts; ///< Pointer to polygon or line-segment points.
+		};
+
+		/** Accessor for the entity’s bounding data. */
+		Qk_DEFINE_ACCESSOR(const Bounds&, bounds, Const);
 
 		Entity();
-		virtual ViewType viewType() const override;
-		virtual Entity* asEntity() override;
-		virtual MorphView* asMorphView() override;
-		virtual Vec2 layout_offset_inside() override;
-		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
-		virtual void solve_visible_area(const Mat &mat) override;
-		virtual bool overlap_test(Vec2 point) override; // Check if the point overlaps with the sprite
-		virtual void layout_reverse(uint32_t mark) override;
-		virtual void draw(Painter *render) override;
-		virtual Vec2 client_size() override;
-		virtual Region client_region() override;
-		virtual void trigger_listener_change(uint64_t name, int count, int change) override;
+		~Entity();
+
+		/** @override Return view type identifier. */
+		ViewType viewType() const override;
+		/** @override Cast to Entity. */
+		Entity* asEntity() override;
+		/** @override Cast to MorphView. */
+		MorphView* asMorphView() override;
+
+		/** @override Return offset used in layout calculations. */
+		Vec2 layout_offset_inside() override;
+
+		/** @override Resolve marks and transform states. */
+		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
+
+		/** @override Compute visible area for rendering and interaction. */
+		void solve_visible_area(const Mat &mat) override;
+
+		/**
+		 * @override
+		 * Check if a given world-space point overlaps the entity’s bounds.
+		 * @param point Point in world coordinates.
+		 * @return true if overlaps, false otherwise.
+		 */
+		bool overlap_test(Vec2 point) override;
+
+		/** @override Perform reverse layout calculations if necessary. */
+		void layout_reverse(uint32_t mark) override;
+
+		/** @override Draw the entity using a given Painter. */
+		void draw(Painter *render) override;
+
+		/** @override Return client area size in local coordinates. */
+		Vec2 client_size() override;
+
+		/** @override Return client area as region (used for hit testing). */
+		Region client_region() override;
+
+		/** @override Trigger listener count changes for this entity. */
+		void trigger_listener_change(uint64_t name, int count, int change) override;
+
 	private:
-		void debugDraw(Painter *render); // draw debug bounds
-		Vec2 solve_origin_value(Vec2 from); // compute origin value from parameter
-		void solve_bounds(); // compute bounds pts and circle
-		cArray<Vec2>& ptsOfBounds(); // get bounds pts for precise test
-		Array<Vec2> *_ptsBounds; // The final polygon bounds or line segment for precise test
-		Circle _circleBounds; // The final circle bounds for quick test
+		/** Draw debug outlines for development visualization. */
+		void debugDraw(Painter *render);
+
+		/** Compute origin offset from user parameters. */
+		Vec2 solve_origin_value(Vec2 from);
+
+		/** Compute and cache geometric bounds (polygon or circle). */
+		void solve_bounds();
+
+		Bounds _bounds; ///< Entity’s local bounds description.
+
+		/** Return a reference to internal bounds vertices for precise testing. */
+		cArray<Vec2>& ptsOfBounds();
+
+		/** Cached polygonal bounds or line segment points. */
+		Sp<Array<Vec2>> _ptsBounds;
+
+		/** Cached circular bounds for quick rejection test. */
+		Circle _circleBounds;
 
 		friend class World;
 		friend class Sprite;
@@ -89,101 +146,180 @@ namespace qk {
 	};
 
 	/**
+	 * @class ArrivePositionEvent
+	 * @brief Event triggered when an Agent arrives at a waypoint or target position.
+	 */
+	class Qk_EXPORT ArrivePositionEvent: public UIEvent {
+	public:
+		ArrivePositionEvent(Agent *origin, Vec2 position, Vec2 nextLocation, uint32_t waypoint_index);
+
+		Qk_DEFINE_PROP_GET(Vec2, position, Const);       ///< Current arrived position.
+		Qk_DEFINE_PROP_GET(Vec2, nextLocation, Const);   ///< Vector direction to next waypoint.
+		Qk_DEFINE_PROP_GET(uint32_t, waypointIndex, Const); ///< Index of current waypoint.
+	};
+
+	/**
+	 * @class DiscoveryAgentEvent
+	 * @brief Event triggered when one Agent discovers or loses another within a detection range.
+	 */
+	class Qk_EXPORT DiscoveryAgentEvent: public UIEvent {
+	public:
+		/**
+		 * @param origin Origin agent that detects the other.
+		 * @param agent  The discovered or lost agent.
+		 * @param location The relative location to the other agent.
+		 * @param id Unique identifier for the discovered agent.
+		 * @param level Discovery level (range band index), -1 indicates completely lost.
+		 * @param entering True if entering range, false if leaving.
+		 */
+		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uint32_t id, int level, bool entering);
+
+		Qk_DEFINE_PROP_GET(Agent*, agent);     ///< The other discovered agent.
+		Qk_DEFINE_PROP_GET(Vec2, location, Const); ///< Relative position to the agent.
+		Qk_DEFINE_PROP_GET(uint32_t, agentId, Const); ///< Usually low 32 bits of pointer address.
+		Qk_DEFINE_PROP_GET(int, level, Const); ///< Discovery level index.
+		Qk_DEFINE_PROP_GET(bool, entering, Const); ///< True if entering range; false if leaving.
+
+		void release() override; ///< Custom release logic.
+	};
+
+	/**
+	 * @class FollowTargetEvent
+	 * @brief Event for target following state transitions.
+	 */
+	class Qk_EXPORT FollowTargetEvent: public UIEvent {
+	public:
+		enum State { 
+			kStart = 1, ///< Following started.
+			kStop,      ///< Following stopped normally.
+			kCancel     ///< Following cancelled (e.g., target removed in parent view).
+		};
+
+		FollowTargetEvent(Agent *origin, State state);
+
+		Qk_DEFINE_PROP_GET(State, state, Const); ///< Current follow state.
+	};
+
+	/**
 	 * @class Agent
-	 * @brief Agent is inherited from Entity.
-	 * An entity with agent properties for navigation and avoidance.
-	 * abstract class, use Entity::asAgent() to get Agent pointer.
-	*/
+	 * @brief Abstract class for mobile world entities with navigation, avoidance, and target following.
+	 *
+	 * `Agent` extends `Entity` and introduces AI movement logic.
+	 * Agents can:
+	 * - Move toward target positions or follow predefined waypoints.
+	 * - Detect and react to nearby agents using discovery levels.
+	 * - Follow a specific target agent within a distance range.
+	 * - Perform avoidance behaviors and emit events such as ArrivePositionEvent, DiscoveryAgentEvent, etc.
+	 */
 	class Qk_EXPORT Agent: public Entity {
 	public:
-		/** is active */
+		/** Whether the agent is currently active (moving or processing behavior). */
 		Qk_DEFINE_PROPERTY(bool, active, Const);
-		/** is following target */
+
+		/** Whether the agent is currently following a target. */
 		Qk_DEFINE_PROP_GET(bool, following, Const);
-		/** has waypoints, priority comes second */
+
+		/** Whether the agent currently has valid waypoints assigned. */
 		Qk_DEFINE_ACCE_GET(bool, isWaypoints, Const);
-		/** target position */
+
+		/** Target position (for direct movement). */
 		Qk_DEFINE_PROP_GET(Vec2, target, Const);
-		/** current velocity vector */
+
+		/** Current velocity vector in world coordinates. */
 		Qk_DEFINE_PROP_GET(Vec2, velocity, Const);
-		/** max velocity, default is 100.0f */
+
+		/** Maximum movement velocity. Default is 100.0f. */
 		Qk_DEFINE_PROPERTY(float, velocityMax, Const);
-		/** current waypoint index */
+
+		/** Current waypoint index when navigating along a path. */
 		Qk_DEFINE_PROP_GET(uint32_t, currentWaypoint, Const);
-		/** discovery distances levels squared, default is empty */
+
+		/** Accessor for discovery distance levels (squared). Used for agent detection. */
 		Qk_DEFINE_ACCESSOR(cArray<float>&, discoveryDistancesSq, Const);
-		/** safety buffer distance for avoidance, default is 5 units, range [0.0, 100.0] */
+
+		/** Safety buffer for collision avoidance. Default 5.0f, range [0, 100]. */
 		Qk_DEFINE_PROPERTY(float, safetyBuffer, Const);
+
 		/**
-		 * follow target agent and follow distance is 0.0f, default is nullptr,
-		 * priority is higher than waypoints and moveTo().
+		 * The target agent to follow.  
+		 * If non-null, follow behavior overrides waypoint or direct movement.
 		 */
 		Qk_DEFINE_ACCESSOR(Agent*, followTarget, Const);
-		/** follow distance range, minimum and maximum values, default is [0.0f, 0.0f] */
+
+		/** Distance range [min, max] maintained while following a target agent. */
 		Qk_DEFINE_PROPERTY(Vec2, followDistanceRange, Const);
 
 		/**
-		 * Set discovery distances levels with not squared distances.
-		*/
+		 * Set discovery distance levels using real (non-squared) values.
+		 * @param val Array of distance thresholds (ascending order).
+		 */
 		void setDiscoveryDistances(cArray<float>& val);
 
-		/**
-		 * Destructor
-		*/
 		~Agent();
 
-		/**
-		 * @override
-		*/
+		/** @override Cast to Agent. */
 		Agent* asAgent() override;
 
 		/**
-		 * Clear waypoints and set target position for agent and set active to true
-		 * @param target {Vec2} target position
-		 * @param immediately {bool} immediately move to target position
+		 * Move agent toward a target position.
+		 * @param target Destination position.
+		 * @param immediately If true, teleport or instantly set to target.
 		 */
 		void moveTo(Vec2 target, bool immediately = false);
 
 		/**
-		 * set waypoints for agent, and move to closest waypoint, need at least 2 waypoints
-		 * @param waypoints {Path*} waypoints for agent
-		 * @param immediately {bool} immediately move to closest waypoint
+		 * Assign waypoints for agent to traverse.
+		 * @param waypoints Path containing waypoint positions.
+		 * @param immediately If true, move to nearest waypoint immediately.
 		 */
-		void setWaypoints(const Path& waypoints, bool immediately = false);
+		void setWaypoints(Path* waypoints, bool immediately = false);
 
 		/**
-		 * set waypoints for agent, and move to closest waypoint, need at least 2 waypoints
-		 * @param waypoints {cArray<Vec2>*} waypoints for agent
-		 * @param immediately {bool} immediately move to closest waypoint
+		 * Assign waypoints using a raw array of positions.
+		 * @param waypoints List of 2D coordinates.
+		 * @param immediately If true, move to nearest waypoint immediately.
 		 */
 		void setWaypoints(cArray<Vec2>& waypoints, bool immediately = false);
 
 		/**
-		 * Return to the waypoints closest path from current position
-		 * @param immediately {bool} immediately return to closest waypoints
-		*/
+		 * Return to the closest path segment among current waypoints.
+		 * @param immediately Whether to jump to the path instantly.
+		 */
 		void returnToWaypoints(bool immediately = false);
 
 		/**
-		 * only set active to false, stop moving the agent
-		*/
+		 * Stop agent movement (set `active=false`).
+		 */
 		void stop();
 
 		/**
 		 * @override
-		*/
+		 * Called by the View layout system when this view (Agent) is activated
+		 * or deactivated in the scene graph.
+		 *
+		 * Agent overrides this to keep its internal state safe when it is
+		 * attached to or removed from a World. In particular, this is where
+		 * we clean up or update state that depends on World membership
+		 * (such as weak references like followTarget, discovery sets, etc.)
+		 * so that they don't become unsafe after removal.
+		 *
+		 * This is part of the generic View lifecycle; it is not an AI
+		 * movement start/stop callback.
+		 */
 		void onActivate() override;
 
 	protected:
-		Agent(); // protected constructor
+		Agent(); ///< Protected constructor; use derived class instantiation.
+
 	private:
-		Dict<Agent*, uint32_t> _discoverys_rt; // discovery agents set, Agent* -> dd level index
-		std::atomic<Array<float>*> _discoveryDistancesSq; // discovery distances levels squared
-		std::atomic<Array<Vec2>*> _waypoints; // waypoints for agent
-		std::atomic<Agent*> _followTarget; // follow target agent, weak reference
+		Dict<Agent*, uint32_t> _discoverys_rt; ///< Runtime map of discovered agents → level index.
+		std::atomic<Array<float>*> _discoveryDistancesSq; ///< Squared discovery range levels.
+		std::atomic<Path*> _waypoints; ///< Active waypoint path.
+		std::atomic<Agent*> _followTarget; ///< Current follow target (weak reference).
+
 		friend class World;
 	};
 
-	typedef Entity::Bounds EntityBounds; // typedef entity bounds
+	typedef Entity::Bounds Bounds; // typedef entity bounds
 }
 #endif

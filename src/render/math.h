@@ -287,6 +287,7 @@ namespace qk {
 
 	// ------------------------------------------
 
+	struct Color;
 	struct Qk_EXPORT Color4f: Vec<float, 4> {
 		Color4f(): Vec<float, 4>(0, 0, 0, 1) {}
 		Color4f(float r, float g, float b)
@@ -296,6 +297,7 @@ namespace qk {
 		bool operator==(const Color4f& color) const;
 		bool operator!=(const Color4f& color) const;
 		Color4f mul_alpha_only(float alpha) const;
+		Color to_color() const;
 	};
 
 	// Memory sort: low => high as r,g,b,a

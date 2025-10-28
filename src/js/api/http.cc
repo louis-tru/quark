@@ -300,10 +300,10 @@ namespace qk { namespace js {
 				}, Error);
 			});
 
-			Js_Class_Method(setForm, {
+			Js_Class_Method(setWithm, {
 				if (args.length() < 2 || !args[0]->isString() || !args[1]->isString() ) {
 					Js_Throw(
-						"@method setForm(form_name, value)\n"
+						"@method setWithm(form_name, value)\n"
 						"@param form_name {String}\n"
 						"@param value {String}\n"
 					);

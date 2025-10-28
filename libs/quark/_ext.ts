@@ -390,8 +390,8 @@ let currentTimezone = new Date().getTimezoneOffset() / -60;
 let _slice = Array.prototype.slice;
 let _hash_code_id = 1;
 let _hash_code_set = new WeakSet();
-let DateToString = (Date.prototype as any).__toStrin__ || Date.prototype.toString;
-let ErrorToString = (Error.prototype as any).__toStrin__ || Error.prototype.toString;
+let DateToString = (Date.prototype as any).__toString__ || Date.prototype.toString;
+let ErrorToString = (Error.prototype as any).__toString__ || Error.prototype.toString;
 
 function definePropertys(obj: any, extd: any): void {
 	for (let i in extd) {
@@ -413,8 +413,8 @@ function indexOf(str: string, str1: string): number {
 	return index > -1 ? index : Infinity;
 }
 
-definePropertys(Date.prototype, {__toStrin__: Date.prototype.toString});
-definePropertys(Date.prototype, {__toStrin__: Error.prototype.toString});
+definePropertys(Date.prototype, {__toString__: Date.prototype.toString});
+definePropertys(Date.prototype, {__toString__: Error.prototype.toString});
 
 definePropertys(Object, { hashCode: hashCode });
 

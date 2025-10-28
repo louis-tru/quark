@@ -54,6 +54,9 @@ namespace qk { namespace js {
 			Js_Class_Accessor_Get(isNormalized, {
 				Js_Return( self->isNormalized() );
 			});
+			Js_Class_Accessor_Get(isSealed, {
+				Js_Return( self->isSealed() );
+			});
 			Js_Class_Method(moveTo, {
 				Js_Parse_Args(Vec2, 0, "path.moveTo(to)");
 				self->moveTo(arg0);
@@ -148,8 +151,8 @@ namespace qk { namespace js {
 			});
 			Js_Class_Method(normalizedPath, {
 				Js_Parse_Args(float, 0, "path.normalizedPath(epsilon?)", (1.0f));
-				auto path = new Path(self->normalizedPath(arg0));
-				Js_Return( worker->types()->jsvalue(path) );
+				self->normalizedPath(arg0);
+				Js_Return( self );
 			});
 			Js_Class_Method(transform, {
 				Js_Parse_Args(Mat, 0, "path.transform(matrix)");
@@ -159,6 +162,9 @@ namespace qk { namespace js {
 				Js_Parse_Args(Vec2, 0, "path.scale(scale)");
 				self->scale(arg0);
 			});
+			Js_Class_Method(seal, {
+				self->seal();
+			});
 			Js_Class_Method(getBounds, {
 				if (args.length() == 0) {
 					Js_Return( worker->types()->jsvalue(self->getBounds()) );
@@ -166,6 +172,10 @@ namespace qk { namespace js {
 					Js_Parse_Args(Mat, 0, "path.getBounds(matrix?)");
 					Js_Return( worker->types()->jsvalue(self->getBounds(&arg0)) );
 				}
+			});
+			Js_Class_Method(copy, {
+				auto path = new Path(*self);
+				Js_Return( worker->types()->jsvalue(path) );
 			});
 			cls->exports("Path", exports);
 			// ------------------------------------------------------------------------------------

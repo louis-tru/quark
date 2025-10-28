@@ -36,16 +36,9 @@ namespace qk { namespace js {
 	struct MixBoxFilter: MixObject {
 		typedef BoxFilter Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(BoxFilter, 0, {
-				Js_Throw("Forbidden access abstract");
-			});
-
-			Js_Class_Accessor_Get(type, {
-				Js_Return(self->type());
-			});
-
+			Js_Define_Class(BoxFilter, 0, { Js_Throw("Forbidden access abstract"); });
+			Js_MixObject_Acce_Get(BoxFilter, int, type, type);
 			Js_MixObject_Accessor(BoxFilter, BoxFilterPtr, next, next);
-
 			cls->exports("BoxFilter", exports);
 		}
 	};
@@ -55,17 +48,16 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(FillImage, BoxFilter, {
 				if (!args.length() || !args[0]->isString()) {
-					Js_Throw("@constructor FillImage(cString& src, Init init = {})");
+					Js_Throw("FillImage(src:string,init:?Init)");
 				}
 				auto src = args[0]->toString(worker)->value(worker);
 				if (args.length() > 1) {
-					Js_Parse_Type(FillImageInit, args[1], "@constructor FillImage(src,Init init = %s)");
+					Js_Parse_Type(FillImageInit, args[1], "`init` = %s");
 					New<MixFillImage>(args, new FillImage(src, out));
 				} else {
 					New<MixFillImage>(args, new FillImage(src));
 				}
 			});
-
 			Js_MixObject_Accessor(FillImage, String, src, src);
 			// Qk_DEFINE_VIEW_ACCESSOR(ImageSource*, source);
 			Js_MixObject_Accessor(FillImage, FillSize, width, width);
@@ -73,7 +65,6 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(FillImage, FillPosition, x, x);
 			Js_MixObject_Accessor(FillImage, FillPosition, y, y);
 			Js_MixObject_Accessor(FillImage, Repeat, repeat, repeat);
-
 			cls->exports("FillImage", exports);
 		}
 	};
@@ -81,9 +72,7 @@ namespace qk { namespace js {
 	struct MixFillGradientRadial: MixObject {
 		typedef FillGradientRadial Type;
 
-		static bool parse(
-			FunctionArgs args, Array<float> *pos, Array<Color4f> *colors, cChar* msg, cChar* msg2
-		) {
+		static bool parse(FunctionArgs args, Array<float> *pos, Array<Color4f> *colors, cChar* msg, cChar* msg2) {
 			Js_Worker(args);
 			if (args.length() < 2) {
 				Js_Throw("@constructor %s(cArray<float>& pos,cArray<Color4f>& colors%s)", msg, msg2), false;
@@ -96,10 +85,7 @@ namespace qk { namespace js {
 				Js_Parse_Type(ArrayColor, args[1],
 					*String::format("@constructor %s(pos,cArray<Color4f>& colors = %s", msg, "%s")
 				) false;
-				colors->reset(out.length());
-				for (int i = 0; i < out.length(); i++) {
-					colors->at(i) = out[i].to_color4f();
-				}
+				*colors = out.map<Color4f>([](auto &a, auto j){ return a.to_color4f(); });
 			}
 			return true;
 		}
@@ -112,15 +98,11 @@ namespace qk { namespace js {
 					New<MixFillGradientRadial>(args, new FillGradientRadial(pos, colors));
 				}
 			});
-
-			Js_Class_Accessor_Get(positions, {
-				Js_Return( worker->types()->jsvalue(self->positions()) );
-			});
-
+			Js_MixObject_Acce_Get(FillGradientRadial, ArrayFloat, positions, positions);
 			Js_Class_Accessor_Get(colors, {
-				Js_Return( worker->types()->jsvalue(self->colors()) );
+				auto colors = self->colors().template map<Color>([](auto &a, auto j){ return a.to_color(); });
+				Js_Return( worker->types()->jsvalue(colors) );
 			});
-		
 			cls->exports("FillGradientRadial", exports);
 		}
 	};
@@ -152,18 +134,14 @@ namespace qk { namespace js {
 	struct MixBoxShadow: MixObject {
 		typedef BoxShadow Type;
 		static void NewBoxShadow(Worker *worker, FunctionArgs args) {
-			if (!args.length()) {
+			if (!args.length())
 				Js_Throw("@constructor BoxShadow(Shadow value)");
-			}
 			Js_Parse_Type(Shadow, args[0], "@constructor BoxShadow(Shadow value = %s)");
 			New<MixBoxShadow>(args, new BoxShadow(out));
 		}
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(BoxShadow, BoxFilter, {
-				NewBoxShadow(worker, args);
-			});
+			Js_Define_Class(BoxShadow, BoxFilter, { NewBoxShadow(worker, args); });
 			Js_MixObject_Accessor(BoxShadow, Shadow, value, value);
-
 			cls->exports("BoxShadow", exports);
 		}
 	};

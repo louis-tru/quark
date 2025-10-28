@@ -62,6 +62,7 @@ namespace qk {
 	class BoxShadow;
 	class Entity;
 	class Agent;
+	class Spine;
 	typedef BoxFilter* BoxFilterPtr;
 	typedef BoxShadow* BoxShadowPtr;
 	typedef Array<float> ArrayFloat;

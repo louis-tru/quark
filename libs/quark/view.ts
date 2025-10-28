@@ -35,7 +35,12 @@ import event, {
 	ClickEvent, TouchEvent, MouseEvent, ActionEvent, GestureEvent,
 	GestureTouchPoint,
 	GestureStage, GestureType,
-	TouchPoint,} from './event';
+	TouchPoint,
+	ArrivePositionEvent,
+	DiscoveryAgentEvent,
+	FollowTargetEvent,
+	SpineEvent,
+	SpineExtEvent,} from './event';
 import * as types from './types';
 import {RemoveReadonly, Vec2, Vec2In} from './types';
 import { StyleSheets, CStyleSheetsClass } from './css';
@@ -50,6 +55,7 @@ import {Player,MediaType,MediaSourceStatus,Stream} from './media';
 */
 export enum ViewType {
 	View, //!<
+	Entity, //!<
 	Sprite, //!<
 	Spine, //!<
 	Label, //!<
@@ -65,6 +71,7 @@ export enum ViewType {
 	Text, //!<
 	Button, //!<
 	Morph, //!<
+	World, //!<
 	Root, //!<
 	Enum_Counts, //!<
 }
@@ -206,6 +213,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	transition(to: KeyframeIn, from?: KeyframeIn): TransitionResult; //!<
 	asMorphView(): MorphView | null; //!<
 	asEntity(): Entity | null; //!<
+	asAgent(): Agent | null; //!<
 	constructor(win: Window); //!<
 	static readonly isViewController: boolean;
 }
@@ -344,6 +352,11 @@ export declare class Morph extends Box implements MorphView {
 	readonly matrix: types.Mat;
 }
 
+/**
+ * @class Entity
+ * @extends View
+ * @implements MorphView
+*/
 export declare class Entity extends View implements MorphView {
 	translate: Vec2;
 	scale: Vec2;
@@ -360,14 +373,45 @@ export declare class Entity extends View implements MorphView {
 	rotateZ: number;
 	readonly originValue: number[];
 	readonly matrix: types.Mat;
-	// bounds: types.EntityBounds; //!<
+	bounds: types.Bounds; //!<
+}
+
+/**
+ * @class Agent
+ * @extends Entity
+*/
+export declare abstract class Agent extends Entity {
+	/** @event */
+	readonly onReachWaypoint: EventNoticer<ArrivePositionEvent>;
+	/** @event */
+	readonly onArriveDestination: EventNoticer<ArrivePositionEvent>;
+	/** @event */
+	readonly onDiscovery: EventNoticer<DiscoveryAgentEvent>;
+	/** @event */
+	readonly onFollowStateChange: EventNoticer<FollowTargetEvent>;
+	active: boolean; //!<
+	readonly following: boolean; //!<
+	readonly isWaypoints: boolean; //!<
+	readonly target: Vec2; //!<
+	readonly velocity: Vec2; //!<
+	velocityMax: number; //!<
+	readonly currentWaypoint: Uint; //!<
+	discoveryDistancesSq: number[]; //!<
+	safetyBuffer: number; //!<
+	followDistanceRange: Vec2; //!<
+	followTarget: Agent | null; //!<
+	setDiscoveryDistances(distances: number[]): void; //!<
+	moveTo(target: Vec2, immediately?: boolean): void; //!<
+	setWaypoints(waypoints: Vec2[], immediately?: boolean): void; //!<
+	returnToWaypoints(immediately?: boolean): void; //!<
+	stop(): void; //!<
 }
 
 /**
  * @class Sprite
- * @extends Entity
+ * @extends Agent
 */
-export declare class Sprite extends Entity {
+export declare class Sprite extends Agent {
 	/** @event */
 	readonly onLoad: EventNoticer<UIEvent>;
 	/** @event */
@@ -389,9 +433,21 @@ export declare class Sprite extends Entity {
 
 /**
  * @class Spine
- * @extends Entity
+ * @extends Agent
  */
-export declare class Spine extends Entity {
+export declare class Spine extends Agent {
+	/** @event */
+	readonly onSpineStart: EventNoticer<SpineEvent>;
+	/** @event */
+	readonly onSpineInterrupt: EventNoticer<SpineEvent>;
+	/** @event */
+	readonly onSpineEnd: EventNoticer<SpineEvent>;
+	/** @event */
+	readonly onSpineDispose: EventNoticer<SpineEvent>;
+	/** @event */
+	readonly onSpineComplete: EventNoticer<SpineEvent>;
+	/** @event */
+	readonly onSpineEvent: EventNoticer<SpineExtEvent>;
 	skel: types.SkeletonData | null; //!<
 	skin: string; //!<
 	speed: Float; //!<
@@ -700,6 +756,7 @@ Object.assign(exports, {
 	Button: _ui.Button,
 	Morph: _ui.Morph,
 	Entity: _ui.Entity,
+	Agent: _ui.Agent,
 	Sprite: _ui.Sprite,
 	Spine: _ui.Spine,
 	Root: _ui.Root,
@@ -843,10 +900,19 @@ declare global {
 		}
 
 		interface EntityJSX extends ViewJSX, MorphViewJSX {
-			// bounds?: types.EntityBoundsIn;
+			bounds?: types.BoundsIn;
 		}
 
-		interface SpriteJSX extends EntityJSX {
+		interface AgentJSX extends EntityJSX {
+			active?: boolean;
+			velocityMax?: number;
+			discoveryDistancesSq?: number | number[];
+			safetyBuffer?: number;
+			followDistanceRange?: Vec2In;
+			followTarget?: Agent | null;
+		}
+
+		interface SpriteJSX extends AgentJSX {
 			onLoad?: Listen<UIEvent, Sprite> | null;
 			onError?: Listen<UIEvent, Sprite> | null;
 			src?: string;
@@ -862,7 +928,7 @@ declare global {
 			playing?: boolean;
 		}
 
-		interface SpineJSX extends EntityJSX {
+		interface SpineJSX extends AgentJSX {
 			skel?: types.SkeletonDataIn;
 			skin?: string;
 			speed?: Float;
@@ -1345,9 +1411,25 @@ class _Image {
 	@event readonly onError: EventNoticer<UIEvent>;
 }
 
+class _Agent {
+	@event readonly onReachWaypoint: EventNoticer<ArrivePositionEvent>;
+	@event readonly onArriveDestination: EventNoticer<ArrivePositionEvent>;
+	@event readonly onDiscovery: EventNoticer<DiscoveryAgentEvent>;
+	@event readonly onFollowStateChange: EventNoticer<FollowTargetEvent>;
+}
+	
 class _Sprite {
 	@event readonly onLoad: EventNoticer<UIEvent>;
 	@event readonly onError: EventNoticer<UIEvent>;
+}
+
+class _Spine {
+	@event readonly onSpineStart: EventNoticer<SpineEvent>;
+	@event readonly onSpineInterrupt: EventNoticer<SpineEvent>;
+	@event readonly onSpineEnd: EventNoticer<SpineEvent>;
+	@event readonly onSpineDispose: EventNoticer<SpineEvent>;
+	@event readonly onSpineComplete: EventNoticer<SpineEvent>;
+	@event readonly onSpineEvent: EventNoticer<SpineExtEvent>;
 }
 
 class _Video {
@@ -1374,6 +1456,8 @@ _ui.View.prototype.childDoms = [];
 util.extendClass(_ui.View, _View);
 util.extendClass(_ui.Scroll, _Scroll);
 util.extendClass(_ui.Image, _Image);
+util.extendClass(_ui.Agent, _Agent);
+util.extendClass(_ui.Spine, _Spine);
 util.extendClass(_ui.Sprite, _Sprite);
 util.extendClass(_ui.Video, _Video);
 util.extendClass(_ui.Input, _Input);

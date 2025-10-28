@@ -77,7 +77,7 @@ namespace qk { namespace js {
 	#define Js_Accessor(name,get,set)        exports->setAccessor(worker,#name,_Js_Get(,get),_Js_Set(,set))
 	#define Js_Accessor_Get(name,get)        exports->getAccessor(worker,#name,_Js_Get(,get))
 	#define Js_Accessor_Set(name,set)        exports->setAccessor(worker,#name,0,_Js_Set(,set))
-	#define Js_Property(name,value)          exports->setFor(worker,#name,value)
+	#define Js_Property(name,value)          exports->set(worker,#name,value)
 	// class
 	#define Js_Class_Accessor(name,get,set)  cls->setAccessor(#name,_Js_Get(Js_Self(Type),get),_Js_Set(Js_Self(Type),set))
 	#define Js_Class_Accessor_Get(name,get)  cls->setAccessor(#name,_Js_Get(Js_Self(Type),get),0)
@@ -312,13 +312,14 @@ namespace qk { namespace js {
 		template<class T = JSValue>
 		T* get(Worker* worker, cString& key);
 		bool set(Worker* worker, JSValue* key, JSValue* val);
-		bool set(Worker* worker, uint32_t index, JSValue* val);
 		template<class T>
-		bool setFor(Worker* worker, cString& name, T value);
+		bool set(Worker* worker, uint32_t index, T* val);
+		template<class T>
+		bool set(Worker* worker, cString& name, T value);
 		bool has(Worker* worker, JSValue* key);
 		bool has(Worker* worker, uint32_t index);
-		bool deleteFor(Worker* worker, JSValue* key);
-		bool deleteFor(Worker* worker, uint32_t index);
+		bool del(Worker* worker, JSValue* key);
+		bool del(Worker* worker, uint32_t index);
 		JSArray* getPropertyNames(Worker* worker);
 		JSFunction* getConstructor(Worker* worker);
 		bool setMethod(Worker* worker, cString& name, FunctionCallback func);
@@ -395,7 +396,7 @@ namespace qk { namespace js {
 	public:
 		bool add(Worker* worker, JSValue* key);
 		bool has(Worker* worker, JSValue* key);
-		bool deleteFor(Worker* worker, JSValue* key);
+		bool del(Worker* worker, JSValue* key);
 	};
 
 	class Qk_EXPORT JSClass {
@@ -634,8 +635,12 @@ namespace qk { namespace js {
 		return static_cast<T*>(get<JSValue>(worker, key));
 	}
 	template<class T>
-	inline bool JSObject::setFor(Worker* worker, cString& key, T value) {
-		return setFor<JSValue*>(worker, key, worker->newValue(value));
+	inline bool JSObject::set(Worker* worker, uint32_t index, T* val) {
+		return set(worker, index, worker->newValue(val));
+	}
+	template<class T>
+	inline bool JSObject::set(Worker* worker, cString& key, T value) {
+		return set<JSValue*>(worker, key, worker->newValue(value));
 	}
 	template<class T>
 	inline bool JSClass::setProperty(cString& name, T value) {
@@ -668,7 +673,9 @@ namespace qk { namespace js {
 	template<>
 	Qk_EXPORT JSValue* JSObject::get(Worker* worker, cString& key);
 	template<>
-	Qk_EXPORT bool JSObject::setFor(Worker* worker, cString& key, JSValue* value);
+	Qk_EXPORT bool JSObject::set(Worker* worker, uint32_t index, JSValue* value);
+	template<>
+	Qk_EXPORT bool JSObject::set(Worker* worker, cString& key, JSValue* value);
 	template<>
 	Qk_EXPORT bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value);
 	template<>

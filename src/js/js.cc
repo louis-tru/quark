@@ -140,7 +140,7 @@ namespace js {
 	}
 
 	template<>
-	bool JSObject::setFor(Worker* worker, cString& key, JSValue* value) {
+	bool JSObject::set(Worker* worker, cString& key, JSValue* value) {
 		return set(worker, worker->newValue(key), value);
 	}
 
@@ -254,7 +254,7 @@ namespace js {
 					nc->code, nc->count, String(nc->name) + nc->ext, exports)->cast<JSObject>();
 
 				if ( !exports ) { // error
-					_nativeModules->deleteFor(this, name);
+					_nativeModules->del(this, name);
 					return exports;
 				}
 			}
@@ -322,7 +322,7 @@ namespace js {
 		_nativeModules.reset(this, newObject());
 		_strs = new Strings(this);
 		_classes = new JsClasses(this);
-		_global->setFor(this, "global", *_global);
+		_global->set(this, "global", *_global);
 		_global->setMethod(this, "__binding__", __binding__);
 
 		auto globalThis = newStringOneByte("globalThis");

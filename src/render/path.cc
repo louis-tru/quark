@@ -140,26 +140,44 @@ namespace qk {
 		moveTo(move);
 	}
 
-	Path::Path(): _IsNormalized(true) {}
+	Path::Path(): _IsNormalized(true), _sealed(false) {}
+
+	Path::Path(const Path& path)
+		: _IsNormalized(path._IsNormalized), _sealed(false)
+		, _verbs(path._verbs), _pts(path._pts), _hash(path._hash) {}
+
+	Path& Path::operator=(const Path& path) {
+		if (this != &path) {
+			_IsNormalized = path._IsNormalized;
+			_sealed = false;
+			_verbs = path._verbs;
+			_pts = path._pts;
+			_hash = path._hash;
+		}
+		return *this;
+	}
 
 	void Path::moveTo(Vec2 to) {
+		if (_sealed) return;
 		// _pts.push(to.x()); _pts.push(to.y());
-		_pts.write(to.val, 2);
+		_pts.push(to);
 		_verbs.push(kMove_Verb);
 		_hash.updatefv2(to.val);
 	}
 
 	void Path::lineTo(Vec2 to) {
+		if (_sealed) return;
 		//if (_pts.length() && *(uint64_t*)&_pts.lastIndexAt(1) == *(uint64_t*)to.val)
 		//	return;
-		_pts.write(to.val, 2);
+		_pts.push(to);
 		_verbs.push(kLine_Verb);
 		_hash.updatefv2(to.val);
 	}
 
 	void Path::quadTo(Vec2 control, Vec2 to) {
-		_pts.write(control.val, 2);
-		_pts.write(to.val, 2);
+		if (_sealed) return;
+		_pts.push(control);
+		_pts.push(to);
 		_verbs.push(kQuad_Verb);
 		_IsNormalized = false;
 		// _hash.update((&_pts.back()) - 4, sizeof(float) * 4);
@@ -169,12 +187,13 @@ namespace qk {
 	}
 
 	void Path::cubicTo(Vec2 control1, Vec2 control2, Vec2 to) {
+		if (_sealed) return;
 		//_pts.push(control1[0]); _pts.push(control1[1]);
 		//_pts.push(control2[0]); _pts.push(control2[1]);
 		//_pts.push(to[0]); _pts.push(to[1]);
-		_pts.write(control1.val, 2);
-		_pts.write(control2.val, 2);
-		_pts.write(to.val, 2);
+		_pts.push(control1);
+		_pts.push(control2);
+		_pts.push(to);
 		_verbs.push(kCubic_Verb);
 		_IsNormalized = false;
 		// _hash.update((uint32_t*)(&_pts.back()) - 6, 6);
@@ -186,6 +205,7 @@ namespace qk {
 	constexpr float magicCircle = 0.551915024494f; // 0.552284749831f
 
 	void Path::ovalTo(const Rect& r, bool ccw) {
+		if (_sealed) return;
 		if (r.size.is_zero()) return;
 
 		float w = r.size.x(), h = r.size.y();
@@ -209,6 +229,7 @@ namespace qk {
 	}
 
 	void Path::rectTo(const Rect& r, bool ccw) {
+		if (_sealed) return;
 		if (r.size.is_zero()) return;
 
 		lineTo(r.begin);
@@ -227,6 +248,7 @@ namespace qk {
 	}
 
 	void Path::arc(Vec2 center, Vec2 radius, float startAngle, float sweepAngle, bool useCenter) {
+		if (_sealed) return;
 		float cx = center.x();
 		float cy = center.y();
 
@@ -289,7 +311,8 @@ namespace qk {
 	}
 
 	void Path::quadTo2(float *p) {
-		_pts.write(p, 4);
+		Qk_ASSERT(!_sealed, "Path::quadTo2() sealed path can not be modified");
+		_pts.write((Vec2*)p, 2);
 		_verbs.push(kQuad_Verb);
 		_IsNormalized = false;
 		// _hash.updateu32v((uint32_t*)p, 4);
@@ -299,7 +322,8 @@ namespace qk {
 	}
 
 	void Path::cubicTo2(float *p) {
-		_pts.write(p, 6);
+		Qk_ASSERT(!_sealed, "Path::cubicTo2() sealed path can not be modified");
+		_pts.write((Vec2*)p, 3);
 		_verbs.push(kCubic_Verb);
 		_IsNormalized = false;
 		//_hash.update((uint32_t*)p, 6);
@@ -309,10 +333,12 @@ namespace qk {
 	}
 
 	void Path::close() {
+		if (_sealed) return;
 		_verbs.push(kClose_Verb);
 	}
 
 	void Path::concat(const Path& path) {
+		if (_sealed) return;
 		_verbs.write(path._verbs.val(), path._verbs.length());
 		_pts.write(path._pts.val(), path._pts.length());
 		_hash.updateu64(path.hashCode());
@@ -320,8 +346,8 @@ namespace qk {
 	}
 
 	Array<Vec2> Path::getEdgeLines(float epsilon) const {
-		Path tmp;
-		const Path *self = _IsNormalized ? this: normalized(&tmp,epsilon,false);
+		Path storage;
+		const Path *self = _IsNormalized ? this: normalized(&storage,epsilon,false);
 		Array<Vec2> edges;
 		auto pts = (const Vec2*)*self->_pts;
 		bool isZero = true;
@@ -362,8 +388,8 @@ namespace qk {
 		auto tess = tessNewTess(nullptr); // TESStesselator*
 
 		{ //
-			Path tmp;
-			const Path *self = _IsNormalized ? this: normalized(&tmp, epsilon,false);
+			Path storage;
+			const Path *self = _IsNormalized ? this: normalized(&storage, epsilon, false);
 
 			auto pts = (const Vec2*)*self->_pts;
 			int len = 0;
@@ -508,31 +534,36 @@ namespace qk {
 		Qk_ReturnLocal(out);
 	}
 
-	Path Path::normalizedPath(float epsilon) const {
-		if (_IsNormalized)
-			return *this; // copy self
-		Path line;
-		normalized(&line, epsilon, true);
-		Qk_ReturnLocal(line);
+	Path& Path::normalizedPath(float epsilon) {
+		if (_sealed) return *this;
+		if (!_IsNormalized)
+			normalized(this, epsilon, true);
+		return *this;
 	}
 
 	void Path::transform(const Mat& matrix) {
-		float* pts = *_pts;
-		float* e = pts + _pts.length();
+		if (_sealed) return;
+		Vec2* pts = *_pts;
+		Vec2* e = pts + _pts.length();
 		while (pts < e) {
-			*((Vec2*)pts) = matrix * (*(Vec2*)pts);
-			pts += 2;
+			*pts = matrix * (*pts);
+			pts++;
 		}
 	}
 
 	void Path::scale(Vec2 scale) {
-		float* pts = *_pts;
-		float* e = pts + _pts.length();
+		if (_sealed) return;
+		Vec2* pts = *_pts;
+		Vec2* e = pts + _pts.length();
 		while (pts < e) {
 			pts[0] *= scale[0];
 			pts[1] *= scale[1];
-			pts += 2;
+			pts++;
 		}
+	}
+
+	void Path::seal() {
+		_sealed = true;
 	}
 
 	Range Path::getBounds(const Mat* mat) const {
@@ -590,6 +621,7 @@ namespace qk {
 	}
 
 	Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
+		Qk_ASSERT(!out->_sealed, "Path::normalized() sealed path can not be modified");
 		Path &line = *out;
 
 		auto pts = ((Vec2*)_pts.val());
@@ -598,7 +630,7 @@ namespace qk {
 
 		auto add = [&](Vec2 &to, PathVerb verb) {
 			grid_point(to);
-			line._pts.write(to.val, 2);
+			line._pts.push(to);
 			line._verbs.push(verb);
 
 			if (updateHash)
@@ -621,11 +653,11 @@ namespace qk {
 					pts+=2;
 					int sample = getQuadraticBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3
-					int sampleSize  = sample * 2;
-					line._pts.extend(line._pts.length() + sampleSize);
-					auto points = &line._pts[line._pts.length() - sampleSize];
-					bezier.sample_curve_points(sample+1, points - 2);
-					grid_point(*(Vec2*)&line._pts[line._pts.length() - 2]);
+					line._pts.extend(line._pts.length() + sample);
+					auto points = &line._pts[line._pts.length() - sample];
+					// (uint32_t sample_count, float* out, int stride)
+					bezier.sample_curve_points(sample+1, (float*)points - 1);
+					grid_point(line._pts.back());
 					if (updateHash)
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
@@ -640,11 +672,10 @@ namespace qk {
 					pts+=3;
 					int sample = getCubicBezierSample(bezier, epsilon) - 1;
 					// |0|1| = sample = 3
-					int sampleSize = sample * 2;
-					line._pts.extend(line._pts.length() + sampleSize);
-					auto points = &line._pts[line._pts.length() - sampleSize];
-					bezier.sample_curve_points(sample+1, points - 2);
-					grid_point(*(Vec2*)&line._pts[line._pts.length() - 2]);
+					line._pts.extend(line._pts.length() + sample);
+					auto points = &line._pts[line._pts.length() - sample];
+					bezier.sample_curve_points(sample+1, (float*)points - 1);
+					grid_point(line._pts.back());
 					if (updateHash)
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash
 					line._verbs.extend(line._verbs.length() + sample);
@@ -800,7 +831,7 @@ namespace qk {
 		vertex[4] = vertex[0];
 		
 		static auto isEquals = [](Path& path, Vec3 &p) {
-			return !path.ptsLen() || isPointEquals(*path.ptsBack(), {p[0],p[1]});
+			return !path.ptsLen() || isPointEquals(path._pts.back(), {p[0],p[1]});
 		};
 
 		auto build = [](RectPath *out, Vec2 center, Vec2 radius, Vec2 v, Vec3 *v2, float angle, int mask) {
@@ -1008,7 +1039,7 @@ namespace qk {
 						path2.push(v[4]);
 					}
 				}
-				if (!isPointEquals(*path.ptsBack(), v[3])) {
+				if (!isPointEquals(path.pts().back(), v[3])) {
 					path.lineTo(v[3]);
 				}
 			} else {
@@ -1044,7 +1075,7 @@ namespace qk {
 							out->vertex.write(src, 3);
 						}
 					}
-					if (i != 0 || !isPointEquals(*path.ptsBack(), v0)) {
+					if (i != 0 || !isPointEquals(path.pts().back(), v0)) {
 						path.lineTo(v0);
 					}
 					angle += angleStep;
@@ -1060,7 +1091,7 @@ namespace qk {
 					path.lineTo(path2[i]);
 
 				if (border[0] > 0.1 || isRadiusZeroL) // fix aa sdf stroke error
-					path.lineTo(*path.pts()); // equivalent to close
+					path.lineTo(path.pts().front()); // equivalent to close
 			}
 		};
 

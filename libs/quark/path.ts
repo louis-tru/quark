@@ -136,6 +136,9 @@ export declare class Path {
 	/** Whether the path is normalized (curves converted to line segments). */
 	readonly isNormalized: boolean;
 
+	/** Whether the path is sealed (cannot be modified). */
+	readonly isSealed: boolean;
+
 	/**
 	 * Construct a new path.
 	 * @param move Optional initial move-to point.
@@ -236,9 +239,9 @@ export declare class Path {
 	/**
 	 * Normalize the path (convert curves to linear segments).
 	 * @param epsilon Approximation tolerance (default = 1.0).
-	 * @returns A new normalized path.
+	 * @returns The normalized path (this).
 	 */
-	normalizedPath(epsilon?: number): Path;
+	normalizedPath(epsilon?: number): this;
 
 	/**
 	 * Apply a transformation matrix to the path.
@@ -253,9 +256,20 @@ export declare class Path {
 	scale(scale: Vec2): void;
 
 	/**
+	 * @method seal() seal path, after sealed, path data can not be modified
+	*/
+	seal(): void;
+
+	/**
 	 * Get the path's bounding box.
 	 * @param matrix Optional transform matrix (fast path if identity).
 	 * @returns The bounding region.
 	 */
 	getBounds(matrix?: Mat): Range;
+
+	/**
+	 * Create a copy of this path.
+	 * @returns A new Path instance that is a copy of this path.
+	 */
+	copy(): Path;
 }

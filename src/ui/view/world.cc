@@ -191,21 +191,21 @@ namespace qk {
 				if (remaining != delta) update = true;
 				if (remaining == 0.0f) break; // no remaining, done for this frame
 				delta = remaining; // continue with remaining time
-				if (agent->_target != waypoints->at(current)) {
+				if (agent->_target != waypoints->atPt(current)) {
 					// Set initial target waypoint if target changed
-					agent->_target = waypoints->at(current);
+					agent->_target = waypoints->atPt(current);
 					continue; // continue moving towards target
 				}
 				auto target = agent->_target; // current target waypoint
 				current++; // next waypoint index
 				agent->_currentWaypoint = current; // advance to next waypoint
-				auto isNext = current < waypoints->length();
+				auto isNext = current < waypoints->ptsLen();
 				// vector to next waypoint
-				auto toNext = isNext ? waypoints->at(current) - target : Vec2();
+				auto toNext = isNext ? waypoints->atPt(current) - target : Vec2();
 				// Reached current waypoint event
 				onEvent<ArrivePositionEvent>(UIEvent_ReachWaypoint, agent, target, toNext, current);
 				if (isNext) {
-					agent->_target = waypoints->at(current); // set new target
+					agent->_target = waypoints->atPt(current); // set new target
 				} else {
 					onEvent<ArrivePositionEvent>(UIEvent_ArriveDestination, agent, target, Vec2(), 0);
 					agent->_active = false; // reached final waypoint, stop

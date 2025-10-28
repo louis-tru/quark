@@ -46,13 +46,13 @@
 namespace qk { 
 	namespace js {
 
-	#define Js_Parse_Type(Name, value, desc, ...) \
+	#define Js_Parse_Type(Name, value, msg, ...) \
 		Name out##__VA_ARGS__; \
-		if ( !worker->types()->parse(value, out##__VA_ARGS__, desc)) return
+		if ( !worker->types()->parse(value, out##__VA_ARGS__, msg)) return
 
-	#define Js_Parse_Args(Name, argIdx, desc, ...) \
+	#define Js_Parse_Args(Name, argIdx, msg, ...) \
 		Name arg##argIdx __VA_ARGS__; \
-		if ( !worker->types()->parseArgs(args, argIdx, arg##argIdx, desc, sizeof(#__VA_ARGS__) > 1)) return
+		if ( !worker->types()->parseArgs(args, argIdx, arg##argIdx, msg, sizeof(#__VA_ARGS__) > 1)) return
 
 	typedef Window::Options WindowOptions;
 	typedef FillImage::Init FillImageInit;
@@ -123,13 +123,13 @@ namespace qk {
 		F(SkeletonDataPtr) \
 		F(TextStroke) \
 		F(PathPtr) \
+		F(Bounds) \
 
 	class Qk_EXPORT TypesParser {
 	public:
 		TypesParser(Worker* worker, JSObject* exports);
 
 		bool     isTypesBase(JSObject *arg);
-		void     throwError(JSValue* value, cChar* msg = 0, cChar* help = 0);
 		inline
 		JSValue* jsvalue(double val) { return worker->newValue(val); }
 		inline

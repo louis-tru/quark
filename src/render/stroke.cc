@@ -90,7 +90,7 @@ namespace qk {
 	// concat paths, left += reverse(right)
 	static void reverseConcatPath(Path &left, const Path &right) {
 		auto verbs = right.verbs();
-		auto pts = right.pts() + right.ptsLen() - 1;
+		auto pts = &right.pts().back();
 
 		for (int i = Qk_Minus(right.verbsLen(), 1); i >= 0; i--) {
 			if (verbs[i] == Path::kCubic_Verb) {
@@ -144,13 +144,12 @@ namespace qk {
 		};
 
 		Array<Vec2> pts(self->ptsLen());
-		auto pts0 = self->pts();
+		auto pts0 = &self->pts().front();
 		auto pts1 = pts.val();
 		int  size = 0;
-		auto verbs = self->verbs();
 
-		for (int i = 0, l = self->verbsLen(); i < l; i++) {
-			switch(verbs[i]) {
+		for (auto v: self->verbs()) {
+			switch(v) {
 				case Path::kLine_Verb:
 					if (size != 0) {
 						if (pts1[size-1] != *pts0++) // exclude duplicates

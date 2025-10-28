@@ -169,13 +169,7 @@ namespace qk { namespace js {
 						!args[0]->asUint32(worker).to(trackIndex) ||
 						!args[1]->asString(worker).to(name) 
 				) {
-					Js_Throw(
-						"@method Spine.addAnimation(trackIndex,name,loop,delay?)\n"
-						"@param trackIndex:Uint\n"
-						"@param name:String\n"
-						"@param loop?:boolean\n"
-						"@param delay?:Float\n"
-					);
+					Js_Throw("Spine.addAnimation(trackIndex:Uint,name:string,loop:boolean,delay:Float?)");
 				}
 				if (args.length() > 2)
 					args[2]->asBoolean(worker).to(loop);
@@ -191,26 +185,14 @@ namespace qk { namespace js {
 						!args[0]->asUint32(worker).to(trackIndex) ||
 						!args[1]->asFloat32(worker).to(mixDuration)
 				) {
-					Js_Throw(
-						"@method Spine.setEmptyAnimation(trackIndex,mixDuration)\n"
-						"@param trackIndex:Uint\n"
-						"@param mixDuration:Float\n"
-					);
+					Js_Throw("Spine.setEmptyAnimation(trackIndex:Uint,mixDuration:Float)");
 				}
 				self->set_empty_animation(trackIndex, mixDuration);
 			});
 
 			Js_Class_Method(setEmptyAnimations, {
-				float mixDuration = 0;
-				if (args.length() == 0 ||
-						!args[0]->asFloat32(worker).to(mixDuration)
-				) {
-					Js_Throw(
-						"@method Spine.setEmptyAnimations(mixDuration)\n"
-						"@param mixDuration:Float\n"
-					);
-				}
-				self->set_empty_animations(mixDuration);
+				Js_Parse_Args(float, 0, "mixDuration = %s");
+				self->set_empty_animations(arg0);
 			});
 
 			Js_Class_Method(addEmptyAnimation, {
@@ -221,12 +203,7 @@ namespace qk { namespace js {
 						!args[0]->asUint32(worker).to(trackIndex) ||
 						!args[1]->asFloat32(worker).to(mixDuration)
 				) {
-					Js_Throw(
-						"@method Spine.addEmptyAnimation(trackIndex,mixDuration,delay?)\n"
-						"@param trackIndex:Uint\n"
-						"@param mixDuration:Float\n"
-						"@param delay?:Float\n"
-					);
+					Js_Throw("Spine.addEmptyAnimation(trackIndex:Uint,mixDuration:Float,delay?:Float)");
 				}
 				if (args.length() > 2)
 					args[2]->asFloat32(worker).to(delay);
@@ -238,11 +215,8 @@ namespace qk { namespace js {
 			Js_Class_Method(clearTracks, { self->clear_tracks(); });
 
 			Js_Class_Method(clearTrack, {
-				uint32_t trackIndex = 0;
-				if (args.length()) {
-					args[0]->asUint32(worker).to(trackIndex);
-				}
-				self->clear_track(trackIndex);
+				Js_Parse_Args(uint32_t, 0, "trackIndex = %s");
+				self->clear_track(arg0);
 			});
 
 			cls->exports("Spine", exports);

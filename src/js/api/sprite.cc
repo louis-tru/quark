@@ -42,7 +42,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Entity, View, { Js_NewView(Entity); });
 			inheritMorphView(cls, worker);
-			// Js_MixObject_Accessor(Entity, Entity::Bounds, bounds, bounds);
+			Js_MixObject_Accessor(Entity, Bounds, bounds, bounds);
 			cls->exports("Entity", exports);
 		}
 	};
@@ -62,6 +62,7 @@ namespace qk { namespace js {
 			Js_MixObject_Acce_Get(Agent, uint32_t, currentWaypoint, currentWaypoint);
 			Js_MixObject_Accessor(Agent, ArrayFloat, discoveryDistancesSq, discoveryDistancesSq);
 			Js_MixObject_Accessor(Agent, float, safetyBuffer, safetyBuffer);
+			Js_MixObject_Accessor(Agent, Vec2, followDistanceRange, followDistanceRange);
 
 			Js_Class_Accessor(followTarget, { Js_Return( self->followTarget() ); }, {
 				if (worker->instanceOf(val, kAgent_Typeid))
@@ -69,33 +70,25 @@ namespace qk { namespace js {
 				self->set_followTarget(MixObject::mix<Agent>(val)->self());
 			});
 
-			Js_MixObject_Accessor(Agent, Vec2, followDistanceRange, followDistanceRange);
-
 			Js_Class_Method(setDiscoveryDistances, {
-				Js_Parse_Args(ArrayFloat, 0, "Agent.setDiscoveryDistances(val:Float[])void");
+				Js_Parse_Args(ArrayFloat, 0, "val = %s");
 				self->setDiscoveryDistances(arg0);
 			});
 
 			Js_Class_Method(moveTo, {
-				Js_Parse_Args(Vec2, 0, "Agent.moveTo(target:Vec2,immediately?:bool)void");
-				Js_Parse_Args(bool, 1, "Agent.moveTo(target:Vec2,immediately?:bool)void", (false));
+				Js_Parse_Args(Vec2, 0, "target = %s");
+				Js_Parse_Args(bool, 1, "immediately = %s", (false));
 				self->moveTo(arg0, arg1);
 			});
 
 			Js_Class_Method(setWaypoints, {
-				Js_Parse_Args(PathPtr, 0, "Agent.setWaypoints(waypoints:Path,immediately?:bool)void");
-				Js_Parse_Args(bool, 1, "Agent.setWaypoints(waypoints:Path,immediately?:bool)void", (false));
-				self->setWaypoints(*arg0, arg1);
-			});
-
-			Js_Class_Method(setWaypoints, {
-				Js_Parse_Args(ArrayVec2, 0, "Agent.setWaypoints(waypoints:Vec2[],immediately?:bool)void");
-				Js_Parse_Args(bool, 1, "Agent.setWaypoints(waypoints:Vec2[],immediately?:bool)void", (false));
+				Js_Parse_Args(PathPtr, 0, "waypoints = %s");
+				Js_Parse_Args(bool, 1, "immediately = %s", (false));
 				self->setWaypoints(arg0, arg1);
 			});
 
 			Js_Class_Method(returnToWaypoints, {
-				Js_Parse_Args(bool, 0, "Agent.returnToWaypoints(immediately?:bool)void", (false));
+				Js_Parse_Args(bool, 0, "immediately = %s", (false));
 				self->returnToWaypoints(arg0);
 			});
 

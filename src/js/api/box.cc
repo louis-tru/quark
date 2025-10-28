@@ -36,7 +36,6 @@
 #include "../../ui/view/image.h"
 
 namespace qk { namespace js {
-	typedef qk::Wrap Wrap;
 
 	class MixBox: public MixViewObject {
 	public:

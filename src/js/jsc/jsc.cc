@@ -709,6 +709,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
+	template<>
 	bool JSObject::set(Worker* w, uint32_t index, JSValue* val) {
 		DCHECK(isObject());
 		ENV(w);
@@ -731,14 +732,14 @@ namespace qk { namespace js {
 		return ok;
 	}
 
-	bool JSObject::JSObject::deleteFor(Worker* w, JSValue* key) {
+	bool JSObject::JSObject::del(Worker* w, JSValue* key) {
 		DCHECK(isObject());
 		ENV(w);
 		auto ok = JSObjectDeletePropertyForKey(ctx, Back<JSObjectRef>(this), Back(key), OK(false));
 		return ok;
 	}
 
-	bool JSObject::deleteFor(Worker* w, uint32_t index) {
+	bool JSObject::del(Worker* w, uint32_t index) {
 		DCHECK(isObject());
 		ENV(w);
 		auto ok = JSObjectDeletePropertyForKey(ctx,
@@ -977,7 +978,7 @@ namespace qk { namespace js {
 		return js::asBoolean(Cast(rev));
 	}
 
-	bool JSSet::deleteFor(Worker* w, JSValue* key) {
+	bool JSSet::del(Worker* w, JSValue* key) {
 		ENV(w);
 		DCHECK(isSet(w, this));
 		auto argv = Back(key);

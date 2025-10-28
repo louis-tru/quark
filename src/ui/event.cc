@@ -37,6 +37,7 @@
 #include "./keyboard.h"
 #include "./view/button.h"
 #include "./action/action.h"
+#include "./view/entity.h"
 
 namespace qk {
 
@@ -54,8 +55,7 @@ namespace qk {
 
 	const Dict<String, UIEventName> UIEventNames([]() {
 		Dict<String, UIEventName> r;
-		#define _Fun(Name, C, F) \
-			r.set(UIEvent_##Name.string(), UIEvent_##Name);
+		#define _Fun(Name, C, F) r.set(UIEvent_##Name.string(), UIEvent_##Name);
 		Qk_UI_Events(_Fun)
 		#undef _Fun
 		Qk_ReturnLocal(r);
@@ -118,7 +118,6 @@ namespace qk {
 		if ( !dispatch->setFocusView(this) ) {
 			return false;
 		}
-
 		if ( old ) {
 			_inl_view(old)->bubble_trigger(UIEvent_Blur, **NewEvent<UIEvent>(old));
 			_inl_view(old)->trigger_highlightted(
@@ -206,22 +205,6 @@ namespace qk {
 		for (auto& touch : _change_touches)
 			touch.view = nullptr; // clear weak reference
 		UIEvent::release();
-	}
-
-	ArrivePositionEvent::ArrivePositionEvent(View *origin, Vec2 position, Vec2 nextLocation, uint32_t waypoint_index)
-		: UIEvent(origin), _position(position), _nextLocation(nextLocation), _waypointIndex(waypoint_index) {
-	}
-	DiscoveryAgentEvent::DiscoveryAgentEvent(
-		View *origin, Agent* agent, Vec2 location, uint32_t id, int level, bool entering
-	) : UIEvent(origin), _agent(agent), _location(location)
-		, _agentId(id), _level(level), _entering(entering)
-	{}
-	void DiscoveryAgentEvent::release() {
-		_agent = nullptr; // clear weak reference
-		UIEvent::release();
-	}
-
-	FollowTargetEvent::FollowTargetEvent(View *origin, State state): UIEvent(origin), _state(state) {
 	}
 
 	class EventDispatch::OriginTouche {

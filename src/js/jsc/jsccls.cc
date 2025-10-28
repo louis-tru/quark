@@ -448,7 +448,7 @@ namespace qk { namespace js {
 
 	template<>
 	bool JSClass::setProperty<JSValue*>(cString& name, JSValue* value) {
-		return Cast<JSObject>(_jscclass(this)->_prototype)->setFor(_worker, name, value);
+		return Cast<JSObject>(_jscclass(this)->_prototype)->set(_worker, name, value);
 	}
 
 	bool JSClass::setStaticMethod(cString& name, FunctionCallback func) {
@@ -457,7 +457,7 @@ namespace qk { namespace js {
 
 	template<>
 	bool JSClass::setStaticProperty<JSValue*>(cString& name, JSValue* value) {
-		return Cast<JSObject>(_jscclass(this)->_constructor)->setFor(_worker, name, value);
+		return Cast<JSObject>(_jscclass(this)->_constructor)->set(_worker, name, value);
 	}
 
 	JSClass* Worker::newClass(cString& name, uint64_t alias,

@@ -51,16 +51,9 @@ namespace qk { namespace js {
 		typedef Action Type;
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Action, 0, { Js_Throw("Access forbidden."); });
-
 			// Qk_DEFINE_PROP_GET(Window*, window, Protected);
-
 			Js_MixObject_Accessor(Action, uint32_t, loop, loop);
-
-			Js_Class_Accessor_Get(duration, {
-				Js_Self(Action);
-				Js_Return(self->duration());
-			});
-
+			Js_MixObject_Acce_Get(Action, uint32_t, duration, duration);
 			Js_MixObject_Accessor(Action, float, speed, speed);
 			Js_MixObject_Accessor(Action, bool, playing, playing);
 
@@ -161,25 +154,13 @@ namespace qk { namespace js {
 				if (win)
 					New<MixKeyframeAction>(args, new KeyframeAction(win));
 			});
-
-			Js_Class_Accessor_Get(time, {
-				Js_Self(Type);
-				Js_Return(self->time());
-			});
-
-			Js_Class_Accessor_Get(frame, {
-				Js_Self(Type);
-				Js_Return(self->frame());
-			});
-
-			Js_Class_Accessor_Get(length, {
-				Js_Self(Type);
-				Js_Return(self->length());
-			});
+			Js_MixObject_Acce_Get(KeyframeAction, uint32_t, time, time);
+			Js_MixObject_Acce_Get(KeyframeAction, uint32_t, frame, frame);
+			Js_MixObject_Acce_Get(KeyframeAction, uint32_t, length, length);
 
 			Js_Class_Indexed_Get({
 				if (key >= self->length()) {
-					Js_Throw("@method KeyframeAction[](uint32_t index) Frame array index overflow.");
+					Js_Throw("KeyframeAction[](index:Uint)Keyframe\nFrame array index overflow.");
 				}
 				auto wobj = MixObject::mix<Keyframe>(self->operator[](key), kKeyframe_Typeid);
 				Js_Return( wobj->handle() );
@@ -190,14 +171,11 @@ namespace qk { namespace js {
 			Js_Class_Method(addFrame, {
 				uint32_t timeMs;
 				if (!args.length() || !args[0]->asUint32(worker).to(timeMs)) {
-					Js_Throw("\
-						Param timeMs cannot be empty \n\
-						@method KeyframeAction.addFrame(uint32_t timeMs, cCurve& curve = EASE) \n\
-					");
+					Js_Throw("KeyframeAction.addFrame(timeMs:Uint,curve?:Curve)Keyframe\nBad argument timeMs");
 				}
 				auto curve = EASE;
 				if (args.length() > 1 && !args[1]->isUndefined()) {
-					Js_Parse_Type(Curve, args[1], "@method KeyframeAction.addFrame() curve = %s");
+					Js_Parse_Type(Curve, args[1], "KeyframeAction.addFrame(timeMs:Uint,curve?:Curve)Keyframe\ncurve = %s");
 					curve = out;
 				}
 				Js_Return( self->addFrame(timeMs, curve) );
@@ -205,10 +183,7 @@ namespace qk { namespace js {
 
 			Js_Class_Method(addFrameWithCss, {
 				if (!args.length() || !args[0]->isString()) {
-					Js_Throw("\
-						Bad argument cssExp \n\
-						@method KeyframeAction.addFrameWithCss(cString& cssExp, uint32_t *timeMs, cCurve *curve) \n\
-					");
+					Js_Throw("KeyframeAction.addFrameWithCss(cssExp:string,timeMs?:Uint,curve?:Curve)Keyframe\nBad argument cssExp");
 				}
 				String cssExp = args[0]->toString(worker)->value(worker);
 				uint32_t time;
@@ -217,12 +192,12 @@ namespace qk { namespace js {
 				Curve *curve_p = nullptr;
 
 				if (args.length() > 1) {
-					Js_Parse_Type(uint32_t, args[1], "@method KeyframeAction.addFrameWithCss() timeMs = %s");
+					Js_Parse_Type(uint32_t, args[1], "KeyframeAction.addFrameWithCss(cssExp:string,timeMs?:Uint,curve?:Curve)Keyframe\ntimeMs = %s");
 					time = out;
 					time_p = &time;
 				}
 				if (args.length() > 2) {
-					Js_Parse_Type(Curve, args[2], "@method KeyframeAction.addFrameWithCss() curve = %s");
+					Js_Parse_Type(Curve, args[2], "KeyframeAction.addFrameWithCss(cssExp:string,timeMs?:Uint,curve?:Curve)Keyframe\ncurve = %s");
 					curve = out; curve_p = &curve;
 				}
 				Js_Return( self->addFrameWithCss(cssExp, time_p, curve_p) );
@@ -235,22 +210,10 @@ namespace qk { namespace js {
 	struct MixKeyframe: MixObject {
 		typedef Keyframe Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(Keyframe, StyleSheets, {
-				Js_Throw("Access forbidden.");
-			});
-
-			Js_Class_Accessor_Get(index, {
-				Js_Return(self->index());
-			});
-
-			Js_Class_Accessor_Get(time, {
-				Js_Return(self->time());
-			});
-
-			Js_Class_Accessor_Get(curve, {
-				Js_Return( worker->types()->jsvalue(self->curve()) );
-			});
-
+			Js_Define_Class(Keyframe, StyleSheets, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(Keyframe, uint32_t, index, index);
+			Js_MixObject_Acce_Get(Keyframe, uint32_t, time, time);
+			Js_MixObject_Acce_Get(Keyframe, Curve, curve, curve);
 			cls->exports("Keyframe", exports);
 		};
 	};

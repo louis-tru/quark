@@ -90,13 +90,12 @@ namespace qk {
 		StringImpl(const T* s, uint32_t len); // copy constructors
 		StringImpl(const T* a, uint32_t aLen, const T* b, uint32_t bLen); // copy constructors
 		StringImpl(char i); // char string
-
-		StringImpl(int32_t i); // number to string constructors
-		StringImpl(uint32_t i);
-		StringImpl(int64_t i);
-		StringImpl(uint64_t i);
-		StringImpl(float i);
-		StringImpl(double i);
+		explicit StringImpl(int32_t i); // number to string constructors
+		explicit StringImpl(uint32_t i);
+		explicit StringImpl(int64_t i);
+		explicit StringImpl(uint64_t i);
+		explicit StringImpl(float i);
+		explicit StringImpl(double i);
 
 		~StringImpl();
 		/**

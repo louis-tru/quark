@@ -367,6 +367,7 @@ namespace qk { namespace js {
 			Set(CONTEXT(worker), Back(key), Back(val)).FromMaybe(false);
 	}
 
+	template<>
 	bool JSObject::set(Worker* worker, uint32_t index, JSValue* val) {
 		DCHECK(isObject());
 		return Back<v8::Object>(this)->
@@ -385,12 +386,12 @@ namespace qk { namespace js {
 			Has(CONTEXT(worker), index).FromMaybe(false);
 	}
 
-	bool JSObject::JSObject::deleteFor(Worker* worker, JSValue* key) {
+	bool JSObject::JSObject::del(Worker* worker, JSValue* key) {
 		DCHECK(isObject());
 		return Back<v8::Object>(this)->Delete(CONTEXT(worker), Back(key)).FromMaybe(false);
 	}
 
-	bool JSObject::deleteFor(Worker* worker, uint32_t index) {
+	bool JSObject::del(Worker* worker, uint32_t index) {
 		DCHECK(isObject());
 		return Back<v8::Object>(this)->Delete(CONTEXT(worker), index).FromMaybe(false);
 	}
@@ -625,7 +626,7 @@ namespace qk { namespace js {
 		return set->Has(CONTEXT(worker), Back(key)).ToChecked();
 	}
 		
-	bool JSSet::deleteFor(Worker* worker, JSValue* key) {
+	bool JSSet::del(Worker* worker, JSValue* key) {
 		DCHECK(Back(this)->IsSet());
 		auto set = reinterpret_cast<v8::Set*>(this);
 		return set->Delete(CONTEXT(worker), Back(key)).ToChecked();

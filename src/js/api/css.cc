@@ -44,12 +44,8 @@ namespace qk { namespace js {
 
 	struct MixStyleSheets: MixObject {
 		typedef StyleSheets Type;
-
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(StyleSheets, 0, {
-				Js_Throw("Access forbidden.");
-			});
-
+			Js_Define_Class(StyleSheets, 0, { Js_Throw("Access forbidden.");});
 			Js_StyleSheets_Accessor(Color, color, color);
 			Js_StyleSheets_Accessor(CascadeColor, cascade_color, cascadeColor);
 			Js_StyleSheets_Accessor(CursorStyle, cursor, cursor);
@@ -142,10 +138,7 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(float, skew_x, skewX);
 			Js_StyleSheets_Accessor(float, skew_y, skewY);
 			Js_StyleSheets_Accessor(float, rotate_z, rotateZ);
-
-			Js_Class_Accessor_Get(itemsCount, {
-				Js_Return( self->itemsCount() );
-			});
+			Js_MixObject_Acce_Get(StyleSheets, uint32_t, itemsCount, itemsCount);
 
 			// bool hasProperty(ViewProp key) const;
 
@@ -180,10 +173,10 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(CStyleSheetsClass, 0, { Js_Throw("Access forbidden."); });
 
-		// Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
-		// Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
-		// Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
-		// Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @thread Rt apply parent ssc
+			// Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
+			// Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
+			// Qk_DEFINE_PROP_GET(View*, host); //!< apply style sheet target object
+			// Qk_DEFINE_PROP_GET(CStyleSheetsClass*, parent); //!< @thread Rt apply parent ssc
 
 			static String Space(" ");
 

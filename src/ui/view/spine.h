@@ -147,8 +147,7 @@ namespace qk {
 	 * - kEnd_Type         : Triggered when the animation reaches its end position (EventType_End).
 	 * - kComplete_Type    : Triggered when the animation completes a loop (EventType_Complete).
 	 * - kDispose_Type     : Triggered when the TrackEntry is released by Spine runtime (EventType_Dispose).
-	 * - kEvent_Type       : Triggered when a custom Spine event (Event) is fired (EventType_Event).
-	 * - kKeyEvent_Type    : Alias of kEvent_Type, used for semantic clarity when dealing with keyframe events.
+	 * - kExtEvent_Type       : Triggered when a custom Spine event (Event) is fired (EventType_Event).
 	 *
 	 * Usage:
 	 * - Listen for animation state changes (start/end/complete, etc.) to drive UI or game logic.
@@ -162,8 +161,7 @@ namespace qk {
 			kEnd_Type,        ///< Animation reached its end
 			kComplete_Type,   ///< Animation completed one loop
 			kDispose_Type,    ///< Animation (TrackEntry) disposed
-			kEvent_Type,      ///< Custom Spine event
-			kKeyEvent_Type = kEvent_Type, ///< Alias for custom keyframe events
+			kExtEvent_Type,   ///< Custom extend Spine event
 		};
 
 		/// Constructor
@@ -172,7 +170,7 @@ namespace qk {
 		/// @param trackIndex The animation track index
 		/// @param animationName The name of the animation
 		/// @param trackTime The current time (in seconds) of the track
-		SpineEvent(View* origin, Type type, int trackIndex, cString& animationName, float trackTime);
+		SpineEvent(Spine* origin, Type type, int trackIndex, cString& animationName, float trackTime);
 
 		Qk_DEFINE_PROP_GET(Type, type, Const); ///< The event type
 		Qk_DEFINE_PROP_GET(int, trackIndex, Const); ///< The animation track index
@@ -181,12 +179,12 @@ namespace qk {
 	};
 
 	/**
-	 * @class SpineKeyEvent
-	 * @brief Wrapper for Spine custom keyframe events (Event).
+	 * @class SpineExtEvent
+	 * @brief Wrapper for Spine custom extend events (Event).
 	 *
 	 * In the Spine editor, designers can add custom Events to the timeline.
 	 * These events are triggered at specific times during animation playback.
-	 * SpineKeyEvent encapsulates those runtime events and dispatches them
+	 * SpineExtEvent encapsulates those runtime events and dispatches them
 	 * through the engine's UIEvent system.
 	 *
 	 * Exposed data:
@@ -202,7 +200,7 @@ namespace qk {
 	 * - Trigger gameplay logic, sound effects, or particle effects at specific animation keyframes.
 	 * - Provide a data bridge between Spine editor events and runtime game logic.
 	 */
-	class Qk_EXPORT SpineKeyEvent: public SpineEvent {
+	class Qk_EXPORT SpineExtEvent: public SpineEvent {
 	public:
 		typedef const spine::EventData cEventData;
 
@@ -218,7 +216,7 @@ namespace qk {
 		/// @param stringValue String value
 		/// @param volume      Audio volume
 		/// @param balance     Audio balance
-		SpineKeyEvent(View* origin
+		SpineExtEvent(Spine* origin
 			, int trackIndex, cString& animationName, float trackTime
 			, cEventData* staticData, float time, int intValue
 			, float floatValue, cString& stringValue, float volume, float balance

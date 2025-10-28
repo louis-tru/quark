@@ -151,7 +151,7 @@ namespace qk { namespace js {
 					} else {
 						rv = stringify_object(o);
 					}
-					//rv = _set->deleteFor(worker, o);
+					//rv = _set->del(worker, o);
 				}
 			}
 			else if(arg->isInt32()) {
@@ -528,7 +528,7 @@ namespace qk { namespace js {
 					bool ok = mix->removeEventListener(name, id);
 					if ( ok ) {
 						String func = String("_on").append(name).append("_native").append(String(id));
-						mix->handle()->deleteFor(worker, worker->newStringOneByte(func) );
+						mix->handle()->del(worker, worker->newStringOneByte(func) );
 					}
 					Js_ReturnBool(ok);
 				}

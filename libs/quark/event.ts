@@ -30,36 +30,12 @@
 
 import {Event,EventNoticer,Notification,event} from './_event';
 import {Action} from './action';
-import {View} from './view';
+import {View,Agent,Spine} from './view';
 import {RemoveReadonly,Vec2,newVec2,Direction,PIDegree} from './types';
 import {KeyboardKeyCode} from './keyboard';
 
 export * from './_event';
 export default event;
-
-/**
- * The type or device that triggers the click event, such as using a touch screen or a mouse
-*/
-export enum ClickType {
-	/** touchscreen */
-	Touch = 1,
-	/** Press Enter on the keyboard or press OK on the remote control */
-	Keyboard,
-	/** mouse */
-	Mouse,
-};
-
-/**
- * Status type of event `Highlighted`
-*/
-export enum HighlightedStatus {
-	/** Normal situation */
-	Normal = 1,
-	/** When the mouse moves over the view or the focus switches to the view */
-	Hover,
-	/** When the mouse is pressed or the OK button is pressed on the remote control */
-	Active,
-}
 
 /**
  * Mask function corresponding to event return value (returnValue)
@@ -72,46 +48,6 @@ export enum ReturnValueMask {
 	/** Both of the above include */
 	All = (Default | Bubble),
 };
-
-/**
- * Spine animation event types
-*/
-export enum SpineEventType {
-	kStart_Type,      //!< Animation started
-	kInterrupt_Type,  //!< Animation interrupted
-	kEnd_Type,        //!< Animation reached its end
-	kComplete_Type,   //!< Animation completed one loop
-	kDispose_Type,    //!< Animation (TrackEntry) disposed
-	kEvent_Type,      //!< Custom Spine event
-	kKeyEvent_Type = kEvent_Type, //!< Alias for custom keyframe events
-};
-
-/**
- * Gesture stage
-*/
-export enum GestureStage {
-	/** The gesture has just started */
-	Start,
-	/** The gesture is changing */
-	Change,
-	/** The gesture has ended */
-	End,
-	/** The gesture has been cancelled */
-	Cancel,
-}
-
-/**
- * Gesture event type
-*/
-export enum GestureType {
-	Gesture, // Base
-	SwipeGesture, // Swipe, Flick, 1 finger gesture
-	PanGesture, // Pan, Drag, 1 finger gesture
-	PinchGesture, // Pinch, Zoom, 2 finger gesture
-	RotateGesture, // Rotate, Twist 2 finger gesture
-	ThreeFingerGesture, // 3 finger gesture
-	FourFingerGesture, // 4 finger gesture
-}
 
 /**
  * @class UIEvent
@@ -180,6 +116,18 @@ export declare class KeyEvent extends UIEvent {
 }
 
 /**
+ * The type or device that triggers the click event, such as using a touch screen or a mouse
+*/
+export enum ClickType {
+	/** touchscreen */
+	Touch = 1,
+	/** Press Enter on the keyboard or press OK on the remote control */
+	Keyboard,
+	/** mouse */
+	Mouse,
+};
+
+/**
  * @class ClickEvent
  * @extends UIEvent
 */
@@ -190,6 +138,18 @@ export declare class ClickEvent extends UIEvent {
 	readonly count: number;
 	/** Click trigger type */
 	readonly type: ClickType;
+}
+
+/**
+ * Status type of event `Highlighted`
+*/
+export enum HighlightedStatus {
+	/** Normal situation */
+	Normal = 1,
+	/** When the mouse moves over the view or the focus switches to the view */
+	Hover,
+	/** When the mouse is pressed or the OK button is pressed on the remote control */
+	Active,
 }
 
 /**
@@ -290,6 +250,33 @@ export function obliqueVelocity(velocity: Vec2, distance: Vec2): number {
 	if (len === 0)
 		return 0;
 	return (velocity.x * distance.x + velocity.y * distance.y) / len;
+}
+
+/**
+ * Gesture stage
+*/
+export enum GestureStage {
+	/** The gesture has just started */
+	Start,
+	/** The gesture is changing */
+	Change,
+	/** The gesture has ended */
+	End,
+	/** The gesture has been cancelled */
+	Cancel,
+}
+
+/**
+ * Gesture event type
+*/
+export enum GestureType {
+	Gesture, // Base
+	SwipeGesture, // Swipe, Flick, 1 finger gesture
+	PanGesture, // Pan, Drag, 1 finger gesture
+	PinchGesture, // Pinch, Zoom, 2 finger gesture
+	RotateGesture, // Rotate, Twist 2 finger gesture
+	ThreeFingerGesture, // 3 finger gesture
+	FourFingerGesture, // 4 finger gesture
 }
 
 /**
@@ -512,15 +499,16 @@ export class GestureEvent extends Event<View> implements UIEvent {
 }
 
 /**
- * @class SpineEvent
- * @extends UIEvent
- * 
- * Spine animation event
+ * Spine animation event types
 */
-export declare class SpineEvent extends UIEvent {
-	/** The event type */
-	readonly type: SpineEventType;
-}
+export enum SpineEventType {
+	kStart_Type,      //!< Animation started
+	kInterrupt_Type,  //!< Animation interrupted
+	kEnd_Type,        //!< Animation reached its end
+	kComplete_Type,   //!< Animation completed one loop
+	kDispose_Type,    //!< Animation (TrackEntry) disposed
+	kExtEvent_Type,   //!< Custom extend Spine event
+};
 
 /**
  * @interface SpineEventData
@@ -547,12 +535,25 @@ export interface SpineEventData {
 }
 
 /**
- * @class SpineKeyEvent
+ * @class SpineEvent
+ * @extends UIEvent
+ * 
+ * Spine animation event
+*/
+export declare class SpineEvent extends UIEvent {
+	/** The origin Spine object of the event */
+	readonly origin: Spine;
+	/** The event type */
+	readonly type: SpineEventType;
+}
+
+/**
+ * @class SpineExtEvent
  * @extends SpineEvent
  * 
- * Spine animation key event
+ * Spine animation custom extend event
 */
-export declare class SpineKeyEvent extends SpineEvent {
+export declare class SpineExtEvent extends SpineEvent {
 	/** Static event description */
 	readonly staticData: SpineEventData;
 	/** Trigger time (seconds) */
@@ -568,6 +569,60 @@ export declare class SpineKeyEvent extends SpineEvent {
 	/** Audio balance */
 	readonly balance: number;
 }
+
+/**
+ * @class ArrivePositionEvent
+ * @extends UIEvent
+*/
+export declare class ArrivePositionEvent extends UIEvent {
+	/** agent itself */
+	readonly origin: Agent;
+	/** arrived position */
+	readonly position: Vec2;
+	/** vector to next waypoint */
+	readonly nextLocation: Vec2;
+	/** waypoint index */
+	readonly waypointIndex: Uint;
+}
+
+/**
+ * @class DiscoveryAgentEvent
+ * @extends UIEvent
+*/
+export declare class DiscoveryAgentEvent extends UIEvent {
+ /** agent itself */
+	readonly origin: Agent;
+ /** other agent when remove view is null */
+	readonly agent: Agent | null;
+ /** to agent location */
+	readonly location: Vec2;
+ /** usually use agent's pointer address low 32 bits */
+	readonly agentId: Uint;
+ /** discovery level, -1 means lost all levels */
+	readonly level: Int;
+ /** is leaving or entering */
+	readonly entering: boolean;
+}
+
+/**
+ * Follow state type
+*/
+export enum FollowState {
+	kStart = 1, //!<
+	kStop, //!<
+	kCancel, //!<
+}
+
+/**
+ * @class FollowTargetEvent
+ * @extends UIEvent
+*/
+export declare class FollowTargetEvent extends UIEvent {
+	/** agent itself */
+	readonly origin: Agent;
+	/** follow state */
+	readonly state: FollowState;
+};
 
 const _init = __binding__('_init');
 const PREFIX = '_on';

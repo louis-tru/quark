@@ -49,7 +49,7 @@ namespace qk {
 		auto hash = path.hashCode();
 		Path *const *out;
 		if (_NormalizedPathCache.get(hash, out)) return **out;
-		auto p = new Path(path.normalizedPath(1));
+		auto p = new Path(Path(path).normalizedPath(1));
 		_capacity += p->ptsLen() * sizeof(Vec2);
 		Qk_ASSERT(p->isNormalized());
 		return *_NormalizedPathCache.set(hash, p);

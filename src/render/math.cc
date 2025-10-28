@@ -361,6 +361,15 @@ namespace qk {
 		return Color4f(r(), g(), b(), a() * alpha);
 	}
 
+	Color Color4f::to_color() const {
+		return Color(
+			uint8_t(r() * 255.0f),
+			uint8_t(g() * 255.0f),
+			uint8_t(b() * 255.0f),
+			uint8_t(a() * 255.0f)
+		);
+	}
+
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const {
 #if Qk_USE_ARM_NEON
