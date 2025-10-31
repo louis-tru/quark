@@ -42,16 +42,15 @@ namespace qk {
 	};
 
 	struct Circle {
-		Vec2 center;
+		Vec2 center; // center point
 		float radius;
 	};
 
-	struct MinimumTranslationVector {
+	// MinimumTranslationVector
+	struct MTV {
 		Vec2 axis;
 		float overlap;
 	};
-
-	typedef MinimumTranslationVector MTV;
 
 	/**
 	* @note Determine if a point is inside a convex quadrilateral using the

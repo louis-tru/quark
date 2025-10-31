@@ -203,4 +203,8 @@ namespace qk {
 		Releasep(_atlas);
 		Releasep(_atlasLoader);
 	}
+
+	uint64_t SkeletonData::hashCode() const {
+		return uintptr_t(this);
+	}
 }

@@ -79,19 +79,19 @@ namespace qk {
 		 */
 		Qk_DEFINE_PROPERTY(float, predictionTime, Const);
 
-		/** 
-		 * Maximum avoidance steering factor.  
-		 * Defines how strongly agents deviate to avoid collisions.  
-		 * Default: 0.8, Range: [0.0, 1.0].
-		 */
-		Qk_DEFINE_PROPERTY(float, avoidanceFactor, Const);
-
 		/**
 		 * Buffer distance added to discovery thresholds to prevent flickering
 		 * enter/leave events.  
 		 * Default: 5.0f, Range: [0.0, 100.0].
 		 */
 		Qk_DEFINE_PROPERTY(float, discoveryThresholdBuffer, Const);
+
+		/**
+		 * Radius (in world units) around waypoints that counts as "reached".
+		 * When an agent comes within this distance of a waypoint, it will proceed to the next one.
+		 * Default: 0.0f
+		*/
+		Qk_DEFINE_PROPERTY(float, waypointRadius, Const);
 
 		/** Constructor — initializes default parameters and world state. */
 		World();
@@ -137,26 +137,25 @@ namespace qk {
 		bool run_task(int64_t time, int64_t delta) override;
 
 	private:
+		/** @override Initialize the World within a given Window. */
+		View* init(Window *win) override;
+
 		/**
 		 * Handle discovery and visibility events between two agents.
 		 * @param agent The source agent performing discovery.
 		 * @param other The other agent being tested.
 		 * @param mtv   Minimum translation vector from last overlap check.
-		 * @param bufferSq Squared buffer distance to avoid event flicker.
 		 */
-		void handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv, float bufferSq);
+		void handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv);
 
 		/**
 		 * Compute avoidance steering direction for a given agent.
 		 * @param agent The agent to update.
 		 * @param obs List of nearby obstacles (entities or agents).
-		 * @param circ The agent’s collision circle.
-		 * @param pts  Temporary buffer for intersection test points.
 		 * @param dirToTarget Current movement direction toward target.
 		 * @return Steering vector to apply for avoidance.
 		 */
-		Vec2 computeAvoidanceForAgent(Agent* agent, cArray<Entity*>& obs, Circle circ,
-																	Array<Vec2>& pts, Vec2 dirToTarget);
+		Vec2 computeAvoidanceForAgent(Agent* agent, cArray<Entity*>& obs, Vec2 dirToTarget);
 
 		/**
 		 * Integrate agent movement with avoidance applied.
@@ -165,7 +164,7 @@ namespace qk {
 		 * @param deltaTime Delta time for this step (seconds).
 		 * @return Updated remaining distance to target.
 		 */
-		float updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float deltaTime);
+		float updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float avoidFactor, float time, float deltaTime);
 
 		/**
 		 * Process standard movement and waypoint following.
@@ -174,8 +173,7 @@ namespace qk {
 		 * @param deltaTime Delta time for this step.
 		 * @param update Output flag set to true if agent moved or changed state.
 		 */
-		void updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs,
-																float deltaTime, bool &update);
+		void updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs, float time, float deltaTime);
 
 		/**
 		 * Process target-following behavior for agents that track another agent.
@@ -184,8 +182,7 @@ namespace qk {
 		 * @param deltaTime Delta time for this step.
 		 * @param update Output flag set to true if agent moved or changed state.
 		 */
-		void updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs,
-															float deltaTime, bool &update);
+		void updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float time, float deltaTime);
 	};
 
 } // namespace qk

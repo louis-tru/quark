@@ -38,10 +38,12 @@ namespace qk {
 	typedef Entity::Bounds Bounds;
 
 	Vec2 free_typesetting(View* view, View::Container &container);
+	void onUIEvent(cUIEventName& name, Agent* agent, UIEvent *evt);
 
 	////////////////////////////////////////////////////////////////
 
 	Entity::Entity(): View(), MorphView(this), _bounds{kDefault, 0.0f}, _ptsBounds(nullptr)
+		, _isObstacle(true)
 	{
 		_bounds.pts = nullptr;
 		_visible_area = true; // Always visible
@@ -61,14 +63,33 @@ namespace qk {
 		// release old pts in reader thread safe way
 		// or add to delay task queue
 		auto oldPts = _bounds.pts.load();
+		auto path = bounds.pts.load();
 		_bounds.type = bounds.type;
+		_bounds.offset = bounds.offset;
 		_bounds.radius = bounds.radius;
-		_bounds.pts = bounds.pts.load();
+		_bounds.pts = path;
+		Retain(path); // retain new pts
+		
+		if (!path) {
+			if (bounds.type == kLineSegment || bounds.type == kPolygon) {
+				_bounds.type = kDefault; // reset to default if pts is null
+			}
+		} else {
+			path->seal(); // seal path, not allow modify
+		}
 
 		_async_call([](auto self, auto arg) {
 			Release(arg.arg); // safe release old pts
 			self->mark(kTransform, true); // mark to update
 		}, this, oldPts);
+	}
+
+	bool Entity::isObstacle() const {
+		return _isObstacle;
+	}
+
+	void Entity::set_isObstacle(bool value) {
+		_isObstacle = value;
 	}
 
 	Vec2 Entity::layout_offset_inside() {
@@ -95,32 +116,38 @@ namespace qk {
 			if (_ptsBounds)
 				_ptsBounds->clear(); // clear ptsBounds if have
 			auto size = client_size();
-			auto center = size * 0.5f - _origin_value; // use center as circle center
+			auto center = size * 0.5f - _origin_value + _bounds.offset; // compute center offset
 			auto radius = _bounds.type == kDefault ? size.length() * 0.5f: _bounds.radius;
 			auto scale = std::max(std::abs(_scale.x()), std::abs(_scale.y()));
 			_circleBounds = { localMat * center, radius * scale };
 		}
 		else if (_bounds.type == kPolygon || _bounds.type == kLineSegment) {
-			auto origin = -solve_origin_value({}); // compute origin offset
+			auto center = _bounds.offset - compute_origin_value({}); // compute center offset
 			auto pts = _bounds.pts.load();
 			if (!_ptsBounds) {
 				_ptsBounds = new Array<Vec2>();
 			}
-			_ptsBounds->reset(pts->ptsLen());
-			for (int i = 0; i < _ptsBounds->length(); i++) {
-				_ptsBounds->at(i) = localMat * (pts->atPt(i) + origin); // transform pts
+			if (pts) {
+				_ptsBounds->reset(pts->ptsLen());
+				for (int i = 0; i < _ptsBounds->length(); i++)
+					_ptsBounds->at(i) = localMat * (pts->atPt(i) + center); // transform pts
+				auto aabb = region_aabb_from_polygon(*_ptsBounds.get()); // compute aabb from pts
+				_circleBounds.radius = (aabb.end - aabb.begin).length() * 0.5f;
 			}
-			_circleBounds.center = localMat * origin; // use origin as circle center
+			_circleBounds.center = localMat * center; // compute center
 		}
 	}
 
-	cArray<Vec2>& Entity::ptsOfBounds() {
+	Array<Vec2>& Entity::ptsOfBounds() {
 		if (!_ptsBounds) {
 			_ptsBounds = new Array<Vec2>();
 		}
 		if (_ptsBounds->length() == 0) {
 			if (_bounds.type == kDefault || _bounds.type == kCircle) {
 				*_ptsBounds.get() = circle_to_octagon(_circleBounds);
+			} else {
+				_ptsBounds->push(Vec2()); // ensure not empty
+				_ptsBounds->push(Vec2()); // ensure not empty
 			}
 		}
 		return *_ptsBounds.get();
@@ -129,7 +156,7 @@ namespace qk {
 	void Entity::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & (kTransform | kVisible_Region)) { // Update transform matrix
 			unmark(kTransform | kVisible_Region); // Unmark
-			_origin_value = solve_origin_value(client_size() * 0.5f); // Check transform_origin change
+			_origin_value = compute_origin_value(client_size() * 0.5f); // Check transform_origin change
 			auto v = parent->layout_offset_inside() + _translate;
 			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]); // the origin world coords
@@ -139,7 +166,7 @@ namespace qk {
 
 	// Compute origin value from parameter
 	// The origin value is the final value by computing the origin.
-	Vec2 Entity::solve_origin_value(Vec2 from) {
+	Vec2 Entity::compute_origin_value(Vec2 from) {
 		switch (_origin_x.kind) {
 			default:
 			case BoxOriginKind::Auto: break; // use from.x
@@ -182,11 +209,12 @@ namespace qk {
 			return Vec2(diameter, diameter);
 		} else if (_bounds.type == kPolygon || _bounds.type == kLineSegment) {
 			auto pts = _bounds.pts.load();
-			auto aabb = region_aabb_from_polygon(pts->pts());
-			return aabb.end - aabb.begin; // width, height
-		} else {
-			return {};
+			if (pts) {
+				auto aabb = region_aabb_from_polygon(pts->pts());
+				return aabb.end - aabb.begin; // width, height
+			}
 		}
+		return {};
 	}
 
 	Region Entity::client_region() {
@@ -206,12 +234,17 @@ namespace qk {
 		return this;
 	}
 
-	void Entity::debugDraw(Painter *render) {
+	void Entity::debugDraw(Painter *painter) {
 		if (window()->debugMode()) {
-			auto canvas = render->canvas();
+			auto lastMatrix = painter->matrix();
+			auto canvas = painter->canvas();
+			Mat mat = matrix();
+			mat.translate(-translate());
+			painter->set_matrix(&mat); // set entity local matrix
 			Paint paint;
+			paint.antiAlias = false;
 			paint.fill.color = Color4f(1,0,0,0.2f); // red fill
-			if (_bounds.type == kCircle) {
+			if (_bounds.type == kDefault || _bounds.type == kCircle) {
 				// Draw the circle
 				canvas->drawPath(Path::MakeCircle(_circleBounds.center, _circleBounds.radius), paint);
 			} else if (_bounds.type == kPolygon || _bounds.type == kLineSegment) {
@@ -230,12 +263,57 @@ namespace qk {
 					canvas->drawPath(path, paint); // fill path
 				}
 			}
+			painter->set_matrix(lastMatrix); // restore previous matrix
 		}
 	}
 
-	void Entity::draw(Painter *render) {
-		debugDraw(render);
-		render->visitView(this);
+	void Entity::draw(Painter *painter) {
+		debugDraw(painter);
+		painter->visitView(this, &matrix());
+	}
+
+	bool Entity::test_entity_vs_entity(Entity *o, MTV *outMTV, Vec2 *outMtvVec, bool computeMTV) {
+		Qk_ASSERT(_bounds.type != Entity::kLineSegment); // line segment agent does not move
+		bool isPoly = _bounds.type == Entity::kPolygon;
+		auto &pts = ptsOfBounds();
+		auto &circ = _circleBounds;
+		bool collided = false;
+		if (o->_bounds.type == Entity::kDefault || o->_bounds.type == Entity::kCircle) {
+			// circle vs circle
+			collided = isPoly ?
+				test_polygon_vs_polygon(pts, o->ptsOfBounds(), outMTV, computeMTV):
+				test_circle_vs_circle(circ, o->_circleBounds, outMTV, computeMTV);
+		}
+ 		else if (o->_bounds.type == Entity::kPolygon) {
+			// polygon check (approx circle->poly using SAT code) - optionally enable
+			collided = isPoly ?
+				test_polygon_vs_polygon(pts, o->ptsOfBounds(), outMTV, computeMTV):
+				test_circle_vs_polygon(circ, o->ptsOfBounds(), outMTV, computeMTV);
+		}
+		else { // line segment
+			MTV mtv;
+			outMTV->overlap = std::numeric_limits<float>::infinity();
+			// collision prevention: do a quick circle vs walls check for move
+			auto halfWidth = o->_bounds.halfThickness;
+			auto &ptsB = o->ptsOfBounds();
+			auto a = ptsB.at(0); // get last point
+			for (int i = 1; i < ptsB.length(); ++i) {
+				auto b = ptsB.at(i);
+				if (isPoly ? 
+						test_poly_vs_line_segment(pts, {a, b, halfWidth}, &mtv, computeMTV): 
+						test_circle_vs_line_segment(circ, {a, b, halfWidth}, &mtv, computeMTV)) {
+					collided = true;
+					*outMtvVec += mtv.axis * mtv.overlap; // accumulate MTV
+				}
+				if (outMTV->overlap > mtv.overlap)
+					*outMTV = mtv; // select minimum translation vector
+				a = b;
+			}
+			return collided;
+		}
+		if (collided)
+			*outMtvVec += outMTV->axis * outMTV->overlap; // convert to vector
+		return collided;
 	}
 
 	//--------------------------------------------------------------
@@ -253,7 +331,18 @@ namespace qk {
 		UIEvent::release();
 	}
 
-	FollowTargetEvent::FollowTargetEvent(Agent *origin, State state): UIEvent(origin), _state(state) {
+	AgentStateChangeEvent::AgentStateChangeEvent(Agent *origin)
+		: UIEvent(origin)
+		, _following(origin->following())
+		, _velocity(origin->velocity()), _active(origin->active()) {
+	}
+
+	FollowStateEvent::FollowStateEvent(Agent *origin, FollowingState state)
+		: AgentStateChangeEvent(origin), _state(state) {
+	}
+
+	inline float randf(float min, float max) {
+		return min + (rand() / static_cast<float>(RAND_MAX)) * (max - min);
 	}
 
 	// An entity with agent properties for navigation and avoidance.
@@ -262,10 +351,15 @@ namespace qk {
 		, _active(false), _following(false), _target()
 		, _velocity(), _velocityMax(100.0f)
 		, _currentWaypoint(0)
-		, _safetyBuffer(5.0f), _followDistanceRange(0.0f, 0.0f)
+		, _safetyBuffer(5.0f)
+		, _avoidance(1.0f)
+		, _followMinDistance(0.0f)
+		, _followMaxDistance(0.0f)
+		, _lastUpdateTime(0)
 		, _discoveryDistancesSq(nullptr), _waypoints(nullptr), _followTarget(nullptr)
+		, _lastReportDir(0,0)
 	{
-		//sizeof(Agent); // call to avoid compile warning
+		// sizeof(Agent); // call to avoid compile warning
 	}
 
 	Agent::~Agent() {
@@ -279,22 +373,39 @@ namespace qk {
 	}
 
 	void Agent::onActivate() {
-		_discoverys_rt.clear(); // clear discovery agents set
-		_following = false;
-		_followTarget = nullptr; // clear follow target
+		if (level() == 0) { // remove or invisible
+			_discoverys_rt.clear(); // clear discovery agents set
+			_following = false;
+			_followTarget = nullptr; // clear follow target
+		}
+	}
+
+	void Agent::set_avoidance(float value) {
+		_avoidance = Float32::clamp(value, 0.0f, 10.0f);
 	}
 
 	void Agent::set_active(bool val) {
+		struct Arg { bool last, val; } arg { _active, val };
 		_active = val;
-		_async_call([](auto self, auto arg) { self->_active = arg.arg; }, this, val);
+		_async_call([](auto self, auto arg) {
+			auto val = arg.arg.val;
+			self->_active = val;
+			if (val && (self->_active != val || val != arg.arg.last)) {
+				onUIEvent(UIEvent_MovementActive, self, new AgentStateChangeEvent(self));
+			}
+		}, this, arg);
 	}
 
 	void Agent::set_velocityMax(float val) {
 		_velocityMax = Qk_Max(val, 0.0f);
 	}
 
-	bool Agent::isWaypoints() const {
+	Path* Agent::waypoints() const {
 		return _waypoints;
+	}
+
+	void Agent::set_waypoints(Path* waypoints) {
+		setWaypoints(waypoints, false);
 	}
 
 	void Agent::set_safetyBuffer(float val) {
@@ -318,9 +429,13 @@ namespace qk {
 		set_discoveryDistancesSq(val.map<float>([](auto d, auto i) { return d * d; }));
 	}
 
-	void Agent::set_followDistanceRange(Vec2 val) {
-		_followDistanceRange[0] = Qk_Max(val[0], 0.0f);
-		_followDistanceRange[1] = Qk_Max(val[1], _followDistanceRange[0]);
+	void Agent::set_followMinDistance(float val) {
+		_followMinDistance = Qk_Max(val, 0.0f);
+		_followMaxDistance = Qk_Max(_followMaxDistance, _followMinDistance);
+	}
+
+	void Agent::set_followMaxDistance(float val) {
+		_followMaxDistance = Qk_Max(val, _followMinDistance);
 	}
 
 	Agent* Agent::followTarget() const {
@@ -333,25 +448,24 @@ namespace qk {
 		if (target->parent() != parent())
 			return; // must be in the same world
 		_followTarget = target; // set follow target, weak reference
-		_active = target; // set active if have target
+		set_active(target);
 		_async_call([](auto self, auto arg) {
 			self->_following = false; // reset following state
-			self->_active = arg.arg;
 		}, this, target);
 	}
 
 	void Agent::moveTo(Vec2 target, bool immediately) {
-		_active = true;
 		_target = target;
+		_followTarget = nullptr; // clear follow target
+		set_active(true);
 		struct Arg { Vec2 target; bool immediately; };
 		_async_call([](auto self, auto arg) {
 			Sp<Arg> self_sp(arg.arg); // rtti delete arg
 			if (arg.arg->immediately) {
 				self->set_translate(arg.arg->target, true);
-				self->solve_bounds(); // compute bounds pts and circle
 			}
-			self->_active = true; // set active again
 			self->_target = arg.arg->target; // set target position again
+			self->_following = false; // clear following state
 		}, this, new Arg{target, immediately});
 	}
 
@@ -381,8 +495,10 @@ namespace qk {
 	}
 
 	void Agent::setWaypoints(Path* waypoints, bool immediately) {
-		if (waypoints == _waypoints.load())
+		if (waypoints == _waypoints.load()) {
+			returnToWaypoints(immediately);
 			return; // same waypoints, ignore
+		}
 		Releasep(_waypoints); // release previous waypoints
 		if (waypoints && waypoints->ptsLen() >= 2) {
 			waypoints->normalizedPath(); // normalize path
@@ -390,6 +506,7 @@ namespace qk {
 			waypoints->seal(); // seal path
 			waypoints->retain();
 			_waypoints = waypoints;
+			returnToWaypoints(immediately);
 		}
 	}
 
@@ -413,28 +530,28 @@ namespace qk {
 		// search closest waypoint
 		auto nearest = findNearestPointOnPath(waypoints->pts(), translate());
 		Qk_ASSERT(nearest.segIndex != -1);
-
-		_active = true;
 		_target = nearest.point; // set target to closest point
-		_currentWaypoint = nearest.segIndex;
+		_currentWaypoint = nearest.segIndex + 1;
+		_followTarget = nullptr; // clear follow target
+		set_active(true);
 
-		struct Arg { int  segIndex; bool immediately; } arg { nearest.segIndex, immediately };
+		struct Arg { NearestPathPoint nearest; bool immediately; };
 
-		_async_call([](auto self, auto arg) {
+		_async_call([](auto self, auto arg_) {
+			Sp<Arg> arg(arg_.arg); // rtti delete arg
 			auto waypoints = self->_waypoints.load();
-			auto segIndex = arg.arg.segIndex; // closest waypoint index
+			auto segIndex = arg->nearest.segIndex + 1; // closest waypoint index
 			if (waypoints && segIndex < waypoints->ptsLen()) {
-				if (arg.arg.immediately) {
+				if (arg->immediately) {
 					// move to closest waypoint immediately
-					self->set_translate(waypoints->atPt(segIndex), true);
-					self->solve_bounds(); // compute bounds pts and circle
+					self->set_translate(arg->nearest.point, true);
 				}
 				// set props again, avoid thread competition
-				self->_active = true; // set active again
-				self->_target = waypoints->atPt(segIndex); // set target to closest point again
+				self->_target = arg->nearest.point; // set target to closest point again
 				self->_currentWaypoint = segIndex; // set current waypoint again
+				self->_following = false;
 			}
-		}, this, arg);
+		}, this, new Arg{nearest, immediately});
 	}
 
 	void Agent::stop() {

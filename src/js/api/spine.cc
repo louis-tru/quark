@@ -71,9 +71,9 @@ namespace qk { namespace js {
 					args[2]->asString(worker).to(dir);
 				}
 				if (skelPath.length()) {
-					obj = Type::Make(skelPath, atlasPath);
+					obj = Type::Make(skelPath, atlasPath, scale);
 				} else if (atlasPath.length()) {
-					obj = Type::Make(skelBuf.buffer(), atlasPath);
+					obj = Type::Make(skelBuf.buffer(), atlasPath, scale);
 				} else {
 					if (args.length() > 3)
 						args[3]->asFloat32(worker).to(scale);
@@ -86,7 +86,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(hashCode, {
-				args.returnValue().set(uint32_t(size_t(self)));
+				Js_Return(self->hashCode() & 0xffffffff);
 			});
 
 			cls->exports("SkeletonData", exports);

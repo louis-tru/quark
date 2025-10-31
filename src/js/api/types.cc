@@ -540,10 +540,13 @@ namespace qk { namespace js {
 	JSValue* TypesParser::jsvalue(const Bounds& val) {
 		JSValue* args[] = {
 			jsValue((uint32_t)val.type),
+			jsValue(val.offset.x()),
+			jsValue(val.offset.y()),
 			jsValue(val.radius),
-			jsValue( MixObject::mix(val.pts.load())->handle() ),
+			// jsValue( MixObject::mix(val.pts.load())->handle() ),
+			val.pts.load() ? worker->newValue(val.pts.load()): worker->newUndefined(),
 		};
-		return _newBounds->call(worker, 3, args);
+		return _newBounds->call(worker, 5, args);
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -1184,6 +1187,8 @@ namespace qk { namespace js {
 	}
 
 	bool TypesParser::parse(JSValue* in, PathPtr& out, cChar* msg) {
+		if (in->isNull())
+			return out = nullptr, true;
 		out = MixObject::mix<Path>(in)->self();
 		return true;
 	}
@@ -1192,9 +1197,11 @@ namespace qk { namespace js {
 		js_parse(Bounds, {
 			// TODO: need to check type
 			out.type = (Entity::BoundsType)obj->get<JSInt32>(worker, strs->p0())->value();
-			out.radius = obj->get<JSNumber>(worker, strs->p1())->float32();
-			auto p2 = obj->get(worker, strs->p2());
-			out.pts = p2->isObject() ? MixObject::mix<Path>(p2->cast<JSObject>())->self(): nullptr;
+			out.offset[0] = obj->get<JSNumber>(worker, strs->p1())->float32();
+			out.offset[1] = obj->get<JSNumber>(worker, strs->p2())->float32();
+			out.radius = obj->get<JSNumber>(worker, strs->p3())->float32();
+			auto p4 = obj->get(worker, strs->p4());
+			out.pts = p4->isObject() ? MixObject::mix<Path>(p4->cast<JSObject>())->self(): nullptr;
 		});
 		return true;
 	}

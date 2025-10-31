@@ -71,8 +71,10 @@ namespace qk {
 		Path();
 		Path(Vec2 move);
 		Path(const Path& path); // copy constructor
+		Path(Path&& path) = default;
 
 		Path& operator=(const Path& path);
+		Path& operator=(Path&& path) = default;
 
 		// add path points
 		void moveTo(Vec2 to);
@@ -93,7 +95,7 @@ namespace qk {
 		inline Vec2 atPt(uint32_t index) const { return _pts[index]; }
 		inline PathVerb atVerb(uint32_t index) const { return (PathVerb)_verbs[index]; }
 		inline cArray<Vec2>& pts() const { return _pts; }
-		inline cArray<PathVerb>& verbs() const { return (const PathVerb&)_verbs; }
+		inline cArray<PathVerb>& verbs() const { return (cArray<PathVerb>&)_verbs; }
 		inline uint32_t ptsLen() const { return _pts.length(); }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline uint64_t hashCode() const { return _hash.hashCode(); }

@@ -536,8 +536,11 @@ namespace qk {
 
 	Path& Path::normalizedPath(float epsilon) {
 		if (_sealed) return *this;
-		if (!_IsNormalized)
-			normalized(this, epsilon, true);
+		if (!_IsNormalized) {
+			Path storage;
+			normalized(&storage, epsilon, true);
+			*this = std::move(storage);
+		}
 		return *this;
 	}
 
@@ -622,6 +625,7 @@ namespace qk {
 
 	Path* Path::normalized(Path *out, float epsilon, bool updateHash) const {
 		Qk_ASSERT(!out->_sealed, "Path::normalized() sealed path can not be modified");
+		Qk_ASSERT(out != this, "Path::normalized() output path must be different from input path");
 		Path &line = *out;
 
 		auto pts = ((Vec2*)_pts.val());
@@ -655,8 +659,7 @@ namespace qk {
 					// |0|1| = sample = 3
 					line._pts.extend(line._pts.length() + sample);
 					auto points = &line._pts[line._pts.length() - sample];
-					// (uint32_t sample_count, float* out, int stride)
-					bezier.sample_curve_points(sample+1, (float*)points - 1);
+					bezier.sample_curve_points(sample+1, (float*)(points - 1));
 					grid_point(line._pts.back());
 					if (updateHash)
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash
@@ -674,7 +677,7 @@ namespace qk {
 					// |0|1| = sample = 3
 					line._pts.extend(line._pts.length() + sample);
 					auto points = &line._pts[line._pts.length() - sample];
-					bezier.sample_curve_points(sample+1, (float*)points - 1);
+					bezier.sample_curve_points(sample+1, (float*)(points - 1));
 					grid_point(line._pts.back());
 					if (updateHash)
 						line._hash.updateu64v((uint64_t*)points, sample); // update hash

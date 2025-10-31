@@ -55,9 +55,9 @@ namespace qk {
 	public:
 		enum BoundsType { 
 			kDefault,      ///< Default bounds (usually rectangular or automatic)
-			kLineSegment,  ///< Represented as a line segment (with half thickness)
 			kCircle,       ///< Represented as a circle
-			kPolygon       ///< Represented as a polygon
+			kPolygon,      ///< Represented as a polygon
+			kLineSegment,  ///< Represented as a line segment (with half thickness)
 		};
 
 		/**
@@ -66,6 +66,7 @@ namespace qk {
 		 */
 		struct Bounds {
 			BoundsType type; ///< The type of boundary used for hit testing.
+			Vec2 offset; ///< Offset applied to the bounds.
 			union { 
 				float radius;        ///< Used if type == kCircle
 				float halfThickness; ///< Used if type == kLineSegment
@@ -75,6 +76,12 @@ namespace qk {
 
 		/** Accessor for the entity’s bounding data. */
 		Qk_DEFINE_ACCESSOR(const Bounds&, bounds, Const);
+
+		/**
+		 * Whether this entity acts as a physics obstacle in the world.
+		 * Defaults to true.
+		*/
+		Qk_DEFINE_ACCESSOR(bool, isObstacle, Const);
 
 		Entity();
 		~Entity();
@@ -119,11 +126,13 @@ namespace qk {
 		void trigger_listener_change(uint64_t name, int count, int change) override;
 
 	private:
+		bool test_entity_vs_entity(Entity *other, MTV *outMTV, Vec2 *outMtvVec, bool computeMTV);
+
 		/** Draw debug outlines for development visualization. */
-		void debugDraw(Painter *render);
+		void debugDraw(Painter *painter);
 
 		/** Compute origin offset from user parameters. */
-		Vec2 solve_origin_value(Vec2 from);
+		Vec2 compute_origin_value(Vec2 from);
 
 		/** Compute and cache geometric bounds (polygon or circle). */
 		void solve_bounds();
@@ -131,13 +140,18 @@ namespace qk {
 		Bounds _bounds; ///< Entity’s local bounds description.
 
 		/** Return a reference to internal bounds vertices for precise testing. */
-		cArray<Vec2>& ptsOfBounds();
+		Array<Vec2>& ptsOfBounds();
 
 		/** Cached polygonal bounds or line segment points. */
 		Sp<Array<Vec2>> _ptsBounds;
 
 		/** Cached circular bounds for quick rejection test. */
 		Circle _circleBounds;
+
+		/*
+		 * Whether this entity acts as a physics obstacle in the world.
+		*/
+		bool _isObstacle;
 
 		friend class World;
 		friend class Sprite;
@@ -175,7 +189,7 @@ namespace qk {
 		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uint32_t id, int level, bool entering);
 
 		Qk_DEFINE_PROP_GET(Agent*, agent);     ///< The other discovered agent.
-		Qk_DEFINE_PROP_GET(Vec2, location, Const); ///< Relative position to the agent.
+		Qk_DEFINE_PROP_GET(Vec2, location, Const); ///< Relative position to the other agent.
 		Qk_DEFINE_PROP_GET(uint32_t, agentId, Const); ///< Usually low 32 bits of pointer address.
 		Qk_DEFINE_PROP_GET(int, level, Const); ///< Discovery level index.
 		Qk_DEFINE_PROP_GET(bool, entering, Const); ///< True if entering range; false if leaving.
@@ -184,20 +198,30 @@ namespace qk {
 	};
 
 	/**
-	 * @class FollowTargetEvent
-	 * @brief Event for target following state transitions.
+	 * @class AgentStateChangeEvent
+	 * @brief Event triggered when an Agent's state changes (e.g., velocity or following status).
 	 */
-	class Qk_EXPORT FollowTargetEvent: public UIEvent {
+	class Qk_EXPORT AgentStateChangeEvent: public UIEvent {
 	public:
-		enum State { 
+		AgentStateChangeEvent(Agent *origin);
+		Qk_DEFINE_PROP_GET(Vec2, velocity, Const);  ///< Current velocity vector.
+		Qk_DEFINE_PROP_GET(bool, following, Const);  ///< Following state.
+		Qk_DEFINE_PROP_GET(bool, active, Const);  ///< Active state.
+	};
+
+	/**
+	 * @class FollowStateEvent
+	 * @brief Event triggered when an Agent starts or stops following a target.
+	*/
+	class Qk_EXPORT FollowStateEvent: public AgentStateChangeEvent {
+	public:
+		enum FollowingState {
 			kStart = 1, ///< Following started.
-			kStop,      ///< Following stopped normally.
-			kCancel     ///< Following cancelled (e.g., target removed in parent view).
+			kStop,  ///< Following stopped normally.
+			kCancel ///< Following cancelled (e.g., target removed in parent view).
 		};
-
-		FollowTargetEvent(Agent *origin, State state);
-
-		Qk_DEFINE_PROP_GET(State, state, Const); ///< Current follow state.
+		FollowStateEvent(Agent *origin, FollowingState state);
+		Qk_DEFINE_PROP_GET(FollowingState, state, Const);  ///< Following state.
 	};
 
 	/**
@@ -219,8 +243,10 @@ namespace qk {
 		/** Whether the agent is currently following a target. */
 		Qk_DEFINE_PROP_GET(bool, following, Const);
 
-		/** Whether the agent currently has valid waypoints assigned. */
-		Qk_DEFINE_ACCE_GET(bool, isWaypoints, Const);
+		/**
+		 * Waypoints path for the agent to navigate.
+		*/
+		Qk_DEFINE_ACCESSOR(Path*, waypoints, Const);
 
 		/** Target position (for direct movement). */
 		Qk_DEFINE_PROP_GET(Vec2, target, Const);
@@ -241,13 +267,31 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(float, safetyBuffer, Const);
 
 		/**
+		 * Avoidance strength multiplier during collision resolution.
+		 * Default is 1.0f, range [0.0, 10.0].
+		*/
+		Qk_DEFINE_PROPERTY(float, avoidance, Const);
+
+		/**
+		 * Distance min range maintained while following a target agent.
+		*/
+		Qk_DEFINE_PROPERTY(float, followMinDistance, Const);
+
+		/**
+		 * Distance max range maintained while following a target agent.
+		*/
+		Qk_DEFINE_PROPERTY(float, followMaxDistance, Const);
+
+		/**
+		 * Timestamp of the last update cycle for movement logic.
+		 */
+		Qk_DEFINE_PROP_GET(float, lastUpdateTime, Const);
+
+		/**
 		 * The target agent to follow.  
 		 * If non-null, follow behavior overrides waypoint or direct movement.
 		 */
 		Qk_DEFINE_ACCESSOR(Agent*, followTarget, Const);
-
-		/** Distance range [min, max] maintained while following a target agent. */
-		Qk_DEFINE_PROPERTY(Vec2, followDistanceRange, Const);
 
 		/**
 		 * Set discovery distance levels using real (non-squared) values.
@@ -255,6 +299,7 @@ namespace qk {
 		 */
 		void setDiscoveryDistances(cArray<float>& val);
 
+		/** @override Destructor. */
 		~Agent();
 
 		/** @override Cast to Agent. */
@@ -262,6 +307,7 @@ namespace qk {
 
 		/**
 		 * Move agent toward a target position.
+		 * Delete follow target if any.
 		 * @param target Destination position.
 		 * @param immediately If true, teleport or instantly set to target.
 		 */
@@ -269,6 +315,7 @@ namespace qk {
 
 		/**
 		 * Assign waypoints for agent to traverse.
+		 * Delete follow target if any.
 		 * @param waypoints Path containing waypoint positions.
 		 * @param immediately If true, move to nearest waypoint immediately.
 		 */
@@ -276,6 +323,7 @@ namespace qk {
 
 		/**
 		 * Assign waypoints using a raw array of positions.
+		 * Delete follow target if any.
 		 * @param waypoints List of 2D coordinates.
 		 * @param immediately If true, move to nearest waypoint immediately.
 		 */
@@ -283,6 +331,7 @@ namespace qk {
 
 		/**
 		 * Return to the closest path segment among current waypoints.
+		 * Delete follow target if any.
 		 * @param immediately Whether to jump to the path instantly.
 		 */
 		void returnToWaypoints(bool immediately = false);
@@ -316,6 +365,7 @@ namespace qk {
 		std::atomic<Array<float>*> _discoveryDistancesSq; ///< Squared discovery range levels.
 		std::atomic<Path*> _waypoints; ///< Active waypoint path.
 		std::atomic<Agent*> _followTarget; ///< Current follow target (weak reference).
+		Vec2 _lastReportDir; ///< Last reported direction for change detection.
 
 		friend class World;
 	};

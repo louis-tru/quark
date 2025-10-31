@@ -187,12 +187,10 @@ namespace qk {
 	//////////////////////////////////////////////////////////////////////////////
 
 	void Spine::draw(Painter *painter) {
-		debugDraw(painter); // draw debug bounds
-
 		auto skel = _skel.load(std::memory_order_acquire);
 		// Early exit if the skeleton is invisible.
 		if (!skel || skel->_skeleton.getColor().a == 0) {
-			return painter->visitView(this, &matrix());
+			return Entity::draw(painter);
 		}
 		_mutex.lock();
 
@@ -347,6 +345,7 @@ namespace qk {
 		if (lastEx) {
 			drawTriangles(painter, cmdTriangles, lastEx);
 		}
+		debugDraw(painter); // draw debug bounds
 		painter->set_matrix(&matrix());
 		painter->visitView(this);
 		painter->set_matrix(lastMatrix); // restore previous matrix

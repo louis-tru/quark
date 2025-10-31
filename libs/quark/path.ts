@@ -272,4 +272,10 @@ export declare class Path {
 	 * @returns A new Path instance that is a copy of this path.
 	 */
 	copy(): Path;
+
+	/**
+	 * Generate a hash code for the path.
+	 * @returns The hash code as an integer.
+	*/
+	hashCode(): Int;
 }

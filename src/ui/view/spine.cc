@@ -74,7 +74,7 @@ namespace qk {
 
 	Spine::Spine(): Agent()
 		, _clipper(new SkeletonClipping()), _skel(nullptr)
-		, _speed(1.0f), _default_mix(0), _firstDraw(true)
+		, _speed(1.0f), _default_mix(0.2), _firstDraw(true)
 	{
 		// sizeof(Spine);
 	}
@@ -240,7 +240,7 @@ namespace qk {
 	void Spine::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & (kTransform | kVisible_Region)) { // Update transform matrix
 			unmark(kTransform | kVisible_Region); // Unmark
-			_origin_value = solve_origin_value(_skel_origin); // solve origin value
+			_origin_value = compute_origin_value(_skel_origin); // solve origin value
 			auto v = parent->layout_offset_inside() + _translate;
 			_matrix = Mat(mat).set_translate(parent->position()) * Mat(v, _scale, -_rotate_z, _skew);
 			_position = Vec2(_matrix[2],_matrix[5]); // the origin world coords

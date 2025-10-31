@@ -107,6 +107,12 @@ namespace qk {
 		/// @brief Destructor. Releases internal Spine objects.
 		~SkeletonData();
 
+		/** 
+		 * Get the hash code of the skeleton data, used for identification and caching.
+		 * @return uint64_t Hash code representing the skeleton data.
+		*/
+		uint64_t hashCode() const;
+
 	private:
 		class QkAtlasAttachmentLoader;
 		/**

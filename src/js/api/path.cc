@@ -139,7 +139,7 @@ namespace qk { namespace js {
 				Js_Parse_Args(ArrayFloat, 0, "path.dashPath(stage,offset?)");
 				Js_Parse_Args(float, 1, "path.dashPath(stage,offset?)", (0));
 				auto path = self->dashPath(arg0.val(), arg0.length(), arg1);
-				Js_Return( worker->types()->jsvalue(new Path(path)) );
+				Js_Return( worker->types()->jsvalue(new Path(std::move(path))) );
 			});
 			Js_Class_Method(strokePath, {
 				Js_Parse_Args(float, 0, "path.strokePath(width,cap?,join?,miterLimit?)");
@@ -147,10 +147,10 @@ namespace qk { namespace js {
 				Js_Parse_Args(int32_t, 2, "path.strokePath(width,cap?,join?,miterLimit?)", (Paint::kMiter_Join));
 				Js_Parse_Args(float, 3, "path.strokePath(width,cap?,join?,miterLimit?)", (0.0f));
 				auto path = self->strokePath(arg0, Path::Cap(arg1), Path::Join(arg2), arg3);
-				Js_Return( worker->types()->jsvalue(new Path(path)) );
+				Js_Return( worker->types()->jsvalue(new Path(std::move(path))) );
 			});
 			Js_Class_Method(normalizedPath, {
-				Js_Parse_Args(float, 0, "path.normalizedPath(epsilon?)", (1.0f));
+				Js_Parse_Args(float, 0, "epsilon = %s", (1.0f));
 				self->normalizedPath(arg0);
 				Js_Return( self );
 			});
@@ -176,6 +176,10 @@ namespace qk { namespace js {
 			Js_Class_Method(copy, {
 				auto path = new Path(*self);
 				Js_Return( worker->types()->jsvalue(path) );
+			});
+			Js_Class_Method(hashCode, {
+				//Js_Return( self->hashCode() & 0x1FFFFFFFFFFFFF );
+				Js_Return( self->hashCode() & 0xffffffff );
 			});
 			cls->exports("Path", exports);
 			// ------------------------------------------------------------------------------------

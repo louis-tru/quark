@@ -1002,7 +1002,7 @@ const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DO
 	morph: view.Morph, sprite: view.Sprite, spine: view.Spine,
 	text: view.Text, button: view.Button, label: view.Label,
 	input: view.Input, textarea: view.Textarea, scroll: view.Scroll,
-	video: view.Video, entity: view.Entity,
+	video: view.Video, entity: view.Entity, world: view.World,
 };
 
 /**

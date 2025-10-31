@@ -132,34 +132,22 @@ export interface Stream {
  * @interface Player
 */
 export interface Player {
-	/**
-	 * Current the presentation timestamp
-	*/
+	/** Presentation timestamp (ms or engine-specific units). */
 	readonly pts: Uint;
 
-	/**
-	 * Get/Set audio volume
-	*/
+	/** Playback volume, 0.0–1.0. */
 	volume: number;
 
-	/**
-	 * Get/Set audio mute
-	*/
+	/** Whether audio is currently muted. */
 	mute: boolean;
 
-	/**
-	 * Get is paused
-	*/
+	/** True if media is currently paused. */
 	readonly isPause: boolean;
 
-	/**
-	 * Get media type
-	*/
+	/** Media container type. */
 	readonly type: MediaType;
 
-	/**
-	 * Media play duration
-	*/
+	/** Total duration of the media, in ms. */
 	readonly duration: Uint;
 
 	/**
@@ -172,39 +160,28 @@ export interface Player {
 	*/
 	src: string;
 
-	/**
-	 * The currently playing video stream
-	*/
+	/** Active video stream, if any. */
 	readonly video: Stream | null;
 
-	/**
-	 * The currently playing audio stream
-	*/
+	/** Active audio stream, if any. */
 	readonly audio: Stream | null;
 
-	/**
-	 * Get the number of audio tracks in the current media source
-	*/
+	/** Get the number of audio tracks in the current media source */
 	readonly audioStreams: Uint;
 
-	/**
-	 * Start play media
-	*/
+	/** Begin or resume playback. */
 	play(): void;
 
-	/**
-	 * Pause play media
-	*/
+	/** Pause playback. */
 	pause(): void;
 
-	/**
-	 * Stop play media
-	*/
+	/** Stop playback completely. */
 	stop(): void;
 
 	/**
-	 * Jump the current media source to the specified position
-	*/
+	 * Seek to a new position in the media.
+	 * @param timeMs Target timestamp in milliseconds.
+	 */
 	seek(timeMs: Uint): void;
 
 	/**

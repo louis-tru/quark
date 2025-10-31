@@ -1425,6 +1425,7 @@ export declare abstract class SkeletonData {
 	static Make(skelPath: string, atlasPath?: string, scale?: Float): SkeletonData; //!<
 	static Make(skel: Uint8Array, atlasPath: string, scale?: Float): SkeletonData; //!<
 	static Make(skel: Uint8Array, atlas: Uint8Array, dir: string, scale?: Float): SkeletonData; //!<
+	hashCode(): N; //!<
 }
 
 /**
@@ -1446,7 +1447,7 @@ export function parseSkeletonData(val: SkeletonDataIn, msg?: string): SkeletonDa
 		let cmd = parseCmd(val);
 		if (cmd && cmd.val == 'skel') {
 			let {args:[a,b],kv:{scale}} = cmd;
-			return SkeletonData_.Make(a[0], b ? b[0]: '', scale ? scale[0]: 1);
+			return SkeletonData_.Make(a[0], b ? b[0]: '', scale ? (Number(scale[0]) || 1): 1);
 		}
 	} else if (!val) {
 		return null;
@@ -1466,35 +1467,77 @@ export const parseSkeletonDataPtr = parseSkeletonData;
 */
 export enum BoundsType {
 	kDefault, //!<
-	kLineSegment, //!<
 	kCircle, //!<
-	kPolygon //!<
-};
+	kPolygon, //!<
+	kLineSegment, //!<
+}
 
 /**
  * Entity bounds
 */
 export class Bounds extends Base<Bounds> {
-	readonly type: BoundsType;
-	readonly radius: N;
-	readonly pts?: Path;
-	get halfThickness(): N { return this.radius; }
+	readonly type: BoundsType; //!<
+	readonly offset: Vec2; //!<
+	readonly radius: N; //!<
+	readonly pts?: Path; //!<
+	get halfThickness(): N { return this.radius; } //!<
 	get p0() { return this.type }
-	get p1() { return this.radius }
-	get p2() { return this.pts; }
+	get p1() { return this.offset.x }
+	get p2() { return this.offset.y }
+	get p3() { return this.radius }
+	get p4() { return this.pts; }
+	hashCode(): N { //!<
+		let _hash = 5381;
+		_hash += (_hash << 5) + this.type;
+		_hash += (_hash << 5) + this.offset.x;
+		_hash += (_hash << 5) + this.offset.y;
+		_hash += (_hash << 5) + this.radius;
+		_hash += (_hash << 5) + Object.hashCode(this.pts);
+		return _hash;
+	}
 }
 initDefaults(Bounds, { type: 0, radius: 0 });
 export type BoundsIn = Bounds; //!<
 
 /**
- * @method newBounds(type:BoundsType,radius:N,pts?:Path)Bounds
+ * new entity bounds
 */
-export function newBounds(type: BoundsType, radius: N, pts?: Path) {
-	return newBase(Bounds, { type, radius, pts });
+export function newBounds(type: BoundsType, offsetX: N, offsetY: N, radius: N, pts?: Path): Bounds {
+	return newBase(Bounds, { type, offset: newVec2(offsetX, offsetY), radius, pts });
 }
 
 /**
- * @method newBounds(type:BoundsType,radius:N,pts?:Path)Bounds
+ * alias for newBounds
+ * @method bounds(type:BoundsType,radius:N,pts?:Path)Bounds
+*/
+export const bounds = newBounds;
+
+/**
+ * new circle bounds
+ * @method circBounds(radius:N,offsetX?:N,offsetY?:N)Bounds
+*/
+export function circBounds(radius: N, offsetX: N = 0, offsetY: N = 0) {
+	return newBounds(BoundsType.kCircle, offsetX, offsetY, radius);
+}
+
+/** 
+ * new polygon bounds
+ * @method polyBounds(path:Path,offsetX?:N,offsetY?:N)Bounds
+*/
+export function polyBounds(path: Path, offsetX: N = 0, offsetY: N = 0) {
+	return newBounds(BoundsType.kPolygon, offsetX, offsetY, 0, path);
+}
+
+/** 
+ * new line segment bounds
+ * @method segBounds(path:Path,offsetX?:N,offsetY?:N)Bounds
+*/
+export function segBounds(path: Path, halfThickness: N, offsetX: N = 0, offsetY: N = 0) {
+	return newBounds(BoundsType.kLineSegment, offsetX, offsetY, halfThickness, path);
+}
+
+/**
+ * @method parseBounds(val:BoundsIn,msg?:string)Bounds
 */
 export function parseBounds(val: BoundsIn, msg?: string): Bounds {
 	if (val instanceof Bounds)

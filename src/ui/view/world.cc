@@ -35,10 +35,59 @@ namespace qk {
 	// Geometric epsilon for float comparisons
 	constexpr float GEOM_EPS = 1e-6f;
 
+	static float frandf(float min, float max) {
+		constexpr float randMaxInv = 1.0f / float(RAND_MAX);
+		return min + rand() * randMaxInv * (max - min);
+	}
+
+	void onUIEvent(cUIEventName& name, Agent* agent, UIEvent *evt) {
+		struct CbCore: CallbackCore<Object> {
+			CbCore(cUIEventName& name, UIEvent* evt) : name(name), evt(evt) {}
+			void call(Data& e) { static_cast<Agent*>(e.data)->trigger(name, **evt); }
+			Sp<UIEvent> evt;
+			cUIEventName& name;
+		};
+		auto core = new CbCore(name, evt);
+		agent->preRender().post(Cb(core), agent);
+	}
+
+	template<class T, typename... Args>
+	static void onEvent(cUIEventName& name, Agent* agent, Args... args) {
+		onUIEvent(name, agent, new T(agent, args...));
+	}
+
+	static void onDiscoveryAgent(Agent* agent, Agent* other, Vec2 mtv, int level, bool entering, bool removeOther) {
+		Agent* otherPtr = nullptr;
+		if (!removeOther) { // check agent validity
+			otherPtr = static_cast<Agent*>(other->tryRetain_rt());
+			if (!otherPtr)
+				return; // agent already deleted
+		}
+		struct Wrap { Sp<Agent> other; Vec2 mtv; uint32_t id; int level; bool entering; };
+		struct CbCore: CallbackCore<Object> {
+			void call(Data& e) {
+				auto agent = static_cast<Agent*>(e.data);
+				auto evt = new DiscoveryAgentEvent(agent, w.other.get(), w.mtv, w.id, w.level, w.entering);
+				Sp<DiscoveryAgentEvent> h(evt);
+				agent->trigger(UIEvent_DiscoveryAgent, **h);
+			}
+			Wrap w;
+		};
+		auto core = new CbCore;
+		core->w = { Sp<Agent>::lazy(otherPtr), mtv, uint32_t(uintptr_t(other)), level, entering };
+		agent->preRender().post(Cb(core), agent); // post to main thread
+	}
+
 	World::World()
 		: _playing(false)
 		, _subSteps(1), _timeScale(1.0f)
-		, _predictionTime(0.1f), _avoidanceFactor(0.8f), _discoveryThresholdBuffer(5.0f) {
+		, _predictionTime(0.1f), _discoveryThresholdBuffer(5.0f), _waypointRadius(0.0f) {
+	}
+
+	View* World::init(Window *win) {
+		View::init(win);
+		set_free(true);
+		return this;
 	}
 
 	void World::set_playing(bool value) {
@@ -64,12 +113,12 @@ namespace qk {
 		_predictionTime = Float32::clamp(value, 0.05f, 2.0f);
 	}
 
-	void World::set_avoidanceFactor(float value) {
-		_avoidanceFactor = Float32::clamp(value, 0.0f, 1.0f);
-	}
-
 	void World::set_discoveryThresholdBuffer(float value) {
 		_discoveryThresholdBuffer = Float32::clamp(value, 0.0f, 100.0f);
+	}
+
+	void World::set_waypointRadius(float value) {
+		_waypointRadius = Float32::max(value, 0.0f);
 	}
 
 	ViewType World::viewType() const {
@@ -84,39 +133,9 @@ namespace qk {
 		}
 	}
 
-	template<class T, typename... Args>
-	static void onEvent(cUIEventName& name, Agent* agent, Args... args) {
-		agent->preRender().post(Cb([agent,name,args...](auto e) {
-			Sp<T> h(new T(agent, args...));
-			agent->trigger(name, **h);
-		}), agent);
-	}
-
-	static void onDiscoveryAgent(Agent* agent, Agent* other, Vec2 mtv, int level, bool entering, bool removeOther) {
-		Agent* otherPtr = nullptr;
-		if (!removeOther) { // check agent validity
-			otherPtr = static_cast<Agent*>(other->tryRetain_rt());
-			if (!otherPtr)
-				return; // agent already deleted
-		}
-		struct Wrap { Sp<Agent> other; Vec2 mtv; uint32_t id; int level; bool entering; };
-		struct CbCore: CallbackCore<Object> {
-			void call(Data& e) {
-				auto agent = static_cast<Agent*>(e.data);
-				auto evt = new DiscoveryAgentEvent(agent, w.other.get(), w.mtv, w.id, w.level, w.entering);
-				Sp<DiscoveryAgentEvent> h(evt);
-				agent->trigger(UIEvent_DiscoveryAgent, **h);
-			}
-			Wrap w;
-		};
-		auto core = new CbCore;
-		core->w = { Sp<Agent>::lazy(otherPtr), mtv, uint32_t(uintptr_t(other)), level, entering };
-		agent->preRender().post(Cb(core), agent); // post to main thread
-	}
-
 	void World::onChildLayoutChange(View* child, uint32_t mark) {
 		auto other = child->asAgent();
-		if (other && (mark & kChild_Layout_Visible)) {
+		if (other && (!child->parent() || !child->visible())) { // removed from world or invisible
 			auto v = first();
 			while (v) {
 				auto agent = v->asAgent();
@@ -129,7 +148,7 @@ namespace qk {
 						agent->_following = false;
 						agent->_followTarget = nullptr; // cancel follow target
 						// notify cancel follow target
-						onEvent<FollowTargetEvent>(UIEvent_FollowStateChange, agent, FollowTargetEvent::kCancel);
+						onEvent<FollowStateEvent>(UIEvent_FollowStateChange, agent, FollowStateEvent::kCancel);
 					}
 				}
 				v = v->next();
@@ -157,7 +176,8 @@ namespace qk {
 						}
 					}
 				}
-				entities.push(entity);
+				if (entity->_isObstacle)
+					entities.push(entity);
 			}
 			v = v->next();
 		}
@@ -166,31 +186,43 @@ namespace qk {
 			return false; // no active agents
 		}
 
-		auto update = false;
-		auto deltaTime = delta / 1e6f * _timeScale; // convert to seconds
+		float nsTime = 1.0f / 1e6f; // convert ns to seconds
+		float timeFloat = time * nsTime; // convert to seconds
+		auto deltaTime = delta * nsTime * _timeScale; // convert to seconds
 
 		// Update normal agents
 		for (auto agent : agents) {
-			updateAgentWithMovement(agent, entities, deltaTime, update);
+			updateAgentWithMovement(agent, entities, timeFloat, deltaTime);
 		}
 		// Update follow agents
 		for (auto agent : follows) {
-			updateAgentWithFollow(agent, entities, deltaTime, update);
+			updateAgentWithFollow(agent, entities, timeFloat, deltaTime);
 		}
 
-		return update;
+		return false;
 	}
 
-	void World::updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs, float delta, bool &update) {
+	void World::updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs, float time, float delta) {
 		auto waypoints = agent->_waypoints.load(); // waypoints array
 		auto current = agent->_currentWaypoint; // current waypoint index
 		if (waypoints) {
-			while (agent->_active) { // still active
+			while (agent->_active && delta > 0.0f) { // still active
 				// Move towards current waypoint
-				float remaining = updateAgentWithAvoidance(agent, obs, delta);
-				if (remaining != delta) update = true;
-				if (remaining == 0.0f) break; // no remaining, done for this frame
-				delta = remaining; // continue with remaining time
+				delta = updateAgentWithAvoidance(agent, obs, agent->_avoidance, time, delta);
+				if (delta == 0.0f) {
+					auto velocitySq = agent->_velocity.lengthSq();
+					auto velocityMaxSq = agent->_velocityMax * agent->_velocityMax; // for optimization
+					if (velocitySq / velocityMaxSq < 0.3f) {
+						// Stopped moving due to avoidance
+						// Check if the target has been approximately reached
+						auto buffer = agent->_circleBounds.radius + _waypointRadius;
+						auto toTarget = agent->_target - agent->_circleBounds.center;
+						if (toTarget.length() <= buffer)
+							goto tag1; // consider reached, advance to next waypoint
+					}
+					break; // no remaining, done for this frame
+				}
+			 tag1:
 				if (agent->_target != waypoints->atPt(current)) {
 					// Set initial target waypoint if target changed
 					agent->_target = waypoints->atPt(current);
@@ -207,77 +239,78 @@ namespace qk {
 				if (isNext) {
 					agent->_target = waypoints->atPt(current); // set new target
 				} else {
-					onEvent<ArrivePositionEvent>(UIEvent_ArriveDestination, agent, target, Vec2(), 0);
 					agent->_active = false; // reached final waypoint, stop
+					onEvent<ArrivePositionEvent>(UIEvent_ArriveDestination, agent, target, Vec2(), 0);
 					break;
 				}
 			}
 		} else if (agent->_active) {
-			float remaining = updateAgentWithAvoidance(agent, obs, delta);
-			if (remaining != delta) update = true;
-			if (remaining != 0.0f) { // Already at target, ended movement
-				onEvent<ArrivePositionEvent>(UIEvent_ArriveDestination, agent, agent->_target, Vec2(), 0);
+			delta = updateAgentWithAvoidance(agent, obs, agent->_avoidance, time, delta);
+			if (delta != 0.0f) { // Already at target, ended movement
 				agent->_active = false;
+				onEvent<ArrivePositionEvent>(UIEvent_ArriveDestination, agent, agent->_target, Vec2(), 0);
 			}
 		}
 	}
 
-	void World::updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float delta, bool &update) {
+	void World::updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float time, float delta) {
 		auto target = agent->_followTarget.load();
-		if (!target)
+		if (!target || !agent->_active)
 			return;
 		if (target->_bounds.type == Entity::kLineSegment)
 			return;
 		Qk_ASSERT(agent->_bounds.type != Entity::kLineSegment);
 
-		bool isPoly = agent->_bounds.type == Entity::kPolygon;
-		bool collided;
-		Vec2 pos = agent->_circleBounds.center; // current position
+		Vec2 pos = agent->_translate; // current position
 		MTV mtv; // minimum translation vector for avoidance
+		Vec2 mtvVec;
+		float avoidance = agent->_avoidance;
 
-		if (target->_bounds.type == Entity::kPolygon) {
-			collided = isPoly ?
-				test_polygon_vs_polygon(agent->ptsOfBounds(), target->ptsOfBounds(), &mtv, true):
-				test_circle_vs_polygon(agent->_circleBounds, target->ptsOfBounds(), &mtv, true);
-		} else {
-			collided = isPoly ?
-				test_polygon_vs_polygon(agent->ptsOfBounds(), target->ptsOfBounds(), &mtv, true):
-				test_circle_vs_circle(agent->_circleBounds, target->_circleBounds, &mtv, true);
-		}
-
-		if (collided) {
-			agent->_target = pos + mtv.axis * mtv.overlap; // set target to avoid collision
+		if (agent->test_entity_vs_entity(target, &mtv, &mtvVec, true)) {
+			agent->_target = pos + mtvVec; // set target to avoid collision
 		} else {
 			Qk_ASSERT(mtv.overlap >= 0.0f);
-			float mtvLen = mtv.overlap - agent->_safetyBuffer; // minus safety buffer
-			float minBuf = mtvLen - agent->_followDistanceRange[0], maxBuf;
+			float mtvLen = mtv.overlap; // distance to target
+			float minBuf = mtvLen - agent->_followMinDistance;
+			float maxBuf = mtvLen - agent->_followMaxDistance;
+			//float maxBufHalf = maxBuf + (agent->_followMaxDistance - agent->_followMinDistance) * 0.5f;
 			if (minBuf < 0.0f) {
 				agent->_target = pos + mtv.axis * minBuf; // too close, move away
-			} else if ((maxBuf = mtvLen - agent->_followDistanceRange[1]) > GEOM_EPS) {
+			}
+			else if (maxBuf > 0.0f && (agent->_following || maxBuf > agent->_safetyBuffer)) {
+				float radius = target->_circleBounds.radius + agent->_followMaxDistance;
+				float w = fabsf(std::min(mtv.overlap / radius - 1.0f, 1.0f)); // 0~1
+				// When a gravitational range is set close, the gravitational force increases,
+				// But as it approaches the core, the gravity gradually weakens,
+				// causing a situation where people from the outer circle are more likely to squeeze into the inner circle
+				avoidance *= (0.5f + w * 0.5f);
 				agent->_target = pos + mtv.axis * maxBuf; // too far, move closer
 			} else {
 				// Already at follow distance
 				if (agent->_following) {
+					Qk_DLog("FollowStateEvent::kStop");
 					agent->_following = false;
-					onEvent<FollowTargetEvent>(UIEvent_FollowStateChange, agent, FollowTargetEvent::kStop);
+					onEvent<FollowStateEvent>(UIEvent_FollowStateChange, agent, FollowStateEvent::kStop);
 				}
 				return;
 			}
 		}
 
 		if (!agent->_following) {
+			Qk_DLog("FollowStateEvent::kStart");
 			agent->_following = true;
-			onEvent<FollowTargetEvent>(UIEvent_FollowStateChange, agent, FollowTargetEvent::kStart);
+			onEvent<FollowStateEvent>(UIEvent_FollowStateChange, agent, FollowStateEvent::kStart);
 		}
 
-		if (updateAgentWithAvoidance(agent, obs, delta) != delta)
-			update = true;
+		updateAgentWithAvoidance(agent, obs, avoidance, time, delta);
 	} 
 
 	/**
 	 * discovery event processing
 	 */
-	void World::handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv, float bufferSq) {
+	void World::handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv) {
+		// compute discovery distance squared
+		auto bufferSq = _discoveryThresholdBuffer * _discoveryThresholdBuffer;
 		auto ddsSq = agent->_discoveryDistancesSq.load();
 		auto mtvLenSq = mtv.overlap * mtv.overlap;
 		auto level = ddsSq->length();
@@ -316,116 +349,129 @@ namespace qk {
 	}
 
 	// ------------------------ 局部避让合成：结合 SAT MTV（即时）与 预测 (T) ------------------------
-	Vec2 World::computeAvoidanceForAgent(Agent *agent, cArray<Entity*>& obs, Circle circ, Array<Vec2>& pts, Vec2 dirToTarget) {
+	Vec2 World::computeAvoidanceForAgent(Agent *agent, cArray<Entity*>& obs, Vec2 dirToTarget) {
 		bool isPoly = agent->_bounds.type == Entity::kPolygon;
+		auto &pts = agent->ptsOfBounds();
+		Circle &circ = agent->_circleBounds;
 		Vec2 pos = circ.center;
 		Vec2 dir = (agent->_velocity.lengthSq() > GEOM_EPS) ? agent->_velocity.normalized() : dirToTarget;
 		Vec2 avoidanceTotal; // total avoidance vector
 		float maxDist = agent->_velocityMax * _predictionTime;
 
+		#define USE_tangent 1
+
 		for (auto o : obs) {
-			if (o == agent)
-				continue; // skip self
+			if (o == agent) continue; // skip self
 			// select safety buffer
 			float safetyBuf = agent->_safetyBuffer;
-			if (agent->_followTarget == o) // following target
-				safetyBuf += agent->_followDistanceRange[0]; // add follow distance
+			bool isFollowingTarget = agent->_followTarget == o;
+			if (isFollowingTarget) // following target
+				safetyBuf = agent->_followMinDistance; // use min follow distance as buffer
 			MTV mtv; // avoidance vector for this obstacle
 
 			if (o->_bounds.type == Entity::kDefault || o->_bounds.type == Entity::kCircle) { // 1) 处理圆形障碍
 				Circle circB = o->_circleBounds;
-				if (isPoly ? test_polygon_vs_polygon(pts, o->ptsOfBounds(), &mtv): test_circle_vs_circle(circ, circB, &mtv)) {
+				if (isPoly ? test_polygon_vs_polygon(pts, o->ptsOfBounds(), &mtv):
+						test_circle_vs_circle(circ, circB, &mtv)) {
 					avoidanceTotal += mtv.axis * mtv.overlap; // 推开优先：按深度加权
-				} else {
+				} else if (!isFollowingTarget) { // 如果是跟随目标不需要预测避让，应该直接靠近
 					float d = isPoly ?
 						predict_forward_distance_circ_to_poly(circB, -dir, pts, safetyBuf, &pos):
 						predict_forward_distance_circ_to_circ(circ, dir, circB, safetyBuf);
 					if (d < maxDist) {
-						// 远离障碍中心方向避让
-						avoidanceTotal += (pos - circB.center).normalized() * (1.0f + (maxDist - d) / maxDist);
+						// 远离障碍中心切线方向避让
+						auto away = (pos - circB.center).normalized();
+						#if USE_tangent
+							away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
+						#endif
+						avoidanceTotal += away * (1.0f + (maxDist - d) / maxDist);
 					}
 				}
 			}
-			else if (o->_bounds.type == Entity::kLineSegment) { // 2) 处理线段障碍
-				auto halfWidth = o->_bounds.halfThickness;
-				auto &pts = o->ptsOfBounds();
-				auto A = pts.lastAt(0);
-				for (auto B: pts) {
-					LineSegment seg{A, B, halfWidth};
-					if (isPoly ? test_poly_vs_line_segment(pts, seg, &mtv) : test_circle_vs_line_segment(circ, seg, &mtv)) {
-						avoidanceTotal += mtv.axis * mtv.overlap; // 推开优先：按深度加权
-					} else {
-						// 预测：如果在 T 时间内可能会到达墙体
-						float d = isPoly ?
-							predict_forward_distance_poly_to_seg(pts, dir, seg, safetyBuf, &pos) :
-							predict_forward_distance_circ_to_seg(circ, dir, seg, safetyBuf);
-						if (d < maxDist) {
-							// 将避让朝向设置为远离线段中心的方向
-							Vec2 cent = (seg.a + seg.b) * 0.5f;
-							Vec2 away = (pos - cent).normalized(); // 远离方向
-							avoidanceTotal += away * (1.0f + (maxDist - d) / maxDist); // 加权避让 1->2 away
-						}
-					}
-					A = B;
-				}
-			}
-			else if (o->_bounds.type == Entity::kPolygon) { // 3) 处理多边形障碍（使用 SAT 精确分离向量）
+			else if (o->_bounds.type == Entity::kPolygon) { // 2) 处理多边形障碍（使用 SAT 精确分离向量）
 				auto &ploy = o->ptsOfBounds();
 				if (test_polygon_vs_polygon(pts, ploy, &mtv)) {
 					avoidanceTotal += mtv.axis * mtv.overlap; // 相交：MTV 已返回
-				} else {
+				} else if (!isFollowingTarget) { // 如果是跟随目标不需要预测避让
 					Vec2 cent; // 质心
 					float d = isPoly ?
 						predict_forward_distance_poly_to_poly(pts, dir, ploy, safetyBuf, &pos, &cent) :
 						predict_forward_distance_circ_to_poly(circ, dir, ploy, safetyBuf, &cent);
 					if (d < maxDist) {
-						// 远离障碍中心方向避让
-						avoidanceTotal += (pos - cent).normalized() * (1.0f + (maxDist - d) / maxDist);
+						// 远离障碍中心切线方向避让
+						Vec2 away = (pos - cent).normalized();
+						#if USE_tangent
+							away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
+						#endif
+						avoidanceTotal += away * (1.0f + (maxDist - d) / maxDist);
 					}
 				}
-			} // end obstacle type check
+			} else { // 3) 处理线段障碍
+				auto halfWidth = o->_bounds.halfThickness;
+				auto &pts = o->ptsOfBounds();
+				auto a = pts.at(0);
+				for (int i = 1; i < pts.length(); ++i) {
+					auto b = pts.at(i);
+					LineSegment seg{a, b, halfWidth};
+					if (isPoly ? test_poly_vs_line_segment(pts, seg, &mtv) :
+							test_circle_vs_line_segment(circ, seg, &mtv)) {
+						avoidanceTotal += mtv.axis * mtv.overlap; // 推开优先：按深度加权
+					} else {
+						// 预测：如果在 T 时间内可能会到达墙体
+						float d = isPoly ?
+							predict_forward_distance_poly_to_seg(pts, dir, seg, safetyBuf, &pos) :
+							predict_forward_distance_circ_to_seg_fast(circ, dir, seg, safetyBuf);
+						if (d < maxDist) {
+							// 将避让朝向设置为远离线段中心切线的方向
+							Vec2 cent = (seg.a + seg.b) * 0.5f;
+							Vec2 away = (pos - cent).normalized(); // 远离方向
+							#if USE_tangent
+								away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
+							#endif
+							avoidanceTotal += away * (1.0f + (maxDist - d) / maxDist); // 加权避让 1->2 away
+						}
+					}
+					a = b;
+				}
+			}
 		}
 
 		return avoidanceTotal; // 返回总避让向量
 	}
 
 	// ------------------------ 更新单个 agent 的主函数（包含子步迭代）
-	float World::updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float deltaTime) {
+	float World::updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float avoidFactor, float time, float deltaTime) {
 		Qk_ASSERT(agent->_velocityMax > 0.0f); // must have max velocity
 		Qk_ASSERT(agent->_bounds.type != Entity::kLineSegment); // line segment agent does not move
 
 		bool isPoly = agent->_bounds.type == Entity::kPolygon;
-		Circle circ = agent->_circleBounds;
-		Vec2 pos = circ.center;
+		Circle &circ = agent->_circleBounds;
+		Vec2 pos = agent->_translate; // current position
+		// Vec2 pos = circ.center; // current position
 		Vec2 toTarget = agent->_target - pos;
 
 		if (toTarget.lengthSq() < GEOM_EPS) {
 			// Already at target
-			agent->_velocity = Vec2{0,0};
 			return deltaTime; // overflow all time
 		}
 
-		cArray<Vec2>* pts = nullptr;
-		Array<Vec2> prePts;
-		// precompute polygon points at current position
-		if (isPoly) {
-			pts = &agent->ptsOfBounds();
-			prePts = *pts;
+		if (time - agent->_lastUpdateTime > 1.0f) { // 1 second without update
+			// If last update was long ago, reset velocity to avoid sudden jumps
+			agent->_lastUpdateTime = time;
+			agent->_velocity = {}; // reset velocity
 		}
 
-		Vec2 moveTotal; // total move this update
-
+		// precompute polygon points at current position
+		auto* pts = isPoly ? &agent->ptsOfBounds() : nullptr;
 		// load discovery distances
 		auto ddsSq = agent->_discoveryDistancesSq.load();
-		// compute discovery distance squared
-		auto bufferSq = _discoveryThresholdBuffer * _discoveryThresholdBuffer;
 
 		// sub-step integration
 		float stepDt = deltaTime / std::max(1, _subSteps);
 		for (int step = 0; step < _subSteps; ++step) {
 			Vec2 dirToTarget = toTarget.normalized(); // recompute each step
 			// recompute avoidance (could be expensive; can be throttled)
-			Vec2 avoidance = computeAvoidanceForAgent(agent, obs, circ, prePts, dirToTarget);
+			Vec2 avoidance = computeAvoidanceForAgent(agent, obs, dirToTarget);
 
 			Vec2 newDir;
 			// 如果 avoidance 几乎为 0，则不干预
@@ -434,110 +480,95 @@ namespace qk {
 			} else {
 				// 滑动优先：尝试合成目标与避让
 				Vec2 aDir = avoidance.normalized();
-				Vec2 sum = dirToTarget + aDir * _avoidanceFactor; // avoidFactor ~0.8
-				if (sum.lengthSq() < GEOM_EPS) {
-					// 特殊情况：被正面阻挡，取法线（沿障碍边滑动）
-					sum = aDir.rotate90z(); // 任意法线
+				float oppose = aDir.dot(dirToTarget); // [-1,1]
+				// 检查是否几乎互相抵消（正面硬顶）取法线（沿障碍边滑动）
+				if (oppose < GEOM_EPS - 1.0f) {
+					// 判断 dir 与 aDir 的相对朝向（通过叉积符号）
+					newDir = aDir.det(dirToTarget) < GEOM_EPS ? aDir.rotate90z() : aDir.rotate270z();
+				} else {
+					// 根据对抗程度，自动调低避让比重
+					// float weight = 0.8f + (-oppose) * 0.3f; // weight 避让权重 ~0.5->1.1
+					float weight = 0.8f;
+					Vec2 sum = dirToTarget + aDir * weight;
+					newDir = sum.normalized();
 				}
-				newDir = sum.normalized();
 			}
 
-			// limit velocity
-			agent->_velocity = newDir * agent->_velocityMax;
+			// limit velocity change
+			Vec2 lastVelocity = agent->_velocity;
+			// First order low-pass filtering, smooth velocity change
+			auto velocity = lastVelocity * 0.85f + newDir * agent->_velocityMax * 0.15f;
+			//auto velocity = newDir * agent->_velocityMax;
+			float vLen = velocity.length();
+			float maxV = agent->_velocityMax;
+			if (vLen > maxV) // clamp to max velocity
+				velocity *= maxV / vLen;
+			agent->_velocity = velocity; // update agent velocity
+
+			// report direction change event
+			Vec2 velocityDir = velocity.normalized();
+			if (velocityDir.dot(agent->_lastReportDir) < 0.9f) { // direction changed
+				agent->_lastReportDir = velocityDir;
+				onEvent<AgentStateChangeEvent>(UIEvent_DirectionChange, agent);
+			}
 
 			// tentative move
-			Vec2 move = agent->_velocity * stepDt;
-			circ.center = pos + move; // precompute circle at new position
-
-			// precompute polygon points at new position
-			if (isPoly) {
-				Vec2 off = moveTotal + move; // offset from original position
-				for (int i = 0; i < prePts.length(); ++i)
-					prePts[i] = pts->at(i) + off;
+			Vec2 move = velocity * stepDt;
+			if (pts) { // precompute polygon points at new position
+				for (auto& pt : *pts) pt += move;
 			}
+			circ.center += move; // precompute circle at new position
 
 			bool collided = false;
 			Vec2 totalMTV;
 			for (auto o : obs) {
-				if (o == agent)
-					continue; // skip self
+				if (o == agent) continue; // skip self
 				MTV mtv;
 				auto other = o->asAgent();
-				bool isEvent = ddsSq && other;
-				bool collision = false;
-				if (o->_bounds.type == Entity::kDefault || o->_bounds.type == Entity::kCircle) {
-					// circle vs circle
-					collision = isPoly ?
-						test_polygon_vs_polygon(prePts, o->ptsOfBounds(), &mtv, isEvent):
-						test_circle_vs_circle(circ, o->_circleBounds, &mtv, isEvent);
-				}
-				else if (o->_bounds.type == Entity::kLineSegment) {
-					// collision prevention: do a quick circle vs walls check for move
-					auto halfWidth = o->_bounds.halfThickness;
-					auto &ptsB = o->ptsOfBounds();
-					auto a = ptsB.lastAt(0); // get last point
-					for (auto b: ptsB) {
-						if (isPoly ? 
-								test_poly_vs_line_segment(prePts, {a, b, halfWidth}, &mtv): 
-								test_circle_vs_line_segment(circ, {a, b, halfWidth}, &mtv)) {
-							collided = true;
-							totalMTV += mtv.axis * mtv.overlap;
-						}
-						a = b;
-					}
-					continue; // already handled above
-				} else if (o->_bounds.type == Entity::kPolygon) {
-					// polygon check (approx circle->poly using SAT code) - optionally enable
-					collision = isPoly ?
-						test_polygon_vs_polygon(prePts, o->ptsOfBounds(), &mtv, isEvent):
-						test_circle_vs_polygon(circ, o->ptsOfBounds(), &mtv, isEvent);
-				}
-
-				if (collision) {
+				bool isEvent = ddsSq && other; // only agents have discovery events
+				if (agent->test_entity_vs_entity(o, &mtv, &totalMTV, isEvent)) {
 					collided = true;
-					totalMTV += mtv.axis * mtv.overlap;
 				}
-
-				// handle discovery events
-				if (isEvent) {
-					handleDiscoveryEvents(agent, other, mtv, bufferSq);
+				if (isEvent) { // handle discovery events
+					handleDiscoveryEvents(agent, other, mtv);
 				}
-			}
-
-			if (collided) {
-				// Resolve by sliding: remove component of move along normal, keep tangential
-				Vec2 mtvN = totalMTV.normalized();
-				Vec2 moveTang = move - mtvN * move.dot(mtvN);
-				// small step along tangential direction
-				move = moveTang * 0.5f; // scale to avoid jitter
-				// optionally, also push out by mtv to remove overlap
-				move += mtvN * (totalMTV.length() + 1e-3f);
 			}
 
 			float movedLenSq = move.lengthSq();
 			float toTargetLenSq = toTarget.lengthSq();
+
+			if (collided) {
+				agent->_velocity *= 0.8f; // reduce velocity on collision
+				// apply total MTV to move out of collision
+				float overlap = totalMTV.length() + 1e-3f; // 穿透深度或最小分离距离
+				float factor = avoidFactor;
+				float near = std::min(sqrtf(toTargetLenSq) / circ.radius, 1.0f);
+				factor *= (0.8f + near * 0.2f); // reduce avoid factor when near target
+				auto avoidance = totalMTV.normalized() * (overlap * factor);
+				// precompute polygon points for next step
+				if (pts && step < _subSteps - 1) {
+					for (auto &pt: *pts) pt += avoidance;
+				}
+				move += avoidance;
+				circ.center += avoidance; // update circle center
+			}
+
+			
+
 			// check if reached target
 			if (movedLenSq >= toTargetLenSq) {
 				float scalar = sqrtf(toTargetLenSq) / sqrtf(movedLenSq); // 0-1 scale
 				Vec2 finalMove = move * scalar; // scale move to exactly
-				if ((toTarget - finalMove).lengthSq() < GEOM_EPS) {
+				float lenSq = (toTarget - finalMove).lengthSq();
+				if (lenSq < 1) {
 					// reached target this step
 					agent->set_translate(agent->translate() + finalMove, true); // update entity position
-					agent->_velocity = Vec2{0,0}; // stop at target
-					return deltaTime - stepDt * (step + 2.0f - scalar); // return overflow time
+					return deltaTime - stepDt * (step + 1.0f - scalar); // return overflow time
 				}
 			}
 
 			// apply move
 			pos += move;
-			moveTotal += move; // accumulate total move
-			circ.center = pos; // update circle center
-
-			// precompute polygon points for next step
-			if (isPoly && step < _subSteps - 1) {
-				for (int i = 0; i < prePts.length(); ++i)
-					prePts[i] = pts->at(i) + moveTotal;
-			}
 			agent->set_translate(agent->translate() + move, true); // update entity position
 
 			// update toTarget for next substep

@@ -43,6 +43,7 @@ namespace qk { namespace js {
 			Js_Define_Class(Entity, View, { Js_NewView(Entity); });
 			inheritMorphView(cls, worker);
 			Js_MixObject_Accessor(Entity, Bounds, bounds, bounds);
+			Js_MixObject_Accessor(Entity, bool, isObstacle, isObstacle);
 			cls->exports("Entity", exports);
 		}
 	};
@@ -55,17 +56,19 @@ namespace qk { namespace js {
 			Js_Define_Class(Agent, Entity, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Accessor(Agent, bool, active, active);
 			Js_MixObject_Acce_Get(Agent, bool, following, following);
-			Js_MixObject_Acce_Get(Agent, bool, isWaypoints, isWaypoints);
+			Js_MixObject_Accessor(Agent, PathPtr, waypoints, waypoints);
 			Js_MixObject_Acce_Get(Agent, Vec2, target, target);
 			Js_MixObject_Acce_Get(Agent, Vec2, velocity, velocity);
 			Js_MixObject_Accessor(Agent, float, velocityMax, velocityMax);
 			Js_MixObject_Acce_Get(Agent, uint32_t, currentWaypoint, currentWaypoint);
 			Js_MixObject_Accessor(Agent, ArrayFloat, discoveryDistancesSq, discoveryDistancesSq);
 			Js_MixObject_Accessor(Agent, float, safetyBuffer, safetyBuffer);
-			Js_MixObject_Accessor(Agent, Vec2, followDistanceRange, followDistanceRange);
+			Js_MixObject_Accessor(World, float, avoidance, avoidance);
+			Js_MixObject_Accessor(Agent, float, followMinDistance, followMinDistance);
+			Js_MixObject_Accessor(Agent, float, followMaxDistance, followMaxDistance);
 
 			Js_Class_Accessor(followTarget, { Js_Return( self->followTarget() ); }, {
-				if (worker->instanceOf(val, kAgent_Typeid))
+				if (!worker->instanceOf(val, kAgent_Typeid))
 					Js_Throw("Agent.followTarget:Agent");
 				self->set_followTarget(MixObject::mix<Agent>(val)->self());
 			});
@@ -108,8 +111,8 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(World, int, subSteps, subSteps);
 			Js_MixObject_Accessor(World, float, timeScale, timeScale);
 			Js_MixObject_Accessor(World, float, predictionTime, predictionTime);
-			Js_MixObject_Accessor(World, float, avoidanceFactor, avoidanceFactor);
 			Js_MixObject_Accessor(World, float, discoveryThresholdBuffer, discoveryThresholdBuffer);
+			Js_MixObject_Accessor(World, float, waypointRadius, waypointRadius);
 			cls->exports("World", exports);
 		}
 	};

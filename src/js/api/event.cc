@@ -235,13 +235,24 @@ namespace qk { namespace js {
 			cls->exports("DiscoveryAgentEvent", exports);
 		}
 	};
-	
-	struct MixFollowTargetEvent: MixObject {
-		typedef FollowTargetEvent Type;
+
+	struct MixAgentStateChangeEvent: MixObject {
+		typedef AgentStateChangeEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(FollowTargetEvent, UIEvent, { Js_Throw("Access forbidden."); });
-			Js_MixObject_Acce_Get(FollowTargetEvent, int, state, state);
-			cls->exports("FollowTargetEvent", exports);
+			Js_Define_Class(AgentStateChangeEvent, UIEvent, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(AgentStateChangeEvent, Vec2, velocity, velocity);
+			Js_MixObject_Acce_Get(AgentStateChangeEvent, bool, following, following);
+			Js_MixObject_Acce_Get(AgentStateChangeEvent, bool, active, active);
+			cls->exports("AgentStateChangeEvent", exports);
+		}
+	};
+
+	struct MixFollowStateEvent: MixObject {
+		typedef FollowStateEvent Type;
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(FollowStateEvent, AgentStateChangeEvent, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(FollowStateEvent, int, state, state);
+			cls->exports("FollowStateEvent", exports);
 		}
 	};
 
@@ -262,7 +273,8 @@ namespace qk { namespace js {
 			MixSpineExtEvent::binding(exports, worker);
 			MixArrivePositionEvent::binding(exports, worker);
 			MixDiscoveryAgentEvent::binding(exports, worker);
-			MixFollowTargetEvent::binding(exports, worker);
+			MixAgentStateChangeEvent::binding(exports, worker);
+			MixFollowStateEvent::binding(exports, worker);
 		}
 	};
 

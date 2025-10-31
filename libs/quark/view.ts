@@ -38,7 +38,8 @@ import event, {
 	TouchPoint,
 	ArrivePositionEvent,
 	DiscoveryAgentEvent,
-	FollowTargetEvent,
+	AgentStateChangeEvent,
+	FollowStateEvent,
 	SpineEvent,
 	SpineExtEvent,} from './event';
 import * as types from './types';
@@ -49,10 +50,17 @@ import { Action, createAction,KeyframeIn,TransitionResult } from './action';
 import * as action from './action';
 import {ViewController} from './ctr';
 import {Player,MediaType,MediaSourceStatus,Stream} from './media';
+import { Path } from './path';
+/*───────────────────────────────────────────
+  Chapter 1 — Core View & DOM
+───────────────────────────────────────────*/
 
 /**
+ * Enumeration of all runtime view types in the UI/world tree.
+ * Used for RTTI-style checks and optimized branching.
+ *
  * @enum ViewType
-*/
+ */
 export enum ViewType {
 	View, //!<
 	Entity, //!<
@@ -77,263 +85,618 @@ export enum ViewType {
 }
 
 /**
+ * Lightweight DOM-like interface for runtime view attachment and ownership.
+ * A DOM can be appended into the view tree, moved, and destroyed from its owner.
+ *
  * @interface DOM
-*/
+ */
 export interface DOM {
-	/** @get ref:string */
+	/** Reference name for this node (for lookup / debugging). */
 	readonly ref: string;
-	/** @get metaView:View mount point for view controller */
+
+	/** The "meta" view (mount point) associated with this DOM node. */
 	readonly metaView: View;
-	/** @method appendTo(parent:View)View */
+
+	/**
+	 * Append this node as a child of the given parent.
+	 * @param parent Target parent view.
+	 * @returns The same view for chaining.
+	 */
 	appendTo(parent: View): View;
-	/** @method afterTo(prev:View)View */
+
+	/**
+	 * Insert this node after an existing sibling.
+	 * @param prev The sibling after which this node will be inserted.
+	 * @returns The same view for chaining.
+	 */
 	afterTo(prev: View): View;
-	/** @method destroy(owner:ViewController) destroy from owner */
+
+	/**
+	 * Destroy this node from its logical owner (e.g. a ViewController).
+	 * @param owner The controller / owner that manages this DOM node.
+	 */
 	destroy(owner: ViewController): void;
 }
 
-type ChildDOM = DOM|null; //!<
+/* Internal JSX child node handle (may be null for holes/conditional children). */
+type ChildDOM = DOM | null;
 
 /**
+ * Base class for all visual nodes.
+ *
+ * A `View` participates in:
+ * - The scene tree (parent/child, prev/next sibling, etc.).
+ * - Layout (size, alignment, margins, etc.).
+ * - Style (color, border, background, etc.).
+ * - Input and interaction events (mouse, touch, keys, gestures).
+ * - Rendering and visibility.
+ *
+ * `View` is also an event emitter (`Notification<UIEvent>`) and implements a DOM-like API.
+ *
  * @class View
  * @extends Notification<UIEvent>
  * @implements DOM
-*/
+ */
 export declare class View extends Notification<UIEvent> implements DOM {
-	/** JSX system specific */
+	/** Internal JSX child DOM nodes (virtual children for VDOM/JSX diffing). */
 	readonly childDoms: ChildDOM[];
-	/** @event */
+
+	/** @event Fired on pointer/touch "click"-like activation. */
 	readonly onClick: EventNoticer<ClickEvent>;
-	/** @event */
+	/** @event Fired on back navigation intent (e.g. hardware back). */
 	readonly onBack: EventNoticer<ClickEvent>;
-	/** @event */
+
+	/** @event Fired on key down. */
 	readonly onKeyDown: EventNoticer<KeyEvent>;
-	/** @event */
+	/** @event Fired on key press / text input. */
 	readonly onKeyPress: EventNoticer<KeyEvent>;
-	/** @event */
+	/** @event Fired on key up. */
 	readonly onKeyUp: EventNoticer<KeyEvent>;
-	/** @event */
+	/** @event Convenience event for Enter/Return. */
 	readonly onKeyEnter: EventNoticer<KeyEvent>;
-	/** @event */
+
+	/** @event Touch/multitouch start. */
 	readonly onTouchStart: EventNoticer<TouchEvent>;
-	/** @event */
+	/** @event Touch/multitouch move. */
 	readonly onTouchMove: EventNoticer<TouchEvent>;
-	/** @event */
+	/** @event Touch/multitouch end. */
 	readonly onTouchEnd: EventNoticer<TouchEvent>;
-	/** @event */
+	/** @event Touch canceled (gesture aborted). */
 	readonly onTouchCancel: EventNoticer<TouchEvent>;
-	/** @event */
+
+	/** @event Pointer enters this view's region. */
 	readonly onMouseOver: EventNoticer<MouseEvent>;
-	/** @event */
+	/** @event Pointer leaves toward another sibling/child. */
 	readonly onMouseOut: EventNoticer<MouseEvent>;
-	/** @event */
+	/** @event Pointer fully leaves (no longer within subtree). */
 	readonly onMouseLeave: EventNoticer<MouseEvent>;
-	/** @event */
+	/** @event Pointer first enters (no previous containment). */
 	readonly onMouseEnter: EventNoticer<MouseEvent>;
-	/** @event */
+	/** @event Pointer moves within this view. */
 	readonly onMouseMove: EventNoticer<MouseEvent>;
-	/** @event */
+	/** @event Mouse/pointer button down. */
 	readonly onMouseDown: EventNoticer<MouseEvent>;
-	/** @event */
+	/** @event Mouse/pointer button up. */
 	readonly onMouseUp: EventNoticer<MouseEvent>;
-	/** @event */
+	/** @event Mouse wheel / scroll wheel. */
 	readonly onMouseWheel: EventNoticer<MouseEvent>;
-	/** @event */
+
+	/** @event View received focus. */
 	readonly onFocus: EventNoticer<UIEvent>;
-	/** @event */
+	/** @event View lost focus. */
 	readonly onBlur: EventNoticer<UIEvent>;
-	/** @event */
+	/** @event View highlight state changed (hover, selection, etc.). */
 	readonly onHighlighted: EventNoticer<HighlightedEvent>;
-	/** @event */
+
+	/** @event Animation keyframe reached. */
 	readonly onActionKeyframe: EventNoticer<ActionEvent>;
-	/** @event */
+	/** @event Animation loop completed. */
 	readonly onActionLoop: EventNoticer<ActionEvent>;
-	/** @event */
+
+	/** @event Generic gesture event. */
 	readonly onGesture: EventNoticer<GestureEvent>;
-	/** @event */
+	/** @event Pan gesture recognized. */
 	readonly onPanGesture: EventNoticer<GestureEvent>;
-	/** @event */
+	/** @event Swipe gesture recognized. */
 	readonly onSwipeGesture: EventNoticer<GestureEvent>;
-	/** @event */
+	/** @event Pinch (scale) gesture recognized. */
 	readonly onPinchGesture: EventNoticer<GestureEvent>;
-	/** @event */
+	/** @event Rotation gesture recognized. */
 	readonly onRotateGesture: EventNoticer<GestureEvent>;
-	/** @event */
+	/** @event Three-finger gesture (platform dependent). */
 	readonly onThreeFingerGesture: EventNoticer<GestureEvent>;
-	/** @event */
+	/** @event Four-finger gesture (platform dependent). */
 	readonly onFourFingerGesture: EventNoticer<GestureEvent>;
-	readonly cssclass: CStyleSheetsClass; //!<
-	readonly parent: View | null; //!<
-	readonly prev: View | null; //!<
-	readonly next: View | null; //!<
-	readonly first: View | null; //!<
-	readonly last: View | null; //!<
-	readonly window: Window; //!<
-	readonly morphView: MorphView | null; //!< top morph view
-	readonly level: number; //!<
-	readonly layoutWeight: Vec2; //!<
-	readonly layoutAlign: types.Align; //!<
-	readonly isClip: boolean; //!<
-	readonly viewType: ViewType; //!<
-	readonly position: Vec2; //!< @safe Rt
-	readonly layoutOffset: Vec2; //!< @safe Rt
-	readonly layoutSize: Vec2; //!< @safe Rt, For: Box = border + padding + content + margin
-	readonly clientSize: Vec2; //!< @safe Rt, For: Box = {offset, border + padding + content}
-	readonly clientRegion: types.Region; //!< @safe Rt
-	readonly metaView: View; //!<
-	readonly visibleArea: boolean; //!<
-	readonly ref: string; //!<
-	style: StyleSheets; //!<
-	action: Action | null; //!<
-	class: string[]; //!< settingonly method, cssclass.set()
-	color: types.Color; //!<
-	cascadeColor: types.CascadeColor; //!<
-	cursor: types.CursorStyle; //!<
-	opacity: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
-	visible: boolean; //!<
-	receive: boolean; //!<
-	aa: boolean; //!< anti alias
-	isFocus: boolean; //!<
-	focus(): boolean; //!<
+
+	/** Computed CSS class set for this view. */
+	readonly cssclass: CStyleSheetsClass;
+
+	/** Parent view in the scene graph (or null if root). */
+	readonly parent: View | null;
+	/** Previous sibling view (or null). */
+	readonly prev: View | null;
+	/** Next sibling view (or null). */
+	readonly next: View | null;
+	/** First child view (or null). */
+	readonly first: View | null;
+	/** Last child view (or null). */
+	readonly last: View | null;
+
+	/** Associated Window / rendering context. */
+	readonly window: Window;
+
+	/**
+	 * The closest ancestor `MorphView` (a transformable node), or null.
+	 * This is useful for walking up to a transform root.
+	 */
+	readonly morphView: MorphView | null;
+
+	/** Depth level in the scene graph (0 at root, increasing downward). */
+	readonly level: number;
+
+	/** Layout weight (used by layout containers like Flex/Flow). */
+	readonly layoutWeight: Vec2;
+
+	/** Layout alignment rules for this view inside its parent. */
+	readonly layoutAlign: types.Align;
+
+	/** Whether this view clips its children to its bounds. */
+	readonly isClip: boolean;
+
+	/** View runtime type (for optimized branching and RTTI). */
+	readonly viewType: ViewType;
+
+	/**
+	 * Final resolved position in layout coordinates.  
+	 * 
+	 * ⚠️ **Runtime-synced (render-thread updated):**  
+	 * This value is updated from the rendering thread.  
+	 * If accessed during active rendering, `x` and `y` may come from slightly  
+	 * different frame moments.  
+	 * 
+	 * For most use cases, this value is sufficiently accurate,  
+	 * but precision-critical code should not assume atomic consistency.  
+	 * 
+	 * @safe rt — updated by the render thread; may not always be atomically consistent.
+	 */
+	readonly position: Vec2;
+
+	/**
+	 * Layout offset from parent content origin.
+	 * @safe rt — updated by the render thread; may not always be atomically consistent.
+	 */
+	readonly layoutOffset: Vec2;
+
+	/**
+	 * Final resolved layout size.
+	 * For Box-like views: border + padding + content + margin.
+	 * @safe rt — updated by the render thread; may not always be atomically consistent.
+	 */
+	readonly layoutSize: Vec2;
+
+	/**
+	 * Client (inner) size in local coordinates.
+	 * For Box: offset, border + padding + content (no margin).
+	 * @safe rt — updated by the render thread; may not always be atomically consistent.
+	 */
+	readonly clientSize: Vec2;
+
+	/**
+	 * Client region (used for precise hit testing).
+	 * @safe rt — updated by the render thread; may not always be atomically consistent.
+	 */
+	readonly clientRegion: types.Region;
+
+	/**
+	 * Meta view for controller mounting.
+	 * In many cases this is the same `View`, but controller systems may wrap.
+	 */
+	readonly metaView: View;
+
+	/** Whether this view is currently in the visible area. */
+	readonly visibleArea: boolean;
+
+	/** Reference in owner view controller */
+	readonly ref: string;
+
+	/** Style sheet block attached to this view. */
+	style: StyleSheets;
+
+	/** Running animation or tween controller. */
+	action: Action | null;
+
+	/**
+	 * Assigned class names.
+	 * Setting this updates `cssclass` internally.
+	 */
+	class: string[];
+
+	/** Base color/tint for this view. */
+	color: types.Color;
+
+	/**
+	 * Cascaded color (includes parent tint, etc.).
+	 * Usually computed by renderer/runtime.
+	 */
+	cascadeColor: types.CascadeColor;
+
+	/** Mouse cursor style when hovering this view. */
+	cursor: types.CursorStyle;
+
+	/**
+	 * Visual opacity.
+	 * 0.0 ~ 1.0. Often mirrors color.a / 255.0.
+	 */
+	opacity: Float;
+
+	/** Whether the view is visible for rendering & hit testing. */
+	visible: boolean;
+
+	/** Whether the view is currently interactive / receiving events. */
+	receive: boolean;
+
+	/** Enable anti-aliasing for drawing (if supported). */
+	aa: boolean;
+
+	/** Whether the view currently has keyboard focus. */
+	isFocus: boolean;
+
+	/**
+	 * Request focus for this view (if focusable).
+	 * @returns true if focus was granted.
+	 */
+	focus(): boolean;
+
+	/** Drop focus from this view if it currently has focus. */
 	blur(): boolean;
-	show(): void; //!< Set visible = true
-	hide(): void; //!< Set visible = false
-	isSelfChild(child: View): boolean; //!<
-	before(view: View): void; //!<
-	after(view: View): void; //!<
-	prepend(view: View): void; //!<
-	append(view: View): void; //!<
-	remove(): void; //!<
-	removeAllChild(): void; //!<
-	overlapTest(point: Vec2): boolean; //!<
-	hashCode(): Int; //!<
-	appendTo(parent: View): this; //!<
-	afterTo(prev: View): this; //!<
-	destroy(owner: ViewController): void; //!<
-	transition(to: KeyframeIn, from?: KeyframeIn): TransitionResult; //!<
-	asMorphView(): MorphView | null; //!<
-	asEntity(): Entity | null; //!<
-	asAgent(): Agent | null; //!<
-	constructor(win: Window); //!<
+
+	/** Convenience: set `visible = true`. */
+	show(): void;
+
+	/** Convenience: set `visible = false`. */
+	hide(): void;
+
+	/**
+	 * Returns true if the given view is contained in this view's subtree.
+	 * @param child The view to test.
+	 */
+	isSelfChild(child: View): boolean;
+
+	/**
+	 * Insert this view before another sibling in the same parent.
+	 * @param view Sibling to insert before.
+	 */
+	before(view: View): void;
+
+	/**
+	 * Insert this view after another sibling in the same parent.
+	 * @param view Sibling to insert after.
+	 */
+	after(view: View): void;
+
+	/**
+	 * Insert a view as the first child.
+	 * @param view Child to prepend.
+	 */
+	prepend(view: View): void;
+
+	/**
+	 * Append a view as the last child.
+	 * @param view Child to append.
+	 */
+	append(view: View): void;
+
+	/**
+	 * Remove this view from its parent.
+	 */
+	remove(): void;
+
+	/**
+	 * Remove all children from this view.
+	 */
+	removeAllChild(): void;
+
+	/**
+	 * Hit test in world or parent space.
+	 * @param point World-space or compatible test point.
+	 * @returns true if the point overlaps this view's hit region.
+	 */
+	overlapTest(point: Vec2): boolean;
+
+	/**
+	 * Returns a hash code / unique runtime identifier.
+	 */
+	hashCode(): Int;
+
+	/**
+	 * DOM: append this view to a parent view.
+	 * @param parent Parent to append into.
+	 * @returns this view.
+	 */
+	appendTo(parent: View): this;
+
+	/**
+	 * DOM: insert this view after a sibling.
+	 * @param prev Sibling to insert after.
+	 * @returns this view.
+	 */
+	afterTo(prev: View): this;
+
+	/**
+	 * Destroy this view in the context of its owning controller.
+	 * @param owner The ViewController managing this view.
+	 */
+	destroy(owner: ViewController): void;
+
+	/**
+	 * Run a visual transition (animation) from an initial keyframe to a target keyframe.
+	 * @param to   Target keyframe(s)
+	 * @param from Optional starting keyframe(s)
+	 */
+	transition(to: KeyframeIn, from?: KeyframeIn): TransitionResult;
+
+	/**
+	 * Cast helper: return this view as a MorphView if it is one, otherwise null.
+	 */
+	asMorphView(): MorphView | null;
+
+	/**
+	 * Cast helper: return this view as an Entity if it is one, otherwise null.
+	 */
+	asEntity(): Entity | null;
+
+	/**
+	 * Cast helper: return this view as an Agent if it is one, otherwise null.
+	 */
+	asAgent(): Agent | null;
+
+	/**
+	 * Create a new View instance bound to a given Window.
+	 * @param win Rendering / event window context.
+	 */
+	constructor(win: Window);
+
+	/** Marker used by JSX/runtime to detect controllers. */
 	static readonly isViewController: boolean;
 }
 
 /**
+ * Box is a rectangular layout container.
+ *
+ * It introduces margin, padding, border, background, radius,
+ * and shadow styling, plus "weight" and computed content size.
+ *
  * @class Box
  * @extends View
-*/
+ */
 export declare class Box extends View {
-	clip: boolean; //!<
-	free: boolean; //!<
-	align: types.Align; //!<
-	width: types.BoxSize; //!<
-	height: types.BoxSize; //!<
-	minWidth: types.BoxSize; //!<
-	minHeight: types.BoxSize; //!<
-	maxWidth: types.BoxSize; //!<
-	maxHeight: types.BoxSize; //!<
-	margin: number[]; //!<
-	marginTop: number; //!<
-	marginRight: number; //!<
-	marginBottom: number; //!<
-	marginLeft: number; //!<
-	padding: number[]; //!<
-	paddingTop: number; //!<
-	paddingRight: number; //!<
-	paddingBottom: number; //!<
-	paddingLeft: number; //!<
-	borderRadius: number[]; //!<
-	borderRadiusLeftTop: number; //!<
-	borderRadiusRightTop: number; //!<
-	borderRadiusRightBottom: number; //!<
-	borderRadiusLeftBottom: number; //!<
-	border: types.Border[]; //!<
-	borderTop: types.Border; //!<
-	borderRight: types.Border; //!<
-	borderBottom: types.Border; //!<
-	borderLeft: types.Border; //!<
-	borderWidth: number[]; //!<
-	borderColor: types.Color[]; //!<
-	borderWidthTop: number; //!<
-	borderWidthRight: number; //!<
-	borderWidthBottom: number; //!<
-	borderWidthLeft: number; //!<
-	borderColorTop: types.Color; //!<
-	borderColorRight: types.Color; //!<
-	borderColorBottom: types.Color; //!<
-	borderColorLeft: types.Color; //!<
-	backgroundColor: types.Color; //!<
-	background: types.BoxFilter | null; //!<
-	boxShadow: types.BoxShadow | null; //!<
-	weight: Vec2; //!<
-	readonly contentSize: Vec2; //!< width,height, no include padding
+	/** Clip children to this box's bounds. */
+	clip: boolean;
+
+	/**
+	 * Whether to use **free layout mode** for child positioning.  
+	 * 
+	 * - If `true`, children are positioned freely (absolute mode).  
+	 * - If `false`, the container uses **float layout** for its children (default).  
+	 * 
+	 * Default: `false`
+	 */
+	free: boolean;
+
+	/** Alignment of this box inside its parent. */
+	align: types.Align;
+
+	/** Declared width (can be absolute, auto, percent, etc.). */
+	width: types.BoxSize;
+	/** Declared height. */
+	height: types.BoxSize;
+
+	/** Minimum width constraint. */
+	minWidth: types.BoxSize;
+	/** Minimum height constraint. */
+	minHeight: types.BoxSize;
+	/** Maximum width constraint. */
+	maxWidth: types.BoxSize;
+	/** Maximum height constraint. */
+	maxHeight: types.BoxSize;
+
+	/** Margin (top,right,bottom,left). */
+	margin: number[];
+	/** Margin top. */
+	marginTop: number;
+	/** Margin right. */
+	marginRight: number;
+	/** Margin bottom. */
+	marginBottom: number;
+	/** Margin left. */
+	marginLeft: number;
+
+	/** Padding (top,right,bottom,left). */
+	padding: number[];
+	/** Padding top. */
+	paddingTop: number;
+	/** Padding right. */
+	paddingRight: number;
+	/** Padding bottom. */
+	paddingBottom: number;
+	/** Padding left. */
+	paddingLeft: number;
+
+	/** Corner radii (tl,tr,br,bl). */
+	borderRadius: number[];
+	/** Corner radius top-left. */
+	borderRadiusLeftTop: number;
+	/** Corner radius top-right. */
+	borderRadiusRightTop: number;
+	/** Corner radius bottom-right. */
+	borderRadiusRightBottom: number;
+	/** Corner radius bottom-left. */
+	borderRadiusLeftBottom: number;
+
+	/** Border descriptors for each edge. */
+	border: types.Border[];
+	/** Border descriptor for the top edge. */
+	borderTop: types.Border;
+	/** Border descriptor for the right edge. */
+	borderRight: types.Border;
+	/** Border descriptor for the bottom edge. */
+	borderBottom: types.Border;
+	/** Border descriptor for the left edge. */
+	borderLeft: types.Border;
+
+	/** Border widths per edge (top,right,bottom,left). */
+	borderWidth: number[];
+	/** Border width top. */
+	borderWidthTop: number;
+	/** Border width right. */
+	borderWidthRight: number;
+	/** Border width bottom. */
+	borderWidthBottom: number;
+	/** Border width left. */
+	borderWidthLeft: number;
+
+	/** Border colors per edge (top,right,bottom,left). */
+	borderColor: types.Color[];
+	/** Border color top. */
+	borderColorTop: types.Color;
+	/** Border color right. */
+	borderColorRight: types.Color;
+	/** Border color bottom. */
+	borderColorBottom: types.Color;
+	/** Border color left. */
+	borderColorLeft: types.Color;
+
+	/** Solid background color. */
+	backgroundColor: types.Color;
+
+	/** Advanced background or filter effect. */
+	background: types.BoxFilter | null;
+
+	/** Drop shadow definition. */
+	boxShadow: types.BoxShadow | null;
+
+	/**
+	 * Layout weight (e.g. Flex ratio).
+	 * Often interpreted by parent layout containers.
+	 */
+	weight: Vec2;
+
+	/**
+	 * Final inner content size (width,height),
+	 * not including this view's padding.
+	 */
+	readonly contentSize: Vec2;
 }
 
 /**
+ * Flex is a box-level container that arranges children in a single line
+ * (row or column) with alignment rules similar to flexbox concepts.
+ *
  * @class Flex
  * @extends Box
-*/
+ */
 export declare class Flex extends Box {
-	direction: types.Direction; //!<
-	itemsAlign: types.ItemsAlign; //!<
-	crossAlign: types.CrossAlign; //!<
+	/** Main axis direction (row, column, etc.). */
+	direction: types.Direction;
+
+	/** Alignment of items along the main axis. */
+	itemsAlign: types.ItemsAlign;
+
+	/** Alignment of items along the cross axis. */
+	crossAlign: types.CrossAlign;
 }
 
 /**
+ * Flow is a flex-like container that supports wrapping,
+ * similar to a multi-line flexbox layout.
+ *
  * @class Flow
  * @extends Flex
-*/
+ */
 export declare class Flow extends Flex {
-	wrap: types.Wrap; //!<
-	wrapAlign: types.WrapAlign; //!<
+	/** Whether and how children wrap to the next line/column. */
+	wrap: types.Wrap;
+
+	/** Alignment of wrapped lines relative to the container. */
+	wrapAlign: types.WrapAlign;
 }
 
 /**
+ * Free is a box-style view without additional layout rules.
+ * Useful for absolute/overlay-style positioning inside custom layouts.
+ *
  * @class Free
  * @extends Box
-*/
+ */
 export declare class Free extends Box {
 }
 
 /**
+ * Image is a drawable rectangular view that displays a texture or bitmap.
+ *
  * @class Image
  * @extends Box
-*/
+ */
 export declare class Image extends Box {
-	/** @event */
+	/** @event Fired when the image has successfully loaded. */
 	readonly onLoad: EventNoticer<UIEvent>;
-	/** @event */
+
+	/** @event Fired when the image failed to load. */
 	readonly onError: EventNoticer<UIEvent>;
-	src: string; //!<
+
+	/** Image source URL or resource identifier. */
+	src: string;
 }
 
 /**
+ * MorphView is a transform-capable view interface.
+ * Anything that implements MorphView can be translated,
+ * scaled, skewed, rotated, and exposes a transform matrix.
+ *
  * @interface MorphView
  * @extends View
-*/
+ */
 export interface MorphView extends View {
-	translate: Vec2; //!<
-	scale: Vec2; //!<
-	skew: Vec2; //!<
-	origin: types.BoxOrigin[]; //!<
-	originX: types.BoxOrigin; //!<
-	originY: types.BoxOrigin; //!<
-	x: number; //!<
-	y: number; //!<
-	scaleX: number; //!<
-	scaleY: number; //!<
-	skewX: number; //!<
-	skewY: number; //!<
-	rotateZ: number; //!<
-	readonly originValue: number[]; //!<
-	readonly matrix: types.Mat; //!<
+	/** Translation in local space. */
+	translate: Vec2;
+	/** Scale factors along X and Y axes. */
+	scale: Vec2;
+	/** Skew factors for X and Y axes. */
+	skew: Vec2;
+	/** Anchor point(s) used for transformation origin. */
+	origin: types.BoxOrigin[];
+	/** X-axis anchor (e.g., left, center, right). */
+	originX: types.BoxOrigin;
+	/** Y-axis anchor (e.g., top, center, bottom). */
+	originY: types.BoxOrigin;
+	/** Local X position. */
+	x: number;
+	/** Local Y position. */
+	y: number;
+	/** X scale factor. */
+	scaleX: number;
+	/** Y scale factor. */
+	scaleY: number;
+	/** X-axis skew in degrees. */
+	skewX: number;
+	/** Y-axis skew in degrees. */
+	skewY: number;
+	/** Z-axis rotation in degrees. */
+	rotateZ: number;
+	/** Resolved origin offset values as `[x, y]`. */
+	readonly originValue: number[];
+	/** Combined transformation matrix (local-to-world). */
+	readonly matrix: types.Mat;
 }
 
 /**
+ * Morph is a Box that supports geometric transform (translate, scale, skew,
+ * rotation, and origin). It is typically used as a transform root / group.
+ *
  * @class Morph
  * @extends Box
  * @implements MorphView
-*/
+ */
 export declare class Morph extends Box implements MorphView {
 	translate: Vec2;
 	scale: Vec2;
@@ -352,11 +715,24 @@ export declare class Morph extends Box implements MorphView {
 	readonly matrix: types.Mat;
 }
 
+
+/*───────────────────────────────────────────
+  Chapter 2 — Entity / Agent / World
+───────────────────────────────────────────*/
+
 /**
+ * Entity is the base class for all drawable / interactive 2D world objects.
+ *
+ * An Entity:
+ * - Participates in rendering and hit testing.
+ * - Has world-space transform (via MorphView).
+ * - Maintains geometric bounds (polygon / circle / etc.).
+ * - Can exist inside a `World`.
+ *
  * @class Entity
  * @extends View
  * @implements MorphView
-*/
+ */
 export declare class Entity extends View implements MorphView {
 	translate: Vec2;
 	scale: Vec2;
@@ -373,134 +749,465 @@ export declare class Entity extends View implements MorphView {
 	rotateZ: number;
 	readonly originValue: number[];
 	readonly matrix: types.Mat;
-	bounds: types.Bounds; //!<
+	/**
+	 * Geometric bounds for collision / hit testing.
+	 * Examples: circle radius, polygon points, etc.
+	 */
+	bounds: types.Bounds;
+
+	/**
+	 * Whether this entity acts as a physics obstacle in the world.
+	 * Defaults to true.
+	 */
+	isObstacle: boolean;
 }
 
 /**
+ * Agent is a moving Entity with basic navigation / AI behavior.
+ *
+ * An Agent:
+ * - Can move toward a target position.
+ * - Can follow a waypoint path.
+ * - Can follow another Agent with distance constraints.
+ * - Emits movement- and AI-related events.
+ *
  * @class Agent
  * @extends Entity
-*/
+ */
 export declare abstract class Agent extends Entity {
-	/** @event */
+	/**
+	 * Fired when the agent reaches the next waypoint.
+	 * @event
+	 */
 	readonly onReachWaypoint: EventNoticer<ArrivePositionEvent>;
-	/** @event */
+
+	/**
+	 * Fired when the agent arrives at its final destination.
+	 * @event
+	 */
 	readonly onArriveDestination: EventNoticer<ArrivePositionEvent>;
-	/** @event */
+
+	/**
+	 * Fired when an agent is discovered (enters range) or lost (leaves range).
+	 * @event
+	 */
 	readonly onDiscovery: EventNoticer<DiscoveryAgentEvent>;
-	/** @event */
-	readonly onFollowStateChange: EventNoticer<FollowTargetEvent>;
-	active: boolean; //!<
-	readonly following: boolean; //!<
-	readonly isWaypoints: boolean; //!<
-	readonly target: Vec2; //!<
-	readonly velocity: Vec2; //!<
-	velocityMax: number; //!<
-	readonly currentWaypoint: Uint; //!<
-	discoveryDistancesSq: number[]; //!<
-	safetyBuffer: number; //!<
-	followDistanceRange: Vec2; //!<
-	followTarget: Agent | null; //!<
-	setDiscoveryDistances(distances: number[]): void; //!<
-	moveTo(target: Vec2, immediately?: boolean): void; //!<
-	setWaypoints(waypoints: Vec2[], immediately?: boolean): void; //!<
-	returnToWaypoints(immediately?: boolean): void; //!<
-	stop(): void; //!<
+
+	/**
+	 * Fired when following state changes (start, stop, cancel).
+	 * @event
+	 */
+	readonly onFollowStateChange: EventNoticer<FollowStateEvent>;
+
+	/**
+	 * Fired when the agent's active movement state changes.
+	 * @event
+	 */
+	readonly onMovementActive: EventNoticer<AgentStateChangeEvent>;
+
+	/** 
+	 * Fired when the agent's movement direction changes.
+	 * @event
+	*/
+	readonly onDirectionChange: EventNoticer<AgentStateChangeEvent>;
+
+	/** Whether this agent is currently active (moving/processing). */
+	active: boolean;
+
+	/** Whether this agent is following a target agent. */
+	readonly following: boolean;
+
+	/** Waypoints path for the agent to navigate. */
+	waypoints: Path | null;
+
+	/** Direct movement destination in world coordinates. */
+	readonly target: Vec2;
+
+	/** Current velocity vector in world coordinates. */
+	readonly velocity: Vec2;
+
+	/** Maximum allowed movement speed. */
+	velocityMax: Float;
+
+	/** Index of the current waypoint along the path. */
+	readonly currentWaypoint: Uint;
+
+	/**
+	 * Squared discovery radii for proximity checks.
+	 * Each element is a threshold band for detection.
+	 */
+	discoveryDistancesSq: Float[];
+
+	/**
+	 * Safety buffer distance for local avoidance.
+	 * Higher = keep more distance from obstacles/agents.
+	 */
+	safetyBuffer: Float;
+
+	/**
+	 * Avoidance strength multiplier during collision resolution.
+	 * Default is 1.0f, range [0.0, 10.0].
+	 */
+	avoidance: Float;
+
+	/**
+	 * Distance min range maintained while following a target agent.
+	 */
+	followMinDistance: Float;
+
+	/**
+	 * Distance max range maintained while following a target agent.
+	 */
+	followMaxDistance: Float;
+
+	/**
+	 * The agent currently being followed.
+	 * If null, no follow behavior is active.
+	 */
+	followTarget: Agent | null;
+
+	/**
+	 * Configure discovery distance thresholds in world units.
+	 * @param distances Ascending list of detection radii (not squared).
+	 */
+	setDiscoveryDistances(distances: number[]): void;
+
+	/**
+	 * Move toward a specific position.
+	 * @param target Destination position (world coords).
+	 * @param immediately If true, teleport or snap immediately.
+	 */
+	moveTo(target: Vec2, immediately?: boolean): void;
+
+	/**
+	 * Assign a list of waypoints for navigation.
+	 * @param waypoints Path object representing the navigation route.
+	 * @param immediately If true, begin from the nearest waypoint now.
+	 */
+	setWaypoints(waypoints: Path, immediately?: boolean): void;
+
+	/**
+	 * Rejoin the assigned waypoint path from the closest segment.
+	 * @param immediately If true, snap directly to that segment.
+	 */
+	returnToWaypoints(immediately?: boolean): void;
+
+	/**
+	 * Stop moving. Sets `active = false`.
+	 */
+	stop(): void;
 }
 
 /**
+ * Sprite is a renderable Agent that draws from a sprite sheet / atlas.
+ *
+ * Features:
+ * - Frame-based animation (rows/cols).
+ * - Playback control (play / stop).
+ * - Directional facing.
+ *
  * @class Sprite
  * @extends Agent
-*/
+ */
 export declare class Sprite extends Agent {
-	/** @event */
+	/** @event Fired when sprite asset / texture is loaded. */
 	readonly onLoad: EventNoticer<UIEvent>;
-	/** @event */
+	/** @event Fired if sprite asset fails to load. */
 	readonly onError: EventNoticer<UIEvent>;
-	src: string; //!<
-	width: number; //!<
-	height: number; //!<
-	frame: Uint16; //!<
-	frames: Uint16; //!<
-	item: Uint16; //!<
-	items: Uint16; //!<
-	gap: Uint8; //!<
-	fsp: Uint8; //!<
-	direction: types.Direction; //!<
-	playing: boolean; //!<
-	play(): void; //!<
-	stop(): void; //!<
+
+	/** Sprite source (image / atlas). */
+	src: string;
+
+	/** Rendered width of the sprite (px / world units). */
+	width: Float;
+
+	/** Rendered height of the sprite. */
+	height: Float;
+
+	/** Current frame index. */
+	frame: Uint16;
+
+	/** Total frame count in the animation grid. */
+	frames: Uint16;
+
+	/** Current item index (e.g. column group / sub-animation). */
+	item: Uint16;
+
+	/** Total number of items (e.g. columns / variants). */
+	items: Uint16;
+
+	/** Gap or padding between frames in the sheet. */
+	gap: Uint8;
+
+	/** Frames per step / playback speed hint. */
+	fsp: Uint8;
+
+	/** Facing or motion direction. */
+	direction: types.Direction;
+
+	/** Whether the sprite is currently playing an animation. */
+	playing: boolean;
+
+	/** Begin playback of the active animation. */
+	play(): void;
+
+	/** Stop playback and hold the current frame. */
+	stop(): void;
 }
 
 /**
+ * Spine is an animated skeletal Agent driven by Spine runtime data.
+ *
+ * Features:
+ * - Multiple animation tracks.
+ * - Mixing, events, callbacks.
+ * - Runtime skin changes.
+ *
  * @class Spine
  * @extends Agent
  */
 export declare class Spine extends Agent {
-	/** @event */
+	/** @event Spine animation track started. */
 	readonly onSpineStart: EventNoticer<SpineEvent>;
-	/** @event */
+	/** @event Spine animation interrupted (cut by another). */
 	readonly onSpineInterrupt: EventNoticer<SpineEvent>;
-	/** @event */
+	/** @event Spine animation track ended. */
 	readonly onSpineEnd: EventNoticer<SpineEvent>;
-	/** @event */
+	/** @event Spine track disposed/cleaned. */
 	readonly onSpineDispose: EventNoticer<SpineEvent>;
-	/** @event */
+	/** @event Spine animation loop completed. */
 	readonly onSpineComplete: EventNoticer<SpineEvent>;
-	/** @event */
+	/** @event Spine user event fired (custom markers). */
 	readonly onSpineEvent: EventNoticer<SpineExtEvent>;
-	skel: types.SkeletonData | null; //!<
-	skin: string; //!<
-	speed: Float; //!<
-	defaultMix: Float; //!<
-	animation: string //!< Get/Set current animation name for track 0 (base track).
-	setToSetupPose(): void; //!<
-	setBonesToSetupPose(): void; //!<
-	setSlotsToSetupPose(): void; //!<
-	setAttachment(slotName: string, attachmentName: string): void; //!<
-	setMix(fromName: string, toName: string, duration: Float): void; //!<
-	setAnimation(trackIndex: Uint, name: string, loop?: boolean): void; //!<
-	addAnimation(trackIndex: Uint, name: string, loop?: boolean, delay?: Float): void; //!<
-	setEmptyAnimation(trackIndex: Uint, mixDuration: Float): void; //!<
-	setEmptyAnimations(mixDuration: Float): void; //!<
-	addEmptyAnimation(trackIndex: Uint, mixDuration: Float, delay?: Float): void; //!<
-	clearTracks(): void; //!<
-	clearTrack(trackIndex?: Uint): void; //!<
+
+	/** Spine skeleton data (bones, slots, attachments). */
+	skel: types.SkeletonData | null;
+
+	/** Current active skin name. */
+	skin: string;
+
+	/** Global playback speed scale. */
+	speed: Float;
+
+	/** Default crossfade/mix duration between animations. */
+	defaultMix: Float;
+
+	/**
+	 * Get/Set current animation name for track 0 (the base track).
+	 */
+	animation: string;
+
+	/** Reset full skeleton pose to setup state. */
+	setToSetupPose(): void;
+
+	/** Reset bones to setup pose. */
+	setBonesToSetupPose(): void;
+
+	/** Reset slots (attachments/visuals) to setup pose. */
+	setSlotsToSetupPose(): void;
+
+	/**
+	 * Attach a specific attachment into a slot.
+	 * @param slotName Target slot.
+	 * @param attachmentName Attachment to bind.
+	 */
+	setAttachment(slotName: string, attachmentName: string): void;
+
+	/**
+	 * Define mix duration when transitioning from one animation to another.
+	 * @param fromName Source animation.
+	 * @param toName Target animation.
+	 * @param duration Crossfade time.
+	 */
+	setMix(fromName: string, toName: string, duration: Float): void;
+
+	/**
+	 * Set an animation on a given track.
+	 * @param trackIndex Track number.
+	 * @param name Animation name.
+	 * @param loop Whether to loop.
+	 */
+	setAnimation(trackIndex: Uint, name: string, loop?: boolean): void;
+
+	/**
+	 * Queue another animation after the current one.
+	 * @param trackIndex Track number.
+	 * @param name Animation name.
+	 * @param loop Whether to loop.
+	 * @param delay Delay before it starts.
+	 */
+	addAnimation(trackIndex: Uint, name: string, loop?: boolean, delay?: Float): void;
+
+	/**
+	 * Set an "empty" animation (used to smoothly fade out pose).
+	 * @param trackIndex Track number.
+	 * @param mixDuration Fade duration.
+	 */
+	setEmptyAnimation(trackIndex: Uint, mixDuration: Float): void;
+
+	/**
+	 * Apply "empty" animation to all tracks with default mix.
+	 * Used to smoothly clear pose.
+	 * @param mixDuration Fade duration.
+	 */
+	setEmptyAnimations(mixDuration: Float): void;
+
+	/**
+	 * Queue an empty animation after current.
+	 * @param trackIndex Track number.
+	 * @param mixDuration Fade duration.
+	 * @param delay Delay before it starts.
+	 */
+	addEmptyAnimation(trackIndex: Uint, mixDuration: Float, delay?: Float): void;
+
+	/** Clear all animation tracks. */
+	clearTracks(): void;
+
+	/**
+	 * Clear a specific animation track.
+	 * @param trackIndex Track number to clear. If omitted, may clear default.
+	 */
+	clearTrack(trackIndex?: Uint): void;
 }
 
 /**
+ * World is a transformable container (`Morph`) that simulates a 2D world
+ * for `Entity` and `Agent` objects.
+ *
+ * World responsibilities:
+ * - Run per-frame / sub-step updates.
+ * - Drive agent movement, avoidance and discovery logic.
+ * - Act as the spatial root / coordinate space for gameplay logic.
+ *
+ * Pausing `World` (playing = false) freezes simulation but keeps visuals.
+ *
+ * @class World
+ * @extends Morph
+ */
+export declare class World extends Morph {
+	/**
+	 * Whether the world is actively simulating.
+	 * If false, agents remain visible but do not update or move.
+	 */
+	playing: boolean;
+
+	/**
+	 * Number of physics / navigation sub-steps per frame.
+	 * Higher values improve stability at high speeds.
+	 * Typical range: 1–5.
+	 */
+	subSteps: Uint;
+
+	/**
+	 * Global time scaling factor.
+	 * 1.0 = realtime, <1.0 = slow motion, >1.0 = fast-forward.
+	 */
+	timeScale: Float;
+
+	/**
+	 * Prediction horizon (in seconds) used for avoidance.
+	 * Agents steer based on projected future positions in this time window.
+	 */
+	predictionTime: Float;
+
+	/**
+	 * Buffer distance added to discovery thresholds to prevent flicker.
+	 * Helps avoid repeated enter/leave spam when agents hover near edge.
+	 */
+	discoveryThresholdBuffer: Float;
+
+	/**
+	 * Radius (in world units) around waypoints that counts as "reached".	
+	 * When an agent comes within this distance of a waypoint, it will proceed to the next one.
+	 * Default: 0.0f
+	 */
+	waypointRadius: Float;
+}
+
+/**
+ * Root is a top-level Morph typically used as the root of a scene or UI tree.
+ * It often serves as the mount point for a `Window` or `ViewController`.
+ *
  * @class Root
  * @extends Morph
-*/
+ */
 export declare class Root extends Morph {
 }
 
+
+/*───────────────────────────────────────────
+  Chapter 3 — Text / Input / Scroll / Media
+───────────────────────────────────────────*/
+
 /**
+ * TextOptions describes common text styling and measurement APIs
+ * shared by text-capable views (Text, Label, Input, etc.).
+ *
  * @interface TextOptions
-*/
+ */
 export interface TextOptions {
-	readonly fontStyle: number; //!<
-	textAlign: types.TextAlign; //!<
-	textWeight: types.TextWeight; //!<
-	textSlant: types.TextSlant; //!<
-	textDecoration: types.TextDecoration; //!<
-	textOverflow: types.TextOverflow; //!<
-	textWhiteSpace: types.TextWhiteSpace; //!<
-	textWordBreak: types.TextWordBreak; //!<
-	textSize: types.TextSize; //!<
-	textBackgroundColor: types.TextColor; //!<
-	textStroke: types.TextStroke; //!<
-	textColor: types.TextColor; //!<
-	textLineHeight: types.TextSize; //!<
-	textShadow: types.TextShadow; //!<
-	textFamily: types.TextFamily; //!<
-	computeLayoutSize(text: string): Vec2; //!<
+	/** Font style bitmask / ID (implementation-defined). */
+	readonly fontStyle: number;
+
+	/** Horizontal text alignment. */
+	textAlign: types.TextAlign;
+
+	/** Font weight. */
+	textWeight: types.TextWeight;
+
+	/** Font slant / italic style. */
+	textSlant: types.TextSlant;
+
+	/** Text decoration (underline, strike, etc.). */
+	textDecoration: types.TextDecoration;
+
+	/** Overflow handling (clip, ellipsis, etc.). */
+	textOverflow: types.TextOverflow;
+
+	/** Whitespace handling. */
+	textWhiteSpace: types.TextWhiteSpace;
+
+	/** Word-break rule. */
+	textWordBreak: types.TextWordBreak;
+
+	/** Font size. */
+	textSize: types.TextSize;
+
+	/** Background color for text glyphs. */
+	textBackgroundColor: types.TextColor;
+
+	/** Stroke/outline style for text. */
+	textStroke: types.TextStroke;
+
+	/** Primary text color. */
+	textColor: types.TextColor;
+
+	/** Line height. */
+	textLineHeight: types.TextSize;
+
+	/** Shadow styling for text. */
+	textShadow: types.TextShadow;
+
+	/** Font family / fallback list. */
+	textFamily: types.TextFamily;
+
+	/**
+	 * Measure the rendered layout size of a text string,
+	 * using this object's current font / style settings.
+	 * @param text Text to measure.
+	 * @returns Size in px/world units (w,h).
+	 */
+	computeLayoutSize(text: string): Vec2;
 }
 
 /**
+ * Text is a non-editable text view with rich styling support.
+ * It can measure, wrap, truncate, etc.
+ *
  * @class Text
  * @extends Box
  * @implements TextOptions
-*/
+ */
 export declare class Text extends Box implements TextOptions {
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
@@ -517,23 +1224,41 @@ export declare class Text extends Box implements TextOptions {
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
-	value: string; //!<
+
+	/** Actual displayed string content. */
+	value: string;
+
+	/** Measure size for the given text using current style. */
 	computeLayoutSize(text: string): Vec2;
 }
 
 /**
+ * Button is an interactive Text view that can be navigated,
+ * focused, and "clicked". It can also expose directional
+ * navigation helpers for gamepad/keyboard UIs.
+ *
  * @class Button
  * @extends Text
-*/
+ */
 export declare class Button extends Text {
-	nextButton(dir: types.Direction): Button | null; //!<
+	/**
+	 * Query the next logical button in a given direction.
+	 * Useful for D-pad / keyboard navigation grids.
+	 * @param dir Direction to search.
+	 * @returns The neighbor Button or null.
+	 */
+	nextButton(dir: types.Direction): Button | null;
 }
 
 /**
+ * Label is a lightweight text-bearing View.
+ * It behaves similarly to Text, but does not inherit Box layout
+ * (so it's cheaper and may integrate differently with layout).
+ *
  * @class Label
  * @extends View
  * @implements TextOptions
-*/
+ */
 export declare class Label extends View implements TextOptions {
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
@@ -550,18 +1275,30 @@ export declare class Label extends View implements TextOptions {
 	textLineHeight: types.TextSize;
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
-	value: string; //!<
+
+	/** Text content for display. */
+	value: string;
+
+	/** Measure size for the given text using current style. */
 	computeLayoutSize(text: string): Vec2;
 }
 
 /**
- * @class Label
+ * Input is a single-line editable text box.
+ *
+ * Features:
+ * - Cursor, max length, secure entry.
+ * - Software keyboard hints (type, return key).
+ * - Inline styling consistent with TextOptions.
+ *
+ * @class Input
  * @extends Box
  * @implements TextOptions
-*/
+ */
 export declare class Input extends Box implements TextOptions {
-	/** @event */
+	/** @event Fired when the value changes (user edit). */
 	readonly onChange: EventNoticer<UIEvent>;
+
 	readonly fontStyle: number;
 	textAlign: types.TextAlign;
 	textWeight: types.TextWeight;
@@ -577,55 +1314,135 @@ export declare class Input extends Box implements TextOptions {
 	textShadow: types.TextShadow;
 	textFamily: types.TextFamily;
 	textStroke: types.TextStroke;
-	security: boolean; //!< input
-	readonly: boolean; //!<
-	type: types.KeyboardType; //!<
-	returnType: types.KeyboardReturnType; //!<
-	placeholderColor: types.Color; //!<
-	cursorColor: types.Color; //!<
-	maxLength: number; //!<
-	value: string; //!<
-	placeholder: string; //!<
-	readonly textLength: number; //!<
+
+	/** If true, mask input (password-style). */
+	security: boolean;
+
+	/** Whether the field is read-only. */
+	readonly: boolean;
+
+	/** Keyboard type hint for virtual keyboards. */
+	type: types.KeyboardType;
+
+	/** Return/enter key style hint. */
+	returnType: types.KeyboardReturnType;
+
+	/** Placeholder text color. */
+	placeholderColor: types.Color;
+
+	/** Caret (cursor) color. */
+	cursorColor: types.Color;
+
+	/** Maximum allowed text length. */
+	maxLength: number;
+
+	/** Current text value. */
+	value: string;
+
+	/** Placeholder text when empty. */
+	placeholder: string;
+
+	/** Current text length (may differ from value.length due to encoding). */
+	readonly textLength: number;
+
+	/** Measure size for the given text using current style. */
 	computeLayoutSize(text: string): Vec2;
 }
 
 /**
+ * ScrollView describes scrollable behavior and parameters.
+ * It's implemented by Scroll and Textarea.
+ *
  * @interface ScrollView
  * @extends Box
-*/
+ */
 export interface ScrollView extends Box {
-	scrollbar: boolean; //!<
-	bounce: boolean; //!<
-	bounceLock: boolean; //!<
-	momentum: boolean; //!<
-	lockDirection: boolean; //!<
-	scrollX: number; //!<
-	scrollY: number; //!<
-	scroll: Vec2; //!<
-	resistance: number; //!<
-	catchPositionX: number; //!<
-	catchPositionY: number; //!<
-	scrollbarColor: types.Color; //!<
-	scrollbarWidth: number; //!<
-	scrollbarMargin: number; //!<
-	scrollDuration: number; //!<
-	defaultCurve: types.Curve; //!<
-	readonly scrollbarH: boolean; //!<
-	readonly scrollbarV: boolean; //!<
-	readonly scrollSize: Vec2; //!<
-	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void; //!<
-	terminate(): void; //!<
+	/** Whether scrollbars are shown. */
+	scrollbar: boolean;
+
+	/** Whether content can bounce (rubber-band). */
+	bounce: boolean;
+
+	/**
+	 * If true, bouncing locks when edge is reached
+	 * to reduce jitter / overscroll chaining.
+	 */
+	bounceLock: boolean;
+
+	/** Whether inertial/momentum scrolling is enabled. */
+	momentum: boolean;
+
+	/** If true, lock scroll to the first detected direction. */
+	lockDirection: boolean;
+
+	/** Current scroll X offset. */
+	scrollX: number;
+
+	/** Current scroll Y offset. */
+	scrollY: number;
+
+	/** Current scroll offset as Vec2. */
+	scroll: Vec2;
+
+	/** Scroll resistance factor. */
+	resistance: number;
+
+	/** Sticky "catch" position X (e.g. snap zones). */
+	catchPositionX: number;
+
+	/** Sticky "catch" position Y. */
+	catchPositionY: number;
+
+	/** Scrollbar color. */
+	scrollbarColor: types.Color;
+
+	/** Scrollbar thickness. */
+	scrollbarWidth: number;
+
+	/** Scrollbar margin from the edge. */
+	scrollbarMargin: number;
+
+	/** Scroll animation duration for programmatic scrolls (ms). */
+	scrollDuration: number;
+
+	/** Default easing curve for programmatic scrolls. */
+	defaultCurve: types.Curve;
+
+	/** Whether horizontal scrollbar is active. */
+	readonly scrollbarH: boolean;
+
+	/** Whether vertical scrollbar is active. */
+	readonly scrollbarV: boolean;
+
+	/** Total scrollable content size. */
+	readonly scrollSize: Vec2;
+
+	/**
+	 * Smooth-scroll to a given offset.
+	 * @param val Target scroll offset.
+	 * @param duration Optional animation duration.
+	 * @param curve Optional easing curve.
+	 */
+	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void;
+
+	/**
+	 * Abort any running scroll animation / momentum.
+	 */
+	terminate(): void;
 }
 
 /**
+ * Textarea is a multi-line text input field with its own scrollable
+ * viewport. It merges text editing and ScrollView behaviors.
+ *
  * @class Textarea
  * @extends Input
  * @implements ScrollView
-*/
+ */
 export declare class Textarea extends Input implements ScrollView {
-	/** @event */
+	/** @event Fired as the scroll offset changes. */
 	readonly onScroll: EventNoticer<UIEvent>;
+
 	scrollbar: boolean;
 	bounce: boolean;
 	bounceLock: boolean;
@@ -645,18 +1462,23 @@ export declare class Textarea extends Input implements ScrollView {
 	readonly scrollbarH: boolean;
 	readonly scrollbarV: boolean;
 	readonly scrollSize: Vec2;
+
 	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void;
 	terminate(): void;
 }
 
 /**
+ * Scroll is a generic scrollable container.
+ * It can host arbitrary child content and provides ScrollView APIs.
+ *
  * @class Scroll
  * @extends Box
  * @implements ScrollView
-*/
+ */
 export declare class Scroll extends Box implements ScrollView {
-	/** @event */
+	/** @event Fired as the scroll offset changes. */
 	readonly onScroll: EventNoticer<UIEvent>;
+
 	scrollbar: boolean;
 	bounce: boolean;
 	bounceLock: boolean;
@@ -676,20 +1498,22 @@ export declare class Scroll extends Box implements ScrollView {
 	readonly scrollbarH: boolean;
 	readonly scrollbarV: boolean;
 	readonly scrollSize: Vec2;
+
 	scrollTo(val: Vec2, duration?: number, curve?: types.Curve): void;
 	terminate(): void;
 }
 
 /**
+ * Video is a playable media view that extends Image and implements Player.
+ *
+ * It exposes playback control (play/pause/stop/seek),
+ * audio track switching, mute/volume control, and metadata such as duration.
+ *
  * @class Video
  * @extends Image
  * @implements Player
-*/
+ */
 export declare class Video extends Image implements Player {
-	/** @event */
-	readonly onStop: EventNoticer<UIEvent>;
-	/** @event */
-	readonly onBuffering: EventNoticer<UIEvent>;
 	readonly pts: number;
 	volume: number;
 	mute: boolean;
@@ -705,6 +1529,10 @@ export declare class Video extends Image implements Player {
 	stop(): void;
 	seek(timeMs: number): void;
 	switchAudio(index: number): void;
+	/** @event Fired when playback stops. */
+	readonly onStop: EventNoticer<UIEvent>;
+	/** @event Fired while buffering / loading. */
+	readonly onBuffering: EventNoticer<UIEvent>;
 }
 
 /**
@@ -716,7 +1544,9 @@ export declare function testOverlapFromConvexQuadrilateral(quadrilateral: Vec2[]
  * Represents the minimum translation vector required to separate two overlapping convex shapes.
 */
 export interface MinimumTranslationVector {
+	/** The axis along which the minimum translation should occur. */
 	axis: Vec2;
+	/** The magnitude of the overlap along the axis. */
 	overlap: Float;
 };
 
@@ -759,6 +1589,7 @@ Object.assign(exports, {
 	Agent: _ui.Agent,
 	Sprite: _ui.Sprite,
 	Spine: _ui.Spine,
+	World: _ui.World,
 	Root: _ui.Root,
 	testOverlapFromConvexQuadrilateral: _ui.testOverlapFromConvexQuadrilateral,
 	testOverlapFromConvexPolygons: _ui.testOverlapFromConvexPolygons,
@@ -901,15 +1732,25 @@ declare global {
 
 		interface EntityJSX extends ViewJSX, MorphViewJSX {
 			bounds?: types.BoundsIn;
+			isObstacle?: boolean;
 		}
 
 		interface AgentJSX extends EntityJSX {
+			onReachWaypoint?: Listen<ArrivePositionEvent, Agent> | null;
+			onArriveDestination?: Listen<ArrivePositionEvent, Agent> | null;
+			onDiscovery?: Listen<DiscoveryAgentEvent, Agent> | null;
+			onFollowStateChange?: Listen<FollowStateEvent, Agent> | null;
+			onMovementActive?: Listen<AgentStateChangeEvent, Agent> | null;
+			onDirectionChange?: Listen<AgentStateChangeEvent, Agent> | null;
 			active?: boolean;
 			velocityMax?: number;
 			discoveryDistancesSq?: number | number[];
 			safetyBuffer?: number;
-			followDistanceRange?: Vec2In;
+			avoidance?: number;
+			followMinDistance?: number;
+			followMaxDistance?: number;
 			followTarget?: Agent | null;
+			waypoints?: Path | null;
 		}
 
 		interface SpriteJSX extends AgentJSX {
@@ -929,11 +1770,26 @@ declare global {
 		}
 
 		interface SpineJSX extends AgentJSX {
+			onSpineStart?: Listen<SpineEvent, Spine> | null;
+			onSpineInterrupt?: Listen<SpineEvent, Spine> | null;
+			onSpineEnd?: Listen<SpineEvent, Spine> | null;
+			onSpineDispose?: Listen<SpineEvent, Spine> | null;
+			onSpineComplete?: Listen<SpineEvent, Spine> | null;
+			onSpineEvent?: Listen<SpineExtEvent, Spine> | null;
 			skel?: types.SkeletonDataIn;
 			skin?: string;
 			speed?: Float;
 			defaultMix?: Float;
 			animation?: string;
+		}
+
+		interface WorldJSX extends MorphJSX {
+			playing?: boolean;
+			subSteps?: Uint;
+			timeScale?: Float;
+			predictionTime?: Float;
+			discoveryThresholdBuffer?: Float;
+			waypointRadius?: Float;
 		}
 
 		interface TextOptionsJSX {
@@ -1023,6 +1879,7 @@ declare global {
 			textarea: TextareaJSX;
 			scroll: ScrollJSX;
 			video: VideoJSX;
+			world: WorldJSX;
 		}
 
 		type IntrinsicElementsName = keyof IntrinsicElements;
@@ -1415,7 +2272,9 @@ class _Agent {
 	@event readonly onReachWaypoint: EventNoticer<ArrivePositionEvent>;
 	@event readonly onArriveDestination: EventNoticer<ArrivePositionEvent>;
 	@event readonly onDiscovery: EventNoticer<DiscoveryAgentEvent>;
-	@event readonly onFollowStateChange: EventNoticer<FollowTargetEvent>;
+	@event readonly onFollowStateChange: EventNoticer<FollowStateEvent>;
+	@event readonly onMovementActive: EventNoticer<AgentStateChangeEvent>;
+	@event readonly onDirectionChange: EventNoticer<AgentStateChangeEvent>;
 }
 	
 class _Sprite {

@@ -203,11 +203,9 @@ namespace qk {
 	}
 
 	void Sprite::draw(Painter *painter) {
-		debugDraw(painter); // draw debug bounds
-
 		auto src = source();
 		if (!src || !src->load()) {
-			return painter->visitView(this, &matrix());
+			return Entity::draw(painter);
 		}
 
 		auto lastMatrix = painter->matrix();
@@ -256,6 +254,7 @@ namespace qk {
 		img.mipmapMode = default_MipmapMode;
 
 		painter->canvas()->drawPathv(painter->cache()->getRectPath(rectAA), paint);
+		debugDraw(painter); // draw debug bounds
 		painter->visitView(this);
 		painter->set_matrix(lastMatrix); // restore previous matrix
 	}

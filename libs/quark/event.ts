@@ -605,23 +605,34 @@ export declare class DiscoveryAgentEvent extends UIEvent {
 }
 
 /**
+ * @class AgentStateChangeEvent
+ * @extends UIEvent
+*/
+export declare class AgentStateChangeEvent extends UIEvent {
+	/** agent itself */
+	readonly origin: Agent;
+	readonly velocity: Vec2;  //!< Current velocity vector.
+	readonly following: boolean;  //!< Following state.
+	readonly active: boolean;  //!< Active state.
+}
+
+/**
  * Follow state type
 */
-export enum FollowState {
-	kStart = 1, //!<
+export enum FollowingState {
+	kNone = 0, //!< None state change
+	kStart, //!<
 	kStop, //!<
 	kCancel, //!<
 }
 
 /**
- * @class FollowTargetEvent
+ * @class FollowStateEvent
  * @extends UIEvent
 */
-export declare class FollowTargetEvent extends UIEvent {
-	/** agent itself */
-	readonly origin: Agent;
+export declare class FollowStateEvent extends AgentStateChangeEvent {
 	/** follow state */
-	readonly state: FollowState;
+	readonly state: FollowingState;
 };
 
 const _init = __binding__('_init');
