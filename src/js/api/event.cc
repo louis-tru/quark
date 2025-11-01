@@ -230,7 +230,7 @@ namespace qk { namespace js {
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, Agent*, agent, agent);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, Vec2, location, location);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, uint32_t, agentId, agentId);
-			Js_MixObject_Acce_Get(DiscoveryAgentEvent, int, level, level);
+			Js_MixObject_Acce_Get(DiscoveryAgentEvent, uint32_t, level, level);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, bool, entering, entering);
 			cls->exports("DiscoveryAgentEvent", exports);
 		}

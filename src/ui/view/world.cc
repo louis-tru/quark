@@ -56,14 +56,11 @@ namespace qk {
 		onUIEvent(name, agent, new T(agent, args...));
 	}
 
-	static void onDiscoveryAgent(Agent* agent, Agent* other, Vec2 mtv, int level, bool entering, bool removeOther) {
-		Agent* otherPtr = nullptr;
-		if (!removeOther) { // check agent validity
-			otherPtr = static_cast<Agent*>(other->tryRetain_rt());
-			if (!otherPtr)
-				return; // agent already deleted
-		}
-		struct Wrap { Sp<Agent> other; Vec2 mtv; uint32_t id; int level; bool entering; };
+	static void onDiscoveryAgent(Agent* agent, Agent* other, Vec2 mtv, uint32_t level, bool entering) {
+		Agent* otherPtr = static_cast<Agent*>(other->tryRetain_rt());
+		if (!otherPtr) // check agent validity
+			return; // other agent is being destroyed
+		struct Wrap { Sp<Agent> other; Vec2 mtv; uint32_t id; uint32_t level; bool entering; };
 		struct CbCore: CallbackCore<Object> {
 			void call(Data& e) {
 				auto agent = static_cast<Agent*>(e.data);
@@ -81,7 +78,9 @@ namespace qk {
 	World::World()
 		: _playing(false)
 		, _subSteps(1), _timeScale(1.0f)
-		, _predictionTime(0.1f), _discoveryThresholdBuffer(5.0f), _waypointRadius(0.0f) {
+		, _predictionTime(0.1f)
+		, _discoveryThresholdBuffer(5.0f)
+		, _waypointRadius(0.0f) {
 	}
 
 	View* World::init(Window *win) {
@@ -101,6 +100,10 @@ namespace qk {
 		}
 	}
 
+	void World::set_discoveryThresholdBuffer(float value) {
+		_discoveryThresholdBuffer = Float32::clamp(value, 0.0f, 100.0f);
+	}
+
 	void World::set_subSteps(int value) {
 		_subSteps = Int32::clamp(value, 1, 5);
 	}
@@ -111,10 +114,6 @@ namespace qk {
 
 	void World::set_predictionTime(float value) {
 		_predictionTime = Float32::clamp(value, 0.05f, 2.0f);
-	}
-
-	void World::set_discoveryThresholdBuffer(float value) {
-		_discoveryThresholdBuffer = Float32::clamp(value, 0.0f, 100.0f);
 	}
 
 	void World::set_waypointRadius(float value) {
@@ -142,7 +141,7 @@ namespace qk {
 				if (agent && other != agent) {
 					// Remove from discovery set if no longer visible
 					if (agent->_discoverys_rt.erase(other)) { // erase success
-						onDiscoveryAgent(agent, other, Vec2(), -1, false, true); // lose discovery, remove agent
+						onDiscoveryAgent(agent, other, Vec2(), 0xffffffff, false); // lose discovery, remove agent
 					}
 					if (agent->_followTarget == other) {
 						agent->_following = false;
@@ -164,7 +163,8 @@ namespace qk {
 		auto v = first();
 		while (v) {
 			auto entity = v->asEntity();
-			if (entity && entity->visible()) { // only process visible entities
+			// only process visible entities
+			if (entity && entity->_circleBounds.radius != 0.0f && entity->visible()) {
 				auto agent = entity->asAgent();
 				if (agent && agent->_active && agent->_velocityMax) {
 					// Skip line segment agents for movement
@@ -208,7 +208,7 @@ namespace qk {
 		if (waypoints) {
 			while (agent->_active && delta > 0.0f) { // still active
 				// Move towards current waypoint
-				delta = updateAgentWithAvoidance(agent, obs, agent->_avoidance, time, delta);
+				delta = updateAgentWithAvoidance(agent, obs, agent->_avoidanceFactor, time, delta);
 				if (delta == 0.0f) {
 					auto velocitySq = agent->_velocity.lengthSq();
 					auto velocityMaxSq = agent->_velocityMax * agent->_velocityMax; // for optimization
@@ -216,13 +216,15 @@ namespace qk {
 						// Stopped moving due to avoidance
 						// Check if the target has been approximately reached
 						auto buffer = agent->_circleBounds.radius + _waypointRadius;
-						auto toTarget = agent->_target - agent->_circleBounds.center;
-						if (toTarget.length() <= buffer)
+						auto toTarget = agent->_target - agent->_translate;
+						auto toTargetLen = toTarget.length();
+						if (toTargetLen <= buffer)
 							goto tag1; // consider reached, advance to next waypoint
 					}
 					break; // no remaining, done for this frame
 				}
 			 tag1:
+				if (current >= waypoints->ptsLen()) break;
 				if (agent->_target != waypoints->atPt(current)) {
 					// Set initial target waypoint if target changed
 					agent->_target = waypoints->atPt(current);
@@ -245,7 +247,7 @@ namespace qk {
 				}
 			}
 		} else if (agent->_active) {
-			delta = updateAgentWithAvoidance(agent, obs, agent->_avoidance, time, delta);
+			delta = updateAgentWithAvoidance(agent, obs, agent->_avoidanceFactor, time, delta);
 			if (delta != 0.0f) { // Already at target, ended movement
 				agent->_active = false;
 				onEvent<ArrivePositionEvent>(UIEvent_ArriveDestination, agent, agent->_target, Vec2(), 0);
@@ -264,7 +266,7 @@ namespace qk {
 		Vec2 pos = agent->_translate; // current position
 		MTV mtv; // minimum translation vector for avoidance
 		Vec2 mtvVec;
-		float avoidance = agent->_avoidance;
+		float avoidance = agent->_avoidanceFactor;
 
 		if (agent->test_entity_vs_entity(target, &mtv, &mtvVec, true)) {
 			agent->_target = pos + mtvVec; // set target to avoid collision
@@ -274,17 +276,17 @@ namespace qk {
 			float minBuf = mtvLen - agent->_followMinDistance;
 			float maxBuf = mtvLen - agent->_followMaxDistance;
 			//float maxBufHalf = maxBuf + (agent->_followMaxDistance - agent->_followMinDistance) * 0.5f;
-			if (minBuf < 0.0f) {
+			if (minBuf < GEOM_EPS) {
 				agent->_target = pos + mtv.axis * minBuf; // too close, move away
 			}
-			else if (maxBuf > 0.0f && (agent->_following || maxBuf > agent->_safetyBuffer)) {
+			else if (maxBuf > GEOM_EPS && (agent->_following || maxBuf > agent->_safetyBuffer)) {
 				float radius = target->_circleBounds.radius + agent->_followMaxDistance;
 				float w = fabsf(std::min(mtv.overlap / radius - 1.0f, 1.0f)); // 0~1
 				// When a gravitational range is set close, the gravitational force increases,
 				// But as it approaches the core, the gravity gradually weakens,
 				// causing a situation where people from the outer circle are more likely to squeeze into the inner circle
 				avoidance *= (0.5f + w * 0.5f);
-				agent->_target = pos + mtv.axis * maxBuf; // too far, move closer
+				agent->_target = pos + mtv.axis * (maxBuf + 0.1f/*EPSILON*/); // too far, move closer
 			} else {
 				// Already at follow distance
 				if (agent->_following) {
@@ -310,40 +312,39 @@ namespace qk {
 	 */
 	void World::handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv) {
 		// compute discovery distance squared
-		auto bufferSq = _discoveryThresholdBuffer * _discoveryThresholdBuffer;
-		auto ddsSq = agent->_discoveryDistancesSq.load();
-		auto mtvLenSq = mtv.overlap * mtv.overlap;
-		auto level = ddsSq->length();
+		auto buffer = _discoveryThresholdBuffer; // buffer distance to prevent flickering
+		auto dds = agent->_discoveryDistances.load();
+		auto mtvLen = mtv.overlap;
+		auto level = dds->length();
 		for (int i = level - 1; i >= 0; i--) {
-			if (mtvLenSq < ddsSq->at(i)) {
+			if (mtvLen < dds->at(i)) {
 				level = i; // found level
-			} else {
+			} else
 				break;
-			}
 		}
 		Vec2 mtvVec = mtv.axis * mtv.overlap;
 		// process discovery levels
-		if (level < ddsSq->length()) { // within some level
-			uint32_t *oldLevel;
-			if (agent->_discoverys_rt.get(other, oldLevel)) { // found
-				if (level > *oldLevel) { // leave
-					if (mtvLenSq > ddsSq->at(level) + bufferSq) { // buffered leave
-						*oldLevel = level; // update level
-						onDiscoveryAgent(agent, other, mtvVec, level, false, false); // leave
+		if (level < dds->length()) { // within some level
+			uint32_t *lastLevel;
+			if (agent->_discoverys_rt.get(other, lastLevel)) { // found
+				if (level > *lastLevel) { // leave
+					if (mtvLen > dds->at(*lastLevel) + buffer) { // buffered leave
+						*lastLevel = level; // update level
+						onDiscoveryAgent(agent, other, mtvVec, level, false); // leave
 					}
-				} else if (level < *oldLevel) { // entering
-					if (mtvLenSq < ddsSq->at(level) - bufferSq) {
-						*oldLevel = level; // update level
-						onDiscoveryAgent(agent, other, mtvVec, level, true, false); // entering
+				} else if (level < *lastLevel) { // entering
+					if (mtvLen < dds->at(*lastLevel) - buffer) {
+						*lastLevel = level; // update level
+						onDiscoveryAgent(agent, other, mtvVec, level, true); // entering
 					}
 				}
 			} else { // new discovery
 				agent->_discoverys_rt.set(other, level);
-				onDiscoveryAgent(agent, other, mtvVec, level, true, false); // entering
+				onDiscoveryAgent(agent, other, mtvVec, level, true); // entering
 			}
 		} else { // out of all levels
 			if (agent->_discoverys_rt.erase(other)) { // erase success
-				onDiscoveryAgent(agent, other, mtvVec, -1, false, false); // lose discovery
+				onDiscoveryAgent(agent, other, mtvVec, 0xffffffff, false); // lose discovery
 			}
 		}
 	}
@@ -457,14 +458,14 @@ namespace qk {
 
 		if (time - agent->_lastUpdateTime > 1.0f) { // 1 second without update
 			// If last update was long ago, reset velocity to avoid sudden jumps
-			agent->_lastUpdateTime = time;
 			agent->_velocity = {}; // reset velocity
 		}
+		agent->_lastUpdateTime = time;
 
 		// precompute polygon points at current position
 		auto* pts = isPoly ? &agent->ptsOfBounds() : nullptr;
 		// load discovery distances
-		auto ddsSq = agent->_discoveryDistancesSq.load();
+		auto dds = agent->_discoveryDistances.load();
 
 		// sub-step integration
 		float stepDt = deltaTime / std::max(1, _subSteps);
@@ -525,7 +526,7 @@ namespace qk {
 				if (o == agent) continue; // skip self
 				MTV mtv;
 				auto other = o->asAgent();
-				bool isEvent = ddsSq && other; // only agents have discovery events
+				bool isEvent = dds && other; // only agents have discovery events
 				if (agent->test_entity_vs_entity(o, &mtv, &totalMTV, isEvent)) {
 					collided = true;
 				}
@@ -538,7 +539,7 @@ namespace qk {
 			float toTargetLenSq = toTarget.lengthSq();
 
 			if (collided) {
-				agent->_velocity *= 0.8f; // reduce velocity on collision
+				agent->_velocity *= agent->_avoidanceVelocityFactor; // reduce velocity on collision
 				// apply total MTV to move out of collision
 				float overlap = totalMTV.length() + 1e-3f; // 穿透深度或最小分离距离
 				float factor = avoidFactor;
@@ -552,8 +553,6 @@ namespace qk {
 				move += avoidance;
 				circ.center += avoidance; // update circle center
 			}
-
-			
 
 			// check if reached target
 			if (movedLenSq >= toTargetLenSq) {

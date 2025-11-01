@@ -678,7 +678,7 @@ namespace qk { namespace js {
 	}
 
 	JSUint32* Worker::newValue(uint32_t data) {
-		return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
+		return Cast<JSUint32>(v8::Uint32::NewFromUnsigned(ISOLATE(this), data));
 	}
 
 	JSNumber* Worker::newValue(int64_t data) {

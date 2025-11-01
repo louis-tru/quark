@@ -98,6 +98,11 @@ export interface DOM {
 	readonly metaView: View;
 
 	/**
+	 * The owner ViewController that manages this DOM node.
+	*/
+	readonly owner: ViewController;
+
+	/**
 	 * Append this node as a child of the given parent.
 	 * @param parent Target parent view.
 	 * @returns The same view for chaining.
@@ -140,6 +145,9 @@ type ChildDOM = DOM | null;
 export declare class View extends Notification<UIEvent> implements DOM {
 	/** Internal JSX child DOM nodes (virtual children for VDOM/JSX diffing). */
 	readonly childDoms: ChildDOM[];
+
+	/** The owner ViewController that manages this view. */
+	readonly owner: ViewController;
 
 	/** @event Fired on pointer/touch "click"-like activation. */
 	readonly onClick: EventNoticer<ClickEvent>;
@@ -791,7 +799,7 @@ export declare abstract class Agent extends Entity {
 	 * Fired when an agent is discovered (enters range) or lost (leaves range).
 	 * @event
 	 */
-	readonly onDiscovery: EventNoticer<DiscoveryAgentEvent>;
+	readonly onDiscoveryAgent: EventNoticer<DiscoveryAgentEvent>;
 
 	/**
 	 * Fired when following state changes (start, stop, cancel).
@@ -833,10 +841,10 @@ export declare abstract class Agent extends Entity {
 	readonly currentWaypoint: Uint;
 
 	/**
-	 * Squared discovery radii for proximity checks.
+	 * Discovery radii for proximity checks.
 	 * Each element is a threshold band for detection.
 	 */
-	discoveryDistancesSq: Float[];
+	discoveryDistances: Float[];
 
 	/**
 	 * Safety buffer distance for local avoidance.
@@ -848,7 +856,13 @@ export declare abstract class Agent extends Entity {
 	 * Avoidance strength multiplier during collision resolution.
 	 * Default is 1.0f, range [0.0, 10.0].
 	 */
-	avoidance: Float;
+	avoidanceFactor: Float;
+
+	/**
+	 * Maximum avoidance velocity applied when steering away from obstacles.
+	 * Default is 0.8f, range [0.0, 3.0], recommended range [0.0, 1.0].
+	 */
+	avoidanceVelocityFactor: Float;
 
 	/**
 	 * Distance min range maintained while following a target agent.
@@ -865,12 +879,6 @@ export declare abstract class Agent extends Entity {
 	 * If null, no follow behavior is active.
 	 */
 	followTarget: Agent | null;
-
-	/**
-	 * Configure discovery distance thresholds in world units.
-	 * @param distances Ascending list of detection radii (not squared).
-	 */
-	setDiscoveryDistances(distances: number[]): void;
 
 	/**
 	 * Move toward a specific position.
@@ -1738,15 +1746,16 @@ declare global {
 		interface AgentJSX extends EntityJSX {
 			onReachWaypoint?: Listen<ArrivePositionEvent, Agent> | null;
 			onArriveDestination?: Listen<ArrivePositionEvent, Agent> | null;
-			onDiscovery?: Listen<DiscoveryAgentEvent, Agent> | null;
+			onDiscoveryAgent?: Listen<DiscoveryAgentEvent, Agent> | null;
 			onFollowStateChange?: Listen<FollowStateEvent, Agent> | null;
 			onMovementActive?: Listen<AgentStateChangeEvent, Agent> | null;
 			onDirectionChange?: Listen<AgentStateChangeEvent, Agent> | null;
 			active?: boolean;
 			velocityMax?: number;
-			discoveryDistancesSq?: number | number[];
+			discoveryDistances?: number | number[];
 			safetyBuffer?: number;
-			avoidance?: number;
+			avoidanceFactor?: number;
+			avoidanceVelocityFactor?: number;
 			followMinDistance?: number;
 			followMaxDistance?: number;
 			followTarget?: Agent | null;
@@ -2271,7 +2280,7 @@ class _Image {
 class _Agent {
 	@event readonly onReachWaypoint: EventNoticer<ArrivePositionEvent>;
 	@event readonly onArriveDestination: EventNoticer<ArrivePositionEvent>;
-	@event readonly onDiscovery: EventNoticer<DiscoveryAgentEvent>;
+	@event readonly onDiscoveryAgent: EventNoticer<DiscoveryAgentEvent>;
 	@event readonly onFollowStateChange: EventNoticer<FollowStateEvent>;
 	@event readonly onMovementActive: EventNoticer<AgentStateChangeEvent>;
 	@event readonly onDirectionChange: EventNoticer<AgentStateChangeEvent>;

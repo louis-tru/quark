@@ -183,15 +183,15 @@ namespace qk {
 		 * @param agent  The discovered or lost agent.
 		 * @param location The relative location to the other agent.
 		 * @param id Unique identifier for the discovered agent.
-		 * @param level Discovery level (range band index), -1 indicates completely lost.
+		 * @param level Discovery level (range band index), 0xffffffff indicates completely lost.
 		 * @param entering True if entering range, false if leaving.
 		 */
-		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uint32_t id, int level, bool entering);
+		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uint32_t id, uint32_t level, bool entering);
 
 		Qk_DEFINE_PROP_GET(Agent*, agent);     ///< The other discovered agent.
 		Qk_DEFINE_PROP_GET(Vec2, location, Const); ///< Relative position to the other agent.
 		Qk_DEFINE_PROP_GET(uint32_t, agentId, Const); ///< Usually low 32 bits of pointer address.
-		Qk_DEFINE_PROP_GET(int, level, Const); ///< Discovery level index.
+		Qk_DEFINE_PROP_GET(uint32_t, level, Const); ///< Discovery level index.
 		Qk_DEFINE_PROP_GET(bool, entering, Const); ///< True if entering range; false if leaving.
 
 		void release() override; ///< Custom release logic.
@@ -260,8 +260,8 @@ namespace qk {
 		/** Current waypoint index when navigating along a path. */
 		Qk_DEFINE_PROP_GET(uint32_t, currentWaypoint, Const);
 
-		/** Accessor for discovery distance levels (squared). Used for agent detection. */
-		Qk_DEFINE_ACCESSOR(cArray<float>&, discoveryDistancesSq, Const);
+		/** Accessor for discovery distance levels. Used for agent detection. */
+		Qk_DEFINE_ACCESSOR(cArray<float>&, discoveryDistances, Const);
 
 		/** Safety buffer for collision avoidance. Default 5.0f, range [0, 100]. */
 		Qk_DEFINE_PROPERTY(float, safetyBuffer, Const);
@@ -270,7 +270,13 @@ namespace qk {
 		 * Avoidance strength multiplier during collision resolution.
 		 * Default is 1.0f, range [0.0, 10.0].
 		*/
-		Qk_DEFINE_PROPERTY(float, avoidance, Const);
+		Qk_DEFINE_PROPERTY(float, avoidanceFactor, Const);
+
+		/**
+		 * Maximum avoidance velocity applied when steering away from obstacles.
+		 * Default is 0.8f, range [0.0, 3.0], recommended range [0.0, 1.0].
+		*/
+		Qk_DEFINE_PROPERTY(float, avoidanceVelocityFactor, Const);
 
 		/**
 		 * Distance min range maintained while following a target agent.
@@ -283,21 +289,10 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(float, followMaxDistance, Const);
 
 		/**
-		 * Timestamp of the last update cycle for movement logic.
-		 */
-		Qk_DEFINE_PROP_GET(float, lastUpdateTime, Const);
-
-		/**
 		 * The target agent to follow.  
 		 * If non-null, follow behavior overrides waypoint or direct movement.
 		 */
 		Qk_DEFINE_ACCESSOR(Agent*, followTarget, Const);
-
-		/**
-		 * Set discovery distance levels using real (non-squared) values.
-		 * @param val Array of distance thresholds (ascending order).
-		 */
-		void setDiscoveryDistances(cArray<float>& val);
 
 		/** @override Destructor. */
 		~Agent();
@@ -362,10 +357,11 @@ namespace qk {
 
 	private:
 		Dict<Agent*, uint32_t> _discoverys_rt; ///< Runtime map of discovered agents → level index.
-		std::atomic<Array<float>*> _discoveryDistancesSq; ///< Squared discovery range levels.
+		std::atomic<Array<float>*> _discoveryDistances; ///< Discovery range levels.
 		std::atomic<Path*> _waypoints; ///< Active waypoint path.
 		std::atomic<Agent*> _followTarget; ///< Current follow target (weak reference).
 		Vec2 _lastReportDir; ///< Last reported direction for change detection.
+		float _lastUpdateTime; ///< Timestamp of last update cycle.
 
 		friend class World;
 	};

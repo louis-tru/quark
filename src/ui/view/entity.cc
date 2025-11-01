@@ -322,7 +322,7 @@ namespace qk {
 		: UIEvent(origin), _position(position), _nextLocation(nextLocation), _waypointIndex(waypoint_index) {
 	}
 	DiscoveryAgentEvent::DiscoveryAgentEvent(
-		Agent *origin, Agent* agent, Vec2 location, uint32_t id, int level, bool entering
+		Agent *origin, Agent* agent, Vec2 location, uint32_t id, uint32_t level, bool entering
 	) : UIEvent(origin), _agent(agent), _location(location)
 		, _agentId(id), _level(level), _entering(entering)
 	{}
@@ -352,18 +352,18 @@ namespace qk {
 		, _velocity(), _velocityMax(100.0f)
 		, _currentWaypoint(0)
 		, _safetyBuffer(5.0f)
-		, _avoidance(1.0f)
+		, _avoidanceFactor(1.0f)
+		, _avoidanceVelocityFactor(0.8f)
 		, _followMinDistance(0.0f)
 		, _followMaxDistance(0.0f)
-		, _lastUpdateTime(0)
-		, _discoveryDistancesSq(nullptr), _waypoints(nullptr), _followTarget(nullptr)
-		, _lastReportDir(0,0)
+		, _discoveryDistances(nullptr), _waypoints(nullptr), _followTarget(nullptr)
+		, _lastReportDir(0,0), _lastUpdateTime(0)
 	{
 		// sizeof(Agent); // call to avoid compile warning
 	}
 
 	Agent::~Agent() {
-		Releasep(_discoveryDistancesSq);
+		Releasep(_discoveryDistances);
 		Releasep(_waypoints);
 		_followTarget = nullptr;
 	}
@@ -380,8 +380,12 @@ namespace qk {
 		}
 	}
 
-	void Agent::set_avoidance(float value) {
-		_avoidance = Float32::clamp(value, 0.0f, 10.0f);
+	void Agent::set_avoidanceFactor(float value) {
+		_avoidanceFactor = Float32::clamp(value, 0.0f, 10.0f);
+	}
+
+	void Agent::set_avoidanceVelocityFactor(float value) {
+		_avoidanceVelocityFactor = Float32::clamp(value, 0.0f, 3.0f);
 	}
 
 	void Agent::set_active(bool val) {
@@ -412,21 +416,16 @@ namespace qk {
 		_safetyBuffer = Float32::clamp(val, 0.0f, 100.0f);
 	}
 
-	cArray<float>& Agent::discoveryDistancesSq() const {
+	cArray<float>& Agent::discoveryDistances() const {
 		static cArray<float> Empty;
-		return _discoveryDistancesSq ? *_discoveryDistancesSq : Empty;
+		return _discoveryDistances ? *_discoveryDistances : Empty;
 	}
 
-	void Agent::set_discoveryDistancesSq(cArray<float>& val) {
-		preRender().safeReleasep(_discoveryDistancesSq); // release previous and set nullptr
+	void Agent::set_discoveryDistances(cArray<float>& val) {
+		preRender().safeReleasep(_discoveryDistances); // release previous and set nullptr
 		if (val.length()) {
-			_discoveryDistancesSq.store(new Array<float>(val));
+			_discoveryDistances.store(new Array<float>(val));
 		}
-	}
-
-	void Agent::setDiscoveryDistances(cArray<float>& val) {
-		// convert to squared distances
-		set_discoveryDistancesSq(val.map<float>([](auto d, auto i) { return d * d; }));
 	}
 
 	void Agent::set_followMinDistance(float val) {
@@ -445,7 +444,7 @@ namespace qk {
 	void Agent::set_followTarget(Agent* target) {
 		if (target == this || _followTarget == target)
 			return; // cannot follow self or same target
-		if (target->parent() != parent())
+		if (target && target->parent() != parent())
 			return; // must be in the same world
 		_followTarget = target; // set follow target, weak reference
 		set_active(target);
@@ -557,5 +556,4 @@ namespace qk {
 	void Agent::stop() {
 		set_active(false);
 	}
-
 }

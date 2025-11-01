@@ -61,21 +61,21 @@ namespace qk { namespace js {
 			Js_MixObject_Acce_Get(Agent, Vec2, velocity, velocity);
 			Js_MixObject_Accessor(Agent, float, velocityMax, velocityMax);
 			Js_MixObject_Acce_Get(Agent, uint32_t, currentWaypoint, currentWaypoint);
-			Js_MixObject_Accessor(Agent, ArrayFloat, discoveryDistancesSq, discoveryDistancesSq);
+			Js_MixObject_Accessor(Agent, ArrayFloat, discoveryDistances, discoveryDistances);
 			Js_MixObject_Accessor(Agent, float, safetyBuffer, safetyBuffer);
-			Js_MixObject_Accessor(World, float, avoidance, avoidance);
+			Js_MixObject_Accessor(Agent, float, avoidanceFactor, avoidanceFactor);
+			Js_MixObject_Accessor(Agent, float, avoidanceVelocityFactor, avoidanceVelocityFactor);
 			Js_MixObject_Accessor(Agent, float, followMinDistance, followMinDistance);
 			Js_MixObject_Accessor(Agent, float, followMaxDistance, followMaxDistance);
 
 			Js_Class_Accessor(followTarget, { Js_Return( self->followTarget() ); }, {
-				if (!worker->instanceOf(val, kAgent_Typeid))
-					Js_Throw("Agent.followTarget:Agent");
-				self->set_followTarget(MixObject::mix<Agent>(val)->self());
-			});
-
-			Js_Class_Method(setDiscoveryDistances, {
-				Js_Parse_Args(ArrayFloat, 0, "val = %s");
-				self->setDiscoveryDistances(arg0);
+				if (val->isNull()) {
+					self->set_followTarget(nullptr);
+				} else {
+					if (!worker->instanceOf(val, kAgent_Typeid))
+						Js_Throw("Agent.followTarget:Agent");
+					self->set_followTarget(MixObject::mix<Agent>(val)->self());
+				}
 			});
 
 			Js_Class_Method(moveTo, {

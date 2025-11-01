@@ -131,6 +131,7 @@ Range Container::to_range() const {
 		Releasep(_cssclass);
 		set_action(nullptr); // Delete action
 		remove_all_child(); // Delete sub views
+		_mark_value = kDestroy; // force mark destroy
 
 		preRender().async_call([](auto self, auto arg) {
 			// To ensure safety and efficiency,
@@ -150,6 +151,14 @@ Range Container::to_range() const {
 				return this;
 			} else {
 				_refCount.fetch_sub(1, std::memory_order_release); // Revoke self increase, Maybe not safe
+			}
+		}
+		if (!(_mark_value & kDestroy)) { // If not destroying, try one more time
+			_refCount++; // self increase
+			if (!(_mark_value & kDestroy)) { // check again
+				return this;
+			} else {
+				_refCount--; // Revoke self increase
 			}
 		}
 		return nullptr;

@@ -70,9 +70,10 @@ namespace qk {
 			kText_Options             = (1 << 8), /* Text configuration changes and may affect subviews */
 			kScroll                   = (1 << 9), /* scroll status change */
 			kStyle_Class              = (1 << 10), /* View style changes caused by changing class */
-			kTransform                = (1 << 30), /* Matrix Transformation, recursive mark */
-			kVisible_Region           = (1U << 31), /* Visible range changes */
+			kTransform                = (1 << 29), /* Matrix Transformation, recursive mark */
+			kVisible_Region           = (1U << 30), /* Visible range changes */
 			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
+			kDestroy                  = (1U << 31), /* View is being destroyed */
 		};
 
 		// Child layout change mark key values

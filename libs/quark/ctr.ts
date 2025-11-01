@@ -536,6 +536,7 @@ export class VirtualDOM<T extends DOM = DOM> {
 				}
 				(view as RemoveReadonly<View>).childDoms = childDoms;
 			}
+			(view as RemoveReadonly<View>).owner = owner;
 			setref(view, owner, props.ref || '');
 			Object.assign(view, props);
 			return view as DOM as T;
@@ -611,6 +612,7 @@ class VirtualDOMText extends VirtualDOM<Label> {
 	newDom<P = {}, S = {}>(owner: ViewController<P,S>): Label {
 		let view = new Label(owner.window);
 		view.value = this.value;
+		(view as any).owner = owner;
 		return view;
 	}
 }
@@ -953,6 +955,26 @@ export class ViewController<P = {}, S = {}> implements DOM {
 	static readonly isViewController: boolean = true;
 }
 
+/*
+ * InvalidViewController is a marker class used to indicate an invalid ViewController.
+*/
+class InvalidViewController extends ViewController {
+	constructor() {
+		super({}, {window: null as any, children:[], owner: null as any});
+	}
+	async setState() { throw new Error('Not implemented'); }
+	async update() { throw new Error('Not implemented'); }
+}
+
+util.extend(InvalidViewController.prototype, {
+	get window() { throw new Error('Not implemented'); },
+	set window(v) {},
+	get owner() { throw new Error('Not implemented'); },
+	set owner(v) {},
+});
+
+const _invalidViewController = new InvalidViewController();
+
 // --- Additional helpers, JSX, element creation, etc. ---
 
 Object.assign(ViewController.prototype, {
@@ -962,12 +984,15 @@ Object.assign(ViewController.prototype, {
 		destroy() { },
 		appendTo(){ throw Error.new('Not implemented dom not initialized') },
 		afterTo(){ throw Error.new('Not implemented dom not initialized') },
+		owner: _invalidViewController,
 	} as DOM,
 	_watchings: new InvalidSet,
 	_linkProps: [],
 	ref: '', _vdom: undefined,
 	isLoaded: false, isMounted: false, isDestroyd: false,
 });
+
+(View as any).prototype.owner = _invalidViewController; // fix owner type
 
 export default ViewController;
 

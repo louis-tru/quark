@@ -545,6 +545,12 @@ export declare class SpineEvent extends UIEvent {
 	readonly origin: Spine;
 	/** The event type */
 	readonly type: SpineEventType;
+	/** The animation track index */
+	readonly trackIndex: Uint;
+	/** The animation name */
+	readonly animationName: string;
+	/**The current time of the track */ 
+	readonly trackTime: Float; 
 }
 
 /**
@@ -593,13 +599,13 @@ export declare class DiscoveryAgentEvent extends UIEvent {
  /** agent itself */
 	readonly origin: Agent;
  /** other agent when remove view is null */
-	readonly agent: Agent | null;
+	readonly agent: Agent;
  /** to agent location */
 	readonly location: Vec2;
  /** usually use agent's pointer address low 32 bits */
 	readonly agentId: Uint;
- /** discovery level, -1 means lost all levels */
-	readonly level: Int;
+ /** discovery level, 0xffffffff means lost all levels */
+	readonly level: Uint;
  /** is leaving or entering */
 	readonly entering: boolean;
 }
