@@ -94,17 +94,58 @@ namespace qk {
 	 * translation vector needed to separate the polygons if they are found to be overlapping.
 	 * @param poly1 The vertices of the first convex polygon.
 	 * @param poly2 The vertices of the second convex polygon.
-	 * @param origin1 The origin point of the first polygon for projection offset.
-	 * @param origin2 The origin point of the second polygon for projection offset.
 	 * @param outMTV Optional output parameter to receive the minimum translation vector
 	 *               needed to separate the polygons if they overlap.
-	 * @param computeMTV If true, the function will compute the distance
-	 *                   between the polygons when they are found to be separated.
 	 * @return true if the polygons overlap, false otherwise.
 	*/
-	Qk_EXPORT bool test_overlap_from_convex_polygons(const cArray<Vec2>& poly1, const cArray<Vec2>& poly2,
-																				Vec2 origin1, Vec2 origin2,
-																				MTV* outMTV = nullptr, bool computeMTV = false);
+	Qk_EXPORT bool test_polygon_vs_polygon_sat(cArray<Vec2>& poly1, cArray<Vec2>& poly2, MTV* outMTV = nullptr);
+
+	/**
+	 * @brief GJK closest-distance / overlap test for convex polygons.
+	 *
+	 * If polygons overlap, returns MTV=zero (use SAT for penetration resolution).
+	 * If polygons do NOT overlap, returns the **shortest separation vector**
+	 * that moves A to touch B.
+	 *
+	 * ⚠️ Semantics:
+	 * - Convex polygons only
+	 * - Designed for **separated** shapes
+	 * - Returns real geometric distance (not projection depth)
+	 * - MTV.axis always points **from A to B**
+	 *
+	 * Recommended use:
+	 * - Use SAT first for penetration resolution
+	 * - Use GJK only when SAT reports "no overlap"
+	 *
+	 * @param A     Polygon A
+	 * @param B     Polygon B
+	 * @param mtv   Output MTV {axis, distance} if separated
+	 * @return true Overlapping (MTV = {0,0})
+	 * @return false Separated (MTV valid)
+	 */
+	Qk_EXPORT bool test_polygon_vs_polygon_gjk(cArray<Vec2>& A, cArray<Vec2>& B, MTV* mtv = nullptr);
+
+	/**
+	 * @brief Fast approximate closest-distance MTV between convex polygons.
+	 *
+	 * Computes a separation vector using point-to-edge distance tests.
+	 * Faster than GJK, less robust numerically.
+	 *
+	 * ⚠️ Semantics:
+	 * - Convex polygons only
+	 * - Only valid when shapes are **not overlapping**
+	 * - Returns smallest distance to separate A from B
+	 * - MTV.axis always points **from A to B**
+	 *
+	 * Use when:
+	 * - You need very fast steering / avoidance / wall-sliding
+	 * - You don't need exact GJK precision
+	 *
+	 * @param A     Polygon A
+	 * @param B     Polygon B
+	 * @param mtv   Output MTV {axis, distance}
+	 */
+	Qk_EXPORT void test_polygon_vs_polygon_fast(cArray<Vec2>& A, cArray<Vec2>& B, MTV* mtv);
 
 	/**
 	 * @method region_from_convex_quadrilateral
@@ -140,15 +181,15 @@ namespace qk {
 	// ------------------------ 射线 vs 线段相交检测 ------------------------
 	Qk_EXPORT bool ray_segment_intersection(Vec2 p, Vec2 dir, Vec2 a, Vec2 b, Vec2& outPoint);
 	// ------------------------ 圆 vs 厚线段检测（MTV） ------------------------
-	Qk_EXPORT bool test_circle_vs_line_segment(const Circle& circ, const LineSegment& seg, MTV* out = nullptr, bool computeMTV = false);
+	Qk_EXPORT bool test_circle_vs_line_segment(const Circle& circ, const LineSegment& seg, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 多边形 vs 线段检测（MTV） ------------------------
-	Qk_EXPORT bool test_poly_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* out = nullptr, bool computeMTV = false);
+	Qk_EXPORT bool test_poly_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 圆 vs 圆检测（MTV） ------------------------
-	Qk_EXPORT bool test_circle_vs_circle(const Circle& circ, const Circle& otherCirc, MTV* out = nullptr, bool computeMTV = false);
+	Qk_EXPORT bool test_circle_vs_circle(const Circle& circ, const Circle& otherCirc, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 圆 vs 多边形检测（MTV） ------------------------
-	Qk_EXPORT bool test_circle_vs_polygon(const Circle& circ, cArray<Vec2>& polyB, MTV* out = nullptr, bool computeMTV = false);
+	Qk_EXPORT bool test_circle_vs_polygon(const Circle& circ, cArray<Vec2>& polyB, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 多边形 vs 多边形检测（MTV） ------------------------
-	Qk_EXPORT bool test_polygon_vs_polygon(cArray<Vec2>& polyA, cArray<Vec2>& polyB, MTV* out = nullptr, bool computeMTV = false);
+	Qk_EXPORT bool test_polygon_vs_polygon(cArray<Vec2>& polyA, cArray<Vec2>& polyB, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 预测前方距离（基于方向 dir）（如果不会阻挡，返回 +inf）------------------------
 	Qk_EXPORT float predict_forward_distance_circ_to_seg_fast(const Circle& circ, Vec2 dir, const LineSegment& seg, float safetyBuf = 0.0f);
 	// ------------------------ 预测前方距离到线段障碍 ------------------------

@@ -138,7 +138,7 @@ namespace qk {
 			auto v = first();
 			while (v) {
 				auto agent = v->asAgent();
-				if (agent && other != agent) {
+				if (agent && agent != other) {
 					// Remove from discovery set if no longer visible
 					if (agent->_discoverys_rt.erase(other)) { // erase success
 						onDiscoveryAgent(agent, other, Vec2(), 0xffffffff, false); // lose discovery, remove agent
@@ -154,6 +154,47 @@ namespace qk {
 			}
 		}
 		View::onChildLayoutChange(child, mark);
+	}
+
+	/**
+	 * discovery event processing
+	 */
+	void World::handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv) {
+		// compute discovery distance squared
+		auto buffer = _discoveryThresholdBuffer; // buffer distance to prevent flickering
+		auto dds = agent->_discoveryDistances.load();
+		auto mtvLen = mtv.overlap;
+		auto level = dds->length();
+		for (int i = level - 1; i >= 0; i--) {
+			if (mtvLen < dds->at(i))
+				level = i; // found level
+			else break;
+		}
+		Vec2 mtvVec = mtv.axis * mtv.overlap;
+		// process discovery levels
+		if (level < dds->length()) { // within some level
+			uint32_t *lastLevel;
+			if (agent->_discoverys_rt.get(other, lastLevel)) { // found
+				if (level > *lastLevel) { // leave
+					if (mtvLen > dds->at(*lastLevel) + buffer) { // buffered leave
+						*lastLevel = level; // update level
+						onDiscoveryAgent(agent, other, mtvVec, level, false); // leave
+					}
+				} else if (level < *lastLevel) { // entering
+					if (mtvLen < dds->at(*lastLevel) - buffer) {
+						*lastLevel = level; // update level
+						onDiscoveryAgent(agent, other, mtvVec, level, true); // entering
+					}
+				}
+			} else { // new discovery
+				agent->_discoverys_rt.set(other, level);
+				onDiscoveryAgent(agent, other, mtvVec, level, true); // entering
+			}
+		} else { // out of all levels
+			if (agent->_discoverys_rt.erase(other)) { // erase success
+				onDiscoveryAgent(agent, other, mtvVec, 0xffffffff, false); // lose discovery
+			}
+		}
 	}
 
 	bool World::run_task(int64_t time, int64_t delta) {
@@ -205,18 +246,19 @@ namespace qk {
 	void World::updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs, float time, float delta) {
 		auto waypoints = agent->_waypoints.load(); // waypoints array
 		auto current = agent->_currentWaypoint; // current waypoint index
+		auto lastToTarget = agent->_target - agent->_translate;
 		if (waypoints) {
 			while (agent->_active && delta > 0.0f) { // still active
 				// Move towards current waypoint
-				delta = updateAgentWithAvoidance(agent, obs, agent->_avoidanceFactor, time, delta);
+				delta = updateAgentWithAvoidance(agent, obs, time, delta);
 				if (delta == 0.0f) {
 					auto velocitySq = agent->_velocity.lengthSq();
 					auto velocityMaxSq = agent->_velocityMax * agent->_velocityMax; // for optimization
 					if (velocitySq / velocityMaxSq < 0.3f) {
 						// Stopped moving due to avoidance
 						// Check if the target has been approximately reached
-						auto buffer = agent->_circleBounds.radius + _waypointRadius;
 						auto toTarget = agent->_target - agent->_translate;
+						auto buffer = agent->_circleBounds.radius + _waypointRadius;
 						auto toTargetLen = toTarget.length();
 						if (toTargetLen <= buffer)
 							goto tag1; // consider reached, advance to next waypoint
@@ -247,105 +289,74 @@ namespace qk {
 				}
 			}
 		} else if (agent->_active) {
-			delta = updateAgentWithAvoidance(agent, obs, agent->_avoidanceFactor, time, delta);
+			delta = updateAgentWithAvoidance(agent, obs, time, delta);
 			if (delta != 0.0f) { // Already at target, ended movement
 				agent->_active = false;
 				onEvent<ArrivePositionEvent>(UIEvent_ArriveDestination, agent, agent->_target, Vec2(), 0);
 			}
 		}
+		agent->reportDirectionChange(lastToTarget.normalized());
 	}
 
 	void World::updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float time, float delta) {
-		auto target = agent->_followTarget.load();
-		if (!target || !agent->_active)
+		auto other = agent->_followTarget.load();
+		if (!other || !agent->_active)
 			return;
-		if (target->_bounds.type == Entity::kLineSegment)
+		if (other->_bounds.type == Entity::kLineSegment)
 			return;
 		Qk_ASSERT(agent->_bounds.type != Entity::kLineSegment);
 
 		Vec2 pos = agent->_translate; // current position
 		MTV mtv; // minimum translation vector for avoidance
 		Vec2 mtvVec;
-		float avoidance = agent->_avoidanceFactor;
+		float safetyBuffer = agent->_safetyBuffer;
+		constexpr float EPS = 1e-2f;//GEOM_EPS;
 
-		if (agent->test_entity_vs_entity(target, &mtv, &mtvVec, true)) {
+		bool collision = agent->test_entity_vs_entity(other, &mtv, &mtvVec, true);
+		if (collision) {
 			agent->_target = pos + mtvVec; // set target to avoid collision
 		} else {
-			Qk_ASSERT(mtv.overlap >= 0.0f);
 			float mtvLen = mtv.overlap; // distance to target
 			float minBuf = mtvLen - agent->_followMinDistance;
 			float maxBuf = mtvLen - agent->_followMaxDistance;
-			//float maxBufHalf = maxBuf + (agent->_followMaxDistance - agent->_followMinDistance) * 0.5f;
-			if (minBuf < GEOM_EPS) {
-				agent->_target = pos + mtv.axis * minBuf; // too close, move away
-			}
-			else if (maxBuf > GEOM_EPS && (agent->_following || maxBuf > agent->_safetyBuffer)) {
-				float radius = target->_circleBounds.radius + agent->_followMaxDistance;
-				float w = fabsf(std::min(mtv.overlap / radius - 1.0f, 1.0f)); // 0~1
-				// When a gravitational range is set close, the gravitational force increases,
-				// But as it approaches the core, the gravity gradually weakens,
-				// causing a situation where people from the outer circle are more likely to squeeze into the inner circle
-				avoidance *= (0.5f + w * 0.5f);
-				agent->_target = pos + mtv.axis * (maxBuf + 0.1f/*EPSILON*/); // too far, move closer
+			float safetyBufferEPS = safetyBuffer + EPS;
+			maxBuf = std::min(maxBuf, minBuf - safetyBufferEPS - safetyBufferEPS);
+
+			// if (minBuf <= 0.0f || (agent->_following && minBuf < safetyBuffer)) {
+			if (minBuf <= safetyBuffer) {
+				agent->_target = pos + mtv.axis * (minBuf - safetyBuffer - EPS); // too close, move away
+				if (!agent->_following && minBuf > 0.0f) {
+					goto update; // still within buffer range, do not trigger follow start event
+				}
+			} else if (maxBuf >= 0.0f || (agent->_following && maxBuf > -safetyBuffer)) {
+				agent->_target = pos + mtv.axis * (maxBuf + safetyBufferEPS); // too far, move closer
 			} else {
+				agent->_target = pos; // set target to current position
 				// Already at follow distance
-				if (agent->_following) {
-					Qk_DLog("FollowStateEvent::kStop");
+				if (agent->_following) { // stable for 0.2s
+					//Qk_DLog("FollowStateEvent::kStop, %f %f", minBuf, maxBuf);
 					agent->_following = false;
 					onEvent<FollowStateEvent>(UIEvent_FollowStateChange, agent, FollowStateEvent::kStop);
 				}
-				return;
+				goto update;
 			}
 		}
 
 		if (!agent->_following) {
-			Qk_DLog("FollowStateEvent::kStart");
+			//Qk_DLog("FollowStateEvent::kStart");
 			agent->_following = true;
 			onEvent<FollowStateEvent>(UIEvent_FollowStateChange, agent, FollowStateEvent::kStart);
 		}
-
-		updateAgentWithAvoidance(agent, obs, avoidance, time, delta);
-	} 
-
-	/**
-	 * discovery event processing
-	 */
-	void World::handleDiscoveryEvents(Agent* agent, Agent* other, MTV mtv) {
-		// compute discovery distance squared
-		auto buffer = _discoveryThresholdBuffer; // buffer distance to prevent flickering
-		auto dds = agent->_discoveryDistances.load();
-		auto mtvLen = mtv.overlap;
-		auto level = dds->length();
-		for (int i = level - 1; i >= 0; i--) {
-			if (mtvLen < dds->at(i)) {
-				level = i; // found level
-			} else
-				break;
-		}
-		Vec2 mtvVec = mtv.axis * mtv.overlap;
-		// process discovery levels
-		if (level < dds->length()) { // within some level
-			uint32_t *lastLevel;
-			if (agent->_discoverys_rt.get(other, lastLevel)) { // found
-				if (level > *lastLevel) { // leave
-					if (mtvLen > dds->at(*lastLevel) + buffer) { // buffered leave
-						*lastLevel = level; // update level
-						onDiscoveryAgent(agent, other, mtvVec, level, false); // leave
-					}
-				} else if (level < *lastLevel) { // entering
-					if (mtvLen < dds->at(*lastLevel) - buffer) {
-						*lastLevel = level; // update level
-						onDiscoveryAgent(agent, other, mtvVec, level, true); // entering
-					}
-				}
-			} else { // new discovery
-				agent->_discoverys_rt.set(other, level);
-				onDiscoveryAgent(agent, other, mtvVec, level, true); // entering
-			}
-		} else { // out of all levels
-			if (agent->_discoverys_rt.erase(other)) { // erase success
-				onDiscoveryAgent(agent, other, mtvVec, 0xffffffff, false); // lose discovery
-			}
+		update:
+		updateAgentWithAvoidance(agent, obs, time, delta);
+		// report direction change
+		if (!collision) {
+			agent->reportDirectionChange(mtv.axis);
+			// is left
+			// float dot = mtv.axis.dot(Vec2(-1.0f, 0.0f));
+			// if (dot < 0.8f && dot > 0) {
+			// 	Qk_DLog("is left");
+			// }
 		}
 	}
 
@@ -358,16 +369,13 @@ namespace qk {
 		Vec2 dir = (agent->_velocity.lengthSq() > GEOM_EPS) ? agent->_velocity.normalized() : dirToTarget;
 		Vec2 avoidanceTotal; // total avoidance vector
 		float maxDist = agent->_velocityMax * _predictionTime;
+		float safetyBuf = agent->_safetyBuffer;
 
 		#define USE_tangent 1
 
 		for (auto o : obs) {
 			if (o == agent) continue; // skip self
-			// select safety buffer
-			float safetyBuf = agent->_safetyBuffer;
 			bool isFollowingTarget = agent->_followTarget == o;
-			if (isFollowingTarget) // following target
-				safetyBuf = agent->_followMinDistance; // use min follow distance as buffer
 			MTV mtv; // avoidance vector for this obstacle
 
 			if (o->_bounds.type == Entity::kDefault || o->_bounds.type == Entity::kCircle) { // 1) 处理圆形障碍
@@ -383,7 +391,7 @@ namespace qk {
 						// 远离障碍中心切线方向避让
 						auto away = (pos - circB.center).normalized();
 						#if USE_tangent
-							away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
+						away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
 						#endif
 						avoidanceTotal += away * (1.0f + (maxDist - d) / maxDist);
 					}
@@ -402,7 +410,7 @@ namespace qk {
 						// 远离障碍中心切线方向避让
 						Vec2 away = (pos - cent).normalized();
 						#if USE_tangent
-							away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
+						away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
 						#endif
 						avoidanceTotal += away * (1.0f + (maxDist - d) / maxDist);
 					}
@@ -427,7 +435,7 @@ namespace qk {
 							Vec2 cent = (seg.a + seg.b) * 0.5f;
 							Vec2 away = (pos - cent).normalized(); // 远离方向
 							#if USE_tangent
-								away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
+							away = away.det(dirToTarget) < GEOM_EPS ? away.rotate90z() : away.rotate270z();
 							#endif
 							avoidanceTotal += away * (1.0f + (maxDist - d) / maxDist); // 加权避让 1->2 away
 						}
@@ -440,21 +448,56 @@ namespace qk {
 		return avoidanceTotal; // 返回总避让向量
 	}
 
+	// 计算 agent 的新速度向量
+	void World::updateVelocityForAgent(Agent* agent, cArray<Entity*>& obs, Vec2 toTarget) {
+		Vec2 dirToTarget = toTarget.normalized(); // recompute each step
+		// recompute avoidance (could be expensive; can be throttled)
+		Vec2 avoidance = computeAvoidanceForAgent(agent, obs, dirToTarget);
+
+		Vec2 newDir;
+		// 如果 avoidance 几乎为 0，则不干预
+		if (avoidance.lengthSq() < GEOM_EPS) {
+			newDir = dirToTarget; // no avoidance
+		} else {
+			// 滑动优先：尝试合成目标与避让
+			Vec2 aDir = avoidance.normalized();
+			float oppose = aDir.dot(dirToTarget); // [-1,1]
+			// 检查是否几乎互相抵消（正面硬顶）取法线（沿障碍边滑动）
+			if (oppose < GEOM_EPS - 1.0f) {
+				// 判断 dir 与 aDir 的相对朝向（通过叉积符号）
+				newDir = aDir.det(dirToTarget) < GEOM_EPS ? aDir.rotate90z() : aDir.rotate270z();
+			} else {
+				// 根据对抗程度，自动调低避让比重
+				// float weight = 0.8f + (-oppose) * 0.3f; // weight 避让权重 ~0.5->1.1
+				float weight = 0.8f;
+				Vec2 sum = dirToTarget + aDir * weight;
+				newDir = sum.normalized();
+			}
+		}
+
+		// limit velocity change
+		Vec2 lastVelocity = agent->_velocity;
+		// First order low-pass filtering, smooth velocity change
+		auto velocity = lastVelocity * 0.85f + newDir * agent->_velocityMax * 0.15f;
+		//auto velocity = newDir * agent->_velocityMax;
+		float vLen = velocity.length();
+		float maxV = agent->_velocityMax;
+		if (vLen > maxV) // clamp to max velocity
+			velocity *= maxV / vLen;
+		agent->_velocity = velocity; // update agent velocity
+	}
+
 	// ------------------------ 更新单个 agent 的主函数（包含子步迭代）
-	float World::updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float avoidFactor, float time, float deltaTime) {
+	float World::updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float time, float deltaTime) {
 		Qk_ASSERT(agent->_velocityMax > 0.0f); // must have max velocity
 		Qk_ASSERT(agent->_bounds.type != Entity::kLineSegment); // line segment agent does not move
 
 		bool isPoly = agent->_bounds.type == Entity::kPolygon;
+		bool isFollow = agent->_followTarget.load();
 		Circle &circ = agent->_circleBounds;
 		Vec2 pos = agent->_translate; // current position
 		// Vec2 pos = circ.center; // current position
 		Vec2 toTarget = agent->_target - pos;
-
-		if (toTarget.lengthSq() < GEOM_EPS) {
-			// Already at target
-			return deltaTime; // overflow all time
-		}
 
 		if (time - agent->_lastUpdateTime > 1.0f) { // 1 second without update
 			// If last update was long ago, reset velocity to avoid sudden jumps
@@ -470,55 +513,24 @@ namespace qk {
 		// sub-step integration
 		float stepDt = deltaTime / std::max(1, _subSteps);
 		for (int step = 0; step < _subSteps; ++step) {
-			Vec2 dirToTarget = toTarget.normalized(); // recompute each step
-			// recompute avoidance (could be expensive; can be throttled)
-			Vec2 avoidance = computeAvoidanceForAgent(agent, obs, dirToTarget);
-
-			Vec2 newDir;
-			// 如果 avoidance 几乎为 0，则不干预
-			if (avoidance.lengthSq() < GEOM_EPS) {
-				newDir = dirToTarget; // no avoidance
+			Vec2 move; // movement this sub-step
+			float movedLenSq = 0;
+			float toTargetLenSq = toTarget.lengthSq();
+			bool hasTarget = toTargetLenSq > GEOM_EPS;
+			if (hasTarget) {
+				updateVelocityForAgent(agent, obs, toTarget);
+				move = agent->_velocity * stepDt;
+				if (pts) // precompute polygon points at new position
+					for (auto& pt : *pts) pt += move;
+				circ.center += move; // precompute circle at new position
+				movedLenSq = move.lengthSq();
 			} else {
-				// 滑动优先：尝试合成目标与避让
-				Vec2 aDir = avoidance.normalized();
-				float oppose = aDir.dot(dirToTarget); // [-1,1]
-				// 检查是否几乎互相抵消（正面硬顶）取法线（沿障碍边滑动）
-				if (oppose < GEOM_EPS - 1.0f) {
-					// 判断 dir 与 aDir 的相对朝向（通过叉积符号）
-					newDir = aDir.det(dirToTarget) < GEOM_EPS ? aDir.rotate90z() : aDir.rotate270z();
-				} else {
-					// 根据对抗程度，自动调低避让比重
-					// float weight = 0.8f + (-oppose) * 0.3f; // weight 避让权重 ~0.5->1.1
-					float weight = 0.8f;
-					Vec2 sum = dirToTarget + aDir * weight;
-					newDir = sum.normalized();
+				agent->_velocity *= 0.85f; // slow down when near target
+				if (!isFollow) { // not following, can stop
+					// reached target, return remaining time
+					return deltaTime - stepDt * step;
 				}
 			}
-
-			// limit velocity change
-			Vec2 lastVelocity = agent->_velocity;
-			// First order low-pass filtering, smooth velocity change
-			auto velocity = lastVelocity * 0.85f + newDir * agent->_velocityMax * 0.15f;
-			//auto velocity = newDir * agent->_velocityMax;
-			float vLen = velocity.length();
-			float maxV = agent->_velocityMax;
-			if (vLen > maxV) // clamp to max velocity
-				velocity *= maxV / vLen;
-			agent->_velocity = velocity; // update agent velocity
-
-			// report direction change event
-			Vec2 velocityDir = velocity.normalized();
-			if (velocityDir.dot(agent->_lastReportDir) < 0.9f) { // direction changed
-				agent->_lastReportDir = velocityDir;
-				onEvent<AgentStateChangeEvent>(UIEvent_DirectionChange, agent);
-			}
-
-			// tentative move
-			Vec2 move = velocity * stepDt;
-			if (pts) { // precompute polygon points at new position
-				for (auto& pt : *pts) pt += move;
-			}
-			circ.center += move; // precompute circle at new position
 
 			bool collided = false;
 			Vec2 totalMTV;
@@ -535,34 +547,39 @@ namespace qk {
 				}
 			}
 
-			float movedLenSq = move.lengthSq();
-			float toTargetLenSq = toTarget.lengthSq();
-
 			if (collided) {
-				agent->_velocity *= agent->_avoidanceVelocityFactor; // reduce velocity on collision
 				// apply total MTV to move out of collision
-				float overlap = totalMTV.length() + 1e-3f; // 穿透深度或最小分离距离
-				float factor = avoidFactor;
+				float overlap = totalMTV.length() + 1e-3f; // add small epsilon to avoid precision issues
+				float factor = agent->_avoidanceFactor * 0.5f; // scale down avoid factor on collision
 				float near = std::min(sqrtf(toTargetLenSq) / circ.radius, 1.0f);
 				factor *= (0.8f + near * 0.2f); // reduce avoid factor when near target
-				auto avoidance = totalMTV.normalized() * (overlap * factor);
-				// precompute polygon points for next step
-				if (pts && step < _subSteps - 1) {
-					for (auto &pt: *pts) pt += avoidance;
+				Vec2 axis = totalMTV.normalized(); // MTV points from this agent outward
+				auto avoidance = axis * (overlap * factor);
+
+				Vec2 &v = agent->_velocity;
+				float vn = v.dot(axis);
+				// if velocity is pushing into the wall, remove that component
+				if (vn > GEOM_EPS) {
+					v = v - axis * vn; // keep only tangential velocity
 				}
+				v *= agent->_avoidanceVelocityFactor; // reduce velocity on collision
+
+				// precompute polygon points for next step
+				if (pts && step < _subSteps - 1)
+					for (auto &pt: *pts) pt += avoidance;
 				move += avoidance;
 				circ.center += avoidance; // update circle center
 			}
 
 			// check if reached target
-			if (movedLenSq >= toTargetLenSq) {
+			if (!isFollow && movedLenSq >= toTargetLenSq) {
 				float scalar = sqrtf(toTargetLenSq) / sqrtf(movedLenSq); // 0-1 scale
 				Vec2 finalMove = move * scalar; // scale move to exactly
 				float lenSq = (toTarget - finalMove).lengthSq();
 				if (lenSq < 1) {
 					// reached target this step
 					agent->set_translate(agent->translate() + finalMove, true); // update entity position
-					return deltaTime - stepDt * (step + 1.0f - scalar); // return overflow time
+					return deltaTime - (step + 1.0f - scalar) * stepDt; // return overflow time
 				}
 			}
 

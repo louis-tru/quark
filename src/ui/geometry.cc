@@ -150,32 +150,11 @@ namespace qk {
 	// 返回值: true - 相交, false - 不相交
 	// - computeSeparated = true : 计算不相交时的最短距离向量
 	// - computeSeparated = false: 不相交时提前退出，提高性能
-	bool test_overlap_from_convex_polygons(cArray<Vec2>& poly1, cArray<Vec2>& poly2, Vec2 origin1, Vec2 origin2, MTV* mtv, bool computeMTV) {
+	bool test_polygon_vs_polygon_sat(cArray<Vec2>& poly1, cArray<Vec2>& poly2, MTV* mtv) {
 		if (poly1.length() < 3 || poly2.length() < 3)
-				return false;
-
-		auto getPoly = [](cArray<Vec2>& poly, Vec2 origin, Array<Vec2>& poly_world) -> cArray<Vec2>* {
-			if (origin.is_zero())
-				return &poly; // origin 为零时直接返回原始顶点数组，避免不必要的内存分配和复制
-			// 计算世界坐标系下的顶点
-			poly_world.extend(poly.length()); // 分配空间
-			for (uint32_t i = 0; i < poly.length(); i++) {
-				poly_world[i] = poly[i] + origin; // 转换到世界坐标系
-			}
-			return &poly_world;
-		};
-
-		Array<Vec2> poly1_world, poly2_world;
-		auto poly1ptr = getPoly(poly1, origin1, poly1_world);
-		auto poly2ptr = getPoly(poly2, origin2, poly2_world);
-
+			return false;
 		Vec2 bestAxis{0, 0};
 		float minDepth = std::numeric_limits<float>::max();
-		bool separated = false;
-
-		// 如果只需要计算分离向量，则不需要在分离时继续计算最短距离
-		// 但没有mtv时，就不需要计算分离/最短距离向量
-		computeMTV = computeMTV && mtv;
 
 		auto checkAxes = [&](cArray<Vec2>& A, cArray<Vec2>& B) {
 			for (int i = 0; i < A.length(); i++) {
@@ -200,44 +179,149 @@ namespace qk {
 				}
 
 				float overlap = std::min(maxA, maxB) - std::max(minA, minB);
-
-				if (overlap < 0.0f) { // 分离轴
-					separated = true;
-
-					if (!computeMTV) // 不计算分离向量时提前退出
-						return; // 提前退出
-
-					float distance = -overlap;
-					if (distance < minDepth) {
-						minDepth = distance;
-						// 注意：方向应指向 poly1 靠近 poly2 的方向
-						// 如果 poly1 在 axis 方向上更靠右，则需要反向
-						if (minA > minB)
-							axis = -axis; // 保证方向从 poly1 指向 poly2
-						bestAxis = axis;
-					}
-				} else {
-					// 有重叠（相交情况），记录最小穿透深度
-					if (!separated && overlap < minDepth) {
-						minDepth = overlap;
-						bestAxis = axis;
-					}
+				if (overlap < 0.0f) // 分离轴
+					return false;
+				// 有重叠（相交情况），记录最小穿透深度
+				if (overlap < minDepth) {
+					minDepth = overlap;
+					bestAxis = axis;
 				}
 			}
+			return true;
 		};
 
-		// 检查两组边
-		checkAxes(*poly1ptr, *poly2ptr);
-		if (!separated || computeMTV) { // 继续检查第二组边
-			checkAxes(*poly2ptr, *poly1ptr);
+		if (!checkAxes(poly1, poly2) || !checkAxes(poly2, poly1)) {
+			return false; // 不相交
 		}
 
 		if (mtv) {
+			// ✅ 统一 MTV 方向
+			if ((poly2[0] - poly1[0]).dot(bestAxis) < 0)
+				bestAxis = -bestAxis;
 			*mtv = { bestAxis, minDepth };
 			Qk_ASSERT(mtv->overlap >= 0.0f);
 		}
 
-		return !separated; // true = 相交, false = 不相交
+		return true; // 相交
+	}
+
+	// GJK 算法检测两个凸多边形是否相交。
+	// A, B: 凸多边形的顶点数组，按顺时针或逆时针顺序排列
+	// outMTV: 输出最小穿透向量（可选）
+	// 返回值: true - 相交, false - 不相交
+	bool test_polygon_vs_polygon_gjk(cArray<Vec2>& A, cArray<Vec2>& B, MTV* mtv) {
+		auto support = [&](const cArray<Vec2>& P, const Vec2& d) {
+			float best = std::numeric_limits<float>::lowest();
+			Vec2 res;
+			for (uint32_t i = 0; i < P.length(); i++) {
+				float v = P[i].dot(d);
+				if (v > best) best = v, res = P[i];
+			}
+			return res;
+		};
+
+		auto supportM = [&](const Vec2& d) {
+			return support(A, d) - support(B, -d);
+		};
+
+		Vec2 dir = {1, 0};
+		Vec2 simplex[3];
+		int n = 0;
+
+		simplex[n++] = supportM(dir);
+		dir = -simplex[0];
+
+		for (int iter = 0; iter < 20; iter++) {
+			Vec2 a = supportM(dir);
+			if (a.dot(dir) < 0) {
+				// no intersection — distance is |dir|
+				float dist = dir.length();
+				Vec2 axis = dir / dist;
+				if (mtv) *mtv = {axis, dist};
+				return false; // no overlap
+			}
+
+			simplex[n++] = a;
+
+			if (n == 2) {
+				Vec2 a = simplex[1];
+				Vec2 b = simplex[0];
+				Vec2 ab = b - a;
+				Vec2 ao = -a;
+
+				// perpendicular toward origin
+				dir = {ab.y(), -ab.x()};
+				if (dir.dot(ao) < 0) dir = -dir;
+			}
+			else if (n == 3) {
+				Vec2 a = simplex[2];
+				Vec2 b = simplex[1];
+				Vec2 c = simplex[0];
+				Vec2 ao = -a;
+				Vec2 ab = b - a;
+				Vec2 ac = c - a;
+
+				Vec2 abp = {ab.y(), -ab.x()};
+				if (abp.dot(c - b) > 0) abp = -abp;
+
+				if (abp.dot(ao) > 0) {
+						simplex[0] = b; simplex[1] = a; n = 2; dir = abp; continue;
+				}
+
+				Vec2 acp = {ac.y(), -ac.x()};
+				if (acp.dot(b - c) > 0) acp = -acp;
+
+				if (acp.dot(ao) > 0) {
+						simplex[1] = a; simplex[0] = c; n = 2; dir = acp; continue;
+				}
+
+				// theoretically intersect → but SAT already resolved this case
+				if (mtv) *mtv = {{0,0}, 0};
+				return true;
+			}
+		}
+
+		// fallback — shouldn't reach here after SAT precheck
+		float dist = dir.length();
+		Vec2 axis = dir / dist;
+		if (mtv) *mtv = {axis, dist};
+		return false;
+	}
+
+	// 计算两个凸多边形之间的最短距离及对应的最小移动向量 (MTV)
+	// A, B: 凸多边形的顶点数组，按顺时针或逆时针顺序排列
+	// mtv: 输出最小移动向量
+	// 返回值: true - 多边形重叠（MTV 无效）， false - 多边形不重叠（MTV 有效）
+	void test_polygon_vs_polygon_fast(cArray<Vec2>& A, cArray<Vec2>& B, MTV* mtv) {
+		float minDist2 = std::numeric_limits<float>::infinity();
+		Vec2 bestA, bestB;
+
+		// A 点 -> B 边
+		for (uint32_t i=0;i<A.length();i++) {
+			const Vec2& p = A[i];
+			for (uint32_t j=0;j<B.length();j++) {
+				Vec2 a = B[j];
+				Vec2 b = B[(j+1)%B.length()];
+				Vec2 c = closest_point_on_segment(p, a, b);
+				float d2 = (p-c).lengthSq();// dot(p-c, p-c);
+				if (d2 < minDist2) minDist2 = d2, bestA = p, bestB = c;
+			}
+		}
+		// B 点 -> A 边
+		for (uint32_t i=0;i<B.length();i++) {
+			const Vec2& p = B[i];
+			for (uint32_t j=0;j<A.length();j++) {
+				Vec2 a = A[j];
+				Vec2 b = A[(j+1)%A.length()];
+				Vec2 c = closest_point_on_segment(p, a, b);
+				float d2 = (p-c).lengthSq(); //dot(p-c, p-c);
+				if (d2 < minDist2) minDist2 = d2, bestA = c, bestB = p;
+			}
+		}
+
+		float dist = std::sqrt(minDist2);
+		Vec2 dir = (bestB - bestA).normalized(); // A->B
+		*mtv = { dir, dist };
 	}
 
 	// 由凸四边形的四个顶点计算其轴对齐边界框范围盒 (AABB)
@@ -403,16 +487,16 @@ namespace qk {
 	// circ:   圆体 (center, radius)
 	// seg:    线段 (a, b, halfTh)
 	// mtv: 最小平移向量 (圆心方向)
-	// computeMTV: 若为 true，则在未相交时返回间距向量
+	// requestSeparationMTV: 若为 true，则在未相交时返回间距向量
 	// axis 始终从圆指向线段，overlap 始终为正
-	bool test_circle_vs_line_segment(const Circle& circ, const LineSegment& seg, MTV* mtv, bool computeMTV) {
+	bool test_circle_vs_line_segment(const Circle& circ, const LineSegment& seg, MTV* mtv, bool requestSeparationMTV) {
 		Vec2 closest = closest_point_on_segment(circ.center, seg.a, seg.b);
 		Vec2 delta = closest - circ.center; // 指向线段
 		float distSq = delta.lengthSq();
 		float minDist = circ.radius + seg.halfTh;
 		bool collided = (distSq < minDist * minDist);
 
-		if (!collided && (!computeMTV || !mtv))
+		if (!collided && (!requestSeparationMTV || !mtv))
 			return false;
 
 		float dist = sqrtf(distSq);
@@ -439,22 +523,23 @@ namespace qk {
 	// poly:   多边形顶点数组
 	// seg:    线段 (a, b, halfTh)
 	// outMTV: 最小平移向量
-	// computeMTV: 若为 true，则在未相交时返回间距向量
-	bool test_poly_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* outMTV, bool computeMTV) {
+	// requestSeparationMTV: 若为 true，则在未相交时返回间距向量
+	bool test_poly_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* outMTV, bool requestSeparationMTV) {
 		// 将线段近似为四边形进行检测
 		Array<Vec2> segPoly = segment_to_quad(seg);
-		return test_overlap_from_convex_polygons(poly, segPoly, {}, {}, outMTV, computeMTV);
+		// return test_polygon_vs_polygon_sat(poly, segPoly, outMTV);
+		return test_polygon_vs_polygon(poly, segPoly, outMTV, requestSeparationMTV);
 	}
 
 	// ------------------------ 圆 vs 圆检测（MTV） ------------------------
 	// 其中 mtv->axis 始终指向 otherCirc，mtv->overlap 始终为正数
-	bool test_circle_vs_circle(const Circle& circ, const Circle& otherCirc, MTV* mtv, bool computeMTV) {
+	bool test_circle_vs_circle(const Circle& circ, const Circle& otherCirc, MTV* mtv, bool requestSeparationMTV) {
 		Vec2 delta = otherCirc.center - circ.center; // 指向 otherCirc
 		float distSq = delta.lengthSq();
 		float minDist = circ.radius + otherCirc.radius;
 		bool collided = (distSq < minDist * minDist);
 
-		if (!collided && (!computeMTV || !mtv))
+		if (!collided && (!requestSeparationMTV || !mtv))
 			return false; // 不相交，且不要求输出MTV
 
 		float overlap;
@@ -469,22 +554,30 @@ namespace qk {
 			// dist = 0.0f;
 		}
 
-		if (mtv) {
+		if (mtv)
 			*mtv = { axis, fabsf(minDist - dist)  };
-		}
 		return collided;
 	}
 
-	bool test_circle_vs_polygon(const Circle& circ, cArray<Vec2>& polyB, MTV* outMTV, bool computeMTV) {
+	bool test_circle_vs_polygon(const Circle& circ, cArray<Vec2>& polyB, MTV* outMTV, bool requestSeparationMTV) {
 		// 将圆近似为八边形进行检测
 		Array<Vec2> circPoly = circle_to_octagon(circ);
-		return test_overlap_from_convex_polygons(circPoly, polyB, {}, {}, outMTV, computeMTV);
+		return test_polygon_vs_polygon(circPoly, polyB, outMTV, requestSeparationMTV);
 	}
 
 	// ------------------------ 多边形 vs 多边形检测（MTV） ------------------------
 	// 返回是否相交，并输出最小分离向量（MTV）
-	bool test_polygon_vs_polygon(cArray<Vec2>& polyA, cArray<Vec2>& polyB, MTV* outMTV, bool computeMTV) {
-		return test_overlap_from_convex_polygons(polyA, polyB, {}, {}, outMTV, computeMTV);
+	bool test_polygon_vs_polygon(cArray<Vec2>& polyA, cArray<Vec2>& polyB, MTV* outMTV, bool requestSeparationMTV) {
+		bool collided = test_polygon_vs_polygon_sat(polyA, polyB, outMTV);
+		if (collided) {
+			return true;
+		} else if (requestSeparationMTV && outMTV) {
+			// 计算分离向量
+			test_polygon_vs_polygon_fast(polyA, polyB, outMTV);
+			//bool gjkResult = test_polygon_vs_polygon_gjk(polyA, polyB, outMTV);
+			//Qk_ASSERT_EQ(gjkResult, false); // 已经确认不相交
+		}
+		return false;
 	}
 
 	// ------------------------ 预测前方距离（基于方向 dir）

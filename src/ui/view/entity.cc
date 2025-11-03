@@ -34,7 +34,8 @@
 
 namespace qk {
 	#define _async_call preRender().async_call
-
+	// Geometric epsilon for float comparisons
+	constexpr float GEOM_EPS = 1e-6f;
 	typedef Entity::Bounds Bounds;
 
 	Vec2 free_typesetting(View* view, View::Container &container);
@@ -46,7 +47,6 @@ namespace qk {
 		, _isObstacle(true)
 	{
 		_bounds.pts = nullptr;
-		_visible_area = true; // Always visible
 		set_receive(false);
 		// sizeof(Entity); // call to avoid compile warning
 	}
@@ -107,7 +107,7 @@ namespace qk {
 
 	void Entity::solve_visible_area(const Mat &mat) {
 		solve_bounds(); // compute bounds pts and circle
-		_visible_area = true;
+		_visible_area = true; // Always visible
 	}
 
 	void Entity::solve_bounds() {
@@ -256,7 +256,7 @@ namespace qk {
 					paint.style = Paint::kStroke_Style;
 					paint.stroke.color = paint.fill.color;
 					paint.strokeWidth = _bounds.halfThickness * 2.0f;
-					paint.join = Paint::kBevel_Join;
+					// paint.join = Paint::kBevel_Join;
 					canvas->drawPath(path, paint); // stroke path
 				} else {
 					path.close(); // close path for polygon
@@ -286,9 +286,7 @@ namespace qk {
 		}
  		else if (o->_bounds.type == Entity::kPolygon) {
 			// polygon check (approx circle->poly using SAT code) - optionally enable
-			collided = isPoly ?
-				test_polygon_vs_polygon(pts, o->ptsOfBounds(), outMTV, computeMTV):
-				test_circle_vs_polygon(circ, o->ptsOfBounds(), outMTV, computeMTV);
+			collided = test_polygon_vs_polygon(pts, o->ptsOfBounds(), outMTV, computeMTV);
 		}
 		else { // line segment
 			MTV mtv;
@@ -334,7 +332,8 @@ namespace qk {
 	AgentStateChangeEvent::AgentStateChangeEvent(Agent *origin)
 		: UIEvent(origin)
 		, _following(origin->following())
-		, _velocity(origin->velocity()), _active(origin->active()) {
+		, _velocity(origin->velocity())
+		, _direction(origin->direction()), _active(origin->active()) {
 	}
 
 	FollowStateEvent::FollowStateEvent(Agent *origin, FollowingState state)
@@ -357,7 +356,7 @@ namespace qk {
 		, _followMinDistance(0.0f)
 		, _followMaxDistance(0.0f)
 		, _discoveryDistances(nullptr), _waypoints(nullptr), _followTarget(nullptr)
-		, _lastReportDir(0,0), _lastUpdateTime(0)
+		, _lastUpdateTime(0)
 	{
 		// sizeof(Agent); // call to avoid compile warning
 	}
@@ -429,28 +428,28 @@ namespace qk {
 	}
 
 	void Agent::set_followMinDistance(float val) {
-		_followMinDistance = Qk_Max(val, 0.0f);
-		_followMaxDistance = Qk_Max(_followMaxDistance, _followMinDistance);
+		_followMinDistance = std::max(val, 0.0f);
+		_followMaxDistance = std::max(_followMaxDistance, _followMinDistance);
 	}
 
 	void Agent::set_followMaxDistance(float val) {
-		_followMaxDistance = Qk_Max(val, _followMinDistance);
+		_followMaxDistance = std::max(val, _followMinDistance);
 	}
 
 	Agent* Agent::followTarget() const {
 		return _followTarget.load();
 	}
 
-	void Agent::set_followTarget(Agent* target) {
-		if (target == this || _followTarget == target)
+	void Agent::set_followTarget(Agent* other) {
+		if (other == this || _followTarget == other)
 			return; // cannot follow self or same target
-		if (target && target->parent() != parent())
+		if (other && other->parent() != parent())
 			return; // must be in the same world
-		_followTarget = target; // set follow target, weak reference
-		set_active(target);
+		_followTarget = other; // set follow target, weak reference
+		set_active(other || _waypoints); // active if have follow target or waypoints
 		_async_call([](auto self, auto arg) {
 			self->_following = false; // reset following state
-		}, this, target);
+		}, this, other);
 	}
 
 	void Agent::moveTo(Vec2 target, bool immediately) {
@@ -555,5 +554,16 @@ namespace qk {
 
 	void Agent::stop() {
 		set_active(false);
+	}
+
+	void Agent::reportDirectionChange(Vec2 dir) {
+		// if (dir.lengthSq() < GEOM_EPS)
+		// 	return;
+		float dot = dir.dot(_direction);
+		// Only report direction change if the direction has changed significantly
+		if (dot < 0.9f && (dot > GEOM_EPS || dir.lengthSq() > GEOM_EPS)) {
+			_direction = dir;
+			onUIEvent(UIEvent_DirectionChange, this, new AgentStateChangeEvent(this));
+		}
 	}
 }

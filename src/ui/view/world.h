@@ -158,13 +158,21 @@ namespace qk {
 		Vec2 computeAvoidanceForAgent(Agent* agent, cArray<Entity*>& obs, Vec2 dirToTarget);
 
 		/**
+		 * Compute the new velocity vector for an agent, considering target direction and avoidance.
+		 * @param agent The agent to update.
+		 * @param obs Nearby obstacles.
+		 * @param toTarget Vector from agent to its target position.
+		*/
+		void updateVelocityForAgent(Agent* agent, cArray<Entity*>& obs, Vec2 toTarget);
+
+		/**
 		 * Integrate agent movement with avoidance applied.
 		 * @param agent The agent to update.
 		 * @param obs Nearby obstacles.
 		 * @param deltaTime Delta time for this step (seconds).
 		 * @return Updated remaining distance to target.
 		 */
-		float updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float avoidFactor, float time, float deltaTime);
+		float updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float time, float deltaTime);
 
 		/**
 		 * Process standard movement and waypoint following.

@@ -36,6 +36,7 @@
 #include "../painter.h"
 #include "../geometry.h"
 
+#define _IfAct(...)  auto act = _keyAction; if (!act) return __VA_ARGS__
 #define _async_call preRender().async_call
 
 namespace qk {
@@ -50,18 +51,21 @@ namespace qk {
 	}
 
 	void Sprite::destroy() {
-		_keyAction->del_target(this);
-		Releasep(_keyAction); // Delete action
+		if (_keyAction) {
+			_keyAction->del_target(this);
+			Releasep(_keyAction); // Delete action
+		}
 		View::destroy(); // Call parent destroy
 	}
 
-	View* Sprite::init(Window* win) {
-		View::init(win);
-		_keyAction = NewRetain<KeyframeAction>(win);
-		_keyAction->set_speed(25); // Default 25 frames per second
-		_keyAction->set_loop(0xffffffff); // 0xffffffff means loop forever
-		_keyAction->set_target(this);
-		return this;
+	KeyframeAction *Sprite::getKeyAction() {
+		if (!_keyAction) {
+			_keyAction = NewRetain<KeyframeAction>(window());
+			_keyAction->set_speed(25); // Default 25 frames per second
+			_keyAction->set_loop(0xffffffff); // 0xffffffff means loop forever
+			_keyAction->set_target(this);
+		}
+		return _keyAction;
 	}
 
 	void Sprite::set_width(float val, bool isRt) {
@@ -84,7 +88,7 @@ namespace qk {
 		if (_frame != val) {
 			_frame = val;
 			if (!isRt) { // is main thread
-				_keyAction->seek(val * 1e3); // Seek to frame in milliseconds
+				getKeyAction()->seek(val * 1e3); // Seek to frame in milliseconds
 			}
 			mark(kLayout_None, isRt);
 		}
@@ -96,6 +100,7 @@ namespace qk {
 			if (_frame >= _frames) {
 				_frame = _frames - 1;
 			}
+			getKeyAction(); // ensure action created
 			_async_call([](auto self, auto arg) {
 				auto action = self->_keyAction;
 				auto frames = self->_frames;
@@ -133,11 +138,12 @@ namespace qk {
 	}
 
 	uint8_t Sprite::fsp() const {
-		return _keyAction->speed();
+		_IfAct(25); // default 25
+		return act->speed();
 	}
 
 	void Sprite::set_fsp(uint8_t val) {
-		_keyAction->set_speed(Qk_Min(60, val)); // Use speed as fsp
+		getKeyAction()->set_speed(Qk_Min(60, val)); // Use speed as fsp
 	}
 
 	void Sprite::set_direction(Direction val, bool isRt) {
@@ -158,19 +164,20 @@ namespace qk {
 	}
 
 	bool Sprite::playing() const {
-		return _keyAction->playing();
+		_IfAct(false);
+		return act->playing();
 	}
 
 	void Sprite::set_playing(bool val) {
-		_keyAction->set_playing(val);
+		getKeyAction()->set_playing(val);
 	}
 
 	void Sprite::play() {
-		_keyAction->play();
+		getKeyAction()->play();
 	}
 
 	void Sprite::stop() {
-		_keyAction->stop();
+		getKeyAction()->stop();
 	}
 
 	ViewType Sprite::viewType() const {

@@ -289,6 +289,7 @@ namespace qk {
 		auto trackIndex = entry->getTrackIndex();
 		String animationName = CastStr(entry->getAnimation()->getName());
 		auto trackTime = entry->getTrackTime();
+
 		switch (type) {
 			case EventType_Start:
 				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kStart_Type, trackIndex, animationName, trackTime), UIEvent_SpineStart);
@@ -303,6 +304,13 @@ namespace qk {
 				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kDispose_Type, trackIndex, animationName, trackTime), UIEvent_SpineDispose);
 				break;
 			case EventType_Complete:
+				Qk_DEBUGCODE({
+					static bool init = false;
+					if (!init) {
+						init = true;
+						Qk_ASSERT_NE(animationName, "dead");
+					}
+				});
 				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kComplete_Type, trackIndex, animationName, trackTime), UIEvent_SpineComplete);
 				break;
 			case EventType_Event: {

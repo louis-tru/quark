@@ -219,28 +219,28 @@ namespace qk { namespace js {
 				Js_Return( test_overlap_from_convex_quadrilateral(arg0.val(), arg1) );
 			});
 
-			Js_Method(testOverlapFromConvexPolygons, {
-				Js_Parse_Args(ArrayVec2, 0, "poly1 = %s");
-				Js_Parse_Args(ArrayVec2, 1, "poly2 = %s");
-				Js_Parse_Args(Vec2, 2, "origin1 = %s");
-				Js_Parse_Args(Vec2, 3, "origin2 = %s");
-				// Js_Parse_Args(Vec2, 4, "outMTV = %s", ({}));
-				Js_Parse_Args(bool, 5, "computeMTV = %s", (false));
+			// Js_Method(testOverlapFromConvexPolygons, {
+			// 	Js_Parse_Args(ArrayVec2, 0, "poly1 = %s");
+			// 	Js_Parse_Args(ArrayVec2, 1, "poly2 = %s");
+			// 	Js_Parse_Args(Vec2, 2, "origin1 = %s");
+			// 	Js_Parse_Args(Vec2, 3, "origin2 = %s");
+			// 	// Js_Parse_Args(Vec2, 4, "outMTV = %s", ({}));
+			// 	Js_Parse_Args(bool, 5, "computeMTV = %s", (false));
 
-				MTV mtv;
-				auto result = test_overlap_from_convex_polygons(arg0, arg1, arg2, arg3, &mtv, arg5);
+			// 	MTV mtv;
+			// 	auto result = test_overlap_from_convex_polygons(arg0, arg1, &arg2, &arg3, &mtv, arg5);
 
-				if (args.length() > 4 && args[4]->isObject()) {
-					// 有 outMTV 参数时，设置 outMTV 的值
-					auto out = args[4]->template cast<JSObject>();
-					if (
-						!out->set(worker, worker->strs()->axis(), worker->types()->jsvalue(mtv.axis)) ||
-						!out->set(worker, worker->strs()->overlap(), worker->types()->jsvalue(mtv.overlap))
-					)
-						return; // 设置失败则直接返回
-				}
-				Js_Return( result );
-			});
+			// 	if (args.length() > 4 && args[4]->isObject()) {
+			// 		// 有 outMTV 参数时，设置 outMTV 的值
+			// 		auto out = args[4]->template cast<JSObject>();
+			// 		if (
+			// 			!out->set(worker, worker->strs()->axis(), worker->types()->jsvalue(mtv.axis)) ||
+			// 			!out->set(worker, worker->strs()->overlap(), worker->types()->jsvalue(mtv.overlap))
+			// 		)
+			// 			return; // 设置失败则直接返回
+			// 	}
+			// 	Js_Return( result );
+			// });
 		}
 	};
 

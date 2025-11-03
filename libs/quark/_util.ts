@@ -308,13 +308,7 @@ export function assert(value: any, message?: string) {
 
 export function debugLog(TAG = 'PKG') {
 	return debug ? function(...args: any[]) {
-		if (args.length > 1) {
-			let str = args.shift();
-			for (let arg of args) {
-				str = str.replace(/\%(j|s|d)/, arg);
-			}
-			console.log(TAG, str);
-		}
+		console.log(TAG, ...args);
 	}: function() {};
 }
 
@@ -458,4 +452,9 @@ export default {
 	 * Read the hash value of a data object, and convert the value to a string
 	*/
 	hash: _init.hash as (obj: any)=>string,
+
+	/**
+	 * @method debugLog(TAG?:string)Function
+	*/
+	debugLog: debugLog,
 };

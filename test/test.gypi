@@ -73,6 +73,7 @@
 			'test-jsc.cc',
 			'test-spine.cc',
 			'test-little_border.cc',
+			'test-mtv.cc',
 			'test.cc',
 			'test.h',
 		],

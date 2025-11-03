@@ -241,6 +241,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(AgentStateChangeEvent, UIEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(AgentStateChangeEvent, Vec2, velocity, velocity);
+			Js_MixObject_Acce_Get(AgentStateChangeEvent, Vec2, direction, direction);
 			Js_MixObject_Acce_Get(AgentStateChangeEvent, bool, following, following);
 			Js_MixObject_Acce_Get(AgentStateChangeEvent, bool, active, active);
 			cls->exports("AgentStateChangeEvent", exports);

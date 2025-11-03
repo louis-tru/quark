@@ -73,8 +73,8 @@ namespace qk {
 	protected:
 		void onSourceState(ImageSource::State state) override;
 		ImagePool* imgPool() override;
-		View* init(Window* win) override;
 	private:
+		KeyframeAction *getKeyAction();
 		KeyframeAction *_keyAction; // The keyframe action for the sprite animation
 		friend class Painter;
 	};

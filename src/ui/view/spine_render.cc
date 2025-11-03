@@ -199,6 +199,8 @@ namespace qk {
 		mat.translate({_skel_origin.x() - _origin_value.x(), _skel_origin.y() - _origin_value.y()});
 		mat.scale_y(-1); // Flip Y axis for Spine
 		painter->set_matrix(&mat);
+		
+		auto tr = translate();
 
 		auto skeleton = &skel->_skeleton;
 		auto clipper = _clipper.get();

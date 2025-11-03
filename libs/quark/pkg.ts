@@ -341,7 +341,7 @@ function lookupFromSearch(request: string, parent?: Module): LookupResult | null
 	if (parent && parent.paths && parent.paths.length) {
 		paths = parent.paths.concat(paths);
 	}
-	// debug('lookupFromSearch pkg for %j in %j', request, paths);
+	// debug('lookupFromSearch pkg for', request, 'in', paths);
 
 	for (let path of paths) {
 		let pkg = packages.get(`${path}/${pkgName}`);
@@ -570,7 +570,7 @@ export class Module implements IModule {
 			if (parent && parent.paths && parent.paths.length) {
 				paths = parent.paths.concat(paths);
 			}
-			debug('_resolvePaths for %j in %j', request, paths);
+			debug('_resolvePaths for', request, 'in', paths);
 			return paths.length > 0 ? paths : null;
 		}
 
@@ -580,13 +580,13 @@ export class Module implements IModule {
 			// Make require('./path/to/foo') work - normally the path is taken
 			// from realpath(__filename) but in REPL there is no filename
 			const mainPaths = ['.'];
-			debug('_resolvePaths 1 for %j in %j', request, mainPaths);
+			debug('_resolvePaths 1 for', request, 'in', mainPaths);
 			return mainPaths;
 		}
 
-		debug('RELATIVE: requested: %s from parent.id %s', request, parent.id);
+		debug('RELATIVE: requested:', request, 'from parent.id:', parent.id);
 		const parentDir = [parent.dirname];
-		debug('_resolvePaths 2 for %j', parentDir);
+		debug('_resolvePaths 2 for', parentDir);
 		return parentDir;
 	}
 
@@ -693,7 +693,7 @@ export class Module implements IModule {
 
 		Module._cache[filename] = module;
 
-		debug('load %j for module %j', resolve, parent && parent.id);
+		debug('load', resolve, 'for module', parent && parent.id);
 
 		let threw = true;
 		try {

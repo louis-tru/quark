@@ -618,6 +618,7 @@ export declare class AgentStateChangeEvent extends UIEvent {
 	/** agent itself */
 	readonly origin: Agent;
 	readonly velocity: Vec2;  //!< Current velocity vector.
+	readonly direction: Vec2;  //!< Current direction to target or along waypoints or follow target.
 	readonly following: boolean;  //!< Following state.
 	readonly active: boolean;  //!< Active state.
 }

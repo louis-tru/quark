@@ -164,6 +164,7 @@ namespace qk {
 		accessors[kEntity_ViewType] = accessors[kView_ViewType]; // copy view props to entity
 		accessors[kSprite_ViewType] = accessors[kView_ViewType]; // copy view props to sprite
 		accessors[kSpine_ViewType] = accessors[kView_ViewType]; // copy view props to spine
+		accessors[kWorld_ViewType] = accessors[kView_ViewType]; // copy view props to world
 		accessors[kRoot_ViewType] = accessors[kView_ViewType]; // copy view props to root
 		// Box
 		Qk_Set_Accessor(Box, CLIP, clip, bool);
@@ -220,6 +221,7 @@ namespace qk {
 		Qk_Copy_Accessor(Box, Text, CLIP, 43); // copy box props to text
 		Qk_Copy_Accessor(Box, Button, CLIP, 43); // copy box props to button
 		Qk_Copy_Accessor(Box, Morph, CLIP, 43); // copy box props to matrix
+		Qk_Copy_Accessor(Box, World, CLIP, 43); // copy box props to world
 		Qk_Copy_Accessor(Box, Root, CLIP, 43); // copy box props to root
 		// Flex
 		Qk_Set_Accessor(Flex, DIRECTION, direction, Direction);
@@ -281,8 +283,10 @@ namespace qk {
 		Qk_Set_Accessor(Morph, SKEW_X, skew_x, float);
 		Qk_Set_Accessor(Morph, SKEW_Y, skew_y, float);
 		Qk_Set_Accessor(Morph, ROTATE_Z, rotate_z, float);
+		Qk_Copy_Accessor(Morph, Entity, TRANSLATE, 13); // copy matrix props to entity
 		Qk_Copy_Accessor(Morph, Sprite, TRANSLATE, 13); // copy matrix props to sprite
 		Qk_Copy_Accessor(Morph, Spine, TRANSLATE, 13); // copy matrix props to spine
+		Qk_Copy_Accessor(Morph, World, TRANSLATE, 13); // copy matrix props to world
 		Qk_Copy_Accessor(Morph, Root, TRANSLATE, 13); // copy matrix props to root
 		// Sprite
 		Qk_Set_Accessor(Sprite, SRC, src, String);

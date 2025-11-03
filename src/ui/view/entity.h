@@ -205,6 +205,7 @@ namespace qk {
 	public:
 		AgentStateChangeEvent(Agent *origin);
 		Qk_DEFINE_PROP_GET(Vec2, velocity, Const);  ///< Current velocity vector.
+		Qk_DEFINE_PROP_GET(Vec2, direction, Const);  ///< Current direction vector of target.
 		Qk_DEFINE_PROP_GET(bool, following, Const);  ///< Following state.
 		Qk_DEFINE_PROP_GET(bool, active, Const);  ///< Active state.
 	};
@@ -289,6 +290,11 @@ namespace qk {
 		Qk_DEFINE_PROPERTY(float, followMaxDistance, Const);
 
 		/**
+		 * Current direction to target or along waypoints or follow target.
+		*/
+		Qk_DEFINE_PROP_GET(Vec2, direction, Const);
+
+		/**
 		 * The target agent to follow.  
 		 * If non-null, follow behavior overrides waypoint or direct movement.
 		 */
@@ -354,13 +360,12 @@ namespace qk {
 
 	protected:
 		Agent(); ///< Protected constructor; use derived class instantiation.
-
 	private:
+		void reportDirectionChange(Vec2 dir);
 		Dict<Agent*, uint32_t> _discoverys_rt; ///< Runtime map of discovered agents → level index.
 		std::atomic<Array<float>*> _discoveryDistances; ///< Discovery range levels.
 		std::atomic<Path*> _waypoints; ///< Active waypoint path.
 		std::atomic<Agent*> _followTarget; ///< Current follow target (weak reference).
-		Vec2 _lastReportDir; ///< Last reported direction for change detection.
 		float _lastUpdateTime; ///< Timestamp of last update cycle.
 
 		friend class World;

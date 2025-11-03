@@ -148,6 +148,7 @@ void call_test(int argc, char** argv, const char* funcName, TestFunc func) {
 	F(v8) \
 	F(spine) \
 	F(little_border) \
+	F(mtv) \
 
 #define _Fun(n) Qk_TEST_Func(n);
 TEST_All(_Fun)
