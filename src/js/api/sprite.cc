@@ -43,7 +43,7 @@ namespace qk { namespace js {
 			Js_Define_Class(Entity, View, { Js_NewView(Entity); });
 			inheritMorphView(cls, worker);
 			Js_MixObject_Accessor(Entity, Bounds, bounds, bounds);
-			Js_MixObject_Accessor(Entity, bool, isObstacle, isObstacle);
+			Js_MixObject_Accessor(Entity, bool, participate, participate);
 			cls->exports("Entity", exports);
 		}
 	};
@@ -55,10 +55,13 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(Agent, Entity, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Accessor(Agent, bool, active, active);
-			Js_MixObject_Acce_Get(Agent, bool, following, following);
+			Js_MixObject_Acce_Get(Agent, bool, moving, moving);
+			Js_MixObject_Accessor(Agent, bool, floatingStation, floatingStation);
 			Js_MixObject_Accessor(Agent, PathPtr, waypoints, waypoints);
 			Js_MixObject_Acce_Get(Agent, Vec2, target, target);
+			Js_MixObject_Acce_Get(Agent, Vec2, velocitySteer, velocitySteer);
 			Js_MixObject_Acce_Get(Agent, Vec2, velocity, velocity);
+			Js_MixObject_Acce_Get(Agent, Vec2, heading, heading);
 			Js_MixObject_Accessor(Agent, float, velocityMax, velocityMax);
 			Js_MixObject_Acce_Get(Agent, uint32_t, currentWaypoint, currentWaypoint);
 			Js_MixObject_Accessor(Agent, ArrayFloat, discoveryDistances, discoveryDistances);
@@ -128,10 +131,10 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(Sprite, float, height, height);
 			Js_MixObject_Accessor(Sprite, uint32_t, frame, frame);
 			Js_MixObject_Accessor(Sprite, uint32_t, frames, frames);
-			Js_MixObject_Accessor(Sprite, uint32_t, item, item);
-			Js_MixObject_Accessor(Sprite, uint32_t, items, items);
-			Js_MixObject_Accessor(Sprite, uint32_t, gap, gap);
-			Js_MixObject_Accessor(Sprite, uint32_t, fsp, fsp);
+			Js_MixObject_Accessor(Sprite, uint32_t, set, set);
+			Js_MixObject_Accessor(Sprite, uint32_t, sets, sets);
+			Js_MixObject_Accessor(Sprite, uint32_t, spacing, spacing);
+			Js_MixObject_Accessor(Sprite, uint32_t, frequency, frequency);
 			Js_MixObject_Accessor(Sprite, Direction, direction, direction);
 			Js_MixObject_Accessor(Sprite, bool, playing, playing);
 			Js_Class_Method(play, { self->play(); });

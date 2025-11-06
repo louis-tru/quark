@@ -48,6 +48,7 @@ namespace qk {
 		_paint.image = _source;
 		_paint.filterMode = page->magFilter == TextureFilter_Linear ?
 			PaintImage::kLinear_FilterMode: PaintImage::kNearest_FilterMode;
+		_source->set_premultipliedAlpha(_pma);
 
 		switch (page->minFilter) {
 			case TextureFilter_MipMapLinearNearest:
@@ -131,7 +132,7 @@ namespace qk {
 			case BlendMode_Screen:
 				return kScreen_BlendMode;
 			default:
-				return premultipliedAlpha ? kSrcOverExt_BlendMode: kSrcOver_BlendMode;
+				return premultipliedAlpha ? kSrcOverPre_BlendMode: kSrcOver_BlendMode;
 				//return kSrcOver_BlendMode;
 		}
 	}

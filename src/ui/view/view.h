@@ -200,15 +200,19 @@ namespace qk {
 		Qk_DEFINE_VIEW_ACCESSOR(float, opacity, Const);
 
 		/**
-		 * Can affect the blend color of subviews
-		*/
+		 * Local color tint applied to this view.
+		 * The final rendered color is a combination of this color and parent color (depending on cascade_color).
+		 */
 		Qk_DEFINE_VIEW_PROPERTY(Color, color, Const);
 
 		/**
-		 * Is inherit color from parent view,
-		 * if true the final color = parent.final color * self.color.
-		 * ** default is CascadeColor::Alpha
-		*/
+		 * Color inheritance mode from the parent view.
+		 * Determines how this view's color combines with its parent's final color.
+		 *
+		 * final_color = parent.final_color ⨉ self.color   // depending on cascade_color
+		 *
+		 * Default: CascadeColor::Both
+		 */
 		Qk_DEFINE_VIEW_PROPERTY(CascadeColor, cascade_color, Const);
 
 		/**
@@ -237,7 +241,7 @@ namespace qk {
 		/**
 		 * Anti-aliasing rendering, default is true
 		 */
-		Qk_DEFINE_PROPERTY(bool, aa, Const);
+		Qk_DEFINE_PROPERTY(bool, anti_alias, Const);
 
 		/**
 		 * keyboard focus view

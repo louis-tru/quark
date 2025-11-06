@@ -524,7 +524,7 @@ namespace qk {
 	// seg:    线段 (a, b, halfTh)
 	// outMTV: 最小平移向量
 	// requestSeparationMTV: 若为 true，则在未相交时返回间距向量
-	bool test_poly_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* outMTV, bool requestSeparationMTV) {
+	bool test_polygon_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* outMTV, bool requestSeparationMTV) {
 		// 将线段近似为四边形进行检测
 		Array<Vec2> segPoly = segment_to_quad(seg);
 		// return test_polygon_vs_polygon_sat(poly, segPoly, outMTV);

@@ -603,7 +603,7 @@ namespace qk {
 			case kAdditive_BlendMode:
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE); //!< r = sa*s + d
 				break;
-			case kSrcOverExt_BlendMode: // r = s + (1-sa)*d
+			case kSrcOverPre_BlendMode: // r = s + (1-sa)*d
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 		}

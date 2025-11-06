@@ -73,11 +73,9 @@ F(SpineDispose, Spine, kNone_UIEventFlags) \
 F(SpineComplete, Spine, kNone_UIEventFlags) \
 F(SpineEvent, Spine, kNone_UIEventFlags) \
 /* Agent */ \
-F(MovementActive, Agent, kNone_UIEventFlags) \
 F(ReachWaypoint, Agent, kNone_UIEventFlags) \
-F(ArriveDestination, Agent, kNone_UIEventFlags) \
 F(DiscoveryAgent, Agent, kNone_UIEventFlags) \
-F(FollowStateChange, Agent, kNone_UIEventFlags) \
-F(DirectionChange, Agent, kNone_UIEventFlags) \
+F(AgentMovement, Agent, kNone_UIEventFlags) \
+F(AgentHeadingChange, Agent, kNone_UIEventFlags) \
 
 #endif

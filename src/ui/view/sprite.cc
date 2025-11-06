@@ -43,8 +43,8 @@ namespace qk {
 
 	Sprite::Sprite(): Agent(), ImageSourceHold()
 		, _width(0), _height(0)
-		, _frame(0), _frames(1), _item(0), _items(1)
-		, _gap(0), _direction(Direction::Row)
+		, _frame(0), _frames(1), _set(0), _sets(1)
+		, _spacing(0), _direction(Direction::Row)
 		, _keyAction(nullptr)
 	{
 		// sizeof(Sprite); // ensure complete type
@@ -116,33 +116,33 @@ namespace qk {
 		}
 	}
 
-	void Sprite::set_item(uint16_t val) {
-		if (_item != val) {
-			_item = val;
+	void Sprite::set_set(uint16_t val) {
+		if (_set != val) {
+			_set = val;
 			mark(kLayout_None, false);
 		}
 	}
 
-	void Sprite::set_items(uint16_t val) {
-		if (_items != val) {
-			_items = Qk_Max(1, val);
+	void Sprite::set_sets(uint16_t val) {
+		if (_sets != val) {
+			_sets = Qk_Max(1, val);
 			mark(kLayout_None, false);
 		}
 	}
 
-	void Sprite::set_gap(uint8_t val) {
-		if (_gap != val) {
-			_gap = val;
+	void Sprite::set_spacing(uint8_t val) {
+		if (_spacing != val) {
+			_spacing = val;
 			mark(kLayout_None, false);
 		}
 	}
 
-	uint8_t Sprite::fsp() const {
+	uint8_t Sprite::frequency() const {
 		_IfAct(25); // default 25
 		return act->speed();
 	}
 
-	void Sprite::set_fsp(uint8_t val) {
+	void Sprite::set_frequency(uint8_t val) {
 		getKeyAction()->set_speed(Qk_Min(60, val)); // Use speed as fsp
 	}
 
@@ -220,9 +220,9 @@ namespace qk {
 
 		float w = src->width(), h = src->height();
 		float x = 0, y = 0;
-		auto gap = _gap;
+		auto spacing = _spacing;
 		auto frame = _frame % _frames; // current frame
-		auto item = _item % _items; // current item
+		auto set = _set % _sets; // current set
 
 		if (_direction == Direction::RowReverse || _direction == Direction::ColumnReverse) {
 			frame = _frames - 1 - frame; // reverse frame
@@ -230,26 +230,26 @@ namespace qk {
 
 		if (_direction == Direction::Row || _direction == Direction::RowReverse) {
 			w /= _frames; // horizontal frames
-			h /= _items; // adjust height
-			x = w * frame + gap; // adjust x position
-			y = h * item + gap; // adjust y position
+			h /= _sets; // adjust height
+			x = w * frame + spacing; // adjust x position
+			y = h * set + spacing; // adjust y position
 		} else {
 			h /= _frames; // vertical frames
-			w /= _items; // adjust width
-			y = h * frame + gap;
-			x = w * item + gap; // adjust x position
+			w /= _sets; // adjust width
+			y = h * frame + spacing;
+			x = w * set + spacing; // adjust x position
 		}
 
-		w -= gap + gap;
-		h -= gap + gap;
+		w -= spacing + spacing;
+		h -= spacing + spacing;
 
 		Paint paint;
 		PaintImage img;
-		paint.antiAlias = aa();
+		paint.antiAlias = anti_alias();
 		paint.fill.image = &img;
 		paint.fill.color = painter->color();
 
-		auto aaShrink = aa() ? painter->AAShrink() : 0;
+		auto aaShrink = anti_alias() ? painter->AAShrink() : 0;
 		Rect rect{-origin_value(), {_width, _height}};
 		Rect rectAA{
 			Vec2(aaShrink * 0.5)-origin_value(),

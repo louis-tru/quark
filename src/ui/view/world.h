@@ -75,7 +75,7 @@ namespace qk {
 		/** 
 		 * Prediction horizon (seconds) used for avoidance calculations.  
 		 * Agents will predict future positions within this window to plan separation.
-		 * Default: 0.1s, Range: [0.05, 2.0].
+		 * Default: 0.5s, Range: [0.05, 2.0].
 		 */
 		Qk_DEFINE_PROPERTY(float, predictionTime, Const);
 
@@ -161,18 +161,19 @@ namespace qk {
 		 * Compute the new velocity vector for an agent, considering target direction and avoidance.
 		 * @param agent The agent to update.
 		 * @param obs Nearby obstacles.
-		 * @param toTarget Vector from agent to its target position.
+		 * @param dirToTarget Vector from agent to its target position.
 		*/
-		void updateVelocityForAgent(Agent* agent, cArray<Entity*>& obs, Vec2 toTarget);
+		void updateVelocityForAgent(Agent* agent, cArray<Entity*>& obs, Vec2 dirToTarget);
 
 		/**
 		 * Integrate agent movement with avoidance applied.
 		 * @param agent The agent to update.
 		 * @param obs Nearby obstacles.
 		 * @param deltaTime Delta time for this step (seconds).
+		 * @param checkReached Flag to determine if target reaching should be checked.
 		 * @return Updated remaining distance to target.
 		 */
-		float updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float time, float deltaTime);
+		float updateAgentWithAvoidance(Agent* agent, cArray<Entity*>& obs, float deltaTime, bool checkReached);
 
 		/**
 		 * Process standard movement and waypoint following.
@@ -181,7 +182,7 @@ namespace qk {
 		 * @param deltaTime Delta time for this step.
 		 * @param update Output flag set to true if agent moved or changed state.
 		 */
-		void updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs, float time, float deltaTime);
+		void updateAgentWithMovement(Agent* agent, cArray<Entity*>& obs, float deltaTime);
 
 		/**
 		 * Process target-following behavior for agents that track another agent.
@@ -190,7 +191,7 @@ namespace qk {
 		 * @param deltaTime Delta time for this step.
 		 * @param update Output flag set to true if agent moved or changed state.
 		 */
-		void updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float time, float deltaTime);
+		void updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float deltaTime);
 	};
 
 } // namespace qk

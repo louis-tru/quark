@@ -218,7 +218,7 @@ namespace qk {
 				val[0] < 0.0f ? -1.0f: 1.0f, 0.0f
 			};
 		}
-		float len = 1 / sqrtf(val[0] * val[0] + val[1] * val[1]);
+		float len = 1.0f / sqrtf(val[0] * val[0] + val[1] * val[1]);
 		return { val[0] * len, val[1] * len };
 	}
 

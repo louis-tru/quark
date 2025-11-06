@@ -265,14 +265,14 @@ namespace qk {
 	// ----------------------------------------------------------------
 
 	/**
-	 * Color changes will affect sub views
+	 * Inherit Color from parent view
 	 */
 	enum class CascadeColor: uint8_t {
-		None, // No change
-		Alpha, // Only change Alpha for sub views
-		Color, // Only change RGB for sub views
+		None, // No inherit
+		Alpha, // Inherit only Alpha from parent
+		Color, // Inherit only RGB from parent
 		Rgb = Color, // alias of Color
-		Both, // Change RGB and Alpha for sub views
+		Both, // Inherit RGB and Alpha from parent
 	};
 
 	// border value

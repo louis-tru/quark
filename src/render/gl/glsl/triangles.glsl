@@ -19,6 +19,7 @@ void main() {
 
 #frag
 uniform sampler2D      image;
+uniform lowp float     premultipliedAlpha;
 in      lowp vec2      texCoords;
 in      lowp vec4      light;
 in      lowp vec4      dark;
@@ -32,7 +33,7 @@ void main() {
 	// but we always use (1.0 - tex.rgb) here, do simple processing.
 	// so the dark color will be a bit different when using premultiplied alpha
 	// because the dark color is usually very small, the difference is not easy to see
-	fragColor = light * tex + dark * vec4(1.0 - tex.rgb, tex.a);
+	fragColor = light * tex + dark * vec4(mix(1.0, tex.a, premultipliedAlpha) - tex.rgb, 0.0);
 #else
 	fragColor = light * tex;
 #endif

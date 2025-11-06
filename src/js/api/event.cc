@@ -212,48 +212,47 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct MixArrivePositionEvent: MixObject {
-		typedef ArrivePositionEvent Type;
+	struct MixAgentStateEvent: MixObject {
+		typedef AgentStateEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(ArrivePositionEvent, UIEvent, { Js_Throw("Access forbidden."); });
-			Js_MixObject_Acce_Get(ArrivePositionEvent, Vec2, position, position);
-			Js_MixObject_Acce_Get(ArrivePositionEvent, Vec2, nextLocation, nextLocation);
-			Js_MixObject_Acce_Get(ArrivePositionEvent, uint32_t, waypointIndex, waypointIndex);
-			cls->exports("ArrivePositionEvent", exports);
+			Js_Define_Class(AgentStateEvent, UIEvent, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(AgentStateEvent, Vec2, velocity, velocity);
+			Js_MixObject_Acce_Get(AgentStateEvent, Vec2, heading, heading);
+			Js_MixObject_Acce_Get(AgentStateEvent, Vec2, target, target);
+			Js_MixObject_Acce_Get(AgentStateEvent, bool, moving, moving);
+			cls->exports("AgentStateEvent", exports);
+		}
+	};
+
+	struct MixReachWaypointEvent: MixObject {
+		typedef ReachWaypointEvent Type;
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(ReachWaypointEvent, AgentStateEvent, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(ReachWaypointEvent, Vec2, toNext, toNext);
+			Js_MixObject_Acce_Get(ReachWaypointEvent, uint32_t, waypointIndex, waypointIndex);
+			cls->exports("ReachWaypointEvent", exports);
+		}
+	};
+
+	struct MixAgentMovementEvent: MixObject {
+		typedef AgentMovementEvent Type;
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(AgentMovementEvent, AgentStateEvent, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(AgentMovementEvent, int, movementState, movementState);
+			cls->exports("AgentMovementEvent", exports);
 		}
 	};
 
 	struct MixDiscoveryAgentEvent: MixObject {
 		typedef DiscoveryAgentEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(DiscoveryAgentEvent, UIEvent, { Js_Throw("Access forbidden."); });
+			Js_Define_Class(DiscoveryAgentEvent, AgentStateEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, Agent*, agent, agent);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, Vec2, location, location);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, uint32_t, agentId, agentId);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, uint32_t, level, level);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, bool, entering, entering);
 			cls->exports("DiscoveryAgentEvent", exports);
-		}
-	};
-
-	struct MixAgentStateChangeEvent: MixObject {
-		typedef AgentStateChangeEvent Type;
-		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(AgentStateChangeEvent, UIEvent, { Js_Throw("Access forbidden."); });
-			Js_MixObject_Acce_Get(AgentStateChangeEvent, Vec2, velocity, velocity);
-			Js_MixObject_Acce_Get(AgentStateChangeEvent, Vec2, direction, direction);
-			Js_MixObject_Acce_Get(AgentStateChangeEvent, bool, following, following);
-			Js_MixObject_Acce_Get(AgentStateChangeEvent, bool, active, active);
-			cls->exports("AgentStateChangeEvent", exports);
-		}
-	};
-
-	struct MixFollowStateEvent: MixObject {
-		typedef FollowStateEvent Type;
-		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(FollowStateEvent, AgentStateChangeEvent, { Js_Throw("Access forbidden."); });
-			Js_MixObject_Acce_Get(FollowStateEvent, int, state, state);
-			cls->exports("FollowStateEvent", exports);
 		}
 	};
 
@@ -272,10 +271,10 @@ namespace qk { namespace js {
 			MixHighlightedEvent::binding(exports, worker);
 			MixSpineEvent::binding(exports, worker);
 			MixSpineExtEvent::binding(exports, worker);
-			MixArrivePositionEvent::binding(exports, worker);
+			MixAgentStateEvent::binding(exports, worker);
+			MixReachWaypointEvent::binding(exports, worker);
+			MixAgentMovementEvent::binding(exports, worker);
 			MixDiscoveryAgentEvent::binding(exports, worker);
-			MixAgentStateChangeEvent::binding(exports, worker);
-			MixFollowStateEvent::binding(exports, worker);
 		}
 	};
 

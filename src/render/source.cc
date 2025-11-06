@@ -72,7 +72,7 @@ namespace qk {
 
 	ImageSource::ImageSource(RenderResource *res, RunLoop *loop): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _res(res), _loop(loop), _isMipmap(true)
+		, _loadId(0), _res(res), _loop(loop), _isMipmap(true), _premultipliedAlpha(false)
 	{
 	}
 
@@ -114,6 +114,14 @@ namespace qk {
 
 	ImageSource::~ImageSource() {
 		_Unload(true);
+	}
+
+	bool ImageSource::premultipliedAlpha() const {
+		return _premultipliedAlpha;
+	}
+
+	void ImageSource::set_premultipliedAlpha(bool val) {
+		_premultipliedAlpha = val;
 	}
 
 	bool ImageSource::markAsTexture() {

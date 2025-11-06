@@ -40,11 +40,14 @@ namespace qk {
 
 	Vec2 free_typesetting(View* view, View::Container &container);
 	void onUIEvent(cUIEventName& name, Agent* agent, UIEvent *evt);
+	void onAgentMovement(Agent* agent, AgentMovementEvent::MovementState state) {
+		onUIEvent(UIEvent_AgentMovement, agent, new AgentMovementEvent(agent, state));
+	}
 
 	////////////////////////////////////////////////////////////////
 
 	Entity::Entity(): View(), MorphView(this), _bounds{kDefault, 0.0f}, _ptsBounds(nullptr)
-		, _isObstacle(true)
+		, _participate(true)
 	{
 		_bounds.pts = nullptr;
 		set_receive(false);
@@ -84,12 +87,12 @@ namespace qk {
 		}, this, oldPts);
 	}
 
-	bool Entity::isObstacle() const {
-		return _isObstacle;
+	bool Entity::participate() const {
+		return _participate;
 	}
 
-	void Entity::set_isObstacle(bool value) {
-		_isObstacle = value;
+	void Entity::set_participate(bool value) {
+		_participate = value;
 	}
 
 	Vec2 Entity::layout_offset_inside() {
@@ -298,7 +301,7 @@ namespace qk {
 			for (int i = 1; i < ptsB.length(); ++i) {
 				auto b = ptsB.at(i);
 				if (isPoly ? 
-						test_poly_vs_line_segment(pts, {a, b, halfWidth}, &mtv, computeMTV): 
+						test_polygon_vs_line_segment(pts, {a, b, halfWidth}, &mtv, computeMTV): 
 						test_circle_vs_line_segment(circ, {a, b, halfWidth}, &mtv, computeMTV)) {
 					collided = true;
 					*outMtvVec += mtv.axis * mtv.overlap; // accumulate MTV
@@ -316,28 +319,25 @@ namespace qk {
 
 	//--------------------------------------------------------------
 
-	ArrivePositionEvent::ArrivePositionEvent(Agent *origin, Vec2 position, Vec2 nextLocation, uint32_t waypoint_index)
-		: UIEvent(origin), _position(position), _nextLocation(nextLocation), _waypointIndex(waypoint_index) {
+	AgentStateEvent::AgentStateEvent(Agent *origin)
+		: UIEvent(origin)
+		, _velocity(origin->velocity()), _heading(origin->heading())
+		, _target(origin->target()), _moving(origin->moving()) {
+	}
+	ReachWaypointEvent::ReachWaypointEvent(Agent *origin, Vec2 toNext, uint32_t waypoint_index)
+		: AgentStateEvent(origin), _toNext(toNext), _waypointIndex(waypoint_index) {
+	}
+	AgentMovementEvent::AgentMovementEvent(Agent *origin, MovementState state)
+		: AgentStateEvent(origin), _movementState(state) {
 	}
 	DiscoveryAgentEvent::DiscoveryAgentEvent(
 		Agent *origin, Agent* agent, Vec2 location, uint32_t id, uint32_t level, bool entering
-	) : UIEvent(origin), _agent(agent), _location(location)
+	) : AgentStateEvent(origin), _agent(agent), _location(location)
 		, _agentId(id), _level(level), _entering(entering)
 	{}
 	void DiscoveryAgentEvent::release() {
 		_agent = nullptr; // clear weak reference
 		UIEvent::release();
-	}
-
-	AgentStateChangeEvent::AgentStateChangeEvent(Agent *origin)
-		: UIEvent(origin)
-		, _following(origin->following())
-		, _velocity(origin->velocity())
-		, _direction(origin->direction()), _active(origin->active()) {
-	}
-
-	FollowStateEvent::FollowStateEvent(Agent *origin, FollowingState state)
-		: AgentStateChangeEvent(origin), _state(state) {
 	}
 
 	inline float randf(float min, float max) {
@@ -347,16 +347,17 @@ namespace qk {
 	// An entity with agent properties for navigation and avoidance.
 	Agent::Agent()
 		: Entity()
-		, _active(false), _following(false), _target()
-		, _velocity(), _velocityMax(100.0f)
+		, _active(false), _moving(false)
+		, _floatingStation(false)
+		, _target()
+		, _velocitySteer(), _velocity(), _heading(), _velocityMax(100.0f)
 		, _currentWaypoint(0)
 		, _safetyBuffer(5.0f)
-		, _avoidanceFactor(1.0f)
-		, _avoidanceVelocityFactor(0.8f)
+		, _avoidanceFactor(0.5f)
+		, _avoidanceVelocityFactor(1.0f)
 		, _followMinDistance(0.0f)
 		, _followMaxDistance(0.0f)
 		, _discoveryDistances(nullptr), _waypoints(nullptr), _followTarget(nullptr)
-		, _lastUpdateTime(0)
 	{
 		// sizeof(Agent); // call to avoid compile warning
 	}
@@ -374,7 +375,7 @@ namespace qk {
 	void Agent::onActivate() {
 		if (level() == 0) { // remove or invisible
 			_discoverys_rt.clear(); // clear discovery agents set
-			_following = false;
+			_moving = false;
 			_followTarget = nullptr; // clear follow target
 		}
 	}
@@ -388,19 +389,15 @@ namespace qk {
 	}
 
 	void Agent::set_active(bool val) {
-		struct Arg { bool last, val; } arg { _active, val };
 		_active = val;
-		_async_call([](auto self, auto arg) {
-			auto val = arg.arg.val;
-			self->_active = val;
-			if (val && (self->_active != val || val != arg.arg.last)) {
-				onUIEvent(UIEvent_MovementActive, self, new AgentStateChangeEvent(self));
-			}
-		}, this, arg);
 	}
 
 	void Agent::set_velocityMax(float val) {
 		_velocityMax = Qk_Max(val, 0.0f);
+	}
+
+	void Agent::set_floatingStation(bool val) {
+		_floatingStation = val;
 	}
 
 	Path* Agent::waypoints() const {
@@ -441,21 +438,20 @@ namespace qk {
 	}
 
 	void Agent::set_followTarget(Agent* other) {
-		if (other == this || _followTarget == other)
+		if (other == this)
 			return; // cannot follow self or same target
 		if (other && other->parent() != parent())
 			return; // must be in the same world
-		_followTarget = other; // set follow target, weak reference
-		set_active(other || _waypoints); // active if have follow target or waypoints
-		_async_call([](auto self, auto arg) {
-			self->_following = false; // reset following state
-		}, this, other);
+		if (other) {
+			_followTarget = other; // set follow target, weak reference
+		} else {
+			moveTo(_target, false); // move to target position
+		}
 	}
 
 	void Agent::moveTo(Vec2 target, bool immediately) {
 		_target = target;
 		_followTarget = nullptr; // clear follow target
-		set_active(true);
 		struct Arg { Vec2 target; bool immediately; };
 		_async_call([](auto self, auto arg) {
 			Sp<Arg> self_sp(arg.arg); // rtti delete arg
@@ -463,7 +459,10 @@ namespace qk {
 				self->set_translate(arg.arg->target, true);
 			}
 			self->_target = arg.arg->target; // set target position again
-			self->_following = false; // clear following state
+			if (!self->_moving) {
+				self->_moving = true;
+				onAgentMovement(self, AgentMovementEvent::Started);
+			}
 		}, this, new Arg{target, immediately});
 	}
 
@@ -492,6 +491,18 @@ namespace qk {
 		return result;
 	}
 
+	/**
+	 * set waypoints for agent with velocityMax, and move to closest waypoint
+	 * @param waypoints {cArray<Vec2>*} waypoints for agent
+	 */
+	void Agent::setWaypoints(cArray<Vec2>& waypoints, bool immediately) {
+		if (waypoints.length() < 2) return;
+		Sp<Path> path = new Path();
+		for (auto v: waypoints)
+			path->lineTo(v);
+		setWaypoints(path.get(), immediately);
+	}
+
 	void Agent::setWaypoints(Path* waypoints, bool immediately) {
 		if (waypoints == _waypoints.load()) {
 			returnToWaypoints(immediately);
@@ -508,62 +519,42 @@ namespace qk {
 		}
 	}
 
-	/**
-	 * set waypoints for agent with velocityMax, and move to closest waypoint
-	 * @param waypoints {cArray<Vec2>*} waypoints for agent
-	 */
-	void Agent::setWaypoints(cArray<Vec2>& waypoints, bool immediately) {
-		if (waypoints.length() < 2) return;
-		Sp<Path> path = new Path();
-		for (auto v: waypoints)
-			path->lineTo(v);
-		setWaypoints(path.get(), immediately);
-	}
-
 	void Agent::returnToWaypoints(bool immediately) {
 		auto waypoints = _waypoints.load();
 		if (!waypoints)
 			return;
-
 		// search closest waypoint
 		auto nearest = findNearestPointOnPath(waypoints->pts(), translate());
 		Qk_ASSERT(nearest.segIndex != -1);
-		_target = nearest.point; // set target to closest point
+		moveTo(nearest.point, immediately); // move to closest point first
 		_currentWaypoint = nearest.segIndex + 1;
-		_followTarget = nullptr; // clear follow target
-		set_active(true);
 
-		struct Arg { NearestPathPoint nearest; bool immediately; };
-
-		_async_call([](auto self, auto arg_) {
-			Sp<Arg> arg(arg_.arg); // rtti delete arg
+		_async_call([](auto self, auto arg) {
 			auto waypoints = self->_waypoints.load();
-			auto segIndex = arg->nearest.segIndex + 1; // closest waypoint index
-			if (waypoints && segIndex < waypoints->ptsLen()) {
-				if (arg->immediately) {
-					// move to closest waypoint immediately
-					self->set_translate(arg->nearest.point, true);
-				}
-				// set props again, avoid thread competition
-				self->_target = arg->nearest.point; // set target to closest point again
-				self->_currentWaypoint = segIndex; // set current waypoint again
-				self->_following = false;
+			if (waypoints && arg.arg < waypoints->ptsLen()) {
+				self->_currentWaypoint = arg.arg; // set current waypoint again
 			}
-		}, this, new Arg{nearest, immediately});
+		}, this, nearest.segIndex + 1);
 	}
 
 	void Agent::stop() {
-		set_active(false);
+		set_waypoints(nullptr); // clear waypoints
+		moveTo(translate()); // move to current position and clear follow target
 	}
 
 	void Agent::reportDirectionChange(Vec2 dir) {
-		// if (dir.lengthSq() < GEOM_EPS)
-		// 	return;
-		float dot = dir.dot(_direction);
-		// Only report direction change if the direction has changed significantly
+		float dot = dir.dot(_heading);
+		// Only report direction change if heading differs significantly.
+		// Quick zero-dir guard: skip costly lengthSq() unless dot is invalid.
 		if (dot < 0.9f && (dot > GEOM_EPS || dir.lengthSq() > GEOM_EPS)) {
-			_direction = dir;
-			onUIEvent(UIEvent_DirectionChange, this, new AgentStateChangeEvent(this));
+			_heading = dir;//(_heading * 0.85f + dir * 0.15f).normalized();
+			onUIEvent(UIEvent_AgentHeadingChange, this, new AgentStateEvent(this));
 		}
+	}
+
+	bool Agent::isSpeedBelowRatio(float ratio) const {
+		float speedSq = _velocity.lengthSq();
+		float maxSpeedSq = _velocityMax * _velocityMax;
+		return speedSq < maxSpeedSq * ratio * ratio;
 	}
 }

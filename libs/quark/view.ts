@@ -36,12 +36,12 @@ import event, {
 	GestureTouchPoint,
 	GestureStage, GestureType,
 	TouchPoint,
-	ArrivePositionEvent,
+	ReachWaypointEvent,
 	DiscoveryAgentEvent,
-	AgentStateChangeEvent,
-	FollowStateEvent,
+	AgentStateEvent,
 	SpineEvent,
-	SpineExtEvent,} from './event';
+	SpineExtEvent,
+	AgentMovementEvent,} from './event';
 import * as types from './types';
 import {RemoveReadonly, Vec2, Vec2In} from './types';
 import { StyleSheets, CStyleSheetsClass } from './css';
@@ -319,12 +319,19 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	 */
 	class: string[];
 
-	/** Base color/tint for this view. */
+	/**
+	 * Local color tint applied to this view.
+	 * The final rendered color is a combination of this color and parent color (depending on cascade_color).
+	 */
 	color: types.Color;
 
 	/**
-	 * Cascaded color (includes parent tint, etc.).
-	 * Usually computed by renderer/runtime.
+	 * Color inheritance mode from the parent view.
+	 * Determines how this view's color combines with its parent's final color.
+	 *
+	 * final_color = parent.final_color ⨉ self.color   // depending on cascade_color
+	 *
+	 * Default: CascadeColor::Both
 	 */
 	cascadeColor: types.CascadeColor;
 
@@ -344,7 +351,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	receive: boolean;
 
 	/** Enable anti-aliasing for drawing (if supported). */
-	aa: boolean;
+	antiAlias: boolean;
 
 	/** Whether the view currently has keyboard focus. */
 	isFocus: boolean;
@@ -764,10 +771,14 @@ export declare class Entity extends View implements MorphView {
 	bounds: types.Bounds;
 
 	/**
-	 * Whether this entity acts as a physics obstacle in the world.
-	 * Defaults to true.
+	 * Whether this entity participates in the world as a detectable/collidable object.
+	 * 
+	 * If false, other agents will ignore this entity (no collision, no detection),
+	 * but this entity may still actively collide or detect others if it is an Agent.
+	 *
+	 * Default: true
 	 */
-	isObstacle: boolean;
+	participate: boolean;
 }
 
 /**
@@ -787,13 +798,13 @@ export declare abstract class Agent extends Entity {
 	 * Fired when the agent reaches the next waypoint.
 	 * @event
 	 */
-	readonly onReachWaypoint: EventNoticer<ArrivePositionEvent>;
+	readonly onReachWaypoint: EventNoticer<ReachWaypointEvent>;
 
 	/**
 	 * Fired when the agent arrives at its final destination.
 	 * @event
 	 */
-	readonly onArriveDestination: EventNoticer<ArrivePositionEvent>;
+	readonly onAgentMovement: EventNoticer<AgentMovementEvent>;
 
 	/**
 	 * Fired when an agent is discovered (enters range) or lost (leaves range).
@@ -802,28 +813,31 @@ export declare abstract class Agent extends Entity {
 	readonly onDiscoveryAgent: EventNoticer<DiscoveryAgentEvent>;
 
 	/**
-	 * Fired when following state changes (start, stop, cancel).
-	 * @event
-	 */
-	readonly onFollowStateChange: EventNoticer<FollowStateEvent>;
-
-	/**
-	 * Fired when the agent's active movement state changes.
-	 * @event
-	 */
-	readonly onMovementActive: EventNoticer<AgentStateChangeEvent>;
-
-	/** 
-	 * Fired when the agent's movement direction changes.
+	 * Fired when the agent's heading direction changes.
 	 * @event
 	*/
-	readonly onDirectionChange: EventNoticer<AgentStateChangeEvent>;
+	readonly onAgentHeadingChange: EventNoticer<AgentStateEvent>;
 
-	/** Whether this agent is currently active (moving/processing). */
+	/**
+	* Whether the agent is currently active (moving or processing behavior). 
+	* Default: true
+	*/
 	active: boolean;
 
-	/** Whether this agent is following a target agent. */
-	readonly following: boolean;
+	/**
+	 * Whether the agent is currently moving toward a target or along waypoints or following another agent.
+	 */
+	readonly moving: boolean;
+
+	/**
+	 * Indicates if the agent’s standing position is floating (soft).
+	 * 
+	 * When enabled, the agent does not defend its current spot after arrival
+	 * and can be displaced by nearby agents—useful for group formations or
+	 * crowding around large targets.
+	 * Default: false
+	 */
+	floatingStation: boolean;
 
 	/** Waypoints path for the agent to navigate. */
 	waypoints: Path | null;
@@ -831,8 +845,18 @@ export declare abstract class Agent extends Entity {
 	/** Direct movement destination in world coordinates. */
 	readonly target: Vec2;
 
-	/** Current velocity vector in world coordinates. */
+	/** Current avoidance velocity steering vector in world coordinates. */
+	readonly velocitySteer: Vec2;
+
+	/** Current real velocity vector in world coordinates. */
 	readonly velocity: Vec2;
+
+	/**
+	 * Behavior heading direction (normalized).
+	 * The agent's intended movement direction based on path/follow logic.
+	 * Not necessarily equal to velocity direction and does not jitter.
+	 */
+	readonly heading: Vec2;
 
 	/** Maximum allowed movement speed. */
 	velocityMax: Float;
@@ -901,7 +925,8 @@ export declare abstract class Agent extends Entity {
 	returnToWaypoints(immediately?: boolean): void;
 
 	/**
-	 * Stop moving. Sets `active = false`.
+	 * clear current movement (waypoints or follow target).
+	 * and set target to current position.
 	 */
 	stop(): void;
 }
@@ -938,17 +963,19 @@ export declare class Sprite extends Agent {
 	/** Total frame count in the animation grid. */
 	frames: Uint16;
 
-	/** Current item index (e.g. column group / sub-animation). */
-	item: Uint16;
+	/** The current set of the sprite animation, default 0. */
+	set: Uint16;
 
-	/** Total number of items (e.g. columns / variants). */
-	items: Uint16;
+	/** The number of sets in the sprite animation, default 1. */
+	sets: Uint16;
 
-	/** Gap or padding between frames in the sheet. */
-	gap: Uint8;
+	/**
+	 * Spacing between frames in the sprite sheet (px).
+	*/
+	spacing: Uint8;
 
-	/** Frames per step / playback speed hint. */
-	fsp: Uint8;
+	/** Animation playback frequency (frames per second). */
+	frequency: Uint8;
 
 	/** Facing or motion direction. */
 	direction: types.Direction;
@@ -1564,17 +1591,15 @@ export interface MinimumTranslationVector {
 export type MTV = MinimumTranslationVector;
 
 /**
- * Test overlap from convex polygons with SAT algorithm and get minimum translation vector.
+ * Test overlap from convex polygons with SAT and GJK algorithm and get minimum translation vector.
  * @param poly1 The vertices of the first convex polygon.
  * @param poly2 The vertices of the second convex polygon.
- * @param origin1 The origin point of the first polygon for projection offset.
- * @param origin2 The origin point of the second polygon for projection offset.
  * @param outMTV? Optional output parameter to receive the minimum translation vector to separate the polygons.
- * @param computeMTV? Optional flag to compute the minimum translation vector even when the polygons are separated.
+ * @param requestSeparationMTV? Optional flag to compute the minimum translation vector even when the polygons are separated.
  * @returns Returns true if the polygons overlap, false otherwise.
 */
-export declare function testOverlapFromConvexPolygons(poly1: Vec2[], poly2: Vec2[],
-												origin1: Vec2, origin2: Vec2, outMTV?: Partial<MTV>, computeMTV?: boolean): boolean;
+export declare function testPolygonVsPolygon(poly1: Vec2[], poly2: Vec2[], 
+												outMTV?: Partial<MTV>, requestSeparationMTV?: boolean): boolean;
 
 const _ui = __binding__('_ui');
 
@@ -1642,7 +1667,7 @@ declare global {
 			opacity?: Float;
 			visible?: boolean;
 			receive?: boolean;
-			aa?: boolean;
+			antiAlias?: boolean;
 			isFocus?: boolean;
 		}
 
@@ -1740,17 +1765,16 @@ declare global {
 
 		interface EntityJSX extends ViewJSX, MorphViewJSX {
 			bounds?: types.BoundsIn;
-			isObstacle?: boolean;
+			participate?: boolean;
 		}
 
 		interface AgentJSX extends EntityJSX {
-			onReachWaypoint?: Listen<ArrivePositionEvent, Agent> | null;
-			onArriveDestination?: Listen<ArrivePositionEvent, Agent> | null;
+			onReachWaypoint?: Listen<ReachWaypointEvent, Agent> | null;
 			onDiscoveryAgent?: Listen<DiscoveryAgentEvent, Agent> | null;
-			onFollowStateChange?: Listen<FollowStateEvent, Agent> | null;
-			onMovementActive?: Listen<AgentStateChangeEvent, Agent> | null;
-			onDirectionChange?: Listen<AgentStateChangeEvent, Agent> | null;
+			onAgentMovement?: Listen<AgentMovementEvent, Agent> | null;
+			onAgentHeadingChange?: Listen<AgentStateEvent, Agent> | null;
 			active?: boolean;
+			floatingStation?: boolean;
 			velocityMax?: number;
 			discoveryDistances?: number | number[];
 			safetyBuffer?: number;
@@ -1770,10 +1794,10 @@ declare global {
 			height?: Float;
 			frame?: Uint16;
 			frames?: Uint16;
-			item?: Uint16;
-			items?: Uint16;
-			gap?: Uint8;
-			fsp?: Uint8;
+			set?: Uint16;
+			sets?: Uint16;
+			spacing?: Uint8;
+			frequency?: Uint8;
 			direction?: types.DirectionIn;
 			playing?: boolean;
 		}
@@ -2278,12 +2302,10 @@ class _Image {
 }
 
 class _Agent {
-	@event readonly onReachWaypoint: EventNoticer<ArrivePositionEvent>;
-	@event readonly onArriveDestination: EventNoticer<ArrivePositionEvent>;
+	@event readonly onReachWaypoint: EventNoticer<ReachWaypointEvent>;
 	@event readonly onDiscoveryAgent: EventNoticer<DiscoveryAgentEvent>;
-	@event readonly onFollowStateChange: EventNoticer<FollowStateEvent>;
-	@event readonly onMovementActive: EventNoticer<AgentStateChangeEvent>;
-	@event readonly onDirectionChange: EventNoticer<AgentStateChangeEvent>;
+	@event readonly onAgentMovement: EventNoticer<AgentMovementEvent>;
+	@event readonly onAgentHeadingChange: EventNoticer<AgentStateEvent>;
 }
 	
 class _Sprite {

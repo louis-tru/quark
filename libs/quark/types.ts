@@ -459,14 +459,14 @@ export enum CursorStyle {
 };
 
 /**
- * Color changes will affect sub views
+ * Inherit Color from parent view
  */
 export enum CascadeColor {
-	None, // No change
-	Alpha, // Only change Alpha for sub views
-	Color, // Only change RGB for sub views
+	None, // No inherit
+	Alpha, // Inherit only Alpha from parent
+	Color, // Inherit only RGB from parent
 	Rgb = Color, // alias of Color
-	Both, // Change RGB and Alpha for sub views
+	Both, // Inherit RGB and Alpha from parent
 };
 
 // -------------------------------------------------------------------------------------

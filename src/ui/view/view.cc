@@ -119,7 +119,7 @@ Range Container::to_range() const {
 		, _visible(true)
 		, _visible_area(false)
 		, _receive(true)
-		, _aa(true)
+		, _anti_alias(true)
 	{
 		// Qk_DLog("View sizeof, %d", sizeof(View));
 	}
@@ -168,8 +168,8 @@ Range Container::to_range() const {
 		_receive = val;
 	}
 
-	void View::set_aa(bool val) {
-		_aa = val;
+	void View::set_anti_alias(bool val) {
+		_anti_alias = val;
 	}
 
 	void View::set_cursor(CursorStyle val, bool isRt) {

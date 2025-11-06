@@ -45,7 +45,7 @@ namespace qk {
 		, int trackIndex, cString& animationName, float trackTime
 		, cEventData* staticData, float time, int intValue
 		, float floatValue, cString& stringValue, float volume, float balance)
-		: SpineEvent(origin, SEType::kExtEvent_Type, trackIndex, animationName, trackTime)
+		: SpineEvent(origin, SEType::ExtEvent_Type, trackIndex, animationName, trackTime)
 		, _static_data(staticData), _time(time), _int_value(intValue)
 		, _float_value(floatValue), _string_value(stringValue)
 		, _volume(volume), _balance(balance)
@@ -292,26 +292,26 @@ namespace qk {
 
 		switch (type) {
 			case EventType_Start:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kStart_Type, trackIndex, animationName, trackTime), UIEvent_SpineStart);
+				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Start_Type, trackIndex, animationName, trackTime), UIEvent_SpineStart);
 				break;
 			case EventType_Interrupt:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kInterrupt_Type, trackIndex, animationName, trackTime), UIEvent_SpineInterrupt);
+				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Interrupt_Type, trackIndex, animationName, trackTime), UIEvent_SpineInterrupt);
 				break;
 			case EventType_End:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kEnd_Type, trackIndex, animationName, trackTime), UIEvent_SpineEnd);
+				safe_trigger_event_rt(self, new SpineEvent(self, SEType::End_Type, trackIndex, animationName, trackTime), UIEvent_SpineEnd);
 				break;
 			case EventType_Dispose:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kDispose_Type, trackIndex, animationName, trackTime), UIEvent_SpineDispose);
+				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Dispose_Type, trackIndex, animationName, trackTime), UIEvent_SpineDispose);
 				break;
 			case EventType_Complete:
 				Qk_DEBUGCODE({
-					static bool init = false;
-					if (!init) {
-						init = true;
-						Qk_ASSERT_NE(animationName, "dead");
-					}
+					// static bool init = false;
+					// if (!init) {
+					// 	init = true;
+					// 	Qk_ASSERT_NE(animationName, "dead");
+					// }
 				});
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::kComplete_Type, trackIndex, animationName, trackTime), UIEvent_SpineComplete);
+				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Complete_Type, trackIndex, animationName, trackTime), UIEvent_SpineComplete);
 				break;
 			case EventType_Event: {
 				// TODO maybe the "e->getData()" is unsafe by

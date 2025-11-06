@@ -183,7 +183,7 @@ namespace qk {
 	// ------------------------ 圆 vs 厚线段检测（MTV） ------------------------
 	Qk_EXPORT bool test_circle_vs_line_segment(const Circle& circ, const LineSegment& seg, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 多边形 vs 线段检测（MTV） ------------------------
-	Qk_EXPORT bool test_poly_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* out = nullptr, bool requestSeparationMTV = false);
+	Qk_EXPORT bool test_polygon_vs_line_segment(cArray<Vec2>& poly, const LineSegment& seg, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 圆 vs 圆检测（MTV） ------------------------
 	Qk_EXPORT bool test_circle_vs_circle(const Circle& circ, const Circle& otherCirc, MTV* out = nullptr, bool requestSeparationMTV = false);
 	// ------------------------ 圆 vs 多边形检测（MTV） ------------------------

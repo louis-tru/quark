@@ -149,10 +149,10 @@ Qk_TEST_Func(spine) {
 		sp0->set_width(114 * w->atomPixel());
 		sp0->set_height(114 * w->atomPixel());
 		sp0->set_frames(9);
-		sp0->set_items(6);
-		sp0->set_item(1);
-		sp0->set_gap(1);
-		sp0->set_fsp(8);
+		sp0->set_sets(6);
+		sp0->set_set(1);
+		sp0->set_spacing(1);
+		sp0->set_frequency(8);
 		sp0->set_playing(true);
 	}
 	if (1) {

@@ -85,7 +85,7 @@ namespace qk {
 	}
 
 	Rect Painter::getRect(Box* box) {
-		return box->_aa ? Rect{
+		return box->_anti_alias ? Rect{
 			_originAA, {box->_client_size[0]-_AAShrink,box->_client_size[1]-_AAShrink},
 		}: Rect{
 			_origin, {box->_client_size[0],box->_client_size[1]},
@@ -111,7 +111,7 @@ namespace qk {
 			auto radiusLimit = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			auto  borderFix = border;
 			float borderFixStore[4];
-			if (box->_aa) {
+			if (box->_anti_alias) {
 				// TODO: The interior and the border cannot fit completely,
 				// causing anti-aliasing to fail at 1 to 2 pixels,
 				// so temporarily reduce the interior frame to 0.75
@@ -177,7 +177,7 @@ namespace qk {
 
 				auto  borderFix = border;
 				float borderFixStore[4];
-				if (v->_aa) {
+				if (v->_anti_alias) {
 					float AAShrink = _AAShrinkBorder;
 					borderFixStore[0] = Float32::max(0, border[0]-AAShrink);
 					borderFixStore[1] = Float32::max(0, border[1]-AAShrink);
@@ -201,10 +201,11 @@ namespace qk {
 		}
 	}
 
-	template<CascadeColor parentCascadeColor>
-	inline void Painter::visitView_(View *view, View *v) {
-		auto lastColor = _color;
-		auto lastMarkRecursive = _mark_recursive;
+	void Painter::visitView(View *view) {
+		auto v = view->_first.load(std::memory_order_acquire);
+		if (!v) return;
+		auto lastColor = _color; // save parent color
+		auto lastMarkRecursive = _mark_recursive; // save parent recursive mark
 		do {
 			if (v->_visible) {
 				uint32_t mark = lastMarkRecursive | v->mark_value(); // inherit recursive
@@ -213,7 +214,7 @@ namespace qk {
 					_mark_recursive = mark & View::kRecursive_Mark;
 				}
 				if (v->_visible_area && v->_color.a()) {
-					switch (parentCascadeColor) {
+					switch (v->_cascade_color) {
 						case CascadeColor::None:
 							_color = v->_color.to_color4f(); break;
 						case CascadeColor::Alpha:
@@ -228,24 +229,8 @@ namespace qk {
 			}
 			v = v->_next.load(std::memory_order_acquire);
 		} while(v);
-		_color = lastColor;
-		_mark_recursive = lastMarkRecursive;
-	}
-
-	void Painter::visitView(View *view) {
-		auto v = view->_first.load(std::memory_order_acquire);
-		if (v) {
-			switch (view->_cascade_color) {
-				case CascadeColor::None:
-					visitView_<CascadeColor::None>(view, v); break;
-				case CascadeColor::Alpha:
-					visitView_<CascadeColor::Alpha>(view, v); break;
-				case CascadeColor::Color:
-					visitView_<CascadeColor::Color>(view, v); break;
-				case CascadeColor::Both:
-					visitView_<CascadeColor::Both>(view, v); break;
-			}
-		}
+		_color = lastColor; // restore parent color
+		_mark_recursive = lastMarkRecursive; // restore parent recursive mark
 	}
 
 	void Painter::visitView(View* v, cMat* mat) {
@@ -295,7 +280,7 @@ namespace qk {
 		getRRectOutlinePath(v, data);
 		if (data.outline) {
 			Paint paint;
-			paint.antiAlias = v->_aa;
+			paint.antiAlias = v->_anti_alias;
 			paint.style = Paint::kStroke_Style;
 			for (int i = 0; i < 4; i++) {
 				if (_border->width[i] && _border->color[i].a()) {
@@ -315,7 +300,7 @@ namespace qk {
 			for (int i = 0; i < pathvs.total; i++) {
 				auto & it = pathvs.indexed[pathvs.batchs[i]];
 				_canvas->drawPathvColors(it.pathv, it.count,
-					it.color.mul_color4f(_color), kSrcOver_BlendMode, v->_aa);
+					it.color.mul_color4f(_color), kSrcOver_BlendMode, v->_anti_alias);
 			}
 		}
 	}
@@ -330,7 +315,7 @@ namespace qk {
 				if (_border->width[i] && _border->color[i].a()) { // top
 					auto pv = &data.outline->top + i;
 					if (pv->vCount) {
-						_canvas->drawPathvColor(*pv, _border->color[i].mul_color4f(_color), kSrcOver_BlendMode, v->_aa);
+						_canvas->drawPathvColor(*pv, _border->color[i].mul_color4f(_color), kSrcOver_BlendMode, v->_anti_alias);
 					} else { // stroke
 						paint.stroke.color = _border->color[i].mul_color4f(_color);
 						paint.strokeWidth = _border->width[i];
@@ -397,7 +382,7 @@ namespace qk {
 		PaintImage img;
 		paint.fill.image = &img;
 		paint.fill.color = _color;
-		paint.antiAlias = v->_aa;
+		paint.antiAlias = v->_anti_alias;
 
 		auto inside = data.inside;
 		auto rect = inside->rect;
@@ -406,7 +391,7 @@ namespace qk {
 			auto a0 = a.x(), a1 = a.x() + a.y();
 			if (a.y() < 0)
 				std::swap(a0, a1);
-			if (v->_aa) {
+			if (v->_anti_alias) {
 				a0 += self->_AAShrink * 0.5f;
 				a1 -= self->_AAShrink;
 			}
@@ -524,7 +509,7 @@ namespace qk {
 			fill->colors().val(), fill->positions().val()
 		};
 		Paint paint;
-		paint.antiAlias = v->_aa;
+		paint.antiAlias = v->_anti_alias;
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
 
@@ -543,7 +528,7 @@ namespace qk {
 			fill->colors().val(), fill->positions().val()
 		};
 		Paint paint;
-		paint.antiAlias = v->_aa;
+		paint.antiAlias = v->_anti_alias;
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
 		_canvas->drawPathv(*data.inside, paint);
@@ -574,7 +559,7 @@ namespace qk {
 			return;
 		getInsideRectPath(v, data);
 		_canvas->drawPathvColor(*data.inside,
-			v->_background_color.mul_color4f(_color), kSrcOver_BlendMode, v->_aa
+			v->_background_color.mul_color4f(_color), kSrcOver_BlendMode, v->_anti_alias
 		);
 		//Paint paint;
 		//paint.antiAlias = true;
@@ -588,7 +573,7 @@ namespace qk {
 				getInsideRectPath(v, data);
 				_window->clipRange(region_aabb_from_convex_quadrilateral(v->_boxBounds));
 				_canvas->save();
-				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
+				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, v->_anti_alias); // clip
 				visitView(v);
 				_canvas->restore(); // cancel clip
 				_window->clipRestore();
@@ -724,7 +709,7 @@ namespace qk {
 			draw->getInsideRectPath(this, data);
 			Paint paint;
 			PaintImage img;
-			paint.antiAlias = aa();
+			paint.antiAlias = anti_alias();
 			paint.fill.image = &img;
 			paint.fill.color = draw->color();
 			//img.tileModeX = PaintImage::kDecal_TileMode;
@@ -760,7 +745,7 @@ namespace qk {
 				draw->getInsideRectPath(this, data);
 				window()->clipRange(region_aabb_from_convex_quadrilateral(_boxBounds));
 				canvas->save();
-				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, aa()); // clip
+				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, anti_alias()); // clip
 				if (_blob_visible.length()) {
 					draw->drawTextBlob(this, offset, *_lines, _blob, _blob_visible);
 				}
@@ -791,7 +776,7 @@ namespace qk {
 		if (clip) {
 			draw->getInsideRectPath(this, data);
 			canvas->save();
-			canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, aa()); // clip
+			canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, anti_alias()); // clip
 		}
 
 		if (visible) {

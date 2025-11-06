@@ -542,6 +542,7 @@ namespace qk {
 		void drawTrianglesCall(const Triangles &triangles, const PaintImage *paint, const Color4f &color, bool aaclip, float depth) {
 			PaintImageLock lock(paint);
 			if (setTextureSlot0(paint)) {
+				auto isPre = paint->image->premultipliedAlpha();
 				auto s = triangles.isDarkColor ?
 					aaclip ? &_render->_shaders.triangles_DARK_COLOR_AACLIP: &_render->_shaders.triangles_DARK_COLOR:
 					aaclip ? &_render->_shaders.triangles_AACLIP: &_render->_shaders.triangles;
@@ -549,6 +550,7 @@ namespace qk {
 				s->use(triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), triangles.verts);
 				glUniform1f(s->depth, depth);
 				glUniform4fv(s->color, 1, color.val);
+				glUniform1f(s->premultipliedAlpha, isPre ? 1.0f : 0.0f);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * triangles.indexCount, triangles.indices, GL_DYNAMIC_DRAW);
 				glDrawElements(GL_TRIANGLES, triangles.indexCount, GL_UNSIGNED_SHORT, 0);

@@ -162,12 +162,12 @@ namespace qk {
 	class Qk_EXPORT SpineEvent: public UIEvent {
 	public:
 		enum Type {
-			kStart_Type,      ///< Animation started
-			kInterrupt_Type,  ///< Animation interrupted
-			kEnd_Type,        ///< Animation reached its end
-			kComplete_Type,   ///< Animation completed one loop
-			kDispose_Type,    ///< Animation (TrackEntry) disposed
-			kExtEvent_Type,   ///< Custom extend Spine event
+			Start_Type,      ///< Animation started
+			Interrupt_Type,  ///< Animation interrupted
+			End_Type,        ///< Animation reached its end
+			Complete_Type,   ///< Animation completed one loop
+			Dispose_Type,    ///< Animation (TrackEntry) disposed
+			ExtEvent_Type,   ///< Custom extend Spine event
 		};
 
 		/// Constructor

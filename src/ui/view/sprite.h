@@ -44,8 +44,8 @@ namespace qk {
 	 * @example
 	 * ```tsx
 	 * <sprite width={100} height={100} originX="auto" originY="100%">
-	 *   <sprite src="path/to/image.png" width={100} height={100} frames={10} fsp={24} direction="row" />
-	 *   <sprite src="path/to/another_image.png" width={200} height={200} frames={20} fsp={30} direction="column" />
+	 *   <sprite src="path/to/image.png" width={100} height={100} frames={10} frequency={24} direction="row" />
+	 *   <sprite src="path/to/another_image.png" width={200} height={200} frames={20} frequency={30} direction="column" />
 	 * </sprite>
 	 * ```
 	*/
@@ -56,11 +56,11 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(float, height, Const); // The height of the sprite frame
 		Qk_DEFINE_VIEW_PROPERTY(uint16_t, frame, Const); // The current frame of the sprite animation, default 0
 		Qk_DEFINE_PROPERTY     (uint16_t, frames, Const); // The number of frames in the sprite animation, default 1
-		Qk_DEFINE_PROPERTY     (uint16_t, item, Const); // The current item of the sprite animation, default 0
-		Qk_DEFINE_PROPERTY     (uint16_t, items, Const); // The number of items in the sprite animation, default 1
-		Qk_DEFINE_PROPERTY     (uint8_t, gap, Const); // The gap between frames in the sprite animation, default 0
+		Qk_DEFINE_PROPERTY     (uint16_t, set, Const); // The current set of the sprite animation, default 0
+		Qk_DEFINE_PROPERTY     (uint16_t, sets, Const); // The number of sets in the sprite animation, default 1
+		Qk_DEFINE_PROPERTY     (uint8_t, spacing, Const); // The spacing between frames in the sprite sheet, default 0
 		Qk_DEFINE_VIEW_PROPERTY(Direction, direction, Const); // The direction of the sprite animation, default horizontal row
-		Qk_DEFINE_ACCESSOR     (uint8_t, fsp, Const); // The frame per second of the sprite animation, default 25
+		Qk_DEFINE_ACCESSOR     (uint8_t, frequency, Const); // The frequency of frame updates, default 1, limit 60
 		Qk_DEFINE_ACCESSOR     (bool, playing, Const); // Whether the sprite is currently playing
 		Sprite(); // Constructor
 		void destroy() override;

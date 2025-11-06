@@ -46,6 +46,10 @@ namespace qk {
 		return rowbytes() * _height;
 	}
 
+	// void PixelInfo::set_alphaType(AlphaType type) {
+	// 	_alphaType = type;
+	// }
+
 	// -------------------- P i x e l --------------------
 
 	/**

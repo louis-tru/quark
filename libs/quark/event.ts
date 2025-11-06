@@ -502,12 +502,12 @@ export class GestureEvent extends Event<View> implements UIEvent {
  * Spine animation event types
 */
 export enum SpineEventType {
-	kStart_Type,      //!< Animation started
-	kInterrupt_Type,  //!< Animation interrupted
-	kEnd_Type,        //!< Animation reached its end
-	kComplete_Type,   //!< Animation completed one loop
-	kDispose_Type,    //!< Animation (TrackEntry) disposed
-	kExtEvent_Type,   //!< Custom extend Spine event
+	Start_Type,      //!< Animation started
+	Interrupt_Type,  //!< Animation interrupted
+	End_Type,        //!< Animation reached its end
+	Complete_Type,   //!< Animation completed one loop
+	Dispose_Type,    //!< Animation (TrackEntry) disposed
+	ExtEvent_Type,   //!< Custom extend Spine event
 };
 
 /**
@@ -577,25 +577,53 @@ export declare class SpineExtEvent extends SpineEvent {
 }
 
 /**
- * @class ArrivePositionEvent
+ * @class AgentStateEvent
  * @extends UIEvent
 */
-export declare class ArrivePositionEvent extends UIEvent {
+export declare class AgentStateEvent extends UIEvent {
 	/** agent itself */
 	readonly origin: Agent;
-	/** arrived position */
-	readonly position: Vec2;
+	readonly velocity: Vec2;  //!< Current velocity vector.
+	readonly heading: Vec2;  //!< Current heading vector to along waypoints or follow target.
+	readonly target: Vec2;  //!< Current target position.
+	readonly moving: boolean;  //!< Following state.
+}
+
+/**
+ * @class ArrivePositionEvent
+ * @extends AgentStateEvent
+*/
+export declare class ReachWaypointEvent extends AgentStateEvent {
 	/** vector to next waypoint */
-	readonly nextLocation: Vec2;
+	readonly toNext: Vec2;
 	/** waypoint index */
 	readonly waypointIndex: Uint;
 }
 
 /**
- * @class DiscoveryAgentEvent
- * @extends UIEvent
+ * @enum MovementState
 */
-export declare class DiscoveryAgentEvent extends UIEvent {
+export enum MovementState {
+	Started = 1,  //!< Movement started
+	Arrived,      //!< Arrived at target or waypoint
+	Stopped,      //!< Arrived or naturally stopped
+	Cancelled     //!< Interrupted (follow lost, new target etc.)
+}
+
+/**
+ * @class AgentMovementEvent
+ * @extends AgentStateEvent
+*/
+export declare class AgentMovementEvent extends AgentStateEvent {
+	/** Movement state */
+	readonly movementState: MovementState;
+};
+
+/**
+ * @class DiscoveryAgentEvent
+ * @extends AgentStateEvent
+*/
+export declare class DiscoveryAgentEvent extends AgentStateEvent {
  /** agent itself */
 	readonly origin: Agent;
  /** other agent when remove view is null */
@@ -609,38 +637,6 @@ export declare class DiscoveryAgentEvent extends UIEvent {
  /** is leaving or entering */
 	readonly entering: boolean;
 }
-
-/**
- * @class AgentStateChangeEvent
- * @extends UIEvent
-*/
-export declare class AgentStateChangeEvent extends UIEvent {
-	/** agent itself */
-	readonly origin: Agent;
-	readonly velocity: Vec2;  //!< Current velocity vector.
-	readonly direction: Vec2;  //!< Current direction to target or along waypoints or follow target.
-	readonly following: boolean;  //!< Following state.
-	readonly active: boolean;  //!< Active state.
-}
-
-/**
- * Follow state type
-*/
-export enum FollowingState {
-	kNone = 0, //!< None state change
-	kStart, //!<
-	kStop, //!<
-	kCancel, //!<
-}
-
-/**
- * @class FollowStateEvent
- * @extends UIEvent
-*/
-export declare class FollowStateEvent extends AgentStateChangeEvent {
-	/** follow state */
-	readonly state: FollowingState;
-};
 
 const _init = __binding__('_init');
 const PREFIX = '_on';

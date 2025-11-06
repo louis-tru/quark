@@ -86,8 +86,6 @@ namespace qk {
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);
 	private:
-		template<CascadeColor parentCascadeColor>
-		void visitView_(View *view, View *v);
 		Render     *_render;
 		uint32_t   _mark_recursive;
 		Buffer     _tempBuff;

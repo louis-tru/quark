@@ -39,6 +39,71 @@ namespace qk {
 	class Agent;
 
 	/**
+	 * @class AgentStateChangeEvent
+	 * @brief Event triggered when an Agent's state changes (e.g., velocity or following status).
+	 */
+	class Qk_EXPORT AgentStateEvent: public UIEvent {
+	public:
+		AgentStateEvent(Agent *origin);
+		Qk_DEFINE_PROP_GET(Vec2, velocity, Const);  ///< Current velocity vector.
+		Qk_DEFINE_PROP_GET(Vec2, heading, Const);  ///< Current heading vector of target or waypoints.
+		Qk_DEFINE_PROP_GET(Vec2, target, Const);  ///< Current target position.
+		Qk_DEFINE_PROP_GET(bool, moving, Const);  ///< Moving state.
+	};
+
+	/**
+	 * @class ReachWaypointEvent
+	 * @brief Event triggered when an Agent reaches a waypoint in its path.
+	 */
+	class Qk_EXPORT ReachWaypointEvent: public AgentStateEvent {
+	public:
+		ReachWaypointEvent(Agent *origin, Vec2 toNext, uint32_t waypoint_index);
+		Qk_DEFINE_PROP_GET(Vec2, toNext, Const);   ///< current waypoint to next vector.
+		Qk_DEFINE_PROP_GET(uint32_t, waypointIndex, Const); ///< Index of current waypoint.
+	};
+
+	/**
+	 * @class AgentMovementEvent
+	 * @brief Event triggered when an Agent starts, stops, or cancels movement.
+	*/
+	class Qk_EXPORT AgentMovementEvent: public AgentStateEvent {
+	public:
+		enum MovementState {
+			Started = 1,  ///< Movement started
+			Arrived,      ///< Arrived at target or waypoint
+			Stopped,      ///< Arrived or naturally stopped
+			Cancelled     ///< Interrupted (follow lost, new target etc.)
+		};
+		AgentMovementEvent(Agent *origin, MovementState state);
+		Qk_DEFINE_PROP_GET(MovementState, movementState, Const);  ///< Movement state.
+	};
+
+	/**
+	 * @class DiscoveryAgentEvent
+	 * @brief Event triggered when one Agent discovers or loses another within a detection range.
+	 */
+	class Qk_EXPORT DiscoveryAgentEvent: public AgentStateEvent {
+	public:
+		/**
+		 * @param origin Origin agent that detects the other.
+		 * @param agent  The discovered or lost agent.
+		 * @param location The relative location to the other agent.
+		 * @param id Unique identifier for the discovered agent.
+		 * @param level Discovery level (range band index), 0xffffffff indicates completely lost.
+		 * @param entering True if entering range, false if leaving.
+		 */
+		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uint32_t id, uint32_t level, bool entering);
+
+		Qk_DEFINE_PROP_GET(Agent*, agent);     ///< The other discovered agent.
+		Qk_DEFINE_PROP_GET(Vec2, location, Const); ///< Relative position to the other agent.
+		Qk_DEFINE_PROP_GET(uint32_t, agentId, Const); ///< Usually low 32 bits of pointer address.
+		Qk_DEFINE_PROP_GET(uint32_t, level, Const); ///< Discovery level index.
+		Qk_DEFINE_PROP_GET(bool, entering, Const); ///< True if entering range; false if leaving.
+
+		void release() override; ///< Custom release logic.
+	};
+
+	/**
 	 * @class Entity
 	 * @brief Base class for all 2D world entities.
 	 * 
@@ -78,10 +143,14 @@ namespace qk {
 		Qk_DEFINE_ACCESSOR(const Bounds&, bounds, Const);
 
 		/**
-		 * Whether this entity acts as a physics obstacle in the world.
-		 * Defaults to true.
-		*/
-		Qk_DEFINE_ACCESSOR(bool, isObstacle, Const);
+		 * Whether this entity participates in the world as a detectable/collidable object.
+		 * 
+		 * If false, other agents will ignore this entity (no collision, no detection),
+		 * but this entity may still actively collide or detect others if it is an Agent.
+		 *
+		 * Default: true
+		 */
+		Qk_DEFINE_ACCESSOR(bool, participate, Const);
 
 		Entity();
 		~Entity();
@@ -149,80 +218,14 @@ namespace qk {
 		Circle _circleBounds;
 
 		/*
-		 * Whether this entity acts as a physics obstacle in the world.
+		 * Whether this entity participates in the world as a detectable/collidable object.
 		*/
-		bool _isObstacle;
+		bool _participate;
 
 		friend class World;
 		friend class Sprite;
 		friend class Spine;
 		friend class Agent;
-	};
-
-	/**
-	 * @class ArrivePositionEvent
-	 * @brief Event triggered when an Agent arrives at a waypoint or target position.
-	 */
-	class Qk_EXPORT ArrivePositionEvent: public UIEvent {
-	public:
-		ArrivePositionEvent(Agent *origin, Vec2 position, Vec2 nextLocation, uint32_t waypoint_index);
-
-		Qk_DEFINE_PROP_GET(Vec2, position, Const);       ///< Current arrived position.
-		Qk_DEFINE_PROP_GET(Vec2, nextLocation, Const);   ///< Vector direction to next waypoint.
-		Qk_DEFINE_PROP_GET(uint32_t, waypointIndex, Const); ///< Index of current waypoint.
-	};
-
-	/**
-	 * @class DiscoveryAgentEvent
-	 * @brief Event triggered when one Agent discovers or loses another within a detection range.
-	 */
-	class Qk_EXPORT DiscoveryAgentEvent: public UIEvent {
-	public:
-		/**
-		 * @param origin Origin agent that detects the other.
-		 * @param agent  The discovered or lost agent.
-		 * @param location The relative location to the other agent.
-		 * @param id Unique identifier for the discovered agent.
-		 * @param level Discovery level (range band index), 0xffffffff indicates completely lost.
-		 * @param entering True if entering range, false if leaving.
-		 */
-		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uint32_t id, uint32_t level, bool entering);
-
-		Qk_DEFINE_PROP_GET(Agent*, agent);     ///< The other discovered agent.
-		Qk_DEFINE_PROP_GET(Vec2, location, Const); ///< Relative position to the other agent.
-		Qk_DEFINE_PROP_GET(uint32_t, agentId, Const); ///< Usually low 32 bits of pointer address.
-		Qk_DEFINE_PROP_GET(uint32_t, level, Const); ///< Discovery level index.
-		Qk_DEFINE_PROP_GET(bool, entering, Const); ///< True if entering range; false if leaving.
-
-		void release() override; ///< Custom release logic.
-	};
-
-	/**
-	 * @class AgentStateChangeEvent
-	 * @brief Event triggered when an Agent's state changes (e.g., velocity or following status).
-	 */
-	class Qk_EXPORT AgentStateChangeEvent: public UIEvent {
-	public:
-		AgentStateChangeEvent(Agent *origin);
-		Qk_DEFINE_PROP_GET(Vec2, velocity, Const);  ///< Current velocity vector.
-		Qk_DEFINE_PROP_GET(Vec2, direction, Const);  ///< Current direction vector of target.
-		Qk_DEFINE_PROP_GET(bool, following, Const);  ///< Following state.
-		Qk_DEFINE_PROP_GET(bool, active, Const);  ///< Active state.
-	};
-
-	/**
-	 * @class FollowStateEvent
-	 * @brief Event triggered when an Agent starts or stops following a target.
-	*/
-	class Qk_EXPORT FollowStateEvent: public AgentStateChangeEvent {
-	public:
-		enum FollowingState {
-			kStart = 1, ///< Following started.
-			kStop,  ///< Following stopped normally.
-			kCancel ///< Following cancelled (e.g., target removed in parent view).
-		};
-		FollowStateEvent(Agent *origin, FollowingState state);
-		Qk_DEFINE_PROP_GET(FollowingState, state, Const);  ///< Following state.
 	};
 
 	/**
@@ -238,22 +241,45 @@ namespace qk {
 	 */
 	class Qk_EXPORT Agent: public Entity {
 	public:
-		/** Whether the agent is currently active (moving or processing behavior). */
+		/**
+		 * Whether the agent is currently active (moving or processing behavior). 
+		 * Default: true
+		 */
 		Qk_DEFINE_PROPERTY(bool, active, Const);
 
-		/** Whether the agent is currently following a target. */
-		Qk_DEFINE_PROP_GET(bool, following, Const);
+		/**
+		 * Whether the agent is currently moving toward a target or along waypoints or following another agent.
+		*/
+		Qk_DEFINE_PROP_GET(bool, moving, Const);
 
 		/**
-		 * Waypoints path for the agent to navigate.
-		*/
+		 * Indicates if the agent’s standing position is floating (soft).
+		 * 
+		 * When enabled, the agent does not defend its current spot after arrival
+		 * and can be displaced by nearby agents—useful for group formations or
+		 * crowding around large targets.
+		 * Default: false
+		 */
+		Qk_DEFINE_PROPERTY(bool, floatingStation, Const);
+
+		/** Waypoints path for the agent to navigate. */
 		Qk_DEFINE_ACCESSOR(Path*, waypoints, Const);
 
 		/** Target position (for direct movement). */
 		Qk_DEFINE_PROP_GET(Vec2, target, Const);
 
-		/** Current velocity vector in world coordinates. */
+		/** Current avoidance velocity steering vector in world coordinates. */
+		Qk_DEFINE_PROP_GET(Vec2, velocitySteer, Const);
+
+		/** Current real velocity vector in world coordinates. */
 		Qk_DEFINE_PROP_GET(Vec2, velocity, Const);
+
+		/**
+		 * Behavior heading direction (normalized).
+		 * The agent's intended movement direction based on path/follow logic.
+		 * Not necessarily equal to velocity direction and does not jitter.
+		 */
+		Qk_DEFINE_PROP_GET(Vec2, heading, Const);
 
 		/** Maximum movement velocity. Default is 100.0f. */
 		Qk_DEFINE_PROPERTY(float, velocityMax, Const);
@@ -269,13 +295,13 @@ namespace qk {
 
 		/**
 		 * Avoidance strength multiplier during collision resolution.
-		 * Default is 1.0f, range [0.0, 10.0].
+		 * Default is 0.5f, recommended range [0.0, 1.0].
 		*/
 		Qk_DEFINE_PROPERTY(float, avoidanceFactor, Const);
 
 		/**
 		 * Maximum avoidance velocity applied when steering away from obstacles.
-		 * Default is 0.8f, range [0.0, 3.0], recommended range [0.0, 1.0].
+		 * Default is 1.0f, range [0.0, 3.0], recommended range [0.0, 1.0].
 		*/
 		Qk_DEFINE_PROPERTY(float, avoidanceVelocityFactor, Const);
 
@@ -288,11 +314,6 @@ namespace qk {
 		 * Distance max range maintained while following a target agent.
 		*/
 		Qk_DEFINE_PROPERTY(float, followMaxDistance, Const);
-
-		/**
-		 * Current direction to target or along waypoints or follow target.
-		*/
-		Qk_DEFINE_PROP_GET(Vec2, direction, Const);
 
 		/**
 		 * The target agent to follow.  
@@ -338,7 +359,8 @@ namespace qk {
 		void returnToWaypoints(bool immediately = false);
 
 		/**
-		 * Stop agent movement (set `active=false`).
+		 * clear current movement (waypoints or follow target).
+		 * and set target to current position.
 		 */
 		void stop();
 
@@ -362,11 +384,11 @@ namespace qk {
 		Agent(); ///< Protected constructor; use derived class instantiation.
 	private:
 		void reportDirectionChange(Vec2 dir);
+		bool isSpeedBelowRatio(float ratio) const;
 		Dict<Agent*, uint32_t> _discoverys_rt; ///< Runtime map of discovered agents → level index.
 		std::atomic<Array<float>*> _discoveryDistances; ///< Discovery range levels.
 		std::atomic<Path*> _waypoints; ///< Active waypoint path.
 		std::atomic<Agent*> _followTarget; ///< Current follow target (weak reference).
-		float _lastUpdateTime; ///< Timestamp of last update cycle.
 
 		friend class World;
 	};
