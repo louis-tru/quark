@@ -156,6 +156,9 @@ namespace qk { namespace js {
 	}
 
 	struct MixAudioPlayer: MixUIObject {
+		NotificationBasic* asNotificationBasic() {
+			return self<AudioPlayer>();
+		}
 		Player* asPlayer() override {
 			return self<AudioPlayer>();
 		}

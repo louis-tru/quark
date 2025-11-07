@@ -542,7 +542,7 @@ namespace qk {
 	void EventDispatch::onTouchmove(List<TouchPoint>&& list) {
 		auto id = list.front().id;
 		auto loc = list.front().position;
-		Qk_DLog("onTouchmove id: %d, x: %f, y: %f, c: %d", id, loc.x(), loc.y(), list.length());
+		// Qk_DLog("onTouchmove id: %d, x: %f, y: %f, c: %d", id, loc.x(), loc.y(), list.length());
 		UILock lock(_window);
 		touchmove(list);
 	}

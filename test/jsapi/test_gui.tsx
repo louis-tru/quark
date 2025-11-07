@@ -95,10 +95,10 @@ export default async function test1(win: Window) {
 					width={114*win.atomPixel}
 					height={114*win.atomPixel}
 					frames={9}
-					items={6}
-					item={1}
-					gap={1}
-					fsp={8}
+					sets={6}
+					set={1}
+					spacing={1}
+					frequency={8}
 					//direction="rowReverse"
 					playing={true}
 					src={resolve('./res/sprite.png')} 

@@ -315,7 +315,7 @@ void Window::activate() {
 	Inl_Application(_host)->triggerForeground(this);
 }
 
-Region Window::getDisplayRegion(Vec2 size) {
+Range Window::getDisplayRange(Vec2 size) {
 	return {{0}, size};
 }
 
