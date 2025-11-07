@@ -94,11 +94,13 @@ namespace qk {
 	void World::set_playing(bool value) {
 		if (_playing != value) {
 			_playing = value;
-			if (_playing) {
-				preRender().addtask(this); // add task
-			} else {
-				preRender().untask(this); // remove task
-			}
+			preRender().async_call([](auto self, auto arg) {
+				if (arg.arg) {
+					self->preRender().addtask(self); // add task
+				} else {
+					self->preRender().untask(self); // remove task
+				}
+			}, this, value);
 		}
 	}
 

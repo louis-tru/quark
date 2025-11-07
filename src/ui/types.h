@@ -75,6 +75,10 @@ namespace qk {
 		Right = RowReverse,
 		Top = Column,
 		Bottom = ColumnReverse,
+		LeftTop,
+		RightTop,
+		RightBottom,
+		LeftBottom,
 	};
 
 	// 项目在主轴上的对齐方式

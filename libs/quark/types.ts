@@ -173,6 +173,10 @@ export enum Direction {
 	Right = RowReverse, //!<
 	Top = Column, //!<
 	Bottom = ColumnReverse, //!<
+	LeftTop, //!<
+	RightTop, //!<
+	RightBottom, //!<
+	LeftBottom, //!<
 };
 
 /**
@@ -571,10 +575,11 @@ export class Base<T> {
 	}
 }
 
-export const PI2 = Math.PI * 2; // 360deg
-export const PIHalf = Math.PI * 0.5; // 90deg
-export const PIHalfHalf = Math.PI * 0.25; // 45deg
-export const PIDegree = PI2 / 360; // 1deg
+export const PI2 = Math.PI * 2; // 360deg, 2PI
+export const PIHalf = Math.PI * 0.5; // 90deg, 1/2 PI
+export const PIHalfHalf = Math.PI * 0.25; // 45deg, 1/4 PI
+export const PIHalfHalfHalf = Math.PI * 0.125; // 22.5deg, 1/8 PI
+export const PIDegree = PI2 / 360; // 1deg, PI/180
 
 /**
  * @class Vec2 2D vector
@@ -708,7 +713,9 @@ export class Vec2 extends Base<Vec2> {
 	 * @return angle in radians
 	*/
 	angle(): N {
-		return Math.atan2(this.y, this.x);
+		let angle = Math.atan2(this.y, this.x);
+		// format to 0 ~ 2PI
+		return angle < 0 ? angle + PI2 : angle;
 	}
 
 	/**
@@ -751,15 +758,13 @@ export class Vec2 extends Base<Vec2> {
 	/** 
 	 * Get the direction of the vector
 	 * @param accuracy The accuracy of angle, the smaller the more accurate, default is 1
-	 * @return Return to clockwise direction
+	 * @return Return direction enum
 	 */
 	direction(accuracy: number = 1): Direction {
 		if (this.x === 0 && this.y === 0)
 			return Direction.None;
 		let angle = this.angle();
 		angle = (angle + PIHalfHalf) % PI2;
-		if (angle < 0)
-			angle += PI2;
 		if (accuracy < 1) { // filter angle accuracy
 			const threshold = (1 - accuracy) * 0.5; // 0 ~ 0.5
 			const normalizedAngle = angle % PIHalf / PIHalf - threshold; // -threshold ~ 1-threshold
@@ -769,6 +774,24 @@ export class Vec2 extends Base<Vec2> {
 		// Return to clockwise direction
 		return [Direction.Right, Direction.Bottom,
 			Direction.Left, Direction.Top][Math.floor(angle / PIHalf)];
+	}
+
+	/** 
+	 * Get the 8-direction of the vector
+	 * @return Return direction enum
+	 */
+	directionEight(): Direction {
+		if (this.x === 0 && this.y === 0)
+			return Direction.None;
+		let angle = this.angle();
+		angle = (angle + PIHalfHalfHalf) % PI2;
+		// Return to clockwise direction
+		return [
+			Direction.Right, Direction.RightBottom,
+			Direction.Bottom, Direction.LeftBottom,
+			Direction.Left, Direction.LeftTop,
+			Direction.Top, Direction.RightTop,
+		][Math.floor(angle / PIHalfHalf)];
 	}
 
 	/**

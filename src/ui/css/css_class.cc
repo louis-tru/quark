@@ -189,7 +189,7 @@ namespace qk {
 	*/
 
 	void CStyleSheetsClass::applyStyle_rt(CStyleSheets *css) {
-		if (css->_time && !_firstApply) {
+		if (css->_time /*&& !_firstApply*/) {
 			_host->window()->actionCenter()->addCSSTransition_rt(_host, css);
 		} else {
 			css->apply(_host, true);
