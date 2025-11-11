@@ -372,7 +372,7 @@ namespace qk {
 		float32x4_t b{color.r(), color.g(), color.b(), 1.0f};
 		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
 #else
-		return Color4f(r() * alpha, g() * alpha, b() * alpha, a());
+		return Color4f(r() * color.r(), g() * color.g(), b() * color.b(), a());
 #endif
 	}
 
