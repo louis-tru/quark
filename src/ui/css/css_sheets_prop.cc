@@ -222,8 +222,9 @@ namespace qk {
 		}
 		void fetch(View *view) override {
 			auto get = (T* (View::*)())(view->accessor() + _prop)->get;
-			if (get)
+			if (get) {
 				_value = BoxFilter::assign(_value, (view->*get)(), nullptr, true);
+			}
 		}
 		void transition(View *target, Property *to, float t) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
@@ -558,6 +559,9 @@ namespace qk {
 				filter->mark_public();
 				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key, filter)));
 				filter->release(); // @BoxFilter::assign
+			} else {
+				// set null
+				onMake(key, _props.set(key, new PropImpl<BoxFilter*>(key, nullptr)));
 			}
 		}
 		template<CssProp key>

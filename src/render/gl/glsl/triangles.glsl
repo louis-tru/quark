@@ -39,6 +39,9 @@ void main() {
 #endif
 
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP
-	fragColor.a *= smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+	float alpha = smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
+	// apply premultiplied alpha
+	float premul = mix(1.0, alpha, premultipliedAlpha);
+	fragColor *= vec4(vec3(premul), alpha);
 #endif
 }

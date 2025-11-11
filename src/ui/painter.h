@@ -89,6 +89,7 @@ namespace qk {
 		Render     *_render;
 		uint32_t   _mark_recursive;
 		Buffer     _tempBuff;
+		Vec2      _AAShrinkHalf;
 		LinearAllocator _tempAllocator[2]; // Reset when starting every frame
 
 		friend class Spine;

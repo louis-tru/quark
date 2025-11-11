@@ -51,7 +51,7 @@ namespace qk {
 		String getFamilyName(int index) const;
 		FFID getFontFamilies(cString& families = String());
 		FFID getFontFamilies(cArray<String>& families);
-		void addFontFamily(cBuffer& buff, cString& alias = String());
+		String addFontFamily(cBuffer& buff, cString& alias = String());
 		float getUnitMetrics(FontMetricsBase* metrics, float fontSize) const;
 		Sp<Typeface> match(cString& familyName, FontStyle style) const;
 		Sp<Typeface> matchCharacter(cString& familyName, FontStyle, Unichar character) const;

@@ -100,17 +100,29 @@ namespace qk {
 		}
 
 		void setMatrixAndScale(const Mat& mat) {
-			auto scale = mat.is_translation_matrix() ? 1:
-				mat.mul_vec2_no_translate(1).length() / Qk_SQRT_2;
+			// is translation only matrix
+			auto scale = mat.is_translation_matrix() ? 1.0f:
+				mat.mul_vec2_no_translate(1.0f).length() * (1.0f / Qk_SQRT_2);
 			if (_scale != scale) {
 				_scale = scale;
 				_allScale = _surfaceScale * scale;
-				_phy2Pixel = 2 / _allScale;
+				_phy2Pixel = 2.0f / _allScale;
 			}
-			_cmdPack->setMatrix();
+			_matrixFlag = true;
 		}
 
-		void setBlendMode(BlendMode mode) {
+		void solveSetMatrix() {
+			if (_matrixFlag) {
+				_matrixFlag = false;
+				_cmdPack->setMatrix();
+			}
+		}
+
+		void solveSetMatrixAndBlend(BlendMode mode) {
+			if (_matrixFlag) {
+				_matrixFlag = false;
+				_cmdPack->setMatrix();
+			}
 			if (_blendMode != mode) {
 				_blendMode = mode;
 				_cmdPack->setBlendMode(mode);
@@ -278,11 +290,11 @@ namespace qk {
 	template<typename... Args>
 	GLCFilter* GLCFilter::Make(GLCanvas *host, const Paint &paint, Args... args)
 	{
+		// switch blend mode and solve matrix
+		_inl(host)->solveSetMatrixAndBlend(paint.blendMode);
 		if (!paint.filter) {
-			_inl(host)->setBlendMode(paint.blendMode); // switch blend mode
 			return nullptr;
 		}
-
 		switch(paint.filter->type) {
 			case PaintFilter::kBlur_Type:
 				if (host->_allScale * paint.filter->val0 >= 1.0) {
@@ -306,7 +318,7 @@ namespace qk {
 		, _rootMatrix()
 		, _blendMode(kSrcOver_BlendMode)
 		, _opts(opts)
-		, _isClipState(false)
+		, _isClipState(false), _matrixFlag(false)
 	{
 		_DeviceMsaa = _opts.msaaSample > 1 ? _opts.msaaSample: 0;
 		auto capacity = opts.maxCapacityForPathvCache ?
@@ -385,6 +397,7 @@ namespace qk {
 						_stencilRef--;
 					}
 					setMatrix(clip.matrix);
+					_this->solveSetMatrix(); // solve set matrix
 					_cmdPack->drawClip(clip, _stencilRef, _state->output.get(), true);
 					_this->zDepthNext();
 
@@ -409,6 +422,7 @@ namespace qk {
 				_cmdPack->outputImageBegin(_state->output.get());
 			}
 			setMatrix(_state->matrix);
+			_this->solveSetMatrix(); // solve set matrix
 		}
 	}
 
@@ -431,12 +445,12 @@ namespace qk {
 
 	void GLCanvas::translate(Vec2 val) {
 		_state->matrix.translate(val);
-		_cmdPack->setMatrix();
+		_matrixFlag = true;
 	}
 
 	void GLCanvas::setTranslate(Vec2 val) {
 		_state->matrix.set_translate(val);
-		_cmdPack->setMatrix();
+		_matrixFlag = true;
 	}
 
 	void GLCanvas::scale(Vec2 val) {
@@ -446,7 +460,7 @@ namespace qk {
 
 	void GLCanvas::rotate(float z) {
 		_state->matrix.rotate(z);
-		_cmdPack->setMatrix();
+		_matrixFlag = true;
 	}
 
 	bool GLCanvas::readPixels(uint32_t srcX, uint32_t srcY, Pixel* dst) {
@@ -498,7 +512,7 @@ namespace qk {
 	void GLCanvas::drawColor(const Color4f &color, BlendMode mode) {
 		auto isBlend = mode != kSrc_BlendMode;// || color.a() != 1;
 		if (isBlend) { // draw color
-			_this->setBlendMode(mode); // switch blend mode
+			_this->solveSetMatrixAndBlend(mode); // switch blend mode
 			_cmdPack->clearColor(color, {{},_size}, false);
 			_this->zDepthNext();
 		} else { // clear color
@@ -507,7 +521,7 @@ namespace qk {
 	}
 
 	void GLCanvas::drawPathvColor(const Pathv& path, const Color4f &color, BlendMode mode, bool antiAlias) {
-		_this->setBlendMode(mode); // switch blend mode
+		_this->solveSetMatrixAndBlend(mode); // switch blend mode
 		_cmdPack->drawColor(path, color, false);
 		if (!_DeviceMsaa && antiAlias) { // Anti-aliasing using software
 			auto &vertex = _cache->getAAFuzzStrokeTriangle(path.path, _phy2Pixel*aa_fuzz_width);
@@ -519,7 +533,7 @@ namespace qk {
 	void GLCanvas::drawPathvColors(const Pathv* paths[], int count, const Color4f &color, 
 		BlendMode mode, bool antiAlias) 
 	{
-		_this->setBlendMode(mode); // switch blend mode
+		_this->solveSetMatrixAndBlend(mode); // switch blend mode
 		for (int i = 0; i < count; i++) {
 			_cmdPack->drawColor(*paths[i], color, false);
 		}
@@ -537,14 +551,14 @@ namespace qk {
 		const float radius[4], float blur, const Color4f &color, BlendMode mode) 
 	{
 		if (!rect.size.is_zero_axis()) {
-			_this->setBlendMode(mode); // switch blend mode
+			_this->solveSetMatrixAndBlend(mode); // switch blend mode
 			_cmdPack->drawRRectBlurColor(rect, radius, blur, color);
 			_this->zDepthNext();
 		}
 	}
 
-	void GLCanvas::drawPath(const Path &path_, const Paint &paint) {
-		auto &path = _cache->getNormalizedPath(path_);
+	void GLCanvas::drawPath(const Path &path0, const Paint &paint) {
+		auto &path = _cache->getNormalizedPath(path0);
 		bool aa = paint.antiAlias && !_DeviceMsaa; // Anti-aliasing using software
 		Sp<GLCFilter> filter = GLCFilter::Make(this, paint, &path);
 
@@ -677,7 +691,7 @@ namespace qk {
 	}
 
 	void GLCanvas::drawTriangles(const Triangles& triangles, const Paint &paint) {
-		_this->setBlendMode(paint.blendMode); // switch blend mode
+		_this->solveSetMatrixAndBlend(paint.blendMode); // switch blend mode
 		_cmdPack->drawTriangles(triangles, paint.fill.image, paint.fill.color);
 		if (triangles.zDepthTotal) {
 			_zDepth += triangles.zDepthTotal;

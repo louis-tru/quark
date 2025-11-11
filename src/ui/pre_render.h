@@ -150,7 +150,6 @@ namespace qk {
 		 * @thread Rt
 		 */
 		bool solve(int64_t time, int64_t deltaTime);
-		void solveMarks(); // solve view marks
 		void clearTasks();
 		void asyncCommit(); // commit async cmd to ready, only main thread call
 		void solveAsyncCall();

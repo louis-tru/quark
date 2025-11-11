@@ -30,7 +30,7 @@
 
 import util from './util';
 import {View,Morph,Input} from './view';
-import {Jsx,link,ViewController,RenderData} from './ctr';
+import {Jsx,link,ViewController,RenderData, VirtualDOM} from './ctr';
 import {createCss} from './css';
 import {mainScreenScale} from './screen';
 import {Navigation} from './nav';
@@ -40,6 +40,13 @@ import {ClickEvent} from './event';
 const px = 1 / mainScreenScale();
 
 createCss({
+	'.qk_dialog_bg': {
+		width: "100%",
+		height: "100%",
+		backgroundColor: "#0004",
+		// receive={true}
+		// opacity: 0,
+	},
 	'.qk_dialog': {
 	},
 	'.qk_dialog.qk_main': {
@@ -190,7 +197,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 
 	protected render() {
 		return (
-			<free width="100%" height="100%" backgroundColor="#0004" receive={true} visible={false} opacity={0}>
+			<free class="qk_dialog_bg" visible={false} opacity={0}>
 				<morph ref="main" class="qk_dialog qk_main">
 					<flex width="match" height="match" direction="column" crossAlign="both">
 						<text ref="title" class="qk_title" value={this.title} visible={true} />
@@ -356,9 +363,9 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
  * @param cb?:Function
  * @return {Dialog}
 */
-export function alert(window: Window, msg: string | {msg?:string, title?: string}, cb = util.noop) {
-	let message: any;
-	if (typeof msg == 'string')
+export function alert(window: Window, msg: RenderData | {msg?:RenderData, title?: string}, cb?: (e:Uint, sender: Dialog)=>void) {
+	let message: any = msg;
+	if (typeof msg == 'string' || msg instanceof VirtualDOM)
 		message = {msg};
 	let { msg: _msg = '', title = '' } = message;
 	let dag = (
@@ -375,7 +382,7 @@ export function alert(window: Window, msg: string | {msg?:string, title?: string
  * @param cb?:Function
  * @return {Dialog}
 */
-export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = util.noop) {
+export function confirm(window: Window, msg: RenderData, cb: (ok: boolean)=>void = util.noop) {
 	let dag = (
 		<Dialog buttons={[Consts.Cancel, Consts.Ok]} onAction={e=>cb(!!e)}>{msg}</Dialog>
 	).newDom(window.rootCtr) as Dialog;
@@ -390,13 +397,13 @@ export function confirm(window: Window, msg: string, cb: (ok: boolean)=>void = u
  * @param cb?:Function
  * @return {Dialog}
 */
-export function prompt(window: Window, msg: string | {
-		msg?: string, text?: string, placeholder?: string, security?: boolean 
+export function prompt(window: Window, msg: RenderData | {
+		msg?: RenderData, text?: string, placeholder?: string, security?: boolean 
 	},
 	cb: (ok: boolean, str: string)=>void = util.noop
 ) {
-	let message: any;
-	if (typeof msg == 'string')
+	let message: any = msg;
+	if (typeof msg == 'string' || msg instanceof VirtualDOM)
 		message = {msg};
 	let { msg: _msg = '', text = '', placeholder = Consts.Placeholder, security = false } = message;
 	let dag = (
@@ -431,7 +438,7 @@ export function prompt(window: Window, msg: string | {
  * @param cb?:Function
  * @return {Dialog}
 */
-export function show(window: Window, title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
+export function show(window: Window, title: string, msg: RenderData, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 	let dag = (
 		<Dialog title={title} buttons={buttons} onAction={cb}>{msg}</Dialog>
 	).newDom(window.rootCtr) as Dialog;
@@ -472,14 +479,14 @@ export class DialogController<P={},S={}> extends ViewController<P,S> {
 	/**
 	 * @method alertDialog(msg:string:object,cb?)Dialog
 	 */
-	alertDialog(msg: string | {msg?:string, title?: string}, cb = util.noop) {
+	alertDialog(msg: RenderData | {msg?:RenderData, title?: string}, cb = util.noop) {
 		return alert(this.window, msg, cb);
 	}
 
 	/**
 	 * @method promptDialog(msg:string|object,cb?)Dialog
 	 */
-	promptDialog(msg: string | { msg?: string, text?: string, placeholder?: string, security?: boolean },
+	promptDialog(msg: RenderData | { msg?: string, text?: string, placeholder?: string, security?: boolean },
 		cb: (ok: boolean, str: string)=>void = util.noop
 	) {
 		return prompt(this.window, msg, cb);
@@ -488,14 +495,14 @@ export class DialogController<P={},S={}> extends ViewController<P,S> {
 	/**
 	 * @method confirmDialog(msg:string,cb?)Dialog
 	 */
-	confirmDialog(msg: string, cb: (ok: boolean)=>void = util.noop) {
+	confirmDialog(msg: RenderData, cb: (ok: boolean)=>void = util.noop) {
 		return confirm(this.window, msg, cb);
 	}
 
 	/**
 	 * @method showDialog(title:string,msg:string,buttons?:RenderData[],cb?:Function)Dialog
 	 */
-	showDialog(title: string, msg: string, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
+	showDialog(title: string, msg: RenderData, buttons: RenderData[] = [Consts.Ok], cb: (index: number)=>void = util.noop) {
 		return show(this.window, title, msg, buttons, cb);
 	}
 

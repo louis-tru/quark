@@ -349,6 +349,11 @@ namespace qk {
 
 	// ------------------------------------------
 
+	#define Qk_return_from_neno_vecq(neno_vec,T,num) \
+		union { float out[num]; T val; } result{.out={}}; \
+		vst1q_f32(result.out, neno_vec); \
+		return result.val
+
 	bool Color4f::operator==(const Color4f& color) const {
 		return color.r() == r() && color.g() == g() &&  color.b() == b() &&  color.a() == a();
 	}
@@ -359,6 +364,35 @@ namespace qk {
 
 	Color4f Color4f::mul_alpha_only(float alpha) const {
 		return Color4f(r(), g(), b(), a() * alpha);
+	}
+
+	Color4f Color4f::mul_rgb_only(float alpha) const {
+#if Qk_USE_ARM_NEON
+		float32x4_t a = vld1q_f32(val);
+		float32x4_t b{alpha,alpha,alpha,1.0f};
+		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
+#else
+		return Color4f(r() * alpha, g() * alpha, b() * alpha, a());
+#endif
+	}
+
+	Color4f Color4f::mul(const Color4f& color) const {
+#if Qk_USE_ARM_NEON
+		float32x4_t a = vld1q_f32(val);
+		float32x4_t b = vld1q_f32(color.val);
+		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
+#else
+		return Color4f(
+			r() * color.r(),
+			g() * color.g(),
+			b() * color.b(),
+			a() * color.a()
+		);
+#endif
+	}
+
+	Color4f Color4f::premul_alpha() const {
+		return mul_rgb_only(a());
 	}
 
 	Color Color4f::to_color() const {
@@ -373,12 +407,10 @@ namespace qk {
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const {
 #if Qk_USE_ARM_NEON
-		float32x4_t rgba = vmulq_f32(
-			float32x4_t{val[0], val[1], val[2], val[3]},
-			//            *         *       *       *
-			float32x4_t{v.val[0],v.val[1],v.val[2],v.val[3]}
-		);
-		return Vec<float,4>{rgba[0], rgba[1], rgba[2], rgba[3]};
+		float32x4_t a = vld1q_f32(val);
+		float32x4_t b = vld1q_f32(v.val);
+		typedef Vec<float,4> Vec4;
+		Qk_return_from_neno_vecq(vmulq_f32(a, b),Vec4,4);
 #else
 		return Vec<float,4>(
 			val[0] * v.val[0],
@@ -459,7 +491,7 @@ namespace qk {
 								);
 	}
 
-	Color4f Color::mul_rgb_only(Color4f color) const {
+	Color4f Color::mul_rgb_only(const Color4f& color) const {
 #if Qk_USE_ARM_NEON
 		float32x4_t rgba = vmulq_f32(
 			float32x4_t{
@@ -470,7 +502,7 @@ namespace qk {
 			},
 			float32x4_t{color.val[0], color.val[1], color.val[2], 1.0f}
 		);
-		return Color4f{rgba[0], rgba[1], rgba[2], rgba[3]};
+		Qk_return_from_neno_vecq(rgba,Color4f,4);
 #else
 		return Color4f(indexed_color_to_colorf[val[0]] * color.val[0],
 									indexed_color_to_colorf[val[1]] * color.val[1],
@@ -480,24 +512,44 @@ namespace qk {
 #endif
 	}
 
-	Color4f Color::mul_color4f(Color4f color) const {
+	Color4f Color::mul_color4f(const Color4f& color) const {
 #if Qk_USE_ARM_NEON
-		float32x4_t rgba = vmulq_f32(
-			float32x4_t{
-				indexed_color_to_colorf[val[0]], // * color.r(),
-				indexed_color_to_colorf[val[1]], // * color.g(),
-				indexed_color_to_colorf[val[2]], // * color.b(),
-				indexed_color_to_colorf[val[3]]  // * color.a()
-			},
-			float32x4_t{color.val[0], color.val[1], color.val[2], color.val[3]}
-		);
-		return Color4f{rgba[0], rgba[1], rgba[2], rgba[3]};
+		float32x4_t a{
+			indexed_color_to_colorf[val[0]],
+			indexed_color_to_colorf[val[1]],
+			indexed_color_to_colorf[val[2]],
+			indexed_color_to_colorf[val[3]]
+		};
+		float32x4_t b = vld1q_f32(color.val);
+		Qk_return_from_neno_vecq(vmulq_f32(a,b),Color4f,4);
 #else
 		return Color4f(indexed_color_to_colorf[val[0]] * color.val[0],
 									indexed_color_to_colorf[val[1]] * color.val[1],
 									indexed_color_to_colorf[val[2]] * color.val[2],
 									indexed_color_to_colorf[val[3]] * color.val[3]
 								);
+#endif
+	}
+
+	Color4f Color::premul_alpha() const {
+		float alpha = indexed_color_to_colorf[val[3]];
+#if Qk_USE_ARM_NEON
+		float32x4_t rgba = vmulq_f32(
+			float32x4_t{
+				indexed_color_to_colorf[val[0]], // * color.r(),
+				indexed_color_to_colorf[val[1]], // * color.g(),
+				indexed_color_to_colorf[val[2]], // * color.b(),
+				1.0f                             // * color.a()
+			},
+			float32x4_t{alpha, alpha, alpha, alpha}
+		);
+		Qk_return_from_neno_vecq(rgba,Color4f,4);
+#else
+		return Color4f(indexed_color_to_colorf[val[0]] * alpha,
+						indexed_color_to_colorf[val[1]] * alpha,
+						indexed_color_to_colorf[val[2]] * alpha,
+						alpha
+						);
 #endif
 	}
 

@@ -105,17 +105,20 @@ namespace qk {
 		return *_fontFamilies.set(hash.hashCode(), new FontFamilies(this, families));
 	}
 
-	void FontPool::addFontFamily(cBuffer& buff, cString& alias) {
+	String FontPool::addFontFamily(cBuffer& buff, cString& alias) {
+		String familyName;
 		AutoSharedMutexExclusive asme(*_Mutex);
 		for (int i = 0; ;i++) {
 			auto tf = onAddFontFamily(buff, i);
 			if (!tf)
 				break;
-			_ext.get(tf->getFamilyName()).set(tf->fontStyle(), tf);
+			familyName = tf->getFamilyName();
+			_ext.get(familyName).set(tf->fontStyle(), tf);
 			if (!alias.isEmpty()) {
 				_ext.get(alias).set(tf->fontStyle(), tf);
 			}
 		}
+		return familyName;
 	}
 
 	cArray<String>& FontPool::defaultFamilyNames() const {

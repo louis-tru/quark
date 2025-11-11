@@ -31,6 +31,8 @@
 #include "./flow.h"
 
 namespace qk {
+	constexpr float EPSILON = 1e-3f;
+
 	struct FlexItem {
 		Vec2 size, weight;
 		View* view;
@@ -148,6 +150,7 @@ namespace qk {
 					for (auto &it: line.items) {
 						auto adjustMain = it.weight[wIdx] * C;
 						if (adjustMain) {
+							// adjust main axis size
 							auto size = it.size[mainIdx] + adjustMain;
 							it.size[mainIdx] = is_horizontal ? // force lock subview layout size
 								it.view->layout_lock_width(size): it.view->layout_lock_height(size);
@@ -158,6 +161,7 @@ namespace qk {
 							}
 						}
 						if (it.alignBoth) {
+							// adjust cross size
 							it.size[crossIdx] = is_horizontal ?
 								it.view->layout_lock_height(cross_size): it.view->layout_lock_width(cross_size);
 							it.alignBoth = false;
@@ -165,7 +169,8 @@ namespace qk {
 						main_total += it.size[mainIdx];
 					}
 					overflow = main_size - main_total;
-				} while (overflow && cur_weight_total); //
+					// repeat until overflow is 0 or no weight left
+				} while (fabsf(overflow) > EPSILON && cur_weight_total);
 
 				float offset = 0, space = 0;
 

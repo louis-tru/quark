@@ -71,12 +71,12 @@ namespace qk {
 
 	void Painter::set_origin(Vec2 origin) {
 		_origin = -origin;
-		_originAA = Vec2(_AAShrink * 0.5) - origin;
+		_originAA = _AAShrinkHalf - origin;
 	}
 
 	void Painter::set_origin_reverse(Vec2 origin) {
 		_origin = origin;
-		_originAA = Vec2(_AAShrink * 0.5) + origin;
+		_originAA = _AAShrinkHalf + origin;
 	}
 
 	inline static bool is_not_Zero(const float radius[4]) {
@@ -213,7 +213,7 @@ namespace qk {
 					v->solve_marks(*_matrix, view, mark);
 					_mark_recursive = mark & View::kRecursive_Mark;
 				}
-				if (v->_visible_area && v->_color.a()) {
+				if (v->_visible_area) {
 					switch (v->_cascade_color) {
 						case CascadeColor::None:
 							_color = v->_color.to_color4f(); break;
@@ -243,6 +243,8 @@ namespace qk {
 	}
 
 	void Painter::drawBoxBasic(Box *v, BoxData &data) {
+		if (_color.a() == 0)
+			return;
 		drawBoxShadow(v, data);
 
 		_IfNotBorder(v) ({
@@ -380,9 +382,14 @@ namespace qk {
 
 		Paint paint;
 		PaintImage img;
-		paint.fill.image = &img;
 		paint.fill.color = _color;
+		paint.fill.image = &img;
 		paint.antiAlias = v->_anti_alias;
+
+		if (src->premultipliedAlpha()) {
+			paint.blendMode = kSrcOverPre_BlendMode;
+			paint.fill.color = _color.premul_alpha(); // premultiplied alpha
+		}
 
 		auto inside = data.inside;
 		auto rect = inside->rect;
@@ -623,6 +630,8 @@ namespace qk {
 	void Painter::drawTextBlob(TextOptions *v, Vec2 inOffset,
 		TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) 
 	{
+		if (_color.a() == 0)
+			return;
 		auto size = v->text_size().value;
 		auto shadow = v->text_shadow().value;
 
@@ -705,13 +714,17 @@ namespace qk {
 		draw->drawBoxBasic(this, data);
 
 		auto src = source();
-		if (src && src->load()) {
+		if (src && src->load() && draw->color().a()) {
 			draw->getInsideRectPath(this, data);
 			Paint paint;
 			PaintImage img;
 			paint.antiAlias = anti_alias();
 			paint.fill.image = &img;
 			paint.fill.color = draw->color();
+			if (src->premultipliedAlpha()) {
+				paint.blendMode = kSrcOverPre_BlendMode;
+				paint.fill.color = draw->color().premul_alpha(); // premultiplied alpha
+			}
 			//img.tileModeX = PaintImage::kDecal_TileMode;
 			//img.tileModeY = PaintImage::kDecal_TileMode;
 			img.filterMode = default_FilterMode;
@@ -762,6 +775,8 @@ namespace qk {
 	}
 
 	void Input::draw(Painter *draw) {
+		if (draw->color().a() == 0)
+			return;
 		BoxData data;
 		auto canvas = draw->canvas();
 		canvas->setTranslate(position());
@@ -862,12 +877,12 @@ namespace qk {
 		}
 	}
 
-	void Label::draw(Painter *draw) {
+	void Label::draw(Painter *painter) {
 		if (_blob_visible.length()) {
-			draw->canvas()->setTranslate(position()); // set position in matrix
-			draw->drawTextBlob(this, {}, *_lines, _blob, _blob_visible);
+			painter->canvas()->setTranslate(position()); // set position in matrix
+			painter->drawTextBlob(this, {}, *_lines, _blob, _blob_visible);
 		}
-		draw->visitView(this);
+		painter->visitView(this);
 	}
 
 	void Morph::draw(Painter *painter) {
@@ -902,6 +917,7 @@ namespace qk {
 				auto AAShrink = AAShrink_half + AAShrink_half;
 				auto AAShrinkBorder_half = painter->_isMsaa ? 0: 0.02f / _window->scale(); // plus 0.02 to avoid aa gap
 				painter->_AAShrink = AAShrink;
+				painter->_AAShrinkHalf = AAShrink_half;
 				painter->_AAShrinkBorder = AAShrink + AAShrinkBorder_half + AAShrinkBorder_half;
 				painter->_color = color().to_color4f();
 				painter->set_origin(origin_value());

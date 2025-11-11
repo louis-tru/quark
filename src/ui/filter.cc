@@ -218,6 +218,10 @@ namespace qk {
 		}
 	}
 
+	String FillImage::src() const {
+		return ImageSourceHold::src();
+	}
+
 	void FillImage::set_src(String val, bool isRt) {
 		if (ImageSourceHold::set_src(val)) {
 			mark(this, isRt);

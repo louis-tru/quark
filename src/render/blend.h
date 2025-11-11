@@ -39,6 +39,7 @@ namespace qk {
 		kSrc_BlendMode,           //!< r = s
 		kDst_BlendMode,           //!< r = d
 		kSrcOver_BlendMode,       //!< r = sa*s + (1-sa)*d
+		kSrcOverPre_BlendMode,    //!< r = s + (1-sa)*d, with src premultiplied alpha, but this mode of aaclip will fail
 		kDstOver_BlendMode,       //!< r = (1-da)*s + da*d
 		kSrcIn_BlendMode,         //!< r = da*s
 		kDstIn_BlendMode,         //!< r = sa*d
@@ -52,7 +53,6 @@ namespace qk {
 		kScreen_BlendMode,        //!< r = s + d - s*d
 		kMultiply_BlendMode,      //!< r = d*s + (1-sa)*d
 		kAdditive_BlendMode,      //!< r = sa*s + d
-		kSrcOverPre_BlendMode,    //!< r = s + (1-sa)*d, with src premultiplied alpha, but this mode of aaclip will fail
 		// Note: All modes that do not handle source alpha channels do not support aaclipping.
 	};
 }

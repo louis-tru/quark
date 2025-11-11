@@ -63,8 +63,9 @@ export declare class FontPool {
 	 *
 	 * @param data Font Buffer Data
 	 * @param alias? Add an alias
+	 * @return The font family name
 	*/
-	addFontFamily(data: Uint8Array, alias?: string): void;
+	addFontFamily(data: Uint8Array, alias?: string): string;
 
 	/**
 	 * Read font family name by index

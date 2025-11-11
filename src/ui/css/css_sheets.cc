@@ -93,14 +93,6 @@ namespace qk {
 		// NOOP
 	}
 
-	uint32_t StyleSheets::itemsCount() const {
-		return _props.length();
-	}
-
-	bool StyleSheets::hasProperty(CssProp name) const {
-		return _props.count(name);
-	}
-
 	// --------------------------- C S t y l e . S h e e t s ---------------------------
 
 	CStyleSheets::CStyleSheets(cCSSCName &name, CStyleSheets *parent, CSSType type)

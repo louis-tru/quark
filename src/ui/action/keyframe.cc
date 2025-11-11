@@ -99,7 +99,7 @@ namespace qk {
 				auto f0 = self->_frames_rt[0];
 				auto f1 = self->_frames_rt[1];
 				for (auto &i: to->_props) { // copy prop
-					f0->_props.set(i.first, i.second->copy())->fetch(v);
+					f0->_props.set(i.first, i.second->copy())->fetch(v); // fetch initial value from view
 					f1->_props.set(i.first, i.second->copy());
 				}
 			}

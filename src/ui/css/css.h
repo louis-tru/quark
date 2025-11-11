@@ -83,12 +83,16 @@ namespace qk {
 		/**
 		 * @method itemsCount() StyleSheets items count
 		*/
-		uint32_t itemsCount() const;
+		inline uint32_t itemsCount() const {
+			return _props.length();
+		}
 
 		/**
 		 * @method has_property
 		*/
-		bool hasProperty(CssProp key) const;
+		inline bool hasProperty(CssProp key) const {
+			return _props.count(key);
+		}
 
 		/**
 		* @method apply style to view
@@ -218,20 +222,21 @@ namespace qk {
 		 * @thread Rt
 		*/
 		inline bool haveSubstyles() const {
-			return _substyles_rt.length();
+			return _stylesForHaveSubstyles_rt.length();
 		}
 
 	private:
 		void updateClass_rt();
 		void setStatus_rt(CSSType status);
-		bool apply_rt(CStyleSheetsClass *parent); // Return whether it affects sub styles
-		void applyFrom_rt(CStyleSheetsClass *ssc);
-		void applyFindSubstyle_rt(CStyleSheets *ss);
-		void applyStyle_rt(CStyleSheets *ss);
+		bool apply_rt(CStyleSheetsClass *parent, bool force); // Return whether it affects sub styles
+		void findSubstylesFromParent_rt(CStyleSheetsClass *parent, Array<CStyleSheets*> *out);
+		void findStyle_rt(CStyleSheets *ss, Array<CStyleSheets*> *out);
 
-		Set<uint64_t> _nameHash_rt; //!< class name hash
-		Array<CStyleSheets*> _substyles_rt; //!< apply to all current style sheets have substyle sheets
-		Hash5381 _substylesHash_rt; //!< hash for apply current have substyle sheets
+		Set<uint64_t> _nameHash_rt; //!< class name hash, For .a .b .c
+		// The stylesheet is applied, but only the stylesheet containing the sub-stylesheets is cached.
+		Array<CStyleSheets*> _stylesForHaveSubstyles_rt; //!< applied styles for have substyles
+		Hash5381 _stylesForHaveSubstylesHash_rt; //!< applied styles for have substyles hash
+		Hash5381 _stylesHash_rt; //!< applied styles hash
 
 		friend class View;
 	};

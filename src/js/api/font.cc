@@ -82,11 +82,13 @@ namespace qk { namespace js {
 				if (!args.length() || !args[0]->asBuffer(worker).to(buff) ) {
 					Js_Throw("@method FontPool.addFontFamily(cBuffer& buff, cString& alias = String())");
 				}
+				String name;
 				if (args.length() > 1) {
-					self->addFontFamily(buff.buffer(), args[1]->toString(worker)->value(worker));
+					name = self->addFontFamily(buff.buffer(), args[1]->toString(worker)->value(worker));
 				} else {
-					self->addFontFamily(buff.buffer());
+					name = self->addFontFamily(buff.buffer());
 				}
+				Js_Return( name );
 			});
 
 			Js_Class_Method(getFamilyName, {

@@ -117,7 +117,7 @@ namespace qk { namespace js {
 
 			if(arg->isString()) {
 				_rv->push('"');
-				//_rv->push( arg->toString(worker)->value(worker) );
+				_rv->push( arg->toString(worker)->value(worker) );
 				_rv->push('"');
 			}
 			else if (arg->isFunction()) {

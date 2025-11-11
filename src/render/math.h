@@ -297,6 +297,9 @@ namespace qk {
 		bool operator==(const Color4f& color) const;
 		bool operator!=(const Color4f& color) const;
 		Color4f mul_alpha_only(float alpha) const;
+		Color4f mul_rgb_only(float alpha) const;
+		Color4f mul(const Color4f& color) const;
+		Color4f premul_alpha() const;
 		Color to_color() const;
 	};
 
@@ -314,8 +317,9 @@ namespace qk {
 		bool operator!=(Color color) const;
 		float    to_float_alpha() const;
 		Color4f  mul_alpha_only(float alpha) const;
-		Color4f  mul_rgb_only(Color4f color) const;
-		Color4f  mul_color4f(Color4f color) const;
+		Color4f  mul_rgb_only(const Color4f& color) const;
+		Color4f  mul_color4f(const Color4f& color) const;
+		Color4f  premul_alpha() const;
 		Color4f  to_color4f() const;
 		uint32_t to_uint32_abgr() const; //!< high => low as a,b,g,r
 		uint32_t to_uint32_rgba() const; //!< high => low as r,g,b,a

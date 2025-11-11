@@ -114,7 +114,7 @@ Range Container::to_range() const {
 		, _mark_index(0)
 		, _level(0)
 		, _color(255,255,255,255) // white
-		, _cursor(CursorStyle::Arrow)
+		, _cursor(CursorStyle::Normal)
 		, _cascade_color(CascadeColor::Both)
 		, _visible(true)
 		, _visible_area(false)
@@ -751,37 +751,39 @@ Range Container::to_range() const {
 		}
 	}
 
-	void View::applyClass_rt(CStyleSheetsClass *ssc) {
+	void View::applyClass_rt(CStyleSheetsClass *parentSsclass) {
 		_Cssclass();
-		if (_cssclass->apply_rt(ssc)) { // Impact sub view
+		if (_cssclass->apply_rt(parentSsclass, false)) { // change affect sub styles
 			if (_cssclass->haveSubstyles()) {
-				ssc = _cssclass;
+				parentSsclass = _cssclass;
 			}
 			if (_visible) {
-				auto l = first();
-				while (l) {
-					if (l->_cssclass) {
-						l->applyClass_rt(ssc);
-					}
-					l = l->next();
+				auto v = first();
+				while (v) {
+					// if (v->_cssclass)
+					// 	v->applyClass_rt(parentSsclass);
+					v->applyClassAll_rt(parentSsclass, false);
+					v = v->next();
 				}
 			}
 		}
 		unmark(kStyle_Class);
 	}
 
-	void View::applyClassAll_rt(CStyleSheetsClass *ssc) {
+	void View::applyClassAll_rt(CStyleSheetsClass *parentSsclass, bool force) {
 		_Cssclass();
 		if (_cssclass) { // Impact sub view
-			_cssclass->apply_rt(ssc);
+			_cssclass->apply_rt(parentSsclass, force);
 			if (_cssclass->haveSubstyles()) {
-				ssc = _cssclass;
+				parentSsclass = _cssclass;
 			}
 		}
-		auto l = first();
-		while (l) {
-			l->applyClassAll_rt(ssc);
-			l = l->next();
+		if (_visible) { // apply all sub views if visible
+			auto v = first();
+			while (v) {
+				v->applyClassAll_rt(parentSsclass, force);
+				v = v->next();
+			}
 		}
 		unmark(kStyle_Class);
 	}
@@ -796,6 +798,16 @@ Range Container::to_range() const {
 			_parent = _parent->parent();
 		}
 		return nullptr;
+	}
+
+	CursorStyle View::getCursorStyleExec() {
+		auto v = this;
+		do {
+			if (v->_cursor != CursorStyle::Normal)
+				return v->_cursor;
+			v = v->parent();
+		} while (v);
+		return CursorStyle::Normal;
 	}
 
 	View* View::init(Window* win) {

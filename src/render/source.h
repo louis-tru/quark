@@ -65,7 +65,7 @@ namespace qk {
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri, Const);
 		Qk_DEFINE_PROP_GET(State, state, Const);
-		Qk_DEFINE_ACCESSOR(bool, premultipliedAlpha, Const);
+		Qk_DEFINE_PROPERTY(bool, premultipliedAlpha, Const);
 
 		// <FlowLayout>
 		// 	<Image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
@@ -169,7 +169,6 @@ namespace qk {
 		RenderResource *_res; // weak ref, texture mark
 		RunLoop       *_loop;
 		bool          _isMipmap; // Whether generate mipmap texture
-		bool          _premultipliedAlpha;
 	};
 
 	/**

@@ -127,38 +127,6 @@ namespace qk {
 		}
 	}
 
-	void PreRender::solveMarks() {
-		// First forward iteration
-		for (auto &levelMarks: _marks) {
-			for (auto view: levelMarks) {
-				if (view->_mark_value & View::kStyle_Class) {
-					view->applyClass_rt(view->parentSsclass_rt());
-				}
-			}
-		}
-
-		do {
-			Qk_ASSERT(_mark_total > 0);
-			// forward iteration
-			for (auto &levelMarks: _marks) {
-				for (auto view: levelMarks) {
-					view->layout_forward(view->_mark_value);
-				}
-			}
-			// reverse iteration
-			for (int i = Qk_Minus(_marks.length(), 1); i >= 0; i--) {
-				auto &levelMarks = _marks[i];
-				for (auto view: levelMarks) {
-					view->layout_reverse(view->_mark_value);
-					// simple delete mark recursive
-					view->_mark_index = 0;
-					_mark_total--;
-				}
-				levelMarks.clear();
-			}
-		} while (_mark_total); // if have new mark then continue solve
-	}
-
 	void PreRender::clearTasks() {
 		for (auto t: _tasks) {
 			if (t)
@@ -192,9 +160,12 @@ namespace qk {
 	}
 
 	bool PreRender::solve(int64_t time, int64_t deltaTime) {
-		solveAsyncCall();
-		_window->actionCenter()->advance_rt(deltaTime); // advance action
+		bool is_render = _is_render;
+		_is_render = false; // Reset render flag
 
+		// Flush async calls
+		solveAsyncCall();
+		// Solve tasks
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();
 			while ( i != end ) {
@@ -202,7 +173,7 @@ namespace qk {
 				if ( task ) {
 					if ( time > task->task_timeout() ) {
 						if ( task->run_task(time, deltaTime) ) {
-							_is_render = true;
+							is_render = true;
 						}
 					}
 					i++;
@@ -212,12 +183,43 @@ namespace qk {
 			}
 		}
 
-		if (_mark_total) { // solve marks
-			solveMarks();
-			_is_render = true;
+		if (_mark_total) {
+			// First solve class changes
+			for (auto &levelMarks: _marks) {
+				for (auto view: levelMarks) {
+					if (view->_mark_value & View::kStyle_Class)
+						view->applyClass_rt(view->parentSsclass_rt());
+				}
+			}
 		}
 
-		return _is_render ? (_is_render = false, true): false;
+		// Advance actions
+		_window->actionCenter()->advance_rt(deltaTime);
+
+		// Solve layout marks
+		while (_mark_total) {
+			Qk_ASSERT_GT(_mark_total, 0); // safety check
+			// First forward iteration
+			for (auto &levelMarks: _marks) {
+				for (auto view: levelMarks) {
+					view->layout_forward(view->_mark_value);
+				}
+			}
+			// Then reverse iteration until no marks
+			for (int i = Qk_Minus(_marks.length(), 1); i >= 0; i--) {
+				auto &levelMarks = _marks[i];
+				for (auto view: levelMarks) {
+					view->layout_reverse(view->_mark_value);
+					// simple delete mark recursive
+					view->_mark_index = 0;
+					_mark_total--;
+				}
+				levelMarks.clear();
+			}
+			is_render = true; // Mark as needing render
+		}
+
+		return is_render;
 	}
 
 	RenderTask::~RenderTask() {

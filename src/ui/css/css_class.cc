@@ -112,49 +112,80 @@ namespace qk {
 		}
 	}
 
-	bool CStyleSheetsClass::apply_rt(CStyleSheetsClass *parent) {
+	bool CStyleSheetsClass::apply_rt(CStyleSheetsClass *parent, bool force) {
 		// if (_setStatus == _status) return false;
-		auto hash = _substylesHash_rt.hashCode();
+		auto lastHash = _stylesForHaveSubstylesHash_rt.hashCode();
+		auto lastStylesHash = _stylesHash_rt.hashCode();
 		// reset env
 		_status = _setStatus;
-		_substyles_rt.clear();
-		_substylesHash_rt = Hash5381();
+		_stylesHash_rt = Hash5381();
 		_havePseudoType = false;
 		_parent = parent;
 		_host->window()->actionCenter()->removeCSSTransition_rt(_host);
 
 		if (_nameHash_rt.length()) {
-			applyFrom_rt(parent);
+			Array<CStyleSheets*> styles;
+			findSubstylesFromParent_rt(parent, &styles);
+			// apply styles if changed
+			if (lastStylesHash != _stylesHash_rt.hashCode() || force) {
+				// reset styles for have substyles
+				_stylesForHaveSubstyles_rt.clear();
+				_stylesForHaveSubstylesHash_rt = Hash5381();
+				for (auto ss: styles) {
+					if (ss->_time /*&& !_firstApply*/) {
+						_host->window()->actionCenter()->addCSSTransition_rt(_host, ss);
+					} else {
+						ss->apply(_host, true);
+					}
+					if (ss->_substyles.length()) {
+						_stylesForHaveSubstylesHash_rt.updateu64(uintptr_t(ss));
+						_stylesForHaveSubstyles_rt.push(ss);
+					}
+				}
+			}
+		} else {
+			_stylesForHaveSubstyles_rt.clear();
+			_stylesForHaveSubstylesHash_rt = Hash5381();
 		}
 		// _status = _setStatus; // May have been modified, reset it
 		_firstApply = false;
 
 		// affects children CStyleSheetsClass
-		return _substylesHash_rt.hashCode() != hash;
+		return _stylesForHaveSubstylesHash_rt.hashCode() != lastHash;
 	}
 
-	void CStyleSheetsClass::applyFrom_rt(CStyleSheetsClass *ssc) {
-		if (ssc) {
-			Qk_ASSERT(ssc->_substyles_rt.length());
-			applyFrom_rt(ssc->_parent);
-			for (auto ss: ssc->_substyles_rt) {
-				applyFindSubstyle_rt(ss);
+	void CStyleSheetsClass::findSubstylesFromParent_rt(CStyleSheetsClass *parent, Array<CStyleSheets*> *out) {
+		auto find = [](CStyleSheetsClass *self, CStyleSheets *ss, Array<CStyleSheets*> *out) {
+			for (auto &n: self->_nameHash_rt) {
+				qk::CStyleSheets *sss;
+				if (ss->_substyles.get(n.first, sss)) { // find substyle by class name hash
+					self->findStyle_rt(sss, out);
+				}
+			}
+		};
+		if (parent) {
+			Qk_ASSERT(parent->_stylesForHaveSubstyles_rt.length());
+			// find child substyles from parent class
+			/*{
+				'.parent': {...},
+				'.parent .child1': {...},
+				'.parent .child2': {...},
+			}
+			<box class="parent">
+				<box class="child1">test a<box>
+				<box class="child2">test b<box>
+			</box>
+			*/
+			findSubstylesFromParent_rt(parent->_parent, out); // find styles from parent
+			for (auto ss: parent->_stylesForHaveSubstyles_rt) {
+				find(this, ss, out); // find sub styles from parent
 			}
 		} else {
-			applyFindSubstyle_rt(RootStyleSheets::shared()); // apply global style
+			find(this, RootStyleSheets::shared(), out); // find global root substyles
 		}
 	}
 
-	void CStyleSheetsClass::applyFindSubstyle_rt(CStyleSheets *ss) {
-		for (auto &n: _nameHash_rt) {
-			qk::CStyleSheets *sss;
-			if (ss->_substyles.get(n.first, sss)) {
-				applyStyle_rt(sss);
-			}
-		}
-	}
-
-	// CSS Sample
+	// CSS Sample, Expanding form
 	/**
 	.a {
 		width: 100;
@@ -182,42 +213,45 @@ namespace qk {
 			}
 		}
 	}
-	<box ssclass="a">
-		<box ssclass="a_a">test a<box>
-		<box ssclass="a_a a_b">test b<box>
-	</bod>
+	<box class="a">
+		<box class="a_a">test a<box>
+		<box class="a_a a_b">test b<box>
+	</box>
 	*/
 
-	void CStyleSheetsClass::applyStyle_rt(CStyleSheets *css) {
-		if (css->_time /*&& !_firstApply*/) {
-			_host->window()->actionCenter()->addCSSTransition_rt(_host, css);
-		} else {
-			css->apply(_host, true);
-		}
+	void CStyleSheetsClass::findStyle_rt(CStyleSheets *css, Array<CStyleSheets*> *out) {
+		out->push(css);
+		_stylesHash_rt.updateu64(uintptr_t(css));
 
-		if (css->_substyles.length()) {
-			_substylesHash_rt.updateu64(uint64_t(css));
-			_substyles_rt.push(css);
-		}
-
-		// apply pseudo class
+		// find pseudo class
 		if (css->_havePseudoType) {
 			_havePseudoType = true;
 
-			CStyleSheets *css_pt = nullptr;
+			CStyleSheets *css_pse = nullptr;
 			switch (_status) {
 				case kNone_CSSType: break;
-				case kNormal_CSSType: css_pt = css->_normal; break;
-				case kHover_CSSType: css_pt = css->_hover; break;
-				case kActive_CSSType: css_pt = css->_active; break;
+				case kNormal_CSSType: css_pse = css->_normal; break;
+				case kHover_CSSType: css_pse = css->_hover; break;
+				case kActive_CSSType: css_pse = css->_active; break;
 			}
-			if (css_pt) applyStyle_rt(css_pt);
+			if (css_pse)
+				findStyle_rt(css_pse, out);
 		}
 
-		if (css->_extends.length()) { // apply extend
-			for (auto &i: css->_extends) { // test right extend
-				if (_nameHash_rt.has(i.first)) { // test ok
-					applyStyle_rt(i.second);
+		if (css->_extends.length()) { // find extend
+			 // more extend, optimize search
+			if (css->_extends.length() > _nameHash_rt.length()) {
+				for (auto &i: _nameHash_rt) { // test right extend
+					CStyleSheets *ss;
+					if (css->_extends.get(i.first, ss)) { // test ok
+						findStyle_rt(ss, out);
+					}
+				}
+			} else { // less extend, optimize search
+				for (auto &i: css->_extends) { // test right extend
+					if (_nameHash_rt.has(i.first)) { // test ok
+						findStyle_rt(i.second, out);
+					}
 				}
 			}
 		}

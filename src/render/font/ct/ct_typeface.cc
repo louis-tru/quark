@@ -750,7 +750,7 @@ Typeface::TextImage Typeface_Mac::onGetImage(cArray<GlyphID>& glyphs,
 
 	CTFontDrawGlyphs(fontRef, cgGlyph, *drawPoints, glyphs.length(), fCG.get());
 
-	Pixel pixel(PixelInfo(w, h, kRGBA_8888_ColorType, kUnpremul_AlphaType), image);
+	Pixel pixel(PixelInfo(w, h, kRGBA_8888_ColorType, kPremul_AlphaType), image);
 
 	return {
 		ImageSource::Make(std::move(pixel), render),

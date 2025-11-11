@@ -116,10 +116,6 @@ namespace qk {
 		_Unload(true);
 	}
 
-	bool ImageSource::premultipliedAlpha() const {
-		return _premultipliedAlpha;
-	}
-
 	void ImageSource::set_premultipliedAlpha(bool val) {
 		_premultipliedAlpha = val;
 	}
@@ -171,6 +167,7 @@ namespace qk {
 	}
 
 	void ImageSource::_Decode(Buffer& data) {
+		sizeof(ImageSource);
 		struct Running: Cb::Core {
 			void call(Data& evt) override { // to call from mt
 				auto self = source.get();
@@ -179,8 +176,11 @@ namespace qk {
 						self->_onState.lock(); // lock, safe assign `_pixels`
 						self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
 						self->_info = pixels[0];
+						if (self->_info.alphaType() == kPremul_AlphaType)
+							self->_premultipliedAlpha = true;
 						self->_pixels = std::move(pixels);
 						self->_onState.unlock();
+
 						if (self->_res) {
 							self->_ReloadTexture();
 						}

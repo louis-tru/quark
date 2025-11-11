@@ -83,7 +83,7 @@ namespace qk {
 			FillPosition x, y;
 			Repeat repeat=Repeat::Repeat;
 		};
-		Qk_DEFINE_VIEW_PROPERTY(String, src, Const);
+		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);
 		Qk_DEFINE_VIEW_PROPERTY(FillSize, width, Const);
 		Qk_DEFINE_VIEW_PROPERTY(FillSize, height, Const);
 		Qk_DEFINE_VIEW_PROPERTY(FillPosition, x, Const);

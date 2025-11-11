@@ -22,3 +22,4 @@ quark.*
 .kdev4/quark.kdev4 
 .config.mk
 deps/spine
+src/ui/painter_premul.cc

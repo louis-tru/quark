@@ -925,7 +925,7 @@ class Package {
 		let pathnames = pathname ? [
 			pathname,
 			...extnames.map(e=>`${pathname}${e}`),
-			...extnames.map(e=>`${pathname}/index'${e}`)
+			...extnames.map(e=>`${pathname}/index${e}`)
 		]: extnames.map(e=>`index${e}`);
 
 		// try using different extensions to search for and ` ${path name}/index`

@@ -46,6 +46,8 @@ namespace qk {
 
 	constexpr uint32_t kScrollMark = View::kScroll | View::kTransform;
 
+	Vec2 free_typesetting(View* view, View::Container &container);
+
 	class ScrollView::Task: public RenderTask {
 	public:
 		Task(ScrollView* host, uint64_t duration, cCurve& curve = ease_out, ScrollView::Task *next = 0)

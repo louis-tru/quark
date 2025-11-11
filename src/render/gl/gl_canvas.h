@@ -124,6 +124,7 @@ namespace qk {
 		BlendMode _blendMode; // blend mode state
 		uint8_t  _DeviceMsaa; // device anti alias, msaa
 		bool   _isClipState; // clip state
+		bool   _matrixFlag; // set matrix flag
 		Render::Options _opts;
 		CondMutex _mutex; // submit swap mutex
 

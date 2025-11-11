@@ -563,6 +563,9 @@ namespace qk {
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				// glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
+			case kSrcOverPre_BlendMode: // r = s + (1-sa)*d
+				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				break;
 			case kDstOver_BlendMode:       //!< r = (1-da)*s + da*d
 				glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
 				//glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
@@ -602,9 +605,6 @@ namespace qk {
 				break;
 			case kAdditive_BlendMode:
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE); //!< r = sa*s + d
-				break;
-			case kSrcOverPre_BlendMode: // r = s + (1-sa)*d
-				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 		}
 		_blendMode = mode;

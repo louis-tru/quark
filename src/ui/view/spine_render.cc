@@ -133,7 +133,6 @@ namespace qk {
 				return kScreen_BlendMode;
 			default:
 				return premultipliedAlpha ? kSrcOverPre_BlendMode: kSrcOver_BlendMode;
-				//return kSrcOver_BlendMode;
 		}
 	}
 
@@ -188,29 +187,26 @@ namespace qk {
 	//////////////////////////////////////////////////////////////////////////////
 
 	void Spine::draw(Painter *painter) {
+		Vec4 color;
 		auto skel = _skel.load(std::memory_order_acquire);
 		// Early exit if the skeleton is invisible.
-		if (!skel || skel->_skeleton.getColor().a == 0) {
+		if (!skel || !(color = painter->_color * (Color4f&)skel->_skeleton.getColor().r).a()) {
 			return Entity::draw(painter);
 		}
-		_mutex.lock();
+
+		auto skeleton = &skel->_skeleton;
+		auto clipper = _clipper.get();
+		spine::Color light, dark;
+		AttachmentEx *ex, *lastEx = nullptr;
+		TrianglesEx cmdTriangles;
 
 		auto lastMatrix = painter->matrix();
 		auto mat = matrix();
 		mat.translate({_skel_origin.x() - _origin_value.x(), _skel_origin.y() - _origin_value.y()});
 		mat.scale_y(-1); // Flip Y axis for Spine
 		painter->set_matrix(&mat);
-		
-		auto tr = translate();
 
-		auto skeleton = &skel->_skeleton;
-		auto clipper = _clipper.get();
-		// spine global color
-		auto color = painter->color() *
-			reinterpret_cast<Color4f&>(skeleton->getColor().r);
-		spine::Color light, dark;
-		AttachmentEx *ex, *lastEx = nullptr;
-		TrianglesEx cmdTriangles;
+		_mutex.lock();
 
 		auto tmpBuff = &painter->_tempBuff; // Temp memory buffer allocation
 		auto allocator = painter->_tempAllocator;
@@ -349,8 +345,10 @@ namespace qk {
 			drawTriangles(painter, cmdTriangles, lastEx);
 		}
 		debugDraw(painter); // draw debug bounds
-		painter->set_matrix(&matrix());
-		painter->visitView(this);
+		if (first()) {
+			painter->set_matrix(&matrix());
+			painter->visitView(this);
+		}
 		painter->set_matrix(lastMatrix); // restore previous matrix
 	}
 
