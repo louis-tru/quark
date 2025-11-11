@@ -32,9 +32,12 @@
 #include "../util/fs.h"
 #include "./codec/codec.h"
 #include "./render.h"
+#define Qk_ARM_NEON Qk_ARCH_ARM64
+#if Qk_ARM_NEON
+#include <arm_neon.h>
+#endif
 
 namespace qk {
-
 	// -------------------- I m a g e . S o u r c e --------------------
 
 	static Array<Pixel> copyInfo(cArray<Pixel>& src) {
@@ -72,8 +75,11 @@ namespace qk {
 
 	ImageSource::ImageSource(RenderResource *res, RunLoop *loop): Qk_Init_Event(State)
 		, _state(kSTATE_NONE)
-		, _loadId(0), _res(res), _loop(loop), _isMipmap(true), _premultipliedAlpha(false)
+		, _loadId(0), _res(res), _loop(loop), _isMipmap(true)
+		, _premultipliedAlpha(false)
+		, _premulFlags(kConvert_PremulFlags)
 	{
+		// sizeof(ImageSource);
 	}
 
 	Sp<ImageSource> ImageSource::Make(cString& uri, RunLoop *loop)
@@ -93,7 +99,7 @@ namespace qk {
 				img->_state = kSTATE_LOAD_COMPLETE;
 				img->_pixels = std::move(pixels);
 				if (res) {
-					img->_ReloadTexture();
+					img->reloadTexture();
 				}
 			}
 		}
@@ -113,11 +119,7 @@ namespace qk {
 	}
 
 	ImageSource::~ImageSource() {
-		_Unload(true);
-	}
-
-	void ImageSource::set_premultipliedAlpha(bool val) {
-		_premultipliedAlpha = val;
+		unloadInl(true);
 	}
 
 	bool ImageSource::markAsTexture() {
@@ -129,9 +131,13 @@ namespace qk {
 			return false;
 		}
 		if (_pixels.length()) {
-			_ReloadTexture();
+			reloadTexture();
 		}
 		return true;
+	}
+
+	void ImageSource::set_premulFlags(PremulFlags val) {
+		_premulFlags = val;
 	}
 
 	bool ImageSource::load() {
@@ -156,7 +162,7 @@ namespace qk {
 						Qk_DLog("ImageSource::load() kSTATE_LOAD_ERROR, %s", e.error->message().c_str());
 						Qk_Trigger(State, _state);
 					} else {
-						_Decode(*e.data);
+						decode(*e.data);
 					}
 				}
 				_loadId = 0;
@@ -166,8 +172,7 @@ namespace qk {
 		return false;
 	}
 
-	void ImageSource::_Decode(Buffer& data) {
-		sizeof(ImageSource);
+	void ImageSource::decode(Buffer& data) {
 		struct Running: Cb::Core {
 			void call(Data& evt) override { // to call from mt
 				auto self = source.get();
@@ -175,14 +180,23 @@ namespace qk {
 					if (completed) { // decode image complete
 						self->_onState.lock(); // lock, safe assign `_pixels`
 						self->_state = State((self->_state | kSTATE_LOAD_COMPLETE) & ~kSTATE_LOADING);
+						for (auto &pix: pixels) {
+							if (pix.alphaType() == kUnpremul_AlphaType) {
+								if (self->_premulFlags == kConvert_PremulFlags)
+									ImageSource::toPremultipliedAlpha(pix);
+								else if (self->_premulFlags == kOnlyMark_PremulFlags)
+									pix._alphaType = kPremul_AlphaType; // mark as premultiplied
+							}
+						}
 						self->_info = pixels[0];
-						if (self->_info.alphaType() == kPremul_AlphaType)
-							self->_premultipliedAlpha = true;
+						self->_premultipliedAlpha =
+							self->_info.alphaType() == kPremul_AlphaType ||
+							self->_info.alphaType() == kOpaque_AlphaType; // kOpaque_AlphaType also as premultiplied
 						self->_pixels = std::move(pixels);
 						self->_onState.unlock();
 
 						if (self->_res) {
-							self->_ReloadTexture();
+							self->reloadTexture();
 						}
 					} else { // decode fail
 						self->_state = State((self->_state | kSTATE_DECODE_ERROR)  & ~kSTATE_LOADING);
@@ -206,7 +220,7 @@ namespace qk {
 		New<Running>()->run(this, data);
 	}
 
-	void ImageSource::_ReloadTexture() {
+	void ImageSource::reloadTexture() {
 		// set gpu texture, Must be processed in the rendering thread
 		struct Running: Cb::Core {
 			Running(ImageSource* s): source(s) {
@@ -252,13 +266,13 @@ namespace qk {
 	void ImageSource::unload() {
 		if (_loop) {
 			_loop->post(Cb([this](auto e) {
-				_Unload(false);
+				unloadInl(false);
 				Qk_Trigger(State, _state);
 			}, this));
 		}
 	}
 
-	void ImageSource::_Unload(bool destroy) {
+	void ImageSource::unloadInl(bool destroy) {
 		{
 			AutoSharedMutexExclusive ame(_onState); // lock, safe assign `_pixels`
 
@@ -290,6 +304,175 @@ namespace qk {
 				deleteTextures(_res, _tex);
 				_tex.clear();
 			}, this));
+		}
+	}
+
+	// --------------------------------------------------
+	//  预乘表： premulTable[a][c] = (c * a + 127) / 255
+	// --------------------------------------------------
+	static uint8_t premulTable[256][256] = {0};
+	static bool premulTableInitialized = false;
+
+	// 初始化查表（一次即可）
+	static void initPremulTable() {
+		if (premulTableInitialized)
+			return; // 已初始化，无需重复
+		for (int a = 0; a < 256; a++) {
+			for (int c = 0; c < 256; c++)
+				premulTable[a][c] = (uint8_t)((c * a + 127) / 255);
+		}
+		premulTableInitialized = true;
+	}
+
+	// data: RGBA8888 像素数据
+	// count: 像素数量
+	static void premultiplyRGBA8888(uint8_t* data, uint32_t count) {
+		initPremulTable();
+		uint32_t i = 0;
+#if Qk_ARM_NEON
+		const uint16x8_t add127 = vdupq_n_u16(127);
+
+		// 每次处理 16 个像素（64 字节）
+		for (; i + 16 <= count; i += 16) {
+			uint8_t* p = data + i * 4;
+
+			// 交织加载: [RGBA RGBA ...] -> rgba.val[0]=R..., val[1]=G..., val[2]=B..., val[3]=A...
+			uint8x16x4_t rgba = vld4q_u8(p);
+
+			uint8x16_t r = rgba.val[0];
+			uint8x16_t g = rgba.val[1];
+			uint8x16_t b = rgba.val[2];
+			uint8x16_t a = rgba.val[3];
+
+			// 拆低/高 8 像素
+			uint8x8_t r_lo = vget_low_u8(r);
+			uint8x8_t r_hi = vget_high_u8(r);
+			uint8x8_t g_lo = vget_low_u8(g);
+			uint8x8_t g_hi = vget_high_u8(g);
+			uint8x8_t b_lo = vget_low_u8(b);
+			uint8x8_t b_hi = vget_high_u8(b);
+			uint8x8_t a_lo = vget_low_u8(a);
+			uint8x8_t a_hi = vget_high_u8(a);
+
+			// low 8 像素: (c * a + 127) >> 8
+			{
+				uint16x8_t a16 = vmovl_u8(a_lo);
+				uint16x8_t r16 = vmlaq_u16(add127, vmovl_u8(r_lo), a16);
+				uint16x8_t g16 = vmlaq_u16(add127, vmovl_u8(g_lo), a16);
+				uint16x8_t b16 = vmlaq_u16(add127, vmovl_u8(b_lo), a16);
+				r_lo = vqmovn_u16(vshrq_n_u16(r16, 8));
+				g_lo = vqmovn_u16(vshrq_n_u16(g16, 8));
+				b_lo = vqmovn_u16(vshrq_n_u16(b16, 8));
+			}
+			// high 8 像素
+			{
+				uint16x8_t a16 = vmovl_u8(a_hi);
+				uint16x8_t r16 = vmlaq_u16(add127, vmovl_u8(r_hi), a16);
+				uint16x8_t g16 = vmlaq_u16(add127, vmovl_u8(g_hi), a16);
+				uint16x8_t b16 = vmlaq_u16(add127, vmovl_u8(b_hi), a16);
+				r_hi = vqmovn_u16(vshrq_n_u16(r16, 8));
+				g_hi = vqmovn_u16(vshrq_n_u16(g16, 8));
+				b_hi = vqmovn_u16(vshrq_n_u16(b16, 8));
+			}
+
+			// 合并回 16 个 u8
+			rgba.val[0] = vcombine_u8(r_lo, r_hi);
+			rgba.val[1] = vcombine_u8(g_lo, g_hi);
+			rgba.val[2] = vcombine_u8(b_lo, b_hi);
+			// rgba.val[3] = 原始 alpha，不变
+
+			// 交织存回: [R G B A]*16 -> 连续 RGBA 像素
+			vst4q_u8(p, rgba);
+		}
+#endif
+		// 处理剩余不足 16 个的尾巴
+		for (; i < count; i++) {
+			uint8_t* p = data + i * 4;
+			uint8_t a = p[3];
+			if (a == 0) {
+				// 完全透明，RGB 直接清零
+				p[0] = p[1] = p[2] = 0;
+			} else {
+				p[0] = premulTable[a][p[0]];
+				p[1] = premulTable[a][p[1]];
+				p[2] = premulTable[a][p[2]];
+			}
+			// a == 255 不变
+		}
+	}
+
+	// Luminance_Alpha_88 (2 字节每像素): [L, A]
+	static void premultiplyLA88(uint8_t* data, uint32_t count) {
+		initPremulTable();
+		uint32_t i = 0;
+#if Qk_ARM_NEON
+		const uint16x8_t add127 = vdupq_n_u16(127);
+
+		// 每次处理 16 个像素（32 字节）
+		for (; i + 16 <= count; i += 16) {
+			uint8_t* p = data + i * 2;
+			uint8x16x2_t la = vld2q_u8(p);
+			// la.val[0] = L
+			// la.val[1] = A
+
+			uint8x16_t l = la.val[0];
+			uint8x16_t a = la.val[1];
+
+			// 拆低/高 8 像素
+			uint8x8_t l_lo = vget_low_u8(l);
+			uint8x8_t l_hi = vget_high_u8(l);
+			uint8x8_t a_lo = vget_low_u8(a);
+			uint8x8_t a_hi = vget_high_u8(a);
+
+			// ---- 低 8 像素 ----
+			{
+				uint16x8_t a16 = vmovl_u8(a_lo);
+				uint16x8_t l16 = vmlaq_u16(add127, vmovl_u8(l_lo), a16);
+				l_lo = vqmovn_u16(vshrq_n_u16(l16, 8));
+			}
+			// ---- 高 8 像素 ----
+			{
+				uint16x8_t a16 = vmovl_u8(a_hi);
+				uint16x8_t l16 = vmlaq_u16(add127, vmovl_u8(l_hi), a16);
+				l_hi = vqmovn_u16(vshrq_n_u16(l16, 8));
+			}
+
+			la.val[0] = vcombine_u8(l_lo, l_hi); // 替换 L 通道
+			// alpha 不变
+			vst2q_u8(p, la);
+		}
+#endif
+		// 标量处理尾部
+		for (; i < count; i++) {
+			uint8_t* p = data + i * 2;
+			uint8_t a = p[1];
+			if (a == 0) {
+				p[0] = 0;
+			} else {
+				p[0] = premulTable[a][p[0]];
+			}
+			// a == 255 不变
+		}
+	}
+
+	bool ImageSource::toPremultipliedAlpha(Pixel &pixel) {
+		if (pixel.alphaType() != kUnpremul_AlphaType) {
+			return false;
+		}
+		if (pixel.type() == kRGBA_8888_ColorType) {
+			premultiplyRGBA8888(pixel.val(), pixel.width() * pixel.height());
+		} else if (pixel.type() == kLuminance_Alpha_88_ColorType) {
+			premultiplyLA88(pixel.val(), pixel.width() * pixel.height());
+		} else {
+			return false;
+		}
+		pixel._alphaType = kPremul_AlphaType; // mark as premultiplied
+		return true;
+	}
+
+	void ImageSource::convertToPremultipliedAlpha(Array<Pixel> &pixels) {
+		for (auto &pix: pixels) {
+			toPremultipliedAlpha(pix);
 		}
 	}
 

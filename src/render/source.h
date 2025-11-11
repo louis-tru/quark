@@ -42,6 +42,16 @@ namespace qk {
 	class RenderResource;
 	struct TexStat;
 
+struct Test {
+    enum State {};        // 默认底层类型: int (4 bytes)
+    enum PremulFlags: uint8_t {};  // 默认底层类型: int (4 bytes)
+    State a;              // 占4字节
+    PremulFlags b;        // 占4字节
+    bool c;               // 占1字节
+};
+
+constexpr size_t sss =  sizeof(Test);
+
 	/**
 	 * @class ImageSource
 	 */
@@ -49,12 +59,24 @@ namespace qk {
 		Qk_DEFINE_INLINE_CLASS(Inl);
 		Qk_DISABLE_COPY(ImageSource);
 	public:
-		enum State: int {
+		/**
+		 * @enum State source load and decode state
+		*/
+		enum State {
 			kSTATE_NONE = 0,
 			kSTATE_LOADING = (1 << 0),
 			kSTATE_LOAD_COMPLETE = (1 << 1),
 			kSTATE_LOAD_ERROR = (1 << 2),
 			kSTATE_DECODE_ERROR = (1 << 3),
+		};
+
+		/**
+		 * @enum PremulFlags premultiplied alpha flags
+		*/
+		enum PremulFlags: uint8_t {
+			kNone_PremulFlags, //!< no convert to premultiplied alpha
+			kConvert_PremulFlags, //!< convert to premultiplied alpha
+			kOnlyMark_PremulFlags, //!< only mark as premultiplied alpha
 		};
 
 		/**
@@ -65,7 +87,8 @@ namespace qk {
 		// Defines props
 		Qk_DEFINE_PROP_GET(String, uri, Const);
 		Qk_DEFINE_PROP_GET(State, state, Const);
-		Qk_DEFINE_PROPERTY(bool, premultipliedAlpha, Const);
+		Qk_DEFINE_PROP_GET(bool, premultipliedAlpha, Const);
+		Qk_DEFINE_PROPERTY(PremulFlags, premulFlags, Const);
 
 		// <FlowLayout>
 		// 	<Image src={app.imagePool.get('http://quarks.cc/res/test.jpeg')} />
@@ -156,11 +179,18 @@ namespace qk {
 		*/
 		inline uint32_t count() const { return _pixels.length(); }
 
+		/**
+		 * @method convertToPremultipliedAlpha(pixels) convert pixels to premultiplied by alpha
+		 * @param pixels {Array<Pixel>&} pixel array reference and will be modified
+		 */
+		static void convertToPremultipliedAlpha(Array<Pixel> &pixels);
+
 	private:
 		ImageSource(RenderResource *res, RunLoop *loop);
-		void _Decode(Buffer& data);
-		void _Unload(bool destroy);
-		void _ReloadTexture();
+		void decode(Buffer& data);
+		void unloadInl(bool destroy);
+		void reloadTexture();
+		static bool toPremultipliedAlpha(Pixel &pixel);
 
 		PixelInfo    _info;
 		Array<Pixel> _pixels;

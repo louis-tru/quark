@@ -643,7 +643,7 @@ namespace qk {
 			(0b11 << 8)  | // 2 bits
 			(0b11 << 10) | // 2 bits
 			(0b11 << 12) | // 2 bits
-			(0b1  << 14) | // 1 bits
+			(0b11 << 14) | // 2 bits
 			0
 		);
 		uint32_t key = bitfields & (*(uint32_t*)(paint));

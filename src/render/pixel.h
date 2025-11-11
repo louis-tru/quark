@@ -104,7 +104,7 @@ namespace qk {
 	};
 
 	enum AlphaType {
-		kUnknown_AlphaType,
+		kUnknown_AlphaType,  //!< unknown alpha type or only one alpha channel
 		kOpaque_AlphaType,   //!< pixel is opaque
 		kPremul_AlphaType,   //!< pixel components are premultiplied by alpha
 		kUnpremul_AlphaType, //!< pixel components are independent of alpha
@@ -117,9 +117,10 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(ColorType, type, Const); //!< bitmap pixel color type
 		Qk_DEFINE_PROP_GET(AlphaType, alphaType, Const); //!< is premultiplied by alpha
 		PixelInfo();
-		PixelInfo(int width, int height, ColorType type, AlphaType alphaType = kUnknown_AlphaType);
+		PixelInfo(int width, int height, ColorType type, AlphaType alphaType);
 		uint32_t rowbytes() const;
 		uint32_t bytes() const;
+		friend class ImageSource;
 	};
 
 	/**

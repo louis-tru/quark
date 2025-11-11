@@ -32,8 +32,8 @@
 #include <math.h>
 #include "./math.h"
 
-#define Qk_USE_ARM_NEON Qk_ARCH_ARM64
-#if Qk_USE_ARM_NEON
+#define Qk_ARM_NEON Qk_ARCH_ARM64
+#if Qk_ARM_NEON
 #include <arm_neon.h>
 #endif
 
@@ -157,7 +157,7 @@ namespace qk {
 	}
 
 	float Vec2::dot(const Vec<float,2> b) const {
-// #if Qk_USE_ARM_NEON
+// #if Qk_ARM_NEON
 // 		float32x2_t va = vld1_f32(val);   // a0, a1
 // 		float32x2_t vb = vld1_f32(b.val);     // b0, b1
 // 		float32x2_t r = vmul_f32(va, vb); // r0 = a0*b0, r1 = a1*b1
@@ -366,10 +366,10 @@ namespace qk {
 		return Color4f(r(), g(), b(), a() * alpha);
 	}
 
-	Color4f Color4f::mul_rgb_only(float alpha) const {
-#if Qk_USE_ARM_NEON
+	Color4f Color4f::mul_rgb_only(const Color4f& color) const {
+#if Qk_ARM_NEON
 		float32x4_t a = vld1q_f32(val);
-		float32x4_t b{alpha,alpha,alpha,1.0f};
+		float32x4_t b{color.r(), color.g(), color.b(), 1.0f};
 		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
 #else
 		return Color4f(r() * alpha, g() * alpha, b() * alpha, a());
@@ -377,7 +377,7 @@ namespace qk {
 	}
 
 	Color4f Color4f::mul(const Color4f& color) const {
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t a = vld1q_f32(val);
 		float32x4_t b = vld1q_f32(color.val);
 		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
@@ -392,21 +392,68 @@ namespace qk {
 	}
 
 	Color4f Color4f::premul_alpha() const {
-		return mul_rgb_only(a());
+		float alpha = a();
+		if (alpha == 1.0f)
+			return *this;
+#if Qk_ARM_NEON
+		float32x4_t a = vld1q_f32(val);
+		float32x4_t b{alpha,alpha,alpha,1.0f};
+		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
+#else
+		return Color4f(r() * alpha, g() * alpha, b() * alpha, a());
+#endif
+	}
+
+	Color4f Color4f::recover_unpremul_alpha() const {
+		if (a() == 0.0f)
+			return Color4f(0.0f, 0.0f, 0.0f, 0.0f);
+		float invA = 1.0f / a();
+#if Qk_ARM_NEON
+		float32x4_t a = vld1q_f32(val);
+		float32x4_t b{invA,invA,invA,1.0f};
+		Qk_return_from_neno_vecq(vmulq_f32(a, b),Color4f,4);
+#else
+		return Color4f(
+			r() * invA,
+			g() * invA,
+			b() * invA,
+			a()
+		 );
+#endif
 	}
 
 	Color Color4f::to_color() const {
+#if Qk_ARM_NEON
+		// 加载 RGBA 四个 float
+		float32x4_t rgba = vld1q_f32(val);
+
+		// 乘以 255.0
+		const float32x4_t scale = vdupq_n_f32(255.0f);
+		rgba = vmulq_f32(rgba, scale);
+
+		// 转换为 int16
+		int32x4_t rgba_i32 = vcvtq_s32_f32(rgba);   // float → int
+
+		// 饱和压缩成 uint16 → uint8
+		uint16x4_t rgba_u16 = vqmovun_s32(rgba_i32);
+		uint8x8_t  rgba_u8  = vmovn_u16(vcombine_u16(rgba_u16, vdup_n_u16(0)));
+
+		Color c;
+		vst1_lane_u32((uint32_t*)c.val, vreinterpret_u32_u8(rgba_u8), 0);
+		return c;
+#else
 		return Color(
 			uint8_t(r() * 255.0f),
 			uint8_t(g() * 255.0f),
 			uint8_t(b() * 255.0f),
 			uint8_t(a() * 255.0f)
 		);
+#endif
 	}
 
 	template<>
 	Vec<float,4> Vec<float,4>::operator*(const Vec<float,4> &v) const {
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t a = vld1q_f32(val);
 		float32x4_t b = vld1q_f32(v.val);
 		typedef Vec<float,4> Vec4;
@@ -492,7 +539,7 @@ namespace qk {
 	}
 
 	Color4f Color::mul_rgb_only(const Color4f& color) const {
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t rgba = vmulq_f32(
 			float32x4_t{
 				indexed_color_to_colorf[val[0]], // * color.r(),
@@ -513,7 +560,7 @@ namespace qk {
 	}
 
 	Color4f Color::mul_color4f(const Color4f& color) const {
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t a{
 			indexed_color_to_colorf[val[0]],
 			indexed_color_to_colorf[val[1]],
@@ -532,8 +579,11 @@ namespace qk {
 	}
 
 	Color4f Color::premul_alpha() const {
+		if (val[3] == 255) {
+			return to_color4f();
+		}
 		float alpha = indexed_color_to_colorf[val[3]];
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t rgba = vmulq_f32(
 			float32x4_t{
 				indexed_color_to_colorf[val[0]], // * color.r(),
@@ -662,7 +712,7 @@ namespace qk {
 		[ d, e, f ] * [ 0, 1, y ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{val[0]  , val[1]  , val[3]  , val[4]},
 			//            *         *        *         *
@@ -714,7 +764,7 @@ namespace qk {
 		[ d, e, f ] * [ 0, y, 0 ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{  val[0], val[3],  val[1],  val[4]},
 			float32x4_t{v.val[0],v.val[0],v.val[1],v.val[1]}
@@ -762,7 +812,7 @@ namespace qk {
 		*/
 		float cz = cosf(z);
 		float sz = sinf(z);
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t _a = {val[0],val[1],val[3],val[4]};
 		float32x4_t p0 = vmulq_f32(_a, float32x4_t{cz,sz,cz,sz}); // *
 		float32x4_t p1 = vmulq_f32(_a,float32x4_t{sz,cz,sz,cz}); // *
@@ -857,7 +907,7 @@ namespace qk {
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
 			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
@@ -886,7 +936,7 @@ namespace qk {
 		*/
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
 			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
@@ -919,7 +969,7 @@ namespace qk {
 		float* _v = output.val;
 		const float* _a = val;
 		const float* _b = b.val;
-#if Qk_USE_ARM_NEON
+#if Qk_ARM_NEON
 		float32x4_t p0 = vmulq_f32(
 			float32x4_t{_a[0],_a[1],_a[0],_a[1]},
 			float32x4_t{_b[0],_b[3],_b[1],_b[4]}

@@ -65,23 +65,23 @@ namespace qk {
 		~MakingPixel() {
 			delete frame; frame = nullptr;
 		}
-		static Array<Pixel> make(Frame *frame) {
+		static Array<Pixel> Make(Frame *frame) {
 			Array<Pixel> pixel;
 			auto format = frame->avframe->format;
 			if (frame->dataitems && (format == AV_PIX_FMT_YUV420P || format == AV_PIX_FMT_NV12)) {
 				auto avf = frame->avframe;
 				int width = avf->width, height = avf->height;
 				auto pf = new MakingPixel(frame);
-				pixel.push(Pixel(PixelInfo(width, height, kYUV420P_Y_8_ColorType), pf->body));
+				pixel.push(Pixel(PixelInfo(width, height, kYUV420P_Y_8_ColorType, kOpaque_AlphaType), pf->body));
 				width >>= 1; height >>= 1;
 
 				if (format == AV_PIX_FMT_YUV420P) {
 					Qk_ASSERT_EQ(frame->dataitems, 3);
-					pixel.push(Pixel(PixelInfo(width, height, kYUV420P_U_8_ColorType), pf->body+1));
-					pixel.push(Pixel(PixelInfo(width, height, kYUV420P_V_8_ColorType), pf->body+2));
+					pixel.push(Pixel(PixelInfo(width, height, kYUV420P_U_8_ColorType, kOpaque_AlphaType), pf->body+1));
+					pixel.push(Pixel(PixelInfo(width, height, kYUV420P_V_8_ColorType, kOpaque_AlphaType), pf->body+2));
 				} else { // yuv420sp
 					Qk_ASSERT_EQ(frame->dataitems, 2);
-					pixel.push(Pixel(PixelInfo(width, height, kYUV420SP_UV_88_ColorType), pf->body+1));
+					pixel.push(Pixel(PixelInfo(width, height, kYUV420SP_UV_88_ColorType, kOpaque_AlphaType), pf->body+1));
 				}
 			}
 			Qk_ReturnLocal(pixel);
@@ -89,7 +89,7 @@ namespace qk {
 	};
 
 	Array<Pixel> MediaCodec::frameToPixel(Frame *useFrame) {
-		return MakingPixel::make(useFrame);
+		return MakingPixel::Make(useFrame);
 	}
 
 	StreamExtra::StreamExtra() {

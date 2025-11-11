@@ -37,7 +37,6 @@ namespace qk {
 	)
 		: _source(static_cast<ImageSource*>(page->texture))
 		, _width(page->width), _height(page->height)
-		, _pma(page->pma)
 	{
 		if (_source)
 			_source->retain();
@@ -48,7 +47,8 @@ namespace qk {
 		_paint.image = _source;
 		_paint.filterMode = page->magFilter == TextureFilter_Linear ?
 			PaintImage::kLinear_FilterMode: PaintImage::kNearest_FilterMode;
-		_source->set_premultipliedAlpha(_pma);
+		if (page->pma)
+			_source->set_premulFlags(ImageSource::kOnlyMark_PremulFlags);
 
 		switch (page->minFilter) {
 			case TextureFilter_MipMapLinearNearest:
@@ -136,14 +136,8 @@ namespace qk {
 		}
 	}
 
-	static Color colorToColor4B(const spine::Color &color) {
-		return Color(color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f);
-	}
-
-	static void premultipliedAlpha(spine::Color &color) {
-		color.r *= color.a;
-		color.g *= color.a;
-		color.b *= color.a;
+	static Color4f toColor4f(const spine::Color &color) {
+		return (Color4f&)color.r;
 	}
 
 	static void drawTriangles(Painter *painter, TrianglesEx &triangles, AttachmentEx *ex) {
@@ -174,7 +168,7 @@ namespace qk {
 		TrianglesEx &triangles,
 		AttachmentEx *lastEx, AttachmentEx *ex, Slot *slot
 	) {
-		auto blendMode = getBlendMode(slot, ex->_pma);
+		auto blendMode = getBlendMode(slot, ex->_source->premultipliedAlpha());
 		if (lastEx) {
 			if (lastEx->_hashCode != ex->_hashCode || triangles.blendMode != blendMode) {
 				drawTriangles(painter, triangles, lastEx);
@@ -187,16 +181,15 @@ namespace qk {
 	//////////////////////////////////////////////////////////////////////////////
 
 	void Spine::draw(Painter *painter) {
-		Vec4 color;
 		auto skel = _skel.load(std::memory_order_acquire);
 		// Early exit if the skeleton is invisible.
-		if (!skel || !(color = painter->_color * (Color4f&)skel->_skeleton.getColor().r).a()) {
+		if (!skel || !skel->_skeleton.getColor().a || !painter->_color.a()) {
 			return Entity::draw(painter);
 		}
-
 		auto skeleton = &skel->_skeleton;
 		auto clipper = _clipper.get();
-		spine::Color light, dark;
+		Color4f color = toColor4f(skel->_skeleton.getColor()).premul_alpha().mul(painter->_color);
+		Color4f light, dark;
 		AttachmentEx *ex, *lastEx = nullptr;
 		TrianglesEx cmdTriangles;
 
@@ -223,7 +216,7 @@ namespace qk {
 			if (attachment->getRTTI().isExactly(RegionAttachment::rtti)) {
 				auto region = static_cast<RegionAttachmentEx*>(attachment);
 				ex = region->ex;
-				light = region->getColor();
+				light = toColor4f(region->getColor());
 				tryDrawLastTriangles(painter, cmdTriangles, lastEx, ex, slot);
 				auto z = cmdTriangles.zDepthTotal;
 				Vec3 dstPtr[4] = {{0,0,z}, {0,0,z}, {0,0,z}, {0,0,z}};
@@ -235,7 +228,7 @@ namespace qk {
 			} else if (attachment->getRTTI().isExactly(MeshAttachment::rtti)) {
 				auto mesh = static_cast<MeshAttachmentEx*>(attachment);
 				ex = mesh->ex;
-				light = mesh->getColor();
+				light = toColor4f(mesh->getColor());
 				tryDrawLastTriangles(painter, cmdTriangles, lastEx, ex, slot);
 				tmpBuff->reset((uint32_t)mesh->getWorldVerticesLength() * sizeof(float));
 				float *dstPtr = (float *) tmpBuff->val();
@@ -255,23 +248,24 @@ namespace qk {
 				continue;
 			}
 
-			if (light.a == 0) {
+			if (light.a() == 0) {
 				clipper->clipEnd(*slot);
 				continue;
 			}
-			reinterpret_cast<Color4f&>(light.r) *= color;
-			reinterpret_cast<Color4f&>(light.r) *= reinterpret_cast<Color4f&>(slot->getColor().r);
-
+			light *= toColor4f(slot->getColor());
 			if (slot->hasDarkColor()) {
-				dark = slot->getDarkColor();
+				dark = toColor4f(slot->getDarkColor());
 				cmdTriangles.isDarkColor = true;
 			} else {
-				dark = spine::Color();
+				dark = Color4f();
 			}
-			if (ex->_pma) { // premultiplied alpha
+			if (ex->_source->premultipliedAlpha()) { // premultiplied alpha
 				if (slot->hasDarkColor())
-					premultipliedAlpha(dark);
-				premultipliedAlpha(light);
+					dark = dark.premul_alpha();
+				light = light.premul_alpha().mul(color);
+			} else {
+				// unpremultiplied alpha
+				light = light.mul(color.recover_unpremul_alpha());
 			}
 
 			auto triangles = ex->_triangles;
@@ -307,8 +301,8 @@ namespace qk {
 			}
 
 			auto vertex = triangles.verts;
-			auto light4B = colorToColor4B(light);
-			auto dark4B = colorToColor4B(dark);
+			auto light4B = light.to_color();
+			auto dark4B = dark.to_color();
 			for (int v = 0; v < triangles.vertCount; ++v, ++vertex) {
 				vertex->lightColor = light4B;
 				vertex->darkColor = dark4B;

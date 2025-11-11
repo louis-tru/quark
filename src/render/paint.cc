@@ -47,7 +47,7 @@ namespace qk {
 
 	void PaintImage::setCanvas(Canvas *canvas, const Rect &dest, const Rect &src) {
 		this->canvas = canvas;
-		_flushCanvas = true;
+		_isCanvas = true;
 		PaintImage_setImage(this, dest, src, canvas->size());
 	}
 
@@ -57,7 +57,7 @@ namespace qk {
 
 	void PaintImage::setImage(ImageSource *image, const Rect& dest, const Rect& src) {
 		this->image = image;
-		_flushCanvas = false;
+		_isCanvas = false;
 		PaintImage_setImage(this, dest, src, Vec2(image->width(), image->height()));
 	}
 

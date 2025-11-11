@@ -189,7 +189,7 @@ namespace qk {
 			*(f32p++) = i * (1.0f / 128.0f);
 		}
 		return Pixel({
-			w, h, is_signed ? kSDF_F32_ColorType : kSDF_Unsigned_F32_ColorType
+			w, h, is_signed ? kSDF_F32_ColorType : kSDF_Unsigned_F32_ColorType, kUnknown_AlphaType
 		}, Buffer((char*)f32.collapse(), w*h*sizeof(float)));
 	}
 

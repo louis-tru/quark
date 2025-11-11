@@ -59,11 +59,11 @@ namespace qk {
 
 	struct PaintImageLock {
 		inline PaintImageLock(const PaintImage *p): paint(p) {
-			if (!paint->_flushCanvas)
+			if (!paint->_isCanvas)
 				paint->image->onState().lockShared();
 		}
 		inline ~PaintImageLock() {
-			if (!paint->_flushCanvas)
+			if (!paint->_isCanvas)
 				paint->image->onState().unlockShared();
 		}
 		const PaintImage *paint;
@@ -457,7 +457,7 @@ namespace qk {
 		}
 
 		bool setTextureSlot0(const PaintImage *paint) {
-			if (paint->_flushCanvas) { // flush canvas to current canvas
+			if (paint->_isCanvas) { // flush canvas to current canvas
 				auto srcC = static_cast<GLCanvas*>(paint->canvas);
 				if (srcC != _canvas && srcC->isGpu()) { // now only supported gpu
 					if (srcC->_render == _render) {
@@ -550,7 +550,7 @@ namespace qk {
 				s->use(triangles.vertCount * sizeof(V3F_T2F_C4B_C4B), triangles.verts);
 				glUniform1f(s->depth, depth);
 				glUniform4fv(s->color, 1, color.val);
-				glUniform1f(s->premultipliedAlpha, isPre ? 1.0f : 0.0f);
+				// glUniform1f(s->premultipliedAlpha, isPre ? 1.0f : 0.0f);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _render->_ebo); // restore ebo
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * triangles.indexCount, triangles.indices, GL_DYNAMIC_DRAW);
 				glDrawElements(GL_TRIANGLES, triangles.indexCount, GL_UNSIGNED_SHORT, 0);
@@ -912,7 +912,6 @@ namespace qk {
 			// 	0, 0, w, h, GL_COLOR_BUFFER_BIT, s == Vec2(w,h) ? GL_NEAREST: GL_LINEAR);
 			// glBindFramebuffer(GL_FRAMEBUFFER, _canvas->_fbo);
 			// }
-
 			if (img->isMipmap()) {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 64);
 				glGenerateMipmap(GL_TEXTURE_2D);
@@ -1000,7 +999,7 @@ namespace qk {
 		void flushCanvas(const PaintImage *paint) {
 #if Qk_USE_GLC_CMD_QUEUE
 			auto srcC = static_cast<GLCanvas*>(paint->canvas);
-			if (!paint->_flushCanvas || !srcC->isGpu())
+			if (!paint->_isCanvas || !srcC->isGpu())
 				return; // now only supported gpu
 			if (srcC->_render != _render || srcC == _canvas)
 				return;

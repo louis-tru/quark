@@ -19,7 +19,7 @@ void main() {
 
 #frag
 uniform sampler2D      image;
-uniform lowp float     premultipliedAlpha;
+// uniform lowp float     premultipliedAlpha;
 in      lowp vec2      texCoords;
 in      lowp vec4      light;
 in      lowp vec4      dark;
@@ -33,7 +33,10 @@ void main() {
 	// but we always use (1.0 - tex.rgb) here, do simple processing.
 	// so the dark color will be a bit different when using premultiplied alpha
 	// because the dark color is usually very small, the difference is not easy to see
-	fragColor = light * tex + dark * vec4(mix(1.0, tex.a, premultipliedAlpha) - tex.rgb, 0.0);
+	////
+	// fragColor = light * tex + dark * vec4(mix(1.0, tex.a, premultipliedAlpha) - tex.rgb, 0.0);
+	// always apply premultiplied alpha for dark color
+	fragColor = light * tex + dark * vec4(tex.a - tex.rgb, 0.0);
 #else
 	fragColor = light * tex;
 #endif
@@ -41,7 +44,9 @@ void main() {
 #ifdef Qk_SHADER_IF_FLAGS_AACLIP
 	float alpha = smoothstep(0.9, 1.0, texelFetch(aaclip, ivec2(gl_FragCoord.xy), 0).r);
 	// apply premultiplied alpha
-	float premul = mix(1.0, alpha, premultipliedAlpha);
-	fragColor *= vec4(vec3(premul), alpha);
+	// float premul = mix(1.0, alpha, premultipliedAlpha);
+	// fragColor *= vec4(vec3(premul), alpha);
+	// always apply premultiplied alpha
+	fragColor *= alpha;
 #endif
 }

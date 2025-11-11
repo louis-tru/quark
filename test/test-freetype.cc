@@ -296,7 +296,7 @@ void draw_char() {
 		*reinterpret_cast<int*>(buffer.val() + i) = (bit.buffer[j] << 24);
 	}
 	//Qk_DLog("reinterpret_cast, ------------ %d", *buffer.val());
-	Pixel data(PixelInfo(bit.width, bit.rows, kRGBA_8888_ColorType), buffer);
+	Pixel data(PixelInfo(bit.width, bit.rows, kRGBA_8888_ColorType, kUnknown_AlphaType), buffer);
 	//Pixel data(PixelInfo(bit.width, bit.rows, kAlpha_8_ColorType),
 	//					 WeakBuffer((char*)bit.buffer, bit.width * bit.rows).copy());
 

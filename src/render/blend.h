@@ -38,8 +38,9 @@ namespace qk {
 		kClear_BlendMode,         //!< r = (1-sa)*d
 		kSrc_BlendMode,           //!< r = s
 		kDst_BlendMode,           //!< r = d
+		// Deprecated kSrcOver_BlendMode, recommended to use kSrcOverPre_BlendMode
 		kSrcOver_BlendMode,       //!< r = sa*s + (1-sa)*d
-		kSrcOverPre_BlendMode,    //!< r = s + (1-sa)*d, with src premultiplied alpha, but this mode of aaclip will fail
+		kSrcOverPre_BlendMode,    //!< r = s + (1-sa)*d
 		kDstOver_BlendMode,       //!< r = (1-da)*s + da*d
 		kSrcIn_BlendMode,         //!< r = da*s
 		kDstIn_BlendMode,         //!< r = sa*d
@@ -52,8 +53,8 @@ namespace qk {
 		kModulate_BlendMode,      //!< r = s*d
 		kScreen_BlendMode,        //!< r = s + d - s*d
 		kMultiply_BlendMode,      //!< r = d*s + (1-sa)*d
+		// Deprecated kAdditive_BlendMode, recommended to use kPlus_BlendMode
 		kAdditive_BlendMode,      //!< r = sa*s + d
-		// Note: All modes that do not handle source alpha channels do not support aaclipping.
 	};
 }
 

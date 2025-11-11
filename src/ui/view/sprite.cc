@@ -249,9 +249,9 @@ namespace qk {
 		paint.fill.image = &img;
 		paint.fill.color = painter->color();
 
-		if (src->premultipliedAlpha()) {
-			paint.blendMode = kSrcOverPre_BlendMode;
-			paint.fill.color = painter->color().premul_alpha();
+		if (!src->premultipliedAlpha()) {
+			paint.fill.color = paint.fill.color.recover_unpremul_alpha();
+			paint.blendMode = kSrcOver_BlendMode;
 		}
 
 		auto aaShrink = anti_alias() ? painter->AAShrink() : 0;

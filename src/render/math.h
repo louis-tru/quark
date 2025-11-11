@@ -297,9 +297,10 @@ namespace qk {
 		bool operator==(const Color4f& color) const;
 		bool operator!=(const Color4f& color) const;
 		Color4f mul_alpha_only(float alpha) const;
-		Color4f mul_rgb_only(float alpha) const;
+		Color4f mul_rgb_only(const Color4f& color) const;
 		Color4f mul(const Color4f& color) const;
 		Color4f premul_alpha() const;
+		Color4f recover_unpremul_alpha() const;
 		Color to_color() const;
 	};
 

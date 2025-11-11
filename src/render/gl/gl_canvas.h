@@ -87,7 +87,7 @@ namespace qk {
 		virtual float drawGlyphs(const FontGlyphs &glyphs, Vec2 origin, const Array<Vec2> *offset, const Paint &paint) override;
 		virtual void drawTextBlob(TextBlob *blob, Vec2 origin, float fontSize, const Paint &paint) override;
 		virtual void drawTriangles(const Triangles& triangles, const Paint &paint) override;
-		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) override;
+		virtual Sp<ImageSource> readImage(const Rect &src, Vec2 dest, ColorType type, BlendMode mode, bool isMipmap) override;
 		virtual Sp<ImageSource> outputImage(ImageSource* dest, bool isMipmap) override;
 		virtual void swapBuffer() override; // swap gl double cmd pkg
 		void         flushBuffer(); // commit gl cmd, only can rendering thread call

@@ -351,7 +351,7 @@ void Window::openImpl(Options &opts) {
 								 init:opts win:this render:_render];
 		CFBridgingRetain(impl);
 		_impl = (__bridge WindowImpl*)impl;
-		// set_backgroundColor(opts.backgroundColor);
+		set_backgroundColor(opts.backgroundColor);
 		activate();
 		_render->reload();
 	}), true);

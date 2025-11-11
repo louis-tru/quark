@@ -39,16 +39,18 @@ public:
 
 		canvas->drawPath(path, paint);
 
-		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, false);
-		paint.fill.color = Color4f(1, 0, 0, 1);
+		auto img = canvas->readImage(rect, {width}, kRGBA_8888_ColorType, kSrcOver_BlendMode);
+		// paint.blendMode = kSrcOver_BlendMode;
+		paint.fill.color = Color4f(1, 1, 1, 1);
 		paint.filter = nullptr;
-		PaintImage ipaint;
-		ipaint.tileModeX = PaintImage::kMirror_TileMode;
-		ipaint.tileModeY = PaintImage::kRepeat_TileMode;
-		ipaint.mipmapMode = PaintImage::kLinear_MipmapMode;
-		ipaint.filterMode = PaintImage::kLinear_FilterMode;
-		ipaint.setImage(*img, {{0},{width*0.5f}});
-		paint.mask = &ipaint;
+		PaintImage pimg;
+		pimg.tileModeX = PaintImage::kMirror_TileMode;
+		pimg.tileModeY = PaintImage::kRepeat_TileMode;
+		pimg.mipmapMode = PaintImage::kLinear_MipmapMode;
+		pimg.filterMode = PaintImage::kLinear_FilterMode;
+		pimg.setImage(*img, {{0},{width*0.25f}});
+		// paint.mask = &pimg;
+		paint.fill.image = &pimg;
 		canvas->drawRect({{0},{width}}, paint);
 
 		mark(kLayout_None,true);
@@ -58,7 +60,7 @@ public:
 Qk_TEST_Func(blur) {
 	App app;
 	// auto win2 = Window::Make({.frame={{0,0}, {200,200}}, .title="win2"});
-	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur"});
+	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Blur", .backgroundColor={0,255,0,0}});
 	auto r = win->root();
 	auto t = r->append_new<TestBlur>();
 	r->set_origin({BoxOrigin{0,BoxOriginKind::Value}});

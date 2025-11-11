@@ -50,6 +50,7 @@
 #define _IfNotBorder(v) _Border(v); if (!_border) return
 
 namespace qk {
+	constexpr BlendMode defaultBlendMode = kSrcOverPre_BlendMode;
 
 	typedef Painter::BoxData BoxData;
 
@@ -214,15 +215,16 @@ namespace qk {
 					_mark_recursive = mark & View::kRecursive_Mark;
 				}
 				if (v->_visible_area) {
+					// Use premultiplied alpha color
 					switch (v->_cascade_color) {
 						case CascadeColor::None:
-							_color = v->_color.to_color4f(); break;
+							_color = v->_color.premul_alpha(); break;
 						case CascadeColor::Alpha:
-							_color = v->_color.mul_alpha_only(lastColor.a()); break;
+							_color = v->_color.premul_alpha().mul_alpha_only(lastColor.a()); break;
 						case CascadeColor::Color:
-							_color = v->_color.mul_rgb_only(lastColor); break;
+							_color = v->_color.premul_alpha().mul_rgb_only(lastColor); break;
 						case CascadeColor::Both:
-							_color = v->_color.mul_color4f(lastColor); break;
+							_color = v->_color.premul_alpha().mul(lastColor); break;
 					}
 					v->draw(this);
 				}
@@ -290,7 +292,7 @@ namespace qk {
 					if (pv->vCount) {
 						addBatch(pathvs, _border->color[i], pv);
 					} else { // too thin, draw only a little stroke
-						paint.stroke.color = _border->color[i].mul_color4f(_color);
+						paint.stroke.color = _border->color[i].premul_alpha().mul(_color);
 						paint.strokeWidth = _border->width[i];
 						_canvas->drawPath(pv->path, paint);
 					}
@@ -302,7 +304,7 @@ namespace qk {
 			for (int i = 0; i < pathvs.total; i++) {
 				auto & it = pathvs.indexed[pathvs.batchs[i]];
 				_canvas->drawPathvColors(it.pathv, it.count,
-					it.color.mul_color4f(_color), kSrcOver_BlendMode, v->_anti_alias);
+					it.color.premul_alpha().mul(_color), defaultBlendMode, v->_anti_alias);
 			}
 		}
 	}
@@ -317,9 +319,9 @@ namespace qk {
 				if (_border->width[i] && _border->color[i].a()) { // top
 					auto pv = &data.outline->top + i;
 					if (pv->vCount) {
-						_canvas->drawPathvColor(*pv, _border->color[i].mul_color4f(_color), kSrcOver_BlendMode, v->_anti_alias);
+						_canvas->drawPathvColor(*pv, _border->color[i].premul_alpha().mul(_color), defaultBlendMode, v->_anti_alias);
 					} else { // stroke
-						paint.stroke.color = _border->color[i].mul_color4f(_color);
+						paint.stroke.color = _border->color[i].premul_alpha().mul(_color);
 						paint.strokeWidth = _border->width[i];
 						_canvas->drawPath(pv->path, paint);
 					}
@@ -386,9 +388,9 @@ namespace qk {
 		paint.fill.image = &img;
 		paint.antiAlias = v->_anti_alias;
 
-		if (src->premultipliedAlpha()) {
-			paint.blendMode = kSrcOverPre_BlendMode;
-			paint.fill.color = _color.premul_alpha(); // premultiplied alpha
+		if (!src->premultipliedAlpha()) {
+			paint.blendMode = kSrcOver_BlendMode;
+			paint.fill.color = _color.recover_unpremul_alpha();
 		}
 
 		auto inside = data.inside;
@@ -555,7 +557,7 @@ namespace qk {
 			auto &o = data.outside->rect.begin;
 			_canvas->drawRRectBlurColor({
 				{o.x()+s.x, o.y()+s.y}, data.outside->rect.size,
-			},&v->_border_radius_left_top, s.size, s.color.mul_color4f(_color), kSrcOver_BlendMode);
+			},&v->_border_radius_left_top, s.size, s.color.premul_alpha().mul(_color), kSrcOverPre_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 		_canvas->restore();
@@ -566,11 +568,11 @@ namespace qk {
 			return;
 		getInsideRectPath(v, data);
 		_canvas->drawPathvColor(*data.inside,
-			v->_background_color.mul_color4f(_color), kSrcOver_BlendMode, v->_anti_alias
+			v->_background_color.premul_alpha().mul(_color), kSrcOverPre_BlendMode, v->_anti_alias
 		);
 		//Paint paint;
 		//paint.antiAlias = true;
-		//paint.color = box->_background_color.mul_color4f(_color);
+		//paint.color = box->_background_color.premul_alpha().mul(_color);
 		//_canvas->drawPathv(*data.inside, paint);
 	}
 
@@ -597,7 +599,7 @@ namespace qk {
 			auto margin = v->_scrollbar_margin;
 			auto origin = Vec2();// Vec2{b->margin_left(),b->margin_top()};
 			auto size = b->_client_size;
-			auto color = v->scrollbar_color().mul_color4f(_color);
+			auto color = v->scrollbar_color().premul_alpha().mul(_color);
 			color[3] *= v->_scrollbar_opacity;
 			auto _border = b->_border.load();
 
@@ -610,7 +612,7 @@ namespace qk {
 				if (_border) {
 					rect.begin += {_border->width[3], -_border->width[0]};
 				}
-				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, kSrcOver_BlendMode, true);
+				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
 			}
 
 			if ( v->_scrollbar_v ) { // draw vertical scrollbar
@@ -622,7 +624,7 @@ namespace qk {
 				if (_border) {
 					rect.begin += {-_border->width[3], _border->width[0]};
 				}
-				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, kSrcOver_BlendMode, true);
+				_canvas->drawPathvColor(_cache->getRRectPath(rect, radius), color, defaultBlendMode, true);
 			}
 		}
 	}
@@ -637,7 +639,7 @@ namespace qk {
 
 		// draw text  background
 		if (v->text_background_color().value.a()) {
-			auto color = v->text_background_color().value.mul_color4f(_color);
+			auto color = v->text_background_color().value.premul_alpha().mul(_color);
 			for (auto i: blob_visible) {
 				auto &blob = _blob[i];
 				auto &line = lines->line(blob.line);
@@ -649,7 +651,7 @@ namespace qk {
 					},
 					{blob.blob.offset.back().x()-offset_x, blob.height},
 				});
-				_canvas->drawPathvColor(rect, color, kSrcOver_BlendMode, true);
+				_canvas->drawPathvColor(rect, color, defaultBlendMode, true);
 			}
 		}
 
@@ -657,7 +659,7 @@ namespace qk {
 		if (shadow.color.a()) {
 			Paint paint;
 			PaintFilter filter;
-			paint.fill.color = shadow.color.mul_color4f(_color);
+			paint.fill.color = shadow.color.premul_alpha().mul(_color);
 			if (shadow.size) {
 				filter.type = PaintFilter::kBlur_Type;
 				filter.val0 = shadow.size;
@@ -677,11 +679,11 @@ namespace qk {
 		// draw text blob
 		if (v->text_color().value.a()) {
 			Paint paint;
-			paint.fill.color = v->text_color().value.mul_color4f(_color);
+			paint.fill.color = v->text_color().value.premul_alpha().mul(_color);
 			auto stroke = v->text_stroke();
 			if (stroke.value.width) {
 				paint.style = Paint::kStrokeAndFill_Style;
-				paint.stroke.color = stroke.value.color.mul_color4f(_color);
+				paint.stroke.color = stroke.value.color.premul_alpha().mul(_color);
 				paint.strokeWidth = stroke.value.width;
 			}
 			for (auto i: blob_visible) {
@@ -721,9 +723,9 @@ namespace qk {
 			paint.antiAlias = anti_alias();
 			paint.fill.image = &img;
 			paint.fill.color = draw->color();
-			if (src->premultipliedAlpha()) {
-				paint.blendMode = kSrcOverPre_BlendMode;
-				paint.fill.color = draw->color().premul_alpha(); // premultiplied alpha
+			if (!src->premultipliedAlpha()) {
+				paint.blendMode = kSrcOver_BlendMode;
+				paint.fill.color = paint.fill.color.recover_unpremul_alpha();
 			}
 			//img.tileModeX = PaintImage::kDecal_TileMode;
 			//img.tileModeY = PaintImage::kDecal_TileMode;
@@ -802,14 +804,14 @@ namespace qk {
 				auto offset_x = blob.blob.offset.front().x();
 				auto width = blob.blob.offset.back().x();
 				auto &rect = draw->cache()->getRectPath({{x + offset_x, y},{width, blob.height}});
-				canvas->drawPathvColor(rect, color, kSrcOver_BlendMode, true);
+				canvas->drawPathvColor(rect, color, defaultBlendMode, true);
 			};
 			auto size = text_size().value;
 			auto shadow = text_shadow().value;
 
 			// draw text background
 			if (text_length() && text_background_color().value.a()) {
-				auto color = text_background_color().value.mul_color4f(draw->color());
+				auto color = text_background_color().value.premul_alpha().mul(draw->color());
 				for (auto i: _blob_visible)
 					draw_background(_blob[i], color);
 			}
@@ -817,7 +819,7 @@ namespace qk {
 			// draw text marked
 			auto begin = _marked_blob_begin;
 			if (begin < _marked_blob_end && _marked_color.a()) {
-				auto color = _marked_color.mul_color4f(draw->color());
+				auto color = _marked_color.premul_alpha().mul(draw->color());
 				do
 					draw_background(_blob[begin++], color);
 				while(begin < _marked_blob_end);
@@ -827,7 +829,7 @@ namespace qk {
 			if (shadow.color.a()) {
 				Paint paint;
 				PaintFilter filter;
-				paint.fill.color = shadow.color.mul_color4f(draw->color());
+				paint.fill.color = shadow.color.premul_alpha().mul(draw->color());
 				if (shadow.size) {
 					filter.type = PaintFilter::kBlur_Type;
 					filter.val0 = shadow.size;
@@ -847,7 +849,7 @@ namespace qk {
 			auto color = _value_u4.length() ? text_color().value: _placeholder_color;
 			if (color.a()) {
 				Paint paint;
-				paint.fill.color = color.mul_color4f(draw->color());
+				paint.fill.color = color.premul_alpha().mul(draw->color());
 				for (auto i: _blob_visible) {
 					auto &blob = _blob[i];
 					auto &line = lines->line(blob.line);
@@ -865,7 +867,7 @@ namespace qk {
 			//auto y = offset.y() + line.baseline - _text_ascent;
 			auto y = offset.y() + (line.end_y + line.start_y - _cursor_height) * 0.5f;
 			auto &rect = draw->cache()->getRectPath({{x, y},{2.0,_cursor_height}});
-			canvas->drawPathvColor(rect, _cursor_color.mul_color4f(draw->color()), kSrcOver_BlendMode, true);
+			canvas->drawPathvColor(rect, _cursor_color.premul_alpha().mul(draw->color()), defaultBlendMode, true);
 		}
 
 		if (clip) {
@@ -919,10 +921,11 @@ namespace qk {
 				painter->_AAShrink = AAShrink;
 				painter->_AAShrinkHalf = AAShrink_half;
 				painter->_AAShrinkBorder = AAShrink + AAShrinkBorder_half + AAShrinkBorder_half;
-				painter->_color = color().to_color4f();
+				painter->_color = color().premul_alpha();
 				painter->set_origin(origin_value());
 				painter->set_matrix(&matrix());
-				canvas->clearColor(background_color().mul_color4f(painter->_color));
+				// The root background is not pre-multiplied, the color is drawn directly.
+				canvas->clearColor(background_color().mul_color4f(color().to_color4f()));
 				painter->drawBoxFill(this, data);
 				painter->drawBoxBorder(this, data);
 				painter->set_origin({}); // reset origin

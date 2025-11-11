@@ -111,22 +111,23 @@ namespace qk {
 			_matrixFlag = true;
 		}
 
-		void solveSetMatrix() {
+		inline void solveSetMatrix() {
 			if (_matrixFlag) {
 				_matrixFlag = false;
 				_cmdPack->setMatrix();
 			}
 		}
 
-		void solveSetMatrixAndBlend(BlendMode mode) {
-			if (_matrixFlag) {
-				_matrixFlag = false;
-				_cmdPack->setMatrix();
-			}
+		inline void setBlendMode(BlendMode mode) {
 			if (_blendMode != mode) {
 				_blendMode = mode;
 				_cmdPack->setBlendMode(mode);
 			}
+		}
+
+		void solveSetMatrixAndBlend(BlendMode mode) {
+			solveSetMatrix();
+			setBlendMode(mode);
 		}
 
 		void clipv(const Path &path, const VertexData &vertex, ClipOp op, bool antiAlias) {
@@ -700,7 +701,8 @@ namespace qk {
 		}
 	}
 
-	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, bool isMipmap) {
+	Sp<ImageSource> GLCanvas::readImage(const Rect &src, Vec2 dest, ColorType type, BlendMode mode, bool isMipmap) {
+		_this->setBlendMode(mode); // switch blend mode
 		auto o = src.begin;
 		auto s = Vec2{
 			Float32::min(o.x()+src.size.x(), _size.x()) - o.x(),
@@ -708,7 +710,9 @@ namespace qk {
 		};
 		if (s[0] > 0 && s[1] > 0 && dest[0] > 0 && dest[1] > 0) {
 			auto img = ImageSource::Make(PixelInfo{
-				int(Qk_Min(dest.x(),_surfaceSize.x())),int(Qk_Min(dest.y(),_surfaceSize.y())),type});
+				int(Qk_Min(dest.x(),_surfaceSize.x())),
+				int(Qk_Min(dest.y(),_surfaceSize.y())), type, kPremul_AlphaType
+			});
 			setMipmap_SourceImage(img.get(), isMipmap);
 			_cmdPack->readImage({o*_surfaceScale,s*_surfaceScale}, *img);
 			_this->zDepthNext();
@@ -721,7 +725,9 @@ namespace qk {
 		Sp<ImageSource> ret(dest);
 		if (!dest) {
 			ret = ImageSource::Make(PixelInfo{
-				int(_surfaceSize[0]),int(_surfaceSize[1]),kRGBA_8888_ColorType
+				int(_surfaceSize[0]),
+				int(_surfaceSize[1]),
+				kRGBA_8888_ColorType, kPremul_AlphaType
 			});
 		}
 		_state->output = ret;
