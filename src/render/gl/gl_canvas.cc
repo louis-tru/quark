@@ -144,6 +144,9 @@ namespace qk {
 			}
 			if (clip.vertex.vCount == 0) return;
 
+			// solve matrix
+			solveSetMatrix();
+
 			if (!_isClipState) {
 				_isClipState = true;
 				_cmdPack->switchState(GL_STENCIL_TEST, true); // enable stencil test
