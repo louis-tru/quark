@@ -78,6 +78,11 @@ namespace qk {
 		static uint32_t ticks = 0;
 		struct Tick {
 			static void cb(Cb::Data& e, Application *self) {
+				// static int64_t lastTime = 0;
+				// int64_t time = time_monotonic();
+				// int64_t diff = time - lastTime;
+				// lastTime = time;
+				// Qk_DLog("Tick delay: %lld ms", diff / 1000);
 				for (auto w: self->_windows)
 					w->preRender().asyncCommit();
 				// execute delayed tasks every 5 ticks

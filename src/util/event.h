@@ -119,7 +119,6 @@ namespace qk {
 		void off_all(); // off all
 		void trigger_event(Object& event);
 		void add_listener(Listener *l);
-
 		virtual void lock(); // thread safe lock
 		virtual void unlock();
 	protected:

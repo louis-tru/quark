@@ -211,7 +211,7 @@ namespace qk {
 
 	void Sprite::draw(Painter *painter) {
 		auto src = source();
-		if (!src || !src->load() || painter->color().a() == 0) {
+		if (!src || !src->load() || !painter->color().a()) {
 			return Entity::draw(painter);
 		}
 
@@ -245,7 +245,7 @@ namespace qk {
 
 		Paint paint;
 		PaintImage img;
-		paint.antiAlias = anti_alias();
+		paint.antiAlias = aa();
 		paint.fill.image = &img;
 		paint.fill.color = painter->color();
 
@@ -254,7 +254,7 @@ namespace qk {
 			paint.blendMode = kSrcOver_BlendMode;
 		}
 
-		auto aaShrink = anti_alias() ? painter->AAShrink() : 0;
+		auto aaShrink = aa() ? painter->AAShrink() : 0;
 		Rect rect{-origin_value(), {_width, _height}};
 		Rect rectAA{
 			Vec2(aaShrink * 0.5)-origin_value(),

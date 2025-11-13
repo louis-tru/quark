@@ -243,7 +243,7 @@ namespace qk {
 		if (glyphs.length() == 0) {
 			return {ImageSource::Make(PixelInfo())};
 		}
-		auto out = onGetImage(glyphs, fontSize, offset, 0.2, true, nullptr);
+		auto out = onGetImage(glyphs, fontSize, offset, 0.4, true, nullptr);
 		auto w = out.image->width();
 		auto h = out.image->height();
 

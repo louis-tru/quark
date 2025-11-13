@@ -227,7 +227,7 @@ namespace qk {
 				deltaTime = 0;
 				_time = time;
 				float x = (time - time1) / float(time2 - time1);
-				float y = _frames_rt[f1]->_curve.solve_y(x, 0.001);
+				float y = _frames_rt[f1]->_curve.solve_y(x, 0.001); // get curve y from f1
 				_frames_rt[f0]->applyTransition(root->_target, _frames_rt[f1], y);
 			} else if ( t > 0 ) {
 				deltaTime = t;

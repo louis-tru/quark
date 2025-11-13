@@ -338,6 +338,9 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** Mouse cursor style when hovering this view. */
 	cursor: types.CursorStyle;
 
+	/** Z index in global view tree. */
+	zIndex: Uint;
+
 	/**
 	 * Visual opacity.
 	 * 0.0 ~ 1.0. Often mirrors color.a / 255.0.
@@ -350,8 +353,8 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** Whether the view is currently interactive / receiving events. */
 	receive: boolean;
 
-	/** Enable anti-aliasing for drawing (if supported). */
-	antiAlias: boolean;
+	/** Enable anti-aliasing for drawing (if supported), default true. */
+	aa: boolean;
 
 	/** Whether the view currently has keyboard focus. */
 	isFocus: boolean;
@@ -1664,10 +1667,11 @@ declare global {
 			color?: types.ColorIn;
 			cascadeColor?: types.CascadeColorIn;
 			cursor?: types.CursorStyleIn;
+			zIndex?: Uint;
 			opacity?: Float;
 			visible?: boolean;
 			receive?: boolean;
-			antiAlias?: boolean;
+			aa?: boolean;
 			isFocus?: boolean;
 		}
 

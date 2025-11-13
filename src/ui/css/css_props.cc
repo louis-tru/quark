@@ -146,6 +146,7 @@ namespace qk {
 		Qk_Set_Accessor(View, COLOR, color, Color);
 		Qk_Set_Accessor(View, CASCADE_COLOR, cascade_color, CascadeColor);
 		Qk_Set_Accessor(View, CURSOR, cursor, CursorStyle);
+		Qk_Set_Accessor(View, Z_INDEX, z_index, uint32_t);
 		Qk_Set_Accessor(View, OPACITY, opacity, float);
 		Qk_Set_Accessor(View, VISIBLE, visible, bool);
 		accessors[kLabel_ViewType] = accessors[kView_ViewType]; // copy view props to label
@@ -210,19 +211,19 @@ namespace qk {
 		Qk_Set_Accessor(Box, BACKGROUND, background, BoxFilterPtr, NoConst);
 		Qk_Set_Accessor(Box, BOX_SHADOW, box_shadow, BoxShadowPtr, NoConst);
 		Qk_Set_Accessor(Box, WEIGHT, weight, Vec2);
-		Qk_Copy_Accessor(Box, Flex, CLIP, 43); // copy box props to flex
-		Qk_Copy_Accessor(Box, Flow, CLIP, 43); // copy box props to flow
-		Qk_Copy_Accessor(Box, Free, CLIP, 43); // copy box props to free
-		Qk_Copy_Accessor(Box, Image, CLIP, 43); // copy box props to image
-		Qk_Copy_Accessor(Box, Video, CLIP, 43); // copy box props to video
-		Qk_Copy_Accessor(Box, Input, CLIP, 43); // copy box props to input
-		Qk_Copy_Accessor(Box, Textarea, CLIP, 43); // copy box props to textarea
-		Qk_Copy_Accessor(Box, Scroll, CLIP, 43); // copy box props to scroll
-		Qk_Copy_Accessor(Box, Text, CLIP, 43); // copy box props to text
-		Qk_Copy_Accessor(Box, Button, CLIP, 43); // copy box props to button
-		Qk_Copy_Accessor(Box, Morph, CLIP, 43); // copy box props to matrix
-		Qk_Copy_Accessor(Box, World, CLIP, 43); // copy box props to world
-		Qk_Copy_Accessor(Box, Root, CLIP, 43); // copy box props to root
+		Qk_Copy_Accessor(Box, Flex, CLIP, 44); // copy box props to flex
+		Qk_Copy_Accessor(Box, Flow, CLIP, 44); // copy box props to flow
+		Qk_Copy_Accessor(Box, Free, CLIP, 44); // copy box props to free
+		Qk_Copy_Accessor(Box, Image, CLIP, 44); // copy box props to image
+		Qk_Copy_Accessor(Box, Video, CLIP, 44); // copy box props to video
+		Qk_Copy_Accessor(Box, Input, CLIP, 44); // copy box props to input
+		Qk_Copy_Accessor(Box, Textarea, CLIP, 44); // copy box props to textarea
+		Qk_Copy_Accessor(Box, Scroll, CLIP, 44); // copy box props to scroll
+		Qk_Copy_Accessor(Box, Text, CLIP, 44); // copy box props to text
+		Qk_Copy_Accessor(Box, Button, CLIP, 44); // copy box props to button
+		Qk_Copy_Accessor(Box, Morph, CLIP, 44); // copy box props to matrix
+		Qk_Copy_Accessor(Box, World, CLIP, 44); // copy box props to world
+		Qk_Copy_Accessor(Box, Root, CLIP, 44); // copy box props to root
 		// Flex
 		Qk_Set_Accessor(Flex, DIRECTION, direction, Direction);
 		Qk_Set_Accessor(Flex, ITEMS_ALIGN, items_align, ItemsAlign);

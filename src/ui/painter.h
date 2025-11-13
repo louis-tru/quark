@@ -38,9 +38,11 @@
 #include "../render/canvas.h"
 #include "./filter.h"
 #include "./text/text_blob.h"
+#include <map>
 
 namespace qk {
 	class Box;
+	class Morph;
 	class ScrollView;
 	typedef const Mat cMat;
 
@@ -67,31 +69,56 @@ namespace qk {
 		Painter(Window *window);
 		void set_origin_reverse(Vec2 origin);
 		Rect getRect(Box* v);
-		void getInsideRectPath(Box *v, BoxData &out);
-		void getOutsideRectPath(Box *v, BoxData &out);
-		void getRRectOutlinePath(Box *v, BoxData &out);
-		void visitView(View* v);
-		void visitView(View* v, cMat *mat);
-		void drawBoxBasic(Box *v, BoxData &data);
-		void drawBoxFill(Box *v, BoxData &data);
-		void drawBoxFillImage(Box *v, FillImage *fill, BoxData &data);
-		void drawBoxFillLinear(Box *v, FillGradientLinear *fill, BoxData &data);
-		void drawBoxFillRadial(Box *v, FillGradientRadial *fill, BoxData &data);
-		void drawBoxShadow(Box *v, BoxData &data);
-		void drawBoxColor(Box *v, BoxData &data);
-		void drawBoxBorder(Box *v, BoxData &data);
-		void drawBoxEnd(Box *v, BoxData &data);
+		void getInsideRectPath(Box *v);
+		void getOutsideRectPath(Box *v);
+		void getRRectOutlinePath(Box *v);
+		void drawBoxBasic(Box *v);
+		void drawBoxFill(Box *v);
+		void drawBoxFillImage(Box *v, FillImage *fill);
+		void drawBoxFillLinear(Box *v, FillGradientLinear *fill);
+		void drawBoxFillRadial(Box *v, FillGradientRadial *fill);
+		void drawBoxShadow(Box *v);
+		void drawBoxColor(Box *v);
+		void drawBoxBorder(Box *v);
 		void drawScrollBar(ScrollView *v);
 		void drawTextBlob(TextOptions *opts, Vec2 inOffset,
 			TextLines *lines, Array<TextBlob> &blob, Array<uint32_t> &blob_visible
 		);
+		void visitView(View* v);
+		void visitView(View* v, cMat *mat);
+		void visitBox(Box *v);
+		void visitAndClipBox(Box *v, void (*cb)(Painter *drawer, Box *v));
+		void flushDelayDrawCommands();
+		inline void resetBoxData() {
+			_boxData = BoxData(); // reset box data
+		}
+		inline BoxData& boxData() {
+			return _boxData;
+		}
 	private:
 		Render     *_render;
 		uint32_t   _mark_recursive;
 		Buffer     _tempBuff;
 		Vec2      _AAShrinkHalf;
-		LinearAllocator _tempAllocator[2]; // Reset when starting every frame
-
+		// Reset when starting every frame
+		LinearAllocator _tempAllocator[2];
+		// allocator for delay draw commands
+		LinearAllocator _delayCmdsAllocator;
+		BoxData _boxData; // reuse box data
+		// Delay draw command for order drawing
+		struct DelayCmd {
+			View *view;
+			cMat *matrix;
+			Color4f color;
+			uint32_t mark_recursive; // saved recursive mark for children
+		};
+		typedef std::multimap<uint32_t, DelayCmd>::value_type DelayCmdKV;
+		// z_order -> cmd
+		typedef std::multimap<
+			uint32_t, DelayCmd, std::less<uint32_t>, STLAllocator<DelayCmdKV>
+		> DelayCmdMap;
+		DelayCmdMap *_delayCmds;
+		Array<DelayCmdMap> _delayCmdsStack;
 		friend class Spine;
 		friend class Root;
 	};

@@ -198,7 +198,7 @@ namespace qk {
 		if (_current->offset + allSize > _current->capacity) {
 			size_t newSize = _current->capacity * 2;
 			if (newSize < allSize) {
-				newSize = upPow2(allSize);
+				newSize = upPow2((uint32_t)allSize);
 			}
 			addBlock(newSize);
 		}

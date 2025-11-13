@@ -137,6 +137,7 @@ namespace qk {
 
 	void PreRender::asyncCommit() {
 		if (_asyncCall.length()) {
+			// Qk_DLog("PreRender::asyncCommit() called with %u async calls", _asyncCall.length());
 			_asyncCommitMutex.lock();
 			_asyncCommit.concat(std::move(_asyncCall));
 			_asyncCommitMutex.unlock();

@@ -321,7 +321,7 @@ namespace qk {
 		return false;
 	}
 
-	inline bool NotificationBasic::is_noticer_none() const {
+	bool NotificationBasic::is_noticer_none() const {
 		return _noticers == nullptr || _noticers->length() == 0;
 	}
 

@@ -37,6 +37,7 @@
 #include "../../errno.h"
 #include "../css/css_props.h"
 #include "../geometry.h"
+#include "../painter.h"
 
 #if DEBUG
 # define _Assert_IsRt(isRt, ...) \
@@ -115,11 +116,12 @@ Range Container::to_range() const {
 		, _level(0)
 		, _color(255,255,255,255) // white
 		, _cursor(CursorStyle::Normal)
+		, _z_index(0)
 		, _cascade_color(CascadeColor::Both)
 		, _visible(true)
 		, _visible_area(false)
 		, _receive(true)
-		, _anti_alias(true)
+		, _aa(true)
 	{
 		// Qk_DLog("View sizeof, %d", sizeof(View));
 	}
@@ -168,12 +170,16 @@ Range Container::to_range() const {
 		_receive = val;
 	}
 
-	void View::set_anti_alias(bool val) {
-		_anti_alias = val;
+	void View::set_aa(bool val) {
+		_aa = val;
 	}
 
 	void View::set_cursor(CursorStyle val, bool isRt) {
 		_cursor = val;
+	}
+
+	void View::set_z_index(uint32_t val, bool isRt) {
+		_z_index = val;
 	}
 
 	void View::set_visible(bool val, bool isRt) {
@@ -238,7 +244,7 @@ Range Container::to_range() const {
 
 	void View::solve_marks(const Mat &mat, View *parent, uint32_t mark) {
 		if (mark & kTransform) { // update transform matrix
-			unmark(kTransform | kVisible_Region); // unmark
+			unmark(kTransform | kVisible_Region); // unmark visible region too
 			_position =
 				mat.mul_vec2_no_translate(layout_offset() + parent->layout_offset_inside()) +
 				parent->_position;
@@ -593,6 +599,7 @@ Range Container::to_range() const {
 		if (_parent) {
 			blur();
 			clear_link();
+			set_action(nullptr); // Delete action
 			preRender().async_call([](auto self, auto arg) {
 				if (self->_level) {
 					if (arg.arg) { // notice parent view

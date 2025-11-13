@@ -49,6 +49,7 @@ export declare abstract class StyleSheets {
 	color?: types.ColorIn; //!< view color
 	cascadeColor?: types.CascadeColorIn; //!< cascade color
 	cursor?: types.CursorStyleIn; //!<
+	zIndex?: Uint; //!< z index in global view tree
 	opacity?: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
 	visible?: boolean; //!< view visible
 	clip?: boolean; //!< view clip children

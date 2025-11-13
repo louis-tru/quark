@@ -147,23 +147,6 @@ namespace qk {
 		void destroy() override;
 
 		/**
-		* @method getClipRange
-		*/
-		const RangeSize& getClipRange() const {
-			return _clipRange.back();
-		}
-
-		/**
-		* @method clipRange
-		*/
-		void clipRange(Range value);
-
-		/**
-		 * @method clipRestore()
-		*/
-		void clipRestore();
-
-		/**
 		* @method nextFrame()
 		*/
 		void nextFrame(cCb& cb);
@@ -199,6 +182,23 @@ namespace qk {
 		* @method setCursorStyle
 		*/
 		void setCursorStyle(CursorStyle cursor, bool isBase = false);
+
+		/**
+		* @method getClipRange get current AABB clip range for drawing
+		*/
+		const RangeSize& getClipRange() const {
+			return _clipRange.back();
+		}
+
+		/**
+		* @method clipRange
+		*/
+		void clipRange(Range value);
+
+		/**
+		 * @method clipRestore()
+		*/
+		void clipRestore();
 
 	private:
 		void reload(bool isRt);

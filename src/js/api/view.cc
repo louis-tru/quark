@@ -117,11 +117,12 @@ namespace qk { namespace js {
 			Js_MixObject_Accessor(View, Color, color, color);
 			Js_MixObject_Accessor(View, CascadeColor, cascade_color, cascadeColor);
 			Js_MixObject_Accessor(View, CursorStyle, cursor, cursor);
+			Js_MixObject_Accessor(View, uint32_t, z_index, zIndex);
 			Js_MixObject_Accessor(View, float, opacity, opacity);
 			Js_MixObject_Accessor(View, bool, visible, visible);
 			Js_MixObject_Acce_Get(View, bool, visible_area, visibleArea);
 			Js_MixObject_Accessor(View, bool, receive, receive);
-			Js_MixObject_Accessor(View, bool, anti_alias, antiAlias);
+			Js_MixObject_Accessor(View, bool, aa, aa);
 			Js_MixObject_Acce_Get(View, bool, is_focus, isFocus);
 
 			Js_Class_Method(asMorphView, {

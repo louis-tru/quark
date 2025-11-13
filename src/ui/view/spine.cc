@@ -265,22 +265,19 @@ namespace qk {
 
 	//////////////////////////////////////////////////////////////////////////////////
 
-	static void safe_trigger_event_rt(Spine *v, UIEvent *e, cUIEventName& name) {
+	template<class T, typename... Args>
+	static void safe_trigger_event_rt(Spine *v, cUIEventName& name, Args... args) {
 		struct Core: CallbackCore<Object> {
 			Core(View *v, UIEvent *e, cUIEventName& n)
-				: view(Sp<View>::lazy(v)), evt(e), name(n) {
-			}
-			void call(Data& e) {
-				view->trigger(name, **evt);
-			}
+				: view(Sp<View>::lazy(v)), evt(e), name(n) { }
+			void call(Data& e) { view->trigger(name, **evt); }
 			Sp<View> view;
 			Sp<UIEvent> evt;
 			UIEventName name;
 		};
-		if (v->tryRetain_rt()) {
-			v->preRender().post(Cb(new Core(v, e, name)), true);
-		} else {
-			Release(e);
+		// Post to main thread if the view is still valid
+		if (!v->is_noticer_none() && v->tryRetain_rt()) {
+			v->preRender().post(Cb(new Core(v, new T(v, std::forward<Args>(args)...), name)), true);
 		}
 	}
 
@@ -292,34 +289,23 @@ namespace qk {
 
 		switch (type) {
 			case EventType_Start:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Start_Type, trackIndex, animationName, trackTime), UIEvent_SpineStart);
+				safe_trigger_event_rt<SpineEvent>(self, UIEvent_SpineStart, SEType::Start_Type, trackIndex, animationName, trackTime);
 				break;
 			case EventType_Interrupt:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Interrupt_Type, trackIndex, animationName, trackTime), UIEvent_SpineInterrupt);
+				safe_trigger_event_rt<SpineEvent>(self, UIEvent_SpineInterrupt, SEType::Interrupt_Type, trackIndex, animationName, trackTime);
 				break;
 			case EventType_End:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::End_Type, trackIndex, animationName, trackTime), UIEvent_SpineEnd);
+				safe_trigger_event_rt<SpineEvent>(self, UIEvent_SpineEnd, SEType::End_Type, trackIndex, animationName, trackTime);
 				break;
 			case EventType_Dispose:
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Dispose_Type, trackIndex, animationName, trackTime), UIEvent_SpineDispose);
+				safe_trigger_event_rt<SpineEvent>(self, UIEvent_SpineDispose, SEType::Dispose_Type, trackIndex, animationName, trackTime);
 				break;
 			case EventType_Complete:
-				Qk_DEBUGCODE({
-					// static bool init = false;
-					// if (!init) {
-					// 	init = true;
-					// 	Qk_ASSERT_NE(animationName, "dead");
-					// }
-				});
-				safe_trigger_event_rt(self, new SpineEvent(self, SEType::Complete_Type, trackIndex, animationName, trackTime), UIEvent_SpineComplete);
+				safe_trigger_event_rt<SpineEvent>(self, UIEvent_SpineComplete, SEType::Complete_Type, trackIndex, animationName, trackTime);
 				break;
 			case EventType_Event: {
 				// TODO maybe the "e->getData()" is unsafe by
-				// SkeletonData::Make(cBuffer &skeletonBuff, cBuffer &atlasBuff, cString &dir, float scale) created
-				auto evt = new SpineExtEvent(self,
-					trackIndex,
-					animationName,
-					trackTime,
+				safe_trigger_event_rt<SpineExtEvent>(self, UIEvent_SpineEvent, trackIndex, animationName, trackTime,
 					&e->getData(),
 					e->getTime(),
 					e->getIntValue(),
@@ -328,7 +314,6 @@ namespace qk {
 					e->getVolume(),
 					e->getBalance()
 				);
-				safe_trigger_event_rt(self, evt, UIEvent_SpineEvent);
 				break;
 			}
 		}

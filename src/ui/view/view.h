@@ -206,6 +206,14 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(Color, color, Const);
 
 		/**
+		 * Z index in global view tree.
+		 * Views with z_index > 0 are rendered after views with z_index == 0.
+		 * Among views with z_index > 0, those with higher z_index values are rendered on top of those with lower z_index values.
+		 * Views with z_index == 0 are rendered in the order they appear in the view tree.
+		*/
+		Qk_DEFINE_VIEW_PROPERTY(uint32_t, z_index, Const);
+
+		/**
 		 * Color inheritance mode from the parent view.
 		 * Determines how this view's color combines with its parent's final color.
 		 *
@@ -241,7 +249,7 @@ namespace qk {
 		/**
 		 * Anti-aliasing rendering, default is true
 		 */
-		Qk_DEFINE_PROPERTY(bool, anti_alias, Const);
+		Qk_DEFINE_PROPERTY(bool, aa, Const);
 
 		/**
 		 * keyboard focus view
@@ -351,36 +359,29 @@ namespace qk {
 		void remove_all_child();
 
 		/**
-		 *
-		 * Can it be the focus
-		 *
-		 * @method can_become_focus()
-		 */
-		virtual bool can_become_focus();
-
-		/**
-		 * 
-		 * Returns button object
-		 * 
-		 * @method asButton()
-		*/
-		virtual Button* asButton();
-
-		/**
-		 * 
-		 * Returns text input object
-		 * 
-		 * @method asTextInput()
+		 * Returns as text input object
 		*/
 		virtual TextInput* asTextInput();
 
 		/**
-		 * 
 		 * Returns as matrix
-		 * 
-		 * @method asMorphView()
 		*/
 		virtual MorphView* asMorphView();
+
+		/**
+		 * Returns as ScrollView
+		*/
+		virtual ScrollView* asScrollView();
+
+		/**
+		 * Returns as textOptions
+		*/
+		virtual TextOptions* asTextOptions();
+
+		/**
+		 * Returns as button
+		*/
+		virtual Button* asButton();
 
 		/**
 		 * Returns as entity
@@ -393,47 +394,27 @@ namespace qk {
 		virtual Agent* asAgent();
 
 		/**
-		 * 
-		 * Returns as textOptions
-		 * 
-		 * @method asTextOptions()
-		*/
-		virtual TextOptions* asTextOptions();
+		 * Can it be the focus
+		 */
+		virtual bool can_become_focus();
 
 		/**
-		 * 
-		 * Returns as ScrollView
-		 * 
-		 * @method asScrollView()
-		*/
-		virtual ScrollView* asScrollView();
-
-		/**
-			*
-			* Layout weight (such as representing the size grow/shrink of the layout in a flex layout)
-			*
-			* @method layout_weight()
-			*/
-		virtual Vec2 layout_weight();
-
-		/**
-			*
-			* Layout alignment (nine grid)
-			*
-			* @method layout_align()
-			*/
-		virtual Align layout_align();
-
-		/**
-		 *
 		 * is clip render the view
-		 *
-		 * @method is_clip()
 		 */
 		virtual bool is_clip();
 
 		/**
-		 * @method viewType()
+			* Layout weight (such as representing the size grow/shrink of the layout in a flex layout)
+			*/
+		virtual Vec2 layout_weight();
+
+		/**
+			* Layout alignment (nine grid)
+			*/
+		virtual Align layout_align();
+
+		/**
+		 * Returns view type
 		*/
 		virtual ViewType viewType() const;
 

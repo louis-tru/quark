@@ -59,10 +59,15 @@ namespace qk {
 		, _cache(nullptr)
 		, _window(window)
 		, _color(1,1,1,1), _mark_recursive(0), _matrix(nullptr)
+		, _delayCmdsAllocator()
+		, _delayCmds(nullptr)
 	{
 		_isMsaa = _window->render()->options().msaaSample;
 		_canvas = _render->getCanvas();
 		_cache = _canvas->getPathvCache();
+		_delayCmdsStack.push(DelayCmdMap(
+			std::less<uint32_t>(), STLAllocator<DelayCmdKV>(&_delayCmdsAllocator)
+		));
 	}
 
 	void Painter::set_matrix(const Mat* mat) {
@@ -86,15 +91,15 @@ namespace qk {
 	}
 
 	Rect Painter::getRect(Box* box) {
-		return box->_anti_alias ? Rect{
+		return box->_aa ? Rect{
 			_originAA, {box->_client_size[0]-_AAShrink,box->_client_size[1]-_AAShrink},
 		}: Rect{
 			_origin, {box->_client_size[0],box->_client_size[1]},
 		};
 	}
 
-	void Painter::getInsideRectPath(Box *box, BoxData &out) {
-		if (out.inside)
+	void Painter::getInsideRectPath(Box *box) {
+		if (_boxData.inside)
 			return;
 		auto rect = getRect(box);
 		auto radius = &box->_border_radius_left_top;
@@ -105,14 +110,14 @@ namespace qk {
 			hash.updatefv4(radius);
 			hash.updatefv4(border);
 
-			out.inside = _cache->getRRectPathFromHash(hash.hashCode());
-			if (out.inside)
+			_boxData.inside = _cache->getRRectPathFromHash(hash.hashCode());
+			if (_boxData.inside)
 				return;
 
 			auto radiusLimit = Float32::min(rect.size.x() * 0.5f, rect.size.y() * 0.5f);
 			auto  borderFix = border;
 			float borderFixStore[4];
-			if (box->_anti_alias) {
+			if (box->_aa) {
 				// TODO: The interior and the border cannot fit completely,
 				// causing anti-aliasing to fail at 1 to 2 pixels,
 				// so temporarily reduce the interior frame to 0.75
@@ -135,31 +140,31 @@ namespace qk {
 					{leftTop-border[3],     leftTop-border[0]},     {rightTop-border[1],  rightTop-border[0]},
 					{rightBottom-border[1], rightBottom-border[2]}, {leftBottom-border[3], leftBottom-border[2]},
 				};
-				out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, br));
+				_boxData.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRRect(rect, br));
 			} else {
-				out.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
+				_boxData.inside = &_cache->setRRectPathFromHash(hash.hashCode(), RectPath::MakeRect(rect));
 			}
 		} else if (is_not_Zero(radius)) {
-			out.inside = &_cache->getRRectPath(rect, radius);
+			_boxData.inside = &_cache->getRRectPath(rect, radius);
 		} else {
-			out.inside = &_cache->getRectPath(rect);
+			_boxData.inside = &_cache->getRectPath(rect);
 		}
 	}
 
-	void Painter::getOutsideRectPath(Box *v, BoxData &out) {
-		if (!out.outside) {
+	void Painter::getOutsideRectPath(Box *v) {
+		if (!_boxData.outside) {
 			auto rect = getRect(v);
 			auto radius = &v->_border_radius_left_top;
 			if (is_not_Zero(radius)) {
-				out.outside = &_cache->getRRectPath(rect, radius);
+				_boxData.outside = &_cache->getRRectPath(rect, radius);
 			} else {
-				out.outside = &_cache->getRectPath(rect);
+				_boxData.outside = &_cache->getRectPath(rect);
 			}
 		}
 	}
 
-	void Painter::getRRectOutlinePath(Box *v, BoxData &out) {
-		if (!out.outline) {
+	void Painter::getRRectOutlinePath(Box *v) {
+		if (!_boxData.outline) {
 			_Border(v);
 			// if border is zero, outline is null
 			if (is_not_Zero(_border->width)) {
@@ -172,13 +177,13 @@ namespace qk {
 				hash.updatefv4(border);
 				hash.updatefv4(radius);
 
-				out.outline = _cache->getRRectOutlinePathFromHash(hash.hashCode());
-				if (out.outline)
+				_boxData.outline = _cache->getRRectOutlinePathFromHash(hash.hashCode());
+				if (_boxData.outline)
 					return;
 
 				auto  borderFix = border;
 				float borderFixStore[4];
-				if (v->_anti_alias) {
+				if (v->_aa) {
 					float AAShrink = _AAShrinkBorder;
 					borderFixStore[0] = Float32::max(0, border[0]-AAShrink);
 					borderFixStore[1] = Float32::max(0, border[1]-AAShrink);
@@ -192,66 +197,24 @@ namespace qk {
 						{Qk_Min(radius[0],radiusLimit)}, {Qk_Min(radius[1],radiusLimit)},
 						{Qk_Min(radius[2],radiusLimit)}, {Qk_Min(radius[3],radiusLimit)},
 					};
-					out.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
+					_boxData.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
 							RectOutlinePath::MakeRRectOutline(rect, borderFix, br));
 				} else {
-					out.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
+					_boxData.outline = &_cache->setRRectOutlinePathFromHash(hash.hashCode(),
 							RectOutlinePath::MakeRectOutline(rect, borderFix));
 				}
 			}
 		}
 	}
 
-	void Painter::visitView(View *view) {
-		auto v = view->_first.load(std::memory_order_acquire);
-		if (!v) return;
-		auto lastColor = _color; // save parent color
-		auto lastMarkRecursive = _mark_recursive; // save parent recursive mark
-		do {
-			if (v->_visible) {
-				uint32_t mark = lastMarkRecursive | v->mark_value(); // inherit recursive
-				if (mark) {
-					v->solve_marks(*_matrix, view, mark);
-					_mark_recursive = mark & View::kRecursive_Mark;
-				}
-				if (v->_visible_area) {
-					// Use premultiplied alpha color
-					switch (v->_cascade_color) {
-						case CascadeColor::None:
-							_color = v->_color.premul_alpha(); break;
-						case CascadeColor::Alpha:
-							_color = v->_color.premul_alpha().mul_alpha_only(lastColor.a()); break;
-						case CascadeColor::Color:
-							_color = v->_color.premul_alpha().mul_rgb_only(lastColor); break;
-						case CascadeColor::Both:
-							_color = v->_color.premul_alpha().mul(lastColor); break;
-					}
-					v->draw(this);
-				}
-			}
-			v = v->_next.load(std::memory_order_acquire);
-		} while(v);
-		_color = lastColor; // restore parent color
-		_mark_recursive = lastMarkRecursive; // restore parent recursive mark
-	}
-
-	void Painter::visitView(View* v, cMat* mat) {
-		if (v->_first.load(std::memory_order_relaxed)) {
-			auto lastMatrix = _matrix;
-			set_matrix(mat);
-			visitView(v);
-			set_matrix(lastMatrix);
-		}
-	}
-
-	void Painter::drawBoxBasic(Box *v, BoxData &data) {
-		if (_color.a() == 0)
+	void Painter::drawBoxBasic(Box *v) {
+		if (!v->_color.a())
 			return;
-		drawBoxShadow(v, data);
+		drawBoxShadow(v);
 
 		_IfNotBorder(v) ({
-			drawBoxColor(v, data);
-			drawBoxFill(v, data);
+			drawBoxColor(v);
+			drawBoxFill(v);
 		});
 
 		struct PathvBatchs {
@@ -273,22 +236,22 @@ namespace qk {
 		};
 
 		if (v->background()) {
-			drawBoxColor(v, data);
-			drawBoxFill(v, data);
+			drawBoxColor(v);
+			drawBoxFill(v);
 		}
 		else if (v->_background_color.a()) {
-			getInsideRectPath(v, data);
-			addBatch(pathvs, v->_background_color, data.inside);
+			getInsideRectPath(v);
+			addBatch(pathvs, v->_background_color, _boxData.inside);
 		}
 
-		getRRectOutlinePath(v, data);
-		if (data.outline) {
+		getRRectOutlinePath(v);
+		if (_boxData.outline) {
 			Paint paint;
-			paint.antiAlias = v->_anti_alias;
+			paint.antiAlias = v->_aa;
 			paint.style = Paint::kStroke_Style;
 			for (int i = 0; i < 4; i++) {
 				if (_border->width[i] && _border->color[i].a()) {
-					auto pv = &data.outline->top + i;
+					auto pv = &_boxData.outline->top + i;
 					if (pv->vCount) {
 						addBatch(pathvs, _border->color[i], pv);
 					} else { // too thin, draw only a little stroke
@@ -304,22 +267,22 @@ namespace qk {
 			for (int i = 0; i < pathvs.total; i++) {
 				auto & it = pathvs.indexed[pathvs.batchs[i]];
 				_canvas->drawPathvColors(it.pathv, it.count,
-					it.color.premul_alpha().mul(_color), defaultBlendMode, v->_anti_alias);
+					it.color.premul_alpha().mul(_color), defaultBlendMode, v->_aa);
 			}
 		}
 	}
 
-	void Painter::drawBoxBorder(Box *v, BoxData &data) {
+	void Painter::drawBoxBorder(Box *v) {
 		_IfNotBorder(v);
-		getRRectOutlinePath(v, data);
-		if (data.outline) {
+		getRRectOutlinePath(v);
+		if (_boxData.outline) {
 			Paint paint;
 			paint.style = Paint::kStroke_Style;
 			for (int i = 0; i < 4; i++) {
 				if (_border->width[i] && _border->color[i].a()) { // top
-					auto pv = &data.outline->top + i;
+					auto pv = &_boxData.outline->top + i;
 					if (pv->vCount) {
-						_canvas->drawPathvColor(*pv, _border->color[i].premul_alpha().mul(_color), defaultBlendMode, v->_anti_alias);
+						_canvas->drawPathvColor(*pv, _border->color[i].premul_alpha().mul(_color), defaultBlendMode, v->_aa);
 					} else { // stroke
 						paint.stroke.color = _border->color[i].premul_alpha().mul(_color);
 						paint.strokeWidth = _border->width[i];
@@ -330,26 +293,26 @@ namespace qk {
 		}
 	}
 
-	void Painter::drawBoxFill(Box *v, BoxData &data) {
+	void Painter::drawBoxFill(Box *v) {
 		auto filter = v->background();
 		if (!filter)
 			return;
-		getInsideRectPath(v, data);
+		getInsideRectPath(v);
 		do {
 			switch(filter->type()) {
 				case BoxFilter::kImage:// fill
-					drawBoxFillImage(v, static_cast<FillImage*>(filter), data); break;
+					drawBoxFillImage(v, static_cast<FillImage*>(filter)); break;
 				case BoxFilter::kGradientLinear: // fill
-					drawBoxFillLinear(v, static_cast<FillGradientLinear*>(filter), data); break;
+					drawBoxFillLinear(v, static_cast<FillGradientLinear*>(filter)); break;
 				case BoxFilter::kGradientRadial: // fill
-					drawBoxFillRadial(v, static_cast<FillGradientRadial*>(filter), data); break;
+					drawBoxFillRadial(v, static_cast<FillGradientRadial*>(filter)); break;
 				default: break;
 			}
 			filter = filter->next();
 		} while(filter);
 	}
 
-	void Painter::drawBoxFillImage(Box *v, FillImage *fill, BoxData &data) {
+	void Painter::drawBoxFillImage(Box *v, FillImage *fill) {
 		auto src = fill->source();
 		if (!src || !src->load())
 			return;
@@ -386,21 +349,21 @@ namespace qk {
 		PaintImage img;
 		paint.fill.color = _color;
 		paint.fill.image = &img;
-		paint.antiAlias = v->_anti_alias;
+		paint.antiAlias = v->_aa;
 
 		if (!src->premultipliedAlpha()) {
 			paint.blendMode = kSrcOver_BlendMode;
 			paint.fill.color = _color.recover_unpremul_alpha();
 		}
 
-		auto inside = data.inside;
+		auto inside = _boxData.inside;
 		auto rect = inside->rect;
 
 		auto clip = [](Painter *self, Box *v, Vec2 a, Vec2 &b) {
 			auto a0 = a.x(), a1 = a.x() + a.y();
 			if (a.y() < 0)
 				std::swap(a0, a1);
-			if (v->_anti_alias) {
+			if (v->_aa) {
 				a0 += self->_AAShrink * 0.5f;
 				a1 -= self->_AAShrink;
 			}
@@ -472,7 +435,7 @@ namespace qk {
 		_canvas->drawPathv(*inside, paint);
 	}
 
-	void Painter::drawBoxFillLinear(Box *v, FillGradientLinear *fill, BoxData &data) {
+	void Painter::drawBoxFillLinear(Box *v, FillGradientLinear *fill) {
 		auto &colors = fill->colors();
 		auto &pos = fill->positions();
 		auto R = fill->radian();
@@ -487,7 +450,7 @@ namespace qk {
 		p0x = cosθR * d
 		p0y = sinθR * d
 		*/
-		auto _rect_inside = data.inside->rect;
+		auto _rect_inside = _boxData.inside->rect;
 		float w = _rect_inside.size.x();
 		float h = _rect_inside.size.y();
 		float a = h * 0.5;
@@ -518,78 +481,62 @@ namespace qk {
 			fill->colors().val(), fill->positions().val()
 		};
 		Paint paint;
-		paint.antiAlias = v->_anti_alias;
+		paint.antiAlias = v->_aa;
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
 
-		_canvas->drawPathv(*data.inside, paint);
+		_canvas->drawPathv(*_boxData.inside, paint);
 	}
 
-	void Painter::drawBoxFillRadial(Box *v, FillGradientRadial *fill, BoxData &data) {
+	void Painter::drawBoxFillRadial(Box *v, FillGradientRadial *fill) {
 		auto &colors = fill->colors();
 		auto &pos = fill->positions();
-		auto _rect_inside = data.inside->rect;
-		Vec2 radius{_rect_inside.size.x() * 0.5f, _rect_inside.size.y() * 0.5f};
-		Vec2 center = _rect_inside.begin + radius;
+		auto rect_inside = _boxData.inside->rect;
+		Vec2 radius{rect_inside.size.x() * 0.5f, rect_inside.size.y() * 0.5f};
+		Vec2 center = rect_inside.begin + radius;
 		PaintGradient g{
 			PaintGradient::kRadial_Type, center, radius,
 			fill->colors().length(),
 			fill->colors().val(), fill->positions().val()
 		};
 		Paint paint;
-		paint.antiAlias = v->_anti_alias;
+		paint.antiAlias = v->_aa;
 		paint.fill.color = _color;
 		paint.fill.gradient = &g;
-		_canvas->drawPathv(*data.inside, paint);
+		_canvas->drawPathv(*_boxData.inside, paint);
 	}
 
-	void Painter::drawBoxShadow(Box *v, BoxData &data) {
+	void Painter::drawBoxShadow(Box *v) {
 		auto shadow = v->box_shadow();
 		if (!shadow)
 			return;
-		getOutsideRectPath(v, data);
+		getOutsideRectPath(v);
 		_canvas->save();
-		_canvas->clipPathv(*data.outside, Canvas::kDifference_ClipOp, false);
+		_canvas->clipPathv(*_boxData.outside, Canvas::kDifference_ClipOp, false);
 		do {
 			if (shadow->type() != BoxFilter::kShadow)
 				break;
 			auto s = shadow->value();
-			auto &o = data.outside->rect.begin;
+			auto &o = _boxData.outside->rect.begin;
 			_canvas->drawRRectBlurColor({
-				{o.x()+s.x, o.y()+s.y}, data.outside->rect.size,
+				{o.x()+s.x, o.y()+s.y}, _boxData.outside->rect.size,
 			},&v->_border_radius_left_top, s.size, s.color.premul_alpha().mul(_color), kSrcOverPre_BlendMode);
 			shadow = static_cast<BoxShadow*>(shadow->next());
 		} while(shadow);
 		_canvas->restore();
 	}
 
-	void Painter::drawBoxColor(Box *v, BoxData &data) {
+	void Painter::drawBoxColor(Box *v) {
 		if (!v->_background_color.a())
 			return;
-		getInsideRectPath(v, data);
-		_canvas->drawPathvColor(*data.inside,
-			v->_background_color.premul_alpha().mul(_color), kSrcOverPre_BlendMode, v->_anti_alias
+		getInsideRectPath(v);
+		_canvas->drawPathvColor(*_boxData.inside,
+			v->_background_color.premul_alpha().mul(_color), kSrcOverPre_BlendMode, v->_aa
 		);
 		//Paint paint;
 		//paint.antiAlias = true;
 		//paint.color = box->_background_color.premul_alpha().mul(_color);
 		//_canvas->drawPathv(*data.inside, paint);
-	}
-
-	void Painter::drawBoxEnd(Box *v, BoxData &data) {
-		if (v->_clip) {
-			if (v->_first.load()) {
-				getInsideRectPath(v, data);
-				_window->clipRange(region_aabb_from_convex_quadrilateral(v->_boxBounds));
-				_canvas->save();
-				_canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, v->_anti_alias); // clip
-				visitView(v);
-				_canvas->restore(); // cancel clip
-				_window->clipRestore();
-			}
-		} else {
-			visitView(v);
-		}
 	}
 
 	void Painter::drawScrollBar(ScrollView *v) {
@@ -632,7 +579,7 @@ namespace qk {
 	void Painter::drawTextBlob(TextOptions *v, Vec2 inOffset,
 		TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) 
 	{
-		if (_color.a() == 0)
+		if (!_color.a())
 			return;
 		auto size = v->text_size().value;
 		auto shadow = v->text_shadow().value;
@@ -699,28 +646,127 @@ namespace qk {
 	}
 
 	//////////////////////////////////////////////////////////
+
+	void Painter::visitView(View *view) {
+		auto v = view->_first.load(std::memory_order_acquire);
+		if (!v) return;
+		auto lastColor = _color; // save parent color
+		auto lastMarkRecursive = _mark_recursive; // save parent recursive mark
+		do {
+			if (v->_visible) {
+				uint32_t mark = lastMarkRecursive | v->mark_value(); // inherit recursive
+				if (mark) {
+					v->solve_marks(*_matrix, view, mark);
+					_mark_recursive = mark & View::kRecursive_Mark;
+				}
+				if (v->_visible_area) {
+					// Use premultiplied alpha color
+					switch (v->_cascade_color) {
+						case CascadeColor::None:
+							_color = v->_color.premul_alpha(); break;
+						case CascadeColor::Alpha:
+							_color = v->_color.premul_alpha().mul_alpha_only(lastColor.a()); break;
+						case CascadeColor::Color:
+							_color = v->_color.premul_alpha().mul_rgb_only(lastColor); break;
+						case CascadeColor::Both:
+							_color = v->_color.premul_alpha().mul(lastColor); break;
+					}
+					if (Qk_LIKELY(v->_z_index == 0)) {
+						v->draw(this); // draw immediately
+					} else {
+						// commit delay draw command
+						_delayCmds->insert({v->_z_index, { v, _matrix, _color, _mark_recursive }});
+					}
+				}
+			}
+			v = v->_next.load(std::memory_order_acquire);
+		} while(v);
+		_color = lastColor; // restore parent color
+		_mark_recursive = lastMarkRecursive; // restore parent recursive mark
+	}
+
+	void Painter::visitView(View* v, cMat* mat) {
+		if (v->_first.load(std::memory_order_relaxed)) {
+			auto lastMatrix = _matrix;
+			set_matrix(mat);
+			visitView(v);
+			set_matrix(lastMatrix);
+		}
+	}
+
+	void Painter::visitAndClipBox(Box *v, void (*cb)(Painter *drawer, Box *v)) {
+		getInsideRectPath(v);
+		_canvas->save();
+		_canvas->clipPathv(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
+		_window->clipRange(region_aabb_from_convex_quadrilateral(v->_boxBounds));
+		_delayCmds = &_delayCmdsStack.push(DelayCmdMap(
+			std::less<uint32_t>(), STLAllocator<DelayCmdKV>(&_delayCmdsAllocator)
+		));
+		if (cb)
+			cb(this, v);
+		visitView(v); // draw children views
+		flushDelayDrawCommands();
+		_delayCmdsStack.pop();
+		_delayCmds = &_delayCmdsStack.back();
+		_window->clipRestore();
+		_canvas->restore(); // cancel clip
+	}
+
+	void Painter::visitBox(Box *v) {
+		if (v->_clip) {
+			if (v->_first.load())
+				visitAndClipBox(v, nullptr);
+		} else {
+			visitView(v);
+		}
+	}
+
+	void Painter::flushDelayDrawCommands() {
+		if (_delayCmds->size() == 0)
+			return;
+		auto lastMatrix = _matrix; // save matrix
+		auto lastColor = _color; // save color
+		auto lastMarkRecursive = _mark_recursive; // save recursive mark
+		do {
+			// move cmds to avoid re-entrance issue
+			DelayCmdMap cmds(std::move(*_delayCmds));
+			for (auto &it: cmds) {
+				auto &cmd = it.second;
+				set_matrix(cmd.matrix);
+				_color = cmd.color;
+				_mark_recursive = cmd.mark_recursive;
+				cmd.view->draw(this);
+			}
+		} while(_delayCmds->size());
+		_mark_recursive = lastMarkRecursive; // restore last recursive mark
+		_color = lastColor; // restore last color
+		_matrix = lastMatrix; // restore last matrix
+	}
+
+	//////////////////////////////////////////////////////////
+
 	void View::draw(Painter *draw) {
 		draw->visitView(this);
 	}
 
 	void Box::draw(Painter *draw) {
-		BoxData data;
+		draw->resetBoxData(); // reset box data
 		draw->canvas()->setTranslate(position());
-		draw->drawBoxBasic(this, data);
-		draw->drawBoxEnd(this, data);
+		draw->drawBoxBasic(this);
+		draw->visitBox(this);
 	}
 
 	void Image::draw(Painter *draw) {
-		BoxData data;
+		draw->resetBoxData();
 		draw->canvas()->setTranslate(position());
-		draw->drawBoxBasic(this, data);
+		draw->drawBoxBasic(this);
 
 		auto src = source();
-		if (src && src->load() && draw->color().a()) {
-			draw->getInsideRectPath(this, data);
+		if (src && src->load()) {
+			draw->getInsideRectPath(this);
 			Paint paint;
 			PaintImage img;
-			paint.antiAlias = anti_alias();
+			paint.antiAlias = aa();
 			paint.fill.image = &img;
 			paint.fill.color = draw->color();
 			if (!src->premultipliedAlpha()) {
@@ -731,10 +777,10 @@ namespace qk {
 			//img.tileModeY = PaintImage::kDecal_TileMode;
 			img.filterMode = default_FilterMode;
 			img.mipmapMode = default_MipmapMode;
-			img.setImage(src.get(), data.inside->rect);
-			draw->canvas()->drawPathv(*data.inside, paint);
+			img.setImage(src.get(), draw->boxData().inside->rect);
+			draw->canvas()->drawPathv(*draw->boxData().inside, paint);
 		}
-		draw->drawBoxEnd(this, data);
+		draw->visitBox(this);
 	}
 
 	void Scroll::draw(Painter *draw) {
@@ -742,47 +788,43 @@ namespace qk {
 		draw->drawScrollBar(this);
 	}
 
-	void Text::draw(Painter *draw) {
-		BoxData data;
-		auto canvas = draw->canvas();
-		canvas->setTranslate(position());
-		draw->drawBoxBasic(this, data);
+	void Text::draw(Painter *painter) {
+		painter->resetBoxData(); // reset box data
+		painter->canvas()->setTranslate(position());
+		painter->drawBoxBasic(this);
 
-		Vec2 offset(padding_left(), padding_top());
-
-		_IfBorder(this) {
-			offset[0] += _border->width[3];
-			offset[1] += _border->width[0];
-		}
+		struct Fn {
+			static Vec2 getOffset(Text *self) {
+				Vec2 offset(self->padding_left(), self->padding_top());
+				_IfBorder(self) {
+					offset[0] += _border->width[3];
+					offset[1] += _border->width[0];
+				}
+				return offset;
+			};
+		};
+		auto drawText = _blob_visible.length() != 0;
 
 		if (clip()) {
-			if (first() || _blob_visible.length()) {
-				draw->getInsideRectPath(this, data);
-				window()->clipRange(region_aabb_from_convex_quadrilateral(_boxBounds));
-				canvas->save();
-				canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, anti_alias()); // clip
-				if (_blob_visible.length()) {
-					draw->drawTextBlob(this, offset, *_lines, _blob, _blob_visible);
-				}
-				draw->visitView(this);
-				canvas->restore(); // cancel clip
-				window()->clipRestore();
+			if (drawText || first()) {
+				painter->visitAndClipBox(this, drawText ? [](Painter *painter, Box *v) {
+					auto self = static_cast<Text*>(v);
+					painter->drawTextBlob(self,
+						Fn::getOffset(self), *self->_lines, self->_blob, self->_blob_visible);
+				}: nullptr);
 			}
 		} else {
-			if (_blob_visible.length()) {
-				draw->drawTextBlob(this, offset, *_lines, _blob, _blob_visible);
-			}
-			draw->visitView(this);
+			if (drawText)
+				painter->drawTextBlob(this, Fn::getOffset(this), *_lines, _blob, _blob_visible);
+			painter->visitView(this);
 		}
 	}
 
 	void Input::draw(Painter *draw) {
-		if (draw->color().a() == 0)
-			return;
-		BoxData data;
+		draw->resetBoxData();
 		auto canvas = draw->canvas();
 		canvas->setTranslate(position());
-		draw->drawBoxBasic(this, data);
+		draw->drawBoxBasic(this);
 
 		auto lines = *_lines;
 		auto offset = input_text_offset() + Vec2(padding_left(), padding_top());
@@ -791,9 +833,9 @@ namespace qk {
 		auto clip = this->clip() && (visible || twinkle);
 
 		if (clip) {
-			draw->getInsideRectPath(this, data);
+			draw->getInsideRectPath(this);
 			canvas->save();
-			canvas->clipPathv(*data.inside, Canvas::kIntersect_ClipOp, anti_alias()); // clip
+			canvas->clipPathv(*draw->boxData().inside, Canvas::kIntersect_ClipOp, aa()); // clip
 		}
 
 		if (visible) {
@@ -888,16 +930,16 @@ namespace qk {
 	}
 
 	void Morph::draw(Painter *painter) {
-		BoxData data;
+		painter->resetBoxData();
 		auto lastMatrix = painter->matrix();
 		auto lastOrigin = painter->origin();
-		painter->set_origin(_origin_value);
 		painter->set_matrix(&matrix());
-		painter->drawBoxBasic(this, data);
-		if (clip()) // if clipped, get inside rect path
-			painter->getInsideRectPath(this, data);
-		painter->set_origin_reverse(lastOrigin); // reset origin
-		painter->drawBoxEnd(this, data);
+		painter->set_origin(_origin_value);
+		painter->drawBoxBasic(this);
+		if (clip())
+			painter->getInsideRectPath(this);
+		painter->set_origin_reverse(lastOrigin); // restore origin
+		painter->visitBox(this); // clip box
 		painter->set_matrix(lastMatrix); // restore previous matrix
 	}
 
@@ -910,9 +952,12 @@ namespace qk {
 				painter->_mark_recursive = mark & View::kRecursive_Mark;
 			}
 			if (_visible_area && color().a() != 0) {
-				painter->_tempAllocator[0].reset();
-				painter->_tempAllocator[1].reset();
+				painter->_delayCmds = &painter->_delayCmdsStack.back();
+				painter->_tempAllocator[0].reset(); // reset temp allocator
+				painter->_tempAllocator[1].reset(); // reset temp allocator
+				painter->_delayCmdsAllocator.reset(); // reset delay cmds allocator
 				BoxData data;
+				painter->resetBoxData();
 				// Fix rect aa stroke width
 				auto AAShrink_half = painter->_isMsaa ? 0: 0.43f / _window->scale(); // fix aa stroke width, 0.4-0.5
 				//auto AAShrink_half = painter->_isMsaa ? 0: 0.5f / _window->scale();
@@ -926,14 +971,16 @@ namespace qk {
 				painter->set_matrix(&matrix());
 				// The root background is not pre-multiplied, the color is drawn directly.
 				canvas->clearColor(background_color().mul_color4f(color().to_color4f()));
-				painter->drawBoxFill(this, data);
-				painter->drawBoxBorder(this, data);
+				painter->drawBoxFill(this);
+				painter->drawBoxBorder(this);
 				painter->set_origin({}); // reset origin
 				painter->visitView(this);
+				painter->flushDelayDrawCommands(); // flush delay draw commands
 			} else {
 				canvas->clearColor(Color4f(0,0,0,0));
 			}
 			painter->_mark_recursive = 0;
 		}
 	}
+
 }

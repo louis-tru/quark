@@ -392,7 +392,7 @@ namespace qk {
 			if (a == 0) {
 				// 完全透明，RGB 直接清零
 				p[0] = p[1] = p[2] = 0;
-			} else {
+			} else if (a != 255) {
 				p[0] = premulTable[a][p[0]];
 				p[1] = premulTable[a][p[1]];
 				p[2] = premulTable[a][p[2]];
@@ -448,7 +448,7 @@ namespace qk {
 			uint8_t a = p[1];
 			if (a == 0) {
 				p[0] = 0;
-			} else {
+			} else if (a != 255) {
 				p[0] = premulTable[a][p[0]];
 			}
 			// a == 255 不变

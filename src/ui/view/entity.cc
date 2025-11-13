@@ -272,7 +272,7 @@ namespace qk {
 
 	void Entity::draw(Painter *painter) {
 		debugDraw(painter);
-		painter->visitView(this, &matrix());
+		painter->visitView(this, &_matrix);
 	}
 
 	bool Entity::test_entity_vs_entity(Entity *o, MTV *outMTV, Vec2 *outMtvVec, bool computeMTV) {

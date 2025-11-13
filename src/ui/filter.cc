@@ -143,7 +143,8 @@ namespace qk {
 			return left;
 		if (right) {
 			auto new_left = right;
-			if (right->_view.load()) { // To copy filter if view not nullptr
+			// To copy filter if view not nullptr or is public filter
+			if (right->_is_public || right->_view.load()) {
 				new_left = right->copy(left, isRt); // copy
 			}
 			if (new_left != left) {

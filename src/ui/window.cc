@@ -179,46 +179,6 @@ namespace qk {
 		return _surfaceDisplayRange.end - _surfaceDisplayRange.begin;
 	}
 
-	void Window::clipRange(Range clip) {
-		RangeSize re = {
-			Vec2{clip.begin.x(), clip.begin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}
-		};
-		RangeSize dre = _clipRange.back();
-
-		// Compute an intersection area
-		float x, x2, y, y2;
-
-		y = dre.end.y() > re.end.y() ? re.end.y() : dre.end.y(); // choose a small
-		y2 = dre.begin.y() > re.begin.y() ? dre.begin.y() : re.begin.y(); // choose a large
-		x = dre.end.x() > re.end.x() ? re.end.x() : dre.end.x(); // choose a small
-		x2 = dre.begin.x() > re.begin.x() ? dre.begin.x() : re.begin.x(); // choose a large
-
-		if ( x > x2 ) {
-			re.begin.set_x(x2);
-			re.end.set_x(x);
-		} else {
-			re.begin.set_x(x);
-			re.end.set_x(x2);
-		}
-
-		if ( y > y2 ) {
-			re.begin.set_y(y2);
-			re.end.set_y(y);
-		} else {
-			re.begin.set_y(y);
-			re.end.set_y(y2);
-		}
-
-		re.size = Vec2(re.end.x() - re.begin.x(), re.end.y() - re.begin.y());
-
-		_clipRange.push(re);
-	}
-
-	void Window::clipRestore() {
-		Qk_ASSERT(_clipRange.length() > 1);
-		_clipRange.pop();
-	}
-
 	void Window::nextFrame(cCb& cb) {
 		UILock lock(this);
 		_nextFrame.pushBack(cb);
@@ -380,4 +340,43 @@ namespace qk {
 		return true;
 	}
 
+	void Window::clipRange(Range clip) {
+		RangeSize re = {
+			Vec2{clip.begin.x(), clip.begin.y()}, Vec2{clip.end.x(), clip.end.y()}, Vec2{0,0}
+		};
+		RangeSize dre = _clipRange.back();
+
+		// Compute an intersection area
+		float x, x2, y, y2;
+
+		y = dre.end.y() > re.end.y() ? re.end.y() : dre.end.y(); // choose a small
+		y2 = dre.begin.y() > re.begin.y() ? dre.begin.y() : re.begin.y(); // choose a large
+		x = dre.end.x() > re.end.x() ? re.end.x() : dre.end.x(); // choose a small
+		x2 = dre.begin.x() > re.begin.x() ? dre.begin.x() : re.begin.x(); // choose a large
+
+		if ( x > x2 ) {
+			re.begin.set_x(x2);
+			re.end.set_x(x);
+		} else {
+			re.begin.set_x(x);
+			re.end.set_x(x2);
+		}
+
+		if ( y > y2 ) {
+			re.begin.set_y(y2);
+			re.end.set_y(y);
+		} else {
+			re.begin.set_y(y);
+			re.end.set_y(y2);
+		}
+
+		re.size = Vec2(re.end.x() - re.begin.x(), re.end.y() - re.begin.y());
+
+		_clipRange.push(re);
+	}
+
+	void Window::clipRestore() {
+		Qk_ASSERT(_clipRange.length() > 1);
+		_clipRange.pop();
+	}
 }

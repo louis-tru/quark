@@ -686,7 +686,9 @@ namespace qk {
 			auto v = parent->layout_offset_inside() + layout_offset() + Vec2(_margin_left, _margin_top);
 			_position =
 				mat.mul_vec2_no_translate(v) + parent->position(); // the left-top world coords
-			solve_visible_area(Mat(mat).set_translate(_position));
+			// Actual world matrix
+			Mat matrix = Mat(mat).set_translate(_position);
+			solve_visible_area(matrix);
 		} else if (mark & kVisible_Region) {
 			unmark(kVisible_Region); // unmark
 			solve_visible_area(Mat(mat).set_translate(_position));

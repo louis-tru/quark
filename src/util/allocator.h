@@ -319,6 +319,88 @@ namespace qk {
 		 */
 		void addBlock(size_t blockSize);
 	};
+
+	/**
+	 * @brief STL-compatible allocator wrapper for the engine's custom linear/pool allocator.
+	 *
+	 * This adapter allows std::map / std::multimap / std::vector / etc.
+	 * to allocate their internal nodes and elements using the engine's
+	 * custom Allocator (bump/pool/free-list…).
+	 *
+	 * Only the minimal interface required by allocator_traits is implemented.
+	 */
+	template<class T>
+	struct STLAllocator {
+		using value_type = T;
+
+		/// Pointer to the engine's underlying memory allocator.
+		Allocator* allocator;
+
+		/**
+		 * @brief Primary constructor.
+		 * The STL container will copy this allocator internally,
+		 * but all copies share the same underlying Allocator pointer.
+		 */
+		STLAllocator(Allocator* a = Allocator::shared()) noexcept
+			: allocator(a) {}
+
+		/**
+		 * @brief Cross-type copy constructor.
+		 * Required by the C++ allocator model.
+		 * Allows STL containers to rebind this allocator to internal node types.
+		 */
+		template<class U>
+		STLAllocator(const STLAllocator<U>& other) noexcept
+			: allocator(other.allocator) {}
+
+		/**
+		 * @brief Rebind support.
+		 * Enables STL containers (map/multimap) to request allocations
+		 * for their internal node types (e.g. __value_type<K,V>).
+		 */
+		template<class U>
+		struct rebind { using other = STLAllocator<U>; };
+
+		/**
+		 * @brief Equality comparison for STLAllocator.
+		 *
+		 * Required by the C++ allocator model.
+		 * std::map / std::multimap internally compare allocators (after rebind)
+		 * to determine whether two nodes/containers can share or transfer memory.
+		 *
+		 * Since all STLAllocator instances share the same underlying Allocator*,
+		 * equality simply compares that pointer.
+		 */
+		bool operator==(const STLAllocator& other) const noexcept {
+			return allocator == other.allocator;
+		}
+
+		/**
+		 * @brief Inequality comparison for STLAllocator.
+		 * Logical inverse of operator==.
+		 */
+		bool operator!=(const STLAllocator& other) const noexcept {
+			return allocator != other.allocator;
+		}
+
+		/**
+		 * @brief Allocate memory for n objects of type T.
+		 * Delegates the actual memory acquisition to the engine's Allocator.
+		 */
+		T* allocate(std::size_t n) {
+			return allocator->template alloc<T>(static_cast<uint32_t>(n));
+		}
+
+		/**
+		 * @brief Deallocate memory for objects of type T.
+		 * Delegates to the engine's Allocator.
+		 * For bump/arena allocators, free() may be a no-op.
+		 */
+		void deallocate(T* ptr, std::size_t) noexcept {
+			allocator->free(ptr);
+		}
+	};
+
 } // namespace qk
 
 #endif // __quark__util__allocator__

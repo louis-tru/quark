@@ -727,34 +727,30 @@ namespace qk {
 		); // +=
 		val[2] = p4[0];
 		val[5] = p4[1];
+		//-------------------------------------------------------------
+		// 优化版本
+		// float32x4_t m04 = vld1q_f32(val);      // [a0,a1,a2,a3]
+		// float32x2_t m56 = vld1_f32(val + 4);   // [a4,a5]
+		// float32x2_t vv  = vld1_f32(v.val);     // [x,y]
+
+		// // 扩展 x,y
+		// float32x2_t vx = vdup_lane_f32(vv, 0);
+		// float32x2_t vy = vdup_lane_f32(vv, 1);
+
+		// // 计算 Δ = {a0*x + a1*y, a3*x + a4*y}
+		// float32x2_t low = vget_low_f32(m04);   // a0,a1
+		// float32x2_t high = vget_high_f32(m04); // a2,a3
+		// float32x2_t delta = vmul_f32(low, vx);
+		// delta = vmla_f32(delta, vget_low_f32(vcombine_f32(high, m56)), vy);
+
+		// // val[2] += Δ.x , val[5] += Δ.y
+		// float32x2_t ofs = {val[2], val[5]};
+		// ofs = vadd_f32(ofs, delta);
+		// vst1_f32(&val[2], ofs);
 #else
 		val[2] += val[0] * v.val[0] + val[1] * v.val[1];
 		val[5] += val[3] * v.val[0] + val[4] * v.val[1];
-				// _a[2] + _a[0] * _b[0] + _a[1] * _b[1],
-				// _a[5] + _a[3] * _b[0] + _a[4] * _b[1]
 #endif
-		return *this;
-	}
-
-	Mat& Mat::translate_x(float x) {
-		/*
-		[ a, b, c ]   [ 1, 0, x ]
-		[ e, f, g ] * [ 0, 1, 0 ]
-		[ 0, 0, 1 ]   [ 0, 0, 1 ]
-		*/
-		val[2] += val[0] * x;
-		val[5] += val[3] * x;
-		return *this;
-	}
-
-	Mat& Mat::translate_y(float y) {
-		/*
-		[ a, b, c ]   [ 1, 0, 0 ]
-		[ e, f, g ] * [ 0, 1, y ]
-		[ 0, 0, 1 ]   [ 0, 0, 1 ]
-		*/
-		val[2] += val[1] * y;
-		val[5] += val[4] * y;
 		return *this;
 	}
 
@@ -773,34 +769,34 @@ namespace qk {
 		val[3] = p3[1];
 		val[1] = p3[2];
 		val[4] = p3[3];
+		//-------------------------------------------------------------
+		// 优化版本
+		// 载入矩阵数据和缩放向量
+		// float32x4_t m04 = vld1q_f32(val);     // {a,b,c,d}
+		// float32x2_t m56 = vld1_f32(val + 4);  // {e,f}
+		// float32x2_t s   = vld1_f32(v.val);    // {sx,sy}
+
+		// // 广播 sx、sy
+		// float32x2_t sx = vdup_lane_f32(s, 0);
+		// float32x2_t sy = vdup_lane_f32(s, 1);
+
+		// // 第一列 [a,d] *= sx
+		// float32x2_t ad = {val[0], val[3]};
+		// ad = vmul_f32(ad, sx);
+		// val[0] = vget_lane_f32(ad, 0);
+		// val[3] = vget_lane_f32(ad, 1);
+
+		// // 第二列 [b,e] *= sy
+		// float32x2_t be = {val[1], val[4]};
+		// be = vmul_f32(be, sy);
+		// val[1] = vget_lane_f32(be, 0);
+		// val[4] = vget_lane_f32(be, 1);
 #else
 		val[0] *= v.val[0];
 		val[3] *= v.val[0];
 		val[1] *= v.val[1];
 		val[4] *= v.val[1];
 #endif
-		return *this;
-	}
-
-	Mat& Mat::scale_x(float x) {
-		/*
-		[ a, b, c ]   [ x, 0, 0 ]
-		[ d, e, f ] * [ 0, 1, 0 ]
-		[ 0, 0, 1 ]   [ 0, 0, 1 ]
-		*/
-		val[0] *= x;
-		val[3] *= x;
-		return *this;
-	}
-
-	Mat& Mat::scale_y(float y) {
-		/*
-		[ a, b, c ]   [ 1, 0, 0 ]
-		[ d, e, f ] * [ 0, y, 0 ]
-		[ 0, 0, 1 ]   [ 0, 0, 1 ]
-		*/
-		val[1] *= y;
-		val[4] *= y;
 		return *this;
 	}
 
@@ -822,6 +818,38 @@ namespace qk {
 		val[4] = p3[1];
 		val[0] = p2[0];
 		val[3] = p2[1];
+		//---------------------------------------------
+		// 优化版本
+		// 加载 a,b,d,e
+		// float32x4_t m04 = vld1q_f32(val); // {a,b,c,d}
+		// float32x2_t m56 = vld1_f32(val + 4); // {e,f}
+
+		// // cz, sz 向量
+		// float32x2_t vc = vdup_n_f32(cz);
+		// float32x2_t vs = vdup_n_f32(sz);
+
+		// // [a,b] 与 [d,e]
+		// float32x2_t ab = vget_low_f32(m04);
+		// float32x2_t de = vext_f32(vget_low_f32(m04), vget_high_f32(m04), 1); // 取 d,e
+
+		// // 旋转
+		// // new_a = a*cz - b*sz
+		// // new_b = a*sz + b*cz
+		// float32x2_t a0 = vmul_f32(ab, vc);      // a*cz, b*cz
+		// float32x2_t a1 = vmul_f32(ab, vs);      // a*sz, b*sz
+		// float32x2_t new_a = vsub_f32(a0, vrev64_f32(a1)); // {a*cz - b*sz,  ...}
+		// float32x2_t new_b = vadd_f32(vrev64_f32(a0), a1); // {..., a*sz + b*cz}
+
+		// // 对 d,e 同理
+		// float32x2_t d0 = vmul_f32(de, vc);
+		// float32x2_t d1 = vmul_f32(de, vs);
+		// float32x2_t new_d = vsub_f32(d0, vrev64_f32(d1));
+		// float32x2_t new_e = vadd_f32(vrev64_f32(d0), d1);
+
+		// val[0] = vget_lane_f32(new_a, 0);
+		// val[1] = vget_lane_f32(new_b, 0);
+		// val[3] = vget_lane_f32(new_d, 0);
+		// val[4] = vget_lane_f32(new_e, 0);
 #else
 		float v0 = val[0] * cz - val[1] * sz;
 		float v3 = val[3] * cz - val[4] * sz;
@@ -847,6 +875,50 @@ namespace qk {
 		val[4] += val[3] * tx;
 		val[0] = a;
 		val[3] = d;
+		return *this;
+	}
+
+	Mat& Mat::translate_x(float x) {
+		/*
+		[ a, b, c ]   [ 1, 0, x ]
+		[ e, f, g ] * [ 0, 1, 0 ]
+		[ 0, 0, 1 ]   [ 0, 0, 1 ]
+		*/
+		val[2] += val[0] * x;
+		val[5] += val[3] * x;
+		return *this;
+	}
+
+	Mat& Mat::translate_y(float y) {
+		/*
+		[ a, b, c ]   [ 1, 0, 0 ]
+		[ e, f, g ] * [ 0, 1, y ]
+		[ 0, 0, 1 ]   [ 0, 0, 1 ]
+		*/
+		val[2] += val[1] * y;
+		val[5] += val[4] * y;
+		return *this;
+	}
+
+	Mat& Mat::scale_x(float x) {
+		/*
+		[ a, b, c ]   [ x, 0, 0 ]
+		[ d, e, f ] * [ 0, 1, 0 ]
+		[ 0, 0, 1 ]   [ 0, 0, 1 ]
+		*/
+		val[0] *= x;
+		val[3] *= x;
+		return *this;
+	}
+
+	Mat& Mat::scale_y(float y) {
+		/*
+		[ a, b, c ]   [ 1, 0, 0 ]
+		[ d, e, f ] * [ 0, y, 0 ]
+		[ 0, 0, 1 ]   [ 0, 0, 1 ]
+		*/
+		val[1] *= y;
+		val[4] *= y;
 		return *this;
 	}
 
@@ -905,51 +977,99 @@ namespace qk {
 		[ d, e, f ] * [ 0, 1, b ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		const float* _a = val;
-		const float* _b = b.val;
+		const float* a = val;
 #if Qk_ARM_NEON
 		float32x4_t p3 = vmulq_f32(
-			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
-			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
+			float32x4_t{a[0],a[1],a[3],a[4]},
+			float32x4_t{b.val[0],b.val[1],b.val[0],b.val[1]}
 		); // *
 		float32x2_t p8 = vadd_f32(
 			vadd_f32(
 				float32x2_t{p3[0],p3[2]},
 				float32x2_t{p3[1],p3[3]}
 			),
-			float32x2_t{_a[2],_a[5]}
+			float32x2_t{a[2],a[5]}
 		); // +
 		return Vec2(p8[0],p8[1]);
+		//-------------------------------------------------------------
+		// 优化版本
+		// 加载矩阵的 4 个核心系数
+		// float32x4_t m04 = vld1q_f32(a);      // [a0,a1,a2,a3]
+		// float32x2_t m56 = vld1_f32(a + 4);   // [a4,a5]
+		// float32x2_t v   = vld1_f32(b.val);   // [b0,b1]
+
+		// // 计算 {a0*b0 + a1*b1, a3*b0 + a4*b1}
+		// // 先 broadcast b0,b1
+		// float32x2_t bx = vdup_lane_f32(v, 0);   // b0,b0
+		// float32x2_t by = vdup_lane_f32(v, 1);   // b1,b1
+
+		// float32x2_t r0 = vmul_f32(vget_low_f32(m04), bx);  // a0*b0, a1*b0
+		// r0 = vmla_f32(r0, vget_high_f32(m04), by);          // + a3*b1, + a4*b1
+
+		// // r0 = {x', y'}，再加上偏移项 a2,a5
+		// float32x2_t offset = {a[2], a[5]};
+		// r0 = vadd_f32(r0, offset);
+
+		// Vec2 out;
+		// vst1_f32(out.val, r0);
+		// return out;
 #else
 		return Vec2(
-			_a[0] * _b[0] + _a[1] * _b[1] + _a[2],
-			_a[3] * _b[0] + _a[4] * _b[1] + _a[5]
+			a[0]*b.val[0] + a[1]*b.val[1] + a[2],
+			a[3]*b.val[0] + a[4]*b.val[1] + a[5]
 		);
 #endif
 	}
 
-	Vec2 Mat::mul_vec2_no_translate(const Vec2& b) const {
+	Vec2 Mat::mul_vec2_no_translate(const Vec2& vec_b) const {
 		/*
 		[ a, b, 0 ]   [ 1, 0, a ]
 		[ d, e, 0 ] * [ 0, 1, b ]
 		[ 0, 0, 1 ]   [ 0, 0, 1 ]
 		*/
-		const float* _a = val;
-		const float* _b = b.val;
+		const float* a = val;
+		const float* b = vec_b.val;
 #if Qk_ARM_NEON
+		// float32x4_t p3 = vmulq_f32(
+		// 	vld1q_f32(val),
+		// 	float32x4_t{b.val[0],b.val[1],b.val[0],b.val[1]}
+		// ); // *
+		// float32x2_t p8 = vadd_f32(
+		// 	float32x2_t{p3[0],p3[2]},
+		// 	float32x2_t{p3[1],p3[3]}
+		// ); // +
 		float32x4_t p3 = vmulq_f32(
-			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
-			float32x4_t{_b[0],_b[1],_b[0],_b[1]}
+			float32x4_t{a[0],a[1],a[3],a[4]},
+			float32x4_t{b[0],b[1],b[0],b[1]}
 		); // *
 		float32x2_t p8 = vadd_f32(
 			float32x2_t{p3[0],p3[2]},
 			float32x2_t{p3[1],p3[3]}
 		); // +
 		return Vec2(p8[0],p8[1]);
+
+		// ---------------------------------------------
+		// 优化版本
+		// const float* a = val;
+		// float32x2_t v  = vld1_f32(b.val); // {bx, by}
+
+		// float32x4_t m = vld1q_f32(a);     // {a0, a1, a2, a3}
+		// float32x2_t ab0 = vget_low_f32(m);  // {a0, a1}
+		// float32x2_t ab1 = vget_high_f32(m); // {a2, a3}
+
+		// float32x2_t bx = vdup_lane_f32(v, 0);
+		// float32x2_t by = vdup_lane_f32(v, 1);
+
+		// float32x2_t r = vmul_f32(ab0, bx);
+		// r = vmla_f32(r, ab1, by);
+
+		// Vec2 out;
+		// vst1_f32(out.val, r);
+		// return out;
 #else
 		return Vec2(
-			_a[0] * _b[0] + _a[1] * _b[1]/* + _a[2]*/,
-			_a[3] * _b[0] + _a[4] * _b[1]/* + _a[5]*/
+			a[0] * b[0] + a[1] * b[1]/* + a[2]*/,
+			a[3] * b[0] + a[4] * b[1]/* + a[5]*/
 		);
 #endif
 	}
@@ -959,24 +1079,23 @@ namespace qk {
 	* @param b {const Mat&}
 	* @param output {Mat&}
 	*/
-	void Mat::mul(const Mat& b, Mat& output) const {
+	void Mat::mul(const Mat& b, Mat& o) const {
 		/*
 		[ a1, b1, c1 ]   [ a2, b2, c2 ]
 		[ d1, e1, f1 ] * [ d2, e2, f2 ]
 		[ 0,  0,  1  ]   [ 0,  0,  1  ]
 		*/
-		// 矩阵
-		float* _v = output.val;
-		const float* _a = val;
-		const float* _b = b.val;
+		// 矩阵乘法展开：
+		const float* a = val;
+		const float* bb = b.val;
 #if Qk_ARM_NEON
 		float32x4_t p0 = vmulq_f32(
-			float32x4_t{_a[0],_a[1],_a[0],_a[1]},
-			float32x4_t{_b[0],_b[3],_b[1],_b[4]}
+			float32x4_t{a[0],a[1],a[0],a[1]},
+			float32x4_t{bb[0],bb[3],bb[1],bb[4]}
 		); // *
 		float32x4_t p1 = vmulq_f32(
-			float32x4_t{_a[3],_a[4],_a[3],_a[4]},
-			float32x4_t{_b[0],_b[3],_b[1],_b[4]}
+			float32x4_t{a[3],a[4],a[3],a[4]},
+			float32x4_t{bb[0],bb[3],bb[1],bb[4]}
 		); // *
 		float32x2_t p3 = vadd_f32(
 			float32x2_t{p0[0],p0[2]},
@@ -987,33 +1106,68 @@ namespace qk {
 			float32x2_t{p1[1],p1[3]}
 		); // +
 		float32x4_t p4 = vmulq_f32(
-			float32x4_t{_a[0],_a[1],_a[3],_a[4]},
-			float32x4_t{_b[2],_b[5],_b[2],_b[5]}
+			float32x4_t{a[0],a[1],a[3],a[4]},
+			float32x4_t{bb[2],bb[5],bb[2],bb[5]}
 		); // *
 		float32x2_t p5 = vadd_f32(
 			vadd_f32(
 				float32x2_t{p4[0],p4[2]},
 				float32x2_t{p4[1],p4[3]}
 			), // +
-			float32x2_t{_a[2],_a[5]}
+			float32x2_t{a[2],a[5]}
 		); // +
 		// 1 row
-		_v[0] = p3[0];
-		_v[1] = p3[1];
-		_v[2] = p5[0];
+		o.val[0] = p3[0];
+		o.val[1] = p3[1];
+		o.val[2] = p5[0];
 		// 2 row
-		_v[3] = p3_1[0];
-		_v[4] = p3_1[1];
-		_v[5] = p5[1];
+		o.val[3] = p3_1[0];
+		o.val[4] = p3_1[1];
+		o.val[5] = p5[1];
+		// //-------------------------------------------------------------
+		// // 优化版本
+		// float32x4_t a03 = vld1q_f32(val);     // a0,a1,a2,a3
+		// float32x2_t a45 = vld1_f32(val + 4);  // a4,a5
+
+		// float32x4_t b03 = vld1q_f32(b.val);   // b0,b1,b2,b3
+		// float32x2_t b45 = vld1_f32(b.val + 4);// b4,b5
+
+		// float32x2_t a0a1 = vget_low_f32(a03);
+		// float32x2_t a3a4 = {val[3], val[4]};
+
+		// float32x2_t b0b1 = vget_low_f32(b03);
+		// float32x2_t b3b4 = vget_high_f32(b03);
+
+		// // Row 0
+		// float32x2_t r0 = vmul_f32(a0a1, vdup_lane_f32(b0b1, 0)); // a0*b0,a1*b0
+		// r0 = vmla_f32(r0, a0a1, vdup_lane_f32(b3b4, 0));          // +a0*b3,a1*b3
+
+		// float32x2_t r01 = vmul_f32(a0a1, vdup_lane_f32(b0b1, 1)); // a0*b1,a1*b1
+		// r01 = vmla_f32(r01, a0a1, vdup_lane_f32(b3b4, 1));         // +a0*b4,a1*b4
+
+		// o.val[0] = vget_lane_f32(r0, 0);
+		// o.val[1] = vget_lane_f32(r01, 0);
+		// o.val[2] = val[0]*b.val[2] + val[1]*b.val[5] + val[2];
+
+		// // Row 1
+		// float32x2_t r10 = vmul_f32(a3a4, vdup_lane_f32(b0b1, 0));
+		// r10 = vmla_f32(r10, a3a4, vdup_lane_f32(b3b4, 0));
+
+		// float32x2_t r11 = vmul_f32(a3a4, vdup_lane_f32(b0b1, 1));
+		// r11 = vmla_f32(r11, a3a4, vdup_lane_f32(b3b4, 1));
+
+		// o.val[3] = vget_lane_f32(r10, 0);
+		// o.val[4] = vget_lane_f32(r11, 0);
+		// o.val[5] = val[3]*b.val[2] + val[4]*b.val[5] + val[5];
 #else
 		// 1 row
-		_v[0] = _a[0]*_b[0] + _a[1]*_b[3];
-		_v[1] = _a[0]*_b[1] + _a[1]*_b[4];
-		_v[2] = _a[0]*_b[2] + _a[1]*_b[5] + _a[2];
+		o.val[0] = a[0]*bb[0] + a[1]*bb[3];
+		o.val[1] = a[0]*bb[1] + a[1]*bb[4];
+		o.val[2] = a[0]*bb[2] + a[1]*bb[5] + a[2];
 		// 2 row
-		_v[3] = _a[3]*_b[0] + _a[4]*_b[3];
-		_v[4] = _a[3]*_b[1] + _a[4]*_b[4];
-		_v[5] = _a[3]*_b[2] + _a[4]*_b[5] + _a[5];
+		o.val[3] = a[3]*bb[0] + a[4]*bb[3];
+		o.val[4] = a[3]*bb[1] + a[4]*bb[4];
+		o.val[5] = a[3]*bb[2] + a[4]*bb[5] + a[5];
 #endif
 	}
 
@@ -1483,14 +1637,50 @@ namespace qk {
 		[ i, j, k, l ] * [ 0, 0, 1, c ]
 		[ 0, 0, 0, 1 ]   [ 0, 0, 0, d ]
 		*/
-		const float* _a = val;
-		const float* _b = b.val;
+		const float* A = val;
+		const float* v = b.val;
+
+#if Qk_ARM_NEON
+		float32x4_t V  = vld1q_f32(v);    // [vx, vy, vz, vw]
+
+		float32x4_t A0 = vld1q_f32(A + 0);   // row0
+		float32x4_t A1 = vld1q_f32(A + 4);   // row1
+		float32x4_t A2 = vld1q_f32(A + 8);   // row2
+		float32x4_t A3 = vld1q_f32(A + 12);  // row3
+
+		// dot4(row, V)
+		float32x4_t r0 = vmulq_f32(A0, V);
+		float32x4_t r1 = vmulq_f32(A1, V);
+		float32x4_t r2 = vmulq_f32(A2, V);
+		float32x4_t r3 = vmulq_f32(A3, V);
+
+		// pairwise add: (a+b+c+d)
+		float32x2_t s0 = vadd_f32(vget_low_f32(r0), vget_high_f32(r0));
+		s0 = vpadd_f32(s0, s0);
+
+		float32x2_t s1 = vadd_f32(vget_low_f32(r1), vget_high_f32(r1));
+		s1 = vpadd_f32(s1, s1);
+
+		float32x2_t s2 = vadd_f32(vget_low_f32(r2), vget_high_f32(r2));
+		s2 = vpadd_f32(s2, s2);
+
+		float32x2_t s3 = vadd_f32(vget_low_f32(r3), vget_high_f32(r3));
+		s3 = vpadd_f32(s3, s3);
+
 		return Vec4(
-			_a[0] * _b[0] + _a[1] * _b[1] + _a[2] * _b[2] + _a[3] * _b[3],
-			_a[4] * _b[0] + _a[5] * _b[1] + _a[6] * _b[2] + _a[7] * _b[3],
-			_a[8] * _b[0] + _a[9] * _b[1] + _a[10] * _b[2] + _a[11] * _b[3],
-			_a[12] * _b[0] + _a[13] * _b[1] + _a[14] * _b[2] + _a[15] * _b[3]
+			vget_lane_f32(s0, 0),
+			vget_lane_f32(s1, 0),
+			vget_lane_f32(s2, 0),
+			vget_lane_f32(s3, 0)
 		);
+#else
+		return Vec4(
+			A[0]  * v[0] + A[1]  * v[1] + A[2]  * v[2] + A[3]  * v[3],
+			A[4]  * v[0] + A[5]  * v[1] + A[6]  * v[2] + A[7]  * v[3],
+			A[8]  * v[0] + A[9]  * v[1] + A[10] * v[2] + A[11] * v[3],
+			A[12] * v[0] + A[13] * v[1] + A[14] * v[2] + A[15] * v[3]
+		);
+#endif
 	}
 
 	/**
@@ -1498,37 +1688,61 @@ namespace qk {
 	 * @param b {const Mat4&} b
 	 * @param output {Mat4&} output
 	*/
-	void Mat4::mul(const Mat4& b, Mat4& output) const {
+	void Mat4::mul(const Mat4& B, Mat4& O) const {
 		/*
 		[ a1, b1, c1, d1 ]   [ a2, b2, c2, d2 ]
 		[ e1, f1, g1, h1 ]   [ e2, f2, g2, h2 ]
 		[ i1, j1, k1, l1 ] * [ i2, j2, k2, l2 ]
 		[ m1, n1, o1, p1 ]   [ m2, n2, o2, p2 ]
 		*/
-		float* _v = output.val;
-		const float* _a = val;
-		const float* _b = b.val;
+		float*       out = O.val;
+		const float* A   = val;
+		const float* b   = B.val;
 
+#if Qk_ARM_NEON
+		// 预先把 B 的四列加载为 SIMD 向量
+		float32x4_t B0 = vld1q_f32(b + 0);    // b0, b1, b2, b3
+		float32x4_t B1 = vld1q_f32(b + 4);    // b4, b5, b6, b7
+		float32x4_t B2 = vld1q_f32(b + 8);    // b8, b9, b10,b11
+		float32x4_t B3 = vld1q_f32(b + 12);   // b12,b13,b14,b15
+
+		for (int i = 0; i < 4; ++i) {
+			// 加载 A 的一整行（连续4个 float）
+			const float* Ai = A + i*4;
+
+			// r = B0 * Ai[0] + B1 * Ai[1] + B2 * Ai[2] + B3 * Ai[3]
+			float32x4_t r = vmulq_n_f32(B0, Ai[0]);
+			r             = vmlaq_n_f32(r, B1, Ai[1]);
+			r             = vmlaq_n_f32(r, B2, Ai[2]);
+			r             = vmlaq_n_f32(r, B3, Ai[3]);
+
+			vst1q_f32(out + i*4, r);
+		}
+#else
 		// 1 row
-		_v[0] = _a[0]*_b[0] + _a[1]*_b[4] + _a[2]*_b[8]  + _a[3]*_b[12];
-		_v[1] = _a[0]*_b[1] + _a[1]*_b[5] + _a[2]*_b[9]  + _a[3]*_b[13];
-		_v[2] = _a[0]*_b[2] + _a[1]*_b[6] + _a[2]*_b[10] + _a[3]*_b[14];
-		_v[3] = _a[0]*_b[3] + _a[1]*_b[7] + _a[2]*_b[11] + _a[3]*_b[15];
+		out[0] = A[0]*b[0] + A[1]*b[4] + A[2]*b[8]  + A[3]*b[12];
+		out[1] = A[0]*b[1] + A[1]*b[5] + A[2]*b[9]  + A[3]*b[13];
+		out[2] = A[0]*b[2] + A[1]*b[6] + A[2]*b[10] + A[3]*b[14];
+		out[3] = A[0]*b[3] + A[1]*b[7] + A[2]*b[11] + A[3]*b[15];
+
 		// 2 row
-		_v[4] = _a[4]*_b[0] + _a[5]*_b[4] + _a[6]*_b[8]  + _a[7]*_b[12];
-		_v[5] = _a[4]*_b[1] + _a[5]*_b[5] + _a[6]*_b[9]  + _a[7]*_b[13];
-		_v[6] = _a[4]*_b[2] + _a[5]*_b[6] + _a[6]*_b[10] + _a[7]*_b[14];
-		_v[7] = _a[4]*_b[3] + _a[5]*_b[7] + _a[6]*_b[11] + _a[7]*_b[15];
+		out[4] = A[4]*b[0] + A[5]*b[4] + A[6]*b[8]  + A[7]*b[12];
+		out[5] = A[4]*b[1] + A[5]*b[5] + A[6]*b[9]  + A[7]*b[13];
+		out[6] = A[4]*b[2] + A[5]*b[6] + A[6]*b[10] + A[7]*b[14];
+		out[7] = A[4]*b[3] + A[5]*b[7] + A[6]*b[11] + A[7]*b[15];
+
 		// 3 row
-		_v[8] = _a[8]*_b[0]  + _a[9]*_b[4] + _a[10]*_b[8]  + _a[11]*_b[12];
-		_v[9] = _a[8]*_b[1]  + _a[9]*_b[5] + _a[10]*_b[9]  + _a[11]*_b[13];
-		_v[10] = _a[8]*_b[2] + _a[9]*_b[6] + _a[10]*_b[10] + _a[11]*_b[14];
-		_v[11] = _a[8]*_b[3] + _a[9]*_b[7] + _a[10]*_b[11] + _a[11]*_b[15];
+		out[8]  = A[8]*b[0] + A[9]*b[4] + A[10]*b[8]  + A[11]*b[12];
+		out[9]  = A[8]*b[1] + A[9]*b[5] + A[10]*b[9]  + A[11]*b[13];
+		out[10] = A[8]*b[2] + A[9]*b[6] + A[10]*b[10] + A[11]*b[14];
+		out[11] = A[8]*b[3] + A[9]*b[7] + A[10]*b[11] + A[11]*b[15];
+
 		// 4 row
-		_v[12] = _a[12]*_b[0] + _a[13]*_b[4] + _a[14]*_b[8]  + _a[15]*_b[12];
-		_v[13] = _a[12]*_b[1] + _a[13]*_b[5] + _a[14]*_b[9]  + _a[15]*_b[13];
-		_v[14] = _a[12]*_b[2] + _a[13]*_b[6] + _a[14]*_b[10] + _a[15]*_b[14];
-		_v[15] = _a[12]*_b[3] + _a[13]*_b[7] + _a[14]*_b[11] + _a[15]*_b[15];
+		out[12] = A[12]*b[0] + A[13]*b[4] + A[14]*b[8]  + A[15]*b[12];
+		out[13] = A[12]*b[1] + A[13]*b[5] + A[14]*b[9]  + A[15]*b[13];
+		out[14] = A[12]*b[2] + A[13]*b[6] + A[14]*b[10] + A[15]*b[14];
+		out[15] = A[12]*b[3] + A[13]*b[7] + A[14]*b[11] + A[15]*b[15];
+#endif
 	}
 
 	Mat4 Mat4::transpose() const {

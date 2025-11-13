@@ -57,7 +57,9 @@ namespace qk {
 		auto acc = target->accessor() + prop;
 		if (acc->set) {
 			auto v = (target->*(BoxFilter* (View::*)())acc->get)();
-			auto v_new = v1 && v2 ? v1->transition(v, v2, y, true): y < 1.0 ? v1: v2;
+			auto v_new =
+				v1 && v2 ? v1->transition(v, v2, y, true):
+				y < 1.0 ? v1: v2;
 			(target->*(void (View::*)(BoxFilter*,bool))acc->set)(v_new,true);
 		}
 	}

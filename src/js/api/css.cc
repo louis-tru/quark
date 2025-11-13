@@ -49,6 +49,7 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(Color, color, color);
 			Js_StyleSheets_Accessor(CascadeColor, cascade_color, cascadeColor);
 			Js_StyleSheets_Accessor(CursorStyle, cursor, cursor);
+			Js_StyleSheets_Accessor(uint32_t, z_index, zIndex);
 			Js_StyleSheets_Accessor(float, opacity, opacity);
 			Js_StyleSheets_Accessor(bool, visible, visible);
 			Js_StyleSheets_Accessor(bool, clip, clip);
