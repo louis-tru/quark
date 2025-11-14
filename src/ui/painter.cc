@@ -956,7 +956,6 @@ namespace qk {
 				painter->_tempAllocator[0].reset(); // reset temp allocator
 				painter->_tempAllocator[1].reset(); // reset temp allocator
 				painter->_delayCmdsAllocator.reset(); // reset delay cmds allocator
-				BoxData data;
 				painter->resetBoxData();
 				// Fix rect aa stroke width
 				auto AAShrink_half = painter->_isMsaa ? 0: 0.43f / _window->scale(); // fix aa stroke width, 0.4-0.5

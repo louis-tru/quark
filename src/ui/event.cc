@@ -652,7 +652,7 @@ namespace qk {
 			if (view) {
 				auto evt = NewMouseEvent(view, pos, KEYCODE_UNKNOWN);
 				_inl_view(view)->bubble_trigger(UIEvent_MouseOver, **evt);
-				_window->setCursorStyle(view->getCursorStyleExec(), true);
+				_window->setCursorStyle(view->cursor_style_exec(), true);
 
 				if (evt->is_default()) {
 					evt->return_value = kAll_ReturnValueMask;
@@ -688,7 +688,7 @@ namespace qk {
 		if (down) {
 			_mouse_handle->set_click_down_view_mt(view);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseDown, **evt);
-			_window->setCursorStyle(view->getCursorStyleExec(), true);
+			_window->setCursorStyle(view->cursor_style_exec(), true);
 		} else {
 			_mouse_handle->set_click_down_view_mt(nullptr);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseUp, **evt);

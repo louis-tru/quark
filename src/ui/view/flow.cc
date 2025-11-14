@@ -153,7 +153,8 @@ namespace qk {
 							// adjust main axis size
 							auto size = it.size[mainIdx] + adjustMain;
 							it.size[mainIdx] = is_horizontal ? // force lock subview layout size
-								it.view->layout_lock_width(size): it.view->layout_lock_height(size);
+									it.view->layout_lock_width(size):
+									it.view->layout_lock_height(size);
 							if (it.size[mainIdx] == size) {
 								cur_weight_total += it.weight[wIdx];
 							} else {
@@ -163,7 +164,8 @@ namespace qk {
 						if (it.alignBoth) {
 							// adjust cross size
 							it.size[crossIdx] = is_horizontal ?
-								it.view->layout_lock_height(cross_size): it.view->layout_lock_width(cross_size);
+									it.view->layout_lock_height(cross_size):
+									it.view->layout_lock_width(cross_size);
 							it.alignBoth = false;
 						}
 						main_total += it.size[mainIdx];

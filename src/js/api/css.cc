@@ -273,7 +273,7 @@ namespace qk { namespace js {
 						}));
 						if (apply) {
 							for (auto w: shared_app()->windows()) {
-								w->root()->applyClassAll();
+								w->root()->apply_class_all();
 							}
 						}
 					} else {

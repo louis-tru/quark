@@ -179,7 +179,10 @@ Range Container::to_range() const {
 	}
 
 	void View::set_z_index(uint32_t val, bool isRt) {
-		_z_index = val;
+		if (_z_index != val) {
+			_z_index = val;
+			mark(kLayout_None, isRt); // mark render
+		}
 	}
 
 	void View::set_visible(bool val, bool isRt) {
@@ -758,7 +761,7 @@ Range Container::to_range() const {
 		}
 	}
 
-	void View::applyClass_rt(CStyleSheetsClass *parentSsclass) {
+	void View::apply_class_rt(CStyleSheetsClass *parentSsclass) {
 		_Cssclass();
 		if (_cssclass->apply_rt(parentSsclass, false)) { // change affect sub styles
 			if (_cssclass->haveSubstyles()) {
@@ -768,8 +771,8 @@ Range Container::to_range() const {
 				auto v = first();
 				while (v) {
 					// if (v->_cssclass)
-					// 	v->applyClass_rt(parentSsclass);
-					v->applyClassAll_rt(parentSsclass, false);
+					// 	v->apply_class_rt(parentSsclass);
+					v->apply_class_all_rt(parentSsclass, false);
 					v = v->next();
 				}
 			}
@@ -777,7 +780,7 @@ Range Container::to_range() const {
 		unmark(kStyle_Class);
 	}
 
-	void View::applyClassAll_rt(CStyleSheetsClass *parentSsclass, bool force) {
+	void View::apply_class_all_rt(CStyleSheetsClass *parentSsclass, bool force) {
 		_Cssclass();
 		if (_cssclass) { // Impact sub view
 			_cssclass->apply_rt(parentSsclass, force);
@@ -788,14 +791,14 @@ Range Container::to_range() const {
 		if (_visible) { // apply all sub views if visible
 			auto v = first();
 			while (v) {
-				v->applyClassAll_rt(parentSsclass, force);
+				v->apply_class_all_rt(parentSsclass, force);
 				v = v->next();
 			}
 		}
 		unmark(kStyle_Class);
 	}
 
-	CStyleSheetsClass* View::parentSsclass_rt() {
+	CStyleSheetsClass* View::parent_ssclass_rt() {
 		_Parent();
 		while (_parent) {
 			auto ss = _parent->_cssclass.load();
@@ -807,7 +810,7 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
-	CursorStyle View::getCursorStyleExec() {
+	CursorStyle View::cursor_style_exec() {
 		auto v = this;
 		do {
 			if (v->_cursor != CursorStyle::Normal)

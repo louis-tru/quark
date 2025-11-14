@@ -42,7 +42,7 @@ namespace qk {
 		void layout_forward(uint32_t mark) override;
 		void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		void draw(Painter *render) override;
-		void applyClassAll(); // apply class for all subviews
+		void apply_class_all(); // apply class for all subviews
 	private:
 		Root(Window *win);
 		void reload_rt(); // @thread Rt

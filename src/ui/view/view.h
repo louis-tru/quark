@@ -640,10 +640,10 @@ namespace qk {
 		void set_visible_rt(bool visible);
 		void set_level_rt(uint32_t level); // settings depth
 		void clear_level_rt(); //  clear view depth rt
-		void applyClass_rt(CStyleSheetsClass* parentSsclass); // apply class for self
-		void applyClassAll_rt(CStyleSheetsClass* parentSsclass, bool force); // apply class for all subviews
-		CStyleSheetsClass* parentSsclass_rt();
-		CursorStyle getCursorStyleExec();
+		void apply_class_rt(CStyleSheetsClass* parentSsclass); // apply class for self
+		void apply_class_all_rt(CStyleSheetsClass* parentSsclass, bool force); // apply class for all subviews
+		CStyleSheetsClass* parent_ssclass_rt();
+		CursorStyle cursor_style_exec();
 
 		friend class Painter;
 		friend class PreRender;

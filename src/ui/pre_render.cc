@@ -189,7 +189,7 @@ namespace qk {
 			for (auto &levelMarks: _marks) {
 				for (auto view: levelMarks) {
 					if (view->_mark_value & View::kStyle_Class)
-						view->applyClass_rt(view->parentSsclass_rt());
+						view->apply_class_rt(view->parent_ssclass_rt());
 				}
 			}
 		}

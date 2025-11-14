@@ -42,7 +42,7 @@ namespace qk {
 	F(COLOR, Color, color, View) /*view*/\
 	F(CASCADE_COLOR, CascadeColor, cascade_color, View) \
 	F(CURSOR, CursorStyle, cursor, View) \
-	F(Z_INDEX, uint16_t, z_index, View) \
+	F(Z_INDEX, uint32_t, z_index, View) \
 	F(OPACITY, float, opacity, View) \
 	F(VISIBLE, bool, visible, View) \
 	F(CLIP, bool, clip, Box) /* box */ \

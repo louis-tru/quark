@@ -89,9 +89,9 @@ namespace qk {
 		return true;
 	}
 
-	void Root::applyClassAll() {
+	void Root::apply_class_all() {
 		preRender().async_call([](auto self, auto arg) {
-			self->applyClassAll_rt(nullptr, true);
+			self->apply_class_all_rt(nullptr, true);
 		}, this, 0);
 	}
 
