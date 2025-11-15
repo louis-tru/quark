@@ -68,24 +68,24 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(seek, {
-				uint32_t time;
-				if (!args.length() || !args[0]->asUint32(worker).to(time))
+				double time;
+				if (!args.length() || !args[0]->asNumber(worker).to(time))
 					Js_Throw("@method Action.seek(uint32_t timeMs)");
 				self->seek(time);
 				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(seekPlay, {
-				uint32_t time;
-				if (!args.length() || !args[0]->asUint32(worker).to(time))
+				double time;
+				if (!args.length() || !args[0]->asNumber(worker).to(time))
 					Js_Throw("@method Action.seek_play(uint32_t timeMs)");
 				self->seek_play(time);
 				Js_Return(args.thisObj());
 			});
 
 			Js_Class_Method(seekStop, {
-				uint32_t time;
-				if (!args.length() || !args[0]->asUint32(worker).to(time))
+				double time;
+				if (!args.length() || !args[0]->asNumber(worker).to(time))
 					Js_Throw("@method Action.seek_stop(uint32_t timeMs)");
 				self->seek_stop(time);
 				Js_Return(args.thisObj());
@@ -169,8 +169,8 @@ namespace qk { namespace js {
 			// bool hasProperty(ViewProp name);
 
 			Js_Class_Method(addFrame, {
-				uint32_t timeMs;
-				if (!args.length() || !args[0]->asUint32(worker).to(timeMs)) {
+				double timeMs;
+				if (!args.length() || !args[0]->asNumber(worker).to(timeMs)) {
 					Js_Throw("KeyframeAction.addFrame(timeMs:Uint,curve?:Curve)Keyframe\nBad argument timeMs");
 				}
 				auto curve = EASE;
@@ -192,7 +192,7 @@ namespace qk { namespace js {
 				Curve *curve_p = nullptr;
 
 				if (args.length() > 1) {
-					Js_Parse_Type(uint32_t, args[1], "KeyframeAction.addFrameWithCss(cssExp:string,timeMs?:Uint,curve?:Curve)Keyframe\ntimeMs = %s");
+					Js_Parse_Type(double, args[1], "KeyframeAction.addFrameWithCss(cssExp:string,timeMs?:Uint,curve?:Curve)Keyframe\ntimeMs = %s");
 					time = out;
 					time_p = &time;
 				}

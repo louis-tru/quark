@@ -41,24 +41,24 @@
 
 namespace qk {
 
-	bool mac_img_decode1(cBuffer& data, Array<Pixel> *out) {
+	bool mac_img_decode(cBuffer& data, Array<Pixel> *out) {
 		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsData];
-#if Qk_MacOS
+	 #if Qk_MacOS
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
-#else
+	 #else
 		CGImageRef image = [img CGImage];
-#endif
+	 #endif
 		if (!image) return false;
 
 		int width = (int)CGImageGetWidth(image);
 		int height = (int)CGImageGetHeight(image);
 		int rowBytes = width * 4;
 		ColorType colorType;
-		AlphaType alphaType = kUnpremul_AlphaType;
-		CGImageAlphaInfo alpha, inAlpha = CGImageGetAlphaInfo(image);
+		AlphaType alphaType;
+		CGImageAlphaInfo alpha;
 
-		switch (inAlpha) {
+		switch (CGImageGetAlphaInfo(image)) {
 			case kCGImageAlphaNone:               /* For example, RGB. */
 			case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
 			case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
@@ -76,8 +76,10 @@ namespace qk {
 				alphaType = kPremul_AlphaType;
 				break;
 		}
+
 		CGColorSpaceRef space;
 		if (!(space = CGImageGetColorSpace(image))) return false;
+
 		CGBitmapInfo cgInfo = kCGBitmapByteOrder32Big | alpha;
 		Buffer pixel(rowBytes * height);
 		memset(*pixel, 0, pixel.length()); // reset storage
@@ -88,7 +90,7 @@ namespace qk {
 		return true;
 	}
 
-	bool mac_img_decode(cBuffer& data, Array<Pixel> *out) {
+	bool mac_img_test(cBuffer& data, PixelInfo* out) {
 		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsData];
 #if Qk_MacOS
@@ -96,6 +98,40 @@ namespace qk {
 #else
 		CGImageRef image = [img CGImage];
 #endif
+		if (!image) return false;
+
+		ColorType colorType;
+		AlphaType alphaType;
+
+		switch (CGImageGetAlphaInfo(image)) {
+			case kCGImageAlphaNone:               /* For example, RGB. */
+			case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
+			case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
+			case kCGImageAlphaOnly:               /* No color data, alpha data only */
+				colorType = kRGB_888X_ColorType;
+				alphaType = kOpaque_AlphaType;
+				break;
+			case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
+			case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
+			case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
+			case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
+				colorType = kRGBA_8888_ColorType;
+				alphaType = kPremul_AlphaType;
+				break;
+		}
+
+		*out = PixelInfo((int)CGImageGetWidth(image), (int)CGImageGetHeight(image), colorType, alphaType);
+		return true;
+	}
+
+	bool mac_img_decode2(cBuffer& data, Array<Pixel> *out) {
+		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
+		UIImage* img = [[UIImage alloc] initWithData:nsData];
+	 #if Qk_MacOS
+		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
+	 #else
+		CGImageRef image = [img CGImage];
+	 #endif
 		if (!image) return false;
 		QkUniqueCFRef<CFDataRef> rawData(CGDataProviderCopyData(CGImageGetDataProvider(image)));
 		if (!rawData) return false;
@@ -154,14 +190,14 @@ namespace qk {
 		return true;
 	}
 
-	bool mac_img_test(cBuffer& data, PixelInfo* out) {
+	bool mac_img_test2(cBuffer& data, PixelInfo* out) {
 		NSData* nsData = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
 		UIImage* img = [[UIImage alloc] initWithData:nsData];
-	#if Qk_MacOS
+	 #if Qk_MacOS
 		CGImageRef image = [img CGImageForProposedRect:nil context:nil hints:nil];
-	#else
+	 #else
 		CGImageRef image = [img CGImage];
-	#endif
+	 #endif
 		if (!image) return false;
 
 		int width = (int)CGImageGetWidth(image);

@@ -44,6 +44,8 @@ declare namespace qk {
 		loaded: boolean;
 		children: Module[];
 		paths: string[];
+		parent: Module | null | undefined;
+		package?: any;
 	}
 }
 
@@ -119,6 +121,17 @@ type Int8 = number;
  * @global
 */
 type Float = number;
+
+/**
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+ * @interface Number
+ * @global
+*/
+interface NumberConstructor {
+	mix32(x: Uint): Uint;
+	mix32Fast(x: Uint): Uint;
+	mix32Fastest(x: Uint): Uint;
+}
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
@@ -386,12 +399,13 @@ if (typeof globalThis == 'undefined') {
 	}
 }
 
-let currentTimezone = new Date().getTimezoneOffset() / -60;
-let _slice = Array.prototype.slice;
-let _hash_code_id = 1;
-let _hash_code_set = new WeakSet();
-let DateToString = (Date.prototype as any).__toString__ || Date.prototype.toString;
-let ErrorToString = (Error.prototype as any).__toString__ || Error.prototype.toString;
+const currentTimezone = new Date().getTimezoneOffset() / -60;
+const _slice = Array.prototype.slice;
+let   _fn_hash_id = 1;
+const _hash_code_set = new WeakSet();
+const fn_hash_map = new WeakMap<Function, number>();
+const DateToString = (Date.prototype as any).__toString__ || Date.prototype.toString;
+const ErrorToString = (Error.prototype as any).__toString__ || Error.prototype.toString;
 
 function definePropertys(obj: any, extd: any): void {
 	for (let i in extd) {
@@ -401,10 +415,33 @@ function definePropertys(obj: any, extd: any): void {
 	}
 }
 
+function mix32(x: number): number {
+	x ^= x >> 16;
+	x = Math.imul(x, 0x7feb352d);
+	x ^= x >> 15;
+	x = Math.imul(x, 0x846ca68b);
+	x ^= x >> 16;
+	return x >>> 0;
+}
+
+function mix32Fast(x: number): number {
+	x ^= x >>> 17;
+	x = Math.imul(x, 0xed5ad4bb);
+	x ^= x >>> 11;
+	return x >>> 0;
+}
+
+function mix32Fastest(x: number): number {
+	x ^= x >>> 16;
+	x ^= x << 9;
+	x ^= x >>> 5;
+	return x >>> 0;
+}
+
 function hashCode(obj: any): number {
 	return obj ? obj.hashCode():
-		obj === null ? -1354856:
-		obj === undefined ? -3387255: obj.hashCode();
+		obj === null ? 0xdeadbeef :
+		obj === undefined ? 0x9e3779b9: obj.hashCode();
 }
 
 // index of
@@ -413,19 +450,26 @@ function indexOf(str: string, str1: string): number {
 	return index > -1 ? index : Infinity;
 }
 
+const mix32_fn = mix32Fast;
+
 definePropertys(Date.prototype, {__toString__: Date.prototype.toString});
 definePropertys(Date.prototype, {__toString__: Error.prototype.toString});
 
-definePropertys(Object, { hashCode: hashCode });
+definePropertys(Number, { mix32, mix32Fast, mix32Fastest });
+definePropertys(Object, { hashCode });
 
 definePropertys(Object.prototype, {
 	hashCode(): Int {
 		if (_hash_code_set.has(this))
-			return 0;
+			return 0x9e3779b1;
 		_hash_code_set.add(this);
-		let _hash = 5381;
+		// let _hash = 5381;
+		let _hash = 0x811c9dc5; // FNV offset
 		for (let key in this) {
-			_hash += (_hash << 5) + (key.hashCode() + hashCode(this[key]));
+			// _hash = ((_hash << 5) + _hash + key.hashCode()) >>> 0;
+			// _hash = ((_hash << 5) + _hash + hashCode(this[key])) >>> 0;
+			_hash = mix32_fn(_hash ^ key.hashCode());
+			_hash = mix32_fn(_hash ^ hashCode(this[key]));
 		}
 		_hash_code_set.delete(this);
 		return _hash;
@@ -434,12 +478,11 @@ definePropertys(Object.prototype, {
 
 definePropertys(Function.prototype, {
 	hashCode(): Int {
-		if (!this.hasOwnProperty('__hashCode')) {
-			Object.defineProperty(this, '__hashCode', {
-				enumerable: false, configurable: false, writable: false, value: _hash_code_id++
-			});
-		}
-		return this.__hashCode;
+		let h = fn_hash_map.get(this);
+		if (h !== undefined) return h;
+		h = mix32Fast(_fn_hash_id++);
+		fn_hash_map.set(this, h);
+		return h;
 	},
 	setTimeout(time: number, ...args: any[]): TimeoutResult {
 		let fn = this;
@@ -458,13 +501,13 @@ definePropertys(Array, {
 definePropertys(Array.prototype, {
 	hashCode(): Int {
 		if (_hash_code_set.has(this))
-			return 0;
+			return 0x9e3779b1;
 		_hash_code_set.add(this);
-		let _hash = 5381;
+		// let _hash = 5381;
+		let _hash = 0x811c9dc5; // FNV offset
 		for (let item of this) {
-			if (item) {
-				_hash += (_hash << 5) + item.hashCode();
-			}
+			// _hash = ((_hash << 5) + _hash + hashCode(item)) >>> 0;
+			_hash = mix32_fn(_hash ^ hashCode(item));
 		}
 		_hash_code_set.delete(this);
 		return _hash;
@@ -490,12 +533,14 @@ definePropertys(Array.prototype, {
 // ext TypedArray
 definePropertys((Uint8Array as any).prototype.__proto__, {
 	hashCode(): Int {
-		let _hash = 5381;
+		// let _hash = 5381;
+		let _hash = 0x811c9dc5; // FNV offset
 		let self = new Uint8Array(this.buffer, this.byteOffset, this.byteLength);
-		for (let item of self) {
-			_hash += (_hash << 5) + item;
+		for (let it of self) {
+			// _hash = ((_hash << 5) + _hash + item) >>> 0;
+			_hash = Math.imul(_hash ^ it, 0x01000193);
 		}
-		return _hash;
+		return mix32_fn(_hash);
 	},
 });
 
@@ -510,19 +555,26 @@ definePropertys(String, {
 
 definePropertys(String.prototype, {
 	hashCode: function(): number {
-		let _hash = 5381;
+		// let _hash = 5381;
+		let _hash = 0x811c9dc5; // FNV offset
 		let len = this.length;
-		while (len) {
-			len--;
-			_hash += (_hash << 5) + this.charCodeAt(len);
+		for (let i = 0; i < len; i++) {
+			// _hash = ((_hash << 5) + _hash + this.charCodeAt(i)) >>> 0;
+			_hash = Math.imul(_hash ^ this.charCodeAt(i), 0x01000193);
 		}
-		return _hash;
+		return mix32_fn(_hash);
 	},
 });
 
+const f64 = new Float64Array(1);
+const u32 = new Uint32Array(f64.buffer);
+
 definePropertys(Number.prototype, {
 	hashCode(): Int {
-		return this;
+		f64[0] = this;
+		//return mix32_fn(u32[0] ^ u32[1]);
+		// Use XOR directly for better performance
+		return (u32[0] ^ u32[1]) >>> 0;
 	},
 
 	toFixedBefore(this: number, before: number, after: number): string {
@@ -565,7 +617,7 @@ definePropertys(Number.prototype, {
 
 definePropertys(Boolean.prototype, {
 	hashCode(): Int {
-		return this == true ? -1186256: -23547257;
+		return this == true ? 0x345678 : 0x123456;
 	},
 });
 
@@ -647,7 +699,7 @@ definePropertys(Date, {
 definePropertys(Date.prototype, {
 
 	hashCode(): Int {
-		return this.valueOf();
+		return this.valueOf() >>> 0;
 	},
 
 	add(ms: number): Date {
@@ -741,8 +793,9 @@ definePropertys(Error.prototype, {
 	},
 	hashCode(): Int {
 		let _hash = Object.prototype.hashCode.call(this);
-		_hash += (_hash << 5) + this.message.hashCode();
-		return _hash;
+		// _hash = (_hash << 5) + _hash + this.message.hashCode();
+		_hash = Math.imul(_hash ^ this.message.hashCode(), 0x01000193);
+		return _hash >>> 0;
 	},
 	toJSON(): any {
 		let err: Error = this;

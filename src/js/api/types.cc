@@ -150,6 +150,10 @@ namespace qk { namespace js {
 		return worker->newValue(value);
 	}
 
+	JSValue* TypesParser::jsvalue(const double& val) {
+		return worker->newValue(val);
+	}
+
 	JSValue* TypesParser::jsvalue(const int32_t& value) {
 		return worker->newValue(value);
 	}
@@ -661,6 +665,14 @@ namespace qk { namespace js {
 		if (!num)
 			return throw_error(worker, in, msg), false;
 		out = num->float32();
+		return true;
+	}
+
+	bool TypesParser::parse(JSValue* in, double& out, cChar* msg) {
+		auto num = in->toNumber(worker);
+		if (!num)
+			return throw_error(worker, in, msg), false;
+		out = num->value();
 		return true;
 	}
 

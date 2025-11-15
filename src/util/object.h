@@ -123,6 +123,17 @@ namespace qk {
 		T value;
 	};
 
+	template<typename TO, typename FROM>
+	inline TO bitwise_cast(const FROM &in) {
+		static_assert(sizeof(TO) == sizeof(FROM), "reinterpret_cast_sizeof_types_is_equal");
+		union {
+			FROM from;
+			TO to;
+		} u;
+		u.from = in;
+		return u.to;
+	}
+
 	class Protocol {
 	public:
 		virtual Object* asObject() = 0;

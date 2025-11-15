@@ -211,6 +211,8 @@ namespace qk { namespace js {
 		//JSGlobalContextSetUnhandledRejectionCallback(_ctx, _rejectionListener, JsFatal());
 		_global->defineOwnProperty(this, newStringOneByte("_rejectionListener"),
 			Cast(_rejectionListener), JSObject::DontEnum | JSObject::ReadOnly | JSObject::DontDelete);
+		_global->defineOwnProperty(this, newStringOneByte("_jscRunning"),
+			newBool(true), JSObject::DontEnum | JSObject::ReadOnly | JSObject::DontDelete);
 		// override Promise class, make unhandled rejection can be catched
 		auto script = JsStringWithUTF8(
 			"(function() {"

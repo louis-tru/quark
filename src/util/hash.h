@@ -55,8 +55,16 @@ namespace qk {
 		String digest();
 	};
 
-	Qk_EXPORT uint64_t hashCode(cVoid* data, uint32_t len);
-	Qk_EXPORT String hash(cVoid* data, uint32_t len);
-	Qk_EXPORT String hash(cString& str);
+	Qk_EXPORT uint32_t mix32(uint32_t x);
+	Qk_EXPORT uint32_t mix32_fast(uint32_t x);
+	Qk_EXPORT uint32_t mix32_fastest(uint32_t x);
+	Qk_EXPORT uint64_t mix64(uint64_t x);
+	Qk_EXPORT uint64_t mix64_xx(uint64_t x);
+	Qk_EXPORT uint64_t mix64_fast(uint64_t x);
+	Qk_EXPORT uint64_t mix64_fastest(uint64_t x);
+	Qk_EXPORT uint64_t hash_code(cVoid* data, uint32_t len);
+	Qk_EXPORT String   hash_digest(uint64_t hash);
+	Qk_EXPORT String   hash_str(cVoid* data, uint32_t len);
+	Qk_EXPORT String   hash_str(cString& str);
 }
 #endif

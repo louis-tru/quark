@@ -66,6 +66,7 @@ namespace qk {
 	#define Js_Types_Each(F) \
 		F(bool) \
 		F(float) \
+		F(double) \
 		F(int32_t) \
 		F(uint32_t) \
 		F(Color) \
@@ -130,8 +131,6 @@ namespace qk {
 		TypesParser(Worker* worker, JSObject* exports);
 
 		bool     isTypesBase(JSObject *arg);
-		inline
-		JSValue* jsvalue(double val) { return worker->newValue(val); }
 		inline
 		JSValue* jsvalue(int64_t val) { return worker->newValue(val); }
 		inline

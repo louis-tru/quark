@@ -47,18 +47,18 @@ namespace qk {
 		struct S {
 			ListenerFunc listener; void* ctx;
 		} s = {listener,ctx};
-		return qk::hashCode(&s, sizeof(S)) % Uint32::limit_max;
+		return qk::hash_code(&s, sizeof(S)) % Uint32::limit_max;
 	}
 
 	uint32_t ev_hash_code(StaticListenerFunc listener, void* ctx) {
 		struct S {
 			StaticListenerFunc listener; void* ctx;
 		} s = {listener,ctx};
-		return qk::hashCode(&s, sizeof(S)) % Uint32::limit_max;
+		return qk::hash_code(&s, sizeof(S)) % Uint32::limit_max;
 	}
 
 	uint32_t ev_hash_code(Basic* shell) {
-		return qk::hashCode(&shell, sizeof(Basic*)) % Uint32::limit_max;
+		return qk::hash_code(&shell, sizeof(Basic*)) % Uint32::limit_max;
 	}
 
 	bool Listener::match(ListenerFunc l, void* ctx) {
@@ -113,7 +113,7 @@ namespace qk {
 	class OnLambdaFunctionListener: public Listener {
 	public:
 		OnLambdaFunctionListener(OnLambdaListenerFunc& listener, uint32_t id)
-			: Listener(id ? id : qk::hashCode(&listener, 0) % Uint32::limit_max)
+			: Listener(id ? id : qk::hash_code(&listener, 0) % Uint32::limit_max)
 			, _listener(std::move(listener)) {
 		}
 		void call(Object& evt) override {

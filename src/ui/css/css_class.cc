@@ -132,7 +132,7 @@ namespace qk {
 				_stylesForHaveSubstyles_rt.clear();
 				_stylesForHaveSubstylesHash_rt = Hash5381();
 				for (auto ss: styles) {
-					if (ss->_time /*&& !_firstApply*/) {
+					if (ss->_time && !_firstApply) {
 						_host->window()->actionCenter()->addCSSTransition_rt(_host, ss);
 					} else {
 						ss->apply(_host, true);

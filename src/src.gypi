@@ -7,12 +7,16 @@
 			'../out',
 			'../deps/freetype/include',
 			'../deps/libtess2/Include',
+			'../deps/libjpeg',
 		],
 		'dependencies': [
 			'quark-util', # util
 			'deps/libtess2/libtess2.gyp:libtess2',
 			'deps/freetype/freetype.gyp:freetype',
 			'deps/libgif/libgif.gyp:libgif',
+			'deps/libjpeg/libjpeg.gyp:libjpeg',
+			'deps/libpng/libpng.gyp:libpng',
+			'deps/libwebp/libwebp.gyp:libwebp',
 			'deps/spine/spine.gyp:spine',
 		],
 		'direct_dependent_settings': {
@@ -119,6 +123,9 @@
 			'render/codec/tga.cc',
 			'render/codec/gif.cc',
 			'render/codec/pvrtc.cc',
+			'render/codec/jpeg.cc',
+			'render/codec/png.cc',
+			'render/codec/webp.cc',
 			'render/font/glyphs.h',
 			'render/font/glyphs.cc',
 			'render/font/families.h',
@@ -178,19 +185,6 @@
 					'render/metal/metal_canvas.mm',
 					'render/metal/metal_render.h',
 					'render/metal/metal_render.mm',
-				],
-			}],
-			['os not in "mac ios"', { # not mac mac
-				'dependencies': [
-					'deps/libjpeg/libjpeg.gyp:libjpeg',
-					'deps/libpng/libpng.gyp:libpng',
-					'deps/libwebp/libwebp.gyp:libwebp',
-				],
-				'include_dirs': [ 'deps/libjpeg' ],
-				'sources': [
-					'render/codec/jpeg.cc',
-					'render/codec/png.cc',
-					'render/codec/webp.cc',
 				],
 			}],
 			['os=="linux" or os=="android"', {

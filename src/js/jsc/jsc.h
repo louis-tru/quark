@@ -100,17 +100,6 @@ namespace qk { namespace js {
 		return reinterpret_cast<T>(const_cast<JSValue*>(o));
 	}
 
-	template<typename TO, typename FROM>
-	inline TO bitwise_cast(FROM in) {
-		DCHECK(sizeof(TO) == sizeof(FROM), "WTF_wtf_reinterpret_cast_sizeof_types_is_equal");
-		union {
-			FROM from;
-			TO to;
-		} u;
-		u.from = in;
-		return u.to;
-	}
-
 	void initFactories();
 	void jsFatal(JSContextRef ctx, JSValueRef ex, cChar* msg = 0);
 	String jsToString(JSStringRef value);

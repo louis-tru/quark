@@ -178,7 +178,6 @@ namespace qk { namespace js {
 				Js_Return( worker->types()->jsvalue(path) );
 			});
 			Js_Class_Method(hashCode, {
-				//Js_Return( self->hashCode() & 0x1FFFFFFFFFFFFF );
 				Js_Return( self->hashCode() & 0xffffffff );
 			});
 			cls->exports("Path", exports);

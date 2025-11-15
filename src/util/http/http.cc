@@ -277,7 +277,7 @@ namespace qk {
 		_retain = new RetainRef(this);
 		_pause = false;
 		_url_no_cache_arg = false;
-		_cache_path = http_cache_path() + '/' + hash(_uri.href());
+		_cache_path = http_cache_path() + '/' + hash_str(_uri.href());
 		_write_cache_flag = kNone_WriteCacheFlag; // reset write cache flag
 
 		int i = _uri.search().indexOf("__no_cache");

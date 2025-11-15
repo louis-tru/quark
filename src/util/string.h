@@ -493,11 +493,11 @@ namespace qk {
 		return append(&s, 1);
 	}
 
-	uint64_t hashCode(cVoid* data, uint32_t len);
+	uint64_t hash_code(cVoid* data, uint32_t len);
 
 	template <typename T, typename A>
 	uint64_t StringImpl<T, A>::hashCode() const {
-		return qk::hashCode(c_str(), size());
+		return qk::hash_code(c_str(), size());
 	}
 
 	template <typename T, typename A>

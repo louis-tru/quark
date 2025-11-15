@@ -44,8 +44,7 @@ createCss({
 		width: "100%",
 		height: "100%",
 		backgroundColor: "#0004",
-		// receive={true}
-		// opacity: 0,
+		zIndex: 5,
 	},
 	'.qk_dialog': {
 	},
@@ -186,7 +185,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 		}
 	}
 
-	protected triggerAction(index: number) {
+	triggerAction(index: number) {
 		this.props.onAction?.call(null, index, this);
 		this._autoClose();
 	}
@@ -285,9 +284,7 @@ export class Sheet<P={},S={}> extends Dialog<P,S> {
 		let content = this.content ? this.content :
 			this.children.length ? this.children: null;
 		return (
-			<free width="100%" height="100%" backgroundColor="#0004" visible={false} opacity={0}
-				onClick={()=>this.navigationBack()}
-			>
+			<free class="qk_dialog_bg" visible={false} opacity={0} onClick={()=>this.navigationBack()}>
 			{content?
 				<morph ref="main" class="qk_dialog qk_sheet">{content}</morph>:
 				<morph ref="main" class="qk_dialog qk_sheet">

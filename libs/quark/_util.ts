@@ -361,6 +361,29 @@ export function __listener__(name: string, handle: any) {
 	}
 }
 
+const String_hashCode = String.prototype.hashCode;
+const Buffer_hashCode = (Uint8Array as any).prototype.__proto__.hashCode;
+if (!(globalThis as any)._jscRunning) {
+	// Extend Object prototype
+	String.prototype.hashCode = function() {
+		if (this.length > 256) {
+			// Use native hashCode for long strings to improve performance
+			return _init.hashCode(this);
+		} else {
+			return String_hashCode.call(this);
+		}
+	};
+}
+// Extend Uint8Array prototype
+(Uint8Array as any).prototype.__proto__.hashCode = function() {
+	if (this.length > 256) {
+		// Use native hashCode for long buffers to improve performance
+		return _init.hashCode(this);
+	} else {
+		return Buffer_hashCode.call(this);
+	}
+}
+
 /**
  * @default
 */
@@ -440,11 +463,11 @@ export default {
 	runScript: _init.runScript as (source: string, name?: string, sandbox?: any)=>any,
 
 	/**
-	 * @method hashCode(obj:any)Int
+	 * @method hashCode(obj:any)Uint
 	 * 
 	 * Read the hash value of a data object
 	*/
-	hashCode: _init.hashCode as (obj: any)=>Int,
+	hashCode: _init.hashCode as (obj: any)=>Uint,
 
 	/**
 	 * @method hash(obj:any)string

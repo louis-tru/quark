@@ -325,6 +325,8 @@ function _rerender(Self: ViewController) {
 // will receive the same level of detailed English doc comments.
 // -----------------------------
 
+const mix32 = Number.mix32Fast;
+
 /**
  * Represents a Virtual DOM node.
  * Can be a View, ViewController, or other custom DOM elements.
@@ -346,24 +348,23 @@ export class VirtualDOM<T extends DOM = DOM> {
 	 * @param children Array of child VirtualDOM nodes
 	 */
 	constructor(domC: DOMConstructor<T>, props: Dict | null, children: (VirtualDOM | null)[]) {
-		let hashProp = 5381;
+		let hashProp = 0x811c9dc5; // FNV offset basis
 		if (props) {
 			let hashProps = new Map();
 			for (let prop in props) {
-				let value = props[prop];
-				let hashCode = (prop.hashCode() << 5) + Object.hashCode(value);
-				hashProps.set(prop, hashCode);
-				hashProp += (hashProp << 5) + hashCode;
+				let hash = mix32(prop.hashCode() ^ Object.hashCode(props[prop]));
+				hashProp = mix32(hashProp ^ hash);
+				hashProps.set(prop, hash);
 			}
 			this.props = props;
 			this.hashProps = hashProps;
 		}
-		let hash = (domC.hashCode() << 5) + hashProp;
+		let hash = mix32(domC.hashCode() ^ hashProp)
 
 		if (children.length) {
 			for (let vdom of children) {
 				if (vdom) {
-					hash += (hash << 5) + vdom.hash;
+					hash = mix32(hash ^ vdom.hash);
 				}
 			}
 			this.children = children;
@@ -633,13 +634,13 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 		let hash = this.hash;
 		for (let e of collection) {
 			if (e) {
-				hash += (hash << 5) + e.hash;
+				hash = mix32(hash ^ e.hash);
 				_collection.push(e);
 			}
 		}
 		if (!_collection.length) {
 			let first = new VirtualDOM(View, {key: ''}, []);
-			hash += (hash << 5) + first.hash;
+			hash = mix32(hash ^ first.hash);
 			_collection.push(first);
 		}
 		(this as {hash:number}).hash = hash;

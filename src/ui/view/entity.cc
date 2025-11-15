@@ -246,7 +246,7 @@ namespace qk {
 			painter->set_matrix(&mat); // set entity local matrix
 			Paint paint;
 			paint.antiAlias = false;
-			paint.fill.color = Color4f(1,0,0,0.2f); // red fill
+			paint.fill.color = Color4f(1,0,0,0.2f).premul_alpha(); // red fill
 			if (_bounds.type == kDefault || _bounds.type == kCircle) {
 				// Draw the circle
 				canvas->drawPath(Path::MakeCircle(_circleBounds.center, _circleBounds.radius), paint);

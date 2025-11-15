@@ -361,7 +361,8 @@ export function transition(
 				if (evt.frame !== 1) return;
 				cb(evt); // end
 			} else {
-				errCb(new Error('Bad action instance.'));
+				// errCb(new Error('Bad action instance.'));
+				cb(evt); // error handling, but still call cb to avoid promise hanging
 			}
 			view.onActionKeyframe.off(id);
 		}, id);

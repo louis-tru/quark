@@ -36,29 +36,23 @@ namespace qk {
 #if Qk_APPLE
 	bool mac_img_test(cBuffer& data, PixelInfo* out);
 	bool mac_img_decode(cBuffer& data, Array<Pixel>* out);
-#else
+#endif
 	bool img_jpeg_test(cBuffer& data, PixelInfo* out);
 	bool img_png_test(cBuffer& data, PixelInfo* out);
 	bool img_webp_test(cBuffer& data, PixelInfo* out);
 	bool img_tga_test(cBuffer& data, PixelInfo* out);
+	bool img_gif_test(cBuffer& data, PixelInfo* out);
+	bool img_pvrt_test(cBuffer& data, PixelInfo* out);
 	// decode
 	bool img_jpeg_decode(cBuffer& data, Array<Pixel> *out);
 	bool img_png_decode(cBuffer& data, Array<Pixel> *out);
 	bool img_webp_decode(cBuffer& data, Array<Pixel> *out);
 	bool img_tga_decode(cBuffer& data, Array<Pixel> *out);
-#endif
-
-	bool img_gif_test(cBuffer& data, PixelInfo* out);
 	bool img_gif_decode(cBuffer& data, Array<Pixel> *out);
-	bool img_pvrt_test(cBuffer& data, PixelInfo* out);
 	bool img_pvrt_decode(cBuffer& data, Array<Pixel> *out);
 
 	bool img_test(cBuffer& data, PixelInfo* out, ImageFormat fmt) {
-#if Qk_APPLE
-		return img_gif_test(data, out) || mac_img_test(data, out) || img_pvrt_test(data, out);
-#else
 		bool ok = false;
-
 		switch (fmt) {
 			case kJPEG_ImageFormat: ok = img_jpeg_test(data, out); break;
 			case kGIF_ImageFormat: ok = img_gif_test(data, out); break;
@@ -68,25 +62,24 @@ namespace qk {
 			case kPVRTC_ImageFormat: ok = img_pvrt_test(data, out); break;
 			default: break;
 		}
-
 		if (ok
-			|| img_jpeg_test(data, out)
 			|| img_png_test(data, out)
+			|| img_jpeg_test(data, out)
 			|| img_webp_test(data, out)
 			|| img_gif_test(data, out)
 			|| img_tga_test(data, out)
 			|| img_pvrt_test(data, out)
 		) return true;
+
+#if Qk_APPLE
+		return mac_img_test(data, out);
+#else
 		return false;
 #endif
 	}
 
 	bool img_decode(cBuffer& data, Array<Pixel> *out, ImageFormat fmt) {
-#if Qk_APPLE
-		return img_gif_decode(data, out) || mac_img_decode(data, out) || img_pvrt_decode(data, out);
-#else
 		bool ok = false;
-
 		switch (fmt) {
 			case kJPEG_ImageFormat: ok = img_jpeg_decode(data, out); break;
 			case kGIF_ImageFormat: ok = img_gif_decode(data, out); break;
@@ -96,15 +89,18 @@ namespace qk {
 			case kPVRTC_ImageFormat: ok = img_pvrt_decode(data, out); break;
 			default: break;
 		}
+		if (ok
+			|| img_png_decode(data, out)
+			|| img_jpeg_decode(data, out)
+			|| img_webp_decode(data, out)
+			|| img_gif_decode(data, out)
+			|| img_tga_decode(data, out)
+			|| img_pvrt_decode(data, out)
+		) return true;
 
-		if (ok) return true;
-		if (img_jpeg_decode(data, out)) return true;
-		if (img_png_decode(data, out)) return true;
-		if (img_webp_decode(data, out)) return true;
-		if (img_gif_decode(data, out)) return true;
-		if (img_tga_decode(data, out)) return true;
-		if (img_pvrt_decode(data, out)) return true;
-
+#if Qk_APPLE
+		return mac_img_decode(data, out);
+#else
 		Qk_DLog("img_decode: Can't parse image data");
 		return false;
 #endif

@@ -439,11 +439,27 @@ namespace qk { namespace js {
 	}
 
 	struct NativeInit {
-		static Hash5381 get_hashCode(Worker *worker, FunctionArgs args) {
-			Hash5381 hash;
-			String2 str = args[0]->toString(worker)->value2(worker);
-			hash.updateu16v(str.c_str(), str.length());
-			return hash;
+		static uint64_t get_hashCode(Worker *worker, FunctionArgs args) {
+			WeakBuffer buff;
+			double num;
+			bool boolean;
+			if (args[0]->isString()) {
+				auto str = args[0]->cast<JSString>()->value2(worker);
+				return hash_code(str.c_str(), str.length() << 1);
+			}
+			else if (args[0]->asNumber(worker).to(num)) {
+				return mix64( bitwise_cast<uint64_t>(num) );
+			}
+			else if (args[0]->asBuffer(worker).to(buff)) {
+				return hash_code(buff.val(), buff.length());
+			}
+			else if (args[0]->asBoolean(worker).to(boolean)) {
+				return boolean ? 0x345678 : 0x123456;
+			}
+			else {
+				auto str = args[0]->toString(worker)->value2(worker);
+				return hash_code(str.c_str(), str.length() << 1);
+			}
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
@@ -471,14 +487,17 @@ namespace qk { namespace js {
 			Js_Method(hashCode, {
 				if (!args.length())
 					Js_Throw("Bad argument");
-				Js_Return( get_hashCode(worker, args).hashCode() );
+				uint64_t hash = get_hashCode(worker, args);
+				uint32_t u32 = mix32(uint32_t(hash >> 32) ^ uint32_t(hash & 0xFFFFFFFF));
+				Js_Return( u32 );
 			});
 
 			Js_Method(hash, {
 				if (!args.length()) {
 					Js_Throw("Bad argument");
 				}
-				Js_Return( get_hashCode(worker, args).digest() );
+				uint64_t hash = get_hashCode(worker, args);
+				Js_Return( hash_digest(hash) );
 			});
 
 			Js_Method(nextTick, {

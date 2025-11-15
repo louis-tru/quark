@@ -150,7 +150,7 @@ namespace qk {
 
 	Sp<SkeletonData> SkeletonData::Make(cBuffer &skelBuff,cString &atlasPath, float scale) throw(Error)
 	{
-		auto key0 = hash(skelBuff.val(), skelBuff.length());
+		auto key0 = hash_str(skelBuff.val(), skelBuff.length());
 		auto key = fs_format("%s|%s|%f", *key0, *atlasPath, scale);
 		Sp<qk::SkeletonData> *out;
 		if (_skeletonCache.get(key, out))
@@ -162,8 +162,8 @@ namespace qk {
 	Sp<SkeletonData> SkeletonData::Make(cBuffer &skel,
 		cBuffer &atlasBuf, cString &dir, float scale) throw(Error)
 	{
-		auto key0 = hash(skel.val(), skel.length());
-		auto key1 = hash(atlasBuf.val(), atlasBuf.length());
+		auto key0 = hash_str(skel.val(), skel.length());
+		auto key1 = hash_str(atlasBuf.val(), atlasBuf.length());
 		auto key = fs_format("%s|%s|%s|%f", *key0, *key1, *dir, scale);
 		Sp<qk::SkeletonData> *out;
 		if (_skeletonCache.get(key, out))

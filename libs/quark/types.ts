@@ -1510,12 +1510,14 @@ export class Bounds extends Base<Bounds> {
 	get p3() { return this.radius }
 	get p4() { return this.pts; }
 	hashCode(): N { //!<
-		let _hash = 5381;
-		_hash += (_hash << 5) + this.type;
-		_hash += (_hash << 5) + this.offset.x;
-		_hash += (_hash << 5) + this.offset.y;
-		_hash += (_hash << 5) + this.radius;
-		_hash += (_hash << 5) + Object.hashCode(this.pts);
+		const mix32 = Number.mix32Fast;
+		const hashCode = Object.hashCode;
+		let _hash = 0x811c9dc5; // FNV offset basis
+		_hash = mix32(_hash ^ hashCode(this.type));
+		_hash = mix32(_hash ^ hashCode(this.offset.x));
+		_hash = mix32(_hash ^ hashCode(this.offset.y));
+		_hash = mix32(_hash ^ hashCode(this.radius));
+		_hash = mix32(_hash ^ hashCode(this.pts));
 		return _hash;
 	}
 }
@@ -2355,24 +2357,24 @@ function parseCmd(val: string, msg?: string) {
 		while(index < valLen && val[index-1] != ')') {
 			let char = val[index];
 			let m = (parseCmdNext[char as '"'] || parseCmdNext._)(val.substring(index));
-			if (m) {
-				let arg = m[1];
-				let m2 = arg.match(parseCmdReg[5]);
-				if (m2) { // is k/v
-					let k = m2[1];
-					let v = arg.substring(k.length + 1);
-					// if (k.match(parseCmdReg[5])) {
-					if (k in kv) {
-						kv[k].push(v);
-					} else {
-						kv[k] = [v];
-					}
-					// }
+			if (!m)
+				break;
+			let arg = m[1];
+			let m2 = arg.match(parseCmdReg[5]);
+			if (m2) { // is k/v
+				let k = m2[1];
+				let v = arg.substring(k.length + 1);
+				// if (k.match(parseCmdReg[5])) {
+				if (k in kv) {
+					kv[k].push(v);
 				} else {
-					args.push(arg.split(parseCmdReg[4]));
+					kv[k] = [v];
 				}
-				index += m[0].length;
+				// }
+			} else {
+				args.push(arg.split(parseCmdReg[4]));
 			}
+			index += m[0].length;
 		}
 		if (args.length)
 			return {val: cmd, kv, args};

@@ -60,7 +60,7 @@ namespace qk {
 	{
 		auto hash = path.hashCode();
 		auto hash_part = ((*(int64_t*)&width) << 32) | *(int32_t*)&miterLimit;
-		hash += (hash << 5) + hash_part + ((cap << 2) | join);
+		hash = (hash << 5) + hash_part + ((cap << 2) | join);
 		Path *const*out;
 		if (_StrokePathCache.get(hash, out))
 			return **out;
@@ -84,7 +84,7 @@ namespace qk {
 
 	const VertexData& PathvCache::getAAFuzzStrokeTriangle(const Path &path, float width) {
 		auto hash = path.hashCode();
-		hash += (hash << 5) + (int32_t&)width;
+		hash = (hash << 5) + (int32_t&)width;
 		//Qk_DLog("getAAFuzzTriangle, %lu", hash);
 		Wrap<VertexData> *const *out;
 		if (_AAFuzzStrokeTriangleCache.get(hash, out))
