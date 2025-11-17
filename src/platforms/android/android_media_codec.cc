@@ -282,7 +282,7 @@ namespace qk {
 
 		void close() override {
 			if ( _isOpen ) {
-				Qk_ASSERT_EQ(AMediaCodec_stop(_codec.get()), 0);
+				Qk_ASSERT_EQ(0, AMediaCodec_stop(_codec.get()));
 				_codec = nullptr;
 				_isOpen = false;
 				_pending = 0;
@@ -346,7 +346,7 @@ namespace qk {
 			if (!extractor || !_isOpen) {
 				return AVERROR(EINVAL);
 			}
-			Qk_ASSERT_EQ(type(), extractor->type());
+			Qk_ASSERT(type() == extractor->type());
 
 			if (!_packet) {
 				_packet = extractor->advance();

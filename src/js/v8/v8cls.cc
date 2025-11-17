@@ -62,7 +62,7 @@ namespace qk { namespace js {
 	MixObject* MixObject::unpack(JSValue* obj) {
 		Qk_ASSERT_NE(obj, nullptr);
 		auto v8obj = reinterpret_cast<v8::Object*>(obj);
-		Qk_ASSERT_GT(v8obj->InternalFieldCount(), 0);
+		Qk_ASSERT_GT(0, v8obj->InternalFieldCount());
 		return static_cast<MixObject*>(v8obj->GetAlignedPointerFromInternalField(0));
 	}
 
@@ -118,7 +118,7 @@ namespace qk { namespace js {
 			if (_func.isEmpty()) { // Gen constructor
 				auto v8cls = static_cast<V8JSClass*>(this);
 				auto f = v8cls->Template()->GetFunction(CONTEXT(_worker)).ToLocalChecked();
-				Qk_ASSERT_EQ(f.IsEmpty(), false);
+				Qk_ASSERT_EQ(false, f.IsEmpty());
 				if (v8cls->HasBaseFunction()) {
 					auto str = Back(_worker->strs()->prototype());
 					auto base = v8cls->BaseFunction();

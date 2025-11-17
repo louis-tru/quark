@@ -91,10 +91,10 @@ namespace qk {
 		bool open(const Stream *stream) override {
 			if ( !avcodec_is_open(_ctx) ) {
 				if (!stream) stream = &_stream;
-				Qk_ASSERT_EQ(stream->codec_id, _stream.codec_id);
+				Qk_ASSERT(stream->codec_id == _stream.codec_id);
 				ScopeLock lock(_mutex);
 				Qk_ASSERT(_ctx->codec);
-				Qk_ASSERT_EQ(_ctx->codec_id, stream->extra.codecpar->codec_id);
+				Qk_ASSERT(_ctx->codec_id == stream->extra.codecpar->codec_id);
 
 				if ( _threads > 1 ) { // set threads
 					if (    (_ctx->codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
@@ -170,7 +170,7 @@ namespace qk {
 			if (!extractor || !avcodec_is_open(_ctx)) {
 				return AVERROR(EINVAL);
 			}
-			Qk_ASSERT_EQ(type(), extractor->type());
+			Qk_ASSERT(type() == extractor->type());
 
 			ScopeLock scope(_mutex);
 			if (!_packet) {

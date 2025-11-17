@@ -284,7 +284,8 @@ namespace qk {
 		}
 
 		void trigger_file_write(File* file, Buffer& buffer, int extra) override {
-			_write_count--; Qk_ASSERT(_write_count >= 0);
+			_write_count--;
+			Qk_ASSERT(_write_count >= 0);
 			if (extra == 0) {
 				_client->trigger_http_data2(buffer);
 			}

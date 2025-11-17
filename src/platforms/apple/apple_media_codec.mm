@@ -296,7 +296,7 @@ namespace qk {
 			if (!extractor || !_session) {
 				return AVERROR(EINVAL);
 			}
-			Qk_ASSERT_EQ(type(), extractor->type());
+			Qk_ASSERT(type() == extractor->type());
 
 			Lock lock(_mutex);
 			if (!_packet) {

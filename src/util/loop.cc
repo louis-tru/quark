@@ -236,7 +236,7 @@ namespace qk {
 		}, [](uv_work_t* req, int status) {
 			auto self = static_cast<work_t*>(req->data);
 			auto host = _inl(self->host);
-			Qk_ASSERT_EQ(host->_tid, thread_self_id());
+			Qk_ASSERT_EQ(thread_self_id(), host->_tid);
 			host->_work.erase(self->id);
 			if (UV_ECANCELED != status) // no cancel
 				self->done->resolve(host);

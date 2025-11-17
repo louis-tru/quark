@@ -176,7 +176,7 @@ namespace qk {
 		off2(false);
 	}
 
-	void Basic::off_for_id(uint32_t id) {
+	void Basic::off_by_id(uint32_t id) {
 		if (_listener) {
 			lock();
 			auto it = _listener->find(id);
@@ -191,7 +191,7 @@ namespace qk {
 	void Basic::off_listener(ListenerFunc listener, void* ctx) {
 		if (_listener) {
 			if (listener && ctx)
-				return off_for_id(ev_hash_code(listener, ctx));
+				return off_by_id(ev_hash_code(listener, ctx));
 			lock();
 			auto l = _listener;
 			for (auto &it : *l) {
@@ -208,7 +208,7 @@ namespace qk {
 	void Basic::off_static(StaticListenerFunc listener, void* ctx) {
 		if (_listener) {
 			if (listener && ctx)
-				return off_for_id(ev_hash_code(listener, ctx));
+				return off_by_id(ev_hash_code(listener, ctx));
 			lock();
 			auto l = _listener;
 			for (auto &it : *l) {
@@ -230,12 +230,12 @@ namespace qk {
 		off_static(l, nullptr);
 	}
 
-	void Basic::off_for_ctx(void *ctx) {
+	void Basic::off_by_ctx(void *ctx) {
 		off_static(nullptr, ctx);
 	}
 
 	void Basic::off_shell(EventNoticerBasic* shell) {
-		off_for_id(ev_hash_code(shell));
+		off_by_id(ev_hash_code(shell));
 	}
 
 	void Basic::trigger_event(Object& event) {
@@ -370,15 +370,7 @@ namespace qk {
 			trigger_listener_change(name, del->count(), -1);
 		}
 	}
-	
-	void NotificationBasic::remove_event_listener_for_id(uint64_t name, uint32_t id) {
-		auto del = get_noticer(name);
-		if (del) {
-			del->off_for_id(id);
-			trigger_listener_change(name, del->count(), -1);
-		}
-	}
-	
+
 	void NotificationBasic::remove_event_listener_shell(uint64_t name, Basic *shell) {
 		auto del = get_noticer(name);
 		if (del) {
@@ -386,20 +378,28 @@ namespace qk {
 			trigger_listener_change(name, del->count(), -1);
 		}
 	}
-	
-	void NotificationBasic::remove_event_listener_for_ctx(void* ctx) {
+
+	void NotificationBasic::remove_event_listener_by_id(uint64_t name, uint32_t id) {
+		auto del = get_noticer(name);
+		if (del) {
+			del->off_by_id(id);
+			trigger_listener_change(name, del->count(), -1);
+		}
+	}
+
+	void NotificationBasic::remove_event_listener_by_ctx(void* ctx) {
 		if (_noticers) {
 			for ( auto i : *_noticers ) {
-				i.second->off_for_ctx(ctx);
+				i.second->off_by_ctx(ctx);
 				trigger_listener_change(i.first, i.second->count(), -1);
 			}
 		}
 	}
 
-	void NotificationBasic::remove_event_listener_for_id(uint64_t id) {
+	void NotificationBasic::remove_event_listener_by_id(uint64_t id) {
 		if (_noticers) {
 			for ( auto i : *_noticers ) {
-				i.second->off_for_id(id);
+				i.second->off_by_id(id);
 				trigger_listener_change(i.first, i.second->count(), -1);
 			}
 		}
@@ -421,19 +421,23 @@ namespace qk {
 		}
 	}
 
-	void NotificationBasic::remove_event_listener_for_name(uint64_t name) {
+	void NotificationBasic::remove_event_listener_by_name(uint64_t name) {
 		auto del = get_noticer(name);
 		if (del) {
+			auto count = del->count();
 			del->off_all();
-			trigger_listener_change(name, del->count(), -1);
+			Qk_ASSERT_EQ(del->count(), 0);
+			trigger_listener_change(name, 0, -count);
 		}
 	}
 
 	void NotificationBasic::remove_event_listener() {
 		if (_noticers) {
 			for ( auto i : *_noticers ) {
+				auto count = i.second->count();
 				i.second->off_all();
-				trigger_listener_change(i.first, i.second->count(), -1);
+				Qk_ASSERT_EQ(i.second->count(), 0);
+				trigger_listener_change(i.first, 0, -count);
 			}
 		}
 	}

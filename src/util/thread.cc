@@ -112,7 +112,7 @@ namespace qk {
 	static void thread_set_thread_data(Thread_INL *t) {
 		//Qk_ASSERT(!pthread_getspecific(__th_key));
 		//pthread_setspecific(__th_key, t);
-		Qk_ASSERT(!uv_key_get(&__th_key));
+		Qk_ASSERT_EQ(uv_key_get(&__th_key), nullptr);
 		uv_key_set(&__th_key, t);
 	}
 

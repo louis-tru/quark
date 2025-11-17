@@ -36,22 +36,22 @@
 /* can bubble event */ \
 F(Click, Click, kBubble_UIEventFlags) \
 F(Back, Click, kBubble_UIEventFlags) \
-F(KeyDown, Keyboard, kBubble_UIEventFlags) \
+F(KeyDown, Keyboard, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(KeyPress, Keyboard, kBubble_UIEventFlags) \
-F(KeyUp, Keyboard, kBubble_UIEventFlags) \
+F(KeyUp, Keyboard, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(KeyEnter, Keyboard, kBubble_UIEventFlags) \
-F(TouchStart, Touch, kBubble_UIEventFlags) \
-F(TouchMove, Touch, kBubble_UIEventFlags) \
-F(TouchEnd, Touch, kBubble_UIEventFlags) \
-F(TouchCancel, Touch, kBubble_UIEventFlags) \
+F(TouchStart, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
+F(TouchMove, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
+F(TouchEnd, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
+F(TouchCancel, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(MouseOver, Mouse, kBubble_UIEventFlags) \
 F(MouseOut, Mouse, kBubble_UIEventFlags) \
 F(MouseLeave, Mouse, kBubble_UIEventFlags) \
 F(MouseEnter, Mouse, kBubble_UIEventFlags) \
-F(MouseMove, Mouse, kBubble_UIEventFlags) \
-F(MouseDown, Mouse, kBubble_UIEventFlags) \
-F(MouseUp, Mouse, kBubble_UIEventFlags) \
-F(MouseWheel, Mouse, kBubble_UIEventFlags) \
+F(MouseMove, Mouse, kBubble_UIEventFlags | kSystem_UIEventFlags) \
+F(MouseDown, Mouse, kBubble_UIEventFlags | kSystem_UIEventFlags) \
+F(MouseUp, Mouse, kBubble_UIEventFlags | kSystem_UIEventFlags) \
+F(MouseWheel, Mouse, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(Focus, Default, kBubble_UIEventFlags) \
 F(Blur, Default, kBubble_UIEventFlags) \
 F(Highlighted, Highlighted, kBubble_UIEventFlags) /* normal / hover / down */ \

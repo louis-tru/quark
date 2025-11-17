@@ -36,7 +36,7 @@ namespace qk { namespace js {
 	struct MixWindow: MixObject {
 		typedef Window Type;
 
-		virtual bool addEventListener(cString& name, cString& func, int id) {
+		virtual bool addEventListener(cString& name, cString& func, uint32_t id) {
 			if ( name == "Change" ) {
 				self<Type>()->Js_Native_On(Change, func, id);
 			} else if ( name == "Background" ) {
@@ -50,7 +50,7 @@ namespace qk { namespace js {
 			return true;
 		}
 
-		virtual bool removeEventListener(cString& name, int id) {
+		virtual bool removeEventListener(cString& name, uint32_t id) {
 			if ( name == "Change" ) {
 				self<Type>()->Qk_Off(Change, id);
 			} else if ( name == "Background" ) {

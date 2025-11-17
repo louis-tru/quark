@@ -113,9 +113,9 @@ namespace qk {
 		void off_listener(ListenerFunc l);
 		void off_static(StaticListenerFunc l, void* ctx);
 		void off_static(StaticListenerFunc l);
-		void off_for_ctx(void *ctx);
 		void off_shell(EventNoticerBasic* shell);
-		void off_for_id(uint32_t id);
+		void off_by_ctx(void *ctx);
+		void off_by_id(uint32_t id);
 		void off_all(); // off all
 		void trigger_event(Object& event);
 		void add_listener(Listener *l);
@@ -150,13 +150,13 @@ namespace qk {
 		void remove_event_listener(uint64_t name, void (Object::*listener)(Object&), void *ctx);
 		void remove_event_listener_static(uint64_t name, void (*listener)(Object&, void*));
 		void remove_event_listener_static(uint64_t name, void (*listener)(Object&, void*), void* ctx);
-		void remove_event_listener_for_id(uint64_t name, uint32_t id);
 		void remove_event_listener_shell(uint64_t name, Basic *shell);
-		void remove_event_listener_for_ctx(void* ctx);
-		void remove_event_listener_for_id(uint64_t id);
+		void remove_event_listener_by_id(uint64_t name, uint32_t id);
+		void remove_event_listener_by_ctx(void* ctx);
+		void remove_event_listener_by_id(uint64_t id);
 	protected:
 		// Uninstall all listening functions on the specified event name
-		void remove_event_listener_for_name(uint64_t name);
+		void remove_event_listener_by_name(uint64_t name);
 		// Uninstall all listening functions
 		void remove_event_listener();
 
@@ -206,7 +206,7 @@ namespace qk {
 
 		template<class Ctx>
 		void off(Ctx* ctx) {
-			off_for_ctx(ctx);
+			off_by_ctx(ctx);
 		}
 
 		template<class Ctx>
@@ -218,13 +218,13 @@ namespace qk {
 		void off( void (*listener)(Event&, Ctx*), Ctx* ctx) {
 			off_static((StaticListenerFunc)listener, ctx);
 		}
-		
+
 		void off(EventNoticer* shell) {
 			off_shell(shell);
 		}
 
 		void off(uint32_t id) {
-			off_for_id(id);
+			off_by_id(id);
 		}
 
 		void off() {
@@ -330,26 +330,26 @@ namespace qk {
 			remove_event_listener_static(name.hashCode(), (Basic::StaticListenerFunc)listener, ctx);
 		}
 
-		void remove_event_listener(const Name& name, uint32_t id) {
-			remove_event_listener_for_id(name.hashCode(), id);
-		}
-
 		void remove_event_listener(const Name& name, Noticer* shell) {
 			remove_event_listener_shell(name.hashCode(), shell);
 		}
 
+		void remove_event_listener(const Name& name, uint32_t id) {
+			remove_event_listener_by_id(name.hashCode(), id);
+		}
+
 		template<class Ctx>
 		void remove_event_listener(Ctx* ctx) {
-			remove_event_listener_for_ctx(ctx);
+			remove_event_listener_by_ctx(ctx);
 		}
 
 		void remove_event_listener(uint32_t id) {
-			remove_event_listener_for_id(id);
+			remove_event_listener_by_id(id);
 		}
 
 		// Uninstall all listening functions on the specified event name
 		void remove_event_listener(const Name& name) {
-			remove_event_listener_for_name(name.hashCode());
+			remove_event_listener_by_name(name.hashCode());
 		}
 
 		void trigger(const Name& name) {

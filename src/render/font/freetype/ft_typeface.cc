@@ -1338,7 +1338,7 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		Qk_ASSERT(0, "Unknown glyph format"); Return();
 	}
 
-	PixelInfo info(w, h, type);
+	PixelInfo info(w, h, type, kUnknown_AlphaType);
 	Pixel pixel(info, Buffer(info.bytes()));
 	memset(pixel.val(), 0, pixel.length());
 

@@ -215,6 +215,7 @@ namespace qk {
 	}
 
 	Render* make_gl_render(Render::Options opts) {
+		// iOS only allows one window and one drawing context
 		Qk_CHECK(!g_sharedRenderResource,
 			"The iOS system only allows one window and one drawing context"
 		);
@@ -224,11 +225,16 @@ namespace qk {
 			return nullptr;
 		[EAGLContext setCurrentContext:ctx];
 		Qk_ASSERT(EAGLContext.currentContext, "Failed to set current OpenGL context");
+
+		// disable multithreaded for iOS
 		ctx.multiThreaded = NO;
 
+		// iOS only create one window and one drawing context
+		// so we use a render backend as shared render resource
 		g_sharedRenderResource = new IosGLRender(opts, ctx);
 
 		g_sharedRenderResource->post_message(Cb([ctx](auto e) {
+			// set current context in render thread
 			[EAGLContext setCurrentContext:ctx];
 		}));
 

@@ -263,14 +263,14 @@ export function createAction(win: Window, arg: ActionIn, parent?: Action): Actio
 		} else if (arg) {
 			if (arg.seq) { // SequenceAction
 				let seq = arg.seq;
-				util.assert(Array.isArray(seq));
+				util.assert(Array.isArray(seq), 'Bad seq attribute.');
 				action = Object.assign(new exports.SequenceAction(win), arg);
 				for (let i of seq) {
 					createAction(win, i, action as SequenceAction);
 				}
 			} else if (arg.spawn) { // SpawnAction
 				let spawn = arg.spawn;
-				util.assert(Array.isArray(spawn));
+				util.assert(Array.isArray(spawn), 'Bad spawn attribute.');
 				action = Object.assign(new exports.SpawnAction(win), arg);
 				for (let i of spawn) {
 					createAction(win, i, action as SequenceAction);

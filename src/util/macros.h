@@ -117,19 +117,45 @@
 # define Qk_LIKELY(expr) expr
 # define Qk_UNLIKELY(expr) expr
 #endif
-
+// Qk_CHECK(cond)
+// Runtime validation (VERIFY).
+// - Always evaluated (Debug & Release)
+// - If `cond` fails: abort via qk::Fatal(...)
+// - Use for critical invariants that must never continue execution.
+//
+// Debug: include file/line/function information in crash report.
+// Release: omit debug info to reduce binary size & avoid leaking internals.
 #if DEBUG
-#define Qk_CHECK(cond, ...) \
-	if (Qk_UNLIKELY(!(cond))) ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define Qk_CHECK(cond, ...) if (Qk_UNLIKELY(!(cond))) \
+	do { ::qk::Fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__); } while(0)
 #else
-#define Qk_CHECK(cond, ...) if (Qk_UNLIKELY(!(cond))) ::qk::Fatal("", 0, "", ##__VA_ARGS__)
+#define Qk_CHECK(cond, ...) if (Qk_UNLIKELY(!(cond))) \
+	do { ::qk::Fatal("", 0, "", ##__VA_ARGS__); } while(0)
 #endif
+// Qk_ASSERT(cond):
+//   - Debug: evaluate `cond`, if false then trigger Qk_CHECK failure handling.
+//   - Release: completely removed (`cond` is NOT evaluated).
+//   - Rule: DO NOT put expressions with side effects in `cond`.
+//
+// Qk_ASSERT_OP(a, op, b):
+//   - Debug: evaluate `(a op b)` and trigger failure if false.
+//   - Release: evaluate and return `(b)` only; `(a)` and comparison are removed.
+//   - Rule: put side-effect expressions on the RIGHT side (`b`).
+//
+// Convenience macros (EQ, NE, GE, LE, GT, LT):
+//   - Expand to Qk_ASSERT_OP((a), op, (b))
+//   - Same Debug/Release rules apply.
+//
+// Summary:
+//   Use Qk_ASSERT(cond)         → Debug-only assertion (no side effects allowed)
+//   Use Qk_ASSERT_OP(a, op, b)  → Assert + preserve side-effects in Release
+// ----------------------------------------------------------------------------
 #if DEBUG
 # define Qk_ASSERT Qk_CHECK
 # define Qk_ASSERT_OP(a, op, b, ...) Qk_CHECK(((a) op (b)), ##__VA_ARGS__)
 #else
-# define Qk_ASSERT(cond, ...) ((void)(cond))
-# define Qk_ASSERT_OP(a, op, b, ...) ((void)((a) op (b)))
+# define Qk_ASSERT(cond, ...) ((void)0) // removed entirely (no execution)
+# define Qk_ASSERT_OP(a, op, b, ...) ((void)b) // only execute `b` in release
 #endif
 #define Qk_ASSERT_EQ(a, b, ...) Qk_ASSERT_OP((a), ==, (b), ##__VA_ARGS__)
 #define Qk_ASSERT_NE(a, b, ...) Qk_ASSERT_OP((a), !=, (b), ##__VA_ARGS__)

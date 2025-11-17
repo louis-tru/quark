@@ -78,8 +78,8 @@ namespace qk { namespace js {
 		virtual MorphView*   asMorphView();
 		virtual Player*      asPlayer();
 		virtual NotificationBasic* asNotificationBasic();
-		virtual bool addEventListener(cString& name_, cString& func, int id) override;
-		virtual bool removeEventListener(cString& name, int id) override;
+		virtual bool addEventListener(cString& name_, cString& func, uint32_t id) override;
+		virtual bool removeEventListener(cString& name, uint32_t id) override;
 	};
 
 	class Qk_EXPORT MixViewObject: public MixUIObject {

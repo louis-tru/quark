@@ -345,7 +345,7 @@ export class Bubbles<P={},S={}> extends Navigation<{
 	}
 
 	protected triggerUnload(): void {
-		this.window.onChange.off(this);
+		this.window.onChange.offByCtx(this);
 		super.triggerUnload();
 	}
 

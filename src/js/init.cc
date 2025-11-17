@@ -514,9 +514,9 @@ namespace qk { namespace js {
 				if ( ! MixObject::mix(args[0]) ) {
 					Js_Throw("Bad argument");
 				}
-				int id = 0;
-				if ( args.length() > 3 && args[3]->isInt32() ) {
-					id = args[3]->toInt32(worker)->value();
+				uint32_t id = 0;
+				if ( args.length() > 3) {
+					args[3]->asUint32(worker).to(id);
 				}
 				{ HandleScope scope(worker);
 					MixObject* mix = MixObject::mix(args[0]);
@@ -537,9 +537,9 @@ namespace qk { namespace js {
 				if ( ! MixObject::mix(args[0]) ) {
 					Js_Throw("Bad argument");
 				}
-				int id = 0;
-				if ( args.length() > 2 && args[2]->isInt32() ) {
-					id = args[2]->toInt32(worker)->value();
+				uint32_t id = 0;
+				if ( args.length() > 2 ) {
+					args[2]->asUint32(worker).to(id);
 				}
 				{ HandleScope scope(worker);
 					String name = args[1]->toString(worker)->value(worker);

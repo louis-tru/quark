@@ -236,7 +236,7 @@ namespace qk {
 			env->DeleteLocalRef(env->CallObjectMethod(_buffer, _buffer_rewind));
 			Qk_ASSERT(_bufferHold.length() >= frame->linesize[0]);
 			// copy pcm data
-			Qk_ASSERT_EQ(env->GetDirectBufferAddress(_buffer), _bufferHold.val());
+			Qk_ASSERT(env->GetDirectBufferAddress(_buffer) == _bufferHold.val());
 			memcpy(_bufferHold.val(), frame->data[0], frame->linesize[0]);
 			// write pcm data
 			jint r = env->CallIntMethod(_self, _write, _buffer, frame->linesize[0], 1);

@@ -143,7 +143,7 @@ namespace ws {
 	}
 
 	// WebSocket Packet Parser
-	export class PacketParser extends Notification<PacketEventNotice> {
+	export class PacketParser extends Notification<Event<PacketParser>> {
 		private state: State = {
 			activeFragmentedOperation: null,
 			lastFragment: false,
@@ -160,8 +160,8 @@ namespace ws {
 		@event readonly onText: PacketEventNotice<string>;
 		@event readonly onData: PacketEventNotice<Buffer>;
 		@event readonly onError: PacketEventNotice<Error>;
-		@event readonly onPing: PacketEventNotice;
-		@event readonly onPong: PacketEventNotice;
+		@event readonly onPing: PacketEventNotice<Buffer>;
+		@event readonly onPong: PacketEventNotice<Buffer>;
 
 		private opcodeHandlers: { [opcode: string]: (data: Buffer)=>void } = {
 			'1': (data: Buffer)=>{ // text
@@ -194,7 +194,7 @@ namespace ws {
 			},
 			// 0x3 - 0x7: Retain, for non-control frame
 			'8': (data: Buffer)=>{ // close
-				this.onClose.trigger({});
+				this.onClose.trigger();
 				this.reset();
 			},
 			'9': (data: Buffer)=>{ // ping

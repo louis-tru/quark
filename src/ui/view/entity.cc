@@ -242,18 +242,20 @@ namespace qk {
 			auto lastMatrix = painter->matrix();
 			auto canvas = painter->canvas();
 			Mat mat = matrix();
-			mat.translate(-translate());
+			mat[0] /= _scale.x(); // inverse scale x
+			mat[4] /= _scale.y(); // 	inverse scale y
+			mat.translate(_circleBounds.center-translate()); // offset to center
 			painter->set_matrix(&mat); // set entity local matrix
 			Paint paint;
 			paint.antiAlias = false;
 			paint.fill.color = Color4f(1,0,0,0.2f).premul_alpha(); // red fill
 			if (_bounds.type == kDefault || _bounds.type == kCircle) {
 				// Draw the circle
-				canvas->drawPath(Path::MakeCircle(_circleBounds.center, _circleBounds.radius), paint);
+				canvas->drawPath(Path::MakeCircle({0}, _circleBounds.radius), paint);
 			} else if (_bounds.type == kPolygon || _bounds.type == kLineSegment) {
 				Path path;
 				for (auto v: ptsOfBounds()) {
-					path.lineTo(v); // Draw line to each point
+					path.lineTo(v - _circleBounds.center); // Draw line to each point
 				}
 				if (_bounds.type == kLineSegment) {
 					paint.style = Paint::kStroke_Style;

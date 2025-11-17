@@ -68,7 +68,7 @@ namespace qk {
 
 	Display* openXDisplay() {
 		static XDisplayAuto xdpy([]() {
-			Qk_ASSERT(XInitThreads(), "Error: Can't init X threads");
+			Qk_ASSERT_EQ(1, XInitThreads(), "Error: Can't init X threads");
 			auto xdpy = XOpenDisplay(nullptr);
 			Qk_CHECK(xdpy, "Can't open display");
 			return xdpy;
@@ -325,7 +325,7 @@ namespace qk {
 				Qk_CHECK(eglMakeCurrent(_display, _surface, _surface, _context),
 					"Unable to create a drawing surface");
 			}
-			Qk_ASSERT_EQ(_renderThreadId, thread_self_id());
+			Qk_ASSERT_EQ(thread_self_id(), _renderThreadId);
 		}
 
 		void renderLoopRun() {

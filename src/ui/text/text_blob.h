@@ -70,6 +70,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(TextOptions*, opts);
 		Qk_DEFINE_PROP_GET(Array<TextBlob>*, blobOut);
 		Qk_DEFINE_PROP_GET(uint32_t, index_of_unichar, Const);
+		Qk_DEFINE_PROPERTY(float, text_size, Const);
 		void make(cString& text);
 		void make(Array<Array<Unichar>>& lines);
 		void make(Array<Array<Unichar>>&& lines);

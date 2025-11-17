@@ -128,7 +128,7 @@ namespace qk { namespace js {
 	struct MixHttpClientRequest: MixObject {
 		typedef HttpClientRequest Type;
 
-		virtual bool addEventListener(cString& name, cString& func, int id) {
+		virtual bool addEventListener(cString& name, cString& func, uint32_t id) {
 			auto _del = &self<Type>()->_del;
 			if ( id != 0 )
 				return 0; // 只接收id==0的监听器
@@ -154,7 +154,7 @@ namespace qk { namespace js {
 			return true;
 		}
 
-		virtual bool removeEventListener(cString& name, int id) {
+		virtual bool removeEventListener(cString& name, uint32_t id) {
 			auto _del = &self<Type>()->_del;
 			if ( id != 0 || !_del )
 				return 0;

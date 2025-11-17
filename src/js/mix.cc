@@ -72,11 +72,11 @@ namespace qk { namespace js {
 
 	// ------------------------- W r a p . O b j e c t -------------------------
 
-	bool MixObject::addEventListener(cString& name, cString& func, int id) {
+	bool MixObject::addEventListener(cString& name, cString& func, uint32_t id) {
 		return false;
 	}
 
-	bool MixObject::removeEventListener(cString& name, int id) {
+	bool MixObject::removeEventListener(cString& name, uint32_t id) {
 		return false;
 	}
 
@@ -106,7 +106,7 @@ namespace qk { namespace js {
 
 	MixObject* MixObject::newInit(FunctionArgs args) {
 		Qk_ASSERT_EQ(_handle, nullptr);
-		Qk_ASSERT_EQ(true, args.isConstructCall());
+		Qk_ASSERT_EQ(args.isConstructCall(), true);
 		auto worker = args.worker();
 		_class = worker->classes()->_runClass;
 		Qk_ASSERT_NE(_class, nullptr);

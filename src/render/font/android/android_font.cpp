@@ -248,7 +248,7 @@ protected:
 	 *  exist among the families.
 	 */
 	uint32_t onCountFamilies() const override {
-		Qk_ASSERT_EQ(fNameToFamilyMap.length(), fFamilyNames.length());
+		Qk_ASSERT(fNameToFamilyMap.length() == fFamilyNames.length());
 		return fNameToFamilyMap.length();
 	}
 
@@ -290,7 +290,7 @@ protected:
 			cString& langTag, Unichar character)
 	{
 		for (auto &it: fallbackNameToFamilyMap) {
-			auto families = it.value;
+			auto families = it.second;
 			if (familiesName != families->fFallbackFor) {
 				continue;
 			}
@@ -423,7 +423,7 @@ private:
 		for (FontFamily* families : families) {
 			addFamily(*families, isolated, familiesIndex++);
 			for (auto& it : families->fallbackFamilies) {
-				addFamily(*it.value.get(), isolated, familiesIndex++);
+				addFamily(*it.second.get(), isolated, familiesIndex++);
 			}
 		}
 	}

@@ -37,7 +37,7 @@ namespace qk { namespace js {
 	struct MixScreen: MixObject {
 		typedef Screen Type;
 
-		virtual bool addEventListener(cString& name, cString& func, int id) {
+		virtual bool addEventListener(cString& name, cString& func, uint32_t id) {
 			if ( name == "Orientation" ) {
 				self<Type>()->Js_Native_On(Orientation, func, id);
 				return true;
@@ -45,7 +45,7 @@ namespace qk { namespace js {
 			return false;
 		}
 
-		virtual bool removeEventListener(cString& name, int id) {
+		virtual bool removeEventListener(cString& name, uint32_t id) {
 			if ( name == "Orientation" ) {
 				self<Type>()->Qk_Off(Orientation, id);
 				return true;

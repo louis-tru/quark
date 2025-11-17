@@ -265,7 +265,7 @@ static void remove_weak(FcPattern* pattern, const char object[]) {
 		if (kIsStrong_WeakReturn == result) {
 			lastStrongId = id;
 		}
-		Qk_ASSERT(FcPatternRemove(minimal, object, 0));
+		Qk_ASSERT_NE(0, FcPatternRemove(minimal, object, 0));
 	}
 
 	// If they were all weak, then leave the pattern alone.
@@ -275,7 +275,7 @@ static void remove_weak(FcPattern* pattern, const char object[]) {
 
 	// Remove everything after the last strong.
 	for (int id = lastStrongId + 1; id < numIds; ++id) {
-		Qk_ASSERT(FcPatternRemove(pattern, object, lastStrongId + 1));
+		Qk_ASSERT_NE(0, FcPatternRemove(pattern, object, lastStrongId + 1));
 	}
 }
 

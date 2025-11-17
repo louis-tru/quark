@@ -33,8 +33,11 @@
 #include "../render/render.h"
 #include "./painter.h"
 #include "./event.h"
-#include "./text/text_opts.h"
+#include "./text/text_blob.h"
 #include "./action/action.h"
+#include "../render/font/pool.h"
+#include "./app.h"
+#include "../util/thread.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0
@@ -86,6 +89,7 @@ namespace qk {
 		, _impl(nullptr)
 		, _opts(opts)
 		, _debugMode(false)
+		, _fspBlob(new TextBlob)
 	{
 		Qk_CHECK(_host);
 		check_is_first_loop();
@@ -102,6 +106,7 @@ namespace qk {
 		_root->retain(); // strong ref
 		openImpl(opts); // open platform window
 		_root->focus();  // set focus
+		// sizeof(Window);
 	}
 
 	FontPool* Window::fontPool() {
@@ -136,7 +141,10 @@ namespace qk {
 
 	void Window::close() {
 		if (tryClose()) {
-			Qk_Trigger(Close);
+			// avoid call when process exitting
+			if (!is_process_exit()) {
+				Qk_Trigger(Close);
+			}
 			release(); // release ref count from host windows
 		}
 	}
@@ -311,14 +319,35 @@ namespace qk {
 		}
 
 		if (_lastTime - _fspTime > 1e6) { // 1ns * 1e6
+			if (_debugMode && _fsp != _fspTick) {
+				// text blob build fps
+				Array<TextBlob> blob;
+				TextLines lines(_root, TextAlign::Default, {0,0});
+				lines.set_ignore_single_white_space(true);
+				TextBlobBuilder builder(&lines, _host->defaultTextOptions(), &blob);
+				builder.set_text_size(32.0f);
+				builder.make(String::format("%d FPS", _fspTick));
+				lines.finish(); // finish lines
+				*_fspBlob = std::move(blob.front()); // only one blob
+			}
 			_fsp = _fspTick;
 			_fspTick = 0;
 			_fspTime = _lastTime;
-			Qk_DLog("fps: %d", _fsp);
 		}
 		_fspTick++;
 
 		_root->draw(_painter); // start drawing
+
+		if (_debugMode) {
+			// draw fps
+			Paint paint;
+			paint.fill.color = Color4f(1,1,1,1);
+			paint.stroke.color = Color4f(0,0,0,1);
+			paint.style = Paint::kStrokeAndFill_Style;
+			paint.strokeWidth = 2.0f;
+			_painter->canvas()->setMatrix(Mat());
+			_painter->canvas()->drawTextBlob(&_fspBlob->blob, {70}, 32.0f, paint);
+		}
 
 		afterDisplay(); // draw something for platform
 

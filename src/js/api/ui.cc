@@ -77,7 +77,7 @@ namespace qk { namespace js {
 		return nullptr;
 	}
 
-	bool MixUIObject::addEventListener(cString& name, cString& func, int id) {
+	bool MixUIObject::addEventListener(cString& name, cString& func, uint32_t id) {
 		auto notific = asNotificationBasic();
 		const UIEventName *key;
 		if (!notific || !UIEventNames.get(name, key)) {
@@ -85,7 +85,7 @@ namespace qk { namespace js {
 		}
 		JsConverter* cData = nullptr;
 
-		switch ( kTypesMask_UIEventFlags & key->flag() ) {
+		switch ( kTypesMask_UIEventFlags & key->flags() ) {
 			case kError_UIEventFlags: cData = JsConverter::Instance<Error>(); break;
 			case kFloat32_UIEventFlags: cData = JsConverter::Instance<Float32>(); break;
 			case kUint64_UIEventFlags: cData = JsConverter::Instance<Uint64>(); break;
@@ -114,7 +114,7 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	bool MixUIObject::removeEventListener(cString& name, int id) {
+	bool MixUIObject::removeEventListener(cString& name, uint32_t id) {
 		auto notific = asNotificationBasic();
 		const UIEventName *key;
 		if (!notific || !UIEventNames.get(name, key)) {
@@ -122,14 +122,14 @@ namespace qk { namespace js {
 		}
 		Qk_DLog("removeEventListener, name:%s, id:%d", *name, id);
 
-		notific->remove_event_listener_for_id(key->hashCode(), id); // off event listener
+		notific->remove_event_listener_by_id(key->hashCode(), id); // off event listener
 		return true;
 	}
 
 	struct MixNativeApplication: MixObject {
 		typedef Application Type;
 
-		virtual bool addEventListener(cString& name, cString& func, int id) {
+		virtual bool addEventListener(cString& name, cString& func, uint32_t id) {
 			if ( name == "Load" ) {
 				self<Type>()->Js_Native_On(Load, func, id);
 			} else if ( name == "Unload" ) {
@@ -146,7 +146,7 @@ namespace qk { namespace js {
 			return true;
 		}
 
-		virtual bool removeEventListener(cString& name, int id) {
+		virtual bool removeEventListener(cString& name, uint32_t id) {
 			if ( name == "Load" ) {
 				self<Type>()->Qk_Off(Load, id);
 			} else if ( name == "Unload" ) {

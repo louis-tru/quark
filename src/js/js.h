@@ -452,8 +452,8 @@ namespace qk { namespace js {
 		inline MixObject() {}
 		virtual ~MixObject();
 		virtual void initialize();
-		virtual bool addEventListener(cString& name, cString& func, int id);
-		virtual bool removeEventListener(cString& name, int id);
+		virtual bool addEventListener(cString& name, cString& func, uint32_t id);
+		virtual bool removeEventListener(cString& name, uint32_t id);
 
 		// Calling member function
 		JSValue* call(JSValue* method, int argc = 0, JSValue* argv[] = 0);

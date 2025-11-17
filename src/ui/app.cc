@@ -97,6 +97,9 @@ namespace qk {
 
 	Application::~Application() {
 		check_is_first_loop();
+		// first clear all of image cache
+		_imgPool->clear(true);
+		// close all windows
 		for (auto i = _windows.begin(), e = _windows.end(); i != e;) {
 			(*(i++))->close(); // destroy
 		}
@@ -104,7 +107,6 @@ namespace qk {
 		Inl_Application(this)->resolve_delay_tasks(true);
 		Releasep(_defaultTextOptions);
 		Releasep(_screen);
-		_imgPool->clear(true);
 	 	_loop->tick_stop(_tick);
 		_tick = 0;
 		_shared = nullptr;

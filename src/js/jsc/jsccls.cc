@@ -587,7 +587,7 @@ namespace qk { namespace js {
 	}
 
 	JSValue* FunctionCallbackInfo::operator[](int i) const {
-		Qk_ASSERT_LT(i, reinterpret_cast<const FunctionCallbackInfoImpl*>(this)->argc,
+		Qk_ASSERT_GT(reinterpret_cast<const FunctionCallbackInfoImpl*>(this)->argc, i,
 			"argument index out of bounds");
 		return Cast(reinterpret_cast<const FunctionCallbackInfoImpl*>(this)->argv[i]);
 	}

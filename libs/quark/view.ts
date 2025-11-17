@@ -1927,6 +1927,12 @@ declare global {
 // ----------------------------------------------------------------------------
 
 const NN_getNoticer = NativeNotification.prototype.getNoticer;
+// global touch point id set
+const gGestureManagerSet: Set<GestureManager> = new Set();
+// is listening root touchend/touchcancel event
+let isListeningRootTouchEnd: boolean = false;
+
+const _init = __binding__('_init');
 
 const FingerCounts = {
 	[GestureType.PanGesture]: 1,
@@ -1948,12 +1954,38 @@ class GestureManager {
 	private _sorts: {type: GestureType, evt?: GestureEventInl}[] = []; // sorted gesture types
 	private _eventsFlow: (GestureEventInl|null)[] = []; // gesture events context
 	private _touches: Map<Uint, [GestureTouchPoint, GestureEventInl]> = new Map(); // touch.id=>gt,Event
+
+	// delete zombie touch points when global touchend/touchcancel event triggered
+	private static deleteZombieTouchPoint(e: TouchEvent) {
+		for (const gm of gGestureManagerSet) {
+			if (gm._touches.size !== 0) {
+				for (const {id} of e.changedTouches) {
+					const touch = gm._touches.get(id);
+					if (touch) {
+						gm._touches.delete(id);
+						gm._eventsFlow[touch[1].id] = null; // clear event flow
+					}
+				}
+			}
+			if (gm._touches.size === 0) {
+				gGestureManagerSet.delete(gm);
+			}
+		}
+	}
+
 	constructor(view: View) {
 		this._view = view;
 		this._view.onTouchStart.on(this._handleTouchStart, this, '-1');
 		this._view.onTouchMove.on(this._handleTouchMove, this, '-1');
 		this._view.onTouchEnd.on(this._handleTouchEnd, this, '-1');
 		this._view.onTouchCancel.on(this._handleTouchCancel, this, '-1');
+		if (!isListeningRootTouchEnd) {
+			isListeningRootTouchEnd = true;
+			// listen root touchend/touchcancel event to delete zombie touch points.
+			// by native event listener to avoid event listeners remove.
+			_init.addNativeEventListener(view.window.root, "TouchEnd", GestureManager.deleteZombieTouchPoint, 1);
+			_init.addNativeEventListener(view.window.root, "TouchCancel", GestureManager.deleteZombieTouchPoint, 1);
+		}
 	}
 
 	private getNewEventId() {
@@ -1987,9 +2019,9 @@ class GestureManager {
 			}
 
 			if (evt.rejected) { // reject by touch point
-				evt.rejected = false; // clear flag
+				evt.rejected = false; // reset flag
 				if (rejectDiscard) { // discard point
-					touchs.splice(i, 1); // remove point
+					touchs.splice(i, 1); // consumption point
 				} else {
 					evt.touchs.pop();
 					i++;
@@ -2006,7 +2038,7 @@ class GestureManager {
 						const fingerCount = FingerCounts[sort.type as 2|3|4|5|6] || 1; // need points
 						mask |= (1 << sort.type); // mark occupy event
 						evt.expectedFingerCount = fingerCount;
-						if (evt.length == fingerCount) {
+						if (evt.length === fingerCount) {
 							sort.evt = evt;
 							noticer.triggerWithEvent(evt as any);
 						}
@@ -2027,6 +2059,9 @@ class GestureManager {
 	}
 
 	private _handleTouchStart(event: TouchEvent) {
+		// add to global manager set for Delete zombie touchpoints caused by preventing event bubbles
+		gGestureManagerSet.add(this);
+
 		const timestamp = event.timestamp;
 		const touchs = event.changedTouches.slice();
 		for (const evt of this._eventsFlow) { // old event flow
@@ -2098,7 +2133,7 @@ class GestureManager {
 		for (const evt of changedEvents) {
 			evt._update(timestamp, stage); // Update event state
 
-			if (evt.length == 0) {
+			if (evt.length === 0) {
 				this._eventsFlow[evt.id] = null; // clear event flow
 			}
 
@@ -2114,7 +2149,7 @@ class GestureManager {
 						break; // Exclusive event context
 					}
 				}
-				if (evt.length == 0 && stage == GestureStage.End) {
+				if (evt.length === 0 && stage === GestureStage.End) {
 					if (this._swipe && evt.isSwipeTriggered()) {
 						this._swipe.triggerWithEvent(evt as any);
 					}
@@ -2135,7 +2170,7 @@ class GestureManager {
 
 	addGesture(type: GestureType, noticer: EventNoticer<GestureEvent>) {
 		if (type > GestureType.Gesture) {
-			if (type == GestureType.SwipeGesture) {
+			if (type === GestureType.SwipeGesture) {
 				this._swipe = noticer;
 			} else {
 				this._noticers.set(type, noticer);
@@ -2188,7 +2223,7 @@ class _View extends NativeNotification<UIEvent> {
 			if (name in GestureType) {
 				if (!this._gestureManager)
 					this._gestureManager = new GestureManager(this as any);
-				const noticer = new EventNoticer<GestureEvent>(name, this);
+				const noticer = new EventNoticer<GestureEvent>(name, this as unknown as View);
 				(this as any)[onName] = noticer;
 				this._gestureManager.addGesture(GestureType[name as keyof typeof GestureType], noticer);
 				return noticer;

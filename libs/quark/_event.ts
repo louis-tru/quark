@@ -54,7 +54,7 @@ function List_link<T>(prev: ListIterator<T>, next: ListIterator<T>) {
 }
 
 export class List<T = any> {
-	private _length: number;
+	private _length: Uint;
 	private _end: ListIterator<T>;
 
 	get begin() {return this._end.next}
@@ -173,10 +173,10 @@ export class List<T = any> {
  * @class Event The event data
 */
 export class Event<Sender = any, SendData = any> {
-	private _sender: Sender;
+	private _sender: any;
 	private _data: SendData;
 	/** The return value */
-	returnValue: number = 0;
+	returnValue: Uint = 0;
 	/** The Data */
 	get data(): SendData { return this._data; }
 	/** The sender */
@@ -212,7 +212,7 @@ function check_fun(origin: any) {
 	}
 }
 
-function forwardNoticeNoticer<E>(noticer: EventNoticer<E>, evt: E) {
+function forwardNoticeNoticer<E extends Event<any, any> = Event>(noticer: EventNoticer<E>, evt: E) {
 	let oldSender = (evt as any)._sender;
 	try {
 		noticer.triggerWithEvent(evt);
@@ -228,14 +228,17 @@ interface ListenItem {
 	id: string,
 }
 
+export type DataOf<T> = T extends Event<any, infer D> ? D : never;
+export type SenderOf<T> = T extends Event<infer S, any> ? S : never;
+
 /**
  * @class EventNoticer
  * 
  * Event notifier, the core of event listener adding, deleting, triggering and notification
 */
-export class EventNoticer<E = Event> {
+export class EventNoticer<E extends Event = Event> {
 	private _name: string;
-	private _sender: any;
+	private _sender: SenderOf<E>;
 	private _listens?: List<ListenItem>;
 	private _listens_map?: Map<string, ListIterator<ListenItem>>;
 	private _length: Uint = 0
@@ -299,7 +302,7 @@ export class EventNoticer<E = Event> {
 	 * @param name   Event name
 	 * @param sender Event sender
 	 */
-	constructor(name: string, sender: object) {
+	constructor(name: string, sender: SenderOf<E>) {
 		this._name = name;
 		this._sender = sender;
 	}
@@ -385,8 +388,8 @@ export class EventNoticer<E = Event> {
 	/**
 	 * Notify all observers
 	 */
-	trigger<T>(data: T) {
-		this.triggerWithEvent(new Event<any, T>(data) as E);
+	trigger(data: DataOf<E>) {
+		this.triggerWithEvent(new Event(data) as E);
 	}
 
 	/**
@@ -412,11 +415,12 @@ export class EventNoticer<E = Event> {
 	/**
 	 * Remove listener function
 	 * @param listen?
-	 * 	It can be a listener function/id alias/context.
+	 * 	It can be a listener function/id alias.
 	 * 	If no parameter is passed, all listeners will be uninstalled.
-	 * @return {int} Returns the number of deleted listeners
+	 * @param ctx? Context object, only valid when `listen` is a function
+	 * @return {Uint} Returns the number of deleted listeners
 	 */
-	off(listen?: string | Function | object, ctx?: object): number {
+	off(listen?: Function | string, ctx?: object): Uint {
 		if ( !this._length )
 			return 0;
 		let r = 0;
@@ -431,6 +435,24 @@ export class EventNoticer<E = Event> {
 			this._length = 0;
 			this._listens_map = new Map<string, ListIterator<ListenItem>>();
 		}
+		else if ( listen instanceof Function ) { // 卸载一个监听函数
+			let listens = this._listens!;
+			let listens_map = this._listens_map!;
+			let begin = listens.begin, end = listens.end;
+			while ( begin !== end ) {
+				let value = begin.value;
+				if ( value.listen ) {
+					if ( value.origin === listen && (!ctx || value.ctx === ctx) ) {
+						this._length--;
+						listens_map.delete(value.id);
+						begin.value.listen = null;
+						r++;
+						break;
+					}
+				}
+				begin = begin.next;
+			}
+		}
 		else if ( typeof listen == 'string' ) { // by id delete 
 			let id = String(listen);
 			let listens_map = this._listens_map!;
@@ -442,44 +464,33 @@ export class EventNoticer<E = Event> {
 				r++;
 			}
 		}
-		else if ( listen instanceof Function ) { // 卸载一个监听函数
-			let listens = this._listens!;
-			let listens_map = this._listens_map!;
-			let begin = listens.begin, end = listens.end;
-			while ( begin !== end ) {
-				let value = begin.value;
-				if ( value.listen ) {
-					if ( value.origin === listen && ctx ? value.ctx === ctx: true ) {
-						this._length--;
-						listens_map.delete(value.id);
-						begin.value.listen = null;
-						r++;
-						break;
-					}
-				}
-				begin = begin.next;
-			}
-		}
-		else if ( listen instanceof Object ) { // by id ctx
-			let listens = this._listens!;
-			let listens_map = this._listens_map!;
-			let begin = listens.begin;
-			let end = listens.end;
-			// 要卸载这个范围上相关的侦听器,包括`EventNoticer`代理
-			while ( begin !== end ) {
-				let value = begin.value;
-				if ( value.listen ) {
-					if ( value.ctx === listen ) {
-						this._length--;
-						listens_map.delete(value.id);
-						begin.value.listen = null; // break; // clear
-						r++;
-					}
-				}
-				begin = begin.next;
-			}
-		} else { //
+		else { //
 			throw new Error('Bad argument.');
+		}
+		return r;
+	}
+
+	/**
+	 * Remove all listeners related to `ctx` on this noticer
+	*/
+	offByCtx(ctx: object): Uint {
+		let r = 0;
+		let listens = this._listens!;
+		let listens_map = this._listens_map!;
+		let begin = listens.begin;
+		let end = listens.end;
+		// 要卸载这个范围上相关的侦听器,包括`EventNoticer`代理
+		while ( begin !== end ) {
+			let value = begin.value;
+			if ( value.listen ) {
+				if ( value.ctx === ctx ) {
+					this._length--;
+					listens_map.delete(value.id);
+					begin.value.listen = null; // break; // clear
+					r++;
+				}
+			}
+			begin = begin.next;
 		}
 		return r;
 	}
@@ -496,7 +507,7 @@ const FIND_REG = new RegExp('^' + PREFIX);
  * Derived types inherited from it can use the `@event` keyword to declare member events
  *
  */
-export class Notification<E = Event> {
+export class Notification<E extends Event = Event> {
 	/**
 	 * @method getNoticer(name)
 	 */
@@ -504,7 +515,7 @@ export class Notification<E = Event> {
 		let key = PREFIX + name;
 		let noticer = (this as any)[key];
 		if ( ! noticer ) {
-			noticer = new EventNoticer<E>(name, this as any);
+			noticer = new EventNoticer<E>(name, this as SenderOf<E>);
 			(this as any)[key] = noticer;
 		}
 		return noticer;
@@ -570,7 +581,7 @@ export class Notification<E = Event> {
 	/**
 	* Trigger an event by event name --> [`EventNoticer.trigger(data)`]
 	*/
-	trigger(name: string, data?: any) {
+	trigger(name: string, data: DataOf<E>) {
 		this.triggerWithEvent(name, new Event(data) as unknown as E);
 	}
 
@@ -584,8 +595,14 @@ export class Notification<E = Event> {
 		}
 	}
 
-	/** */
-	removeEventListener(name: string, listen?: string | Function | object, ctx?: object) {
+	/**
+	 * Remove listener function
+	 * @param name      Event name
+	 * @param listen?   It can be a listener function/id alias.
+	 *                   If no parameter is passed, all listeners will be uninstalled.
+	 * @param ctx?      Context object, only valid when `listen` is a function
+	*/
+	removeEventListener(name: string, listen?: Function | string, ctx?: object) {
 		let noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
 		if (noticer) {
 			noticer.off(listen, ctx);
@@ -596,7 +613,7 @@ export class Notification<E = Event> {
 	/**
 	 * Delete all listeners related to `ctx` on `notification`
 	 *
-	 * Actually traverse and call the [`EventNoticer.off(ctx)`] method
+	 * Actually traverse and call the [`EventNoticer.offByCtx(ctx)`] method
 	 *
 	 * @example
 	 *
@@ -629,9 +646,9 @@ export class Notification<E = Event> {
 	 *
 	 * ```
 	 */
-	removeEventListenerWithCtx(ctx: object) {
+	removeEventListenerByCtx(ctx: object) {
 		for ( let noticer of this.allNoticers() ) {
-			noticer.off(ctx);
+			noticer.offByCtx(ctx);
 			this.triggerListenerChange(noticer.name, noticer.length, -1);
 		}
 	}
@@ -652,8 +669,9 @@ export class Notification<E = Event> {
 		return result;
 	}
 
-	/** */
-	triggerListenerChange(name: string, count: number, change: number) {}
+	/**
+	*/
+	triggerListenerChange(name: string, count: Uint, change: Uint) {}
 }
 
 /**

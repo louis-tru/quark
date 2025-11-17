@@ -151,10 +151,10 @@ namespace qk {
 		{
 			AutoMutexExclusive l(fMu);
 
-			Qk_ASSERT(!fCurrentShared->find(threadID),
+			Qk_ASSERT_EQ(fCurrentShared->find(threadID), false,
 					  "Thread %" PRIx64 " already has an shared lock\n", threadID);
 
-			Qk_ASSERT(fWaitingExclusive->tryAdd(threadID),
+			Qk_ASSERT_EQ(true, fWaitingExclusive->tryAdd(threadID),
 				"Thread %" PRIx64 " already has an exclusive lock\n", threadID);
 
 			currentSharedCount = fCurrentShared->count();
@@ -179,8 +179,8 @@ namespace qk {
 		int sharedQueueSelect;
 		{
 			AutoMutexExclusive l(fMu);
-			Qk_ASSERT(0 == fCurrentShared->count());
-			Qk_ASSERT(fWaitingExclusive->tryRemove(threadID),
+			Qk_ASSERT_EQ(fCurrentShared->count(), 0);
+			Qk_ASSERT_EQ(true, fWaitingExclusive->tryRemove(threadID),
 				"Thread %" PRIx64 " did not have the lock held.\n", threadID);
 			exclusiveWaitingCount = fWaitingExclusive->count();
 			sharedWaitingCount = fWaitingShared->count();
@@ -201,8 +201,8 @@ namespace qk {
 	void SharedMutex::assertHeld() const {
 		std::thread::id threadID(thread_self_id());
 		AutoMutexExclusive l(fMu);
-		Qk_ASSERT(0 == fCurrentShared->count());
-		Qk_ASSERT(fWaitingExclusive->find(threadID));
+		Qk_ASSERT_EQ(fCurrentShared->count(), 0);
+		Qk_ASSERT_EQ(fWaitingExclusive->find(threadID), true);
 	}
 
 	void SharedMutex::lockShared() {
@@ -213,10 +213,10 @@ namespace qk {
 			AutoMutexExclusive l(fMu);
 			exclusiveWaitingCount = fWaitingExclusive->count();
 			if (exclusiveWaitingCount > 0) {
-				Qk_ASSERT(fWaitingShared->tryAdd(threadID),
+				Qk_ASSERT_EQ(true, fWaitingShared->tryAdd(threadID),
 					"Thread %" PRIx64 " was already waiting!\n", threadID);
 			} else {
-				Qk_ASSERT(fCurrentShared->tryAdd(threadID),
+				Qk_ASSERT_EQ(true, fCurrentShared->tryAdd(threadID),
 					"Thread %" PRIx64 " already holds a shared lock!\n", threadID);
 			}
 			sharedQueueSelect = fSharedQueueSelect;
@@ -237,7 +237,7 @@ namespace qk {
 		int waitingExclusiveCount;
 		{
 			AutoMutexExclusive l(fMu);
-			Qk_ASSERT(fCurrentShared->tryRemove(threadID),
+			Qk_ASSERT_EQ(true, fCurrentShared->tryRemove(threadID),
 				"Thread %" PRIx64 " does not hold a shared lock.\n", threadID);
 			currentSharedCount = fCurrentShared->count();
 			waitingExclusiveCount = fWaitingExclusive->count();

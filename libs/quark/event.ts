@@ -55,7 +55,7 @@ export enum ReturnValueMask {
  * 
  * UI system event data object basic type
 */
-export declare class UIEvent extends Event<View> {
+export declare class UIEvent<SendData = any> extends Event<View, SendData> {
 	/** Origin of the event */
 	readonly origin: View;
 	/** The time when the event is created, in milliseconds */
@@ -645,7 +645,7 @@ const PREFIX = '_on';
  * @class NativeNotification
  * @extends Notification
  */
-export class NativeNotification<E = Event> extends Notification<E> {
+export class NativeNotification<E extends Event = Event> extends Notification<E> {
 
 	getNoticer(name: string) {
 		let noticer = (this as any)[PREFIX + name] as EventNoticer<E>;

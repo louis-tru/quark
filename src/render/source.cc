@@ -36,6 +36,7 @@
 #if Qk_ARM_NEON
 #include <arm_neon.h>
 #endif
+#include "../util/thread.h"
 
 namespace qk {
 	// -------------------- I m a g e . S o u r c e --------------------
@@ -563,6 +564,11 @@ namespace qk {
 	}
 
 	void ImageSourcePool::clear(bool all) {
+		if (is_process_exit()) {
+			// avoid call when process exit
+			// because render resource maybe already destroyed
+			return;
+		}
 		AutoMutexExclusive local(_Mutex);
 		if (all) {
 			for (auto &i: _sources) {

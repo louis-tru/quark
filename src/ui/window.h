@@ -50,6 +50,7 @@ namespace qk {
 	class RootStyleSheets;
 	class ActionCenter;
 	class FontPool;
+	class TextBlob;
 
 	/**
 	 * Note: If `work loop` and `render loop` run in different threads,
@@ -92,10 +93,10 @@ namespace qk {
 		/**
 		 * @event onChange show port change event
 		*/
-		Qk_Event(Change);
+		Qk_Event(Change); // @event onChange, window size change event
 		Qk_Event(Background); // @event onBackground, window into background
 		Qk_Event(Foreground); // @event onForeground, window into foreground
-		Qk_Event(Close); // @event onClose
+		Qk_Event(Close); // @event onClose, window close event
 
 		/**
 		* * 设置窗口逻辑尺寸,这个值改变时会触发change事件
@@ -228,6 +229,7 @@ namespace qk {
 		uint32_t       _fspTick;
 		int64_t        _fspTime;
 		int64_t        _beginTime, _lastTime;
+		TextBlob      *_fspBlob; // debug fps text blobs
 		Array<RangeSize> _clipRange;
 		List<Window*>::Iterator _id;
 		RecursiveMutex _renderMutex;

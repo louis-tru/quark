@@ -48,8 +48,8 @@ namespace qk {
 	template<class T, typename... Args>
 	inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
-	#define _Fun(Name, C, Flag) \
-	cUIEventName UIEvent_##Name(#Name, k##C##_UIEventCategory, Flag);
+	#define _Fun(Name, C, Flags) \
+	cUIEventName UIEvent_##Name(#Name, k##C##_UIEventCategory, Flags);
 	Qk_UI_Events(_Fun)
 	#undef _Fun
 
@@ -72,8 +72,13 @@ namespace qk {
 			do {
 				if ( view->_receive ) {
 					view->trigger(name, evt);
-					if ( !evt.is_bubble() )
+					if ( !evt.is_bubble() ) { // Stop bubble
+						if ((name.flags() & kSystem_UIEventFlags) && view != _window->root()) {
+							// Ensure that the final root can receive system events.
+							_window->root()->trigger(name, evt);
+						}
 						break; // Stop bubble
+					}
 				}
 				view = view->_parent;
 			} while( view );
@@ -133,8 +138,8 @@ namespace qk {
 
 	// -------------------------- E v e n t --------------------------
 
-	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flag)
-		: _string(name), _hashCode(name.hashCode()), _category(category), _flag(flag)
+	UIEventName::UIEventName(cString& name, uint32_t category, uint32_t flags)
+		: _string(name), _hashCode(name.hashCode()), _category(category), _flags(flags)
 	{}
 
 	UIEvent::UIEvent(View *origin, SendData data)
@@ -221,7 +226,8 @@ namespace qk {
 		bool has(uint32_t id) { return _touches.has(id); }
 		void del(uint32_t id) { _touches.erase(id); }
 		int click_valid_count() const { return _click_valid_count; }
-		void set_click_valid_count(int delta) { _click_valid_count += delta;
+		void set_click_valid_count(int delta) {
+			_click_valid_count += delta;
 			Qk_ASSERT(_click_valid_count >= 0);
 		}
 		static OriginTouche* Make(View* view) {
@@ -341,9 +347,12 @@ namespace qk {
 
 	// -------------------------- T o u c h --------------------------
 
-	void EventDispatch::touchstartErase(View *view, List<TouchPoint> &in) {
-		if ( view->_receive && in.length() ) {
-			Array<TouchPoint> change_touches;
+#if DEBUG
+	static int testTouchsCount = 0;
+#endif
+	void EventDispatch::touchstart_consume(View *view, List<TouchPoint> &in) {
+		if ( in.length() && view->_receive ) {
+			Array<TouchPoint> touches;
 
 			for (auto i = in.begin(), e = in.end(); i != e;) {
 				if (view->overlap_test(i->position)) { // hit test
@@ -360,8 +369,9 @@ namespace qk {
 						}
 					}
 					if (out) {
-						(*out)[touch.id] = touch;
-						change_touches.push(touch);
+						Qk_ASSERT_EQ(out->has(touch.id), false, "TouchPoint id conflict");
+						out->operator[](touch.id) = touch;
+						touches.push(touch);
 						in.erase(i++);
 					} else {
 						i++;
@@ -371,14 +381,19 @@ namespace qk {
 				}
 			}
 
-			if ( change_touches.length() ) { // notice
+			if ( touches.length() ) { // notice
 				auto origin = _origin_touches[view];
 				auto highlighted = origin->click_valid_count() == 0; // is need highlight
-				origin->set_click_valid_count(change_touches.length());
+				origin->set_click_valid_count(touches.length());
 				// post main thread
-				_loop->post(Cb([view, highlighted, change_touches](auto& e) {
-					auto evt = NewEvent<TouchEvent>(view, change_touches);
+				_loop->post(Cb([view, highlighted, touches](auto& e) {
+					auto evt = NewEvent<TouchEvent>(view, touches);
 					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
+					Qk_DEBUGCODE({
+						// Qk_DLog("TouchStart %d", testTouchsCount);
+						testTouchsCount += touches.length();
+						Qk_ASSERT_LE(testTouchsCount, 10, "Too many touch points active");
+					});
 					if (highlighted) {
 						auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
 						_inl_view(view)->trigger_highlightted(**evt); // emit event
@@ -407,7 +422,7 @@ namespace qk {
 						touchstart(v, clipIn);
 						v = v->prev();
 					}
-					touchstartErase(view, clipIn);
+					touchstart_consume(view, clipIn);
 
 					if ( clipIn.length() ) {
 						in.splice(in.end(), clipIn);
@@ -418,7 +433,7 @@ namespace qk {
 						touchstart(v, in);
 						v = v->prev();
 					}
-					touchstartErase(view, in);
+					touchstart_consume(view, in);
 				}
 			}
 		}
@@ -436,7 +451,7 @@ namespace qk {
 					if (touch.click_valid) {
 						float d = (touch.start_position - touch.position).lengthSq() *
 								_window->scale() / _window->defaultScale();
-						if (d > 4) { // 2^2 pt range
+						if (d > 9) { // 3^2 pt range
 							touch.click_valid = false; // set invalid
 							origin.second->set_click_valid_count(-1); // decrease count
 							if (origin.second->click_valid_count() == 0) {
@@ -483,8 +498,8 @@ namespace qk {
 			auto& touchs = i.second;
 			View* view = touchs[0].view;
 			auto origin_touche = _origin_touches[view];
-			auto is_end = origin_touche->count() == 0;
-			auto is_click = origin_touche->click_valid_count() == 0;
+			auto is_end = origin_touche->count() == 0; // End of all touchs
+			auto is_click = origin_touche->click_valid_count() == 0; // is click event
 
 			struct Core: CallbackCore<Object> {
 				View *view;
@@ -492,6 +507,7 @@ namespace qk {
 				Array<TouchPoint> touchs;
 				OriginTouche *origin_touche;
 				bool is_end, is_click;
+
 				Core(View* v, bool isCancel, Array<TouchPoint> &to, OriginTouche* ot,
 						bool is_end, bool is_click)
 					: view(v), is_cancel(isCancel), touchs(std::move(to))
@@ -504,7 +520,11 @@ namespace qk {
 					auto evt0 = NewEvent<TouchEvent>(view, touchs);
 					// emit touch end event
 					_inl_view(view)->bubble_trigger(is_cancel ? UIEvent_TouchCancel: UIEvent_TouchEnd, **evt0);
-
+					Qk_DEBUGCODE({
+						testTouchsCount -= touchs.length();
+						// Qk_DLog("TouchEnd %d", testTouchsCount);
+						Qk_ASSERT_GE(testTouchsCount, 0, "Too less touch points active");
+					});
 					if (is_click) { // trigger click
 						for (auto& touch : touchs) {
 							if (touch.click_valid) {
@@ -531,7 +551,7 @@ namespace qk {
 	void EventDispatch::onTouchstart(List<TouchPoint>&& list) {
 		auto id = list.front().id;
 		auto pos = list.front().position;
-		Qk_DLog("onTouchstart id: %d, x: %f, y: %f, c: %d", id, pos.x(), pos.y(), list.length());
+		// Qk_DLog("onTouchstart id: %d, x: %f, y: %f, c: %d", id, pos.x(), pos.y(), list.length());
 		UILock lock(_window);
 		auto r = _window->root();
 		if (r) {
@@ -549,14 +569,14 @@ namespace qk {
 
 	void EventDispatch::onTouchend(List<TouchPoint>&& list) {
 		auto pos = list.front().position;
-		Qk_DLog("onTouchend x: %f, y: %f, c: %d", pos.x(), pos.y(), list.length());
+		// Qk_DLog("onTouchend x: %f, y: %f, c: %d", pos.x(), pos.y(), list.length());
 		UILock lock(_window);
 		touchend(list, false);
 	}
 
 	void EventDispatch::onTouchcancel(List<TouchPoint>&& list) {
 		auto pos = list.front().position;
-		Qk_DLog("onTouchcancel x: %f, y: %f", pos.x(), pos.y());
+		// Qk_DLog("onTouchcancel x: %f, y: %f", pos.x(), pos.y());
 		UILock lock(_window);
 		touchend(list, true);
 	}
@@ -621,7 +641,7 @@ namespace qk {
 			Vec2 start_position = _mouse_handle->view_start_position();
 			float d = (start_position - position).lengthSq() * _window->scale() / _window->defaultScale();
 			// 视图位置移动超过4平方距离取消点击状态
-			if ( d > 4 ) { // trigger invalid status
+			if ( d > 9 ) { // trigger invalid status
 				if (view == d_view) {
 					_inl_view(view)->trigger_highlightted( // emit style status event
 						**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover));

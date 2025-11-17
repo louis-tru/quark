@@ -70,6 +70,7 @@ namespace qk {
 		kUint64_UIEventFlags,  // type Uint64
 		kTypesMask_UIEventFlags = (255), // Event::data(), data types
 		kBubble_UIEventFlags = (1 << 8), // is bubble
+		kSystem_UIEventFlags = (1 << 9), // is system event, touch/mouse/keyboard
 	};
 
 	// event returl value mask
@@ -82,10 +83,10 @@ namespace qk {
 	class Qk_EXPORT UIEventName {
 	public:
 		Qk_DEFINE_PROP_GET(uint32_t, category, Const);
-		Qk_DEFINE_PROP_GET(uint32_t, flag, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, flags, Const);
 		Qk_DEFINE_PROP_GET(uint64_t, hashCode, Const);
 		Qk_DEFINE_PROP_GET(String, string, Const);
-		UIEventName(cString& name, uint32_t category, uint32_t flag);
+		UIEventName(cString& name, uint32_t category, uint32_t flags);
 		inline bool operator==(cUIEventName& v) const { return v._hashCode == _hashCode; }
 		inline bool operator!=(cUIEventName& v) const { return v._hashCode != _hashCode; }
 	};
@@ -254,7 +255,7 @@ namespace qk {
 		void setImeKeyboardSpotRect(Rect rect);
 		bool setFocusView(View *view); // set focus from main thread
 	private:
-		void touchstartErase(View *view, List<TouchPoint>& in);
+		void touchstart_consume(View *view, List<TouchPoint>& in);
 		void touchstart(View* view, List<TouchPoint>& in);
 		void touchmove(List<TouchPoint>& in);
 		void touchend(List<TouchPoint>& in, bool isCancel);

@@ -63,7 +63,7 @@ namespace qk { namespace inspector {
 	// Used ver 4 - with numbers
 	std::string GenerateID() {
 		uint16_t buffer[8];
-		Qk_ASSERT(EntropySource(reinterpret_cast<unsigned char*>(buffer), sizeof(buffer)));
+		Qk_ASSERT_EQ(true, EntropySource(reinterpret_cast<unsigned char*>(buffer), sizeof(buffer)));
 
 		char uuid[256];
 		snprintf(uuid, sizeof(uuid), "%04x%04x-%04x-%04x-%04x-%04x%04x%04x",
@@ -261,9 +261,9 @@ namespace qk { namespace inspector {
 	void InspectorIo::ThreadMain() {
 		uv_loop_t loop;
 		loop.data = nullptr;
-		Qk_ASSERT_EQ(uv_loop_init(&loop), 0);
+		Qk_ASSERT_EQ(0, uv_loop_init(&loop));
 		thread_req_.data = nullptr;
-		Qk_ASSERT_EQ(uv_async_init(&loop, &thread_req_, IoThreadAsyncCb<Transport>), 0);
+		Qk_ASSERT_EQ(0, uv_async_init(&loop, &thread_req_, IoThreadAsyncCb<Transport>));
 		auto scropt_path = agent_->options().script_path.c_str();
 		InspectorIoDelegate delegate(this,
 			scropt_path, fs_basename(scropt_path).c_str(), wait_for_connect_);
@@ -284,7 +284,7 @@ namespace qk { namespace inspector {
 		}
 		uv_run(&loop, UV_RUN_DEFAULT);
 		thread_req_.data = nullptr;
-		Qk_ASSERT_EQ(uv_loop_close(&loop), 0);
+		Qk_ASSERT_EQ(0, uv_loop_close(&loop));
 		delegate_ = nullptr;
 	}
 
@@ -394,8 +394,7 @@ namespace qk { namespace inspector {
 		//Qk_DLog("Send_To_Inspector, %s \n", StringViewToUtf8(inspector_message).c_str());
 		AppendMessage(&outgoing_message_queue_, action, session_id,
 									StringBuffer::create(inspector_message));
-		int err = uv_async_send(&thread_req_);
-		Qk_ASSERT_EQ(0, err);
+		Qk_ASSERT_EQ(0, uv_async_send(&thread_req_));
 	}
 
 	InspectorIoDelegate::InspectorIoDelegate(InspectorIo* io,

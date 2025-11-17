@@ -227,7 +227,7 @@ namespace qk {
 			cArray<Vec2> *offset, RenderBackend *render)
 	{
 		if (offset) {
-			Qk_ASSERT_GE(offset->length(), glyphs.length());
+			Qk_ASSERT(offset->length() >= glyphs.length());
 		}
 		if (glyphs.length() == 0) {
 			return {ImageSource::Make(PixelInfo())};
@@ -238,7 +238,7 @@ namespace qk {
 	Typeface::TextImage Typeface::getSDFImage(cArray<GlyphID> &glyphs,
 		float fontSize, cArray<Vec2> *offset, bool is_signed, RenderBackend *render) {
 		if (offset) {
-			Qk_ASSERT_GE(offset->length(), glyphs.length());
+			Qk_ASSERT(offset->length() >= glyphs.length());
 		}
 		if (glyphs.length() == 0) {
 			return {ImageSource::Make(PixelInfo())};

@@ -63,7 +63,7 @@ namespace qk {
 		Qk_ASSERT( javavm );
 		if (javavm->GetEnv((void**)&_env, JNI_VERSION_1_6) != JNI_OK)
 		{
-			Qk_ASSERT_EQ(javavm->AttachCurrentThread(&_env, NULL), JNI_OK);
+			Qk_ASSERT_EQ(JNI_OK, javavm->AttachCurrentThread(&_env, NULL));
 			_is_attach = true;
 		}
 	}

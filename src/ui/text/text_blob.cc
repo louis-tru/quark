@@ -202,7 +202,13 @@ namespace qk {
 	TextBlobBuilder::TextBlobBuilder(TextLines *lines, TextOptions *opts, Array<TextBlob>* blob)
 		: _disable_overflow(false), _disable_auto_wrap(false), _lines(lines), _opts(opts), _blobOut(blob)
 		, _index_of_unichar(0)
-	{}
+		, _text_size(opts->text_size().value)
+	{
+	}
+
+	void TextBlobBuilder::set_text_size(float val) {
+		_text_size = val;
+	}
 
 	void TextBlobBuilder::set_disable_overflow(bool value) {
 		_disable_overflow = value;
@@ -271,7 +277,7 @@ namespace qk {
 			}
 
 			auto fg_arr = _opts->text_family().value->
-				makeFontGlyphs(lines[i], _opts->font_style(), _opts->text_size().value);
+				makeFontGlyphs(lines[i], _opts->font_style(), _text_size);
 			auto unichar = *lines[i];
 
 			for (auto& fg: fg_arr) {
@@ -313,7 +319,7 @@ namespace qk {
 		auto  offset = fg.getHorizontalOffset();
 		auto  line = _lines->last();
 		bool  isEmpty = line->width == 0.0; // empty line
-		auto  text_size = _opts->text_size().value;
+		auto  text_size = _text_size;
 		auto  line_height = _opts->text_line_height().value;
 
 		float limitX = _lines->limit_range().end.width();
@@ -419,7 +425,7 @@ namespace qk {
 		auto offset = fg.getHorizontalOffset();
 		auto overflow = _opts->text_overflow_value();
 		auto limitX = _lines->limit_range().end.width();
-		auto text_size = _opts->text_size().value;
+		auto text_size = _text_size;
 		auto line_height = _opts->text_line_height().value;
 
 		if (!_disable_overflow && overflow != TextOverflow::Normal && limitX > 0) {

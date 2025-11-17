@@ -177,7 +177,7 @@ interface CallableFunction extends Function {
 */
 interface Array<T> {
 	hashCode(): Int;
-	deleteOf(value: T): T[];
+	deleteOf(value: T): boolean;
 	indexReverse(index: Uint): T;
 	indexAt(index: Uint): T;
 }
@@ -513,12 +513,13 @@ definePropertys(Array.prototype, {
 		return _hash;
 	},
 
-	deleteOf(value: any): any[] {
+	deleteOf(value: any): boolean {
 		let i = this.indexOf(value);
 		if (i != -1) {
 			this.splice(i, 1);
+			return true;
 		}
-		return this;
+		return false;
 	},
 
 	indexReverse (index: number): any {
