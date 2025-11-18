@@ -69,7 +69,9 @@ namespace qk {
 			kInput_Status             = (1 << 7), /* Input state changes that don't include layout changes */
 			kText_Options             = (1 << 8), /* Text configuration changes and may affect subviews */
 			kScroll                   = (1 << 9), /* scroll status change */
-			kStyle_Class              = (1 << 10), /* View style changes caused by changing class */
+			kClass_Change             = (1 << 10), /* View style changes caused by changing class names or view level */
+			kClass_Status             = (1 << 11), /* View style changes caused by changing status, normal/hover/active */
+			kClass_All                = (kClass_Change | kClass_Status), /* include class changes and status changes */
 			kTransform                = (1 << 29), /* Matrix Transformation, recursive mark */
 			kVisible_Region           = (1U << 30), /* Visible range changes */
 			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
@@ -306,9 +308,9 @@ namespace qk {
 		bool blur();
 
 		/**
-		 * @method is_self_child(child)
+		 * @method is_child(child)
 		 */
-		bool is_self_child(View *child);
+		bool is_child(View *child);
 
 		/**
 			*
@@ -636,7 +638,7 @@ namespace qk {
 		virtual View* init(Window* win);
 	private:
 		void set_parent(View *parent); // setting parent view
-		void clear_link(); // Cleaning up associated view information
+		void clear_link(bool notice); // Cleaning up associated view information
 		void set_visible_rt(bool visible);
 		void set_level_rt(uint32_t level); // settings depth
 		void clear_level_rt(); //  clear view depth rt

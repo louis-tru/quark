@@ -42,7 +42,7 @@ namespace qk {
 	class KeyframeAction;
 	class Window;
 
-	enum CSSType {
+	enum CSSType: uint8_t {
 		kNone_CSSType = 0,
 		kNormal_CSSType, // css pseudo type
 		kHover_CSSType,

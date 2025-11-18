@@ -258,7 +258,7 @@ export class Dialog<P={},S={}> extends Navigation<{
 	}
 
 	navigationEnter(focus: View) {
-		if ( !this.asDom().isSelfChild(focus) ) {
+		if ( !this.asDom().isChild(focus) ) {
 			if ( this.length ) {
 				this.triggerAction(this.length - 1);
 			} else {

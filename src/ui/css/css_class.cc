@@ -48,6 +48,7 @@ namespace qk {
 		, _parent(nullptr)
 	{
 		Qk_ASSERT(host);
+		// sizeof(CStyleSheetsClass);
 	}
 
 	void CStyleSheetsClass::set(cArray<String> &name) {
@@ -99,38 +100,47 @@ namespace qk {
 	}
 
 	void CStyleSheetsClass::updateClass_rt() {
-		_host->mark_layout(View::kStyle_Class, true);
-		// _status = kNone_CSSType; // force apply update
+		_host->mark_layout(View::kClass_Change, true);
 	}
 
 	void CStyleSheetsClass::setStatus_rt(CSSType status) {
 		if ( _setStatus != status ) {
 			_setStatus = status;
 			if ( _havePseudoType ) {
-				_host->mark_layout(View::kStyle_Class, true);
+				if (_setStatus == _status) {
+					// Delete change status tags to optimize performance
+					_host->unmark(View::kClass_Status);
+				} else {
+					_host->mark_layout(View::kClass_Status, true);
+				}
 			}
 		}
 	}
 
 	bool CStyleSheetsClass::apply_rt(CStyleSheetsClass *parent, bool force) {
-		// if (_setStatus == _status) return false;
 		auto lastHash = _stylesForHaveSubstylesHash_rt.hashCode();
 		auto lastStylesHash = _stylesHash_rt.hashCode();
-		// reset env
-		_status = _setStatus;
+		// clear status
 		_stylesHash_rt = Hash5381();
 		_havePseudoType = false;
 		_parent = parent;
-		_host->window()->actionCenter()->removeCSSTransition_rt(_host);
+		_status = _setStatus; // apply status
+
+		auto clearStatus = [this]() {
+			// clear transition first
+			_host->window()->actionCenter()->removeCSSTransition_rt(_host);
+			// reset styles for have substyles
+			_stylesForHaveSubstyles_rt.clear();
+			_stylesForHaveSubstylesHash_rt = Hash5381();
+		};
 
 		if (_nameHash_rt.length()) {
 			Array<CStyleSheets*> styles;
 			findSubstylesFromParent_rt(parent, &styles);
 			// apply styles if changed
 			if (lastStylesHash != _stylesHash_rt.hashCode() || force) {
-				// reset styles for have substyles
-				_stylesForHaveSubstyles_rt.clear();
-				_stylesForHaveSubstylesHash_rt = Hash5381();
+				clearStatus();
+				// apply styles
 				for (auto ss: styles) {
 					if (ss->_time && !_firstApply) {
 						_host->window()->actionCenter()->addCSSTransition_rt(_host, ss);
@@ -138,17 +148,15 @@ namespace qk {
 						ss->apply(_host, true);
 					}
 					if (ss->_substyles.length()) {
-						_stylesForHaveSubstylesHash_rt.updateu64(uintptr_t(ss));
 						_stylesForHaveSubstyles_rt.push(ss);
+						_stylesForHaveSubstylesHash_rt.updateu64(uintptr_t(ss));
 					}
 				}
 			}
 		} else {
-			_stylesForHaveSubstyles_rt.clear();
-			_stylesForHaveSubstylesHash_rt = Hash5381();
+			clearStatus();
 		}
-		// _status = _setStatus; // May have been modified, reset it
-		_firstApply = false;
+		_firstApply = false; // mark first apply false
 
 		// affects children CStyleSheetsClass
 		return _stylesForHaveSubstylesHash_rt.hashCode() != lastHash;

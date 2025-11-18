@@ -62,7 +62,7 @@ namespace qk { namespace js {
 	MixObject* MixObject::unpack(JSValue* obj) {
 		Qk_ASSERT_NE(obj, nullptr);
 		auto v8obj = reinterpret_cast<v8::Object*>(obj);
-		Qk_ASSERT_GT(0, v8obj->InternalFieldCount());
+		Qk_ASSERT_GT(v8obj->InternalFieldCount(), 0);
 		return static_cast<MixObject*>(v8obj->GetAlignedPointerFromInternalField(0));
 	}
 

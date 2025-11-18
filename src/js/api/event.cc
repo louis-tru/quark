@@ -121,7 +121,7 @@ namespace qk { namespace js {
 	struct MixClickEvent: MixObject {
 		typedef ClickEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(ClickEvent, UIEvent, { Js_Throw("Access forbidden."); });
+			Js_Define_Class(ClickEvent, KeyEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(ClickEvent, Vec2, position, position);
 			Js_MixObject_Acce_Get(ClickEvent, uint32_t, count, count);
 			Js_MixObject_Acce_Get(ClickEvent, int, type, type);
@@ -143,6 +143,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(MouseEvent, KeyEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(MouseEvent, Vec2, position, position);
+			Js_MixObject_Acce_Get(MouseEvent, uint32_t, level, level);
 			cls->exports("MouseEvent", exports);
 		}
 	};

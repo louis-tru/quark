@@ -68,20 +68,22 @@ namespace qk {
 		#define _inl_view(self) static_cast<View::InlEvent*>(static_cast<View*>(self))
 
 		void bubble_trigger(const NameType &name, UIEvent &evt) {
-			View *view = this;
+			View *view = this, *lastTrigger = nullptr;
 			do {
 				if ( view->_receive ) {
+					lastTrigger = view;
 					view->trigger(name, evt);
-					if ( !evt.is_bubble() ) { // Stop bubble
-						if ((name.flags() & kSystem_UIEventFlags) && view != _window->root()) {
-							// Ensure that the final root can receive system events.
-							_window->root()->trigger(name, evt);
-						}
+					if ( !evt.is_bubble() ) // Stop bubble
 						break; // Stop bubble
-					}
 				}
 				view = view->_parent;
 			} while( view );
+
+			if ((name.flags() & kSystem_UIEventFlags) && lastTrigger != _window->root()) {
+				// Ensure that the final root can receive system events.
+				// and ignore the receive flag of root.
+				_window->root()->trigger(name, evt);
+			}
 		}
 
 		void trigger_click(UIEvent &evt) {
@@ -90,7 +92,7 @@ namespace qk {
 				auto focus_view = _window->dispatch()->_focusView;
 				auto root = _window->root();
 				if (focus_view != evt.origin() && focus_view != root) {
-					if (!focus_view->is_self_child(evt.origin())) {
+					if (!focus_view->is_child(evt.origin())) {
 						root->focus(); // root
 					}
 				}
@@ -111,7 +113,6 @@ namespace qk {
 
 			}
 		}
-
 	};
 
 	bool View::focus() {
@@ -186,17 +187,40 @@ namespace qk {
 		UIEvent::release();
 	}
 
-	ClickEvent::ClickEvent(View* origin, Vec2 position, Type type, uint32_t count)
-		: UIEvent(origin), _position(position), _count(count), _type(type)
+	ClickEvent::ClickEvent(View* origin, Vec2 position, Type type, uint32_t count,
+			KeyboardKeyCode keycode,
+			bool shift, bool ctrl, bool alt, bool command, bool caps_lock)
+		: KeyEvent(origin, keycode, 0, shift, ctrl, alt, command, caps_lock
+			, 0, 0, 0
+		), _position(position), _count(count), _type(type)
 	{}
 
-	MouseEvent::MouseEvent(View* origin, Vec2 position, KeyboardKeyCode keycode, int keypress,
-										bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-										uint32_t repeat, int device, int source)
-		: KeyEvent(origin, keycode, keypress, shift, ctrl, alt, command, caps_lock
-			, repeat, device, source
-		), _position(position)
+	MouseEvent::MouseEvent(View* origin, Vec2 position, KeyboardKeyCode keycode,
+										bool shift, bool ctrl, bool alt, bool command, bool caps_lock)
+		: KeyEvent(origin, keycode, 0, shift, ctrl, alt, command, caps_lock, 0, 0, 0
+		), _position(position), _level(origin->level())
 	{}
+
+	Sp<ClickEvent> NewClick(View* view, Vec2 pos,
+			ClickEvent::Type type, KeyboardKeyCode keycode = KEYCODE_UNKNOWN, uint32_t count = 1) {
+		auto dispatch = view->window()->dispatch();
+		auto keyboard = dispatch->keyboard();
+		return NewEvent<ClickEvent>(view, pos, type, count, keycode,
+			keyboard->shift(),
+			keyboard->ctrl(), keyboard->alt(),
+			keyboard->command(), keyboard->caps_lock()
+		);
+	}
+
+	Sp<MouseEvent> NewMouseEvent(View* view, Vec2 pos, KeyboardKeyCode keycode) {
+		auto dispatch = view->window()->dispatch();
+		auto keyboard = dispatch->keyboard();
+		return NewEvent<MouseEvent>(view, pos, keycode,
+			keyboard->shift(),
+			keyboard->ctrl(), keyboard->alt(),
+			keyboard->command(), keyboard->caps_lock()
+		);
+	}
 
 	HighlightedEvent::HighlightedEvent(View* origin, HighlightedStatus status)
 		: UIEvent(origin), _status(status)
@@ -212,14 +236,13 @@ namespace qk {
 		UIEvent::release();
 	}
 
+	// O r i g i n T o u c h e
 	class EventDispatch::OriginTouche {
 	public:
 		~OriginTouche() {
 			_origin->release(); // it must release here
 		}
 		View* origin() { return _origin; }
-		// bool is_click_valid() { return _is_click_valid; }
-		// void set_click_invalid() { _is_click_valid = false; }
 		Dict<uint32_t, TouchPoint>& values() { return _touches; }
 		TouchPoint& operator[](uint32_t id) { return _touches[id]; }
 		uint32_t count() { return _touches.length(); }
@@ -241,28 +264,28 @@ namespace qk {
 		int _click_valid_count; // click valid count
 	};
 
-	/**
-	 * @class EventDispatch::MouseHandle
-	 */
-	class EventDispatch::MouseHandle {
+	// M o u s e H a n d l e r
+	class EventDispatch::MouseHandler {
 	public:
-		MouseHandle(): _view(nullptr), _click_view(nullptr) {}
-		~MouseHandle() {
+		MouseHandler(): _view(nullptr), _down_view(nullptr) {}
+		~MouseHandler() {
 			Releasep(_view);
-			Releasep(_click_view);
+			Releasep(_down_view);
 		}
-		inline View* view() { return _view; }
-		inline Vec2 view_start_position() { return _start_position; }
-		inline Vec2 position() { return _position; }
-		inline View* click_down_view() { return _click_view; }
-		inline void set_position(Vec2 value) { _position = value; }
-		void set_click_down_view_mt(View* view) {
-			Release(_click_view);
+		View* view() { return _view; }
+		View* down_view() { return _down_view; }
+		Vec2 position() { return _position; }
+		Vec2 down_view_pos() { return _down_v_pos; }
+		Vec2 down_pos() { return _down_pos; }
+		void set_position(Vec2 value) { _position = value; }
+		void set_down_view_mt(View* view) {
+			Release(_down_view);
 			if (view) {
 				view->retain();
-				_start_position = view->position();
+				_down_v_pos = view->position();
+				_down_pos = _position;
 			}
-			_click_view = view;
+			_down_view = view;
 		}
 		void set_view_mt(View* view) {
 			Release(_view);
@@ -270,11 +293,11 @@ namespace qk {
 			_view = view;
 		}
 	private:
-		View *_view, *_click_view;
-		Vec2 _start_position, _position;
+		View *_view, *_down_view;
+		Vec2 _position;
+		Vec2 _down_v_pos, _down_pos;
 	};
 
-	// @EventDispatch
 	// ----------------------------------------------------------------------------------------
 	#define _loop _window->loop()
 
@@ -285,7 +308,7 @@ namespace qk {
 	{
 		_keyboard = KeyboardAdapter::create();
 		_keyboard->_host = this;
-		_mouse_handle = new MouseHandle();
+		_mouse = new MouseHandler();
 	}
 
 	EventDispatch::~EventDispatch() {
@@ -296,7 +319,7 @@ namespace qk {
 			_focusView = nullptr;
 		}
 		Release(_keyboard);
-		delete _mouse_handle;
+		delete _mouse;
 	}
 
 	Sp<View> EventDispatch::safe_focus_view() {
@@ -478,6 +501,7 @@ namespace qk {
 
 	void EventDispatch::touchend(List<TouchPoint>& in, bool isCancel) {
 		Dict<View*, Array<TouchPoint>> change_touches;
+		int count = 0;
 
 		for ( auto& in_touch : in ) {
 			for ( auto& origin : _origin_touches ) {
@@ -489,10 +513,12 @@ namespace qk {
 						origin.second->set_click_valid_count(-1);
 					change_touches[touch.view].push(touch);
 					origin.second->del(touch.id); // del touch point
+					count++;
 					break;
 				}
 			}
 		}
+		Qk_ASSERT_EQ(in.length(), count, "Some touch points not found in origin touches");
 
 		for ( auto& i : change_touches ) { // views
 			auto& touchs = i.second;
@@ -531,7 +557,7 @@ namespace qk {
 								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
 								_inl_view(view)->trigger_highlightted(**evt); // emit style status event
 								if (evt0->is_default() && !is_cancel && view->_level) {
-									auto evt = NewEvent<ClickEvent>(view, touch.position, ClickEvent::kTouch);
+									auto evt = NewClick(view, touch.position, ClickEvent::kTouch);
 									_inl_view(view)->trigger_click(**evt); // emit click event
 								}
 								break;
@@ -626,91 +652,69 @@ namespace qk {
 		}
 	}
 
-	Sp<MouseEvent> EventDispatch::NewMouseEvent(View* view, Vec2 pos, KeyboardKeyCode keycode) {
-		return NewEvent<MouseEvent>(view, pos, keycode, 0,
-			_keyboard->shift(),
-			_keyboard->ctrl(), _keyboard->alt(),
-			_keyboard->command(), _keyboard->caps_lock(), 0, 0, 0
-		);
-	}
-
 	void EventDispatch::mousemove(View *view, Vec2 pos) {
-		View* d_view = _mouse_handle->click_down_view();
-		if ( d_view ) { // no invalid
-			Vec2 position = d_view->position();
-			Vec2 start_position = _mouse_handle->view_start_position();
-			float d = (start_position - position).lengthSq() * _window->scale() / _window->defaultScale();
-			// 视图位置移动超过4平方距离取消点击状态
-			if ( d > 9 ) { // trigger invalid status
-				if (view == d_view) {
-					_inl_view(view)->trigger_highlightted( // emit style status event
-						**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover));
-				}
-				_mouse_handle->set_click_down_view_mt(nullptr);
-			}
-		}
-
-		View* old = _mouse_handle->view();
-		if (old != view) {
-			_mouse_handle->set_view_mt(view);
-
-			if (old) {
-				auto evt = NewMouseEvent(old, pos, KEYCODE_UNKNOWN);
-				_inl_view(old)->bubble_trigger(UIEvent_MouseOut, **evt);
-
-				if (evt->is_default()) {
-					evt->return_value = kAll_ReturnValueMask;
-
-					if (!view || !old->is_self_child(view)) {
-						_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
-					}
-					_inl_view(old)->trigger_highlightted( // emit style status event
-						**NewEvent<HighlightedEvent>(old, HighlightedStatus::kNormal)
-					);
-				}
-			}
-			if (view) {
-				auto evt = NewMouseEvent(view, pos, KEYCODE_UNKNOWN);
-				_inl_view(view)->bubble_trigger(UIEvent_MouseOver, **evt);
-				_window->setCursorStyle(view->cursor_style_exec(), true);
-
-				if (evt->is_default()) {
-					evt->return_value = kAll_ReturnValueMask;
-
-					if (!old || !view->is_self_child(old)) {
-						_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
-					}
-					_inl_view(view)->trigger_highlightted( // emit style status event
-						**NewEvent<HighlightedEvent>(view,
-							view == d_view ? HighlightedStatus::kActive: HighlightedStatus::kHover)
-					);
-				}
-			}
-		}
-
 		// always trigger mouse move that is to ensure the continuity of move events, even view first enters
-		if (view) {
-			_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **NewMouseEvent(view, pos, KEYCODE_UNKNOWN));
+		auto evt = NewMouseEvent(view, pos, KEYCODE_UNKNOWN);
+		_inl_view(view)->bubble_trigger(UIEvent_MouseMove, **evt);
+
+		View* v_down = _mouse->down_view();
+		if ( v_down && evt->is_default() ) { // test down view valid if not default prevented
+			float scale_factor = _window->scale() / _window->defaultScale();
+			Vec2 down_pos = _mouse->down_pos();
+			Vec2 down_v_pos = _mouse->down_view_pos();
+			Vec2 v_pos = v_down->position();
+			// 视图位置与光标位置都移动超过3^2平方距离取消点击状态
+			if ((down_v_pos - v_pos).lengthSq() * scale_factor > 9 && 
+					(down_pos - pos).lengthSq() * scale_factor > 9) {
+				// trigger invalid status
+				if (view == v_down) {
+					_inl_view(v_down)->trigger_highlightted( // emit style status event
+						**NewEvent<HighlightedEvent>(v_down, HighlightedStatus::kHover));
+				}
+				v_down = nullptr;
+				_mouse->set_down_view_mt(nullptr);
+			}
+		}
+
+		View* old = _mouse->view();
+		if (old != view) {
+			_mouse->set_view_mt(view);
+			if (old) {
+				// Can trigger the MouseOut event here.
+				if (!old->is_child(view)) {
+					auto evt = NewMouseEvent(old, pos, KEYCODE_UNKNOWN);
+					_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
+				}
+				_inl_view(old)->trigger_highlightted( // emit style status event
+					**NewEvent<HighlightedEvent>(old, HighlightedStatus::kNormal)
+				);
+			}
+			// Can trigger the MouseOver event here.
+			_window->setCursorStyle(view->cursor_style_exec(), true);
+
+			if (!old || !view->is_child(old)) {
+				auto evt = NewMouseEvent(view, pos, KEYCODE_UNKNOWN);
+				_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
+			}
+			auto status = view == v_down || view->is_child(v_down) ?
+				HighlightedStatus::kActive: HighlightedStatus::kHover;
+			_inl_view(view)->trigger_highlightted(**NewEvent<HighlightedEvent>(view, status));
 		}
 	}
 
 	void EventDispatch::mousepress(View *view, Vec2 pos, KeyboardKeyCode code, bool down) {
-		if (_mouse_handle->view() != view) {
-			// ensure mouse move to this view first
-			mousemove(view, pos);
+		if (_mouse->view() != view) {
+			mousemove(view, pos); // ensure mouse move to this view first
 		}
-		if (!view) return;
-
-		auto evt = NewMouseEvent(view, pos, code);
-
-		Sp<View> raw_down_view = _mouse_handle->click_down_view();
+		Sp<MouseEvent> evt = NewMouseEvent(view, pos, code);
+		Sp<View> v_down = _mouse->down_view();
 
 		if (down) {
-			_mouse_handle->set_click_down_view_mt(view);
+			_mouse->set_down_view_mt(view);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseDown, **evt);
 			_window->setCursorStyle(view->cursor_style_exec(), true);
 		} else {
-			_mouse_handle->set_click_down_view_mt(nullptr);
+			_mouse->set_down_view_mt(nullptr);
 			_inl_view(view)->bubble_trigger(UIEvent_MouseUp, **evt);
 		}
 
@@ -724,30 +728,28 @@ namespace qk {
 			_inl_view(view)->trigger_highlightted(
 				**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover)); // emit style status event
 
-			if (view == *raw_down_view) {
-				_inl_view(view)->trigger_click(**NewEvent<ClickEvent>(view, pos, ClickEvent::kMouse));
+			if (view == *v_down || view->is_child(*v_down)) {
+				_inl_view(view)->trigger_click(**NewClick(view, pos, ClickEvent::kMouse, code));
 			}
 		}
 	}
 
 	void EventDispatch::onMousemove(float x, float y) {
 		UILock lock(_window);
-		if (_window->root()) {
-			Vec2 pos(x, y);
-			// Qk_DLog("onMousemove x: %f, y: %f", x, y);
-			_mouse_handle->set_position(pos); // set current mouse pos
-			auto v = find_receive_view_and_retain(pos);
-			if (v) {
-				_loop->post(Cb([this,v,pos](auto& e) {
-					// static int64_t lastTime = 0;
-					// int64_t time = time_monotonic();
-					// int64_t diff = time - lastTime;
-					// lastTime = time;
-					// Qk_DLog("mouse move delay: %lld ms", diff / 1000);
-					mousemove(v, pos);
-					v->release(); // it has to release
-				}),v);
-			}
+		Vec2 pos(x, y);
+		// Qk_DLog("onMousemove x: %f, y: %f", x, y);
+		_mouse->set_position(pos); // set current mouse pos
+		auto v = find_receive_view_and_retain(pos);
+		if (v) {
+			_loop->post(Cb([this,v,pos](auto e) {
+				// static int64_t lastTime = 0;
+				// int64_t time = time_monotonic();
+				// int64_t diff = time - lastTime;
+				// lastTime = time;
+				// Qk_DLog("mouse move delay: %lld ms", diff / 1000);
+				mousemove(v, pos);
+				v->release(); // it has to release
+			}),v);
 		}
 	}
 
@@ -758,11 +760,11 @@ namespace qk {
 			case KEYCODE_MOUSE_CENTER:
 			case KEYCODE_MOUSE_RIGHT: {
 				UILock lock(_window); // Lock ui render
-				auto pos = val ? *val: _mouse_handle->position(); // get current mouse pos
+				auto pos = val ? *val: _mouse->position(); // get current mouse pos
 				auto v = find_receive_view_and_retain(pos);
 				//Qk_DLog("onMousepress code: %d, isDown: %i, v: %p", code, isDown, v);
 				if (v)
-					_loop->post(Cb([this,v,pos,code,isDown](auto& e) {
+					_loop->post(Cb([this,v,pos,code,isDown](auto e) {
 						mousepress(v, pos, code, isDown);
 						v->release(); // it has to release
 					}),v);
@@ -779,12 +781,9 @@ namespace qk {
 				if (isDown) {
 					auto delta = val ? *val: deltaDefault;
 					_loop->post(Cb([=](auto e) {
-						auto v = _mouse_handle->view();
-						if (v) {
-							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel,
-								**NewMouseEvent(v, delta, code)
-							);
-						}
+						auto v = _mouse->view();
+						if (v)
+							_inl_view(v)->bubble_trigger(UIEvent_MouseWheel, **NewMouseEvent(v, delta, code));
 					}));
 				}
 				break;
@@ -809,7 +808,6 @@ namespace qk {
 	void EventDispatch::onKeyboardDown() {
 		auto safe_v = safe_focus_view();
 		auto view = *safe_v;
-		if (!view) view = _window->root();
 		if (!view) return;
 
 		auto code = _keyboard->keycode();
@@ -880,7 +878,6 @@ namespace qk {
 	void EventDispatch::onKeyboardUp() {
 		auto safe_v = safe_focus_view();
 		View* view = *safe_v;
-		if (!view) view = _window->root();
 		if (!view) return;
 
 		auto mat = view->morph_view()->matrix();
@@ -897,7 +894,7 @@ namespace qk {
 
 			if ( evt->is_default() ) {
 				if ( evt->keycode() == KEYCODE_BACK ) {
-					auto evt = NewEvent<ClickEvent>(view, point, ClickEvent::kKeyboard);
+					auto evt = NewClick(view, point, ClickEvent::kKeyboard, KEYCODE_BACK);
 					_inl_view(view)->bubble_trigger(UIEvent_Back, **evt); // emit back
 
 					if ( evt->is_default() ) {
@@ -908,7 +905,7 @@ namespace qk {
 					auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover);
 					_inl_view(view)->trigger_highlightted(**evt); // emit style status event
 
-					auto evt2 = NewEvent<ClickEvent>(view, point, ClickEvent::kKeyboard);
+					auto evt2 = NewClick(view, point, ClickEvent::kKeyboard, KEYCODE_CENTER);
 					_inl_view(view)->trigger_click(**evt2);
 				} //
 			}

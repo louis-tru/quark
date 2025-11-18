@@ -172,10 +172,6 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** @event Touch canceled (gesture aborted). */
 	readonly onTouchCancel: EventNoticer<TouchEvent>;
 
-	/** @event Pointer enters this view's region. */
-	readonly onMouseOver: EventNoticer<MouseEvent>;
-	/** @event Pointer leaves toward another sibling/child. */
-	readonly onMouseOut: EventNoticer<MouseEvent>;
 	/** @event Pointer fully leaves (no longer within subtree). */
 	readonly onMouseLeave: EventNoticer<MouseEvent>;
 	/** @event Pointer first enters (no previous containment). */
@@ -378,7 +374,7 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	 * Returns true if the given view is contained in this view's subtree.
 	 * @param child The view to test.
 	 */
-	isSelfChild(child: View): boolean;
+	isChild(child: View): boolean;
 
 	/**
 	 * Insert this view before another sibling in the same parent.
@@ -1646,8 +1642,6 @@ declare global {
 			onTouchMove?: Listen<TouchEvent, View> | null;
 			onTouchEnd?: Listen<TouchEvent, View> | null;
 			onTouchCancel?: Listen<TouchEvent, View> | null;
-			onMouseOver?: Listen<MouseEvent, View> | null;
-			onMouseOut?: Listen<MouseEvent, View> | null;
 			onMouseLeave?: Listen<MouseEvent, View> | null;
 			onMouseEnter?: Listen<MouseEvent, View> | null;
 			onMouseMove?: Listen<MouseEvent, View> | null;
@@ -1957,6 +1951,7 @@ class GestureManager {
 
 	// delete zombie touch points when global touchend/touchcancel event triggered
 	private static deleteZombieTouchPoint(e: TouchEvent) {
+		// console.log('TouchEnd  ', e.changedTouches.map(t => t.id).join(' '));
 		for (const gm of gGestureManagerSet) {
 			if (gm._touches.size !== 0) {
 				for (const {id} of e.changedTouches) {
@@ -1997,10 +1992,11 @@ class GestureManager {
 	}
 
 	private _dispatchStart(evt: GestureEventInl, touchs: TouchPoint[], timestamp: Uint, rejectDiscard: boolean) {
+		// console.log('TouchStart', touchs.map(t => t.id).join(' '));
 		let i = 0;
 		do {
 			const touch = touchs[i];
-			util.assert(!this._touches.has(touch.id), 'Gesture point already exists');
+			util.assert(!this._touches.has(touch.id), `Gesture point already exists ${touch.id}`);
 
 			if (evt.sealed) {
 				touchs.splice(0, touchs.length); // discard all points
@@ -2193,8 +2189,6 @@ class _View extends NativeNotification<UIEvent> {
 	@event readonly onTouchMove: EventNoticer<TouchEvent>;
 	@event readonly onTouchEnd: EventNoticer<TouchEvent>;
 	@event readonly onTouchCancel: EventNoticer<TouchEvent>;
-	@event readonly onMouseOver: EventNoticer<MouseEvent>;
-	@event readonly onMouseOut: EventNoticer<MouseEvent>;
 	@event readonly onMouseLeave: EventNoticer<MouseEvent>;
 	@event readonly onMouseEnter: EventNoticer<MouseEvent>;
 	@event readonly onMouseMove: EventNoticer<MouseEvent>;

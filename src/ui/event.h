@@ -155,12 +155,13 @@ namespace qk {
 	/**
 	* @class ClickEvent click event
 	*/
-	class Qk_EXPORT ClickEvent: public UIEvent {
+	class Qk_EXPORT ClickEvent: public KeyEvent {
 	public:
 		enum Type {
 			kTouch = 1, kKeyboard, kMouse
 		};
-		ClickEvent(View* origin, Vec2 position, Type type, uint32_t count = 1);
+		ClickEvent(View* origin, Vec2 position, Type type, uint32_t count, KeyboardKeyCode keycode,
+			bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
 		Qk_DEFINE_PROP_GET(Vec2, position, Const);
 		Qk_DEFINE_PROP_GET(uint32_t, count, Const);
 		Qk_DEFINE_PROP_GET(Type, type, Const);
@@ -171,10 +172,10 @@ namespace qk {
 	*/
 	class Qk_EXPORT MouseEvent: public KeyEvent {
 	public:
-		MouseEvent(View* origin, Vec2 position, KeyboardKeyCode keycode, int keypress,
-							bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
-							uint32_t repeat = 0, int device = 0, int source = 0);
+		MouseEvent(View* origin, Vec2 position, KeyboardKeyCode keycode,
+				bool shift, bool ctrl, bool alt, bool command, bool caps_lock);
 		Qk_DEFINE_PROP_GET(Vec2, position, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, level, Const);
 	};
 
 	/**
@@ -263,13 +264,12 @@ namespace qk {
 		void mousepress(View* view, Vec2 pos, KeyboardKeyCode code, bool down);
 		View* find_receive_view_exec(View *view, Vec2 pos);
 		View* find_receive_view_and_retain(Vec2 pos);
-		Sp<MouseEvent> NewMouseEvent(View *view, Vec2 pos, KeyboardKeyCode keycode);
 		Sp<View> safe_focus_view();
 
 		class OriginTouche;
-		class MouseHandle;
+		class MouseHandler;
 		Dict<View*, OriginTouche*> _origin_touches;
-		MouseHandle *_mouse_handle;
+		MouseHandler *_mouse;
 		std::atomic<TextInput*> _text_input;
 		Mutex _focus_view_mutex; // get set focus view mutex for main and render thread
 		friend class View;

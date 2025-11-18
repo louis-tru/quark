@@ -48,13 +48,13 @@ export default async function (_: any) {
 	Mv(onTest, 'trigger', [0])
 	Mv(onTest, 'off', [handle1])
 	Mv(onTest, 'trigger', [1])
-	Mv(onTest, 'off', [scope])
+	Mv(onTest, 'offByCtx', [scope])
 	Mv(onTest, 'trigger', [2])
 	Mv(onTest, 'off', [id])
 	Mv(onTest, 'trigger', [3])
 
 	Mv(onTest, 'on', [function(e) {
-		Mv(onTest, 'off', [scope])
+		Mv(onTest, 'offByCtx', [scope])
 	}])
 	Mv(onTest, 'trigger', [1])
 	Mv(onTest, 'trigger', [2])
@@ -88,8 +88,8 @@ export default async function (_: any) {
 	})
 
 	Mv(test, 'trigger', ['Test', 100])
-	Mv(test, 'trigger', ['Test2'])
-	Mv(test, 'removeEventListenerWithCtx', [test])
+	Mv(test, 'trigger', ['Test2', void 0])
+	Mv(test, 'removeEventListenerByCtx', [test])
 	Mv(test, 'trigger', ['Test', 100])
-	Mv(test, 'trigger', ['Test2'])
+	Mv(test, 'trigger', ['Test2', void 0])
 }

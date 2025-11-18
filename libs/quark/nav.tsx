@@ -207,7 +207,7 @@ export class Navigation<P={},S={}> extends NavigationStatus<{
 			if ( prev !== this.navStack.end ) {
 				let focus = this.window.focusView;
 				prev.value._focusResume =
-					focus && prev.value.metaView.isSelfChild(focus) ? focus : null;
+					focus && prev.value.metaView.isChild(focus) ? focus : null;
 				prev.value.intoBackground(animate);
 			}
 			let view = this.initFocus();

@@ -131,13 +131,24 @@ export enum ClickType {
  * @class ClickEvent
  * @extends UIEvent
 */
-export declare class ClickEvent extends UIEvent {
+export declare class ClickEvent extends KeyEvent {
 	/** The cursor position in the window */
 	readonly position: Vec2;
 	/** Number of consecutive clicks, possibly double clicks */
 	readonly count: number;
 	/** Click trigger type */
 	readonly type: ClickType;
+}
+
+/**
+ * @class MouseEvent
+ * @extends UIEvent
+*/
+export declare class MouseEvent extends KeyEvent {
+	/** The cursor position in the window */
+	readonly position: Vec2;
+	/** The current view level under the mouse cursor */ 
+	readonly level: Uint;
 }
 
 /**
@@ -163,15 +174,6 @@ export enum HighlightedStatus {
 export declare class HighlightedEvent extends UIEvent {
 	/** Highlight state type */
 	readonly status: HighlightedStatus;
-}
-
-/**
- * @class MouseEvent
- * @extends UIEvent
-*/
-export declare class MouseEvent extends UIEvent {
-	/** The cursor position in the window */
-	readonly position: Vec2;
 }
 
 /**

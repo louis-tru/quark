@@ -58,7 +58,7 @@ namespace qk {
 	}
 
 	void ActionCenter::removeCSSTransition_rt(View *view) {
-		auto it = _CSSTransitions_rt.find(uint64_t(view));
+		auto it = _CSSTransitions_rt.find(uintptr_t(view));
 		if (it != _CSSTransitions_rt.end()) {
 			for (auto act: it->second) {
 				act->stop_rt();

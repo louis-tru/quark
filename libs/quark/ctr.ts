@@ -656,36 +656,34 @@ class VirtualDOMCollection extends VirtualDOM<DOMCollection> {
 		let {keys:keysOld,owner} = dom;
 		let collection: DOM[] = new Array(this.collection.length);
 		let keys = new Map<string|number, [DOM,VDom]>();
-		let prev = dom.metaView; assertDev(prev);
+		let prev = dom.metaView;
+		assertDev(prev);
 
 		this.collection.forEach(function(vdom, i) {
 			let key = getkey(vdom, i);
 			if (keys.has(key))
 				throw new Error('DOM Key definition duplication in DOM Collection, = ' + key);
 			let dom: DOM;
-
 			let old = keysOld.get(key);
 			if (old) {
 				let [domOld, vdomOld] = old;
 				if (vdomOld.hash !== vdom.hash) {
 					dom = vdom.diff(owner, vdomOld, domOld); // diff
-					prev = dom.metaView;
 				} else { // use old dom
 					dom = domOld;
-					prev = domOld.afterTo(prev);
 				}
 				keysOld.delete(key);
 			} else { // no key
 				dom = vdom.newDom(owner);
-				prev = dom.afterTo(prev);
 			}
+			prev = dom.afterTo(prev);
 			collection[i] = dom;
 			keys.set(key, [dom, vdom]);
 		});
 		(dom as RemoveReadonly<DOMCollection>).keys = keys;
 		(dom as RemoveReadonly<DOMCollection>).collection = collection;
 
-		for (let [_,[dom]] of keysOld) {
+		for (let [,[dom]] of keysOld) {
 			dom.destroy(owner);
 		}
 	}
@@ -725,7 +723,7 @@ export class DOMCollection implements DOM {
 	constructor(owner: ViewController) {
 		this.owner = owner;
 		this.collection = [];
-		this.keys = new Map<string, [DOM,VDom]>;
+		this.keys = new Map<string, [DOM,VDom]>();
 	}
 	appendTo(parent: View) {
 		for (let dom of this.collection)

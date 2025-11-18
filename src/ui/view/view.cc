@@ -505,7 +505,7 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
-	bool View::is_self_child(View *child) {
+	bool View::is_child(View *child) {
 		if ( child ) {
 			auto parent = child->parent();
 			while (parent) {
@@ -522,7 +522,9 @@ Range Container::to_range() const {
 		if (view == this) return;
 		_IfParent() {
 			if (view->_parent == _parent) {
-				view->clear_link();  // clear link
+				if (view->_next == this)
+					return; // already before
+				view->clear_link(true);  // clear link
 			} else {
 				view->set_parent(_parent);
 			}
@@ -542,7 +544,9 @@ Range Container::to_range() const {
 		if (view == this) return;
 		_IfParent() {
 			if (view->_parent == _parent) {
-				view->clear_link(); // clear link
+				if (view->_prev == this)
+					return; // already after
+				view->clear_link(true); // clear link
 			} else {
 				view->set_parent(_parent);
 			}
@@ -560,7 +564,9 @@ Range Container::to_range() const {
 
 	void View::prepend(View *child) {
 		if (this == child->_parent) {
-			child->clear_link();
+			if (_first == child)
+				return; // already first
+			child->clear_link(true);
 		} else {
 			child->set_parent(this);
 		}
@@ -580,7 +586,9 @@ Range Container::to_range() const {
 
 	void View::append(View *child) {
 		if (this == child->_parent) {
-			child->clear_link();
+			if (_last == child)
+				return; // already last
+			child->clear_link(true);
 		} else {
 			child->set_parent(this);
 		}
@@ -601,7 +609,7 @@ Range Container::to_range() const {
 	void View::remove() {
 		if (_parent) {
 			blur();
-			clear_link();
+			clear_link(false);
 			set_action(nullptr); // Delete action
 			preRender().async_call([](auto self, auto arg) {
 				if (self->_level) {
@@ -625,7 +633,7 @@ Range Container::to_range() const {
 		}
 	}
 
-	void View::clear_link() { // Cleaning up associated view information
+	void View::clear_link(bool notice) { // Cleaning up associated view information
 		_IfParent() {
 			auto _prev = this->prev();
 			auto _next = this->next();
@@ -640,6 +648,12 @@ Range Container::to_range() const {
 				_parent->_last = _prev;
 			} else {
 				_next->_prev = _prev;
+			}
+			if (notice) {
+				preRender().async_call([](auto self, auto arg) {
+					if (self->_level)
+						arg.arg->onChildLayoutChange(self, kChild_Layout_Visible);
+				}, this, _parent);
 			}
 		}
 	}
@@ -659,9 +673,8 @@ Range Container::to_range() const {
 		Qk_CHECK(!check_loop_ref(this, parent), "View::set_parent(parent), loop ref error");
 		_Parent();
 		if (parent != _parent) {
-			#define is_root (_window->root() == this)
-			Qk_CHECK(!is_root, "root view not allow set parent"); // check
-			clear_link();
+			Qk_CHECK(_window->root() != this, "root view not allow set parent"); // check
+			clear_link(false);
 			if ( !_parent ) {
 				retain(); // link to parent and retain ref
 			}
@@ -697,10 +710,10 @@ Range Container::to_range() const {
 	// --------------------------------------------------------------------------------------
 
 	void View::set_visible_rt(bool visible) {
-		#define _Is_root(self) (self->_window->root() == self)
 		_Parent();
-		auto level = _parent && _parent->_level ?
-			_parent->_level + 1: visible && _Is_root(this) ? 1: 0;
+		auto level =
+			_parent && _parent->_level         ? _parent->_level + 1:
+			visible && _window->root() == this ? 1: 0;
 
 		if (visible && level) {
 			if (_level != level)
@@ -777,7 +790,7 @@ Range Container::to_range() const {
 				}
 			}
 		}
-		unmark(kStyle_Class);
+		unmark(kClass_All);
 	}
 
 	void View::apply_class_all_rt(CStyleSheetsClass *parentSsclass, bool force) {
@@ -795,7 +808,7 @@ Range Container::to_range() const {
 				v = v->next();
 			}
 		}
-		unmark(kStyle_Class);
+		unmark(kClass_All);
 	}
 
 	CStyleSheetsClass* View::parent_ssclass_rt() {

@@ -134,16 +134,16 @@ namespace qk { namespace js {
 			Js_Class_Method(focus, { Js_ReturnBool( self->focus() ); });
 			Js_Class_Method(blur, { Js_ReturnBool( self->blur() ); });
 
-			Js_Class_Method(isSelfChild, {
+			Js_Class_Method(isChild, {
 				if (!args.length() || !Js_IsView(args[0])) {
 					Js_Throw(
-						"@method View.is_self_child(child)\n"
+						"@method View.is_child(child)\n"
 						"@param child {View}\n"
 						"@return {bool}\n"
 					);
 				}
 				auto v = MixObject::mix<View>(args[0])->self();
-				Js_ReturnBool( self->is_self_child(v) );
+				Js_ReturnBool( self->is_child(v) );
 			});
 
 			Js_Class_Method(before, {

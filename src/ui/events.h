@@ -35,7 +35,7 @@
 #define Qk_UI_Events(F) \
 /* can bubble event */ \
 F(Click, Click, kBubble_UIEventFlags) \
-F(Back, Click, kBubble_UIEventFlags) \
+F(Back, Click, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(KeyDown, Keyboard, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(KeyPress, Keyboard, kBubble_UIEventFlags) \
 F(KeyUp, Keyboard, kBubble_UIEventFlags | kSystem_UIEventFlags) \
@@ -44,8 +44,6 @@ F(TouchStart, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(TouchMove, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(TouchEnd, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(TouchCancel, Touch, kBubble_UIEventFlags | kSystem_UIEventFlags) \
-F(MouseOver, Mouse, kBubble_UIEventFlags) \
-F(MouseOut, Mouse, kBubble_UIEventFlags) \
 F(MouseLeave, Mouse, kBubble_UIEventFlags) \
 F(MouseEnter, Mouse, kBubble_UIEventFlags) \
 F(MouseMove, Mouse, kBubble_UIEventFlags | kSystem_UIEventFlags) \

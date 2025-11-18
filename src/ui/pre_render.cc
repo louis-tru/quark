@@ -188,7 +188,7 @@ namespace qk {
 			// First solve class changes
 			for (auto &levelMarks: _marks) {
 				for (auto view: levelMarks) {
-					if (view->_mark_value & View::kStyle_Class)
+					if (view->_mark_value & View::kClass_All)
 						view->apply_class_rt(view->parent_ssclass_rt());
 				}
 			}
