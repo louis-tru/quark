@@ -152,11 +152,13 @@ export declare class MouseEvent extends KeyEvent {
 }
 
 /**
- * Status type of event `Highlighted`
+ * Status type of event `UIState`
 */
-export enum HighlightedStatus {
+export enum UIState {
+	/** No status */
+	None = 0,
 	/** Normal situation */
-	Normal = 1,
+	Normal,
 	/** When the mouse moves over the view or the focus switches to the view */
 	Hover,
 	/** When the mouse is pressed or the OK button is pressed on the remote control */
@@ -165,15 +167,15 @@ export enum HighlightedStatus {
 
 /**
  * When this event triggers, 
- * the highlighted state that the view should enter after triggering certain events.
+ * the UI state that the view should enter after triggering certain events.
  * For example: when the mouse enters the view, the state is `Hover`
- * 
- * @class HighlightedEvent
+ *
+ * @class UIStateEvent
  * @extends UIEvent
  */
-export declare class HighlightedEvent extends UIEvent {
-	/** Highlight state type */
-	readonly status: HighlightedStatus;
+export declare class UIStateEvent extends UIEvent {
+	/** UI state type */
+	readonly state: UIState;
 }
 
 /**

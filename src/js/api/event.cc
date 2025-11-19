@@ -129,12 +129,12 @@ namespace qk { namespace js {
 		}
 	};
 
-	struct MixHighlightedEvent: MixObject {
-		typedef HighlightedEvent Type;
+	struct MixUIStateEvent: MixObject {
+		typedef UIStateEvent Type;
 		static void binding(JSObject* exports, Worker* worker) {
-			Js_Define_Class(HighlightedEvent, UIEvent, { Js_Throw("Access forbidden."); });
-			Js_MixObject_Acce_Get(HighlightedEvent, int, status, status);
-			cls->exports("HighlightedEvent", exports);
+			Js_Define_Class(UIStateEvent, UIEvent, { Js_Throw("Access forbidden."); });
+			Js_MixObject_Acce_Get(UIStateEvent, int, state, state);
+			cls->exports("UIStateEvent", exports);
 		}
 	};
 
@@ -269,7 +269,7 @@ namespace qk { namespace js {
 			MixClickEvent::binding(exports, worker);
 			MixMouseEvent::binding(exports, worker);
 			MixTouchEvent::binding(exports, worker);
-			MixHighlightedEvent::binding(exports, worker);
+			MixUIStateEvent::binding(exports, worker);
 			MixSpineEvent::binding(exports, worker);
 			MixSpineExtEvent::binding(exports, worker);
 			MixAgentStateEvent::binding(exports, worker);

@@ -41,8 +41,8 @@
 
 namespace qk {
 
-	static inline HighlightedEvent::Status HOVER_or_NORMAL(View *view) {
-		return view->is_focus() ? HighlightedEvent::kHover : HighlightedEvent::kNormal;
+	static inline UIState HOVER_or_NORMAL(View *view) {
+		return view->is_focus() ? kHover_UIState : kNormal_UIState;
 	}
 
 	template<class T, typename... Args>
@@ -99,17 +99,17 @@ namespace qk {
 			}
 		}
 		
-		void trigger_highlightted(HighlightedEvent &evt) {
-			bubble_trigger(UIEvent_Highlighted, evt);
+		void trigger_UIStateChange(UIStateEvent &evt) {
+			bubble_trigger(UIEvent_UIStateChange, evt);
 			if ( evt.is_default() ) {
 				preRender().async_call([](auto self, auto arg) {
 					do {
 						auto ss = self->_cssclass.load();
 						if (ss)
-							ss->setStatus_rt(arg.arg);
+							ss->setState_rt(arg.arg);
 						self = self->parent();
 					} while(self);
-				}, (View*)this, CSSType(evt.status()));
+				}, (View*)this, evt.state());
 
 			}
 		}
@@ -126,13 +126,13 @@ namespace qk {
 		}
 		if ( old ) {
 			_inl_view(old)->bubble_trigger(UIEvent_Blur, **NewEvent<UIEvent>(old));
-			_inl_view(old)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(old, HighlightedStatus::kNormal)
+			_inl_view(old)->trigger_UIStateChange(
+				**NewEvent<UIStateEvent>(old, kNormal_UIState)
 			);
 		}
 		_inl_view(this)->bubble_trigger(UIEvent_Focus, **NewEvent<UIEvent>(this));
-		_inl_view(this)->trigger_highlightted(
-			**NewEvent<HighlightedEvent>(this, HighlightedStatus::kHover)
+		_inl_view(this)->trigger_UIStateChange(
+			**NewEvent<UIStateEvent>(this, kHover_UIState)
 		);
 		return true;
 	}
@@ -222,8 +222,8 @@ namespace qk {
 		);
 	}
 
-	HighlightedEvent::HighlightedEvent(View* origin, HighlightedStatus status)
-		: UIEvent(origin), _status(status)
+	UIStateEvent::UIStateEvent(View* origin, UIState state)
+		: UIEvent(origin), _state(state)
 	{}
 
 	TouchEvent::TouchEvent(View* origin, Array<TouchPoint>& touches)
@@ -409,7 +409,7 @@ namespace qk {
 				auto highlighted = origin->click_valid_count() == 0; // is need highlight
 				origin->set_click_valid_count(touches.length());
 				// post main thread
-				_loop->post(Cb([view, highlighted, touches](auto& e) {
+				_loop->post(Cb([view, highlighted, touches](auto e) {
 					auto evt = NewEvent<TouchEvent>(view, touches);
 					_inl_view(view)->bubble_trigger(UIEvent_TouchStart, **evt); // emit event
 					Qk_DEBUGCODE({
@@ -418,8 +418,8 @@ namespace qk {
 						Qk_ASSERT_LE(testTouchsCount, 10, "Too many touch points active");
 					});
 					if (highlighted) {
-						auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
-						_inl_view(view)->trigger_highlightted(**evt); // emit event
+						auto evt = NewEvent<UIStateEvent>(view, kActive_UIState);
+						_inl_view(view)->trigger_UIStateChange(**evt); // emit event
 					}
 				}), view);
 			}
@@ -479,8 +479,8 @@ namespace qk {
 							origin.second->set_click_valid_count(-1); // decrease count
 							if (origin.second->click_valid_count() == 0) {
 								_loop->post(Cb([view = touch.view](auto &e){ // emit style status event
-									auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-									_inl_view(view)->trigger_highlightted(**evt);
+									auto evt = NewEvent<UIStateEvent>(view, HOVER_or_NORMAL(view));
+									_inl_view(view)->trigger_UIStateChange(**evt);
 								}), touch.view);
 							}
 						}
@@ -554,8 +554,8 @@ namespace qk {
 					if (is_click) { // trigger click
 						for (auto& touch : touchs) {
 							if (touch.click_valid) {
-								auto evt = NewEvent<HighlightedEvent>(view, HOVER_or_NORMAL(view));
-								_inl_view(view)->trigger_highlightted(**evt); // emit style status event
+								auto evt = NewEvent<UIStateEvent>(view, HOVER_or_NORMAL(view));
+								_inl_view(view)->trigger_UIStateChange(**evt); // emit style status event
 								if (evt0->is_default() && !is_cancel && view->_level) {
 									auto evt = NewClick(view, touch.position, ClickEvent::kTouch);
 									_inl_view(view)->trigger_click(**evt); // emit click event
@@ -668,8 +668,8 @@ namespace qk {
 					(down_pos - pos).lengthSq() * scale_factor > 9) {
 				// trigger invalid status
 				if (view == v_down) {
-					_inl_view(v_down)->trigger_highlightted( // emit style status event
-						**NewEvent<HighlightedEvent>(v_down, HighlightedStatus::kHover));
+					_inl_view(v_down)->trigger_UIStateChange( // emit style status event
+						**NewEvent<UIStateEvent>(v_down, kHover_UIState));
 				}
 				v_down = nullptr;
 				_mouse->set_down_view_mt(nullptr);
@@ -685,8 +685,8 @@ namespace qk {
 					auto evt = NewMouseEvent(old, pos, KEYCODE_UNKNOWN);
 					_inl_view(old)->bubble_trigger(UIEvent_MouseLeave, **evt);
 				}
-				_inl_view(old)->trigger_highlightted( // emit style status event
-					**NewEvent<HighlightedEvent>(old, HighlightedStatus::kNormal)
+				_inl_view(old)->trigger_UIStateChange( // emit style status event
+					**NewEvent<UIStateEvent>(old, kNormal_UIState)
 				);
 			}
 			// Can trigger the MouseOver event here.
@@ -697,8 +697,8 @@ namespace qk {
 				_inl_view(view)->bubble_trigger(UIEvent_MouseEnter, **evt);
 			}
 			auto status = view == v_down || view->is_child(v_down) ?
-				HighlightedStatus::kActive: HighlightedStatus::kHover;
-			_inl_view(view)->trigger_highlightted(**NewEvent<HighlightedEvent>(view, status));
+				kActive_UIState: kHover_UIState;
+			_inl_view(view)->trigger_UIStateChange(**NewEvent<UIStateEvent>(view, status));
 		}
 	}
 
@@ -722,11 +722,11 @@ namespace qk {
 			return;
 
 		if (down) {
-			_inl_view(view)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive)); // emit style status event
+			_inl_view(view)->trigger_UIStateChange(
+				**NewEvent<UIStateEvent>(view, kActive_UIState)); // emit style status event
 		} else {
-			_inl_view(view)->trigger_highlightted(
-				**NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover)); // emit style status event
+			_inl_view(view)->trigger_UIStateChange(
+				**NewEvent<UIStateEvent>(view, kHover_UIState)); // emit style status event
 
 			if (view == *v_down || view->is_child(*v_down)) {
 				_inl_view(view)->trigger_click(**NewClick(view, pos, ClickEvent::kMouse, code));
@@ -861,8 +861,8 @@ namespace qk {
 					}
 
 					if ( code == KEYCODE_CENTER && evt->repeat() == 0 ) {
-						auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kActive);
-						_inl_view(view)->trigger_highlightted(**evt); // emit click status event
+						auto evt = NewEvent<UIStateEvent>(view, kActive_UIState);
+						_inl_view(view)->trigger_UIStateChange(**evt); // emit click status event
 					}
 
 					if ( evt->next_focus() ) {
@@ -902,8 +902,8 @@ namespace qk {
 					}
 				}
 				else if ( evt->keycode() == KEYCODE_CENTER ) {
-					auto evt = NewEvent<HighlightedEvent>(view, HighlightedStatus::kHover);
-					_inl_view(view)->trigger_highlightted(**evt); // emit style status event
+					auto evt = NewEvent<UIStateEvent>(view, kHover_UIState);
+					_inl_view(view)->trigger_UIStateChange(**evt); // emit style status event
 
 					auto evt2 = NewClick(view, point, ClickEvent::kKeyboard, KEYCODE_CENTER);
 					_inl_view(view)->trigger_click(**evt2);

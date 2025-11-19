@@ -95,14 +95,14 @@ namespace qk {
 
 	// --------------------------- C S t y l e . S h e e t s ---------------------------
 
-	CStyleSheets::CStyleSheets(cCSSCName &name, CStyleSheets *parent, CSSType type)
+	CStyleSheets::CStyleSheets(cCSSCName &name, CStyleSheets *parent, UIState state)
 		: StyleSheets()
 		, _time(0)
 		, _parent(parent)
 		, _normal(nullptr), _hover(nullptr), _active(nullptr)
 		, _havePseudoType(false)
 		, _haveSubstyles(false)
-		, _type( parent && parent->_type ? parent->_type: type ), _name(name)
+		, _state( parent && parent->_state ? parent->_state: state ), _name(name)
 	{}
 
 	CStyleSheets::~CStyleSheets() {
@@ -124,41 +124,41 @@ namespace qk {
 		return i == _substyles.end() ? nullptr : i->second;
 	}
 
-	CStyleSheets* CStyleSheets::findAndMake(cCSSCName &name, CSSType type, bool isExtend, bool make) {
+	CStyleSheets* CStyleSheets::findAndMake(cCSSCName &name, UIState state, bool isExtend, bool make) {
 		CStyleSheets *ss;
 		CStyleSheetsDict &from = isExtend ? _extends: _substyles;
 
 		if (!from.get(name.hashCode(), ss)) {
 			if (!make)
 				return nullptr;
-			ss = new CStyleSheets(name, isExtend ? _parent: this, kNone_CSSType);
+			ss = new CStyleSheets(name, isExtend ? _parent: this, kNone_UIState);
 			from[name.hashCode()] = ss;
 			_haveSubstyles = _substyles.length();
 		}
-		if ( !type ) return ss; // no find pseudo type
-		if ( ss->_type ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
+		if ( !state ) return ss; // no find pseudo type
+		if ( ss->_state ) return nullptr; // illegal pseudo cls, 伪类样式表,不能存在子伪类样式表
 
 		// find pseudo type
 		CStyleSheets **ss_pseudo = nullptr;
-		switch ( type ) {
-			case kNone_CSSType: break;
-			case kNormal_CSSType: ss_pseudo = &ss->_normal; break;
-			case kHover_CSSType: ss_pseudo = &ss->_hover; break;
-			case kActive_CSSType: ss_pseudo = &ss->_active; break;
+		switch ( state ) {
+			case kNone_UIState: break;
+			case kNormal_UIState: ss_pseudo = &ss->_normal; break;
+			case kHover_UIState: ss_pseudo = &ss->_hover; break;
+			case kActive_UIState: ss_pseudo = &ss->_active; break;
 		}
 		if ( !*ss_pseudo ) {
 			if (!make)
 				return nullptr;
 			ss->_havePseudoType = true;
-			*ss_pseudo = new CStyleSheets(name, ss->parent(), type);
+			*ss_pseudo = new CStyleSheets(name, ss->parent(), state);
 		}
 		return *ss_pseudo;
 	}
 
 	// --------------------------- R o o t . S t y l e . S h e e t s ---------------------------
 
-	static Dict<String, CSSType> Pseudo_type_keys({
-		{"normal",kNormal_CSSType},{"hover",kHover_CSSType},{"active",kActive_CSSType}
+	static Dict<String, UIState> Pseudo_type_keys({
+		{"normal",kNormal_UIState},{"hover",kHover_UIState},{"active",kActive_UIState}
 	});
 
 	static std::mutex _rs_mutex;
@@ -175,7 +175,7 @@ namespace qk {
 	}
 
 	RootStyleSheets::RootStyleSheets()
-		: CStyleSheets(CSSCName(String()), nullptr, kNone_CSSType)
+		: CStyleSheets(CSSCName(String()), nullptr, kNone_UIState)
 	{
 		auto _button_Normal = searchItem(".qk_button:normal", true);
 		auto _button_Hover = searchItem(".qk_button:hover", true);
@@ -200,16 +200,16 @@ namespace qk {
 
 			for ( auto &n: e.split('.') ) { // .div_cls.div_cls2
 				if ( n.isEmpty() ) continue;
-				auto type = kNone_CSSType;
+				auto state = kNone_UIState;
 				auto k = n.split(':'); // .div_cls:hover
 				if (k.length() > 1) {
 					// normal | hover | active
-					if (!Pseudo_type_keys.get(k[1], type))
+					if (!Pseudo_type_keys.get(k[1], state))
 						Qk_InvalidCss(exp);
 					n = k[0];
 					if (n.isEmpty()) continue;
 				}
-				ss = ss->findAndMake(CSSCName(n), type, isExt, make);
+				ss = ss->findAndMake(CSSCName(n), state, isExt, make);
 				if ( !ss ) {
 					if (make)
 						Qk_InvalidCss(exp);

@@ -190,7 +190,7 @@ namespace qk {
 			auto it = UIEventNames.findFor(name);
 			if (it != UIEventNames.end()) {
 				if (it->second.category() >= kClick_UIEventCategory &&
-					it->second.category() <= kHighlighted_UIEventCategory) {
+					it->second.category() <= kUIState_UIEventCategory) {
 					set_receive(true); // receive input events
 				}
 			}

@@ -40,8 +40,8 @@ namespace qk {
 	static uint64_t UndefinedHashCode(CSSCName("undefined").hashCode());
 
 	CStyleSheetsClass::CStyleSheetsClass(View *host)
-		: _status(kNormal_CSSType)
-		, _setStatus(kNormal_CSSType)
+		: _state(kNormal_UIState)
+		, _setState(kNormal_UIState)
 		, _havePseudoType(false)
 		, _firstApply(true)
 		, _host(host)
@@ -103,15 +103,15 @@ namespace qk {
 		_host->mark_layout(View::kClass_Change, true);
 	}
 
-	void CStyleSheetsClass::setStatus_rt(CSSType status) {
-		if ( _setStatus != status ) {
-			_setStatus = status;
+	void CStyleSheetsClass::setState_rt(UIState state) {
+		if ( _setState != state ) {
+			_setState = state;
 			if ( _havePseudoType ) {
-				if (_setStatus == _status) {
-					// Delete change status tags to optimize performance
-					_host->unmark(View::kClass_Status);
+				if (_setState == _state) {
+					// Delete change state tags to optimize performance
+					_host->unmark(View::kClass_State);
 				} else {
-					_host->mark_layout(View::kClass_Status, true);
+					_host->mark_layout(View::kClass_State, true);
 				}
 			}
 		}
@@ -124,7 +124,7 @@ namespace qk {
 		_stylesHash_rt = Hash5381();
 		_havePseudoType = false;
 		_parent = parent;
-		_status = _setStatus; // apply status
+		_state = _setState; // apply state
 
 		auto clearStatus = [this]() {
 			// clear transition first
@@ -236,11 +236,11 @@ namespace qk {
 			_havePseudoType = true;
 
 			CStyleSheets *css_pse = nullptr;
-			switch (_status) {
-				case kNone_CSSType: break;
-				case kNormal_CSSType: css_pse = css->_normal; break;
-				case kHover_CSSType: css_pse = css->_hover; break;
-				case kActive_CSSType: css_pse = css->_active; break;
+			switch (_state) {
+				case kNone_UIState: break;
+				case kNormal_UIState: css_pse = css->_normal; break;
+				case kHover_UIState: css_pse = css->_hover; break;
+				case kActive_UIState: css_pse = css->_active; break;
 			}
 			if (css_pse)
 				findStyle_rt(css_pse, out);

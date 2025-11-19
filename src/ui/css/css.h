@@ -42,11 +42,11 @@ namespace qk {
 	class KeyframeAction;
 	class Window;
 
-	enum CSSType: uint8_t {
-		kNone_CSSType = 0,
-		kNormal_CSSType, // css pseudo type
-		kHover_CSSType,
-		kActive_CSSType,
+	enum UIState: uint8_t {
+		kNone_UIState = 0,
+		kNormal_UIState, // pseudo :normal
+		kHover_UIState, // pseudo :hover
+		kActive_UIState, // pseudo :active
 	};
 
 	// css class name
@@ -135,14 +135,14 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(CStyleSheets*, normal); // style sheets for pseudo type
 		Qk_DEFINE_PROP_GET(CStyleSheets*, hover);
 		Qk_DEFINE_PROP_GET(CStyleSheets*, active);
-		Qk_DEFINE_PROP_GET(CSSType, type, Const);
+		Qk_DEFINE_PROP_GET(UIState, state, Const);
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); // normal | hover | active
 		Qk_DEFINE_PROP_GET(bool, haveSubstyles, Const);
 
 		/**
 		 * @constructor
 		*/
-		CStyleSheets(cCSSCName &name, CStyleSheets *parent, CSSType type);
+		CStyleSheets(cCSSCName &name, CStyleSheets *parent, UIState state);
 
 		/**
 		 * @destructor
@@ -155,7 +155,7 @@ namespace qk {
 		const CStyleSheets* find(cCSSCName &name) const;
 
 	private:
-		CStyleSheets* findAndMake(cCSSCName &name, CSSType type, bool isExtend, bool make);
+		CStyleSheets* findAndMake(cCSSCName &name, UIState state, bool isExtend, bool make);
 
 		typedef Dict<uint64_t, CStyleSheets*> CStyleSheetsDict;
 		CStyleSheetsDict _substyles; // css name => .self .sub { width: 100 }
@@ -203,7 +203,7 @@ namespace qk {
 
 	class Qk_EXPORT CStyleSheetsClass: public Object {
 		Qk_DISABLE_COPY(CStyleSheetsClass);
-		CSSType _status, _setStatus; //!< @thread Rt Current pseudo type application status
+		UIState _state, _setState; //!< @thread Rt Current pseudo type application status
 	public:
 		Qk_DEFINE_PROP_GET(bool, havePseudoType, Const); //!< The current style sheet group supports pseudo types
 		Qk_DEFINE_PROP_GET(bool, firstApply, Const); //!< Is this the first time applying a style sheet
@@ -227,7 +227,7 @@ namespace qk {
 
 	private:
 		void updateClass_rt();
-		void setStatus_rt(CSSType status);
+		void setState_rt(UIState state);
 		bool apply_rt(CStyleSheetsClass *parent, bool force); // Return whether it affects sub styles
 		void findSubstylesFromParent_rt(CStyleSheetsClass *parent, Array<CStyleSheets*> *out);
 		void findStyle_rt(CStyleSheets *ss, Array<CStyleSheets*> *out);

@@ -68,10 +68,10 @@ namespace qk {
 			kLayout_Typesetting       = (1 << 6), /* The layout content is offset, and the sub-layout needs to be typesetting */
 			kInput_Status             = (1 << 7), /* Input state changes that don't include layout changes */
 			kText_Options             = (1 << 8), /* Text configuration changes and may affect subviews */
-			kScroll                   = (1 << 9), /* scroll status change */
+			kScroll                   = (1 << 9), /* scroll state change */
 			kClass_Change             = (1 << 10), /* View style changes caused by changing class names or view level */
-			kClass_Status             = (1 << 11), /* View style changes caused by changing status, normal/hover/active */
-			kClass_All                = (kClass_Change | kClass_Status), /* include class changes and status changes */
+			kClass_State              = (1 << 11), /* View style changes caused by changing state, normal/hover/active */
+			kClass_All                = (kClass_Change | kClass_State), /* include class changes and state changes */
 			kTransform                = (1 << 29), /* Matrix Transformation, recursive mark */
 			kVisible_Region           = (1U << 30), /* Visible range changes */
 			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),

@@ -52,7 +52,7 @@ F(MouseUp, Mouse, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(MouseWheel, Mouse, kBubble_UIEventFlags | kSystem_UIEventFlags) \
 F(Focus, Default, kBubble_UIEventFlags) \
 F(Blur, Default, kBubble_UIEventFlags) \
-F(Highlighted, Highlighted, kBubble_UIEventFlags) /* normal / hover / down */ \
+F(UIStateChange, UIState, kBubble_UIEventFlags) /* normal / hover / active */ \
 F(Error, Default, kError_UIEventFlags) \
 /* canno bubble event */ \
 F(ActionKeyframe, Action, kNone_UIEventFlags) \

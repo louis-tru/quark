@@ -38,6 +38,7 @@
 #include "./types.h"
 #include "./text/text_input.h"
 #include "./events.h"
+#include "./css/css.h"
 
 namespace qk {
 	class Application;
@@ -54,7 +55,7 @@ namespace qk {
 		kClick_UIEventCategory,
 		kTouch_UIEventCategory,
 		kMouse_UIEventCategory,
-		kHighlighted_UIEventCategory,
+		kUIState_UIEventCategory,
 		kKeyboard_UIEventCategory,
 		kAction_UIEventCategory,
 		kPlayer_UIEventCategory,
@@ -179,18 +180,13 @@ namespace qk {
 	};
 
 	/**
-	* @class HighlightedEvent status event
+	* @class UIStateEvent status event
 	*/
-	class Qk_EXPORT HighlightedEvent: public UIEvent {
+	class Qk_EXPORT UIStateEvent: public UIEvent {
 	public:
-		enum Status {
-			kNormal = 1, kHover, kActive,
-		};
-		HighlightedEvent(View* origin, Status status);
-		Qk_DEFINE_PROP_GET(Status, status, Const);
+		UIStateEvent(View* origin, UIState state);
+		Qk_DEFINE_PROP_GET(UIState, state, Const);
 	};
-
-	typedef HighlightedEvent::Status HighlightedStatus;
 
 	/**
 	* @class TouchEvent touch event

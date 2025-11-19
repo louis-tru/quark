@@ -31,7 +31,7 @@
 import util from './util';
 import event, {
 	Listen, NativeNotification, Notification, EventNoticer,
-	UIEvent, HighlightedEvent, KeyEvent,
+	UIEvent, UIStateEvent, KeyEvent,
 	ClickEvent, TouchEvent, MouseEvent, ActionEvent, GestureEvent,
 	GestureTouchPoint,
 	GestureStage, GestureType,
@@ -189,8 +189,8 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	readonly onFocus: EventNoticer<UIEvent>;
 	/** @event View lost focus. */
 	readonly onBlur: EventNoticer<UIEvent>;
-	/** @event View highlight state changed (hover, selection, etc.). */
-	readonly onHighlighted: EventNoticer<HighlightedEvent>;
+	/** @event View UI state changed (hover, selection, etc.). */
+	readonly onUIStateChange: EventNoticer<UIStateEvent>;
 
 	/** @event Animation keyframe reached. */
 	readonly onActionKeyframe: EventNoticer<ActionEvent>;
@@ -1650,7 +1650,7 @@ declare global {
 			onMouseWheel?: Listen<MouseEvent, View> | null;
 			onFocus?: Listen<UIEvent, View> | null;
 			onBlur?: Listen<UIEvent, View> | null;
-			onHighlighted?: Listen<HighlightedEvent, View> | null;
+			onUIStateChange?: Listen<UIStateEvent, View> | null;
 			onActionKeyframe?: Listen<ActionEvent, View> | null;
 			onActionLoop?: Listen<ActionEvent, View> | null;
 			ref?: string;
@@ -2197,7 +2197,7 @@ class _View extends NativeNotification<UIEvent> {
 	@event readonly onMouseWheel: EventNoticer<MouseEvent>;
 	@event readonly onFocus: EventNoticer<UIEvent>;
 	@event readonly onBlur: EventNoticer<UIEvent>;
-	@event readonly onHighlighted: EventNoticer<HighlightedEvent>;
+	@event readonly onUIStateChange: EventNoticer<UIStateEvent>;
 	@event readonly onActionKeyframe: EventNoticer<ActionEvent>;
 	@event readonly onActionLoop: EventNoticer<ActionEvent>;
 	@event readonly onGesture: EventNoticer<GestureEvent>; // base gesture events
