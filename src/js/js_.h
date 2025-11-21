@@ -102,15 +102,17 @@ namespace qk { namespace js {
 	public:
 		JsClasses(Worker* worker);
 		~JsClasses();
-		void add(uint64_t alias, JSClass *cls) throw(Error);
-		JSClass* get(uint64_t alias);
-		JSFunction* getFunction(uint64_t alias);
-		bool instanceOf(JSValue* val, uint64_t alias);
+		void add(uint64_t id, JSClass *cls) throw(Error);
+		JSClass* get(uint64_t id);
+		JSFunction* getFunction(uint64_t id);
+		bool instanceOf(JSValue* val, uint64_t id);
+		bool hasClass(JSClass *cls);
 	private:
 		Worker *_worker;
 		MixObject *_attachObject;
 		JSClass *_runClass;
-		Dict<uint64_t, JSClass*> _jsclass; // alias => JSClass
+		Dict<uint64_t, JSClass*> _jsclass; // id => JSClass
+		Set<JSClass*> _jsclass_set;
 		friend class MixObject;
 		friend class JSClass;
 	};

@@ -201,6 +201,8 @@ export function random(start: Uint = 0, end: Uint = 1E8): Uint {
 	let r = Math.random();
 	start = start || 0;
 	end = end || (end===0?0:1E8);
+	// start = 0, end = 2
+	// floor(r * 3) => 0 or 1 or 2, probability 1/3 of each
 	return Math.floor(start + r * (end - start + 1));
 }
 

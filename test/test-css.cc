@@ -14,7 +14,7 @@ Qk_TEST_Func(css) {
 	div_cls->set_width({ 100, BoxSizeKind::Match });
 	div_cls->set_height({ 0, BoxSizeKind::Match });
 	div_cls->set_background_color({255,0,0,255});
-	div_cls->set_background(new FillGradientRadial({1,0},{{1,0,0},{0,1,0}}));
+	div_cls->set_background(new FillGradientRadial({1,0},{{1,0,0},{0,1,0}},false));
 	// div_cls->set_background(new FillGradientLinear(90, {0,1},{{1,0,0},{0,1,0}}));
 	// init css end
 	auto win = Window::Make({.frame={{0,0}, {500,500}}, .title="Test Css"});

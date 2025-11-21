@@ -333,7 +333,7 @@ namespace qk {
 		: AgentStateEvent(origin), _movementState(state) {
 	}
 	DiscoveryAgentEvent::DiscoveryAgentEvent(
-		Agent *origin, Agent* agent, Vec2 location, uint32_t id, uint32_t level, bool entering
+		Agent *origin, Agent* agent, Vec2 location, uintptr_t id, uint32_t level, bool entering
 	) : AgentStateEvent(origin), _agent(agent), _location(location)
 		, _agentId(id), _level(level), _entering(entering)
 	{}

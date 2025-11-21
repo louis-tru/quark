@@ -32,6 +32,10 @@
 
 namespace qk { namespace js {
 
+	// enum Flags {
+	// 	kFreed_Flags = (1 << 31),
+	// };
+
 	void* JsHeapAllocator::alloc(size_t size) {
 		auto o = ::malloc(size + sizeof(MixObject));
 		Qk_ASSERT(o);
@@ -118,12 +122,12 @@ namespace qk { namespace js {
 		return this;
 	}
 
-	MixObject* MixObject::pack(Object* obj, uint64_t classAlias) {
+	MixObject* MixObject::pack(Object* obj, uint64_t id) {
 		auto mix = reinterpret_cast<MixObject*>(obj) - 1;
 		if (!mix->_class) {
 			Js_Worker();
 			auto classes = worker->classes();
-			auto cls = classes->get(classAlias);
+			auto cls = classes->get(id);
 			if (!cls)
 				return nullptr;
 			Qk_ASSERT_EQ(classes->_attachObject, nullptr);

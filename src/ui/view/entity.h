@@ -92,11 +92,11 @@ namespace qk {
 		 * @param level Discovery level (range band index), 0xffffffff indicates completely lost.
 		 * @param entering True if entering range, false if leaving.
 		 */
-		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uint32_t id, uint32_t level, bool entering);
+		DiscoveryAgentEvent(Agent *origin, Agent* agent, Vec2 location, uintptr_t id, uint32_t level, bool entering);
 
-		Qk_DEFINE_PROP_GET(Agent*, agent);     ///< The other discovered agent.
+		Qk_DEFINE_PROP_GET(Agent*, agent);     ///< The other discovered agent. is nullptr when remove from parent
 		Qk_DEFINE_PROP_GET(Vec2, location, Const); ///< Relative position to the other agent.
-		Qk_DEFINE_PROP_GET(uint32_t, agentId, Const); ///< Usually low 32 bits of pointer address.
+		Qk_DEFINE_PROP_GET(uintptr_t, agentId, Const); ///< Usually of pointer address.
 		Qk_DEFINE_PROP_GET(uint32_t, level, Const); ///< Discovery level index.
 		Qk_DEFINE_PROP_GET(bool, entering, Const); ///< True if entering range; false if leaving.
 

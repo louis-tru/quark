@@ -102,16 +102,16 @@ namespace qk {
 
 	class Qk_EXPORT FillGradientRadial: public BoxFilter {
 	public:
-		FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors);
+		FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors, bool isPremul = false);
 		inline cArray<float>& positions() const { return _pos; }
-		inline cArray<Color4f>& colors() const { return _colors; }
+		inline cArray<Color4f>& premul_colors() const { return _colors; }
 		virtual Type type() const override;
 		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
 		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;
 	protected:
 		void transition_g(BoxFilter* dest, BoxFilter *to, float t, bool isRt);
 		Array<float> _pos;
-		Array<Color4f> _colors;
+		Array<Color4f> _colors; // premul alpha colors
 	};
 
 	class Qk_EXPORT FillGradientLinear: public FillGradientRadial {
@@ -120,7 +120,7 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROP_GET(float, radian, Const);
 		Qk_DEFINE_VIEW_PROP_GET(uint8_t, quadrant, Const);
 
-		FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle/*0-360*/);
+		FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle/*0-360*/, bool isPremul = false);
 		virtual Type type() const override;
 		virtual BoxFilter* copy(BoxFilter* dest, bool isRt) override;
 		virtual BoxFilter* transition(BoxFilter *to, BoxFilter* dest, float t, bool isRt) override;

@@ -211,7 +211,7 @@ namespace qk {
 	// 返回值: true - 相交, false - 不相交
 	bool test_polygon_vs_polygon_gjk(cArray<Vec2>& A, cArray<Vec2>& B, MTV* mtv) {
 		auto support = [&](const cArray<Vec2>& P, const Vec2& d) {
-			float best = std::numeric_limits<float>::lowest();
+			float best = std::numeric_limits<float>::lowest(); // -max()
 			Vec2 res;
 			for (uint32_t i = 0; i < P.length(); i++) {
 				float v = P[i].dot(d);

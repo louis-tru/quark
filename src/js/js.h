@@ -61,10 +61,10 @@ namespace qk { namespace js {
 	#define Js_Type_Check(T, S) Qk_Type_Check(T, S)
 
 	// define class macro
-	#define Js_New_Class(name, alias, base, constructor) \
+	#define Js_New_Class(name, id, base, constructor) \
 		static_assert(sizeof(MixObject)==sizeof(Mix##name), \
 			"Derived mix class pairs cannot declare data members"); \
-		auto cls = worker->newClass(#name,alias,constructor,([](auto o){new(o) Mix##name();}),base)
+		auto cls = worker->newClass(#name,id,constructor,([](auto o){new(o) Mix##name();}),base)
 
 	#define Js_Define_Class(name, base, constructor) \
 		Js_New_Class(name,Js_Typeid(name),Js_Typeid(base),_Js_Fun(,constructor))
@@ -403,7 +403,7 @@ namespace qk { namespace js {
 		Qk_DISABLE_COPY(JSClass);
 	public:
 		Qk_DEFINE_PROP_GET(Worker*, worker, Protected);
-		Qk_DEFINE_PROP_GET(uint64_t, alias, Protected);
+		Qk_DEFINE_PROP_GET(uint64_t, id, Protected);
 		void exports(cString& name, JSObject* exports);
 		bool hasInstance(JSValue* val);
 		JSFunction* getFunction(); // constructor function
@@ -477,9 +477,9 @@ namespace qk { namespace js {
 			return mix(object, Js_Typeid(*object));
 		}
 		template<class Self>
-		static inline Mix<Self>* mix(Self *object, uint64_t classAlias) {
+		static inline Mix<Self>* mix(Self *object, uint64_t id) {
 			static_assert(object_traits<Self>::is::obj, "Must be object");
-			return static_cast<js::Mix<Self>*>(pack(object, classAlias));
+			return static_cast<js::Mix<Self>*>(pack(object, id));
 		}
 
 	protected:
@@ -493,7 +493,7 @@ namespace qk { namespace js {
 		}
 
 	private:
-		static MixObject* pack(Object* obj, uint64_t classAlias);
+		static MixObject* pack(Object* obj, uint64_t id);
 		static MixObject* unpack(JSValue* obj);
 		void clearWeak();
 		void setWeak();
@@ -504,6 +504,7 @@ namespace qk { namespace js {
 		JSClass *_class;
 		uint32_t _flags;
 		friend class JsHeapAllocator;
+		friend class Worker;
 	};
 
 	template<class Self = Object>
@@ -589,16 +590,16 @@ namespace qk { namespace js {
 		inline bool instanceOf(JSValue* val) { // val instanceOf Js_Typeid(T)
 			return instanceOf(val, Js_Typeid(T));
 		}
-		bool instanceOf(JSValue* val, uint64_t alias); // val instanceOf alias
+		bool instanceOf(JSValue* val, uint64_t id); // val instanceOf id
 
-		JSClass* jsclass(uint64_t alias); // Get js class by alias
-		JSClass* newClass(cString& name, uint64_t alias,
+		JSClass* jsclass(uint64_t id); // Get js class by id
+		JSClass* newClass(cString& name, uint64_t id,
 											FunctionCallback constructor,
 											AttachCallback attachConstructor, JSClass* base = 0);
-		JSClass* newClass(cString& name, uint64_t alias,
+		JSClass* newClass(cString& name, uint64_t id,
 											FunctionCallback constructor,
 											AttachCallback attachConstructor, uint64_t base);
-		JSClass* newClass(cString& name, uint64_t alias,
+		JSClass* newClass(cString& name, uint64_t id,
 											FunctionCallback constructor,
 											AttachCallback attachConstructor, JSFunction* base);
 		JSFunction* newFunction(cString& name, FunctionCallback func); // new native function
@@ -607,9 +608,16 @@ namespace qk { namespace js {
 		JSValue* runNativeScript(cChar* source, int sLen, cString& name, JSObject* exports = 0);
 		JSValue* bindingModule(cString& name);
 
+		template<class Self = Object>
+		inline Mix<Self>* asMix(Self *obj) {
+			static_assert(object_traits<Self>::is::obj, "Must be object");
+			return static_cast<Mix<Self>*>(asmix(obj));
+		}
+
 	protected:
 		explicit Worker();
 		void init();
+		MixObject* asmix(Object *obj);
 		// props
 		Persistent<JSObject> _global, _console;
 		Persistent<JSObject> _nativeModules;

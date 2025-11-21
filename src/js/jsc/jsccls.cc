@@ -460,25 +460,25 @@ namespace qk { namespace js {
 		return Cast<JSObject>(_jscclass(this)->_constructor)->set(_worker, name, value);
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t alias,
+	JSClass* Worker::newClass(cString& name, uint64_t id,
 															FunctionCallback constructor,
 															AttachCallback attach, JSClass* base) {
 		auto cls = new JscClass(this, name, constructor, attach, static_cast<JscClass*>(base), nullptr);
-		_classes->add(alias, cls);
+		_classes->add(id, cls);
 		return cls;
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t alias,
+	JSClass* Worker::newClass(cString& name, uint64_t id,
 																	FunctionCallback constructor,
 																	AttachCallback attach, uint64_t base) {
-		return newClass(name, alias, constructor, attach, _classes->get(base));
+		return newClass(name, id, constructor, attach, _classes->get(base));
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t alias,
+	JSClass* Worker::newClass(cString& name, uint64_t id,
 															FunctionCallback constructor,
 															AttachCallback attach, JSFunction* base) {
 		auto cls = new JscClass(this, name, constructor, attach, nullptr, Back<JSObjectRef>(base));
-		_classes->add(alias, cls);
+		_classes->add(id, cls);
 		return cls;
 	}
 

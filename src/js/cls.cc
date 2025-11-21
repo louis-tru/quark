@@ -35,7 +35,7 @@ namespace qk { namespace js {
 	// --------------------------- J S . C l a s s ---------------------------
 
 	JSClass::JSClass(FunctionCallback constructor, AttachCallback attach)
-		: _alias(0), _constructor(constructor), _attachConstructor(attach) {}
+		: _id(0), _constructor(constructor), _attachConstructor(attach) {}
 
 	void JSClass::exports(cString& name, JSObject* exports) {
 		exports->set(_worker, name, getFunction());
@@ -70,31 +70,36 @@ namespace qk { namespace js {
 		}
 	}
 
-	JSClass* JsClasses::get(uint64_t alias) {
+	JSClass* JsClasses::get(uint64_t id) {
 		JSClass *out = nullptr;
-		_jsclass.get(alias, out);
+		_jsclass.get(id, out);
 		return out;
 	}
 
-	JSFunction* JsClasses::getFunction(uint64_t alias) {
+	JSFunction* JsClasses::getFunction(uint64_t id) {
 		JSClass *out;
-		if ( _jsclass.get(alias, out) ) {
+		if ( _jsclass.get(id, out) ) {
 			return out->getFunction();
 		}
 		return nullptr;
 	}
 
-	void JsClasses::add(uint64_t alias, JSClass *cls) throw(Error) {
-		Qk_IfThrow( !_jsclass.has(alias), "Set native Constructors Alias repeat");
-		cls->_alias = alias;
-		_jsclass.set(alias, cls);
+	void JsClasses::add(uint64_t id, JSClass *cls) throw(Error) {
+		Qk_IfThrow( !_jsclass.has(id), "Set native Constructors id repeat");
+		cls->_id = id;
+		_jsclass.set(id, cls);
+		_jsclass_set.add(cls);
 	}
 
-	bool JsClasses::instanceOf(JSValue* val, uint64_t alias) {
+	bool JsClasses::instanceOf(JSValue* val, uint64_t id) {
 		JSClass *out;
-		if ( _jsclass.get(alias, out) )
+		if ( _jsclass.get(id, out) )
 			return out->hasInstance(val);
 		return false;
+	}
+
+	bool JsClasses::hasClass(JSClass *cls) {
+		return _jsclass_set.has(cls);
 	}
 
 } }

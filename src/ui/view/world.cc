@@ -59,10 +59,9 @@ namespace qk {
 	}
 
 	static void onDiscoveryAgent(Agent* agent, Agent* other, Vec2 mtv, uint32_t level, bool entering) {
+		uintptr_t id = uintptr_t(other); // use pointer address as id
 		Agent* otherPtr = static_cast<Agent*>(other->tryRetain_rt());
-		if (!otherPtr) // check agent validity
-			return; // other agent is being destroyed
-		struct Wrap { Sp<Agent> other; Vec2 mtv; uint32_t id; uint32_t level; bool entering; };
+		struct Wrap { Sp<Agent> other; Vec2 mtv; uintptr_t id; uint32_t level; bool entering; };
 		struct CbCore: CallbackCore<Object> {
 			void call(Data& e) {
 				auto agent = static_cast<Agent*>(e.data);
@@ -73,7 +72,7 @@ namespace qk {
 			Wrap w;
 		};
 		auto core = new CbCore;
-		core->w = { Sp<Agent>::lazy(otherPtr), mtv, uint32_t(uintptr_t(other)), level, entering };
+		core->w = { Sp<Agent>::lazy(otherPtr), mtv, id, level, entering };
 		agent->preRender().post(Cb(core), agent); // post to main thread
 	}
 
@@ -255,6 +254,12 @@ namespace qk {
 			updateAgentWithAvoidance(agent, obs, delta, false);
 			return;
 		}
+
+		auto onArrived = [agent]() {
+			agent->_moving = false; // not moving anymore
+			onAgentMovement(agent, AgentMovementEvent::Arrived);
+		};
+
 		auto waypoints = agent->_waypoints.load(); // waypoints array
 		auto current = agent->_currentWaypoint; // current waypoint index
 		if (waypoints) {
@@ -263,8 +268,10 @@ namespace qk {
 				delta = updateAgentWithAvoidance(agent, obs, delta, true);
 				if (delta == 0.0f)
 					break; // no remaining, done for this frame
-				if (current >= waypoints->ptsLen())
+				if (current >= waypoints->ptsLen()) {
+					onArrived();
 					break;
+				}
 				if (agent->_target != waypoints->atPt(current)) {
 					// Set initial target waypoint if target changed
 					agent->_target = waypoints->atPt(current);
@@ -281,16 +288,14 @@ namespace qk {
 				if (isNext) {
 					agent->_target = waypoints->atPt(current); // set new target
 				} else {
-					agent->_moving = false; // reached final waypoint, stop
-					onAgentMovement(agent, AgentMovementEvent::Arrived);
+					onArrived();
 					break;
 				}
 			}
 		} else {
 			delta = updateAgentWithAvoidance(agent, obs, delta, true);
 			if (delta != 0.0f) { // Already at target, ended movement
-				agent->_moving = false; // not moving anymore
-				onAgentMovement(agent, AgentMovementEvent::Arrived);
+				onArrived();
 			}
 		}
 	}
@@ -319,7 +324,9 @@ namespace qk {
 		};
 
 		if (agent->test_entity_vs_entity(other, &mtv, &mtvVec, true)) {
-			agent->_target = pos + mtvVec; // update position
+			// add min distance vector to separate
+			agent->_target = pos + mtvVec + mtv.axis * agent->_followMinDistance;
+			mtv.axis *= -1.0f; // reverse axis for report direction
 		} else {
 			float mtvLen = mtv.overlap; // distance to target
 			float minBuf = mtvLen - agent->_followMinDistance;
@@ -327,12 +334,14 @@ namespace qk {
 			float safetyBufferEPS = safetyBuffer + EPS;
 			maxBuf = std::min(maxBuf, minBuf - safetyBufferEPS - EPS);
 			if (minBuf <= 0.0f) {
+				// Qk_DLog("minBuf <= 0.0f");
 				agent->_target = pos + mtv.axis * (minBuf - EPS); // too close, move away
 				 // still within buffer range and almost stopped, do not trigger follow start event
 				if (!agent->_moving && !agent->isSpeedBelowRatio(0.1f)) {
 					triggerStart(agent);
 				}
 			} else if (maxBuf >= 0.0f || (agent->_moving && maxBuf > -safetyBuffer)) {
+				// Qk_DLog("maxBuf >= 0.0f");
 				agent->_target = pos + mtv.axis * (maxBuf + safetyBufferEPS); // too far, move closer
 				triggerStart(agent);
 			} else {
@@ -346,9 +355,9 @@ namespace qk {
 					onAgentMovement(agent, AgentMovementEvent::Stopped);
 				}
 			}
-			// Report direction change
-			agent->reportDirectionChange(mtv.axis);
 		}
+		// Report direction change
+		agent->reportDirectionChange(mtv.axis);
 		updateAgentWithAvoidance(agent, obs, delta, false);
 	}
 
@@ -502,14 +511,27 @@ namespace qk {
 		float stepDt = deltaTime / std::max(1, _subSteps);
 		for (int step = 0; step < _subSteps; ++step) {
 			Vec2 move; // movement this sub-step
-			bool hasMovement = toTarget.lengthSq() > GEOM_EPS;
+			float toTargetLenSq = toTarget.lengthSq();
+			// Use 0.01f as threshold to consider as reached, this can converge faster, avoid oscillation
+			bool hasMovement = toTargetLenSq > 0.01f; // GEOM_EPS;
 
 			if (hasMovement && !isVelocityZero) {
 				Vec2 dirToTarget = toTarget.normalized();
-				if (!isFollow)
-					agent->reportDirectionChange(dirToTarget);
+				// compute new velocity with avoidance
 				updateVelocityForAgent(agent, obs, dirToTarget);
+				// apply velocity steer
 				move = agent->_velocitySteer * stepDt;
+
+				if (isFollow) {
+					// limit move to not overshoot target, this can better converge, avoid oscillation
+					auto moveLenSq = move.lengthSq();
+					if (toTargetLenSq < moveLenSq) {
+						move *= toTargetLenSq / moveLenSq; // Forced convergence
+					}
+				} else {
+					agent->reportDirectionChange(dirToTarget);
+				}
+
 				if (pts) // precompute polygon points at new position
 					for (auto& pt : *pts) pt += move;
 				circ.center += move; // precompute circle at new position
@@ -538,12 +560,14 @@ namespace qk {
 				Vec2 avoidance = totalMTV * agent->_avoidanceFactor;
 				// apply avoidance to move
 				move += avoidance;
+
 				// remove velocity component pushing into the wall
 				Vec2 &v = agent->_velocitySteer;
+				// Vec2 axis = totalMTV.normalized();
 				// float vn = v.dot(axis);
 				// // if velocity is pushing into the wall, remove that component
 				// if (vn > GEOM_EPS)
-				// 	v = v - axis * vn; // keep only tangential velocity
+				// v = v - axis * vn; // keep only tangential velocity
 				// Steering slow-down factor during avoidance (AI behavior tuning)
 				// Default = 1.0 (no slow-down)
 				v *= agent->_avoidanceVelocityFactor;

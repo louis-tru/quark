@@ -1040,6 +1040,9 @@ export declare class Spine extends Agent {
 	/** Reset slots (attachments/visuals) to setup pose. */
 	setSlotsToSetupPose(): void;
 
+	/** Get the duration of a specific animation by name. */
+	getAnimationDuration(name: string): Float;
+
 	/**
 	 * Attach a specific attachment into a slot.
 	 * @param slotName Target slot.

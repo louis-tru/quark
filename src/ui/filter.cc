@@ -335,9 +335,16 @@ namespace qk {
 
 	// ------------------------------ F i l l . G r a d i e n t ------------------------------
 
-	FillGradientRadial::FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors)
-		: _pos(pos), _colors(colors)
-	{}
+	FillGradientRadial::FillGradientRadial(cArray<float>& pos, cArray<Color4f>& colors, bool isPremul)
+		: _pos(pos)
+	{
+		if (isPremul) {
+			_colors = colors; // Already premultiplied
+		} else {
+			// Premultiply alpha
+			_colors = colors.template map<Color4f>([](auto &a, auto j){ return a.premul_alpha(); });
+		}
+	}
 
 	void FillGradientRadial::transition_g(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		auto dest1 = static_cast<FillGradientRadial*>(dest);
@@ -367,7 +374,9 @@ namespace qk {
 
 	BoxFilter* FillGradientRadial::copy(BoxFilter* dest, bool isRt) {
 		auto dest1 = (dest && dest->type() == kGradientRadial) ?
-			static_cast<FillGradientRadial*>(dest): new FillGradientRadial(positions(), colors());
+			static_cast<FillGradientRadial*>(dest): new FillGradientRadial({}, {}, true);
+		dest1->_pos = _pos;
+		dest1->_colors = _colors;
 		dest1->set_next_no_check(next(), isRt);
 		return dest1;
 	}
@@ -375,14 +384,14 @@ namespace qk {
 	BoxFilter* FillGradientRadial::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		if (to && to->type() == type()) {
 			if (!dest || dest->type() != type())
-				dest = new FillGradientRadial({},{});
+				dest = new FillGradientRadial({},{},true);
 			transition_g(dest, to, t, isRt);
 		}
 		return dest;
 	}
 
-	FillGradientLinear::FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle)
-		: FillGradientRadial(pos, colors)
+	FillGradientLinear::FillGradientLinear(cArray<float>& pos, cArray<Color4f>& colors, float angle, bool isPremul)
+		: FillGradientRadial(pos, colors, isPremul)
 		, _angle(angle)
 	{
 		setRadian();
@@ -404,7 +413,7 @@ namespace qk {
 
 	BoxFilter* FillGradientLinear::copy(BoxFilter* dest, bool isRt) {
 		auto dest1 = (dest && dest->type() == kGradientLinear) ?
-			static_cast<FillGradientLinear*>(dest): new FillGradientLinear({},{},0);
+			static_cast<FillGradientLinear*>(dest): new FillGradientLinear({},{},0,true);
 		dest1->_pos = _pos;
 		dest1->_colors = _colors;
 		dest1->_angle = _angle;
@@ -416,7 +425,7 @@ namespace qk {
 
 	BoxFilter* FillGradientLinear::transition(BoxFilter* dest, BoxFilter *to, float t, bool isRt) {
 		if (to && to->type() == type()) {
-			if (!dest || dest->type() != type()) dest = new FillGradientLinear({},{},0);
+			if (!dest || dest->type() != type()) dest = new FillGradientLinear({},{},0,true);
 			transition_g(dest, to, t, isRt);
 			auto to1 = static_cast<FillGradientLinear*>(to);
 			auto dest1 = static_cast<FillGradientLinear*>(dest);

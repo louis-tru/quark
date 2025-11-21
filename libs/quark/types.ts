@@ -1305,7 +1305,7 @@ export declare class FillImage extends BoxFilter {
 */
 export declare class FillGradientRadial extends BoxFilter {
 	readonly positions: N[]; //!<
-	readonly colors: Color[]; //!<
+	readonly premulColors: Color[]; //!< colors with premultiplied alpha
 	constructor(pos: N[], colors: Color[]); //!<
 }
 

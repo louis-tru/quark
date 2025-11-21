@@ -218,25 +218,25 @@ namespace qk { namespace js {
 		return true;
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t alias,
+	JSClass* Worker::newClass(cString& name, uint64_t id,
 															FunctionCallback constructor,
 															AttachCallback attach, JSClass* base) {
 		auto cls = new V8JSClass(this, name, constructor, attach, static_cast<V8JSClass*>(base));
-		_classes->add(alias, cls);
+		_classes->add(id, cls);
 		return cls;
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t alias,
+	JSClass* Worker::newClass(cString& name, uint64_t id,
 																	FunctionCallback constructor,
 																	AttachCallback attach, uint64_t base) {
-		return newClass(name, alias, constructor, attach, _classes->get(base));
+		return newClass(name, id, constructor, attach, _classes->get(base));
 	}
 
-	JSClass* Worker::newClass(cString& name, uint64_t alias,
+	JSClass* Worker::newClass(cString& name, uint64_t id,
 															FunctionCallback constructor,
 															AttachCallback attach, JSFunction* base) {
 		auto cls = new V8JSClass(this, name, constructor, attach, nullptr, Back<v8::Function>(base));
-		_classes->add(alias, cls);
+		_classes->add(id, cls);
 		return cls;
 	}
 

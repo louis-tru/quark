@@ -95,12 +95,12 @@ namespace qk { namespace js {
 				ArrayFloat pos;
 				Array<Color4f> colors;
 				if (parse(args, &pos, &colors, "FillGradientRadial", "")) {
-					New<MixFillGradientRadial>(args, new FillGradientRadial(pos, colors));
+					New<MixFillGradientRadial>(args, new FillGradientRadial(pos, colors, false));
 				}
 			});
 			Js_MixObject_Acce_Get(FillGradientRadial, ArrayFloat, positions, positions);
-			Js_Class_Accessor_Get(colors, {
-				auto colors = self->colors().template map<Color>([](auto &a, auto j){ return a.to_color(); });
+			Js_Class_Accessor_Get(premulColors, {
+				auto colors = self->premul_colors().template map<Color>([](auto &a, auto j){ return a.to_color(); });
 				Js_Return( worker->types()->jsvalue(colors) );
 			});
 			cls->exports("FillGradientRadial", exports);
@@ -121,7 +121,7 @@ namespace qk { namespace js {
 						);
 						angle = out;
 					}
-					New<MixFillGradientLinear>(args, new FillGradientLinear(pos, colors, angle));
+					New<MixFillGradientLinear>(args, new FillGradientLinear(pos, colors, angle, false));
 				}
 			});
 

@@ -113,6 +113,11 @@ namespace qk { namespace js {
 			Js_Class_Method(setBonesToSetupPose, { self->set_bones_to_setup_pose(); });
 			Js_Class_Method(setSlotsToSetupPose, { self->set_slots_to_setup_pose(); });
 
+			Js_Class_Method(getAnimationDuration, {
+				Js_Parse_Args(String, 0, "spine.getAnimationDuration(name = %s)");
+				Js_Return(self->get_animation_duration(arg0));
+			});
+
 			Js_Class_Method(setAttachment, {
 				String slotName;
 				String attachmentName;

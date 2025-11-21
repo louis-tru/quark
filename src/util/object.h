@@ -78,6 +78,7 @@ namespace qk {
 		virtual void release(); // Heap allocation weak
 		virtual bool isReference() const;
 		virtual String toString() const;
+		static bool isDefaultHeapAllocator(); // check is default heap allocator
 		static void setHeapAllocator(HeapAllocator *allocator); // set global heap allocator
 		static void* operator new(size_t size);
 		static void* operator new(size_t size, void *p);

@@ -369,6 +369,13 @@ namespace qk {
 		void set_mix(cString &fromName, cString &toName, float duration);
 
 		/**
+		 * @brief Gets the duration of a named animation.
+		 * @param name Name of the animation.
+		 * @return Duration in seconds, or 0 if not found.
+		 */
+		float get_animation_duration(cString& name) const;
+
+		/**
 		 * @brief Sets an animation on a given track, replacing any current animation.
 		 *
 		 * @param trackIndex Index of the track (0 = base track).

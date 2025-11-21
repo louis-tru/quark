@@ -75,7 +75,6 @@ namespace qk {
 			kTransform                = (1 << 29), /* Matrix Transformation, recursive mark */
 			kVisible_Region           = (1U << 30), /* Visible range changes */
 			kRecursive_Mark           = (kTransform /*| kVisible_Region*/),
-			kDestroy                  = (1U << 31), /* View is being destroyed */
 		};
 
 		// Child layout change mark key values

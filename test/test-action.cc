@@ -30,8 +30,8 @@ Qk_TEST_Func(action) {
 	act1->addFrame(0,   LINEAR)->set_background_color({0,128,0});
 	act1->addFrame(2e3, LINEAR)->set_background_color({0,0,255});
 	act1->addFrame(4e3, LINEAR)->set_background_color({0,128,0});
-	act2->addFrame(0,   LINEAR)->set_background(new FillGradientLinear({1,0},{{1,0,0,0.5},{0,1,0,0.5}},0));
-	act2->addFrame(4e3, LINEAR)->set_background(new FillGradientLinear({1,0},{{1,0,0,0.5},{0,1,0,0.5}},360));
+	act2->addFrame(0,   LINEAR)->set_background(new FillGradientLinear({1,0},{{1,0,0,0.5},{0,1,0,0.5}},0,false));
+	act2->addFrame(4e3, LINEAR)->set_background(new FillGradientLinear({1,0},{{1,0,0,0.5},{0,1,0,0.5}},360,false));
 
 	box->set_action(act0);
 	act0->play();

@@ -85,7 +85,7 @@ namespace qk {
 
 	void* Object::operator new(size_t size) {
 		if (!objectHeapAllocator)
-			objectHeapAllocator = new HeapAllocator();
+			objectHeapAllocator = new HeapAllocator;
 		return objectHeapAllocator->alloc(size);
 	}
 

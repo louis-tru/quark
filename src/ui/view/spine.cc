@@ -146,6 +146,12 @@ namespace qk {
 		skel->_stateData.setMix(fromAnimation.c_str(), toAnimation.c_str(), duration);
 	}
 
+	float Spine::get_animation_duration(cString& name) const {
+		_IfSkel(0);
+		Animation *animation = skel->_data->findAnimation(name.c_str());
+		return animation ? animation->getDuration(): 0;
+	}
+
 	TrackEntry* Spine::set_animation(uint32_t trackIndex, cString &name, bool loop) {
 		_IfAutoMutex(nullptr);
 		Animation *animation = skel->_data->findAnimation(name.c_str());
@@ -209,6 +215,13 @@ namespace qk {
 		return { begin, begin + _skel_size, _translate };
 	}
 
+	constexpr float SAFE_SPINE_LIMIT = 1000000.0f;
+	inline float safe_spine_float(float v, float def = 0.0f) {
+		if (!std::isfinite(v) || std::fabs(v) > SAFE_SPINE_LIMIT)
+				return def;
+		return v;
+	}
+
 	void Spine::set_skel(SkeletonData *data) {
 		auto lastSkel = _skel.load(std::memory_order_acquire);
 		if ((lastSkel ? lastSkel->_wrapData.get(): nullptr) != data) {
@@ -226,6 +239,10 @@ namespace qk {
 				// the origin is bottom-left, convert to top-left
 				_skel_origin[0] = -_skel_origin[0]; // -x right
 				_skel_origin[1] += _skel_size[1]; // +y up
+				_skel_origin[0] = safe_spine_float(_skel_origin[0]);
+				_skel_origin[1] = safe_spine_float(_skel_origin[1]);
+				_skel_size[0]   = safe_spine_float(_skel_size[0]);
+				_skel_size[1]   = safe_spine_float(_skel_size[1]);
 			} else {
 				_skel_origin = _skel_size = {};
 			}
@@ -283,6 +300,7 @@ namespace qk {
 
 	static void stateListener(AnimationState *state, spine::EventType type, TrackEntry *entry, spine::Event *e) {
 		auto self = ((Spine*)state->getRendererObject());
+		if (!self->parent()) return; // View destroyed
 		auto trackIndex = entry->getTrackIndex();
 		String animationName = CastStr(entry->getAnimation()->getName());
 		auto trackTime = entry->getTrackTime();

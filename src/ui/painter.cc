@@ -436,7 +436,7 @@ namespace qk {
 	}
 
 	void Painter::drawBoxFillLinear(Box *v, FillGradientLinear *fill) {
-		auto &colors = fill->colors();
+		auto &colors = fill->premul_colors();
 		auto &pos = fill->positions();
 		auto R = fill->radian();
 		auto quadrant = fill->quadrant();
@@ -477,8 +477,8 @@ namespace qk {
 		}
 		PaintGradient g{
 			PaintGradient::kLinear_Type, pts[0], pts[1],
-			fill->colors().length(),
-			fill->colors().val(), fill->positions().val()
+			fill->premul_colors().length(),
+			fill->premul_colors().val(), fill->positions().val()
 		};
 		Paint paint;
 		paint.antiAlias = v->_aa;
@@ -489,15 +489,15 @@ namespace qk {
 	}
 
 	void Painter::drawBoxFillRadial(Box *v, FillGradientRadial *fill) {
-		auto &colors = fill->colors();
+		auto &colors = fill->premul_colors();
 		auto &pos = fill->positions();
 		auto rect_inside = _boxData.inside->rect;
 		Vec2 radius{rect_inside.size.x() * 0.5f, rect_inside.size.y() * 0.5f};
 		Vec2 center = rect_inside.begin + radius;
 		PaintGradient g{
 			PaintGradient::kRadial_Type, center, radius,
-			fill->colors().length(),
-			fill->colors().val(), fill->positions().val()
+			fill->premul_colors().length(),
+			fill->premul_colors().val(), fill->positions().val()
 		};
 		Paint paint;
 		paint.antiAlias = v->_aa;

@@ -63,8 +63,8 @@ namespace qk {
 	static void setRRect(Path &path,
 		const Rect& outside, const Rect *inside, const Path::BorderRadius& br)
 	{
-		if (outside.size.is_zero()) return;
-		if (inside && inside->size.is_zero()) return;
+		if (outside.size.is_zero_axis()) return;
+		if (inside && inside->size.is_zero_axis()) return;
 
 		auto arc = [&](Vec2 origin, Vec2 radius, Vec2 dir, float startAngle, float sweepAngle) {
 			if (radius.x() != 0 && radius.y() != 0) {
@@ -206,7 +206,7 @@ namespace qk {
 
 	void Path::ovalTo(const Rect& r, bool ccw) {
 		if (_sealed) return;
-		if (r.size.is_zero()) return;
+		if (r.size.is_zero_axis()) return;
 
 		float w = r.size.x(), h = r.size.y();
 		float x = r.begin.x(), y = r.begin.y();
@@ -230,7 +230,7 @@ namespace qk {
 
 	void Path::rectTo(const Rect& r, bool ccw) {
 		if (_sealed) return;
-		if (r.size.is_zero()) return;
+		if (r.size.is_zero_axis()) return;
 
 		lineTo(r.begin);
 		float x2 = r.begin.x() + r.size.x();
@@ -252,7 +252,7 @@ namespace qk {
 		float cx = center.x();
 		float cy = center.y();
 
-		if (radius.is_zero()) {
+		if (radius.is_zero_axis()) {
 			lineTo(Vec2(cx, cy));
 			return;
 		}

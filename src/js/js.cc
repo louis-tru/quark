@@ -452,12 +452,19 @@ namespace js {
 		throwError(newError(*str));
 	}
 
-	bool Worker::instanceOf(JSValue* val, uint64_t alias) {
-		return _classes->instanceOf(val, alias);
+	bool Worker::instanceOf(JSValue* val, uint64_t id) {
+		return _classes->instanceOf(val, id);
 	}
 
-	JSClass* Worker::jsclass(uint64_t alias) {
-		return _classes->get(alias);
+	JSClass* Worker::jsclass(uint64_t id) {
+		return _classes->get(id);
+	}
+
+	MixObject* Worker::asmix(Object *obj) {
+		if (!obj)
+			return nullptr;
+		auto mix = reinterpret_cast<MixObject*>(obj) - 1;
+		return _classes->hasClass(mix->_class) ? mix: nullptr;
 	}
 
 	JSValue* Worker::runNativeScript(cChar* source, int sLen, cString& name, JSObject* exports) {
