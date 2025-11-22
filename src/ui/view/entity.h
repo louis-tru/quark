@@ -185,6 +185,9 @@ namespace qk {
 		/** @override Draw the entity using a given Painter. */
 		void draw(Painter *render) override;
 
+		/** @override Return layout container for this entity. */
+		const View::Container& layout_container() override;
+
 		/** @override Return client area size in local coordinates. */
 		Vec2 client_size() override;
 

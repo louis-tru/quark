@@ -95,7 +95,8 @@ namespace qk {
 
 		struct SetFrames_rt {
 			static void call(KeyframeAction *self, StyleSheets *to) {
-				auto v = self->_target;
+				auto v = self->_target.load();
+				if (!v) return; // target is null
 				auto f0 = self->_frames_rt[0];
 				auto f1 = self->_frames_rt[1];
 				for (auto &i: to->_props) { // copy prop
@@ -189,6 +190,10 @@ namespace qk {
 	}
 
 	uint32_t KeyframeAction::advance_rt(uint32_t deltaTime, bool restart, Action* root) {
+		auto target = root->_target.load();
+		if (!target)
+			return deltaTime; // target is null
+
 		deltaTime *= _speed;
 
 		if ( restart ) { // no start play or restart
@@ -196,7 +201,7 @@ namespace qk {
 
 			if ( _frames_rt.length() ) {
 				_time = _frame = 0;
-				_frames_rt[0]->apply(root->_target, true);
+				_frames_rt[0]->apply(target, true);
 				trigger_ActionKeyframe_rt(deltaTime, 0, root);
 
 				if ( deltaTime == 0 ) {
@@ -228,7 +233,7 @@ namespace qk {
 				_time = time;
 				float x = (time - time1) / float(time2 - time1);
 				float y = _frames_rt[f1]->_curve.solve_y(x, 0.001); // get curve y from f1
-				_frames_rt[f0]->applyTransition(root->_target, _frames_rt[f1], y);
+				_frames_rt[f0]->applyTransition(target, _frames_rt[f1], y);
 			} else if ( t > 0 ) {
 				deltaTime = t;
 				_frame = f1;
@@ -241,13 +246,13 @@ namespace qk {
 				} else if (next_loop_rt()) {
 					goto loop;
 				} else {
-					_frames_rt[f0]->apply(root->_target, true); // apply last frame
+					_frames_rt[f0]->apply(target, true); // apply last frame
 				}
 			} else { // t == 0
 				deltaTime = 0;
 				_time = time;
 				_frame = f1;
-				_frames_rt[f1]->apply(root->_target, true);
+				_frames_rt[f1]->apply(target, true);
 				trigger_ActionKeyframe_rt(0, f1, root); // trigger event action_key_frame
 			}
 
@@ -264,7 +269,8 @@ namespace qk {
 	}
 
 	void KeyframeAction::seek_time_rt(uint32_t time, Action* root) {
-		if ( _frames_rt.length() ) {
+		auto target = root->_target.load();
+		if ( target && _frames_rt.length() ) {
 			Keyframe* frame0 = nullptr;
 
 			for ( auto f: _frames_rt ) {
@@ -283,9 +289,9 @@ namespace qk {
 				int32_t t1 = frame1->time();
 				float x = (_time - t0) / float(t1 - t0);
 				float y = frame1->_curve.solve_y(x, 0.001);
-				frame0->applyTransition(root->_target, frame1, y);
+				frame0->applyTransition(target, frame1, y);
 			} else { // last frame
-				frame0->apply(root->_target, true);
+				frame0->apply(target, true);
 			}
 
 			if ( _time == frame0->time() ) {

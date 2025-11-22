@@ -207,6 +207,20 @@ export function random(start: Uint = 0, end: Uint = 1E8): Uint {
 }
 
 /**
+ * @method randomFloat(start?,end?) Creating random float numbers
+ * @param start? Numbers of begin
+ * @param end?   Numbers of end
+ */
+export function randomFloat(start: Float = 0, end: Float = 1): Float {
+	if (start == end)
+		return start;
+	let r = Math.random();
+	start = start || 0;
+	end = end || 1;
+	return start + r * (end - start);
+}
+
+/**
 * @method fixRandom(arg0,...args)Uint
 * 
 * * Fixed random value, specified probability to return a constant

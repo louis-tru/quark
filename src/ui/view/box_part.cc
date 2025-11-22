@@ -46,7 +46,7 @@ namespace qk {
 
 	constexpr float Max_Float = std::numeric_limits<float>::max();
 
-	Vec2 free_typesetting(View* view, View::Container &container);
+	Vec2 free_typesetting(View* view, const View::Container &container);
 
 	Pre Box::solve_layout_content_pre_width(const Container &pContainer) {
 		float size = pContainer.content[0];

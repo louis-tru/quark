@@ -39,11 +39,15 @@ namespace qk {
 
 	void Label::set_value(String val, bool isRt) {
 		_value = val;
-		mark_layout(kLayout_Inner_Width | kLayout_Inner_Height, isRt);
+		mark_layout(kLayout_Typesetting, isRt);
 	}
 
 	View* Label::getViewForTextOptions() {
 		return this;
+	}
+
+	void Label::layout_forward(uint32_t mark) {
+		// Noop, to layout_reverse handle
 	}
 
 	void Label::layout_reverse(uint32_t mark) {
@@ -96,7 +100,7 @@ namespace qk {
 	}
 
 	void Label::set_layout_offset(Vec2 val) {
-		Sp<TextLines> lines = new TextLines(this, text_align_value(), {0,0}); // no limit
+		Sp<TextLines> lines = new TextLines(this, text_align_value(), {0,0}, false); // no limit
 		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();
@@ -104,7 +108,7 @@ namespace qk {
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
-		Sp<TextLines> lines = new TextLines(this, text_align_value(), {{}, size});
+		Sp<TextLines> lines = new TextLines(this, text_align_value(), {{}, size}, false);
 		lines->set_ignore_single_white_space(true);
 		layout_text(*lines, shared_app()->defaultTextOptions());
 		lines->finish();

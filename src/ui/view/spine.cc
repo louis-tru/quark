@@ -156,7 +156,7 @@ namespace qk {
 		_IfAutoMutex(nullptr);
 		Animation *animation = skel->_data->findAnimation(name.c_str());
 		if (!animation) {
-			Qk_Log("Spine: Animation not found: %s", name.c_str());
+			Qk_DLog("Spine: Animation not found: %s", name.c_str());
 			return nullptr;
 		}
 		return skel->_state.setAnimation(trackIndex, animation, loop);
@@ -166,7 +166,7 @@ namespace qk {
 		_IfAutoMutex(nullptr);
 		Animation *animation = skel->_data->findAnimation(name.c_str());
 		if (!animation) {
-			Qk_Log("Spine: Animation not found: %s", name.c_str());
+			Qk_DLog("Spine: Animation not found: %s", name.c_str());
 			return nullptr;
 		}
 		return skel->_state.addAnimation(trackIndex, animation, loop, delay);

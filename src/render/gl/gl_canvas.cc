@@ -142,7 +142,10 @@ namespace qk {
 					clip.vertex = path.getTriangles();
 				}
 			}
-			if (clip.vertex.vCount == 0) return;
+
+			// empty clip area, but still need to process stencil buffer,
+			// Very important, it may be necessary to buffer template parameters
+			// if (clip.vertex.vCount == 0) return;
 
 			// solve matrix
 			solveSetMatrix();
@@ -152,7 +155,7 @@ namespace qk {
 				_cmdPack->switchState(GL_STENCIL_TEST, true); // enable stencil test
 			}
 
-			if (antiAlias && !_DeviceMsaa) {
+			if (clip.vertex.vCount && antiAlias && !_DeviceMsaa) {
 				clip.aaclip = true;
 				clip.aafuzz = _cache->getAAFuzzStrokeTriangle(path,_phy2Pixel*aa_fuzz_width);
 				if (!clip.aafuzz.vertex.val() && path.verbsLen()) {
@@ -640,8 +643,10 @@ namespace qk {
 		}};
 
 		if (img.image->type() == kSDF_Unsigned_F32_ColorType) { // SDF text
+			auto strokeWidth = paint.style == Paint::kFill_Style ?
+					0.0f: paint.strokeWidth;
 			_cmdPack->drawSDFImageMask(vertex, &p, paint.fill.color,
-					paint.stroke.color, paint.strokeWidth * scale, false);
+					paint.stroke.color, strokeWidth * scale, false);
 		} else {
 			_cmdPack->drawImageMask(vertex, &p, paint.fill.color, false);
 		}

@@ -608,7 +608,13 @@ namespace qk {
 			Paint paint;
 			PaintFilter filter;
 			paint.fill.color = shadow.color.premul_alpha().mul(_color);
-			if (shadow.size) {
+			auto stroke = v->text_stroke();
+			if (stroke.value.width) {
+				paint.style = Paint::kStrokeAndFill_Style;
+				paint.strokeWidth = stroke.value.width;
+				paint.stroke.color = paint.fill.color;
+			}
+			if (shadow.size) { // no need blur if size is zero, only offset
 				filter.type = PaintFilter::kBlur_Type;
 				filter.val0 = shadow.size;
 				paint.filter = &filter;

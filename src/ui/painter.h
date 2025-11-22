@@ -95,16 +95,21 @@ namespace qk {
 		inline BoxData& boxData() {
 			return _boxData;
 		}
+		inline View::Container& reuseContainer() {
+			return _reuseContainer;
+		}
 	private:
 		Render     *_render;
 		uint32_t   _mark_recursive;
-		Buffer     _tempBuff;
+		Buffer     _tempBuff; // reuse buffer for draw text
 		Vec2      _AAShrinkHalf;
-		// Reset when starting every frame
+		// Reuse allocator, reset when starting every frame
 		LinearAllocator _tempAllocator[2];
 		// allocator for delay draw commands
 		LinearAllocator _delayCmdsAllocator;
 		BoxData _boxData; // reuse box data
+		// reuse container as layout calculation
+		View::Container _reuseContainer;
 		// batch pathv for color drawing
 		struct PathvBatchs {
 			struct Batch {

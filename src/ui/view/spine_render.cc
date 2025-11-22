@@ -339,7 +339,7 @@ namespace qk {
 		if (lastEx) {
 			drawTriangles(painter, cmdTriangles, lastEx);
 		}
-		debugDraw(painter); // draw debug bounds
+	 	debugDraw(painter); // draw debug bounds
 		if (first()) {
 			painter->set_matrix(&matrix());
 			painter->visitView(this);

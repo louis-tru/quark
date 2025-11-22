@@ -38,7 +38,7 @@ namespace qk {
 	constexpr float GEOM_EPS = 1e-6f;
 	typedef Entity::Bounds Bounds;
 
-	Vec2 free_typesetting(View* view, View::Container &container);
+	Vec2 free_typesetting(View* view, const View::Container &container);
 	void onUIEvent(cUIEventName& name, Agent* agent, UIEvent *evt);
 	void onAgentMovement(Agent* agent, AgentMovementEvent::MovementState state) {
 		onUIEvent(UIEvent_AgentMovement, agent, new AgentMovementEvent(agent, state));
@@ -197,12 +197,17 @@ namespace qk {
 		}
 	}
 
+	const View::Container& Entity::layout_container() {
+		auto &c = window()->painter()->reuseContainer();
+		c = {
+			client_size(), {}, {}, {}, kFixed_FloatState, kFixed_FloatState, false, false
+		};
+		return c;
+	}
+
 	void Entity::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
-			Container c{
-				client_size(), {}, {}, {}, kFixed_FloatState, kFixed_FloatState, false, false
-			};
-			free_typesetting(this, c);
+			free_typesetting(this, Entity::layout_container());
 		}
 	}
 
@@ -238,7 +243,7 @@ namespace qk {
 	}
 
 	void Entity::debugDraw(Painter *painter) {
-		if (window()->debugMode()) {
+		if (window()->debugMode() && parent()->viewType() == kWorld_ViewType) {
 			auto lastMatrix = painter->matrix();
 			auto canvas = painter->canvas();
 			Mat mat = matrix();

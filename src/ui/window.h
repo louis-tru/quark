@@ -201,6 +201,11 @@ namespace qk {
 		*/
 		void clipRestore();
 
+		/**
+		 * @method painter() get window painter object
+		*/
+		inline Painter* painter() { return _painter; }
+
 	private:
 		void reload(bool isRt);
 		void solveNextFrame();

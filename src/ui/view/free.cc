@@ -32,7 +32,7 @@
 
 namespace qk {
 
-	Vec2 free_typesetting(View* view, View::Container &container) {
+	Vec2 free_typesetting(View* view, const View::Container &container) {
 		auto cur = container.content;
 		auto v = view->first();
 		if (v) {

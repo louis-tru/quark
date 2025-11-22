@@ -73,7 +73,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(float, min_origin, Const);
 
 		// defines methods
-		TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x = true);
+		TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x);
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all

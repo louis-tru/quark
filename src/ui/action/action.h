@@ -156,7 +156,7 @@ namespace qk {
 
 		// Props
 		ActionGroup *_parent;
-		View *_target;
+		std::atomic<View*> _target;
 		uint32_t _looped_rt; // @thread Rt
 		Id _id_rt; // @thread Rt action id from action center or group action
 

@@ -258,7 +258,7 @@ namespace qk {
 		Cap           cap = kButt_Cap;                   //!< Stroke cap style.
 		Join          join = kMiter_Join;                //!< Stroke join style.
 		bool          antiAlias = true;                  //!< Enable/disable anti-aliasing.
-		float         strokeWidth = 1.0f;                //!< Stroke thickness in pixels.
+		float         strokeWidth = 0.0f;                //!< Stroke thickness in pixels.
 		PaintFilter*  filter = nullptr;                  //!< Optional post-processing filter (weak reference).
 		PaintImage*   mask = nullptr;                    //!< Optional mask image (weak reference).
 	};

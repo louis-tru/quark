@@ -619,6 +619,7 @@ namespace qk {
 		}
 
 		void clipExec(float depth, const VertexData &vertex) {
+			if (vertex.vCount == 0) return;
 			auto shader = &_render->_shaders.color;
 			shader->use(vertex.vertex.size(), vertex.vertex.val());
 			glUniform4fv(shader->color, 1, emptyColor); // not output color buffer
