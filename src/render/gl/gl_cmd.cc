@@ -55,7 +55,9 @@ namespace qk {
 	TexStat* gl_new_tex_stat();
 	uint32_t alignUp(uint32_t ptr, uint32_t alignment = alignof(void*));
 
-	static Color4f emptyColor{0,0,0,0};
+	constexpr float whiteColor[] = {1.0f,1.0f,1.0f,1.0f};
+	constexpr float emptyColor[] = {0.0f,0.0f,0.0f,0.0f};
+	constexpr GLenum DrawBuffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 
 	struct PaintImageLock {
 		inline PaintImageLock(const PaintImage *p): paint(p) {
@@ -290,7 +292,7 @@ namespace qk {
 						}
 						case kColors_CmdType: {
 							auto c = (ColorsCmd*)cmd;
-							auto s = c->aaclip ? &_render->_shaders.colors_AACLIP: &_render->_shaders.colors;
+							auto s = c->aaclip ? &_render->_shaders.colorBatch_AACLIP: &_render->_shaders.colorBatch;
 							glBindBuffer(GL_UNIFORM_BUFFER, _render->_optsBlock);
 							glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorsCmd::Option) * c->subcmd, c->opts,
 								GL_DYNAMIC_DRAW);
@@ -361,15 +363,6 @@ namespace qk {
 			_optionBlocks.current = _optionBlocks.blocks.val();
 			_optionBlocks.index = 0;
 #endif
-		}
-
-		void setOutputColorBuffer(bool useAAClip, ImageSource* elseOut) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-				GL_TEXTURE_2D,
-				useAAClip ? _canvas->_outAAClipTex:
-				elseOut ? elseOut->texture(0)->id: _canvas->_outTex->id,
-				0
-			);
 		}
 
 		void useShaderProgram(GLSLShader *shader, const VertexData &vertex) {
@@ -585,6 +578,14 @@ namespace qk {
 			//glDrawArrays(GL_LINES, 0, vertex.length());
 		}
 
+		void setColorbuffer(bool aaclip, ImageSource* elseOut) {
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_2D,
+				aaclip ? _canvas->_outAAClipTex: elseOut ? elseOut->texture(0)->id: _canvas->_outTex->id,
+				0
+			);
+			// glDrawBuffers(1, DrawBuffers + (aaclip ? 1: 0));
+		}
 
 		void aaClipExec(float depth, const VertexData &vertex, ImageSource *recover,
 			bool revoke, float W, float C, bool clearAA) 
@@ -592,15 +593,12 @@ namespace qk {
 			auto _c = _canvas;
 			auto _render = _c->_render;
 			auto chMode = _render->_blendMode;
-			// auto &aafuzz = clip.aafuzz;
 			if (!_c->_outAAClipTex) {
 				glGenTextures(1, &_c->_outAAClipTex); // gen aaclip buffer tex
 				gl_set_aaclip_buffer(_c->_outAAClipTex, _c->_surfaceSize);
-				setOutputColorBuffer(true, nullptr);
-				float color[] = {1.0f,1.0f,1.0f,1.0f};
-				glClearBufferfv(GL_COLOR, 0, color); // clear aa clip
+				setColorbuffer(true, nullptr);
+				glClearBufferfv(GL_COLOR, 0, whiteColor); // clear aa clip
 			}
-			setOutputColorBuffer(true, nullptr);
 			if (clearAA) {
 				glBlendFunc(GL_ONE, GL_ZERO); // src
 			} else if (revoke) {
@@ -608,24 +606,22 @@ namespace qk {
 			} else {
 				glBlendFunc(GL_DST_COLOR, GL_ZERO); // src * dst
 			}
-			auto shader = revoke ? &_render->_shaders.clipAa_AACLIP_REVOKE: &_render->_shaders.clipAa;
+			setColorbuffer(true, nullptr);
+			auto shader = revoke ? &_render->_shaders.aaclip_AACLIP_REVOKE: &_render->_shaders.aaclip;
 			float aafuzzWeight = W * 0.1f;
 			shader->use(vertex.vertex.size(), vertex.vertex.val());
 			glUniform1f(shader->depth, depth);
 			glUniform1f(shader->aafuzzWeight, aafuzzWeight); // Difference: -0.09
 			glUniform1f(shader->aafuzzConst, C + 0.9f/aafuzzWeight); // C' = C + C1/W, Difference: -11
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount); // draw test
+			setColorbuffer(false, recover);
 			_render->gl_set_blend_mode(chMode); // revoke blend mode
-			setOutputColorBuffer(false, recover);
 		}
 
-		void clipExec(float depth, const VertexData &vertex, bool clearAA) {
-			auto shader = &_render->_shaders.clipTest;
-			if (clearAA && _canvas->_outAAClipTex) {
-				shader = &_render->_shaders.clipTest_CLEAR_AA;
-				setOutputColorBuffer(true, nullptr);
-			}
-			shader->use(vertex.vertex.size(), vertex.vertex.val()); // only stencil fill test
+		void clipExec(float depth, const VertexData &vertex) {
+			auto shader = &_render->_shaders.color;
+			shader->use(vertex.vertex.size(), vertex.vertex.val());
+			glUniform4fv(shader->color, 1, emptyColor); // not output color buffer
 			glUniform1f(shader->depth, depth);
 			glDrawArrays(GL_TRIANGLES, 0, vertex.vCount); // draw test
 		}
@@ -634,7 +630,7 @@ namespace qk {
 			if (clip.op == Canvas::kDifference_ClipOp) { // difference clip
 				glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 				glStencilOp(GL_KEEP/*fail*/, GL_KEEP/*zfail*/, revoke ? GL_INCR: GL_DECR/*zpass*/); // test success op
-				clipExec(depth, clip.vertex, false);
+				clipExec(depth, clip.vertex);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 				glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
 				if (clip.aafuzz.vCount) { // draw anti alias alpha
@@ -642,13 +638,11 @@ namespace qk {
 				}
 			} else { // intersect clip
 				glStencilOp(GL_KEEP, GL_KEEP, revoke ? GL_DECR: GL_INCR); // test success op
-				if (clip.aafuzz.vCount) {
+				if (clip.aafuzz.vCount) { // only draw anti alias alpha because already merged
 					bool clear = ref == 128 && !revoke;
-					if (clip.vertex.vCount)
-						clipExec(depth, clip.vertex, clear);
 					aaClipExec(depth, clip.aafuzz, recover, revoke, -aa_fuzz_weight, -1, clear);
 				} else {
-					clipExec(depth, clip.vertex, false);
+					clipExec(depth, clip.vertex);
 				}
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // keep
 				glStencilFunc(GL_LEQUAL, ref, 0xFFFFFFFF); // Equality passes the test
@@ -659,8 +653,8 @@ namespace qk {
 			if (full) {
 				//glClearBufferfv(GL_DEPTH, 0, &depth); // depth = 0
 				glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, 127); // depth=0, stencil = 127
-				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 				//glClearColor(color.r(), color.g(), color.b(), color.a());
+				glClearBufferfv(GL_COLOR, 0, color.val); // clear GL_COLOR_ATTACHMENT0
 				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			} else {
 				float x1 = region.begin.x(), y1 = region.begin.y();
@@ -671,9 +665,9 @@ namespace qk {
 					x1,y2,0, /*left bottom*/
 					x2,y2,0, /*right bottom*/
 				};
-				_render->_shaders.clear.use(sizeof(float) * 12, data);
-				glUniform1f(_render->_shaders.clear.depth, depth);
-				glUniform4fv(_render->_shaders.clear.color, 1, color.val);
+				_render->_shaders.color.use(sizeof(float) * 12, data);
+				glUniform1f(_render->_shaders.color.depth, depth);
+				glUniform4fv(_render->_shaders.color.color, 1, color.val);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			}
 		}
@@ -1045,11 +1039,10 @@ namespace qk {
 				setMatrixCall(_c->_state->matrix);
 			}
 			if (_c->_outAAClipTex) { // clear aa clip tex buffer
-				setOutputColorBuffer(true, nullptr);
-				float color[] = {1.0f,1.0f,1.0f,1.0f};
-				glClearBufferfv(GL_COLOR, 0, color); // clear GL_COLOR_ATTACHMENT0
+				setColorbuffer(true, nullptr);
+				glClearBufferfv(GL_COLOR, 0, whiteColor); // clear GL_COLOR_ATTACHMENT0
 				// ensure clip texture clear can be executed correctly in sequence
-				setOutputColorBuffer(false, recover);
+				setColorbuffer(false, recover);
 			}
 			glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 127); // clear depth and stencil
 			glDisable(GL_STENCIL_TEST); // disable stencil test
@@ -1308,10 +1301,17 @@ namespace qk {
 		auto cmd = new(_this->allocCmd(sizeof(ClipCmd))) ClipCmd;
 		cmd->type = kClip_CmdType;
 		cmd->clip = { .op=clip.op };
-		cmd->clip.aafuzz.vCount = clip.vertex.vCount + clip.aafuzz.vCount;
-		cmd->clip.aafuzz.vertex.extend(cmd->clip.aafuzz.vCount);
-		cmd->clip.aafuzz.vertex.write(clip.vertex.vertex.val(), clip.vertex.vCount, 0);
-		cmd->clip.aafuzz.vertex.write(clip.aafuzz.vertex.val(), clip.aafuzz.vCount, clip.vertex.vCount);
+		// Canvas::kDifference_ClipOp need combine vertex and aafuzz vertex
+		if (clip.aafuzz.vCount && clip.op != Canvas::kDifference_ClipOp) {
+			// combine clip vertex and aafuzz vertex
+			cmd->clip.aafuzz.vCount = clip.vertex.vCount + clip.aafuzz.vCount;
+			cmd->clip.aafuzz.vertex.extend(cmd->clip.aafuzz.vCount);
+			cmd->clip.aafuzz.vertex.write(clip.vertex.vertex.val(), clip.vertex.vCount, 0);
+			cmd->clip.aafuzz.vertex.write(clip.aafuzz.vertex.val(), clip.aafuzz.vCount, clip.vertex.vCount);
+		} else {
+			cmd->clip.vertex = clip.vertex;
+			cmd->clip.aafuzz = clip.aafuzz;
+		}
 		cmd->depth = _canvas->_zDepth;
 		cmd->ref = ref;
 		cmd->revoke = revoke;

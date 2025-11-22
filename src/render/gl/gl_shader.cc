@@ -151,19 +151,20 @@ namespace qk {
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW
 		glBindVertexArray(vao);
 
-#if Qk_MacOS
-		if (!isValidate) {
-			isValidate = 1;
-			/*
-				TODO: Mac systems may crash if they do not call this verification
-				FALLBACK (log once): Fallback to SW vertex processing for VERT_BUF_REQ
-				FALLBACK (log once): Fallback to SW fragment processing for FRAG_BUF_REQ
-				FALLBACK (log once): Fallback to SW vertex processing, m_disable_code: 1
-				FALLBACK (log once): Fallback to SW fragment processing, m_disable_code: 10000
-			*/
-			glValidateProgram(shader); // validate shader program
-		}
-#endif
+// #if Qk_MacOS
+// 		GLint isValidate = 0;
+// 		if (!isValidate) {
+// 			isValidate = 1;
+// 			/*
+// 				TODO: Mac systems may crash if they do not call this verification
+// 				FALLBACK (log once): Fallback to SW vertex processing for VERT_BUF_REQ
+// 				FALLBACK (log once): Fallback to SW fragment processing for FRAG_BUF_REQ
+// 				FALLBACK (log once): Fallback to SW vertex processing, m_disable_code: 1
+// 				FALLBACK (log once): Fallback to SW fragment processing, m_disable_code: 10000
+// 			*/
+// 			glValidateProgram(shader); // validate shader program
+// 		}
+// #endif
 	}
 
 }

@@ -105,6 +105,16 @@ namespace qk {
 		// allocator for delay draw commands
 		LinearAllocator _delayCmdsAllocator;
 		BoxData _boxData; // reuse box data
+		// batch pathv for color drawing
+		struct PathvBatchs {
+			struct Batch {
+				const Pathv* pathv[5];
+				Color color;
+				int count = 0;
+				uint32_t key;
+			} indexed[5];
+			int total = 0;
+		} _pathvs;
 		// Delay draw command for order drawing
 		struct DelayCmd {
 			View *view;
@@ -119,6 +129,7 @@ namespace qk {
 		> DelayCmdMap;
 		DelayCmdMap *_delayCmds;
 		Array<DelayCmdMap> _delayCmdsStack;
+
 		friend class Spine;
 		friend class Root;
 	};

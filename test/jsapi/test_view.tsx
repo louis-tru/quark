@@ -112,7 +112,7 @@ export default async function(win: Window) {
 	Pv(v, 'cursor', types.CursorStyle.Arrow);
 	Mv(v, 'hide', [], ()=>v.visible===false);
 	Mv(v, 'show', [], ()=>v.visible===true);
-	Mv(v, 'isSelfChild', [v.first!], true);
+	Mv(v, 'isChild', [v.first!], true);
 	Mv(v, 'hashCode', [], e=>e==v.hashCode());
 	//(v as any).ttt = 'ABCDEFG';
 	//console.log('(v as any).ttt----------------------', (v as any).ttt);

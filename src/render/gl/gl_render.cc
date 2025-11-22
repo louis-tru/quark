@@ -352,6 +352,8 @@ namespace qk {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		// attach to framebuffer
+		// glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tex, 0);
 	}
 
 	void gl_set_tex_renderbuffer(GLuint tex, Vec2 size) {
@@ -427,7 +429,7 @@ namespace qk {
 #endif
 
 		// settings shader
-		for (auto s = &_shaders.colors, e = s + 2; s < e; s++) {
+		for (auto s = &_shaders.colorBatch, e = s + 2; s < e; s++) {
 			glUniformBlockBinding(s->shader, glGetUniformBlockIndex(s->shader, "optsBlock"), 2); // binding = 2
 		}
 		for (auto s = &_shaders.image, e = s + 2; s < e; s++) {

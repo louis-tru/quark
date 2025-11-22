@@ -70,7 +70,6 @@ namespace qk {
 	};
 
 	struct GLSLShader {
-		GLint isValidate = 0;
 		GLuint shader, vao, vbo;
 		void use(GLsizeiptr size, const GLvoid* data);
 		virtual void build(cChar* name, cChar *macros) = 0;

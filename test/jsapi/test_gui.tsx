@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Jsx, Window, createCss, Button } from 'quark'
-import {HighlightedStatus} from 'quark/event'
+import {UIState, UIStateEvent} from 'quark/event'
 import util from 'quark/util'
 
 const resolve = require.resolve
@@ -66,7 +66,7 @@ export default async function test1(win: Window) {
 				borderRadius: 50,
 				borderWidthLeft: 0,
 				border: '20 #000',
-				backgroundColor: '#fff',
+				backgroundColor: '#0f0',
 				margin: 20,
 			}}
 			action={{
@@ -187,9 +187,9 @@ export default async function test1(win: Window) {
 		}
 	})
 
-	win.root.onHighlighted.on(e=>{
+	win.root.onUIStateChange.on(e=>{
 		if ( !(e.origin instanceof Button) ) {
-			if ( e.status == HighlightedStatus.Active ) {
+			if ( e.state == UIState.Active ) {
 				//e.origin.style.backgroundColor = '#f00';
 			} else {
 				//e.origin.style.backgroundColor = '#fff';

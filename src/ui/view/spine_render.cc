@@ -141,7 +141,8 @@ namespace qk {
 	}
 
 	static void drawTriangles(Painter *painter, TrianglesEx &triangles, AttachmentEx *ex) {
-		Qk_ASSERT_NE(triangles.indexCount, 0);
+		if (triangles.indexCount == 0) return;
+		// Qk_ASSERT_NE(triangles.indexCount, 0);
 		Qk_ASSERT_EQ(triangles.indexCount % 3, 0);
 		auto src = ex->_source;
 		if (src->load()) {

@@ -138,6 +138,8 @@ public:
 
 	void renderDisplay() {
 		CGLLockContext(_ctx.CGLContextObj);
+		// Make the context current
+		[_ctx makeCurrentContext];
 		_renderThreadId = thread_self_id();
 
 		if (_msg.length()) { //
@@ -222,8 +224,6 @@ static CVReturn displayLinkCallback(
 - (void)drawRect:(NSRect)dirtyRect {
 	if (_isRun) {
 		CVDisplayLinkStop(_displayLink);
-		if (NSOpenGLContext.currentContext != _ctx)
-			[_ctx makeCurrentContext];
 		_render->reload();
 		_render->renderDisplay();
 		CVDisplayLinkStart(_displayLink);
@@ -232,8 +232,6 @@ static CVReturn displayLinkCallback(
 
 - (void)renderDisplay {
 	if (_isRun) {
-		if (NSOpenGLContext.currentContext != _ctx)
-			[_ctx makeCurrentContext];
 		_render->renderDisplay();
 	}
 }

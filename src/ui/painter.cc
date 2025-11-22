@@ -217,22 +217,21 @@ namespace qk {
 			drawBoxFill(v);
 		});
 
-		struct PathvBatchs {
-			struct Batch {
-				const Pathv* pathv[5]; Color color; int count = 0;
-			} indexed[5]; // color key => Batch
-			int batchs[5]; // indexed[batchs[0]]
-			int total = 0;
-		} pathvs;
-
 		auto addBatch = [](PathvBatchs &out, Color color, const qk::Pathv *pv) {
-			auto key = *reinterpret_cast<uint32_t*>(&color) % 5;
-			auto &it = out.indexed[key];
-			if (it.count == 0) {
-				it.color = color;
-				out.batchs[out.total++] = key;
+			auto key = reinterpret_cast<uint32_t&>(color);
+			int i = 0;
+			for (; i < out.total; i++) {
+				auto &it = out.indexed[i];
+				if (it.key == key) {
+					it.pathv[it.count++] = pv;
+					return;
+				}
 			}
+			auto &it = out.indexed[i];
+			it.key = key;
+			it.color = color;
 			it.pathv[it.count++] = pv;
+			out.total++;
 		};
 
 		if (v->background()) {
@@ -241,10 +240,11 @@ namespace qk {
 		}
 		else if (v->_background_color.a()) {
 			getInsideRectPath(v);
-			addBatch(pathvs, v->_background_color, _boxData.inside);
+			addBatch(_pathvs, v->_background_color, _boxData.inside);
 		}
 
 		getRRectOutlinePath(v);
+
 		if (_boxData.outline) {
 			Paint paint;
 			paint.antiAlias = v->_aa;
@@ -253,7 +253,7 @@ namespace qk {
 				if (_border->width[i] && _border->color[i].a()) {
 					auto pv = &_boxData.outline->top + i;
 					if (pv->vCount) {
-						addBatch(pathvs, _border->color[i], pv);
+						addBatch(_pathvs, _border->color[i], pv);
 					} else { // too thin, draw only a little stroke
 						paint.stroke.color = _border->color[i].premul_alpha().mul(_color);
 						paint.strokeWidth = _border->width[i];
@@ -263,12 +263,13 @@ namespace qk {
 			}
 		}
 
-		if (pathvs.total) {
-			for (int i = 0; i < pathvs.total; i++) {
-				auto & it = pathvs.indexed[pathvs.batchs[i]];
+		if (_pathvs.total) {
+			for (int i = 0; i < _pathvs.total; i++) {
+				auto & it = _pathvs.indexed[i];
 				_canvas->drawPathvColors(it.pathv, it.count,
 					it.color.premul_alpha().mul(_color), defaultBlendMode, v->_aa);
 			}
+			_pathvs = {0}; // reset batch
 		}
 	}
 
@@ -546,8 +547,8 @@ namespace qk {
 			auto margin = v->_scrollbar_margin;
 			auto origin = Vec2();// Vec2{b->margin_left(),b->margin_top()};
 			auto size = b->_client_size;
-			auto color = v->scrollbar_color().premul_alpha().mul(_color);
-			color[3] *= v->_scrollbar_opacity;
+			auto color = v->scrollbar_color().mul_alpha_only(v->_scrollbar_opacity)
+					.premul_alpha().mul(_color);
 			auto _border = b->_border.load();
 
 			if ( v->_scrollbar_h ) { // draw horizontal scrollbar
@@ -785,6 +786,7 @@ namespace qk {
 
 	void Scroll::draw(Painter *draw) {
 		Box::draw(draw);
+		draw->canvas()->setTranslate(position());
 		draw->drawScrollBar(this);
 	}
 

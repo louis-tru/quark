@@ -62,7 +62,7 @@ namespace qk {
 
 	typedef Typeface::TextImage TextImage;
 
-	const GLenum DrawBuffers[]{
+	constexpr GLenum DrawBuffers[]{
 		GL_COLOR_ATTACHMENT0/*main color out*/, GL_COLOR_ATTACHMENT1/*other out*/,
 	};
 

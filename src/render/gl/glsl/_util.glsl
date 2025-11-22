@@ -16,7 +16,8 @@ uniform                     float depth;
 in                          float aafuzzIn; // anti alias fuzz or z depth plus
 out                         float aafuzz;
 #else
-uniform                sampler2D  aaclip; // anti alias clip texture buffer
+uniform                sampler2D  aaclip; // anti alias clip texture buffer @aaclipOut
 in                     lowp float aafuzz;
 layout(location=0) out lowp vec4  fragColor;
+// layout(location=1) out lowp vec4  aaclipOut; // aa clip output
 #endif

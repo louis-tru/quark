@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Jsx } from 'quark';
-import { HighlightedStatus, HighlightedEvent } from 'quark/event';
+import { UIState, UIStateEvent } from 'quark/event';
 import { Navbar } from 'quark/nav';
 import { Page } from './tool';
 import {toolbar} from './review';
@@ -46,11 +46,11 @@ export default (self: Page)=>{
 		self.backgroundColor = '#333';
 	}
 
-	function highlighted(evt: HighlightedEvent) {
+	function highlighted(evt: UIStateEvent) {
 		var img1 = self.asRef('img1');
 		var img2 = self.asRef('img2');
 		var speed = 1;
-		if ( evt.status == HighlightedStatus.Active ) {
+		if ( evt.state == UIState.Active ) {
 			speed = img1 === evt.sender ? 2 : 0.5;
 		}
 		img1.action!.speed = speed;
@@ -61,7 +61,7 @@ export default (self: Page)=>{
 		<free width="match" height="match">
 			<morph width={600} align="centerMiddle" y={-15} opacity={0.5}>
 				<morph
-					onHighlighted={highlighted} 
+					onUIStateChange={highlighted} 
 					action={{
 						keyframe:[
 							{ rotateZ: 0, time:0, curve:'linear' },
@@ -78,7 +78,7 @@ export default (self: Page)=>{
 					<image src={resolve('./gear0.png')} width={600} />
 				</morph>
 				<morph
-					onHighlighted={highlighted}
+					onUIStateChange={highlighted}
 					action={{
 						keyframe: [
 							{ rotateZ: 22.5, time:0, curve:'linear' }, 
