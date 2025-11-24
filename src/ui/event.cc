@@ -144,7 +144,7 @@ namespace qk {
 	{}
 
 	UIEvent::UIEvent(View *origin, SendData data)
-		: Event(data, kAll_ReturnValueMask), _origin(origin), _timestamp(time_micro() / 1000) {
+		: Event(data, kAll_ReturnValueMask), _origin(origin), _timestamp(time_millisecond()) {
 	}
 
 	void UIEvent::release() {

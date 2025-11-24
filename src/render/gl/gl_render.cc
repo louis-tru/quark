@@ -421,9 +421,9 @@ namespace qk {
 		Qk_DLog("GL_EXTENSIONS:\n%s", *_extensions);
 
 #if DEBUG
-		int64_t st = time_micro();
+		int64_t st = time_microsecond();
 		_shaders.buildAll(); // compile all shaders
-		Qk_DLog("shaders.buildAll time: %ld (micro s)", time_micro() - st);
+		Qk_DLog("shaders.buildAll time: %ld (micro s)", time_microsecond() - st);
 #else
 		_shaders.buildAll();
 #endif

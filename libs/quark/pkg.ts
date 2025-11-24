@@ -1177,6 +1177,7 @@ class QkPackage extends Package {
 			'ws.js',
 			'state.js',
 			'path.js',
+			'lmdb.js',
 		]).forEach(e=>this.filesHash[e]='-');
 		this._status = PackageStatus.INSTALLED;
 	}

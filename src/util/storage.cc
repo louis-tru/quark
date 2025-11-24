@@ -28,87 +28,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <bplus.h>
+#include "./lmdb.h"
 #include "./storage.h"
 #include "./fs.h"
 #include "./event.h"
 
 namespace qk {
-
-	#define _db _storage_db
-	#define assert_r(c) Qk_ASSERT_EQ(BP_OK, c)
-	#define OPEN(...) ScopeLock lock(_mutex); storage_open(); if (!_db) return __VA_ARGS__
-
-	static Mutex    _mutex;
-	static bp_db_t *_storage_db = nullptr;
-	static int      _initialize = 0;
-
-	static String get_db_filename() {
-		return fs_temp(".storage.bp");
-	}
-
-	static void storage_close() {
-		bp_db_t* db = _storage_db;
-		_db = nullptr;
-		if (db) {
-			bp_fsync(db);
-			bp_close(db);
-		}
-	}
-
-	static void storage_open() {
-		if ( _db == nullptr ) {
-			if ( bp_open(&_db, fs_fallback_c(get_db_filename())) == BP_OK ) {
-				if (_initialize++ == 0)
-					Qk_On(ProcessExit, [](auto e) { storage_close(); });
-			}
-		}
-	}
-
-	int bp_get_str(bp_db_t *tree, const bp_key_t* key, String *value) {
-		bp_key_t val;
-		int rc = bp_get(tree, key, &val);
-		if (rc == BP_OK) {
-			*value = String(val.value, (uint32_t)val.length);
-			free(val.value);
-		}
-		return rc;
-	}
-
-	// --------------------------------------------------------------------------------------
-
+	static LMDB_DBIPtr _db = LMDB::shared()->dbi("storage");
+	
 	String storage_get(cString& name) {
-		String result;
-		OPEN(result);
-		bp_key_t key = { name.length(), (Char*)name.c_str() };
-		bp_get_str(_db, &key, &result);
-		Qk_ReturnLocal(result);
+		String str;
+		LMDB::shared()->get(_db, name, &str);
+		return str;
 	}
 
 	void storage_set(cString& name, cString& value) {
-		OPEN();
-		bp_key_t   key = { name.length(), (Char*)name.c_str() };
-		bp_value_t val = { value.length(), (Char*)value.c_str() };
-		assert_r(bp_set(_db, &key, &val));
+		LMDB::shared()->set(_db, name, value);
 	}
 
 	void storage_remove(cString& name) {
-		OPEN();
-		bp_key_t key = { name.length(), (Char*)name.c_str() };
-		assert_r(bp_remove(_db, &key));
+		LMDB::shared()->remove(_db, name);
 	}
 
 	void storage_clear() {
-		ScopeLock lock(_mutex);
-		if ( !_db ) {
-			auto f = get_db_filename();
-			if (fs_is_file_sync(f)) {
-				fs_unlink_sync(f);
-			}
-		} else {
-			storage_close();
-			fs_unlink_sync(get_db_filename());
-		}
+		LMDB::shared()->clear(_db);
 	}
 
-}
+} // namespace qk

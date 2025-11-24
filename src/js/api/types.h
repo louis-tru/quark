@@ -62,6 +62,7 @@ namespace qk {
 	typedef Array<Vec2> ArrayVec2;
 	typedef Array<Vec3> ArrayVec3;
 	typedef Path::BorderRadius BorderRadius;
+	typedef struct NativePtr_* NativePtr;
 
 	#define Js_Types_Each(F) \
 		F(bool) \
@@ -120,7 +121,6 @@ namespace qk {
 		F(KeyboardReturnType) \
 		F(CursorStyle) \
 		F(CascadeColor) \
-		F(FFID) \
 		F(SkeletonDataPtr) \
 		F(TextStroke) \
 		F(PathPtr) \
@@ -183,9 +183,17 @@ namespace qk {
 		JSValue* jsvalue(const Array<FileStat>& val);
 		JSValue* jsvalue(const TouchPoint& val);
 		JSValue* jsvalue(const Array<TouchPoint>& val);
+		JSValue* jsvalue(const NativePtr& val); // jsvalue for pointer type
 
 		bool parse(JSValue* in, WindowOptions& out, cChar* desc);
 		bool parse(JSValue* in, FillImageInit& out, cChar* desc);
+		bool parse(JSValue* in, NativePtr& out, cChar* msg); // parse pointer type
+		bool parse(JSValue* in, WeakBuffer& out, cChar* msg);
+
+		inline
+		JSValue* jsvalue(const FFID& val) { return jsvalue((NativePtr)val); }
+		inline
+		bool parse(JSValue* in, FFID& out, cChar* msg) { return parse(in, (NativePtr&)out, msg); }
 
 		template<typename T>
 		bool parseArgs(FunctionArgs args, int argIdx, T& out, cChar* desc, bool optional = false) {

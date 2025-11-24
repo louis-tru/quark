@@ -51,7 +51,7 @@ namespace qk { namespace js {
 		F(_css)     F(_event)    F(_font)\
 		F(_fs)      F(_http)     F(_os)\
 		F(_storage) F(_types)    F(_ui)\
-		F(_net)     F(_path)\
+		F(_net)     F(_path)     F(_lmdb)\
 
 	#define Js_Strings_Each(F)  \
 		F(exports)         F(constructor)    F(__proto__)\

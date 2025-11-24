@@ -72,11 +72,10 @@ framework() {
 dirs="$obj/quark-util $obj/quark $obj/quark-media"
 
 links="\
-	-lbptree \
 	-lfreetype -lgif \
 	-lhttp_parser -lminizip -lopenssl \
 	-lreachability -ltess2 -luv -liconv -lbz2 -lz -lffmpeg -lspine \
-	-lpng-2 -ljpeg2 -lwebp \
+	-lpng-2 -ljpeg2 -lwebp -llmdb \
 "
 
 frameworks="\

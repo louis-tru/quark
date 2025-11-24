@@ -34,27 +34,36 @@
 using namespace qk;
 
 Qk_TEST_Func(localstorage) {
-	
-	Qk_Log(storage_get("test2"));
-	
+
+	// Qk_Log(storage_get("test2"));
+
+	storage_set("atess", "quarks.cc");
+	storage_set("sess", "quarks.cc");
+	storage_set("tess", "quarks.cc");
 	storage_set("test", "quarks.cc");
-	
-	Qk_Log(storage_get("test"));
-	
+	storage_set("testA", "quarks.cc");
+	storage_set("testB", "quarks.cc");
+	storage_set("tesu", "quarks.cc");
+	storage_set("uesu", "quarks.cc");
+	storage_set("vesu", "quarks.cc");
+	storage_set("wesu", "quarks.cc");
+
+	Qk_TEST_EQ(storage_get("tess"), "quarks.cc");
+
 	storage_remove("test");
-	
-	Qk_Log(storage_get("test"));
-	
+
+	Qk_TEST_EQ(storage_get("test"), "");
+
 	storage_set("test", "quarks.cc");
-	
-	Qk_Log(storage_get("test"));
+
+	Qk_TEST_EQ(storage_get("test"), "quarks.cc");
 	
 	storage_clear();
-	
-	Qk_Log(storage_get("test"));
-	
+
+	Qk_TEST_EQ(storage_get("test"), "");
+
 	storage_set("test2", "test2");
 	
-	Qk_Log(storage_get("test2"));
+	Qk_TEST_EQ(storage_get("test2"), "test2");
 	
 }

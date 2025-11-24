@@ -166,21 +166,30 @@ namespace qk {
 		return ::time(nullptr);
 	}
 
-	int64_t time_micro() {
+	template <int Zoom>
+	int64_t time_microsecond_template() {
 #if Qk_WIN // Windows
 		FILETIME ft;
 		GetSystemTimeAsFileTime(&ft);
 		int64_t t = ((int64_t)ft.dwHighDateTime << 32) | ft.dwLowDateTime;
 		// Windows epoch is 1601-01-01, Unix epoch is 1970-01-01
-		return (t - 116444736000000000LL) / 10; // to microseconds
+		return (t - 116444736000000000LL) / (10 * Zoom); // to microseconds
 #else // Linux / Unix
 		timespec now;
 		int rc = clock_gettime(CLOCK_REALTIME, &now);
 		if (rc != 0)
 			return -1;
-		int64_t r = int64_t(now.tv_sec) * 1e6 + now.tv_nsec / 1000;
+		int64_t r = int64_t(now.tv_sec) * (1e6 / Zoom) + now.tv_nsec / (1000 * Zoom);
 		return r;
 #endif
+	}
+
+	int64_t time_microsecond() {
+		return time_microsecond_template<1>();
+	}
+
+	int64_t time_millisecond() {
+		return time_microsecond_template<1000>();
 	}
 
 	int64_t time_monotonic() {

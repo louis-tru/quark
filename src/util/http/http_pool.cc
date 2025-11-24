@@ -584,7 +584,7 @@ namespace qk {
 				Qk_ASSERT_NE(c->_id, ConnectID());
 				c->_busy = false;
 				c->_client = nullptr;
-				c->_recovery_time = time_micro();
+				c->_recovery_time = time_microsecond();
 				c->socket()->set_timeout(0);
 				c->socket()->resume();
 			}
@@ -620,7 +620,7 @@ namespace qk {
 	Connect* ConnectPool::get_connect(Client* cli, uint16_t port) {
 		Connect *conn = nullptr, *tryDel= nullptr; // try delete one connect
 		uint32_t poolSize = 0;
-		auto now = time_micro();
+		auto now = time_microsecond();
 		auto max_pool_size = http_max_connect_pool_size();
 
 		for ( auto i: _conns ) {

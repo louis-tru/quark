@@ -5,7 +5,8 @@
 		'type': 'static_library',
 		'dependencies': [
 			'deps/zlib/minizip.gyp:minizip',
-			'deps/bptree/bptree.gyp:bptree',
+			# 'deps/bptree/bptree.gyp:bptree',
+			'deps/lmdb/lmdb.gyp:lmdb',
 			'deps/libuv/libuv.gyp:libuv',
 			'deps/openssl/openssl.gyp:openssl',
 			'deps/http_parser/http_parser.gyp:http_parser',
@@ -98,6 +99,8 @@
 			'mutex.cc',
 			'mutex.h',
 			'semaphore.cc',
+			'lmdb.h',
+			'lmdb.cc',
 		],
 		'conditions': [
 			['os=="android"', {

@@ -100,7 +100,7 @@ namespace qk {
 								_header["expires"] = _header["expires"].trim();
 
 								int64_t expires = parse_time(_header["expires"]);
-								if ( expires > time_micro() ) {
+								if ( expires > time_microsecond() ) {
 									_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
 									_client->_download_total = Int64::max(_size - _offset, 0);
 									_client->trigger_http_header(200, std::move(_header), true);
@@ -224,7 +224,7 @@ namespace qk {
 
 				if ( headers.has("expires") ) {
 					int64_t expires = parse_time(headers["expires"]);
-					int64_t now = time_micro();
+					int64_t now = time_microsecond();
 					if ( expires > now ) {
 						_file = new File(path, loop);
 					}

@@ -53,7 +53,8 @@ namespace qk {
 	Qk_EXPORT uint32_t getId32();
 	Qk_EXPORT int64_t  parse_time(cString& str);
 	Qk_EXPORT String gmt_time_string(int64_t second);
-	Qk_EXPORT int64_t time_micro();
+	Qk_EXPORT int64_t time_microsecond();
+	Qk_EXPORT int64_t time_millisecond();
 	Qk_EXPORT int64_t time_second();
 	Qk_EXPORT int64_t time_monotonic();
 	Qk_EXPORT String platform();

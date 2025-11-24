@@ -37,6 +37,8 @@ using namespace qk;
 
 class TestLog;
 static TestLog* testLog;
+static int test_fail_count = 0;
+static int test_pass_count = 0;
 
 class TestLog: public Log {
 public:
@@ -76,18 +78,31 @@ private:
 	char _indentation_s[128];
 };
 
+void __test_fail(const char* expr, const char* file, int line) {
+	Qk_Log("❌ FAIL: %s (%s:%d)", expr, file, line);
+	test_fail_count++;
+}
+
+void __test_pass(const char* expr) {
+	Qk_Log("✔ PASS: %s", expr);
+	test_pass_count++;
+}
+
 void call_test(int argc, char** argv, const char* funcName, TestFunc func) {
-	Qk_Log("Test %s:", funcName);
+	Qk_Log("\n\nTest %s:", funcName);
 
 	testLog->set_indentation(2);
 
-	uint64_t st = time_micro();
+	uint64_t st = time_millisecond();
 
 	func(argc, argv, funcName, TestLog::Assert);
 
 	testLog->set_indentation(0);
 
-	Qk_Log("\nTest %s eclapsed, time: %dMs\n", funcName, (time_micro() - st) / 1000);
+	Qk_Log("✔ Passed: %d", test_pass_count);
+	Qk_Log("✘ Failed: %d", test_fail_count);
+
+	Qk_Log("\nTest %s eclapsed, time: %dMs\n", funcName, time_millisecond() - st);
 }
 
 //-----------------------------------------------------------------------------

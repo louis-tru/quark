@@ -55,6 +55,7 @@
 			'api/view.cc',
 			'api/window.cc',
 			'api/path.cc',
+			'api/lmdb.cc',
 		],
 		'conditions': [
 			['use_v8==0 and os in "mac ios"', { # use javascriptcore

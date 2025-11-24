@@ -31,10 +31,29 @@
 #ifndef __qk__test__
 #define __qk__test__
 
+#include <string.h>
+#include <stdlib.h>
+
 typedef void (*TestAssert)(const char* tag, bool cond, const char* msg, ...);
 typedef void (*TestFunc)(int argc, char **argv, const char* func, TestAssert assert);
 
+void __test_fail(const char* expr, const char* file, int line);
+void __test_pass(const char* expr);
+
 #define Qk_TEST_Func(n) \
 	void test_##n(int argc, char **argv, const char* func, TestAssert assert)
+
+#define Qk_TEST_EXPECT(expr) \
+	do { if (!(expr)) __test_fail(#expr, __FILE__, __LINE__); \
+				else __test_pass(#expr); } while(0)
+
+#define Qk_TEST_EQ(a, b) \
+	do { auto _A = (a); auto _B = (b); \
+				if (_A != _B) __test_fail(#a " == " #b, __FILE__, __LINE__); \
+				else __test_pass(#a " == " #b); } while(0)
+
+#define Qk_TEST_STREQ(a,b) \
+	do { if (strcmp((a),(b)) != 0) __test_fail(#a " == " #b, __FILE__, __LINE__); \
+				else __test_pass(#a " == " #b); } while(0)
 
 #endif

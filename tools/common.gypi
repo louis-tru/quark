@@ -47,6 +47,7 @@
 		'use_dtrace%': 0,
 		'use_openssl%': 1,
 		'V%': 0,
+		'use_qk_rwlock': 1, # use qk rwlock for bptree
 
 		############################# dependents set ##################
 

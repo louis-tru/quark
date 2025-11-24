@@ -530,10 +530,10 @@ namespace qk { namespace js {
 		return jsValue((uint32_t)value);
 	}
 
-	JSValue* TypesParser::jsvalue(const FFID& val) {
+	JSValue* TypesParser::jsvalue(const NativePtr& val) {
 		cChar* addr = reinterpret_cast<cChar*>(&val);
-		Buffer buffer(sizeof(FFID));
-		buffer.write(addr, sizeof(FFID), 0);
+		Buffer buffer(sizeof(NativePtr));
+		buffer.write(addr, sizeof(NativePtr), 0);
 		return worker->newValue(buffer);
 	}
 
@@ -1189,12 +1189,20 @@ namespace qk { namespace js {
 		});
 	}
 
-	bool TypesParser::parse(JSValue* in, FFID& out, cChar* msg) {
+	bool TypesParser::parse(JSValue* in, NativePtr& out, cChar* msg) {
 		WeakBuffer buff;
-		if (!in->asBuffer(worker).to(buff) || buff.length() < sizeof(FFID)) {
+		if (!in->asBuffer(worker).to(buff) || buff.length() < sizeof(NativePtr)) {
 			return throw_error(worker, in, msg), false;
 		}
-		out = *reinterpret_cast<const FFID*>( buff.val() );
+		memcpy(&out, buff.val(), sizeof(NativePtr)); // copy data as we can't guarantee alignment
+		// out = *reinterpret_cast<const VoidPtr*>( buff.val() );
+		return true;
+	}
+
+	bool TypesParser::parse(JSValue* in, WeakBuffer& out, cChar* msg) {
+		if (!in->asBuffer(worker).to(out)) {
+			return throw_error(worker, in, msg), false;
+		}
 		return true;
 	}
 

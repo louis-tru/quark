@@ -30,7 +30,6 @@
 
 #include "./thread.h"
 #include <uv.h>
-#include <pthread.h>
 #include <dlfcn.h>
 
 #if Qk_ANDROID

@@ -294,4 +294,23 @@ namespace qk {
 
 } // namespace qk
 
+extern "C" {
+	using qk::SharedMutex;
+
+	struct qk_rwlock_t_;
+	typedef struct qk_rwlock_t_* qk_rwlock_t;
+
+	qk_rwlock_t qk_rwlock_create();
+
+	void qk_rwlock_destroy(qk_rwlock_t lock);
+
+	void qk_rwlock_rdlock(qk_rwlock_t lock);
+
+	void qk_rwlock_wrlock(qk_rwlock_t lock);
+
+	void qk_rwlock_unlock_rd(qk_rwlock_t lock);
+
+	void qk_rwlock_unlock_wr(qk_rwlock_t lock);
+}
+
 #endif

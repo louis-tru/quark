@@ -371,3 +371,32 @@ namespace qk {
 	}
 #endif
 } // namespace qk
+
+extern "C" {
+
+	using qk::SharedMutex;
+
+	qk_rwlock_t qk_rwlock_create() {
+		return reinterpret_cast<qk_rwlock_t>(new SharedMutex());
+	}
+
+	void qk_rwlock_destroy(qk_rwlock_t lock) {
+		delete reinterpret_cast<SharedMutex*>(lock);
+	}
+
+	void qk_rwlock_rdlock(qk_rwlock_t lock) {
+		reinterpret_cast<SharedMutex*>(lock)->lockShared();
+	}
+
+	void qk_rwlock_wrlock(qk_rwlock_t lock) {
+		reinterpret_cast<SharedMutex*>(lock)->lock();
+	}
+
+	void qk_rwlock_unlock_rd(qk_rwlock_t lock) {
+		reinterpret_cast<SharedMutex*>(lock)->unlockShared();
+	}
+
+	void qk_rwlock_unlock_wr(qk_rwlock_t lock) {
+		reinterpret_cast<SharedMutex*>(lock)->unlock();
+	}
+}

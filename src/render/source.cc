@@ -506,7 +506,7 @@ namespace qk {
 				if (ch != 0) {
 					_capacity += ch; // change
 					it->second.bytes = info.bytes();
-					it->second.time = time_micro();
+					it->second.time = time_microsecond();
 				}
 			}
 		}
