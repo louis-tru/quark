@@ -65,10 +65,6 @@ namespace qk { namespace js {
 
 			Js_MixObject_Acce_Get(LMDB, bool, opened, opened);
 
-			Js_Class_Accessor_Get(opened, {
-				Js_Return(self->opened());
-			});
-
 			Js_Class_Method(open, {
 				Js_Return(self->open());
 			});

@@ -136,6 +136,11 @@ namespace qk {
 		 */
 		bool run_task(int64_t time, int64_t delta) override;
 
+		/**
+		 * @method destroy() heap memory destructor
+		 */
+		void destroy() override;
+
 	private:
 		/** @override Initialize the World within a given Window. */
 		View* init(Window *win) override;
@@ -192,6 +197,9 @@ namespace qk {
 		 * @param update Output flag set to true if agent moved or changed state.
 		 */
 		void updateAgentWithFollow(Agent* agent, cArray<Entity*>& obs, float deltaTime);
+
+	private:
+		Dict<Entity*, bool> _entities; ///< All entities in the world, true if Agent
 	};
 
 } // namespace qk

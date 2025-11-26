@@ -634,8 +634,6 @@ export declare class DiscoveryAgentEvent extends AgentStateEvent {
 	readonly agent: Agent;
  /** to agent location */
 	readonly location: Vec2;
- /** usually use agent's pointer address low 32 bits */
-	readonly agentId: Uint;
  /** discovery level, 0xffffffff means lost all levels */
 	readonly level: Uint;
  /** is leaving or entering */

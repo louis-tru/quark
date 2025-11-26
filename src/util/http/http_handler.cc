@@ -68,7 +68,7 @@ namespace qk {
 			Releasep(_socket);
 			Releasep(_upload_file);
 			gzip_inflate_end();
-			Qk_DLog("HttpHandler::~HttpHandler()");
+			// Qk_DLog("HttpHandler::~HttpHandler()");
 		}
 
 		inline RunLoop* loop() { return _loop; }

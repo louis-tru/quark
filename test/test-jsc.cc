@@ -35,7 +35,7 @@ Qk_TEST_Func(jsc) {}
 #include "src/util/macros.h"
 #ifdef Qk_APPLE
 #include "src/util/array.h"
-#include "src/util/loop.h"
+#include "src/util/thread.h"
 #include "src/js/jsc/jsc.h"
 #include <JavaScriptCore/JavaScript.h>
 

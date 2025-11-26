@@ -57,12 +57,12 @@ namespace qk { namespace js {
 			auto worker = mix->worker();
 			if (thread_self_id() == worker->thread_id()) {
 				mix->setWeak();
-			} else if (worker->isValid()) {
+			} else if (worker->isValid()) { // worker may be destroyed, this worker pointer is invalid
 				worker->loop()->post(Cb((Cb::Static<>)[](auto e, auto obj) {
 					// Must be called on the js worker thread
 					(reinterpret_cast<MixObject*>(obj) - 1)->setWeak();
 				}, obj));
-			} else {
+			} else { // worker is invalid, directly destroy
 				obj->destroy();
 			}
 		} else {

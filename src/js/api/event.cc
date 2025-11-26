@@ -249,15 +249,7 @@ namespace qk { namespace js {
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(DiscoveryAgentEvent, AgentStateEvent, { Js_Throw("Access forbidden."); });
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, Vec2, location, location);
-			Js_Class_Accessor_Get(agent, {
-				if (self->agent()) {
-					Js_Return( self->agent() );
-				} else {
-					// check if agent is still valid
-					Js_Return( worker->asMix((Agent*)self->agentId())->handle() );
-				}
-			});
-			Js_Class_Accessor_Get(agentId, { Js_Return( uint32_t(self->agentId()) ); });
+			Js_MixObject_Acce_Get(DiscoveryAgentEvent, Agent, agent, agent);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, uint32_t, level, level);
 			Js_MixObject_Acce_Get(DiscoveryAgentEvent, bool, entering, entering);
 			cls->exports("DiscoveryAgentEvent", exports);

@@ -338,9 +338,9 @@ namespace qk {
 		: AgentStateEvent(origin), _movementState(state) {
 	}
 	DiscoveryAgentEvent::DiscoveryAgentEvent(
-		Agent *origin, Agent* agent, Vec2 location, uintptr_t id, uint32_t level, bool entering
+		Agent *origin, Agent* agent, Vec2 location, uint32_t level, bool entering
 	) : AgentStateEvent(origin), _agent(agent), _location(location)
-		, _agentId(id), _level(level), _entering(entering)
+		, _level(level), _entering(entering)
 	{}
 	void DiscoveryAgentEvent::release() {
 		_agent = nullptr; // clear weak reference
@@ -425,7 +425,7 @@ namespace qk {
 	}
 
 	void Agent::set_discoveryDistances(cArray<float>& val) {
-		preRender().safeReleasep(_discoveryDistances); // release previous and set nullptr
+		preRender().safeReleasep(_discoveryDistances); // safe release previous and set nullptr
 		if (val.length()) {
 			_discoveryDistances.store(new Array<float>(val));
 		}
@@ -515,7 +515,8 @@ namespace qk {
 			returnToWaypoints(immediately);
 			return; // same waypoints, ignore
 		}
-		Releasep(_waypoints); // release previous waypoints
+		// safe release previous in render thread and set nullptr
+		preRender().safeReleasep(_waypoints);
 		if (waypoints && waypoints->ptsLen() >= 2) {
 			waypoints->normalizedPath(); // normalize path
 			Qk_ASSERT(waypoints->isNormalized(), "waypoints normalize failed");

@@ -227,8 +227,8 @@ namespace qk {
 
 	template<typename T>
 	inline void Releasep(std::atomic<T*>& obj) {
-		auto v = obj.exchange(nullptr);
-		IsPointer<T*>::Release(v);
+		auto v = obj.exchange(nullptr); // first set to nullptr
+		IsPointer<T*>::Release(v); // then release
 	}
 
 	template<class T, typename... Args>

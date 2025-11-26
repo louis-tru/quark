@@ -125,6 +125,7 @@ namespace qk {
 		*/
 		template<typename T>
 		inline void safeReleasep(std::atomic<T*> &obj) {
+			if (obj.load() == nullptr) return;
 			auto v = obj.exchange(nullptr);
 			async_call<T>([](auto obj, auto arg) { Release(obj); }, v, 0);
 		}

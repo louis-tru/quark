@@ -118,6 +118,7 @@ namespace qk {
 		virtual Vec2 client_size() override;
 		virtual Region client_region() override;
 		virtual void draw(Painter *render) override;
+		virtual void destroy() override;
 
 	protected:
 		/**

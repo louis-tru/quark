@@ -59,20 +59,20 @@ namespace qk {
 	}
 
 	static void onDiscoveryAgent(Agent* agent, Agent* other, Vec2 mtv, uint32_t level, bool entering) {
-		uintptr_t id = uintptr_t(other); // use pointer address as id
 		Agent* otherPtr = static_cast<Agent*>(other->tryRetain_rt());
-		struct Wrap { Sp<Agent> other; Vec2 mtv; uintptr_t id; uint32_t level; bool entering; };
+		Qk_ASSERT_NE(otherPtr, nullptr); // other should not be null here
+		struct Wrap { Sp<Agent> other; Vec2 mtv; uint32_t level; bool entering; };
 		struct CbCore: CallbackCore<Object> {
 			void call(Data& e) {
 				auto agent = static_cast<Agent*>(e.data);
-				auto evt = new DiscoveryAgentEvent(agent, w.other.get(), w.mtv, w.id, w.level, w.entering);
+				auto evt = new DiscoveryAgentEvent(agent, w.other.get(), w.mtv,  w.level, w.entering);
 				Sp<DiscoveryAgentEvent> h(evt);
 				agent->trigger(UIEvent_DiscoveryAgent, **h);
 			}
 			Wrap w;
 		};
 		auto core = new CbCore;
-		core->w = { Sp<Agent>::lazy(otherPtr), mtv, id, level, entering };
+		core->w = { Sp<Agent>::lazy(otherPtr), mtv, level, entering };
 		agent->preRender().post(Cb(core), agent); // post to main thread
 	}
 
@@ -88,6 +88,10 @@ namespace qk {
 		View::init(win);
 		set_free(true);
 		return this;
+	}
+
+	void World::destroy() {
+		Qk_ASSERT_EQ(_entities.length(), 0); // all entities should be removed before world destroy
 	}
 
 	void World::set_playing(bool value) {
@@ -136,24 +140,34 @@ namespace qk {
 	}
 
 	void World::onChildLayoutChange(View* child, uint32_t mark) {
-		auto other = child->asAgent();
-		if (other && (!child->parent() || !child->visible())) { // removed from world or invisible
-			auto v = first();
-			while (v) {
-				auto agent = v->asAgent();
-				if (agent && agent != other) {
-					// Remove from discovery set if no longer visible
-					if (agent->_discoverys_rt.erase(other)) { // erase success
-						onDiscoveryAgent(agent, other, Vec2(), 0xffffffff, false); // lose discovery, remove agent
+		auto entity = child->asEntity();
+		if (entity) {
+			auto other = entity->asAgent();
+			if (other && !child->parent() || !child->visible()) { // removed from world or invisible
+				auto v = first();
+				while (v) {
+					auto agent = v->asAgent();
+					if (agent && agent != other) {
+						// Remove from discovery set if no longer visible
+						if (agent->_discoverys_rt.erase(other)) { // erase success
+							onDiscoveryAgent(agent, other, Vec2(), 0xffffffff, false); // lose discovery, remove agent
+						}
+						if (agent->_followTarget == other) {
+							agent->_moving = false;
+							agent->_followTarget = nullptr; // cancel follow target
+							// notify cancel follow target
+							onAgentMovement(agent, AgentMovementEvent::Cancelled);
+						}
 					}
-					if (agent->_followTarget == other) {
-						agent->_moving = false;
-						agent->_followTarget = nullptr; // cancel follow target
-						// notify cancel follow target
-						onAgentMovement(agent, AgentMovementEvent::Cancelled);
-					}
+					v = v->next();
 				}
-				v = v->next();
+			}
+			if (child->parent()) { // add to world
+				_entities.set(entity, other != nullptr);
+				entity->retain(); // retain for world
+			} else { // remove from world
+				_entities.erase(entity);
+				entity->release(); // release for world
 			}
 		}
 		View::onChildLayoutChange(child, mark);
@@ -204,13 +218,13 @@ namespace qk {
 		// World per-frame update logic can be added here
 		Array<Agent*> agents, follows;
 		Array<Entity*> entities;
-		auto v = first();
-		while (v) {
-			auto entity = v->asEntity();
+
+		for (auto it : _entities) {
+			auto entity = it.first;
 			// only process visible entities
-			if (entity && entity->_circleBounds.radius && entity->visible()) {
-				auto agent = entity->asAgent();
-				if (agent && agent->_active) {
+			if (entity->_circleBounds.radius && entity->visible()) {
+				auto agent = static_cast<Agent*>(entity);
+				if (it.second && agent->_active) { // is active agent
 					// Skip line segment agents for movement
 					if (agent->_bounds.type != Entity::kLineSegment) {
 						if (agent->_followTarget) {
@@ -223,7 +237,6 @@ namespace qk {
 				if (entity->_participate)
 					entities.push(entity);
 			}
-			v = v->next();
 		}
 
 		if (agents.isNull() && follows.isNull()) {

@@ -64,9 +64,17 @@ namespace qk {
 	}
 
 	Box::~Box() {
-		Releasep(_background);
-		Releasep(_box_shadow);
+		Qk_ASSERT_EQ(_background, nullptr);
+		Qk_ASSERT_EQ(_box_shadow, nullptr);
+		// cannot release in destroy() because may use in layout.
+		// but _background and _box_shadow is can be released immediately in destroy()
 		::free(_border.load());
+	}
+
+	void Box::destroy() {
+		Releasep(_background); // Can be released immediately
+		Releasep(_box_shadow);
+		View::destroy();
 	}
 
 	void Box::set_free(bool val, bool isRt) {
