@@ -202,7 +202,7 @@ namespace qk {
 
 	void Action::before(Action *act) {
 		Qk_ASSERT(act);
-		Qk_IfThrow(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
+		Qk_IfThrow(!_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::before, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			_parent->insertChild(_id_rt, act);
 		}
@@ -210,7 +210,7 @@ namespace qk {
 
 	void Action::after(Action *act) {
 		Qk_ASSERT(act);
-		Qk_IfThrow(_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
+		Qk_IfThrow(!_parent, ERR_ACTION_ILLEGAL_PARENT, "Action::after, illegal parent empty");
 		if (act->set_parent(_parent) == 0) {
 			auto id = _id_rt;
 			_parent->insertChild(++id, act);

@@ -209,13 +209,13 @@ namespace qk {
 			switch ( fs_get_protocol_from_str(path) ) {
 				default:
 				case FILE:
-					Qk_IfThrow(fs_exists_sync(path),
+					Qk_IfThrow(!fs_exists_sync(path),
 										ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
 					rv = fs_read_file_sync(path);
 					break;
 				case ZIP: {
 					String zip = zip_path(path);
-					Qk_IfThrow(!zip.isEmpty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
+					Qk_IfThrow(zip.isEmpty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
 					
 					ScopeLock lock(zip_mutex_);
 					

@@ -85,7 +85,7 @@ namespace qk { namespace js {
 	}
 
 	void JsClasses::add(uint64_t id, JSClass *cls) throw(Error) {
-		Qk_IfThrow( !_jsclass.has(id), "Set native Constructors id repeat");
+		Qk_IfThrow(_jsclass.has(id), "Set native Constructors id repeat");
 		cls->_id = id;
 		_jsclass.set(id, cls);
 		_jsclass_set.add(cls);

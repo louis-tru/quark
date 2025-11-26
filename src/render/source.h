@@ -42,16 +42,6 @@ namespace qk {
 	class RenderResource;
 	struct TexStat;
 
-struct Test {
-    enum State {};        // 默认底层类型: int (4 bytes)
-    enum PremulFlags: uint8_t {};  // 默认底层类型: int (4 bytes)
-    State a;              // 占4字节
-    PremulFlags b;        // 占4字节
-    bool c;               // 占1字节
-};
-
-constexpr size_t sss =  sizeof(Test);
-
 	/**
 	 * @class ImageSource
 	 */

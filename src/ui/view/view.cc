@@ -459,7 +459,7 @@ Range Container::to_range() const {
 
 	void View::set_action(Action* action) throw(Error) {
 		if (action) {
-			Qk_IfThrow(action->window() == _window,
+			Qk_IfThrow(action->window() != _window,
 				ERR_ACTION_SET_WINDOW_NO_MATCH, "View::set_action, Not match the window"
 			);
 		}

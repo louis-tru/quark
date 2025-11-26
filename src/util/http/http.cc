@@ -271,10 +271,10 @@ namespace qk {
 	}
 
 	void Host::send(Buffer data) throw(Error) {
-		Qk_IfThrow(!_retain, ERR_REPEAT_CALL, "RetainRef repeat call");
-		Qk_IfThrow(!_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
-		Qk_IfThrow(_uri.type() == URI_HTTP ||
-						_uri.type() == URI_HTTPS, ERR_INVALID_FILE_PATH, "Invalid path `%s`", *_uri.href());
+		Qk_IfThrow(_retain, ERR_REPEAT_CALL, "RetainRef repeat call");
+		Qk_IfThrow(_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
+		Qk_IfThrow(_uri.type() != URI_HTTP &&
+							 _uri.type() != URI_HTTPS, ERR_INVALID_FILE_PATH, "Invalid path `%s`", *_uri.href());
 
 		_post_data = data;
 		_retain = new RetainRef(this); // Force to maintain reference until end
@@ -313,7 +313,7 @@ namespace qk {
 	}
 
 	void Host::check_is_can_modify() throw(Error) {
-		Qk_IfThrow(!_retain, ERR_SENDIF_CANNOT_MODIFY, "Http request sending cannot modify property");
+		Qk_IfThrow(_retain, ERR_SENDIF_CANNOT_MODIFY, "Http request sending cannot modify property");
 	}
 
 	void Host::pause() {
@@ -413,7 +413,7 @@ namespace qk {
 
 	void HttpClientRequest::set_form(cString& form_name, cString& value) throw(Error) {
 		_impl->check_is_can_modify();
-		Qk_IfThrow( value.length() <= BUFFER_SIZE,
+		Qk_IfThrow(value.length() > BUFFER_SIZE,
 							ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
 		_impl->_form_data[form_name] = {
 			FORM_TYPE_TEXT, value, uri_encode(form_name)

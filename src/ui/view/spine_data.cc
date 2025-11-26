@@ -135,10 +135,10 @@ namespace qk {
 
 	Sp<SkeletonData> SkeletonData::Make(cString &skelPath, cString &atlasPath, float scale) throw(Error)
 	{
-		Qk_IfThrow(!skelPath.isEmpty(), ERR_SPINE_SKELETON_PATH_CANNOT_EMPTY, "skeleton path cannot empty");
+		Qk_IfThrow(skelPath.isEmpty(), ERR_SPINE_SKELETON_PATH_CANNOT_EMPTY, "skeleton path cannot empty");
 		auto json = skelPath.lastIndexOf(".json") != -1;
 		auto atlasP = atlasPath.isEmpty() ? get_atlas_path(skelPath, json) : atlasPath;
-		Qk_IfThrow(!atlasP.isEmpty(), ERR_SPINE_ATLAS_PATH_CANNOT_EMPTY, "atlas path cannot empty");
+		Qk_IfThrow(atlasP.isEmpty(), ERR_SPINE_ATLAS_PATH_CANNOT_EMPTY, "atlas path cannot empty");
 		auto key = fs_format("%s|%s|%f", *skelPath, *atlasP, scale);
 		Sp<qk::SkeletonData> *out;
 		if (_skeletonCache.get(key, out))
@@ -189,7 +189,7 @@ namespace qk {
 			data = reader.readSkeletonData((const uint8_t*)skel.val(), skel.length());
 			err = reader.getError().buffer();
 		}
-		Qk_IfThrow(data, ERR_SPINE_LOAD_SKELETON_DATA_FAIL, (err.isEmpty() ? "Error reading skeleton data.": err));
+		Qk_IfThrow(!data, ERR_SPINE_LOAD_SKELETON_DATA_FAIL, (err.isEmpty() ? "Error reading skeleton data.": err));
 
 		return new SkeletonData(data, atlas.collapse(), loader.collapse());
 	}
