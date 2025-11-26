@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./loop.h"
+#include "./thread.h"
 #include "./dict.h"
 
 #ifndef __quark__util__lmdb__
@@ -78,20 +78,29 @@ namespace qk {
 	 * This wrapper exposes a minimal, safe, and cross-platform LMDB interface
 	 * suitable for both native and JavaScript binding layers.
 	 */
-	class Qk_EXPORT LMDB: public Object {
+	class Qk_EXPORT LMDB: public Reference {
 	public:
 		struct DBI;                     // LMDB database handle (per logical table)
 		typedef Pair<String, String> Pair;
 
 		/**
-		 * @constructor
-		 * Create an LMDB environment.
+		 * @static Make
 		 *
-		 * @param path       Filesystem path to the LMDB environment directory.
+		 * Create or retrieve an LMDB environment instance for the given path.
+		 *
+		 * - Returned as `Sp<LMDB>` so lifetime is fully reference-counted.
+		 * - If the same path is requested multiple times, the same LMDB instance
+		 *   is returned (shared by all callers).
+		 * - When all `Sp<LMDB>` references are released, the environment is
+		 *   automatically closed and destroyed.
+		 *
+		 * @param path       Filesystem directory for the LMDB environment.
 		 * @param max_dbis   Maximum number of named databases (default: 64).
-		 * @param map_size   Initial mmap size in bytes (default: 10MB).
+		 * @param map_size   Initial mmap size in bytes (default: 10 MB).
+		 *
+		 * @return Shared pointer to the LMDB environment instance.
 		 */
-		LMDB(cString& path, uint32_t max_dbis = 64, uint32_t map_size = 10485760); // 10MB
+		static Sp<LMDB> Make(cString& path, uint32_t max_dbis = 64, uint32_t map_size = 10485760);
 
 		/**
 		 * Destructor.
@@ -242,6 +251,17 @@ namespace qk {
 		static LMDB* shared(); // get shared lmdb instance
 
 	private:
+
+		/**
+		 * @private
+		 * @constructor
+		 * Create an LMDB environment.
+		 *
+		 * @param path       Filesystem path to the LMDB environment directory.
+		 * @param max_dbis   Maximum number of named databases
+		 * @param map_size   Initial mmap size in bytes
+		 */
+		LMDB(cString& path, uint32_t max_dbis, uint32_t map_size);
 
 		/**
 		 * Ensure that the given DBI is opened in the LMDB environment.

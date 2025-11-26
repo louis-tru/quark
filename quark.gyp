@@ -42,7 +42,6 @@
 					'action_name': 'mk_quark_dylib',
 					'inputs': [
 						'tools/build_dylib.sh',
-						'<(output)/libbptree.a',
 						'<(output)/libfreetype.a',
 						'<(output)/libgif.a',
 						'<(output)/libjpeg2.a',

@@ -33,7 +33,7 @@
 
 #include "../util/list.h"
 #include "../util/array.h"
-#include "../util/loop.h"
+#include "../util/thread.h"
 
 namespace qk {
 	class Window;

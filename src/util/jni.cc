@@ -31,7 +31,7 @@
 #include "./jni.h"
 #if Qk_ANDROID
 #include "./string.h"
-#include "./loop.h"
+#include "./thread.h"
 
 static JavaVM* javavm = nullptr;
 

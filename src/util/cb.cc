@@ -30,7 +30,7 @@
 
 #include "./cb.h"
 #include "./string.h"
-#include "./loop.h"
+#include "./thread.h"
 
 namespace qk {
 

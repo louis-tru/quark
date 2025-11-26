@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./thread.h"
+#include "./inl.h"
 #include <uv.h>
 #include <dlfcn.h>
 

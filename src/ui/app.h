@@ -33,7 +33,7 @@
 
 #include "../util/util.h"
 #include "../util/event.h"
-#include "../util/loop.h"
+#include "../util/thread.h"
 #include "../render/pixel.h"
 #include "./types.h"
 

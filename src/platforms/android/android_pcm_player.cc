@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../../media/pcm_player.h"
-#include "../../util/loop.h"
+#include "../../util/thread.h"
 #include "./android.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./thread.h"
+#include "./inl.h"
 
 namespace qk {
 

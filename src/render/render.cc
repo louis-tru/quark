@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <math.h>
-#include "../util/loop.h"
+#include "../util/thread.h"
 #include "../util/codec.h"
 #include "./render.h"
 #include "./gl/gl_render.h"

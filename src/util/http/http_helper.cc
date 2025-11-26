@@ -33,7 +33,7 @@
 #include "../fs.h"
 #include "../uv.h"
 #include "../../os/os.h"
-#include "../thread.h"
+#include "../thread/inl.h"
 
 namespace qk {
 	typedef Dict<String, String> Map;

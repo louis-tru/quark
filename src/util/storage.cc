@@ -30,8 +30,6 @@
 
 #include "./lmdb.h"
 #include "./storage.h"
-#include "./fs.h"
-#include "./event.h"
 
 namespace qk {
 	static LMDB_DBIPtr _db = LMDB::shared()->dbi("storage");

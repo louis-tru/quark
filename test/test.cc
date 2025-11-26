@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "src/ui/app.h"
-#include "src/util/loop.h"
+#include "src/util/thread.h"
 #include "src/util/string.h"
 #include "./test.h"
 

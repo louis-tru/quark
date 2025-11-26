@@ -35,8 +35,8 @@
 #include "../util/string.h"
 #include "../util/event.h"
 #include "./pixel.h"
-#include "../util/loop.h"
-#include "../util/mutex.h"
+#include "../util/thread.h"
+#include "../util/thread/mutex.h"
 
 namespace qk {
 	class RenderResource;

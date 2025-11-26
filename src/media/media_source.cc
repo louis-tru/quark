@@ -30,7 +30,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./media_inl.h"
-#include "../util/loop.h"
+#include "../util/thread.h"
 #include "../errno.h"
 #include "../util/fs.h"
 

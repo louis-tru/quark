@@ -54,8 +54,8 @@ namespace qk {
 
 	static DefaultDelegate _default_delegate;
 
-	Client::Impl(HttpClientRequest* host, RunLoop* loop)
-		: _host(host)
+	Host::Impl(HttpClientRequest* cli, RunLoop* loop)
+		: _cli(cli)
 		, _loop(loop)
 		, _delegate(&_default_delegate)
 		, _upload_total(0)
@@ -65,14 +65,14 @@ namespace qk {
 		, _ready_state(HTTP_READY_STATE_INITIAL)
 		, _status_code(0)
 		, _method(HTTP_METHOD_GET)
-		, _connect(nullptr)
+		, _handler(nullptr)
 		, _cache_reader(nullptr)
 		, _file_writer(nullptr)
 		, _keep_alive(true)
 		, _retain(nullptr)
 		, _timeout(0)
 		, _wait_connect_id(0)
-		, _write_cache_flag(kBody_WriteCacheFlag)
+		, _write_flag(kNone_WriteFlag)
 		, _disable_cache(false)
 		, _disable_cookie(false)
 		, _disable_send_cookie(false)
@@ -83,24 +83,24 @@ namespace qk {
 		Qk_ASSERT(loop);
 	}
 
-	Client::~Impl() {
+	Host::~Impl() {
 		abort();
 		Qk_ASSERT(!_retain);
-		Qk_ASSERT(!_connect);
+		Qk_ASSERT(!_handler);
 		Qk_ASSERT(!_cache_reader);
 		Qk_ASSERT(!_file_writer);
 	}
 
-	void Client::set_delegate(HttpDelegate* delegate) {
+	void Host::set_delegate(HttpDelegate* delegate) {
 		_delegate = delegate ? delegate: &_default_delegate;
 	}
 
-	Reader* Client::reader() {
-		return _connect ? Connect_reader(_connect):
+	Reader* Host::reader() {
+		return _handler ? HttpHandler_reader(_handler):
 			FileCacheReader_reader(_cache_reader);
 	}
 
-	void Client::read_advance() {
+	void Host::read_advance() {
 		auto r = reader();
 		Qk_ASSERT(r);
 		if ( _pause ) {
@@ -110,129 +110,131 @@ namespace qk {
 		}
 	}
 
-	bool Client::is_disable_cache() {
+	bool Host::is_disable_cache() {
 		return _disable_cache || _url_no_cache_arg || _method != HTTP_METHOD_GET;
 	}
 
-	void Client::read_pause() {
+	void Host::read_pause() {
 		auto r = reader();
 		Qk_ASSERT(r);
 		r->read_pause();
 	}
 
-	void Client::trigger_http_readystate_change(HttpReadyState ready_state) {
+	void Host::trigger_http_data(Buffer& buffer) {
+		_delegate->trigger_http_data(_cli, buffer);
+	}
+
+	void Host::on_http_readystate_change(HttpReadyState ready_state) {
 		_ready_state = ready_state;
-		_delegate->trigger_http_readystate_change(_host);
+		_delegate->trigger_http_readystate_change(_cli);
 	}
 
-	void Client::trigger_http_write() {
-		_delegate->trigger_http_write(_host);
+	void Host::on_http_write() {
+		_delegate->trigger_http_write(_cli);
 	}
 
-	void Client::trigger_http_header(uint32_t status_code, DictSS&& header, bool fromCache) {
-		_status_code = status_code;
-		_response_header = std::move(header);
-		_delegate->trigger_http_header(_host);
-	}
-
-	void Client::trigger_http_data2(Buffer& buffer) {
-		_delegate->trigger_http_data(_host, buffer);
-	}
-
-	void Client::trigger_http_data(Buffer& buffer) {
-		// _write_cache_flag:
-		// _write_cache_flag = 0 not write cache
-		// _write_cache_flag = 1 write response header
-		// _write_cache_flag = 2 write response header and body
-
-		if ( _write_cache_flag == kAll_WriteCacheFlag ) { // http status == 200
-			// `_write_cache_flag==2` 写入头与主体缓存时,
-			// 一定是由`Connect`发起的调用,所以已不再需要`_cache_reader`了
-			FileCacheReader_Releasep(_cache_reader);
+	void Host::on_http_header(uint32_t status_code, DictSS&& header, bool fromCache) {
+		if (fromCache) {
+			if ( _save_path == _cache_path )
+				_canSave = false; // conflict path, do not save
+		} else if (status_code == 200) {
+			_write_flag = kAll_WriteFlag; // write header and body
+			// no longer need cache reader, release it as data is from http response
+			FileCacheReader_Releasep(_cache_reader); 
 		}
+		Qk_ASSERT_EQ(_status_code, 0); // check status code not set
+		_status_code = status_code; // set status code
+		_response_header = std::move(header); // move header
+		_delegate->trigger_http_header(_cli); // trigger header event
+	}
 
-		if ( !_save_path.isEmpty() ) { // Save file content to path, ignore cache
-			if ( !_file_writer ) {
-				FileWriter_new(this, _save_path, kNone_WriteCacheFlag, loop());
+	void Host::on_http_data(Buffer& buffer, bool fromCache) {
+		if ( _canSave ) { // Save file content to path, ignore cache
+			if ( !_file_writer ) { // download file
+				Qk_ASSERT(!_save_path.isEmpty(), "Save path is empty");
+				FileWriter_new(this, _save_path, kBody_WriteFlag, loop()); // only write body to file
 			}
-			FileWriter_write(_file_writer, buffer);
-		} else if ( _write_cache_flag && !is_disable_cache() ) {
+			FileWriter_write(_file_writer, buffer); // pipeline write file
+		} else if ( _write_flag && !is_disable_cache() ) {
 			if ( !_file_writer ) {
-				FileWriter_new(this, _cache_path, _write_cache_flag, loop());
+				FileWriter_new(this, _cache_path, _write_flag, loop());
 			}
-			FileWriter_write(_file_writer, buffer);
+			FileWriter_write(_file_writer, buffer); // pipeline write cache
 		} else {
-			trigger_http_data2(buffer);
-			read_advance();
+			trigger_http_data(buffer);
+			read_advance(); // continue read data
 		}
 	}
 
-	void Client::http_response_complete(bool fromCache) {
+	void Host::on_response_complete(bool fromCache) {
 		if (!fromCache) {
-			Qk_ASSERT(_connect);
-			_pool->recovery(_connect, false);
-			_connect = nullptr;
+			Qk_ASSERT(_handler);
+			_pool->release(_handler, false); // release handler
+			_handler = nullptr; // clear handler ptr
 
 			if ( _status_code == 304) {
 				if (_cache_reader) {
-					auto expires = to_expires_from_cache_content(_response_header["cache-control"]);
-					if (expires.isEmpty()) {
-						expires = _response_header["expires"];
-					}
-					_response_header = std::move(FileCacheReader_header(_cache_reader)); // use local cache headers
-
+					// read http headers from new response
+					auto expires = get_expires_from_header(_response_header);
+					// use cache header if 304 status, only update expires header
+					_response_header = std::move(FileCacheReader_header(_cache_reader));
+					// Convert from 304 to cache 200
 					if (!expires.isEmpty() && expires != _response_header["expires"]) {
-						// set expires value
-						_write_cache_flag = kHeader_WriteCacheFlag; // only write response header
+						// update expires header if different
+						_write_flag = kHeader_WriteFlag; // need write header
 						_response_header["expires"] = expires;
 					}
-					FileCacheReader_read_advance(_cache_reader);
+					FileCacheReader_read_advance(_cache_reader); // start read cache data
 					return;
 				} else {
 					Qk_ELog("http response status code error, %d", _status_code);
+					// return empty body response
 				}
 			}
 		}
 
 		if ( _file_writer ) {
-			FileWriter_end(_file_writer);  // 通知已经结束
+			FileWriter_end(_file_writer); // pipeline end
 		} else {
-			trigger_http_end();
+			on_http_end();
 		}
 	}
 
-	void Client::report_error_and_abort(cError& error) {
-		_delegate->trigger_http_error(_host, error);
+	void Host::on_error_and_abort(cError& error) {
+		_delegate->trigger_http_error(_cli, error);
 		abort();
 	}
 
-	void Client::trigger_http_timeout() {
-		_delegate->trigger_http_timeout(_host);
+	void Host::on_http_timeout() {
+		_delegate->trigger_http_timeout(_cli);
 		abort();
 	}
 
-	void Client::send_http() {
+	void Host::send_http() {
 		Qk_ASSERT(_retain);
-		Qk_ASSERT_EQ(_connect, nullptr);
+		Qk_ASSERT_EQ(_handler, nullptr);
+		// request http handler from pool and wait for callback
 		_pool->request(this, Cb([this](Cb::Data& evt) {
-			auto c = reinterpret_cast<Connect*>(evt.data);
-			if ( _wait_connect_id ) {
+			auto h = reinterpret_cast<HttpHandler*>(evt.data); // force cast to HttpHandler
+			if ( _wait_connect_id ) { // still need connect if wait id exist
 				if ( evt.error ) {
-					report_error_and_abort(*evt.error);
+					on_error_and_abort(*evt.error);
 				} else {
-					Qk_ASSERT_EQ(_connect, nullptr);
-					_connect = c;
-					Connect_bind_client_and_send(_connect, this);
+					Qk_ASSERT_EQ(_handler, nullptr);
+					_handler = h;
+					HttpHandler_bind_host_and_send(_handler, this);
 				}
 			} else {
-				_pool->recovery(c, false);
+				// release handler if no longer need connect
+				// maybe aborted send request
+				_pool->release(h, false);
 			}
 		}, this));
 	}
 
-	void Client::cache_file_stat_cb(Callback<FileStat>::Data& e) {
+	void Host::cache_file_stat_cb(Callback<FileStat>::Data& e) {
 		if (_retain) {
-			if (e.error || e.data->size() < 50) { // no cache or cache is bad
+			if (e.error || e.data->size() < 50) { // no cache or cache file is bad
 				send_http();
 			} else {
 				FileCacheReader_new(this, e.data->size(), loop());
@@ -240,56 +242,59 @@ namespace qk {
 		}
 	}
 
-	void Client::trigger_http_end() {
-		end_(false);
+	void Host::on_http_end() {
+		end_(false); // normal end
 	}
 
-	void Client::end_(bool abort) {
+	void Host::end_(bool abort) {
 		if ( _retain && !_retain->ending ) {
 			_retain->ending = true;
 
+			// release resources
 			FileCacheReader_Releasep(_cache_reader);
 			FileWriter_Releasep(_file_writer);
-			_pool->recovery(_connect, abort);
-			_connect = nullptr;
+			_pool->release(_handler, abort);
+			_handler = nullptr;
 			_pause = false;
-			_wait_connect_id = 0;
+			_wait_connect_id = 0; // reset wait connect id
 
 			if ( abort ) {
-				trigger_http_readystate_change(HTTP_READY_STATE_INITIAL);
-				delete _retain;
-				_delegate->trigger_http_abort(_host);
+				on_http_readystate_change(HTTP_READY_STATE_INITIAL);
+				delete _retain; // release retain reference
+				_delegate->trigger_http_abort(_cli);
 			} else {
-				trigger_http_readystate_change(HTTP_READY_STATE_COMPLETED);
-				delete _retain;
-				_delegate->trigger_http_end(_host);
+				on_http_readystate_change(HTTP_READY_STATE_COMPLETED);
+				delete _retain; // release retain reference
+				_delegate->trigger_http_end(_cli);
 			}
 		}
 	}
 
-	void Client::send(Buffer data) throw(Error) {
+	void Host::send(Buffer data) throw(Error) {
 		Qk_IfThrow(!_retain, ERR_REPEAT_CALL, "RetainRef repeat call");
 		Qk_IfThrow(!_uri.is_null(), ERR_INVALID_FILE_PATH, "Invalid path" );
 		Qk_IfThrow(_uri.type() == URI_HTTP ||
 						_uri.type() == URI_HTTPS, ERR_INVALID_FILE_PATH, "Invalid path `%s`", *_uri.href());
 
 		_post_data = data;
-		_retain = new RetainRef(this);
+		_retain = new RetainRef(this); // Force to maintain reference until end
 		_pause = false;
 		_url_no_cache_arg = false;
+		_canSave = !_save_path.isEmpty();
 		_cache_path = http_cache_path() + '/' + hash_str(_uri.href());
-		_write_cache_flag = kNone_WriteCacheFlag; // reset write cache flag
+		_write_flag = kNone_WriteFlag; // reset write cache flag
 
 		int i = _uri.search().indexOf("__no_cache");
 		if ( i != -1 && _uri.search()[i+9] != '=' ) {
 			_url_no_cache_arg = true;
 		}
 
-		trigger_http_readystate_change(HTTP_READY_STATE_READY); // ready
+		on_http_readystate_change(HTTP_READY_STATE_READY); // ready
 
 		if ( !_retain )
 			return; // abort
 
+		// reset state
 		_upload_total = 0; _upload_size = 0;
 		_download_total = 0; _download_size = 0;
 		_status_code = 0;
@@ -303,20 +308,20 @@ namespace qk {
 		}
 	}
 
-	void Client::abort() {
-		end_(true);
+	void Host::abort() {
+		end_(true); // abort end
 	}
 
-	void Client::check_is_can_modify() throw(Error) {
+	void Host::check_is_can_modify() throw(Error) {
 		Qk_IfThrow(!_retain, ERR_SENDIF_CANNOT_MODIFY, "Http request sending cannot modify property");
 	}
 
-	void Client::pause() {
+	void Host::pause() {
 		if ( _retain )
 			_pause = true;
 	}
 
-	void Client::resume() {
+	void Host::resume() {
 		if ( _retain && _pause ) {
 			_pause = false;
 			auto r = reader();
@@ -325,6 +330,8 @@ namespace qk {
 			}
 		}
 	}
+
+	//-----------------------------------------------------------------------
 
 	HttpClientRequest::HttpClientRequest(RunLoop* loop)
 		: _impl(NewRetain<Impl>(this, loop))

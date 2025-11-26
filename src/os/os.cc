@@ -30,7 +30,7 @@
 
 #include "./os.h"
 #include <src/util/fs.h>
-#include <src/util/loop.h>
+#include <src/util/thread.h>
 #include <src/util/dict.h>
 #include <string.h>
 #include <atomic>

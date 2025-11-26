@@ -34,7 +34,7 @@
 #include "./handle.h"
 #include "./event.h"
 #include "./error.h"
-#include "./loop.h"
+#include "./thread.h"
 #include "./stream.h"
 #include "./dict.h"
 

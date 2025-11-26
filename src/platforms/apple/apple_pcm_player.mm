@@ -30,7 +30,7 @@
 
 #import "src/media/pcm_player.h"
 #import "src/util/handle.h"
-#import "src/util/loop.h"
+#import "src/util/thread.h"
 #import <AudioToolbox/AudioToolbox.h>
 
 namespace qk {

@@ -33,15 +33,14 @@
 #ifndef __quark__util__ssl__
 #define __quark__util__ssl__
 
-#include "./util.h"
+#include "../util.h"
 #include <openssl/ssl.h>
 
 namespace qk {
 
 	class BIOData {
 	public:
-		BIOData() //: env_(nullptr),
-							:	initial_(kInitialBufferLength),
+		BIOData() :	initial_(kInitialBufferLength),
 								length_(0),
 								read_head_(nullptr),
 								write_head_(nullptr) {

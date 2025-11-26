@@ -36,7 +36,7 @@
 #include <uv.h>
 #include "./util.h"
 #include "./cb.h"
-#include "./loop.h"
+#include "./thread.h"
 
 namespace qk {
 

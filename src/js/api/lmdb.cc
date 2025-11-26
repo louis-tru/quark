@@ -51,10 +51,16 @@ namespace qk { namespace js {
 
 		static void binding(JSObject* exports, Worker* worker) {
 			Js_Define_Class(LMDB, 0, {
+				Js_Throw("Access forbidden.");
+			});
+
+			Js_Class_Static_Method(Make, {
 				Js_Parse_Args(String, 0, "path = %s");
 				Js_Parse_Args(uint32_t, 1, "max_dbis = %d", (64)); // default 64
 				Js_Parse_Args(uint32_t, 2, "map_size = %d", (10485760)); // 10MB
-				New<MixLMDB>(args, new LMDB(arg0, arg1, arg2));
+				auto lmdb = LMDB::Make(arg0, arg1, arg2); // native lmdb
+				auto mix = MixLMDB::mix(lmdb.get()); // mix object
+				Js_Return(mix->handle());
 			});
 
 			Js_MixObject_Acce_Get(LMDB, bool, opened, opened);
@@ -74,7 +80,7 @@ namespace qk { namespace js {
 			Js_Class_Method(dbi, {
 				Js_Parse_Args(String, 0, "name = %s");
 				auto dbi = (NativePtr)self->dbi(arg0); // have to cast to NativePtr
-				Js_Return(dbi);
+				Js_Return( worker->types()->jsvalue(dbi) );
 			});
 
 			Js_Class_Method(get, {

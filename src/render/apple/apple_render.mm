@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../../util/loop.h"
+#import "../../util/thread.h"
 #import "./apple_render.h"
 
 namespace qk {

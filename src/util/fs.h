@@ -33,7 +33,7 @@
 
 #include "./cb.h"
 #include "./handle.h"
-#include "./loop.h"
+#include "./thread.h"
 #include "./stream.h"
 
 namespace qk {

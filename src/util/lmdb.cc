@@ -32,7 +32,7 @@
 #include "./lmdb.h"
 #include "./fs.h"
 #include "./event.h"
-#include "./thread.h"
+#include "./thread/inl.h"
 
 namespace qk {
 	#define Open(...) if (opendbi(dbi)) return __VA_ARGS__
@@ -51,22 +51,40 @@ namespace qk {
 
 	// ------------------------------------------------
 
-	static LMDB* _shared_lmdb = nullptr;
+	// All created environments mapped by absolute path
+	static Dict<String, LMDB*>* _envInstances = nullptr;
+	static Mutex*               _envMutex = nullptr;
+
+	Sp<LMDB> LMDB::Make(cString& path, uint32_t max_dbis, uint32_t map_size) {
+		static int init_one_ = ([]() { // one-time init
+			_envMutex = new Mutex();
+			_envInstances = new Dict<String, LMDB*>();
+		}(), 0);
+
+		ScopeLock lock(*_envMutex);
+		LMDB* lmdb;
+		if (_envInstances->get(path, lmdb)) {
+			return lmdb; // existing instance
+		} else {
+			// create new instance
+			lmdb = new LMDB(path, max_dbis, map_size);
+			_envInstances->set(path, lmdb); // weak ref in global map
+		}
+		return lmdb;
+	}
+
+	LMDB* LMDB::shared() {
+		// Singleton shared LMDB instance
+		static LMDB* _shared_lmdb = LMDB::Make(fs_temp(".shared_lmdb"), 64, 512ULL * 1024 * 1024)
+				.collapse(); // retain ownership
+		return _shared_lmdb;
+	}
 
 	struct LMDB::DBI {
 		LMDB *lmdb;
 		MDB_dbi dbi;
 		String name;
 	};
-
-	LMDB* LMDB::shared() {
-		if (!_shared_lmdb) {
-			// create shared lmdb instance
-			// setttine map size 512MB
-			_shared_lmdb = new LMDB(fs_temp(".shared_lmdb"), 64, 512ULL * 1024 * 1024);
-		}
-		return _shared_lmdb;
-	}
 
 	static void onProcessExit(Event<void, int>&e, LMDB* lmdb) {
 		lmdb->close(); // auto close env on process exit
@@ -82,6 +100,8 @@ namespace qk {
 			*it.second = { nullptr, 0, "" }; // clear global memory
 			delete it.second; // free dbi handles
 		}
+		ScopeLock lock(*_envMutex);
+		_envInstances->erase(_path); // remove from global env map
 	}
 
 	bool LMDB::opened() const {

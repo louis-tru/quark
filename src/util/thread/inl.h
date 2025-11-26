@@ -28,17 +28,73 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//@private head
+// @private head
 
-#ifndef __quark__font__priv__mutex__
-#define __quark__font__priv__mutex__
+#ifndef __quark__util__thread__inl___
+#define __quark__util__thread__inl___
 
-#include "../../../util/thread/mutex.h"
+#include "../thread.h"
+#include <uv.h>
 
-typedef qk::QkMutex QkMutex;
-typedef qk::AutoMutexExclusive QkAutoMutexExclusive;
-typedef qk::SharedMutex QkSharedMutex;
-typedef qk::AutoSharedMutexExclusive QkAutoSharedMutexExclusive;
-typedef qk::AutoSharedMutexShared QkAutoSharedMutexShared;
+namespace qk {
+	extern RunLoop*        __first_loop;
+	extern Mutex*          __threads_mutex;
+	extern std::atomic_int __is_process_exit_atomic;
 
+	struct WaitSelfEnd: CondMutex {
+		bool end = false;
+	};
+
+	struct Thread_INL: Thread, CondMutex {
+		void     (*exec)(cThread *t, void *arg);
+		void      *arg;
+		RunLoop*  loop;
+		List<WaitSelfEnd*> waitSelfEnd; // external wait thread end
+	};
+
+	struct timer_t: uv_timer_t {
+		uint32_t id;
+		int64_t repeatCount;
+		Cb cb;
+	};
+
+	struct RunLoop::check_t: CallbackCore<Object> {
+		RunLoop* host;
+		uint32_t id;
+		int64_t repeatCount;
+		Cb cb;
+		uv_check_t uv_check;
+		void call(Data &e) override; // call start uv check
+		void stop_check();
+	};
+
+	struct RunLoop::work_t: CallbackCore<Object> {
+		RunLoop* host;
+		uint32_t id;
+		Cb work, done;
+		uv_work_t uv_req;
+		void call(Data &e) override; // call start uv work
+	};
+
+	//////
+	class Threads: public Object {
+		Qk_DISABLE_COPY(Threads);
+	public:
+		Threads();
+		~Threads() override;
+		ThreadID spawn(std::function<void(cThread *t)> func, cString& name);
+		void resume(ThreadID id = ThreadID());  // default resume all child
+		void abort(ThreadID id = ThreadID());   // default abort all child
+	private:
+		Mutex _mutex;
+		Set<ThreadID> _childs;
+	};
+
+	Thread_INL* thread_self_inl();
+	void        runloop_death(RunLoop *loop);
+	RunLoop*    current_from(RunLoop **inOut);
+	RunLoop*    backend_loop();
+	bool        has_backend_thread();
+	bool        is_process_exit();
+}
 #endif

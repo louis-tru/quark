@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <src/util/util.h>
-#include <src/util/loop.h>
+#include <src/util/thread.h>
 #include "../test.h"
 
 using namespace qk;

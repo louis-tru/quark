@@ -33,7 +33,7 @@
 
 #include "./util.h"
 #include "./string.h"
-#include "./loop.h"
+#include "./thread.h"
 #include "./stream.h"
 
 namespace qk {
@@ -43,7 +43,7 @@ namespace qk {
 	*/
 	class Qk_EXPORT Socket: public Object {
 		Qk_DISABLE_COPY(Socket);
-		Qk_DEFINE_INLINE_CLASS(Inl);
+		Qk_DEFINE_INLINE_CLASS(Impl);
 	public:
 
 		class Qk_EXPORT Delegate {
@@ -108,8 +108,8 @@ namespace qk {
 		void disable_ssl_verify(bool disable);
 
 	private:
-		Socket(Inl* inl);
-		Inl* _inl;
+		Socket(Impl* impl);
+		Impl* _impl;
 	};
 }
 #endif

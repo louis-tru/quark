@@ -32,10 +32,6 @@
 
 namespace qk { namespace js {
 
-	// enum Flags {
-	// 	kFreed_Flags = (1 << 31),
-	// };
-
 	void* JsHeapAllocator::alloc(size_t size) {
 		auto o = ::malloc(size + sizeof(MixObject));
 		Qk_ASSERT(o);

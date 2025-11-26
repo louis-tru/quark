@@ -37,7 +37,7 @@
 #include "./action/action.h"
 #include "../render/font/pool.h"
 #include "./app.h"
-#include "../util/thread.h"
+#include "../util/thread/inl.h"
 
 #ifndef PRINT_RENDER_FRAME_TIME
 # define PRINT_RENDER_FRAME_TIME 0

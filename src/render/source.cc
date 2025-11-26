@@ -36,7 +36,7 @@
 #if Qk_ARM_NEON
 #include <arm_neon.h>
 #endif
-#include "../util/thread.h"
+#include "../util/thread/inl.h"
 
 namespace qk {
 	// -------------------- I m a g e . S o u r c e --------------------

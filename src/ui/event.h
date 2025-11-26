@@ -33,7 +33,7 @@
 
 #include "../util/event.h"
 #include "../util/handle.h"
-#include "../util/loop.h"
+#include "../util/thread.h"
 #include "./math.h"
 #include "./types.h"
 #include "./text/text_input.h"

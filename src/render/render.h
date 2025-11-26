@@ -31,7 +31,7 @@
 #ifndef __quark__render_render__
 #define __quark__render_render__
 
-#include "../util/loop.h"
+#include "../util/thread.h"
 #include "./path.h"
 #include "./pixel.h"
 

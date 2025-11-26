@@ -30,10 +30,8 @@
 
 #include "../lmdb.h"
 #include "../http.h"
-#include "../fs.h"
-#include "../event.h"
-namespace qk {
 
+namespace qk {
 	static LMDB_DBIPtr _db = LMDB::shared()->dbi("cookie");
 
 	// Session ID used to distinguish session cookies (invalid after process restart)

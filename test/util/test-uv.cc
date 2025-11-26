@@ -30,7 +30,7 @@
 
 #include "src/util/util.h"
 #include "src/util/fs.h"
-#include "src/util/loop.h"
+#include "src/util/thread.h"
 #include <uv.h>
 #include "../test.h"
 

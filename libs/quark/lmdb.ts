@@ -42,9 +42,42 @@ export type DBI = Uint8Array; //!< Database table Identifier
  * The high-level JSON wrapper (class LMDB below) overrides
  * get/set/scan to automatically encode/decode using JSONB.
  */
-declare class NativeLMDB {
+declare abstract class NativeLMDB {
 
-	constructor(path: string, max_dbis?: Uint, map_size?: Uint);
+	/**
+	 * Factory method for creating or retrieving a native LMDB environment.
+	 *
+	 * - Not intended to be called directly by user code.
+	 * - JS wrapper (`class LMDB`) internally calls Make() to obtain the native instance.
+	 * - Ensures that LMDB environments are reference-managed and that each
+	 *   filesystem path corresponds to exactly one native instance.
+	 *
+	 * @param path       Filesystem directory for the LMDB environment.
+	 * @param max_dbis   Maximum number of named sub-databases (default: 64).
+	 * @param map_size   Initial mmap size in bytes (default: ~10 MB).
+	 *
+	 * @return Native LMDB instance bound to the specified path.
+	 */
+	static Make(path: string, max_dbis?: Uint, map_size?: Uint): NativeLMDB;
+
+	/**
+	 * @private
+	 * Create or access an LMDB environment.
+	 *
+	 * @param path       Filesystem directory used to store the LMDB environment.
+	 * @param max_dbis   Maximum number of named sub-databases (DBI).
+	 *                   Default = 64.  
+	 *                   Each DBI corresponds to one logical “table”.
+	 *
+	 * @param map_size   Initial mmap size in bytes.
+	 *                   Default = 10,485,760 bytes (~10 MB).  
+	 *                   LMDB will grow automatically if needed (OS allowing),
+	 *                   but a larger initial size can reduce remap operations.
+	 *
+	 * The constructor does NOT open the environment immediately — actual
+	 * opening happens lazily on the first dbi/get/set/scan call.
+	 */
+	private constructor(path: string, max_dbis?: Uint, map_size?: Uint);
 
 	/**
 	 * Whether the LMDB environment is already opened.
@@ -146,14 +179,105 @@ declare class NativeLMDB {
  *
  * Calling setBuf() directly is disabled to avoid bypassing JSONB.
  */
-export class LMDB extends (_lmdb.LMDB as typeof NativeLMDB) {
+export class LMDB {
+	private _lmdb: NativeLMDB; // Native LMDB instance
 
 	/**
-	 * Disable direct setBuf() in JSON mode.
-	 * Users must call set() instead so the value is encoded through JSONB.
+	 * Create an LMDB storage wrapper.
+	 *
+	 * Automatically calls NativeLMDB.Make(), so user code never touches
+	 * the native factory directly.
+	 *
+	 * @param path       Filesystem directory used to store the LMDB environment.
+	 * @param max_dbis   Maximum number of named sub-databases (DBI).
+	 *                   Default = 64.  
+	 *                   Each DBI corresponds to one logical “table”.
+	 *
+	 * @param map_size   Initial mmap size in bytes.
+	 *                   Default = 10,485,760 bytes (~10 MB).  
+	 *                   LMDB will grow automatically if needed (OS allowing),
+	 *                   but a larger initial size can reduce remap operations.
+	 *
+	 * The constructor does NOT open the environment immediately — actual
+	 * opening happens lazily on the first dbi/get/set/scan call.
 	 */
-	setBuf(): Int {
-		throw new Error('Not supported setBuf in LMDB JSON mode');
+	constructor(path: string, max_dbis?: Uint, map_size?: Uint) {
+		this._lmdb = _lmdb.LMDB.Make(path, max_dbis, map_size);
+	}
+
+	/**
+	 * Whether the LMDB environment is already opened.
+	 */
+	get opened(): boolean {
+		return this._lmdb.opened;
+	}
+
+	/**
+	 * Open the LMDB environment.
+	 * @return 0 on success, non-zero on error.
+	 */
+	open(): Int {
+		return this._lmdb.open();
+	}
+
+	/**
+	 * Close the LMDB environment.
+	 * @return 0 on success.
+	 */
+	close(): Int {
+		return this._lmdb.close();
+	}
+
+	/**
+	 * Open or create a named database table.
+	 * @param table - Logical table name.
+	 * @return DBI (opaque binary identifier).
+	 */
+	dbi(table: string): DBI {
+		return this._lmdb.dbi(table);
+	}
+
+	/**
+	 * Read raw binary value.
+	 * Suitable for JSONB, images, or binary assets.
+	 */
+	getBuf(dbi: DBI, key: string): Uint8Array | null {
+		return this._lmdb.getBuf(dbi, key);
+	}
+
+	/**
+	 * Remove a key.
+	 */
+	remove(dbi: DBI, key: string): Int {
+		return this._lmdb.remove(dbi, key);
+	}
+
+	/**
+	 * Check if a key exists.
+	 */
+	has(dbi: DBI, key: string): boolean {
+		return this._lmdb.has(dbi, key);
+	}
+
+	/**
+	 * Check whether any key with the given prefix exists.
+	 */
+	fuzzExists(dbi: DBI, prefix: string): boolean {
+		return this._lmdb.fuzzExists(dbi, prefix);
+	}
+
+	/**
+	 * Remove all keys under a prefix.
+	 */
+	removePrefix(dbi: DBI): Int {
+		return this._lmdb.removePrefix(dbi);
+	}
+
+	/**
+	 * Clear all keys in this DBI/table.
+	 */
+	clear(dbi: DBI): Int {
+		return this._lmdb.clear(dbi);
 	}
 
 	/**
@@ -165,7 +289,7 @@ export class LMDB extends (_lmdb.LMDB as typeof NativeLMDB) {
 	 * @return Parsed JSONB value or null.
 	 */
 	get<T = any>(dbi: DBI, key: string): T | null {
-		const v = super.getBuf(dbi, key);
+		const v = this._lmdb.getBuf(dbi, key);
 		return v != null ? jsonb.parse(v) : null;
 	}
 
@@ -180,7 +304,7 @@ export class LMDB extends (_lmdb.LMDB as typeof NativeLMDB) {
 	 */
 	set<T = any>(dbi: DBI, key: string, value: T): Int {
 		const buf = jsonb.binaryify(value);
-		return super.setBuf(dbi, key, buf);
+		return this._lmdb.setBuf(dbi, key, buf);
 	}
 
 	/**
@@ -189,11 +313,11 @@ export class LMDB extends (_lmdb.LMDB as typeof NativeLMDB) {
 	 * @return Array of [key, parsedValue].
 	 */
 	scanPrefix<T = any>(dbi: DBI, prefix: string, limit?: Uint): [string, T][] {
-		const list = this.scanPrefix(dbi, prefix, limit);
+		const list = this._lmdb.scanPrefix(dbi, prefix, limit);
 		list.forEach((pair) => {
 			pair[1] = jsonb.parse(pair[1]);
 		});
-		return list;
+		return list as [string, T][];
 	}
 
 	/**
@@ -202,10 +326,10 @@ export class LMDB extends (_lmdb.LMDB as typeof NativeLMDB) {
 	 * @return Array of [key, parsedValue].
 	 */
 	scanRange<T = any>(dbi: DBI, start: string, end: string, limit?: Uint): [string, T][] {
-		const list = this.scanRange(dbi, start, end, limit);
+		const list = this._lmdb.scanRange(dbi, start, end, limit);
 		list.forEach((pair) => {
 			pair[1] = jsonb.parse(pair[1]);
 		});
-		return list;
+		return list as [string, T][];
 	}
 }

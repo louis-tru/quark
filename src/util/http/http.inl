@@ -46,13 +46,12 @@
 
 #define BUFFER_SIZE (65535)
 namespace qk {
-	class Connect;
-	class ConnectPool;
+	class HttpHandler;
 	class FileCacheReader;
 	class FileWriter;
 
-	typedef List<Connect*>::Iterator ConnectID;
-	typedef HttpClientRequest::Impl Client;
+	typedef List<HttpHandler*>::Iterator HandlerID;
+	typedef HttpClientRequest::Impl Host; // Http Client Host
 	typedef HttpClientRequest::Delegate HttpDelegate;
 
 	extern cString string_method[5];
@@ -70,11 +69,11 @@ namespace qk {
 		FORM_TYPE_FILE,
 	};
 
-	enum WriteCacheFlag {
-		kNone_WriteCacheFlag = 0, // no write cache
-		kHeader_WriteCacheFlag, // save header and body
-		kAll_WriteCacheFlag, // save all
-		kBody_WriteCacheFlag, // only save body to file path (ignore cache)
+	enum WriteFlag {
+		kNone_WriteFlag = 0, // don't save cache
+		kHeader_WriteFlag, // save header and body
+		kAll_WriteFlag, // save all (header, body, chunked ...)
+		kBody_WriteFlag, // only save body, For download file
 	};
 
 	struct FormValue {
@@ -89,6 +88,7 @@ namespace qk {
 		String   headers;
 	};
 
+	// Reader interface, used for http data read control, http or cache reader
 	class Reader {
 	public:
 		virtual void read_advance() = 0;
@@ -96,23 +96,23 @@ namespace qk {
 		virtual bool is_cache() = 0;
 	};
 
-	class ConnectPool {
+	class HttpHandlerPool {
 	public:
 		struct connect_req {
-			Client* client;
+			Host* host;
 			Cb cb;
 			uint32_t wait_id;
 			uint16_t port;
 		};
-		ConnectPool();
-		~ConnectPool();
-		void request(Client* cli, Cb cb);
-		void recovery(Connect* c, bool immediatelyRelease);
+		HttpHandlerPool();
+		~HttpHandlerPool();
+		void request(Host* host, Cb cb);
+		void release(HttpHandler* c, bool immediatelyRelease);
 	private:
 		void call_req_tasks(Lock *lock);
-		Connect* get_connect(Client* cli, uint16_t port);
+		HttpHandler* get(Host* host, uint16_t port);
 		Mutex _mutex;
-		List<Connect*> _conns;
+		List<HttpHandler*> _handlers;
 		List<connect_req> _reqs;
 	};
 
@@ -124,7 +124,7 @@ namespace qk {
 			Sp<Impl> hold;
 			bool    ending = false;
 		};
-		Impl(HttpClientRequest* host, RunLoop* loop);
+		Impl(HttpClientRequest* cli, RunLoop* loop);
 		~Impl();
 		void set_delegate(HttpDelegate* delegate);
 		inline RunLoop* loop() { return _loop; }
@@ -138,20 +138,20 @@ namespace qk {
 		void read_advance();
 		void read_pause();
 		bool is_disable_cache();
-		void trigger_http_readystate_change(HttpReadyState ready_state);
-		void trigger_http_write();
-		void trigger_http_header(uint32_t status_code, DictSS&& header, bool fromCache);
-		void trigger_http_data2(Buffer& buffer);
+		void on_http_readystate_change(HttpReadyState ready_state);
+		void on_http_header(uint32_t status_code, DictSS&& header, bool fromCache);
+		void on_http_write();
+		void on_http_data(Buffer& buffer, bool fromCache);
 		void trigger_http_data(Buffer& buffer);
-		void http_response_complete(bool fromCache);
-		void report_error_and_abort(cError& error);
-		void trigger_http_timeout();
+		void on_response_complete(bool fromCache);
+		void on_error_and_abort(cError& error);
+		void on_http_timeout();
 		void send_http();
 		void cache_file_stat_cb(Callback<FileStat>::Data& evt);
-		void trigger_http_end();
+		void on_http_end();
 		void end_(bool abort);
 	private:
-		HttpClientRequest* _host;
+		HttpClientRequest* _cli;
 		RunLoop*      _loop;
 		HttpDelegate* _delegate;
 		int64_t      _upload_total;    /* 需上传到服务器数据总量 */
@@ -162,7 +162,7 @@ namespace qk {
 		int         _status_code;    /* 服务器响应http状态码 */
 		HttpMethod  _method;
 		URI         _uri;
-		Connect*    _connect;
+		HttpHandler* _handler;
 		FileCacheReader* _cache_reader;
 		FileWriter* _file_writer;
 		DictSS      _request_header, _response_header;
@@ -173,24 +173,24 @@ namespace qk {
 		RetainRef*  _retain;
 		uint64_t    _timeout;
 		uint32_t    _wait_connect_id;
-		WriteCacheFlag _write_cache_flag;
+		WriteFlag   _write_flag;
 		bool        _disable_cache, _disable_cookie;
 		bool        _disable_send_cookie, _disable_ssl_verify;
-		bool        _keep_alive, _pause, _url_no_cache_arg;
-		static ConnectPool* _pool;
+		bool        _keep_alive, _pause, _url_no_cache_arg, _canSave;
+		static HttpHandlerPool* _pool;
 		friend class HttpClientRequest;
-		friend class Connect;
+		friend class HttpHandler;
 		friend class FileCacheReader;
 		friend class FileWriter;
-		friend class ConnectPool;
+		friend class HttpHandlerPool;
 	};
 
 	String uri_encode(cString& url, bool component = false, bool secondary = false);
-	void Connect_bind_client_and_send(Connect *conn, Client* client);
-	Reader* Connect_reader(Connect* self);
+	void HttpHandler_bind_host_and_send(HttpHandler *conn, Host* host);
+	Reader* HttpHandler_reader(HttpHandler* self);
 	String to_expires_from_cache_content(cString& cache_control);
-	FileCacheReader* FileCacheReader_new(Client* client, int64_t size, RunLoop* loop);
-	FileWriter* FileWriter_new(Client* client, cString& path, WriteCacheFlag flag, RunLoop* loop);
+	FileCacheReader* FileCacheReader_new(Host* host, int64_t size, RunLoop* loop);
+	FileWriter* FileWriter_new(Host* host, cString& path, WriteFlag flag, RunLoop* loop);
 	void FileWriter_write(FileWriter* self, Buffer& buffer);
 	void FileWriter_end(FileWriter* self);
 	void FileCacheReader_read_advance(FileCacheReader* self);
@@ -198,5 +198,6 @@ namespace qk {
 	Reader* FileCacheReader_reader(FileCacheReader* self);
 	void FileCacheReader_Releasep(FileCacheReader* &p);
 	void FileWriter_Releasep(FileWriter* &p);
+	String get_expires_from_header(const DictSS& header);
 }
 #endif

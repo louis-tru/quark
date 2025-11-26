@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "../../util/loop.h"
+#include "../../util/thread.h"
 #include "inspector_agent.h"
 #include "inspector_io.h"
 #include <v8-inspector.h>

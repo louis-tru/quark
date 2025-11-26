@@ -31,8 +31,7 @@
 #ifndef __quark__util__mutex__
 #define __quark__util__mutex__
 
-#include "./log.h"
-
+#include "../log.h"
 #include <algorithm>
 #include <atomic>
 #include <mutex>
