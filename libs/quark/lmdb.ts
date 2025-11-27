@@ -97,6 +97,12 @@ declare abstract class NativeLMDB {
 	close(): Int;
 
 	/**
+	 * Flush any pending changes to disk.
+	 * @return 0 on success.
+	*/
+	flush(): Int;
+
+	/**
 	 * Open or create a named database table.
 	 * @param table - Logical table name.
 	 * @return DBI (opaque binary identifier).
@@ -226,6 +232,14 @@ export class LMDB {
 	 */
 	close(): Int {
 		return this._lmdb.close();
+	}
+
+	/**
+	 * Flush any pending changes to disk.
+	 * @return 0 on success.
+	*/
+	flush(): Int {
+		return this._lmdb.flush();
 	}
 
 	/**

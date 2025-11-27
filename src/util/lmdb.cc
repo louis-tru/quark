@@ -86,8 +86,12 @@ namespace qk {
 		String name;
 	};
 
-	static void onProcessExit(Event<void, int>&e, LMDB* lmdb) {
+	static void handleProcessExit(Event<void, int>&e, LMDB* lmdb) {
 		lmdb->close(); // auto close env on process exit
+	}
+
+	static void handleBackground(Event<void>&e, LMDB* lmdb) {
+		lmdb->flush();
 	}
 
 	LMDB::LMDB(cString& path, uint32_t max_dbis, uint32_t map_size)
@@ -122,6 +126,10 @@ namespace qk {
 
 		CHECK_RC( mdb_env_create(&env), rc);
 
+		// enable writemap for better performance
+		// disable fsync for better performance (may lose data on crash)
+		mdb_env_set_flags(env, MDB_NOSYNC | MDB_NOMETASYNC | MDB_WRITEMAP, 1);
+
 		mdb_env_set_maxdbs(env, _max_dbis);
 		// setttine map size 1GB
 		mdb_env_set_mapsize(env, _map_size);
@@ -133,7 +141,9 @@ namespace qk {
 		}
 
 		// auto close env on process exit
-		Qk_On(ProcessExit, onProcessExit, this);
+		Qk_On(ProcessExit, handleProcessExit, this);
+		// flush env on background
+		Qk_On(Background, handleBackground, this);
 
 		_env = env;
 		return MDB_SUCCESS;
@@ -151,8 +161,17 @@ namespace qk {
 				_env = nullptr;
 			}
 			if (!is_process_exit()) { // avoid deadlock on process exit
-				Qk_Off(ProcessExit, onProcessExit, this); // remove process exit listener
+				Qk_Off(ProcessExit, handleProcessExit, this); // remove process exit listener
+				Qk_Off(Background, handleBackground, this); // remove background listener
 			}
+		}
+		return rc;
+	}
+
+	int LMDB::flush() {
+		int rc = MDB_SUCCESS;
+		if (_env) {
+			rc = mdb_env_sync((MDB_env*)_env, 1);
 		}
 		return rc;
 	}

@@ -222,11 +222,17 @@ namespace qk {
 	}
 
 	void AppInl::triggerBackground(Window *win) {
-		_loop->post(Cb([win](Cb::Data& d) { win->Qk_Trigger(Background); }, win));
+		_loop->post(Cb([win](Cb::Data& d) {
+			win->Qk_Trigger(Background);
+			Qk_Trigger(Background, win);
+		}, win));
 	}
 
 	void AppInl::triggerForeground(Window *win) {
-		_loop->post(Cb([win](Cb::Data& d) { win->Qk_Trigger(Foreground); }, win));
+		_loop->post(Cb([win](Cb::Data& d) {
+			win->Qk_Trigger(Foreground);
+			Qk_Trigger(Foreground, win);
+		}, win));
 	}
 
 	void AppInl::triggerOrientation() {

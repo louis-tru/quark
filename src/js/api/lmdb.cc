@@ -73,6 +73,10 @@ namespace qk { namespace js {
 				Js_Return(self->close());
 			});
 
+			Js_Class_Method(flush, {
+				Js_Return(self->flush());
+			});
+
 			Js_Class_Method(dbi, {
 				Js_Parse_Args(String, 0, "name = %s");
 				auto dbi = (NativePtr)self->dbi(arg0); // have to cast to NativePtr

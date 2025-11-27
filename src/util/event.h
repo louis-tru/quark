@@ -65,7 +65,9 @@ namespace qk {
 		 * @param data Hold data when it's a pointer
 		*/
 		Event(SendData data = SendData(), uint32_t rc = 0)
-			: _sender(nullptr), _data(std::move(data)), return_value(rc), _flags(0) {}
+			: _sender(nullptr), _data(std::move(data)), return_value(rc), _flags(0) {
+			Retainp(data); // Retain when data is a pointer
+		}
 		~Event() {
 			Releasep(_data); // Release when data is a pointer
 		}

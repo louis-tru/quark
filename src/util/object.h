@@ -110,6 +110,15 @@ namespace qk {
 	};
 
 	/**
+	 * @class Protocol
+	 */
+	class Protocol {
+	public:
+		virtual Object* asObject() = 0;
+		typedef void* __HaveProtocol__;
+	};
+
+	/**
 	 * @struct Wobj
 	 * @brief Wrapper object for value types.
 	 *
@@ -124,6 +133,34 @@ namespace qk {
 		T value;
 	};
 
+	/**
+	 * @method New() Create a new object instance.
+	*/
+	template<class T, typename... Args>
+	inline T* New(Args... args) {
+		return new T(std::forward<Args>(args)...);
+	}
+
+	/**
+	 * @method NewRetain() Create a new retained object instance.
+	*/
+	template<class T, typename... Args>
+	inline T* NewRetain(Args... args) {
+		T* r = new T(std::forward<Args>(args)...); return r->retain(), r;
+	}
+
+	/**
+	 * @method bitwise_cast() Perform a bitwise cast between types of the same size.
+	 *
+	 * This function allows for safe reinterpretation of data between types
+	 * that have the same size in memory. It uses a union to ensure that the
+	 * bit patterns are preserved during the cast.
+	 *
+	 * @tparam TO   Target type to cast to.
+	 * @tparam FROM Source type to cast from.
+	 * @param in    Input value of type FROM.
+	 * @return      Reinterpreted value of type TO.
+	 */
 	template<typename TO, typename FROM>
 	inline TO bitwise_cast(const FROM &in) {
 		static_assert(sizeof(TO) == sizeof(FROM), "reinterpret_cast_sizeof_types_is_equal");
@@ -135,37 +172,51 @@ namespace qk {
 		return u.to;
 	}
 
-	class Protocol {
-	public:
-		virtual Object* asObject() = 0;
-		typedef void* __HaveProtocol__;
-	};
-
+	/**
+	 * @class SafeFlag
+	 * @brief A simple safety flag to detect invalid states.
+	 * 
+	 * This class provides a mechanism to mark an object as valid or invalid.
+	 * It uses a specific magic number to indicate validity, allowing for
+	 * quick checks to ensure that an object is in a safe state before use.
+	 */
 	class SafeFlag {
 	public:
 		inline ~SafeFlag() { _safeFlagValue = 0; }
-		inline bool isValid() { return _safeFlagValue == 0xff00ffab; }
+		inline bool isValid() { return _safeFlagValue == 0xff73ffab; }
 		inline void markAsInvalid() { _safeFlagValue = 0; }
 	private:
-		uint32_t _safeFlagValue = 0xff00ffab;
+		uint32_t _safeFlagValue = 0xff73ffab;
 	};
 
-	Qk_EXPORT void Retain(Object* obj);
-	Qk_EXPORT void Release(Object* obj);
+	Qk_EXPORT void Retain(Object* obj); // retain object
+	Qk_EXPORT void Release(Object* obj); // release object
 
+	/**
+	 * @struct object_traits_basic
+	 * @brief Basic traits for handling different object types.
+	 * This struct provides methods to retain and release objects
+	 * based on their type characteristics (Object, Reference, Protocol, or non-object).
+	*/
 	template <typename T, int kind> struct object_traits_basic { // Object
-		static inline void Retain(T* obj) { qk::Retain(obj); }
-		static inline void Release(T* obj) { qk::Release(obj); }
+		static inline void Retain(T* obj) { if (obj) obj->retain(); }
+		static inline void Release(T* obj) { if (obj) obj->release(); }
 	};
 	template <typename T> struct object_traits_basic<T, 0> { // Other
 		static inline void Retain(T* obj) {}
 		static inline void Release(T* obj) { delete obj; }
 	};
 	template <typename T> struct object_traits_basic<T, 3> { //protocol
-		static inline void Retain(T* obj) { if (obj) qk::Retain(obj->asObject()); }
-		static inline void Release(T* obj) { if (obj) qk::Release(obj->asObject()); }
+		static inline void Retain(T* obj) { if (obj) obj->asObject()->retain(); }
+		static inline void Release(T* obj) { if (obj) obj->asObject()->release(); }
 	};
 
+	/**
+	 * @struct object_traits
+	 * @brief Traits for handling different object types.
+	 * This struct provides methods to retain and release objects
+	 * based on their type characteristics (Object, Reference, Protocol, or non-object).
+	*/
 	template<typename T> struct object_traits {
 		typedef char __non[0];
 		typedef char __obj[1];
@@ -184,8 +235,12 @@ namespace qk {
 			static constexpr bool protocol = (k == 3);
 		};
 		typedef __is<Kind(sizeof(test<T>(0)) / sizeof(char))> is;
-		inline static void Retain(T* obj) { object_traits_basic<T, is::kind>::Retain(obj); }
-		inline static void Release(T* obj) { object_traits_basic<T, is::kind>::Release(obj); }
+		inline static void Retain(T* obj) { 
+			object_traits_basic<T, is::kind>::Retain(obj);
+		}
+		inline static void Release(T* obj) {
+			object_traits_basic<T, is::kind>::Release(obj);
+		}
 	};
 
 	template <>
@@ -193,6 +248,11 @@ namespace qk {
 		::free(obj);
 	}
 
+	/**
+	 * @struct object_traits_from
+	 * @brief Traits for handling different object types with custom retain/release functions.
+	 * This struct allows specifying custom retain and release functions for a given type T.
+	*/
 	template<
 		typename T,
 		void (*Rel)(T*) = object_traits<T>::Release,
@@ -205,40 +265,53 @@ namespace qk {
 		inline static void Release(T* obj) { Rel(obj); }
 	};
 
+	/**
+	 * @struct IsPointer
+	 * @brief Helper to determine if a type is a pointer and manage its retention.
+	*/
 	template <typename T> struct IsPointer {
 		static constexpr bool value = false;
+		inline static void Retain(T& obj) {}
 		inline static void Release(T& obj) {}
 	};
 
+	/**
+	 * @struct IsPointer specialization for pointer types.
+	*/
 	template <typename T> struct IsPointer<T*> {
 		static constexpr bool value = true;
-		inline static void Release(T*& obj) {
-			object_traits<T>::Release(obj); obj = nullptr;
-		}
+		inline static void Retain(T*& obj) { object_traits<T>::Retain(obj); }
+		inline static void Release(T*& obj) { object_traits<T>::Release(obj); obj = nullptr; }
 	};
+
+	/**
+	 * @method Retainp() retain plus
+	*/
+	template<typename T>
+	inline void Retainp(T& obj) { IsPointer<T>::Retain(obj); }
 
 	/**
 	 * @method Releasep() release plus
 	*/
 	template<typename T>
-	inline void Releasep(T& obj) {
-		IsPointer<T>::Release(obj);
+	inline void Releasep(T& obj) { IsPointer<T>::Release(obj); }
+
+	/**
+	 * @method Retainp() retain plus for atomic pointer
+	 */
+	template<typename T>
+	inline void Retainp(std::atomic<T*>& obj) {
+		object_traits<T>::retain(obj.load()); // retain current value
 	}
 
+	/**
+	 * @method Releasep() release plus for atomic pointer
+	 */
 	template<typename T>
 	inline void Releasep(std::atomic<T*>& obj) {
-		auto v = obj.exchange(nullptr); // first set to nullptr
-		IsPointer<T*>::Release(v); // then release
-	}
-
-	template<class T, typename... Args>
-	inline T* New(Args... args) {
-		return new T(std::forward<Args>(args)...);
-	}
-
-	template<class T, typename... Args>
-	inline T* NewRetain(Args... args) {
-		T* r = new T(std::forward<Args>(args)...); return r->retain(), r;
+		// auto v = obj.exchange(nullptr); // first set to nullptr
+		// IsPointer<T*>::Release(v); // then release
+		object_traits<T>::Release(obj.exchange(nullptr)); // release and set to nullptr
 	}
 
 }

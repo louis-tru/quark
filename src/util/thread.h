@@ -91,7 +91,11 @@ namespace qk {
 	Qk_EXPORT cThread* thread_self(); // return the self thread object created by `thread_new`
 	Qk_EXPORT void     thread_exit(int exit_rc); // !< try abort all thread and exit process, abort=-2
 
+	// process exit events notifier
 	Qk_EXPORT EventNoticer<Event<void, int>, Mutex>& onProcessExit();
+	// foreground/background events notifier if have ui loop.
+	Qk_EXPORT EventNoticer<Event<void, Object*>, Mutex>& onForeground();
+	Qk_EXPORT EventNoticer<Event<void, Object*>, Mutex>& onBackground();
 
 	/**
 	* @class PostMessage

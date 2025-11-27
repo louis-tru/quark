@@ -130,6 +130,12 @@ namespace qk {
 		int close(); // close env
 
 		/**
+		 * Flush any pending changes to disk.
+		 * @return MDB_SUCCESS on success.
+		*/
+		int flush();
+
+		/**
 		 * Retrieve or allocate a named LMDB database handle (DBI).
 		 *
 		 * Each logical “table” corresponds to a DBI.
