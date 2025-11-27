@@ -110,9 +110,9 @@ namespace qk { namespace js {
 	String jsToString(JSStringRef value) {
 		// if (!value) return "<string conversion failed>";
 		DCHECK(value);
-		size_t bufferSize = JSStringGetMaximumUTF8CStringSize(value);
+		int bufferSize = (int)JSStringGetMaximumUTF8CStringSize(value);
 		char* str = (char*)malloc(bufferSize);
-		auto size = JSStringGetUTF8CString(value, str, bufferSize);
+		int size = (int)JSStringGetUTF8CString(value, str, bufferSize);
 		return Buffer(str, size, bufferSize).collapseString();
 	}
 
@@ -594,7 +594,8 @@ namespace qk { namespace js {
 			num = JSValueToNumber(ctx, Back(this), OK(nullptr)); // Force convert
 		}
 		if (!isInt32Range(num)) {
-			return THROW_ERR("Invalid conversion toInt32, Range overflow"), nullptr;
+			//return THROW_ERR("Invalid conversion toInt32, Range overflow"), nullptr;
+			return Qk_DLog("Invalid conversion toInt32, Range overflow"), nullptr;
 		}
 		auto ret = JSValueMakeNumber(ctx, int(num));
 		return worker->addToScope<JSInt32>(ret);
@@ -606,7 +607,8 @@ namespace qk { namespace js {
 			if (js::asInt32(this) >= 0) {
 				return bitwise_cast<JSUint32*>(this);
 			} else {
-				return THROW_ERR("Invalid conversion toUint32, Can't be a negative number"), nullptr;
+				//return THROW_ERR("Invalid conversion toUint32, Can't be a negative number"), nullptr;
+				return Qk_DLog("Invalid conversion toUint32, Can't be a negative number"), nullptr;
 			}
 		}
 		double num;
@@ -616,7 +618,8 @@ namespace qk { namespace js {
 			num = JSValueToNumber(ctx, Back(this), OK(nullptr)); // Force convert
 		}
 		if (!isUint32Range(num)) {
-			return THROW_ERR("Invalid conversion toUint32, Range overflow"), nullptr;
+			//return THROW_ERR("Invalid conversion toUint32, Range overflow"), nullptr;
+			return Qk_DLog("Invalid conversion toUint32, Range overflow"), nullptr;
 		}
 		auto ret = JSValueMakeNumber(ctx, int(num));
 		return worker->addToScope<JSUint32>(ret);

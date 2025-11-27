@@ -155,7 +155,7 @@ namespace qk { namespace js {
 
 				if (hasGet ? (void*)cls->_indexedGet: (void*)cls->_indexedSet) {
 					char buffer[10];
-					int size = JSStringGetUTF8CString(name, buffer, 10);
+					int size = (int)JSStringGetUTF8CString(name, buffer, 10);
 					if (_Str::toNumber(buffer, size, 1, &idx)) {
 						return cls;
 					}

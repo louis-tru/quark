@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import './_ext';
-import _util, {__listener__,getConfig} from './_util';
+import _util, {__setListenerHook__,getConfig} from './_util';
 import * as _common from './_common';
 import {Event, EventNoticer, Notification, } from './_event';
 
@@ -39,17 +39,15 @@ class RuntimeEvents extends Notification {
 			noticer.length ? (noticer.trigger(err), true): false,
 		UnhandledRejection: (noticer: EventNoticer, reason: Error, promise: Promise<any>)=>
 			noticer.length ? (noticer.trigger({ reason, promise }), true): false,
-		BeforeExit: (noticer: EventNoticer, code = 0)=>(noticer.trigger(code),code),
-		Exit: (noticer: EventNoticer, code = 0)=>(noticer.trigger(code),code),
+		BeforeExit: (noticer: EventNoticer, code: Int = 0)=>(noticer.trigger(code),code),
+		Exit: (noticer: EventNoticer, code: Int = 0)=>(noticer.trigger(code),code),
 	};
 	getNoticer(name: 'UncaughtException'|'UnhandledRejection'|'BeforeExit'|'Exit') {
 		if (!this.hasNoticer(name)) {
 			let noticer = super.getNoticer(name);
 			let handle = (this._handles)[name];
 			if (handle) {
-				__listener__(name, (...args: any[])=>{
-					handle(noticer, ...args);
-				});
+				__setListenerHook__(name, (...args: any[])=>handle(noticer, ...args));
 			}
 		}
 		return super.getNoticer(name);

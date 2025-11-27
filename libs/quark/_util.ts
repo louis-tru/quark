@@ -350,11 +350,11 @@ function exit(code?: number) {
 }
 
 // Set runtime event listener, 'UncaughtException'|'UnhandledRejection'|'BeforeExit'|'Exit'
-export function __listener__(name: string, handle: any) {
+export function __setListenerHook__(name: string, handle: any) {
 	if (name == 'Exit') {
 		_init[`__on${name}_native`] = function(...args: any[]) {
 			_exiting = true;
-			handle(...args);
+			return handle(...args);
 		};
 	} else {
 		_init[`__on${name}_native`] = handle;

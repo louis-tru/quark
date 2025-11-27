@@ -32,6 +32,11 @@
 #include "../window.h"
 #include "../painter.h"
 
+#define Qk_ASSERT_Float(val) \
+	Qk_ASSERT(val < float(0xffffffff) && val > -float(0xffffffff), "Bad Float value: %f", val);
+
+#define Qk_ASSERT_Vec2(val) Qk_ASSERT_Float(val[0]); \ Qk_ASSERT_Float(val[1])
+
 namespace qk {
 	#define _async_call preRender().async_call
 	// Geometric epsilon for float comparisons
@@ -47,6 +52,7 @@ namespace qk {
 	////////////////////////////////////////////////////////////////
 
 	Entity::Entity(): View(), MorphView(this), _bounds{kDefault, 0.0f}, _ptsBounds(nullptr)
+		, _circleBounds{{0,0},0.0f}
 		, _participate(true)
 	{
 		_bounds.pts = nullptr;
@@ -123,6 +129,7 @@ namespace qk {
 			auto radius = _bounds.type == kDefault ? size.length() * 0.5f: _bounds.radius;
 			auto scale = std::max(std::abs(_scale.x()), std::abs(_scale.y()));
 			_circleBounds = { localMat * center, radius * scale };
+			// Qk_ASSERT_Float(_circleBounds.radius);
 		}
 		else if (_bounds.type == kPolygon || _bounds.type == kLineSegment) {
 			auto center = _bounds.offset - compute_origin_value({}); // compute center offset
@@ -293,6 +300,7 @@ namespace qk {
 			collided = isPoly ?
 				test_polygon_vs_polygon(pts, o->ptsOfBounds(), outMTV, computeMTV):
 				test_circle_vs_circle(circ, o->_circleBounds, outMTV, computeMTV);
+			//Qk_ASSERT_Float(outMTV->overlap);
 		}
  		else if (o->_bounds.type == Entity::kPolygon) {
 			// polygon check (approx circle->poly using SAT code) - optionally enable

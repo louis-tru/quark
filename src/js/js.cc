@@ -489,11 +489,11 @@ namespace js {
 
 	// ---------------------------------------------------------------------------------------------
 
-	static JSValue* TriggerEventFromUtil(Worker* worker, cString& name, int argc, JSValue* argv[]) {
-		auto _util = worker->bindingModule("_util")->cast<JSObject>();
-		Qk_ASSERT(_util);
+	static JSValue* callEventListener(Worker* worker, cString& name, int argc, JSValue* argv[]) {
+		auto _init = worker->bindingModule("_init")->cast<JSObject>();
+		Qk_ASSERT(_init);
 
-		auto func = _util->get(worker, String("__on").append(name).append("_native"));
+		auto func = _init->get(worker, String("__on").append(name).append("_native"));
 		if (!func->isFunction()) {
 			return nullptr;
 		}
@@ -503,7 +503,7 @@ namespace js {
 	static int TriggerExit(Worker* worker, cString& name, int code) {
 		Js_Handle_Scope();
 		auto argv = worker->newValue(code)->cast<JSValue>();
-		auto rc = TriggerEventFromUtil(worker, name, 1, &argv);
+		auto rc = callEventListener(worker, name, 1, &argv);
 		if (rc && rc->isInt32()) {
 			return rc->toInt32(worker)->value();
 		} else {
@@ -513,7 +513,7 @@ namespace js {
 
 	static bool TriggerException(Worker* worker, cString& name, int argc, JSValue* argv[]) {
 		Js_Handle_Scope();
-		auto rc = TriggerEventFromUtil(worker, name, argc, argv);
+		auto rc = callEventListener(worker, name, argc, argv);
 		return rc && rc->toBoolean(worker);
 	}
 
@@ -697,8 +697,8 @@ namespace js {
 				loop->run();
 				if (is_process_exit())
 					break;
-				// Emit `beforeExit` if the loop became alive either after emitting
-				// event, or after running some callbacks.
+				// BeforeExit event trigger, if the event listener add more async task, continue loop
+				// else exit process
 				rc = triggerBeforeExit(worker, rc);
 			} while (loop->is_alive());
 

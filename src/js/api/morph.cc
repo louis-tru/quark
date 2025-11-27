@@ -43,7 +43,35 @@ namespace qk { namespace js {
 		Js_UIObject_Accessor(MorphView, BoxOrigin, origin_x, originX);
 		Js_UIObject_Accessor(MorphView, BoxOrigin, origin_y, originY);
 		Js_UIObject_Accessor(MorphView, float, x, x);
-		Js_UIObject_Accessor(MorphView, float, y, y);
+		// Js_UIObject_Accessor(MorphView, float, y, y);
+
+		cls->setAccessor("y",([](auto key,auto args){
+			auto worker=args.worker();
+			auto mix = qk::js::MixObject::mix<Type>(args.thisObj());
+			auto self = mix->self();
+			{
+				static_assert_mix<MixUIObject>();
+				auto self = static_cast<MixUIObject*>((MixObject*)mix)->asMorphView(); 
+
+				auto y = self->y();
+				if (y > 0xffffffff) {
+					Qk_DLog("Bad y value: %f", y);
+				}
+				args.returnValue().set( worker->types()->jsvalue(self->y()) ); 
+			}}),([](auto key,auto val,auto args){
+				auto worker=args.worker();
+				auto mix = qk::js::MixObject::mix<Type>(args.thisObj());
+				auto self = mix->self();
+				{
+					float out; 
+					if ( !worker->types()->parse(val, out, "@prop ""MorphView"".""y"" = %s"))
+						return; 
+					static_assert_mix<MixUIObject>(); 
+					auto self = static_cast<MixUIObject*>((MixObject*)mix)->asMorphView();
+					self->set_y(out); 
+				}
+			}));
+
 		Js_UIObject_Accessor(MorphView, float, scale_x, scaleX);
 		Js_UIObject_Accessor(MorphView, float, scale_y, scaleY);
 		Js_UIObject_Accessor(MorphView, float, skew_x, skewX);
