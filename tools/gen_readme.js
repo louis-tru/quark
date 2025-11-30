@@ -178,7 +178,7 @@ function startExec(input,output) {
 		return templates;
 	}
 
-	function parseTypes(args, types, comment) {
+	function parseTypes(args, types, comment, linkChar='') {
 		let reg = /\s*([\w\.]+|\'[^\']+\'|\"[^\"]+\"|\[[^\]]+\]|\{[^\}]+\})\s*/y;
 		reg.lastIndex = args.index;
 		let mat = args.typeStr.match(reg);
@@ -191,17 +191,20 @@ function startExec(input,output) {
 			types.push({
 				first: mat[1].substring(1, mat[1].length - 1),
 				isConstString: true,
+				linkChar,
 			});
 		} else if (mat[1][0] == '[' || mat[1][0] == '{') {
 			types.push({
 				first: mat[1],
 				isConstArray: mat[1][0] == '[',
 				isConstObject: mat[1][0] == '{',
+				linkChar,
 			});
 		} else {
 			types.push({
 				first: mat[1],
 				templates: parseTypesTempls(args, comment),
+				linkChar,
 			});
 		}
 
@@ -213,21 +216,21 @@ function startExec(input,output) {
 			types.at(types.length - 1).isArray = true;
 		}
 
-		reg = /\s*\|/y;
+		reg = /\s*(\||\&)/y; // | or &, ts or / and
 		reg.lastIndex = args.index;
 		mat = args.typeStr.match(reg);
 		if (mat) {
 			args.index = mat.index + mat[0].length;
-			parseTypes(args, types, comment);
+			parseTypes(args, types, comment, mat[1]);
 		}
 	}
 
 	////////////// get types link //////////////
 
 	function getTypeLinkBy(types, linkStr, comment) {
-		types.forEach(({first,templates,isArray,isConstString,isConstArray,isConstObject},i)=>{
+		types.forEach(({first,templates,isArray,isConstString,isConstArray,isConstObject,linkChar},i)=>{
 			if (i)
-				linkStr.push('|');
+				linkStr.push(linkChar);
 			if (isConstString) {
 				linkStr.push(`\`\"${first}"\``);
 			} else if (isConstArray || isConstObject) {

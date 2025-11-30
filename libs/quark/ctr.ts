@@ -754,7 +754,6 @@ Object.assign(DOMCollection.prototype, {ref: ''});
  * @implements DOM
 */
 export class ViewController<P = {}, S = {}> implements DOM {
-	private _stateHashs = new Map<string, number>; // Tracks previous state hashes
 	private _vdom?: VirtualDOM;                    // Last rendered VirtualDOM
 	private _linkProps: string[];                  // Linked prop names
 	private _watchings: Set<any>;                  // Files watched (for hot reload)
@@ -810,21 +809,18 @@ export class ViewController<P = {}, S = {}> implements DOM {
 
 	/**
 	 * Update the current ViewController state and re-render if the state does change
-	 * @template K
 	 * @method setState(newState)
-	 * @param newState:object Partial state to update
+	 * @param newState Partial state to update
 	 * @return {Promise<void>} resolves after re-render completes
 	*/
-	setState<K extends keyof S>(newState: Pick<S, K>) {
+	setState(newState: Partial<S> & Record<string, any>) {
 		let update = false;
-		let stateHashs = this._stateHashs;
 		let state = this.state as S;
 		for (let key in newState as S) {
 			let item = (newState as S)[key];
-			let hash = Object.hashCode(item);
-			if (hash != stateHashs.get(key)) {
+			// just simple compare, this way the performance is the best
+			if (state[key] !== item) {
 				state[key] = item;
-				stateHashs.set(key, hash);
 				update = true;
 			}
 		}

@@ -34,6 +34,18 @@ const _lmdb = __binding__('_lmdb');
 export type DBI = Uint8Array; //!< Database table Identifier
 
 /**
+ * LMDB database statistics.
+ */
+export interface Stat {
+	psize: Uint;       // 页大小 (一般 4096)
+	depth: Uint;       // B+Tree 深度
+	branchPages: Uint;// 分支页数量
+	leafPages: Uint;  // 叶子页数量
+	overflowPages: Uint; // 溢出页数量
+	entries: Uint;     // ★ 关键字段：总键值对数量
+}
+
+/*
  * Native LMDB binding.
  * 
  * This is the low-level interface exposed from C++.
@@ -43,128 +55,25 @@ export type DBI = Uint8Array; //!< Database table Identifier
  * get/set/scan to automatically encode/decode using JSONB.
  */
 declare abstract class NativeLMDB {
-
-	/**
-	 * Factory method for creating or retrieving a native LMDB environment.
-	 *
-	 * - Not intended to be called directly by user code.
-	 * - JS wrapper (`class LMDB`) internally calls Make() to obtain the native instance.
-	 * - Ensures that LMDB environments are reference-managed and that each
-	 *   filesystem path corresponds to exactly one native instance.
-	 *
-	 * @param path       Filesystem directory for the LMDB environment.
-	 * @param max_dbis   Maximum number of named sub-databases (default: 64).
-	 * @param map_size   Initial mmap size in bytes (default: ~10 MB).
-	 *
-	 * @return Native LMDB instance bound to the specified path.
-	 */
 	static Make(path: string, max_dbis?: Uint, map_size?: Uint): NativeLMDB;
-
-	/**
-	 * @private
-	 * Create or access an LMDB environment.
-	 *
-	 * @param path       Filesystem directory used to store the LMDB environment.
-	 * @param max_dbis   Maximum number of named sub-databases (DBI).
-	 *                   Default = 64.  
-	 *                   Each DBI corresponds to one logical “table”.
-	 *
-	 * @param map_size   Initial mmap size in bytes.
-	 *                   Default = 10,485,760 bytes (~10 MB).  
-	 *                   LMDB will grow automatically if needed (OS allowing),
-	 *                   but a larger initial size can reduce remap operations.
-	 *
-	 * The constructor does NOT open the environment immediately — actual
-	 * opening happens lazily on the first dbi/get/set/scan call.
-	 */
 	private constructor(path: string, max_dbis?: Uint, map_size?: Uint);
-
-	/**
-	 * Whether the LMDB environment is already opened.
-	 */
 	readonly opened: boolean;
-
-	/**
-	 * Open the LMDB environment.
-	 * @return 0 on success, non-zero on error.
-	 */
 	open(): Int;
-
-	/**
-	 * Close the LMDB environment.
-	 * @return 0 on success.
-	 */
 	close(): Int;
-
-	/**
-	 * Flush any pending changes to disk.
-	 * @return 0 on success.
-	*/
 	flush(): Int;
-
-	/**
-	 * Open or create a named database table.
-	 * @param table - Logical table name.
-	 * @return DBI (opaque binary identifier).
-	 */
+	nextId(dbi: DBI): Int;
 	dbi(table: string): DBI;
-
-	/**
-	 * Read a UTF-8 string value.
-	 * Returned string is decoded from raw bytes.
-	 */
+	dbiStat(dbi: DBI): Stat;
 	get(dbi: DBI, key: string): string | null;
-
-	/**
-	 * Read raw binary value.
-	 * Suitable for JSONB, images, or binary assets.
-	 */
 	getBuf(dbi: DBI, key: string): Uint8Array | null;
-
-	/**
-	 * Store a UTF-8 string value.
-	 */
 	set(dbi: DBI, key: string, value: string): Int;
-
-	/**
-	 * Store a raw binary buffer.
-	 */
 	setBuf(dbi: DBI, key: string, value: Uint8Array): Int;
-
-	/**
-	 * Remove a key.
-	 */
 	remove(dbi: DBI, key: string): Int;
-
-	/**
-	 * Check if a key exists.
-	 */
 	has(dbi: DBI, key: string): boolean;
-
-	/**
-	 * Check whether any key with the given prefix exists.
-	 */
 	fuzzExists(dbi: DBI, prefix: string): boolean;
-
-	/**
-	 * Scan all key-value pairs under a prefix.
-	 * Each item is [key, Uint8Array].
-	 */
 	scanPrefix(dbi: DBI, prefix: string, limit?: Uint): [string, Uint8Array][];
-
-	/**
-	 * Scan a key range [start, end).
-	 */
 	scanRange(dbi: DBI, start: string, end: string, limit?: Uint): [string, Uint8Array][];
-
-	/**
-	 * Remove all keys under a prefix.
-	 */
 	removePrefix(dbi: DBI): Int;
-
-	/**
-	 * Clear all keys in this DBI/table.
-	 */
 	clear(dbi: DBI): Int;
 }
 
@@ -243,12 +152,29 @@ export class LMDB {
 	}
 
 	/**
+	 * Internal nextId counter for generating unique keys.
+	 * @return Next unique integer ID, if < 0 indicates error.
+	*/
+	nextId(dbi: DBI): Int {
+		return this._lmdb.nextId(dbi);
+	}
+
+	/**
 	 * Open or create a named database table.
+	 * There will be mutex locking when calling, so it is best to cache the returned DBI.
+	 * 
 	 * @param table - Logical table name.
 	 * @return DBI (opaque binary identifier).
 	 */
 	dbi(table: string): DBI {
 		return this._lmdb.dbi(table);
+	}
+
+	/**
+	 * Get database statistics for a given DBI/table.
+	 */
+	dbiStat(dbi: DBI): Stat {
+		return this._lmdb.dbiStat(dbi);
 	}
 
 	/**
@@ -323,11 +249,13 @@ export class LMDB {
 
 	/**
 	 * Scan prefix and automatically decode JSONB values.
+	 * 
+	 * @param limit - Maximum number of entries to return. Default = 0 (no limit).
 	 *
 	 * @return Array of [key, parsedValue].
 	 */
 	scanPrefix<T = any>(dbi: DBI, prefix: string, limit?: Uint): [string, T][] {
-		const list = this._lmdb.scanPrefix(dbi, prefix, limit);
+		const list = this._lmdb.scanPrefix(dbi, prefix, limit||0);
 		list.forEach((pair) => {
 			pair[1] = jsonb.parse(pair[1]);
 		});
@@ -336,11 +264,13 @@ export class LMDB {
 
 	/**
 	 * Scan key range and automatically decode JSONB values.
+	 * 
+	 * @param limit - Maximum number of entries to return. Default = 0 (no limit).
 	 *
 	 * @return Array of [key, parsedValue].
 	 */
 	scanRange<T = any>(dbi: DBI, start: string, end: string, limit?: Uint): [string, T][] {
-		const list = this._lmdb.scanRange(dbi, start, end, limit);
+		const list = this._lmdb.scanRange(dbi, start, end, limit||0);
 		list.forEach((pair) => {
 			pair[1] = jsonb.parse(pair[1]);
 		});

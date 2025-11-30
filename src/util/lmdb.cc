@@ -41,7 +41,7 @@ namespace qk {
 		Open(__VA_ARGS__); \
 		MDB_txn* txn; \
 		int rc; \
-		CHECK_RC( mdb_txn_begin((MDB_env*)_env, nullptr, flags, &txn), rc)
+		CHECK_RC( mdb_txn_begin((MDB_env*)_env, nullptr, flags, &txn), __VA_ARGS__)
 	#define CHECK_EXE(code, ...) do { rc = (code); if (rc != MDB_SUCCESS) { \
 			mdb_txn_abort(txn); \
 			return __VA_ARGS__; \
@@ -140,6 +140,11 @@ namespace qk {
 			return rc;
 		}
 
+		if (!_dbis.has("_next_id")) {
+			// internal dbi for next_id counter
+			_next_id_dbi = _dbis.set("_next_id", new DBI{ this, 0, "_next_id" });
+		}
+
 		// auto close env on process exit
 		Qk_On(ProcessExit, handleProcessExit, this);
 		// flush env on background
@@ -208,6 +213,44 @@ namespace qk {
 	}
 
 	// ----------------------- KV API -------------------------
+
+	int64_t LMDB::next_id(DBI* dbi_other) {
+		if (dbi_other->lmdb != this)
+			return -1; // invalid dbi handle
+		DBI *dbi = _next_id_dbi;
+		CHECK_BEGIN(0, MDB_BAD_DBI);
+		MDB_val k{ dbi_other->name.length(), (void*)dbi_other->name.c_str() };
+		MDB_val v;
+		int64_t id = 0;
+		rc = mdb_get(txn, _next_id_dbi->dbi, &k, &v);
+		if (rc == MDB_SUCCESS) {
+			id = *(int64_t*)v.mv_data; // already aligned in lmdb internal
+		} else if (rc != MDB_NOTFOUND) {
+			mdb_txn_abort(txn);
+			return rc; // error
+		}
+		id++;
+		v = { sizeof(int64_t), &id };
+		CHECK_EXE( mdb_put(txn, _next_id_dbi->dbi, &k, &v, 0), rc);
+		CHECK_COMMIT(rc);
+		return id;
+	}
+
+	LMDB::Stat LMDB::dbi_stat(DBI* dbi) {
+		Stat stat{0};
+		CHECK_BEGIN(MDB_RDONLY, stat);
+		MDB_stat mdbStat;
+		mdb_stat(txn, dbi->dbi, &mdbStat);
+		mdb_txn_commit(txn);
+		return {
+			mdbStat.ms_psize,
+			mdbStat.ms_depth,
+			mdbStat.ms_branch_pages,
+			mdbStat.ms_leaf_pages,
+			mdbStat.ms_overflow_pages,
+			mdbStat.ms_entries
+		};
+	}
 
 	int LMDB::get_buf(DBI* dbi, cString& key, Buffer* out) {
 		CHECK_BEGIN(MDB_RDONLY, MDB_BAD_DBI);
@@ -299,7 +342,13 @@ namespace qk {
 		if (limit == 0)
 			limit = 0xffffffff; // no limit if 0
 		// seek to start
-		rc = mdb_cursor_get(cur, &k, &v, MDB_SET_RANGE);
+
+		if (start.isEmpty()) {
+			// if start is empty, seek to first
+			rc = mdb_cursor_get(cur, &k, &v, MDB_FIRST);
+		} else {
+			rc = mdb_cursor_get(cur, &k, &v, MDB_SET_RANGE);
+		}
 
 		while (rc == MDB_SUCCESS && out->length() < limit) {
 			if (mdb_cmp(txn, dbi->dbi, &k, &ek) > 0)

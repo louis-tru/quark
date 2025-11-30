@@ -30,6 +30,7 @@
 
 import { ViewController } from './ctr';
 import * as storage from './storage';
+import { EventNoticer,Event } from './event';
 import util from './util';
 
 // Store persistent states for PersistentState components
@@ -41,13 +42,19 @@ const GlobalState_ctrs = new Map<GlobalState, Set<string>>();
 // Global states storage (in-memory key-value dictionary)
 const GlobalStates: Dict = {};
 
+/**
+ * Event triggered when any state is changed.
+ * @event State:EventNoticer<Event<void,Dict>>
+*/
+export const onState = new EventNoticer<Event<void,Dict>>('State', void 0);
+
 /*
  * Set a state value into GlobalStates, and persist it if it's a global key.
  * Keys starting with '$' are considered global,
  * Keys starting with '$$' are both global and persistent.
  */
 function setStateValue(name: string, value: any) {
-	if (name[1] == '$') {
+	if (name.charCodeAt(1) == 36 /* $ */) {
 		// Persist global state into storage
 		storage.set('_global_state_' + name, value);
 	}
@@ -61,7 +68,7 @@ function setStateValue(name: string, value: any) {
 export function getState<T = any>(name: string) {
 	let r = GlobalStates[name];
 	if (r === undefined) {
-		if (name[1] == '$') {
+		if (name.charCodeAt(1) == 36 /* $ */) {
 			r = storage.get('_global_state_' + name);
 		}
 	}
@@ -100,19 +107,22 @@ export function setState<S = {}>(state: S, self?: GlobalState) {
 	if (!state)
 		return Promise.resolve();
 
-	let changed_state = [];
+	const changed_state: string[] = [];
 
 	// Collect all changed global states
-	for (let name of Object.keys(state)) {
-		if (name[0] == '$') {
-			changed_state.push(name);
-			setStateValue(name, state[name as (keyof S)]);
+	for (const name of Object.keys(state)) {
+		if (name.charCodeAt(0) == 36 /* $ */) {
+			// check if value changed
+			if (GlobalStates[name] !== state[name as (keyof S)]) {
+				changed_state.push(name);
+				setStateValue(name, state[name as (keyof S)]);
+			}
 		}
 	}
 
 	// Notify all subscribed controllers about changed global states
 	if (changed_state.length) {
-		for (let [ctr, keys] of GlobalState_ctrs) {
+		for (const [ctr, keys] of GlobalState_ctrs) {
 			if (ctr !== self) {
 				// Remove destroyed controllers
 				if (ctr.isDestroyd) {
@@ -134,6 +144,7 @@ export function setState<S = {}>(state: S, self?: GlobalState) {
 				}
 			}
 		}
+		onState.trigger(GlobalStates); // Trigger global state change event
 	}
 
 	// Update the calling controller itself
@@ -156,7 +167,7 @@ export class GlobalState<P = {}, S = {}> extends ViewController<P, S> {
 	/**
 	 * Override setState to use global state manager
 	 */
-	setState<K extends keyof S>(newState: Pick<S, K>) {
+	setState(newState: Partial<S> & Record<string, any>) {
 		return setState(newState, this);
 	}
 
@@ -167,14 +178,16 @@ export class GlobalState<P = {}, S = {}> extends ViewController<P, S> {
 	protected triggerLoad() {
 		if (!this.state)
 			return;
-		let state = this.state;
-		let keys = new Set<string>();
-		let need_update = false;
+		const state = this.state;
+		const global_keys = new Set<string>();
+		let   need_update = false;
+		let   add_global_state = false;
 
-		for (let name of Object.keys(state)) {
-			if (name[0] == '$') {
+		// Sync global state keys
+		for (const name of Object.keys(state)) {
+			if (name.charCodeAt(0) == 36 /* $ */) {
 				// Persistent global state (`$$key`)
-				if (name[1] == '$') {
+				if (name.charCodeAt(1) == 36 /* $ */) {
 					if (!GlobalStates.hasOwnProperty(name)) {
 						let val = storage.get('_global_state_' + name);
 						if (val === undefined) {
@@ -193,21 +206,25 @@ export class GlobalState<P = {}, S = {}> extends ViewController<P, S> {
 						(state as any)[name] = value;
 					}
 				} else {
+					add_global_state = true;
 					setStateValue(name, state[name as keyof S]);
 				}
-				keys.add(name);
+				global_keys.add(name);
 			}
-		}
+		} // for
 
 		// Update state if necessary
 		if (need_update) {
-			ViewController.prototype.setState.call(self, state);
+			ViewController.prototype.setState.call(this, state);
+		}
+		if (add_global_state) {
+			onState.trigger(GlobalStates); // Trigger global state change event
 		}
 
 		// Register this controller as global subscriber
-		if (keys.size) {
+		if (global_keys.size) {
 			this._isGlobal = true;
-			GlobalState_ctrs.set(this, keys);
+			GlobalState_ctrs.set(this, global_keys);
 		}
 	}
 
@@ -232,7 +249,7 @@ export class PersistentState <P = {}, S = {}> extends GlobalState<P, S> {
 	 * Unique ID for each PersistentState class
 	 */
 	get persistentID() {
-		var id = (this.constructor as any).__persistentID__ as string;
+		let id = (this.constructor as any).__persistentID__ as string;
 		if (!id) {
 			(this.constructor as any).__persistentID__ = id = String(util.getId());
 		}
@@ -257,7 +274,7 @@ export class PersistentState <P = {}, S = {}> extends GlobalState<P, S> {
 	 * When loading, recover state first, then proceed with global sync
 	 */
 	protected triggerLoad() {
-		var state = this.recoveryState();
+		let state = this.recoveryState();
 		if (state) {
 			(this as any).state = Object.assign(this.state || {}, state);
 		}
@@ -275,7 +292,7 @@ export class PersistentState <P = {}, S = {}> extends GlobalState<P, S> {
 		super.triggerUnload();
 
 		// Get state to save (subclasses may override saveState)
-		var state = this.saveState();
+		let state = this.saveState();
 
 		if (state) {
 			// Store the saved state by persistentID

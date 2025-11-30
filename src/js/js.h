@@ -546,8 +546,8 @@ namespace qk { namespace js {
 		JSNumber* newValue(uint64_t val);
 		JSString* newValue(cString& val);
 		JSString* newValue(cString2& val);
-		JSString* newValue(cArray<uint16_t>& val);
 		JSString* newValue(cString4& val);
+		JSString* newValue(cArray<uint16_t>& val);
 		JSObject* newValue(cError& val);
 		JSObject* newValue(cHttpError& val);
 		JSObject* newValue(cDictSS& val);

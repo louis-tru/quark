@@ -250,7 +250,10 @@ namespace qk {
 	}
 
 	void Entity::debugDraw(Painter *painter) {
-		if (window()->debugMode() && parent()->viewType() == kWorld_ViewType) {
+		if (!window()->debugMode())
+			return;
+		auto _parent = parent();
+		if (_parent && _parent->viewType() == kWorld_ViewType) {
 			auto lastMatrix = painter->matrix();
 			auto canvas = painter->canvas();
 			Mat mat = matrix();

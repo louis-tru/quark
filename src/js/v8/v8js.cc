@@ -38,6 +38,8 @@ namespace qk { namespace js {
 		return *value ? *value : "<string conversion failed>";
 	}
 
+	static constexpr size_t EXTERNAL_THRESHOLD = 4 * 1024; // 4KB
+
 	WorkerImpl::WorkerImpl(): _locker(nullptr), _handle_scope(nullptr), _inspector(nullptr)
 	{
 		_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -689,25 +691,50 @@ namespace qk { namespace js {
 		return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 	}
 
-	JSString* Worker::newString(cBuffer& data) {
-		return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), *data,
-																									v8::String::kNormalString, data.length()));
-	}
-
 	JSString* Worker::newValue(cString& data) {
-		return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), *data,
-																									v8::String::kNormalString, data.length()));
+		return Cast<JSString>(
+			v8::String::NewFromUtf8(ISOLATE(this), *data, v8::String::kNormalString, data.length())
+		);
 	}
 
 	JSString* Worker::newValue(cString2& data) {
-		return Cast<JSString>(v8::String::NewExternalTwoByte(
-			ISOLATE(this),
-			new V8ExternalStringResource(data)
-		));
+		if (data.length() >= EXTERNAL_THRESHOLD) {
+			// Use external string for large strings to reduce memory usage.
+			return Cast<JSString>(
+				v8::String::NewExternalTwoByte(ISOLATE(this),new V8ExternalStringResource(data))
+			);
+		} else {
+			// Use normal string for small strings for better performance.
+			return Cast<JSString>(
+				v8::String::NewFromTwoByte(ISOLATE(this),
+																	*data, v8::NewStringType::kNormal, data.length()));
+		}
 	}
 
 	JSString* Worker::newValue(cArray<uint16_t>& val) {
-		return newValue(val.copy().collapseString());
+		return Cast<JSString>(
+			v8::String::NewFromTwoByte(ISOLATE(this), *val, v8::NewStringType::kNormal, val.length())
+		);
+	}
+
+	JSString* Worker::newString(cBuffer& data) {
+		return Cast<JSString>(
+			v8::String::NewFromUtf8(ISOLATE(this), *data, v8::String::kNormalString, data.length())
+		);
+	}
+
+	JSString* Worker::newStringOneByte(cString& data) {
+		if (data.length() >= EXTERNAL_THRESHOLD) {
+			// Use external string for large strings to reduce memory usage.
+			return Cast<JSString>(v8::String::NewExternalOneByte(ISOLATE(this),
+																new V8ExternalOneByteStringResource(data)));
+		} else {
+			// Use normal string for small strings for better performance.
+			return Cast<JSString>(v8::String::NewFromOneByte(ISOLATE(this),
+															reinterpret_cast<const uint8_t*>(*data),
+															v8::NewStringType::kNormal,
+															data.length()));
+		}
 	}
 
 	JSUint8Array* Worker::newValue(Buffer&& buff) {
@@ -746,11 +773,6 @@ namespace qk { namespace js {
 
 	JSString* Worker::newEmpty() {
 		return Cast<JSString>(v8::String::Empty(ISOLATE(this)));
-	}
-
-	JSString* Worker::newStringOneByte(cString& data) {
-		return Cast<JSString>(v8::String::NewExternal(ISOLATE(this),
-																									new V8ExternalOneByteStringResource(data)));
 	}
 
 	JSArrayBuffer* Worker::newArrayBuffer(Char* use_buff, uint32_t len) {

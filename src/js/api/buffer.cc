@@ -130,8 +130,10 @@ namespace qk { namespace js {
 					break;
 				}
 				case kUTF8_Encoding: {
-					auto utf16 = codec_utf8_to_utf16(WeakBuffer(chAddr, lenPart).buffer());
-					Js_Return( worker->newValue(utf16.collapseString()) );
+					// auto utf16 = codec_utf8_to_utf16(WeakBuffer(chAddr, lenPart).buffer());
+					// Js_Return( worker->newValue(utf16.collapseString()) );
+					auto str = worker->newString( WeakBuffer(chAddr, lenPart).buffer() );
+					Js_Return( str );
 					break;
 				}
 				case kUTF16_Encoding: {

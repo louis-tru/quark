@@ -41,10 +41,10 @@ namespace qk { namespace js {
 			JSObject* js_array = worker->newArray();
 			for (int i = 0; i < out.length(); i++) {
 				JSObject* js_pair = worker->newArray();
-				js_pair->set(worker, 0, worker->newValue(out[i].first));
+				Qk_ASSERT_EQ(true, js_pair->set(worker, 0, worker->newValue(out[i].first)));
 				// collapse to buffer
-				js_pair->set(worker, 1, worker->newValue(out[i].second.collapse()));
-				js_array->set(worker, i, js_pair);
+				Qk_ASSERT_EQ(true, js_pair->set(worker, 1, worker->newValue(out[i].second.collapse())));
+				Qk_ASSERT_EQ(true, js_array->set(worker, i, js_pair));
 			}
 			return js_array;
 		};
@@ -83,8 +83,27 @@ namespace qk { namespace js {
 				Js_Return( worker->types()->jsvalue(dbi) );
 			});
 
+			Js_Class_Method(dbiStat, {
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
+				auto stat = self->dbi_stat((LMDB::DBI*)arg0);
+				JSObject* js_stat = worker->newObject();
+				js_stat->set(worker, "psize", worker->newValue(stat.psize));
+				js_stat->set(worker, "depth", worker->newValue(stat.depth));
+				js_stat->set(worker, "branch_pages", worker->newValue((uint32_t)stat.branch_pages));
+				js_stat->set(worker, "leaf_pages", worker->newValue((uint32_t)stat.leaf_pages));
+				js_stat->set(worker, "overflow_pages", worker->newValue((uint32_t)stat.overflow_pages));
+				js_stat->set(worker, "entries", worker->newValue((uint32_t)stat.entries));
+				Js_Return(js_stat);
+			});
+
+			Js_Class_Method(nextId, {
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
+				auto id = self->next_id((LMDB::DBI*)arg0);
+				Js_Return(id);
+			});
+
 			Js_Class_Method(get, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "key = %s");
 				String out;
 				if (self->get((LMDB::DBI*)arg0, arg1, &out) == 0) {
@@ -95,7 +114,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(getBuf, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "key = %s");
 				Buffer out;
 				if (self->get_buf((LMDB::DBI*)arg0, arg1, &out) == 0) {
@@ -106,39 +125,39 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(set, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "key = %s");
 				Js_Parse_Args(String, 2, "val = %s");
 				Js_Return(self->set((LMDB::DBI*)arg0, arg1, arg2));
 			});
 
 			Js_Class_Method(setBuf, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "key = %s");
 				Js_Parse_Args(WeakBuffer, 2, "val = %s");
 				Js_Return(self->set_buf((LMDB::DBI*)arg0, arg1, arg2.buffer()));
 			});
 
 			Js_Class_Method(remove, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "key = %s");
 				Js_Return(self->remove((LMDB::DBI*)arg0, arg1));
 			});
 
 			Js_Class_Method(has, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "key = %s");
 				Js_Return(self->has((LMDB::DBI*)arg0, arg1));
 			});
 
 			Js_Class_Method(fuzzExists, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "prefix = %s");
 				Js_Return(self->fuzz_exists((LMDB::DBI*)arg0, arg1));
 			});
 
 			Js_Class_Method(scanPrefix, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "prefix = %s");
 				Js_Parse_Args(uint32_t, 2, "limit = %d", (0));
 				Array<LMDB::Pair> out;
@@ -150,7 +169,7 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(scanRange, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "start = %s");
 				Js_Parse_Args(String, 2, "end = %s");
 				Js_Parse_Args(uint32_t, 3, "limit = %d", (0));
@@ -163,13 +182,13 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(removePrefix, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Parse_Args(String, 1, "prefix = %s");
 				Js_Return(self->remove_prefix((LMDB::DBI*)arg0, arg1));
 			});
 
 			Js_Class_Method(clear, {
-				Js_Parse_Args(NativePtr, 0, "name = %s");
+				Js_Parse_Args(NativePtr, 0, "dbi = %s");
 				Js_Return(self->clear((LMDB::DBI*)arg0));
 			});
 

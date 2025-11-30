@@ -1064,12 +1064,6 @@ namespace qk { namespace js {
 		return worker->addToScope<JSNumber>(ret);
 	}
 
-	JSString* Worker::newString(cBuffer& val) {
-		auto obj = JSValueMakeString(JSC_CTX(this), *JsStringWithUTF8(*val));
-		DCHECK(obj);
-		return WORKER(this)->addToScope<JSString>(obj);
-	}
-
 	JSString* Worker::newValue(cString& val) {
 		auto obj = JSValueMakeString(JSC_CTX(this), *JsStringWithUTF8(*val));
 		DCHECK(obj);
@@ -1077,17 +1071,29 @@ namespace qk { namespace js {
 	}
 
 	JSString* Worker::newValue(cString2& val) {
-		auto str = JSStringCreateWithCharacters(*val, val.length());
-		auto obj = JSValueMakeString(JSC_CTX(this), str);
+		// auto str = JSStringCreateWithCharacters(*val, val.length());
+		auto str = JSCStringPtr::lazy(JSStringCreateWithCharacters(*val, val.length()));
+		auto obj = JSValueMakeString(JSC_CTX(this), *str);
 		DCHECK(obj);
 		return WORKER(this)->addToScope<JSString>(obj);
 	}
 
 	JSString* Worker::newValue(cArray<uint16_t>& val) {
-		auto str = JSStringCreateWithCharacters(*val, val.length());
-		auto obj = JSValueMakeString(JSC_CTX(this), str);
+		// auto str = JSStringCreateWithCharacters(*val, val.length());
+		auto str = JSCStringPtr::lazy(JSStringCreateWithCharacters(*val, val.length()));
+		auto obj = JSValueMakeString(JSC_CTX(this), *str);
 		DCHECK(obj);
 		return WORKER(this)->addToScope<JSString>(obj);
+	}
+
+	JSString* Worker::newString(cBuffer& val) {
+		auto obj = JSValueMakeString(JSC_CTX(this), *JsStringWithUTF8(*val));
+		DCHECK(obj);
+		return WORKER(this)->addToScope<JSString>(obj);
+	}
+
+	JSString* Worker::newStringOneByte(cString& data) {
+		return newValue(data);
 	}
 
 	JSUint8Array* Worker::newValue(Buffer&& buff) {
@@ -1139,10 +1145,6 @@ namespace qk { namespace js {
 
 	JSString* Worker::newEmpty() {
 		return Cast<JSString>(WORKER(this)->_data.EmptyString);
-	}
-
-	JSString* Worker::newStringOneByte(cString& data) {
-		return newValue(data);
 	}
 
 	JSArrayBuffer* Worker::newArrayBuffer(char* use_buff, uint32_t len) {

@@ -827,6 +827,8 @@ namespace qk {
 	}
 
 	void GLCanvas::vportFullCopy(GLuint dstFBO) {
+		if (!_outTex)
+			return; // no output texture
 		auto dest = _render->_surfaceSize;
 		auto chVport = _surfaceSize != dest;
 		GLint filter = chVport ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_NEAREST;

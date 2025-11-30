@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __quark__util__lmdb___
+#define __quark__util__lmdb___
+
 #include "./thread.h"
 #include "./dict.h"
-
-#ifndef __quark__util__lmdb__
-#define __quark__util__lmdb__
 
 namespace qk {
 
@@ -82,6 +82,17 @@ namespace qk {
 	public:
 		struct DBI;                     // LMDB database handle (per logical table)
 		typedef Pair<String, String> Pair;
+
+		// Statistics for a database in the environment
+		struct Stat {
+			uint32_t	psize;			/**< Size of a database page.
+													This is currently the same for all databases. */
+			uint32_t	depth;			/**< Depth (height) of the B-tree */
+			size_t		branch_pages;	/**< Number of internal (non-leaf) pages */
+			size_t		leaf_pages;		/**< Number of leaf pages */
+			size_t		overflow_pages;	/**< Number of overflow pages */
+			size_t		entries;			/**< Number of data items */
+		};
 
 		/**
 		 * @static Make
@@ -136,6 +147,16 @@ namespace qk {
 		int flush();
 
 		/**
+		 * Generate a new unique identifier auto incremented in the database.
+		 *
+		 * Uses an internal atomic counter stored in the database.
+		 *
+		 * @param dbi   Database handle.
+		 * @return New unique identifier as int64_t, if < 0 then error occurred.
+		 */
+		int64_t next_id(DBI* dbi);
+
+		/**
 		 * Retrieve or allocate a named LMDB database handle (DBI).
 		 *
 		 * Each logical “table” corresponds to a DBI.
@@ -145,6 +166,13 @@ namespace qk {
 		 * @return Pointer to DBI structure.
 		 */
 		DBI* dbi(cString& name); // allocate or get existing dbi
+
+		/**
+		 * Retrieve statistics for a given DBI.
+		 * @param dbi   Database handle.
+		 * @return Stat structure with database statistics.
+		*/
+		Stat dbi_stat(DBI* dbi);
 
 		/**
 		 * Read a raw binary value from the database.
@@ -278,6 +306,7 @@ namespace qk {
 
 	private:
 		void* _env;                     // LMDB environment handle
+		DBI* _next_id_dbi;              // Internal DBI for next_id counter
 		Dict<String, DBI*> _dbis;       // Map of opened DBI handles
 		String _path;                   // Filesystem path to LMDB environment
 		Mutex _mutex;                   // Guards DBI map & env open sequence
