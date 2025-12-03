@@ -297,7 +297,7 @@ class Binary {
 	}
 }
 
-function assert(cond: any) {
+function assert<T>(cond: T): asserts cond is NonNullable<T> {
 	utils.assert(cond, errno.ERR_UNABLE_PARSE_JSONB);
 }
 

@@ -1071,7 +1071,6 @@ namespace qk { namespace js {
 	}
 
 	JSString* Worker::newValue(cString2& val) {
-		// auto str = JSStringCreateWithCharacters(*val, val.length());
 		auto str = JSCStringPtr::lazy(JSStringCreateWithCharacters(*val, val.length()));
 		auto obj = JSValueMakeString(JSC_CTX(this), *str);
 		DCHECK(obj);
@@ -1079,7 +1078,6 @@ namespace qk { namespace js {
 	}
 
 	JSString* Worker::newValue(cArray<uint16_t>& val) {
-		// auto str = JSStringCreateWithCharacters(*val, val.length());
 		auto str = JSCStringPtr::lazy(JSStringCreateWithCharacters(*val, val.length()));
 		auto obj = JSValueMakeString(JSC_CTX(this), *str);
 		DCHECK(obj);
@@ -1087,7 +1085,9 @@ namespace qk { namespace js {
 	}
 
 	JSString* Worker::newString(cBuffer& val) {
-		auto obj = JSValueMakeString(JSC_CTX(this), *JsStringWithUTF8(*val));
+		auto utf16 = codec_utf8_to_utf16(val);
+		auto str = JSCStringPtr::lazy(JSStringCreateWithCharacters(*utf16, utf16.length()));
+		auto obj = JSValueMakeString(JSC_CTX(this), *str);
 		DCHECK(obj);
 		return WORKER(this)->addToScope<JSString>(obj);
 	}

@@ -55,7 +55,7 @@ class InvalidSet<T> extends Set<T> {
 }
 
 const isWatching = pkg.isWatching;
-const assertDev = util.assert;
+const assertDev: typeof util.assert = util.assert;
 
 /**
  * Render Queue:

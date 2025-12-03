@@ -341,8 +341,12 @@ export function equalsClass(baseclass: any, subclass: any): boolean {
 
 /**
  * @method assert(condition,code?:number|ErrorNewArg)
+ * Asserts that value is not null or undefined.
+ * @param condition The value to check.
+ * @param code? Optional code or message for the error thrown.
+ * @returns {void} nothing
  */
-export function assert(condition: any, code?: number | ErrorNewArg): void {
+export function assert<T>(condition: T, code?: number | ErrorNewArg): asserts condition is NonNullable<T> {
 	if (condition)
 		return;
 	if (typeof code == 'number') {

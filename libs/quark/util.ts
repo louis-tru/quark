@@ -67,7 +67,7 @@ export type ErrorReason = {
 /**
  * @default
 */
-export default {
+const _default = {
 	..._util,
 	..._common,
 	/***/
@@ -102,4 +102,11 @@ export default {
 	get onUnhandledRejection(): EventNoticer<Event<object,ErrorReason>> {
 		return _runtimeEvents.getNoticer('UnhandledRejection');
 	},
-}
+};
+
+/**
+ * @default
+*/
+const util: typeof _default = _default;
+
+export default util;

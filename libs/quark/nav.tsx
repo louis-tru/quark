@@ -38,6 +38,7 @@ import {View,Label,Text,Box} from './view';
 import * as types from './types';
 import app from './app';
 import {createCss} from './css';
+import * as _common from './_common';
 
 const px = 1 / mainScreenScale();
 const Transition_Time = 400;

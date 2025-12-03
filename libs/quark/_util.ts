@@ -299,7 +299,9 @@ export function stripShebang(content: string): string {
 	return content;
 }
 
-/***/
+/**
+ * Asserts that value is not null or undefined.
+*/
 export function assert(value: any, message?: string) {
 	if (!value) {
 		throw new Error('assert fail, ' + (message || ''));

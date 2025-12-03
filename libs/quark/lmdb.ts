@@ -27,6 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * ***** END LICENSE BLOCK ***** */
+
 import jsonb from './jsonb';
 
 const _lmdb = __binding__('_lmdb');
@@ -231,6 +232,8 @@ export class LMDB {
 	get<T = any>(dbi: DBI, key: string): T | null {
 		const v = this._lmdb.getBuf(dbi, key);
 		return v != null ? jsonb.parse(v) : null;
+		// const v = this._lmdb.get(dbi, key);
+		// return v != null ? JSON.parse(v) : null;
 	}
 
 	/**
