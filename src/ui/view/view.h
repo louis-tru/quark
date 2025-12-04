@@ -245,12 +245,12 @@ namespace qk {
 		 * Do views need to receive or handle system event throws? In most cases,
 		 * these events do not need to be handled, which can improve overall event processing efficiency
 		*/
-		Qk_DEFINE_PROPERTY(bool, receive, Const);
+		Qk_DEFINE_VIEW_PROPERTY(bool, receive, Const);
 
 		/**
 		 * Anti-aliasing rendering, default is true
 		 */
-		Qk_DEFINE_PROPERTY(bool, aa, Const);
+		Qk_DEFINE_VIEW_PROPERTY(bool, aa, Const);
 
 		/**
 		 * keyboard focus view

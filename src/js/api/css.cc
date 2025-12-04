@@ -52,6 +52,8 @@ namespace qk { namespace js {
 			Js_StyleSheets_Accessor(uint32_t, z_index, zIndex);
 			Js_StyleSheets_Accessor(float, opacity, opacity);
 			Js_StyleSheets_Accessor(bool, visible, visible);
+			Js_StyleSheets_Accessor(bool, receive, receive);
+			Js_StyleSheets_Accessor(bool, aa, aa);
 			Js_StyleSheets_Accessor(bool, clip, clip);
 			Js_StyleSheets_Accessor(bool, free, free);
 			Js_StyleSheets_Accessor(Align, align, align);

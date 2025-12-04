@@ -157,11 +157,11 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
-	void View::set_receive(bool val) {
+	void View::set_receive(bool val, bool isRt) {
 		_receive = val;
 	}
 
-	void View::set_aa(bool val) {
+	void View::set_aa(bool val, bool isRt) {
 		_aa = val;
 	}
 

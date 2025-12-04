@@ -45,6 +45,8 @@ namespace qk {
 	F(Z_INDEX, uint32_t, z_index, View) \
 	F(OPACITY, float, opacity, View) \
 	F(VISIBLE, bool, visible, View) \
+	F(RECEIVE, bool, receive, View) \
+	F(AA, bool, aa, View) \
 	F(CLIP, bool, clip, Box) /* box */ \
 	F(FREE, bool, free, Box) \
 	F(ALIGN, Align, align, Box) \

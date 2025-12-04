@@ -80,7 +80,7 @@ namespace qk {
 	>
 	class Dict: public Object {
 	public:
-		typedef Pair<Key, Value> Pair;
+		typedef qk::Pair<Key, Value> Pair;
 
 		struct Node {
 			typedef Pair Data;

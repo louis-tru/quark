@@ -52,6 +52,8 @@ export declare abstract class StyleSheets {
 	zIndex?: Uint; //!< z index in global view tree
 	opacity?: Float; //!< opacity 0.0 ~ 1.0, color.a alias, opacity = color.a / 255.0
 	visible?: boolean; //!< view visible
+	receive?: boolean; //!< view receive events
+	aa?: boolean; //!< view anti-aliasing
 	clip?: boolean; //!< view clip children
 	free?: boolean; //!< view free layout
 	align?: types.AlignIn; //!<

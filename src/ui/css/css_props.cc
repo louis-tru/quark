@@ -149,6 +149,8 @@ namespace qk {
 		Qk_Set_Accessor(View, Z_INDEX, z_index, uint32_t);
 		Qk_Set_Accessor(View, OPACITY, opacity, float);
 		Qk_Set_Accessor(View, VISIBLE, visible, bool);
+		Qk_Set_Accessor(View, RECEIVE, receive, bool);
+		Qk_Set_Accessor(View, AA, aa, bool);
 		accessors[kLabel_ViewType] = accessors[kView_ViewType]; // copy view props to label
 		accessors[kBox_ViewType] = accessors[kView_ViewType]; // copy view props to box
 		accessors[kFlex_ViewType] = accessors[kView_ViewType]; // copy view props to flex

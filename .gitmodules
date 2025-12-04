@@ -58,3 +58,6 @@
 [submodule "deps/spine"]
 	path = deps/spine
 	url = https://github.com/louis-tru/spine_4.0.git
+[submodule "deps/lmdb"]
+	path = deps/lmdb
+	url =  https://github.com/louis-tru/lmdb.git
