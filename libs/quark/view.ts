@@ -303,6 +303,9 @@ export declare class View extends Notification<UIEvent> implements DOM {
 	/** Reference in owner view controller */
 	readonly ref: string;
 
+	/** Arbitrary data field attached to this view. */
+	data: any;
+
 	/** Style sheet block attached to this view. */
 	style: StyleSheets;
 
@@ -1656,6 +1659,7 @@ declare global {
 			onUIStateChange?: Listen<UIStateEvent, View> | null;
 			onActionKeyframe?: Listen<ActionEvent, View> | null;
 			onActionLoop?: Listen<ActionEvent, View> | null;
+			data?: any;
 			ref?: string;
 			key?: string|number;
 			style?: StyleSheets;
@@ -2236,9 +2240,13 @@ class _View extends NativeNotification<UIEvent> {
 	get metaView() { return this }
 	get style() { return this as StyleSheets }
 	set style(value) { Object.assign(this, value) }
-	get class() { return [] }
+	private _class: string[];
+	get class() { return this._class }
 	set class(value: string[]) {
+		if (typeof value == 'string')
+			value = (value as string).split(' ').filter(s => s); // split and filter empty
 		(this as unknown as View).cssclass.set(value);
+		this._class = value;
 	}
 
 	get action() { // get action object
@@ -2379,6 +2387,7 @@ _ui.View.isViewController = false;
 _ui.View.prototype.ref = '';
 _ui.View.prototype.owner = null;
 _ui.View.prototype.childDoms = [];
+_ui.View.prototype._class = []; // class default empty array
 util.extendClass(_ui.View, _View);
 util.extendClass(_ui.Scroll, _Scroll);
 util.extendClass(_ui.Image, _Image);
