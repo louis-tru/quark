@@ -58,7 +58,7 @@ constexpr int kSmallCountLimit = 16;
 //
 constexpr int kMinCountForSlope = 4;
 
-static int find_simple(const Unichar base[], int count, Unichar value) {
+static int find_simple(const int base[], int count, int value) {
 	int index;
 	for (index = 0;; ++index) {
 		if (value <= base[index]) {
@@ -71,7 +71,7 @@ static int find_simple(const Unichar base[], int count, Unichar value) {
 	return index;
 }
 
-static int find_with_slope(const Unichar base[], int count, Unichar value, double denom) {
+static int find_with_slope(const int base[], int count, int value, double denom) {
 	Qk_ASSERT(count >= kMinCountForSlope);
 
 	int index;

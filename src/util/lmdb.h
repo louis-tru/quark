@@ -81,7 +81,7 @@ namespace qk {
 	class Qk_EXPORT LMDB: public Reference {
 	public:
 		struct DBI;                     // LMDB database handle (per logical table)
-		typedef Pair<String, String> Pair;
+		typedef qk::Pair<String, String> Pair;
 
 		// Statistics for a database in the environment
 		struct Stat {

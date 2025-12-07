@@ -53,6 +53,7 @@ namespace qk {
 	class TextOptions;
 	class Painter;
 	class Window;
+	class View;
 	class ScrollView;
 	class MorphView;
 	class CStyleSheetsClass;

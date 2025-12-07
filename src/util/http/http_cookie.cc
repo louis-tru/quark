@@ -32,7 +32,14 @@
 #include "../http.h"
 
 namespace qk {
-	static LMDB_DBIPtr _db = LMDB::shared()->dbi("cookie");
+	#define _db LMDB::shared()
+	#define _dbi get_cookie_db()
+	static LMDB_DBIPtr _lmdb_dbi = nullptr;
+	inline LMDB_DBIPtr get_cookie_db() {
+		if (_lmdb_dbi == nullptr)
+			_lmdb_dbi = _db->dbi("cookie");
+		return _lmdb_dbi;
+	}
 
 	// Session ID used to distinguish session cookies (invalid after process restart)
 	int64_t _cookieSessionId = 0;
@@ -155,7 +162,7 @@ namespace qk {
 																expires,
 																session_id(),
 																value.c_str());
-		LMDB::shared()->set(_db, key, val);
+		_db->set(_dbi, key, val);
 	}
 
 	// -------------------- Public API --------------------
@@ -172,7 +179,7 @@ namespace qk {
 				domainLevels[0].append(domainLevels[j]).append('/'); // Append next domain segment
 			}
 			// Pre-check prefix existence to avoid unnecessary range scans
-			if (!LMDB::shared()->fuzz_exists(_db, domainLevels[0]))
+			if (!_db->fuzz_exists(_dbi, domainLevels[0]))
 				continue;
 
 			auto prefix = domainLevels[0]; // copy domain prefix
@@ -181,7 +188,7 @@ namespace qk {
 			do {
 				String curKey = prefix + '@' + name;
 				String stored;
-				if (LMDB::shared()->get(_db, curKey, &stored) == 0) {
+				if (_db->get(_dbi, curKey, &stored) == 0) {
 					http_cookie_check_expires(stored, &result); // Evaluate from short to long; longest prefix wins
 				}
 				if (i >= pathLevels.length())
@@ -280,10 +287,10 @@ namespace qk {
 			int i = 0; // Start from first path segment
 
 			// Start from the shortest path: domain + "", then /a/, /a/b/, ... until full path
-			while (LMDB::shared()->fuzz_exists(_db, prefix)) { // Precheck prefix, reduce unnecessary scans
+			while (_db->fuzz_exists(_dbi, prefix)) { // Precheck prefix, reduce unnecessary scans
 				String curKey = prefix + '@'; // fuzz key = prefix + '@'
 				Array<Pair<String,String>> listOut;
-				LMDB::shared()->scan_prefix(_db, curKey, &listOut); // Scan all cookies under this prefix
+				_db->scan_prefix(_dbi, curKey, &listOut); // Scan all cookies under this prefix
 
 				for (auto& kv : listOut) {
 					String value;
@@ -305,17 +312,17 @@ namespace qk {
 	// Delete a single cookie
 	void http_delete_cookie(cString& domain, cString& name, cString& path, bool secure) {
 		String key = get_key(secure, domain, path, name);
-		LMDB::shared()->remove(_db, key);
+		_db->remove(_dbi, key);
 	}
 
 	// Delete all cookies under a path (including deeper subpaths)
 	void http_delete_all_cookie(cString& domain, cString& path, bool secure) {
-		LMDB::shared()->remove_prefix(_db, get_key_prefix(secure, domain, path).append('/'));
+		_db->remove_prefix(_dbi, get_key_prefix(secure, domain, path).append('/'));
 	}
 
 	// Clear all cookies
 	void http_clear_cookie() {
-		LMDB::shared()->clear(_db);
+		_db->clear(_dbi);
 	}
 
 } // namespace qk

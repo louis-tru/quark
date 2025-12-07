@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <limits>
+#include <math.h>
 #include "./geometry.h"
 
 namespace qk {

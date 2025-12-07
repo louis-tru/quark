@@ -1321,6 +1321,10 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 	h += paddInt * 2;
 	top += paddInt;
 
+	if (!h || !w) {
+		Return();
+	}
+
 	ColorType type;
 	if (ft_format == FT_GLYPH_FORMAT_OUTLINE) {
 		type = kAlpha_8_ColorType;
@@ -1332,10 +1336,13 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 		case FT_PIXEL_MODE_BGRA: type = kRGBA_8888_ColorType; break;
 		case FT_PIXEL_MODE_LCD:
 		case FT_PIXEL_MODE_LCD_V: type = kRGB_888X_ColorType; break;
-		default: Qk_ASSERT(0, "Unknown pixel mode"); Return();
+		default:
+			Qk_DLog("Unknown pixel mode %d", fFace->glyph->bitmap.pixel_mode);
+			Return();
 		}
 	} else {
-		Qk_ASSERT(0, "Unknown glyph format"); Return();
+		Qk_DLog("Unknown glyph format %d", ft_format);
+		Return();
 	}
 
 	PixelInfo info(w, h, type, kUnknown_AlphaType);
@@ -1343,7 +1350,7 @@ Typeface::TextImage QkTypeface_FreeType::onGetImage(cArray<GlyphID>& glyphs, flo
 	memset(pixel.val(), 0, pixel.length());
 
 	FT_Pixel_Mode mode = antiAlias ? FT_PIXEL_MODE_GRAY: FT_PIXEL_MODE_MONO;
-	Vec2 imgBaseline{float(padding), top};
+	Vec2 imgBaseline{float(paddInt), top};
 
 	for (auto &gm: gms) {
 		if (FT_Load_Glyph(fFace, gm.id, fLoadGlyphFlags) != 0)

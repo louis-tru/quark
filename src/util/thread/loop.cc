@@ -164,8 +164,8 @@ namespace qk {
 	}
 
 	void RunLoop::run() {
-		if (__is_process_exit_atomic) {
-			Qk_Warn("cannot run RunLoop::run(), __is_process_exit_atomic != 0"); return;
+		if (__is_process_exit_flag) {
+			Qk_Warn("cannot run RunLoop::run(), __is_process_exit_flag != false"); return;
 		}
 		if (!_thread) {
 			Qk_Warn("cannot run RunLoop::run(), _thread == nullptr"); return;

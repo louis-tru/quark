@@ -82,7 +82,7 @@ public:
 	}
 
 private:
-	std::vector<uint32_t>  fK32;
+	std::vector<int32_t>  fK32;
 	std::vector<uint16_t>  fV16;
 	double                 fDenom;
 };

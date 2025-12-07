@@ -31,6 +31,7 @@
 #include <src/util/util.h>
 #include <src/util/util.h>
 #include <src/ui/geometry.h>
+#include <math.h>
 #include "./test.h"
 
 using namespace qk;

@@ -32,24 +32,31 @@
 #include "./storage.h"
 
 namespace qk {
-	static LMDB_DBIPtr _db = LMDB::shared()->dbi("storage");
-	
+	#define _db LMDB::shared()
+	#define _dbi get_storage_db()
+	static LMDB_DBIPtr _lmdb_dbi = nullptr;
+	inline LMDB_DBIPtr get_storage_db() {
+		if (_lmdb_dbi == nullptr)
+			_lmdb_dbi = _db->dbi("storage");
+		return _lmdb_dbi;
+	}
+
 	String storage_get(cString& name) {
 		String str;
-		LMDB::shared()->get(_db, name, &str);
+		_db->get(_dbi, name, &str);
 		return str;
 	}
 
 	void storage_set(cString& name, cString& value) {
-		LMDB::shared()->set(_db, name, value);
+		_db->set(_dbi, name, value);
 	}
 
 	void storage_remove(cString& name) {
-		LMDB::shared()->remove(_db, name);
+		_db->remove(_dbi, name);
 	}
 
 	void storage_clear() {
-		LMDB::shared()->clear(_db);
+		_db->clear(_dbi);
 	}
 
 } // namespace qk

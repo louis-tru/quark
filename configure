@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# set -e
+set -e
 
 # install depes
 
@@ -51,6 +51,15 @@ if [ ! -f libs/qktool/out/qktool/package.json ]; then
 	cd ../..
 fi
 
+# link qktool to tools/node_modules
+if   [ ! -d tools/node_modules/qktool ] \
+; then
+	mkdir -p tools/node_modules
+	cd tools/node_modules
+	ln -s ../../libs/qktool/out/qktool
+	cd ../..
+fi
+
 # build libs/qkmake
 if [ ! -f libs/qkmake/out/qkmake/.build ]; then
 	cd libs/qkmake
@@ -64,12 +73,14 @@ if [ ! -f libs/qkmake/out/qkmake/.build ]; then
 	echo '' > libs/qkmake/out/qkmake/.build
 fi
 
-if [ "`which qktsc`" = "" ]; then
-	make install-only
-fi
-
 # build libs/quark
 if [ ! -f libs/quark/out/quark/package.json ]; then
+	cd libs/quark
+	npm run prebuild
+	cd ../..
+	if [ "`which qktsc`" = "" ]; then
+		make install-only
+	fi
 	cd libs/quark
 	npm run build
 	cd ../..
@@ -90,14 +101,13 @@ if [ ! -f examples/out/examples/package.json ]; then
 	cd ..
 fi
 
-if   [ ! -d tools/node_modules/qktool ] \
-	|| [ ! -d tools/node_modules/qkmake ] \
+if   [ ! -d tools/node_modules/qkmake ] \
 	|| [ ! -d tools/node_modules/quark ] \
 ; then
-	rm -rf tools/node_modules/*
+	rm -rf tools/node_modules/qkmake
+	rm -rf tools/node_modules/quark
 	mkdir -p tools/node_modules
 	cd tools/node_modules
-	ln -s ../../libs/qktool/out/qktool
 	ln -s ../../libs/qkmake/out/qkmake
 	ln -s ../../libs/quark/out/quark
 	cd ../..

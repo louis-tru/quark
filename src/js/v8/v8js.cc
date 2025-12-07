@@ -719,7 +719,7 @@ namespace qk { namespace js {
 
 	JSString* Worker::newString(cBuffer& data) {
 		return Cast<JSString>(
-			v8::String::NewFromUtf8(ISOLATE(this), *data, v8::String::kNormalString, data.length())
+			v8::String::NewFromUtf8(ISOLATE(this), *data, v8::NewStringType::kNormal, data.length())
 		);
 	}
 

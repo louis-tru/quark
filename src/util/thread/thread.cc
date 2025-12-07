@@ -31,6 +31,8 @@
 #include "./inl.h"
 #include <uv.h>
 #include <dlfcn.h>
+#include <exception>
+#include <cstdio>
 
 #if Qk_ANDROID
 #include "../util/jni.h"
@@ -49,17 +51,15 @@ namespace qk {
 		return id.hash;
 	}
 
-	std::atomic_int                      __is_process_exit_atomic(0);
-	bool                                 __is_process_exit = false;
+	std::atomic_bool                    __is_process_exit_flag{false};
 	Mutex                               *__threads_mutex = nullptr;
 	static Dict<ThreadID, Thread_INL*>  *__threads = nullptr;
-	static uv_key_t                      __th_key;
 	static EventNoticer<Event<void, int>, Mutex> *__on_process_exit = nullptr;
 	static EventNoticer<Event<void>, Mutex> *__on_foreground = nullptr;
 	static EventNoticer<Event<void>, Mutex> *__on_background = nullptr;
 
 	Qk_EXPORT bool is_process_exit() {
-		return __is_process_exit;
+		return __is_process_exit_flag;
 	}
 
 	CondMutex::Lock::~Lock() {
@@ -110,19 +110,18 @@ namespace qk {
 		return t;
 	}
 
+	thread_local Thread_INL* thread_inl = nullptr;
+
 	static void thread_set_thread_data(Thread_INL *t) {
-		//Qk_ASSERT(!pthread_getspecific(__th_key));
-		//pthread_setspecific(__th_key, t);
-		Qk_ASSERT_EQ(uv_key_get(&__th_key), nullptr);
-		uv_key_set(&__th_key, t);
+		thread_inl = t;
 	}
 
 	cThread* thread_self() {
-		return reinterpret_cast<cThread*>(uv_key_get(&__th_key));
+		return thread_inl;
 	}
 
 	Thread_INL* thread_self_inl() {
-		return reinterpret_cast<Thread_INL*>(uv_key_get(&__th_key));
+		return thread_inl;
 	}
 
 	ThreadID thread_self_id() {
@@ -148,7 +147,7 @@ namespace qk {
 	}
 
 	ThreadID thread_new(void (*exec)(cThread *t, void* arg), void* arg, cString& tag) {
-		if ( __is_process_exit_atomic != 0 ) {
+		if ( __is_process_exit_flag ) {
 			return ThreadID();
 		}
 		ThreadID id;
@@ -264,9 +263,8 @@ namespace qk {
 	}
 
 	static void thread_process_exit(int rc) {
-		if (__is_process_exit_atomic++)
+		if (__is_process_exit_flag.exchange(true))
 			return; // exit
-		__is_process_exit = true;
 
 		Array<ThreadID> threads_id;
 
@@ -295,7 +293,7 @@ namespace qk {
 	}
 
 	void thread_exit(int rc) {
-		if (!__is_process_exit_atomic) {
+		if (!__is_process_exit_flag.load()) {
 			thread_process_exit(rc);
 			::exit(rc); // exit process
 		}
@@ -311,6 +309,25 @@ namespace qk {
 		return *__on_background;
 	}
 
+	static void onUnexpectedTerminate() {
+		if (auto eptr = std::current_exception()) {
+			try {
+				std::rethrow_exception(eptr);
+			}
+			catch (const qk::Error& e) {
+				Qk_ELog("Uncaught qk::Error: %s", e.message().c_str());
+			}
+			catch (const std::exception& e) {
+				Qk_ELog("Uncaught std::exception: %s", e.what());
+			}
+			catch (...) {
+				Qk_ELog("Unknown exception");
+			}
+		}
+		Qk_Log("Thread name: %s", thread_inl ? thread_inl->name.c_str(): "unknown");
+		abort();
+	}
+
 	Qk_Init_Func(thread_init_once) {
 		Qk_DLog("thread_init_once");
 		// Object heap allocator may not have been initialized yet
@@ -319,10 +336,8 @@ namespace qk {
 		__on_process_exit = new EventNoticer<Event<void, int>, Mutex>(nullptr);
 		__on_foreground = new EventNoticer<Event<void>, Mutex>(nullptr);
 		__on_background = new EventNoticer<Event<void>, Mutex>(nullptr);
-		//Qk_DLog("sizeof EventNoticer<Event<>, Mutex>,%d", sizeof(EventNoticer<Event<>, Mutex>));
-		//Qk_DLog("sizeof EventNoticer<>,%d", sizeof(EventNoticer<>));
 		atexit([](){ thread_process_exit(0); });
-		// Qk_CHECK(pthread_key_create(&__th_key, nullptr) == 0);
-		Qk_CHECK(uv_key_create(&__th_key) == 0);
+		std::set_terminate(onUnexpectedTerminate);
+		std::set_unexpected(onUnexpectedTerminate);
 	}
 }

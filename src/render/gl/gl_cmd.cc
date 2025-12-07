@@ -720,7 +720,7 @@ namespace qk {
 				{bounds.begin.x() - size, bounds.begin.y()},
 				{bounds.end.x() + size, bounds.end.y()},
 			}, false, depth);
-			// glClearBufferfv(GL_COLOR, 0, emptyColor.val);
+			// glClearBufferfv(GL_COLOR, 0, emptyColor);
 
 			if (isClipState) {
 				glEnable(GL_STENCIL_TEST); // restore clip state
@@ -815,7 +815,7 @@ namespace qk {
 			*/
 			// Qk_DLog("------------- oRw:%d, oRh:%d, Rw:%f, Rh:%f, offsetY:%f, oiScale:%f",
 			//	oRw, oRh, R.x(), R.y(), offsetY, oiScale);
-			//glClearBufferfv(GL_COLOR, 0, emptyColor.val);
+			//glClearBufferfv(GL_COLOR, 0, emptyColor);
 			y1_-=size; y2_+=size;
 			clearRegion({{x1, y1_}, {x2, y1}}, oiScale, offsetY, depth); // clear top
 			clearRegion({{x1, y2}, {x2, y2_}}, oiScale, offsetY, depth); // clear bottom
@@ -880,7 +880,7 @@ namespace qk {
 			auto &cp = _render->_shaders.vportCp;
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->id, 0);
 #if Qk_LINUX
-			glClearBufferfv(GL_COLOR, 0, emptyColor.val); // clear image tex
+			glClearBufferfv(GL_COLOR, 0, emptyColor); // clear image tex
 #endif
 			glBindTexture(GL_TEXTURE_2D, _canvas->_outTex->id); // read image source
 			if (s == Vec2(w,h)) {
@@ -930,7 +930,7 @@ namespace qk {
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat, size[0], size[1], 0, format, type, nullptr);
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->id, 0);
 #if Qk_LINUX
-			glClearBufferfv(GL_COLOR, 0, emptyColor.val); // clear image tex
+			glClearBufferfv(GL_COLOR, 0, emptyColor); // clear image tex
 #endif
 			setTex_SourceImage(_render, img, {
 				int(size[0]),int(size[1]),img->type(),img->info().alphaType()

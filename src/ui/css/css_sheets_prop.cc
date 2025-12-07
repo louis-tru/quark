@@ -197,14 +197,15 @@ namespace qk {
 		void transition(View *view, Property *to, float y) override {
 			Qk_ASSERT(static_cast<PropImpl*>(to)->_prop == _prop);
 			auto set = (void (View::*)(T,bool))(view->accessor() + _prop)->set;
-			if (set)
+			if (set) {
 				(view->*set)(transition_value(_value, static_cast<PropImpl*>(to)->_value, y),true);
+			}
 		}
 		Property* copy() override {
 			return new PropImpl<T>(_prop, _value);
 		}
 		CssProp _prop;
-		T        _value;
+		T       _value;
 	};
 
 	// @template Object or BoxFilter

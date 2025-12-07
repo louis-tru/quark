@@ -60,9 +60,13 @@ function update_quark_version() {
 		//__dirname + '/../libs/qkmake/out/qkmake/package.json',
 		//__dirname + '/../libs/qkmake/package.json',
 	].forEach(e=>{
-		var json = fs.readFileSync(e, 'utf-8');
-		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
-		fs.writeFileSync(e, json);
+		if (fs.existsSync(e)) {
+			var json = fs.readFileSync(e, 'utf-8');
+			json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
+			fs.writeFileSync(e, json);
+		} else {
+			console.warn('Warning: cannot find file to update version:', e);
+		}
 	});
 }
 

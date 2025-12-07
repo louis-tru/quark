@@ -95,7 +95,8 @@ namespace qk {
 		inline Vec2 atPt(uint32_t index) const { return _pts[index]; }
 		inline PathVerb atVerb(uint32_t index) const { return (PathVerb)_verbs[index]; }
 		inline cArray<Vec2>& pts() const { return _pts; }
-		inline cArray<PathVerb>& verbs() const { return (cArray<PathVerb>&)_verbs; }
+		// inline cArray<PathVerb>& verbs() const { return (cArray<PathVerb>&)_verbs; }
+		cArray<PathVerb>& verbs() const;
 		inline uint32_t ptsLen() const { return _pts.length(); }
 		inline uint32_t verbsLen() const { return _verbs.length(); }
 		inline uint64_t hashCode() const { return _hash.hashCode(); }
@@ -155,6 +156,7 @@ namespace qk {
 		// Props field:
 		Array<Vec2> _pts;
 		Array<uint8_t> _verbs;
+		// Array<PathVerb> _verbs;
 		Hash5381 _hash;
 		bool _IsNormalized, _sealed;
 		friend class RectPath;

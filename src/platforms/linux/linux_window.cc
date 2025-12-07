@@ -207,8 +207,8 @@ namespace qk {
 
 			auto xwin = XCreateWindow(
 				_xdpy, _root,
-				select(opts.frame.origin[0] * _xwin_scale, (xdpyW - width) / 2),
-				select(opts.frame.origin[1] * _xwin_scale, (xdpyH - height) / 2), width, height, 0,
+				select(opts.frame.begin[0] * _xwin_scale, (xdpyW - width) / 2),
+				select(opts.frame.begin[1] * _xwin_scale, (xdpyH - height) / 2), width, height, 0,
 				DefaultDepth(_xdpy, 0),
 				InputOutput,
 				DefaultVisual(_xdpy, 0),
@@ -409,7 +409,8 @@ namespace qk {
 		return _platform(_impl)->_xwin_scale;
 	}
 
-	Region Window::getDisplayRegion(Vec2 size) {
+	Range Window::getDisplayRange(Vec2 size) {
+		// begin,end
 		return {{0}, size};
 	}
 

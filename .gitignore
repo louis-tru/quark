@@ -23,3 +23,4 @@ quark.*
 .config.mk
 deps/spine
 src/ui/painter_*
+a.out

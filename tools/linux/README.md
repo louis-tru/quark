@@ -1,12 +1,20 @@
 
-# apt install libxcursor-dev
-# apt install libfontconfig1-dev
-
 ubuntu
 ======================
 # apt install libasound2-dev
 # apt install libx11-dev
 # apt install libgles2-mesa-dev
+# apt install libxcursor-dev
+# apt install libfontconfig1-dev
+	/usr/bin/ld: cannot find -lGLESv2
+	/usr/bin/ld: cannot find -lEGL
+	/usr/bin/ld: cannot find -lX11
+	/usr/bin/ld: cannot find -lXi
+	/usr/bin/ld: cannot find -lXcursor
+	/usr/bin/ld: cannot find -lasound
+	/usr/bin/ld: cannot find -lfontconfig
+	/usr/bin/ld: cannot find -lz
+	/usr/bin/ld: cannot find -lbz2
 
 # apt install systemtap-sdt-dev
 	* dtrace

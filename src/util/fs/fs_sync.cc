@@ -48,8 +48,10 @@ namespace qk {
 	static bool default_stop_signal = false;
 
 	static void uv_error(int err, cChar* msg = nullptr) throw(Error) {
-		throw Error((int)err, "%s, %s, %s",
-								uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
+		// throw Error((int)err, "%s, %s, %s",
+		// 						uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
+		Qk_Throw(err, "%s, %s, %s",
+							uv_err_name(errno), uv_strerror(err), msg ? msg: "");
 	}
 
 	static bool each_sync_inl(Array<Dirent>& ls, Callback<Dirent>& cb, bool internal) throw(Error) {

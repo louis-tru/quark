@@ -43,7 +43,7 @@
 #undef None
 
 #include "./linux_app.h"
-#include "../../util/thread.h"
+#include "../../util/thread/inl.h"
 #include "../../util/http.h"
 #include "../../ui/ui.h"
 
@@ -105,20 +105,22 @@ namespace qk
 				if (!event.xany.window || !_winImpl.get(event.xany.window, impl)) {
 					continue;
 				}
+				auto win = impl->win();
+
 				switch (event.type) {
 					case Expose:
 						Qk_DLog("event, Expose");
-						impl->win()->render()->reload();
+						win->render()->reload();
 						break;
 					case MapNotify:
 						Qk_DLog("event, MapNotify, Window onForeground");
-						_app->triggerForeground(impl->win());
-						impl->win()->render()->surface()->renderLoopRun();
+						_app->triggerForeground(win);
+						win->render()->surface()->renderLoopRun();
 						break;
 					case UnmapNotify:
 						Qk_DLog("event, UnmapNotify, Window onBackground");
-						_app->triggerBackground(impl->win());
-						impl->win()->render()->surface()->renderLoopStop();
+						_app->triggerBackground(win);
+						win->render()->surface()->renderLoopStop();
 						break;
 					case FocusIn:
 						Qk_DLog("event, FocusIn, Window onResume");
@@ -131,28 +133,28 @@ namespace qk
 					case KeyPress:
 						Qk_DLog("event, KeyDown, keycode: %ld", event.xkey.keycode);
 						impl->ime()->key_press(&event.xkey);
-						impl->win()->dispatch()->keyboard()->dispatch(event.xkey.keycode, false, true,
+						win->dispatch()->keyboard()->dispatch(event.xkey.keycode, false, true,
 							false, false, 0, 0);
 						break;
 					case KeyRelease:
 						Qk_DLog("event, KeyUp, keycode: %d", event.xkey.keycode);
-						impl->win()->dispatch()->keyboard()->dispatch(event.xkey.keycode, false, false,
+						win->dispatch()->keyboard()->dispatch(event.xkey.keycode, false, false,
 							false, false, 0, 0);
 						break;
 					case ButtonPress:
 						Qk_DLog("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-						impl->win()->dispatch()->onMousepress(
+						win->dispatch()->onMousepress(
 							KeyboardKeyCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), true, nullptr);
 						break;
 					case ButtonRelease:
 						Qk_DLog("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-						impl->win()->dispatch()->onMousepress(
+						win->dispatch()->onMousepress(
 							KeyboardKeyCode(KEYCODE_MOUSE_LEFT + event.xbutton.button - 1), false, nullptr);
 						break;
 					case MotionNotify: {
 						// Qk_DLog("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
-						impl->win()->dispatch()->onMousemove(
-							event.xmotion.x / impl->win()->scale(), event.xmotion.y / impl->win()->scale()
+						win->dispatch()->onMousemove(
+							event.xmotion.x / win->scale(), event.xmotion.y / win->scale()
 						);
 						break;
 					}
@@ -160,7 +162,9 @@ namespace qk
 						if (event.xclient.message_type == wmProtocols && 
 							(Atom)event.xclient.data.l[0] == wmDeleteWindow) { // close
 							Qk_DLog("event, ClientMessage: Close");
-							impl->win()->close();
+							_app->loop()->post(Cb([win](auto e) {
+								win->close(); // close window for app loop
+							}, win));
 						}
 						break;
 					case GenericEvent:
@@ -201,9 +205,9 @@ namespace qk
 
 			List<TouchEvent::TouchPoint> touchs = {{
 				uint32_t(xev->detail),
-				0, 0,
-				float(xev->event_x) / impl->win()->scale(),
-				float(xev->event_y) / impl->win()->scale(),
+				{0, 0},
+				{float(xev->event_x) / impl->win()->scale(),
+				float(xev->event_y) / impl->win()->scale()},
 				0,
 				false,
 				nullptr,

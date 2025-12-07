@@ -145,8 +145,8 @@ namespace qk {
 	};
 
 	struct CssPropAccessor {
-		void (Object::*get)();
-		void (Object::*set)();
+		void (View::*get)();
+		void (View::*set)();
 	};
 }
 

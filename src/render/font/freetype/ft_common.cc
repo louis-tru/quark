@@ -198,8 +198,8 @@ void QkTypeface_FreeType::generateGlyphImage(cFontGlyphMetrics &glyph, Pixel &pi
 
 		float dy = -glyph.fTop - dst.rows;
 	
-		Qk_DLog("generateGlyphImage, pixelBaseline: %f, fTop: %f, fBottom: %f, fHeight: %f, PixH: %d, dy: %f",
-				pixelBaseline, glyph.fTop, glyph.fHeight + glyph.fTop, glyph.fHeight, pixel.height(), -dy);
+		Qk_DLog("generateGlyphImage, imgBaseline: %f, fTop: %f, fBottom: %f, fHeight: %f, PixH: %d, dy: %f",
+				imgBaseline, glyph.fTop, glyph.fHeight + glyph.fTop, glyph.fHeight, pixel.height(), -dy);
 	
 		/*
 			what we really want to do for subpixel is

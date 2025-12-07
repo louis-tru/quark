@@ -1,6 +1,6 @@
 #vert
-uniform   vec4      range;/*origin/end range for rect*/
-out       float     weight;
+uniform lowp  vec4      range;/*origin/end range for rect*/
+out           float     weight;
 
 void main() {
 	vec2 ao = range.zw    - range.xy;

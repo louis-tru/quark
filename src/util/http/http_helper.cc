@@ -294,7 +294,7 @@ namespace qk {
 		if (ok) {
 			return data.data;
 		} else {
-			throw err;
+			Qk_Throw(err);
 		}
 	}
 

@@ -121,7 +121,7 @@ namespace qk {
 		void set_keyboard_return_type(KeyboardReturnType type) {}
 
 		void set_spot_rect(Rect rect) {
-			auto location = rect.origin;
+			auto location = rect.begin;
 			Qk_DLog("set_spot_rect, x=%f,y=%f", location[0], location[1]);
 			if (location[0] != 0 || location[1] != 0) {
 				float scale = _win->scale();

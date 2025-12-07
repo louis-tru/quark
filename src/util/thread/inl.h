@@ -37,9 +37,9 @@
 #include <uv.h>
 
 namespace qk {
-	extern RunLoop*        __first_loop;
-	extern Mutex*          __threads_mutex;
-	extern std::atomic_int __is_process_exit_atomic;
+	extern RunLoop*         __first_loop;
+	extern Mutex*           __threads_mutex;
+	extern std::atomic_bool __is_process_exit_flag;
 
 	struct WaitSelfEnd: CondMutex {
 		bool end = false;

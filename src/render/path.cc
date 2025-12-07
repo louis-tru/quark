@@ -345,6 +345,10 @@ namespace qk {
 		_IsNormalized = _IsNormalized && path._IsNormalized;
 	}
 
+	cArray<Path::PathVerb>& Path::verbs() const {
+		return (cArray<PathVerb>&)_verbs;
+	}
+
 	Array<Vec2> Path::getEdgeLines(float epsilon) const {
 		Path storage;
 		const Path *self = _IsNormalized ? this: normalized(&storage,epsilon,false);

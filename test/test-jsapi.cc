@@ -50,7 +50,7 @@ Qk_TEST_Func(jsapi) {
 		argv_arr.push(argv[i]);
 
 #if USE_DEBUG
-	argv_arr.push("--debug");
+	argv_arr.push("--debug=0.0.0.0");
 	argv_arr.push("--watch");
 #endif
 

@@ -365,10 +365,76 @@ async function exec2(cmd) {
 	}
 }
 
+var _pkgManager; // apt-get, yum, brew
+
+// get pkg manager, get pkg install command
+function getPkgm() {
+	if (_pkgManager)
+		return _pkgManager;
+	var pkgmErrMsg = cmd=>`Not found pkg install command "${cmd}" for the ${host_os}`;
+	if (host_os == 'linux') {
+		if (execSync(`which apt-get`).code == 0) {
+			_pkgManager = 'apt-get';
+		} else if (execSync(`which yum`).code == 0) {
+			_pkgManager = 'yum';
+		} else if (execSync(`which apk`).code == 0) {
+			_pkgManager = 'apk';
+		} else {
+			throw new Error(pkgmErrMsg('apt-get or yum'));
+		}
+	} else if (host_os == 'mac') {
+		if (execSync(`which brew`).code == 0) {
+			_pkgManager = 'brew';
+		} else {
+			throw new Error(pkgmErrMsg('brew https://brew.sh/'));
+		}
+	} else {
+		throw new Error(`Not found pkg install command for the ${host_os}`);
+	}
+	return _pkgManager;
+}
+
+// get pkg install command
+function getPkgmCmds(cmd) {
+	var pkgm = getPkgm();
+	if (pkgm == 'apt-get') {
+		return `*apt-get install ${cmd} -y`;
+	} else if (pkgm == 'yum') {
+		return `*yum install ${cmd} -y`;
+	} else if (pkgm == 'apk') {
+		return `*apk add ${cmd}`;
+	} else if (pkgm == 'brew') {
+		return `brew install ${cmd}`;
+	}
+}
+
 async function install_check(app, cmd) {
 	console.log('check', app);
+	var pkgm = getPkgm();
+	var isLib = app.indexOf('*') == 0;
 
-	if (app.indexOf('/') != -1) { // file
+	if (isLib) {
+		app = app.substring(1);
+		if (pkgm == 'apt-get') {
+			if (execSync(`dpkg -s "${app}"`).code == 0) {
+				return; // already installed
+			}
+		} else if (pkgm == 'yum') {
+			if (execSync(`rpm -q "${app}"`).code == 0) {
+				return; // already installed
+			}
+		} else if (pkgm == 'apk') {
+			if (execSync(`apk info -e "${app}"`).code == 0) {
+				return; // already installed
+			}
+		} else if (pkgm == 'brew') {
+			if (execSync(`brew list --formula | grep "${app}"`).code == 0) {
+				return; // already installed
+			}
+		} else {
+			throw new Error(`not support ${pkgm} pkg manager`);
+		}
+	} else if (app.indexOf('/') != -1) { // file
 		if (fs.existsSync(app)) {
 			return;
 		}
@@ -376,14 +442,6 @@ async function install_check(app, cmd) {
 		if (execSync(`which ${app}`).code == 0) {
 			return;
 		}
-	}
-
-	if (host_os == 'linux') {
-		// util.assert(execSync('which apt-get').code == 0, 'No command `apt-get`');
-	} else if (host_os == 'mac') {
-		// util.assert(execSync('which brew').code == 0, 'No command `brew`, https://brew.sh/');
-	} else {
-		throw new Error(`not support ${host_os} platform`);
 	}
 
 	var cmds, isBuild = false;
@@ -435,81 +493,100 @@ async function install_depe(opts, variables) {
 	var {os,arch} = opts;
 	var {cross_compiling} = variables;
 	var dpkg = {};
-	var pkgm = ''; // apt-get
-
-	var pkgmErrMsg = cmd=>`Not found pkg install command "${cmd}" for the ${host_os}`;
-	var pkgmCmds = (cmd)=>{
-		if (pkgm == '') {
-			if (host_os == 'linux') {
-				if (execSync(`which apt-get`).code == 0) {
-					pkgm = 'apt-get';
-				} else if (execSync(`which yum`).code == 0) {
-					pkgm = 'yum';
-				} else if (execSync(`which apk`).code == 0) {
-					pkgm = 'apk';
-				} else {
-					throw new Error(pkgmErrMsg('apt-get or yum'));
-				}
-			} else if (host_os == 'mac') {
-				if (execSync(`which brew`).code == 0) {
-					pkgm = 'brew';
-				} else {
-					throw new Error(pkgmErrMsg('brew'));
-				}
-			} else {
-				throw new Error(`Not found pkg install command for the ${host_os}`);
-			}
-		}
-		if (pkgm == 'apt-get') {
-			return `*apt-get install ${cmd} -y`;
-		} else if (pkgm == 'yum') {
-			return `*yum install ${cmd} -y`;
-		} else if (pkgm == 'apk') {
-			return `*apk add ${cmd}`;
-		} else if (pkgm == 'brew') {
-			return `brew install ${cmd}`;
-		}
-	};
+	var pkgm = getPkgm(); // apt-get, yum, brew
 
 	// First check host g++ compiler
 	if (host_os == 'linux') {
-		dpkg['g++'] = pkgmCmds('g++'); // x86 or x64
+		dpkg['g++'] = getPkgmCmds('g++'); // x86 or x64
 	}
 
-	// var autoconf = { build: [ `./configure`, `make`, `*make install` ] };
-	// var automake = { build: [ `./configure`, `make -j1`, `*make -j1 install` ] };
-	// var yasm = {
-	//	deps: { autoconf, automake },
-	// 	build: [ './autogen.sh', 'make -j2', '*make install' ],
-	// };
-	var yasm = pkgmCmds('yasm');
-	// var cmake = { build: [ `./configure`, `make -j2`, `*make -j1 install` ] };
-	// var cmake = pkgmCmds('cmake');
-	// dpkg.ninja = {
-	// 	deps: { cmake },
-	// 	build: [ 'cmake .', 'make -j2', '*make install' ],
-	// };
+	// yasm default install
+	var yasm = getPkgmCmds('yasm');
+
+	var isBuildYasm = false; // whether build yasm from source
+	var isNinja = false; // whether use ninja build system
+	if (isBuildYasm) {
+		var autoconf = { build: [ `./configure`, `make`, `*make install` ] };
+		var automake = { build: [ `./configure`, `make -j1`, `*make install` ] };
+		yasm = {
+			deps: { autoconf, automake },
+			build: [ './autogen.sh', 'make -j2', '*make install' ],
+		};
+	}
+	if (isNinja) {
+		// var cmake = { build: [ `./configure`, `make -j2`, `*make -j1 install` ] };
+		var cmake = getPkgmCmds('cmake');
+		dpkg.ninja = {
+			deps: { cmake },
+			build: [ 'cmake .', 'make -j2', '*make install' ],
+		};
+	}
 
 	if (host_os == 'linux') {
+		if (pkgm == 'apt-get') {
+			for (let lib of [
+				'libgles2-mesa-dev',
+				'libegl1-mesa-dev',
+				'libx11-dev',
+				'libxi-dev',
+				'libxcursor-dev',
+				'libasound2-dev',
+				'libfontconfig1-dev',
+				'zlib1g-dev',
+				'libbz2-dev',
+				'libwebp-dev',
+			]) {
+				dpkg[`*${lib}`] = getPkgmCmds(lib); // add common linux lib dependencies
+			}
+		} else if (pkgm == 'yum') {
+			for (let lib of [
+				'mesa-libGLES-devel',
+				'mesa-libEGL-devel',
+				'libX11-devel',
+				'libXi-devel',
+				'libXcursor-devel',
+				'alsa-lib-devel',
+				'fontconfig-devel',
+				'zlib-devel',
+				'bzip2-devel',
+			]) {
+				dpkg[`*${lib}`] = getPkgmCmds(lib);
+			}
+		}
+		else if (pkgm == 'apk') {
+			for (let lib of [
+				'mesa-dev',
+				'libx11-dev',
+				'libxi-dev',
+				'libxcursor-dev',
+				'alsa-lib-dev',
+				'fontconfig-dev',
+				'zlib-dev',
+				'bz2-dev',
+			]) {
+				dpkg[`*${lib}`] = getPkgmCmds(lib);
+			}
+		}
+
 		if (arch == 'x86' || arch == 'x64') {
 			if (typeof yasm != 'string')
-				yasm.deps.dtrace = pkgmCmds('systemtap-sdt-dev');
+				yasm.deps.dtrace = getPkgmCmds('systemtap-sdt-dev');
 			dpkg.yasm = yasm;
 		}
 		if (os == 'linux') {
 			if (cross_compiling) {
 				if (arch == 'arm') {
-					dpkg['arm-linux-gnueabihf-g++'] = pkgmCmds('g++-arm-linux-gnueabihf');
+					dpkg['arm-linux-gnueabihf-g++'] = getPkgmCmds('g++-arm-linux-gnueabihf');
 				} else if (arch == 'arm64') {
-					dpkg['aarch64-linux-gnu-g++'] = pkgmCmds('g++-aarch64-linux-gnu');
+					dpkg['aarch64-linux-gnu-g++'] = getPkgmCmds('g++-aarch64-linux-gnu');
 				} else {
 					throw new Error(`do not support cross compiling to "${arch}"`);
 				}
 			}
 			// TODO: Maybe also have to install libxcursor-dev and libfontconfig-dev
 		} else if (os == 'android') {
-			// dpkg.javac = pkgmCmds('openjdk-8-jdk');
-			dpkg.javac = pkgmCmds('openjdk-17-jdk');
+			// dpkg.javac = getPkgmCmds('openjdk-8-jdk');
+			dpkg.javac = getPkgmCmds('openjdk-17-jdk');
 		}
 	}
 	else if (host_os == 'mac') {

@@ -57,7 +57,7 @@ namespace qk {
 		Mutex _msgMutex;
 		Window *_active = nullptr;
 	public:
-		Qk_DEFINE_PROP_GET(Region, displayRegion);
+		Qk_DEFINE_PROP_GET(Range, displayRange);
 
 		const ThreadID main_thread_id = thread_self_id();
 
@@ -255,7 +255,7 @@ namespace qk {
 		// ----------------------------------------------------------------------
 
 		static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
-			swm->_displayRegion = {Vec2(rect->left,rect->top),Vec2(rect->right,rect->bottom)};
+			swm->_displayRange = {Vec2(rect->left,rect->top),Vec2(rect->right,rect->bottom)};
 
 			auto awin = activeWindow();
 			if (awin) {
@@ -290,7 +290,7 @@ namespace qk {
 
 	static bool convertToTouch(AInputEvent* motionEvent, int pointerIndex, TouchPoint* out) {
 		Vec2 scale = swm->activeWindow()->scale();
-		float left = swm->displayRegion().begin.x();
+		float left = swm->displayRange().begin.x();
 		int id = AMotionEvent_getPointerId(motionEvent, pointerIndex);
 		float x = AMotionEvent_getX(motionEvent, pointerIndex) - left;
 		float y = AMotionEvent_getY(motionEvent, pointerIndex);
@@ -430,41 +430,41 @@ namespace qk {
 		return Android_get_display_scale();
 	}
 
-	Region Window::getDisplayRegion(Vec2 size) {
-		auto region = swm->displayRegion();
-		auto regionNew = _opts.navigationColor.a() == 0 ? Region{0,size}: region;
+	Range Window::getDisplayRange(Vec2 size) {
+		auto range = swm->displayRange();
+		auto rangeNew = _opts.navigationColor.a() == 0 ? Range{0,size}: range;
 		float scale = getDefaultScale();
 
 		if (_lockSize.x() != 0) { // lock width
-			scale = (regionNew.end.x() - regionNew.begin.x()) / _lockSize.x();
+			scale = (rangeNew.end.x() - rangeNew.begin.x()) / _lockSize.x();
 		}
 		else if (_lockSize.y() != 0) { // lock height
-			scale = (regionNew.end.y() - regionNew.begin.y()) / _lockSize.y();
+			scale = (rangeNew.end.y() - rangeNew.begin.y()) / _lockSize.y();
 		}
 
-		// Navigation button region for Android
-		if (region.end.y() != size.y()) { // bottom
+		// Navigation button range for Android
+		if (range.end.y() != size.y()) { // bottom
 			_navigationRect = {
-				Vec2{0,region.end.y()}/scale,
-				Vec2{size.x(), size.y()-region.end.y()}/scale
+				Vec2{0,range.end.y()}/scale,
+				Vec2{size.x(), size.y()-range.end.y()}/scale
 			};
 		}
-		else if (region.begin.x() != 0) { // left
+		else if (range.begin.x() != 0) { // left
 			_navigationRect = {
 				Vec2{0,0},
-				Vec2{region.begin.x(), size.y()}/scale
+				Vec2{range.begin.x(), size.y()}/scale
 			};
 		}
-		else if (region.end.x() != size.x()) { // right
+		else if (range.end.x() != size.x()) { // right
 			_navigationRect = {
-				Vec2{region.end.x(),0}/scale,
-				Vec2{size.x()-region.end.x(), size.y()}/scale
+				Vec2{range.end.x(),0}/scale,
+				Vec2{size.x()-range.end.x(), size.y()}/scale
 			};
 		} else {
 			_navigationRect = {};
 		}
 
-		return regionNew;
+		return rangeNew;
 	}
 
 	void Window::afterDisplay() {

@@ -9,6 +9,7 @@
 			'../deps/libtess2/Include',
 			'../deps/libjpeg',
 		],
+		# 'cflags_cc': [ '-Wstrict-aliasing' ],
 		'dependencies': [
 			'quark-util', # util
 			'deps/libtess2/libtess2.gyp:libtess2',

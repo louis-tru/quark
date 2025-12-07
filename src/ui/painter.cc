@@ -701,7 +701,9 @@ namespace qk {
 		}
 	}
 
-	void Painter::visitAndClipBox(Box *v, void (*cb)(Painter *drawer, Box *v)) {
+	typedef void (*DrawCallback)(Painter *drawer, Box *v);
+
+	void Painter::visitAndClipBox(Box *v, DrawCallback cb) {
 		getInsideRectPath(v);
 		_canvas->save();
 		_canvas->clipPathv(*_boxData.inside, Canvas::kIntersect_ClipOp, v->_aa); // clip
@@ -819,7 +821,7 @@ namespace qk {
 					auto self = static_cast<Text*>(v);
 					painter->drawTextBlob(self,
 						Fn::getOffset(self), *self->_lines, self->_blob, self->_blob_visible);
-				}: nullptr);
+				}: DrawCallback(nullptr));
 			}
 		} else {
 			if (drawText)

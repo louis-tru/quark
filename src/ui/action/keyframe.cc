@@ -306,7 +306,6 @@ namespace qk {
 
 	void KeyframeAction::append(Action *child) throw(Error) {
 		Qk_Throw(ERR_ACTION_KEYFRAME_CANNOT_APPEND, "KeyframeAction::append, cannot call append method for keyframe");
-		// Qk_ELog("KeyframeAction::append, cannot call append method for keyframe");
 	}
 
 }
