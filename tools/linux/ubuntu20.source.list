@@ -1,0 +1,21 @@
+
+# ubuntu20 source.list
+## amd64
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
+## arm64
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-security main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-updates main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-proposed main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-backports main restricted universe multiverse
+
+## src
+#deb-src https://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
+#deb-src https://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
+#deb-src https://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
+#deb-src https://mirrors.aliyun.com/ubuntu-ports/ focal-proposed main restricted universe multiverse
+#deb-src https://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse

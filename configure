@@ -73,14 +73,17 @@ if [ ! -f libs/qkmake/out/qkmake/.build ]; then
 	echo '' > libs/qkmake/out/qkmake/.build
 fi
 
+# check qktsc
+if [ "`which qktsc`" = "" ]; then
+	cd libs/quark
+	npm run _prebuild
+	cd ../..
+	make install-only # install qktsc
+	rm libs/quark/out/quark/package.json # force rebuild quark
+fi
+
 # build libs/quark
 if [ ! -f libs/quark/out/quark/package.json ]; then
-	cd libs/quark
-	npm run prebuild
-	cd ../..
-	if [ "`which qktsc`" = "" ]; then
-		make install-only
-	fi
 	cd libs/quark
 	npm run build
 	cd ../..

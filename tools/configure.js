@@ -465,7 +465,6 @@ async function install_check(app, cmd) {
 
 	if (isBuild) {
 		cd = `${__dirname}/../out/${app}`;
-		// await exec2(`rm -rf ${cd}`);
 		await exec2(`tar xfz ${__dirname}/pkgs/${app}.tar.gz -C ${__dirname}/../out/`);
 	}
 
@@ -524,17 +523,33 @@ async function install_depe(opts, variables) {
 
 	if (host_os == 'linux') {
 		if (pkgm == 'apt-get') {
+			const suffix =
+				arch === 'arm64' ? 'arm64' :
+				arch === 'arm' ? 'armhf' :
+				arch === 'x64' ? 'amd64' :
+				arch === 'x86' ? 'i386': '';
+			util.assert(suffix, `do not support install depe for ${arch} architecture`);
+
+			if (cross_compiling) { // check foreign architecture
+				if (!execSync(`dpkg --print-foreign-architectures`).stdout.includes(suffix)) {
+					// Maybe need add source list for armhf/arm64 in x86_64 host
+					await exec2(`sudo dpkg --add-architecture ${suffix}`);
+					await exec2(`sudo apt-get update`);
+				}
+			}
+
+			// common linux lib dependencies
 			for (let lib of [
-				'libgles2-mesa-dev',
-				'libegl1-mesa-dev',
-				'libx11-dev',
-				'libxi-dev',
-				'libxcursor-dev',
-				'libasound2-dev',
-				'libfontconfig1-dev',
-				'zlib1g-dev',
-				'libbz2-dev',
-				'libwebp-dev',
+				`libgles2-mesa-dev:${suffix}`,
+				`libegl1-mesa-dev:${suffix}`,
+				`libx11-dev:${suffix}`,
+				`libxi-dev:${suffix}`,
+				`libxcursor-dev:${suffix}`,
+				`libasound2-dev:${suffix}`,
+				`libfontconfig1-dev:${suffix}`,
+				`zlib1g-dev:${suffix}`,
+				`libbz2-dev:${suffix}`,
+				`libwebp-dev:${suffix}`,
 			]) {
 				dpkg[`*${lib}`] = getPkgmCmds(lib); // add common linux lib dependencies
 			}
