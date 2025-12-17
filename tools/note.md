@@ -19,3 +19,23 @@ sudo dpkg --add-architecture armhf
 ‌Ubuntu 20.04使用的是GLIBC2.31‌‌
 ‌Ubuntu 22.04使用的是GLIBC2.35‌‌
 ‌Ubuntu 24.04使用的是GLIBC2.39‌
+
+# The GIT commit infomation format
+### What
+This PR adjusts <module/component> to work correctly in a non-browser runtime.
+
+### Why
+When running Monaco outside of a DOM-based environment, the current implementation assumes <X>, which causes <Y>.
+This change makes the behavior more explicit and avoids relying on <assumption>.
+
+### How
+- Isolate <logic>
+- Add explicit handling for <case>
+- Keep existing browser behavior unchanged
+
+### Impact
+- No behavior change for browser-based environments
+- Enables Monaco to run correctly in alternative runtimes
+
+### Notes
+This change is part of running Monaco in a custom rendering runtime.
