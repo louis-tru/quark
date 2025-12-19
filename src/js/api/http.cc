@@ -459,6 +459,7 @@ namespace qk { namespace js {
 				Buffer(),
 				String(),
 				String(),
+				0,
 				false,
 				false,
 				false,
@@ -507,7 +508,7 @@ namespace qk { namespace js {
 			if ( !value ) return false;
 			uint32_t timeout;
 			if ( value->asUint32(worker).to(timeout) ) {
-				opt.timeout = timeout * 1e3;
+				opt.timeout = timeout;
 			}
 
 			value = obj->get(worker, worker->newStringOneByte(const_disable_ssl_verify));

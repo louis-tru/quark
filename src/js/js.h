@@ -295,6 +295,7 @@ namespace qk { namespace js {
 		String2 value2(Worker* worker) const;
 		String4 value4(Worker* worker) const;
 		Buffer toBuffer(Worker* worker, Encoding en = kUTF16_Encoding) const; // encode to en
+		int utf8Length(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSObject: public JSValue {

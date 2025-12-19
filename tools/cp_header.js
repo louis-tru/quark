@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('qktool/fs');
+var fs = require('qktool/node/fs');
 var path = require('path');
 
 function copy_header(source, target) {

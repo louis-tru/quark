@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('qktool/fs');
-var { execSync } = require('qktool/syscall');
+var fs = require('qktool/node/fs');
+var { execSync } = require('qktool/node/syscall');
 var { copy_header } = require('./cp_header');
 var path = require('path');
 var read_version = require('./read_version');

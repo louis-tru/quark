@@ -33,10 +33,10 @@ const _init = __binding__('_init');
 const _fs = __binding__('_fs');
 const _http = __binding__('_http');
 const _util = __binding__('_util');
-const { formatPath, isAbsolute, isLocal, isLocalZip, stripShebang,
-				isHttp, assert, stripBOM, default: _utild } = _util;
-const { readFile, readFileSync, isFileSync,
-				isDirectorySync, readdirSync } = _fs.reader;
+const _uri = __binding__('_uri');
+const {resolve: formatPath, isAbsolute, isLocal, isLocalZip, isHttp} = _uri;
+const { stripShebang, assert, stripBOM, default: _utild } = _util;
+const { readFile, readFileSync, isFileSync, isDirectorySync, readdirSync } = _fs.reader;
 const _event = __binding__('_event');
 const debug = _util.debugLog('PKG');
 const win32 = _utild.platform == 'win32';
@@ -1142,6 +1142,7 @@ class QkPackage extends Package {
 			'_util.js',
 			'_decorators.js',
 			'_watching.js',
+			'_errno.js',
 			'action.js',
 			'app.js',
 			'buffer.js',

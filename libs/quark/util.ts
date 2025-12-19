@@ -33,7 +33,7 @@ import _util, {__setListenerHook__,getConfig} from './_util';
 import * as _common from './_common';
 import {Event, EventNoticer, Notification, } from './_event';
 
-class RuntimeEvents extends Notification {
+class Runtime extends Notification {
 	private _handles: {[key: string]: (noticer: EventNoticer, ...args: any[])=>any} = {
 		UncaughtException: (noticer: EventNoticer, err: Error)=>
 			noticer.length ? (noticer.trigger(err), true): false,
@@ -52,9 +52,12 @@ class RuntimeEvents extends Notification {
 		}
 		return super.getNoticer(name);
 	}
+	exit(code?: number) {
+		_util.exit(code);
+	}
 }
 
-export const _runtimeEvents = new RuntimeEvents();
+export const __runtime = new Runtime();
 
 /**
  * @type ErrorReason:...
@@ -82,25 +85,25 @@ const _default = {
 	 * @event onBeforeExit:EventNoticer<Event<object,Int>>
 	 */
 	get onBeforeExit(): EventNoticer<Event<object,Int>> {
-		return _runtimeEvents.getNoticer('BeforeExit');
+		return __runtime.getNoticer('BeforeExit');
 	},
 	/**
 	 * @event onExit:EventNoticer<Event<object,Int>>
 	 */
 	get onExit(): EventNoticer<Event<object,Int>> {
-		return _runtimeEvents.getNoticer('BeforeExit');
+		return __runtime.getNoticer('BeforeExit');
 	},
 	/**
 	 * @event onUncaughtException:EventNoticer<Event<object,Error>>
 	 */
 	get onUncaughtException(): EventNoticer<Event<object,Error>> {
-		return _runtimeEvents.getNoticer('UncaughtException');
+		return __runtime.getNoticer('UncaughtException');
 	},
 	/**
 	 * @event onUnhandledRejection:EventNoticer<Event<object,ErrorReason>>
 	 */
 	get onUnhandledRejection(): EventNoticer<Event<object,ErrorReason>> {
-		return _runtimeEvents.getNoticer('UnhandledRejection');
+		return __runtime.getNoticer('UnhandledRejection');
 	},
 };
 

@@ -123,6 +123,7 @@
 					'../../libs/quark/out/_event.js',
 					'../../libs/quark/out/_types.js',
 					'../../libs/quark/out/_ext.js',
+					'../../libs/quark/out/_uri.js',
 				],
 				'outputs': [
 					'../../out/native-inl-js.h',

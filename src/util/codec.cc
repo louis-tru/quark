@@ -37,6 +37,7 @@ namespace qk {
 	Encoding codec_parse_encoding(cString& encoding) {
 		static Dict<String, Encoding> encodings_dict({
 			{ "binary", kBinary_Encoding },
+			{ "latin1", kLatin1_Encoding },
 			{ "ascii", kAscii_Encoding },
 			{ "hex", kHex_Encoding },
 			{ "base64", kBase64_Encoding },
@@ -54,6 +55,7 @@ namespace qk {
 		static cString invalid = "invalid";
 		static Dict<uint32_t, String> strs({
 			{ kBinary_Encoding, "binary" },
+			{ kLatin1_Encoding, "latin1" },
 			{ kAscii_Encoding, "ascii" },
 			{ kHex_Encoding, "hex" },
 			{ kBase64_Encoding, "base64" },
@@ -202,6 +204,35 @@ namespace qk {
 			s[0] |= unicode;
 		}
 		return rev;
+	}
+
+	// 计算单个unicode转换到utf-8编码所需的字节长度
+	static uint32_t encode_unicode_to_utf8_char_length(uint32_t unicode) {
+		if (unicode < 0x7F + 1) {             // 单字节编码
+			return 1;
+		}
+		else {
+			if (unicode < 0x7FF + 1) {            // 两字节编码
+				return 2;
+			}
+			else if (unicode < 0xFFFF + 1) {      // 三字节编码
+				return 3;
+			}
+			else if (unicode < 0x10FFFF + 1) {    // 四字节编码
+				return 4;
+			}
+			else if (unicode < 0x3FFFFFF + 1) {   // 五字节编码
+				if (unicode > 0x200000 - 1) {
+					return 5;
+				}
+				else { // 这个区间没有编码
+					return 0;
+				}
+			}
+			else {                               //六字节编码
+				return 6;
+			}
+		}
 	}
 
 	// --------------------- U T F 1 6 ---------------------
@@ -830,6 +861,19 @@ namespace qk {
 		}
 		data.reset(destLen);
 		Qk_ReturnLocal(data);
+	}
+
+	uint32_t codec_utf16_to_utf8_length(cArray<uint16_t>& utf16) {
+		auto src = *utf16;
+		auto end = src + utf16.length();
+		uint32_t totalLen = 0u;
+		uint32_t unicode;
+
+		while (src < end) {
+			src += codec_decode_utf16_to_unichar(src, &unicode);
+			totalLen += encode_unicode_to_utf8_char_length(unicode);
+		}
+		return totalLen;
 	}
 
 	ArrayBuffer<uint16_t> codec_utf8_to_utf16(cArray<char>& utf8) {

@@ -28,11 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const _buffer_native = __binding__('_buffer');
-
-Object.assign(exports, _buffer_native);
-
+import util from './util';
 import _buffer, {ERR_OUT_OF_RANGE,ERR_INVALID_ARG_TYPE} from './_buffer';
+
+const _codec = util.isQuark ? __binding__('_buffer') : require('./_codec');
+
+Object.assign(exports, {
+	toString: _codec.toString,
+	fromString: _codec.fromString,
+	encodeUTF8Length: _codec.encodeUTF8Length,
+});
 
 // Get constructor on the Uint8Array base prototype.
 const TypedArrayConstructor = (Uint8Array as any).prototype.__proto__.constructor;
@@ -40,14 +45,18 @@ const TypedArrayConstructor = (Uint8Array as any).prototype.__proto__.constructo
 /**
  * All encoding algorithms of string
 */
-export type Encoding = 'binary'|'ascii'|'base64'|'hex'|'utf-8'|'utf8'|'utf-16'|'utf16'|'ucs4';
+export type Encoding = 'binary'|'latin1'|'ascii'|'base64'|'hex'|'utf-8'|'utf8'|'utf-16'|'utf16'|'ucs4';
+
+/**
+ * Bytes type
+ */
+export type Bytes = Uint8ClampedArray | Uint8Array | Buffer;
 
 /**
  * @class Buffer
  * This class represents a binary buffer.
  */
 export class Buffer extends Uint8Array {
-
 	/**
 	 * Copy current buffer data to the target buffer.
 	 * @param target The target buffer to copy data into.
@@ -132,7 +141,7 @@ export class Buffer extends Uint8Array {
 	*/
 	filter(cb: (value: Uint, index: Uint, array: this) => any, thisArg?: any): Buffer {
 		return wrapUintArray(super.filter(
-			cb as (value: Uint, index: Uint, array: Uint8Array) => any, thisArg));
+			cb as (value: Uint, index: Uint, array: Uint8Array) => any, thisArg)) as any;
 	}
 
 	/**
@@ -280,7 +289,7 @@ export class Buffer extends Uint8Array {
 	 * ```
 	 */
 	toString(encoding?: Encoding, start?: Uint, end?: Uint): string {
-		return _buffer_native.toString(this, encoding, start, end);
+		return _codec.toString(this, encoding, start, end);
 	}
 
 	/**
@@ -296,46 +305,88 @@ export class Buffer extends Uint8Array {
 		return _buffer.readUInt8(this, offset);
 	}
 	readInt16BE(offset?: Uint): Int16 {
-		return _buffer.readInt16BE(this, offset);
+		return _buffer.readInt16(this, false, offset);
 	}
 	readUInt16BE(offset?: Uint): Uint16 {
-		return _buffer.readUInt16BE(this, offset);
+		return _buffer.readUInt16(this, false, offset);
 	}
 	readInt32BE(offset?: Uint): Int {
-		return _buffer.readInt32BE(this, offset);
+		return _buffer.readInt32(this, false, offset);
 	}
 	readUInt32BE(offset?: Uint): Uint {
-		return _buffer.readUInt32BE(this, offset);
+		return _buffer.readUInt32(this, false, offset);
 	}
 	readInt40BE(offset?: Uint): number {
-		return _buffer.readInt40BE(this, offset);
+		return _buffer.readInt40(this, false, offset);
 	}
 	readUInt40BE(offset?: Uint): number {
-		return _buffer.readUInt40BE(this, offset);
+		return _buffer.readUInt40(this, false, offset);
 	}
 	readInt48BE(offset?: Uint): number {
-		return _buffer.readInt48BE(this, offset);
+		return _buffer.readInt48(this, false, offset);
 	}
 	readUInt48BE(offset?: Uint): number {
-		return _buffer.readUInt48BE(this, offset);
+		return _buffer.readUInt48(this, false, offset);
 	}
 	readBigInt64BE(offset?: Uint): bigint {
-		return _buffer.readBigInt64BE(this, offset);
+		return _buffer.readBigInt64(this, false, offset);
 	}
 	readBigUInt64BE(offset?: Uint): bigint {
-		return _buffer.readBigUInt64BE(this, offset);
+		return _buffer.readBigUInt64(this, false, offset);
 	}
 	readIntBE(offset?: Uint, byteLength = 4): Int {
-		return _buffer.readIntBE(this, offset, byteLength);
+		return _buffer.readInt(this, false, offset, byteLength);
 	}
 	readUIntBE(offset?: Uint, byteLength = 4): Uint {
-		return _buffer.readUIntBE(this, offset, byteLength);
+		return _buffer.readUInt(this, false, offset, byteLength);
+	}
+	readInt16LE(offset?: Uint): Int16 {
+		return _buffer.readInt16(this, true, offset);
+	}
+	readUInt16LE(offset?: Uint): Uint16 {
+		return _buffer.readUInt16(this, true, offset);
+	}
+	readInt32LE(offset?: Uint): Int {
+		return _buffer.readInt32(this, true, offset);
+	}
+	readUInt32LE(offset?: Uint): Uint {
+		return _buffer.readUInt32(this, true, offset);
+	}
+	readInt40LE(offset?: Uint): number {
+		return _buffer.readInt40(this, true, offset);
+	}
+	readUInt40LE(offset?: Uint): number {
+		return _buffer.readUInt40(this, true, offset);
+	}
+	readInt48LE(offset?: Uint): number {
+		return _buffer.readInt48(this, true, offset);
+	}
+	readUInt48LE(offset?: Uint): number {
+		return _buffer.readUInt48(this, true, offset);
+	}
+	readBigInt64LE(offset?: Uint): bigint {
+		return _buffer.readBigInt64(this, true, offset);
+	}
+	readBigUInt64LE(offset?: Uint): bigint {
+		return _buffer.readBigUInt64(this, true, offset);
+	}
+	readIntLE(offset?: Uint, byteLength = 4): Int {
+		return _buffer.readInt(this, true, offset, byteLength);
+	}
+	readUIntLE(offset?: Uint, byteLength = 4): Uint {
+		return _buffer.readUInt(this, true, offset, byteLength);
 	}
 	readFloatBE(offset?: Uint): Float {
 		return _buffer.readFloatBE(this, offset);
 	}
+	readFloatLE(offset?: Uint): Float {
+		return _buffer.readFloatLE(this, offset);
+	}
 	readDoubleBE(offset?: Uint): number {
 		return _buffer.readDoubleBE(this, offset);
+	}
+	readDoubleLE(offset?: Uint): number {
+		return _buffer.readDoubleLE(this, offset);
 	}
 	readBigUIntBE(offset?: Uint, end?: Uint): bigint {
 		return _buffer.readBigUIntBE(this, offset, end);
@@ -343,18 +394,6 @@ export class Buffer extends Uint8Array {
 	readBigUIntLE(offset?: Uint, end?: Uint): bigint {
 		return _buffer.readBigUIntLE(this, offset, end);
 	}
-	// readUIntLE(offset: number, byteLength: number): number; // read le
-	// readIntLE(offset: number, byteLength: number): number;
-	// readUInt16LE(offset?: number): number;
-	// readUInt32LE(offset?: number): number;
-	// readInt8(offset?: number): number;
-	// readInt16LE(offset?: number): number;
-	// readInt32LE(offset?: number): number;
-	// readFloatLE(offset?: number): number;
-	// readDoubleLE(offset?: number): number;
-	// readBigUInt64LE(offset?: number): bigint;
-	// readBigInt64LE(offset?: number): bigint;
-	// write
 	writeInt8(value: Int8, offset?: Uint): Uint {
 		return _buffer.writeInt8(this, value, offset);
 	}
@@ -394,8 +433,14 @@ export class Buffer extends Uint8Array {
 	writeFloatBE(value: Float, offset?: Uint): Uint {
 		return _buffer.writeFloatBE(this, value, offset);
 	}
+	writeFloatLE(value: Float, offset?: Uint): Uint {
+		return _buffer.writeFloatLE(this, value, offset);
+	}
 	writeDoubleBE(value: number, offset?: Uint): Uint {
 		return _buffer.writeDoubleBE(this, value, offset);
+	}
+	writeDoubleLE(value: number, offset?: Uint): Uint {
+		return _buffer.writeDoubleLE(this, value, offset);
 	}
 	writeBigIntLE(bigint: bigint, offset?: Uint): Uint {
 		let arr: number[] = [];
@@ -407,8 +452,6 @@ export class Buffer extends Uint8Array {
 	// writeUInt32LE(value: number, offset: number, noAssert?: boolean): number;
 	// writeInt16LE(value: number, offset: number, noAssert?: boolean): number;
 	// writeInt32LE(value: number, offset: number, noAssert?: boolean): number;
-	// writeFloatLE(value: number, offset: number, noAssert?: boolean): number;
-	// writeDoubleLE(value: number, offset: number, noAssert?: boolean): number;
 }
 
 /**
@@ -427,6 +470,13 @@ export function alloc(size: Uint, initFill?: Uint): Buffer {
 }
 
 /**
+ * Alloc unsafe buffer
+*/
+export function allocUnsafe(size: Uint): Buffer {
+	return new Buffer(Number(size) || 0);
+}
+
+/**
  * Tests whether it is a typed array
 */
 export function isTypedArray(arr: any): boolean {
@@ -436,14 +486,14 @@ export function isTypedArray(arr: any): boolean {
 /**
  * Tests whether it is a Uint8Array
 */
-export function isUint8Array(arr: any): boolean {
+export function isUint8Array(arr: any): arr is Uint8Array {
 	return arr instanceof Uint8Array;
 }
 
 /**
  * Tests whether it is a buffer data type
 */
-export function isBuffer(arr: any): boolean {
+export function isBuffer(arr: any): arr is Buffer {
 	return arr instanceof Buffer;
 }
 
@@ -451,7 +501,7 @@ export function isBuffer(arr: any): boolean {
  * Compare sizes of two buffers
 */
 export function compare(a: Uint8Array, b: Uint8Array): Int {
-	if (!isBuffer(a) || !isBuffer(b)) {
+	if (!isUint8Array(a) || !isUint8Array(b)) {
 		throw new TypeError(
 			'The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array'
 		)
@@ -480,6 +530,11 @@ export function compare(a: Uint8Array, b: Uint8Array): Int {
 
 type FromArg = string | ArrayBufferView | ArrayBufferLike | Iterable<number> | ArrayLike<number>;
 type MapFn = (v: number, k: number) => number;
+
+/**
+ * Calculate the length of the string after encoding using the specified algorithm
+*/
+export declare function encodeUTF8Length(str: string): Uint;
 
 /**
  * Decode data into a string using the specified algorithm
@@ -551,7 +606,7 @@ exports.from = function from(
 ): Buffer {
 	if (typeof from === 'string') { // step 0: check for string
 		let encoding: Encoding = typeof arg1 == 'string' ? arg1 : 'utf8';
-		return wrapUintArray(_buffer_native.fromString(from, encoding));
+		return wrapUintArray(_codec.fromString(from, encoding));
 	}
 	else if (from instanceof TypedArrayConstructor && (from as any).buffer) { // step 1: check for TypedArray
 		let bf = from as Uint8Array;
@@ -568,6 +623,42 @@ exports.from = function from(
 	}
 	else {
 		return new Buffer(from as any);
+	}
+}
+
+export function byteLength(
+	arg: FromArg, encoding?: Encoding): Uint
+{
+	if (typeof arg !== 'string') {
+		if ('byteLength' in arg
+			/*arg as BinaryLike */
+			/*arg instanceof ArrayIBuffer || arg instanceof TypedArray*/) {
+			return arg.byteLength;
+		}
+		throw ERR_INVALID_ARG_TYPE(arg, 
+				['string', 'Buffer', 'ArrayBuffer', 'SharedArrayBuffer', 'DataView'], 'string');
+	}
+	if (encoding == 'utf8' || encoding == 'utf-8') {
+		return _codec.encodeUTF8Length(arg);
+	} else if (encoding == 'hex') {
+		util.assert(arg.length % 2 === 0, `encoding error, ${encoding}`);
+		return arg.length / 2;
+	} else if (encoding == 'base64') {
+		util.assert(arg.length % 4 === 0, `encoding error, ${encoding}`);
+		if (arg.substring(arg.length - 1) == '=') {
+			if (arg.substring(arg.length - 2) == '=')
+				return arg.length / 4 * 3 - 2;
+			else
+				return arg.length / 4 * 3 - 1;
+		} else {
+			return arg.length / 4 * 3;
+		}
+	} else if (encoding == 'latin1' || encoding == 'binary') {
+		return arg.length;
+	} else if (encoding == 'ascii') {
+		return arg.length;
+	} else {
+		return _codec.encodeUTF8Length(arg);
 	}
 }
 
@@ -615,3 +706,16 @@ export function concat(list: ArrayLike<Int>[], length?: Uint): Buffer {
 	}
 	return bf;
 }
+
+export default {
+	byteLength,
+	isBuffer,
+	isTypedArray,
+	isUint8Array,
+	from,
+	allocUnsafe,
+	alloc,
+	concat,
+	Zero,
+	compare,
+};

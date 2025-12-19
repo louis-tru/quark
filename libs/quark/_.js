@@ -22,7 +22,7 @@ function mkdirp(dir) {
 
 mkdirp(out);
 
-for ( var i of ['_event', 'types', 'pkg', '_util', '_ext'] ) {
+for ( var i of ['_event', 'types', 'pkg', '_util', '_ext', 'uri'] ) {
 	var j = i.substring(0, 1) == '_' ? i : '_' + i;
 	fs.writeFileSync(`${out0}/${j}.js`, fs.readFileSync(`${out}/${i}.js`));
 	fs.writeFileSync(`${out}/${i}.js`, `module.exports=__binding__('${j}')`);

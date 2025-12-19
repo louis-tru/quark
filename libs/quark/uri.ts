@@ -28,11 +28,196 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import * as _util from './_util';
+const PREFIX = 'file:///';
+const isQuark: boolean = !!globalThis.__binding__;
+const isNode: boolean = !!(globalThis as any).process;
+const isWeb: boolean = !!globalThis.document;
 
-const isWeb = _util.default.isWeb;
+function unrealized(): any {
+	throw new Error('Unrealized function');
+}
 
-function init(self: any) {
+let _win32: boolean = false;
+let _executable: ()=>string = unrealized;
+let _documents: (path?: string)=>string = unrealized;
+let _temp: (path?: string)=>string = unrealized;
+let _resources: (path?: string)=>string = unrealized;
+let _cwd: ()=>string = unrealized;
+let _chdir: (path: string)=>boolean = unrealized;
+
+if (isQuark) {
+	const _fs = __binding__('_fs');
+	_win32 = __binding__('_init').platform == 'win32';
+	_executable = _fs.executable;
+	_documents = _fs.documents;
+	_temp = _fs.temp;
+	_resources = _fs.resources;
+	_cwd = _fs.cwd;
+	_chdir = _fs.chdir;
+} else if (isNode) {
+	const process = (globalThis as any).process;
+	_win32 = process.platform == 'win32';
+	_cwd = _win32 ? function() {
+		return PREFIX + process.cwd().replace(/\\/g, '/');
+	}: function() {
+		return PREFIX + process.cwd().substring(1);
+	};
+	_chdir = function(path) {
+		path = classicPath(path);
+		process.chdir(path);
+		return process.cwd() == path;
+	};
+} else if (isWeb) {
+	let dirname = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
+	let cwdPath = location.origin + dirname;
+	_cwd = function() { return cwdPath };
+	_chdir = function() { return false };
+} else {
+	throw new Error('no support');
+}
+
+const win32 = {
+	classicPath: function(url: string) {
+		return url.replace(/^file:\/\//i, '').replace(/^\/([a-z]:)?/i, '$1').replace(/\//g, '\\');
+	},
+	joinPath: function(args: any[]) {
+		let ls = [];
+		for (let i = 0; i < args.length; i++) {
+			let item = args[i];
+			if (item)
+				ls.push(item.replace(/\\/g, '/'));
+		}
+		return ls.join('/');
+	},
+	resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
+	isAbsolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
+	delimiter: ';',
+};
+
+const posix = {
+	classicPath: function(url: string) {
+		return url.replace(/^file:\/\//i, '');
+	},
+	joinPath: function(args: any[]) {
+		let ls = [];
+		for (let i = 0; i < args.length; i++) {
+			let item = args[i];
+			if (item)
+				ls.push(item);
+		}
+		return ls.join('/');
+	},
+	resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
+	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^(\/|(file|zip):\/\/\/)/i,
+	delimiter: ':',
+};
+
+const paths = _win32 ? win32: posix;
+
+export const classicPath = paths.classicPath;
+export const delimiter = paths.delimiter;
+
+/**
+ * normalizePath
+ */
+export function normalizePath(path: string, retain_level: boolean = false): string {
+	var ls = path.split('/');
+	var rev = [];
+	var up = 0;
+	for (var i = ls.length - 1; i > -1; i--) {
+		var v = ls[i];
+		if (v && v != '.') {
+			if (v == '..') // set up
+				up++;
+			else if (up === 0) // no up item
+				rev.push(v);
+			else // un up
+				up--;
+		}
+	}
+	path = rev.reverse().join('/');
+
+	return (retain_level ? new Array(up + 1).join('../') + path : path);
+}
+
+/**
+ * file:///home/louis/test.txt
+ * file:///d:/home/louis/test.txt
+ * http://google.com/test.txt
+ * return format path
+ */
+export function resolve(...args: string[]): string {
+	let path = paths.joinPath(args);
+	let prefix = '';
+	// Find absolute path
+	let mat = path.match(paths.resolve);
+	let slash = '';
+	// resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
+	// resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
+	if (mat) {
+		if (mat[2]) { // local absolute path /
+			if (_win32 && mat[2] != '/') { // windows d:\
+				prefix = PREFIX + mat[2] + '/';
+				path = path.substring(2);
+			} else if (isWeb) {
+				prefix = origin + '/';
+			} else {
+				prefix = PREFIX; //'file:///';
+			}
+		} else {
+			if (mat[4]) { // local file protocol
+				prefix = mat[4];
+			} else { // network protocol
+				prefix = mat[0];
+				slash = '/';
+			}
+			// if (prefix == path.length)
+			if (prefix == path) // file:///
+				return prefix;
+			path = path.substring(prefix.length);
+		}
+	} else { // Relative path, no network protocol
+		let cwd = _cwd();
+		if (_win32) {
+			prefix += cwd.substring(0,10) + '/'; // 'file:///d:/';
+			path = cwd.substring(11) + '/' + path;
+		} else if (isWeb) {
+			prefix = origin + '/';
+			path = cwd.substring(prefix.length) + '/' + path;
+		} else {
+			prefix = PREFIX; // 'file:///';
+			path = cwd.substring(8) + '/' + path;
+		}
+	}
+	path = normalizePath(path);
+	return path ? prefix + slash + path : prefix;
+}
+
+/**
+ * Is it an absolute path?
+ */
+export function isAbsolute(path: string): boolean {
+	return paths.isAbsolute.test(path);
+}
+
+/**
+ * Is it a local path?
+ */
+export function isLocal(path: string): boolean {
+	return paths.isLocal.test(path);
+}
+
+export function isLocalZip(path: string): boolean { //!<
+	return /^zip:\/\/\//i.test(path);
+}
+
+export function isHttp(path: string): boolean { //!<
+	return /^(https?):\/\/[^\/]+/i.test(path);
+}
+
+function init_uri(self: any) {
 	if (self._is_init) return;
 	self._is_init = true;
 
@@ -57,13 +242,13 @@ function init(self: any) {
 			val = value;
 		}
 	}
-	self._value = _util.formatPath(val);
+	self._value = resolve(val);
 }
 
 function parse_path(self: any) {
 	if (self._is_parse) return;
 	self._is_parse = true;
-	init(self);
+	init_uri(self);
 
 	let mat = self._value.match(/^(([a-z]+:)\/\/)?(([^\/:]+)(?::(\d+))?)?(\/.*)?/);
 	if (mat) {
@@ -90,7 +275,7 @@ function parse_path(self: any) {
 
 function parse_basename(self: any) {
 	if (self._basename != -1) return;
-	init(self);
+	init_uri(self);
 	let mat = self._value.match(/([^\/\\]+)?(\.[^\/\\\.]+)$|[^\/\\]+$/);
 	if (mat) {
 		self._basename = mat[0];
@@ -130,18 +315,18 @@ function querystringStringify(prefix: string, params: Dict) {
  */
 export class URL {
 	private _value: string;
-	private _origin: string;
-	private _filename: string;
-	private _dirname: string;
-	private _basename: string;
-	private _extname: string;
-	private _search: string;
-	private _hash: string;
-	private _hostname: string;
-	private _port: string;
-	private _protocol: string;
-	private _params: Dict<string>;
-	private _hashParams: Dict<string>;
+	private _origin: string = '';
+	private _filename: string = '';
+	private _dirname: string = '';
+	private _basename: string = '';
+	private _extname: string = '';
+	private _search: string = '';
+	private _hash: string = '';
+	private _hostname: string = '';
+	private _port: string = '';
+	private _protocol: string = '';
+	private _params: Dict<string> | null = null;
+	private _hashParams: Dict<string> | null = null;
 
 	/**
 	 * @method constructor(path?:string)
@@ -234,7 +419,7 @@ export class URL {
 	 * ```
 	*/
 	get search(): string {
-		init(this);
+		init_uri(this);
 		return this._search;
 	}
 
@@ -251,7 +436,7 @@ export class URL {
 	 * ```
 	 */
 	get hash(): string {
-		init(this);
+		init_uri(this);
 		return this._hash;
 	}
 
@@ -383,7 +568,7 @@ export class URL {
 	get params(): Dict<string> {
 		if (this._params)
 			return this._params;
-		init(this);
+		init_uri(this);
 		this._params = {};
 		if (this._search[0] != '?') {
 			return this._params;
@@ -399,7 +584,7 @@ export class URL {
 	}
 
 	set params(value: Dict<string>) {
-		init(this);
+		init_uri(this);
 		this._params = {...value};
 		this._search = querystringStringify('?', this._params);
 	}
@@ -421,7 +606,7 @@ export class URL {
 	get hashParams(): Dict<string> {
 		if (this._hashParams)
 			return this._hashParams;
-		init(this);
+		init_uri(this);
 		this._hashParams = {};
 		if (this._hash[0] != '#') {
 			return this._hashParams;
@@ -437,7 +622,7 @@ export class URL {
 	}
 
 	set hashParams(value: Dict<string>) {
-		init(this);
+		init_uri(this);
 		this._hashParams = {...value};
 		this._hash = querystringStringify('#', this._hashParams);
 	}
@@ -461,7 +646,7 @@ export class URL {
 	 */
 	setParam(name: string, value: string): this {
 		this.params[name] = value || '';
-		this._search = querystringStringify('?', this._params);
+		this._search = querystringStringify('?', this.params);
 		return this;
 	}
 
@@ -470,7 +655,7 @@ export class URL {
 	 */
 	deleteParam(name: string): this {
 		delete this.params[name];
-		this._search = querystringStringify('?', this._params);
+		this._search = querystringStringify('?', this.params);
 		return this;
 	}
 
@@ -478,7 +663,7 @@ export class URL {
 	 * Delete all of params in the URL
 	 */
 	clearParams(): this {
-		init(this);
+		init_uri(this);
 		this._params = {};
 		this._search = '';
 		return this;
@@ -496,7 +681,7 @@ export class URL {
 	*/
 	setHash(name: string, value: string): this {
 		this.hashParams[name] = value || '';
-		this._hash = querystringStringify('#', this._hashParams);
+		this._hash = querystringStringify('#', this.hashParams);
 		return this;
 	}
 
@@ -505,7 +690,7 @@ export class URL {
 	 */
 	deleteHash(name: string): this {
 		delete this.hashParams[name];
-		this._hash = querystringStringify('#', this._hashParams);
+		this._hash = querystringStringify('#', this.hashParams);
 		return this;
 	}
 
@@ -513,7 +698,7 @@ export class URL {
 	 * Delete all of hash params in the URL
 	 */
 	clearHashs(): this {
-		init(this);
+		init_uri(this);
 		this._hashParams = {};
 		this._hash = '';
 		return this;
@@ -565,22 +750,6 @@ export class URL {
 	}
 }
 
-(URL as any).prototype._is_split = false;
-(URL as any).prototype._is_parse = false;
-(URL as any).prototype._value = '';
-(URL as any).prototype._hostname = '';
-(URL as any).prototype._port = '';
-(URL as any).prototype._protocol = '';
-(URL as any).prototype._search = '';
-(URL as any).prototype._hash = '';
-(URL as any).prototype._origin = '';
-(URL as any).prototype._filename = '';
-(URL as any).prototype._dirname = '';
-(URL as any).prototype._basename = -1;
-(URL as any).prototype._extname = -1;
-(URL as any).prototype._params = null;
-(URL as any).prototype._hashParams = null;
-
 function get_path(path?: string): URL {
 	return new URL(path);
 }
@@ -592,65 +761,52 @@ export default {
 	URL: URL,
 
 	/**
-	 * Get the binary executable file path of the current application
+	 * Get the executable file path
 	 * @method executable()string
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints:
-	 * // file:///var/containers/Bundle/Application/4F1BD659-601D-4932-8484-D0D1F978F0BE/test.app/test
-	 * console.log(path.executable());
-	 * ```
 	*/
-	executable: _util.executable,
+	executable: _executable,
 
 	/**
-	 * Get the document storage path of the current application
+	 * Get the documents directory path
 	 * @method documents(path?:string)string
-	 * @param path? Append to the document path
-	 * @example
-	 * 
-	 * ```ts
-	 * // Prints:
-	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents
-	 * console.log(path.documents());
-	 * // Prints Setting the result of appending path parameters:
-	 * // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents/aa.jpeg
-	 * console.log(path.documents('aa.jpeg'));
-	 * ```
 	*/
-	documents: _util.documents,
+	documents: _documents,
 
 	/**
-	 * Get the application temporary directory
+	 * Get the temporary directory path
 	 * @method temp(path?:string)string
 	*/
-	temp: _util.temp,
+	temp: _temp,
 
 	/**
-	 * Get the application resource directory
+	 * Get the resources directory path
 	 * @method resources(path?:string)string
 	*/
-	resources: _util.resources,
+	resources: _resources,
 
 	/**
 	 * Get the current working directory
 	 * @method cwd()string
 	*/
-	cwd: _util.cwd,
+	cwd: _cwd,
 
 	/**
 	 * Set the current working directory and return `true` if successful
 	 * @method chdir(path:string)boolean
 	*/
-	chdir: _util.chdir,
+	chdir: _chdir,
 
 	/**
 	 * Format part path to normalize path
 	 * @method normalizePath(path:string,retain_up?:boolean)string
 	*/
-	normalizePath: _util.normalizePath,
-	delimiter: _util.delimiter,
+	normalizePath: normalizePath,
+
+	/**
+	 * Path delimiter
+	 * @get delimiter:string
+	*/
+	delimiter: delimiter,
 
 	/**
 	 * Restore the path to a path that the operating system can recognize.
@@ -664,7 +820,7 @@ export default {
 	 * console.log(path.normalizePath('file:///var/data/test.js'));
 	 * ```
 	 */
-	classicPath: _util.classicPath,
+	classicPath: classicPath,
 
 	/**
 	 * Format path to standard absolute path
@@ -681,7 +837,7 @@ export default {
 	 * console.log(path.resolve('aaa/bbb/../cc/.//!<ddd/kk.jpg'));
 	 * ```
 	 */
-	resolve: _util.formatPath, // func
+	resolve: resolve, // func
 
 	/**
 	 * Test whether it is an absolute path
@@ -698,12 +854,12 @@ export default {
 	 * console.log(path.isAbsolute('index.jsx'));
 	 * ```
 	 */
-	isAbsolute: _util.isAbsolute, // func
+	isAbsolute: isAbsolute, // func
 
 	/**
-	 * Get basename
+	 * full filename
 	 */
-	basename(path?: string): string {
+	basename(path?: string) {
 		return get_path(path).basename;
 	},
 
@@ -824,5 +980,4 @@ export default {
 	relative(from: string, target?: string): string {
 		return get_path(target).relative(from);
 	},
-
 }

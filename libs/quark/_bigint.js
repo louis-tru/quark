@@ -71,6 +71,20 @@ function _readBigInt64BE(self, offset) {
 	return (BigInt(hi) << ThirtyTwo) + BigInt(lo);
 }
 
+function _readBigInt64LE(self, offset) {
+	const lo =
+		self[offset++] +
+		self[offset++] * 2 ** 8 +
+		self[offset++] * 2 ** 16 +
+		self[offset++] * 2 ** 24;
+	const hi = 
+		self[offset++] +
+		self[offset++] * 2 ** 8 +
+		self[offset++] * 2 ** 16 +
+		(self[offset++] << 24); // Overflow
+	return (BigInt(hi) << ThirtyTwo) + BigInt(lo);
+}
+
 function _readBigUInt64BE(self, offset) {
 	const hi = 
 		self[offset++] * 2 ** 24 +
@@ -82,6 +96,20 @@ function _readBigUInt64BE(self, offset) {
 		self[offset++] * 2 ** 16 +
 		self[offset++] * 2 ** 8 +
 		self[offset++];
+	return (BigInt(hi) << ThirtyTwo) + BigInt(lo);
+}
+
+function _readBigUInt64LE(self, bigint) {
+	const lo = 
+		self[bigint++] +
+		self[bigint++] * 2 ** 8 +
+		self[bigint++] * 2 ** 16 +
+		self[bigint++] * 2 ** 24;
+	const hi = 
+		self[bigint++] +
+		self[bigint++] * 2 ** 8 +
+		self[bigint++] * 2 ** 16 +
+		self[bigint++] * 2 ** 24;
 	return (BigInt(hi) << ThirtyTwo) + BigInt(lo);
 }
 
@@ -132,8 +160,10 @@ module.exports = {
 	_readBigUIntBE,
 	_readBigUIntLE,
 	_readBigInt64BE,
+	_readBigInt64LE,
 	_readBigUInt64BE,
+	_readBigUInt64LE,
 	_writeBigIntLE,
 	_writeBigInt64BE,
 	_writeBigUInt64BE,
-}
+};

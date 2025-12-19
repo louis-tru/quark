@@ -318,7 +318,7 @@ export interface RequestOptions {
 	save?: string;
 	/** upload loacl file */
 	upload?: string;
-	/** request timeout time, default no timeout "0" */
+	/** request timeout time ms, default no timeout "0" */
 	timeout?: number;
 	/** Is disable ssl verify */
 	disableSslVerify?: boolean;

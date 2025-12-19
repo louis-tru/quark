@@ -218,25 +218,58 @@ namespace qk { namespace js {
 			"(function() {"
 			"const _rejectionListener = globalThis._rejectionListener;"
 			"const NativePromise = globalThis.Promise;"
+			"const NativeCatch = NativePromise.prototype.catch;"
+			// override NativePromise
+			"NativePromise.prototype._hookUnhandledrejection = function() {"
+				// Note: multiple calls are safe in JSC or v8.
+				// Native Promise will only register the first rejection handler.
+				"NativeCatch.call(this, err=>{"
+					"if (this._catchHandler) {"
+						"(0, this._catchHandler)();" // call catch handler
+					"} else {"
+						"_rejectionListener(this, err);" // call rejection listener
+					"}"
+				"});"
+				"this._hooked = true;" // mark as hooked
+			"};"
+			"NativePromise.prototype.catch = function(onRejected) {"
+				"if (this._hooked) {"
+					// only set _catchHandler when not set
+					"if (!this._catchHandler && onRejected instanceof Function) {"
+						"this._catchHandler = onRejected;"
+					"}"
+				"} else {"
+					"NativeCatch.call(this, onRejected);" // call original catch
+				"}"
+				"return this;"
+			"};"
+			// define new simple Promise class, defaultly hook unhandled rejection
 			"class Promise extends NativePromise {"
 				"constructor(executor) {"
-					"super((resolve, reject)=>{"
-						"executor(resolve, (reason)=>{"
-							"queueMicrotask(()=>{ if (!this._handled) _rejectionListener(this,reason) });"
-							"reject(reason);"
-						"});"
-					"});"
-				"}"
-				"then(onfulfilled, onrejected) {"
-					"this._handled = this._handled || onrejected instanceof Function;"
-					"return super.then(onfulfilled, onrejected);"
-				"}"
-				"catch(onrejected) {"
-					"this._handled = this._handled || onrejected instanceof Function;"
-					"return super.catch(onrejected);"
+					"super(executor);"
+					"this._hookUnhandledrejection();" // hook unhandled rejection
 				"}"
 			"}"
-			"globalThis.Promise = Promise;"
+			// override Promise class 2, use _handled to mark is handled
+			// "class Promise extends NativePromise {"
+			// 	"constructor(executor) {"
+			// 		"super((resolve, reject)=>{"
+			// 			"executor(resolve, (reason)=>{"
+			// 				"queueMicrotask(()=>{ if (!this._handled) _rejectionListener(this,reason) });"
+			// 				"reject(reason);"
+			// 			"});"
+			// 		"});"
+			// 	"}"
+			// 	"then(onfulfilled, onrejected) {"
+			// 		"this._handled = this._handled || onrejected instanceof Function;"
+			// 		"return super.then(onfulfilled, onrejected);"
+			// 	"}"
+			// 	"catch(onrejected) {"
+			// 		"this._handled = this._handled || onrejected instanceof Function;"
+			// 		"return NativeCatch.call(this, onrejected);"
+			// 	"}"
+			// "}"
+			"globalThis.Promise = Promise;" // replace global Promise
 			"})();"
 		);
 		JSEvaluateScript(_ctx, *script, nullptr, nullptr, 0, JsFatal());
@@ -815,6 +848,15 @@ namespace qk { namespace js {
 		auto len = JSObjectGetProperty(ctx, Back<JSObjectRef>(this), length_s, &ex);
 		CHECK(ex);
 		return js::asInt32(Cast(len));
+	}
+
+	int JSString::utf8Length(Worker* worker) const {
+		DCHECK(isString());
+		auto s = JsValueToStringCopy(ctx, Back(this), JsFatal("JSString::utf8Length()"));
+		size_t len = JSStringGetLength(*s);
+		const JSChar* ch = JSStringGetCharactersPtr(*s);
+		auto utf8len = codec_utf16_to_utf8_length(ArrayWeak<uint16_t>(ch, len).buffer());
+		return utf8len;
 	}
 
 	String JSString::value(Worker* w) const {

@@ -30,28 +30,26 @@
 
 const JscRejectionListener = (globalThis as any)._rejectionListener; // unhandledrejection for jsc
 
+// redefine class decorator to hook unhandledrejection
 export const __jscAsync = JscRejectionListener ? function(target: any, key: string, desc: PropertyDescriptor) {
 	const oriFn = target[key] as (...args: any[]) => Promise<any>;
 	desc.value = function(this: any, ...args: any[]) {
 		const result = oriFn.apply(this, args);
-		result.catch(function(err: any) {
-			JscRejectionListener(result, err);
-		});
+		(result as any)._hookUnhandledrejection();
 		return result;
 	};
 	return desc;
 }: function(target: any, key: string, desc: PropertyDescriptor) {
 };
 
+// wrap async function to hook unhandledrejection
 export const __wrapAsync = JscRejectionListener ?
 function <F extends (...args: Args) => Promise<R>, Args extends any[], R>(fn: F)
 		: (...args: Args) => Promise<R>
 {
 	return function(this: any, ...args: Args): Promise<R> {
 		const result = fn.apply(this, args);
-		result.catch(function(err) {
-			JscRejectionListener(result, err);
-		});
+		(result as any)._hookUnhandledrejection();
 		return result;
 	};
 }: function <F extends (...args: Args) => Promise<R>, Args extends any[], R>(fn: F)

@@ -74,7 +74,7 @@ namespace qk {
 		/**
 		* 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
 		* @param enable?:bool
-		* @param keep_idle?:uint64_t 空闲的时间(微秒),0使用系统默认值一般为7200秒 7200 * 10e6 毫秒
+		* @param keep_idle?:uint64_t 空闲的时间(毫秒),0使用系统默认值一般为7200秒 7200 * 1e3 毫秒
 		*/
 		void set_keep_alive(bool enable = true, uint64_t keep_idle = 0);
 
@@ -84,9 +84,9 @@ namespace qk {
 		void set_no_delay(bool no_delay = true);
 
 		/**
-		* 超过指定(微妙)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
+		* 超过指定(毫秒)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
 		*/
-		void set_timeout(uint64_t timeout_us);
+		void set_timeout(uint64_t timeout);
 
 		/**
 		* set_delegate()

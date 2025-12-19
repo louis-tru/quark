@@ -97,7 +97,7 @@ namespace qk {
 				uv_timer_start(_uv_timer, [](uv_timer_t* handle) {
 					Impl* self = *static_cast<RetainRef*>(handle->data)->hold;
 					self->_delegate->trigger_socket_timeout(self->_shell);
-				}, _timeout / 1000, 0);
+				}, _timeout, 0);
 			}
 		}
 	}
@@ -149,7 +149,7 @@ namespace qk {
 		setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
 		*/
 		_enable_keep_alive = enable;
-		_keep_idle = keep_idle ? uint32_t(keep_idle / 1000000): 7200;
+		_keep_idle = keep_idle ? uint32_t(keep_idle / 1e3): 7200;
 		if ( _uv_tcp && uv_is_active((uv_handle_t*)_uv_tcp) ) {
 			uv_tcp_keepalive(_uv_tcp, _enable_keep_alive, _keep_idle);
 		}

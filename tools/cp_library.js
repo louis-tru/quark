@@ -1,5 +1,5 @@
 
-var fs = require('qktool/fs');
+var fs = require('qktool/node/fs');
 var variables = JSON.parse(fs.readFileSync('out/config.gypi', 'utf-8')).variables;
 
 function cp_libquarkso() {

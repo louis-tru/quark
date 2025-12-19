@@ -29,32 +29,39 @@
  * ***** END LICENSE BLOCK ***** */
 
 declare namespace qk {
-	interface RequireResolve {
-		(id: string): string;
-		paths: (request: string)=>string[] | null;
-	}
-	interface Require {
-		(id: string): any;
-		resolve: RequireResolve;
-	}
-	interface Module {
-		id: string;
-		exports: any;
-		filename: string;
-		loaded: boolean;
-		children: Module[];
-		paths: string[];
-		parent: Module | null | undefined;
-		package?: any;
-	}
+	type Require = NodeRequire;
+	type Module = NodeModule;
 }
 
-declare const __binding__: (id: string)=>any; // binding native module
-declare const __filename: string;
-declare const __dirname: string;
-declare const require: qk.Require;
-declare const module: qk.Module;
-declare const exports: any; // Same as module.exports
+interface RequireResolve {
+	(id: string, options?: { paths?: string[]; }): string;
+	paths(request: string): string[] | null;
+}
+
+interface NodeRequire {
+	(id: string): any;
+	resolve: RequireResolve;
+	// cache: Dict<NodeModule>;
+	main: NodeModule | undefined;
+}
+
+interface NodeModule {
+	id: string;
+	exports: any;
+	filename: string;
+	loaded: boolean;
+	children: NodeModule[];
+	paths: string[];
+	parent: NodeModule | null | undefined;
+	package?: any;
+}
+
+declare var __binding__: (id: string)=>any; // binding native module
+declare var __filename: string;
+declare var __dirname: string;
+declare var require: NodeRequire;
+declare var module: NodeModule;
+declare var exports: any; // Same as module.exports
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number

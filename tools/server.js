@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 var util = require('qktool/util').default;
-var fs = require('qktool/fs');
+var fs = require('qktool/node/fs');
 // var service = require('qktool/service').default;
-var HttpService = require('qktool/http_service').HttpService;
-var FileStream = require('qktool/incoming_form').FileStream;
-var start_server = require('qkmake/server').default;
+var HttpService = require('qktool/node/http_service').HttpService;
+var FileStream = require('qktool/node/incoming_form').FileStream;
+var start_server = require('qkmake/node/server').default;
 
 // Tools service
 // http://127.0.0.1:1026/Tools/upload_file

@@ -38,6 +38,7 @@ namespace qk {
 	enum Encoding {
 		kInvalid_Encoding,
 		kBinary_Encoding,
+		kLatin1_Encoding = kBinary_Encoding,
 		kAscii_Encoding,
 		kHex_Encoding,
 		kBase64_Encoding,
@@ -71,5 +72,6 @@ namespace qk {
 	Qk_EXPORT ArrayBuffer<uint32_t> codec_utf8_to_unicode(cArray<char>& utf8);
 	Qk_EXPORT ArrayBuffer<char>     codec_utf16_to_utf8(cArray<uint16_t>& utf16);
 	Qk_EXPORT ArrayBuffer<uint16_t> codec_utf8_to_utf16(cArray<char>& utf8);
+	Qk_EXPORT uint32_t              codec_utf16_to_utf8_length(cArray<uint16_t>& utf16);
 }
 #endif

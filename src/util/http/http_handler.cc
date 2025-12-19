@@ -583,7 +583,7 @@ namespace qk {
 				Qk_ASSERT_NE(c->_id, HandlerID());
 				c->_busy = false;
 				c->_host = nullptr;
-				c->_recovery_time = time_microsecond();
+				c->_recovery_time = time_millisecond();
 				c->socket()->set_timeout(0);
 				c->socket()->resume();
 			}
@@ -619,7 +619,7 @@ namespace qk {
 	HttpHandler* HttpHandlerPool::get(Host* host, uint16_t port) {
 		HttpHandler *conn = nullptr, *tryDel= nullptr; // try delete one connect
 		uint32_t poolSize = 0;
-		auto now = time_microsecond();
+		auto now = time_millisecond();
 		auto max_pool_size = http_max_connect_pool_size();
 
 		for ( auto i: _handlers ) {
@@ -628,7 +628,7 @@ namespace qk {
 						i->socket()->port() == port &&
 						i->ssl() == (host->_uri.type() == URI_HTTPS)
 				) {
-					if ( !i->_busy && now - i->_recovery_time > 8e4/*wait 80ms*/) { // It's after 80ms available
+					if ( !i->_busy && now - i->_recovery_time > 80/*wait 80ms*/) { // It's after 80ms available
 						if (i->loop() == host->loop()) {
 							conn = i; break;
 						} else {

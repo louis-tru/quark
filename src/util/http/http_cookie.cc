@@ -147,7 +147,7 @@ namespace qk {
 
 		// Session cookie: expires == -1 and sid == current session
 		// or not expired
-		if (expires == -1 && sid == session_id() || expires > time_microsecond()) {
+		if (expires == -1 && sid == session_id() || expires > time_millisecond()) {
 			*valueOut = raw.substring(idx2 + 2);
 			return true;
 		}
@@ -239,7 +239,7 @@ namespace qk {
 		opts.get(PATH, path);
 
 		if (opts.get(MAX_AGE, outStr)) {
-			expires = outStr.toNumber<int64_t>() * 1e6 + time_microsecond();
+			expires = outStr.toNumber<int64_t>() * 1e3 + time_millisecond();
 		} else if (opts.get(EXPIRES, outStr)) {
 			expires = Int64::max(parse_time(outStr), expires);
 		}

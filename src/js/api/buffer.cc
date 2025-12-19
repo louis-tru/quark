@@ -39,19 +39,35 @@ namespace qk { namespace js {
 		if (en == kInvalid_Encoding) {
 			Js_Throw(
 				"Unknown encoding \"%s\", the optional value is "
-				"[binary|ascii|base64|hex|utf8|utf16|utf32]", *s ), false;
+				"[binary|latin1|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4]", *s ), false;
 		}
 		return true;
 	}
 
 	struct NativeBuffer {
+		static void encodeUTF8Length(FunctionArgs args) {
+			Js_Worker(args);
+			if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
+				Js_Throw(
+					"@method encodeUTF8Length(str)\n"
+					"@param str {String}\n"
+				);
+			}
+			auto str = args[0]->template cast<JSString>();
+			uint32_t len = str->utf8Length(worker);
+			Js_Return( len );
+		}
+
+		/**
+		 * Create a buffer from string with specified encoding.
+		*/
 		static void fromString(FunctionArgs args) {
 			Js_Worker(args);
 			if ( args.length() < 1 || !args[0]->isString() ) { // 参数错误
 				Js_Throw(
-					"@method fromString(str[,en])\n"
-					"@param arg {String}\n"
-					"@param [en=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
+					"@method fromString(str,en?)\n"
+					"@param arg:string\n"
+					"@param en:binary|latin1|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4\n"
 				);
 			}
 			Encoding en = kUTF8_Encoding;
@@ -74,7 +90,7 @@ namespace qk { namespace js {
 				Js_Throw(
 					"@method toString(uint8array,[encoding[,start[,end]]])\n"
 					"@param uint8array {Uint8Array}\n"
-					"@param [encoding=utf8] {binary|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
+					"@param [encoding=utf8] {binary|latin1|ascii|base64|hex|utf-8|utf8|utf-16|utf16|ucs4}\n"
 					"@param [start=0] {uint}\n"
 					"@param [end] {uint}\n"
 				);
@@ -154,6 +170,7 @@ namespace qk { namespace js {
 		}
 
 		static void binding(JSObject* exports, Worker* worker) {
+			Js_Method(encodeUTF8Length, { encodeUTF8Length(args); });
 			Js_Method(fromString, { fromString(args); });
 			Js_Method(toString, { toString(args); });
 		}

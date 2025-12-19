@@ -166,7 +166,7 @@ export function getProp(name: string, self: any): any {
 
 /**
  * Setting object value by name
- */
+*/
 export function setProp(name: string, value: any, self: any): any {
 	let names = name.split('.');
 	let last = names.pop()!;
@@ -272,7 +272,7 @@ export function fixRandom(arg: number, ...args: number[]): number {
 export function filter(obj: any, exp: string[] | ((key: string, value: any)=>boolean), non: boolean = false): any {
 	let rev: any = {};
 	let isfn = (typeof exp == 'function');
-
+	
 	if (isfn || non) {
 		for (let key in obj) {
 			let value = obj[key];
@@ -340,19 +340,25 @@ export function equalsClass(baseclass: any, subclass: any): boolean {
 }
 
 /**
- * @method assert(condition,code?:number|ErrorNewArg)
+ * @method assert(condition,arg?:number|ErrorNewArg,extMsg?:string)
  * Asserts that value is not null or undefined.
  * @param condition The value to check.
- * @param code? Optional code or message for the error thrown.
+ * @param arg? Optional code or message for the error thrown.
+ * @param extMsg?  Optional message for the error thrown.
  * @returns {void} nothing
  */
-export function assert<T>(condition: T, code?: number | ErrorNewArg): asserts condition is NonNullable<T> {
+export function assert<T>(condition: T, arg?: number | ErrorNewArg, extMsg?: string): asserts condition is NonNullable<T> {
 	if (condition)
 		return;
-	if (typeof code == 'number') {
-		throw Error.new([code, 'assert fail, unforeseen exceptions']);
+	if (typeof arg == 'number') {
+		throw Error.new([arg, extMsg || 'assert fail, unforeseen exceptions']);
+	} else if (arg) {
+		const err = Error.new(arg);
+		if (extMsg)
+			err.message += '\n' + extMsg;
+		throw err;
 	} else {
-		throw Error.new(code || [-30009, 'ERR_ASSERT_ERROR']);
+		throw Error.new([-30009, extMsg || 'ERR_ASSERT_ERROR']);
 	}
 }
 
@@ -382,46 +388,16 @@ export function timeout<T>(promise: Promise<T> | T, time: number): Promise<T> {
 	}
 }
 
-interface PromiseExecutor<T> {
-	(resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>): Promise<void> | void;
-}
-
-export class PromiseNx<T extends any> extends Promise<T> {
-	protected _executor?: PromiseExecutor<T>;
-	constructor(executor?: (resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>)=>any) {
-		let _resolve: any;
-		let _reject: any;
-
-		super(function(resolve: (value: T)=>void, reject: (reason?: any)=>void) {
-			_resolve = resolve;
-			_reject = reject;
-		});
-
-		this._executor = executor;
-
-		try {
-			let r = this.executor(_resolve, _reject);
-			if (r instanceof Promise) {
-				r.catch(_reject);
-			}
-		} catch(err) {
-			_reject(err);
-		}
-	}
-
-	executor(resolve: (value?: T)=>void, reject: (reason?: any)=>void) {
-		if (this._executor) {
-			return this._executor(resolve, reject, this);
-		} else {
-			throw Error.new('executor undefined');
-		}
-	}
-
-}
-
 /**
  * @method promise(executor:Function)Promise
  */
-export function promise<T extends any>(executor: (resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>)=>any) {
-	return new PromiseNx<T>(executor) as Promise<T>;
+export function promise<T extends any>(executor: (resolve: (value: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>)=>any) {
+	let _resolve: (value: T | PromiseLike<T>) => void;
+	let _reject:  (reason?: any) => void
+	let p = new Promise<T>(function(r,j) {
+		_resolve = r;
+		_reject = j;
+	});
+	executor(_resolve!, _reject!, p);
+	return p;
 }

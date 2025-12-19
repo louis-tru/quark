@@ -459,6 +459,11 @@ namespace qk { namespace js {
 		return Back<v8::String>(this)->Length();
 	}
 
+	int JSString::utf8Length(Worker* worker) const {
+		DCHECK(isString());
+		return Back<v8::String>(this)->Utf8Length(ISOLATE(worker));
+	}
+
 	String JSString::value(Worker* worker) const {
 		DCHECK(isString());
 		// v8::Local<v8::String> str = ((v8::Value*)this)->ToString(CONTEXT(worker)).ToLocalChecked();

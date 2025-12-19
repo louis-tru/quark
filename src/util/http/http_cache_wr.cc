@@ -64,7 +64,7 @@ namespace qk {
 				if ( headers.get("cache-control", expires) ) {
 					expires = to_expires_from_cache_content(expires);
 				}
-				if ((!expires.isEmpty() && parse_time(expires) > time_microsecond()) ||
+				if ((!expires.isEmpty() && parse_time(expires) > time_millisecond()) ||
 							headers.has("last-modified") || headers.has("etag")
 				) { // valid cache
 					_file = new File(path, loop);

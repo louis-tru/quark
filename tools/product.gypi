@@ -181,10 +181,10 @@
 		],
 	},
 
-	'targets': [{
-		'target_name': 'libquark',
-		'type': 'none',
-	}],
+	# 'targets': [{
+	# 	'target_name': 'libquark',
+	# 	'type': 'none',
+	# }],
 
 	'conditions': [
 		['os=="ios"', {

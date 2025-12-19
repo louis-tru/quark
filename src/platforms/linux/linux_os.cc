@@ -36,6 +36,13 @@
 
 namespace qk {
 
+	// struct utsname {
+	// 	char sysname[];   // Linux
+	// 	char nodename[];  // hostname
+	// 	char release[];   // 6.6.12-arch1-1
+	// 	char version[];   // #1 SMP PREEMPT_DYNAMIC Thu, 30 Nov 2023 10:12:34 +0000
+	// 	char machine[];   // x86_64 / aarch64
+	// };
 	static utsname* _device_uname() {
 		static utsname* utsn = nullptr;
 		if (!utsn) {
@@ -65,7 +72,8 @@ namespace qk {
 	}
 
 	String os_model() {
-		return _device_uname()->version;
+		// return _device_uname()->version;
+		return String(); // not supported
 	}
 
 	int os_network_interface() {

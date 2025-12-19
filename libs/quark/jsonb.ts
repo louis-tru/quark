@@ -297,7 +297,7 @@ class Binary {
 	}
 }
 
-function assert<T>(cond: T): asserts cond is NonNullable<T> {
+function assert(cond: any) {
 	utils.assert(cond, errno.ERR_UNABLE_PARSE_JSONB);
 }
 
@@ -387,16 +387,16 @@ function read_next(bin: Binary): any {
 			return _buffer.readUInt8(bin.d, offset);
 		case F_INT_16:
 			bin.index += 2;
-			return _buffer.readInt16BE(bin.d, offset);
+			return _buffer.readInt16(bin.d, false, offset);
 		case F_UINT_16:
 			bin.index += 2;
-			return _buffer.readUInt16BE(bin.d, offset);
+			return _buffer.readUInt16(bin.d, false, offset);
 		case F_INT_32:
 			bin.index += 4;
-			return _buffer.readInt32BE(bin.d, offset);
+			return _buffer.readInt32(bin.d, false, offset);
 		case F_UINT_32:
 			bin.index += 4;
-			return _buffer.readUInt32BE(bin.d, offset);
+			return _buffer.readUInt32(bin.d, false, offset);
 		case F_INT_64:
 			bin.index += 8;
 			_buffer.readBigInt64BE_Compatible(bin.d, offset);
@@ -419,7 +419,7 @@ function read_next(bin: Binary): any {
 			return false;
 		case F_DATE:
 			bin.index += 6;
-			return new Date(_buffer.readUInt48BE(bin.d, offset));
+			return new Date(_buffer.readUInt48(bin.d, false, offset));
 		case F_OBJECT:
 			return read_object(bin);
 		case F_ARRAY:

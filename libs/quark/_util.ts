@@ -34,7 +34,6 @@
 
 const _init = __binding__('_init');
 const _fs = __binding__('_fs');
-const PREFIX = 'file:///';
 let   config: Dict | null = null;
 const options: Optopns = _init.options;  // start options
 const debug = ['debug', 'inspect', 'inspect_brk'].some(e=>e in options);
@@ -53,12 +52,6 @@ if ('no_cache' in options) {
 	}
 }
 
-export const executable = _fs.executable as ()=>string;
-export const documents = _fs.documents as (path?: string)=>string;
-export const temp = _fs.temp as (path?: string)=>string;
-export const resources = _fs.resources as (path?: string)=>string;
-export const cwd = _fs.cwd as ()=>string;
-export const chdir = _fs.chdir as (path: string)=>boolean;
 export type Optopns = Dict<string>;
 export const timeMonotonic = _init.timeMonotonic as ()=>number;
 
@@ -85,143 +78,6 @@ export function setTimer<A extends any[]>(cb: (...args: A)=>void, timeout?: numb
 	return setTimer_(args.length ? ()=>cb(...args): cb, timeout, repeat);
 }
 export const clearTimer = (globalThis as any).clearTimer as (id?: any)=>void;
-
-const win32 = {
-	classicPath: function(url: string) {
-		return url.replace(/^file:\/\//i, '').replace(/^\/([a-z]:)?/i, '$1').replace(/\//g, '\\');
-	},
-	joinPath: function(args: any[]) {
-		let ls = [];
-		for (let i = 0; i < args.length; i++) {
-			let item = args[i];
-			if (item)
-				ls.push(item.replace(/\\/g, '/'));
-		}
-		return ls.join('/');
-	},
-	resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	isAbsolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	isLocal: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
-	delimiter: ';',
-};
-
-const posix = {
-	classicPath: function(url: string) {
-		return url.replace(/^file:\/\//i, '');
-	},
-	joinPath: function(args: any[]) {
-		let ls = [];
-		for (let i = 0; i < args.length; i++) {
-			let item = args[i];
-			if (item)
-				ls.push(item);
-		}
-		return ls.join('/');
-	},
-	resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	isLocal: /^(\/|(file|zip):\/\/\/)/i,
-	delimiter: ':',
-};
-
-const isWin32 = _init.platform == 'win32';
-const paths = isWin32 ? win32: posix;
-
-export const classicPath = paths.classicPath;
-export const delimiter = paths.delimiter;
-
-/** 
- * format part
- */
-export function normalizePath(path: string, retain_up?: boolean): string {
-	let ls = path.split('/');
-	let rev = [];
-	let up = 0;
-	for (let i = ls.length - 1; i > -1; i--) {
-		let v = ls[i];
-		if (v && v != '.') {
-			if (v == '..') // set up
-				up++;
-			else if (up === 0) // no up item
-				rev.push(v);
-			else // un up
-				up--;
-		}
-	}
-	path = rev.reverse().join('/');
-
-	return (retain_up ? new Array(up + 1).join('../') + path : path);
-}
-
-/**
- * file:///home/louis/test.txt
- * file:///d:/home/louis/test.txt
- * http://google.com/test.txt
- * return format path
- */
-export function formatPath(...args: string[]): string {
-	let path = paths.joinPath(args);
-	let prefix = '';
-	// Find absolute path
-	let mat = path.match(paths.resolve);
-	let slash = '';
-	// resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	// resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	if (mat) {
-		if (mat[2]) { // local absolute path /
-			if (isWin32 && mat[2] != '/') { // windows d:\
-				prefix = PREFIX + mat[2] + '/';
-				path = path.substring(2);
-			} else {
-				prefix = PREFIX; //'file:///';
-			}
-		} else {
-			if (mat[4]) { // local file protocol
-				prefix = mat[4];
-			} else { // network protocol
-				prefix = mat[0];
-				slash = '/';
-			}
-			// if (prefix == path.length)
-			if (prefix == path) // file:///
-				return prefix;
-			path = path.substring(prefix.length);
-		}
-	} else { // Relative path, no network protocol
-		let _cwd = cwd();
-		if (isWin32) {
-			prefix += _cwd.substring(0,10) + '/'; // 'file:///d:/';
-			path = _cwd.substring(11) + '/' + path;
-		} else {
-			prefix = PREFIX; // 'file:///';
-			path = _cwd.substring(8) + '/' + path;
-		}
-	}
-	path = normalizePath(path);
-	return path ? prefix + slash + path : prefix;
-}
-
-/**
- * Is it an absolute path?
- */
-export function isAbsolute(path: string): boolean {
-	return paths.isAbsolute.test(path);
-}
-
-/**
- * Is it a local path?
- */
-export function isLocal(path: string): boolean {
-	return paths.isLocal.test(path);
-}
-
-export function isLocalZip(path: string): boolean { //!<
-	return /^zip:\/\/\//i.test(path);
-}
-
-export function isHttp(path: string): boolean { //!<
-	return /^(https?):\/\/[^\/]+/i.test(path);
-}
 
 /**
  * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
@@ -412,7 +268,9 @@ export default {
 	*/
 	platform: _init.platform as Platform,
 
-	isQuark: true, isNode: false, isWeb: false,
+	isQuark: true,
+	isNode: false,
+	isWeb: false,
 	webFlags: null,
 
 	/**
