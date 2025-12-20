@@ -59,6 +59,7 @@ declare global {
 		paths: string[];
 		parent: NodeModule | null | undefined;
 		package?: any;
+		require: any; // (id: string): any;
 	}
 
 	var __binding__: (id: string)=>any; // binding native module
