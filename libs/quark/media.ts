@@ -30,6 +30,7 @@
 
 import util from './util';
 import event, { EventNoticer, NativeNotification, Notification, Event } from './event';
+import type { Uint} from './defs';
 
 /**
  * @enum MediaType

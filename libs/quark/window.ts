@@ -33,6 +33,7 @@ import {Root,View} from './view';
 import * as types from './types';
 import event, { Event, EventNoticer, NativeNotification, Notification } from './event';
 import { ViewController, VirtualDOM, _CVD } from './ctr';
+import type { Uint } from './defs';
 
 const _ui = __binding__('_ui');
 type WEvent = Event<Window>;

@@ -51,6 +51,8 @@ import * as action from './action';
 import {ViewController} from './ctr';
 import {Player,MediaType,MediaSourceStatus,Stream} from './media';
 import { Path } from './path';
+import type { Uint, Float, Int, Uint16, Uint8 } from './defs';
+
 /*───────────────────────────────────────────
   Chapter 1 — Core View & DOM
 ───────────────────────────────────────────*/

@@ -39,6 +39,7 @@ import * as types from './types';
 import app from './app';
 import {createCss} from './css';
 import * as _common from './_common';
+import type {Uint} from './defs';
 
 const px = 1 / mainScreenScale();
 const Transition_Time = 400;

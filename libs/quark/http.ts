@@ -33,6 +33,7 @@ import {Stream, AsyncTask, StreamResponse} from './fs';
 import event, {
 	EventNoticer, NativeNotification, Notification, Event,
 } from './event';
+import type {Uint,Int} from './defs';
 
 const _http = __binding__('_http');
 

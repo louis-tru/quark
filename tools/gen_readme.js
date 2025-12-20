@@ -78,14 +78,14 @@ function startExec(input,output) {
 		// Number: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number',
 		Number: '_ext.md#number',
 		// Int: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number',
-		Int: '_ext.md#int',
-		Uint: '_ext.md#uint',
-		Int8: '_ext.md#int8',
-		Uint8: '_ext.md#uint8',
-		Int16: '_ext.md#int16',
-		Uint16: '_ext.md#uint16',
+		Int: 'numbers.md#int',
+		Uint: 'numbers.md#uint',
+		Int8: 'numbers.md#int8',
+		Uint8: 'numbers.md#uint8',
+		Int16: 'numbers.md#int16',
+		Uint16: 'numbers.md#uint16',
 		// Float: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number',
-		Float: '_ext.md#float',
+		Float: 'numbers.md#float',
 		// Boolean: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean',
 		Boolean: '_ext.md#boolean',
 		// Error: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error',
@@ -801,7 +801,7 @@ function startExec(input,output) {
 	}
 
 	var imports_mat = code.matchAll(
-		/import\s+((?:(\w+)\s*,\s*)?\{([\w$_,\s]+)\}|(?:\*\s+as\s+(\w+)))\s+from\s+(?:\'|\")(.+?)(?:\'|\")/gm
+		/import\s+((?:(\w+)\s*,?\s*)?(?:\{([\w$_,\s]*)\})?|(?:\*\s+as\s+(\w+)))\s+from\s+(?:\'|\")(.+?)(?:\'|\")/gm
 	);
 
 	for (let m of imports_mat) {
@@ -811,12 +811,16 @@ function startExec(input,output) {
 			imports[m[4]] = { file, name: m[4], ref: '*' };
 		} else {
 			if (m[2]) { // import Default from '.'
-				imports[m[2]] = { file, name: m[2], ref: 'default' };
+				if (m[2] != 'type')
+					imports[m[2]] = { file, name: m[2], ref: 'default' };
 			}
 			if (m[3]) { // import {AA} from '.'
-				for (let it of m[3].split(',')) {
-					let [ref,name=ref] = it.trim().split(/\s+as\s+/);
-					imports[name] = { file, name, ref };
+				let blockStr = m[3].trim();
+				if (blockStr) {
+					for (let it of blockStr.split(',')) {
+						let [ref,name=ref] = it.trim().split(/\s+as\s+/);
+						imports[name] = { file, name, ref };
+					}
 				}
 			}
 		}

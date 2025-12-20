@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import {Vec2,Rect,Vec3,Mat,Range,BorderRadius} from './types';
+import type { Uint, Int} from './defs';
 
 const _path = __binding__('_path');
 Object.assign(exports, _path);

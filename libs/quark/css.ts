@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import * as types from './types';
+import type {Uint,Float} from './defs';
 
 const _css = __binding__('_css');
 

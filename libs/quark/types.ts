@@ -28,7 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import {Path} from './path';
+import type {Path} from './path';
+import type {Float} from './defs';
 
 const _font = __binding__('_font');
 

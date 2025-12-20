@@ -33,6 +33,7 @@ import {Action} from './action';
 import {View,Agent,Spine} from './view';
 import {RemoveReadonly,Vec2,newVec2,Direction,PIDegree} from './types';
 import {KeyboardKeyCode} from './keyboard';
+import type {Uint,Int,Float} from './defs';
 
 export * from './_event';
 export default event;

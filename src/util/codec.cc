@@ -211,27 +211,25 @@ namespace qk {
 		if (unicode < 0x7F + 1) {             // 单字节编码
 			return 1;
 		}
-		else {
-			if (unicode < 0x7FF + 1) {            // 两字节编码
-				return 2;
+		else if (unicode < 0x7FF + 1) {       // 两字节编码
+			return 2;
+		}
+		else if (unicode < 0xFFFF + 1) {      // 三字节编码
+			return 3;
+		}
+		else if (unicode < 0x10FFFF + 1) {    // 四字节编码
+			return 4;
+		}
+		else if (unicode < 0x3FFFFFF + 1) {   // 五字节编码
+			if (unicode > 0x200000 - 1) {
+				return 5;
 			}
-			else if (unicode < 0xFFFF + 1) {      // 三字节编码
-				return 3;
+			else { // 这个区间没有编码
+				return 0;
 			}
-			else if (unicode < 0x10FFFF + 1) {    // 四字节编码
-				return 4;
-			}
-			else if (unicode < 0x3FFFFFF + 1) {   // 五字节编码
-				if (unicode > 0x200000 - 1) {
-					return 5;
-				}
-				else { // 这个区间没有编码
-					return 0;
-				}
-			}
-			else {                               //六字节编码
-				return 6;
-			}
+		}
+		else {                               //六字节编码
+			return 6;
 		}
 	}
 
@@ -263,7 +261,7 @@ namespace qk {
 		if (unicode < 0xFFFF + 1) {  // 2 bytes encode 0xffff
 			*s = unicode;
 			return 1;
-		} else {                       // 4 bytes encode 0xffffffff
+		} else {                     // 4 bytes encode 0xffffffff
 			unicode -= 0x10000;
 			s[0] = 0b1101100000000000u | (unicode >> 10);
 			s[1] = 0b1101110000000000u | (unicode & 0b1111111111u);   // low

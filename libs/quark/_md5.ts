@@ -7,7 +7,8 @@
  * See http://pajhome.org.uk/crypt/md5 for more info.
  */
 
-import * as buffer from './buffer';
+import * as bf from './buffer';
+import type {Int,Uint,Uint8} from './defs';
 
 /**
  * bits per input character. 8 - ASCII; 16 - Unicode
@@ -29,14 +30,14 @@ export function bin2binl(bin: ArrayLike<Uint8>): Uint[]
 /**
  * Convert an array of little-endian words to a bin
  */
-export function binl2bin(binl: ArrayLike<Uint>): buffer.Buffer
+export function binl2bin(binl: ArrayLike<Uint>): bf.Buffer
 {
 	let bin: Uint[] = [];
 	for(let i = 0; i < binl.length * 4; i++)
 	{
 		bin.push((binl[i>>2] >> ((i%4)*8)) & 0xFF);
 	}
-	return new buffer.Buffer(bin);
+	return new bf.Buffer(bin);
 }
 
 /*
@@ -183,7 +184,7 @@ function bit_rol(num: number, cnt: number)
 /**
  * Calculate the MD5 of a string or ArrayLike<Int>
 */
-export default function md5(s: string | ArrayLike<Int>): buffer.Buffer {
-	var b = buffer.from(s as any);
+export default function md5(s: string | ArrayLike<Int>): bf.Buffer {
+	var b = bf.from(s as any);
 	return binl2bin(core_md5(bin2binl(b), b.length * chrsz));
 }

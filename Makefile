@@ -54,6 +54,8 @@ install-only:
 	@$(NODE) tools/cp_qkmake.js
 	@cd $(QKMAKE_OUT) && npm i -f --ignore-scripts
 	@cd $(QKMAKE_OUT) && $(SUDO) npm i -g --ignore-scripts
+# link current qktool to qkmake node_modules
+	@cd $(QKMAKE_OUT)/node_modules && rm -rf qktool && ln -s ../../../libs/qktool/out/qktool
 
 install: all
 	@$(MAKE) install-only

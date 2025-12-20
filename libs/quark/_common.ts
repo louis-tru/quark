@@ -30,6 +30,7 @@
 
 import {List} from './_event';
 import errno from './errno';
+import type {Uint,Float,ErrorNewArg} from './defs';
 
 let id = 10;
 let scopeLockQueue = new Map();

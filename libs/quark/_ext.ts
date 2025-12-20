@@ -28,372 +28,349 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-declare namespace qk {
-	type Require = NodeRequire;
-	type Module = NodeModule;
-}
+import type {Any,Uint,Int,ErrnoCode,ErrorNewArg} from './defs';
 
-interface RequireResolve {
-	(id: string, options?: { paths?: string[]; }): string;
-	paths(request: string): string[] | null;
-}
+// Declare global types
+declare global {
 
-interface NodeRequire {
-	(id: string): any;
-	resolve: RequireResolve;
-	// cache: Dict<NodeModule>;
-	main: NodeModule | undefined;
-}
+	namespace qk {
+		interface Require extends NodeRequire {}
+		interface Module extends NodeModule {}
+	}
 
-interface NodeModule {
-	id: string;
-	exports: any;
-	filename: string;
-	loaded: boolean;
-	children: NodeModule[];
-	paths: string[];
-	parent: NodeModule | null | undefined;
-	package?: any;
-}
+	interface RequireResolve {
+		(id: string, options?: { paths?: string[]; }): string;
+		paths(request: string): string[] | null;
+	}
 
-declare var __binding__: (id: string)=>any; // binding native module
-declare var __filename: string;
-declare var __dirname: string;
-declare var require: NodeRequire;
-declare var module: NodeModule;
-declare var exports: any; // Same as module.exports
+	interface NodeRequire {
+		(id: string): any;
+		resolve: RequireResolve;
+		// cache: Dict<NodeModule>;
+		main: NodeModule | undefined;
+	}
 
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
- * @type number:Number
- * @global
-*/
+	interface NodeModule {
+		id: string;
+		exports: any;
+		filename: string;
+		loaded: boolean;
+		children: NodeModule[];
+		paths: string[];
+		parent: NodeModule | null | undefined;
+		package?: any;
+	}
 
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
- * @type boolean:Boolean
- * @global
-*/
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
- * @type object:Object
- * @global
-*/
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
- * @type string:String
- * @global
-*/
-
-/**
- * 32-bit integer, Range: -2147483648 to 2147483647
- * @global
-*/
-type Int = number;
-
-/**
- * 32-bit signed integer, Range: 0 to 4294967295
- * @global
-*/
-type Uint = number;
-
-/**
- * 16-bit signed integer, Range: 0 to 65535
- * @global
-*/
-type Uint16 = number;
-
-/**
- * 16-bit integer, Range: -32768 to 32767
- * @global
-*/
-type Int16 = number;
-
-/**
- * 8-bit signed integer, Range: 0 to 255
- * @global
-*/
-type Uint8 = number;
-
-/**
- * 8-bit integer, Range: -128 to 127
- * @global
-*/
-type Int8 = number;
-
-/**
- * 32-bit floating point， Range: -3.402823466E+38 to 3.402823466E+38
- * @global
-*/
-type Float = number;
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
- * @interface Number
- * @global
-*/
-interface NumberConstructor {
-	mix32(x: Uint): Uint;
-	mix32Fast(x: Uint): Uint;
-	mix32Fastest(x: Uint): Uint;
-}
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
- * @interface Object
- * @global
-*/
-interface ObjectConstructor {
-	hashCode(obj: any): Int;
-}
-
-interface Object {
-	hashCode(): Int;
-}
-
-/**
- * @interface Dict Dictionaries
- * @global
- */
-interface Dict<T = any> {
-	[key: string]: T;
-}
-
-type TimeoutResult = any;
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
- * @interface Function
- * @global
-*/
-interface Function {
-	hashCode(): Int;
-	setTimeout(this: Function, time: Uint, ...argArray: any[]): TimeoutResult;
-}
-
-interface CallableFunction extends Function {
-	setTimeout<A extends any[], R>(this: (...args: A) => R, time: Uint, ...args: A): TimeoutResult;
-}
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
- * @interface Array
- * @global
-*/
-interface Array<T> {
-	hashCode(): Int;
-	deleteOf(value: T): boolean;
-	indexReverse(index: Uint): T;
-	indexAt(index: Uint): T;
-}
-
-interface ArrayConstructor {
-	toArray(obj: any, index?: Uint, end?: Uint): any[];
-}
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
- * @interface String
- * @global
-*/
-interface String {
-	hashCode(): Int;
-}
-
-interface StringConstructor {
-	format(str: string, ...args: any[]): string;
-}
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
- * @interface Number
- * @global
-*/
-interface Number {
-
-	hashCode(): Int;
+	var __binding__: (id: string)=>any; // binding native module
+	var __filename: string;
+	var __dirname: string;
+	var require: NodeRequire;
+	var module: NodeModule;
+	var exports: any; // Same as module.exports
 
 	/**
-	* Convert to a string with a fixed number of digits before and after the decimal point
-	* 
-	* @param before Fixed number of digits before the decimal point
-	* @param after? Fixed number of digits after the decimal point
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+	 * @type number:Number
+	 * @global
 	*/
-	toFixedBefore(before: Uint, after?: Uint): string;
 
 	/**
-	 * Fixed the number of digits before the decimal point and used symbol separation
-	 * 
-	 * @param after  Fixed number of digits before the decimal point
-	 * @param split?  Split unit length
-	 * @param symbol?  Split characters
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * // Print: 1,000,000.03
-	 * console.log((1000000.03).toFixedVariable(8,3,','))
-	 * ```
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+	 * @type boolean:Boolean
+	 * @global
 	*/
-	toFixedVariable(after: Uint, split?: Uint, symbol?: string): string;
-}
 
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
- * @interface Boolean
- * @global
-*/
-interface Boolean {
-	hashCode(): Int;
-}
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
- * @interface Date
- * @global
-*/
-interface DateConstructor {
 	/**
-	 * current timezone
-	 * @static
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
+	 * @type object:Object
+	 * @global
+	*/
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+	 * @type string:String
+	 * @global
+	*/
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+	 * @interface NumberConstructor
+	 * @global
+	*/
+	interface NumberConstructor {
+		mix32(x: Uint): Uint;
+		mix32Fast(x: Uint): Uint;
+		mix32Fastest(x: Uint): Uint;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
+	 * @interface ObjectConstructor
+	 * @global
+	*/
+	interface ObjectConstructor {
+		hashCode(obj: any): Int;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
+	 * @interface Object
+	 * @global
 	 */
-	currentTimezone: Uint;
+	interface Object {
+		hashCode(): Int;
+	}
 
 	/**
-	 * Parse a string as a time
-	 * @param str       The string to parse
-	 * @param format?   date format default yyyyMMddhhmmssfff
-	 * @param timezone? The time zone of the time to be parsed, the default is the current time zone
-	 * @return          Retruu Date object
-	 * @static
-	 * 
-	 * @example
-	 * 
-	 * ```ts
-	 * let i = '2008-02-13 01:12:13';
-	 * let date = Date.parseDate(i); // The new time returned
-	 * ```
+	 * @interface Dict Dictionaries
+	 * @global
 	 */
-	parseDate(date_str: string, format?: string, timezone?: Uint): Date;
+	interface Dict<T = any> extends Record<string, T> {}
 
 	/**
-		* Formatting timestamps
+	 * @interface TimeoutResult
+	 * @global
+	*/
+	interface TimeoutResult extends Any {}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
+	 * @interface Function
+	 * @global
+	*/
+	interface Function {
+		hashCode(): Int;
+		setTimeout(this: Function, time: Uint, ...argArray: any[]): TimeoutResult;
+	}
+
+	interface CallableFunction extends Function {
+		setTimeout<A extends any[], R>(this: (...args: A) => R, time: Uint, ...args: A): TimeoutResult;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+	 * @interface Array
+	 * @global
+	*/
+	interface Array<T> {
+		hashCode(): Int;
+		deleteOf(value: T): boolean;
+		indexReverse(index: Uint): T;
+		indexAt(index: Uint): T;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+	 * @interface ArrayConstructor
+	 * @global
+	 */
+	interface ArrayConstructor {
+		toArray(obj: any, index?: Uint, end?: Uint): any[];
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+	 * @interface String
+	 * @global
+	*/
+	interface String {
+		hashCode(): Int;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+	 * @interface StringConstructor
+	 * @global
+	*/
+	interface StringConstructor {
+		format(str: string, ...args: any[]): string;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+	 * @interface Number
+	 * @global
+	*/
+	interface Number {
+
+		hashCode(): Int;
+
+		/**
+		* Convert to a string with a fixed number of digits before and after the decimal point
 		* 
-		* @method formatTimeSpan(ts,format?)
-		* @param time_span The timestamp to format
-		* @param format? The timestamp format to be formatted
-		* @return The returned formatted timestamp
-		* @static
-		* 
-		* @example
-		* 
-		* ```ts
-		* // Format timestamp (unit: milliseconds)
-		* let time_span = 10002100;
-		* let format = 'dd hh:mm:ss';
-		* let str = Date.formatTimeSpan(time_span, format); // str = '0 2:46:42'
-		* let format = 'dd天hh时mm分ss秒';
-		* let str = Date.formatTimeSpan(time_span, format); // str = '0天2时46分42秒'
-		* format = 'hh时mm分ss秒';
-		* str = Date.formatTimeSpan(time_span, format); // str = '2时46分42秒'
-		* format = 'mm分ss秒';
-		* str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
-		* ```
+		* @param before Fixed number of digits before the decimal point
+		* @param after? Fixed number of digits after the decimal point
 		*/
-	formatTimeSpan(time_span: Uint, format?: string): string;
-}
+		toFixedBefore(before: Uint, after?: Uint): string;
 
-interface Date {
-	hashCode(): Int;
-
-	/**
-	 * Add milliseconds to the current Date time and change the time value
-	 * @param ms The millisecond value to append
-	 */
-	add(ms: Uint): Date;
-
-	/**
-		* Returns a date string given a date format
-		* @param format? The format of the string to be converted
-		* @return Returns the formatted time string
-		* 
-		* @exmples
-		* 
-		* ```ts
-		* let date = new Date();
-		* let format = 'yyyy-MM-dd hh:mm:ss.fff';
-		* let dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
-		* format = 'yyyy-MM-dd hh:mm:ss';
-		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
-		* format = 'yyyy/MM/dd';
-		* dateStr = date.toString(format); // dateStr的值为 '2008/12/10'
-		* format = 'yyyy-MM-dd hh';
-		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10'
-		* ```
+		/**
+		 * Fixed the number of digits before the decimal point and used symbol separation
+		 * 
+		 * @param after  Fixed number of digits before the decimal point
+		 * @param split?  Split unit length
+		 * @param symbol?  Split characters
+		 * 
+		 * @example
+		 * 
+		 * ```ts
+		 * // Print: 1,000,000.03
+		 * console.log((1000000.03).toFixedVariable(8,3,','))
+		 * ```
 		*/
-	toString(format?: string, timezone?: number): string;
-}
+		toFixedVariable(after: Uint, split?: Uint, symbol?: string): string;
+	}
 
-/**
- * @interface ErrorDescribe
- * @global
-*/
-interface ErrorDescribe {
-	name?: string;
-	message?: string;
-	error?: string;
-	description?: string;
-	errno?: number | string;
-	child?: Error | Error[];
-	[prop: string]: any;
-}
-
-/**
- * The [errno,message,description] of Array
- * @type ErrnoCode:[number,string,string?]
- * @global
-*/
-type ErrnoCode = [number, string, string?];
-
-/**
- * @global
-*/
-type ErrorNewArg = ErrnoCode | Error | string | ErrorDescribe;
-
-/**
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
- * @interface Error
- * @global
-*/
-interface ErrorConstructor {
-	'new'(err: ErrorNewArg, ...child: ErrorNewArg[]): Error;
-	toJSON(err: Error): any;
-	setStackTraceJSON(enable: boolean): void;
 	/**
-	 * Create .stack property on a target object
-	 * @static
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+	 * @interface Boolean
+	 * @global
+	*/
+	interface Boolean {
+		hashCode(): Int;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
+	 * @interface DateConstructor
+	 * @global
+	*/
+	interface DateConstructor {
+		/**
+		 * current timezone
+		 * @static
+		 */
+		currentTimezone: Uint;
+
+		/**
+		 * Parse a string as a time
+		 * @param str       The string to parse
+		 * @param format?   date format default yyyyMMddhhmmssfff
+		 * @param timezone? The time zone of the time to be parsed, the default is the current time zone
+		 * @return          Retruu Date object
+		 * @static
+		 * 
+		 * @example
+		 * 
+		 * ```ts
+		 * let i = '2008-02-13 01:12:13';
+		 * let date = Date.parseDate(i); // The new time returned
+		 * ```
+		 */
+		parseDate(date_str: string, format?: string, timezone?: Uint): Date;
+
+		/**
+			* Formatting timestamps
+			* 
+			* @method formatTimeSpan(ts,format?)
+			* @param time_span The timestamp to format
+			* @param format? The timestamp format to be formatted
+			* @return The returned formatted timestamp
+			* @static
+			* 
+			* @example
+			* 
+			* ```ts
+			* // Format timestamp (unit: milliseconds)
+			* let time_span = 10002100;
+			* let format = 'dd hh:mm:ss';
+			* let str = Date.formatTimeSpan(time_span, format); // str = '0 2:46:42'
+			* let format = 'dd天hh时mm分ss秒';
+			* let str = Date.formatTimeSpan(time_span, format); // str = '0天2时46分42秒'
+			* format = 'hh时mm分ss秒';
+			* str = Date.formatTimeSpan(time_span, format); // str = '2时46分42秒'
+			* format = 'mm分ss秒';
+			* str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
+			* ```
+			*/
+		formatTimeSpan(time_span: Uint, format?: string): string;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
+	 * @interface Date
+	 * @global
+	*/
+	interface Date {
+		hashCode(): Int;
+
+		/**
+		 * Add milliseconds to the current Date time and change the time value
+		 * @param ms The millisecond value to append
+		 */
+		add(ms: Uint): Date;
+
+		/**
+			* Returns a date string given a date format
+			* @param format? The format of the string to be converted
+			* @return Returns the formatted time string
+			* 
+			* @exmples
+			* 
+			* ```ts
+			* let date = new Date();
+			* let format = 'yyyy-MM-dd hh:mm:ss.fff';
+			* let dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
+			* format = 'yyyy-MM-dd hh:mm:ss';
+			* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
+			* format = 'yyyy/MM/dd';
+			* dateStr = date.toString(format); // dateStr的值为 '2008/12/10'
+			* format = 'yyyy-MM-dd hh';
+			* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10'
+			* ```
+			*/
+		toString(format?: string, timezone?: number): string;
+	}
+
+	/**
+	 * @interface ErrorDescribe
+	 * @global
+	*/
+	interface ErrorDescribe extends Dict {
+		name?: string;
+		message?: string;
+		error?: string;
+		description?: string;
+		errno?: number | string;
+		child?: Error | Error[];
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+	 * @interface ErrorConstructor
+	 * @global
+	*/
+	interface ErrorConstructor {
+		'new'(err: ErrorNewArg, ...child: ErrorNewArg[]): Error;
+		toJSON(err: Error): any;
+		setStackTraceJSON(enable: boolean): void;
+		/**
+		 * Create .stack property on a target object
+		 * @static
+		 */
+		captureStackTrace(targetObject: Object, constructorOpt?: Function): void;
+	}
+
+	/**
+	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+	 * @interface Error
+	 * @global
 	 */
-	captureStackTrace(targetObject: Object, constructorOpt?: Function): void;
+	interface Error extends Dict {
+		errno?: number | string;
+		description?: string;
+		child?: Error[];
+		extend: (desc: ErrorDescribe)=>this;
+	}
+
+	function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
+	function setInterval<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
+	function setImmediate<A extends any[]>(cb: (...args: A)=>void, ...args: A): TimeoutResult;
+	function clearTimeout(id?: TimeoutResult): void;
+	function clearInterval(id?: TimeoutResult): void;
+	function clearImmediate(id?: TimeoutResult): void;
 }
 
-interface Error {
-	errno?: number | string;
-	description?: string;
-	child?: Error[];
-	[prop: string]: any;
-	extend: (desc: ErrorDescribe)=>this;
-}
-
-declare function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
-declare function setInterval<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
-declare function setImmediate<A extends any[]>(cb: (...args: A)=>void, ...args: A): TimeoutResult;
-declare function clearTimeout(id?: TimeoutResult): void;
-declare function clearInterval(id?: TimeoutResult): void;
-declare function clearImmediate(id?: TimeoutResult): void;
-
-(function(_: any) {
+(function() {
 if (Date.formatTimeSpan !== undefined)
 	return;
 
@@ -491,7 +468,7 @@ definePropertys(Function.prototype, {
 		fn_hash_map.set(this, h);
 		return h;
 	},
-	setTimeout(time: number, ...args: any[]): TimeoutResult {
+	setTimeout(time: number, ...args: any[]) {
 		let fn = this;
 		return setTimeout(function() {
 			fn(...args);
@@ -827,4 +804,4 @@ definePropertys(Error.prototype, {
 	},
 });
 
-})((s:any)=>eval(s));
+}());

@@ -29,6 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import * as types from './types';
+import type {Uint} from './defs';
+
 Object.assign(exports, __binding__('_font'));
 
 /**

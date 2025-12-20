@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import jsonb from './jsonb';
+import type {Uint,Int} from './defs';
 
 const _lmdb = __binding__('_lmdb');
 

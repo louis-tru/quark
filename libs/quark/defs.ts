@@ -28,16 +28,62 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export class ErrnoList {
-	// -10000 ~ -19999
-	ERR_UNKNOWN_ERROR: ErrnoCode = [-10000, 'UNKNOWN_ERROR']
-	ERR_MODULE_NOT_FOUND: ErrnoCode = [-10001, 'ERR_MODULE_NOT_FOUND'] // e.g. quark module not found
-	ERR_EXECUTE_TIMEOUT: ErrnoCode = [-10002, 'ERR_EXECUTE_TIMEOUT'] // call timeout() execution timeout
-	ERR_NOT_OPEN_CONNECTION: ErrnoCode = [-10003, 'Not open connection'] // e.g. WebSocket not open
-	ERR_WS_HANDSHAKE_FAIL: ErrnoCode = [-10004, 'handshake failed, connection closed']
-	ERR_FORBIDDEN_ACCESS: ErrnoCode = [-10005, 'FORBIDDEN ACCESS']
-	ERR_CONNECTION_DISCONNECTION: ErrnoCode = [-10006, 'Connection disconnection']
-	ERR_METHOD_CALL_TIMEOUT: ErrnoCode = [-10007, 'method call timeout']
-	ERR_UNABLE_PARSE_JSONB: ErrnoCode = [-10008, 'Unable to parse jsonb, data corrupted']
-	ERR_BAD_ARGUMENT: ErrnoCode = [-10009, 'bad argument.']
-};
+/* Extend base types Definitions */
+
+/**
+ * Any type
+ */
+export type Any = any;
+
+/**
+ * 32-bit integer, Range: -2147483648 to 2147483647
+ * @global
+*/
+export type Int = number;
+
+/**
+ * 32-bit signed integer, Range: 0 to 4294967295
+ * @global
+*/
+export type Uint = number;
+
+/**
+ * 16-bit signed integer, Range: 0 to 65535
+ * @global
+*/
+export type Uint16 = number;
+
+/**
+ * 16-bit integer, Range: -32768 to 32767
+ * @global
+*/
+export type Int16 = number;
+
+/**
+ * 8-bit signed integer, Range: 0 to 255
+ * @global
+*/
+export type Uint8 = number;
+
+/**
+ * 8-bit integer, Range: -128 to 127
+ * @global
+*/
+export type Int8 = number;
+
+/**
+ * 32-bit floating point， Range: -3.402823466E+38 to 3.402823466E+38
+ * @global
+*/
+export type Float = number;
+
+/**
+ * The [errno,message,description] of Array
+ * @type ErrnoCode:[number,string,string?]
+*/
+export type ErrnoCode = [number, string, string?];
+
+/**
+ * The argument type of Error.new
+*/
+export type ErrorNewArg = ErrnoCode | Error | string | ErrorDescribe;

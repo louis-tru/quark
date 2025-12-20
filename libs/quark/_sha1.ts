@@ -9,6 +9,7 @@
 
 import {chrsz,bin2binl,binl2bin} from './_md5';
 import * as buffer from './buffer';
+import type {Int} from './defs';
 
 /*
  * Calculate the SHA-1 of an array of big-endian words, and a bit length

@@ -38,6 +38,7 @@ import event, {
 } from './event';
 import _sha1 from './_sha1';
 import errno from './errno';
+import type {Uint,Int} from './defs';
 
 const _net = __binding__('_net');
 

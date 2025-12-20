@@ -32,6 +32,7 @@ import {Buffer, alloc} from './buffer';
 import _md5 from './_md5';
 import _sha1 from './_sha1';
 import _sha256 from './_sha256';
+import type {Uint,Uint8} from './defs';
 
 export const md5 = _md5; //!<
 export const sha1 = _sha1; //!<

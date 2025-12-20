@@ -291,11 +291,11 @@ namespace qk { namespace js {
 	class Qk_EXPORT JSString: public JSValue {
 	public:
 		int length() const; // utf16 length
+		int utf8Length(Worker* worker) const; // utf8 length
 		String value(Worker* worker) const; // utf8 string value
 		String2 value2(Worker* worker) const;
 		String4 value4(Worker* worker) const;
 		Buffer toBuffer(Worker* worker, Encoding en = kUTF16_Encoding) const; // encode to en
-		int utf8Length(Worker* worker) const;
 	};
 
 	class Qk_EXPORT JSObject: public JSValue {

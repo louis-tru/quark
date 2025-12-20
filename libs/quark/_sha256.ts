@@ -6,6 +6,7 @@ code.google.com/p/crypto-js/wiki/License
 */
 
 import * as buffer from './buffer';
+import type {Int,Uint8} from './defs';
 
 // Initialization round constants tables
 const K = [] as number[];

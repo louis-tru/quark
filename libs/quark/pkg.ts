@@ -1142,7 +1142,6 @@ class QkPackage extends Package {
 			'_util.js',
 			'_decorators.js',
 			'_watching.js',
-			'_errno.js',
 			'action.js',
 			'app.js',
 			'buffer.js',
@@ -1179,6 +1178,7 @@ class QkPackage extends Package {
 			'state.js',
 			'path.js',
 			'lmdb.js',
+			'defs.js',
 		]).forEach(e=>this.filesHash[e]='-');
 		this._status = PackageStatus.INSTALLED;
 	}

@@ -35,6 +35,8 @@ import utils from './util';
 import event,{Notification,EventNoticer,Event} from './event';
 import errno from './errno';
 
+import type { Uint } from './defs';
+
 export {WebSocket};
 
 /**
@@ -75,7 +77,7 @@ export class WSConversation extends WebSocket {
 	private _autoReconnect: Uint = 0;
 	private _token = '';
 	private _isOpenMask = false;
-	private _checkIntervalId = 0;
+	private _checkIntervalId: TimeoutResult = 0;
 
 	/**
 	 * Session token

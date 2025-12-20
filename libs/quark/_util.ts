@@ -39,6 +39,8 @@ const options: Optopns = _init.options;  // start options
 const debug = ['debug', 'inspect', 'inspect_brk'].some(e=>e in options);
 export const mainPath = options.__main__ || '';
 
+import type {Uint,Int} from './defs';
+
 if ('url_arg' in options) {
 	options.url_arg = options.url_arg.replace(/\s/g, '&');
 } else {

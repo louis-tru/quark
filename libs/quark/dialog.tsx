@@ -36,6 +36,7 @@ import {mainScreenScale} from './screen';
 import {Navigation} from './nav';
 import {Window} from './window';
 import {ClickEvent} from './event';
+import type {Uint} from './defs';
 
 const px = 1 / mainScreenScale();
 

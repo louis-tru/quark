@@ -33,6 +33,8 @@ import _util, {__setListenerHook__,getConfig} from './_util';
 import * as _common from './_common';
 import {Event, EventNoticer, Notification, } from './_event';
 
+import type {Int,Uint} from './defs';
+
 class Runtime extends Notification {
 	private _handles: {[key: string]: (noticer: EventNoticer, ...args: any[])=>any} = {
 		UncaughtException: (noticer: EventNoticer, err: Error)=>

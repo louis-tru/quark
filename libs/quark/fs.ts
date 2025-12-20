@@ -30,6 +30,7 @@
 
 import _util from './_util';
 import {Encoding} from './buffer';
+import type {Uint,Int} from './defs';
 
 const _fs = __binding__('_fs');
 

@@ -34,6 +34,7 @@ import util from './util';
 import { View } from './view';
 import { ActionEvent } from './event';
 import { Window } from './window';
+import type {Uint} from './defs';
 
 Object.assign(exports, __binding__('_action'));
 

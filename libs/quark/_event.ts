@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+import type {Uint} from './defs';
+
 let _id = 0;
 
 function assert(value: any, message?: string) {

@@ -31,7 +31,11 @@
 import util from './util';
 import _buffer, {ERR_OUT_OF_RANGE,ERR_INVALID_ARG_TYPE} from './_buffer';
 
-const _codec = util.isQuark ? __binding__('_buffer') : require('./_codec');
+import type {Uint, Int, Int8, Uint8, Int16, Uint16, Float} from './defs';
+
+const _codec = util.isQuark ? __binding__('_buffer') : // use native buffer for the quark
+	// use _codec.ts for the qktool
+	require('./_codec').default;
 
 Object.assign(exports, {
 	toString: _codec.toString,
@@ -626,6 +630,17 @@ exports.from = function from(
 	}
 }
 
+/**
+ * Calculate the byte length of a string when encoded with the specified encoding.
+ * @param arg The string whose byte length is to be calculated.
+ * @param encoding? Optional, the encoding to use. If not provided, 'utf8' is assumed.
+ * @return The byte length of the encoded string.
+ * @example
+ * ```ts
+ * const length = byteLength("Hello, World!", "utf8");
+ * console.log(length); // Outputs: 13
+ * ```
+*/
 export function byteLength(
 	arg: FromArg, encoding?: Encoding): Uint
 {
@@ -707,15 +722,18 @@ export function concat(list: ArrayLike<Int>[], length?: Uint): Buffer {
 	return bf;
 }
 
+/**
+ * @default
+*/
 export default {
-	byteLength,
-	isBuffer,
-	isTypedArray,
-	isUint8Array,
-	from,
-	allocUnsafe,
-	alloc,
-	concat,
-	Zero,
-	compare,
+	byteLength, //!< {byteLength}
+	isBuffer, //!< {isBuffer}
+	isTypedArray, //!< {isTypedArray}
+	isUint8Array, //!< {isUint8Array}
+	from: exports.from as typeof from, //!< {from}
+	allocUnsafe, //!< {allocUnsafe}
+	alloc, //!< {alloc}
+	concat, //!< {concat}
+	Zero, //!< {Zero}
+	compare, //!< {compare}
 };

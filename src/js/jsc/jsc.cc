@@ -850,8 +850,9 @@ namespace qk { namespace js {
 		return js::asInt32(Cast(len));
 	}
 
-	int JSString::utf8Length(Worker* worker) const {
+	int JSString::utf8Length(Worker* w) const {
 		DCHECK(isString());
+		ENV(w);
 		auto s = JsValueToStringCopy(ctx, Back(this), JsFatal("JSString::utf8Length()"));
 		size_t len = JSStringGetLength(*s);
 		const JSChar* ch = JSStringGetCharactersPtr(*s);

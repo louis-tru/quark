@@ -274,7 +274,8 @@ function parse_path(self: any) {
 }
 
 function parse_basename(self: any) {
-	if (self._basename != -1) return;
+	if (self._basename != -1)
+		return;
 	init_uri(self);
 	let mat = self._value.match(/([^\/\\]+)?(\.[^\/\\\.]+)$|[^\/\\]+$/);
 	if (mat) {
@@ -318,8 +319,8 @@ export class URL {
 	private _origin: string = '';
 	private _filename: string = '';
 	private _dirname: string = '';
-	private _basename: string = '';
-	private _extname: string = '';
+	private _basename: string | -1 = -1;
+	private _extname: string | -1 = -1;
 	private _search: string = '';
 	private _hash: string = '';
 	private _hostname: string = '';
@@ -505,7 +506,7 @@ export class URL {
 	 */
 	get basename(): string {
 		parse_basename(this);
-		return this._basename;
+		return this._basename as string;
 	}
 	
 	/**
@@ -520,7 +521,7 @@ export class URL {
 	 */
 	get extname(): string {
 		parse_basename(this);
-		return this._extname;
+		return this._extname as string;
 	}
 
 	/**
