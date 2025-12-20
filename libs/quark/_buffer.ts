@@ -755,7 +755,6 @@ var writeDoubleBE = bigEndian ? writeDoubleForwards : writeDoubleBackwards;
 var writeDoubleLE = bigEndian ? writeDoubleBackwards : writeDoubleForwards;
 
 export default {
-	get BigInt() { return (globalThis as any).BigInt },
 	// read
 	readInt8, readUInt8,
 	readInt16,

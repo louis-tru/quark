@@ -66,9 +66,10 @@ const // FLAGS
 	F_INFINITY_MIN = 25,
 	F_INFINITY_MAX = 26;
 
-if (_buffer.BigInt) {
-	var BIGINT_MIN_SAFE_INTEGER = _buffer.BigInt(Number.MIN_SAFE_INTEGER);
-	var BIGINT_MAX_SAFE_INTEGER = _buffer.BigInt(Number.MAX_SAFE_INTEGER);
+const BigInt = (globalThis as any).BigInt; // is support BigInt
+if (BigInt) {
+	var BIGINT_MIN_SAFE_INTEGER = BigInt(Number.MIN_SAFE_INTEGER);
+	var BIGINT_MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
 }
 
 type Out = Bytes[];
@@ -122,9 +123,13 @@ function write_buffer(data: Bytes, out: Out): number {
 	return headerLength + dataLength;
 }
 
-function write_num(offset: number, api: string, len: number, out: Out) {
+type Api = 'writeInt8'|'writeUInt8'|'writeInt16BE'|'writeUInt16BE'|'writeInt32BE'|'writeUInt32BE'|'writeDoubleBE'|'writeFloatBE'|'writeInt48BE';
+
+function write_num(v: number, api: Api, len: number, out: Out) {
 	let b = new Uint8Array(len);
-	(_buffer as any)[api](b, offset);
+	_buffer[api](b, v);
+	// let b = new Buffer(len);
+	// b[api](v);
 	out.push(b);
 	return len;
 }
@@ -135,53 +140,54 @@ function isFloat32(offset: number) {
 	return false;
 }
 
-function write_number(o: number, out: Out) {
-	if (Number.isInteger(o)) { // Integer
+function write_number(v: number, out: Out) {
+	if (Number.isInteger(v)) { // Integer
 		// Int8   意思是8位整数(8bit integer),    相当于 char       占1个字节   -128 ~ 127
 		// Int16  意思是16位整数(16bit integer),  相当于 short      占2个字节   -32768 ~ 32767
 		// Int32  意思是32位整数(32bit integer),  相当于 int        占4个字节   -2147483648 ~ 2147483647
 		// Int64  意思是64位整数(64bit interger), 相当于 long long  占8个字节   -9223372036854775808 ~ 9223372036854775807
-		if (o < 0) {
-			if (o > -129) { // int8
-				return write_flag(F_INT_8, out) + write_num(o, 'writeInt8', 1, out);
-			} else if (o > -32769) { // int16
-				return write_flag(F_INT_16, out) + write_num(o, 'writeInt16BE', 2, out);
-			} else if (o > -2147483649) { // int32
-				return write_flag(F_INT_32, out) + write_num(o, 'writeInt32BE', 4, out);
+		if (v < 0) {
+			if (v > -129) { // int8
+				return write_flag(F_INT_8, out) + write_num(v, 'writeInt8', 1, out);
+			} else if (v > -32769) { // int16
+				return write_flag(F_INT_16, out) + write_num(v, 'writeInt16BE', 2, out);
+			} else if (v > -2147483649) { // int32
+				return write_flag(F_INT_32, out) + write_num(v, 'writeInt32BE', 4, out);
 			} else { // int64, javascript use double float
-				return write_flag(F_FLOAT_NUM_64, out) + write_num(o, 'writeDoubleBE', 8, out);
+				return write_flag(F_FLOAT_NUM_64, out) + write_num(v, 'writeDoubleBE', 8, out);
 			}
 		} else {
-			if (o < 256) { // uint8 0xff + 1
-				return write_flag(F_UINT_8, out) + write_num(o, 'writeUInt8', 1, out);
-			} else if (o < 65536) { // uint16 0xffff + 1
-				return write_flag(F_UINT_16, out) + write_num(o, 'writeUInt16BE', 2, out);
-			} else if (o < 4294967296) { // uint32 0xffffffff + 1
-				return write_flag(F_UINT_32, out) + write_num(o, 'writeUInt32BE', 4, out);
+			if (v < 256) { // uint8 0xff + 1
+				return write_flag(F_UINT_8, out) + write_num(v, 'writeUInt8', 1, out);
+			} else if (v < 65536) { // uint16 0xffff + 1
+				return write_flag(F_UINT_16, out) + write_num(v, 'writeUInt16BE', 2, out);
+			} else if (v < 4294967296) { // uint32 0xffffffff + 1
+				return write_flag(F_UINT_32, out) + write_num(v, 'writeUInt32BE', 4, out);
 			} else { // uint64, javascript use double float
-				return write_flag(F_FLOAT_NUM_64, out) + write_num(o, 'writeDoubleBE', 8, out);
+				return write_flag(F_FLOAT_NUM_64, out) + write_num(v, 'writeDoubleBE', 8, out);
 			}
 		}
 	}
-	if (isFloat32(o)) { // Float 32/64
-		return write_flag(F_FLOAT_NUM_32, out) + write_num(o, 'writeFloatBE', 4, out);
+	if (isFloat32(v)) { // Float 32/64
+		return write_flag(F_FLOAT_NUM_32, out) + write_num(v, 'writeFloatBE', 4, out);
 	} else {
-		return write_flag(F_FLOAT_NUM_64, out) + write_num(o, 'writeDoubleBE', 8, out);
+		return write_flag(F_FLOAT_NUM_64, out) + write_num(v, 'writeDoubleBE', 8, out);
 	}
 }
 
-function write_bigint(o: bigint, out: Out) {
-	if (o < BIGINT_MAX_SAFE_INTEGER && o > BIGINT_MIN_SAFE_INTEGER) {
-		return write_number(Number(o), out);
+function write_bigint(v: bigint, out: Out) {
+	if (v < BIGINT_MAX_SAFE_INTEGER && v > BIGINT_MIN_SAFE_INTEGER) {
+		return write_number(Number(v), out);
 	}
-	if (o < 0) { // 
+	if (v < 0) { // 
 		write_flag(F_BIGINT_NEGATIVE, out);
-		o = -o;
+		v = -v;
 	} else {
 		write_flag(F_BIGINT, out);
 	}
 	let bytes: number[] = [];
-	_buffer.writeBigIntLE(bytes, o);
+	_buffer.writeBigIntLE(bytes, v);
+
 	return 1 + write_buffer(bytes.reverse(), out);
 }
 
@@ -358,7 +364,7 @@ function read_buffer(bin: Binary): Buffer {
 function read_bigint(bin: Binary): bigint | number {
 	assert(bin.length > bin.index + 8);
 	let bytes = read_buffer(bin);
-	if (_buffer.BigInt) {
+	if (BigInt) {
 		return _buffer.readBigUIntBE(bytes, 0, bytes.length);
 	} else { // not support bigint
 		console.log('Not support bigint');
