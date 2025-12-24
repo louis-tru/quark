@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015-2016, blue.chu
+ * Copyright (c) 2015-2016, Louis.chu
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -11,14 +11,14 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of blue.chu nor the
+ *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL blue.chu BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL Louis.chu BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -490,7 +490,7 @@ function startExec(input,output) {
 	//        readonly children         : (VirtualDOM | null)[] = [];
 	// static readonly isViewController : boolean               = true;
 	// export const    createCss        : object                =
-	function tryTypeOrGetset(comment, item/*get/set/getset*/, lastIndex) {
+	function tryTypeOrGetset(comment, item/*get/set/getset/const*/, lastIndex) {
 		let c = tryType(comment,item,lastIndex);
 		if (c)
 			return c;
@@ -801,7 +801,7 @@ function startExec(input,output) {
 	}
 
 	var imports_mat = code.matchAll(
-		/import\s+((?:(\w+)\s*,?\s*)?(?:\{([\w$_,\s]*)\})?|(?:\*\s+as\s+(\w+)))\s+from\s+(?:\'|\")(.+?)(?:\'|\")/gm
+		/import(?:\s+type)?\s+((?:(\w+)\s*,\s*)?(?:\{([\w$_,\s]*)\})?|(?:\*\s+as\s+(\w+)))\s+from\s+(?:\'|\")(.+?)(?:\'|\")/gm
 	);
 
 	for (let m of imports_mat) {
@@ -811,8 +811,7 @@ function startExec(input,output) {
 			imports[m[4]] = { file, name: m[4], ref: '*' };
 		} else {
 			if (m[2]) { // import Default from '.'
-				if (m[2] != 'type')
-					imports[m[2]] = { file, name: m[2], ref: 'default' };
+				imports[m[2]] = { file, name: m[2], ref: 'default' };
 			}
 			if (m[3]) { // import {AA} from '.'
 				let blockStr = m[3].trim();

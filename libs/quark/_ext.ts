@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, blue.chu
+ * Copyright (c) 2015, Louis.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,14 +11,14 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of blue.chu nor the
+ *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL blue.chu BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL Louis.chu BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -33,40 +33,40 @@ import type {Any,Uint,Int,ErrnoCode,ErrorNewArg} from './defs';
 // Declare global types
 declare global {
 
+	namespace NodeJS {
+		interface RequireResolve {
+			(id: string, options?: { paths?: string[]; }): string;
+			paths(request: string): string[] | null;
+		}
+		interface Require {
+			(id: string): any;
+			resolve: RequireResolve;
+			// cache: Dict<Module>;
+			main: Module | undefined;
+		}
+		interface Module {
+			id: string;
+			exports: any;
+			filename: string;
+			loaded: boolean;
+			children: Module[];
+			paths: string[];
+			parent: Module | null | undefined;
+			package?: any;
+			require(id: string): any;
+		}
+	}
+
 	namespace qk {
-		interface Require extends NodeRequire {}
-		interface Module extends NodeModule {}
-	}
-
-	interface RequireResolve {
-		(id: string, options?: { paths?: string[]; }): string;
-		paths(request: string): string[] | null;
-	}
-
-	interface NodeRequire {
-		(id: string): any;
-		resolve: RequireResolve;
-		// cache: Dict<NodeModule>;
-		main: NodeModule | undefined;
-	}
-
-	interface NodeModule {
-		id: string;
-		exports: any;
-		filename: string;
-		loaded: boolean;
-		children: NodeModule[];
-		paths: string[];
-		parent: NodeModule | null | undefined;
-		package?: any;
-		require: any; // (id: string): any;
+		interface Require extends NodeJS.Require {}
+		interface Module extends NodeJS.Module {}
 	}
 
 	var __binding__: (id: string)=>any; // binding native module
 	var __filename: string;
 	var __dirname: string;
-	var require: NodeRequire;
-	var module: NodeModule;
+	var require: qk.Require;
+	var module: qk.Module;
 	var exports: any; // Same as module.exports
 
 	/**

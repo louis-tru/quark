@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, blue.chu
+ * Copyright (c) 2015, Louis.chu
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -11,14 +11,14 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of blue.chu nor the
+ *     * Neither the name of Louis.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL blue.chu BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL Louis.chu BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -116,13 +116,29 @@ const posix = {
 
 const paths = _win32 ? win32: posix;
 
+/**
+ * get current working directory
+ * @method cwd()string
+*/
+export const cwd = _cwd;
+
+/**
+ * convert to classic path, for: file:///d:/test/path.js => d:\test\path.js
+ * @method classicPath(path:string)string
+ */
 export const classicPath = paths.classicPath;
+
+/**
+ * path delimiter
+ * @const delimiter:string
+*/
 export const delimiter = paths.delimiter;
 
 /**
  * normalizePath
+ * @member normalizePath(path:string,retainUp?:boolean)string
  */
-export function normalizePath(path: string, retain_level: boolean = false): string {
+export function normalizePath(path: string, retainUp: boolean = false): string {
 	var ls = path.split('/');
 	var rev = [];
 	var up = 0;
@@ -139,7 +155,7 @@ export function normalizePath(path: string, retain_level: boolean = false): stri
 	}
 	path = rev.reverse().join('/');
 
-	return (retain_level ? new Array(up + 1).join('../') + path : path);
+	return (retainUp ? new Array(up + 1).join('../') + path : path);
 }
 
 /**
@@ -147,6 +163,7 @@ export function normalizePath(path: string, retain_level: boolean = false): stri
  * file:///d:/home/louis/test.txt
  * http://google.com/test.txt
  * return format path
+ * @method resolve(path:string,partPath?string)string
  */
 export function resolve(...args: string[]): string {
 	let path = paths.joinPath(args);
