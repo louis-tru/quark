@@ -36,6 +36,9 @@
 
 namespace qk {
 
+	/**
+	 * Scroll view support class
+	 */
 	class Qk_EXPORT ScrollView {
 	public:
 		Qk_DEFINE_PROPERTY(bool, scrollbar, Const); // 显示scrollbar
@@ -85,6 +88,9 @@ namespace qk {
 		bool _lock_h, _lock_v;
 	};
 
+	/**
+	 * Scroll view
+	*/
 	class Qk_EXPORT Scroll: public Box, public ScrollView {
 	public:
 		Scroll();

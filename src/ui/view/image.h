@@ -36,6 +36,9 @@
 
 namespace qk {
 
+	/**
+	 * An image view that can display image files
+	 */
 	class Qk_EXPORT Image: public Box, public ImageSourceHold {
 	public:
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);

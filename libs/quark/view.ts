@@ -480,6 +480,13 @@ export declare class View extends Notification<UIEvent> implements DOM {
 }
 
 /**
+ * Line Break is a special invisible view that forces a line break in text layout.
+ * @class Br
+ * @extends View
+ */
+export declare class Br extends View {}
+
+/**
  * Box is a rectangular layout container.
  *
  * It introduces margin, padding, border, background, radius,
@@ -1612,6 +1619,7 @@ const _ui = __binding__('_ui');
 
 Object.assign(exports, {
 	View: _ui.View,
+	Br: _ui.Br,
 	Box: _ui.Box,
 	Flex: _ui.Flex,
 	Flow: _ui.Flow,
@@ -1676,6 +1684,9 @@ declare global {
 			receive?: boolean;
 			aa?: boolean;
 			isFocus?: boolean;
+		}
+
+		interface BrJSX extends ViewJSX {
 		}
 
 		interface BoxJSX extends ViewJSX {
@@ -1902,6 +1913,7 @@ declare global {
 
 		interface IntrinsicElements {
 			view: ViewJSX;
+			br: BrJSX;
 			box: BoxJSX;
 			flex: FlexJSX;
 			flow: FlowJSX;

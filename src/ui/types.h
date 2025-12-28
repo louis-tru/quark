@@ -161,53 +161,61 @@ namespace qk {
 
 	// ---------------- T e x t . F o n t ----------------
 
+	// All Text* enums share the same semantic:
+	// Inherit  -> resolve from parent
+	// Default  -> resolve from application default value
+	// Others   -> explicit values
+	//
+	// After style resolution, Inherit and Default
+	// must not appear in layout/render stages.
+
 	enum class TextValueKind: uint8_t {
 		Inherit, Default, Value,
 	};
 
 	enum class TextAlign: uint8_t {
-		Inherit, // inherit
+		Inherit,        /* inherit */
+		Default,        /* use default of the application */
 		Left,           /* 左对齐 */
 		Center,         /* 居中 */
 		Right,          /* 右对齐 */
-		Default = Left,
 	};
 
 	enum class TextDecoration: uint8_t {
-		Inherit, // inherit
+		Inherit,        /* inherit */
+		Default,        /* use default of the application */
 		None,           /* 没有 */
 		Overline,       /* 上划线 */
-		LineThrough,   /* 中划线 */
+		LineThrough,    /* 中划线 */
 		Underline,      /* 下划线 */
-		Default = None,
 	};
 
 	enum class TextOverflow: uint8_t {
-		Inherit, // inherit
-		Normal,          /* 不做任何处理 */
-		Clip,            /* 剪切 */
-		Ellipsis,        /* 剪切并显示省略号 */
+		Inherit,        /* inherit */
+		Default,        /* use default of the application */
+		Normal,         /* 不做任何处理 */
+		Clip,           /* 剪切 */
+		Ellipsis,       /* 剪切并显示省略号 */
 		EllipsisCenter, /* 剪切并居中显示省略号 */
-		Default = Normal,
 	};
 
 	enum class TextWhiteSpace: uint8_t {
-		Inherit,       // inherit
-		Normal,       /* 合并空白序列,使用自动wrap */
-		NoWrap,       /* 合并空白序列,不使用自动wrap */
-		Pre,          /* 保留所有空白,不使用自动wrap */
-		PreWrap,      /* 保留所有空白,使用自动wrap */
-		PreLine,      /* 合并空白符序列,但保留换行符,使用自动wrap */
-		Default = Normal,
+		Inherit,      /* inherit */
+		Default,      /* use default of the application */
+		Normal,       /* 使用自动wrap,  合并空白序列 */
+		NoWrap,       /* 不使用自动wrap,合并空白序列 */
+		Pre,          /* 不使用自动wrap,保留所有空白 */
+		PreWrap,      /* 使用自动wrap, 保留所有空白 */
+		PreLine,      /* 使用自动wrap, 合并空白符序列但保留换行符 */
 	};
 
 	enum class TextWordBreak: uint8_t {
-		Inherit,  // inherit
+		Inherit,  /* inherit */
+		Default,  /* use default of the application */
 		Normal,   /* 保持单词在同一行 */
 		BreakWord,/* 保持单词在同一行,除非单词长度超过一行才截断 */
 		BreakAll, /* 以字为单位行空间不足换行 */
 		KeepAll,  /* 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符 */
-		Default = Normal,
 	};
 
 	// ---------------- K e y b o a r d . T y p e ----------------
@@ -309,6 +317,9 @@ namespace qk {
 		}
 		inline bool operator==(const WrapValue& val) const {
 			return !operator!=(val);
+		}
+		inline bool operator==(Kind val) const {
+			return kind == val;
 		}
 		Value value = Value();
 		Kind kind = KindInit;

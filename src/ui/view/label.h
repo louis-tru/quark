@@ -38,6 +38,9 @@
 
 namespace qk {
 
+	/**
+	 * This is a text-type view that needs to be used within a Text container.
+	*/
 	class Qk_EXPORT Label: public View, public TextOptions {
 	public:
 		Qk_DEFINE_VIEW_PROPERTY(String, value);
@@ -45,8 +48,8 @@ namespace qk {
 		virtual TextOptions* asTextOptions() override;
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
-		virtual void text_config(TextConfig* cfg) override;
+		virtual void layout_text(TextLines *lines, TextOptions* opts) override;
+		virtual void text_config(TextOptions* inherit) override;
 		virtual void set_layout_offset(Vec2 val) override;
 		virtual void set_layout_offset_free(Vec2 size) override;
 		virtual void solve_visible_area(const Mat &mat) override;

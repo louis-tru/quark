@@ -41,15 +41,41 @@ namespace qk {
 	class View;
 	class TextBlobBuilder;
 
-	class Qk_EXPORT TextLines: public Reference {
+	/**
+	 * To save memory space, we separate the rendering related data
+	 * from the text lines data structure.
+	*/
+	class TextLinesRender {
+		Qk_DISABLE_COPY(TextLinesRender);
 	public:
 		struct Line {
 			float start_y, end_y, width, line_height;
 			float baseline, top, bottom, origin;
-			uint32_t line;
 			bool visible_area;
 		};
+		Qk_DEFINE_PROP_GET(float, max_width, Const);
+		Qk_DEFINE_PROP_GET(float, min_origin, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, length, Const);
+		Line& last() { return _lines[_length - 1]; }
+		Line& line(int idx) {
+			Qk_ASSERT_LT(idx, _length, "TextLinesRender::line index overflow.");
+			return _lines[idx];
+		}
+		uint32_t lineNum() const { return _length - 1; }
+		float max_height() const { return _lines[_length - 1].end_y; }
+		bool solve_visible_area(View* host, const Mat &mat);
+		void solve_visible_area_blob(View* host, Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
+		void ref(); // increase ref
+		void unref(); // may delete this
+	private:
+		std::atomic_uint32_t _ref;
+		Line* _lines; // lines array
+		friend class TextLines;
+	};
 
+	class Qk_EXPORT TextLines: public Reference {
+	public:
+		typedef TextLinesRender::Line Line;
 		struct PreTextBlob {
 			Sp<Typeface>    typeface;
 			float           text_size, line_height;
@@ -58,7 +84,6 @@ namespace qk {
 			Array<GlyphID>  glyphs;
 			Array<Vec2>     offset;
 		};
-
 		// defines props
 		Qk_DEFINE_PROPERTY(float, pre_width, Const);
 		Qk_DEFINE_PROPERTY(bool, ignore_single_white_space, Const);
@@ -69,8 +94,14 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Range, limit_range, Const);
 		Qk_DEFINE_PROP_GET(Line*, last);
 		Qk_DEFINE_PROP_GET(View*, host);
-		Qk_DEFINE_PROP_GET(float, max_width, Const);
-		Qk_DEFINE_PROP_GET(float, min_origin, Const);
+		// Qk_DEFINE_PROP_GET(float, max_width, Const);
+		// Qk_DEFINE_PROP_GET(float, min_origin, Const);
+		Qk_DEFINE_PROP_GET(TextLinesRender*, render);
+
+		float max_width() const { return _render->_max_width; }
+		float min_origin() const { return _render->_min_origin; }
+		uint32_t length() const { return _render->_length; }
+		uint32_t lineNum() const { return _render->lineNum(); }
 
 		// defines methods
 		TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x);
@@ -78,11 +109,12 @@ namespace qk {
 		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all
 		void finish_text_blob_pre();
-		void add_view(View* view);
+		void add_view(View* view, float lineWidth);
 		void add_text_blob(PreTextBlob pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset, bool isPre);
-		void solve_visible_area(const Mat &mat);
-		void solve_visible_area_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
-		int length() const { return _lines.length(); }
+		// void solve_visible_area(const Mat &mat);
+		// void solve_visible_area_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible);
+		// int length() const { return _lines.length(); }
+		// uint32_t lineNum() const { return _lines.length() -1; }
 		float max_height() const { return _last->end_y; }
 		Line& operator[](uint32_t idx) { return _lines[idx]; }
 		Line& line(uint32_t idx) { return _lines[idx]; }
@@ -95,7 +127,7 @@ namespace qk {
 		void finish_line(); // finish line
 		void clear();
 		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);
-		Array<Line> _lines;
+		// Array<Line> _lines;
 		Array<Array<View*>> _preView;
 		Array<PreTextBlob> _preBlob;
 		float _line_height;

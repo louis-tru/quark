@@ -37,7 +37,8 @@
 namespace qk {
 
 	enum class TextWeight: uint16_t {
-		Inherit      = 0,
+		Inherit      = 0, // inherit
+		Default      = 1, // user application default value
 		Thin         = 100,
 		Ultralight   = 200,
 		Light        = 300,
@@ -48,29 +49,28 @@ namespace qk {
 		Heavy        = 800,
 		Black        = 900,
 		ExtraBlack   = 1000,
-		Default      = Regular, // default
 	};
 
 	enum class TextWidth: uint8_t {
-		Inherit          = 0, // inherit
-		UltraCondensed   = 1,
-		ExtraCondensed   = 2,
-		Condensed        = 3,
-		SemiCondensed    = 4,
-		Normal           = 5,
-		SemiExpanded     = 6,
-		Expanded         = 7,
-		ExtraExpanded    = 8,
-		UltraExpanded    = 9,
-		Default          = Normal,
+		Inherit = 0, // inherit
+		Default, // user application default value
+		UltraCondensed,
+		ExtraCondensed,
+		Condensed,
+		SemiCondensed,
+		Normal,
+		SemiExpanded,
+		Expanded,
+		ExtraExpanded,
+		UltraExpanded,
 	};
 
 	enum class TextSlant: uint8_t {
-		Inherit, // inherit
+		Inherit = 0, // inherit
+		Default, // use application default value
 		Normal, // 正常
 		Italic, // 斜体
 		Oblique,  // 倾斜
-		Default = Normal,
 	};
 
 	class FontFamilies;
@@ -86,7 +86,7 @@ namespace qk {
 			(Uint32::clamp(uint32_t(slant) - 1u, 0u, 2u) << 24)
 		) {}
 
-		FontStyle(): FontStyle{TextWeight::Default, TextWidth::Default, TextSlant::Normal} {}
+		FontStyle(): FontStyle{TextWeight::Regular, TextWidth::Normal, TextSlant::Normal} {}
 
 		bool operator==(const FontStyle& rhs) const {
 			return _value == rhs._value;
@@ -97,16 +97,16 @@ namespace qk {
 		TextSlant slant() const { return TextSlant(((_value >> 24) & 0xFF) + 1); }
 
 		static FontStyle Normal() {
-			return FontStyle(TextWeight::Default, TextWidth::Default, TextSlant::Default);
+			return FontStyle(TextWeight::Regular, TextWidth::Normal, TextSlant::Normal);
 		}
 		static FontStyle Bold() {
-			return FontStyle(TextWeight::Bold, TextWidth::Default, TextSlant::Default);
+			return FontStyle(TextWeight::Bold, TextWidth::Normal, TextSlant::Normal);
 		}
 		static FontStyle Italic() {
-			return FontStyle(TextWeight::Default, TextWidth::Default, TextSlant::Italic );
+			return FontStyle(TextWeight::Regular, TextWidth::Normal, TextSlant::Italic );
 		}
 		static FontStyle BoldItalic() {
-			return FontStyle(TextWeight::Bold, TextWidth::Default, TextSlant::Italic );
+			return FontStyle(TextWeight::Bold, TextWidth::Normal, TextSlant::Italic );
 		}
 	};
 

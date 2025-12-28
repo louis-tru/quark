@@ -312,6 +312,12 @@ Range Container::to_range() const {
 		return nullptr;
 	}
 
+	TextOptions* View::getClosestTextOptions() {
+		_CheckParent(shared_app()->defaultTextOptions());
+		auto opts = _parent->asTextOptions();
+		return opts ? opts : _parent->getClosestTextOptions();
+	}
+
 	ScrollView* View::asScrollView() {
 		return nullptr;
 	}
@@ -376,15 +382,29 @@ Range Container::to_range() const {
 		}
 	}
 
-	void View::layout_text(TextLines *lines, TextConfig *cfg) {
+	void View::layout_text(TextLines *lines, TextOptions* opts) {
+		// Noop, don't support text layout in text container
 	}
 
-	void View::text_config(TextConfig* cfg) {
+	void View::text_config(TextOptions* opts) {
+		// Forward to subviews
+		auto v = first();
+		while (v) {
+			if (v->visible())
+				v->text_config(opts); // config subview
+			v = v->next();
+		}
 	}
 
 	void View::onChildLayoutChange(View *child, uint32_t mark) {
 		if (mark & (kChild_Layout_Size | kChild_Layout_Visible | kChild_Layout_Align | kChild_Layout_Text)) {
-			mark_layout(kLayout_Typesetting, true);
+			// Optimize mark value @ mark_layout(kLayout_Typesetting, true)
+			_mark_value |= kLayout_Typesetting;
+			if (_mark_index == 0 && _level) {
+				if (_level) {
+					preRender().mark_layout(this, _level); // push to pre render
+				}
+			}
 		}
 	}
 
@@ -831,4 +851,8 @@ Range Container::to_range() const {
 		return this;
 	}
 
+	void Br::layout_text(TextLines *lines, TextOptions* opts) {
+		lines->finish_text_blob_pre(); // finish previous blob
+		lines->push(); // push new line
+	}
 }

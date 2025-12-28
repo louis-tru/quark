@@ -322,7 +322,7 @@ bool Scanner::scanFont(
 	TT_OS2* os2 = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(face.get(), ft_sfnt_os2));
 	if (os2 && os2->version != 0xffff) {
 		weight = TextWeight(os2->usWeightClass);
-		width = TextWidth(os2->usWidthClass);
+		width = TextWidth(os2->usWidthClass+1); // +1 because usWidthClass is 1-9
 
 		// OS/2::fsSelection bit 9 indicates oblique.
 		if (QkToBool(os2->fsSelection & (1u << 9))) {

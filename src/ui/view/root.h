@@ -35,6 +35,9 @@
 
 namespace qk {
 
+	/**
+	 * The root view of a window
+	 */
 	class Root: public Morph {
 	public:
 		ViewType viewType() const override;

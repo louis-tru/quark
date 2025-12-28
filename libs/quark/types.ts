@@ -296,10 +296,10 @@ export enum TextValueKind {
 */
 export enum TextAlign {
 	Inherit,        //!< inherit
+	Default,        //!< use default of the application
 	Left,           //!< 左对齐
 	Center,         //!< 居中
 	Right,          //!< 右对齐
-	Default = Left, //!< {Left}
 };
 
 /**
@@ -307,11 +307,11 @@ export enum TextAlign {
 */
 export enum TextDecoration {
 	Inherit,        //!< inherit
+	Default,        //!< use default of the application
 	None,           //!< 没有
 	Overline,       //!< 上划线
 	LineThrough,    //!< 中划线
 	Underline,      //!< 下划线
-	Default = None, //!< {None}
 };
 
 /**
@@ -319,11 +319,11 @@ export enum TextDecoration {
 */
 export enum TextOverflow {
 	Inherit,         //!< inherit
+	Default,        //!< use default of the application
 	Normal,          //!< 不做任何处理
 	Clip,            //!< 剪切
 	Ellipsis,        //!< 剪切并显示省略号
 	EllipsisCenter,  //!< 剪切并居中显示省略号
-	Default = Normal,//!< {Normal}
 };
 
 /**
@@ -331,12 +331,12 @@ export enum TextOverflow {
 */
 export enum TextWhiteSpace {
 	Inherit,      //!< inherit
+	Default,      //!< use default of the application
 	Normal,       //!< 合并空白序列,使用自动wrap
 	NoWrap,       //!< 合并空白序列,不使用自动wrap
 	Pre,          //!< 保留所有空白,不使用自动wrap
 	PreWrap,      //!< 保留所有空白,使用自动wrap
 	PreLine,      //!< 合并空白符序列,但保留换行符,使用自动wrap
-	Default = Normal, //!< {Normal}
 };
 
 /**
@@ -344,11 +344,11 @@ export enum TextWhiteSpace {
 */
 export enum TextWordBreak {
 	Inherit,  //!< inherit
+	Default,  //!< use default of the application
 	Normal,   //!< 保持单词在同一行
 	BreakWord,//!< 保持单词在同一行,除非单词长度超过一行才截断
 	BreakAll, //!< 以字为单位行空间不足换行
 	KeepAll,  //!< 所有连续的字符都当成一个单词,除非出现空白符、换行符、标点符
-	Default = Normal, //!< {Normal}
 };
 
 /**
@@ -356,6 +356,7 @@ export enum TextWordBreak {
 */
 export enum TextWeight {
 	Inherit      = 0,   //!<
+	Default      = 1,   //!< use default of the application
 	Thin         = 100, //!<
 	Ultralight   = 200, //!<
 	Light        = 300, //!<
@@ -366,24 +367,23 @@ export enum TextWeight {
 	Heavy        = 800, //!<
 	Black        = 900, //!<
 	ExtraBlack   = 1000, //!<
-	Default      = Regular, //!< {Regular}
 };
 
 /**
  * @enum TextWidth
 */
 export enum TextWidth {
-	Inherit          = 0, //!<
-	UltraCondensed   = 1, //!<
-	ExtraCondensed   = 2, //!<
-	Condensed        = 3, //!<
-	SemiCondensed    = 4, //!<
-	Normal           = 5, //!<
-	SemiExpanded     = 6, //!<
-	Expanded         = 7, //!<
-	ExtraExpanded    = 8, //!<
-	UltraExpanded    = 9, //!<
-	Default          = Normal, //!< {Normal}
+	Inherit = 0, //!<
+	Default, //!< use default of the application
+	UltraCondensed, //!<
+	ExtraCondensed, //!<
+	Condensed, //!<
+	SemiCondensed, //!<
+	Normal, //!<
+	SemiExpanded, //!<
+	Expanded, //!<
+	ExtraExpanded, //!<
+	UltraExpanded, //!<
 };
 
 /**
@@ -391,10 +391,10 @@ export enum TextWidth {
 */
 export enum TextSlant {
 	Inherit, //!<
+	Default, //!< use default of the application
 	Normal,  //!<
 	Italic,  //!<
 	Oblique, //!<
-	Default = Normal, //!< {Normal}
 };
 
 /**

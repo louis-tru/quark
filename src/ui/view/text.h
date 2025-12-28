@@ -43,7 +43,9 @@ namespace qk {
 		Qk_DEFINE_VIEW_PROPERTY(String, value);
 		virtual ViewType viewType() const override;
 		virtual TextOptions* asTextOptions() override;
+		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
+		virtual void text_config(TextOptions* inherit) override;
 		virtual void solve_visible_area(const Mat &mat) override;
 		virtual void onActivate() override;
 		virtual void draw(Painter *render) override;

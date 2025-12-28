@@ -37,6 +37,9 @@
 
 namespace qk {
 
+	/**
+	 * A video view that can play video files or streams
+	 */
 	class Video: public Image, public Player, public PreRender::Task {
 	public:
 		Qk_DEFINE_VIEW_ACCESSOR(String, src, Const);

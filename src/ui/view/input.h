@@ -39,6 +39,9 @@
 
 namespace qk {
 
+	/**
+	 * This is a text input view that cannot have subviews.
+	*/
 	class Qk_EXPORT Input: public Box
 		, public TextOptions, public RenderTask, public TextInput {
 		Qk_DEFINE_INLINE_CLASS(Inl);
@@ -62,7 +65,9 @@ namespace qk {
 		// @override
 		virtual bool can_become_focus() override;
 		virtual ViewType viewType() const override;
+		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
+		virtual void text_config(TextOptions* inherit) override;
 		virtual Vec2 layout_offset_inside() override;
 		virtual void solve_marks(const Mat &mat, View *parent, uint32_t mark) override;
 		virtual void solve_visible_area(const Mat &mat) override;
@@ -91,7 +96,7 @@ namespace qk {
 		virtual void set_input_text_offset(Vec2 val);
 		virtual View* init(Window *win) override;
 	private:
-		Sp<TextLines> _lines;
+		Sp<TextLinesRender> _lines;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
 		String4 _marked_text;

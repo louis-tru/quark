@@ -560,18 +560,23 @@ export class VirtualDOM<T extends DOM = DOM> {
 		const {parent,replace} = opts||{};
 		const {vdom,dom} = replace||{};
 		let domNew: T;
+		const last = owner.refs[this.props.ref];
 		if (vdom && dom) {
 			if (vdom.domC !== this.domC) { // diff type
 				domNew = this.newDom(owner);
 				parent && domNew.appendTo(parent);
 				dom.destroy(owner); // destroy old dom
 			} else {
+				if (last)
+					last.destroy(owner); // first destroy last ref
 				domNew = this.diff(owner, vdom, dom!);
 				if (parent && parent !== dom.metaView.parent) {
 					domNew.appendTo(parent);
 				}
 			}
 		} else {
+			if (last)
+				last.destroy(owner); // first destroy last ref
 			domNew = this.newDom(owner);
 			parent && domNew.appendTo(parent);
 		}
@@ -1016,7 +1021,7 @@ declare global {
 }
 
 const DOMConstructors: { [ key in JSX.IntrinsicElementsName ]: DOMConstructor<DOM> } = {
-	view: view.View, box: view.Box,
+	view: view.View, box: view.Box, br: view.Br,
 	flex: view.Flex, flow: view.Flow,
 	free: view.Free, image: view.Image, img: view.Image,
 	morph: view.Morph, sprite: view.Sprite, spine: view.Spine,

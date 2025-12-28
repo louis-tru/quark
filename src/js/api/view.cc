@@ -242,7 +242,16 @@ namespace qk { namespace js {
 		}
 	};
 
+	class MixBr: public MixViewObject {
+	public:
+		static void binding(JSObject* exports, Worker* worker) {
+			Js_Define_Class(Br, View, { Js_NewView(Br); });
+			cls->exports("Br", exports);
+		}
+	};
+
 	void binding_view(JSObject* exports, Worker* worker) {
 		MixView::binding(exports, worker);
+		MixBr::binding(exports, worker);
 	}
 } }

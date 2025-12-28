@@ -35,6 +35,9 @@
 
 namespace qk {
 
+	/**
+	 * A flow layout view that arranges its child views in a flowing manner, wrapping to new lines as needed.
+	*/
 	class Qk_EXPORT Flow: public Flex {
 	public:
 		Flow();

@@ -35,6 +35,9 @@
 
 namespace qk {
 
+	/**
+	 * A flex layout view that arranges its child views in a flexible manner.
+	*/
 	class Qk_EXPORT Flex: public Box {
 	public:
 		Flex();

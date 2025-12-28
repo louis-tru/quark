@@ -542,8 +542,7 @@ namespace qk {
 		_container.state_y &= ~kFixedByLock_FloatState;
 	}
 
-	void Box::layout_text(TextLines *lines, TextConfig *cfg) {
-		auto opts = cfg->opts();
+	void Box::layout_text(TextLines *lines, TextOptions *opts) {
 		auto text_white_space = opts->text_white_space_value();
 		//auto text_word_break = opts->text_word_break_value();
 		bool is_auto_wrap = true;
@@ -552,22 +551,20 @@ namespace qk {
 
 		if (text_white_space == TextWhiteSpace::NoWrap ||
 				text_white_space == TextWhiteSpace::Pre
-		) { // 不使用自动wrap
+		) { // 不使用自动wrap（不使用自动换行）
 			is_auto_wrap = false;
 		}
 
+		lines->finish_text_blob_pre(); // finish previous blob
+
 		if (is_auto_wrap) {
 			if (origin + _layout_size.x() > limitX) {
-				lines->finish_text_blob_pre();
 				lines->push();
 				origin = 0;
 			}
-		} else {
-			lines->finish_text_blob_pre();
 		}
 		set_layout_offset({origin, 0});
-		lines->set_pre_width(origin + _layout_size.x());
-		lines->add_view(this);
+		lines->add_view(this, origin + _layout_size.x());
 	}
 
 	void Box::set_layout_offset_free(Vec2 size) {

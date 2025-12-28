@@ -37,7 +37,7 @@
 
 namespace qk {
 	/**
-		* View tree node base type,
+		* View node base type,
 		* Provide APIs that do not use security locks on worker and rendering threads,
 		* When setting properties on the main thread and calculating view results on the rendering thread, 
 		* data that can only be accessed by the rendering thread is usually suffixed with "RT" or mark as @thread Rt
@@ -161,7 +161,7 @@ namespace qk {
 		* The marked view will be updated before starting frame drawing.
 		* During operation, view local attributes may be updated frequently or the view may rarely change.
 		*/
-		Qk_DEFINE_PROP_GET(uint32_t, mark_value, Const);
+		Qk_DEFINE_PROP_GET(uint32_t, mark_value, ProtectedConst);
 
 		/**
 		* Next preprocessing view tag
@@ -527,7 +527,7 @@ namespace qk {
 		 * @method layout_text(lines)
 		 * @thread Rt
 		 */
-		virtual void layout_text(TextLines *lines, TextConfig* cfg);
+		virtual void layout_text(TextLines *lines, TextOptions* opts);
 
 		/**
 			* 
@@ -543,10 +543,10 @@ namespace qk {
 		/**
 		 * calling after text options change
 		 * 
-		 * @method text_config(cfg)
+		 * @method text_config(opts)
 		 * @thread Rt
 		*/
-		virtual void text_config(TextConfig* cfg);
+		virtual void text_config(TextOptions* inherit);
 
 		/**
 		 * Overlap test, test whether the point on the screen overlaps with the view
@@ -627,6 +627,12 @@ namespace qk {
 		*/
 		View* tryRetain_rt();
 
+		/**
+		 * get closest text options from parent view
+		 * @method getClosestTextOptions
+		*/
+		TextOptions* getClosestTextOptions();
+
 	protected:
 		/**
 		 * Compute the view is visible in the screen or the clipped region
@@ -650,6 +656,15 @@ namespace qk {
 		friend class PreRender;
 		friend class EventDispatch;
 		friend class Root;
+		friend class TextOptions;
+	};
+
+	/**
+	 * A view that represents a line break in text layout.
+	 */
+	class Br: public View {
+	public:
+		virtual void layout_text(TextLines *lines, TextOptions* opts) override;
 	};
 
 }

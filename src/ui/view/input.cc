@@ -387,7 +387,7 @@ namespace qk {
 				if ( dir.y() ) {
 					int linenum = _cursor_line;
 					linenum += dir.y();
-					linenum = Qk_Min(_lines->last()->line, Qk_Max(linenum, 0));
+					linenum = Qk_Min(_lines->lineNum(), Qk_Max(linenum, 0));
 					point.set_y(pos.y() + _lines->line(linenum).baseline + offset.y());
 				}
 
@@ -443,18 +443,21 @@ namespace qk {
 			float y = coord.y() - pos.y();
 			Vec2 offset = input_text_offset();
 
-			const TextLines::Line* line = nullptr;
+			const TextLinesRender::Line* line = nullptr;
+			int lineNum = 0;
 
 			if ( y < offset.y() ) {
 				line = &_lines->line(0);
 			} else if ( y > offset.y() + _lines->max_height() ) {
-				line = _lines->last();
+				line = &_lines->last();
+				lineNum = _lines->lineNum();
 			} else {
 				for ( int j = 0; j < _lines->length(); j++ ) {
 					auto& item = _lines->line(j);
 					if (y >= offset.y() + item.start_y &&
 							y <= offset.y() + item.end_y ) {
 						line = &item;
+						lineNum = j;
 						break;
 					}
 				}
@@ -467,7 +470,7 @@ namespace qk {
 			
 			for ( uint32_t i = 0; i < _blob.length(); i++ ) {
 				auto &blob = _blob[i];
-				if ( blob.line == line->line ) { // 排除小余目标行cell
+				if ( blob.line == lineNum ) { // 排除小余目标行cell
 					if (cell_begin == -1)
 						cell_begin = i;
 					cell_end = i;
@@ -682,6 +685,17 @@ namespace qk {
 		set_placeholder_u4(String4(codec_decode_to_unicode(kUTF8_Encoding, val)), isRt);
 	}
 
+	void Input::text_config(TextOptions* inherit) {
+		resolve_text_config(inherit, this);
+	}
+
+	void Input::layout_forward(uint32_t mark) {
+		if (mark & kText_Options) {
+			text_config(getClosestTextOptions()); // config text options first
+		}
+		Box::layout_forward(mark);
+	}
+
 	void Input::layout_reverse(uint32_t mark) {
 		if (mark & kLayout_Typesetting) {
 			layout_typesetting_input_text();
@@ -689,10 +703,9 @@ namespace qk {
 	}
 
 	Vec2 Input::layout_typesetting_input_text() {
-		TextConfig cfg(this, shared_app()->defaultTextOptions());
 		FontMetricsBase metrics;
 
-		_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x());
+		auto _lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x());
 
 		_lines->set_init_line_height(text_size().value, text_line_height().value, true);
 		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
@@ -708,7 +721,7 @@ namespace qk {
 		String4 &str = value_u4.length() ? value_u4: placeholder_u4;
 
 		if (str.length()) { // text layout
-			TextBlobBuilder tbb(*_lines, this, &_blob);
+			TextBlobBuilder tbb(_lines, this, &_blob);
 
 			if (!is_multiline()) {
 				tbb.set_disable_auto_wrap(true);
@@ -800,8 +813,11 @@ namespace qk {
 			_mat = mat;
 			if (_lines) {
 				window()->clipRange(region_aabb_from_convex_quadrilateral(_boxBounds));
-				_lines->solve_visible_area(mat);
-				_lines->solve_visible_area_blob(&_blob, &_blob_visible);
+				if (_lines->solve_visible_area(this, mat)) {
+					_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
+				} else {
+					_blob_visible.clear();
+				}
 				window()->clipRestore();
 			}
 		}
@@ -840,7 +856,7 @@ namespace qk {
 		// 计算光标的具体偏移位置x
 		// ===========================
 		auto cSize = _container.content;
-		TextLines::Line* line = nullptr;
+		TextLinesRender::Line* line = nullptr;
 
 		if ( cursor_blob ) { // set cursor pos
 			Qk_ASSERT(_value_u4.length());
@@ -867,7 +883,7 @@ namespace qk {
 				case TextAlign::Right:
 					_cursor_x = cSize.width(); break;
 			}
-			_cursor_line = _lines->last()->line; // y
+			_cursor_line = _lines->lineNum(); // y
 			line = &_lines->line(_cursor_line);
 		}
 
@@ -936,6 +952,7 @@ namespace qk {
 
 	void Input::onActivate() {
 		_textFlags = 0xffffffff;
+		mark_layout(kText_Options, true);
 	}
 
 	TextInput* Input::asTextInput() {

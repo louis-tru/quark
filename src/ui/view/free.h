@@ -35,6 +35,9 @@
 
 namespace qk {
 
+	/**
+	 * A free layout view that allows its child views to be positioned freely.
+	*/
 	class Qk_EXPORT Free: public Box {
 	public:
 		virtual void layout_reverse(uint32_t mark) override;

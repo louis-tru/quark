@@ -196,21 +196,24 @@ namespace qk { namespace js {
 			});
 
 			Js_Class_Method(add, {
-				if (!args.length())
+				String cls;
+				if (!args.length() || !args[0]->asString(worker).to(cls))
 					Js_Throw("@method CStyleSheetsClass.add(cString& name)");
-				self->add(args[0]->toString(worker)->value(worker));
+				self->add(cls);
 			});
 
 			Js_Class_Method(remove, {
-				if (!args.length())
+				String cls;
+				if (!args.length() || !args[0]->asString(worker).to(cls))
 					Js_Throw("@method CStyleSheetsClass.remove(cString& name)");
-				self->remove(args[0]->toString(worker)->value(worker));
+				self->remove(cls);
 			});
 
 			Js_Class_Method(toggle, {
-				if (!args.length())
+				String cls;
+				if (!args.length() || !args[0]->asString(worker).to(cls))
 					Js_Throw("@method CStyleSheetsClass.toggle(cString& name)");
-				self->toggle(args[0]->toString(worker)->value(worker));
+				self->toggle(cls);
 			});
 
 			// inline bool haveSubstyles() const;

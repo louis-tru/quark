@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "./app.h"
 #include "./window.h"
 #include "./filter.h"
 #include "./painter.h"

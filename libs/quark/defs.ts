@@ -87,3 +87,22 @@ export type ErrnoCode = [number, string, string?];
  * The argument type of Error.new
 */
 export type ErrorNewArg = ErrnoCode | Error | string | ErrorDescribe;
+
+
+declare global {
+
+	type RemoveField<T, S> = {
+		[K in keyof T as Exclude<K, S>]: T[K]
+	}
+
+	type RemoveReadonly<T> = {
+		-readonly [P in keyof T]: T[P];
+	}
+
+	// export type RemoveToStringField<Type> = RemoveField<Type, 'toString'>;
+
+	type OnlyDataFields<T> = {
+		// [K in keyof T as T[K] extends (...args: any[]) => any ? never : K]: T[K]
+		[K in keyof T as NonNullable<T[K]> extends Function ? never : K]: T[K]
+	}
+}

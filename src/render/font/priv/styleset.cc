@@ -32,9 +32,9 @@
 
 /**
 * Width has the greatest priority.
-* If the value of pattern.width is 5 (normal) or less,
+* If the value of pattern.width is 6 (normal) or less,
 *    narrower width values are checked first, then wider values.
-* If the value of pattern.width is greater than 5 (normal),
+* If the value of pattern.width is greater than 6 (normal),
 *    wider values are checked first, followed by narrower values.
 *
 * Italic/Oblique has the next highest priority.
@@ -102,19 +102,20 @@ Typeface* QkFontStyleSet::matchStyleCSS3(FontStyle pattern) {
 
 		// CSS style (normal, italic, oblique) / FontStyle::Slant (upright, italic, oblique)
 		// Takes priority over all valid weights.
-		static_assert(TextSlant::Default == TextSlant(1) &&
-					TextSlant::Italic  == TextSlant(2) &&
-					TextSlant::Oblique == TextSlant(3),
+		static_assert(TextSlant::Normal == TextSlant(2) &&
+					TextSlant::Italic  == TextSlant(3) &&
+					TextSlant::Oblique == TextSlant(4),
 					"FontStyle::Slant values not as required.");
 
-		Qk_ASSERT(0 <= pattern_slant && pattern_slant <= 2 &&
-				 0 <= current_slant && current_slant <= 2);
-		static const int score[4][4] = {
-			{0,0,0,0},
-			/*                      Normal Italic Oblique  [current]*/
-			/*   Normal  */ {   0,      3   ,  1   ,   2   },
-			/*   Italic  */ {   0,      1   ,  3   ,   2   },
-			/*   Oblique */ {   0,      1   ,  2   ,   3   },
+		Qk_ASSERT(2 <= pattern_slant && pattern_slant <= 4 &&
+				 2 <= current_slant && current_slant <= 4);
+		static const int score[5][5] = {
+			{0,0,0,0,0},
+			{0,0,0,0,0},
+			/*                    Normal Italic Oblique  [current]*/
+			/*   Normal  */ { 0,0,   3   ,  1   ,   2   },
+			/*   Italic  */ { 0,0,   1   ,  3   ,   2   },
+			/*   Oblique */ { 0,0,   1   ,  2   ,   3   },
 			/* [pattern] */
 		};
 		currentScore += score[pattern_slant][current_slant];

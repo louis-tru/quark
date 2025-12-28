@@ -38,69 +38,34 @@
 
 namespace qk {
 
-	enum TextProps {
-		kTextAlign_TextProps,
-		kTextSize_TextProps,
-		kTextColor_TextProps,
-		kTextLineHeight_TextProps,
-		kTextFamily_TextProps,
-		kTextShadow_TextProps,
-		kTextBackgroundColor_TextProps,
-		kTextStroke_TextProps,
-		kTextWeight_TextProps,
-		kTextSlant_TextProps,
-		kTextDecoration_TextProps,
-		kTextOverflow_TextProps,
-		kTextWhiteSpace_TextProps,
-		kTextWordBreak_TextProps,
-	};
+	#define defaultOpts shared_app()->defaultTextOptions()
 
-	static TextOptions::SecondaryProps defaultSecondaryProps{
+	static TextOptions::SecondOpts defaultSecondOpts {
 		.text_family={ .value=nullptr, .kind=TextValueKind::Inherit },
 		.text_shadow={ .kind=TextValueKind::Inherit },
 		.text_background_color={ .kind=TextValueKind::Inherit },
-		.text_weight=TextWeight::Inherit, .text_weight_value=TextWeight::Default,
-		.text_slant=TextSlant::Inherit, .text_slant_value=TextSlant::Default,
-		.text_decoration=TextDecoration::Inherit, .text_decoration_value=TextDecoration::Default,
-		.text_overflow=TextOverflow::Inherit, .text_overflow_value=TextOverflow::Default,
-		.text_white_space=TextWhiteSpace::Inherit, .text_white_space_value=TextWhiteSpace::Default,
-		.text_word_break=TextWordBreak::Inherit, .text_word_break_value=TextWordBreak::Default,
+		.text_slant=TextSlant::Inherit, .text_slant_value=TextSlant::Normal,
+		.text_decoration=TextDecoration::Inherit, .text_decoration_value=TextDecoration::None,
+		.text_overflow=TextOverflow::Inherit, .text_overflow_value=TextOverflow::Normal,
+		.text_word_break=TextWordBreak::Inherit, .text_word_break_value=TextWordBreak::Normal,
 	};
 
 	TextOptions::TextOptions()
-		: _text_align(TextAlign::Inherit)
-		, _text_align_value(TextAlign::Default)
-		, _text_size{ .kind=TextValueKind::Inherit }
-		, _text_color{ .kind=TextValueKind::Inherit }
-		, _text_line_height{ .kind=TextValueKind::Inherit }
-		, _isHoldSecondaryProps(false)
+		: _text_align(TextAlign::Inherit), _text_align_value(TextAlign::Left)
+		, _text_weight(TextWeight::Inherit), _text_weight_value(TextWeight::Regular)
+		, _text_white_space(TextWhiteSpace::Inherit), _text_white_space_value(TextWhiteSpace::Normal)
+		, _text_size{ .kind=TextValueKind::Inherit, .value=16.0f }
+		, _text_color{ .kind=TextValueKind::Inherit, .value=Color(0,0,0) }
+		, _text_line_height{ .kind=TextValueKind::Inherit, .value=0.0f }
+		, _isHoldSecondOpts(false)
 		, _textFlags(0xffffffffu)
-		, _secondaryProps(&defaultSecondaryProps)
+		, _second(&defaultSecondOpts)
 	{
 	}
 
 	TextOptions::~TextOptions() {
-		if (_isHoldSecondaryProps) {
-			Releasep(_secondaryProps);
-		}
-	}
-
-	void TextOptions::onTextChange(uint32_t mark, uint32_t prop, bool isRt) {
-		auto view = getViewForTextOptions();
-		if (view) {
-			if (isRt) {
-				_textFlags |= (1 << prop);
-				mark ? view->mark_layout(mark, true): view->mark(0, true);
-			} else {
-				struct Data { uint32_t mark, prop; };
-				view->preRender().async_call([](auto self, auto arg) {
-					auto view = self->getViewForTextOptions();
-					self->_textFlags |= (1 << arg.arg.prop);
-					arg.arg.mark ? view->mark_layout(arg.arg.mark, true): view->mark(0, true);
-				}, this, Data{mark,prop});
-			}
-		} else {
-			_textFlags |= (1 << prop);
+		if (_isHoldSecondOpts) {
+			Releasep(_second);
 		}
 	}
 
@@ -108,13 +73,69 @@ namespace qk {
 		return nullptr;
 	}
 
-	void TextOptions::initSecondaryProps() {
-		if (!_isHoldSecondaryProps) {
-			_isHoldSecondaryProps = true;
-			_secondaryProps = (SecondaryProps*)malloc(sizeof(SecondaryProps));
-			*_secondaryProps = defaultSecondaryProps; // copy default
-			_textFlags |= 0b1111111110000;
+	void TextOptions::initSecondOpts() {
+		if (!_isHoldSecondOpts) {
+			_isHoldSecondOpts = true;
+			_second = (SecondOpts*)malloc(sizeof(SecondOpts));
+			*_second = defaultSecondOpts; // copy default
 		}
+	}
+
+	// secondary props
+
+	TextFamily TextOptions::text_family() const {
+		Qk_ASSERT(_second->text_family.value);
+		return _second->text_family;
+	}
+
+	TextShadow TextOptions::text_shadow() const {
+		return _second->text_shadow;
+	}
+
+	TextColor TextOptions::text_background_color() const {
+		return _second->text_background_color;
+	}
+
+	TextStroke TextOptions::text_stroke() const {
+		return _second->text_stroke;
+	}
+
+	TextSlant TextOptions::text_slant() const {
+		return _second->text_slant;
+	}
+
+	TextSlant TextOptions::text_slant_value() const {
+		return _second->text_slant_value;
+	}
+
+	TextDecoration TextOptions::text_decoration() const {
+		return _second->text_decoration;
+	}
+
+	TextDecoration TextOptions::text_decoration_value() const {
+		return _second->text_decoration_value;
+	}
+
+	TextOverflow TextOptions::text_overflow() const {
+		return _second->text_overflow;
+	}
+
+	TextOverflow TextOptions::text_overflow_value() const {
+		return _second->text_overflow_value;
+	}
+
+	TextWordBreak TextOptions::text_word_break() const {
+		return _second->text_word_break;
+	}
+
+	TextWordBreak TextOptions::text_word_break_value() const {
+		return _second->text_word_break_value;
+	}
+
+	FontStyle TextOptions::font_style() const {
+		return {
+			_text_weight_value, TextWidth::Normal, _second->text_slant_value,
+		};
 	}
 
 	// main props
@@ -123,7 +144,30 @@ namespace qk {
 	void TextOptions::set_text_align(TextAlign value, bool isRt) {
 		if(_text_align != value) {
 			_text_align = _text_align_value = value;
-			onTextChange(View::kLayout_Typesetting, kTextAlign_TextProps, isRt);
+			if (value == TextAlign::Default) {
+				_text_align_value = shared_app()->defaultTextOptions()->text_align_value();
+			}
+			onTextChange(View::kLayout_Typesetting, kTextAlign_TextOpt, isRt);
+		}
+	}
+
+	void TextOptions::set_text_weight(TextWeight value, bool isRt) {
+		if (_text_weight != value) {
+			_text_weight = _text_weight_value = value;
+			if (value == TextWeight::Default) {
+				_text_weight_value = defaultOpts->text_weight_value();
+			}
+			onTextChange(View::kLayout_Typesetting, kTextWeight_TextOpt, isRt);
+		}
+	}
+
+	void TextOptions::set_text_white_space(TextWhiteSpace value, bool isRt) {
+		if (_text_white_space != value) {
+			_text_white_space = _text_white_space_value = value;
+			if (value == TextWhiteSpace::Default) {
+				_text_white_space_value = defaultOpts->text_white_space_value();
+			}
+			onTextChange(View::kLayout_Typesetting, kTextWhiteSpace_TextOpt, isRt);
 		}
 	}
 
@@ -131,14 +175,20 @@ namespace qk {
 		if (value != _text_size) {
 			value.value = Qk_Max(1, value.value);
 			_text_size = value;
-			onTextChange(View::kLayout_Typesetting, kTextSize_TextProps, isRt);
+			if (_text_size.kind == TextValueKind::Default) {
+				_text_size.value = defaultOpts->text_size().value;
+			}
+			onTextChange(View::kLayout_Typesetting, kTextSize_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_color(TextColor value, bool isRt) {
 		if (value != _text_color) {
 			_text_color = value;
-			onTextChange(View::kText_Options, kTextColor_TextProps, isRt);
+			if (_text_color.kind == TextValueKind::Default) {
+				_text_color.value = defaultOpts->text_color().value;
+			}
+			onTextChange(View::kText_Options, kTextColor_TextOpt, isRt);
 		}
 	}
 
@@ -146,239 +196,196 @@ namespace qk {
 		if (value != _text_line_height) {
 			value.value = Qk_Max(0, value.value);
 			_text_line_height = value;
-			onTextChange(View::kLayout_Typesetting, kTextLineHeight_TextProps, isRt);
+			if (_text_line_height.kind == TextValueKind::Default) {
+				_text_line_height.value = defaultOpts->text_line_height().value;
+			}
+			onTextChange(View::kLayout_Typesetting, kTextLineHeight_TextOpt, isRt);
 		}
-	}
-
-	// secondary props
-	// -------------------------------------------------------------------------------
-
-	TextFamily TextOptions::text_family() const {
-		Qk_ASSERT(_secondaryProps->text_family.value);
-		return _secondaryProps->text_family;
-	}
-
-	TextShadow TextOptions::text_shadow() const {
-		return _secondaryProps->text_shadow;
-	}
-
-	TextColor TextOptions::text_background_color() const {
-		return _secondaryProps->text_background_color;
-	}
-
-	TextStroke TextOptions::text_stroke() const {
-		return _secondaryProps->text_stroke;
-	}
-
-	TextWeight TextOptions::text_weight() const {
-		return _secondaryProps->text_weight;
-	}
-
-	TextWeight TextOptions::text_weight_value() const {
-		return _secondaryProps->text_weight_value;
-	}
-
-	TextSlant TextOptions::text_slant() const {
-		return _secondaryProps->text_slant;
-	}
-
-	TextSlant TextOptions::text_slant_value() const {
-		return _secondaryProps->text_slant_value;
-	}
-
-	TextDecoration TextOptions::text_decoration() const {
-		return _secondaryProps->text_decoration;
-	}
-
-	TextDecoration TextOptions::text_decoration_value() const {
-		return _secondaryProps->text_decoration_value;
-	}
-
-	TextOverflow TextOptions::text_overflow() const {
-		return _secondaryProps->text_overflow;
-	}
-
-	TextOverflow TextOptions::text_overflow_value() const {
-		return _secondaryProps->text_overflow_value;
-	}
-
-	TextWhiteSpace TextOptions::text_white_space() const {
-		return _secondaryProps->text_white_space;
-	}
-
-	TextWhiteSpace TextOptions::text_white_space_value() const {
-		return _secondaryProps->text_white_space_value;
-	}
-
-	TextWordBreak TextOptions::text_word_break() const {
-		return _secondaryProps->text_word_break;
-	}
-
-	TextWordBreak TextOptions::text_word_break_value() const {
-		return _secondaryProps->text_word_break_value;
-	}
-
-	FontStyle TextOptions::font_style() const {
-		return {
-			_secondaryProps->text_weight_value, TextWidth::Default, _secondaryProps->text_slant_value,
-		};
 	}
 
 	// set secondary props
 	// -------------------------------------------------------------------------------
 
 	void TextOptions::set_text_family(TextFamily value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_family) {
+		initSecondOpts();
+		if (value != _second->text_family) {
 			if (!value.value) {
-				auto v = getViewForTextOptions();
-				if (v)
-					value.value = v->window()->fontPool()->defaultFontFamilies();
+				value.value = shared_fontPool()->defaultFontFamilies();
 			}
 			// After alignment, `_text_family.value` pointers can be read and written atomically
-			_secondaryProps->text_family = value;
-			onTextChange(View::kLayout_Typesetting, kTextFamily_TextProps, isRt);
+			_second->text_family = value;
+			if (_second->text_family.kind == TextValueKind::Default) {
+				_second->text_family.value = defaultOpts->text_family().value;
+			}
+			onTextChange(View::kLayout_Typesetting, kTextFamily_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_shadow(TextShadow value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_shadow) {
-			_secondaryProps->text_shadow = value;
-			onTextChange(View::kText_Options, kTextShadow_TextProps, isRt);
+		initSecondOpts();
+		if (value != _second->text_shadow) {
+			_second->text_shadow = value;
+			if (_second->text_shadow.kind == TextValueKind::Default) {
+				_second->text_shadow.value = defaultOpts->text_shadow().value;
+			}
+			onTextChange(View::kText_Options, kTextShadow_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_background_color(TextColor value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_background_color) {
-			_secondaryProps->text_background_color = value;
-			onTextChange(View::kText_Options, kTextBackgroundColor_TextProps, isRt);
+		initSecondOpts();
+		if (value != _second->text_background_color) {
+			_second->text_background_color = value;
+			if (_second->text_background_color.kind == TextValueKind::Default) {
+				_second->text_background_color.value = defaultOpts->text_background_color().value;
+			}
+			onTextChange(View::kText_Options, kTextBackgroundColor_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_stroke(TextStroke value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_stroke) {
-			_secondaryProps->text_stroke = value;
-			_secondaryProps->text_stroke.value.width = Qk_Max(0, value.value.width);
-			onTextChange(View::kText_Options, kTextStroke_TextProps, isRt);
-		}
-	}
-
-	void TextOptions::set_text_weight(TextWeight value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_weight) {
-			_secondaryProps->text_weight = _secondaryProps->text_weight_value = value;
-			onTextChange(View::kLayout_Typesetting, kTextWeight_TextProps, isRt);
+		initSecondOpts();
+		if (value != _second->text_stroke) {
+			_second->text_stroke = value;
+			_second->text_stroke.value.width = Qk_Max(0, value.value.width);
+			if (_second->text_stroke.kind == TextValueKind::Default) {
+				_second->text_stroke.value = defaultOpts->text_stroke().value;
+			}
+			onTextChange(View::kText_Options, kTextStroke_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_slant(TextSlant value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_slant) {
-			_secondaryProps->text_slant = _secondaryProps->text_slant_value = value;
-			onTextChange(View::kText_Options, kTextSlant_TextProps, isRt);
+		initSecondOpts();
+		if (value != _second->text_slant) {
+			_second->text_slant = _second->text_slant_value = value;
+			if (value == TextSlant::Default) {
+				_second->text_slant_value = defaultOpts->text_slant_value();
+			}
+			onTextChange(View::kText_Options, kTextSlant_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_decoration(TextDecoration value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_decoration) {
-			_secondaryProps->text_decoration = _secondaryProps->text_decoration_value = value;
-			onTextChange(View::kText_Options, kTextDecoration_TextProps, isRt);
+		initSecondOpts();
+		if (value != _second->text_decoration) {
+			_second->text_decoration = _second->text_decoration_value = value;
+			if (value == TextDecoration::Default) {
+				_second->text_decoration_value = defaultOpts->text_decoration_value();
+			}
+			onTextChange(View::kText_Options, kTextDecoration_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_overflow(TextOverflow value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_overflow) {
-			_secondaryProps->text_overflow = _secondaryProps->text_overflow_value = value;
-			onTextChange(View::kLayout_Typesetting, kTextOverflow_TextProps, isRt);
-		}
-	}
-
-	void TextOptions::set_text_white_space(TextWhiteSpace value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_white_space) {
-			_secondaryProps->text_white_space = _secondaryProps->text_white_space_value = value;
-			onTextChange(View::kLayout_Typesetting, kTextWhiteSpace_TextProps, isRt);
+		initSecondOpts();
+		if (value != _second->text_overflow) {
+			_second->text_overflow = _second->text_overflow_value = value;
+			if (value == TextOverflow::Default) {
+				_second->text_overflow_value = defaultOpts->text_overflow_value();
+			}
+			onTextChange(View::kLayout_Typesetting, kTextOverflow_TextOpt, isRt);
 		}
 	}
 
 	void TextOptions::set_text_word_break(TextWordBreak value, bool isRt) {
-		initSecondaryProps();
-		if (value != _secondaryProps->text_word_break) {
-			_secondaryProps->text_word_break = _secondaryProps->text_word_break_value = value;
-			onTextChange(View::kLayout_Typesetting, kTextWordBreak_TextProps, isRt);
+		initSecondOpts();
+		if (value != _second->text_word_break) {
+			_second->text_word_break = _second->text_word_break_value = value;
+			if (value == TextWordBreak::Default) {
+				_second->text_word_break_value = defaultOpts->text_word_break_value();
+			}
+			onTextChange(View::kLayout_Typesetting, kTextWordBreak_TextOpt, isRt);
 		}
 	}
 
 	Vec2 TextOptions::compute_layout_size(cString& value) {
-		TextLines lines(getViewForTextOptions(), text_align_value(), {/*no limit*/}, false);
-		TextConfig cfg(this, shared_app()->defaultTextOptions());
+		TextOptions opts(*this); // copy current avoid modify self
+		opts.inherit_text_config(shared_app()->defaultTextOptions()); // inherit default
+		TextLines lines(getViewForTextOptions(), opts.text_align_value(), {/*no limit*/}, false);
 		Array<TextBlob> blob;
-		TextBlobBuilder(&lines, this, &blob).make(value);
+		TextBlobBuilder(&lines, &opts, &blob).make(value);
 		lines.finish();
+		opts._isHoldSecondOpts = false; // prevent double free
 		return Vec2(lines.max_width(), lines.max_height());
 	}
 
-	// ---------------- T e x t . C o n f i g ----------------
+	#define Qk_P() ..
 
-	#define Qk_COMPUTE_TEXT_OPTIONS(Type, name, flag) \
-		if (_opts->_##name == Type::Inherit) { \
-			_opts->_##name##_value = _inherit_opts->_##name##_value; \
+	#define Qk_COMPUTE_TEXT_OPTIONS(Type, name, flag, val) \
+		if (_opts->_##name == Type::Inherit && \
+				_opts->_##val != _inherit->_##val) { \
+			_opts->_##val = _inherit->_##val; \
+			_opts->_textFlags |= flag##_TextOpt; \
 		}
 
-	#define Qk_COMPUTE_TEXT_OPTIONS_2(Type, name, flag, _Default) \
-		if (_opts->_##name.kind == TextValueKind::Inherit) {  \
-			_opts->_##name.value = _inherit_opts->_##name.value; \
-		} else if (_opts->_##name.kind == TextValueKind::Default) { \
-			_opts->_##name.value = _Default; \
+	#define Qk_COMPUTE_TEXT_OPTIONS_Second(Type, name, flag, val) \
+		if (_opts->_second->name == Type::Inherit && \
+				_opts->_second->val != _inherit->_second->val) { \
+			_opts->_second->val = _inherit->_second->val; \
 		}
 
-	#define Qk_COMPUTE_TEXT_OPTIONS_Secondary(Type, name, flag) \
-		if (_opts->_secondaryProps->name == Type::Inherit) { \
-			_opts->_secondaryProps->name##_value = _inherit_opts->_secondaryProps->name##_value; \
-		}
-
-	#define Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Type, name, flag, _Default) \
-		if (_opts->_secondaryProps->name.kind == TextValueKind::Inherit) {  \
-			_opts->_secondaryProps->name.value = _inherit_opts->_secondaryProps->name.value; \
-		} else if (_opts->_secondaryProps->name.kind == TextValueKind::Default) { \
-			_opts->_secondaryProps->name.value = _Default; \
-		}
-
-	TextConfig::TextConfig(TextOptions* opts, TextConfig* inherit)
-		: _opts(opts), _inherit(inherit)
-	{
-		if (_opts->_textFlags || _inherit->_opts->_textFlags) {
-			_opts->_textFlags |= _inherit->_opts->_textFlags;
-			auto _inherit_opts = _inherit->_opts;
-			Qk_COMPUTE_TEXT_OPTIONS(TextAlign, text_align, kTextAlign);
-			Qk_COMPUTE_TEXT_OPTIONS_2(float, text_size, kTextSize, 16);
-			Qk_COMPUTE_TEXT_OPTIONS_2(Color, text_color, kTextColor, Color(0, 0, 0));
-			Qk_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, kTextLineHeight, 0);
-			if (!_opts->_isHoldSecondaryProps) {
-				_opts->_secondaryProps = _inherit_opts->_secondaryProps; return;
-			}
-			Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(FFID, text_family, kTextFamily, (_inherit_opts->text_family().value->pool()->defaultFontFamilies()));
-			Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Shadow, text_shadow, kTextShadow, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
-			Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Color, text_background_color, kTextBackgroundColor, Color(0, 0, 0, 0));
-			Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Border, text_stroke, kTextStroke, (Border{ 0, Color(0, 0, 0, 0) }));
-			Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextWeight, text_weight, kTextWeight);
-			Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextSlant, text_slant, kTextSlant);
-			Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextDecoration, text_decoration, kTextDecoration);
-			Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextOverflow, text_overflow, kTextOverflow);
-			Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextWhiteSpace, text_white_space, kTextWhiteSpace);
-			Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextWordBreak, text_word_break, kTextWordBreak);
+	void TextOptions::inherit_text_config(TextOptions *_inherit) {
+		auto _opts = this;
+		Qk_COMPUTE_TEXT_OPTIONS(TextAlign, text_align, kTextAlign,text_align_value);
+		Qk_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, kTextWeight,text_weight_value);
+		Qk_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, kTextWhiteSpace,text_white_space_value);
+		Qk_COMPUTE_TEXT_OPTIONS(TextValueKind, text_size, kTextSize,text_size.value);
+		Qk_COMPUTE_TEXT_OPTIONS(TextValueKind, text_color, kTextColor,text_color.value);
+		Qk_COMPUTE_TEXT_OPTIONS(TextValueKind, text_line_height, kTextLineHeight,text_line_height.value);
+		if (_opts->_isHoldSecondOpts) {
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextSlant, text_slant, kTextSlant,text_slant_value);
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextDecoration, text_decoration, kTextDecoration,text_decoration_value);
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextOverflow, text_overflow, kTextOverflow,text_overflow_value);
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextWordBreak, text_word_break, kTextWordBreak,text_word_break_value);
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_family, kTextFamily,text_family.value);
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_shadow, kTextShadow,text_shadow.value);
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_background_color, kTextBackgroundColor,text_background_color.value);
+		Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_stroke, kTextStroke,text_stroke.value);
+		} else {
+			// inherit all second options directly
+			_opts->_second = _inherit->_second;
+			// mark second opts changed only
+			_opts->_textFlags |= kSecondOpts_Mask_TextOpt & _inherit->_textFlags;
 		}
 	}
 
-	TextConfig::TextConfig() {}
+	void TextOptions::resolve_text_config(TextOptions *_inherit, View *host) {
+		Qk_ASSERT_EQ(getViewForTextOptions(), host);
+		inherit_text_config(_inherit); // settings and inherit options
+		// pass text options to subview
+		if (_textFlags) {
+			auto v = host->first();
+			while (v) {
+				if (v->visible())
+					v->text_config(this); // config subview
+				v = v->next();
+			}
+			if (_textFlags & kLayout_Typesetting_Mask_TextOpt) {
+				host->_mark_value |= View::kLayout_Typesetting; // mark typesetting
+			}
+			_textFlags = 0; // clear flags
+		}
+		host->unmark(View::kText_Options);
+	}
 
-	TextConfig::~TextConfig() {
-		_opts->_textFlags = 0; // clear flags
+	void TextOptions::onTextChange(uint32_t mark, uint32_t flag, bool isRt) {
+		auto view = getViewForTextOptions();
+		if (view) {
+			if (isRt) {
+				_textFlags |= flag;
+				view->mark_layout(View::kText_Options, true);
+			} else {
+				struct Data { uint32_t mark, flag; };
+				view->preRender().async_call([](auto self, auto arg) {
+					auto view = self->getViewForTextOptions();
+					self->_textFlags |= arg.arg.flag;
+					view->mark_layout(View::kText_Options, true);
+				}, this, Data{mark,flag});
+			}
+		} else {
+			_textFlags |= flag;
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////
@@ -386,7 +393,7 @@ namespace qk {
 	DefaultTextOptions::DefaultTextOptions(FontPool *pool)
 	{
 		auto setDefault = [](TextOptions *opts, FontPool *pool) {
-			opts->set_text_align(TextAlign::Default);
+			opts->set_text_align(TextAlign::Left);
 			opts->set_text_size({16, TextValueKind::Value});
 			opts->set_text_color({Color(0, 0, 0), TextValueKind::Value});
 			opts->set_text_line_height({0, TextValueKind::Value});
@@ -394,66 +401,65 @@ namespace qk {
 			opts->set_text_shadow({{ 0, 0, 0, Color(0, 0, 0, 0) }, TextValueKind::Value});
 			opts->set_text_background_color({Color(0, 0, 0, 0), TextValueKind::Value});
 			opts->set_text_stroke({{0,Color(0, 0, 0, 0)}, TextValueKind::Value});
-			opts->set_text_weight(TextWeight::Default);
-			opts->set_text_slant(TextSlant::Default);
-			opts->set_text_decoration(TextDecoration::Default);
-			opts->set_text_overflow(TextOverflow::Default);
-			opts->set_text_white_space(TextWhiteSpace::Default);
-			opts->set_text_word_break(TextWordBreak::Default);
+			opts->set_text_weight(TextWeight::Regular);
+			opts->set_text_slant(TextSlant::Normal);
+			opts->set_text_decoration(TextDecoration::None);
+			opts->set_text_overflow(TextOverflow::Normal);
+			opts->set_text_white_space(TextWhiteSpace::Normal);
+			opts->set_text_word_break(TextWordBreak::Normal);
 		};
 		setDefault(&_default, pool); // set base
 		setDefault(this, pool); // set self
-		_opts = this;
-		_inherit = this;
 	}
 
-	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t type, bool isRt) {
+	void DefaultTextOptions::onTextChange(uint32_t mark, uint32_t flag, bool isRt) {
 		auto _opts = this;
-		auto _inherit_opts = &_default;
-		switch(type) {
-			case kTextAlign_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS(TextAlign, text_align, kTextAlign_TextProps);
+		auto _inherit = &_default;
+		switch(flag) {
+			case kTextAlign_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS(TextAlign, text_align, kTextAlign,text_align_value);
 				break;
-			case kTextSize_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_2(float, text_size, kTextSize_TextProps, 16);
+			case kTextSize_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS(TextValueKind, text_size, kTextSize,text_size.value);
 				break;
-			case kTextColor_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_2(Color, text_color, kTextColor_TextProps, Color(0, 0, 0));
+			case kTextColor_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS(TextValueKind, text_color, kTextColor, text_color.value);
 				break;
-			case kTextLineHeight_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_2(float, text_line_height, kTextLineHeight_TextProps, 0);
+			case kTextLineHeight_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS(TextValueKind, text_line_height, kTextLineHeight, text_line_height.value);
 				break;
-			case kTextFamily_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(FFID, text_family, kTextFamily_TextProps, (_inherit_opts->text_family().value->pool()->defaultFontFamilies()));
+			case kTextFamily_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_family, kTextFamily, text_family.value);
 				break;
-			case kTextShadow_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Shadow, text_shadow, kTextShadow_TextProps, (Shadow{ 0, 0, 0, Color(0, 0, 0, 0) }));
+			case kTextShadow_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_shadow, kTextShadow, text_shadow.value);
 				break;
-			case kTextBackgroundColor_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(Color, text_background_color, kTextBackgroundColor_TextProps, Color(0, 0, 0, 0));
+			case kTextBackgroundColor_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_background_color, kTextBackgroundColor, text_background_color.value);
 				break;
-			case kTextStroke_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_2_Secondary(TextStroke, text_stroke, kTextStroke_TextProps, (Border{0, Color(0, 0, 0, 0)}));
+			case kTextStroke_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextValueKind, text_stroke, kTextStroke, text_stroke.value);
 				break;
-			case kTextWeight_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextWeight, text_weight, kTextWeight_TextProps);
+			case kTextWeight_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS(TextWeight, text_weight, kTextWeight, text_weight_value);
 				break;
-			case kTextSlant_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextSlant, text_slant, kTextSlant_TextProps);
+			case kTextSlant_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextSlant, text_slant, kTextSlant, text_slant_value);
 				break;
-			case kTextDecoration_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextDecoration, text_decoration, kTextDecoration_TextProps);
+			case kTextDecoration_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextDecoration, text_decoration, kTextDecoration, text_decoration_value);
 				break;
-			case kTextOverflow_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextOverflow, text_overflow, kTextOverflow_TextProps);
+			case kTextOverflow_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextOverflow, text_overflow, kTextOverflow, text_overflow_value);
 				break;
-			case kTextWhiteSpace_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextWhiteSpace, text_white_space, kTextWhiteSpace_TextProps);
+			case kTextWhiteSpace_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS(TextWhiteSpace, text_white_space, kTextWhiteSpace, text_white_space_value);
 				break;
-			case kTextWordBreak_TextProps:
-				Qk_COMPUTE_TEXT_OPTIONS_Secondary(TextWordBreak, text_word_break, kTextWordBreak_TextProps);
+			case kTextWordBreak_TextOpt:
+				Qk_COMPUTE_TEXT_OPTIONS_Second(TextWordBreak, text_word_break, kTextWordBreak, text_word_break_value);
 				break;
 		}
+		// TODO: update TextOptions views of all windows using default text options ??
 		_textFlags = 0; // clear flags
 	}
 }

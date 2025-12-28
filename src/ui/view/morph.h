@@ -35,6 +35,9 @@
 
 namespace qk {
 
+	/**
+		* Box matrix transform view base type
+		*/
 	class Qk_EXPORT MorphView {
 	public:
 		// Start the matrix transform from this origin point start
@@ -82,9 +85,7 @@ namespace qk {
 	};
 
 	/**
-		* Box matrix transform
-		*
-	 * @class Morph
+		* Box matrix transform view
 		*/
 	class Morph: public Box, public MorphView {
 	public:

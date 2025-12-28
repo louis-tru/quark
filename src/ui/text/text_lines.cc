@@ -37,8 +37,83 @@
 #include "./text_blob.h"
 #include "../view/box.h"
 #include "../geometry.h"
+#include "../view/label.h"
 
 namespace qk {
+
+	bool TextLinesRender::solve_visible_area(View* host, const Mat &mat) {
+		// solve lines visible region
+		auto& clip = host->window()->getClipRange();
+		auto  offset_in = host->layout_offset_inside();
+		auto  x1 = _min_origin + offset_in.x();
+		auto  x2 = x1 + _max_width;
+		auto  y  = offset_in.y();
+
+		Vec2 vertex[4];
+
+		vertex[0] = mat * Vec2(x1, _lines.front().start_y + y);
+		vertex[1] = mat * Vec2(x2, _lines.front().start_y + y);
+		
+		bool is_all_false = false;
+		bool visible_area = false;
+
+		// TODO
+		// Use optimization algorithm using dichotomy
+
+		for (auto &line: _lines) {
+			if (is_all_false) {
+				line.visible_area = false;
+				continue;
+			}
+			auto y2 = line.end_y + y;
+			vertex[3] = mat * Vec2(x1, y2);
+			vertex[2] = mat * Vec2(x2, y2);
+
+			auto re = region_aabb_from_convex_quadrilateral(vertex);
+
+			if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.begin.y(), re.begin.y() )
+						<= re.end.y() - re.begin.y() + clip.size.y() &&
+					Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.begin.x(), re.begin.x() )
+						<= re.end.x() - re.begin.x() + clip.size.x()
+			) {
+				visible_area = true;
+				line.visible_area = true;
+			} else {
+				if (visible_area) is_all_false = true;
+				line.visible_area = false;
+			}
+			vertex[0] = vertex[3];
+			vertex[1] = vertex[2];
+		}
+		return visible_area;
+	}
+
+	void TextLinesRender::solve_visible_area_blob(View* host, Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
+		//Qk_DLog("TextLines::solve_visible_area_blob");
+		blob_visible->clear();
+
+		// if (!visible_area()) {
+		// 	return;
+		// }
+		auto& clip = host->window()->getClipRange();
+		bool is_break = false;
+
+		for (int i = 0, len = blob->length(); i < len; i++) {
+			auto &item = (*blob)[i];
+			if (item.blob.glyphs.length() == 0)
+				continue;
+			auto &line = _lines[item.line];
+			if (line.visible_area) {
+				is_break = true;
+				blob_visible->push(i);
+			} else {
+				if (is_break)
+					break;
+			}
+			//Qk_DLog("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
+			//	item.origin, item.line, item.blob.glyphs.length(), line.visible_area);
+		}
+	}
 
 	TextLines::TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x)
 		: _pre_width(0), _ignore_single_white_space(false), _have_init_line_height(false)
@@ -46,17 +121,34 @@ namespace qk {
 		, _host(host), _host_float_x(host_float_x)
 		, _text_align(text_align), _visible_area(false)
 	{
+		struct S {
+			TextLinesRender lines;
+			Label label;
+		};
+		sizeof(TextLines);
+		sizeof(TextLinesRender);
+		sizeof(View);
+		sizeof(Label);
+		sizeof(String);
+		sizeof(std::string);
+		// sizeof(std::vector<void*>);
+		sizeof(TextOptions);
+		sizeof(S);
+		sizeof(Box);
+		sizeof(Line);
+		sizeof(TextLinesRender::Line);
 		clear();
 	}
 
 	void TextLines::clear() {
-		_lines.clear();
-		_lines.push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+		// _lines.clear();
+		// _lines.push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+		_render->_lines.clear();
 		_last = &_lines[0];
 		_preView.clear();
 		_preView.push(Array<View*>());
-		_max_width = 0;
-		_min_origin = Float32::limit_max;
+		// _max_width = 0;
+		// _min_origin = Float32::limit_max;
 		_visible_area = false;
 	}
 
@@ -69,7 +161,7 @@ namespace qk {
 	void TextLines::push(TextOptions *opts) {
 		finish_line();
 
-		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, 0, uint32_t(_lines.length()) });
+		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, 0 });
 		_last = &_lines.back();
 		_pre_width = 0;
 		_preView.push(Array<View*>());
@@ -163,10 +255,9 @@ namespace qk {
 				default: // bottom and baseline align
 					set_line_height(height, 0); break;
 			}
-			_last->width += size.width();
 		}
-		if ( _last->width > _max_width ) {
-			_max_width = _last->width;
+		if ( _last->width > _render->_max_width ) {
+			_render->_max_width = _last->width;
 		}
 	}
 
@@ -175,7 +266,8 @@ namespace qk {
 		finish_line();
 
 		float host_width = _host_float_x ?
-			Float32::max(_max_width, _limit_range.begin.x()): _limit_range.end.x();
+			Float32::max(_render->_max_width, _limit_range.begin.x()): _limit_range.end.x();
+		int lineNum = 0;
 
 		for (auto &line: _lines) {
 			switch(_text_align) {
@@ -184,14 +276,14 @@ namespace qk {
 				case TextAlign::Center: line.origin = (host_width - line.width) * 0.5; break;
 				case TextAlign::Right:  line.origin = host_width - line.width; break;
 			}
-			if ( line.origin < _min_origin) {
-				_min_origin = line.origin;
+			if ( line.origin < _render->_min_origin) {
+				_render->_min_origin = line.origin;
 			}
 
 			float top = line.top;
 			float bottom = line.bottom;
 
-			for (auto view: _preView[line.line]) {
+			for (auto view: _preView[lineNum]) {
 				float size_y = view->layout_size().y();
 				//auto x = _last->origin + view->layout_offset().x();
 				float x = line.origin + view->layout_offset().x();
@@ -214,6 +306,7 @@ namespace qk {
 				}
 				view->set_layout_offset(Vec2(x, y));
 			}
+			lineNum++;
 		}
 
 		_preView.clear();
@@ -227,7 +320,8 @@ namespace qk {
 		}
 	}
 
-	void TextLines::add_view(View* view) {
+	void TextLines::add_view(View* view, float lineWidth) {
+		_last->width = _pre_width = lineWidth;
 		_preView.back().push(view);
 	}
 
@@ -249,18 +343,19 @@ namespace qk {
 			return;
 
 		auto frontOffset = -offset.front().x();
-		auto line = _last->line;
+		//auto line = _last->line;
+		auto line = _lines.length() - 1;
 
 		if (pre.blobOut->length()) {
-			auto& blob = pre.blobOut->back();
-			// merge glyphs blob
-			if (blob.line == line && pre.typeface == blob.blob.typeface) {
-				blob.blob.glyphs.write(glyphs.val(), glyphs.length());
-				frontOffset += blob.blob.offset.back().x();
+			auto& last = pre.blobOut->back();
+			// merge glyphs blob if last blob is same line and typeface
+			if (last.line == line && pre.typeface == last.blob.typeface) {
+				last.blob.glyphs.write(glyphs.val(), glyphs.length());
+				frontOffset += last.blob.offset.back().x();
 				for (uint32_t i = 1; i < offset.length(); i++) {
-					blob.blob.offset.push({offset[i].x() + frontOffset, offset[i].y()});
+					last.blob.offset.push({offset[i].x() + frontOffset, offset[i].y()});
 				}
-				_last->width = blob.origin + blob.blob.offset.back().x();
+				_last->width = last.origin + last.blob.offset.back().x();
 				return;
 			}
 		}
@@ -289,7 +384,8 @@ namespace qk {
 	void TextLines::add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar) {
 		auto _opts = builder->opts();
 		auto _blob = builder->blobOut();
-		if (!_blob->length() || _blob->back().line != last()->line) { // empty line
+		auto line = _lines.length() - 1; // current line
+		if (!_blob->length() || _blob->back().line != line) { // empty line
 			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
 			FontMetricsBase metrics;
 			auto height = tf->getMetrics(&metrics, _opts->text_size().value);
@@ -297,87 +393,86 @@ namespace qk {
 			auto origin = _last->width;
 
 			_blob->push({
-				ascent, height, _last->width, _last->line, index_of_unichar, {tf, .offset={Vec2()}},
+				ascent, height, _last->width, line, index_of_unichar, {tf, .offset={Vec2()}},
 			});
 		}
 	}
 
-	void TextLines::solve_visible_area(const Mat &mat) {
-		// solve lines visible region
-		auto& clip = _host->window()->getClipRange();
-		auto  offset_in = _host->layout_offset_inside();
-		auto  x1 = _min_origin + offset_in.x();
-		auto  x2 = x1 + _max_width;
-		auto  y  = offset_in.y();
+	// void TextLines::solve_visible_area(const Mat &mat) {
+	// 	// solve lines visible region
+	// 	auto& clip = _host->window()->getClipRange();
+	// 	auto  offset_in = _host->layout_offset_inside();
+	// 	auto  x1 = _min_origin + offset_in.x();
+	// 	auto  x2 = x1 + _max_width;
+	// 	auto  y  = offset_in.y();
 
-		Vec2 vertex[4];
+	// 	Vec2 vertex[4];
 
-		vertex[0] = mat * Vec2(x1, _lines.front().start_y + y);
-		vertex[1] = mat * Vec2(x2, _lines.front().start_y + y);
+	// 	vertex[0] = mat * Vec2(x1, _lines.front().start_y + y);
+	// 	vertex[1] = mat * Vec2(x2, _lines.front().start_y + y);
 		
-		bool is_all_false = false;
+	// 	bool is_all_false = false;
 
-		_visible_area = false;
+	// 	_visible_area = false;
 
-		// TODO
-		// Use optimization algorithm using dichotomy
+	// 	// TODO
+	// 	// Use optimization algorithm using dichotomy
 
-		for (auto &line: _lines) {
-			if (is_all_false) {
-				line.visible_area = false;
-				continue;
-			}
-			auto y2 = line.end_y + y;
-			vertex[3] = mat * Vec2(x1, y2);
-			vertex[2] = mat * Vec2(x2, y2);
+	// 	for (auto &line: _lines) {
+	// 		if (is_all_false) {
+	// 			line.visible_area = false;
+	// 			continue;
+	// 		}
+	// 		auto y2 = line.end_y + y;
+	// 		vertex[3] = mat * Vec2(x1, y2);
+	// 		vertex[2] = mat * Vec2(x2, y2);
 
-			auto re = region_aabb_from_convex_quadrilateral(vertex);
+	// 		auto re = region_aabb_from_convex_quadrilateral(vertex);
 
-			if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.begin.y(), re.begin.y() )
-						<= re.end.y() - re.begin.y() + clip.size.y() &&
-					Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.begin.x(), re.begin.x() )
-						<= re.end.x() - re.begin.x() + clip.size.x()
-			) {
-				_visible_area = true;
-				line.visible_area = true;
-			} else {
-				if (_visible_area) is_all_false = true;
-				line.visible_area = false;
-			}
-			vertex[0] = vertex[3];
-			vertex[1] = vertex[2];
-		}
+	// 		if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.begin.y(), re.begin.y() )
+	// 					<= re.end.y() - re.begin.y() + clip.size.y() &&
+	// 				Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.begin.x(), re.begin.x() )
+	// 					<= re.end.x() - re.begin.x() + clip.size.x()
+	// 		) {
+	// 			_visible_area = true;
+	// 			line.visible_area = true;
+	// 		} else {
+	// 			if (_visible_area) is_all_false = true;
+	// 			line.visible_area = false;
+	// 		}
+	// 		vertex[0] = vertex[3];
+	// 		vertex[1] = vertex[2];
+	// 	}
+	// }
 
-	}
+	// void TextLines::solve_visible_area_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
+	// 	//Qk_DLog("TextLines::solve_visible_area_blob");
 
-	void TextLines::solve_visible_area_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
-		//Qk_DLog("TextLines::solve_visible_area_blob");
+	// 	blob_visible->clear();
 
-		blob_visible->clear();
+	// 	if (!visible_area()) {
+	// 		return;
+	// 	}
 
-		if (!visible_area()) {
-			return;
-		}
+	// 	auto& clip = _host->window()->getClipRange();
+	// 	bool is_break = false;
 
-		auto& clip = _host->window()->getClipRange();
-		bool is_break = false;
-
-		for (int i = 0, len = blob->length(); i < len; i++) {
-			auto &item = (*blob)[i];
-			if (item.blob.glyphs.length() == 0)
-				continue;
-			auto &line = this->line(item.line);
-			if (line.visible_area) {
-				is_break = true;
-				blob_visible->push(i);
-			} else {
-				if (is_break)
-					break;
-			}
-			//Qk_DLog("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
-			//	item.origin, item.line, item.blob.glyphs.length(), line.visible_area);
-		}
-	}
+	// 	for (int i = 0, len = blob->length(); i < len; i++) {
+	// 		auto &item = (*blob)[i];
+	// 		if (item.blob.glyphs.length() == 0)
+	// 			continue;
+	// 		auto &line = this->line(item.line);
+	// 		if (line.visible_area) {
+	// 			is_break = true;
+	// 			blob_visible->push(i);
+	// 		} else {
+	// 			if (is_break)
+	// 				break;
+	// 		}
+	// 		//Qk_DLog("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
+	// 		//	item.origin, item.line, item.blob.glyphs.length(), line.visible_area);
+	// 	}
+	// }
 
 	void TextLines::set_pre_width(float value) {
 		_pre_width = value;

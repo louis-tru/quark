@@ -46,29 +46,24 @@ namespace qk {
 		return this;
 	}
 
+	void Label::text_config(TextOptions* inherit) {
+		resolve_text_config(inherit, this);
+	}
+
 	void Label::layout_forward(uint32_t mark) {
-		// Noop, to layout_reverse handle
+		if (mark & kText_Options) {
+			Label::text_config(getClosestTextOptions());
+		}
 	}
 
 	void Label::layout_reverse(uint32_t mark) {
 		if (mark & (kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting)) {
-			_IfParent()
-				_parent->onChildLayoutChange(this, kChild_Layout_Text);
+			parent()->onChildLayoutChange(this, kChild_Layout_Text);
 			unmark(kLayout_Inner_Width | kLayout_Inner_Height | kLayout_Typesetting);
-		} else if (mark & kText_Options) {
-			unmark(kText_Options);
-			_IfParent()
-				if (_parent->viewType() == kText_ViewType) {
-					_parent->mark_layout(kText_Options, true);
-					return;
-				}
-			text_config(shared_app()->defaultTextOptions());
 		}
 	}
 
-	void Label::layout_text(TextLines *lines, TextConfig *base) {
-		TextConfig cfg(this, base);
-
+	void Label::layout_text(TextLines *lines, TextOptions* _) {
 		_blob_visible.clear();
 		_blob.clear();
 		_lines = lines;
@@ -79,38 +74,28 @@ namespace qk {
 		auto v = first();
 		while(v) {
 			if (v->visible()) {
-				v->layout_text(lines, &cfg);
+				v->layout_text(lines, this);
 			}
 			v = v->next();
 		}
-
 		//mark(kTransform, true); // mark recursive transform
 		mark(kVisible_Region, true);
 	}
 
-	void Label::text_config(TextConfig* base) {
-		TextConfig cfg(this, base);
-		auto v = first();
-		while(v) {
-			if (v->visible()) {
-				v->text_config(&cfg);
-			}
-			v = v->next();
-		}
-	}
-
 	void Label::set_layout_offset(Vec2 val) {
+		// no text container and text lines, use simple layout
 		Sp<TextLines> lines = new TextLines(this, text_align_value(), {0,0}, false); // no limit
 		lines->set_ignore_single_white_space(true);
-		layout_text(*lines, shared_app()->defaultTextOptions());
+		layout_text(*lines, nullptr); // no text container, use simple layout
 		lines->finish();
 		mark(kTransform, true);
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
+		// no text container and text lines, use simple layout
 		Sp<TextLines> lines = new TextLines(this, text_align_value(), {{}, size}, false);
 		lines->set_ignore_single_white_space(true);
-		layout_text(*lines, shared_app()->defaultTextOptions());
+		layout_text(*lines, nullptr);
 		lines->finish();
 		mark(kTransform, true);
 	}

@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "../window.h"
+#include "../painter.h"
 #include "./text.h"
 #include "../text/text_lines.h"
 #include "../app.h"
@@ -39,27 +41,33 @@ namespace qk {
 		mark_layout(kLayout_Typesetting, isRt);
 	}
 
+	void Text::text_config(TextOptions* inherit) {
+		resolve_text_config(inherit, this);
+	}
+
+	void Text::layout_forward(uint32_t mark) {
+		if (mark & kText_Options) {
+			text_config(getClosestTextOptions()); // config text options first
+		}
+		Box::layout_forward(mark);
+	}
+
 	void Text::layout_reverse(uint32_t mark_) {
 		if (mark_ & kLayout_Typesetting) {
-
-			TextConfig cfg(this, shared_app()->defaultTextOptions());
 			_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x());
 			_lines->set_init_line_height(text_size().value, text_line_height().value, false);
 
 			_blob_visible.clear();
 			_blob.clear();
 
-			TextBlobBuilder tbb(*_lines, this, &_blob);
-
 			String value(_value); // safe hold
-
-			tbb.make(value);
+			TextBlobBuilder(*_lines, this, &_blob).make(value);
 
 			auto v = first();
 			if (v) {
 				do {
 					if (v->visible())
-						v->layout_text(*_lines, &cfg);
+						v->layout_text(*_lines, this);
 					v = v->next();
 				} while(v);
 			}
@@ -70,17 +78,8 @@ namespace qk {
 				_container.float_y() ? _container.clamp_height(_lines->max_height()): _container.content[1],
 			});
 			delete_lock_state();
-			unmark(kLayout_Typesetting | kText_Options);
 			mark(kVisible_Region, true); // force test region and lines region
-		}
-		else if (mark_ & kText_Options) {
-			TextConfig cfg(this, shared_app()->defaultTextOptions());
-			auto v = first();
-			while(v) {
-				v->text_config(&cfg);
-				v = v->next();
-			}
-			unmark(kText_Options);
+			unmark(kLayout_Typesetting);
 		}
 	}
 
@@ -97,7 +96,8 @@ namespace qk {
 	}
 
 	void Text::onActivate() {
-		_textFlags = 0xffffffffu;
+		_textFlags = 0xffffffffu; // force all text options flags changed
+		mark_layout(kText_Options, true); // force text options resolve
 	}
 
 	TextOptions* Text::asTextOptions() {

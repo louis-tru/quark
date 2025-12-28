@@ -35,6 +35,9 @@
 
 namespace qk {
 
+	/**
+	 * A button view that can be focused and clicked
+	 */
 	class Qk_EXPORT Button: public Text {
 	public:
 		virtual Button* next_button(Direction dir);

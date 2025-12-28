@@ -36,6 +36,9 @@
 
 namespace qk {
 
+	/**
+	 * Multi-line text input view with scrolling capability.
+	*/
 	class Qk_EXPORT Textarea: public Input, public ScrollView {
 	public:
 		Textarea();

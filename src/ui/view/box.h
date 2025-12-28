@@ -37,8 +37,8 @@
 namespace qk {
 
 	/**
-		* @class Box
-		*/
+	 * Box view, support layout box model that use float layout its child views.
+	*/
 	class Qk_EXPORT Box: public View {
 	public:
 		// define props
@@ -93,7 +93,7 @@ namespace qk {
 		// --------------- o v e r w r i t e ---------------
 		virtual void layout_forward(uint32_t mark) override;
 		virtual void layout_reverse(uint32_t mark) override;
-		virtual void layout_text(TextLines *lines, TextConfig *cfg) override;
+		virtual void layout_text(TextLines *lines, TextOptions *opts) override;
 		virtual Vec2 layout_offset() override;
 		virtual Vec2 layout_size() override; // context + padding + border + margin
 		virtual const Container& layout_container() override;

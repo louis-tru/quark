@@ -25,10 +25,6 @@ interface Person {
 
 type LazyPerson = Getters<Person>;
 
-type RemoveReadonly<Type> = {
-	-readonly [key in keyof Type]: Type[key]
-}
-
 // --------------------
 
 // Remove the 'kind' property

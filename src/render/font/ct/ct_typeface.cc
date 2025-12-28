@@ -261,15 +261,15 @@ static int ct_weight_to_fontstyle(CGFloat cgWeight, bool fromDataProvider) {
 													: nativeInterpolator.map(cgWeight);
 }
 
-/** Convert the [-1, 1] CTFontDescriptor width to [0, 10] CSS weight. */
+/** Convert the [-1, 1] CTFontDescriptor width to [1, 11] CSS weight. */
 static int ct_width_to_fontstyle(CGFloat cgWidth) {
 	using Interpolator = QkLinearInterpolater<CGFloat, int, RoundCGFloatToInt>;
 
 	// Values determined by creating font data with every width, creating a CTFont,
 	// and asking the CTFont for its width. See TypefaceStyle test for basics.
 	static constexpr Interpolator::Mapping widthMappings[] = {
-		{ -0.5,  0 },
-		{  0.5, 10 },
+		{ -0.5,  1 }, // 1 because TextWidth enum is 1-11
+		{  0.5, 11 }, // 11 because TextWidth enum is 1-11
 	};
 	static constexpr Interpolator interpolator(widthMappings, Qk_ARRAY_COUNT(widthMappings));
 	return interpolator.map(cgWidth);
@@ -302,7 +302,7 @@ FontStyle QkCTFontDescriptorGetQkFontStyle(CTFontDescriptorRef desc, bool fromDa
 
 	return FontStyle((TextWeight)ct_weight_to_fontstyle(weight, fromDataProvider),
 										(TextWidth)ct_width_to_fontstyle(width),
-										slant ? TextSlant::Italic: TextSlant::Default);
+										slant ? TextSlant::Italic: TextSlant::Normal);
 }
 
 
