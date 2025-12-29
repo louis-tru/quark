@@ -54,25 +54,25 @@ namespace qk {
 
 	void Text::layout_reverse(uint32_t mark_) {
 		if (mark_ & kLayout_Typesetting) {
-			_lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x());
-			_lines->set_init_line_height(text_size().value, text_line_height().value, false);
+			TextLines lines(this, text_align_value(), _container.to_range(), _container.float_x());
+			lines.set_init_line_height(text_size().value, text_line_height().value, false);
+			_lines = lines.core();
 
 			_blob_visible.clear();
 			_blob.clear();
 
 			String value(_value); // safe hold
-			TextBlobBuilder(*_lines, this, &_blob).make(value);
+			TextBlobBuilder(&lines, this, &_blob).make(value);
 
 			auto v = first();
 			if (v) {
 				do {
 					if (v->visible())
-						v->layout_text(*_lines, this);
+						v->layout_text(&lines, this);
 					v = v->next();
 				} while(v);
 			}
-			_lines->finish();
-
+			lines.finish();
 			set_content_size({
 				_container.float_x() ? _container.clamp_width(_lines->max_width()): _container.content[0],
 				_container.float_y() ? _container.clamp_height(_lines->max_height()): _container.content[1],
@@ -90,8 +90,8 @@ namespace qk {
 	void Text::solve_visible_area(const Mat &mat) {
 		Box::solve_visible_area(mat);
 		if (_visible_area && _lines) {
-			_lines->solve_visible_area(mat);
-			_lines->solve_visible_area_blob(&_blob, &_blob_visible);
+			_lines->solve_visible_area(this, mat);
+			_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
 		}
 	}
 

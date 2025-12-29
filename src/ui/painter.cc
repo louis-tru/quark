@@ -579,7 +579,7 @@ namespace qk {
 	}
 
 	void Painter::drawTextBlob(TextOptions *v, Vec2 inOffset,
-		TextLines *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) 
+		TextLinesCore *lines, Array<TextBlob> &_blob, Array<uint32_t> &blob_visible) 
 	{
 		if (!_color.a())
 			return;

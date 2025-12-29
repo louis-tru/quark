@@ -39,9 +39,9 @@
 
 namespace qk {
 
-	template<typename T = char, typename A = Allocator> class Array;
-	template<typename T = char, typename A = Allocator> class ArrayBuffer; // array no copy
-	template<typename T = char, typename A = Allocator> using cArray = const Array<T, A>;
+	template<typename T = char, typename A = Allocator, typename B = Object> class Array;
+	template<typename T = char, typename A = Allocator, typename B = Object> class ArrayBuffer; // array no copy
+	template<typename T = char, typename A = Allocator, typename B = Object> using cArray = const Array<T, A, B>;
 	template<typename T = char> class ArrayWeak;
 	template<typename T = char> using cArrayWeak = const ArrayWeak<T>;
 
@@ -52,8 +52,8 @@ namespace qk {
 	/**
 	 * @class Array
 	 */
-	template<typename T, typename A>
-	class Array: public Object {
+	template<typename T, typename A, typename B>
+	class Array: public B {
 	public:
 		typedef T Type;
 		typedef const T cT;
@@ -250,20 +250,20 @@ namespace qk {
 	/**
 	 * @class ArrayBuffer array no copy
 	 */
-	template<typename T, typename A>
-	class ArrayBuffer: public Array<T, A> {
+	template<typename T, typename A, typename B>
+	class ArrayBuffer: public Array<T, A, B> {
 	public:
 		ArrayBuffer() {}
-		ArrayBuffer(Array<T, A>& arr): Array<T, A>(std::move(arr)) {}
-		ArrayBuffer(ArrayBuffer<T, A>& arr): Array<T, A>(std::move(arr)) {}
-		ArrayBuffer(ArrayBuffer<T, A>&& arr): Array<T, A>(std::move(arr)) {}
+		ArrayBuffer(Array<T, A, B>& arr): Array<T, A, B>(std::move(arr)) {}
+		ArrayBuffer(ArrayBuffer<T, A>& arr): Array<T, A, B>(std::move(arr)) {}
+		ArrayBuffer(ArrayBuffer<T, A>&& arr): Array<T, A, B>(std::move(arr)) {}
 
 		ArrayBuffer(T* data, uint32_t length, uint32_t capacity = 0)
-			: Array<T, A>(length, Qk_Max(capacity, length), data) {}
+			: Array<T, A, B>(length, Qk_Max(capacity, length), data) {}
 		ArrayBuffer(uint32_t length, uint32_t capacity = 0)
-			: Array<T, A>(length, capacity) {}
+			: Array<T, A, B>(length, capacity) {}
 		ArrayBuffer(typename A::template Ptr<T,A> ptr)
-			: Array<T, A>(ptr) {}
+			: Array<T, A, B>(ptr) {}
 
 		// Disable copy and assign value function
 		ArrayBuffer(const ArrayBuffer& arr) = delete;
@@ -281,10 +281,10 @@ namespace qk {
 
 		// operator=
 		ArrayBuffer& operator=(ArrayBuffer<T, A>& arr) {
-			Array<T, A>::operator=(std::move(arr)); return *this;
+			Array<T, A, B>::operator=(std::move(arr)); return *this;
 		}
 		ArrayBuffer& operator=(ArrayBuffer<T, A>&& arr) {
-			Array<T, A>::operator=(std::move(arr)); return *this;
+			Array<T, A, B>::operator=(std::move(arr)); return *this;
 		}
 	};
 
@@ -324,67 +324,67 @@ namespace qk {
 
 	// ---------------------------------- IMPL ----------------------------------
 
-	template<typename T, typename A>
-	Array<T, A>::Array(): _ptr()
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(): _ptr()
 	{}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(Array&& arr): _ptr()
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(Array&& arr): _ptr()
 	{
 		if (arr._ptr.extra)
 			operator=(std::move(arr));
 	}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(const Array& arr): _ptr{arr._ptr.allocator,0,0,arr._ptr.extra}
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(const Array& arr): _ptr{arr._ptr.allocator,0,0,arr._ptr.extra}
 	{
 		if (_ptr.extra)
 			arr.copy_(&_ptr, 0, _ptr.extra);
 	}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(const std::initializer_list<T>& list)
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(const std::initializer_list<T>& list)
 		: _ptr()
 	{
 		write(list.begin(), (uint32_t)list.size());
 	}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(const std::vector<T>& list)
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(const std::vector<T>& list)
 		: _ptr()
 	{
 		write(list.data(), (uint32_t)list.size());
 	}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(uint32_t length, uint32_t capacity, T* data)
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(uint32_t length, uint32_t capacity, T* data)
 		: _ptr(A::shared(),data,capacity,length)
 	{}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(uint32_t length): Array(length, length)
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(uint32_t length): Array(length, length)
 	{}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(uint32_t length, uint32_t capacity)
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(uint32_t length, uint32_t capacity)
 		: _ptr()
 	{
 		extend(length);
 		_ptr.extend(Qk_Max(length, capacity));
 	}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(Ptr ptr)
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(Ptr ptr)
 		: _ptr(ptr)
 	{
 	}
 
-	template<typename T, typename A>
-	Array<T, A>::Array(const A* a): _ptr(a,0,0,0) {
+	template<typename T, typename A, typename B>
+	Array<T, A, B>::Array(const A* a): _ptr(a,0,0,0) {
 	}
 
-	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::operator=(Array&& arr) {
+	template<typename T, typename A, typename B>
+	Array<T, A, B>& Array<T, A, B>::operator=(Array&& arr) {
 		if ( arr._ptr.val != _ptr.val ) {
 			clear();
 			_ptr = arr._ptr;
@@ -395,8 +395,8 @@ namespace qk {
 		return *this;
 	}
 	
-	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::operator=(const Array& arr) {
+	template<typename T, typename A, typename B>
+	Array<T, A, B>& Array<T, A, B>::operator=(const Array& arr) {
 		if (arr._ptr.val != _ptr.val) {
 			clear();
 			if (arr._ptr.extra) {
@@ -407,8 +407,8 @@ namespace qk {
 		return *this;
 	}
 
-	template<typename T, typename A>
-	T& Array<T, A>::push(const T& item) {
+	template<typename T, typename A, typename B>
+	T& Array<T, A, B>::push(const T& item) {
 		_ptr.extend(++_ptr.extra);
 		if (IsPointer<T>::value) {
 			_ptr.val[_ptr.extra-1] = item;
@@ -418,8 +418,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	T& Array<T, A>::push(T&& item) {
+	template<typename T, typename A, typename B>
+	T& Array<T, A, B>::push(T&& item) {
 		_ptr.extend(++_ptr.extra);
 		if (IsPointer<T>::value) {
 			return (_ptr.val[_ptr.extra - 1] = std::move(item));
@@ -428,8 +428,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	void Array<T, A>::pop(uint32_t count) {
+	template<typename T, typename A, typename B>
+	void Array<T, A, B>::pop(uint32_t count) {
 		uint32_t newLen = Qk_Max(int(_ptr.extra - count), 0);
 		if (_ptr.extra > newLen) {
 			if (IsPointer<T>::value) {
@@ -444,8 +444,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	uint32_t Array<T, A>::write(const T* src, uint32_t size_src, int to) {
+	template<typename T, typename A, typename B>
+	uint32_t Array<T, A, B>::write(const T* src, uint32_t size_src, int to) {
 		if (size_src) {
 			if ( to == -1 ) to = _ptr.extra;
 			uint32_t end = to + size_src;
@@ -469,8 +469,8 @@ namespace qk {
 		return size_src;
 	}
 
-	template<typename T, typename A>
-	void Array<T, A>::concat_(T* src, uint32_t src_length) {
+	template<typename T, typename A, typename B>
+	void Array<T, A, B>::concat_(T* src, uint32_t src_length) {
 		if (src_length) {
 			_ptr.extra += src_length;
 			_ptr.extend(_ptr.extra);
@@ -489,16 +489,16 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
+	template<typename T, typename A, typename B>
 	template<typename A2>
-	Array<T, A>& Array<T, A>::concat(Array<T, A2>&& arr) {
+	Array<T, A, B>& Array<T, A, B>::concat(Array<T, A2>&& arr) {
 		concat_(*arr, arr.length());
 		arr._ptr.extra = 0;
 		return *this;
 	}
 
-	template<typename T, typename A>
-	ArrayWeak<T> Array<T, A>::slice(uint32_t start, uint32_t end) const {
+	template<typename T, typename A, typename B>
+	ArrayWeak<T> Array<T, A, B>::slice(uint32_t start, uint32_t end) const {
 		end = Qk_Min(end, _ptr.extra);
 		if (start < end) {
 			return ArrayWeak<T>(_ptr.val + start, end - start);
@@ -507,8 +507,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const {
+	template<typename T, typename A, typename B>
+	ArrayBuffer<T, A> Array<T, A, B>::copy(uint32_t start, uint32_t end) const {
 		end = Qk_Min(end, _ptr.extra);
 		if (start < end) {
 			ArrayBuffer<T, A> arr;
@@ -519,8 +519,8 @@ namespace qk {
 		return ArrayBuffer<T, A>();
 	}
 
-	template<typename T, typename A>
-	void Array<T, A>::copy_(Ptr* dest, uint32_t start, uint32_t len) const {
+	template<typename T, typename A, typename B>
+	void Array<T, A, B>::copy_(Ptr* dest, uint32_t start, uint32_t len) const {
 		dest->resize(len);
 		if (IsPointer<T>::value) {
 			memcpy(dest->val, _ptr.val + start, len * sizeof(T));
@@ -534,8 +534,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	T* Array<T, A>::collapse() {
+	template<typename T, typename A, typename B>
+	T* Array<T, A, B>::collapse() {
 		T* r = _ptr.val;
 		_ptr.extra = 0;
 		_ptr.capacity = 0;
@@ -543,8 +543,8 @@ namespace qk {
 		return r;
 	}
 
-	template<typename T, typename A>
-	std::vector<T> Array<T, A>::vector() const {
+	template<typename T, typename A, typename B>
+	std::vector<T> Array<T, A, B>::vector() const {
 		if (IsPointer<T>::value) {
 			std::vector<T> r(_ptr.extra);
 			if (_ptr.extra)
@@ -557,8 +557,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	void Array<T, A>::clear() {
+	template<typename T, typename A, typename B>
+	void Array<T, A, B>::clear() {
 		if (_ptr.val) {
 			if (!IsPointer<T>::value) {
 				T *i = _ptr.val, *end = i + _ptr.extra;
@@ -570,8 +570,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	void Array<T, A>::reset(uint32_t length) {
+	template<typename T, typename A, typename B>
+	void Array<T, A, B>::reset(uint32_t length) {
 		if (length < _ptr.extra) { // clear Partial data
 			if (!IsPointer<T>::value) {
 				T* i = _ptr.val + length;
@@ -585,8 +585,8 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
-	void Array<T, A>::extend(uint32_t length) {
+	template<typename T, typename A, typename B>
+	void Array<T, A, B>::extend(uint32_t length) {
 		if (length > _ptr.extra) {
 			_ptr.extend(length);
 			if (!IsPointer<T>::value)
@@ -595,9 +595,9 @@ namespace qk {
 		}
 	}
 
-	template<typename T, typename A>
+	template<typename T, typename A, typename B>
 	template<typename S>
-	Array<S, A> Array<T, A>::map(const std::function<S(const T& t, uint32_t i)> &cb) const {
+	Array<S, A> Array<T, A, B>::map(const std::function<S(const T& t, uint32_t i)> &cb) const {
 		Array<S, A> arr;
 		if (_ptr.extra) {
 			arr._ptr.extend(_ptr.extra);
@@ -609,29 +609,29 @@ namespace qk {
 		Qk_ReturnLocal(arr);
 	}
 
-	template<typename T, typename A>
-	Array<T, A>& Array<T, A>::reverse() {
+	template<typename T, typename A, typename B>
+	Array<T, A, B>& Array<T, A, B>::reverse() {
 		Array<char, Allocator>::_Reverse(_ptr.val, sizeof(T), _ptr.extra);
 		return *this;
 	}
 
 	template<> Qk_EXPORT
-	void Array<char, Allocator>::_Reverse(void *src, size_t size, uint32_t len);
+	void Array<char, Allocator, Object>::_Reverse(void *src, size_t size, uint32_t len);
 
-	#define Qk_DEF_ARRAY_SPECIAL_(T, A) \
-		template<> Qk_EXPORT void            Array<T, A>::reset(uint32_t length); \
-		template<> Qk_EXPORT void            Array<T, A>::extend(uint32_t length); \
-		template<> Qk_EXPORT std::vector<T>  Array<T, A>::vector() const; \
-		template<> Qk_EXPORT void            Array<T, A>::concat_(T* src, uint32_t src_length); \
-		template<> Qk_EXPORT uint32_t        Array<T, A>::write(const T* src, uint32_t size, int to); \
-		template<> Qk_EXPORT T&              Array<T, A>::push(T&& item); \
-		template<> Qk_EXPORT T&              Array<T, A>::push(const T& item); \
-		template<> Qk_EXPORT void            Array<T, A>::pop(uint32_t count); \
-		template<> Qk_EXPORT void            Array<T, A>::clear(); \
-		template<> Qk_EXPORT void            Array<T, A>::copy_(Ptr* dest, uint32_t start, uint32_t len) const;
+	#define Qk_DEF_ARRAY_SPECIAL_(T, A, B) \
+		template<> Qk_EXPORT void            Array<T, A, B>::reset(uint32_t length); \
+		template<> Qk_EXPORT void            Array<T, A, B>::extend(uint32_t length); \
+		template<> Qk_EXPORT std::vector<T>  Array<T, A, B>::vector() const; \
+		template<> Qk_EXPORT void            Array<T, A, B>::concat_(T* src, uint32_t src_length); \
+		template<> Qk_EXPORT uint32_t        Array<T, A, B>::write(const T* src, uint32_t size, int to); \
+		template<> Qk_EXPORT T&              Array<T, A, B>::push(T&& item); \
+		template<> Qk_EXPORT T&              Array<T, A, B>::push(const T& item); \
+		template<> Qk_EXPORT void            Array<T, A, B>::pop(uint32_t count); \
+		template<> Qk_EXPORT void            Array<T, A, B>::clear(); \
+		template<> Qk_EXPORT void            Array<T, A, B>::copy_(Ptr* dest, uint32_t start, uint32_t len) const;
 
 	#define Qk_DEF_ARRAY_SPECIAL(T) \
-		Qk_DEF_ARRAY_SPECIAL_(T, Allocator)
+		Qk_DEF_ARRAY_SPECIAL_(T, Allocator, Object)
 
 	Qk_DEF_ARRAY_SPECIAL(char);
 	Qk_DEF_ARRAY_SPECIAL(uint8_t);

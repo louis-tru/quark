@@ -31,20 +31,23 @@
 #include "./allocator.h"
 #include "./util.h"
 
-#ifndef Qk_Min_CAPACITY
-# define Qk_Min_CAPACITY (4)
-#endif
-
 namespace qk {
 	typedef Allocator::Ptr<void> VoidPtr;
+
+	constexpr uint32_t kSmallTypeSize = 8;
+	constexpr uint32_t kMinSmallCapacity = 4;
 
 	/// Round up to the next power of 2
 	/// @param size Input value
 	/// @return The smallest power of 2 >= size
 	uint32_t upPow2(uint32_t size) {
+		if (size <= 1)
+			return 1;
+		// Qk_ASSERT_GT(size, 1, "size must be greater than 1");
 		// e.g., 5 -> 8, 16 -> 16, 17 -> 32
 		// return powf(2, ceilf(log2f(size)));
-		return 1u << (64 - __builtin_clzll(size - 1)); 
+		// return 1u << (64 - __builtin_clzll(size - 1)); 
+		return 1u << (32 - __builtin_clz(size - 1));
 	}
 
 	/**
@@ -101,7 +104,13 @@ namespace qk {
 	 * @param sizeOf Size of each element
 	 */
 	static void Allocator_extend(Allocator* self, VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
-		size = Qk_Max(Qk_Min_CAPACITY, size);
+		// Capacity growth policy:
+		// - For small element types (<= 8 bytes), enforce minimum capacity of 4
+		//   to reduce realloc churn.
+		// - For large element types, do NOT enforce minimum capacity.
+		//   Typical size is often 1; extra capacity would be pure waste.
+		if (sizeOf <= kSmallTypeSize && size < kMinSmallCapacity)
+			size = kMinSmallCapacity; // minimum capacity for small types
 		size = upPow2(size);
 		ptr->val = self->mrealloc(ptr->val, sizeOf * size);
 		ptr->capacity = size;
@@ -117,12 +126,12 @@ namespace qk {
 	void Allocator::shrink(VoidPtr* ptr, uint32_t size, uint32_t sizeOf) {
 		uint32_t capacity = ptr->capacity;
 		// Shrink if usage is less than 1/4 of current capacity
-		if (size > Qk_Min_CAPACITY && size < (capacity >> 2)) {
+		if (size < (capacity >> 2)) {
 			capacity >>= 1;
 			size = upPow2(size);
 			size <<= 1;
 			size = Qk_Min(size, capacity);
-			ptr->val = mrealloc(ptr->val, sizeOf * size);
+			ptr->val = size ? mrealloc(ptr->val, sizeOf * size): (free(ptr->val), nullptr);
 			ptr->capacity = size;
 			Qk_ASSERT(ptr->val);
 		}

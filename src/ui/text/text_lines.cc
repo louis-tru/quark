@@ -38,10 +38,11 @@
 #include "../view/box.h"
 #include "../geometry.h"
 #include "../view/label.h"
+#include "../view/text.h"
 
 namespace qk {
 
-	bool TextLinesRender::solve_visible_area(View* host, const Mat &mat) {
+	void TextLinesCore::solve_visible_area(View* host, const Mat &mat) {
 		// solve lines visible region
 		auto& clip = host->window()->getClipRange();
 		auto  offset_in = host->layout_offset_inside();
@@ -51,16 +52,16 @@ namespace qk {
 
 		Vec2 vertex[4];
 
-		vertex[0] = mat * Vec2(x1, _lines.front().start_y + y);
-		vertex[1] = mat * Vec2(x2, _lines.front().start_y + y);
+		vertex[0] = mat * Vec2(x1, front().start_y + y);
+		vertex[1] = mat * Vec2(x2, front().start_y + y);
 		
 		bool is_all_false = false;
-		bool visible_area = false;
+		_visible_area = false;
 
 		// TODO
 		// Use optimization algorithm using dichotomy
 
-		for (auto &line: _lines) {
+		for (auto &line: *this) {
 			if (is_all_false) {
 				line.visible_area = false;
 				continue;
@@ -76,25 +77,24 @@ namespace qk {
 					Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.begin.x(), re.begin.x() )
 						<= re.end.x() - re.begin.x() + clip.size.x()
 			) {
-				visible_area = true;
+				_visible_area = true;
 				line.visible_area = true;
 			} else {
-				if (visible_area) is_all_false = true;
+				if (_visible_area) is_all_false = true;
 				line.visible_area = false;
 			}
 			vertex[0] = vertex[3];
 			vertex[1] = vertex[2];
 		}
-		return visible_area;
 	}
 
-	void TextLinesRender::solve_visible_area_blob(View* host, Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
+	void TextLinesCore::solve_visible_area_blob(View* host, Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
 		//Qk_DLog("TextLines::solve_visible_area_blob");
 		blob_visible->clear();
 
-		// if (!visible_area()) {
-		// 	return;
-		// }
+		if (!_visible_area) {
+			return;
+		}
 		auto& clip = host->window()->getClipRange();
 		bool is_break = false;
 
@@ -102,7 +102,7 @@ namespace qk {
 			auto &item = (*blob)[i];
 			if (item.blob.glyphs.length() == 0)
 				continue;
-			auto &line = _lines[item.line];
+			auto &line = at(item.line);
 			if (line.visible_area) {
 				is_break = true;
 				blob_visible->push(i);
@@ -122,29 +122,30 @@ namespace qk {
 		, _text_align(text_align), _visible_area(false)
 	{
 		struct S {
-			TextLinesRender lines;
+			TextLinesCore lines;
 			Label label;
 		};
-		sizeof(TextLines);
-		sizeof(TextLinesRender);
-		sizeof(View);
-		sizeof(Label);
-		sizeof(String);
-		sizeof(std::string);
-		// sizeof(std::vector<void*>);
-		sizeof(TextOptions);
-		sizeof(S);
-		sizeof(Box);
-		sizeof(Line);
-		sizeof(TextLinesRender::Line);
+		// sizeof(TextLines);
+		// sizeof(Array<Line>);
+		// sizeof(TextLinesCore);
+		// sizeof(View);
+		// sizeof(Label);
+		// sizeof(String);
+		// sizeof(std::string);
+		// // sizeof(std::vector<void*>);
+		// sizeof(TextOptions);
+		// sizeof(S);
+		// sizeof(Box);
+		// sizeof(Line);
+		// sizeof(TextLinesCore::Line);
 		clear();
 	}
 
 	void TextLines::clear() {
 		// _lines.clear();
 		// _lines.push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
-		_render->_lines.clear();
-		_last = &_lines[0];
+		_core->clear();
+		_last = &_core->front();
 		_preView.clear();
 		_preView.push(Array<View*>());
 		// _max_width = 0;
@@ -161,8 +162,8 @@ namespace qk {
 	void TextLines::push(TextOptions *opts) {
 		finish_line();
 
-		_lines.push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, 0 });
-		_last = &_lines.back();
+		_core->push({ _last->end_y, _last->end_y, 0, 0, 0, 0, 0, 0 });
+		_last = &_core->back();
 		_pre_width = 0;
 		_preView.push(Array<View*>());
 
@@ -256,8 +257,8 @@ namespace qk {
 					set_line_height(height, 0); break;
 			}
 		}
-		if ( _last->width > _render->_max_width ) {
-			_render->_max_width = _last->width;
+		if ( _last->width > _core->_max_width ) {
+			_core->_max_width = _last->width;
 		}
 	}
 
@@ -266,18 +267,18 @@ namespace qk {
 		finish_line();
 
 		float host_width = _host_float_x ?
-			Float32::max(_render->_max_width, _limit_range.begin.x()): _limit_range.end.x();
+			Float32::max(_core->_max_width, _limit_range.begin.x()): _limit_range.end.x();
 		int lineNum = 0;
 
-		for (auto &line: _lines) {
+		for (auto &line: *_core) {
 			switch(_text_align) {
 				default:
 				case TextAlign::Left: break;
 				case TextAlign::Center: line.origin = (host_width - line.width) * 0.5; break;
 				case TextAlign::Right:  line.origin = host_width - line.width; break;
 			}
-			if ( line.origin < _render->_min_origin) {
-				_render->_min_origin = line.origin;
+			if ( line.origin < _core->_min_origin) {
+				_core->_min_origin = line.origin;
 			}
 
 			float top = line.top;
@@ -343,8 +344,7 @@ namespace qk {
 			return;
 
 		auto frontOffset = -offset.front().x();
-		//auto line = _last->line;
-		auto line = _lines.length() - 1;
+		auto line = _core->lineNum();
 
 		if (pre.blobOut->length()) {
 			auto& last = pre.blobOut->back();
@@ -384,7 +384,7 @@ namespace qk {
 	void TextLines::add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar) {
 		auto _opts = builder->opts();
 		auto _blob = builder->blobOut();
-		auto line = _lines.length() - 1; // current line
+		auto line = _core->lineNum(); // current line
 		if (!_blob->length() || _blob->back().line != line) { // empty line
 			auto tf = _opts->text_family().value->match(_opts->font_style(), 0);
 			FontMetricsBase metrics;

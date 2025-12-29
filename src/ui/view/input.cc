@@ -443,7 +443,7 @@ namespace qk {
 			float y = coord.y() - pos.y();
 			Vec2 offset = input_text_offset();
 
-			const TextLinesRender::Line* line = nullptr;
+			const TextLines::Line* line = nullptr;
 			int lineNum = 0;
 
 			if ( y < offset.y() ) {
@@ -705,11 +705,11 @@ namespace qk {
 	Vec2 Input::layout_typesetting_input_text() {
 		FontMetricsBase metrics;
 
-		auto _lines = new TextLines(this, text_align_value(), _container.to_range(), _container.float_x());
+		TextLines lines(this, text_align_value(), _container.to_range(), _container.float_x());
 
-		_lines->set_init_line_height(text_size().value, text_line_height().value, true);
+		lines.set_init_line_height(text_size().value, text_line_height().value, true);
 		_cursor_height = text_family().value->match(font_style())->getMetrics(&metrics, text_size().value);
-
+		_lines = lines.core();
 		_cursor_ascent = -metrics.fAscent;
 		_marked_blob_begin = _marked_blob_end = 0;
 
@@ -721,7 +721,7 @@ namespace qk {
 		String4 &str = value_u4.length() ? value_u4: placeholder_u4;
 
 		if (str.length()) { // text layout
-			TextBlobBuilder tbb(_lines, this, &_blob);
+			TextBlobBuilder tbb(&lines, this, &_blob);
 
 			if (!is_multiline()) {
 				tbb.set_disable_auto_wrap(true);
@@ -738,7 +738,7 @@ namespace qk {
 
 				auto make = [&](const Unichar *src, uint32_t len) {
 					tbb.make(string4_to_unichar(src, len, false, false, !is_multiline()));
-					_lines->finish_text_blob_pre();
+					lines.finish_text_blob_pre();
 					if (blob.length())
 						blob.concat(std::move(_blob));
 					else
@@ -771,10 +771,10 @@ namespace qk {
 
 			if (str[str.length() - 1] == '\n')
 				// Add a empty blob placeholder
-				_lines->add_text_empty_blob(&tbb, tbb.index_of_unichar());
+				lines.add_text_empty_blob(&tbb, tbb.index_of_unichar());
 		}
 
-		_lines->finish();
+		lines.finish();
 
 		set_content_size({
 			_container.float_x() ? _container.clamp_width(_lines->max_width()): _container.content[0],
@@ -813,11 +813,8 @@ namespace qk {
 			_mat = mat;
 			if (_lines) {
 				window()->clipRange(region_aabb_from_convex_quadrilateral(_boxBounds));
-				if (_lines->solve_visible_area(this, mat)) {
-					_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
-				} else {
-					_blob_visible.clear();
-				}
+				_lines->solve_visible_area(this, mat);
+				_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
 				window()->clipRestore();
 			}
 		}
@@ -856,7 +853,7 @@ namespace qk {
 		// 计算光标的具体偏移位置x
 		// ===========================
 		auto cSize = _container.content;
-		TextLinesRender::Line* line = nullptr;
+		const TextLines::Line* line = nullptr;
 
 		if ( cursor_blob ) { // set cursor pos
 			Qk_ASSERT(_value_u4.length());

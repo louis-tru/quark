@@ -58,7 +58,7 @@ namespace qk {
 	protected:
 		virtual View* getViewForTextOptions() override;
 	private:
-		Sp<TextLines>   _lines;
+		Sp<TextLinesCore> _lines;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
 		friend class Painter;

@@ -96,7 +96,7 @@ namespace qk {
 		virtual void set_input_text_offset(Vec2 val);
 		virtual View* init(Window *win) override;
 	private:
-		Sp<TextLinesRender> _lines;
+		Sp<TextLinesCore> _lines;
 		Array<TextBlob> _blob;
 		Array<uint32_t> _blob_visible;
 		String4 _marked_text;

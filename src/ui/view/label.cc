@@ -66,7 +66,7 @@ namespace qk {
 	void Label::layout_text(TextLines *lines, TextOptions* _) {
 		_blob_visible.clear();
 		_blob.clear();
-		_lines = lines;
+		_lines = lines->core();
 
 		String value(_value); // safe hold
 		TextBlobBuilder(lines, this, &_blob).make(value);
@@ -84,27 +84,27 @@ namespace qk {
 
 	void Label::set_layout_offset(Vec2 val) {
 		// no text container and text lines, use simple layout
-		Sp<TextLines> lines = new TextLines(this, text_align_value(), {0,0}, false); // no limit
-		lines->set_ignore_single_white_space(true);
-		layout_text(*lines, nullptr); // no text container, use simple layout
-		lines->finish();
+		TextLines lines(this, text_align_value(), {0,0}, false); // no limit
+		lines.set_ignore_single_white_space(true);
+		layout_text(&lines, nullptr); // no text container, use simple layout
+		lines.finish();
 		mark(kTransform, true);
 	}
 
 	void Label::set_layout_offset_free(Vec2 size) {
 		// no text container and text lines, use simple layout
-		Sp<TextLines> lines = new TextLines(this, text_align_value(), {{}, size}, false);
-		lines->set_ignore_single_white_space(true);
-		layout_text(*lines, nullptr);
-		lines->finish();
+		TextLines lines(this, text_align_value(), {{}, size}, false);
+		lines.set_ignore_single_white_space(true);
+		layout_text(&lines, nullptr);
+		lines.finish();
 		mark(kTransform, true);
 	}
 
 	void Label::solve_visible_area(const Mat &mat) {
 		if (_lines) {
-			if (_lines->host() == this) // At Label::set_layout_offset_free(), new TextLines()
-				_lines->solve_visible_area(mat);
-			_lines->solve_visible_area_blob(&_blob, &_blob_visible);
+			if (!parent()->asTextOptions()) // At Label::set_layout_offset_free(), new TextLines()
+				_lines->solve_visible_area(this, mat);
+			_lines->solve_visible_area_blob(this, &_blob, &_blob_visible);
 			_visible_area = _blob_visible.length();
 		}
 	}
