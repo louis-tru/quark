@@ -42,6 +42,9 @@
 
 namespace qk {
 
+	TextLinesCore::TextLinesCore(): _max_width(0), _min_origin(Float32::limit_max), _visible_area(false) {
+	}
+
 	void TextLinesCore::solve_visible_area(View* host, const Mat &mat) {
 		// solve lines visible region
 		auto& clip = host->window()->getClipRange();
@@ -120,11 +123,13 @@ namespace qk {
 		, _limit_range(limit_range)
 		, _host(host), _host_float_x(host_float_x)
 		, _text_align(text_align), _visible_area(false)
+		, _core(new TextLinesCore())
 	{
-		struct S {
-			TextLinesCore lines;
-			Label label;
-		};
+		_core->retain();
+		// struct S {
+		// 	TextLinesCore lines;
+		// 	Label label;
+		// };
 		// sizeof(TextLines);
 		// sizeof(Array<Line>);
 		// sizeof(TextLinesCore);
@@ -141,6 +146,10 @@ namespace qk {
 		clear();
 	}
 
+	TextLines::~TextLines() {
+		Releasep(_core);
+	}
+
 	void TextLines::clear() {
 		// _lines.clear();
 		// _lines.push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
@@ -148,8 +157,8 @@ namespace qk {
 		_last = &_core->front();
 		_preView.clear();
 		_preView.push(Array<View*>());
-		// _max_width = 0;
-		// _min_origin = Float32::limit_max;
+		_core->_max_width = 0;
+		_core->_min_origin = Float32::limit_max;
 		_visible_area = false;
 	}
 

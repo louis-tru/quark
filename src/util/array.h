@@ -240,7 +240,7 @@ namespace qk {
 
 		Ptr _ptr; // allocator / data pointer / length and capacity
 
-		template<typename T2, typename A2> friend class Array;
+		template<typename T2, typename A2, typename B2> friend class Array;
 		template<typename T2, typename A2> friend class StringImpl;
 		friend class _Str;
 

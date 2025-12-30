@@ -39,6 +39,7 @@ if   [ ! -d libs/qktool ] \
 	|| [ ! -d deps/v8 ] \
 	|| [ ! -d deps/ffmpeg ] \
 	|| [ ! -d deps/bptree ] \
+	|| [ ! -d deps/lmdb ] \
 ; then
 	git submodule update --init --recursive
 fi

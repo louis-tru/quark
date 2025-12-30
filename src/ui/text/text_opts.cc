@@ -307,10 +307,8 @@ namespace qk {
 		TextBlobBuilder(&lines, &opts, &blob).make(value);
 		lines.finish();
 		opts._isHoldSecondOpts = false; // prevent double free
-		return Vec2(lines.max_width(), lines.max_height());
+		return Vec2(lines.core()->max_width(), lines.core()->max_height());
 	}
-
-	#define Qk_P() ..
 
 	#define Qk_COMPUTE_TEXT_OPTIONS(Type, name, flag, val) \
 		if (_opts->_##name == Type::Inherit && \

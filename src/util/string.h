@@ -525,15 +525,15 @@ namespace qk {
 	template <> Qk_EXPORT
 	String StringImpl<>::toString() const;
 
-	template <typename T, typename A>
-	StringImpl<T, A> Array<T, A>::collapseString() {
+	template <typename T, typename A, typename B>
+	StringImpl<T, A> Array<T, A, B>::collapseString() {
 		return StringImpl<T, A>(std::move(*this));
 	}
 
 	// --------------------------------------------------------------------------------
 
-	template <typename T, typename A>
-	String Array<T, A>::join(cString& sp) const {
+	template <typename T, typename A, typename B>
+	String Array<T, A, B>::join(cString& sp) const {
 		IteratorConst it[] = { begin(), end() };
 		return _Str::join(sp, it, length(), [](void* data, String* out) -> bool {
 			auto it = static_cast<IteratorConst*>(data);
@@ -550,8 +550,8 @@ namespace qk {
 		});
 	}
 
-	template<typename T, typename A>
-	String Array<T, A>::toString() const {
+	template<typename T, typename A, typename B>
+	String Array<T, A, B>::toString() const {
 		return join(String());
 	}
 

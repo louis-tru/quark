@@ -54,6 +54,7 @@ namespace qk {
 		Qk_DISABLE_COPY(TextLinesCore);
 	public:
 		typedef TextLine Line;
+		TextLinesCore();
 		Qk_DEFINE_PROP_GET(float, max_width, Const);
 		Qk_DEFINE_PROP_GET(float, min_origin, Const);
 		Qk_DEFINE_PROP_GET(bool, visible_area, Const);
@@ -92,6 +93,7 @@ namespace qk {
 
 		// defines methods
 		TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x);
+		~TextLines();
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all
