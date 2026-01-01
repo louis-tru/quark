@@ -58,9 +58,7 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(float, max_width, Const);
 		Qk_DEFINE_PROP_GET(float, min_origin, Const);
 		Qk_DEFINE_PROP_GET(bool, visible_area, Const);
-		Line& last() { return back(); }
 		Line& line(int idx) { return at(idx); }
-		uint32_t length() const { return length(); }
 		uint32_t lineNum() const { return length() - 1; }
 		float max_height() const { return back().end_y; }
 		void solve_visible_area(View* host, const Mat &mat);
@@ -89,11 +87,9 @@ namespace qk {
 		Qk_DEFINE_PROP_GET(Range, limit_range, Const);
 		Qk_DEFINE_PROP_GET(Line*, last);
 		Qk_DEFINE_PROP_GET(View*, host);
-		Qk_DEFINE_PROP_GET(TextLinesCore*, core);
 
 		// defines methods
 		TextLines(View *host, TextAlign text_align, Range limit_range, bool host_float_x);
-		~TextLines();
 		void lineFeed(TextBlobBuilder* builder, uint32_t index_of_unichar); // push new row
 		void push(TextOptions *opts = nullptr); // first call finish() then add new row
 		void finish(); // finish all
@@ -103,6 +99,7 @@ namespace qk {
 		float max_height() const { return _last->end_y; }
 		void set_init_line_height(float fontSize, float line_height, bool have_init_line_height);
 		void add_text_empty_blob(TextBlobBuilder* builder, uint32_t index_of_unichar);
+		inline TextLinesCore* core() { return *_core; }
 
 	private:
 		void set_line_height(float top, float bottom);
@@ -110,6 +107,7 @@ namespace qk {
 		void finish_line(); // finish line
 		void clear();
 		void add_text_blob(PreTextBlob& pre, cArray<GlyphID>& glyphs, cArray<Vec2>& offset);
+		Sp<TextLinesCore> _core;
 		Array<Array<View*>> _preView;
 		Array<PreTextBlob> _preBlob;
 		float _line_height;

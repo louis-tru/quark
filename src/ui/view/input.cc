@@ -449,7 +449,7 @@ namespace qk {
 			if ( y < offset.y() ) {
 				line = &_lines->line(0);
 			} else if ( y > offset.y() + _lines->max_height() ) {
-				line = &_lines->last();
+				line = &_lines->back();
 				lineNum = _lines->lineNum();
 			} else {
 				for ( int j = 0; j < _lines->length(); j++ ) {

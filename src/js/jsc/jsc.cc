@@ -219,11 +219,14 @@ namespace qk { namespace js {
 			"const _rejectionListener = globalThis._rejectionListener;"
 			"const NativePromise = globalThis.Promise;"
 			"const NativeCatch = NativePromise.prototype.catch;"
+			"NativePromise.prototype._catch = NativeCatch;"
 			// override NativePromise
 			"NativePromise.prototype._hookUnhandledrejection = function() {"
 				// Note: multiple calls are safe in JSC or v8.
 				// Native Promise will only register the first rejection handler.
-				"NativeCatch.call(this, err=>{"
+				"console.log('ABCDEFG---', this._catch);"
+				//"NativeCatch.call(this, err=>{"
+				"this._catch(err=>{"
 					"if (this._catchHandler) {"
 						"(0, this._catchHandler)();" // call catch handler
 					"} else {"
@@ -247,7 +250,8 @@ namespace qk { namespace js {
 			"class Promise extends NativePromise {"
 				"constructor(executor) {"
 					"super(executor);"
-					"this._hookUnhandledrejection();" // hook unhandled rejection
+					"this._hookUnhandledrejection();"
+					//"queueMicrotask(()=>this._hookUnhandledrejection());" // hook unhandled rejection
 				"}"
 			"}"
 			// override Promise class 2, use _handled to mark is handled

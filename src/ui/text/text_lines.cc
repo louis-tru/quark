@@ -125,7 +125,6 @@ namespace qk {
 		, _text_align(text_align), _visible_area(false)
 		, _core(new TextLinesCore())
 	{
-		_core->retain();
 		// struct S {
 		// 	TextLinesCore lines;
 		// 	Label label;
@@ -146,14 +145,9 @@ namespace qk {
 		clear();
 	}
 
-	TextLines::~TextLines() {
-		Releasep(_core);
-	}
-
 	void TextLines::clear() {
-		// _lines.clear();
-		// _lines.push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 		_core->clear();
+		_core->push({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 		_last = &_core->front();
 		_preView.clear();
 		_preView.push(Array<View*>());
@@ -279,7 +273,7 @@ namespace qk {
 			Float32::max(_core->_max_width, _limit_range.begin.x()): _limit_range.end.x();
 		int lineNum = 0;
 
-		for (auto &line: *_core) {
+		for (auto &line: **_core) {
 			switch(_text_align) {
 				default:
 				case TextAlign::Left: break;
@@ -406,82 +400,6 @@ namespace qk {
 			});
 		}
 	}
-
-	// void TextLines::solve_visible_area(const Mat &mat) {
-	// 	// solve lines visible region
-	// 	auto& clip = _host->window()->getClipRange();
-	// 	auto  offset_in = _host->layout_offset_inside();
-	// 	auto  x1 = _min_origin + offset_in.x();
-	// 	auto  x2 = x1 + _max_width;
-	// 	auto  y  = offset_in.y();
-
-	// 	Vec2 vertex[4];
-
-	// 	vertex[0] = mat * Vec2(x1, _lines.front().start_y + y);
-	// 	vertex[1] = mat * Vec2(x2, _lines.front().start_y + y);
-		
-	// 	bool is_all_false = false;
-
-	// 	_visible_area = false;
-
-	// 	// TODO
-	// 	// Use optimization algorithm using dichotomy
-
-	// 	for (auto &line: _lines) {
-	// 		if (is_all_false) {
-	// 			line.visible_area = false;
-	// 			continue;
-	// 		}
-	// 		auto y2 = line.end_y + y;
-	// 		vertex[3] = mat * Vec2(x1, y2);
-	// 		vertex[2] = mat * Vec2(x2, y2);
-
-	// 		auto re = region_aabb_from_convex_quadrilateral(vertex);
-
-	// 		if (Qk_Max( clip.end.y(), re.end.y() ) - Qk_Min( clip.begin.y(), re.begin.y() )
-	// 					<= re.end.y() - re.begin.y() + clip.size.y() &&
-	// 				Qk_Max( clip.end.x(), re.end.x() ) - Qk_Min( clip.begin.x(), re.begin.x() )
-	// 					<= re.end.x() - re.begin.x() + clip.size.x()
-	// 		) {
-	// 			_visible_area = true;
-	// 			line.visible_area = true;
-	// 		} else {
-	// 			if (_visible_area) is_all_false = true;
-	// 			line.visible_area = false;
-	// 		}
-	// 		vertex[0] = vertex[3];
-	// 		vertex[1] = vertex[2];
-	// 	}
-	// }
-
-	// void TextLines::solve_visible_area_blob(Array<TextBlob> *blob, Array<uint32_t> *blob_visible) {
-	// 	//Qk_DLog("TextLines::solve_visible_area_blob");
-
-	// 	blob_visible->clear();
-
-	// 	if (!visible_area()) {
-	// 		return;
-	// 	}
-
-	// 	auto& clip = _host->window()->getClipRange();
-	// 	bool is_break = false;
-
-	// 	for (int i = 0, len = blob->length(); i < len; i++) {
-	// 		auto &item = (*blob)[i];
-	// 		if (item.blob.glyphs.length() == 0)
-	// 			continue;
-	// 		auto &line = this->line(item.line);
-	// 		if (line.visible_area) {
-	// 			is_break = true;
-	// 			blob_visible->push(i);
-	// 		} else {
-	// 			if (is_break)
-	// 				break;
-	// 		}
-	// 		//Qk_DLog("blob, origin: %f, line: %d, glyphs: %d, visible: %i",
-	// 		//	item.origin, item.line, item.blob.glyphs.length(), line.visible_area);
-	// 	}
-	// }
 
 	void TextLines::set_pre_width(float value) {
 		_pre_width = value;
